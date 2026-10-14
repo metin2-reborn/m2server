@@ -1,0 +1,1 @@
+return pc . getf ( "subquest_6" , "coal_done" ) == 0

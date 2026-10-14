@@ -1,0 +1,3 @@
+say_title ( gameforge . subquest_33 . _310_sayTitle ) 
+say_pc_name ( ) 
+say ( gameforge . subquest_33 . _320_say ) 

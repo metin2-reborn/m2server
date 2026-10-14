@@ -1,0 +1,6 @@
+say_title ( gameforge . guild_create . _50_sayTitle ) 
+say_reward ( gameforge . guild_create . _60_sayReward ) 
+say_item_vnum ( 70101 ) 
+say_reward ( gameforge . guild_create . _70_sayReward ) 
+set_state ( "start" ) 
+pc . give_item2 ( 70101 ) 

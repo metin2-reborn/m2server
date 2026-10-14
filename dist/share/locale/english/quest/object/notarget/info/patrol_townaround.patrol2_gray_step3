@@ -1,0 +1,2 @@
+say_title ( gameforge . patrol_townaround . _80_makequestbutton ) 
+say ( gameforge . patrol_townaround . _90_say ) 

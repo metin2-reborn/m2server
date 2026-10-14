@@ -1,0 +1,22 @@
+say_title ( gameforge . pony_levelup . _250_makequestbutton ) 
+say ( gameforge . pony_levelup . _260_sayReward ) 
+if pc . get_map_index ( ) ~= 61 then 
+say ( gameforge . pony_levelup . _270_say ) 
+local b = select ( gameforge . pony_levelup . _280_select , gameforge . find_brother_article . _170_select ) 
+if 1 == b then 
+pc . warp_local ( 61 , 760 , 1380 ) 
+elseif 2 == b then 
+say ( gameforge . pony_levelup . _290_say ) 
+local b = select ( gameforge . locale . guild . yes , gameforge . locale . guild . no ) 
+if 1 == b then 
+setstate ( "start" ) 
+q . done ( ) 
+elseif 2 == b then 
+pc . warp_local ( 61 , 760 , 1380 ) 
+else 
+say ( string . format ( gameforge . buy_fishrod . _80_say , b ) ) 
+end 
+else 
+say ( string . format ( gameforge . buy_fishrod . _80_say , b ) ) 
+end 
+end 

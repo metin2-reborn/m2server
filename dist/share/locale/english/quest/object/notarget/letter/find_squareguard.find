@@ -1,0 +1,14 @@
+local find_npc_vnum = 0 
+if pc . get_empire ( ) == 1 then 
+find_npc_vnum = 11000 
+elseif pc . get_empire ( ) == 2 then 
+find_npc_vnum = 11002 
+elseif pc . get_empire ( ) == 3 then 
+find_npc_vnum = 11004 
+end 
+local v = find_npc_by_vnum ( find_npc_vnum ) 
+if 0 == v then 
+else 
+target . vid ( "__TARGET__1" , v , gameforge . find_squareguard . _10_targetVid ) 
+end 
+send_letter ( gameforge . find_squareguard . _10_targetVid ) 

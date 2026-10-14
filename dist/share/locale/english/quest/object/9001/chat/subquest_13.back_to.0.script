@@ -1,0 +1,26 @@
+target . delete ( "__TARGET__" ) 
+say_title ( gameforge . subquest_08 . _120_sayTitle ) 
+say ( gameforge . subquest_13 . _310_say ) 
+wait ( ) 
+say_title ( gameforge . subquest_13 . _320_sayTitle ) 
+say_reward ( gameforge . subquest_13 . _330_sayReward ) 
+pc . give_exp2 ( 122000 ) 
+set_quest_state ( "levelup" , "run" ) 
+pc . change_money ( 20000 ) 
+clear_letter ( ) 
+set_state ( "__COMPLETE__" ) 
+if pc . job == 0 then 
+pc . give_item2 ( "53" , 1 ) 
+say_reward ( gameforge . subquest_13 . _340_sayReward ) 
+elseif pc . job == 1 then 
+pc . give_item2 ( "1023" , 1 ) 
+say_reward ( gameforge . subquest_13 . _350_sayReward ) 
+elseif pc . job == 2 then 
+pc . give_item2 ( "53" , 1 ) 
+say_reward ( gameforge . subquest_13 . _340_sayReward ) 
+elseif pc . job == 3 then 
+pc . give_item2 ( "7043" , 1 ) 
+say_reward ( gameforge . subquest_13 . _360_sayReward ) 
+end 
+pc . setqf ( "cloth_done" , 0 ) 
+pc . setqf ( "iron_done" , 0 ) 

@@ -1,0 +1,6 @@
+if pc . getqf ( "kill_count" ) == 0 then local s = number ( 1 , 100 ) 
+if s <= 5 and pc . count_item ( "30152" ) == 0 then 
+pc . give_item2 ( 30152 , 1 ) 
+pc . setqf ( "medicine_done" , 0 ) 
+end 
+ return end 

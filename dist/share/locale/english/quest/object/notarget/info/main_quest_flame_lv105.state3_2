@@ -1,0 +1,6 @@
+say_title ( gameforge . main_quest_flame_lv105 . _300_sayTitle ) 
+say ( gameforge . main_quest_flame_lv105 . _310_say ) 
+say_title ( gameforge . main_quest_flame_lv105 . _290_say ) 
+say ( gameforge . main_quest_flame_lv105 . _320_say ) 
+say ( ) 
+say_reward ( gameforge . main_quest_flame_lv105 . _110_sayReward ) 

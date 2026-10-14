@@ -1,0 +1,5 @@
+local s = number ( 1 , 100 ) 
+if s <= 5 and pc . count_item ( "30150" ) == 0 then 
+pc . give_item2 ( 30150 , 1 ) 
+set_state ( "gotomusician1" ) 
+end 

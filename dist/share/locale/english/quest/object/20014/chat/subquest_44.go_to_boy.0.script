@@ -1,0 +1,26 @@
+target . delete ( "__TARGET__" ) 
+say_title ( gameforge . npc_talk . _680_sayTitle ) 
+say ( gameforge . subquest_44 . _200_say ) 
+wait ( ) 
+say_title ( gameforge . npc_talk . _680_sayTitle ) 
+say ( gameforge . subquest_44 . _210_say ) 
+wait ( ) 
+say_title ( gameforge . npc_talk . _680_sayTitle ) 
+say ( gameforge . subquest_44 . _220_say ) 
+local s = select ( gameforge . subquest_44 . _50_select , gameforge . find_brother_article . _100_select ) 
+if 2 == s then 
+say ( gameforge . subquest_44 . _230_say ) 
+local a = select ( gameforge . locale . guild . yes , gameforge . locale . guild . no ) 
+if 2 == a then 
+say_title ( gameforge . npc_talk . _680_sayTitle ) 
+say ( gameforge . subquest_44 . _240_say ) 
+return 
+end 
+say_title ( gameforge . npc_talk . _680_sayTitle ) 
+say ( gameforge . subquest_44 . _250_say ) 
+set_state ( "report_YuRang" ) 
+return 
+end 
+say_title ( gameforge . npc_talk . _680_sayTitle ) 
+say ( gameforge . subquest_44 . _260_say ) 
+set_state ( "attach_bell" ) 

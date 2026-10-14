@@ -1,0 +1,2 @@
+if pc . get_level ( ) >= 7 then set_state ( "gotosmith" ) 
+ return end 

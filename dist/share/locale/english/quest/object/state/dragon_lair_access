@@ -1,0 +1,71 @@
+dragon_lair_access={["start"]=0,["kill_dragon"]=1259624743,["spawn_dragon"]=-98392822,get_settings= function ()local settings = { } 
+settings . cooldown_time = 3600 
+settings . group_time = 300 
+settings . access_item = 30179 
+settings . dragon_vnum = 2430 
+settings . spawn = { } 
+settings . spawn . x = 181 
+settings . spawn . y = 173 
+settings . warp_in = { } 
+settings . warp_in . first = { } 
+settings . warp_in . last = { } 
+settings . warp_in . first . x = 843677 
+settings . warp_in . first . y = 1.06621e+06 
+settings . warp_in . last . x = 844027 
+settings . warp_in . last . y = 1.0676e+06 
+settings . warp_out = { } 
+settings . warp_out . first = { } 
+settings . warp_out . last = { } 
+settings . warp_out . first . x = 9200 
+settings . warp_out . first . y = 1.2064e+06 
+settings . warp_out . last . x = 10900 
+settings . warp_out . last . y = 1.2091e+06 
+settings . room_area = { } 
+settings . room_area . first = { } 
+settings . room_area . last = { } 
+settings . room_area . first . x = 833000 
+settings . room_area . first . y = 1.0625e+06 
+settings . room_area . last . x = 844100 
+settings . room_area . last . y = 1.0715e+06 
+settings . access_item_amount = game . get_event_flag ( "dragon_lair_amount" ) 
+if ( settings . access_item_amount == 0 ) then 
+settings . access_item_amount = 3 
+elseif ( settings . access_item_amount == - 1 ) then 
+settings . access_item_amount = 0 
+end 
+return settings 
+end ,get_random_point= function (area_coordinates)return math . random ( area_coordinates . first . x , area_coordinates . last . x ) , math . random ( area_coordinates . first . y , area_coordinates . last . y ) 
+end ,warp_to_lair= function ()local settings = dragon_lair_access . get_settings ( ) 
+local x , y = dragon_lair_access . get_random_point ( settings . warp_in ) 
+char_log ( pc . get_player_id ( ) , "LAIR" , pc . get_channel_id ( ) .. " WARPTOLAIR: x:" .. x .. ", y:" .. y ) 
+pc . warp ( x , y ) 
+end ,warp_from_lair= function ()local settings = dragon_lair_access . get_settings ( ) 
+local x , y = dragon_lair_access . get_random_point ( settings . warp_out ) 
+char_log ( pc . get_player_id ( ) , "LAIR" , pc . get_channel_id ( ) .. " WARPFROMLAIR: x:" .. x .. ", y:" .. y ) 
+pc . warp ( x , y ) 
+end ,warp_all_from_lair= function ()local settings = dragon_lair_access . get_settings ( ) 
+warp_all_in_area_to_area ( settings . room_area . first . x , settings . room_area . first . y , settings . room_area . last . x , settings . room_area . last . y , settings . warp_out . first . x , settings . warp_out . first . y , settings . warp_out . last . x , settings . warp_out . last . y ) 
+game . set_event_flag ( "dragon_lair_alive" , 0 ) 
+char_log ( 0 , "LAIR" , "WARP ALL" ) 
+end ,get_time_remaining= function ()local settings = dragon_lair_access . get_settings ( ) 
+return ( game . get_event_flag ( "dragon_lair_time" ) + settings . cooldown_time - get_global_time ( ) ) 
+end ,give_item_to_ghost= function ()local settings = dragon_lair_access . get_settings ( ) 
+say_title ( gameforge . ghost_story . _010_sayTitle ) 
+say ( gameforge . dragon_lair_access . _130_say ) 
+say ( settings . access_item_amount .. "x: " ) 
+say_item_vnum ( settings . access_item ) 
+local give_item = select ( gameforge . dragon_lair_access . _140_select , gameforge . locale . cancel ) 
+if give_item == 1 then 
+pc . remove_item ( settings . access_item , settings . access_item_amount ) 
+char_log ( pc . get_player_id ( ) , "LAIR" , pc . get_channel_id ( ) .. " GIVE ITEM" ) 
+return true 
+else 
+return false 
+end 
+end ,show_time_remaining= function (time_remaining)q . set_title ( gameforge . dragon_lair_access . _165_sendLetter ) 
+send_letter ( gameforge . dragon_lair_access . _165_sendLetter ) 
+q . set_clock ( gameforge . locale . monkey_dungeon . quest_rest_time , time_remaining ) 
+timer ( "dragon_lair_timer" , time_remaining ) 
+notice_multiline ( string . format ( gameforge . dragon_lair_access . _170_notice , time_remaining / 60 ) , notice ) 
+q . start ( ) 
+end }

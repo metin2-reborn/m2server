@@ -1,0 +1,18 @@
+local mob3_2_kill = pc . getqf ( "mob3_2_kill" ) 
+if mob3_2_kill < 1 then 
+pc . setqf ( "mob3_2_kill" , 1 ) 
+local remain1 = 50 - pc . getqf ( "mob3_1_kill" ) 
+if remain1 < 0 then 
+remain1 = 0 
+end 
+local remain2 = 1 - pc . getqf ( "mob3_2_kill" ) 
+if remain2 < 0 then 
+remain2 = 0 
+end 
+q . set_counter_value ( remain1 + remain2 ) 
+end 
+if pc . getqf ( "mob3_1_kill" ) >= 50 and pc . getqf ( "mob3_2_kill" ) >= 1 then 
+notice_multiline ( gameforge . main_quest_lv98 . _310_1_notice , notice ) 
+notice_multiline ( gameforge . main_quest_lv98 . _310_2_notice , notice ) 
+set_state ( "state3_3" ) 
+end 

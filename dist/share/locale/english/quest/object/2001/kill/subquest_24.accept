@@ -1,0 +1,6 @@
+local cur_kill_count = pc . getqf ( "kill_count" ) + 1 
+pc . setqf ( "kill_count" , cur_kill_count ) 
+if cur_kill_count >= number ( 30 , 40 ) then 
+pc . give_item2 ( 30158 ) 
+set_state ( "report" ) 
+end 

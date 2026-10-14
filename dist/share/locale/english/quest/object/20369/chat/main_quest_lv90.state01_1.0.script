@@ -1,0 +1,7 @@
+target . delete ( "__TARGET__" ) 
+say_title ( mob_name ( 20369 ) ) 
+say ( gameforge . main_quest_lv90 . _1090_say ) 
+wait ( ) 
+say_title ( pc . getname ( ) ) 
+say ( gameforge . main_quest_lv90 . _1100_say ) 
+set_state ( "state01_2" ) 

@@ -1,0 +1,23 @@
+say_title ( gameforge . collect_quest_lv30 . _340_sayTitle ) 
+say ( gameforge . subquest_39 . _340_say ) 
+local s = select ( gameforge . subquest_39 . _350_select , gameforge . subquest_39 . _360_select ) 
+if 2 == s then 
+say_title ( gameforge . collect_quest_lv30 . _340_sayTitle ) 
+say ( gameforge . subquest_39 . _370_say ) 
+local s = select ( gameforge . subquest_39 . _380_select , gameforge . subquest_39 . _390_select ) 
+if 1 == s then 
+say_pc_name ( ) 
+say ( gameforge . subquest_39 . _400_say ) 
+wait ( ) 
+say_title ( gameforge . subquest_39 . _160_sayTitle ) 
+say ( gameforge . subquest_39 . _410_say ) 
+set_state ( "__GIVEUP__" ) 
+return 
+end 
+say_pc_name ( ) 
+say ( gameforge . subquest_39 . _420_say ) 
+return 
+end 
+say_title ( gameforge . collect_quest_lv30 . _340_sayTitle ) 
+say ( gameforge . subquest_39 . _430_say ) 
+return 

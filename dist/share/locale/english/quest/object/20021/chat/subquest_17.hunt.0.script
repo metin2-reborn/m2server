@@ -1,0 +1,19 @@
+say_title ( gameforge . subquest_17 . _160_sayTitle ) 
+say ( gameforge . subquest_17 . _280_say ) 
+local s = select ( gameforge . subquest_17 . _290_select , gameforge . subquest_17 . _50_select ) 
+if 2 == s then 
+say_title ( gameforge . subquest_17 . _160_sayTitle ) 
+say ( gameforge . subquest_17 . _60_say ) 
+local a = select ( gameforge . locale . guild . yes , gameforge . locale . guild . no ) 
+if 2 == a then 
+say_title ( gameforge . subquest_17 . _160_sayTitle ) 
+say ( gameforge . subquest_17 . _300_say ) 
+return 
+end 
+say_title ( gameforge . subquest_17 . _160_sayTitle ) 
+say ( gameforge . subquest_17 . _310_say ) 
+set_state ( "__GIVEUP__" ) 
+return 
+end 
+say_title ( gameforge . subquest_17 . _160_sayTitle ) 
+say ( gameforge . subquest_17 . _320_say ) 

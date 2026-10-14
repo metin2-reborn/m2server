@@ -1,0 +1,2 @@
+if pc . in_dungeon ( ) and pc . get_map_index ( ) >= 660000 and pc . get_map_index ( ) < 670000 then game . drop_item ( 30300 , 1 ) 
+ return end 

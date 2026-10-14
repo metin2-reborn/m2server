@@ -1,0 +1,17 @@
+if event_easter_2013 . has_rabbit ( ) then local settings = event_easter_2013 . get_settings ( ) 
+local mapIndex = pc . get_map_index ( ) 
+if mapIndex == 1 or mapIndex == 21 or mapIndex == 41 then 
+if find_npc_by_vnum ( settings . rabbit ) == 0 then 
+if mapIndex == 1 then 
+mob . spawn ( settings . rabbit , 591 , 472 , 1 , 1 , 1 ) 
+elseif mapIndex == 21 then 
+mob . spawn ( settings . rabbit , 517 , 742 , 1 , 1 , 1 ) 
+elseif mapIndex == 41 then 
+mob . spawn ( settings . rabbit , 306 , 828 , 1 , 1 , 1 ) 
+end 
+end 
+end 
+if find_npc_by_vnum ( 20352 ) == 0 then 
+event_easter_2013 . spawn_metin ( pc . get_map_index ( ) ) 
+end 
+ return end 

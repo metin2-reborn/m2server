@@ -1,0 +1,23 @@
+target . delete ( "__TARGET__" ) 
+say_title ( gameforge . find_brother_article . _20_sayTitle ) 
+say ( gameforge . subquest_23 . _30_say ) 
+wait ( ) 
+say_title ( gameforge . find_brother_article . _20_sayTitle ) 
+say ( gameforge . subquest_23 . _40_say ) 
+local s = select ( gameforge . find_brother_article . _90_select , gameforge . subquest_23 . _50_select ) 
+if 2 == s then 
+say ( gameforge . subquest_23 . _60_say ) 
+local a = select ( gameforge . locale . guild . yes , gameforge . locale . guild . no ) 
+if 2 == a then 
+say_title ( gameforge . find_brother_article . _20_sayTitle ) 
+say ( gameforge . subquest_23 . _70_say ) 
+return 
+end 
+say_pc_name ( ) 
+say ( gameforge . subquest_23 . _80_say ) 
+set_state ( "__GIVEUP__" ) 
+return 
+end 
+say_pc_name ( ) 
+say ( gameforge . subquest_23 . _90_say ) 
+set_state ( "to_youhwan" ) 

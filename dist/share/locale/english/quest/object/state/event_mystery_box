@@ -1,0 +1,22 @@
+event_mystery_box={["start"]=0,["go_sleep"]=-163855020,["run_state"]=-1626552203,drop_box= function (operator,mob)if game . get_event_flag ( "mystery_box_drop" ) ~= 1 then 
+return 
+end 
+local prob = game . get_event_flag ( "mystery_box_prob" ) 
+local box_vnum = game . get_event_flag ( "mystery_box_vnum" ) 
+local logging = game . get_event_flag ( "mystery_box_logging" ) 
+if box_vnum == 0 then 
+return 
+end 
+prob = math . floor ( prob * operator ) 
+local s = number ( 1 , prob ) 
+if s == 1 then 
+game . drop_item_with_ownership ( box_vnum , 1 ) 
+if logging == 1 then 
+char_log ( mob , "EVENT_MB_DROP_SUCCESS" , box_vnum .. " box dropped with prob:" .. prob ) 
+end 
+else 
+if logging == 1 then 
+char_log ( mob , "EVENT_MB_DROP_FAIL" , box_vnum .. " box not dropped with prob:" .. prob ) 
+end 
+end 
+end }

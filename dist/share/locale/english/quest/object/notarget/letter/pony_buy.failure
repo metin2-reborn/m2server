@@ -1,0 +1,4 @@
+setskin ( NOWINDOW ) 
+makequestbutton ( gameforge . pony_buy . _360_makequestbutton ) 
+q . set_title ( gameforge . pony_buy . _360_makequestbutton ) 
+q . start ( ) 

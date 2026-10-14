@@ -1,0 +1,3 @@
+say_title ( gameforge . main_quest_lv90 . _480_sayTitle ) 
+say ( gameforge . main_quest_lv90 . _490_say ) 
+say_item_vnum ( 31009 ) 

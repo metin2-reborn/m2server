@@ -1,0 +1,72 @@
+local foundskel = pc . getqf ( "suraskel0" ) + pc . getqf ( "suraskel1" ) + pc . getqf ( "suraskel2" ) + pc . getqf ( "suraskel3" ) + pc . getqf ( "suraskel4" ) 
+if pc . count_item ( diarypage ) == 0 and foundskel == 5 then 
+say_title ( gameforge . new_quest_lv75 . _020_set_title ) 
+say ( gameforge . new_quest_lv75 . _090_say ) 
+elseif pc . count_item ( diarypage ) > 0 and foundskel == 5 then 
+target . delete ( "__TARGET__" ) 
+say_title ( gameforge . new_quest_lv75 . _020_set_title ) 
+say ( gameforge . new_quest_lv75 . _100_say ) 
+wait ( ) 
+say ( gameforge . new_quest_lv75 . _105_say ) 
+say ( gameforge . new_quest_lv75 . _109_say ) 
+local randomvalue = math . random ( 0 , 4 ) 
+if randomvalue == 0 then 
+pc . setqf ( "suraskel0" , 0 ) 
+elseif randomvalue == 1 then 
+pc . setqf ( "suraskel1" , 0 ) 
+elseif randomvalue == 2 then 
+pc . setqf ( "suraskel2" , 0 ) 
+elseif randomvalue == 3 then 
+pc . setqf ( "suraskel3" , 0 ) 
+else 
+pc . setqf ( "suraskel4" , 0 ) 
+end 
+set_state ( "moreinfo" ) 
+elseif pc . count_item ( diarypage ) == 0 and foundskel < 5 then 
+target . delete ( "__TARGET__" ) 
+say_title ( gameforge . new_quest_lv75 . _020_set_title ) 
+say ( gameforge . new_quest_lv75 . _110_say ) 
+wait ( ) 
+say ( gameforge . new_quest_lv75 . _115_say ) 
+if foundskel > 1 then 
+local counter1 = 0 
+repeat 
+activeskel = string . format ( "suraskel%s" , counter1 ) 
+if pc . getqf ( activeskel ) == 0 then 
+local counter2 = counter1 + 1 
+while counter2 < 5 begin 
+nextskel = string . format ( "suraskel%s" , counter2 ) 
+if pc . getqf ( nextskel ) == 0 then 
+pc . setqf ( nextskel , 1 ) 
+end 
+counter2 = counter2 + 1 
+end 
+end 
+counter1 = counter1 + 1 
+until counter1 > 4 
+else 
+pc . setqf ( "suraskel0" , 1 ) 
+pc . setqf ( "suraskel1" , 1 ) 
+pc . setqf ( "suraskel2" , 1 ) 
+pc . setqf ( "suraskel3" , 1 ) 
+pc . setqf ( "suraskel4" , 1 ) 
+local randomvalue = math . random ( 0 , 4 ) 
+if randomvalue == 0 then 
+pc . setqf ( "suraskel0" , 0 ) 
+elseif randomvalue == 1 then 
+pc . setqf ( "suraskel1" , 0 ) 
+elseif randomvalue == 2 then 
+pc . setqf ( "suraskel2" , 0 ) 
+elseif randomvalue == 3 then 
+pc . setqf ( "suraskel3" , 0 ) 
+else 
+pc . setqf ( "suraskel4" , 0 ) 
+end 
+end 
+set_state ( "moreinfo" ) 
+else 
+target . delete ( "__TARGET__" ) 
+say_title ( gameforge . new_quest_lv75 . _020_set_title ) 
+say ( gameforge . new_quest_lv75 . _120_say ) 
+set_state ( "moreinfo" ) 
+end 

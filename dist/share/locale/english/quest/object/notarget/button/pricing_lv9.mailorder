@@ -1,0 +1,6 @@
+say_title ( gameforge . pricing_lv9 . _20_say_title ) 
+say ( gameforge . pricing_lv9 . _30_say ) 
+wait ( ) 
+say ( gameforge . pricing_lv9 . _40_say ) 
+say_reward ( gameforge . pricing_lv9 . _50_say_reward ) 
+set_state ( "__COMPLETE__" ) 

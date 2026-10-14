@@ -1,0 +1,41 @@
+if pc . count_item ( 30140 ) >= 1 and pc . count_item ( 30141 ) >= 1 and pc . count_item ( 30139 ) >= 100 then 
+target . delete ( "__TARGET__" ) 
+say_title ( gameforge . subquest_32 . _440_sayTitle ) 
+say ( gameforge . subquest_32 . _450_say ) 
+pc . remove_item ( 30140 , 1 ) 
+pc . remove_item ( 30141 , 1 ) 
+pc . remove_item ( 30139 , 100 ) 
+pc . setqf ( "jewel_done" , 0 ) 
+pc . setqf ( "sil_done" , 0 ) 
+say_reward ( gameforge . subquest_32 . _460_sayReward ) 
+pc . give_exp2 ( 1.1e+06 ) 
+set_quest_state ( "levelup" , "run" ) 
+say_reward ( gameforge . subquest_32 . _470_sayReward ) 
+pc . give_item2 ( 14060 ) 
+pc . give_item2 ( 16060 ) 
+pc . give_item2 ( 17060 ) 
+set_state ( "THEEND" ) 
+clear_letter ( ) 
+return 
+end 
+target . delete ( "__TARGET__" ) 
+say_title ( gameforge . subquest_32 . _440_sayTitle ) 
+say ( gameforge . subquest_32 . _480_say ) 
+local s = select ( gameforge . subquest_01 . _50_select , gameforge . subquest_01 . _60_select ) 
+if 2 == s then 
+say ( gameforge . subquest_32 . _490_say ) 
+local a = select ( gameforge . locale . guild . yes , gameforge . locale . guild . no ) 
+if 2 == a then 
+say_title ( gameforge . subquest_32 . _440_sayTitle ) 
+say ( gameforge . subquest_32 . _500_say ) 
+set_state ( "gogogo" ) 
+return 
+end 
+say_title ( gameforge . subquest_32 . _440_sayTitle ) 
+say ( gameforge . subquest_32 . _510_say ) 
+set_state ( "__GIVEUP__" ) 
+return 
+end 
+say_title ( gameforge . subquest_32 . _440_sayTitle ) 
+say ( gameforge . subquest_32 . _520_say ) 
+set_state ( "gogogo" ) 

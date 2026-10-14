@@ -1,0 +1,6 @@
+say_title ( gameforge . main_quest_flame_lv101 . _290_sendLetter ) 
+say ( gameforge . main_quest_flame_lv101 . _390_say ) 
+local remain_time = pc . getqf ( "limit_time" ) - get_time ( ) 
+local left_hour = math . mod ( remain_time / ( 60 * 60 ) , 24 ) ; 
+local left_minute = math . mod ( remain_time / 60 , 60 ) ; 
+say ( string . format ( gameforge . main_quest_flame_lv101 . _410_say , left_hour , left_minute ) ) 

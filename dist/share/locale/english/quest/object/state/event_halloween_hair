@@ -1,0 +1,68 @@
+event_halloween_hair={["start"]=0,is_running= function ()return ( game . get_event_flag ( "halloween_hair" ) > 0 ) 
+end ,setting= function ()return { 
+[ "pumpkin" ] = 30321 , 
+[ "wand" ] = 30322 , 
+[ "coupon" ] = 30323 , 
+[ "box" ] = 50215 , 
+[ "pumpkin_head" ] = 33008 
+} 
+end ,get_hair_option= function (index)local option_list = { 
+{ 
+[ "apply" ] = apply . ATTBONUS_MONSTER , 
+[ "value" ] = 10 , 
+[ "duration" ] = 604800 , 
+} , 
+{ 
+[ "apply" ] = apply . ATTBONUS_SURA , 
+[ "value" ] = 10 , 
+[ "duration" ] = 604800 , 
+} , 
+{ 
+[ "apply" ] = apply . ATTBONUS_SHAMAN , 
+[ "value" ] = 10 , 
+[ "duration" ] = 604800 , 
+} , 
+{ 
+[ "apply" ] = apply . ATTBONUS_WARRIOR , 
+[ "value" ] = 10 , 
+[ "duration" ] = 604800 , 
+} , 
+{ 
+[ "apply" ] = apply . ATTBONUS_ASSASSIN , 
+[ "value" ] = 10 , 
+[ "duration" ] = 604800 , 
+} , 
+{ 
+[ "apply" ] = apply . MAX_HP_PCT , 
+[ "value" ] = 1 , 
+[ "duration" ] = 21600 , 
+} , 
+{ 
+[ "apply" ] = apply . MAX_SP_PCT , 
+[ "value" ] = 1 , 
+[ "duration" ] = 86400 , 
+} , 
+} 
+return option_list [ index ] 
+end ,get_random_hair_option_index= function ()local index = 1 
+local rand = number ( 1 , 100 ) 
+if rand <= 5 then 
+index = rand 
+elseif rand <= 85 then 
+index = 7 
+else 
+index = 6 
+end 
+return index 
+end ,get_hair_info_by_race= function (race)hair_info_by_race = { 
+{ 74020 , 1018 } , 
+{ 74270 , 2018 } , 
+{ 74520 , 3018 } , 
+{ 74770 , 4018 } , 
+{ 75020 , 1018 } , 
+{ 75220 , 2018 } , 
+{ 75420 , 3018 } , 
+{ 75620 , 4018 } , 
+} 
+return hair_info_by_race [ race ] 
+end }

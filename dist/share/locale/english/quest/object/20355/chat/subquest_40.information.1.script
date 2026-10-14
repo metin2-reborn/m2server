@@ -1,0 +1,30 @@
+target . delete ( "__TARGET__" ) 
+say_title ( gameforge . main_quest_lv10 . _30_sayTitle ) 
+say ( gameforge . subquest_40 . _20_say ) 
+wait ( ) 
+say_title ( gameforge . main_quest_lv10 . _30_sayTitle ) 
+say ( gameforge . subquest_40 . _30_say ) 
+wait ( ) 
+say_title ( gameforge . main_quest_lv10 . _30_sayTitle ) 
+say ( gameforge . subquest_40 . _40_say ) 
+local b = select ( gameforge . subquest_40 . _50_select , gameforge . subquest_40 . _60_select ) 
+if 2 == b then 
+say ( gameforge . subquest_40 . _70_say ) 
+local a = select ( gameforge . locale . guild . yes , gameforge . locale . guild . no ) 
+if 2 == a then 
+say_title ( gameforge . main_quest_lv10 . _30_sayTitle ) 
+say ( gameforge . subquest_40 . _80_say ) 
+pc . setqf ( "aborted" , 1 ) 
+return 
+end 
+say_title ( gameforge . main_quest_lv10 . _30_sayTitle ) 
+say ( gameforge . subquest_40 . _90_say ) 
+pc . setqf ( "aborted" , 0 ) 
+set_state ( "__GIVEUP__" ) 
+return 
+end 
+say_title ( gameforge . main_quest_lv10 . _30_sayTitle ) 
+say ( gameforge . subquest_40 . _100_say ) 
+pc . setqf ( "aborted" , 0 ) 
+set_state ( "for_five_thousand_bow" ) 
+return 

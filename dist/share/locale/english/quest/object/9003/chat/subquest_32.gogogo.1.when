@@ -1,0 +1,1 @@
+return pc . getqf ( "subquest_32" , "jewel_done" ) == 1 and pc . count_item ( 30143 ) >= 1 and pc . count_item ( 30144 ) >= 100

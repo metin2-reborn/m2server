@@ -1,0 +1,3 @@
+say_title ( gameforge . pony_levelup . _720_makequestbutton ) 
+say_reward ( gameforge . pony_levelup . _740_sayReward ) 
+setstate ( "start" ) 

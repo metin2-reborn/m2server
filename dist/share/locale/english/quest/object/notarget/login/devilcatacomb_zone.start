@@ -1,0 +1,24 @@
+local setting = devilcatacomb_zone . setting ( ) 
+local idx = pc . get_map_index ( ) 
+if idx >= ( setting . map_idx * 10000 ) and idx < ( ( setting . map_idx + 1 ) * 10000 ) then 
+local level = d . getf ( "level" ) 
+d . set_warp_location ( 0 , 0 , 0 ) 
+if level == 2 then 
+say ( gameforge . devilcatacomb_zone . _10_say ) 
+say ( string . format ( gameforge . devilcatacomb_zone . _20_say , 60 ) ) 
+elseif level == pc . getqf ( "level" ) then 
+say ( gameforge . devilcatacomb_zone . _30_say ) 
+else 
+say ( gameforge . devilcatacomb_zone . _40_say ) 
+timer ( "devilcatacomb_ban_timer" , 5 ) 
+end 
+end 
+if idx == setting . map_idx then 
+pc . setf ( "devilcatacomb_zone" , "last_exit_time" , get_global_time ( ) ) 
+if pc . get_x ( ) < setting . floor1_s . x + setting . base . x or pc . get_y ( ) < setting . floor1_s . y + setting . base . y or pc . get_x ( ) > setting . floor1_e . x + setting . base . x or pc . get_y ( ) > setting . floor1_e . y + setting . base . y then 
+say ( gameforge . devilcatacomb_zone . _40_say ) 
+timer ( "devilcatacomb_ban_timer" , 5 ) 
+else 
+say ( gameforge . devilcatacomb_zone . _50_say ) 
+end 
+end 

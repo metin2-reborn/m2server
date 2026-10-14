@@ -1,0 +1,3 @@
+say_title ( gameforge . new_quest_lv22 . _015_npcChat ) 
+say ( "" ) 
+say ( gameforge . new_quest_lv22 . _011_say ) 

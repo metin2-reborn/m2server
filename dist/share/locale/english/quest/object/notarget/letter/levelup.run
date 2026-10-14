@@ -1,0 +1,15 @@
+local current = pc . getqf ( "current" ) 
+local completed_level = pc . getqf ( "complete" ) ; 
+if current == 0 and 
+pc . get_level ( ) > completed_level and 
+pc . get_level ( ) > 1 and 
+pc . get_level ( ) < 90 then 
+local lev = pc . get_level ( ) 
+pc . setqf ( "buttonstate" , 2 ) 
+makequestbutton ( string . format ( gameforge . levelup . _10_makequestbutton , lev ) ) 
+pc . setqf ( "current" , lev ) 
+pc . setqf ( "select" , 1 ) 
+pc . setqf ( "remain" , special . levelup_quest [ lev ] [ 2 ] ) 
+setskin ( NOWINDOW ) 
+end 
+setstate ( "start" ) 

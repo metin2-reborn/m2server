@@ -1,0 +1,8 @@
+if pc . get_level ( ) >= 75 then pc . setqf ( "suraskel0" , 1 ) 
+pc . setqf ( "suraskel1" , 1 ) 
+pc . setqf ( "suraskel2" , 1 ) 
+pc . setqf ( "suraskel3" , 1 ) 
+pc . setqf ( "suraskel4" , 1 ) 
+pc . setqf ( timer , get_global_time ( ) ) 
+set_state ( "gotoinformation" ) 
+ return end 

@@ -1,0 +1,3 @@
+if number ( 1 , 500 ) == 1 then 
+pc . give_item2 ( 31007 , 1 ) 
+end 

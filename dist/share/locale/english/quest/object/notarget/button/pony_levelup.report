@@ -1,0 +1,3 @@
+say_title ( gameforge . pony_levelup . _750_say ) 
+say ( gameforge . pony_levelup . _760_sayReward ) 
+say_reward ( gameforge . pony_levelup . _770_sayReward ) 

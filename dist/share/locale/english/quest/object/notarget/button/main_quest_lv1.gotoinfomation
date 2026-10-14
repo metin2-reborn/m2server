@@ -1,0 +1,3 @@
+say_title ( gameforge . main_quest_lv1 . _10_sendLetter ) 
+say ( gameforge . main_quest_lv1 . _20_say ) 
+set_state ( "gototeacher" ) 

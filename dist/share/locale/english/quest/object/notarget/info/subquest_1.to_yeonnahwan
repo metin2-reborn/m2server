@@ -1,0 +1,3 @@
+say_title ( gameforge . subquest_01 . _120_targetVid ) 
+say_reward ( gameforge . subquest_01 . _130_sayReward ) 
+say_item_vnum ( 30130 ) 

@@ -1,0 +1,5 @@
+if party . is_party ( ) then 
+if party . getf ( "flame_dungeon_boss_kill_count" ) == 0 then 
+pc . setqf ( "in_dungeon" , 0 ) 
+end 
+end 

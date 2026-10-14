@@ -1,0 +1,16 @@
+ScriptType		SkillDataScript
+
+Type			MIDDLE
+Attribute		"NEED_TARGET" "NEED_CORPSE"
+Range			100
+
+Name			"이혈술"
+Description		"죽은 적의 혼을 흡수해 섭혼구 아이템 획득"
+
+IconFileName	"skill/sura/ihyeol.sub"
+MotionIndex		8
+
+MaxLevel			"8"
+LevelUpPoint		"8"
+CoolTimeFormula		"20"
+NeedSPFormula		"100"

@@ -1,0 +1,27 @@
+target . delete ( "__TARGET__" ) 
+say_title ( gameforge . subquest_06 . _320_sayTitle ) 
+say ( gameforge . subquest_41 . _20_say ) 
+wait ( ) 
+say_title ( gameforge . subquest_06 . _320_sayTitle ) 
+say ( gameforge . subquest_41 . _30_say ) 
+wait ( ) 
+say_title ( gameforge . subquest_06 . _320_sayTitle ) 
+say ( gameforge . subquest_41 . _40_say ) 
+say_item_vnum ( "30162" ) 
+local s = select ( gameforge . subquest_01 . _50_select , gameforge . subquest_30 . _50_select ) 
+if 2 == s then 
+say ( gameforge . subquest_41 . _50_say ) 
+local a = select ( gameforge . locale . guild . yes , gameforge . locale . guild . no ) 
+if 2 == a then 
+say_title ( gameforge . subquest_06 . _320_sayTitle ) 
+say ( gameforge . subquest_41 . _60_say ) 
+return 
+end 
+say_title ( gameforge . subquest_06 . _320_sayTitle ) 
+say ( gameforge . subquest_41 . _70_say ) 
+set_state ( "__GIVEUP__" ) 
+return 
+end 
+say_title ( gameforge . subquest_06 . _320_sayTitle ) 
+say ( gameforge . subquest_41 . _80_say ) 
+set_state ( "hunt_for_oku" ) 

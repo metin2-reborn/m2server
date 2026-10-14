@@ -1,0 +1,159 @@
+if game . get_event_flag ( "hc_drop" ) == 0 then 
+set_state ( "__COMPLETE__" ) 
+end 
+if pc . count_item ( 80005 ) == 0 and pc . count_item ( 80006 ) == 0 and pc . count_item ( 80007 ) == 0 and pc . count_item ( 80008 ) == 0 and pc . count_item ( 50626 ) == 0 then 
+say ( gameforge . pre_event_heavens_cave . _20_say ) 
+say ( string . format ( gameforge . pre_event_heavens_cave . _270_say , item_name ( 30180 ) ) ) 
+say ( item_name ( 80005 ) ) 
+say ( item_name ( 80006 ) ) 
+say ( item_name ( 80007 ) ) 
+say ( item_name ( 80008 ) ) 
+say ( item_name ( 50626 ) ) 
+return 
+end 
+say ( gameforge . pre_event_heavens_cave . _280_say ) 
+local checkinventory = { } 
+checkinventory [ 1 ] = { } 
+checkinventory [ 1 ] [ "vnum" ] = 80005 
+checkinventory [ 2 ] = { } 
+checkinventory [ 2 ] [ "vnum" ] = 80006 
+checkinventory [ 3 ] = { } 
+checkinventory [ 3 ] [ "vnum" ] = 80007 
+checkinventory [ 4 ] = { } 
+checkinventory [ 4 ] [ "vnum" ] = 80008 
+checkinventory [ 5 ] = { } 
+checkinventory [ 5 ] [ "vnum" ] = 50626 
+notice ( checkinventory [ 1 ] [ "vnum" ] ) 
+local goldcounter = 1 
+repeat 
+checkinventory [ goldcounter ] [ "amount" ] = pc . count_item ( checkinventory [ goldcounter ] . vnum ) 
+checkinventory [ goldcounter ] [ "name" ] = item_name ( checkinventory [ goldcounter ] . vnum ) 
+goldcounter = goldcounter + 1 
+until goldcounter > 5 
+notice ( checkinventory [ 1 ] [ "amount" ] ) 
+notice ( checkinventory [ 1 ] [ "name" ] ) 
+local gold = { } 
+local buttoncounter = 1 
+goldcounter = 1 
+repeat 
+if checkinventory [ goldcounter ] [ "amount" ] > 0 then 
+gold [ buttoncounter ] = checkinventory [ goldcounter ] 
+buttoncounter = buttoncounter + 1 
+end 
+goldcounter = goldcounter + 1 
+until goldcounter > 5 
+local choosegold = 0 
+if buttoncounter == 2 then 
+choosegold = select ( gameforge . pre_event_heavens_cave . _290_select , string . format ( "%dx %s" , gold [ 1 ] . amount , gold [ 1 ] . name ) ) 
+elseif buttoncounter == 3 then 
+choosegold = select ( gameforge . pre_event_heavens_cave . _290_select , string . format ( "%dx %s" , gold [ 1 ] . amount , gold [ 1 ] . name ) , string . format ( "%dx %s" , gold [ 2 ] . amount , gold [ 2 ] . name ) ) 
+elseif buttoncounter == 4 then 
+choosegold = select ( gameforge . pre_event_heavens_cave . _290_select , string . format ( "%dx %s" , gold [ 1 ] . amount , gold [ 1 ] . name ) , string . format ( "%dx %s" , gold [ 2 ] . amount , gold [ 2 ] . name ) , string . format ( "%dx %s" , gold [ 3 ] . amount , gold [ 3 ] . name ) ) 
+elseif buttoncounter == 5 then 
+choosegold = select ( gameforge . pre_event_heavens_cave . _290_select , string . format ( "%dx %s" , gold [ 1 ] . amount , gold [ 1 ] . name ) , string . format ( "%dx %s" , gold [ 2 ] . amount , gold [ 2 ] . name ) , string . format ( "%dx %s" , gold [ 3 ] . amount , gold [ 3 ] . name ) , string . format ( "%dx %s" , gold [ 4 ] . amount , gold [ 4 ] . name ) ) 
+elseif buttoncounter == 6 then 
+choosegold = select ( gameforge . pre_event_heavens_cave . _290_select , string . format ( "%dx %s" , gold [ 1 ] . amount , gold [ 1 ] . name ) , string . format ( "%dx %s" , gold [ 2 ] . amount , gold [ 2 ] . name ) , string . format ( "%dx %s" , gold [ 3 ] . amount , gold [ 3 ] . name ) , string . format ( "%dx %s" , gold [ 4 ] . amount , gold [ 4 ] . name ) , string . format ( "%dx %s" , gold [ 5 ] . amount , gold [ 5 ] . name ) ) 
+end 
+if choosegold > 1 then 
+choosegold = choosegold - 1 
+pc . remove_item ( gold [ choosegold ] . vnum , 1 ) 
+local globalvalue = 0 
+local personalvalue = 0 
+if gold [ choosegold ] . vnum == 80005 then 
+globalvalue = 500000 + game . get_event_flag ( "gold_collected" ) 
+personalvalue = 500000 + pc . getqf ( "personalvalue" ) 
+game . set_event_flag ( "gold_collected" , globalvalue ) 
+pc . setqf ( "personalvalue" , personalvalue ) 
+elseif gold [ choosegold ] . vnum == 80006 then 
+globalvalue = 1e+06 + game . get_event_flag ( "gold_collected" ) 
+personalvalue = 1e+06 + pc . getqf ( "personalvalue" ) 
+game . set_event_flag ( "gold_collected" , globalvalue ) 
+pc . setqf ( "personalvalue" , personalvalue ) 
+elseif gold [ choosegold ] . vnum == 80007 then 
+globalvalue = 2e+06 + game . get_event_flag ( "gold_collected" ) 
+personalvalue = 2e+06 + pc . getqf ( "personalvalue" ) 
+game . set_event_flag ( "gold_collected" , globalvalue ) 
+pc . setqf ( "personalvalue" , personalvalue ) 
+elseif gold [ choosegold ] . vnum == 80008 then 
+globalvalue = 100000 + game . get_event_flag ( "gold_collected" ) 
+personalvalue = 100000 + pc . getqf ( "personalvalue" ) 
+game . set_event_flag ( "gold_collected" , globalvalue ) 
+pc . setqf ( "personalvalue" , personalvalue ) 
+elseif gold [ choosegold ] . vnum == 50626 then 
+globalvalue = 200 + game . get_event_flag ( "gold_collected" ) 
+personalvalue = 200 + pc . getqf ( "personalvalue" ) 
+game . set_event_flag ( "gold_collected" , globalvalue ) 
+pc . setqf ( "personalvalue" , personalvalue ) 
+end 
+if pc . getqf ( "goldstatus" ) == 2 then 
+say ( gameforge . pre_event_heavens_cave . _20_say ) 
+say ( gameforge . pre_event_heavens_cave . _300_say ) 
+pc . give_item2 ( 30180 ) 
+pc . setqf ( "goldstatus" , 1 ) 
+say ( string . format ( gameforge . pre_event_heavens_cave . _310_say , item_name ( 30180 ) , mob_name ( 20009 ) , mob_name ( 9012 ) ) ) 
+else 
+say ( gameforge . pre_event_heavens_cave . _20_say ) 
+say ( gameforge . pre_event_heavens_cave . _320_say ) 
+end 
+say ( string . format ( gameforge . pre_event_heavens_cave . _330_say , globalvalue ) ) 
+wait ( ) 
+local scoretable = { } 
+scoretable [ 1 ] = { } 
+scoretable [ 2 ] = { } 
+scoretable [ 3 ] = { } 
+scoretable [ 4 ] = { } 
+scoretable [ 5 ] = { } 
+scoretable [ 6 ] = { } 
+scoretable [ 7 ] = { } 
+scoretable [ 8 ] = { } 
+scoretable [ 9 ] = { } 
+scoretable [ 10 ] = { } 
+scoretable [ 11 ] = { } 
+local scorecounter0 = 0 
+local scorecounter1 = 1 
+local score = 0 
+local pcname = "zzz" 
+local letmeout = 0 
+local loadscore = 0 
+repeat 
+score = string . format ( "score%s" , scorecounter0 ) 
+loadscore = game . get_event_flag ( score ) 
+scoretable [ scorecounter1 ] [ "score" ] = loadscore * 100 
+scorecounter0 = scorecounter0 + 1 
+scorecounter1 = scorecounter1 + 1 
+until scorecounter0 == 10 
+repeat 
+if scorecounter0 > 0 then 
+if pc . getqf ( "personalvalue" ) > scoretable [ scorecounter0 ] [ "score" ] then 
+scoretable [ scorecounter1 ] = scoretable [ scorecounter0 ] 
+scorecounter0 = scorecounter0 - 1 
+scorecounter1 = scorecounter1 - 1 
+else 
+letmeout = 1 
+end 
+else 
+letmeout = 1 
+end 
+until letmeout > 0 
+local scoreplace = scorecounter1 
+scoretable [ scoreplace ] [ "score" ] = pc . getqf ( "personalvalue" ) 
+local scorecounter0 = 0 
+local scorecounter1 = 1 
+local savescore = 0 
+say_title ( gameforge . pre_event_heavens_cave . _340_say_title ) 
+repeat 
+score = string . format ( "score%d" , scorecounter0 ) 
+savescore = scoretable [ scorecounter1 ] [ "score" ] / 100 
+game . set_event_flag ( score , savescore ) 
+if scorecounter1 == scoreplace then 
+say_reward ( string . format ( gameforge . pre_event_heavens_cave . _350_say_reward , scorecounter1 , scoretable [ scorecounter1 ] [ "score" ] ) ) 
+else 
+say ( string . format ( gameforge . pre_event_heavens_cave . _350_say_reward , scorecounter1 , scoretable [ scorecounter1 ] [ "score" ] ) ) 
+end 
+scorecounter0 = scorecounter0 + 1 
+scorecounter1 = scorecounter1 + 1 
+until scorecounter0 == 10 
+else 
+say ( gameforge . pre_event_heavens_cave . _20_say ) 
+say ( gameforge . pre_event_heavens_cave . _250_say ) 
+end 

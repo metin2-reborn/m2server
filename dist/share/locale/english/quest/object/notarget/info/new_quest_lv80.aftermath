@@ -1,0 +1,8 @@
+if pc . getqf ( "gotreward" ) == 1 then 
+say_title ( gameforge . new_quest_lv80 . _310_set_title ) 
+say ( gameforge . new_quest_lv80 . _410_say ) 
+else 
+say_title ( gameforge . new_quest_lv80 . _400_set_title ) 
+say ( gameforge . new_quest_lv80 . _420_say ) 
+say ( string . format ( gameforge . new_quest_lv80 . _430_say , item_name ( new_quest_lv80_blackice ) ) ) 
+end 

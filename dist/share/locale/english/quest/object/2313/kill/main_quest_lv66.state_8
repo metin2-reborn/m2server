@@ -1,0 +1,9 @@
+if pc . getqf ( "rgd_kill" ) >= 200 - 1 then 
+pc . give_item2 ( 31003 , 1 ) 
+pc . setqf ( "rgd_kill" , 0 ) 
+q . set_counter_value ( 0 ) 
+set_state ( "state_9" ) 
+else 
+pc . setqf ( "rgd_kill" , pc . getqf ( "rgd_kill" ) + 1 ) 
+q . set_counter_value ( 200 - pc . getqf ( "rgd_kill" ) ) 
+end 

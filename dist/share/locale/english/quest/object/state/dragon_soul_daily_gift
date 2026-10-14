@@ -1,0 +1,5 @@
+dragon_soul_daily_gift={["start"]=0,is_event_on= function ()local s_time = game . get_event_flag ( "ds_dg_st" ) 
+local e_time = game . get_event_flag ( "ds_dg_et" ) 
+local now = os . time ( ) 
+return now > s_time and now < e_time 
+end }

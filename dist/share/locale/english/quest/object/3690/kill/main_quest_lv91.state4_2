@@ -1,0 +1,5 @@
+if number ( 1 , 300 ) == 1 then 
+pc . give_item2 ( 31019 , 1 ) 
+notice_multiline ( gameforge . main_quest_lv91 . _550_1_notice , notice ) 
+notice_multiline ( gameforge . main_quest_lv91 . _550_2_notice , notice ) 
+end 

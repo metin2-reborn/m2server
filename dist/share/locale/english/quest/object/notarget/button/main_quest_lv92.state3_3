@@ -1,0 +1,10 @@
+say_title ( gameforge . main_quest_lv92 . _500_sayTitle ) 
+say ( gameforge . main_quest_lv92 . _510_say ) 
+say_item_vnum ( 31022 ) 
+say ( gameforge . main_quest_lv90 . _1180_say ) 
+local remain_item = 10 - pc . count_item ( 31022 ) 
+if remain_item <= 0 then 
+remain_item = 0 
+end 
+q . set_counter_value ( remain_item ) 
+say_reward ( string . format ( "%s: %d %s" , item_name ( 31022 ) , remain_item , locale . count_postfix ) ) 

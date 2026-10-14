@@ -1,0 +1,17 @@
+if game . get_event_flag ( "harvest_festival" ) == 0 then 
+say ( "Current Status: ThanksGiving Event Results" ) 
+say ( "" ) 
+local s = select ( "Start Event" , "Cancel" ) 
+if 1 == s then 
+game . set_event_flag ( "harvest_festival" , 1 ) 
+return 
+end 
+else 
+say ( "Current Status: The event is currently active" ) 
+say ( "" ) 
+local s = select ( "Stop the Event" , "Cancel" ) 
+if 1 == s then 
+game . set_event_flag ( "harvest_festival" , 0 ) 
+return 
+end 
+end 

@@ -1,0 +1,2 @@
+local operator = 15 
+event_mystery_box . drop_box ( operator , 2306 ) 

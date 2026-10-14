@@ -1,0 +1,4 @@
+say_title ( gameforge . new_quest_lv26 . _020_set_title ) 
+say ( gameforge . new_quest_lv26 . _051_say ) 
+say ( "" ) 
+say ( string . format ( gameforge . new_quest_lv26 . _052_say , get_map_name_by_number ( 1 ) ) ) 

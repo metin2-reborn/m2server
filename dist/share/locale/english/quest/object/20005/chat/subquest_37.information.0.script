@@ -1,0 +1,23 @@
+target . delete ( "__TARGET__" ) 
+say_title ( gameforge . subquest_37 . _20_sayTitle ) 
+say ( gameforge . subquest_37 . _30_say ) 
+wait ( ) 
+say_title ( gameforge . subquest_01 . _140_sayTitle ) 
+say ( gameforge . subquest_37 . _40_say ) 
+local s = select ( gameforge . subquest_01 . _50_select , gameforge . subquest_30 . _50_select ) 
+if 2 == s then 
+say ( gameforge . subquest_37 . _50_say ) 
+local a = select ( gameforge . locale . guild . yes , gameforge . locale . guild . no ) 
+if 2 == a then 
+say_title ( gameforge . subquest_37 . _20_sayTitle ) 
+say ( gameforge . subquest_37 . _60_say ) 
+return 
+end 
+say_title ( gameforge . subquest_01 . _140_sayTitle ) 
+say ( gameforge . subquest_37 . _70_say ) 
+set_state ( "__GIVEUP__" ) 
+return 
+end 
+say_title ( gameforge . subquest_01 . _140_sayTitle ) 
+say ( gameforge . subquest_37 . _80_say ) 
+set_state ( "ask_to_eulduji" ) 

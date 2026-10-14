@@ -1,0 +1,18 @@
+setskin ( NOWINDOW ) 
+makequestbutton ( gameforge . subquest_42 . _10_targetVid ) 
+q . set_title ( gameforge . subquest_42 . _10_targetVid ) 
+q . start ( ) 
+if pc . count_item ( "30147" ) >= 1 and pc . count_item ( "30148" ) >= 1 then 
+local vnum = 0 
+if pc . get_empire ( ) == 1 then 
+vnum = 20306 
+elseif pc . get_empire ( ) == 2 then 
+vnum = 20326 
+elseif pc . get_empire ( ) == 3 then 
+vnum = 20346 
+end 
+local v = find_npc_by_vnum ( vnum ) 
+if 0 ~= v then 
+target . vid ( "__TARGET__" , v , "" ) 
+end 
+end 

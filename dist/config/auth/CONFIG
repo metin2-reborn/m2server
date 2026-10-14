@@ -1,0 +1,19 @@
+CHANNEL: 1
+HOSTNAME: Auth01
+PORT: 11000
+P2P_PORT: 12000
+DB_ADDR: 127.0.0.1
+DB_PORT: 15000
+PLAYER_SQL: 127.0.0.1 metin2 password account
+COMMON_SQL: 127.0.0.1 metin2 password common
+LOG_SQL: 127.0.0.1 metin2 password log
+TABLE_POSTFIX: 
+PASSES_PER_SEC: 25
+PING_EVENT_SECOND_CYCLE: 180
+ADMINPAGE_PASSWORD: metin2adminpass
+ADMINPAGE_IP: 127.0.0.1
+AUTH_SERVER: master
+TRAFFIC_PROFILE: 
+TEST_SERVER: 0
+#BIND_IP: Your Private/Internal IPv4 address
+#PROXY_IP: Your Public/External IPv4 address

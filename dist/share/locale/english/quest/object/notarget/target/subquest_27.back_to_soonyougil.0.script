@@ -1,0 +1,23 @@
+target . delete ( "__TARGET__" ) 
+say_title ( gameforge . subquest_05 . _30_sayTitle ) 
+say ( gameforge . subquest_27 . _230_say ) 
+wait ( "" ) 
+say_title ( gameforge . subquest_05 . _30_sayTitle ) 
+say ( gameforge . subquest_27 . _240_say ) 
+local s = select ( gameforge . subquest_27 . _250_select , gameforge . subquest_27 . _260_select ) 
+if 2 == s then 
+say ( gameforge . subquest_27 . _270_say ) 
+local a = select ( gameforge . locale . guild . yes , gameforge . locale . guild . no ) 
+if 2 == a then 
+say_title ( gameforge . subquest_05 . _30_sayTitle ) 
+say ( gameforge . subquest_27 . _280_say ) 
+return 
+end 
+say_title ( gameforge . subquest_05 . _30_sayTitle ) 
+say ( gameforge . subquest_27 . _290_say ) 
+set_state ( "__GIVEUP__" ) 
+return 
+end 
+say_title ( gameforge . subquest_05 . _30_sayTitle ) 
+say ( gameforge . subquest_27 . _300_say ) 
+set_state ( "find_book" ) 

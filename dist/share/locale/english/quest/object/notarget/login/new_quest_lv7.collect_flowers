@@ -1,0 +1,12 @@
+new_quest_lv7_AmountNeed1 = 1 
+new_quest_lv7_AmountNeed2 = 1 
+new_quest_lv7_AmountNeed3 = 1 
+new_quest_lv7_dropProb1 = 45 
+new_quest_lv7_dropProb2 = 30 
+new_quest_lv7_dropProb3 = 15 
+new_quest_lv7_drop1 = 30169 
+new_quest_lv7_drop2 = 30170 
+new_quest_lv7_drop3 = 30171 
+send_letter ( gameforge . new_quest_lv7 . _020_say_title ) 
+q . start ( ) 
+q . set_title ( gameforge . new_quest_lv7 . _020_say_title ) 

@@ -1,0 +1,13 @@
+if pc . count_item ( 31043 ) < 2 then 
+if number ( 1 , 4 ) == 1 then 
+pc . give_item2 ( 31043 , 1 ) 
+local remain = 2 - pc . count_item ( 31043 ) 
+if remain < 0 then 
+remain = 0 
+end 
+q . set_counter_value ( remain ) 
+if pc . count_item ( 31043 ) >= 2 then 
+set_state ( "state5_2" ) 
+end 
+end 
+end 

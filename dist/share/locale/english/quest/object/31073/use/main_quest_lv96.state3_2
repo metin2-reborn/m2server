@@ -1,0 +1,5 @@
+affect . add ( apply . CON , 10 , 60 * 60 ) 
+affect . add ( apply . INT , 10 , 60 * 60 ) 
+affect . add ( apply . STR , 10 , 60 * 60 ) 
+affect . add ( apply . DEX , 10 , 60 * 60 ) 
+pc . remove_item ( 31073 , 1 ) 

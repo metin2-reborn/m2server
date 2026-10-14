@@ -1,0 +1,1 @@
+return pc . countitem ( 50017 ) > 0 and pc . countitem ( 50019 ) > 0 and game . get_event_flag ( "newyear_wonso" ) > 0

@@ -1,0 +1,9 @@
+local mapname 
+say_title ( gameforge . new_quest_lv80 . _599_set_title ) 
+if pc . get_empire ( ) == 1 then 
+say ( gameforge . new_quest_lv80 . _600_say ) 
+elseif pc . get_empire ( ) == 2 then 
+say ( gameforge . new_quest_lv80 . _610_say ) 
+elseif pc . get_empire ( ) == 3 then 
+say ( gameforge . new_quest_lv80 . _620_say ) 
+end 

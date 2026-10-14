@@ -1,0 +1,26 @@
+target . delete ( "__TARGET1__" ) 
+say_title ( gameforge . subquest_06 . _320_sayTitle ) 
+say ( gameforge . subquest_49 . _190_say ) 
+wait ( ) 
+say_title ( gameforge . subquest_06 . _320_sayTitle ) 
+say ( gameforge . subquest_49 . _200_say ) 
+wait ( ) 
+say_title ( gameforge . subquest_06 . _320_sayTitle ) 
+say ( gameforge . subquest_49 . _210_say ) 
+local s = select ( gameforge . locale . guild . yes , gameforge . locale . guild . no ) 
+if 2 == s then 
+say ( gameforge . subquest_49 . _220_say ) 
+local a = select ( gameforge . locale . guild . yes , gameforge . locale . guild . no ) 
+if 2 == a then 
+say_title ( gameforge . subquest_06 . _320_sayTitle ) 
+say ( gameforge . subquest_49 . _230_say ) 
+return 
+end 
+say_title ( gameforge . subquest_06 . _320_sayTitle ) 
+say ( gameforge . subquest_49 . _240_say ) 
+set_state ( "__GIVEUP__" ) 
+return 
+end 
+say_title ( gameforge . subquest_06 . _320_sayTitle ) 
+say ( gameforge . subquest_49 . _250_say ) 
+set_state ( "gain_ice" ) 

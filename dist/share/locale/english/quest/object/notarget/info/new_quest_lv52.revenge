@@ -1,0 +1,25 @@
+local sayMob1Name = mob_name ( 706 ) 
+local sayMob2Name = mob_name ( 707 ) 
+local sayMob3Name = mob_name ( 756 ) 
+local sayMob4Name = mob_name ( 757 ) 
+say_title ( gameforge . new_quest_lv52 . _120_set_title ) 
+letterindex = new_quest_lv52_neededAmount - pc . getqf ( "ghostsleft" ) 
+if letterindex == 1 then 
+say_reward ( gameforge . new_quest_lv52 . _130_say_reward ) 
+say ( gameforge . new_quest_lv52 . _131_say ) 
+say ( gameforge . new_quest_lv52 . _132_say ) 
+elseif letterindex == 2 then 
+say_reward ( gameforge . new_quest_lv52 . _140_say_reward ) 
+say ( gameforge . new_quest_lv52 . _141_say ) 
+say ( gameforge . new_quest_lv52 . _132_say ) 
+elseif letterindex == 3 then 
+say_reward ( gameforge . new_quest_lv52 . _150_say_reward ) 
+say ( gameforge . new_quest_lv52 . _151_say ) 
+say ( gameforge . new_quest_lv52 . _132_say ) 
+elseif letterindex == 4 then 
+else 
+say ( gameforge . new_quest_lv52 . _160_say ) 
+say ( gameforge . new_quest_lv52 . _161_say ) 
+say ( "" ) 
+say ( string . format ( gameforge . new_quest_lv52 . _162_say , get_map_name_by_number ( 64 ) ) ) 
+end 

@@ -1,0 +1,8 @@
+event_flame_dungeon_open={["start"]=0,["run"]=1349952704,kill_count= function ()local total_remain = 100 
+local remain1 = pc . getqf ( "kill_count_1" ) 
+local remain_count = total_remain - remain1 
+q . set_counter_value ( remain_count ) 
+if total_remain == 0 then 
+pc . setqf ( "kill_done" , 1 ) 
+end 
+end }

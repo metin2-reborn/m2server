@@ -1,0 +1,23 @@
+target . delete ( "__TARGET__" ) 
+say_title ( gameforge . subquest_17 . _160_sayTitle ) 
+say ( gameforge . subquest_17 . _190_say ) 
+wait ( ) 
+say_title ( gameforge . subquest_17 . _160_sayTitle ) 
+say ( gameforge . subquest_17 . _200_say ) 
+local s = select ( gameforge . subquest_17 . _210_select , gameforge . subquest_06 . _50_select ) 
+if 2 == s then 
+say ( gameforge . subquest_17 . _60_say ) 
+local a = select ( gameforge . locale . guild . yes , gameforge . locale . guild . no ) 
+if 2 == a then 
+say_title ( gameforge . subquest_17 . _160_sayTitle ) 
+say ( gameforge . subquest_17 . _220_say ) 
+return 
+end 
+say_title ( gameforge . subquest_17 . _160_sayTitle ) 
+say ( gameforge . subquest_17 . _230_say ) 
+set_state ( "__GIVEUP__" ) 
+return 
+end 
+say_title ( gameforge . subquest_17 . _160_sayTitle ) 
+say ( gameforge . subquest_17 . _240_say ) 
+set_state ( "hunt" ) 

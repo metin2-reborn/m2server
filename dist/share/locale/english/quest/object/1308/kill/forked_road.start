@@ -1,0 +1,12 @@
+if forked . isforkedmapindex ( pc . get_map_index ( ) ) == true then game . drop_item ( 50089 , 1 ) 
+if pc . getempire ( ) == 1 then 
+say_title ( gameforge . buy_fishrod . _210_sayTitle ) 
+say ( gameforge . forked_road . _30_say ) 
+elseif pc . getempire ( ) == 2 then 
+say_title ( gameforge . buy_fishrod . _210_sayTitle ) 
+say ( gameforge . forked_road . _40_say ) 
+elseif pc . getempire ( ) == 3 then 
+say_title ( gameforge . buy_fishrod . _210_sayTitle ) 
+say ( gameforge . forked_road . _50_say ) 
+end 
+ return end 

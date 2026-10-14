@@ -1,0 +1,13 @@
+if game . get_event_flag ( "trash_npc" ) == 0 then say_npc ( ) 
+say ( "" ) 
+say ( "Remove item?" ) 
+say ( "" ) 
+say_show_item ( item . vnum ) 
+say ( "" ) 
+local s = select ( "Yes" , "No" ) 
+if s == 1 then 
+item . remove ( ) 
+else 
+return 
+end 
+ return end 

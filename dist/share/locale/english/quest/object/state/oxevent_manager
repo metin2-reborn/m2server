@@ -1,0 +1,15 @@
+oxevent_manager={["start"]=0,cleanup_event= function ()oxevent . end_event ( ) 
+game . set_event_flag ( "ox_map_login_counter" , 0 ) 
+end ,check_limit= function ()if game . get_event_flag ( "ox_map_login_counter" ) == game . get_event_flag ( "ox_map_player_max" ) then 
+return 0 
+else 
+return 1 
+end 
+end ,enter_level= function (vnum1,vnum2)lv_range = { } 
+lv_range [ 1 ] = { 15 , 39 } 
+lv_range [ 2 ] = { 40 , 64 } 
+lv_range [ 3 ] = { 65 , 84 } 
+lv_range [ 4 ] = { 85 , 99 } 
+lv_range [ 5 ] = { 100 , 105 } 
+return lv_range [ vnum1 ] [ vnum2 ] 
+end }

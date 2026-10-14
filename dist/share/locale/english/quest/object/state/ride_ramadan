@@ -1,0 +1,27 @@
+ride_ramadan={["start"]=0,Ride= function (vnum,remain_time)ride_info = { 
+[ 71131 ] = { 20119 , item . get_socket ( 2 ) * 60 , apply . MOV_SPEED , 60 , 1 , false } , 
+[ 71132 ] = { 20119 , item . get_socket ( 2 ) * 60 , apply . MOV_SPEED , 60 , 1 , false } , 
+[ 71133 ] = { 20119 , item . get_socket ( 2 ) * 60 , apply . MOV_SPEED , 60 , 1 , false } , 
+[ 71134 ] = { 20119 , item . get_socket ( 2 ) * 60 , apply . MOV_SPEED , 60 , 1 , false } , 
+[ 71161 ] = { 20219 , item . get_socket ( 2 ) * 60 , apply . MOV_SPEED , 60 , 1 , false } , 
+} 
+if pc . level < ride_info [ vnum ] [ 5 ] then 
+say ( "" ) 
+say ( gameforge . ride . _010_say ) 
+say ( "" ) 
+else 
+if 112 == pc . get_map_index ( ) then 
+return 
+end 
+if ride_info [ vnum ] [ 2 ] == 0 and remain_time ~= 0 then 
+pc . mount ( ride_info [ vnum ] [ 1 ] , remain_time * 60 ) 
+pc . mount_bonus ( ride_info [ vnum ] [ 3 ] , ride_info [ vnum ] [ 4 ] , remain_time * 60 ) 
+else 
+pc . mount ( ride_info [ vnum ] [ 1 ] , ride_info [ vnum ] [ 2 ] ) 
+pc . mount_bonus ( ride_info [ vnum ] [ 3 ] , ride_info [ vnum ] [ 4 ] , ride_info [ vnum ] [ 2 ] ) 
+end 
+if true == ride_info [ vnum ] [ 6 ] then 
+pc . remove_item ( vnum , 1 ) 
+end 
+end 
+end }

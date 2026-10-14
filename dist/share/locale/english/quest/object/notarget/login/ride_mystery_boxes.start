@@ -1,0 +1,7 @@
+local vnum , remain_time = pc . get_special_ride_vnum ( ) 
+if vnum ~= 71124 and vnum ~= 71125 and vnum ~= 71126 and vnum ~= 71127 and vnum ~= 71128 and vnum ~= 71137 and vnum ~= 71138 and vnum ~= 71139 and vnum ~= 71140 and vnum ~= 71141 and vnum ~= 71142 then 
+return 
+end 
+if 0 ~= vnum then 
+ride_mystery_boxes . Ride ( vnum , remain_time ) 
+end 

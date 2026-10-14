@@ -1,0 +1,108 @@
+target . delete ( "__TARGET5__" ) 
+say_title ( gameforge . new_quest_lv7 . _020_say_title ) 
+if npc . get_empire ( ) == pc . get_empire ( ) then 
+if soup then 
+say ( gameforge . new_quest_lv7 . _150_say ) 
+end 
+say ( gameforge . new_quest_lv7 . _151_say ) 
+say ( gameforge . new_quest_lv7 . _152_say ) 
+local reward = new_quest_lv7 . reward ( ) 
+local reward_exp = new_quest_lv7 . reward_exp ( ) 
+say_reward ( string . format ( gameforge . new_quest_lv7 . _154_say_reward , reward_exp ) ) 
+say_reward ( string . format ( gameforge . new_quest_lv7 . _155_say_reward , reward ) ) 
+pc . give_exp2 ( new_quest_lv7 . reward_exp ( ) ) 
+pc . change_money ( new_quest_lv7 . reward ( ) ) 
+local reward_item = "0" 
+if pc . job == 0 then 
+local r = number ( 1 , 10 ) 
+if r == 1 then 
+reward_item = "00013" 
+elseif r == 2 then 
+reward_item = "00023" 
+elseif r == 3 then 
+reward_item = "00033" 
+elseif r == 4 then 
+reward_item = "00043" 
+elseif r == 5 then 
+reward_item = "00053" 
+elseif r == 6 then 
+reward_item = "03003" 
+elseif r == 7 then 
+reward_item = "03013" 
+elseif r == 8 then 
+reward_item = "03023" 
+elseif r == 9 then 
+reward_item = "03033" 
+elseif r == 10 then 
+reward_item = "03043" 
+end 
+elseif pc . job == 1 then 
+local r = number ( 1 , 10 ) 
+if r == 1 then 
+reward_item = "01003" 
+elseif r == 2 then 
+reward_item = "04003" 
+elseif r == 3 then 
+reward_item = "01013" 
+elseif r == 4 then 
+reward_item = "04013" 
+elseif r == 5 then 
+reward_item = "01023" 
+elseif r == 6 then 
+reward_item = "02003" 
+elseif r == 7 then 
+reward_item = "02013" 
+elseif r == 8 then 
+reward_item = "02023" 
+elseif r == 9 then 
+reward_item = "02033" 
+elseif r == 10 then 
+reward_item = "2043" 
+end 
+elseif pc . job == 2 then 
+local r = number ( 1 , 6 ) 
+if r == 1 then 
+reward_item = "00013" 
+elseif r == 2 then 
+reward_item = "00023" 
+elseif r == 3 then 
+reward_item = "00033" 
+elseif r == 4 then 
+reward_item = "00043" 
+elseif r == 5 then 
+reward_item = "00053" 
+elseif r == 6 then 
+reward_item = "00053" 
+end 
+elseif pc . job == 3 then 
+local r = number ( 1 , 8 ) 
+if r == 1 then 
+reward_item = "05003" 
+elseif r == 2 then 
+reward_item = "05013" 
+elseif r == 3 then 
+reward_item = "05023" 
+elseif r == 4 then 
+reward_item = "07003" 
+elseif r == 5 then 
+reward_item = "07013" 
+elseif r == 6 then 
+reward_item = "07023" 
+elseif r == 7 then 
+reward_item = "07033" 
+elseif r == 8 then 
+reward_item = "07043" 
+end 
+end 
+if reward_item ~= "0" then 
+wait ( ) 
+say_reward ( gameforge . new_quest_lv7 . _153_say_reward ) 
+say_item_vnum ( reward_item ) 
+pc . give_item2 ( reward_item , 1 ) 
+end 
+set_state ( "__COMPLETE__" ) 
+else 
+say ( gameforge . new_quest_lv7 . _160_say ) 
+say ( gameforge . new_quest_lv7 . _165_say ) 
+soup = true 
+end 

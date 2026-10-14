@@ -1,0 +1,3 @@
+say_title ( gameforge . main_quest_lv2 . _110_sayTitle ) 
+say ( gameforge . main_quest_lv2 . _120_sayReward ) 
+say_reward ( string . format ( gameforge . main_quest_lv2 . _130_sayReward , pc . getqf ( "state" ) ) ) 

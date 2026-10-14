@@ -1,0 +1,19 @@
+say_title ( gameforge . main_quest_lv96 . _460_sayTitle ) 
+say ( gameforge . main_quest_lv96 . _470_say ) 
+say ( "" ) 
+say_title ( gameforge . main_quest_lv96 . _480_counterName ) 
+local remain1 = 1 - pc . getqf ( "kill_tree1" ) 
+if remain1 < 0 then 
+remain1 = 0 
+end 
+local remain2 = 1 - pc . getqf ( "kill_tree2" ) 
+if remain2 < 0 then 
+remain2 = 0 
+end 
+local remain3 = 1 - pc . getqf ( "kill_tree3" ) 
+if remain3 < 0 then 
+remain3 = 0 
+end 
+q . set_counter_value ( remain1 + remain2 + remain3 ) 
+say_reward ( string . format ( gameforge . main_quest_lv96 . _490_say , mob_name ( 3911 ) , remain1 , mob_name ( 3912 ) , remain2 , mob_name ( 3913 ) , remain3 ) ) 
+say ( "" ) 

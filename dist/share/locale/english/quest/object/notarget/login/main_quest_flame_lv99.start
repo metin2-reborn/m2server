@@ -1,0 +1,4 @@
+if pc . get_level ( ) >= 99 then if pc . getf ( "main_quest_lv98" , "__status" ) == main_quest_lv98 . __COMPLETE__ then 
+set_state ( "state0" ) 
+end 
+ return end 

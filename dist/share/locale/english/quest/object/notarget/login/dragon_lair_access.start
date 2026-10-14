@@ -1,0 +1,5 @@
+pc . setqf ( "is_leader" , 0 ) 
+q . done ( ) 
+if pc . get_map_index ( ) == 208 and not pc . is_gm ( ) then 
+dragon_lair_access . warp_from_lair ( ) 
+end 

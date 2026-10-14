@@ -1,0 +1,2 @@
+say_title ( gameforge . fortune_telling . _40_sayTitle ) 
+say ( gameforge . locale . make_wonso . how_make_detail ) 

@@ -1,0 +1,41 @@
+main_quest_flame_lv105={["start"]=0,["__COMPLETE__"]=668443392,["state0"]=-568891545,["state1_1"]=-712184091,["state1_2"]=1283833695,["state1_3"]=998412233,["state2_1"]=-674606916,["state2_2"]=1321402630,["state2_3"]=969159056,["state3_1"]=-704103797,["state3_2"]=1325493041,["state3_3"]=939940775,kill_count_state1_2= function ()local total_remain = 0 
+local remain1 = 10 - pc . getqf ( "kill_count_1" ) 
+if remain1 < 0 then 
+remain1 = 0 
+end 
+total_remain = total_remain + remain1 
+local remain2 = 10 - pc . getqf ( "kill_count_2" ) 
+if remain2 < 0 then 
+remain2 = 0 
+end 
+total_remain = total_remain + remain2 
+local remain3 = 10 - pc . getqf ( "kill_count_3" ) 
+if remain3 < 0 then 
+remain3 = 0 
+end 
+total_remain = total_remain + remain3 
+local remain4 = 10 - pc . getqf ( "kill_count_4" ) 
+if remain4 < 0 then 
+remain4 = 0 
+end 
+total_remain = total_remain + remain4 
+local remain5 = 10 - pc . getqf ( "kill_count_5" ) 
+if remain5 < 0 then 
+remain5 = 0 
+end 
+total_remain = total_remain + remain5 
+q . set_counter_value ( total_remain ) 
+if total_remain == 0 then 
+set_state ( "state1_3" ) 
+end 
+end ,kill_count_state2_2= function ()local total_remain = 0 
+local remain1 = 1 - pc . getqf ( "kill_count_1" ) 
+if remain1 < 0 then 
+remain1 = 0 
+end 
+total_remain = total_remain + remain1 
+q . set_counter_value ( total_remain ) 
+if total_remain == 0 then 
+set_state ( "state2_3" ) 
+end 
+end }

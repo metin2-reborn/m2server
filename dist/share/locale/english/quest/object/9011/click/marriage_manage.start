@@ -1,0 +1,3 @@
+if not pc . is_engaged ( ) and not pc . is_married ( ) then say_title ( gameforge . marriage_manage . _420_sayTitle ) 
+say ( gameforge . marriage_manage . _1020_say ) 
+ return end 

@@ -1,0 +1,28 @@
+target . delete ( "__TARGET__" ) 
+say_title ( gameforge . fortune_telling . _100_sayTitle ) 
+say ( gameforge . subquest_19 . _20_say ) 
+local b = select ( gameforge . subquest_19 . _30_select , gameforge . subquest_17 . _50_select ) 
+if 2 == b then 
+say_title ( gameforge . couple_ring . _20_sayTitle ) 
+say ( gameforge . subquest_19 . _40_say ) 
+else 
+say_title ( gameforge . fortune_telling . _100_sayTitle ) 
+say ( gameforge . subquest_19 . _50_say ) 
+end 
+local r = select ( gameforge . find_brother_article . _90_select , gameforge . find_brother_article . _100_select ) 
+if 2 == r then 
+say ( gameforge . subquest_19 . _60_say ) 
+local a = select ( gameforge . locale . guild . yes , gameforge . locale . guild . no ) 
+if 2 == a then 
+say_title ( gameforge . couple_ring . _20_sayTitle ) 
+say ( gameforge . subquest_19 . _70_say ) 
+return 
+end 
+say_pc_name ( ) 
+say ( gameforge . subquest_19 . _80_say ) 
+set_state ( "__GIVEUP__" ) 
+return 
+end 
+say_pc_name ( ) 
+say ( gameforge . subquest_19 . _90_say ) 
+set_state ( "find" ) 

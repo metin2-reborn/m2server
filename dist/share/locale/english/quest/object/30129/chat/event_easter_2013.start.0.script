@@ -1,0 +1,6 @@
+say_title ( gameforge . event_easter . _020_sayTitle ) 
+say ( gameforge . event_easter . _030_say ) 
+say ( gameforge . event_easter . _035_say ) 
+if not event_easter_2013 . has_rabbit ( ) then 
+npc . purge ( ) 
+end 

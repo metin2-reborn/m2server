@@ -1,0 +1,36 @@
+send_letter ( gameforge . new_quest_lv7 . _020_say_title ) 
+q . start ( ) 
+q . set_title ( gameforge . new_quest_lv7 . _020_say_title ) 
+new_quest_lv7_DestMapIndex = 99 
+if pc . get_empire ( ) == 1 then 
+new_quest_lv7_DestMapIndex = 3 
+local v = find_npc_by_vnum ( 10001 ) 
+if 0 == v then 
+else 
+target . vid ( "__TARGET7__" , v , gameforge . map_warp . _190_select ) 
+end 
+elseif pc . get_empire ( ) == 2 then 
+new_quest_lv7_DestMapIndex = 23 
+local v = find_npc_by_vnum ( 10003 ) 
+if 0 == v then 
+else 
+target . vid ( "__TARGET7__" , v , gameforge . map_warp . _210_select ) 
+end 
+elseif pc . get_empire ( ) == 3 then 
+new_quest_lv7_DestMapIndex = 43 
+local v = find_npc_by_vnum ( 10005 ) 
+if 0 == v then 
+else 
+target . vid ( "__TARGET7__" , v , gameforge . map_warp . _230_select ) 
+end 
+end 
+if pc . get_map_index ( ) == new_quest_lv7_DestMapIndex then 
+target . delete ( "__TARGET7__" ) 
+notice_multiline ( gameforge . new_quest_lv7 . _125_notice , notice ) 
+local v = find_npc_by_vnum ( 9006 ) 
+if 0 == v then 
+else 
+target . vid ( "__TARGET3__" , v , gameforge . subquest_48 . _230_targetVid ) 
+end 
+set_state ( "goto_oldwomans_sister" ) 
+end 

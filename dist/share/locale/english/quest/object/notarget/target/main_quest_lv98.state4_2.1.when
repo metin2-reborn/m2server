@@ -1,0 +1,1 @@
+return pc . getqf ( "click_npc2" ) ~= 1

@@ -1,0 +1,5 @@
+if number ( 1 , 1 ) == 1 then 
+local kill_count = pc . getqf ( "mob4" ) 
+pc . setqf ( "mob4" , kill_count + 1 ) 
+main_quest_flame_lv102 . kill_count ( ) 
+end 

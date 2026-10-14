@@ -1,0 +1,5 @@
+say_title ( gameforge . horse_upgrade2 . _440_makequestbutton ) 
+say_reward ( gameforge . horse_upgrade . _310_sayReward ) 
+say_reward ( gameforge . horse_upgrade2 . _460_sayReward ) 
+setstate ( "start" ) 
+q . done ( ) 

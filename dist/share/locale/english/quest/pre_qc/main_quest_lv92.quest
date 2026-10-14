@@ -1,0 +1,699 @@
+quest main_quest_lv92 begin
+    state start begin
+    end
+    state state0 begin
+        when login or levelup or enter with pc.level >= 92 begin
+            set_state (state1_1)
+        end
+    end
+    ------------------------------------초마단의 서신을 찾아라!1-2------------------------------------
+    ------------------------------------초마단의 서신을 찾아라!1-2------------------------------------
+    ------------------------------------초마단의 서신을 찾아라!1-2------------------------------------
+    ------------------------------------초마단의 서신을 찾아라!1-2------------------------------------
+    ------------------------------------초마단의 서신을 찾아라!1-2------------------------------------
+    ------------------------------------초마단의 서신을 찾아라!1-2------------------------------------
+    ------------------------------------초마단의 서신을 찾아라!1-2------------------------------------
+    ------------------------------------초마단의 서신을 찾아라!1-2------------------------------------
+    ------------------------------------초마단의 서신을 찾아라!1-2------------------------------------
+    ------------------------------------초마단의 서신을 찾아라!1-2------------------------------------
+    ------------------------------------초마단의 서신을 찾아라!1-2------------------------------------
+    state state1_1 begin
+
+        when letter begin
+            send_letter(gameforge.main_quest_lv92._010_sendLetter)
+            
+            local v = find_npc_by_vnum(20378)
+            if 0 != v then
+                target.vid("__TARGET__", v, mob_name(20378))
+            end
+        end
+        
+        when button or info begin
+            say_title(gameforge.main_quest_lv92._010_sendLetter)
+            say(gameforge.main_quest_lv92._020_say)
+            
+        end
+        
+        when 20378.chat.gameforge.main_quest_lv92._010_sendLetter begin
+            target.delete("__TARGET__")
+            
+            say_title(mob_name(20378))
+            say(gameforge.main_quest_lv92._030_say)
+            wait()
+            
+            say_title(pc.getname())
+            say(gameforge.main_quest_lv92._040_say)
+            wait()
+            
+            say_title(mob_name(20378))
+            say(gameforge.main_quest_lv92._050_say)
+            wait()
+            
+            say_title(pc.getname())
+            say(gameforge.main_quest_lv92._060_say)
+            wait()
+            
+            say_title(mob_name(20378))
+            say(gameforge.main_quest_lv92._070_say)
+            wait()
+            
+            say_title(mob_name(20378))
+            say(gameforge.main_quest_lv92._080_say)
+            wait()
+            
+            say_title(pc.getname())
+            say(gameforge.main_quest_lv92._090_say)
+            wait()
+            
+            say_title(mob_name(20378))
+            say(gameforge.main_quest_lv92._100_say)
+            
+            set_state (state1_2)
+            
+            q.set_counter_value(4)
+        end
+    end
+    --퀘스트 수행--
+    state state1_2 begin
+        when letter begin
+            send_letter(gameforge.main_quest_lv92._010_sendLetter)
+            
+            local remain_item = 4 - pc.count_item(31010)
+            if remain_item <= 0 then
+                remain_item = 0
+            end
+            q.set_counter_name("남은 아이템")
+            q.set_counter_value(remain_item)
+        end
+        when button or info begin
+            -- if pc.get_map_index() == 1 then
+                -- addmapsignal(500 * 100, 500 * 100)
+                -- addmapsignal(600 * 100, 500 * 100)
+                -- addmapsignal(700 * 100, 300 * 100)
+            -- end
+            
+            say_title(gameforge.main_quest_lv92._110_sayTitle)
+            say(gameforge.main_quest_lv92._120_say)
+            say_item_vnum(31010)
+            say(gameforge.main_quest_lv90._1180_say)
+            
+            local remain_item = 4 - pc.count_item(31010)
+            if remain_item <= 0 then
+                remain_item = 0
+            end
+            q.set_counter_value(remain_item)
+            say_reward(string.format("%s: %d %s",item_name(31010),remain_item,locale.count_postfix))
+            
+            -- say()
+            -- say_reward(locale.main_quest_lv92.pos_info)
+            -- select(gameforge.main_quest_lv90._950_say)
+            -- setskin(NOWINDOW)
+            -- clearmapsignal()
+            
+        end
+        
+        --클리어 전--
+        when 20378.chat.gameforge.main_quest_lv92._010_sendLetter begin
+            
+            if pc.count_item(31010) >= 4 then
+                pc.remove_item ( 31010, pc.count_item(31010))	
+                say_title(mob_name(20378))
+                say(gameforge.main_quest_lv92._160_say)
+                wait()
+                
+                --보상
+                say_title(locale.reward)
+                say_reward(string.format (gameforge.main_quest_lv60._190_sayReward, 33874000))
+                say_reward(string.format (gameforge.main_quest_lv60._200_sayReward, 200000))
+                say_reward(string.format (gameforge.main_quest_lv60._210_sayReward, item_name(50817),10,locale.count_postfix))
+                say("")
+                
+                pc.give_exp2(33874000)
+                pc.change_money(200000)
+                pc.give_item2(50817, 10)
+                
+                set_state (state2_1)
+            else
+                say_title(mob_name(20378))
+                say(gameforge.main_quest_lv92._130_say)
+                
+                set_state (state1_2)
+            end
+        end
+        
+        when 3504.kill or 3505.kill begin
+            if number(1,500) == 1 then
+                if pc.count_item(31010) < 4 then
+                    pc.give_item2(31010, 1)
+                    
+                    --퀘스트 메뉴 창 카운트
+                    local remain_item = 4 - pc.count_item(31010)
+                    if remain_item <= 0 then
+                        remain_item = 0
+                    end
+                    q.set_counter_value(remain_item)
+                    
+                    if pc.count_item(31010) >= 4 then
+                        notice_multiline(gameforge.main_quest_lv92._140_1_notice,notice)
+                        notice_multiline(gameforge.main_quest_lv92._140_2_notice,notice)
+                        set_state (state1_3)
+                    end
+                end
+            end
+        end
+    end
+    state state1_3 begin
+
+        when letter begin
+            q.set_counter_name("")
+            send_letter(gameforge.main_quest_lv92._010_sendLetter)
+            
+            local v = find_npc_by_vnum(20378)
+            if 0 != v then
+                target.vid("__TARGET__", v, mob_name(20378))
+            end
+        end
+        
+        when button or info begin
+            say_title(gameforge.main_quest_lv92._010_sendLetter)
+            say(gameforge.main_quest_lv92._150_say)
+            
+        end
+        
+        -- 중간에 퀘스트 아이템을 버릴 경우를 대비한 부분.
+        when 3504.kill or 3505.kill begin
+            if number(1,500) == 1 then
+                if pc.count_item(31010) < 4 then
+                    pc.give_item2(31010, 1)
+                    
+                    --퀘스트 메뉴 창 카운트
+                    local remain_item = 4 - pc.count_item(31010)
+                    if remain_item <= 0 then
+                        remain_item = 0
+                    end
+                    q.set_counter_value(remain_item)
+                    
+                    if pc.count_item(31010) >= 4 then
+                        notice_multiline(gameforge.main_quest_lv92._140_1_notice,notice)
+                        notice_multiline(gameforge.main_quest_lv92._140_2_notice,notice)
+                    end
+                end
+            end
+        end
+        
+        when 20378.chat.gameforge.main_quest_lv92._010_sendLetter begin
+            target.delete("__TARGET__")
+            
+            if pc.count_item(31010) >= 4 then
+                pc.remove_item ( 31010, pc.count_item(31010))	
+                say_title(mob_name(20378))
+                say(gameforge.main_quest_lv92._160_say)
+                wait()
+                
+                --보상
+                say_title(locale.reward)
+                say_reward(string.format (gameforge.main_quest_lv60._190_sayReward, 33874000))
+                say_reward(string.format (gameforge.main_quest_lv60._200_sayReward, 200000))
+                say_reward(string.format (gameforge.main_quest_lv60._210_sayReward, item_name(50817),10,locale.count_postfix))
+                say("")
+                
+                pc.give_exp2(33874000)
+                pc.change_money(200000)
+                pc.give_item2(50817, 10)
+                
+                set_state (state2_1)
+            else
+                say_title(mob_name(20378))
+                say(gameforge.main_quest_lv92._130_say)
+                
+                set_state (state1_2)
+            end
+        end
+    end
+
+    ------------------------------------마지막 서신 조각------------------------------------
+    ------------------------------------마지막 서신 조각------------------------------------
+    ------------------------------------마지막 서신 조각------------------------------------
+    ------------------------------------마지막 서신 조각------------------------------------
+    ------------------------------------마지막 서신 조각------------------------------------
+    ------------------------------------마지막 서신 조각------------------------------------
+    ------------------------------------마지막 서신 조각------------------------------------
+    ------------------------------------마지막 서신 조각------------------------------------
+    ------------------------------------마지막 서신 조각------------------------------------
+    ------------------------------------마지막 서신 조각------------------------------------
+    ------------------------------------마지막 서신 조각------------------------------------
+    ------------------------------------마지막 서신 조각------------------------------------
+    state state2_1 begin
+        when letter begin
+            q.set_counter_name("")
+            send_letter(gameforge.main_quest_lv92._170_sendLetter)
+            
+            local v = find_npc_by_vnum(20378)
+            if 0 != v then
+                target.vid("__TARGET__", v, mob_name(20378))
+            end
+        end
+        when button or info begin
+            say_title(gameforge.main_quest_lv92._170_sendLetter)
+            say(gameforge.main_quest_lv92._180_say)
+            
+        end
+        
+        when 20378.chat.gameforge.main_quest_lv92._170_sendLetter begin
+            target.delete("__TARGET__")
+            
+            say_title(mob_name(20378))
+            say(gameforge.main_quest_lv92._190_say)
+            wait()
+            
+            say_title(pc.getname())
+            say(gameforge.main_quest_lv92._200_say)
+            wait()
+            
+            say_title(mob_name(20378))
+            say(gameforge.main_quest_lv92._210_say)
+            wait()
+            
+            say_title(pc.getname())
+            say(gameforge.main_quest_lv92._220_say)
+            wait()
+            
+            say_title(mob_name(20378))
+            say(gameforge.main_quest_lv92._230_say)
+            wait()
+            
+            say_title(pc.getname())
+            say(gameforge.main_quest_lv92._240_say)
+            
+            set_state (state2_2)
+        end
+    end
+    --퀘스트 수행--
+    state state2_2 begin
+        when letter begin
+            send_letter(gameforge.main_quest_lv92._170_sendLetter)
+            
+            local v = find_npc_by_vnum(20379)
+            if 0 != v then
+                target.vid("__TARGET__", v, mob_name(20379))
+            end
+        end
+        when button or info begin
+            -- if pc.get_map_index() == 1 then
+                -- addmapsignal(500 * 100, 500 * 100)
+                -- addmapsignal(600 * 100, 500 * 100)
+                -- addmapsignal(700 * 100, 300 * 100)
+            -- end
+
+            say_title(gameforge.main_quest_lv92._250_sayTitle)
+            say(gameforge.main_quest_lv92._260_say)
+            say_item_vnum(31010)
+
+            -- say()
+            -- say_reward(locale.main_quest_lv92.pos_info)
+            -- select(gameforge.main_quest_lv90._950_say)
+            -- setskin(NOWINDOW)
+            -- clearmapsignal()
+        end
+        
+        --클리어 전--
+        when 20378.chat.gameforge.main_quest_lv92._170_sendLetter begin
+            say_title(mob_name(20378))
+            say(gameforge.main_quest_lv92._270_say)
+        end
+        
+        when 20379.chat.gameforge.main_quest_lv92._170_sendLetter begin
+            say_title(mob_name(20379))
+            say(gameforge.main_quest_lv92._280_say)
+            
+        
+            notice_multiline(gameforge.main_quest_lv92._290_1_notice,notice)
+            notice_multiline(gameforge.main_quest_lv92._290_2_notice,notice)
+            pc.give_item2(31010, 1)
+            set_state (state2_3)
+        end
+    end
+    state state2_3 begin
+        when letter begin
+            send_letter(gameforge.main_quest_lv92._170_sendLetter)
+            
+            local v = find_npc_by_vnum(20378)
+            if 0 != v then
+                target.vid("__TARGET__", v, mob_name(20378))
+            end
+        end
+        when button or info begin
+            say_title(gameforge.main_quest_lv92._170_sendLetter)
+            say(gameforge.main_quest_lv92._360_say)
+            
+        end
+        
+        when 20378.chat.gameforge.main_quest_lv92._170_sendLetter begin
+            target.delete("__TARGET__")
+            
+            if pc.count_item(31010) >= 1 then
+                pc.remove_item ( 31010, pc.count_item(31010))	
+                
+                say_title(mob_name(20378))
+                say(gameforge.main_quest_lv92._300_say)
+                wait()
+                
+                say_title(pc.getname())
+                say(gameforge.main_quest_lv92._310_say)
+                wait()
+                
+                say_title(mob_name(20378))
+                say(gameforge.main_quest_lv92._320_say)
+                wait()
+                
+                say_title(pc.getname())
+                say(gameforge.main_quest_lv92._330_say)
+                wait()
+                
+                say_title(mob_name(20378))
+                say(gameforge.main_quest_lv92._340_say)
+                wait()
+                
+                say_title(mob_name(20378))
+                say(gameforge.main_quest_lv92._350_say)
+                wait()
+                
+                --보상
+                say_title(locale.reward)
+                say_reward(string.format (gameforge.main_quest_lv60._190_sayReward, 20874600))
+                --say_reward(string.format (gameforge.main_quest_lv60._200_sayReward, 0))
+                say_reward(string.format (gameforge.main_quest_lv60._210_sayReward, item_name(30047),2,locale.count_postfix))
+                say("")
+                
+                pc.give_exp2(20874600)
+                --pc.change_money(0)
+                pc.give_item2(30047, 2)
+                
+                set_state (state3_1)
+            else
+                say_title(mob_name(20378))
+                say(gameforge.main_quest_lv92._270_say)
+                
+                set_state (state2_2)
+            end
+        end
+    end
+    ------------------------------------세번째 서신 판독1-1------------------------------------
+    ------------------------------------세번째 서신 판독1-1------------------------------------
+    ------------------------------------세번째 서신 판독1-1------------------------------------
+    ------------------------------------세번째 서신 판독1-1------------------------------------
+    ------------------------------------세번째 서신 판독1-1------------------------------------
+    ------------------------------------세번째 서신 판독1-1------------------------------------
+    ------------------------------------세번째 서신 판독1-1------------------------------------
+    ------------------------------------세번째 서신 판독1-1------------------------------------
+    ------------------------------------세번째 서신 판독1-1------------------------------------
+    ------------------------------------세번째 서신 판독1-1------------------------------------
+    ------------------------------------세번째 서신 판독1-1------------------------------------
+    state state3_1 begin
+        when letter begin
+            send_letter(gameforge.main_quest_lv92._370_sendLetter)
+            
+            local v = find_npc_by_vnum(20378)
+            if 0 != v then
+                target.vid("__TARGET__", v, mob_name(20378))
+            end
+        end
+        when button or info begin
+            say_title(gameforge.main_quest_lv92._370_sendLetter)
+            say(gameforge.main_quest_lv92._380_say)
+            
+        end
+        when 20378.chat.gameforge.main_quest_lv92._370_sendLetter begin
+            target.delete("__TARGET__")
+            
+            say_title(mob_name(20378 ))
+            say(gameforge.main_quest_lv92._390_say)
+            wait()
+            
+            say_title(pc.getname())
+            say(gameforge.main_quest_lv92._400_say)
+            
+            set_state (state3_2)
+        end
+    end
+    state state3_2 begin
+        when letter begin
+            send_letter(gameforge.main_quest_lv92._370_sendLetter)
+            
+            local v = find_npc_by_vnum(20380)
+            if 0 != v then
+                target.vid("__TARGET__", v, mob_name(20380))
+            end
+        end
+        when button or info begin
+            say_title(gameforge.main_quest_lv92._370_sendLetter)
+            say(gameforge.main_quest_lv92._410_say)
+            
+        end
+        when 20380.chat.gameforge.main_quest_lv92._370_sendLetter begin
+            target.delete("__TARGET__")
+            
+            say_title(mob_name(20380 ))
+            say(gameforge.main_quest_lv92._420_say)
+            wait()
+            
+            say_title(pc.getname())
+            say(gameforge.main_quest_lv92._430_say)
+            wait()
+            
+            say_title(mob_name(20380 ))
+            say(gameforge.main_quest_lv92._440_say)
+            wait()
+            
+            say_title(pc.getname())
+            say(gameforge.main_quest_lv92._450_say)
+            wait()
+            
+            say_title(mob_name(20380 ))
+            say(gameforge.main_quest_lv92._460_say)
+            wait()
+            
+            say_title(pc.getname())
+            say(gameforge.main_quest_lv92._470_say)
+            wait()
+            
+            say_title(mob_name(20380 ))
+            say(gameforge.main_quest_lv92._480_say)
+            wait()
+            
+            say_title(pc.getname())
+            say(gameforge.main_quest_lv92._490_say)
+            
+            set_state (state3_3)
+        end
+    end
+    state state3_3 begin
+        when letter begin
+            q.set_counter_name("남은 아이템")
+            send_letter(gameforge.main_quest_lv92._370_sendLetter)
+        end
+        when button or info begin
+            -- if pc.get_map_index() == 1 then
+                -- addmapsignal(500 * 100, 500 * 100)
+                -- addmapsignal(600 * 100, 500 * 100)
+                -- addmapsignal(700 * 100, 300 * 100)
+            -- end
+            
+            say_title(gameforge.main_quest_lv92._500_sayTitle)
+            say(gameforge.main_quest_lv92._510_say)
+            say_item_vnum(31022)
+            say(gameforge.main_quest_lv90._1180_say)
+            
+            local remain_item = 10 - pc.count_item(31022)
+            if remain_item <= 0 then
+                remain_item = 0
+            end
+            q.set_counter_value(remain_item)
+            say_reward(string.format("%s: %d %s",item_name(31022),remain_item,locale.count_postfix))
+            
+            -- say()
+            -- say_reward(locale.main_quest_lv92.pos_info)
+            -- select(gameforge.main_quest_lv90._950_say)
+            -- setskin(NOWINDOW)
+            -- clearmapsignal()
+        end
+        
+        --클리어 전--
+        when 20380.chat.gameforge.main_quest_lv92._370_sendLetter begin
+            if pc.count_item(31022) >= 10 then
+                pc.remove_item ( 31022, pc.count_item(31022))	
+                say_title(mob_name(20380))
+                say(gameforge.main_quest_lv92._540_say)
+                wait()
+                
+                --보상
+                say_title(locale.reward)
+                say_reward(string.format (gameforge.main_quest_lv60._190_sayReward, 34874000))
+                --say_reward(string.format (gameforge.main_quest_lv60._200_sayReward, 0))
+                say_reward(string.format (gameforge.main_quest_lv60._210_sayReward, item_name(27992),2,locale.count_postfix))
+                say("")
+                
+                pc.give_exp2(34874000)
+                --pc.change_money(0)
+                pc.give_item2(27992, 1)
+                pc.give_item2(27992, 1)
+                
+                set_state (state4_1)
+            else
+                say_title(mob_name(20380))
+                say(gameforge.main_quest_lv92._520_say)
+            end
+        end
+        
+        when 3490.kill or 3491.kill begin
+            if number(1,500) == 1 then
+                if pc.count_item(31022) < 10 then
+                    pc.give_item2(31022, 1)
+                    
+                    local remain_item = 10 - pc.count_item(31022)
+                    if remain_item <= 0 then
+                        remain_item = 0
+                    end
+                    q.set_counter_value(remain_item)
+                    
+                    if pc.count_item(31022) >= 10 then
+                        notice_multiline(gameforge.main_quest_lv92._530_1_notice,notice)
+                        notice_multiline(gameforge.main_quest_lv92._530_2_notice,notice)
+                        set_state (state3_4)
+                    end
+                end
+            end
+        end
+    end
+
+
+    state state3_4 begin
+
+        when letter begin
+            q.set_counter_name("")
+            send_letter(gameforge.main_quest_lv92._370_sendLetter)
+            
+            local v = find_npc_by_vnum(20380)
+            if 0 != v then
+                target.vid("__TARGET__", v, mob_name(20380))
+            end
+        end
+        
+        when button or info begin
+            say_title(gameforge.main_quest_lv92._370_sendLetter)
+            say(gameforge.main_quest_lv92._550_say)
+            
+        end
+        
+        -- 중간에 퀘스트 아이템을 버릴 경우를 대비한 부분.
+        when 3490.kill or 3491.kill begin
+            if number(1,500) == 1 then
+                if pc.count_item(31022) < 10 then
+                    pc.give_item2(31022, 1)
+                    
+                    if pc.count_item(31022) >= 10 then
+                        notice_multiline(gameforge.main_quest_lv92._530_1_notice,notice)
+                        notice_multiline(gameforge.main_quest_lv92._530_2_notice,notice)
+                    end
+                end
+            end
+        end
+        
+        when 20380.chat.gameforge.main_quest_lv92._370_sendLetter begin
+            target.delete("__TARGET__")
+            
+            if pc.count_item(31022) >= 10 then
+                pc.remove_item ( 31022, pc.count_item(31022))	
+                say_title(mob_name(20380))
+                say(gameforge.main_quest_lv92._540_say)
+                wait()
+                
+                --보상
+                say_title(locale.reward)
+                say_reward(string.format (gameforge.main_quest_lv60._190_sayReward, 34874000))
+                --say_reward(string.format (gameforge.main_quest_lv60._200_sayReward, 0))
+                say_reward(string.format (gameforge.main_quest_lv60._210_sayReward, item_name(27992),2,locale.count_postfix))
+                say("")
+                
+                pc.give_exp2(34874000)
+                --pc.change_money(0)
+                pc.give_item2(27992, 1)
+                pc.give_item2(27992, 1)
+                
+                set_state (state4_1)
+            else
+                say_title(mob_name(20380))
+                say(gameforge.main_quest_lv92._520_say)
+                
+                set_state (state3_3)
+            end
+        end
+    end
+
+    ------------------------------------초마단의 서신의 진실-----------------------------------
+    ------------------------------------초마단의 서신의 진실-----------------------------------
+    ------------------------------------초마단의 서신의 진실-----------------------------------
+    ------------------------------------초마단의 서신의 진실-----------------------------------
+    ------------------------------------초마단의 서신의 진실-----------------------------------
+    ------------------------------------초마단의 서신의 진실-----------------------------------
+    ------------------------------------초마단의 서신의 진실-----------------------------------
+    ------------------------------------초마단의 서신의 진실-----------------------------------
+    ------------------------------------초마단의 서신의 진실-----------------------------------
+    ------------------------------------초마단의 서신의 진실-----------------------------------
+    ------------------------------------초마단의 서신의 진실-----------------------------------
+    state state4_1 begin
+        when letter begin
+            send_letter(gameforge.main_quest_lv92._560_sendLetter)
+            
+            local v = find_npc_by_vnum(20378)
+            if 0 != v then
+                target.vid("__TARGET__", v, mob_name(20378))
+            end
+        end
+        when button or info begin
+            say_title(gameforge.main_quest_lv92._560_sendLetter)
+            say(gameforge.main_quest_lv92._570_say)
+            
+        end
+        
+        when 20378.chat.gameforge.main_quest_lv92._560_sendLetter begin
+            target.delete("__TARGET__")
+            
+            say_title(mob_name(20378 ))
+            say(gameforge.main_quest_lv92._580_say)
+            wait()
+            
+            say(gameforge.main_quest_lv92._590_say)
+            wait()
+            
+            say_title(mob_name(20378 ))
+            say(gameforge.main_quest_lv92._600_say)
+            wait()
+            
+            --보상
+            say_title(locale.reward)
+            say_reward(string.format (gameforge.main_quest_lv60._190_sayReward, 24911280))
+            --say_reward(string.format (gameforge.main_quest_lv60._200_sayReward, 0))
+            say_reward(string.format (gameforge.main_quest_lv60._210_sayReward, item_name(27993),2,locale.count_postfix))
+            
+            say("")
+            say_title(gameforge.main_quest_lv92._610_say)
+            
+            pc.give_exp2(24911280)
+            --pc.change_money(0)
+            pc.give_item2(27993, 1)
+            pc.give_item2(27993, 1)
+            
+
+            clear_letter()
+            set_quest_state ("main_quest_lv93", "state0")
+            set_state (__COMPLETE__)
+        end
+    end
+
+    state __COMPLETE__ begin
+        when enter begin
+            q.done()
+        end
+    end
+end

@@ -1,0 +1,6 @@
+send_letter ( gameforge . main_quest_lv94 . _850_sendLetter ) 
+local v = find_npc_by_vnum ( 20378 ) 
+if 0 ~= v then 
+target . vid ( "__TARGET__" , v , mob_name ( 20378 ) ) 
+end 
+q . set_counter_name ( "" ) 

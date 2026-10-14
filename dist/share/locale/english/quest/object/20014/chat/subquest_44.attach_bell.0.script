@@ -1,0 +1,2 @@
+say_title ( gameforge . npc_talk . _680_sayTitle ) 
+say ( gameforge . subquest_44 . _390_say ) 

@@ -1,0 +1,2 @@
+pc . setqf ( "item_to_hunt" , 0 ) 
+pc . setqf ( "amount_to_hunt" , 0 ) 

@@ -1,0 +1,3 @@
+if pc . getqf ( "ghostsleft" ) == 0 then 
+pc . setqf ( "ghostsleft" , 4 ) 
+end 

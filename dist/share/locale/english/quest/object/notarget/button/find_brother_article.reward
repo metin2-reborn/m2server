@@ -1,0 +1,6 @@
+say_title ( gameforge . find_brother_article . _270_sendLetter ) 
+say ( gameforge . find_brother_article . _280_say ) 
+wait ( ) 
+say ( gameforge . find_brother_article . _290_say ) 
+say_reward ( gameforge . find_brother_article . _300_sayReward ) 
+set_state ( "repair" ) 

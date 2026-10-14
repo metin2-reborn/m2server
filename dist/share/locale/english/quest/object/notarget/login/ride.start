@@ -1,0 +1,7 @@
+local vnum , remain_time = pc . get_special_ride_vnum ( ) 
+if vnum <= 71113 or vnum > 71121 then 
+return 
+end 
+if 0 ~= vnum then 
+ride . Ride ( vnum , remain_time ) 
+end 

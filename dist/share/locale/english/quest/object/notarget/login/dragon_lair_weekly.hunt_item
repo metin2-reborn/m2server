@@ -1,0 +1,11 @@
+local time_remaining = dragon_lair_weekly . get_time_remaining ( ) 
+q . set_clock ( gameforge . dragon_lair_weekly . _090_questRest , time_remaining ) 
+timer ( "dragon_lair_weekly_timer" , time_remaining ) 
+if dragon_lair_weekly . get_amount_remaining ( ) > 0 then 
+send_letter ( gameforge . dragon_lair_weekly . _100_sendLetter ) 
+q . set_title ( gameforge . dragon_lair_weekly . _110_sayTitle ) 
+else 
+send_letter ( gameforge . dragon_lair_weekly . _120_sendLetter ) 
+q . set_title ( gameforge . dragon_lair_weekly . _130_sayTitle ) 
+end 
+q . start ( ) 

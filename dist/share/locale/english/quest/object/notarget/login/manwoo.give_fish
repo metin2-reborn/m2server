@@ -1,0 +1,2 @@
+if game . get_event_flag ( "manwoo_start" ) == 0 or pc . getqf ( "time" ) < get_global_time ( ) then set_state ( "start" ) 
+ return end say ( "bla" ) 

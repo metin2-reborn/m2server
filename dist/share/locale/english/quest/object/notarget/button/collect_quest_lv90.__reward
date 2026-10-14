@@ -1,0 +1,3 @@
+say_title ( gameforge . collect_quest_lv90 . _290_say_title ) 
+say ( gameforge . collect_quest_lv90 . _300_say ) 
+say ( "" ) 

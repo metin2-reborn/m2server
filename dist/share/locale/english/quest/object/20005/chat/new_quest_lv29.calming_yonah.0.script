@@ -1,0 +1,79 @@
+target . delete ( "__TARGET5__" ) 
+local hayCount = pc . count_item ( 50054 ) + pc . getqf ( "yonahHasHay" ) 
+say_pc_name ( ) 
+say_reward ( gameforge . new_quest_lv29 . _101_say_reward ) 
+wait ( ) 
+say_title ( gameforge . new_quest_lv29 . _102_say_title ) 
+say ( gameforge . new_quest_lv29 . _103_say_reward ) 
+wait ( ) 
+say_pc_name ( ) 
+say_reward ( gameforge . new_quest_lv29 . _104_say_reward ) 
+if hayCount >= 6 and pc . getqf ( "yonahspatience" ) > 0 then 
+say_reward ( gameforge . new_quest_lv29 . _105_say_reward ) 
+wait ( ) 
+say_title ( gameforge . new_quest_lv29 . _102_say_title ) 
+say ( gameforge . new_quest_lv29 . _106_say_reward ) 
+say ( gameforge . new_quest_lv29 . _107_say_reward ) 
+say ( string . format ( gameforge . new_quest_lv29 . _115_say_reward , 38000 ) ) 
+pc . remove_item ( 50054 , 6 ) 
+pc . change_money ( 38000 ) 
+pc . give_exp2 ( 600000 ) 
+if pc . getqf ( "hayFromTaurean" ) == 0 and pc . getqf ( "hayFromHarang" ) == 0 and pc . getqf ( "hayFromStablemaster" ) == 0 then 
+local bonusxp = 0 
+if pc . getqf ( "yonahspatience" ) > 1 then 
+bonusxp = 820 * 4 * 3 * 1000 / pc . getqf ( "dropProb" ) 
+else 
+bonusxp = 820 * 4 * 3 * 1000 / pc . getqf ( "dropProb" ) / 4 
+end 
+pc . give_exp2 ( bonusxp ) 
+notice_multiline ( string . format ( gameforge . new_quest_lv29 . _108_notice , bonusxp ) , notice ) 
+end 
+q . done ( ) 
+clear_letter ( ) 
+pc . setqf ( "hayIndex" , 0 ) 
+pc . setqf ( "hayFromHarang" , 0 ) 
+pc . setqf ( "hayFromTaurean" , 0 ) 
+pc . setqf ( "hayFromStablemaster" , 0 ) 
+pc . setqf ( "yonahspatience" , 0 ) 
+pc . setqf ( "yonahHasHay" , 0 ) 
+pc . setqf ( "dropProb" , 0 ) 
+set_state ( "__COMPLETE__" ) 
+elseif hayCount > 1 and hayCount < 6 and pc . getqf ( "yonahspatience" ) > 1 then 
+say_reward ( gameforge . new_quest_lv29 . _109_say_reward ) 
+wait ( ) 
+local bringMeMore = 6 - hayCount 
+local lowerpatience = pc . getqf ( "yonahspatience" ) - 1 
+pc . setqf ( "yonahspatience" , lowerpatience ) 
+local new_quest_lv29_dropProb = pc . getqf ( "dropProb" ) 
+pc . setqf ( "dropProb" , new_quest_lv29_dropProb / 4 ) 
+pc . remove_item ( 50054 , hayCount ) 
+pc . setqf ( "yonahHasHay" , hayCount ) 
+say_title ( gameforge . new_quest_lv29 . _102_say_title ) 
+say ( string . format ( gameforge . new_quest_lv29 . _110_say_reward , bringMeMore ) ) 
+say ( gameforge . new_quest_lv29 . _111_say_reward ) 
+new_quest_lv29_neededAmountDrop = bringMeMore 
+local qfindex = pc . getqf ( "hayIndex" ) + bringMeMore 
+pc . setqf ( "hayIndex" , qfindex ) 
+q . done ( ) 
+clear_letter ( ) 
+set_state ( "cutting_hay" ) 
+else 
+wait ( ) 
+say_title ( gameforge . new_quest_lv29 . _102_say_title ) 
+say_reward ( gameforge . new_quest_lv29 . _112_say_reward ) 
+say_reward ( gameforge . new_quest_lv29 . _113_say_reward ) 
+say_reward ( gameforge . new_quest_lv29 . _114_say_reward ) 
+say ( string . format ( gameforge . new_quest_lv29 . _115_say_reward , 9500 ) ) 
+pc . change_money ( 9500 ) 
+pc . give_exp2 ( 150000 ) 
+q . done ( ) 
+clear_letter ( ) 
+pc . setqf ( "hayIndex" , 0 ) 
+pc . setqf ( "hayFromHarang" , 0 ) 
+pc . setqf ( "hayFromTaurean" , 0 ) 
+pc . setqf ( "hayFromStablemaster" , 0 ) 
+pc . setqf ( "yonahspatience" , 0 ) 
+pc . setqf ( "yonahHasHay" , 0 ) 
+pc . setqf ( "dropProb" , 0 ) 
+set_state ( "__COMPLETE__" ) 
+end 

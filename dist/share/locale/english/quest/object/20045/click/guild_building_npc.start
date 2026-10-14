@@ -1,0 +1,7 @@
+if npc . get_guild ( ) == pc . get_guild ( ) then 
+say_title ( gameforge . guild_building_npc . _40_sayTitle ) 
+say ( gameforge . guild_building_npc . _50_say ) 
+else 
+say_title ( gameforge . guild_building_npc . _40_sayTitle ) 
+say ( gameforge . guild_building_npc . _60_say ) 
+end 

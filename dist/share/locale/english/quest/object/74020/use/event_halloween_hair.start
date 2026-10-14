@@ -1,0 +1,15 @@
+local index = item . get_socket ( 1 ) 
+if 0 == index then 
+index = event_halloween_hair . get_random_hair_option_index ( ) 
+end 
+local option = event_halloween_hair . get_hair_option ( index ) 
+local hair_info = event_halloween_hair . get_hair_info_by_race ( pc . get_race ( ) + 1 ) 
+local vnum , shape = hair_info [ 1 ] , hair_info [ 2 ] 
+pc . set_part ( PART_HAIR , shape ) 
+affect . remove_hair ( ) 
+affect . add_hair ( option . apply , option . value , option . duration ) 
+pc . setf ( "hair" , "limit_time" , get_time ( ) + option . duration ) 
+char_log ( 0 , "CHANGE_HAIR" , string . format ( "USE_ITEM(%d)" , vnum ) ) 
+char_log ( 0 , "CHANGE_HAIR" , string . format ( "END_SEC(%d)" , get_time ( ) + option . duration ) ) 
+char_log ( 0 , "CHANGE_HAIR" , "CHANGE_HAIR_END" ) 
+item . remove ( ) 

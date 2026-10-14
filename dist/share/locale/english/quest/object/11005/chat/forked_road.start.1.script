@@ -1,0 +1,51 @@
+local s = select ( gameforge . forked_road . _120_select , gameforge . forked_road . _130_select , gameforge . locale . cancel ) 
+if s == 1 then 
+say ( "1> min " .. forked_road . enter_level ( 1 , 1 ) .. " max " .. forked_road . enter_level ( 1 , 2 ) ) 
+say ( "2> min " .. forked_road . enter_level ( 2 , 1 ) .. " max " .. forked_road . enter_level ( 2 , 2 ) ) 
+say ( "3> min " .. forked_road . enter_level ( 3 , 1 ) .. " max " .. forked_road . enter_level ( 3 , 2 ) ) 
+say ( "4> min " .. forked_road . enter_level ( 4 , 1 ) .. " max " .. forked_road . enter_level ( 4 , 2 ) ) 
+say ( "input number" ) 
+local choice = input_number ( "select  player's level  who will join " ) 
+if choice > 4 or choice == 0 then 
+say ( "Invalid number only 1 - 4 are allowed" ) 
+return 
+end 
+say ( string . format ( gameforge . forked_road . _170_say , forked_road . enter_level ( choice , 1 ) .. " max level: " .. forked_road . enter_level ( choice , 2 ) ) ) 
+local t = select ( gameforge . locale . guild . yes , gameforge . locale . guild . no ) 
+if 1 == t then 
+game . set_event_flag ( "threeway_war_choice" , choice ) 
+game . set_event_flag ( "threeway_war_level_min" , forked_road . enter_level ( choice , 1 ) ) 
+game . set_event_flag ( "threeway_war_level_max" , forked_road . enter_level ( choice , 2 ) ) 
+forked . purge_all_monsters ( ) 
+forked . initforked ( ) 
+game . set_event_flag ( "threeway_war" , 1 ) 
+game . set_event_flag ( "threeway_war_dead_count" , 25 ) 
+if true == is_test_server ( ) then 
+game . set_event_flag ( "threeway_war_kill_count" , 5 ) 
+else 
+game . set_event_flag ( "threeway_war_kill_count" , 250 ) 
+end 
+game . set_event_flag ( "threeway_war_boss_count" , 5 ) 
+game . set_event_flag ( "threeway_war_open_gate1" , 1 ) 
+game . set_event_flag ( "threeway_war_open_gate2" , 1 ) 
+game . set_event_flag ( "threeway_war_open_gate3" , 1 ) 
+say ( "Event Started !!" ) 
+say ( "" ) 
+wait ( ) 
+regen_in_map ( forked . getpassmapindexbyempire ( 1 ) , forked . getpasspathbyempire ( 1 ) .. "regen00_" .. choice .. ".txt" ) 
+regen_in_map ( forked . getpassmapindexbyempire ( 1 ) , forked . getpasspathbyempire ( 1 ) .. "npc00.txt" ) 
+regen_in_map ( forked . getpassmapindexbyempire ( 2 ) , forked . getpasspathbyempire ( 2 ) .. "regen00_" .. choice .. ".txt" ) 
+regen_in_map ( forked . getpassmapindexbyempire ( 2 ) , forked . getpasspathbyempire ( 2 ) .. "npc00.txt" ) 
+regen_in_map ( forked . getpassmapindexbyempire ( 3 ) , forked . getpasspathbyempire ( 3 ) .. "regen00_" .. choice .. ".txt" ) 
+regen_in_map ( forked . getpassmapindexbyempire ( 3 ) , forked . getpasspathbyempire ( 3 ) .. "npc00.txt" ) 
+notice_multiline ( gameforge . forked_road . _180_notice_all , notice_all ) 
+end 
+elseif 2 == s then 
+game . set_event_flag ( "threeway_war" , 0 ) 
+notice_multiline ( gameforge . forked_road . _190_notice_all , notice_all ) 
+forked . purge_all_monsters ( ) 
+warp_all_to_village ( forked . getsungzimapindex ( ) , 1 ) 
+warp_all_to_village ( forked . getpassmapindexbyempire ( 1 ) , 1 ) 
+warp_all_to_village ( forked . getpassmapindexbyempire ( 2 ) , 1 ) 
+warp_all_to_village ( forked . getpassmapindexbyempire ( 3 ) , 1 ) 
+end 

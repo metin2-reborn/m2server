@@ -1,0 +1,2 @@
+local operator = 2 
+event_mystery_box . drop_box ( operator , 3691 ) 

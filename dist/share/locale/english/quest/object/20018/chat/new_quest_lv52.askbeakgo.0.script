@@ -1,0 +1,12 @@
+target . delete ( "__TARGET__" ) 
+say_title ( gameforge . new_quest_lv52 . _044_say_title ) 
+say ( gameforge . new_quest_lv52 . _041_say ) 
+q . done ( ) 
+local doquest = select ( gameforge . new_quest_lv52 . _042_select , gameforge . subquest_12 . _50_select ) 
+if doquest == 1 then 
+set_state ( "askyuhwan" ) 
+else 
+say_title ( gameforge . new_quest_lv52 . _044_say_title ) 
+say ( gameforge . new_quest_lv52 . _046_say ) 
+return 
+end 

@@ -1,0 +1,15 @@
+new_quest_lv22_neededAmountDrop1 = 1 
+new_quest_lv22_neededAmountDrop2 = 1 
+new_quest_lv22_dropProb1 = 30 
+new_quest_lv22_dropProb2 = 30 
+new_quest_lv22_mob1 = 115 
+new_quest_lv22_mob2 = 114 
+new_quest_lv22_drop1 = 35000 
+new_quest_lv22_drop2 = 35001 
+send_letter ( gameforge . new_quest_lv22 . _016_send_letter ) 
+q . start ( ) 
+q . set_title ( gameforge . new_quest_lv22 . _016_send_letter ) 
+local v = find_npc_by_vnum ( 20018 ) 
+if 0 ~= v then 
+target . vid ( "__TARGET2__" , v , gameforge . new_quest_lv22 . _030_target ) 
+end 

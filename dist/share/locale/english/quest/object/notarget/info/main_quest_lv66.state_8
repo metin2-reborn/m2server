@@ -1,0 +1,8 @@
+say_title ( gameforge . main_quest_lv66 . _390_sendLetter ) 
+say ( string . format ( gameforge . main_quest_lv66 . _400_say , 200 ) ) 
+local t = pc . getqf ( "state_8_start" ) + 30 * 60 - get_global_time ( ) 
+if t < 0 then 
+say ( gameforge . main_quest_lv66 . _410_say ) 
+else 
+say ( string . format ( gameforge . main_quest_lv66 . _420_say , t / 60 ) ) 
+end 

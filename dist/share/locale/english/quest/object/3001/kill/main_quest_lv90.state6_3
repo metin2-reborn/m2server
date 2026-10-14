@@ -1,0 +1,13 @@
+if number ( 1 , 200 ) == 1 then 
+if pc . count_item ( 31027 ) < 50 then 
+pc . give_item2 ( 31027 , 1 ) 
+local remain = 50 - pc . count_item ( 31027 ) 
+if remain < 0 then 
+remain = 0 
+end 
+if pc . count_item ( 31027 ) >= 50 then 
+notice_multiline ( gameforge . main_quest_lv90 . _940_1_notice , notice ) 
+notice_multiline ( gameforge . main_quest_lv90 . _940_2_notice , notice ) 
+end 
+end 
+end 

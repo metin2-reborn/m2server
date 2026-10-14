@@ -1,0 +1,8 @@
+if pc . in_dungeon ( ) and d . getf ( "level" ) == 5 then local KILL_COUNT_FOR_DROP_KEY = 50 
+local n = d . getf ( "count" ) + 1 
+d . setf ( "count" , n ) 
+if n == KILL_COUNT_FOR_DROP_KEY then 
+game . drop_item ( 50084 , 1 ) 
+d . setf ( "count" , 0 ) 
+end 
+ return end 

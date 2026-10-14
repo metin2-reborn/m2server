@@ -1,0 +1,1 @@
+return horse . get_grade ( ) == 2 and horse . get_level ( ) == 20

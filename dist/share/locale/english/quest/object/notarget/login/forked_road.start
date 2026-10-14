@@ -1,0 +1,23 @@
+if forked . isforkedmapindex ( pc . get_map_index ( ) ) == true then if game . get_event_flag ( "threeway_war" ) == 0 then 
+warp_to_village ( ) 
+else 
+local noticeShow = false 
+if forked . is_registered_user ( ) == false then 
+forked . register_user ( ) 
+forked . setdeadcount ( ) 
+pc . remove_item ( 50089 ) 
+noticeShow = true 
+end 
+if forked . getdeadcount ( ) <= 0 then 
+warp_to_village ( ) 
+elseif true == noticeShow then 
+if forked . issungzimapindex ( pc . get_map_index ( ) ) == true then 
+say ( locale . forked_condition2 ) 
+say ( locale . NOTICE_COLOR .. locale . forked_rule_sungzi ) 
+else 
+say ( locale . forked_condition ) 
+say ( locale . NOTICE_COLOR .. locale . forked_rule ) 
+end 
+end 
+end 
+ return end 

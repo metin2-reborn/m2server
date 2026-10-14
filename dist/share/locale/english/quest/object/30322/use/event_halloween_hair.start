@@ -1,0 +1,6 @@
+local setting = event_halloween_hair . setting ( ) 
+if pc . count_item ( setting . pumpkin ) > 0 then 
+pc . remove_item ( setting . pumpkin , 1 ) 
+pc . remove_item ( setting . wand , 1 ) 
+pc . give_item2 ( setting . box , 1 ) 
+end 

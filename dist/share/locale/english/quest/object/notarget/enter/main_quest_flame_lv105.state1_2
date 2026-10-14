@@ -1,0 +1,6 @@
+pc . setqf ( "kill_count_1" , 0 ) 
+pc . setqf ( "kill_count_2" , 0 ) 
+pc . setqf ( "kill_count_3" , 0 ) 
+pc . setqf ( "kill_count_4" , 0 ) 
+pc . setqf ( "kill_count_5" , 0 ) 
+notice_multiline ( gameforge . main_quest_flame_lv105 . _080_notice , notice ) 

@@ -1,0 +1,6 @@
+if pc . count_item ( "27988" ) < 4 then 
+pc . give_item2 ( 27988 , 1 ) 
+end 
+if pc . count_item ( "27988" ) == 4 then 
+set_state ( "hunt_reward" ) 
+end 

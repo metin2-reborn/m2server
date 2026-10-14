@@ -1,0 +1,21 @@
+say_title ( gameforge . find_brother_article . _20_sayTitle ) 
+say ( gameforge . find_brother_article . _30_say ) 
+wait ( ) 
+say_pc_name ( ) 
+say ( gameforge . find_brother_article . _40_say ) 
+wait ( ) 
+say_title ( gameforge . find_brother_article . _20_sayTitle ) 
+say ( gameforge . find_brother_article . _50_say ) 
+wait ( ) 
+say_title ( gameforge . find_brother_article . _60_sayTitle ) 
+say ( gameforge . find_brother_article . _70_say ) 
+say_reward ( gameforge . find_brother_article . _80_sayReward ) 
+local s = select ( gameforge . find_brother_article . _90_select , gameforge . find_brother_article . _100_select ) 
+if 1 == s then 
+say_pc_name ( ) 
+say ( gameforge . find_brother_article . _110_say ) 
+set_state ( "accept" ) 
+elseif 2 == s then 
+say_pc_name ( ) 
+say ( gameforge . find_brother_article . _120_say ) 
+end 

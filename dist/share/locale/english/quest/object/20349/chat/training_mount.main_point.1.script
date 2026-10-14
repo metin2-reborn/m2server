@@ -1,0 +1,31 @@
+say_title ( "" .. mob_name ( 20349 ) .. "" ) 
+say ( gameforge . training_mount . _24_say ) 
+wait ( ) 
+say_title ( "" .. mob_name ( 20349 ) .. "" ) 
+say ( gameforge . training_mount . _25_say ) 
+wait ( ) 
+say_title ( "" .. mob_name ( 20349 ) .. "" ) 
+say ( gameforge . training_mount . _26_say ) 
+local s = select ( locale . yes , locale . no ) 
+if 2 == s then 
+return 
+end 
+say_title ( "" .. mob_name ( 20349 ) .. "" ) 
+say ( gameforge . training_mount . _27_say ) 
+wait ( ) 
+if pc . count_item ( 50068 ) > 0 then 
+if horse . get_level ( ) > 1 then 
+say_title ( "" .. mob_name ( 20349 ) .. "" ) 
+say ( gameforge . training_mount . _28_say ) 
+wait ( ) 
+say ( gameforge . training_mount . _29_say ) 
+else 
+say_title ( "" .. mob_name ( 20349 ) .. "" ) 
+say ( gameforge . training_mount . _30_say ) 
+return 
+end 
+else 
+say_title ( "" .. mob_name ( 20349 ) .. "" ) 
+say ( gameforge . training_mount . _31_say ) 
+return 
+end 

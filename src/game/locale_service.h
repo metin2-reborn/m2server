@@ -1,0 +1,16 @@
+#ifndef __LOCALE_SERVCICE__
+#define __LOCALE_SERVCICE__
+
+#include <string>
+
+bool LocaleService_Init(const std::string& c_rstServiceName);
+void LocaleService_LoadLocaleStringFile();
+void LocaleService_LoadEmpireTextConvertTables();
+void LocaleService_TransferDefaultSetting();
+const std::string& LocaleService_GetBasePath();
+const std::string& LocaleService_GetMapPath();
+const std::string& LocaleService_GetQuestPath();
+
+int check_name(const char * str);
+
+#endif

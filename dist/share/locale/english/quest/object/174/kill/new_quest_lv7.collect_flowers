@@ -1,0 +1,4 @@
+if new_quest_lv7 . when_one_killed ( new_quest_lv7_AmountNeed2 , new_quest_lv7_dropProb2 , new_quest_lv7_drop2 ) then 
+q . done ( ) 
+set_state ( "return_oldwoman" ) 
+end 

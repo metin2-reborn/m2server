@@ -1,0 +1,12 @@
+local lev = pc . getqf ( "current" ) 
+if lev ~= 0 then 
+if pc . getqf ( "remain" ) <= 0 then 
+setskin ( NOWINDOW ) 
+pc . setqf ( "buttonstate" , 3 ) 
+makequestbutton ( string . format ( gameforge . levelup . _30_makequestbutton , lev ) ) 
+else 
+setskin ( NOWINDOW ) 
+pc . setqf ( "buttonstate" , 1 ) 
+makequestbutton ( string . format ( gameforge . levelup . _40_makequestbutton , lev ) ) 
+end 
+end 

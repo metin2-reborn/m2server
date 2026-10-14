@@ -1,0 +1,1 @@
+return event_easter_2013 . get_number_of_eggs ( ) == 0

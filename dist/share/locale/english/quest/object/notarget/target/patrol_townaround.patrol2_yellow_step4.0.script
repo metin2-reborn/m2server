@@ -1,0 +1,3 @@
+target . delete ( "__TARGET__" ) 
+say_reward ( gameforge . patrol_townaround . _70_sayReward ) 
+setstate ( "patrol2_yellow_step5" ) 

@@ -1,0 +1,1 @@
+return pc . getf ( "subquest_32" , "sil_done" ) == 0

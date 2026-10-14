@@ -1,0 +1,22 @@
+target . delete ( "__TARGET__" ) 
+say_title ( gameforge . find_squareguard . _30_sayTitle ) 
+say ( gameforge . subquest_12 . _20_say ) 
+wait ( ) 
+say_title ( gameforge . find_squareguard . _30_sayTitle ) 
+say ( gameforge . subquest_12 . _30_say ) 
+local s = select ( gameforge . subquest_12 . _40_select , gameforge . subquest_12 . _50_select ) 
+if 2 == s then 
+say_title ( gameforge . find_squareguard . _30_sayTitle ) 
+say ( gameforge . subquest_12 . _60_say ) 
+local a = select ( gameforge . locale . guild . yes , gameforge . locale . guild . no ) 
+if 2 == a then 
+say_title ( gameforge . find_squareguard . _30_sayTitle ) 
+say ( gameforge . subquest_12 . _70_say ) 
+return 
+end 
+say_title ( gameforge . find_squareguard . _30_sayTitle ) 
+say ( gameforge . subquest_12 . _80_say ) 
+set_state ( "__GIVEUP__" ) 
+return 
+end 
+set_state ( "hunt_mijung" ) 

@@ -1,0 +1,4 @@
+setskin ( NOWINDOW ) 
+makequestbutton ( gameforge . horse_levelup . _320_makequestbutton ) 
+q . set_title ( gameforge . horse_levelup . _320_makequestbutton ) 
+q . start ( ) 

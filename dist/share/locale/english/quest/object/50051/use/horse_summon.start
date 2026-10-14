@@ -1,0 +1,21 @@
+if horse . get_grade ( ) == 0 then say_title ( gameforge . buy_fishrod . _210_sayTitle ) 
+say ( gameforge . horse_summon . _120_say ) 
+ return end if horse . get_grade ( ) == 1 then if pc . getsp ( ) >= 100 then 
+if number ( 1 , 100 ) <= horse_summon . get_horse_summon_prob_pct ( ) then 
+say_title ( gameforge . buy_fishrod . _210_sayTitle ) 
+say ( gameforge . horse_summon . _130_say ) 
+horse . summon ( ) 
+else 
+say_title ( gameforge . buy_fishrod . _210_sayTitle ) 
+say_reward ( gameforge . horse_summon . _140_sayReward ) 
+end 
+pc . change_sp ( - 100 ) 
+else 
+say_title ( gameforge . buy_fishrod . _210_sayTitle ) 
+say_reward ( gameforge . horse_summon . _150_sayReward ) 
+end 
+ return end if horse . get_grade ( ) == 2 then say_title ( gameforge . buy_fishrod . _210_sayTitle ) 
+say_reward ( gameforge . horse_summon . _160_sayReward ) 
+ return end if horse . get_grade ( ) == 3 then say_title ( gameforge . buy_fishrod . _210_sayTitle ) 
+say_reward ( gameforge . horse_summon . _170_sayReward ) 
+ return end 

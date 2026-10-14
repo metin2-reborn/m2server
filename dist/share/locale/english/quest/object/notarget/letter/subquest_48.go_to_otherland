@@ -1,0 +1,4 @@
+setskin ( NOWINDOW ) 
+makequestbutton ( gameforge . subquest_48 . _90_makequestbutton ) 
+q . set_title ( gameforge . subquest_48 . _90_makequestbutton ) 
+q . start ( ) 

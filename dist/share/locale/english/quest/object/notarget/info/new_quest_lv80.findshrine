@@ -1,0 +1,2 @@
+say_title ( gameforge . new_quest_lv80 . _310_set_title ) 
+say ( string . format ( gameforge . new_quest_lv80 . _320_say , item_name ( new_quest_lv80_blackice ) ) ) 

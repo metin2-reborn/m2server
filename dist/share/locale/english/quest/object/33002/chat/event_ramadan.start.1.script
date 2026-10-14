@@ -1,0 +1,38 @@
+local setting = event_ramadan . setting ( ) 
+if pc . count_item ( setting . bread ) == 0 then 
+say_title ( gameforge . event_ramadan . _020_sayTitle ) 
+say ( gameforge . event_ramadan . _80_say ) 
+local s = select ( gameforge . event_ramadan . _90_select_1 , gameforge . event_ramadan . _90_select_2 ) 
+if 2 == s then 
+say_title ( gameforge . event_ramadan . _020_sayTitle ) 
+say ( gameforge . event_ramadan . _100_say ) 
+return 
+end 
+say_title ( gameforge . event_ramadan . _020_sayTitle ) 
+say ( gameforge . event_ramadan . _110_say ) 
+wait ( ) 
+say_title ( gameforge . event_ramadan . _020_sayTitle ) 
+say ( gameforge . event_ramadan . _120_say ) 
+local s = select ( gameforge . event_ramadan . _130_select_1 , gameforge . event_ramadan . _130_select_2 ) 
+if 2 == s then 
+say_title ( gameforge . event_ramadan . _020_sayTitle ) 
+say ( gameforge . event_ramadan . _100_say ) 
+return 
+end 
+say_title ( gameforge . event_ramadan . _020_sayTitle ) 
+say ( gameforge . event_ramadan . _140_say ) 
+elseif pc . count_item ( setting . bread ) > 0 and pc . count_item ( setting . bread ) < 10 then 
+say_title ( gameforge . event_ramadan . _020_sayTitle ) 
+say ( gameforge . event_ramadan . _150_say ) 
+elseif pc . count_item ( setting . bread ) >= 10 then 
+say_title ( gameforge . event_ramadan . _020_sayTitle ) 
+say ( gameforge . event_ramadan . _160_say ) 
+wait ( ) 
+say_title ( gameforge . event_ramadan . _020_sayTitle ) 
+say ( gameforge . event_ramadan . _170_say ) 
+pc . give_item2 ( setting . candy , 1 ) 
+pc . remove_item ( setting . bread , 10 ) 
+end 
+if not event_ramadan . is_running ( ) then 
+npc . purge ( ) 
+end 

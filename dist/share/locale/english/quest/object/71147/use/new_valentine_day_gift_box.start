@@ -1,0 +1,14 @@
+local t = get_global_time ( ) - item . get_socket ( 1 ) 
+local n = item . get_socket ( 0 ) 
+if t >= 1800 then 
+new_valentine_day_gift_box . gift ( item . get_id ( ) ) 
+item . set_socket ( 1 , get_global_time ( ) ) 
+if n == 9 then 
+item . remove ( ) 
+else 
+item . set_socket ( 0 , n + 1 ) 
+end 
+syschat ( string . format ( gameforge . new_christmas_gift_box . _010_say , 10 , 9 - n ) ) 
+else 
+syschat ( string . format ( gameforge . new_christmas_gift_box . _020_say , 31 - t / 60 ) ) 
+end 

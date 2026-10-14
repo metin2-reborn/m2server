@@ -1,0 +1,6 @@
+send_letter ( gameforge . main_quest_lv94 . _430_sendLetter ) 
+q . set_counter_name ( gameforge . main_quest_lv94 . _1080_say ) 
+local remain1 = 30 - pc . getqf ( "mob4_1_count" ) 
+local remain2 = 3 - pc . getqf ( "mob4_2_count" ) 
+local remain3 = 1 - pc . getqf ( "mob4_3_count" ) 
+q . set_counter_value ( remain1 + remain2 + remain3 ) 

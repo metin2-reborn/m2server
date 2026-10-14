@@ -1,0 +1,3 @@
+pc . setqf ( "limit_time" , 0 ) 
+pc . setqf ( "kill_count" , 0 ) 
+q . done ( ) 

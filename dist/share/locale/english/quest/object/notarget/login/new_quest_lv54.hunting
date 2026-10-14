@@ -1,0 +1,7 @@
+new_quest_lv54_neededAmountDrop1 = 20 
+new_quest_lv54_dropProb1 = 6 
+new_quest_lv54_mob1 = 144 
+new_quest_lv54_drop1 = 30176 
+send_letter ( gameforge . new_quest_lv54 . _020_say_title ) 
+q . start ( ) 
+q . set_title ( gameforge . new_quest_lv54 . _020_say_title ) 

@@ -1,0 +1,21 @@
+ScriptType			SkillDataScript
+
+Type				MIDDLE
+Attribute			"NEED_TARGET" "FOR_ALLIANCE" "USE_FOR_ME"
+
+Name				"벼락"
+Description			"하늘의 힘을 빌어 적에게 벼락을 내린다"
+Requirement			"비파부" 5
+
+IconFileName		"skill/shaman/byeorak.sub"
+MotionIndex			17
+
+List AffectData
+{
+	"파괴력 : %.0f" "(INT * 2 + 20) * (10 + SkillPoint)" ""
+}
+
+CoolTimeFormula		"24"
+NeedSPFormula		"120 + SkillPoint * 3"
+
+MaxLevel			30

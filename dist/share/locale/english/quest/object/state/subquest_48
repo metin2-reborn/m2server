@@ -1,0 +1,15 @@
+subquest_48={["start"]=0,["__COMPLETE__"]=668443392,["__GIVEUP__"]=-387375033,["back_to_boss"]=41587947,["go_to_otherland"]=399925546,["information"]=695801987,is_other_vil= function ()local empire = pc . get_empire ( ) 
+local map_num = pc . get_map_index ( ) 
+local is_village = 0 
+if empire == 1 and map_num == 41 then is_village = 1 end 
+if empire == 2 and map_num == 1 then is_village = 1 end 
+if empire == 3 and map_num == 21 then is_village = 1 end 
+return is_village 
+end ,is_my_vil= function ()local empire = pc . get_empire ( ) 
+local map_num = pc . get_map_index ( ) 
+local is_village = 0 
+if empire == 1 and map_num == 1 then is_village = 1 end 
+if empire == 2 and map_num == 21 then is_village = 1 end 
+if empire == 3 and map_num == 41 then is_village = 1 end 
+return is_village 
+end }

@@ -1,0 +1,43 @@
+new_easter_gift_box={["start"]=0,gift= function ()local n = number ( 1 , 100 ) 
+if n <= 1 then 
+pc . give_item2 ( 72308 , 1 ) 
+elseif n <= 5 then 
+pc . give_item2 ( 71085 , 1 ) 
+elseif n <= 9 then 
+pc . give_item2 ( 70024 , 1 ) 
+elseif n <= 10 then 
+pc . give_item2 ( 71026 , 1 ) 
+elseif n <= 14 then 
+pc . give_item2 ( 71084 , 1 ) 
+elseif n <= 20 then 
+pc . give_item2 ( 71108 , 5 ) 
+elseif n <= 23 then 
+pc . give_item2 ( 70003 , 1 ) 
+elseif n <= 26 then 
+pc . give_item2 ( 72723 , 1 ) 
+elseif n <= 29 then 
+pc . give_item2 ( 72727 , 1 ) 
+elseif n <= 32 then 
+pc . give_item2 ( 71004 , 5 ) 
+elseif n <= 35 then 
+pc . give_item2 ( 71094 , 1 ) 
+elseif n <= 40 then 
+pc . give_item2 ( 70102 , 1 ) 
+elseif n <= 46 then 
+pc . give_item2 ( 27992 , 1 ) 
+elseif n <= 51 then 
+pc . give_item2 ( 27993 , 1 ) 
+elseif n <= 55 then 
+pc . give_item2 ( 27994 , 1 ) 
+elseif n <= 66 then 
+pc . changegold ( 10000 ) 
+elseif n <= 76 then 
+pc . changegold ( 20000 ) 
+elseif n <= 85 then 
+pc . changegold ( 30000 ) 
+elseif n <= 93 then 
+pc . changegold ( 50000 ) 
+else 
+pc . changegold ( 100000 ) 
+end 
+end }

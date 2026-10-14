@@ -1,0 +1,6 @@
+if pc . getqf ( "basic_weapon" ) == 0 then 
+pc . setqf ( "basic_weapon" , 1 ) 
+if pc . countitem ( item ) == 0 and pc . weapon ~= item then 
+pc . give_item2 ( give_basic_weapon . basic_item ( pc . job , 1 ) ) 
+end 
+end 

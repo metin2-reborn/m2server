@@ -1,0 +1,3 @@
+say_title ( gameforge . main_quest_lv32 . _80_sayTitle ) 
+say ( gameforge . main_quest_lv32 . _90_say ) 
+say_reward ( gameforge . main_quest_lv32 . _100_sayReward ) 

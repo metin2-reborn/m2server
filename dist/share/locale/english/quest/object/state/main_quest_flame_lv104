@@ -1,0 +1,21 @@
+main_quest_flame_lv104={["start"]=0,["__COMPLETE__"]=668443392,["state0"]=-568891545,["state1_1"]=-712184091,["state1_2"]=1283833695,["state1_3"]=998412233,["state2_1"]=-674606916,["state2_2"]=1321402630,["state2_3"]=969159056,["state3_1"]=-704103797,["state3_2"]=1325493041,["state3_3"]=939940775,["state4_1"]=-750310386,["state4_2"]=1246657972,["state4_3"]=1028214050,kill_count= function ()local total_remain = 0 
+local remain1 = 1 - pc . getqf ( "kill_count_1" ) 
+if remain1 < 0 then 
+remain1 = 0 
+end 
+total_remain = total_remain + remain1 
+q . set_counter_value ( total_remain ) 
+if total_remain == 0 then 
+set_state ( "state1_3" ) 
+end 
+end ,item_count_state2_3= function ()local item_count = pc . getqf ( "item_count_1" ) 
+local remain = 5 - item_count 
+if remain <= 0 then 
+remain = 0 
+end 
+q . set_counter_value ( remain ) 
+end ,item_count_state4_2= function ()if pc . count_item ( 31024 ) >= 5 then 
+set_state ( "state4_3" ) 
+end 
+q . set_counter_value ( 5 - pc . count_item ( 31024 ) ) 
+end }

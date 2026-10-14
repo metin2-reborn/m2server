@@ -1,0 +1,22 @@
+target . delete ( "__TARGET__" ) 
+say_title ( gameforge . subquest_18 . _20_sayTitle ) 
+say ( gameforge . subquest_18 . _30_say ) 
+local s = select ( 
+gameforge . subquest_18 . _33_select , 
+gameforge . subquest_18 . _37_select ) 
+if 2 == s then 
+say ( gameforge . subquest_18 . _40_say ) 
+local a = select ( gameforge . locale . guild . yes , gameforge . locale . guild . no ) 
+if 2 == a then 
+say_title ( gameforge . subquest_18 . _20_sayTitle ) 
+say ( gameforge . subquest_18 . _50_say ) 
+return 
+end 
+say_title ( gameforge . subquest_18 . _20_sayTitle ) 
+say ( gameforge . subquest_18 . _60_say ) 
+set_state ( "__GIVEUP__" ) 
+return 
+end 
+say_title ( gameforge . subquest_18 . _20_sayTitle ) 
+say ( gameforge . subquest_18 . _70_say ) 
+set_state ( "find_soonyougil" ) 

@@ -1,0 +1,3 @@
+say_title ( gameforge . find_squareguard . _30_sayTitle ) 
+say ( string . format ( gameforge . guild_ranking . _30_say , guild . get_rank ( ) ) ) 
+say ( string . format ( gameforge . guild_ranking . _35_say , guild . get_ladder_point ( ) ) ) 

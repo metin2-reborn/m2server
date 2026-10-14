@@ -1,0 +1,2 @@
+if is_test_server ( ) then cmdchat ( gameforge . notify_test_server . _10_chat ) 
+ return end 

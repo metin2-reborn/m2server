@@ -1,0 +1,9 @@
+# CLang Cache
+/.cache/
+
+# Build Artifacts
+/build/
+/compile_commands.json
+
+# Environment
+/.env

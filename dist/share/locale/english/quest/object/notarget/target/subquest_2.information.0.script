@@ -1,0 +1,4 @@
+target . delete ( "__TARGET__" ) 
+say_title ( gameforge . find_squareguard . _130_sayTitle ) 
+say ( gameforge . subquest_02 . _20_say ) 
+set_state ( "ask_dinner" ) 

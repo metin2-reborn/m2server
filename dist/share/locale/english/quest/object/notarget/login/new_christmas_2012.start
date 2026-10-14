@@ -1,0 +1,12 @@
+if new_christmas_2012 . has_santa ( ) then if pc . get_map_index ( ) == 1 or pc . get_map_index ( ) == 21 or pc . get_map_index ( ) == 41 then 
+if find_npc_by_vnum ( 20384 ) == 0 then 
+if pc . get_map_index ( ) == 1 then 
+mob . spawn ( 20384 , 625 , 676 , 0 , 0 ) 
+elseif pc . get_map_index ( ) == 21 then 
+mob . spawn ( 20384 , 542 , 551 , 0 , 0 ) 
+elseif pc . get_map_index ( ) == 41 then 
+mob . spawn ( 20384 , 442 , 717 , 0 , 0 ) 
+end 
+end 
+end 
+ return end 

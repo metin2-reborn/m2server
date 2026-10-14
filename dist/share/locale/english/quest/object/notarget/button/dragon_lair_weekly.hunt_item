@@ -1,0 +1,19 @@
+local settings = dragon_lair_weekly . set_settings ( ) 
+local amount_remaining = dragon_lair_weekly . get_amount_remaining ( ) 
+if ( amount_remaining > 0 ) then 
+local time_remaining = dragon_lair_weekly . get_time_remaining ( ) 
+if ( time_remaining > 0 ) then 
+say_title ( gameforge . dragon_lair_weekly . _110_sayTitle ) 
+say ( string . format ( gameforge . dragon_lair_weekly . _140_say , amount_remaining ) ) 
+say_item_vnum ( pc . getqf ( "item_to_hunt" ) ) 
+say ( "" ) 
+say ( gameforge . dragon_lair_weekly . _090_questRest .. get_time_remaining ( time_remaining ) ) 
+else 
+notice_multiline ( gameforge . dragon_lair_weekly . _160_notice , notice ) 
+q . done ( ) 
+set_state ( "getquest" ) 
+end 
+else 
+say_title ( gameforge . dragon_lair_weekly . _130_sayTitle ) 
+say ( gameforge . dragon_lair_weekly . _150_say ) 
+end 

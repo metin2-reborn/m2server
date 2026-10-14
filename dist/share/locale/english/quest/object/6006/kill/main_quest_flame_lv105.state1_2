@@ -1,0 +1,3 @@
+local kill_count = pc . getqf ( "kill_count_2" ) 
+pc . setqf ( "kill_count_2" , kill_count + 1 ) 
+main_quest_flame_lv105 . kill_count_state1_2 ( ) 

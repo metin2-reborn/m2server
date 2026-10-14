@@ -1,0 +1,89 @@
+questscroll5={["start"]=0,["kill1"]=-1212866787,["kill2"]=784092839,["reward"]=1322349139,get_menu= function (mission_index)return locale . questscroll5 . mission [ mission_index ] [ 3 ] 
+end ,set_mission= function (mission_index)pc . setqf ( "mission_index" , mission_index ) 
+local mission_type = questscroll5 . get_mission_type ( ) 
+if mission_type == QUEST_SCROLL_TYPE_KILL_MOB then 
+test_chat ( gameforge . questscroll5 . _70_chat ) 
+set_state ( "kill1" ) 
+elseif mission_type == QUEST_SCROLL_TYPE_KILL_MOB2 then 
+test_chat ( gameforge . questscroll5 . _80_chat ) 
+set_state ( "kill2" ) 
+end 
+end ,get_mission_type= function ()return questscroll5 . get_mission ( ) [ 1 ] 
+end ,notify_already_running= function ()say_title ( gameforge . questscroll5 . _90_sayTitle ) 
+say ( gameforge . questscroll5 . _100_say ) 
+end ,show_mission_menu= function ()local s = select ( gameforge . locale . levelup . prev_quest_go , gameforge . locale . cancel ) 
+if s == 2 then 
+say_title ( string . format ( gameforge . questscroll5 . _110_sayTitle , questscroll5 . get_title ( ) ) ) 
+say ( gameforge . questscroll5 . _120_say ) 
+local a = select ( gameforge . questscroll5 . _130_select , gameforge . locale . guild . no ) 
+if a == 1 then 
+say ( string . format ( gameforge . questscroll5 . _140_say , questscroll5 . get_title ( ) ) ) 
+restart_quest ( ) 
+end 
+end 
+end ,get_mission= function ()local mission_index = pc . getqf ( "mission_index" ) 
+if mission_index > 56 then 
+mission_index = number ( 50 , 56 ) 
+questscroll5 . set_mission ( mission_index ) 
+end 
+return locale . questscroll5 . mission [ mission_index ] 
+end ,get_title= function ()return questscroll5 . get_mission ( ) [ 3 ] 
+end ,get_complete_title= function ()return string . format ( gameforge . questscroll5 . _200_stringFormat , questscroll5 . get_title ( ) ) 
+end ,get_desc= function ()return "[WINDOW_SIZE width;360|height;280]" .. questscroll5 . get_mission ( ) [ 4 ] 
+end ,get_summ= function ()return questscroll5 . get_mission ( ) [ 5 ] 
+end ,get_mob1_name= function ()return mob_name ( questscroll5 . get_mob1_vnum ( ) ) 
+end ,get_mob1_max_kill_count= function ()return questscroll5 . get_mission ( ) [ 7 ] 
+end ,get_mob1_vnum= function ()return tonumber ( questscroll5 . get_mission ( ) [ 6 ] ) 
+end ,get_mob1_rest_kill_count= function ()local ret = questscroll5 . get_mob1_max_kill_count ( ) - questscroll5 . get_mob1_cur_kill_count ( ) 
+if ret < 0 then return 0 end 
+return ret 
+end ,set_mob1_cur_kill_count= function (value)pc . setqf ( "mob1_kill_count" , value ) 
+end ,get_mob1_cur_kill_count= function ()return pc . getqf ( "mob1_kill_count" ) 
+end ,get_mob2_name= function ()return mob_name ( questscroll5 . get_mob2_vnum ( ) ) 
+end ,get_mob2_max_kill_count= function ()return questscroll5 . get_mission ( ) [ 9 ] 
+end ,get_mob2_vnum= function ()return tonumber ( questscroll5 . get_mission ( ) [ 8 ] ) 
+end ,get_mob2_rest_kill_count= function ()local ret = questscroll5 . get_mob2_max_kill_count ( ) - questscroll5 . get_mob2_cur_kill_count ( ) 
+if ret < 0 then return 0 end 
+return ret 
+end ,set_mob2_cur_kill_count= function (value)pc . setqf ( "mob2_kill_count" , value ) 
+end ,get_mob2_cur_kill_count= function ()return pc . getqf ( "mob2_kill_count" ) 
+end ,reward_table_get_prob_sum= function (item_array)local sum = 0 
+for i = 1 , table . getn ( item_array ) begin 
+sum = sum + item_array [ i ] [ 2 ] 
+end 
+return sum 
+end ,reward_table_get_value= function (item_array)local prob_sum = questscroll5 . reward_table_get_prob_sum ( item_array ) 
+local prob_pos = number ( 0 , prob_sum ) 
+test_chat ( string . format ( gameforge . questscroll5 . _210_chat , prob_pos ) ) 
+for i = 1 , table . getn ( item_array ) begin 
+prob_cur = item_array [ i ] [ 2 ] 
+if prob_pos <= prob_cur then 
+return item_array [ i ] [ 1 ] 
+end 
+prob_pos = prob_pos - prob_cur 
+end 
+chat ( gameforge . questscroll5 . _220_chat ) 
+return 0 
+end ,get_reward_type= function ()return questscroll5 . get_mission ( ) [ 2 ] 
+end ,get_reward_money= function (reward_type)return questscroll5 . reward_table_get_value ( locale . questscroll5 . reward_money [ reward_type ] ) 
+end ,get_reward_exp= function (reward_type)return questscroll5 . reward_table_get_value ( locale . questscroll5 . reward_exp [ reward_type ] ) 
+end ,get_reward_item= function (reward_type)return questscroll5 . reward_table_get_value ( locale . questscroll5 . reward_item [ reward_type ] ) 
+end ,reward_money= function (reward_type)local reward_money = questscroll5 . get_reward_money ( reward_type ) 
+if reward_money > 1000 and reward_money <= 200000 then 
+pc . change_money ( reward_money ) 
+say_reward ( string . format ( gameforge . questscroll5 . _230_sayReward , reward_money ) ) 
+else 
+chat ( string . format ( gameforge . questscroll5 . _240_chat , reward_type ) ) 
+end 
+end ,reward_exp= function (reward_type)local reward_exp = questscroll5 . get_reward_exp ( reward_type ) 
+if reward_exp > 1000 and reward_exp <= 300000 then 
+pc . give_exp2 ( reward_exp ) 
+set_quest_state ( "levelup" , "run" ) 
+say_reward ( string . format ( gameforge . questscroll5 . _250_sayReward , reward_exp ) ) 
+else 
+chat ( string . format ( gameforge . questscroll5 . _260_chat , reward_type ) ) 
+end 
+end ,reward_item= function (reward_type)local reward_item = questscroll5 . get_reward_item ( reward_type ) 
+pc . give_item2 ( reward_item ) 
+say_reward ( string . format ( gameforge . questscroll5 . _270_sayReward , item_name ( reward_item ) ) ) 
+end }

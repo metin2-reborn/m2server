@@ -1,0 +1,5 @@
+target . delete ( "__TARGET3__" ) 
+say_title ( gameforge . subquest_32 . _270_sayTitle ) 
+say ( gameforge . subquest_32 . _280_say ) 
+pc . remove_item ( 30159 ) 
+pc . setqf ( "sil_done" , 2 ) 

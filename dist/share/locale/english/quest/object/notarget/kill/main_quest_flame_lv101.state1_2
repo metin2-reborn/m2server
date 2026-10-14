@@ -1,0 +1,5 @@
+if pc . get_map_index ( ) >= 351 * 10000 and pc . get_map_index ( ) < ( 351 + 1 ) * 10000 then if number ( 1 , 100 ) == 1 then 
+pc . give_item2 ( 31074 , 1 ) 
+set_state ( "state1_4" ) 
+end 
+ return end 

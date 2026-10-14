@@ -1,0 +1,8 @@
+target . delete ( "__TARGET__" ) 
+say_title ( gameforge . blacksmith . _20_sayTitle ) 
+say ( gameforge . main_quest_lv6 . _110_say ) 
+wait ( ) 
+say_title ( gameforge . blacksmith . _20_sayTitle ) 
+say ( gameforge . main_quest_lv6 . _120_say ) 
+say_item_vnum ( 30003 ) 
+set_state ( "gotowarehousekeeper" ) 

@@ -1,0 +1,9 @@
+local v = find_npc_by_vnum ( 20349 ) 
+if 0 == v then 
+else 
+target . vid ( "__TARGET__" , v , "" ) 
+end 
+setskin ( NOWINDOW ) 
+makequestbutton ( gameforge . horse_upgrade2 . _230_makequestbutton ) 
+q . set_title ( gameforge . horse_upgrade2 . _230_makequestbutton ) 
+q . start ( ) 

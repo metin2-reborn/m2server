@@ -1,0 +1,5 @@
+pc . setqf ( "kill_m2" , 1 ) 
+if pc . getqf ( "kill_m1" ) == 1 and pc . getqf ( "kill_m2" ) == 1 and pc . getqf ( "kill_m3" ) == 1 then 
+set_state ( "hunt_reward" ) 
+end 
+return 

@@ -1,0 +1,5 @@
+target . delete ( "__TARGET__" ) 
+say_title ( gameforge . arena_manager . _20_sayTitle ) 
+say ( gameforge . main_quest_lv47 . _370_say ) 
+q . done ( ) 
+set_state ( "gototeacher" ) 

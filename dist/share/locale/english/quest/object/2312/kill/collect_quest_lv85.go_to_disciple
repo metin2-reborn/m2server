@@ -1,0 +1,5 @@
+local s = number ( 1 , 200 ) 
+if s == 1 then 
+pc . give_item2 ( 30167 ) 
+send_letter ( gameforge . collect_quest_lv85 . _130_send_letter ) 
+end 

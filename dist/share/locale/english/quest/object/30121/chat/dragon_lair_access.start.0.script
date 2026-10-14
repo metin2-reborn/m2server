@@ -1,0 +1,77 @@
+local starttime = game . get_event_flag ( "dragon_lair_time" ) 
+local current_time = get_global_time ( ) 
+local settings = dragon_lair_access . get_settings ( ) 
+local time_remaining = dragon_lair_access . get_time_remaining ( ) 
+if pc . count_item ( settings . access_item ) >= settings . access_item_amount then 
+if starttime + settings . group_time >= current_time then 
+local password_input ; 
+repeat 
+say_title ( gameforge . ghost_story . _010_sayTitle ) 
+say ( gameforge . dragon_lair_access . _020_say ) 
+password_input = tonumber ( input ( ) ) 
+if password_input ~= game . get_event_flag ( "dragon_lair_password" ) then 
+say_title ( gameforge . ghost_story . _010_sayTitle ) 
+say ( gameforge . dragon_lair_access . _030_say ) 
+local again = select ( gameforge . dragon_lair_access . _040_select , gameforge . locale . cancel ) 
+if again == 2 then 
+return 
+end 
+end 
+until password_input == game . get_event_flag ( "dragon_lair_password" ) 
+if not dragon_lair_access . give_item_to_ghost ( ) then 
+return 
+end 
+pc . setqf ( "time" , starttime ) 
+dragon_lair_access . warp_to_lair ( ) 
+set_state ( "kill_dragon" ) 
+elseif time_remaining < 0 and npc . lock ( ) then 
+say_title ( gameforge . ghost_story . _010_sayTitle ) 
+say ( gameforge . dragon_lair_access . _050_say ) 
+local abort = select ( gameforge . dragon_lair_access . _060_select , gameforge . locale . cancel ) 
+if abort == 2 then 
+npc . unlock ( ) 
+return 
+end 
+local password_number ; 
+repeat 
+say_title ( gameforge . ghost_story . _010_sayTitle ) 
+say ( gameforge . dragon_lair_access . _070_say ) 
+password_number = tonumber ( input ( ) ) 
+local again ; 
+if type ( password_number ) ~= "number" then 
+say_title ( gameforge . ghost_story . _010_sayTitle ) 
+say ( gameforge . dragon_lair_access . _080_say ) 
+again = select ( gameforge . dragon_lair_access . _040_select , gameforge . locale . cancel ) 
+if again == 2 then 
+npc . unlock ( ) 
+return 
+end 
+end 
+until type ( password_number ) == "number" 
+if not dragon_lair_access . give_item_to_ghost ( ) then 
+npc . unlock ( ) 
+return 
+end 
+if dragon_lair_access . get_time_remaining ( ) > 0 then 
+pc . give_item2 ( settings . access_item , settings . access_item_amount ) 
+npc . unlock ( ) 
+say_title ( gameforge . ghost_story . _010_sayTitle ) 
+say ( gameforge . dragon_lair_access . _120_say ) 
+return 
+end 
+pc . setqf ( "password" , password_number ) 
+timer ( "dragon_lair_warptimer" , pc . get_channel_id ( ) * 2 ) 
+npc . unlock ( ) 
+else 
+say_title ( gameforge . ghost_story . _010_sayTitle ) 
+say ( gameforge . dragon_lair_access . _120_say ) 
+return 
+end 
+else 
+say_title ( gameforge . ghost_story . _010_sayTitle ) 
+say ( gameforge . dragon_lair_access . _100_say ) 
+say ( gameforge . dragon_lair_access . _105_say ) 
+say ( settings . access_item_amount .. "x: " ) 
+say_item_vnum ( settings . access_item ) 
+return 
+end 

@@ -1,0 +1,3 @@
+notice_multiline ( gameforge . dragon_lair_weekly . _160_notice , notice ) 
+q . done ( ) 
+set_state ( "getquest" ) 

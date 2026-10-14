@@ -1,0 +1,17 @@
+local s = 0 
+if is_test_server ( ) then 
+test_chat ( gameforge . questscroll5 . _60_chat ) 
+s = select ( 
+questscroll5 . get_menu ( 50 ) , 
+questscroll5 . get_menu ( 51 ) , 
+questscroll5 . get_menu ( 52 ) , 
+questscroll5 . get_menu ( 53 ) , 
+questscroll5 . get_menu ( 54 ) , 
+questscroll5 . get_menu ( 55 ) , 
+questscroll5 . get_menu ( 56 ) 
+) + 50 - 1 
+else 
+s = number ( 50 , 56 ) 
+end 
+questscroll5 . set_mission ( s ) 
+item . remove ( ) 

@@ -1,0 +1,1 @@
+return pc . getf ( "subquest_6" , "ironore_done" ) == 0

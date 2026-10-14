@@ -1,0 +1,1 @@
+return pc . get_empire ( ) == 3 and pc . job == 3 and pc . level <= 5

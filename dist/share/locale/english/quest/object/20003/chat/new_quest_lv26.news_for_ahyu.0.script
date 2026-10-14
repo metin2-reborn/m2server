@@ -1,0 +1,18 @@
+new_quest_lv26_talkdone = 1 
+target . delete ( "__TARGET3__" ) 
+say_title ( gameforge . new_quest_lv26 . _035_say_title ) 
+say ( gameforge . new_quest_lv26 . _057_say ) 
+wait ( ) 
+say_title ( gameforge . new_quest_lv26 . _035_say_title ) 
+say ( gameforge . new_quest_lv26 . _058_say ) 
+if pc . get_sex ( ) == 0 then 
+pc . give_item2 ( 50024 ) 
+else pc . get_sex ( ) 
+pc . give_item2 ( 50031 ) 
+end 
+local v = find_npc_by_vnum ( 20019 ) 
+if 0 ~= v then 
+target . vid ( "__TARGET4__" , v , gameforge . new_quest_lv26 . _010_target ) 
+end 
+q . done ( ) 
+set_state ( "happy_hunting_grounds" ) 

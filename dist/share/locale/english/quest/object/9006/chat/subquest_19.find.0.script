@@ -1,0 +1,18 @@
+say ( gameforge . subquest_19 . _150_say ) 
+say_item_vnum ( 30151 ) 
+say ( gameforge . subquest_19 . _160_say ) 
+local s = select ( gameforge . subquest_19 . _170_select , gameforge . subquest_19 . _180_select ) 
+if 2 == s then 
+say ( gameforge . subquest_19 . _190_say ) 
+local a = select ( gameforge . locale . guild . yes , gameforge . locale . guild . no ) 
+if 2 == a then 
+say ( gameforge . subquest_19 . _200_say ) 
+return 
+end 
+say_title ( gameforge . couple_ring . _20_sayTitle ) 
+say ( gameforge . subquest_19 . _210_say ) 
+set_state ( "__GIVEUP__" ) 
+return 
+end 
+say_title ( gameforge . couple_ring . _20_sayTitle ) 
+say ( gameforge . subquest_19 . _220_say ) 

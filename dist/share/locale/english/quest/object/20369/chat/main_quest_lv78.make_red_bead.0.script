@@ -1,0 +1,70 @@
+if pc . count_item ( 31006 ) >= 20 then 
+say_title ( mob_name ( 20369 ) ) 
+say ( string . format ( gameforge . main_quest_lv78 . _50_say , 20 ) ) 
+wait ( ) 
+say_title ( locale . reward ) 
+say_reward ( string . format ( gameforge . main_quest_lv60 . _190_sayReward , 3.6e+07 ) ) 
+say_reward ( string . format ( gameforge . main_quest_lv60 . _210_sayReward , item_name ( 72725 ) ) ) 
+say_reward ( string . format ( gameforge . main_quest_lv60 . _210_sayReward , item_name ( 70024 ) ) ) 
+say_reward ( string . format ( gameforge . main_quest_lv60 . _210_sayReward , item_name ( 70004 ) ) ) 
+pc . give_exp2 ( 3.6e+07 ) 
+pc . give_item2 ( 72725 ) 
+pc . give_item2 ( 70024 ) 
+pc . give_item2 ( 70004 ) 
+pc . remove_item ( 31006 , pc . count_item ( 31006 ) ) 
+set_state ( "state_2" ) 
+return 
+end 
+local t = get_global_time ( ) 
+local today = t - math . mod ( t , 86400 ) 
+if pc . getqf ( "first_make_time" ) ~= today then 
+pc . setqf ( "first_make_time" , today ) 
+pc . setqf ( "make_count" , 0 ) 
+end 
+if pc . count_item ( 90010 ) < 1 or pc . count_item ( 30019 ) < 1 or 
+pc . count_item ( 31007 ) < 1 then 
+say_title ( gameforge . main_quest_lv66 . _300_sayTitle ) 
+say ( gameforge . main_quest_lv78 . _60_say ) 
+return 
+end 
+local n = pc . getqf ( "make_count" ) 
+if n >= 7 then 
+say_title ( gameforge . main_quest_lv66 . _300_sayTitle ) 
+say ( gameforge . main_quest_lv78 . _70_say ) 
+return 
+else 
+pc . remove_item ( 90010 , 1 ) 
+pc . remove_item ( 30019 , 1 ) 
+pc . remove_item ( 31007 , 1 ) 
+say_title ( gameforge . main_quest_lv66 . _300_sayTitle ) 
+say ( gameforge . main_quest_lv78 . _80_say ) 
+wait ( ) 
+pc . setqf ( "make_count" , n + 1 ) 
+local n = number ( 1 , 100 ) 
+if n > 60 then 
+say_title ( gameforge . main_quest_lv66 . _300_sayTitle ) 
+say ( gameforge . main_quest_lv78 . _90_say ) 
+wait ( ) 
+elseif pc . count_item ( 31006 ) < 20 then 
+pc . give_item2 ( 31006 , 1 ) 
+say_title ( gameforge . main_quest_lv66 . _300_sayTitle ) 
+say ( gameforge . main_quest_lv78 . _100_say ) 
+say_item_vnum ( 31006 ) 
+wait ( ) 
+else 
+say_title ( mob_name ( 20369 ) ) 
+say ( string . format ( gameforge . main_quest_lv78 . _50_say , 20 ) ) 
+wait ( ) 
+say_title ( locale . reward ) 
+say_reward ( string . format ( gameforge . main_quest_lv60 . _190_sayReward , 3.6e+07 ) ) 
+say_reward ( string . format ( gameforge . main_quest_lv60 . _210_sayReward , item_name ( 72725 ) ) ) 
+say_reward ( string . format ( gameforge . main_quest_lv60 . _210_sayReward , item_name ( 70024 ) ) ) 
+say_reward ( string . format ( gameforge . main_quest_lv60 . _210_sayReward , item_name ( 70004 ) ) ) 
+pc . give_exp2 ( 3.6e+07 ) 
+pc . give_item2 ( 72725 ) 
+pc . give_item2 ( 70024 ) 
+pc . give_item2 ( 70004 ) 
+pc . remove_item ( 31006 , pc . count_item ( 31006 ) ) 
+set_state ( "state_2" ) 
+end 
+end 

@@ -1,0 +1,17 @@
+if pc . count_item ( pc . getqf ( "drop1" ) ) >= pc . getqf ( "neededAmountDrop1" ) then 
+say_title ( gameforge . new_quest_premium_lv4 . _40_qSetTitle ) 
+target . delete ( "__TARGET2__" ) 
+say ( gameforge . new_quest_premium_lv4 . _180_say ) 
+wait ( ) 
+say_title ( gameforge . new_quest_premium_lv4 . _40_qSetTitle ) 
+say ( gameforge . new_quest_premium_lv4 . _190_say ) 
+pc . remove_item ( pc . getqf ( "drop1" ) , pc . getqf ( "neededAmountDrop1" ) ) 
+set_state ( "give_trader_premiumitem" ) 
+else 
+say_title ( gameforge . new_quest_premium_lv4 . _40_qSetTitle ) 
+say ( gameforge . new_quest_premium_lv4 . _170_say ) 
+say_reward ( string . format ( gameforge . new_quest_premium_lv4 . _200_say_reward , pc . getqf ( "neededAmountDrop1" ) ) ) 
+say ( gameforge . new_quest_premium_lv4 . _210_say ) 
+pc . setqf ( "new_quest_premium_lv4_collect_count_1" , pc . count_item ( pc . getqf ( "drop1" ) ) ) 
+set_state ( "hunting" ) 
+end 

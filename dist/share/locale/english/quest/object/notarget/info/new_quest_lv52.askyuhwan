@@ -1,0 +1,5 @@
+local mapname 
+say_title ( gameforge . new_quest_lv52 . _030_set_title ) 
+say ( gameforge . new_quest_lv52 . _051_say ) 
+say ( "" ) 
+say ( string . format ( gameforge . new_quest_lv52 . _045_say , get_map_name_by_number ( 3 ) ) ) 

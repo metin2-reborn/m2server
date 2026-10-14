@@ -1,0 +1,7 @@
+new_quest_lv80={["start"]=0,["__COMPLETE__"]=668443392,["aftermath"]=-252040614,["blessing"]=1268062151,["collectstuff"]=-1153682316,["denial"]=-681045032,["dispose"]=1650647142,["findshrine"]=290060644,["forgot"]=1303304839,["gotoinformation"]=-1227866427,is_heavens_cave= function ()local map_num = pc . get_map_index ( ) 
+local in_heavens_cave = 0 
+if map_num == 72 or 73 then 
+in_heavens_cave = 1 
+end 
+return in_heavens_cave 
+end }

@@ -1,0 +1,3 @@
+send_letter ( gameforge . new_quest_premium_lv4 . _40_qSetTitle ) 
+q . start ( ) 
+q . set_title ( gameforge . new_quest_premium_lv4 . _40_qSetTitle ) 

@@ -1,0 +1,16 @@
+if pc . getqf ( "new_quest_premium_lv4_collect_count_1" ) < pc . getqf ( "neededAmountDrop1" ) then 
+if math . random ( 1 , 100 ) <= pc . getqf ( "dropProb1" ) then 
+drop = true 
+local index = pc . getqf ( "new_quest_premium_lv4_collect_count_1" ) + 1 
+pc . setqf ( "new_quest_premium_lv4_collect_count_1" , index ) 
+pc . give_item2 ( pc . getqf ( "drop1" ) ) 
+notice_multiline ( gameforge . new_quest_premium_lv4 . _130_notice , notice ) 
+if pc . getqf ( "neededAmountDrop1" ) == pc . getqf ( "new_quest_premium_lv4_collect_count_1" ) then 
+notice_multiline ( gameforge . new_quest_premium_lv4 . _140_notice , notice ) 
+q . done ( ) 
+set_state ( "backto_trader" ) 
+end 
+else 
+notice_multiline ( gameforge . new_quest_premium_lv4 . _150_notice , notice ) 
+end 
+end 

@@ -1,0 +1,57 @@
+target . delete ( "__TARGET__" ) 
+say_title ( gameforge . subquest_05 . _30_sayTitle ) 
+say ( gameforge . subquest_05 . _210_say ) 
+local s = select ( 
+gameforge . subquest_05 . _211_select , 
+gameforge . subquest_05 . _212_select , 
+gameforge . subquest_05 . _213_select , 
+gameforge . subquest_05 . _214_select ) 
+if s == 2 then 
+say_title ( gameforge . subquest_05 . _30_sayTitle ) 
+say ( gameforge . subquest_05 . _220_say ) 
+pc . give_exp2 ( 6000 ) 
+set_quest_state ( "levelup" , "run" ) 
+pc . change_money ( 2000 ) 
+say_title ( gameforge . collect_herb_lv4 . _130_sayTitle ) 
+say_reward ( gameforge . subquest_05 . _230_sayReward ) 
+clear_letter ( ) 
+set_state ( "__COMPLETE__" ) 
+elseif s == 4 then 
+say_title ( gameforge . subquest_05 . _30_sayTitle ) 
+say ( gameforge . subquest_05 . _240_say ) 
+local s = select ( gameforge . subquest_05 . _250_select , gameforge . subquest_05 . _260_select ) 
+if 2 == s then 
+say ( gameforge . subquest_04 . _210_say ) 
+local a = select ( gameforge . locale . guild . yes , gameforge . locale . guild . no ) 
+if 2 == a then 
+say_title ( gameforge . subquest_05 . _30_sayTitle ) 
+say ( gameforge . gameforge . subquest_05 . _100_say ) 
+return 
+end 
+say_title ( gameforge . subquest_05 . _30_sayTitle ) 
+say ( gameforge . subquest_05 . _110_say ) 
+set_state ( "__GIVEUP__" ) 
+end 
+say_title ( gameforge . subquest_05 . _30_sayTitle ) 
+say ( gameforge . subquest_05 . _290_say ) 
+set_state ( "ask_to" ) 
+else 
+say_title ( gameforge . subquest_05 . _30_sayTitle ) 
+say ( gameforge . subquest_05 . _300_say ) 
+local s = select ( gameforge . subquest_05 . _310_select , gameforge . subquest_05 . _320_select ) 
+if 2 == s then 
+say ( gameforge . subquest_04 . _210_say ) 
+local a = select ( gameforge . locale . guild . yes , gameforge . locale . guild . no ) 
+if 2 == a then 
+say_title ( gameforge . subquest_05 . _30_sayTitle ) 
+say ( gameforge . subquest_05 . _100_say ) 
+return 
+end 
+say_title ( gameforge . subquest_05 . _30_sayTitle ) 
+say ( gameforge . subquest_05 . _110_say ) 
+set_state ( "__GIVEUP__" ) 
+end 
+say_title ( gameforge . subquest_05 . _30_sayTitle ) 
+say ( gameforge . subquest_05 . _350_say ) 
+set_state ( "ask_to" ) 
+end 

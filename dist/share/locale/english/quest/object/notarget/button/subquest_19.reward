@@ -1,0 +1,103 @@
+say_title ( gameforge . subquest_19 . _250_sendLetter ) 
+say ( gameforge . subquest_19 . _260_say ) 
+local s = number ( 1 , 3 ) 
+if 1 >= s then 
+say_title ( gameforge . buy_fishrod . _210_sayTitle ) 
+say ( gameforge . subquest_19 . _270_say ) 
+local r = number ( 1 , 16 ) 
+if r == 1 then 
+pc . give_item2 ( "11204" , 1 ) 
+elseif r == 2 then 
+pc . give_item2 ( "11214" , 1 ) 
+elseif r == 3 then 
+pc . give_item2 ( "11404" , 1 ) 
+elseif r == 4 then 
+pc . give_item2 ( "11414" , 1 ) 
+elseif r == 5 then 
+pc . give_item2 ( "11604" , 1 ) 
+elseif r == 6 then 
+pc . give_item2 ( "11614" , 1 ) 
+elseif r == 7 then 
+pc . give_item2 ( "11804" , 1 ) 
+elseif r == 8 then 
+pc . give_item2 ( "11814" , 1 ) 
+elseif r == 9 then 
+pc . give_item2 ( "11203" , 1 ) 
+elseif r == 10 then 
+pc . give_item2 ( "11213" , 1 ) 
+elseif r == 11 then 
+pc . give_item2 ( "11403" , 1 ) 
+elseif r == 12 then 
+pc . give_item2 ( "11413" , 1 ) 
+elseif r == 13 then 
+pc . give_item2 ( "11603" , 1 ) 
+elseif r == 14 then 
+pc . give_item2 ( "11613" , 1 ) 
+elseif r == 15 then 
+pc . give_item2 ( "11803" , 1 ) 
+elseif r == 16 then 
+pc . give_item2 ( "11813" , 1 ) 
+end 
+elseif 2 >= s then 
+say_title ( gameforge . buy_fishrod . _210_sayTitle ) 
+say ( gameforge . subquest_19 . _280_say ) 
+local r = number ( 1 , 16 ) 
+if r == 1 then 
+pc . give_item2 ( "11202" , 1 ) 
+elseif r == 2 then 
+pc . give_item2 ( "11212" , 1 ) 
+elseif r == 3 then 
+pc . give_item2 ( "11402" , 1 ) 
+elseif r == 4 then 
+pc . give_item2 ( "11412" , 1 ) 
+elseif r == 5 then 
+pc . give_item2 ( "11602" , 1 ) 
+elseif r == 6 then 
+pc . give_item2 ( "11612" , 1 ) 
+elseif r == 7 then 
+pc . give_item2 ( "11802" , 1 ) 
+elseif r == 8 then 
+pc . give_item2 ( "11812" , 1 ) 
+elseif r == 9 then 
+pc . give_item2 ( "11201" , 1 ) 
+elseif r == 10 then 
+pc . give_item2 ( "11211" , 1 ) 
+elseif r == 11 then 
+pc . give_item2 ( "11401" , 1 ) 
+elseif r == 12 then 
+pc . give_item2 ( "11411" , 1 ) 
+elseif r == 13 then 
+pc . give_item2 ( "11601" , 1 ) 
+elseif r == 14 then 
+pc . give_item2 ( "11611" , 1 ) 
+elseif r == 15 then 
+pc . give_item2 ( "11801" , 1 ) 
+elseif r == 16 then 
+pc . give_item2 ( "11811" , 1 ) 
+end 
+elseif 3 >= s then 
+say_title ( gameforge . buy_fishrod . _210_sayTitle ) 
+say ( gameforge . subquest_19 . _290_say ) 
+local r = number ( 1 , 8 ) 
+if r == 1 then 
+pc . give_item2 ( "11200" , 1 ) 
+elseif r == 2 then 
+pc . give_item2 ( "11210" , 1 ) 
+elseif r == 3 then 
+pc . give_item2 ( "11400" , 1 ) 
+elseif r == 4 then 
+pc . give_item2 ( "11410" , 1 ) 
+elseif r == 5 then 
+pc . give_item2 ( "11600" , 1 ) 
+elseif r == 6 then 
+pc . give_item2 ( "11610" , 1 ) 
+elseif r == 7 then 
+pc . give_item2 ( "11800" , 1 ) 
+elseif r == 8 then 
+pc . give_item2 ( "11810" , 1 ) 
+end 
+end 
+say_reward ( gameforge . subquest_19 . _300_sayReward ) 
+pc . give_exp2 ( 15000 ) 
+clear_letter ( ) 
+set_state ( "__COMPLETE__" ) 

@@ -1,0 +1,12 @@
+send_letter ( gameforge . new_quest_lv28 . _015_npcChat ) 
+q . start ( ) 
+q . set_title ( gameforge . new_quest_lv28 . _015_npcChat ) 
+local v = find_npc_by_vnum ( 20003 ) 
+if 0 == v then 
+else 
+target . vid ( "__TARGET2__" , v , gameforge . new_quest_lv28 . _015_npcChat ) 
+end 
+new_quest_lv28_neededAmountDrop1 = 1 
+new_quest_lv28_dropProb1 = 100 
+new_quest_lv28_mob1 = 193 
+new_quest_lv28_drop1 = 30174 

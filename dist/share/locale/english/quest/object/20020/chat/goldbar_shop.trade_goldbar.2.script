@@ -1,0 +1,53 @@
+if pc . get_level ( ) < 30 then 
+say_title ( gameforge . goldbar . _20_sayTitle ) 
+say ( gameforge . goldbar . _270_say ) 
+setstate ( "start" ) 
+return 
+end 
+if game . get_event_flag ( "gold_trade_enable" ) == 0 then 
+say_title ( gameforge . goldbar . _20_sayTitle ) 
+say ( gameforge . goldbar . _280_say ) 
+say_reward ( gameforge . goldbar . _290_sayReward ) 
+return 
+end 
+local nexttime = pc . getqf ( "gold_sell_next_time" ) 
+local interval = game . get_event_flag ( "gold_trade_cycle" ) 
+local unit = "" 
+if interval <= 0 then interval = 360 end 
+if get_time ( ) < nexttime then 
+nexttime = ( nexttime / 60 ) - ( get_time ( ) / 60 ) 
+if nexttime >= 60 then 
+unit = gameforge . goldbar . _104_say nexttime = nexttime / 60 
+math . ceil ( nexttime ) 
+else 
+unit = gameforge . goldbar . _108_say end 
+if nexttime < 1 then nexttime = 1 end 
+say_title ( gameforge . goldbar . _20_sayTitle ) 
+say ( gameforge . goldbar . _300_say ) 
+say ( string . format ( gameforge . goldbar . _310_say , nexttime , unit ) ) 
+else 
+if pc . count_item ( 80007 ) <= 0 then 
+say_title ( gameforge . goldbar . _20_sayTitle ) 
+say ( gameforge . goldbar . _320_say ) 
+else 
+say_title ( gameforge . goldbar . _20_sayTitle ) 
+say ( gameforge . goldbar . _330_say ) 
+local s = select ( gameforge . goldbar . _340_select , gameforge . goldbar . _350_select ) 
+if s == 1 then 
+say_title ( gameforge . goldbar . _20_sayTitle ) 
+say ( gameforge . goldbar . _360_say ) 
+local goldbar_count = pc . count_item ( 80007 ) 
+if goldbar_count >= 1 then 
+char_log ( 0 , "GOLDBARREN" , "VERKAUFEN(" .. goldbar_count .. ")" ) 
+pc . changemoney ( 2e+06 ) 
+pc . remove_item ( 80007 ) 
+else 
+char_log ( 0 , "GOLDBARREN" , "SELL_HACK" ) 
+end 
+pc . setqf ( "gold_sell_next_time" , get_time ( ) + time_min_to_sec ( interval ) ) 
+elseif s == 2 then 
+say_title ( gameforge . goldbar . _20_sayTitle ) 
+say ( gameforge . goldbar . _370_say ) 
+end 
+end 
+end 

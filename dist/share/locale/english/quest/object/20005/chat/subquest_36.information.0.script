@@ -1,0 +1,23 @@
+target . delete ( "__TARGET__" ) 
+say_title ( gameforge . subquest_01 . _140_sayTitle ) 
+say ( gameforge . subquest_36 . _30_say ) 
+wait ( ) 
+say_title ( gameforge . subquest_01 . _140_sayTitle ) 
+say ( gameforge . subquest_36 . _40_say ) 
+local s = select ( gameforge . subquest_36 . _50_select , gameforge . subquest_36 . _60_select ) 
+if 2 == s then 
+say ( gameforge . subquest_26 . _210_say ) 
+local a = select ( gameforge . locale . guild . yes , gameforge . locale . guild . no ) 
+if 2 == a then 
+say_title ( gameforge . subquest_01 . _140_sayTitle ) 
+say ( gameforge . subquest_36 . _70_say ) 
+return 
+end 
+say_title ( gameforge . subquest_01 . _140_sayTitle ) 
+say ( gameforge . subquest_36 . _80_say ) 
+set_state ( "__GIVEUP__" ) 
+return 
+end 
+say_title ( gameforge . subquest_01 . _140_sayTitle ) 
+say ( gameforge . subquest_36 . _90_say ) 
+set_state ( "for_horse" ) 

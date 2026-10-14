@@ -1,0 +1,7 @@
+target . delete ( "__TARGET__" ) 
+say_title ( gameforge . subquest_05 . _30_sayTitle ) 
+say ( gameforge . subquest_27 . _30_say ) 
+wait ( ) 
+say_title ( gameforge . subquest_05 . _30_sayTitle ) 
+say ( gameforge . subquest_27 . _40_say ) 
+set_state ( "to_wife" ) 

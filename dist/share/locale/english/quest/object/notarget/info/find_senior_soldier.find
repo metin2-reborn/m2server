@@ -1,0 +1,2 @@
+say_title ( gameforge . find_senior_soldier . _110_sayTitle ) 
+say_reward ( gameforge . find_senior_soldier . _120_sayReward ) 

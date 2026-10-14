@@ -1,0 +1,37 @@
+target . delete ( "__TARGET__" ) 
+if pc . count_item ( 30130 ) >= 1 then 
+say_title ( gameforge . subquest_01 . _290_sayTitle ) 
+say ( gameforge . subquest_01 . _300_say ) 
+wait ( ) 
+say_title ( gameforge . collect_herb_lv4 . _130_sayTitle ) 
+say_reward ( gameforge . subquest_01 . _310_sayReward ) 
+pc . remove_item ( 30130 ) 
+pc . give_exp2 ( 1500 ) 
+set_quest_state ( "levelup" , "run" ) 
+pc . change_money ( 1000 ) 
+clear_letter ( ) 
+set_state ( "__COMPLETE__" ) 
+else 
+say_title ( gameforge . subquest_01 . _290_sayTitle ) 
+say ( gameforge . subquest_01 . _320_say ) 
+say_item_vnum ( 30130 ) 
+wait ( ) 
+say_title ( gameforge . find_squareguard . _130_sayTitle ) 
+say ( gameforge . subquest_01 . _330_say ) 
+local s = select ( gameforge . subquest_01 . _340_select , gameforge . subquest_01 . _350_select ) 
+if s == 2 then 
+say ( gameforge . subquest_01 . _360_say ) 
+local a = select ( gameforge . locale . guild . yes , gameforge . locale . guild . no ) 
+if 2 == a then 
+say_title ( gameforge . find_squareguard . _130_sayTitle ) 
+say ( gameforge . subquest_01 . _370_say ) 
+return 
+end 
+say_pc_name ( ) 
+say ( gameforge . subquest_01 . _380_say ) 
+clear_letter ( ) 
+set_state ( "__GIVEUP__" ) 
+return 
+end 
+set_state ( "hunt_for_peach" ) 
+end 

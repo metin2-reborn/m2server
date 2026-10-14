@@ -1,0 +1,3 @@
+say_title ( gameforge . main_quest_lv6 . _200_sendLetter ) 
+say ( gameforge . main_quest_lv7 . _160_sayReward ) 
+say_item ( gameforge . main_quest_lv7 . _150_sayItem , 30001 , "" ) 

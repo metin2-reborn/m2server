@@ -1,0 +1,3 @@
+say_title ( gameforge . main_quest_lv12 . _40_sendLetter ) 
+say ( gameforge . main_quest_lv12 . _50_sayReward ) 
+say_reward ( string . format ( gameforge . main_quest_lv12 . _60_sayReward , pc . getqf ( "state" ) ) ) 

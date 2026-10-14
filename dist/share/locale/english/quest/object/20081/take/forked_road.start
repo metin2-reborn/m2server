@@ -1,0 +1,19 @@
+if item . vnum == 50089 then say_in_map ( pc . get_map_index ( ) , locale . forked_open_gate ) 
+npc . purge ( ) 
+item . remove ( ) 
+forked . initkillcount ( ) 
+if pc . getempire ( ) == 1 then 
+game . set_event_flag ( "threeway_war_open_gate1" , 0 ) 
+notice_multiline ( gameforge . forked_road . _80_notice_all , notice_all ) 
+elseif pc . getempire ( ) == 2 then 
+game . set_event_flag ( "threeway_war_open_gate2" , 0 ) 
+notice_multiline ( gameforge . forked_road . _90_notice_all , notice_all ) 
+elseif pc . getempire ( ) == 3 then 
+game . set_event_flag ( "threeway_war_open_gate3" , 0 ) 
+notice_multiline ( gameforge . forked_road . _100_notice_all , notice_all ) 
+else 
+say ( locale . forked_man_say_you_cant2 ) 
+end 
+local x , y = forked . get_sungzi_start_pos ( ) 
+forked . warp_all_in_map ( pc . get_map_index ( ) , forked . getsungzimapindex ( ) , x , y , 10 ) 
+ return end 

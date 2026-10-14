@@ -1,0 +1,1 @@
+return pc_is_novice ( ) and npc_is_same_empire ( ) and npc_is_same_job ( ) and pc . get_level ( ) <= 10

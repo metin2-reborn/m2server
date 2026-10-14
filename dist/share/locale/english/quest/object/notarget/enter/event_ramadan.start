@@ -1,0 +1,59 @@
+if event_ramadan . is_running ( ) then local setting = event_ramadan . setting ( ) 
+local mapIndex = pc . get_map_index ( ) 
+if mapIndex == 1 or mapIndex == 21 or mapIndex == 41 then 
+if find_npc_by_vnum ( setting . historian ) == 0 then 
+if mapIndex == 1 then 
+mob . spawn ( setting . historian , 608 , 617 , 1 , 1 , 1 ) 
+elseif mapIndex == 21 then 
+mob . spawn ( setting . historian , 596 , 610 , 1 , 1 , 1 ) 
+elseif mapIndex == 41 then 
+mob . spawn ( setting . historian , 357 , 743 , 1 , 1 , 1 ) 
+end 
+end 
+if find_npc_by_vnum ( setting . beggar1 ) == 0 then 
+if mapIndex == 1 then 
+mob . spawn ( setting . beggar1 , 619 , 701 , 1 , 1 , 1 ) 
+elseif mapIndex == 21 then 
+mob . spawn ( setting . beggar1 , 564 , 613 , 1 , 1 , 1 ) 
+elseif mapIndex == 41 then 
+mob . spawn ( setting . beggar1 , 344 , 723 , 1 , 1 , 1 ) 
+end 
+end 
+if find_npc_by_vnum ( setting . beggar2 ) == 0 then 
+if mapIndex == 1 then 
+mob . spawn ( setting . beggar2 , 697 , 580 , 1 , 1 , 1 ) 
+elseif mapIndex == 21 then 
+mob . spawn ( setting . beggar2 , 699 , 658 , 1 , 1 , 1 ) 
+elseif mapIndex == 41 then 
+mob . spawn ( setting . beggar2 , 443 , 733 , 1 , 1 , 1 ) 
+end 
+end 
+if find_npc_by_vnum ( setting . beggar3 ) == 0 then 
+if mapIndex == 1 then 
+mob . spawn ( setting . beggar3 , 646 , 515 , 1 , 1 , 1 ) 
+elseif mapIndex == 21 then 
+mob . spawn ( setting . beggar3 , 613 , 715 , 1 , 1 , 1 ) 
+elseif mapIndex == 41 then 
+mob . spawn ( setting . beggar3 , 428 , 651 , 1 , 1 , 1 ) 
+end 
+end 
+if find_npc_by_vnum ( setting . beggar4 ) == 0 then 
+if mapIndex == 1 then 
+mob . spawn ( setting . beggar4 , 554 , 550 , 1 , 1 , 1 ) 
+elseif mapIndex == 21 then 
+mob . spawn ( setting . beggar4 , 635 , 539 , 1 , 1 , 1 ) 
+elseif mapIndex == 41 then 
+mob . spawn ( setting . beggar4 , 303 , 587 , 1 , 1 , 1 ) 
+end 
+end 
+if find_npc_by_vnum ( setting . beggar5 ) == 0 then 
+if mapIndex == 1 then 
+mob . spawn ( setting . beggar5 , 702 , 629 , 1 , 1 , 1 ) 
+elseif mapIndex == 21 then 
+mob . spawn ( setting . beggar5 , 529 , 547 , 1 , 1 , 1 ) 
+elseif mapIndex == 41 then 
+mob . spawn ( setting . beggar5 , 456 , 673 , 1 , 1 , 1 ) 
+end 
+end 
+end 
+ return end 

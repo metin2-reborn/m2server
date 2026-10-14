@@ -1,0 +1,10 @@
+if number ( 1 , 100 ) > 1 then 
+return 
+end 
+local n = pc . getqf ( "pass_beads" ) 
+local i = pc . count_item ( 31005 ) 
+if n < 50 and pc . count_item ( 31005 ) < 50 - n then 
+notice_multiline ( gameforge . main_quest_lv72 . _240_notice , notice ) 
+notice_multiline ( string . format ( gameforge . main_quest_lv72 . _250_notice , 50 - n - 1 ) , notice ) 
+pc . give_item2 ( 31005 , 1 ) 
+end 

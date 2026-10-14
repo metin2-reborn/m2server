@@ -1,0 +1,2 @@
+if pc . level >= 104 then set_state ( "state1_1" ) 
+ return end 

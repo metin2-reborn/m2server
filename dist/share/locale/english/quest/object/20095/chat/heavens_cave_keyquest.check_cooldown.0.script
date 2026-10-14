@@ -1,0 +1,44 @@
+if pc . getqf ( "heavens_cave_keyquest_Repeat" ) == 0 then 
+target . delete ( "__TARGET__" ) 
+say_title ( gameforge . heavens_cave_keyquest . _020_npcChat ) 
+if pc . get_sex ( ) == 0 then 
+say ( gameforge . heavens_cave_keyquest . _030_say ) 
+else 
+say ( gameforge . heavens_cave_keyquest . _040_say ) 
+end 
+wait ( ) 
+say_title ( gameforge . heavens_cave_keyquest . _020_npcChat ) 
+say ( gameforge . heavens_cave_keyquest . _050_say ) 
+wait ( ) 
+say_title ( gameforge . heavens_cave_keyquest . _020_npcChat ) 
+say ( gameforge . heavens_cave_keyquest . _060_say ) 
+wait ( ) 
+say_title ( gameforge . heavens_cave_keyquest . _020_npcChat ) 
+say ( gameforge . heavens_cave_keyquest . _070_say ) 
+say ( "" ) 
+say ( gameforge . heavens_cave_keyquest . _080_say ) 
+say_reward ( gameforge . heavens_cave_keyquest . _090_say_reward ) 
+set_state ( "initialize" ) 
+else 
+if get_time ( ) - pc . getqf ( "overall_cooldown_timestamp" ) >= pc . getqf ( "heavens_cave_keyquest_CooldownTime" ) then 
+say_title ( gameforge . heavens_cave_keyquest . _020_npcChat ) 
+say ( gameforge . heavens_cave_keyquest . _100_say ) 
+set_state ( "initialize" ) 
+else 
+s = pc . getqf ( "heavens_cave_keyquest_CooldownTime" ) - ( get_time ( ) - pc . getqf ( "overall_cooldown_timestamp" ) ) 
+h = math . floor ( s / 3600 ) 
+m = math . ceil ( ( ( s / 3600 ) - h ) * 60 ) 
+say_title ( gameforge . heavens_cave_keyquest . _020_npcChat ) 
+say ( gameforge . heavens_cave_keyquest . _110_say ) 
+say ( "" ) 
+if s >= 7200 then 
+say ( string . format ( gameforge . heavens_cave_keyquest . _120_say , h ) ) 
+else 
+if s >= 3660 then 
+say ( string . format ( gameforge . heavens_cave_keyquest . _130_say , m ) ) 
+else 
+say ( string . format ( gameforge . heavens_cave_keyquest . _140_say , m ) ) 
+end 
+end 
+end 
+end 

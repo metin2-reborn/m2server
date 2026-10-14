@@ -1,0 +1,39 @@
+if pc . getqf ( "reachedspot" ) >= 1 then 
+say_title ( gameforge . heavens_cave_keyquest . _020_npcChat ) 
+say ( gameforge . heavens_cave_keyquest . _330_say ) 
+return 
+else 
+if pc . get_map_index ( ) == 68 and pc . getqf ( "reachedspot" ) == 0 then 
+if pc . getqf ( "heavens_cave_keyquest_Repeat" ) == 0 then 
+say_title ( gameforge . heavens_cave_keyquest . _020_npcChat ) 
+say ( gameforge . heavens_cave_keyquest . _340_say ) 
+wait ( ) 
+say_title ( gameforge . heavens_cave_keyquest . _020_npcChat ) 
+say ( gameforge . heavens_cave_keyquest . _350_say ) 
+wait ( ) 
+say_title ( gameforge . heavens_cave_keyquest . _020_npcChat ) 
+say ( gameforge . heavens_cave_keyquest . _360_say ) 
+say ( "" ) 
+say ( gameforge . heavens_cave_keyquest . _370_say ) 
+wait ( ) 
+say_title ( gameforge . heavens_cave_keyquest . _020_npcChat ) 
+say ( string . format ( gameforge . heavens_cave_keyquest . _380_say , pc . get_name ( ) ) ) 
+else 
+say_title ( gameforge . heavens_cave_keyquest . _020_npcChat ) 
+say ( gameforge . heavens_cave_keyquest . _390_say ) 
+wait ( ) 
+say_title ( gameforge . heavens_cave_keyquest . _020_npcChat ) 
+say ( string . format ( gameforge . heavens_cave_keyquest . _400_say , pc . get_name ( ) ) ) 
+say ( "" ) 
+say ( gameforge . heavens_cave_keyquest . _410_say ) 
+end 
+if pc . count_item ( pc . getqf ( "heavens_cave_keyquest_TearBottle" ) ) >= 1 then 
+pc . remove_item ( pc . getqf ( "heavens_cave_keyquest_TearBottle" ) , 1 ) 
+pc . give_item2 ( pc . getqf ( "heavens_cave_keyquest_BloodDrop" ) ) 
+q . done ( ) 
+set_state ( "blood_for_seon" ) 
+else 
+return 
+end 
+end 
+end 

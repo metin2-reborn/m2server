@@ -1,0 +1,17 @@
+dragon_soul_daily_gift_mgr={["start"]=0,is_event_on= function ()local s_time = game . get_event_flag ( "ds_dg_st" ) 
+local e_time = game . get_event_flag ( "ds_dg_et" ) 
+local now = os . time ( ) 
+return now > s_time and now < e_time 
+end ,date_getter= function ()say ( gameforge . dragon_soul_gift_mgr . _040_say ) 
+say ( "yy-mm-dd hh:mm" ) 
+local date = input ( ) 
+local _ , _ , y , m , d , hour , min = string . find ( date , "(%d+)-(%d+)-(%d+) (%d+):(%d+)" ) 
+return y , m , d , hour , min 
+end ,print_quest_info= function ()local s_time = game . get_event_flag ( "ds_dg_st" ) 
+local e_time = game . get_event_flag ( "ds_dg_et" ) 
+local gift_vnum = game . get_event_flag ( "ds_dg_item" ) 
+say ( os . date ( "start time[ENTER]	year:%Y, month:%m, day:%d hour:%H minite:%M" , s_time ) ) 
+say ( os . date ( "  end time[ENTER]	year:%Y, month:%m, day:%d hour:%H minite:%M" , e_time ) ) 
+say ( string . format ( "gift item[ENTER]	vnum : %d" , gift_vnum ) ) 
+say_item_vnum ( gift_vnum ) 
+end }

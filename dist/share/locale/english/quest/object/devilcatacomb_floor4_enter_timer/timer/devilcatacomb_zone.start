@@ -1,0 +1,11 @@
+local setting = devilcatacomb_zone . setting ( ) 
+local i = number ( 1 , 5 ) 
+timer ( "warp_timer" , 3 ) 
+d . purge ( ) 
+d . jump_all ( setting . floor4_entry . x + setting . base . x , setting . floor4_entry . y + setting . base . y ) 
+d . regen_file ( setting . mob_regen_file_path .. "dc_4f_regen.txt" ) 
+d . regen_file ( setting . mob_regen_file_path .. setting . floor4_regen_file [ i ] ) 
+if ( is_test_server ( ) ) then 
+d . notice ( setting . floor4_regen_file [ i ] ) 
+end 
+d . spawn_mob ( setting . floor4_npc , setting . floor4_npc_pos [ 1 ] , setting . floor4_npc_pos [ 2 ] ) 

@@ -1,0 +1,7 @@
+give_basic_weapon={["start"]=0,basic_item= function (job,index)item_list = { } 
+item_list [ 0 ] = { 50187 } 
+item_list [ 1 ] = { 50212 } 
+item_list [ 2 ] = { 50187 } 
+item_list [ 3 ] = { 50213 } 
+return item_list [ job ] [ index ] 
+end }

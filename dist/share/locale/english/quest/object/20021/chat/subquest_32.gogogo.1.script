@@ -1,0 +1,3 @@
+say_title ( gameforge . subquest_32 . _220_sayTitle ) 
+say ( gameforge . subquest_32 . _230_say ) 
+return 

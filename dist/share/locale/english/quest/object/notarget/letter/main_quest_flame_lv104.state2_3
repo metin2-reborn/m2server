@@ -1,0 +1,3 @@
+send_letter ( gameforge . main_quest_flame_lv104 . _170_sendLetter ) 
+q . set_counter_name ( gameforge . main_quest_lv97 . _670_counterName ) 
+main_quest_flame_lv104 . item_count_state2_3 ( ) 

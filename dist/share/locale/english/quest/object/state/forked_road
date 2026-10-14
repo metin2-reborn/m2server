@@ -1,0 +1,7 @@
+forked_road={["start"]=0,enter_level= function (vnum1,vnum2)lv_range = { } 
+lv_range [ 1 ] = { 15 , 39 } 
+lv_range [ 2 ] = { 40 , 64 } 
+lv_range [ 3 ] = { 65 , 84 } 
+lv_range [ 4 ] = { 85 , 105 } 
+return lv_range [ vnum1 ] [ vnum2 ] 
+end }

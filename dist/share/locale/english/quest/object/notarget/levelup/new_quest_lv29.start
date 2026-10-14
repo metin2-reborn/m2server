@@ -1,0 +1,9 @@
+if pc . get_level ( ) >= 29 then pc . setqf ( "hayIndex" , 6 ) 
+pc . setqf ( "hayFromHarang" , 1 ) 
+pc . setqf ( "hayFromTaurean" , 1 ) 
+pc . setqf ( "hayFromStablemaster" , 1 ) 
+pc . setqf ( "yonahspatience" , 2 ) 
+pc . setqf ( "yonahHasHay" , 0 ) 
+pc . setqf ( "dropProb" , 80 ) 
+set_state ( "gotoyonah" ) 
+ return end 

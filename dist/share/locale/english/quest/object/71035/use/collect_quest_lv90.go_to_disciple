@@ -1,0 +1,16 @@
+if get_time ( ) < pc . getqf ( "duration" ) then 
+say ( gameforge . collect_quest_lv90 . _110_say ) 
+return 
+end 
+if pc . getqf ( "drink_drug" ) == 1 then 
+say ( gameforge . collect_quest_lv90 . _115_say ) 
+return 
+end 
+if pc . count_item ( 30168 ) == 0 then 
+say_title ( gameforge . collect_quest_lv90 . _055_say_title ) 
+say ( gameforge . collect_quest_lv90 . _120_say ) 
+say ( "" ) 
+return 
+end 
+pc . remove_item ( 71035 , 1 ) 
+pc . setqf ( "drink_drug" , 1 ) 

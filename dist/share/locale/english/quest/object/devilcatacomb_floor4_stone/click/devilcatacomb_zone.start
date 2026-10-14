@@ -1,0 +1,15 @@
+local setting = devilcatacomb_zone . setting ( ) 
+local n = number ( 1 , 5 ) 
+say ( gameforge . devilcatacomb_zone . _300_say ) 
+wait ( ) 
+if ( is_test_server ( ) ) then 
+chat ( setting . devil_king_pos [ n ] [ 1 ] , setting . devil_king_pos [ n ] [ 2 ] ) 
+end 
+d . purge ( ) 
+d . jump_all ( setting . floor5_entry . x + setting . base . x , setting . floor5_entry . y + setting . base . y ) 
+d . setf ( "level" , 5 ) 
+d . setqf2 ( "devilcatacomb_zone" , "level" , 5 ) 
+timer ( "warp_timer" , 3 ) 
+d . regen_file ( setting . mob_regen_file_path .. "dc_5f_regen.txt" ) 
+d . spawn_mob ( setting . devil_king , setting . devil_king_pos [ n ] [ 1 ] , setting . devil_king_pos [ n ] [ 2 ] ) 
+d . spawn_mob ( setting . floor5_stone , setting . floor5_stone_pos [ 1 ] , setting . floor5_stone_pos [ 2 ] ) 

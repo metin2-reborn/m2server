@@ -1,0 +1,4 @@
+affect . add ( apply . MAX_HP , 1000 , 60 * 60 ) 
+affect . add ( apply . DEF_GRADE_BONUS , 25 , 60 * 60 ) 
+affect . add ( apply . MELEE_MAGIC_ATTBONUS_PER , 10 , 60 * 60 ) 
+pc . remove_item ( 31078 , 1 ) 

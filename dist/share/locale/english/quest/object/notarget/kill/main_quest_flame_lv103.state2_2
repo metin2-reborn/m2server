@@ -1,0 +1,4 @@
+if pc . get_map_index ( ) >= 351 * 10000 and pc . get_map_index ( ) < ( 351 + 1 ) * 10000 then local kill_count = pc . getqf ( "kill_count_1" ) 
+pc . setqf ( "kill_count_1" , kill_count + 1 ) 
+main_quest_flame_lv103 . kill_count_state2_2 ( ) 
+ return end 

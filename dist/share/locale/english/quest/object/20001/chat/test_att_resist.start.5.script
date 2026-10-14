@@ -1,0 +1,3 @@
+say ( "spawn ELEC monster" ) 
+say ( "check damage with basic and resist armors" ) 
+mob . spawn ( 2401 , pc . get_local_x ( ) , pc . get_local_y ( ) , 0 , 1 , 1 ) 

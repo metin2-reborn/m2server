@@ -1,0 +1,5 @@
+say_title ( gameforge . pony_buy . _360_makequestbutton ) 
+say_reward ( gameforge . pony_buy . _370_sayReward ) 
+say_reward ( gameforge . pony_buy . _380_sayReward ) 
+setstate ( "start" ) 
+q . done ( ) 

@@ -1,0 +1,5 @@
+say_title ( gameforge . buy_fishrod . _210_sayTitle ) 
+say ( gameforge . subquest_24 . _280_say ) 
+say_reward ( gameforge . subquest_24 . _290_sayReward ) 
+set_state ( "__FAIL__" ) 
+q . done ( ) 

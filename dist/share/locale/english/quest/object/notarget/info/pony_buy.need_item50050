@@ -1,0 +1,4 @@
+say_title ( gameforge . buy_fishrod . _210_sayTitle ) 
+say_reward ( gameforge . pony_buy . _70_sayReward ) 
+setstate ( "start" ) 
+q . done ( ) 

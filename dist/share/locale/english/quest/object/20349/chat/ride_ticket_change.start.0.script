@@ -1,0 +1,47 @@
+say_title ( mob_name ( 20349 ) ) 
+say ( gameforge . ride_ticket_change . _020_say ) 
+wait ( ) 
+local items = { pc . get_sig_items ( 10032 ) } 
+local ticket = nil 
+if table . getn ( items ) > 1 then 
+for i , v in ipairs ( items ) begin 
+item . select ( v ) 
+say_title ( mob_name ( 20349 ) ) 
+say ( gameforge . ride_ticket_change . _030_say ) 
+say_item_vnum ( item . vnum ) 
+say ( gameforge . ride_ticket_change . _040_say ) 
+local s = select ( locale . yes , locale . no , locale . cancel ) 
+if s == 3 then 
+return 
+end 
+if s == 1 then 
+ticket = v 
+break 
+end 
+end 
+else 
+ticket = items [ 1 ] 
+end 
+if ticket == nil then 
+say_title ( mob_name ( 20349 ) ) 
+say ( gameforge . ride_ticket_change . _050_say ) 
+return 
+end 
+say_title ( mob_name ( 20349 ) ) 
+say ( gameforge . ride_ticket_change . _060_say ) 
+item . select ( ticket ) 
+local s = select ( gameforge . ride_ticket_change . _070_say , gameforge . ride_ticket_change . _080_say , gameforge . ride_ticket_change . _090_say , gameforge . ride_ticket_change . _100_say , gameforge . ride_ticket_change . _110_say , gameforge . ride_ticket_change . _120_say ) 
+if s == 6 then 
+say_title ( mob_name ( 20349 ) ) 
+say ( gameforge . ride_ticket_change . _130_say ) 
+return 
+end 
+local summon_item = item . get_value ( s - 1 ) 
+say_title ( mob_name ( 20349 ) ) 
+say ( gameforge . ride_ticket_change . _140_say ) 
+if pc . give_item2 ( summon_item ) == 0 then 
+say_title ( mob_name ( 20349 ) ) 
+say ( gameforge . ride_ticket_change . _150_say ) 
+return 
+end 
+item . remove ( ) 

@@ -1,0 +1,23 @@
+target . delete ( "__TARGET__" ) 
+say_title ( gameforge . subquest_22 . _30_sayTitle ) 
+say ( gameforge . subquest_22 . _40_say ) 
+wait ( ) 
+say_title ( gameforge . subquest_22 . _30_sayTitle ) 
+say ( gameforge . subquest_22 . _50_say ) 
+local s = select ( gameforge . subquest_01 . _50_select , gameforge . subquest_22 . _60_select ) 
+if 2 == s then 
+say ( gameforge . subquest_22 . _70_say ) 
+local a = select ( gameforge . locale . guild . yes , gameforge . locale . guild . no ) 
+if 2 == a then 
+say_title ( gameforge . subquest_22 . _30_sayTitle ) 
+say ( gameforge . subquest_22 . _80_say ) 
+return 
+end 
+say_title ( gameforge . subquest_22 . _30_sayTitle ) 
+say ( gameforge . subquest_22 . _90_say ) 
+set_state ( "__GIVEUP__" ) 
+return 
+end 
+say_title ( gameforge . subquest_22 . _30_sayTitle ) 
+say ( gameforge . subquest_22 . _100_say ) 
+set_state ( "hunt_for_goldaxe" ) 

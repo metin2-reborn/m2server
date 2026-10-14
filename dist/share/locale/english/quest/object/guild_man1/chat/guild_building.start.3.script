@@ -1,0 +1,10 @@
+say_title ( gameforge . find_squareguard . _10_targetVid ) 
+say ( gameforge . guild_manage . _140_say ) 
+local s = select ( gameforge . locale . guild . yes , gameforge . locale . guild . no ) 
+if s == 1 then 
+say_title ( gameforge . find_squareguard . _10_targetVid ) 
+say ( gameforge . guild_manage . _150_say ) 
+pc . destroy_guild ( ) 
+pc . setqf ( "new_disband_time" , get_global_time ( ) ) 
+pc . setqf ( "new_withdraw_time" , get_global_time ( ) ) 
+end 

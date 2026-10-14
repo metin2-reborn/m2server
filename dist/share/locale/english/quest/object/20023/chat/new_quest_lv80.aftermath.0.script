@@ -1,0 +1,2 @@
+say_title ( gameforge . new_quest_lv80 . _450_npcChat ) 
+say ( string . format ( gameforge . new_quest_lv80 . _460_say , mob_name ( pc . getqf ( "spawnmob" ) ) ) ) 

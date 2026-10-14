@@ -1,0 +1,24 @@
+local setting = devilcatacomb_zone . setting ( ) 
+if item . vnum == setting . rag then 
+if not party . is_party ( ) then 
+say ( gameforge . devilcatacomb_zone . _170_say ) 
+return 
+elseif party . is_in_dungeon ( ) then 
+say ( gameforge . devilcatacomb_zone . _180_say ) 
+return 
+end 
+item . remove ( ) 
+say ( gameforge . devilcatacomb_zone . _190_say ) 
+wait ( ) 
+say ( gameforge . devilcatacomb_zone . _200_say ) 
+wait ( ) 
+d . new_jump_party ( setting . map_idx , setting . floor2_entry . x + setting . base . x , setting . floor2_entry . y + setting . base . y ) 
+d . setqf2 ( "devilcatacomb_zone" , "level" , 2 ) 
+d . setf ( "level" , 2 ) 
+d . regen_file ( setting . mob_regen_file_path .. "dc_2f_regen.txt" ) 
+d . spawn_mob ( setting . floor2_merchant_npc , setting . floor2_merchant_npc_pos [ 1 ] , setting . floor2_merchant_npc_pos [ 2 ] ) 
+d . spawn_mob ( setting . floor2_stone , setting . floor2_stone_pos [ 1 ] , setting . floor2_stone_pos [ 2 ] ) 
+devilcatacomb_zone . spawn_doors ( ) 
+server_timer ( "devilcatacomb_45m_left_timer" , 60 * 15 , d . get_map_index ( ) ) 
+d . setf ( "enter_time" , get_global_time ( ) ) 
+end 

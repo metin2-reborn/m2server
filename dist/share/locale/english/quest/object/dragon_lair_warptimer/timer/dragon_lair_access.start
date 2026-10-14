@@ -1,0 +1,18 @@
+local settings = dragon_lair_access . get_settings ( ) 
+if dragon_lair_access . get_time_remaining ( ) < 0 then 
+local starttime = get_global_time ( ) 
+game . set_event_flag ( "dragon_lair_time" , starttime ) 
+char_log ( pc . get_player_id ( ) , "LAIR" , pc . get_channel_id ( ) .. " SET STARTTIME: " .. starttime ) 
+pc . setqf ( "time" , starttime ) 
+pc . setqf ( "is_leader" , 1 ) 
+game . set_event_flag ( "dragon_lair_password" , pc . getqf ( "password" ) ) 
+char_log ( pc . get_player_id ( ) , "LAIR" , pc . get_channel_id ( ) .. " SET PASSWORD: " .. pc . getqf ( "password" ) ) 
+server_timer ( "blue_dragon_timer" , settings . cooldown_time ) 
+dragon_lair_access . warp_to_lair ( ) 
+set_state ( "spawn_dragon" ) 
+else 
+pc . give_item2 ( settings . access_item , settings . access_item_amount ) 
+say_title ( gameforge . ghost_story . _010_sayTitle ) 
+say ( gameforge . dragon_lair_access . _120_say ) 
+end 
+pc . setqf ( "password" , 0 ) 

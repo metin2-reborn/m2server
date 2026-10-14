@@ -1,0 +1,2 @@
+if pc . getf ( "harvest_festival" , "mob2_info" ) == 2 and party . is_party ( ) then harvest_festival . kill_action ( 502 , 2 ) 
+ return end 

@@ -1,0 +1,9 @@
+if number ( 1 , 1000 ) == 1 then 
+if pc . count_item ( 31029 ) < 1 then 
+pc . give_item2 ( 31029 , 1 ) 
+if pc . count_item ( 31029 ) >= 1 then 
+notice_multiline ( gameforge . main_quest_lv93 . _120_1_notice , notice ) 
+set_state ( "state1_4" ) 
+end 
+end 
+end 

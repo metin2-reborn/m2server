@@ -1,0 +1,31 @@
+target . delete ( "__TARGET__" ) 
+say_pc_name ( ) 
+say ( gameforge . subquest_24 . _30_say ) 
+wait ( ) 
+say_title ( gameforge . subquest_08 . _240_sayTitle ) 
+say ( gameforge . subquest_24 . _40_say ) 
+wait ( ) 
+say_pc_name ( ) 
+say ( gameforge . subquest_24 . _50_say ) 
+wait ( ) 
+say_title ( gameforge . subquest_08 . _240_sayTitle ) 
+say ( gameforge . subquest_24 . _60_say ) 
+say_item_vnum ( 30158 ) 
+local s = select ( gameforge . subquest_24 . _70_select , gameforge . subquest_24 . _80_select ) 
+if 2 == s then 
+say_title ( gameforge . subquest_24 . _90_sayTitle ) 
+say ( gameforge . subquest_24 . _100_say ) 
+local a = select ( gameforge . locale . guild . yes , gameforge . locale . guild . no ) 
+if 2 == a then 
+say_title ( gameforge . subquest_08 . _240_sayTitle ) 
+say ( gameforge . subquest_24 . _110_say ) 
+return 
+end 
+say_title ( gameforge . subquest_08 . _240_sayTitle ) 
+say ( gameforge . subquest_24 . _120_say ) 
+set_state ( "__GIVEUP__" ) 
+return 
+end 
+say_title ( gameforge . subquest_08 . _240_sayTitle ) 
+say ( gameforge . subquest_24 . _130_say ) 
+set_state ( "accept" ) 

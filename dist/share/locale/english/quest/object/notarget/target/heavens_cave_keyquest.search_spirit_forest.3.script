@@ -1,0 +1,21 @@
+heavens_cave_keyquest . find_tear ( 4 ) 
+if pc . count_item ( pc . getqf ( "heavens_cave_keyquest_FrozenTear" ) ) >= pc . getqf ( "heavens_cave_keyquest_NeededTearsAmount" ) then 
+target . delete ( "__TEAR1__" ) 
+target . delete ( "__TEAR2__" ) 
+target . delete ( "__TEAR3__" ) 
+target . delete ( "__TEAR5__" ) 
+target . delete ( "__TEAR6__" ) 
+target . delete ( "__TEAR7__" ) 
+pc . setqf ( "Tear1Taken" , 1 ) 
+pc . setqf ( "Tear2Taken" , 1 ) 
+pc . setqf ( "Tear3Taken" , 1 ) 
+pc . setqf ( "Tear4Taken" , 1 ) 
+pc . setqf ( "Tear5Taken" , 1 ) 
+pc . setqf ( "Tear6Taken" , 1 ) 
+pc . setqf ( "Tear7Taken" , 1 ) 
+notice_multiline ( gameforge . heavens_cave_keyquest . _250_notice , notice ) 
+if pc . count_item ( pc . getqf ( "heavens_cave_keyquest_VolcanicGlass" ) ) >= pc . getqf ( "heavens_cave_keyquest_NeededGlassAmount" ) then 
+q . done ( ) 
+set_state ( "tears_for_seon" ) 
+end 
+end 

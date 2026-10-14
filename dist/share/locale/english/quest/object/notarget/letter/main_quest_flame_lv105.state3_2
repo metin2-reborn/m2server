@@ -1,0 +1,2 @@
+send_letter ( gameforge . main_quest_flame_lv105 . _250_sendLetter ) 
+q . set_counter_name ( gameforge . main_quest_flame_lv105 . _290_say ) 

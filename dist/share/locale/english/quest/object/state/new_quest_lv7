@@ -1,0 +1,34 @@
+new_quest_lv7={["start"]=0,["__COMPLETE__"]=668443392,["__GIVEUP__"]=-387375033,["ask_oldwoman"]=1138945872,["back_to_octavio"]=-1738511593,["collect_flowers"]=1024548682,["find_empire"]=-554017663,["find_way_home"]=779389452,["goto_oldwomans_sister"]=-9969554,["return_oldwoman"]=464811188,reward= function ()local div = number ( 1 , 5 ) 
+local reward = 5000 
+reward = math . floor ( reward / div ) 
+return reward 
+end ,reward_exp= function ()local div = number ( 1 , 4 ) 
+local reward_exp = 4000 
+reward_exp = math . floor ( reward_exp / div ) 
+return reward_exp 
+end ,get_old_woman_map= function ()local empire = pc . get_empire ( ) 
+if empire == 1 then 
+return 1 
+elseif empire == 2 then 
+return 21 
+elseif empire == 3 then 
+return 41 
+end 
+end ,is_my_vil= function ()if pc . get_map_index ( ) == new_quest_lv7 . get_old_woman_map ( ) then 
+return true 
+else 
+return false 
+end 
+end ,when_one_killed= function (neededAmount,dropProb,itemIcon)if pc . count_item ( itemIcon ) < neededAmount then 
+local drop = math . random ( 1 , 100 ) 
+if drop <= dropProb then 
+pc . give_item2 ( itemIcon ) 
+notice_multiline ( gameforge . new_quest_lv7 . _088_notice , notice ) 
+if ( pc . count_item ( new_quest_lv7_drop3 ) == new_quest_lv7_AmountNeed3 and pc . count_item ( new_quest_lv7_drop2 ) == new_quest_lv7_AmountNeed2 and pc . count_item ( new_quest_lv7_drop1 ) == new_quest_lv7_AmountNeed1 ) then 
+return true 
+end 
+else 
+notice_multiline ( gameforge . new_quest_lv7 . _082_say , notice ) 
+end 
+end 
+end }

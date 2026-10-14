@@ -1,0 +1,141 @@
+#!/usr/bin/env python3
+"""Container launcher: writes a role's config from the environment and starts its server."""
+import argparse
+import ipaddress
+import os
+from pathlib import Path
+import re
+import socket
+import sys
+import time
+
+PREFIX = Path('/opt/metin2')
+# Mounted read-only by compose: the game data (dist/share) and this role's config (dist/config/<role>).
+SHARE = Path('/srv/metin2/share')
+CONFIG = Path('/srv/metin2/config')
+STATE = Path('/var/lib/metin2')
+ROLES = ['db', 'auth', 'channel1-first']
+# Compose service names of the game processes; db and the games accept P2P only from these.
+PEERS = ['auth', 'channel1-first']
+DB_PORT = 15000
+
+
+def required(name, limit=63):
+    value = os.environ.get(name, '')
+    if not value or len(value.encode()) > limit or any(c.isspace() or c in '"\'\\' for c in value):
+        raise ValueError(f'{name} must be nonempty, at most {limit} bytes, without whitespace, quotes, or backslashes')
+    return value
+
+
+def public_ip():
+    try:
+        address = ipaddress.IPv4Address(os.environ.get('PUBLIC_IP', ''))
+        if address.is_unspecified or address.is_multicast:
+            raise ValueError()
+    except ValueError:
+        raise ValueError('PUBLIC_IP must be a client-reachable IPv4 address') from None
+    return str(address)
+
+
+def configure(template, role):
+    user, password = required('DB_USER'), required('DB_PASSWORD')
+    if user.lower() == 'root':
+        raise ValueError('DB_USER must be a dedicated application user, not root')
+    host = os.environ.get('DB_HOST', 'mariadb')
+    port = int(os.environ.get('DB_PORT', '3306'))
+    if not re.fullmatch(r'[A-Za-z0-9_.-]+', host) or not 1 <= port <= 65535:
+        raise ValueError('invalid database host or port')
+    result = template
+    if role == 'db':
+        for name in ['ACCOUNT', 'COMMON', 'HOTBACKUP', 'PLAYER']:
+            result = re.sub(rf'^SQL_{name}\s*=.*$', f'SQL_{name} = "{host} {name.lower()} {user} {password} {port}"', result, flags=re.M)
+        return result + f'\nBIND_IP = "0.0.0.0"\nALLOWED_PEER_HOSTS = "{" ".join(PEERS)}"\n'
+    for name in ['PLAYER', 'COMMON', 'LOG']:
+        database = 'account' if name == 'PLAYER' and role == 'auth' else name.lower()
+        result = re.sub(rf'^{name}_SQL:.*$', f'{name}_SQL: {host} {user} {password} {database} {port}', result, flags=re.M)
+    result = re.sub(r'^DB_ADDR:.*$', 'DB_ADDR: db', result, flags=re.M)
+    result = re.sub(r'^ADMINPAGE_PASSWORD:.*$', 'ADMINPAGE_PASSWORD: ' + required('ADMIN_PASSWORD'), result, flags=re.M)
+    # BIND_IP is also the server's identity for db/P2P routing, so it must be the container's own address.
+    bind = socket.gethostbyname(socket.gethostname())
+    if ipaddress.IPv4Address(bind).is_loopback:
+        raise ValueError('container hostname must resolve to its network IPv4 address')
+    return result + f'\nBIND_IP: {bind}\nPROXY_IP: {public_ip()}\nP2P_ALLOWED_HOSTS: {" ".join(PEERS)}\n'
+
+
+def wait_for(host, port, timeout):
+    deadline = time.monotonic() + timeout
+    while True:
+        try:
+            with socket.create_connection((host, port), timeout=2):
+                return
+        except OSError:
+            if time.monotonic() >= deadline:
+                raise TimeoutError(f'{host}:{port} unavailable after {timeout}s') from None
+            time.sleep(1)
+
+
+def link(path, target):
+    if path.is_symlink():
+        path.unlink()
+    if not path.exists():
+        path.symlink_to(target)
+
+
+def run(role):
+    source = CONFIG
+    filename = 'conf.txt' if role == 'db' else 'CONFIG'
+    # Each service has its own volume at STATE; logs and guild marks survive image upgrades.
+    for name in ['log', 'cores']:
+        (STATE / name).mkdir(exist_ok=True)
+    if role == 'db':
+        for name in ['item_proto.txt', 'mob_proto.txt', 'item_names.txt', 'mob_names.txt']:
+            link(STATE / name, SHARE / 'conf' / name)
+    else:
+        mark = STATE / 'mark'
+        if not mark.exists():
+            mark.mkdir()
+            for origin in (source / 'mark').glob('*') if (source / 'mark').is_dir() else []:
+                (mark / origin.name).write_bytes(origin.read_bytes())
+        (STATE / 'package').mkdir(exist_ok=True)
+        for name in ['data', 'locale']:
+            link(STATE / name, SHARE / name)
+        link(STATE / 'CMD', SHARE / 'conf/CMD')
+
+    (STATE / 'ready').unlink(missing_ok=True)
+    config = STATE / filename
+    config.write_text(configure((source / filename).read_text(), role))
+    config.chmod(0o600)
+
+    wait_for(os.environ.get('DB_HOST', 'mariadb'), int(os.environ.get('DB_PORT', '3306')), 120)
+    if role != 'db':
+        wait_for('db', DB_PORT, 120)
+    executable = PREFIX / 'bin' / ('db' if role == 'db' else 'server')
+    os.chdir(STATE)
+    os.execv(executable, [str(executable)])
+
+
+def health(port):
+    wait_for(socket.gethostbyname(socket.gethostname()), port, 1)
+    if not (STATE / 'ready').is_file():
+        raise ValueError('server initialization is not complete')
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    sub = parser.add_subparsers(dest='command', required=True)
+    sub.add_parser('container').add_argument('role', choices=ROLES)
+    sub.add_parser('health').add_argument('port', type=int)
+    args = parser.parse_args()
+    try:
+        if args.command == 'container':
+            run(args.role)
+        else:
+            health(args.port)
+    except (ValueError, OSError, TimeoutError) as error:
+        print(f'metin2-runtime: {error}', file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())

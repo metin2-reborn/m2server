@@ -1,0 +1,27 @@
+main_quest_flame_lv102={["start"]=0,["__COMPLETE__"]=668443392,["state0"]=-568891545,["state1_1"]=-712184091,["state1_2"]=1283833695,["state1_3"]=998412233,["state2_1"]=-674606916,["state2_2"]=1321402630,["state2_3"]=969159056,["state3_1"]=-704103797,["state3_2"]=1325493041,["state3_3"]=939940775,["state4_1"]=-750310386,["state4_2"]=1246657972,kill_count= function ()local total_remain = 0 
+local remain1 = 30 - pc . getqf ( "mob1" ) 
+if remain1 < 0 then 
+remain1 = 0 
+end 
+local remain2 = 30 - pc . getqf ( "mob2" ) 
+if remain2 < 0 then 
+remain2 = 0 
+end 
+local remain3 = 30 - pc . getqf ( "mob3" ) 
+if remain3 < 0 then 
+remain3 = 0 
+end 
+local remain4 = 30 - pc . getqf ( "mob4" ) 
+if remain4 < 0 then 
+remain4 = 0 
+end 
+total_remain = remain1 + remain2 + remain3 + remain4 
+q . set_counter_value ( total_remain ) 
+if total_remain == 0 then 
+set_state ( "state1_3" ) 
+end 
+end ,item_count= function ()if pc . count_item ( 31081 ) >= 10 then 
+set_state ( "state2_3" ) 
+end 
+q . set_counter_value ( 10 - pc . count_item ( 31081 ) ) 
+end }

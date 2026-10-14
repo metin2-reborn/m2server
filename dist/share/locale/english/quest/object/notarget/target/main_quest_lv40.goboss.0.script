@@ -1,0 +1,7 @@
+target . delete ( "__TARGET__" ) 
+say_title ( gameforge . main_quest_lv10 . _30_sayTitle ) 
+say ( gameforge . main_quest_lv40 . _410_say ) 
+wait ( ) 
+say_title ( gameforge . main_quest_lv10 . _30_sayTitle ) 
+say ( gameforge . main_quest_lv40 . _420_say ) 
+set_state ( "survey" ) 

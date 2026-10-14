@@ -1,0 +1,5 @@
+if pc . getqf ( "time" ) ~= game . get_event_flag ( "dragon_lair_time" ) or dragon_lair_access . get_time_remaining ( ) <= 0 then 
+set_state ( "start" ) 
+else 
+dragon_lair_access . show_time_remaining ( dragon_lair_access . get_time_remaining ( ) ) 
+end 

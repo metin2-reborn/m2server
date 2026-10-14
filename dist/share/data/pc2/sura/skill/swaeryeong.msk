@@ -1,0 +1,8 @@
+ScriptType		SkillDataScript
+
+Type			HIGH
+Name			"쇄령지"
+Description		"Test - Description"
+
+IconFileName	"skill/sura/swaeryeong.sub"
+MotionIndex		17

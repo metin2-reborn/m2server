@@ -1,0 +1,3 @@
+if get_global_time ( ) - pc . getf ( "main_quest_lv93" , "item4_make_start_time" ) >= 24 * 60 * 60 then set_state ( "state4_4" ) 
+q . set_counter_name ( "" ) 
+ return end 

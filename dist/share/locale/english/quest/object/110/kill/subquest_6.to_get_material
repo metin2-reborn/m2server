@@ -1,0 +1,4 @@
+local s = number ( 1 , 100 ) 
+if s <= 5 and pc . count_item ( "60001" ) == 0 then 
+pc . give_item2 ( "60001" , 1 ) 
+end 

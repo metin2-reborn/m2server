@@ -1,0 +1,24 @@
+say_title ( gameforge . main_quest_lv90 . _830_sayTitle ) 
+say ( gameforge . main_quest_lv90 . _840_say ) 
+say ( gameforge . main_quest_lv90 . _750_say ) 
+local remain1 = 50 - pc . getqf ( "mob5_1_kill" ) 
+if remain1 < 0 then 
+remain1 = 0 
+end 
+local remain2 = 40 - pc . getqf ( "mob5_2_kill" ) 
+if remain2 < 0 then 
+remain2 = 0 
+end 
+local remain3 = 20 - pc . getqf ( "mob5_3_kill" ) 
+if remain3 < 0 then 
+remain3 = 0 
+end 
+local remain4 = 10 - pc . getqf ( "mob5_4_kill" ) 
+if remain4 < 0 then 
+remain4 = 0 
+end 
+local total_remain = remain1 + remain2 + remain3 + remain4 
+q . set_counter_value ( total_remain ) 
+say_reward ( string . format ( gameforge . main_quest_lv90 . _760_say , mob_name ( 3201 ) , remain1 , mob_name ( 3202 ) , remain2 ) ) 
+say_reward ( string . format ( gameforge . main_quest_lv90 . _760_say , mob_name ( 3204 ) , remain3 , mob_name ( 3205 ) , remain4 ) ) 
+say ( ) 

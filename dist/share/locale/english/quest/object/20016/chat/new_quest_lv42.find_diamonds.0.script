@@ -1,0 +1,13 @@
+say_title ( gameforge . new_quest_lv42 . _054_say_title ) 
+if new_quest_lv42_neededAmountDrop1 <= pc . count_item ( new_quest_lv42_drop1 ) then 
+say ( gameforge . new_quest_lv42 . _064_say ) 
+target . delete ( "__TARGET4__" ) 
+pc . setqf ( "diamond_duration" , get_time ( ) ) 
+new_quest_lv42_timeToWait = 86400 
+pc . remove_item ( new_quest_lv42_drop1 , new_quest_lv42_neededAmountDrop1 ) 
+q . done ( ) 
+set_state ( "wait_for_smith" ) 
+else 
+say ( string . format ( gameforge . new_quest_lv42 . _068_say , new_quest_lv42_neededAmountDrop1 - pc . count_item ( new_quest_lv42_drop1 ) ) ) 
+say ( gameforge . new_quest_lv42 . _065_say ) 
+end 

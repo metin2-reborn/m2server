@@ -1,0 +1,2 @@
+if pc . level >= 60 and pc . level <= 62 then set_state ( "enter" ) 
+ return end 

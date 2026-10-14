@@ -1,0 +1,4 @@
+setskin ( NOWINDOW ) 
+makequestbutton ( gameforge . horse_upgrade2 . _230_makequestbutton ) 
+q . set_title ( gameforge . horse_upgrade2 . _230_makequestbutton ) 
+q . start ( ) 

@@ -1,0 +1,16 @@
+send_letter ( gameforge . main_quest_flame_lv105 . _160_sendLetter ) 
+q . set_counter_name ( gameforge . main_quest_lv98 . _680_counterName ) 
+if party . is_party ( ) then 
+local map_index = pc . get_map_index ( ) 
+if map_index >= 351 * 10000 and map_index < ( 351 + 1 ) * 10000 then 
+pc . setqf ( "in_dungeon" , 1 ) 
+else 
+if pc . getqf ( "in_dungeon" ) == 1 then 
+if party . getf ( "flame_dungeon_boss_kill_count" ) == 1 then 
+set_state ( "state2_3" ) 
+end 
+pc . setqf ( "in_dungeon" , 0 ) 
+end 
+end 
+end 
+main_quest_flame_lv105 . kill_count_state2_2 ( ) 

@@ -1,0 +1,140 @@
+local minimum_y = 671 
+local value_y = pc . get_local_y ( ) - minimum_y 
+if pc . get_local_y ( ) >= 671 and pc . get_local_y ( ) <= 906 then 
+if pc . get_local_x ( ) >= 603 and pc . get_local_x ( ) < 778 then 
+local minimum_x = 603 
+local value_x = value_y * 35 / 47 
+if pc . get_local_x ( ) >= value_x + minimum_x then 
+if pc . getqf ( "ghostsleft" ) > 0 then 
+local successProb = pc . getqf ( "ghostsleft" ) * new_quest_lv52_successMulti 
+if math . random ( 1 , 100 ) < successProb then 
+local index = pc . getqf ( "ghostsleft" ) - 1 
+pc . setqf ( "ghostsleft" , index ) 
+if index == 3 then 
+letterindex = 1 
+send_letter ( gameforge . new_quest_lv52 . _170_send_letter ) 
+q . set_title ( gameforge . new_quest_lv52 . _030_set_title ) 
+elseif index == 2 then 
+letterindex = 2 
+send_letter ( gameforge . new_quest_lv52 . _171_send_letter ) 
+q . set_title ( gameforge . new_quest_lv52 . _030_set_title ) 
+elseif index == 1 then 
+letterindex = 3 
+send_letter ( gameforge . new_quest_lv52 . _172_send_letter ) 
+q . set_title ( gameforge . new_quest_lv52 . _030_set_title ) 
+elseif index == 0 then 
+if pc . get_job ( ) == 0 then 
+if pc . get_skill_group ( ) == 1 then 
+pc . setqf ( "lv52reward" , 50403 ) 
+elseif pc . get_skill_group ( ) == 2 then 
+pc . setqf ( "lv52reward" , number ( 50416 , 50420 ) ) 
+else 
+pc . setqf ( "lv52reward" , 50300 ) 
+end 
+elseif pc . get_job ( ) == 1 then 
+if pc . get_skill_group ( ) == 1 then 
+pc . setqf ( "lv52reward" , number ( 50431 , 50435 ) ) 
+elseif pc . get_skill_group ( ) == 2 then 
+pc . setqf ( "lv52reward" , 50449 ) 
+else 
+pc . setqf ( "lv52reward" , 50301 ) 
+end 
+elseif pc . get_job ( ) == 2 then 
+if pc . get_skill_group ( ) == 1 then 
+pc . setqf ( "lv52reward" , 50464 ) 
+elseif pc . get_skill_group ( ) == 2 then 
+pc . setqf ( "lv52reward" , number ( 50476 , 50481 ) ) 
+else 
+pc . setqf ( "lv52reward" , 50302 ) 
+end 
+elseif pc . get_job ( ) == 3 then 
+if pc . get_skill_group ( ) == 1 then 
+pc . setqf ( "lv52reward" , number ( 50491 , 50496 ) ) 
+elseif pc . get_skill_group ( ) == 2 then 
+pc . setqf ( "lv52reward" , 50509 ) 
+else 
+pc . setqf ( "lv52reward" , 50303 ) 
+end 
+else 
+pc . setqf ( "lv52reward" , 1 ) 
+end 
+q . done ( ) 
+set_state ( "backhome" ) 
+else 
+notice ( "There is something wrong with the questflag!" ) 
+end 
+else 
+end 
+else 
+end 
+else 
+end 
+elseif pc . get_local_x ( ) >= 778 and pc . get_local_x ( ) <= 906 then 
+local maximum_x = 906 
+local value_x = value_y * 128 / 235 
+if pc . get_local_x ( ) <= maximum_x - value_x then 
+if pc . getqf ( "ghostsleft" ) > 0 then 
+local successProb = pc . getqf ( "ghostsleft" ) * new_quest_lv52_successMulti 
+if math . random ( 1 , 100 ) < successProb then 
+local index = pc . getqf ( "ghostsleft" ) - 1 
+pc . setqf ( "ghostsleft" , index ) 
+if index == 3 then 
+letterindex = 1 
+send_letter ( gameforge . new_quest_lv52 . _170_send_letter ) 
+q . set_title ( gameforge . new_quest_lv52 . _030_set_title ) 
+elseif index == 2 then 
+letterindex = 2 
+send_letter ( gameforge . new_quest_lv52 . _171_send_letter ) 
+q . set_title ( gameforge . new_quest_lv52 . _030_set_title ) 
+elseif index == 1 then 
+letterindex = 3 
+send_letter ( gameforge . new_quest_lv52 . _172_send_letter ) 
+q . set_title ( gameforge . new_quest_lv52 . _030_set_title ) 
+elseif index == 0 then 
+if pc . get_job ( ) == 0 then 
+if pc . get_skill_group ( ) == 1 then 
+pc . setqf ( "lv52reward" , number ( 50401 , 50405 ) ) 
+elseif pc . get_skill_group ( ) == 2 then 
+pc . setqf ( "lv52reward" , 50418 ) 
+else 
+pc . setqf ( "lv52reward" , 70037 ) 
+end 
+elseif pc . get_job ( ) == 1 then 
+if pc . get_skill_group ( ) == 1 then 
+pc . setqf ( "lv52reward" , 50434 ) 
+elseif pc . get_skill_group ( ) == 2 then 
+pc . setqf ( "lv52reward" , number ( 50446 , 50450 ) ) 
+else 
+pc . setqf ( "lv52reward" , 70037 ) 
+end 
+elseif pc . get_job ( ) == 2 then 
+if pc . get_skill_group ( ) == 1 then 
+pc . setqf ( "lv52reward" , number ( 50461 , 50466 ) ) 
+elseif pc . get_skill_group ( ) == 2 then 
+pc . setqf ( "lv52reward" , 50479 ) 
+else 
+pc . setqf ( "lv52reward" , 70037 ) 
+end 
+elseif pc . get_job ( ) == 3 then 
+if pc . get_skill_group ( ) == 1 then 
+pc . setqf ( "lv52reward" , 50495 ) 
+elseif pc . get_skill_group ( ) == 2 then 
+pc . setqf ( "lv52reward" , number ( 50506 , 50511 ) ) 
+else 
+pc . setqf ( "lv52reward" , 70037 ) 
+end 
+else 
+pc . setqf ( "lv52reward" , 1 ) 
+end 
+q . done ( ) 
+set_state ( "backhome" ) 
+else 
+end 
+else 
+end 
+else 
+end 
+else 
+end 
+end 
+end 

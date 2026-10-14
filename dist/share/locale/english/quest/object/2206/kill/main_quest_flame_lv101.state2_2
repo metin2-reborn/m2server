@@ -1,0 +1,4 @@
+if number ( 1 , 100 ) == 1 then 
+pc . give_item2 ( 31080 , 1 ) 
+main_quest_flame_lv101 . item_count ( ) 
+end 

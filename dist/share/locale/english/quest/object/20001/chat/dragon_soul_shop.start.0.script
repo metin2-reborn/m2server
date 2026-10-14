@@ -1,0 +1,2 @@
+say ( gameforge . dragon_soul . _110_say ) 
+npc . open_shop ( 13 ) 

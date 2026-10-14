@@ -1,0 +1,11 @@
+say_title ( gameforge . new_quest_lv42 . _054_say_title ) 
+if get_time ( ) - pc . getqf ( "diamond_duration" ) >= new_quest_lv42_timeToWait then 
+say ( gameforge . new_quest_lv42 . _074_say ) 
+target . delete ( "__TARGET4__" ) 
+q . done ( ) 
+pc . give_item2 ( 30175 ) 
+pc . give_item2 ( 30175 ) 
+set_state ( "back_to_fisher" ) 
+else 
+say ( gameforge . new_quest_lv42 . _075_say ) 
+end 

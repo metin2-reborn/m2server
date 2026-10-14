@@ -1,0 +1,24 @@
+say_title ( mob_name ( 20076 ) ) 
+say ( gameforge . deviltower_zone . _190_say ) 
+wait ( ) 
+if pc . level >= 75 then 
+say_title ( mob_name ( 20076 ) ) 
+say ( gameforge . deviltower_zone . _200_say ) 
+local s = select ( gameforge . deviltower_zone . _210_select , gameforge . deviltower_zone . _220_select ) 
+if s == 3 then 
+pc . warp ( 590500 , 110900 ) 
+return 
+end 
+if s == 2 then 
+return 
+end 
+timer ( "devil_jump_7" , 6 ) 
+npc . unlock ( ) 
+d . purge ( ) 
+return 
+end 
+say_title ( mob_name ( 20076 ) ) 
+say ( gameforge . deviltower_zone . _230_say ) 
+wait ( ) 
+pc . warp ( 590500 , 110500 ) 
+return 

@@ -1,0 +1,23 @@
+say_title ( gameforge . find_brother_article . _60_sayTitle ) 
+say ( gameforge . find_brother_article . _160_say ) 
+local s = select ( gameforge . locale . levelup . prev_quest_go , gameforge . find_brother_article . _170_select ) 
+if 1 == s then 
+say_title ( gameforge . blacksmith . _40_sayTitle ) 
+say_reward ( gameforge . find_brother_article . _180_sayReward ) 
+else 
+say_pc_name ( ) 
+say ( gameforge . find_brother_article . _190_say ) 
+wait ( ) 
+say_title ( gameforge . find_brother_article . _60_sayTitle ) 
+say ( gameforge . find_brother_article . _200_say ) 
+say_reward ( gameforge . find_brother_article . _205_sayReward ) 
+local s = select ( gameforge . find_brother_article . _210_select , gameforge . find_brother_article . _170_select ) 
+if 1 == s then 
+say_pc_name ( ) 
+say ( gameforge . find_brother_article . _220_say ) 
+elseif 2 == s then 
+say_title ( gameforge . find_brother_article . _60_sayTitle ) 
+say ( gameforge . find_brother_article . _230_say ) 
+set_state ( "__FAILURE__" ) 
+end 
+end 

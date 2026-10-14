@@ -1,0 +1,4 @@
+if pc . get_map_index ( ) == 113 then 
+local counter = game . get_event_flag ( "ox_map_login_counter" ) 
+game . set_event_flag ( "ox_map_login_counter" , counter + 1 ) 
+end 

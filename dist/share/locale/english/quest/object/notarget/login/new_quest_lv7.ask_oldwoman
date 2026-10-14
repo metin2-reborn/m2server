@@ -1,0 +1,19 @@
+new_quest_lv7_AmountNeed1 = 1 
+new_quest_lv7_AmountNeed2 = 1 
+new_quest_lv7_AmountNeed3 = 1 
+new_quest_lv7_mob1 = 173 
+new_quest_lv7_mob2 = 174 
+new_quest_lv7_mob3 = 175 
+new_quest_lv7_drop1 = 30169 
+new_quest_lv7_drop2 = 30170 
+new_quest_lv7_drop3 = 30171 
+send_letter ( gameforge . new_quest_lv7 . _020_say_title ) 
+q . start ( ) 
+q . set_title ( gameforge . new_quest_lv7 . _020_say_title ) 
+if new_quest_lv7 . is_my_vil ( ) then 
+local v = find_npc_by_vnum ( 9006 ) 
+if 0 == v then 
+else 
+target . vid ( "__TARGET2__" , v , gameforge . new_quest_lv7 . _040_target ) 
+end 
+end 

@@ -1,0 +1,31 @@
+target . delete ( "__TARGET__" ) 
+if pc . count_item ( "30136" ) >= 1 then 
+say_title ( gameforge . main_quest_lv32 . _510_sayTitle ) 
+say ( gameforge . subquest_38 . _140_say ) 
+pc . remove_item ( "30136" , 1 ) 
+say_reward ( gameforge . subquest_38 . _150_sayReward ) 
+pc . give_exp2 ( 1.5e+06 ) 
+say_reward ( gameforge . subquest_38 . _160_sayReward ) 
+pc . give_item2 ( 70038 ) 
+say_reward ( gameforge . subquest_38 . _170_sayReward ) 
+pc . change_money ( 35000 ) 
+set_state ( "COMPLETE" ) 
+clear_letter ( ) 
+return 
+else 
+say_title ( gameforge . main_quest_lv32 . _510_sayTitle ) 
+say ( gameforge . subquest_38 . _180_say ) 
+local s = select ( gameforge . subquest_38 . _190_select , gameforge . subquest_24 . _200_select ) 
+if 2 == s then 
+say ( gameforge . subquest_37 . _50_say ) 
+local a = select ( gameforge . locale . guild . yes , gameforge . locale . guild . no ) 
+if 1 == a then 
+say_title ( gameforge . main_quest_lv32 . _510_sayTitle ) 
+say ( gameforge . subquest_38 . _200_say ) 
+set_state ( "__GIVEUP__" ) 
+return 
+end 
+say_title ( gameforge . main_quest_lv32 . _510_sayTitle ) 
+say ( gameforge . subquest_38 . _210_say ) 
+end 
+end 

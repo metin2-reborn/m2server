@@ -1,0 +1,8 @@
+say_title ( gameforge . subquest_17 . _390_sendLetter ) 
+say ( gameforge . subquest_17 . _400_say ) 
+say_reward ( gameforge . subquest_17 . _410_sayReward ) 
+pc . give_exp2 ( 300000 ) 
+say_reward ( gameforge . subquest_17 . _420_sayReward ) 
+pc . change_money ( 10000 ) 
+clear_letter ( ) 
+set_state ( "__COMPLETE__" ) 

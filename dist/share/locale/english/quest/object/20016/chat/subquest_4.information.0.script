@@ -1,0 +1,30 @@
+target . delete ( "__TARGET__" ) 
+say_title ( gameforge . blacksmith . _20_sayTitle ) 
+say ( gameforge . subquest_04 . _20_say ) 
+wait ( ) 
+say_title ( gameforge . blacksmith . _20_sayTitle ) 
+say ( gameforge . subquest_04 . _30_say ) 
+say_item_vnum ( 30131 ) 
+wait ( ) 
+say_title ( gameforge . blacksmith . _20_sayTitle ) 
+say ( gameforge . subquest_04 . _40_say ) 
+local s = select ( gameforge . subquest_04 . _50_select , gameforge . subquest_04 . _60_select ) 
+if 2 == s then 
+say ( gameforge . subquest_04 . _70_say ) 
+local a = select ( gameforge . locale . guild . yes , gameforge . locale . guild . no ) 
+if 2 == a then 
+say_title ( gameforge . blacksmith . _20_sayTitle ) 
+say ( gameforge . subquest_04 . _80_say ) 
+return 
+end 
+say_title ( gameforge . blacksmith . _20_sayTitle ) 
+say ( gameforge . subquest_04 . _90_say ) 
+clear_letter ( ) 
+set_state ( "__GIVEUP__" ) 
+return 
+end 
+say_title ( gameforge . blacksmith . _20_sayTitle ) 
+say ( gameforge . subquest_04 . _100_say ) 
+pc . give_item2 ( "30131" , 1 ) 
+say_item_vnum ( 30131 ) 
+set_state ( "deliver_letter" ) 

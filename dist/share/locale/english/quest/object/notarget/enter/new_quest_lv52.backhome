@@ -1,0 +1,9 @@
+send_letter ( gameforge . new_quest_lv52 . _030_set_title ) 
+q . start ( ) 
+q . set_title ( gameforge . new_quest_lv52 . _030_set_title ) 
+if is_destination_village ( 1 ) then 
+local position = find_npc_by_vnum ( 20355 ) 
+if position ~= 0 then 
+target . vid ( "__TARGET4__" , position , gameforge . new_quest_lv52 . _060_target ) 
+end 
+end 

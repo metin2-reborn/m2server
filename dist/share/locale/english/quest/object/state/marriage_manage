@@ -1,0 +1,25 @@
+marriage_manage={["start"]=0,give_wedding_gift= function ()local male_item = { 71072 , 71073 , 71074 } 
+local female_item = { 71069 , 71070 , 71071 } 
+if pc . get_sex ( ) == MALE then 
+pc . give_item2 ( male_item [ number ( 1 , 3 ) ] , 1 ) 
+else 
+pc . give_item2 ( female_item [ number ( 1 , 3 ) ] , 1 ) 
+end 
+end ,check_divorce_time= function ()local DIVORCE_LIMIT_TIME = 86400 
+if is_test_server ( ) then 
+DIVORCE_LIMIT_TIME = 60 
+end 
+if marriage . get_married_time ( ) < DIVORCE_LIMIT_TIME then 
+say_title ( gameforge . find_squareguard . _30_sayTitle ) 
+say ( gameforge . marriage_manage . _1030_say ) 
+return false 
+end 
+return true 
+end ,is_equip_wedding_dress= function ()local a = pc . get_armor ( ) 
+return a >= 11901 and a <= 11904 
+end ,get_wedding_dress= function (pc_sex)if 0 == pc_sex then 
+return 11901 
+else 
+return 11903 
+end 
+end }

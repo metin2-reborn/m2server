@@ -1,0 +1,8 @@
+ScriptType		SkillDataScript
+
+Type			HIGH
+Name			"용권파"
+Description		"Test - Description"
+
+IconFileName	"skill/sura/yonggwon.sub"
+MotionIndex		16

@@ -1,0 +1,14 @@
+target . delete ( "__TARGET__" ) 
+say_title ( gameforge . subquest_36 . _10_targetVid ) 
+say ( gameforge . subquest_36 . _290_say ) 
+say_reward ( gameforge . subquest_36 . _300_sayReward ) 
+local s = number ( 1 , 3 ) 
+if 1 >= s then 
+pc . give_item2 ( 50320 ) 
+elseif 2 >= s then 
+pc . give_item2 ( 50320 ) 
+elseif 3 >= s then 
+pc . give_item2 ( 50320 ) 
+end 
+set_state ( "__COMPLETE__" ) 
+clear_letter ( ) 

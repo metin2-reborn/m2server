@@ -1,0 +1,11 @@
+say_title ( gameforge . couple_ring . _20_sayTitle ) 
+say ( gameforge . couple_ring . _30_say ) 
+local s = select ( gameforge . couple_ring . _40_select , gameforge . couple_ring . _50_select ) 
+if s == 1 then 
+say_title ( gameforge . couple_ring . _20_sayTitle ) 
+say ( gameforge . couple_ring . _60_say ) 
+set_state ( "kill" ) 
+elseif s == 2 then 
+say_title ( gameforge . couple_ring . _20_sayTitle ) 
+say ( gameforge . couple_ring . _70_say ) 
+end 

@@ -1,0 +1,38 @@
+say_title ( gameforge . collect_herb_lv10 . _50_sayTitle ) 
+say ( gameforge . collect_herb_lv20 . _80_say ) 
+pc . remove_item ( 50705 , 1 ) 
+wait ( ) 
+local pass_percent 
+if pc . getqf ( "drink_drug" ) == 0 then 
+pass_percent = 80 
+else 
+pass_percent = 100 
+end 
+local s = number ( 1 , 100 ) 
+if s <= pass_percent then 
+if pc . getqf ( "collect_count" ) < 9 then 
+local index = pc . getqf ( "collect_count" ) + 1 
+pc . setqf ( "collect_count" , index ) 
+say_title ( gameforge . collect_herb_lv20 . _90_sayTitle ) 
+say ( string . format ( gameforge . collect_herb_lv20 . _100_say , 10 - pc . getqf ( "collect_count" ) ) ) 
+pc . setqf ( "drink_drug" , 0 ) 
+return 
+end 
+say_title ( gameforge . collect_herb_lv10 . _50_sayTitle ) 
+say ( gameforge . collect_herb_lv20 . _110_say ) 
+say_reward ( gameforge . collect_herb_lv20 . _120_sayReward ) 
+pc . setqf ( "collect_count" , 0 ) 
+pc . setqf ( "drink_drug" , 0 ) 
+clear_letter ( ) 
+set_state ( "__complete" ) 
+pc . give_item2 ( 14023 ) 
+pc . change_money ( 15000 ) 
+pc . give_exp2 ( 95000 ) 
+set_quest_state ( "levelup" , "run" ) 
+return 
+else 
+say_title ( gameforge . collect_herb_lv10 . _50_sayTitle ) 
+say ( gameforge . collect_herb_lv20 . _130_say ) 
+pc . setqf ( "drink_drug" , 0 ) 
+return 
+end 

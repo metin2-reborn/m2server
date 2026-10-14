@@ -1,0 +1,21 @@
+if pc . count_item ( 30172 ) >= 1 then 
+target . delete ( "__TARGET3__" ) 
+say_title ( gameforge . new_quest_lv7 . _020_say_title ) 
+pc . remove_item ( 30172 , pc . count_item ( 30172 ) ) 
+say_title ( pc . get_name ( ) ) 
+say ( gameforge . new_quest_lv7 . _140_say ) 
+say_title ( gameforge . new_quest_lv7 . _012_say_title ) 
+say ( gameforge . new_quest_lv7 . _141_say ) 
+wait ( ) 
+say_title ( gameforge . new_quest_lv7 . _012_say_title ) 
+say ( gameforge . new_quest_lv7 . _142_say ) 
+q . done ( ) 
+set_state ( "find_way_home" ) 
+return 
+else 
+target . delete ( "__TARGET3__" ) 
+say ( gameforge . new_quest_lv7 . _143_say ) 
+say ( gameforge . new_quest_lv7 . _144_say_reward ) 
+q . done ( ) 
+set_state ( "ask_oldwoman" ) 
+end 

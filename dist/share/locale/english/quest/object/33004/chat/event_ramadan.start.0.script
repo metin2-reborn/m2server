@@ -1,0 +1,25 @@
+local setting = event_ramadan . setting ( ) 
+if pc . count_item ( setting . iftar ) == 0 then 
+say_title ( gameforge . event_ramadan . _230_sayTitle ) 
+say ( "" ) 
+say ( gameforge . event_ramadan . _240_say ) 
+elseif pc . count_item ( setting . iftar ) > 0 then 
+say_title ( gameforge . event_ramadan . _230_sayTitle ) 
+say ( "" ) 
+say ( gameforge . event_ramadan . _250_say ) 
+local s = select ( gameforge . event_ramadan . _260_select_1 , gameforge . event_ramadan . _260_select_2 ) 
+if 2 == s then 
+say_title ( gameforge . event_ramadan . _230_sayTitle ) 
+say ( "" ) 
+say ( gameforge . event_ramadan . _270_say ) 
+return 
+end 
+say_title ( gameforge . event_ramadan . _230_sayTitle ) 
+say ( "" ) 
+say ( gameforge . event_ramadan . _280_say ) 
+pc . give_item2 ( setting . box , 1 ) 
+pc . remove_item ( setting . iftar , 1 ) 
+end 
+if not event_ramadan . is_running ( ) then 
+npc . purge ( ) 
+end 

@@ -1,0 +1,7 @@
+say_title ( "Manwoo Event" ) 
+local s = select ( "stop the event" , "cancel" ) 
+if s == 1 then 
+game . set_event_flag ( "manwoo_start" , 0 ) 
+else 
+return 
+end 

@@ -1,0 +1,6 @@
+say ( gameforge . oxevent . _350_say ) 
+local item_vnum = input ( ) 
+say ( gameforge . oxevent . _360_say ) 
+local item_count = input ( ) 
+oxevent . give_item ( item_vnum , item_count ) 
+say ( string . format ( gameforge . oxevent . _370_say , oxevent . get_attender ( ) ) ) 

@@ -1,0 +1,39 @@
+if game . get_event_flag ( "threeway_war" ) == 0 then 
+say ( locale . forked_man_say_cant ) 
+else 
+say ( locale . forked_man_say ) 
+local s = select ( locale . forked_enter , locale . forked_no_enter ) 
+local min = game . get_event_flag ( "threeway_war_level_min" ) 
+local max = game . get_event_flag ( "threeway_war_level_max" ) 
+if s == 1 then 
+if pc . level < min or pc . level > max then 
+say_title ( gameforge . forked_road . _10_sayTitle ) 
+say_reward ( string . format ( gameforge . forked_road . _20_sayReward , min , max ) ) 
+return 
+end 
+local canJoin = false 
+if ( pc . getempire ( ) == 1 and game . get_event_flag ( "threeway_war_open_gate1" ) ~= 0 ) or 
+( pc . getempire ( ) == 2 and game . get_event_flag ( "threeway_war_open_gate2" ) ~= 0 ) or 
+( pc . getempire ( ) == 3 and game . get_event_flag ( "threeway_war_open_gate3" ) ~= 0 ) then 
+canJoin = true 
+else 
+say ( locale . forked_man_say_you_cant2 ) 
+end 
+if true == canJoin then 
+pc . warp ( forked . get_pass_start_pos ( ) ) 
+else 
+if pc . getempire ( ) == 1 then 
+say_title ( gameforge . buy_fishrod . _210_sayTitle ) 
+say ( gameforge . forked_road . _30_say ) 
+elseif pc . getempire ( ) == 2 then 
+say_title ( gameforge . buy_fishrod . _210_sayTitle ) 
+say ( gameforge . forked_road . _40_say ) 
+elseif pc . getempire ( ) == 3 then 
+say_title ( gameforge . buy_fishrod . _210_sayTitle ) 
+say ( gameforge . forked_road . _50_say ) 
+else 
+say ( locale . forked_man_say_you_cant2 ) 
+end 
+end 
+end 
+end 

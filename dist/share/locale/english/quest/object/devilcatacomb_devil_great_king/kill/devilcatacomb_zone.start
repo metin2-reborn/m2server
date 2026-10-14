@@ -1,0 +1,1 @@
+server_timer ( "floor6_eli_check_timer_1" , 5 , d . get_map_index ( ) ) 

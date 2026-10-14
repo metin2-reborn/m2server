@@ -1,0 +1,20 @@
+main_quest_lv90={["start"]=0,["__COMPLETE__"]=668443392,["state0"]=-568891545,["state01_1"]=1390588616,["state01_2"]=-873733262,["state1_1"]=-712184091,["state1_2"]=1283833695,["state1_3"]=998412233,["state1_5"]=-756995332,["state1_6"]=1273527110,["state2_1"]=-674606916,["state2_2"]=1321402630,["state2_3"]=969159056,["state3_1"]=-704103797,["state3_2"]=1325493041,["state3_3"]=939940775,["state4_1"]=-750310386,["state4_2"]=1246657972,["state4_3"]=1028214050,["state5_1"]=-763017671,["state5_2"]=1267472259,["state5_3"]=1015752469,["state6_1"]=-792463264,["state6_2"]=1238018522,["state6_3"]=1053661516,["state7_1"]=-788426153,["state7_2"]=1208533997,["state7_3"]=1058009979,kill_count= function ()local remain1 = 50 - pc . getqf ( "mob5_1_kill" ) 
+if remain1 < 0 then 
+remain1 = 0 
+end 
+local remain2 = 40 - pc . getqf ( "mob5_2_kill" ) 
+if remain2 < 0 then 
+remain2 = 0 
+end 
+local remain3 = 20 - pc . getqf ( "mob5_3_kill" ) 
+if remain3 < 0 then 
+remain3 = 0 
+end 
+local remain4 = 10 - pc . getqf ( "mob5_4_kill" ) 
+if remain4 < 0 then 
+remain4 = 0 
+end 
+local total_remain = remain1 + remain2 + remain3 + remain4 
+q . set_counter_value ( total_remain ) 
+return total_remain 
+end }

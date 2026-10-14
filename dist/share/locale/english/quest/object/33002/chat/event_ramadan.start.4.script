@@ -1,0 +1,38 @@
+local setting = event_ramadan . setting ( ) 
+say_title ( gameforge . event_ramadan . _020_sayTitle ) 
+say ( "" ) 
+say ( gameforge . event_ramadan . _330_say ) 
+wait ( ) 
+if pc . count_item ( setting . fruit ) >= 5 then 
+say_title ( gameforge . event_ramadan . _020_sayTitle ) 
+say ( "" ) 
+say ( string . format ( gameforge . event_ramadan . _340_say , pc . count_item ( setting . fruit ) ) ) 
+say ( gameforge . event_ramadan . _350_say ) 
+local s = select ( gameforge . event_ramadan . _360_select_1 , gameforge . event_ramadan . _360_select_2 ) 
+if 2 == s then 
+say_title ( gameforge . event_ramadan . _020_sayTitle ) 
+say ( "" ) 
+say ( gameforge . event_ramadan . _370_say ) 
+return 
+end 
+say_title ( gameforge . event_ramadan . _020_sayTitle ) 
+say ( "" ) 
+say ( gameforge . event_ramadan . _380_say ) 
+say_reward ( gameforge . event_ramadan . _390_sayReward ) 
+say ( "" ) 
+if pc . count_item ( setting . fruit ) >= 5 and pc . count_item ( setting . fruit ) <= 10 then 
+pc . give_item2 ( setting . horse1 , 1 ) 
+elseif pc . count_item ( setting . fruit ) >= 11 and pc . count_item ( setting . fruit ) <= 19 then 
+pc . give_item2 ( setting . horse2 , 1 ) 
+elseif pc . count_item ( setting . fruit ) >= 20 and pc . count_item ( setting . fruit ) <= 27 then 
+pc . give_item2 ( setting . horse3 , 1 ) 
+elseif pc . count_item ( setting . fruit ) >= 28 then 
+pc . give_item2 ( setting . horse4 , 1 ) 
+end 
+pc . remove_item ( setting . fruit , pc . count_item ( setting . fruit ) ) 
+pc . setqf ( "fig_exchange" , 1 ) 
+else 
+say_title ( gameforge . event_ramadan . _020_sayTitle ) 
+say ( "" ) 
+say ( gameforge . event_ramadan . _400_say ) 
+end 

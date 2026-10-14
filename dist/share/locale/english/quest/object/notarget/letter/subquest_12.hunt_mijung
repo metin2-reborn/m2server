@@ -1,0 +1,5 @@
+setskin ( NOWINDOW ) 
+makequestbutton ( gameforge . subquest_12 . _10_targetVid ) 
+q . set_title ( gameforge . subquest_12 . _100_qSetTitle ) 
+say_reward ( gameforge . subquest_12 . _110_sayReward ) 
+q . start ( ) 

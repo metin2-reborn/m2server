@@ -1,0 +1,103 @@
+quest event_flame_dungeon_open begin
+    state start begin
+        when 20381.chat.gameforge.event_flame_dungeon_open._010_npcChat with pc.get_level() >= 90 begin
+            say(gameforge.event_flame_dungeon_open._020_say)
+            wait()
+            say(gameforge.event_flame_dungeon_open._030_say)
+            wait()
+            say(gameforge.event_flame_dungeon_open._080_say)
+            pc.setqf("event_FD_time", 0)
+            set_state(run)
+        end
+    end
+
+    state run begin
+        when 20381.chat.gameforge.event_flame_dungeon_open._040_npcChat with game.get_event_flag("w21open_event")>0 begin
+            say(gameforge.event_flame_dungeon_open._050_say)
+            wait()
+            
+            local t = pc.getqf("event_FD_time")
+            local killcount = pc.getqf("kill_done")
+            if killcount == 0 then
+                say(gameforge.event_flame_dungeon_open._080_say)
+            elseif (t==0) or (t+86400 < get_global_time()) then
+                say(gameforge.event_flame_dungeon_open._060_say)
+                pc.give_item2(71173, 1)
+                pc.give_item2(71174, 3)
+                pc.setqf("event_FD_time", get_global_time())
+                pc.setqf("kill_count_1", 0)
+            else
+                say(gameforge.event_flame_dungeon_open._070_say)
+            end	
+        end
+
+        when letter with game.get_event_flag("w21open_event")>0 begin
+			send_letter(gameforge.event_flame_dungeon_open._010_npcChat) 
+ 			--남은 처치 수 안내문 
+			q.set_counter_name(gameforge.main_quest_lv98._680_counterName)
+			event_flame_dungeon_open.kill_count() 
+		end
+        
+        when button or info with game.get_event_flag("w21open_event")>0 begin
+			say_title(gameforge.event_flame_dungeon_open._010_npcChat) 
+			say(string.format(gameforge.levelup._26_say, 100 - pc.getqf("kill_count_1")))
+		end
+        
+        when 3101.kill begin
+            local kill_count = pc.getqf("kill_count_1")
+            pc.setqf("kill_count_1", kill_count+1)
+            event_flame_dungeon_open.kill_count() 
+        end
+        
+        when 3102.kill begin
+            local kill_count = pc.getqf("kill_count_1")
+            pc.setqf("kill_count_1", kill_count+1)
+            event_flame_dungeon_open.kill_count() 
+        end
+
+        when 3103.kill begin
+            local kill_count = pc.getqf("kill_count_1")
+            pc.setqf("kill_count_1", kill_count+1)
+            event_flame_dungeon_open.kill_count() 
+        end
+
+        when 3104.kill begin
+            local kill_count = pc.getqf("kill_count_1")
+            pc.setqf("kill_count_1", kill_count+1)
+            event_flame_dungeon_open.kill_count() 
+        end
+
+        when 3105.kill begin
+            local kill_count = pc.getqf("kill_count_1")
+            pc.setqf("kill_count_1", kill_count+1)
+            event_flame_dungeon_open.kill_count() 
+        end
+
+        when 3190.kill begin
+            local kill_count = pc.getqf("kill_count_1")
+            pc.setqf("kill_count_1", kill_count+1)
+            event_flame_dungeon_open.kill_count() 
+        end
+
+        when 3191.kill begin
+            local kill_count = pc.getqf("kill_count_1")
+            pc.setqf("kill_count_1", kill_count+1)
+            event_flame_dungeon_open.kill_count() 
+        end
+
+        when 71173.use begin
+            pc.warp(614200, 706800, 62)
+            pc.remove_item(71173, 1)
+        end
+        
+        function kill_count()
+            local total_remain = 100
+            local remain1 = pc.getqf("kill_count_1")
+            local remain_count = total_remain - remain1
+            q.set_counter_value(remain_count)
+            if total_remain == 0 then
+                pc.setqf("kill_done", 1)
+            end
+        end
+    end
+end

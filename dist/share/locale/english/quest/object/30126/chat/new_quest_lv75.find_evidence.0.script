@@ -1,0 +1,3 @@
+say ( gameforge . new_quest_lv75 . _060_say ) 
+pc . setqf ( "suraskel2" , 0 ) 
+target . vid ( "__TARGET__" , find_npc_by_vnum ( new_quest_lv75_npcvnum ) , gameforge . new_quest_lv75 . _010_target ) 

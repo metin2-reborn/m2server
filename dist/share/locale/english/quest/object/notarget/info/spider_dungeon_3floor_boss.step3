@@ -1,0 +1,3 @@
+say_title ( gameforge . spider_dungeon_3floor_boss . _110_sendLetter ) 
+say ( gameforge . spider_dungeon_3floor_boss . _120_say ) 
+say ( "" ) 

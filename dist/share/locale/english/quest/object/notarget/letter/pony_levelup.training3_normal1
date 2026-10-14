@@ -1,0 +1,8 @@
+pc . setqf ( "flag1" , 0 ) 
+pc . setqf ( "flag2" , 0 ) 
+target . pos ( "target1" , 200 , 713 , 41 , "" ) 
+target . pos ( "target2" , 200 , 356 , 41 , "" ) 
+setskin ( NOWINDOW ) 
+makequestbutton ( gameforge . pony_levelup . _380_sayTitle ) 
+q . set_title ( gameforge . pony_levelup . _380_sayTitle ) 
+q . start ( ) 

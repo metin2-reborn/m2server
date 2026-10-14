@@ -1,0 +1,5 @@
+say_title ( gameforge . main_quest_lv55 . _250_sayTitle ) 
+say ( gameforge . main_quest_lv55 . _260_sayReward ) 
+wait ( ) 
+say_title ( gameforge . main_quest_lv55 . _250_sayTitle ) 
+say ( gameforge . main_quest_lv55 . _270_say ) 

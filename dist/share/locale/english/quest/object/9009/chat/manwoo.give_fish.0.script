@@ -1,0 +1,27 @@
+say_title ( "Fisherman's Event" ) 
+if pc . count_item ( game . get_event_flag ( "manwoo_fish" ) ) < game . get_event_flag ( "manwoo" ) then 
+say ( "You don't have enough fish!" ) 
+else 
+say ( "Hey! You actually managed to do it!" ) 
+say ( "Thank you!" ) 
+say ( "And now... for the reward" ) 
+wait ( ) 
+say_title ( "Fisherman's Event" ) 
+local current_amount = pc . getqf ( "reward" ) 
+local reward_vnum = game . get_event_flag ( "manwoo_reward_" .. current_amount ) 
+if reward_vnum == 0 or reward_vnum == "" then 
+local last_item_vnum = 150 
+say_item_vnum ( last_item_vnum ) 
+pc . give_item2 ( last_item_vnum ) 
+else 
+if pc . enough_inventory ( reward_vnum ) == true then 
+say_item_vnum ( reward_vnum ) 
+pc . remove_item ( game . get_event_flag ( "manwoo_fish" ) , game . get_event_flag ( "manwoo" ) ) 
+pc . give_item2 ( reward_vnum ) 
+pc . setqf ( "reward" , current_amount + 1 ) 
+else 
+say ( "You don't have enough space!" ) 
+say ( "Please, return when you have enough space!" ) 
+end 
+end 
+end 

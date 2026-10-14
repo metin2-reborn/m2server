@@ -1,0 +1,5 @@
+target . delete ( "__TARGET2__" ) 
+say_title ( gameforge . main_quest_lv30 . _20_sendLetter ) 
+say ( gameforge . main_quest_lv30 . _100_say ) 
+setstate ( "gotoeUriel3" ) 
+q . done ( ) 

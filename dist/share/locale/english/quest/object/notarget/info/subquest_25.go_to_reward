@@ -1,0 +1,2 @@
+say_title ( gameforge . subquest_25 . _390_qSetTitle ) 
+say ( gameforge . subquest_25 . _400_say ) 

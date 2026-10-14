@@ -1,0 +1,5 @@
+say_title ( gameforge . horse_levelup . _180_sayTitle ) 
+say ( gameforge . horse_levelup . _200_say ) 
+if not pc . is_mount ( ) then 
+setstate ( "failure" ) 
+end 

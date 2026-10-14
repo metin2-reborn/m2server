@@ -1,0 +1,1 @@
+return pc . getqf ( "leather_done" ) == 1

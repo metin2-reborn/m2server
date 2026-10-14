@@ -1,0 +1,1 @@
+return game . get_event_flag ( "manwoo_start" ) > 0 and game . get_event_flag ( "manwoo_start" ) > 0 and game . get_event_flag ( "manwoo_time" ) >= get_global_time ( )

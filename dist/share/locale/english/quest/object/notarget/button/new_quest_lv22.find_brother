@@ -1,0 +1,6 @@
+say_title ( gameforge . new_quest_lv22 . _016_send_letter ) 
+if get_time ( ) - pc . getqf ( "new_quest_lv22_startTime" ) <= new_quest_lv22_timeToFind then 
+say ( gameforge . new_quest_lv22 . _083_say ) 
+else 
+say ( gameforge . new_quest_lv22 . _084_say ) 
+end 

@@ -1,0 +1,8 @@
+target . delete ( "__TARGET3__" ) 
+say_title ( gameforge . new_quest_lv42 . _044_say_title ) 
+say ( gameforge . new_quest_lv42 . _041_say ) 
+wait ( ) 
+say ( gameforge . new_quest_lv42 . _042_say ) 
+say_reward ( gameforge . new_quest_lv42 . _043_say_reward ) 
+q . done ( ) 
+set_state ( "goto_smith" ) 

@@ -1,0 +1,56 @@
+pre_event_heavens_cave={["start"]=0,["__COMPLETE__"]=668443392,["pre_event_heavens_cave"]=-2054313232,getherbs= function (maxlevel)local range = maxlevel - 12 
+range = math . floor ( range / 4 ) 
+local randomvalue = math . random ( 1 , range ) 
+local herbvnum = 0 
+if randomvalue == 2 then 
+herbvnum = 50722 
+elseif randomvalue == 3 then 
+herbvnum = 50723 
+elseif randomvalue == 4 then 
+herbvnum = 50724 
+elseif randomvalue == 5 or randomvalue == 6 then 
+herbvnum = 50725 
+elseif randomvalue == 7 or randomvalue == 8 then 
+herbvnum = 50726 
+elseif randomvalue == 9 then 
+herbvnum = 50727 
+elseif randomvalue >= 10 then 
+herbvnum = 50728 
+else 
+herbvnum = 50721 
+end 
+return herbvnum 
+end ,getpotion= function (maxlevel)local randomvalue = math . random ( 1 , 6 ) 
+local potionvnum = 0 
+if maxlevel <= 18 then 
+if randomvalue <= 3 then potionvnum = 27100 
+else potionvnum = 27103 
+end 
+elseif maxlevel > 18 and maxlevel <= 25 + randomvalue then 
+if randomvalue == 1 then potionvnum = 27100 
+elseif randomvalue == 2 then potionvnum = 27103 
+elseif randomvalue == 3 then potionvnum = 27002 
+elseif randomvalue == 4 then potionvnum = 27005 
+elseif randomvalue == 5 then potionvnum = 27101 
+else potionvnum = 27104 
+end 
+else 
+if randomvalue == 1 then potionvnum = 27101 
+elseif randomvalue == 2 then potionvnum = 27104 
+elseif randomvalue == 3 then potionvnum = 27003 
+elseif randomvalue == 4 then potionvnum = 27006 
+elseif randomvalue == 5 then potionvnum = 27102 
+else potionvnum = 27105 
+end 
+end 
+return potionvnum 
+end ,getsushi= function ()local randomvalue = math . random ( 1 , 5 ) 
+local sushivnum = 0 
+if randomvalue == 1 then sushivnum = 50091 
+elseif randomvalue == 2 then sushivnum = 50092 
+elseif randomvalue == 3 then sushivnum = 50093 
+elseif randomvalue == 4 then sushivnum = 50094 
+else sushivnum = 50901 
+end 
+return sushivnum 
+end }

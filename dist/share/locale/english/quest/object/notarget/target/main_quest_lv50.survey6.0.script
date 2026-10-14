@@ -1,0 +1,4 @@
+say_pc_name ( ) 
+say ( gameforge . main_quest_lv50 . _190_say ) 
+pc . give_item2 ( 30150 ) 
+set_state ( "gototeacher6" ) 

@@ -1,0 +1,3 @@
+if pc . get_level ( ) >= 15 then pc . setqf ( "personalvalue" , 0 ) 
+set_state ( "pre_event_heavens_cave" ) 
+ return end 

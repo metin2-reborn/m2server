@@ -1,0 +1,5 @@
+say_title ( gameforge . new_quest_lv52 . _010_send_letter ) 
+say_reward ( gameforge . new_quest_lv52 . _180_say_reward ) 
+local reward = pc . getqf ( "lv52reward" ) 
+say ( string . format ( gameforge . new_quest_lv52 . _181_say , item_name ( reward ) ) ) 
+say ( string . format ( gameforge . new_quest_lv52 . _182_say , get_map_name_by_number ( 1 ) ) ) 

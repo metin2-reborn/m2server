@@ -1,0 +1,23 @@
+target . delete ( "__TARGET__" ) 
+say_title ( gameforge . main_quest_lv32 . _510_sayTitle ) 
+say ( gameforge . subquest_23 . _190_say ) 
+wait ( ) 
+say_title ( gameforge . main_quest_lv32 . _510_sayTitle ) 
+say ( gameforge . subquest_23 . _200_say ) 
+local s = select ( gameforge . subquest_23 . _210_select , gameforge . find_brother_article . _170_select ) 
+if 2 == s then 
+say ( gameforge . subquest_23 . _220_say ) 
+local a = select ( gameforge . locale . guild . yes , gameforge . locale . guild . no ) 
+if 2 == a then 
+say_pc_name ( ) 
+say ( gameforge . subquest_23 . _230_say ) 
+return 
+end 
+say_pc_name ( ) 
+say ( gameforge . subquest_23 . _240_say ) 
+set_state ( "__GIVEUP__" ) 
+return 
+end 
+say_pc_name ( ) 
+say ( gameforge . subquest_23 . _250_say ) 
+set_state ( "to_danger_place" ) 

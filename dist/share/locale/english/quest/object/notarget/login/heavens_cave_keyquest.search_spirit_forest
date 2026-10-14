@@ -1,0 +1,142 @@
+local heavens_cave_keyquest_DailyRndList = heavens_cave_keyquest . generate_unique_rnd_table ( 87 , 7 ) 
+local heavens_cave_keyquest_SpiritForestCoordsList = 
+{ 
+[ 1 ] = { 407 , 191 , } , 
+[ 2 ] = { 464 , 247 , } , 
+[ 3 ] = { 649 , 148 , } , 
+[ 4 ] = { 827 , 181 , } , 
+[ 5 ] = { 899 , 168 , } , 
+[ 6 ] = { 1059 , 152 , } , 
+[ 7 ] = { 1141 , 210 , } , 
+[ 8 ] = { 1301 , 208 , } , 
+[ 9 ] = { 140 , 257 , } , 
+[ 10 ] = { 1279 , 262 , } , 
+[ 11 ] = { 1279 , 380 , } , 
+[ 12 ] = { 1352 , 469 , } , 
+[ 13 ] = { 1268 , 529 , } , 
+[ 14 ] = { 1087 , 485 , } , 
+[ 15 ] = { 937 , 467 , } , 
+[ 16 ] = { 877 , 409 , } , 
+[ 17 ] = { 841 , 523 , } , 
+[ 18 ] = { 685 , 572 , } , 
+[ 19 ] = { 664 , 474 , } , 
+[ 20 ] = { 596 , 388 , } , 
+[ 21 ] = { 558 , 517 , } , 
+[ 22 ] = { 437 , 568 , } , 
+[ 23 ] = { 409 , 500 , } , 
+[ 24 ] = { 378 , 397 , } , 
+[ 25 ] = { 269 , 395 , } , 
+[ 26 ] = { 162 , 380 , } , 
+[ 27 ] = { 82 , 490 , } , 
+[ 28 ] = { 92 , 623 , } , 
+[ 29 ] = { 130 , 713 , } , 
+[ 30 ] = { 261 , 712 , } , 
+[ 31 ] = { 245 , 884 , } , 
+[ 32 ] = { 110 , 855 , } , 
+[ 33 ] = { 506 , 709 , } , 
+[ 34 ] = { 482 , 813 , } , 
+[ 35 ] = { 425 , 846 , } , 
+[ 36 ] = { 651 , 846 , } , 
+[ 37 ] = { 696 , 888 , } , 
+[ 38 ] = { 733 , 733 , } , 
+[ 39 ] = { 834 , 689 , } , 
+[ 40 ] = { 949 , 747 , } , 
+[ 41 ] = { 917 , 816 , } , 
+[ 42 ] = { 1042 , 894 , } , 
+[ 43 ] = { 1146 , 884 , } , 
+[ 44 ] = { 118 , 756 , } , 
+[ 45 ] = { 1228 , 701 , } , 
+[ 46 ] = { 1319 , 704 , } , 
+[ 47 ] = { 190 , 1031 , } , 
+[ 48 ] = { 199 , 998 , } , 
+[ 49 ] = { 129 , 1128 , } , 
+[ 50 ] = { 312 , 1165 , } , 
+[ 51 ] = { 319 , 1090 , } , 
+[ 52 ] = { 381 , 1020 , } , 
+[ 53 ] = { 462 , 986 , } , 
+[ 54 ] = { 531 , 985 , } , 
+[ 55 ] = { 643 , 979 , } , 
+[ 56 ] = { 700 , 1024 , } , 
+[ 57 ] = { 726 , 1152 , } , 
+[ 58 ] = { 795 , 1175 , } , 
+[ 59 ] = { 830 , 1053 , } , 
+[ 60 ] = { 897 , 960 , } , 
+[ 61 ] = { 947 , 1044 , } , 
+[ 62 ] = { 1018 , 1117 , } , 
+[ 63 ] = { 1089 , 1060 , } , 
+[ 64 ] = { 1156 , 1167 , } , 
+[ 65 ] = { 1310 , 1125 , } , 
+[ 66 ] = { 1389 , 1029 , } , 
+[ 67 ] = { 1417 , 1132 , } , 
+[ 68 ] = { 1373 , 1190 , } , 
+[ 69 ] = { 1380 , 1169 , } , 
+[ 70 ] = { 1241 , 1300 , } , 
+[ 71 ] = { 1352 , 1352 , } , 
+[ 72 ] = { 1304 , 1375 , } , 
+[ 73 ] = { 1232 , 1403 , } , 
+[ 74 ] = { 1107 , 1415 , } , 
+[ 75 ] = { 1051 , 1446 , } , 
+[ 76 ] = { 938 , 1400 , } , 
+[ 77 ] = { 858 , 1428 , } , 
+[ 78 ] = { 772 , 1420 , } , 
+[ 79 ] = { 712 , 1425 , } , 
+[ 80 ] = { 634 , 1343 , } , 
+[ 81 ] = { 556 , 1403 , } , 
+[ 82 ] = { 460 , 1415 , } , 
+[ 83 ] = { 517 , 1322 , } , 
+[ 84 ] = { 484 , 1305 , } , 
+[ 85 ] = { 407 , 1305 , } , 
+[ 86 ] = { 370 , 1393 , } , 
+[ 87 ] = { 411 , 1448 , } , 
+} 
+heavens_cave_keyquest_SpiritForestCoordsTempList = 
+{ 
+heavens_cave_keyquest_SpiritForestCoordsList [ heavens_cave_keyquest_DailyRndList [ 1 ] ] , 
+heavens_cave_keyquest_SpiritForestCoordsList [ heavens_cave_keyquest_DailyRndList [ 2 ] ] , 
+heavens_cave_keyquest_SpiritForestCoordsList [ heavens_cave_keyquest_DailyRndList [ 3 ] ] , 
+heavens_cave_keyquest_SpiritForestCoordsList [ heavens_cave_keyquest_DailyRndList [ 4 ] ] , 
+heavens_cave_keyquest_SpiritForestCoordsList [ heavens_cave_keyquest_DailyRndList [ 5 ] ] , 
+heavens_cave_keyquest_SpiritForestCoordsList [ heavens_cave_keyquest_DailyRndList [ 6 ] ] , 
+heavens_cave_keyquest_SpiritForestCoordsList [ heavens_cave_keyquest_DailyRndList [ 7 ] ] 
+} 
+pc . setqf ( "tears_collected" , pc . count_item ( pc . getqf ( "heavens_cave_keyquest_FrozenTear" ) ) ) 
+send_letter ( gameforge . heavens_cave_keyquest . _020_npcChat ) 
+q . start ( ) 
+q . set_title ( gameforge . heavens_cave_keyquest . _020_npcChat ) 
+if pc . get_map_index ( ) == 62 then 
+local allTearsTaken = true 
+if pc . getqf ( "Tear1Taken" ) == 0 then 
+allTearsTaken = false 
+target . pos ( "__TEAR1__" , heavens_cave_keyquest_SpiritForestCoordsTempList [ 1 ] [ 1 ] , heavens_cave_keyquest_SpiritForestCoordsTempList [ 1 ] [ 2 ] , 62 , gameforge . heavens_cave_keyquest . _150_say_title ) 
+end 
+if pc . getqf ( "Tear2Taken" ) == 0 then 
+allTearsTaken = false 
+target . pos ( "__TEAR2__" , heavens_cave_keyquest_SpiritForestCoordsTempList [ 2 ] [ 1 ] , heavens_cave_keyquest_SpiritForestCoordsTempList [ 2 ] [ 2 ] , 62 , gameforge . heavens_cave_keyquest . _150_say_title ) 
+end 
+if pc . getqf ( "Tear3Taken" ) == 0 then 
+allTearsTaken = false 
+target . pos ( "__TEAR3__" , heavens_cave_keyquest_SpiritForestCoordsTempList [ 3 ] [ 1 ] , heavens_cave_keyquest_SpiritForestCoordsTempList [ 3 ] [ 2 ] , 62 , gameforge . heavens_cave_keyquest . _150_say_title ) 
+end 
+if pc . getqf ( "Tear4Taken" ) == 0 then 
+allTearsTaken = false 
+target . pos ( "__TEAR4__" , heavens_cave_keyquest_SpiritForestCoordsTempList [ 4 ] [ 1 ] , heavens_cave_keyquest_SpiritForestCoordsTempList [ 4 ] [ 2 ] , 62 , gameforge . heavens_cave_keyquest . _150_say_title ) 
+end 
+if pc . getqf ( "Tear5Taken" ) == 0 then 
+allTearsTaken = false 
+target . pos ( "__TEAR5__" , heavens_cave_keyquest_SpiritForestCoordsTempList [ 5 ] [ 1 ] , heavens_cave_keyquest_SpiritForestCoordsTempList [ 5 ] [ 2 ] , 62 , gameforge . heavens_cave_keyquest . _150_say_title ) 
+end 
+if pc . getqf ( "Tear6Taken" ) == 0 then 
+allTearsTaken = false 
+target . pos ( "__TEAR6__" , heavens_cave_keyquest_SpiritForestCoordsTempList [ 6 ] [ 1 ] , heavens_cave_keyquest_SpiritForestCoordsTempList [ 6 ] [ 2 ] , 62 , gameforge . heavens_cave_keyquest . _150_say_title ) 
+end 
+if pc . getqf ( "Tear7Taken" ) == 0 then 
+allTearsTaken = false 
+target . pos ( "__TEAR7__" , heavens_cave_keyquest_SpiritForestCoordsTempList [ 7 ] [ 1 ] , heavens_cave_keyquest_SpiritForestCoordsTempList [ 7 ] [ 2 ] , 62 , gameforge . heavens_cave_keyquest . _150_say_title ) 
+end 
+if pc . count_item ( pc . getqf ( "heavens_cave_keyquest_FrozenTear" ) ) >= pc . getqf ( "heavens_cave_keyquest_NeededTearsAmount" ) and pc . count_item ( pc . getqf ( "heavens_cave_keyquest_VolcanicGlass" ) ) >= pc . getqf ( "heavens_cave_keyquest_NeededGlassAmount" ) then 
+q . done ( ) 
+set_state ( "tears_for_seon" ) 
+elseif allTearsTaken then 
+set_state ( "initialize" ) 
+end 
+end 

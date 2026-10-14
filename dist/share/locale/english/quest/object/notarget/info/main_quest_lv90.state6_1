@@ -1,0 +1,2 @@
+say_title ( gameforge . main_quest_lv90 . _850_sendLetter ) 
+say ( gameforge . main_quest_lv90 . _860_say ) 

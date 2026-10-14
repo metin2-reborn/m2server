@@ -1,0 +1,14 @@
+if pc . in_dungeon ( ) and pc . get_map_index ( ) >= 660000 and pc . get_map_index ( ) < 670000 then d . setf ( "level" , 4 ) 
+local positions = deviltower_zone . get_4floor_stone_pos ( ) 
+for i = 1 , 6 begin 
+test_chat ( positions [ i ] [ 1 ] , positions [ i ] [ 2 ] ) 
+d . set_unique ( "fake" .. i , d . spawn_mob ( 8017 , positions [ i ] [ 1 ] , positions [ i ] [ 2 ] ) ) 
+end 
+test_chat ( positions [ 7 ] [ 1 ] , positions [ 7 ] [ 2 ] ) 
+local vid = d . spawn_mob ( 8017 , positions [ 7 ] [ 1 ] , positions [ 7 ] [ 2 ] ) 
+test_chat ( vid ) 
+d . set_unique ( "real" , vid ) 
+server_loop_timer ( "devil_stone4_update" , 10 , pc . get_map_index ( ) ) 
+server_timer ( "devil_stone4_fail1" , 5 * 60 , pc . get_map_index ( ) ) 
+notice_multiline ( gameforge . deviltower_zone . _50_dNotice , d . notice ) 
+ return end 

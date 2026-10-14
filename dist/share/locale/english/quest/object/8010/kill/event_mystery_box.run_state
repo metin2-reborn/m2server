@@ -1,0 +1,3 @@
+if pc . get_level ( ) >= 45 and pc . get_level ( ) <= 55 then local operator = 0.3 
+event_mystery_box . drop_box ( operator , 8010 ) 
+ return end 

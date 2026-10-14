@@ -1,0 +1,7 @@
+if pc . get_map_index ( ) == 113 then 
+if is_test_server ( ) then 
+pc . setqf ( "ox_end_cooldown_time" , get_time ( ) + 20 * 3 ) 
+else 
+pc . setqf ( "ox_end_cooldown_time" , get_time ( ) + 60 * 15 ) 
+end 
+end 

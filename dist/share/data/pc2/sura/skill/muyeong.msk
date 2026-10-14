@@ -1,0 +1,8 @@
+ScriptType		SkillDataScript
+
+Type			HIGH
+Name			"무영진"
+Description		"Test - Description"
+
+IconFileName	"skill/sura/muyeong.sub"
+MotionIndex		12

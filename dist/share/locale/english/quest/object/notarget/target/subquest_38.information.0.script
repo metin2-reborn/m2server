@@ -1,0 +1,26 @@
+target . delete ( "__TARGET__" ) 
+say_title ( gameforge . main_quest_lv32 . _510_sayTitle ) 
+say ( gameforge . subquest_38 . _20_say ) 
+wait ( ) 
+say_title ( gameforge . main_quest_lv32 . _510_sayTitle ) 
+say ( gameforge . subquest_38 . _30_say ) 
+wait ( ) 
+say_title ( gameforge . main_quest_lv32 . _510_sayTitle ) 
+say ( gameforge . subquest_38 . _40_say ) 
+local s = select ( gameforge . find_brother_article . _90_select , gameforge . subquest_01 . _60_select ) 
+if 2 == s then 
+say ( gameforge . subquest_31 . _190_say ) 
+local a = select ( gameforge . locale . guild . yes , gameforge . locale . guild . no ) 
+if 2 == a then 
+say_title ( gameforge . subquest_38 . _50_sayTitle ) 
+say ( gameforge . subquest_38 . _60_say ) 
+return 
+end 
+say_title ( gameforge . main_quest_lv32 . _510_sayTitle ) 
+say ( gameforge . subquest_38 . _70_say ) 
+set_state ( "__GIVEUP__" ) 
+return 
+end 
+say_title ( gameforge . main_quest_lv32 . _510_sayTitle ) 
+say ( gameforge . subquest_38 . _80_say ) 
+set_state ( "hunt_monkey" ) 

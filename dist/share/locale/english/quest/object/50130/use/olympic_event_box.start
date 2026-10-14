@@ -1,0 +1,35 @@
+local n = number ( 1 , 100 ) 
+if n <= 30 then 
+if game . get_event_flag ( "medal_part_drop" ) >= 1 then 
+olympic_event_box . give_costume_item ( ) 
+else 
+if n <= 12 then 
+pc . give_item2 ( 38100 , 1 ) 
+elseif n <= 17 then 
+pc . give_item2 ( 70024 , 1 ) 
+elseif n <= 23 then 
+pc . give_item2 ( 71130 , 5 ) 
+elseif n <= 29 then 
+pc . give_item2 ( 71035 , 4 ) 
+else 
+pc . give_item2 ( 71107 , 1 ) 
+end 
+end 
+elseif n <= 40 then 
+pc . give_item2 ( 27115 , 10 ) 
+elseif n <= 50 then 
+pc . give_item2 ( 27112 , 10 ) 
+elseif n <= 61 then 
+pc . give_item2 ( 71108 , 5 ) 
+elseif n <= 66 then 
+pc . give_item2 ( 72723 , 1 ) 
+elseif n <= 71 then 
+pc . give_item2 ( 72727 , 1 ) 
+elseif n <= 76 then 
+pc . give_item2 ( 71004 , 5 ) 
+elseif n <= 88 then 
+pc . give_item2 ( 71094 , 1 ) 
+else 
+pc . give_item2 ( 70102 , 1 ) 
+end 
+pc . remove_item ( 50130 , 1 ) 

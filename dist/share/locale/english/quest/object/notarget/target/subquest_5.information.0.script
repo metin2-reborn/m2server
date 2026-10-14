@@ -1,0 +1,27 @@
+target . delete ( "__TARGET__" ) 
+say_title ( gameforge . subquest_05 . _30_sayTitle ) 
+say ( gameforge . subquest_05 . _40_say ) 
+wait ( ) 
+say_title ( gameforge . subquest_05 . _30_sayTitle ) 
+say ( gameforge . subquest_05 . _50_say ) 
+wait ( ) 
+say_title ( gameforge . subquest_05 . _30_sayTitle ) 
+say ( gameforge . subquest_05 . _60_say ) 
+local s = select ( gameforge . subquest_05 . _70_select , gameforge . subquest_05 . _80_select ) 
+if 2 == s then 
+say ( gameforge . subquest_05 . _90_say ) 
+local a = select ( gameforge . locale . guild . yes , gameforge . locale . guild . no ) 
+if 2 == a then 
+say_title ( gameforge . subquest_05 . _30_sayTitle ) 
+say ( gameforge . subquest_05 . _100_say ) 
+return 
+end 
+say_title ( gameforge . subquest_05 . _30_sayTitle ) 
+say ( gameforge . subquest_05 . _110_say ) 
+clear_letter ( ) 
+set_state ( "__GIVEUP__" ) 
+return 
+end 
+say_title ( gameforge . subquest_05 . _30_sayTitle ) 
+say ( gameforge . subquest_05 . _120_say ) 
+set_state ( "ask_to" ) 

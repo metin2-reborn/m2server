@@ -1,0 +1,8 @@
+target . delete ( "__TARGET__" ) 
+say_title ( gameforge . fortune_telling . _100_sayTitle ) 
+say ( gameforge . subquest_19 . _230_say ) 
+wait ( ) 
+say_title ( gameforge . couple_ring . _20_sayTitle ) 
+say ( gameforge . subquest_19 . _240_say ) 
+pc . removeitem ( "30151" , 1 ) 
+setstate ( "reward" ) 

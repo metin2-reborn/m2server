@@ -1,0 +1,7 @@
+local setting = devilcatacomb_zone . setting ( ) 
+if pc . get_x ( ) > setting . floor1_s . x + setting . base . x and pc . get_y ( ) > setting . floor1_s . y + setting . base . y and pc . get_x ( ) < setting . floor1_e . x + setting . base . x and pc . get_y ( ) < setting . floor1_e . y + setting . base . y then 
+local j = number ( 1 , 100 ) 
+if j == 1 then 
+game . drop_item ( setting . rag , 1 ) 
+end 
+end 

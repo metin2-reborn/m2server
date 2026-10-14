@@ -1,0 +1,8 @@
+pc . setqf ( "kill_count" , pc . getqf ( "kill_count" ) + 1 ) 
+q . set_counter ( gameforge . horse_upgrade2 . _test_1002_count , 300 - pc . getqf ( "kill_count" ) ) 
+if get_time ( ) >= pc . getqf ( "limit_time" ) then 
+setstate ( "failure" ) 
+q . done ( ) 
+end 
+if pc . getqf ( "kill_count" ) >= 300 and pc . getqf ( "limit_time" ) >= get_time ( ) then setstate ( "report" ) 
+ return end 

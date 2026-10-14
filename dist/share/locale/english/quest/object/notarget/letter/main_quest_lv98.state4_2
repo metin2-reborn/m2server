@@ -1,0 +1,18 @@
+send_letter ( gameforge . main_quest_lv98 . _330_sendLetter ) 
+q . set_counter_name ( gameforge . main_quest_lv98 . _700_counterName ) 
+local v_npc1 = find_npc_by_vnum ( 20381 ) 
+local v_npc2 = find_npc_by_vnum ( 9002 ) 
+local v_npc3 = find_npc_by_vnum ( 9003 ) 
+local v_npc4 = find_npc_by_vnum ( 9001 ) 
+if 0 ~= v_npc1 and pc . getqf ( "click_npc1" ) ~= 1 then 
+target . vid ( "__target_npc1__" , v_npc1 , mob_name ( 20381 ) ) 
+end 
+if 0 ~= v_npc2 and pc . getqf ( "click_npc2" ) ~= 1 then 
+target . vid ( "__target_npc2__" , v_npc2 , mob_name ( 9002 ) ) 
+end 
+if 0 ~= v_npc3 and pc . getqf ( "click_npc3" ) ~= 1 then 
+target . vid ( "__target_npc3__" , v_npc3 , mob_name ( 9003 ) ) 
+end 
+if 0 ~= v_npc4 and pc . getqf ( "click_npc4" ) ~= 1 then 
+target . vid ( "__target_npc4__" , v_npc4 , mob_name ( 9001 ) ) 
+end 

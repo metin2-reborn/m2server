@@ -1,0 +1,1 @@
+return pc . getf ( "subquest_13" , "cloth_done" ) == 1

@@ -1,0 +1,23 @@
+if pc . getqf ( "ghostsleft" ) == 0 then 
+pc . setqf ( "ghostsleft" , 4 ) 
+end 
+new_quest_lv52_mob1 = 706 
+new_quest_lv52_mob2 = 707 
+new_quest_lv52_mob3 = 756 
+new_quest_lv52_mob4 = 757 
+new_quest_lv52_successMulti = 2 
+new_quest_lv52_neededAmount = 4 
+letterindex = new_quest_lv52_neededAmount - pc . getqf ( "ghostsleft" ) 
+if letterindex == 0 then 
+send_letter ( gameforge . new_quest_lv52 . _030_set_title ) 
+elseif letterindex == 1 then 
+send_letter ( gameforge . new_quest_lv52 . _170_send_letter ) 
+elseif letterindex == 2 then 
+send_letter ( gameforge . new_quest_lv52 . _171_send_letter ) 
+elseif letterindex == 3 then 
+send_letter ( gameforge . new_quest_lv52 . _172_send_letter ) 
+else 
+send_letter ( gameforge . new_quest_lv52 . _173_send_letter ) 
+end 
+q . start ( ) 
+q . set_title ( gameforge . new_quest_lv52 . _030_set_title ) 

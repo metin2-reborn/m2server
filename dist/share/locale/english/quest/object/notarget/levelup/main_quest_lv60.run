@@ -1,0 +1,2 @@
+if pc . get_level ( ) >= 60 then set_state ( "quest1_begin" ) 
+ return end 

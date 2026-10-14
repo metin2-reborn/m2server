@@ -1,0 +1,7 @@
+target . delete ( "__TARGET__" ) 
+say_title ( gameforge . horse_levelup . _240_sayTitle ) 
+say ( gameforge . subquest_36 . _230_say ) 
+say_reward ( gameforge . subquest_36 . _240_sayReward ) 
+pc . give_exp2 ( 1.8e+06 ) 
+pc . remove_item ( 50054 , 10 ) 
+set_state ( "OLD_MAN_DONE" ) 

@@ -1,0 +1,6 @@
+target . delete ( "__TARGET2__" ) 
+say_title ( gameforge . new_quest_lv52 . _049_say_title ) 
+say ( gameforge . new_quest_lv52 . _052_say ) 
+say ( gameforge . new_quest_lv52 . _053_say ) 
+q . done ( ) 
+set_state ( "gotoboss" ) 

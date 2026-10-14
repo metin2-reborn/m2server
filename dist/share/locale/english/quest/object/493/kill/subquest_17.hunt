@@ -1,0 +1,5 @@
+local s = number ( 1 , 100 ) 
+if s <= 10 and pc . count_item ( "30101" ) == 0 then 
+pc . give_item2 ( "30101" ) 
+set_state ( "discover_ring" ) 
+end 

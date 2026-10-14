@@ -1,0 +1,1 @@
+averagebargain = math . random ( 26 , 34 ) * 100000 

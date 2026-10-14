@@ -1,0 +1,1 @@
+return pc . count_item ( "50611" ) >= 1 and pc . count_item ( "30137" ) >= 1 and pc . count_item ( "30138" ) >= 1

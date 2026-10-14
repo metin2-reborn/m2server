@@ -1,0 +1,9 @@
+send_letter ( gameforge . new_quest_lv29 . _015_npcChat ) 
+q . start ( ) 
+q . set_title ( gameforge . new_quest_lv29 . _015_npcChat ) 
+if is_destination_village ( 2 ) then 
+local v = find_npc_by_vnum ( 20014 ) 
+if 0 ~= v then 
+target . vid ( "__TARGET2__" , v , gameforge . new_quest_lv29 . _030_target ) 
+end 
+end 

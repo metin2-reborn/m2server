@@ -1,0 +1,7 @@
+say ( gameforge . event_flame_dungeon_open . _020_say ) 
+wait ( ) 
+say ( gameforge . event_flame_dungeon_open . _030_say ) 
+wait ( ) 
+say ( gameforge . event_flame_dungeon_open . _080_say ) 
+pc . setqf ( "event_FD_time" , 0 ) 
+set_state ( "run" ) 

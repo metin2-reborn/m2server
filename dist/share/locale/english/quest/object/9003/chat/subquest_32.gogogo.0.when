@@ -1,0 +1,1 @@
+return pc . getf ( "subquest_32" , "jewel_done" ) == 0

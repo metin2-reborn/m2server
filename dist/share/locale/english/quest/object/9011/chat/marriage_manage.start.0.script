@@ -1,0 +1,48 @@
+if not npc . lock ( ) then 
+say_title ( gameforge . marriage_manage . _420_sayTitle ) 
+say ( gameforge . marriage_manage . _430_say ) 
+return 
+end 
+say_title ( gameforge . marriage_manage . _420_sayTitle ) 
+say ( gameforge . marriage_manage . _440_say ) 
+local sname = input ( ) 
+local u_vid = find_pc_by_name ( sname ) 
+local m_vid = pc . get_vid ( ) 
+if u_vid == 0 then 
+say_title ( gameforge . marriage_manage . _420_sayTitle ) 
+say ( gameforge . marriage_manage . _450_say ) 
+say_reward ( string . format ( gameforge . marriage_manage . _200_sayReward , sname ) ) 
+npc . unlock ( ) 
+return 
+end 
+if not npc . is_near_vid ( u_vid , 10 ) then 
+say_title ( gameforge . marriage_manage . _420_sayTitle ) 
+say ( gameforge . marriage_manage . _460_say ) 
+say_reward ( string . format ( gameforge . marriage_manage . _470_sayReward , sname ) ) 
+npc . unlock ( ) 
+return 
+end 
+if u_vid == m_vid then 
+say_title ( gameforge . marriage_manage . _420_sayTitle ) 
+say ( gameforge . marriage_manage . _480_say ) 
+npc . unlock ( ) 
+return 
+end 
+if u_vid ~= marriage . find_married_vid ( ) then 
+say_title ( gameforge . marriage_manage . _490_sayTitle ) 
+say ( gameforge . marriage_manage . _500_say ) 
+npc . unlock ( ) 
+return 
+end 
+local ok_sign = confirm ( u_vid , string . format ( gameforge . marriage_manage . _365_confirm_chat , pc . name ) , 30 ) 
+if ok_sign ~= CONFIRM_OK then 
+say_title ( gameforge . marriage_manage . _490_sayTitle ) 
+say ( gameforge . marriage_manage . _510_say ) 
+npc . unlock ( ) 
+return 
+end 
+say_title ( gameforge . marriage_manage . _420_sayTitle ) 
+say ( gameforge . marriage_manage . _520_say ) 
+marriage . set_to_marriage ( ) 
+say ( gameforge . marriage_manage . _530_say ) 
+npc . unlock ( ) 

@@ -1,0 +1,15 @@
+local mob1_1_killed = pc . getqf ( "mob1_1_killed" ) 
+if mob1_1_killed < 10 then 
+pc . setqf ( "mob1_1_killed" , mob1_1_killed + 1 ) 
+local remain = 10 - pc . getqf ( "mob1_1_killed" ) 
+if remain < 0 then 
+remain = 0 
+end 
+if remain == 0 then 
+say_title ( mob_name ( 3205 ) ) 
+say ( gameforge . main_quest_lv91 . _100_say ) 
+notice_multiline ( gameforge . main_quest_lv91 . _090_1_notice , notice ) 
+notice_multiline ( gameforge . main_quest_lv91 . _090_2_notice , notice ) 
+set_state ( "state1_3" ) 
+end 
+end 

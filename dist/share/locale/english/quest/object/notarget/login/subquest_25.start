@@ -1,0 +1,2 @@
+if pc . level >= 31 and pc . level <= 33 then set_state ( "information" ) 
+ return end 

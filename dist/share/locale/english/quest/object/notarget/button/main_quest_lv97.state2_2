@@ -1,0 +1,5 @@
+say_title ( gameforge . main_quest_lv97 . _270_sayTitle ) 
+say ( gameforge . main_quest_lv97 . _280_say ) 
+say ( "" ) 
+say_item_vnum ( 31041 ) 
+say ( "" ) 

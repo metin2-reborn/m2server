@@ -1,0 +1,101 @@
+olympic_event_box={["start"]=0,set_settings= function ()local settings = { } 
+if game . get_event_flag ( "olympia_costume_2" ) >= 1 then 
+settings . male_items = { 
+{ 41031 , 3 } , 
+{ 41033 , 1 } , 
+{ 41035 , 1 } , 
+{ 41037 , 1 } , 
+{ 41039 , 3 } , 
+{ 41041 , 1 } , 
+{ 41043 , 1 } , 
+{ 41045 , 1 } , 
+{ 41047 , 3 } , 
+{ 41049 , 1 } , 
+{ 41051 , 1 } , 
+{ 41053 , 1 } , 
+{ 41085 , 1 } , 
+{ 41087 , 1 } , 
+{ 41089 , 1 } , 
+{ 41091 , 1 } , 
+{ 41093 , 1 } , 
+{ 41095 , 1 } , 
+{ 41097 , 1 } , 
+{ 41099 , 1 } , 
+{ 41101 , 1 } , 
+{ 41103 , 1 } , 
+{ 41105 , 1 } , 
+{ 41107 , 1 } , 
+{ 41109 , 1 } , 
+{ 41111 , 1 } , 
+{ 41113 , 1 } 
+} 
+settings . female_items = { 
+{ 41032 , 3 } , 
+{ 41034 , 1 } , 
+{ 41036 , 1 } , 
+{ 41038 , 1 } , 
+{ 41040 , 3 } , 
+{ 41042 , 1 } , 
+{ 41044 , 1 } , 
+{ 41046 , 1 } , 
+{ 41048 , 3 } , 
+{ 41050 , 1 } , 
+{ 41052 , 1 } , 
+{ 41054 , 1 } , 
+{ 41086 , 1 } , 
+{ 41088 , 1 } , 
+{ 41090 , 1 } , 
+{ 41092 , 1 } , 
+{ 41094 , 1 } , 
+{ 41096 , 1 } , 
+{ 41098 , 1 } , 
+{ 41100 , 1 } , 
+{ 41102 , 1 } , 
+{ 41104 , 1 } , 
+{ 41106 , 1 } , 
+{ 41108 , 1 } , 
+{ 41110 , 1 } , 
+{ 41112 , 1 } , 
+{ 41114 , 1 } 
+} 
+else 
+settings . male_items = { 
+{ 41031 , 2 } , 
+{ 41033 , 1 } , 
+{ 41035 , 1 } , 
+{ 41037 , 1 } , 
+{ 41039 , 2 } , 
+{ 41041 , 1 } , 
+{ 41043 , 1 } , 
+{ 41045 , 1 } , 
+{ 41047 , 2 } , 
+{ 41049 , 1 } , 
+{ 41051 , 1 } , 
+{ 41053 , 1 } 
+} 
+settings . female_items = { 
+{ 41032 , 2 } , 
+{ 41034 , 1 } , 
+{ 41036 , 1 } , 
+{ 41038 , 1 } , 
+{ 41040 , 2 } , 
+{ 41042 , 1 } , 
+{ 41044 , 1 } , 
+{ 41046 , 1 } , 
+{ 41048 , 2 } , 
+{ 41050 , 1 } , 
+{ 41052 , 1 } , 
+{ 41054 , 1 } 
+} 
+end 
+return settings 
+end ,give_costume_item= function ()local settings = olympic_event_box . set_settings ( ) 
+if pc . get_sex ( ) == 0 then 
+costume_vnum = get_random_vnum_from_table ( settings . male_items ) 
+else 
+costume_vnum = get_random_vnum_from_table ( settings . female_items ) 
+end 
+local remain_time = 86400 * ( 7 + number ( 0 , 7 ) ) 
+pc . give_item2_select ( costume_vnum , 1 ) 
+item . set_socket ( 0 , get_global_time ( ) + remain_time ) 
+end }

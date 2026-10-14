@@ -1,0 +1,26 @@
+target . delete ( "__TARGET__" ) 
+say_title ( gameforge . subquest_42 . _20_sayTitle ) 
+say ( gameforge . subquest_42 . _120_say ) 
+wait ( ) 
+say_title ( gameforge . subquest_42 . _20_sayTitle ) 
+say ( gameforge . subquest_42 . _40_say ) 
+wait ( ) 
+say_title ( gameforge . subquest_42 . _20_sayTitle ) 
+say ( gameforge . subquest_42 . _130_say ) 
+local s = select ( gameforge . subquest_42 . _60_select , gameforge . subquest_42 . _70_select ) 
+if 2 == s then 
+say ( gameforge . subquest_42 . _80_say ) 
+local a = select ( gameforge . locale . guild . yes , gameforge . locale . guild . no ) 
+if 2 == a then 
+say_title ( gameforge . subquest_42 . _20_sayTitle ) 
+say ( gameforge . subquest_42 . _90_say ) 
+return 
+end 
+say_title ( gameforge . subquest_42 . _20_sayTitle ) 
+say ( gameforge . subquest_42 . _100_say ) 
+set_state ( "__GIVEUP__" ) 
+return 
+end 
+say_title ( gameforge . subquest_42 . _20_sayTitle ) 
+say ( gameforge . subquest_42 . _110_say ) 
+set_state ( "for_the_die" ) 

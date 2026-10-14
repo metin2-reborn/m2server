@@ -1,0 +1,20 @@
+target . delete ( "__TARGET__" ) 
+say_title ( gameforge . subquest_06 . _320_sayTitle ) 
+say ( gameforge . subquest_08 . _160_say ) 
+local s = select ( gameforge . subquest_05 . _70_select , gameforge . subquest_08 . _170_select ) 
+if 2 == s then 
+say ( gameforge . subquest_01 . _360_say ) 
+local a = select ( gameforge . locale . guild . yes , gameforge . locale . guild . no ) 
+if 2 == a then 
+say_title ( gameforge . subquest_06 . _320_sayTitle ) 
+say ( gameforge . subquest_08 . _180_say ) 
+return 
+end 
+say_title ( gameforge . subquest_06 . _320_sayTitle ) 
+say ( gameforge . subquest_08 . _190_say ) 
+set_state ( "__GIVEUP__" ) 
+return 
+end 
+say_title ( gameforge . subquest_06 . _320_sayTitle ) 
+say ( gameforge . subquest_08 . _200_say ) 
+set_state ( "ask_for_ricecake3" ) 

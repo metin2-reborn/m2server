@@ -1,0 +1,3 @@
+target . delete ( "__TARGET1__" ) 
+say_title ( gameforge . subquest_06 . _320_sayTitle ) 
+say ( gameforge . subquest_06 . _360_say ) 

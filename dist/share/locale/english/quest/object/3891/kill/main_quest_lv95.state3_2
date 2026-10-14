@@ -1,0 +1,5 @@
+notice_multiline ( gameforge . main_quest_lv95 . _400_notice , notice ) 
+say ( gameforge . main_quest_lv95 . _410_say ) 
+wait ( ) 
+say ( gameforge . main_quest_lv95 . _420_say ) 
+set_state ( "state3_3" ) 

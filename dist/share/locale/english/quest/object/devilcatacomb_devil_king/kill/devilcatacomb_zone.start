@@ -1,0 +1,2 @@
+local setting = devilcatacomb_zone . setting ( ) 
+game . drop_item ( setting . unlock_stone , 1 ) 

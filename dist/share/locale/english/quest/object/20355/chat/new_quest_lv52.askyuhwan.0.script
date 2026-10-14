@@ -1,0 +1,5 @@
+say_title ( gameforge . new_quest_lv52 . _054_say_title ) 
+say_reward ( gameforge . new_quest_lv52 . _055_say_reward ) 
+wait ( ) 
+say_pc_name ( ) 
+say_reward ( gameforge . new_quest_lv52 . _056_say_reward ) 

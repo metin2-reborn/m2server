@@ -1,0 +1,30 @@
+say_reward ( "Warning!" ) 
+say ( "This dialog is not part of the Heavens Cave Pre-Event!!!" ) 
+say ( "It's purpose is to help in the testing of the event. Only run the script ONCE PER SERVER because it automaticly starts the event which should only be done 1 time!" ) 
+say ( "You may use it to resets - using Stop and then Start - every variable to its default value. It only resets variable concerning the event and not your character's variables." ) 
+say ( "The tickets related to this event are: 0030149, 0030150 and 0031479." ) 
+say ( "Have Fun!" ) 
+say ( "" ) 
+say ( "Benjamin" ) 
+local startevent = select ( "Start the Event" , "Stop the Event" , "Close" ) 
+if startevent == 1 then 
+game . set_event_flag ( "pre_event_hc" , 1 ) 
+game . set_event_flag ( "glyphstones_collected" , 0 ) 
+game . set_event_flag ( "hc_drop" , 100 ) 
+game . set_event_flag ( "gold_collected" , 0 ) 
+game . set_event_flag ( "score0" , 100 ) 
+game . set_event_flag ( "score1" , 90 ) 
+game . set_event_flag ( "score2" , 80 ) 
+game . set_event_flag ( "score3" , 70 ) 
+game . set_event_flag ( "score4" , 60 ) 
+game . set_event_flag ( "score5" , 50 ) 
+game . set_event_flag ( "score6" , 40 ) 
+game . set_event_flag ( "score7" , 30 ) 
+game . set_event_flag ( "score8" , 20 ) 
+game . set_event_flag ( "score9" , 10 ) 
+elseif startevent == 2 then 
+game . set_event_flag ( "pre_event_hc" , 0 ) 
+game . set_event_flag ( "hc_drop" , 0 ) 
+else 
+return 
+end 

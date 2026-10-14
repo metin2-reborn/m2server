@@ -1,0 +1,28 @@
+if pc . countitem ( diarypage ) > 1 and pc . countitem ( diarypage ) <= 3 then 
+say ( gameforge . new_quest_lv75 . _170_say ) 
+say ( gameforge . new_quest_lv75 . _171_say ) 
+elseif pc . countitem ( diarypage ) > 3 and pc . countitem ( diarypage ) <= 6 then 
+say ( gameforge . new_quest_lv75 . _172_say ) 
+say ( gameforge . new_quest_lv75 . _173_say ) 
+local story = select ( gameforge . new_quest_lv75 . _140_7_select , gameforge . new_quest_lv75 . _140_2_select ) 
+elseif pc . countitem ( diarypage ) > 6 and pc . countitem ( diarypage ) <= 9 then 
+say ( gameforge . new_quest_lv75 . _174_say ) 
+local story = select ( gameforge . new_quest_lv75 . _140_7_select , gameforge . new_quest_lv75 . _140_2_select , gameforge . new_quest_lv75 . _140_3_select ) 
+elseif pc . countitem ( diarypage ) > 9 and pc . countitem ( diarypage ) <= 12 then 
+say ( gameforge . new_quest_lv75 . _175_say ) 
+say ( gameforge . new_quest_lv75 . _176_say ) 
+local story = select ( gameforge . new_quest_lv75 . _140_7_select , gameforge . new_quest_lv75 . _140_2_select , gameforge . new_quest_lv75 . _140_3_select , gameforge . new_quest_lv75 . _140_4_select ) 
+else 
+say ( gameforge . new_quest_lv75 . _177_say ) 
+say ( gameforge . new_quest_lv75 . _178_say ) 
+local story = select ( gameforge . new_quest_lv75 . _140_7_select , gameforge . new_quest_lv75 . _140_2_select , gameforge . new_quest_lv75 . _140_3_select , gameforge . new_quest_lv75 . _140_4_select , gameforge . new_quest_lv75 . _140_5_select ) 
+end 
+if story == 2 then 
+say ( gameforge . new_quest_lv75 . _160_1_say ) 
+elseif story == 3 then 
+say ( gameforge . new_quest_lv75 . _160_2_say ) 
+elseif story == 4 then 
+say ( gameforge . new_quest_lv75 . _160_3_say ) 
+elseif story == 5 then 
+say ( gameforge . new_quest_lv75 . _160_4_say ) 
+end 

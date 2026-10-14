@@ -1,0 +1,6613 @@
+Group	L01_들개(PAWN)-들개(PAWN)
+{
+	Leader	Wildhund	101
+	Vnum	101
+	1	Wildhund	101
+	2	Wildhund	101
+}
+Group	L03_늑대(PAWN)-들개(PAWN)
+{
+	Leader	Wolf	102
+	Vnum	102
+	1	Wildhund	101
+	2	Wildhund	101
+}
+Group	L03_늑대(PAWN)-늑대(PAWN)
+{
+	Leader	Wolf	102
+	Vnum	103
+	1	Wolf	102
+	2	Wolf	102
+}
+Group	L04_두목늑대(S_PAWN)-늑대(PAWN)
+{
+	Leader	Alpha-Wolf	103
+	Vnum	104
+	1	Wolf	102
+	2	Wolf	102
+}
+Group	L06_푸른늑대(PAWN)-푸른늑대(PAWN)
+{
+	Leader	Blauwolf	104
+	Vnum	105
+	1	Blauwolf	104
+	2	Blauwolf	104
+}
+Group	L09_멧돼지(PAWN)-푸른늑대(PAWN)
+{
+	Leader	Keiler	108
+	Vnum	106
+	1	Blauwolf	104
+	2	Blauwolf	104
+}
+Group	L13_푸른_두목늑대(S_PAWN)-멧돼지(PAWN)
+{
+	Leader	Alpha-Blauwolf	105
+	Vnum	107
+	1	Keiler	108
+	2	Keiler	108
+}
+Group	L16_푸른_두목늑대(S_PAWN)-푸른_두목늑대(S_PAWN)
+{
+	Leader	Alpha-Blauwolf	105
+	Vnum	108
+	1	Alpha-Blauwolf	105
+	2	Alpha-Blauwolf	105
+}
+Group	L16_붉은_멧돼지(S_PAWN)-푸른_두목늑대(S_PAWN)
+{
+	Leader	"Roter Keiler"	109
+	Vnum	109
+	1	Alpha-Blauwolf	105
+	2	Alpha-Blauwolf	105
+}
+Group	L16_붉은_멧돼지(S_PAWN)-붉은_멧돼지(S_PAWN)
+{
+	Leader	"Roter Keiler"	109
+	Vnum	110
+	1	"Roter Keiler"	109
+	2	"Roter Keiler"	109
+}
+Group	L16_곰(PAWN)-붉은_멧돼지(S_PAWN)
+{
+	Leader	B?r	110
+	Vnum	111
+	1	"Roter Keiler"	109
+	2	"Roter Keiler"	109
+}
+Group	L16_°õ(PAWN)-°õ(PAWN)
+{
+	Leader	B?r	110
+	Vnum	112
+	1	B?r	110
+	2	B?r	110
+}
+Group	L16_회색늑대(PAWN)-곰(PAWN)
+{
+	Leader	Grauwolf	106
+	Vnum	113
+	1	B?r	110
+	2	B?r	110
+}
+Group	L16_회색늑대(PAWN)-회색늑대(PAWN)
+{
+	Leader	Grauwolf	106
+	Vnum	114
+	1	Grauwolf	106
+	2	Grauwolf	106
+}
+Group	L19_회색곰(S_PAWN)-회색늑대(PAWN)
+{
+	Leader	Grizzlyb?r	111
+	Vnum	115
+	1	Grauwolf	106
+	2	Grauwolf	106
+}
+Group	L21_회색곰(S_PAWN)-회색곰(PAWN)
+{
+	Leader	Grizzlyb?r	111
+	Vnum	116
+	1	Grizzlyb?r	111
+	2	Grizzlyb?r	111
+}
+Group	L21_회색_두목늑대(S_PAWN)-회색곰(S_PAWN)
+{
+	Leader	Alpha-Grauwolf	107
+	Vnum	117
+	1	Grizzlyb?r	111
+	2	Grizzlyb?r	111
+}
+Group	L21_회색_두목늑대(S_PAWN)-회색_두목늑대(S_PAWN)
+{
+	Leader	Alpha-Grauwolf	107
+	Vnum	118
+	1	Alpha-Grauwolf	107
+	2	Alpha-Grauwolf	107
+}
+Group	L24_호랑이(PAWN)-회색_두목늑대(S_PAWN)
+{
+	Leader	Tiger	114
+	Vnum	119
+	1	Alpha-Grauwolf	107
+	2	Alpha-Grauwolf	107
+}
+Group	L24_호랑이(PAWN)-호랑이(PAWN)
+{
+	Leader	Tiger	114
+	Vnum	120
+	1	Tiger	114
+	2	Tiger	114
+}
+Group	L08_검은곰(S_PWAN)-호랑이(PWAN)
+{
+	Leader	Schwarzb?r	112
+	Vnum	121
+	1	Tiger	114
+	2	Tiger	114
+}
+Group	L09_검은곰(S_PWAN)-검은곰(S_PWAN)
+{
+	Leader	Schwarzb?r	112
+	Vnum	122
+	1	Schwarzb?r	112
+	2	Schwarzb?r	112
+}
+Group	L11_불곰(S_PWAN)-검은곰(S-PWAN)
+{
+	Leader	Braunb?r	113
+	Vnum	123
+	1	Schwarzb?r	112
+	2	Braunb?r	113
+}
+Group	L14_불곰(S_PWAN)-불곰(S-PWAN)
+{
+	Leader	Braunb?r	113
+	Vnum	124
+	1	Braunb?r	113
+	2	Braunb?r	113
+}
+Group	L18_대호(S_PWAN)-불곰(S_PWAN)
+{
+	Leader	"Wei©¬er Tiger"	115
+	Vnum	125
+	1	Braunb?r	113
+	2	Braunb?r	113
+}
+Group	L21_대호(S_PWAN)-대호(S_PWAN)
+{
+	Leader	"Wei©¬er Tiger"	115
+	Vnum	126
+	1	"Wei©¬er Tiger"	115
+	2	"Wei©¬er Tiger"	115
+}
+Group	L30_저주받은늑대
+{
+	Leader	"Verfl. Wolf"	131
+	Vnum	127
+	1	"Verfl. Wolf"	131
+	2	"Verfl. Wolf"	131
+}
+Group	L31_저주받은두목늑대
+{
+	Leader	"Verfl. Alpha-Wolf"	132
+	Vnum	128
+	1	"Verfl. Alpha-Wolf"	132
+	2	"Verfl. Wolf"	131
+	3	"Verfl. Wolf"	131
+}
+Group	L32_저주받은푸른늑대
+{
+	Leader	"Verfl. Blauwolf"	133
+	Vnum	129
+	1	"Verfl. Blauwolf"	133
+	2	"Verfl. Blauwolf"	133
+}
+Group	L34_저주받은푸른두목늑대
+{
+	Leader	"Verfl. Alpha-Blauwolf"	134
+	Vnum	130
+	1	"Verfl. Alpha-Blauwolf"	134
+	2	"Verfl. Blauwolf"	133
+	3	"Verfl. Blauwolf"	133
+}
+Group	L36_저주받은회색늑대
+{
+	Leader	"Verfl. Grauwolf"	135
+	Vnum	131
+	1	"Verfl. Grauwolf"	135
+	2	"Verfl. Grauwolf"	135
+}
+Group	L37_저주받은붉은멧돼지
+{
+	Leader	"Verfl. roter Keiler"	138
+	Vnum	132
+	1	"Verfl. roter Keiler"	138
+	2	"Verfl. roter Keiler"	138
+}
+Group	L21_저주받은곰
+{
+	Leader	"Verfl. B?r"	139
+	Vnum	133
+	1	"Verfl. B?r"	139
+	2	"Verfl. B?r"	139
+}
+Group	L21_저주받은회색곰
+{
+	Leader	"Verfl. Grizzlyb?r"	140
+	Vnum	134
+	1	"Verfl. Grizzlyb?r"	140
+	2	"Verfl. Grizzlyb?r"	140
+	3	"Verfl. B?r"	139
+	4	"Verfl. B?r"	139
+}
+Group	L21_저주받은검은곰
+{
+	Leader	"Verfl. Schwarzb?r"	141
+	Vnum	135
+	1	"Verfl. Schwarzb?r"	141
+	2	"Verfl. Schwarzb?r"	141
+}
+Group	L21_저주받은호랑이
+{
+	Leader	"Verfl. Tiger"	143
+	Vnum	136
+	1	"Verfl. Tiger"	143
+	2	"Verfl. Tiger"	143
+	3	"Verfl. Schwarzb?r"	141
+	4	"Verfl. Schwarzb?r"	141
+}
+Group	L29_저주받은_대호(S_KNIGHT)-저주받은_호랑이(KNIGHT)
+{
+	Leader	"Verfl. wei©¬er Tiger"	144
+	Vnum	137
+	1	"Verfl. Tiger"	143
+	2	"Verfl. Tiger"	143
+}
+Group	L29_산견신(BOSS)-저주받은_회색_두목늑대(S_KNIGHT)
+{
+	Leader	Lykos	191
+	Vnum	139
+	1	"Verfl. Alpha-Grauwolf"	136
+	2	"Verfl. Alpha-Grauwolf"	136
+}
+Group	L30_저신(BOSS)-저주받은_붉은_멧돼지(S_KNIGHT)
+{
+	Leader	Scrofa	192
+	Vnum	140
+	1	"Verfl. roter Keiler"	138
+	2	"Verfl. roter Keiler"	138
+}
+Group	L32_웅신(BOSS)-저주받은_불곰(S_KNIGHT)
+{
+	Leader	Bera	193
+	Vnum	141
+	1	"Verfl. Braunb?r"	142
+	2	"Verfl. Braunb?r"	142
+}
+Group	L34_호신(BOSS)-저주받은_대호(S_KNIGHT)
+{
+	Leader	Tigris	194
+	Vnum	142
+	1	"Verfl. wei©¬er Tiger"	144
+	2	"Verfl. wei©¬er Tiger"	144
+}
+Group	퀘스트용_들개
+{
+	Leader	"Hungriger Wildhund"	171
+	Vnum	171
+	1	"Hungriger Wildhund"	171
+	2	"Hungriger Wildhund"	171
+}
+Group	퀘스트용_늑개
+{
+	Leader	"Hungriger Wolf"	172
+	Vnum	172
+	1	"Hungriger Wolf"	172
+	2	"Hungriger Wolf"	172
+}
+Group	퀘스트용_두목늑대
+{
+	Leader	"Hungriger Alpha-Wolf"	173
+	Vnum	173
+	1	"Hungriger Alpha-Wolf"	173
+	2	"Hungriger Alpha-Wolf"	173
+}
+Group	퀘스트용_푸른늑대
+{
+	Leader	"Hungriger Blauwolf"	174
+	Vnum	174
+	1	"Hungriger Blauwolf"	174
+	2	"Hungriger Blauwolf"	174
+}
+Group	퀘스트용_푸른두목늑대
+{
+	Leader	"Hungriger Alpha-Blauwolf"	175
+	Vnum	175
+	1	"Hungriger Alpha-Blauwolf"	175
+	2	"Hungriger Alpha-Blauwolf"	175
+}
+Group	퀘스트용_회색늑대
+{
+	Leader	"Hungriger Grauwolf"	176
+	Vnum	176
+	1	"Hungriger Grauwolf"	176
+	2	"Hungriger Grauwolf"	176
+}
+Group	퀘스트용_회색두목늑대
+{
+	Leader	"Hungriger Alpha-Grauwolf"	177
+	Vnum	177
+	1	"Hungriger Alpha-Grauwolf"	177
+	2	"Hungriger Alpha-Grauwolf"	177
+}
+Group	퀘스트용_멧돼지
+{
+	Leader	"Hungriger Keiler"	178
+	Vnum	178
+	1	"Hungriger Keiler"	178
+	2	"Hungriger Keiler"	178
+}
+Group	퀘스트용_붉은멧돼지
+{
+	Leader	"Hungriger Roter Keiler"	179
+	Vnum	179
+	1	"Hungriger Roter Keiler"	179
+	2	"Hungriger Roter Keiler"	179
+}
+Group	퀘스트용_곰
+{
+	Leader	"Hungriger B?r"	180
+	Vnum	180
+	1	"Hungriger B?r"	180
+	2	"Hungriger B?r"	180
+}
+Group	퀘스트용_회색곰
+{
+	Leader	"Hungriger Grizzlyb?r"	181
+	Vnum	181
+	1	"Hungriger Grizzlyb?r"	181
+	2	"Hungriger Grizzlyb?r"	181
+}
+Group	퀘스트용_검은곰
+{
+	Leader	"Hungriger Schwarzb?r"	182
+	Vnum	182
+	1	"Hungriger Schwarzb?r"	182
+	2	"Hungriger Schwarzb?r"	182
+}
+Group	퀘스트용_불곰
+{
+	Leader	"Hungriger Braunb?r"	183
+	Vnum	183
+	1	"Hungriger Braunb?r"	183
+	2	"Hungriger Braunb?r"	183
+}
+Group	퀘스트용_호랑이
+{
+	Leader	"Hungriger Tiger"	184
+	Vnum	184
+	1	"Hungriger Tiger"	184
+	2	"Hungriger Tiger"	184
+}
+Group	퀘스트용_대호
+{
+	Leader	"Hungriger Wei©¬er Tiger"	185
+	Vnum	185
+	1	"Hungriger Wei©¬er Tiger"	185
+	2	"Hungriger Wei©¬er Tiger"	185
+}
+Group	L46_백결장수(S_PAWN)-백결단원(S_PAWN)
+{
+	Leader	"Wei©¬er-Eid Soldatin"	301
+	Vnum	305
+	1	"Wei©¬er-Eid Soldatin"	301
+	2	"Wei©¬er-Eid Soldatin"	301
+	3	"Wei©¬er-Eid Soldatin"	301
+}
+Group	L00_백결장수(S_PAWN)-백결궁병(S_PAWN)
+{
+	Leader	"Wei©¬er-Eid Bogensch?tzin"	302
+	Vnum	306
+	1	"Wei©¬er-Eid Soldatin"	301
+	2	"Wei©¬er-Eid Soldatin"	301
+	3	"Wei©¬er-Eid Soldatin"	301
+}
+Group	L00_백결궁병(S_PAWN)-백결궁병(S_PAWN)
+{
+	Leader	"Wei©¬er-Eid Bogensch?tzin"	302
+	Vnum	307
+	1	"Wei©¬er-Eid Bogensch?tzin"	302
+	2	"Wei©¬er-Eid Soldatin"	301
+	3	"Wei©¬er-Eid Soldatin"	301
+}
+Group	L00_백결궁병(S_PAWN)-백결궁병(S_PAWN)
+{
+	Leader	"Wei©¬er-Eid Bogensch?tzin"	302
+	Vnum	308
+	1	"Wei©¬er-Eid Bogensch?tzin"	302
+	2	"Wei©¬er-Eid Bogensch?tzin"	302
+}
+Group	L50_백결장수(KNIGHT)-백결단원(PAWN)
+{
+	Leader	"Wei©¬er-Eid Kommandantin"	304
+	Vnum	309
+	1	"Wei©¬er-Eid Soldatin"	301
+	2	"Wei©¬er-Eid Soldatin"	301
+	3	"Wei©¬er-Eid Soldatin"	301
+}
+Group	L50_백결장수(KNIGHT)-백결단원(PAWN)
+{
+	Leader	"Wei©¬er-Eid Kommandantin"	304
+	Vnum	310
+	1	"Wei©¬er-Eid Bogensch?tzin"	302
+	2	"Wei©¬er-Eid Bogensch?tzin"	302
+	3	"Wei©¬er-Eid Soldatin"	301
+}
+Group	L50_수석_백결장수(S_KNIGHT)-백결단원(S_KNIGHT)
+{
+	Leader	"Wei©¬er-Eid Kommandantin"	304
+	Vnum	313
+	1	"Wei©¬er-Eid Generalin"	303
+	2	"Wei©¬er-Eid Bogensch?tzin"	302
+	3	"Wei©¬er-Eid Soldatin"	301
+}
+Group	L52_미정(S_KNIGHT)-수석_백결장수(S_KNIGHT)
+{
+	Leader	Mi-Jung	391
+	Vnum	315
+	1	"Feiger W.-Eid-Kommandant"	354
+	2	"Wei©¬er-Eid Generalin"	303
+	3	"Wei©¬er-Eid Bogensch?tzin"	302
+}
+Group	L54_은정(S_KNIGHT)-수석_백결장수(S_KNIGHT)
+{
+	Leader	Eun-Jung	392
+	Vnum	316
+	1	"Wei©¬er-Eid Kommandantin"	304
+	2	"Wei©¬er-Eid Generalin"	303
+	3	"Wei©¬er-Eid Bogensch?tzin"	302
+}
+Group	L29_세랑(S_KNIGHT)-수석_백결장수(S_KNIGHT)
+{
+	Leader	Se-Rang	393
+	Vnum	317
+	1	"Wei©¬er-Eid Kommandantin"	304
+	2	"Wei©¬er-Eid Generalin"	303
+	3	"Wei©¬er-Eid Bogensch?tzin"	302
+}
+Group	L31_진희(BOSS)-수석_적미장수(S_KNIGHT)
+{
+	Leader	Jin-Hee	394
+	Vnum	318
+	1	"Wei©¬er-Eid Kommandantin"	304
+	2	"Wei©¬er-Eid Generalin"	303
+	3	"Wei©¬er-Eid Bogensch?tzin"	302
+	4	"Wei©¬er-Eid Bogensch?tzin"	302
+}
+Group	퀘스트용_백결단원
+{
+	Leader	"Feiger Wei©¬er-Eid-Soldat"	351
+	Vnum	351
+	1	"Feiger Wei©¬er-Eid-Soldat"	351
+	2	"Feiger Wei©¬er-Eid-Soldat"	351
+}
+Group	퀘스트용_백결궁병
+{
+	Leader	"Feiger W.-Eid Sch?tze"	352
+	Vnum	352
+	1	"Feiger W.-Eid Sch?tze"	352
+	2	"Feiger W.-Eid Sch?tze"	352
+}
+Group	퀘스트용_소심한미정
+{
+	Leader	"Mutlose Mi-Jung"	395
+	Vnum	395
+}
+Group	퀘스트용_소심한은정
+{
+	Leader	"Mutlose Eun-Jung"	396
+	Vnum	396
+}
+Group	퀘스트용_소심한세랑
+{
+	Leader	"Mutlose Se-Rang"	397
+	Vnum	397
+}
+Group	퀘스트용_소심한진희
+{
+	Leader	"Mutlose Jin-Hee"	398
+	Vnum	398
+}
+Group	L20_흑풍단원(PAWN)-오랑케보병(PAWN)
+{
+	Leader	Schwarzwindsoldat	401
+	Vnum	401
+	1	Schwarzwindsoldat	401
+	2	"Wilder Infanterist"	501
+	3	"Wilder Infanterist"	501
+}
+Group	L20_흑풍돌격대(PAWN)-흑풍돌격대(PAWN)
+{
+	Leader	Schwarzwindbesessener	402
+	Vnum	402
+	1	Schwarzwindbesessener	402
+	2	Schwarzwindsoldat	401
+	3	"Wilder Infanterist"	501
+}
+Group	L20_흑풍돌격대(PAWN)-흑풍돌격대(PAWN)
+{
+	Leader	Schwarzwindbesessener	402
+	Vnum	403
+	1	"Wilder Ergebener"	502
+	2	Schwarzwindsoldat	401
+	3	"B?ser Schw. Sturmsoldat"	451
+}
+Group	L25_흑풍궁수(PAWN)-흑풍돌격대(PAWN)
+{
+	Leader	Schwarzwindbogensch?tze	403
+	Vnum	404
+	1	Schwarzwindbesessener	402
+	2	Schwarzwindbesessener	402
+	3	"Wilder Ergebener"	502
+}
+Group	L25_흑풍궁수(PAWN)-흑풍궁수(PAWN)
+{
+	Leader	Schwarzwindbogensch?tze	403
+	Vnum	405
+	1	Schwarzwindbogensch?tze	403
+	2	"Wilder Ergebener"	502
+	3	Schwarzwindbesessener	402
+}
+Group	L25_흑풍장수_삼령(S_PAWN)-흑풍궁수(PAWN)
+{
+	Leader	Schwarzwind-Jak-To	404
+	Vnum	406
+	1	Schwarzwindbogensch?tze	403
+	2	Schwarzwindbesessener	402
+	3	Schwarzwindbesessener	402
+}
+Group	L25_흑풍장수_삼령(S_PAWN)-흑풍궁수(PAWN)
+{
+	Leader	Schwarzwind-Jak-To	404
+	Vnum	407
+	1	Schwarzwindbogensch?tze	403
+	2	Schwarzwindbogensch?tze	403
+	3	Schwarzwindbesessener	402
+}
+Group	L23_흑풍장수_이령(S_PAWN)-흑풍장수_삼령(S_PAWN)
+{
+	Leader	Schwarzwind-To-Su	405
+	Vnum	408
+	1	Schwarzwind-Jak-To	404
+	2	Schwarzwindbogensch?tze	403
+	3	Schwarzwindbesessener	402
+}
+Group	L23_흑풍장수_이령(S_PAWN)-흑풍장수_삼령(S_PAWN)
+{
+	Leader	Schwarzwind-To-Su	405
+	Vnum	409
+	1	Schwarzwind-Jak-To	404
+	2	Schwarzwindbogensch?tze	403
+	3	Schwarzwindbogensch?tze	403
+}
+Group	L25_흑풍장수_일령(S_PAWN)-흑풍장수_이령(S_PAWN)
+{
+	Leader	Schwarzwind-Gu-Ryung	406
+	Vnum	410
+	1	Schwarzwind-To-Su	405
+	2	Schwarzwindbogensch?tze	403
+	3	Schwarzwindbesessener	402
+}
+Group	L25_흑풍장수_일령(S_PAWN)-흑풍장수_이령(S_PAWN)
+{
+	Leader	Schwarzwind-Gu-Ryung	406
+	Vnum	411
+	1	Schwarzwind-To-Su	405
+	2	Schwarzwind-Jak-To	404
+	3	Schwarzwindbogensch?tze	403
+}
+Group	L30_살풍돌격대(KNIGHT)-살풍단원(KNIGHT)
+{
+	Leader	"Schwarzer Sturmbesessene"	432
+	Vnum	412
+	1	"Schwarzer Sturmsoldat"	431
+	2	"Schwarzer Sturmsoldat"	431
+	3	"Schwarzer Sturmsoldat"	431
+}
+Group	L30_살풍돌격대(KNIGHT)-살풍돌격대(KNIGHT)
+{
+	Leader	"Schwarzer Sturmbesessene"	432
+	Vnum	413
+	1	"Schwarzer Sturmbesessene"	432
+	2	"Schwarzer Sturmsoldat"	431
+	3	"Schwarzer Sturmsoldat"	431
+}
+Group	L30_살풍돌격대(KNIGHT)-살풍돌격대(KNIGHT)
+{
+	Leader	"Schwarzer Sturmbesessene"	432
+	Vnum	414
+	1	"Schwarzer Sturmbesessene"	432
+	2	"Schwarzer Sturmbesessene"	432
+	3	"Schwarzer Sturmsoldat"	431
+}
+Group	L23_살풍궁수(KNIGHT)-살풍돌격대(KNIGHT)
+{
+	Leader	"Schwarzer Bogensch?tze"	433
+	Vnum	415
+	1	"Schwarzer Sturmbesessene"	432
+	2	"Schwarzer Sturmbesessene"	432
+	3	"Schwarzer Sturmbesessene"	432
+}
+Group	L23_살풍궁수(KNIGHT)-살풍궁수(KNIGHT)
+{
+	Leader	"Schwarzer Bogensch?tze"	433
+	Vnum	416
+	1	"Schwarzer Bogensch?tze"	433
+	2	"Schwarzer Sturmbesessene"	432
+	3	"Schwarzer Sturmbesessene"	432
+}
+Group	L26_살풍장수_삼령(S_KNIGHT)-살풍궁수(KNIGHT)
+{
+	Leader	"Schwarzer Sturm-Joh-Hwan"	434
+	Vnum	417
+	1	"Schwarzer Bogensch?tze"	433
+	2	"Schwarzer Sturmbesessene"	432
+	3	"Schwarzer Sturmbesessene"	432
+}
+Group	L26_살풍장수_삼령(S_KNIGHT)-살풍궁수(KNIGHT)
+{
+	Leader	"Schwarzer Sturm-Joh-Hwan"	434
+	Vnum	418
+	1	"Schwarzer Bogensch?tze"	433
+	2	"Schwarzer Bogensch?tze"	433
+	3	"Schwarzer Sturmbesessene"	432
+}
+Group	L28_살풍장수_이령(S_KNIGHT)-살풍장수_삼령(S_KNIGHT)
+{
+	Leader	"Schwarzer Sturm-Kyuk-Jan"	435
+	Vnum	419
+	1	"Schwarzer Sturm-Joh-Hwan"	434
+	2	"Schwarzer Bogensch?tze"	433
+	3	"Schwarzer Sturmbesessene"	432
+}
+Group	L28_살풍장수_이령(S_KNIGHT)-살풍장수_삼령(S_KNIGHT)
+{
+	Leader	"Schwarzer Sturm-Kyuk-Jan"	435
+	Vnum	420
+	1	"Schwarzer Sturm-Joh-Hwan"	434
+	2	"Schwarzer Bogensch?tze"	433
+	3	"Schwarzer Bogensch?tze"	433
+}
+Group	L31_살풍장수_일령(S_KNIGHT)-살풍장수_이령(S_KNIGHT)
+{
+	Leader	"Schwarzer Sturm-Pho-Hwan"	436
+	Vnum	421
+	1	"Schwarzer Sturm-Kyuk-Jan"	435
+	2	"Schwarzer Bogensch?tze"	433
+	3	"Schwarzer Bogensch?tze"	433
+}
+Group	L31_살풍장수_일령(S_KNIGHT)-살풍장수_이령(S_KNIGHT)
+{
+	Leader	"Schwarzer Sturm-Pho-Hwan"	436
+	Vnum	422
+	1	"Schwarzer Sturm-Kyuk-Jan"	435
+	2	"Schwarzer Sturm-Joh-Hwan"	434
+	3	"Schwarzer Bogensch?tze"	433
+}
+Group	L26_맹환(BOSS)-살풍장수_일령(S_KNIGHT)
+{
+	Leader	Mahon	491
+	Vnum	423
+	1	Schwarzwind-Gu-Ryung	406
+	2	Schwarzwind-Gu-Ryung	406
+	3	Schwarzwindbogensch?tze	403
+	4	Schwarzwindbogensch?tze	403
+}
+Group	L27_보우(BOSS)-살풍장수_일령(S_KNIGHT)
+{
+	Leader	Bo	492
+	Vnum	424
+	1	Schwarzwind-Gu-Ryung	406
+	2	Schwarzwind-Gu-Ryung	406
+	3	Schwarzwindbogensch?tze	403
+	4	Schwarzwindbogensch?tze	403
+}
+Group	L29_구패(BOSS)-살풍장수_일령(S_KNIGHT)
+{
+	Leader	Goo-Pae	493
+	Vnum	425
+	1	Schwarzwind-Gu-Ryung	406
+	2	Schwarzwind-Gu-Ryung	406
+	3	Schwarzwindbogensch?tze	403
+	4	Schwarzwindbogensch?tze	403
+}
+Group	L30_추흔(KING)-살풍장수_일령(S_KNIGHT)
+{
+	Leader	Chuong	494
+	Vnum	426
+	1	Schwarzwind-Gu-Ryung	406
+	2	Schwarzwind-To-Su	405
+	3	Schwarzwind-Jak-To	404
+	4	Schwarzwindbogensch?tze	403
+}
+Group	퀘스트용_흑풍궁수
+{
+	Leader	"B?ser Sturmbogensch?tze"	453
+	Vnum	453
+	1	"B?ser Sturmbogensch?tze"	453
+	2	"B?ser Sturmbogensch?tze"	453
+}
+Group	퀘스트용_흑풍장수
+{
+	Leader	"B?ser Sturm-Joh-Hwan"	454
+	Vnum	454
+	1	"B?ser Sturm-Joh-Hwan"	454
+	2	"B?ser Sturm-Joh-Hwan"	454
+}
+Group	퀘스트용_흑풍장수
+{
+	Leader	"B?ser Sturm-Kyuk-Jang"	455
+	Vnum	455
+	1	"B?ser Sturm-Kyuk-Jang"	455
+	2	"B?ser Sturm-Kyuk-Jang"	455
+}
+Group	퀘스트용_흑풍장수
+{
+	Leader	"B?ser Sturm-Pho-Hwan"	456
+	Vnum	456
+	1	"B?ser Sturm-Pho-Hwan"	456
+	2	"B?ser Sturm-Pho-Hwan"	456
+}
+Group	L34_오랑캐졸개(PAWN)-오랑캐보병(PAWN)
+{
+	Leader	"Wilder Infanterist"	501
+	Vnum	501
+	1	"Wilder Infanterist"	501
+	2	Schwarzwindsoldat	401
+	3	Schwarzwindsoldat	401
+}
+Group	L34_오랑캐졸개(PAWN)-오랑캐졸개(PAWN)
+{
+	Leader	"Wilder Ergebener"	502
+	Vnum	502
+	1	"Wilder Ergebener"	502
+	2	"Wilder Infanterist"	501
+	3	Schwarzwindsoldat	401
+}
+Group	L34_오랑캐졸개(PAWN)-오랑캐졸개(PAWN)
+{
+	Leader	"Wilder Ergebener"	502
+	Vnum	503
+	1	"Wilder Infanterist"	501
+	2	"Wilder Infanterist"	501
+	3	"Wilder Infanterist"	501
+}
+Group	L31_오랑캐궁수(S_PAWN)-오랑캐졸개(PAWN)
+{
+	Leader	"Wilder Ergebener"	502
+	Vnum	504
+	1	"Wilder Ergebener"	502
+	2	"Wilder Ergebener"	502
+	3	"Wilder Infanterist"	501
+}
+Group	L31_오랑캐궁수(S_PAWN)-오랑캐궁수(S_PAWN)
+{
+	Leader	"Wilder Bogensch?tze"	503
+	Vnum	505
+	1	"Wilder Ergebener"	502
+	2	"Wilder Ergebener"	502
+	3	"Wilder Ergebener"	502
+}
+Group	L32_오랑캐장수(S_PAWN)-오랑캐궁수(S_PAWN)
+{
+	Leader	"Wilder General"	504
+	Vnum	506
+	1	"Wilder Bogensch?tze"	503
+	2	"Wilder Ergebener"	502
+	3	"Wilder Ergebener"	502
+}
+Group	L32_오랑캐장수(S_PAWN)-오랑캐궁수(S_PAWN)
+{
+	Leader	"Wilder General"	504
+	Vnum	507
+	1	"Wilder Bogensch?tze"	503
+	2	"Wilder Ergebener"	502
+	3	"Wilder Ergebener"	502
+}
+Group	L35_비류단돌격대(KNIGHT)-비류단원(KNIGHT)
+{
+	Leader	"Brutaler Besessener"	532
+	Vnum	508
+	1	"Brutaler Soldat"	531
+	2	"Brutaler Soldat"	531
+	3	"Brutaler Soldat"	531
+}
+Group	L35_비류단돌격대(KNIGHT)-비류단돌격대(KNIGHT)
+{
+	Leader	"Brutaler Besessener"	532
+	Vnum	509
+	1	"Brutaler Besessener"	532
+	2	"Brutaler Soldat"	531
+	3	"Brutaler Soldat"	531
+}
+Group	L35_비류단돌격대(KNIGHT)-비류단돌격대(KNIGHT)
+{
+	Leader	"Brutaler Besessener"	532
+	Vnum	510
+	1	"Brutaler Besessener"	532
+	2	"Brutaler Besessener"	532
+	3	"Brutaler Soldat"	531
+}
+Group	L37_비류단궁수(S_KNIGHT)-비류단돌격대(KNIGHT)
+{
+	Leader	"Brutaler Bogensch?tze"	533
+	Vnum	511
+	1	"Brutaler Besessener"	532
+	2	"Brutaler Soldat"	531
+	3	"Brutaler Soldat"	531
+}
+Group	L37_비류단궁수(S_KNIGHT)-비류단궁수(S_KNIGHT)
+{
+	Leader	"Brutaler Bogensch?tze"	533
+	Vnum	512
+	1	"Brutaler Bogensch?tze"	533
+	2	"Brutaler Besessener"	532
+	3	"Brutaler Besessener"	532
+}
+Group	L39_비류단장(S_KNIGHT)-비류단궁수(S_KNIGHT)
+{
+	Leader	"Brutaler Spezialist"	534
+	Vnum	513
+	1	"Brutaler Bogensch?tze"	533
+	2	"Brutaler Besessener"	532
+	3	"Brutaler Besessener"	532
+}
+Group	L39_비류단장(S_KNIGHT)-비류단궁수(S_KNIGHT)
+{
+	Leader	"Brutaler Spezialist"	534
+	Vnum	514
+	1	"Brutaler Bogensch?tze"	533
+	2	"Brutaler Bogensch?tze"	533
+	3	"Brutaler Besessener"	532
+}
+Group	L31_비류단대장(BOSS)-비류단장(S_KNIGHT)
+{
+	Leader	"Brutaler Hauptmann"	591
+	Vnum	515
+	1	"Wilder General"	504
+	2	"Wilder General"	504
+	3	"Wilder Bogensch?tze"	503
+	4	"Wilder Bogensch?tze"	503
+}
+Group	퀘스트용_오랑케보병
+{
+	Leader	"St. Wilder Infanterist"	551
+	Vnum	551
+	1	"St. Wilder Infanterist"	551
+	2	"St. Wilder Infanterist"	551
+}
+Group	퀘스트용_오랑케졸개
+{
+	Leader	"St. Wilder Ergebener"	552
+	Vnum	552
+	1	"St. Wilder Ergebener"	552
+	2	"St. Wilder Ergebener"	552
+}
+Group	퀘스트용_오랑케궁수
+{
+	Leader	"St. Wilder Bogensch?tze"	553
+	Vnum	553
+	1	"St. Wilder Bogensch?tze"	553
+	2	"St. Wilder Bogensch?tze"	553
+}
+Group	퀘스트용_오랑케장수
+{
+	Leader	"St. Wilder General"	554
+	Vnum	554
+	1	"St. Wilder General"	554
+	2	"St. Wilder General"	554
+}
+Group	L38_진웅귀_척후병(PAWN)-진웅귀병(PAWN)
+{
+	Leader	"Stolzer Ork"	631
+	Vnum	601
+	1	"Stolzer Ork"	631
+	2	K?nigsskorpion	2103
+	3	K?nigsskorpion	2103
+}
+Group	L38_진웅귀병(PAWN)-진웅귀병(PAWN)
+{
+	Leader	"Stolzer Ork"	631
+	Vnum	602
+	1	"Stolzer Ork"	631
+	2	"Stolzer Ork"	631
+	3	K?nigsskorpion	2103
+}
+Group	L44_진웅귀_투병(S_PAWN)-진웅귀_척후병(PAWN)
+{
+	Leader	"Stolzer Ork-K?mpfer"	633
+	Vnum	603
+	1	"Stolzer Ork-Sp?her"	632
+	2	"Stolzer Ork-Sp?her"	632
+	3	"Stolzer Ork-Sp?her"	632
+}
+Group	L44_진웅귀_투병(S_PAWN)-진웅귀_투병(S_PAWN)
+{
+	Leader	"Stolzer Ork-K?mpfer"	633
+	Vnum	604
+	1	"Stolzer Ork-K?mpfer"	633
+	2	"Stolzer Ork-Sp?her"	632
+	3	"Stolzer Ork-Sp?her"	632
+}
+Group	L34_진웅귀_척후병(KNIGHT)-진웅귀병(KNIGHT)
+{
+	Leader	"Stolzer Ork-Sp?her"	632
+	Vnum	605
+	1	"Stolzer Ork"	631
+	2	"Stolzer Ork"	631
+	3	"Stolzer Ork"	631
+}
+Group	L34_진웅귀_척후병(KNIGHT)-진웅귀_척후병(KNIGHT)
+{
+	Leader	"Stolzer Ork-Sp?her"	632
+	Vnum	606
+	1	"Stolzer Ork-Sp?her"	632
+	2	"Stolzer Ork"	631
+	3	"Stolzer Ork"	631
+}
+Group	L35_진웅귀_투병(KNIGHT)-진웅귀_척후병(KNIGHT)
+{
+	Leader	"Stolzer Ork-K?mpfer"	633
+	Vnum	607
+	1	"Stolzer Ork-Sp?her"	632
+	2	"Stolzer Ork"	631
+	3	"Stolzer Ork"	631
+}
+Group	L35_진웅귀_투병(KNIGHT)-진웅귀_척후병(KNIGHT)
+{
+	Leader	"Stolzer Ork-K?mpfer"	633
+	Vnum	608
+	1	"Stolzer Ork-Sp?her"	632
+	2	"Stolzer Ork-Sp?her"	632
+	3	"Stolzer Ork"	631
+}
+Group	L34_진웅귀_마병(KNIGHT)-진웅귀_투병(KNIGHT)
+{
+	Leader	"Stolzer Ork-Zauberer"	634
+	Vnum	609
+	1	"Stolzer Ork-K?mpfer"	633
+	2	"Stolzer Ork-K?mpfer"	633
+	3	"Stolzer Ork-Sp?her"	632
+}
+Group	L29_진웅귀_마병(S_PAWN)-진웅귀_투병(S_PAWN)
+{
+	Leader	"Stolzer Ork-Zauberer"	634
+	Vnum	610
+	1	"Stolzer Ork-K?mpfer"	633
+	2	"Stolzer Ork-K?mpfer"	633
+	3	"Stolzer Ork-K?mpfer"	633
+}
+Group	L29_진웅귀_마병(S_PAWN)-진웅귀_마병(S_PAWN)
+{
+	Leader	"Stolzer Ork-Zauberer"	634
+	Vnum	611
+	1	"Stolzer Ork-Zauberer"	634
+	2	"Stolzer Ork-K?mpfer"	633
+	3	"Stolzer Ork-K?mpfer"	633
+}
+Group	L36_진웅귀_장군(S_KNIGHT)-진웅귀_마병(KNIGHT)
+{
+	Leader	"Stolzer Ork-General"	635
+	Vnum	612
+	1	"Stolzer Ork-Zauberer"	634
+	2	"Stolzer Ork-Sp?her"	632
+	3	"Stolzer Ork-Sp?her"	632
+}
+Group	L36_진웅귀_장군(S_KNIGHT)-진웅귀_마병(KNIGHT)
+{
+	Leader	"Stolzer Ork-General"	635
+	Vnum	613
+	1	"Stolzer Ork-Zauberer"	634
+	2	"Stolzer Ork-Zauberer"	634
+	3	"Stolzer Ork-K?mpfer"	633
+}
+Group	L39_흑웅귀(S_KNIGHT)-진진웅귀_장군(S_KNIGHT)
+{
+	Leader	"Schwarzer Ork"	636
+	Vnum	614
+	1	"Stolzer Ork-General"	635
+	2	"Stolzer Ork-Sp?her"	632
+	3	"Stolzer Ork-Sp?her"	632
+}
+Group	L39_흑웅귀(S_KNIGHT)-진진웅귀_장군(S_KNIGHT)
+{
+	Leader	"Schwarzer Ork"	636
+	Vnum	615
+	1	"Stolzer Ork-General"	635
+	2	"Stolzer Ork-Zauberer"	634
+	3	"Stolzer Ork-K?mpfer"	633
+}
+Group	L41_거대_흑웅귀(S_KNIGHT)-흑웅귀(S_KNIGHT)
+{
+	Leader	"Schwarzer Ork-Riese"	637
+	Vnum	616
+	1	"Schwarzer Ork"	636
+	2	"Stolzer Ork-Zauberer"	634
+}
+Group	L41_거대_흑웅귀(S_KNIGHT)-거대_흑웅귀(S_KNIGHT)
+{
+	Leader	"Schwarzer Ork-Riese"	637
+	Vnum	617
+	1	"Schwarzer Ork"	636
+	2	"Schwarzer Ork"	636
+}
+Group	L41_웅귀_족장(BOSS)-거대_흑웅귀(S_KNIGHT)
+{
+	Leader	Oberork	691
+	Vnum	621
+	1	"Schwarzer Ork-Riese"	637
+	2	"Stolzer Ork-General"	635
+	3	"Schwarzer Ork"	636
+	4	"Stolzer Ork-Zauberer"	634
+}
+Group	멍청한진웅귀병
+{
+	Leader	"Mutiger gr. Ork"	651
+	Vnum	651
+	1	"Mutiger gr. Ork"	651
+	2	"Mutiger gr. Ork"	651
+}
+Group	퀘스트용_진웅귀
+{
+	Leader	"Mutiger gr. Orksp?her"	652
+	Vnum	652
+	1	"Mutiger gr. Orksp?her"	652
+	2	"Mutiger gr. Orksp?her"	652
+}
+Group	퀘스트용_진웅귀
+{
+	Leader	"Mutiger gr. Orkk?mpfer"	653
+	Vnum	653
+	1	"Mutiger gr. Orkk?mpfer"	653
+	2	"Mutiger gr. Orkk?mpfer"	653
+}
+Group	퀘스트용_진웅귀
+{
+	Leader	"Mutiger gr. Orkzauberer"	654
+	Vnum	654
+	1	"Mutiger gr. Orkzauberer"	654
+	2	"Mutiger gr. Orkzauberer"	654
+}
+Group	퀘스트용_진웅귀
+{
+	Leader	"Mutiger gr. Orkgeneral"	655
+	Vnum	655
+	1	"Mutiger gr. Orkgeneral"	655
+	2	"Mutiger gr. Orkgeneral"	655
+}
+Group	퀘스트용_진웅귀
+{
+	Leader	"Mutiger Schw. Ork"	656
+	Vnum	656
+	1	"Mutiger Schw. Ork"	656
+	2	"Mutiger Schw. Ork"	656
+}
+Group	퀘스트용_진웅귀
+{
+	Leader	"Mutiger Schw. Orkriese"	657
+	Vnum	657
+	1	"Mutiger Schw. Orkriese"	657
+	2	"Mutiger Schw. Orkriese"	657
+}
+Group	퀘스트용_진웅귀
+{
+	Leader	Ork-Zauberer	604
+	Vnum	658
+	1	Ork-K?mpfer	603
+	2	Ork-Sp?her	602
+}
+Group	L44_밀교나한병(PAWN)-밀교추종자(PAWN)
+{
+	Leader	"Dunkler Arahan"	702
+	Vnum	701
+	1	"Dunkler Fanatiker"	701
+	2	"Dunkler Fanatiker"	701
+}
+Group	L44_밀교나한병(PAWN)-밀교나한병(PAWN)
+{
+	Leader	"Dunkler Arahan"	702
+	Vnum	702
+	1	"Dunkler Arahan"	702
+	2	"Dunkler Fanatiker"	701
+	3	"Dunkler Fanatiker"	701
+}
+Group	L44_밀교나한병(PAWN)-밀교나한병(PAWN)
+{
+	Leader	"Dunkler Arahan"	702
+	Vnum	703
+	1	"Dunkler Arahan"	702
+	2	"Hoher Arahan"	752
+	3	"Dunkler Fanatiker"	701
+}
+Group	L45_밀교나한투병(PAWN)-밀교나한병(PAWN)
+{
+	Leader	"Dunkler K?mpfer"	703
+	Vnum	704
+	1	"Dunkler Arahan"	702
+	2	"Dunkler Fanatiker"	701
+	3	"Dunkler Fanatiker"	701
+}
+Group	L45_밀교나한투병(PAWN)-밀교나한병(PAWN)
+{
+	Leader	"Dunkler K?mpfer"	703
+	Vnum	705
+	1	"Dunkler Arahan"	702
+	2	"Dunkler Arahan"	702
+	3	"Dunkler Arahan"	702
+}
+Group	L46_밀교나한장(S_PAWN)-밀교나한투병(PAWN)
+{
+	Leader	"Oberer dunkler Arahan"	704
+	Vnum	706
+	1	"Dunkler K?mpfer"	703
+	2	"Dunkler Arahan"	702
+	3	"Dunkler Arahan"	702
+}
+Group	L46_밀교나한장(S_PAWN)-밀교나한투병(PAWN)
+{
+	Leader	"Oberer dunkler Arahan"	704
+	Vnum	707
+	1	"Dunkler K?mpfer"	703
+	2	"Hoher Arahan-K?mpfer"	753
+	3	"Hoher  Beschw?rer"	757
+}
+Group	L31_밀교집행병(S_PAWN)-밀교집행병(S_PAWN)
+{
+	Leader	"Dunkler Scharfrichter"	705
+	Vnum	708
+	1	"Oberer dunkler Arahan"	704
+	2	"Hoher Ober-Arahan"	754
+	3	"Oberer dunkler Arahan"	704
+}
+Group	L31_밀교집행병(S_PAWN)-밀교집행병(S_PAWN)
+{
+	Leader	"Dunkler Scharfrichter"	705
+	Vnum	709
+	1	"Dunkler Scharfrichter"	705
+	2	"Oberer dunkler Arahan"	704
+	3	"Oberer dunkler Arahan"	704
+}
+Group	L33_밀교강박령(S_PAWN)-밀교집행병(S_PAWN)
+{
+	Leader	"Dunkler Peiniger"	706
+	Vnum	710
+	1	"Dunkler Scharfrichter"	705
+	2	"Hoher Scharfrichter"	755
+	3	"Oberer dunkler Arahan"	704
+}
+Group	L33_밀교강박령(S_PAWN)-밀교강박령(S_PAWN)
+{
+	Leader	"Dunkler Peiniger"	706
+	Vnum	711
+	1	"Hoher Peiniger"	756
+	2	"Dunkler Scharfrichter"	705
+	3	"Oberer dunkler Arahan"	704
+}
+Group	L36_밀교소환령(S_PAWN)-밀교강박령(S_PAWN)
+{
+	Leader	"Dunkler Beschw?rer"	707
+	Vnum	712
+	1	"Dunkler Peiniger"	706
+	2	"Dunkler Scharfrichter"	705
+	3	"Dunkler Scharfrichter"	705
+}
+Group	L36_밀교소환령(S_PAWN)-밀교소환령(S_PAWN)
+{
+	Leader	"Dunkler Beschw?rer"	707
+	Vnum	713
+	1	"Dunkler Beschw?rer"	707
+	2	"Dunkler Peiniger"	706
+	3	"Dunkler Scharfrichter"	705
+}
+Group	L40_밀교나한병(KNIGHT)-밀교추종자(KNIGHT)
+{
+	Leader	"Stolzer dunkl. Arahan"	732
+	Vnum	714
+	1	"Stolzer dunkl. Fanatiker"	731
+	2	"Brutaler Fanatiker"	771
+}
+Group	L40_밀교나한병(KNIGHT)-밀교나한병(KNIGHT)
+{
+	Leader	"Stolzer dunkl. Arahan"	732
+	Vnum	715
+	1	"Stolzer dunkl. Arahan"	732
+	2	"Stolzer dunkl. Fanatiker"	731
+	3	"Stolzer dunkl. Fanatiker"	731
+}
+Group	L40_밀교나한병(KNIGHT)-밀교나한병(KNIGHT)
+{
+	Leader	"Stolzer dunkl. Arahan"	732
+	Vnum	716
+	1	"Stolzer dunkl. Arahan"	732
+	2	"Stolzer dunkl. Arahan"	732
+	3	"Stolzer dunkl. Fanatiker"	731
+}
+Group	L43_밀교나한투병(KNIGHT)-밀교나한병(KNIGHT)
+{
+	Leader	"Stolzer dunkl. K?mpfer"	733
+	Vnum	717
+	1	"Stolzer dunkl. Arahan"	732
+	2	"Brutaler Arahan"	772
+	3	"Stolzer dunkl. Fanatiker"	731
+}
+Group	L43_밀교나한투병(KNIGHT)-밀교나한투병(KNIGHT)
+{
+	Leader	"Stolzer dunkl. K?mpfer"	733
+	Vnum	718
+	1	"Stolzer dunkl. Arahan"	732
+	2	"Stolzer dunkl. Arahan"	732
+	3	"Stolzer dunkl. Fanatiker"	731
+}
+Group	L46_밀교나한장(S_KNIGHT)-밀교나한투병(KNIGHT)
+{
+	Leader	"Stolzer dunkl. Oberst"	734
+	Vnum	719
+	1	"Stolzer dunkl. K?mpfer"	733
+	2	"Stolzer dunkl. Arahan"	732
+	3	"Stolzer dunkl. Fanatiker"	731
+}
+Group	L46_밀교나한장(S_KNIGHT)-밀교나한장(S_KNIGHT)
+{
+	Leader	"Stolzer dunkl. Oberst"	734
+	Vnum	720
+	1	"Stolzer dunkl. Oberst"	734
+	2	"Stolzer dunkl. K?mpfer"	733
+	3	"Stolzer dunkl. Arahan"	732
+}
+Group	L49_밀교집행병(S_KNIGHT)-밀교나한장(S_KNIGHT)
+{
+	Leader	"Stolzer dunkl. Sch?tze"	735
+	Vnum	721
+	1	"Stolzer dunkl. Oberst"	734
+	2	"Stolzer dunkl. K?mpfer"	733
+	3	"Brutaler  Arahan-K?mpfer"	773
+}
+Group	L49_밀교집행병(S_KNIGHT)-밀교집행병(S_KNIGHT)
+{
+	Leader	"Stolzer dunkl. Sch?tze"	735
+	Vnum	722
+	1	"Stolzer dunkl. Oberst"	734
+	2	"Stolzer dunkl. Oberst"	734
+	3	"Stolzer dunkl. K?mpfer"	733
+}
+Group	L34_밀교강박령(S_KNIGHT)-밀교집행병(S_KNIGHT)
+{
+	Leader	"Stolzer dunkl. Peiniger"	736
+	Vnum	723
+	1	"Stolzer dunkl. Sch?tze"	735
+	2	"Stolzer dunkl. Oberst"	734
+	3	"Stolzer dunkl. Oberst"	734
+}
+Group	L34_밀교강박령(S_KNIGHT)-밀교강박령(S_KNIGHT)
+{
+	Leader	"Stolzer dunkl. Peiniger"	736
+	Vnum	724
+	1	"Stolzer dunkl. Peiniger"	736
+	2	"Stolzer dunkl. Sch?tze"	735
+	3	"Stolzer dunkl. Sch?tze"	735
+}
+Group	L37_밀교소환령(S_KNIGHT)-밀교강박령(S_KNIGHT)
+{
+	Leader	"Stolzer dunkl. Zauberer"	737
+	Vnum	725
+	1	"Stolzer dunkl. Peiniger"	736
+	2	"Stolzer dunkl. Peiniger"	736
+	3	"Stolzer dunkl. Sch?tze"	735
+}
+Group	L37_밀교소환령(S_KNIGHT)-밀교소환령(S_KNIGHT)
+{
+	Leader	"Stolzer dunkl. Zauberer"	737
+	Vnum	726
+	1	"Stolzer dunkl. Zauberer"	737
+	2	"Stolzer dunkl. Peiniger"	736
+	3	"Stolzer dunkl. Sch?tze"	735
+}
+Group	L40_밀교교주(BOSS)-밀교소환령(S_KNIGHT)
+{
+	Leader	"Dunkler Anf?hrer"	791
+	Vnum	727
+	1	"Stolzer dunkl. Zauberer"	737
+	2	"Stolzer dunkl. Zauberer"	737
+	3	"Stolzer dunkl. Sch?tze"	735
+	4	"Stolzer dunkl. Sch?tze"	735
+}
+Group	퀘스트용_밀교추종자
+{
+	Leader	"Hoher Fanatiker"	751
+	Vnum	751
+	1	"Hoher Fanatiker"	751
+	2	"Hoher Fanatiker"	751
+}
+Group	퀘스트용_진밀교나한장
+{
+	Leader	"Brutaler Ober-Arahan"	774
+	Vnum	774
+	1	"Brutaler Ober-Arahan"	774
+	2	"Brutaler Ober-Arahan"	774
+}
+Group	퀘스트용_진밀교집행병
+{
+	Leader	"Brutaler Scharfrichter"	775
+	Vnum	775
+	1	"Brutaler Scharfrichter"	775
+	2	"Brutaler Scharfrichter"	775
+}
+Group	퀘스트용_진밀교강박령
+{
+	Leader	"Brutaler Peiniger"	776
+	Vnum	776
+	1	"Brutaler Peiniger"	776
+	2	"Brutaler Peiniger"	776
+}
+Group	퀘스트용_진밀교소환령
+{
+	Leader	"Brutaler Beschw?rer"	777
+	Vnum	777
+	1	"Brutaler Beschw?rer"	777
+	2	"Brutaler Beschw?rer"	777
+}
+Group	L48_괴질감염견(S_PAWN)-시귀(S_PAWN)
+{
+	Leader	Plagenhund	902
+	Vnum	901
+	1	Leichengeist	901
+	2	Leichengeist	901
+	3	Leichengeist	901
+}
+Group	L48_괴질감염견(S_PAWN)-괴질감염견(S_PAWN)
+{
+	Leader	Plagenhund	902
+	Vnum	902
+	1	"W. Plagenhund"	932
+	2	Leichengeist	901
+	3	Leichengeist	901
+}
+Group	L48_괴질감염견(S_PAWN)-괴질감염견(S_PAWN)
+{
+	Leader	Plagenhund	902
+	Vnum	903
+	1	Plagenhund	902
+	2	Leichengeist	901
+	3	"W. Leichengeist"	931
+}
+Group	L50_괴질감염자(S_PAWN)-괴질감염견(S_PAWN)
+{
+	Leader	Plagenmann	903
+	Vnum	904
+	1	Plagenhund	902
+	2	Plagenhund	902
+	3	Plagenhund	902
+}
+Group	L50_괴질감염자(S_PAWN)-괴질감염자(S_PAWN)
+{
+	Leader	Plagenmann	903
+	Vnum	905
+	1	Plagenmann	903
+	2	Plagenhund	902
+	3	Plagenhund	902
+}
+Group	L52_괴질감염병(KNIGHT)-괴질감염자(S_PAWN)
+{
+	Leader	Plagenschwertk?mpfer	904
+	Vnum	906
+	1	Plagenmann	903
+	2	Plagenmann	903
+	3	Plagenhund	902
+	4	Plagenhund	902
+}
+Group	L52_괴질감염병(KNIGHT)-괴질감염병(KNIGHT)
+{
+	Leader	Plagenschwertk?mpfer	904
+	Vnum	907
+	1	Plagenschwertk?mpfer	904
+	2	Plagenmann	903
+	3	"W. Plagenmann"	933
+}
+Group	L53_괴질감염창병(KNIGHT)-괴질감염병(KNIGHT)
+{
+	Leader	Plagenspeerk?mpfer	905
+	Vnum	908
+	1	Plagenschwertk?mpfer	904
+	2	Plagenschwertk?mpfer	904
+	3	Plagenmann	903
+}
+Group	L53_괴질감염창병(KNIGHT)-괴질감염창병(KNIGHT)
+{
+	Leader	Plagenspeerk?mpfer	905
+	Vnum	909
+	1	Plagenspeerk?mpfer	905
+	2	"W. Plagenk?mpfer"	934
+	3	Plagenschwertk?mpfer	904
+}
+Group	L54_괴질감염궁수(KNIGHT)-괴질감염창병(KNIGHT)
+{
+	Leader	Plagenbogensch?tze	906
+	Vnum	910
+	1	Plagenspeerk?mpfer	905
+	2	Plagenschwertk?mpfer	904
+}
+Group	L54_괴질감염궁수(KNIGHT)-괴질감염궁수(KNIGHT)
+{
+	Leader	Plagenbogensch?tze	906
+	Vnum	911
+	1	Plagenspeerk?mpfer	905
+	2	"W. Plagenspeerk?mpfer"	935
+}
+Group	L54_괴질감염대장(S_KNIGHT)-괴질감염궁수(KNIGHT)
+{
+	Leader	Plagenanf?hrer	907
+	Vnum	912
+	1	Plagenbogensch?tze	906
+	2	Plagenspeerk?mpfer	905
+	3	Plagenspeerk?mpfer	905
+}
+Group	L54_괴질감염대장(S_KNIGHT)-괴질감염대장(S_KNIGHT)
+{
+	Leader	Plagenanf?hrer	907
+	Vnum	913
+	1	"Zorniger Plagenanf?hrer"	937
+	2	Plagenbogensch?tze	906
+	3	Plagenbogensch?tze	906
+}
+Group	L55_괴질감염알(BOSS)-괴질감염대장(S_KNIGHT)
+{
+	Leader	Plagenei	991
+	Vnum	914
+	1	Plagenanf?hrer	907
+	2	Plagenbogensch?tze	906
+	3	Plagenbogensch?tze	906
+	4	Plagenspeerk?mpfer	905
+}
+Group	L56_괴질감염매개체(BOSS)-괴질감염대장(S_KNIGHT)
+{
+	Leader	Plagentr?ger	992
+	Vnum	915
+	1	Plagenanf?hrer	907
+	2	Plagenbogensch?tze	906
+	3	Plagenbogensch?tze	906
+	4	Plagenspeerk?mpfer	905
+}
+Group	L57_대형감염매개체(KING)-괴질감염대장(S_KNIGHT)
+{
+	Leader	"Riesiger Plagentr?ger"	993
+	Vnum	916
+	1	Plagenanf?hrer	907
+	2	Plagenbogensch?tze	906
+	3	Plagenbogensch?tze	906
+	4	Plagenspeerk?mpfer	905
+}
+Group	L48_시귀(S_PAWN)-사귀병(PWAN)
+{
+	Leader	Leichengeist	901
+	Vnum	917
+	1	Leichengeist	901
+	2	D?monensoldat	1001
+	3	D?monensoldat	1001
+	4	D?monensoldat	1001
+}
+Group	L48_시귀(S_PAWN)-사귀병(PWAN)
+{
+	Leader	Leichengeist	901
+	Vnum	918
+	1	Leichengeist	901
+	2	D?monensoldat	1001
+	3	D?monensoldat	1001
+	4	D?monensoldat	1001
+}
+Group	L48_시귀(S_PAWN)-사귀병(PWAN)
+{
+	Leader	Leichengeist	901
+	Vnum	919
+	1	Leichengeist	901
+	2	D?monenbogensch?tze	1002
+	3	D?monenbogensch?tze	1002
+	4	D?monensoldat	1001
+}
+Group	퀘스트용_괴질감염자
+{
+	Leader	"W. Plagenmann"	933
+	Vnum	933
+	1	"W. Plagenmann"	933
+	2	"W. Plagenmann"	933
+}
+Group	퀘스트용_괴질감염궁수
+{
+	Leader	"W. Plagenbogensch?tze"	936
+	Vnum	936
+	1	"W. Plagenbogensch?tze"	936
+	2	"W. Plagenbogensch?tze"	936
+}
+Group	L60_사귀궁병(S_PAWN)-사귀병(S_PAWN)
+{
+	Leader	D?monenbogensch?tze	1002
+	Vnum	1001
+	1	D?monensoldat	1001
+	2	D?monensoldat	1001
+	3	D?monensoldat	1001
+	4	D?monensoldat	1001
+}
+Group	L60_사귀궁병(S_PAWN)-사귀궁병(S_PAWN)
+{
+	Leader	D?monenbogensch?tze	1002
+	Vnum	1002
+	1	D?monenbogensch?tze	1002
+	2	D?monensoldat	1001
+	3	D?monensoldat	1001
+	4	D?monensoldat	1001
+}
+Group	L60_사귀궁병(S_PAWN)-사귀궁병(S_PAWN)
+{
+	Leader	D?monenbogensch?tze	1002
+	Vnum	1003
+	1	D?monenbogensch?tze	1002
+	2	D?monenbogensch?tze	1002
+	3	D?monensoldat	1001
+	4	D?monensoldat	1001
+}
+Group	L16_사귀창병(S_PAWN)-사귀궁병(S_PAWN)
+{
+	Leader	D?monenspeerk?mpfer	1003
+	Vnum	1004
+	1	D?monenbogensch?tze	1002
+	2	D?monenbogensch?tze	1002
+	3	D?monensoldat	1001
+	4	D?monensoldat	1001
+}
+Group	L16_사귀창병(S_PAWN)-사귀창병(S_PAWN)
+{
+	Leader	D?monenspeerk?mpfer	1003
+	Vnum	1005
+	1	D?monenspeerk?mpfer	1003
+	2	D?monenbogensch?tze	1002
+	3	D?monenbogensch?tze	1002
+	4	D?monenbogensch?tze	1002
+}
+Group	L36_사귀주술사(KNIGHT)-사귀창병(S_PAWN)
+{
+	Leader	D?monenschamane	1004
+	Vnum	1006
+	1	D?monenspeerk?mpfer	1003
+	2	D?monenspeerk?mpfer	1003
+	3	D?monenbogensch?tze	1002
+	4	D?monenbogensch?tze	1002
+}
+Group	L36_사귀주술사(KNIGHT)-사귀주술사(KNIGHT)
+{
+	Leader	D?monenschamane	1004
+	Vnum	1007
+	1	D?monenschamane	1004
+	2	D?monenspeerk?mpfer	1003
+	3	D?monenspeerk?mpfer	1003
+	4	D?monenspeerk?mpfer	1003
+}
+Group	L43_전귀궁병(KNIGHT)-전귀병(KNIGHT)
+{
+	Leader	"Gemeiner Bogensch?tze"	1032
+	Vnum	1008
+	1	"Gemeiner Soldat"	1031
+	2	"Gemeiner Soldat"	1031
+	3	"Gemeiner Soldat"	1031
+	4	"Gemeiner Soldat"	1031
+}
+Group	L43_전귀궁병(KNIGHT)-전귀궁병(KNIGHT)
+{
+	Leader	"Gemeiner Bogensch?tze"	1032
+	Vnum	1009
+	1	"Gemeiner Bogensch?tze"	1032
+	2	"Gemeiner Soldat"	1031
+	3	"Gemeiner Soldat"	1031
+	4	"Gemeiner Soldat"	1031
+}
+Group	L43_전귀궁병(KNIGHT)-전귀궁병(KNIGHT)
+{
+	Leader	"Gemeiner Bogensch?tze"	1032
+	Vnum	1010
+	1	"Gemeiner Bogensch?tze"	1032
+	2	"Gemeiner Bogensch?tze"	1032
+	3	"Gemeiner Soldat"	1031
+	4	"Gemeiner Soldat"	1031
+}
+Group	L45_전귀창병(KNIGHT)-전귀창병(KNIGHT)
+{
+	Leader	"Gemeiner Speerk?mpfer"	1033
+	Vnum	1011
+	1	"Gemeiner Speerk?mpfer"	1033
+	2	"Gemeiner Bogensch?tze"	1032
+	3	"Gemeiner Bogensch?tze"	1032
+	4	"Gemeiner Soldat"	1031
+}
+Group	L45_전귀창병(KNIGHT)-전귀창병(KNIGHT)
+{
+	Leader	"Gemeiner Speerk?mpfer"	1033
+	Vnum	1012
+	1	"Gemeiner Speerk?mpfer"	1033
+	2	"Gemeiner Speerk?mpfer"	1033
+	3	"Gemeiner Bogensch?tze"	1032
+	4	"Gemeiner Bogensch?tze"	1032
+}
+Group	L47_전귀주술사(KNIGHT)-전귀창병(KNIGHT)
+{
+	Leader	"Gemeiner Schamane"	1034
+	Vnum	1013
+	1	"Gemeiner Speerk?mpfer"	1033
+	2	"Gemeiner Speerk?mpfer"	1033
+	3	"Gemeiner Bogensch?tze"	1032
+	4	"Gemeiner Bogensch?tze"	1032
+}
+Group	L47_전귀주술사(KNIGHT)-전귀주술사(KNIGHT)
+{
+	Leader	"Gemeiner Schamane"	1034
+	Vnum	1014
+	1	"Gemeiner Schamane"	1034
+	2	"Gemeiner Speerk?mpfer"	1033
+	3	"Gemeiner Bogensch?tze"	1032
+	4	"Gemeiner Bogensch?tze"	1032
+}
+Group	L49_원망의_망령(KNIGHT)-전귀주술사(KNIGHT)
+{
+	Leader	"Geist des Grolls"	1035
+	Vnum	1015
+	1	"Gemeiner Schamane"	1034
+	2	"Gemeiner Schamane"	1034
+	3	"Gemeiner Bogensch?tze"	1032
+	4	"Gemeiner Bogensch?tze"	1032
+}
+Group	L49_원망의_망령(KNIGHT)-원망의_망령(KNIGHT)
+{
+	Leader	"Geist des Grolls"	1035
+	Vnum	1016
+	1	"Geist des Grolls"	1035
+	2	"Gemeiner Schamane"	1034
+	3	"Gemeiner Bogensch?tze"	1032
+	4	"Gemeiner Bogensch?tze"	1032
+}
+Group	L52_혼돈의_망령(KNIGHT)-원망의_망령(KNIGHT)
+{
+	Leader	"Geist des Chaos"	1036
+	Vnum	1017
+	1	"Geist des Grolls"	1035
+	2	"Geist des Grolls"	1035
+	3	"Gemeiner Schamane"	1034
+	4	"Gemeiner Schamane"	1034
+}
+Group	L52_혼돈의_망령(KNIGHT)-혼돈의_망령(KNIGHT)
+{
+	Leader	"Geist des Chaos"	1036
+	Vnum	1018
+	1	"Geist des Chaos"	1036
+	2	"Geist des Grolls"	1035
+	3	"Gemeiner Schamane"	1034
+	4	"Gemeiner Schamane"	1034
+}
+Group	L67_전귀장(S_KNIGHT)-전귀주술사(KNIGHT)
+{
+	Leader	"Gemeiner D?monenanf?hrer"	1037
+	Vnum	1019
+	1	"Gemeiner Schamane"	1034
+	2	"Gemeiner Schamane"	1034
+	3	"Gemeiner Bogensch?tze"	1032
+	4	"Gemeiner Bogensch?tze"	1032
+}
+Group	L42_지마장(S_KNIGHT)-전귀주술사(KNIGHT)
+{
+	Leader	Totenkopfschwertmeister	1038
+	Vnum	1020
+	1	"Gemeiner Schamane"	1034
+	2	"Gemeiner Schamane"	1034
+	3	"Gemeiner Bogensch?tze"	1032
+	4	"Gemeiner Bogensch?tze"	1032
+}
+Group	L44_전령사(S_KNIGHT)-전귀주술사(KNIGHT)
+{
+	Leader	"Fliegender Totenkopf"	1039
+	Vnum	1021
+	1	"Gemeiner Schamane"	1034
+	2	"Gemeiner Schamane"	1034
+	3	"Gemeiner Speerk?mpfer"	1033
+	4	"Gemeiner Speerk?mpfer"	1033
+}
+Group	L45_불사귀(S_KNIGHT)-불사귀(S_KNIGHT)
+{
+	Leader	"Unsterblicher Geist"	1040
+	Vnum	1022
+	1	"Unsterblicher Geist"	1040
+	2	"Unsterblicher Geist"	1040
+	3	"Unsterblicher Geist"	1040
+	4	"Unsterblicher Geist"	1040
+}
+Group	L47_재활괴물(S_KNIGHT)-원망의_망령(KNIGHT)
+{
+	Leader	"D?monisches Tier"	1041
+	Vnum	1023
+	1	"Geist des Grolls"	1035
+	2	"Geist des Chaos"	1036
+	3	"Geist des Grolls"	1035
+	4	"Geist des Chaos"	1036
+}
+Group	L69_사귀왕(BOSS)-전귀장(S_KNIGHT)
+{
+	Leader	D?monenk?nig	1091
+	Vnum	1024
+	1	"Gemeiner Schamane"	1034
+	2	"Gemeiner Schamane"	1034
+	3	"Gemeiner Speerk?mpfer"	1033
+	4	"Gemeiner Speerk?mpfer"	1033
+}
+Group	L69_사귀왕(BOSS)-전귀장(S_KNIGHT)
+{
+	Leader	D?monenk?nig	1091
+	Vnum	1025
+	1	"Gemeiner D?monenanf?hrer"	1037
+	2	Totenkopfschwertmeister	1038
+	3	"Fliegender Totenkopf"	1039
+	4	"Gemeiner Schamane"	1034
+}
+Group	L70_사귀왕(BOSS)-전귀장(S_KNIGHT)
+{
+	Leader	"Stolzer D?monenk?nig"	1092
+	Vnum	1026
+	1	"Gemeiner D?monenanf?hrer"	1037
+	2	Totenkopfschwertmeister	1038
+	3	"Fliegender Totenkopf"	1039
+	4	"Gemeiner Schamane"	1034
+}
+Group	L42_지마장(S_KNIGHT)-전귀주술사(KNIGHT)
+{
+	Leader	Totenkopfschwertmeister	1038
+	Vnum	1027
+	1	"Gemeiner Schamane"	1034
+	2	"Gemeiner Schamane"	1034
+	3	"Gemeiner Bogensch?tze"	1032
+	4	"Gemeiner Bogensch?tze"	1032
+}
+Group	L44_전령사(S_KNIGHT)-전귀주술사(KNIGHT)
+{
+	Leader	"Unsterblicher Geist"	1040
+	Vnum	1028
+	1	"Unsterblicher Geist"	1040
+	2	"Fliegender Totenkopf"	1039
+	3	"Fliegender Totenkopf"	1039
+	4	Totenkopfschwertmeister	1038
+}
+Group	L45_불사귀(S_KNIGHT)-불사귀(S_KNIGHT)
+{
+	Leader	"Unsterblicher Geist"	1040
+	Vnum	1029
+	1	"Unsterblicher Geist"	1040
+	2	"Unsterblicher Geist"	1040
+	3	"Unsterblicher Geist"	1040
+	4	"Unsterblicher Geist"	1040
+}
+Group	L47_재활괴물(S_KNIGHT)-원망의_망령(KNIGHT)
+{
+	Leader	"D?monisches Tier"	1041
+	Vnum	1030
+	1	"D?monisches Tier"	1041
+	2	"Unsterblicher Geist"	1040
+	3	"Unsterblicher Geist"	1040
+	4	"Unsterblicher Geist"	1040
+}
+Group	L47_재활괴물(S_KNIGHT)-원망의_망령(KNIGHT)
+{
+	Leader	Sensenmann	1093
+	Vnum	1031
+	1	"D?monisches Tier"	1041
+	2	"Unsterblicher Geist"	1040
+	3	"Unsterblicher Geist"	1040
+	4	"Unsterblicher Geist"	1040
+}
+Group	L73_얼음뿔범고래(S_PAWN)-빙마(S_PAWN)
+{
+	Leader	Eiskillerwal	1102
+	Vnum	1101
+	1	"Verzaubertes Eis"	1101
+	2	"Verzaubertes Eis"	1101
+}
+Group	L73_얼음뿔범고래(S_PAWN)-얼음뿔범고래(S_PAWN)
+{
+	Leader	Eiskillerwal	1102
+	Vnum	1102
+	1	Eiskillerwal	1102
+	2	"Verzaubertes Eis"	1101
+	3	"Verzaubertes Eis"	1101
+}
+Group	L73_얼음뿔범고래(S_PAWN)-얼음뿔범고래(S_PAWN)
+{
+	Leader	Eiskillerwal	1102
+	Vnum	1103
+	1	Eiskillerwal	1102
+	2	Eiskillerwal	1102
+	3	"Verzaubertes Eis"	1101
+}
+Group	L71_빙충(S_PAWN)-얼음뿔범고래(S_PAWN)
+{
+	Leader	Eisinsekt	1103
+	Vnum	1104
+	1	Eiskillerwal	1102
+	2	"Verzaubertes Eis"	1101
+	3	"Verzaubertes Eis"	1101
+}
+Group	L71_빙충(S_PAWN)-빙충(S_PAWN)
+{
+	Leader	Eisinsekt	1103
+	Vnum	1105
+	1	Eisinsekt	1103
+	2	Eiskillerwal	1102
+	3	"Verzaubertes Eis"	1101
+}
+Group	L72_설구(KNIGHT)-빙충(S_PAWN)
+{
+	Leader	Eisl?we	1104
+	Vnum	1106
+	1	Eisinsekt	1103
+	2	Eiskillerwal	1102
+	3	"Verzaubertes Eis"	1101
+}
+Group	L72_설구(KNIGHT)-설구(KNIGHT)
+{
+	Leader	Eisl?we	1104
+	Vnum	1107
+	1	Eisl?we	1104
+	2	Eisinsekt	1103
+}
+Group	L73_빙인(KNIGHT)-설구(KNIGHT)
+{
+	Leader	"Frostiger Eismann"	1105
+	Vnum	1108
+	1	Eisl?we	1104
+	2	Eisl?we	1104
+	3	Eisinsekt	1103
+	4	"Verzaubertes Eis"	1101
+}
+Group	L73_빙인(KNIGHT)-빙인(KNIGHT)
+{
+	Leader	"Frostiger Eismann"	1105
+	Vnum	1109
+	1	"Frostiger Eismann"	1105
+	2	Eisl?we	1104
+	3	Eisl?we	1104
+}
+Group	L74_설거인(KNIGHT)-빙인(KNIGHT)
+{
+	Leader	Yeti	1106
+	Vnum	1110
+	1	"Frostiger Eismann"	1105
+	2	"Frostiger Eismann"	1105
+	3	Eisinsekt	1103
+	4	Eisinsekt	1103
+}
+Group	L74_설거인(KNIGHT)-설거인(KNIGHT)
+{
+	Leader	Yeti	1106
+	Vnum	1111
+	1	Yeti	1106
+	2	"Frostiger Eismann"	1105
+	3	"Frostiger Eismann"	1105
+	4	Eisl?we	1104
+}
+Group	L75_얼음고렘(S_KNIGHT)-설거인(KNIGHT)
+{
+	Leader	Eisgolem	1107
+	Vnum	1112
+	1	"Frostiger Eismann"	1105
+	2	"Frostiger Eismann"	1105
+	3	Yeti	1106
+	4	Yeti	1106
+}
+Group	L75_얼음고렘(S_KNIGHT)-얼음고렘(S_KNIGHT)
+{
+	Leader	Eisgolem	1107
+	Vnum	1113
+	1	Eisgolem	1107
+	2	Yeti	1106
+	3	Yeti	1106
+	4	Yeti	1106
+}
+Group	L67_구미호(BOSS)-얼음고렘(S_KNIGHT)
+{
+	Leader	Neunschwanz	1901
+	Vnum	1114
+	1	Eisgolem	1107
+	2	Eisgolem	1107
+	3	Yeti	1106
+	4	"Verzaubertes Eis"	1101
+}
+Group	서한산삼거리1
+{
+	Leader	Eisinsekt	1153
+	Vnum	1151
+	1	Eisinsekt	1153
+	2	"Eishorn Killerwal"	1152
+	3	"Eishorn Killerwal"	1152
+}
+Group	서한산삼거리2
+{
+	Leader	Eismann	1155
+	Vnum	1152
+	1	Eismann	1155
+	2	Seol-Gu	1154
+	3	Seol-Gu	1154
+}
+Group	서한산삼거리3
+{
+	Leader	Eisgolem	1157
+	Vnum	1153
+	1	Eisgolem	1157
+	2	Eisgigant	1156
+	3	Eisgigant	1156
+}
+Group	퀘스트용_빙마
+{
+	Leader	"B?ses verzaubertes Eis"	1171
+	Vnum	1171
+	1	"B?ses verzaubertes Eis"	1171
+	2	"B?ses verzaubertes Eis"	1171
+}
+Group	L68_대왕전갈(S_PAWN)-비마귀안(S_PAWN)
+{
+	Leader	K?nigsskorpion	2103
+	Vnum	1301
+	1	W?stenflugauge	2102
+	2	W?stenflugauge	2102
+	3	W?stenflugauge	2102
+}
+Group	L68_대왕전갈(S_PAWN)-대왕전갈(S_PAWN)
+{
+	Leader	K?nigsskorpion	2103
+	Vnum	1302
+	1	K?nigsskorpion	2103
+	2	W?stenflugauge	2102
+	3	W?stenflugauge	2102
+}
+Group	L68_대왕전갈(S_PAWN)-대왕전갈(S_PAWN)
+{
+	Leader	K?nigsskorpion	2103
+	Vnum	1303
+	1	K?nigsskorpion	2103
+	2	K?nigsskorpion	2103
+	3	W?stenflugauge	2102
+}
+Group	L66_전갈인간(KNIGHT)-전갈인간(KNIGHT)
+{
+	Leader	"Junger Skorpionmann"	2104
+	Vnum	1304
+	1	"Junger Skorpionmann"	2104
+	2	K?nigsskorpion	2103
+	3	K?nigsskorpion	2103
+}
+Group	L67_전갈궁수(KNIGHT)-전갈인간(KNIGHT)
+{
+	Leader	Skorpionbogensch?tze	2105
+	Vnum	1305
+	1	"Junger Skorpionmann"	2104
+	2	K?nigsskorpion	2103
+	3	K?nigsskorpion	2103
+}
+Group	L67_전갈궁수(KNIGHT)-전갈궁수(KNIGHT)
+{
+	Leader	Skorpionbogensch?tze	2105
+	Vnum	1306
+	1	"Junger Skorpionmann"	2104
+	2	"Junger Skorpionmann"	2104
+	3	K?nigsskorpion	2103
+}
+Group	L69_반인반사궁병(KNIGHT)-반인반사검병(KNIGHT)
+{
+	Leader	Schlangenbogensch?tze	2107
+	Vnum	1307
+	1	Schlangenschwertk?mpfer	2106
+	2	Schlangenschwertk?mpfer	2106
+	3	Schlangenschwertk?mpfer	2106
+}
+Group	L69_반인반사궁병(KNIGHT)-반인반사궁병(KNIGHT)
+{
+	Leader	Schlangenbogensch?tze	2107
+	Vnum	1308
+	1	Schlangenbogensch?tze	2107
+	2	Schlangenschwertk?mpfer	2106
+	3	Schlangenschwertk?mpfer	2106
+}
+Group	L69_반인반사궁병(KNIGHT)-반인반사궁병(KNIGHT)
+{
+	Leader	Schlangenbogensch?tze	2107
+	Vnum	1309
+	1	Schlangenschwertk?mpfer	2106
+	2	Schlangenschwertk?mpfer	2106
+}
+Group	L70_사막의무법자(S_KNIGHT)-반인반사궁병(KNIGHT)
+{
+	Leader	W?stenbandit	2108
+	Vnum	1310
+	1	Schlangenbogensch?tze	2107
+	2	Schlangenschwertk?mpfer	2106
+	3	Skorpionbogensch?tze	2105
+	4	"Junger Skorpionmann"	2104
+}
+Group	L72_거대사막거북(BOSS)-사막의무법자(S_KNIGHT)
+{
+	Leader	"Gro©¬e W?stenschildkr?te"	2191
+	Vnum	1311
+	1	W?stenbandit	2108
+	2	W?stenbandit	2108
+	3	Schlangenbogensch?tze	2107
+	4	Skorpionbogensch?tze	2105
+}
+Group	퀘스트용_청와장
+{
+	Leader	"Gr. Baumfrosch-Anf?hrer"	1332
+	Vnum	1332
+	1	"Gr. Baumfrosch-Anf?hrer"	1332
+	2	"Gr. Baumfrosch-Anf?hrer"	1332
+}
+Group	투귀병
+{
+	Leader	Zerst?rer	1401
+	Vnum	1401
+}
+Group	투기척후병
+{
+	Leader	Axtk?mpfer	1402
+	Vnum	1402
+}
+Group	투귀천장수
+{
+	Leader	Tausendk?mpfer	1403
+	Vnum	1403
+}
+Group	석인
+{
+	Leader	Steingolem	1501
+	Vnum	1501
+}
+Group	투석인
+{
+	Leader	Steinbei©¬er	1502
+	Vnum	1502
+}
+Group	거대투석인
+{
+	Leader	"Riesiger Felsengolem"	1503
+	Vnum	1503
+}
+Group	투귀일꾼
+{
+	Leader	"Oger Krieger"	1601
+	Vnum	1601
+}
+Group	투귀감찰병
+{
+	Leader	"Oger Schl?chter"	1602
+	Vnum	1602
+}
+Group	투귀백장수
+{
+	Leader	"Oger Berserker"	1603
+	Vnum	1603
+}
+Group	L72_새끼거미(PAWN)-새끼거미(PAWN)
+{
+	Leader	Babyspinne	2001
+	Vnum	2001
+	1	Babyspinne	2001
+	2	Babyspinne	2001
+}
+Group	L73_독거미(PAWN)-새끼거미(PAWN)
+{
+	Leader	Giftspinne	2002
+	Vnum	2002
+	1	Babyspinne	2001
+	2	Babyspinne	2001
+}
+Group	L73_독거미(PAWN)-독거미(PAWN)
+{
+	Leader	Giftspinne	2002
+	Vnum	2003
+	1	Giftspinne	2002
+	2	Babyspinne	2001
+}
+Group	L74_붉은독거미(S_PAWN)-독거미(PAWN)
+{
+	Leader	"Rote Giftspinne"	2003
+	Vnum	2004
+	1	Giftspinne	2002
+	2	Giftspinne	2002
+}
+Group	L74_붉은독거미(S_PAWN)-붉은독거미(S_PAWN)
+{
+	Leader	"Rote Giftspinne"	2003
+	Vnum	2005
+	1	"Rote Giftspinne"	2003
+	2	Giftspinne	2002
+}
+Group	L75_집게거미(S_PAWN)-붉은독거미(S_PAWN)
+{
+	Leader	Klauenspinne	2004
+	Vnum	2006
+	1	"Rote Giftspinne"	2003
+	2	"Rote Giftspinne"	2003
+}
+Group	L75_집게거미(S_PAWN)-집게거미(S_PAWN)
+{
+	Leader	Klauenspinne	2004
+	Vnum	2007
+	1	Klauenspinne	2004
+	2	"Rote Giftspinne"	2003
+}
+Group	L74_병정거미(S_PAWN)-집게거미(S_PAWN)
+{
+	Leader	Soldatenspinne	2005
+	Vnum	2008
+	1	Klauenspinne	2004
+	2	Klauenspinne	2004
+}
+Group	L74_병정거미(S_PAWN)-병정거미(S_PAWN)
+{
+	Leader	Soldatenspinne	2005
+	Vnum	2009
+	1	Soldatenspinne	2005
+	2	Klauenspinne	2004
+}
+Group	L74_새끼독거미(KNIGHT)-새끼독거미(KNIGHT)
+{
+	Leader	Babygiftspinne	2031
+	Vnum	2010
+	1	Babygiftspinne	2031
+	2	Babygiftspinne	2031
+}
+Group	L77_맹독거미(KNIGHT)-새끼독거미(KNIGHT)
+{
+	Leader	"T?dliche Giftspinne"	2032
+	Vnum	2011
+	1	Babygiftspinne	2031
+	2	Babygiftspinne	2031
+}
+Group	L77_맹독거미(KNIGHT)-맹독거미(KNIGHT)
+{
+	Leader	"T?dliche Giftspinne"	2032
+	Vnum	2012
+	1	"T?dliche Giftspinne"	2032
+	2	Babygiftspinne	2031
+}
+Group	L62_붉은맹독거미(S_KNIGHT)-맹독거미(KNIGHT)
+{
+	Leader	"Rote w?tende Giftspinne"	2033
+	Vnum	2013
+	1	"T?dliche Giftspinne"	2032
+	2	"T?dliche Giftspinne"	2032
+}
+Group	L62_붉은맹독거미(S_KNIGHT)-붉은맹독거미(S_KNIGHT)
+{
+	Leader	"Rote w?tende Giftspinne"	2033
+	Vnum	2014
+	1	"Rote w?tende Giftspinne"	2033
+	2	"T?dliche Giftspinne"	2032
+}
+Group	L63_집게독거미(S_KNIGHT)-붉은맹독거미(S_KNIGHT)
+{
+	Leader	Klauengiftspinne	2034
+	Vnum	2015
+	1	"Rote w?tende Giftspinne"	2033
+	2	"Rote w?tende Giftspinne"	2033
+}
+Group	L63_집게독거미(S_KNIGHT)-집게독거미(S_KNIGHT)
+{
+	Leader	Klauengiftspinne	2034
+	Vnum	2016
+	1	Klauengiftspinne	2034
+	2	"Rote w?tende Giftspinne"	2033
+}
+Group	L64_병정독거미(S_KNIGHT)-집게독거미(S_KNIGHT)
+{
+	Leader	Soldatengiftspinne	2035
+	Vnum	2017
+	1	Klauengiftspinne	2034
+	2	Klauengiftspinne	2034
+}
+Group	L64_병정독거미(S_KNIGHT)-병정독거미(S_KNIGHT)
+{
+	Leader	Soldatengiftspinne	2035
+	Vnum	2018
+	1	Soldatengiftspinne	2035
+	2	Klauengiftspinne	2034
+}
+Group	L64_여왕거미(BOSS)-집게독거미(S_KNIGHT)
+{
+	Leader	K?niginnenspinne	2091
+	Vnum	2019
+	1	Klauengiftspinne	2034
+	2	Klauengiftspinne	2034
+}
+Group	L65_대왕거미(KING)-병정독거미(S_KNIGHT)
+{
+	Leader	K?nigsspinne	2092
+	Vnum	2020
+	1	Soldatengiftspinne	2035
+	2	Soldatengiftspinne	2035
+}
+Group	L64_병정독거미(S_KNIGHT)-병정독거미(S_KNIGHT)
+{
+	Leader	"Stolze Soldat-Giftspinne"	2036
+	Vnum	2021
+	1	"Stolze Soldat-Giftspinne"	2036
+	2	Klauengiftspinne	2034
+}
+Group	L72_새끼거미(PAWN)-새끼거미(PAWN)
+{
+	Leader	"Kleine Giftspinne"	2061
+	Vnum	2051
+	1	"Kleine Giftspinne"	2061
+	2	"Kleine Giftspinne"	2061
+}
+Group	L73_독거미(PAWN)-새끼거미(PAWN)
+{
+	Leader	"T?dliche Giftspinne"	2062
+	Vnum	2052
+	1	"Kleine Giftspinne"	2061
+	2	"Kleine Giftspinne"	2061
+}
+Group	L73_독거미(PAWN)-독거미(PAWN)
+{
+	Leader	"T?dliche Giftspinne"	2062
+	Vnum	2053
+	1	"T?dliche Giftspinne"	2062
+	2	"Kleine Giftspinne"	2061
+}
+Group	L74_붉은독거미(S_PAWN)-독거미(PAWN)
+{
+	Leader	"Rote t?dliche Giftspinne"	2063
+	Vnum	2054
+	1	"T?dliche Giftspinne"	2062
+	2	"T?dliche Giftspinne"	2062
+}
+Group	L74_붉은독거미(S_PAWN)-붉은독거미(S_PAWN)
+{
+	Leader	"Rote t?dliche Giftspinne"	2063
+	Vnum	2055
+	1	"Rote t?dliche Giftspinne"	2063
+	2	"T?dliche Giftspinne"	2062
+}
+Group	L75_집게거미(S_PAWN)-붉은독거미(S_PAWN)
+{
+	Leader	Klauengiftspinne	2064
+	Vnum	2056
+	1	"Rote t?dliche Giftspinne"	2063
+	2	"Rote t?dliche Giftspinne"	2063
+}
+Group	L75_집게거미(S_PAWN)-집게거미(S_PAWN)
+{
+	Leader	Klauengiftspinne	2064
+	Vnum	2057
+	1	Klauengiftspinne	2064
+	2	"Rote t?dliche Giftspinne"	2063
+}
+Group	L74_병정거미(S_PAWN)-집게거미(S_PAWN)
+{
+	Leader	Soldatengiftspinne	2065
+	Vnum	2058
+	1	Klauengiftspinne	2064
+	2	Klauengiftspinne	2064
+}
+Group	L74_병정거미(S_PAWN)-병정거미(S_PAWN)
+{
+	Leader	Soldatengiftspinne	2065
+	Vnum	2059
+	1	Soldatengiftspinne	2065
+	2	Klauengiftspinne	2064
+}
+Group	L68_대왕전갈(S_PAWN)-비마귀안(S_PAWN)
+{
+	Leader	Schlangenschwertk?mpfer	2133
+	Vnum	2060
+	1	Skorpionbogensch?tze	2132
+	2	Skorpionbogensch?tze	2132
+	3	Skorpionbogensch?tze	2132
+}
+Group	L68_대왕전갈(S_PAWN)-대왕전갈(S_PAWN)
+{
+	Leader	Schlangenschwertk?mpfer	2133
+	Vnum	2061
+	1	Schlangenschwertk?mpfer	2133
+	2	Skorpionbogensch?tze	2132
+	3	Skorpionbogensch?tze	2132
+}
+Group	L68_대왕전갈(S_PAWN)-대왕전갈(S_PAWN)
+{
+	Leader	Schlangenschwertk?mpfer	2133
+	Vnum	2062
+	1	Schlangenschwertk?mpfer	2133
+	2	Schlangenschwertk?mpfer	2133
+	3	Skorpionbogensch?tze	2132
+}
+Group	L66_전갈인간(KNIGHT)-전갈인간(KNIGHT)
+{
+	Leader	Schlangenbogensch?tze	2134
+	Vnum	2063
+	1	Schlangenbogensch?tze	2134
+	2	Schlangenschwertk?mpfer	2133
+	3	Schlangenschwertk?mpfer	2133
+}
+Group	L67_전갈궁수(KNIGHT)-전갈인간(KNIGHT)
+{
+	Leader	W?stenbandit	2135
+	Vnum	2064
+	1	Schlangenbogensch?tze	2134
+	2	Schlangenschwertk?mpfer	2133
+	3	Schlangenschwertk?mpfer	2133
+}
+Group	L67_전갈궁수(KNIGHT)-전갈궁수(KNIGHT)
+{
+	Leader	W?stenbandit	2135
+	Vnum	2065
+	1	Schlangenbogensch?tze	2134
+	2	Schlangenbogensch?tze	2134
+	3	Schlangenschwertk?mpfer	2133
+}
+Group	퀘스트용_새끼거미
+{
+	Leader	"B?se Babygiftspinne"	2051
+	Vnum	4071
+	1	"B?se Babygiftspinne"	2051
+	2	"B?se Babygiftspinne"	2051
+}
+Group	퀘스트용_독거미
+{
+	Leader	"B?se t?dl. Giftspinne"	2052
+	Vnum	4072
+	1	"B?se t?dl. Giftspinne"	2052
+	2	"B?se t?dl. Giftspinne"	2052
+}
+Group	퀘스트용_집게거미
+{
+	Leader	"B?se rote Giftspinne"	2053
+	Vnum	4074
+	1	"B?se rote Giftspinne"	2053
+	2	"B?se rote Giftspinne"	2053
+}
+Group	퀘스트용_병정거미
+{
+	Leader	"B?se Klauengiftspinne"	2054
+	Vnum	4075
+	1	"B?se Klauengiftspinne"	2054
+	2	"B?se Klauengiftspinne"	2054
+}
+Group	L56_청와병(S_PAWN)-풀잎머리도깨비(S_PAWN)
+{
+	Leader	Baumfrosch-Soldat	1301
+	Vnum	2101
+	1	Buhmann	1303
+	2	Buhmann	1303
+	3	Buhmann	1303
+}
+Group	L56_청와병(S_PAWN)-청와병(S_PAWN)
+{
+	Leader	Baumfrosch-Soldat	1301
+	Vnum	2102
+	1	Baumfrosch-Soldat	1301
+	2	Buhmann	1303
+	3	Buhmann	1303
+}
+Group	L56_청와병(S_PAWN)-청와병(S_PAWN)
+{
+	Leader	Baumfrosch-Soldat	1301
+	Vnum	2103
+	1	Baumfrosch-Soldat	1301
+	2	Baumfrosch-Soldat	1301
+	3	Buhmann	1303
+}
+Group	L58_청와장(S_PAWN)-청와병(S_PAWN)
+{
+	Leader	Baumfrosch-Anf?hrer	1302
+	Vnum	2104
+	1	Baumfrosch-Soldat	1301
+	2	Baumfrosch-Soldat	1301
+}
+Group	L58_청와장(KNIGHT)-청와병(S_PAWN)
+{
+	Leader	Baumfrosch-Anf?hrer	1302
+	Vnum	2105
+	1	Baumfrosch-Soldat	1301
+	2	Baumfrosch-Soldat	1301
+	3	Baumfrosch-Anf?hrer	1302
+}
+Group	L58_청와장(KNIGHT)-청와장(KNIGHT)
+{
+	Leader	Baumfrosch-Anf?hrer	1302
+	Vnum	2106
+	1	Baumfrosch-Anf?hrer	1302
+	2	Baumfrosch-Anf?hrer	1302
+	3	Baumfrosch-Anf?hrer	1302
+}
+Group	L60_수구대장군(KNIGHT)-청와장(KNIGHT)
+{
+	Leader	Ochsenfrosch-General	1305
+	Vnum	2107
+	1	Baumfrosch-Anf?hrer	1302
+	2	Baumfrosch-Anf?hrer	1302
+	3	Baumfrosch-Anf?hrer	1302
+}
+Group	L60_수구대장군(KNIGHT)-수구대장군(KNIGHT)
+{
+	Leader	Ochsenfrosch-General	1305
+	Vnum	2108
+	1	Ochsenfrosch-General	1305
+	2	Baumfrosch-Anf?hrer	1302
+	3	Baumfrosch-Anf?hrer	1302
+}
+Group	L74_누렁범귀(Boss)-수구대장군(KNIGHT)
+{
+	Leader	Ochsenfrosch-General	1305
+	Vnum	2109
+	1	Ochsenfrosch-General	1305
+	2	Ochsenfrosch-General	1305
+	3	Baumfrosch-Anf?hrer	1302
+	4	Baumfrosch-Anf?hrer	1302
+}
+Group	L74_누렁범귀(Boss)-수구대장군(KNIGHT)
+{
+	Leader	"Gelber Tigergeist"	1304
+	Vnum	2110
+	1	Ochsenfrosch-General	1305
+	2	Ochsenfrosch-General	1305
+	3	Baumfrosch-Anf?hrer	1302
+	4	Baumfrosch-Anf?hrer	1302
+}
+Group	Skopionmann
+{
+	Leader	"Brutaler Skorpionmann"	2131
+	Vnum	2131
+	1	Skorpionbogensch?tze	2105
+	2	Skorpionbogensch?tze	2105
+}
+Group	퀘스트용_사막의무법자
+{
+	Leader	"Starker W?stenbandit"	2158
+	Vnum	2158
+	1	"Starker W?stenbandit"	2158
+	2	"Starker W?stenbandit"	2158
+}
+Group	L57_화령(S_PAWN)-투지범졸개(S_PAWN)
+{
+	Leader	Kampftigersklave	2201
+	Vnum	2201
+	1	Kampftigersklave	2201
+	2	Kampftigersklave	2201
+}
+Group	L59_투지범(KNIGHT)-투지범졸개(S_PAWN)
+{
+	Leader	Flammengeist	2202
+	Vnum	2202
+	1	Kampftigersklave	2201
+	2	Kampftigersklave	2201
+	3	Kampftigersklave	2201
+}
+Group	L59_투지범(KNIGHT)-투지범(KNIGHT)
+{
+	Leader	Flammengeist	2202
+	Vnum	2203
+	1	Flammengeist	2202
+	2	Kampftigersklave	2201
+	3	Kampftigersklave	2201
+}
+Group	L58_참마인(KNIGHT)-투지범(KNIGHT)
+{
+	Leader	Kampftiger	2203
+	Vnum	2204
+	1	Kampftiger	2203
+	2	Flammengeist	2202
+	3	Flammengeist	2202
+}
+Group	L58_참마인(KNIGHT)-투지범(KNIGHT)
+{
+	Leader	Flamme	2204
+	Vnum	2205
+	1	Flamme	2204
+	2	Kampftiger	2203
+	3	Kampftiger	2203
+}
+Group	L58_참마인(KNIGHT)-투지범(KNIGHT)
+{
+	Leader	Flammenkrieger	2205
+	Vnum	2206
+	1	Flamme	2204
+	2	Flamme	2204
+	3	Kampftiger	2203
+	4	Kampftiger	2203
+	5	Kampftiger	2203
+}
+Group	L58_참마인(KNIGHT)-참마인(KNIGHT)
+{
+	Leader	Flammenkrieger	2205
+	Vnum	2207
+	1	Flamme	2204
+	2	Flammengeist	2202
+	3	Flammengeist	2202
+	4	Kampftigersklave	2201
+	5	Kampftigersklave	2201
+}
+Group	L75_태화무인(S_KNIGHT)-참마인(KNIGHT)
+{
+	Leader	Flammenkrieger	2205
+	Vnum	2208
+	1	Flammenkrieger	2205
+	2	Kampftiger	2203
+	3	Kampftiger	2203
+	4	Kampftiger	2203
+}
+Group	L75_태화무인(S_KNIGHT)-태화무인(S_KNIGHT)
+{
+	Leader	Flammenkrieger	2205
+	Vnum	2209
+	1	Flammenkrieger	2205
+	2	Flamme	2204
+	3	Flamme	2204
+	4	Flamme	2204
+}
+Group	L61_화염왕(BOSS)-태화무인(S_KNIGHT)
+{
+	Leader	Flammenk?nig	2206
+	Vnum	2210
+	1	Flammenkrieger	2205
+	2	Flammenkrieger	2205
+	3	Flamme	2204
+	4	Flammengeist	2202
+}
+Group	L61_화염왕(BOSS)-태화무인(S_KNIGHT)
+{
+	Leader	Flammenk?nig	2206
+	Vnum	2211
+	1	Flammenkrieger	2205
+	2	Flammenkrieger	2205
+	3	Flamme	2204
+	4	Flammengeist	2202
+	5	Flammengeist	2202
+	6	Flammengeist	2202
+}
+Group	L72_화룡(KING)-화염왕(BOSS)
+{
+	Leader	"Roter Drache"	2291
+	Vnum	2212
+	1	Flammenk?nig	2206
+	2	Flammenkrieger	2205
+	3	Flammengeist	2202
+	4	Flammengeist	2202
+}
+Group	밑둥귀목
+{
+	Leader	Geisterbaumstumpf	2302
+	Vnum	2301
+	1	Geisterbaumstumpf	2302
+	2	Geisterbaumstumpf	2302
+	3	Geisterbaumstumpf	2302
+}
+Group	목령_밑둥귀목
+{
+	Leader	Dryade	2303
+	Vnum	2302
+	1	Geisterbaumstumpf	2302
+	2	Geisterbaumstumpf	2302
+	3	Geisterbaumstumpf	2302
+}
+Group	목령_밑둥귀목
+{
+	Leader	Dryade	2303
+	Vnum	2303
+	1	Dryade	2303
+	2	Geisterbaumstumpf	2302
+	3	Geisterbaumstumpf	2302
+}
+Group	목령
+{
+	Leader	Dryade	2303
+	Vnum	2304
+	1	Dryade	2303
+	2	Dryade	2303
+}
+Group	화류귀목_목령
+{
+	Leader	Geisterweide	2304
+	Vnum	2305
+	1	Dryade	2303
+	2	Dryade	2303
+	3	Geisterbaumstumpf	2302
+	4	Geisterbaumstumpf	2302
+	5	Geisterbaumstumpf	2302
+}
+Group	화류귀목_밑둥귀목
+{
+	Leader	Geisterweide	2304
+	Vnum	2306
+	1	Geisterweide	2304
+	2	Geisterbaumstumpf	2302
+	3	Geisterbaumstumpf	2302
+	4	Geisterbaumstumpf	2302
+}
+Group	화류귀목_목령
+{
+	Leader	Geisterweide	2304
+	Vnum	2307
+	1	Geisterweide	2304
+	2	Dryade	2303
+	3	Dryade	2303
+	4	Dryade	2303
+}
+Group	화류귀목_목령
+{
+	Leader	Geisterweide	2304
+	Vnum	2308
+	1	Geisterweide	2304
+	2	Geisterweide	2304
+	3	Geisterweide	2304
+}
+Group	흑귀목_목령
+{
+	Leader	"B?ser Baum"	2305
+	Vnum	2309
+	1	Geisterweide	2304
+	2	Geisterweide	2304
+	3	Geisterbaumstumpf	2302
+	4	Geisterbaumstumpf	2302
+	5	Geisterbaumstumpf	2302
+}
+Group	흑귀목_밑둥귀목
+{
+	Leader	"B?ser Baum"	2305
+	Vnum	2310
+	1	"B?ser Baum"	2305
+	2	Geisterbaumstumpf	2302
+	3	Geisterbaumstumpf	2302
+	4	Geisterbaumstumpf	2302
+}
+Group	흑귀목_목령
+{
+	Leader	"B?ser Baum"	2305
+	Vnum	2311
+	1	"B?ser Baum"	2305
+	2	Dryade	2303
+	3	Dryade	2303
+	4	Dryade	2303
+}
+Group	흑귀목_목령
+{
+	Leader	"B?ser Baum"	2305
+	Vnum	2312
+	1	"B?ser Baum"	2305
+	2	"B?ser Baum"	2305
+	3	"B?ser Baum"	2305
+	4	"B?ser Baum"	2305
+}
+Group	흑귀목_목령
+{
+	Leader	"B?ser Baum"	2305
+	Vnum	2313
+	1	"B?ser Baum"	2305
+	2	"B?ser Baum"	2305
+	3	"B?ser Baum"	2305
+}
+Group	거대귀목
+{
+	Leader	"Riesiger Geisterbaum"	2306
+	Vnum	2314
+	1	"B?ser Baum"	2305
+	2	Geisterweide	2304
+	3	Geisterweide	2304
+	4	Geisterbaumstumpf	2302
+	5	Geisterbaumstumpf	2302
+	6	Geisterbaumstumpf	2302
+	7	"B?ser Baum"	2305
+	8	Dryade	2303
+	9	Dryade	2303
+}
+Group	밑둥귀목
+{
+	Leader	"Roter Geisterbaumstumpf"	2312
+	Vnum	2320
+	1	"Roter Geisterbaumstumpf"	2312
+	2	"Roter Geisterbaumstumpf"	2312
+	3	"Roter Geisterbaumstumpf"	2312
+}
+Group	밑둥귀목
+{
+	Leader	"Roter Geisterbaumstumpf"	2312
+	Vnum	2321
+	1	"Roter Geisterbaumstumpf"	2312
+	2	"Roter Geisterbaumstumpf"	2312
+	3	"Roter Geisterbaumstumpf"	2312
+}
+Group	목령_밑둥귀목
+{
+	Leader	"Rote Dryade"	2313
+	Vnum	2322
+	1	"Roter Geisterbaumstumpf"	2312
+	2	"Roter Geisterbaumstumpf"	2312
+	3	"Roter Geisterbaumstumpf"	2312
+}
+Group	목령_밑둥귀목
+{
+	Leader	"Rote Dryade"	2313
+	Vnum	2323
+	1	"Rote Dryade"	2313
+	2	"Roter Geisterbaumstumpf"	2312
+	3	"Roter Geisterbaumstumpf"	2312
+}
+Group	목령
+{
+	Leader	"Rote Dryade"	2313
+	Vnum	2324
+	1	"Rote Dryade"	2313
+	2	"Rote Dryade"	2313
+}
+Group	화류귀목_목령
+{
+	Leader	"Rote Geisterweide"	2314
+	Vnum	2325
+	1	"Rote Dryade"	2313
+	2	"Rote Dryade"	2313
+	3	"Roter Geisterbaumstumpf"	2312
+	4	"Roter Geisterbaumstumpf"	2312
+	5	"Roter Geisterbaumstumpf"	2312
+}
+Group	화류귀목_밑둥귀목
+{
+	Leader	"Rote Geisterweide"	2314
+	Vnum	2326
+	1	"Rote Geisterweide"	2314
+	2	"Roter Geisterbaumstumpf"	2312
+	3	"Roter Geisterbaumstumpf"	2312
+	4	"Roter Geisterbaumstumpf"	2312
+}
+Group	화류귀목_목령
+{
+	Leader	"Rote Geisterweide"	2314
+	Vnum	2327
+	1	"Rote Geisterweide"	2314
+	2	"Rote Dryade"	2313
+	3	"Rote Dryade"	2313
+	4	"Rote Dryade"	2313
+}
+Group	화류귀목_목령
+{
+	Leader	"Rote Geisterweide"	2314
+	Vnum	2328
+	1	"Rote Geisterweide"	2314
+	2	"Rote Geisterweide"	2314
+	3	"Rote Geisterweide"	2314
+}
+Group	흑귀목_목령
+{
+	Leader	"Roter b?ser Baum"	2315
+	Vnum	2329
+	1	"Rote Geisterweide"	2314
+	2	"Rote Geisterweide"	2314
+	3	"Roter Geisterbaumstumpf"	2312
+	4	"Roter Geisterbaumstumpf"	2312
+	5	"Roter Geisterbaumstumpf"	2312
+}
+Group	흑귀목_밑둥귀목
+{
+	Leader	"Roter b?ser Baum"	2315
+	Vnum	2330
+	1	"Roter b?ser Baum"	2315
+	2	"Roter Geisterbaumstumpf"	2312
+	3	"Roter Geisterbaumstumpf"	2312
+	4	"Roter Geisterbaumstumpf"	2312
+}
+Group	흑귀목_목령
+{
+	Leader	"Roter b?ser Baum"	2315
+	Vnum	2331
+	1	"Roter b?ser Baum"	2315
+	2	"Rote Dryade"	2313
+	3	"Rote Dryade"	2313
+	4	"Rote Dryade"	2313
+}
+Group	흑귀목_목령
+{
+	Leader	"Roter b?ser Baum"	2315
+	Vnum	2332
+	1	"Roter b?ser Baum"	2315
+	2	"Roter b?ser Baum"	2315
+	3	"Roter b?ser Baum"	2315
+	4	"Roter b?ser Baum"	2315
+}
+Group	흑귀목_목령
+{
+	Leader	"Roter b?ser Baum"	2315
+	Vnum	2333
+	1	"Roter b?ser Baum"	2315
+	2	"Roter b?ser Baum"	2315
+	3	"Roter b?ser Baum"	2315
+}
+Group	천의동굴1F_천의얼음뿔범고래_천의빙마
+{
+	Leader	Unterwelt-Eiskillerwal	1132
+	Vnum	2401
+	1	Unterwelt-Eissplitter	1131
+	2	Unterwelt-Eissplitter	1131
+}
+Group	천의동굴1F_천의얼음뿔범고래_천의얼음뿔범고래
+{
+	Leader	Unterwelt-Eiskillerwal	1132
+	Vnum	2402
+	1	Unterwelt-Eiskillerwal	1132
+	2	Unterwelt-Eissplitter	1131
+	3	Unterwelt-Eissplitter	1131
+}
+Group	천의동굴1F_천의얼음뿔범고래_천의얼음뿔범고래
+{
+	Leader	Unterwelt-Eiskillerwal	1132
+	Vnum	2403
+	1	Unterwelt-Eiskillerwal	1132
+	2	Unterwelt-Eiskillerwal	1132
+	3	Unterwelt-Eissplitter	1131
+}
+Group	천의동굴1F_천의빙충_천의얼음뿔범고래
+{
+	Leader	Unterwelt-Eisinsekt	1133
+	Vnum	2404
+	1	Unterwelt-Eiskillerwal	1132
+	2	Unterwelt-Eissplitter	1131
+	3	Unterwelt-Eissplitter	1131
+}
+Group	천의동굴1F_천의빙충_천의빙충
+{
+	Leader	Unterwelt-Eisinsekt	1133
+	Vnum	2405
+	1	Unterwelt-Eisinsekt	1133
+	2	Unterwelt-Eiskillerwal	1132
+	3	Unterwelt-Eissplitter	1131
+}
+Group	천의동굴1F_천의설구_천의빙충
+{
+	Leader	Unterwelt-Eisl?we	1134
+	Vnum	2406
+	1	Unterwelt-Eisinsekt	1133
+	2	Unterwelt-Eiskillerwal	1132
+	3	Unterwelt-Eissplitter	1131
+}
+Group	천의동굴1F_천의설구_천의설구
+{
+	Leader	Unterwelt-Eisl?we	1134
+	Vnum	2407
+	1	Unterwelt-Eisl?we	1134
+	2	Unterwelt-Eisinsekt	1133
+}
+Group	천의동굴1F_천의빙인_천의설구
+{
+	Leader	Unterwelt-Eismann	1135
+	Vnum	2408
+	1	Unterwelt-Eisl?we	1134
+	2	Unterwelt-Eisl?we	1134
+	3	Unterwelt-Eisinsekt	1133
+	4	Unterwelt-Eissplitter	1131
+}
+Group	천의동굴1F_천의빙인_천의빙인
+{
+	Leader	Unterwelt-Eismann	1135
+	Vnum	2409
+	1	Unterwelt-Eismann	1135
+	2	Unterwelt-Eisl?we	1134
+	3	Unterwelt-Eisl?we	1134
+}
+Group	천의동굴1F_천의빙인_천의빙인
+{
+	Leader	Unterwelt-Eismann	1135
+	Vnum	2409
+	1	Unterwelt-Eismann	1135
+	2	Unterwelt-Eisl?we	1134
+	3	Unterwelt-Eisl?we	1134
+}
+Group	천의동굴1F_천의설거인_천의빙인
+{
+	Leader	Unterwelt-Yeti	1136
+	Vnum	2410
+	1	Unterwelt-Eismann	1135
+	2	Unterwelt-Eismann	1135
+	3	Unterwelt-Eisinsekt	1133
+	4	Unterwelt-Eisinsekt	1133
+}
+Group	천의동굴1F_천의설거인_천의설거인
+{
+	Leader	Unterwelt-Yeti	1136
+	Vnum	2411
+	1	Unterwelt-Yeti	1136
+	2	Unterwelt-Yeti	1136
+	3	Unterwelt-Eismann	1135
+	4	Unterwelt-Eismann	1135
+	5	Unterwelt-Eisl?we	1134
+}
+Group	천의동굴1F_천의얼음고렘_천의빙인
+{
+	Leader	Unterwelt-Eisgolem	1137
+	Vnum	2412
+	1	Unterwelt-Eismann	1135
+	2	Unterwelt-Eismann	1135
+	3	Unterwelt-Eismann	1135
+	4	Unterwelt-Yeti	1136
+	5	Unterwelt-Yeti	1136
+}
+Group	천의동굴1F_천의얼음고렘_천의얼음고렘
+{
+	Leader	Unterwelt-Eisgolem	1137
+	Vnum	2413
+	1	Unterwelt-Eisgolem	1137
+	2	Unterwelt-Eisgolem	1137
+	3	Unterwelt-Yeti	1136
+	4	Unterwelt-Yeti	1136
+	5	Unterwelt-Yeti	1136
+}
+Group	천의동굴1F_천의병사_천의병사
+{
+	Leader	Setaou-K?mpfer	2401
+	Vnum	2414
+	1	Setaou-K?mpfer	2401
+	2	Setaou-K?mpfer	2401
+	3	Setaou-K?mpfer	2401
+}
+Group	천의동굴1F_천의궁병_천의병사
+{
+	Leader	Setaou-J?ger	2402
+	Vnum	2415
+	1	Setaou-K?mpfer	2401
+	2	Setaou-K?mpfer	2401
+	3	Setaou-K?mpfer	2401
+	4	Setaou-K?mpfer	2401
+}
+Group	천의동굴1F_천의궁병_천의궁병
+{
+	Leader	Setaou-J?ger	2402
+	Vnum	2416
+	1	Setaou-J?ger	2402
+	2	Setaou-J?ger	2402
+	3	Setaou-K?mpfer	2401
+	4	Setaou-K?mpfer	2401
+}
+Group	천의동굴1F_천의법사_천의궁병
+{
+	Leader	Setaou-Seherin	2403
+	Vnum	2417
+	1	Setaou-J?ger	2402
+	2	Setaou-J?ger	2402
+	3	Setaou-K?mpfer	2401
+	4	Setaou-K?mpfer	2401
+	5	Setaou-K?mpfer	2401
+	6	Setaou-K?mpfer	2401
+}
+Group	천의동굴1F_천의법사_천의궁병
+{
+	Leader	Setaou-Seherin	2403
+	Vnum	2418
+	1	Setaou-Seherin	2403
+	2	Setaou-J?ger	2402
+	3	Setaou-J?ger	2402
+	4	Setaou-J?ger	2402
+	5	Setaou-K?mpfer	2401
+	6	Setaou-K?mpfer	2401
+}
+Group	천의동굴1F_천의장수_천의법사
+{
+	Leader	Setaou-Anf?hrer	2404
+	Vnum	2419
+	1	Setaou-Seherin	2403
+	2	Setaou-Seherin	2403
+	3	Setaou-K?mpfer	2401
+	4	Setaou-K?mpfer	2401
+	5	Setaou-K?mpfer	2401
+}
+Group	천의동굴1F_천의장수_천의법사
+{
+	Leader	Setaou-Anf?hrer	2404
+	Vnum	2420
+	1	Setaou-Seherin	2403
+	2	Setaou-Seherin	2403
+	3	Setaou-J?ger	2402
+	4	Setaou-J?ger	2402
+	5	Setaou-K?mpfer	2401
+	6	Setaou-K?mpfer	2401
+	7	Setaou-K?mpfer	2401
+}
+Group	천의동굴2F_진천의병사_진천의병사
+{
+	Leader	Setaou-Soldat	2411
+	Vnum	2421
+	1	Setaou-Soldat	2411
+	2	Setaou-Soldat	2411
+	3	Setaou-Soldat	2411
+}
+Group	천의동굴2F_진천의궁병_진천의병사
+{
+	Leader	Setaou-Bogensch?tze	2412
+	Vnum	2422
+	1	Setaou-Soldat	2411
+	2	Setaou-Soldat	2411
+	3	Setaou-Soldat	2411
+}
+Group	천의동굴2F_진천의궁병_진천의궁병
+{
+	Leader	Setaou-Bogensch?tze	2412
+	Vnum	2423
+	1	Setaou-Bogensch?tze	2412
+	2	Setaou-Soldat	2411
+	3	Setaou-Soldat	2411
+}
+Group	천의동굴2F_진천의법사_진천의궁병
+{
+	Leader	Setaou-Magistra	2413
+	Vnum	2424
+	1	Setaou-Bogensch?tze	2412
+	2	Setaou-Soldat	2411
+	3	Setaou-Soldat	2411
+}
+Group	천의동굴2F_진천의법사_진천의궁병
+{
+	Leader	Setaou-Magistra	2413
+	Vnum	2425
+	1	Setaou-Bogensch?tze	2412
+	2	Setaou-Bogensch?tze	2412
+	3	Setaou-Soldat	2411
+	4	Setaou-Soldat	2411
+}
+Group	천의동굴2F_진천의장수_진천의법사
+{
+	Leader	Setaou-Kommandant	2414
+	Vnum	2426
+	1	Setaou-Magistra	2413
+	2	Setaou-Magistra	2413
+	3	Setaou-Soldat	2411
+	4	Setaou-Soldat	2411
+	5	Setaou-Soldat	2411
+}
+Group	천의동굴2F_진천의장수_진천의법사
+{
+	Leader	Setaou-Kommandant	2414
+	Vnum	2427
+	1	Setaou-Magistra	2413
+	2	Setaou-Magistra	2413
+	3	Setaou-Bogensch?tze	2412
+	4	Setaou-Bogensch?tze	2412
+	5	Setaou-Soldat	2411
+	6	Setaou-Soldat	2411
+	7	Setaou-Soldat	2411
+}
+Group	천의동굴2F_천의장군_천의장수
+{
+	Leader	Setaou-Hauptmann	2491
+	Vnum	2428
+	1	Setaou-Anf?hrer	2404
+	2	Setaou-Anf?hrer	2404
+	3	Setaou-Seherin	2403
+	4	Setaou-Seherin	2403
+	5	Setaou-K?mpfer	2401
+	6	Setaou-K?mpfer	2401
+	7	Setaou-K?mpfer	2401
+}
+Group	천의동굴2F_진천의장군_진천의장수
+{
+	Leader	Setaou-General	2492
+	Vnum	2429
+	1	Setaou-Kommandant	2414
+	2	Setaou-Kommandant	2414
+	3	Setaou-Magistra	2413
+	4	Setaou-Magistra	2413
+	5	Setaou-Soldat	2411
+	6	Setaou-Soldat	2411
+	7	Setaou-Soldat	2411
+}
+Group	skipia_map1_boss
+{
+	Leader	"Gro©¬e Eishexe"	1192
+	Vnum	2448
+	1	Unterwelt-Eisgolem	1137
+	2	Unterwelt-Eisgolem	1137
+	3	Unterwelt-Eisgolem	1137
+}
+Group	L25_졸개원숭이(pawn)_졸개원숭이(S_pawn)
+{
+	Leader	"Schwacher Affensoldat"	5101
+	Vnum	5001
+	1	"Schwacher Affensoldat"	5101
+	2	"Schwacher Affensoldat"	5101
+}
+Group	L25_졸개원숭이(pawn)_졸개원숭이(S_pawn)
+{
+	Leader	"Schwacher Affenwerfer"	5102
+	Vnum	5002
+	1	"Schwacher Affensoldat"	5101
+	2	"Schwacher Affensoldat"	5101
+}
+Group	L25_졸개원숭이(pawn)_졸개원숭이(S_pawn)
+{
+	Leader	"Schwacher Affenwerfer"	5102
+	Vnum	5003
+	1	"Schwacher Affenwerfer"	5102
+	2	"Schwacher Affensoldat"	5101
+	3	"Schwacher Affensoldat"	5101
+}
+Group	L25_졸개원숭이(pawn)_졸개원숭이(S_pawn)
+{
+	Leader	"Schwacher Affenk?mpfer"	5103
+	Vnum	5004
+	1	"Schwacher Affenwerfer"	5102
+	2	"Schwacher Affensoldat"	5101
+	3	"Schwacher Affensoldat"	5101
+}
+Group	L25_졸개원숭이(pawn)_졸개원숭이(S_pawn)
+{
+	Leader	"Schwacher Affenk?mpfer"	5103
+	Vnum	5005
+	1	"Schwacher Affenk?mpfer"	5103
+	2	"Schwacher Affenk?mpfer"	5103
+}
+Group	L25_졸개원숭이(pawn)_졸개원숭이(S_pawn)
+{
+	Leader	"Schwacher Affengeneral"	5104
+	Vnum	5006
+	1	"Schwacher Affenk?mpfer"	5103
+	2	"Schwacher Affensoldat"	5101
+	3	"Schwacher Affensoldat"	5101
+}
+Group	L25_졸개원숭이(pawn)_졸개원숭이(S_pawn)
+{
+	Leader	"Schwacher Affengeneral"	5104
+	Vnum	5007
+	1	"Schwacher Affengeneral"	5104
+	2	"Schwacher Affenk?mpfer"	5103
+	3	"Schwacher Affensoldat"	5101
+}
+Group	L25_이산대성(pawn)_졸개원숭이(S_pawn)
+{
+	Leader	Felsenaffe	5161
+	Vnum	5008
+	1	"Schwacher Affengeneral"	5104
+	2	"Schwacher Affenk?mpfer"	5103
+	3	"Schwacher Affenk?mpfer"	5103
+	4	"Schwacher Affensoldat"	5101
+	5	"Schwacher Affensoldat"	5101
+	6	"Schwacher Affensoldat"	5101
+}
+Group	L25_졸개원숭이(pawn)_졸개원숭이(S_pawn)
+{
+	Leader	Affensoldat	5111
+	Vnum	5009
+	1	Affensoldat	5111
+	2	Affensoldat	5111
+}
+Group	L25_졸개원숭이(pawn)_졸개원숭이(S_pawn)
+{
+	Leader	Affenwerfer	5112
+	Vnum	5010
+	1	Affensoldat	5111
+	2	Affensoldat	5111
+}
+Group	L25_졸개원숭이(pawn)_졸개원숭이(S_pawn)
+{
+	Leader	Affenwerfer	5112
+	Vnum	5011
+	1	Affenwerfer	5112
+	2	Affensoldat	5111
+	3	Affensoldat	5111
+}
+Group	L25_졸개원숭이(pawn)_졸개원숭이(S_pawn)
+{
+	Leader	Affenk?mpfer	5113
+	Vnum	5012
+	1	Affenwerfer	5112
+	2	Affensoldat	5111
+	3	Affensoldat	5111
+}
+Group	L25_졸개원숭이(pawn)_졸개원숭이(S_pawn)
+{
+	Leader	Affenk?mpfer	5113
+	Vnum	5013
+	1	Affenk?mpfer	5113
+	2	Affenk?mpfer	5113
+}
+Group	L25_졸개원숭이(pawn)_졸개원숭이(S_pawn)
+{
+	Leader	Affengeneral	5114
+	Vnum	5014
+	1	Affenk?mpfer	5113
+	2	Affensoldat	5111
+	3	Affensoldat	5111
+}
+Group	L25_졸개원숭이(pawn)_졸개원숭이(S_pawn)
+{
+	Leader	Affengeneral	5114
+	Vnum	5015
+	1	Affengeneral	5114
+	2	Affenk?mpfer	5113
+	3	Affensoldat	5111
+}
+Group	L25_졸개원숭이(pawn)_졸개원숭이(S_pawn)
+{
+	Leader	Steinaffe	5115
+	Vnum	5016
+	1	Affengeneral	5114
+	2	Affengeneral	5114
+}
+Group	L25_졸개원숭이(pawn)_졸개원숭이(S_pawn)
+{
+	Leader	Affenanf?hrer	5116
+	Vnum	5017
+	1	Affengeneral	5114
+	2	Affenk?mpfer	5113
+	3	Affensoldat	5111
+	4	Affensoldat	5111
+}
+Group	L25_이산대성(pawn)_졸개원숭이(S_pawn)
+{
+	Leader	"Gehender Affe"	5162
+	Vnum	5018
+	1	Steinaffe	5115
+	2	Steinaffe	5115
+	3	Affengeneral	5114
+	4	Affengeneral	5114
+	5	Affengeneral	5114
+}
+Group	L25_졸개원숭이(pawn)_졸개원숭이(S_pawn)
+{
+	Leader	"Starker Affensoldat"	5121
+	Vnum	5019
+	1	"Starker Affensoldat"	5121
+	2	"Starker Affensoldat"	5121
+}
+Group	L25_졸개원숭이(pawn)_졸개원숭이(S_pawn)
+{
+	Leader	"Starker Affenwerfer"	5122
+	Vnum	5020
+	1	"Starker Affensoldat"	5121
+	2	"Starker Affensoldat"	5121
+}
+Group	L25_졸개원숭이(pawn)_졸개원숭이(S_pawn)
+{
+	Leader	"Starker Affenwerfer"	5122
+	Vnum	5021
+	1	"Starker Affenwerfer"	5122
+	2	"Starker Affensoldat"	5121
+	3	"Starker Affensoldat"	5121
+}
+Group	L25_졸개원숭이(pawn)_졸개원숭이(S_pawn)
+{
+	Leader	"Starker Affenk?mpfer"	5123
+	Vnum	5022
+	1	"Starker Affenwerfer"	5122
+	2	"Starker Affensoldat"	5121
+	3	"Starker Affensoldat"	5121
+}
+Group	L25_졸개원숭이(pawn)_졸개원숭이(S_pawn)
+{
+	Leader	"Starker Affenk?mpfer"	5123
+	Vnum	5023
+	1	"Starker Affenk?mpfer"	5123
+	2	"Starker Affenk?mpfer"	5123
+}
+Group	L25_졸개원숭이(pawn)_졸개원숭이(S_pawn)
+{
+	Leader	"Starker Affengeneral"	5124
+	Vnum	5024
+	1	"Starker Affenk?mpfer"	5123
+	2	"Starker Affensoldat"	5121
+	3	"Starker Affensoldat"	5121
+}
+Group	L25_졸개원숭이(pawn)_졸개원숭이(S_pawn)
+{
+	Leader	"Starker Affengeneral"	5124
+	Vnum	5025
+	1	"Starker Affengeneral"	5124
+	2	"Starker Affenk?mpfer"	5123
+	3	"Starker Affensoldat"	5121
+}
+Group	L25_졸개원숭이(pawn)_졸개원숭이(S_pawn)
+{
+	Leader	"Starker Steinaffe"	5125
+	Vnum	5026
+	1	"Starker Affengeneral"	5124
+	2	"Starker Affenk?mpfer"	5123
+	3	"Starker Affensoldat"	5121
+	4	"Starker Affensoldat"	5121
+}
+Group	L25_졸개원숭이(pawn)_졸개원숭이(S_pawn)
+{
+	Leader	"Starker Goldaffe"	5126
+	Vnum	5027
+	1	"Starker Steinaffe"	5125
+	2	"Starker Affengeneral"	5124
+	3	"Starker Affensoldat"	5121
+	4	"Starker Affensoldat"	5121
+}
+Group	L25_졸개원숭이(pawn)_졸개원숭이(S_pawn)
+{
+	Leader	"Starker Affenanf?hrer"	5127
+	Vnum	5028
+	1	"Starker Steinaffe"	5125
+	2	"Starker Affengeneral"	5124
+	3	"Starker Affengeneral"	5124
+	4	"Starker Affensoldat"	5121
+	5	"Starker Affensoldat"	5121
+}
+Group	L25_제천대성(pawn)_졸개원숭이(S_pawn)
+{
+	Leader	Affen-Lord	5163
+	Vnum	5029
+	1	"Starker Goldaffe"	5126
+	2	"Starker Steinaffe"	5125
+	3	"Starker Steinaffe"	5125
+	4	"Starker Affengeneral"	5124
+	5	"Starker Affengeneral"	5124
+	6	"Starker Affengeneral"	5124
+}
+Group	퀘스트용_상선동원병
+{
+	Leader	"B?ser Affensoldat"	5151
+	Vnum	5151
+	1	"B?ser Affensoldat"	5151
+	2	"B?ser Affensoldat"	5151
+}
+Group	퀘스트용_상선동투마원병
+{
+	Leader	"B?ser Affenwerfer"	5152
+	Vnum	5152
+	1	"B?ser Affenwerfer"	5152
+	2	"B?ser Affenwerfer"	5152
+}
+Group	퀘스트용_상선동기무원병
+{
+	Leader	"B?ser Affenk?mpfer"	5153
+	Vnum	5153
+	1	"B?ser Affenk?mpfer"	5153
+	2	"B?ser Affenk?mpfer"	5153
+}
+Group	퀘스트용_상성동원장수
+{
+	Leader	"B?ser Affengeneral"	5154
+	Vnum	5154
+	1	"B?ser Affengeneral"	5154
+	2	"B?ser Affengeneral"	5154
+}
+Group	퀘스트용_상선동돌원숭이
+{
+	Leader	"B?ser Steinaffe"	5155
+	Vnum	5155
+	1	"B?ser Steinaffe"	5155
+	2	"B?ser Steinaffe"	5155
+}
+Group	퀘스트용_상선동금원숭이
+{
+	Leader	"B?ser Goldaffe"	5156
+	Vnum	5156
+	1	"B?ser Goldaffe"	5156
+	2	"B?ser Goldaffe"	5156
+}
+Group	영비사막삼거리1
+{
+	Leader	"K?nig Skorpion"	7013
+	Vnum	7011
+	1	"K?nig Skorpion"	7013
+	2	Bi-Ma-Gui-An	7012
+	3	Bi-Ma-Gui-An	7012
+}
+Group	영비사막삼거리2
+{
+	Leader	Schlangenschwertk?mpfer	7016
+	Vnum	7012
+	1	Schlangenschwertk?mpfer	7016
+	2	"Listiger Skorpionmann"	7014
+	3	"Listiger Skorpionmann"	7014
+}
+Group	영비사막삼거리3
+{
+	Leader	W?stenbandit	7018
+	Vnum	7013
+	1	W?stenbandit	7018
+	2	Schlangenschwertk?mpfer	7016
+	3	Schlangenschwertk?mpfer	7016
+}
+Group	영비사막삼거리4
+{
+	Leader	W?stenbandit	7018
+	Vnum	7014
+	1	W?stenbandit	7018
+	2	Schlangenbogensch?tze	7017
+	3	Schlangenbogensch?tze	7017
+}
+Group	도염화지삼거리1
+{
+	Leader	"Tu-Ji Rumtreiber"	7021
+	Vnum	7019
+	1	"Tu-ji Soldat"	7019
+	2	"Tu-ji Soldat"	7019
+	3	"Tu-ji Soldat"	7019
+}
+Group	도염화지삼거리2
+{
+	Leader	Hwa-ryung	7020
+	Vnum	7020
+	1	"Tu-ji Soldat"	7019
+	2	"Tu-ji Soldat"	7019
+	3	"Tu-ji Soldat"	7019
+}
+Group	도염화지삼거리3
+{
+	Leader	Cham-Ma	7022
+	Vnum	7021
+	1	"Tu-Ji Rumtreiber"	7021
+	2	Hwa-ryung	7020
+}
+Group	도염화지삼거리4
+{
+	Leader	Teawha-Mu	7023
+	Vnum	7022
+	1	"Tu-Ji Rumtreiber"	7021
+	2	"Tu-Ji Rumtreiber"	7021
+	3	Hwa-ryung	7020
+}
+Group	L25_만우절_들개
+{
+	Leader	Wildhund	8501
+	Vnum	8501
+	1	Wildhund	8501
+	2	Wildhund	8501
+	3	Wildhund	8501
+}
+Group	L25_만우절_맷돼지
+{
+	Leader	Keiler	8502
+	Vnum	8502
+	1	Keiler	8502
+	2	Keiler	8502
+	3	Keiler	8502
+}
+Group	L25_만우절_곰
+{
+	Leader	B?r	8503
+	Vnum	8503
+	1	B?r	8503
+	2	B?r	8503
+	3	B?r	8503
+}
+Group	L25_만우절_대호
+{
+	Leader	"Wei©¬er Tiger"	8504
+	Vnum	8504
+	1	"Wei©¬er Tiger"	8504
+	2	"Wei©¬er Tiger"	8504
+	3	"Wei©¬er Tiger"	8504
+}
+Group	L25_만우절_거대_흑웅귀
+{
+	Leader	"Schwarzer Ork-Riese"	8505
+	Vnum	8505
+	1	"Schwarzer Ork-Riese"	8505
+	2	"Schwarzer Ork-Riese"	8505
+	3	"Schwarzer Ork-Riese"	8505
+}
+Group	L25_만우절_청와장
+{
+	Leader	Baumfrosch-Anf?hrer	8506
+	Vnum	8506
+	1	Baumfrosch-Anf?hrer	8506
+	2	Baumfrosch-Anf?hrer	8506
+	3	Baumfrosch-Anf?hrer	8506
+}
+Group	L25_만우절_사막의무법자
+{
+	Leader	W?stenbandit	8507
+	Vnum	8507
+	1	W?stenbandit	8507
+	2	W?stenbandit	8507
+	3	W?stenbandit	8507
+}
+Group	L25_만우절_밀교강박령
+{
+	Leader	"Esoterischer Peiniger"	8508
+	Vnum	8508
+	1	"Esoterischer Peiniger"	8508
+	2	"Esoterischer Peiniger"	8508
+	3	"Esoterischer Peiniger"	8508
+}
+Group	L25_만우절_밀교소환령
+{
+	Leader	"Esoterischer Beschw?rer"	8509
+	Vnum	8509
+	1	"Esoterischer Beschw?rer"	8509
+	2	"Esoterischer Beschw?rer"	8509
+	3	"Esoterischer Beschw?rer"	8509
+}
+Group	L25_만우절_태화무인
+{
+	Leader	Flammenkrieger	8510
+	Vnum	8510
+	1	Flammenkrieger	8510
+	2	Flammenkrieger	8510
+	3	Flammenkrieger	8510
+}
+Group	L25_만우절_얼음고렘
+{
+	Leader	Eisgolem	8511
+	Vnum	8511
+	1	Eisgolem	8511
+	2	Eisgolem	8511
+	3	Eisgolem	8511
+}
+Group	공성용경비병창하
+{
+	Leader	"W?chter des Dorfplatzes"	11100
+	Vnum	9501
+	1	"W?chter des Dorfplatzes"	11100
+	2	"W?chter des Dorfplatzes"	11100
+}
+Group	공성용경비병활하
+{
+	Leader	Schlachtenverwalter	11101
+	Vnum	9502
+	1	Schlachtenverwalter	11101
+	2	Schlachtenverwalter	11101
+}
+Group	공성용경비병창하
+{
+	Leader	"W?chter des Dorfplatzes"	11102
+	Vnum	9511
+	1	"W?chter des Dorfplatzes"	11102
+	2	"W?chter des Dorfplatzes"	11102
+}
+Group	공성용경비병활하
+{
+	Leader	Schlachtenverwalter	11103
+	Vnum	9512
+	1	Schlachtenverwalter	11103
+	2	Schlachtenverwalter	11103
+}
+Group	공성용경비병창하
+{
+	Leader	"W?chter des Dorfplatzes"	11104
+	Vnum	9521
+	1	"W?chter des Dorfplatzes"	11104
+	2	"W?chter des Dorfplatzes"	11104
+}
+Group	공성용경비병활하
+{
+	Leader	Schlachtenverwalter	11105
+	Vnum	9522
+	1	Schlachtenverwalter	11105
+	2	Schlachtenverwalter	11105
+}
+Group	L70_기준NPC(Boss)-아라녀(Boss)
+{
+	Leader	.	20025
+	Vnum	11001
+	1	Aranyo	20002
+}
+Group	L70_기준NPC(Boss)-아유(Boss)
+{
+	Leader	.	20025
+	Vnum	11002
+	1	Ah-Yu	20003
+}
+Group	L70_기준NPC(Boss)-아라녀(Boss)
+{
+	Leader	.	20025
+	Vnum	11003
+	1	Bettler	20004
+}
+Group	L70_기준NPC(Boss)-연나환(Boss)
+{
+	Leader	.	20025
+	Vnum	11004
+	1	Yonah	20005
+}
+Group	L70_기준NPC(Boss)-미리내(Boss)
+{
+	Leader	.	20025
+	Vnum	11005
+	1	Mirine	20006
+}
+Group	L70_기준NPC(Boss)-을두지(Boss)
+{
+	Leader	.	20025
+	Vnum	11006
+	1	Uriel	20011
+}
+Group	L70_기준NPC(Boss)-책벌래(Boss)
+{
+	Leader	.	20025
+	Vnum	11007
+	1	Baek-Go	20018
+}
+Group	L70_기준NPC(Boss)-뱃사공(Boss)
+{
+	Leader	.	20025
+	Vnum	12001
+	1	Yu-Rang	20012
+}
+Group	L70_기준NPC(Boss)-뱃사공(Boss)
+{
+	Leader	.	20025
+	Vnum	12002
+	1	Taurean	20014
+}
+Group	L70_기준NPC(Boss)-뱃사공(Boss)
+{
+	Leader	.	20025
+	Vnum	12003
+	1	Yu-Hwan	20017
+}
+Group	L70_기준NPC(Boss)-뱃사공(Boss)
+{
+	Leader	.	20025
+	Vnum	12004
+	1	Yang-Shin	20019
+}
+Group	L70_늙은해적(Boss)-뱃사공(Boss)
+{
+	Leader	.	20025
+	Vnum	12005
+	1	Ariyoung	20021
+}
+Group	L70_늙은해적(Boss)-뱃사공(Boss)
+{
+	Leader	.	20025
+	Vnum	12006
+	1	Harang	20024
+}
+Group	L70_말(Boss)-조랑말(Boss)
+{
+	Leader	.	20025
+	Vnum	12007
+	1	Pony	20029
+	2	Pony	20029
+	3	Pferd	20030
+	4	Pferd	20030
+}
+Group	다이아몬드광맥
+{
+	Leader	Diamantader	20047
+	Vnum	20047
+}
+Group	호박광맥
+{
+	Leader	Bernsteinader	20048
+	Vnum	20048
+}
+Group	화석목광맥
+{
+	Leader	Fossilholzader	20049
+	Vnum	20049
+}
+Group	구리광맥
+{
+	Leader	Kupferader	20050
+	Vnum	20050
+}
+Group	은맥
+{
+	Leader	Silberader	20051
+	Vnum	20051
+}
+Group	금맥
+{
+	Leader	Goldader	20052
+	Vnum	20052
+}
+Group	옥석맥
+{
+	Leader	Jadeader	20053
+	Vnum	20053
+}
+Group	흑단석맥
+{
+	Leader	Ebenholzader	20054
+	Vnum	20054
+}
+Group	조개무더기
+{
+	Leader	Muschelstapel	20055
+	Vnum	20055
+}
+Group	백금맥
+{
+	Leader	Wei©¬goldader	20056
+	Vnum	20056
+}
+Group	수정석맥
+{
+	Leader	Kristallader	20057
+	Vnum	20057
+}
+Group	자수정석맥
+{
+	Leader	Quarzader	20058
+	Vnum	20058
+}
+Group	천루광맥
+{
+	Leader	Himmelstr?nenader	20059
+	Vnum	20059
+}
+Group	공성용보스몬스터
+{
+	Leader	"Geister Orkf?hrer"	693
+	Vnum	30001
+}
+Group	공성용보스몬스터
+{
+	Leader	"Elite K?mpfer"	795
+	Vnum	30002
+}
+Group	공성용보스몬스터
+{
+	Leader	"Gemeiner D?monenk?nig"	1094
+	Vnum	30003
+}
+Group	공성용보스몬스터
+{
+	Leader	"Blauer Tod"	1095
+	Vnum	30004
+}
+Group	공성용보스몬스터
+{
+	Leader	"Elit?rer Neunschwanz"	1903
+	Vnum	30005
+}
+Group	공성용보스몬스터
+{
+	Leader	"B?ser gelber Tigergeist"	1307
+	Vnum	30006
+}
+Group	공성용보스몬스터
+{
+	Leader	"Dunkl. K?niginnenspinne"	2093
+	Vnum	30007
+}
+Group	공성용보스몬스터
+{
+	Leader	"Dunkle W?stenschildkr?te"	2192
+	Vnum	30008
+}
+Group	haunted_white_tiger_1
+{
+	Leader	"Verfl. wei©¬er Tiger"	144
+	Vnum	30009
+	1	"Verfl. Tiger"	143
+	2	"Verfl. Tiger"	143
+}
+Group	haunted_white_tiger_2
+{
+	Leader	"Verfl. wei©¬er Tiger"	144
+	Vnum	30010
+	1	"Verfl. wei©¬er Tiger"	144
+	2	"Verfl. wei©¬er Tiger"	144
+	3	"Verfl. wei©¬er Tiger"	144
+	4	"Verfl. wei©¬er Tiger"	144
+}
+Group	거대귀목
+{
+	Leader	Noname	2316
+	Vnum	2334
+	1	"Roter b?ser Baum"	2315
+	2	"Rote Geisterweide"	2314
+	3	"Rote Geisterweide"	2314
+	4	"Roter Geisterbaumstumpf"	2312
+	5	"Roter Geisterbaumstumpf"	2312
+	6	"Roter Geisterbaumstumpf"	2312
+	7	"Roter b?ser Baum"	2315
+	8	"Rote Dryade"	2313
+	9	"Rote Dryade"	2313
+}
+Group	천의동굴2F_수룡_진천의장군
+{
+	Leader	Noname	2493
+	Vnum	2430
+	1	Setaou-Kommandant	2414
+	2	Setaou-Kommandant	2414
+	3	Setaou-Soldat	2411
+	4	Setaou-Soldat	2411
+	5	Setaou-Soldat	2411
+}
+Group	천의동굴1F_천의병사_천의병사
+{
+	Leader	Noname	2431
+	Vnum	2431
+	1	Noname	2431
+	2	Noname	2431
+	3	Noname	2431
+}
+Group	천의동굴1F_천의궁병_천의병사
+{
+	Leader	Noname	2432
+	Vnum	2432
+	1	Noname	2431
+	2	Noname	2431
+	3	Noname	2431
+}
+Group	천의동굴1F_천의궁병_천의궁병
+{
+	Leader	Noname	2432
+	Vnum	2433
+	1	Noname	2432
+	2	Noname	2431
+	3	Noname	2431
+}
+Group	천의동굴1F_천의법사_천의궁병
+{
+	Leader	Noname	2433
+	Vnum	2434
+	1	Noname	2432
+	2	Noname	2431
+	3	Noname	2431
+}
+Group	천의동굴1F_천의법사_천의궁병
+{
+	Leader	Noname	2433
+	Vnum	2435
+	1	Noname	2432
+	2	Noname	2432
+	3	Noname	2431
+	4	Noname	2431
+}
+Group	천의동굴1F_천의장수_천의법사
+{
+	Leader	Noname	2434
+	Vnum	2436
+	1	Noname	2433
+	2	Noname	2433
+	3	Noname	2431
+	4	Noname	2431
+	5	Noname	2431
+}
+Group	천의동굴1F_천의장수_천의법사
+{
+	Leader	Noname	2434
+	Vnum	2437
+	1	Noname	2433
+	2	Noname	2433
+	3	Noname	2432
+	4	Noname	2432
+	5	Noname	2431
+	6	Noname	2431
+	7	Noname	2431
+}
+Group	천의동굴2F_진천의병사_진천의병사
+{
+	Leader	Noname	2451
+	Vnum	2438
+	1	Noname	2451
+	2	Noname	2451
+	3	Noname	2451
+}
+Group	천의동굴2F_진천의궁병_진천의병사
+{
+	Leader	Noname	2452
+	Vnum	2439
+	1	Noname	2451
+	2	Noname	2451
+	3	Noname	2451
+}
+Group	천의동굴2F_진천의궁병_진천의궁병
+{
+	Leader	Noname	2452
+	Vnum	2440
+	1	Noname	2452
+	2	Noname	2451
+	3	Noname	2451
+}
+Group	천의동굴2F_진천의법사_진천의궁병
+{
+	Leader	Noname	2453
+	Vnum	2441
+	1	Noname	2452
+	2	Noname	2451
+	3	Noname	2451
+}
+Group	천의동굴2F_진천의법사_진천의궁병
+{
+	Leader	Noname	2453
+	Vnum	2442
+	1	Noname	2452
+	2	Noname	2452
+	3	Noname	2451
+	4	Noname	2451
+}
+Group	천의동굴2F_진천의장수_진천의법사
+{
+	Leader	Noname	2454
+	Vnum	2443
+	1	Noname	2453
+	2	Noname	2453
+	3	Noname	2451
+	4	Noname	2451
+	5	Noname	2451
+}
+Group	천의동굴2F_진천의장수_진천의법사
+{
+	Leader	Noname	2454
+	Vnum	2444
+	1	Noname	2453
+	2	Noname	2453
+	3	Noname	2452
+	4	Noname	2452
+	5	Noname	2451
+	6	Noname	2451
+	7	Noname	2451
+}
+Group	천의동굴2F_천의장군_천의장수
+{
+	Leader	Noname	2494
+	Vnum	2445
+	1	Noname	2434
+	2	Noname	2434
+	3	Noname	2433
+	4	Noname	2433
+	5	Noname	2431
+	6	Noname	2431
+	7	Noname	2431
+}
+Group	천의동굴2F_진천의장군_진천의장수
+{
+	Leader	Noname	2495
+	Vnum	2446
+	1	Noname	2454
+	2	Noname	2454
+	3	Noname	2453
+	4	Noname	2453
+	5	Noname	2451
+	6	Noname	2451
+	7	Noname	2451
+}
+Group	천의동굴2F_수룡_진천의장군
+{
+	Leader	Noname	2493
+	Vnum	2447
+	1	Noname	2493
+}
+Group	L69_반인반사궁병(KNIGHT)-반인반사검병(KNIGHT)
+{
+	Leader	Noname	2137
+	Vnum	2066
+	1	Noname	2136
+	2	Noname	2136
+	3	Noname	2136
+}
+Group	L69_반인반사궁병(KNIGHT)-반인반사궁병(KNIGHT)
+{
+	Leader	Noname	2137
+	Vnum	2067
+	1	Noname	2137
+	2	Noname	2136
+	3	Noname	2136
+}
+Group	L69_반인반사궁병(KNIGHT)-반인반사궁병(KNIGHT)
+{
+	Leader	Noname	2137
+	Vnum	2068
+	1	Noname	2136
+	2	Noname	2136
+}
+Group	L70_사막의무법자(S_KNIGHT)-반인반사궁병(KNIGHT)
+{
+	Leader	Noname	2138
+	Vnum	2069
+	1	Noname	2137
+	2	Noname	2136
+	3	W?stenbandit	2135
+	4	Schlangenbogensch?tze	2134
+}
+Group	수룡석A
+{
+	Leader	Noname	8031
+	Vnum	8031
+}
+Group	수룡석B
+{
+	Leader	Noname	8032
+	Vnum	8032
+}
+Group	수룡석C
+{
+	Leader	Noname	8033
+	Vnum	8033
+}
+Group	수룡석D
+{
+	Leader	Noname	8034
+	Vnum	8034
+}
+Group	공성용경비병창중
+{
+	Leader	Noname	11106
+	Vnum	9503
+	1	Noname	11106
+	2	Noname	11106
+}
+Group	공성용경비병활중
+{
+	Leader	Noname	11107
+	Vnum	9504
+	1	Noname	11107
+	2	Noname	11107
+}
+Group	공성용경비병창상
+{
+	Leader	Noname	11112
+	Vnum	9505
+	1	Noname	11112
+	2	Noname	11112
+}
+Group	공성용경비병활상
+{
+	Leader	Noname	11113
+	Vnum	9506
+	1	Noname	11113
+	2	Noname	11113
+}
+Group	공성용경비병창중
+{
+	Leader	Noname	11108
+	Vnum	9513
+	1	Noname	11108
+	2	Noname	11108
+}
+Group	공성용경비병활중
+{
+	Leader	Noname	11109
+	Vnum	9514
+	1	Noname	11109
+	2	Noname	11109
+}
+Group	공성용경비병창상
+{
+	Leader	Noname	11114
+	Vnum	9515
+	1	Noname	11114
+	2	Noname	11114
+}
+Group	공성용경비병활상
+{
+	Leader	Noname	11115
+	Vnum	9516
+	1	Noname	11115
+	2	Noname	11115
+}
+Group	공성용경비병창중
+{
+	Leader	Noname	11110
+	Vnum	9523
+	1	Noname	11110
+	2	Noname	11110
+}
+Group	공성용경비병활중
+{
+	Leader	Noname	11111
+	Vnum	9524
+	1	Noname	11111
+	2	Noname	11111
+}
+Group	공성용경비병창상
+{
+	Leader	Noname	11116
+	Vnum	9525
+	1	Noname	11116
+	2	Noname	11116
+}
+Group	공성용경비병활상
+{
+	Leader	Noname	11117
+	Vnum	9526
+	1	Noname	11117
+	2	Noname	11117
+}
+Group	Easter-Metin10_1
+{
+	Leader	W?stenfuchs	2101
+	Vnum	9611
+	1	W?stenfuchs	2101
+	2	W?stenfuchs	2101
+}
+Group	Easter-Metin10_2
+{
+	Leader	Mu-Rang	152
+	Vnum	9612
+	1	Mu-Rang	152
+	2	Mu-Rang	152
+}
+Group	Easter-Metin10_3
+{
+	Vnum	9613
+	Leader	W?stenbandit	8507
+	1	W?stenbandit	8507
+	2	W?stenbandit	8507
+}
+Group	Easter-Metin10_4
+{
+	Vnum	9614
+	Leader	Weißer-EidBogensch?tzin	302
+	1	Weißer-EidBogensch?tzin	302
+	2	Weißer-EidBogensch?tzin	302
+}
+Group	Easter-Metin10_5
+{
+	Vnum	9615
+	Leader	Verfl.Grizzlyb?r	140
+	1	Verfl.Grizzlyb?r	140
+	2	Verfl.Grizzlyb?r	140
+}
+Group	Easter-Metin20_1
+{
+	Vnum	9621
+	Leader	Flammenkrieger	8510
+	1	Flammenkrieger	8510
+	2	Flammenkrieger	8510
+}
+Group	Easter-Metin20_2
+{
+	Vnum	9622
+	Leader	Li-An	155
+	1	Li-An	155
+	2	Li-An	155
+}
+Group	Easter-Metin20_3
+{
+	Vnum	9623
+	Leader	SchwacherAffenwerfer	5102
+	1	SchwacherAffenwerfer	5102
+	2	SchwacherAffenwerfer	5102
+}
+Group	Easter-Metin20_4
+{
+	Vnum	9624
+	Leader	B?serSturm-Joh_Hwan	454
+	1	B?serSturm-Joh_Hwan	454
+	2	B?serSturm-Joh_Hwan	454
+}
+Group	Easter-Metin20_5
+{
+	Vnum	9625
+	Leader	Lykos	191
+	1	Lykos	191
+	2	Lykos	191
+}
+Group	Easter-Metin30_1
+{
+	Vnum	9631
+	Leader	K?nigsskorpion	2103
+	1	K?nigsskorpion	2103
+	2	K?nigsskorpion	2103
+}
+Group	Easter-Metin30_2
+{
+	Vnum	9632
+	Leader	SchlauerAffenwerfer	5142
+	1	SchlauerAffenwerfer	5142
+	2	SchlauerAffenwerfer	5142
+}
+Group	Easter-Metin30_3
+{
+	Vnum	9633
+	Leader	StarkerDerwisch	2152
+	1	StarkerDerwisch	2152
+	2	StarkerDerwisch	2152
+}
+Group	Easter-Metin30_4
+{
+	Vnum	9634
+	Leader	StarkerK?nigsskorpion	2153
+	1	StarkerK?nigsskorpion	2153
+	2	StarkerK?nigsskorpion	2153
+}
+Group	Easter-Metin30_5
+{
+	Vnum	9635
+	Leader	St.WilderGeneral	554
+	1	St.WilderGeneral	554
+	2	St.WilderGeneral	554
+}
+Group	Easter-Metin40_1
+{
+	Vnum	9641
+	Leader	B?serAffenwerfer	5152
+	1	B?serAffenwerfer	5152
+	2	B?serAffenwerfer	5152
+	3	B?serAffenwerfer	5152
+}
+Group	Easter-Metin40_2
+{
+	Vnum	9642
+	Leader	RoteGiftspinne	2003
+	1	RoteGiftspinne	2003
+	2	RoteGiftspinne	2003
+}
+Group	Easter-Metin40_3
+{
+	Vnum	9643
+	Leader	MutigerSchw.Orkriese	657
+	1	MutigerSchw.Orkriese	657
+	2	MutigerSchw.Orkriese	657
+}
+Group	Easter-Metin40_4
+{
+	Vnum	9644
+	Leader	StarkerAffensoldat	5121
+	1	StarkerAffensoldat	5121
+	2	StarkerAffensoldat	5121
+}
+Group	Easter-Metin40_5
+{
+	Vnum	9645
+	Leader	JungerSkorpionmann	2104
+	1	JungerSkorpionmann	2104
+	2	JungerSkorpionmann	2104
+}
+Group	Easter-Metin50_1
+{			
+	Vnum	9651
+	Leader	Tu-JiRumtreiber	7021
+	1	Tu-JiRumtreiber	7021
+	2	Tu-JiRumtreiber	7021
+}
+Group	Easter-Metin50_2
+{
+	Vnum	9652
+	Leader	Hwa-ryung	7020
+	1	Hwa-ryung	7020
+	2	Hwa-ryung	7020
+}
+Group	Easter-Metin50_3
+{
+	Vnum	9653
+	Leader	Tu-jiSoldat	7019
+	1	Tu-jiSoldat	7019
+	2	Tu-jiSoldat	7019
+}
+Group	Easter-Metin50_4
+{
+	Vnum	9654
+	Leader	Tu-GuiweißerKommander	7010
+	1	Tu-GuiweißerKommander	7010
+	2	Tu-GuiweißerKommander	7010
+}
+Group	Easter-Metin50_5
+{
+	Vnum	9655
+	Leader	Skorpionbogensch?tze	7015
+	1	Skorpionbogensch?tze	7015
+	2	Skorpionbogensch?tze	7015
+}
+Group	Easter-Metin60_1
+{
+	Vnum	9661
+	Leader	GemeinerBogensch?tze	1032
+	1	GemeinerBogensch?tze	1032
+	2	GemeinerBogensch?tze	1032
+}
+Group	Easter-Metin60_2
+{
+	Vnum	9662
+	Leader	Teawha-Mu	7023
+	1	Teawha-Mu	7023
+	2	Teawha-Mu	7023
+}
+Group	Easter-Metin60_3
+{
+	Vnum	9663
+	Leader	Cham-Ma	7022
+	1	Cham-Ma	7022
+	2	Cham-Ma	7022
+}
+Group	Easter-Metin60_4
+{
+	Vnum	9664
+	Leader	Ochsenfrosch-General	1305
+	1	Ochsenfrosch-General	1305
+	2	Ochsenfrosch-General	1305
+}
+Group	Easter-Metin60_5
+{
+	Vnum	9665
+	Leader	Soldatenspinne	2065
+	1	Soldatenspinne	2065
+	2	Soldatenspinne	2065
+}
+Group	Easter-Metin70_1
+{
+	Vnum	9671
+	Leader	RoteGeisterweide	2314
+	1	RoteGeisterweide	2314
+	2	RoteGeisterweide	2314
+}
+Group	Easter-Metin70_2
+{
+	Vnum	9672
+	Leader	SchwarzerJuk-Guimok	7028
+	1	SchwarzerJuk-Guimok	7028
+	2	SchwarzerJuk-Guimok	7028
+}
+Group	Easter-Metin70_3
+{
+	Vnum	9673
+	Leader	GeistSchwertmeister	1068
+	1	GeistSchwertmeister	1068
+	2	GeistSchwertmeister	1068
+}
+Group	Easter-Metin70_4
+{
+	Vnum	9674
+	Leader	D?monischesTier	1041
+	1	D?monischesTier	1041
+	2	D?monischesTier	1041
+}
+Group	Easter-Metin70_5
+{
+	Vnum	9675
+	Leader	Totenkopfschwertmeister	1038
+	1	Totenkopfschwertmeister	1038
+	2	Totenkopfschwertmeister	1038
+}
+Group	Easter-Metin80_1
+{
+	Vnum	9681
+	Leader	Roterb?serBaum	2315
+	1	Roterb?serBaum	2315
+	2	Roterb?serBaum	2315
+}
+Group	Easter-Metin80_2
+{
+	Vnum	9682
+	Leader	Unterwelt-Yeti	1136
+	1	Unterwelt-Yeti	1136
+	2	Unterwelt-Yeti	1136
+}
+Group	Easter-Metin80_3
+{
+	Vnum	9683
+	Leader	Setaou-K?mpfer	2401
+	1	Setaou-K?mpfer	2401
+	2	Setaou-K?mpfer	2401
+}
+Group	Easter-Metin80_4
+{
+	Vnum	9684
+	Leader	Setaou-Seherin	2403
+	1	Setaou-Seherin	2403
+	2	Setaou-Seherin	2403
+}
+Group	Easter-Metin80_5
+{
+	Vnum	9685
+	Leader	Unterwelt-Eisinsekt	1133
+	1	Unterwelt-Eisinsekt	1133
+	2	Unterwelt-Eisinsekt	1133
+}
+Group	Easter-Metin90_1
+{
+	Vnum	9691
+	Leader	Setaou-Magistra	2413
+	1	Setaou-Magistra	2413
+	2	Setaou-Magistra	2413
+}
+Group	Easter-Metin90_2
+{
+	Vnum	9692
+	Leader	Hae-Tae	5002
+	1	Starker_Flammengeist	2232
+	2	Starker_Flammengeist	2232
+}
+Group	Easter-Metin90_3
+{
+	Vnum	9693
+	Leader	Setaou-Bogensch?tze	2412
+	1	Setaou-Bogensch?tze	2412
+	2	Setaou-Bogensch?tze	2412
+}
+Group	Easter-Metin90_4
+{
+	Vnum	9694
+	Leader	Wildhund	101
+	1	Wildhund	101
+	2	Wildhund	101
+	3	Wildhund	101
+	4	Wildhund	101
+	5	Wildhund	101
+	6	Wildhund	101
+	7	Wildhund	101
+	8	Wildhund	101
+	9	Wildhund	101
+	10	Wildhund	101
+}
+Group	Easter-Metin90_5
+{
+	Vnum	9695
+	Leader	Setaou-Soldat	2411
+	1	Setaou-Soldat	2411
+	2	Setaou-Soldat	2411
+}
+Group	Easter-Metin95_1
+{
+	Vnum	9696
+	Leader	Setaou-Magistra	2413
+	1	Setaou-Magistra	2413
+	2	Setaou-Magistra	2413
+}
+Group	Easter-Metin95_2
+{
+	Vnum	9697
+	Leader	Eishexe	1191
+	1	Setaou-Magistra	2413
+	2	Setaou-Magistra	2413
+}
+Group	아귀동굴1-2층용		
+{			
+	Vnum	2501	
+	Leader	아귀	2501
+	1	아귀	2501
+	2	아귀	2501
+	3	아귀	2501
+}			
+Group	아귀동굴1-2층용		
+{			
+	Vnum	2502	
+	Leader	아귀견	2502
+	1	아귀	2501
+	2	아귀	2501
+}			
+			
+Group	아귀동굴1-2층용		
+{			
+	Vnum	2503	
+	Leader	아귀견	2502
+	1	아귀견	2502
+	2	아귀견	2502
+	3	아귀견	2502
+}			
+			
+Group	아귀동굴1-2층용		
+{			
+	Vnum	2504	
+	Leader	아귀감염자	2503
+	1	아귀견	2502
+	2	아귀견	2502
+}			
+			
+Group	아귀동굴1-2층용		
+{			
+	Vnum	2505	
+	Leader	아귀감염자	2503
+	1	아귀감염자	2503
+	2	아귀감염자	2503
+	3	아귀감염자	2503
+}			
+			
+Group	아귀동굴1-2층용		
+{			
+	Vnum	2506	
+	Leader	아귀돌격병	2504
+	1	아귀돌격병	2504
+	2	아귀감염자	2503
+	3	아귀감염자	2503
+}			
+			
+Group	아귀동굴1-2층용		
+{			
+	Vnum	2506	
+	Leader	아귀돌격병	2504
+	1	아귀돌격병	2504
+	2	아귀돌격병	2504
+	3	아귀돌격병	2504
+}			
+			
+Group	아귀동굴1-2층용		
+{			
+	Vnum	2507	
+	Leader	아귀감염창병	2505
+	1	아귀돌격병	2504
+	2	아귀돌격병	2504
+	3	아귀돌격병	2504
+}			
+			
+Group	아귀동굴1-2층용		
+{			
+	Vnum	2508	
+	Leader	아귀감염창병	2505
+	1	아귀감염창병	2505
+	2	아귀돌격병	2504
+	3	아귀돌격병	2504
+}			
+			
+Group	아귀동굴2층용		
+{			
+	Vnum	2509	
+	Leader	아귀감염창병	2505
+	1	아귀감염창병	2505
+	2	아귀감염창병	2505
+	3	아귀감염창병	2505
+}			
+			
+Group	아귀동굴2층용		
+{			
+	Vnum	2510	
+	Leader	아귀궁수	2506
+	1	아귀궁수	2506
+	2	아귀감염창병	2505
+	3	아귀감염창병	2505
+}			
+			
+Group	아귀동굴2층용		
+{			
+	Vnum	2511	
+	Leader	아귀궁수	2506
+	1	아귀궁수	2506
+	2	아귀궁수	2506
+	3	아귀궁수	2506
+}			
+			
+Group	아귀동굴2층용		
+{			
+	Vnum	2512	
+	Leader	아귀감염대장	2507
+	1	아귀궁수	2506
+	2	아귀궁수	2506
+	3	아귀감염창병	2505
+	4	아귀감염창병	2505
+	5	아귀감염창병	2505
+}			
+			
+Group	아귀동굴3층용		
+{			
+	Vnum	2513	
+	Leader	아귀병	2508
+	1	아귀병	2508
+	2	아귀병	2508
+	3	아귀병	2508
+	4	아귀병	2508
+}			
+			
+Group	아귀동굴3층용		
+{			
+	Vnum	2514	
+	Leader	아귀병	2508
+	1	아귀병	2508
+	2	아귀궁병	2509
+	3	아귀궁병	2509
+	4	아귀궁병	2509
+}			
+			
+Group	아귀동굴3층용		
+{			
+	Vnum	2515	
+	Leader	아귀궁병	2509
+	1	아귀병	2508
+	2	아귀병	2508
+	3	아귀병	2508
+	4	아귀병	2508
+}			
+			
+Group	아귀동굴3층용		
+{			
+	Vnum	2516	
+	Leader	아귀궁병	2509
+	1	아귀궁병	2509
+	2	아귀병	2508
+	3	아귀병	2508
+	4	아귀병	2508
+}			
+			
+Group	아귀동굴3층용		
+{			
+	Vnum	2517	
+	Leader	아귀궁병	2509
+	1	아귀궁병	2509
+	2	아귀궁병	2509
+	3	아귀병	2508
+	4	아귀병	2508
+}			
+			
+Group	아귀동굴3층용		
+{			
+	Vnum	2518	
+	Leader	아귀창병	2510
+	1	아귀궁병	2509
+	2	아귀궁병	2509
+	3	아귀병	2508
+	4	아귀병	2508
+}			
+			
+Group	아귀동굴3층용		
+{			
+	Vnum	2519	
+	Leader	아귀창병	2510
+	1	아귀창병	2510
+	2	아귀궁병	2509
+	3	아귀궁병	2509
+	4	아귀궁병	2509
+}			
+			
+Group	아귀동굴4층용		
+{			
+	Vnum	2520	
+	Leader	아귀주술사	2511
+	1	아귀창병	2510
+	2	아귀창병	2510
+	3	아귀궁병	2509
+	4	아귀궁병	2509
+}			
+			
+Group	아귀동굴4-7층용		
+{			
+	Vnum	2521	
+	Leader	아귀주술사	2511
+	1	아귀주술사	2511
+	2	아귀창병	2510
+	3	아귀창병	2510
+	4	아귀창병	2510
+}			
+			
+Group	아귀동굴4-7층용		
+{			
+	Vnum	2522	
+	Leader	아귀검병	2512
+	1	아귀검병	2512
+	2	아귀주술사	2511
+	3	아귀창병	2510
+	4	아귀창병	2510
+}			
+			
+Group	아귀동굴4-7층용		
+{			
+	Vnum	2523	
+	Leader	아귀마검사	2513
+	1	아귀검병	2512
+	2	아귀검병	2512
+	3	아귀주술사	2511
+	4	아귀창병	2510
+}			
+			
+Group	아귀동굴4-7층용		
+{			
+	Vnum	2524	
+	Leader	아귀마검사	2513
+	1	아귀검병	2512
+	2	아귀검병	2512
+	3	아귀창병	2510
+	4	아귀창병	2510
+}			
+			
+Group	아귀동굴4-7층용		
+{			
+	Vnum	2525	
+	Leader	아귀마검사	2513
+	1	아귀마검사	2513
+	2	아귀검병	2512
+	3	아귀검병	2512
+	4	아귀창병	2510
+	5	아귀창병	2510
+}			
+			
+Group	아귀동굴4-7층용		
+{			
+	Vnum	2526	
+	Leader	아귀장수	2514
+	1	아귀마검사	2513
+	2	아귀마검사	2513
+	3	아귀검병	2512
+	4	아귀검병	2512
+	5	아귀창병	2510
+}			
+			
+Group	아귀동굴4-7층용		
+{			
+	Vnum	2527	
+	Leader	아귀장수	2514
+	1	아귀마검사	2513
+	2	아귀마검사	2513
+	3	아귀주술사	2511
+	4	아귀주술사	2511
+	5	아귀검병	2512
+	6	아귀창병	2510
+}			
+			
+Group	아귀동굴5층용		
+{			
+	Vnum	2528	
+	Leader	아귀왕	2591
+	1	아귀마검사	2513
+	2	아귀마검사	2513
+	3	아귀주술사	2511
+	4	아귀검병	2512
+	5	아귀검병	2512
+	6	아귀창병	2510
+	7	아귀궁병	2509
+	8	아귀궁병	2509
+}			
+			
+Group	아귀동굴6층용		
+{			
+	Vnum	2529	
+	Leader	아걸	2597
+	1	아귀마검사	2513
+	2	아귀마검사	2513
+	3	아귀주술사	2511
+	4	아귀검병	2512
+	5	아귀검병	2512
+	6	아귀창병	2510
+	7	아귀궁병	2509
+	8	아귀궁병	2509
+}			
+			
+Group	아귀동굴7층용		
+{			
+	Vnum	2530	
+	Leader	아귀대제사마휘	2598
+	1	아귀마검사	2513
+	2	아귀마검사	2513
+	3	아귀주술사	2511
+	4	아귀검병	2512
+	5	아귀검병	2512
+	6	아귀창병	2510
+	7	아귀궁병	2509
+	8	아귀궁병	2509
+}			
+
+Group	아귀동굴2층시구문		
+{			
+	Vnum	2551	
+	Leader	시구문	30111
+}			
+			
+Group	아귀동굴2층시구문		
+{			
+	Vnum	2552	
+	Leader	시구문	30112
+}			
+			
+Group	아귀동굴2층시구문		
+{			
+	Vnum	2553	
+	Leader	시구문	30113
+}			
+			
+Group	아귀동굴2층시구문		
+{			
+	Vnum	2554	
+	Leader	시구문	30114
+}			
+			
+Group	아귀동굴2층시구문		
+{			
+	Vnum	2555	
+	Leader	시구문	30115
+}			
+			
+Group	아귀동굴2층시구문		
+{			
+	Vnum	2556	
+	Leader	시구문	30116
+}			
+			
+Group	아귀동굴2층시구문		
+{			
+	Vnum	2557	
+	Leader	시구문	30117
+}			
+			
+Group	아귀동굴2층시구문		
+{			
+	Vnum	2558	
+	Leader	시구문	30118
+}			
+			
+Group	아귀동굴2층시구문		
+{			
+	Vnum	2559	
+	Leader	시구문	30119
+}			
+Group	도염화지삼거리1_1		
+{			
+	Vnum	7023	
+	Leader	투지범	7073
+	1	투지범졸개	7071
+	2	투지범졸개	7071
+	3	투지범졸개	7071
+}			
+			
+Group	도염화지삼거리1_2		
+{			
+	Vnum	7024	
+	Leader	화령	7072
+	1	투지범졸개	7071
+	2	투지범졸개	7071
+	3	투지범졸개	7071
+}			
+			
+Group	도염화지삼거리1_3		
+{			
+	Vnum	7025	
+	Leader	참마인	7074
+	1	투지범	7073
+	2	화령	7072
+}			
+			
+Group	도염화지삼거리1_4		
+{			
+	Vnum	7026	
+	Leader	태화무인	7075
+	1	투지범	7073
+	2	투지범	7073
+	3	화령	7072
+}			
+			
+Group	도염화지삼거리2_1		
+{			
+	Vnum	7027	
+	Leader	투지범	7076
+	1	투지범졸개	7074
+	2	투지범졸개	7074
+	3	투지범졸개	7074
+}			
+			
+Group	도염화지삼거리2_2		
+{			
+	Vnum	7028	
+	Leader	화령	7077
+	1	투지범졸개	7076
+	2	투지범졸개	7076
+	3	투지범졸개	7076
+}			
+			
+Group	도염화지삼거리2_3		
+{			
+	Vnum	7029	
+	Leader	참마인	7079
+	1	투지범	7078
+	2	화령	7077
+}			
+			
+Group	도염화지삼거리2_4		
+{			
+	Vnum	7030	
+	Leader	태화무인	7080
+	1	투지범	7078
+	2	투지범	7078
+	3	화령	7077
+}			
+			
+Group	도염화지삼거리3_1		
+{			
+	Vnum	7031	
+	Leader	투지범	7083
+	1	투지범졸개	7081
+	2	투지범졸개	7081
+	3	투지범졸개	7081
+}			
+			
+Group	도염화지삼거리3_2		
+{			
+	Vnum	7032	
+	Leader	화령	7082
+	1	투지범졸개	7081
+	2	투지범졸개	7081
+	3	투지범졸개	7081
+}			
+			
+Group	도염화지삼거리3_3		
+{			
+	Vnum	7033	
+	Leader	참마인	7084
+	1	투지범	7083
+	2	화령	7082
+}			
+			
+Group	도염화지삼거리3_4		
+{			
+	Vnum	7034	
+	Leader	태화무인	7085
+	1	투지범	7083
+	2	투지범	7083
+	3	화령	7082
+}			
+			
+Group	영비사막삼거리1_1		
+{			
+	Vnum	7035	
+	Leader	대왕전갈	7051
+	1	대왕전갈	7051
+	2	비마귀안	7050
+	3	비마귀안	7050
+}			
+			
+Group	영비사막삼거리1_2		
+{			
+	Vnum	7036	
+	Leader	반인반사검병	7054
+	1	반인반사검병	7054
+	2	전갈인간	7052
+	3	전갈인간	7052
+}			
+			
+Group	영비사막삼거리1_3		
+{			
+	Vnum	7037	
+	Leader	사막의무법자	7056
+	1	사막의무법자	7056
+	2	반인반사검병	7054
+	3	반인반사검병	7054
+}			
+			
+Group	영비사막삼거리1_4		
+{			
+	Vnum	7038	
+	Leader	사막의무법자	7056
+	1	사막의무법자	7056
+	2	반인반사궁병	7055
+	3	반인반사궁병	7055
+}			
+			
+Group	영비사막삼거리2_1		
+{			
+	Vnum	7039	
+	Leader	대왕전갈	7058
+	1	대왕전갈	7058
+	2	비마귀안	7057
+	3	비마귀안	7057
+}			
+			
+Group	영비사막삼거리2_2		
+{			
+	Vnum	7040	
+	Leader	반인반사검병	7061
+	1	반인반사검병	7061
+	2	전갈인간	7059
+	3	전갈인간	7059
+}			
+			
+Group	영비사막삼거리2_3		
+{			
+	Vnum	7041	
+	Leader	사막의무법자	7063
+	1	사막의무법자	7063
+	2	반인반사검병	7061
+	3	반인반사검병	7061
+}			
+			
+Group	영비사막삼거리2_4		
+{			
+	Vnum	7042	
+	Leader	사막의무법자	7063
+	1	사막의무법자	7063
+	2	반인반사궁병	7062
+	3	반인반사궁병	7062
+}			
+			
+Group	영비사막삼거리3_1		
+{			
+	Vnum	7043	
+	Leader	대왕전갈	7065
+	1	대왕전갈	7065
+	2	비마귀안	7064
+	3	비마귀안	7064
+}			
+			
+Group	영비사막삼거리3_2		
+{			
+	Vnum	7044	
+	Leader	반인반사검병	7068
+	1	반인반사검병	7068
+	2	전갈인간	7066
+	3	전갈인간	7066
+}			
+			
+Group	영비사막삼거리3_3		
+{			
+	Vnum	7045	
+	Leader	사막의무법자	7070
+	1	사막의무법자	7070
+	2	반인반사검병	7068
+	3	반인반사검병	7068
+}			
+			
+Group	영비사막삼거리3_4		
+{			
+	Vnum	7046	
+	Leader	사막의무법자	7070
+	1	사막의무법자	7070
+	2	반인반사궁병	7069
+	3	반인반사궁병	7069
+}			
+			
+Group	서한산삼거리1_1		
+{			
+	Vnum	1154	
+	Leader	빙충	7031
+	1	빙충	7031
+	2	얼음뿔범고래	7030
+	3	얼음뿔범고래	7030
+}			
+			
+Group	서한산삼거리1_2		
+{			
+	Vnum	1155	
+	Leader	빙인	7033
+	1	빙인	7033
+	2	설구	7032
+	3	설구	7032
+}			
+			
+Group	서한산삼거리1_3		
+{			
+	Vnum	1156	
+	Leader	얼음고렘	7035
+	1	얼음고렘	7035
+	2	설거인	7034
+	3	설거인	7034
+}			
+			
+Group	서한산삼거리2_1		
+{			
+	Vnum	1157	
+	Leader	빙충	7038
+	1	빙충	7038
+	2	얼음뿔범고래	7037
+	3	얼음뿔범고래	7037
+}			
+			
+Group	서한산삼거리2_2		
+{			
+	Vnum	1158	
+	Leader	빙인	7040
+	1	빙인	7040
+	2	설구	7039
+	3	설구	7039
+}			
+			
+Group	서한산삼거리2_3		
+{			
+	Vnum	1159	
+	Leader	얼음고렘	7042
+	1	얼음고렘	7042
+	2	설거인	7041
+	3	설거인	7041
+}			
+			
+Group	서한산삼거리3_1		
+{			
+	Vnum	1160	
+	Leader	빙충	7045
+	1	빙충	7045
+	2	얼음뿔범고래	7044
+	3	얼음뿔범고래	7044
+}			
+			
+Group	서한산삼거리3_2		
+{			
+	Vnum	1161	
+	Leader	빙인	7047
+	1	빙인	7047
+	2	설구	7046
+	3	설구	7046
+}			
+			
+Group	서한산삼거리3_3		
+{			
+	Vnum	1162	
+	Leader	얼음고렘	7049
+	1	얼음고렘	7049
+	2	설거인	7048
+	3	설거인	7048
+}			
+			
+Group	귀목삼거리1_1		
+{			
+	Vnum	2361	
+	Leader	밑둥귀목	7086
+	1	밑둥귀목	7086
+	2	밑둥귀목	7086
+	3	밑둥귀목	7086
+}			
+			
+Group	귀목삼거리1_2		
+{			
+	Vnum	2362	
+	Leader	목령	7087
+	1	밑둥귀목	7086
+	2	밑둥귀목	7086
+	3	밑둥귀목	7086
+}			
+			
+Group	귀목삼거리1_3		
+{			
+	Vnum	2363	
+	Leader	목령	7087
+	1	목령	7087
+	2	밑둥귀목	7086
+	3	밑둥귀목	7086
+}			
+			
+Group	귀목삼거리1_4		
+{			
+	Vnum	2364	
+	Leader	목령	7087
+	1	목령	7087
+	2	목령	7087
+}			
+			
+Group	귀목삼거리1_5		
+{			
+	Vnum	2365	
+	Leader	화류귀목	7088
+	1	목령	7087
+	2	목령	7087
+	3	밑둥귀목	7086
+	4	밑둥귀목	7086
+	5	밑둥귀목	7086
+}			
+			
+Group	귀목삼거리1_6		
+{			
+	Vnum	2366	
+	Leader	화류귀목	7088
+	1	화류귀목	7088
+	2	밑둥귀목	7086
+	3	밑둥귀목	7086
+	4	밑둥귀목	7086
+}			
+			
+Group	귀목삼거리1_7		
+{			
+	Vnum	2367	
+	Leader	화류귀목	7088
+	1	화류귀목	7088
+	2	목령	7087
+	3	목령	7087
+	4	목령	7087
+}			
+			
+Group	귀목삼거리2_1		
+{			
+	Vnum	2368	
+	Leader	밑둥귀목	7090
+	1	밑둥귀목	7090
+	2	밑둥귀목	7090
+	3	밑둥귀목	7090
+}			
+			
+Group	귀목삼거리2_2		
+{			
+	Vnum	2369	
+	Leader	목령	7091
+	1	밑둥귀목	7090
+	2	밑둥귀목	7090
+	3	밑둥귀목	7090
+}			
+			
+Group	귀목삼거리2_3		
+{			
+	Vnum	2370	
+	Leader	목령	7091
+	1	목령	7091
+	2	밑둥귀목	7090
+	3	밑둥귀목	7090
+}			
+			
+Group	귀목삼거리2_4		
+{			
+	Vnum	2371	
+	Leader	목령	7091
+	1	목령	7091
+	2	목령	7091
+}			
+			
+Group	귀목삼거리2_5		
+{			
+	Vnum	2372	
+	Leader	화류귀목	7092
+	1	목령	7091
+	2	목령	7091
+	3	밑둥귀목	7090
+	4	밑둥귀목	7090
+	5	밑둥귀목	7090
+}			
+			
+Group	귀목삼거리2_6		
+{			
+	Vnum	2373	
+	Leader	화류귀목	7092
+	1	화류귀목	7092
+	2	밑둥귀목	7090
+	3	밑둥귀목	7090
+	4	밑둥귀목	7090
+}			
+			
+Group	귀목삼거리2_7		
+{			
+	Vnum	2374	
+	Leader	화류귀목	7092
+	1	화류귀목	7092
+	2	목령	7091
+	3	목령	7091
+	4	목령	7091
+}			
+			
+Group	귀목삼거리3_1		
+{			
+	Vnum	2375	
+	Leader	밑둥귀목	7094
+	1	밑둥귀목	7094
+	2	밑둥귀목	7094
+	3	밑둥귀목	7094
+}			
+			
+Group	귀목삼거리3_2		
+{			
+	Vnum	2376	
+	Leader	목령	7095
+	1	밑둥귀목	7094
+	2	밑둥귀목	7094
+	3	밑둥귀목	7094
+}			
+			
+Group	귀목삼거리3_3		
+{			
+	Vnum	2377	
+	Leader	목령	7095
+	1	목령	7095
+	2	밑둥귀목	7094
+	3	밑둥귀목	7094
+}			
+			
+Group	귀목삼거리3_4		
+{			
+	Vnum	2378	
+	Leader	목령	7095
+	1	목령	7095
+	2	목령	7095
+}			
+			
+Group	귀목삼거리3_5		
+{			
+	Vnum	2379	
+	Leader	화류귀목	7096
+	1	목령	7095
+	2	목령	7095
+	3	밑둥귀목	7094
+	4	밑둥귀목	7094
+	5	밑둥귀목	7094
+}			
+			
+Group	귀목삼거리3_6		
+{			
+	Vnum	2380	
+	Leader	화류귀목	7096
+	1	화류귀목	7096
+	2	밑둥귀목	7094
+	3	밑둥귀목	7094
+	4	밑둥귀목	7094
+}			
+			
+Group	귀목삼거리3_7		
+{			
+	Vnum	2381	
+	Leader	화류귀목	7096
+	1	화류귀목	7096
+	2	목령	7095
+	3	목령	7095
+	4	목령	7095
+}			
+Group	거미동굴3층_새끼거미(PAWN)-새끼거미(PAWN)		
+{			
+	Vnum	2071	
+	Leader	새끼거미	2071
+	1	새끼거미	2071
+	2	새끼거미	2071
+}			
+			
+Group	거미동굴3층_독거미(PAWN)-새끼거미(PAWN)		
+{			
+	Vnum	2072	
+	Leader	독거미	2072
+	1	새끼거미	2071
+	2	새끼거미	2071
+}			
+			
+Group	거미동굴3층_독거미(PAWN)-독거미(PAWN)		
+{			
+	Vnum	2073	
+	Leader	독거미	2072
+	1	독거미	2072
+	2	새끼거미	2071
+}			
+			
+Group	거미동굴3층_붉은독거미(S_PAWN)-독거미(PAWN)		
+{			
+	Vnum	2074	
+	Leader	붉은독거미	2073
+	1	독거미	2072
+	2	독거미	2072
+}			
+			
+Group	거미동굴3층_붉은독거미(S_PAWN)-붉은독거미(S_PAWN)		
+{			
+	Vnum	2075	
+	Leader	붉은독거미	2073
+	1	붉은독거미	2073
+	2	독거미	2072
+}			
+			
+Group	거미동굴3층_집게거미(S_PAWN)-붉은독거미(S_PAWN)		
+{			
+	Vnum	2076	
+	Leader	집게거미	2074
+	1	붉은독거미	2073
+	2	붉은독거미	2073
+}			
+			
+Group	거미동굴3층_집게거미(S_PAWN)-집게거미(S_PAWN)		
+{			
+	Vnum	2077	
+	Leader	집게거미	2074
+	1	집게거미	2074
+	2	붉은독거미	2073
+}			
+			
+Group	거미동굴3층_병정거미(S_PAWN)-집게거미(S_PAWN)		
+{			
+	Vnum	2078	
+	Leader	병정거미	2075
+	1	집게거미	2074
+	2	집게거미	2074
+}			
+			
+Group	거미동굴3층_병정거미(S_PAWN)-병정거미(S_PAWN)		
+{			
+	Vnum	2079	
+	Leader	병정거미	2075
+	1	병정거미	2075
+	2	집게거미	2074
+}
+
+Group	악룡군도_3001_낭인족졸개		
+{			
+	Vnum	3001	
+	Leader	낭인족졸개	3001
+	1	낭인족졸개	3001
+	2	낭인족졸개	3001
+}			
+			
+Group	악룡군도_3002_낭인족상급졸개		
+{			
+	Vnum	3002	
+	Leader	낭인족상급졸개	3002
+	1	낭인족졸개	3001
+	2	낭인족졸개	3001
+}			
+			
+Group	악룡군도_3003_낭인족상급졸개		
+{			
+	Vnum	3003	
+	Leader	낭인족상급졸개	3002
+	1	낭인족상급졸개	3002
+	2	낭인족상급졸개	3002
+}			
+			
+Group	악룡군도_3004_낭인족원거리		
+{			
+	Vnum	3004	
+	Leader	낭인족원거리	3003
+	1	낭인족상급졸개	3002
+	2	낭인족상급졸개	3002
+}			
+			
+Group	악룡군도_3005_낭인족원거리		
+{			
+	Vnum	3005	
+	Leader	낭인족원거리	3003
+	1	낭인족원거리	3003
+	2	낭인족원거리	3003
+}			
+			
+Group	악룡군도_3006_낭인족장군		
+{			
+	Vnum	3006	
+	Leader	낭인족장군	3004
+	1	낭인족원거리	3003
+	2	낭인족상급졸개	3002
+	3	낭인족상급졸개	3002
+}			
+			
+Group	악룡군도_3007_낭인족상급장수		
+{			
+	Vnum	3007	
+	Leader	낭인족상급장수	3005
+	1	낭인족장군	3004
+	2	낭인족장군	3004
+	3	낭인족상급졸개	3002
+	4	낭인족상급졸개	3002
+}			
+			
+Group	악룡군도_3008_낭인족보스		
+{			
+	Vnum	3008	
+	Leader	낭인족보스	3090
+	1	낭인족상급장수	3005
+	2	낭인족상급장수	3005
+	3	낭인족장군	3004
+	4	낭인족장군	3004
+	5	낭인족장군	3004
+	6	낭인족원거리	3003
+	7	낭인족원거리	3003
+	8	낭인족상급졸개	3002
+	9	낭인족상급졸개	3002
+	10	낭인족상급졸개	3002
+	11	낭인족상급졸개	3002
+}			
+			
+Group	악룡군도_3009_낭인족최종보스		
+{			
+	Vnum	3009	
+	Leader	낭인족최종보스	3091
+	1	낭인족상급장수	3005
+	2	낭인족상급장수	3005
+	3	낭인족장군	3004
+	4	낭인족장군	3004
+	5	낭인족장군	3004
+	6	낭인족원거리	3003
+	7	낭인족원거리	3003
+	8	낭인족상급졸개	3002
+	9	낭인족상급졸개	3002
+	10	낭인족상급졸개	3002
+	11	낭인족상급졸개	3002
+}			
+			
+Group	악룡군도_3011_외안투귀족졸개		
+{			
+	Vnum	3011	
+	Leader	외안투귀족졸개	3101
+	1	외안투귀족졸개	3101
+	2	외안투귀족졸개	3101
+}			
+			
+Group	악룡군도_3012_외안투귀족상급졸개		
+{			
+	Vnum	3012	
+	Leader	외안투귀족상급졸개	3102
+	1	외안투귀족졸개	3101
+	2	외안투귀족졸개	3101
+}			
+			
+Group	악룡군도_3013_외안투귀족상급졸개		
+{			
+	Vnum	3013	
+	Leader	외안투귀족상급졸개	3102
+	1	외안투귀족상급졸개	3102
+	2	외안투귀족상급졸개	3102
+}			
+			
+Group	악룡군도_3014_외안투귀족원거리		
+{			
+	Vnum	3014	
+	Leader	외안투귀족원거리	3103
+	1	외안투귀족상급졸개	3102
+	2	외안투귀족상급졸개	3102
+}			
+			
+Group	악룡군도_3015_외안투귀족원거리		
+{			
+	Vnum	3015	
+	Leader	외안투귀족원거리	3103
+	1	외안투귀족원거리	3103
+	2	외안투귀족원거리	3103
+}			
+			
+Group	악룡군도_3016_외안투귀족장군		
+{			
+	Vnum	3016	
+	Leader	외안투귀족장군	3104
+	1	외안투귀족원거리	3103
+	2	외안투귀족상급졸개	3102
+	3	외안투귀족상급졸개	3102
+}			
+			
+Group	악룡군도_3017_외안투귀족상급장수		
+{			
+	Vnum	3017	
+	Leader	외안투귀족상급장수	3105
+	1	외안투귀족장군	3104
+	2	외안투귀족장군	3104
+	3	외안투귀족상급졸개	3102
+	4	외안투귀족상급졸개	3102
+}			
+			
+Group	악룡군도_3018_외안투귀족보스		
+{			
+	Vnum	3018	
+	Leader	외안투귀족보스	3190
+	1	외안투귀족상급장수	3105
+	2	외안투귀족상급장수	3105
+	3	외안투귀족장군	3104
+	4	외안투귀족장군	3104
+	5	외안투귀족장군	3104
+	6	외안투귀족원거리	3103
+	7	외안투귀족원거리	3103
+	8	외안투귀족상급졸개	3102
+	9	외안투귀족상급졸개	3102
+	10	외안투귀족상급졸개	3102
+	11	외안투귀족상급졸개	3102
+}			
+			
+Group	악룡군도_3019_외안투귀족최종보스		
+{			
+	Vnum	3019	
+	Leader	외안투귀족최종보스	3191
+	1	외안투귀족상급장수	3105
+	2	외안투귀족상급장수	3105
+	3	외안투귀족장군	3104
+	4	외안투귀족장군	3104
+	5	외안투귀족장군	3104
+	6	외안투귀족원거리	3103
+	7	외안투귀족원거리	3103
+	8	외안투귀족상급졸개	3102
+	9	외안투귀족상급졸개	3102
+	10	외안투귀족상급졸개	3102
+	11	외안투귀족상급졸개	3102
+}			
+			
+Group	악룡군도_3021_범익족졸개		
+{			
+	Vnum	3021	
+	Leader	범익족졸개	3201
+	1	범익족졸개	3201
+	2	범익족졸개	3201
+}			
+			
+Group	악룡군도_3022_범익족상급졸개		
+{			
+	Vnum	3022	
+	Leader	범익족상급졸개	3202
+	1	범익족졸개	3201
+	2	범익족졸개	3201
+}			
+			
+Group	악룡군도_3023_범익족상급졸개		
+{			
+	Vnum	3023	
+	Leader	범익족상급졸개	3202
+	1	범익족상급졸개	3202
+	2	범익족상급졸개	3202
+}			
+			
+Group	악룡군도_3024_범익족원거리		
+{			
+	Vnum	3024	
+	Leader	범익족원거리	3203
+	1	범익족상급졸개	3202
+	2	범익족상급졸개	3202
+}			
+			
+Group	악룡군도_3025_범익족원거리		
+{			
+	Vnum	3025	
+	Leader	범익족원거리	3203
+	1	범익족원거리	3203
+	2	범익족원거리	3203
+}			
+			
+Group	악룡군도_3026_범익족장군		
+{			
+	Vnum	3026	
+	Leader	범익족장군	3204
+	1	범익족원거리	3203
+	2	범익족상급졸개	3202
+	3	범익족상급졸개	3202
+}			
+			
+Group	악룡군도_3027_범익족상급장수		
+{			
+	Vnum	3027	
+	Leader	범익족상급장수	3205
+	1	범익족장군	3204
+	2	범익족장군	3204
+	3	범익족상급졸개	3202
+	4	범익족상급졸개	3202
+}			
+			
+Group	악룡군도_3028_범익족보스		
+{			
+	Vnum	3028	
+	Leader	범익족보스	3290
+	1	범익족상급장수	3205
+	2	범익족상급장수	3205
+	3	범익족장군	3204
+	4	범익족장군	3204
+	5	범익족장군	3204
+	6	범익족원거리	3203
+	7	범익족원거리	3203
+	8	범익족상급졸개	3202
+	9	범익족상급졸개	3202
+	10	범익족상급졸개	3202
+	11	범익족상급졸개	3202
+}			
+			
+Group	악룡군도_3029_범익족최종보스		
+{			
+	Vnum	3029	
+	Leader	범익족최종보스	3291
+	1	범익족상급장수	3205
+	2	범익족상급장수	3205
+	3	범익족장군	3204
+	4	범익족장군	3204
+	5	범익족장군	3204
+	6	범익족원거리	3203
+	7	범익족원거리	3203
+	8	범익족상급졸개	3202
+	9	범익족상급졸개	3202
+	10	범익족상급졸개	3202
+	11	범익족상급졸개	3202
+}			
+			
+Group	악룡군도_3031_망량족졸개		
+{			
+	Vnum	3031	
+	Leader	망량족졸개	3301
+	1	망량족졸개	3301
+	2	망량족졸개	3301
+}			
+			
+Group	악룡군도_3032_망량족상급졸개		
+{			
+	Vnum	3032	
+	Leader	망량족상급졸개	3302
+	1	망량족졸개	3301
+	2	망량족졸개	3301
+}			
+			
+Group	악룡군도_3033_망량족상급졸개		
+{			
+	Vnum	3033	
+	Leader	망량족상급졸개	3302
+	1	망량족상급졸개	3302
+	2	망량족상급졸개	3302
+}			
+			
+Group	악룡군도_3034_망량족원거리		
+{			
+	Vnum	3034	
+	Leader	망량족원거리	3303
+	1	망량족상급졸개	3302
+	2	망량족상급졸개	3302
+}			
+			
+Group	악룡군도_3035_망량족원거리		
+{			
+	Vnum	3035	
+	Leader	망량족원거리	3303
+	1	망량족원거리	3303
+	2	망량족원거리	3303
+}			
+			
+Group	악룡군도_3036_망량족장군		
+{			
+	Vnum	3036	
+	Leader	망량족장군	3304
+	1	망량족원거리	3303
+	2	망량족상급졸개	3302
+	3	망량족상급졸개	3302
+}			
+			
+Group	악룡군도_3037_망량족상급장수		
+{			
+	Vnum	3037	
+	Leader	망량족상급장수	3305
+	1	망량족장군	3304
+	2	망량족장군	3304
+	3	망량족상급졸개	3302
+	4	망량족상급졸개	3302
+}			
+			
+Group	악룡군도_3038_망량족보스		
+{			
+	Vnum	3038	
+	Leader	망량족보스	3390
+	1	망량족상급장수	3305
+	2	망량족상급장수	3305
+	3	망량족장군	3304
+	4	망량족장군	3304
+	5	망량족장군	3304
+	6	망량족원거리	3303
+	7	망량족원거리	3303
+	8	망량족상급졸개	3302
+	9	망량족상급졸개	3302
+	10	망량족상급졸개	3302
+	11	망량족상급졸개	3302
+}			
+			
+Group	악룡군도_3039_망량족최종보스		
+{			
+	Vnum	3039	
+	Leader	망량족최종보스	3391
+	1	망량족상급장수	3305
+	2	망량족상급장수	3305
+	3	망량족장군	3304
+	4	망량족장군	3304
+	5	망량족장군	3304
+	6	망량족원거리	3303
+	7	망량족원거리	3303
+	8	망량족상급졸개	3302
+	9	망량족상급졸개	3302
+	10	망량족상급졸개	3302
+	11	망량족상급졸개	3302
+}			
+			
+Group	악룡군도_3041_어인족졸개		
+{			
+	Vnum	3041	
+	Leader	어인족졸개	3401
+	1	어인족졸개	3401
+	2	어인족졸개	3401
+}			
+			
+Group	악룡군도_3042_어인족상급졸개		
+{			
+	Vnum	3042	
+	Leader	어인족상급졸개	3402
+	1	어인족졸개	3401
+	2	어인족졸개	3401
+}			
+			
+Group	악룡군도_3043_어인족상급졸개		
+{			
+	Vnum	3043	
+	Leader	어인족상급졸개	3402
+	1	어인족상급졸개	3402
+	2	어인족상급졸개	3402
+}			
+			
+Group	악룡군도_3044_어인족원거리		
+{			
+	Vnum	3044	
+	Leader	어인족원거리	3403
+	1	어인족상급졸개	3402
+	2	어인족상급졸개	3402
+}			
+			
+Group	악룡군도_3045_어인족원거리		
+{			
+	Vnum	3045	
+	Leader	어인족원거리	3403
+	1	어인족원거리	3403
+	2	어인족원거리	3403
+}			
+			
+Group	악룡군도_3046_어인족장군		
+{			
+	Vnum	3046	
+	Leader	어인족장군	3404
+	1	어인족원거리	3403
+	2	어인족상급졸개	3402
+	3	어인족상급졸개	3402
+}			
+			
+Group	악룡군도_3047_어인족상급장수		
+{			
+	Vnum	3047	
+	Leader	어인족상급장수	3405
+	1	어인족장군	3404
+	2	어인족장군	3404
+	3	어인족상급졸개	3402
+	4	어인족상급졸개	3402
+}			
+			
+Group	악룡군도_3048_어인족보스		
+{			
+	Vnum	3048	
+	Leader	어인족보스	3490
+	1	어인족상급장수	3405
+	2	어인족상급장수	3405
+	3	어인족장군	3404
+	4	어인족장군	3404
+	5	어인족장군	3404
+	6	어인족원거리	3403
+	7	어인족원거리	3403
+	8	어인족상급졸개	3402
+	9	어인족상급졸개	3402
+	10	어인족상급졸개	3402
+	11	어인족상급졸개	3402
+}			
+			
+Group	악룡군도_3049_어인족최종보스		
+{			
+	Vnum	3049	
+	Leader	어인족최종보스	3491
+	1	어인족상급장수	3405
+	2	어인족상급장수	3405
+	3	어인족장군	3404
+	4	어인족장군	3404
+	5	어인족장군	3404
+	6	어인족원거리	3403
+	7	어인족원거리	3403
+	8	어인족상급졸개	3402
+	9	어인족상급졸개	3402
+	10	어인족상급졸개	3402
+	11	어인족상급졸개	3402
+}			
+			
+Group	악룡군도_3051_붉은도적단졸개		
+{			
+	Vnum	3051	
+	Leader	붉은도적단졸개	3501
+	1	붉은도적단졸개	3501
+	2	붉은도적단졸개	3501
+}			
+			
+Group	악룡군도_3052_붉은도적단상급졸개		
+{			
+	Vnum	3052	
+	Leader	붉은도적단상급졸개	3502
+	1	붉은도적단졸개	3501
+	2	붉은도적단졸개	3501
+}			
+			
+Group	악룡군도_3053_붉은도적단상급졸개		
+{			
+	Vnum	3053	
+	Leader	붉은도적단상급졸개	3502
+	1	붉은도적단상급졸개	3502
+	2	붉은도적단상급졸개	3502
+}			
+			
+Group	악룡군도_3054_붉은도적단원거리		
+{			
+	Vnum	3054	
+	Leader	붉은도적단원거리	3503
+	1	붉은도적단상급졸개	3502
+	2	붉은도적단상급졸개	3502
+}			
+			
+Group	악룡군도_3055_붉은도적단원거리		
+{			
+	Vnum	3055	
+	Leader	붉은도적단원거리	3503
+	1	붉은도적단원거리	3503
+	2	붉은도적단원거리	3503
+}			
+			
+Group	악룡군도_3056_붉은도적단장군		
+{			
+	Vnum	3056	
+	Leader	붉은도적단장군	3504
+	1	붉은도적단원거리	3503
+	2	붉은도적단상급졸개	3502
+	3	붉은도적단상급졸개	3502
+}			
+			
+Group	악룡군도_3057_붉은도적단상급장수		
+{			
+	Vnum	3057	
+	Leader	붉은도적단상급장수	3505
+	1	붉은도적단장군	3504
+	2	붉은도적단장군	3504
+	3	붉은도적단상급졸개	3502
+	4	붉은도적단상급졸개	3502
+}			
+			
+Group	악룡군도_3058_붉은도적단보스		
+{			
+	Vnum	3058	
+	Leader	붉은도적단보스	3590
+	1	붉은도적단상급장수	3505
+	2	붉은도적단상급장수	3505
+	3	붉은도적단장군	3504
+	4	붉은도적단장군	3504
+	5	붉은도적단장군	3504
+	6	붉은도적단원거리	3503
+	7	붉은도적단원거리	3503
+	8	붉은도적단상급졸개	3502
+	9	붉은도적단상급졸개	3502
+	10	붉은도적단상급졸개	3502
+	11	붉은도적단상급졸개	3502
+}			
+			
+Group	악룡군도_3059_붉은도적단최종보스		
+{			
+	Vnum	3059	
+	Leader	붉은도적단최종보스	3591
+	1	붉은도적단상급장수	3505
+	2	붉은도적단상급장수	3505
+	3	붉은도적단장군	3504
+	4	붉은도적단장군	3504
+	5	붉은도적단장군	3504
+	6	붉은도적단원거리	3503
+	7	붉은도적단원거리	3503
+	8	붉은도적단상급졸개	3502
+	9	붉은도적단상급졸개	3502
+	10	붉은도적단상급졸개	3502
+	11	붉은도적단상급졸개	3502
+}			
+			
+Group	악룡군도_3061_붉은도적단2졸개		
+{			
+	Vnum	3061	
+	Leader	붉은도적단2졸개	3551
+	1	붉은도적단2졸개	3551
+	2	붉은도적단2졸개	3551
+}			
+			
+Group	악룡군도_3062_붉은도적단2상급졸개		
+{			
+	Vnum	3062	
+	Leader	붉은도적단2상급졸개	3552
+	1	붉은도적단2졸개	3551
+	2	붉은도적단2졸개	3551
+}			
+			
+Group	악룡군도_3063_붉은도적단2상급졸개		
+{			
+	Vnum	3063	
+	Leader	붉은도적단2상급졸개	3552
+	1	붉은도적단2상급졸개	3552
+	2	붉은도적단2상급졸개	3552
+}			
+			
+Group	악룡군도_3064_붉은도적단2원거리		
+{			
+	Vnum	3064	
+	Leader	붉은도적단2원거리	3553
+	1	붉은도적단2상급졸개	3552
+	2	붉은도적단2상급졸개	3552
+}			
+			
+Group	악룡군도_3065_붉은도적단2원거리		
+{			
+	Vnum	3065	
+	Leader	붉은도적단2원거리	3553
+	1	붉은도적단2원거리	3553
+	2	붉은도적단2원거리	3553
+}			
+			
+Group	악룡군도_3066_붉은도적단2장군		
+{			
+	Vnum	3066	
+	Leader	붉은도적단2장군	3554
+	1	붉은도적단2원거리	3553
+	2	붉은도적단2상급졸개	3552
+	3	붉은도적단2상급졸개	3552
+}			
+			
+Group	악룡군도_3067_붉은도적단2상급장수		
+{			
+	Vnum	3067	
+	Leader	붉은도적단2상급장수	3555
+	1	붉은도적단2장군	3554
+	2	붉은도적단2장군	3554
+	3	붉은도적단2상급졸개	3552
+	4	붉은도적단2상급졸개	3552
+}			
+			
+Group	악룡군도_3068_붉은도적단2보스		
+{			
+	Vnum	3068	
+	Leader	붉은도적단2보스	3595
+	1	붉은도적단2상급장수	3555
+	2	붉은도적단2상급장수	3555
+	3	붉은도적단2장군	3554
+	4	붉은도적단2장군	3554
+	5	붉은도적단2장군	3554
+	6	붉은도적단2원거리	3553
+	7	붉은도적단2원거리	3553
+	8	붉은도적단2상급졸개	3552
+	9	붉은도적단2상급졸개	3552
+	10	붉은도적단2상급졸개	3552
+	11	붉은도적단2상급졸개	3552
+}			
+			
+Group	악룡군도_3069_붉은도적단2최종보스		
+{			
+	Vnum	3069	
+	Leader	붉은도적단2최종보스	3596
+	1	붉은도적단2상급장수	3555
+	2	붉은도적단2상급장수	3555
+	3	붉은도적단2장군	3554
+	4	붉은도적단2장군	3554
+	5	붉은도적단2장군	3554
+	6	붉은도적단2원거리	3553
+	7	붉은도적단2원거리	3553
+	8	붉은도적단2상급졸개	3552
+	9	붉은도적단2상급졸개	3552
+	10	붉은도적단2상급졸개	3552
+	11	붉은도적단2상급졸개	3552
+}			
+			
+Group	악룡군도_3071_갑각류졸개		
+{			
+	Vnum	3071	
+	Leader	갑각류졸개	3601
+	1	갑각류졸개	3601
+	2	갑각류졸개	3601
+}			
+			
+Group	악룡군도_3072_갑각류상급졸개		
+{			
+	Vnum	3072	
+	Leader	갑각류상급졸개	3602
+	1	갑각류졸개	3601
+	2	갑각류졸개	3601
+}			
+			
+Group	악룡군도_3073_갑각류상급졸개		
+{			
+	Vnum	3073	
+	Leader	갑각류상급졸개	3602
+	1	갑각류상급졸개	3602
+	2	갑각류상급졸개	3602
+}			
+			
+Group	악룡군도_3074_갑각류원거리		
+{			
+	Vnum	3074	
+	Leader	갑각류원거리	3603
+	1	갑각류상급졸개	3602
+	2	갑각류상급졸개	3602
+}			
+			
+Group	악룡군도_3075_갑각류원거리		
+{			
+	Vnum	3075	
+	Leader	갑각류원거리	3603
+	1	갑각류원거리	3603
+	2	갑각류원거리	3603
+}			
+			
+Group	악룡군도_3076_갑각류장군		
+{			
+	Vnum	3076	
+	Leader	갑각류장군	3604
+	1	갑각류원거리	3603
+	2	갑각류상급졸개	3602
+	3	갑각류상급졸개	3602
+}			
+			
+Group	악룡군도_3077_갑각류상급장수		
+{			
+	Vnum	3077	
+	Leader	갑각류상급장수	3605
+	1	갑각류장군	3604
+	2	갑각류장군	3604
+	3	갑각류상급졸개	3602
+	4	갑각류상급졸개	3602
+}			
+			
+Group	악룡군도_3078_갑각류상급장수		
+{			
+	Vnum	3078	
+	Leader	갑각류상급장수	3690
+	1	갑각류상급장수	3605
+	2	갑각류상급장수	3605
+	3	갑각류장군	3604
+	4	갑각류장군	3604
+	5	갑각류장군	3604
+	6	갑각류원거리	3603
+	7	갑각류원거리	3603
+	8	갑각류상급졸개	3602
+	9	갑각류상급졸개	3602
+	10	갑각류상급졸개	3602
+	11	갑각류상급졸개	3602
+}			
+			
+Group	악룡군도_3079_갑각류상급장수		
+{			
+	Vnum	3079	
+	Leader	갑각류상급장수	3691
+	1	갑각류상급장수	3605
+	2	갑각류상급장수	3605
+	3	갑각류장군	3604
+	4	갑각류장군	3604
+	5	갑각류장군	3604
+	6	갑각류원거리	3603
+	7	갑각류원거리	3603
+	8	갑각류상급졸개	3602
+	9	갑각류상급졸개	3602
+	10	갑각류상급졸개	3602
+	11	갑각류상급졸개	3602
+}			
+			
+Group	악룡군도_3081_거인족졸개		
+{			
+	Vnum	3081	
+	Leader	거인족졸개	3701
+	1	거인족졸개	3701
+	2	거인족졸개	3701
+}			
+			
+Group	악룡군도_3082_거인족상급졸개		
+{			
+	Vnum	3082	
+	Leader	거인족상급졸개	3702
+	1	거인족졸개	3701
+	2	거인족졸개	3701
+}			
+			
+Group	악룡군도_3083_거인족상급졸개		
+{			
+	Vnum	3083	
+	Leader	거인족상급졸개	3702
+	1	거인족상급졸개	3702
+	2	거인족상급졸개	3702
+}			
+			
+Group	악룡군도_3084_거인족원거리		
+{			
+	Vnum	3084	
+	Leader	거인족원거리	3703
+	1	거인족상급졸개	3702
+	2	거인족상급졸개	3702
+}			
+			
+Group	악룡군도_3085_거인족원거리		
+{			
+	Vnum	3085	
+	Leader	거인족원거리	3703
+	1	거인족원거리	3703
+	2	거인족원거리	3703
+}			
+			
+Group	악룡군도_3086_거인족장군		
+{			
+	Vnum	3086	
+	Leader	거인족장군	3704
+	1	거인족원거리	3703
+	2	거인족상급졸개	3702
+	3	거인족상급졸개	3702
+}			
+			
+Group	악룡군도_3087_거인족상급장수		
+{			
+	Vnum	3087	
+	Leader	거인족상급장수	3705
+	1	거인족장군	3704
+	2	거인족장군	3704
+	3	거인족상급졸개	3702
+	4	거인족상급졸개	3702
+}			
+			
+Group	악룡군도_3088_거인족상급장수		
+{			
+	Vnum	3088	
+	Leader	거인족상급장수	3790
+	1	거인족상급장수	3705
+	2	거인족상급장수	3705
+	3	거인족장군	3704
+	4	거인족장군	3704
+	5	거인족장군	3704
+	6	거인족원거리	3703
+	7	거인족원거리	3703
+	8	거인족상급졸개	3702
+	9	거인족상급졸개	3702
+	10	거인족상급졸개	3702
+	11	거인족상급졸개	3702
+}			
+			
+Group	악룡군도_3089_거인족상급장수		
+{			
+	Vnum	3089	
+	Leader	거인족상급장수	3791
+	1	거인족상급장수	3705
+	2	거인족상급장수	3705
+	3	거인족장군	3704
+	4	거인족장군	3704
+	5	거인족장군	3704
+	6	거인족원거리	3703
+	7	거인족원거리	3703
+	8	거인족상급졸개	3702
+	9	거인족상급졸개	3702
+	10	거인족상급졸개	3702
+	11	거인족상급졸개	3702
+}			
+			
+Group	악룡군도_3091_저인족졸개		
+{			
+	Vnum	3091	
+	Leader	저인족졸개	3801
+	1	저인족졸개	3801
+	2	저인족졸개	3801
+}			
+			
+Group	악룡군도_3092_저인족원거리		
+{			
+	Vnum	3092	
+	Leader	저인족원거리	3802
+	1	저인족졸개	3801
+	2	저인족졸개	3801
+}			
+			
+Group	악룡군도_3093_저인족원거리		
+{			
+	Vnum	3093	
+	Leader	저인족원거리	3802
+	1	저인족원거리	3802
+	2	저인족원거리	3802
+}			
+			
+Group	악룡군도_3094_저인족마법사		
+{			
+	Vnum	3094	
+	Leader	저인족마법사	3803
+	1	저인족원거리	3802
+	2	저인족원거리	3802
+}			
+			
+Group	악룡군도_3095_저인족마법사		
+{			
+	Vnum	3095	
+	Leader	저인족마법사	3803
+	1	저인족마법사	3803
+	2	저인족마법사	3803
+}			
+			
+Group	악룡군도_3096_저인족장수		
+{			
+	Vnum	3096	
+	Leader	저인족장수	3804
+	1	저인족마법사	3803
+	2	저인족원거리	3802
+	3	저인족원거리	3802
+}			
+			
+Group	악룡군도_3097_저인족상급장수		
+{			
+	Vnum	3097	
+	Leader	저인족상급장수	3805
+	1	저인족장수	3804
+	2	저인족장수	3804
+	3	저인족원거리	3802
+	4	저인족원거리	3802
+}			
+			
+Group	악룡군도_3098_저인족상급장수		
+{			
+	Vnum	3098	
+	Leader	저인족상급장수	3890
+	1	저인족상급장수	3805
+	2	저인족상급장수	3805
+	3	저인족장수	3804
+	4	저인족장수	3804
+	5	저인족장수	3804
+	6	저인족마법사	3803
+	7	저인족마법사	3803
+	8	저인족원거리	3802
+	9	저인족원거리	3802
+	10	저인족원거리	3802
+	11	저인족원거리	3802
+}			
+			
+Group	악룡군도_3099_저인족상급장수		
+{			
+	Vnum	3099	
+	Leader	저인족상급장수	3891
+	1	저인족상급장수	3805
+	2	저인족상급장수	3805
+	3	저인족장수	3804
+	4	저인족장수	3804
+	5	저인족장수	3804
+	6	저인족마법사	3803
+	7	저인족마법사	3803
+	8	저인족원거리	3802
+	9	저인족원거리	3802
+	10	저인족원거리	3802
+	11	저인족원거리	3802
+}			
+			
+Group	악룡군도경비병		
+{			
+	Vnum	12008	
+	Leader	.	20025
+	1	용두곳경비병	20373
+}			
+			
+Group	악룡군도QuestMobGroup001		
+{			
+	Vnum	20001	
+	Leader	지무신왕	3904
+	1	외안투귀족원거리	3103
+	2	외안투귀족상급졸개	3102
+	3	외안투귀족상급졸개	3102
+}			
+			
+Group	악룡군도QuestMobGroup002		
+{			
+	Vnum	20002	
+	Leader	천무신녀	3905
+	1	망량족상급장수	3305
+	2	망량족장군	3304
+	3	망량족장군	3304
+	4	망량족상급졸개	3302
+	5	망량족상급졸개	3302
+}			
+			
+Group	악룡군도QuestMobGroup003		
+{			
+	Vnum	20003	
+	Leader	진천무신녀	3906
+	1	망량족상급장수	3305
+	2	망량족장군	3304
+	3	망량족장군	3304
+	4	망량족상급졸개	3302
+	5	망량족상급졸개	3302
+}			
+			
+Group	악룡군도QuestMobGroup004		
+{			
+	Vnum	20004	
+	Leader	흑사단장	3910
+	1	흑사대상급장군	3909
+	2	흑사대장수	3908
+	3	흑사대장수	3908
+	4	흑사대궁수	3907
+	5	흑사대궁수	3907
+}			
+			
+Group	첨정석광맥		
+{			
+	Vnum	30301	
+	Leader	첨정석광맥	30301
+}			
+			
+			
+Group	홍옥광맥		
+{			
+	Vnum	30302	
+	Leader	홍옥광맥	30302
+}			
+			
+			
+Group	석류석광맥		
+{			
+	Vnum	30303	
+	Leader	석류석광맥	30303
+}			
+			
+			
+Group	녹주석광맥		
+{			
+	Vnum	30304	
+	Leader	녹주석광맥	30304
+}			
+			
+			
+Group	청옥광맥		
+{			
+	Vnum	30305	
+	Leader	청옥광맥	30305
+}			
+
+Group	적룡성_6001_화정		
+{			
+	Vnum	6001	
+	Leader	화정	6001
+	1	화정	6001
+	2	화정	6001
+}			
+			
+Group	적룡성_6002_염정		
+{			
+	Vnum	6002	
+	Leader	염정	6002
+	1	화정	6001
+	2	화정	6001
+}			
+			
+Group	적룡성_6003_염정		
+{			
+	Vnum	6003	
+	Leader	염정	6002
+	1	염정	6002
+	2	염정	6002
+}			
+			
+Group	적룡성_6004_극열정		
+{			
+	Vnum	6004	
+	Leader	극열정	6003
+	1	염정	6002
+	2	염정	6002
+}			
+			
+Group	적룡성_6005_극열정		
+{			
+	Vnum	6005	
+	Leader	극열정	6003
+	1	극열정	6003
+	2	극열정	6003
+}			
+			
+Group	적룡성_6006_혈화정		
+{			
+	Vnum	6006	
+	Leader	혈화정	6004
+	1	극열정	6003
+	2	염정	6002
+	3	염정	6002
+}			
+			
+Group	적룡성_6007_화마		
+{			
+	Vnum	6007	
+	Leader	화마	6005
+	1	혈화정	6004
+	2	혈화정	6004
+	3	염정	6002
+	4	염정	6002
+}			
+			
+Group	적룡성_6008_염마		
+{			
+	Vnum	6008	
+	Leader	염마	6006
+	1	화마	6005
+	2	혈화정	6004
+	3	혈화정	6004
+}			
+			
+Group	적룡성_6009_화괴		
+{			
+	Vnum	6009	
+	Leader	화괴	6007
+	1	염마	6006
+	2	염마	6006
+	3	화마	6005
+	4	화마	6005
+}			
+			
+Group	적룡성_6010_염괴		
+{			
+	Vnum	6010	
+	Leader	염괴	6008
+	1	화괴	6007
+	2	염마	6006
+	3	염마	6006
+}			
+			
+Group	적룡성_6011_초열괴		
+{			
+	Vnum	6011	
+	Leader	초열괴	6009
+	1	염괴	6008
+	2	염괴	6008
+	3	화괴	6007
+	4	화괴	6007
+}			
+			
+Group	적룡성_6012_야마천		
+{			
+	Vnum	6012	
+	Leader	야마천	6091
+	1	초열괴	6009
+	2	초열괴	6009
+	3	염괴	6008
+	4	염괴	6008
+	5	염괴	6008
+	6	화괴	6007
+	7	화괴	6007
+	8	화괴	6007
+	9	염마	6006
+	10	염마	6006
+	11	염마	6006
+}			
+			
+Group	백룡지성_6051_빙정		
+{			
+	Vnum	6051	
+	Leader	빙정	6101
+	1	빙정	6101
+	2	빙정	6101
+}			
+			
+Group	백룡지성_6052_냉정		
+{			
+	Vnum	6052	
+	Leader	냉정	6102
+	1	빙정	6101
+	2	빙정	6101
+}			
+			
+Group	백룡지성_6053_냉정		
+{			
+	Vnum	6053	
+	Leader	냉정	6102
+	1	냉정	6102
+	2	냉정	6102
+}			
+			
+Group	백룡지성_6054_극빙정		
+{			
+	Vnum	6054	
+	Leader	극빙정	6103
+	1	냉정	6102
+	2	냉정	6102
+}			
+			
+Group	백룡지성_6055_극빙정		
+{			
+	Vnum	6055	
+	Leader	극빙정	6103
+	1	극빙정	6103
+	2	극빙정	6103
+}			
+			
+Group	백룡지성_6056_한빙정		
+{			
+	Vnum	6056	
+	Leader	한빙정	6104
+	1	극빙정	6103
+	2	냉정	6102
+	3	냉정	6102
+}			
+			
+Group	백룡지성_6057_빙마		
+{			
+	Vnum	6057	
+	Leader	빙마	6105
+	1	한빙정	6104
+	2	한빙정	6104
+	3	냉정	6102
+	4	냉정	6102
+}			
+			
+Group	백룡지성_6058_냉마		
+{			
+	Vnum	6058	
+	Leader	냉마	6106
+	1	빙마	6105
+	2	한빙정	6104
+	3	한빙정	6104
+}			
+			
+Group	백룡지성_6059_빙괴		
+{			
+	Vnum	6059	
+	Leader	빙괴	6107
+	1	냉마	6106
+	2	냉마	6106
+	3	한빙정	6104
+	4	한빙정	6104
+}			
+			
+Group	백룡지성_6060_빙마		
+{			
+	Vnum	6060	
+	Leader	빙마	6105
+	1	한빙정	6104
+	2	극빙정	6103
+	3	극빙정	6103
+}			
+			
+Group	백룡지성_6061_냉마		
+{			
+	Vnum	6061	
+	Leader	냉마	6106
+	1	빙마	6105
+	2	빙마	6105
+	3	극빙정	6103
+	4	극빙정	6103
+}			
+			
+Group	백룡지성_6062_한마의		
+{			
+	Vnum	6062	
+	Leader	한마의	6191
+	1	초냉괴	6109
+	2	초냉괴	6109
+	3	냉괴	6108
+	4	냉괴	6108
+	5	냉괴	6108
+	6	빙괴	6107
+	7	빙괴	6107
+	8	냉마	6106
+	9	냉마	6106
+	10	냉마	6106
+	11	냉마	6106
+}			
+

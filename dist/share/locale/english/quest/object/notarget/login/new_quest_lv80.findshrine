@@ -1,0 +1,15 @@
+new_quest_lv80_mob1 = 2202 
+new_quest_lv80_mob2 = 1106 
+new_quest_lv80_amountIce = 10 
+new_quest_lv80_ice = 30146 
+new_quest_lv80_figure = 30183 
+new_quest_lv80_ember = 30184 
+new_quest_lv80_blackice = 30185 
+if 1 == new_quest_lv80 . is_heavens_cave ( ) then 
+local v = find_npc_by_vnum ( 30123 ) 
+if 0 ~= v then 
+target . vid ( "__TARGET3__" , v , gameforge . new_quest_lv80 . _300_target ) 
+q . start ( ) 
+q . set_title ( gameforge . new_quest_lv80 . _310_set_title ) 
+end 
+end 

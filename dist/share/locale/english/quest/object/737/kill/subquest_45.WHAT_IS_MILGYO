@@ -1,0 +1,15 @@
+local s = number ( 1 , 100 ) 
+if s <= 5 and pc . count_item ( "30147" ) == 0 then 
+pc . give_item2 ( 30147 , 1 ) 
+return 
+end 
+local s = number ( 1 , 100 ) 
+if s <= 5 and pc . count_item ( "30148" ) == 0 then 
+pc . give_item2 ( 30148 , 1 ) 
+return 
+end 
+local s = number ( 1 , 100 ) 
+if s <= 5 and pc . count_item ( "30164" ) == 0 then 
+pc . give_item2 ( 30164 , 1 ) 
+return 
+end 

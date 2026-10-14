@@ -1,0 +1,74 @@
+local stat = oxevent . get_status ( ) 
+if stat == 0 then 
+say ( gameforge . entry_event_map . _150_say ) 
+local choice = select ( "1> min " .. oxevent_manager . enter_level ( 1 , 1 ) .. " max " .. oxevent_manager . enter_level ( 1 , 2 ) , "2> min " .. oxevent_manager . enter_level ( 2 , 1 ) .. " max " .. oxevent_manager . enter_level ( 2 , 2 ) , "3> min " .. oxevent_manager . enter_level ( 3 , 1 ) .. " max " .. oxevent_manager . enter_level ( 3 , 2 ) , "4> min " .. oxevent_manager . enter_level ( 4 , 1 ) .. " max " .. oxevent_manager . enter_level ( 4 , 2 ) , "5> min " .. oxevent_manager . enter_level ( 5 , 1 ) .. " max " .. oxevent_manager . enter_level ( 5 , 2 ) , gameforge . locale . cancel ) 
+if choice == 6 then 
+return 
+end 
+say ( gameforge . entry_event_map . _160_say ) 
+local amount_choice = input_number ( gameforge . entry_event_map . _240_say ) 
+if amount_choice > 200 or amount_choice <= 0 then 
+say ( gameforge . entry_event_map . _250_say ) 
+return 
+end 
+say ( gameforge . oxevent . _80_say ) 
+say ( gameforge . entry_event_map . _180_say ) 
+say ( gameforge . entry_event_map . _190_say .. " " .. oxevent_manager . enter_level ( choice , 1 ) .. " - " .. oxevent_manager . enter_level ( choice , 2 ) ) 
+say ( gameforge . entry_event_map . _200_say .. " " .. amount_choice ) 
+local s = select ( gameforge . oxevent . _90_select , gameforge . locale . cancel ) 
+if s == 1 then 
+local v = oxevent . open ( ) 
+if v == 0 then 
+say ( gameforge . oxevent . _100_say ) 
+say_reward ( gameforge . oxevent . _110_sayReward ) 
+elseif v == 1 then 
+say ( gameforge . oxevent . _120_say ) 
+notice_multiline ( gameforge . oxevent . _130_notice_all , notice_all ) 
+notice_multiline ( gameforge . oxevent . _131_notice_all , notice_all ) 
+game . set_event_flag ( "ox_map_level_min" , oxevent_manager . enter_level ( choice , 1 ) ) 
+game . set_event_flag ( "ox_map_level_max" , oxevent_manager . enter_level ( choice , 2 ) ) 
+game . set_event_flag ( "ox_map_player_max" , amount_choice ) 
+else 
+say ( gameforge . oxevent . _100_say ) 
+end 
+end 
+elseif stat == 1 then 
+say ( string . format ( gameforge . oxevent . _140_say , oxevent . get_attender ( ) ) ) 
+local s = select ( gameforge . oxevent . _150_select , gameforge . locale . cancel ) 
+if s == 1 then 
+oxevent . close ( ) 
+say ( gameforge . oxevent . _160_say ) 
+end 
+elseif stat == 2 then 
+say ( gameforge . oxevent . _170_say ) 
+local s = select ( 
+gameforge . oxevent . _180_select , 
+gameforge . oxevent . _190_select , 
+gameforge . oxevent . _195_select , 
+gameforge . locale . cancel ) 
+if s == 1 then 
+local v = oxevent . quiz ( 1 , 30 ) 
+if v == 0 then 
+say ( gameforge . oxevent . _200_say ) 
+elseif v == 1 then 
+say ( gameforge . oxevent . _210_say ) 
+else 
+say ( gameforge . oxevent . _220_say ) 
+end 
+elseif s == 2 then 
+oxevent_manager . cleanup_event ( ) 
+say ( gameforge . oxevent . _230_say ) 
+notice_multiline ( gameforge . oxevent . _240_notice_all , notice_all ) 
+notice_multiline ( gameforge . oxevent . _241_notice_all , notice_all ) 
+elseif s == 3 then 
+oxevent_manager . cleanup_event ( ) 
+say ( gameforge . oxevent . _250_say ) 
+notice_multiline ( gameforge . oxevent . _260_notice_all , notice_all ) 
+notice_multiline ( gameforge . oxevent . _261_notice_all , notice_all ) 
+end 
+elseif stat == 3 then 
+say ( gameforge . oxevent . _270_say ) 
+say_reward ( gameforge . oxevent . _280_sayReward ) 
+else 
+say ( gameforge . oxevent . _290_say ) 
+end 

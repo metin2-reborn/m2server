@@ -1,0 +1,2 @@
+say_title ( gameforge . buy_fishrod . _210_sayTitle ) 
+say ( gameforge . find_squareguard . _90_sayReward ) 

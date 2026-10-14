@@ -1,0 +1,24 @@
+target . delete ( "__TARGET__" ) 
+say_title ( gameforge . subquest_08 . _240_sayTitle ) 
+say ( gameforge . subquest_44 . _30_say ) 
+wait ( ) 
+say_title ( gameforge . subquest_08 . _240_sayTitle ) 
+say ( gameforge . subquest_44 . _40_say ) 
+local s = select ( gameforge . subquest_44 . _50_select , gameforge . find_brother_article . _100_select ) 
+if 2 == s then 
+say ( gameforge . subquest_44 . _60_say ) 
+local a = select ( gameforge . locale . guild . yes , gameforge . locale . guild . no ) 
+if 2 == a then 
+say_title ( gameforge . subquest_08 . _240_sayTitle ) 
+say ( gameforge . subquest_44 . _70_say ) 
+return 
+end 
+say_title ( gameforge . subquest_08 . _240_sayTitle ) 
+say ( gameforge . subquest_44 . _80_say ) 
+set_state ( "__GIVEUP__" ) 
+return 
+end 
+say_title ( gameforge . subquest_08 . _240_sayTitle ) 
+say ( gameforge . subquest_44 . _90_say ) 
+set_state ( "go_to_desert" ) 
+pc . setqf ( "kill_count" , 0 ) 

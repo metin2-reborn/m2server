@@ -1,0 +1,23 @@
+target . delete ( "__TARGET__" ) 
+say_title ( gameforge . blacksmith . _20_sayTitle ) 
+say ( gameforge . find_brother_article . _350_say ) 
+wait ( ) 
+say_title ( gameforge . blacksmith . _20_sayTitle ) 
+say ( gameforge . find_brother_article . _360_say ) 
+local r = number ( 1 , 4 ) 
+if 1 == r then 
+say_reward ( gameforge . find_brother_article . _370_sayReward ) 
+pc . give_item2 ( 62 ) 
+elseif 2 == r then 
+say_reward ( gameforge . find_brother_article . _380_sayReward ) 
+pc . give_item2 ( 72 ) 
+elseif 3 == r then 
+say_reward ( gameforge . find_brother_article . _390_sayReward ) 
+pc . give_item2 ( 82 ) 
+elseif 4 == r then 
+say_reward ( gameforge . find_brother_article . _400_sayReward ) 
+pc . give_item2 ( 92 ) 
+end 
+clear_letter ( ) 
+set_state ( "__COMPLETE__" ) 
+q . done ( ) 

@@ -1,0 +1,3 @@
+send_letter ( gameforge . new_quest_lv7 . _020_say_title ) 
+q . start ( ) 
+q . set_title ( gameforge . new_quest_lv7 . _020_say_title ) 

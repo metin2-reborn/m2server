@@ -1,0 +1,2 @@
+send_letter ( gameforge . main_quest_lv94 . _080_sendLetter ) 
+target . pos ( "__TARGET__" , 374 , 1261 , 304 , "" ) 

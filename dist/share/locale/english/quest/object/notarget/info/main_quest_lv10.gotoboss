@@ -1,0 +1,2 @@
+say_title ( gameforge . main_quest_lv10 . _10_sendLetter ) 
+say_reward ( gameforge . main_quest_lv10 . _20_sayReward ) 

@@ -1,0 +1,3 @@
+say_title ( gameforge . subquest_44 . _140_sayTitle ) 
+say ( gameforge . subquest_44 . _150_say ) 
+set_state ( "go_to_boy" ) 

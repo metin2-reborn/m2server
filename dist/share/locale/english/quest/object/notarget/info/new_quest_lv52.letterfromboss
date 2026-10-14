@@ -1,0 +1,6 @@
+local map_lookup = { "Yongan" , "Joan" , "Pyongmoo" } 
+local mapname = map_lookup [ pc . get_empire ( ) ] 
+say_title ( gameforge . new_quest_lv52 . _020_say_title ) 
+say_reward ( gameforge . new_quest_lv52 . _021_say_reward ) 
+say ( string . format ( gameforge . new_quest_lv52 . _022_say , mapname ) ) 
+set_state ( "askbeakgo" ) 

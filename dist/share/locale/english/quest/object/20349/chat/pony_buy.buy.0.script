@@ -1,0 +1,39 @@
+say_title ( gameforge . pony_buy . _280_sayTitle ) 
+say ( gameforge . pony_buy . _290_say ) 
+local b = select ( gameforge . buy_fishrod . _40_select , gameforge . pony_buy . _300_select , gameforge . pony_buy . _140_select ) 
+if 1 == b then 
+if pc . money >= 100000 then 
+char_log ( 0 , " HORSE_BUY" , "BEGIN" ) 
+pc . changemoney ( - 100000 ) 
+char_log ( 0 , " HORSE_BUY" , " DEC money 100000" ) 
+horse . unride ( ) 
+horse . advance ( ) 
+horse . ride ( ) 
+char_log ( 0 , " HORSE_BUY" , "INC horse_advance 1" ) 
+pc . give_item2 ( "50051" , 1 ) 
+char_log ( 0 , " HORSE_BUY" , "INC 50051 1" ) 
+char_log ( 0 , " HORSE_BUY" , "END" ) 
+say_title ( gameforge . horse_exchange_ticket . _20_sayTitle ) 
+say ( gameforge . pony_buy . _310_say ) 
+setstate ( "start" ) 
+q . done ( ) 
+else 
+say_title ( gameforge . horse_exchange_ticket . _20_sayTitle ) 
+say ( gameforge . pony_buy . _320_say ) 
+end 
+elseif 2 == b then 
+say_title ( gameforge . horse_exchange_ticket . _20_sayTitle ) 
+say ( gameforge . pony_buy . _330_say ) 
+elseif 3 == b then 
+say_title ( gameforge . horse_exchange_ticket . _20_sayTitle ) 
+say ( gameforge . pony_buy . _340_say ) 
+local b = select ( gameforge . locale . guild . yes , gameforge . pony_buy . _350_select ) 
+if 1 == b then 
+setstate ( "start" ) 
+elseif 2 == b then 
+else 
+say ( string . format ( gameforge . find_squareguard . _70_say , b ) ) 
+end 
+else 
+say ( string . format ( gameforge . find_squareguard . _70_say , b ) ) 
+end 

@@ -1,0 +1,3 @@
+if pc . get_level ( ) >= 30 then 
+setstate ( "gotoeUriel" ) 
+end 

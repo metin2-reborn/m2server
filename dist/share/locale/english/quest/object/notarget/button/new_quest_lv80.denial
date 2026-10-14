@@ -1,0 +1,2 @@
+say_title ( gameforge . new_quest_lv80 . _310_set_title ) 
+say ( gameforge . new_quest_lv80 . _470_say ) 

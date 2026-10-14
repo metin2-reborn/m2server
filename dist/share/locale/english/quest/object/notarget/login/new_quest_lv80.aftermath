@@ -1,0 +1,150 @@
+new_quest_lv80_mob1 = 2202 
+new_quest_lv80_mob2 = 1106 
+new_quest_lv80_amountIce = 10 
+new_quest_lv80_ice = 30146 
+new_quest_lv80_figure = 30183 
+new_quest_lv80_ember = 30184 
+new_quest_lv80_blackice = 30185 
+if pc . getqf ( "gotreward" ) == 1 then 
+send_letter ( gameforge . new_quest_lv80 . _390_send_letter ) 
+local goto_npc = 20023 
+local v = find_npc_by_vnum ( goto_npc ) 
+if 0 ~= v then 
+target . vid ( "__TARGET__" , v , gameforge . new_quest_lv80 . _010_target ) 
+end 
+else 
+q . set_title ( gameforge . new_quest_lv80 . _400_set_title ) 
+end 
+new_quest_lv80_dropProb = 25 
+new_quest_lv80_spawnlocationx = 99999 
+new_quest_lv80_spawnlocationy = 99999 
+new_quest_lv80_spawninterval = 21600 
+if next_time_is_now ( ) then 
+next_time_set ( new_quest_lv80_spawninterval , 10 ) 
+pc . setqf ( "spawnmob" , 0 ) 
+if math . random ( 1 , 500 ) <= new_quest_lv80_dropProb then 
+local mobtype = math . random ( 1 , 9 ) 
+local spawningmob = 1902 
+local spawnamount = 1 
+local spawndistancex = 1 
+local spawndistancey = 1 
+local spawntrue = 1 
+if pc . get_map_index ( ) == 3 then 
+local spawnpoint = math . random ( 1 , 9 ) 
+if spawnpoint == 1 or spawnpoint == 2 then 
+new_quest_lv80_spawnlocationx = 685 
+new_quest_lv80_spawnlocationy = 654 
+mobtype = math . random ( 1 , 4 ) 
+elseif spawnpoint == 3 or spawnpoint == 4 then 
+new_quest_lv80_spawnlocationx = 512 
+new_quest_lv80_spawnlocationy = 930 
+mobtype = math . random ( 1 , 4 ) 
+elseif spawnpoint == 5 or spawnpoint == 6 then 
+new_quest_lv80_spawnlocationx = 315 
+new_quest_lv80_spawnlocationy = 528 
+mobtype = math . random ( 1 , 4 ) 
+elseif spawnpoint == 7 then 
+new_quest_lv80_spawnlocationx = 92 
+new_quest_lv80_spawnlocationy = 318 
+elseif spawnpoint == 8 then 
+new_quest_lv80_spawnlocationx = 414 
+new_quest_lv80_spawnlocationy = 60 
+else 
+new_quest_lv80_spawnlocationx = 948 
+new_quest_lv80_spawnlocationy = 466 
+end 
+elseif pc . get_map_index ( ) == 23 then 
+local spawnpoint = math . random ( 1 , 9 ) 
+if spawnpoint == 1 or spawnpoint == 2 then 
+new_quest_lv80_spawnlocationx = 341 
+new_quest_lv80_spawnlocationy = 202 
+mobtype = math . random ( 1 , 4 ) 
+elseif spawnpoint == 3 or spawnpoint == 4 then 
+new_quest_lv80_spawnlocationx = 594 
+new_quest_lv80_spawnlocationy = 346 
+mobtype = math . random ( 1 , 4 ) 
+elseif spawnpoint == 5 or spawnpoint == 6 then 
+new_quest_lv80_spawnlocationx = 257 
+new_quest_lv80_spawnlocationy = 368 
+mobtype = math . random ( 1 , 4 ) 
+elseif spawnpoint == 7 then 
+new_quest_lv80_spawnlocationx = 431 
+new_quest_lv80_spawnlocationy = 503 
+elseif spawnpoint == 8 then 
+new_quest_lv80_spawnlocationx = 383 
+new_quest_lv80_spawnlocationy = 91 
+else 
+new_quest_lv80_spawnlocationx = 891 
+new_quest_lv80_spawnlocationy = 469 
+end 
+elseif pc . get_map_index ( ) == 43 then 
+local spawnpoint = math . random ( 1 , 9 ) 
+if spawnpoint == 1 or spawnpoint == 2 then 
+new_quest_lv80_spawnlocationx = 658 
+new_quest_lv80_spawnlocationy = 342 
+mobtype = math . random ( 1 , 4 ) 
+elseif spawnpoint == 3 or spawnpoint == 4 then 
+new_quest_lv80_spawnlocationx = 354 
+new_quest_lv80_spawnlocationy = 233 
+mobtype = math . random ( 1 , 4 ) 
+elseif spawnpoint == 5 or spawnpoint == 6 then 
+new_quest_lv80_spawnlocationx = 372 
+new_quest_lv80_spawnlocationy = 643 
+mobtype = math . random ( 1 , 4 ) 
+elseif spawnpoint == 7 then 
+new_quest_lv80_spawnlocationx = 124 
+new_quest_lv80_spawnlocationy = 142 
+elseif spawnpoint == 8 then 
+new_quest_lv80_spawnlocationx = 924 
+new_quest_lv80_spawnlocationy = 599 
+else 
+new_quest_lv80_spawnlocationx = 461 
+new_quest_lv80_spawnlocationy = 608 
+end 
+elseif pc . get_map_index ( ) == 4 then 
+new_quest_lv80_spawnlocationx = 113 
+new_quest_lv80_spawnlocationy = 57 
+elseif pc . get_map_index ( ) == 24 then 
+new_quest_lv80_spawnlocationx = 477 
+new_quest_lv80_spawnlocationy = 179 
+elseif pc . get_map_index ( ) == 44 then 
+new_quest_lv80_spawnlocationx = 378 
+new_quest_lv80_spawnlocationy = 157 
+else 
+spawntrue = 0 
+end 
+if mobtype <= 4 then 
+spawnamount = mobtype 
+if mobtype == 1 then 
+spawningmob = 2191 
+else 
+spawningmob = 993 
+spawndistancex = mobtype * 2 
+spawndistancey = mobtype * 2 
+end 
+elseif mobtype == 5 then 
+spawningmob = 1902 
+elseif mobtype == 6 or mobtype == 7 then 
+spawningmob = 1191 
+else 
+spawningmob = 8025 
+mob . spawn ( 8104 , new_quest_lv80_spawnlocationx , new_quest_lv80_spawnlocationy , 10 , 10 , mobtype - 3 ) 
+mob . spawn ( 8104 , new_quest_lv80_spawnlocationx , new_quest_lv80_spawnlocationy , 20 , 20 , mobtype - 1 ) 
+mob . spawn ( 8104 , new_quest_lv80_spawnlocationx , new_quest_lv80_spawnlocationy , 30 , 30 , mobtype + 1 ) 
+mob . spawn ( 8104 , new_quest_lv80_spawnlocationx , new_quest_lv80_spawnlocationy , 30 , 30 , mobtype + 1 ) 
+spawndistancex = 15 
+spawndistancey = 20 
+spawnamount = mobtype - 4 
+end 
+if spawntrue == 1 then 
+local spawntimes = pc . getqf ( "spawnsleft" ) 
+mob . spawn ( spawningmob , new_quest_lv80_spawnlocationx , new_quest_lv80_spawnlocationy , spawndistancex , spawndistancey , spawnamount ) 
+pc . setqf ( "spawnsleft" , spawntimes - 1 ) 
+pc . setqf ( "spawnmob" , spawningmob ) 
+end 
+if pc . getqf ( "spawnsleft" ) < 1 and pc . getqf ( "gotreward" ) == 0 then 
+pc . setqf ( "spawnmob" , 0 ) 
+set_state ( "__COMPLETE__" ) 
+end 
+end 
+end 

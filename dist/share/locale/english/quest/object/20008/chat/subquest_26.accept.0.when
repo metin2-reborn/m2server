@@ -1,0 +1,1 @@
+return pc . getqf ( "frog_done" ) == 1

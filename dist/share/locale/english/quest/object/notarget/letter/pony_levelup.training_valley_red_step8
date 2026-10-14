@@ -1,0 +1,5 @@
+target . pos ( "__TARGET__" , 380 , 820 , 64 , "" ) 
+setskin ( NOWINDOW ) 
+makequestbutton ( gameforge . pony_levelup . _40_makequestbutton ) 
+q . set_title ( gameforge . pony_levelup . _40_makequestbutton ) 
+q . start ( ) 

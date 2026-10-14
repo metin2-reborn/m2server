@@ -1,0 +1,2 @@
+if pc . getf ( "harvest_festival" , "mob1_info" ) == 3 then harvest_festival . kill_action ( 501 , 1 ) 
+ return end 

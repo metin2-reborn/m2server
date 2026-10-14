@@ -1,0 +1,8 @@
+q . set_counter ( gameforge . horse_levelup . _training_6_count , 10 - pc . getqf ( "kill_count" ) ) 
+setskin ( NOWINDOW ) 
+makequestbutton ( gameforge . horse_levelup . _130_makequestbutton ) 
+q . set_title ( gameforge . horse_levelup . _130_makequestbutton ) 
+q . start ( ) 
+if not pc . is_mount ( ) then 
+setstate ( "failure" ) 
+end 

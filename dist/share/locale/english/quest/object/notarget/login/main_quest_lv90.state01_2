@@ -1,0 +1,6 @@
+if pc . get_map_index ( ) == 301 then say_title ( locale . reward ) 
+say_reward ( string . format ( gameforge . main_quest_lv60 . _200_sayReward , 50000 ) ) 
+say ( "" ) 
+pc . change_money ( 50000 ) 
+set_state ( "state1_1" ) 
+ return end 

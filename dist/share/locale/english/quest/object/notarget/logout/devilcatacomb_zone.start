@@ -1,0 +1,5 @@
+local idx = pc . get_map_index ( ) 
+local setting = devilcatacomb_zone . setting ( ) 
+if idx == setting . map_idx or idx >= ( setting . map_idx * 10000 ) and idx < ( ( setting . map_idx + 1 ) * 10000 ) then 
+pc . setf ( "devilcatacomb_zone" , "last_exit_time" , get_global_time ( ) ) 
+end 

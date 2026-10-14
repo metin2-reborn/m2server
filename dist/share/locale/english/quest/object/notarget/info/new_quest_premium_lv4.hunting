@@ -1,0 +1,9 @@
+if pc . getqf ( "neededAmountDrop1" ) ~= pc . getqf ( "new_quest_premium_lv4_collect_count_1" ) then 
+say_title ( gameforge . new_quest_premium_lv4 . _40_qSetTitle ) 
+say ( string . format ( gameforge . new_quest_premium_lv4 . _160_say , pc . getqf ( "neededAmountDrop1" ) - pc . getqf ( "new_quest_premium_lv4_collect_count_1" ) ) ) 
+say_reward ( gameforge . new_quest_premium_lv4 . _100_say_reward ) 
+say ( mob_name ( pc . getqf ( "mob1" ) ) ) 
+else 
+say_title ( gameforge . new_quest_premium_lv4 . _40_qSetTitle ) 
+say ( gameforge . new_quest_premium_lv4 . _140_notice ) 
+end 

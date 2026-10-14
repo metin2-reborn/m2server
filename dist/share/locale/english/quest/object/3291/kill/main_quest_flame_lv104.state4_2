@@ -1,0 +1,4 @@
+if number ( 1 , 1 ) == 1 then 
+pc . give_item2 ( 31024 , 1 ) 
+main_quest_flame_lv104 . item_count_state4_2 ( ) 
+end 

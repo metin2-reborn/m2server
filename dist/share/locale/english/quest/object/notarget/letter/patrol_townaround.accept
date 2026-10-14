@@ -1,0 +1,5 @@
+setskin ( NOWINDOW ) 
+local title = patrol_townaround . get_title ( ) 
+makequestbutton ( title ) 
+q . set_title ( title ) 
+q . start ( ) 

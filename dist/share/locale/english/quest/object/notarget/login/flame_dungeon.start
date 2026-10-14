@@ -1,0 +1,40 @@
+local idx = pc . get_map_index ( ) 
+local setting = flame_dungeon . setting ( ) 
+if idx == 351 then 
+pc . warp ( setting . outside_entry_pos [ 1 ] * 100 , setting . outside_entry_pos [ 2 ] * 100 , 62 ) 
+elseif flame_dungeon . is_flamed ( idx ) then 
+pc . set_warp_location ( 62 , setting . outside_entry_pos [ 1 ] , setting . outside_entry_pos [ 2 ] ) 
+local ticketGroup = { 71095 , 1 , 71130 , 1 } 
+if d . getf ( "dungeon_enter" ) == 0 then 
+local canPass = false 
+for i = 1 , table . getn ( ticketGroup ) , 2 begin 
+if pc . count_item ( ticketGroup [ i ] ) >= ticketGroup [ i + 1 ] then 
+canPass = true 
+break 
+end 
+end 
+if get_global_time ( ) - pc . getf ( "flame_dungeon" , "exit_time" ) < 30 * 60 then 
+notice_multiline ( gameforge . flame_dungeon . _050_notice , d . notice ) 
+say ( gameforge . flame_dungeon . _060_say ) 
+timer ( "flame_dungeon_warp_timer" , 5 ) 
+elseif not canPass then 
+notice_multiline ( gameforge . flame_dungeon . _070_notice , d . notice ) 
+say ( gameforge . flame_dungeon . _080_say ) 
+timer ( "flame_dungeon_warp_timer" , 5 ) 
+elseif pc . get_level ( ) < 100 then 
+notice_multiline ( gameforge . flame_dungeon . _090_notice , d . notice ) 
+say ( gameforge . flame_dungeon . _100_say ) 
+timer ( "flame_dungeon_warp_timer" , 5 ) 
+end 
+elseif pc . getf ( "flame_dungeon" , "ticket_delete" ) == 0 then 
+for i = 1 , table . getn ( ticketGroup ) , 2 begin 
+if pc . count_item ( ticketGroup [ i ] ) >= ticketGroup [ i + 1 ] then 
+pc . remove_item ( ticketGroup [ i ] , ticketGroup [ i + 1 ] ) 
+break 
+end 
+end 
+pc . setf ( "flame_dungeon" , "ticket_delete" , 1 ) 
+end 
+else 
+pc . setf ( "flame_dungeon" , "ticket_delete" , 0 ) 
+end 

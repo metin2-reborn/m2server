@@ -1,0 +1,27 @@
+target . delete ( "__TARGET__" ) 
+if pc . getqf ( "heavens_cave_keyquest_Repeat" ) == 0 then 
+say_title ( gameforge . heavens_cave_keyquest . _020_npcChat ) 
+say ( gameforge . heavens_cave_keyquest . _430_say ) 
+wait ( ) 
+say_title ( gameforge . heavens_cave_keyquest . _020_npcChat ) 
+say ( gameforge . heavens_cave_keyquest . _440_say ) 
+wait ( ) 
+say_title ( gameforge . heavens_cave_keyquest . _020_npcChat ) 
+say ( gameforge . heavens_cave_keyquest . _450_say ) 
+say ( "" ) 
+say_reward ( gameforge . heavens_cave_keyquest . _460_say_reward ) 
+else 
+say_title ( gameforge . heavens_cave_keyquest . _020_npcChat ) 
+say ( gameforge . heavens_cave_keyquest . _470_say ) 
+say ( "" ) 
+say_reward ( gameforge . heavens_cave_keyquest . _480_say_reward ) 
+end 
+if pc . count_item ( pc . getqf ( "heavens_cave_keyquest_BloodDrop" ) ) >= 1 then 
+pc . remove_item ( pc . getqf ( "heavens_cave_keyquest_BloodDrop" ) , 1 ) 
+pc . give_item2 ( pc . getqf ( "heavens_cave_keyquest_BloodStone" ) ) 
+pc . setqf ( "overall_cooldown_timestamp" , get_time ( ) ) 
+q . done ( ) 
+pc . setqf ( "heavens_cave_keyquest_Repeat" , 1 ) 
+set_state ( "check_cooldown" ) 
+else 
+end 

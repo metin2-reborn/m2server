@@ -1,0 +1,4 @@
+say_title ( gameforge . horse_levelup . _340_makequestbutton ) 
+say ( gameforge . horse_levelup . _350_say ) 
+setstate ( "start" ) 
+q . done ( ) 

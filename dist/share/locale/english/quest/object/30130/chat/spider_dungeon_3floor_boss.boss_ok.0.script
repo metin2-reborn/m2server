@@ -1,0 +1,66 @@
+if game . get_event_flag ( "spider_lair_ongoing_" .. get_channel_id ( ) ) == 1 then 
+local starttime = game . get_event_flag ( "spider_lair_start_time_" .. get_channel_id ( ) ) 
+local current_time = get_global_time ( ) 
+if party . get_leader_pid ( ) == game . get_event_flag ( "spider_lair_leader_" .. get_channel_id ( ) ) then 
+if starttime + 300 >= current_time and party . get_leader_pid ( ) == game . get_event_flag ( "spider_lair_leader_" .. get_channel_id ( ) ) and game . get_event_flag ( "spider_lair_ongoing_" .. get_channel_id ( ) ) == 1 then 
+say ( gameforge . spider_dungeon_3floor_boss . _300_say ) 
+local warp = select ( locale . confirm , locale . cancel ) 
+if warp == 1 then 
+pc . setqf ( "firstIn" , 1 ) 
+pc . setqf ( "retry_limit_time" , starttime + 1200 + 3600 ) 
+set_state ( "inLair" ) 
+pc . warp ( 88100 , 614800 ) 
+return 
+end 
+else 
+say ( gameforge . spider_dungeon_3floor_boss . _310_say ) 
+return 
+end 
+else 
+local remain_time = ( game . get_event_flag ( "spider_lair_end_time_" .. get_channel_id ( ) ) - get_global_time ( ) ) / 60 
+if remain_time < 0 then 
+say ( gameforge . spider_dungeon_3floor_boss . _410_say ) 
+game . set_event_flag ( "spider_lair_ongoing_" .. get_channel_id ( ) , 0 ) 
+game . set_event_flag ( "spider_lair_leader_" .. get_channel_id ( ) , 0 ) 
+game . set_event_flag ( "spider_dead" .. get_channel_id ( ) , 0 ) 
+return 
+end 
+say ( gameforge . spider_dungeon_3floor_boss . _320_say ) 
+say ( string . format ( gameforge . spider_dungeon_3floor_boss . _330_say , math . ceil ( remain_time ) ) ) 
+return 
+end 
+elseif pc . getqf ( "retry_limit_time" ) > get_global_time ( ) then 
+local access_limit = ( pc . getqf ( "retry_limit_time" ) - get_global_time ( ) ) / 60 
+say ( gameforge . spider_dungeon_3floor_boss . _340_say ) 
+say ( string . format ( gameforge . spider_dungeon_3floor_boss . _350_say , math . ceil ( access_limit ) ) ) 
+return 
+elseif party . is_leader ( ) then 
+if false == pc . can_warp ( ) then 
+say ( gameforge . spider_dungeon_3floor_boss . _360_say ) 
+return 
+end 
+if pc . count_item ( 30324 ) > 0 then 
+say ( gameforge . spider_dungeon_3floor_boss . _370_say ) 
+local warp = select ( locale . confirm , locale . cancel ) 
+if warp == 1 then 
+set_state ( "inLair" ) 
+pc . remove_item ( 30324 , 1 ) 
+mob . spawn ( 2094 , 369 , 551 , 0 , 0 ) 
+game . set_event_flag ( "spider_lair_ongoing_" .. get_channel_id ( ) , 1 ) 
+game . set_event_flag ( "spider_lair_start_time_" .. get_channel_id ( ) , get_global_time ( ) ) 
+game . set_event_flag ( "spider_lair_end_time_" .. get_channel_id ( ) , get_global_time ( ) + 1200 ) 
+game . set_event_flag ( "spider_lair_leader_" .. get_channel_id ( ) , party . get_leader_pid ( ) ) 
+pc . setqf ( "retry_limit_time" , get_global_time ( ) + 1200 + 3600 ) 
+pc . setqf ( "firstIn" , 1 ) 
+server_timer ( "spider_end_timer" , 1200 ) 
+pc . warp ( 88100 , 614800 ) 
+end 
+return 
+else 
+say ( gameforge . spider_dungeon_3floor_boss . _380_say ) 
+return 
+end 
+else 
+say ( gameforge . spider_dungeon_3floor_boss . _390_say ) 
+return 
+end 

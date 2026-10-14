@@ -1,0 +1,7 @@
+say ( gameforge . dragon_soul . _1160_say ) 
+local today = math . floor ( get_global_time ( ) / 86400 ) 
+if today == pc . getf ( "dragon_soul" , "eye_timestamp" ) then 
+say ( gameforge . dragon_soul . _1170_say ) 
+else 
+say ( gameforge . dragon_soul . _1180_say ) 
+end 

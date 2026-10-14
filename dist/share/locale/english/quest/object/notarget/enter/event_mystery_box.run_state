@@ -1,0 +1,2 @@
+if game . get_event_flag ( "mystery_box_drop" ) ~= 1 then set_state ( "go_sleep" ) 
+ return end 

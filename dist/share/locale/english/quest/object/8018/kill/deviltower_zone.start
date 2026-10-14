@@ -1,0 +1,7 @@
+if pc . in_dungeon ( ) and pc . get_map_index ( ) >= 660000 and pc . get_map_index ( ) < 670000 then local cont = d . getf ( "7_stone_kill" ) + 1 
+d . setf ( "7_stone_kill" , cont ) 
+if cont >= 4 then 
+d . setf ( "7_stone_kill" , 0 ) 
+d . set_regen_file ( "data/dungeon/deviltower7_regen.txt" ) 
+end 
+ return end 

@@ -1,0 +1,7 @@
+target . delete ( "__TARGET__" ) 
+say_title ( gameforge . hair_shop . _20_sayTitle ) 
+say ( gameforge . subquest_25 . _110_say ) 
+wait ( ) 
+say_title ( gameforge . hair_shop . _20_sayTitle ) 
+say ( gameforge . subquest_25 . _120_say ) 
+set_state ( "order" ) 

@@ -1,0 +1,38 @@
+local dragonreward = 71020 
+local r = math . random ( 1 , 25 ) 
+local dragonamount = math . random ( 3 , 5 ) 
+say_title ( gameforge . new_quest_lv80 . _599_set_title ) 
+say ( gameforge . new_quest_lv80 . _640_say ) 
+if r <= 4 then 
+say_title ( string . format ( "%sx" , dragonamount ) ) 
+dragonreward = 71020 
+elseif r > 4 and r <= 8 then 
+dragonamount = dragonamount + 3 
+say_title ( string . format ( "%sx" , dragonamount ) ) 
+dragonreward = 71004 
+elseif r > 8 and r <= 12 then 
+say_title ( string . format ( "%sx" , dragonamount ) ) 
+dragonreward = 71027 
+elseif r > 12 and r <= 16 then 
+dragonamount = dragonamount + 1 
+say_title ( string . format ( "%sx" , dragonamount ) ) 
+dragonreward = 71028 
+elseif r > 16 and r <= 20 then 
+dragonamount = dragonamount + 3 
+say_title ( string . format ( "%sx" , dragonamount ) ) 
+dragonreward = 71029 
+elseif r > 20 and r <= 24 then 
+dragonamount = dragonamount + 1 
+say_title ( string . format ( "%sx" , dragonamount ) ) 
+dragonreward = 71030 
+else 
+dragonamount = 1 
+say_title ( string . format ( "%sx" , dragonamount ) ) 
+dragonreward = 71032 
+end 
+say_item_vnum ( dragonreward ) 
+say ( gameforge . new_quest_lv80 . _650_say ) 
+say_reward ( gameforge . new_quest_lv80 . _670_sayReward ) 
+pc . give_item2 ( dragonreward , dragonamount ) 
+pc . give_exp2 ( 1.2e+08 ) 
+set_state ( "__COMPLETE__" ) 

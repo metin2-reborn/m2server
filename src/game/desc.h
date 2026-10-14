@@ -1,0 +1,260 @@
+#ifndef __INC_METIN_II_GAME_DESC_H__
+#define __INC_METIN_II_GAME_DESC_H__
+
+#include "cipher.h"
+#include "event.h"
+#include "input.h"
+#include "typedef.h"
+
+#include <common/tables.h>
+#include <libthecore/buffer.h>
+#include <libthecore/fdwatch.h>
+#include <libthecore/typedef.h>
+#include <libthecore/utils.h>
+
+#include <cstddef>
+#include <cstdint>
+#include <cstdio>
+#include <ctime>
+#include <string>
+#include <vector>
+
+#include <netinet/in.h>
+
+inline constexpr int MAX_ALLOW_USER = 4096;
+inline constexpr int MAX_INPUT_LEN = 65536;
+inline constexpr int HANDSHAKE_RETRY_LIMIT = 32;
+class CInputProcessor;
+
+enum EDescType
+{
+	DESC_TYPE_ACCEPTOR,
+	DESC_TYPE_CONNECTOR
+};
+
+class CLoginKey
+{
+	public:
+		CLoginKey(uint32_t dwKey, DESC * pkDesc) : m_dwKey(dwKey), m_pkDesc(pkDesc)
+		{
+			m_dwExpireTime = 0;
+		}
+
+		void Expire()
+		{
+			m_dwExpireTime = get_dword_time();
+			m_pkDesc = nullptr;
+		}
+
+		uint32_t   m_dwKey;
+		uint32_t   m_dwExpireTime;
+		DESC *  m_pkDesc;
+};
+
+
+// Data for tracking down the sequence bug
+struct seq_t
+{
+	uint8_t	hdr;
+	uint8_t	seq;
+};
+typedef std::vector<seq_t>	seq_vector_t;
+// Data for tracking down the sequence bug
+
+class DESC
+{
+	public:
+		EVENTINFO(desc_event_info)
+		{
+			DESC * desc;
+
+			desc_event_info() 
+			: desc(nullptr)
+			{
+			}
+		};
+
+	public:
+		DESC();
+		virtual ~DESC();
+
+		virtual uint8_t		GetType() { return DESC_TYPE_ACCEPTOR; }
+		virtual void		Destroy();
+		virtual void		SetPhase(int _phase);
+
+		void			FlushOutput();
+
+		bool			Setup(fdwatch * _fdw, socket_t _fd, const struct sockaddr_in & c_rSockAddr, uint32_t _handle, uint32_t _handshake);
+
+		socket_t		GetSocket() const	{ return m_sock; }
+		const char *	GetHostName()		{ return m_stHost.c_str(); }
+
+		void			SetP2P(const char * h, uint16_t w) { m_stP2PHost = h; m_wP2PPort = w; }
+		const char *	GetP2PHost()		{ return m_stP2PHost.c_str();	}
+		uint16_t			GetP2PPort() const		{ return m_wP2PPort; }
+
+		void			BufferedPacket(const void * c_pvData, int iSize);
+		void			Packet(const void * c_pvData, int iSize);
+		void			LargePacket(const void * c_pvData, int iSize);
+
+		int			ProcessInput();		// returns -1 if error
+		int			ProcessOutput();	// returns -1 if error
+
+		CInputProcessor	*	GetInputProcessor()	{ return m_pInputProcessor; }
+
+		uint32_t			GetHandle() const	{ return m_dwHandle; }
+		buffer *		GetOutputBuffer()	{ return m_lpOutputBuffer; }
+
+		void			BindAccountTable(TAccountTable * pTable);
+		TAccountTable &		GetAccountTable()	{ return m_accountTable; }
+
+		void			BindCharacter(CHARACTER * ch);
+		CHARACTER *		GetCharacter()		{ return m_lpCharacter; }
+
+		bool			IsPhase(int phase) const	{ return m_iPhase == phase ? true : false; }
+
+		const struct sockaddr_in & GetAddr()		{ return m_SockAddr;	}
+
+		void			Log(const char * format, ...);
+
+		// Handshake (time synchronization)
+		void			StartHandshake(uint32_t _dw);
+		void			SendHandshake(uint32_t dwCurTime, int32_t lNewDelta);
+		bool			HandshakeProcess(uint32_t dwTime, int32_t lDelta, bool bInfiniteRetry=false);
+		bool			IsHandshaking();
+
+		uint32_t			GetHandshake() const	{ return m_dwHandshake; }
+		uint32_t			GetClientTime();
+
+		void SendKeyAgreement();
+		void SendKeyAgreementCompleted();
+		bool FinishHandshake(size_t agreed_length, const void* buffer, size_t length);
+		bool IsCipherPrepared();
+
+		// Empire
+		uint8_t			GetEmpire();
+
+		// for p2p
+		void			SetRelay(const char * c_pszName);
+		bool			DelayedDisconnect(int iSec);
+		void			DisconnectOfSameLogin();
+
+		void			SetAdminMode();
+		bool			IsAdminMode();		// Can admin commands be used during the Handshake?
+
+		void			SetPong(bool b);
+		bool			IsPong();
+
+		uint8_t			GetSequence();
+		void			SetNextSequence();
+
+		void			SendLoginSuccessPacket();
+
+		void			SetMatrixCode(const char * c_psz) { m_stMatrixCode = c_psz; }
+		const char *		GetMatrixCode() { return m_stMatrixCode.c_str(); }
+
+		void			SetMatrixCardRowsAndColumns(uint32_t rows, uint32_t cols);
+
+
+		void			SetLoginKey(uint32_t dwKey);
+		void			SetLoginKey(CLoginKey * pkKey);
+		uint32_t			GetLoginKey();
+
+		void			AssembleCRCMagicCube(uint8_t bProcPiece, uint8_t bFilePiece);
+
+
+		void			SetClientVersion(const char * c_pszTimestamp) { m_stClientVersion = c_pszTimestamp; }
+		const char *		GetClientVersion() { return m_stClientVersion.c_str(); }
+
+		bool			isChannelStatusRequested() const { return m_bChannelStatusRequested; }
+		void			SetChannelStatusRequested(bool bChannelStatusRequested) { m_bChannelStatusRequested = bChannelStatusRequested; }
+
+	protected:
+		void			Initialize();
+
+	protected:
+		CInputProcessor *	m_pInputProcessor;
+		CInputClose		m_inputClose;
+		CInputHandshake	m_inputHandshake;
+		CInputLogin		m_inputLogin;
+		CInputMain		m_inputMain;
+		CInputAuth		m_inputAuth;
+
+
+		fdwatch *		m_lpFdw;
+		socket_t		m_sock;
+		int				m_iPhase;
+		uint32_t			m_dwHandle;
+
+		std::string		m_stHost;
+		uint16_t			m_wPort;
+		time_t			m_LastTryToConnectTime;
+
+		buffer *		m_lpInputBuffer;
+		int				m_iMinInputBufferLen;
+	
+		uint32_t			m_dwHandshake;
+		uint32_t			m_dwHandshakeSentTime;
+		int				m_iHandshakeRetry;
+		uint32_t			m_dwClientTime;
+		bool			m_bHandshaking;
+
+		buffer *		m_lpBufferedOutputBuffer;
+		buffer *		m_lpOutputBuffer;
+
+		LPEVENT			m_pkPingEvent;
+		CHARACTER *		m_lpCharacter;
+		TAccountTable		m_accountTable;
+
+		struct sockaddr_in	m_SockAddr;
+		struct sockaddr_in 	m_UDPSockAddr;
+
+		FILE *			m_pLogFile;
+		std::string		m_stRelayName;
+
+		std::string		m_stP2PHost;
+		uint16_t			m_wP2PPort;
+
+		bool			m_bAdminMode; // Can admin commands be used during the Handshake?
+		bool			m_bPong;
+
+		int			m_iCurrentSequence;
+
+
+		CLoginKey *		m_pkLoginKey;
+		uint32_t			m_dwLoginKey;
+
+		uint8_t                    m_bCRCMagicCubeIdx;
+		uint32_t                   m_dwProcCRC;
+		uint32_t                   m_dwFileCRC;
+
+		std::string		m_stClientVersion;
+		std::string		m_stMatrixCode;
+
+		std::string		m_Login;
+
+		bool			m_bDestroyed;
+		bool			m_bChannelStatusRequested;
+
+		Cipher cipher_;
+
+	public:
+		LPEVENT			m_pkDisconnectEvent;
+
+	protected:
+
+	public:
+
+		void SetLogin( const char * login ) { m_Login = login; }
+		const std::string& GetLogin() { return m_Login; }
+
+		void ChatPacket(uint8_t type, const char * format, ...);
+
+		/* Code for tracking down the sequence bug */
+	public:
+		seq_vector_t	m_seq_vector;
+		void			push_seq (uint8_t hdr, uint8_t seq);
+		
+};
+
+#endif

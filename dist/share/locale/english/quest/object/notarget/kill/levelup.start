@@ -1,0 +1,18 @@
+local sel = pc . getqf ( "select" ) 
+if sel == 0 then 
+sel = 1 
+end 
+local lev = pc . getqf ( "current" ) 
+if lev ~= 0 and npc . race == ( special . levelup_quest [ lev ] [ sel * 2 - 1 ] ) and pc . getqf ( "buttonstate" ) == - 1 then 
+local remain = pc . getqf ( "remain" ) - 1 
+if remain <= 0 then 
+pc . setqf ( "remain" , 0 ) 
+q . set_counter_value ( 0 ) 
+setskin ( NOWINDOW ) 
+makequestbutton ( string . format ( gameforge . levelup . _50_sayTitle , lev ) ) 
+pc . setqf ( "buttonstate" , 3 ) 
+else 
+pc . setqf ( "remain" , remain ) 
+q . set_counter_value ( remain ) 
+end 
+end 

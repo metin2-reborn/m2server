@@ -1,0 +1,20 @@
+say_title ( gameforge . buy_fishrod . _20_sayTitle ) 
+say ( gameforge . buy_fishrod . _30_say ) 
+local b = select ( gameforge . buy_fishrod . _40_select , gameforge . buy_fishrod . _50_select ) 
+if 1 == b then 
+if pc . money >= 3980 then 
+pc . changemoney ( - 3980 ) 
+say_title ( gameforge . buy_fishrod . _20_sayTitle ) 
+say ( gameforge . buy_fishrod . _60_say ) 
+pc . give_item2 ( "27400" , 1 ) 
+pc . give_item2 ( "27800" , 100 ) 
+pc . give_item2 ( "27801" , 20 ) 
+setstate ( "notify_event" ) 
+else 
+say_title ( gameforge . buy_fishrod . _20_sayTitle ) 
+say ( gameforge . buy_fishrod . _70_say ) 
+end 
+elseif 2 == b then 
+else 
+say ( string . format ( gameforge . buy_fishrod . _80_say , b ) ) 
+end 

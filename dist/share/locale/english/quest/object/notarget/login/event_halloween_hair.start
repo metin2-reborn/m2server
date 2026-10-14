@@ -1,0 +1,14 @@
+if game . get_event_flag ( "halloween_hair" ) > 0 then local setting = event_halloween_hair . setting ( ) 
+local mapIndex = pc . get_map_index ( ) 
+if mapIndex == 1 or mapIndex == 21 or mapIndex == 41 then 
+if find_npc_by_vnum ( setting . pumpkin_head ) == 0 then 
+if mapIndex == 1 then 
+mob . spawn ( setting . pumpkin_head , 608 , 617 , 1 , 1 , 1 ) 
+elseif mapIndex == 21 then 
+mob . spawn ( setting . pumpkin_head , 596 , 610 , 1 , 1 , 1 ) 
+elseif mapIndex == 41 then 
+mob . spawn ( setting . pumpkin_head , 357 , 743 , 1 , 1 , 1 ) 
+end 
+end 
+end 
+ return end 

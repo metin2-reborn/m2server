@@ -1,0 +1,5 @@
+say_title ( gameforge . cube . _40_sayTitle ) 
+say ( gameforge . cube . _50_say ) 
+wait ( ) 
+setskin ( NOWINDOW ) 
+command ( "cube open" ) 

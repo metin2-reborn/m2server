@@ -1,0 +1,4 @@
+target . delete ( "__TARGET__" ) 
+say ( gameforge . subquest_25 . _380_say ) 
+pc . give_item2 ( 30153 , 1 ) 
+set_state ( "go_to_reward" ) 

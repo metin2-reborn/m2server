@@ -1,0 +1,4 @@
+target . delete ( "__TARGET__" ) 
+say_title ( gameforge . subquest_08 . _240_sayTitle ) 
+say ( gameforge . subquest_08 . _330_say ) 
+set_state ( "reward_go" ) 

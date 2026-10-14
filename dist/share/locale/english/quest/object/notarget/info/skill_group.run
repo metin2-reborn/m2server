@@ -1,0 +1,15 @@
+if pc . job == 0 then 
+say_title ( gameforge . skill_group . _100_sayTitle ) 
+say ( gameforge . skill_group . _110_sayReward ) 
+elseif pc . job == 1 then 
+say_title ( gameforge . skill_group . _120_sayTitle ) 
+say ( gameforge . skill_group . _130_sayReward ) 
+elseif pc . job == 2 then 
+say_title ( gameforge . skill_group . _140_sayTitle ) 
+say ( gameforge . skill_group . _150_sayReward ) 
+elseif pc . job == 3 then 
+say_title ( gameforge . skill_group . _160_sayTitle ) 
+say ( gameforge . skill_group . _170_sayReward ) 
+end 
+select ( gameforge . locale . confirm ) 
+setskin ( NOWINDOW ) 

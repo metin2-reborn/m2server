@@ -1,0 +1,4 @@
+target . delete ( "__TARGET__" ) 
+say_title ( gameforge . pony_levelup . _100_makequestbutton ) 
+say_reward ( gameforge . pony_levelup . _120_sayReward ) 
+setstate ( "training_valley_red_step7" ) 

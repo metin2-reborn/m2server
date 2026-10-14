@@ -1,0 +1,2 @@
+say_title ( gameforge . main_quest_flame_lv99 . _010_sendLetter ) 
+say ( gameforge . main_quest_flame_lv99 . _140_say ) 

@@ -1,0 +1,750 @@
+quest main_quest_lv96 begin
+	state start begin
+	end
+	state state0 begin
+		when login or levelup or enter with pc.level >= 96 begin
+			set_state (state1_1)
+		end
+	end
+	------------------------------------강령술 저지1-1------------------------------------
+	state state1_1 begin
+		when letter begin
+			send_letter(gameforge.main_quest_lv96._010_sendLetter)
+			
+			local v = find_npc_by_vnum(20378)
+			if 0 != v then
+				target.vid("__TARGET__", v, mob_name(20378))
+			end
+		end
+		
+		when button or info begin
+			say_title(gameforge.main_quest_lv96._010_sendLetter)
+			say(gameforge.main_quest_lv96._020_say)
+			say("")
+			
+			say("")
+		end
+		
+		when 20378.chat.gameforge.main_quest_lv96._010_sendLetter begin
+			target.delete("__TARGET__")
+			
+			say_title(mob_name(20378))
+			say(gameforge.main_quest_lv96._030_say)
+			say("")
+			wait()
+			say_title(mob_name(20378))
+			say(gameforge.main_quest_lv96._060_say)
+			say("")
+			wait()
+			
+			say_title(pc.getname())
+			say(gameforge.main_quest_lv96._070_say)
+			say("")
+			
+			set_state (state1_2)
+		end
+	end
+	--퀘스트 수행--
+	state state1_2 begin
+		when letter begin
+			send_letter(gameforge.main_quest_lv96._010_sendLetter)
+			q.set_counter_name(gameforge.main_quest_lv96._570_counterName)
+		end
+		when button or info begin
+			-- if pc.get_map_index() == 1 then
+				-- addmapsignal(500 * 100, 500 * 100)
+				-- addmapsignal(600 * 100, 500 * 100)
+				-- addmapsignal(700 * 100, 300 * 100)
+			-- end
+			say_title(gameforge.main_quest_lv96._080_sayTitle)
+			say(gameforge.main_quest_lv96._090_say)
+			say("")
+			say_item_vnum(31038)
+			say(gameforge.main_quest_lv96._570_counterName)
+			local remain = 100 - pc.count_item(31038)
+			if remain < 0 then
+				remain = 0
+			end
+			q.set_counter_value(remain)
+			say_reward(string.format(gameforge.main_quest_lv60._210_sayReward,item_name(31038),remain))
+			-- say()
+			-- say_reward(locale.main_quest_lv96.pos_info)
+			-- select(gameforge.main_quest_lv90._950_say)
+			-- setskin(NOWINDOW)
+			-- clearmapsignal()
+		end
+				
+		--클리어 전에 돌아왔다.--
+		when 20378.chat.gameforge.main_quest_lv96._010_sendLetter begin
+			say_title(mob_name(20378))
+			say(gameforge.main_quest_lv96._100_say)
+			say("")
+		end
+		
+		when 3701.kill or 3702.kill or 3703.kill or 3704.kill or 3705.kill or 3790.kill or 3791.kill begin
+			if pc.count_item(31038) < 100 then
+				if	number (1,50) == 1 then	
+					pc.give_item2 ( 31038, 1 )
+					
+					local remain = 100 - pc.count_item(31038)
+					if remain < 0 then
+						remain = 0
+					end
+					q.set_counter_value(remain)
+					
+					if pc.count_item(31038) >= 100 then
+						notice_multiline(gameforge.main_quest_lv96._110_1_notice,notice)
+						notice_multiline(gameforge.main_quest_lv96._110_2_notice,notice)
+						
+						set_state (state1_3)
+					end
+				end
+			end
+		end
+		
+	end
+	state state1_3 begin
+		when letter begin
+			send_letter(gameforge.main_quest_lv96._010_sendLetter)
+			
+			local v = find_npc_by_vnum(20378)
+			if 0 != v then
+				target.vid("__TARGET__", v, mob_name(20378))
+			end
+			q.set_counter_name("")
+		end
+		when button or info begin
+			say_title(gameforge.main_quest_lv96._010_sendLetter)
+			say(gameforge.main_quest_lv96._120_say)
+			say("")
+			
+			say("")
+		end
+		
+		-- 중간에 퀘스트 아이템을 버릴 경우를 대비한 부분.
+		when 3701.kill or 3702.kill or 3703.kill or 3704.kill or 3705.kill or 3790.kill or 3791.kill begin
+			if pc.count_item(31038) < 100 then
+				if	number (1,50) == 1 then	
+					pc.give_item2 ( 31038, 1 )
+					
+					if pc.count_item(31038) >= 100 then
+						notice_multiline(gameforge.main_quest_lv96._110_1_notice,notice)
+						notice_multiline(gameforge.main_quest_lv96._110_2_notice,notice)
+					end
+				end
+			end
+		end
+		
+		when 20378.chat.gameforge.main_quest_lv96._010_sendLetter begin
+			target.delete("__TARGET__")
+			
+			if pc.count_item(31038) >= 100 then
+				pc.remove_item ( 31038, pc.count_item(31038))	
+				
+				say_title(mob_name(20378))
+				say(gameforge.main_quest_lv96._130_say)
+				say("")
+				wait()
+				
+				--보상
+				say_title(locale.reward)
+				say_reward(string.format (gameforge.main_quest_lv60._190_sayReward, 39032537))
+				say_reward(string.format (gameforge.main_quest_lv60._200_sayReward, 346000))
+				say_reward(string.format (gameforge.main_quest_lv60._210_sayReward, item_name(30051),1,locale.count_postfix))
+				say("")
+				
+				pc.give_exp2(39032537)
+				pc.change_money(346000)
+				pc.give_item2(30051, 1)
+				
+				set_state (state2_1)
+			else --중간에 아이템을 빼놓고 왔다.
+				say_title(mob_name(20378))
+				say(gameforge.main_quest_lv96._100_say)
+				say("")
+				
+				set_state (state1_2)
+			end
+		end
+	end
+	
+	------------------------------------강령술 저지1-2------------------------------------
+	state state2_1 begin
+		when letter begin
+			send_letter(gameforge.main_quest_lv96._140_sendLetter)
+			
+			local v = find_npc_by_vnum(20378)
+			if 0 != v then
+				target.vid("__TARGET__", v, mob_name(20378))
+			end
+		end
+		when button or info begin
+			say_title(gameforge.main_quest_lv96._140_sendLetter)
+			say(gameforge.main_quest_lv96._150_say)
+			say("")
+			
+			say("")
+		end
+		
+		when 20378.chat.gameforge.main_quest_lv96._140_sendLetter begin
+			target.delete("__TARGET__")
+			
+			say_title(mob_name(20378))
+			say(gameforge.main_quest_lv96._160_say)
+			say("")
+			wait()
+			say_title(pc.getname())
+			say(gameforge.main_quest_lv96._190_say)
+			say("")
+			
+			set_state (state2_2)
+		end
+	end
+	state state2_2 begin
+		when letter begin
+			send_letter(gameforge.main_quest_lv96._140_sendLetter)
+			q.set_counter_name(gameforge.main_quest_lv96._570_counterName)
+		end
+		when button or info begin
+			-- if pc.get_map_index() == 1 then
+				-- addmapsignal(500 * 100, 500 * 100)
+				-- addmapsignal(600 * 100, 500 * 100)
+				-- addmapsignal(700 * 100, 300 * 100)
+			-- end
+			say_title(gameforge.main_quest_lv96._200_sayTitle)
+			say(gameforge.main_quest_lv96._210_say)
+			say("")
+			say_item_vnum_inline(31039,0,2)
+			say_item_vnum_inline(31040,1,2)
+			say(gameforge.main_quest_lv96._570_counterName)
+			local remain1 = 1 - pc.count_item(31039)
+			if remain1 < 0 then
+				remain1 = 0
+			end
+			local remain2 = 1 - pc.count_item(31040)
+			if remain2 < 0 then
+				remain2 = 0
+			end
+			q.set_counter_value(remain1 + remain2)
+			say_reward(string.format(gameforge.main_quest_lv96._580_sayReward,item_name(31039),remain1))
+			say_reward(string.format(gameforge.main_quest_lv96._580_sayReward,item_name(31040),remain2))
+			-- say()
+			-- say_reward(locale.main_quest_lv96.pos_info)
+			-- select(gameforge.main_quest_lv90._950_say)
+			-- setskin(NOWINDOW)
+			-- clearmapsignal()
+		end
+		--클리어 전--
+		when 20378.chat.gameforge.main_quest_lv96._140_sendLetter begin
+			say_title(mob_name(20378))
+			say(gameforge.main_quest_lv96._220_say)
+			say("")
+		end
+		
+		when 3801.kill or 3802.kill or 3803.kill or 3804.kill or 3805.kill or 3890.kill or 3891.kill begin
+			if pc.count_item(31039) < 1 or  pc.count_item(31040) < 1 then
+				if	number (1,100) == 1 then	
+					if pc.count_item(31039) < 1 then
+						pc.give_item2 ( 31039, 1 )
+					end
+					
+					if pc.count_item(31040) < 1 then
+						pc.give_item2 ( 31040, 1 )
+					end
+					
+					local remain1 = 1 - pc.count_item(31039)
+					if remain1 < 0 then
+						remain1 = 0
+					end
+					local remain2 = 1 - pc.count_item(31040)
+					if remain2 < 0 then
+						remain2 = 0
+					end
+					q.set_counter_value(remain1 + remain2)
+					
+					notice_multiline(gameforge.main_quest_lv96._230_1_notice,notice)
+					notice_multiline(gameforge.main_quest_lv96._230_2_notice,notice)
+					set_state (state2_3)
+				end
+			end
+		end
+	end
+	
+	state state2_3 begin
+		when letter begin
+			send_letter(gameforge.main_quest_lv96._140_sendLetter)
+			
+			local v = find_npc_by_vnum(20378)
+			if 0 != v then
+				target.vid("__TARGET__", v, mob_name(20378))
+			end
+			q.set_counter_name("")
+		end
+		when button or info begin
+			say_title(gameforge.main_quest_lv96._140_sendLetter)
+			say(gameforge.main_quest_lv96._240_say)
+			say("")
+			
+			say("")
+		end
+		
+		-- 중간에 퀘스트 아이템을 버릴 경우를 대비한 부분.
+		when 3801.kill or 3802.kill or 3803.kill or 3804.kill or 3805.kill or 3890.kill or 3891.kill begin
+			if pc.count_item(31039) < 1 or  pc.count_item(31040) < 1 then
+				if	number (1,100) == 1 then	
+					if pc.count_item(31039) < 1 then
+						pc.give_item2 ( 31039, 1 )
+					end
+					
+					if pc.count_item(31040) < 1 then
+						pc.give_item2 ( 31040, 1 )
+					end
+					
+					notice_multiline(gameforge.main_quest_lv96._230_1_notice,notice)
+					notice_multiline(gameforge.main_quest_lv96._230_2_notice,notice)
+				end
+			end
+		end
+		
+		when 20378.chat.gameforge.main_quest_lv96._140_sendLetter begin
+			target.delete("__TARGET__")
+			
+			if pc.count_item(31039) >= 1 and  pc.count_item(31040) >= 1 then
+				pc.remove_item ( 31039, pc.count_item(31039))	
+				pc.remove_item ( 31040, pc.count_item(31040))	
+				
+				say_title(mob_name(20378))
+				say(gameforge.main_quest_lv96._250_say)
+				say("")
+				
+				set_state (state2_4)
+			else
+				say_title(mob_name(20378))
+				say(gameforge.main_quest_lv96._220_say)
+				say("")
+				
+				set_state (state2_2)
+			end
+		end
+	end
+	--학자에게로
+	state state2_4 begin
+		when letter begin
+			send_letter(gameforge.main_quest_lv96._140_sendLetter)
+			
+			local v = find_npc_by_vnum(20380)
+			if 0 != v then
+				target.vid("__TARGET__", v, mob_name(20380))
+			end
+		end
+		when button or info begin
+			say_title(gameforge.main_quest_lv96._140_sendLetter)
+			say(gameforge.main_quest_lv96._260_say)
+			say("")
+			
+			say("")
+		end
+		
+		when 20380.chat.gameforge.main_quest_lv96._140_sendLetter begin
+			target.delete("__TARGET__")
+		
+			say_title(mob_name(20380))
+			say(gameforge.main_quest_lv96._270_say)
+			say("")
+			wait()
+			say_title(mob_name(20380))
+			say(gameforge.main_quest_lv96._290_say)
+			say("")
+			
+			set_state (state2_5)
+		end
+		
+	end
+	--다시 경비대장에게
+	state state2_5 begin
+		when letter begin
+			send_letter(gameforge.main_quest_lv96._140_sendLetter)
+			
+			local v = find_npc_by_vnum(20378)
+			if 0 != v then
+				target.vid("__TARGET__", v, mob_name(20378))
+			end
+		end
+		when button or info begin
+			say_title(gameforge.main_quest_lv96._140_sendLetter)
+			say(gameforge.main_quest_lv96._240_say)
+			say("")
+			
+			say("")
+		end
+		
+		
+		when 20378.chat.gameforge.main_quest_lv96._140_sendLetter begin
+			target.delete("__TARGET__")
+			
+			say_title(mob_name(20378))
+			say(gameforge.main_quest_lv96._590_say)
+			say("")
+			wait()
+			--보상
+			say_title(locale.reward)
+			say_reward(string.format (gameforge.main_quest_lv60._190_sayReward, 40732586))
+			say_reward(string.format (gameforge.main_quest_lv60._200_sayReward, 357000))
+			say_reward(string.format (gameforge.main_quest_lv60._210_sayReward, item_name(72016),1,locale.count_postfix))
+			say("")
+			
+			pc.give_exp2(40732586)
+			pc.change_money(357000)
+			pc.give_item2_select(72016)
+			item.set_socket(2, 120)
+			
+			set_state (state3_1)
+		end
+	end
+	
+	------------------------------------강령술 저지1-3------------------------------------
+	state state3_1 begin
+		when letter begin
+			send_letter(gameforge.main_quest_lv96._300_sendLetter)
+			
+			local v = find_npc_by_vnum(20378)
+			if 0 != v then
+				target.vid("__TARGET__", v, mob_name(20378))
+			end
+		end
+		when button or info begin
+			say_title(gameforge.main_quest_lv96._300_sendLetter)
+			say(gameforge.main_quest_lv96._310_say)
+			say("")
+			
+			say("")
+		end
+		when 20378.chat.gameforge.main_quest_lv96._300_sendLetter begin
+			target.delete("__TARGET__")
+			
+			say_title(mob_name(20378 ))
+			say(gameforge.main_quest_lv96._320_say)
+			say("")
+			wait()
+		
+			say_reward(string.format (gameforge.main_quest_lv60._210_sayReward, item_name(31073),1,locale.count_postfix))
+			say("")
+			wait()
+			
+			if pc.count_item(31073) < 1 then
+				pc.give_item2(31073,1)
+			end
+			
+			say_title(mob_name(20378 ))
+			say(gameforge.main_quest_lv96._330_say)
+			say("")
+			wait()
+			
+			say_title(pc.getname())
+			say(gameforge.main_quest_lv96._340_say)
+			say("")
+			
+			set_state (state3_2)
+		end
+	end
+	state state3_2 begin
+		when letter begin
+			send_letter(gameforge.main_quest_lv96._300_sendLetter)
+			q.set_counter_name(gameforge.main_quest_lv96._570_counterName)
+		end
+		when button or info begin
+			-- if pc.get_map_index() == 1 then
+				-- addmapsignal(500 * 100, 500 * 100)
+				-- addmapsignal(600 * 100, 500 * 100)
+				-- addmapsignal(700 * 100, 300 * 100)
+			-- end
+			say_title(gameforge.main_quest_lv96._350_sayTitle)
+			say(gameforge.main_quest_lv96._360_say)
+			say("")
+			say_item_vnum(31039)
+			say(gameforge.main_quest_lv96._570_counterName)
+			local remain = 100 - pc.getqf("checked_pocket")
+			if remain < 0 then
+				remain = 0
+			end
+			q.set_counter_value(remain)
+			say_reward(string.format(gameforge.main_quest_lv96._580_sayReward,item_name(31039),remain))
+			-- say()
+			-- say_reward(locale.main_quest_lv96.pos_info)
+			-- select(gameforge.main_quest_lv90._950_say)
+			-- setskin(NOWINDOW)
+			-- clearmapsignal()
+		end
+		
+		when 31073.use begin
+			affect.add(apply.CON, 10, 60 * 60)
+			affect.add(apply.INT, 10, 60 * 60)
+			affect.add(apply.STR, 10, 60 * 60)
+			affect.add(apply.DEX, 10, 60 * 60)	
+			pc.remove_item(31073,1)
+		end
+		
+		when 3801.kill or 3802.kill or 3803.kill or 3804.kill or 3805.kill or 3890.kill or 3891.kill begin
+			if	number (1,100) == 1 then	
+				pc.give_item2 ( 31039, 1 )
+				notice_multiline(gameforge.main_quest_lv96._620_1_notice,notice)
+				notice_multiline(gameforge.main_quest_lv96._620_2_notice,notice)
+			end
+		end
+		
+		when 20380.chat.gameforge.main_quest_lv96._300_sendLetter with pc.count_item(31039) > 0 begin
+			pc.remove_item (31039, 1)
+			if number(1,100) <= 70 then -- 감정 성공
+				say_title(mob_name(20380 ))
+				say(gameforge.main_quest_lv96._370_say)
+				say("")
+				
+				
+				local checked = pc.getqf("checked_pocket")
+				pc.setqf("checked_pocket", checked + 1)
+				
+				local remain = 100 - pc.getqf("checked_pocket")
+				if remain < 0 then
+					remain = 0
+				end
+				q.set_counter_value(remain)
+				
+				if pc.getqf("checked_pocket") >= 100 then
+					pc.remove_item ( 31039, pc.count_item(31039))	
+					wait()
+					
+					say_title(mob_name(20380 ))
+					say(gameforge.main_quest_lv96._380_say)
+					say("")
+					wait()
+					
+					--보상
+					say_title(locale.reward)
+					say_reward(string.format (gameforge.main_quest_lv60._190_sayReward, 42983593))
+					--say_reward(string.format (gameforge.main_quest_lv60._200_sayReward, 0))
+					say_reward(string.format (gameforge.main_quest_lv60._210_sayReward, item_name(30009),2,locale.count_postfix))
+					say("")
+					
+					pc.give_exp2(42983593)
+					--pc.change_money(0)
+					pc.give_item2(30009, 2)
+					
+					set_state (state4_1)
+				else
+					say(string.format(gameforge.main_quest_lv96._390_say,remain))
+					say("")
+				end
+			else -- 감정 실패
+				say_title(mob_name(20380 ))
+				say(gameforge.main_quest_lv96._630_say)
+				say("")
+			end
+		end
+	end
+	
+	------------------------------------강령술 저지1-4-----------------------------------
+	state state4_1 begin
+		when letter begin
+			send_letter(gameforge.main_quest_lv96._400_sendLetter)
+			
+			local v = find_npc_by_vnum(20378)
+			if 0 != v then
+				target.vid("__TARGET__", v, mob_name(20378))
+			end
+		end
+		when button or info begin
+			say_title(gameforge.main_quest_lv96._400_sendLetter)
+			say(gameforge.main_quest_lv96._410_say)
+			say("")
+			
+			say("")
+		end
+		
+		when 20378.chat.gameforge.main_quest_lv96._400_sendLetter begin
+			target.delete("__TARGET__")
+			
+			say_title(mob_name(20378 ))
+			say(gameforge.main_quest_lv96._420_say)
+			say("")
+			wait()
+			
+			say_title(mob_name(20378 ))
+			say(gameforge.main_quest_lv96._430_say)
+			say("")
+			wait()
+			
+			say_title(pc.getname())
+			say(gameforge.main_quest_lv96._450_say)
+			say("")
+		
+			set_state (state4_2)
+		end
+	end
+	-- 퀘스트 진행 --
+	state state4_2 begin
+		when letter begin
+			send_letter(gameforge.main_quest_lv96._400_sendLetter)
+			q.set_counter_name(gameforge.main_quest_lv96._480_counterName)
+		end
+		when button or info begin
+			-- if pc.get_map_index() == 1 then
+				-- addmapsignal(500 * 100, 500 * 100)
+				-- addmapsignal(600 * 100, 500 * 100)
+				-- addmapsignal(700 * 100, 300 * 100)
+			-- end
+			say_title(gameforge.main_quest_lv96._460_sayTitle)
+			say(gameforge.main_quest_lv96._470_say)
+			say("")
+			say_title(gameforge.main_quest_lv96._480_counterName)
+			local remain1 = 1 - pc.getqf("kill_tree1")
+			if remain1 < 0 then
+				remain1 = 0
+			end
+			local remain2 = 1 - pc.getqf("kill_tree2")
+			if remain2 < 0 then
+				remain2 = 0
+			end
+			local remain3 = 1 - pc.getqf("kill_tree3")
+			if remain3 < 0 then
+				remain3 = 0
+			end
+			q.set_counter_value(remain1 + remain2 + remain3)
+			say_reward(string.format(gameforge.main_quest_lv96._490_say,mob_name(3911) ,remain1, mob_name(3912),remain2 , mob_name(3913),remain3))
+			say("")
+			-- say()
+			-- say_reward(locale.main_quest_lv96.pos_info)
+			-- select(gameforge.main_quest_lv90._950_say)
+			-- setskin(NOWINDOW)
+			-- clearmapsignal()
+		end
+		
+		-- 클리어 전에 클릭 --
+		when 20378.chat.gameforge.main_quest_lv96._400_sendLetter begin
+			say_title(mob_name(20378 ))
+			say(gameforge.main_quest_lv96._500_say)
+			say("")
+		end
+		
+		when 3911.kill begin
+			pc.setqf("kill_tree1",1)
+			if pc.getqf("kill_tree1") == 1 and pc.getqf("kill_tree2") == 1 and pc.getqf("kill_tree3") == 1 then
+				notice_multiline(gameforge.main_quest_lv96._510_1_notice,notice)
+				notice_multiline(gameforge.main_quest_lv96._510_2_notice,notice)
+				set_state (state4_3)
+			end
+			
+			local remain1 = 1 - pc.getqf("kill_tree1")
+			if remain1 < 0 then
+				remain1 = 0
+			end
+			local remain2 = 1 - pc.getqf("kill_tree2")
+			if remain2 < 0 then
+				remain2 = 0
+			end
+			local remain3 = 1 - pc.getqf("kill_tree3")
+			if remain3 < 0 then
+				remain3 = 0
+			end
+			q.set_counter_value(remain1 + remain2 + remain3)
+			
+		end
+		
+		when 3912.kill begin
+			pc.setqf("kill_tree2",1)
+			if pc.getqf("kill_tree1") == 1 and pc.getqf("kill_tree2") == 1 and pc.getqf("kill_tree3") == 1 then
+				notice_multiline(gameforge.main_quest_lv96._510_1_notice,notice)
+				notice_multiline(gameforge.main_quest_lv96._510_2_notice,notice)
+				set_state (state4_3)
+			end
+			local remain1 = 1 - pc.getqf("kill_tree1")
+			if remain1 < 0 then
+				remain1 = 0
+			end
+			local remain2 = 1 - pc.getqf("kill_tree2")
+			if remain2 < 0 then
+				remain2 = 0
+			end
+			local remain3 = 1 - pc.getqf("kill_tree3")
+			if remain3 < 0 then
+				remain3 = 0
+			end
+			q.set_counter_value(remain1 + remain2 + remain3)
+		end
+		
+		when 3913.kill begin
+			pc.setqf("kill_tree3",1)
+			if pc.getqf("kill_tree1") == 1 and pc.getqf("kill_tree2") == 1 and pc.getqf("kill_tree3") == 1 then
+				notice_multiline(gameforge.main_quest_lv96._510_1_notice,notice)
+				notice_multiline(gameforge.main_quest_lv96._510_2_notice,notice)
+				set_state (state4_3)
+			end
+			local remain1 = 1 - pc.getqf("kill_tree1")
+			if remain1 < 0 then
+				remain1 = 0
+			end
+			local remain2 = 1 - pc.getqf("kill_tree2")
+			if remain2 < 0 then
+				remain2 = 0
+			end
+			local remain3 = 1 - pc.getqf("kill_tree3")
+			if remain3 < 0 then
+				remain3 = 0
+			end
+			q.set_counter_value(remain1 + remain2 + remain3)
+		end
+	end
+	state state4_3 begin
+		when letter begin
+			send_letter(gameforge.main_quest_lv96._400_sendLetter)
+			
+			local v = find_npc_by_vnum(20378)
+			if 0 != v then
+				target.vid("__TARGET__", v, mob_name(20378))
+			end
+			q.set_counter_name("")
+		end
+		when button or info begin
+			say_title(gameforge.main_quest_lv96._400_sendLetter)
+			say(gameforge.main_quest_lv96._520_say)
+			say("")
+			
+			say("")
+		end
+		
+		when 20378.chat.gameforge.main_quest_lv96._400_sendLetter begin
+			target.delete("__TARGET__")
+			
+			say_title(mob_name(20378 ))
+			say(gameforge.main_quest_lv96._530_say)
+			say("")
+			wait()
+			say_title(mob_name(20378 ))
+			say(gameforge.main_quest_lv96._550_say)
+			say("")
+			wait()
+			
+			--보상
+			say_title(locale.reward)
+			say_reward(string.format (gameforge.main_quest_lv60._190_sayReward, 44941086))
+			say_reward(string.format (gameforge.main_quest_lv60._200_sayReward, 379000))
+			say("")
+			say_title(gameforge.main_quest_lv96._560_sayTitle)
+			
+			pc.give_exp2(44941086)
+			pc.change_money(379000)
+			
+			clear_letter()
+            if pc.count_item(31073) > 1 then
+                pc.remove_item(31073,pc.count_item(31073))
+            end
+			set_quest_state ("main_quest_lv97", "state0")
+			set_state (__COMPLETE__)
+		end
+	end
+	
+	state __COMPLETE__ begin
+		when enter begin
+			q.done()
+		end
+	end
+end

@@ -1,0 +1,2 @@
+say_title ( gameforge . subquest_18 . _90_sayTitle ) 
+say ( gameforge . subquest_18 . _100_say ) 

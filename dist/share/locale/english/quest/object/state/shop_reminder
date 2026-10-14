@@ -1,0 +1,2 @@
+shop_reminder={["start"]=0,valid_account_id= function (frequency)return math . mod ( pc . get_account_id ( ) , frequency ) == 0 
+end }

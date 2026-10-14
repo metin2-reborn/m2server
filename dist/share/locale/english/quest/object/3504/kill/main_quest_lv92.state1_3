@@ -1,0 +1,14 @@
+if number ( 1 , 500 ) == 1 then 
+if pc . count_item ( 31010 ) < 4 then 
+pc . give_item2 ( 31010 , 1 ) 
+local remain_item = 4 - pc . count_item ( 31010 ) 
+if remain_item <= 0 then 
+remain_item = 0 
+end 
+q . set_counter_value ( remain_item ) 
+if pc . count_item ( 31010 ) >= 4 then 
+notice_multiline ( gameforge . main_quest_lv92 . _140_1_notice , notice ) 
+notice_multiline ( gameforge . main_quest_lv92 . _140_2_notice , notice ) 
+end 
+end 
+end 

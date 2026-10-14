@@ -1,0 +1,47 @@
+if pc . count_item ( 31019 ) > 0 then 
+local cur_t = get_global_time ( ) - 60 * 60 * 9 
+local today_date = cur_t - math . mod ( cur_t , 86400 ) 
+local last_checked_date = pc . getqf ( "last_checked_date" ) 
+if today_date ~= last_checked_date then 
+pc . setqf ( "last_checked_date" , today_date ) 
+pc . setqf ( "today_item4_1_checked" , 0 ) 
+end 
+local today_item4_1_checked = pc . getqf ( "today_item4_1_checked" ) 
+if today_item4_1_checked >= 1 then 
+say_title ( mob_name ( 20380 ) ) 
+say ( gameforge . main_quest_lv91 . _500_say ) 
+else 
+pc . remove_item ( 31019 , 1 ) 
+if number ( 1 , 100 ) <= 70 then 
+say_title ( mob_name ( 20380 ) ) 
+say ( gameforge . main_quest_lv91 . _510_say ) 
+pc . setqf ( "item4_1_checked" , pc . getqf ( "item4_1_checked" ) + 1 ) 
+pc . setqf ( "today_item4_1_checked" , pc . getqf ( "today_item4_1_checked" ) + 1 ) 
+local remain = 3 - pc . getqf ( "item4_1_checked" ) 
+if remain < 0 then 
+remain = 0 
+end 
+q . set_counter_value ( remain ) 
+if pc . getqf ( "item4_1_checked" ) >= 3 then 
+pc . remove_item ( 31019 , pc . count_item ( 31019 ) ) 
+wait ( ) 
+say_title ( mob_name ( 20380 ) ) 
+say ( gameforge . main_quest_lv91 . _520_say ) 
+wait ( ) 
+say_title ( locale . reward ) 
+say_reward ( string . format ( gameforge . main_quest_lv60 . _190_sayReward , 2.7874e+07 ) ) 
+say_reward ( string . format ( gameforge . main_quest_lv60 . _200_sayReward , 225000 ) ) 
+say ( "" ) 
+pc . give_exp2 ( 2.7874e+07 ) 
+pc . change_money ( 225000 ) 
+set_state ( "state5_1" ) 
+q . set_counter_name ( "" ) 
+else 
+say ( string . format ( gameforge . main_quest_lv91 . _530_say , remain ) ) 
+end 
+else 
+say_title ( mob_name ( 20380 ) ) 
+say ( gameforge . main_quest_lv91 . _540_say ) 
+end 
+end 
+end 

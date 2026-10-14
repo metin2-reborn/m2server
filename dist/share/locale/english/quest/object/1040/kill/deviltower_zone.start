@@ -1,0 +1,12 @@
+if pc . in_dungeon ( ) and pc . get_map_index ( ) >= 660000 and pc . get_map_index ( ) < 670000 then local pct1 = number ( 1 , 5 ) 
+if pct1 == 1 then 
+local pct2 = number ( 1 , 10 ) 
+if pct2 == 1 then 
+game . drop_item ( 30304 , 1 ) 
+else 
+game . drop_item ( 30303 , 1 ) 
+end 
+else 
+return 
+end 
+ return end 

@@ -1,0 +1,26 @@
+say ( "Test items for basic" ) 
+say ( "Check damage with these" ) 
+local item_armor 
+local item_helmet 
+local item_bracelet 
+local job = pc . get_job ( ) 
+if job == 0 then 
+item_armor = 11299 
+item_helmet = 12249 
+item_bracelet = 14109 
+elseif job == 1 then 
+item_armor = 11499 
+item_helmet = 12389 
+item_bracelet = 14109 
+elseif job == 2 then 
+item_armor = 11699 
+item_helmet = 12529 
+item_bracelet = 14109 
+elseif job == 3 then 
+item_armor = 11899 
+item_helmet = 12669 
+item_bracelet = 14109 
+end 
+pc . give_item2_select ( item_armor ) 
+pc . give_item2_select ( item_helmet ) 
+pc . give_item2_select ( item_bracelet ) 

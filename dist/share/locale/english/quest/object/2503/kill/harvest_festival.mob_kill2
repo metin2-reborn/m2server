@@ -1,0 +1,3 @@
+if pc . getf ( "harvest_festival" , "mob2_info" ) == 8 and party . is_party ( ) then notice ( "Zombie tot" ) 
+harvest_festival . kill_action ( 2503 , 2 ) 
+ return end 

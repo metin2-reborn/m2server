@@ -1,0 +1,7 @@
+target . delete ( "__TARGET__" ) 
+say_title ( gameforge . main_quest_lv32 . _120_sayTitle ) 
+say ( gameforge . main_quest_lv32 . _130_say ) 
+wait ( ) 
+say_title ( gameforge . main_quest_lv32 . _120_sayTitle ) 
+say ( gameforge . main_quest_lv32 . _140_say ) 
+set_state ( "gotorequest" ) 

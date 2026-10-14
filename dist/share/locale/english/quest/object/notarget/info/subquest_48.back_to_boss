@@ -1,0 +1,11 @@
+local empire = pc . get_empire ( ) 
+if empire == 1 then 
+say_title ( gameforge . subquest_48 . _100_sayTitle ) 
+say ( gameforge . subquest_48 . _240_say ) 
+elseif empire == 2 then 
+say_title ( gameforge . subquest_48 . _100_sayTitle ) 
+say ( gameforge . subquest_48 . _250_say ) 
+elseif empire == 3 then 
+say_title ( gameforge . subquest_48 . _100_sayTitle ) 
+say ( gameforge . subquest_48 . _260_say ) 
+end 

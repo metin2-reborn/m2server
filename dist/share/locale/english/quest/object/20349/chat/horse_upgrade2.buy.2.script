@@ -1,0 +1,48 @@
+say_title ( gameforge . horse_exchange_ticket . _20_sayTitle ) 
+say ( gameforge . horse_upgrade2 . _360_say ) 
+local b = select ( gameforge . horse_upgrade2 . _370_select , gameforge . horse_upgrade2 . _380_select , gameforge . horse_upgrade2 . _385_select ) 
+if 1 == b then 
+if pc . money >= 1e+06 then 
+if pc . countitem ( "50052" ) >= 1 then 
+char_log ( 0 , "HORSE_UPGRADE2" , "BEGIN" ) 
+pc . changemoney ( - 1e+06 ) 
+char_log ( 0 , "HORSE_UPGRADE2" , "DEC money 1000000" ) 
+pc . removeitem ( "50052" , 1 ) 
+char_log ( 0 , "HORSE_UPGRADE2" , "DEC 50052 1" ) 
+horse . unride ( ) 
+horse . advance ( ) 
+horse . ride ( ) 
+char_log ( 0 , "HORSE_UPGRADE2" , "INC horse_advance 1" ) 
+pc . give_item2 ( "50053" , 1 ) 
+char_log ( 0 , "HORSE_UPGRADE2" , "INC 50053 1" ) 
+pc . give_item2 ( "50060" , 1 ) 
+char_log ( 0 , "HORSE_UPGRADE2" , "INC 50060 1" ) 
+char_log ( 0 , "HORSE_UPGRADE2" , "END" ) 
+say_title ( gameforge . horse_exchange_ticket . _20_sayTitle ) 
+say ( gameforge . horse_upgrade2 . _390_say ) 
+setstate ( "start" ) 
+q . done ( ) 
+else 
+say_title ( gameforge . horse_exchange_ticket . _20_sayTitle ) 
+say ( gameforge . horse_upgrade2 . _400_say ) 
+end 
+else 
+say_title ( gameforge . horse_exchange_ticket . _20_sayTitle ) 
+say ( gameforge . horse_upgrade2 . _410_say ) 
+end 
+elseif 2 == b then 
+say_title ( gameforge . horse_exchange_ticket . _20_sayTitle ) 
+say ( gameforge . horse_upgrade2 . _420_say ) 
+elseif 3 == b then 
+say_title ( gameforge . horse_exchange_ticket . _20_sayTitle ) 
+say ( gameforge . horse_upgrade2 . _430_say ) 
+local b = select ( gameforge . locale . guild . yes , gameforge . locale . guild . no ) 
+if 1 == b then 
+setstate ( "start" ) 
+elseif 2 == b then 
+else 
+say ( string . format ( gameforge . find_squareguard . _70_say , b ) ) 
+end 
+else 
+say ( string . format ( gameforge . find_squareguard . _70_say , b ) ) 
+end 

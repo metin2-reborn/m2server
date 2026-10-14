@@ -1,0 +1,15 @@
+main_quest_lv55={["start"]=0,["__COMPLETE__"]=668443392,["gototeacher"]=-1147521841,["gototeacher8"]=-245362170,["last_shot"]=1026313447,["run"]=1349952704,["survey8"]=1319548607,["takepaper"]=246888367,is_other_vil= function ()local empire = pc . get_empire ( ) 
+local map_num = pc . get_map_index ( ) 
+local is_village = 0 
+if empire == 1 and map_num == 21 then is_village = 1 end 
+if empire == 2 and map_num == 41 then is_village = 1 end 
+if empire == 3 and map_num == 1 then is_village = 1 end 
+return is_village 
+end ,is_my_vil= function ()local empire = pc . get_empire ( ) 
+local map_num = pc . get_map_index ( ) 
+local is_village = 0 
+if empire == 1 and map_num == 1 then is_village = 1 end 
+if empire == 2 and map_num == 21 then is_village = 1 end 
+if empire == 3 and map_num == 41 then is_village = 1 end 
+return is_village 
+end }

@@ -1,0 +1,2 @@
+if pc . get_level ( ) >= 85 then set_state ( "getquest" ) 
+ return end 

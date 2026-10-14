@@ -1,0 +1,16 @@
+if pc . get_level ( ) >= 80 then new_quest_lv80_mob1 = 2202 
+new_quest_lv80_mob2 = 1106 
+new_quest_lv80_amountIce = 10 
+new_quest_lv80_ice = 30146 
+new_quest_lv80_figure = 30183 
+new_quest_lv80_ember = 30184 
+new_quest_lv80_blackice = 30185 
+pc . setqf ( "notenchanted" , 1 ) 
+pc . setqf ( "spawnsleft" , 10 ) 
+pc . setqf ( "gotreward" , 1 ) 
+new_quest_lv80_dropProb = 80 
+new_quest_lv80_spawninterval = 120 
+new_quest_lv80_spawnlocationx = 99999 
+new_quest_lv80_spawnlocationy = 99999 
+set_state ( "gotoinformation" ) 
+ return end 

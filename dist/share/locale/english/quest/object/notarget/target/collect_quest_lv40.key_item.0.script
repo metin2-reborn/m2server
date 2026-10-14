@@ -1,0 +1,11 @@
+target . delete ( "__TARGET__" ) 
+if pc . count_item ( 30221 ) > 0 then 
+say_title ( gameforge . collect_herb_lv10 . _50_sayTitle ) 
+say ( gameforge . collect_quest_lv40 . _290_say ) 
+pc . remove_item ( 30221 , 1 ) 
+set_state ( "__reward" ) 
+else 
+say_title ( gameforge . collect_herb_lv10 . _50_sayTitle ) 
+say ( gameforge . collect_quest_lv40 . _295_say ) 
+return 
+end 

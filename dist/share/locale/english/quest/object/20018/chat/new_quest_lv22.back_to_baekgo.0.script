@@ -1,0 +1,20 @@
+target . delete ( "__TARGET3__" ) 
+say_title ( gameforge . new_quest_lv22 . _018_say_title ) 
+if pc . count_item ( new_quest_lv22_drop1 ) >= new_quest_lv22_neededAmountDrop1 and pc . count_item ( new_quest_lv22_drop2 ) >= new_quest_lv22_neededAmountDrop2 then 
+say ( gameforge . new_quest_lv22 . _070_say ) 
+pc . remove_item ( new_quest_lv22_drop1 , new_quest_lv22_neededAmountDrop1 ) 
+pc . remove_item ( new_quest_lv22_drop2 , new_quest_lv22_neededAmountDrop2 ) 
+wait ( ) 
+say_title ( gameforge . new_quest_lv22 . _018_say_title ) 
+say ( string . format ( gameforge . new_quest_lv22 . _071_say , new_quest_lv22_timeToFind / 60 ) ) 
+say ( gameforge . new_quest_lv22 . _072_say ) 
+pc . give_item2 ( 30009 , 1 ) 
+pc . setqf ( "new_quest_lv22_startTime" , get_time ( ) ) 
+q . done ( ) 
+set_state ( "find_brother" ) 
+return 
+else 
+say ( gameforge . new_quest_lv22 . _073_say ) 
+q . done ( ) 
+set_state ( "hunting" ) 
+end 

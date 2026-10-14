@@ -1,0 +1,2 @@
+say_title ( mob_name ( 20378 ) ) 
+say ( string . format ( gameforge . main_quest_lv94 . _470_say , 30 , 3 , 1 ) ) 

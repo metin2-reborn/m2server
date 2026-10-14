@@ -1,0 +1,3 @@
+if number ( 1 , 100 ) == 1 then 
+set_state ( "state2_4" ) 
+end 

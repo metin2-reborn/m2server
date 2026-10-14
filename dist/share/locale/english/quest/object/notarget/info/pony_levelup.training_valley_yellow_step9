@@ -1,0 +1,2 @@
+say_title ( gameforge . pony_levelup . _10_makequestbutton ) 
+say ( gameforge . pony_levelup . _20_sayReward ) 

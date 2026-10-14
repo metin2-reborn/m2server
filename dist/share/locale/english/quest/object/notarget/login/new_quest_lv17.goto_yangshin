@@ -1,0 +1,18 @@
+local empire = pc . get_empire ( ) 
+if is_destination_village ( 2 ) then 
+local v = find_npc_by_vnum ( 20019 ) 
+if 0 ~= v then 
+target . vid ( "__TARGET4__" , v , gameforge . new_quest_lv17 . _160_target ) 
+end 
+end 
+if empire == 1 then 
+send_letter ( gameforge . new_quest_lv17 . _020_say_title ) 
+end 
+if empire == 2 then 
+send_letter ( gameforge . new_quest_lv17 . _020_say_title ) 
+end 
+if empire == 3 then 
+send_letter ( gameforge . new_quest_lv17 . _020_say_title ) 
+end 
+q . start ( ) 
+q . set_title ( gameforge . new_quest_lv17 . _020_say_title ) 

@@ -1,0 +1,39 @@
+say_title ( gameforge . main_quest_lv30 . _40_sayTitle ) 
+say ( gameforge . oxevent . _20_say ) 
+wait ( ) 
+if game . get_event_flag ( "oxevent_status" ) == 0 then 
+say_title ( gameforge . main_quest_lv30 . _40_sayTitle ) 
+say ( gameforge . oxevent . _30_say ) 
+elseif game . get_event_flag ( "oxevent_status" ) == 1 then 
+say_title ( gameforge . main_quest_lv30 . _40_sayTitle ) 
+say ( gameforge . oxevent . _40_say ) 
+local s = select ( gameforge . buy_fishrod . _120_select , gameforge . locale . cancel ) 
+if s == 1 then 
+say_title ( gameforge . main_quest_lv30 . _40_sayTitle ) 
+say ( gameforge . oxevent . _50_say ) 
+wait ( ) 
+local min = game . get_event_flag ( "ox_map_level_min" ) 
+local max = game . get_event_flag ( "ox_map_level_max" ) 
+if pc . level < min or pc . level > max then 
+say_title ( gameforge . main_quest_lv30 . _40_sayTitle ) 
+say_reward ( string . format ( gameforge . entry_event_map . _040_say , min , max ) ) 
+return 
+end 
+if get_time ( ) < pc . getqf ( "ox_end_cooldown_time" ) then 
+say_title ( gameforge . main_quest_lv30 . _40_sayTitle ) 
+say ( gameforge . locale . monkey_dungeon . cannot_enter_yet ) 
+return 
+end 
+if oxevent_manager . check_limit ( ) == 0 then 
+say_title ( gameforge . main_quest_lv30 . _40_sayTitle ) 
+say ( gameforge . entry_event_map . _060_say ) 
+return 
+end 
+pc . warp ( 896500 , 24600 ) 
+elseif s == 2 then 
+return 
+end 
+elseif game . get_event_flag ( "oxevent_status" ) == 2 then 
+say_title ( gameforge . main_quest_lv30 . _40_sayTitle ) 
+say ( gameforge . oxevent . _60_say ) 
+end 

@@ -1,0 +1,3 @@
+say_title ( gameforge . blacksmith . _20_sayTitle ) 
+say ( gameforge . subquest_06 . _530_say ) 
+set_state ( "resource_complete" ) 

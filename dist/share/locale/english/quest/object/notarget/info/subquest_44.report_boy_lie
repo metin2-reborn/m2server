@@ -1,0 +1,2 @@
+say_title ( gameforge . subquest_44 . _460_sendLetter ) 
+say ( gameforge . subquest_44 . _480_say ) 

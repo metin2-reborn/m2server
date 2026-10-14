@@ -1,0 +1,6 @@
+if get_global_time ( ) - pc . getf ( "main_quest_lv93" , "ockgu_access_time" ) >= 24 * 60 * 60 then 
+set_state ( "state4_1" ) 
+else 
+say_title ( mob_name ( 20008 ) ) 
+say ( gameforge . main_quest_lv93 . _390_say ) 
+end 

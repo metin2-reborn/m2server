@@ -1,0 +1,5 @@
+say_title ( gameforge . collect_quest_lv30 . _340_sayTitle ) 
+say ( gameforge . cube . _10_say ) 
+wait ( ) 
+setskin ( NOWINDOW ) 
+command ( "cube open" ) 

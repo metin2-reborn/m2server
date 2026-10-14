@@ -1,0 +1,3 @@
+say_reward ( gameforge . main_quest_lv84 . _130_sayReward ) 
+say ( gameforge . main_quest_lv84 . _140_say ) 
+set_state ( "state_3" ) 

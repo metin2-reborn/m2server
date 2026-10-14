@@ -1,0 +1,55 @@
+target . delete ( "__TARGET__" ) 
+local gold = pc . count_item ( 50606 ) 
+local silver = pc . count_item ( 50605 ) 
+local ebony = pc . count_item ( 50608 ) 
+if gold < 100 or silver < 100 or ebony < 100 then 
+say_title ( gameforge . blacksmith . _20_sayTitle ) 
+say ( gameforge . subquest_30 . _170_say ) 
+local s = select ( gameforge . subquest_30 . _180_select , gameforge . subquest_30 . _190_select ) 
+if 2 == s then 
+say_title ( gameforge . blacksmith . _20_sayTitle ) 
+say ( gameforge . subquest_30 . _200_say ) 
+local a = select ( gameforge . locale . guild . yes , gameforge . locale . guild . no ) 
+if 2 == a then 
+say_title ( gameforge . subquest_09 . _50_sayTitle ) 
+say ( gameforge . subquest_30 . _210_say ) 
+return 
+end 
+say_title ( gameforge . blacksmith . _20_sayTitle ) 
+say ( gameforge . subquest_30 . _220_say ) 
+set_state ( "__GIVEUP__" ) 
+return 
+end 
+say_title ( gameforge . subquest_09 . _50_sayTitle ) 
+say ( gameforge . subquest_30 . _230_say ) 
+return 
+end 
+if gold >= 100 and silver >= 100 and ebony >= 100 then 
+say_title ( gameforge . blacksmith . _20_sayTitle ) 
+say ( gameforge . subquest_30 . _240_say ) 
+wait ( ) 
+say_title ( gameforge . blacksmith . _20_sayTitle ) 
+say ( gameforge . subquest_30 . _250_say ) 
+pc . remove_item ( 50606 , 100 ) 
+pc . remove_item ( 50605 , 100 ) 
+pc . remove_item ( 50608 , 100 ) 
+say_reward ( gameforge . subquest_30 . _260_sayReward ) 
+pc . give_exp2 ( 200000 ) 
+say_reward ( gameforge . subquest_30 . _270_sayReward ) 
+pc . change_money ( 20000 ) 
+if pc . job == 0 then 
+pc . give_item2 ( 63 , 1 ) 
+say_reward ( gameforge . subquest_30 . _280_sayReward ) 
+elseif pc . job == 1 then 
+pc . give_item2 ( 63 , 1 ) 
+say_reward ( gameforge . subquest_30 . _280_sayReward ) 
+elseif pc . job == 2 then 
+pc . give_item2 ( 63 , 1 ) 
+say_reward ( gameforge . subquest_30 . _280_sayReward ) 
+elseif pc . job == 3 then 
+pc . give_item2 ( 7053 , 1 ) 
+say_reward ( gameforge . subquest_30 . _290_sayReward ) 
+end 
+clear_letter ( ) 
+set_state ( "__COMPLETE__" ) 
+end 

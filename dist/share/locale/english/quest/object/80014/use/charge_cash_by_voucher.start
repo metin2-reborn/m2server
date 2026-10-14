@@ -1,0 +1,2 @@
+local amount = item . get_value ( 0 ) 
+charge_cash_by_voucher . charge ( amount , "cash" ) 

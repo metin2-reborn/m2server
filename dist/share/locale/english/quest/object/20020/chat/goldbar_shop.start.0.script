@@ -1,0 +1,40 @@
+if pc . get_level ( ) < 30 then 
+say_title ( gameforge . goldbar . _20_sayTitle ) 
+say ( gameforge . goldbar . _30_say ) 
+wait ( ) 
+say_title ( gameforge . buy_fishrod . _210_sayTitle ) 
+say_reward ( gameforge . goldbar . _40_sayReward ) 
+return 
+end 
+if game . get_event_flag ( "gold_trade_enable" ) == 0 then 
+say_title ( gameforge . goldbar . _20_sayTitle ) 
+say ( gameforge . goldbar . _50_say ) 
+wait ( ) 
+say_title ( gameforge . buy_fishrod . _210_sayTitle ) 
+say_reward ( gameforge . goldbar . _60_sayReward ) 
+return 
+end 
+say_title ( gameforge . goldbar . _20_sayTitle ) 
+say ( gameforge . goldbar . _70_say ) 
+local s = select ( gameforge . goldbar . _80_select , gameforge . goldbar . _90_select ) 
+if s == 1 then 
+say_title ( gameforge . goldbar . _20_sayTitle ) 
+say ( gameforge . goldbar . _100_say ) 
+wait ( ) 
+local interval = game . get_event_flag ( "gold_trade_cycle" ) 
+local unit = "" 
+if interval <= 0 then interval = 360 end 
+if interval >= 60 then 
+interval = interval / 60 
+unit = gameforge . goldbar . _104_say math . ceil ( interval ) 
+else 
+unit = gameforge . goldbar . _108_say end 
+if interval < 1 then interval = 1 end 
+say_title ( gameforge . goldbar . _20_sayTitle ) 
+say ( string . format ( gameforge . goldbar . _110_say , interval , unit ) ) 
+say ( gameforge . goldbar . _120_say ) 
+else 
+say_title ( gameforge . goldbar . _20_sayTitle ) 
+say ( gameforge . goldbar . _130_say ) 
+end 
+setstate ( "trade_goldbar" ) 

@@ -1,0 +1,22 @@
+say_title ( gameforge . horse_exchange_ticket . _20_sayTitle ) 
+say_reward ( gameforge . pony_buy . _130_sayReward ) 
+local b = select ( gameforge . locale . levelup . prev_quest_go , gameforge . pony_buy . _140_select ) 
+if 1 == b then 
+elseif 2 == b then 
+say_title ( gameforge . horse_exchange_ticket . _20_sayTitle ) 
+say ( gameforge . pony_buy . _150_say ) 
+local b = select ( gameforge . locale . guild . yes , gameforge . pony_buy . _160_select ) 
+if 1 == b then 
+say_title ( gameforge . horse_exchange_ticket . _20_sayTitle ) 
+say ( gameforge . pony_buy . _170_say ) 
+setstate ( "start" ) 
+q . done ( ) 
+elseif 2 == b then 
+say_title ( gameforge . pony_buy . _180_sayTitle ) 
+say ( gameforge . pony_buy . _190_say ) 
+else 
+say ( string . format ( gameforge . find_squareguard . _70_say , b ) ) 
+end 
+else 
+say ( string . format ( gameforge . find_squareguard . _70_say , b ) ) 
+end 

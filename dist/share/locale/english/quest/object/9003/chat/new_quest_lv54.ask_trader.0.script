@@ -1,0 +1,8 @@
+target . delete ( "__TARGET2__" ) 
+say_title ( gameforge . new_quest_lv54 . _040_say_title ) 
+say ( gameforge . new_quest_lv54 . _051_say ) 
+wait ( ) 
+say_title ( gameforge . new_quest_lv54 . _040_say_title ) 
+say ( gameforge . new_quest_lv54 . _052_say ) 
+q . done ( ) 
+set_state ( "ask_captain" ) 

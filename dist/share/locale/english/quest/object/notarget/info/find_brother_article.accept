@@ -1,0 +1,2 @@
+say_title ( gameforge . find_brother_article . _130_sendLetter ) 
+say ( gameforge . find_brother_article . _140_sayReward ) 

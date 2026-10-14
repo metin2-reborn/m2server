@@ -1,0 +1,8 @@
+new_quest_lv54_amountYang = 125000 
+new_quest_lv54_amountXp = 3.75e+06 
+new_quest_lv54_rewardVnum = 13083 
+new_quest_lv54_neededAmountDrop1 = 20 
+new_quest_lv54_drop1 = 30176 
+send_letter ( gameforge . new_quest_lv54 . _020_say_title ) 
+q . start ( ) 
+q . set_title ( gameforge . new_quest_lv54 . _020_say_title ) 

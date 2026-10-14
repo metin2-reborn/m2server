@@ -1,0 +1,12 @@
+target . delete ( "__TARGET4__" ) 
+say_title ( gameforge . new_quest_lv17 . _161_say_title ) 
+say ( gameforge . new_quest_lv17 . _151_say ) 
+say_title ( gameforge . blacksmith . _40_sayTitle ) 
+say_reward ( gameforge . new_quest_lv17 . _152_say_reward ) 
+pc . remove_item ( 30173 , pc . count_item ( 30173 ) ) 
+pc . give_item_from_special_item_group ( 50300 ) 
+pc . change_money ( 10000 ) 
+pc . give_exp2 ( 40000 ) 
+q . done ( ) 
+set_state ( "__COMPLETE__" ) 
+return 

@@ -1,0 +1,8 @@
+say_title ( gameforge . horse_exchange_ticket . _20_sayTitle ) 
+say ( gameforge . pony_buy . _200_say ) 
+if is_test_server ( ) then 
+pc . setqf ( "make_time" , get_time ( ) + 10 ) 
+else 
+pc . setqf ( "make_time" , get_time ( ) + number ( 8 , 16 ) * 60 * 60 ) 
+end 
+setstate ( "wait" ) 

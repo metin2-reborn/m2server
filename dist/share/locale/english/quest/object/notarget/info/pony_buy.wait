@@ -1,0 +1,2 @@
+say_title ( gameforge . pony_buy . _210_makequestbutton ) 
+say ( gameforge . pony_buy . _220_sayReward ) 

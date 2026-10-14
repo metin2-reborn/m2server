@@ -1,0 +1,7 @@
+if pc . count_item ( "30156" ) >= 1 then 
+say_title ( gameforge . subquest_27 . _350_sayTitle ) 
+say ( gameforge . subquest_27 . _360_say ) 
+return 
+end 
+say_title ( gameforge . subquest_27 . _340_makequestbutton ) 
+say ( gameforge . subquest_27 . _370_say ) 

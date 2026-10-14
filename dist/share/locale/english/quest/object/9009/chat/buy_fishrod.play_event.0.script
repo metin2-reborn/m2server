@@ -1,0 +1,3 @@
+say_title ( gameforge . buy_fishrod . _20_sayTitle ) 
+say ( gameforge . buy_fishrod . _180_say ) 
+setstate ( "reward" ) 

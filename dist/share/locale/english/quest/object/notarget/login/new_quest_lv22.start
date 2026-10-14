@@ -1,0 +1,3 @@
+if pc . get_level ( ) >= 22 then q . done ( ) 
+set_state ( "information" ) 
+ return end 

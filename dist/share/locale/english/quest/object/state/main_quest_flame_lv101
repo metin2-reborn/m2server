@@ -1,0 +1,5 @@
+main_quest_flame_lv101={["start"]=0,["__COMPLETE__"]=668443392,["state0"]=-568891545,["state1_1"]=-712184091,["state1_2"]=1283833695,["state1_3"]=998412233,["state1_4"]=-1511646614,["state1_5"]=-756995332,["state2_1"]=-674606916,["state2_2"]=1321402630,["state2_3"]=969159056,["state2_4"]=-1482644429,["state3_1"]=-704103797,["state3_2"]=1325493041,item_count= function ()if pc . count_item ( 31080 ) >= 1 then 
+set_state ( "state2_3" ) 
+end 
+q . set_counter_value ( 1 - pc . count_item ( 31080 ) ) 
+end }

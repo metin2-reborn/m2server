@@ -1,0 +1,3 @@
+if pc . get_level ( ) >= 43 then pc . setqf ( "collect_count_1" , 1 ) 
+set_state ( "information" ) 
+ return end 

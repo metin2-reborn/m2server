@@ -1,0 +1,2 @@
+if pc . get_informer_type ( ) == "GIFT" then command ( "gift" ) 
+ return end 

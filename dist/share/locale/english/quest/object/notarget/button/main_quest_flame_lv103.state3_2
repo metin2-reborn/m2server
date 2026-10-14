@@ -1,0 +1,32 @@
+say_title ( gameforge . main_quest_flame_lv103 . _340_sayTitle ) 
+say ( gameforge . main_quest_flame_lv103 . _350_say ) 
+say ( gameforge . main_quest_lv98 . _680_counterName ) 
+local total_remain = 0 
+local remain1 = 50 - pc . getqf ( "kill_count_1" ) 
+if remain1 < 0 then 
+remain1 = 0 
+end 
+total_remain = total_remain + remain1 
+local remain2 = 50 - pc . getqf ( "kill_count_2" ) 
+if remain2 < 0 then 
+remain2 = 0 
+end 
+total_remain = total_remain + remain2 
+local remain3 = 50 - pc . getqf ( "kill_count_3" ) 
+if remain3 < 0 then 
+remain3 = 0 
+end 
+total_remain = total_remain + remain3 
+local remain4 = 50 - pc . getqf ( "kill_count_4" ) 
+if remain4 < 0 then 
+remain4 = 0 
+end 
+total_remain = total_remain + remain4 
+local remain5 = 50 - pc . getqf ( "kill_count_5" ) 
+if remain5 < 0 then 
+remain5 = 0 
+end 
+say ( string . format ( gameforge . main_quest_lv98 . _690_sayReward , mob_name ( 6005 ) , remain1 , mob_name ( 6006 ) , remain2 ) ) 
+say ( string . format ( gameforge . main_quest_lv98 . _690_sayReward , mob_name ( 6007 ) , remain3 , mob_name ( 6008 ) , remain4 ) ) 
+say ( string . format ( gameforge . main_quest_lv98 . _670_sayReward , mob_name ( 6009 ) , remain5 ) ) 
+say_reward ( gameforge . main_quest_flame_lv103 . _260_sayReward ) 

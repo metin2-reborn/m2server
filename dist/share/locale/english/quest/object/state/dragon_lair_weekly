@@ -1,0 +1,48 @@
+dragon_lair_weekly={["start"]=0,["getquest"]=1929663828,["hunt_item"]=707031697,set_settings= function ()local settings = { } 
+settings . cooldown_time = 561600 
+settings . time_to_hunt = 7200 
+settings . items_to_hunt = { 
+30198 , 
+30199 , 
+50721 , 
+50722 , 
+50723 , 
+50725 , 
+50726 , 
+50727 
+} 
+settings . amount_to_hunt = { 
+10 , 
+10 , 
+50 , 
+50 , 
+50 , 
+50 , 
+50 , 
+50 
+} 
+settings . amount_to_pay = 150000 
+settings . normal_items_rate = 50 
+settings . normal_items = { 
+{ 70008 , 1 } 
+} 
+settings . poly_item_vnum = 71093 
+settings . poly_mobs = { 
+{ 175 , 6 } , 
+{ 184 , 6 } , 
+{ 501 , 4 } , 
+{ 502 , 4 } , 
+{ 552 , 2 , 85 } , 
+{ 771 , 6 } , 
+{ 1601 , 2 , 95 } , 
+{ 2001 , 4 } , 
+{ 2051 , 2 , 90 } , 
+{ 2061 , 2 , 90 } , 
+{ 2131 , 6 } , 
+{ 5003 , 6 } 
+} 
+return settings 
+end ,get_amount_remaining= function ()return ( pc . getqf ( "amount_to_hunt" ) - pc . count_item ( pc . getqf ( "item_to_hunt" ) ) ) 
+end ,get_time_remaining= function ()local settings = dragon_lair_weekly . set_settings ( ) 
+return ( pc . getqf ( "lasttime" ) - get_global_time ( ) + settings . time_to_hunt ) 
+end }

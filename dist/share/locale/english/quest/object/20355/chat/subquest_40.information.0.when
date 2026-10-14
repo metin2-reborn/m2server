@@ -1,0 +1,1 @@
+return pc . level >= 56 and pc . getqf ( "aborted" ) ~= 1

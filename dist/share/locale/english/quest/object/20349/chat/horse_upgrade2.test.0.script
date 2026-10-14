@@ -1,0 +1,22 @@
+say_title ( gameforge . horse_exchange_ticket . _20_sayTitle ) 
+say ( gameforge . horse_upgrade2 . _160_say ) 
+local b = select ( gameforge . locale . levelup . prev_quest_go , gameforge . locale . cancel ) 
+if 1 == b then 
+elseif 2 == b then 
+say_title ( gameforge . horse_exchange_ticket . _20_sayTitle ) 
+say ( gameforge . horse_upgrade2 . _170_say ) 
+local b = select ( gameforge . horse_upgrade2 . _180_select , gameforge . horse_upgrade2 . _190_select ) 
+if 1 == b then 
+say_title ( gameforge . horse_exchange_ticket . _20_sayTitle ) 
+say ( gameforge . horse_upgrade2 . _200_say ) 
+setstate ( "start" ) 
+q . done ( ) 
+elseif 2 == b then 
+say_title ( gameforge . horse_exchange_ticket . _20_sayTitle ) 
+say ( gameforge . horse_upgrade2 . _210_say ) 
+else 
+say ( string . format ( gameforge . horse_upgrade2 . _220_say , b ) ) 
+end 
+else 
+say ( string . format ( gameforge . horse_upgrade2 . _220_say , b ) ) 
+end 
