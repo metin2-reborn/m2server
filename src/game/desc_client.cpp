@@ -13,15 +13,16 @@
 #include "utils.h"
 
 #include <common/tables.h>
-#include <libthecore/buffer.h>
-#include <libthecore/fdwatch.h>
+#include <libnet/connection.h>
+#include <libnet/io.h>
 #include <libthecore/log.h>
 #include <libthecore/main.h>
-#include <libthecore/socket.h>
 
+#include <chrono>
 #include <cstdint>
 #include <cstring>
 #include <string>
+#include <utility>
 
 
 CLIENT_DESC * db_clientdesc = nullptr;
@@ -53,7 +54,7 @@ CLIENT_DESC::~CLIENT_DESC()
 
 void CLIENT_DESC::Destroy()
 {
-	if (m_sock == INVALID_SOCKET) {
+	if (!m_connection) {
 		return;
 	}
 
@@ -66,12 +67,7 @@ void CLIENT_DESC::Destroy()
 		CGuildManager::instance().StopAllGuildWar();
 	}
 
-	fdwatch_del_fd(m_lpFdw, m_sock);
-
-	sys_log(0, "SYSTEM: closing client socket. DESC #%d", m_sock);
-
-	socket_close(m_sock);
-	m_sock = INVALID_SOCKET;
+	sys_log(0, "SYSTEM: closing connection to %s:%u", m_stHost.c_str(), m_wPort);
 
 	// Chain up to base class Destroy()
 	DESC::Destroy();
@@ -92,18 +88,19 @@ bool CLIENT_DESC::Connect(int iPhaseWhenSucceed)
 
 	m_LastTryToConnectTime = get_global_time();
 
-	if (m_sock != INVALID_SOCKET)
+	if (m_connection)
 		return false;
 
 	sys_log(0, "SYSTEM: Trying to connect to %s:%d", m_stHost.c_str(), m_wPort);
 
-	m_sock = socket_connect(m_stHost.c_str(), m_wPort);
+	// Blocking (at most 10 seconds) so that packets sent right after the connect go out in order.
+	auto socket = net::connect(m_stHost, m_wPort, std::chrono::seconds(10));
 
-	if (m_sock != INVALID_SOCKET)
+	if (socket)
 	{
-		sys_log(0, "SYSTEM: connected to server (fd %d, ptr %p)", m_sock, this);
-		fdwatch_add_fd(m_lpFdw, m_sock, this, FDW_READ, false);
-		fdwatch_add_fd(m_lpFdw, m_sock, this, FDW_WRITE, false);
+		m_connection = net::connection::create(std::move(*socket), MAX_SERVER_INPUT, MAX_SERVER_OUTPUT);
+		m_connection->start(*this);
+		sys_log(0, "SYSTEM: connected to server (ptr %p)", this);
 		SetPhase(m_iPhaseWhenSucceed);
 		return true;
 	}
@@ -114,16 +111,10 @@ bool CLIENT_DESC::Connect(int iPhaseWhenSucceed)
 	}
 }
 
-void CLIENT_DESC::Setup(fdwatch * _fdw, const char * _host, uint16_t _port)
+void CLIENT_DESC::Setup(const char * _host, uint16_t _port)
 {
-	// 1MB input/output buffer
-	m_lpFdw = _fdw;
 	m_stHost = _host;
 	m_wPort = _port;
-
-	InitializeBuffers();
-
-	m_sock = INVALID_SOCKET;
 }
 
 void CLIENT_DESC::SetPhase(int iPhase)
@@ -223,13 +214,6 @@ void CLIENT_DESC::SetPhase(int iPhase)
 
 		case PHASE_P2P:
 			sys_log(1, "PHASE_P2P");
-			
-			if (m_lpInputBuffer)
-				buffer_reset(m_lpInputBuffer);
-
-			if (m_lpOutputBuffer)
-				buffer_reset(m_lpOutputBuffer);
-
 			m_pInputProcessor = &m_inputP2P;
 			break;
 
@@ -244,33 +228,33 @@ void CLIENT_DESC::SetPhase(int iPhase)
 
 void CLIENT_DESC::DBPacketHeader(uint8_t bHeader, uint32_t dwHandle, uint32_t dwSize)
 {
-	buffer_write(m_lpOutputBuffer, encode_byte(bHeader), sizeof(uint8_t));
-	buffer_write(m_lpOutputBuffer, encode_4bytes(dwHandle), sizeof(uint32_t));
-	buffer_write(m_lpOutputBuffer, encode_4bytes(dwSize), sizeof(uint32_t));
+	m_connection->send(encode_byte(bHeader), sizeof(uint8_t));
+	m_connection->send(encode_4bytes(dwHandle), sizeof(uint32_t));
+	m_connection->send(encode_4bytes(dwSize), sizeof(uint32_t));
 }
 
 void CLIENT_DESC::DBPacket(uint8_t bHeader, uint32_t dwHandle, const void * c_pvData, uint32_t dwSize)
 {
-	if (m_sock == INVALID_SOCKET) {
+	if (!m_connection) {
 		sys_log(0, "CLIENT_DESC [%s] trying DBPacket() while not connected",
 			GetKnownClientDescName(this));
 		return;
 	}
-	sys_log(1, "DB_PACKET: header %d handle %d size %d buffer_size %d", bHeader, dwHandle, dwSize, buffer_size(m_lpOutputBuffer));
+	sys_log(1, "DB_PACKET: header %d handle %d size %d pending %zu", bHeader, dwHandle, dwSize, m_connection->pending_output());
 	DBPacketHeader(bHeader, dwHandle, dwSize);
 
 	if (c_pvData)
-		buffer_write(m_lpOutputBuffer, c_pvData, dwSize);
+		m_connection->send(c_pvData, dwSize);
 }
 
 void CLIENT_DESC::Packet(const void * c_pvData, int iSize)
 {
-	if (m_sock == INVALID_SOCKET) {
+	if (!m_connection) {
 		sys_log(0, "CLIENT_DESC [%s] trying Packet() while not connected",
 			GetKnownClientDescName(this));
 		return;
 	}
-	buffer_write(m_lpOutputBuffer, c_pvData, iSize);
+	m_connection->send(c_pvData, iSize);
 }
 
 bool CLIENT_DESC::IsRetryWhenClosed()
@@ -310,7 +294,6 @@ void CLIENT_DESC::UpdateChannelStatus(uint32_t t, bool fForce)
 void CLIENT_DESC::Reset()
 {
 	// Backup connection target info
-	fdwatch * fdw = m_lpFdw;
 	std::string host = m_stHost;
 	uint16_t port = m_wPort;
 
@@ -318,16 +301,6 @@ void CLIENT_DESC::Reset()
 	Initialize();
 
 	// Restore connection target info
-	m_lpFdw = fdw;
 	m_stHost = host;
 	m_wPort = port;
-
-	InitializeBuffers();
-}
-
-void CLIENT_DESC::InitializeBuffers()
-{
-	m_lpOutputBuffer = buffer_new(1024 * 1024);
-	m_lpInputBuffer = buffer_new(1024 * 1024);
-	m_iMinInputBufferLen = 1024 * 1024;
 }

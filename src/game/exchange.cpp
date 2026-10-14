@@ -16,7 +16,6 @@
 #include <common/length.h>
 #include <libgame/grid.h>
 #include <libthecore/log.h>
-#include <libthecore/socket.h>
 
 #include <cassert>
 #include <cstdint>
@@ -548,7 +547,7 @@ bool CExchange::Accept(bool bAccept)
 			goto EXCHANGE_END;
 		}
 
-		if (db_clientdesc->GetSocket() == INVALID_SOCKET)
+		if (!db_clientdesc->IsConnected())
 		{
 			sys_err("Cannot use exchange feature while DB cache connection is dead.");
 			victim->ChatPacket(CHAT_TYPE_INFO, "Unknown error");

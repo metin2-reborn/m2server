@@ -5,8 +5,7 @@
 
 #include <common/length.h>
 #include <common/singleton.h>
-#include <libthecore/fdwatch.h>
-#include <libthecore/typedef.h>
+#include <libnet/io.h>
 
 #include <cstdint>
 #include <map>
@@ -33,13 +32,13 @@ class DESC_MANAGER : public singleton<DESC_MANAGER>
 		void			Initialize();
 		void			Destroy();
 
-		DESC *			AcceptDesc(fdwatch * fdw, socket_t s);
-		DESC *			AcceptP2PDesc(fdwatch * fdw, socket_t s);
+		DESC *			AcceptDesc(net::tcp::socket socket);
+		DESC *			AcceptP2PDesc(net::tcp::socket socket);
 		void			DestroyDesc(DESC * d, bool erase_from_set = true);
 
 		uint32_t			CreateHandshake();
 
-		CLIENT_DESC *		CreateConnectionDesc(fdwatch * fdw, const char * host, uint16_t port, int iPhaseWhenSucceed, bool bRetryWhenClosed);
+		CLIENT_DESC *		CreateConnectionDesc(const char * host, uint16_t port, int iPhaseWhenSucceed, bool bRetryWhenClosed);
 		void			TryConnect();
 
 		DESC *			FindByHandle(uint32_t handle);

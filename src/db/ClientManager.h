@@ -3,15 +3,15 @@
 #define __INC_CLIENTMANAGER_H__
 
 #include "LoginData.h"
-#include "NetBase.h"
 #include "Peer.h"
 
 #include <common/building.h>
 #include <common/length.h>
 #include <common/singleton.h>
 #include <common/tables.h>
+#include <libnet/io.h>
+#include <libnet/listener.h>
 #include <libsql/AsyncSQL.h>
-#include <libthecore/typedef.h>
 
 #include <mysql.h>
 
@@ -21,6 +21,7 @@
 #include <functional>
 #include <list>
 #include <map>
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -33,7 +34,7 @@ class CItemPriceListTableCache;
 
 size_t CreatePlayerSaveQuery(char * pszQuery, size_t querySize, TPlayerTable * pkTab);
 
-class CClientManager : public CNetBase, public singleton<CClientManager>
+class CClientManager : public singleton<CClientManager>
 {
     public:
 	typedef std::list<CPeer *>			TPeerList;
@@ -100,6 +101,9 @@ class CClientManager : public CNetBase, public singleton<CClientManager>
 
 	bool	Initialize();
 	time_t	GetCurrentTime();
+
+	// Handles the packets a peer has received (CPeer::on_receive).
+	void	ProcessPackets(CPeer * peer);
 
 	void	MainLoop();
 	void	Quit();
@@ -188,7 +192,7 @@ class CClientManager : public CNetBase, public singleton<CClientManager>
 	bool		MirrorMobTableIntoDB();
 	bool		MirrorItemTableIntoDB();
 
-	void		AddPeer(socket_t fd);
+	void		AddPeer(net::tcp::socket socket);
 	void		RemovePeer(CPeer * pPeer);
 	CPeer *		GetPeer(IDENT ident);
 
@@ -196,7 +200,6 @@ class CClientManager : public CNetBase, public singleton<CClientManager>
 
 	int		Process();
 
-        void            ProcessPackets(CPeer * peer);
 
 	CLoginData *	GetLoginData(uint32_t dwKey);
 	CLoginData *	GetLoginDataByLogin(const char * c_pszLogin);
@@ -369,7 +372,7 @@ class CClientManager : public CNetBase, public singleton<CClientManager>
 	// END_OF_BLOCK_CHAT
    
     private:
-	socket_t				m_fdAccept;	// Listening socket
+	std::shared_ptr<net::listener>		m_listener;	// accepts the game and auth servers
 	TPeerList				m_peerList;
 
 	CPeer *					m_pkAuthPeer;

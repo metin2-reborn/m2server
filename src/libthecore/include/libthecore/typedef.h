@@ -3,7 +3,6 @@
 
 #include <cstdint>
 
-using socket_t = int;
 using wire_time_t = int32_t;
 
 #endif

@@ -1,13 +1,11 @@
 add_library(thecore
     buffer.cpp
-    fdwatch.cpp
     hangul.cpp
     heart.cpp
     internal.h
     log.cpp
     main.cpp
     signal.cpp
-    socket.cpp
     utils.cpp
 )
 

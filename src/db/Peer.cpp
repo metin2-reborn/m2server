@@ -1,19 +1,25 @@
 #include "Peer.h"
 
+#include "ClientManager.h"
 #include "ItemIDRangeManager.h"
-#include "PeerBase.h"
 
 #include <common/tables.h>
+#include <libnet/connection.h>
 #include <libthecore/log.h>
 
+#include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <memory>
+#include <span>
+#include <system_error>
+#include <utility>
 
-CPeer::CPeer()
+CPeer::CPeer(std::shared_ptr<net::connection> connection) : m_connection(std::move(connection))
 {
-	m_state = 0;
+	m_inputConsumed = 0;
+	m_state = STATE_PLAYING;
 	m_bChannel = 0;
-	m_dwHandle = 0;
 	m_wListenPort = 0;
 	m_wP2PPort = 0;
 
@@ -21,28 +27,23 @@ CPeer::CPeer()
 
 	m_itemRange.dwMin = m_itemRange.dwMax = m_itemRange.dwUsableItemIDMin = 0;
 	m_itemSpareRange.dwMin = m_itemSpareRange.dwMax = m_itemSpareRange.dwUsableItemIDMin = 0;
-}
-
-CPeer::~CPeer()
-{
-	Close();
-}
-
-void CPeer::OnAccept()
-{
-	m_state = STATE_PLAYING;
 
 	static uint32_t current_handle = 0;
 	m_dwHandle = ++current_handle;
 
-	sys_log(0, "Connection accepted. (host: %s handle: %u fd: %d)", m_host, m_dwHandle, m_fd);
+	sys_log(0, "Connection accepted. (host: %s handle: %u)", GetHost(), m_dwHandle);
+	m_connection->start(*this);
 }
 
-void CPeer::OnClose()
+CPeer::~CPeer()
 {
-	m_state = STATE_CLOSE;
+	m_connection->close();
 
-	sys_log(0, "Connection closed. (host: %s)", m_host);
+	sys_log(0, "Connection closed. (host: %s)", GetHost());
+}
+
+void CPeer::ReturnItemIDRange()
+{
 	sys_log(0, "ItemIDRange: returned. %u ~ %u", m_itemRange.dwMin, m_itemRange.dwMax);
 
 	CItemIDRangeManager::instance().UpdateRange(m_itemRange.dwMin, m_itemRange.dwMax);
@@ -50,6 +51,29 @@ void CPeer::OnClose()
 	m_itemRange.dwMin = 0;
 	m_itemRange.dwMax = 0;
 	m_itemRange.dwUsableItemIDMin = 0;
+}
+
+auto CPeer::on_receive(std::span<std::uint8_t> input, std::size_t /*received*/) -> std::size_t
+{
+	m_input = input;
+	m_inputConsumed = 0;
+	CClientManager::instance().ProcessPackets(this);
+	m_input = {};
+	return m_inputConsumed;
+}
+
+void CPeer::on_close(const std::error_code & error)
+{
+	if (error)
+		sys_log(0, "Connection lost. (host: %s: %s)", GetHost(), error.message().c_str());
+
+	m_state = STATE_CLOSE;
+}
+
+void CPeer::Encode(const void * data, uint32_t size)
+{
+	if (!m_connection->send(data, size))
+		sys_err("cannot send %u bytes to %s", size, GetHost());
 }
 
 uint32_t CPeer::GetHandle()
@@ -63,10 +87,12 @@ void CPeer::SetUserCount(uint32_t dwCount)
 
 bool CPeer::PeekPacket(int & iBytesProceed, uint8_t & header, uint32_t & dwHandle, uint32_t & dwLength, const char ** data)
 {
-	if (GetRecvLength() < iBytesProceed + 9)
+	const int iLength = (int) m_input.size();
+
+	if (iLength < iBytesProceed + 9)
 		return false;
 
-	const char * buf = (const char *) GetRecvBuffer();
+	const char * buf = (const char *) m_input.data();
 	buf += iBytesProceed;
 
 	header	= *(buf++);
@@ -77,10 +103,10 @@ bool CPeer::PeekPacket(int & iBytesProceed, uint8_t & header, uint32_t & dwHandl
 	dwLength	= *((uint32_t *) buf);
 	buf		+= sizeof(uint32_t);
 
-	if (iBytesProceed + dwLength + 9 > (uint32_t) GetRecvLength())
+	if (iBytesProceed + dwLength + 9 > (uint32_t) iLength)
 	{
 		sys_log(0, "PeekPacket: not enough buffer size: len %u, recv %d", 
-				9+dwLength, GetRecvLength()-iBytesProceed);
+				9+dwLength, iLength-iBytesProceed);
 		return false;
 	}
 
@@ -105,14 +131,6 @@ void CPeer::EncodeHeader(uint8_t header, uint32_t dwHandle, uint32_t dwSize)
 void CPeer::EncodeReturn(uint8_t header, uint32_t dwHandle)
 {
 	EncodeHeader(header, dwHandle, 0);
-}
-
-int CPeer::Send()
-{
-	if (m_state == STATE_CLOSE)
-		return -1;
-
-	return (CPeerBase::Send());
 }
 
 void CPeer::SetP2PPort(uint16_t wPort)

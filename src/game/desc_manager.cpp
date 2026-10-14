@@ -14,10 +14,9 @@
 #include "utils.h"
 
 #include <common/length.h>
-#include <libthecore/fdwatch.h>
+#include <libnet/connection.h>
+#include <libnet/io.h>
 #include <libthecore/log.h>
-#include <libthecore/socket.h>
-#include <libthecore/typedef.h>
 #include <libthecore/utils.h>
 
 #include <algorithm>
@@ -31,6 +30,7 @@
 
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <sys/socket.h>
 
 struct valid_ip
 {
@@ -160,24 +160,19 @@ RETRY:
 	return (crc);
 }
 
-DESC * DESC_MANAGER::AcceptDesc(fdwatch * fdw, socket_t s)
+DESC * DESC_MANAGER::AcceptDesc(net::tcp::socket socket)
 {
-	socket_t                    desc;
-	DESC *						newd;
-	static struct sockaddr_in   peer;
-	static char					host[MAX_HOST_LENGTH + 1];
-
-	if ((desc = socket_accept(s, &peer)) == -1)
-		return nullptr;
-
-	strlcpy(host, inet_ntoa(peer.sin_addr), sizeof(host));
+	auto connection = net::connection::create(std::move(socket), MAX_CLIENT_INPUT, MAX_CLIENT_OUTPUT);
+	const char * host = connection->remote_address().c_str();
 
 	if (g_bAuthServer)
 	{
-		if (IsBanIP(peer.sin_addr))
+		in_addr addr{};
+
+		if (inet_pton(AF_INET, host, &addr) == 1 && IsBanIP(addr))
 		{
 			sys_log(0, "connection from %s was banned.", host);
-			socket_close(desc);
+			connection->close();
 			return nullptr;
 		}
 	}
@@ -187,17 +182,17 @@ DESC * DESC_MANAGER::AcceptDesc(fdwatch * fdw, socket_t s)
 		if (m_iSocketsConnected >= MAX_ALLOW_USER)
 		{
 			sys_err("max connection reached. MAX_ALLOW_USER = %d", MAX_ALLOW_USER);
-			socket_close(desc);
+			connection->close();
 			return nullptr;
 		}
 	}
 
-	newd = new DESC;
+	DESC * newd = new DESC;
 	crc_t handshake = CreateHandshake();
 
-	if (!newd->Setup(fdw, desc, peer, ++m_iHandleCount, handshake))
+	if (!newd->Setup(std::move(connection), ++m_iHandleCount, handshake))
 	{
-		socket_close(desc);
+		newd->Destroy();
 		delete newd;
 		return nullptr;
 	}
@@ -210,23 +205,14 @@ DESC * DESC_MANAGER::AcceptDesc(fdwatch * fdw, socket_t s)
 	return (newd);
 }
 
-DESC * DESC_MANAGER::AcceptP2PDesc(fdwatch * fdw, socket_t bind_fd)
+DESC * DESC_MANAGER::AcceptP2PDesc(net::tcp::socket socket)
 {
-	socket_t           fd;
-	struct sockaddr_in peer;
-	char               host[MAX_HOST_LENGTH + 1];
-
-	if ((fd = socket_accept(bind_fd, &peer)) == -1)
-		return nullptr;
-
-	strlcpy(host, inet_ntoa(peer.sin_addr), sizeof(host));
-
 	DESC_P2P * pkDesc = new DESC_P2P;
 
-	if (!pkDesc->Setup(fdw, fd, host, peer.sin_port))
+	if (!pkDesc->Setup(net::connection::create(std::move(socket), MAX_SERVER_INPUT, MAX_SERVER_OUTPUT)))
 	{     
 		sys_err("DESC_MANAGER::AcceptP2PDesc : Setup failed");
-		socket_close(fd);
+		pkDesc->Destroy();
 		delete pkDesc;
 		return nullptr;
 	}
@@ -234,7 +220,7 @@ DESC * DESC_MANAGER::AcceptP2PDesc(fdwatch * fdw, socket_t bind_fd)
 	m_set_pkDesc.insert(pkDesc);
 	++m_iSocketsConnected;
 
-	sys_log(0, "DESC_MANAGER::AcceptP2PDesc  %s:%u", host, peer.sin_port);
+	sys_log(0, "DESC_MANAGER::AcceptP2PDesc  %s", pkDesc->GetHostName());
 	P2P_MANAGER::instance().RegisterAcceptor(pkDesc);
 	return (pkDesc);
 }
@@ -348,13 +334,13 @@ DESC * DESC_MANAGER::FindByCharacterName(const char *name)
 	return (it == m_set_pkDesc.end()) ? nullptr : (*it);
 }
 
-CLIENT_DESC * DESC_MANAGER::CreateConnectionDesc(fdwatch * fdw, const char * host, uint16_t port, int iPhaseWhenSucceed, bool bRetryWhenClosed)
+CLIENT_DESC * DESC_MANAGER::CreateConnectionDesc(const char * host, uint16_t port, int iPhaseWhenSucceed, bool bRetryWhenClosed)
 {
 	CLIENT_DESC * newd;
 
 	newd = new CLIENT_DESC;
 
-	newd->Setup(fdw, host, port);
+	newd->Setup(host, port);
 	newd->Connect(iPhaseWhenSucceed);
 	newd->SetRetryWhenClosed(bRetryWhenClosed);
 

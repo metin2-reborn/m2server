@@ -7,13 +7,11 @@
 #include "packet.h"
 
 #include <common/peer_security.h>
-#include <libthecore/buffer.h>
-#include <libthecore/fdwatch.h>
+#include <libnet/connection.h>
 #include <libthecore/log.h>
-#include <libthecore/socket.h>
-#include <libthecore/typedef.h>
 
-#include <cstdint>
+#include <memory>
+#include <utility>
 
 
 DESC_P2P::~DESC_P2P()
@@ -22,50 +20,36 @@ DESC_P2P::~DESC_P2P()
 
 void DESC_P2P::Destroy()
 {
-	if (m_sock == INVALID_SOCKET) {
+	if (!m_connection) {
 		return;
 	}
 
 	P2P_MANAGER::instance().UnregisterAcceptor(this);
 
-	fdwatch_del_fd(m_lpFdw, m_sock);
-
-	sys_log(0, "SYSTEM: closing p2p socket. DESC #%d", m_sock);
-
-	socket_close(m_sock);
-	m_sock = INVALID_SOCKET;
+	sys_log(0, "SYSTEM: closing p2p connection of %s", m_stHost.c_str());
 
 	// Chain up to base class Destroy()
 	DESC::Destroy();
 }
 
-bool DESC_P2P::Setup(fdwatch * fdw, socket_t fd, const char * host, uint16_t wPort)
+bool DESC_P2P::Setup(std::shared_ptr<net::connection> connection)
 {
-	m_lpFdw = fdw;
-	m_stHost = host;
-	m_wPort = wPort;
-	m_sock = fd;
+	m_connection = std::move(connection);
+	m_stHost = m_connection->remote_address();
+	m_wPort = m_connection->remote_port();
 
-	if (!(m_lpOutputBuffer = buffer_new(1024 * 1024)))
-		return false;
+	m_connection->start(*this);
 
-	if (!(m_lpInputBuffer = buffer_new(1024 * 1024)))
-		return false;
-
-	fdwatch_add_fd(m_lpFdw, m_sock, this, FDW_READ, false);
-
-	m_iMinInputBufferLen = 1024 * 1024;
-
-	if (!is_allowed_peer(host, g_allowedPeerHosts, g_szPublicIP)) // refuse if remote host != public ip (only the same machine must be able to connect in here)
+	if (!is_allowed_peer(m_stHost.c_str(), g_allowedPeerHosts, g_szPublicIP)) // refuse if remote host != public ip (only the same machine must be able to connect in here)
 	{
-		sys_log(0, "PORT_SECURITY: new p2p connection from [%s] to [%s] fd: %d BLOCKED", host, g_szPublicIP, m_sock);
+		sys_log(0, "PORT_SECURITY: new p2p connection from [%s] to [%s] BLOCKED", m_stHost.c_str(), g_szPublicIP);
 		SetPhase(PHASE_CLOSE);
 		return true;
 	}
 
 	SetPhase(PHASE_P2P);
 
-	sys_log(0, "SYSTEM: new p2p connection from [%s] fd: %d", host, m_sock);
+	sys_log(0, "SYSTEM: new p2p connection from [%s]", m_stHost.c_str());
 	return true;
 }
 
@@ -77,13 +61,6 @@ void DESC_P2P::SetPhase(int iPhase)
 	{
 		case PHASE_P2P:
 			sys_log(1, "PHASE_P2P");
-
-			if (m_lpInputBuffer)
-				buffer_reset(m_lpInputBuffer);
-
-			if (m_lpOutputBuffer)
-				buffer_reset(m_lpOutputBuffer);
-
 			m_pInputProcessor = &s_inputP2P;
 			break;
 

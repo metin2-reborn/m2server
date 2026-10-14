@@ -9,9 +9,7 @@
 #include "guild.h"
 #include "guild_manager.h"
 #include "locale.hpp"
-#include "main.h"
 #include "packet.h"
-#include "protocol.h"
 #include "sequence.h"
 #include "TrafficProfiler.h"
 #include "typedef.h"
@@ -19,26 +17,26 @@
 
 #include <common/length.h>
 #include <common/tables.h>
-#include <libthecore/buffer.h>
-#include <libthecore/fdwatch.h>
+#include <libnet/connection.h>
 #include <libthecore/log.h>
-#include <libthecore/socket.h>
-#include <libthecore/typedef.h>
 #include <libthecore/utils.h>
 
-#include <algorithm>
+#include <asio/error.hpp>
+
 #include <cassert>
+#include <chrono>
 #include <cstdarg>
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
 #include <ctime>
+#include <memory>
+#include <span>
+#include <system_error>
+#include <utility>
 
 #include <arpa/inet.h>
-#include <netinet/in.h>
-#include <sys/time.h>
-#include <unistd.h>
 
 
 DESC::DESC()
@@ -55,16 +53,12 @@ void DESC::Initialize()
 	m_bDestroyed = false;
 
 	m_pInputProcessor = nullptr;
-	m_lpFdw = nullptr;
-	m_sock = INVALID_SOCKET;
+	m_connection.reset();
 	m_iPhase = PHASE_CLOSE;
 	m_dwHandle = 0;
 
 	m_wPort = 0;
 	m_LastTryToConnectTime = 0;
-
-	m_lpInputBuffer = nullptr;
-	m_iMinInputBufferLen = 0;
 
 	m_dwHandshake = 0;
 	m_dwHandshakeSentTime = 0;
@@ -72,15 +66,11 @@ void DESC::Initialize()
 	m_dwClientTime = 0;
 	m_bHandshaking = false;
 
-	m_lpBufferedOutputBuffer = nullptr;
-	m_lpOutputBuffer = nullptr;
+	m_bufferedOutput.clear();
 
 	m_pkPingEvent = nullptr;
 	m_lpCharacter = nullptr;
 	memset( &m_accountTable, 0, sizeof(m_accountTable) );
-
-	memset( &m_SockAddr, 0, sizeof(m_SockAddr) );
-	memset( &m_UDPSockAddr, 0, sizeof(m_UDPSockAddr) );
 
 	m_pLogFile = nullptr;
 
@@ -134,11 +124,6 @@ void DESC::Destroy()
 		m_lpCharacter = nullptr;
 	}
 
-	buffer_delete(m_lpOutputBuffer);
-	m_lpOutputBuffer = nullptr;
-	buffer_delete(m_lpInputBuffer);
-	m_lpInputBuffer = nullptr;
-
 	event_cancel(&m_pkPingEvent);
 	event_cancel(&m_pkDisconnectEvent);
 
@@ -155,16 +140,15 @@ void DESC::Destroy()
 		}
 	}
 
-	if (m_sock != INVALID_SOCKET)
+	if (m_connection)
 	{
-		sys_log(0, "SYSTEM: closing socket. DESC #%d", m_sock);
-		Log("SYSTEM: closing socket. DESC #%d", m_sock);
-		fdwatch_del_fd(m_lpFdw, m_sock);
+		sys_log(0, "SYSTEM: closing connection of %s (handle %u)", m_stHost.c_str(), m_dwHandle);
+		Log("SYSTEM: closing connection of %s (handle %u)", m_stHost.c_str(), m_dwHandle);
 
 		cipher_.CleanUp();
 
-		socket_close(m_sock);
-		m_sock = INVALID_SOCKET;
+		m_connection->close();
+		m_connection.reset();
 	}
 
 	m_seq_vector.clear();
@@ -217,24 +201,14 @@ void DESC::SetPong(bool b)
 	m_bPong = b;
 }
 
-bool DESC::Setup(fdwatch * _fdw, socket_t _fd, const struct sockaddr_in & c_rSockAddr, uint32_t _handle, uint32_t _handshake)
+bool DESC::Setup(std::shared_ptr<net::connection> connection, uint32_t _handle, uint32_t _handshake)
 {
-	m_lpFdw		= _fdw;
-	m_sock		= _fd;
-
-	m_stHost		= inet_ntoa(c_rSockAddr.sin_addr);
-	m_wPort			= c_rSockAddr.sin_port;
+	m_connection	= std::move(connection);
+	m_stHost		= m_connection->remote_address();
+	m_wPort			= m_connection->remote_port();
 	m_dwHandle		= _handle;
 
-	//NOTE: Is there any reason this should differ per country?
-	m_lpOutputBuffer = buffer_new(DEFAULT_PACKET_BUFFER_SIZE * 2);
-
-	m_iMinInputBufferLen = MAX_INPUT_LEN >> 1;
-	m_lpInputBuffer = buffer_new(MAX_INPUT_LEN);
-
-	m_SockAddr = c_rSockAddr;
-
-	fdwatch_add_fd(m_lpFdw, m_sock, this, FDW_READ, false);
+	m_connection->start(*this);
 
 	// Ping Event 
 	desc_event_info* info = AllocEventInfo<desc_event_info>();
@@ -249,87 +223,42 @@ bool DESC::Setup(fdwatch * _fdw, socket_t _fd, const struct sockaddr_in & c_rSoc
 	SetPhase(PHASE_HANDSHAKE);
 	StartHandshake(_handshake);
 
-	sys_log(0, "SYSTEM: new connection from [%s] fd: %d handshake %u output input_len %d, ptr %p",
-			m_stHost.c_str(), m_sock, m_dwHandshake, buffer_size(m_lpInputBuffer), this);
+	sys_log(0, "SYSTEM: new connection from [%s] handle %u handshake %u ptr %p",
+			m_stHost.c_str(), m_dwHandle, m_dwHandshake, this);
 
-	Log("SYSTEM: new connection from [%s] fd: %d handshake %u ptr %p", m_stHost.c_str(), m_sock, m_dwHandshake, this);
+	Log("SYSTEM: new connection from [%s] handshake %u ptr %p", m_stHost.c_str(), m_dwHandshake, this);
 	return true;
 }
 
-int DESC::ProcessInput()
+auto DESC::on_receive(std::span<std::uint8_t> input, std::size_t received) -> std::size_t
 {
-	ssize_t bytes_read;
+	// Only the new bytes: the rest was decrypted when it arrived.
+	if (cipher_.activated())
+		cipher_.Decrypt(input.data() + input.size() - received, received);
 
-	if (!m_lpInputBuffer)
+	std::size_t consumed = 0;
+
+	// If false is returned, the phase has changed, so go through processing again!
+	while (m_pInputProcessor)
 	{
-		sys_err("DESC::ProcessInput : nil input buffer");
-		return -1;
-	}
-
-	buffer_adjust_size(m_lpInputBuffer, m_iMinInputBufferLen);
-	bytes_read = socket_read(m_sock, (char *) buffer_write_peek(m_lpInputBuffer), buffer_has_space(m_lpInputBuffer));
-
-	if (bytes_read < 0)
-		return -1;
-	else if (bytes_read == 0)
-		return 0;
-
-	buffer_write_proceed(m_lpInputBuffer, bytes_read);
-
-	if (!m_pInputProcessor)
-		sys_err("no input processor");
-	else
-	{
-		if (cipher_.activated()) {
-			cipher_.Decrypt(const_cast<void*>(buffer_read_peek(m_lpInputBuffer)), buffer_size(m_lpInputBuffer));
-		}
-
 		int iBytesProceed = 0;
+		const bool bDone = m_pInputProcessor->Process(this, input.data() + consumed, (int) (input.size() - consumed), iBytesProceed);
+		consumed += iBytesProceed;
 
-		// If false is returned, the phase has changed, so go through processing again!
-		while (!m_pInputProcessor->Process(this, buffer_read_peek(m_lpInputBuffer), buffer_size(m_lpInputBuffer), iBytesProceed))
-		{
-			buffer_read_proceed(m_lpInputBuffer, iBytesProceed);
-			iBytesProceed = 0;
-		}
-
-		buffer_read_proceed(m_lpInputBuffer, iBytesProceed);
+		if (bDone)
+			return consumed;
 	}
 
-	return (bytes_read);
+	// Nobody reads in this phase (closing, or a connector that is not set up yet).
+	return input.size();
 }
 
-int DESC::ProcessOutput()
+void DESC::on_close(const std::error_code & error)
 {
-	if (buffer_size(m_lpOutputBuffer) <= 0)
-		return 0;
+	if (error && error != asio::error::eof)
+		sys_log(0, "SYSTEM: connection of %s lost: %s", m_stHost.c_str(), error.message().c_str());
 
-	int buffer_left = fdwatch_get_buffer_size(m_lpFdw, m_sock);
-
-	if (buffer_left <= 0)
-		return 0;
-
-	int bytes_to_write = std::min<int>(buffer_left, buffer_size(m_lpOutputBuffer));
-
-	if (bytes_to_write == 0)
-		return 0;
-
-	int result = socket_write_tcp(m_sock, (const char *) buffer_read_peek(m_lpOutputBuffer), bytes_to_write);
-
-	if (result > 0)
-	{
-		max_bytes_written = std::max(result, max_bytes_written);
-
-		total_bytes_written += result;
-		current_bytes_written += result;
-
-		buffer_read_proceed(m_lpOutputBuffer, result);
-
-	}
-
-    if (result >= 0 && buffer_size(m_lpOutputBuffer) != 0)
-        fdwatch_add_fd(m_lpFdw, m_sock, this, FDW_WRITE, true);
-	return (result);
+	SetPhase(PHASE_CLOSE);
 }
 
 void DESC::BufferedPacket(const void * c_pvData, int iSize)
@@ -337,17 +266,15 @@ void DESC::BufferedPacket(const void * c_pvData, int iSize)
 	if (m_iPhase == PHASE_CLOSE)
 		return;
 
-	if (!m_lpBufferedOutputBuffer)
-		m_lpBufferedOutputBuffer = buffer_new(std::max(1024, iSize));
-
-	buffer_write(m_lpBufferedOutputBuffer, c_pvData, iSize);
+	const auto * data = static_cast<const uint8_t *>(c_pvData);
+	m_bufferedOutput.insert(m_bufferedOutput.end(), data, data + iSize);
 }
 
 void DESC::Packet(const void * c_pvData, int iSize)
 {
 	assert(iSize > 0);
 
-	if (m_iPhase == PHASE_CLOSE) // Don't send while disconnecting.
+	if (m_iPhase == PHASE_CLOSE || !m_connection) // Don't send while disconnecting.
 		return;
 
 	if (m_stRelayName.length() != 0)
@@ -359,61 +286,53 @@ void DESC::Packet(const void * c_pvData, int iSize)
 		strlcpy(p.szName, m_stRelayName.c_str(), sizeof(p.szName));
 		p.lSize = iSize;
 
-		if (!packet_encode(m_lpOutputBuffer, &p, sizeof(p)))
-		{
-			m_iPhase = PHASE_CLOSE;
-			return;
-		}
-
 		m_stRelayName.clear();
 
-		if (!packet_encode(m_lpOutputBuffer, c_pvData, iSize))
-		{
+		if (!m_connection->send(&p, sizeof(p)) || !m_connection->send(c_pvData, iSize))
 			m_iPhase = PHASE_CLOSE;
-			return;
-		}
+
+		return;
+	}
+
+	if (!m_bufferedOutput.empty())
+	{
+		const auto * data = static_cast<const uint8_t *>(c_pvData);
+		m_bufferedOutput.insert(m_bufferedOutput.end(), data, data + iSize);
+
+		c_pvData = m_bufferedOutput.data();
+		iSize = (int) m_bufferedOutput.size();
+	}
+
+	// TRAFFIC_PROFILE
+	if (g_bTrafficProfileOn)
+		TrafficProfiler::instance().Report(TrafficProfiler::IODIR_OUTPUT, *(uint8_t *) c_pvData, iSize);
+	// END_OF_TRAFFIC_PROFILER
+
+	// The output limit closes connections that stopped reading.
+	const std::span<uint8_t> out = m_connection->prepare(iSize);
+
+	if (out.empty())
+	{
+		sys_log(0, "SYSTEM: output of %s exceeds its limit, closing", m_stHost.c_str());
+		m_iPhase = PHASE_CLOSE;
 	}
 	else
 	{
-		if (m_lpBufferedOutputBuffer)
-		{
-			buffer_write(m_lpBufferedOutputBuffer, c_pvData, iSize);
+		std::memcpy(out.data(), c_pvData, iSize);
 
-			c_pvData = buffer_read_peek(m_lpBufferedOutputBuffer);
-			iSize = buffer_size(m_lpBufferedOutputBuffer);
-		}
-
-		// TRAFFIC_PROFILE
-		if (g_bTrafficProfileOn)
-			TrafficProfiler::instance().Report(TrafficProfiler::IODIR_OUTPUT, *(uint8_t *) c_pvData, iSize);
-		// END_OF_TRAFFIC_PROFILER
-
-		void* buf = buffer_write_peek(m_lpOutputBuffer);
-
-		
-		if (packet_encode(m_lpOutputBuffer, c_pvData, iSize))
-		{
-			if (cipher_.activated()) {
-				cipher_.Encrypt(buf, iSize);
-			}
-		}
-		else
-		{
-			m_iPhase = PHASE_CLOSE;
-		}
-
-		buffer_delete(m_lpBufferedOutputBuffer);
-		m_lpBufferedOutputBuffer = nullptr;
+		if (cipher_.activated())
+			cipher_.Encrypt(out.data(), out.size());
 	}
 
-	if (m_iPhase != PHASE_CLOSE)
-		fdwatch_add_fd(m_lpFdw, m_sock, this, FDW_WRITE, true);
+	m_bufferedOutput.clear();
 }
 
 void DESC::LargePacket(const void * c_pvData, int iSize)
 {
-	buffer_adjust_size(m_lpOutputBuffer, iSize);
-	sys_log(0, "LargePacket Size %d", iSize, buffer_size(m_lpOutputBuffer));
+	if (m_connection)
+		m_connection->raise_output_limit(iSize);
+
+	sys_log(0, "LargePacket Size %d", iSize);
 
 	Packet(c_pvData, iSize);
 }
@@ -635,86 +554,23 @@ void DESC::BindCharacter(CHARACTER * ch)
 	m_lpCharacter = ch;
 }
 
+void DESC::SendOutputNow()
+{
+	if (m_connection)
+		m_connection->write_now();
+}
+
 void DESC::FlushOutput()
 {
-	if (m_sock == INVALID_SOCKET) {
-		return;
-	}
-
-	if (buffer_size(m_lpOutputBuffer) <= 0)
+	if (!m_connection || m_connection->pending_output() == 0)
 		return;
 
-	struct timeval sleep_tv, now_tv, start_tv;
-	int event_triggered = false;
+	sys_log(0, "FLUSH START %zu", m_connection->pending_output());
 
-	gettimeofday(&start_tv, nullptr);
-
-	socket_block(m_sock);
-	sys_log(0, "FLUSH START %d", buffer_size(m_lpOutputBuffer));
-
-	while (buffer_size(m_lpOutputBuffer) > 0)
-	{
-		gettimeofday(&now_tv, nullptr);
-
-		int iSecondsPassed = now_tv.tv_sec - start_tv.tv_sec;
-
-		if (iSecondsPassed > 10)
-		{
-			if (!event_triggered || iSecondsPassed > 20)
-			{
-				SetPhase(PHASE_CLOSE);
-				break;
-			}
-		}
-
-		sleep_tv.tv_sec = 0;
-		sleep_tv.tv_usec = 10000;
-
-		int num_events = fdwatch_wait(m_lpFdw, &sleep_tv);
-
-		if (num_events < 0)
-		{
-			sys_err("num_events < 0 : %d", num_events);
-			break;
-		}
-
-		int event_idx;
-
-		for (event_idx = 0; event_idx < num_events; ++event_idx)
-		{
-			DESC * d2 = (DESC *) fdwatch_get_client_data(m_lpFdw, event_idx);
-
-			if (d2 != this)
-				continue;
-
-			switch (fdwatch_check_event(m_lpFdw, m_sock, event_idx))
-			{
-				case FDW_WRITE:
-					event_triggered = true;
-
-					if (ProcessOutput() < 0)
-					{
-						sys_err("Cannot flush output buffer");
-						SetPhase(PHASE_CLOSE);
-					}
-					break;
-
-				case FDW_EOF:
-					SetPhase(PHASE_CLOSE);
-					break;
-			}
-		}
-
-		if (IsPhase(PHASE_CLOSE))
-			break;
-	}
-
-	if (buffer_size(m_lpOutputBuffer) == 0)
+	if (m_connection->flush(std::chrono::seconds(20)))
 		sys_log(0, "FLUSH SUCCESS");
 	else
 		sys_log(0, "FLUSH FAIL");
-
-	usleep(250000);
 }
 
 EVENTFUNC(disconnect_event)

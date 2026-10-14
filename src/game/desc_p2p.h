@@ -2,10 +2,9 @@
 
 #include "desc.h"
 
-#include <libthecore/fdwatch.h>
-#include <libthecore/typedef.h>
+#include <libnet/connection.h>
 
-#include <cstdint>
+#include <memory>
 
 class DESC_P2P : public DESC
 {
@@ -14,6 +13,6 @@ class DESC_P2P : public DESC
 
 		void	Destroy() override;
 		void	SetPhase(int iPhase) override;
-		bool		Setup(fdwatch * _fdw, socket_t fd, const char * host, uint16_t wPort);
+		bool		Setup(std::shared_ptr<net::connection> connection);
 };
 

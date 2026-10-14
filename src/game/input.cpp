@@ -37,9 +37,6 @@
 #include <string>
 #include <vector>
 
-#include <arpa/inet.h>
-
-
 
 bool IsEmptyAdminPage()
 {
@@ -90,8 +87,8 @@ bool CInputProcessor::Process(DESC * lpDesc, const void * c_pvOrig, int iBytes, 
 			iPacketLen = 1;
 		else if (!m_pPacketInfo->Get(bHeader, &iPacketLen, &c_pszName))
 		{
-			sys_err("UNKNOWN HEADER: %d, LAST HEADER: %d(%d), REMAIN BYTES: %d, fd: %d",
-					bHeader, bLastHeader, iLastPacketLen, m_iBufferLeft, lpDesc->GetSocket());
+			sys_err("UNKNOWN HEADER: %d, LAST HEADER: %d(%d), REMAIN BYTES: %d, host: %s",
+					bHeader, bLastHeader, iLastPacketLen, m_iBufferLeft, lpDesc->GetHostName());
 			lpDesc->SetPhase(PHASE_CLOSE);
 			return true;
 		}
@@ -195,7 +192,7 @@ void CInputProcessor::Handshake(DESC * d, const char * c_pData)
 
 	if (d->GetHandshake() != p->dwHandshake)
 	{
-		sys_err("Invalid Handshake on %d", d->GetSocket());
+		sys_err("Invalid Handshake from %s", d->GetHostName());
 		d->SetPhase(PHASE_CLOSE);
 	}
 	else
@@ -275,7 +272,7 @@ int CInputHandshake::Analyze(DESC * d, uint8_t bHeader, const char * c_pData)
 		if (!(c_pSep = strchr(c_pData, '\n')))	// Find \n.
 			return -1;
 
-		if (IsEmptyAdminPage() || !IsAdminPage(inet_ntoa(d->GetAddr().sin_addr))) // block if adminpage is not set or if not admin
+		if (IsEmptyAdminPage() || !IsAdminPage(d->GetHostName())) // block if adminpage is not set or if not admin
 		{
 			sys_log(0, "PORT_SECURITY: BLOCK FROM(%s)", d->GetHostName());
 			return -1;
@@ -302,10 +299,10 @@ int CInputHandshake::Analyze(DESC * d, uint8_t bHeader, const char * c_pData)
 		{
 			if (!IsEmptyAdminPage())
 			{
-				if (!IsAdminPage(inet_ntoa(d->GetAddr().sin_addr)))
+				if (!IsAdminPage(d->GetHostName()))
 				{
 					char szTmp[64];
-					snprintf(szTmp, sizeof(szTmp), "WEBADMIN : Wrong Connector : %s", inet_ntoa(d->GetAddr().sin_addr));
+					snprintf(szTmp, sizeof(szTmp), "WEBADMIN : Wrong Connector : %s", d->GetHostName());
 					stResult += szTmp;
 				}
 				else
@@ -326,9 +323,9 @@ int CInputHandshake::Analyze(DESC * d, uint8_t bHeader, const char * c_pData)
 
 			if (!IsEmptyAdminPage())
 			{
-				if (!IsAdminPage(inet_ntoa(d->GetAddr().sin_addr)))
+				if (!IsAdminPage(d->GetHostName()))
 				{
-					snprintf(szTmp, sizeof(szTmp), "WEBADMIN : Wrong Connector : %s", inet_ntoa(d->GetAddr().sin_addr));
+					snprintf(szTmp, sizeof(szTmp), "WEBADMIN : Wrong Connector : %s", d->GetHostName());
 				}
 				else
 				{
@@ -613,13 +610,14 @@ dev_log(LOG_DEB0, "DC : '%s'", msg.c_str());
 		// Send out the key agreement completion packet first
 		// to help client to enter encryption mode
 		d->SendKeyAgreementCompleted();
-		// Flush socket output before going encrypted
-		d->ProcessOutput();
+		// Write it now, on its own: the client switches decryption on per received chunk, so
+		// the encrypted packets queued next must not arrive in the same segment.
+		d->SendOutputNow();
 
 		TPacketKeyAgreement* p = (TPacketKeyAgreement*)c_pData;
 		if (!d->IsCipherPrepared())
 		{
-			sys_err ("Cipher isn't prepared. %s maybe a Hacker.", inet_ntoa(d->GetAddr().sin_addr));
+			sys_err ("Cipher isn't prepared. %s maybe a Hacker.", d->GetHostName());
 			d->DelayedDisconnect(5);
 			return 0;
 		}
@@ -637,7 +635,7 @@ dev_log(LOG_DEB0, "DC : '%s'", msg.c_str());
 		}
 	}
 	else
-		sys_err("Handshake phase does not handle packet %d (fd %d)", bHeader, d->GetSocket());
+		sys_err("Handshake phase does not handle packet %d (host %s)", bHeader, d->GetHostName());
 
 	return 0;
 }

@@ -1,6 +1,7 @@
 include(FetchContent)
 
 # Configure all the dependencies
+include(asio.cmake)
 include(boost.cmake)
 include(lua.cmake)
 include(lzo2.cmake)

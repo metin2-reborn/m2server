@@ -1255,7 +1255,7 @@ void CHARACTER::Disconnect(const char * c_pszReason)
 	P2P_MANAGER::instance().Send(&p, sizeof(TPacketGGLogout));
 	char buf[51];
 	snprintf(buf, sizeof(buf), "%s %d %d %d %d",
-		inet_ntoa(GetDesc()->GetAddr().sin_addr), GetGold(), g_bChannel, GetMapIndex(), GetAlignment());
+		GetDesc()->GetHostName(), GetGold(), g_bChannel, GetMapIndex(), GetAlignment());
 
 	LogManager::instance().CharLog(this, 0, "LOGOUT", buf);
 

@@ -5,8 +5,6 @@
 #include "input.h"
 #include "typedef.h"
 
-#include <libthecore/fdwatch.h>
-
 #include <cstdint>
 #include <ctime>
 
@@ -21,7 +19,7 @@ class CLIENT_DESC : public DESC
 		void	SetPhase(int phase) override;
 
 		bool 		Connect(int iPhaseWhenSucceed = 0);
-		void		Setup(fdwatch * _fdw, const char * _host, uint16_t _port);
+		void		Setup(const char * _host, uint16_t _port);
 
 		void		SetRetryWhenClosed(bool);
 
@@ -35,9 +33,6 @@ class CLIENT_DESC : public DESC
 
 		// Non-destructive close for reuse
 		void Reset();
-
-	private:
-		void InitializeBuffers();
 
 	protected:
 		int			m_iPhaseWhenSucceed;

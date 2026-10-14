@@ -11,7 +11,6 @@
 #include "Marriage.h"
 #include "Monarch.h"
 #include "MoneyLog.h"
-#include "NetBase.h"
 #include "PrivManager.h"
 
 #include <common/startup.h>
@@ -75,7 +74,13 @@ int main()
 
 
 	CConfig Config;
-	CNetPoller poller;
+
+	// Removes the pid file and closes the logs once everything below is destroyed.
+	struct CoreCleanup
+	{
+		~CoreCleanup() { thecore_destroy(); }
+	} coreCleanup;
+
 	CDBManager DBManager; 
 	CClientManager ClientManager;
 	PlayerHB player_hb;
@@ -351,12 +356,6 @@ int Start()
 		return false;
 	}
 	
-	if (!CNetPoller::instance().Create())
-	{
-		sys_err("Cannot create network poller");
-		return false;
-	}
-
 	sys_log(0, "ClientManager initialization.. ");
 
 	if (!CClientManager::instance().Initialize())

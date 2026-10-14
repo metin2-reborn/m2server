@@ -62,13 +62,11 @@
 #include <common/length.h>
 #include <common/startup.h>
 #include <common/tables.h>
-#include <libthecore/buffer.h>
+#include <libnet/io.h>
+#include <libnet/listener.h>
 #include <libthecore/core_signal.h>
-#include <libthecore/fdwatch.h>
 #include <libthecore/heart.h>
 #include <libthecore/log.h>
-#include <libthecore/socket.h>
-#include <libthecore/typedef.h>
 #include <libthecore/utils.h>
 
 #include <algorithm>
@@ -79,7 +77,9 @@
 #include <cstdlib>
 #include <cstring>
 #include <map>
+#include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <sys/time.h>
@@ -92,18 +92,13 @@
 static const uint32_t	TRAFFIC_PROFILE_FLUSH_CYCLE = 3600;	///< TrafficProfiler flush cycle. Every hour
 // END_OF_TRAFFIC_PROFILER
 
-// Socket connected to the game
 volatile int	num_events_called = 0;
-int             max_bytes_written = 0;
-int             current_bytes_written = 0;
-int             total_bytes_written = 0;
 
-socket_t	tcp_socket = 0;
-socket_t	p2p_socket = 0;
+// Accept the game clients and the other servers' P2P connections.
+std::shared_ptr<net::listener>	client_listener;
+std::shared_ptr<net::listener>	p2p_listener;
 
-fdwatch *	main_fdw = nullptr;
-
-int		io_loop(fdwatch * fdw);
+int		io_loop();
 
 int		start(int argc, char **argv);
 int		idle();
@@ -518,25 +513,18 @@ int start(int argc, char **argv)
 
 	signal_timer_disable();
 
-	main_fdw = fdwatch_new(4096);
+	client_listener = net::listener::open(g_szPublicIP, mother_port, [](net::tcp::socket socket) { DESC_MANAGER::instance().AcceptDesc(std::move(socket)); });
 
-	if ((tcp_socket = socket_tcp_bind(g_szPublicIP, mother_port)) == INVALID_SOCKET)
-	{
-		perror("socket_tcp_bind: tcp_socket");
+	if (!client_listener)
 		return 0;
-	}
 
 	// if internal ip exists, p2p socket uses internal ip, if not use public ip
-	if ((p2p_socket = socket_tcp_bind(g_szPublicIP, p2p_port)) == INVALID_SOCKET)
-	{
-		perror("socket_tcp_bind: p2p_socket");
+	p2p_listener = net::listener::open(g_szPublicIP, p2p_port, [](net::tcp::socket socket) { DESC_MANAGER::instance().AcceptP2PDesc(std::move(socket)); });
+
+	if (!p2p_listener)
 		return 0;
-	}
 
-	fdwatch_add_fd(main_fdw, tcp_socket, nullptr, FDW_READ, false);
-	fdwatch_add_fd(main_fdw, p2p_socket, nullptr, FDW_READ, false);
-
-	db_clientdesc = DESC_MANAGER::instance().CreateConnectionDesc(main_fdw, db_addr, db_port, PHASE_DBCLIENT, true);
+	db_clientdesc = DESC_MANAGER::instance().CreateConnectionDesc(db_addr, db_port, PHASE_DBCLIENT, true);
 	if (!g_bAuthServer) {
 		db_clientdesc->UpdateChannelStatus(0, true);
 	}
@@ -546,7 +534,7 @@ int start(int argc, char **argv)
 		if (g_stAuthMasterIP.length() != 0)
 		{
 			fprintf(stderr, "SlaveAuth");
-			g_pkAuthMasterDesc = DESC_MANAGER::instance().CreateConnectionDesc(main_fdw, g_stAuthMasterIP.c_str(), g_wAuthMasterPort, PHASE_P2P, true); 
+			g_pkAuthMasterDesc = DESC_MANAGER::instance().CreateConnectionDesc(g_stAuthMasterIP.c_str(), g_wAuthMasterPort, PHASE_P2P, true); 
 			P2P_MANAGER::instance().RegisterConnector(g_pkAuthMasterDesc);
 			g_pkAuthMasterDesc->SetP2P(g_stAuthMasterIP.c_str(), g_wAuthMasterPort);
 
@@ -577,12 +565,9 @@ void destroy()
 	sys_log(0, "<shutdown> regen_free()...");
 	regen_free();
 
-	sys_log(0, "<shutdown> Closing sockets...");
-	socket_close(tcp_socket);
-	socket_close(p2p_socket);
-
-	sys_log(0, "<shutdown> fdwatch_delete()...");
-	fdwatch_delete(main_fdw);
+	sys_log(0, "<shutdown> Closing listeners...");
+	client_listener->close();
+	p2p_listener->close();
 
 	sys_log(0, "<shutdown> event_destroy()...");
 	event_destroy();
@@ -625,7 +610,7 @@ int idle()
 	s_dwProfiler[PROF_CHR_UPDATE] += (get_dword_time() - t);
 
 	t = get_dword_time();
-	if (!io_loop(main_fdw)) return 0;
+	if (!io_loop()) return 0;
 	s_dwProfiler[PROF_IO] += (get_dword_time() - t);
 
 	log_rotate();
@@ -635,7 +620,10 @@ int idle()
 
 	if (now.tv_sec - pta.tv_sec > 0)
 	{
-		pt_log("[%3d] event %5d/%-5d idle %-4d event %-4d heartbeat %-4d I/O %-4d chrUpate %-4d | WRITE: %-7d | PULSE: %d",
+		static uint64_t s_qwBytesWritten = 0;
+		const uint64_t qwBytesWritten = net::bytes_written();
+
+		pt_log("[%3d] event %5d/%-5d idle %-4d event %-4d heartbeat %-4d I/O %-4d chrUpate %-4d | WRITE: %-7llu | PULSE: %d",
 				process_time_count,
 				num_events_called,
 				event_count(),
@@ -644,11 +632,11 @@ int idle()
 				s_dwProfiler[PROF_HEARTBEAT],
 				s_dwProfiler[PROF_IO],
 				s_dwProfiler[PROF_CHR_UPDATE],
-				current_bytes_written,
+				(unsigned long long) (qwBytesWritten - s_qwBytesWritten),
 				thecore_pulse());
 
 		num_events_called = 0;
-		current_bytes_written = 0;
+		s_qwBytesWritten = qwBytesWritten;
 
 		process_time_count = 0; 
 		gettimeofday(&pta, (struct timezone *) nullptr);
@@ -660,94 +648,12 @@ int idle()
 	return 1;
 }
 
-int io_loop(fdwatch * fdw)
+int io_loop()
 {
-	DESC *	d;
-	int		num_events, event_idx;
-
 	DESC_MANAGER::instance().DestroyClosed(); // Close connections in PHASE_CLOSE.
 	DESC_MANAGER::instance().TryConnect();
 
-	if ((num_events = fdwatch_wait(fdw, nullptr)) < 0)
-		return 0;
-
-	for (event_idx = 0; event_idx < num_events; ++event_idx)
-	{
-		d = (DESC *) fdwatch_get_client_data(fdw, event_idx);
-
-		if (!d)
-		{
-			if (FDW_READ == fdwatch_check_event(fdw, tcp_socket, event_idx))
-			{
-				DESC_MANAGER::instance().AcceptDesc(fdw, tcp_socket);
-				fdwatch_clear_event(fdw, tcp_socket, event_idx);
-			}
-			else if (FDW_READ == fdwatch_check_event(fdw, p2p_socket, event_idx))
-			{
-				DESC_MANAGER::instance().AcceptP2PDesc(fdw, p2p_socket);
-				fdwatch_clear_event(fdw, p2p_socket, event_idx);
-			}
-			continue; 
-		}
-
-		int iRet = fdwatch_check_event(fdw, d->GetSocket(), event_idx);
-
-		switch (iRet)
-		{
-			case FDW_READ:
-				if (db_clientdesc == d)
-				{
-					int size = d->ProcessInput();
-
-					if (size)
-						sys_log(1, "DB_BYTES_READ: %d", size);
-
-					if (size < 0)
-					{
-						d->SetPhase(PHASE_CLOSE);
-					}
-				}
-				else if (d->ProcessInput() < 0)
-				{
-					d->SetPhase(PHASE_CLOSE);
-				}
-				break;
-
-			case FDW_WRITE:
-				if (db_clientdesc == d)
-				{
-					int buf_size = buffer_size(d->GetOutputBuffer());
-					int sock_buf_size = fdwatch_get_buffer_size(fdw, d->GetSocket());
-
-					int ret = d->ProcessOutput();
-
-					if (ret < 0)
-					{
-						d->SetPhase(PHASE_CLOSE);
-					}
-
-					if (buf_size)
-						sys_log(1, "DB_BYTES_WRITE: size %d sock_buf %d ret %d", buf_size, sock_buf_size, ret);
-				}
-				else if (d->ProcessOutput() < 0)
-				{
-					d->SetPhase(PHASE_CLOSE);
-				}
-				break;
-
-			case FDW_EOF:
-				{
-					d->SetPhase(PHASE_CLOSE);
-				}
-				break;
-
-			default:
-				sys_err("fdwatch_check_event returned unknown %d", iRet);
-				d->SetPhase(PHASE_CLOSE);
-				break;
-		}
-	}
-
+	// Runs the network handlers that are ready (input, accepts, queued output); never blocks.
+	net::io().poll();
 	return 1;
 }
-

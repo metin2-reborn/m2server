@@ -36,12 +36,8 @@ add_executable(db
     Monarch.h
     MoneyLog.cpp
     MoneyLog.h
-    NetBase.cpp
-    NetBase.h
     Peer.cpp
     Peer.h
-    PeerBase.cpp
-    PeerBase.h
     PrivManager.cpp
     PrivManager.h
     ProtoReader.cpp
@@ -51,5 +47,5 @@ add_executable(db
 )
 
 target_compile_definitions(db PRIVATE __P4_VERSION__="40142")
-target_link_libraries(db PRIVATE common game poly sql thecore)
+target_link_libraries(db PRIVATE common game net poly sql thecore)
 target_include_directories(db PRIVATE ../)

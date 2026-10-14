@@ -8,18 +8,16 @@
 
 #include <common/length.h>
 #include <common/utils.h>
+#include <libnet/io.h>
 #include <libthecore/log.h>
-#include <libthecore/socket.h>
-#include <libthecore/typedef.h>
 #include <libthecore/utils.h>
 
 #include <cctype>
+#include <chrono>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
-
-#include <arpa/inet.h>
-
+#include <span>
 
 
 bool FN_IS_VALID_LOGIN_STRING(const char *str)
@@ -68,7 +66,7 @@ void CInputAuth::Login(DESC * d, const char * c_pData)
 	if (!g_bAuthServer)
 	{
 		sys_err ("CInputAuth class is not for game server. IP %s might be a hacker.", 
-			inet_ntoa(d->GetAddr().sin_addr));
+			d->GetHostName());
 		d->DelayedDisconnect(5);
 		return;
 	}
@@ -170,7 +168,7 @@ void CInputAuth::LoginOpenID(DESC * d, const char * c_pData)
 	char* authKey = tempInfo1->authKey;
 	char returnID[LOGIN_MAX_LEN + 1] = {0};
 
-	int test_url_get_protocol = auth_OpenID(authKey, inet_ntoa(d->GetAddr().sin_addr), returnID);
+	int test_url_get_protocol = auth_OpenID(authKey, d->GetHostName(), returnID);
 
 	//Authentication failed. Error handling
 	if (0!=test_url_get_protocol)
@@ -189,7 +187,7 @@ void CInputAuth::LoginOpenID(DESC * d, const char * c_pData)
 	if (!g_bAuthServer)
 	{
 		sys_err ("CInputAuth class is not for game server. IP %s might be a hacker.", 
-			inet_ntoa(d->GetAddr().sin_addr));
+			d->GetHostName());
 		d->DelayedDisconnect(5);
 		return;
 	}
@@ -294,17 +292,15 @@ int CInputAuth::auth_OpenID(const char *authKey, const char *ipAddr, char *rID)
 	//5 : Incorrect auth key.
 
 
-    int		port	= 80;
+    constexpr uint16_t port = 80;
+    constexpr std::chrono::seconds timeout(3);
 
-    socket_t fd = socket_connect(openid_host, port);
-    if (fd < 0)
+    auto socket = net::connect(openid_host, port, timeout);
+    if (!socket)
     {
 		sys_err("[auth_OpenID] : could not connect to OpenID server(%s)", openid_host);
 		return 1;
     }
-
-    socket_block(fd);
-    socket_timeout(fd, 3, 0);
 
     // send request
     {
@@ -316,21 +312,18 @@ int CInputAuth::auth_OpenID(const char *authKey, const char *ipAddr, char *rID)
 						"Connection: Close\r\n\r\n",
 						openid_uri, authKey, ipAddr, openid_host);
 
-		if (socket_write(fd, request, len) < 0)
+		if (len < 0 || len >= (int) sizeof(request) || !net::write(*socket, std::span((const uint8_t *) request, len), timeout))
 		{
 			sys_err("[auth_OpenID] : could not send auth-request (%s)", authKey);
-			socket_close(fd);
 			return 2;
 		}
     }
 
     // read reply
 	char reply[1024] = {0};
-	int len;
-	len = socket_read(fd, reply, sizeof(reply));
-	socket_close(fd);
+	const size_t len = net::read_some(*socket, std::span((uint8_t *) reply, sizeof(reply) - 1), timeout);
 
-	if (len <= 0)
+	if (len == 0)
 	{
 	    sys_err("[auth_OpenID] : could not recv auth-reply (%s)", authKey);
 	    return 3;
@@ -403,7 +396,7 @@ int CInputAuth::Analyze(DESC * d, uint8_t bHeader, const char * c_pData)
 	if (!g_bAuthServer)
 	{
 		sys_err ("CInputAuth class is not for game server. IP %s might be a hacker.", 
-			inet_ntoa(d->GetAddr().sin_addr));
+			d->GetHostName());
 		d->DelayedDisconnect(5);
 		return 0;
 	}

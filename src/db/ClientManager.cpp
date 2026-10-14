@@ -24,12 +24,13 @@
 #include <common/tables.h>
 #include <common/utils.h>
 #include <libgame/grid.h>
+#include <libnet/connection.h>
+#include <libnet/io.h>
+#include <libnet/listener.h>
 #include <libsql/AsyncSQL.h>
 #include <libthecore/core_signal.h>
-#include <libthecore/fdwatch.h>
 #include <libthecore/log.h>
 #include <libthecore/main.h>
-#include <libthecore/socket.h>
 #include <libthecore/typedef.h>
 #include <libthecore/utils.h>
 
@@ -92,15 +93,15 @@ void CClientManager::SetPlayerIDStart(int iIDStart)
 void CClientManager::Destroy()
 {
 	m_mChannelStatus.clear();
-	for (auto i = m_peerList.begin(); i != m_peerList.end(); ++i)
-		(*i)->Destroy();
+	for (CPeer * peer : m_peerList)
+		delete peer;
 
 	m_peerList.clear();
 
-	if (m_fdAccept > 0)
+	if (m_listener)
 	{
-		socket_close(m_fdAccept);
-		m_fdAccept = -1;
+		m_listener->close();
+		m_listener.reset();
 	}
 }
 
@@ -142,21 +143,17 @@ bool CClientManager::Initialize()
 		strlcpy(szBindIP, "127.0.0.1", sizeof(szBindIP)); // Fix: Now even if the DB port is publicly available an attacker can't connect to it with a fake auth.
 
 	// game/auth servers that may connect (host names or IPv4 addresses, space separated); without
-	// it only 127.0.0.1 is accepted (see CPeerBase::Accept)
+	// it only 127.0.0.1 is accepted (see AddPeer)
 	char szAllowedPeers[512];
 	if (CConfig::instance().GetValue("ALLOWED_PEER_HOSTS", szAllowedPeers, sizeof(szAllowedPeers)))
 		g_allowedPeerHosts = szAllowedPeers;
 
-	m_fdAccept = socket_tcp_bind(szBindIP, tmpValue);
+	m_listener = net::listener::open(szBindIP, tmpValue, [this](net::tcp::socket socket) { AddPeer(std::move(socket)); });
 
-	if (m_fdAccept < 0)
-	{
-		perror("socket");
+	if (!m_listener)
 		return false;
-	}
 
-	sys_log(0, "ACCEPT_HANDLE: %u", m_fdAccept);
-	fdwatch_add_fd(m_fdWatcher, m_fdAccept, nullptr, FDW_READ, false);
+	sys_log(0, "LISTEN: %s:%d", szBindIP, tmpValue);
 
 	if (!CConfig::instance().GetValue("BACKUP_LIMIT_SEC", &tmpValue))
 		tmpValue = 600;
@@ -2439,14 +2436,22 @@ void CClientManager::ProcessPackets(CPeer * peer)
 	peer->RecvEnd(i);
 }
 
-void CClientManager::AddPeer(socket_t fd)
+void CClientManager::AddPeer(net::tcp::socket socket)
 {
-	CPeer * pPeer = new CPeer;
+	// The db's input and output can be large (the boot packet carries every proto table).
+	constexpr std::size_t MAX_PEER_BUFFER = 256 * 1024 * 1024;
 
-	if (pPeer->Accept(fd))
-		m_peerList.push_front(pPeer);
-	else
-		delete pPeer;
+	auto connection = net::connection::create(std::move(socket), MAX_PEER_BUFFER, MAX_PEER_BUFFER);
+
+	// only the configured game servers (ALLOWED_PEER_HOSTS), or localhost when none are configured
+	if (!is_allowed_peer(connection->remote_address().c_str(), g_allowedPeerHosts, "127.0.0.1"))
+	{
+		sys_log(0, "PORT_SECURITY: BLOCK CONNECTION FROM %s", connection->remote_address().c_str());
+		connection->close();
+		return;
+	}
+
+	m_peerList.push_front(new CPeer(std::move(connection)));
 }
 
 void CClientManager::RemovePeer(CPeer * pPeer)
@@ -2480,6 +2485,7 @@ void CClientManager::RemovePeer(CPeer * pPeer)
 		}
 	}
 
+	pPeer->ReturnItemIDRange();
 	m_peerList.remove(pPeer);
 	delete pPeer;
 }
@@ -2766,69 +2772,15 @@ int CClientManager::Process()
 		}
 	}
 
-	int num_events = fdwatch_wait(m_fdWatcher, nullptr);
-	int idx;
-	CPeer * peer;
+	net::io().poll();
 
-	for (idx = 0; idx < num_events; ++idx) // Input
+	// Peers whose connection ended are removed here, outside their connection's handlers.
+	for (auto it = m_peerList.begin(); it != m_peerList.end();)
 	{
-		peer = (CPeer *) fdwatch_get_client_data(m_fdWatcher, idx);
+		CPeer * peer = *it++;
 
-		if (!peer)
-		{
-			if (fdwatch_check_event(m_fdWatcher, m_fdAccept, idx) == FDW_READ)
-			{
-				AddPeer(m_fdAccept);
-				fdwatch_clear_event(m_fdWatcher, m_fdAccept, idx);
-			}
-			else
-			{
-				sys_err("FDWATCH: peer null in event: ident %d", fdwatch_get_ident(m_fdWatcher, idx));
-			}
-
-			continue;
-		}
-
-		switch (fdwatch_check_event(m_fdWatcher, peer->GetFd(), idx))
-		{
-			case FDW_READ:
-				if (peer->Recv() < 0)
-				{
-					sys_err("Recv failed");
-					RemovePeer(peer);
-				}
-				else
-				{
-					if (peer == m_pkAuthPeer)
-						if (g_log)
-							sys_log(0, "AUTH_PEER_READ: size %d", peer->GetRecvLength());
-
-					ProcessPackets(peer);
-				}
-				break;
-
-			case FDW_WRITE:
-				if (peer == m_pkAuthPeer)
-					if (g_log)
-						sys_log(0, "AUTH_PEER_WRITE: size %d", peer->GetSendLength());
-
-				if (peer->Send() < 0)
-				{
-					sys_err("Send failed");
-					RemovePeer(peer);
-				}
-
-				break;
-
-			case FDW_EOF:
-				RemovePeer(peer);
-				break;
-
-			default:
-				sys_err("fdwatch_check_fd returned unknown result");
-				RemovePeer(peer);
-				break;
-		}
+		if (peer->IsClosed())
+			RemovePeer(peer);
 	}
 
 	return 1;

@@ -24,7 +24,6 @@
 #include "locale_service.h"
 #include "log.h"
 #include "login_sim.h"
-#include "main.h"
 #include "map_location.h"
 #include "marriage.h"
 #include "mob_manager.h"
@@ -385,7 +384,7 @@ void CInputDB::PlayerLoad(DESC * d, const char * data)
 
 		char buf[51];
 		snprintf(buf, sizeof(buf), "%s %d %d %d %d",
-				inet_ntoa(ch->GetDesc()->GetAddr().sin_addr), ch->GetGold(), g_bChannel, ch->GetMapIndex(), ch->GetAlignment());
+				ch->GetDesc()->GetHostName(), ch->GetGold(), g_bChannel, ch->GetMapIndex(), ch->GetAlignment());
 		LogManager::instance().CharLog(ch, 0, "LOGIN", buf);
 
 	}
@@ -1286,7 +1285,7 @@ void CInputDB::P2P(const char * c_pData)
 	{
 	    CLIENT_DESC * pkDesc = nullptr;
 		sys_log(0, "InputDB:P2P %s:%u", p->szHost, p->wPort);
-	    pkDesc = DESC_MANAGER::instance().CreateConnectionDesc(main_fdw, p->szHost, p->wPort, PHASE_P2P, false);
+	    pkDesc = DESC_MANAGER::instance().CreateConnectionDesc(p->szHost, p->wPort, PHASE_P2P, false);
 		mgr.RegisterConnector(pkDesc);
 		pkDesc->SetP2P(p->szHost, p->wPort);
 	}
@@ -2302,8 +2301,8 @@ bool CInputDB::Process(DESC * d, const void * orig, int bytes, int & r_iBytesPro
 
 		if (Analyze(d, bHeader, pRealData) < 0)
 		{
-			sys_err("in InputDB: UNKNOWN HEADER: %d, LAST HEADER: %d(%d), REMAIN BYTES: %d, DESC: %d",
-					bHeader, bLastHeader, iLastPacketLen, m_iBufferLeft, d->GetSocket());
+			sys_err("in InputDB: UNKNOWN HEADER: %d, LAST HEADER: %d(%d), REMAIN BYTES: %d, host: %s",
+					bHeader, bLastHeader, iLastPacketLen, m_iBufferLeft, d->GetHostName());
 
 		}
 

@@ -2,19 +2,20 @@
 #ifndef __INC_PEER_H__
 #define __INC_PEER_H__
 
-#include "PeerBase.h"
-
 #include <common/tables.h>
+#include <libnet/connection.h>
 
+#include <cstddef>
 #include <cstdint>
+#include <memory>
+#include <span>
 #include <string>
+#include <system_error>
 
-class CPeer : public CPeerBase
+// A game or auth server connected to the db. Its packets are handed to
+// CClientManager::ProcessPackets as they arrive.
+class CPeer : public net::connection_handler
 {
-    protected:
-	void OnAccept() override;
-	void OnClose() override;
-
     public:
 #pragma pack(1)
 	typedef struct _header
@@ -30,15 +31,25 @@ class CPeer : public CPeerBase
 	    STATE_PLAYING = 1
 	};
 
-	CPeer();
+	explicit CPeer(std::shared_ptr<net::connection> connection);
 	~CPeer() override;
+
+	auto	on_receive(std::span<std::uint8_t> input, std::size_t received) -> std::size_t override;
+	void	on_close(const std::error_code & error) override;
+
+	// The connection ended; CClientManager removes the peer on its next pass.
+	bool	IsClosed() const	{ return m_state == STATE_CLOSE; }
+	const char *	GetHost() const	{ return m_connection->remote_address().c_str(); }
+
+	void	EncodeBYTE(uint8_t b)		{ Encode(&b, sizeof(b)); }
+	void	EncodeWORD(uint16_t w)		{ Encode(&w, sizeof(w)); }
+	void	EncodeDWORD(uint32_t dw)	{ Encode(&dw, sizeof(dw)); }
+	void	Encode(const void * data, uint32_t size);
 
 	void	EncodeHeader(uint8_t header, uint32_t dwHandle, uint32_t dwSize);
 	bool 	PeekPacket(int & iBytesProceed, uint8_t & header, uint32_t & dwHandle, uint32_t & dwLength, const char ** data);
 	void	EncodeReturn(uint8_t header, uint32_t dwHandle);
-
-	void	ProcessInput();
-	int	Send();
+	void	RecvEnd(int iBytesProceed)	{ m_inputConsumed = iBytesProceed; }
 
 	uint32_t	GetHandle();
 	void	SetUserCount(uint32_t dwCount);
@@ -62,8 +73,13 @@ class CPeer : public CPeerBase
 	bool	SetSpareItemIDRange(TItemIDRangeTable itemRange);
 	bool	CheckItemIDRangeCollision(TItemIDRangeTable itemRange);
 	void	SendSpareItemIDRange();
+	void	ReturnItemIDRange();	// gives the peer's item ID range back for reuse
 
     private:
+	std::shared_ptr<net::connection> m_connection;
+	std::span<const std::uint8_t> m_input;	// the input being processed
+	std::size_t	m_inputConsumed;
+
 	int	m_state;
 
 	uint8_t	m_bChannel;

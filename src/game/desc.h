@@ -7,22 +7,26 @@
 #include "typedef.h"
 
 #include <common/tables.h>
-#include <libthecore/buffer.h>
-#include <libthecore/fdwatch.h>
-#include <libthecore/typedef.h>
+#include <libnet/connection.h>
 #include <libthecore/utils.h>
 
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
 #include <ctime>
+#include <memory>
+#include <span>
 #include <string>
+#include <system_error>
 #include <vector>
 
-#include <netinet/in.h>
-
 inline constexpr int MAX_ALLOW_USER = 4096;
-inline constexpr int MAX_INPUT_LEN = 65536;
+// Limits of a game client's connection: unprocessed input and unsent output.
+inline constexpr std::size_t MAX_CLIENT_INPUT = 256 * 1024;
+inline constexpr std::size_t MAX_CLIENT_OUTPUT = 128 * 1024;
+// Limits of the connections between the servers.
+inline constexpr std::size_t MAX_SERVER_INPUT = 256 * 1024 * 1024;
+inline constexpr std::size_t MAX_SERVER_OUTPUT = 256 * 1024 * 1024;
 inline constexpr int HANDSHAKE_RETRY_LIMIT = 32;
 class CInputProcessor;
 
@@ -61,7 +65,7 @@ struct seq_t
 typedef std::vector<seq_t>	seq_vector_t;
 // Data for tracking down the sequence bug
 
-class DESC
+class DESC : public net::connection_handler
 {
 	public:
 		EVENTINFO(desc_event_info)
@@ -83,10 +87,11 @@ class DESC
 		virtual void		SetPhase(int _phase);
 
 		void			FlushOutput();
+		void			SendOutputNow();	// writes the queued output without waiting for the event loop
 
-		bool			Setup(fdwatch * _fdw, socket_t _fd, const struct sockaddr_in & c_rSockAddr, uint32_t _handle, uint32_t _handshake);
+		bool			Setup(std::shared_ptr<net::connection> connection, uint32_t _handle, uint32_t _handshake);
 
-		socket_t		GetSocket() const	{ return m_sock; }
+		bool			IsConnected() const	{ return m_connection != nullptr; }
 		const char *	GetHostName()		{ return m_stHost.c_str(); }
 
 		void			SetP2P(const char * h, uint16_t w) { m_stP2PHost = h; m_wP2PPort = w; }
@@ -97,13 +102,12 @@ class DESC
 		void			Packet(const void * c_pvData, int iSize);
 		void			LargePacket(const void * c_pvData, int iSize);
 
-		int			ProcessInput();		// returns -1 if error
-		int			ProcessOutput();	// returns -1 if error
+		auto			on_receive(std::span<std::uint8_t> input, std::size_t received) -> std::size_t override;
+		void			on_close(const std::error_code & error) override;
 
 		CInputProcessor	*	GetInputProcessor()	{ return m_pInputProcessor; }
 
 		uint32_t			GetHandle() const	{ return m_dwHandle; }
-		buffer *		GetOutputBuffer()	{ return m_lpOutputBuffer; }
 
 		void			BindAccountTable(TAccountTable * pTable);
 		TAccountTable &		GetAccountTable()	{ return m_accountTable; }
@@ -112,8 +116,6 @@ class DESC
 		CHARACTER *		GetCharacter()		{ return m_lpCharacter; }
 
 		bool			IsPhase(int phase) const	{ return m_iPhase == phase ? true : false; }
-
-		const struct sockaddr_in & GetAddr()		{ return m_SockAddr;	}
 
 		void			Log(const char * format, ...);
 
@@ -181,8 +183,7 @@ class DESC
 		CInputAuth		m_inputAuth;
 
 
-		fdwatch *		m_lpFdw;
-		socket_t		m_sock;
+		std::shared_ptr<net::connection>	m_connection;
 		int				m_iPhase;
 		uint32_t			m_dwHandle;
 
@@ -190,24 +191,17 @@ class DESC
 		uint16_t			m_wPort;
 		time_t			m_LastTryToConnectTime;
 
-		buffer *		m_lpInputBuffer;
-		int				m_iMinInputBufferLen;
-	
 		uint32_t			m_dwHandshake;
 		uint32_t			m_dwHandshakeSentTime;
 		int				m_iHandshakeRetry;
 		uint32_t			m_dwClientTime;
 		bool			m_bHandshaking;
 
-		buffer *		m_lpBufferedOutputBuffer;
-		buffer *		m_lpOutputBuffer;
+		std::vector<uint8_t>	m_bufferedOutput;	// BufferedPacket data, sent ahead of the next Packet
 
 		LPEVENT			m_pkPingEvent;
 		CHARACTER *		m_lpCharacter;
 		TAccountTable		m_accountTable;
-
-		struct sockaddr_in	m_SockAddr;
-		struct sockaddr_in 	m_UDPSockAddr;
 
 		FILE *			m_pLogFile;
 		std::string		m_stRelayName;
