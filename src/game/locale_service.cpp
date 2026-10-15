@@ -19,15 +19,13 @@
 #include <set>
 #include <string>
 
-using namespace std;
-
 
 // The server runs the english locale only (common.locale LOCALE = english).
-static const string	g_stServiceBasePath = "locale/english";
-static const string	g_stServiceMapPath = "locale/english/map";
+static const std::string	g_stServiceBasePath = "locale/english";
+static const std::string	g_stServiceMapPath = "locale/english/map";
 
-string g_stLocale = "latin1";
-string g_stLocaleFilename = "locale/english/locale_string.txt";
+std::string g_stLocale = "latin1";
+std::string g_stLocaleFilename = "locale/english/locale_string.txt";
 
 uint8_t PK_PROTECT_LEVEL = 15;
 

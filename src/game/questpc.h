@@ -13,8 +13,6 @@ class CHARACTER;
 
 namespace quest
 {
-	using namespace std;
-
 	struct RewardData
 	{
 		enum RewardType
@@ -49,7 +47,7 @@ namespace quest
 				QUEST_SEND_ICON_FILE		= (1 << 6),  // up to 24 chars
 			};
 
-			typedef map<unsigned int, QuestState>	QuestInfo;
+			typedef std::map<unsigned int, QuestState>	QuestInfo;
 			typedef QuestInfo::iterator				QuestInfoIterator;
 
 			PC();
@@ -70,15 +68,15 @@ namespace quest
 
 			inline QuestState *	GetRunningQuestState();
 
-			void		SetQuest(const string& quest_name, QuestState& qs);
-			void		SetCurrentQuestStateName(const string& state_name);
-			void		SetQuestState(const string& quest_name, const string& state_name);
-			void		SetQuestState(const string& quest_name, int new_state_index);
+			void		SetQuest(const std::string& quest_name, QuestState& qs);
+			void		SetCurrentQuestStateName(const std::string& state_name);
+			void		SetQuestState(const std::string& quest_name, const std::string& state_name);
+			void		SetQuestState(const std::string& quest_name, int new_state_index);
 
-			void		ClearQuest(const string& quest_name);
+			void		ClearQuest(const std::string& quest_name);
 
 		private:
-			void		AddQuestStateChange(const string& quest_name, int prev_state, int next_state);
+			void		AddQuestStateChange(const std::string& quest_name, int prev_state, int next_state);
 			void		DoQuestStateChange();
 
 			struct TQuestStateChangeInfo
@@ -95,32 +93,32 @@ namespace quest
 				}
 			};
 
-			vector<TQuestStateChangeInfo> m_QuestStateChange;
+			std::vector<TQuestStateChangeInfo> m_QuestStateChange;
 
 		public:
-			void		SetFlag(const string & name, int value, bool bSkipSave = false);
-			int			GetFlag(const string & name);
-			bool		DeleteFlag(const string & name);
+			void		SetFlag(const std::string & name, int value, bool bSkipSave = false);
+			int			GetFlag(const std::string & name);
+			bool		DeleteFlag(const std::string & name);
 
-			const string &	GetCurrentQuestName() const;
+			const std::string &	GetCurrentQuestName() const;
 			int			GetCurrentQuestIndex();
 
-			void		RemoveTimer(const string& name);
-			void		RemoveTimerNotCancel(const string& name);
-			void		AddTimer(const string& name, LPEVENT pEvent);
+			void		RemoveTimer(const std::string& name);
+			void		RemoveTimerNotCancel(const std::string& name);
+			void		AddTimer(const std::string& name, LPEVENT pEvent);
 			void		ClearTimer();
 
 			void		SetCurrentQuestStartFlag();
 			void		SetCurrentQuestDoneFlag();
 
-			void		SetQuestTitle(const string& quest,const string & title);
+			void		SetQuestTitle(const std::string& quest,const std::string & title);
 
-			void		SetCurrentQuestTitle(const string & title);
-			void		SetCurrentQuestClockName(const string & name);
+			void		SetCurrentQuestTitle(const std::string & title);
+			void		SetCurrentQuestClockName(const std::string & name);
 			void		SetCurrentQuestClockValue(int value);
-			void		SetCurrentQuestCounterName(const string & name);
+			void		SetCurrentQuestCounterName(const std::string & name);
 			void		SetCurrentQuestCounterValue(int value);
-			void		SetCurrentQuestIconFile(const string& icon_file);
+			void		SetCurrentQuestIconFile(const std::string& icon_file);
 
 			bool		IsLoaded() const	{ return m_bLoaded; }
 			void		SetLoaded()	{ m_bLoaded = true; }
@@ -131,8 +129,8 @@ namespace quest
 			bool		HasReward() { return !m_vRewardData.empty() || m_bIsGivenReward; }
 			void		Reward(CHARACTER * ch);
 
-			void		GiveItem(const string& label, uint32_t dwVnum, int count);
-			void		GiveExp(const string& label, uint32_t exp);
+			void		GiveItem(const std::string& label, uint32_t dwVnum, int count);
+			void		GiveExp(const std::string& label, uint32_t exp);
 
 			void 		SetSendDoneFlag() { m_bShouldSendDone = true; }
 			bool		GetAndResetDoneFlag() { bool temp = m_bShouldSendDone; m_bShouldSendDone = false; return temp; }
@@ -148,7 +146,7 @@ namespace quest
 
 		private:
 			void		SetSendFlag(int idx);
-			void		SaveFlag(const string & name, int value);
+			void		SaveFlag(const std::string & name, int value);
 
 			void		ClearCurrentQuestBeginFlag();
 			void		SetCurrentQuestBeginFlag();
@@ -157,7 +155,7 @@ namespace quest
 			void		SendQuestInfoPakcet();
 
 		private:
-			vector<RewardData>	m_vRewardData;
+			std::vector<RewardData>	m_vRewardData;
 			bool		m_bIsGivenReward;
 
 			bool		m_bShouldSendDone;
@@ -167,14 +165,14 @@ namespace quest
 			QuestInfo		m_QuestInfo;
 
 			QuestState *	m_RunningQuestState;
-			string		m_stCurQuest;
+			std::string		m_stCurQuest;
 
-			typedef map<string, int> TFlagMap;
+			typedef std::map<std::string, int> TFlagMap;
 			TFlagMap		m_FlagMap;
 
 			TFlagMap		m_FlagSaveMap;
 
-			typedef map<string, LPEVENT> TTimerMap;
+			typedef std::map<std::string, LPEVENT> TTimerMap;
 			TTimerMap		m_TimerMap;
 
 			int			m_iSendToClient;

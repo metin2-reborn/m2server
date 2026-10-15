@@ -37,15 +37,13 @@
 
 namespace quest
 {
-	using namespace std;
-
-	string ScriptToString(const string& str)
+	std::string ScriptToString(const std::string& str)
 	{
 		lua_State* L = CQuestManager::instance().GetLuaState();
 		int x = lua_gettop(L);
 
 		int errcode = lua_dobuffer(L, ("return "+str).c_str(), str.size()+7, "ScriptToString");
-		string retstr;
+		std::string retstr;
 		if (!errcode)
 		{
 			if (lua_isstring(L,-1))
@@ -194,7 +192,7 @@ namespace quest
 		return bStart != 0;
 	}
 
-	void combine_lua_string(lua_State * L, ostringstream & s)
+	void combine_lua_string(lua_State * L, std::ostringstream & s)
 	{
 		char buf[32];
 
@@ -247,7 +245,7 @@ namespace quest
 	//
 	int member_chat(lua_State* L)
 	{
-		ostringstream s;
+		std::ostringstream s;
 		combine_lua_string(L, s);
 		CQuestManager::instance().GetCurrentPartyMember()->ChatPacket(CHAT_TYPE_TALKING, "%s", s.str().c_str());
 		return 0;
@@ -588,7 +586,7 @@ namespace quest
 
 		for (auto it = g_setQuestObjectDir.begin(); it != g_setQuestObjectDir.end(); ++it)
 		{
-			const string& stQuestObjectDir = *it;
+			const std::string& stQuestObjectDir = *it;
 			char buf[PATH_MAX];
 			snprintf(buf, sizeof(buf), "%s/state/", stQuestObjectDir.c_str());
 			DIR * pdir = opendir(buf);
@@ -631,7 +629,7 @@ namespace quest
 		qs.args = n;
 		//
 
-		ostringstream os;
+		std::ostringstream os;
 		os << "[QUESTION ";
 
 		for (int i=1; i<=n; i++)
@@ -721,7 +719,7 @@ namespace quest
 
 		// 2
 		GetCurrentPC()->SetConfirmWait((ch && ch->IsPC())?ch->GetPlayerID():0);
-		ostringstream os;
+		std::ostringstream os;
 		os << "[CONFIRM_WAIT timeout;" << iTimeout << "]";
 		AddScript(os.str());
 		SendScript();
@@ -770,7 +768,7 @@ namespace quest
 	// The beginning of script
 	// 
 
-	QuestState CQuestManager::OpenState(const string& quest_name, int state_index)
+	QuestState CQuestManager::OpenState(const std::string& quest_name, int state_index)
 	{
 		QuestState qs;
 		qs.args=0;

@@ -49,8 +49,6 @@ uint32_t g_GoldDropTimeLimitValue = 0;
 
 namespace quest
 {
-	using namespace std;
-
 	CQuestManager::CQuestManager()
 		: m_pSelectedDungeon(nullptr), m_dwServerTimerArg(0), m_iRunningEventIndex(0), L(nullptr), m_bNoSend (false),
 		m_CurrentRunningState(nullptr), m_pCurrentCharacter(nullptr), m_pCurrentPartyMember(nullptr),
@@ -111,7 +109,7 @@ namespace quest
 		m_iCurrentSkin = QUEST_SKIN_NORMAL;
 
 		{
-			ifstream inf((g_stQuestDir + "/questnpc.txt").c_str());
+			std::ifstream inf((g_stQuestDir + "/questnpc.txt").c_str());
 			int line = 0;
 
 			if (!inf.is_open())
@@ -130,7 +128,7 @@ namespace quest
 				if (inf.fail())
 					break;
 
-				string s;
+				std::string s;
 				getline(inf, s);
 				unsigned int li = 0, ri = s.size()-1;
 				while (li < s.size() && isspace(s[li])) li++;
@@ -164,9 +162,9 @@ namespace quest
 		return true;
 	}
 
-	unsigned int CQuestManager::FindNPCIDByName(const string& name)
+	unsigned int CQuestManager::FindNPCIDByName(const std::string& name)
 	{
-		map<string, unsigned int>::iterator it = m_mapNPCNameID.find(name);
+		std::map<std::string, unsigned int>::iterator it = m_mapNPCNameID.find(name);
 		return it != m_mapNPCNameID.end() ? it->second : 0;
 	}
 
@@ -766,7 +764,7 @@ namespace quest
 
 			if (pkChrTarget->IsNPC())
 			{
-				map<unsigned int, NPC>::iterator it = m_mapNPC.find(dwCurrentNPCRace);
+				std::map<unsigned int, NPC>::iterator it = m_mapNPC.find(dwCurrentNPCRace);
 
 				if (it == m_mapNPC.end())
 				{
@@ -837,19 +835,19 @@ namespace quest
 	///////////////////////////////////////////////////////////////////////////////////////////
 
 	///////////////////////////////////////////////////////////////////////////////////////////
-	void CQuestManager::LoadStartQuest(const string& quest_name, unsigned int idx)
+	void CQuestManager::LoadStartQuest(const std::string& quest_name, unsigned int idx)
 	{
 		for (auto it = g_setQuestObjectDir.begin(); it != g_setQuestObjectDir.end(); ++it)
 		{
-			const string& stQuestObjectDir = *it;
-			string full_name = stQuestObjectDir + "/begin_condition/" + quest_name;
-			ifstream inf(full_name.c_str());
+			const std::string& stQuestObjectDir = *it;
+			std::string full_name = stQuestObjectDir + "/begin_condition/" + quest_name;
+			std::ifstream inf(full_name.c_str());
 
 			if (inf.is_open())
 			{
 				sys_log(0, "QUEST loading begin condition for %s", quest_name.c_str());
 
-				istreambuf_iterator<char> ib(inf), ie;
+				std::istreambuf_iterator<char> ib(inf), ie;
 				copy(ib, ie, back_inserter(m_hmQuestStartScript[idx]));
 			}
 		}
@@ -916,7 +914,7 @@ namespace quest
 		m_iCurrentSkin = QUEST_SKIN_NORMAL;
 	}
 
-	void CQuestManager::AddScript(const string& str)
+	void CQuestManager::AddScript(const std::string& str)
 	{
 		m_strScript+=str;
 	}
@@ -960,7 +958,7 @@ namespace quest
 		ClearScript();
 	}
 
-	const char* CQuestManager::GetQuestStateName(const string& quest_name, const int state_index)
+	const char* CQuestManager::GetQuestStateName(const std::string& quest_name, const int state_index)
 	{
 		int x = lua_gettop(L);
 		lua_getglobal(L, quest_name.c_str());
@@ -978,7 +976,7 @@ namespace quest
 		return str;
 	}
 
-	int CQuestManager::GetQuestStateIndex(const string& quest_name, const string& state_name)
+	int CQuestManager::GetQuestStateIndex(const std::string& quest_name, const std::string& state_name)
 	{
 		int x = lua_gettop(L);
 		lua_getglobal(L, quest_name.c_str());
@@ -1008,9 +1006,9 @@ namespace quest
 			m_iCurrentSkin = iStyle;
 	}
 
-	unsigned int CQuestManager::LoadTimerScript(const string& name)
+	unsigned int CQuestManager::LoadTimerScript(const std::string& name)
 	{
-		map<string, unsigned int>::iterator it;
+		std::map<std::string, unsigned int>::iterator it;
 		if ((it = m_mapTimerID.find(name)) != m_mapTimerID.end())
 		{
 			return it->second;
@@ -1053,7 +1051,7 @@ namespace quest
 		return GetCurrentCharacterPtr() ? GetCurrentCharacterPtr()->GetQuestNPC() : nullptr; 
 	}
 
-	const string & CQuestManager::GetCurrentQuestName()
+	const std::string & CQuestManager::GetCurrentQuestName()
 	{
 		return GetCurrentPC()->GetCurrentQuestName();
 	}
@@ -1072,7 +1070,7 @@ namespace quest
 		return ch->GetDungeonForce();
 	}
 
-	void CQuestManager::RegisterQuest(const string & stQuestName, unsigned int idx)
+	void CQuestManager::RegisterQuest(const std::string & stQuestName, unsigned int idx)
 	{
 		assert(idx > 0);
 
@@ -1088,7 +1086,7 @@ namespace quest
 		sys_log(0, "QUEST: Register %4u %s", idx, stQuestName.c_str());
 	}
 
-	unsigned int CQuestManager::GetQuestIndexByName(const string& name)
+	unsigned int CQuestManager::GetQuestIndexByName(const std::string& name)
 	{
 		THashMapQuestName::iterator it = m_hmQuestName.find(name);
 
@@ -1098,7 +1096,7 @@ namespace quest
 		return it->second;
 	}
 
-	const string & CQuestManager::GetQuestNameByIndex(unsigned int idx)
+	const std::string & CQuestManager::GetQuestNameByIndex(unsigned int idx)
 	{
 		decltype(m_mapQuestNameByIndex.begin()) it;
 
@@ -1119,7 +1117,7 @@ namespace quest
 		decltype(m_mapEventFlag.begin()) it;
 		for (it = m_mapEventFlag.begin(); it != m_mapEventFlag.end(); ++it)
 		{
-			const string& flagname = it->first;
+			const std::string& flagname = it->first;
 			int value = it->second;
 
 			if (!test_server && value == 1 && flagname == "valentine_drop")
@@ -1133,7 +1131,7 @@ namespace quest
 		}
 	}
 
-	void CQuestManager::RequestSetEventFlag(const string& name, int value)
+	void CQuestManager::RequestSetEventFlag(const std::string& name, int value)
 	{
 		TPacketSetEventFlag p;
 		strlcpy(p.szFlagName, name.c_str(), sizeof(p.szFlagName));
@@ -1141,7 +1139,7 @@ namespace quest
 		db_clientdesc->DBPacket(HEADER_GD_SET_EVENT_FLAG, 0, &p, sizeof(TPacketSetEventFlag));
 	}
 
-	void CQuestManager::SetEventFlag(const string& name, int value)
+	void CQuestManager::SetEventFlag(const std::string& name, int value)
 	{
 		static const char*	DROPEVENT_CHARTONE_NAME		= "drop_char_stone";
 		static const int	DROPEVENT_CHARTONE_NAME_LEN = strlen(DROPEVENT_CHARTONE_NAME);
@@ -1438,9 +1436,9 @@ namespace quest
 		}
 	}
 
-	int	CQuestManager::GetEventFlag(const string& name)
+	int	CQuestManager::GetEventFlag(const std::string& name)
 	{
-		map<string,int>::iterator it = m_mapEventFlag.find(name);
+		std::map<std::string,int>::iterator it = m_mapEventFlag.find(name);
 
 		if (it == m_mapEventFlag.end())
 			return 0;
@@ -1509,12 +1507,12 @@ namespace quest
 		}
 	}
 
-	bool CQuestManager::ExecuteQuestScript(PC& pc, uint32_t quest_index, const int state, const char* code, const int code_size, vector<AArgScript*>* pChatScripts, bool bUseCache)
+	bool CQuestManager::ExecuteQuestScript(PC& pc, uint32_t quest_index, const int state, const char* code, const int code_size, std::vector<AArgScript*>* pChatScripts, bool bUseCache)
 	{
 		return ExecuteQuestScript(pc, CQuestManager::instance().GetQuestNameByIndex(quest_index), state, code, code_size, pChatScripts, bUseCache);
 	}
 
-	bool CQuestManager::ExecuteQuestScript(PC& pc, const string& quest_name, const int state, const char* code, const int code_size, vector<AArgScript*>* pChatScripts, bool bUseCache)
+	bool CQuestManager::ExecuteQuestScript(PC& pc, const std::string& quest_name, const int state, const char* code, const int code_size, std::vector<AArgScript*>* pChatScripts, bool bUseCache)
 	{
 		// Create the execution space
 		QuestState qs = CQuestManager::instance().OpenState(quest_name, state);
@@ -1586,7 +1584,7 @@ namespace quest
 
 		for (auto it = g_setQuestObjectDir.begin(); it != g_setQuestObjectDir.end(); ++it)
 		{
-			const string& stQuestObjectDir = *it;
+			const std::string& stQuestObjectDir = *it;
 			snprintf(buf, sizeof(buf), "%s/%u", stQuestObjectDir.c_str(), dwVnum);
 			sys_log(0, "%s", buf);
 
@@ -1605,7 +1603,7 @@ namespace quest
 	{
 		const char * state_name = GetQuestStateName(GetCurrentQuestName(), GetCurrentState()->st);
 
-		string event_index_name = "";
+		std::string event_index_name = "";
 		for (auto it = m_mapEventName.begin(); it != m_mapEventName.end(); ++it)
 		{
 			if (it->second == m_iRunningEventIndex)
@@ -1673,7 +1671,7 @@ namespace quest
 	// Fix (New)
 	void CQuestManager::CancelServerTimers(uint32_t arg)
 	{
-		vector<pair<string, uint32_t>> ServerTimersToDelete;
+		std::vector<std::pair<std::string, uint32_t>> ServerTimersToDelete;
 
 		for (const auto& kv : m_mapServerTimer) {
 			if (kv.first.second == arg) {

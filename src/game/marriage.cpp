@@ -56,7 +56,7 @@ namespace marriage
 	const int MARRIAGE_POINT_PER_DAY_FAST = 2;
 	using namespace std;
 
-	void SendLoverInfo(CHARACTER * ch, const string& lover_name, int love_point)
+	void SendLoverInfo(CHARACTER * ch, const std::string& lover_name, int love_point)
 	{
 		TPacketGCLoverInfo p;
 
@@ -576,8 +576,8 @@ namespace marriage
 
 		TMarriage* pMarriage = new TMarriage(dwPID1, dwPID2, 0, tMarryTime, szName1, szName2);
 		m_Marriages.insert(pMarriage);
-		m_MarriageByPID.insert(make_pair(dwPID1, pMarriage));
-		m_MarriageByPID.insert(make_pair(dwPID2, pMarriage));
+		m_MarriageByPID.insert(std::make_pair(dwPID1, pMarriage));
+		m_MarriageByPID.insert(std::make_pair(dwPID2, pMarriage));
 		{
 			CHARACTER * A = CHARACTER_MANAGER::instance().FindByPID(dwPID1);
 			CHARACTER * B = CHARACTER_MANAGER::instance().FindByPID(dwPID2);
@@ -711,7 +711,7 @@ namespace marriage
 		pMarriage->WarpToWeddingMap(dwPID2);
 
 		// Must register so the name shows up in the menu window
-		m_setWedding.insert(make_pair(dwPID1, dwPID2));
+		m_setWedding.insert(std::make_pair(dwPID1, dwPID2));
 	}
 
 	void CManager::WeddingEnd(uint32_t dwPID1, uint32_t dwPID2)
@@ -740,7 +740,7 @@ namespace marriage
 		delete pMarriage->pWeddingInfo;
 		pMarriage->pWeddingInfo = nullptr;
 
-		m_setWedding.erase(make_pair(dwPID1, dwPID2));
+		m_setWedding.erase(std::make_pair(dwPID1, dwPID2));
 	}
 
 	void CManager::RequestEndWedding(uint32_t dwPID1, uint32_t dwPID2)

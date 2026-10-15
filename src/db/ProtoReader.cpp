@@ -19,19 +19,19 @@
 
 using namespace std;
 
-inline string trim_left(const string& str)
+inline std::string trim_left(const std::string& str)
 {
-    string::size_type n = str.find_first_not_of(" \t\v\n\r");
-    return n == string::npos ? str : str.substr(n, str.length());
+    std::string::size_type n = str.find_first_not_of(" \t\v\n\r");
+    return n == std::string::npos ? str : str.substr(n, str.length());
 }
 
-inline string trim_right(const string& str)
+inline std::string trim_right(const std::string& str)
 {
-    string::size_type n = str.find_last_not_of(" \t\v\n\r");
-    return n == string::npos ? str : str.substr(0, n + 1);
+    std::string::size_type n = str.find_last_not_of(" \t\v\n\r");
+    return n == std::string::npos ? str : str.substr(0, n + 1);
 }
 
-string trim(const string& str){return trim_left(trim_right(str));}
+std::string trim(const std::string& str){return trim_left(trim_right(str));}
 
 static string* StringSplit(string strOrigin, string strTok)
 {
@@ -64,9 +64,9 @@ static string* StringSplit(string strOrigin, string strTok)
 
 
 
-int get_Item_Type_Value(string inputString)
+int get_Item_Type_Value(std::string inputString)
 {
-	string arType[] = {"ITEM_NONE", "ITEM_WEAPON",
+	std::string arType[] = {"ITEM_NONE", "ITEM_WEAPON",
 		"ITEM_ARMOR", "ITEM_USE", 
 		"ITEM_AUTOUSE", "ITEM_MATERIAL",
 		"ITEM_SPECIAL", "ITEM_TOOL", 
@@ -94,8 +94,8 @@ int get_Item_Type_Value(string inputString)
 	
 	int retInt = -1;
 	for (int j=0;j<sizeof(arType)/sizeof(arType[0]);j++) {
-		string tempString = arType[j];
-		if	(inputString.find(tempString)!=string::npos && tempString.find(inputString)!=string::npos) {
+		std::string tempString = arType[j];
+		if	(inputString.find(tempString)!=std::string::npos && tempString.find(inputString)!=std::string::npos) {
 			retInt =  j;
 			break;
 		}
@@ -105,35 +105,35 @@ int get_Item_Type_Value(string inputString)
 
 }
 
-int get_Item_SubType_Value(int type_value, string inputString) 
+int get_Item_SubType_Value(int type_value, std::string inputString) 
 {
-	static string arSub1[] = { "WEAPON_SWORD", "WEAPON_DAGGER", "WEAPON_BOW", "WEAPON_TWO_HANDED",
+	static std::string arSub1[] = { "WEAPON_SWORD", "WEAPON_DAGGER", "WEAPON_BOW", "WEAPON_TWO_HANDED",
 				"WEAPON_BELL", "WEAPON_FAN", "WEAPON_ARROW", "WEAPON_MOUNT_SPEAR"};
-	static string arSub2[] = { "ARMOR_BODY", "ARMOR_HEAD", "ARMOR_SHIELD", "ARMOR_WRIST", "ARMOR_FOOTS",
+	static std::string arSub2[] = { "ARMOR_BODY", "ARMOR_HEAD", "ARMOR_SHIELD", "ARMOR_WRIST", "ARMOR_FOOTS",
 				"ARMOR_NECK", "ARMOR_EAR", "ARMOR_NUM_TYPES"};
-	static string arSub3[] = { "USE_POTION", "USE_TALISMAN", "USE_TUNING", "USE_MOVE", "USE_TREASURE_BOX", "USE_MONEYBAG", "USE_BAIT",
+	static std::string arSub3[] = { "USE_POTION", "USE_TALISMAN", "USE_TUNING", "USE_MOVE", "USE_TREASURE_BOX", "USE_MONEYBAG", "USE_BAIT",
 				"USE_ABILITY_UP", "USE_AFFECT", "USE_CREATE_STONE", "USE_SPECIAL", "USE_POTION_NODELAY", "USE_CLEAR",
 				"USE_INVISIBILITY", "USE_DETACHMENT", "USE_BUCKET", "USE_POTION_CONTINUE", "USE_CLEAN_SOCKET",
 				"USE_CHANGE_ATTRIBUTE", "USE_ADD_ATTRIBUTE", "USE_ADD_ACCESSORY_SOCKET", "USE_PUT_INTO_ACCESSORY_SOCKET",
 				"USE_ADD_ATTRIBUTE2", "USE_RECIPE", "USE_CHANGE_ATTRIBUTE2", "USE_BIND", "USE_UNBIND", "USE_TIME_CHARGE_PER", "USE_TIME_CHARGE_FIX", "USE_PUT_INTO_BELT_SOCKET", "USE_PUT_INTO_RING_SOCKET"};
-	static string arSub4[] = { "AUTOUSE_POTION", "AUTOUSE_ABILITY_UP", "AUTOUSE_BOMB", "AUTOUSE_GOLD", "AUTOUSE_MONEYBAG", "AUTOUSE_TREASURE_BOX"};
-	static string arSub5[] = { "MATERIAL_LEATHER", "MATERIAL_BLOOD", "MATERIAL_ROOT", "MATERIAL_NEEDLE", "MATERIAL_JEWEL", 
+	static std::string arSub4[] = { "AUTOUSE_POTION", "AUTOUSE_ABILITY_UP", "AUTOUSE_BOMB", "AUTOUSE_GOLD", "AUTOUSE_MONEYBAG", "AUTOUSE_TREASURE_BOX"};
+	static std::string arSub5[] = { "MATERIAL_LEATHER", "MATERIAL_BLOOD", "MATERIAL_ROOT", "MATERIAL_NEEDLE", "MATERIAL_JEWEL", 
 		"MATERIAL_DS_REFINE_NORMAL", "MATERIAL_DS_REFINE_BLESSED", "MATERIAL_DS_REFINE_HOLLY"};
-	static string arSub6[] = { "SPECIAL_MAP", "SPECIAL_KEY", "SPECIAL_DOC", "SPECIAL_SPIRIT"};
-	static string arSub7[] = { "TOOL_FISHING_ROD" };
-	static string arSub8[] = { "LOTTERY_TICKET", "LOTTERY_INSTANT" };
-	static string arSub10[] = { "METIN_NORMAL", "METIN_GOLD" };
-	static string arSub12[] = { "FISH_ALIVE", "FISH_DEAD"};
-	static string arSub14[] = { "RESOURCE_FISHBONE", "RESOURCE_WATERSTONEPIECE", "RESOURCE_WATERSTONE", "RESOURCE_BLOOD_PEARL",
+	static std::string arSub6[] = { "SPECIAL_MAP", "SPECIAL_KEY", "SPECIAL_DOC", "SPECIAL_SPIRIT"};
+	static std::string arSub7[] = { "TOOL_FISHING_ROD" };
+	static std::string arSub8[] = { "LOTTERY_TICKET", "LOTTERY_INSTANT" };
+	static std::string arSub10[] = { "METIN_NORMAL", "METIN_GOLD" };
+	static std::string arSub12[] = { "FISH_ALIVE", "FISH_DEAD"};
+	static std::string arSub14[] = { "RESOURCE_FISHBONE", "RESOURCE_WATERSTONEPIECE", "RESOURCE_WATERSTONE", "RESOURCE_BLOOD_PEARL",
 						"RESOURCE_BLUE_PEARL", "RESOURCE_WHITE_PEARL", "RESOURCE_BUCKET", "RESOURCE_CRYSTAL", "RESOURCE_GEM",
 						"RESOURCE_STONE", "RESOURCE_METIN", "RESOURCE_ORE" };
-	static string arSub16[] = { "UNIQUE_NONE", "UNIQUE_BOOK", "UNIQUE_SPECIAL_RIDE", "UNIQUE_3", "UNIQUE_4", "UNIQUE_5",
+	static std::string arSub16[] = { "UNIQUE_NONE", "UNIQUE_BOOK", "UNIQUE_SPECIAL_RIDE", "UNIQUE_3", "UNIQUE_4", "UNIQUE_5",
 					"UNIQUE_6", "UNIQUE_7", "UNIQUE_8", "UNIQUE_9", "USE_SPECIAL"};
-	static string arSub28[] = { "COSTUME_BODY", "COSTUME_HAIR" };
-	static string arSub29[] = { "DS_SLOT1", "DS_SLOT2", "DS_SLOT3", "DS_SLOT4", "DS_SLOT5", "DS_SLOT6" };
-	static string arSub31[] = { "EXTRACT_DRAGON_SOUL", "EXTRACT_DRAGON_HEART" };
+	static std::string arSub28[] = { "COSTUME_BODY", "COSTUME_HAIR" };
+	static std::string arSub29[] = { "DS_SLOT1", "DS_SLOT2", "DS_SLOT3", "DS_SLOT4", "DS_SLOT5", "DS_SLOT6" };
+	static std::string arSub31[] = { "EXTRACT_DRAGON_SOUL", "EXTRACT_DRAGON_HEART" };
 	
-	static string* arSubType[] = {nullptr,	//0
+	static std::string* arSubType[] = {nullptr,	//0
 		arSub1,		//1
 		arSub2,	//2
 		arSub3,	//3
@@ -225,8 +225,8 @@ int get_Item_SubType_Value(int type_value, string inputString)
 
 	int retInt = -1;
 	for (int j=0;j<arNumberOfSubtype[type_value];j++) {
-		string tempString = arSubType[type_value][j];
-		string tempInputString = trim(inputString);
+		std::string tempString = arSubType[type_value][j];
+		std::string tempInputString = trim(inputString);
 		if	(tempInputString.compare(tempString)==0)
 		{
 			retInt =  j;
@@ -241,10 +241,10 @@ int get_Item_SubType_Value(int type_value, string inputString)
 
 
 
-int get_Item_AntiFlag_Value(string inputString) 
+int get_Item_AntiFlag_Value(std::string inputString) 
 {
 
-	string arAntiFlag[] = {"ANTI_FEMALE", "ANTI_MALE", "ANTI_MUSA", "ANTI_ASSASSIN", "ANTI_SURA", "ANTI_MUDANG",
+	std::string arAntiFlag[] = {"ANTI_FEMALE", "ANTI_MALE", "ANTI_MUSA", "ANTI_ASSASSIN", "ANTI_SURA", "ANTI_MUDANG",
 							"ANTI_GET", "ANTI_DROP", "ANTI_SELL", "ANTI_EMPIRE_A", "ANTI_EMPIRE_B", "ANTI_EMPIRE_C",
 							"ANTI_SAVE", "ANTI_GIVE", "ANTI_PKDROP", "ANTI_STACK", "ANTI_MYSHOP", "ANTI_SAFEBOX"};
 
@@ -252,10 +252,10 @@ int get_Item_AntiFlag_Value(string inputString)
 	int retValue = 0;
 	string* arInputString = StringSplit(inputString, "|");				//Array of the proto info split into words.
 	for(int i =0;i<sizeof(arAntiFlag)/sizeof(arAntiFlag[0]);i++) {
-		string tempString = arAntiFlag[i];
+		std::string tempString = arAntiFlag[i];
 		for (int j=0; j<30 ; j++)		//Up to 30 words. (hardcoded)
 		{
-			string tempString2 = arInputString[j];
+			std::string tempString2 = arInputString[j];
 			if (tempString2.compare(tempString)==0) {				//Check for a match.
 				retValue = retValue + pow((float)2,(float)i);
 			}
@@ -269,10 +269,10 @@ int get_Item_AntiFlag_Value(string inputString)
 	return retValue;
 }
 
-int get_Item_Flag_Value(string inputString) 
+int get_Item_Flag_Value(std::string inputString) 
 {
 
-	string arFlag[] = {"ITEM_TUNABLE", "ITEM_SAVE", "ITEM_STACKABLE", "COUNT_PER_1GOLD", "ITEM_SLOW_QUERY", "ITEM_UNIQUE",
+	std::string arFlag[] = {"ITEM_TUNABLE", "ITEM_SAVE", "ITEM_STACKABLE", "COUNT_PER_1GOLD", "ITEM_SLOW_QUERY", "ITEM_UNIQUE",
 			"ITEM_MAKECOUNT", "ITEM_IRREMOVABLE", "CONFIRM_WHEN_USE", "QUEST_USE", "QUEST_USE_MULTIPLE",
 			"QUEST_GIVE", "ITEM_QUEST", "LOG", "STACKABLE", "SLOW_QUERY", "REFINEABLE", "IRREMOVABLE", "ITEM_APPLICABLE"};
 
@@ -280,10 +280,10 @@ int get_Item_Flag_Value(string inputString)
 	int retValue = 0;
 	string* arInputString = StringSplit(inputString, "|");				//Array of the proto info split into words.
 	for(int i =0;i<sizeof(arFlag)/sizeof(arFlag[0]);i++) {
-		string tempString = arFlag[i];
+		std::string tempString = arFlag[i];
 		for (int j=0; j<30 ; j++)		//Up to 30 words. (hardcoded)
 		{
-			string tempString2 = arInputString[j];
+			std::string tempString2 = arInputString[j];
 			if (tempString2.compare(tempString)==0) {				//Check for a match.
 				retValue = retValue + pow((float)2,(float)i);
 			}
@@ -297,20 +297,20 @@ int get_Item_Flag_Value(string inputString)
 	return retValue;
 }
 
-int get_Item_WearFlag_Value(string inputString) 
+int get_Item_WearFlag_Value(std::string inputString) 
 {
 
-	string arWearrFlag[] = {"WEAR_BODY", "WEAR_HEAD", "WEAR_FOOTS", "WEAR_WRIST", "WEAR_WEAPON", "WEAR_NECK", "WEAR_EAR", "WEAR_SHIELD", "WEAR_UNIQUE",
+	std::string arWearrFlag[] = {"WEAR_BODY", "WEAR_HEAD", "WEAR_FOOTS", "WEAR_WRIST", "WEAR_WEAPON", "WEAR_NECK", "WEAR_EAR", "WEAR_SHIELD", "WEAR_UNIQUE",
 					"WEAR_ARROW", "WEAR_HAIR", "WEAR_ABILITY"};
 
 
 	int retValue = 0;
 	string* arInputString = StringSplit(inputString, "|");				//Array of the proto info split into words.
 	for(int i =0;i<sizeof(arWearrFlag)/sizeof(arWearrFlag[0]);i++) {
-		string tempString = arWearrFlag[i];
+		std::string tempString = arWearrFlag[i];
 		for (int j=0; j<30 ; j++)		//Up to 30 words. (hardcoded)
 		{
-			string tempString2 = arInputString[j];
+			std::string tempString2 = arInputString[j];
 			if (tempString2.compare(tempString)==0) {				//Check for a match.
 				retValue = retValue + pow((float)2,(float)i);
 			}
@@ -324,18 +324,18 @@ int get_Item_WearFlag_Value(string inputString)
 	return retValue;
 }
 
-int get_Item_Immune_Value(string inputString) 
+int get_Item_Immune_Value(std::string inputString) 
 {
 
-	string arImmune[] = {"PARA","CURSE","STUN","SLEEP","SLOW","POISON","TERROR"};
+	std::string arImmune[] = {"PARA","CURSE","STUN","SLEEP","SLOW","POISON","TERROR"};
 
 	int retValue = 0;
 	string* arInputString = StringSplit(inputString, "|");				//Array of the proto info split into words.
 	for(int i =0;i<sizeof(arImmune)/sizeof(arImmune[0]);i++) {
-		string tempString = arImmune[i];
+		std::string tempString = arImmune[i];
 		for (int j=0; j<30 ; j++)		//Up to 30 words. (hardcoded)
 		{
-			string tempString2 = arInputString[j];
+			std::string tempString2 = arInputString[j];
 			if (tempString2.compare(tempString)==0) {				//Check for a match.
 				retValue = retValue + pow((float)2,(float)i);
 			}
@@ -352,14 +352,14 @@ int get_Item_Immune_Value(string inputString)
 
 
 
-int get_Item_LimitType_Value(string inputString)
+int get_Item_LimitType_Value(std::string inputString)
 {
-	string arLimitType[] = {"LIMIT_NONE", "LEVEL", "STR", "DEX", "INT", "CON", "PC_BANG", "REAL_TIME", "REAL_TIME_FIRST_USE", "TIMER_BASED_ON_WEAR"};
+	std::string arLimitType[] = {"LIMIT_NONE", "LEVEL", "STR", "DEX", "INT", "CON", "PC_BANG", "REAL_TIME", "REAL_TIME_FIRST_USE", "TIMER_BASED_ON_WEAR"};
 	
 	int retInt = -1;
 	for (int j=0;j<sizeof(arLimitType)/sizeof(arLimitType[0]);j++) {
-		string tempString = arLimitType[j];
-		string tempInputString = trim(inputString);
+		std::string tempString = arLimitType[j];
+		std::string tempInputString = trim(inputString);
 		if	(tempInputString.compare(tempString)==0)
 		{
 			retInt =  j;
@@ -371,9 +371,9 @@ int get_Item_LimitType_Value(string inputString)
 }
 
 
-int get_Item_ApplyType_Value(string inputString)
+int get_Item_ApplyType_Value(std::string inputString)
 {
-	string arApplyType[] = {"APPLY_NONE", "APPLY_MAX_HP", "APPLY_MAX_SP", "APPLY_CON", "APPLY_INT", "APPLY_STR", "APPLY_DEX", "APPLY_ATT_SPEED",
+	std::string arApplyType[] = {"APPLY_NONE", "APPLY_MAX_HP", "APPLY_MAX_SP", "APPLY_CON", "APPLY_INT", "APPLY_STR", "APPLY_DEX", "APPLY_ATT_SPEED",
 			"APPLY_MOV_SPEED", "APPLY_CAST_SPEED", "APPLY_HP_REGEN", "APPLY_SP_REGEN", "APPLY_POISON_PCT", "APPLY_STUN_PCT",
 			"APPLY_SLOW_PCT", "APPLY_CRITICAL_PCT", "APPLY_PENETRATE_PCT", "APPLY_ATTBONUS_HUMAN", "APPLY_ATTBONUS_ANIMAL",
 			"APPLY_ATTBONUS_ORC", "APPLY_ATTBONUS_MILGYO", "APPLY_ATTBONUS_UNDEAD", "APPLY_ATTBONUS_DEVIL", "APPLY_STEAL_HP",
@@ -394,8 +394,8 @@ int get_Item_ApplyType_Value(string inputString)
 
 	int retInt = -1;
 	for (int j=0;j<sizeof(arApplyType)/sizeof(arApplyType[0]);j++) {
-		string tempString = arApplyType[j];
-		string tempInputString = trim(inputString);
+		std::string tempString = arApplyType[j];
+		std::string tempInputString = trim(inputString);
 		if	(tempInputString.compare(tempString)==0)
 		{ 
 			retInt =  j;
@@ -411,14 +411,14 @@ int get_Item_ApplyType_Value(string inputString)
 //Also read the monster proto.
 
 
-int get_Mob_Rank_Value(string inputString) 
+int get_Mob_Rank_Value(std::string inputString) 
 {
-	string arRank[] = {"PAWN", "S_PAWN", "KNIGHT", "S_KNIGHT", "BOSS", "KING"};
+	std::string arRank[] = {"PAWN", "S_PAWN", "KNIGHT", "S_KNIGHT", "BOSS", "KING"};
 
 	int retInt = -1;
 	for (int j=0;j<sizeof(arRank)/sizeof(arRank[0]);j++) {
-		string tempString = arRank[j];
-		string tempInputString = trim(inputString);
+		std::string tempString = arRank[j];
+		std::string tempInputString = trim(inputString);
 		if	(tempInputString.compare(tempString)==0) 
 		{
 			retInt =  j;
@@ -430,14 +430,14 @@ int get_Mob_Rank_Value(string inputString)
 }
 
 
-int get_Mob_Type_Value(string inputString)
+int get_Mob_Type_Value(std::string inputString)
 {
-	string arType[] = { "MONSTER", "NPC", "STONE", "WARP", "DOOR", "BUILDING", "PC", "POLYMORPH_PC", "HORSE", "GOTO"};
+	std::string arType[] = { "MONSTER", "NPC", "STONE", "WARP", "DOOR", "BUILDING", "PC", "POLYMORPH_PC", "HORSE", "GOTO"};
 
 	int retInt = -1;
 	for (int j=0;j<sizeof(arType)/sizeof(arType[0]);j++) {
-		string tempString = arType[j];
-		string tempInputString = trim(inputString);
+		std::string tempString = arType[j];
+		std::string tempInputString = trim(inputString);
 		if	(tempInputString.compare(tempString)==0) 
 		{
 			retInt =  j;
@@ -448,14 +448,14 @@ int get_Mob_Type_Value(string inputString)
 	return retInt;
 }
 
-int get_Mob_BattleType_Value(string inputString) 
+int get_Mob_BattleType_Value(std::string inputString) 
 {
-	string arBattleType[] = { "MELEE", "RANGE", "MAGIC", "SPECIAL", "POWER", "TANKER", "SUPER_POWER", "SUPER_TANKER"};
+	std::string arBattleType[] = { "MELEE", "RANGE", "MAGIC", "SPECIAL", "POWER", "TANKER", "SUPER_POWER", "SUPER_TANKER"};
 
 	int retInt = -1;
 	for (int j=0;j<sizeof(arBattleType)/sizeof(arBattleType[0]);j++) {
-		string tempString = arBattleType[j];
-		string tempInputString = trim(inputString);
+		std::string tempString = arBattleType[j];
+		std::string tempInputString = trim(inputString);
 		if	(tempInputString.compare(tempString)==0) 
 		{ 
 			retInt =  j;
@@ -466,14 +466,14 @@ int get_Mob_BattleType_Value(string inputString)
 	return retInt;
 }
 
-int get_Mob_Size_Value(string inputString)
+int get_Mob_Size_Value(std::string inputString)
 {
-	string arSize[] = { "SMALL", "MEDIUM", "BIG"};
+	std::string arSize[] = { "SMALL", "MEDIUM", "BIG"};
 
 	int retInt = 0;
 	for (int j=0;j<sizeof(arSize)/sizeof(arSize[0]);j++) {
-		string tempString = arSize[j];
-		string tempInputString = trim(inputString);
+		std::string tempString = arSize[j];
+		std::string tempInputString = trim(inputString);
 		if	(tempInputString.compare(tempString)==0) 
 		{
 			retInt =  j + 1;
@@ -484,18 +484,18 @@ int get_Mob_Size_Value(string inputString)
 	return retInt;
 }
 
-int get_Mob_AIFlag_Value(string inputString)
+int get_Mob_AIFlag_Value(std::string inputString)
 {
-	string arAIFlag[] = {"AGGR","NOMOVE","COWARD","NOATTSHINSU","NOATTCHUNJO","NOATTJINNO","ATTMOB","BERSERK","STONESKIN","GODSPEED","DEATHBLOW","REVIVE"};
+	std::string arAIFlag[] = {"AGGR","NOMOVE","COWARD","NOATTSHINSU","NOATTCHUNJO","NOATTJINNO","ATTMOB","BERSERK","STONESKIN","GODSPEED","DEATHBLOW","REVIVE"};
 
 
 	int retValue = 0;
 	string* arInputString = StringSplit(inputString, ",");				//Array of the proto info split into words.
 	for(int i =0;i<sizeof(arAIFlag)/sizeof(arAIFlag[0]);i++) {
-		string tempString = arAIFlag[i];
+		std::string tempString = arAIFlag[i];
 		for (int j=0; j<30 ; j++)		//Up to 30 words. (hardcoded)
 		{
-			string tempString2 = arInputString[j];
+			std::string tempString2 = arInputString[j];
 			if (tempString2.compare(tempString)==0) {				//Check for a match.
 				retValue = retValue + pow((float)2,(float)i);
 			}
@@ -508,18 +508,18 @@ int get_Mob_AIFlag_Value(string inputString)
 
 	return retValue;
 }
-int get_Mob_RaceFlag_Value(string inputString)
+int get_Mob_RaceFlag_Value(std::string inputString)
 {
-	string arRaceFlag[] = {"ANIMAL","UNDEAD","DEVIL","HUMAN","ORC","MILGYO","INSECT","FIRE","ICE","DESERT","TREE",
+	std::string arRaceFlag[] = {"ANIMAL","UNDEAD","DEVIL","HUMAN","ORC","MILGYO","INSECT","FIRE","ICE","DESERT","TREE",
 		"ATT_ELEC","ATT_FIRE","ATT_ICE","ATT_WIND","ATT_EARTH","ATT_DARK"};
 
 	int retValue = 0;
 	string* arInputString = StringSplit(inputString, ",");				//Array of the proto info split into words.
 	for(int i =0;i<sizeof(arRaceFlag)/sizeof(arRaceFlag[0]);i++) {
-		string tempString = arRaceFlag[i];
+		std::string tempString = arRaceFlag[i];
 		for (int j=0; j<30 ; j++)		//Up to 30 words. (hardcoded)
 		{
-			string tempString2 = arInputString[j];
+			std::string tempString2 = arInputString[j];
 			if (tempString2.compare(tempString)==0) {				//Check for a match.
 				retValue = retValue + pow((float)2,(float)i);
 			}
@@ -532,17 +532,17 @@ int get_Mob_RaceFlag_Value(string inputString)
 
 	return retValue;
 }
-int get_Mob_ImmuneFlag_Value(string inputString)
+int get_Mob_ImmuneFlag_Value(std::string inputString)
 {
-	string arImmuneFlag[] = {"STUN","SLOW","FALL","CURSE","POISON","TERROR", "REFLECT"};
+	std::string arImmuneFlag[] = {"STUN","SLOW","FALL","CURSE","POISON","TERROR", "REFLECT"};
 
 	int retValue = 0;
 	string* arInputString = StringSplit(inputString, ",");				//Array of the proto info split into words.
 	for(int i =0;i<sizeof(arImmuneFlag)/sizeof(arImmuneFlag[0]);i++) {
-		string tempString = arImmuneFlag[i];
+		std::string tempString = arImmuneFlag[i];
 		for (int j=0; j<30 ; j++)		//Up to 30 words. (hardcoded)
 		{
-			string tempString2 = arInputString[j];
+			std::string tempString2 = arInputString[j];
 			if (tempString2.compare(tempString)==0) {				//Check for a match.
 				retValue = retValue + pow((float)2,(float)i);
 			}
@@ -568,7 +568,7 @@ bool Set_Proto_Mob_Table(TMobTable *mobTable, cCsvTable &csvTable,std::map<int,c
 	utf8_strlcpy(mobTable->szName, csvTable.AsStringByIndex(col++), sizeof(mobTable->szName));
 
 	//3. Fill in the localized names.
-	map<int,const char*>::iterator it;
+	std::map<int,const char*>::iterator it;
 	it = nameMap.find(mobTable->dwVnum);
 	if (it != nameMap.end()) {
 		const char * localeName = it->second;
@@ -756,7 +756,7 @@ bool Set_Proto_Item_Table(TItemTable *itemTable, cCsvTable &csvTable,std::map<in
 
 	utf8_strlcpy(itemTable->szName, csvTable.AsStringByIndex(1), sizeof(itemTable->szName));
 	//Fill in the localized names.
-	map<int,const char*>::iterator it;
+	std::map<int,const char*>::iterator it;
 	it = nameMap.find(itemTable->dwVnum);
 	if (it != nameMap.end()) {
 		const char * localeName = it->second;

@@ -23,10 +23,8 @@ class CDungeon;
 
 namespace quest
 {
-	using namespace std;
-
 	bool IsScriptTrue(const char* code, int size);
-	string ScriptToString(const string& str);
+	std::string ScriptToString(const std::string& str);
 
 	class CQuestManager : public singleton<CQuestManager>
 	{
@@ -40,8 +38,8 @@ namespace quest
 				QUEST_SKIN_COUNT
 			};
 
-			typedef map<string, int>		TEventNameMap;
-			typedef map<unsigned int, PC>	PCMap;
+			typedef std::map<std::string, int>		TEventNameMap;
+			typedef std::map<unsigned int, PC>	PCMap;
 
 		public:
 			CQuestManager();
@@ -56,7 +54,7 @@ namespace quest
 
 			TEventNameMap	m_mapEventName;
 
-			QuestState		OpenState(const string& quest_name, int state_index);
+			QuestState		OpenState(const std::string& quest_name, int state_index);
 			void		CloseState(QuestState& qs);
 			bool		RunState(QuestState& qs);
 
@@ -64,8 +62,8 @@ namespace quest
 			PC *		GetPCForce(unsigned int pc);	// Gets the PC pointer without changing the current PC.
 
 			unsigned int	GetCurrentNPCRace();
-			const string & 	GetCurrentQuestName();
-			unsigned int	FindNPCIDByName(const string& name);
+			const std::string & 	GetCurrentQuestName();
+			unsigned int	FindNPCIDByName(const std::string& name);
 
 			//void		SetCurrentNPCCharacterPtr(CHARACTER * ch) { m_pkCurrentNPC = ch; }
 			CHARACTER *		GetCurrentNPCCharacterPtr();
@@ -79,9 +77,9 @@ namespace quest
 			CItem *		GetCurrentItem();
 			void		ClearCurrentItem();
 			void		SetCurrentItem(CItem * item);
-			void		AddServerTimer(const string& name, uint32_t arg, LPEVENT event);
-			void		ClearServerTimer(const string& name, uint32_t arg);
-			void		ClearServerTimerNotCancel(const string& name, uint32_t arg);
+			void		AddServerTimer(const std::string& name, uint32_t arg, LPEVENT event);
+			void		ClearServerTimer(const std::string& name, uint32_t arg);
+			void		ClearServerTimerNotCancel(const std::string& name, uint32_t arg);
 			void		CancelServerTimers(uint32_t arg);
 
 			void		SetServerTimerArg(uint32_t dwArg);
@@ -129,7 +127,7 @@ namespace quest
 
 			QuestState *	GetCurrentState()	{ return m_CurrentRunningState; }
 
-			void 		LoadStartQuest(const string& quest_name, unsigned int idx);
+			void 		LoadStartQuest(const std::string& quest_name, unsigned int idx);
 			bool		CanStartQuest(unsigned int quest_index, const PC& pc);
 			bool		CanStartQuest(unsigned int quest_index);
 
@@ -142,27 +140,27 @@ namespace quest
 
 			void		ClearScript();
 			void		SendScript();
-			void		AddScript(const string& str);
+			void		AddScript(const std::string& str);
 
 			void		BuildStateIndexToName(const char* questName);
 
-			int			GetQuestStateIndex(const string& quest_name, const string& state_name);
-			const char*		GetQuestStateName(const string& quest_name, const int state_index);
+			int			GetQuestStateIndex(const std::string& quest_name, const std::string& state_name);
+			const char*		GetQuestStateName(const std::string& quest_name, const int state_index);
 
 			void		SetSkinStyle(int iStyle);
 
 			void		SetNoSend() { m_bNoSend = true; }
 
-			unsigned int	LoadTimerScript(const string& name);
+			unsigned int	LoadTimerScript(const std::string& name);
 
-			void		RegisterQuest(const string & name, unsigned int idx);
-			unsigned int 	GetQuestIndexByName(const string& name);
-			const string& 	GetQuestNameByIndex(unsigned int idx);
+			void		RegisterQuest(const std::string & name, unsigned int idx);
+			unsigned int 	GetQuestIndexByName(const std::string& name);
+			const std::string& 	GetQuestNameByIndex(unsigned int idx);
 
-			void		RequestSetEventFlag(const string& name, int value);
+			void		RequestSetEventFlag(const std::string& name, int value);
 
-			void		SetEventFlag(const string& name, int value);
-			int			GetEventFlag(const string& name);
+			void		SetEventFlag(const std::string& name, int value);
+			int			GetEventFlag(const std::string& name);
 			void		BroadcastEventFlagOnLogin(CHARACTER * ch);
 
 			void		SendEventFlagList(CHARACTER * ch);
@@ -181,11 +179,11 @@ namespace quest
 			CDungeon *			m_pSelectedDungeon;
 			uint32_t			m_dwServerTimerArg;
 
-			map<pair<string, uint32_t>, LPEVENT>	m_mapServerTimer;
+			std::map<std::pair<std::string, uint32_t>, LPEVENT>	m_mapServerTimer;
 
 			int				m_iRunningEventIndex;
 
-			map<string, int>		m_mapEventFlag;
+			std::map<std::string, int>		m_mapEventFlag;
 
 			void			GotoSelectState(QuestState& qs);
 			void			GotoPauseState(QuestState& qs);
@@ -198,10 +196,10 @@ namespace quest
 
 			bool			m_bNoSend;
 
-			set<unsigned int>			m_registeredNPCVnum;
-			map<unsigned int, NPC>		m_mapNPC;
-			map<string, unsigned int>	m_mapNPCNameID;
-			map<string, unsigned int>	m_mapTimerID;
+			std::set<unsigned int>			m_registeredNPCVnum;
+			std::map<unsigned int, NPC>		m_mapNPC;
+			std::map<std::string, unsigned int>	m_mapNPCNameID;
+			std::map<std::string, unsigned int>	m_mapTimerID;
 
 			QuestState *	m_CurrentRunningState;
 
@@ -211,13 +209,13 @@ namespace quest
 			CHARACTER *		m_pCurrentPartyMember;
 			PC*				m_pCurrentPC;
 
-			string			m_strScript;
+			std::string			m_strScript;
 
 			int				m_iCurrentSkin;
 
 			struct stringhash
 			{
-				size_t operator () (const string& str) const
+				size_t operator () (const std::string& str) const
 				{
 					const unsigned char * s = (const unsigned char*) str.c_str();
 					const unsigned char * end = s + str.size();
@@ -234,18 +232,18 @@ namespace quest
 				}
 			};
 
-			typedef std::unordered_map<string, int, stringhash> THashMapQuestName;
-			typedef std::unordered_map<unsigned int, vector<char> > THashMapQuestStartScript;
+			typedef std::unordered_map<std::string, int, stringhash> THashMapQuestName;
+			typedef std::unordered_map<unsigned int, std::vector<char> > THashMapQuestStartScript;
 
 			THashMapQuestName			m_hmQuestName;
 			THashMapQuestStartScript	m_hmQuestStartScript;
-			map<unsigned int, string>	m_mapQuestNameByIndex;
+			std::map<unsigned int, std::string>	m_mapQuestNameByIndex;
 
 			bool						m_bError;
 
 		public:
-			static bool ExecuteQuestScript(PC& pc, const string& quest_name, const int state, const char* code, const int code_size, vector<AArgScript*>* pChatScripts = nullptr, bool bUseCache = true);
-			static bool ExecuteQuestScript(PC& pc, uint32_t quest_index, const int state, const char* code, const int code_size, vector<AArgScript*>* pChatScripts = nullptr, bool bUseCache = true);
+			static bool ExecuteQuestScript(PC& pc, const std::string& quest_name, const int state, const char* code, const int code_size, std::vector<AArgScript*>* pChatScripts = nullptr, bool bUseCache = true);
+			static bool ExecuteQuestScript(PC& pc, uint32_t quest_index, const int state, const char* code, const int code_size, std::vector<AArgScript*>* pChatScripts = nullptr, bool bUseCache = true);
 		
 
 		// Objects for begin_other_pc_blcok, end_other_pc_block.

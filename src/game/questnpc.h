@@ -13,8 +13,6 @@
 
 namespace quest
 {
-	using namespace std;
-
 	enum
 	{
 		QUEST_START_STATE_INDEX = 0,
@@ -28,20 +26,20 @@ namespace quest
 		public:
 			// scripts without arguments
 			// first: state number
-			typedef map<int, AStateScriptType> AQuestScriptType;
+			typedef std::map<int, AStateScriptType> AQuestScriptType;
 			// first: quest number
-			typedef map<unsigned int, AQuestScriptType> QuestMapType;
+			typedef std::map<unsigned int, AQuestScriptType> QuestMapType;
 
 			// scripts with arguments
 			// first: state number
-			typedef map<int, vector<AArgScript> > AArgQuestScriptType;
+			typedef std::map<int, std::vector<AArgScript> > AArgQuestScriptType;
 			// first: quest number
-			typedef map<unsigned int, AArgQuestScriptType> ArgQuestMapType;
+			typedef std::map<unsigned int, AArgQuestScriptType> ArgQuestMapType;
 
 			NPC();
 			~NPC();
 
-			void	Set(unsigned int vnum, const string & script_name);
+			void	Set(unsigned int vnum, const std::string & script_name);
 
 			static bool HasStartState(const AQuestScriptType & q)
 			{

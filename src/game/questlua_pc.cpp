@@ -973,7 +973,7 @@ namespace quest
 			const char * sz2 = lua_tostring(L, 2);
 			CQuestManager & q = CQuestManager::instance();
 			PC * pPC = q.GetCurrentPC();
-			pPC->SetFlag(string(sz)+"."+sz2, int(rint(lua_tonumber(L,3))));
+			pPC->SetFlag(std::string(sz)+"."+sz2, int(rint(lua_tonumber(L,3))));
 			return 0;
 		}
 	}
@@ -995,7 +995,7 @@ namespace quest
 			{
 				return 0;
 			}
-			lua_pushnumber(L,pPC->GetFlag(string(sz)+"."+sz2));
+			lua_pushnumber(L,pPC->GetFlag(std::string(sz)+"."+sz2));
 			return 1;
 		}
 	}

@@ -642,8 +642,6 @@ struct FuncUpdateAndResetChatCounter
 
 void CHARACTER_MANAGER::Update(int iPulse)
 {
-	using namespace std;
-
 	BeginPendingDestroy();
 
 	// PC character update
@@ -970,8 +968,6 @@ bool CHARACTER_MANAGER::BeginPendingDestroy()
 
 void CHARACTER_MANAGER::FlushPendingDestroy()
 {
-	using namespace std;
-
 	m_bUsePendingDestroy = false; // the flag must be set first for the actual Destroy to happen
 
 	if (!m_set_pkChrPendingDestroy.empty())
@@ -990,8 +986,6 @@ void CHARACTER_MANAGER::FlushPendingDestroy()
 
 CharacterVectorInteractor::CharacterVectorInteractor(const CHARACTER_SET & r)
 {
-	using namespace std;
-
 	reserve(r.size());
 	insert(end(), r.begin(), r.end());
 

@@ -1416,7 +1416,7 @@ namespace quest
 			quest_err("Invalid Argument");
 		}
 
-		f.flagname = string (lua_tostring(L, 1)) + "." + lua_tostring(L, 2);
+		f.flagname = std::string (lua_tostring(L, 1)) + "." + lua_tostring(L, 2);
 		f.value = (int) rint(lua_tonumber(L, 3));
 
 		CDungeon * pDungeon = q.GetCurrentDungeon();

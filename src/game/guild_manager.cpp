@@ -328,7 +328,7 @@ struct FGuildCompare
 void CGuildManager::GetHighRankString(uint32_t dwMyGuild, char * buffer, size_t buflen)
 {
 	using namespace std;
-	vector<CGuild*> v;
+	std::vector<CGuild*> v;
 
 	for (auto it = m_mapGuild.begin(); it != m_mapGuild.end(); ++it)
 	{
@@ -402,7 +402,7 @@ void CGuildManager::GetHighRankString(uint32_t dwMyGuild, char * buffer, size_t 
 void CGuildManager::GetAroundRankString(uint32_t dwMyGuild, char * buffer, size_t buflen)
 {
 	using namespace std;
-	vector<CGuild*> v;
+	std::vector<CGuild*> v;
 
 	for (auto it = m_mapGuild.begin(); it != m_mapGuild.end(); ++it)
 	{

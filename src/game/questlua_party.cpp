@@ -21,8 +21,6 @@
 
 namespace quest
 {
-	using namespace std;
-
 	//
 	// "party" Lua functions
 	//
@@ -165,7 +163,7 @@ namespace quest
 
 		if (pParty)
 		{
-			ostringstream s;
+			std::ostringstream s;
 			combine_lua_string(L, s);
 
 			FPartyChat f(CHAT_TYPE_INFO, s.str().c_str());
@@ -216,7 +214,7 @@ namespace quest
 
 		if (pParty)
 		{
-			ostringstream s;
+			std::ostringstream s;
 			combine_lua_string(L, s);
 
 			FPartyChat f(CHAT_TYPE_TALKING, s.str().c_str());

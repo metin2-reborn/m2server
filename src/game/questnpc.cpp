@@ -42,7 +42,7 @@ namespace quest
 	{
 	}
 
-	void NPC::Set(unsigned int vnum, const string & script_name)
+	void NPC::Set(unsigned int vnum, const std::string & script_name)
 	{
 		m_vnum = vnum;
 
@@ -91,8 +91,8 @@ namespace quest
 
 	void NPC::LoadStateScript(int event_index, const char* filename, const char* script_name)
 	{
-		ifstream inf(filename);
-		const string s(script_name);
+		std::ifstream inf(filename);
+		const std::string s(script_name);
 
 		size_t i = s.find('.');
 
@@ -108,7 +108,7 @@ namespace quest
 
 		///////////////////////////////////////////////////////////////////////////
 		// Quest name
-		const string stQuestName = s.substr(0, i); 
+		const std::string stQuestName = s.substr(0, i); 
 
 		int quest_index = q.GetQuestIndexByName(stQuestName);
 
@@ -121,7 +121,7 @@ namespace quest
 
 		///////////////////////////////////////////////////////////////////////////
 		// State name
-		string stStateName;
+		std::string stStateName;
 
 		size_t j = i;
 		i = s.find('.', i + 1);
@@ -140,7 +140,7 @@ namespace quest
 		if (i == s.npos)
 		{
 			// like in example: christmas_tree.start
-			istreambuf_iterator<char> ib(inf), ie;
+			std::istreambuf_iterator<char> ib(inf), ie;
 			copy(ib, ie, back_inserter(m_mapOwnQuest[event_index][quest_index][q.GetQuestStateIndex(stQuestName, stStateName)].m_code));
 		}
 		else
@@ -173,10 +173,10 @@ namespace quest
 				return;
 			}
 
-			const string type_name = s.substr(j + 1, i - j - 1);
+			const std::string type_name = s.substr(j + 1, i - j - 1);
 			///////////////////////////////////////////////////////////////////////////
 
-			istreambuf_iterator<char> ib(inf), ie;
+			std::istreambuf_iterator<char> ib(inf), ie;
 
 			m_mapOwnArgQuest[event_index][quest_index][state_index].resize(std::max<int>(index + 1, m_mapOwnArgQuest[event_index][quest_index][state_index].size()));
 
@@ -186,11 +186,11 @@ namespace quest
 			}
 			else if (type_name == "arg")
 			{
-				string s;
+				std::string s;
 				getline(inf, s);
 				m_mapOwnArgQuest[event_index][quest_index][state_index][index].arg.clear();
 
-				for (string::iterator it = s.begin(); it != s.end(); ++it)
+				for (std::string::iterator it = s.begin(); it != s.end(); ++it)
 				{
 					m_mapOwnArgQuest[event_index][quest_index][state_index][index].arg+=*it;
 				}
@@ -244,7 +244,7 @@ namespace quest
 			return false;
 		}
 
-		vector<AArgScript>::iterator it_vec = it->second.begin();
+		std::vector<AArgScript>::iterator it_vec = it->second.begin();
 
 		int iTargetLen = strlen(c_pszTargetName);
 
@@ -784,7 +784,7 @@ namespace quest
 
 	struct FuncMissChatEvent
 	{
-		FuncMissChatEvent(vector<AArgScript*>& rAvailScript)
+		FuncMissChatEvent(std::vector<AArgScript*>& rAvailScript)
 			: rAvailScript(rAvailScript)
 			{}
 
@@ -802,19 +802,19 @@ namespace quest
 			}
 		}
 
-		vector<AArgScript*>& rAvailScript;
+		std::vector<AArgScript*>& rAvailScript;
 	};
 
 	struct FuncMatchChatEvent
 	{
-		FuncMatchChatEvent(vector<AArgScript*>& rAvailScript)
+		FuncMatchChatEvent(std::vector<AArgScript*>& rAvailScript)
 			: rAvailScript(rAvailScript)
 			{}
 
 		void operator()(PC::QuestInfoIterator& itPCQuest, NPC::ArgQuestMapType::iterator& itQuestMap)
 		{
 			int iState = itPCQuest->second.st;
-			map<int,vector<AArgScript> >::iterator itQuestScript = itQuestMap->second.find(iState);
+			std::map<int, std::vector<AArgScript> >::iterator itQuestScript = itQuestMap->second.find(iState);
 			if (itQuestScript != itQuestMap->second.end())
 			{
 				size_t i;
@@ -827,7 +827,7 @@ namespace quest
 			}
 		}
 
-		vector<AArgScript*>& rAvailScript;
+		std::vector<AArgScript*>& rAvailScript;
 	};
 
 	bool NPC::OnChat(PC& pc)
@@ -847,7 +847,7 @@ namespace quest
 		}
 
 		const int EventIndex = QUEST_CHAT_EVENT;
-		vector<AArgScript*> AvailScript;
+		std::vector<AArgScript*> AvailScript;
 
 		FuncMatchChatEvent fMatch(AvailScript);
 		FuncMissChatEvent fMiss(AvailScript);
@@ -859,7 +859,7 @@ namespace quest
 
 		{
 
-			ostringstream os;
+			std::ostringstream os;
 			os << "select(";
 			os << '"' << ScriptToString(AvailScript[0]->arg.c_str()) << '"';
 			for (size_t i = 1; i < AvailScript.size(); i++)

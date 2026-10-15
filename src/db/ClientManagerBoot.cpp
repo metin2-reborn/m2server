@@ -214,7 +214,7 @@ bool CClientManager::InitializeMobTable()
 	//===============================================//
 	//	1) Read 'mob_names.txt' and build the (a)[localMap] map.
 	//<Build the (a)localMap map>
-	map<int,const char*> localMap;
+	std::map<int,const char*> localMap;
 	//<Read file>
 	cCsvTable nameData;
 	if(!nameData.Load("mob_names.txt",'\t'))
@@ -233,7 +233,7 @@ bool CClientManager::InitializeMobTable()
 	//	2) From 'mob_proto_test.txt' and the (a)localMap map,
 	//		build the (b)[test_map_mobTableByVnum](vnum:TMobTable) map.
 	//0. 
-	set<int> vnumSet;	//Used to check which of the test file entries are new.
+	std::set<int> vnumSet;	//Used to check which of the test file entries are new.
 	//1. Read the file
 	bool isTestFile = true;
 	cCsvTable test_data;
@@ -243,7 +243,7 @@ bool CClientManager::InitializeMobTable()
 		isTestFile = false;
 	}
 	//2. Build the (c)[test_map_mobTableByVnum](vnum:TMobTable) map.
-	map<uint32_t, TMobTable *> test_map_mobTableByVnum;
+	std::map<uint32_t, TMobTable *> test_map_mobTableByVnum;
 	if (isTestFile) {
 		test_data.Next();	//Skip the description row.
 
@@ -425,7 +425,7 @@ bool CClientManager::InitializeMobTable()
 		while (test_data.Next())	//Go through each test entry and add the new ones.
 		{
 			//Skip duplicates.
-			set<int>::iterator itVnum;
+			std::set<int>::iterator itVnum;
 			itVnum=vnumSet.find(atoi(test_data.AsStringByIndex(0)));
 			if (itVnum != vnumSet.end()) {
 				continue;
@@ -558,7 +558,7 @@ bool CClientManager::InitializeItemTable()
 	//=================================================================================//
 	//	1) Read 'item_names.txt' and build the (a)[localMap](vnum:name) map.
 	//=================================================================================//
-	map<int,const char*> localMap;
+	std::map<int,const char*> localMap;
 	cCsvTable nameData;
 	if(!nameData.Load("item_names.txt",'\t'))
 	{
@@ -575,7 +575,7 @@ bool CClientManager::InitializeItemTable()
 	//	2) From 'item_proto_text.txt' and the (a)[localMap] map,
 	//		build the (b)[test_map_itemTableByVnum](vnum:TItemTable) map.
 	//=================================================================//
-	map<uint32_t, TItemTable *> test_map_itemTableByVnum;
+	std::map<uint32_t, TItemTable *> test_map_itemTableByVnum;
 	//1. Read the file.
 	cCsvTable test_data;
 	if(!test_data.Load("item_proto_test.txt",'\t'))
@@ -617,7 +617,7 @@ bool CClientManager::InitializeItemTable()
 	//========================================================================//
 
 	//Set of vnums. Used to identify new test items.
-	set<int> vnumSet;
+	std::set<int> vnumSet;
 
 	//Read the file.
 	cCsvTable data;
@@ -745,7 +745,7 @@ bool CClientManager::InitializeItemTable()
 		while (test_data.Next())	//Go through each test entry and add the new ones.
 		{
 			//Skip duplicates.
-			set<int>::iterator itVnum;
+			std::set<int>::iterator itVnum;
 			itVnum=vnumSet.find(atoi(test_data.AsStringByIndex(0)));
 			if (itVnum != vnumSet.end()) {
 				continue;

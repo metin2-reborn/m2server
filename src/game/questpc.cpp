@@ -55,7 +55,7 @@ namespace quest
 		m_bShouldSendDone = false;
 	}
 
-	const string & PC::GetCurrentQuestName() const
+	const std::string & PC::GetCurrentQuestName() const
 	{
 		return m_stCurQuest;
 	}
@@ -65,7 +65,7 @@ namespace quest
 		return CQuestManager::instance().GetQuestIndexByName(GetCurrentQuestName());
 	}
 
-	void PC::SetFlag(const string& name, int value, bool bSkipSave)
+	void PC::SetFlag(const std::string& name, int value, bool bSkipSave)
 	{
 		if ( test_server )
 			sys_log(0, "QUEST Setting flag %s %d", name.c_str(),value);
@@ -91,7 +91,7 @@ namespace quest
 			SaveFlag(name, value);
 	}
 
-	bool PC::DeleteFlag(const string & name)
+	bool PC::DeleteFlag(const std::string & name)
 	{
 		TFlagMap::iterator it = m_FlagMap.find(name);
 
@@ -105,7 +105,7 @@ namespace quest
 		return false;
 	}
 
-	int PC::GetFlag(const string & name)
+	int PC::GetFlag(const std::string & name)
 	{
 		TFlagMap::iterator it = m_FlagMap.find(name);
 
@@ -117,7 +117,7 @@ namespace quest
 		return 0;
 	}
 
-	void PC::SaveFlag(const string & name, int value)
+	void PC::SaveFlag(const std::string & name, int value)
 	{
 		TFlagMap::iterator it = m_FlagSaveMap.find(name);
 
@@ -128,17 +128,17 @@ namespace quest
 	}
 
 	// only from lua call
-	void PC::SetCurrentQuestStateName(const string& state_name) 
+	void PC::SetCurrentQuestStateName(const std::string& state_name) 
 	{
 		SetFlag(m_stCurQuest + ".__status", CQuestManager::instance().GetQuestStateIndex(m_stCurQuest,state_name));
 	}
 
-	void PC::SetQuestState(const string& quest_name, const string& state_name)
+	void PC::SetQuestState(const std::string& quest_name, const std::string& state_name)
 	{
 		SetQuestState(quest_name, CQuestManager::instance().GetQuestStateIndex(quest_name, state_name));
 	}
 
-	void PC::SetQuestState(const string& quest_name, int new_state_index)
+	void PC::SetQuestState(const std::string& quest_name, int new_state_index)
 	{
 		int iNowState = GetFlag(quest_name + ".__status");
 
@@ -146,20 +146,20 @@ namespace quest
 			AddQuestStateChange(quest_name, iNowState, new_state_index);
 	}
 
-	void PC::AddQuestStateChange(const string& quest_name, int prev_state, int next_state)
+	void PC::AddQuestStateChange(const std::string& quest_name, int prev_state, int next_state)
 	{
 		uint32_t dwQuestIndex = CQuestManager::instance().GetQuestIndexByName(quest_name);
 		sys_log(0, "QUEST reserve Quest State Change quest %s[%u] from %d to %d", quest_name.c_str(), dwQuestIndex, prev_state, next_state);
 		m_QuestStateChange.push_back(TQuestStateChangeInfo(dwQuestIndex, prev_state, next_state));
 	}
 
-	void PC::SetQuest(const string& quest_name, QuestState& qs)
+	void PC::SetQuest(const std::string& quest_name, QuestState& qs)
 	{
 		unsigned int qi = CQuestManager::instance().GetQuestIndexByName(quest_name);
 		QuestInfo::iterator it = m_QuestInfo.find(qi);
 
 		if (it == m_QuestInfo.end())
-			m_QuestInfo.insert(make_pair(qi, qs));
+			m_QuestInfo.insert(std::make_pair(qi, qs));
 		else
 			it->second = qs;
 
@@ -174,14 +174,14 @@ namespace quest
 		m_bShouldSendDone = false;
 	}
 
-	void PC::AddTimer(const string & name, LPEVENT pEvent)
+	void PC::AddTimer(const std::string & name, LPEVENT pEvent)
 	{
 		RemoveTimer(name);
 		m_TimerMap.insert(make_pair(name, pEvent));
 		sys_log(0, "QUEST add timer %p %zu", pEvent.get(), m_TimerMap.size());
 	}
 
-	void PC::RemoveTimerNotCancel(const string & name)
+	void PC::RemoveTimerNotCancel(const std::string & name)
 	{
 		TTimerMap::iterator it = m_TimerMap.find(name);
 
@@ -194,7 +194,7 @@ namespace quest
 		sys_log(1, "QUEST timer map size %zu by RemoveTimerNotCancel", m_TimerMap.size());
 	}
 
-	void PC::RemoveTimer(const string & name)
+	void PC::RemoveTimer(const std::string & name)
 	{
 		TTimerMap::iterator it = m_TimerMap.find(name);
 
@@ -396,14 +396,14 @@ namespace quest
 
 			uint32_t dwQuestIdx = rInfo.quest_idx;
 			QuestInfoIterator it = quest_find(dwQuestIdx);
-			const string stQuestName = CQuestManager::instance().GetQuestNameByIndex(dwQuestIdx);
+			const std::string stQuestName = CQuestManager::instance().GetQuestNameByIndex(dwQuestIdx);
 
 			if (it == quest_end())
 			{
 				QuestState qs;
 				qs.st = 0;
 
-				m_QuestInfo.insert(make_pair(dwQuestIdx, qs));
+				m_QuestInfo.insert(std::make_pair(dwQuestIdx, qs));
 				SetFlag(stQuestName + ".__status", 0);
 
 				it = quest_find(dwQuestIdx);
@@ -458,13 +458,13 @@ namespace quest
 		return m_RunningQuestState?m_RunningQuestState->iIndex:0;
 	}
 
-	void PC::SetCurrentQuestTitle(const string& title)
+	void PC::SetCurrentQuestTitle(const std::string& title)
 	{
 		SetSendFlag(QUEST_SEND_TITLE);
 		m_RunningQuestState->_title = title;
 	}
 
-	void PC::SetQuestTitle(const string& quest, const string& title)
+	void PC::SetQuestTitle(const std::string& quest, const std::string& title)
 	{
 		QuestInfo::iterator it = m_QuestInfo.find(CQuestManager::instance().GetQuestIndexByName(quest));
 
@@ -488,7 +488,7 @@ namespace quest
 		}
 	}
 
-	void PC::SetCurrentQuestClockName(const string& name)
+	void PC::SetCurrentQuestClockName(const std::string& name)
 	{
 		SetSendFlag(QUEST_SEND_CLOCK_NAME);
 		m_RunningQuestState->_clock_name = name;
@@ -500,7 +500,7 @@ namespace quest
 		m_RunningQuestState->_clock_value = value;
 	}
 
-	void PC::SetCurrentQuestCounterName(const string& name)
+	void PC::SetCurrentQuestCounterName(const std::string& name)
 	{
 		SetSendFlag(QUEST_SEND_COUNTER_NAME);
 		m_RunningQuestState->_counter_name = name;
@@ -512,7 +512,7 @@ namespace quest
 		m_RunningQuestState->_counter_value = value;
 	}
 
-	void PC::SetCurrentQuestIconFile(const string& icon_file)
+	void PC::SetCurrentQuestIconFile(const std::string& icon_file)
 	{
 		SetSendFlag(QUEST_SEND_ICON_FILE);
 		m_RunningQuestState->_icon_file = icon_file;
@@ -545,10 +545,10 @@ namespace quest
 				continue;
 			}
 
-			string stName;
+			std::string stName;
 			stName.assign(stComp, 0, iPos);
 
-			string stState;
+			std::string stState;
 			stState.assign(stComp, iPos + 1, stComp.length());
 
 			if (stName.length() == 0 || stState.length() == 0)
@@ -589,7 +589,7 @@ namespace quest
 		m_FlagSaveMap.clear();
 	}
 
-	void PC::GiveItem(const string& label, uint32_t dwVnum, int count)
+	void PC::GiveItem(const std::string& label, uint32_t dwVnum, int count)
 	{
 		sys_log(1, "QUEST GiveItem %s %d %d", label.c_str(),dwVnum,count);
 		if (!GetFlag(m_stCurQuest+"."+label))
@@ -600,7 +600,7 @@ namespace quest
 			m_bIsGivenReward = true;
 	}
 
-	void PC::GiveExp(const string& label, uint32_t exp)
+	void PC::GiveExp(const std::string& label, uint32_t exp)
 	{
 		sys_log(1, "QUEST GiveExp %s %d", label.c_str(),exp);
 
@@ -620,7 +620,7 @@ namespace quest
 			m_bIsGivenReward = false;
 		}
 
-		for (vector<RewardData>::iterator it = m_vRewardData.begin(); it != m_vRewardData.end(); ++it)
+		for (std::vector<RewardData>::iterator it = m_vRewardData.begin(); it != m_vRewardData.end(); ++it)
 		{
 			switch (it->type)
 			{
@@ -660,14 +660,14 @@ namespace quest
 				QuestState qs;
 				qs.st = state;
 
-				m_QuestInfo.insert(make_pair(dwQuestIndex, qs));
+				m_QuestInfo.insert(std::make_pair(dwQuestIndex, qs));
 			}
 		}
 	}
 
-	void PC::ClearQuest(const string& quest_name)
+	void PC::ClearQuest(const std::string& quest_name)
 	{
-		string quest_name_with_dot = quest_name + '.';
+		std::string quest_name_with_dot = quest_name + '.';
 		for (auto it = m_FlagMap.begin(); it!= m_FlagMap.end();)
 		{
 			auto itNow = it++;
@@ -700,7 +700,7 @@ namespace quest
 		{
 			if (it->first.size()>9 && it->first.compare(it->first.size()-9,9, ".__status") == 0)
 			{
-				const string quest_name = it->first.substr(0, it->first.size()-9);
+				const std::string quest_name = it->first.substr(0, it->first.size()-9);
 				const char* state_name = CQuestManager::instance().GetQuestStateName(quest_name, it->second);
 				ch->ChatPacket(CHAT_TYPE_INFO, "%s %s (%d)", quest_name.c_str(), state_name, it->second);
 			}

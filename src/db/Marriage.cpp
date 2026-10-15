@@ -34,8 +34,6 @@ namespace marriage
 		return lhs.dwTime > rhs.dwTime;
 	}
 
-	using namespace std;
-
 	CManager::CManager()
 	{
 	}
@@ -52,8 +50,8 @@ namespace marriage
 				"SELECT pid1, pid2, love_point, time, is_married, p1.name, p2.name FROM marriage, player%s as p1, player%s as p2 WHERE p1.id = pid1 AND p2.id = pid2",
 				GetTablePostfix(), GetTablePostfix());
 
-		unique_ptr<SQLMsg> pmsg_delete(CDBManager::instance().DirectQuery("DELETE FROM marriage WHERE is_married = 0"));
-		unique_ptr<SQLMsg> pmsg(CDBManager::instance().DirectQuery(szQuery));
+		std::unique_ptr<SQLMsg> pmsg_delete(CDBManager::instance().DirectQuery("DELETE FROM marriage WHERE is_married = 0"));
+		std::unique_ptr<SQLMsg> pmsg(CDBManager::instance().DirectQuery(szQuery));
 
 		SQLResult * pRes = pmsg->Get();
 		sys_log(0, "MarriageList(size=%u)", pRes->uiNumRows);
@@ -74,8 +72,8 @@ namespace marriage
 
 				TMarriage* pMarriage = new TMarriage(pid1, pid2, love_point, time, is_married, name1, name2);
 				m_Marriages.insert(pMarriage);
-				m_MarriageByPID.insert(make_pair(pid1, pMarriage));
-				m_MarriageByPID.insert(make_pair(pid2, pMarriage));
+				m_MarriageByPID.insert(std::make_pair(pid1, pMarriage));
+				m_MarriageByPID.insert(std::make_pair(pid2, pMarriage));
 
 				sys_log(0, "Marriage %u: LP:%d TM:%u ST:%d %10u:%16s %10u:%16s ", uiRow, love_point, time, is_married, pid1, name1, pid2, name2);
 			}
@@ -113,7 +111,7 @@ namespace marriage
 		char szQuery[512];
 		snprintf(szQuery, sizeof(szQuery), "INSERT INTO marriage(pid1, pid2, love_point, time) VALUES (%u, %u, 0, %u)", dwPID1, dwPID2, now);
 
-		unique_ptr<SQLMsg> pmsg(CDBManager::instance().DirectQuery(szQuery));
+		std::unique_ptr<SQLMsg> pmsg(CDBManager::instance().DirectQuery(szQuery));
 
 		SQLResult* res = pmsg->Get();
 		if (res->uiAffectedRows == 0 || res->uiAffectedRows == (uint32_t)-1)
@@ -126,8 +124,8 @@ namespace marriage
 
 		TMarriage* pMarriage = new TMarriage(dwPID1, dwPID2, 0, now, 0, szName1, szName2);
 		m_Marriages.insert(pMarriage);
-		m_MarriageByPID.insert(make_pair(dwPID1, pMarriage));
-		m_MarriageByPID.insert(make_pair(dwPID2, pMarriage));
+		m_MarriageByPID.insert(std::make_pair(dwPID1, pMarriage));
+		m_MarriageByPID.insert(std::make_pair(dwPID2, pMarriage));
 
 		TPacketMarriageAdd p;
 		p.dwPID1 = dwPID1;
@@ -153,7 +151,7 @@ namespace marriage
 		snprintf(szQuery, sizeof(szQuery), "UPDATE marriage SET love_point = %d, is_married = %d WHERE pid1 = %u AND pid2 = %u", 
 				iLovePoint, byMarried, pMarriage->pid1, pMarriage->pid2);
 
-		unique_ptr<SQLMsg> pmsg(CDBManager::instance().DirectQuery(szQuery));
+		std::unique_ptr<SQLMsg> pmsg(CDBManager::instance().DirectQuery(szQuery));
 
 		SQLResult* res = pmsg->Get();
 		if (res->uiAffectedRows == 0 || res->uiAffectedRows == (uint32_t)-1)
@@ -199,7 +197,7 @@ namespace marriage
 		char szQuery[512];
 		snprintf(szQuery, sizeof(szQuery), "DELETE FROM marriage WHERE pid1 = %u AND pid2 = %u", dwPID1, dwPID2);
 
-		unique_ptr<SQLMsg> pmsg(CDBManager::instance().DirectQuery(szQuery));
+		std::unique_ptr<SQLMsg> pmsg(CDBManager::instance().DirectQuery(szQuery));
 
 		SQLResult* res = pmsg->Get();
 		if (res->uiAffectedRows == 0 || res->uiAffectedRows == (uint32_t)-1)
@@ -281,7 +279,7 @@ namespace marriage
 
 	void CManager::EndWedding(uint32_t dwPID1, uint32_t dwPID2)
 	{
-		auto it = m_mapRunningWedding.find(make_pair(dwPID1, dwPID2));
+		auto it = m_mapRunningWedding.find(std::make_pair(dwPID1, dwPID2));
 		if (it == m_mapRunningWedding.end())
 		{
 			sys_err("try to end wedding %u %u", dwPID1, dwPID2);
@@ -308,7 +306,7 @@ namespace marriage
 				TWeddingInfo wi = m_pqWeddingEnd.top();
 				m_pqWeddingEnd.pop();
 
-				auto it = m_mapRunningWedding.find(make_pair(wi.dwPID1, wi.dwPID2));
+				auto it = m_mapRunningWedding.find(std::make_pair(wi.dwPID1, wi.dwPID2));
 				if (it == m_mapRunningWedding.end())
 					continue;
 
@@ -346,7 +344,7 @@ namespace marriage
 
 				w.dwTime += WEDDING_LENGTH;
 				m_pqWeddingEnd.push(TWeddingInfo(w.dwTime, w.dwPID1, w.dwPID2));
-				m_mapRunningWedding.insert(make_pair(make_pair(w.dwPID1, w.dwPID2), w));
+				m_mapRunningWedding.insert(make_pair(std::make_pair(w.dwPID1, w.dwPID2), w));
 			}
 		}
 	}

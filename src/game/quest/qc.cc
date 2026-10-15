@@ -32,8 +32,6 @@ extern "C" {
 #include <game/src/crc32.h>
 
 #define OUTPUT_FOLDER "object"
-using namespace std;
-
 lua_State* L;
 
 typedef struct LoadF {
@@ -120,29 +118,29 @@ enum parse_state
 struct LexState * pls = nullptr;
 void errorline(int line , const char * str)
 {
-	cout.flush();
+	std::cout.flush();
 	if (g_filename)
-		cerr << g_filename <<":";
-	cerr << line<< ':';
-	cerr << str << endl;
+		std::cerr << g_filename <<":";
+	std::cerr << line<< ':';
+	std::cerr << str << std::endl;
 	abort();
 }
 void error(const char * str)
 {
-	cout.flush();
+	std::cout.flush();
 	if (g_filename)
-		cout << g_filename <<":";
+		std::cout << g_filename <<":";
 	if (pls)
 	{
-		cout << pls->linenumber << ':';
+		std::cout << pls->linenumber << ':';
 	}
-	cerr << str << endl;
+	std::cerr << str << std::endl;
 	abort();
 }
 
 #define assert(exp) if (!(exp)) error("assertion failure : " #exp)
 
-ostream & operator << (ostream & ostr, const Token& tok)
+std::ostream & operator << (std::ostream & ostr, const Token& tok)
 {
 	if (tok.token == TK_NAME)
 		ostr << getstr(tok.seminfo.ts);
@@ -155,14 +153,14 @@ ostream & operator << (ostream & ostr, const Token& tok)
 	return ostr;
 }
 
-bool check_syntax(const string& str, const string& module)
+bool check_syntax(const std::string& str, const std::string& module)
 {
 	int ret = luaL_loadbuffer(L, str.c_str(), str.size(), module.c_str());
 
 	if (ret)
 	{
-		cerr << str << endl;
-		error((string("syntax error : ")+lua_tostring(L,-1) ).c_str());
+		std::cerr << str << std::endl;
+		error((std::string("syntax error : ")+lua_tostring(L,-1) ).c_str());
 		return false;
 	}
 
@@ -170,15 +168,15 @@ bool check_syntax(const string& str, const string& module)
 	return true;
 }
 
-set<string> function_defs;
-set<string> function_calls;
+std::set<std::string> function_defs;
+std::set<std::string> function_calls;
 
-void RegisterDefFunction(const string& fname)
+void RegisterDefFunction(const std::string& fname)
 {
 	function_defs.insert(fname);
 }
 
-void RegisterUsedFunction(const string& fname)
+void RegisterUsedFunction(const std::string& fname)
 {
 	function_calls.insert(fname);
 }
@@ -186,7 +184,7 @@ void RegisterUsedFunction(const string& fname)
 void CheckUsedFunction()
 {
 	bool hasError = false;
-	set<string> error_func;
+	std::set<std::string> error_func;
 
 	for (__typeof(function_calls.begin()) it = function_calls.begin(); it != function_calls.end(); ++it)
 	{
@@ -199,10 +197,10 @@ void CheckUsedFunction()
 
 	if (hasError)
 	{
-		cout << "Calls undeclared function! : " << endl;
+		std::cout << "Calls undeclared function! : " << std::endl;
 		for (__typeof(error_func.begin()) it = error_func.begin(); it != error_func.end(); ++it)
 		{
-			cout << *it << endl;
+			std::cout << *it << std::endl;
 		}
 		abort();
 	}
@@ -210,8 +208,8 @@ void CheckUsedFunction()
 
 void load_quest_function_list(const char* filename)
 {
-	ifstream inf(filename);
-	string s;
+	std::ifstream inf(filename);
+	std::string s;
 
 	while (!inf.eof())
 	{
@@ -225,11 +223,11 @@ void load_quest_function_list(const char* filename)
 
 struct AScript
 {
-	string when_condition;
-	string when_argument;
-	string script;
+	std::string when_condition;
+	std::string when_argument;
+	std::string script;
 
-	AScript(string a, string b, string c) :
+	AScript(std::string a, std::string b, std::string c) :
 		when_condition(a),
 		when_argument(b),
 		script(c)
@@ -240,7 +238,7 @@ struct AScript
 
 void parse(char * filename)
 {
-	ifstream inf(filename);
+	std::ifstream inf(filename);
 	LoadF lf;
 	lf.f = fopen(filename,"r");
 	ZIO z;
@@ -256,26 +254,26 @@ void parse(char * filename)
 
 	int nested = 0;
 
-	string quest_name;
-	string start_condition;
+	std::string quest_name;
+	std::string start_condition;
 
-	string current_state_name;
-	string current_when_name;
-	string current_when_condition;
+	std::string current_state_name;
+	std::string current_when_name;
+	std::string current_when_condition;
 
-	string current_when_argument;
+	std::string current_when_argument;
 
-	set<string> define_state_name_set;
-	map<int,string> used_state_name_map;
+	std::set<std::string> define_state_name_set;
+	std::map<int,std::string> used_state_name_map;
 
-	map<string, map<string, string> > state_script_map;
-	map<string, map<string, vector<AScript> > > state_arg_script_map;
+	std::map<std::string, std::map<std::string, std::string> > state_script_map;
+	std::map<std::string, std::map<std::string, std::vector<AScript> > > state_arg_script_map;
 
-	vector<pair<string, string> > when_name_arg_vector;
+	std::vector<std::pair<std::string, std::string> > when_name_arg_vector;
 
-	string current_function_name;
-	string current_function_arg;
-	string all_functions;
+	std::string current_function_name;
+	std::string current_function_arg;
+	std::string all_functions;
 
 	load_quest_function_list("quest_functions");
 
@@ -304,7 +302,7 @@ void parse(char * filename)
 					if (t.token == TK_NAME || t.token == TK_STRING)
 					{
 						quest_name = getstr(lexstate.t.seminfo.ts);
-						cout << "QUEST : " << quest_name << endl;
+						std::cout << "QUEST : " << quest_name << std::endl;
 						ps = ST_QUEST_WITH_OR_BEGIN;
 					}
 					else
@@ -317,7 +315,7 @@ void parse(char * filename)
 				{
 					assert(nested==0);
 					next(&lexstate);
-					ostringstream os;
+					std::ostringstream os;
 					os << (lexstate.t);
 					next(&lexstate);
 					while (lexstate.t.token!=TK_DO)
@@ -327,9 +325,9 @@ void parse(char * filename)
 					}
 					start_condition = os.str();
 					check_syntax("if "+start_condition+" then end", quest_name);
-					cout << "\twith ";
-					cout << start_condition;
-					cout << endl;
+					std::cout << "\twith ";
+					std::cout << start_condition;
+					std::cout << std::endl;
 					t = lexstate.t;
 				}
 				if (t.token == TK_DO)
@@ -339,7 +337,7 @@ void parse(char * filename)
 				}
 				else
 				{
-					ostringstream os;
+					std::ostringstream os;
 					os << "quest doesn't have begin-end clause. (" << t << ")";
 					error(os.str().c_str());
 				}
@@ -369,7 +367,7 @@ void parse(char * filename)
 					{
 						current_state_name = getstr(t.seminfo.ts);
 						define_state_name_set.insert(current_state_name);
-						cout << "STATE : " << current_state_name << endl;
+						std::cout << "STATE : " << current_state_name << std::endl;
 						ps = ST_STATE_BEGIN;
 					}
 					else
@@ -428,7 +426,7 @@ void parse(char * filename)
 					{
 						if (t.token == TK_NUMBER)
 						{
-							ostringstream os;
+							std::ostringstream os;
 							os << (unsigned int)t.seminfo.r;
 							current_when_name = os.str();
 							lexstate.lookahead.token  = '.';
@@ -445,7 +443,7 @@ void parse(char * filename)
 							next(&lexstate);
 							current_when_name += '.';
 							next(&lexstate);
-							ostringstream os;
+							std::ostringstream os;
 							t = lexstate.t;
 							os << t;
 							if (os.str() == "target")
@@ -463,7 +461,7 @@ void parse(char * filename)
 
 						{
 							// make when argument
-							ostringstream os;
+							std::ostringstream os;
 							while (lexstate.lookahead.token == '.')
 							{
 								next(&lexstate);
@@ -475,12 +473,12 @@ void parse(char * filename)
 							}
 							current_when_argument += os.str();
 						}
-						cout << "WHEN  : " << current_when_name ;
+						std::cout << "WHEN  : " << current_when_name ;
 						if (!current_when_argument.empty())
 						{
-							cout << " (";
-							cout << current_when_argument.substr(1);
-							cout << ")";
+							std::cout << " (";
+							std::cout << current_when_argument.substr(1);
+							std::cout << ")";
 						}
 					}
 					else
@@ -496,11 +494,11 @@ void parse(char * filename)
 						when_name_arg_vector.push_back(make_pair(current_when_name, current_when_argument));
 
 						next(&lexstate);
-						cout << " or" << endl;
+						std::cout << " or" << std::endl;
 					}
 					else
 					{
-						cout <<endl;
+						std::cout <<std::endl;
 					}
 				}
 				break;
@@ -512,7 +510,7 @@ void parse(char * filename)
 					{
 						// here comes the condition expression
 						next(&lexstate);
-						ostringstream os;
+						std::ostringstream os;
 						os << (lexstate.t);
 						next(&lexstate);
 						while (lexstate.t.token!=TK_DO)
@@ -522,9 +520,9 @@ void parse(char * filename)
 						}
 						current_when_condition = os.str();
 						check_syntax("if "+current_when_condition+" then end", current_state_name+current_when_condition);
-						cout << "\twith ";
-						cout << current_when_condition;
-						cout << endl;
+						std::cout << "\twith ";
+						std::cout << current_when_condition;
+						std::cout << std::endl;
 						t = lexstate.t;
 					}
 					if (t.token == TK_DO)
@@ -534,7 +532,7 @@ void parse(char * filename)
 					}
 					else
 					{
-						ostringstream os;
+						std::ostringstream os;
 						os << "when doesn't have begin-end clause. (" << t << ")";
 						error(os.str().c_str());
 					}
@@ -546,10 +544,10 @@ void parse(char * filename)
 					assert(nested==3);
 
 					// output
-					ostringstream os;
+					std::ostringstream os;
 					int state_check = 0;
 					__typeof(lexstate) prev = lexstate;
-					string callname;
+					std::string callname;
 					bool registered = false;
 					while (1)
 					{
@@ -581,7 +579,7 @@ void parse(char * filename)
 
 						if (lexstate.t.token == '.')
 						{
-							ostringstream fname;
+							std::ostringstream fname;
 							lookahead(&lexstate);
 							fname << prev.t << '.' << lexstate.lookahead;
 							callname = fname.str();
@@ -609,7 +607,7 @@ void parse(char * filename)
 						prev = lexstate;
 						next(&lexstate);
 						if (lexstate.linenumber != lexstate.lastline)
-							os << endl;
+							os << std::endl;
 					}
 
 
@@ -668,7 +666,7 @@ void parse(char * filename)
 							}
 							else
 							{
-								ostringstream os;
+								std::ostringstream os;
 								os << "invalud argument name " << getstr(t.seminfo.ts) << " for function " << current_function_name;
 								error(os.str().c_str());
 							}
@@ -683,12 +681,12 @@ void parse(char * filename)
 			case ST_FUNCTION_BODY:
 				{
 					assert(nested == 3);
-					ostringstream os;
+					std::ostringstream os;
 					__typeof(lexstate) prev = lexstate;
 					bool registered = false;
 					if (prev.t.token == '.')
 						prev.t.token = TK_DO;
-					string callname;
+					std::string callname;
 					while (nested >= 3)
 					{
 						if (lexstate.t.token == TK_DO || lexstate.t.token == TK_IF /*|| lexstate.t.token == TK_FOR*/ || lexstate.t.token == TK_BEGIN || lexstate.t.token == TK_FUNCTION)
@@ -719,7 +717,7 @@ void parse(char * filename)
 
 						if (lexstate.t.token == '.')
 						{
-							ostringstream fname;
+							std::ostringstream fname;
 							lookahead(&lexstate);
 							fname << prev.t << '.' << lexstate.lookahead;
 							callname = fname.str();
@@ -731,7 +729,7 @@ void parse(char * filename)
 						prev = lexstate;
 						next(&lexstate);
 						if (lexstate.linenumber != lexstate.lastline)
-							os << endl;
+							os << std::endl;
 
 					}
 					ps = ST_WHENLIST_OR_FUNCTION;
@@ -740,7 +738,7 @@ void parse(char * filename)
 					all_functions += "= function ";
 					all_functions += current_function_arg;
 					all_functions += os.str();
-					cout << "FUNCTION " << current_function_name << current_function_arg << endl;
+					std::cout << "FUNCTION " << current_function_name << current_function_arg << std::endl;
 				}
 				break;
 
@@ -748,7 +746,7 @@ void parse(char * filename)
 
 	}
 	assert(nested==0);
-	for (map<int,string>::iterator it = used_state_name_map.begin();it!=used_state_name_map.end();++it)
+	for (std::map<int,std::string>::iterator it = used_state_name_map.begin();it!=used_state_name_map.end();++it)
 	{
 		if (define_state_name_set.find(it->second)==define_state_name_set.end())
 		{
@@ -767,12 +765,12 @@ void parse(char * filename)
 			}
 		}
 
-		ofstream ouf((string(OUTPUT_FOLDER "/state/")+quest_name).c_str());
+		std::ofstream ouf((std::string(OUTPUT_FOLDER "/state/")+quest_name).c_str());
 		ouf << quest_name << "={[\"start\"]=0";
-		set<string> :: iterator it;
+		std::set<std::string> :: iterator it;
 
-		map<string, int> state_crc;
-		set<int> crc_set;
+		std::map<std::string, int> state_crc;
+		std::set<int> crc_set;
 
 		state_crc["start"] = 0;
 		for (it = define_state_name_set.begin(); it != define_state_name_set.end(); ++it)
@@ -822,24 +820,24 @@ void parse(char * filename)
 			}
 		}
 
-		ofstream ouf((string(OUTPUT_FOLDER "/begin_condition/")+quest_name).c_str());
+		std::ofstream ouf((std::string(OUTPUT_FOLDER "/begin_condition/")+quest_name).c_str());
 
 		ouf << "return " <<start_condition;
 		ouf.close();
 	}
 
 	{
-		map<string, map<string, vector<AScript> > >::iterator it;
+		std::map<std::string, std::map<std::string, std::vector<AScript> > >::iterator it;
 
 		for (it = state_arg_script_map.begin(); it != state_arg_script_map.end(); ++it)
 		{
-			string second_name;
-			string path;
+			std::string second_name;
+			std::string path;
 
 			if (it->first.find('.')==it->first.npos)
 			{
 				// one like login
-				string s(it->first);
+				std::string s(it->first);
 				transform(s.begin(),s.end(),s.begin(),::tolower);
 				mkdir(OUTPUT_FOLDER "/notarget",0755);
 				mkdir((OUTPUT_FOLDER "/notarget/"+s).c_str(),0755);
@@ -849,7 +847,7 @@ void parse(char * filename)
 			else
 			{
 				// two like [WHO].Kill
-				string s = it->first;
+				std::string s = it->first;
 				transform(s.begin(),s.end(),s.begin(),::tolower);
 				int i = s.find('.');
 				mkdir((OUTPUT_FOLDER "/"+it->first.substr(0,i)).c_str(),0755);
@@ -858,28 +856,28 @@ void parse(char * filename)
 				second_name = s.substr(i+1,s.npos);
 			}
 
-			map<string,vector<AScript> >::iterator it2;
+			std::map<std::string,std::vector<AScript> >::iterator it2;
 			for (it2 = it->second.begin(); it2 != it->second.end(); ++it2)
 			{
 				for (int i = 0; i < it2->second.size(); ++i)
 				{
-					ostringstream os;
+					std::ostringstream os;
 					os << i;
 					{
-						ofstream ouf((path+quest_name+"."+it2->first+"."+os.str()+"."+"script").c_str());
-						copy(it2->second[i].script.begin(),it2->second[i].script.end(), ostreambuf_iterator<char>(ouf));
+						std::ofstream ouf((path+quest_name+"."+it2->first+"."+os.str()+"."+"script").c_str());
+						copy(it2->second[i].script.begin(),it2->second[i].script.end(), std::ostreambuf_iterator<char>(ouf));
 					}
 					{
-						ofstream ouf((path+quest_name+"."+it2->first+"."+os.str()+"."+"when").c_str());
+						std::ofstream ouf((path+quest_name+"."+it2->first+"."+os.str()+"."+"when").c_str());
 						if (!it2->second[i].when_condition.empty())
 						{
 							ouf << "return ";
-							copy(it2->second[i].when_condition.begin(),it2->second[i].when_condition.end(), ostreambuf_iterator<char>(ouf));
+							copy(it2->second[i].when_condition.begin(),it2->second[i].when_condition.end(), std::ostreambuf_iterator<char>(ouf));
 						}
 					}
 					{
-						ofstream ouf((path+quest_name+"."+it2->first+"."+os.str()+"."+"arg").c_str());
-						copy(it2->second[i].when_argument.begin()+1,it2->second[i].when_argument.end(), ostreambuf_iterator<char>(ouf));
+						std::ofstream ouf((path+quest_name+"."+it2->first+"."+os.str()+"."+"arg").c_str());
+						copy(it2->second[i].when_argument.begin()+1,it2->second[i].when_argument.end(), std::ostreambuf_iterator<char>(ouf));
 					}
 				}
 			}
@@ -887,15 +885,15 @@ void parse(char * filename)
 	}
 
 	{
-		map<string,map<string,string> >::iterator it;
+		std::map<std::string,std::map<std::string,std::string> >::iterator it;
 
 		for (it = state_script_map.begin();it!=state_script_map.end();++it)
 		{
-			string path;
+			std::string path;
 			if (it->first.find('.')==it->first.npos)
 			{
 				// one
-				string s = it->first;
+				std::string s = it->first;
 				transform(s.begin(),s.end(),s.begin(),::tolower);
 				mkdir(OUTPUT_FOLDER "/notarget",0755);
 				mkdir((OUTPUT_FOLDER "/notarget/"+s).c_str(),0755);
@@ -904,7 +902,7 @@ void parse(char * filename)
 			else
 			{
 				// two like [WHO].Kill
-				string s = it->first;
+				std::string s = it->first;
 				transform(s.begin(),s.end(),s.begin(),::tolower);
 				int i = s.find('.');
 				mkdir((OUTPUT_FOLDER "/"+it->first.substr(0,i)).c_str(),0755);
@@ -912,11 +910,11 @@ void parse(char * filename)
 				path = OUTPUT_FOLDER "/" + it->first.substr(0,i) + "/"+s.substr(i+1,s.npos)+"/";
 			}
 
-			map<string,string>::iterator it2;
+			std::map<std::string,std::string>::iterator it2;
 			for (it2 = it->second.begin();it2!=it->second.end();++it2)
 			{
-				ofstream ouf((path+quest_name+"."+it2->first).c_str());
-				copy(it2->second.begin(),it2->second.end(), ostreambuf_iterator<char>(ouf));
+				std::ofstream ouf((path+quest_name+"."+it2->first).c_str());
+				copy(it2->second.begin(),it2->second.end(), std::ostreambuf_iterator<char>(ouf));
 			}
 		}
 	}

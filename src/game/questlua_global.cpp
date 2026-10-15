@@ -74,7 +74,7 @@ namespace quest
 
 	int _say(lua_State* L)
 	{
-		ostringstream s;
+		std::ostringstream s;
 		combine_lua_string(L, s);
 		CQuestManager::instance().AddScript(s.str() + "[ENTER]");
 		return 0;
@@ -82,7 +82,7 @@ namespace quest
 
 	int _chat(lua_State* L)
 	{
-		ostringstream s;
+		std::ostringstream s;
 		combine_lua_string(L, s);
 
 		CQuestManager::instance().GetCurrentCharacterPtr()->ChatPacket(CHAT_TYPE_TALKING, "%s", s.str().c_str());
@@ -91,7 +91,7 @@ namespace quest
 
 	int _cmdchat(lua_State* L)
 	{
-		ostringstream s;
+		std::ostringstream s;
 		combine_lua_string(L, s);
 		CQuestManager::instance().GetCurrentCharacterPtr()->ChatPacket(CHAT_TYPE_COMMAND, "%s", s.str().c_str());
 		return 0;
@@ -99,7 +99,7 @@ namespace quest
 
 	int _syschat(lua_State* L)
 	{
-		ostringstream s;
+		std::ostringstream s;
 		combine_lua_string(L, s);
 		CQuestManager::instance().GetCurrentCharacterPtr()->ChatPacket(CHAT_TYPE_INFO, "%s", s.str().c_str());
 		return 0;
@@ -107,7 +107,7 @@ namespace quest
 
 	int _notice(lua_State* L)
 	{
-		ostringstream s;
+		std::ostringstream s;
 		combine_lua_string(L, s);
 		CQuestManager::instance().GetCurrentCharacterPtr()->ChatPacket(CHAT_TYPE_NOTICE, "%s", s.str().c_str());
 		return 0;
@@ -117,7 +117,7 @@ namespace quest
 	{
 		if (lua_isstring(L, -1))
 		{
-			string s = lua_tostring(L,-1);
+			std::string s = lua_tostring(L,-1);
 			CQuestManager::instance().AddScript("[LEFTIMAGE src;"+s+"]");
 		}
 		return 0;
@@ -127,7 +127,7 @@ namespace quest
 	{
 		if (lua_isstring(L, -1))
 		{
-			string s = lua_tostring(L,-1);
+			std::string s = lua_tostring(L,-1);
 			CQuestManager::instance().AddScript("[TOPIMAGE src;"+s+"]");
 		}
 		return 0;
@@ -554,7 +554,7 @@ namespace quest
 	int _get_empire_privilege_string(lua_State* L)
 	{
 		int empire = (int) lua_tonumber(L, 1);
-		ostringstream os;
+		std::ostringstream os;
 		bool found = false;
 
 		for (int type = PRIV_NONE + 1; type < MAX_PRIV_NUM; ++type)
@@ -568,13 +568,13 @@ namespace quest
 
 				os << LC_TEXT(c_apszPrivNames[type]) << " : " << 
 					pkPrivEmpireData->m_value << "%" << " (" <<
-					((pkPrivEmpireData->m_end_time_sec-get_global_time())/3600.0f) << " hours)" << endl;
+					((pkPrivEmpireData->m_end_time_sec-get_global_time())/3600.0f) << " hours)" << std::endl;
 				found = true;
 			}
 		}
 
 		if (!found)
-			os << "None!" << endl;
+			os << "None!" << std::endl;
 
 		lua_pushstring(L, os.str().c_str());
 		return 1;
@@ -597,7 +597,7 @@ namespace quest
 	int _get_guild_privilege_string(lua_State* L)
 	{
 		int guild = (int) lua_tonumber(L,1);
-		ostringstream os;
+		std::ostringstream os;
 		bool found = false;
 
 		for (int type = PRIV_NONE+1; type < MAX_PRIV_NUM; ++type)
@@ -610,13 +610,13 @@ namespace quest
 					os << ", ";
 
 				os << LC_TEXT(c_apszPrivNames[type]) << " : " << pPrivGuildData->value << "%"
-					<< " (" << ((pPrivGuildData->end_time_sec - get_global_time()) / 3600.0f) << " hours)" << endl;
+					<< " (" << ((pPrivGuildData->end_time_sec - get_global_time()) / 3600.0f) << " hours)" << std::endl;
 				found = true;
 			}
 		}
 
 		if (!found)
-			os << "None!" << endl;
+			os << "None!" << std::endl;
 
 		lua_pushstring(L, os.str().c_str());
 		return 1;
@@ -831,8 +831,8 @@ namespace quest
 		}
 		if (pPC)
 		{
-			const string stQuestName(lua_tostring(L, 1));
-			const string stStateName(lua_tostring(L, 2));
+			const std::string stQuestName(lua_tostring(L, 1));
+			const std::string stStateName(lua_tostring(L, 2));
 			if ( test_server )
 				sys_log(0,"set_state %s %s ", stQuestName.c_str(), stStateName.c_str() );
 			if (pPC->GetCurrentQuestName() == stQuestName)
@@ -880,7 +880,7 @@ namespace quest
 
 	int _notice_all( lua_State* L )
 	{
-		ostringstream s;
+		std::ostringstream s;
 		combine_lua_string(L, s);
 
 		TPacketGGNotice p;

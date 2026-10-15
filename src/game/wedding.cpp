@@ -25,8 +25,6 @@
 
 namespace marriage
 {
-	using namespace std;
-
 	EVENTINFO(wedding_map_info)
 	{
 		WeddingMap * pWeddingMap;
@@ -126,7 +124,7 @@ namespace marriage
 	void WeddingMap::Notice(const char * psz)
 	{
 		FNotice f(psz);
-		for_each(m_set_pkChr.begin(), m_set_pkChr.end(), f);
+		std::for_each(m_set_pkChr.begin(), m_set_pkChr.end(), f);
 	}
 
 	struct FWarpEveryone
@@ -146,7 +144,7 @@ namespace marriage
 	void WeddingMap::WarpAll()
 	{
 		FWarpEveryone f;
-		for_each(m_set_pkChr.begin(), m_set_pkChr.end(), f);
+		std::for_each(m_set_pkChr.begin(), m_set_pkChr.end(), f);
 	}
 
 	struct FDestroyEveryone
@@ -327,7 +325,7 @@ namespace marriage
 			return 0;
 		}
 
-		m_mapWedding.insert(make_pair(dwMapIndex, new WeddingMap(dwMapIndex, dwPID1, dwPID2)));
+		m_mapWedding.insert(std::make_pair(dwMapIndex, new WeddingMap(dwMapIndex, dwPID1, dwPID2)));
 
 
 		// LOCALE_SERVICE
@@ -335,7 +333,7 @@ namespace marriage
 		if (pkSectreeMap == nullptr) {
 			return 0;
 		}
-		string st_weddingMapRegenFileName;
+		std::string st_weddingMapRegenFileName;
 		st_weddingMapRegenFileName.reserve(64);
 		st_weddingMapRegenFileName  = LocaleService_GetMapPath();
 		st_weddingMapRegenFileName += "/metin2_map_wedding_01/npc.txt";
