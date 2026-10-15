@@ -1,0 +1,46 @@
+# Explicit names where the rules in rename.py would collide or read badly.
+
+[types]
+event = "scheduled_event"        # `event` is the usual name of the event_ptr parameter
+EVENT = "scheduled_event"
+TEVENTFUNC = "event_func"
+CFSM = "fsm"
+CPVP = "pvp"
+CPoly = "expression"             # poly::expression; `poly` is the namespace
+LPEVENT = "event_ptr"            # alias of event_ptr
+ESectree = "sectree_constants"   # enum next to the sectree class
+SFishInfo = "fish_info_data"
+TJobInitialPoints = "job_initial_point"
+SInfo = "mining_info"
+war_map_info = "war_map_event_info"   # event info; TWarMapInfo takes war_map_info
+
+AttackLog = "attack_log_entry"   # CHARACTER has fields of these types with the plain names
+AttackedLog = "attacked_log_entry"
+MONARCH_COOLTIME = "monarch_cooltime_values"
+TLand = "land_table"             # proto rows; game::building::land and ::object are the live objects
+SLand = "land_table"
+TObject = "object_table"
+SObject = "object_table"
+CGuildWarReserve = "guild_war_reservation"   # proto::guild_war_reserve is the row it holds
+CMapLocation = "map_locations"   # the registry of proto::map_location rows
+TDamageInfoTable = "damage_info_list"
+HEADER = "header_kind"           # CPeer's enum; `header` is the usual local name
+
+[methods]
+__AddToList = "apply_add_to_list"        # the parts that change the relation maps
+__RemoveFromList = "apply_remove_from_list"
+
+[functions]
+_spawn_mob = "spawn_mob_at"
+_number = "random_number"          # Lua bindings; core number() and get_global_time() stay visible
+_get_global_time = "global_time"
+
+[fields]
+bMatched = "found"               # FuncMatchHandleEvent::matched() is the method
+bSave = "needs_save"             # TMarriage::save() is the method
+
+[globals]
+g_bCheckClientVersion = "check_client_version_enabled"
+g_bShutdown = "shutting_down"
+s_pkReloadSpamEvent = "reload_spam_event_handle"
+g_current = "current_settings"
