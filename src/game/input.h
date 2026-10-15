@@ -258,8 +258,6 @@ protected:
 
 	void		ChangeMonarchLord(TPacketChangeMonarchLordACK* data);
 	void		UpdateMonarchInfo(MonarchInfo* data);
-	void		AddBlockCountryIp(TPacketBlockCountryIp * data);
-	void		BlockException(TPacketBlockException * data);
 
 	// MYSHOP_PRICE_LIST
 	/// Handler for the response packet to the item price list request (HEADER_DG_MYSHOP_PRICELIST_RES)

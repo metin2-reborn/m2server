@@ -98,7 +98,6 @@ class DBManager : public singleton<DBManager>
 		uint32_t			CountQuery()		{ return m_sql.CountQuery(); }
 
 		// BLOCK EXCEPTION
-		void			RequestBlockException(const char *login, int cmd);
 		// BLOCK EXCEPTION
 
 		void			LoadDBString();

@@ -1,5 +1,4 @@
 #include "banword.h"
-#include "block_country.h"
 #include "building.h"
 #include "castle.h"
 #include "char.h"
@@ -953,11 +952,6 @@ void CInputDB::Boot(const char* data)
 	// castle_boot
 	castle_boot();
 
-	// request blocked_country_ip
-	{
-		db_clientdesc->DBPacket(HEADER_GD_BLOCK_COUNTRY_IP, 0, nullptr, 0);
-		dev_log(LOG_DEB0, "<sent HEADER_GD_BLOCK_COUNTRY_IP>");
-	}
     if (!mark_server_ready()) { thecore_shutdown(); return; }
     sys_log(0, "BOOT: COMPLETE");
 }
@@ -2237,12 +2231,6 @@ int CInputDB::Analyze(DESC * d, uint8_t bHeader, const char * c_pData)
 		UpdateMonarchInfo((MonarchInfo*)c_pData);
 		break;
 
-	case HEADER_DG_BLOCK_COUNTRY_IP:
-		this->AddBlockCountryIp((TPacketBlockCountryIp *) c_pData);
-		break;
-	case HEADER_DG_BLOCK_EXCEPTION:
-		this->BlockException((TPacketBlockException *) c_pData);
-		break;
 
 	case HEADER_DG_ACK_CHANGE_GUILD_MASTER :
 		this->GuildChangeMaster((TPacketChangeGuildMaster*) c_pData);
@@ -2389,16 +2377,6 @@ void CInputDB::UpdateMonarchInfo(MonarchInfo* info)
 {
 	CMonarch::instance().SetMonarchInfo(info);
 	sys_log(0, "MONARCH INFO UPDATED");
-}
-
-void CInputDB::AddBlockCountryIp(TPacketBlockCountryIp * data)
-{
-	add_blocked_country_ip(data);
-}
-
-void CInputDB::BlockException(TPacketBlockException *data)
-{
-	block_exception(data);
 }
 
 void CInputDB::GuildChangeMaster(TPacketChangeGuildMaster* p)

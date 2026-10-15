@@ -1,6 +1,5 @@
 #include "Main.h"
 
-#include "BlockCountry.h"
 #include "ClientManager.h"
 #include "Config.h"
 #include "DBManager.h"
@@ -90,14 +89,12 @@ int main()
 	ItemAwardManager ItemAwardManager;
 	marriage::CManager MarriageManager;
 	CMonarch Monarch;
-	CBlockCountry	BlockCountry;
 	CItemIDRangeManager ItemIDRangeManager;
 	if (!Start())
 		return 1;
 
 	GuildManager.Initialize();
 	MarriageManager.Initialize();
-	BlockCountry.Load();
 	ItemIDRangeManager.Build();
 	sys_log(0, "Metin2DBCacheServer Start\n");
 

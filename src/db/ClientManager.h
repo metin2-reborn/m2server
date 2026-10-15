@@ -506,7 +506,6 @@ class CClientManager : public singleton<CClientManager>
 	//END_MONARCH
 
 	void ChangeMonarchLord(CPeer* peer, uint32_t dwHandle, TPacketChangeMonarchLord* info);
-	void BlockException(TPacketBlockException *data);
 
 	void SendSpareItemIDRange(CPeer* peer);
 

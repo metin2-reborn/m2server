@@ -1,6 +1,5 @@
 #include "affect.h"
 #include "arena.h"
-#include "block_country.h"
 #include "buffer_manager.h"
 #include "building.h"
 #include "char.h"
@@ -155,20 +154,6 @@ void CInputLogin::LoginByKey(DESC * d, const char * data)
 
 	char login[LOGIN_MAX_LEN + 1];
 	trim_and_lower(pinfo->login, login, sizeof(login));
-
-	// is blocked ip?
-	{
-		dev_log(LOG_DEB0, "check_blocked_country_start");
-
-		if (!is_block_exception(login) && is_blocked_country_ip(d->GetHostName()))
-		{
-			sys_log(0, "BLOCK_COUNTRY_IP (%s)", d->GetHostName());
-			d->SetPhase(PHASE_CLOSE);
-			return;
-		}
-
-		dev_log(LOG_DEB0, "check_blocked_country_end");
-	}
 
 	if (g_bNoMoreClient)
 	{

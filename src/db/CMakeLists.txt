@@ -1,6 +1,4 @@
 add_executable(db
-    BlockCountry.cpp
-    BlockCountry.h
     Cache.cpp
     Cache.h
     ClientManager.cpp

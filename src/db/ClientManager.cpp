@@ -1,7 +1,6 @@
 
 #include "ClientManager.h"
 
-#include "BlockCountry.h"
 #include "Cache.h"
 #include "Config.h"
 #include "DBManager.h"
@@ -2034,12 +2033,6 @@ void CClientManager::ProcessPackets(CPeer * peer)
 				sys_log(0, " ProcessPacket Header [%d] Handle[%d] Length[%d] iCount[%d]", header, dwHandle, dwLength, iCount);
 		}
 
-		// test log by mhh
-		{
-			if (HEADER_GD_BLOCK_COUNTRY_IP == header)
-				sys_log(0, "recved : HEADER_GD_BLOCK_COUNTRY_IP");
-		}
-
 		switch (header)
 		{
 			case HEADER_GD_BOOT:
@@ -2372,17 +2365,6 @@ void CClientManager::ProcessPackets(CPeer * peer)
 
 			case HEADER_GD_CHANGE_MONARCH_LORD :
 				ChangeMonarchLord(peer, dwHandle, (TPacketChangeMonarchLord*)data);
-				break;
-
-			case HEADER_GD_BLOCK_COUNTRY_IP:
-				sys_log(0, "HEADER_GD_BLOCK_COUNTRY_IP received");
-				CBlockCountry::instance().SendBlockedCountryIp(peer);
-				CBlockCountry::instance().SendBlockException(peer);
-				break;
-
-			case HEADER_GD_BLOCK_EXCEPTION:
-				sys_log(0, "HEADER_GD_BLOCK_EXCEPTION received");
-				BlockException((TPacketBlockException*) data);
 				break;
 
 			case HEADER_GD_REQ_SPARE_ITEM_ID_RANGE :
@@ -3432,47 +3414,6 @@ void CClientManager::ChangeMonarchLord(CPeer * peer, uint32_t dwHandle, TPacketC
 				client->Encode(newInfo, sizeof(MonarchInfo));
 			}
 		}
-
-		delete pMsg2;
-	}
-
-	delete pMsg;
-}
-
-void CClientManager::BlockException(TPacketBlockException *data)
-{
-	sys_log(0, "[BLOCK_EXCEPTION] CMD(%d) login(%s)", data->cmd, data->login);
-
-	// save sql
-	{
-		char buf[1024];
-
-		switch (data->cmd)
-		{
-			case BLOCK_EXCEPTION_CMD_ADD:
-				snprintf(buf, sizeof(buf), "INSERT INTO block_exception VALUES('%s')", data->login);
-				CDBManager::instance().AsyncQuery(buf, SQL_ACCOUNT);
-				CBlockCountry::instance().AddBlockException(data->login);
-				break;
-			case BLOCK_EXCEPTION_CMD_DEL:
-				snprintf(buf, sizeof(buf), "DELETE FROM block_exception VALUES('%s')", data->login);
-				CDBManager::instance().AsyncQuery(buf, SQL_ACCOUNT);
-				CBlockCountry::instance().DelBlockException(data->login);
-				break;
-			default:
-				return;
-		}
-
-	}
-
-	for (auto it = m_peerList.begin(); it != m_peerList.end(); ++it)
-	{
-		CPeer	*peer = *it;
-
-		if (!peer->GetChannel())
-			continue;
-
-		CBlockCountry::instance().SendBlockExceptionOne(peer, data->login, data->cmd);
 	}
 }
 
