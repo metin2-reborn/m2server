@@ -1,6 +1,6 @@
 #include <metin2/game/characters/buff_on_attributes.h>
 
-#include <metin2/game/characters/char.h>
+#include <metin2/game/characters/character.h>
 #include <metin2/game/items/item.h>
 #include <metin2/game/app/typedef.h>
 

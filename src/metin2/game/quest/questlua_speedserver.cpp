@@ -1,7 +1,7 @@
 #include <metin2/game/quest/lua_incl.h>
 #include <metin2/game/quest/questlua.h>
 #include <metin2/game/quest/questmanager.h>
-#include <metin2/game/events/SpeedServer.h>
+#include <metin2/game/events/speed_server.h>
 
 #include <metin2/log/log.h>
 

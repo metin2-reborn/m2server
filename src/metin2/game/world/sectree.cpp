@@ -1,7 +1,7 @@
 #include <metin2/game/world/sectree.h>
 
-#include <metin2/game/characters/char.h>
-#include <metin2/game/characters/char_manager.h>
+#include <metin2/game/characters/character.h>
+#include <metin2/game/characters/character_manager.h>
 #include <metin2/game/protocol/desc_manager.h>
 #include <metin2/game/items/item.h>
 #include <metin2/game/items/item_manager.h>

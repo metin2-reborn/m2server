@@ -1,6 +1,6 @@
 #include <metin2/game/quest/questnpc.h>
 
-#include <metin2/game/characters/char.h>
+#include <metin2/game/characters/character.h>
 #include <metin2/game/app/config.h>
 #include <metin2/game/text/locale.hpp>
 #include <metin2/game/quest/quest.h>

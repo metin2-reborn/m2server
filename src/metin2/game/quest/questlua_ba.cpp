@@ -1,5 +1,5 @@
 
-#include <metin2/game/events/BattleArena.h>
+#include <metin2/game/events/battle_arena.h>
 #include <metin2/game/quest/lua_incl.h>
 #include <metin2/game/quest/questmanager.h>
 

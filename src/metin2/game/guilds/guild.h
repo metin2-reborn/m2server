@@ -1,13 +1,13 @@
 #pragma once
 
-#include <metin2/game/characters/char.h>
+#include <metin2/game/characters/character.h>
 #include <metin2/game/app/event.h>
 #include <metin2/game/combat/skill.h>
 #include <metin2/game/app/typedef.h>
 
 #include <metin2/proto/length.h>
 #include <metin2/proto/tables.h>
-#include <metin2/sql/AsyncSQL.h>
+#include <metin2/sql/async_sql.h>
 
 #include <cstdint>
 #include <map>

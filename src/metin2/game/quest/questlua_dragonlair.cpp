@@ -1,7 +1,7 @@
 
 
-#include <metin2/game/characters/char.h>
-#include <metin2/game/events/DragonLair.h>
+#include <metin2/game/characters/character.h>
+#include <metin2/game/events/dragon_lair.h>
 #include <metin2/game/guilds/guild.h>
 #include <metin2/game/quest/lua_incl.h>
 #include <metin2/game/quest/questmanager.h>

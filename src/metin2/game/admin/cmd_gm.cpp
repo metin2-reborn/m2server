@@ -1,12 +1,12 @@
 #include <metin2/game/characters/affect.h>
 #include <metin2/game/events/arena.h>
 #include <metin2/game/combat/battle.h>
-#include <metin2/game/events/BattleArena.h>
+#include <metin2/game/events/battle_arena.h>
 #include <metin2/game/protocol/buffer_manager.h>
 #include <metin2/game/guilds/building.h>
 #include <metin2/game/empire/castle.h>
-#include <metin2/game/characters/char.h>
-#include <metin2/game/characters/char_manager.h>
+#include <metin2/game/characters/character.h>
+#include <metin2/game/characters/character_manager.h>
 #include <metin2/game/admin/cmd.h>
 #include <metin2/game/app/config.h>
 #include <metin2/game/app/constants.h>
@@ -14,7 +14,7 @@
 #include <metin2/game/persistence/db.h>
 #include <metin2/game/protocol/desc_client.h>
 #include <metin2/game/protocol/desc_manager.h>
-#include <metin2/game/items/DragonSoul.h>
+#include <metin2/game/items/dragon_soul.h>
 #include <metin2/game/events/fishing.h>
 #include <metin2/game/guilds/guild.h>
 #include <metin2/game/guilds/guild_manager.h>

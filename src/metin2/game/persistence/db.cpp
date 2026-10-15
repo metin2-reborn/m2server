@@ -1,7 +1,7 @@
 #include <metin2/game/persistence/db.h>
 
-#include <metin2/game/characters/char.h>
-#include <metin2/game/characters/char_manager.h>
+#include <metin2/game/characters/character.h>
+#include <metin2/game/characters/character_manager.h>
 #include <metin2/game/app/config.h>
 #include <metin2/game/protocol/desc_client.h>
 #include <metin2/game/protocol/desc_manager.h>
@@ -17,7 +17,7 @@
 #include <metin2/proto/length.h>
 #include <metin2/proto/tables.h>
 #include <metin2/common/utils.h>
-#include <metin2/sql/AsyncSQL.h>
+#include <metin2/sql/async_sql.h>
 #include <metin2/sql/query.h>
 #include <metin2/log/log.h>
 #include <metin2/core/utils.h>

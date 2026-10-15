@@ -4,14 +4,14 @@
 #include <metin2/game/items/belt_inventory_helper.h>
 #include <metin2/game/protocol/buffer_manager.h>
 #include <metin2/game/guilds/building.h>
-#include <metin2/game/characters/char.h>
-#include <metin2/game/characters/char_manager.h>
+#include <metin2/game/characters/character.h>
+#include <metin2/game/characters/character_manager.h>
 #include <metin2/game/admin/cmd.h>
 #include <metin2/game/app/config.h>
 #include <metin2/game/persistence/db.h>
 #include <metin2/game/protocol/desc_client.h>
 #include <metin2/game/protocol/desc_manager.h>
-#include <metin2/game/items/DragonSoul.h>
+#include <metin2/game/items/dragon_soul.h>
 #include <metin2/game/empire/empire_text_convert.h>
 #include <metin2/game/app/event.h>
 #include <metin2/game/trade/exchange.h>
@@ -26,7 +26,7 @@
 #include <metin2/game/persistence/log.h>
 #include <metin2/game/social/messenger_manager.h>
 #include <metin2/game/characters/motion.h>
-#include <metin2/game/events/OXEvent.h>
+#include <metin2/game/events/ox_event.h>
 #include <metin2/game/protocol/p2p.h>
 #include <metin2/game/protocol/packet.h>
 #include <metin2/game/parties/party.h>

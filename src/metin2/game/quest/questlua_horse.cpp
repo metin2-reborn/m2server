@@ -1,6 +1,6 @@
 
 #include <metin2/game/characters/affect.h>
-#include <metin2/game/characters/char.h>
+#include <metin2/game/characters/character.h>
 #include <metin2/game/app/config.h>
 #include <metin2/game/characters/horse_rider.h>
 #include <metin2/game/characters/horsename_manager.h>

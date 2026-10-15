@@ -1,6 +1,6 @@
 #include <metin2/game/combat/skill.h>
 
-#include <metin2/game/characters/char.h>
+#include <metin2/game/characters/character.h>
 #include <metin2/game/admin/cmd.h>
 
 #include <metin2/proto/tables.h>

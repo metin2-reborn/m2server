@@ -1,5 +1,5 @@
 #include <metin2/game/guilds/building.h>
-#include <metin2/game/characters/char.h>
+#include <metin2/game/characters/character.h>
 #include <metin2/game/app/config.h>
 #include <metin2/game/persistence/db.h>
 #include <metin2/game/guilds/guild.h>

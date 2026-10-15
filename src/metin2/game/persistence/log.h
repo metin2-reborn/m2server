@@ -3,7 +3,7 @@
 #include <metin2/game/app/typedef.h>
 
 #include <metin2/common/singleton.h>
-#include <metin2/sql/AsyncSQL.h>
+#include <metin2/sql/async_sql.h>
 
 #include <cstdint>
 #include <string>

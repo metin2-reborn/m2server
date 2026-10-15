@@ -2,8 +2,8 @@
 #include <metin2/game/characters/horsename_manager.h>
 
 #include <metin2/game/characters/affect.h>
-#include <metin2/game/characters/char.h>
-#include <metin2/game/characters/char_manager.h>
+#include <metin2/game/characters/character.h>
+#include <metin2/game/characters/character_manager.h>
 #include <metin2/game/protocol/desc_client.h>
 #include <metin2/game/app/typedef.h>
 #include <metin2/game/app/utils.h>

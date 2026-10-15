@@ -1,9 +1,9 @@
 #include <metin2/game/trade/exchange.h>
 
-#include <metin2/game/characters/char.h>
+#include <metin2/game/characters/character.h>
 #include <metin2/game/protocol/desc.h>
 #include <metin2/game/protocol/desc_client.h>
-#include <metin2/game/items/DragonSoul.h>
+#include <metin2/game/items/dragon_soul.h>
 #include <metin2/game/items/item.h>
 #include <metin2/game/items/item_manager.h>
 #include <metin2/game/text/locale.hpp>

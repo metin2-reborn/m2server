@@ -1,8 +1,8 @@
 #include <metin2/game/guilds/guild_manager.h>
 
 #include <metin2/game/protocol/buffer_manager.h>
-#include <metin2/game/characters/char.h>
-#include <metin2/game/characters/char_manager.h>
+#include <metin2/game/characters/character.h>
+#include <metin2/game/characters/character_manager.h>
 #include <metin2/game/admin/cmd.h>
 #include <metin2/game/app/config.h>
 #include <metin2/game/persistence/db.h>
@@ -10,7 +10,7 @@
 #include <metin2/game/guilds/guild.h>
 #include <metin2/game/text/locale.hpp>
 #include <metin2/game/text/locale_service.h>
-#include <metin2/game/guilds/MarkManager.h>
+#include <metin2/game/guilds/mark_manager.h>
 #include <metin2/game/protocol/packet.h>
 #include <metin2/game/quest/questmanager.h>
 #include <metin2/game/app/typedef.h>
@@ -19,7 +19,7 @@
 
 #include <metin2/proto/length.h>
 #include <metin2/proto/tables.h>
-#include <metin2/sql/AsyncSQL.h>
+#include <metin2/sql/async_sql.h>
 #include <metin2/sql/query.h>
 #include <metin2/log/log.h>
 

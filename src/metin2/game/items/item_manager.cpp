@@ -1,13 +1,13 @@
 #include <metin2/game/items/item_manager.h>
 
 #include <metin2/game/items/blend_item.h>
-#include <metin2/game/characters/char.h>
-#include <metin2/game/characters/char_manager.h>
+#include <metin2/game/characters/character.h>
+#include <metin2/game/characters/character_manager.h>
 #include <metin2/game/app/config.h>
 #include <metin2/game/app/constants.h>
 #include <metin2/game/persistence/db.h>
 #include <metin2/game/protocol/desc_client.h>
-#include <metin2/game/items/DragonSoul.h>
+#include <metin2/game/items/dragon_soul.h>
 #include <metin2/game/items/item.h>
 #include <metin2/game/items/item_manager_private_types.h>
 #include <metin2/game/persistence/log.h>

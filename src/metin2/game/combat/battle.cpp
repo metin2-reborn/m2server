@@ -4,8 +4,8 @@
 #include <metin2/game/characters/ani.h>
 #include <metin2/game/events/arena.h>
 #include <metin2/game/empire/castle.h>
-#include <metin2/game/characters/char.h>
-#include <metin2/game/characters/char_manager.h>
+#include <metin2/game/characters/character.h>
+#include <metin2/game/characters/character_manager.h>
 #include <metin2/game/app/config.h>
 #include <metin2/game/app/event.h>
 #include <metin2/game/guilds/guild.h>

@@ -1,6 +1,6 @@
 #include <metin2/game/characters/motion.h>
 
-#include <metin2/game/characters/char.h>
+#include <metin2/game/characters/character.h>
 #include <metin2/game/characters/mob_manager.h>
 #include <metin2/game/data/text_file_loader.h>
 #include <metin2/game/world/vector.h>

@@ -1,6 +1,6 @@
 #include <metin2/game/empire/priv_manager.h>
 
-#include <metin2/game/characters/char.h>
+#include <metin2/game/characters/character.h>
 #include <metin2/game/admin/cmd.h>
 #include <metin2/game/app/constants.h>
 #include <metin2/game/protocol/desc_client.h>

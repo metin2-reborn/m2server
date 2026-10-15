@@ -1,5 +1,5 @@
 #include <metin2/game/characters/affect.h>
-#include <metin2/game/characters/char.h>
+#include <metin2/game/characters/character.h>
 #include <metin2/game/world/entity.h>
 #include <metin2/game/world/sectree.h>
 #include <metin2/game/trade/shop_manager.h>

@@ -1,6 +1,6 @@
 #include <metin2/game/trade/safebox.h>
 
-#include <metin2/game/characters/char.h>
+#include <metin2/game/characters/character.h>
 #include <metin2/game/protocol/desc_client.h>
 #include <metin2/game/items/item.h>
 #include <metin2/game/items/item_manager.h>

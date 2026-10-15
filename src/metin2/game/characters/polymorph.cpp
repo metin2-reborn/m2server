@@ -1,7 +1,7 @@
 #include <metin2/game/characters/polymorph.h>
 
 #include <metin2/game/characters/affect.h>
-#include <metin2/game/characters/char.h>
+#include <metin2/game/characters/character.h>
 #include <metin2/game/items/item.h>
 #include <metin2/game/text/locale.hpp>
 #include <metin2/game/characters/mob_manager.h>

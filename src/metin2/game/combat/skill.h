@@ -2,7 +2,7 @@
 
 #include <metin2/common/singleton.h>
 #include <metin2/proto/tables.h>
-#include <metin2/poly/Poly.h>
+#include <metin2/poly/expression.h>
 
 #include <cstdint>
 #include <map>

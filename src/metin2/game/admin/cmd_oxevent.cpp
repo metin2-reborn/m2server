@@ -1,7 +1,7 @@
-#include <metin2/game/characters/char.h>
+#include <metin2/game/characters/character.h>
 #include <metin2/game/admin/cmd.h>
 #include <metin2/game/text/locale.hpp>
-#include <metin2/game/events/OXEvent.h>
+#include <metin2/game/events/ox_event.h>
 #include <metin2/game/quest/questmanager.h>
 
 #include <metin2/proto/length.h>

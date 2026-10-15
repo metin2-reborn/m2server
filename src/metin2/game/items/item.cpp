@@ -2,11 +2,11 @@
 
 #include <metin2/game/characters/affect.h>
 #include <metin2/game/characters/buff_on_attributes.h>
-#include <metin2/game/characters/char.h>
+#include <metin2/game/characters/character.h>
 #include <metin2/game/app/config.h>
 #include <metin2/game/app/constants.h>
 #include <metin2/game/protocol/desc.h>
-#include <metin2/game/items/DragonSoul.h>
+#include <metin2/game/items/dragon_soul.h>
 #include <metin2/game/world/entity.h>
 #include <metin2/game/app/event.h>
 #include <metin2/game/items/item_addon.h>
@@ -23,7 +23,7 @@
 #include <metin2/proto/length.h>
 #include <metin2/proto/tables.h>
 #include <metin2/common/utils.h>
-#include <metin2/proto/VnumHelper.h>
+#include <metin2/proto/vnum_helper.h>
 #include <metin2/log/log.h>
 #include <metin2/core/utils.h>
 

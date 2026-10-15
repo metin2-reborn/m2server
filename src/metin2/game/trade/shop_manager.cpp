@@ -1,7 +1,7 @@
 #include <metin2/game/trade/shop_manager.h>
 
-#include <metin2/game/characters/char.h>
-#include <metin2/game/characters/char_manager.h>
+#include <metin2/game/characters/character.h>
+#include <metin2/game/characters/character_manager.h>
 #include <metin2/game/app/config.h>
 #include <metin2/game/persistence/db.h>
 #include <metin2/game/protocol/desc.h>
@@ -14,7 +14,7 @@
 #include <metin2/game/protocol/packet.h>
 #include <metin2/game/quest/questmanager.h>
 #include <metin2/game/trade/shop.h>
-#include <metin2/game/trade/shopEx.h>
+#include <metin2/game/trade/shop_ex.h>
 #include <metin2/game/app/typedef.h>
 #include <metin2/game/app/utils.h>
 

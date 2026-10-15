@@ -1,5 +1,5 @@
 
-#include <metin2/game/characters/char.h>
+#include <metin2/game/characters/character.h>
 #include <metin2/game/world/entity.h>
 #include <metin2/game/quest/lua_incl.h>
 #include <metin2/game/quest/questmanager.h>

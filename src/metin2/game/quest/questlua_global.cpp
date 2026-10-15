@@ -1,6 +1,6 @@
 #include <metin2/game/protocol/buffer_manager.h>
-#include <metin2/game/characters/char.h>
-#include <metin2/game/characters/char_manager.h>
+#include <metin2/game/characters/character.h>
+#include <metin2/game/characters/character_manager.h>
 #include <metin2/game/admin/cmd.h>
 #include <metin2/game/app/config.h>
 #include <metin2/game/app/constants.h>
@@ -16,7 +16,7 @@
 #include <metin2/game/events/mining.h>
 #include <metin2/game/characters/mob_manager.h>
 #include <metin2/game/items/over9refine.h>
-#include <metin2/game/events/OXEvent.h>
+#include <metin2/game/events/ox_event.h>
 #include <metin2/game/protocol/p2p.h>
 #include <metin2/game/protocol/packet.h>
 #include <metin2/game/empire/priv_manager.h>

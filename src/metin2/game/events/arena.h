@@ -1,6 +1,6 @@
 #pragma once
 
-#include <metin2/game/characters/char_manager.h>
+#include <metin2/game/characters/character_manager.h>
 #include <metin2/game/app/event.h>
 #include <metin2/game/quest/lua_incl.h>
 #include <metin2/game/app/typedef.h>

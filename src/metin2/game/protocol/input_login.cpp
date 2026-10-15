@@ -2,8 +2,8 @@
 #include <metin2/game/events/arena.h>
 #include <metin2/game/protocol/buffer_manager.h>
 #include <metin2/game/guilds/building.h>
-#include <metin2/game/characters/char.h>
-#include <metin2/game/characters/char_manager.h>
+#include <metin2/game/characters/character.h>
+#include <metin2/game/characters/character_manager.h>
 #include <metin2/game/app/config.h>
 #include <metin2/game/app/constants.h>
 #include <metin2/game/protocol/desc.h>
@@ -16,11 +16,11 @@
 #include <metin2/game/text/locale.hpp>
 #include <metin2/game/text/locale_service.h>
 #include <metin2/game/persistence/log.h>
-#include <metin2/game/guilds/MarkImage.h>
-#include <metin2/game/guilds/MarkManager.h>
+#include <metin2/game/guilds/mark_image.h>
+#include <metin2/game/guilds/mark_manager.h>
 #include <metin2/game/social/marriage.h>
 #include <metin2/game/social/messenger_manager.h>
-#include <metin2/game/events/OXEvent.h>
+#include <metin2/game/events/ox_event.h>
 #include <metin2/game/protocol/packet.h>
 #include <metin2/game/parties/party.h>
 #include <metin2/game/empire/priv_manager.h>

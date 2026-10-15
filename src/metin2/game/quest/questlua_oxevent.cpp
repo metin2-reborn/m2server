@@ -3,7 +3,7 @@
 #include <metin2/game/app/event.h>
 #include <metin2/game/text/locale_service.h>
 #include <metin2/game/quest/lua_incl.h>
-#include <metin2/game/events/OXEvent.h>
+#include <metin2/game/events/ox_event.h>
 #include <metin2/game/quest/questmanager.h>
 
 #include <cstdio>

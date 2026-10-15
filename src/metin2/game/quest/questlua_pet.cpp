@@ -1,7 +1,7 @@
 
-#include <metin2/game/characters/char.h>
+#include <metin2/game/characters/character.h>
 #include <metin2/game/quest/lua_incl.h>
-#include <metin2/game/characters/PetSystem.h>
+#include <metin2/game/characters/pet_system.h>
 #include <metin2/game/quest/questlua.h>
 #include <metin2/game/quest/questmanager.h>
 #include <metin2/game/app/typedef.h>
