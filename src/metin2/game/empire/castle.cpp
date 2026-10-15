@@ -209,7 +209,7 @@ static guard_region tower_region[4] = {
 };
 
 
-static int32_t fn_castle_map_index(int empire);
+static auto fn_castle_map_index(int empire) -> int32_t;
 
 EVENTINFO(castle_event_info)
 {
@@ -272,7 +272,7 @@ EVENTFUNC(castle_siege_event)
 }
 
 
-static uint32_t fn_random_stone()
+static auto fn_random_stone() -> uint32_t
 {
 	uint32_t	vnum[7] = {
 		8012,
@@ -348,9 +348,9 @@ EVENTFUNC(castle_stone_event)
 
 
 
-character * castle_spawn_frog_force(int empire, int empty_index);
+auto castle_spawn_frog_force(int empire, int empty_index) -> character *;
 
-static int32_t fn_castle_map_index(int empire)
+static auto fn_castle_map_index(int empire) -> int32_t
 {
 	switch (empire)
 	{
@@ -361,7 +361,7 @@ static int32_t fn_castle_map_index(int empire)
 	return 0;
 }
 
-static int fn_empty_frog_index(int empire)
+static auto fn_empty_frog_index(int empire) -> int
 {
 	DO_ALL_FROG(i)
 	{
@@ -371,7 +371,7 @@ static int fn_empty_frog_index(int empire)
 	return (-1);
 }
 
-static position* fn_empty_frog_pos(int empire)
+static auto fn_empty_frog_pos(int empire) -> position*
 {
 	int	frog_index = fn_empty_frog_index(empire);
 
@@ -389,7 +389,7 @@ static position* fn_empty_frog_pos(int empire)
 	return nullptr;
 }
 
-static int fn_empty_guard_pos(int empire, int region_index)
+static auto fn_empty_guard_pos(int empire, int region_index) -> int
 {
 	for (int i = 0; i < MAX_CASTLE_GUARD_PER_REGION; ++i)
 	{
@@ -402,7 +402,7 @@ static int fn_empty_guard_pos(int empire, int region_index)
 	return -1;
 }
 
-static bool fn_is_castle_map(int map_index)
+static auto fn_is_castle_map(int map_index) -> bool
 {
 	switch (map_index)
 	{
@@ -415,7 +415,7 @@ static bool fn_is_castle_map(int map_index)
 }
 
 
-bool castle_boot()
+auto castle_boot() -> bool
 {
 	FILE	*fp;
 	char	one_line[256];
@@ -545,7 +545,7 @@ void castle_save()
 	fclose(fp);
 }
 
-int castle_siege(int empire, int tower_count)
+auto castle_siege(int empire, int tower_count) -> int
 {
 	{
 		if (nullptr == sectree_manager::instance().map(181)) return 0;
@@ -624,7 +624,7 @@ void castle_end_siege()
 }
 
 
-character * castle_spawn_frog(int empire)
+auto castle_spawn_frog(int empire) -> character *
 {
 	int		dir = 1;
 	int32_t	map_index	= fn_castle_map_index(empire);
@@ -652,7 +652,7 @@ character * castle_spawn_frog(int empire)
 	return nullptr;
 }
 
-character * castle_spawn_frog_force(int empire, int empty_index)
+auto castle_spawn_frog_force(int empire, int empty_index) -> character *
 {
 	int		dir = 1;
 	int32_t	map_index	= fn_castle_map_index(empire);
@@ -680,7 +680,7 @@ character * castle_spawn_frog_force(int empire, int empty_index)
 }
 
 
-character * castle_spawn_guard(int empire, uint32_t group_vnum, int region_index)
+auto castle_spawn_guard(int empire, uint32_t group_vnum, int region_index) -> character *
 {
 	character *	mob;
 	int	sx, sy, ex, ey;
@@ -713,7 +713,7 @@ character * castle_spawn_guard(int empire, uint32_t group_vnum, int region_index
 }
 
 
-static uint32_t fn_random_tower()
+static auto fn_random_tower() -> uint32_t
 {
 	uint32_t vnum[5] =
 	{
@@ -749,7 +749,7 @@ static void fn_spawn_tower(int empire, sectree_map * sectree_map)
 	}
 }
 
-bool castle_spawn_tower(int empire, int tower_count)
+auto castle_spawn_tower(int empire, int tower_count) -> bool
 {
 	int	map_index = fn_castle_map_index(empire);
 	sectree_map	*sectree_map = sectree_manager::instance().map(map_index);
@@ -873,7 +873,7 @@ void castle_tower_die(character * ch, character * killer)
 }
 
 
-int castle_guard_count(int empire, int region_index)
+auto castle_guard_count(int empire, int region_index) -> int
 {
 	int count = 0;
 
@@ -886,7 +886,7 @@ int castle_guard_count(int empire, int region_index)
 }
 
 
-bool castle_is_guard_vnum(uint32_t vnum)
+auto castle_is_guard_vnum(uint32_t vnum) -> bool
 {
 	switch (vnum)
 	{
@@ -914,7 +914,7 @@ bool castle_is_guard_vnum(uint32_t vnum)
 	return false;
 }
 
-int castle_cost_of_hiring_guard(uint32_t group_vnum)
+auto castle_cost_of_hiring_guard(uint32_t group_vnum) -> int
 {
 	switch (group_vnum)
 	{
@@ -949,7 +949,7 @@ int castle_cost_of_hiring_guard(uint32_t group_vnum)
 	return 0;
 }
 
-bool castle_can_attack(character * ch, character * victim)
+auto castle_can_attack(character * ch, character * victim) -> bool
 {
 	if (nullptr == ch || nullptr == victim)
 		return false;
@@ -977,7 +977,7 @@ bool castle_can_attack(character * ch, character * victim)
 	return true;
 }
 
-bool castle_is_my_castle(int empire, int map_index)
+auto castle_is_my_castle(int empire, int map_index) -> bool
 {
 	switch (empire)
 	{
@@ -988,7 +988,7 @@ bool castle_is_my_castle(int empire, int map_index)
 	return false;
 }
 
-bool castle_is_tower_vnum(uint32_t vnum)
+auto castle_is_tower_vnum(uint32_t vnum) -> bool
 {
 	switch (vnum)
 	{

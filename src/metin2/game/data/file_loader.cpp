@@ -15,7 +15,7 @@ memory_text_file_loader::~memory_text_file_loader()
 {
 }
 
-bool memory_text_file_loader::split_line(uint32_t line, std::vector<std::string>* pst_token_vector, const char * delimeter)
+auto memory_text_file_loader::split_line(uint32_t line, std::vector<std::string>* pst_token_vector, const char * delimeter) -> bool
 {
 	pst_token_vector->clear();
 
@@ -61,12 +61,12 @@ bool memory_text_file_loader::split_line(uint32_t line, std::vector<std::string>
 	return true;
 }
 
-uint32_t memory_text_file_loader::line_count()
+auto memory_text_file_loader::line_count() -> uint32_t
 {
 	return line_vector_.size();
 }
 
-bool memory_text_file_loader::check_line_index(uint32_t line)
+auto memory_text_file_loader::check_line_index(uint32_t line) -> bool
 {
 	if (line >= line_vector_.size())
 		return false;
@@ -74,7 +74,7 @@ bool memory_text_file_loader::check_line_index(uint32_t line)
 	return true;
 }
 
-const std::string & memory_text_file_loader::line_string(uint32_t line)
+auto memory_text_file_loader::line_string(uint32_t line) -> const std::string &
 {
 	assert(check_line_index(line));
 	return line_vector_[line];

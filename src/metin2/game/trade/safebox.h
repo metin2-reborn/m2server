@@ -23,19 +23,19 @@ class safebox
 		safebox(character * chr_owner, int size, uint32_t gold);
 		~safebox();
 
-		bool		add(uint32_t pos, item * item_value);
-		item *		get(uint32_t pos);
-		item *		remove(uint32_t pos_value);
+		auto		add(uint32_t pos, item * item_value) -> bool;
+		auto		get(uint32_t pos) -> item *;
+		auto		remove(uint32_t pos_value) -> item *;
 		void		change_size(int size);
 
-		bool		move_item(uint8_t cell, uint8_t dest_cell, uint8_t count);
-		item *		get_item(uint8_t cell);
+		auto		move_item(uint8_t cell, uint8_t dest_cell, uint8_t count) -> bool;
+		auto		get_item(uint8_t cell) -> item *;
 
 		void		save();
 
-		bool		is_empty(uint32_t pos, uint8_t size);
+		auto		is_empty(uint32_t pos, uint8_t size) -> bool;
 		void		send_item_set(uint32_t pos);
-		bool		is_valid_position(uint32_t pos);
+		auto		is_valid_position(uint32_t pos) -> bool;
 
 		void		set_window_mode(uint8_t mode);
 

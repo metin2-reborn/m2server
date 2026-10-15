@@ -31,7 +31,7 @@ std::string locale_filename = "locale/english/locale_string.txt";
 
 static_assert(PLAYER_PER_ACCOUNT == 4);
 
-static int check_name_independent(const char * str)
+static auto check_name_independent(const char * str) -> int
 {
 	if (banword_manager::instance().check_string(str, strlen(str)))
 		return 0;
@@ -45,7 +45,7 @@ static int check_name_independent(const char * str)
 	return 1;
 }
 
-int check_name(const char * str)
+auto check_name(const char * str) -> int
 {
 	const char*	tmp;
 
@@ -92,7 +92,7 @@ void locale_service_load_empire_text_convert_tables()
 	}
 }
 
-bool locale_service_init(const std::string& rst_service_name)
+auto locale_service_init(const std::string& rst_service_name) -> bool
 {
 	if (rst_service_name != "english")
 	{
@@ -116,17 +116,17 @@ void locale_service_transfer_default_setting()
 
 
 
-const std::string& locale_service_get_base_path()
+auto locale_service_get_base_path() -> const std::string&
 {
 	return service_base_path;
 }
 
-const std::string& locale_service_get_map_path()
+auto locale_service_get_map_path() -> const std::string&
 {
 	return service_map_path;
 }
 
-const std::string& locale_service_get_quest_path()
+auto locale_service_get_quest_path() -> const std::string&
 {
 	return quest_dir;
 }

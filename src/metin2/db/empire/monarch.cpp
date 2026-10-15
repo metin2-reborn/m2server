@@ -33,7 +33,7 @@ monarch::~monarch()
 {
 }
 
-bool monarch::vote_monarch(uint32_t pid, uint32_t selectdpid)
+auto monarch::vote_monarch(uint32_t pid, uint32_t selectdpid) -> bool
 {
 	map_monarchelection::iterator it = map_monarch_election_.find(pid);
 
@@ -77,7 +77,7 @@ void monarch::elect_monarch()
 	}
 }
 
-bool monarch::is_candidacy(uint32_t pid)
+auto monarch::is_candidacy(uint32_t pid) -> bool
 {
 	vec_monarchcandidacy::iterator it = vec_monarch_candidacy_.begin();
 	
@@ -90,7 +90,7 @@ bool monarch::is_candidacy(uint32_t pid)
 	return true;
 }
 
-bool monarch::add_candidacy(uint32_t pid, const char * name)
+auto monarch::add_candidacy(uint32_t pid, const char * name) -> bool
 {
 	if (is_candidacy(pid) == false)
 		return false;
@@ -109,7 +109,7 @@ bool monarch::add_candidacy(uint32_t pid, const char * name)
 	return true;
 }
 
-bool monarch::del_candidacy(const char * name)
+auto monarch::del_candidacy(const char * name) -> bool
 {
 	auto it = vec_monarch_candidacy_.begin();
 	for (; it != vec_monarch_candidacy_.end(); ++it)
@@ -129,14 +129,14 @@ bool monarch::del_candidacy(const char * name)
 
 }
 
-bool monarch::is_monarch(int empire, uint32_t pid)
+auto monarch::is_monarch(int empire, uint32_t pid) -> bool
 {
 	if (monarch_info_.pid[empire] != pid)
 		return false;
 	return true;
 }
 
-bool monarch::add_money(int empire, int64_t money_value)
+auto monarch::add_money(int empire, int64_t money_value) -> bool
 {
 	if (monarch_info_.money[empire] + money_value > 2000000000)
 		return true;
@@ -153,7 +153,7 @@ bool monarch::add_money(int empire, int64_t money_value)
 	return true;
 }
 
-bool monarch::dec_money(int empire, int64_t money_value)
+auto monarch::dec_money(int empire, int64_t money_value) -> bool
 {
 	if (monarch_info_.money[empire] - money_value <  0)
 		return false;
@@ -168,7 +168,7 @@ bool monarch::dec_money(int empire, int64_t money_value)
 	return true;
 }
 
-bool monarch::take_money(int empire, uint32_t pid, int64_t money_value)
+auto monarch::take_money(int empire, uint32_t pid, int64_t money_value) -> bool
 {
 	if (is_monarch(empire, pid) == false)
 		return false;
@@ -189,12 +189,12 @@ bool monarch::take_money(int empire, uint32_t pid, int64_t money_value)
 	return true;
 }
 
-bool monarch::load_monarch()
+auto monarch::load_monarch() -> bool
 {
 	monarch_info * p = &monarch_info_;
     char szQuery[256];
 	snprintf(szQuery, sizeof(szQuery), "SELECT empire, pid, name, money, windate FROM monarch a, player%s b where a.pid=b.id", get_table_postfix());
-    std::unique_ptr<ql_msg> pMsg(db_manager::instance().direct_query(szQuery, SQL_PLAYER));
+    std::unique_ptr<sql_msg> pMsg(db_manager::instance().direct_query(szQuery, SQL_PLAYER));
 
     if (pMsg->get()->num_rows == 0)
     {
@@ -202,7 +202,7 @@ bool monarch::load_monarch()
     }
 
     MYSQL_ROW row;
-    while ((row = mysql_fetch_row(pMsg->get()->sql_result)) != nullptr)
+    while ((row = mysql_fetch_row(pMsg->get()->res)) != nullptr)
     {
         int idx = 0;
         int Empire = 0; str_to_number(Empire, row[idx++]);
@@ -220,13 +220,13 @@ bool monarch::load_monarch()
     return true;
 }
 
-bool monarch::set_monarch(const char * name)
+auto monarch::set_monarch(const char * name) -> bool
 {
 	monarch_info * p = &monarch_info_;
 	std::string query = sql::format(
 			"SELECT b.empire, a.id, a.name FROM player{} AS a, player_index{} AS b WHERE a.account_id=b.id AND a.name={}",
 			sql::raw(get_table_postfix()), sql::raw(get_table_postfix()), std::string_view(name, strnlen(name, CHARACTER_NAME_MAX_LEN)));
-    std::unique_ptr<ql_msg> pMsg(db_manager::instance().direct_query(query.c_str(), SQL_PLAYER));
+    std::unique_ptr<sql_msg> pMsg(db_manager::instance().direct_query(query.c_str(), SQL_PLAYER));
 
     if (pMsg->get()->num_rows == 0)
     {
@@ -235,7 +235,7 @@ bool monarch::set_monarch(const char * name)
 
     MYSQL_ROW row;
 	int Empire = 0;
-    while ((row = mysql_fetch_row(pMsg->get()->sql_result)) != nullptr)
+    while ((row = mysql_fetch_row(pMsg->get()->res)) != nullptr)
     {
         int idx = 0;
         str_to_number(Empire, row[idx++]);
@@ -254,7 +254,7 @@ bool monarch::set_monarch(const char * name)
     return true;
 }
 
-bool monarch::del_monarch(const char * name)
+auto monarch::del_monarch(const char * name) -> bool
 {
 	for (int n = 1; n < 4; ++n)
 	{
@@ -264,7 +264,7 @@ bool monarch::del_monarch(const char * name)
 
 			int Empire = n;
 			snprintf(szQuery, sizeof(szQuery), "DELETE FROM monarch WHERE empire=%d", Empire);
-			std::unique_ptr<ql_msg> pMsg(db_manager::instance().direct_query(szQuery, SQL_PLAYER));
+			std::unique_ptr<sql_msg> pMsg(db_manager::instance().direct_query(szQuery, SQL_PLAYER));
 
 			if (pMsg->get()->affected_rows == 0 || pMsg->get()->affected_rows == (uint32_t)-1)
 			{
@@ -282,7 +282,7 @@ bool monarch::del_monarch(const char * name)
 	return false;
 }
 
-int monarch::candidacy_index(uint32_t pid)
+auto monarch::candidacy_index(uint32_t pid) -> int
 {
 	auto it = vec_monarch_candidacy_.begin();
 

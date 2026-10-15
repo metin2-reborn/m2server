@@ -19,7 +19,7 @@
 namespace metin2::game::inline protocol {
 
 
-bool fn_is_valid_login_string(const char *str)
+auto fn_is_valid_login_string(const char *str) -> bool
 {
 	const char*	tmp;
 
@@ -44,7 +44,7 @@ bool fn_is_valid_login_string(const char *str)
 	return true;
 }
 
-bool login_is_in_channel_service(const char* login)
+auto login_is_in_channel_service(const char* login) -> bool
 {
 	if (login[0] == '[')
 		return true;
@@ -158,7 +158,7 @@ void input_auth::login(desc * d, const char * data)
 	}
 }
 
-int input_auth::analyze(desc * d, uint8_t header, const char * data)
+auto input_auth::analyze(desc * d, uint8_t header, const char * data) -> int
 {
 
 	if (!metin2::config::is_auth())

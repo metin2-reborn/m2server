@@ -57,12 +57,12 @@ namespace quest
 		should_send_done_ = false;
 	}
 
-	const std::string & pc::current_quest_name() const
+	auto pc::current_quest_name() const -> const std::string &
 	{
 		return cur_quest_;
 	}
 
-	int	pc::current_quest_index()
+	auto	pc::current_quest_index() -> int
 	{
 		return quest_manager::instance().quest_index_by_name(current_quest_name());
 	}
@@ -93,7 +93,7 @@ namespace quest
 			save_flag(name, value);
 	}
 
-	bool pc::delete_flag(const std::string & name)
+	auto pc::delete_flag(const std::string & name) -> bool
 	{
 		flag_map::iterator it = flag_map_.find(name);
 
@@ -107,7 +107,7 @@ namespace quest
 		return false;
 	}
 
-	int pc::flag(const std::string & name)
+	auto pc::flag(const std::string & name) -> int
 	{
 		flag_map::iterator it = flag_map_.find(name);
 
@@ -449,7 +449,7 @@ namespace quest
 		set_send_flag(QUEST_SEND_ISBEGIN);
 	}
 
-	int pc::current_quest_begin_flag()
+	auto pc::current_quest_begin_flag() -> int
 	{
 		return running_quest_state_?running_quest_state_->index:0;
 	}

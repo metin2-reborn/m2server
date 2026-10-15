@@ -32,18 +32,18 @@ class guild_manager : public singleton<guild_manager>
 		guild_manager();
 		~guild_manager() override;
 
-		uint32_t		create_guild(guild_create_parameter& gcp);
-		guild *	find_guild(uint32_t guild_id);
-		guild *	find_guild_by_name(const std::string guild_name);
+		auto		create_guild(guild_create_parameter& gcp) -> uint32_t;
+		auto	find_guild(uint32_t guild_id) -> guild *;
+		auto	find_guild_by_name(const std::string guild_name) -> guild *;
 		void		load_guild(uint32_t guild_id);
-		guild *	touch_guild(uint32_t guild_id);
+		auto	touch_guild(uint32_t guild_id) -> guild *;
 		void		disband_guild(uint32_t guild_id);
 
 		void		initialize();
 
 		void		link(uint32_t pid, guild* guild);
 		void		unlink(uint32_t pid);
-		guild *	linked_guild(uint32_t pid);
+		auto	linked_guild(uint32_t pid) -> guild *;
 
 		void		login_member(character * ch);
 		void		p2_p_login_member(uint32_t pid);
@@ -64,27 +64,27 @@ class guild_manager : public singleton<guild_manager>
 		void		wait_start_war(uint32_t guild_id1, uint32_t guild_id2);
 		void		war_over(uint32_t guild_id1, uint32_t guild_id2, bool draw);
 		void		cancel_war(uint32_t guild_id1, uint32_t guild_id2);
-		bool		end_war(uint32_t guild_id1, uint32_t guild_id2);
+		auto		end_war(uint32_t guild_id1, uint32_t guild_id2) -> bool;
 		void		reserve_war(uint32_t guild1, uint32_t guild2, uint8_t type);
 
 		void            reserve_war_add(guild_war_reserve * p);
 		void            reserve_war_delete(uint32_t id);
-		std::vector<guild_war_reserve_for_game *> & reserve_war_ref();
+		auto reserve_war_ref() -> std::vector<guild_war_reserve_for_game *> &;
 		void		reserve_war_bet(packet_gd_guild_war_bet * p);
-		bool		is_bet(uint32_t id, const char * login);
+		auto		is_bet(uint32_t id, const char * login) -> bool;
 
 		void		stop_all_guild_war();
 
 		void		kill(character * killer, character * victim);
 
-		int		rank(guild* g);
+		auto		rank(guild* g) -> int;
 		void		high_rank_string(uint32_t my_guild, char * buffer, size_t buflen);
 		void		around_rank_string(uint32_t my_guild, char * buffer, size_t buflen);
 
 		template <typename Func> void for_each_war(Func & f);
 
-		int		disband_delay();
-		int		withdraw_delay();
+		auto		disband_delay() -> int;
+		auto		withdraw_delay() -> int;
 
 		void		change_master(uint32_t gid);
 

@@ -8,7 +8,7 @@ namespace metin2::game {
 
 namespace quest 
 {
-	int ds_open_refine_window(lua_State* lua)
+	auto ds_open_refine_window(lua_State* lua) -> int
 	{
 		character * const ch = quest_manager::instance().current_character_ptr();
 		if (nullptr == ch)
@@ -22,7 +22,7 @@ namespace quest
 		return 0;
 	}
 
-	int ds_give_qualification(lua_State* lua)
+	auto ds_give_qualification(lua_State* lua) -> int
 	{
 		character * const ch = quest_manager::instance().current_character_ptr();
 		if (nullptr == ch)
@@ -35,7 +35,7 @@ namespace quest
 		return 0;
 	}
 
-	int ds_is_qualified(lua_State* lua)
+	auto ds_is_qualified(lua_State* lua) -> int
 	{
 		character * const ch = quest_manager::instance().current_character_ptr();
 		if (nullptr == ch)

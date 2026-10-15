@@ -210,7 +210,7 @@ namespace
 				}
 			}
 
-			character * victim()
+			auto victim() -> character *
 			{
 				return (chr_victim_);
 			}
@@ -226,7 +226,7 @@ namespace
 
 }
 
-bool character::is_aggressive() const
+auto character::is_aggressive() const -> bool
 {
 	return is_set(points_instant_.ai_flag, AIFLAG_AGGRESSIVE);
 }
@@ -236,7 +236,7 @@ void character::set_aggressive()
 	set_bit(points_instant_.ai_flag, AIFLAG_AGGRESSIVE);
 }
 
-bool character::is_coward() const
+auto character::is_coward() const -> bool
 {
 	return is_set(points_instant_.ai_flag, AIFLAG_COWARD);
 }
@@ -246,27 +246,27 @@ void character::set_coward()
 	set_bit(points_instant_.ai_flag, AIFLAG_COWARD);
 }
 
-bool character::is_berserker() const
+auto character::is_berserker() const -> bool
 {
 	return is_set(points_instant_.ai_flag, AIFLAG_BERSERK);
 }
 
-bool character::is_stone_skinner() const
+auto character::is_stone_skinner() const -> bool
 {
 	return is_set(points_instant_.ai_flag, AIFLAG_STONESKIN);
 }
 
-bool character::is_god_speeder() const
+auto character::is_god_speeder() const -> bool
 {
 	return is_set(points_instant_.ai_flag, AIFLAG_GODSPEED);
 }
 
-bool character::is_death_blower() const
+auto character::is_death_blower() const -> bool
 {
 	return is_set(points_instant_.ai_flag, AIFLAG_DEATHBLOW);
 }
 
-bool character::is_reviver() const
+auto character::is_reviver() const -> bool
 {
 	return is_set(points_instant_.ai_flag, AIFLAG_REVIVE);
 }
@@ -311,22 +311,22 @@ void character::coward_escape()
 		}
 }
 
-bool character::is_no_attack_shinsu() const
+auto character::is_no_attack_shinsu() const -> bool
 {
 	return is_set(points_instant_.ai_flag, AIFLAG_NOATTACKSHINSU);
 }
 
-bool character::is_no_attack_chunjo() const
+auto character::is_no_attack_chunjo() const -> bool
 {
 	return is_set(points_instant_.ai_flag, AIFLAG_NOATTACKCHUNJO);
 }
 
-bool character::is_no_attack_jinno() const
+auto character::is_no_attack_jinno() const -> bool
 {
 	return is_set(points_instant_.ai_flag, AIFLAG_NOATTACKJINNO);
 }
 
-bool character::is_attack_mob() const
+auto character::is_attack_mob() const -> bool
 {
 	return is_set(points_instant_.ai_flag, AIFLAG_ATTACKMOB);
 }
@@ -678,7 +678,7 @@ void character::state_idle_monster()
 	monster_chat(MONSTER_CHAT_WAIT);
 }
 
-bool character_goto_near_target(character * self, character * victim)
+auto character_goto_near_target(character * self, character * victim) -> bool
 {
 	if (is_set(self->ai_flag(), AIFLAG_NOMOVE))
 		return false;

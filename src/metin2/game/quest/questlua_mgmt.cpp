@@ -12,7 +12,7 @@ namespace metin2::game {
 
 namespace quest
 {
-	int mgmt_monarch_state(lua_State* lua)
+	auto mgmt_monarch_state(lua_State* lua) -> int
 	{
 		if ( lua_isnumber(lua, 1) == false )
 		{
@@ -36,7 +36,7 @@ namespace quest
 		return 4;
 	}
 
-	int mgmt_monarch_change_lord(lua_State* lua)
+	auto mgmt_monarch_change_lord(lua_State* lua) -> int
 	{
 		if ( lua_isnumber(lua, 1) == false || lua_isnumber(lua, 2) == false )
 		{

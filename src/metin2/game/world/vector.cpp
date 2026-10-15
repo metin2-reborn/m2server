@@ -8,8 +8,8 @@ namespace metin2::game::inline world {
 
 
 
-static float degree_to_radian(float degree) { return degree * (std::numbers::pi_v<float> / 180.0f); }
-static float radian_to_degree(float radian) { return radian * (180.0f / std::numbers::pi_v<float>); }
+static auto degree_to_radian(float degree) -> float { return degree * (std::numbers::pi_v<float> / 180.0f); }
+static auto radian_to_degree(float radian) -> float { return radian * (180.0f / std::numbers::pi_v<float>); }
 
 void normalize(vector * v1, vector * v2)
 {
@@ -20,12 +20,12 @@ void normalize(vector * v1, vector * v2)
 	v2->z = v1->z / l;
 }
 
-float dot_product(vector * v1, vector * v2)
+auto dot_product(vector * v1, vector * v2) -> float
 {
 	return v1->x * v2->x + v1->y * v2->y + v1->z * v2->z;
 }
 
-float get_degree_from_position(float x, float y)
+auto get_degree_from_position(float x, float y) -> float
 {   
 	vector	vtDir;
 	vector	vtStan;
@@ -49,7 +49,7 @@ float get_degree_from_position(float x, float y)
 	return (ret);
 }   
 
-float get_degree_from_position_xy(int32_t sx, int32_t sy, int32_t ex, int32_t ey)
+auto get_degree_from_position_xy(int32_t sx, int32_t sy, int32_t ex, int32_t ey) -> float
 {
 	return get_degree_from_position(ex - sx, ey - sy);
 }
@@ -62,7 +62,7 @@ void get_delta_by_degree(float degree, float distance, float *x, float *y)
 	*y = distance * cos(fRadian);
 }
 
-float get_degree_delta(float degree, float degree2)
+auto get_degree_delta(float degree, float degree2) -> float
 {
 	if (degree > 180.0f)
 		degree = degree - 360.0f;

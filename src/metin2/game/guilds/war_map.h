@@ -39,7 +39,7 @@ namespace warmap
 		WAR_FLAG_BASE_VNUM = 20038
 	};
 
-	inline bool is_war_flag(uint32_t vnum)
+	inline auto is_war_flag(uint32_t vnum) -> bool
 	{
 		if (vnum >= WAR_FLAG_VNUM_START && vnum <= WAR_FLAG_VNUM_END)
 			return true;
@@ -47,7 +47,7 @@ namespace warmap
 		return false;
 	}
 
-	inline bool is_war_flag_base(uint32_t vnum)
+	inline auto is_war_flag_base(uint32_t vnum) -> bool
 	{
 		return vnum == WAR_FLAG_BASE_VNUM ? true : false;
 	}
@@ -61,24 +61,24 @@ class war_map
 		war_map(int32_t map_index_value, const guild_war_info & r_info, war_map_info * war_map_info_value, uint32_t guild_id1, uint32_t guild_id2);
 		~war_map();
 
-		bool	team_index(uint32_t guild_id, uint8_t & idx);
+		auto	team_index(uint32_t guild_id, uint8_t & idx) -> bool;
 
 		void	inc_member(character * ch);
 		void	dec_member(character * ch);
 
-		guild * get_guild(uint8_t idx);
+		auto get_guild(uint8_t idx) -> guild *;
 
-		uint8_t	type();
-		int32_t	map_index();
-		uint32_t	guild_opponent(character * ch);
+		auto	type() -> uint8_t;
+		auto	map_index() -> int32_t;
+		auto	guild_opponent(character * ch) -> uint32_t;
 
-		uint32_t	winner_guild();
+		auto	winner_guild() -> uint32_t;
 		void	use_potion(character * ch, item * item);
 
 		void	draw();
 		void	timeout();
 		void	check_war_end();
-		bool	set_ended();
+		auto	set_ended() -> bool;
 		void	exit_all();
 
 		void	set_begin_event(event_ptr ev);
@@ -87,9 +87,9 @@ class war_map
 		void	set_reset_flag_event(event_ptr ev);
 
 		void	update_score(uint32_t g1, int score1, uint32_t g2, int score2);
-		bool	check_score();
+		auto	check_score() -> bool;
 
-		int	reward_gold(uint8_t winner_idx);
+		auto	reward_gold(uint8_t winner_idx) -> int;
 
 		void	packet(const void * p, int size);
 		void	notice(const char * psz);
@@ -101,7 +101,7 @@ class war_map
 		void	add_flag(uint8_t idx, uint32_t x=0, uint32_t y=0);
 		void	add_flag_base(uint8_t idx, uint32_t x=0, uint32_t y=0);
 		void	remove_flag(uint8_t idx);
-		bool	is_flag_on_base(uint8_t idx);
+		auto	is_flag_on_base(uint8_t idx) -> bool;
 		void	reset_flag();
 
 	private:
@@ -129,8 +129,8 @@ class war_map
 
 			void initialize();
 
-			int accumulated_joiner_count();
-			int cur_jointer_count();
+			auto accumulated_joiner_count() -> int;
+			auto cur_jointer_count() -> int;
 
 			void append_member(character * ch);
 			void remove_member(character * ch);
@@ -152,15 +152,15 @@ class war_map_manager : public singleton<war_map_manager>
 		war_map_manager();
 		~war_map_manager() override;
 
-		bool		load_war_map_info(const char * file_name);
-		bool		is_war_map(int32_t map_index);
-		war_map_info *	get_war_map_info(int32_t map_index);
-		bool		start_position(int32_t map_index, uint8_t idx, pixel_position & pos);
+		auto		load_war_map_info(const char * file_name) -> bool;
+		auto		is_war_map(int32_t map_index) -> bool;
+		auto	get_war_map_info(int32_t map_index) -> war_map_info *;
+		auto		start_position(int32_t map_index, uint8_t idx, pixel_position & pos) -> bool;
 
-		template <typename Func> Func for_each(Func f);
-		int32_t		create_war_map(const guild_war_info & guild_war_info_value, uint32_t guild_id1, uint32_t guild_id2);
+		template <typename Func> auto for_each(Func f) -> Func;
+		auto		create_war_map(const guild_war_info & guild_war_info_value, uint32_t guild_id1, uint32_t guild_id2) -> int32_t;
 		void		destroy_war_map(war_map* map);
-		war_map *	find(int32_t map_index);
+		auto	find(int32_t map_index) -> war_map *;
 
 		void		on_shutdown();
 
@@ -169,7 +169,7 @@ class war_map_manager : public singleton<war_map_manager>
 		std::map<int32_t, war_map *> war_map_;
 };
 
-template <typename Func> Func war_map_manager::for_each(Func f)
+template <typename Func> auto war_map_manager::for_each(Func f) -> Func
 {
 	for (auto it = war_map_.begin(); it != war_map_.end(); ++it)
 		f(it->second);

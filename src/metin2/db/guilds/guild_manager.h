@@ -42,7 +42,7 @@ struct guild_declare_info
 		guild_id[1] = guild_id2;
 	}
 
-	bool operator < (const guild_declare_info& r) const
+	auto operator < (const guild_declare_info& r) const -> bool
 	{
 		return guild_id[0] < r.guild_id[0] || (guild_id[0] == r.guild_id[0] && guild_id[1] < r.guild_id[1]);
 	}
@@ -68,7 +68,7 @@ struct guild_wait_start_info
 		gid[1] = g2;
 	}
 
-	bool operator < (const guild_wait_start_info& r) const
+	auto operator < (const guild_wait_start_info& r) const -> bool
 	{
 		return gid[0] < r.gid[0] || (gid[0] == r.gid[0] && gid[1] < r.gid[1]);
 	}
@@ -102,7 +102,7 @@ struct guild_skill_used
     }
 };
 
-inline bool operator < (const guild_skill_used& a, const guild_skill_used& b)
+inline auto operator < (const guild_skill_used& a, const guild_skill_used& b) -> bool
 {
     return a.gid < b.gid || (a.gid == b.gid && a.skill_vnum < b.skill_vnum);
 }
@@ -138,17 +138,17 @@ class guild_war_reservation
 
 	void initialize();
 
-	guild_war_reserve & data_ref()
+	auto data_ref() -> guild_war_reserve &
 	{
 	    return data_;
 	}
 
 	void	on_setup(peer * peer);
-	bool	bet(const char * login_value, uint32_t gold_value, uint32_t guild_value);
+	auto	bet(const char * login_value, uint32_t gold_value, uint32_t guild_value) -> bool;
 	void	draw();
 	void	end(int score_from, int score_to);
 
-	int	last_notice_min() { return last_notice_min_; }
+	auto	last_notice_min() -> int { return last_notice_min_; }
 	void	set_last_notice_min(int min) { last_notice_min_ = min; }
 
     private:
@@ -169,7 +169,7 @@ class guild_manager : public singleton<guild_manager>
 
 	void	load(uint32_t guild_id);
 
-	guild & touch_guild(uint32_t gid);
+	auto touch_guild(uint32_t gid) -> guild &;
 
 	void	update();
 
@@ -181,7 +181,7 @@ class guild_manager : public singleton<guild_manager>
 	void	add_declare(uint8_t type, uint32_t guild_from, uint32_t guild_to);
 	void	remove_declare(uint32_t guild_from, uint32_t guild_to);
 
-	bool	take_bet_price(uint32_t guild_to, uint32_t guild_from, int32_t war_price);
+	auto	take_bet_price(uint32_t guild_to, uint32_t guild_from, int32_t war_price) -> bool;
 
 	void	recv_war_end(uint32_t gid1, uint32_t gid2);
 	void	recv_war_over(uint32_t guild_winner, uint32_t guild_loser, bool draw_value, int32_t war_price);
@@ -198,25 +198,25 @@ class guild_manager : public singleton<guild_manager>
 
 	void	query_ranking();
 	void	result_ranking(MYSQL_RES * res);
-	int	ranking(uint32_t gid);
+	auto	ranking(uint32_t gid) -> int;
 
 	void	boot_reserve_war();
-	bool	reserve_war(packet_guild_war * p);
+	auto	reserve_war(packet_guild_war * p) -> bool;
 	void	process_reserve_war();
-	bool	bet(uint32_t id, const char * login, uint32_t gold, uint32_t guild);
+	auto	bet(uint32_t id, const char * login, uint32_t gold, uint32_t guild) -> bool;
 
 	void	cancel_war(uint32_t gid1, uint32_t gid2);
 
-	bool	change_master(uint32_t gid, uint32_t from, uint32_t to);
+	auto	change_master(uint32_t gid, uint32_t from, uint32_t to) -> bool;
 
     private:
-	void parse_result(ql_result * res);
+	void parse_result(sql_result * res);
 
 	void remove_war(uint32_t gid1, uint32_t gid2);
 
 	void war_end(uint32_t gid1, uint32_t gid2, bool force_draw = false);
 
-	int ladder_point(uint32_t gid);
+	auto ladder_point(uint32_t gid) -> int;
 
 	void guild_war_win(uint32_t gid);
 	void guild_war_draw(uint32_t gid);
@@ -225,7 +225,7 @@ class guild_manager : public singleton<guild_manager>
 	void process_draw(uint32_t guild_id1, uint32_t guild_id2);
 	void process_win_lose(uint32_t guild_winner, uint32_t guild_loser);
 
-	bool is_half_win_ladder_point(uint32_t guild_winner, uint32_t guild_loser);
+	auto is_half_win_ladder_point(uint32_t guild_winner, uint32_t guild_loser) -> bool;
 
 	std::map<uint32_t, guild>					map_k_guild_;
 	std::map<uint32_t, std::map<uint32_t, time_t> >		guild_war_end_time_;

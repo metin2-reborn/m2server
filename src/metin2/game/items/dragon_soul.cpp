@@ -30,7 +30,7 @@
 namespace metin2::game::inline items {
 
 typedef std::vector <std::string> token_vector;
-int gamble(std::vector<float>& vec_probs)
+auto gamble(std::vector<float>& vec_probs) -> int
 {
 	float range = 0.f;
 	for (size_t i = 0; i < vec_probs.size(); i++)
@@ -48,7 +48,7 @@ int gamble(std::vector<float>& vec_probs)
 	return -1;
 }
 
-bool make_distinct_random_number_set(std::list <float> prob_lst, std::vector<int>& random_set)
+auto make_distinct_random_number_set(std::list <float> prob_lst, std::vector<int>& random_set) -> bool
 {
 	int size = prob_lst.size();
 	int n = random_set.size();
@@ -84,27 +84,27 @@ bool make_distinct_random_number_set(std::list <float> prob_lst, std::vector<int
 }
 
 
-uint8_t get_type(uint32_t vnum)
+auto get_type(uint32_t vnum) -> uint8_t
 {
 	return (vnum / 10000);
 }
 
-uint8_t get_grade_idx(uint32_t vnum)
+auto get_grade_idx(uint32_t vnum) -> uint8_t
 {
 	return (vnum / 1000) % 10;
 }
 
-uint8_t get_step_idx(uint32_t vnum)
+auto get_step_idx(uint32_t vnum) -> uint8_t
 {
 	return (vnum / 100) % 10;
 }
 
-uint8_t get_strength_idx(uint32_t vnum)
+auto get_strength_idx(uint32_t vnum) -> uint8_t
 {
 	return (vnum / 10) % 10;
 }
 
-bool ds_manager::read_dragon_soul_table_file(const char * file_name)
+auto ds_manager::read_dragon_soul_table_file(const char * file_name) -> bool
 {
 	table_ = std::make_unique<dragon_soul_table>();
 	return table_->read_dragon_soul_table_file(file_name);
@@ -118,7 +118,7 @@ void ds_manager::dragon_soul_info(uint32_t vnum, uint8_t& type, uint8_t& grade, 
 	strength = get_strength_idx(vnum);
 }
 
-bool ds_manager::is_valid_cell_for_this_item(item * const item_value, const item_pos& cell_value) const
+auto ds_manager::is_valid_cell_for_this_item(item * const item_value, const item_pos& cell_value) const -> bool
 {
 	if (nullptr == item_value)
 		return false;
@@ -137,7 +137,7 @@ bool ds_manager::is_valid_cell_for_this_item(item * const item_value, const item
 
 }
 
-uint16_t ds_manager::base_position(item * const item_value) const
+auto ds_manager::base_position(item * const item_value) const -> uint16_t
 {
 	if (nullptr == item_value)
 		return WORD_MAX;
@@ -153,7 +153,7 @@ uint16_t ds_manager::base_position(item * const item_value) const
 	return col_type * DRAGON_SOUL_STEP_MAX * DRAGON_SOUL_BOX_SIZE + row_type * DRAGON_SOUL_BOX_SIZE;
 }
 
-bool ds_manager::refresh_item_attributes(item * ds)
+auto ds_manager::refresh_item_attributes(item * ds) -> bool
 {
 	if (!ds->is_dragon_soul())
 	{
@@ -222,7 +222,7 @@ bool ds_manager::refresh_item_attributes(item * ds)
 	return true;
 }
 
-bool ds_manager::put_attributes(item * ds)
+auto ds_manager::put_attributes(item * ds) -> bool
 {
 	if (!ds->is_dragon_soul())
 	{
@@ -303,7 +303,7 @@ bool ds_manager::put_attributes(item * ds)
 	return true;
 }
 
-bool ds_manager::dragon_soul_item_initialize(item * item_value)
+auto ds_manager::dragon_soul_item_initialize(item * item_value) -> bool
 {
 	if (nullptr == item_value || !item_value->is_dragon_soul())
 		return false;
@@ -314,17 +314,17 @@ bool ds_manager::dragon_soul_item_initialize(item * item_value)
 	return true;
 }
 
-uint32_t ds_manager::make_dragon_soul_vnum(uint8_t type, uint8_t grade, uint8_t step, uint8_t refine)
+auto ds_manager::make_dragon_soul_vnum(uint8_t type, uint8_t grade, uint8_t step, uint8_t refine) -> uint32_t
 {
 	return type * 10000 + grade * 1000 + step * 100 + refine * 10;
 }
 
-int ds_manager::duration(item * const item_value) const
+auto ds_manager::duration(item * const item_value) const -> int
 {
 	return item_value->duration();
 }
 
-bool ds_manager::extract_dragon_heart(character * ch, item * item_value, item * extractor)
+auto ds_manager::extract_dragon_heart(character * ch, item * item_value, item * extractor) -> bool
 {
 	if (nullptr == ch || nullptr == item_value)
 		return false;
@@ -408,7 +408,7 @@ bool ds_manager::extract_dragon_heart(character * ch, item * item_value, item * 
 	}
 }
 
-bool ds_manager::pull_out(character * ch, item_pos dest_cell, item *& item_value, item * extractor)
+auto ds_manager::pull_out(character * ch, item_pos dest_cell, item *& item_value, item * extractor) -> bool
 {
 	if (nullptr == ch || nullptr == item_value)
 	{
@@ -507,7 +507,7 @@ bool ds_manager::pull_out(character * ch, item_pos dest_cell, item *& item_value
 	return bSuccess;
 }
 
-bool ds_manager::do_refine_grade(character * ch, item_pos (&item_poses)[DRAGON_SOUL_REFINE_GRID_SIZE])
+auto ds_manager::do_refine_grade(character * ch, item_pos (&item_poses)[DRAGON_SOUL_REFINE_GRID_SIZE]) -> bool
 {
 	if (nullptr == ch)
 		return false;
@@ -658,7 +658,7 @@ bool ds_manager::do_refine_grade(character * ch, item_pos (&item_poses)[DRAGON_S
 	}
 }
 
-bool ds_manager::do_refine_step(character * ch, item_pos (&item_poses)[DRAGON_SOUL_REFINE_GRID_SIZE])
+auto ds_manager::do_refine_step(character * ch, item_pos (&item_poses)[DRAGON_SOUL_REFINE_GRID_SIZE]) -> bool
 {
 	if (nullptr == ch)
 		return false;
@@ -800,7 +800,7 @@ bool ds_manager::do_refine_step(character * ch, item_pos (&item_poses)[DRAGON_SO
 	}
 }
 
-bool is_dragon_soul_refine_material(item * item_value)
+auto is_dragon_soul_refine_material(item * item_value) -> bool
 {
 	if (item_value->type() != ITEM_MATERIAL)
 		return false;
@@ -809,7 +809,7 @@ bool is_dragon_soul_refine_material(item * item_value)
 		item_value->sub_type() == MATERIAL_DS_REFINE_HOLLY);
 }
 
-bool ds_manager::do_refine_strength(character * ch, item_pos (&item_poses)[DRAGON_SOUL_REFINE_GRID_SIZE])
+auto ds_manager::do_refine_strength(character * ch, item_pos (&item_poses)[DRAGON_SOUL_REFINE_GRID_SIZE]) -> bool
 {
 	if (nullptr == ch)
 		return false;
@@ -998,7 +998,7 @@ void ds_manager::send_refine_result_packet(character * ch, uint8_t sub_header, c
 	}
 }
 
-int ds_manager::left_time(item * item_value) const
+auto ds_manager::left_time(item * item_value) const -> int
 {
 	if (item_value == nullptr)
 		return false;
@@ -1013,7 +1013,7 @@ int ds_manager::left_time(item * item_value) const
 	}
 }
 
-bool ds_manager::is_time_left_dragon_soul(item * item_value) const
+auto ds_manager::is_time_left_dragon_soul(item * item_value) const -> bool
 {
 	if (item_value == nullptr)
 		return false;
@@ -1028,12 +1028,12 @@ bool ds_manager::is_time_left_dragon_soul(item * item_value) const
 	}
 }
 
-bool ds_manager::is_active_dragon_soul(item * item_value) const
+auto ds_manager::is_active_dragon_soul(item * item_value) const -> bool
 {
 	return item_value->get_socket(ITEM_SOCKET_DRAGON_SOUL_ACTIVE_IDX);
 }
 
-bool ds_manager::activate_dragon_soul(item * item_value)
+auto ds_manager::activate_dragon_soul(item * item_value) -> bool
 {
 	if (nullptr == item_value)
 		return false;
@@ -1065,7 +1065,7 @@ bool ds_manager::activate_dragon_soul(item * item_value)
 		return false;
 }
 
-bool ds_manager::deactivate_dragon_soul(item * item_value, bool skip_refresh_owner_active_state)
+auto ds_manager::deactivate_dragon_soul(item * item_value, bool skip_refresh_owner_active_state) -> bool
 {
 	if (nullptr == item_value)
 		return false;

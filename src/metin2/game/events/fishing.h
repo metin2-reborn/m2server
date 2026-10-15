@@ -34,13 +34,13 @@ namespace fishing
 	};
 
 	extern void initialize();
-	extern event_ptr create_fishing_event(character * ch);
+	extern auto create_fishing_event(character * ch) -> event_ptr;
 	extern void take(fishing_event_info* info, character * ch);
 	extern void simulation(int level, int count, int prob_idx, character * ch);
 	extern void use_fish(character * ch, item * item);
 	extern void grill(character * ch, item * item);
 
-	extern bool refinable_rod(item * rod);
-	extern int real_refine_rod(character * ch, item * item);
+	extern auto refinable_rod(item * rod) -> bool;
+	extern auto real_refine_rod(character * ch, item * item) -> int;
 }
 }

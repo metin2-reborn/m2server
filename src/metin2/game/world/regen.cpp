@@ -52,7 +52,7 @@ enum regen_modes
 	MODE_VNUM
 };
 
-static bool get_word(FILE *fp, char *buf)
+static auto get_word(FILE *fp, char *buf) -> bool
 {
 	int i = 0;
 	int c;
@@ -114,7 +114,7 @@ static void next_line(FILE *fp)
 			return;
 }
 
-static bool read_line(FILE *fp, regen * regen)
+static auto read_line(FILE *fp, regen * regen) -> bool
 {
 	char szTmp[256];
 
@@ -420,7 +420,7 @@ EVENTFUNC(dungeon_regen_event)
 	return passes_per_sec(regen->time);
 }
 
-bool regen_do(const char* filename, int32_t map_index_value, int base_x, int base_y, dungeon * dungeon_value, bool once)
+auto regen_do(const char* filename, int32_t map_index_value, int base_x, int base_y, dungeon * dungeon_value, bool once) -> bool
 {
 	if (metin2::config::game().no_regen)
 		return true;
@@ -517,7 +517,7 @@ bool regen_do(const char* filename, int32_t map_index_value, int base_x, int bas
 	return true;
 }
 
-bool regen_load_in_file(const char* filename, int32_t map_index_value, int base_x, int base_y)
+auto regen_load_in_file(const char* filename, int32_t map_index_value, int base_x, int base_y) -> bool
 {
 	if (metin2::config::game().no_regen)
 		return true;
@@ -608,7 +608,7 @@ EVENTFUNC(regen_event)
 	return passes_per_sec(regen->time);
 }
 
-bool regen_load(const char* filename, int32_t map_index_value, int base_x, int base_y)
+auto regen_load(const char* filename, int32_t map_index_value, int base_x, int base_y) -> bool
 {
 	if (metin2::config::game().no_regen)
 		return true;

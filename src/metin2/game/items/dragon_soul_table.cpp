@@ -49,7 +49,7 @@ const std::string ast_material_name[] =
 	"material_ds_refine_holly",
 };
 
-bool dragon_soul_table::read_dragon_soul_table_file(const char * file_name)
+auto dragon_soul_table::read_dragon_soul_table_file(const char * file_name) -> bool
 {
 	loader_ = std::make_unique<group_text_parse_tree_loader>();
 	group_text_parse_tree_loader& loader = *loader_;
@@ -94,7 +94,7 @@ bool dragon_soul_table::read_dragon_soul_table_file(const char * file_name)
 	}
 }
 
-bool dragon_soul_table::dragon_soul_group_name(uint8_t type, std::string& group_name) const
+auto dragon_soul_table::dragon_soul_group_name(uint8_t type, std::string& group_name) const -> bool
 {
 	dragon_soul_table::map_type_to_name::const_iterator it = map_type_to_name_.find (type);
 	if (it != map_type_to_name_.end())
@@ -109,7 +109,7 @@ bool dragon_soul_table::dragon_soul_group_name(uint8_t type, std::string& group_
 	}
 }
 
-bool dragon_soul_table::read_vnum_mapper()
+auto dragon_soul_table::read_vnum_mapper() -> bool
 {
 	std::string stName;
 
@@ -162,7 +162,7 @@ bool dragon_soul_table::read_vnum_mapper()
 	return true;
 }
 
-bool dragon_soul_table::read_basic_applys()
+auto dragon_soul_table::read_basic_applys() -> bool
 {
 	group_node* pGroupNode = loader_->group("basicapplys");
 
@@ -221,7 +221,7 @@ bool dragon_soul_table::read_basic_applys()
 	return true;
 }
 
-bool dragon_soul_table::read_additional_applys()
+auto dragon_soul_table::read_additional_applys() -> bool
 {
 	group_node* pGroupNode = loader_->group("additionalapplys");
 	if (nullptr == pGroupNode)
@@ -280,7 +280,7 @@ bool dragon_soul_table::read_additional_applys()
 	return true;
 }
 
-bool dragon_soul_table::check_apply_num_settings ()
+auto dragon_soul_table::check_apply_num_settings () -> bool
 {
 	if (nullptr == apply_num_setting_node_)
 	{
@@ -307,7 +307,7 @@ bool dragon_soul_table::check_apply_num_settings ()
 	return true;
 }
 
-bool dragon_soul_table::check_weight_tables ()
+auto dragon_soul_table::check_weight_tables () -> bool
 {
 	if (nullptr == weight_table_node_)
 	{
@@ -338,7 +338,7 @@ bool dragon_soul_table::check_weight_tables ()
 	return true;
 }
 
-bool dragon_soul_table::check_refine_grade_tables()
+auto dragon_soul_table::check_refine_grade_tables() -> bool
 {
 	if (nullptr == refine_grade_table_node_)
 	{
@@ -391,7 +391,7 @@ bool dragon_soul_table::check_refine_grade_tables()
 	return true;
 }
 
-bool dragon_soul_table::check_refine_step_tables ()
+auto dragon_soul_table::check_refine_step_tables () -> bool
 {
 	if (nullptr == refine_strength_table_node_)
 	{
@@ -447,7 +447,7 @@ bool dragon_soul_table::check_refine_step_tables ()
 }
 
 
-bool dragon_soul_table::check_refine_strength_tables()
+auto dragon_soul_table::check_refine_strength_tables() -> bool
 {
 	group_node* pGroupNode = refine_strength_table_node_;
 	if (nullptr == pGroupNode)
@@ -488,7 +488,7 @@ bool dragon_soul_table::check_refine_strength_tables()
 	return true;
 }
 
-bool dragon_soul_table::check_dragon_heart_ext_tables()
+auto dragon_soul_table::check_dragon_heart_ext_tables() -> bool
 {
 	if (nullptr == dragon_heart_ext_table_node_)
 	{
@@ -538,7 +538,7 @@ bool dragon_soul_table::check_dragon_heart_ext_tables()
 	return true;
 }
 
-bool dragon_soul_table::check_dragon_soul_ext_tables()
+auto dragon_soul_table::check_dragon_soul_ext_tables() -> bool
 {
 	if (nullptr == dragon_soul_ext_table_node_)
 	{
@@ -574,7 +574,7 @@ bool dragon_soul_table::check_dragon_soul_ext_tables()
 	return true;
 }
 
-bool dragon_soul_table::basic_applys(uint8_t ds_type, vec_applys& vec_basic_applys)
+auto dragon_soul_table::basic_applys(uint8_t ds_type, vec_applys& vec_basic_applys) -> bool
 {
 	map_apply_group::iterator it = map_basic_applys_group_.find(ds_type);
 	if (map_basic_applys_group_.end() == it)
@@ -585,7 +585,7 @@ bool dragon_soul_table::basic_applys(uint8_t ds_type, vec_applys& vec_basic_appl
 	return true;
 }
 
-bool dragon_soul_table::additional_applys(uint8_t ds_type, vec_applys& vec_additional_applys)
+auto dragon_soul_table::additional_applys(uint8_t ds_type, vec_applys& vec_additional_applys) -> bool
 {
 	map_apply_group::iterator it = map_additional_applys_group_.find(ds_type);
 	if (map_additional_applys_group_.end() == it)
@@ -596,7 +596,7 @@ bool dragon_soul_table::additional_applys(uint8_t ds_type, vec_applys& vec_addit
 	return true;
 }
 
-bool dragon_soul_table::apply_num_settings(uint8_t ds_type, uint8_t grade_idx, int& basis, int& add_min, int& add_max)
+auto dragon_soul_table::apply_num_settings(uint8_t ds_type, uint8_t grade_idx, int& basis, int& add_min, int& add_max) -> bool
 {
 	if (grade_idx >= DRAGON_SOUL_GRADE_MAX)
 	{
@@ -633,7 +633,7 @@ bool dragon_soul_table::apply_num_settings(uint8_t ds_type, uint8_t grade_idx, i
 	return true;
 }
 
-bool dragon_soul_table::weight(uint8_t ds_type, uint8_t grade_idx, uint8_t step_index, uint8_t strength_idx, float& weight)
+auto dragon_soul_table::weight(uint8_t ds_type, uint8_t grade_idx, uint8_t step_index, uint8_t strength_idx, float& weight) -> bool
 {
 	if (grade_idx >= DRAGON_SOUL_GRADE_MAX || step_index >= DRAGON_SOUL_STEP_MAX || strength_idx >= DRAGON_SOUL_STRENGTH_MAX)
 	{
@@ -672,7 +672,7 @@ bool dragon_soul_table::weight(uint8_t ds_type, uint8_t grade_idx, uint8_t step_
 	return false;
 }
 
-bool dragon_soul_table::refine_grade_values(uint8_t ds_type, uint8_t grade_idx, int& need_count, int& fee, std::vector<float>& vec_probs)
+auto dragon_soul_table::refine_grade_values(uint8_t ds_type, uint8_t grade_idx, int& need_count, int& fee, std::vector<float>& vec_probs) -> bool
 {
 	if (grade_idx >= DRAGON_SOUL_GRADE_MAX -1)
 	{
@@ -720,7 +720,7 @@ bool dragon_soul_table::refine_grade_values(uint8_t ds_type, uint8_t grade_idx, 
 	return true;
 }
 
-bool dragon_soul_table::refine_step_values(uint8_t ds_type, uint8_t step_idx, int& need_count, int& fee, std::vector<float>& vec_probs)
+auto dragon_soul_table::refine_step_values(uint8_t ds_type, uint8_t step_idx, int& need_count, int& fee, std::vector<float>& vec_probs) -> bool
 {
 	if (step_idx >= DRAGON_SOUL_STEP_MAX - 1)
 	{
@@ -768,7 +768,7 @@ bool dragon_soul_table::refine_step_values(uint8_t ds_type, uint8_t step_idx, in
 	return true;
 }
 
-bool dragon_soul_table::refine_strength_values(uint8_t ds_type, uint8_t material_type, uint8_t strength_idx, int& fee, float& prob)
+auto dragon_soul_table::refine_strength_values(uint8_t ds_type, uint8_t material_type, uint8_t strength_idx, int& fee, float& prob) -> bool
 {
 	if (material_type < MATERIAL_DS_REFINE_NORMAL || material_type > MATERIAL_DS_REFINE_HOLLY)
 	{
@@ -802,7 +802,7 @@ bool dragon_soul_table::refine_strength_values(uint8_t ds_type, uint8_t material
 	return true;
 }
 
-bool dragon_soul_table::dragon_heart_ext_values(uint8_t ds_type, uint8_t grade_idx, std::vector<float>& vec_chargings, std::vector<float>& vec_probs)
+auto dragon_soul_table::dragon_heart_ext_values(uint8_t ds_type, uint8_t grade_idx, std::vector<float>& vec_chargings, std::vector<float>& vec_probs) -> bool
 {
 	if (grade_idx >= DRAGON_SOUL_GRADE_MAX)
 	{
@@ -860,7 +860,7 @@ bool dragon_soul_table::dragon_heart_ext_values(uint8_t ds_type, uint8_t grade_i
 	return true;
 }
 
-bool dragon_soul_table::dragon_soul_ext_values(uint8_t ds_type, uint8_t grade_idx, float& prob, uint32_t& by_product)
+auto dragon_soul_table::dragon_soul_ext_values(uint8_t ds_type, uint8_t grade_idx, float& prob, uint32_t& by_product) -> bool
 {
 	if (grade_idx >= DRAGON_SOUL_GRADE_MAX)
 	{

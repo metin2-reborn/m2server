@@ -37,50 +37,50 @@ namespace quest
 
 			void	set(unsigned int vnum, const std::string & script_name);
 
-			static bool has_start_state(const a_quest_script_type & q)
+			static auto has_start_state(const a_quest_script_type & q) -> bool
 			{
 				return q.find(0) != q.end();
 			}
 
-			static bool has_start_state(const a_arg_quest_script_type& q)
+			static auto has_start_state(const a_arg_quest_script_type& q) -> bool
 			{
 				return q.find(0) != q.end();
 			}
 
-			bool	on_server_timer(pc& pc);
+			auto	on_server_timer(pc& pc) -> bool;
 
-			bool	on_click(pc& pc);
-			bool	on_kill(pc& pc);
-			bool	on_party_kill(pc& pc);
-			bool	on_timer(pc& pc);
-			bool	on_level_up(pc& pc);
-			bool	on_login(pc& pc, const char * quest_name = nullptr);
-			bool	on_logout(pc& pc);
-			bool	on_button(pc& pc, unsigned int quest_index);
-			bool	on_info(pc& pc, unsigned int quest_index);
-			bool	on_attr_in(pc& pc);
-			bool	on_attr_out(pc& pc);
-			bool	on_use_item(pc& pc, bool receive_all);
-			bool	on_take_item(pc& pc);
-			bool	on_enter_state(pc& pc, uint32_t quest_index, int state);
-			bool	on_leave_state(pc& pc, uint32_t quest_index, int state);
-			bool	on_letter(pc& pc, uint32_t quest_index, int state);
-			bool	on_chat(pc& pc);
-			bool	has_chat();
+			auto	on_click(pc& pc) -> bool;
+			auto	on_kill(pc& pc) -> bool;
+			auto	on_party_kill(pc& pc) -> bool;
+			auto	on_timer(pc& pc) -> bool;
+			auto	on_level_up(pc& pc) -> bool;
+			auto	on_login(pc& pc, const char * quest_name = nullptr) -> bool;
+			auto	on_logout(pc& pc) -> bool;
+			auto	on_button(pc& pc, unsigned int quest_index) -> bool;
+			auto	on_info(pc& pc, unsigned int quest_index) -> bool;
+			auto	on_attr_in(pc& pc) -> bool;
+			auto	on_attr_out(pc& pc) -> bool;
+			auto	on_use_item(pc& pc, bool receive_all) -> bool;
+			auto	on_take_item(pc& pc) -> bool;
+			auto	on_enter_state(pc& pc, uint32_t quest_index, int state) -> bool;
+			auto	on_leave_state(pc& pc, uint32_t quest_index, int state) -> bool;
+			auto	on_letter(pc& pc, uint32_t quest_index, int state) -> bool;
+			auto	on_chat(pc& pc) -> bool;
+			auto	has_chat() -> bool;
 
-			bool	on_item_informer(pc& pc,unsigned int vnum);
+			auto	on_item_informer(pc& pc,unsigned int vnum) -> bool;
 
-			bool	on_target(pc& pc, uint32_t quest_index, const char * target_name, const char * verb, bool & ret);
-			bool	on_unmount(pc& pc);
+			auto	on_target(pc& pc, uint32_t quest_index, const char * target_name, const char * verb, bool & ret) -> bool;
+			auto	on_unmount(pc& pc) -> bool;
 
-			bool	on_pickup_item(pc& pc);
-			bool	on_sig_use(pc& pc, bool receive_all);
+			auto	on_pickup_item(pc& pc) -> bool;
+			auto	on_sig_use(pc& pc, bool receive_all) -> bool;
 
-			bool	handle_event(pc& pc, int event_index);
-			bool	handle_receive_all_event(pc& pc, int event_index);
-			bool	handle_receive_all_no_wait_event(pc& pc, int event_index);
+			auto	handle_event(pc& pc, int event_index) -> bool;
+			auto	handle_receive_all_event(pc& pc, int event_index) -> bool;
+			auto	handle_receive_all_no_wait_event(pc& pc, int event_index) -> bool;
 
-			bool	execute_event_script(pc& pc, int event_index, uint32_t quest_index, int state);
+			auto	execute_event_script(pc& pc, int event_index, uint32_t quest_index, int state) -> bool;
 
 		protected:
 			template <typename TQuestMapType, typename FuncMatch, typename FuncMiss>

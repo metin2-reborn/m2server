@@ -35,7 +35,7 @@ namespace metin2::db::inline caches {
 namespace metin2::db::inline clients {
 
 
-std::string create_player_save_query(const player_table * tab);
+auto create_player_save_query(const player_table * tab) -> std::string;
 
 class client_manager : public singleton<client_manager>
 {
@@ -81,8 +81,8 @@ class client_manager : public singleton<client_manager>
 	client_manager();
 	~client_manager() override;
 
-	bool	initialize();
-	time_t	current_time();
+	auto	initialize() -> bool;
+	auto	current_time() -> time_t;
 
 	void	process_packets(peer * peer);
 
@@ -92,25 +92,25 @@ class client_manager : public singleton<client_manager>
 	void	set_table_postfix(const char* table_postfix);
 	void	set_player_id_start(int id_start);
 
-	uint32_t	user_count();
+	auto	user_count() -> uint32_t;
 
 	void	send_time();
 
-	player_table_cache *	player_cache(uint32_t id);
+	auto	player_cache(uint32_t id) -> player_table_cache *;
 	void			put_player_cache(player_table * updated);
 
 	void			create_item_cache_set(uint32_t pid);
-	item_cache_set *		get_item_cache_set(uint32_t pid);
+	auto		get_item_cache_set(uint32_t pid) -> item_cache_set *;
 	void			flush_item_cache_set(uint32_t pid);
 
-	item_cache *		get_item_cache(uint32_t id);
+	auto		get_item_cache(uint32_t id) -> item_cache *;
 	void			put_item_cache(player_item * updated, bool skip_query = false);
-	bool			delete_item_cache(uint32_t id);
+	auto			delete_item_cache(uint32_t id) -> bool;
 
 	void			update_player_cache();
 	void			update_item_cache();
 
-	item_price_list_table_cache*	item_price_list_cache(uint32_t id);
+	auto	item_price_list_cache(uint32_t id) -> item_price_list_table_cache*;
 
 	void			put_item_price_list_cache(const item_price_list_table* item_price_list);
 
@@ -121,9 +121,9 @@ class client_manager : public singleton<client_manager>
 	void			set_cache_flush_count_limit(int limit);
 
 	template <class Func>
-	Func		for_each_peer(Func f);
+	auto		for_each_peer(Func f) -> Func;
 
-	peer *		any_peer();
+	auto		any_peer() -> peer *;
 
 	void			forward_packet(uint8_t header, const void* data, int size, uint8_t channel_value = 0, peer * except = nullptr);
 
@@ -136,41 +136,41 @@ class client_manager : public singleton<client_manager>
 	void	destroy();
 
     private:
-	bool		initialize_tables();
-	bool		initialize_shop_table();
-	bool		initialize_mob_table();
-	bool		initialize_item_table();
-	bool		initialize_skill_table();
-	bool		initialize_refine_table();
-	bool		initialize_banword_table();
-	bool		initialize_item_attr_table();
-	bool		initialize_item_rare_table();
-	bool		initialize_land_table();
-	bool		initialize_object_proto();
-	bool		initialize_object_table();
-	bool		initialize_monarch();
+	auto		initialize_tables() -> bool;
+	auto		initialize_shop_table() -> bool;
+	auto		initialize_mob_table() -> bool;
+	auto		initialize_item_table() -> bool;
+	auto		initialize_skill_table() -> bool;
+	auto		initialize_refine_table() -> bool;
+	auto		initialize_banword_table() -> bool;
+	auto		initialize_item_attr_table() -> bool;
+	auto		initialize_item_rare_table() -> bool;
+	auto		initialize_land_table() -> bool;
+	auto		initialize_object_proto() -> bool;
+	auto		initialize_object_table() -> bool;
+	auto		initialize_monarch() -> bool;
 
-	bool		mirror_mob_table_into_db();
-	bool		mirror_item_table_into_db();
+	auto		mirror_mob_table_into_db() -> bool;
+	auto		mirror_item_table_into_db() -> bool;
 
 	void		add_peer(net::tcp::socket socket);
 	void		remove_peer(peer * peer_value);
-	peer *		get_peer(uint32_t ident);
+	auto		get_peer(uint32_t ident) -> peer *;
 
-	int		analyze_query_result(ql_msg * msg);
+	auto		analyze_query_result(sql_msg * msg) -> int;
 
-	int		process();
+	auto		process() -> int;
 
-	login_data *	get_login_data(uint32_t key);
-	login_data *	get_login_data_by_login(const char * login);
-	login_data *	get_login_data_by_aid(uint32_t aid);
+	auto	get_login_data(uint32_t key) -> login_data *;
+	auto	get_login_data_by_login(const char * login) -> login_data *;
+	auto	get_login_data_by_aid(uint32_t aid) -> login_data *;
 
 	void		insert_login_data(login_data * ld);
 	void		delete_login_data(login_data * ld);
 
-	bool		insert_logon_account(const char * login, uint32_t handle);
-	bool		delete_logon_account(const char * login, uint32_t handle);
-	bool		find_logon_account(const char * login);
+	auto		insert_logon_account(const char * login, uint32_t handle) -> bool;
+	auto		delete_logon_account(const char * login, uint32_t handle) -> bool;
+	auto		find_logon_account(const char * login) -> bool;
 
 	void		guild_create(peer * peer, uint32_t guild_id);
 	void		guild_skill_update(peer * peer, packet_guild_skill_update* p);
@@ -194,26 +194,26 @@ class client_manager : public singleton<client_manager>
 
 	void		query_logout(peer * peer, uint32_t handle_value, const char *);
 
-	void		result_login(peer * peer, ql_msg *msg);
+	void		result_login(peer * peer, sql_msg *msg);
 
 	void		query_player_load(peer * peer, uint32_t handle_value, player_load_packet*);
-	void		result_composite_player(peer * peer, ql_msg * msg, uint32_t qid);
+	void		result_composite_player(peer * peer, sql_msg * msg, uint32_t qid);
 	void		result_player_load(peer * peer, MYSQL_RES * res, client_handle_info * info_value);
 	void		result_item_load(peer * peer, MYSQL_RES * res, uint32_t handle, uint32_t pid);
 	void		result_quest_load(peer * peer, MYSQL_RES * res, uint32_t handle, uint32_t pid);
 	void		result_affect_load(peer * peer, MYSQL_RES * res, uint32_t handle);
 
-	void		result_player_index_create(peer *peer_value, ql_msg *msg);
+	void		result_player_index_create(peer *peer_value, sql_msg *msg);
  
-	void		result_pricelist_load(peer* peer, ql_msg* msg);
+	void		result_pricelist_load(peer* peer, sql_msg* msg);
 
-	void		result_pricelist_load_for_update(ql_msg* msg);
+	void		result_pricelist_load_for_update(sql_msg* msg);
 
 	void		query_player_save(peer * peer, uint32_t handle, player_table*);
 
 	void		query_player_create(peer * peer, uint32_t handle, player_create_packet *);
 	void		query_player_delete(peer * peer, uint32_t handle_value, player_delete_packet *);
-	void		result_player_delete(peer * peer, ql_msg* msg);
+	void		result_player_delete(peer * peer, sql_msg* msg);
 
 	void		query_player_count(peer * peer_value, player_count_packet *);
 
@@ -230,10 +230,10 @@ class client_manager : public singleton<client_manager>
 	void		query_safebox_change_size(peer * peer_value, uint32_t handle_value, safebox_change_size_packet * p);
 	void		query_safebox_change_password(peer * peer_value, uint32_t handle_value, safebox_change_password_packet * p);
 
-	void		result_safebox_load(peer * peer_value, ql_msg * msg);
-	void		result_safebox_change_size(peer * peer_value, ql_msg * msg);
-	void		result_safebox_change_password(peer * peer_value, ql_msg * msg);
-	void		result_safebox_change_password_second(peer * peer_value, ql_msg * msg);
+	void		result_safebox_load(peer * peer_value, sql_msg * msg);
+	void		result_safebox_change_size(peer * peer_value, sql_msg * msg);
+	void		result_safebox_change_password(peer * peer_value, sql_msg * msg);
+	void		result_safebox_change_password_second(peer * peer_value, sql_msg * msg);
 
 	void		query_empire_select(peer * peer_value, uint32_t handle, empire_select_packet * p);
 	void		query_setup(peer * peer, uint32_t handle_value, const char * data);
@@ -241,7 +241,7 @@ class client_manager : public singleton<client_manager>
 	void		send_party_on_setup(peer * peer_value);
 
 	void		query_highscore_register(peer * peer, packet_gd_highscore* data);
-	void		result_highscore_register(peer * peer_value, ql_msg * msg);
+	void		result_highscore_register(peer * peer_value, sql_msg * msg);
 
 	void		query_flush_cache(peer * peer_value, const char * data);
 
@@ -267,7 +267,7 @@ class client_manager : public singleton<client_manager>
 	void		query_auth_login(peer * peer_value, uint32_t handle, packet_gd_auth_login * p);
 
 	void		query_login_by_key(peer * peer_value, uint32_t handle_value, packet_gd_login_by_key * p);
-	void		result_login_by_key(peer * peer, ql_msg * msg);
+	void		result_login_by_key(peer * peer, sql_msg * msg);
 
 	void		charge_cash(const request_charge_cash * packet);
 
@@ -371,19 +371,19 @@ class client_manager : public singleton<client_manager>
 	item_id_range_table item_range_;
 
     public :
-	bool initialize_now_item_id();
-	uint32_t item_id();
-	uint32_t gain_item_id();
-	item_id_range_table item_range() { return item_range_; }
+	auto initialize_now_item_id() -> bool;
+	auto item_id() -> uint32_t;
+	auto gain_item_id() -> uint32_t;
+	auto item_range() -> item_id_range_table { return item_range_; }
 
     public:
-	bool initialize_localization(); 
+	auto initialize_localization() -> bool; 
 
     private:
 	std::vector<t_locale> vec_locale_;
 
-	bool admin_info(const char *ip, std::vector<t_admin_info> & admin_vec);
-	bool host_info(std::vector<std::string> & ip_vec);
+	auto admin_info(const char *ip, std::vector<t_admin_info> & admin_vec) -> bool;
+	auto host_info(std::vector<std::string> & ip_vec) -> bool;
 
 		
 	void reload_admin(peer * peer, packet_reload_admin * p);
@@ -432,7 +432,7 @@ class client_manager : public singleton<client_manager>
 };
 
 template<class Func>	
-Func client_manager::for_each_peer(Func f)
+auto client_manager::for_each_peer(Func f) -> Func
 {
     peer_list::iterator it;
     for (it = peer_list_.begin(); it!=peer_list_.end();++it)
@@ -444,5 +444,5 @@ Func client_manager::for_each_peer(Func f)
 extern int item_count;
 extern int query_count[2];
 
-bool create_player_table_from_res(MYSQL_RES * res, player_table * tab);
+auto create_player_table_from_res(MYSQL_RES * res, player_table * tab) -> bool;
 }

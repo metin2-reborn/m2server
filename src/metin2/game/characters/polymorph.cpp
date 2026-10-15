@@ -22,7 +22,7 @@ polymorph_utils::polymorph_utils()
 	spd_type_.insert(std::make_pair(1901, 1901));
 }
 
-polymorph_bonus_type polymorph_utils::bonus_type(uint32_t vnum)
+auto polymorph_utils::bonus_type(uint32_t vnum) -> polymorph_bonus_type
 {
 	std::unordered_map<uint32_t, uint32_t>::iterator iter;
 
@@ -44,7 +44,7 @@ polymorph_bonus_type polymorph_utils::bonus_type(uint32_t vnum)
 	return POLYMORPH_NO_BONUS;
 }
 
-bool polymorph_utils::polymorph_character(character * ch, item * item_value, const mob* mob_value)
+auto polymorph_utils::polymorph_character(character * ch, item * item_value, const mob* mob_value) -> bool
 {
 	uint8_t bySkillLevel = ch->skill_level(POLYMORPH_SKILL_ID);
 	uint32_t dwDuration = 0;
@@ -115,7 +115,7 @@ bool polymorph_utils::polymorph_character(character * ch, item * item_value, con
 	return true;
 }
 
-bool polymorph_utils::update_book_practice_grade(character * ch, item * item_value)
+auto polymorph_utils::update_book_practice_grade(character * ch, item * item_value) -> bool
 {
 	if (ch == nullptr || item_value == nullptr)
 		return false;
@@ -128,7 +128,7 @@ bool polymorph_utils::update_book_practice_grade(character * ch, item * item_val
 	return true;
 }
 
-bool polymorph_utils::give_book(character * ch, uint32_t mob_vnum, uint32_t practice_count, uint8_t book_level, uint8_t level_limit)
+auto polymorph_utils::give_book(character * ch, uint32_t mob_vnum, uint32_t practice_count, uint8_t book_level, uint8_t level_limit) -> bool
 {
 	if (ch == nullptr)
 		return false;
@@ -151,7 +151,7 @@ bool polymorph_utils::give_book(character * ch, uint32_t mob_vnum, uint32_t prac
 	return true;
 }
 
-bool polymorph_utils::book_upgrade(character * ch, item * item_value)
+auto polymorph_utils::book_upgrade(character * ch, item * item_value) -> bool
 {
 	if (ch == nullptr || item_value == nullptr)
 		return false;

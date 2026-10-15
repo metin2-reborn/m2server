@@ -196,7 +196,7 @@ namespace marriage
 		}
 	}
 
-	bool wedding_map::is_member(character * ch)
+	auto wedding_map::is_member(character * ch) -> bool
 	{
 		if (set_pk_chr_.size() <= 0)
 			return false;
@@ -258,7 +258,7 @@ namespace marriage
 		}
 	}
 
-	bool wedding_map::is_playing_music()
+	auto wedding_map::is_playing_music() -> bool
 	{
 		return is_music_;
 	}
@@ -275,7 +275,7 @@ namespace marriage
 			ch->chat_packet(CHAT_TYPE_COMMAND, build_command_play_music(szCommand, sizeof(szCommand), 1, music_file_name_.c_str()));	
 	}
 
-	const char* wedding_map::build_command_play_music(char* command, size_t cmd_len, uint8_t set, const char* music_file_name)
+	auto wedding_map::build_command_play_music(char* command, size_t cmd_len, uint8_t set, const char* music_file_name) -> const char*
 	{
 		if (cmd_len < 1)
 		{
@@ -295,12 +295,12 @@ namespace marriage
 	{
 	}
 
-	bool wedding_manager::is_wedding_map(uint32_t map_index)
+	auto wedding_manager::is_wedding_map(uint32_t map_index) -> bool
 	{
 		return (map_index == WEDDING_MAP_INDEX || map_index / 10000 == WEDDING_MAP_INDEX);
 	}
 
-	wedding_map* wedding_manager::find(uint32_t map_index)
+	auto wedding_manager::find(uint32_t map_index) -> wedding_map*
 	{
 		auto it = wedding_.find(map_index);
 
@@ -310,7 +310,7 @@ namespace marriage
 		return it->second;
 	}
 
-	uint32_t wedding_manager::create_wedding_map(uint32_t pid1, uint32_t pid2)
+	auto wedding_manager::create_wedding_map(uint32_t pid1, uint32_t pid2) -> uint32_t
 	{
 		sectree_manager& rkSecTreeMgr = sectree_manager::instance();
 
@@ -355,7 +355,7 @@ namespace marriage
 		delete map;
 	}
 
-	bool wedding_manager::end(uint32_t map_index)
+	auto wedding_manager::end(uint32_t map_index) -> bool
 	{
 		auto it = wedding_.find(map_index);
 

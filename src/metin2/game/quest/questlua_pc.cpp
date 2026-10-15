@@ -54,7 +54,7 @@ const int ITEM_BROKEN_METIN_VNUM = 28960;
 
 namespace quest 
 {
-	int pc_has_master_skill(lua_State* lua)
+	auto pc_has_master_skill(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		bool bHasMasterSkill = false;
@@ -69,14 +69,14 @@ namespace quest
 		return 1;
 	}
 
-	int pc_remove_skill_book_no_delay(lua_State* lua)
+	auto pc_remove_skill_book_no_delay(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		ch->remove_affect(AFFECT_SKILL_NO_BOOK_DELAY);
 		return 0;
 	}
 
-	int pc_is_skill_book_no_delay(lua_State* lua)
+	auto pc_is_skill_book_no_delay(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -84,7 +84,7 @@ namespace quest
 		return 1;
 	}
 
-	int pc_learn_grand_master_skill(lua_State* lua)
+	auto pc_learn_grand_master_skill(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -98,7 +98,7 @@ namespace quest
 		return 1;
 	}
 
-	int pc_set_warp_location(lua_State * lua)
+	auto pc_set_warp_location(lua_State * lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -118,7 +118,7 @@ namespace quest
 		return 0;
 	}
 
-	int pc_set_warp_location_local(lua_State * lua)
+	auto pc_set_warp_location_local(lua_State * lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -162,7 +162,7 @@ namespace quest
 		return 0;
 	}
 
-	int pc_get_start_location(lua_State * lua)
+	auto pc_get_start_location(lua_State * lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -172,7 +172,7 @@ namespace quest
 		return 3;
 	}
 
-	int pc_warp(lua_State * lua)
+	auto pc_warp(lua_State * lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -203,7 +203,7 @@ namespace quest
 		return 1;
 	}
 
-	int pc_warp_local(lua_State * lua)
+	auto pc_warp_local(lua_State * lua) -> int
 	{
 		if (!lua_isnumber(lua, 1)) 
 		{
@@ -245,34 +245,34 @@ namespace quest
 		return 0;
 	}
 
-	int pc_warp_exit(lua_State * lua)
+	auto pc_warp_exit(lua_State * lua) -> int
 	{
 		quest_manager::instance().current_character_ptr()->exit_to_saved_location();
 		return 0;
 	}
 
-	int pc_in_dungeon(lua_State * lua)
+	auto pc_in_dungeon(lua_State * lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		lua_pushboolean(lua, ch->get_dungeon()?1:0);
 		return 1;
 	}
 
-	int pc_hasguild(lua_State * lua)
+	auto pc_hasguild(lua_State * lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		lua_pushboolean(lua, ch->get_guild() ? 1 : 0);
 		return 1;
 	}
 
-	int pc_getguild(lua_State * lua)
+	auto pc_getguild(lua_State * lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		lua_pushnumber(lua, ch->get_guild() ? ch->get_guild()->id() : 0);
 		return 1;
 	}
 
-	int pc_isguildmaster(lua_State * lua)
+	auto pc_isguildmaster(lua_State * lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		guild * g = ch->get_guild();
@@ -285,7 +285,7 @@ namespace quest
 		return 1;
 	}
 
-	int pc_destroy_guild(lua_State * lua)
+	auto pc_destroy_guild(lua_State * lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		guild * g = ch->get_guild();
@@ -296,7 +296,7 @@ namespace quest
 		return 0;
 	}
 
-	int pc_remove_from_guild(lua_State* lua)
+	auto pc_remove_from_guild(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		guild * g = ch->get_guild();
@@ -307,7 +307,7 @@ namespace quest
 		return 0;
 	}
 
-	int pc_give_gold(lua_State* lua)
+	auto pc_give_gold(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -330,7 +330,7 @@ namespace quest
 		return 0;
 	}
 
-	int pc_warp_to_guild_war_observer_position(lua_State* lua)
+	auto pc_warp_to_guild_war_observer_position(lua_State* lua) -> int
 	{
 		luaL_checknumber(lua, 1);
 		luaL_checknumber(lua, 2);
@@ -367,7 +367,7 @@ namespace quest
 		return 0;
 	}
 
-	int pc_give_item_from_special_item_group(lua_State* lua)
+	auto pc_give_item_from_special_item_group(lua_State* lua) -> int
 	{
 		luaL_checknumber(lua, 1);
 
@@ -400,7 +400,7 @@ namespace quest
 		return 0;
 	}
 
-	int pc_enough_inventory(lua_State* lua)
+	auto pc_enough_inventory(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		if (!lua_isnumber(lua, 1))
@@ -422,7 +422,7 @@ namespace quest
 		return 1;
 	}
 
-	int pc_give_item(lua_State* lua)
+	auto pc_give_item(lua_State* lua) -> int
 	{
 		pc* pPC = quest_manager::instance().current_pc();
 		character * ch = quest_manager::instance().current_character_ptr();
@@ -462,7 +462,7 @@ namespace quest
 		return 0;
 	}
 
-	int pc_give_or_drop_item(lua_State* lua)
+	auto pc_give_or_drop_item(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -519,7 +519,7 @@ namespace quest
 		return 1;
 	}
 
-	int pc_give_or_drop_item_and_select(lua_State* lua)
+	auto pc_give_or_drop_item_and_select(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -571,27 +571,27 @@ namespace quest
 		return 0;
 	}
 
-	int pc_get_current_map_index(lua_State* lua)
+	auto pc_get_current_map_index(lua_State* lua) -> int
 	{
 		lua_pushnumber(lua, quest_manager::instance().current_character_ptr()->map_index());
 		return 1;
 	}
 
-	int pc_get_x(lua_State* lua)
+	auto pc_get_x(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		lua_pushnumber(lua, ch->x()/100);
 		return 1;
 	}
 
-	int pc_get_y(lua_State* lua)
+	auto pc_get_y(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		lua_pushnumber(lua, ch->y()/100);
 		return 1;
 	}
 
-	int pc_get_local_x(lua_State* lua)
+	auto pc_get_local_x(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		sectree_map * pMap = sectree_manager::instance().map(ch->map_index());
@@ -604,7 +604,7 @@ namespace quest
 		return 1;
 	}
 
-	int pc_get_local_y(lua_State* lua)
+	auto pc_get_local_y(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		sectree_map * pMap = sectree_manager::instance().map(ch->map_index());
@@ -617,7 +617,7 @@ namespace quest
 		return 1;
 	}
 
-	int pc_count_item(lua_State* lua)
+	auto pc_count_item(lua_State* lua) -> int
 	{
 		if (lua_isnumber(lua, -1))
 			lua_pushnumber(lua,quest_manager::instance().current_character_ptr()->count_specify_item((uint32_t)lua_tonumber(lua, -1)));
@@ -641,7 +641,7 @@ namespace quest
 		return 1;
 	}
 
-	int pc_remove_item(lua_State* lua)
+	auto pc_remove_item(lua_State* lua) -> int
 	{
 		if (lua_gettop(lua) == 1)
 		{
@@ -702,78 +702,78 @@ namespace quest
 		return 0;
 	}
 
-	int pc_get_leadership(lua_State * lua)
+	auto pc_get_leadership(lua_State * lua) -> int
 	{
 		lua_pushnumber(lua, quest_manager::instance().current_character_ptr()->leadership_skill_level());
 		return 1;
 	}
 
-	int pc_reset_point(lua_State * lua)
+	auto pc_reset_point(lua_State * lua) -> int
 	{
 		quest_manager::instance().current_character_ptr()->reset_point(quest_manager::instance().current_character_ptr()->level());
 		return 0;
 	}
 
-	int pc_get_playtime(lua_State* lua)
+	auto pc_get_playtime(lua_State* lua) -> int
 	{
 		lua_pushnumber(lua, quest_manager::instance().current_character_ptr()->real_point(POINT_PLAYTIME));
 		return 1;
 	}
 
-	int pc_get_vid(lua_State* lua)
+	auto pc_get_vid(lua_State* lua) -> int
 	{
 		lua_pushnumber(lua, quest_manager::instance().current_character_ptr()->get_vid());
 		return 1;
 	}
-	int pc_get_name(lua_State* lua)
+	auto pc_get_name(lua_State* lua) -> int
 	{
 		lua_pushstring(lua, quest_manager::instance().current_character_ptr()->name());
 		return 1;
 	}
 
-	int pc_get_next_exp(lua_State* lua)  
+	auto pc_get_next_exp(lua_State* lua) -> int  
 	{
 		lua_pushnumber(lua, quest_manager::instance().current_character_ptr()->next_exp());
 		return 1;
 	}
 
-	int pc_get_exp(lua_State* lua)  
+	auto pc_get_exp(lua_State* lua) -> int  
 	{
 		lua_pushnumber(lua, quest_manager::instance().current_character_ptr()->get_exp());
 		return 1;
 	}
 
-	int pc_get_race(lua_State* lua)  
+	auto pc_get_race(lua_State* lua) -> int  
 	{
 		lua_pushnumber(lua, quest_manager::instance().current_character_ptr()->race_num());
 		return 1;
 	}
 
-	int pc_change_sex(lua_State* lua)  
+	auto pc_change_sex(lua_State* lua) -> int  
 	{
 		lua_pushnumber(lua, quest_manager::instance().current_character_ptr()->change_sex());
 		return 1;
 	}
 
-	int pc_get_job(lua_State* lua)  
+	auto pc_get_job(lua_State* lua) -> int  
 	{
 		lua_pushnumber(lua, quest_manager::instance().current_character_ptr()->job());
 		return 1;
 	}
 
-	int pc_get_max_sp(lua_State* lua)  
+	auto pc_get_max_sp(lua_State* lua) -> int  
 	{
 		lua_pushnumber(lua, quest_manager::instance().current_character_ptr()->max_sp());
 		return 1;
 	}
 
-	int pc_get_sp(lua_State * lua)  
+	auto pc_get_sp(lua_State * lua) -> int  
 	{
 		lua_pushnumber(lua, quest_manager::instance().current_character_ptr()->sp());
 		return 1;
 	}
 
-	int pc_change_sp(lua_State * lua)
+	auto pc_change_sp(lua_State * lua) -> int
 	{
 		if (!lua_isnumber(lua, 1))
 		{
@@ -809,25 +809,25 @@ namespace quest
 		return 1;
 	}
 
-	int pc_get_max_hp(lua_State * lua)  
+	auto pc_get_max_hp(lua_State * lua) -> int  
 	{
 		lua_pushnumber(lua, quest_manager::instance().current_character_ptr()->max_hp());
 		return 1;
 	}
 
-	int pc_get_hp(lua_State * lua)  
+	auto pc_get_hp(lua_State * lua) -> int  
 	{
 		lua_pushnumber(lua, quest_manager::instance().current_character_ptr()->hp());
 		return 1;
 	}
 
-	int pc_get_level(lua_State * lua)  
+	auto pc_get_level(lua_State * lua) -> int  
 	{
 		lua_pushnumber(lua, quest_manager::instance().current_character_ptr()->level());
 		return 1;
 	}
 
-	int pc_set_level(lua_State * lua)  
+	auto pc_set_level(lua_State * lua) -> int  
 	{
 		if (!lua_isnumber(lua, 1))
 		{
@@ -862,7 +862,7 @@ namespace quest
 		}
 	}
 
-	int pc_get_weapon(lua_State * lua)
+	auto pc_get_weapon(lua_State * lua) -> int
 	{
 		item * item = quest_manager::instance().current_character_ptr()->wear(WEAR_WEAPON);
 
@@ -874,7 +874,7 @@ namespace quest
 		return 1;
 	}
 
-	int pc_get_armor(lua_State * lua)
+	auto pc_get_armor(lua_State * lua) -> int
 	{
 		item * item = quest_manager::instance().current_character_ptr()->wear(WEAR_BODY);
 
@@ -886,7 +886,7 @@ namespace quest
 		return 1;
 	}
 
-	int pc_get_wear(lua_State * lua)
+	auto pc_get_wear(lua_State * lua) -> int
 	{		
 		if (!lua_isnumber(lua, 1))
 		{
@@ -906,25 +906,25 @@ namespace quest
 		return 1;
 	}
 
-	int pc_get_money(lua_State * lua)
+	auto pc_get_money(lua_State * lua) -> int
 	{ 
 		lua_pushnumber(lua, quest_manager::instance().current_character_ptr()->gold());
 		return 1;
 	}
 
-	int pc_get_real_alignment(lua_State* lua)
+	auto pc_get_real_alignment(lua_State* lua) -> int
 	{
 		lua_pushnumber(lua, quest_manager::instance().current_character_ptr()->real_alignment()/10);
 		return 1;
 	}
 
-	int pc_get_alignment(lua_State* lua)
+	auto pc_get_alignment(lua_State* lua) -> int
 	{
 		lua_pushnumber(lua, quest_manager::instance().current_character_ptr()->alignment()/10);
 		return 1;
 	}
 
-	int pc_change_alignment(lua_State * lua)
+	auto pc_change_alignment(lua_State * lua) -> int
 	{
 		int alignment = (int)(lua_tonumber(lua, 1)*10);
 		character * ch = quest_manager::instance().current_character_ptr();
@@ -933,7 +933,7 @@ namespace quest
 		return 0;
 	}
 
-	int pc_change_money(lua_State * lua)
+	auto pc_change_money(lua_State * lua) -> int
 	{
 		int gold = (int)lua_tonumber(lua, -1);
 
@@ -950,7 +950,7 @@ namespace quest
 		return 0;
 	}
 
-	int pc_set_another_quest_flag(lua_State* lua)
+	auto pc_set_another_quest_flag(lua_State* lua) -> int
 	{
 		if (!lua_isstring(lua, 1) || !lua_isstring(lua, 2) || !lua_isnumber(lua, 3))
 		{
@@ -968,7 +968,7 @@ namespace quest
 		}
 	}
 
-	int pc_get_another_quest_flag(lua_State* lua)
+	auto pc_get_another_quest_flag(lua_State* lua) -> int
 	{
 		if (!lua_isstring(lua,1) || !lua_isstring(lua,2))
 		{
@@ -990,7 +990,7 @@ namespace quest
 		}
 	}
 
-	int pc_get_quest_flag(lua_State* lua)
+	auto pc_get_quest_flag(lua_State* lua) -> int
 	{
 		if (!lua_isstring(lua,-1))
 		{
@@ -1009,7 +1009,7 @@ namespace quest
 		return 1;
 	}
 
-	int pc_set_quest_flag(lua_State* lua)
+	auto pc_set_quest_flag(lua_State* lua) -> int
 	{
 		if (!lua_isstring(lua,1) || !lua_isnumber(lua,2))
 		{
@@ -1025,7 +1025,7 @@ namespace quest
 		return 0;
 	}
 
-	int pc_del_quest_flag(lua_State *lua)
+	auto pc_del_quest_flag(lua_State *lua) -> int
 	{
 		if (!lua_isstring(lua, 1))
 		{
@@ -1039,7 +1039,7 @@ namespace quest
 		return 0;
 	}
 
-	int pc_give_exp2(lua_State* lua)
+	auto pc_give_exp2(lua_State* lua) -> int
 	{
 		quest_manager& q = quest_manager::instance();
 		character * ch = q.current_character_ptr();
@@ -1056,7 +1056,7 @@ namespace quest
 		return 0;
 	}
 
-	int pc_give_exp(lua_State* lua)
+	auto pc_give_exp(lua_State* lua) -> int
 	{
 		if (!lua_isstring(lua,1) || !lua_isnumber(lua,2))
 			return 0;
@@ -1076,7 +1076,7 @@ namespace quest
 		return 0;
 	}
 
-	int pc_give_exp_perc(lua_State* lua)
+	auto pc_give_exp_perc(lua_State* lua) -> int
 	{
 		quest_manager & q = quest_manager::instance();
 		character * ch = q.current_character_ptr();
@@ -1098,13 +1098,13 @@ namespace quest
 		return 0;
 	}
 
-	int pc_get_empire(lua_State* lua)  
+	auto pc_get_empire(lua_State* lua) -> int  
 	{
 		lua_pushnumber(lua, quest_manager::instance().current_character_ptr()->empire());
 		return 1;
 	}
 
-	int pc_get_part(lua_State* lua)
+	auto pc_get_part(lua_State* lua) -> int
 	{
 		quest_manager& q = quest_manager::instance();
 		character * ch = q.current_character_ptr();
@@ -1118,7 +1118,7 @@ namespace quest
 		return 1;
 	}
 
-	int pc_set_part(lua_State* lua)
+	auto pc_set_part(lua_State* lua) -> int
 	{
 		quest_manager& q = quest_manager::instance();
 		character * ch = q.current_character_ptr();
@@ -1133,13 +1133,13 @@ namespace quest
 		return 0;
 	}
 
-	int pc_get_skillgroup(lua_State* lua)  
+	auto pc_get_skillgroup(lua_State* lua) -> int  
 	{
 		lua_pushnumber(lua, quest_manager::instance().current_character_ptr()->skill_group());
 		return 1;
 	}
 
-	int pc_set_skillgroup(lua_State* lua)
+	auto pc_set_skillgroup(lua_State* lua) -> int
 	{
 		if (!lua_isnumber(lua, 1))
 			quest::error("QUEST wrong skillgroup number");
@@ -1153,14 +1153,14 @@ namespace quest
 		return 0;
 	}
 
-	int pc_is_polymorphed(lua_State* lua)
+	auto pc_is_polymorphed(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		lua_pushboolean(lua, ch->is_polymorphed());
 		return 1;
 	}
 
-	int pc_remove_polymorph(lua_State* lua)
+	auto pc_remove_polymorph(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		ch->remove_affect(AFFECT_POLYMORPH);
@@ -1168,7 +1168,7 @@ namespace quest
 		return 0;
 	}
 
-	int pc_polymorph(lua_State* lua)
+	auto pc_polymorph(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		uint32_t dwVnum = (uint32_t) lua_tonumber(lua, 1);
@@ -1177,14 +1177,14 @@ namespace quest
 		return 0;
 	}
 
-	int pc_is_mount(lua_State* lua)
+	auto pc_is_mount(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		lua_pushboolean(lua, ch->get_mount_vnum());
 		return 1;
 	}
 
-	int pc_mount(lua_State* lua)
+	auto pc_mount(lua_State* lua) -> int
 	{
 		if (!lua_isnumber(lua, 1))
 			return 0;
@@ -1245,7 +1245,7 @@ namespace quest
 		return 0;
 	}
 
-	int pc_mount_bonus(lua_State* lua)
+	auto pc_mount_bonus(lua_State* lua) -> int
 	{
 		uint8_t applyOn = static_cast<uint8_t>(lua_tonumber(lua, 1));
 		int32_t value = static_cast<int32_t>(lua_tonumber(lua, 2));
@@ -1262,7 +1262,7 @@ namespace quest
 		return 0;
 	}
 
-	int pc_unmount(lua_State* lua)
+	auto pc_unmount(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		ch->remove_affect(AFFECT_MOUNT);
@@ -1272,28 +1272,28 @@ namespace quest
 		return 0;
 	}
 
-	int pc_get_horse_level(lua_State* lua)
+	auto pc_get_horse_level(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		lua_pushnumber(lua, ch->horse_level());
 		return 1;
 	}
 
-	int pc_is_horse_alive(lua_State* lua)
+	auto pc_is_horse_alive(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		lua_pushboolean(lua, ch->horse_level() > 0 && ch->horse_health()>0);
 		return 1;
 	}
 
-	int pc_revive_horse(lua_State* lua)
+	auto pc_revive_horse(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		ch->revive_horse();
 		return 0;
 	}
 
-	int pc_have_map_scroll(lua_State* lua)
+	auto pc_have_map_scroll(lua_State* lua) -> int
 	{
 		if (!lua_isstring(lua, 1))
 		{
@@ -1337,14 +1337,14 @@ namespace quest
 		return 1;
 	}
 
-	int pc_get_war_map(lua_State* lua)
+	auto pc_get_war_map(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		lua_pushnumber(lua, ch->get_war_map() ? ch->get_war_map()->map_index() : 0);
 		return 1;
 	}
 
-	int pc_have_pos_scroll(lua_State* lua)
+	auto pc_have_pos_scroll(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -1391,7 +1391,7 @@ namespace quest
 		return 1;
 	}
 
-	int pc_get_equip_refine_level(lua_State* lua)
+	auto pc_get_equip_refine_level(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		int cell = (int) lua_tonumber(lua, 1);
@@ -1413,7 +1413,7 @@ namespace quest
 		return 1;
 	}
 
-	int pc_refine_equip(lua_State* lua)
+	auto pc_refine_equip(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2))
@@ -1489,7 +1489,7 @@ namespace quest
 		return 1;
 	}
 
-	int pc_get_skill_level(lua_State * lua)
+	auto pc_get_skill_level(lua_State * lua) -> int
 	{
 		if (!lua_isnumber(lua, 1))
 		{
@@ -1506,7 +1506,7 @@ namespace quest
 		return 1;
 	}
 
-	int pc_give_lotto(lua_State* lua)
+	auto pc_give_lotto(lua_State* lua) -> int
 	{
 		quest_manager& q = quest_manager::instance();
 		character * ch = q.current_character_ptr();
@@ -1526,28 +1526,28 @@ namespace quest
 		return 0;
 	}
 
-	int pc_aggregate_monster(lua_State* lua)
+	auto pc_aggregate_monster(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		ch->aggregate_monster();
 		return 0;
 	}
 
-	int pc_forget_my_attacker(lua_State* lua)
+	auto pc_forget_my_attacker(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		ch->forget_my_attacker();
 		return 0;
 	}
 
-	int pc_attract_ranger(lua_State* lua)
+	auto pc_attract_ranger(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		ch->attract_ranger();
 		return 0;
 	}
 
-	int pc_select_vid(lua_State* lua)
+	auto pc_select_vid(lua_State* lua) -> int
 	{
 		uint32_t vid = (uint32_t) lua_tonumber(lua, 1);
 
@@ -1568,49 +1568,49 @@ namespace quest
 		return 1;
 	}
 
-	int pc_get_sex(lua_State* lua)
+	auto pc_get_sex(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		lua_pushnumber(lua, get_sex(ch));
 		return 1;
 	}
 
-	int pc_is_engaged(lua_State* lua)
+	auto pc_is_engaged(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		lua_pushboolean(lua, marriage::manager::instance().is_engaged(ch->player_id()));
 		return 1;
 	}
 
-	int pc_is_married(lua_State* lua)
+	auto pc_is_married(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		lua_pushboolean(lua, marriage::manager::instance().is_married(ch->player_id()));
 		return 1;
 	}
 
-	int pc_is_engaged_or_married(lua_State* lua)
+	auto pc_is_engaged_or_married(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		lua_pushboolean(lua, marriage::manager::instance().is_engaged_or_married(ch->player_id()));
 		return 1;
 	}
 
-	int pc_is_gm(lua_State* lua)
+	auto pc_is_gm(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		lua_pushboolean(lua, ch->gm_level() >= GM_HIGH_WIZARD);
 		return 1;
 	}
 
-	int pc_get_gm_level(lua_State* lua)
+	auto pc_get_gm_level(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		lua_pushnumber(lua, ch->gm_level());
 		return 1;
 	}
 
-	int pc_mining(lua_State* lua)
+	auto pc_mining(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		character * npc = quest_manager::instance().current_npc_character_ptr();
@@ -1618,7 +1618,7 @@ namespace quest
 		return 0;
 	}
 
-	int pc_diamond_refine(lua_State* lua)
+	auto pc_diamond_refine(lua_State* lua) -> int
 	{
 		if (!lua_isnumber(lua, 1))
 		{
@@ -1641,7 +1641,7 @@ namespace quest
 		return 1;
 	}
 
-	int pc_ore_refine(lua_State* lua)
+	auto pc_ore_refine(lua_State* lua) -> int
 	{
 		if (!lua_isnumber(lua, 1))
 		{
@@ -1667,7 +1667,7 @@ namespace quest
 		return 1;
 	}
 
-	int pc_clear_skill(lua_State* lua)
+	auto pc_clear_skill(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		if ( ch == nullptr ) return 0;
@@ -1677,7 +1677,7 @@ namespace quest
 		return 0;
 	}
 
-	int pc_clear_sub_skill(lua_State* lua)
+	auto pc_clear_sub_skill(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		if ( ch == nullptr ) return 0;
@@ -1687,7 +1687,7 @@ namespace quest
 		return 0;
 	}
 
-	int pc_set_skill_point(lua_State* lua)
+	auto pc_set_skill_point(lua_State* lua) -> int
 	{
 		if (!lua_isnumber(lua, 1))
 		{
@@ -1706,7 +1706,7 @@ namespace quest
 		return 0;
 	}
 
-	int pc_clear_one_skill(lua_State* lua)
+	auto pc_clear_one_skill(lua_State* lua) -> int
 	{
 		int vnum = (int)lua_tonumber(lua, 1);
 		metin2::log::info( "{:d} skill clear", vnum);
@@ -1726,7 +1726,7 @@ namespace quest
 		return 0;
 	}
 
-	int pc_is_clear_skill_group(lua_State* lua)
+	auto pc_is_clear_skill_group(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -1735,7 +1735,7 @@ namespace quest
 		return 1;
 	}
 
-	int pc_save_exit_location(lua_State* lua)
+	auto pc_save_exit_location(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -1744,7 +1744,7 @@ namespace quest
 		return 0;
 	}
 
-	int pc_teleport ( lua_State * lua )
+	auto pc_teleport ( lua_State * lua ) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		int x=0,y=0;	
@@ -1837,7 +1837,7 @@ teleport_area:
 		return 1;
 	}
 
-	int pc_set_skill_level(lua_State* lua)
+	auto pc_set_skill_level(lua_State* lua) -> int
 	{
 		uint32_t dwVnum = (uint32_t)lua_tonumber(lua, 1);
 		uint8_t byLev = (uint8_t)lua_tonumber(lua, 2);
@@ -1850,7 +1850,7 @@ teleport_area:
 		return 0;
 	}
 
-	int pc_give_polymorph_book(lua_State* lua)
+	auto pc_give_polymorph_book(lua_State* lua) -> int
 	{
 		if ( lua_isnumber(lua, 1) != true && lua_isnumber(lua, 2) != true && lua_isnumber(lua, 3) != true && lua_isnumber(lua, 4) != true )
 		{
@@ -1865,7 +1865,7 @@ teleport_area:
 		return 0;
 	}
 
-	int pc_upgrade_polymorph_book(lua_State* lua)
+	auto pc_upgrade_polymorph_book(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		item * pItem = quest_manager::instance().current_item();
@@ -1877,7 +1877,7 @@ teleport_area:
 		return 1;
 	}
 
-	int pc_get_premium_remain_sec(lua_State* lua)
+	auto pc_get_premium_remain_sec(lua_State* lua) -> int
 	{
 		int	remain_seconds	= 0;
 		int	premium_type	= 0;
@@ -1912,7 +1912,7 @@ teleport_area:
 		return 1;
 	}	
 
-	int pc_send_block_mode(lua_State* lua)
+	auto pc_send_block_mode(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -1921,7 +1921,7 @@ teleport_area:
 		return 0;
 	}
 
-	int pc_change_empire(lua_State* lua)
+	auto pc_change_empire(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -1930,7 +1930,7 @@ teleport_area:
 		return 1;
 	}
 
-	int pc_get_change_empire_count(lua_State* lua)
+	auto pc_get_change_empire_count(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -1939,7 +1939,7 @@ teleport_area:
 		return 1;
 	}
 
-	int pc_set_change_empire_count(lua_State* lua)
+	auto pc_set_change_empire_count(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -1948,7 +1948,7 @@ teleport_area:
 		return 0;
 	}
 
-	int pc_change_name(lua_State* lua)
+	auto pc_change_name(lua_State* lua) -> int
 	{
 
 		character * ch = quest_manager::instance().current_character_ptr();
@@ -1973,11 +1973,11 @@ teleport_area:
 			return 1;
 		}
 
-		std::unique_ptr<ql_msg> pmsg(db_manager::instance().direct_query(sql::format("SELECT COUNT(*) FROM player{} WHERE name={}", sql::raw(get_table_postfix()), szName)));
+		std::unique_ptr<sql_msg> pmsg(db_manager::instance().direct_query(sql::format("SELECT COUNT(*) FROM player{} WHERE name={}", sql::raw(get_table_postfix()), szName)));
 
 		if ( pmsg->get()->num_rows > 0 )
 		{
-			MYSQL_ROW row = mysql_fetch_row(pmsg->get()->sql_result);
+			MYSQL_ROW row = mysql_fetch_row(pmsg->get()->res);
 
 			int	count = 0;
 			str_to_number(count, row[0]);
@@ -1996,14 +1996,14 @@ teleport_area:
 
 		log_manager::instance().change_name_log(pid, ch->name(), szName, ch->get_desc()->host_name());
 
-		std::unique_ptr<ql_msg> msg(db_manager::instance().direct_query(sql::format("UPDATE player{} SET name={} WHERE id={}", sql::raw(get_table_postfix()), szName, pid)));
+		std::unique_ptr<sql_msg> msg(db_manager::instance().direct_query(sql::format("UPDATE player{} SET name={} WHERE id={}", sql::raw(get_table_postfix()), szName, pid)));
 
 		ch->set_new_name(szName);
 		lua_pushnumber(lua, 4);
 		return 1;
 	}
 
-	int pc_is_dead(lua_State* lua)
+	auto pc_is_dead(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -2018,7 +2018,7 @@ teleport_area:
 		return 1;
 	}
 
-	int pc_reset_status( lua_State* lua )
+	auto pc_reset_status( lua_State* lua ) -> int
 	{
 		if ( lua_isnumber(lua, 1) == true )
 		{
@@ -2097,14 +2097,14 @@ teleport_area:
 		return 1;
 	}
 
-	int pc_get_ht( lua_State* lua )
+	auto pc_get_ht( lua_State* lua ) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		lua_pushnumber(lua, ch->real_point(POINT_HT));
 		return 1;
 	}
 
-	int pc_set_ht( lua_State* lua )
+	auto pc_set_ht( lua_State* lua ) -> int
 	{
 		if ( lua_isnumber(lua, 1) == false )
 			return 1;
@@ -2121,14 +2121,14 @@ teleport_area:
 		return 1;
 	}
 
-	int pc_get_iq( lua_State* lua )
+	auto pc_get_iq( lua_State* lua ) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		lua_pushnumber(lua, ch->real_point(POINT_IQ));
 		return 1;
 	}
 
-	int pc_set_iq( lua_State* lua )
+	auto pc_set_iq( lua_State* lua ) -> int
 	{
 		if ( lua_isnumber(lua, 1) == false )
 			return 1;
@@ -2145,14 +2145,14 @@ teleport_area:
 		return 1;
 	}
 
-	int pc_get_st( lua_State* lua )
+	auto pc_get_st( lua_State* lua ) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		lua_pushnumber(lua, ch->real_point(POINT_ST));
 		return 1;
 	}
 
-	int pc_set_st( lua_State* lua )
+	auto pc_set_st( lua_State* lua ) -> int
 	{
 		if ( lua_isnumber(lua, 1) == false )
 			return 1;
@@ -2169,14 +2169,14 @@ teleport_area:
 		return 1;
 	}
 
-	int pc_get_dx( lua_State* lua )
+	auto pc_get_dx( lua_State* lua ) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		lua_pushnumber(lua, ch->real_point(POINT_DX));
 		return 1;
 	}
 
-	int pc_set_dx( lua_State* lua )
+	auto pc_set_dx( lua_State* lua ) -> int
 	{
 		if ( lua_isnumber(lua, 1) == false )
 			return 1;
@@ -2193,7 +2193,7 @@ teleport_area:
 		return 1;
 	}
 
-	int pc_is_near_vid( lua_State* lua )
+	auto pc_is_near_vid( lua_State* lua ) -> int
 	{
 		if ( lua_isnumber(lua, 1) != true || lua_isnumber(lua, 2) != true )
 		{
@@ -2217,7 +2217,7 @@ teleport_area:
 		return 1;
 	}
 
-	int pc_get_socket_items( lua_State* lua )
+	auto pc_get_socket_items( lua_State* lua ) -> int
 	{
 		character * pChar = quest_manager::instance().current_character_ptr();
 
@@ -2270,7 +2270,7 @@ teleport_area:
 		return 1;
 	}
 
-	int pc_get_empty_inventory_count( lua_State* lua )
+	auto pc_get_empty_inventory_count( lua_State* lua ) -> int
 	{
 		character * pChar = quest_manager::instance().current_character_ptr();
 
@@ -2286,7 +2286,7 @@ teleport_area:
 		return 1;
 	}
 
-	int pc_get_logoff_interval( lua_State* lua )
+	auto pc_get_logoff_interval( lua_State* lua ) -> int
 	{
 		character * pChar = quest_manager::instance().current_character_ptr();
 
@@ -2302,7 +2302,7 @@ teleport_area:
 		return 1;
 	}
 
-	int pc_get_player_id( lua_State* lua )
+	auto pc_get_player_id( lua_State* lua ) -> int
 	{
 		character * pChar = quest_manager::instance().current_character_ptr();
 
@@ -2318,7 +2318,7 @@ teleport_area:
 		return 1;
 	}
 
-	int pc_get_account_id( lua_State* lua )
+	auto pc_get_account_id( lua_State* lua ) -> int
 	{
 		character * pChar = quest_manager::instance().current_character_ptr();
 
@@ -2335,7 +2335,7 @@ teleport_area:
 		return 1;
 	}
 
-	int pc_get_account( lua_State* lua )
+	auto pc_get_account( lua_State* lua ) -> int
 	{
 		character * pChar = quest_manager::instance().current_character_ptr();
 
@@ -2352,7 +2352,7 @@ teleport_area:
 		return 1;
 	}
 
-	int pc_is_riding(lua_State* lua)
+	auto pc_is_riding(lua_State* lua) -> int
 	{
 		character * pChar = quest_manager::instance().current_character_ptr();
 
@@ -2369,7 +2369,7 @@ teleport_area:
 		return 1;
 	}
 
-	int pc_get_special_ride_vnum(lua_State* lua)
+	auto pc_get_special_ride_vnum(lua_State* lua) -> int
 	{
 		character * pChar = quest_manager::instance().current_character_ptr();
 
@@ -2405,7 +2405,7 @@ teleport_area:
 		return 2;
 	}
 
-	int pc_can_warp(lua_State* lua)
+	auto pc_can_warp(lua_State* lua) -> int
 	{
 		character * pChar = quest_manager::instance().current_character_ptr();
 
@@ -2421,7 +2421,7 @@ teleport_area:
 		return 1;
 	}
 
-	int pc_dec_skill_point(lua_State* lua)
+	auto pc_dec_skill_point(lua_State* lua) -> int
 	{
 		character * pChar = quest_manager::instance().current_character_ptr();
 
@@ -2433,7 +2433,7 @@ teleport_area:
 		return 0;
 	}
 
-	int pc_get_skill_point(lua_State* lua)
+	auto pc_get_skill_point(lua_State* lua) -> int
 	{
 		character * pChar = quest_manager::instance().current_character_ptr();
 
@@ -2449,14 +2449,14 @@ teleport_area:
 		return 1;
 	}
 
-	int pc_get_channel_id(lua_State* lua)
+	auto pc_get_channel_id(lua_State* lua) -> int
 	{
 		lua_pushnumber(lua, metin2::config::server().channel);
 
 		return 1;
 	}
 
-	int pc_give_poly_marble(lua_State* lua)
+	auto pc_give_poly_marble(lua_State* lua) -> int
 	{
 		const int dwVnum = lua_tonumber(lua, 1);
 
@@ -2506,7 +2506,7 @@ teleport_area:
 		return 1;
 	}
 
-	int pc_get_sig_items (lua_State* lua)
+	auto pc_get_sig_items (lua_State* lua) -> int
 	{
 		uint32_t group_vnum = (uint32_t)lua_tonumber (lua, 1);
 		character * const ch = quest_manager::instance().current_character_ptr();
@@ -2523,7 +2523,7 @@ teleport_area:
 		return count;
 	}		
 
-	int pc_charge_cash(lua_State * lua)
+	auto pc_charge_cash(lua_State * lua) -> int
 	{
 		request_charge_cash packet;
 
@@ -2555,7 +2555,7 @@ teleport_area:
 		return 1;
 	}
 
-	int pc_give_award(lua_State* lua)
+	auto pc_give_award(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -2583,7 +2583,7 @@ teleport_area:
 		lua_pushnumber (lua, 0);
 		return 1;
 	}
-	int pc_give_award_socket(lua_State* lua)
+	auto pc_give_award_socket(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -2619,7 +2619,7 @@ teleport_area:
 		return 1;
 	}
 
-	int pc_get_informer_type(lua_State* lua)
+	auto pc_get_informer_type(lua_State* lua) -> int
 	{
 		character * pChar = quest_manager::instance().current_character_ptr();
 
@@ -2633,7 +2633,7 @@ teleport_area:
 		return 1;
 	}
 
-	int pc_get_informer_item(lua_State* lua)
+	auto pc_get_informer_item(lua_State* lua) -> int
 	{
 		character * pChar = quest_manager::instance().current_character_ptr();
 
@@ -2647,7 +2647,7 @@ teleport_area:
 		return 1;
 	}
 
-	int pc_get_killee_drop_pct(lua_State* lua)
+	auto pc_get_killee_drop_pct(lua_State* lua) -> int
 	{
 		character * pChar = quest_manager::instance().current_character_ptr();
 		character * pKillee = pChar->quest_npc();

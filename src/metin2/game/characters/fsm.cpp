@@ -35,12 +35,12 @@ void fsm::update()
 }
 
 
-bool fsm::is_state(state & state_value) const
+auto fsm::is_state(state & state_value) const -> bool
 {
 	return (current_state_ == &state_value);
 }
 
-bool fsm::goto_state(state & new_state)
+auto fsm::goto_state(state & new_state) -> bool
 {
 	if (is_state(new_state) && new_state_ == &new_state)
 		return true;

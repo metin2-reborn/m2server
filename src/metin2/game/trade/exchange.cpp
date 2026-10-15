@@ -59,7 +59,7 @@ void exchange_packet(character * ch, uint8_t sub_header, bool is_me, uint32_t ar
 
 namespace metin2::game::inline characters {
 
-bool character::exchange_start(character * victim)
+auto character::exchange_start(character * victim) -> bool
 {
 	if (this == victim)
 		return false;
@@ -148,7 +148,7 @@ exchange::~exchange()
 {
 }
 
-bool exchange::add_item(item_pos item_pos, uint8_t display_pos)
+auto exchange::add_item(item_pos item_pos, uint8_t display_pos) -> bool
 {
 	assert(owner_ != nullptr && company());
 
@@ -225,7 +225,7 @@ bool exchange::add_item(item_pos item_pos, uint8_t display_pos)
 	return false;
 }
 
-bool exchange::remove_item(uint8_t pos)
+auto exchange::remove_item(uint8_t pos) -> bool
 {
 	if (pos >= EXCHANGE_ITEM_MAX_NUM)
 		return false;
@@ -250,7 +250,7 @@ bool exchange::remove_item(uint8_t pos)
 	return true;
 }
 
-bool exchange::add_gold(int32_t gold)
+auto exchange::add_gold(int32_t gold) -> bool
 {
 	if (gold <= 0)
 		return false;
@@ -276,7 +276,7 @@ bool exchange::add_gold(int32_t gold)
 	return true;
 }
 
-bool exchange::check(int * item_count_value)
+auto exchange::check(int * item_count_value) -> bool
 {
 	if (owner()->gold() < gold_)
 		return false;
@@ -301,7 +301,7 @@ bool exchange::check(int * item_count_value)
 	return true;
 }
 
-bool exchange::check_space()
+auto exchange::check_space() -> bool
 {
 	static grid s_grid1(5, INVENTORY_MAX_NUM/5 / 2);
 	static grid s_grid2(5, INVENTORY_MAX_NUM/5 / 2);
@@ -413,7 +413,7 @@ bool exchange::check_space()
 	return true;
 }
 
-bool exchange::done()
+auto exchange::done() -> bool
 {
 	int		empty_pos, i;
 	item *	item;
@@ -488,7 +488,7 @@ bool exchange::done()
 	return true;
 }
 
-bool exchange::accept(bool accept)
+auto exchange::accept(bool accept) -> bool
 {
 	if (accept_ == accept)
 		return true;

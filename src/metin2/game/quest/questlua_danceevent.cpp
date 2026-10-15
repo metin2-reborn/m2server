@@ -29,7 +29,7 @@ namespace quest
 		};
 	};
 
-	int dance_event_go_home( lua_State* lua )
+	auto dance_event_go_home( lua_State* lua ) -> int
 	{
 		sectree_map * pSecMap = sectree_manager::instance().map( 115 );
 

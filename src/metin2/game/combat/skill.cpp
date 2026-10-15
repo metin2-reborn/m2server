@@ -86,7 +86,7 @@ struct point_on_type
 	{ "\n",		POINT_NONE		},
 };
 
-int find_point_type(const char * sz)
+auto find_point_type(const char * sz) -> int
 {
 	for (int i = 0; *point_on_types[i].psz_name != '\n'; ++i)
 	{
@@ -96,7 +96,7 @@ int find_point_type(const char * sz)
 	return -1;
 }
 
-bool skill_manager::initialize(skill_table * tab, int size)
+auto skill_manager::initialize(skill_table * tab, int size) -> bool
 {
 	char buf[1024];
 	std::map<uint32_t, std::unique_ptr<skill_proto>> map_pkSkillProto;
@@ -303,7 +303,7 @@ bool skill_manager::initialize(skill_table * tab, int size)
 	return !bError;
 }
 
-skill_proto * skill_manager::get(uint32_t vnum)
+auto skill_manager::get(uint32_t vnum) -> skill_proto *
 {
 	auto it = map_pk_skill_proto_.find(vnum);
 
@@ -313,7 +313,7 @@ skill_proto * skill_manager::get(uint32_t vnum)
 	return it->second.get();
 }
 
-skill_proto * skill_manager::get(const char * skill_name)
+auto skill_manager::get(const char * skill_name) -> skill_proto *
 {
 	auto it = map_pk_skill_proto_.begin();
 

@@ -347,13 +347,13 @@ enum block_action
 struct dynamic_character_ptr {
 	dynamic_character_ptr() : is_pc(false), id(0) {}
 
-	character * get() const; 
+	auto get() const -> character *; 
 	void reset() {
 		is_pc = false;
 		id = 0;
 	}
 
-	dynamic_character_ptr& operator=(character * character);
+	auto operator=(character * character) -> dynamic_character_ptr&;
 	operator character *() const {
 		return get();
 	}
@@ -459,10 +459,10 @@ struct skill_use_info
 		vid(0), is_grand_master(false)
    	{}
 
-	bool    hit_once(uint32_t vnum = 0);
+	auto    hit_once(uint32_t vnum = 0) -> bool;
 
-	bool    use_skill(bool is_grand_master_value, uint32_t vid_value, uint32_t cooltime, int splashcount = 1, int hitcount = -1, int range_value = -1);
-	uint32_t   main_target_vid() const	{ return vid; }
+	auto    use_skill(bool is_grand_master_value, uint32_t vid_value, uint32_t cooltime, int splashcount = 1, int hitcount = -1, int range_value = -1) -> bool;
+	auto   main_target_vid() const -> uint32_t	{ return vid; }
 	void    set_main_target_vid(uint32_t vid_value) { vid=vid_value; }
 };
 
@@ -473,7 +473,7 @@ class mob;
 class mob_instance;
 struct mob_skill_info;
 
-extern int get_skill_power_by_level_from_type(int job, int skillgroup, int skilllevel);
+extern auto get_skill_power_by_level_from_type(int job, int skillgroup, int skilllevel) -> int;
 
 
 class character : public entity, public fsm, public horse_rider
@@ -483,7 +483,7 @@ class character : public entity, public fsm, public horse_rider
 		void	encode_remove_packet(entity * entity) override;
 
 	public:
-		character *			find_character_in_view(const char * name_value, bool find_pc_only);
+		auto			find_character_in_view(const char * name_value, bool find_pc_only) -> character *;
 		void				update_packet();
 		int				analyze_protect; 
 		int				analyze_protect_count;
@@ -507,22 +507,22 @@ class character : public entity, public fsm, public horse_rider
 		void				state_idle_npc();
 
 	public:
-		uint32_t ai_flag() const	{ return points_instant_.ai_flag; }
+		auto ai_flag() const -> uint32_t	{ return points_instant_.ai_flag; }
 	
 		void				set_aggressive();
-		bool				is_aggressive() const;
+		auto				is_aggressive() const -> bool;
 
 		void				set_coward();
-		bool				is_coward() const;
+		auto				is_coward() const -> bool;
 		void				coward_escape();
 
-		bool				is_no_attack_shinsu() const;
+		auto				is_no_attack_shinsu() const -> bool;
 
-		bool				is_no_attack_chunjo() const;
+		auto				is_no_attack_chunjo() const -> bool;
 
-		bool				is_no_attack_jinno() const;
+		auto				is_no_attack_jinno() const -> bool;
 
-		bool				is_attack_mob() const;
+		auto				is_attack_mob() const -> bool;
 
 		virtual void			begin_state_empty();
 		virtual void			end_state_empty() {}
@@ -545,131 +545,131 @@ class character : public entity, public fsm, public horse_rider
 		void			initialize();
 
 	public:
-		uint32_t			player_id() const	{ return player_id_; }
+		auto			player_id() const -> uint32_t	{ return player_id_; }
 
 		void			set_player_proto(const player_table * t);
 		void			create_player_proto(player_table & tab);
 
 		void			set_proto(const mob * mob_value);
-		uint16_t			race_num() const;
+		auto			race_num() const -> uint16_t;
 
 		void			save();
 		void			save_real();
 		void			flush_delayed_save_item();
 
-		const char *	name() const;
-		const vid &		get_vid() const		{ return vid_;		}
+		auto	name() const -> const char *;
+		auto		get_vid() const -> const vid &		{ return vid_;		}
 
 		void			set_name(const std::string& name) { name_ = name; }
 
 		void			set_race(uint8_t race);
-		bool			change_sex();
+		auto			change_sex() -> bool;
 
-		uint32_t			aid() const;
-		int				change_empire_count() const;
+		auto			aid() const -> uint32_t;
+		auto				change_empire_count() const -> int;
 		void			set_change_empire_count();
-		int				change_empire(uint8_t empire_value);
+		auto				change_empire(uint8_t empire_value) -> int;
 
-		uint8_t			job() const;
-		uint8_t			get_char_type() const;
+		auto			job() const -> uint8_t;
+		auto			get_char_type() const -> uint8_t;
 
-		bool			is_pc() const		{ return get_desc() ? true : false; }
-		bool			is_npc()	const		{ return char_type_ != CHAR_TYPE_PC; }
-		bool			is_monster()	const	{ return char_type_ == CHAR_TYPE_MONSTER; }
-		bool			is_stone() const		{ return char_type_ == CHAR_TYPE_STONE; }
-		bool			is_door() const		{ return char_type_ == CHAR_TYPE_DOOR; } 
-		bool			is_building() const	{ return char_type_ == CHAR_TYPE_BUILDING;  }
-		bool			is_warp() const		{ return char_type_ == CHAR_TYPE_WARP; }
-		bool			is_goto() const		{ return char_type_ == CHAR_TYPE_GOTO; }
+		auto			is_pc() const -> bool		{ return get_desc() ? true : false; }
+		auto			is_npc()	const -> bool		{ return char_type_ != CHAR_TYPE_PC; }
+		auto			is_monster()	const -> bool	{ return char_type_ == CHAR_TYPE_MONSTER; }
+		auto			is_stone() const -> bool		{ return char_type_ == CHAR_TYPE_STONE; }
+		auto			is_door() const -> bool		{ return char_type_ == CHAR_TYPE_DOOR; } 
+		auto			is_building() const -> bool	{ return char_type_ == CHAR_TYPE_BUILDING;  }
+		auto			is_warp() const -> bool		{ return char_type_ == CHAR_TYPE_WARP; }
+		auto			is_goto() const -> bool		{ return char_type_ == CHAR_TYPE_GOTO; }
 
-		uint32_t			last_shout_pulse() const	{ return points_instant_.last_shout_pulse; }
+		auto			last_shout_pulse() const -> uint32_t	{ return points_instant_.last_shout_pulse; }
 		void			set_last_shout_pulse(uint32_t pulse) { points_instant_.last_shout_pulse = pulse; }
-		int				level() const		{ return points_.level;	}
+		auto				level() const -> int		{ return points_.level;	}
 		void			set_level(uint8_t level);
 
-		uint8_t			gm_level() const;
-		bool 			is_gm() const;
+		auto			gm_level() const -> uint8_t;
+		auto 			is_gm() const -> bool;
 		void			set_gm_level(); 
 
-		uint32_t			get_exp() const		{ return points_.exp;	}
+		auto			get_exp() const -> uint32_t		{ return points_.exp;	}
 		void			set_exp(uint32_t exp)	{ points_.exp = exp;	}
-		uint32_t			next_exp() const;
-		character *		distribute_exp();
+		auto			next_exp() const -> uint32_t;
+		auto		distribute_exp() -> character *;
 		void			distribute_hp(character * killer);
 		void			distribute_sp(character * killer, int method=0);
 
 		void			set_position(int pos);
-		bool			is_position(int pos) const	{ return points_instant_.position == pos ? true : false; }
-		int				get_position() const		{ return points_instant_.position; }
+		auto			is_position(int pos) const -> bool	{ return points_instant_.position == pos ? true : false; }
+		auto				get_position() const -> int		{ return points_instant_.position; }
 
 		void			set_part(uint8_t part_pos, uint16_t val);
-		uint16_t			part(uint8_t part_pos) const;
-		uint16_t			original_part(uint8_t part_pos) const;
+		auto			part(uint8_t part_pos) const -> uint16_t;
+		auto			original_part(uint8_t part_pos) const -> uint16_t;
 
 		void			set_hp(int hp)		{ points_.hp = hp; }
-		int				hp() const		{ return points_.hp; }
+		auto				hp() const -> int		{ return points_.hp; }
 
 		void			set_sp(int sp)		{ points_.sp = sp; }
-		int				sp() const		{ return points_.sp; }
+		auto				sp() const -> int		{ return points_.sp; }
 
 		void			set_stamina(int stamina)	{ points_.stamina = stamina; }
-		int				stamina() const		{ return points_.stamina; }
+		auto				stamina() const -> int		{ return points_.stamina; }
 
 		void			set_max_hp(int val)	{ points_instant_.max_hp = val; }
-		int				max_hp() const	{ return points_instant_.max_hp; }
+		auto				max_hp() const -> int	{ return points_instant_.max_hp; }
 
 		void			set_max_sp(int val)	{ points_instant_.max_sp = val; }
-		int				max_sp() const	{ return points_instant_.max_sp; }
+		auto				max_sp() const -> int	{ return points_instant_.max_sp; }
 
 		void			set_max_stamina(int val)	{ points_instant_.max_stamina = val; }
-		int				max_stamina() const	{ return points_instant_.max_stamina; }
+		auto				max_stamina() const -> int	{ return points_instant_.max_stamina; }
 
 		void			set_random_hp(int v)	{ points_.random_hp = v; }
 		void			set_random_sp(int v)	{ points_.random_sp = v; }
 
-		int				hp_pct() const;
+		auto				hp_pct() const -> int;
 
 		void			set_real_point(uint8_t type, int val);
-		int				real_point(uint8_t type) const;
+		auto				real_point(uint8_t type) const -> int;
 
 		void			set_point(uint8_t type, int val);
-		int				point(uint8_t type) const;
-		int				limit_point(uint8_t type) const;
-		int				polymorph_point(uint8_t type) const;
+		auto				point(uint8_t type) const -> int;
+		auto				limit_point(uint8_t type) const -> int;
+		auto				polymorph_point(uint8_t type) const -> int;
 
-		const mob_table &	get_mob_table() const;
-		uint8_t				get_mob_rank() const;
-		uint8_t				mob_battle_type() const;
-		uint32_t				mob_damage_min() const;
-		uint32_t				mob_damage_max() const;
-		uint16_t				mob_attack_range() const;
-		uint32_t				mob_drop_item_vnum() const;
-		float				mob_damage_multiply() const;
+		auto	get_mob_table() const -> const mob_table &;
+		auto				get_mob_rank() const -> uint8_t;
+		auto				mob_battle_type() const -> uint8_t;
+		auto				mob_damage_min() const -> uint32_t;
+		auto				mob_damage_max() const -> uint32_t;
+		auto				mob_attack_range() const -> uint16_t;
+		auto				mob_drop_item_vnum() const -> uint32_t;
+		auto				mob_damage_multiply() const -> float;
 
-		bool			is_berserker() const;
-		bool			is_berserk() const;
+		auto			is_berserker() const -> bool;
+		auto			is_berserk() const -> bool;
 		void			set_berserk(bool mode);
 
-		bool			is_stone_skinner() const;
+		auto			is_stone_skinner() const -> bool;
 
-		bool			is_god_speeder() const;
-		bool			is_god_speed() const;
+		auto			is_god_speeder() const -> bool;
+		auto			is_god_speed() const -> bool;
 		void			set_god_speed(bool mode);
 
-		bool			is_death_blower() const;
-		bool			is_death_blow() const;
+		auto			is_death_blower() const -> bool;
+		auto			is_death_blow() const -> bool;
 
-		bool			is_reviver() const;
-		bool			has_reviver_in_party() const;
-		bool			is_revive() const;
+		auto			is_reviver() const -> bool;
+		auto			has_reviver_in_party() const -> bool;
+		auto			is_revive() const -> bool;
 		void			set_revive(bool mode);
 
-		bool			is_race_flag(uint32_t bit) const;
-		bool			is_summon_monster() const;
-		uint32_t			summon_vnum() const;
+		auto			is_race_flag(uint32_t bit) const -> bool;
+		auto			is_summon_monster() const -> bool;
+		auto			summon_vnum() const -> uint32_t;
 
-		uint32_t			polymorph_item_vnum() const;
-		uint32_t			monster_drain_sp_point() const;
+		auto			polymorph_item_vnum() const -> uint32_t;
+		auto			monster_drain_sp_point() const -> uint32_t;
 
 		void			main_character_packet();
 
@@ -680,14 +680,14 @@ class character : public entity, public fsm, public horse_rider
 		void			apply_point(uint8_t apply_type, int val);
 		void			check_maximum_points();
 
-		bool			show(int32_t map_index, int32_t x, int32_t y, int32_t z = INT32_MAX, bool show_spawn_motion = false);
+		auto			show(int32_t map_index, int32_t x, int32_t y, int32_t z = INT32_MAX, bool show_spawn_motion = false) -> bool;
 
 		void			sitdown(int is_ground);
 		void			standup();
 
 		void			set_rotation(float rot_value);
 		void			set_rotation_to_xy(int32_t x_value, int32_t y_value);
-		float			rotation() const	{ return points_instant_.rot; }
+		auto			rotation() const -> float	{ return points_instant_.rot; }
 
 		void			chat_packet(uint8_t type, const char *format, ...);
 		void			monster_chat(uint8_t monster_chat_type);
@@ -697,13 +697,13 @@ class character : public entity, public fsm, public horse_rider
 
 		void			set_block_mode(uint8_t flag);
 		void			set_block_mode_force(uint8_t flag);
-		bool			is_block_mode(uint8_t flag) const	{ return (points_instant_.block_mode & flag)?true:false; }
+		auto			is_block_mode(uint8_t flag) const -> bool	{ return (points_instant_.block_mode & flag)?true:false; }
 
-		bool			is_polymorphed() const		{ return polymorph_race_>0; }
-		bool			is_poly_maintain_stat() const	{ return poly_maintain_stat_; }
+		auto			is_polymorphed() const -> bool		{ return polymorph_race_>0; }
+		auto			is_poly_maintain_stat() const -> bool	{ return poly_maintain_stat_; }
 		void			set_polymorph(uint32_t race_num, bool maintain_stat = false);
-		uint32_t			polymorph_vnum() const	{ return polymorph_race_; }
-		int				polymorph_power() const;
+		auto			polymorph_vnum() const -> uint32_t	{ return polymorph_race_; }
+		auto				polymorph_power() const -> int;
 
 		void			fishing();
 		void			fishing_take();
@@ -717,8 +717,8 @@ class character : public entity, public fsm, public horse_rider
 		void			create_fly(uint8_t type_value, character * victim);
 
 		void			reset_chat_counter();
-		uint8_t			increase_chat_counter();
-		uint8_t			chat_counter() const;
+		auto			increase_chat_counter() -> uint8_t;
+		auto			chat_counter() const -> uint8_t;
 
 	protected:
 		uint32_t			polymorph_race_;
@@ -740,50 +740,50 @@ class character : public entity, public fsm, public horse_rider
 
 
 	public:
-		bool			is_walking() const			{ return now_walking_ || stamina()<=0; }
+		auto			is_walking() const -> bool			{ return now_walking_ || stamina()<=0; }
 		void			set_walking(bool walk_flag)	{ walking_=walk_flag; }
 		void			set_now_walking(bool walk_flag);	
 		void			reset_walking()			{ set_now_walking(walking_); }
 
-		bool			go_to(int32_t x_value, int32_t y_value);
+		auto			go_to(int32_t x_value, int32_t y_value) -> bool;
 		void			stop();
 
-		bool			can_move() const;
+		auto			can_move() const -> bool;
 
 		void			sync_packet();
-		bool			sync(int32_t x, int32_t y);
-		bool			move(int32_t x_value, int32_t y_value);
+		auto			sync(int32_t x, int32_t y) -> bool;
+		auto			move(int32_t x_value, int32_t y_value) -> bool;
 		void			on_move(bool is_attack = false);
-		uint32_t			get_motion_mode() const;
-		float			move_motion_speed() const;
-		float			move_speed() const;
+		auto			get_motion_mode() const -> uint32_t;
+		auto			move_motion_speed() const -> float;
+		auto			move_speed() const -> float;
 		void			calculate_move_duration();
 		void			send_move_packet(uint8_t func, uint8_t arg, uint32_t x, uint32_t y, uint32_t duration, uint32_t time=0, int rot=-1);
-		uint32_t			current_move_duration() const	{ return move_duration_; }
-		uint32_t			walk_start_time() const	{ return walk_start_time_; }
-		uint32_t			last_move_time() const		{ return last_move_time_; }
-		uint32_t			last_attack_time() const	{ return last_attack_time_; }
+		auto			current_move_duration() const -> uint32_t	{ return move_duration_; }
+		auto			walk_start_time() const -> uint32_t	{ return walk_start_time_; }
+		auto			last_move_time() const -> uint32_t		{ return last_move_time_; }
+		auto			last_attack_time() const -> uint32_t	{ return last_attack_time_; }
 
 		void			set_last_attacked(uint32_t time);
 
-		bool			set_sync_owner(character * ch, bool remove_from_list = true);
-		bool			is_sync_owner(character * ch) const;
+		auto			set_sync_owner(character * ch, bool remove_from_list = true) -> bool;
+		auto			is_sync_owner(character * ch) const -> bool;
 
-		bool			warp_set(int32_t x, int32_t y, int32_t private_map_index = 0);
+		auto			warp_set(int32_t x, int32_t y, int32_t private_map_index = 0) -> bool;
 		void			set_warp_location(int32_t map_index, int32_t x, int32_t y);
 		void			warp_end();
-		bool			warp_to_pid(uint32_t pid);
+		auto			warp_to_pid(uint32_t pid) -> bool;
 
 		void			save_exit_location();
 		void			exit_to_saved_location();
 
 		void			start_stamina_consume();
 		void			stop_stamina_consume();
-		bool			is_stamina_consume() const;
-		bool			is_stamina_half_consume() const;
+		auto			is_stamina_consume() const -> bool;
+		auto			is_stamina_half_consume() const -> bool;
 
 		void			reset_stop_time();
-		uint32_t			stop_time() const;
+		auto			stop_time() const -> uint32_t;
 
 	protected:
 		void			clear_sync();
@@ -814,10 +814,10 @@ class character : public entity, public fsm, public horse_rider
 
 	public:
 		void			sync_quickslot(uint8_t type_value, uint8_t old_pos, uint8_t new_pos);
-		bool			get_quickslot(uint8_t pos, quickslot ** pp_slot);
-		bool			set_quickslot(uint8_t pos, quickslot & slot_value);
-		bool			del_quickslot(uint8_t pos);
-		bool			swap_quickslot(uint8_t a, uint8_t b);
+		auto			get_quickslot(uint8_t pos, quickslot ** pp_slot) -> bool;
+		auto			set_quickslot(uint8_t pos, quickslot & slot_value) -> bool;
+		auto			del_quickslot(uint8_t pos) -> bool;
+		auto			swap_quickslot(uint8_t a, uint8_t b) -> bool;
 		void			chain_quickslot_item(item * item_value, uint8_t type_value, uint8_t old_pos);
 
 	protected:
@@ -827,25 +827,25 @@ class character : public entity, public fsm, public horse_rider
 		void			start_affect_event();
 		void			clear_affect(bool save=false);
 		void			compute_affect(affect * aff, bool add);
-		bool			add_affect(uint32_t type_value, uint8_t apply_on_value, int32_t apply_value_value, uint32_t flag_value, int32_t duration_value, int32_t sp_cost_value, bool override, bool is_cube = false);
+		auto			add_affect(uint32_t type_value, uint8_t apply_on_value, int32_t apply_value_value, uint32_t flag_value, int32_t duration_value, int32_t sp_cost_value, bool override, bool is_cube = false) -> bool;
 		void			refresh_affect();
-		bool			remove_affect(uint32_t type);
-		bool			is_affect_flag(uint32_t aff) const;
+		auto			remove_affect(uint32_t type) -> bool;
+		auto			is_affect_flag(uint32_t aff) const -> bool;
 
-		bool			update_affect();
-		int				process_affect();
+		auto			update_affect() -> bool;
+		auto				process_affect() -> int;
 
 		void			load_affect(uint32_t count_value, packet_affect_element * elements);
 		void			save_affect();
 
-		bool			is_good_affect(uint8_t affect_type) const;
+		auto			is_good_affect(uint8_t affect_type) const -> bool;
 
 		void			remove_good_affect();
 		void			remove_bad_affect();
 
-		affect *		find_affect(uint32_t type_value, uint8_t apply=APPLY_NONE) const;
-		const std::list<affect *> & affect_container() const	{ return list_pk_affect_; }
-		bool			remove_affect(affect * aff);
+		auto		find_affect(uint32_t type_value, uint8_t apply=APPLY_NONE) const -> affect *;
+		auto affect_container() const -> const std::list<affect *> &	{ return list_pk_affect_; }
+		auto			remove_affect(affect * aff) -> bool;
 
 	protected:
 		affect_flag		af_affect_flag_;
@@ -853,9 +853,9 @@ class character : public entity, public fsm, public horse_rider
 
 	public:
 		void			set_party(party * party_value);
-		party *			get_party() const	{ return party_; }
+		auto			get_party() const -> party *	{ return party_; }
 
-		bool			request_to_party(character * leader);
+		auto			request_to_party(character * leader) -> bool;
 		void			deny_to_party(character * member);
 		void			accept_to_party(character * member);
 
@@ -865,10 +865,10 @@ class character : public entity, public fsm, public horse_rider
 
 		void			party_invite_deny(uint32_t pid);
 
-		bool			build_update_party_packet(packet_gc_party_update & out);
-		int				leadership_skill_level() const;
+		auto			build_update_party_packet(packet_gc_party_update & out) -> bool;
+		auto				leadership_skill_level() const -> int;
 
-		bool			can_summon(int leader_ship);
+		auto			can_summon(int leader_ship) -> bool;
 
 		void			set_party_request_event(event_ptr event) { party_request_event_ = event; }
 
@@ -891,9 +891,9 @@ class character : public entity, public fsm, public horse_rider
 			PERR_MAX
 		};
 
-		static party_join_err_code	is_party_joinable_condition(character * const pch_leader, character * const pch_guest);
+		static auto	is_party_joinable_condition(character * const pch_leader, character * const pch_guest) -> party_join_err_code;
 
-		static party_join_err_code	is_party_joinable_mutable_condition(character * const pch_leader, character * const pch_guest);
+		static auto	is_party_joinable_mutable_condition(character * const pch_leader, character * const pch_guest) -> party_join_err_code;
 
 		party *			party_;
 		uint32_t			last_dead_time_;
@@ -905,18 +905,18 @@ class character : public entity, public fsm, public horse_rider
 
 	public:
 		void			set_dungeon(dungeon * dungeon_value);
-		dungeon *		get_dungeon() const	{ return dungeon_; }
-		dungeon *		dungeon_force() const;
+		auto		get_dungeon() const -> dungeon *	{ return dungeon_; }
+		auto		dungeon_force() const -> dungeon *;
 	protected:
 		dungeon *	dungeon_;
 		int			event_attr_;
 
 	public:
 		void			set_guild(guild * guild_value);
-		guild*			get_guild() const	{ return guild_; }
+		auto			get_guild() const -> guild*	{ return guild_; }
 
 		void			set_war_map(war_map* war_map_value);
-		war_map*		get_war_map() const	{ return war_map_; }
+		auto		get_war_map() const -> war_map*	{ return war_map_; }
 
 	protected:
 		guild *		guild_;
@@ -924,85 +924,85 @@ class character : public entity, public fsm, public horse_rider
 		war_map *		war_map_;
 
 	public:
-		bool			can_handle_item(bool skip_check_refine = false, bool skip_observer = false);
+		auto			can_handle_item(bool skip_check_refine = false, bool skip_observer = false) -> bool;
 
-		bool			is_item_loaded() const	{ return item_loaded_; }
+		auto			is_item_loaded() const -> bool	{ return item_loaded_; }
 		void			set_item_loaded()	{ item_loaded_ = true; }
 
 		void			clear_item();
 		void			set_item(item_pos cell_value, item * item_value);
-		item *			get_item(item_pos cell_value) const;
-		item *			inventory_item(uint16_t cell) const;
-		bool			is_empty_item_grid(item_pos cell_value, uint8_t size, int exception_cell = -1) const;
+		auto			get_item(item_pos cell_value) const -> item *;
+		auto			inventory_item(uint16_t cell) const -> item *;
+		auto			is_empty_item_grid(item_pos cell_value, uint8_t size, int exception_cell = -1) const -> bool;
 
 		void			set_wear(uint8_t cell, item * item);
-		item *			wear(uint8_t cell) const;
+		auto			wear(uint8_t cell) const -> item *;
 
 		void			use_silk_botary(void);
 
 		void			use_silk_botary_real(const packet_myshop_pricelist_header* p);
 
-		bool			use_item_ex(item * item, item_pos dest_cell);
-		bool			use_item(item_pos cell_value, item_pos dest_cell = NPOS);
+		auto			use_item_ex(item * item, item_pos dest_cell) -> bool;
+		auto			use_item(item_pos cell_value, item_pos dest_cell = NPOS) -> bool;
 
-		bool			is_refine_through_guild() const;
-		guild *		refine_guild() const;
-		int				compute_refine_fee(int cost, int multiply = 5) const;
+		auto			is_refine_through_guild() const -> bool;
+		auto		refine_guild() const -> guild *;
+		auto				compute_refine_fee(int cost, int multiply = 5) const -> int;
 		void			pay_refine_fee(int total_money);
 		void			set_refine_npc(character * ch);
 
-		bool			refine_item(item * item_value, item * target);
-		bool			drop_item(item_pos cell_value,  uint8_t count_value=0);
-		bool			give_recall_item(item * item);
+		auto			refine_item(item * item_value, item * target) -> bool;
+		auto			drop_item(item_pos cell_value,  uint8_t count_value=0) -> bool;
+		auto			give_recall_item(item * item) -> bool;
 		void			process_recall_item(item * item);
 
 		void			effect_packet(int enum_effect_type);
 		void			specific_effect_packet(const char filename[128]);
 
-		bool			do_refine(item * item, bool money_only = false);
+		auto			do_refine(item * item, bool money_only = false) -> bool;
 
-		bool			do_refine_with_scroll(item * item);
-		bool			refine_information(uint8_t cell, uint8_t type_value, int additional_cell = -1);
+		auto			do_refine_with_scroll(item * item) -> bool;
+		auto			refine_information(uint8_t cell, uint8_t type_value, int additional_cell = -1) -> bool;
 
 		void			set_refine_mode(int additional_cell = -1);
 		void			clear_refine_mode();
 
-		bool			give_item(character * victim, item_pos cell);
-		bool			can_receive_item(character * from, item * item) const;
+		auto			give_item(character * victim, item_pos cell) -> bool;
+		auto			can_receive_item(character * from, item * item) const -> bool;
 		void			receive_item(character * from, item * item);
-		bool			give_item_from_special_item_group(uint32_t group_num, std::vector <uint32_t> &item_vnums, 
-							std::vector <uint32_t> &item_counts, std::vector <item *> &item_gets, int &count);
+		auto			give_item_from_special_item_group(uint32_t group_num, std::vector <uint32_t> &item_vnums, 
+							std::vector <uint32_t> &item_counts, std::vector <item *> &item_gets, int &count) -> bool;
 
-		bool			move_item(item_pos cell_value, item_pos dest_cell, uint8_t count);
-		bool			pickup_item(uint32_t vid);
-		bool			equip_item(item * item, int candidate_cell = -1);
-		bool			unequip_item(item * item);
+		auto			move_item(item_pos cell_value, item_pos dest_cell, uint8_t count) -> bool;
+		auto			pickup_item(uint32_t vid) -> bool;
+		auto			equip_item(item * item, int candidate_cell = -1) -> bool;
+		auto			unequip_item(item * item) -> bool;
 
-		bool			can_equip_now(item * const item, const item_pos& src_cell = NPOS, const item_pos& dest_cell = NPOS);
+		auto			can_equip_now(item * const item, const item_pos& src_cell = NPOS, const item_pos& dest_cell = NPOS) -> bool;
 
-		bool			can_unequip_now(item * const item, const item_pos& src_cell = NPOS, const item_pos& dest_cell = NPOS);
+		auto			can_unequip_now(item * const item, const item_pos& src_cell = NPOS, const item_pos& dest_cell = NPOS) -> bool;
 
-		bool			swap_item(uint8_t cell_value, uint8_t dest_cell);
-		item *			auto_give_item(uint32_t item_vnum, uint8_t count_value=1, int rare_pct = -1, bool msg = true);
+		auto			swap_item(uint8_t cell_value, uint8_t dest_cell) -> bool;
+		auto			auto_give_item(uint32_t item_vnum, uint8_t count_value=1, int rare_pct = -1, bool msg = true) -> item *;
 		void			auto_give_item(item * item, bool long_owner_ship = false);
 		
-		int				empty_inventory(uint8_t size) const;
-		int				empty_dragon_soul_inventory(item * item_value) const;
+		auto				empty_inventory(uint8_t size) const -> int;
+		auto				empty_dragon_soul_inventory(item * item_value) const -> int;
 		void			copy_dragon_soul_item_grid(std::vector<uint16_t>& dragon_soul_item_grid) const;
 
-		int				count_empty_inventory() const;
+		auto				count_empty_inventory() const -> int;
 
-		int				count_specify_item(uint32_t vnum) const;
+		auto				count_specify_item(uint32_t vnum) const -> int;
 		void			remove_specify_item(uint32_t vnum, uint32_t count = 1);
-		item *			find_specify_item(uint32_t vnum) const;
-		item *			find_item_by_id(uint32_t id) const;
+		auto			find_specify_item(uint32_t vnum) const -> item *;
+		auto			find_item_by_id(uint32_t id) const -> item *;
 
-		int				count_specify_type_item(uint8_t type) const;
+		auto				count_specify_type_item(uint8_t type) const -> int;
 		void			remove_specify_type_item(uint8_t type, uint32_t count = 1);
 
-		bool			is_equip_unique_item(uint32_t item_vnum) const;
+		auto			is_equip_unique_item(uint32_t item_vnum) const -> bool;
 
-		bool			is_equip_unique_group(uint32_t group_vnum) const;
+		auto			is_equip_unique_group(uint32_t group_vnum) const -> bool;
 
 		void			send_equipment(character * ch);
 
@@ -1018,20 +1018,20 @@ class character : public entity, public fsm, public horse_rider
 		uint32_t			refine_npcvid_;
 
 	public:
-		int32_t				gold() const		{ return points_.gold;	}
+		auto				gold() const -> int32_t		{ return points_.gold;	}
 		void			set_gold(int32_t gold)	{ points_.gold = gold;	}
-		bool			drop_gold(int32_t gold_value);
+		auto			drop_gold(int32_t gold_value) -> bool;
 		void			give_gold(int32_t amount);
 
 	public:
 		void			set_shop(shop * shop_value);
-		shop *			get_shop() const { return shop_; }
+		auto			get_shop() const -> shop * { return shop_; }
 
 		void			set_shop_owner(character * ch) { chr_shop_owner_ = ch; }
-		character *		shop_owner() const { return chr_shop_owner_;}
+		auto		shop_owner() const -> character * { return chr_shop_owner_;}
 
 		void			open_my_shop(const char * sign_value, shop_item_table * table, uint8_t item_count);
-		shop *			my_shop() const { return my_shop_; }
+		auto			my_shop() const -> shop * { return my_shop_; }
 		void			close_my_shop();
 
 	protected:
@@ -1042,9 +1042,9 @@ class character : public entity, public fsm, public horse_rider
 		character *		chr_shop_owner_;
 
 	public:
-		bool			exchange_start(character * victim);
+		auto			exchange_start(character * victim) -> bool;
 		void			set_exchange(exchange * exchange_value);
-		exchange *		get_exchange() const	{ return exchange_;	}
+		auto		get_exchange() const -> exchange *	{ return exchange_;	}
 
 	protected:
 		exchange *		exchange_;
@@ -1066,24 +1066,24 @@ class character : public entity, public fsm, public horse_rider
 			uint32_t	time;
 		};
 
-		bool				damage(character * attacker, int dam, damage_type type = DAMAGE_TYPE_NORMAL);
+		auto				damage(character * attacker, int dam, damage_type type = DAMAGE_TYPE_NORMAL) -> bool;
 		void				death_penalty(uint8_t town);
 		void				revive_invisible(int dur);
 
-		bool				attack(character * victim, uint8_t type = 0);
+		auto				attack(character * victim, uint8_t type = 0) -> bool;
 
-		bool				can_begin_fight() const;
+		auto				can_begin_fight() const -> bool;
 		void				begin_fight(character * victim);
 
-		bool				is_stun() const;
+		auto				is_stun() const -> bool;
 		void				stun();
-		bool				is_dead() const;
+		auto				is_dead() const -> bool;
 		void				dead(character * killer = nullptr, bool immediate_dead=false);
 
 		void				reward(bool item_drop);
 		void				reward_gold(character * attacker);
 
-		bool				shoot(uint8_t type);
+		auto				shoot(uint8_t type) -> bool;
 		void				fly_target(uint32_t target_vid_value, int32_t x, int32_t y, uint8_t header_value);
 
 		void				forget_my_attacker();
@@ -1091,7 +1091,7 @@ class character : public entity, public fsm, public horse_rider
 		void				attract_ranger();
 		void				pull_monster();
 
-		int					arrow_and_bow(item * * ppk_bow, item * * ppk_arrow, int arrow_count = 1);
+		auto					arrow_and_bow(item * * ppk_bow, item * * ppk_arrow, int arrow_count = 1) -> int;
 		void				use_arrow(item * arrow, uint32_t arrow_count);
 
 		void				attacked_by_poison(character * attacker);
@@ -1101,16 +1101,16 @@ class character : public entity, public fsm, public horse_rider
 		void				remove_fire();
 
 		void				update_alignment(int amount);
-		int					alignment() const;
+		auto					alignment() const -> int;
 
-		int					real_alignment() const;
+		auto					real_alignment() const -> int;
 		void				show_alignment(bool show);
 
 		void				set_killer_mode(bool is_on);
-		bool				is_killer_mode() const;
+		auto				is_killer_mode() const -> bool;
 		void				update_killer_mode();
 
-		uint8_t				pk_mode() const;
+		auto				pk_mode() const -> uint8_t;
 		void				set_pk_mode(uint8_t pk_mode);
 
 		void				item_drop_penalty(character * killer);
@@ -1119,20 +1119,20 @@ class character : public entity, public fsm, public horse_rider
 
 	public:
 		void set_combo_sequence(uint8_t seq);
-		uint8_t combo_sequence() const;
+		auto combo_sequence() const -> uint8_t;
 
 		void set_last_combo_time(uint32_t time);
-		uint32_t last_combo_time() const;
+		auto last_combo_time() const -> uint32_t;
 
-		int valid_combo_interval() const;
+		auto valid_combo_interval() const -> int;
 		void set_valid_combo_interval(int interval);
 
-		uint8_t combo_index() const;
+		auto combo_index() const -> uint8_t;
 
 		void increase_combo_hack_count(int k = 1);
 		void reset_combo_hack_count();
 		void skip_combo_attack_by_time(int interval);
-		uint32_t get_skip_combo_attack_by_time() const;
+		auto get_skip_combo_attack_by_time() const -> uint32_t;
 
 	protected:
 		uint8_t combo_sequence_;
@@ -1163,8 +1163,8 @@ class character : public entity, public fsm, public horse_rider
 		void				set_stone(character * chr_stone);
 		void				clear_stone();
 		void				determine_drop_metin_stone();
-		uint32_t				drop_metin_stone_vnum() const { return drop_metin_stone_; }
-		uint8_t				drop_metin_stone_pct() const { return drop_metin_stone_pct_; }
+		auto				drop_metin_stone_vnum() const -> uint32_t { return drop_metin_stone_; }
+		auto				drop_metin_stone_pct() const -> uint8_t { return drop_metin_stone_pct_; }
 
 	protected:
 		character *			chr_stone_;
@@ -1184,50 +1184,50 @@ class character : public entity, public fsm, public horse_rider
 
 		void				skill_level_packet();
 		void				skill_level_up(uint32_t vnum_value, uint8_t method = SKILL_UP_BY_POINT);
-		bool				skill_level_down(uint32_t vnum_value);
-		bool				use_skill(uint32_t vnum_value, character * victim, bool use_grand_master = true);
+		auto				skill_level_down(uint32_t vnum_value) -> bool;
+		auto				use_skill(uint32_t vnum_value, character * victim, bool use_grand_master = true) -> bool;
 		void				reset_skill();
 		void				set_skill_level(uint32_t vnum, uint8_t lev);
-		int					used_skill_master_type(uint32_t vnum);
+		auto					used_skill_master_type(uint32_t vnum) -> int;
 
-		bool				is_learnable_skill(uint32_t skill_vnum) const;
+		auto				is_learnable_skill(uint32_t skill_vnum) const -> bool;
 
-		bool				check_skill_hit_count(const uint8_t skill_id, const vid target_vid);
-		bool				can_use_skill(uint32_t skill_vnum) const;
-		bool				is_usable_skill_motion(uint32_t motion_index) const;
-		int					skill_level(uint32_t vnum) const;
-		int					skill_master_type(uint32_t vnum) const;
-		int					skill_power(uint32_t vnum, uint8_t level = 0) const;
+		auto				check_skill_hit_count(const uint8_t skill_id, const vid target_vid) -> bool;
+		auto				can_use_skill(uint32_t skill_vnum) const -> bool;
+		auto				is_usable_skill_motion(uint32_t motion_index) const -> bool;
+		auto					skill_level(uint32_t vnum) const -> int;
+		auto					skill_master_type(uint32_t vnum) const -> int;
+		auto					skill_power(uint32_t vnum, uint8_t level = 0) const -> int;
 
-		time_t				skill_next_read_time(uint32_t vnum) const;
+		auto				skill_next_read_time(uint32_t vnum) const -> time_t;
 		void				set_skill_next_read_time(uint32_t vnum, time_t time);
 		void				skill_learn_wait_more_time_message(uint32_t ms);
 
-		int					compute_skill(uint32_t vnum_value, character * victim, uint8_t skill_level_value = 0);
-		int					compute_skill_at_position(uint32_t vnum_value, const pixel_position& pos_target, uint8_t skill_level_value = 0);
+		auto					compute_skill(uint32_t vnum_value, character * victim, uint8_t skill_level_value = 0) -> int;
+		auto					compute_skill_at_position(uint32_t vnum_value, const pixel_position& pos_target, uint8_t skill_level_value = 0) -> int;
 		void				compute_skill_points();
 
 		void				set_skill_group(uint8_t skill_group_value); 
-		uint8_t				skill_group() const		{ return points_.skill_group; }
+		auto				skill_group() const -> uint8_t		{ return points_.skill_group; }
 
-		int					compute_cooltime(int time);
+		auto					compute_cooltime(int time) -> int;
 
 		void				give_random_skill_book();
 
 		void				disable_cooltime();
-		bool				learn_skill_by_book(uint32_t skill_vnum, uint8_t prob = 0);
-		bool				learn_grand_master_skill(uint32_t skill_vnum);
+		auto				learn_skill_by_book(uint32_t skill_vnum, uint8_t prob = 0) -> bool;
+		auto				learn_grand_master_skill(uint32_t skill_vnum) -> bool;
 
 	private:
 		bool				disable_cooltime_;
 		uint32_t				last_skill_time_;
 
 	public:
-		bool				has_mob_skill() const;
-		size_t				count_mob_skill() const;
-		const mob_skill_info * mob_skill(unsigned int idx) const;
-		bool				can_use_mob_skill(unsigned int idx) const;
-		bool				use_mob_skill(unsigned int idx);
+		auto				has_mob_skill() const -> bool;
+		auto				count_mob_skill() const -> size_t;
+		auto mob_skill(unsigned int idx) const -> const mob_skill_info *;
+		auto				can_use_mob_skill(unsigned int idx) const -> bool;
+		auto				use_mob_skill(unsigned int idx) -> bool;
 		void				reset_mob_skill_cooltime();
 	protected:
 		uint32_t				mob_skill_cooltime_[MOB_SKILL_MAX_NUM];
@@ -1240,12 +1240,12 @@ class character : public entity, public fsm, public horse_rider
 		event_ptr				muyeong_event_;
 
 	public:
-		int					chain_lightning_index() const { return chain_lighting_index_; }
+		auto					chain_lightning_index() const -> int { return chain_lighting_index_; }
 		void				inc_chain_lightning_index() { ++chain_lighting_index_; }
 		void				add_chain_lightning_except(character * ch) { except_chain_lighting_.insert(ch); }
 		void				reset_chain_lightning_index() { chain_lighting_index_ = 0; except_chain_lighting_.clear(); }
-		int					chain_lightning_max_count() const;
-		const character_set& chain_lighting_except() const { return except_chain_lighting_; }
+		auto					chain_lightning_max_count() const -> int;
+		auto chain_lighting_except() const -> const character_set& { return except_chain_lighting_; }
 
 	private:
 		int					chain_lighting_index_;
@@ -1254,7 +1254,7 @@ class character : public entity, public fsm, public horse_rider
 	public:
 		void				set_affected_eunhyung();
 		void				clear_affected_eunhyung() { affected_eunhyung_level_ = 0; }
-		bool				affected_eunhyung() const { return affected_eunhyung_level_; }
+		auto				affected_eunhyung() const -> bool { return affected_eunhyung_level_; }
 
 	private:
 		uint32_t				affected_eunhyung_level_;
@@ -1266,15 +1266,15 @@ class character : public entity, public fsm, public horse_rider
 
 	public:
 		void			assign_triggers(const mob_table * table);
-		character *		victim() const;
+		auto		victim() const -> character *;
 		void			set_victim(character * victim);
-		character *		nearest_victim(character * chr);
-		character *		protege() const;
+		auto		nearest_victim(character * chr) -> character *;
+		auto		protege() const -> character *;
 
-		bool			follow(character * chr, float min_distance = 150.0f);
-		bool			return_home();
-		bool			is_guard_npc() const;
-		bool			is_change_attack_position(character * target) const;
+		auto			follow(character * chr, float min_distance = 150.0f) -> bool;
+		auto			return_home() -> bool;
+		auto			is_guard_npc() const -> bool;
+		auto			is_change_attack_position(character * target) const -> bool;
 		void			reset_change_attack_position_time() { last_change_attack_position_time_ = get_dword_time() - AI_CHANGE_ATTACK_POISITION_TIME_NEAR;}
 		void			set_change_attack_position_time() { last_change_attack_position_time_ = get_dword_time();}
 
@@ -1295,14 +1295,14 @@ class character : public entity, public fsm, public horse_rider
 		void				broadcast_target_packet();
 		void				clear_target();
 		void				check_target();
-		character *			target() const { return chr_target_; }
+		auto			target() const -> character * { return chr_target_; }
 
 	public:
-		int					safebox_size() const;
+		auto					safebox_size() const -> int;
 		void				query_safebox_size();
 		void				set_safebox_size(int size);
 
-		safebox *			get_safebox() const;
+		auto			get_safebox() const -> safebox *;
 		void				load_safebox(int size_value, uint32_t gold, int item_count, player_item * items);
 		void				change_safebox_size(uint8_t size_value);
 		void				close_safebox();
@@ -1312,14 +1312,14 @@ class character : public entity, public fsm, public horse_rider
 		void				cancel_safebox_load( void ) { opening_safebox_ = false; }
 
 		void				set_mall_load_time(int t) { mall_load_time_ = t; }
-		int					mall_load_time() const { return mall_load_time_; }
+		auto					mall_load_time() const -> int { return mall_load_time_; }
 
-		safebox *			mall() const;
+		auto			mall() const -> safebox *;
 		void				load_mall(int item_count, player_item * items);
 		void				close_mall();
 
 		void				set_safebox_open_position();
-		float				distance_from_safebox_open() const;
+		auto				distance_from_safebox_open() const -> float;
 
 	protected:
 		std::unique_ptr<safebox>	safebox_;
@@ -1335,34 +1335,34 @@ class character : public entity, public fsm, public horse_rider
 
 	public:
 		void				mount_vnum(uint32_t vnum);
-		uint32_t				get_mount_vnum() const { return mount_vnum_; }
-		uint32_t				last_mount_time() const { return mount_time_; }
+		auto				get_mount_vnum() const -> uint32_t { return mount_vnum_; }
+		auto				last_mount_time() const -> uint32_t { return mount_time_; }
 
-		bool				can_use_horse_skill();
+		auto				can_use_horse_skill() -> bool;
 
 		void		set_horse_level(int level) override;
 
-		bool		start_riding() override;
-		bool		stop_riding() override;
+		auto		start_riding() -> bool override;
+		auto		stop_riding() -> bool override;
 
-		uint32_t		my_horse_vnum() const override;
+		auto		my_horse_vnum() const -> uint32_t override;
 
 		void		horse_die() override;
-		bool		revive_horse() override;
+		auto		revive_horse() -> bool override;
 
 		void		send_horse_info() override;
 		void		clear_horse_info() override;
 
 		void				horse_summon(bool summon, bool from_far = false, uint32_t vnum = 0, const char* pet_name = nullptr);
 
-		character *			horse() const			{ return ch_horse_; }
-		character *			rider() const;
+		auto			horse() const -> character *			{ return ch_horse_; }
+		auto			rider() const -> character *;
 		void				set_rider(character * ch);
 
-		bool				is_riding() const;
+		auto				is_riding() const -> bool;
 
 	public:
-		pet_system*			get_pet_system()				{ return pet_system_.get(); }
+		auto			get_pet_system() -> pet_system*				{ return pet_system_.get(); }
 
 	protected:
 		std::unique_ptr<pet_system>	pet_system_;
@@ -1391,7 +1391,7 @@ class character : public entity, public fsm, public horse_rider
 
 	public:
 		void 				set_empire(uint8_t empire);
-		uint8_t				empire() const { return empire_; }
+		auto				empire() const -> uint8_t { return empire_; }
 
 	protected:
 		uint8_t				empire_;
@@ -1405,8 +1405,8 @@ class character : public entity, public fsm, public horse_rider
 		size_t				regen_id_;
 
 	public:
-		bool				cannot_move_by_affect() const;
-		bool				is_immune(uint32_t immune_flag_value);
+		auto				cannot_move_by_affect() const -> bool;
+		auto				is_immune(uint32_t immune_flag_value) -> bool;
 		void				set_immune_flag(uint32_t dw) { points_instant_.immune_flag = dw; }
 
 	protected:
@@ -1414,17 +1414,17 @@ class character : public entity, public fsm, public horse_rider
 
 	public:
 		void				set_quest_npcid(uint32_t vid);
-		uint32_t				quest_npcid() const { return quest_npcvid_; }
-		character *			quest_npc() const;
+		auto				quest_npcid() const -> uint32_t { return quest_npcvid_; }
+		auto			quest_npc() const -> character *;
 
 		void				set_quest_item_ptr(item * item);
 		void				clear_quest_item_ptr();
-		item *				quest_item_ptr() const;
+		auto				quest_item_ptr() const -> item *;
 
 		void				set_quest_by(uint32_t quest_vnum)	{ quest_by_vnum_ = quest_vnum; }
-		uint32_t				quest_by() const			{ return quest_by_vnum_; }
+		auto				quest_by() const -> uint32_t			{ return quest_by_vnum_; }
 
-		int					quest_flag(const std::string& flag) const;
+		auto					quest_flag(const std::string& flag) const -> int;
 		void				set_quest_flag(const std::string& flag, int value);
 
 		void				confirm_with_msg(const char* msg_value, int timeout_value, uint32_t request_pid_value);
@@ -1435,7 +1435,7 @@ class character : public entity, public fsm, public horse_rider
 		item *				quest_item_;
 
 	public:
-		bool				start_state_machine(int next_pulse = 1);
+		auto				start_state_machine(int next_pulse = 1) -> bool;
 		void				stop_state_machine();
 		void				update_state_machine(uint32_t pulse);
 		void				set_next_state_pulse(int next_pulse);
@@ -1446,9 +1446,9 @@ class character : public entity, public fsm, public horse_rider
 		uint32_t				next_state_pulse_;
 
 	public:
-		character *			marry_partner() const;
+		auto			marry_partner() const -> character *;
 		void				set_marry_partner(character * ch);
-		int					marriage_bonus(uint32_t item_vnum, bool sum = true);
+		auto					marriage_bonus(uint32_t item_vnum, bool sum = true) -> int;
 
 		void				set_wedding_map(marriage::wedding_map* map);
 
@@ -1482,7 +1482,7 @@ class character : public entity, public fsm, public horse_rider
 		event_ptr				destroy_when_idle_event;
 		event_ptr				pet_system_update_event;
 
-		bool is_warping() const { return warp_event ? true : false; }
+		auto is_warping() const -> bool { return warp_event ? true : false; }
 
 		bool				has_poisoned;
 
@@ -1496,7 +1496,7 @@ class character : public entity, public fsm, public horse_rider
 		friend class func_shoot;
 
 	public:
-		int				premium_remain_seconds(uint8_t type) const;
+		auto				premium_remain_seconds(uint8_t type) const -> int;
 
 	private:
 		int				premium_times_[PREMIUM_MAX_NUM];
@@ -1506,13 +1506,13 @@ class character : public entity, public fsm, public horse_rider
 		static const char		change_item_attr_cycle_flag_[];
 
 	public :
-		bool item_process_hair(item * item, int dest_cell);
+		auto item_process_hair(item * item, int dest_cell) -> bool;
 
 	public :
 		void clear_skill();
 		void clear_sub_skill();
 
-		bool reset_one_skill(uint32_t vnum);
+		auto reset_one_skill(uint32_t vnum) -> bool;
 
 	private :
 		void send_damage_packet(character * attacker, int damage_value, uint8_t damage_flag);
@@ -1526,40 +1526,40 @@ class character : public entity, public fsm, public horse_rider
 		void 	set_arena(arena* arena_value) { arena_ = arena_value; }
 		void	set_arena_observer_mode(bool flag) { arena_observer_ = flag; }
 
-		arena* get_arena() const { return arena_; }
-		bool	arena_observer_mode() const { return arena_observer_; }
+		auto get_arena() const -> arena* { return arena_; }
+		auto	arena_observer_mode() const -> bool { return arena_observer_; }
 
 		void	set_potion_limit(int count) { potion_limit_ = count; }
-		int		potion_limit() const { return potion_limit_; }
+		auto		potion_limit() const -> int { return potion_limit_; }
 
 	public:
-		bool	is_open_safebox() const { return is_open_safebox_ ? true : false; }
+		auto	is_open_safebox() const -> bool { return is_open_safebox_ ? true : false; }
 		void 	set_open_safebox(bool b) { is_open_safebox_ = b; }
 
-		int		safebox_load_time() const { return safebox_load_time_; }
+		auto		safebox_load_time() const -> int { return safebox_load_time_; }
 		void	set_safebox_load_time() { safebox_load_time_ = thecore_pulse(); }
 	private:
 		bool	is_open_safebox_;
 
 	public:
-		int		skill_power_by_level(int level, bool mob = false) const;
+		auto		skill_power_by_level(int level, bool mob = false) const -> int;
 		
-		int		get_refine_time() const { return refine_time; }
+		auto		get_refine_time() const -> int { return refine_time; }
 		void	set_refine_time() { refine_time = thecore_pulse(); } 
 		int		refine_time;
 
 		
-		int		get_exchange_time() const { return exchange_time; }
+		auto		get_exchange_time() const -> int { return exchange_time; }
 		void	set_exchange_time() { exchange_time = thecore_pulse(); }
 		int		exchange_time;
 		
 		int 	my_shop_time;
-		int		get_my_shop_time() const	{ return my_shop_time; }
+		auto		get_my_shop_time() const -> int	{ return my_shop_time; }
 		void	set_my_shop_time() { my_shop_time = thecore_pulse(); }
 
-		bool	is_hack(bool send_msg = true, bool check_shop_owner = true, int limittime = portal_limit_time);
+		auto	is_hack(bool send_msg = true, bool check_shop_owner = true, int limittime = portal_limit_time) -> bool;
 
-		bool	is_monarch() const;
+		auto	is_monarch() const -> bool;
 
 		enum monarch_cooltime_values
 		{
@@ -1584,19 +1584,19 @@ class character : public entity, public fsm, public horse_rider
 		uint32_t monarch_cooltimelimit[MI_MAX];
 
 		void  init_mc();
-		uint32_t mc(enum monarch_index e) const;
+		auto mc(enum monarch_index e) const -> uint32_t;
 		void set_mc(enum monarch_index e);
-		bool is_mcok(enum monarch_index e) const;
-		uint32_t mcl(enum monarch_index e) const;
-		uint32_t mcl_time(enum monarch_index e) const;
+		auto is_mcok(enum monarch_index e) const -> bool;
+		auto mcl(enum monarch_index e) const -> uint32_t;
+		auto mcl_time(enum monarch_index e) const -> uint32_t;
 
 	public:
-		bool item_process_polymorph(item * item);
+		auto item_process_polymorph(item * item) -> bool;
 
-		item **	cube_item() { return points_instant_.cube_items; }
-		bool is_cube_open () const	{ return (points_instant_.cube_npc?true:false); }
+		auto	cube_item() -> item ** { return points_instant_.cube_items; }
+		auto is_cube_open () const -> bool	{ return (points_instant_.cube_npc?true:false); }
 		void set_cube_npc(character * npc)	{ points_instant_.cube_npc = npc; }
-		bool can_do_cube() const;
+		auto can_do_cube() const -> bool;
 
 	public:
 
@@ -1605,7 +1605,7 @@ class character : public entity, public fsm, public horse_rider
 
 	public:
 		void	update_deposit_pulse();
-		bool	can_deposit() const;
+		auto	can_deposit() const -> bool;
 
 	private:
 		void	open_private_shop();
@@ -1629,7 +1629,7 @@ class character : public entity, public fsm, public horse_rider
 		std::string new_name_;
 
 	public :
-		const std::string new_name() const { return this->new_name_; }
+		auto new_name() const -> const std::string { return this->new_name_; }
 		void set_new_name(const std::string name) { this->new_name_ = name; }
 
 	public :
@@ -1646,12 +1646,12 @@ class character : public entity, public fsm, public horse_rider
 		uint32_t log_off_interval_;
 
 	public :
-		uint32_t log_off_interval() const { return log_off_interval_; }
+		auto log_off_interval() const -> uint32_t { return log_off_interval_; }
 
 	public:
-		bool un_equip_special_ride_unique_item ();
+		auto un_equip_special_ride_unique_item () -> bool;
 
-		bool can_warp () const;
+		auto can_warp () const -> bool;
 
 	private:
 		uint32_t last_gold_drop_time_;
@@ -1680,24 +1680,24 @@ class character : public entity, public fsm, public horse_rider
 		bool is_pet_;
 	public:
 		void set_pet() { is_pet_ = true; }
-		bool is_pet() { return is_pet_; }
+		auto is_pet() -> bool { return is_pet_; }
 
 	private:
 		float att_mul_;
 		float dam_mul_;
 	public:
-		float att_mul() { return this->att_mul_; }
+		auto att_mul() -> float { return this->att_mul_; }
 		void set_att_mul(float new_att_mul) {this->att_mul_ = new_att_mul; }
-		float dam_mul() { return this->dam_mul_; }
+		auto dam_mul() -> float { return this->dam_mul_; }
 		void set_dam_mul(float new_dam_mul) {this->dam_mul_ = new_dam_mul; }
 
 	private:
-		bool is_valid_item_position(item_pos pos) const;
+		auto is_valid_item_position(item_pos pos) const -> bool;
 
 	public:
 		// Set when the guild NPC quest asks for a name; the answer must echo it, once.
 		void		set_guild_creation_key(uint32_t key) { guild_creation_key_ = key; }
-		uint32_t	guild_creation_key() const { return guild_creation_key_; }
+		auto	guild_creation_key() const -> uint32_t { return guild_creation_key_; }
 
 	private:
 		uint32_t	guild_creation_key_;
@@ -1706,8 +1706,8 @@ class character : public entity, public fsm, public horse_rider
 		unsigned int item_award_vnum_;
 		char		 item_award_cmd_[20];
 	public:
-		unsigned int item_award_vnum() { return item_award_vnum_; }
-		char*		 item_award_cmd() { return item_award_cmd_;	  }
+		auto item_award_vnum() -> unsigned int { return item_award_vnum_; }
+		auto		 item_award_cmd() -> char* { return item_award_cmd_;	  }
 		void		 set_item_award_vnum(unsigned int vnum) { item_award_vnum_ = vnum; }
 		void		 set_item_award_cmd(const char* cmd) { strlcpy(item_award_cmd_, cmd, sizeof(item_award_cmd_)); }
 
@@ -1716,48 +1716,48 @@ class character : public entity, public fsm, public horse_rider
 		// Needs affects and quests loaded, so load_affect calls it.
 		void	dragon_soul_initialize();
 
-		bool	dragon_soul_is_qualified() const;
+		auto	dragon_soul_is_qualified() const -> bool;
 		void	dragon_soul_give_qualification();
 
-		int		dragon_soul_get_active_deck() const;
-		bool	dragon_soul_is_deck_activated() const;
-		bool	dragon_soul_activate_deck(int deck_idx);
+		auto		dragon_soul_get_active_deck() const -> int;
+		auto	dragon_soul_is_deck_activated() const -> bool;
+		auto	dragon_soul_activate_deck(int deck_idx) -> bool;
 
 		void	dragon_soul_deactivate_all();
 		// Must run before clear_item: unequipping would drop the dragon soul affect and the deck
 		// would not be active after login.
 		void	dragon_soul_clean_up();
 	public:
-		bool		dragon_soul_refine_window_open(entity * entity_value);
-		bool		dragon_soul_refine_window_close();
-		entity *	dragon_soul_refine_window_get_opener() { return  points_instant_.dragon_soul_refine_window_opener; }
-		bool		dragon_soul_refine_window_can_refine();
+		auto		dragon_soul_refine_window_open(entity * entity_value) -> bool;
+		auto		dragon_soul_refine_window_close() -> bool;
+		auto	dragon_soul_refine_window_get_opener() -> entity * { return  points_instant_.dragon_soul_refine_window_opener; }
+		auto		dragon_soul_refine_window_can_refine() -> bool;
 
 	private:
 		timeval		tv_last_sync_time_;
 		int			sync_hack_count_;
 	public:
 		void			set_last_sync_time(const timeval &tv) { memcpy(&tv_last_sync_time_, &tv, sizeof(timeval)); }
-		const timeval&	last_sync_time() { return tv_last_sync_time_; }
+		auto	last_sync_time() -> const timeval& { return tv_last_sync_time_; }
 		void			set_sync_hack_count(int count) { sync_hack_count_ = count;}
-		int				sync_hack_count() { return sync_hack_count_; }
+		auto				sync_hack_count() -> int { return sync_hack_count_; }
 	public:
 		int					last_drop_time;
 		int					count_drops;
 		void clear_pm_counter(void)       { pm_counter_ = 0;      } 
 		void increase_pm_counter(void)    { pm_counter_++;        }
 		void set_last_pm_pulse(void);
-		int  pm_counter(void)   const { return pm_counter_;   }
-		int  last_pm_pulse(void) const { return last_pm_pulse_; }
+		auto  pm_counter(void)   const -> int { return pm_counter_;   }
+		auto  last_pm_pulse(void) const -> int { return last_pm_pulse_; }
 	protected:
 		int last_pm_pulse_;
 		int pm_counter_;
 };
 
-sex get_sex(character * ch);
+auto get_sex(character * ch) -> sex;
 
-extern bool is_summonable_zone(int map_index);
-extern character * find_victim(character * chr, int max_distance);
+extern auto is_summonable_zone(int map_index) -> bool;
+extern auto find_victim(character * chr, int max_distance) -> character *;
 
 void character_set_bgm_volume_enable();
 void character_add_bgm_info(unsigned index, const char* name, float vol);

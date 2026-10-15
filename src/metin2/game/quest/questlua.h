@@ -13,7 +13,7 @@ namespace metin2::game {
 
 namespace quest
 {
-	int quest_setstate(lua_State* lua);
+	auto quest_setstate(lua_State* lua) -> int;
 	extern void register_pc_function_table();
 	extern void register_npc_function_table();
 	extern void register_target_function_table();
@@ -67,7 +67,7 @@ namespace quest
 		std::string flagname;
 		int value;
 
-		bool operator () (character * ch);
+		auto operator () (character * ch) -> bool;
 	};
 
 	struct f_party_chat

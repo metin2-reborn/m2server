@@ -13,15 +13,15 @@ class login_data
 
 		void            set_client_key(const uint32_t * client_key);
 
-		const uint32_t *   client_key();
+		auto   client_key() -> const uint32_t *;
 		void            set_key(uint32_t key);
-		uint32_t           key();
+		auto           key() -> uint32_t;
 
 		void		set_login(const char * login);
-		const char *	login();
+		auto	login() -> const char *;
 
 		void		set_premium(int * pai_premium_times);
-		int *		premium_ptr();
+		auto		premium_ptr() -> int *;
 
 	private:
 		uint32_t           key_;

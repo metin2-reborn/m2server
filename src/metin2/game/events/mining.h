@@ -9,14 +9,14 @@ namespace metin2::game::inline events {
 
 namespace mining
 {
-	event_ptr create_mining_event(character * ch, character * load, int count);
-	uint32_t get_raw_ore_from_load(uint32_t load_vnum_value);
-	bool ore_refine(character * ch, character * npc, item * ore, int cost, int pct, item * metinstone_item);
-	int get_fraction_count();
+	auto create_mining_event(character * ch, character * load, int count) -> event_ptr;
+	auto get_raw_ore_from_load(uint32_t load_vnum_value) -> uint32_t;
+	auto ore_refine(character * ch, character * npc, item * ore, int cost, int pct, item * metinstone_item) -> bool;
+	auto get_fraction_count() -> int;
 
-	int real_refine_pick(character * ch, item * item);
+	auto real_refine_pick(character * ch, item * item) -> int;
 	void cheat_max_pick(character * ch, item * item);
 
-	bool is_vein_of_ore (uint32_t vnum);
+	auto is_vein_of_ore (uint32_t vnum) -> bool;
 }
 }

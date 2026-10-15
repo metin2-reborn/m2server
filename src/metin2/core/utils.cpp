@@ -110,7 +110,7 @@ void core_dump(std::source_location where) {
 }
 
 namespace {
-    std::chrono::steady_clock::duration uptime() {
+    auto uptime() -> std::chrono::steady_clock::duration {
         static const auto boot = std::chrono::steady_clock::now();
         return std::chrono::steady_clock::now() - boot;
     }

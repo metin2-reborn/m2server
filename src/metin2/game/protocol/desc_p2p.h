@@ -15,6 +15,6 @@ class desc_p2_p : public desc
 
 		void	destroy() override;
 		void	set_phase(int phase) override;
-		bool		setup(std::shared_ptr<net::connection> connection);
+		auto		setup(std::shared_ptr<net::connection> connection) -> bool;
 };
 }

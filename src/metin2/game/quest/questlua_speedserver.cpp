@@ -13,7 +13,7 @@ namespace metin2::game {
 namespace quest
 {
 
-	int speedserver_get_wday (lua_State* lua)
+	auto speedserver_get_wday (lua_State* lua) -> int
 	{
 		if (!lua_isnumber(lua,1) || !lua_isnumber(lua,2))
 		{
@@ -54,7 +54,7 @@ namespace quest
 		return i * 3;
 	}
 
-	int speedserver_set_wday (lua_State* lua)
+	auto speedserver_set_wday (lua_State* lua) -> int
 	{
 		uint8_t empire = lua_tonumber (lua, 1);
 		int wday = lua_tonumber (lua, 2);
@@ -67,7 +67,7 @@ namespace quest
 		return 0;
 	}
 
-	int speedserver_init_wday (lua_State* lua)
+	auto speedserver_init_wday (lua_State* lua) -> int
 	{
 		if (!lua_isnumber (lua, 1) || !lua_isnumber (lua, 2))
 		{
@@ -85,7 +85,7 @@ namespace quest
 		return 0;
 	}
 
-	int speedserver_get_holiday (lua_State* lua)
+	auto speedserver_get_holiday (lua_State* lua) -> int
 	{
 		if (!lua_isnumber(lua,1) || !lua_isnumber(lua,2) || !lua_isnumber(lua,3) || !lua_isnumber(lua,4))
 		{
@@ -126,7 +126,7 @@ namespace quest
 
 	}
 
-	int speedserver_set_holiday (lua_State* lua)
+	auto speedserver_set_holiday (lua_State* lua) -> int
 	{
 		if (!lua_isnumber(lua,1) || !lua_isnumber(lua,2) || !lua_isnumber(lua,3) || !lua_isnumber(lua,4) 
 				|| !lua_isnumber(lua,5) || !lua_isnumber(lua,6) || !lua_isnumber(lua,7))
@@ -147,7 +147,7 @@ namespace quest
 		return 0;
 	}
 
-	int speedserver_init_holiday (lua_State* lua)
+	auto speedserver_init_holiday (lua_State* lua) -> int
 	{
 		if (!lua_isnumber(lua,1) || !lua_isnumber(lua,2) || !lua_isnumber(lua,3) || !lua_isnumber(lua,4))
 		{
@@ -162,7 +162,7 @@ namespace quest
 		return 0;
 	}
 
-	int speedserver_get_current_exp_priv (lua_State* lua)
+	auto speedserver_get_current_exp_priv (lua_State* lua) -> int
 	{
 		if (!lua_isnumber (lua, 1))
 		{

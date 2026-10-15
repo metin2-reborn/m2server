@@ -20,39 +20,39 @@ class monarch : public singleton<monarch>
 		monarch();
 		~monarch() override;
 
-		bool vote_monarch(uint32_t pid, uint32_t selectdpid);
+		auto vote_monarch(uint32_t pid, uint32_t selectdpid) -> bool;
 		void elect_monarch();
 
-		bool is_candidacy(uint32_t pid);
-		bool add_candidacy(uint32_t pid, const char * name);
-		bool del_candidacy(const char * name);
+		auto is_candidacy(uint32_t pid) -> bool;
+		auto add_candidacy(uint32_t pid, const char * name) -> bool;
+		auto del_candidacy(const char * name) -> bool;
 
-		bool load_monarch();
-		bool set_monarch(const char * name);
-		bool del_monarch(const char * name);
+		auto load_monarch() -> bool;
+		auto set_monarch(const char * name) -> bool;
+		auto del_monarch(const char * name) -> bool;
 
-		bool is_monarch(int empire, uint32_t pid);
-		bool add_money(int empire, int64_t money_value);
-		bool dec_money(int empire, int64_t money_value);
-		bool take_money(int empire, uint32_t pid, int64_t money_value);
+		auto is_monarch(int empire, uint32_t pid) -> bool;
+		auto add_money(int empire, int64_t money_value) -> bool;
+		auto dec_money(int empire, int64_t money_value) -> bool;
+		auto take_money(int empire, uint32_t pid, int64_t money_value) -> bool;
 
-		monarch_info* get_monarch()
+		auto get_monarch() -> monarch_info*
 		{
 			return &monarch_info_;
 		}
 
-		vec_monarchcandidacy& vec_monarch_candidacy()
+		auto vec_monarch_candidacy() -> vec_monarchcandidacy&
 		{
 			return vec_monarch_candidacy_;
 		}
 
-		size_t monarch_candidacy_size()
+		auto monarch_candidacy_size() -> size_t
 		{
 			return vec_monarch_candidacy_.size();
 		}
 
 	private:
-		int candidacy_index(uint32_t pid);
+		auto candidacy_index(uint32_t pid) -> int;
 
 		map_monarchelection map_monarch_election_;
 		vec_monarchcandidacy vec_monarch_candidacy_;

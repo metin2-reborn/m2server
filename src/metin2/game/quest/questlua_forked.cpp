@@ -19,7 +19,7 @@ namespace metin2::game {
 namespace quest
 {
 
-	int forked_set_dead_count( lua_State* lua )
+	auto forked_set_dead_count( lua_State* lua ) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -33,7 +33,7 @@ namespace quest
 		return 0; 
 	}
 
-	int forked_get_dead_count( lua_State* lua )
+	auto forked_get_dead_count( lua_State* lua ) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -49,7 +49,7 @@ namespace quest
 		return 1; 
 	}
 
-	int forked_init_kill_count_per_empire( lua_State* lua )
+	auto forked_init_kill_count_per_empire( lua_State* lua ) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -58,7 +58,7 @@ namespace quest
 		return 0;
 	}
 
-	int forked_init( lua_State* lua )
+	auto forked_init( lua_State* lua ) -> int
 	{
 		three_way_war::instance().initialize();
 		three_way_war::instance().random_event_map_set();
@@ -66,7 +66,7 @@ namespace quest
 		return 0;
 	}
 
-	int forked_sungzi_start_pos( lua_State* lua )
+	auto forked_sungzi_start_pos( lua_State* lua ) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -78,7 +78,7 @@ namespace quest
 		return 2;
 	}
 
-	int forked_pass_start_pos( lua_State* lua )
+	auto forked_pass_start_pos( lua_State* lua ) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -90,7 +90,7 @@ namespace quest
 		return 2;
 	}
 
-	int forked_sungzi_mapindex (lua_State *lua )
+	auto forked_sungzi_mapindex (lua_State *lua ) -> int
 	{
 		lua_pushnumber( lua, get_sungzi_map_index() ); 
 
@@ -99,14 +99,14 @@ namespace quest
 		return 1;
 	}
 
-	int forked_pass_mapindex_by_empire( lua_State *lua )
+	auto forked_pass_mapindex_by_empire( lua_State *lua ) -> int
 	{
 		lua_pushnumber( lua, get_pass_map_index(lua_tonumber(lua,1)) ); 
 
 		return 1;
 	}
 
-	int forked_get_pass_path_by_empire( lua_State *lua )
+	auto forked_get_pass_path_by_empire( lua_State *lua ) -> int
 	{
 		int iEmpire 	= (int)lua_tonumber(lua, 1);
 
@@ -115,14 +115,14 @@ namespace quest
 		return 1;
 	}
 
-	int forked_is_forked_mapindex( lua_State * lua )
+	auto forked_is_forked_mapindex( lua_State * lua ) -> int
 	{
 		lua_pushboolean( lua, three_way_war::instance().is_three_way_war_map_index(lua_tonumber(lua,1)) );
 
 		return 1;
 	}
 
-	int forked_is_sungzi_mapindex( lua_State * lua )
+	auto forked_is_sungzi_mapindex( lua_State * lua ) -> int
 	{
 		lua_pushboolean( lua, three_way_war::instance().is_sung_zi_map_index(lua_tonumber(lua,1)) );
 
@@ -187,7 +187,7 @@ namespace quest
 		return 0;
 	}
 
-	int forked_warp_all_in_map( lua_State * lua )
+	auto forked_warp_all_in_map( lua_State * lua ) -> int
 	{
 		int iMapIndexFrom	= (int)lua_tonumber(lua, 1 );
 		int iMapIndexTo		= (int)lua_tonumber(lua, 2 );
@@ -207,7 +207,7 @@ namespace quest
 		return 0;
 	}	
 
-	int forked_is_registered_user( lua_State* lua )
+	auto forked_is_registered_user( lua_State* lua ) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -223,7 +223,7 @@ namespace quest
 		return 1;
 	}
 
-	int forked_register_user( lua_State* lua )
+	auto forked_register_user( lua_State* lua ) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -235,7 +235,7 @@ namespace quest
 		return 0;
 	}
 
-	int forked_purge_all_monsters( lua_State* lua )
+	auto forked_purge_all_monsters( lua_State* lua ) -> int
 	{
 		three_way_war::instance().remove_all_monsters_in_three_way();
 

@@ -16,36 +16,36 @@ class monarch : public singleton<monarch>
 		monarch();
 		~monarch() override;
 
-		bool initialize();
+		auto initialize() -> bool;
 
-		int heal_my_empire(character * ch, uint32_t price);
+		auto heal_my_empire(character * ch, uint32_t price) -> int;
 		void set_monarch_info(monarch_info * info);
 
-		bool is_monarch(uint32_t pid, uint8_t empire);
-		bool is_money_ok(int price, uint8_t empire);
-		bool sendto_db_add_money(int money_value, uint8_t empire, character * ch);
-		bool sendto_db_dec_money(int money_value, uint8_t empire, character * ch);
+		auto is_monarch(uint32_t pid, uint8_t empire) -> bool;
+		auto is_money_ok(int price, uint8_t empire) -> bool;
+		auto sendto_db_add_money(int money_value, uint8_t empire, character * ch) -> bool;
+		auto sendto_db_dec_money(int money_value, uint8_t empire, character * ch) -> bool;
 
-		bool add_money(int money_value, uint8_t empire);
-		bool dec_money(int money_value, uint8_t empire);
-		int money(uint8_t empire);
+		auto add_money(int money_value, uint8_t empire) -> bool;
+		auto dec_money(int money_value, uint8_t empire) -> bool;
+		auto money(uint8_t empire) -> int;
 
-		monarch_info* get_monarch();
+		auto get_monarch() -> monarch_info*;
 
-		uint32_t monarch_pid(uint8_t empire);
+		auto monarch_pid(uint8_t empire) -> uint32_t;
 
-		bool is_power_up(uint8_t empire);
-		bool is_defence_up(uint8_t empire);
+		auto is_power_up(uint8_t empire) -> bool;
+		auto is_defence_up(uint8_t empire) -> bool;
 
-		int	power_up_ct(uint8_t empire)
+		auto	power_up_ct(uint8_t empire) -> int
 		{
 			return empire < std::size(power_up_ct_) ? power_up_ct_[empire] : 0;
 		}
 
-		bool check_power_up_ct(uint8_t empire);
-		bool check_defense_up_ct(uint8_t empire);
+		auto check_power_up_ct(uint8_t empire) -> bool;
+		auto check_defense_up_ct(uint8_t empire) -> bool;
 
-		int	defense_up_ct(uint8_t empire)
+		auto	defense_up_ct(uint8_t empire) -> int
 		{
 			return empire < std::size(defense_up_ct_) ? defense_up_ct_[empire] : 0;
 		}
@@ -63,5 +63,5 @@ class monarch : public singleton<monarch>
 		int defense_up_ct_[4];
 };
 
-bool is_monarch_warp_zone (int map_idx);
+auto is_monarch_warp_zone (int map_idx) -> bool;
 }

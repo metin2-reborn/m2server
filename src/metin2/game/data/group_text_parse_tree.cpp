@@ -25,7 +25,7 @@ group_text_parse_tree_loader::~group_text_parse_tree_loader()
 {
 }
 
-bool group_text_parse_tree_loader::load(const char * file_name)
+auto group_text_parse_tree_loader::load(const char * file_name) -> bool
 {
 	file_name_ = file_name;
 
@@ -56,7 +56,7 @@ bool group_text_parse_tree_loader::load(const char * file_name)
 	return true;
 }
 
-bool group_text_parse_tree_loader::load_group(group_node * group_node_value)
+auto group_text_parse_tree_loader::load_group(group_node * group_node_value) -> bool
 {
 	token_vector stTokenVector;
 	for (; dwcur_line_index_ < file_loader_.line_count(); ++dwcur_line_index_)
@@ -123,7 +123,7 @@ bool group_text_parse_tree_loader::load_group(group_node * group_node_value)
 	return true;
 }
 
-group_node* group_text_parse_tree_loader::group(const char * group_name)
+auto group_text_parse_tree_loader::group(const char * group_name) -> group_node*
 {
 	if (nullptr == root_group_node_)
 		return nullptr;
@@ -142,7 +142,7 @@ group_node::~group_node()
 	}
 }
 
-bool group_node::set_child_node(const char * key, group_node* child_group)
+auto group_node::set_child_node(const char * key, group_node* child_group) -> bool
 {
 	if (nullptr == child_group)
 	{
@@ -158,7 +158,7 @@ bool group_node::set_child_node(const char * key, group_node* child_group)
 	return true;
 }
 
-group_node* group_node::child_node(const std::string & rstr_key) const
+auto group_node::child_node(const std::string & rstr_key) const -> group_node*
 {
 	map_group::const_iterator it = child_nodes_.find(rstr_key);
 	if (it != child_nodes_.end())
@@ -167,17 +167,17 @@ group_node* group_node::child_node(const std::string & rstr_key) const
 		return nullptr;
 }
 
-std::string group_node::node_name() const
+auto group_node::node_name() const -> std::string
 {
 	return group_name_;
 }
 
-int group_node::row_count()
+auto group_node::row_count() -> int
 {
 	return map_rows_.size();
 }
 
-bool group_node::row(const std::string & rstr_row_key, const group_node::group_node_row ** pp_row) const
+auto group_node::row(const std::string & rstr_row_key, const group_node::group_node_row ** pp_row) const -> bool
 {
 	map_row::const_iterator row_it = map_rows_.find(rstr_row_key);
 	if (map_rows_.end() == row_it)
@@ -190,7 +190,7 @@ bool group_node::row(const std::string & rstr_row_key, const group_node::group_n
 	return true;
 }
 
-bool group_node::row(int idx, const group_node::group_node_row ** pp_row) const
+auto group_node::row(int idx, const group_node::group_node_row ** pp_row) const -> bool
 {
 	if (idx < 0 || static_cast<size_t>(idx) >= map_rows_.size())
 		return false;
@@ -204,7 +204,7 @@ bool group_node::row(int idx, const group_node::group_node_row ** pp_row) const
 	return true;
 }
 
-bool group_node::group_row(const std::string& group_name, const std::string& row_value, const group_node::group_node_row ** pp_row) const
+auto group_node::group_row(const std::string& group_name, const std::string& row_value, const group_node::group_node_row ** pp_row) const -> bool
 {
 	group_node* pChildGroup = child_node(group_name);
 	if (nullptr != pChildGroup)
@@ -221,7 +221,7 @@ bool group_node::group_row(const std::string& group_name, const std::string& row
 	return false;
 }
 
-int	group_node::column_index_from_name(const std::string& name) const
+auto	group_node::column_index_from_name(const std::string& name) const -> int
 {
 	map_name_to_index::const_iterator it = map_column_name_to_index_.find(name);
 	if (map_column_name_to_index_.end() == it)
@@ -241,7 +241,7 @@ group_node::group_node_row::~group_node_row()
 {
 }
 
-int group_node::group_node_row::size() const
+auto group_node::group_node_row::size() const -> int
 {
 	return vec_values_.size();
 }

@@ -18,7 +18,7 @@ namespace metin2::game {
 namespace quest
 {
 
-	int item_get_cell(lua_State* lua)
+	auto item_get_cell(lua_State* lua) -> int
 	{
 		quest_manager& q = quest_manager::instance();
 
@@ -31,7 +31,7 @@ namespace quest
 		return 1;
 	}
 
-	int item_select_cell(lua_State* lua)
+	auto item_select_cell(lua_State* lua) -> int
 	{
 		lua_pushboolean(lua, 0);
 		if (!lua_isnumber(lua, 1))
@@ -54,7 +54,7 @@ namespace quest
 		return 1;
 	}
 
-	int item_select(lua_State* lua)
+	auto item_select(lua_State* lua) -> int
 	{
 		lua_pushboolean(lua, 0);
 		if (!lua_isnumber(lua, 1))
@@ -75,7 +75,7 @@ namespace quest
 		return 1;
 	}
 
-	int item_get_id(lua_State* lua)
+	auto item_get_id(lua_State* lua) -> int
 	{
 		quest_manager& q = quest_manager::instance();
 
@@ -88,7 +88,7 @@ namespace quest
 		return 1;
 	}
 
-	int item_remove(lua_State* lua)
+	auto item_remove(lua_State* lua) -> int
 	{
 		quest_manager& q = quest_manager::instance();
 		item * item = q.current_item();
@@ -104,7 +104,7 @@ namespace quest
 		return 0;
 	}
 
-	int item_get_socket(lua_State* lua)
+	auto item_get_socket(lua_State* lua) -> int
 	{
 		quest_manager& q = quest_manager::instance();
 		if (q.current_item() && lua_isnumber(lua, 1))
@@ -122,7 +122,7 @@ namespace quest
 		return 1;
 	}
 
-	int item_set_socket(lua_State* lua)
+	auto item_set_socket(lua_State* lua) -> int
 	{
 		quest_manager& q = quest_manager::instance();
 		if (q.current_item() && lua_isnumber(lua,1) && lua_isnumber(lua,2))
@@ -135,7 +135,7 @@ namespace quest
 		return 0;
 	}
 
-	int item_get_vnum(lua_State* lua)
+	auto item_get_vnum(lua_State* lua) -> int
 	{
 		quest_manager& q = quest_manager::instance();
 		item * item = q.current_item();
@@ -148,7 +148,7 @@ namespace quest
 		return 1;
 	}
 
-	int item_has_flag(lua_State* lua)
+	auto item_has_flag(lua_State* lua) -> int
 	{
 		quest_manager& q = quest_manager::instance();
 		item * item = q.current_item();
@@ -172,7 +172,7 @@ namespace quest
 		return 1;
 	}
 
-	int item_get_value(lua_State* lua)
+	auto item_get_value(lua_State* lua) -> int
 	{
 		quest_manager& q = quest_manager::instance();
 		item * item = q.current_item();
@@ -203,7 +203,7 @@ namespace quest
 		return 1;
 	}
 
-	int item_set_value(lua_State* lua)
+	auto item_set_value(lua_State* lua) -> int
 	{
 		quest_manager& q = quest_manager::instance();
 		item * item = q.current_item();
@@ -230,7 +230,7 @@ namespace quest
 		return 0;
 	}
 
-	int item_get_name(lua_State* lua)
+	auto item_get_name(lua_State* lua) -> int
 	{
 		quest_manager& q = quest_manager::instance();
 		item * item = q.current_item();
@@ -243,7 +243,7 @@ namespace quest
 		return 1;
 	}
 
-	int item_get_size(lua_State* lua)
+	auto item_get_size(lua_State* lua) -> int
 	{
 		quest_manager& q = quest_manager::instance();
 		item * item = q.current_item();
@@ -256,7 +256,7 @@ namespace quest
 		return 1;
 	}
 
-	int item_get_count(lua_State* lua)
+	auto item_get_count(lua_State* lua) -> int
 	{
 		quest_manager& q = quest_manager::instance();
 		item * item = q.current_item();
@@ -269,7 +269,7 @@ namespace quest
 		return 1;
 	}
 
-	int item_get_type(lua_State* lua)
+	auto item_get_type(lua_State* lua) -> int
 	{
 		quest_manager& q = quest_manager::instance();
 		item * item = q.current_item();
@@ -282,7 +282,7 @@ namespace quest
 		return 1;
 	}
 
-	int item_get_sub_type(lua_State* lua)
+	auto item_get_sub_type(lua_State* lua) -> int
 	{
 		quest_manager& q = quest_manager::instance();
 		item * item = q.current_item();
@@ -295,7 +295,7 @@ namespace quest
 		return 1;
 	}
 
-	int item_get_refine_vnum(lua_State* lua)
+	auto item_get_refine_vnum(lua_State* lua) -> int
 	{
 		quest_manager& q = quest_manager::instance();
 		item * item = q.current_item();
@@ -308,7 +308,7 @@ namespace quest
 		return 1;
 	}
 
-	int item_next_refine_vnum(lua_State* lua)
+	auto item_next_refine_vnum(lua_State* lua) -> int
 	{
 		uint32_t vnum = 0;
 		if (lua_isnumber(lua, 1))
@@ -327,7 +327,7 @@ namespace quest
 		return 1;
 	}
 
-	int item_get_level(lua_State* lua)
+	auto item_get_level(lua_State* lua) -> int
 	{
 		quest_manager& q = quest_manager::instance();
 		item * item = q.current_item();
@@ -340,7 +340,7 @@ namespace quest
 		return 1;
 	}
 
-	int item_can_over9refine(lua_State* lua)
+	auto item_can_over9refine(lua_State* lua) -> int
 	{
 		item * item = quest_manager::instance().current_item();
 
@@ -351,7 +351,7 @@ namespace quest
 		return 1;
 	}
 
-	int item_change_to_over9(lua_State* lua)
+	auto item_change_to_over9(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		item * item = quest_manager::instance().current_item();
@@ -363,7 +363,7 @@ namespace quest
 		return 1;
 	}
 	
-	int item_over9refine(lua_State* lua)
+	auto item_over9refine(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		item * item = quest_manager::instance().current_item();
@@ -375,7 +375,7 @@ namespace quest
 		return 1;
 	}
 
-	int item_get_over9_material_vnum(lua_State* lua)
+	auto item_get_over9_material_vnum(lua_State* lua) -> int
 	{
 		if ( lua_isnumber(lua, 1) == true )
 		{
@@ -386,7 +386,7 @@ namespace quest
 		return 0;
 	}
 
-	int item_get_level_limit (lua_State* lua)
+	auto item_get_level_limit (lua_State* lua) -> int
 	{
 		quest_manager& q = quest_manager::instance();
 
@@ -402,7 +402,7 @@ namespace quest
 		return 0;
 	}
 
-	int item_start_realtime_expire(lua_State* lua)
+	auto item_start_realtime_expire(lua_State* lua) -> int
 	{
 		quest_manager& q = quest_manager::instance();
 		item * pItem = q.current_item();
@@ -416,7 +416,7 @@ namespace quest
 		return 0;
 	}
 	
-	int item_copy_and_give_before_remove(lua_State* lua)
+	auto item_copy_and_give_before_remove(lua_State* lua) -> int
 	{
 		lua_pushboolean(lua, 0);
 		if (!lua_isnumber(lua, 1))

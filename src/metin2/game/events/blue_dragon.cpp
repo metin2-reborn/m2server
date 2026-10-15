@@ -19,7 +19,7 @@
 
 namespace metin2::game::inline events {
 
-time_t use_blue_dragon_skill(character * ch, unsigned int idx)
+auto use_blue_dragon_skill(character * ch, unsigned int idx) -> time_t
 {
 	sectree_map * pSecMap = sectree_manager::instance().map( ch->map_index() );
 
@@ -83,7 +83,7 @@ time_t use_blue_dragon_skill(character * ch, unsigned int idx)
 	return nextUsingTime;
 }
 
-int blue_dragon_state_battle(character * ch)
+auto blue_dragon_state_battle(character * ch) -> int
 {
 	if (ch->hp_pct() > 98)
 		return passes_per_sec(1);
@@ -133,7 +133,7 @@ int blue_dragon_state_battle(character * ch)
 	return passes_per_sec(1);
 }
 
-int blue_dragon_damage (character * me, character * attacker, int dam)
+auto blue_dragon_damage (character * me, character * attacker, int dam) -> int
 {
 	if (nullptr == me || nullptr == attacker)
 		return dam;

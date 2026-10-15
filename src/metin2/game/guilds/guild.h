@@ -141,7 +141,7 @@ struct guild_war {
 	map_index(0)
 	{
 	}
-	bool is_war_begin() const
+	auto is_war_begin() const -> bool
 	{
 		return state == GUILD_WAR_ON_WAR;
 	}
@@ -154,12 +154,12 @@ class guild
 		explicit guild(uint32_t guild_id) { load(guild_id); }
 		~guild();
 
-		uint32_t		id() const	{ return data_.guild_id; }
-		const char*	name() const	{ return data_.name; }
-		int		sp() const		{ return data_.power; }
-		uint32_t		master_pid() const	{ return data_.master_pid; }
-		character *	master_character();
-		uint8_t		level() const		{ return data_.level; }
+		auto		id() const -> uint32_t	{ return data_.guild_id; }
+		auto	name() const -> const char*	{ return data_.name; }
+		auto		sp() const -> int		{ return data_.power; }
+		auto		master_pid() const -> uint32_t	{ return data_.master_pid; }
+		auto	master_character() -> character *;
+		auto		level() const -> uint8_t		{ return data_.level; }
 
 		void		reset() { data_.power = data_.max_power; }
 
@@ -169,8 +169,8 @@ class guild
 		void		request_add_member(character * ch, int grade = 15);
 		void		add_member(packet_dg_guild_member * p);
 
-		bool		request_remove_member(uint32_t pid);
-		bool		remove_member(uint32_t pid);
+		auto		request_remove_member(uint32_t pid) -> bool;
+		auto		remove_member(uint32_t pid) -> bool;
 
 		void		login_member(character * ch);
 		void		p2_p_login_member(uint32_t pid);
@@ -179,7 +179,7 @@ class guild
 		void		p2_p_logout_member(uint32_t pid);
 
 		void		change_member_grade(uint32_t pid, uint8_t grade);
-		bool		offer_exp(character * ch, int amount);
+		auto		offer_exp(character * ch, int amount) -> bool;
 		void		level_change(uint32_t pid, uint8_t level);
 		void		change_member_data(uint32_t pid, uint32_t offer, uint8_t level, uint8_t grade);
 
@@ -187,9 +187,9 @@ class guild
 		void		change_grade_auth(uint8_t grade, uint8_t auth);
 		void		p2_p_change_grade(uint8_t grade);
 
-		bool		change_member_general(uint32_t pid, uint8_t is_general);
+		auto		change_member_general(uint32_t pid, uint8_t is_general) -> bool;
 
-		bool		change_master_to(uint32_t pid);
+		auto		change_master_to(uint32_t pid) -> bool;
 
 		void		packet(const void* buf, int size);
 
@@ -202,26 +202,26 @@ class guild
 		void		send_login_packet(character * ch, uint32_t pid);
 		void		send_logout_packet(character * ch, uint32_t pid);
 		void		send_guild_info_packet(character * ch);
-		void		send_guild_data_update_to_all_member(ql_msg* pmsg);
+		void		send_guild_data_update_to_all_member(sql_msg* pmsg);
 
 		void		load(uint32_t guild_id);
 		void		save_level();
 		void		save_skill();
 		void		save_member(uint32_t pid);
 
-		int		max_member_count(); 
-		int		member_count() { return member_.size(); }
+		auto		max_member_count() -> int; 
+		auto		member_count() -> int { return member_.size(); }
 
 		void		set_member_count_bonus(int bonus);
 		void		broadcast_member_count_bonus();
 
-		int		max_general_count() const	{ return 1 ;}
-		int		general_count() const		{ return general_count_; }
+		auto		max_general_count() const -> int	{ return 1 ;}
+		auto		general_count() const -> int		{ return general_count_; }
 
-		guild_member*	member(uint32_t pid);
-		uint32_t			member_pid(const std::string& name_value);
+		auto	member(uint32_t pid) -> guild_member*;
+		auto			member_pid(const std::string& name_value) -> uint32_t;
 
-		bool		has_grade_auth(int grade, int auth_flag) const	{ return (bool)(data_.grade_array[grade-1].auth_flag & auth_flag);}
+		auto		has_grade_auth(int grade, int auth_flag) const -> bool	{ return (bool)(data_.grade_array[grade-1].auth_flag & auth_flag);}
 
 		void		add_comment(character * ch, const std::string& str);
 		void		delete_comment(character * ch, uint32_t comment_id);
@@ -229,7 +229,7 @@ class guild
 		void		refresh_comment(character * ch);
 		void		refresh_comment_force(uint32_t player_id);
 
-		int			skill_level(uint32_t vnum);
+		auto			skill_level(uint32_t vnum) -> int;
 		void		skill_level_up(uint32_t vnum_value);
 		void		use_skill(uint32_t vnum_value, character * ch, uint32_t pid);
 
@@ -242,7 +242,7 @@ class guild
 		void		send_db_skill_update(int amount = 0);
 
 		void		skill_recharge();
-		bool		charge_sp(character * ch, int sp);
+		auto		charge_sp(character * ch, int sp) -> bool;
 
 		void		chat(const char* text_value); 
 		void		p2_p_chat(const char* text);
@@ -254,20 +254,20 @@ class guild
 		void		recv_money_change(int gold_value);
 		void		recv_withdraw_money_give(int change_gold_value);
 
-		int		guild_money() const	{ return data_.gold; }
+		auto		guild_money() const -> int	{ return data_.gold; }
 
 		void		guild_war_packet(uint32_t opp_gid, uint8_t war_type, uint8_t war_state_value);
 		void		send_enemy_guild(character * ch);
 
-		int		get_guild_war_state(uint32_t opp_gid);
-		bool		can_start_war(uint8_t guild_war_type);
-		uint32_t		war_start_time(uint32_t opp_gid);
-		bool		under_war(uint32_t opp_gid);
-		uint32_t		under_any_war(uint8_t type_value = GUILD_WAR_TYPE_MAX_NUM);
+		auto		get_guild_war_state(uint32_t opp_gid) -> int;
+		auto		can_start_war(uint8_t guild_war_type) -> bool;
+		auto		war_start_time(uint32_t opp_gid) -> uint32_t;
+		auto		under_war(uint32_t opp_gid) -> bool;
+		auto		under_any_war(uint8_t type_value = GUILD_WAR_TYPE_MAX_NUM) -> uint32_t;
 
 		void		set_guild_war_map_index(uint32_t opp_gid, int32_t map_index_value);
-		int			get_guild_war_type(uint32_t opp_gid);
-		uint32_t		guild_war_map_index(uint32_t opp_gid);
+		auto			get_guild_war_type(uint32_t opp_gid) -> int;
+		auto		guild_war_map_index(uint32_t opp_gid) -> uint32_t;
 
 		void		guild_war_entry_ask(uint32_t opp_gid);
 		void		guild_war_entry_accept(uint32_t opp_gid, character * ch);
@@ -276,29 +276,29 @@ class guild
 		void		request_declare_war(uint32_t opp_gid, uint8_t type);
 		void		request_refuse_war(uint32_t opp_gid); 
 
-		bool		declare_war(uint32_t opp_gid, uint8_t type, uint8_t state); 
+		auto		declare_war(uint32_t opp_gid, uint8_t type, uint8_t state) -> bool; 
 		void		refuse_war(uint32_t opp_gid); 
-		bool		wait_start_war(uint32_t opp_gid); 
-		bool		check_start_war(uint32_t opp_gid);
+		auto		wait_start_war(uint32_t opp_gid) -> bool; 
+		auto		check_start_war(uint32_t opp_gid) -> bool;
 		void		start_war(uint32_t opp_gid);
 		void		end_war(uint32_t opp_gid);
 		void		reserve_war(uint32_t opp_gid, uint8_t type);
 
 		void		set_war_score_against_to(uint32_t opp_gid, int score_value);
-		int			war_score_against_to(uint32_t opp_gid);
+		auto			war_score_against_to(uint32_t opp_gid) -> int;
 
-		int			ladder_point() const	{ return data_.ladder_point; }
+		auto			ladder_point() const -> int	{ return data_.ladder_point; }
 		void		set_ladder_point(int point);
 
 		void		set_war_data(int win_value, int draw_value, int loss_value) { data_.win = win_value, data_.draw = draw_value, data_.loss = loss_value; }
 
 		void		change_ladder_point(int change_value);
 
-		int			guild_war_win_count() const { return data_.win; }
-		int			guild_war_draw_count() const { return data_.draw; }
-		int			guild_war_loss_count() const { return data_.loss; }
+		auto			guild_war_win_count() const -> int { return data_.win; }
+		auto			guild_war_draw_count() const -> int { return data_.draw; }
+		auto			guild_war_loss_count() const -> int { return data_.loss; }
 
-		bool		has_land();
+		auto		has_land() -> bool;
 
 		void		invite( character * pch_inviter, character * pch_invitee );
 
@@ -323,11 +323,11 @@ class guild
 		typedef std::set<uint32_t>	guild_member_p2_p_online_container;
 		guild_member_p2_p_online_container member_p2_p_online_;
 
-		void load_guild_data(ql_msg* pmsg);
-		void load_guild_grade_data(ql_msg* pmsg);
-		void load_guild_member_data(ql_msg* pmsg);
+		void load_guild_data(sql_msg* pmsg);
+		void load_guild_grade_data(sql_msg* pmsg);
+		void load_guild_member_data(sql_msg* pmsg);
 
-		void p2_p_update_grade(ql_msg* pmsg);
+		void p2_p_update_grade(sql_msg* pmsg);
 
 		typedef std::map<uint32_t, guild_war> enemy_guild_container;
 		enemy_guild_container enemy_guild_;
@@ -347,7 +347,7 @@ class guild
 			GERR_MAX
 		};
 
-		guild_join_err_code	verify_guild_joinable_condition( character * const pch_invitee );
+		auto	verify_guild_joinable_condition( character * const pch_invitee ) -> guild_join_err_code;
 
 		typedef std::map< uint32_t, event_ptr >	event_map;
 		event_map	guild_invite_event_map_;

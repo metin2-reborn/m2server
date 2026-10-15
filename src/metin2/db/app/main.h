@@ -4,10 +4,10 @@
 
 namespace metin2::db::inline app {
 
-int	start();
+auto	start() -> int;
 void end();
-const char * get_table_postfix();
-const char * get_player_db_name();
+auto get_table_postfix() -> const char *;
+auto get_player_db_name() -> const char *;
 
 extern std::string locale_name_column;
 

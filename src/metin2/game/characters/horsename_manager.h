@@ -20,7 +20,7 @@ class horse_name_manager : public singleton<horse_name_manager>
 	public :
 		horse_name_manager();
 
-		const char* horse_name(uint32_t player_id);
+		auto horse_name(uint32_t player_id) -> const char*;
 
 		void update_horse_name(uint32_t player_id, const char* horse_name, bool broadcast=false);
 

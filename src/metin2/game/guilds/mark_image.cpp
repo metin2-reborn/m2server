@@ -22,12 +22,12 @@ guild_mark_image::guild_mark_image() : pixels_(WIDTH * HEIGHT)
 {
 }
 
-bool guild_mark_image::save(const char* file_name) 
+auto guild_mark_image::save(const char* file_name) -> bool 
 {
 	return save_tga_bgra(file_name, pixels_.data(), WIDTH, HEIGHT);
 }
 
-bool guild_mark_image::build(const char * file_name)
+auto guild_mark_image::build(const char * file_name) -> bool
 {
 	metin2::log::info( "GuildMarkImage: creating new file {}", file_name);
 
@@ -35,7 +35,7 @@ bool guild_mark_image::build(const char * file_name)
 	return save(file_name);
 }
 
-bool guild_mark_image::load(const char * file_name) 
+auto guild_mark_image::load(const char * file_name) -> bool 
 {
 	int width = 0;
 	int height = 0;
@@ -79,7 +79,7 @@ void guild_mark_image::data(uint32_t x, uint32_t y, uint32_t width, uint32_t hei
 }
 
 
-bool guild_mark_image::save_mark(uint32_t pos_mark, uint8_t * image)
+auto guild_mark_image::save_mark(uint32_t pos_mark, uint8_t * image) -> bool
 {
 	if (pos_mark >= MARK_TOTAL_COUNT)
 	{
@@ -102,7 +102,7 @@ bool guild_mark_image::save_mark(uint32_t pos_mark, uint8_t * image)
 	return true;
 }
 
-bool guild_mark_image::delete_mark(uint32_t pos_mark)
+auto guild_mark_image::delete_mark(uint32_t pos_mark) -> bool
 {
 	pixel image[guild_mark::SIZE];
 	memset(&image, 0, sizeof(image));

@@ -31,7 +31,7 @@ client_desc * db_clientdesc = nullptr;
 client_desc * auth_master_desc = nullptr;
 client_desc * netmarble_db_desc = nullptr;
 
-static const char* get_known_client_desc_name(client_desc * desc) {
+static auto get_known_client_desc_name(client_desc * desc) -> const char* {
 	if (desc == db_clientdesc) {
 		return "db_clientdesc";
 	} else if (desc == auth_master_desc) {
@@ -79,7 +79,7 @@ void client_desc::set_retry_when_closed(bool b)
 	retry_when_closed_ = b;
 }
 
-bool client_desc::connect(int phase_when_succeed)
+auto client_desc::connect(int phase_when_succeed) -> bool
 {
 	if (phase_when_succeed != 0)
 		phase_when_succeed_ = phase_when_succeed;
@@ -257,7 +257,7 @@ void client_desc::packet(const void * data, int size)
 	connection_->send(data, size);
 }
 
-bool client_desc::is_retry_when_closed()
+auto client_desc::is_retry_when_closed() -> bool
 {
 	return (0 == thecore_is_shutdowned() && retry_when_closed_);
 }

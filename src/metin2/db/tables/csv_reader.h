@@ -18,14 +18,14 @@ public:
 public:
 
 
-    const char* as_string(size_t index) const { return at(index).c_str(); }
+    auto as_string(size_t index) const -> const char* { return at(index).c_str(); }
 
 
 
 
 private:
     c_csv_row(const c_csv_row&) = delete;
-    c_csv_row& operator = (const c_csv_row&) = delete;
+    auto operator = (const c_csv_row&) -> c_csv_row& = delete;
 };
 
 
@@ -42,19 +42,19 @@ public:
     virtual ~c_csv_file() { destroy(); }
 
 public:
-    bool load(const char* file_name, const char seperator=',', const char quote='"');
+    auto load(const char* file_name, const char seperator=',', const char quote='"') -> bool;
 
 
     void destroy();
 
 
-    const c_csv_row* operator [] (size_t index) const;
+    auto operator [] (size_t index) const -> const c_csv_row*;
 
-    size_t row_count() const { return rows_.size(); }
+    auto row_count() const -> size_t { return rows_.size(); }
 
 private:
     c_csv_file(const c_csv_file&) = delete;
-    c_csv_file& operator = (const c_csv_file&) = delete;
+    auto operator = (const c_csv_file&) -> c_csv_file& = delete;
 };
 
 
@@ -71,15 +71,15 @@ public:
     virtual ~c_csv_table();
 
 public:
-    bool load(const char* file_name, const char seperator=',', const char quote='"');
+    auto load(const char* file_name, const char seperator=',', const char quote='"') -> bool;
 
 
-    bool next();
+    auto next() -> bool;
 
 
 
 
-    const char* as_string_by_index(size_t index) const;
+    auto as_string_by_index(size_t index) const -> const char*;
 
 
 
@@ -87,9 +87,9 @@ public:
     void destroy();
 
 private:
-    const c_csv_row* cur_row() const;
+    auto cur_row() const -> const c_csv_row*;
 
     c_csv_table(const c_csv_table&) = delete;
-    c_csv_table& operator = (const c_csv_table&) = delete;
+    auto operator = (const c_csv_table&) -> c_csv_table& = delete;
 };
 }

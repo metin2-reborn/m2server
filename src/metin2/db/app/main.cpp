@@ -33,7 +33,7 @@
 namespace metin2::db::inline app {
 void set_player_db_name(const char* name);
 void set_table_postfix(const char* postfix);
-int start();
+auto start() -> int;
 
 std::string table_postfix;
 std::string locale_name_column = "name";
@@ -54,7 +54,7 @@ void emergency_sig(int sig)
 		abort();
 }
 
-int run()
+auto run() -> int
 {
 
 
@@ -106,7 +106,7 @@ int run()
 	return 0;
 }
 
-static bool connect_database(int slot, const std::string & name)
+static auto connect_database(int slot, const std::string & name) -> bool
 {
 	const metin2::config::database_settings & database = metin2::config::database();
 
@@ -126,7 +126,7 @@ static bool connect_database(int slot, const std::string & name)
 	return false;
 }
 
-int start()
+auto start() -> int
 {
 	const metin2::config::db_settings & db = metin2::config::db();
 
@@ -168,7 +168,7 @@ void set_table_postfix(const char* postfix)
 		table_postfix = postfix;
 }
 
-const char * get_table_postfix()
+auto get_table_postfix() -> const char *
 {
 	return table_postfix.c_str();
 }
@@ -184,7 +184,7 @@ void set_player_db_name(const char* name)
 	}
 }
 
-const char * get_player_db_name()
+auto get_player_db_name() -> const char *
 {
 	return player_db_name.c_str();
 }

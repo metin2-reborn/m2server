@@ -60,13 +60,13 @@ void messenger_manager::login(messenger_manager::key_a account)
 	if (set_login_account_.find(account) != set_login_account_.end())
 		return;
 
-	db_manager::instance().func_query([this](ql_msg *msg) { load_list(msg); },
+	db_manager::instance().func_query([this](sql_msg *msg) { load_list(msg); },
 			sql::format("SELECT account, companion FROM messenger_list{} WHERE account={}", sql::raw(get_table_postfix()), account));
 
 	set_login_account_.insert(account);
 }
 
-void messenger_manager::load_list(ql_msg * msg)
+void messenger_manager::load_list(sql_msg * msg)
 {
 	if (nullptr == msg)
 		return;
@@ -83,7 +83,7 @@ void messenger_manager::load_list(ql_msg * msg)
 
 	for (uint i = 0; i < msg->get()->num_rows; ++i)
 	{
-		MYSQL_ROW row = mysql_fetch_row(msg->get()->sql_result);
+		MYSQL_ROW row = mysql_fetch_row(msg->get()->res);
 
 		if (row[0] && row[1])
 		{
@@ -154,7 +154,7 @@ void messenger_manager::request_to_add(character * ch, character * target)
 	target->chat_packet(CHAT_TYPE_COMMAND, "messenger_auth %s", ch->name());
 }
 
-bool messenger_manager::auth_to_add(messenger_manager::key_a account, messenger_manager::key_a companion, bool deny)
+auto messenger_manager::auth_to_add(messenger_manager::key_a account, messenger_manager::key_a companion, bool deny) -> bool
 {
 	uint32_t dw1 = get_cr_c32(companion.c_str(), companion.length());
 	uint32_t dw2 = get_cr_c32(account.c_str(), account.length());
@@ -235,7 +235,7 @@ void messenger_manager::apply_remove_from_list(messenger_manager::key_a account,
 		ch->chat_packet(CHAT_TYPE_INFO, lc_text("<메신져> %s 님을 메신저에서 삭제하였습니다."), companion.c_str());
 }
 
-bool messenger_manager::is_in_list(messenger_manager::key_a account, messenger_manager::key_a companion)
+auto messenger_manager::is_in_list(messenger_manager::key_a account, messenger_manager::key_a companion) -> bool
 {
     if (relation_.find(account) == relation_.end())
         return false;

@@ -23,13 +23,13 @@ void client_manager::load_event_flag()
 {
 	char szQuery[1024];
 	snprintf(szQuery, sizeof(szQuery), "SELECT szName, lValue FROM quest%s WHERE dwPID = 0", get_table_postfix());
-	std::unique_ptr<ql_msg> pmsg(db_manager::instance().direct_query(szQuery));
+	std::unique_ptr<sql_msg> pmsg(db_manager::instance().direct_query(szQuery));
 
-	ql_result* pRes = pmsg->get();
+	sql_result* pRes = pmsg->get();
 	if (pRes->num_rows)
 	{
 		MYSQL_ROW row;
-		while ((row = mysql_fetch_row(pRes->sql_result)))
+		while ((row = mysql_fetch_row(pRes->res)))
 		{
 			packet_set_event_flag p;
 			strlcpy(p.flag_name, row[0], sizeof(p.flag_name));

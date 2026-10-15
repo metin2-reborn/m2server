@@ -15,7 +15,7 @@ class dragon_lair
 		explicit dragon_lair (uint32_t guild_id);
 		virtual ~dragon_lair ();
 
-		uint32_t estimated_time () const;
+		auto estimated_time () const -> uint32_t;
 
 		void on_dragon_dead (character * dragon);
 
@@ -30,7 +30,7 @@ class dragon_lair_manager : public singleton<dragon_lair_manager>
 		dragon_lair_manager ();
 		~dragon_lair_manager () override;
 
-		bool start (int32_t map_index_from, int32_t base_map_index, uint32_t guild_id);
+		auto start (int32_t map_index_from, int32_t base_map_index, uint32_t guild_id) -> bool;
 		void on_dragon_dead (character * dragon, uint32_t killer_guild_id);
 
 	private:

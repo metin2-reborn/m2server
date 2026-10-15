@@ -23,7 +23,7 @@ namespace
 	bool text_conv_table_loaded[3];
 }
 
-bool load_empire_text_convert_table(uint32_t empire_id, const char* file_name)
+auto load_empire_text_convert_table(uint32_t empire_id, const char* file_name) -> bool
 {
 	if (empire_id < 1 || empire_id > 3)
 		return false;

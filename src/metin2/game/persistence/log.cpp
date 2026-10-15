@@ -20,7 +20,7 @@ namespace metin2::game::inline persistence {
 
 namespace
 {
-	const char * or_empty(const char * text)
+	auto or_empty(const char * text) -> const char *
 	{
 		return text ? text : "";
 	}
@@ -34,7 +34,7 @@ log_manager::~log_manager()
 {
 }
 
-bool log_manager::connect(const char * host, const int port, const char * user, const char * pwd, const char * db)
+auto log_manager::connect(const char * host, const int port, const char * user, const char * pwd, const char * db) -> bool
 {
 	if (sql_.setup(host, user, pwd, db, locale.c_str(), false, port))
 		is_connect_ = true;
@@ -62,7 +62,7 @@ void log_manager::query(const std::string & query)
 	sql_.async_query(query.c_str());
 }
 
-bool log_manager::is_connected()
+auto log_manager::is_connected() -> bool
 {
 	return is_connect_;
 }

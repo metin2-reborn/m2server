@@ -28,7 +28,7 @@ lzo_manager::~lzo_manager()
 	workmem_ = nullptr;
 }
 
-bool lzo_manager::compress(const uint8_t* src, size_t srcsize, uint8_t* dest, lzo_uint * pui_dest_size)
+auto lzo_manager::compress(const uint8_t* src, size_t srcsize, uint8_t* dest, lzo_uint * pui_dest_size) -> bool
 {
 	int ret = lzo1x_1_compress(src, srcsize, dest, pui_dest_size, work_memory());
 
@@ -38,7 +38,7 @@ bool lzo_manager::compress(const uint8_t* src, size_t srcsize, uint8_t* dest, lz
 	return true;
 }
 
-bool lzo_manager::decompress(const uint8_t * src, size_t srcsize, uint8_t * dest, lzo_uint * pui_dest_size)
+auto lzo_manager::decompress(const uint8_t * src, size_t srcsize, uint8_t * dest, lzo_uint * pui_dest_size) -> bool
 {
 	int ret = lzo1x_decompress_safe(src, srcsize, dest, pui_dest_size, work_memory());
 
@@ -48,7 +48,7 @@ bool lzo_manager::decompress(const uint8_t * src, size_t srcsize, uint8_t * dest
 	return true;
 }
 
-size_t lzo_manager::max_compressed_size(size_t original)
+auto lzo_manager::max_compressed_size(size_t original) -> size_t
 {
 	return (original + (original >> 4) + 64 + 3);
 }

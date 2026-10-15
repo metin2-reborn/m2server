@@ -66,12 +66,12 @@ class sectree_map
 		sectree_map(sectree_map & r);
 		virtual ~sectree_map();
 
-		bool add(uint32_t key, sectree * sectree) {
+		auto add(uint32_t key, sectree * sectree) -> bool {
 			return map_.insert(map_type::value_type(key, sectree)).second;
 		}
 
-		sectree *	find(uint32_t package);
-		sectree *	find(uint32_t x, uint32_t y);
+		auto	find(uint32_t package) -> sectree *;
+		auto	find(uint32_t x, uint32_t y) -> sectree *;
 		void		build();
 
 		map_setting	setting;
@@ -114,9 +114,9 @@ class sectree_manager : public singleton<sectree_manager>
 		sectree_manager();
 		~sectree_manager() override;
 
-		sectree_map * map(int32_t map_index);
-		sectree * 	get(uint32_t index, uint32_t package);
-		sectree * 	get(uint32_t index, uint32_t x, uint32_t y);
+		auto map(int32_t map_index) -> sectree_map *;
+		auto 	get(uint32_t index, uint32_t package) -> sectree *;
+		auto 	get(uint32_t index, uint32_t x, uint32_t y) -> sectree *;
 
 		template< typename Func >
 		void for_each( int map_index, Func & rfunc )
@@ -128,51 +128,51 @@ class sectree_manager : public singleton<sectree_manager>
 			}
 		}
 		
-		int		load_setting_file(int32_t map_index, const char * setting_file_name, map_setting & r_setting);
-		bool		load_map_region(const char * file_name, map_setting & r_setting, const char * map_name_value);
-		int		build(const char * list_file_name, const char* map_base_path);
-		sectree_map * build_sectree_from_setting(map_setting & r_setting);
-		bool		load_attribute(sectree_map * map_sectree, const char * file_name, map_setting & r_setting);
+		auto		load_setting_file(int32_t map_index, const char * setting_file_name, map_setting & r_setting) -> int;
+		auto		load_map_region(const char * file_name, map_setting & r_setting, const char * map_name_value) -> bool;
+		auto		build(const char * list_file_name, const char* map_base_path) -> int;
+		auto build_sectree_from_setting(map_setting & r_setting) -> sectree_map *;
+		auto		load_attribute(sectree_map * map_sectree, const char * file_name, map_setting & r_setting) -> bool;
 		void		load_dungeon(int index, const char * file_name);
-		bool		valid_location(int32_t map_index, int32_t x, int32_t y, int32_t & r_l_valid_map_index, pixel_position & r_pos, uint8_t empire = 0);
-		bool		recall_position_by_empire(int map_index, uint8_t empire, pixel_position & r_pos);
+		auto		valid_location(int32_t map_index, int32_t x, int32_t y, int32_t & r_l_valid_map_index, pixel_position & r_pos, uint8_t empire = 0) -> bool;
+		auto		recall_position_by_empire(int map_index, uint8_t empire, pixel_position & r_pos) -> bool;
 
-		const map_region *	get_map_region(int32_t map_index);
-		int			map_index(int32_t x, int32_t y);
-		const map_region *	find_region_by_partial_name(const char* map_name_value);
+		auto	get_map_region(int32_t map_index) -> const map_region *;
+		auto			map_index(int32_t x, int32_t y) -> int;
+		auto	find_region_by_partial_name(const char* map_name_value) -> const map_region *;
 
-		bool		map_base_position(int32_t x, int32_t y, pixel_position & r_pos);
-		bool		map_base_position_by_map_index(int32_t map_index, pixel_position & r_pos);
-		bool		movable_position(int32_t map_index, int32_t x, int32_t y, pixel_position & pos);
-		bool		is_movable_position(int32_t map_index, int32_t x, int32_t y);
-		bool		center_position_of_map(int32_t map_index, pixel_position & r_pos);
-		bool        random_location(int32_t map_index, pixel_position & r_pos, uint32_t current_x = 0, uint32_t current_y = 0, int max_distance = 0);
+		auto		map_base_position(int32_t x, int32_t y, pixel_position & r_pos) -> bool;
+		auto		map_base_position_by_map_index(int32_t map_index, pixel_position & r_pos) -> bool;
+		auto		movable_position(int32_t map_index, int32_t x, int32_t y, pixel_position & pos) -> bool;
+		auto		is_movable_position(int32_t map_index, int32_t x, int32_t y) -> bool;
+		auto		center_position_of_map(int32_t map_index, pixel_position & r_pos) -> bool;
+		auto        random_location(int32_t map_index, pixel_position & r_pos, uint32_t current_x = 0, uint32_t current_y = 0, int max_distance = 0) -> bool;
 
-		int32_t		create_private_map(int32_t map_index);
+		auto		create_private_map(int32_t map_index) -> int32_t;
 		void		destroy_private_map(int32_t map_index);
 
-		area_map&	dungeon_area(int32_t map_index);
+		auto	dungeon_area(int32_t map_index) -> area_map&;
 		void		send_npc_position(character * ch);
 		void		insert_npc_position(int32_t map_index, uint8_t type, const char* name, int32_t x, int32_t y);
 
-		uint8_t		empire_from_map_index(int32_t map_index);
+		auto		empire_from_map_index(int32_t map_index) -> uint8_t;
 
 		void		purge_monsters_in_map(int32_t map_index);
 		void		purge_stones_in_map(int32_t map_index);
-		size_t		monster_count_in_map(int32_t map_index);
-		size_t		monster_count_in_map(int32_t map_index, uint32_t vnum);
+		auto		monster_count_in_map(int32_t map_index) -> size_t;
+		auto		monster_count_in_map(int32_t map_index, uint32_t vnum) -> size_t;
 
-		bool		for_attr_region(int32_t map_index, int32_t start_x, int32_t start_y, int32_t end_x, int32_t end_y, int32_t rotate, uint32_t attr, attr_region_mode mode);
+		auto		for_attr_region(int32_t map_index, int32_t start_x, int32_t start_y, int32_t end_x, int32_t end_y, int32_t rotate, uint32_t attr, attr_region_mode mode) -> bool;
 
-		bool		save_attribute_to_image(int map_index, const char * file_name, sectree_map * map_src = nullptr);
+		auto		save_attribute_to_image(int map_index, const char * file_name, sectree_map * map_src = nullptr) -> bool;
 
 	private:
 
-		bool		for_attr_region_right_angle( int32_t map_index, int32_t cx, int32_t cy, int32_t cw, int32_t ch, int32_t rotate, uint32_t attr, attr_region_mode mode );
+		auto		for_attr_region_right_angle( int32_t map_index, int32_t cx, int32_t cy, int32_t cw, int32_t ch, int32_t rotate, uint32_t attr, attr_region_mode mode ) -> bool;
 
-		bool		for_attr_region_free_angle( int32_t map_index, int32_t cx, int32_t cy, int32_t cw, int32_t ch, int32_t rotate, uint32_t attr, attr_region_mode mode );
+		auto		for_attr_region_free_angle( int32_t map_index, int32_t cx, int32_t cy, int32_t cw, int32_t ch, int32_t rotate, uint32_t attr, attr_region_mode mode ) -> bool;
 
-		bool		for_attr_region_cell( int32_t map_index, int32_t cx, int32_t cy, uint32_t attr, attr_region_mode mode );
+		auto		for_attr_region_cell( int32_t map_index, int32_t cx, int32_t cy, uint32_t attr, attr_region_mode mode ) -> bool;
 
 		static uint16_t			current_sectree_version_;
 		std::map<uint32_t, sectree_map *>	map_pk_sectree_;

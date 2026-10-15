@@ -72,7 +72,7 @@ void item_manager::graceful_shutdown()
 	set_pk_item_for_delayed_save_.clear();
 }
 
-bool item_manager::initialize(item_table * table_value, int size)
+auto item_manager::initialize(item_table * table_value, int size) -> bool
 {
 	if (!vec_prototype_.empty())
 		vec_prototype_.clear();
@@ -158,7 +158,7 @@ bool item_manager::initialize(item_table * table_value, int size)
 	return true;
 }
 
-item * item_manager::create_item(uint32_t vnum, uint32_t count, uint32_t id, bool try_magic, int rare_pct, bool skip_save)
+auto item_manager::create_item(uint32_t vnum, uint32_t count, uint32_t id, bool try_magic, int rare_pct, bool skip_save) -> item *
 {
 	if (0 == vnum)
 		return nullptr;
@@ -535,7 +535,7 @@ void item_manager::destroy_item(item * item)
 	delete item;
 }
 
-item * item_manager::find(uint32_t id)
+auto item_manager::find(uint32_t id) -> item *
 {
 	auto it = map_pk_item_by_id_.find(id);
 	if (it == map_pk_item_by_id_.end())
@@ -543,7 +543,7 @@ item * item_manager::find(uint32_t id)
 	return it->second;
 }
 
-item * item_manager::find_by_vid(uint32_t vid)
+auto item_manager::find_by_vid(uint32_t vid) -> item *
 {
 	item_vid_map::iterator it = vid_map_.find(vid);
 
@@ -553,7 +553,7 @@ item * item_manager::find_by_vid(uint32_t vid)
 	return (it->second);
 }
 
-item_table * item_manager::table(uint32_t vnum)
+auto item_manager::table(uint32_t vnum) -> item_table *
 {
 	int rnum = real_number(vnum);
 
@@ -575,7 +575,7 @@ item_table * item_manager::table(uint32_t vnum)
 	return &vec_prototype_[rnum];
 }
 
-int item_manager::real_number(uint32_t vnum)
+auto item_manager::real_number(uint32_t vnum) -> int
 {
 	int bot, top, mid;
 
@@ -601,7 +601,7 @@ int item_manager::real_number(uint32_t vnum)
 	}
 }
 
-bool item_manager::vnum(const char * name, uint32_t & r_dw_vnum)
+auto item_manager::vnum(const char * name, uint32_t & r_dw_vnum) -> bool
 {
 	int len = strlen(name);
 
@@ -619,7 +619,7 @@ bool item_manager::vnum(const char * name, uint32_t & r_dw_vnum)
 	return false;
 }
 
-bool item_manager::vnum_by_original_name(const char * name_value, uint32_t & r_dw_vnum)
+auto item_manager::vnum_by_original_name(const char * name_value, uint32_t & r_dw_vnum) -> bool
 {
 	int len = strlen(name_value);
 
@@ -640,7 +640,7 @@ bool item_manager::vnum_by_original_name(const char * name_value, uint32_t & r_d
 std::set<uint32_t> set_lotto;
 
 
-int get_drop_per_kill_pct(int minimum, int fallback, int delta_percent, const char * flag)
+auto get_drop_per_kill_pct(int minimum, int fallback, int delta_percent, const char * flag) -> int
 {
 	int iVal = 0;
 
@@ -662,7 +662,7 @@ int get_drop_per_kill_pct(int minimum, int fallback, int delta_percent, const ch
 	return (40000 * delta_percent / iVal);
 }
 
-bool item_manager::drop_pct(character * chr, character * killer, int& delta_percent, int& rand_range)
+auto item_manager::drop_pct(character * chr, character * killer, int& delta_percent, int& rand_range) -> bool
 {
  	if (nullptr == chr || nullptr == killer)
 		return false;
@@ -700,7 +700,7 @@ bool item_manager::drop_pct(character * chr, character * killer, int& delta_perc
 	return true;
 }
 
-bool item_manager::create_drop_item(character * chr, character * killer, std::vector<item *> & vec_item)
+auto item_manager::create_drop_item(character * chr, character * killer, std::vector<item *> & vec_item) -> bool
 {
 	int iLevel = killer->level();
 
@@ -919,7 +919,7 @@ bool item_manager::create_drop_item(character * chr, character * killer, std::ve
 	return vec_item.size();
 }
 
-int get_three_skill_level_adjust(int level)
+auto get_three_skill_level_adjust(int level) -> int
 {
 	if (level < 40)
 		return 32;
@@ -952,7 +952,7 @@ static struct drop_event_char_stone
 	}
 } gs_drop_event_char_stone;
 
-static int drop_event_char_stone_get_drop_percent(int killer_level)
+static auto drop_event_char_stone_get_drop_percent(int killer_level) -> int
 {
 	int killer_levelStep = (killer_level-1)/10;
 
@@ -1009,7 +1009,7 @@ static void drop_event_char_stone_drop_item(character & killer, character & vict
 	}
 }
 
-bool drop_event_char_stone_set_value(const std::string& name, int value)
+auto drop_event_char_stone_set_value(const std::string& name, int value) -> bool
 {
 	if (name == "drop_char_stone")
 	{
@@ -1062,7 +1062,7 @@ static struct drop_event_refine_box
 	}
 } gs_drop_event_refine_box;
 
-static item * drop_event_refine_box_get_drop_item(character & killer, character & victim, item_manager& item_mgr)
+static auto drop_event_refine_box_get_drop_item(character & killer, character & victim, item_manager& item_mgr) -> item *
 {
 	static const int lowerBox[] = { 50197, 50198, 50199 };
 	static const int lowerBox_range = 3;
@@ -1118,7 +1118,7 @@ static void drop_event_refine_box_drop_item(character & killer, character & vict
 	}
 }
 
-bool drop_event_refine_box_set_value(const std::string& name, int value)
+auto drop_event_refine_box_set_value(const std::string& name, int value) -> bool
 {
 	if (name == "refine_box_drop")
 	{
@@ -1415,7 +1415,7 @@ void item_manager::create_quest_drop_item(character * chr, character * killer, s
 	}
 }
 
-uint32_t item_manager::refine_from_vnum(uint32_t vnum)
+auto item_manager::refine_from_vnum(uint32_t vnum) -> uint32_t
 {
 	auto it = map_item_refine_from_.find(vnum);
 	if (it != map_item_refine_from_.end())
@@ -1423,7 +1423,7 @@ uint32_t item_manager::refine_from_vnum(uint32_t vnum)
 	return 0;
 }
 
-const special_item_group* item_manager::get_special_item_group(uint32_t vnum)
+auto item_manager::get_special_item_group(uint32_t vnum) -> const special_item_group*
 {
 	auto it = map_pk_special_item_group_.find(vnum);
 	if (it != map_pk_special_item_group_.end())
@@ -1433,7 +1433,7 @@ const special_item_group* item_manager::get_special_item_group(uint32_t vnum)
 	return nullptr;
 }
 
-const special_attr_group* item_manager::get_special_attr_group(uint32_t vnum)
+auto item_manager::get_special_attr_group(uint32_t vnum) -> const special_attr_group*
 {
 	auto it = map_pk_special_attr_group_.find(vnum);
 	if (it != map_pk_special_attr_group_.end())
@@ -1443,7 +1443,7 @@ const special_attr_group* item_manager::get_special_attr_group(uint32_t vnum)
 	return nullptr;
 }
 
-uint32_t item_manager::mask_vnum(uint32_t vnum)
+auto item_manager::mask_vnum(uint32_t vnum) -> uint32_t
 {
 	map_dw2_dw::iterator it = map_new_to_ori_.find (vnum);
 	if (it != map_new_to_ori_.end())

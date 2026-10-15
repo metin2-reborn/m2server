@@ -23,7 +23,7 @@ namespace metin2::game {
 
 namespace quest
 {
-	int party_clear_ready(lua_State* lua)
+	auto party_clear_ready(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		
@@ -35,7 +35,7 @@ namespace quest
 		return 0;
 	}
 
-	int party_get_max_level(lua_State* lua)
+	auto party_get_max_level(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -77,7 +77,7 @@ namespace quest
         }
     };
 
-	int party_run_cinematic(lua_State* lua)
+	auto party_run_cinematic(lua_State* lua) -> int
 	{
 		if (!lua_isstring(lua, 1))
 			return 0;
@@ -126,7 +126,7 @@ namespace quest
 		}
 	};
 
-	int party_show_cinematic(lua_State* lua)
+	auto party_show_cinematic(lua_State* lua) -> int
 	{
 		if (!lua_isstring(lua, 1))
 			return 0;
@@ -144,7 +144,7 @@ namespace quest
 		return 0;
 	}
 
-	int party_get_near_count(lua_State* lua)
+	auto party_get_near_count(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -156,7 +156,7 @@ namespace quest
 		return 1;
 	}
 
-	int party_syschat(lua_State* lua)
+	auto party_syschat(lua_State* lua) -> int
 	{
 		party * pParty = quest_manager::instance().current_character_ptr()->get_party();
 
@@ -173,7 +173,7 @@ namespace quest
 		return 0;
 	}
 
-	int party_is_leader(lua_State* lua)
+	auto party_is_leader(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -185,14 +185,14 @@ namespace quest
 		return 1;
 	}
 
-	int party_is_party(lua_State* lua)
+	auto party_is_party(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		lua_pushboolean(lua, ch->get_party() ? 1 : 0);
 		return 1;
 	}
 
-	int party_get_leader_pid(lua_State* lua)
+	auto party_get_leader_pid(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		if (ch->get_party())
@@ -207,7 +207,7 @@ namespace quest
 	}
 
 
-	int party_chat(lua_State* lua)
+	auto party_chat(lua_State* lua) -> int
 	{
 		party * pParty = quest_manager::instance().current_character_ptr()->get_party();
 
@@ -225,7 +225,7 @@ namespace quest
 	}
 
 
-	int party_is_map_member_flag_lt(lua_State* lua)
+	auto party_is_map_member_flag_lt(lua_State* lua) -> int
 	{
 
 		if (!lua_isstring(lua, 1) || !lua_isnumber(lua, 2))
@@ -254,7 +254,7 @@ namespace quest
 		return 1;
 	}
 
-	int party_set_flag(lua_State* lua)
+	auto party_set_flag(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -264,7 +264,7 @@ namespace quest
 		return 0;
 	}
 
-	int party_get_flag(lua_State* lua)
+	auto party_get_flag(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -276,7 +276,7 @@ namespace quest
 		return 1;
 	}
 
-	int party_set_quest_flag(lua_State* lua)
+	auto party_set_quest_flag(lua_State* lua) -> int
 	{
 		quest_manager & q = quest_manager::instance();
 
@@ -295,7 +295,7 @@ namespace quest
 		return 0;
 	}
 
-	int party_is_in_dungeon (lua_State* lua)
+	auto party_is_in_dungeon (lua_State* lua) -> int
 	{
 		quest_manager & q = quest_manager::instance();
 		character * ch = q.current_character_ptr();
@@ -330,7 +330,7 @@ namespace quest
 		}
 	};
 	
-	int party_give_buff (lua_State* lua)
+	auto party_give_buff (lua_State* lua) -> int
 	{
 		quest_manager & q = quest_manager::instance();
 		character * ch = q.current_character_ptr();
@@ -371,7 +371,7 @@ namespace quest
 			pi_ds.push_back(ch->player_id());
 		}
 	};
-	int party_get_member_pids(lua_State *lua)
+	auto party_get_member_pids(lua_State *lua) -> int
 	{
 		quest_manager & q = quest_manager::instance();
 		character * ch = q.current_character_ptr();

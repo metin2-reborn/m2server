@@ -20,7 +20,7 @@ login_data::login_data()
 	memset(&data_, 0, sizeof(account_table));
 }
 
-account_table & login_data::account_ref()
+auto login_data::account_ref() -> account_table &
 {
 	return data_;
 }
@@ -30,7 +30,7 @@ void login_data::set_client_key(const uint32_t * client_key)
 	std::memcpy(&client_key_, client_key, sizeof(uint32_t) * 4);
 }
 
-const uint32_t * login_data::client_key()
+auto login_data::client_key() -> const uint32_t *
 {
 	return &client_key_[0];
 }
@@ -40,7 +40,7 @@ void login_data::set_key(uint32_t key)
 	key_ = key;
 }
 
-uint32_t login_data::key()
+auto login_data::key() -> uint32_t
 {
 	return key_;
 }
@@ -50,7 +50,7 @@ void login_data::set_connected_peer_handle(uint32_t handle)
 	connected_peer_handle_ = handle;
 }
 
-uint32_t login_data::connected_peer_handle()
+auto login_data::connected_peer_handle() -> uint32_t
 {
 	return connected_peer_handle_;
 }
@@ -61,7 +61,7 @@ void login_data::set_play(bool on)
 	play_ = on;
 }
 
-bool login_data::is_play()
+auto login_data::is_play() -> bool
 {
 	return play_;
 }
@@ -71,7 +71,7 @@ void login_data::set_deleted(bool set)
 	deleted_ = set;
 }
 
-bool login_data::is_deleted()
+auto login_data::is_deleted() -> bool
 {
 	return deleted_;
 }
@@ -81,7 +81,7 @@ void login_data::set_premium(int * pai_premium_times)
 	std::memcpy(premium_times_, pai_premium_times, sizeof(premium_times_));
 }
 
-int * login_data::premium_ptr()
+auto login_data::premium_ptr() -> int *
 {
 	return &premium_times_[0];
 }

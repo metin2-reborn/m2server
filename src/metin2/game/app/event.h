@@ -58,7 +58,7 @@ class event_ptr {
 
 typedef int32_t (*event_func) (event_ptr event, int32_t processing_time);
 
-#define EVENTFUNC(name)	int32_t (name) (event_ptr event, int32_t processing_time)
+#define EVENTFUNC(name)	auto (name)(event_ptr event, int32_t processing_time) -> int32_t
 #define EVENTINFO(name) struct name : public event_info_data
 
 struct queue_element;
@@ -81,17 +81,17 @@ struct scheduled_event
 };
 
 template<class T>
-T* alloc_event_info() {
+auto alloc_event_info() -> T* {
 	return new T;
 }
 
 extern void		event_destroy();
-extern int		event_process(int pulse);
-extern int		event_count();
+extern auto		event_process(int pulse) -> int;
+extern auto		event_count() -> int;
 
-extern event_ptr	event_create(event_func func, event_info_data* info, int32_t when);
+extern auto	event_create(event_func func, event_info_data* info, int32_t when) -> event_ptr;
 extern void		event_cancel(event_ptr * ppevent);
-extern int32_t		event_processing_time(event_ptr event);
-extern int32_t		event_time(event_ptr event);
+extern auto		event_processing_time(event_ptr event) -> int32_t;
+extern auto		event_time(event_ptr event) -> int32_t;
 extern void		event_reset_time(event_ptr event, int32_t when);
 }

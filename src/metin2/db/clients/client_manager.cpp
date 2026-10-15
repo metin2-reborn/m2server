@@ -52,7 +52,7 @@
 
 namespace metin2::db::inline clients {
 
-bool create_item_table_from_res(MYSQL_RES * res, std::vector<player_item> * vec, uint32_t pid);
+auto create_item_table_from_res(MYSQL_RES * res, std::vector<player_item> * vec, uint32_t pid) -> bool;
 
 uint32_t usage_max = 0;
 uint32_t usage_avg = 0;
@@ -105,7 +105,7 @@ void client_manager::destroy()
 	}
 }
 
-bool client_manager::initialize()
+auto client_manager::initialize() -> bool
 {
 
 
@@ -157,7 +157,7 @@ void client_manager::main_loop()
 
 	while (!shutdowned_)
 	{
-		while (std::unique_ptr<ql_msg> tmp{db_manager::instance().pop_result()})
+		while (std::unique_ptr<sql_msg> tmp{db_manager::instance().pop_result()})
 		{
 			analyze_query_result(tmp.get());
 		}
@@ -439,9 +439,9 @@ void client_manager::query_safebox_load(peer * peer_value, uint32_t handle_value
 	db_manager::instance().return_query(szQuery, QID_SAFEBOX_LOAD, peer_value->handle(), pi);
 }
 
-void client_manager::result_safebox_load(peer * peer_value, ql_msg * msg)
+void client_manager::result_safebox_load(peer * peer_value, sql_msg * msg)
 {
-	query_info * qi = (query_info *) msg->pv_user_data;
+	query_info * qi = (query_info *) msg->user_data;
 	client_handle_info * pi = (client_handle_info *) qi->pv_data;
 	uint32_t dwHandle = pi->handle;
 
@@ -454,7 +454,7 @@ void client_manager::result_safebox_load(peer * peer_value, ql_msg * msg)
 		auto pSafebox = std::make_unique<safebox_table>();
 		memset(pSafebox.get(), 0, sizeof(safebox_table));
 
-		ql_result * res = msg->get();
+		sql_result * res = msg->get();
 
 		if (res->num_rows == 0)
 		{
@@ -467,7 +467,7 @@ void client_manager::result_safebox_load(peer * peer_value, ql_msg * msg)
 		}
 		else
 		{
-			MYSQL_ROW row = mysql_fetch_row(res->sql_result);
+			MYSQL_ROW row = mysql_fetch_row(res->res);
 
 			if (((!row[2] || !*row[2]) && strSafeboxPassword != "000000") ||
 				((row[2] && *row[2]) && strSafeboxPassword != row[2]))
@@ -527,7 +527,7 @@ void client_manager::result_safebox_load(peer * peer_value, ql_msg * msg)
 		}
 
 		// On a query error the safebox stays closed; answering would show it empty.
-		if (!msg->get()->sql_result)
+		if (!msg->get()->res)
 		{
 			metin2::log::error("null safebox result");
 			delete pi;
@@ -535,7 +535,7 @@ void client_manager::result_safebox_load(peer * peer_value, ql_msg * msg)
 		}
 
 		static std::vector<player_item> s_items;
-		create_item_table_from_res(msg->get()->sql_result, &s_items, pi->account_id);
+		create_item_table_from_res(msg->get()->res, &s_items, pi->account_id);
 
 		std::set<db::items::item_award *> * pSet = item_award_manager::instance().by_login(pi->login);
 
@@ -704,8 +704,8 @@ void client_manager::result_safebox_load(peer * peer_value, ql_msg * msg)
 								pItemAward->vnum, pItemAward->count, pItemAward->socket0, pItemAward->socket1, dwSocket2);
 					}
 
-					std::unique_ptr<ql_msg> pmsg(db_manager::instance().direct_query(query.c_str()));
-					ql_result * pRes = pmsg->get();
+					std::unique_ptr<sql_msg> pmsg(db_manager::instance().direct_query(query.c_str()));
+					sql_result * pRes = pmsg->get();
 					metin2::log::info( "SAFEBOX Query : [{}]", query.c_str());
 
 					if (pRes->affected_rows == 0 || pRes->insert_id == 0 || pRes->affected_rows == (uint32_t)-1)
@@ -758,9 +758,9 @@ void client_manager::query_safebox_change_size(peer * peer_value, uint32_t handl
 	db_manager::instance().return_query(szQuery, QID_SAFEBOX_CHANGE_SIZE, peer_value->handle(), pi);
 }
 
-void client_manager::result_safebox_change_size(peer * peer_value, ql_msg * msg)
+void client_manager::result_safebox_change_size(peer * peer_value, sql_msg * msg)
 {
-	query_info * qi = (query_info *) msg->pv_user_data;
+	query_info * qi = (query_info *) msg->user_data;
 	client_handle_info * p = (client_handle_info *) qi->pv_data;
 	uint32_t dwHandle = p->handle;
 	uint8_t bSize = p->account_index;
@@ -787,15 +787,15 @@ void client_manager::query_safebox_change_password(peer * peer_value, uint32_t h
 	db_manager::instance().return_query(szQuery, QID_SAFEBOX_CHANGE_PASSWORD, peer_value->handle(), pi);
 }
 
-void client_manager::result_safebox_change_password(peer * peer_value, ql_msg * msg)
+void client_manager::result_safebox_change_password(peer * peer_value, sql_msg * msg)
 {
-	query_info * qi = (query_info *) msg->pv_user_data;
+	query_info * qi = (query_info *) msg->user_data;
 	client_handle_info * p = (client_handle_info *) qi->pv_data;
 	uint32_t dwHandle = p->handle;
 
 	if (msg->get()->num_rows > 0)
 	{
-		MYSQL_ROW row = mysql_fetch_row(msg->get()->sql_result);
+		MYSQL_ROW row = mysql_fetch_row(msg->get()->res);
 
 		if ((row[0] && *row[0] && !strcasecmp(row[0], p->login)) || ((!row[0] || !*row[0]) && !strcmp("000000", p->login)))
 		{
@@ -812,9 +812,9 @@ void client_manager::result_safebox_change_password(peer * peer_value, ql_msg * 
 	peer_value->encode_byte(0);
 }
 
-void client_manager::result_safebox_change_password_second(peer * peer_value, ql_msg * msg)
+void client_manager::result_safebox_change_password_second(peer * peer_value, sql_msg * msg)
 {
-	query_info * qi = (query_info *) msg->pv_user_data;
+	query_info * qi = (query_info *) msg->user_data;
 	client_handle_info * p = (client_handle_info *) qi->pv_data;
 	uint32_t dwHandle = p->handle;
 	delete p;
@@ -823,9 +823,9 @@ void client_manager::result_safebox_change_password_second(peer * peer_value, ql
 	peer_value->encode_byte(1);
 }
 
-void client_manager::result_pricelist_load(peer* peer, ql_msg* msg)
+void client_manager::result_pricelist_load(peer* peer, sql_msg* msg)
 {
-	item_pricelist_req_info* pReqInfo = (item_pricelist_req_info*)static_cast<query_info*>(msg->pv_user_data)->pv_data;
+	item_pricelist_req_info* pReqInfo = (item_pricelist_req_info*)static_cast<query_info*>(msg->user_data)->pv_data;
 
 
 	item_price_list_table table;
@@ -834,7 +834,7 @@ void client_manager::result_pricelist_load(peer* peer, ql_msg* msg)
 
 	MYSQL_ROW row;
 
-	while ((row = mysql_fetch_row(msg->get()->sql_result)))
+	while ((row = mysql_fetch_row(msg->get()->res)))
 	{
 		str_to_number(table.price_info[table.count].vnum, row[0]);
 		str_to_number(table.price_info[table.count].price, row[1]);
@@ -860,9 +860,9 @@ void client_manager::result_pricelist_load(peer* peer, ql_msg* msg)
 	delete pReqInfo;
 }
 
-void client_manager::result_pricelist_load_for_update(ql_msg* msg)
+void client_manager::result_pricelist_load_for_update(sql_msg* msg)
 {
-	item_price_list_table* pUpdateTable = (item_price_list_table*)static_cast<query_info*>(msg->pv_user_data)->pv_data;
+	item_price_list_table* pUpdateTable = (item_price_list_table*)static_cast<query_info*>(msg->user_data)->pv_data;
 
 
 	item_price_list_table table;
@@ -871,7 +871,7 @@ void client_manager::result_pricelist_load_for_update(ql_msg* msg)
 
 	MYSQL_ROW row;
 
-	while ((row = mysql_fetch_row(msg->get()->sql_result)))
+	while ((row = mysql_fetch_row(msg->get()->res)))
 	{
 		str_to_number(table.price_info[table.count].vnum, row[0]);
 		str_to_number(table.price_info[table.count].price, row[1]);
@@ -901,22 +901,22 @@ void client_manager::query_empire_select(peer * peer_value, uint32_t handle, emp
 	char szQuery[QUERY_MAX_LEN];
 
 	snprintf(szQuery, sizeof(szQuery), "UPDATE player_index%s SET empire=%u WHERE id=%u", get_table_postfix(), p->empire, p->account_id);
-	std::unique_ptr<ql_msg>(db_manager::instance().direct_query(szQuery));
+	std::unique_ptr<sql_msg>(db_manager::instance().direct_query(szQuery));
 
 	metin2::log::info( "EmpireSelect: {}", szQuery);
 	{
 		snprintf(szQuery, sizeof(szQuery),
 				"SELECT pid1, pid2, pid3, pid4 FROM player_index%s WHERE id=%u", get_table_postfix(), p->account_id);
 
-		std::unique_ptr<ql_msg> pmsg(db_manager::instance().direct_query(szQuery));
+		std::unique_ptr<sql_msg> pmsg(db_manager::instance().direct_query(szQuery));
 
-		ql_result * pRes = pmsg->get();
+		sql_result * pRes = pmsg->get();
 
 		if (pRes->num_rows)
 		{
 			metin2::log::info( "EMPIRE {:d}", pRes->num_rows);
 
-			MYSQL_ROW row = mysql_fetch_row(pRes->sql_result);
+			MYSQL_ROW row = mysql_fetch_row(pRes->res);
 			uint32_t pids[3];
 
 			uint32_t g_start_map[4] =
@@ -952,7 +952,7 @@ void client_manager::query_empire_select(peer * peer_value, uint32_t handle, emp
 							g_start_position[p->empire][1],
 							pids[i]);
 
-					std::unique_ptr<ql_msg> pmsg2(db_manager::instance().direct_query(szQuery));
+					std::unique_ptr<sql_msg> pmsg2(db_manager::instance().direct_query(szQuery));
 				}
 			}
 		}
@@ -1221,7 +1221,7 @@ void client_manager::query_item_save(peer * peer_value, const char * data)
 	}
 }
 
-client_manager::item_cache_set * client_manager::get_item_cache_set(uint32_t pid)
+auto client_manager::get_item_cache_set(uint32_t pid) -> client_manager::item_cache_set *
 {
 	item_cache_set_ptr_map::iterator it = map_pk_item_cache_set_ptr_.find(pid);
 
@@ -1272,7 +1272,7 @@ void client_manager::flush_item_cache_set(uint32_t pid)
 		metin2::log::info( "FLUSH_ITEMCACHESET : Deleted pid({:d})", pid);
 }
 
-item_cache * client_manager::get_item_cache(uint32_t id)
+auto client_manager::get_item_cache(uint32_t id) -> item_cache *
 {
 	item_cache_map::iterator it = map_item_cache_.find(id);
 
@@ -1336,7 +1336,7 @@ void client_manager::put_item_cache(player_item * updated, bool skip_query)
 	}
 }
 
-bool client_manager::delete_item_cache(uint32_t id)
+auto client_manager::delete_item_cache(uint32_t id) -> bool
 {
 	item_cache * c = get_item_cache(id);
 
@@ -1347,7 +1347,7 @@ bool client_manager::delete_item_cache(uint32_t id)
 	return true;
 }
 
-item_price_list_table_cache* client_manager::item_price_list_cache(uint32_t id)
+auto client_manager::item_price_list_cache(uint32_t id) -> item_price_list_table_cache*
 {
 	item_price_list_cache_map::iterator it = item_price_list_cache_.find(id);
 
@@ -1544,7 +1544,7 @@ void client_manager::money_log(packet_money_log* p)
 	db::logs::money_log::instance().add_log(p->type, p->vnum, p->gold);
 }
 
-login_data * client_manager::get_login_data(uint32_t key)
+auto client_manager::get_login_data(uint32_t key) -> login_data *
 {
 	login_data_by_login_key::iterator it = map_pk_login_data_.find(key);
 
@@ -1554,7 +1554,7 @@ login_data * client_manager::get_login_data(uint32_t key)
 	return it->second;
 }
 
-login_data * client_manager::get_login_data_by_login(const char * login)
+auto client_manager::get_login_data_by_login(const char * login) -> login_data *
 {
 	char szLogin[LOGIN_MAX_LEN + 1];
 	trim_and_lower(login, szLogin, sizeof(szLogin));
@@ -1567,7 +1567,7 @@ login_data * client_manager::get_login_data_by_login(const char * login)
 	return it->second;
 }
 
-login_data * client_manager::get_login_data_by_aid(uint32_t aid)
+auto client_manager::get_login_data_by_aid(uint32_t aid) -> login_data *
 {
 	login_data_by_aid::iterator it = map_pk_login_data_by_aid_.find(aid);
 
@@ -1678,7 +1678,7 @@ void client_manager::create_object(packet_gd_create_object * p)
 			"INSERT INTO object%s (land_id, vnum, map_index, x, y, x_rot, y_rot, z_rot) VALUES(%u, %u, %d, %d, %d, %f, %f, %f)",
 			get_table_postfix(), p->land_id, p->vnum, p->map_index, p->x, p->y, p->x_rot, p->y_rot, p->z_rot);
 
-	std::unique_ptr<ql_msg> pmsg(db_manager::instance().direct_query(szQuery));
+	std::unique_ptr<sql_msg> pmsg(db_manager::instance().direct_query(szQuery));
 
 	if (pmsg->get()->insert_id == 0)
 	{
@@ -1712,7 +1712,7 @@ void client_manager::delete_object(uint32_t id)
 
 	snprintf(szQuery, sizeof(szQuery), "DELETE FROM object%s WHERE id=%u", get_table_postfix(), id);
 
-	std::unique_ptr<ql_msg> pmsg(db_manager::instance().direct_query(szQuery));
+	std::unique_ptr<sql_msg> pmsg(db_manager::instance().direct_query(szQuery));
 
 	if (pmsg->get()->affected_rows == 0 || pmsg->get()->affected_rows == (uint32_t)-1)
 	{
@@ -1759,12 +1759,12 @@ void client_manager::update_land(uint32_t * pdw)
 void client_manager::block_chat(packet_block_chat* p)
 {
 	const std::string query = sql::format("SELECT id FROM player{} WHERE name = {}", sql::raw(get_table_postfix()), p->name);
-	std::unique_ptr<ql_msg> pmsg(db_manager::instance().direct_query(query.c_str()));
-	ql_result * pRes = pmsg->get();
+	std::unique_ptr<sql_msg> pmsg(db_manager::instance().direct_query(query.c_str()));
+	sql_result * pRes = pmsg->get();
 
 	if (pRes->num_rows)
 	{
-		MYSQL_ROW row = mysql_fetch_row(pRes->sql_result);
+		MYSQL_ROW row = mysql_fetch_row(pRes->res);
 		uint32_t pid = strtoul(row[0], nullptr, 10);
 
 		packet_gd_add_affect pa;
@@ -2333,7 +2333,7 @@ void client_manager::remove_peer(peer * peer_value)
 	delete peer_value;
 }
 
-peer * client_manager::get_peer(uint32_t ident)
+auto client_manager::get_peer(uint32_t ident) -> peer *
 {
 	for (auto i = peer_list_.begin(); i != peer_list_.end();++i)
 	{
@@ -2346,7 +2346,7 @@ peer * client_manager::get_peer(uint32_t ident)
 	return nullptr;
 }
 
-peer * client_manager::any_peer()
+auto client_manager::any_peer() -> peer *
 {
 	if (peer_list_.empty())
 		return nullptr;
@@ -2354,9 +2354,9 @@ peer * client_manager::any_peer()
 	return peer_list_.front();
 }
 
-int client_manager::analyze_query_result(ql_msg * msg)
+auto client_manager::analyze_query_result(sql_msg * msg) -> int
 {
-	query_info * qi = (query_info *) msg->pv_user_data;
+	query_info * qi = (query_info *) msg->user_data;
 	peer * peer = get_peer(qi->ident);
 
 	switch (qi->type)
@@ -2367,7 +2367,7 @@ int client_manager::analyze_query_result(ql_msg * msg)
 			return true;
 
 		case QID_GUILD_RANKING:
-			guild_manager::instance().result_ranking(msg->get()->sql_result);
+			guild_manager::instance().result_ranking(msg->get()->res);
 			break;
 
 		case QID_ITEMPRICE_LOAD_FOR_UPDATE:
@@ -2481,7 +2481,7 @@ void usage_log()
 	usage_max = usage_avg = 0;
 }
 
-int client_manager::process()
+auto client_manager::process() -> int
 {
 	int pulses;
 
@@ -2611,7 +2611,7 @@ int client_manager::process()
 	return 1;
 }
 
-uint32_t client_manager::user_count()
+auto client_manager::user_count() -> uint32_t
 {
 	return map_k_logon_account_.size();
 }
@@ -2644,12 +2644,12 @@ void client_manager::forward_packet(uint8_t header, const void* data, int size, 
 	}
 }
 
-time_t client_manager::current_time()
+auto client_manager::current_time() -> time_t
 {
 	return time(nullptr);
 }
 
-bool client_manager::initialize_now_item_id()
+auto client_manager::initialize_now_item_id() -> bool
 {
 	const uint32_t dwMin = metin2::config::db().item_id_min;
 	const uint32_t dwMax = metin2::config::db().item_id_max;
@@ -2667,21 +2667,21 @@ bool client_manager::initialize_now_item_id()
 	return true;
 }
 
-uint32_t client_manager::gain_item_id()
+auto client_manager::gain_item_id() -> uint32_t
 {
 	return item_range_.usable_item_id_min++;
 }
 
-uint32_t client_manager::item_id()
+auto client_manager::item_id() -> uint32_t
 {
 	return item_range_.usable_item_id_min;
 }
 
-bool client_manager::initialize_localization() 
+auto client_manager::initialize_localization() -> bool 
 {
 	char szQuery[512];	
 	snprintf(szQuery, sizeof(szQuery), "SELECT mValue, mKey FROM locale");
-	std::unique_ptr<ql_msg> pMsg(db_manager::instance().direct_query(szQuery, SQL_COMMON));
+	std::unique_ptr<sql_msg> pMsg(db_manager::instance().direct_query(szQuery, SQL_COMMON));
 
 	if (pMsg->get()->num_rows == 0)
 	{
@@ -2695,7 +2695,7 @@ bool client_manager::initialize_localization()
 
 	MYSQL_ROW row = nullptr;
 
-	while ((row = mysql_fetch_row(pMsg->get()->sql_result)) != nullptr)
+	while ((row = mysql_fetch_row(pMsg->get()->res)) != nullptr)
 	{
 		int col = 0;
 		t_locale locale;
@@ -2729,13 +2729,13 @@ bool client_manager::initialize_localization()
 	return true;
 }
 
-bool client_manager::admin_info(const char *ip, std::vector<t_admin_info> & admin_vec)
+auto client_manager::admin_info(const char *ip, std::vector<t_admin_info> & admin_vec) -> bool
 {
 	const std::string query = sql::format(
 			"SELECT mID,mAccount,mName,mContactIP,mServerIP,mAuthority FROM gmlist WHERE mServerIP='ALL' or mServerIP={}",
 		   	ip ? ip : "ALL");
 
-	std::unique_ptr<ql_msg> pMsg(db_manager::instance().direct_query(query.c_str(), SQL_COMMON));
+	std::unique_ptr<sql_msg> pMsg(db_manager::instance().direct_query(query.c_str(), SQL_COMMON));
 
 	if (pMsg->get()->num_rows == 0)
 	{
@@ -2746,7 +2746,7 @@ bool client_manager::admin_info(const char *ip, std::vector<t_admin_info> & admi
 	MYSQL_ROW row;
 	admin_vec.reserve(pMsg->get()->num_rows);
 
-	while ((row = mysql_fetch_row(pMsg->get()->sql_result)))
+	while ((row = mysql_fetch_row(pMsg->get()->res)))
 	{
 		int idx = 0;
 		t_admin_info Info;
@@ -2780,11 +2780,11 @@ bool client_manager::admin_info(const char *ip, std::vector<t_admin_info> & admi
 	return true;
 }
 
-bool client_manager::host_info(std::vector<std::string> & ip_vec)
+auto client_manager::host_info(std::vector<std::string> & ip_vec) -> bool
 {
 	char szQuery[512];
 	snprintf(szQuery, sizeof(szQuery), "SELECT mIP FROM gmhost");
-	std::unique_ptr<ql_msg> pMsg(db_manager::instance().direct_query(szQuery, SQL_COMMON));
+	std::unique_ptr<sql_msg> pMsg(db_manager::instance().direct_query(szQuery, SQL_COMMON));
 
 	if (pMsg->get()->num_rows == 0)
 	{
@@ -2796,7 +2796,7 @@ bool client_manager::host_info(std::vector<std::string> & ip_vec)
 
 	MYSQL_ROW row; 
 
-	while ((row = mysql_fetch_row(pMsg->get()->sql_result)))
+	while ((row = mysql_fetch_row(pMsg->get()->res)))
 	{
 		if (row[0] && *row[0])
 		{
@@ -3198,7 +3198,7 @@ void client_manager::change_monarch_lord(peer * peer, uint32_t handle, packet_ch
 			get_table_postfix(), get_table_postfix(), info->pid, info->empire,
 		   	info->pid, info->pid, info->pid, info->pid);
 
-	std::unique_ptr<ql_msg> pMsg(db_manager::instance().direct_query(szQuery, SQL_PLAYER));
+	std::unique_ptr<sql_msg> pMsg(db_manager::instance().direct_query(szQuery, SQL_PLAYER));
 
 	if (pMsg->get()->num_rows != 0)
 	{
@@ -3206,12 +3206,12 @@ void client_manager::change_monarch_lord(peer * peer, uint32_t handle, packet_ch
 		ack.empire = info->empire;
 		ack.pid = info->pid;
 
-		MYSQL_ROW row = mysql_fetch_row(pMsg->get()->sql_result);
+		MYSQL_ROW row = mysql_fetch_row(pMsg->get()->res);
 		strlcpy(ack.name, row[0], sizeof(ack.name));
 		strlcpy(ack.date, row[1], sizeof(ack.date));
 
 		snprintf(szQuery, sizeof(szQuery), "UPDATE monarch SET pid=%u, windate=NOW() WHERE empire=%d", ack.pid, ack.empire);
-		std::unique_ptr<ql_msg> pMsg2(db_manager::instance().direct_query(szQuery, SQL_PLAYER));
+		std::unique_ptr<sql_msg> pMsg2(db_manager::instance().direct_query(szQuery, SQL_PLAYER));
 
 		if (pMsg2->get()->affected_rows > 0)
 		{

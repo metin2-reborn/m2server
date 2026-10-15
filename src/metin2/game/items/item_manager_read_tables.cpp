@@ -25,7 +25,7 @@ namespace metin2::game::inline items {
 
 std::vector<item_drop_info> vec_pk_common_drop_item[MOB_RANK_MAX_NUM];
 
-bool item_manager::read_common_drop_item_file(const char * file_name)
+auto item_manager::read_common_drop_item_file(const char * file_name) -> bool
 {
 	FILE * fp = fopen(file_name, "r");
 
@@ -117,7 +117,7 @@ bool item_manager::read_common_drop_item_file(const char * file_name)
 	return true;
 }
 
-bool item_manager::read_special_drop_item_file(const char * file_name)
+auto item_manager::read_special_drop_item_file(const char * file_name) -> bool
 {
 	text_file_loader loader;
 
@@ -297,7 +297,7 @@ bool item_manager::read_special_drop_item_file(const char * file_name)
 }
 
 
-bool item_manager::conv_special_drop_item_file()
+auto item_manager::conv_special_drop_item_file() -> bool
 {
 	char szSpecialItemGroupFileName[256];
 	snprintf(szSpecialItemGroupFileName, sizeof(szSpecialItemGroupFileName),
@@ -420,7 +420,7 @@ bool item_manager::conv_special_drop_item_file()
 	return true;
 }
 
-bool item_manager::read_etc_drop_item_file(const char * file_name)
+auto item_manager::read_etc_drop_item_file(const char * file_name) -> bool
 {
 	FILE * fp = fopen(file_name, "r");
 
@@ -471,7 +471,7 @@ bool item_manager::read_etc_drop_item_file(const char * file_name)
 	return true;
 }
 
-bool item_manager::read_monster_drop_item_group(const char * file_name)
+auto item_manager::read_monster_drop_item_group(const char * file_name) -> bool
 {
 	text_file_loader loader;
 
@@ -776,7 +776,7 @@ bool item_manager::read_monster_drop_item_group(const char * file_name)
 	return true;
 }
 
-bool item_manager::read_drop_item_group(const char * file_name)
+auto item_manager::read_drop_item_group(const char * file_name) -> bool
 {
 	text_file_loader loader;
 
@@ -876,7 +876,7 @@ bool item_manager::read_drop_item_group(const char * file_name)
 	return true;
 }
 
-bool item_manager::read_item_vnum_mask_table(const char * file_name)
+auto item_manager::read_item_vnum_mask_table(const char * file_name) -> bool
 {
 	FILE *fp = fopen(file_name, "r");
 	if (!fp)

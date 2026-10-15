@@ -19,7 +19,7 @@
 
 namespace metin2::game::inline characters {
 
-int character::change_empire(uint8_t empire_value)
+auto character::change_empire(uint8_t empire_value) -> int
 {
 	if (empire() == empire_value)
 		return 1;
@@ -33,14 +33,14 @@ int character::change_empire(uint8_t empire_value)
 				"SELECT id, pid1, pid2, pid3, pid4 FROM player_index{} WHERE (pid1={} OR pid2={} OR pid3={} OR pid4={}) AND empire={}", 
 				sql::raw(get_table_postfix()), player_id(), player_id(), player_id(), player_id(), empire());
 
-		std::unique_ptr<ql_msg> msg(db_manager::instance().direct_query(query));
+		std::unique_ptr<sql_msg> msg(db_manager::instance().direct_query(query));
 
 		if (msg->get()->num_rows == 0)
 		{
 			return 0;
 		}
 
-		MYSQL_ROW row = mysql_fetch_row(msg->get()->sql_result);
+		MYSQL_ROW row = mysql_fetch_row(msg->get()->res);
 
 		str_to_number(dwAID, row[0]);
 		str_to_number(dwPID[0], row[1]);
@@ -58,13 +58,13 @@ int character::change_empire(uint8_t empire_value)
 		{
 			const std::string query = sql::format("SELECT guild_id FROM guild_member{} WHERE pid={}", sql::raw(get_table_postfix()), dwPID[i]);
 
-			std::unique_ptr<ql_msg> pMsg(db_manager::instance().direct_query(query));
+			std::unique_ptr<sql_msg> pMsg(db_manager::instance().direct_query(query));
 
 			if (pMsg != nullptr)
 			{
 				if (pMsg->get()->num_rows > 0)
 				{
-					MYSQL_ROW row = mysql_fetch_row(pMsg->get()->sql_result);
+					MYSQL_ROW row = mysql_fetch_row(pMsg->get()->res);
 
 					str_to_number(dwGuildID[i], row[0]);
 
@@ -96,7 +96,7 @@ int character::change_empire(uint8_t empire_value)
 		const std::string query = sql::format("UPDATE player_index{} SET empire={} WHERE (pid1={} OR pid2={} OR pid3={} OR pid4={}) AND empire={}", 
 				sql::raw(get_table_postfix()), empire_value, player_id(), player_id(), player_id(), player_id(), empire());
 
-		std::unique_ptr<ql_msg> msg(db_manager::instance().direct_query(query));
+		std::unique_ptr<sql_msg> msg(db_manager::instance().direct_query(query));
 
 		if (msg->get()->affected_rows > 0)
 		{
@@ -109,14 +109,14 @@ int character::change_empire(uint8_t empire_value)
 	return 0;
 }
 
-int character::change_empire_count() const
+auto character::change_empire_count() const -> int
 {
 	uint32_t dwAID = aid();
 
 	if (dwAID == 0)
 		return 0;
 
-	std::unique_ptr<ql_msg> pMsg(db_manager::instance().direct_query(sql::format("SELECT change_count FROM change_empire WHERE account_id = {}", dwAID)));
+	std::unique_ptr<sql_msg> pMsg(db_manager::instance().direct_query(sql::format("SELECT change_count FROM change_empire WHERE account_id = {}", dwAID)));
 
 	if (pMsg != nullptr)
 	{
@@ -125,7 +125,7 @@ int character::change_empire_count() const
 			return 0;
 		}
 
-		MYSQL_ROW row = mysql_fetch_row(pMsg->get()->sql_result);
+		MYSQL_ROW row = mysql_fetch_row(pMsg->get()->res);
 
 		uint32_t count = 0;
 		str_to_number(count, row[0]);
@@ -157,17 +157,17 @@ void character::set_change_empire_count()
 		query = sql::format("UPDATE change_empire SET change_count={} WHERE account_id={}", count, dwAID);
 	}
 
-	std::unique_ptr<ql_msg> pmsg(db_manager::instance().direct_query(query));
+	std::unique_ptr<sql_msg> pmsg(db_manager::instance().direct_query(query));
 }
 
-uint32_t character::aid() const
+auto character::aid() const -> uint32_t
 {
 	uint32_t dwAID = 0;
 
 	const std::string query = sql::format("SELECT id FROM player_index{} WHERE (pid1={} OR pid2={} OR pid3={} OR pid4={}) AND empire={}", 
 			sql::raw(get_table_postfix()), player_id(), player_id(), player_id(), player_id(), empire());
 
-	std::unique_ptr<ql_msg> pMsg(db_manager::instance().direct_query(query));
+	std::unique_ptr<sql_msg> pMsg(db_manager::instance().direct_query(query));
 
 	if (pMsg != nullptr)
 	{
@@ -176,7 +176,7 @@ uint32_t character::aid() const
 			return 0;
 		}
 
-		MYSQL_ROW row = mysql_fetch_row(pMsg->get()->sql_result);
+		MYSQL_ROW row = mysql_fetch_row(pMsg->get()->res);
 
 		str_to_number(dwAID, row[0]);
 

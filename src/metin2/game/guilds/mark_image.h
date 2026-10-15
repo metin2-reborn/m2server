@@ -67,15 +67,15 @@ class guild_mark_image
 
 		guild_mark_image();
 
-		bool build(const char * file_name);
-		bool save(const char* file_name);
-		bool load(const char* file_name);
+		auto build(const char * file_name) -> bool;
+		auto save(const char* file_name) -> bool;
+		auto load(const char* file_name) -> bool;
 
 		void put_data(uint32_t x, uint32_t y, uint32_t width, uint32_t height, void* data);
 		void data(uint32_t x, uint32_t y, uint32_t width, uint32_t height, void* data);
 
-		bool save_mark(uint32_t pos_mark, uint8_t * image);
-		bool delete_mark(uint32_t pos_mark);
+		auto save_mark(uint32_t pos_mark, uint8_t * image) -> bool;
+		auto delete_mark(uint32_t pos_mark) -> bool;
 
 		void diff_blocks(const uint32_t * crc_list, std::map<uint8_t, const guild_mark_block *> & diff_blocks);
 

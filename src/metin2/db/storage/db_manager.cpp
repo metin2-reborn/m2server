@@ -59,8 +59,8 @@ void db_manager::quit() {
     }
 }
 
-ql_msg *db_manager::pop_result() {
-    ql_msg *p;
+auto db_manager::pop_result() -> sql_msg * {
+    sql_msg *p;
 
     for (int i = 0; i < SQL_MAX_NUM; ++i)
         if (main_sql_[i] && main_sql_[i]->pop_result(&p))
@@ -69,7 +69,7 @@ ql_msg *db_manager::pop_result() {
     return nullptr;
 }
 
-int db_manager::connect(int slot, const char *db_address, const int db_port, const char *db_name, const char *user, const char *pwd) {
+auto db_manager::connect(int slot, const char *db_address, const int db_port, const char *db_name, const char *user, const char *pwd) -> int {
     if (db_address == nullptr || db_name == nullptr)
         return false;
 
@@ -100,7 +100,7 @@ int db_manager::connect(int slot, const char *db_address, const int db_port, con
     return true;
 }
 
-ql_msg *db_manager::direct_query(const char *query, int slot) {
+auto db_manager::direct_query(const char *query, int slot) -> sql_msg * {
     return direct_sql_[slot]->direct_query(query);
 }
 
@@ -123,7 +123,7 @@ void db_manager::async_query(const char *query, int slot) {
     ++query_count[1];
 }
 
-uint32_t db_manager::escape_string(void *to, const void *from, uint32_t length, int slot) {
+auto db_manager::escape_string(void *to, const void *from, uint32_t length, int slot) -> uint32_t {
     assert(slot < SQL_MAX_NUM);
     return mysql_real_escape_string(direct_sql_[slot]->sql_handle(), (char *)to, (const char *)from, length);
 }

@@ -23,7 +23,7 @@ horse_name_manager::horse_name_manager()
 	horse_names_.clear();
 }
 
-const char* horse_name_manager::horse_name(uint32_t player_id)
+auto horse_name_manager::horse_name(uint32_t player_id) -> const char*
 {
 	std::map<uint32_t, std::string>::iterator iter;
 

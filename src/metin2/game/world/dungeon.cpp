@@ -86,7 +86,7 @@ void dungeon::set_flag(std::string name, int value)
 		map_flag_.insert(make_pair(name, value));
 }
 
-int dungeon::flag(std::string name)
+auto dungeon::flag(std::string name) -> int
 {
 	auto it =  map_flag_.find(name);
 	if (it != map_flag_.end())
@@ -414,7 +414,7 @@ void dungeon_manager::destroy(dungeon::id_type dungeon_id)
 	delete pDungeon;
 }
 
-dungeon * dungeon_manager::find(dungeon::id_type dungeon_id)
+auto dungeon_manager::find(dungeon::id_type dungeon_id) -> dungeon *
 {
 	auto it = map_pk_dungeon_.find(dungeon_id);
 	if (it != map_pk_dungeon_.end())
@@ -422,7 +422,7 @@ dungeon * dungeon_manager::find(dungeon::id_type dungeon_id)
 	return nullptr;
 }
 
-dungeon * dungeon_manager::find_by_map_index(int32_t map_index)
+auto dungeon_manager::find_by_map_index(int32_t map_index) -> dungeon *
 {
 	auto it = map_pk_map_dungeon_.find(map_index);
 	if (it != map_pk_map_dungeon_.end()) {
@@ -431,7 +431,7 @@ dungeon * dungeon_manager::find_by_map_index(int32_t map_index)
 	return nullptr;
 }
 
-dungeon * dungeon_manager::create(int32_t original_map_index)
+auto dungeon_manager::create(int32_t original_map_index) -> dungeon *
 {
 	uint32_t lMapIndex = sectree_manager::instance().create_private_map(original_map_index);
 
@@ -642,7 +642,7 @@ void dungeon::kill_unique(const std::string& key)
 	ch->dead();
 }
 
-uint32_t dungeon::unique_vid(const std::string& key)
+auto dungeon::unique_vid(const std::string& key) -> uint32_t
 {
 	unique_mob_map::iterator it = map_unique_mob_.find(key);
 	if (it == map_unique_mob_.end())
@@ -654,7 +654,7 @@ uint32_t dungeon::unique_vid(const std::string& key)
 	return ch->get_vid();
 }
 
-float dungeon::unique_hp_perc(const std::string& key)
+auto dungeon::unique_hp_perc(const std::string& key) -> float
 {
 	unique_mob_map::iterator it = map_unique_mob_.find(key);
 	if (it == map_unique_mob_.end())
@@ -682,7 +682,7 @@ void dungeon::dead_character(character * ch)
 	}
 }
 
-bool dungeon::is_unique_dead(const std::string& key)
+auto dungeon::is_unique_dead(const std::string& key) -> bool
 {
 	unique_mob_map::iterator it = map_unique_mob_.find(key);
 
@@ -724,7 +724,7 @@ void dungeon::spawn(uint32_t vnum, const char* pos)
 		ch->set_dungeon(this);
 }
 
-character * dungeon::spawn_mob(uint32_t vnum, int x, int y, int dir)
+auto dungeon::spawn_mob(uint32_t vnum, int x, int y, int dir) -> character *
 {
 	sectree_map * pkSectreeMap = sectree_manager::instance().map(map_index_);
 	if (pkSectreeMap == nullptr) {
@@ -744,7 +744,7 @@ character * dungeon::spawn_mob(uint32_t vnum, int x, int y, int dir)
 	return ch;
 }
 
-character * dungeon::spawn_mob_ac_dir(uint32_t vnum, int x, int y, int dir)
+auto dungeon::spawn_mob_ac_dir(uint32_t vnum, int x, int y, int dir) -> character *
 {
 	sectree_map * pkSectreeMap = sectree_manager::instance().map(map_index_);
 	if (pkSectreeMap == nullptr) {
@@ -807,7 +807,7 @@ void dungeon::spawn_goto_mob(int32_t from_x, int32_t from_y, int32_t to_x, int32
 	}
 }
 
-character * dungeon::spawn_group(uint32_t vnum, int32_t x, int32_t y, float radius, bool aggressive, int count)
+auto dungeon::spawn_group(uint32_t vnum, int32_t x, int32_t y, float radius, bool aggressive, int count) -> character *
 {
 	sectree_map * pkSectreeMap = sectree_manager::instance().map(map_index_);
 	if (pkSectreeMap == nullptr) {
@@ -869,7 +869,7 @@ void dungeon::clear_regen()
 	regen_.clear();
 }
 
-bool dungeon::is_valid_regen(regen * regen, size_t regen_id) {
+auto dungeon::is_valid_regen(regen * regen, size_t regen_id) -> bool {
 	auto it = std::find(regen_.begin(), regen_.end(), regen);
 	if (it == regen_.end()) {
 		return false;
@@ -996,21 +996,21 @@ void dungeon::use_revive(character * ch)
 	use_revive_ = true;
 }
 
-bool dungeon::is_use_potion()
+auto dungeon::is_use_potion() -> bool
 {
 	return use_potion_;
 }
 
-bool dungeon::is_use_revive()
+auto dungeon::is_use_revive() -> bool
 {
 	return use_revive_;
 }
 
-int dungeon::kill_mob_count()
+auto dungeon::kill_mob_count() -> int
 {
 	return mob_kill_;
 }
-int dungeon::kill_stone_count()
+auto dungeon::kill_stone_count() -> int
 {
 	return stone_kill_;
 }
@@ -1285,7 +1285,7 @@ struct f_near_position
 	}
 };
 
-bool dungeon::is_all_pc_near_to(int x, int y, int dist)
+auto dungeon::is_all_pc_near_to(int x, int y, int dist) -> bool
 {
 	sectree_map * pMap = sectree_manager::instance().map(map_index_);
 
@@ -1307,7 +1307,7 @@ void dungeon::create_item_group (std::string& group_name, item_group& item_group
 	map_item_group_.insert (item_group_map::value_type (group_name, item_group));
 }
 
-const dungeon::item_group* dungeon::get_item_group (std::string& group_name)
+auto dungeon::get_item_group (std::string& group_name) -> const dungeon::item_group*
 {
 	item_group_map::iterator it = map_item_group_.find (group_name);
 	if (it != map_item_group_.end())

@@ -11,7 +11,7 @@
 
 namespace metin2::game::inline events {
 
-unsigned int blue_dragon_get_skill_factor(const size_t cnt, ...)
+auto blue_dragon_get_skill_factor(const size_t cnt, ...) -> unsigned int
 {
 	lua_State* L = quest::quest_manager::instance().lua_state();
 
@@ -70,7 +70,7 @@ unsigned int blue_dragon_get_skill_factor(const size_t cnt, ...)
 	return val;
 }
 
-unsigned int blue_dragon_get_range_factor(const char* key, const int val)
+auto blue_dragon_get_range_factor(const char* key, const int val) -> unsigned int
 {
 	lua_State* L = quest::quest_manager::instance().lua_state();
 
@@ -168,7 +168,7 @@ unsigned int blue_dragon_get_range_factor(const char* key, const int val)
 	return 0;
 }
 
-unsigned int blue_dragon_get_index_factor(const char* container, const size_t idx, const char* key)
+auto blue_dragon_get_index_factor(const char* container, const size_t idx, const char* key) -> unsigned int
 {
 	lua_State* L = quest::quest_manager::instance().lua_state();
 

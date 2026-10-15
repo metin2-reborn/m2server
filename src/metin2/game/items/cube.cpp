@@ -84,7 +84,7 @@ cube_map_by_npc cube_info_map;
 cube_result_info_text_by_npc cube_result_info_map_by_npc;
 
 
-static bool fn_check_item_count (item * *items, uint32_t item_vnum, int need_count)
+static auto fn_check_item_count (item * *items, uint32_t item_vnum, int need_count) -> bool
 {
 	int	count = 0;
 
@@ -130,7 +130,7 @@ static void fn_remove_material (item * *items, uint32_t item_vnum, int need_coun
 }
 
 
-static cube_data* fn_find_cube (item * *items, uint16_t npc_vnum)
+static auto fn_find_cube (item * *items, uint16_t npc_vnum) -> cube_data*
 {
 	uint32_t	i, end_index;
 
@@ -146,7 +146,7 @@ static cube_data* fn_find_cube (item * *items, uint16_t npc_vnum)
 	return nullptr;
 }
 
-static bool fn_check_valid_npc( uint16_t vnum )
+static auto fn_check_valid_npc( uint16_t vnum ) -> bool
 {
 	for ( auto iter = cube_proto.begin(); iter != cube_proto.end(); iter++ )
 	{
@@ -157,7 +157,7 @@ static bool fn_check_valid_npc( uint16_t vnum )
 	return false;
 }
 
-static bool fn_check_cube_data (cube_data *cube_data)
+static auto fn_check_cube_data (cube_data *cube_data) -> bool
 {
 	uint32_t	i = 0;
 	uint32_t	end_index = 0;
@@ -190,7 +190,7 @@ cube_data::cube_data()
 	this->gold = 0;
 }
 
-bool cube_data::can_make_item (game::items::item * *items, uint16_t npc_vnum)
+auto cube_data::can_make_item (game::items::item * *items, uint16_t npc_vnum) -> bool
 {
 	uint32_t	i, end_index;
 	uint32_t	need_vnum;
@@ -218,7 +218,7 @@ bool cube_data::can_make_item (game::items::item * *items, uint16_t npc_vnum)
 	return true;
 }
 
-cube_value* cube_data::reward_value ()
+auto cube_data::reward_value () -> cube_value*
 {
 	int		end_index		= 0;
 	uint32_t	reward_index	= 0;
@@ -337,7 +337,7 @@ void cube_init()
 		metin2::log::error("Cube_Init failed");
 }
 
-bool cube_load (const char *file)
+auto cube_load (const char *file) -> bool
 {
 	FILE	*fp;
 	char	one_line[256];
@@ -447,7 +447,7 @@ static void fn_validate_cube_items(character * ch)
 	}
 }
 
-static bool fn_update_cube_status(character * ch)
+static auto fn_update_cube_status(character * ch) -> bool
 {
 	if (nullptr == ch)
 		return false;
@@ -473,7 +473,7 @@ static bool fn_update_cube_status(character * ch)
 	return true;
 }
 
-bool cube_make (character * ch)
+auto cube_make (character * ch) -> bool
 {
 
 	character *	npc;
@@ -625,7 +625,7 @@ void cube_delete_item (character * ch, int cube_index)
 	return;
 }
 
-item_name_and_level split_item_name_and_level_from_name(const std::string& name)
+auto split_item_name_and_level_from_name(const std::string& name) -> item_name_and_level
 {
 	int level = 0;
 	item_name_and_level info;
@@ -646,7 +646,7 @@ item_name_and_level split_item_name_and_level_from_name(const std::string& name)
 	return info;
 };
 
-bool f_is_less_cube_value(const cube_value& a, const cube_value& b)
+auto f_is_less_cube_value(const cube_value& a, const cube_value& b) -> bool
 {
 	return a.vnum < b.vnum;
 }
@@ -713,7 +713,7 @@ void cube_make_cube_information_text()
 	}
 }
 
-bool cube_information_initialize()
+auto cube_information_initialize() -> bool
 {
 	for (size_t i = 0; i < cube_proto.size(); ++i)
 	{

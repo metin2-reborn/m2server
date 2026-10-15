@@ -67,7 +67,7 @@ mob_manager::~mob_manager()
 {
 }
 
-bool mob_manager::initialize(mob_table * table_value, int size)
+auto mob_manager::initialize(mob_table * table_value, int size) -> bool
 {
 	map_pk_mob_by_vnum_.clear();
 	map_pk_mob_by_name_.clear();
@@ -135,7 +135,7 @@ void mob_manager::rebind_mob_proto(character * ch)
 		ch->set_proto(pMob);
 }
 
-const mob * mob_manager::get(uint32_t vnum)
+auto mob_manager::get(uint32_t vnum) -> const mob *
 {
 	std::map<uint32_t, mob *>::iterator it = map_pk_mob_by_vnum_.find(vnum);
 
@@ -145,7 +145,7 @@ const mob * mob_manager::get(uint32_t vnum)
 	return it->second;
 }
 
-const mob * mob_manager::get(const char * name, bool is_abbrev)
+auto mob_manager::get(const char * name, bool is_abbrev) -> const mob *
 {
 	std::map<std::string, mob *>::iterator it;
 
@@ -235,7 +235,7 @@ void mob_manager::dump_regen_count(const char* filename)
 	}
 }
 
-uint32_t mob_manager::group_from_group_group(uint32_t vnum)
+auto mob_manager::group_from_group_group(uint32_t vnum) -> uint32_t
 {
 	std::map<uint32_t, mob_group_group *>::iterator it = map_pk_mob_group_group_.find(vnum);
 
@@ -245,7 +245,7 @@ uint32_t mob_manager::group_from_group_group(uint32_t vnum)
 	return it->second->member();
 }
 
-mob_group * mob_manager::group(uint32_t vnum)
+auto mob_manager::group(uint32_t vnum) -> mob_group *
 {
 	std::map<uint32_t, mob_group *>::iterator it = map_pk_mob_group_.find(vnum);
 
@@ -255,7 +255,7 @@ mob_group * mob_manager::group(uint32_t vnum)
 	return it->second;
 }
 
-bool mob_manager::load_group_group(const char * file_name)
+auto mob_manager::load_group_group(const char * file_name) -> bool
 {
 	text_file_loader loader;
 
@@ -314,7 +314,7 @@ bool mob_manager::load_group_group(const char * file_name)
 	return true;
 }
 
-bool mob_manager::load_group(const char * file_name)
+auto mob_manager::load_group(const char * file_name) -> bool
 {
 	text_file_loader loader;
 

@@ -78,7 +78,7 @@ void peer::encode(const void * data, uint32_t size)
 		metin2::log::error("cannot send {:d} bytes to {}", size, host());
 }
 
-uint32_t peer::handle()
+auto peer::handle() -> uint32_t
 {
 	return handle_;
 }
@@ -87,7 +87,7 @@ void peer::set_user_count(uint32_t count)
 {
 }
 
-bool peer::peek_packet(int & bytes_proceed, uint8_t & header, uint32_t & handle, uint32_t & length, const char ** data)
+auto peer::peek_packet(int & bytes_proceed, uint8_t & header, uint32_t & handle, uint32_t & length, const char ** data) -> bool
 {
 	const int iLength = (int) input_.size();
 
@@ -167,7 +167,7 @@ void peer::send_spare_item_id_range()
 	}
 }
 
-bool peer::set_item_id_range(item_id_range_table item_range)
+auto peer::set_item_id_range(item_id_range_table item_range) -> bool
 {
 	if (item_range.min == 0 || item_range.max == 0 || item_range.usable_item_id_min == 0) return false;
 
@@ -177,7 +177,7 @@ bool peer::set_item_id_range(item_id_range_table item_range)
 	return true;
 }
 
-bool peer::set_spare_item_id_range(item_id_range_table item_range)
+auto peer::set_spare_item_id_range(item_id_range_table item_range) -> bool
 {
 	if (item_range.min == 0 || item_range.max == 0 || item_range.usable_item_id_min == 0) return false;
 
@@ -188,7 +188,7 @@ bool peer::set_spare_item_id_range(item_id_range_table item_range)
 	return true;
 }
 
-bool peer::check_item_id_range_collision(item_id_range_table item_range)
+auto peer::check_item_id_range_collision(item_id_range_table item_range) -> bool
 {
 	if (item_range_.min < item_range.max && item_range_.max > item_range.min)
 	{

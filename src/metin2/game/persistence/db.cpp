@@ -53,7 +53,7 @@ db_manager::~db_manager()
 {
 }
 
-bool db_manager::connect(const char * host, const int port, const char * user, const char * pwd, const char * db)
+auto db_manager::connect(const char * host, const int port, const char * user, const char * pwd, const char * db) -> bool
 {
 	if (sql_.setup(host, user, pwd, db, locale.c_str(), false, port))
 		is_connect_ = true;
@@ -86,12 +86,12 @@ void db_manager::query(const char * format, ...)
 	sql_.async_query(szQuery);
 }
 
-ql_msg * db_manager::direct_query(const std::string & query)
+auto db_manager::direct_query(const std::string & query) -> sql_msg *
 {
 	return sql_direct_.direct_query(query.c_str());
 }
 
-ql_msg * db_manager::direct_query(const char * format, ...)
+auto db_manager::direct_query(const char * format, ...) -> sql_msg *
 {
 	char szQuery[4096];
 	va_list args;
@@ -103,7 +103,7 @@ ql_msg * db_manager::direct_query(const char * format, ...)
 	return sql_direct_.direct_query(szQuery);
 }
 
-bool db_manager::is_connected()
+auto db_manager::is_connected() -> bool
 {
 	return is_connect_;
 }
@@ -132,9 +132,9 @@ void db_manager::return_query(int type_value, uint32_t ident_value, void * data,
 	sql_.return_query(query.c_str(), p);
 }
 
-ql_msg * db_manager::pop_result()
+auto db_manager::pop_result() -> sql_msg *
 {
-	ql_msg * p;
+	sql_msg * p;
 
 	if (sql_.pop_result(&p))
 		return p;
@@ -144,11 +144,11 @@ ql_msg * db_manager::pop_result()
 
 void db_manager::process()
 {
-	while (std::unique_ptr<ql_msg> pMsg{pop_result()})
+	while (std::unique_ptr<sql_msg> pMsg{pop_result()})
 	{
-		if( nullptr != pMsg->pv_user_data )
+		if( nullptr != pMsg->user_data )
 		{
-			switch( reinterpret_cast<query_info*>(pMsg->pv_user_data)->query_type )
+			switch( reinterpret_cast<query_info*>(pMsg->user_data)->query_type )
 			{
 				case QUERY_TYPE_RETURN:
 					analyze_return_query(pMsg.get());
@@ -156,14 +156,14 @@ void db_manager::process()
 
 				case QUERY_TYPE_FUNCTION:
 					{
-						std::unique_ptr<func_query_info> qi(reinterpret_cast<func_query_info*>( pMsg->pv_user_data ));
+						std::unique_ptr<func_query_info> qi(reinterpret_cast<func_query_info*>( pMsg->user_data ));
 						qi->f(pMsg.get());
 					}
 					break;
 
 				case QUERY_TYPE_AFTER_FUNCTION:
 					{
-						std::unique_ptr<func_after_query_info> qi(reinterpret_cast<func_after_query_info*>( pMsg->pv_user_data ));
+						std::unique_ptr<func_after_query_info> qi(reinterpret_cast<func_after_query_info*>( pMsg->user_data ));
 						qi->f();
 					}
 					break;
@@ -172,7 +172,7 @@ void db_manager::process()
 	}
 }
 
-void db_manager::func_query(std::function<void(ql_msg *)> f, const char * format, ...)
+void db_manager::func_query(std::function<void(sql_msg *)> f, const char * format, ...)
 {
 	char szQuery[4096];
 	va_list args;
@@ -184,7 +184,7 @@ void db_manager::func_query(std::function<void(ql_msg *)> f, const char * format
 	func_query(std::move(f), std::string(szQuery));
 }
 
-void db_manager::func_query(std::function<void(ql_msg *)> f, const std::string & query)
+void db_manager::func_query(std::function<void(sql_msg *)> f, const std::string & query)
 {
 	func_query_info * p = new func_query_info;
 	p->query_type = QUERY_TYPE_FUNCTION;
@@ -214,7 +214,7 @@ void db_manager::func_after_query(std::function<void()> f, const std::string & q
 	sql_.return_query(query.c_str(), p);
 }
 
-login_data * db_manager::get_login_data(uint32_t key)
+auto db_manager::get_login_data(uint32_t key) -> login_data *
 {
 	auto it = map_pk_login_data_.find(key);
 
@@ -285,9 +285,9 @@ void db_manager::login_prepare(desc * d, uint32_t * client_key, int * pai_premiu
 	send_auth_login(d);
 }
 
-void db_manager::analyze_return_query(ql_msg * msg_value)
+void db_manager::analyze_return_query(sql_msg * msg_value)
 {
-	return_query_info * qi = (return_query_info *) msg_value->pv_user_data;
+	return_query_info * qi = (return_query_info *) msg_value->user_data;
 
 	switch (qi->type)
 	{
@@ -313,7 +313,7 @@ void db_manager::analyze_return_query(ql_msg * msg_value)
 				}
 				else
 				{
-					MYSQL_ROW row = mysql_fetch_row(msg_value->get()->sql_result);
+					MYSQL_ROW row = mysql_fetch_row(msg_value->get()->res);
 					int col = 0;
 
 					char szEncrytPassword[45 + 1];
@@ -431,7 +431,7 @@ void db_manager::analyze_return_query(ql_msg * msg_value)
 							break;
 						}
 
-						std::unique_ptr<ql_msg> msg( db_manager::instance().direct_query(sql::format("UPDATE account SET last_play=NOW() WHERE id={}", dwID)) );
+						std::unique_ptr<sql_msg> msg( db_manager::instance().direct_query(sql::format("UPDATE account SET last_play=NOW() WHERE id={}", dwID)) );
 
 						account_table & r = d->get_account_table();
 
@@ -457,7 +457,7 @@ void db_manager::analyze_return_query(ql_msg * msg_value)
 				{
 					if (msg_value->get()->num_rows > 0)
 					{
-						MYSQL_ROW row = mysql_fetch_row(msg_value->get()->sql_result);
+						MYSQL_ROW row = mysql_fetch_row(msg_value->get()->res);
 						int	size = 0;
 						str_to_number(size, row[0]);
 						ch->set_safebox_size(SAFEBOX_PAGE_SIZE * size);
@@ -473,7 +473,7 @@ void db_manager::analyze_return_query(ql_msg * msg_value)
 
 				for (uint i = 0; i < msg_value->get()->num_rows; ++i)
 				{
-					MYSQL_ROW row = mysql_fetch_row(msg_value->get()->sql_result);
+					MYSQL_ROW row = mysql_fetch_row(msg_value->get()->res);
 					if (row[0] && row[1])
 					{
 						map_dbstring_.insert(make_pair(std::string(row[0]), std::string(row[1])));
@@ -531,7 +531,7 @@ void db_manager::analyze_return_query(ql_msg * msg_value)
 
 				if (msg_value->get()->num_rows)
 				{
-					MYSQL_ROW row = mysql_fetch_row(msg_value->get()->sql_result);
+					MYSQL_ROW row = mysql_fetch_row(msg_value->get()->res);
 
 					if (row && row[0])
 					{
@@ -566,7 +566,7 @@ void db_manager::analyze_return_query(ql_msg * msg_value)
 				if (msg_value->get()->num_rows)
 				{
 					MYSQL_ROW row;
-					while ((row = mysql_fetch_row(msg_value->get()->sql_result)))
+					while ((row = mysql_fetch_row(msg_value->get()->res)))
 					{
 						ch->chat_packet(CHAT_TYPE_INFO, "%s %s sec", row[0], row[1]);
 					}
@@ -589,7 +589,7 @@ void db_manager::load_db_string()
 	return_query(QID_DB_STRING, 0, nullptr, sql::format("SELECT name, text FROM string{}", sql::raw(get_table_postfix())));
 }
 
-const std::vector<std::string>& db_manager::greet_message()
+auto db_manager::greet_message() -> const std::vector<std::string>&
 {
 	return vec_greet_message_;
 }
@@ -605,7 +605,7 @@ void db_manager::send_money_log(uint8_t type, uint32_t vnum, int gold)
 	db_clientdesc->db_packet(HEADER_GD_MONEY_LOG, 0, &p, sizeof(p));
 }
 
-size_t db_manager::escape_string(char* dst, size_t dst_size, const char *src, size_t src_size)
+auto db_manager::escape_string(char* dst, size_t dst_size, const char *src, size_t src_size) -> size_t
 {
 	return sql_direct_.escape_string(dst, dst_size, src, src_size);
 }
@@ -615,12 +615,12 @@ account_db::account_db() :
 {
 }
 
-bool account_db::is_connected()
+auto account_db::is_connected() -> bool
 {
 	return is_connect_;
 }
 
-bool account_db::connect(const char * host, const int port, const char * user, const char * pwd, const char * db)
+auto account_db::connect(const char * host, const int port, const char * user, const char * pwd, const char * db) -> bool
 {
 	is_connect_ = sql_direct_.setup(host, user, pwd, db, "", true, port);
 
@@ -633,7 +633,7 @@ bool account_db::connect(const char * host, const int port, const char * user, c
 	return is_connect_;
 }
 
-bool account_db::connect_async(const char * host, const int port, const char * user, const char * pwd, const char * db, const char * locale)
+auto account_db::connect_async(const char * host, const int port, const char * user, const char * pwd, const char * db, const char * locale) -> bool
 {
 	sql_.setup(host, user, pwd, db, locale, false, port);
 	return true;
@@ -645,7 +645,7 @@ void account_db::set_locale(const std::string & locale)
 	sql_direct_.query_locale_set();
 }
 
-ql_msg* account_db::direct_query(const char * query)
+auto account_db::direct_query(const char * query) -> sql_msg*
 {
 	return sql_direct_.direct_query(query);
 }
@@ -674,9 +674,9 @@ void account_db::return_query(int type_value, uint32_t ident_value, void * data,
 	sql_.return_query(query.c_str(), p);
 }
 
-ql_msg * account_db::pop_result()
+auto account_db::pop_result() -> sql_msg *
 {
-	ql_msg * p;
+	sql_msg * p;
 
 	if (sql_.pop_result(&p))
 		return p;
@@ -686,9 +686,9 @@ ql_msg * account_db::pop_result()
 
 void account_db::process()
 {
-	while (std::unique_ptr<ql_msg> pMsg{pop_result()})
+	while (std::unique_ptr<sql_msg> pMsg{pop_result()})
 	{
-		query_info* qi = (query_info *) pMsg->pv_user_data;
+		query_info* qi = (query_info *) pMsg->user_data;
 
 		switch (qi->query_type)
 		{
@@ -733,9 +733,9 @@ void cancel_reload_spam_event() {
 	reload_spam_event_handle = nullptr;
 }
 
-void account_db::analyze_return_query(ql_msg * msg)
+void account_db::analyze_return_query(sql_msg * msg)
 {
-	return_query_info * qi = (return_query_info *) msg->pv_user_data;
+	return_query_info * qi = (return_query_info *) msg->user_data;
 
 	switch (qi->type)
 	{
@@ -747,7 +747,7 @@ void account_db::analyze_return_query(ql_msg * msg)
 
 					spam_manager::instance().clear();
 
-					while ((row = mysql_fetch_row(msg->get()->sql_result)))
+					while ((row = mysql_fetch_row(msg->get()->res)))
 						spam_manager::instance().insert(row[0], atoi(row[1]));
 				}
 			}

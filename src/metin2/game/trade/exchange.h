@@ -22,24 +22,24 @@ class exchange
 		exchange(character * owner);
 		~exchange();
 
-		bool		accept(bool accept = true);
+		auto		accept(bool accept = true) -> bool;
 		void		cancel();
 
-		bool		add_gold(int32_t gold);
-		bool		add_item(item_pos item_pos, uint8_t display_pos);
-		bool		remove_item(uint8_t pos);
+		auto		add_gold(int32_t gold) -> bool;
+		auto		add_item(item_pos item_pos, uint8_t display_pos) -> bool;
+		auto		remove_item(uint8_t pos) -> bool;
 
-		character *	owner()	{ return owner_;	}
-		exchange *	company()	{ return company_;	}
+		auto	owner() -> character *	{ return owner_;	}
+		auto	company() -> exchange *	{ return company_;	}
 
-		bool		accept_status() { return accept_; }
+		auto		accept_status() -> bool { return accept_; }
 
 		void		set_company(exchange * exchange_value)	{ company_ = exchange_value; }
 
 	private:
-		bool		done();
-		bool		check(int * item_count_value);
-		bool		check_space();
+		auto		done() -> bool;
+		auto		check(int * item_count_value) -> bool;
+		auto		check_space() -> bool;
 
 	private:
 		exchange *	company_;

@@ -16,10 +16,10 @@
 
 namespace metin2::game::inline characters {
 
-int	on_click_shop(TRIGGERPARAM);
-int	on_click_talk(TRIGGERPARAM);
+auto	on_click_shop(TRIGGERPARAM) -> int;
+auto	on_click_talk(TRIGGERPARAM) -> int;
 
-int	on_attack_default(TRIGGERPARAM);
+auto	on_attack_default(TRIGGERPARAM) -> int;
 
 struct trigger_function {
 	int (*func) (TRIGGERPARAM);
@@ -43,7 +43,7 @@ void character::assign_triggers(const mob_table * table)
 	trigger_on_click_.func = on_click_triggers[table->on_click_type].func;
 }
 
-int on_click_shop(TRIGGERPARAM)
+auto on_click_shop(TRIGGERPARAM) -> int
 {
 	shop_manager::instance().start_shopping(causer, ch);
 	return 1;
@@ -64,7 +64,7 @@ class func_find_mob_victim
 	{
 	};
 
-		bool operator () (entity * ent)
+		auto operator () (entity * ent) -> bool
 		{
 			if (!ent->is_type(ENTITY_CHARACTER))
 				return false;
@@ -129,7 +129,7 @@ class func_find_mob_victim
 			return true;
 		}
 
-		character * victim()
+		auto victim() -> character *
 		{
 			if ((chr_building_ && chr_->hp() * 2 > chr_->max_hp()) || !chr_victim_)
 			{
@@ -151,7 +151,7 @@ class func_find_mob_victim
 		character *	chr_building_;
 };
 
-character * find_victim(character * chr, int max_distance)
+auto find_victim(character * chr, int max_distance) -> character *
 {
 	func_find_mob_victim f(chr, max_distance);
 	if (chr->get_sectree() != nullptr) {

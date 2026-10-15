@@ -26,22 +26,22 @@ class entity
 		void			destroy();
 
 	public:
-		int				type() const;
-		bool			is_type(int type) const;
+		auto				type() const -> int;
+		auto			is_type(int type) const -> bool;
 
 		void			view_cleanup();
 		void			view_insert(entity * entity, bool recursive = true);
 		void			view_remove(entity * entity, bool recursive = true);
 		void			view_reencode();
 
-		int32_t			x() const		{ return pos_.x; }
-		int32_t			y() const		{ return pos_.y; }
-		int32_t			z() const		{ return pos_.z; }
-		const pixel_position &	xyz() const		{ return pos_; }
+		auto			x() const -> int32_t		{ return pos_.x; }
+		auto			y() const -> int32_t		{ return pos_.y; }
+		auto			z() const -> int32_t		{ return pos_.z; }
+		auto	xyz() const -> const pixel_position &		{ return pos_; }
 
 		void			set_xyz(int32_t x, int32_t y, int32_t z)		{ pos_.x = x, pos_.y = y, pos_.z = z; }
 
-		sectree *		get_sectree() const			{ return sectree_;	}
+		auto		get_sectree() const -> sectree *			{ return sectree_;	}
 		void			set_sectree(sectree * tree)	{ sectree_ = tree;	}
 
 		void			update_sectree();
@@ -49,13 +49,13 @@ class entity
 		void			packet_view(const void * data, int bytes, entity * except = nullptr);
 
 		void			bind_desc(desc * d)     { desc_ = d; }
-		desc *			get_desc() const			{ return desc_; }
+		auto			get_desc() const -> desc *			{ return desc_; }
 
 		void			set_map_index(int32_t l)	{ map_index_ = l; }
-		int32_t			map_index() const	{ return map_index_; }
+		auto			map_index() const -> int32_t	{ return map_index_; }
 
 		void			set_observer_mode(bool flag);
-		bool			is_observer_mode() const	{ return is_observer_; }
+		auto			is_observer_mode() const -> bool	{ return is_observer_; }
 
 	protected:
 		bool			is_observer_;

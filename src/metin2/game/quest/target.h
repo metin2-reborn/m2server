@@ -65,9 +65,9 @@ class target_manager : public singleton<target_manager>
 		void delete_target(uint32_t pid_value, uint32_t quest_index_value, const char * target_name_value);
 
 		void logout(uint32_t pid);
-		target_info * get_target_info(uint32_t pid, int type_value, int arg1_value);
+		auto get_target_info(uint32_t pid, int type_value, int arg1_value) -> target_info *;
 
-		event_ptr target_event(uint32_t pid, uint32_t quest_index_value, const char * target_name_value);
+		auto target_event(uint32_t pid, uint32_t quest_index_value, const char * target_name_value) -> event_ptr;
 
 	protected:
 		std::map<uint32_t, std::list<event_ptr> > map_k_list_event_;

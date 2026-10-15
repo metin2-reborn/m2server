@@ -78,7 +78,7 @@ void sectree::destroy()
 	}
 }
 
-sectreeid sectree::id()
+auto sectree::id() -> sectreeid
 {
 	return id_;
 }
@@ -126,7 +126,7 @@ void sectree::decrease_pc()
 	}
 }
 
-bool sectree::insert_entity(entity * ent)
+auto sectree::insert_entity(entity * ent) -> bool
 {
 	sectree * pkCurTree;
 
@@ -206,13 +206,13 @@ void sectree::remove_attribute(uint32_t x, uint32_t y, uint32_t attr)
 	attribute_->remove(x, y, attr);
 }
 
-uint32_t sectree::get_attribute(int32_t x, int32_t y)
+auto sectree::get_attribute(int32_t x, int32_t y) -> uint32_t
 {
 	assert(attribute_ != nullptr);
 	return attribute_->get((x % SECTREE_SIZE) / CELL_SIZE, (y % SECTREE_SIZE) / CELL_SIZE);
 }
 
-bool sectree::is_attr(int32_t x, int32_t y, uint32_t flag)
+auto sectree::is_attr(int32_t x, int32_t y, uint32_t flag) -> bool
 {
 	if (is_set(get_attribute(x, y), flag))
 		return true;
@@ -220,7 +220,7 @@ bool sectree::is_attr(int32_t x, int32_t y, uint32_t flag)
 	return false;
 }
 
-int sectree::event_attribute(int32_t x, int32_t y)
+auto sectree::event_attribute(int32_t x, int32_t y) -> int
 {
 	return get_attribute(x, y) >> 8;
 }

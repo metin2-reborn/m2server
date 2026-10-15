@@ -24,12 +24,12 @@
 
 namespace metin2::game::inline empire {
 
-static const char * get_empire_name(int priv)
+static auto get_empire_name(int priv) -> const char *
 {
 	return lc_text(apsz_empire_names[priv]);
 }
 
-static const char * get_priv_name(int priv)
+static auto get_priv_name(int priv) -> const char *
 {
 	return lc_text(apsz_priv_names[priv]);
 }
@@ -199,7 +199,7 @@ void priv_manager::give_empire_priv(uint8_t empire, uint8_t type, int value, uin
 	}
 }
 
-int priv_manager::priv(character * ch, uint8_t type)
+auto priv_manager::priv(character * ch, uint8_t type) -> int
 {
 	int val_ch = priv_by_character(ch->player_id(), type);
 
@@ -219,7 +219,7 @@ int priv_manager::priv(character * ch, uint8_t type)
 	}
 }
 
-int priv_manager::priv_by_empire(uint8_t empire, uint8_t type)
+auto priv_manager::priv_by_empire(uint8_t empire, uint8_t type) -> int
 {
 	priv_empire_data* pkPrivEmpireData = priv_by_empire_ex(empire, type);
 
@@ -229,7 +229,7 @@ int priv_manager::priv_by_empire(uint8_t empire, uint8_t type)
 	return 0;
 }
 
-priv_manager::priv_empire_data* priv_manager::priv_by_empire_ex(uint8_t empire, uint8_t type)
+auto priv_manager::priv_by_empire_ex(uint8_t empire, uint8_t type) -> priv_manager::priv_empire_data*
 {
 	if (type >= MAX_PRIV_NUM)
 		return nullptr;
@@ -240,7 +240,7 @@ priv_manager::priv_empire_data* priv_manager::priv_by_empire_ex(uint8_t empire, 
 	return &aak_priv_empire_data_[type][empire];
 }
 
-int priv_manager::priv_by_guild(uint32_t guild_id, uint8_t type)
+auto priv_manager::priv_by_guild(uint32_t guild_id, uint8_t type) -> int
 {
 	if (type >= MAX_PRIV_NUM)
 		return 0;
@@ -253,7 +253,7 @@ int priv_manager::priv_by_guild(uint32_t guild_id, uint8_t type)
 	return itFind->second.value;
 }
 
-const priv_manager::priv_guild_data* priv_manager::priv_by_guild_ex( uint32_t guild_id, uint8_t type ) const
+auto priv_manager::priv_by_guild_ex( uint32_t guild_id, uint8_t type ) const -> const priv_manager::priv_guild_data*
 {
 	if ( type >= MAX_PRIV_NUM )
 		return nullptr;
@@ -266,7 +266,7 @@ const priv_manager::priv_guild_data* priv_manager::priv_by_guild_ex( uint32_t gu
 	return &itFind->second;
 }
 
-int priv_manager::priv_by_character(uint32_t pid, uint8_t type)
+auto priv_manager::priv_by_character(uint32_t pid, uint8_t type) -> int
 {
 	if (type >= MAX_PRIV_NUM)
 		return 0;

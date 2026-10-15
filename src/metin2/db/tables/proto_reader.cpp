@@ -20,21 +20,21 @@
 
 namespace metin2::db::inline tables {
 
-inline std::string trim_left(const std::string& str)
+inline auto trim_left(const std::string& str) -> std::string
 {
     std::string::size_type n = str.find_first_not_of(" \t\v\n\r");
     return n == std::string::npos ? str : str.substr(n, str.length());
 }
 
-inline std::string trim_right(const std::string& str)
+inline auto trim_right(const std::string& str) -> std::string
 {
     std::string::size_type n = str.find_last_not_of(" \t\v\n\r");
     return n == std::string::npos ? str : str.substr(0, n + 1);
 }
 
-std::string trim(const std::string& str){return trim_left(trim_right(str));}
+auto trim(const std::string& str) -> std::string{return trim_left(trim_right(str));}
 
-static std::unique_ptr<std::string[]> string_split(std::string origin, std::string tok)
+static auto string_split(std::string origin, std::string tok) -> std::unique_ptr<std::string[]>
 {
     size_t  cutAt;
     int     index     = 0;
@@ -64,7 +64,7 @@ static std::unique_ptr<std::string[]> string_split(std::string origin, std::stri
 
 
 
-int get_item_type_value(std::string input_string)
+auto get_item_type_value(std::string input_string) -> int
 {
 	std::string arType[] = {"ITEM_NONE", "ITEM_WEAPON",
 		"ITEM_ARMOR", "ITEM_USE", 
@@ -105,7 +105,7 @@ int get_item_type_value(std::string input_string)
 
 }
 
-int get_item_sub_type_value(int type_value, std::string input_string) 
+auto get_item_sub_type_value(int type_value, std::string input_string) -> int 
 {
 	static std::string arSub1[] = { "WEAPON_SWORD", "WEAPON_DAGGER", "WEAPON_BOW", "WEAPON_TWO_HANDED",
 				"WEAPON_BELL", "WEAPON_FAN", "WEAPON_ARROW", "WEAPON_MOUNT_SPEAR"};
@@ -238,7 +238,7 @@ int get_item_sub_type_value(int type_value, std::string input_string)
 
 
 
-int get_item_anti_flag_value(std::string input_string) 
+auto get_item_anti_flag_value(std::string input_string) -> int 
 {
 
 	std::string arAntiFlag[] = {"ANTI_FEMALE", "ANTI_MALE", "ANTI_MUSA", "ANTI_ASSASSIN", "ANTI_SURA", "ANTI_MUDANG",
@@ -265,7 +265,7 @@ int get_item_anti_flag_value(std::string input_string)
 	return retValue;
 }
 
-int get_item_flag_value(std::string input_string) 
+auto get_item_flag_value(std::string input_string) -> int 
 {
 
 	std::string arFlag[] = {"ITEM_TUNABLE", "ITEM_SAVE", "ITEM_STACKABLE", "COUNT_PER_1GOLD", "ITEM_SLOW_QUERY", "ITEM_UNIQUE",
@@ -292,7 +292,7 @@ int get_item_flag_value(std::string input_string)
 	return retValue;
 }
 
-int get_item_wear_flag_value(std::string input_string) 
+auto get_item_wear_flag_value(std::string input_string) -> int 
 {
 
 	std::string arWearrFlag[] = {"WEAR_BODY", "WEAR_HEAD", "WEAR_FOOTS", "WEAR_WRIST", "WEAR_WEAPON", "WEAR_NECK", "WEAR_EAR", "WEAR_SHIELD", "WEAR_UNIQUE",
@@ -318,7 +318,7 @@ int get_item_wear_flag_value(std::string input_string)
 	return retValue;
 }
 
-int get_item_immune_value(std::string input_string) 
+auto get_item_immune_value(std::string input_string) -> int 
 {
 
 	std::string arImmune[] = {"PARA","CURSE","STUN","SLEEP","SLOW","POISON","TERROR"};
@@ -345,7 +345,7 @@ int get_item_immune_value(std::string input_string)
 
 
 
-int get_item_limit_type_value(std::string input_string)
+auto get_item_limit_type_value(std::string input_string) -> int
 {
 	std::string arLimitType[] = {"LIMIT_NONE", "LEVEL", "STR", "DEX", "INT", "CON", "PC_BANG", "REAL_TIME", "REAL_TIME_FIRST_USE", "TIMER_BASED_ON_WEAR"};
 	
@@ -364,7 +364,7 @@ int get_item_limit_type_value(std::string input_string)
 }
 
 
-int get_item_apply_type_value(std::string input_string)
+auto get_item_apply_type_value(std::string input_string) -> int
 {
 	std::string arApplyType[] = {"APPLY_NONE", "APPLY_MAX_HP", "APPLY_MAX_SP", "APPLY_CON", "APPLY_INT", "APPLY_STR", "APPLY_DEX", "APPLY_ATT_SPEED",
 			"APPLY_MOV_SPEED", "APPLY_CAST_SPEED", "APPLY_HP_REGEN", "APPLY_SP_REGEN", "APPLY_POISON_PCT", "APPLY_STUN_PCT",
@@ -403,7 +403,7 @@ int get_item_apply_type_value(std::string input_string)
 
 
 
-int get_mob_rank_value(std::string input_string) 
+auto get_mob_rank_value(std::string input_string) -> int 
 {
 	std::string arRank[] = {"PAWN", "S_PAWN", "KNIGHT", "S_KNIGHT", "BOSS", "KING"};
 
@@ -422,7 +422,7 @@ int get_mob_rank_value(std::string input_string)
 }
 
 
-int get_mob_type_value(std::string input_string)
+auto get_mob_type_value(std::string input_string) -> int
 {
 	std::string arType[] = { "MONSTER", "NPC", "STONE", "WARP", "DOOR", "BUILDING", "PC", "POLYMORPH_PC", "HORSE", "GOTO"};
 
@@ -440,7 +440,7 @@ int get_mob_type_value(std::string input_string)
 	return retInt;
 }
 
-int get_mob_battle_type_value(std::string input_string) 
+auto get_mob_battle_type_value(std::string input_string) -> int 
 {
 	std::string arBattleType[] = { "MELEE", "RANGE", "MAGIC", "SPECIAL", "POWER", "TANKER", "SUPER_POWER", "SUPER_TANKER"};
 
@@ -458,7 +458,7 @@ int get_mob_battle_type_value(std::string input_string)
 	return retInt;
 }
 
-int get_mob_size_value(std::string input_string)
+auto get_mob_size_value(std::string input_string) -> int
 {
 	std::string arSize[] = { "SMALL", "MEDIUM", "BIG"};
 
@@ -476,7 +476,7 @@ int get_mob_size_value(std::string input_string)
 	return retInt;
 }
 
-int get_mob_ai_flag_value(std::string input_string)
+auto get_mob_ai_flag_value(std::string input_string) -> int
 {
 	std::string arAIFlag[] = {"AGGR","NOMOVE","COWARD","NOATTSHINSU","NOATTCHUNJO","NOATTJINNO","ATTMOB","BERSERK","STONESKIN","GODSPEED","DEATHBLOW","REVIVE"};
 
@@ -499,7 +499,7 @@ int get_mob_ai_flag_value(std::string input_string)
 
 	return retValue;
 }
-int get_mob_race_flag_value(std::string input_string)
+auto get_mob_race_flag_value(std::string input_string) -> int
 {
 	std::string arRaceFlag[] = {"ANIMAL","UNDEAD","DEVIL","HUMAN","ORC","MILGYO","INSECT","FIRE","ICE","DESERT","TREE",
 		"ATT_ELEC","ATT_FIRE","ATT_ICE","ATT_WIND","ATT_EARTH","ATT_DARK"};
@@ -522,7 +522,7 @@ int get_mob_race_flag_value(std::string input_string)
 
 	return retValue;
 }
-int get_mob_immune_flag_value(std::string input_string)
+auto get_mob_immune_flag_value(std::string input_string) -> int
 {
 	std::string arImmuneFlag[] = {"STUN","SLOW","FALL","CURSE","POISON","TERROR", "REFLECT"};
 
@@ -549,7 +549,7 @@ int get_mob_immune_flag_value(std::string input_string)
 
 #ifndef __DUMP_PROTO__
 
-bool set_proto_mob_table(mob_table *mob_table_value, c_csv_table &csv_table,std::map<int,const char*> &name_map)
+auto set_proto_mob_table(mob_table *mob_table_value, c_csv_table &csv_table,std::map<int,const char*> &name_map) -> bool
 {
 	int col = 0;
 	str_to_number(mob_table_value->vnum, csv_table.as_string_by_index(col++));
@@ -645,7 +645,7 @@ bool set_proto_mob_table(mob_table *mob_table_value, c_csv_table &csv_table,std:
 	return true;
 }
 
-bool set_proto_item_table(item_table *item_table_value, c_csv_table &csv_table,std::map<int,const char*> &name_map)
+auto set_proto_item_table(item_table *item_table_value, c_csv_table &csv_table,std::map<int,const char*> &name_map) -> bool
 {
 	int col = 0;
 

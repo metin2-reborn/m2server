@@ -16,7 +16,7 @@ namespace metin2::game::inline app {
 
 static int global_time_gap = 0;
 
-time_t get_global_time()
+auto get_global_time() -> time_t
 {
 	return time(nullptr) + global_time_gap;
 }
@@ -30,7 +30,7 @@ void set_global_time(time_t t)
 	metin2::log::info( "GLOBAL_TIME: {} time_gap {:d}", time_str_buf.c_str(), global_time_gap);
 }
 
-size_t str_lower(const char * src, char * dest, size_t dest_size)
+auto str_lower(const char * src, char * dest, size_t dest_size) -> size_t
 {
 	size_t len = 0;
 
@@ -63,7 +63,7 @@ void skip_spaces(const char **string)
 	for (; **string != '\0' && is_space(**string); ++(*string));
 }
 
-const char *one_argument(const char *argument, char *first_arg, size_t first_size)
+auto one_argument(const char *argument, char *first_arg, size_t first_size) -> const char *
 {
 	char mark = false;
 	size_t first_len = 0;
@@ -102,12 +102,12 @@ const char *one_argument(const char *argument, char *first_arg, size_t first_siz
 	return (argument);
 }
 
-const char *two_arguments(const char *argument, char *first_arg, size_t first_size, char *second_arg, size_t second_size)
+auto two_arguments(const char *argument, char *first_arg, size_t first_size, char *second_arg, size_t second_size) -> const char *
 {
 	return (one_argument(one_argument(argument, first_arg, first_size), second_arg, second_size));
 }
 
-const char *first_cmd(const char *argument, char *first_arg, size_t first_arg_size, size_t *first_arg_len_result)
+auto first_cmd(const char *argument, char *first_arg, size_t first_arg_size, size_t *first_arg_len_result) -> const char *
 {           
 	size_t cur_len = 0;
 	skip_spaces(&argument);
@@ -126,7 +126,7 @@ const char *first_cmd(const char *argument, char *first_arg, size_t first_arg_si
 	return (argument);
 }
 
-int calculate_duration(int spd, int dur)
+auto calculate_duration(int spd, int dur) -> int
 {
 	int i = 100 - spd;
 
@@ -139,12 +139,12 @@ int calculate_duration(int spd, int dur)
 
 	return dur * i / 100;
 }
-double uniform_random(double a, double b)
+auto uniform_random(double a, double b) -> double
 {
 	return thecore_random() / (RAND_MAX + 1.0) * (b - a) + a;
 }
 
-float gauss_random(float avg, float sigma)
+auto gauss_random(float avg, float sigma) -> float
 {
 	static bool haveNextGaussian = false;
 	static float nextGaussian = 0.0f;
@@ -169,7 +169,7 @@ float gauss_random(float avg, float sigma)
 	}
 }
 
-int parse_time_str(const char* str)
+auto parse_time_str(const char* str) -> int
 {
 	int tmp = 0;
 	int secs = 0;
@@ -224,7 +224,7 @@ int parse_time_str(const char* str)
 	return secs + tmp;
 }
 
-bool wild_case_cmp(const char *w, const char *s)
+auto wild_case_cmp(const char *w, const char *s) -> bool
 {
 	for (;;)
 	{

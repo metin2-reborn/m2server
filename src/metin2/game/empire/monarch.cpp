@@ -30,7 +30,7 @@ monarch::~monarch()
 {
 }
 
-bool monarch::initialize()
+auto monarch::initialize() -> bool
 {
 	memset(power_up_, 0, sizeof(power_up_));
 	memset(defense_up_, 0, sizeof(defense_up_));
@@ -61,7 +61,7 @@ struct f_heal_my_empire
 	}
 };
 
-int monarch::heal_my_empire(character * ch ,uint32_t price)
+auto monarch::heal_my_empire(character * ch ,uint32_t price) -> int
 {
 	uint8_t Empire = ch->empire();
 	uint32_t pid = ch->player_id();
@@ -111,7 +111,7 @@ void monarch::set_monarch_info(monarch_info * info)
 	memcpy(&monarch_info_, info, sizeof(monarch_info));
 }
 
-bool monarch::is_monarch(uint32_t pid, uint8_t empire)
+auto monarch::is_monarch(uint32_t pid, uint8_t empire) -> bool
 {
 	if (empire >= std::size(monarch_info_.pid))
 		return false;
@@ -119,13 +119,13 @@ bool monarch::is_monarch(uint32_t pid, uint8_t empire)
 	return (monarch_info_.pid[empire] == pid);
 }
 
-bool monarch::is_money_ok(int price, uint8_t empire)
+auto monarch::is_money_ok(int price, uint8_t empire) -> bool
 {
 	metin2::log::debug( "GetMoney({:d}), price = ({:d},{:d})", empire, money(empire), price);
 	return (money(empire) >= price);
 }
 
-bool monarch::sendto_db_add_money(int money_value, uint8_t empire, character * ch)
+auto monarch::sendto_db_add_money(int money_value, uint8_t empire, character * ch) -> bool
 {
 	if (money(empire) + money_value > 2000000000)
 		return false;
@@ -140,7 +140,7 @@ bool monarch::sendto_db_add_money(int money_value, uint8_t empire, character * c
 	return true;
 }
 
-bool monarch::sendto_db_dec_money(int money_value, uint8_t empire, character * ch)
+auto monarch::sendto_db_dec_money(int money_value, uint8_t empire, character * ch) -> bool
 {
 	if (empire >= std::size(monarch_info_.money))
 		return false;
@@ -156,7 +156,7 @@ bool monarch::sendto_db_dec_money(int money_value, uint8_t empire, character * c
 	return true;
 }
 
-bool monarch::add_money(int money_value, uint8_t empire)
+auto monarch::add_money(int money_value, uint8_t empire) -> bool
 {
 	if (empire >= std::size(monarch_info_.money))
 		return false;
@@ -168,7 +168,7 @@ bool monarch::add_money(int money_value, uint8_t empire)
 	return true;
 }
 
-bool monarch::dec_money(int money_value, uint8_t empire)
+auto monarch::dec_money(int money_value, uint8_t empire) -> bool
 {
 	if (empire >= std::size(monarch_info_.money))
 		return false;
@@ -180,7 +180,7 @@ bool monarch::dec_money(int money_value, uint8_t empire)
 	return true;
 }
 
-int monarch::money(uint8_t empire)
+auto monarch::money(uint8_t empire) -> int
 {
 	if (empire >= std::size(monarch_info_.money))
 		return 0;
@@ -188,27 +188,27 @@ int monarch::money(uint8_t empire)
 	return monarch_info_.money[empire];
 }
 
-monarch_info* monarch::get_monarch()
+auto monarch::get_monarch() -> monarch_info*
 {
 	return &monarch_info_;
 }
 
-uint32_t monarch::monarch_pid(uint8_t empire)
+auto monarch::monarch_pid(uint8_t empire) -> uint32_t
 {
 	return empire < std::size(monarch_info_.pid) ? monarch_info_.pid[empire] : 0;
 }
 
-bool monarch::is_power_up(uint8_t empire)
+auto monarch::is_power_up(uint8_t empire) -> bool
 {
 	return empire < std::size(power_up_) ? power_up_[empire] : false;
 }
 
-bool monarch::is_defence_up(uint8_t empire)
+auto monarch::is_defence_up(uint8_t empire) -> bool
 {
 	return empire < std::size(defense_up_) ? defense_up_[empire] : false;
 }
 
-bool monarch::check_power_up_ct(uint8_t empire)
+auto monarch::check_power_up_ct(uint8_t empire) -> bool
 {
 	if (empire >= std::size(power_up_ct_))
 		return false;
@@ -223,7 +223,7 @@ bool monarch::check_power_up_ct(uint8_t empire)
 	return true;
 }
 
-bool monarch::check_defense_up_ct(uint8_t empire)
+auto monarch::check_defense_up_ct(uint8_t empire) -> bool
 {
 	if (empire >= std::size(defense_up_ct_))
 		return false;
@@ -258,7 +258,7 @@ void monarch::defense_up(uint8_t empire, bool on)
 	defense_up_ct_[empire] = thecore_pulse() + passes_per_sec(60 * 10);
 }
 
-bool is_monarch_warp_zone (int map_idx)
+auto is_monarch_warp_zone (int map_idx) -> bool
 {
 	if (map_idx >= 10000)
 		map_idx /= 10000;

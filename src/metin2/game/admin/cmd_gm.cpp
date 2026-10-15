@@ -221,7 +221,7 @@ void character_add_goto_info(const std::string& st_name_value, uint8_t empire, i
 	metin2::log::info( "AddGotoInfo(name={}, empire={:d}, mapIndex={:d}, pos=({:d}, {:d}))", st_name_value.c_str(), empire, index_value, x, y);
 }
 
-bool find_in_string(const char * find, const char * in)
+auto find_in_string(const char * find, const char * in) -> bool
 {
 	const char * c = in;
 	const char * p;
@@ -253,7 +253,7 @@ bool find_in_string(const char * find, const char * in)
 	return false;
 }
 
-bool character_go_to_name(character * ch, uint8_t empire, int index_value, const char* goto_name)
+auto character_go_to_name(character * ch, uint8_t empire, int index_value, const char* goto_name) -> bool
 {
 	std::vector<goto_info>::iterator i;
 	for (i = vec_goto_info.begin(); i != vec_goto_info.end(); ++i)
@@ -3261,7 +3261,7 @@ struct f_count_in_map
 				++count[ch->empire()];
 		}
 	}
-	int get_count(uint8_t empire) { return count[empire]; } 
+	auto get_count(uint8_t empire) -> int { return count[empire]; } 
 };
 
 ACMD(do_threeway_war_info)

@@ -4,6 +4,6 @@
 
 namespace metin2::game::inline protocol {
 
-extern bool load_ban_ip(const char * filename);
-extern bool is_ban_ip(struct in_addr in);
+extern auto load_ban_ip(const char * filename) -> bool;
+extern auto is_ban_ip(struct in_addr in) -> bool;
 }

@@ -52,13 +52,13 @@ namespace metin2::game {
 
 namespace quest
 {
-	int get_locale(lua_State* lua)
+	auto get_locale(lua_State* lua) -> int
 	{
 		lua_pushstring(lua, locale.c_str());
 		return 1;
 	}
 
-	int random_number(lua_State* lua)
+	auto random_number(lua_State* lua) -> int
 	{
 		if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2))
 			lua_pushnumber(lua, 0);
@@ -67,14 +67,14 @@ namespace quest
 		return 1;
 	}
 
-	int time_to_str(lua_State* lua)
+	auto time_to_str(lua_State* lua) -> int
 	{
 		time_t curTime = (time_t)lua_tonumber(lua, -1);
 		lua_pushstring(lua, asctime(gmtime(&curTime)));
 		return 1;
 	}
 
-	int say(lua_State* lua)
+	auto say(lua_State* lua) -> int
 	{
 		std::ostringstream s;
 		combine_lua_string(lua, s);
@@ -82,7 +82,7 @@ namespace quest
 		return 0;
 	}
 
-	int chat(lua_State* lua)
+	auto chat(lua_State* lua) -> int
 	{
 		std::ostringstream s;
 		combine_lua_string(lua, s);
@@ -91,7 +91,7 @@ namespace quest
 		return 0;
 	}
 
-	int cmdchat(lua_State* lua)
+	auto cmdchat(lua_State* lua) -> int
 	{
 		std::ostringstream s;
 		combine_lua_string(lua, s);
@@ -99,7 +99,7 @@ namespace quest
 		return 0;
 	}
 
-	int syschat(lua_State* lua)
+	auto syschat(lua_State* lua) -> int
 	{
 		std::ostringstream s;
 		combine_lua_string(lua, s);
@@ -107,7 +107,7 @@ namespace quest
 		return 0;
 	}
 
-	int notice(lua_State* lua)
+	auto notice(lua_State* lua) -> int
 	{
 		std::ostringstream s;
 		combine_lua_string(lua, s);
@@ -115,7 +115,7 @@ namespace quest
 		return 0;
 	}
 
-	int left_image(lua_State* lua)
+	auto left_image(lua_State* lua) -> int
 	{
 		if (lua_isstring(lua, -1))
 		{
@@ -125,7 +125,7 @@ namespace quest
 		return 0;
 	}
 
-	int top_image(lua_State* lua)
+	auto top_image(lua_State* lua) -> int
 	{
 		if (lua_isstring(lua, -1))
 		{
@@ -135,7 +135,7 @@ namespace quest
 		return 0;
 	}
 
-	int set_skin(lua_State* lua)
+	auto set_skin(lua_State* lua) -> int
 	{
 		if (lua_isnumber(lua, -1))
 		{
@@ -149,7 +149,7 @@ namespace quest
 		return 0;
 	}
 
-	int set_server_timer(lua_State* lua)
+	auto set_server_timer(lua_State* lua) -> int
 	{
 		int n = lua_gettop(lua);
 		if ((n != 2 || !lua_isnumber(lua, 2) || !lua_isstring(lua, 1)) &&
@@ -175,7 +175,7 @@ namespace quest
 		return 0;
 	}
 
-	int set_server_loop_timer(lua_State* lua)
+	auto set_server_loop_timer(lua_State* lua) -> int
 	{
 		int n = lua_gettop(lua);
 		if ((n != 2 || !lua_isnumber(lua, 2) || !lua_isstring(lua, 1)) &&
@@ -199,7 +199,7 @@ namespace quest
 		return 0;
 	}
 
-	int clear_server_timer(lua_State* lua)
+	auto clear_server_timer(lua_State* lua) -> int
 	{
 		quest_manager & q = quest_manager::instance();
 		const char * name = lua_tostring(lua, 1);
@@ -208,7 +208,7 @@ namespace quest
 		return 0;
 	}
 
-	int set_named_loop_timer(lua_State* lua)
+	auto set_named_loop_timer(lua_State* lua) -> int
 	{
 		int n = lua_gettop(lua);
 
@@ -227,13 +227,13 @@ namespace quest
 		return 0;
 	}
 
-	int get_server_timer_arg(lua_State* lua)
+	auto get_server_timer_arg(lua_State* lua) -> int
 	{
 		lua_pushnumber(lua, quest_manager::instance().server_timer_arg());
 		return 1;
 	}
 
-	int set_timer(lua_State* lua)
+	auto set_timer(lua_State* lua) -> int
 	{
 		if (lua_gettop(lua) != 1 || !lua_isnumber(lua, -1))
 			quest::error("QUEST invalid argument.");
@@ -248,7 +248,7 @@ namespace quest
 		return 0;
 	}
 
-	int set_named_timer(lua_State* lua)
+	auto set_named_timer(lua_State* lua) -> int
 	{
 		int n = lua_gettop(lua);
 
@@ -269,7 +269,7 @@ namespace quest
 		return 0;
 	}
 
-	int timer(lua_State * lua)
+	auto timer(lua_State * lua) -> int
 	{
 		if (lua_gettop(lua) == 1)
 			return set_timer(lua);
@@ -277,7 +277,7 @@ namespace quest
 			return set_named_timer(lua);
 	}
 
-	int clear_named_timer(lua_State* lua)
+	auto clear_named_timer(lua_State* lua) -> int
 	{
 		int n = lua_gettop(lua);
 
@@ -292,7 +292,7 @@ namespace quest
 		return 0;
 	}
 
-	int getnpcid(lua_State * lua)
+	auto getnpcid(lua_State * lua) -> int
 	{
 		const char * name = lua_tostring(lua, -1);
 		quest_manager & q = quest_manager::instance();
@@ -300,19 +300,19 @@ namespace quest
 		return 1;
 	}
 
-	int is_test_server(lua_State * lua)
+	auto is_test_server(lua_State * lua) -> int
 	{
 		lua_pushboolean(lua, metin2::config::test_server());
 		return 1;
 	}
 
-	int is_speed_server(lua_State * lua)
+	auto is_speed_server(lua_State * lua) -> int
 	{
 		lua_pushboolean(lua, metin2::config::game().speed_server);
 		return 1;
 	}
 
-	int raw_script(lua_State* lua)
+	auto raw_script(lua_State* lua) -> int
 	{
 		if ( metin2::config::test_server() )
 			metin2::log::info( "_raw_script : {} ", lua_tostring(lua,-1));
@@ -324,7 +324,7 @@ namespace quest
 		return 0;
 	}
 
-	int char_log(lua_State * lua)
+	auto char_log(lua_State * lua) -> int
 	{
 		quest_manager& q = quest_manager::instance();
 		character * ch = q.current_character_ptr();
@@ -341,7 +341,7 @@ namespace quest
 		return 0;
 	}
 	
-	int item_log(lua_State* lua)
+	auto item_log(lua_State* lua) -> int
 	{
 		quest_manager& q = quest_manager::instance();
 		character * ch = q.current_character_ptr();
@@ -362,7 +362,7 @@ namespace quest
 		return 0;
 	}
 
-	int syslog(lua_State* lua)
+	auto syslog(lua_State* lua) -> int
 	{
 		if (!lua_isnumber(lua, 1) || !lua_isstring(lua, 2))
 			return 0;
@@ -393,7 +393,7 @@ namespace quest
 		return 0;
 	}
 
-	int syserr(lua_State* lua)
+	auto syserr(lua_State* lua) -> int
 	{
 		if (!lua_isstring(lua, 1))
 			return 0;
@@ -413,14 +413,14 @@ namespace quest
 		return 0;
 	}
 	
-	int set_bgm_volume_enable(lua_State* lua)
+	auto set_bgm_volume_enable(lua_State* lua) -> int
 	{
 		character_set_bgm_volume_enable();
 
 		return 0;
 	}
 
-	int add_bgm_info(lua_State* lua)
+	auto add_bgm_info(lua_State* lua) -> int
 	{
 		if (!lua_isnumber(lua, 1) || !lua_isstring(lua, 2))
 			return 0;
@@ -438,7 +438,7 @@ namespace quest
 		return 0;
 	}
 
-	int add_goto_info(lua_State* lua)
+	auto add_goto_info(lua_State* lua) -> int
 	{
 		const char* name = lua_tostring(lua, 1);
 
@@ -454,7 +454,7 @@ namespace quest
 		return 0;
 	}
 
-	int refine_pick(lua_State* lua)
+	auto refine_pick(lua_State* lua) -> int
 	{
 		uint8_t bCell = (uint8_t) lua_tonumber(lua,-1);
 
@@ -469,7 +469,7 @@ namespace quest
 		return 1;
 	}
 
-	int fish_real_refine_rod(lua_State* lua)
+	auto fish_real_refine_rod(lua_State* lua) -> int
 	{
 		uint8_t bCell = (uint8_t) lua_tonumber(lua,-1);
 
@@ -484,7 +484,7 @@ namespace quest
 		return 1;
 	}
 
-	int give_char_privilege(lua_State* lua)
+	auto give_char_privilege(lua_State* lua) -> int
 	{
 		int pid = quest_manager::instance().current_character_ptr()->player_id();
 		int type = (int)lua_tonumber(lua, 1);
@@ -501,7 +501,7 @@ namespace quest
 		return 0;
 	}
 
-	int give_empire_privilege(lua_State* lua)
+	auto give_empire_privilege(lua_State* lua) -> int
 	{
 		int empire = (int)lua_tonumber(lua,1);
 		int type = (int)lua_tonumber(lua, 2);
@@ -526,7 +526,7 @@ namespace quest
 		return 0;
 	}
 
-	int give_guild_privilege(lua_State* lua)
+	auto give_guild_privilege(lua_State* lua) -> int
 	{
 		int guild_id = (int)lua_tonumber(lua,1);
 		int type = (int)lua_tonumber(lua, 2);
@@ -547,7 +547,7 @@ namespace quest
 		return 0;
 	}
 
-	int get_empire_privilege_string(lua_State* lua)
+	auto get_empire_privilege_string(lua_State* lua) -> int
 	{
 		int empire = (int) lua_tonumber(lua, 1);
 		std::ostringstream os;
@@ -576,7 +576,7 @@ namespace quest
 		return 1;
 	}
 
-	int get_empire_privilege(lua_State* lua)
+	auto get_empire_privilege(lua_State* lua) -> int
 	{
 		if (!lua_isnumber(lua,1) || !lua_isnumber(lua,2))
 		{
@@ -590,7 +590,7 @@ namespace quest
 		return 1;
 	}
 
-	int get_guild_privilege_string(lua_State* lua)
+	auto get_guild_privilege_string(lua_State* lua) -> int
 	{
 		int guild = (int) lua_tonumber(lua,1);
 		std::ostringstream os;
@@ -618,7 +618,7 @@ namespace quest
 		return 1;
 	}
 
-	int get_guildid_byname( lua_State* lua )
+	auto get_guildid_byname( lua_State* lua ) -> int
 	{
 		if ( !lua_isstring( lua, 1 ) ) {
 			quest::error( "_get_guildid_byname() - invalud argument" );
@@ -636,7 +636,7 @@ namespace quest
 		return 1;
 	}
 
-	int get_guild_privilege(lua_State* lua)
+	auto get_guild_privilege(lua_State* lua) -> int
 	{
 		if (!lua_isnumber(lua,1) || !lua_isnumber(lua,2))
 		{
@@ -650,7 +650,7 @@ namespace quest
 		return 1;
 	}
 
-	int item_name(lua_State* lua)
+	auto item_name(lua_State* lua) -> int
 	{
 		if (lua_isnumber(lua,1))
 		{
@@ -666,7 +666,7 @@ namespace quest
 		return 1;
 	}
 
-	int mob_name(lua_State* lua)
+	auto mob_name(lua_State* lua) -> int
 	{
 		if (lua_isnumber(lua, 1))
 		{
@@ -684,7 +684,7 @@ namespace quest
 		return 1;
 	}
 
-	int mob_vnum(lua_State* lua)
+	auto mob_vnum(lua_State* lua) -> int
 	{
 		if (lua_isstring(lua,1))
 		{
@@ -701,21 +701,21 @@ namespace quest
 		return 1;
 	}
 
-	int global_time(lua_State* lua)
+	auto global_time(lua_State* lua) -> int
 	{
 		lua_pushnumber(lua, get_global_time());
 		return 1;
 	}
 	
 
-	int get_channel_id(lua_State* lua)
+	auto get_channel_id(lua_State* lua) -> int
 	{
 		lua_pushnumber(lua, metin2::config::server().channel);
 
 		return 1;
 	}
 
-	int do_command(lua_State* lua)
+	auto do_command(lua_State* lua) -> int
 	{
 		if (!lua_isstring(lua, 1))
 			return 0;
@@ -728,7 +728,7 @@ namespace quest
 		return 0;
 	}
 
-	int find_pc(lua_State* lua)
+	auto find_pc(lua_State* lua) -> int
 	{
 		if (!lua_isstring(lua, 1))
 		{
@@ -743,7 +743,7 @@ namespace quest
 		return 1;
 	}
 
-	int find_pc_cond(lua_State* lua)
+	auto find_pc_cond(lua_State* lua) -> int
 	{
 		if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2) || !lua_isnumber(lua, 3))
 		{
@@ -777,7 +777,7 @@ namespace quest
 		return 1;
 	}
 
-	int find_npc_by_vnum(lua_State* lua)
+	auto find_npc_by_vnum(lua_State* lua) -> int
 	{
 		if (!lua_isnumber(lua, 1))
 		{
@@ -810,7 +810,7 @@ namespace quest
 		return 1;
 	}
 
-	int set_quest_state(lua_State* lua)
+	auto set_quest_state(lua_State* lua) -> int
 	{
 		if (!lua_isstring(lua, 1) || !lua_isstring(lua, 2))
 			return 0;
@@ -843,7 +843,7 @@ namespace quest
 		return 0;
 	}
 
-	int get_quest_state(lua_State* lua)
+	auto get_quest_state(lua_State* lua) -> int
 	{
 		if (!lua_isstring(lua, 1) )
 			return 0;
@@ -873,7 +873,7 @@ namespace quest
 		return 1;
 	}
 
-	int notice_all( lua_State* lua )
+	auto notice_all( lua_State* lua ) -> int
 	{
 		std::ostringstream s;
 		combine_lua_string(lua, s);
@@ -946,7 +946,7 @@ namespace quest
 		return 0;
 	}
 
-	int warp_all_to_village( lua_State * lua )
+	auto warp_all_to_village( lua_State * lua ) -> int
 	{
 		int iMapIndex 	= static_cast<int>(lua_tonumber(lua, 1));
 		int iSec		= static_cast<int>(lua_tonumber(lua, 2));
@@ -962,7 +962,7 @@ namespace quest
 		return 0;
 	}
 
-	int warp_to_village( lua_State * lua )
+	auto warp_to_village( lua_State * lua ) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 	
@@ -975,7 +975,7 @@ namespace quest
 		return 0;
 	}
 
-	int say_in_map( lua_State * lua )
+	auto say_in_map( lua_State * lua ) -> int
 	{
 		int iMapIndex 		= static_cast<int>(lua_tonumber( lua, 1 ));
 		std::string Script(lua_tostring( lua, 2 ));
@@ -1018,7 +1018,7 @@ namespace quest
 		}
 	};
 
-	int kill_all_in_map ( lua_State * lua )
+	auto kill_all_in_map ( lua_State * lua ) -> int
 	{
 		sectree_map * pSecMap = sectree_manager::instance().map( lua_tonumber(lua,1) );
 
@@ -1031,7 +1031,7 @@ namespace quest
 		return 0;
 	}
 
-	int regen_in_map( lua_State * lua )
+	auto regen_in_map( lua_State * lua ) -> int
 	{
 		int iMapIndex = static_cast<int>(lua_tonumber(lua, 1));
 		std::string szFilename(lua_tostring(lua, 2));
@@ -1046,7 +1046,7 @@ namespace quest
 		return 0;
 	}
 
-	int enable_over9refine( lua_State* lua )
+	auto enable_over9refine( lua_State* lua ) -> int
 	{
 		if ( lua_isnumber(lua, 1) == true && lua_isnumber(lua, 2) == true )
 		{
@@ -1059,7 +1059,7 @@ namespace quest
 		return 0;
 	}
 
-	int add_ox_quiz(lua_State* lua)
+	auto add_ox_quiz(lua_State* lua) -> int
 	{
 		int level = (int)lua_tonumber(lua, 1);
 		const char* quiz = lua_tostring(lua, 2);
@@ -1100,7 +1100,7 @@ namespace quest
 		return 0;
 	}
 
-	int block_chat(lua_State* lua)
+	auto block_chat(lua_State* lua) -> int
 	{
 		character * pChar = quest_manager::instance().current_character_ptr();
 
@@ -1127,7 +1127,7 @@ namespace quest
 		return 1;
 	}
 
-	int spawn_mob_at(lua_State* lua)
+	auto spawn_mob_at(lua_State* lua) -> int
 	{
 		if( false == lua_isnumber(lua, 1) || false == lua_isnumber(lua, 2) || false == lua_isboolean(lua, 3) )
 		{
@@ -1172,7 +1172,7 @@ namespace quest
 		return 1;
 	}
 
-	int notice_in_map( lua_State* lua )
+	auto notice_in_map( lua_State* lua ) -> int
 	{
 		character * const pChar = quest_manager::instance().current_character_ptr();
 
@@ -1184,7 +1184,7 @@ namespace quest
 		return 0;
 	}
 
-	int get_locale_base_path( lua_State* lua )
+	auto get_locale_base_path( lua_State* lua ) -> int
 	{
 		lua_pushstring( lua, locale_service_get_base_path().c_str() );
 
@@ -1221,7 +1221,7 @@ namespace quest
 		}
 	};
 
-	int purge_area( lua_State* lua )
+	auto purge_area( lua_State* lua ) -> int
 	{
 		int x1 = lua_tonumber(lua, 1);
 		int y1 = lua_tonumber(lua, 2);
@@ -1279,7 +1279,7 @@ namespace quest
 		}
 	};
 
-	int warp_all_in_area_to_area( lua_State* lua )
+	auto warp_all_in_area_to_area( lua_State* lua ) -> int
 	{
 		int from_x1 = lua_tonumber(lua, 1);
 		int from_y1 = lua_tonumber(lua, 2);

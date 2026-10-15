@@ -12,12 +12,12 @@ template <typename T, typename U> constexpr auto is_set(T flag, U bit) { return 
 template <typename T, typename U> constexpr void set_bit(T & var, U bit) { var |= bit; }
 template <typename T, typename U> constexpr void remove_bit(T & var, U bit) { var &= ~bit; }
 
-inline float distance_sqrt(int32_t dx, int32_t dy)
+inline auto distance_sqrt(int32_t dx, int32_t dy) -> float
 {
     return std::sqrt((float)dx * dx + (float)dy * dy);
 }
 
-inline int distance_approx(int dx, int dy)
+inline auto distance_approx(int dx, int dy) -> int
 {
 	int min, max;
 
@@ -43,23 +43,23 @@ inline int distance_approx(int dx, int dy)
 }
 
 extern void set_global_time(time_t t);
-extern time_t get_global_time();
+extern auto get_global_time() -> time_t;
 
-extern size_t str_lower(const char * src, char * dest, size_t dest_size);
+extern auto str_lower(const char * src, char * dest, size_t dest_size) -> size_t;
 
 extern void	skip_spaces(char **string);
 
-extern const char *	one_argument(const char *argument, char *first_arg, size_t first_size);
-extern const char *	two_arguments(const char *argument, char *first_arg, size_t first_size, char *second_arg, size_t second_size);
-extern const char *	first_cmd(const char *argument, char *first_arg, size_t first_arg_size, size_t *first_arg_len_result);
+extern auto	one_argument(const char *argument, char *first_arg, size_t first_size) -> const char *;
+extern auto	two_arguments(const char *argument, char *first_arg, size_t first_size, char *second_arg, size_t second_size) -> const char *;
+extern auto	first_cmd(const char *argument, char *first_arg, size_t first_arg_size, size_t *first_arg_len_result) -> const char *;
 
-extern int calculate_duration(int spd, int dur);
+extern auto calculate_duration(int spd, int dur) -> int;
 
-extern float gauss_random(float avg = 0, float sigma = 1);
+extern auto gauss_random(float avg = 0, float sigma = 1) -> float;
 
-extern int parse_time_str(const char* str);
+extern auto parse_time_str(const char* str) -> int;
 
-extern bool wild_case_cmp(const char *w, const char *s);
+extern auto wild_case_cmp(const char *w, const char *s) -> bool;
 
 #define TOKEN(string) if (!strcasecmp(token_string, string))
 }

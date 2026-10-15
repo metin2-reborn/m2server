@@ -15,11 +15,11 @@ class client_desc : public desc
 		client_desc();
 		~client_desc() override;
 
-		uint8_t	type() override { return DESC_TYPE_CONNECTOR; }
+		auto	type() -> uint8_t override { return DESC_TYPE_CONNECTOR; }
 		void	destroy() override;
 		void	set_phase(int phase) override;
 
-		bool 		connect(int phase_when_succeed = 0);
+		auto 		connect(int phase_when_succeed = 0) -> bool;
 		void		setup(const char * host, uint16_t port);
 
 		void		set_retry_when_closed(bool);
@@ -27,7 +27,7 @@ class client_desc : public desc
 		void		db_packet_header(uint8_t header, uint32_t handle, uint32_t size);
 		void		db_packet(uint8_t header, uint32_t handle, const void * data, uint32_t size);
 		void		packet(const void * data, int size);
-		bool		is_retry_when_closed();
+		auto		is_retry_when_closed() -> bool;
 
 		void		update(uint32_t t);
 		void		update_channel_status(uint32_t t, bool force);

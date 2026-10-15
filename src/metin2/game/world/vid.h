@@ -22,19 +22,19 @@ class vid
 			*this = rvid;
 		}
 
-		const vid & operator = (const vid & rhs)
+		auto operator = (const vid & rhs) -> const vid &
 		{
 			id_ = rhs.id_;
 			crc_ = rhs.crc_;
 			return *this;
 		}
 
-		bool operator == (const vid & rhs) const
+		auto operator == (const vid & rhs) const -> bool
 		{
 			return (id_ == rhs.id_) && (crc_ == rhs.crc_);
 		}
 
-		bool operator != (const vid & rhs) const
+		auto operator != (const vid & rhs) const -> bool
 		{
 			return !(*this == rhs);
 		}

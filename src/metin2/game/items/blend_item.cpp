@@ -34,7 +34,7 @@ struct blend_item_info
 typedef std::vector<blend_item_info>	t_blend_item_info;
 t_blend_item_info	blend_info;
 
-bool	blend_item_init()
+auto	blend_item_init() -> bool
 {
 	char	file_name[256];
 	snprintf (file_name, sizeof(file_name), "%s/blend.txt", locale_service_get_base_path().c_str());
@@ -51,7 +51,7 @@ bool	blend_item_init()
 	return true;
 }
 
-bool	blend_item_load(char *file)
+auto	blend_item_load(char *file) -> bool
 {
 	FILE	*fp;
 	char	one_line[256];
@@ -150,7 +150,7 @@ bool	blend_item_load(char *file)
 	return true;
 }
 
-static int fn_random_index()
+static auto fn_random_index() -> int
 {
 	int	percent = number(1,100);
 
@@ -169,7 +169,7 @@ static int fn_random_index()
 }
 
 
-static int fn_ecs_random_index()
+static auto fn_ecs_random_index() -> int
 {
 	int	percent = number(1,100);
 
@@ -188,7 +188,7 @@ static int fn_ecs_random_index()
 }
 
 
-bool	blend_item_set_value(item * item)
+auto	blend_item_set_value(item * item) -> bool
 {
 	blend_item_info	*blend_info_value;
 	t_blend_item_info::iterator	iter;
@@ -225,7 +225,7 @@ bool	blend_item_set_value(item * item)
 	return false;
 }
 
-bool	blend_item_find(uint32_t item_vnum)
+auto	blend_item_find(uint32_t item_vnum) -> bool
 {
 	blend_item_info	*blend_info_value;
 	t_blend_item_info::iterator	iter;

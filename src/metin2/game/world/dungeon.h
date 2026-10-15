@@ -32,7 +32,7 @@ class dungeon
 
 	~dungeon();
 
-	id_type id() const { return id_; }
+	auto id() const -> id_type { return id_; }
 
 	void	notice(const char* msg);
 
@@ -49,25 +49,25 @@ class dungeon
 
 	void	inc_monster() { monster_count_++; metin2::log::info("MonsterCount {:d}", monster_count_); }
 	void	dec_monster() { monster_count_--; check_eliminated(); }
-	int	count_monster() { return monster_count_; }
+	auto	count_monster() -> int { return monster_count_; }
 
 	void	inc_party_member(party * party_value, character * ch);
 	void	dec_party_member(party * party_value, character * ch);
 
 	void	inc_kill_count(character * killer, character * victim);
-	int	kill_mob_count();
-	int	kill_stone_count();
-	bool	is_use_potion();
-	bool	is_use_revive();
+	auto	kill_mob_count() -> int;
+	auto	kill_stone_count() -> int;
+	auto	is_use_potion() -> bool;
+	auto	is_use_revive() -> bool;
 	void	use_potion(character * ch);
 	void	use_revive(character * ch);
 
-	int32_t	map_index() { return map_index_; }
+	auto	map_index() -> int32_t { return map_index_; }
 
 	void	spawn(uint32_t vnum, const char* pos);
-	character *	spawn_mob(uint32_t vnum, int x, int y, int dir = 0);
-	character *	spawn_mob_ac_dir(uint32_t vnum, int x, int y, int dir = 0);
-	character *	spawn_group(uint32_t vnum, int32_t x, int32_t y, float radius, bool aggressive=false, int count=1);
+	auto	spawn_mob(uint32_t vnum, int x, int y, int dir = 0) -> character *;
+	auto	spawn_mob_ac_dir(uint32_t vnum, int x, int y, int dir = 0) -> character *;
+	auto	spawn_group(uint32_t vnum, int32_t x, int32_t y, float radius, bool aggressive=false, int count=1) -> character *;
 
 	void	spawn_name_mob(uint32_t vnum, int x, int y, const char* name);
 	void	spawn_goto_mob(int32_t from_x, int32_t from_y, int32_t to_x, int32_t to_y);
@@ -75,7 +75,7 @@ class dungeon
 	void	spawn_regen(const char* filename, bool once = true);
 	void	add_regen(regen * regen);
 	void	clear_regen();
-	bool	is_valid_regen(regen * regen, size_t regen_id);
+	auto	is_valid_regen(regen * regen, size_t regen_id) -> bool;
 
 	void	set_unique(const char* key, uint32_t vid);
 	void	spawn_move_unique(const char* key, uint32_t vnum, const char* pos_from, const char* pos_to);
@@ -85,9 +85,9 @@ class dungeon
 	void	spawn_wooden_door(const char* key, const char* pos);
 	void	kill_unique(const std::string& key);
 	void	purge_unique(const std::string& key);
-	bool	is_unique_dead(const std::string& key);
-	float	unique_hp_perc(const std::string& key);
-	uint32_t	unique_vid(const std::string& key);
+	auto	is_unique_dead(const std::string& key) -> bool;
+	auto	unique_hp_perc(const std::string& key) -> float;
+	auto	unique_vid(const std::string& key) -> uint32_t;
 
 	void	dead_character(character * ch);
 
@@ -109,17 +109,17 @@ class dungeon
 	void	set_exit_all_at_eliminate(int32_t time);
 	void	set_warp_at_eliminate(int32_t time, int32_t map_index, int x, int y, const char* regen_file);
 
-	int	flag(std::string name);
+	auto	flag(std::string name) -> int;
 	void	set_flag(std::string name, int value);
 	void	set_warp_location (int32_t map_index, int x, int y);
 
 	typedef std::vector <std::pair <uint32_t, int> > item_group;
 	void	create_item_group (std::string& group_name, item_group& item_group);
-	const item_group* get_item_group (std::string& group_name);
+	auto get_item_group (std::string& group_name) -> const item_group*;
 
-	template <class Func> Func for_each_member(Func f);
+	template <class Func> auto for_each_member(Func f) -> Func;
 
-	bool is_all_pc_near_to( int x, int y, int dist );
+	auto is_all_pc_near_to( int x, int y, int dist ) -> bool;
 
 	protected:
 	dungeon(id_type id, int32_t original_map_index, int32_t map_index);
@@ -181,10 +181,10 @@ class dungeon_manager : public singleton<dungeon_manager>
 	dungeon_manager();
 	~dungeon_manager() override;
 
-	dungeon *	create(int32_t original_map_index);
+	auto	create(int32_t original_map_index) -> dungeon *;
 	void		destroy(dungeon::id_type dungeon_id);
-	dungeon *	find(dungeon::id_type dungeon_id);
-	dungeon *	find_by_map_index(int32_t map_index);
+	auto	find(dungeon::id_type dungeon_id) -> dungeon *;
+	auto	find_by_map_index(int32_t map_index) -> dungeon *;
 
 	private:
 	dungeon_map	map_pk_dungeon_;

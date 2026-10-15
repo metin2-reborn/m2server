@@ -23,7 +23,7 @@ class hme
 			exp = e;
 		}
 
-		bool operator==(const hme &rhs) const
+		auto operator==(const hme &rhs) const -> bool
 		{
 			return hour == rhs.hour
 				&& min == rhs.min
@@ -44,7 +44,7 @@ class date
 			year = y; mon = m; day = d;
 		}
 
-		bool operator<(const date &rhs) const
+		auto operator<(const date &rhs) const -> bool
 		{
 			return (year<rhs.year)
 				|| ((year==rhs.year) && (mon<rhs.mon))
@@ -58,23 +58,23 @@ class speed_server_empire_exp
 		speed_server_empire_exp();
 		~speed_server_empire_exp();
 
-		bool initialize (uint8_t e);
+		auto initialize (uint8_t e) -> bool;
 		
-		std::list <hme>& wday_exp_table(int wday);
+		auto wday_exp_table(int wday) -> std::list <hme>&;
 		void set_wday_exp_table(int wday, hme hme);
 
-		std::list <hme>& holiday_exp_table(date date, bool &is_exist);
+		auto holiday_exp_table(date date, bool &is_exist) -> std::list <hme>&;
 		void set_holiday_exp_table(date date, hme hme);
 
 		void init_wday_exp_table(int wday);
 		void init_holiday_exp_table(date date);
-		hme current_exp_priv (int &duration, bool &is_change);
+		auto current_exp_priv (int &duration, bool &is_change) -> hme;
 
-		bool write_exp_table();
+		auto write_exp_table() -> bool;
 
 	private :
-		bool load_exp_table ();
-		bool load_wday_exp_table (int wday, char *str);
+		auto load_exp_table () -> bool;
+		auto load_wday_exp_table (int wday, char *str) -> bool;
 
 		uint8_t empire_;
 		std::string file_name_;
@@ -89,18 +89,18 @@ class speed_server_manager : public singleton<speed_server_manager>
 		speed_server_manager();
 		~speed_server_manager() override;
 
-		bool initialize ();
+		auto initialize () -> bool;
 
-		std::list <hme>& wday_exp_table_of_empire (uint8_t empire, int wday);
+		auto wday_exp_table_of_empire (uint8_t empire, int wday) -> std::list <hme>&;
 		void set_wday_exp_table_of_empire (uint8_t empire, int wday, hme hme);
 		void init_wday_exp_table_of_empire (uint8_t empire, int wday);
 		
-		std::list <hme>& holiday_exp_table_of_empire (uint8_t empire, date date, bool &is_exist);
+		auto holiday_exp_table_of_empire (uint8_t empire, date date, bool &is_exist) -> std::list <hme>&;
 		void set_holiday_exp_table_of_empire (uint8_t empire, date date, hme hme);
 		void init_holiday_exp_table_of_empire (uint8_t empire, date date);
 
 		
-		hme current_exp_priv_of_empire (uint8_t empire, int &duration, bool &is_change);
+		auto current_exp_priv_of_empire (uint8_t empire, int &duration, bool &is_change) -> hme;
 
 	private:
 		speed_server_empire_exp empire_[EMPIRE_MAX_NUM];

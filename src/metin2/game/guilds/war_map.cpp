@@ -213,7 +213,7 @@ void war_map::set_reset_flag_event(event_ptr ev)
 	}
 }
 
-bool war_map::team_index(uint32_t guild_id, uint8_t & idx)
+auto war_map::team_index(uint32_t guild_id, uint8_t & idx) -> bool
 {
 	if (team_data_[0].id == guild_id)
 	{
@@ -229,22 +229,22 @@ bool war_map::team_index(uint32_t guild_id, uint8_t & idx)
 	return false;
 }
 
-guild * war_map::get_guild(uint8_t idx)
+auto war_map::get_guild(uint8_t idx) -> guild *
 {
 	return team_data_[idx].guild;
 }
 
-int32_t war_map::map_index()
+auto war_map::map_index() -> int32_t
 {
 	return map_info_.map_index;
 }
 
-uint8_t war_map::type()
+auto war_map::type() -> uint8_t
 {
 	return map_info_.type;
 }
 
-uint32_t war_map::guild_opponent(character * ch)
+auto war_map::guild_opponent(character * ch) -> uint32_t
 {
 	if (ch->get_guild())
 	{
@@ -257,7 +257,7 @@ uint32_t war_map::guild_opponent(character * ch)
 	return 0;
 }
 
-uint32_t war_map::winner_guild()
+auto war_map::winner_guild() -> uint32_t
 {
 	uint32_t win_gid = 0;
 
@@ -297,12 +297,12 @@ void war_map::use_potion(character * ch, item * item)
 		team_data_[1].use_potion_price += iPrice;
 }
 
-int war_map::team_data::accumulated_joiner_count()
+auto war_map::team_data::accumulated_joiner_count() -> int
 {
 	return set_pid_joiner.size();
 }
 
-int war_map::team_data::cur_jointer_count()
+auto war_map::team_data::cur_jointer_count() -> int
 {
 	return member_count;
 }
@@ -505,7 +505,7 @@ void war_map::check_war_end()
 		check_score();
 }
 
-int war_map::reward_gold(uint8_t winner_idx)
+auto war_map::reward_gold(uint8_t winner_idx) -> int
 {
 	int iRewardGold = war_info_.war_price;
 	iRewardGold += (team_data_[winner_idx].use_potion_price * war_info_.winner_potion_reward_pct_to_winner) / 100;
@@ -694,7 +694,7 @@ void war_map::update_score(uint32_t g1, int score1, uint32_t g2, int score2)
 	check_score();
 }
 
-bool war_map::check_score()
+auto war_map::check_score() -> bool
 {
 	if (ended_)
 		return true;
@@ -745,7 +745,7 @@ bool war_map::check_score()
 	return true;
 }
 
-bool war_map::set_ended()
+auto war_map::set_ended() -> bool
 {
 	metin2::log::info( "WarMap::SetEnded {:d}", map_info_.map_index);
 
@@ -902,7 +902,7 @@ void war_map::remove_flag(uint8_t idx)
 	r.chr_flag = nullptr;
 }
 
-bool war_map::is_flag_on_base(uint8_t idx)
+auto war_map::is_flag_on_base(uint8_t idx) -> bool
 {
 	assert(idx < 2);
 
@@ -979,7 +979,7 @@ war_map_manager::~war_map_manager()
 {
 }
 
-bool war_map_manager::load_war_map_info(const char * file_name)
+auto war_map_manager::load_war_map_info(const char * file_name) -> bool
 {
 	auto k = std::make_unique<war_map_info>();
 	k->type = WAR_MAP_TYPE_NORMAL;
@@ -1009,12 +1009,12 @@ bool war_map_manager::load_war_map_info(const char * file_name)
 	return true;
 }
 
-bool war_map_manager::is_war_map(int32_t map_index)
+auto war_map_manager::is_war_map(int32_t map_index) -> bool
 {
 	return get_war_map_info(map_index) ? true : false;
 }
 
-bool war_map_manager::start_position(int32_t map_index, uint8_t idx, pixel_position & pos)
+auto war_map_manager::start_position(int32_t map_index, uint8_t idx, pixel_position & pos) -> bool
 {
 	assert(idx < 3);
 
@@ -1037,7 +1037,7 @@ bool war_map_manager::start_position(int32_t map_index, uint8_t idx, pixel_posit
 	return true;
 }
 
-int32_t war_map_manager::create_war_map(const guild_war_info& guild_war_info_value, uint32_t guild_id1, uint32_t guild_id2)
+auto war_map_manager::create_war_map(const guild_war_info& guild_war_info_value, uint32_t guild_id1, uint32_t guild_id2) -> int32_t
 {
 	war_map_info * pkInfo = get_war_map_info(guild_war_info_value.map_index);
 	if (!pkInfo)
@@ -1056,7 +1056,7 @@ int32_t war_map_manager::create_war_map(const guild_war_info& guild_war_info_val
 	return lMapIndex;
 }
 
-war_map_info * war_map_manager::get_war_map_info(int32_t map_index)
+auto war_map_manager::get_war_map_info(int32_t map_index) -> war_map_info *
 {
 	if (map_index >= 10000)
 		map_index /= 10000;
@@ -1081,7 +1081,7 @@ void war_map_manager::destroy_war_map(war_map* map)
 	sectree_manager::instance().destroy_private_map(mapIdx);
 }
 
-war_map * war_map_manager::find(int32_t map_index)
+auto war_map_manager::find(int32_t map_index) -> war_map *
 {
 	auto it = war_map_.find(map_index);
 

@@ -59,7 +59,7 @@ class sectree
 		friend class sectree_manager;
 		friend class sectree_map;
 
-		template <class _Func> entity *	find_if (_Func & func) const
+		template <class _Func> auto	find_if (_Func & func) const -> entity *
 		{
 			auto it_tree = neighbor_list_.begin();
 
@@ -103,7 +103,7 @@ class sectree
 					return;
 			}
 		}
-		template <class _Func> bool for_each_entity_for_find_victim(_Func & func)
+		template <class _Func> auto for_each_entity_for_find_victim(_Func & func) -> bool
 		{
 			auto it = set_entity_.begin();
 
@@ -123,9 +123,9 @@ class sectree
 		void				initialize();
 		void				destroy();
 
-		sectreeid			id();
+		auto			id() -> sectreeid;
 
-		bool				insert_entity(entity * ent);
+		auto				insert_entity(entity * ent) -> bool;
 		void				remove_entity(entity * ent);
 
 		void				increase_pc();
@@ -133,12 +133,12 @@ class sectree
 
 		void				bind_attribute(attribute * attribute_value);
 
-		uint32_t				get_attribute(int32_t x, int32_t y);
-		bool				is_attr(int32_t x, int32_t y, uint32_t flag);
+		auto				get_attribute(int32_t x, int32_t y) -> uint32_t;
+		auto				is_attr(int32_t x, int32_t y, uint32_t flag) -> bool;
 
 		void				clone_attribute(sectree * tree);
 
-		int				event_attribute(int32_t x, int32_t y);
+		auto				event_attribute(int32_t x, int32_t y) -> int;
 
 		void				set_attribute(uint32_t x, uint32_t y, uint32_t attr);
 		void				remove_attribute(uint32_t x, uint32_t y, uint32_t attr);

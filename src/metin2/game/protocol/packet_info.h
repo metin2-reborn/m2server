@@ -21,18 +21,18 @@ class packet_info
 		virtual ~packet_info();
 
 		void set(int header, int size_value, const char * name_value, bool seq=false);
-		bool get(int header, int * size, const char ** ppsz_name);
+		auto get(int header, int * size, const char ** ppsz_name) -> bool;
 
 		void start();
 		void end();
 
 		void log(const char * file_name);
 
-		bool is_sequence(int header);
+		auto is_sequence(int header) -> bool;
 		void set_sequence(int header, bool seq);
 
 	private:
-		packet_element * element(int header);
+		auto element(int header) -> packet_element *;
 
 	protected:
 		std::map<int, packet_element> packet_map_;

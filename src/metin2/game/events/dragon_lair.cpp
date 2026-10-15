@@ -151,7 +151,7 @@ dragon_lair::~dragon_lair()
 {
 }
 
-uint32_t dragon_lair::estimated_time() const
+auto dragon_lair::estimated_time() const -> uint32_t
 {
 	return get_global_time() - start_time_;
 }
@@ -182,7 +182,7 @@ dragon_lair_manager::~dragon_lair_manager()
 {
 }
 
-bool dragon_lair_manager::start(int32_t map_index_from, int32_t base_map_index, uint32_t guild_id)
+auto dragon_lair_manager::start(int32_t map_index_from, int32_t base_map_index, uint32_t guild_id) -> bool
 {
 	int32_t instanceMapIndex = sectree_manager::instance().create_private_map(base_map_index);
 	if (instanceMapIndex == 0) {

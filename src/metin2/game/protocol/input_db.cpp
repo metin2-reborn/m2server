@@ -67,7 +67,7 @@
 namespace metin2::game::inline protocol {
 
 
-bool get_server_location(account_table & tab, uint8_t empire_value)
+auto get_server_location(account_table & tab, uint8_t empire_value) -> bool
 {
 	bool bFound = false;
 
@@ -1798,7 +1798,7 @@ void input_db::reload_admin(const char * data )
 	
 }
 
-int input_db::analyze(desc * d, uint8_t header, const char * data)
+auto input_db::analyze(desc * d, uint8_t header, const char * data) -> int
 {
 	switch (header)
 	{
@@ -2127,7 +2127,7 @@ int input_db::analyze(desc * d, uint8_t header, const char * data)
 	return 0;
 }
 
-bool input_db::process(desc * d, const void * orig, int bytes, int & r_i_bytes_proceed)
+auto input_db::process(desc * d, const void * orig, int bytes, int & r_i_bytes_proceed) -> bool
 {
 	const char *	c_pData = (const char *) orig;
 	uint8_t		bHeader, bLastHeader = 0;

@@ -90,7 +90,7 @@ auto thecore_pulse() -> int {
     return thecore_heart->pulse;
 }
 
-bool thecore_is_shutdowned() {
+auto thecore_is_shutdowned() -> bool {
     return shutdowned;
 }
 

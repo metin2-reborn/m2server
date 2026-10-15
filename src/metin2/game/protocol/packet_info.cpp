@@ -38,7 +38,7 @@ void packet_info::set(int header, int size_value, const char * name_value, bool 
 		element->size += sizeof(uint8_t);
 }
 
-bool packet_info::get(int header, int * size, const char ** ppsz_name)
+auto packet_info::get(int header, int * size, const char ** ppsz_name) -> bool
 {
 	std::map<int, packet_element>::iterator it = packet_map_.find(header);
 
@@ -52,7 +52,7 @@ bool packet_info::get(int header, int * size, const char ** ppsz_name)
 	return true;
 }
 
-bool packet_info::is_sequence(int header)
+auto packet_info::is_sequence(int header) -> bool
 {
 	packet_element * pkElement = element(header);
 	return pkElement ? pkElement->sequence_packet : false;
@@ -79,7 +79,7 @@ void packet_info::set_sequence(int header, bool seq)
 	}
 }
 
-packet_element * packet_info::element(int header)
+auto packet_info::element(int header) -> packet_element *
 {
 	std::map<int, packet_element>::iterator it = packet_map_.find(header);
 

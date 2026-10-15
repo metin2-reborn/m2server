@@ -78,7 +78,7 @@ class mob_group_group
 			vec_dw_member_vnum.push_back(vnum);
 		}
 
-		uint32_t member()
+		auto member() -> uint32_t
 		{
 			if (vec_dw_member_vnum.empty())
 				return 0;
@@ -104,7 +104,7 @@ class mob_group
 			name_ = r_st_name;
 		}
 
-		const std::vector<uint32_t> & member_vector()
+		auto member_vector() -> const std::vector<uint32_t> &
 		{
 			return vec_dw_member_vnum_;
 		}
@@ -128,19 +128,19 @@ class mob_manager : public singleton<mob_manager>
 		mob_manager();
 		~mob_manager() override;
 
-		bool		initialize(mob_table * table_value, int size);
+		auto		initialize(mob_table * table_value, int size) -> bool;
 		void		destroy();
 
-		bool		load_group(const char * file_name);
-		bool		load_group_group(const char * file_name);
-		mob_group *	group(uint32_t vnum);
-		uint32_t		group_from_group_group(uint32_t vnum);
+		auto		load_group(const char * file_name) -> bool;
+		auto		load_group_group(const char * file_name) -> bool;
+		auto	group(uint32_t vnum) -> mob_group *;
+		auto		group_from_group_group(uint32_t vnum) -> uint32_t;
 
-		const mob *	get(uint32_t vnum);
-		const mob *	get(const char * name, bool is_abbrev);
+		auto	get(uint32_t vnum) -> const mob *;
+		auto	get(const char * name, bool is_abbrev) -> const mob *;
 
-		const iterator	begin()	{ return map_pk_mob_by_vnum_.begin();	}
-		const iterator	end()	{ return map_pk_mob_by_vnum_.end();	}
+		auto	begin() -> const iterator	{ return map_pk_mob_by_vnum_.begin();	}
+		auto	end() -> const iterator	{ return map_pk_mob_by_vnum_.end();	}
 
 		void rebind_mob_proto(character * ch);
 

@@ -33,8 +33,8 @@ namespace metin2::game {
 
 namespace quest
 {
-	bool is_script_true(const char* code, int size);
-	std::string script_to_string(const std::string& str);
+	auto is_script_true(const char* code, int size) -> bool;
+	auto script_to_string(const std::string& str) -> std::string;
 
 	class quest_manager : public singleton<quest_manager>
 	{
@@ -54,35 +54,35 @@ namespace quest
 			quest_manager();
 			~quest_manager() override;
 
-			bool		initialize();
+			auto		initialize() -> bool;
 			void		destroy();
 
-			bool		initialize_lua();
-			lua_State *		lua_state() { return l_; }
+			auto		initialize_lua() -> bool;
+			auto		lua_state() -> lua_State * { return l_; }
 			void		add_lua_function_table(const char * name_value, luaL_reg * preg);
 
 			event_name_map	event_name;
 
-			quest_state		open_state(const std::string& quest_name, int state_index);
+			auto		open_state(const std::string& quest_name, int state_index) -> quest_state;
 			void		close_state(quest_state& qs);
-			bool		run_state(quest_state& qs);
+			auto		run_state(quest_state& qs) -> bool;
 
-			pc *		get_pc(unsigned int pc);
-			pc *		pc_force(unsigned int pc);
+			auto get_pc(unsigned int pid) -> pc *;
+			auto pc_force(unsigned int pid) -> pc *;
 
-			unsigned int	current_npc_race();
-			const std::string & 	current_quest_name();
-			unsigned int	find_npcid_by_name(const std::string& name);
+			auto	current_npc_race() -> unsigned int;
+			auto 	current_quest_name() -> const std::string &;
+			auto	find_npcid_by_name(const std::string& name) -> unsigned int;
 
-			character *		current_npc_character_ptr();
+			auto		current_npc_character_ptr() -> character *;
 
 			void		set_current_event_index(int index) { running_event_index_ = index; }
 
-			bool		use_item(unsigned int pc, item * item, bool receive_all);
-			bool		pickup_item(unsigned int pc, item * item);
-			bool		sig_use(unsigned int pc, uint32_t sig_vnum, item * item, bool receive_all);
-			bool		take_item(unsigned int pc, unsigned int npc, item * item);
-			item *		current_item();
+			auto		use_item(unsigned int pc, item * item, bool receive_all) -> bool;
+			auto		pickup_item(unsigned int pc, item * item) -> bool;
+			auto		sig_use(unsigned int pc, uint32_t sig_vnum, item * item, bool receive_all) -> bool;
+			auto		take_item(unsigned int pc, unsigned int npc, item * item) -> bool;
+			auto		current_item() -> item *;
 			void		clear_current_item();
 			void		set_current_item(item * item);
 			void		add_server_timer(const std::string& name, uint32_t arg, event_ptr event);
@@ -91,20 +91,20 @@ namespace quest
 			void		cancel_server_timers(uint32_t arg);
 
 			void		set_server_timer_arg(uint32_t arg);
-			uint32_t		server_timer_arg();
+			auto		server_timer_arg() -> uint32_t;
 
-			bool		server_timer(unsigned int npc, unsigned int arg);
+			auto		server_timer(unsigned int npc, unsigned int arg) -> bool;
 
 			void		login(unsigned int pc, const char * quest = nullptr);
 			void		logout(unsigned int pc);
-			bool		timer(unsigned int pc, unsigned int npc);
-			bool		click(unsigned int pc, character * chr_target);
+			auto		timer(unsigned int pc, unsigned int npc) -> bool;
+			auto		click(unsigned int pc, character * chr_target) -> bool;
 			void		kill(unsigned int pc, unsigned int npc);
 			void		level_up(unsigned int pc);
 			void		attr_in(unsigned int pc, character * ch, int attr);
 			void		attr_out(unsigned int pc, character * ch, int attr);
-			bool		target(unsigned int pc, uint32_t quest_index, const char * target_name, const char * verb);
-			bool		give_item_to_pc(unsigned int pc, character * chr);
+			auto		target(unsigned int pc, uint32_t quest_index, const char * target_name, const char * verb) -> bool;
+			auto		give_item_to_pc(unsigned int pc, character * chr) -> bool;
 			void		unmount(unsigned int pc);
 
 			void		quest_button(unsigned int pc, unsigned int quest_index);
@@ -119,7 +119,7 @@ namespace quest
 			void		item_informer(unsigned int pc, unsigned int vnum);
 
 
-			bool		check_quest_loaded(pc* pc) { return pc && pc->is_loaded(); }
+			auto		check_quest_loaded(pc* pc) -> bool { return pc && pc->is_loaded(); }
 
 			void		select(unsigned int pc, unsigned int selection);
 			void		resume(unsigned int pc);
@@ -130,17 +130,17 @@ namespace quest
 			void		logout_pc(character * ch);
 			void		disconnect_pc(character * ch);
 
-			quest_state *	current_state()	{ return current_running_state_; }
+			auto	current_state() -> quest_state *	{ return current_running_state_; }
 
 			void 		load_start_quest(const std::string& quest_name, unsigned int idx);
-			bool		can_start_quest(unsigned int quest_index, const pc& pc);
-			bool		can_start_quest(unsigned int quest_index);
+			auto		can_start_quest(unsigned int quest_index, const pc& pc) -> bool;
+			auto		can_start_quest(unsigned int quest_index) -> bool;
 
-			character *		current_character_ptr() { return current_character_; }
-			character *		current_party_member() { return current_party_member_; }
-			pc *		current_pc() { return current_pc_; }
+			auto		current_character_ptr() -> character * { return current_character_; }
+			auto		current_party_member() -> character * { return current_party_member_; }
+			auto		current_pc() -> pc * { return current_pc_; }
 
-			dungeon *		current_dungeon();
+			auto		current_dungeon() -> dungeon *;
 			void		select_dungeon(dungeon * dungeon_value);
 
 			void		clear_script();
@@ -149,23 +149,23 @@ namespace quest
 
 			void		build_state_index_to_name(const char* quest_name);
 
-			int			quest_state_index(const std::string& quest_name, const std::string& state_name);
-			const char*		quest_state_name(const std::string& quest_name, const int state_index);
+			auto			quest_state_index(const std::string& quest_name, const std::string& state_name) -> int;
+			auto		quest_state_name(const std::string& quest_name, const int state_index) -> const char*;
 
 			void		set_skin_style(int style);
 
 			void		set_no_send() { no_send_ = true; }
 
-			unsigned int	load_timer_script(const std::string& name);
+			auto	load_timer_script(const std::string& name) -> unsigned int;
 
 			void		register_quest(const std::string & quest_name, unsigned int idx);
-			unsigned int 	quest_index_by_name(const std::string& name);
-			const std::string& 	quest_name_by_index(unsigned int idx);
+			auto 	quest_index_by_name(const std::string& name) -> unsigned int;
+			auto 	quest_name_by_index(unsigned int idx) -> const std::string&;
 
 			void		request_set_event_flag(const std::string& name, int value);
 
 			void		set_event_flag(const std::string& name, int value);
-			int			event_flag(const std::string& name);
+			auto			event_flag(const std::string& name) -> int;
 			void		broadcast_event_flag_on_login(character * ch);
 
 			void		send_event_flag_list(character * ch);
@@ -174,7 +174,7 @@ namespace quest
 
 			void		set_error() { error_ = true; }
 			void		clear_error() { error_ = false; }
-			bool		is_error() { return error_; }
+			auto		is_error() -> bool { return error_; }
 			void		write_running_state_to_syserr();
 
 			void		register_npc_vnum(uint32_t vnum);
@@ -219,7 +219,7 @@ namespace quest
 
 			struct stringhash
 			{
-				size_t operator () (const std::string& str) const
+				auto operator () (const std::string& str) const -> size_t
 				{
 					const unsigned char * s = (const unsigned char*) str.c_str();
 					const unsigned char * end = s + str.size();
@@ -246,15 +246,15 @@ namespace quest
 			bool						error_;
 
 		public:
-			static bool execute_quest_script(pc& pc, const std::string& quest_name, const int state, const char* code, const int code_size, std::vector<a_arg_script*>* chat_scripts_value = nullptr, bool use_cache = true);
-			static bool execute_quest_script(pc& pc, uint32_t quest_index, const int state, const char* code, const int code_size, std::vector<a_arg_script*>* chat_scripts = nullptr, bool use_cache = true);
+			static auto execute_quest_script(pc& pc, const std::string& quest_name, const int state, const char* code, const int code_size, std::vector<a_arg_script*>* chat_scripts_value = nullptr, bool use_cache = true) -> bool;
+			static auto execute_quest_script(pc& pc, uint32_t quest_index, const int state, const char* code, const int code_size, std::vector<a_arg_script*>* chat_scripts = nullptr, bool use_cache = true) -> bool;
 		
 
 		public:
 			void		begin_other_pc_block(uint32_t pid);
 			void		end_other_pc_block();
-			bool		is_in_other_pc_block();
-			pc*			other_pc_block_root_pc();
+			auto		is_in_other_pc_block() -> bool;
+			auto			other_pc_block_root_pc() -> pc*;
 		private:
 			pc*			other_pc_block_root_pc_;
 			std::vector <uint32_t>	pc_stack_;

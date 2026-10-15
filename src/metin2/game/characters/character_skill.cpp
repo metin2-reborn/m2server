@@ -63,7 +63,7 @@ static const uint32_t sub_skill_vnums[] =
 	SKILL_RESIST_PENETRATE
 };
 
-time_t character::skill_next_read_time(uint32_t vnum) const
+auto character::skill_next_read_time(uint32_t vnum) const -> time_t
 {
 	if (vnum >= SKILL_MAX_NUM)
 	{
@@ -80,7 +80,7 @@ void character::set_skill_next_read_time(uint32_t vnum, time_t time)
 		skill_levels_[vnum].t_next_read = time;
 }
 
-bool skill_use_info::hit_once(uint32_t vnum)
+auto skill_use_info::hit_once(uint32_t vnum) -> bool
 {
 	if (!used)
 		return false;
@@ -109,7 +109,7 @@ bool skill_use_info::hit_once(uint32_t vnum)
 	return false;
 }
 
-bool skill_use_info::use_skill(bool is_grand_master_value, uint32_t vid_value, uint32_t cooltime, int splashcount, int hitcount, int range_value)
+auto skill_use_info::use_skill(bool is_grand_master_value, uint32_t vid_value, uint32_t cooltime, int splashcount, int hitcount, int range_value) -> bool
 {
 	this->is_grand_master = is_grand_master_value;
 	uint32_t dwCur = get_dword_time();
@@ -139,7 +139,7 @@ bool skill_use_info::use_skill(bool is_grand_master_value, uint32_t vid_value, u
 	return true;
 }
 
-int character::chain_lightning_max_count() const
+auto character::chain_lightning_max_count() const -> int
 { 
 	return chain_lightning_count_by_skill_level[std::min(SKILL_MAX_LEVEL, skill_level(SKILL_CHAIN))];
 }
@@ -166,7 +166,7 @@ void character::set_skill_group(uint8_t skill_group_value)
 	get_desc()->packet(&p, sizeof(packet_gc_change_skill_group));
 }
 
-int character::compute_cooltime(int time)
+auto character::compute_cooltime(int time) -> int
 {
 	return calculate_duration(point(POINT_CASTING_SPEED), time);
 }
@@ -206,7 +206,7 @@ void character::set_skill_level(uint32_t vnum, uint8_t lev)
 		skill_levels_[vnum].master_type = SKILL_NORMAL;
 }
 
-bool character::is_learnable_skill(uint32_t skill_vnum) const
+auto character::is_learnable_skill(uint32_t skill_vnum) const -> bool
 {
 	const skill_proto * pkSkill = skill_manager::instance().get(skill_vnum);
 
@@ -274,7 +274,7 @@ bool character::is_learnable_skill(uint32_t skill_vnum) const
 	return false;
 }
 
-bool character::learn_grand_master_skill(uint32_t skill_vnum)
+auto character::learn_grand_master_skill(uint32_t skill_vnum) -> bool
 {
 	skill_proto * pkSk = skill_manager::instance().get(skill_vnum);
 
@@ -371,7 +371,7 @@ bool character::learn_grand_master_skill(uint32_t skill_vnum)
 	return true;
 }
 
-static bool fn_should_check_exp(character * ch)
+static auto fn_should_check_exp(character * ch) -> bool
 {
 
 	return true;
@@ -379,7 +379,7 @@ static bool fn_should_check_exp(character * ch)
 	return false;
 }
 
-bool character::learn_skill_by_book(uint32_t skill_vnum, uint8_t prob)
+auto character::learn_skill_by_book(uint32_t skill_vnum, uint8_t prob) -> bool
 {
 	const skill_proto* pkSk = skill_manager::instance().get(skill_vnum);
 
@@ -545,7 +545,7 @@ bool character::learn_skill_by_book(uint32_t skill_vnum, uint8_t prob)
 	return true;
 }
 
-bool character::skill_level_down(uint32_t vnum_value)
+auto character::skill_level_down(uint32_t vnum_value) -> bool
 {
 	if (nullptr == skill_levels_)
 		return false;
@@ -857,7 +857,7 @@ struct f_find_near_victim
 		}
 	}
 
-	character * victim()
+	auto victim() -> character *
 	{
 		return chr_next_target;
 	}
@@ -1468,7 +1468,7 @@ EVENTINFO(skill_gwihwan_info)
 
 };
 
-int character::compute_skill_at_position(uint32_t vnum_value, const pixel_position& pos_target, uint8_t skill_level_value)
+auto character::compute_skill_at_position(uint32_t vnum_value, const pixel_position& pos_target, uint8_t skill_level_value) -> int
 {
 	if (get_mount_vnum())
 		return BATTLE_NONE;
@@ -1743,7 +1743,7 @@ int character::compute_skill_at_position(uint32_t vnum_value, const pixel_positi
 	}
 }
 
-int character::compute_skill(uint32_t vnum_value, character * victim, uint8_t skill_level_value)
+auto character::compute_skill(uint32_t vnum_value, character * victim, uint8_t skill_level_value) -> int
 {
 	const bool bCanUseHorseSkill = can_use_horse_skill();
 
@@ -2166,7 +2166,7 @@ int character::compute_skill(uint32_t vnum_value, character * victim, uint8_t sk
 	}
 }
 
-bool character::use_skill(uint32_t vnum_value, character * victim, bool use_grand_master)
+auto character::use_skill(uint32_t vnum_value, character * victim, bool use_grand_master) -> bool
 {
 	if (false == can_use_skill(vnum_value))
 		return false;
@@ -2377,7 +2377,7 @@ bool character::use_skill(uint32_t vnum_value, character * victim, bool use_gran
 	return true;
 }
 
-int character::used_skill_master_type(uint32_t vnum)
+auto character::used_skill_master_type(uint32_t vnum) -> int
 {
 	const skill_use_info& rInfo = skill_use_info_[vnum];
 
@@ -2390,7 +2390,7 @@ int character::used_skill_master_type(uint32_t vnum)
 	return std::min<int>(skill_master_type(vnum), SKILL_MASTER);
 }
 
-int character::skill_master_type(uint32_t vnum) const
+auto character::skill_master_type(uint32_t vnum) const -> int
 {
 	if (!is_pc())
 		return 0;
@@ -2404,7 +2404,7 @@ int character::skill_master_type(uint32_t vnum) const
 	return skill_levels_ ? skill_levels_[vnum].master_type : static_cast<uint8_t>(SKILL_NORMAL);
 }
 
-int character::skill_power(uint32_t vnum, uint8_t level) const
+auto character::skill_power(uint32_t vnum, uint8_t level) const -> int
 {
 	if (vnum >= SKILL_LANGUAGE1 && vnum <= SKILL_LANGUAGE3 && is_equip_unique_group(UNIQUE_GROUP_RING_OF_LANGUAGE))
 	{
@@ -2433,7 +2433,7 @@ int character::skill_power(uint32_t vnum, uint8_t level) const
 	return skill_power_by_level(skill_level(vnum));
 }
 
-int character::skill_level(uint32_t vnum) const
+auto character::skill_level(uint32_t vnum) const -> int
 {
 	if (vnum >= SKILL_MAX_NUM)
 	{
@@ -2544,12 +2544,12 @@ void character::disable_cooltime()
 	disable_cooltime_ = true;
 }
 
-bool character::has_mob_skill() const
+auto character::has_mob_skill() const -> bool
 {
 	return count_mob_skill() > 0;
 }
 
-size_t character::count_mob_skill() const
+auto character::count_mob_skill() const -> size_t
 {
 	if (!mob_data)
 		return 0;
@@ -2563,7 +2563,7 @@ size_t character::count_mob_skill() const
 	return c;
 }
 
-const mob_skill_info* character::mob_skill(unsigned int idx) const
+auto character::mob_skill(unsigned int idx) const -> const mob_skill_info*
 {
 	if (idx >= MOB_SKILL_MAX_NUM)
 		return nullptr;
@@ -2577,7 +2577,7 @@ const mob_skill_info* character::mob_skill(unsigned int idx) const
 	return &mob_data->mob_skill_info[idx];
 }
 
-bool character::can_use_mob_skill(unsigned int idx) const
+auto character::can_use_mob_skill(unsigned int idx) const -> bool
 {
 	const mob_skill_info* pInfo = mob_skill(idx);
 
@@ -2632,7 +2632,7 @@ EVENTFUNC(mob_skill_hit_event)
 	return 0;
 }
 
-bool character::use_mob_skill(unsigned int idx)
+auto character::use_mob_skill(unsigned int idx) -> bool
 {
 	if (is_pc())
 		return false;
@@ -2712,7 +2712,7 @@ void character::reset_mob_skill_cooltime()
 	memset(mob_skill_cooltime_, 0, sizeof(mob_skill_cooltime_));
 }
 
-bool character::is_usable_skill_motion(uint32_t motion_index) const
+auto character::is_usable_skill_motion(uint32_t motion_index) const -> bool
 {
 	uint32_t selfJobGroup = (job()+1) * 10 + skill_group();
 
@@ -3117,7 +3117,7 @@ void character::clear_sub_skill()
 	skill_level_packet();
 }
 
-bool character::reset_one_skill(uint32_t vnum)
+auto character::reset_one_skill(uint32_t vnum) -> bool
 {
 	if (nullptr == skill_levels_)
 	{
@@ -3150,7 +3150,7 @@ bool character::reset_one_skill(uint32_t vnum)
 	return true;
 }
 
-bool character::can_use_skill(uint32_t skill_vnum) const
+auto character::can_use_skill(uint32_t skill_vnum) const -> bool
 {
 	if (0 == skill_vnum) return false;
 
@@ -3204,7 +3204,7 @@ bool character::can_use_skill(uint32_t skill_vnum) const
 	return false;
 }
 
-bool character::check_skill_hit_count(const uint8_t skill_id, const vid target_vid)
+auto character::check_skill_hit_count(const uint8_t skill_id, const vid target_vid) -> bool
 {
 	std::map<int, skill_use_info>::iterator iter = skill_use_info_.find(skill_id);
 

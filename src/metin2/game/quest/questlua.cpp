@@ -40,7 +40,7 @@ namespace metin2::game {
 
 namespace quest
 {
-	std::string script_to_string(const std::string& str)
+	auto script_to_string(const std::string& str) -> std::string
 	{
 		lua_State* L = quest_manager::instance().lua_state();
 		int x = lua_gettop(L);
@@ -79,7 +79,7 @@ namespace quest
 			pPC->set_flag(flagname, value);
 	}
 
-	bool f_party_check_flag_lt::operator() (character * ch)
+	auto f_party_check_flag_lt::operator() (character * ch) -> bool
 	{
 		if (!ch->is_pc())
 			return false;
@@ -178,7 +178,7 @@ namespace quest
 		lua_rawseti(l, -2, count++);
 	}
 
-	bool is_script_true(const char* code, int size)
+	auto is_script_true(const char* code, int size) -> bool
 	{
 		if (size==0)
 			return true;
@@ -214,7 +214,7 @@ namespace quest
 		}
 	}
 
-	int highscore_show(lua_State* lua)
+	auto highscore_show(lua_State* lua) -> int
 	{
 		quest_manager & q = quest_manager::instance();
 		const char * pszBoardName = lua_isstring(lua, 1) ? lua_tostring(lua, 1) : "";
@@ -227,7 +227,7 @@ namespace quest
 		return 0;
 	}
 
-	int highscore_register(lua_State* lua)
+	auto highscore_register(lua_State* lua) -> int
 	{
 		quest_manager & q = quest_manager::instance();
 
@@ -243,7 +243,7 @@ namespace quest
 		return 1;
 	}
 
-	int member_chat(lua_State* lua)
+	auto member_chat(lua_State* lua) -> int
 	{
 		std::ostringstream s;
 		combine_lua_string(lua, s);
@@ -251,21 +251,21 @@ namespace quest
 		return 0;
 	}
 
-	int member_clear_ready(lua_State* lua)
+	auto member_clear_ready(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_party_member();
 		ch->remove_affect(AFFECT_DUNGEON_READY);
 		return 0;
 	}
 
-	int member_set_ready(lua_State* lua)
+	auto member_set_ready(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_party_member();
 		ch->add_affect(AFFECT_DUNGEON_READY, POINT_NONE, 0, AFF_DUNGEON_READY, 65535, 0, true);
 		return 0;
 	}
 
-	int mob_spawn(lua_State* lua)
+	auto mob_spawn(lua_State* lua) -> int
 	{
 		if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2) || !lua_isnumber(lua, 3) || !lua_isnumber(lua, 4))
 		{
@@ -335,7 +335,7 @@ namespace quest
 		return 1;
 	}
 
-	int mob_spawn_group(lua_State* lua)
+	auto mob_spawn_group(lua_State* lua) -> int
 	{
 		if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2) || !lua_isnumber(lua, 3) || !lua_isnumber(lua, 4) || !lua_isnumber(lua, 6))
 		{
@@ -447,7 +447,7 @@ namespace quest
 		lua_settop(l_, x);
 	}
 
-	bool quest_manager::initialize_lua()
+	auto quest_manager::initialize_lua() -> bool
 	{
 		l_ = lua_open();
 
@@ -738,7 +738,7 @@ namespace quest
 	}
 
 
-	quest_state quest_manager::open_state(const std::string& quest_name, int state_index)
+	auto quest_manager::open_state(const std::string& quest_name, int state_index) -> quest_state
 	{
 		quest_state qs;
 		qs.args=0;
@@ -748,7 +748,7 @@ namespace quest
 		return qs;
 	}
 
-	bool quest_manager::run_state(quest_state & qs)
+	auto quest_manager::run_state(quest_state & qs) -> bool
 	{
 		clear_error();
 

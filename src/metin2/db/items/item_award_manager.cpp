@@ -43,9 +43,9 @@ void item_award_manager::request_load()
 	db_manager::instance().return_query(szQuery, QID_ITEM_AWARD_LOAD, 0, nullptr);
 }
 
-void item_award_manager::load(ql_msg * msg)
+void item_award_manager::load(sql_msg * msg)
 {
-	MYSQL_RES * pRes = msg->get()->sql_result;
+	MYSQL_RES * pRes = msg->get()->res;
 
 	for (uint i = 0; i < msg->get()->num_rows; ++i)
 	{
@@ -88,7 +88,7 @@ void item_award_manager::load(ql_msg * msg)
 	}
 }
 
-std::set<item_award *> * item_award_manager::by_login(const char * login)
+auto item_award_manager::by_login(const char * login) -> std::set<item_award *> *
 {
 	auto it = map_k_set_award_by_login_.find(login);
 
@@ -120,12 +120,12 @@ void item_award_manager::taken(uint32_t award_id, uint32_t item_id)
 	db_manager::instance().return_query(szQuery, QID_ITEM_AWARD_TAKEN, 0, nullptr);
 }
 
-std::map<uint32_t, item_award *>& item_award_manager::map_award()
+auto item_award_manager::map_award() -> std::map<uint32_t, item_award *>&
 {
 	return map_award_;
 }
 
-std::map<std::string, std::set<item_award *> >& item_award_manager::mapk_set_award_by_login()
+auto item_award_manager::mapk_set_award_by_login() -> std::map<std::string, std::set<item_award *> >&
 {
 	return map_k_set_award_by_login_;
 }

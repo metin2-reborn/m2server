@@ -95,7 +95,7 @@ void horse_rider::enter_horse()
 	check_horse_health_drop_time(false);
 }
 
-bool horse_rider::revive_horse()
+auto horse_rider::revive_horse() -> bool
 {
 	if (horse_level() <= 0)
 		return false;
@@ -114,13 +114,13 @@ bool horse_rider::revive_horse()
 	return true;
 }
 
-short horse_rider::horse_max_health()
+auto horse_rider::horse_max_health() -> short
 {
 	int level = horse_level();
 	return c_a_horse_stat[level].max_health;
 }
 
-short horse_rider::horse_max_stamina()
+auto horse_rider::horse_max_stamina() -> short
 {
 	int level = horse_level();
 	return c_a_horse_stat[level].max_stamina;
@@ -164,7 +164,7 @@ void horse_rider::update_horse_stamina(int stamina, bool send)
 		send_horse_info();
 }
 
-bool horse_rider::start_riding()
+auto horse_rider::start_riding() -> bool
 {
 	if (horse_.riding)
 		return false;
@@ -184,7 +184,7 @@ bool horse_rider::start_riding()
 	return true;
 }
 
-bool horse_rider::stop_riding()
+auto horse_rider::stop_riding() -> bool
 {
 	if (!horse_.riding)
 		return false;
@@ -363,7 +363,7 @@ void horse_rider::set_horse_level(int level_value)
 	send_horse_info();
 }
 
-uint8_t horse_rider::horse_grade()
+auto horse_rider::horse_grade() -> uint8_t
 {
 	uint8_t grade = 0;
 

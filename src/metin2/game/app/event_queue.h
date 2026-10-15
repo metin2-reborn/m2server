@@ -22,13 +22,13 @@ class event_queue
 		~event_queue();
 
 		event_queue(const event_queue &) = delete;
-		event_queue & operator=(const event_queue &) = delete;
+		auto operator=(const event_queue &) -> event_queue & = delete;
 
-		queue_element *	enqueue(event_ptr data, int duration, int pulse);
-		queue_element *	dequeue();
+		auto	enqueue(event_ptr data, int duration, int pulse) -> queue_element *;
+		auto	dequeue() -> queue_element *;
 		void		remove(queue_element * elem);
-		int		top_key();
-		int		size();
+		auto		top_key() -> int;
+		auto		size() -> int;
 
 	private:
 		std::multimap<int, queue_element *> queue_;

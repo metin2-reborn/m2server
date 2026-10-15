@@ -59,7 +59,7 @@ void safebox::destroy()
 	grid_.reset();
 }
 
-bool safebox::add(uint32_t pos, item * item_value)
+auto safebox::add(uint32_t pos, item * item_value) -> bool
 {
 	if (!is_valid_position(pos))
 	{
@@ -101,7 +101,7 @@ void safebox::send_item_set(uint32_t pos)
 	chr_owner_->get_desc()->packet(&pack, sizeof(pack));
 }
 
-item * safebox::get(uint32_t pos)
+auto safebox::get(uint32_t pos) -> item *
 {
 	if (!grid_ || pos >= grid_->size())
 		return nullptr;
@@ -109,7 +109,7 @@ item * safebox::get(uint32_t pos)
 	return items_[pos];
 }
 
-item * safebox::remove(uint32_t pos_value)
+auto safebox::remove(uint32_t pos_value) -> item *
 {
 	item * pkItem = get(pos_value);
 
@@ -148,7 +148,7 @@ void safebox::save()
 	metin2::log::debug( "SAFEBOX: SAVE {}", chr_owner_->name());
 }
 
-bool safebox::is_empty(uint32_t pos, uint8_t size)
+auto safebox::is_empty(uint32_t pos, uint8_t size) -> bool
 {
 	if (!grid_)
 		return false;
@@ -169,7 +169,7 @@ void safebox::change_size(int size)
 		grid_ = std::make_unique<grid>(5, size_);
 }
 
-item * safebox::get_item(uint8_t cell)
+auto safebox::get_item(uint8_t cell) -> item *
 {
 	if (cell >= 5 * size_)
 	{
@@ -180,7 +180,7 @@ item * safebox::get_item(uint8_t cell)
 	return items_[cell];
 }
 
-bool safebox::move_item(uint8_t cell, uint8_t dest_cell, uint8_t count)
+auto safebox::move_item(uint8_t cell, uint8_t dest_cell, uint8_t count) -> bool
 {
 	item * item;
 
@@ -257,7 +257,7 @@ bool safebox::move_item(uint8_t cell, uint8_t dest_cell, uint8_t count)
 	return true;
 }
 
-bool safebox::is_valid_position(uint32_t pos)
+auto safebox::is_valid_position(uint32_t pos) -> bool
 {
 	if (!grid_)
 		return false;

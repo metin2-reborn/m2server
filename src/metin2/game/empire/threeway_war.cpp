@@ -102,7 +102,7 @@ void three_way_war::initialize()
 	revive_token_map_.clear();
 }
 
-int three_way_war::kill_score( uint8_t empire ) const
+auto three_way_war::kill_score( uint8_t empire ) const -> int
 {
 	if( empire <= 0 || empire >= EMPIRE_MAX_NUM )
 	{
@@ -132,7 +132,7 @@ void three_way_war::set_revive_token_for_player(uint32_t player_id, int count)
 	revive_token_map_[player_id] = count;
 }
 
-int three_way_war::revive_token_for_player(uint32_t player_id)
+auto three_way_war::revive_token_for_player(uint32_t player_id) -> int
 {
 	if (0 == player_id)
 		return 0;
@@ -148,7 +148,7 @@ void three_way_war::decrease_revive_token_for_player(uint32_t player_id)
 	revive_token_map_[player_id] = revive_token_map_[player_id] - 1;
 }
 
-bool three_way_war::load_setting(const char* file_name)
+auto three_way_war::load_setting(const char* file_name) -> bool
 {
 	char szPath[1024];
 	snprintf( szPath, sizeof(szPath), "%s/%s", locale_service_get_base_path().c_str(), file_name);
@@ -213,26 +213,26 @@ bool three_way_war::load_setting(const char* file_name)
 	return true;
 }
 
-const forked_pass_map_info& three_way_war::event_pass_map_info() const
+auto three_way_war::event_pass_map_info() const -> const forked_pass_map_info&
 {
 	const size_t idx = quest::quest_manager::instance().event_flag( "threeway_war_pass_idx" );
 
 	return pass_info_map_[idx];
 }
 
-const forked_sungzi_map_info& three_way_war::event_sung_zi_map_info() const
+auto three_way_war::event_sung_zi_map_info() const -> const forked_sungzi_map_info&
 {
 	const size_t idx = quest::quest_manager::instance().event_flag( "threeway_war_sungzi_idx" );
 
 	return sung_zi_info_map_[idx];
 }
 
-bool three_way_war::is_three_way_war_map_index(int map_index) const
+auto three_way_war::is_three_way_war_map_index(int map_index) const -> bool
 {
 	return map_index_set_.find(map_index) != map_index_set_.end();
 }
 
-bool three_way_war::is_sung_zi_map_index(int map_index) const
+auto three_way_war::is_sung_zi_map_index(int map_index) const -> bool
 {
 	std::vector<forked_sungzi_map_info>::const_iterator it = sung_zi_info_map_.begin();
 
@@ -256,7 +256,7 @@ void three_way_war::random_event_map_set()
 	quest::quest_manager::instance().request_set_event_flag( "threeway_war_pass_idx", pass_idx );
 }
 
-bool three_way_war::is_registered_user(uint32_t player_id) const
+auto three_way_war::is_registered_user(uint32_t player_id) const -> bool
 {
 	std::unordered_map<uint32_t, uint32_t>::const_iterator iter = register_user_map_.find(player_id);
 
@@ -276,7 +276,7 @@ void three_way_war::register_user(uint32_t player_id)
 	register_user_map_.insert( std::make_pair(player_id, player_id) );
 }
 
-int get_kill_value(int level)
+auto get_kill_value(int level) -> int
 {
 	int iMinLevelFor1Point, iMaxLevelFor1Point;
 	int iMinLevelFor2Point, iMaxLevelFor2Point;
@@ -567,7 +567,7 @@ void three_way_war::remove_all_monsters_in_three_way() const
 	}
 }
 
-const char* get_sungzi_map_path()
+auto get_sungzi_map_path() -> const char*
 {
 	static char s_szMapPath[128];
 
@@ -578,7 +578,7 @@ const char* get_sungzi_map_path()
 	return s_szMapPath;
 }
 
-const char* get_pass_map_path( uint8_t empire )
+auto get_pass_map_path( uint8_t empire ) -> const char*
 {
 	if (empire > 0 && empire < EMPIRE_MAX_NUM)
 	{
@@ -594,7 +594,7 @@ const char* get_pass_map_path( uint8_t empire )
 	return nullptr;
 }
 
-int get_pass_map_index( uint8_t empire )
+auto get_pass_map_index( uint8_t empire ) -> int
 {
 	if (empire > 0 && empire < EMPIRE_MAX_NUM)
 	{
@@ -604,12 +604,12 @@ int get_pass_map_index( uint8_t empire )
 	return 0;
 }
 
-int get_sungzi_map_index()
+auto get_sungzi_map_index() -> int
 {
 	return three_way_war::instance().event_sung_zi_map_info().forked_sung;
 }
 
-int get_sungzi_start_x( uint8_t empire )
+auto get_sungzi_start_x( uint8_t empire ) -> int
 {
 	if (empire > 0 && empire < EMPIRE_MAX_NUM)
 	{
@@ -619,7 +619,7 @@ int get_sungzi_start_x( uint8_t empire )
 	return 0;
 }
 
-int get_sungzi_start_y( uint8_t empire )
+auto get_sungzi_start_y( uint8_t empire ) -> int
 {
 	if (empire > 0 && empire < EMPIRE_MAX_NUM)
 	{

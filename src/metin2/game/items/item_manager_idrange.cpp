@@ -12,7 +12,7 @@
 
 namespace metin2::game::inline items {
 
-int touch(const char *path)
+auto touch(const char *path) -> int
 {
 	FILE	*fp;
 
@@ -26,7 +26,7 @@ int touch(const char *path)
 	return 0;
 }
 
-uint32_t item_manager::new_id()
+auto item_manager::new_id() -> uint32_t
 {
 	assert(current_id_ != 0);
 
@@ -57,7 +57,7 @@ uint32_t item_manager::new_id()
 	return (current_id_++);
 }
 
-bool item_manager::set_max_item_id(item_id_range_table range)
+auto item_manager::set_max_item_id(item_id_range_table range) -> bool
 {
 	item_id_range_ = range;
 
@@ -76,7 +76,7 @@ bool item_manager::set_max_item_id(item_id_range_table range)
 	return true;
 }
 
-bool item_manager::set_max_spare_item_id(item_id_range_table range)
+auto item_manager::set_max_spare_item_id(item_id_range_table range) -> bool
 {
 	if ( range.min == 0 || range.max == 0 || range.usable_item_id_min == 0 )
 	{

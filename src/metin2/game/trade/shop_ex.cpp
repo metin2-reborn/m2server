@@ -22,13 +22,13 @@
 
 namespace metin2::game::inline trade {
 
-bool shop_ex::create(uint32_t vnum, uint32_t npc_vnum)
+auto shop_ex::create(uint32_t vnum, uint32_t npc_vnum) -> bool
 {
 	vnum_ = vnum;
 	return true;
 }
 
-bool shop_ex::add_shop_table(shop_table_ex& shop_table)
+auto shop_ex::add_shop_table(shop_table_ex& shop_table) -> bool
 {
 	for (auto it = vec_shop_tabs_.begin(); it != vec_shop_tabs_.end(); it++)
 	{
@@ -42,7 +42,7 @@ bool shop_ex::add_shop_table(shop_table_ex& shop_table)
 	return true;
 }
 
-bool shop_ex::add_guest(character * ch,uint32_t owner_vid, bool other_empire)
+auto shop_ex::add_guest(character * ch,uint32_t owner_vid, bool other_empire) -> bool
 {
 	if (!ch)
 		return false;
@@ -112,7 +112,7 @@ bool shop_ex::add_guest(character * ch,uint32_t owner_vid, bool other_empire)
 	return true;
 }
 
-int shop_ex::buy(character * ch, uint8_t pos)
+auto shop_ex::buy(character * ch, uint8_t pos) -> int
 {
 	uint8_t tabIdx = pos / SHOP_HOST_ITEM_MAX_NUM;
 	uint8_t slotPos = pos % SHOP_HOST_ITEM_MAX_NUM;

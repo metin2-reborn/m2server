@@ -15,7 +15,7 @@ namespace metin2::game {
 namespace quest
 {
 
-	int pet_summon(lua_State* lua)
+	auto pet_summon(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		pet_system* petSystem = ch->get_pet_system();
@@ -48,7 +48,7 @@ namespace quest
 		return 1;
 	}
 
-	int pet_unsummon(lua_State* lua)
+	auto pet_unsummon(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		pet_system* petSystem = ch->get_pet_system();
@@ -62,7 +62,7 @@ namespace quest
 		return 1;
 	}
 
-	int pet_count_summoned(lua_State* lua)
+	auto pet_count_summoned(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		pet_system* petSystem = ch->get_pet_system();
@@ -77,7 +77,7 @@ namespace quest
 		return 1;
 	}
 
-	int pet_is_summon(lua_State* lua)
+	auto pet_is_summon(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		pet_system* petSystem = ch->get_pet_system();
@@ -97,7 +97,7 @@ namespace quest
 		return 1;
 	}
 
-	int pet_spawn_effect(lua_State* lua)
+	auto pet_spawn_effect(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		pet_system* petSystem = ch->get_pet_system();

@@ -20,7 +20,7 @@ void client_manager::update_horse_name(packet_update_horse_name* data, peer* pee
 {
 	const std::string query = sql::format("REPLACE INTO horse_name VALUES({}, {})", data->player_id, data->horse_name);
 
-	std::unique_ptr<ql_msg> pmsg_insert(db_manager::instance().direct_query(query.c_str()));
+	std::unique_ptr<sql_msg> pmsg_insert(db_manager::instance().direct_query(query.c_str()));
 
 	forward_packet(HEADER_DG_UPDATE_HORSE_NAME, data, sizeof(packet_update_horse_name), 0, peer);
 }
@@ -31,7 +31,7 @@ void client_manager::ack_horse_name(uint32_t pid, peer* peer)
 
 	snprintf(szQuery, sizeof(szQuery), "SELECT name FROM horse_name WHERE id = %u", pid);
 
-	std::unique_ptr<ql_msg> pmsg(db_manager::instance().direct_query(szQuery));
+	std::unique_ptr<sql_msg> pmsg(db_manager::instance().direct_query(szQuery));
 
 	packet_update_horse_name packet;
 	packet.player_id = pid;
@@ -42,7 +42,7 @@ void client_manager::ack_horse_name(uint32_t pid, peer* peer)
 	}
 	else
 	{
-		MYSQL_ROW row = mysql_fetch_row(pmsg->get()->sql_result);
+		MYSQL_ROW row = mysql_fetch_row(pmsg->get()->res);
 		strlcpy(packet.horse_name, row[0], sizeof(packet.horse_name));
 	}
 

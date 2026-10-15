@@ -37,12 +37,12 @@
 namespace metin2::game::inline protocol {
 
 
-bool is_empty_admin_page()
+auto is_empty_admin_page() -> bool
 {
 	return metin2::config::server().admin.ips.empty();
 }
 
-bool is_admin_page(const char * ip)
+auto is_admin_page(const char * ip) -> bool
 {
 	for (size_t n = 0; n < metin2::config::server().admin.ips.size(); ++n)
 	{
@@ -63,7 +63,7 @@ void input_processor::bind_packet_info(packet_info * packet_info_value)
 	packet_info_ = packet_info_value;
 }
 
-bool input_processor::process(desc * desc_value, const void * orig, int bytes, int & r_i_bytes_proceed)
+auto input_processor::process(desc * desc_value, const void * orig, int bytes, int & r_i_bytes_proceed) -> bool
 {
 	const char * c_pData = (const char *) orig;
 
@@ -264,7 +264,7 @@ input_handshake::~input_handshake()
 
 
 
-int input_handshake::analyze(desc * d, uint8_t header_value, const char * data_value)
+auto input_handshake::analyze(desc * d, uint8_t header_value, const char * data_value) -> int
 {
 	if (header_value == 10)
 		return 0;

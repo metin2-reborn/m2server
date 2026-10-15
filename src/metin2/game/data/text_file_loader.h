@@ -32,28 +32,28 @@ class text_file_loader
 		text_file_loader();
 		virtual ~text_file_loader();
 
-		bool load(const char * file_name);
+		auto load(const char * file_name) -> bool;
 
 		void set_top();
-		uint32_t child_node_count();
-		bool set_child_node(const char * key);
-		bool set_child_node(const std::string & rstr_key_head, uint32_t index);
-		bool set_child_node(uint32_t index);
-		bool set_parent_node();
-		bool current_node_name(std::string * pstr_name);
+		auto child_node_count() -> uint32_t;
+		auto set_child_node(const char * key) -> bool;
+		auto set_child_node(const std::string & rstr_key_head, uint32_t index) -> bool;
+		auto set_child_node(uint32_t index) -> bool;
+		auto set_parent_node() -> bool;
+		auto current_node_name(std::string * pstr_name) -> bool;
 
-		bool get_token_vector(const std::string & rstr_key, token_vector ** pp_token_vector);
-		bool token_integer(const std::string & rstr_key, int * data);
-		bool token_double_word(const std::string & rstr_key, uint32_t * data);
-		bool token_float(const std::string & rstr_key, float * data);
+		auto get_token_vector(const std::string & rstr_key, token_vector ** pp_token_vector) -> bool;
+		auto token_integer(const std::string & rstr_key, int * data) -> bool;
+		auto token_double_word(const std::string & rstr_key, uint32_t * data) -> bool;
+		auto token_float(const std::string & rstr_key, float * data) -> bool;
 
-		bool token_vector3(const std::string & rstr_key, vector * vector3);
+		auto token_vector3(const std::string & rstr_key, vector * vector3) -> bool;
 
-		bool token_position(const std::string & rstr_key, vector * vector_value);
-		bool token_string(const std::string & rstr_key, std::string * string_value);
+		auto token_position(const std::string & rstr_key, vector * vector_value) -> bool;
+		auto token_string(const std::string & rstr_key, std::string * string_value) -> bool;
 
 	protected:
-		bool load_group(group_node * group_node_value);
+		auto load_group(group_node * group_node_value) -> bool;
 
 	protected:
 		std::string					file_name_;

@@ -11,7 +11,7 @@
 
 namespace metin2::game::inline combat {
 
-bool table_by_skill::check() const
+auto table_by_skill::check() const -> bool
 {
 	for (int job = 0; job < (JOB_MAX_NUM * 2); ++job)
 	{
@@ -35,7 +35,7 @@ void table_by_skill::delete_all()
 	delete_skill_damage_by_level_table();
 }
 
-int table_by_skill::skill_power_by_level_from_type(int job, int skillgroup, int skilllevel, bool mob) const
+auto table_by_skill::skill_power_by_level_from_type(int job, int skillgroup, int skilllevel, bool mob) const -> int
 {
 	if (mob)
 	{

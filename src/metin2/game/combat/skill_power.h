@@ -13,11 +13,11 @@ class table_by_skill : public singleton<table_by_skill>
 		table_by_skill() = default;
 		~table_by_skill() override = default;
 
-		bool 	check() const;
+		auto 	check() const -> bool;
 
 		void 	delete_all();
 
-		int 	skill_power_by_level_from_type( int job, int skillgroup, int skilllevel, bool mob ) const;
+		auto 	skill_power_by_level_from_type( int job, int skillgroup, int skilllevel, bool mob ) const -> int;
 		void 	set_skill_power_by_level_from_type( int idx, const int* table );
 		void	delete_skill_power_by_level_from_type( int idx );
 

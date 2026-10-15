@@ -63,8 +63,8 @@ namespace quest
 
 	struct a_state_script_type
 	{
-		int		size() const { return code.size(); }
-		const char*	get_code() const { return &code[0]; }
+		auto		size() const -> int { return code.size(); }
+		auto	get_code() const -> const char* { return &code[0]; }
 
 		std::vector<char> code;
 	};

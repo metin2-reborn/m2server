@@ -31,8 +31,8 @@ class refine_manager : public singleton<refine_manager>
 	refine_manager();
 	~refine_manager() override;
 
-	bool	initialize(refine_table * table, int size);
-	const refine_table* refine_recipe(uint32_t vnum);
+	auto	initialize(refine_table * table, int size) -> bool;
+	auto refine_recipe(uint32_t vnum) -> const refine_table*;
 
 	private:
 	refine_recipe_map    map_refine_recipe_;

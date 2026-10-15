@@ -19,7 +19,7 @@ namespace metin2::game {
 
 namespace quest
 {
-	int horse_is_riding(lua_State* lua)
+	auto horse_is_riding(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -31,7 +31,7 @@ namespace quest
 		return 1;
 	}
 
-	int horse_is_summon(lua_State* lua)
+	auto horse_is_summon(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -47,21 +47,21 @@ namespace quest
 		return 1;
 	}
 
-	int horse_ride(lua_State* lua)
+	auto horse_ride(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		ch->start_riding();
 		return 0;
 	}
 
-	int horse_unride(lua_State* lua)
+	auto horse_unride(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		ch->stop_riding();
 		return 0;
 	}
 
-	int horse_summon(lua_State* lua)
+	auto horse_summon(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -74,14 +74,14 @@ namespace quest
 		return 0;
 	}
 
-	int horse_unsummon(lua_State* lua)
+	auto horse_unsummon(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		ch->horse_summon(false);
 		return 0;
 	}
 
-	int horse_is_mine(lua_State* lua)
+	auto horse_is_mine(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		character * horse = quest_manager::instance().current_npc_character_ptr();
@@ -90,7 +90,7 @@ namespace quest
 		return 1;
 	}
 
-	int horse_set_level(lua_State* lua)
+	auto horse_set_level(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -104,14 +104,14 @@ namespace quest
 		return 0;
 	}
 
-	int horse_get_level(lua_State* lua)
+	auto horse_get_level(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		lua_pushnumber(lua, ch->horse_level());
 		return 1;
 	}
 
-	int horse_advance(lua_State* lua)
+	auto horse_advance(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -124,7 +124,7 @@ namespace quest
 		return 0;
 	}
 
-	int horse_get_health(lua_State* lua)
+	auto horse_get_health(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -136,7 +136,7 @@ namespace quest
 		return 1;
 	}
 
-	int horse_get_health_pct(lua_State* lua)
+	auto horse_get_health_pct(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -151,7 +151,7 @@ namespace quest
 		return 1;
 	}
 
-	int horse_get_stamina(lua_State* lua)
+	auto horse_get_stamina(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -163,7 +163,7 @@ namespace quest
 		return 1;
 	}
 
-	int horse_get_stamina_pct(lua_State* lua)
+	auto horse_get_stamina_pct(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		int pct = std::clamp(ch->horse_stamina() * 100 / ch->horse_max_stamina(), 0, 100);
@@ -177,21 +177,21 @@ namespace quest
 		return 1;
 	}
 
-	int horse_get_grade(lua_State* lua)
+	auto horse_get_grade(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		lua_pushnumber(lua, ch->horse_grade());
 		return 1;
 	}
 
-	int horse_is_dead(lua_State* lua)
+	auto horse_is_dead(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		lua_pushboolean(lua, ch->horse_health()<=0);
 		return 1;
 	}
 
-	int horse_revive(lua_State* lua)
+	auto horse_revive(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		if (ch->horse_level() > 0 && ch->horse_health() <= 0)
@@ -201,7 +201,7 @@ namespace quest
 		return 0;
 	}
 
-	int horse_feed(lua_State* lua)
+	auto horse_feed(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		if (ch->horse_level() > 0 && ch->horse_health() > 0)
@@ -211,7 +211,7 @@ namespace quest
 		return 0;
 	}
 
-	int horse_set_name(lua_State* lua)
+	auto horse_set_name(lua_State* lua) -> int
 	{
 
 		if ( lua_isstring(lua, -1) != true ) return 0;
@@ -249,7 +249,7 @@ namespace quest
 		return 1;
 	}
 
-	int horse_get_name(lua_State* lua)
+	auto horse_get_name(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 

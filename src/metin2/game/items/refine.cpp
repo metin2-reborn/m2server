@@ -16,7 +16,7 @@ refine_manager::~refine_manager()
 {
 }
 
-bool refine_manager::initialize(refine_table * table, int size)
+auto refine_manager::initialize(refine_table * table, int size) -> bool
 {
 	for (int i = 0; i < size; ++i, ++table)
 	{
@@ -28,7 +28,7 @@ bool refine_manager::initialize(refine_table * table, int size)
 	return true;
 }
 
-const refine_table* refine_manager::refine_recipe(uint32_t vnum)
+auto refine_manager::refine_recipe(uint32_t vnum) -> const refine_table*
 {
 	if (vnum == 0)
 		return nullptr;

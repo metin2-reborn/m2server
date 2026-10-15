@@ -131,7 +131,7 @@ void buff_on_attributes::give_all_attributes()
 	}
 }
 
-bool buff_on_attributes::on(uint8_t value)
+auto buff_on_attributes::on(uint8_t value) -> bool
 {
 	if (0 != buff_value_ || 0 == value)
 		return false;

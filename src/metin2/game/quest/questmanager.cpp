@@ -71,7 +71,7 @@ namespace quest
 		}
 	}	
 
-	bool quest_manager::initialize()
+	auto quest_manager::initialize() -> bool
 	{
 		if (metin2::config::is_auth())
 			return true;
@@ -162,7 +162,7 @@ namespace quest
 		return true;
 	}
 
-	unsigned int quest_manager::find_npcid_by_name(const std::string& name)
+	auto quest_manager::find_npcid_by_name(const std::string& name) -> unsigned int
 	{
 		std::map<std::string, unsigned int>::iterator it = npc_name_id_.find(name);
 		return it != npc_name_id_.end() ? it->second : 0;
@@ -460,7 +460,7 @@ namespace quest
 			metin2::log::error("QUEST: no such pc id : {:d}", pc);
 	}
 
-	bool quest_manager::server_timer(unsigned int npc, unsigned int arg)
+	auto quest_manager::server_timer(unsigned int npc, unsigned int arg) -> bool
 	{
 		set_server_timer_arg(arg);
 		metin2::log::info( "XXX ServerTimer Call NPC {}", static_cast<const void *>(pc_force(0)));
@@ -470,7 +470,7 @@ namespace quest
 		return npc_[npc].on_server_timer(*current_pc_);
 	}
 
-	bool quest_manager::timer(unsigned int pc, unsigned int npc)
+	auto quest_manager::timer(unsigned int pc, unsigned int npc) -> bool
 	{
 		game::quest::pc* pPC;
 
@@ -540,7 +540,7 @@ namespace quest
 		}
 	}
 
-	bool quest_manager::target(unsigned int pc, uint32_t quest_index, const char * target_name, const char * verb)
+	auto quest_manager::target(unsigned int pc, uint32_t quest_index, const char * target_name, const char * verb) -> bool
 	{
 		game::quest::pc * pPC;
 
@@ -602,7 +602,7 @@ namespace quest
 		}
 	}
 
-	bool quest_manager::take_item(unsigned int pc, unsigned int npc, item * item)
+	auto quest_manager::take_item(unsigned int pc, unsigned int npc, item * item) -> bool
 	{
 		game::quest::pc* pPC;
 
@@ -627,7 +627,7 @@ namespace quest
 		}
 	}
 
-	bool quest_manager::use_item(unsigned int pc, item * item, bool receive_all)
+	auto quest_manager::use_item(unsigned int pc, item * item, bool receive_all) -> bool
 	{
 		if (metin2::config::test_server())
 			metin2::log::info( "questmanager::UseItem Start : itemVnum : {:d} PC : {:d}", item->original_vnum(), pc);
@@ -654,7 +654,7 @@ namespace quest
 		}
 	}
 
-	bool quest_manager::sig_use(unsigned int pc, uint32_t sig_vnum, item * item, bool receive_all)
+	auto quest_manager::sig_use(unsigned int pc, uint32_t sig_vnum, item * item, bool receive_all) -> bool
 	{
 		if (metin2::config::test_server())
 			metin2::log::info( "questmanager::SIGUse Start : itemVnum : {:d} PC : {:d}", item->original_vnum(), pc);
@@ -681,7 +681,7 @@ namespace quest
 		}
 	}
 
-	bool quest_manager::give_item_to_pc(unsigned int pc, character * chr)
+	auto quest_manager::give_item_to_pc(unsigned int pc, character * chr) -> bool
 	{
 		if (!chr->is_pc())
 			return false;
@@ -707,7 +707,7 @@ namespace quest
 		return false;
 	}
 
-	bool quest_manager::click(unsigned int pc, character * chr_target)
+	auto quest_manager::click(unsigned int pc, character * chr_target) -> bool
 	{
 		game::quest::pc * pPC = get_pc(pc);
 
@@ -821,12 +821,12 @@ namespace quest
 		}
 	}
 
-	bool quest_manager::can_start_quest(unsigned int quest_index, const pc& pc)
+	auto quest_manager::can_start_quest(unsigned int quest_index, const pc& pc) -> bool
 	{
 		return can_start_quest(quest_index);
 	}
 
-	bool quest_manager::can_start_quest(unsigned int quest_index)
+	auto quest_manager::can_start_quest(unsigned int quest_index) -> bool
 	{
 		hash_map_quest_start_script::iterator it;
 
@@ -847,30 +847,30 @@ namespace quest
 		pc_.erase(ch->player_id());
 	}
 
-	pc * quest_manager::pc_force(unsigned int pc)
+	auto quest_manager::pc_force(unsigned int pid) -> pc *
 	{
 		pc_map::iterator it;
 
-		if ((it = pc_.find(pc)) == pc_.end())
+		if ((it = pc_.find(pid)) == pc_.end())
 		{
-			game::quest::pc * pPC = &pc_[pc];
-			pPC->set_id(pc);
+			game::quest::pc * pPC = &pc_[pid];
+			pPC->set_id(pid);
 			return pPC;
 		}
 
 		return &it->second;
 	}
 
-	pc * quest_manager::get_pc(unsigned int pc)
+	auto quest_manager::get_pc(unsigned int pid) -> pc *
 	{
 		pc_map::iterator it;
 
-		character * pkChr = character_manager::instance().find_by_pid(pc);
+		character * pkChr = character_manager::instance().find_by_pid(pid);
 
 		if (!pkChr)
 			return nullptr;
 
-		current_pc_ = pc_force(pc);
+		current_pc_ = pc_force(pid);
 		current_character_ = pkChr;
 		selected_dungeon_ = nullptr;
 		return (current_pc_);
@@ -925,7 +925,7 @@ namespace quest
 		clear_script();
 	}
 
-	const char* quest_manager::quest_state_name(const std::string& quest_name, const int state_index)
+	auto quest_manager::quest_state_name(const std::string& quest_name, const int state_index) -> const char*
 	{
 		int x = lua_gettop(l_);
 		lua_getglobal(l_, quest_name.c_str());
@@ -943,7 +943,7 @@ namespace quest
 		return str;
 	}
 
-	int quest_manager::quest_state_index(const std::string& quest_name, const std::string& state_name)
+	auto quest_manager::quest_state_index(const std::string& quest_name, const std::string& state_name) -> int
 	{
 		int x = lua_gettop(l_);
 		lua_getglobal(l_, quest_name.c_str());
@@ -973,7 +973,7 @@ namespace quest
 			current_skin_ = style;
 	}
 
-	unsigned int quest_manager::load_timer_script(const std::string& name)
+	auto quest_manager::load_timer_script(const std::string& name) -> unsigned int
 	{
 		std::map<std::string, unsigned int>::iterator it;
 		if ((it = timer_id_.find(name)) != timer_id_.end())
@@ -991,12 +991,12 @@ namespace quest
 		}
 	}
 
-	unsigned int quest_manager::current_npc_race()
+	auto quest_manager::current_npc_race() -> unsigned int
 	{
 		return current_npc_character_ptr() ? current_npc_character_ptr()->race_num() : 0;
 	}
 
-	item * quest_manager::current_item()
+	auto quest_manager::current_item() -> item *
 	{
 		return current_character_ptr() ? current_character_ptr()->quest_item_ptr() : nullptr; 
 	}
@@ -1013,17 +1013,17 @@ namespace quest
 			current_character_ptr()->set_quest_item_ptr(item);
 	}
 
-	character * quest_manager::current_npc_character_ptr()
+	auto quest_manager::current_npc_character_ptr() -> character *
 	{ 
 		return current_character_ptr() ? current_character_ptr()->quest_npc() : nullptr; 
 	}
 
-	const std::string & quest_manager::current_quest_name()
+	auto quest_manager::current_quest_name() -> const std::string &
 	{
 		return current_pc()->current_quest_name();
 	}
 
-	dungeon * quest_manager::current_dungeon()
+	auto quest_manager::current_dungeon() -> dungeon *
 	{
 		character * ch = current_character_ptr();
 
@@ -1053,7 +1053,7 @@ namespace quest
 		metin2::log::info( "QUEST: Register {:4d} {}", idx, quest_name.c_str());
 	}
 
-	unsigned int quest_manager::quest_index_by_name(const std::string& name)
+	auto quest_manager::quest_index_by_name(const std::string& name) -> unsigned int
 	{
 		hash_map_quest_name::iterator it = hm_quest_name_.find(name);
 
@@ -1063,7 +1063,7 @@ namespace quest
 		return it->second;
 	}
 
-	const std::string & quest_manager::quest_name_by_index(unsigned int idx)
+	auto quest_manager::quest_name_by_index(unsigned int idx) -> const std::string &
 	{
 		decltype(quest_name_by_index_.begin()) it;
 
@@ -1398,7 +1398,7 @@ namespace quest
 		}
 	}
 
-	int	quest_manager::event_flag(const std::string& name)
+	auto	quest_manager::event_flag(const std::string& name) -> int
 	{
 		std::map<std::string,int>::iterator it = event_flag_.find(name);
 
@@ -1469,12 +1469,12 @@ namespace quest
 		}
 	}
 
-	bool quest_manager::execute_quest_script(pc& pc, uint32_t quest_index, const int state, const char* code, const int code_size, std::vector<a_arg_script*>* chat_scripts, bool use_cache)
+	auto quest_manager::execute_quest_script(pc& pc, uint32_t quest_index, const int state, const char* code, const int code_size, std::vector<a_arg_script*>* chat_scripts, bool use_cache) -> bool
 	{
 		return execute_quest_script(pc, quest_manager::instance().quest_name_by_index(quest_index), state, code, code_size, chat_scripts, use_cache);
 	}
 
-	bool quest_manager::execute_quest_script(pc& pc, const std::string& quest_name, const int state, const char* code, const int code_size, std::vector<a_arg_script*>* chat_scripts_value, bool use_cache)
+	auto quest_manager::execute_quest_script(pc& pc, const std::string& quest_name, const int state, const char* code, const int code_size, std::vector<a_arg_script*>* chat_scripts_value, bool use_cache) -> bool
 	{
 		quest_state qs = quest_manager::instance().open_state(quest_name, state);
 		if (chat_scripts_value)
@@ -1627,7 +1627,7 @@ namespace quest
 		server_timer_arg_ = arg;
 	}
 
-	uint32_t quest_manager::server_timer_arg()
+	auto quest_manager::server_timer_arg() -> uint32_t
 	{
 		return server_timer_arg_;
 	}
@@ -1637,7 +1637,7 @@ namespace quest
 		selected_dungeon_ = dungeon_value;
 	}
 	
-	bool quest_manager::pickup_item(unsigned int pc, item * item)
+	auto quest_manager::pickup_item(unsigned int pc, item * item) -> bool
 	{
 		if (metin2::config::test_server())
 			metin2::log::info( "questmanager::PickupItem Start : itemVnum : {:d} PC : {:d}", item->original_vnum(), pc);
@@ -1696,12 +1696,12 @@ namespace quest
 		}
 	}
 
-	bool quest_manager::is_in_other_pc_block()
+	auto quest_manager::is_in_other_pc_block() -> bool
 	{
 		return !pc_stack_.empty();
 	}
 
-	pc*	quest_manager::other_pc_block_root_pc()
+	auto	quest_manager::other_pc_block_root_pc() -> pc*
 	{
 		return other_pc_block_root_pc_;
 	}

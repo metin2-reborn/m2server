@@ -50,16 +50,16 @@ namespace {
     constexpr auto RETRY_DELAY = std::chrono::seconds(1);
 }
 
-void ql_msg::store(MYSQL *sql) {
+void sql_msg::store(MYSQL *sql) {
     do {
-        auto result = std::make_unique<ql_result>();
+        auto result = std::make_unique<sql_result>();
 
-        result->sql_result = mysql_store_result(sql);
+        result->res = mysql_store_result(sql);
         result->insert_id = mysql_insert_id(sql);
         result->affected_rows = mysql_affected_rows(sql);
-        result->num_rows = result->sql_result ? mysql_num_rows(result->sql_result) : 0;
+        result->num_rows = result->res ? mysql_num_rows(result->res) : 0;
 
-        vec_pk_result.push_back(std::move(result));
+        results.push_back(std::move(result));
     } while (!mysql_next_result(sql));
 }
 
@@ -167,14 +167,14 @@ void async_sql::check_reconnected() {
     thread_id_ = mysql_thread_id(&db_);
 }
 
-auto async_sql::new_message(const char *query_value) -> std::unique_ptr<ql_msg> {
-    auto msg = std::make_unique<ql_msg>();
+auto async_sql::new_message(const char *query_value) -> std::unique_ptr<sql_msg> {
+    auto msg = std::make_unique<sql_msg>();
     msg->id = ++msg_count_;
     msg->query = query_value;
     return msg;
 }
 
-auto async_sql::direct_query(const char *query_value) -> ql_msg * {
+auto async_sql::direct_query(const char *query_value) -> sql_msg * {
     check_reconnected();
 
     auto msg = new_message(query_value);
@@ -195,11 +195,11 @@ void async_sql::async_query(const char *query) {
 void async_sql::return_query(const char *query, void *user_data) {
     auto msg = new_message(query);
     msg->returns_result = true;
-    msg->pv_user_data = user_data;
+    msg->user_data = user_data;
     push_query(std::move(msg));
 }
 
-void async_sql::push_query(std::unique_ptr<ql_msg> msg) {
+void async_sql::push_query(std::unique_ptr<sql_msg> msg) {
     {
         std::lock_guard lock(mtx_query_);
         queue_query_.push_back(std::move(msg));
@@ -207,7 +207,7 @@ void async_sql::push_query(std::unique_ptr<ql_msg> msg) {
     cv_query_.notify_one();
 }
 
-auto async_sql::pop_result(ql_msg **pp) -> bool {
+auto async_sql::pop_result(sql_msg **pp) -> bool {
     std::lock_guard lock(mtx_result_);
 
     if (queue_result_.empty()) {
@@ -219,7 +219,7 @@ auto async_sql::pop_result(ql_msg **pp) -> bool {
     return true;
 }
 
-auto async_sql::execute(ql_msg &msg) -> bool {
+auto async_sql::execute(sql_msg &msg) -> bool {
     check_reconnected();
 
     const auto start = std::chrono::steady_clock::now();
@@ -241,7 +241,7 @@ auto async_sql::execute(ql_msg &msg) -> bool {
     return true;
 }
 
-void async_sql::finish(std::unique_ptr<ql_msg> msg) {
+void async_sql::finish(std::unique_ptr<sql_msg> msg) {
     if (msg->returns_result) {
         msg->store(&db_);
         std::lock_guard lock(mtx_result_);
@@ -252,7 +252,7 @@ void async_sql::finish(std::unique_ptr<ql_msg> msg) {
 }
 
 void async_sql::child_loop() {
-    std::deque<std::unique_ptr<ql_msg>> batch;
+    std::deque<std::unique_ptr<sql_msg>> batch;
 
     while (true) {
         {

@@ -27,9 +27,9 @@ class log_manager : public singleton<log_manager>
 		log_manager();
 		~log_manager() override;
 
-		bool		is_connected();
+		auto		is_connected() -> bool;
 
-		bool		connect(const char * host, const int port, const char * user, const char * pwd, const char * db);
+		auto		connect(const char * host, const int port, const char * user, const char * pwd, const char * db) -> bool;
 
 		void		item_log(uint32_t pid, uint32_t x, uint32_t y, uint32_t item_id, const char * text, const char * hint, const char * ip, uint32_t vnum);
 		void		item_log(character * ch, item * item, const char * text, const char * hint);

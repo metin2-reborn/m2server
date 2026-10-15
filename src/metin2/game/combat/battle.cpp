@@ -28,9 +28,9 @@
 
 namespace metin2::game::inline combat {
 
-int battle_hit(character * attacker, character * victim, int & ret_dam);
+auto battle_hit(character * attacker, character * victim, int & ret_dam) -> int;
 
-bool timed_event_cancel(character * ch)
+auto timed_event_cancel(character * ch) -> bool
 {
 	if (ch->timed_event)
 	{
@@ -41,7 +41,7 @@ bool timed_event_cancel(character * ch)
 	return false;
 }
 
-bool battle_is_attackable(character * ch, character * victim)
+auto battle_is_attackable(character * ch, character * victim) -> bool
 {
 	if (victim->is_dead())
 		return false;
@@ -82,7 +82,7 @@ bool battle_is_attackable(character * ch, character * victim)
 	return pvp_manager::instance().can_attack(ch, victim);
 }
 
-int battle_melee_attack(character * ch, character * victim)
+auto battle_melee_attack(character * ch, character * victim) -> int
 {
 	if (metin2::config::test_server()&&ch->is_pc())
 		metin2::log::info( "battle_melee_attack : [{}] attack to [{}]", ch->name(), victim->name());
@@ -152,7 +152,7 @@ void battle_end(character * ch)
 	battle_end_ex(ch);
 }
 
-int calc_battle_damage(int dam, int attacker_lev, int victim_lev)
+auto calc_battle_damage(int dam, int attacker_lev, int victim_lev) -> int
 {
 	if (dam < 3)
 		dam = number(1, 5); 
@@ -160,12 +160,12 @@ int calc_battle_damage(int dam, int attacker_lev, int victim_lev)
 	return dam;
 }
 
-int calc_magic_damage_with_value(int dam, character * attacker, character * victim)
+auto calc_magic_damage_with_value(int dam, character * attacker, character * victim) -> int
 {
 	return calc_battle_damage(dam, attacker->level(), victim->level());
 }
 
-int calc_magic_damage(character * attacker, character * victim)
+auto calc_magic_damage(character * attacker, character * victim) -> int
 {
 	int iDam = 0;
 
@@ -179,7 +179,7 @@ int calc_magic_damage(character * attacker, character * victim)
 	return calc_magic_damage_with_value(iDam, attacker, victim);
 }
 
-float calc_attack_rating(character * attacker, character * victim, bool ignore_target_rating)
+auto calc_attack_rating(character * attacker, character * victim, bool ignore_target_rating) -> float
 {
 	int iARSrc;
 	int iERSrc;
@@ -203,7 +203,7 @@ float calc_attack_rating(character * attacker, character * victim, bool ignore_t
 	return fAR - fER;
 }
 
-int calc_att_bonus(character * attacker, character * victim, int atk)
+auto calc_att_bonus(character * attacker, character * victim, int atk) -> int
 {
 	if (!victim->is_pc())
 		atk += attacker->marriage_bonus(UNIQUE_ITEM_MARRIAGE_ATTACK_BONUS);
@@ -334,7 +334,7 @@ void item_get_damage(item * item_value, int* pdam_min, int* pdam_max)
 	*pdam_max = item_value->value(4);
 }
 
-int calc_melee_damage(character * attacker, character * victim, bool ignore_defense, bool ignore_target_rating)
+auto calc_melee_damage(character * attacker, character * victim, bool ignore_defense, bool ignore_target_rating) -> int
 {
 	item * pWeapon = attacker->wear(WEAR_WEAPON);
 	bool bPolymorphed = attacker->is_polymorphed();
@@ -495,7 +495,7 @@ int calc_melee_damage(character * attacker, character * victim, bool ignore_defe
 	return calc_battle_damage(iDam, attacker->level(), victim->level());
 }
 
-int calc_arrow_damage(character * attacker, character * victim, item * bow, item * arrow, bool ignore_defense)
+auto calc_arrow_damage(character * attacker, character * victim, item * bow, item * arrow, bool ignore_defense) -> int
 {
 	if (!bow || bow->type() != ITEM_WEAPON || bow->sub_type() != WEAPON_BOW)
 		return 0;
@@ -571,7 +571,7 @@ void normal_attack_affect(character * attacker, character * victim)
 	attack_affect(attacker, victim, POINT_SLOW_PCT, IMMUNE_SLOW,  AFFECT_SLOW, POINT_MOV_SPEED, -30, AFF_SLOW, 20,		"SLOW");
 }
 
-int battle_hit(character * attacker, character * victim, int & ret_dam)
+auto battle_hit(character * attacker, character * victim, int & ret_dam) -> int
 {
 	if (metin2::config::test_server())
 		metin2::log::info( "battle_hit : [{}] attack to [{}] : dam :{:d}", attacker->name(), victim->name(), ret_dam);
@@ -625,7 +625,7 @@ int battle_hit(character * attacker, character * victim, int & ret_dam)
 	return (BATTLE_DAMAGE);
 }
 
-uint32_t get_attack_speed(character * ch)
+auto get_attack_speed(character * ch) -> uint32_t
 {
 	if (nullptr == ch)
 		return 1000;
@@ -673,7 +673,7 @@ void set_attacked_time(character * ch, character * victim, uint32_t current_time
 	victim->attacked_log.attacked_time= current_time;
 }
 
-bool is_speed_hack(character * ch, character * victim, uint32_t current_time)
+auto is_speed_hack(character * ch, character * victim, uint32_t current_time) -> bool
 {
 
 	if (ch->attack_log.vid == victim->get_vid())

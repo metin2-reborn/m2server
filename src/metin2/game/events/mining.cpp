@@ -93,7 +93,7 @@ namespace mining
 		11,
 	};
 
-	uint32_t get_raw_ore_from_load(uint32_t load_vnum_value)
+	auto get_raw_ore_from_load(uint32_t load_vnum_value) -> uint32_t
 	{
 		for (int i = 0; i < MAX_ORE; ++i)
 		{
@@ -103,7 +103,7 @@ namespace mining
 		return 0;
 	}
 
-	uint32_t get_refine_from_raw_ore(uint32_t raw_ore_vnum_value)
+	auto get_refine_from_raw_ore(uint32_t raw_ore_vnum_value) -> uint32_t
 	{
 		for (int i = 0; i < MAX_ORE; ++i)
 		{
@@ -113,7 +113,7 @@ namespace mining
 		return 0;
 	}
 
-	int get_fraction_count()
+	auto get_fraction_count() -> int
 	{
 		int r = number(1, 100);
 
@@ -159,7 +159,7 @@ namespace mining
 		db_manager::instance().send_money_log(MONEY_LOG_DROP, item->vnum(), item->count());
 	}
 
-	int get_ore_pct(character * ch)
+	auto get_ore_pct(character * ch) -> int
 	{
 		int defaultPct = 20;
 		int iSkillLevel = ch->skill_level(SKILL_MINING);
@@ -184,7 +184,7 @@ namespace mining
 		}
 	};
 
-	bool pick_check(item& item)
+	auto pick_check(item& item) -> bool
 	{
 		if (item.type() != ITEM_PICK)    
 			return false;
@@ -192,12 +192,12 @@ namespace mining
 		return true;
 	}
 
-	int pick_get_max_exp(item& pick)
+	auto pick_get_max_exp(item& pick) -> int
 	{
 		return pick.value(2);
 	}
 
-	int pick_get_cur_exp(item& pick)
+	auto pick_get_cur_exp(item& pick) -> int
 	{
 		return pick.get_socket(0);
 	}
@@ -214,7 +214,7 @@ namespace mining
 		pick.set_socket(0, max);
 	}
 
-	bool pick_refinable(item& item)
+	auto pick_refinable(item& item) -> bool
 	{
 		if (pick_get_cur_exp(item) < pick_get_max_exp(item))
 			return false;
@@ -222,17 +222,17 @@ namespace mining
 		return true;
 	}
 
-	bool pick_is_practice_success(item& pick)
+	auto pick_is_practice_success(item& pick) -> bool
 	{
 		return (number(1,pick.value(1))==1);
 	}
 	
-	bool pick_is_refine_success(item& pick)
+	auto pick_is_refine_success(item& pick) -> bool
 	{
 		return (number(1,100) <= pick.value(3));
 	}
 
-	int real_refine_pick(character * ch, item * item)
+	auto real_refine_pick(character * ch, item * item) -> int
 	{
 		if (!ch || !item)
 			return 2;
@@ -391,7 +391,7 @@ namespace mining
 		return 0;
 	}
 
-	event_ptr create_mining_event(character * ch, character * load, int count)
+	auto create_mining_event(character * ch, character * load, int count) -> event_ptr
 	{
 		mining_event_info* info = alloc_event_info<mining_event_info>();
 		info->pid = ch->player_id();
@@ -400,7 +400,7 @@ namespace mining
 		return event_create(mining_event, info, passes_per_sec(2 * count));
 	}
 
-	bool ore_refine(character * ch, character * npc, item * ore, int cost, int pct, game::items::item * metinstone_item)
+	auto ore_refine(character * ch, character * npc, item * ore, int cost, int pct, game::items::item * metinstone_item) -> bool
 	{
 		if (!ch || !npc)
 			return false;
@@ -443,7 +443,7 @@ namespace mining
 		return false;
 	}
 
-	bool is_vein_of_ore (uint32_t vnum)
+	auto is_vein_of_ore (uint32_t vnum) -> bool
 	{
 		for (int i = 0; i < MAX_ORE; i++)
 		{

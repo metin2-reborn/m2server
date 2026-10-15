@@ -71,7 +71,7 @@ namespace marriage
 		}
 	}
 
-	int marriage::marriage_grade()
+	auto marriage::marriage_grade() -> int
 	{
 		int point = std::clamp(marriage_point(), 50, 100);
 		if (point < 65)
@@ -83,7 +83,7 @@ namespace marriage
 		return 3;
 	}
 
-	int marriage::marriage_point()
+	auto marriage::marriage_point() -> int
 	{
 		if (metin2::config::test_server())
 		{
@@ -115,7 +115,7 @@ namespace marriage
 		return std::min(50 + std::min(days * point_per_day, max_limit) + std::min(love_point / 1000000, max_limit), 100);
 	}
 
-	bool marriage::is_near()
+	auto marriage::is_near() -> bool
 	{
 		if (!is_married)
 			return false;
@@ -127,7 +127,7 @@ namespace marriage
 
 	}
 
-	int marriage::bonus(uint32_t item_vnum, bool share, character * me)
+	auto marriage::bonus(uint32_t item_vnum, bool share, character * me) -> int
 	{
 		if (!is_married)
 			return 0;
@@ -464,7 +464,7 @@ namespace marriage
 	{
 	}
 
-	bool manager::is_marriage_unique_item(uint32_t item_vnum)
+	auto manager::is_marriage_unique_item(uint32_t item_vnum) -> bool
 	{
 		for (int i = 0; i < MAX_MARRIAGE_UNIQUE_ITEM; i++)
 		{
@@ -474,7 +474,7 @@ namespace marriage
 		return false;
 	}
 
-	bool manager::is_married(uint32_t player_id) 
+	auto manager::is_married(uint32_t player_id) -> bool 
 	{ 
 		marriage* pkMarriageFinded=get(player_id);
 		if (pkMarriageFinded && pkMarriageFinded->is_married)
@@ -483,7 +483,7 @@ namespace marriage
 		return false;
 	}
 
-	bool manager::is_engaged(uint32_t player_id) 
+	auto manager::is_engaged(uint32_t player_id) -> bool 
 	{ 
 		marriage* pkMarriageFinded=get(player_id);
 		if (pkMarriageFinded && !pkMarriageFinded->is_married)
@@ -492,12 +492,12 @@ namespace marriage
 		return false;
 	}
 
-	bool manager::is_engaged_or_married(uint32_t player_id) 
+	auto manager::is_engaged_or_married(uint32_t player_id) -> bool 
 	{ 
 		return get(player_id) != nullptr; 
 	}
 
-	bool manager::initialize()
+	auto manager::initialize() -> bool
 	{
 		return true;
 	}
@@ -508,7 +508,7 @@ namespace marriage
 			std::swap(pid1, pid2);
 	}
 
-	marriage* manager::get(uint32_t player_id)
+	auto manager::get(uint32_t player_id) -> marriage*
 	{
 		auto it = marriage_by_pid_.find(player_id);
 

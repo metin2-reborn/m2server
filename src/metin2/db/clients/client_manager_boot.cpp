@@ -31,7 +31,7 @@
 namespace metin2::db::inline clients {
 
 
-bool client_manager::initialize_tables()
+auto client_manager::initialize_tables() -> bool
 {
 	if (!initialize_mob_table())
 	{
@@ -120,7 +120,7 @@ bool client_manager::initialize_tables()
 	return true;
 }
 
-bool client_manager::initialize_refine_table()
+auto client_manager::initialize_refine_table() -> bool
 {
 	char query[2048];
 
@@ -128,8 +128,8 @@ bool client_manager::initialize_refine_table()
 			"SELECT id, cost, prob, vnum0, count0, vnum1, count1, vnum2, count2,  vnum3, count3, vnum4, count4 FROM refine_proto%s",
 			get_table_postfix());
 
-	std::unique_ptr<ql_msg> pkMsg(db_manager::instance().direct_query(query));
-	ql_result * pRes = pkMsg->get();
+	std::unique_ptr<sql_msg> pkMsg(db_manager::instance().direct_query(query));
+	sql_result * pRes = pkMsg->get();
 
 	if (!pRes->num_rows)
 		return true;
@@ -148,7 +148,7 @@ bool client_manager::initialize_refine_table()
 	refine_table* prt = refine_table_.get();
 	MYSQL_ROW data;
 
-	while ((data = mysql_fetch_row(pRes->sql_result)))
+	while ((data = mysql_fetch_row(pRes->res)))
 	{
 
 		int col = 0;
@@ -177,13 +177,13 @@ bool client_manager::initialize_refine_table()
 class f_compare_vnum
 {
 	public:
-		bool operator () (const entity_table & a, const entity_table & b) const
+		auto operator () (const entity_table & a, const entity_table & b) const -> bool
 		{
 			return (a.vnum < b.vnum);
 		}
 };
 
-bool client_manager::initialize_mob_table()
+auto client_manager::initialize_mob_table() -> bool
 {
 
 
@@ -391,7 +391,7 @@ bool client_manager::initialize_mob_table()
 	return true;
 }
 
-bool client_manager::initialize_shop_table()
+auto client_manager::initialize_shop_table() -> bool
 {
 	MYSQL_ROW	data;
 	int		col;
@@ -405,9 +405,9 @@ bool client_manager::initialize_shop_table()
 		"FROM shop LEFT JOIN shop_item "
 		"ON shop.vnum = shop_item.shop_vnum ORDER BY shop.vnum, shop_item.item_vnum";
 
-	std::unique_ptr<ql_msg> pkMsg2(db_manager::instance().direct_query(s_szQuery));
+	std::unique_ptr<sql_msg> pkMsg2(db_manager::instance().direct_query(s_szQuery));
 
-	ql_result * pRes2 = pkMsg2->get();
+	sql_result * pRes2 = pkMsg2->get();
 
 	if (!pRes2->num_rows)
 	{
@@ -424,7 +424,7 @@ bool client_manager::initialize_shop_table()
 
 	shop_table * shop_table = shop_table_.get();
 
-	while ((data = mysql_fetch_row(pRes2->sql_result)))
+	while ((data = mysql_fetch_row(pRes2->res)))
 	{
 		col = 0;
 
@@ -473,7 +473,7 @@ bool client_manager::initialize_shop_table()
 	return true;
 }
 
-bool client_manager::initialize_item_table()
+auto client_manager::initialize_item_table() -> bool
 {
 
 
@@ -693,7 +693,7 @@ bool client_manager::initialize_item_table()
 }
 
 
-bool client_manager::initialize_skill_table()
+auto client_manager::initialize_skill_table() -> bool
 {
 	char query[4096];
 	snprintf(query, sizeof(query),
@@ -706,8 +706,8 @@ bool client_manager::initialize_skill_table()
 		"FROM skill_proto%s ORDER BY dwVnum",
 		get_table_postfix());
 
-	std::unique_ptr<ql_msg> pkMsg(db_manager::instance().direct_query(query));
-	ql_result * pRes = pkMsg->get();
+	std::unique_ptr<sql_msg> pkMsg(db_manager::instance().direct_query(query));
+	sql_result * pRes = pkMsg->get();
 
 	if (!pRes->num_rows)
 	{
@@ -726,7 +726,7 @@ bool client_manager::initialize_skill_table()
 	MYSQL_ROW	data;
 	int		col;
 
-	while ((data = mysql_fetch_row(pRes->sql_result)))
+	while ((data = mysql_fetch_row(pRes->res)))
 	{
 		skill_table t;
 		memset(&t, 0, sizeof(t));
@@ -781,20 +781,20 @@ bool client_manager::initialize_skill_table()
 	return true;
 }
 
-bool client_manager::initialize_banword_table()
+auto client_manager::initialize_banword_table() -> bool
 {
 	vec_banword_table_.clear();
 
-	std::unique_ptr<ql_msg> pkMsg(db_manager::instance().direct_query("SELECT word FROM banword"));
+	std::unique_ptr<sql_msg> pkMsg(db_manager::instance().direct_query("SELECT word FROM banword"));
 
-	ql_result * pRes = pkMsg->get();
+	sql_result * pRes = pkMsg->get();
 
 	if (pRes->num_rows == 0)
 		return true;
 
 	MYSQL_ROW data;
 
-	while ((data = mysql_fetch_row(pRes->sql_result)))
+	while ((data = mysql_fetch_row(pRes->res)))
 	{
 		banword_table t;
 
@@ -809,15 +809,15 @@ bool client_manager::initialize_banword_table()
 	return true;
 }
 
-bool client_manager::initialize_item_attr_table()
+auto client_manager::initialize_item_attr_table() -> bool
 {
 	char query[4096];
 	snprintf(query, sizeof(query),
 			"SELECT apply, apply+0, prob, lv1, lv2, lv3, lv4, lv5, weapon, body, wrist, foots, neck, head, shield, ear FROM item_attr%s ORDER BY apply",
 			get_table_postfix());
 
-	std::unique_ptr<ql_msg> pkMsg(db_manager::instance().direct_query(query));
-	ql_result * pRes = pkMsg->get();
+	std::unique_ptr<sql_msg> pkMsg(db_manager::instance().direct_query(query));
+	sql_result * pRes = pkMsg->get();
 
 	if (!pRes->num_rows)
 	{
@@ -835,7 +835,7 @@ bool client_manager::initialize_item_attr_table()
 
 	MYSQL_ROW	data;
 
-	while ((data = mysql_fetch_row(pRes->sql_result)))
+	while ((data = mysql_fetch_row(pRes->res)))
 	{
 		item_attr_table t;
 
@@ -883,15 +883,15 @@ bool client_manager::initialize_item_attr_table()
 	return true;
 }
 
-bool client_manager::initialize_item_rare_table()
+auto client_manager::initialize_item_rare_table() -> bool
 {
 	char query[4096];
 	snprintf(query, sizeof(query),
 			"SELECT apply, apply+0, prob, lv1, lv2, lv3, lv4, lv5, weapon, body, wrist, foots, neck, head, shield, ear FROM item_attr_rare%s ORDER BY apply",
 			get_table_postfix());
 
-	std::unique_ptr<ql_msg> pkMsg(db_manager::instance().direct_query(query));
-	ql_result * pRes = pkMsg->get();
+	std::unique_ptr<sql_msg> pkMsg(db_manager::instance().direct_query(query));
+	sql_result * pRes = pkMsg->get();
 
 	if (!pRes->num_rows)
 	{
@@ -909,7 +909,7 @@ bool client_manager::initialize_item_rare_table()
 
 	MYSQL_ROW	data;
 
-	while ((data = mysql_fetch_row(pRes->sql_result)))
+	while ((data = mysql_fetch_row(pRes->res)))
 	{
 		item_attr_table t;
 
@@ -957,7 +957,7 @@ bool client_manager::initialize_item_rare_table()
 	return true;
 }
 
-bool client_manager::initialize_land_table()
+auto client_manager::initialize_land_table() -> bool
 {
 	using namespace building;
 
@@ -968,8 +968,8 @@ bool client_manager::initialize_land_table()
 		"FROM land%s WHERE enable='YES' ORDER BY id",
 		get_table_postfix());
 
-	std::unique_ptr<ql_msg> pkMsg(db_manager::instance().direct_query(query));
-	ql_result * pRes = pkMsg->get();
+	std::unique_ptr<sql_msg> pkMsg(db_manager::instance().direct_query(query));
+	sql_result * pRes = pkMsg->get();
 
 	if (!vec_k_land_table_.empty())
 	{
@@ -982,7 +982,7 @@ bool client_manager::initialize_land_table()
 	MYSQL_ROW	data;
 
 	if (pRes->num_rows > 0)
-		while ((data = mysql_fetch_row(pRes->sql_result)))
+		while ((data = mysql_fetch_row(pRes->res)))
 		{
 			land_table t;
 
@@ -1060,7 +1060,7 @@ void parse_pair_number_string(const char * string, std::vector<std::pair<int, in
 	}
 }
 
-bool client_manager::initialize_object_proto()
+auto client_manager::initialize_object_proto() -> bool
 {
 	using namespace building;
 
@@ -1070,8 +1070,8 @@ bool client_manager::initialize_object_proto()
 			"FROM object_proto%s ORDER BY vnum",
 			get_table_postfix());
 
-	std::unique_ptr<ql_msg> pkMsg(db_manager::instance().direct_query(query));
-	ql_result * pRes = pkMsg->get();
+	std::unique_ptr<sql_msg> pkMsg(db_manager::instance().direct_query(query));
+	sql_result * pRes = pkMsg->get();
 
 	if (!vec_k_object_proto_.empty())
 	{
@@ -1084,7 +1084,7 @@ bool client_manager::initialize_object_proto()
 	MYSQL_ROW	data;
 
 	if (pRes->num_rows > 0)
-		while ((data = mysql_fetch_row(pRes->sql_result)))
+		while ((data = mysql_fetch_row(pRes->res)))
 		{
 			object_proto t;
 
@@ -1130,15 +1130,15 @@ bool client_manager::initialize_object_proto()
 	return true;
 }
 
-bool client_manager::initialize_object_table()
+auto client_manager::initialize_object_table() -> bool
 {
 	using namespace building;
 
 	char query[4096];
 	snprintf(query, sizeof(query), "SELECT id, land_id, vnum, map_index, x, y, x_rot, y_rot, z_rot, life FROM object%s ORDER BY id", get_table_postfix());
 
-	std::unique_ptr<ql_msg> pkMsg(db_manager::instance().direct_query(query));
-	ql_result * pRes = pkMsg->get();
+	std::unique_ptr<sql_msg> pkMsg(db_manager::instance().direct_query(query));
+	sql_result * pRes = pkMsg->get();
 
 	if (!map_pk_object_table_.empty())
 	{
@@ -1149,7 +1149,7 @@ bool client_manager::initialize_object_table()
 	MYSQL_ROW data;
 
 	if (pRes->num_rows > 0)
-		while ((data = mysql_fetch_row(pRes->sql_result)))
+		while ((data = mysql_fetch_row(pRes->res)))
 		{
 			auto k = std::make_unique<object_table>();
 
@@ -1177,14 +1177,14 @@ bool client_manager::initialize_object_table()
 	return true;
 }
 
-bool client_manager::initialize_monarch()
+auto client_manager::initialize_monarch() -> bool
 {
 	monarch::instance().load_monarch();
 
 	return true;
 }
 
-bool client_manager::mirror_mob_table_into_db()
+auto client_manager::mirror_mob_table_into_db() -> bool
 {
 	for (auto it = vec_mob_table_.begin(); it != vec_mob_table_.end(); it++)
 	{
@@ -1300,7 +1300,7 @@ bool client_manager::mirror_mob_table_into_db()
 	return true;
 }
 
-bool client_manager::mirror_item_table_into_db()
+auto client_manager::mirror_item_table_into_db() -> bool
 {
 	for (auto it = vec_item_table_.begin(); it != vec_item_table_.end(); it++)
 	{

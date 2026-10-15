@@ -38,7 +38,7 @@ text_file_loader::~text_file_loader()
 {	
 }
 
-bool text_file_loader::load(const char * file_name)
+auto text_file_loader::load(const char * file_name) -> bool
 {
 	file_name_ = file_name;
 
@@ -63,7 +63,7 @@ bool text_file_loader::load(const char * file_name)
 	return true;
 }
 
-bool text_file_loader::load_group(group_node * group_node_value)
+auto text_file_loader::load_group(group_node * group_node_value) -> bool
 {
 	token_vector stTokenVector;
 	for (; dwcur_line_index_ < file_loader_.line_count(); ++dwcur_line_index_)
@@ -160,7 +160,7 @@ void text_file_loader::set_top()
 	pcur_node_ = &global_node_;
 }
 
-uint32_t text_file_loader::child_node_count()
+auto text_file_loader::child_node_count() -> uint32_t
 {
 	if (!pcur_node_)
 	{
@@ -171,7 +171,7 @@ uint32_t text_file_loader::child_node_count()
 	return pcur_node_->child_node_vector.size();
 }
 
-bool text_file_loader::set_child_node(const char * key)
+auto text_file_loader::set_child_node(const char * key) -> bool
 {
 	if (!pcur_node_)
 	{
@@ -192,14 +192,14 @@ bool text_file_loader::set_child_node(const char * key)
 	return false;
 }
 
-bool text_file_loader::set_child_node(const std::string & rstr_key_head, uint32_t index)
+auto text_file_loader::set_child_node(const std::string & rstr_key_head, uint32_t index) -> bool
 {
 	char szKey[32];
 	snprintf(szKey, sizeof(szKey), "%s%02u", rstr_key_head.c_str(), (unsigned int) index);
 	return set_child_node(szKey);
 }
 
-bool text_file_loader::set_child_node(uint32_t index)
+auto text_file_loader::set_child_node(uint32_t index) -> bool
 {
 	if (!pcur_node_)
 	{
@@ -218,7 +218,7 @@ bool text_file_loader::set_child_node(uint32_t index)
 	return true;
 }
 
-bool text_file_loader::set_parent_node()
+auto text_file_loader::set_parent_node() -> bool
 {
 	if (!pcur_node_)
 	{
@@ -237,7 +237,7 @@ bool text_file_loader::set_parent_node()
 	return true;
 }
 
-bool text_file_loader::current_node_name(std::string * pstr_name)
+auto text_file_loader::current_node_name(std::string * pstr_name) -> bool
 {
 	if (!pcur_node_)
 		return false;
@@ -249,7 +249,7 @@ bool text_file_loader::current_node_name(std::string * pstr_name)
 	return true;
 }
 
-bool text_file_loader::get_token_vector(const std::string & rstr_key, token_vector ** pp_token_vector)
+auto text_file_loader::get_token_vector(const std::string & rstr_key, token_vector ** pp_token_vector) -> bool
 {
 	if (!pcur_node_)
 	{
@@ -269,7 +269,7 @@ bool text_file_loader::get_token_vector(const std::string & rstr_key, token_vect
 	return true;
 }
 
-bool text_file_loader::token_integer(const std::string & rstr_key, int * data)
+auto text_file_loader::token_integer(const std::string & rstr_key, int * data) -> bool
 {
 	token_vector * pTokenVector;
 	if (!get_token_vector(rstr_key, &pTokenVector))
@@ -288,12 +288,12 @@ bool text_file_loader::token_integer(const std::string & rstr_key, int * data)
 	return true;
 }
 
-bool text_file_loader::token_double_word(const std::string & rstr_key, uint32_t * data)
+auto text_file_loader::token_double_word(const std::string & rstr_key, uint32_t * data) -> bool
 {
 	return token_integer(rstr_key, (int *) data);
 }
 
-bool text_file_loader::token_float(const std::string & rstr_key, float * data)
+auto text_file_loader::token_float(const std::string & rstr_key, float * data) -> bool
 {
 	token_vector * pTokenVector;
 	if (!get_token_vector(rstr_key, &pTokenVector))
@@ -310,7 +310,7 @@ bool text_file_loader::token_float(const std::string & rstr_key, float * data)
 	return true;
 }
 
-bool text_file_loader::token_vector3(const std::string & rstr_key, vector * vector3)
+auto text_file_loader::token_vector3(const std::string & rstr_key, vector * vector3) -> bool
 {
 	token_vector * pTokenVector;
 	if (!get_token_vector(rstr_key, &pTokenVector))
@@ -330,12 +330,12 @@ bool text_file_loader::token_vector3(const std::string & rstr_key, vector * vect
 }
 
 
-bool text_file_loader::token_position(const std::string & rstr_key, vector * vector_value)
+auto text_file_loader::token_position(const std::string & rstr_key, vector * vector_value) -> bool
 {
 	return token_vector3(rstr_key, vector_value);
 }
 
-bool text_file_loader::token_string(const std::string & rstr_key, std::string * string_value)
+auto text_file_loader::token_string(const std::string & rstr_key, std::string * string_value) -> bool
 {
 	token_vector * pTokenVector;
 	if (!get_token_vector(rstr_key, &pTokenVector))

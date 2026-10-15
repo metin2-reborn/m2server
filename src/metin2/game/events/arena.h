@@ -45,33 +45,33 @@ class arena {
   protected:
     arena(uint16_t start_a_x, uint16_t start_a_y, uint16_t start_b_x, uint16_t start_b_y);
 
-    bool start_duel(character * char_from, character * char_to, int set_point, int minute = 5);
+    auto start_duel(character * char_from, character * char_to, int set_point, int minute = 5) -> bool;
 
-    bool is_empty() const { return ((pida_ == 0) && (pidb_ == 0)); }
-    bool is_member(uint32_t pid) const { return ((pida_ == pid) || (pidb_ == pid)); }
+    auto is_empty() const -> bool { return ((pida_ == 0) && (pidb_ == 0)); }
+    auto is_member(uint32_t pid) const -> bool { return ((pida_ == pid) || (pidb_ == pid)); }
 
-    bool check_area(uint16_t start_a_x, uint16_t start_a_y, uint16_t start_b_x, uint16_t start_b_y);
+    auto check_area(uint16_t start_a_x, uint16_t start_a_y, uint16_t start_b_x, uint16_t start_b_y) -> bool;
     void clear();
 
-    bool can_attack(uint32_t pida, uint32_t pidb);
-    bool on_dead(uint32_t pida, uint32_t pidb);
+    auto can_attack(uint32_t pida, uint32_t pidb) -> bool;
+    auto on_dead(uint32_t pida, uint32_t pidb) -> bool;
 
-    bool is_observer(uint32_t pid);
-    bool is_my_observer(uint16_t observer_x, uint16_t observer_y);
-    bool add_observer(character * ch);
-    bool register_observer_ptr(character * ch);
+    auto is_observer(uint32_t pid) -> bool;
+    auto is_my_observer(uint16_t observer_x, uint16_t observer_y) -> bool;
+    auto add_observer(character * ch) -> bool;
+    auto register_observer_ptr(character * ch) -> bool;
 
   public:
-    uint32_t player_apid() { return pida_; }
-    uint32_t player_bpid() { return pidb_; }
+    auto player_apid() -> uint32_t { return pida_; }
+    auto player_bpid() -> uint32_t { return pidb_; }
 
-    character * player_a() { return character_manager::instance().find_by_pid(pida_); }
-    character * player_b() { return character_manager::instance().find_by_pid(pidb_); }
+    auto player_a() -> character * { return character_manager::instance().find_by_pid(pida_); }
+    auto player_b() -> character * { return character_manager::instance().find_by_pid(pidb_); }
 
-    pixel_position start_point_a() { return start_point_a_; }
-    pixel_position start_point_b() { return start_point_b_; }
+    auto start_point_a() -> pixel_position { return start_point_a_; }
+    auto start_point_b() -> pixel_position { return start_point_b_; }
 
-    pixel_position observer_point() { return observer_point_; }
+    auto observer_point() -> pixel_position { return observer_point_; }
 
     void end_duel();
     void clear_event() { event_ = nullptr; }
@@ -91,22 +91,22 @@ class arena_map {
   protected:
     void destroy();
 
-    bool add_arena(uint32_t idx, uint16_t start_a_x, uint16_t start_a_y, uint16_t start_b_x, uint16_t start_b_y);
+    auto add_arena(uint32_t idx, uint16_t start_a_x, uint16_t start_a_y, uint16_t start_b_x, uint16_t start_b_y) -> bool;
     void send_arena_map_list_to(character * ch, uint32_t idx);
 
-    bool start_duel(character * char_from, character * char_to, int set_point, int minute = 5);
+    auto start_duel(character * char_from, character * char_to, int set_point, int minute = 5) -> bool;
     void end_all_duel();
-    bool end_duel(uint32_t pid);
+    auto end_duel(uint32_t pid) -> bool;
 
-    int duel_list(lua_State *lua, int index);
+    auto duel_list(lua_State *lua, int index) -> int;
 
-    bool can_attack(character * char_attacker, character * char_victim);
-    bool on_dead(character * char_killer, character * char_victim);
+    auto can_attack(character * char_attacker, character * char_victim) -> bool;
+    auto on_dead(character * char_killer, character * char_victim) -> bool;
 
-    bool add_observer(character * ch, uint16_t observer_x, uint16_t observer_y);
-    bool register_observer_ptr(character * ch, uint32_t idx, uint16_t observer_x, uint16_t observer_y);
+    auto add_observer(character * ch, uint16_t observer_x, uint16_t observer_y) -> bool;
+    auto register_observer_ptr(character * ch, uint32_t idx, uint16_t observer_x, uint16_t observer_y) -> bool;
 
-    member_identity is_member(uint32_t pid);
+    auto is_member(uint32_t pid) -> member_identity;
 };
 
 class arena_manager : public singleton<arena_manager> {
@@ -114,30 +114,30 @@ class arena_manager : public singleton<arena_manager> {
     std::map<uint32_t, std::unique_ptr<arena_map>> arena_map_;
 
   public:
-    bool initialize();
+    auto initialize() -> bool;
     void destroy();
 
-    bool start_duel(character * char_from, character * char_to, int set_point, int minute = 5);
+    auto start_duel(character * char_from, character * char_to, int set_point, int minute = 5) -> bool;
 
-    bool add_arena(uint32_t idx, uint16_t start_a_x, uint16_t start_a_y, uint16_t start_b_x, uint16_t start_b_y);
+    auto add_arena(uint32_t idx, uint16_t start_a_x, uint16_t start_a_y, uint16_t start_b_x, uint16_t start_b_y) -> bool;
 
     void send_arena_map_list_to(character * ch);
 
     void end_all_duel();
-    bool end_duel(uint32_t pid);
+    auto end_duel(uint32_t pid) -> bool;
 
     void duel_list(lua_State *lua);
 
-    bool can_attack(character * char_attacker, character * char_victim);
+    auto can_attack(character * char_attacker, character * char_victim) -> bool;
 
-    bool on_dead(character * char_killer, character * char_victim);
+    auto on_dead(character * char_killer, character * char_victim) -> bool;
 
-    bool add_observer(character * ch, uint32_t idx, uint16_t observer_x, uint16_t observer_y);
-    bool register_observer_ptr(character * ch, uint32_t idx, uint16_t observer_x, uint16_t observer_y);
+    auto add_observer(character * ch, uint32_t idx, uint16_t observer_x, uint16_t observer_y) -> bool;
+    auto register_observer_ptr(character * ch, uint32_t idx, uint16_t observer_x, uint16_t observer_y) -> bool;
 
-    bool is_arena_map(uint32_t map_index);
-    member_identity is_member(uint32_t map_index, uint32_t pid);
+    auto is_arena_map(uint32_t map_index) -> bool;
+    auto is_member(uint32_t map_index, uint32_t pid) -> member_identity;
 
-    bool is_limited_item(int32_t map_index, uint32_t vnum);
+    auto is_limited_item(int32_t map_index, uint32_t vnum) -> bool;
 };
 }

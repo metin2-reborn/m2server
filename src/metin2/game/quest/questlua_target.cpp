@@ -14,7 +14,7 @@ namespace metin2::game {
 
 namespace quest 
 {
-	int target_pos(lua_State* lua)
+	auto target_pos(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		int iQuestIndex = quest_manager::instance().current_pc()->current_quest_index();
@@ -49,7 +49,7 @@ namespace quest
 		return 0;
 	}
 
-	int target_vid(lua_State* lua)
+	auto target_vid(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		int iQuestIndex = quest_manager::instance().current_pc()->current_quest_index();
@@ -74,7 +74,7 @@ namespace quest
 		return 0;
 	}
 
-	int target_delete(lua_State* lua)
+	auto target_delete(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		int iQuestIndex = quest_manager::instance().current_pc()->current_quest_index();
@@ -90,7 +90,7 @@ namespace quest
 		return 0;
 	}
 
-	int target_clear(lua_State* lua)
+	auto target_clear(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		int iQuestIndex = quest_manager::instance().current_pc()->current_quest_index();
@@ -100,7 +100,7 @@ namespace quest
 		return 0;
 	}
 
-	int target_id(lua_State* lua)
+	auto target_id(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		uint32_t dwQuestIndex = quest_manager::instance().current_pc()->current_quest_index();

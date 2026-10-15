@@ -26,12 +26,12 @@ namespace marriage
 {
 	const uint32_t WEDDING_LENGTH = 60 * 60;
 
-	bool operator > (const wedding& lhs, const wedding& rhs)
+	auto operator > (const wedding& lhs, const wedding& rhs) -> bool
 	{
 		return lhs.time > rhs.time;
 	}
 
-	bool operator > (const wedding_info &lhs, const wedding_info& rhs)
+	auto operator > (const wedding_info &lhs, const wedding_info& rhs) -> bool
 	{
 		return lhs.time > rhs.time;
 	}
@@ -44,7 +44,7 @@ namespace marriage
 	{
 	}
 
-	bool manager::initialize()
+	auto manager::initialize() -> bool
 	{
 		char szQuery[1024];
 
@@ -52,17 +52,17 @@ namespace marriage
 				"SELECT pid1, pid2, love_point, time, is_married, p1.name, p2.name FROM marriage, player%s as p1, player%s as p2 WHERE p1.id = pid1 AND p2.id = pid2",
 				get_table_postfix(), get_table_postfix());
 
-		std::unique_ptr<ql_msg> pmsg_delete(db_manager::instance().direct_query("DELETE FROM marriage WHERE is_married = 0"));
-		std::unique_ptr<ql_msg> pmsg(db_manager::instance().direct_query(szQuery));
+		std::unique_ptr<sql_msg> pmsg_delete(db_manager::instance().direct_query("DELETE FROM marriage WHERE is_married = 0"));
+		std::unique_ptr<sql_msg> pmsg(db_manager::instance().direct_query(szQuery));
 
-		ql_result * pRes = pmsg->get();
+		sql_result * pRes = pmsg->get();
 		metin2::log::info( "MarriageList(size={:d})", pRes->num_rows);
 
 		if (pRes->num_rows > 0)
 		{
 			for (uint uiRow = 0; uiRow != pRes->num_rows; ++uiRow)
 			{
-				MYSQL_ROW row = mysql_fetch_row(pRes->sql_result);
+				MYSQL_ROW row = mysql_fetch_row(pRes->res);
 
 				uint32_t pid1 = 0; str_to_number(pid1, row[0]);
 				uint32_t pid2 = 0; str_to_number(pid2, row[1]);
@@ -83,7 +83,7 @@ namespace marriage
 		return true;
 	}
 
-	marriage* manager::get(uint32_t player_id)
+	auto manager::get(uint32_t player_id) -> marriage*
 	{
 		auto it = marriage_by_pid_.find(player_id);
 
@@ -113,9 +113,9 @@ namespace marriage
 		char szQuery[512];
 		snprintf(szQuery, sizeof(szQuery), "INSERT INTO marriage(pid1, pid2, love_point, time) VALUES (%u, %u, 0, %u)", pid1, pid2, now);
 
-		std::unique_ptr<ql_msg> pmsg(db_manager::instance().direct_query(szQuery));
+		std::unique_ptr<sql_msg> pmsg(db_manager::instance().direct_query(szQuery));
 
-		ql_result* res = pmsg->get();
+		sql_result* res = pmsg->get();
 		if (res->affected_rows == 0 || res->affected_rows == (uint32_t)-1)
 		{
 			metin2::log::error("cannot insert marriage");
@@ -153,9 +153,9 @@ namespace marriage
 		snprintf(szQuery, sizeof(szQuery), "UPDATE marriage SET love_point = %d, is_married = %d WHERE pid1 = %u AND pid2 = %u", 
 				love_point_value, married_value, pMarriage->pid1, pMarriage->pid2);
 
-		std::unique_ptr<ql_msg> pmsg(db_manager::instance().direct_query(szQuery));
+		std::unique_ptr<sql_msg> pmsg(db_manager::instance().direct_query(szQuery));
 
-		ql_result* res = pmsg->get();
+		sql_result* res = pmsg->get();
 		if (res->affected_rows == 0 || res->affected_rows == (uint32_t)-1)
 		{
 			metin2::log::error("cannot update marriage : PID:{:d} {:d}", pid1_value, pid2_value);
@@ -199,9 +199,9 @@ namespace marriage
 		char szQuery[512];
 		snprintf(szQuery, sizeof(szQuery), "DELETE FROM marriage WHERE pid1 = %u AND pid2 = %u", pid1_value, pid2_value);
 
-		std::unique_ptr<ql_msg> pmsg(db_manager::instance().direct_query(szQuery));
+		std::unique_ptr<sql_msg> pmsg(db_manager::instance().direct_query(szQuery));
 
-		ql_result* res = pmsg->get();
+		sql_result* res = pmsg->get();
 		if (res->affected_rows == 0 || res->affected_rows == (uint32_t)-1)
 		{
 			metin2::log::error("cannot delete marriage : PID:{:d} {:d}", pid1_value, pid2_value);

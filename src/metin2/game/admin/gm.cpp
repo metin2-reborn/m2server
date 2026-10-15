@@ -63,7 +63,7 @@ void gm_new_host_inert( const char * host )
 	metin2::log::info( "InsertGMHost(ip:{})", host );
 }
 
-uint8_t gm_new_get_level( const char * name, const char * host, const char* account)
+auto gm_new_get_level( const char * name, const char * host, const char* account) -> uint8_t
 {
 	if ( metin2::config::test_server() ) return GM_IMPLEMENTOR;
 
@@ -85,7 +85,7 @@ uint8_t gm_new_get_level( const char * name, const char * host, const char* acco
 	return GM_PLAYER;
 }
 	
-uint8_t gm_get_level(const char * name, const char * host, const char* account)
+auto gm_get_level(const char * name, const char * host, const char* account) -> uint8_t
 {
 	return gm_new_get_level( name, host, account );
 }

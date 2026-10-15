@@ -193,7 +193,7 @@ EVENTFUNC(ping_event)
 	return (passes_per_sec(metin2::config::server().ping_seconds));
 }
 
-bool desc::is_pong()
+auto desc::is_pong() -> bool
 {
 	return pong_;
 }
@@ -203,7 +203,7 @@ void desc::set_pong(bool b)
 	pong_ = b;
 }
 
-bool desc::setup(std::shared_ptr<net::connection> connection, uint32_t handle, uint32_t handshake)
+auto desc::setup(std::shared_ptr<net::connection> connection, uint32_t handle, uint32_t handshake) -> bool
 {
 	connection_	= std::move(connection);
 	host_		= connection_->remote_address();
@@ -399,7 +399,7 @@ void desc::send_handshake(uint32_t cur_time, int32_t new_delta)
 	handshaking_ = true;
 }
 
-bool desc::handshake_process(uint32_t time, int32_t delta, bool infinite_retry)
+auto desc::handshake_process(uint32_t time, int32_t delta, bool infinite_retry) -> bool
 {
 	uint32_t dwCurTime = get_dword_time();
 
@@ -452,12 +452,12 @@ bool desc::handshake_process(uint32_t time, int32_t delta, bool infinite_retry)
 	return false;
 }
 
-bool desc::is_handshaking()
+auto desc::is_handshaking() -> bool
 {
 	return handshaking_;
 }
 
-uint32_t desc::client_time()
+auto desc::client_time() -> uint32_t
 {
 	return client_time_;
 }
@@ -490,7 +490,7 @@ void desc::send_key_agreement_completed()
 	packet(&packet_value, sizeof(packet_value));
 }
 
-bool desc::finish_handshake(size_t agreed_length, const void* buffer, size_t length)
+auto desc::finish_handshake(size_t agreed_length, const void* buffer, size_t length) -> bool
 {
 	if (!cipher_.activate(false, agreed_length, buffer, length))
 		return false;
@@ -500,7 +500,7 @@ bool desc::finish_handshake(size_t agreed_length, const void* buffer, size_t len
 	return true;
 }
 
-bool desc::is_cipher_prepared()
+auto desc::is_cipher_prepared() -> bool
 {
 	return cipher_.is_key_prepared();
 }
@@ -551,7 +551,7 @@ EVENTFUNC(disconnect_event)
 	return 0;
 }
 
-bool desc::delayed_disconnect(int sec)
+auto desc::delayed_disconnect(int sec) -> bool
 {
 	if (disconnect_event != nullptr) {
 		return false;
@@ -585,12 +585,12 @@ void desc::set_admin_mode()
 	admin_mode_ = true;
 }
 
-bool desc::is_admin_mode()
+auto desc::is_admin_mode() -> bool
 {
 	return admin_mode_;
 }
 
-uint8_t desc::sequence()
+auto desc::sequence() -> uint8_t
 {
 	return gc_ab_sequence[current_sequence_];
 }
@@ -651,7 +651,7 @@ void desc::set_login_key(login_key * key_value)
 	metin2::log::info( "SetLoginKey {:d}", m_pk_login_key_->key);
 }
 
-uint32_t desc::get_login_key()
+auto desc::get_login_key() -> uint32_t
 {
 	if (m_pk_login_key_)
 		return m_pk_login_key_->key;
@@ -697,7 +697,7 @@ void desc::push_seq(uint8_t hdr, uint8_t seq)
 	seq_vector.push_back(info);
 }
 
-uint8_t desc::empire()
+auto desc::empire() -> uint8_t
 {
 	return account_table_.empire;
 }

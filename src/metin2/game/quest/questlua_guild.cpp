@@ -22,7 +22,7 @@ namespace metin2::game {
 
 namespace quest
 {
-	int guild_around_ranking_string(lua_State* lua)
+	auto guild_around_ranking_string(lua_State* lua) -> int
 	{
 		quest_manager& q = quest_manager::instance();
 		character * ch = q.current_character_ptr();
@@ -37,7 +37,7 @@ namespace quest
 		return 1;
 	}
 
-	int guild_high_ranking_string(lua_State* lua)
+	auto guild_high_ranking_string(lua_State* lua) -> int
 	{
 		quest_manager& q = quest_manager::instance();
 		character * ch = q.current_character_ptr();
@@ -51,7 +51,7 @@ namespace quest
 		return 1;
 	}
 
-	int guild_get_ladder_point(lua_State* lua)
+	auto guild_get_ladder_point(lua_State* lua) -> int
 	{
 		quest_manager& q = quest_manager::instance();
 		character * ch = q.current_character_ptr();
@@ -66,7 +66,7 @@ namespace quest
 		return 1;
 	}
 
-	int guild_get_rank(lua_State* lua)
+	auto guild_get_rank(lua_State* lua) -> int
 	{
 		quest_manager& q = quest_manager::instance();
 		character * ch = q.current_character_ptr();
@@ -82,7 +82,7 @@ namespace quest
 		return 1;
 	}
 
-	int guild_is_war(lua_State* lua)
+	auto guild_is_war(lua_State* lua) -> int
 	{
 		if (!lua_isnumber(lua, 1))
 		{
@@ -100,7 +100,7 @@ namespace quest
 		return 1;
 	}
 
-	int guild_name(lua_State* lua)
+	auto guild_name(lua_State* lua) -> int
 	{
 		if (!lua_isnumber(lua, 1))
 		{
@@ -118,7 +118,7 @@ namespace quest
 		return 1;
 	}
 
-	int guild_level(lua_State* lua)
+	auto guild_level(lua_State* lua) -> int
 	{
 		luaL_checknumber(lua, 1);
 
@@ -132,7 +132,7 @@ namespace quest
 		return 1;
 	}
 
-	int guild_war_enter(lua_State* lua)
+	auto guild_war_enter(lua_State* lua) -> int
 	{
 		if (!lua_isnumber(lua, 1))
 		{
@@ -149,7 +149,7 @@ namespace quest
 		return 0;
 	}
 
-	int guild_get_any_war(lua_State* lua)
+	auto guild_get_any_war(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -161,7 +161,7 @@ namespace quest
 		return 1;
 	}
 
-	int guild_get_name(lua_State * lua)
+	auto guild_get_name(lua_State * lua) -> int
 	{
 		if (!lua_isnumber(lua, 1))
 		{
@@ -179,7 +179,7 @@ namespace quest
 		return 1;
 	}
 
-	int guild_war_bet(lua_State * lua)
+	auto guild_war_bet(lua_State * lua) -> int
 	{
 		if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2) || !lua_isnumber(lua, 3))
 		{
@@ -203,7 +203,7 @@ namespace quest
 		return 0;
 	}
 
-	int guild_is_bet(lua_State * lua)
+	auto guild_is_bet(lua_State * lua) -> int
 	{
 		if (!lua_isnumber(lua, 1))
 		{
@@ -219,14 +219,14 @@ namespace quest
 		return 1;
 	}
 
-	int guild_get_warp_war_list(lua_State* lua)
+	auto guild_get_warp_war_list(lua_State* lua) -> int
 	{
 		f_build_lua_guild_war_list f(lua);
 		guild_manager::instance().for_each_war(f);
 		return 1;
 	}
 
-	int guild_get_reserve_war_table(lua_State * lua)
+	auto guild_get_reserve_war_table(lua_State * lua) -> int
 	{
 		std::vector<guild_war_reserve_for_game *> & con = guild_manager::instance().reserve_war_ref();
 
@@ -272,7 +272,7 @@ namespace quest
 		return 1;
 	}
 
-	int guild_get_member_count(lua_State* lua)
+	auto guild_get_member_count(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		
@@ -295,7 +295,7 @@ namespace quest
 		return 1;
 	}
 
-	int guild_change_master(lua_State* lua)
+	auto guild_change_master(lua_State* lua) -> int
 	{
 
 		character * ch = quest_manager::instance().current_character_ptr();
@@ -330,7 +330,7 @@ namespace quest
 		return 1;
 	}
 
-	int guild_change_master_with_limit(lua_State* lua)
+	auto guild_change_master_with_limit(lua_State* lua) -> int
 	{
 
 		character * ch = quest_manager::instance().current_character_ptr();

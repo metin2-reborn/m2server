@@ -33,12 +33,12 @@ namespace metin2::db::inline guilds {
 
 const int GUILD_RANK_MAX_NUM = 20;
 
-uint32_t get_guild_war_wait_start_duration()
+auto get_guild_war_wait_start_duration() -> uint32_t
 {
 	return 5;
 }
 
-uint32_t get_guild_war_reserve_seconds()
+auto get_guild_war_reserve_seconds() -> uint32_t
 {
 	return 10;
 }
@@ -110,7 +110,7 @@ guild_manager::~guild_manager()
 	}
 }
 
-guild & guild_manager::touch_guild(uint32_t gid)
+auto guild_manager::touch_guild(uint32_t gid) -> guild &
 {
 	auto it = map_k_guild_.find(gid);
 
@@ -122,11 +122,11 @@ guild & guild_manager::touch_guild(uint32_t gid)
 	return map_k_guild_[gid];
 }
 
-void guild_manager::parse_result(ql_result * res)
+void guild_manager::parse_result(sql_result * res)
 {
 	MYSQL_ROW row;
 
-	while ((row = mysql_fetch_row(res->sql_result)))
+	while ((row = mysql_fetch_row(res->res)))
 	{
 		uint32_t GID = strtoul(row[0], nullptr, 10);
 
@@ -154,7 +154,7 @@ void guild_manager::initialize()
 {
 	char szQuery[1024];
 	snprintf(szQuery, sizeof(szQuery), "SELECT id, name, ladder_point, win, draw, loss, gold, level FROM guild%s", get_table_postfix());
-	std::unique_ptr<ql_msg> pmsg(db_manager::instance().direct_query(szQuery));
+	std::unique_ptr<sql_msg> pmsg(db_manager::instance().direct_query(szQuery));
 
 	if (pmsg->get()->num_rows)
 		parse_result(pmsg->get());
@@ -183,7 +183,7 @@ void guild_manager::load(uint32_t guild_id)
 	char szQuery[1024];
 
 	snprintf(szQuery, sizeof(szQuery), "SELECT id, name, ladder_point, win, draw, loss, gold, level FROM guild%s WHERE id=%u", get_table_postfix(), guild_id);
-	std::unique_ptr<ql_msg> pmsg(db_manager::instance().direct_query(szQuery));
+	std::unique_ptr<sql_msg> pmsg(db_manager::instance().direct_query(szQuery));
 
 	if (pmsg->get()->num_rows)
 		parse_result(pmsg->get());
@@ -197,7 +197,7 @@ void guild_manager::query_ranking()
 	db_manager::instance().return_query(szQuery, QID_GUILD_RANKING, 0, nullptr);
 }
 
-int guild_manager::ranking(uint32_t gid)
+auto guild_manager::ranking(uint32_t gid) -> int
 {
 	auto it = map_k_ladder_point_ranking_by_gid_.find(gid);
 
@@ -358,7 +358,7 @@ void guild_manager::guild_war_draw(uint32_t gid)
 	db_manager::instance().async_query(buf);
 }
 
-bool guild_manager::is_half_win_ladder_point(uint32_t guild_winner, uint32_t guild_loser)
+auto guild_manager::is_half_win_ladder_point(uint32_t guild_winner, uint32_t guild_loser) -> bool
 {
 	uint32_t GID1 = guild_winner;
 	uint32_t GID2 = guild_loser;
@@ -632,7 +632,7 @@ void guild_manager::remove_declare(uint32_t guild_from, uint32_t guild_to)
 	metin2::log::info( "GuildWar: RemoveDeclare(from:{:d},to:{:d})", guild_from, guild_to);
 }
 
-bool guild_manager::take_bet_price(uint32_t guild_to, uint32_t guild_from, int32_t war_price)
+auto guild_manager::take_bet_price(uint32_t guild_to, uint32_t guild_from, int32_t war_price) -> bool
 {
 	auto it_from = map_k_guild_.find(guild_from);
 	auto it_to = map_k_guild_.find(guild_to);
@@ -659,7 +659,7 @@ bool guild_manager::take_bet_price(uint32_t guild_to, uint32_t guild_from, int32
 	return true;
 }
 
-int guild_manager::ladder_point(uint32_t gid)
+auto guild_manager::ladder_point(uint32_t gid) -> int
 {
 	auto it = map_k_guild_.find(gid);
 
@@ -839,14 +839,14 @@ void guild_manager::boot_reserve_war()
 
 	for (int i = 0; i < 2; ++i)
 	{
-		std::unique_ptr<ql_msg> pmsg(db_manager::instance().direct_query(c_apszQuery[i]));
+		std::unique_ptr<sql_msg> pmsg(db_manager::instance().direct_query(c_apszQuery[i]));
 
 		if (pmsg->get()->num_rows == 0)
 			continue;
 
 		MYSQL_ROW row;
 
-		while ((row = mysql_fetch_row(pmsg->get()->sql_result)))
+		while ((row = mysql_fetch_row(pmsg->get()->res)))
 		{
 			int col = 0;
 
@@ -888,7 +888,7 @@ void guild_manager::boot_reserve_war()
 	}
 }
 
-int get_average_guild_member_level(uint32_t gid)
+auto get_average_guild_member_level(uint32_t gid) -> int
 {
 	char szQuery[QUERY_MAX_LEN];
 
@@ -896,31 +896,31 @@ int get_average_guild_member_level(uint32_t gid)
 			"SELECT AVG(level) FROM guild_member%s, player%s AS p WHERE guild_id=%u AND guild_member%s.pid=p.id", 
 			get_table_postfix(), get_table_postfix(), gid, get_table_postfix());
 
-	std::unique_ptr<ql_msg> msg(db_manager::instance().direct_query(szQuery));
+	std::unique_ptr<sql_msg> msg(db_manager::instance().direct_query(szQuery));
 
 	MYSQL_ROW row;
-	row = mysql_fetch_row(msg->get()->sql_result);
+	row = mysql_fetch_row(msg->get()->res);
 
 	int nAverageLevel = 0; str_to_number(nAverageLevel, row[0]);
 	return nAverageLevel;
 }
 
-int get_guild_member_count(uint32_t gid)
+auto get_guild_member_count(uint32_t gid) -> int
 {
 	char szQuery[QUERY_MAX_LEN];
 
 	snprintf(szQuery, sizeof(szQuery), "SELECT COUNT(*) FROM guild_member%s WHERE guild_id=%u", get_table_postfix(), gid);
 
-	std::unique_ptr<ql_msg> msg(db_manager::instance().direct_query(szQuery));
+	std::unique_ptr<sql_msg> msg(db_manager::instance().direct_query(szQuery));
 
 	MYSQL_ROW row;
-	row = mysql_fetch_row(msg->get()->sql_result);
+	row = mysql_fetch_row(msg->get()->res);
 
 	uint32_t dwCount = 0; str_to_number(dwCount, row[0]);
 	return dwCount;
 }
 
-bool guild_manager::reserve_war(packet_guild_war * p)
+auto guild_manager::reserve_war(packet_guild_war * p) -> bool
 {
 	uint32_t GID1 = p->guild_from;
 	uint32_t GID2 = p->guild_to;
@@ -995,7 +995,7 @@ bool guild_manager::reserve_war(packet_guild_war * p)
 			"VALUES(%u, %u, DATE_ADD(NOW(), INTERVAL 180 SECOND), %u, %d, %d, %d, %d, %d)",
 			GID1, GID2, p->type, p->war_price, p->initial_score, t.power_from, t.power_to, t.handicap);
 
-	std::unique_ptr<ql_msg> pmsg(db_manager::instance().direct_query(szQuery));
+	std::unique_ptr<sql_msg> pmsg(db_manager::instance().direct_query(szQuery));
 
 	if (pmsg->get()->affected_rows == 0 || pmsg->get()->insert_id == 0 || pmsg->get()->affected_rows == (uint32_t)-1)
 	{
@@ -1065,7 +1065,7 @@ void guild_manager::process_reserve_war()
 	}
 }
 
-bool guild_manager::bet(uint32_t id, const char * login, uint32_t gold, uint32_t guild)
+auto guild_manager::bet(uint32_t id, const char * login, uint32_t gold, uint32_t guild) -> bool
 {
 	auto it = map_k_war_reserve_.find(id);
 
@@ -1096,7 +1096,7 @@ void guild_manager::cancel_war(uint32_t gid1, uint32_t gid2)
 	remove_war(gid1, gid2);
 }
 
-bool guild_manager::change_master(uint32_t gid, uint32_t from, uint32_t to)
+auto guild_manager::change_master(uint32_t gid, uint32_t from, uint32_t to) -> bool
 {
 	auto iter = map_k_guild_.find(gid);
 
@@ -1106,13 +1106,13 @@ bool guild_manager::change_master(uint32_t gid, uint32_t from, uint32_t to)
 	char szQuery[1024];
 
 	snprintf(szQuery, sizeof(szQuery), "UPDATE guild%s SET master=%u WHERE id=%u", get_table_postfix(), to, gid);
-	std::unique_ptr<ql_msg>(db_manager::instance().direct_query(szQuery));
+	std::unique_ptr<sql_msg>(db_manager::instance().direct_query(szQuery));
 
 	snprintf(szQuery, sizeof(szQuery), "UPDATE guild_member%s SET grade=1 WHERE pid=%u", get_table_postfix(), to);
-	std::unique_ptr<ql_msg>(db_manager::instance().direct_query(szQuery));
+	std::unique_ptr<sql_msg>(db_manager::instance().direct_query(szQuery));
 
 	snprintf(szQuery, sizeof(szQuery), "UPDATE guild_member%s SET grade=15 WHERE pid=%u", get_table_postfix(), from);
-	std::unique_ptr<ql_msg>(db_manager::instance().direct_query(szQuery));
+	std::unique_ptr<sql_msg>(db_manager::instance().direct_query(szQuery));
 
 	return true;
 }
@@ -1130,11 +1130,11 @@ void guild_war_reservation::initialize()
 	char szQuery[256];
 	snprintf(szQuery, sizeof(szQuery), "SELECT login, guild, gold FROM guild_war_bet WHERE war_id=%u", data_.id);
 
-	std::unique_ptr<ql_msg> msgbet(db_manager::instance().direct_query(szQuery));
+	std::unique_ptr<sql_msg> msgbet(db_manager::instance().direct_query(szQuery));
 
 	if (msgbet->get()->num_rows)
 	{
-		MYSQL_RES * res = msgbet->get()->sql_result;
+		MYSQL_RES * res = msgbet->get()->res;
 		MYSQL_ROW row;
 
 		char szLogin[LOGIN_MAX_LEN+1];
@@ -1181,7 +1181,7 @@ void guild_war_reservation::on_setup(peer * peer)
 	}
 }
 
-bool guild_war_reservation::bet(const char * login_value, uint32_t gold_value, uint32_t guild_value)
+auto guild_war_reservation::bet(const char * login_value, uint32_t gold_value, uint32_t guild_value) -> bool
 {
 	if (data_.guild_from != guild_value && data_.guild_to != guild_value)
 	{
@@ -1205,7 +1205,7 @@ bool guild_war_reservation::bet(const char * login_value, uint32_t gold_value, u
 			"INSERT INTO guild_war_bet (war_id, login, gold, guild) VALUES({}, {}, {}, {})",
 			data_.id, login_value, gold_value, guild_value);
 
-	std::unique_ptr<ql_msg> pmsg(db_manager::instance().direct_query(query.c_str()));
+	std::unique_ptr<sql_msg> pmsg(db_manager::instance().direct_query(query.c_str()));
 
 	if (pmsg->get()->affected_rows == 0 || pmsg->get()->affected_rows == (uint32_t)-1)
 	{

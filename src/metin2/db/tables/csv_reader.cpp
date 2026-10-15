@@ -19,7 +19,7 @@ namespace
         STATE_QUOTE
     };
 
-    std::string trim(std::string str)
+    auto trim(std::string str) -> std::string
     {
         str = str.erase(str.find_last_not_of(" \t\r\n") + 1);
         str = str.erase(0, str.find_first_not_of(" \t\r\n"));
@@ -31,7 +31,7 @@ namespace
 
 
 
-bool c_csv_file::load(const char* file_name, const char seperator, const char quote)
+auto c_csv_file::load(const char* file_name, const char seperator, const char quote) -> bool
 {
     assert(seperator != quote);
 
@@ -122,7 +122,7 @@ void c_csv_file::destroy()
 }
 
 
-const c_csv_row* c_csv_file::operator [] (size_t index) const
+auto c_csv_file::operator [] (size_t index) const -> const c_csv_row*
 {
     assert(index < rows_.size());
     return rows_[index].get();
@@ -137,18 +137,18 @@ c_csv_table::~c_csv_table()
 {
 }
 
-bool c_csv_table::load(const char* file_name, const char seperator, const char quote)
+auto c_csv_table::load(const char* file_name, const char seperator, const char quote) -> bool
 {
     destroy();
     return file.load(file_name, seperator, quote);
 }
 
-bool c_csv_table::next()
+auto c_csv_table::next() -> bool
 {
     return ++cur_row_ < (int)file.row_count() ? true : false;
 }
 
-const char* c_csv_table::as_string_by_index(size_t index) const
+auto c_csv_table::as_string_by_index(size_t index) const -> const char*
 {
     const c_csv_row* const row = cur_row();
     assert(row);
@@ -162,7 +162,7 @@ void c_csv_table::destroy()
     cur_row_ = -1;
 }
 
-const c_csv_row* c_csv_table::cur_row() const
+auto c_csv_table::cur_row() const -> const c_csv_row*
 {
     if (cur_row_ < 0)
     {

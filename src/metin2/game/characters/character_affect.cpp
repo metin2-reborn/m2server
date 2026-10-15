@@ -29,8 +29,8 @@
 
 namespace metin2::game::inline characters {
 
-static bool is_no_save_affect(uint32_t type) { return (type == AFFECT_WAR_FLAG || type == AFFECT_REVIVE_INVISIBLE || (type >= AFFECT_PREMIUM_START && type <= AFFECT_PREMIUM_END)); }
-static bool is_no_clear_on_death_affect(uint32_t type) { return (type == AFFECT_BLOCK_CHAT || (type >= 500 && type < 600)); }
+static auto is_no_save_affect(uint32_t type) -> bool { return (type == AFFECT_WAR_FLAG || type == AFFECT_REVIVE_INVISIBLE || (type >= AFFECT_PREMIUM_START && type <= AFFECT_PREMIUM_END)); }
+static auto is_no_clear_on_death_affect(uint32_t type) -> bool { return (type == AFFECT_BLOCK_CHAT || (type >= 500 && type < 600)); }
 
 void send_affect_remove_packet(desc * d, uint32_t pid, uint32_t type, uint8_t point)
 {
@@ -59,7 +59,7 @@ void send_affect_add_packet(desc * d, affect * aff)
 	ptoc.elem.sp_cost		= aff->sp_cost;
 	d->packet(&ptoc, sizeof(packet_gc_affect_add));
 }
-affect * character::find_affect(uint32_t type_value, uint8_t apply) const
+auto character::find_affect(uint32_t type_value, uint8_t apply) const -> affect *
 {
 	auto it = list_pk_affect_.begin();
 
@@ -96,7 +96,7 @@ EVENTFUNC(affect_event)
 		return metin2::config::server().passes_per_sec;
 }
 
-bool character::update_affect()
+auto character::update_affect() -> bool
 {
 	if (point(POINT_HP_RECOVERY) > 0)
 	{
@@ -215,7 +215,7 @@ void character::clear_affect(bool save)
 		event_cancel(&affect_event);
 }
 
-int character::process_affect()
+auto character::process_affect() -> int
 {
 	bool	bDiff	= false;
 	affect	*pkAff	= nullptr;
@@ -510,7 +510,7 @@ void character::load_affect(uint32_t count_value, packet_affect_element * elemen
 	dragon_soul_initialize();
 }
 
-bool character::add_affect(uint32_t type_value, uint8_t apply_on_value, int32_t apply_value_value, uint32_t flag_value, int32_t duration_value, int32_t sp_cost_value, bool override, bool is_cube )
+auto character::add_affect(uint32_t type_value, uint8_t apply_on_value, int32_t apply_value_value, uint32_t flag_value, int32_t duration_value, int32_t sp_cost_value, bool override, bool is_cube ) -> bool
 {
 	if (type_value == AFFECT_BLOCK_CHAT && duration_value > 1)
 	{
@@ -641,7 +641,7 @@ void character::compute_affect(affect * aff, bool add)
 	}
 }
 
-bool character::remove_affect(affect * aff)
+auto character::remove_affect(affect * aff) -> bool
 {
 	if (!aff)
 		return false;
@@ -675,7 +675,7 @@ bool character::remove_affect(affect * aff)
 	return true;
 }
 
-bool character::remove_affect(uint32_t type)
+auto character::remove_affect(uint32_t type) -> bool
 {
 	if (type == AFFECT_BLOCK_CHAT)
 	{
@@ -695,7 +695,7 @@ bool character::remove_affect(uint32_t type)
 	return flag;
 }
 
-bool character::is_affect_flag(uint32_t aff) const
+auto character::is_affect_flag(uint32_t aff) const -> bool
 {
 	return af_affect_flag_.is_set(aff);
 }
@@ -726,7 +726,7 @@ void character::remove_good_affect()
 	remove_affect(SKILL_GICHEON);
 }
 
-bool character::is_good_affect(uint8_t affect_type) const
+auto character::is_good_affect(uint8_t affect_type) const -> bool
 {
 	switch (affect_type)
 	{

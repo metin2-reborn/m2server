@@ -16,7 +16,7 @@ namespace metin2::game {
 
 namespace quest
 {
-	int marriage_engage_to(lua_State* lua)
+	auto marriage_engage_to(lua_State* lua) -> int
 	{
 		uint32_t vid = (uint32_t) lua_tonumber(lua, 1);
 		character * ch = quest_manager::instance().current_character_ptr();
@@ -28,7 +28,7 @@ namespace quest
 		return 0;
 	}
 
-	int marriage_remove(lua_State* lua)
+	auto marriage_remove(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		marriage::marriage* pMarriage = marriage::manager::instance().get(ch->player_id());
@@ -41,7 +41,7 @@ namespace quest
 		return 0;
 	}
 
-	int marriage_set_to_marriage(lua_State* lua)
+	auto marriage_set_to_marriage(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		marriage::marriage* pMarriage = marriage::manager::instance().get(ch->player_id());
@@ -54,7 +54,7 @@ namespace quest
 		return 0;
 	}
 
-	int marriage_find_married_vid(lua_State* lua)
+	auto marriage_find_married_vid(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		marriage::marriage* pMarriage = marriage::manager::instance().get(ch->player_id());
@@ -98,13 +98,13 @@ namespace quest
 		}
 	};
 
-	int marriage_get_wedding_list(lua_State* lua)
+	auto marriage_get_wedding_list(lua_State* lua) -> int
 	{
 		marriage::manager::instance().for_each_wedding(f_build_lua_wedding_map_list(lua));
 		return 1;
 	}
 
-	int marriage_join_wedding(lua_State* lua)
+	auto marriage_join_wedding(lua_State* lua) -> int
 	{
 		if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2))
 		{
@@ -135,7 +135,7 @@ namespace quest
 		return 0;
 	}
 
-	int marriage_warp_to_my_marriage_map(lua_State* lua)
+	auto marriage_warp_to_my_marriage_map(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		marriage::marriage* pMarriage = marriage::manager::instance().get(ch->player_id());
@@ -153,7 +153,7 @@ namespace quest
 		return 0;
 	}
 
-	int marriage_end_wedding(lua_State* lua)
+	auto marriage_end_wedding(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		marriage::marriage* pMarriage = marriage::manager::instance().get(ch->player_id());
@@ -169,7 +169,7 @@ namespace quest
 		return 0;
 	}
 
-	int marriage_wedding_dark(lua_State* lua)
+	auto marriage_wedding_dark(lua_State* lua) -> int
 	{
 		if (!lua_isboolean(lua, 1))
 		{
@@ -193,7 +193,7 @@ namespace quest
 		return 0;
 	}
 
-	int marriage_wedding_client_command(lua_State* lua)
+	auto marriage_wedding_client_command(lua_State* lua) -> int
 	{
 		if (!lua_isstring(lua, 1))
 		{
@@ -217,7 +217,7 @@ namespace quest
 
 	}
 
-	int marriage_wedding_is_playing_music(lua_State* lua)
+	auto marriage_wedding_is_playing_music(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		marriage::marriage* pMarriage = marriage::manager::instance().get(ch->player_id());
@@ -238,7 +238,7 @@ namespace quest
 		lua_pushboolean(lua, false);
 		return 1;
 	}
-	int marriage_wedding_music(lua_State* lua)
+	auto marriage_wedding_music(lua_State* lua) -> int
 	{
 		if (!lua_isboolean(lua, 1))
 		{
@@ -268,7 +268,7 @@ namespace quest
 		}
 		return 0;
 	}
-	int marriage_wedding_snow(lua_State* lua)
+	auto marriage_wedding_snow(lua_State* lua) -> int
 	{
 		if (!lua_isboolean(lua, 1))
 		{
@@ -290,7 +290,7 @@ namespace quest
 		return 0;
 	}
 
-	int marriage_in_my_wedding(lua_State* lua)
+	auto marriage_in_my_wedding(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		marriage::marriage* pMarriage = marriage::manager::instance().get(ch->player_id());
@@ -305,7 +305,7 @@ namespace quest
 		return 1;
 	}
 
-	int marriage_get_married_time(lua_State* lua)
+	auto marriage_get_married_time(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		marriage::marriage* pMarriage = marriage::manager::instance().get(ch->player_id());

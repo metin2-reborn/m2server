@@ -85,13 +85,13 @@ void character_manager::graceful_shutdown()
 		(it++)->second->disconnect("GracefulShutdown");
 }
 
-uint32_t character_manager::alloc_vid()
+auto character_manager::alloc_vid() -> uint32_t
 {
 	++vid_count_;
 	return vid_count_;
 }
 
-character * character_manager::create_character(const char * name, uint32_t pid)
+auto character_manager::create_character(const char * name, uint32_t pid) -> character *
 {
 	uint32_t dwVID = alloc_vid();
 
@@ -168,7 +168,7 @@ void character_manager::destroy_character(character * ch)
 	delete ch;
 }
 
-character * character_manager::find(uint32_t vid)
+auto character_manager::find(uint32_t vid) -> character *
 {
 	auto it = map_pk_chr_by_vid_.find(vid);
 
@@ -183,7 +183,7 @@ character * character_manager::find(uint32_t vid)
 	return found;
 }
 
-character * character_manager::find(const vid & vid)
+auto character_manager::find(const vid & vid) -> character *
 {
 	character * tch = find((uint32_t) vid);
 
@@ -193,7 +193,7 @@ character * character_manager::find(const vid & vid)
 	return tch;
 }
 
-character * character_manager::find_by_pid(uint32_t pid)
+auto character_manager::find_by_pid(uint32_t pid) -> character *
 {
 	auto it = map_pk_chr_by_pid_.find(pid);
 
@@ -208,7 +208,7 @@ character * character_manager::find_by_pid(uint32_t pid)
 	return found;
 }
 
-character * character_manager::find_pc(const char * name)
+auto character_manager::find_pc(const char * name) -> character *
 {
 	char szName[CHARACTER_NAME_MAX_LEN + 1];
 	str_lower(name, szName, sizeof(szName));
@@ -225,7 +225,7 @@ character * character_manager::find_pc(const char * name)
 	return found;
 }
 
-character * character_manager::spawn_mob_random_position(uint32_t vnum, int32_t map_index)
+auto character_manager::spawn_mob_random_position(uint32_t vnum, int32_t map_index) -> character *
 {
 	{
 		if (vnum == 5001 && !quest::quest_manager::instance().event_flag("japan_regen"))
@@ -341,7 +341,7 @@ character * character_manager::spawn_mob_random_position(uint32_t vnum, int32_t 
 	return (ch);
 }
 
-character * character_manager::spawn_mob(uint32_t vnum, int32_t map_index, int32_t x, int32_t y, int32_t z, bool spawn_motion, int rot, bool show_value)
+auto character_manager::spawn_mob(uint32_t vnum, int32_t map_index, int32_t x, int32_t y, int32_t z, bool spawn_motion, int rot, bool show_value) -> character *
 {
 	const mob * pkMob = mob_manager::instance().get(vnum);
 	if (!pkMob)
@@ -430,7 +430,7 @@ character * character_manager::spawn_mob(uint32_t vnum, int32_t map_index, int32
 	return (ch);
 }
 
-character * character_manager::spawn_mob_range(uint32_t vnum, int32_t map_index, int sx, int sy, int ex, int ey, bool is_exception, bool spawn_motion, bool aggressive )
+auto character_manager::spawn_mob_range(uint32_t vnum, int32_t map_index, int sx, int sy, int ex, int ey, bool is_exception, bool spawn_motion, bool aggressive ) -> character *
 {
 	const mob * pkMob = mob_manager::instance().get(vnum);
 
@@ -465,7 +465,7 @@ void character_manager::select_stone(character * chr)
 	chr_selected_stone_ = chr;
 }
 
-bool character_manager::spawn_move_group(uint32_t vnum, int32_t map_index, int sx, int sy, int ex, int ey, int tx, int ty, regen * regen_value, bool aggressive)
+auto character_manager::spawn_move_group(uint32_t vnum, int32_t map_index, int sx, int sy, int ex, int ey, int tx, int ty, regen * regen_value, bool aggressive) -> bool
 {
 	mob_group * pkGroup = mob_manager::instance().group(vnum);
 
@@ -531,7 +531,7 @@ bool character_manager::spawn_move_group(uint32_t vnum, int32_t map_index, int s
 	return true;
 }
 
-bool character_manager::spawn_group_group(uint32_t vnum, int32_t map_index, int sx, int sy, int ex, int ey, regen * regen_value, bool aggressive, dungeon * dungeon_value)
+auto character_manager::spawn_group_group(uint32_t vnum, int32_t map_index, int sx, int sy, int ex, int ey, regen * regen_value, bool aggressive, dungeon * dungeon_value) -> bool
 {
 	const uint32_t dwGroupID = mob_manager::instance().group_from_group_group(vnum);
 
@@ -546,7 +546,7 @@ bool character_manager::spawn_group_group(uint32_t vnum, int32_t map_index, int 
 	}
 }
 
-character * character_manager::spawn_group(uint32_t vnum, int32_t map_index, int sx, int sy, int ex, int ey, regen * regen_value, bool aggressive, dungeon * dungeon_value)
+auto character_manager::spawn_group(uint32_t vnum, int32_t map_index, int sx, int sy, int ex, int ey, regen * regen_value, bool aggressive, dungeon * dungeon_value) -> character *
 {
 	mob_group * pkGroup = mob_manager::instance().group(vnum);
 
@@ -697,7 +697,7 @@ void character_manager::process_delayed_save()
 	set_pk_chr_for_delayed_save_.clear();
 }
 
-bool character_manager::add_to_state_list(character * ch)
+auto character_manager::add_to_state_list(character * ch) -> bool
 {
 	assert(ch != nullptr);
 
@@ -727,7 +727,7 @@ void character_manager::delayed_save(character * ch)
 	set_pk_chr_for_delayed_save_.insert(ch);
 }
 
-bool character_manager::flush_delayed_save(character * ch)
+auto character_manager::flush_delayed_save(character * ch) -> bool
 {
 	character_set::iterator it = set_pk_chr_for_delayed_save_.find(ch);
 
@@ -813,7 +813,7 @@ void character_manager::unregister_race_num_map(character * ch)
 		it->second.erase(ch);
 }
 
-bool character_manager::characters_by_race_num(uint32_t race_num, character_vector_interactor & i)
+auto character_manager::characters_by_race_num(uint32_t race_num, character_vector_interactor & i) -> bool
 {
 	std::map<uint32_t, character_set>::iterator it = map_pk_chr_by_race_num_.find(race_num);
 
@@ -825,7 +825,7 @@ bool character_manager::characters_by_race_num(uint32_t race_num, character_vect
 }
 
 
-character * character_manager::find_specify_pc(unsigned int job_flag, int32_t map_index_value, character * except, int min_level, int max_level)
+auto character_manager::find_specify_pc(unsigned int job_flag, int32_t map_index_value, character * except, int min_level, int max_level) -> character *
 {
 	character * chFind = nullptr;
 	decltype(map_pk_chr_by_pid_.begin()) it;
@@ -862,19 +862,19 @@ character * character_manager::find_specify_pc(unsigned int job_flag, int32_t ma
 	return chFind;
 }
 
-int character_manager::mob_item_rate(character * ch)	
+auto character_manager::mob_item_rate(character * ch) -> int	
 { 
 	if (ch && ch->premium_remain_seconds(PREMIUM_ITEM) > 0)
 		return mob_item_rate_premium_;
 	return mob_item_rate_; 
 }
 
-int character_manager::mob_damage_rate(character * ch)	
+auto character_manager::mob_damage_rate(character * ch) -> int	
 { 
 	return mob_damage_rate_; 
 }
 
-int character_manager::mob_gold_amount_rate(character * ch)
+auto character_manager::mob_gold_amount_rate(character * ch) -> int
 { 
 	if ( !ch )
 		return mob_gold_amount_rate_;
@@ -884,7 +884,7 @@ int character_manager::mob_gold_amount_rate(character * ch)
 	return mob_gold_amount_rate_; 
 }
 
-int character_manager::mob_gold_drop_rate(character * ch)
+auto character_manager::mob_gold_drop_rate(character * ch) -> int
 {
 	if ( !ch )
 		return mob_gold_drop_rate_;
@@ -895,7 +895,7 @@ int character_manager::mob_gold_drop_rate(character * ch)
 	return mob_gold_drop_rate_;
 }
 
-int character_manager::mob_exp_rate(character * ch)
+auto character_manager::mob_exp_rate(character * ch) -> int
 { 
 	if ( !ch )
 		return mob_exp_rate_;
@@ -926,7 +926,7 @@ void character_manager::send_script_to_map(int32_t map_index, const std::string 
 	pSecMap->for_each(f);
 }
 
-bool character_manager::begin_pending_destroy()
+auto character_manager::begin_pending_destroy() -> bool
 {
 	if (use_pending_destroy_)
 		return false;

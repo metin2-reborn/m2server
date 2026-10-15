@@ -15,7 +15,7 @@ namespace metin2::game::inline app {
 
 static event_queue cxx_q;
 
-event_ptr event_create(event_func func, event_info_data* info, int32_t when)
+auto event_create(event_func func, event_info_data* info, int32_t when) -> event_ptr
 {
 	event_ptr new_event = nullptr;
 
@@ -87,7 +87,7 @@ void event_reset_time(event_ptr event, int32_t when)
 	}
 }
 
-int event_process(int pulse)
+auto event_process(int pulse) -> int
 {
 	int32_t	new_time;
 	int		num_events = 0;
@@ -137,7 +137,7 @@ int event_process(int pulse)
 	return num_events;
 }
 
-int32_t event_processing_time(event_ptr event)
+auto event_processing_time(event_ptr event) -> int32_t
 {
 	int32_t start_time;
 
@@ -148,7 +148,7 @@ int32_t event_processing_time(event_ptr event)
 	return (thecore_heart->pulse - start_time);
 }
 
-int32_t event_time(event_ptr event)
+auto event_time(event_ptr event) -> int32_t
 {
 	int32_t when;
 
@@ -175,7 +175,7 @@ void event_destroy(void)
 	}
 }
 
-int event_count()
+auto event_count() -> int
 {
 	return cxx_q.size();
 }

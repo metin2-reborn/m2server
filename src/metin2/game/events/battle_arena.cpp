@@ -32,12 +32,12 @@ battle_arena::battle_arena()
 {
 }
 
-bool battle_arena::is_running()
+auto battle_arena::is_running() -> bool
 {
 	return status_ == STATUS_CLOSE ? false : true;
 }
 
-bool battle_arena::is_battle_arena_map(int map_index)
+auto battle_arena::is_battle_arena_map(int map_index) -> bool
 {
 	if ( map_index == battle_arena_map[1] ||
 		map_index == battle_arena_map[2] ||
@@ -246,7 +246,7 @@ EVENTFUNC(battle_arena_event)
 	return 0;
 }
 
-bool battle_arena::start(int empire_value)
+auto battle_arena::start(int empire_value) -> bool
 {
 	if ( status_ != STATUS_CLOSE ) return false;
 	if ( empire_value < 1 || empire_value > 3 ) return false;

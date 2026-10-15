@@ -15,7 +15,7 @@ struct cube_value
 	uint32_t	vnum;
 	int		count;
 
-	bool operator == (const cube_value& b) const
+	auto operator == (const cube_value& b) const -> bool
 	{
 		return (this->count == b.count) && (this->vnum == b.vnum);
 	}
@@ -31,15 +31,15 @@ struct cube_data
 
 	cube_data();
 
-	bool		can_make_item (game::items::item * *items, uint16_t npc_vnum);
-	cube_value*	reward_value ();
+	auto		can_make_item (game::items::item * *items, uint16_t npc_vnum) -> bool;
+	auto	reward_value () -> cube_value*;
 	void		remove_material (character * ch);
 }; 
 
 void cube_init ();
-bool cube_load (const char *file);
+auto cube_load (const char *file) -> bool;
 
-bool cube_make (character * ch);
+auto cube_make (character * ch) -> bool;
 
 void cube_clean_item (character * ch);
 void cube_open (character * ch);
@@ -53,5 +53,5 @@ void cube_request_result_list(character * ch);
 void cube_request_material_info(character * ch, int request_start_index, int request_count = 1);
 
 
-bool cube_information_initialize();
+auto cube_information_initialize() -> bool;
 }

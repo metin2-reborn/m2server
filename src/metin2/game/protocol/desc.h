@@ -78,21 +78,21 @@ class desc : public net::connection_handler
 		desc();
 		virtual ~desc();
 
-		virtual uint8_t		type() { return DESC_TYPE_ACCEPTOR; }
+		virtual auto		type() -> uint8_t { return DESC_TYPE_ACCEPTOR; }
 		virtual void		destroy();
 		virtual void		set_phase(int phase_value);
 
 		void			flush_output();
 		void			send_output_now();
 
-		bool			setup(std::shared_ptr<net::connection> connection, uint32_t handle, uint32_t handshake);
+		auto			setup(std::shared_ptr<net::connection> connection, uint32_t handle, uint32_t handshake) -> bool;
 
-		bool			is_connected() const	{ return connection_ != nullptr; }
-		const char *	host_name()		{ return host_.c_str(); }
+		auto			is_connected() const -> bool	{ return connection_ != nullptr; }
+		auto	host_name() -> const char *		{ return host_.c_str(); }
 
 		void			set_p2_p(const char * h, uint16_t w) { p2_p_host_ = h; p2_p_port_ = w; }
-		const char *	p2_p_host()		{ return p2_p_host_.c_str();	}
-		uint16_t			p2_p_port() const		{ return p2_p_port_; }
+		auto	p2_p_host() -> const char *		{ return p2_p_host_.c_str();	}
+		auto			p2_p_port() const -> uint16_t		{ return p2_p_port_; }
 
 		void			buffered_packet(const void * data_value, int size);
 		void			packet(const void * data_value, int size_value);
@@ -101,63 +101,63 @@ class desc : public net::connection_handler
 		auto			on_receive(std::span<std::uint8_t> input, std::size_t received) -> std::size_t override;
 		void			on_close(const std::error_code & error) override;
 
-		input_processor	*	get_input_processor()	{ return input_processor_; }
+		auto	get_input_processor() -> input_processor	*	{ return input_processor_; }
 
-		uint32_t			handle() const	{ return handle_; }
+		auto			handle() const -> uint32_t	{ return handle_; }
 
 		void			bind_account_table(account_table * account_table_value);
-		account_table &		get_account_table()	{ return account_table_; }
+		auto		get_account_table() -> account_table &	{ return account_table_; }
 
 		void			bind_character(character * ch);
-		character *		get_character()		{ return character_; }
+		auto		get_character() -> character *		{ return character_; }
 
-		bool			is_phase(int phase) const	{ return phase_ == phase ? true : false; }
+		auto			is_phase(int phase) const -> bool	{ return phase_ == phase ? true : false; }
 
 
 		void			start_handshake(uint32_t handshake);
 		void			send_handshake(uint32_t cur_time, int32_t new_delta);
-		bool			handshake_process(uint32_t time, int32_t delta, bool infinite_retry=false);
-		bool			is_handshaking();
+		auto			handshake_process(uint32_t time, int32_t delta, bool infinite_retry=false) -> bool;
+		auto			is_handshaking() -> bool;
 
-		uint32_t			handshake() const	{ return handshake_; }
-		uint32_t			client_time();
+		auto			handshake() const -> uint32_t	{ return handshake_; }
+		auto			client_time() -> uint32_t;
 
 		void send_key_agreement();
 		void send_key_agreement_completed();
-		bool finish_handshake(size_t agreed_length, const void* buffer, size_t length);
-		bool is_cipher_prepared();
+		auto finish_handshake(size_t agreed_length, const void* buffer, size_t length) -> bool;
+		auto is_cipher_prepared() -> bool;
 
-		uint8_t			empire();
+		auto			empire() -> uint8_t;
 
 		void			set_relay(const char * name);
-		bool			delayed_disconnect(int sec);
+		auto			delayed_disconnect(int sec) -> bool;
 		void			disconnect_of_same_login();
 
 		void			set_admin_mode();
-		bool			is_admin_mode();
+		auto			is_admin_mode() -> bool;
 
 		void			set_mark_login(uint32_t owner_handle)	{ mark_login_ = true; mark_owner_handle_ = owner_handle; }
-		bool			is_mark_login() const	{ return mark_login_; }
-		uint32_t		mark_owner_handle() const	{ return mark_owner_handle_; }
+		auto			is_mark_login() const -> bool	{ return mark_login_; }
+		auto		mark_owner_handle() const -> uint32_t	{ return mark_owner_handle_; }
 
 		void			set_pong(bool b);
-		bool			is_pong();
+		auto			is_pong() -> bool;
 
-		uint8_t			sequence();
+		auto			sequence() -> uint8_t;
 		void			set_next_sequence();
 
 		void			send_login_success_packet();
 
 		void			set_login_key(uint32_t key);
 		void			set_login_key(login_key * key_value);
-		uint32_t			get_login_key();
+		auto			get_login_key() -> uint32_t;
 
 		void			assemble_crc_magic_cube(uint8_t proc_piece, uint8_t file_piece);
 
 		void			set_client_version(const char * timestamp) { client_version_ = timestamp; }
-		const char *		client_version() { return client_version_.c_str(); }
+		auto		client_version() -> const char * { return client_version_.c_str(); }
 
-		bool			is_channel_status_requested() const { return channel_status_requested_; }
+		auto			is_channel_status_requested() const -> bool { return channel_status_requested_; }
 		void			set_channel_status_requested(bool channel_status_requested) { channel_status_requested_ = channel_status_requested; }
 
 	protected:
@@ -228,7 +228,7 @@ class desc : public net::connection_handler
 	public:
 
 		void set_login( const char * login ) { login_ = login; }
-		const std::string& login() { return login_; }
+		auto login() -> const std::string& { return login_; }
 
 		void chat_packet(uint8_t type, const char * format, ...);
 

@@ -29,30 +29,30 @@ protected:
 
 	virtual ~pet_actor();
 
-	virtual bool	update(uint32_t delta_time);
+	virtual auto	update(uint32_t delta_time) -> bool;
 
 protected:
-	virtual bool	update_follow_ai();
+	virtual auto	update_follow_ai() -> bool;
 
 
 private:
-	bool follow(float min_distance = 50.f);
+	auto follow(float min_distance = 50.f) -> bool;
 
 public:
-	character *		get_character()	const					{ return character_; }
-	character *		owner()	const						{ return owner_; }
-	uint32_t			get_vid() const							{ return vid_; }
+	auto		get_character()	const -> character *					{ return character_; }
+	auto		owner()	const -> character *						{ return owner_; }
+	auto			get_vid() const -> uint32_t							{ return vid_; }
 
-	bool			has_option(pet_options option) const		{ return options_ & option; }
+	auto			has_option(pet_options option) const -> bool		{ return options_ & option; }
 
 	void			set_name(const char* name);
 
-	uint32_t			summon(const char* pet_name, item * summon_item, bool spawn_far = false);
+	auto			summon(const char* pet_name, item * summon_item, bool spawn_far = false) -> uint32_t;
 	void			unsummon();
 
-	bool			is_summoned() const			{ return nullptr != character_; }
+	auto			is_summoned() const -> bool			{ return nullptr != character_; }
 	void			set_summon_item (item * item_value);
-	uint32_t			summon_item_vid () { return summon_item_vid_; }
+	auto			summon_item_vid () -> uint32_t { return summon_item_vid_; }
 	// point_change alone is reset by the next compute_points, so buffs are applied through
 	// compute_points (which calls refresh_buff); clear_buff then compute_points removes them.
 	void			give_buff();
@@ -83,16 +83,16 @@ public:
 	pet_system(character * owner);
 	virtual ~pet_system();
 
-	pet_actor*	by_vnum(uint32_t vnum) const;
+	auto	by_vnum(uint32_t vnum) const -> pet_actor*;
 
-	bool		update(uint32_t delta_time);
+	auto		update(uint32_t delta_time) -> bool;
 	void		destroy();
 
-	size_t		count_summoned() const;
+	auto		count_summoned() const -> size_t;
 
 public:
 
-	pet_actor*	summon(uint32_t mob_vnum, item * summon_item, const char* pet_name, bool spawn_far, uint32_t options = pet_actor::EPetOption_Followable | pet_actor::EPetOption_Summonable);
+	auto	summon(uint32_t mob_vnum, item * summon_item, const char* pet_name, bool spawn_far, uint32_t options = pet_actor::EPetOption_Followable | pet_actor::EPetOption_Summonable) -> pet_actor*;
 
 	void		unsummon(uint32_t vnum, bool delete_from_list = false);
 	void		unsummon(pet_actor* pet_actor, bool delete_from_list = false);

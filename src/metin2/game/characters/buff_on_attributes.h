@@ -21,7 +21,7 @@ public:
 	void change_buff_value(uint8_t new_value);
 	void give_all_attributes();
 
-	bool on(uint8_t value);
+	auto on(uint8_t value) -> bool;
 	void off();
 
 	void initialize();

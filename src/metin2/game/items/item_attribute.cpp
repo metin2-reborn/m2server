@@ -22,7 +22,7 @@ namespace metin2::game::inline items {
 const int MAX_NORM_ATTR_NUM = item_manager::max_norm_attr_num;
 const int MAX_RARE_ATTR_NUM = item_manager::max_rare_attr_num;
 
-int item::attribute_set_index()
+auto item::attribute_set_index() -> int
 {
 	if (type() == ITEM_WEAPON)
 	{
@@ -62,7 +62,7 @@ int item::attribute_set_index()
 	return -1;
 }
 
-bool item::has_attr(uint8_t apply)
+auto item::has_attr(uint8_t apply) -> bool
 {
 	for (int i = 0; i < ITEM_APPLY_MAX_NUM; ++i)
 		if (proto_->applies[i].type == apply)
@@ -75,7 +75,7 @@ bool item::has_attr(uint8_t apply)
 	return false;
 }
 
-bool item::has_rare_attr(uint8_t apply)
+auto item::has_rare_attr(uint8_t apply) -> bool
 {
 	for (int i = 0; i < MAX_RARE_ATTR_NUM; ++i)
 		if (attribute_type(i + 5) == apply)
@@ -247,7 +247,7 @@ void item::clear_attribute()
 	}
 }
 
-int item::attribute_count()
+auto item::attribute_count() -> int
 {
 	int i;
 
@@ -260,7 +260,7 @@ int item::attribute_count()
 	return i;
 }
 
-int item::find_attribute(uint8_t type)
+auto item::find_attribute(uint8_t type) -> int
 {
 	for (int i = 0; i < MAX_NORM_ATTR_NUM; ++i)
 	{
@@ -271,7 +271,7 @@ int item::find_attribute(uint8_t type)
 	return -1;
 }
 
-bool item::remove_attribute_type(uint8_t type)
+auto item::remove_attribute_type(uint8_t type) -> bool
 {
 	int index = find_attribute(type);
 	return index != -1 && remove_attribute_type(index);
@@ -329,7 +329,7 @@ void item::copy_attribute_to(item * item_value)
 	item_value->set_attributes(attr_);
 }
 
-int item::rare_attr_count()
+auto item::rare_attr_count() -> int
 {
 	int ret = 0;
 
@@ -342,7 +342,7 @@ int item::rare_attr_count()
 	return ret;
 }
 
-bool item::change_rare_attribute()
+auto item::change_rare_attribute() -> bool
 {
 	if (rare_attr_count() == 0)
 		return false;
@@ -368,7 +368,7 @@ bool item::change_rare_attribute()
 	return true;
 }
 
-bool item::add_rare_attribute()
+auto item::add_rare_attribute() -> bool
 {
 	int count = rare_attr_count();
 

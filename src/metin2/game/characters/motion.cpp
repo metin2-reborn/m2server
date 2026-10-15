@@ -22,7 +22,7 @@
 
 namespace metin2::game::inline characters {
 
-static float msa_get_normal_attack_duration(const char* msa_path)
+static auto msa_get_normal_attack_duration(const char* msa_path) -> float
 {
 	float duration = 99.0f;
 	FILE * fp = fopen(msa_path, "rt");
@@ -47,7 +47,7 @@ static float msa_get_normal_attack_duration(const char* msa_path)
 	return duration;
 }
 
-static float mob_get_normal_attack_duration(mob_table* mob_table_value)
+static auto mob_get_normal_attack_duration(mob_table* mob_table_value) -> float
 {
 	float minDuration = 99.0f;
 
@@ -83,7 +83,7 @@ static float mob_get_normal_attack_duration(mob_table* mob_table_value)
 	return minDuration;
 }
 
-static const char* get_motion_file_name(mob_table* mob_table_value, public_motion motion)
+static auto get_motion_file_name(mob_table* mob_table_value, public_motion motion) -> const char*
 {
 	char buf[1024];
 	const char * folder = mob_table_value->folder;
@@ -216,7 +216,7 @@ motion_manager::~motion_manager()
 {
 }
 
-const motion_set * motion_manager::get_motion_set(uint32_t vnum)
+auto motion_manager::get_motion_set(uint32_t vnum) -> const motion_set *
 {
 	iterator it = map_pk_motion_set_.find(vnum);
 
@@ -226,7 +226,7 @@ const motion_set * motion_manager::get_motion_set(uint32_t vnum)
 	return it->second.get();
 }
 
-const motion * motion_manager::get_motion(uint32_t vnum, uint32_t key)
+auto motion_manager::get_motion(uint32_t vnum, uint32_t key) -> const motion *
 {
 	const motion_set * pkMotionSet = get_motion_set(vnum);
 
@@ -236,13 +236,13 @@ const motion * motion_manager::get_motion(uint32_t vnum, uint32_t key)
 	return pkMotionSet->get_motion(key);
 }
 
-float motion_manager::motion_duration(uint32_t vnum, uint32_t key)
+auto motion_manager::motion_duration(uint32_t vnum, uint32_t key) -> float
 {
 	const motion * pkMotion = get_motion(vnum, key);
 	return pkMotion ? pkMotion->duration() : 0.0f;
 }
 
-float	motion_manager::normal_attack_duration(uint32_t vnum)
+auto	motion_manager::normal_attack_duration(uint32_t vnum) -> float
 {
 	std::map<uint32_t, float>::iterator f = map_normal_attack_duration_.find(vnum);
 	if (map_normal_attack_duration_.end() == f)
@@ -267,7 +267,7 @@ enum motion_event_type
 	MOTION_EVENT_TYPE_MAX_NUM,
 };
 
-bool motion_manager::build()
+auto motion_manager::build() -> bool
 {
 	const char * c_apszFolderName[MAIN_RACE_MAX_NUM] =
 	{
@@ -370,7 +370,7 @@ motion_set::~motion_set()
 {
 }
 
-const motion * motion_set::get_motion(uint32_t key) const
+auto motion_set::get_motion(uint32_t key) const -> const motion *
 {
 	const_iterator it = map_pk_motion_.find(key);
 
@@ -385,7 +385,7 @@ void motion_set::insert(uint32_t key, std::unique_ptr<motion> motion_value)
 	map_pk_motion_.insert(container::value_type(key, std::move(motion_value)));
 }
 
-bool motion_set::load(const char * file_name, int mode, int motion)
+auto motion_set::load(const char * file_name, int mode, int motion) -> bool
 {
 	auto pkMotion = std::make_unique<game::characters::motion>();
 
@@ -408,7 +408,7 @@ motion::~motion()
 {
 }
 
-bool motion::load_mob_skill_from_file(const char * file_name, mob* mob_value, int skill_index)
+auto motion::load_mob_skill_from_file(const char * file_name, mob* mob_value, int skill_index) -> bool
 {
 	text_file_loader rkTextFileLoader;
 	if (!rkTextFileLoader.load(file_name))
@@ -508,7 +508,7 @@ bool motion::load_mob_skill_from_file(const char * file_name, mob* mob_value, in
 	return true;
 }
 
-bool motion::load_from_file(const char * file_name)
+auto motion::load_from_file(const char * file_name) -> bool
 {
 	text_file_loader loader;
 
@@ -531,12 +531,12 @@ bool motion::load_from_file(const char * file_name)
 	return true;
 }
 
-float motion::duration() const
+auto motion::duration() const -> float
 {
 	return duration_;
 }
 
-const vector & motion::accum_vector() const
+auto motion::accum_vector() const -> const vector &
 {
 	return vec3_accumulation_;
 }

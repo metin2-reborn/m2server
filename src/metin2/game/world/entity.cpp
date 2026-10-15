@@ -48,12 +48,12 @@ void entity::destroy()
 	is_destroyed_ = true;
 }
 
-int entity::type() const
+auto entity::type() const -> int
 {
 	return type_;
 }
 
-bool entity::is_type(int type) const
+auto entity::is_type(int type) const -> bool
 {
 	return (type_ == type ? true : false);
 }

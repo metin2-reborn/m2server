@@ -111,7 +111,7 @@ void pet_actor::unsummon()
 	}
 }
 
-uint32_t pet_actor::summon(const char* pet_name, item * summon_item, bool spawn_far)
+auto pet_actor::summon(const char* pet_name, item * summon_item, bool spawn_far) -> uint32_t
 {
 	int32_t x = owner_->x();
 	int32_t y = owner_->y();
@@ -163,7 +163,7 @@ uint32_t pet_actor::summon(const char* pet_name, item * summon_item, bool spawn_
 	return vid_;
 }
 
-bool pet_actor::update_follow_ai()
+auto pet_actor::update_follow_ai() -> bool
 {
 	if (nullptr == character_->mob_data)
 	{
@@ -223,7 +223,7 @@ bool pet_actor::update_follow_ai()
 	return true;
 }
 
-bool pet_actor::update(uint32_t delta_time)
+auto pet_actor::update(uint32_t delta_time) -> bool
 {
 	bool bResult = true;
 
@@ -242,7 +242,7 @@ bool pet_actor::update(uint32_t delta_time)
 	return bResult;
 }
 
-bool pet_actor::follow(float min_distance)
+auto pet_actor::follow(float min_distance) -> bool
 {
 	if( !owner_ || !character_) 
 		return false;
@@ -347,7 +347,7 @@ void pet_system::destroy()
 	pet_actor_map_.clear();
 }
 
-bool pet_system::update(uint32_t delta_time)
+auto pet_system::update(uint32_t delta_time) -> bool
 {
 	bool bResult = true;
 
@@ -428,7 +428,7 @@ void pet_system::unsummon(uint32_t vnum, bool delete_from_list)
 }
 
 
-pet_actor* pet_system::summon(uint32_t mob_vnum, item * summon_item, const char* pet_name, bool spawn_far, uint32_t options)
+auto pet_system::summon(uint32_t mob_vnum, item * summon_item, const char* pet_name, bool spawn_far, uint32_t options) -> pet_actor*
 {
 	pet_actor* petActor = this->by_vnum(mob_vnum);
 
@@ -453,7 +453,7 @@ pet_actor* pet_system::summon(uint32_t mob_vnum, item * summon_item, const char*
 }
 
 
-pet_actor* pet_system::by_vnum(uint32_t vnum) const
+auto pet_system::by_vnum(uint32_t vnum) const -> pet_actor*
 {
 	pet_actor* petActor = nullptr;
 
@@ -465,7 +465,7 @@ pet_actor* pet_system::by_vnum(uint32_t vnum) const
 	return petActor;
 }
 
-size_t pet_system::count_summoned() const
+auto pet_system::count_summoned() const -> size_t
 {
 	size_t count = 0;
 

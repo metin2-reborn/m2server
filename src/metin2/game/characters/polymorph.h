@@ -31,11 +31,11 @@ class polymorph_utils : public singleton<polymorph_utils>
 	public :
 		polymorph_utils();
 
-		polymorph_bonus_type bonus_type(uint32_t vnum);
+		auto bonus_type(uint32_t vnum) -> polymorph_bonus_type;
 
-		bool polymorph_character(character * ch, item * item_value, const mob* mob_value);
-		bool update_book_practice_grade(character * ch, item * item_value);
-		bool give_book(character * ch, uint32_t mob_vnum, uint32_t practice_count, uint8_t book_level, uint8_t level_limit);
-		bool book_upgrade(character * ch, item * item_value);
+		auto polymorph_character(character * ch, item * item_value, const mob* mob_value) -> bool;
+		auto update_book_practice_grade(character * ch, item * item_value) -> bool;
+		auto give_book(character * ch, uint32_t mob_vnum, uint32_t practice_count, uint8_t book_level, uint8_t level_limit) -> bool;
+		auto book_upgrade(character * ch, item * item_value) -> bool;
 };
 }

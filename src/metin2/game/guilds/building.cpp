@@ -151,7 +151,7 @@ void object::set_vid(uint32_t vid)
 	vid_ = vid;
 }
 
-bool object::show(int32_t map_index_value, int32_t x, int32_t y)
+auto object::show(int32_t map_index_value, int32_t x, int32_t y) -> bool
 {
 	sectree * tree = sectree_manager::instance().get(map_index_value, x, y);
 
@@ -334,7 +334,7 @@ void land::destroy()
 	map_pk_object_by_vid_.clear();
 }
 
-const land_table & land::data()
+auto land::data() -> const land_table &
 {
 	return data_;
 }
@@ -386,7 +386,7 @@ void land::insert_object(object * obj)
 	obj->set_land(this);
 }
 
-object * land::find_object(uint32_t id)
+auto land::find_object(uint32_t id) -> object *
 {
 	std::map<uint32_t, object *>::iterator it = map_pk_object_.find(id);
 
@@ -396,7 +396,7 @@ object * land::find_object(uint32_t id)
 	return it->second;
 }
 
-object * land::find_object_by_group(uint32_t group_vnum)
+auto land::find_object_by_group(uint32_t group_vnum) -> object *
 {
 	std::map<uint32_t, object *>::iterator it;
 	for (it = map_pk_object_.begin(); it != map_pk_object_.end(); ++it)
@@ -409,7 +409,7 @@ object * land::find_object_by_group(uint32_t group_vnum)
 	return nullptr;
 }
 
-object * land::find_object_by_npc(character * npc)
+auto land::find_object_by_npc(character * npc) -> object *
 {
 	if (!npc)
 		return nullptr;
@@ -425,7 +425,7 @@ object * land::find_object_by_npc(character * npc)
 	return nullptr;
 }
 
-object * land::find_object_by_vid(uint32_t vid)
+auto land::find_object_by_vid(uint32_t vid) -> object *
 {
 	std::map<uint32_t, object *>::iterator it = map_pk_object_by_vid_.find(vid);
 
@@ -480,7 +480,7 @@ struct f_is_in
 	}
 };
 
-bool land::request_create_object(uint32_t vnum_value, int32_t map_index_value, int32_t x, int32_t y, float x_rot_value, float y_rot_value, float z_rot_value, bool check_another)
+auto land::request_create_object(uint32_t vnum_value, int32_t map_index_value, int32_t x, int32_t y, float x_rot_value, float y_rot_value, float z_rot_value, bool check_another) -> bool
 {
 	sectree_manager& rkSecTreeMgr = sectree_manager::instance();
 	object_proto * pkProto = manager::instance().object_proto(vnum_value);
@@ -618,7 +618,7 @@ void manager::destroy()
 	map_pk_land_.clear();
 }
 
-bool manager::load_object_proto(const proto::building::object_proto * proto, int size)
+auto manager::load_object_proto(const proto::building::object_proto * proto, int size) -> bool
 {
 	vec_k_object_proto_.resize(size);
 	std::memcpy(&vec_k_object_proto_[0], proto, sizeof(proto::building::object_proto) * size);
@@ -650,7 +650,7 @@ bool manager::load_object_proto(const proto::building::object_proto * proto, int
 	return true;
 }
 
-proto::building::object_proto * manager::object_proto(uint32_t vnum)
+auto manager::object_proto(uint32_t vnum) -> proto::building::object_proto *
 {
 	auto it = map_pk_object_proto_.find(vnum);
 
@@ -660,7 +660,7 @@ proto::building::object_proto * manager::object_proto(uint32_t vnum)
 	return it->second;
 }
 
-bool manager::load_land(land_table * table)
+auto manager::load_land(land_table * table) -> bool
 {
 
 	auto pkLand = std::make_unique<land>(table);
@@ -721,7 +721,7 @@ void manager::update_land(land_table * table)
 	}
 }
 
-land * manager::find_land(uint32_t id)
+auto manager::find_land(uint32_t id) -> land *
 {
 	auto it = map_pk_land_.find(id);
 
@@ -731,7 +731,7 @@ land * manager::find_land(uint32_t id)
 	return it->second.get();
 }
 
-land * manager::find_land(int32_t map_index_value, int32_t x, int32_t y)
+auto manager::find_land(int32_t map_index_value, int32_t x, int32_t y) -> land *
 {
 	metin2::log::info( "BUILDING: FindLand {:d} {:d} {:d}", map_index_value, x, y);
 
@@ -765,7 +765,7 @@ land * manager::find_land(int32_t map_index_value, int32_t x, int32_t y)
 	return nullptr;
 }
 
-land * manager::find_land_by_guild(uint32_t gid)
+auto manager::find_land_by_guild(uint32_t gid) -> land *
 {
 	auto it = map_pk_land_.begin();
 
@@ -780,7 +780,7 @@ land * manager::find_land_by_guild(uint32_t gid)
 	return nullptr;
 }
 
-bool manager::load_object(object_table * table, bool is_boot)
+auto manager::load_object(object_table * table, bool is_boot) -> bool
 {
 	if (!map_allow_find(table->map_index))
 		return false;
@@ -883,7 +883,7 @@ void manager::delete_object(uint32_t id)
 	it->second->get_land()->delete_object(id);
 }
 
-object * manager::find_object_by_vid(uint32_t vid)
+auto manager::find_object_by_vid(uint32_t vid) -> object *
 {
 	auto it = map_pk_obj_by_vid_.find(vid);
 
@@ -1036,7 +1036,7 @@ void land::draw_wall(uint32_t vnum, int32_t map_index, int32_t& x, int32_t& y, c
 }
 
 
-bool land::request_create_wall(int32_t map_index, float rot)
+auto land::request_create_wall(int32_t map_index, float rot) -> bool
 {
 	const bool 	WALL_ANOTHER_CHECKING_ENABLE = false;
 
@@ -1128,7 +1128,7 @@ void land::request_delete_wall()
 	}
 }
 
-bool land::request_create_wall_blocks(uint32_t vnum, int32_t map_index, char wall_size, bool door_east, bool door_west, bool door_south, bool door_north)
+auto land::request_create_wall_blocks(uint32_t vnum, int32_t map_index, char wall_size, bool door_east, bool door_west, bool door_south, bool door_north) -> bool
 {
 	const land_table & r = data();
 

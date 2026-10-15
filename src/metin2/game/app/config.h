@@ -34,9 +34,9 @@ inline constexpr int VIEW_BONUS_RANGE = 500;
 
 extern uint32_t gold_drop_time_limit_value;
 
-bool map_allow_find(int index);
+auto map_allow_find(int index) -> bool;
 void map_allow_copy(int32_t * pl, int size);
 void map_allow_log();
 
-const char * get_table_postfix();
+auto get_table_postfix() -> const char *;
 }

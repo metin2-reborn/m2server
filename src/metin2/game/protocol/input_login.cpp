@@ -80,7 +80,7 @@ static void send_bonus_info(character * ch)
 	}
 }
 
-static bool fn_is_battle_zone(character * ch)
+static auto fn_is_battle_zone(character * ch) -> bool
 {
 	switch (ch->map_index())
 	{
@@ -294,7 +294,7 @@ void input_login::character_select(desc * d, const char * data)
 	db_clientdesc->db_packet(HEADER_GD_PLAYER_LOAD, d->handle(), &player_load_packet, sizeof(proto::player_load_packet));
 }
 
-bool race_to_job(unsigned race, unsigned* ret_job)
+auto race_to_job(unsigned race, unsigned* ret_job) -> bool
 {
 	*ret_job = 0;
 
@@ -342,7 +342,7 @@ bool race_to_job(unsigned race, unsigned* ret_job)
 	return true;
 }
 
-bool new_player_table2(player_table * table, const char * name, uint8_t race, uint8_t shape, uint8_t empire)
+auto new_player_table2(player_table * table, const char * name, uint8_t race, uint8_t shape, uint8_t empire) -> bool
 {
 	if (race >= MAIN_RACE_MAX_NUM)
 	{
@@ -773,7 +773,7 @@ void input_login::empire(desc * d, const char * data)
 	db_clientdesc->db_packet(HEADER_GD_EMPIRE_SELECT, d->handle(), &pd, sizeof(pd));
 }
 
-static bool is_mark_owner_guild_master(desc * d, uint32_t guild_id)
+static auto is_mark_owner_guild_master(desc * d, uint32_t guild_id) -> bool
 {
 	desc * pkOwner = desc_manager::instance().find_by_handle(d->mark_owner_handle());
 	character * ch = pkOwner ? pkOwner->get_character() : nullptr;
@@ -781,7 +781,7 @@ static bool is_mark_owner_guild_master(desc * d, uint32_t guild_id)
 	return ch && ch->get_guild() && ch->get_guild()->id() == guild_id && ch->get_guild()->master_pid() == ch->player_id();
 }
 
-int input_login::guild_symbol_upload(desc * d, const char* data, size_t bytes)
+auto input_login::guild_symbol_upload(desc * d, const char* data, size_t bytes) -> int
 {
 	if (bytes < sizeof(packet_cg_guild_symbol_upload))
 		return -1;
@@ -964,7 +964,7 @@ void input_login::guild_mark_crc_list(desc * d, const char* data)
 		d->packet(&pGC, sizeof(packet_gc_mark_block));
 }
 
-int input_login::analyze(desc * d, uint8_t header, const char * data)
+auto input_login::analyze(desc * d, uint8_t header, const char * data) -> int
 {
 	int iExtraLen = 0;
 

@@ -62,7 +62,7 @@ void arena::clear()
 	set_point_of_b_ = 0;
 }
 
-bool arena_manager::add_arena(uint32_t idx, uint16_t start_a_x, uint16_t start_a_y, uint16_t start_b_x, uint16_t start_b_y)
+auto arena_manager::add_arena(uint32_t idx, uint16_t start_a_x, uint16_t start_a_y, uint16_t start_b_x, uint16_t start_b_y) -> bool
 {
 	arena_map *pArenaMap = nullptr;
 	auto iter = arena_map_.find(idx);
@@ -85,7 +85,7 @@ bool arena_manager::add_arena(uint32_t idx, uint16_t start_a_x, uint16_t start_a
 	return true;
 }
 
-bool arena_map::add_arena(uint32_t idx, uint16_t start_a_x, uint16_t start_a_y, uint16_t start_b_x, uint16_t start_b_y)
+auto arena_map::add_arena(uint32_t idx, uint16_t start_a_x, uint16_t start_a_y, uint16_t start_b_x, uint16_t start_b_y) -> bool
 {
 	auto iter = arena_.begin();
 
@@ -131,7 +131,7 @@ void arena_map::destroy()
 	arena_.clear();
 }
 
-bool arena::check_area(uint16_t start_a_x, uint16_t start_a_y, uint16_t start_b_x, uint16_t start_b_y)
+auto arena::check_area(uint16_t start_a_x, uint16_t start_a_y, uint16_t start_b_x, uint16_t start_b_y) -> bool
 {
 	if (start_point_a_.x == start_a_x && start_point_a_.y == start_a_y &&
 			start_point_b_.x == start_b_x && start_point_b_.y == start_b_y)
@@ -164,7 +164,7 @@ void arena_map::send_arena_map_list_to(character * ch, uint32_t idx)
 	}
 }
 
-bool arena_manager::start_duel(character * char_from, character * char_to, int set_point, int minute)
+auto arena_manager::start_duel(character * char_from, character * char_to, int set_point, int minute) -> bool
 {
 	if (char_from == nullptr || char_to == nullptr) return false;
 
@@ -182,7 +182,7 @@ bool arena_manager::start_duel(character * char_from, character * char_to, int s
 	return false;
 }
 
-bool arena_map::start_duel(character * char_from, character * char_to, int set_point, int minute)
+auto arena_map::start_duel(character * char_from, character * char_to, int set_point, int minute) -> bool
 {
 	auto iter = arena_.begin();
 
@@ -469,7 +469,7 @@ EVENTFUNC(duel_time_out)
 	return 0; 
 }
 
-bool arena::start_duel(character * char_from, character * char_to, int set_point, int minute)
+auto arena::start_duel(character * char_from, character * char_to, int set_point, int minute) -> bool
 {
 	this->pida_ = char_from->player_id();
 	this->pidb_ = char_to->player_id();
@@ -607,7 +607,7 @@ void arena_manager::duel_list(lua_State* lua)
 	}
 }
 
-int arena_map::duel_list(lua_State* lua, int index)
+auto arena_map::duel_list(lua_State* lua, int index) -> int
 {
 	auto iter = arena_.begin();
 
@@ -649,7 +649,7 @@ int arena_map::duel_list(lua_State* lua, int index)
 	return index;
 }
 
-bool arena_manager::can_attack(character * char_attacker, character * char_victim)
+auto arena_manager::can_attack(character * char_attacker, character * char_victim) -> bool
 {
 	if (char_attacker == nullptr || char_victim == nullptr) return false;
 
@@ -666,7 +666,7 @@ bool arena_manager::can_attack(character * char_attacker, character * char_victi
 	return pArenaMap->can_attack(char_attacker, char_victim);
 }
 
-bool arena_map::can_attack(character * char_attacker, character * char_victim)
+auto arena_map::can_attack(character * char_attacker, character * char_victim) -> bool
 {
 	if (char_attacker == nullptr || char_victim == nullptr) return false;
 
@@ -686,7 +686,7 @@ bool arena_map::can_attack(character * char_attacker, character * char_victim)
 	return false;
 }
 
-bool arena::can_attack(uint32_t pida, uint32_t pidb)
+auto arena::can_attack(uint32_t pida, uint32_t pidb) -> bool
 {
 	if (pida_ == pida && pidb_ == pidb) return true;
 	if (pida_ == pidb && pidb_ == pida) return true;
@@ -694,7 +694,7 @@ bool arena::can_attack(uint32_t pida, uint32_t pidb)
 	return false;
 }
 
-bool arena_manager::on_dead(character * char_killer, character * char_victim)
+auto arena_manager::on_dead(character * char_killer, character * char_victim) -> bool
 {
 	if (char_killer == nullptr || char_victim == nullptr) return false;
 
@@ -708,7 +708,7 @@ bool arena_manager::on_dead(character * char_killer, character * char_victim)
 	return pArenaMap->on_dead(char_killer,  char_victim);
 }
 
-bool arena_map::on_dead(character * char_killer, character * char_victim)
+auto arena_map::on_dead(character * char_killer, character * char_victim) -> bool
 {
 	uint32_t dwPIDA = char_killer->player_id();
 	uint32_t dwPIDB = char_victim->player_id();
@@ -728,7 +728,7 @@ bool arena_map::on_dead(character * char_killer, character * char_victim)
 	return false;
 }
 
-bool arena::on_dead(uint32_t pida, uint32_t pidb)
+auto arena::on_dead(uint32_t pida, uint32_t pidb) -> bool
 {
 	bool restart = false;
 
@@ -866,7 +866,7 @@ bool arena::on_dead(uint32_t pida, uint32_t pidb)
 	return true;
 }
 
-bool arena_manager::add_observer(character * ch, uint32_t idx, uint16_t observer_x, uint16_t observer_y)
+auto arena_manager::add_observer(character * ch, uint32_t idx, uint16_t observer_x, uint16_t observer_y) -> bool
 {
 	auto iter = arena_map_.find(idx);
 
@@ -876,7 +876,7 @@ bool arena_manager::add_observer(character * ch, uint32_t idx, uint16_t observer
 	return pArenaMap->add_observer(ch, observer_x, observer_y);
 }
 
-bool arena_map::add_observer(character * ch, uint16_t observer_x, uint16_t observer_y)
+auto arena_map::add_observer(character * ch, uint16_t observer_x, uint16_t observer_y) -> bool
 {
 	auto iter = arena_.begin();
 
@@ -894,12 +894,12 @@ bool arena_map::add_observer(character * ch, uint16_t observer_x, uint16_t obser
 	return false;
 }
 
-bool arena::is_my_observer(uint16_t observer_x, uint16_t observer_y)
+auto arena::is_my_observer(uint16_t observer_x, uint16_t observer_y) -> bool
 {
 	return ((observer_x == observer_point_.x) && (observer_y == observer_point_.y));
 }
 
-bool arena::add_observer(character * ch)
+auto arena::add_observer(character * ch) -> bool
 {
 	uint32_t pid = ch->player_id();
 
@@ -911,12 +911,12 @@ bool arena::add_observer(character * ch)
 	return true;
 }
 
-bool arena_manager::is_arena_map(uint32_t map_index)
+auto arena_manager::is_arena_map(uint32_t map_index) -> bool
 {
 	return arena_map_.find(map_index) != arena_map_.end();
 }
 
-member_identity arena_manager::is_member(uint32_t map_index, uint32_t pid)
+auto arena_manager::is_member(uint32_t map_index, uint32_t pid) -> member_identity
 {
 	auto iter = arena_map_.find(map_index);
 
@@ -929,7 +929,7 @@ member_identity arena_manager::is_member(uint32_t map_index, uint32_t pid)
 	return MEMBER_NO;
 }
 
-member_identity arena_map::is_member(uint32_t pid)
+auto arena_map::is_member(uint32_t pid) -> member_identity
 {
 	auto iter = arena_.begin();
 
@@ -943,7 +943,7 @@ member_identity arena_map::is_member(uint32_t pid)
 	return MEMBER_NO;
 }
 
-bool arena::is_observer(uint32_t pid)
+auto arena::is_observer(uint32_t pid) -> bool
 {
 	auto iter = observer_.find(pid);
 
@@ -984,7 +984,7 @@ void arena::send_chat_packet_to_observer(uint8_t type, const char * format, ...)
 {
 }
 
-bool arena_manager::end_duel(uint32_t pid)
+auto arena_manager::end_duel(uint32_t pid) -> bool
 {
 	auto iter = arena_map_.begin();
 
@@ -996,7 +996,7 @@ bool arena_manager::end_duel(uint32_t pid)
 	return false;
 }
 
-bool arena_map::end_duel(uint32_t pid)
+auto arena_map::end_duel(uint32_t pid) -> bool
 {
 	auto iter = arena_.begin();
 
@@ -1012,7 +1012,7 @@ bool arena_map::end_duel(uint32_t pid)
 	return false;
 }
 
-bool arena_manager::register_observer_ptr(character * ch, uint32_t idx, uint16_t observer_x, uint16_t observer_y)
+auto arena_manager::register_observer_ptr(character * ch, uint32_t idx, uint16_t observer_x, uint16_t observer_y) -> bool
 {
 	if (ch == nullptr) return false;
 
@@ -1028,7 +1028,7 @@ bool arena_manager::register_observer_ptr(character * ch, uint32_t idx, uint16_t
 	return pArenaMap->register_observer_ptr(ch, idx, observer_x, observer_y);
 }
 
-bool arena_map::register_observer_ptr(character * ch, uint32_t idx, uint16_t observer_x, uint16_t observer_y)
+auto arena_map::register_observer_ptr(character * ch, uint32_t idx, uint16_t observer_x, uint16_t observer_y) -> bool
 {
 	auto iter = arena_.begin();
 
@@ -1045,7 +1045,7 @@ bool arena_map::register_observer_ptr(character * ch, uint32_t idx, uint16_t obs
 	return false;
 }
 
-bool arena::register_observer_ptr(character * ch)
+auto arena::register_observer_ptr(character * ch) -> bool
 {
 	uint32_t pid = ch->player_id();
 	auto iter = observer_.find(pid);
@@ -1060,7 +1060,7 @@ bool arena::register_observer_ptr(character * ch)
 	return true;
 }
 
-bool arena_manager::is_limited_item( int32_t map_index, uint32_t vnum )
+auto arena_manager::is_limited_item( int32_t map_index, uint32_t vnum ) -> bool
 {
 	return false;
 }

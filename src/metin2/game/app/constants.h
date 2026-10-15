@@ -61,7 +61,7 @@ struct stone_drop_info
 	int level_pct[STONE_LEVEL_MAX_NUM+1];
 };
 
-inline bool operator < (const stone_drop_info& l, uint32_t r)
+inline auto operator < (const stone_drop_info& l, uint32_t r) -> bool
 {
 	return l.mob_vnum < r;
 }
@@ -78,9 +78,9 @@ extern const uint32_t		guild_exp_table2[GUILD_MAX_LEVEL + 1];
 inline constexpr int MAX_EXP_DELTA_OF_LEV = 31;
 extern const int		percent_by_delta_lev[MAX_EXP_DELTA_OF_LEV];
 extern const int		percent_by_delta_lev_for_boss[MAX_EXP_DELTA_OF_LEV];
-inline int percent_lvdelta(int me, int victim) { return percent_by_delta_lev[std::clamp((victim + 15) - me, 0, MAX_EXP_DELTA_OF_LEV - 1)]; }
-inline int percent_lvdelta_boss(int me, int victim) { return percent_by_delta_lev_for_boss[std::clamp((victim + 15) - me, 0, MAX_EXP_DELTA_OF_LEV - 1)]; }
-inline int calculate_value_lvdelta(int me, int victim, int val) { return (val * percent_lvdelta(me, victim)) / 100; }
+inline auto percent_lvdelta(int me, int victim) -> int { return percent_by_delta_lev[std::clamp((victim + 15) - me, 0, MAX_EXP_DELTA_OF_LEV - 1)]; }
+inline auto percent_lvdelta_boss(int me, int victim) -> int { return percent_by_delta_lev_for_boss[std::clamp((victim + 15) - me, 0, MAX_EXP_DELTA_OF_LEV - 1)]; }
+inline auto calculate_value_lvdelta(int me, int victim, int val) -> int { return (val * percent_lvdelta(me, victim)) / 100; }
 
 inline constexpr int ARROUND_COORD_MAX_NUM = 161;
 extern coord			arround_coords[ARROUND_COORD_MAX_NUM];
@@ -138,8 +138,8 @@ enum
 extern const int accessory_socket_effective_pct[ITEM_ACCESSORY_SOCKET_MAX_NUM + 1];
 extern const int accessory_socket_degrade_time[ITEM_ACCESSORY_SOCKET_MAX_NUM + 1];
 extern const int accessory_socket_put_pct[ITEM_ACCESSORY_SOCKET_MAX_NUM + 1];
-int32_t fn_get_apply_type(const char *apply_type_string);
+auto fn_get_apply_type(const char *apply_type_string) -> int32_t;
 
 
-int32_t fn_get_apply_type(const char *apply_type_string);
+auto fn_get_apply_type(const char *apply_type_string) -> int32_t;
 }

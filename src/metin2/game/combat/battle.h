@@ -19,15 +19,15 @@ enum battle_types
 	BATTLE_DEAD
 };
 
-extern int	calc_att_bonus(character * attacker, character * victim, int atk);
-extern int	calc_battle_damage(int dam, int attacker_lev, int victim_lev);
-extern int	calc_melee_damage(character * attacker, character * victim, bool ignore_defense = false, bool ignore_target_rating = false);
-extern int	calc_magic_damage(character * attacker, character * victim);
-extern int	calc_arrow_damage(character * attacker, character * victim, item * bow, item * arrow, bool ignore_defense = false);
-extern float	calc_attack_rating(character * attacker, character * victim, bool ignore_target_rating = false);
+extern auto	calc_att_bonus(character * attacker, character * victim, int atk) -> int;
+extern auto	calc_battle_damage(int dam, int attacker_lev, int victim_lev) -> int;
+extern auto	calc_melee_damage(character * attacker, character * victim, bool ignore_defense = false, bool ignore_target_rating = false) -> int;
+extern auto	calc_magic_damage(character * attacker, character * victim) -> int;
+extern auto	calc_arrow_damage(character * attacker, character * victim, item * bow, item * arrow, bool ignore_defense = false) -> int;
+extern auto	calc_attack_rating(character * attacker, character * victim, bool ignore_target_rating = false) -> float;
 
-extern bool	battle_is_attackable(character * ch, character * victim);
-extern int	battle_melee_attack(character * ch, character * victim);
+extern auto	battle_is_attackable(character * ch, character * victim) -> bool;
+extern auto	battle_melee_attack(character * ch, character * victim) -> int;
 extern void	battle_end(character * ch);
 
 extern void	normal_attack_affect(character * attacker, character * victim);
@@ -88,8 +88,8 @@ inline void skill_attack_affect(character * victim,
 	}
 } 
 
-uint32_t	get_attack_speed(character * ch);
+auto	get_attack_speed(character * ch) -> uint32_t;
 void	set_attack_time(character * ch, character * victim, uint32_t current_time);
 void	set_attacked_time(character * ch, character * victim, uint32_t current_time);
-bool	is_speed_hack(character * ch, character * victim, uint32_t current_time);
+auto	is_speed_hack(character * ch, character * victim, uint32_t current_time) -> bool;
 }

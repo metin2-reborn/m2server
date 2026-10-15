@@ -19,11 +19,11 @@ class over9_refine_manager : public singleton<over9_refine_manager>
 	public :
 		void enable_over9_refine(uint32_t vnum_from, uint32_t vnum_to);
 
-		int can_over9_refine(uint32_t vnum);
+		auto can_over9_refine(uint32_t vnum) -> int;
 
-		bool change9_to_over9(character * ch, item * item);
-		bool over9_refine(character * ch, item * item);
+		auto change9_to_over9(character * ch, item * item) -> bool;
+		auto over9_refine(character * ch, item * item) -> bool;
 
-		uint32_t material_vnum(uint32_t base_vnum);
+		auto material_vnum(uint32_t base_vnum) -> uint32_t;
 };
 }

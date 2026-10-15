@@ -41,24 +41,24 @@ class shop
 		shop();
 		virtual ~shop();
 
-		bool	create(uint32_t vnum_value, uint32_t npc_vnum, shop_item_table * table);
+		auto	create(uint32_t vnum_value, uint32_t npc_vnum, shop_item_table * table) -> bool;
 		void	set_shop_items(shop_item_table * table_value, uint8_t item_count);
 
 		virtual void	set_pc_shop(character * ch);
-		virtual bool	is_pc_shop()	{ return pc_ ? true : false; }
+		virtual auto	is_pc_shop() -> bool	{ return pc_ ? true : false; }
 
-		virtual bool	add_guest(character * ch,uint32_t owner_vid, bool other_empire);
+		virtual auto	add_guest(character * ch,uint32_t owner_vid, bool other_empire) -> bool;
 		void	remove_guest(character * ch);
 
-		virtual int	buy(character * ch, uint8_t pos);
+		virtual auto	buy(character * ch, uint8_t pos) -> int;
 
 		void	broadcast_update_item(uint8_t pos);
 
-		int		number_by_vnum(uint32_t vnum_value);
+		auto		number_by_vnum(uint32_t vnum_value) -> int;
 
-		virtual bool	is_selling_item(uint32_t item_id);
+		virtual auto	is_selling_item(uint32_t item_id) -> bool;
 
-		uint32_t	vnum() { return vnum_; }
+		auto	vnum() -> uint32_t { return vnum_; }
 
 	protected:
 		void	broadcast(const void * data, int bytes);

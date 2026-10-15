@@ -24,7 +24,7 @@ banword_manager::~banword_manager()
 {
 }
 
-bool banword_manager::initialize(banword_table * p, uint16_t size_value)
+auto banword_manager::initialize(banword_table * p, uint16_t size_value) -> bool
 {
 	hashmap_words_.clear();
 
@@ -37,7 +37,7 @@ bool banword_manager::initialize(banword_table * p, uint16_t size_value)
 	return true;
 }
 
-bool banword_manager::check_string(const char * string_value, size_t len_value)
+auto banword_manager::check_string(const char * string_value, size_t len_value) -> bool
 {
 	if (hashmap_words_.empty())
 		return false;

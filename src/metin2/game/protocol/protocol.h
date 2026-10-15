@@ -4,31 +4,31 @@
 
 namespace metin2::game::inline protocol {
 
-inline const char *encode_byte(char ind)
+inline auto encode_byte(char ind) -> const char *
 {
 	static char a[8];
 	*((char *) a) = ind;
 	return (a);
 }
 
-inline const char *encode_4bytes(int ind)
+inline auto encode_4bytes(int ind) -> const char *
 {
 	static char a[8];
 	*((int *) a) = ind;
 	return (a);
 }
 
-inline uint8_t decode_byte(const void * a)
+inline auto decode_byte(const void * a) -> uint8_t
 {
 	return (*(uint8_t *) a);
 }
 
-inline uint16_t decode_2bytes(const void * a)
+inline auto decode_2bytes(const void * a) -> uint16_t
 {
 	return (*((uint16_t *) a));
 }
 
-inline int32_t decode_4bytes(const void *a)
+inline auto decode_4bytes(const void *a) -> int32_t
 {
 	return (*((int32_t *) a));
 }

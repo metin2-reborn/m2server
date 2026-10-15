@@ -17,8 +17,8 @@ class banword_manager : public singleton<banword_manager>
 		banword_manager();
 		~banword_manager() override;
 
-		bool initialize(banword_table * p, uint16_t size_value);
-		bool check_string(const char * string_value, size_t len_value);
+		auto initialize(banword_table * p, uint16_t size_value) -> bool;
+		auto check_string(const char * string_value, size_t len_value) -> bool;
 		void convert_string(char * string_value, size_t len_value);
 
 	protected:

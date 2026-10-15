@@ -70,7 +70,7 @@ struct f_check_collision
 	}
 };
 
-item_id_range_table item_id_range_manager::range()
+auto item_id_range_manager::range() -> item_id_range_table
 {
 	item_id_range_table ret;
 	ret.min = 0;
@@ -97,11 +97,11 @@ item_id_range_table item_id_range_manager::range()
 	return ret;
 }
 
-bool item_id_range_manager::build_range(uint32_t min_value, uint32_t max_value, item_id_range_table& range)
+auto item_id_range_manager::build_range(uint32_t min_value, uint32_t max_value, item_id_range_table& range) -> bool
 {
 	char szQuery[1024];
 	uint32_t dwItemMaxID = 0;
-	std::unique_ptr<ql_msg> pMsg;
+	std::unique_ptr<sql_msg> pMsg;
 	MYSQL_ROW row;
 
 	snprintf(szQuery, sizeof(szQuery), "SELECT MAX(id) FROM item%s WHERE id >= %u and id <= %u", get_table_postfix(), min_value, max_value);
@@ -112,7 +112,7 @@ bool item_id_range_manager::build_range(uint32_t min_value, uint32_t max_value, 
 	{
 		if (pMsg->get()->num_rows > 0)
 		{
-			row = mysql_fetch_row(pMsg->get()->sql_result);
+			row = mysql_fetch_row(pMsg->get()->res);
 			str_to_number(dwItemMaxID, row[0]);
 		}
 	}
@@ -143,7 +143,7 @@ bool item_id_range_manager::build_range(uint32_t min_value, uint32_t max_value, 
 			if (pMsg->get()->num_rows > 0)
 			{
 				uint32_t count = 0;
-				row = mysql_fetch_row(pMsg->get()->sql_result);
+				row = mysql_fetch_row(pMsg->get()->res);
 				str_to_number(count, row[0]);
 
 				if (count > 0)

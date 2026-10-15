@@ -1743,7 +1743,7 @@ ACMD(do_monarch_mob)
 	}
 }
 
-static const char* fn_point_string(int apply_number)
+static auto fn_point_string(int apply_number) -> const char*
 {
 	switch (apply_number)
 	{
@@ -1828,7 +1828,7 @@ static const char* fn_point_string(int apply_number)
 	}
 }
 
-static bool fn_hair_affect_string(character * ch, char *buf, size_t bufsiz)
+static auto fn_hair_affect_string(character * ch, char *buf, size_t bufsiz) -> bool
 {
 	if (nullptr == ch || nullptr == buf)
 		return false;

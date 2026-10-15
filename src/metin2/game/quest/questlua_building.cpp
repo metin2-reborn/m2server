@@ -19,7 +19,7 @@ namespace metin2::game {
 
 namespace quest
 {
-	int building_get_land_id(lua_State * lua)
+	auto building_get_land_id(lua_State * lua) -> int
 	{
 		using namespace building;
 
@@ -35,7 +35,7 @@ namespace quest
 		return 1;
 	}
 
-	int building_get_land_info(lua_State * lua)
+	auto building_get_land_info(lua_State * lua) -> int
 	{
 		int price = 1000000000;
 		int owner = 1000000000;
@@ -65,7 +65,7 @@ namespace quest
 		return 3;
 	}
 
-	int building_set_land_owner(lua_State * lua)
+	auto building_set_land_owner(lua_State * lua) -> int
 	{
 		if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2))
 		{
@@ -86,7 +86,7 @@ namespace quest
 		return 0;
 	}
 
-	int building_has_land(lua_State * lua)
+	auto building_has_land(lua_State * lua) -> int
 	{
 		using namespace building;
 
@@ -97,11 +97,11 @@ namespace quest
 			return 1;
 		}
 
-		std::unique_ptr<ql_msg> pmsg(db_manager::instance().direct_query("SELECT COUNT(*) FROM land%s WHERE guild_id = %d", get_table_postfix(), (uint32_t)lua_tonumber(lua,1)));
+		std::unique_ptr<sql_msg> pmsg(db_manager::instance().direct_query("SELECT COUNT(*) FROM land%s WHERE guild_id = %d", get_table_postfix(), (uint32_t)lua_tonumber(lua,1)));
 
 		if ( pmsg->get()->num_rows > 0 )
 		{
-			MYSQL_ROW row = mysql_fetch_row(pmsg->get()->sql_result);
+			MYSQL_ROW row = mysql_fetch_row(pmsg->get()->res);
 
 			int	count = 0;
 			str_to_number(count, row[0]);
@@ -123,7 +123,7 @@ namespace quest
 		return 1;
 	}
 
-	int building_reconstruct(lua_State* lua)
+	auto building_reconstruct(lua_State* lua) -> int
 	{
 		using namespace building;
 

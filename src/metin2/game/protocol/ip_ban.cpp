@@ -59,7 +59,7 @@ class ip
 			mask_ = 4294967295UL;
 		}
 
-		bool is_child_of(ip & r)
+		auto is_child_of(ip & r) -> bool
 		{
 			if ((r.start_ & r.mask_) != (start_ & r.mask_))
 				return false;
@@ -69,7 +69,7 @@ class ip
 			return (start_ & ~m) == (start_ & ~mask_) && (end_ & ~m) == (end_ & ~mask_);
 		}
 
-		int hash()
+		auto hash() -> int
 		{
 			return (start_ & 0x000000FF);
 		}
@@ -88,7 +88,7 @@ class ip
 		}
 
 	protected:
-		bool read(const char * s, uint8_t * dest)
+		auto read(const char * s, uint8_t * dest) -> bool
 		{
 			uint8_t bClass = 0;
 			const char * p = s;
@@ -124,7 +124,7 @@ class ip
 
 std::map<int, std::vector<ip> > ban_ip;
 
-bool load_ban_ip(const char * filename)
+auto load_ban_ip(const char * filename) -> bool
 {
 	FILE * fp = fopen(filename, "r");
 
@@ -179,7 +179,7 @@ bool load_ban_ip(const char * filename)
 	return true;
 }
 
-bool is_ban_ip(struct in_addr in)
+auto is_ban_ip(struct in_addr in) -> bool
 {
 	ip ip(in);
 

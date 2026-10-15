@@ -29,7 +29,7 @@ class messenger_manager : public singleton<messenger_manager>
 		void	logout(key_a account);
 
 		void	request_to_add(character * ch, character * target);
-		bool	auth_to_add(key_a account, key_a companion, bool deny);
+		auto	auth_to_add(key_a account, key_a companion, bool deny) -> bool;
 
 		void	apply_add_to_list(key_a account, key_a companion);
 		void	add_to_list(key_a account, key_a companion);
@@ -41,14 +41,14 @@ class messenger_manager : public singleton<messenger_manager>
 
 		void	initialize();
 		
-		bool	is_in_list(messenger_manager::key_a account, messenger_manager::key_a companion);
+		auto	is_in_list(messenger_manager::key_a account, messenger_manager::key_a companion) -> bool;
 
 	private:
 		void	send_list(key_a account);
 		void	send_login(key_a account, key_a companion);
 		void	send_logout(key_a account, key_a companion);
 
-		void	load_list(ql_msg * msg);
+		void	load_list(sql_msg * msg);
 
 		void	destroy();
 

@@ -37,14 +37,14 @@ class pvp
 		~pvp();
 
 		void	win(uint32_t pid_value);
-		bool	is_fight();
-		bool	agree(uint32_t pid_value);
+		auto	is_fight() -> bool;
+		auto	agree(uint32_t pid_value) -> bool;
 
 		void	set_vid(uint32_t pid_value, uint32_t vid_value);
 		void	packet(bool removing = false);
 
 		void	set_last_fight_time();
-		uint32_t	last_fight_time();
+		auto	last_fight_time() -> uint32_t;
 
 	protected:
 		player	players_[2];
@@ -63,8 +63,8 @@ class pvp_manager : public singleton<pvp_manager>
 	~pvp_manager() override;
 
 	void			insert(character * chr, character * victim);
-	bool			can_attack(character * chr, character * victim);
-	bool			dead(character * chr, uint32_t killer_pid);
+	auto			can_attack(character * chr, character * victim) -> bool;
+	auto			dead(character * chr, uint32_t killer_pid) -> bool;
 	void			connect(character * chr);
 	void			disconnect(character * chr);
 
@@ -74,7 +74,7 @@ class pvp_manager : public singleton<pvp_manager>
 	void			process();
 
 	public:
-	pvp *			find(uint32_t crc);
+	auto			find(uint32_t crc) -> pvp *;
 	protected:
 	void			connect_ex(character * chr, bool disconnect);
 

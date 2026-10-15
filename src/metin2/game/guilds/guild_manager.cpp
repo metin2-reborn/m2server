@@ -81,17 +81,17 @@ guild_manager::~guild_manager()
 	guild_.clear();
 }
 
-int guild_manager::disband_delay()
+auto guild_manager::disband_delay() -> int
 {
 	return quest::quest_manager::instance().event_flag("guild_disband_delay") * (metin2::config::test_server() ? 60 : 86400);
 }
 
-int guild_manager::withdraw_delay()
+auto guild_manager::withdraw_delay() -> int
 {
 	return quest::quest_manager::instance().event_flag("guild_withdraw_delay") * (metin2::config::test_server() ? 60 : 86400);
 }
 
-uint32_t guild_manager::create_guild(guild_create_parameter& gcp)
+auto guild_manager::create_guild(guild_create_parameter& gcp) -> uint32_t
 {
 	if (!gcp.master)
 		return 0;
@@ -102,12 +102,12 @@ uint32_t guild_manager::create_guild(guild_create_parameter& gcp)
 		return 0;
 	}
 
-	std::unique_ptr<ql_msg> pmsg(db_manager::instance().direct_query(sql::format("SELECT COUNT(*) FROM guild{} WHERE name = {}",
+	std::unique_ptr<sql_msg> pmsg(db_manager::instance().direct_query(sql::format("SELECT COUNT(*) FROM guild{} WHERE name = {}",
 				sql::raw(get_table_postfix()), gcp.name)));
 
 	if (pmsg->get()->num_rows > 0)
 	{
-		MYSQL_ROW row = mysql_fetch_row(pmsg->get()->sql_result);
+		MYSQL_ROW row = mysql_fetch_row(pmsg->get()->res);
 
 		if (!(row[0] && row[0][0] == '0'))
 		{
@@ -132,7 +132,7 @@ void guild_manager::unlink(uint32_t pid)
 	map_pk_guild_by_pid_.erase(pid);
 }
 
-guild * guild_manager::linked_guild(uint32_t pid)
+auto guild_manager::linked_guild(uint32_t pid) -> guild *
 {
 	guild_map::iterator it = map_pk_guild_by_pid_.find(pid);
 
@@ -179,7 +179,7 @@ void guild_manager::login_member(character * ch)
 }
 
 
-guild* guild_manager::touch_guild(uint32_t guild_id)
+auto guild_manager::touch_guild(uint32_t guild_id) -> guild*
 {
 	auto it = guild_.find(guild_id);
 
@@ -194,7 +194,7 @@ guild* guild_manager::touch_guild(uint32_t guild_id)
 	return it->second.get();
 }
 
-guild* guild_manager::find_guild(uint32_t guild_id)
+auto guild_manager::find_guild(uint32_t guild_id) -> guild*
 {
 	auto it = guild_.find(guild_id);
 	if (it == guild_.end())
@@ -204,7 +204,7 @@ guild* guild_manager::find_guild(uint32_t guild_id)
 	return it->second.get();
 }
 
-guild*	guild_manager::find_guild_by_name(const std::string guild_name)
+auto	guild_manager::find_guild_by_name(const std::string guild_name) -> guild*
 {
 	decltype(guild_.begin()) it;
 	for (it = guild_.begin(); it!=guild_.end(); ++it)
@@ -225,11 +225,11 @@ void guild_manager::initialize()
 		return;
 	}
 
-	std::unique_ptr<ql_msg> pmsg(db_manager::instance().direct_query("SELECT id FROM guild%s", get_table_postfix()));
+	std::unique_ptr<sql_msg> pmsg(db_manager::instance().direct_query("SELECT id FROM guild%s", get_table_postfix()));
 
 	for (uint i = 0; i < pmsg->get()->num_rows; i++)
 	{
-		MYSQL_ROW row = mysql_fetch_row(pmsg->get()->sql_result);
+		MYSQL_ROW row = mysql_fetch_row(pmsg->get()->res);
 		uint32_t guild_id = strtoul(row[0], (char**) nullptr, 10);
 		load_guild(guild_id);
 	}
@@ -276,7 +276,7 @@ void guild_manager::skill_recharge()
 	}
 }
 
-int guild_manager::rank(guild* g)
+auto guild_manager::rank(guild* g) -> int
 {
 	int point = g->ladder_point();
 	int rank = 1;
@@ -294,7 +294,7 @@ int guild_manager::rank(guild* g)
 
 struct f_guild_compare
 {
-	bool operator () (guild* g1, guild* g2) const
+	auto operator () (guild* g1, guild* g2) const -> bool
 	{
 		if (g1->ladder_point() < g2->ladder_point())
 			return true;
@@ -661,7 +661,7 @@ void send_guild_war_over_notice(guild* g1, guild* g2, bool draw)
 	}
 }
 
-bool guild_manager::end_war(uint32_t guild_id1, uint32_t guild_id2)
+auto guild_manager::end_war(uint32_t guild_id1, uint32_t guild_id2) -> bool
 {
 	if (guild_id1 > guild_id2)
 		std::swap(guild_id1, guild_id2);
@@ -898,7 +898,7 @@ void guild_manager::reserve_war_bet(packet_gd_guild_war_bet * p)
 	it->second->bet.insert(std::make_pair(p->login, std::make_pair(p->guild, p->gold)));
 }
 
-bool guild_manager::is_bet(uint32_t id, const char * login)
+auto guild_manager::is_bet(uint32_t id, const char * login) -> bool
 {
 	auto it = map_k_reserve_war_.find(id);
 
@@ -932,7 +932,7 @@ void guild_manager::reserve_war_delete(uint32_t id)
 	map_k_reserve_war_.erase(it);
 }
 
-std::vector<guild_war_reserve_for_game *> & guild_manager::reserve_war_ref()
+auto guild_manager::reserve_war_ref() -> std::vector<guild_war_reserve_for_game *> &
 {
 	return vec_k_reserve_war_;
 }
@@ -947,7 +947,7 @@ void guild_manager::change_master(uint32_t gid)
 
 	iter->second->load(gid);
 
-	db_manager::instance().func_query([guild = iter->second.get()](ql_msg *msg) { guild->send_guild_data_update_to_all_member(msg); },
+	db_manager::instance().func_query([guild = iter->second.get()](sql_msg *msg) { guild->send_guild_data_update_to_all_member(msg); },
 			"SELECT 1");
 
 }

@@ -83,7 +83,7 @@ sectree_map::sectree_map(sectree_map & r)
 	build();
 }
 
-sectree * sectree_map::find(uint32_t package)
+auto sectree_map::find(uint32_t package) -> sectree *
 {
 	map_type::iterator it = map_.find(package);
 
@@ -93,7 +93,7 @@ sectree * sectree_map::find(uint32_t package)
 	return it->second;
 }
 
-sectree * sectree_map::find(uint32_t x, uint32_t y)
+auto sectree_map::find(uint32_t x, uint32_t y) -> sectree *
 {
 	sectreeid id;
 	id.coord.x = x / SECTREE_SIZE;
@@ -154,7 +154,7 @@ sectree_manager::~sectree_manager()
 {
 }
 
-sectree_map * sectree_manager::map(int32_t map_index)
+auto sectree_manager::map(int32_t map_index) -> sectree_map *
 {
 	std::map<uint32_t, sectree_map *>::iterator it = map_pk_sectree_.find(map_index);
 
@@ -164,7 +164,7 @@ sectree_map * sectree_manager::map(int32_t map_index)
 	return it->second;
 }
 
-sectree * sectree_manager::get(uint32_t index, uint32_t package)
+auto sectree_manager::get(uint32_t index, uint32_t package) -> sectree *
 {
 	sectree_map * pkSectreeMap = map(index);
 
@@ -174,7 +174,7 @@ sectree * sectree_manager::get(uint32_t index, uint32_t package)
 	return pkSectreeMap->find(package);
 }
 
-sectree * sectree_manager::get(uint32_t index, uint32_t x, uint32_t y)
+auto sectree_manager::get(uint32_t index, uint32_t x, uint32_t y) -> sectree *
 {
 	sectreeid id;
 	id.coord.x = x / SECTREE_SIZE;
@@ -182,7 +182,7 @@ sectree * sectree_manager::get(uint32_t index, uint32_t x, uint32_t y)
 	return get(index, id.package);
 }
 
-int sectree_manager::load_setting_file(int32_t map_index, const char * setting_file_name, map_setting & r_setting)
+auto sectree_manager::load_setting_file(int32_t map_index, const char * setting_file_name, map_setting & r_setting) -> int
 {
 	memset(&r_setting, 0, sizeof(map_setting));
 
@@ -229,7 +229,7 @@ int sectree_manager::load_setting_file(int32_t map_index, const char * setting_f
 	return 1;
 }
 
-sectree_map * sectree_manager::build_sectree_from_setting(map_setting & r_setting)
+auto sectree_manager::build_sectree_from_setting(map_setting & r_setting) -> sectree_map *
 {
 	sectree_map * pkMapSectree = new sectree_map;
 
@@ -314,7 +314,7 @@ void sectree_manager::load_dungeon(int index, const char * file_name)
 	metin2::log::info( "Dungeon Position Load [{:3d}]{} count {:d}", index, file_name, count);
 }
 
-bool sectree_manager::load_map_region(const char * file_name, map_setting & r_setting, const char * map_name_value)
+auto sectree_manager::load_map_region(const char * file_name, map_setting & r_setting, const char * map_name_value) -> bool
 {
 	FILE * fp = fopen(file_name, "r");
 
@@ -391,7 +391,7 @@ bool sectree_manager::load_map_region(const char * file_name, map_setting & r_se
 	return true;
 }
 
-bool sectree_manager::load_attribute(sectree_map * map_sectree, const char * file_name, map_setting & r_setting)
+auto sectree_manager::load_attribute(sectree_map * map_sectree, const char * file_name, map_setting & r_setting) -> bool
 {
 	FILE * fp = fopen(file_name, "rb");
 
@@ -474,7 +474,7 @@ bool sectree_manager::load_attribute(sectree_map * map_sectree, const char * fil
 	return true;
 }
 
-bool sectree_manager::recall_position_by_empire(int map_index, uint8_t empire, pixel_position & r_pos)
+auto sectree_manager::recall_position_by_empire(int map_index, uint8_t empire, pixel_position & r_pos) -> bool
 {
 	std::vector<map_region>::iterator it = vec_map_region_.begin();
 
@@ -501,7 +501,7 @@ bool sectree_manager::recall_position_by_empire(int map_index, uint8_t empire, p
 	return false;
 }
 
-bool sectree_manager::center_position_of_map(int32_t map_index, pixel_position & r_pos)
+auto sectree_manager::center_position_of_map(int32_t map_index, pixel_position & r_pos) -> bool
 {
 	std::vector<map_region>::iterator it = vec_map_region_.begin();
 
@@ -521,7 +521,7 @@ bool sectree_manager::center_position_of_map(int32_t map_index, pixel_position &
 	return false;
 }
 
-bool sectree_manager::map_base_position_by_map_index(int32_t map_index, pixel_position & r_pos)
+auto sectree_manager::map_base_position_by_map_index(int32_t map_index, pixel_position & r_pos) -> bool
 {
 	if (map_index> 10000) map_index /= 10000;
 	std::vector<map_region>::iterator it = vec_map_region_.begin();
@@ -542,7 +542,7 @@ bool sectree_manager::map_base_position_by_map_index(int32_t map_index, pixel_po
 	return false;
 }
 
-bool sectree_manager::map_base_position(int32_t x, int32_t y, pixel_position & r_pos)
+auto sectree_manager::map_base_position(int32_t x, int32_t y, pixel_position & r_pos) -> bool
 {
 	std::vector<map_region>::iterator it = vec_map_region_.begin();
 
@@ -562,7 +562,7 @@ bool sectree_manager::map_base_position(int32_t x, int32_t y, pixel_position & r
 	return false;
 }
 
-const map_region * sectree_manager::find_region_by_partial_name(const char* map_name_value)
+auto sectree_manager::find_region_by_partial_name(const char* map_name_value) -> const map_region *
 {
 	std::vector<map_region>::iterator it = vec_map_region_.begin();
 
@@ -577,7 +577,7 @@ const map_region * sectree_manager::find_region_by_partial_name(const char* map_
 	return nullptr;
 }
 
-const map_region * sectree_manager::get_map_region(int32_t map_index)
+auto sectree_manager::get_map_region(int32_t map_index) -> const map_region *
 {
 	std::vector<map_region>::iterator it = vec_map_region_.begin();
 
@@ -592,7 +592,7 @@ const map_region * sectree_manager::get_map_region(int32_t map_index)
 	return nullptr;
 }
 
-int sectree_manager::map_index(int32_t x, int32_t y)
+auto sectree_manager::map_index(int32_t x, int32_t y) -> int
 {
 	std::vector<map_region>::iterator it = vec_map_region_.begin();
 
@@ -616,7 +616,7 @@ int sectree_manager::map_index(int32_t x, int32_t y)
 	return 0;
 }
 
-int sectree_manager::build(const char * list_file_name, const char* map_base_path)
+auto sectree_manager::build(const char * list_file_name, const char* map_base_path) -> int
 {
 	if (true == metin2::config::test_server())
 	{
@@ -698,7 +698,7 @@ int sectree_manager::build(const char * list_file_name, const char* map_base_pat
 	return 1;
 }
 
-bool sectree_manager::is_movable_position(int32_t map_index, int32_t x, int32_t y)
+auto sectree_manager::is_movable_position(int32_t map_index, int32_t x, int32_t y) -> bool
 {
 	sectree * tree = sectree_manager::instance().get(map_index, x, y);
 
@@ -708,7 +708,7 @@ bool sectree_manager::is_movable_position(int32_t map_index, int32_t x, int32_t 
 	return (!tree->is_attr(x, y, ATTR_BLOCK | ATTR_OBJECT));
 }
 
-bool sectree_manager::movable_position(int32_t map_index, int32_t x, int32_t y, pixel_position & pos)
+auto sectree_manager::movable_position(int32_t map_index, int32_t x, int32_t y, pixel_position & pos) -> bool
 {
 	int i = 0;
 
@@ -735,7 +735,7 @@ bool sectree_manager::movable_position(int32_t map_index, int32_t x, int32_t y, 
 	return false;
 }
 
-bool sectree_manager::valid_location(int32_t map_index, int32_t x, int32_t y, int32_t & r_l_valid_map_index, pixel_position & r_pos, uint8_t empire)
+auto sectree_manager::valid_location(int32_t map_index, int32_t x, int32_t y, int32_t & r_l_valid_map_index, pixel_position & r_pos, uint8_t empire) -> bool
 {
 	sectree_map * pkSectreeMap = map(map_index);
 
@@ -784,7 +784,7 @@ bool sectree_manager::valid_location(int32_t map_index, int32_t x, int32_t y, in
 	return false;
 }
 
-bool sectree_manager::random_location(int32_t map_index, pixel_position & r_pos, uint32_t current_x, uint32_t current_y, int max_distance)
+auto sectree_manager::random_location(int32_t map_index, pixel_position & r_pos, uint32_t current_x, uint32_t current_y, int max_distance) -> bool
 {
 	sectree_map * pkSectreeMap = map(map_index);
 
@@ -851,7 +851,7 @@ bool sectree_manager::random_location(int32_t map_index, pixel_position & r_pos,
 	return false;
 }
 
-int32_t sectree_manager::create_private_map(int32_t map_index)
+auto sectree_manager::create_private_map(int32_t map_index) -> int32_t
 {
 	if (map_index >= 10000)
 		return 0;
@@ -944,7 +944,7 @@ void sectree_manager::destroy_private_map(int32_t map_index)
 	metin2::log::info( "PRIVATE_MAP: {:d} destroyed", map_index);
 }
 
-area_map& sectree_manager::dungeon_area(int32_t map_index)
+auto sectree_manager::dungeon_area(int32_t map_index) -> area_map&
 {
 	auto it = map_pk_area_.find(map_index);
 
@@ -1000,7 +1000,7 @@ void sectree_manager::insert_npc_position(int32_t map_index, uint8_t type, const
 	npc_position_[map_index].push_back(npc_info(type, name, x, y));
 }
 
-uint8_t sectree_manager::empire_from_map_index(int32_t map_index)
+auto sectree_manager::empire_from_map_index(int32_t map_index) -> uint8_t
 {
 	if (map_index >= 1 && map_index <= 20)
 		return 1;
@@ -1034,7 +1034,7 @@ uint8_t sectree_manager::empire_from_map_index(int32_t map_index)
 }
 
 
-bool sectree_manager::for_attr_region_cell( int32_t map_index, int32_t cx, int32_t cy, uint32_t attr, attr_region_mode mode )
+auto sectree_manager::for_attr_region_cell( int32_t map_index, int32_t cx, int32_t cy, uint32_t attr, attr_region_mode mode ) -> bool
 {
 	sectreeid id;
 
@@ -1071,7 +1071,7 @@ bool sectree_manager::for_attr_region_cell( int32_t map_index, int32_t cx, int32
 	return false;
 }
 
-bool sectree_manager::for_attr_region_right_angle( int32_t map_index, int32_t cx, int32_t cy, int32_t cw, int32_t ch, int32_t rotate, uint32_t attr, attr_region_mode mode )
+auto sectree_manager::for_attr_region_right_angle( int32_t map_index, int32_t cx, int32_t cy, int32_t cw, int32_t ch, int32_t rotate, uint32_t attr, attr_region_mode mode ) -> bool
 {
 	if (1 == rotate/90 || 3 == rotate/90)
 	{
@@ -1096,7 +1096,7 @@ bool sectree_manager::for_attr_region_right_angle( int32_t map_index, int32_t cx
 }
 
 
-bool sectree_manager::for_attr_region_free_angle( int32_t map_index, int32_t cx, int32_t cy, int32_t cw, int32_t ch, int32_t rotate, uint32_t attr, attr_region_mode mode )
+auto sectree_manager::for_attr_region_free_angle( int32_t map_index, int32_t cx, int32_t cy, int32_t cw, int32_t ch, int32_t rotate, uint32_t attr, attr_region_mode mode ) -> bool
 {
 	float fx1 = (-cw/2) * sinf(float(rotate)/180.0f*3.14f) + (-ch/2) * cosf(float(rotate)/180.0f*3.14f);
 	float fy1 = (-cw/2) * cosf(float(rotate)/180.0f*3.14f) - (-ch/2) * sinf(float(rotate)/180.0f*3.14f);
@@ -1158,7 +1158,7 @@ bool sectree_manager::for_attr_region_free_angle( int32_t map_index, int32_t cx,
 	return mode == ATTR_REGION_MODE_CHECK ? false : true;
 }
 
-bool sectree_manager::for_attr_region(int32_t map_index, int32_t start_x, int32_t start_y, int32_t end_x, int32_t end_y, int32_t rotate, uint32_t attr, attr_region_mode mode)
+auto sectree_manager::for_attr_region(int32_t map_index, int32_t start_x, int32_t start_y, int32_t end_x, int32_t end_y, int32_t rotate, uint32_t attr, attr_region_mode mode) -> bool
 {
 	sectree_map * pkMapSectree = map(map_index);
 
@@ -1190,7 +1190,7 @@ bool sectree_manager::for_attr_region(int32_t map_index, int32_t start_x, int32_
 	return for_attr_region_free_angle( map_index, lCX, lCY, lCW, lCH, rotate, attr, mode );
 }
 
-bool sectree_manager::save_attribute_to_image(int map_index, const char * file_name, sectree_map * map_src)
+auto sectree_manager::save_attribute_to_image(int map_index, const char * file_name, sectree_map * map_src) -> bool
 {
 	sectree_map * pMap = sectree_manager::map(map_index);
 
@@ -1361,7 +1361,7 @@ struct f_count_monsters
 	}
 };
 
-size_t sectree_manager::monster_count_in_map(int32_t map_index)
+auto sectree_manager::monster_count_in_map(int32_t map_index) -> size_t
 {
 	sectree_map * sectree = sectree_manager::instance().map(map_index);
 
@@ -1401,7 +1401,7 @@ struct f_count_specified_monster
 	}
 };
 
-size_t sectree_manager::monster_count_in_map(int32_t map_index, uint32_t vnum)
+auto sectree_manager::monster_count_in_map(int32_t map_index, uint32_t vnum) -> size_t
 {
 	sectree_map * sectree = sectree_manager::instance().map(map_index);
 

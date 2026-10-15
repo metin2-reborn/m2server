@@ -15,14 +15,14 @@ namespace metin2::game::inline world {
 
 map_locations locations;
 
-bool map_locations::get(int32_t x, int32_t y, int32_t & index, int32_t & addr, uint16_t & port)
+auto map_locations::get(int32_t x, int32_t y, int32_t & index, int32_t & addr, uint16_t & port) -> bool
 {
 	index = sectree_manager::instance().map_index(x, y);
 
 	return get(index, addr, port);
 }
 
-bool map_locations::get(int index, int32_t & addr_value, uint16_t & port_value)
+auto map_locations::get(int index, int32_t & addr_value, uint16_t & port_value) -> bool
 {
 	if (index == 0)
 	{

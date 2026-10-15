@@ -28,7 +28,7 @@ void locale_add(const char *key, const char *value)
 	}
 }
 
-const char * locale_find(const char *string)
+auto locale_find(const char *string) -> const char *
 {
 
 	locale_string_map_type::const_iterator iter = locale_string.find( string );
@@ -42,7 +42,7 @@ const char * locale_find(const char *string)
 	return iter->second.c_str();
 }
 
-const char *quote_find_end(const char *string)
+auto quote_find_end(const char *string) -> const char *
 {
 	const char  *tmp = string;
 	int         quote = 0;
@@ -71,7 +71,7 @@ const char *quote_find_end(const char *string)
 	return (nullptr);
 }
 
-std::unique_ptr<char[]> locale_convert(const char *src, int len)
+auto locale_convert(const char *src, int len) -> std::unique_ptr<char[]>
 {
 	const char	*tmp;
 	int		i, j;

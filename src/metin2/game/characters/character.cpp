@@ -96,9 +96,9 @@ namespace metin2::game::inline characters {
 
 
 
-bool can_enter_zone(character * const& ch, int map_index);
+auto can_enter_zone(character * const& ch, int map_index) -> bool;
 
-bool can_enter_zone(character * const& ch, int map_index)
+auto can_enter_zone(character * const& ch, int map_index) -> bool
 {
 	switch (map_index)
 	{
@@ -113,7 +113,7 @@ bool can_enter_zone(character * const& ch, int map_index)
 }
 
 
-character * dynamic_character_ptr::get() const {
+auto dynamic_character_ptr::get() const -> character * {
 	character * p = nullptr;
 	if (is_pc) {
 		p = character_manager::instance().find_by_pid(id);
@@ -123,7 +123,7 @@ character * dynamic_character_ptr::get() const {
 	return p;
 }
 
-dynamic_character_ptr& dynamic_character_ptr::operator=(character * character) {
+auto dynamic_character_ptr::operator=(character * character) -> dynamic_character_ptr& {
 	if (character == nullptr) {
 		reset();
 		return *this;
@@ -520,7 +520,7 @@ void character::destroy()
 		character_manager::instance().unregister_for_monster_log(this);
 }
 
-const char * character::name() const
+auto character::name() const -> const char *
 {
 	return name_.empty() ? (mob_data ? mob_data->table.locale_name : "") : name_.c_str();
 }
@@ -934,7 +934,7 @@ void character::update_packet()
 	packet_around(&pack, sizeof(pack));
 }
 
-character * character::find_character_in_view(const char * name_value, bool find_pc_only)
+auto character::find_character_in_view(const char * name_value, bool find_pc_only) -> character *
 {
 	entity_map::iterator it = map_view_.begin();
 
@@ -1239,7 +1239,7 @@ void character::disconnect(const char * reason)
 	character_manager::instance().destroy_character(this);
 }
 
-bool character::show(int32_t map_index, int32_t x, int32_t y, int32_t z, bool show_spawn_motion )
+auto character::show(int32_t map_index, int32_t x, int32_t y, int32_t z, bool show_spawn_motion ) -> bool
 {
 	sectree * sectree = sectree_manager::instance().get(map_index, x, y);
 
@@ -1340,7 +1340,7 @@ void character_add_bgm_info(unsigned index, const char* name, float vol)
 	metin2::log::info( "bgm_info.add_info({:d}, '{}', {:f})", index, name, vol);
 }
 
-const bgm_info& character_get_bgm_info(unsigned index)
+auto character_get_bgm_info(unsigned index) -> const bgm_info&
 {
 	bgm_info_map::iterator f = gs_bgm_info_map.find(index);
 	if (gs_bgm_info_map.end() == f)
@@ -1351,7 +1351,7 @@ const bgm_info& character_get_bgm_info(unsigned index)
 	return f->second;
 }
 
-bool character_is_bgm_volume_enable()
+auto character_is_bgm_volume_enable() -> bool
 {
 	return bgm_vol_enable;
 }
@@ -1445,7 +1445,7 @@ void character::points_packet()
 	get_desc()->packet(&pack, sizeof(packet_gc_points));
 }
 
-bool character::change_sex()
+auto character::change_sex() -> bool
 {
 	int src_race = race_num();
 
@@ -1492,7 +1492,7 @@ bool character::change_sex()
 	return true;
 }
 
-uint16_t character::race_num() const
+auto character::race_num() const -> uint16_t
 {
 	if (polymorph_race_)
 		return polymorph_race_;
@@ -1514,7 +1514,7 @@ void character::set_race(uint8_t race)
 	points_.job = race;
 }
 
-uint8_t character::job() const
+auto character::job() const -> uint8_t
 {
 	unsigned race = points_.job;
 	unsigned job;
@@ -1769,27 +1769,27 @@ void character::set_proto(const mob * mob_value)
 	}
 }
 
-const mob_table & character::get_mob_table() const
+auto character::get_mob_table() const -> const mob_table &
 {
 	return mob_data->table;
 }
 
-bool character::is_race_flag(uint32_t bit) const
+auto character::is_race_flag(uint32_t bit) const -> bool
 {
 	return mob_data ? is_set(mob_data->table.race_flag, bit) : 0;
 }
 
-uint32_t character::mob_damage_min() const
+auto character::mob_damage_min() const -> uint32_t
 {
 	return mob_data->table.damage_range[0];
 }
 
-uint32_t character::mob_damage_max() const
+auto character::mob_damage_max() const -> uint32_t
 {
 	return mob_data->table.damage_range[1];
 }
 
-float character::mob_damage_multiply() const
+auto character::mob_damage_multiply() const -> float
 {
 	float fDamMultiply = get_mob_table().dam_multiply;
 
@@ -1799,32 +1799,32 @@ float character::mob_damage_multiply() const
 	return fDamMultiply;
 }
 
-uint32_t character::mob_drop_item_vnum() const
+auto character::mob_drop_item_vnum() const -> uint32_t
 {
 	return mob_data->table.drop_item_vnum;
 }
 
-bool character::is_summon_monster() const
+auto character::is_summon_monster() const -> bool
 {
 	return summon_vnum() != 0;
 }
 
-uint32_t character::summon_vnum() const
+auto character::summon_vnum() const -> uint32_t
 {
 	return mob_data ? mob_data->table.summon_vnum : 0;
 }
 
-uint32_t character::polymorph_item_vnum() const
+auto character::polymorph_item_vnum() const -> uint32_t
 {
 	return mob_data ? mob_data->table.polymorph_item_vnum : 0;
 }
 
-uint32_t character::monster_drain_sp_point() const
+auto character::monster_drain_sp_point() const -> uint32_t
 {
 	return mob_data ? mob_data->table.drain_sp : 0;
 }
 
-uint8_t character::get_mob_rank() const
+auto character::get_mob_rank() const -> uint8_t
 {
 	if (!mob_data)
 		return MOB_RANK_KNIGHT;
@@ -1832,7 +1832,7 @@ uint8_t character::get_mob_rank() const
 	return mob_data->table.rank;
 }
 
-uint16_t character::mob_attack_range() const
+auto character::mob_attack_range() const -> uint16_t
 { 
 	switch (mob_battle_type())
 	{
@@ -1844,7 +1844,7 @@ uint16_t character::mob_attack_range() const
 	}
 }
 
-uint8_t character::mob_battle_type() const
+auto character::mob_battle_type() const -> uint8_t
 {
 	if (!mob_data)
 		return BATTLE_TYPE_MELEE;
@@ -2325,12 +2325,12 @@ void character::set_rotation_to_xy(int32_t x_value, int32_t y_value)
 	set_rotation(get_degree_from_position_xy(x(), y(), x_value, y_value));
 }
 
-bool character::cannot_move_by_affect() const
+auto character::cannot_move_by_affect() const -> bool
 {
 	return (is_affect_flag(AFF_STUN));
 }
 
-bool character::can_move() const
+auto character::can_move() const -> bool
 {
 	if (cannot_move_by_affect())
 		return false;
@@ -2341,7 +2341,7 @@ bool character::can_move() const
 	return true;
 }
 
-bool character::sync(int32_t x, int32_t y)
+auto character::sync(int32_t x, int32_t y) -> bool
 {
 	if (!get_sectree())
 		return false;
@@ -2419,7 +2419,7 @@ void character::stop()
 	pos_dest_.y = pos_start_.y = y();
 }
 
-bool character::go_to(int32_t x_value, int32_t y_value)
+auto character::go_to(int32_t x_value, int32_t y_value) -> bool
 {
 	if (x() == x_value && y() == y_value)
 		return false;
@@ -2458,7 +2458,7 @@ bool character::go_to(int32_t x_value, int32_t y_value)
 }
 
 
-uint32_t character::get_motion_mode() const
+auto character::get_motion_mode() const -> uint32_t
 {
 	uint32_t dwMode = MOTION_MODE_GENERAL;
 
@@ -2499,7 +2499,7 @@ uint32_t character::get_motion_mode() const
 	return dwMode;
 }
 
-float character::move_motion_speed() const
+auto character::move_motion_speed() const -> float
 {
 	uint32_t dwMode = get_motion_mode();
 
@@ -2524,7 +2524,7 @@ float character::move_motion_speed() const
 	}
 }
 
-float character::move_speed() const
+auto character::move_speed() const -> float
 {
 	return move_motion_speed() * 10000 / calculate_duration(limit_point(POINT_MOV_SPEED), 10000);
 }
@@ -2549,7 +2549,7 @@ void character::calculate_move_duration()
 	move_start_time_ = get_dword_time();
 }
 
-bool character::move(int32_t x_value, int32_t y_value)
+auto character::move(int32_t x_value, int32_t y_value) -> bool
 {
 	if (x() == x_value && y() == y_value)
 		return true;
@@ -2577,7 +2577,7 @@ void character::send_move_packet(uint8_t func, uint8_t arg, uint32_t x, uint32_t
 	packet_view(&pack, sizeof(packet_gc_move), this);
 }
 
-int character::real_point(uint8_t type) const
+auto character::real_point(uint8_t type) const -> int
 {
 	return points_.points[type];
 }
@@ -2587,7 +2587,7 @@ void character::set_real_point(uint8_t type, int val)
 	points_.points[type] = val;
 }
 
-int character::polymorph_point(uint8_t type) const
+auto character::polymorph_point(uint8_t type) const -> int
 {
 	if (is_polymorphed() && !is_poly_maintain_stat())
 	{
@@ -2619,7 +2619,7 @@ int character::polymorph_point(uint8_t type) const
 	return point(type);
 }
 
-int character::point(uint8_t type) const
+auto character::point(uint8_t type) const -> int
 {
 	if (type >= POINT_MAX_NUM)
 	{
@@ -2644,7 +2644,7 @@ int character::point(uint8_t type) const
 	return (val);
 }
 
-int character::limit_point(uint8_t type) const
+auto character::limit_point(uint8_t type) const -> int
 {
 	if (type >= POINT_MAX_NUM)
 	{
@@ -3685,7 +3685,7 @@ void character::fishing_take()
 	event_cancel(&fishing_event);
 }
 
-bool character::start_state_machine(int next_pulse)
+auto character::start_state_machine(int next_pulse) -> bool
 {
 	if (character_manager::instance().add_to_state_list(this))
 	{
@@ -3750,13 +3750,13 @@ void character::set_part(uint8_t part_pos, uint16_t val)
 	points_instant_.parts[part_pos] = val;
 }
 
-uint16_t character::part(uint8_t part_pos) const
+auto character::part(uint8_t part_pos) const -> uint16_t
 {
 	assert(part_pos < PART_MAX_NUM);
 	return points_instant_.parts[part_pos];
 }
 
-uint16_t character::original_part(uint8_t part_pos) const
+auto character::original_part(uint8_t part_pos) const -> uint16_t
 {
 	switch (part_pos)
 	{
@@ -3774,12 +3774,12 @@ uint16_t character::original_part(uint8_t part_pos) const
 	}
 }
 
-uint8_t character::get_char_type() const
+auto character::get_char_type() const -> uint8_t
 {
 	return char_type_;
 }
 
-bool character::set_sync_owner(character * ch, bool remove_from_list)
+auto character::set_sync_owner(character * ch, bool remove_from_list) -> bool
 {
 	if (is_set(points_instant_.ai_flag, AIFLAG_NOMOVE))
 		return false;
@@ -3864,7 +3864,7 @@ void character::clear_sync()
 	lst_pk_chr_sync_owned_.clear();
 }
 
-bool character::is_sync_owner(character * ch) const
+auto character::is_sync_owner(character * ch) const -> bool
 {
 	if (chr_sync_owner_ == ch)
 		return true;
@@ -3935,7 +3935,7 @@ EVENTFUNC(party_request_event)
 	return 0;
 }
 
-bool character::request_to_party(character * leader)
+auto character::request_to_party(character * leader) -> bool
 {
 	if (leader->get_party())
 		leader = leader->get_party()->leader_character();
@@ -4296,7 +4296,7 @@ void character::party_join(character * leader)
 	leader->get_party()->link(this);
 }
 
-character::party_join_err_code character::is_party_joinable_condition(character * const pch_leader, character * const pch_guest)
+auto character::is_party_joinable_condition(character * const pch_leader, character * const pch_guest) -> character::party_join_err_code
 {
 	if (pch_leader->empire() != pch_guest->empire())
 		return PERR_DIFFEMPIRE;
@@ -4304,7 +4304,7 @@ character::party_join_err_code character::is_party_joinable_condition(character 
 	return is_party_joinable_mutable_condition(pch_leader, pch_guest);
 }
 
-static bool party_can_join_by_level(character * leader, character * quest)
+static auto party_can_join_by_level(character * leader, character * quest) -> bool
 {
 	int	level_limit = 30;
 
@@ -4313,7 +4313,7 @@ static bool party_can_join_by_level(character * leader, character * quest)
 	return (abs(leader->level() - quest->level()) <= level_limit);
 }
 
-character::party_join_err_code character::is_party_joinable_mutable_condition(character * const pch_leader, character * const pch_guest)
+auto character::is_party_joinable_mutable_condition(character * const pch_leader, character * const pch_guest) -> character::party_join_err_code
 {
 	if (!party_manager::instance().is_enable_pc_party())
 		return PERR_SERVER;
@@ -4533,7 +4533,7 @@ void character::on_click(character * chr_causer)
 
 }
 
-uint8_t character::gm_level() const
+auto character::gm_level() const -> uint8_t
 {
 	if (metin2::config::test_server())
 		return GM_IMPLEMENTOR;
@@ -4552,7 +4552,7 @@ void character::set_gm_level()
 	}
 }
 
-bool character::is_gm() const
+auto character::is_gm() const -> bool
 {
 	if (points_instant_.gm_level != GM_PLAYER)
 		return true;
@@ -4757,7 +4757,7 @@ void character::exit_to_saved_location()
 	exit_map_index_ = 0;
 }
 
-bool character::warp_set(int32_t x, int32_t y, int32_t private_map_index)
+auto character::warp_set(int32_t x, int32_t y, int32_t private_map_index) -> bool
 {
 	if (!is_pc())
 		return false;
@@ -4865,7 +4865,7 @@ void character::warp_end()
 	}
 }
 
-bool character::return_home()
+auto character::return_home() -> bool
 {
 	if (!is_npc())
 		return false;
@@ -4892,7 +4892,7 @@ bool character::return_home()
 	return true;
 }
 
-bool character::follow(character * chr, float min_distance)
+auto character::follow(character * chr, float min_distance) -> bool
 {
 	if (is_pc())
 	{
@@ -5028,7 +5028,7 @@ bool character::follow(character * chr, float min_distance)
 	return true;
 }
 
-float character::distance_from_safebox_open() const
+auto character::distance_from_safebox_open() const -> float
 {
 	return distance_approx(x() - pos_safebox_open_.x, y() - pos_safebox_open_.y);
 }
@@ -5038,7 +5038,7 @@ void character::set_safebox_open_position()
 	pos_safebox_open_ = xyz();
 }
 
-safebox * character::get_safebox() const
+auto character::get_safebox() const -> safebox *
 {
 	return safebox_.get();
 }
@@ -5172,7 +5172,7 @@ void character::close_safebox()
 	save();
 }
 
-safebox * character::mall() const
+auto character::mall() const -> safebox *
 {
 	return mall_.get();
 }
@@ -5237,7 +5237,7 @@ void character::close_mall()
 	chat_packet(CHAT_TYPE_COMMAND, "CloseMall");
 }
 
-bool character::build_update_party_packet(packet_gc_party_update & out)
+auto character::build_update_party_packet(packet_gc_party_update & out) -> bool
 {
 	if (!get_party())
 		return false;
@@ -5267,7 +5267,7 @@ bool character::build_update_party_packet(packet_gc_party_update & out)
 	return true;
 }
 
-int character::leadership_skill_level() const
+auto character::leadership_skill_level() const -> int
 { 
 	return skill_level(SKILL_LEADERSHIP);
 }
@@ -5292,7 +5292,7 @@ void character::set_safebox_size(int size)
 	db_manager::instance().query("UPDATE safebox%s SET size = %d WHERE account_id = %u", get_table_postfix(), size / SAFEBOX_PAGE_SIZE, get_desc()->get_account_table().id);
 }
 
-int character::safebox_size() const
+auto character::safebox_size() const -> int
 {
 	return safebox_size_;
 }
@@ -5352,12 +5352,12 @@ void character::stop_stamina_consume()
 	chat_packet(CHAT_TYPE_COMMAND, "StopStaminaConsume %d", stamina());
 }
 
-bool character::is_stamina_consume() const
+auto character::is_stamina_consume() const -> bool
 {
 	return stamina_consume_;
 }
 
-bool character::is_stamina_half_consume() const
+auto character::is_stamina_half_consume() const -> bool
 {
 	return is_equip_unique_item(UNIQUE_ITEM_HALF_STAMINA);
 }
@@ -5367,7 +5367,7 @@ void character::reset_stop_time()
 	stop_time_ = get_dword_time();
 }
 
-uint32_t character::stop_time() const
+auto character::stop_time() const -> uint32_t
 {
 	return stop_time_;
 }
@@ -5408,7 +5408,7 @@ void character::reset_point(int lv)
 	log_manager::instance().char_log(this, 0, "RESET_POINT", "");
 }
 
-bool character::is_change_attack_position(character * target) const
+auto character::is_change_attack_position(character * target) const -> bool
 { 
 	if (!is_npc())
 		return true;
@@ -5578,7 +5578,7 @@ void character::set_quest_npcid(uint32_t vid)
 	quest_npcvid_ = vid;
 }
 
-character * character::quest_npc() const
+auto character::quest_npc() const -> character *
 {
 	return character_manager::instance().find(quest_npcvid_);
 }
@@ -5593,12 +5593,12 @@ void character::clear_quest_item_ptr()
 	quest_item_ = nullptr;
 }
 
-item * character::quest_item_ptr() const
+auto character::quest_item_ptr() const -> item *
 {
 	return quest_item_;
 }
 
-dungeon * character::dungeon_force() const
+auto character::dungeon_force() const -> dungeon *
 { 
 	if (warp_map_index_ > 10000)
 		return dungeon_manager::instance().find_by_map_index(warp_map_index_);
@@ -5626,12 +5626,12 @@ void character::set_block_mode_force(uint8_t flag)
 	chat_packet(CHAT_TYPE_COMMAND, "setblockmode %d", points_instant_.block_mode);
 }
 
-bool character::is_guard_npc() const
+auto character::is_guard_npc() const -> bool
 {
 	return is_npc() && (race_num() == 11000 || race_num() == 11002 || race_num() == 11004);
 }
 
-int character::polymorph_power() const
+auto character::polymorph_power() const -> int
 {
 	if (metin2::config::test_server())
 	{
@@ -5682,7 +5682,7 @@ void character::set_polymorph(uint32_t race_num, bool maintain_stat)
 	compute_battle_points();
 }
 
-int character::quest_flag(const std::string& flag) const
+auto character::quest_flag(const std::string& flag) const -> int
 {
 	quest::quest_manager& q = quest::quest_manager::instance();
 	quest::pc* pPC = q.get_pc(player_id());
@@ -5770,7 +5770,7 @@ void character::send_equipment(character * ch)
 	ch->get_desc()->packet(&p, sizeof(p));
 }
 
-bool character::can_summon(int leader_ship)
+auto character::can_summon(int leader_ship) -> bool
 {
 	return (leader_ship >= 20 || (leader_ship >= 12 && last_dead_time_ + 180 > get_dword_time()));
 }
@@ -5850,7 +5850,7 @@ namespace {
 				}
 			}
 
-			bool valid()
+			auto valid() -> bool
 			{
 				return !invalid;
 			}
@@ -5968,7 +5968,7 @@ void character::sync_packet()
 	packet_around(buf.read_peek(), buf.size());
 }
 
-character * character::marry_partner() const
+auto character::marry_partner() const -> character *
 {
 	return chr_married_;
 }
@@ -5978,7 +5978,7 @@ void character::set_marry_partner(character * ch)
 	chr_married_ = ch;
 }
 
-int character::marriage_bonus(uint32_t item_vnum, bool sum)
+auto character::marriage_bonus(uint32_t item_vnum, bool sum) -> int
 {
 	if (is_npc())
 		return 0;
@@ -6006,7 +6006,7 @@ void character::confirm_with_msg(const char* msg_value, int timeout_value, uint3
 	get_desc()->packet(&p, sizeof(p));
 }
 
-int character::premium_remain_seconds(uint8_t type) const
+auto character::premium_remain_seconds(uint8_t type) const -> int
 {
 	if (type >= PREMIUM_MAX_NUM)
 		return 0;
@@ -6014,7 +6014,7 @@ int character::premium_remain_seconds(uint8_t type) const
 	return premium_times_[type] - get_global_time();
 }
 
-bool character::warp_to_pid(uint32_t pid)
+auto character::warp_to_pid(uint32_t pid) -> bool
 {
 	character * victim;
 	if ((victim = (character_manager::instance().find_by_pid(pid))))
@@ -6079,19 +6079,19 @@ bool character::warp_to_pid(uint32_t pid)
 	return true;
 }
 
-guild* character::refine_guild() const
+auto character::refine_guild() const -> guild*
 {
 	character * chRefineNPC = character_manager::instance().find(refine_npcvid_);
 
 	return (chRefineNPC ? chRefineNPC->get_guild() : nullptr);
 }
 
-bool character::is_refine_through_guild() const
+auto character::is_refine_through_guild() const -> bool
 {
 	return refine_guild() != nullptr;
 }
 
-int character::compute_refine_fee(int cost, int multiply) const
+auto character::compute_refine_fee(int cost, int multiply) const -> int
 {
 	guild* pGuild = refine_guild();
 	if (pGuild)
@@ -6128,7 +6128,7 @@ void character::pay_refine_fee(int total_money)
 	point_change(POINT_GOLD, -iRemain);
 }
 
-bool character::is_hack(bool send_msg, bool check_shop_owner, int limittime)
+auto character::is_hack(bool send_msg, bool check_shop_owner, int limittime) -> bool
 {
 	const int iPulse = thecore_pulse();
 
@@ -6190,7 +6190,7 @@ bool character::is_hack(bool send_msg, bool check_shop_owner, int limittime)
 	return false;
 }
 
-bool character::is_monarch() const
+auto character::is_monarch() const -> bool
 {
 	if (monarch::instance().is_monarch(player_id(), empire()))
 		return true;
@@ -6219,7 +6219,7 @@ void character::init_mc()
 	monarch_cooltime[MI_SUMMON] -= passes_per_sec(mcl(MI_SUMMON));
 }
 
-uint32_t character::mc(enum monarch_index e) const
+auto character::mc(enum monarch_index e) const -> uint32_t
 {
 	return monarch_cooltime[e];
 }
@@ -6229,7 +6229,7 @@ void character::set_mc(enum monarch_index e)
 	monarch_cooltime[e] = thecore_pulse();
 }
 
-bool character::is_mcok(enum monarch_index e) const
+auto character::is_mcok(enum monarch_index e) const -> bool
 {
 	int iPulse = thecore_pulse();
 
@@ -6247,12 +6247,12 @@ bool character::is_mcok(enum monarch_index e) const
 	return true;
 }
 
-uint32_t character::mcl(enum monarch_index e) const
+auto character::mcl(enum monarch_index e) const -> uint32_t
 {
 	return monarch_cooltimelimit[e];
 }
 
-uint32_t character::mcl_time(enum monarch_index e) const
+auto character::mcl_time(enum monarch_index e) const -> uint32_t
 {
 	int iPulse = thecore_pulse();
 
@@ -6267,12 +6267,12 @@ void character::update_deposit_pulse()
 	deposit_pulse_ = thecore_pulse() + passes_per_sec(60*5);
 }
 
-bool character::can_deposit() const
+auto character::can_deposit() const -> bool
 {
 	return (deposit_pulse_ == 0 || (deposit_pulse_ < thecore_pulse()));
 }
 
-sex get_sex(character * ch)
+auto get_sex(character * ch) -> sex
 {
 	switch (ch->race_num())
 	{
@@ -6292,12 +6292,12 @@ sex get_sex(character * ch)
 	return SEX_MALE;
 }
 
-int character::hp_pct() const
+auto character::hp_pct() const -> int
 {
 	return (hp() * 100) / max_hp();
 }
 
-bool character::is_berserk() const
+auto character::is_berserk() const -> bool
 {
 	if (mob_inst != nullptr)
 		return mob_inst->is_berserk;
@@ -6311,7 +6311,7 @@ void character::set_berserk(bool mode)
 		mob_inst->is_berserk = mode;
 }
 
-bool character::is_god_speed() const
+auto character::is_god_speed() const -> bool
 {
 	if (mob_inst != nullptr)
 	{
@@ -6340,7 +6340,7 @@ void character::set_god_speed(bool mode)
 	}
 }
 
-bool character::is_death_blow() const
+auto character::is_death_blow() const -> bool
 {
 	if (number(1, 100) <= mob_data->table.death_blow_point)
 	{
@@ -6381,7 +6381,7 @@ struct f_find_reviver
 	bool has_reviver;
 };
 
-bool character::has_reviver_in_party() const
+auto character::has_reviver_in_party() const -> bool
 {
 	party * party = get_party();
 
@@ -6397,7 +6397,7 @@ bool character::has_reviver_in_party() const
 	return false;
 }
 
-bool character::is_revive() const
+auto character::is_revive() const -> bool
 {
 	if (mob_inst != nullptr)
 	{
@@ -6415,7 +6415,7 @@ void character::set_revive(bool mode)
 	}
 }
 
-static bool is_speed_hack_player(character * ch) { return ch->speed_hack_count > metin2::config::game().anti_cheat.speed_hack_limit; }
+static auto is_speed_hack_player(character * ch) -> bool { return ch->speed_hack_count > metin2::config::game().anti_cheat.speed_hack_limit; }
 
 EVENTFUNC(check_speedhack_event)
 {
@@ -6531,7 +6531,7 @@ void character::set_combo_sequence(uint8_t seq)
 	combo_sequence_ = seq;
 }
 
-uint8_t character::combo_sequence() const
+auto character::combo_sequence() const -> uint8_t
 {
 	return combo_sequence_;
 }
@@ -6541,7 +6541,7 @@ void character::set_last_combo_time(uint32_t time)
 	last_combo_time_ = time;
 }
 
-uint32_t character::last_combo_time() const
+auto character::last_combo_time() const -> uint32_t
 {
 	return last_combo_time_;
 }
@@ -6551,12 +6551,12 @@ void character::set_valid_combo_interval(int interval)
 	valid_combo_interval_ = interval;
 }
 
-int character::valid_combo_interval() const
+auto character::valid_combo_interval() const -> int
 {
 	return valid_combo_interval_;
 }
 
-uint8_t character::combo_index() const
+auto character::combo_index() const -> uint8_t
 {
 	return combo_index_;
 }
@@ -6586,7 +6586,7 @@ void character::skip_combo_attack_by_time(int interval)
 	skip_combo_attack_by_time_ = get_dword_time() + interval;
 }
 
-uint32_t character::get_skip_combo_attack_by_time() const
+auto character::get_skip_combo_attack_by_time() const -> uint32_t
 {
 	return skip_combo_attack_by_time_;
 }
@@ -6596,22 +6596,22 @@ void character::reset_chat_counter()
 	chat_counter_ = 0;
 }
 
-uint8_t character::increase_chat_counter()
+auto character::increase_chat_counter() -> uint8_t
 {
 	return ++chat_counter_;
 }
 
-uint8_t character::chat_counter() const
+auto character::chat_counter() const -> uint8_t
 {
 	return chat_counter_;
 }
 
-bool character::is_riding() const
+auto character::is_riding() const -> bool
 {
 	return is_horse_riding() || get_mount_vnum();
 }
 
-bool character::can_warp() const
+auto character::can_warp() const -> bool
 {
 	const int iPulse = thecore_pulse();
 	const int limit_time = passes_per_sec(portal_limit_time);
@@ -6634,7 +6634,7 @@ bool character::can_warp() const
 	return true;
 }
 
-uint32_t character::next_exp() const
+auto character::next_exp() const -> uint32_t
 {
 	if (PLAYER_EXP_TABLE_MAX < level())
 		return 2500000000;
@@ -6642,7 +6642,7 @@ uint32_t character::next_exp() const
 		return exp_table[level()];
 }
 
-int	character::skill_power_by_level(int level, bool mob) const
+auto	character::skill_power_by_level(int level, bool mob) const -> int
 {
 	return table_by_skill::instance().skill_power_by_level_from_type(job(), skill_group(), std::clamp(level, 0, SKILL_MAX_LEVEL), mob); 
 }

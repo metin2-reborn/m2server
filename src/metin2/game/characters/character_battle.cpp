@@ -63,7 +63,7 @@
 
 namespace metin2::game::inline characters {
 
-uint32_t adjust_exp_by_level(character * const ch, const uint32_t exp)
+auto adjust_exp_by_level(character * const ch, const uint32_t exp) -> uint32_t
 {
 	if (PLAYER_EXP_TABLE_MAX < ch->level())
 	{
@@ -89,7 +89,7 @@ uint32_t adjust_exp_by_level(character * const ch, const uint32_t exp)
 	return exp;
 }
 
-bool character::can_begin_fight() const
+auto character::can_begin_fight() const -> bool
 {
 	if (!can_move())
 		return false;
@@ -194,7 +194,7 @@ void character::distribute_sp(character * killer, int method)
 }
 
 
-bool character::attack(character * victim, uint8_t type)
+auto character::attack(character * victim, uint8_t type) -> bool
 {
 	if (metin2::config::test_server())
 		metin2::log::info( "[TEST_SERVER] Attack : {} type {:d}, MobBattleType {:d}", name(), type, !mob_battle_type() ? 0 : mob_attack_range());
@@ -342,7 +342,7 @@ void character::death_penalty(uint8_t town)
 	}
 }
 
-bool character::is_stun() const
+auto character::is_stun() const -> bool
 {
 	if (is_set(points_instant_.instant_flag, INSTANT_FLAG_STUN))
 		return true;
@@ -498,7 +498,7 @@ EVENTFUNC(dead_event)
 	return 0;
 }
 
-bool character::is_dead() const
+auto character::is_dead() const -> bool
 {
 	if (points_instant_.position == POS_DEAD)
 		return true;
@@ -506,7 +506,7 @@ bool character::is_dead() const
 	return false;
 }
 
-static int get_gold_multipler() { return metin2::config::game().distribution_test_server ? 3 : 1; }
+static auto get_gold_multipler() -> int { return metin2::config::game().distribution_test_server ? 3 : 1; }
 
 void character::reward_gold(character * attacker)
 {
@@ -1479,7 +1479,7 @@ void character::send_damage_packet(character * attacker, int damage_value, uint8
 	}
 }
 
-bool character::damage(character * attacker, int dam, damage_type type)
+auto character::damage(character * attacker, int dam, damage_type type) -> bool
 {
 	if (DAMAGE_TYPE_MAGIC == type)
 	{
@@ -2328,7 +2328,7 @@ struct damage_info {
 	}
 };
 
-character * character::distribute_exp()
+auto character::distribute_exp() -> character *
 {
 	int iExpToDistribute = get_exp();
 
@@ -2474,7 +2474,7 @@ character * character::distribute_exp()
 	return pkChrMostAttacked;
 }
 
-int character::arrow_and_bow(item * * ppk_bow, item * * ppk_arrow, int arrow_count )
+auto character::arrow_and_bow(item * * ppk_bow, item * * ppk_arrow, int arrow_count ) -> int
 {
 	item * pkBow;
 
@@ -2776,7 +2776,7 @@ class func_shoot
 		}
 };
 
-bool character::shoot(uint8_t type)
+auto character::shoot(uint8_t type) -> bool
 {
 	metin2::log::debug( "Shoot {} type {:d} flyTargets.size {:d}", name(), type, vec_dw_fly_targets_.size());
 
@@ -2829,7 +2829,7 @@ void character::fly_target(uint32_t target_vid_value, int32_t x, int32_t y, uint
 	packet_around(&pack, sizeof(pack), this);
 }
 
-character * character::nearest_victim(character * chr)
+auto character::nearest_victim(character * chr) -> character *
 {
 	if (nullptr == chr)
 		chr = this;
@@ -2886,12 +2886,12 @@ void character::set_victim(character * victim)
 	}
 }
 
-character * character::victim() const
+auto character::victim() const -> character *
 {
 	return character_manager::instance().find(vid_victim);
 }
 
-character * character::protege() const
+auto character::protege() const -> character *
 {
 	if (chr_stone_)
 		return chr_stone_;
@@ -2902,12 +2902,12 @@ character * character::protege() const
 	return nullptr;
 }
 
-int character::alignment() const
+auto character::alignment() const -> int
 {
 	return alignment_;
 }
 
-int character::real_alignment() const
+auto character::real_alignment() const -> int
 {
 	return real_alignment_;
 }
@@ -2967,7 +2967,7 @@ void character::set_killer_mode(bool is_on)
 	metin2::log::info( "SetKillerMode Update {}[{:d}]", name(), player_id());
 }
 
-bool character::is_killer_mode() const
+auto character::is_killer_mode() const -> bool
 {
 	return is_set(add_chr_state_, ADD_CHARACTER_STATE_KILLER);
 }
@@ -3000,7 +3000,7 @@ void character::set_pk_mode(uint8_t pk_mode)
 	metin2::log::info( "PK_MODE: {} {:d}", name(), pk_mode_);
 }
 
-uint8_t character::pk_mode() const
+auto character::pk_mode() const -> uint8_t
 {
 	return pk_mode_;
 }

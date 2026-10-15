@@ -13,7 +13,7 @@ namespace metin2::game {
 
 namespace quest
 {
-	int arena_start_duel(lua_State * lua)
+	auto arena_start_duel(lua_State * lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		character * ch2 = character_manager::instance().find_pc(lua_tostring(lua,1));
@@ -54,7 +54,7 @@ namespace quest
 		return 1;
 	}
 
-	int arena_add_map(lua_State* lua)
+	auto arena_add_map(lua_State* lua) -> int
 	{
 		int mapIdx		= (int)lua_tonumber(lua, 1);
 		int startposAX	= (int)lua_tonumber(lua, 2);
@@ -74,14 +74,14 @@ namespace quest
 		return 1;
 	}
 
-	int arena_get_duel_list(lua_State* lua)
+	auto arena_get_duel_list(lua_State* lua) -> int
 	{
 		arena_manager::instance().duel_list(lua);
 
 		return 1;
 	}
 
-	int arena_add_observer(lua_State* lua)
+	auto arena_add_observer(lua_State* lua) -> int
 	{
 		int mapIdx = (int)lua_tonumber(lua, 1);
 		int ObPointX = (int)lua_tonumber(lua, 2);
@@ -93,7 +93,7 @@ namespace quest
 		return 1;
 	}
 
-	int arena_is_in_arena(lua_State* lua)
+	auto arena_is_in_arena(lua_State* lua) -> int
 	{
 		uint32_t pid = (uint32_t)lua_tonumber(lua, 1);
 

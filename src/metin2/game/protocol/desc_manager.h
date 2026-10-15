@@ -33,38 +33,38 @@ class desc_manager : public singleton<desc_manager>
 		void			initialize();
 		void			destroy();
 
-		desc *			accept_desc(net::tcp::socket socket);
-		desc *			accept_p2_p_desc(net::tcp::socket socket);
+		auto			accept_desc(net::tcp::socket socket) -> desc *;
+		auto			accept_p2_p_desc(net::tcp::socket socket) -> desc *;
 		void			destroy_desc(desc * d, bool erase_from_set = true);
 
-		uint32_t			create_handshake();
+		auto			create_handshake() -> uint32_t;
 
-		client_desc *		create_connection_desc(const char * host, uint16_t port, int phase_when_succeed, bool retry_when_closed);
+		auto		create_connection_desc(const char * host, uint16_t port, int phase_when_succeed, bool retry_when_closed) -> client_desc *;
 		void			try_connect();
 
-		desc *			find_by_handle(uint32_t handle);
+		auto			find_by_handle(uint32_t handle) -> desc *;
 
-		desc *			find_by_character_name(const char* name);
-		desc *			find_by_login_name(const std::string& login);
+		auto			find_by_character_name(const char* name) -> desc *;
+		auto			find_by_login_name(const std::string& login) -> desc *;
 		void			connect_account(const std::string& login, desc * d);
 		void			disconnect_account(const std::string& login);
 
 		void			destroy_closed();
 
 		void			update_local_user_count();
-		uint32_t			local_user_count() { return local_user_count_; }
+		auto			local_user_count() -> uint32_t { return local_user_count_; }
 		void			user_count(int & total, int ** pai_empire_user_count, int & local_count);
 
-		const desc_set &	client_set();
+		auto	client_set() -> const desc_set &;
 
-		uint32_t			make_random_key(uint32_t handle);
-		bool			check_random_key(uint32_t handle, uint32_t key);
+		auto			make_random_key(uint32_t handle) -> uint32_t;
+		auto			check_random_key(uint32_t handle, uint32_t key) -> bool;
 
-		uint32_t			create_login_key(desc * d);
-		desc *			find_by_login_key(uint32_t key);
+		auto			create_login_key(desc * d) -> uint32_t;
+		auto			find_by_login_key(uint32_t key) -> desc *;
 		void			process_expired_login_key();
 
-		bool			is_p2_p_desc_exist(const char * host, uint16_t port);
+		auto			is_p2_p_desc_exist(const char * host, uint16_t port) -> bool;
 
 
 	private:

@@ -47,7 +47,7 @@ shop_manager::~shop_manager()
 	destroy();
 }
 
-bool shop_manager::initialize(shop_table * table, int size)
+auto shop_manager::initialize(shop_table * table, int size) -> bool
 {
 	if (!map_pk_shop_.empty())
 		return false;
@@ -86,7 +86,7 @@ void shop_manager::destroy()
 	map_pk_shop_.clear();
 }
 
-shop * shop_manager::get(uint32_t vnum)
+auto shop_manager::get(uint32_t vnum) -> shop *
 {
 	shop_map::const_iterator it = map_pk_shop_.find(vnum);
 
@@ -96,7 +96,7 @@ shop * shop_manager::get(uint32_t vnum)
 	return (it->second);
 }
 
-shop * shop_manager::by_npc_vnum(uint32_t vnum)
+auto shop_manager::by_npc_vnum(uint32_t vnum) -> shop *
 {
 	shop_map::const_iterator it = map_pk_shop_by_npc_vnum_.find(vnum);
 
@@ -107,7 +107,7 @@ shop * shop_manager::by_npc_vnum(uint32_t vnum)
 }
 
 
-bool shop_manager::start_shopping(character * chr, character * chr_shop_keeper, int shop_vnum)
+auto shop_manager::start_shopping(character * chr, character * chr_shop_keeper, int shop_vnum) -> bool
 {
 	if (chr->shop_owner() == chr_shop_keeper)
 		return false;
@@ -152,7 +152,7 @@ bool shop_manager::start_shopping(character * chr, character * chr_shop_keeper, 
 	return true;
 }
 
-shop * shop_manager::find_pc_shop(uint32_t vid)
+auto shop_manager::find_pc_shop(uint32_t vid) -> shop *
 {
 	shop_map::iterator it = map_pk_shop_by_pc_.find(vid);
 
@@ -162,7 +162,7 @@ shop * shop_manager::find_pc_shop(uint32_t vid)
 	return it->second;
 }
 
-shop * shop_manager::create_pc_shop(character * ch, shop_item_table * table, uint8_t item_count)
+auto shop_manager::create_pc_shop(character * ch, shop_item_table * table, uint8_t item_count) -> shop *
 {
 	if (find_pc_shop(ch->get_vid()))
 		return nullptr;
@@ -329,7 +329,7 @@ void shop_manager::sell(character * ch, uint8_t cell, uint8_t count_value)
 	ch->point_change(POINT_GOLD, dwPrice, false);
 }
 
-bool compare_shop_item_name(const shop_item_table& lhs, const shop_item_table& rhs)
+auto compare_shop_item_name(const shop_item_table& lhs, const shop_item_table& rhs) -> bool
 {
 	item_table* lItem = item_manager::instance().table(lhs.vnum);
 	item_table* rItem = item_manager::instance().table(rhs.vnum);
@@ -339,7 +339,7 @@ bool compare_shop_item_name(const shop_item_table& lhs, const shop_item_table& r
 		return true;
 }
 
-bool convert_to_shop_item_table(group_node* node, shop_table_ex& shop_table)
+auto convert_to_shop_item_table(group_node* node, shop_table_ex& shop_table) -> bool
 {
 	if (!node->value("vnum", 0, shop_table.vnum))
 	{
@@ -452,7 +452,7 @@ bool convert_to_shop_item_table(group_node* node, shop_table_ex& shop_table)
 	return true;
 }
 
-bool shop_manager::read_shop_table_ex(const char* file_name)
+auto shop_manager::read_shop_table_ex(const char* file_name) -> bool
 {
 	FILE* fp = fopen(file_name, "rb");
 	if (nullptr == fp)

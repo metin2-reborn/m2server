@@ -35,7 +35,7 @@ speed_server_empire_exp::~speed_server_empire_exp()
 {
 }
 
-bool speed_server_manager::initialize()
+auto speed_server_manager::initialize() -> bool
 {
 	for (int i = 1; i < EMPIRE_MAX_NUM; i++)
 	{
@@ -49,7 +49,7 @@ bool speed_server_manager::initialize()
 	return true;
 }
 
-bool speed_server_empire_exp::initialize (uint8_t e)
+auto speed_server_empire_exp::initialize (uint8_t e) -> bool
 {
 	empire_ = e;
 	metin2::log::info( "empire exp init {:d}", empire_);
@@ -70,7 +70,7 @@ bool speed_server_empire_exp::initialize (uint8_t e)
 	return true;
 }
 
-bool speed_server_empire_exp::load_wday_exp_table(int wday, char *str)
+auto speed_server_empire_exp::load_wday_exp_table(int wday, char *str) -> bool
 {
 	std::list <hme> &lst = wday_exp_table_[wday];
 	lst.clear();
@@ -104,7 +104,7 @@ bool speed_server_empire_exp::load_wday_exp_table(int wday, char *str)
 	return true;
 }
 
-bool speed_server_empire_exp::write_exp_table()
+auto speed_server_empire_exp::write_exp_table() -> bool
 {
 	FILE *fp;
 
@@ -141,7 +141,7 @@ bool speed_server_empire_exp::write_exp_table()
 	return true;
 }
 
-bool speed_server_empire_exp::load_exp_table()
+auto speed_server_empire_exp::load_exp_table() -> bool
 {
 	FILE	*fp;
 	char	one_line[256];
@@ -248,12 +248,12 @@ bool speed_server_empire_exp::load_exp_table()
 	return true;
 }
 
-std::list <hme>& speed_server_manager::wday_exp_table_of_empire(uint8_t empire, int wday)
+auto speed_server_manager::wday_exp_table_of_empire(uint8_t empire, int wday) -> std::list <hme>&
 {
 	return empire_[empire].wday_exp_table(wday);
 }
 
-std::list <hme>& speed_server_empire_exp::wday_exp_table(int wday)
+auto speed_server_empire_exp::wday_exp_table(int wday) -> std::list <hme>&
 {
 	return wday_exp_table_[wday];
 }
@@ -286,12 +286,12 @@ void speed_server_empire_exp::init_wday_exp_table(int wday)
 }
 
 
-std::list <hme>& speed_server_manager::holiday_exp_table_of_empire(uint8_t empire, date date, bool &is_exist)
+auto speed_server_manager::holiday_exp_table_of_empire(uint8_t empire, date date, bool &is_exist) -> std::list <hme>&
 {
 	return empire_[empire].holiday_exp_table(date, is_exist);
 }
 
-std::list <hme>& speed_server_empire_exp::holiday_exp_table(date date, bool &is_exist)
+auto speed_server_empire_exp::holiday_exp_table(date date, bool &is_exist) -> std::list <hme>&
 {
 	std::map <game::events::date, std::list <hme> >::iterator it = holiday_map_.find(date);
 	if (it != holiday_map_.end())
@@ -348,12 +348,12 @@ void speed_server_empire_exp::init_holiday_exp_table(date date)
 	}
 }
 
-hme speed_server_manager::current_exp_priv_of_empire (uint8_t empire, int &duration, bool &is_change)
+auto speed_server_manager::current_exp_priv_of_empire (uint8_t empire, int &duration, bool &is_change) -> hme
 {
 	return empire_[empire].current_exp_priv (duration, is_change);
 }
 
-hme speed_server_empire_exp::current_exp_priv(int &duration, bool &is_change)
+auto speed_server_empire_exp::current_exp_priv(int &duration, bool &is_change) -> hme
 {
 	struct tm* datetime;
 	time_t t;

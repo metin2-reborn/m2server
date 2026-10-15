@@ -92,7 +92,7 @@ END_OF_TIMER_EVENT:
 		return info->time_cycle;
 	}
 
-	event_ptr quest_create_server_timer_event(const char * name, double when, unsigned int timernpc, bool loop, unsigned int arg)
+	auto quest_create_server_timer_event(const char * name, double when, unsigned int timernpc, bool loop, unsigned int arg) -> event_ptr
 	{
 		const int nameCapacity = strlen(name) + 1;
 
@@ -111,7 +111,7 @@ END_OF_TIMER_EVENT:
 		return event_create(quest_server_timer_event, info, ltime_cycle);
 	}
 
-	event_ptr quest_create_timer_event(const char * name, unsigned int player_id, double when, unsigned int npc_id, bool loop)
+	auto quest_create_timer_event(const char * name, unsigned int player_id, double when, unsigned int npc_id, bool loop) -> event_ptr
 	{
 		const int nameCapacity = strlen(name) + 1;
 

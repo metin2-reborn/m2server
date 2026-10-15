@@ -12,7 +12,7 @@ enum bluedragon_stone_effect
 	REGEN_PECT_BONUS	=	4,
 };
 
-extern unsigned int blue_dragon_get_range_factor (const char* key, const int val);
-extern unsigned int blue_dragon_get_skill_factor (const size_t cnt, ...);
-extern unsigned int blue_dragon_get_index_factor (const char* container, const size_t idx, const char* key);
+extern auto blue_dragon_get_range_factor (const char* key, const int val) -> unsigned int;
+extern auto blue_dragon_get_skill_factor (const size_t cnt, ...) -> unsigned int;
+extern auto blue_dragon_get_index_factor (const char* container, const size_t idx, const char* key) -> unsigned int;
 }

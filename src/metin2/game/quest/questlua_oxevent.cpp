@@ -12,7 +12,7 @@ namespace metin2::game {
 
 namespace quest
 {
-	int oxevent_get_status(lua_State* lua)
+	auto oxevent_get_status(lua_State* lua) -> int
 	{
 		ox_event_status ret = ox_event_manager::instance().status();
 
@@ -21,7 +21,7 @@ namespace quest
 		return 1;
 	}
 
-	int oxevent_open(lua_State* lua)
+	auto oxevent_open(lua_State* lua) -> int
 	{
 		ox_event_manager::instance().clear_quiz();
 
@@ -44,14 +44,14 @@ namespace quest
 		return 1;
 	}
 	
-	int oxevent_close(lua_State* lua)
+	auto oxevent_close(lua_State* lua) -> int
 	{
 		ox_event_manager::instance().set_status(OXEVENT_CLOSE);
 		
 		return 0;
 	}
 	
-	int oxevent_quiz(lua_State* lua)
+	auto oxevent_quiz(lua_State* lua) -> int
 	{
 		if (lua_isnumber(lua, 1) && lua_isnumber(lua, 2))
 		{
@@ -70,7 +70,7 @@ namespace quest
 		return 1;
 	}
 	
-	int oxevent_get_attender(lua_State* lua)
+	auto oxevent_get_attender(lua_State* lua) -> int
 	{
 		lua_pushnumber(lua, (int)ox_event_manager::instance().attender_count());
 		return 1;
@@ -92,7 +92,7 @@ namespace quest
 		return 0;
 	}
 
-	int oxevent_end_event(lua_State* lua)
+	auto oxevent_end_event(lua_State* lua) -> int
 	{
 		ox_event_manager::instance().set_status(OXEVENT_FINISH);
 
@@ -102,7 +102,7 @@ namespace quest
 		return 0;
 	}
 
-	int oxevent_end_event_force(lua_State* lua)
+	auto oxevent_end_event_force(lua_State* lua) -> int
 	{
 		ox_event_manager::instance().close_event();
 		ox_event_manager::instance().set_status(OXEVENT_FINISH);
@@ -110,7 +110,7 @@ namespace quest
 		return 0;
 	}
 
-	int oxevent_give_item(lua_State* lua)
+	auto oxevent_give_item(lua_State* lua) -> int
 	{
 		if (lua_isnumber(lua, 1) && lua_isnumber(lua, 2))
 		{

@@ -19,7 +19,7 @@ void over9_refine_manager::enable_over9_refine(uint32_t vnum_from, uint32_t vnum
 	item_.insert(std::make_pair(vnum_from, vnum_to));
 }
 
-int over9_refine_manager::can_over9_refine(uint32_t vnum)
+auto over9_refine_manager::can_over9_refine(uint32_t vnum) -> int
 {
 	ove_r9_item_map::iterator iter = item_.find(vnum);
 
@@ -38,7 +38,7 @@ int over9_refine_manager::can_over9_refine(uint32_t vnum)
 	return 0;
 }
 
-bool over9_refine_manager::change9_to_over9(character * ch, item * item)
+auto over9_refine_manager::change9_to_over9(character * ch, item * item) -> bool
 {
 	ove_r9_item_map::iterator iter = item_.find(item->vnum());
 
@@ -70,7 +70,7 @@ bool over9_refine_manager::change9_to_over9(character * ch, item * item)
 	return true;
 }
 
-bool over9_refine_manager::over9_refine(character * ch, item * item)
+auto over9_refine_manager::over9_refine(character * ch, item * item) -> bool
 {
 	uint32_t dwVnum = item->refined_vnum();
 
@@ -100,7 +100,7 @@ bool over9_refine_manager::over9_refine(character * ch, item * item)
 	return true;
 }
 
-uint32_t over9_refine_manager::material_vnum(uint32_t base_vnum)
+auto over9_refine_manager::material_vnum(uint32_t base_vnum) -> uint32_t
 {
 	ove_r9_item_map::iterator iter = item_.find(base_vnum);
 

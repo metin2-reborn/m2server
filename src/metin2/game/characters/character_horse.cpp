@@ -22,7 +22,7 @@
 
 namespace metin2::game::inline characters {
 
-bool character::start_riding()
+auto character::start_riding() -> bool
 {
 	if (is_dead() == true)
 	{
@@ -70,7 +70,7 @@ bool character::start_riding()
 	return true;
 }
 
-bool character::stop_riding()
+auto character::stop_riding() -> bool
 {
 	if (horse_rider::stop_riding())
 	{
@@ -130,7 +130,7 @@ void character::set_rider(character * ch)
 		ch_rider_->send_horse_info();
 }
 
-character * character::rider() const
+auto character::rider() const -> character *
 {
 	return ch_rider_;
 }
@@ -248,7 +248,7 @@ void character::horse_summon(bool summon, bool from_far, uint32_t vnum, const ch
 	}
 }
 
-uint32_t character::my_horse_vnum() const
+auto character::my_horse_vnum() const -> uint32_t
 {
 	int delta = 0;
 
@@ -269,7 +269,7 @@ void character::horse_die()
 	horse_summon(false);
 }
 
-bool character::revive_horse()
+auto character::revive_horse() -> bool
 {
 	if (horse_rider::revive_horse())
 	{
@@ -333,7 +333,7 @@ void character::send_horse_info()
 	}
 }
 		
-bool character::can_use_horse_skill()
+auto character::can_use_horse_skill() -> bool
 {
 	if(is_riding())
 	{

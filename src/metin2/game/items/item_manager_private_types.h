@@ -20,7 +20,7 @@ public:
 	  int	percent;
 	  uint32_t	vnum;
 
-	  friend bool operator < (const item_drop_info & l, const item_drop_info & r)
+	  friend auto operator < (const item_drop_info & l, const item_drop_info & r) -> bool
 	  {
 		  return l.level_end < r.level_end;
 	  }

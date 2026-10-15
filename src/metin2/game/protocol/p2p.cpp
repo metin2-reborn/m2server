@@ -226,7 +226,7 @@ void p2_p_manager::logout(const char * name)
 	logout(pkCCI);
 }
 
-cci * p2_p_manager::find_by_pid(uint32_t pid)
+auto p2_p_manager::find_by_pid(uint32_t pid) -> cci *
 {
 	pidcci_map::iterator it = map_dw_pid_pk_cci_.find(pid);
 	if (it == map_dw_pid_pk_cci_.end())
@@ -234,7 +234,7 @@ cci * p2_p_manager::find_by_pid(uint32_t pid)
 	return it->second;
 }
 
-cci * p2_p_manager::find(const char * name)
+auto p2_p_manager::find(const char * name) -> cci *
 {
 	cci_map::const_iterator it;
 
@@ -246,19 +246,19 @@ cci * p2_p_manager::find(const char * name)
 	return it->second.get();
 }
 
-int p2_p_manager::count()
+auto p2_p_manager::count() -> int
 {
 	return empire_user_count_[1] + empire_user_count_[2] + empire_user_count_[3];
 }
 
-int p2_p_manager::empire_user_count(int idx)
+auto p2_p_manager::empire_user_count(int idx) -> int
 {
 	assert(idx < EMPIRE_MAX_NUM);
 	return empire_user_count_[idx];
 }
 
 
-int p2_p_manager::desc_count()
+auto p2_p_manager::desc_count() -> int
 {
 	return set_pk_peers_.size();
 }

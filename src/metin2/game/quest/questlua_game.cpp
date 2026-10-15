@@ -21,7 +21,7 @@ namespace metin2::game {
 
 namespace quest
 {
-	int game_set_event_flag(lua_State* lua)
+	auto game_set_event_flag(lua_State* lua) -> int
 	{
 		quest_manager & q = quest_manager::instance();
 
@@ -31,7 +31,7 @@ namespace quest
 		return 0;
 	}
 
-	int game_get_event_flag(lua_State* lua)
+	auto game_get_event_flag(lua_State* lua) -> int
 	{
 		quest_manager& q = quest_manager::instance();
 
@@ -43,7 +43,7 @@ namespace quest
 		return 1;
 	}
 
-	int game_request_make_guild(lua_State* lua)
+	auto game_request_make_guild(lua_State* lua) -> int
 	{
 		quest_manager& q = quest_manager::instance();
 		character * ch = q.current_character_ptr();
@@ -65,14 +65,14 @@ namespace quest
 		return 0;
 	}
 
-	int game_get_safebox_level(lua_State* lua)
+	auto game_get_safebox_level(lua_State* lua) -> int
 	{
 		quest_manager& q = quest_manager::instance();
 		lua_pushnumber(lua, q.current_character_ptr()->safebox_size()/SAFEBOX_PAGE_SIZE);
 		return 1;
 	}
 
-	int game_set_safebox_level(lua_State* lua)
+	auto game_set_safebox_level(lua_State* lua) -> int
 	{
 		quest_manager& q = quest_manager::instance();
 
@@ -85,7 +85,7 @@ namespace quest
 		return 0;
 	}
 
-	int game_open_safebox(lua_State* )
+	auto game_open_safebox(lua_State* ) -> int
 	{
 		quest_manager& q = quest_manager::instance();
 		character * ch = q.current_character_ptr();
@@ -94,7 +94,7 @@ namespace quest
 		return 0;
 	}
 
-	int game_open_mall(lua_State* )
+	auto game_open_mall(lua_State* ) -> int
 	{
 		quest_manager& q = quest_manager::instance();
 		character * ch = q.current_character_ptr();
@@ -103,7 +103,7 @@ namespace quest
 		return 0;
 	}
 
-	int game_drop_item(lua_State* lua)
+	auto game_drop_item(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -130,7 +130,7 @@ namespace quest
 		return 0;
 	}
 
-	int game_drop_item_with_ownership(lua_State* lua)
+	auto game_drop_item_with_ownership(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -178,7 +178,7 @@ namespace quest
 		return 0;
 	}
 
-	int game_web_mall(lua_State* lua)
+	auto game_web_mall(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 

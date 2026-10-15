@@ -94,10 +94,10 @@ volatile int	num_events_called = 0;
 std::shared_ptr<net::listener>	client_listener;
 std::shared_ptr<net::listener>	p2p_listener;
 
-int		io_loop();
+auto		io_loop() -> int;
 
-int		start(int argc, char **argv);
-int		idle();
+auto		start(int argc, char **argv) -> int;
+auto		idle() -> int;
 void	destroy();
 
 void 	test();
@@ -217,7 +217,7 @@ static void clean_up_for_early_exit() {
 	cancel_reload_spam_event();
 }
 
-int run(int argc, char **argv)
+auto run(int argc, char **argv) -> int
 {
 
 
@@ -363,7 +363,7 @@ void usage()
 			"-v           : log to stdout\n");
 }
 
-int start(int argc, char **argv)
+auto start(int argc, char **argv) -> int
 {
 	bool bVerbose = false;
 	int ch;
@@ -478,7 +478,7 @@ void destroy()
 	thecore_destroy();
 }
 
-int idle()
+auto idle() -> int
 {
 	static struct timeval	pta = { 0, 0 };
 	static int			process_time_count = 0;
@@ -546,7 +546,7 @@ int idle()
 	return 1;
 }
 
-int io_loop()
+auto io_loop() -> int
 {
 	desc_manager::instance().destroy_closed();
 	desc_manager::instance().try_connect();

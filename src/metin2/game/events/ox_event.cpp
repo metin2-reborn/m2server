@@ -27,7 +27,7 @@
 
 namespace metin2::game::inline events {
 
-bool ox_event_manager::initialize()
+auto ox_event_manager::initialize() -> bool
 {
 	timed_event_ = nullptr;
 	map_char_.clear();
@@ -50,7 +50,7 @@ void ox_event_manager::destroy()
 	set_status(OXEVENT_FINISH);
 }
 
-ox_event_status ox_event_manager::status()
+auto ox_event_manager::status() -> ox_event_status
 {
 	uint8_t ret = quest::quest_manager::instance().event_flag("oxevent_status");
 
@@ -102,7 +102,7 @@ void ox_event_manager::set_status(ox_event_status status)
 	quest::quest_manager::instance().request_set_event_flag("oxevent_status", val);
 }
 
-bool ox_event_manager::enter(character * ch)
+auto ox_event_manager::enter(character * ch) -> bool
 {
 	if (status() == OXEVENT_FINISH)
 	{
@@ -129,7 +129,7 @@ bool ox_event_manager::enter(character * ch)
 	return false;
 }
 
-bool ox_event_manager::enter_attender(character * ch)
+auto ox_event_manager::enter_attender(character * ch) -> bool
 {
 	uint32_t pid = ch->player_id();
 
@@ -139,7 +139,7 @@ bool ox_event_manager::enter_attender(character * ch)
 	return true;
 }
 
-bool ox_event_manager::enter_audience(character * ch)
+auto ox_event_manager::enter_audience(character * ch) -> bool
 {
 	uint32_t pid = ch->player_id();
 
@@ -148,7 +148,7 @@ bool ox_event_manager::enter_audience(character * ch)
 	return true;
 }
 
-bool ox_event_manager::add_quiz(unsigned char level, const char* question, bool answer)
+auto ox_event_manager::add_quiz(unsigned char level, const char* question, bool answer) -> bool
 {
 	if (vec_quiz_.size() < (size_t) level + 1)
 		vec_quiz_.resize(level + 1);
@@ -163,7 +163,7 @@ bool ox_event_manager::add_quiz(unsigned char level, const char* question, bool 
 	return true;
 }
 
-bool ox_event_manager::show_quiz_list(character * ch)
+auto ox_event_manager::show_quiz_list(character * ch) -> bool
 {
 	int c = 0;
 	
@@ -246,7 +246,7 @@ EVENTFUNC(oxevent_timer)
 	return 0;
 }
 
-bool ox_event_manager::quiz(unsigned char level, int timelimit)
+auto ox_event_manager::quiz(unsigned char level, int timelimit) -> bool
 {
 	if (vec_quiz_.size() == 0) return false;
 	if (level > vec_quiz_.size()) level = vec_quiz_.size() - 1;
@@ -277,7 +277,7 @@ bool ox_event_manager::quiz(unsigned char level, int timelimit)
 	return true;
 }
 
-bool ox_event_manager::check_answer(bool answer)
+auto ox_event_manager::check_answer(bool answer) -> bool
 {
 	if (map_attender_.size() <= 0) return true;
 	
@@ -390,7 +390,7 @@ void ox_event_manager::warp_to_audience()
 	map_miss_.clear();
 }
 
-bool ox_event_manager::close_event()
+auto ox_event_manager::close_event() -> bool
 {
 	if (timed_event_ != nullptr) {
 		event_cancel(&timed_event_);
@@ -412,7 +412,7 @@ bool ox_event_manager::close_event()
 	return true;
 }
 
-bool ox_event_manager::log_winner()
+auto ox_event_manager::log_winner() -> bool
 {
 	auto iter = map_attender_.begin();
 	
@@ -427,7 +427,7 @@ bool ox_event_manager::log_winner()
 	return true;
 }
 
-bool ox_event_manager::give_item_to_attender(uint32_t item_vnum, uint8_t count)
+auto ox_event_manager::give_item_to_attender(uint32_t item_vnum, uint8_t count) -> bool
 {
 	auto iter = map_attender_.begin();
 

@@ -17,7 +17,7 @@ namespace metin2::game::inline text {
 class spam_manager : public singleton<spam_manager>
 {
 	public:
-		inline const char * spam_score(const char * src, size_t len, unsigned int & score)
+		inline auto spam_score(const char * src, size_t len, unsigned int & score) -> const char *
 		{
 			const char * word = nullptr;
 			score = 0;

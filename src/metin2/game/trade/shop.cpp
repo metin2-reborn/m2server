@@ -60,7 +60,7 @@ void shop::set_pc_shop(character * ch)
 	pc_ = ch;
 }
 
-bool shop::create(uint32_t vnum_value, uint32_t npc_vnum, shop_item_table * table)
+auto shop::create(uint32_t vnum_value, uint32_t npc_vnum, shop_item_table * table) -> bool
 {
 	metin2::log::info( "SHOP #{:d} (Shopkeeper {:d})", vnum_value, npc_vnum);
 
@@ -184,7 +184,7 @@ void shop::set_shop_items(shop_item_table * table_value, uint8_t item_count)
 	}
 }
 
-int shop::buy(character * ch, uint8_t pos)
+auto shop::buy(character * ch, uint8_t pos) -> int
 {
 	if (pos >= item_vector_.size())
 	{
@@ -379,7 +379,7 @@ int shop::buy(character * ch, uint8_t pos)
     return (SHOP_SUBHEADER_GC_OK);
 }
 
-bool shop::add_guest(character * ch, uint32_t owner_vid, bool other_empire)
+auto shop::add_guest(character * ch, uint32_t owner_vid, bool other_empire) -> bool
 {
 	if (!ch)
 		return false;
@@ -516,7 +516,7 @@ void shop::broadcast_update_item(uint8_t pos)
 	broadcast(buf.read_peek(), buf.size());
 }
 
-int shop::number_by_vnum(uint32_t vnum_value)
+auto shop::number_by_vnum(uint32_t vnum_value) -> int
 {
 	int itemNumber = 0;
 
@@ -533,7 +533,7 @@ int shop::number_by_vnum(uint32_t vnum_value)
 	return itemNumber;
 }
 
-bool shop::is_selling_item(uint32_t item_id)
+auto shop::is_selling_item(uint32_t item_id) -> bool
 {
 	bool isSelling = false;
 

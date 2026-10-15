@@ -119,7 +119,7 @@ void pvp::packet(bool removing)
 	}
 }
 
-bool pvp::agree(uint32_t pid_value)
+auto pvp::agree(uint32_t pid_value) -> bool
 {
 	players_[players_[0].pid != pid_value ? 1 : 0].agree = true;
 
@@ -132,7 +132,7 @@ bool pvp::agree(uint32_t pid_value)
 	return false;
 }
 
-bool pvp::is_fight()
+auto pvp::is_fight() -> bool
 {
 	return (players_[0].agree == players_[1].agree) && players_[0].agree;
 }
@@ -163,7 +163,7 @@ void pvp::set_last_fight_time()
 	last_fight_time_ = get_dword_time();
 }
 
-uint32_t pvp::last_fight_time()
+auto pvp::last_fight_time() -> uint32_t
 {
 	return last_fight_time_;
 }
@@ -262,7 +262,7 @@ void pvp_manager::disconnect(character * chr)
 {
 }
 
-bool pvp_manager::dead(character * chr, uint32_t killer_pid)
+auto pvp_manager::dead(character * chr, uint32_t killer_pid) -> bool
 {
 	pvp_set_map::iterator it = map_pk_pvp_set_by_id_.find(chr->player_id());
 
@@ -305,7 +305,7 @@ bool pvp_manager::dead(character * chr, uint32_t killer_pid)
 	return found;
 }
 
-bool pvp_manager::can_attack(character * chr, character * victim)
+auto pvp_manager::can_attack(character * chr, character * victim) -> bool
 {
 	switch (victim->get_char_type())
 	{
@@ -479,7 +479,7 @@ bool pvp_manager::can_attack(character * chr, character * victim)
 	return true;
 }
 
-pvp * pvp_manager::find(uint32_t crc)
+auto pvp_manager::find(uint32_t crc) -> pvp *
 {
 	auto it = map_pk_pvp_.find(crc);
 

@@ -191,7 +191,7 @@ class skill_proto
 
 		uint32_t   target_range;
 
-		bool	is_charge_skill()
+		auto	is_charge_skill() -> bool
 		{
 			return vnum == SKILL_TANHWAN || vnum == SKILL_HORSE_CHARGE; 
 		}
@@ -213,9 +213,9 @@ class skill_manager : public singleton<skill_manager>
 		skill_manager();
 		~skill_manager() override;
 
-		bool initialize(skill_table * tab, int size);
-		skill_proto * get(uint32_t vnum);
-		skill_proto * get(const char * skill_name);
+		auto initialize(skill_table * tab, int size) -> bool;
+		auto get(uint32_t vnum) -> skill_proto *;
+		auto get(const char * skill_name) -> skill_proto *;
 
 	protected:
 		std::map<uint32_t, std::unique_ptr<skill_proto>> map_pk_skill_proto_;

@@ -60,18 +60,18 @@ namespace quest
 
 			void		destroy();
 			void		set_id(uint32_t id);
-			uint32_t		id() { return id_; }
+			auto		id() -> uint32_t { return id_; }
 
-			inline quest_info_iterator quest_begin();
-			inline quest_info_iterator quest_end();
-			inline quest_info_iterator quest_find(uint32_t quest_index);
+			inline auto quest_begin() -> quest_info_iterator;
+			inline auto quest_end() -> quest_info_iterator;
+			inline auto quest_find(uint32_t quest_index) -> quest_info_iterator;
 
-			inline bool is_running();
+			inline auto is_running() -> bool;
 
 			void		end_running();
 			void		cancel_running();
 
-			inline quest_state *	running_quest_state();
+			inline auto	running_quest_state() -> quest_state *;
 
 			void		set_quest(const std::string& quest_name, quest_state& qs);
 			void		set_current_quest_state_name(const std::string& state_name);
@@ -102,11 +102,11 @@ namespace quest
 
 		public:
 			void		set_flag(const std::string & name, int value, bool skip_save = false);
-			int			flag(const std::string & name);
-			bool		delete_flag(const std::string & name);
+			auto			flag(const std::string & name) -> int;
+			auto		delete_flag(const std::string & name) -> bool;
 
-			const std::string &	current_quest_name() const;
-			int			current_quest_index();
+			auto	current_quest_name() const -> const std::string &;
+			auto			current_quest_index() -> int;
 
 			void		remove_timer(const std::string& name);
 			void		remove_timer_not_cancel(const std::string& name);
@@ -125,19 +125,19 @@ namespace quest
 			void		set_current_quest_counter_value(int value);
 			void		set_current_quest_icon_file(const std::string& icon_file);
 
-			bool		is_loaded() const	{ return loaded_; }
+			auto		is_loaded() const -> bool	{ return loaded_; }
 			void		set_loaded()	{ loaded_ = true; }
 			void		build();
 			void		save();
 
-			bool		has_reward() { return !reward_data_.empty() || is_given_reward_; }
+			auto		has_reward() -> bool { return !reward_data_.empty() || is_given_reward_; }
 			void		reward(character * ch);
 
 			void		give_item(const std::string& label, uint32_t vnum, int count);
 			void		give_exp(const std::string& label, uint32_t exp);
 
 			void 		set_send_done_flag() { should_send_done_ = true; }
-			bool		and_reset_done_flag() { bool temp = should_send_done_; should_send_done_ = false; return temp; }
+			auto		and_reset_done_flag() -> bool { bool temp = should_send_done_; should_send_done_ = false; return temp; }
 
 			void		send_flag_list(character * ch);
 
@@ -145,8 +145,8 @@ namespace quest
 
 			void		set_confirm_wait(uint32_t pid) { confirm_wait_ = true; wait_confirm_from_pid_ = pid; }
 			void		clear_confirm_wait() { confirm_wait_ = false; }
-			bool		is_confirm_wait() const	{ return confirm_wait_; }
-			bool		is_confirm_wait(uint32_t pid) const	{ return confirm_wait_ && pid == wait_confirm_from_pid_; }
+			auto		is_confirm_wait() const -> bool	{ return confirm_wait_; }
+			auto		is_confirm_wait(uint32_t pid) const -> bool	{ return confirm_wait_ && pid == wait_confirm_from_pid_; }
 
 		private:
 			void		set_send_flag(int idx);
@@ -154,7 +154,7 @@ namespace quest
 
 			void		clear_current_quest_begin_flag();
 			void		set_current_quest_begin_flag();
-			int			current_quest_begin_flag();
+			auto			current_quest_begin_flag() -> int;
 
 			void		send_quest_info_pakcet();
 
@@ -188,27 +188,27 @@ namespace quest
 			bool		confirm_wait_;
 	};
 
-	inline pc::quest_info_iterator pc::quest_begin()
+	inline auto pc::quest_begin() -> pc::quest_info_iterator
 	{
 		return quest_info_.begin();
 	}
 
-	inline pc::quest_info_iterator pc::quest_end()
+	inline auto pc::quest_end() -> pc::quest_info_iterator
 	{
 		return quest_info_.end();
 	}
 
-	inline pc::quest_info_iterator pc::quest_find(uint32_t quest_index)
+	inline auto pc::quest_find(uint32_t quest_index) -> pc::quest_info_iterator
 	{
 		return quest_info_.find(quest_index);
 	}
 
-	inline bool pc::is_running()
+	inline auto pc::is_running() -> bool
 	{
 		return running_quest_state_ != nullptr;
 	}
 
-	inline quest_state* pc::running_quest_state()
+	inline auto pc::running_quest_state() -> quest_state*
 	{
 		return running_quest_state_;
 	}

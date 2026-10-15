@@ -212,7 +212,7 @@ void item::update_packet()
 	owner_->get_desc()->packet(&pack, sizeof(pack));
 }
 
-uint32_t item::count()
+auto item::count() -> uint32_t
 {
 	if (type() == ITEM_ELK) return std::min<int>(count_, INT_MAX);
 	else
@@ -221,7 +221,7 @@ uint32_t item::count()
 	}
 }
 
-bool item::set_count(uint32_t count)
+auto item::set_count(uint32_t count) -> bool
 {
 	if (type() == ITEM_ELK)
 	{
@@ -275,7 +275,7 @@ bool item::set_count(uint32_t count)
 	return true;
 }
 
-item * item::remove_from_character()
+auto item::remove_from_character() -> item *
 {
 	if (!owner_)
 	{
@@ -326,7 +326,7 @@ item * item::remove_from_character()
 	}
 }
 
-bool item::add_to_character(character * ch, item_pos cell_value)
+auto item::add_to_character(character * ch, item_pos cell_value) -> bool
 {
 	assert(get_sectree() == nullptr);
 	assert(owner_ == nullptr);
@@ -362,7 +362,7 @@ bool item::add_to_character(character * ch, item_pos cell_value)
 	return true;
 }
 
-item * item::remove_from_ground()
+auto item::remove_from_ground() -> item *
 {
 	if (get_sectree())
 	{
@@ -378,7 +378,7 @@ item * item::remove_from_ground()
 	return (this);
 }
 
-bool item::add_to_ground(int32_t map_index, const pixel_position & pos, bool skip_owner_check)
+auto item::add_to_ground(int32_t map_index, const pixel_position & pos, bool skip_owner_check) -> bool
 {
 	if (0 == map_index)
 	{
@@ -414,7 +414,7 @@ bool item::add_to_ground(int32_t map_index, const pixel_position & pos, bool ski
 	return true;
 }
 
-bool item::distance_valid(character * ch)
+auto item::distance_valid(character * ch) -> bool
 {
 	if (!get_sectree())
 		return false;
@@ -427,7 +427,7 @@ bool item::distance_valid(character * ch)
 	return true;
 }
 
-bool item::can_used_by(character * ch)
+auto item::can_used_by(character * ch) -> bool
 {
 	switch (ch->job())
 	{
@@ -455,7 +455,7 @@ bool item::can_used_by(character * ch)
 	return true;
 }
 
-int item::find_equip_cell(character * ch, int candidate_cell)
+auto item::find_equip_cell(character * ch, int candidate_cell) -> int
 {
 	if ((0 == wear_flag() || ITEM_TOTEM == type()) && ITEM_COSTUME != type() && ITEM_DS != type() && ITEM_SPECIAL_DS != type() && ITEM_RING != type() && ITEM_BELT != type())
 		return -1;
@@ -753,7 +753,7 @@ void item::modify_points(bool add)
 	}
 }
 
-bool item::is_equipable() const
+auto item::is_equipable() const -> bool
 {
 	switch (this->type())
 	{
@@ -773,7 +773,7 @@ bool item::is_equipable() const
 	return false;
 }
 
-bool item::equip_to(character * ch, uint8_t wear_cell)
+auto item::equip_to(character * ch, uint8_t wear_cell) -> bool
 {
 	if (!ch)
 	{
@@ -862,7 +862,7 @@ bool item::equip_to(character * ch, uint8_t wear_cell)
 	return (true);
 }
 
-bool item::unequip()
+auto item::unequip() -> bool
 {
 	if (!owner_ || cell() < INVENTORY_MAX_NUM)
 	{
@@ -936,7 +936,7 @@ bool item::unequip()
 	return true;
 }
 
-int32_t item::value(uint32_t idx)
+auto item::value(uint32_t idx) -> int32_t
 {
 	assert(idx < ITEM_VALUES_MAX_NUM);
 	return proto()->values[idx];
@@ -971,12 +971,12 @@ void item::set_socket(int i, int32_t v, bool log)
 		log_manager::instance().item_log(i, v, 0, id(), "SET_SOCKET", "", "", original_vnum());
 }
 
-int item::shop_buy_price()
+auto item::shop_buy_price() -> int
 {
 	return proto()->shop_buy_price;
 }
 
-bool item::is_ownership(character * ch)
+auto item::is_ownership(character * ch) -> bool
 {
 	if (!ownership_event_)
 		return true;
@@ -1056,7 +1056,7 @@ void item::set_ownership(character * ch, int sec)
 	packet_around(&p, sizeof(p));
 }
 
-int item::socket_count()
+auto item::socket_count() -> int
 {
 	for (int i = 0; i < ITEM_SOCKET_MAX_NUM; i++)
 	{
@@ -1066,7 +1066,7 @@ int item::socket_count()
 	return ITEM_SOCKET_MAX_NUM;
 }
 
-bool item::add_socket()
+auto item::add_socket() -> bool
 {
 	int count = socket_count();
 	if (count == ITEM_SOCKET_MAX_NUM)
@@ -1132,12 +1132,12 @@ void item::alter_to_magic_item()
 		put_attribute(item_magic_attribute_percent_low);
 }
 
-uint32_t item::refine_from_vnum()
+auto item::refine_from_vnum() -> uint32_t
 {
 	return item_manager::instance().refine_from_vnum(vnum());
 }
 
-int item::refine_level()
+auto item::refine_level() -> int
 {
 	const char* name_value = base_name();
 	char* p = const_cast<char*>(strrchr(name_value, '+'));
@@ -1297,7 +1297,7 @@ void item::start_real_time_expire_event()
 	}
 }
 
-bool item::is_real_time_item()
+auto item::is_real_time_item() -> bool
 {
 	if(!proto())
 		return false;
@@ -1399,12 +1399,12 @@ void item::apply_addon(int addon_type)
 	item_addon_manager::instance().apply_addon_to(addon_type, this);
 }
 
-int item::special_group() const
+auto item::special_group() const -> int
 { 
 	return item_manager::instance().special_group_from_item(vnum()); 
 }
 
-bool item::is_accessory_for_socket()
+auto item::is_accessory_for_socket() -> bool
 {
 	return (proto_->type == ITEM_ARMOR && (proto_->sub_type == ARMOR_WRIST || proto_->sub_type == ARMOR_NECK || proto_->sub_type == ARMOR_EAR)) ||
 		(proto_->type == ITEM_BELT);
@@ -1517,7 +1517,7 @@ void item::stop_accessory_socket_expire_event()
 	}
 }
 		
-bool item::is_ride_item()
+auto item::is_ride_item() -> bool
 {
 	if (ITEM_UNIQUE == type() && UNIQUE_SPECIAL_RIDE == sub_type())
 		return true;
@@ -1574,12 +1574,12 @@ void item::accessory_socket_degrade()
 	}
 }
 
-static bool can_put_into_ring(item * ring, item * item)
+static auto can_put_into_ring(item * ring, item * item) -> bool
 {
 	return false;
 }
 
-bool item::can_put_into(item * item)
+auto item::can_put_into(item * item) -> bool
 {
 	if (item->type() == ITEM_BELT)
 		return this->sub_type() == USE_PUT_INTO_BELT_SOCKET;
@@ -1692,7 +1692,7 @@ bool item::can_put_into(item * item)
 	return 50623 + type == vnum();
 }
 
-bool item::is_pc_bang_item()
+auto item::is_pc_bang_item() -> bool
 {
 	for (int i = 0; i < ITEM_LIMIT_MAX_NUM; ++i)
 	{
@@ -1702,7 +1702,7 @@ bool item::is_pc_bang_item()
 	return false;
 }
 
-bool item::check_item_use_level(int level)
+auto item::check_item_use_level(int level) -> bool
 {
 	for (int i = 0; i < ITEM_LIMIT_MAX_NUM; ++i)
 	{
@@ -1723,17 +1723,17 @@ void item::copy_socket_to(item * item_value)
 	}
 }
 
-int item::accessory_socket_grade()
+auto item::accessory_socket_grade() -> int
 {
    	return std::clamp(get_socket(0), 0, accessory_socket_max_grade()); 
 }
 
-int item::accessory_socket_max_grade()
+auto item::accessory_socket_max_grade() -> int
 {
    	return std::clamp<int>(get_socket(1), 0, ITEM_ACCESSORY_SOCKET_MAX_NUM);
 }
 
-int item::accessory_socket_down_grade_time()
+auto item::accessory_socket_down_grade_time() -> int
 {
 	return std::clamp(get_socket(2), 0, accessory_socket_degrade_time[accessory_socket_grade()]);
 }
@@ -1763,7 +1763,7 @@ void item::attr_log()
 	}
 }
 
-int item::level_limit()
+auto item::level_limit() -> int
 {
 	for (int i = 0; i < ITEM_LIMIT_MAX_NUM; ++i)
 	{
@@ -1775,7 +1775,7 @@ int item::level_limit()
 	return 0;
 }
 
-bool item::on_after_created_item()
+auto item::on_after_created_item() -> bool
 {
 	if (-1 != this->proto()->c_limit_real_time_first_use_index)
 	{
@@ -1790,12 +1790,12 @@ bool item::on_after_created_item()
 
 
 
-bool item::is_dragon_soul()
+auto item::is_dragon_soul() -> bool
 {
 	return type() == ITEM_DS;
 }
 
-int item::give_more_time_per(float percent)
+auto item::give_more_time_per(float percent) -> int
 {
 	if (is_dragon_soul())
 	{
@@ -1819,7 +1819,7 @@ int item::give_more_time_per(float percent)
 		return 0;
 }
 
-int item::give_more_time_fix(uint32_t time)
+auto item::give_more_time_fix(uint32_t time) -> int
 {
 	if (is_dragon_soul())
 	{
@@ -1843,7 +1843,7 @@ int item::give_more_time_fix(uint32_t time)
 }
 
 
-int	item::duration()
+auto	item::duration() -> int
 {
 	if(!proto())
 		return -1;
@@ -1860,7 +1860,7 @@ int	item::duration()
 	return -1;
 }
 
-bool item::is_same_special_group(item * const item) const
+auto item::is_same_special_group(item * const item) const -> bool
 {
 	if (this->vnum() == item->vnum())
 		return true;

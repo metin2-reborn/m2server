@@ -8,7 +8,7 @@ namespace metin2::game {
 
 namespace quest
 {
-	int ba_start(lua_State* lua)
+	auto ba_start(lua_State* lua) -> int
 	{
 		if ( lua_isnumber(lua, 1) )
 		{

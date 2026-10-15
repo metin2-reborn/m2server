@@ -42,24 +42,24 @@ class horse_rider
 		horse_rider();
 		virtual ~horse_rider();
 		
-		uint8_t		horse_level() const { return horse_.level; }
-		uint8_t		horse_grade();
-		short		horse_health() const	{ return horse_.s_health; }
-		short		horse_stamina() const	{ return horse_.s_stamina; }
-		short		horse_max_health();
-		short		horse_max_stamina();
+		auto		horse_level() const -> uint8_t { return horse_.level; }
+		auto		horse_grade() -> uint8_t;
+		auto		horse_health() const -> short	{ return horse_.s_health; }
+		auto		horse_stamina() const -> short	{ return horse_.s_stamina; }
+		auto		horse_max_health() -> short;
+		auto		horse_max_stamina() -> short;
 
-		int		horse_st()		{ return c_a_horse_stat[horse_level()].st; }
-		int		horse_dx()		{ return c_a_horse_stat[horse_level()].dx; }
-		int		horse_ht()		{ return c_a_horse_stat[horse_level()].ht; }
-		int		horse_iq()		{ return c_a_horse_stat[horse_level()].iq; }
-		int		horse_armor()		{ return c_a_horse_stat[horse_level()].armor; }
+		auto		horse_st() -> int		{ return c_a_horse_stat[horse_level()].st; }
+		auto		horse_dx() -> int		{ return c_a_horse_stat[horse_level()].dx; }
+		auto		horse_ht() -> int		{ return c_a_horse_stat[horse_level()].ht; }
+		auto		horse_iq() -> int		{ return c_a_horse_stat[horse_level()].iq; }
+		auto		horse_armor() -> int		{ return c_a_horse_stat[horse_level()].armor; }
 
-		virtual bool revive_horse();
+		virtual auto revive_horse() -> bool;
 		void feed_horse();
 		virtual void horse_die();
 
-		bool is_horse_riding() const		{ return horse_.riding; }
+		auto is_horse_riding() const -> bool		{ return horse_.riding; }
 
 		void reset_horse_health_drop_time();
 
@@ -74,14 +74,14 @@ class horse_rider
 
 	protected:
 		void set_horse_data(const horse_info& cr_info);
-		const horse_info& horse_data() const { return horse_; }
+		auto horse_data() const -> const horse_info& { return horse_; }
 
 		void update_horse_data_by_logoff(uint32_t logoff_time);
 
-		virtual bool start_riding();
-		virtual bool stop_riding();
+		virtual auto start_riding() -> bool;
+		virtual auto stop_riding() -> bool;
 
-		virtual	uint32_t my_horse_vnum() const { return 20030; }
+		virtual	auto my_horse_vnum() const -> uint32_t { return 20030; }
 
 	private:
 		void update_horse_stamina(int stamina, bool send = true);

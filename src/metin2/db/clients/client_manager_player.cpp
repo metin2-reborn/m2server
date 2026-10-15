@@ -37,7 +37,7 @@ namespace metin2::db::inline clients {
 
 
 // The column order matches every SELECT on the item table; change them together.
-bool create_item_table_from_res(MYSQL_RES * res, std::vector<player_item> * vec, uint32_t pid)
+auto create_item_table_from_res(MYSQL_RES * res, std::vector<player_item> * vec, uint32_t pid) -> bool
 {
 	if (!res)
 	{
@@ -84,7 +84,7 @@ bool create_item_table_from_res(MYSQL_RES * res, std::vector<player_item> * vec,
 	return true;
 }
 
-std::string create_player_save_query(const player_table * tab)
+auto create_player_save_query(const player_table * tab) -> std::string
 {
 	return sql::format(
 			"UPDATE player{} SET "
@@ -176,7 +176,7 @@ std::string create_player_save_query(const player_table * tab)
 		tab->id);
 }
 
-player_table_cache * client_manager::player_cache(uint32_t id)
+auto client_manager::player_cache(uint32_t id) -> player_table_cache *
 {
 	player_table_cache_map::iterator it = map_player_cache_.find(id);
 
@@ -385,7 +385,7 @@ void client_manager::inform_gift_award(const char * login, const char * why, uin
 	forward_packet(HEADER_DG_ITEMAWARD_INFORMER, &giftData, sizeof(giftData));
 }
 
-bool create_player_table_from_res(MYSQL_RES * res, player_table * tab)
+auto create_player_table_from_res(MYSQL_RES * res, player_table * tab) -> bool
 {
 	if (mysql_num_rows(res) == 0)
 		return false;
@@ -484,12 +484,12 @@ bool create_player_table_from_res(MYSQL_RES * res, player_table * tab)
 	return true;
 }
 
-void client_manager::result_composite_player(peer * peer, ql_msg * msg, uint32_t qid)
+void client_manager::result_composite_player(peer * peer, sql_msg * msg, uint32_t qid)
 {
-	query_info * qi = (query_info *) msg->pv_user_data;
+	query_info * qi = (query_info *) msg->user_data;
 	std::unique_ptr<client_handle_info> info((client_handle_info *) qi->pv_data);
 	
-	MYSQL_RES * pSQLResult = msg->get()->sql_result;
+	MYSQL_RES * pSQLResult = msg->get()->res;
 	if (!pSQLResult)
 	{
 		metin2::log::error("null MYSQL_RES QID {:d}", qid);
@@ -703,17 +703,17 @@ void client_manager::query_player_create(peer *peer, uint32_t handle, player_cre
 	std::string query = sql::format(
 			"SELECT pid{} FROM player_index{} WHERE id={}", packet->account_index + 1, postfix, packet->account_id);
 
-	std::unique_ptr<ql_msg> pMsg0(db_manager::instance().direct_query(query.c_str()));
+	std::unique_ptr<sql_msg> pMsg0(db_manager::instance().direct_query(query.c_str()));
 
 	if (pMsg0->get()->num_rows != 0)
 	{
-		if (!pMsg0->get()->sql_result)
+		if (!pMsg0->get()->res)
 		{
 			peer->encode_header(HEADER_DG_PLAYER_CREATE_FAILED, handle, 0);
 			return;
 		}
 
-		MYSQL_ROW row = mysql_fetch_row(pMsg0->get()->sql_result);
+		MYSQL_ROW row = mysql_fetch_row(pMsg0->get()->res);
 
 		uint32_t dwPID = 0; str_to_number(dwPID, row[0]);
 		if (row[0] && dwPID > 0)
@@ -732,17 +732,17 @@ void client_manager::query_player_create(peer *peer, uint32_t handle, player_cre
 	query = sql::format(
 			"SELECT COUNT(*) as count FROM player{} WHERE name={}", postfix, packet->player_table.name);
 
-	std::unique_ptr<ql_msg> pMsg1(db_manager::instance().direct_query(query.c_str()));
+	std::unique_ptr<sql_msg> pMsg1(db_manager::instance().direct_query(query.c_str()));
 
 	if (pMsg1->get()->num_rows)
 	{
-		if (!pMsg1->get()->sql_result)
+		if (!pMsg1->get()->res)
 		{
 			peer->encode_header(HEADER_DG_PLAYER_CREATE_FAILED, handle, 0);
 			return;
 		}
 
-		MYSQL_ROW row = mysql_fetch_row(pMsg1->get()->sql_result);
+		MYSQL_ROW row = mysql_fetch_row(pMsg1->get()->res);
 
 		if (*row[0] != '0')
 		{
@@ -783,7 +783,7 @@ void client_manager::query_player_create(peer *peer, uint32_t handle, player_cre
 			packet->player_table.ht, 
 			packet->player_table.job);
 
-	std::unique_ptr<ql_msg> pMsg2(db_manager::instance().direct_query(query.c_str()));
+	std::unique_ptr<sql_msg> pMsg2(db_manager::instance().direct_query(query.c_str()));
 	if (metin2::config::test_server())
 		metin2::log::info( "Create_Player queryLen[{:d}]", query.size());
 
@@ -798,7 +798,7 @@ void client_manager::query_player_create(peer *peer, uint32_t handle, player_cre
 
 	query = sql::format("UPDATE player_index{} SET pid{}={} WHERE id={}", 
 			postfix, packet->account_index + 1, player_id, packet->account_id);
-	std::unique_ptr<ql_msg> pMsg3(db_manager::instance().direct_query(query.c_str()));
+	std::unique_ptr<sql_msg> pMsg3(db_manager::instance().direct_query(query.c_str()));
 
 	if (pMsg3->get()->affected_rows <= 0)
 	{
@@ -894,14 +894,14 @@ void client_manager::query_player_delete(peer* peer, uint32_t handle_value, play
 	db_manager::instance().return_query(szQuery, QID_PLAYER_DELETE, peer->handle(), pi);
 }
 
-void client_manager::result_player_delete(peer *peer, ql_msg* msg)
+void client_manager::result_player_delete(peer *peer, sql_msg* msg)
 {
-	query_info * qi = (query_info *) msg->pv_user_data;
+	query_info * qi = (query_info *) msg->user_data;
 	std::unique_ptr<client_handle_info> pi(static_cast<client_handle_info *>(qi->pv_data));
 
 	if (msg->get() && msg->get()->num_rows)
 	{
-		MYSQL_ROW row = mysql_fetch_row(msg->get()->sql_result);
+		MYSQL_ROW row = mysql_fetch_row(msg->get()->res);
 
 		uint32_t dwPID = 0;
 		str_to_number(dwPID, row[0]);
@@ -931,7 +931,7 @@ void client_manager::result_player_delete(peer *peer, ql_msg* msg)
 
 		std::string query = sql::format("INSERT INTO player{}_deleted SELECT * FROM player{} WHERE id={}", 
 				postfix, postfix, pi->player_id);
-		std::unique_ptr<ql_msg> pIns(db_manager::instance().direct_query(query.c_str()));
+		std::unique_ptr<sql_msg> pIns(db_manager::instance().direct_query(query.c_str()));
 
 		if (pIns->get()->affected_rows == 0 || pIns->get()->affected_rows == (uint32_t)-1)
 		{
@@ -979,7 +979,7 @@ void client_manager::result_player_delete(peer *peer, ql_msg* msg)
 				pi->account_index + 1, 
 				pi->player_id);
 
-		std::unique_ptr<ql_msg> pMsg(db_manager::instance().direct_query(query.c_str()));
+		std::unique_ptr<sql_msg> pMsg(db_manager::instance().direct_query(query.c_str()));
 
 		if (pMsg->get()->affected_rows == 0 || pMsg->get()->affected_rows == (uint32_t)-1)
 		{
@@ -990,10 +990,10 @@ void client_manager::result_player_delete(peer *peer, ql_msg* msg)
 		}
 
 		query = sql::format("DELETE FROM player{} WHERE id={}", postfix, pi->player_id);
-		std::unique_ptr<ql_msg>(db_manager::instance().direct_query(query.c_str()));
+		std::unique_ptr<sql_msg>(db_manager::instance().direct_query(query.c_str()));
 
 		query = sql::format("DELETE FROM item{} WHERE owner_id={} AND (window < {} or window = {})", postfix, pi->player_id, SAFEBOX, DRAGON_SOUL_INVENTORY);
-		std::unique_ptr<ql_msg>(db_manager::instance().direct_query(query.c_str()));
+		std::unique_ptr<sql_msg>(db_manager::instance().direct_query(query.c_str()));
 
 		query = sql::format("DELETE FROM quest{} WHERE dwPID={}", postfix, pi->player_id);
 		db_manager::instance().async_query(query.c_str());
@@ -1066,16 +1066,16 @@ void client_manager::query_highscore_register(peer* peer, packet_gd_highscore * 
 	db_manager::instance().return_query(query.c_str(), QID_HIGHSCORE_REGISTER, peer->handle(), pi);
 }
 
-void client_manager::result_highscore_register(peer * peer_value, ql_msg * msg)
+void client_manager::result_highscore_register(peer * peer_value, sql_msg * msg)
 {
-	query_info * qi = (query_info *) msg->pv_user_data;
+	query_info * qi = (query_info *) msg->user_data;
 	client_handle_info * pi = (client_handle_info *) qi->pv_data;
 
 	char szBoard[21];
 	strlcpy(szBoard, pi->login, sizeof(szBoard));
 	int value = (int)pi->account_id;
 
-	ql_result * res = msg->get();
+	sql_result * res = msg->get();
 
 	if (res->num_rows == 0)
 	{
@@ -1084,13 +1084,13 @@ void client_manager::result_highscore_register(peer * peer_value, ql_msg * msg)
 	}
 	else
 	{
-		if (!res->sql_result)
+		if (!res->res)
 		{
 			delete pi;
 			return;
 		}
 
-		MYSQL_ROW row = mysql_fetch_row(res->sql_result);
+		MYSQL_ROW row = mysql_fetch_row(res->res);
 		if (row && row[0])
 		{
 			int current_value = 0; str_to_number(current_value, row[0]);

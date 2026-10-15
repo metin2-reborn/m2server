@@ -873,7 +873,7 @@ value_name apply_type_names[] =
     { nullptr,		0			}
 };
 
-int32_t fn_get_apply_type(const char *apply_type_string)
+auto fn_get_apply_type(const char *apply_type_string) -> int32_t
 {
 	value_name	*value_name;
 	for (value_name = apply_type_names; value_name->psz_name; ++value_name)

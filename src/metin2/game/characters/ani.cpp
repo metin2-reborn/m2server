@@ -64,15 +64,15 @@ class ani {
     ani();
 
   public:
-    bool load();
-    bool load_one_race(int race, const char *dir_name);
-    uint32_t load_one_weapon(const char *dir_name, int weapon, uint8_t combo, bool horse);
-    uint32_t attack_speed(int race, int weapon, uint8_t combo = 0, bool horse = false);
+    auto load() -> bool;
+    auto load_one_race(int race, const char *dir_name) -> bool;
+    auto load_one_weapon(const char *dir_name, int weapon, uint8_t combo, bool horse) -> uint32_t;
+    auto attack_speed(int race, int weapon, uint8_t combo = 0, bool horse = false) -> uint32_t;
 };
 
 static class ani s_ani;
 
-uint32_t fn_attack_speed_from_file(const char *file) {
+auto fn_attack_speed_from_file(const char *file) -> uint32_t {
     FILE *fp = fopen(file, "r");
 
     if (nullptr == fp)
@@ -114,7 +114,7 @@ ani::ani() {
     }
 }
 
-bool ani::load() {
+auto ani::load() -> bool {
     const char *dir_name[MAIN_RACE_MAX_NUM] = {
         "data/pc/warrior",
         "data/pc/assassin",
@@ -136,7 +136,7 @@ bool ani::load() {
     return true;
 }
 
-uint32_t ani::load_one_weapon(const char *dir_name, int weapon, uint8_t combo, bool horse) {
+auto ani::load_one_weapon(const char *dir_name, int weapon, uint8_t combo, bool horse) -> uint32_t {
     const char *format;
     char filename[256];
 
@@ -178,7 +178,7 @@ uint32_t ani::load_one_weapon(const char *dir_name, int weapon, uint8_t combo, b
     return speed;
 }
 
-bool ani::load_one_race(int race, const char *dir_name) {
+auto ani::load_one_race(int race, const char *dir_name) -> bool {
     if (nullptr == dir_name || '\0' == dir_name[0])
         return false;
 
@@ -202,7 +202,7 @@ bool ani::load_one_race(int race, const char *dir_name) {
     return true;
 }
 
-uint32_t ani::attack_speed(int race, int weapon, uint8_t combo, bool horse) {
+auto ani::attack_speed(int race, int weapon, uint8_t combo, bool horse) -> uint32_t {
     switch (race) {
     case MAIN_RACE_WARRIOR_M:
     case MAIN_RACE_ASSASSIN_W:
@@ -238,7 +238,7 @@ void ani_init() {
     s_ani.load();
 }
 
-uint32_t ani_attack_speed(character * ch) {
+auto ani_attack_speed(character * ch) -> uint32_t {
     uint32_t speed = 1000;
 
     if (nullptr == ch)
@@ -261,7 +261,7 @@ uint32_t ani_attack_speed(character * ch) {
     return s_ani.attack_speed(race, weapon);
 }
 
-uint32_t ani_combo_speed(character * ch, uint8_t combo) {
+auto ani_combo_speed(character * ch, uint8_t combo) -> uint32_t {
     item * item = ch->wear(WEAR_WEAPON);
 
     if (nullptr == item || combo > 8)

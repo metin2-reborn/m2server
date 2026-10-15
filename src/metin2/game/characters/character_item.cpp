@@ -95,7 +95,7 @@ struct f_find_stone
 	}
 };
 
-static bool is_summon_item(int vnum)
+static auto is_summon_item(int vnum) -> bool
 {
 	switch (vnum)
 	{
@@ -110,7 +110,7 @@ static bool is_summon_item(int vnum)
 	return false;
 }
 
-static bool is_monkey_dungeon(int map_index)
+static auto is_monkey_dungeon(int map_index) -> bool
 {
 	switch (map_index)
 	{
@@ -125,7 +125,7 @@ static bool is_monkey_dungeon(int map_index)
 	return false;
 }
 
-bool is_summonable_zone(int map_index)
+auto is_summonable_zone(int map_index) -> bool
 {
 	if (is_monkey_dungeon(map_index))
 		return false;
@@ -152,7 +152,7 @@ bool is_summonable_zone(int map_index)
 	return true;
 }
 
-static bool fn_check_item_socket(item * item)
+static auto fn_check_item_socket(item * item) -> bool
 {
 	for (int i = 0; i < ITEM_SOCKET_MAX_NUM; ++i)
 	{
@@ -170,7 +170,7 @@ static void fn_copy_item_socket(item * dest, item * src)
 		dest->set_socket(i, src->get_socket(i));
 	}
 }
-static bool fn_check_item_sex(character * ch, item * item)
+static auto fn_check_item_sex(character * ch, item * item) -> bool
 {
 	if (is_set(item->anti_flag(), ITEM_ANTIFLAG_MALE))
 	{
@@ -186,7 +186,7 @@ static bool fn_check_item_sex(character * ch, item * item)
 	return true;
 }
 
-bool character::can_handle_item(bool skip_check_refine, bool skip_observer)
+auto character::can_handle_item(bool skip_check_refine, bool skip_observer) -> bool
 {
 	if (!skip_observer)
 		if (is_observer_)
@@ -208,11 +208,11 @@ bool character::can_handle_item(bool skip_check_refine, bool skip_observer)
 	return true;
 }
 
-item * character::inventory_item(uint16_t cell) const
+auto character::inventory_item(uint16_t cell) const -> item *
 {
 	return get_item(item_pos(INVENTORY, cell));
 }
-item * character::get_item(item_pos cell_value) const
+auto character::get_item(item_pos cell_value) const -> item *
 {
 	if (!is_valid_item_position(cell_value))
 		return nullptr;
@@ -428,7 +428,7 @@ void character::set_item(item_pos cell_value, item * item_value)
 	}
 }
 
-item * character::wear(uint8_t cell) const
+auto character::wear(uint8_t cell) const -> item *
 {
 	if (cell >= WEAR_MAX_NUM + DRAGON_SOUL_DECK_MAX_NUM * static_cast<int>(DS_SLOT_MAX))
 	{
@@ -490,7 +490,7 @@ void character::clear_item()
 	}
 }
 
-bool character::is_empty_item_grid(item_pos cell_value, uint8_t size, int exception_cell) const
+auto character::is_empty_item_grid(item_pos cell_value, uint8_t size, int exception_cell) const -> bool
 {
 	switch (cell_value.window_type)
 	{
@@ -650,7 +650,7 @@ bool character::is_empty_item_grid(item_pos cell_value, uint8_t size, int except
 	return false;
 }
 
-int character::empty_inventory(uint8_t size) const
+auto character::empty_inventory(uint8_t size) const -> int
 {
 	// The belt inventory is excluded: only the basic inventory takes new items.
 	for ( int i = 0; i < INVENTORY_MAX_NUM; ++i)
@@ -659,7 +659,7 @@ int character::empty_inventory(uint8_t size) const
 	return -1;
 }
 
-int character::empty_dragon_soul_inventory(item * item_value) const
+auto character::empty_dragon_soul_inventory(item * item_value) const -> int
 {
 	if (nullptr == item_value || !item_value->is_dragon_soul())
 		return -1;
@@ -687,7 +687,7 @@ void character::copy_dragon_soul_item_grid(std::vector<uint16_t>& dragon_soul_it
 	std::copy(points_instant_.ds_item_grid, points_instant_.ds_item_grid + DRAGON_SOUL_INVENTORY_MAX_NUM, dragon_soul_item_grid.begin());
 }
 
-int character::count_empty_inventory() const
+auto character::count_empty_inventory() const -> int
 {
 	int	count = 0;
 
@@ -730,7 +730,7 @@ void character::set_refine_npc(character * ch)
 	}
 }
 
-bool character::do_refine(item * item, bool money_only)
+auto character::do_refine(item * item, bool money_only) -> bool
 {
 	if (!can_handle_item(true))
 	{
@@ -873,7 +873,7 @@ enum enum_refine_scrolls
 	BDRAGON_SCROLL	= 6,
 };
 
-bool character::do_refine_with_scroll(item * item)
+auto character::do_refine_with_scroll(item * item) -> bool
 {
 	if (!can_handle_item(true))
 	{
@@ -1110,7 +1110,7 @@ bool character::do_refine_with_scroll(item * item)
 	return true;
 }
 
-bool character::refine_information(uint8_t cell, uint8_t type_value, int additional_cell)
+auto character::refine_information(uint8_t cell, uint8_t type_value, int additional_cell) -> bool
 {
 	if (cell > INVENTORY_MAX_NUM)
 		return false;
@@ -1202,7 +1202,7 @@ bool character::refine_information(uint8_t cell, uint8_t type_value, int additio
 	return true;
 }
 
-bool character::refine_item(item * item_value, item * target)
+auto character::refine_item(item * item_value, item * target) -> bool
 {
 	if (!can_handle_item())
 		return false;
@@ -1284,7 +1284,7 @@ EVENTFUNC(kill_campfire_event)
 	return 0;
 }
 
-bool character::give_recall_item(item * item)
+auto character::give_recall_item(item * item) -> bool
 {
 	int idx = map_index();
 	int iEmpireByMapIndex = -1;
@@ -1441,7 +1441,7 @@ void character::use_silk_botary(void)
 	}
 }
 
-int calculate_consume(character * ch)
+auto calculate_consume(character * ch) -> int
 {
 	static const int WARP_NEED_LIFE_PERCENT	= 30;
 	static const int WARP_MIN_LIFE_PERCENT	= 10;
@@ -1469,7 +1469,7 @@ int calculate_consume(character * ch)
 	return consumeLife;
 }
 
-int calculate_consume_sp(character * ch)
+auto calculate_consume_sp(character * ch) -> int
 {
 	static const int NEED_WARP_SP_PERCENT = 30;
 
@@ -1485,7 +1485,7 @@ int calculate_consume_sp(character * ch)
 	return needSP;
 }
 
-bool character::use_item_ex(item * item, item_pos dest_cell)
+auto character::use_item_ex(item * item, item_pos dest_cell) -> bool
 {
 	int iLimitRealtimeStartFirstUseFlagIndex = -1;
 
@@ -4765,7 +4765,7 @@ bool character::use_item_ex(item * item, item_pos dest_cell)
 
 int portal_limit_time = 10;
 
-bool character::use_item(item_pos cell_value, item_pos dest_cell)
+auto character::use_item(item_pos cell_value, item_pos dest_cell) -> bool
 {
 	uint16_t wCell = cell_value.cell;
 	uint8_t window_type = cell_value.window_type;
@@ -4933,7 +4933,7 @@ bool character::use_item(item_pos cell_value, item_pos dest_cell)
 		return use_item_ex(item, dest_cell);
 }
 
-bool character::drop_item(item_pos cell_value, uint8_t count_value)
+auto character::drop_item(item_pos cell_value, uint8_t count_value) -> bool
 {
 	item * item = nullptr; 
 
@@ -5032,7 +5032,7 @@ bool character::drop_item(item_pos cell_value, uint8_t count_value)
 	return true;
 }
 
-bool character::drop_gold(int gold_value)
+auto character::drop_gold(int gold_value) -> bool
 {
 	if (gold_value <= 0 || gold_value > gold())
 		return false;
@@ -5075,7 +5075,7 @@ bool character::drop_gold(int gold_value)
 	return false;
 }
 
-bool character::move_item(item_pos cell_value, item_pos dest_cell, uint8_t count)
+auto character::move_item(item_pos cell_value, item_pos dest_cell, uint8_t count) -> bool
 {
 	if (cell_value.is_same_position(dest_cell))
 		return false;
@@ -5316,7 +5316,7 @@ void character::give_gold(int amount)
 	}
 }
 
-bool character::pickup_item(uint32_t vid)
+auto character::pickup_item(uint32_t vid) -> bool
 {
 	item * item = item_manager::instance().find_by_vid(vid);
 
@@ -5486,7 +5486,7 @@ bool character::pickup_item(uint32_t vid)
 	return false;
 }
 
-bool character::swap_item(uint8_t cell_value, uint8_t dest_cell)
+auto character::swap_item(uint8_t cell_value, uint8_t dest_cell) -> bool
 {
 	if (!can_handle_item())
 		return false;
@@ -5561,7 +5561,7 @@ bool character::swap_item(uint8_t cell_value, uint8_t dest_cell)
 	return true;
 }
 
-bool character::unequip_item(item * item)
+auto character::unequip_item(item * item) -> bool
 {
 	int pos;
 
@@ -5589,7 +5589,7 @@ bool character::unequip_item(item * item)
 	return true;
 }
 
-bool character::equip_item(item * item, int candidate_cell)
+auto character::equip_item(item * item, int candidate_cell) -> bool
 {
 	if (item->is_exchanging())
 		return false;
@@ -5826,7 +5826,7 @@ void character::buff_on_attr_value_change(uint8_t type, uint8_t old_value, uint8
 	}
 }
 
-item * character::find_specify_item(uint32_t vnum) const
+auto character::find_specify_item(uint32_t vnum) const -> item *
 {
 	for (int i = 0; i < INVENTORY_MAX_NUM; ++i)
 		if (inventory_item(i) && inventory_item(i)->vnum() == vnum)
@@ -5835,7 +5835,7 @@ item * character::find_specify_item(uint32_t vnum) const
 	return nullptr;
 }
 
-item * character::find_item_by_id(uint32_t id) const
+auto character::find_item_by_id(uint32_t id) const -> item *
 {
 	for (int i=0 ; i < INVENTORY_MAX_NUM ; ++i)
 	{
@@ -5852,7 +5852,7 @@ item * character::find_item_by_id(uint32_t id) const
 	return nullptr;
 }
 
-int character::count_specify_item(uint32_t vnum) const
+auto character::count_specify_item(uint32_t vnum) const -> int
 {
 	int	count = 0;
 	item * item;
@@ -5918,7 +5918,7 @@ void character::remove_specify_item(uint32_t vnum, uint32_t count)
 		metin2::log::info( "CHARACTER::RemoveSpecifyItem cannot remove enough item vnum {:d}, still remain {:d}", vnum, count);
 }
 
-int character::count_specify_type_item(uint8_t type) const
+auto character::count_specify_type_item(uint8_t type) const -> int
 {
 	int	count = 0;
 
@@ -6028,7 +6028,7 @@ void character::auto_give_item(item * item, bool long_owner_ship)
 	}
 }
 
-item * character::auto_give_item(uint32_t item_vnum, uint8_t count_value, int rare_pct, bool msg)
+auto character::auto_give_item(uint32_t item_vnum, uint8_t count_value, int rare_pct, bool msg) -> item *
 {
 	item_table * p = item_manager::instance().table(item_vnum);
 
@@ -6151,7 +6151,7 @@ item * character::auto_give_item(uint32_t item_vnum, uint8_t count_value, int ra
 	return item;
 }
 
-bool character::give_item(character * victim, item_pos cell)
+auto character::give_item(character * victim, item_pos cell) -> bool
 {
 	if (!can_handle_item())
 		return false;
@@ -6170,7 +6170,7 @@ bool character::give_item(character * victim, item_pos cell)
 	return false;
 }
 
-bool character::can_receive_item(character * from, item * item) const
+auto character::can_receive_item(character * from, item * item) const -> bool
 {
 	if (is_pc())
 		return false;
@@ -6415,7 +6415,7 @@ void character::receive_item(character * from, item * item)
 	}
 }
 
-bool character::is_equip_unique_item(uint32_t item_vnum) const
+auto character::is_equip_unique_item(uint32_t item_vnum) const -> bool
 {
 	{
 		item * u = wear(WEAR_UNIQUE1);
@@ -6437,7 +6437,7 @@ bool character::is_equip_unique_item(uint32_t item_vnum) const
 	return false;
 }
 
-bool character::is_equip_unique_group(uint32_t group_vnum) const
+auto character::is_equip_unique_group(uint32_t group_vnum) const -> bool
 {
 	{
 		item * u = wear(WEAR_UNIQUE1);
@@ -6468,8 +6468,8 @@ void character::clear_refine_mode()
 	set_refine_npc( nullptr );
 }
 
-bool character::give_item_from_special_item_group(uint32_t group_num, std::vector<uint32_t> &item_vnums, 
-											std::vector<uint32_t> &item_counts, std::vector <item *> &item_gets, int &count)
+auto character::give_item_from_special_item_group(uint32_t group_num, std::vector<uint32_t> &item_vnums, 
+											std::vector<uint32_t> &item_counts, std::vector <item *> &item_gets, int &count) -> bool
 {
 	const special_item_group* pGroup = item_manager::instance().get_special_item_group(group_num);
 
@@ -6584,7 +6584,7 @@ bool character::give_item_from_special_item_group(uint32_t group_num, std::vecto
 	return bSuccess;
 }
 
-bool character::item_process_hair(item * item, int dest_cell)
+auto character::item_process_hair(item * item, int dest_cell) -> bool
 {
 	if (item->check_item_use_level(level()) == false)
 	{
@@ -6631,7 +6631,7 @@ bool character::item_process_hair(item * item, int dest_cell)
 	return true;
 }
 
-bool character::item_process_polymorph(item * item)
+auto character::item_process_polymorph(item * item) -> bool
 {
 	if (is_polymorphed())
 	{
@@ -6714,7 +6714,7 @@ bool character::item_process_polymorph(item * item)
 	return true;
 }
 
-bool character::can_do_cube() const
+auto character::can_do_cube() const -> bool
 {
 	if (is_observer_)	return false;
 	if (get_shop())		return false;
@@ -6725,7 +6725,7 @@ bool character::can_do_cube() const
 	return true;
 }
 
-bool character::un_equip_special_ride_unique_item()
+auto character::un_equip_special_ride_unique_item() -> bool
 {
 	item * Unique1 = wear(WEAR_UNIQUE1);
 	item * Unique2 = wear(WEAR_UNIQUE2);
@@ -6848,7 +6848,7 @@ void character::auto_recovery_item_process(const affect_types type)
 	}
 }
 
-bool character::is_valid_item_position(item_pos pos) const
+auto character::is_valid_item_position(item_pos pos) const -> bool
 {
 	uint8_t window_type = pos.window_type;
 	uint16_t cell = pos.cell;
@@ -6887,7 +6887,7 @@ bool character::is_valid_item_position(item_pos pos) const
 			return false; \
 	}
 
-bool character::can_equip_now(item * const item, const item_pos& src_cell, const item_pos& dest_cell)
+auto character::can_equip_now(item * const item, const item_pos& src_cell, const item_pos& dest_cell) -> bool
 {
 	const item_table* itemTable = item->proto();
 
@@ -6982,7 +6982,7 @@ bool character::can_equip_now(item * const item, const item_pos& src_cell, const
 	return true;
 }
 
-bool character::can_unequip_now(item * const item, const item_pos& src_cell, const item_pos& dest_cell)
+auto character::can_unequip_now(item * const item, const item_pos& src_cell, const item_pos& dest_cell) -> bool
 {	
 
 	if (ITEM_BELT == item->type())

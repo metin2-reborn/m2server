@@ -7,11 +7,11 @@
 #include <vector>
 
 namespace metin2::db::inline app {
-    int run();
+    auto run() -> int;
 }
 
 namespace metin2::game::inline app {
-    int run(int argc, char **argv);
+    auto run(int argc, char **argv) -> int;
 }
 
 namespace {

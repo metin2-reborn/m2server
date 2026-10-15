@@ -58,7 +58,7 @@ class return_query_info : public query_info
 class func_query_info : public query_info
 {
 	public:
-		std::function<void(ql_msg *)> f;
+		std::function<void(sql_msg *)> f;
 };
 
 class func_after_query_info : public query_info
@@ -74,19 +74,19 @@ class db_manager : public singleton<db_manager>
 		db_manager();
 		~db_manager() override;
 
-		bool			is_connected();
+		auto			is_connected() -> bool;
 
-		bool			connect(const char * host, const int port, const char * user, const char * pwd, const char * db);
+		auto			connect(const char * host, const int port, const char * user, const char * pwd, const char * db) -> bool;
 		void			query(const std::string & query);
 		void			query(const char * format, ...) __attribute__((format(printf, 2, 3)));
 
-		ql_msg *		direct_query(const std::string & query);
-		ql_msg *		direct_query(const char * format, ...) __attribute__((format(printf, 2, 3)));
+		auto		direct_query(const std::string & query) -> sql_msg *;
+		__attribute__((format(printf, 2, 3))) auto direct_query(const char * format, ...) -> sql_msg *;
 		void			return_query(int type_value, uint32_t ident_value, void* data, const std::string & query);
 		void			return_query(int type, uint32_t ident, void* data, const char * format, ...) __attribute__((format(printf, 5, 6)));
 
 		void			process();
-		void			analyze_return_query(ql_msg * msg_value);
+		void			analyze_return_query(sql_msg * msg_value);
 
 		void			send_money_log(uint8_t type, uint32_t vnum, int gold);
 
@@ -95,23 +95,23 @@ class db_manager : public singleton<db_manager>
 
 		void			insert_login_data(std::unique_ptr<login_data> ld);
 		void			delete_login_data(login_data * ld);
-		login_data *		get_login_data(uint32_t key);
+		auto		get_login_data(uint32_t key) -> login_data *;
 
-		uint32_t			count_query()		{ return sql_.count_query(); }
+		auto			count_query() -> uint32_t		{ return sql_.count_query(); }
 
 
 		void			load_db_string();
-		const std::vector<std::string> & greet_message();
+		auto greet_message() -> const std::vector<std::string> &;
 
-		void			func_query(std::function<void(ql_msg *)> f, const std::string & query);
-		void			func_query(std::function<void(ql_msg *)> f, const char * format, ...) __attribute__((format(printf, 3, 4)));
+		void			func_query(std::function<void(sql_msg *)> f, const std::string & query);
+		void			func_query(std::function<void(sql_msg *)> f, const char * format, ...) __attribute__((format(printf, 3, 4)));
 		void			func_after_query(std::function<void()> f, const std::string & query);
 		void			func_after_query(std::function<void()> f, const char * format, ...) __attribute__((format(printf, 3, 4)));
 
-		size_t escape_string(char* dst, size_t dst_size, const char *src, size_t src_size);
+		auto escape_string(char* dst, size_t dst_size, const char *src, size_t src_size) -> size_t;
 
 	private:
-		ql_msg *				pop_result();
+		auto				pop_result() -> sql_msg *;
 
 		async_sql				sql_;
 		async_sql				sql_direct_;
@@ -134,12 +134,12 @@ class account_db : public singleton<account_db>
 	public:
 		account_db();
 
-		bool is_connected();
-		bool connect(const char * host, const int port, const char * user, const char * pwd, const char * db);
-		bool connect_async(const char * host, const int port, const char * user, const char * pwd, const char * db, const char * locale);
+		auto is_connected() -> bool;
+		auto connect(const char * host, const int port, const char * user, const char * pwd, const char * db) -> bool;
+		auto connect_async(const char * host, const int port, const char * user, const char * pwd, const char * db, const char * locale) -> bool;
 
-		ql_msg* direct_query(const char * query);
-		ql_msg* direct_query(const std::string & query) { return direct_query(query.c_str()); }
+		auto direct_query(const char * query) -> sql_msg*;
+		auto direct_query(const std::string & query) -> sql_msg* { return direct_query(query.c_str()); }
 		void return_query(int type_value, uint32_t ident_value, void * data, const std::string & query);
 		void return_query(int type, uint32_t ident, void * data, const char * format, ...) __attribute__((format(printf, 5, 6)));
 
@@ -148,8 +148,8 @@ class account_db : public singleton<account_db>
 		void process();
 
 	private:
-		ql_msg * pop_result();
-		void analyze_return_query(ql_msg * msg);
+		auto pop_result() -> sql_msg *;
+		void analyze_return_query(sql_msg * msg);
 
 		async_sql	sql_direct_;
 		async_sql	sql_;

@@ -46,9 +46,9 @@ namespace marriage
 		}
 	};
 
-	extern bool operator < (const wedding& lhs, const wedding& rhs);
-	extern bool operator > (const wedding& lhs, const wedding& rhs);
-	extern bool operator > (const wedding_info& lhs, const wedding_info& rhs);
+	extern auto operator < (const wedding& lhs, const wedding& rhs) -> bool;
+	extern auto operator > (const wedding& lhs, const wedding& rhs) -> bool;
+	extern auto operator > (const wedding_info& lhs, const wedding_info& rhs) -> bool;
 
 	struct marriage
 	{
@@ -65,7 +65,7 @@ namespace marriage
 		{
 		}
 
-		uint32_t other(uint32_t pid)
+		auto other(uint32_t pid) -> uint32_t
 		{
 			if (pid1 == pid)
 				return pid2;
@@ -83,10 +83,10 @@ namespace marriage
 			manager();
 			~manager() override;
 
-			bool initialize();
+			auto initialize() -> bool;
 
-			marriage* get(uint32_t player_id);
-			bool is_married(uint32_t player_id)
+			auto get(uint32_t player_id) -> marriage*;
+			auto is_married(uint32_t player_id) -> bool
 			{
 				return get(player_id) != nullptr;
 			}

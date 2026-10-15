@@ -34,17 +34,17 @@ void character::dragon_soul_initialize()
 	}
 }
 
-int character::dragon_soul_get_active_deck() const
+auto character::dragon_soul_get_active_deck() const -> int
 {
 	return points_instant_.dragon_soul_active_deck;
 }
 
-bool character::dragon_soul_is_deck_activated() const
+auto character::dragon_soul_is_deck_activated() const -> bool
 {
 	return points_instant_.dragon_soul_active_deck >= 0;
 }
 
-bool character::dragon_soul_is_qualified() const
+auto character::dragon_soul_is_qualified() const -> bool
 {
 	return find_affect(AFFECT_DRAGON_SOUL_QUALIFIED) != nullptr;
 }
@@ -58,7 +58,7 @@ void character::dragon_soul_give_qualification()
 	add_affect(AFFECT_DRAGON_SOUL_QUALIFIED, APPLY_NONE, 0, AFF_NONE, INFINITE_AFFECT_DURATION, 0, false, false);
 }
 
-bool character::dragon_soul_activate_deck(int deck_idx)
+auto character::dragon_soul_activate_deck(int deck_idx) -> bool
 {
 	if (deck_idx < DRAGON_SOUL_DECK_0 || deck_idx >= DRAGON_SOUL_DECK_MAX_NUM)
 	{
@@ -110,7 +110,7 @@ void character::dragon_soul_clean_up()
 	}
 }
 
-bool character::dragon_soul_refine_window_open(entity * entity_value)
+auto character::dragon_soul_refine_window_open(entity * entity_value) -> bool
 {
 	if (nullptr == points_instant_.dragon_soul_refine_window_opener)
 	{
@@ -132,13 +132,13 @@ bool character::dragon_soul_refine_window_open(entity * entity_value)
 	return true;
 }
 
-bool character::dragon_soul_refine_window_close()
+auto character::dragon_soul_refine_window_close() -> bool
 {
 	points_instant_.dragon_soul_refine_window_opener = nullptr;
 	return true;
 }
 
-bool character::dragon_soul_refine_window_can_refine()
+auto character::dragon_soul_refine_window_can_refine() -> bool
 {
 	return nullptr != points_instant_.dragon_soul_refine_window_opener;
 }

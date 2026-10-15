@@ -56,7 +56,7 @@ void party_manager::delete_all_party()
 	}
 }
 
-bool party_manager::set_party(character * ch)
+auto party_manager::set_party(character * ch) -> bool
 {
 	party_map::iterator it = map_pk_party_.find(ch->player_id());
 
@@ -120,7 +120,7 @@ void party_manager::p2_p_quit_party(uint32_t pid)
 	}
 }
 
-party * party_manager::p2_p_create_party(uint32_t pid)
+auto party_manager::p2_p_create_party(uint32_t pid) -> party *
 {
 	party_map::iterator it = map_pk_party_.find(pid);
 	if (it != map_pk_party_.end())
@@ -150,7 +150,7 @@ void party_manager::p2_p_delete_party(uint32_t pid)
 		metin2::log::error("PARTY P2PDeleteParty Cannot find party [{:d}]", pid);
 }
 
-party * party_manager::create_party(character * leader)
+auto party_manager::create_party(character * leader) -> party *
 {
 	if (leader->get_party())
 		return leader->get_party();
@@ -374,12 +374,12 @@ void party::chat_packet_to_all_member(uint8_t type, const char* format, ...)
 	}
 }
 
-uint32_t party::leader_pid()
+auto party::leader_pid() -> uint32_t
 {
 	return leader_pid_;
 }
 
-uint32_t party::member_count()
+auto party::member_count() -> uint32_t
 {
 	return member_map_.size();
 }
@@ -939,12 +939,12 @@ void party::send_message(character * ch, uint8_t msg, uint32_t arg1, uint32_t ar
 	}
 }
 
-character * party::leader_character()
+auto party::leader_character() -> character *
 {
 	return member_map_[leader_pid()].character;
 }
 
-bool party::set_role(uint32_t pid, uint8_t role_value, bool set)
+auto party::set_role(uint32_t pid, uint8_t role_value, bool set) -> bool
 {
 	member_map::iterator it = member_map_.find(pid);
 
@@ -1004,7 +1004,7 @@ bool party::set_role(uint32_t pid, uint8_t role_value, bool set)
 	return true;
 }
 
-uint8_t party::role(uint32_t pid)
+auto party::role(uint32_t pid) -> uint8_t
 {
 	member_map::iterator it = member_map_.find(pid);
 
@@ -1158,7 +1158,7 @@ void party::increase_ownership()
 	}
 }
 
-character * party::next_ownership(character * ch, int32_t x, int32_t y)
+auto party::next_ownership(character * ch, int32_t x, int32_t y) -> character *
 {
 	if (next_owner_ == member_map_.end())
 		return ch;
@@ -1422,7 +1422,7 @@ void party::update_offline_state(uint32_t pid_value)
 	}
 }
 
-int party::flag(const std::string& name)
+auto party::flag(const std::string& name) -> int
 {
 	flag_map::iterator it = map_i_flag_.find(name);
 
@@ -1454,7 +1454,7 @@ void party::set_dungeon(dungeon * dungeon_value)
 	map_i_flag_.clear();
 }
 
-dungeon * party::get_dungeon()
+auto party::get_dungeon() -> dungeon *
 {
 	return dungeon_;
 }
@@ -1464,13 +1464,13 @@ void party::set_dungeon_for_only_party(dungeon * dungeon_value)
 	dungeon_for_only_party_ = dungeon_value;
 }
 
-dungeon * party::dungeon_for_only_party()
+auto party::dungeon_for_only_party() -> dungeon *
 {
 	return dungeon_for_only_party_;
 }
 
 
-bool party::is_position_near_leader(character * ch)
+auto party::is_position_near_leader(character * ch) -> bool
 {
 	if (!chr_leader_)
 		return false;
@@ -1482,7 +1482,7 @@ bool party::is_position_near_leader(character * ch)
 }
 
 
-int party::exp_bonus_percent()
+auto party::exp_bonus_percent() -> int
 {
 	if (near_member_count() <= 1)
 		return 0;
@@ -1490,7 +1490,7 @@ int party::exp_bonus_percent()
 	return exp_bonus_ + long_time_exp_bonus_;
 }
 
-uint8_t party::count_member_by_vnum(uint32_t vnum_value)
+auto party::count_member_by_vnum(uint32_t vnum_value) -> uint8_t
 {
 	if (pc_party_)
 		return 0;
@@ -1554,17 +1554,17 @@ void party::set_parameter(int mode)
 	send_parameter_to_all();
 }
 
-int party::exp_distribution_mode()
+auto party::exp_distribution_mode() -> int
 {
 	return exp_distribution_mode_;
 }
 
-character * party::exp_centralize_character()
+auto party::exp_centralize_character() -> character *
 {
 	return chr_exp_centralize_;
 }
 
-uint8_t party::member_max_level()
+auto party::member_max_level() -> uint8_t
 {
 	uint8_t bMax = 0;
 
@@ -1586,7 +1586,7 @@ uint8_t party::member_max_level()
 	return bMax;
 }
 
-int party::compute_party_bonus_exp_percent()
+auto party::compute_party_bonus_exp_percent() -> int
 {
 	if (near_member_count() <= 1)
 		return 0;

@@ -42,35 +42,35 @@ class ox_event_manager : public singleton<ox_event_manager>
 		event_ptr timed_event_;
 
 	protected :
-		bool check_answer();
+		auto check_answer() -> bool;
 
-		bool enter_audience(character * ch);
-		bool enter_attender(character * ch);
+		auto enter_audience(character * ch) -> bool;
+		auto enter_attender(character * ch) -> bool;
 
 	public :
-		bool initialize();
+		auto initialize() -> bool;
 		void destroy();
 
-		ox_event_status status();
+		auto status() -> ox_event_status;
 		void set_status(ox_event_status status);
 
 
-		bool enter(character * ch);
+		auto enter(character * ch) -> bool;
 		
-		bool close_event();
+		auto close_event() -> bool;
 
 		void clear_quiz();
-		bool add_quiz(unsigned char level, const char* question, bool answer);
-		bool show_quiz_list(character * ch);
+		auto add_quiz(unsigned char level, const char* question, bool answer) -> bool;
+		auto show_quiz_list(character * ch) -> bool;
 
-		bool quiz(unsigned char level, int timelimit);
-		bool give_item_to_attender(uint32_t item_vnum, uint8_t count);
+		auto quiz(unsigned char level, int timelimit) -> bool;
+		auto give_item_to_attender(uint32_t item_vnum, uint8_t count) -> bool;
 
-		bool check_answer(bool answer);
+		auto check_answer(bool answer) -> bool;
 		void warp_to_audience();
 
-		bool log_winner();
+		auto log_winner() -> bool;
 
-		uint32_t attender_count() { return map_attender_.size(); }
+		auto attender_count() -> uint32_t { return map_attender_.size(); }
 };
 }

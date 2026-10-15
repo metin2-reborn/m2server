@@ -19,7 +19,7 @@ void login_data::set_client_key(const uint32_t * client_key)
 	std::memcpy(&client_key_, client_key, sizeof(uint32_t) * 4);
 }
 
-const uint32_t * login_data::client_key()
+auto login_data::client_key() -> const uint32_t *
 {
 	return &client_key_[0];
 }
@@ -29,7 +29,7 @@ void login_data::set_key(uint32_t key)
 	key_ = key;
 }
 
-uint32_t login_data::key()
+auto login_data::key() -> uint32_t
 {
 	return key_;
 }
@@ -39,7 +39,7 @@ void login_data::set_login(const char * login)
 	login_ = login;
 }
 
-const char * login_data::login()
+auto login_data::login() -> const char *
 {
 	return login_.c_str();
 }
@@ -49,7 +49,7 @@ void login_data::set_premium(int * pai_premium_times)
 	std::memcpy(premium_times_, pai_premium_times, sizeof(premium_times_));
 }
 
-int * login_data::premium_ptr()
+auto login_data::premium_ptr() -> int *
 {
 	return &premium_times_[0];
 }

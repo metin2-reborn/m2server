@@ -30,7 +30,7 @@
 namespace metin2::db::inline clients {
 
 
-bool client_manager::insert_logon_account(const char * login, uint32_t handle)
+auto client_manager::insert_logon_account(const char * login, uint32_t handle) -> bool
 {
 	char szLogin[LOGIN_MAX_LEN + 1];
 	trim_and_lower(login, szLogin, sizeof(szLogin));
@@ -51,7 +51,7 @@ bool client_manager::insert_logon_account(const char * login, uint32_t handle)
 	return true;
 }
 
-bool client_manager::delete_logon_account(const char * login, uint32_t handle)
+auto client_manager::delete_logon_account(const char * login, uint32_t handle) -> bool
 {
 	char szLogin[LOGIN_MAX_LEN + 1];
 	trim_and_lower(login, szLogin, sizeof(szLogin));
@@ -80,7 +80,7 @@ bool client_manager::delete_logon_account(const char * login, uint32_t handle)
 	return true;
 }
 
-bool client_manager::find_logon_account(const char * login)
+auto client_manager::find_logon_account(const char * login) -> bool
 {
 	char szLogin[LOGIN_MAX_LEN + 1];
 	trim_and_lower(login, szLogin, sizeof(szLogin));
@@ -156,9 +156,9 @@ void client_manager::query_login_by_key(peer * peer_value, uint32_t handle_value
 	db_manager::instance().return_query(szQuery, QID_LOGIN_BY_KEY, peer_value->handle(), info);
 }
 
-void client_manager::result_login_by_key(peer * peer, ql_msg * msg)
+void client_manager::result_login_by_key(peer * peer, sql_msg * msg)
 {
-	query_info * qi = (query_info *) msg->pv_user_data;
+	query_info * qi = (query_info *) msg->user_data;
 	client_handle_info * info = (client_handle_info *) qi->pv_data;
 
 	if (msg->sql_errno != 0)
@@ -175,7 +175,7 @@ void client_manager::result_login_by_key(peer * peer, ql_msg * msg)
 		uint32_t account_id = info->account_table->id;
 		char szQuery[QUERY_MAX_LEN];
 		snprintf(szQuery, sizeof(szQuery), "SELECT pid1, pid2, pid3, pid4, empire FROM player_index%s WHERE id=%u", get_table_postfix(), account_id);
-		std::unique_ptr<ql_msg> pMsg(db_manager::instance().direct_query(szQuery, SQL_PLAYER));
+		std::unique_ptr<sql_msg> pMsg(db_manager::instance().direct_query(szQuery, SQL_PLAYER));
 		
 		metin2::log::info( "RESULT_LOGIN_BY_KEY FAIL player_index's NULL : ID:{:d}", account_id);
 
@@ -189,7 +189,7 @@ void client_manager::result_login_by_key(peer * peer, ql_msg * msg)
 		return;
 	}
 
-	MYSQL_ROW row = mysql_fetch_row(msg->get()->sql_result);
+	MYSQL_ROW row = mysql_fetch_row(msg->get()->res);
 
 	int col = 0;
 
@@ -206,9 +206,9 @@ void client_manager::result_login_by_key(peer * peer, ql_msg * msg)
 	db_manager::instance().return_query(szQuery, QID_LOGIN, peer->handle(), info);
 }
 
-void client_manager::result_player_index_create(peer * peer_value, ql_msg * msg)
+void client_manager::result_player_index_create(peer * peer_value, sql_msg * msg)
 {
-	query_info * qi = (query_info *) msg->pv_user_data;
+	query_info * qi = (query_info *) msg->user_data;
 	client_handle_info * info = (client_handle_info *) qi->pv_data;
 
 	char szQuery[QUERY_MAX_LEN];
@@ -217,7 +217,7 @@ void client_manager::result_player_index_create(peer * peer_value, ql_msg * msg)
 	db_manager::instance().return_query(szQuery, QID_LOGIN_BY_KEY, peer_value->handle(), info);
 }
 
-std::unique_ptr<account_table> create_account_table_from_res(MYSQL_RES * res)
+auto create_account_table_from_res(MYSQL_RES * res) -> std::unique_ptr<account_table>
 {
 	char input_pwd[PASSWD_MAX_LEN + 1];
 	MYSQL_ROW row = nullptr;
@@ -336,9 +336,9 @@ void create_account_player_data_from_res(MYSQL_RES * res, account_table * tab)
 	}
 }
 
-void client_manager::result_login(peer * peer, ql_msg * msg)
+void client_manager::result_login(peer * peer, sql_msg * msg)
 {
-	query_info * qi = (query_info *) msg->pv_user_data;
+	query_info * qi = (query_info *) msg->user_data;
 	client_handle_info * info = (client_handle_info *) qi->pv_data;
 
 	if (info->account_index == 0)
@@ -351,7 +351,7 @@ void client_manager::result_login(peer * peer, ql_msg * msg)
 			return;
 		}
 
-		info->account_table = create_account_table_from_res(msg->get()->sql_result);
+		info->account_table = create_account_table_from_res(msg->get()->res);
 
 		if (!info->account_table)
 		{
@@ -396,7 +396,7 @@ void client_manager::result_login(peer * peer, ql_msg * msg)
 			metin2::log::info( "RESULT_LOGIN: login success {} rows: {:d}", info->account_table->login, msg->get()->num_rows);
 
 			if (msg->get()->num_rows > 0)
-				create_account_player_data_from_res(msg->get()->sql_result, info->account_table.get());
+				create_account_player_data_from_res(msg->get()->res, info->account_table.get());
 
 			login_data * p = get_login_data_by_login(info->account_table->login);
 			memcpy(&p->account_ref(), info->account_table.get(), sizeof(account_table));
@@ -453,17 +453,17 @@ void client_manager::query_change_name(peer * peer, uint32_t handle, packet_gd_c
 	std::string query = sql::format(
 			"SELECT COUNT(*) as count FROM player{} WHERE name={} AND id <> {}", sql::raw(get_table_postfix()), p->name, p->pid);
 
-	std::unique_ptr<ql_msg> pMsg(db_manager::instance().direct_query(query.c_str(), SQL_PLAYER));
+	std::unique_ptr<sql_msg> pMsg(db_manager::instance().direct_query(query.c_str(), SQL_PLAYER));
 
 	if (pMsg->get()->num_rows)
 	{
-		if (!pMsg->get()->sql_result)
+		if (!pMsg->get()->res)
 		{
 			peer->encode_header(HEADER_DG_PLAYER_CREATE_FAILED, handle, 0);
 			return;
 		}
 
-		MYSQL_ROW row = mysql_fetch_row(pMsg->get()->sql_result);
+		MYSQL_ROW row = mysql_fetch_row(pMsg->get()->res);
 
 		if (*row[0] != '0')
 		{
@@ -480,7 +480,7 @@ void client_manager::query_change_name(peer * peer, uint32_t handle, packet_gd_c
 	query = sql::format(
 			"UPDATE player{} SET name={},change_name=0 WHERE id={}", sql::raw(get_table_postfix()), p->name, p->pid);
 
-	std::unique_ptr<ql_msg> pMsg0(db_manager::instance().direct_query(query.c_str(), SQL_PLAYER));
+	std::unique_ptr<sql_msg> pMsg0(db_manager::instance().direct_query(query.c_str(), SQL_PLAYER));
 
 	packet_dg_change_name pdg;
 	peer->encode_header(HEADER_DG_CHANGE_NAME, handle, sizeof(packet_dg_change_name));

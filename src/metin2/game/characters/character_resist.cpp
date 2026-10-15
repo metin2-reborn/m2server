@@ -23,7 +23,7 @@ const int poison_damage_rate[MOB_RANK_MAX_NUM] =
 	80, 50, 40, 30, 25, 1
 };
 
-int get_poison_damage_rate(character * ch)
+auto get_poison_damage_rate(character * ch) -> int
 {
 	int iRate;
 
@@ -230,7 +230,7 @@ void character::apply_mob_attribute(const mob_table* table)
 	}
 }
 
-bool character::is_immune(uint32_t immune_flag_value)
+auto character::is_immune(uint32_t immune_flag_value) -> bool
 {
 	if (is_set(points_instant_.immune_flag, immune_flag_value))
 	{

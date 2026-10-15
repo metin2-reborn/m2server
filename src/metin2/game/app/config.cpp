@@ -55,7 +55,7 @@ std::set<std::string> quest_object_dir;
 
 static std::set<int> set_map_allows;
 
-bool map_allow_find(int index)
+auto map_allow_find(int index) -> bool
 {
 	if (metin2::config::is_auth())
 		return false;
@@ -92,7 +92,7 @@ void map_allow_copy(int32_t * pl, int size)
 	}
 }
 
-static bool get_ip_info()
+static auto get_ip_info() -> bool
 {
 	char szInternalIP[16] = "0";
 	struct ifaddrs* ifaddrp = nullptr;
@@ -203,7 +203,7 @@ void config_init()
 		char szQuery[512];
 		snprintf(szQuery, sizeof(szQuery), "SELECT mKey, mValue FROM locale");
 
-		std::unique_ptr<ql_msg> pMsg(account_db::instance().direct_query(szQuery));
+		std::unique_ptr<sql_msg> pMsg(account_db::instance().direct_query(szQuery));
 
 		if (pMsg->get()->num_rows == 0)
 		{
@@ -213,7 +213,7 @@ void config_init()
 
 		MYSQL_ROW row; 
 
-		while (nullptr != (row = mysql_fetch_row(pMsg->get()->sql_result)))
+		while (nullptr != (row = mysql_fetch_row(pMsg->get()->res)))
 		{
 			if (strcasecmp(row[0], "LOCALE") == 0)
 			{
@@ -261,7 +261,7 @@ void config_init()
 	{
 		char szQuery[256];
 		snprintf(szQuery, sizeof(szQuery), "SELECT mValue FROM locale WHERE mKey='SKILL_POWER_BY_LEVEL'");
-		std::unique_ptr<ql_msg> pMsg(account_db::instance().direct_query(szQuery));
+		std::unique_ptr<sql_msg> pMsg(account_db::instance().direct_query(szQuery));
 
 		if (pMsg->get()->num_rows == 0)
 		{
@@ -271,7 +271,7 @@ void config_init()
 
 		MYSQL_ROW row; 
 
-		row = mysql_fetch_row(pMsg->get()->sql_result);
+		row = mysql_fetch_row(pMsg->get()->res);
 
 		const char * p = row[0];
 		int cnt = 0;
@@ -300,7 +300,7 @@ void config_init()
 		for (int job = 0; job < JOB_MAX_NUM * 2; ++job)
 		{
 			snprintf(szQuery, sizeof(szQuery), "SELECT mValue from locale where mKey='SKILL_POWER_BY_LEVEL_TYPE%d' ORDER BY CAST(mValue AS unsigned)", job);
-			std::unique_ptr<ql_msg> pMsg(account_db::instance().direct_query(szQuery));
+			std::unique_ptr<sql_msg> pMsg(account_db::instance().direct_query(szQuery));
 
 			if (pMsg->get()->num_rows == 0)
 			{
@@ -308,7 +308,7 @@ void config_init()
 				continue;
 			}
 
-			row = mysql_fetch_row(pMsg->get()->sql_result);
+			row = mysql_fetch_row(pMsg->get()->res);
 			cnt = 0;
 			p = row[0];
 			int aiSkillTable[SKILL_MAX_LEVEL + 1];
@@ -391,7 +391,7 @@ void config_init()
 	war_map_manager::instance().load_war_map_info(nullptr);
 }
 
-const char* get_table_postfix()
+auto get_table_postfix() -> const char*
 {
 	return metin2::config::database().table_postfix.c_str();
 }

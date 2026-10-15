@@ -48,12 +48,12 @@ class p2_p_manager : public singleton<p2_p_manager>
 		void			login(desc * d, const packet_gg_login * p);
 		void			logout(const char * name);
 
-		cci *			find(const char * name);
-		cci *			find_by_pid(uint32_t pid);
+		auto			find(const char * name) -> cci *;
+		auto			find_by_pid(uint32_t pid) -> cci *;
 
-		int				count();
-		int				empire_user_count(int idx);
-		int				desc_count();
+		auto				count() -> int;
+		auto				empire_user_count(int idx) -> int;
+		auto				desc_count() -> int;
 		void			p2_p_host_names(std::string& host_names);
 
 	private:

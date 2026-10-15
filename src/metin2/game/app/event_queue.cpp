@@ -12,7 +12,7 @@ event_queue::~event_queue()
 		remove(pElem);
 }
 
-queue_element * event_queue::enqueue(event_ptr data, int duration, int pulse)
+auto event_queue::enqueue(event_ptr data, int duration, int pulse) -> queue_element *
 {
 	queue_element * pElem = new queue_element;
 
@@ -25,7 +25,7 @@ queue_element * event_queue::enqueue(event_ptr data, int duration, int pulse)
 	return pElem;
 }
 
-queue_element * event_queue::dequeue()
+auto event_queue::dequeue() -> queue_element *
 {
 	if (queue_.empty())
 		return nullptr;
@@ -41,7 +41,7 @@ void event_queue::remove(queue_element * elem)
 	delete elem;
 }
 
-int event_queue::top_key()
+auto event_queue::top_key() -> int
 {
 	if (queue_.empty())
 		return INT_MAX;
@@ -49,7 +49,7 @@ int event_queue::top_key()
 	return queue_.begin()->first;
 }
 
-int event_queue::size()
+auto event_queue::size() -> int
 {
 	return static_cast<int>(queue_.size());
 }

@@ -23,10 +23,10 @@ class priv_manager : public singleton<priv_manager>
 		void give_empire_priv(uint8_t empire, uint8_t type, int value, uint8_t log, time_t end_time_sec);
 		void give_character_priv(uint32_t pid, uint8_t type, int value, uint8_t log);
 
-		int priv(character * ch, uint8_t type);
-		int priv_by_empire(uint8_t empire, uint8_t type);
-		int priv_by_guild(uint32_t guild_id, uint8_t type);
-		int priv_by_character(uint32_t pid, uint8_t type);
+		auto priv(character * ch, uint8_t type) -> int;
+		auto priv_by_empire(uint8_t empire, uint8_t type) -> int;
+		auto priv_by_guild(uint32_t guild_id, uint8_t type) -> int;
+		auto priv_by_character(uint32_t pid, uint8_t type) -> int;
 
 	public:
 		struct priv_empire_data
@@ -35,7 +35,7 @@ class priv_manager : public singleton<priv_manager>
 			time_t end_time_sec;
 		};
 
-		priv_empire_data* priv_by_empire_ex(uint8_t empire, uint8_t type);
+		auto priv_by_empire_ex(uint8_t empire, uint8_t type) -> priv_empire_data*;
 
 		struct priv_guild_data
 		{
@@ -43,7 +43,7 @@ class priv_manager : public singleton<priv_manager>
 			time_t	end_time_sec;
 		};
 
-		const priv_guild_data*	priv_by_guild_ex( uint32_t guild_id, uint8_t type ) const;
+		auto	priv_by_guild_ex( uint32_t guild_id, uint8_t type ) const -> const priv_guild_data*;
 
 	private:
 		priv_empire_data aak_priv_empire_data_[MAX_PRIV_NUM][EMPIRE_MAX_NUM];

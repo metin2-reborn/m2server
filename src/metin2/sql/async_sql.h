@@ -15,34 +15,34 @@
 
 namespace metin2::sql {
 
-struct ql_result {
-    ql_result() = default;
-    ql_result(const ql_result &) = delete;
-    auto operator=(const ql_result &) -> ql_result & = delete;
+struct sql_result {
+    sql_result() = default;
+    sql_result(const sql_result &) = delete;
+    auto operator=(const sql_result &) -> sql_result & = delete;
 
-    ~ql_result() {
-        if (sql_result) {
-            mysql_free_result(sql_result);
+    ~sql_result() {
+        if (res) {
+            mysql_free_result(res);
         }
     }
 
-    MYSQL_RES *sql_result{nullptr};
+    MYSQL_RES *res{nullptr};
     uint32_t num_rows{0};
     uint32_t affected_rows{0};
     uint32_t insert_id{0};
 };
 
-struct ql_msg {
+struct sql_msg {
     void store(MYSQL *sql);
 
-    auto get() -> ql_result * {
-        return vec_pk_result.empty() ? nullptr : vec_pk_result.front().get();
+    auto get() -> sql_result * {
+        return results.empty() ? nullptr : results.front().get();
     }
 
     int id{0};
     std::string query;
-    std::vector<std::unique_ptr<ql_result>> vec_pk_result;
-    void *pv_user_data{nullptr};
+    std::vector<std::unique_ptr<sql_result>> results;
+    void *user_data{nullptr};
     bool returns_result{false};
     unsigned int sql_errno{0};
 };
@@ -62,8 +62,8 @@ class async_sql {
 
     void async_query(const char *query);
     void return_query(const char *query, void *user_data);
-    auto direct_query(const char *query_value) -> ql_msg *;
-    auto pop_result(ql_msg **pp) -> bool;
+    auto direct_query(const char *query_value) -> sql_msg *;
+    auto pop_result(sql_msg **pp) -> bool;
 
     auto count_query() -> uint32_t;
     auto count_result() -> uint32_t;
@@ -78,11 +78,11 @@ class async_sql {
   private:
     auto connect() -> bool;
     void child_loop();
-    auto new_message(const char *query_value) -> std::unique_ptr<ql_msg>;
-    void push_query(std::unique_ptr<ql_msg> msg);
+    auto new_message(const char *query_value) -> std::unique_ptr<sql_msg>;
+    void push_query(std::unique_ptr<sql_msg> msg);
     void check_reconnected();
-    auto execute(ql_msg &msg) -> bool;
-    void finish(std::unique_ptr<ql_msg> msg);
+    auto execute(sql_msg &msg) -> bool;
+    void finish(std::unique_ptr<sql_msg> msg);
 
     MYSQL db_{};
     bool initialized_{false};
@@ -99,10 +99,10 @@ class async_sql {
 
     std::mutex mtx_query_;
     std::condition_variable cv_query_;
-    std::deque<std::unique_ptr<ql_msg>> queue_query_;
+    std::deque<std::unique_ptr<sql_msg>> queue_query_;
 
     std::mutex mtx_result_;
-    std::deque<std::unique_ptr<ql_msg>> queue_result_;
+    std::deque<std::unique_ptr<sql_msg>> queue_result_;
 
     std::thread thread_;
     std::atomic<bool> end_{false};
@@ -114,6 +114,6 @@ class async_sql {
 
 namespace metin2 {
     using sql::async_sql;
-    using sql::ql_msg;
-    using sql::ql_result;
+    using sql::sql_msg;
+    using sql::sql_result;
 }

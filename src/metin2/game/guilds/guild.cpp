@@ -95,7 +95,7 @@ guild::guild(guild_create_parameter & cp)
 		data_.grade_array[i].auth_flag = 0;
 	}
 
-	std::unique_ptr<ql_msg> pmsg (db_manager::instance().direct_query(sql::format(
+	std::unique_ptr<sql_msg> pmsg (db_manager::instance().direct_query(sql::format(
 				"INSERT INTO guild{}(name, master, sp, level, exp, skill_point, skill) "
 				"VALUES({}, {}, 1000, 1, 0, 0, '\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0')", 
 				sql::raw(get_table_postfix()), data_.name, data_.master_pid)));
@@ -195,7 +195,7 @@ void guild::add_member(packet_dg_guild_member * p)
 		p2_p_login_member(p->pid);
 }
 
-bool guild::request_remove_member(uint32_t pid)
+auto guild::request_remove_member(uint32_t pid) -> bool
 {
 	guild_member_container::iterator it;
 
@@ -214,7 +214,7 @@ bool guild::request_remove_member(uint32_t pid)
 	return true;
 }
 
-bool guild::remove_member(uint32_t pid)
+auto guild::remove_member(uint32_t pid) -> bool
 {
 	metin2::log::info( "Receive Guild P2P RemoveMember");
 	guild_member_container::iterator it;
@@ -498,7 +498,7 @@ void guild::send_logout_packet(character * ch, uint32_t pid)
 	ch->get_desc()->packet(buf.read_peek(), buf.size());
 }
 
-void guild::load_guild_member_data(ql_msg* pmsg)
+void guild::load_guild_member_data(sql_msg* pmsg)
 {
 	if (pmsg->get()->num_rows == 0)
 		return;
@@ -509,7 +509,7 @@ void guild::load_guild_member_data(ql_msg* pmsg)
 
 	for (uint i = 0; i < pmsg->get()->num_rows; ++i)
 	{
-		MYSQL_ROW row = mysql_fetch_row(pmsg->get()->sql_result);
+		MYSQL_ROW row = mysql_fetch_row(pmsg->get()->res);
 
 		uint32_t pid = strtoul(row[0], (char**) nullptr, 10);
 		uint8_t grade = (uint8_t) strtoul(row[1], (char**) nullptr, 10);
@@ -531,11 +531,11 @@ void guild::load_guild_member_data(ql_msg* pmsg)
 	}
 }
 
-void guild::load_guild_grade_data(ql_msg* pmsg)
+void guild::load_guild_grade_data(sql_msg* pmsg)
 {
 	for (uint i = 0; i < pmsg->get()->num_rows; ++i)
 	{
-		MYSQL_ROW row = mysql_fetch_row(pmsg->get()->sql_result);
+		MYSQL_ROW row = mysql_fetch_row(pmsg->get()->res);
 		uint8_t grade = 0;
 		str_to_number(grade, row[0]);
 		char * name = row[1];
@@ -548,7 +548,7 @@ void guild::load_guild_grade_data(ql_msg* pmsg)
 		}
 	}
 }
-void guild::load_guild_data(ql_msg* pmsg)
+void guild::load_guild_data(sql_msg* pmsg)
 {
 	if (pmsg->get()->num_rows == 0)
 	{
@@ -556,7 +556,7 @@ void guild::load_guild_data(ql_msg* pmsg)
 		return;
 	}
 
-	MYSQL_ROW row = mysql_fetch_row(pmsg->get()->sql_result);
+	MYSQL_ROW row = mysql_fetch_row(pmsg->get()->res);
 	data_.master_pid = strtoul(row[0], (char **)nullptr, 10);
 	data_.level = (uint8_t)strtoul(row[1], (char **)nullptr, 10);
 	data_.exp = strtoul(row[2], (char **)nullptr, 10);
@@ -589,15 +589,15 @@ void guild::load(uint32_t guild_id)
 
 	data_.guild_id = guild_id;
 
-	db_manager::instance().func_query([this](ql_msg *msg) { load_guild_data(msg); },
+	db_manager::instance().func_query([this](sql_msg *msg) { load_guild_data(msg); },
 			"SELECT master, level, exp, name, skill_point, skill, sp, ladder_point, win, draw, loss, gold FROM guild%s WHERE id = %u", get_table_postfix(), data_.guild_id);
 
 	metin2::log::info( "GUILD: loading guild id {:>12} {:d}", data_.name, guild_id);
 
-	db_manager::instance().func_query([this](ql_msg *msg) { load_guild_grade_data(msg); }, 
+	db_manager::instance().func_query([this](sql_msg *msg) { load_guild_grade_data(msg); }, 
 			"SELECT grade, name, auth+0 FROM guild_grade%s WHERE guild_id = %u", get_table_postfix(), data_.guild_id);
 
-	db_manager::instance().func_query([this](ql_msg *msg) { load_guild_member_data(msg); }, 
+	db_manager::instance().func_query([this](sql_msg *msg) { load_guild_member_data(msg); }, 
 			"SELECT pid, grade, is_general, offer, level, job, name FROM guild_member%s, player%s WHERE guild_id = %u and pid = id", get_table_postfix(), get_table_postfix(), guild_id);
 }
 
@@ -624,7 +624,7 @@ void guild::save_skill()
 			sql::raw(get_table_postfix()), data_.power, data_.skill_point, skill, data_.guild_id));
 }
 
-guild_member* guild::member(uint32_t pid)
+auto guild::member(uint32_t pid) -> guild_member*
 {
 	guild_member_container::iterator it = member_.find(pid);
 	if (it==member_.end())
@@ -633,7 +633,7 @@ guild_member* guild::member(uint32_t pid)
 	return &it->second;
 }
 
-uint32_t guild::member_pid(const std::string& name_value)
+auto guild::member_pid(const std::string& name_value) -> uint32_t
 {
 	for ( guild_member_container::iterator iter = member_.begin();
 			iter != member_.end(); iter++ )
@@ -644,11 +644,11 @@ uint32_t guild::member_pid(const std::string& name_value)
 	return 0;
 }
 
-void guild::p2_p_update_grade(ql_msg* pmsg)
+void guild::p2_p_update_grade(sql_msg* pmsg)
 {
 	if (pmsg->get()->num_rows)
 	{
-		MYSQL_ROW row = mysql_fetch_row(pmsg->get()->sql_result);
+		MYSQL_ROW row = mysql_fetch_row(pmsg->get()->res);
 
 		int grade = 0;
 		const char* name = row[1];
@@ -724,7 +724,7 @@ void guild::p2_p_update_grade(ql_msg* pmsg)
 
 void guild::p2_p_change_grade(uint8_t grade)
 {
-	db_manager::instance().func_query([this](ql_msg *msg) { p2_p_update_grade(msg); },
+	db_manager::instance().func_query([this](sql_msg *msg) { p2_p_update_grade(msg); },
 			"SELECT grade, name, auth+0 FROM guild_grade%s WHERE guild_id = %u and grade = %d", get_table_postfix(), data_.guild_id, grade);
 }
 
@@ -865,7 +865,7 @@ void guild::send_guild_info_packet(character * ch)
 	d->packet(&pack_sub, sizeof(packet_gc_guild_info));
 }
 
-bool guild::offer_exp(character * ch, int amount)
+auto guild::offer_exp(character * ch, int amount) -> bool
 {
 	guild_member_container::iterator cit = member_.find(ch->player_id());
 
@@ -980,7 +980,7 @@ void guild::add_comment(character * ch, const std::string& str)
 
 void guild::delete_comment(character * ch, uint32_t comment_id)
 {
-	std::unique_ptr<ql_msg> pmsg;
+	std::unique_ptr<sql_msg> pmsg;
 
 	if (member(ch->player_id())->grade == GUILD_LEADER_GRADE)
 		pmsg.reset(db_manager::instance().direct_query(sql::format("DELETE FROM guild_comment{} WHERE id = {} AND guild_id = {}",sql::raw(get_table_postfix()), comment_id, data_.guild_id)));
@@ -1005,7 +1005,7 @@ void guild::refresh_comment_force(uint32_t player_id)
 		return;
 	}
 
-	std::unique_ptr<ql_msg> pmsg (db_manager::instance().direct_query("SELECT id, name, content FROM guild_comment%s WHERE guild_id = %u ORDER BY notice DESC, id DESC LIMIT %d", get_table_postfix(), data_.guild_id, GUILD_COMMENT_MAX_COUNT));
+	std::unique_ptr<sql_msg> pmsg (db_manager::instance().direct_query("SELECT id, name, content FROM guild_comment%s WHERE guild_id = %u ORDER BY notice DESC, id DESC LIMIT %d", get_table_postfix(), data_.guild_id, GUILD_COMMENT_MAX_COUNT));
 
 	packet_gc_guild pack;
 	pack.header = HEADER_GC_GUILD;
@@ -1029,7 +1029,7 @@ void guild::refresh_comment_force(uint32_t player_id)
 
 	for (uint i = 0; i < pmsg->get()->num_rows; i++)
 	{
-		MYSQL_ROW row = mysql_fetch_row(pmsg->get()->sql_result);
+		MYSQL_ROW row = mysql_fetch_row(pmsg->get()->res);
 		uint32_t id = strtoul(row[0], nullptr, 10);
 
 		strlcpy(szName, row[1], sizeof(szName));
@@ -1045,7 +1045,7 @@ void guild::refresh_comment_force(uint32_t player_id)
 	}
 }
 
-bool guild::change_member_general(uint32_t pid, uint8_t is_general)
+auto guild::change_member_general(uint32_t pid, uint8_t is_general) -> bool
 {
 	if (is_general && general_count() >= max_general_count())
 		return false;
@@ -1327,7 +1327,7 @@ void guild::compute_guild_points()
 	data_.power = std::clamp(data_.power, 0, data_.max_power);
 }
 
-int guild::skill_level(uint32_t vnum)
+auto guild::skill_level(uint32_t vnum) -> int
 {
 	uint32_t dwRealVnum = vnum - GUILD_SKILL_START;
 
@@ -1346,7 +1346,7 @@ void guild::update_skill(uint8_t skill_point, uint8_t* skill_levels)
 	compute_guild_points();
 }
 
-static uint32_t guild_levelup_exp(int level)
+static auto guild_levelup_exp(int level) -> uint32_t
 {
 	return guild_exp_table2[level];
 }
@@ -1550,7 +1550,7 @@ void guild::chat(const char* text_value)
 	p2_p_manager::instance().send(&p2, sizeof(packet_gg_guild_chat));
 }
 
-character * guild::master_character()
+auto guild::master_character() -> character *
 { 
 	return character_manager::instance().find_by_pid(master_pid()); 
 }
@@ -1566,7 +1566,7 @@ void guild::packet(const void* buf, int size)
 	}
 }
 
-bool guild::charge_sp(character * ch, int sp)
+auto guild::charge_sp(character * ch, int sp) -> bool
 {
 	int gold = sp * 100;
 
@@ -1621,7 +1621,7 @@ void guild::broadcast_member_count_bonus()
 	p2_p_manager::instance().send(&member_count_bonus_, sizeof(int));
 }
 
-int guild::max_member_count()
+auto guild::max_member_count() -> int
 {
 	if ( member_count_bonus_ < 0 || member_count_bonus_ > 18 )
 		member_count_bonus_ = 0;
@@ -1690,7 +1690,7 @@ void guild::recv_withdraw_money_give(int change_gold_value)
 	db_clientdesc->db_packet(HEADER_GD_GUILD_WITHDRAW_MONEY_GIVE_REPLY, 0, &p, sizeof(p));
 }
 
-bool guild::has_land()
+auto guild::has_land() -> bool
 {
 	return building::manager::instance().find_land_by_guild(id()) != nullptr;
 }
@@ -1852,7 +1852,7 @@ void guild::invite_deny( uint32_t pid )
 	guild_invite_event_map_.erase( itFind );
 }
 
-guild::guild_join_err_code guild::verify_guild_joinable_condition( character * const pch_invitee )
+auto guild::verify_guild_joinable_condition( character * const pch_invitee ) -> guild::guild_join_err_code
 {
 	if ( get_global_time() - pch_invitee->quest_flag( "guild_building.new_withdraw_time" )
 			< guild_manager::instance().withdraw_delay() )
@@ -1876,7 +1876,7 @@ guild::guild_join_err_code guild::verify_guild_joinable_condition( character * c
 	return GERR_NONE;
 }
 
-bool guild::change_master_to(uint32_t pid)
+auto guild::change_master_to(uint32_t pid) -> bool
 {
 	if ( member(pid) == nullptr ) return false;
 
@@ -1890,7 +1890,7 @@ bool guild::change_master_to(uint32_t pid)
 	return true;
 }
 
-void guild::send_guild_data_update_to_all_member(ql_msg* pmsg)
+void guild::send_guild_data_update_to_all_member(sql_msg* pmsg)
 {
 	guild_member_online_container::iterator iter = member_online_.begin();
 

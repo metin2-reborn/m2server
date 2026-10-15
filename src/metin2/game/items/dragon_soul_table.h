@@ -32,19 +32,19 @@ public:
 	typedef std::vector <apply> vec_applys;
 	typedef std::map <uint8_t, vec_applys> map_apply_group;
 	
-	bool	read_dragon_soul_table_file(const char * file_name);
-	bool	dragon_soul_group_name(uint8_t type, std::string& group_name) const;
+	auto	read_dragon_soul_table_file(const char * file_name) -> bool;
+	auto	dragon_soul_group_name(uint8_t type, std::string& group_name) const -> bool;
 
-	bool	basic_applys(uint8_t ds_type, vec_applys& vec_basic_applys);
-	bool	additional_applys(uint8_t ds_type, vec_applys& vec_additional_applys);
+	auto	basic_applys(uint8_t ds_type, vec_applys& vec_basic_applys) -> bool;
+	auto	additional_applys(uint8_t ds_type, vec_applys& vec_additional_applys) -> bool;
 
-	bool	apply_num_settings(uint8_t ds_type, uint8_t grade_idx, int& basis, int& add_min, int& add_max);
-	bool	weight(uint8_t ds_type, uint8_t grade_idx, uint8_t step_index, uint8_t strength_idx, float& weight);
-	bool	refine_grade_values(uint8_t ds_type, uint8_t grade_idx, int& need_count, int& fee, std::vector<float>& vec_probs);
-	bool	refine_step_values(uint8_t ds_type, uint8_t step_idx, int& need_count, int& fee, std::vector<float>& vec_probs);
-	bool	refine_strength_values(uint8_t ds_type, uint8_t material_type, uint8_t strength_idx, int& fee, float& prob);
-	bool	dragon_heart_ext_values(uint8_t ds_type, uint8_t grade_idx, std::vector<float>& vec_chargings, std::vector<float>& vec_probs);
-	bool	dragon_soul_ext_values(uint8_t ds_type, uint8_t grade_idx, float& prob, uint32_t& by_product);
+	auto	apply_num_settings(uint8_t ds_type, uint8_t grade_idx, int& basis, int& add_min, int& add_max) -> bool;
+	auto	weight(uint8_t ds_type, uint8_t grade_idx, uint8_t step_index, uint8_t strength_idx, float& weight) -> bool;
+	auto	refine_grade_values(uint8_t ds_type, uint8_t grade_idx, int& need_count, int& fee, std::vector<float>& vec_probs) -> bool;
+	auto	refine_step_values(uint8_t ds_type, uint8_t step_idx, int& need_count, int& fee, std::vector<float>& vec_probs) -> bool;
+	auto	refine_strength_values(uint8_t ds_type, uint8_t material_type, uint8_t strength_idx, int& fee, float& prob) -> bool;
+	auto	dragon_heart_ext_values(uint8_t ds_type, uint8_t grade_idx, std::vector<float>& vec_chargings, std::vector<float>& vec_probs) -> bool;
+	auto	dragon_soul_ext_values(uint8_t ds_type, uint8_t grade_idx, float& prob, uint32_t& by_product) -> bool;
 
 private:
 	std::unique_ptr<group_text_parse_tree_loader> loader_;
@@ -68,15 +68,15 @@ private:
 	map_apply_group map_basic_applys_group_;
 	map_apply_group map_additional_applys_group_;
 
-	bool	read_vnum_mapper();
-	bool	read_basic_applys();
-	bool	read_additional_applys();
-	bool	check_apply_num_settings();
-	bool	check_weight_tables();
-	bool	check_refine_grade_tables();
-	bool	check_refine_step_tables();
-	bool	check_refine_strength_tables();
-	bool	check_dragon_heart_ext_tables();
-	bool	check_dragon_soul_ext_tables();
+	auto	read_vnum_mapper() -> bool;
+	auto	read_basic_applys() -> bool;
+	auto	read_additional_applys() -> bool;
+	auto	check_apply_num_settings() -> bool;
+	auto	check_weight_tables() -> bool;
+	auto	check_refine_grade_tables() -> bool;
+	auto	check_refine_step_tables() -> bool;
+	auto	check_refine_strength_tables() -> bool;
+	auto	check_dragon_heart_ext_tables() -> bool;
+	auto	check_dragon_soul_ext_tables() -> bool;
 };
 }

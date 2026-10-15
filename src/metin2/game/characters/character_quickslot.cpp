@@ -36,7 +36,7 @@ void character::sync_quickslot(uint8_t type_value, uint8_t old_pos, uint8_t new_
 	}
 }
 
-bool character::get_quickslot(uint8_t pos, quickslot ** pp_slot)
+auto character::get_quickslot(uint8_t pos, quickslot ** pp_slot) -> bool
 {
 	if (pos >= QUICKSLOT_MAX_NUM)
 		return false;
@@ -45,7 +45,7 @@ bool character::get_quickslot(uint8_t pos, quickslot ** pp_slot)
 	return true;
 }
 
-bool character::set_quickslot(uint8_t pos, quickslot & slot_value)
+auto character::set_quickslot(uint8_t pos, quickslot & slot_value) -> bool
 {
 	struct packet_quickslot_add pack_quickslot_add;
 
@@ -100,7 +100,7 @@ bool character::set_quickslot(uint8_t pos, quickslot & slot_value)
 	return true;
 }
 
-bool character::del_quickslot(uint8_t pos)
+auto character::del_quickslot(uint8_t pos) -> bool
 {
 	struct packet_quickslot_del pack_quickslot_del;
 
@@ -116,7 +116,7 @@ bool character::del_quickslot(uint8_t pos)
 	return true;
 }
 
-bool character::swap_quickslot(uint8_t a, uint8_t b)
+auto character::swap_quickslot(uint8_t a, uint8_t b) -> bool
 {
 	struct packet_quickslot_swap pack_quickslot_swap;
 	quickslot quickslot;

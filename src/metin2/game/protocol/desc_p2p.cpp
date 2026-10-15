@@ -33,7 +33,7 @@ void desc_p2_p::destroy()
 	desc::destroy();
 }
 
-bool desc_p2_p::setup(std::shared_ptr<net::connection> connection)
+auto desc_p2_p::setup(std::shared_ptr<net::connection> connection) -> bool
 {
 	connection_ = std::move(connection);
 	host_ = connection_->remote_address();

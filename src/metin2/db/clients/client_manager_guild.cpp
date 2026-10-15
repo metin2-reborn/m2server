@@ -45,12 +45,12 @@ void client_manager::guild_add_member(peer* peer, packet_gd_guild_add_member * p
 			"INSERT INTO guild_member%s VALUES(%u, %u, %d, 0, 0)",
 			get_table_postfix(), p->pid, p->guild, p->grade);
 
-	std::unique_ptr<ql_msg> pmsg_insert(db_manager::instance().direct_query(szQuery));
+	std::unique_ptr<sql_msg> pmsg_insert(db_manager::instance().direct_query(szQuery));
 
 	snprintf(szQuery, sizeof(szQuery), 
 			"SELECT pid, grade, is_general, offer, level, job, name FROM guild_member%s, player%s WHERE guild_id = %u and pid = id and pid = %u", get_table_postfix(), get_table_postfix(), p->guild, p->pid);
 
-	std::unique_ptr<ql_msg> pmsg(db_manager::instance().direct_query(szQuery));
+	std::unique_ptr<sql_msg> pmsg(db_manager::instance().direct_query(szQuery));
 
 	if (pmsg->get()->num_rows == 0)
 	{
@@ -58,7 +58,7 @@ void client_manager::guild_add_member(peer* peer, packet_gd_guild_add_member * p
 		return;
 	}
 
-	MYSQL_ROW row = mysql_fetch_row(pmsg->get()->sql_result);
+	MYSQL_ROW row = mysql_fetch_row(pmsg->get()->res);
 
 	if (!row[0] || !row[1])
 		return;
@@ -133,7 +133,7 @@ void client_manager::guild_disband(peer* peer, packet_guild* p)
 	forward_packet(HEADER_DG_GUILD_DISBAND, p, sizeof(packet_guild));
 }
 
-const char* get_war_type(int n)
+auto get_war_type(int n) -> const char*
 {
 	switch (n)
 	{

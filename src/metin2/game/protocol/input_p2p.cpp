@@ -47,7 +47,7 @@ void input_p2_p::logout(desc * d, const char * data)
 	p2_p_manager::instance().logout(p->name);
 }
 
-int input_p2_p::relay(desc * d, const char * data, size_t bytes)
+auto input_p2_p::relay(desc * d, const char * data, size_t bytes) -> int
 {
 	packet_gg_relay * p = (packet_gg_relay *) data;
 
@@ -104,7 +104,7 @@ int input_p2_p::relay(desc * d, const char * data, size_t bytes)
 	return (p->size);
 }
 
-int input_p2_p::notice(desc * d, const char * data, size_t bytes)
+auto input_p2_p::notice(desc * d, const char * data, size_t bytes) -> int
 {
 	packet_gg_notice * p = (packet_gg_notice *) data;
 
@@ -124,7 +124,7 @@ int input_p2_p::notice(desc * d, const char * data, size_t bytes)
 	return (p->size);
 }
 
-int input_p2_p::monarch_notice(desc * d, const char * data, size_t bytes)
+auto input_p2_p::monarch_notice(desc * d, const char * data, size_t bytes) -> int
 {
 	packet_gg_monarch_notice * p = (packet_gg_monarch_notice *) data;
 
@@ -144,7 +144,7 @@ int input_p2_p::monarch_notice(desc * d, const char * data, size_t bytes)
 	return (p->size);
 }
 
-int input_p2_p::monarch_transfer(desc * d, const char* data)
+auto input_p2_p::monarch_transfer(desc * d, const char* data) -> int
 {
 	packet_monarch_gg_transfer* p = (packet_monarch_gg_transfer*) data;
 	character * pTargetChar = character_manager::instance().find_by_pid(p->target_pid);
@@ -164,7 +164,7 @@ int input_p2_p::monarch_transfer(desc * d, const char* data)
 	return 0;
 }
 
-int input_p2_p::guild(desc * d, const char* data, size_t bytes)
+auto input_p2_p::guild(desc * d, const char* data, size_t bytes) -> int
 {
 	packet_gg_guild * p = (packet_gg_guild *) data;
 	bytes -= sizeof(packet_gg_guild);
@@ -390,7 +390,7 @@ void input_p2_p::iam_awake(desc * d, const char * data)
 	metin2::log::info( "P2P Awakeness check from {}. My P2P connection number is {:d}. and details...\n{}", d->host_name(), p2_p_manager::instance().desc_count(), hostNames.c_str());
 }
 
-int input_p2_p::analyze(desc * d, uint8_t header, const char * data)
+auto input_p2_p::analyze(desc * d, uint8_t header, const char * data) -> int
 {
 	if (metin2::config::test_server())
 		metin2::log::info( "CInputP2P::Anlayze[Header {:d}]", header);

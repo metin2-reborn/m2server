@@ -63,7 +63,7 @@
 
 namespace metin2::game::inline protocol {
 
-static int deposit_limit()
+static auto deposit_limit() -> int
 {
 	return (1000*10000);
 }
@@ -132,7 +132,7 @@ EVENTFUNC(block_chat_by_ip_event)
 	return 0;
 }
 
-bool spam_block_check(character * ch, const char* const buf, const size_t buflen)
+auto spam_block_check(character * ch, const char* const buf, const size_t buflen) -> bool
 {
 
 	if (ch->level() < metin2::config::game().spam.block_max_level)
@@ -187,7 +187,7 @@ enum
 	TEXT_TAG_HYPERLINK_END,
 };
 
-int get_text_tag(const char * src, int max_len, int & tag_len, std::string & extra_info)
+auto get_text_tag(const char * src, int max_len, int & tag_len, std::string & extra_info) -> int
 {
 	tag_len = 1;
 
@@ -242,7 +242,7 @@ void get_text_tag_info(const char * src, int src_len, int & hyperlinks, bool & c
 	}
 }
 
-int process_text_tag(character * ch, const char * text, size_t len)
+auto process_text_tag(character * ch, const char * text, size_t len) -> int
 {
 	int hyperlinks;
 	bool colored;
@@ -285,7 +285,7 @@ int process_text_tag(character * ch, const char * text, size_t len)
 	return 4;
 }
 
-int input_main::whisper(character * ch, const char * data, size_t bytes)
+auto input_main::whisper(character * ch, const char * data, size_t bytes) -> int
 {
 	const packet_cg_whisper* pinfo = reinterpret_cast<const packet_cg_whisper*>(data);
 
@@ -583,7 +583,7 @@ struct f_empire_chat_packet
 	}
 };
 
-int input_main::chat(character * ch, const char * data, size_t bytes)
+auto input_main::chat(character * ch, const char * data, size_t bytes) -> int
 {
 	const packet_cg_chat* pinfo = reinterpret_cast<const packet_cg_chat*>(data);
 
@@ -821,7 +821,7 @@ void input_main::quickslot_swap(character * ch, const char * data)
 	ch->swap_quickslot(pinfo->pos, pinfo->change_pos);
 }
 
-int input_main::messenger(character * ch, const char* data, size_t bytes)
+auto input_main::messenger(character * ch, const char* data, size_t bytes) -> int
 {
 	packet_cg_messenger* p = (packet_cg_messenger*) data;
 
@@ -923,7 +923,7 @@ int input_main::messenger(character * ch, const char* data, size_t bytes)
 	return 0;
 }
 
-int input_main::shop(character * ch, const char * data, size_t bytes)
+auto input_main::shop(character * ch, const char * data, size_t bytes) -> int
 {
 	packet_cg_shop * p = (packet_cg_shop *) data;
 
@@ -1167,7 +1167,7 @@ static const int combo_sequence_by_skill_level[3][8] =
 };
 
 constexpr int COMBO_HACK_ALLOWABLE_MS = 100;
-uint32_t clac_valid_combo_interval( character * ch, uint8_t arg )
+auto clac_valid_combo_interval( character * ch, uint8_t arg ) -> uint32_t
 {
 	int nInterval = 300;
 	float fAdjustNum = 1.5f;
@@ -1199,7 +1199,7 @@ uint32_t clac_valid_combo_interval( character * ch, uint8_t arg )
 	return nInterval;
 }
 
-bool check_combo_hack(character * ch, uint8_t arg, uint32_t time, bool check_speed_hack)
+auto check_combo_hack(character * ch, uint8_t arg, uint32_t time, bool check_speed_hack) -> bool
 {
 	if (ch->is_stun() || ch->is_dead())
 		return false;
@@ -1528,7 +1528,7 @@ void input_main::attack(character * ch, const uint8_t header, const char* data)
 	}
 }
 
-int input_main::sync_position(character * ch, const char * pc_data, size_t bytes)
+auto input_main::sync_position(character * ch, const char * pc_data, size_t bytes) -> int
 {
 	const packet_cg_sync_position* pinfo = reinterpret_cast<const packet_cg_sync_position*>( pc_data );
 
@@ -2225,7 +2225,7 @@ void input_main::party_parameter(character * ch, const char * data)
 		ch->get_party()->set_parameter(p->distribute_mode);
 }
 
-size_t get_sub_packet_size(const guild_subheader_cg& header)
+auto get_sub_packet_size(const guild_subheader_cg& header) -> size_t
 {
 	switch (header)
 	{
@@ -2249,7 +2249,7 @@ size_t get_sub_packet_size(const guild_subheader_cg& header)
 	return 0;
 }
 
-int input_main::guild(character * ch, const char * data, size_t bytes)
+auto input_main::guild(character * ch, const char * data, size_t bytes) -> int
 {
 	if (bytes < sizeof(packet_cg_guild))
 		return -1;
@@ -2629,7 +2629,7 @@ void input_main::hack(character * ch, const char * data)
 	ch->get_desc()->set_phase(PHASE_CLOSE);
 }
 
-int input_main::my_shop(character * ch, const char * data, size_t bytes)
+auto input_main::my_shop(character * ch, const char * data, size_t bytes) -> int
 {
 	packet_cg_my_shop * p = (packet_cg_my_shop *) data;
 	int iExtraLen = p->count * sizeof(shop_item_table);
@@ -2732,7 +2732,7 @@ void input_main::refine(character * ch, const char* data)
 	ch->clear_refine_mode();
 }
 
-int input_main::analyze(desc * d, uint8_t header, const char * data)
+auto input_main::analyze(desc * d, uint8_t header, const char * data) -> int
 {
 	character * ch;
 

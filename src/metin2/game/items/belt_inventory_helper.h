@@ -15,7 +15,7 @@ class belt_inventory_helper
 public:
 	typedef uint8_t	grade_unit;
 
-	static const grade_unit* available_rule_table_by_grade()
+	static auto available_rule_table_by_grade() -> const grade_unit*
 	{
 
 		static grade_unit availableRuleByGrade[BELT_INVENTORY_SLOT_COUNT] = {
@@ -28,14 +28,14 @@ public:
 		return availableRuleByGrade;
 	}
 
-	static bool is_available_cell(uint16_t cell, int belt_grade )
+	static auto is_available_cell(uint16_t cell, int belt_grade ) -> bool
 	{
 		const grade_unit* ruleTable = available_rule_table_by_grade();
 
 		return ruleTable[cell] <= belt_grade;
 	}
 
-	static bool is_exist_item_in_belt_inventory(character * pc)
+	static auto is_exist_item_in_belt_inventory(character * pc) -> bool
 	{
 		for (uint16_t i = BELT_INVENTORY_SLOT_START; i < BELT_INVENTORY_SLOT_END; ++i)
 		{
@@ -48,7 +48,7 @@ public:
 		return false;
 	}
 
-	static bool can_move_into_belt_inventory(item * item)
+	static auto can_move_into_belt_inventory(item * item) -> bool
 	{
 		bool canMove = false;
 

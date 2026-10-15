@@ -16,7 +16,7 @@ namespace metin2::game {
 
 namespace quest
 {
-	int quest_start(lua_State* lua)
+	auto quest_start(lua_State* lua) -> int
 	{
 		quest_manager& q = quest_manager::instance();
 
@@ -24,7 +24,7 @@ namespace quest
 		return 0;
 	}
 
-	int quest_done(lua_State* lua)
+	auto quest_done(lua_State* lua) -> int
 	{
 		quest_manager& q = quest_manager::instance();
 
@@ -32,7 +32,7 @@ namespace quest
 		return 0;
 	}
 
-	int quest_set_title(lua_State* lua)
+	auto quest_set_title(lua_State* lua) -> int
 	{
 		quest_manager& q = quest_manager::instance();
 
@@ -42,7 +42,7 @@ namespace quest
 		return 0;
 	}
 
-	int quest_set_another_title(lua_State* lua)
+	auto quest_set_another_title(lua_State* lua) -> int
 	{
 		quest_manager& q = quest_manager::instance();
 
@@ -52,7 +52,7 @@ namespace quest
 		return 0;
 	}
 
-	int quest_set_clock_name(lua_State* lua)
+	auto quest_set_clock_name(lua_State* lua) -> int
 	{
 		quest_manager& q = quest_manager::instance();
 
@@ -62,7 +62,7 @@ namespace quest
 		return 0;
 	}
 
-	int quest_set_clock_value(lua_State* lua)
+	auto quest_set_clock_value(lua_State* lua) -> int
 	{
 		quest_manager& q = quest_manager::instance();
 
@@ -72,7 +72,7 @@ namespace quest
 		return 0;
 	}
 
-	int quest_set_counter_name(lua_State* lua)
+	auto quest_set_counter_name(lua_State* lua) -> int
 	{
 		quest_manager& q = quest_manager::instance();
 
@@ -82,7 +82,7 @@ namespace quest
 		return 0;
 	}
 
-	int quest_set_counter_value(lua_State* lua)
+	auto quest_set_counter_value(lua_State* lua) -> int
 	{
 		quest_manager& q = quest_manager::instance();
 
@@ -92,7 +92,7 @@ namespace quest
 		return 0;
 	}
 
-	int quest_set_icon_file(lua_State* lua)
+	auto quest_set_icon_file(lua_State* lua) -> int
 	{
 		quest_manager& q = quest_manager::instance();
 
@@ -102,7 +102,7 @@ namespace quest
 		return 0;
 	}
 
-	int quest_setstate(lua_State* lua)
+	auto quest_setstate(lua_State* lua) -> int
 	{
 		if (lua_tostring(lua, -1)==nullptr)
 		{
@@ -133,7 +133,7 @@ namespace quest
 		return 0;
 	}
 
-	int quest_coroutine_yield(lua_State * lua)
+	auto quest_coroutine_yield(lua_State * lua) -> int
 	{
 		quest_manager& q = quest_manager::instance();
 		if (q.is_in_other_pc_block())
@@ -159,14 +159,14 @@ namespace quest
 		return lua_yield(lua, lua_gettop(lua));
 	}
 
-	int quest_no_send(lua_State* lua)
+	auto quest_no_send(lua_State* lua) -> int
 	{
 		quest_manager& q = quest_manager::instance();
 		q.set_no_send();
 		return 0;
 	}
 
-	int quest_get_current_quest_index(lua_State* lua)
+	auto quest_get_current_quest_index(lua_State* lua) -> int
 	{
 		quest_manager& q = quest_manager::instance();
 		pc* pPC = q.current_pc();
@@ -176,7 +176,7 @@ namespace quest
 		return 1;
 	}
 
-	int quest_begin_other_pc_block(lua_State* lua)
+	auto quest_begin_other_pc_block(lua_State* lua) -> int
 	{
 		quest_manager& q = quest_manager::instance();
 		uint32_t pid = lua_tonumber(lua, -1);
@@ -184,7 +184,7 @@ namespace quest
 		return 0;
 	}
 
-	int quest_end_other_pc_block(lua_State* lua)
+	auto quest_end_other_pc_block(lua_State* lua) -> int
 	{
 		quest_manager& q = quest_manager::instance();
 		q.end_other_pc_block();

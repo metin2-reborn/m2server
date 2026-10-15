@@ -81,7 +81,7 @@ ACMD(do_emotion_allow)
 	emotion_set.insert(std::make_pair(ch->get_vid(), val));
 }
 
-bool character_can_emotion(character& rch)
+auto character_can_emotion(character& rch) -> bool
 {
 	if (marriage::wedding_manager::instance().is_wedding_map(rch.map_index()))
 		return true;

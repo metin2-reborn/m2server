@@ -43,9 +43,9 @@ class db_manager : public singleton<db_manager> {
 
     void return_query(const char *query, int type_value, uint32_t ident_value, void *udata, int slot = SQL_PLAYER);
     void async_query(const char *query, int slot = SQL_PLAYER);
-    auto direct_query(const char *query, int slot = SQL_PLAYER) -> ql_msg *;
+    auto direct_query(const char *query, int slot = SQL_PLAYER) -> sql_msg *;
 
-    auto pop_result() -> ql_msg *;
+    auto pop_result() -> sql_msg *;
 
     auto escape_string(void *to, const void *from, uint32_t length, int slot = SQL_PLAYER) -> uint32_t;
 

@@ -239,7 +239,7 @@ void initialize()
 	}
 }
 
-int determine_fish_by_prob_index(int prob_idx)
+auto determine_fish_by_prob_index(int prob_idx) -> int
 {
 	int rv = number(1, prob_sum[prob_idx]);
 	int * p = std::lower_bound(prob_accumulate[prob_idx], prob_accumulate[prob_idx]+ MAX_FISH, rv);
@@ -247,7 +247,7 @@ int determine_fish_by_prob_index(int prob_idx)
 	return fish_idx;
 }
 
-int get_prob_index_by_map_index(int index)
+auto get_prob_index_by_map_index(int index) -> int
 {
 	if (index > 60)
 		return -1;
@@ -268,7 +268,7 @@ int get_prob_index_by_map_index(int index)
 	return -1;
 }
 
-int determine_fish(character * ch)
+auto determine_fish(character * ch) -> int
 {
 	int map_idx = ch->map_index();
 	int prob_idx = get_prob_index_by_map_index(map_idx);
@@ -352,7 +352,7 @@ void fishing_practice(character * ch)
 	rod->set_socket(2, 0);
 }
 
-bool predict_fish(character * ch)
+auto predict_fish(character * ch) -> bool
 {
 	if (ch->find_affect(AFFECT_FISH_MIND_PILL) || 
 			ch->premium_remain_seconds(PREMIUM_FISH_MIND) > 0 ||
@@ -417,7 +417,7 @@ EVENTFUNC(fishing_event)
 	}
 }
 
-event_ptr create_fishing_event(character * ch)
+auto create_fishing_event(character * ch) -> event_ptr
 {
 	fishing_event_info* info = alloc_event_info<fishing_event_info>();
 	info->pid	= ch->player_id();
@@ -436,7 +436,7 @@ event_ptr create_fishing_event(character * ch)
 	return event_create(fishing_event, info, passes_per_sec(time));
 }
 
-int get_fishing_level(character * ch)
+auto get_fishing_level(character * ch) -> int
 {
 	item * rod = ch->wear(WEAR_WEAPON);
 
@@ -446,7 +446,7 @@ int get_fishing_level(character * ch)
 	return rod->get_socket(2) + rod->value(0);
 }
 
-int compute(uint32_t fish_id, uint32_t ms, uint32_t* item, int level)
+auto compute(uint32_t fish_id, uint32_t ms, uint32_t* item, int level) -> int
 {
 	if (fish_id == 0)
 		return -2;
@@ -475,7 +475,7 @@ int compute(uint32_t fish_id, uint32_t ms, uint32_t* item, int level)
 	return -1;
 }
 
-int get_fish_length(int fish_id)
+auto get_fish_length(int fish_id) -> int
 {
 	if (number(0,99))
 	{
@@ -708,7 +708,7 @@ void grill(character * ch, item * item)
 	ch->auto_give_item(fish_info[idx].grill_vnum, count);
 }
 
-bool refinable_rod(item * rod)
+auto refinable_rod(item * rod) -> bool
 {
 	if (rod->type() != ITEM_ROD)
 		return false;
@@ -719,7 +719,7 @@ bool refinable_rod(item * rod)
 	return (rod->get_socket(0) == rod->value(2));
 }
 
-int real_refine_rod(character * ch, item * item)
+auto real_refine_rod(character * ch, item * item) -> int
 {
 	if (!ch || !item)
 		return 2;

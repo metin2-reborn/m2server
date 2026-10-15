@@ -31,34 +31,34 @@ class guild_mark_manager : public singleton<guild_mark_manager>
 		guild_mark_manager();
 		~guild_mark_manager() override;
 
-		const guild_symbol * get_guild_symbol(uint32_t guild_id);
-		bool load_symbol(const char* filename);
+		auto get_guild_symbol(uint32_t guild_id) -> const guild_symbol *;
+		auto load_symbol(const char* filename) -> bool;
 		void save_symbol(const char* filename);
 		void upload_symbol(uint32_t guild_id, int size, const uint8_t* pby_data);
 
 		void set_mark_path_prefix(const char * prefix);
 
-		bool load_mark_index();
-		bool save_mark_index();
+		auto load_mark_index() -> bool;
+		auto save_mark_index() -> bool;
 
 		void load_mark_images();
 		void save_mark_image(uint32_t img_idx);
 
-		bool mark_image_filename(uint32_t img_idx, std::string & path) const;
-		bool add_mark_id_by_guild_id(uint32_t guild_id, uint32_t mark_id);
-		uint32_t mark_count() const;
-		uint32_t mark_id(uint32_t guild_id);
+		auto mark_image_filename(uint32_t img_idx, std::string & path) const -> bool;
+		auto add_mark_id_by_guild_id(uint32_t guild_id, uint32_t mark_id) -> bool;
+		auto mark_count() const -> uint32_t;
+		auto mark_id(uint32_t guild_id) -> uint32_t;
 
 		void copy_mark_idx(char * pc_buf) const;
-		uint32_t save_mark(uint32_t guild_id, uint8_t * mark_image);
+		auto save_mark(uint32_t guild_id, uint8_t * mark_image) -> uint32_t;
 		void delete_mark(uint32_t guild_id);
 		void diff_blocks(uint32_t img_idx, const uint32_t * crc_list, std::map<uint8_t, const guild_mark_block *> & diff_blocks_value);
 
 
 	private:
-		uint32_t alloc_mark_id(uint32_t guild_id);
+		auto alloc_mark_id(uint32_t guild_id) -> uint32_t;
 
-		guild_mark_image * image(uint32_t img_idx);
+		auto image(uint32_t img_idx) -> guild_mark_image *;
 
 		std::map<uint32_t, std::unique_ptr<guild_mark_image>> idx_image_;
 		std::map<uint32_t, uint32_t> gid_mark_id_;

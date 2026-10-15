@@ -12,7 +12,7 @@ namespace metin2::game {
 
 namespace quest
 {
-	int dl_start_raid(lua_State* lua)
+	auto dl_start_raid(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		int32_t baseMapIndex = lua_tonumber(lua, -1);

@@ -3,7 +3,7 @@
 namespace metin2::game::inline text {
 
 void locale_init(const char *filename);
-const char *locale_find(const char *string);
+auto locale_find(const char *string) -> const char *;
 
-inline const char * lc_text(const char * str) { return locale_find(str); }
+inline auto lc_text(const char * str) -> const char * { return locale_find(str); }
 }

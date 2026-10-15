@@ -60,14 +60,14 @@ namespace marriage
 		void login(character * ch);
 		void logout(uint32_t pid);
 
-		bool is_online()
+		auto is_online() -> bool
 		{
 			return ch1 && ch2;
 		}
 
-		bool is_near();
+		auto is_near() -> bool;
 
-		uint32_t other(uint32_t pid) const
+		auto other(uint32_t pid) const -> uint32_t
 		{
 			if (pid1 == pid)
 				return pid2;
@@ -78,10 +78,10 @@ namespace marriage
 			return 0;
 		}
 
-		int marriage_point();
-		int marriage_grade();
+		auto marriage_point() -> int;
+		auto marriage_grade() -> int;
 
-		int bonus(uint32_t item_vnum, bool share = true, character * me = nullptr);
+		auto bonus(uint32_t item_vnum, bool share = true, character * me = nullptr) -> int;
 
 		void warp_to_wedding_map(uint32_t pid);
 		void save();
@@ -105,16 +105,16 @@ namespace marriage
 			manager();
 			~manager() override;
 
-			bool	initialize();
+			auto	initialize() -> bool;
 			void	destroy();
 
-			marriage*	get(uint32_t player_id);
+			auto	get(uint32_t player_id) -> marriage*;
 
-			bool	is_marriage_unique_item(uint32_t item_vnum);
+			auto	is_marriage_unique_item(uint32_t item_vnum) -> bool;
 
-			bool	is_married(uint32_t player_id);
-			bool	is_engaged(uint32_t player_id);
-			bool	is_engaged_or_married(uint32_t player_id);
+			auto	is_married(uint32_t player_id) -> bool;
+			auto	is_engaged(uint32_t player_id) -> bool;
+			auto	is_engaged_or_married(uint32_t player_id) -> bool;
 
 			void	request_add(uint32_t pid1, uint32_t pid2, const char* name1_value, const char* name2_value);
 			void	add(uint32_t pid1, uint32_t pid2, time_t t_marry_time, const char* name1, const char* name2);
@@ -137,7 +137,7 @@ namespace marriage
 			void	request_end_wedding(uint32_t pid1, uint32_t pid2);
 
 			template <typename Func>
-				Func	for_each_wedding(Func f);
+				auto	for_each_wedding(Func f) -> Func;
 
 		private:
 			std::unordered_set<marriage*> marriages_;
@@ -146,7 +146,7 @@ namespace marriage
 	};
 
 	template <typename Func>
-		Func manager::for_each_wedding(Func f)
+		auto manager::for_each_wedding(Func f) -> Func
 		{
 			for (auto it = wedding_.begin(); it!=wedding_.end(); ++it)
 			{

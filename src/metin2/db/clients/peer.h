@@ -34,8 +34,8 @@ class peer : public net::connection_handler
 	auto	on_receive(std::span<std::uint8_t> input, std::size_t received) -> std::size_t override;
 	void	on_close(const std::error_code & error) override;
 
-	bool	is_closed() const	{ return state_ == STATE_CLOSE; }
-	const char *	host() const	{ return connection_->remote_address().c_str(); }
+	auto	is_closed() const -> bool	{ return state_ == STATE_CLOSE; }
+	auto	host() const -> const char *	{ return connection_->remote_address().c_str(); }
 
 	void	encode_byte(uint8_t b)		{ encode(&b, sizeof(b)); }
 	void	encode_word(uint16_t w)		{ encode(&w, sizeof(w)); }
@@ -43,31 +43,31 @@ class peer : public net::connection_handler
 	void	encode(const void * data, uint32_t size);
 
 	void	encode_header(uint8_t header, uint32_t handle_value, uint32_t size_value);
-	bool 	peek_packet(int & bytes_proceed, uint8_t & header, uint32_t & handle, uint32_t & length, const char ** data);
+	auto 	peek_packet(int & bytes_proceed, uint8_t & header, uint32_t & handle, uint32_t & length, const char ** data) -> bool;
 	void	encode_return(uint8_t header, uint32_t handle);
 	void	recv_end(int bytes_proceed)	{ input_consumed_ = bytes_proceed; }
 
-	uint32_t	handle();
+	auto	handle() -> uint32_t;
 	void	set_user_count(uint32_t count);
 
 	void	set_public_ip(const char * ip)	{ public_ip_ = ip; }
-	const char * public_ip()		{ return public_ip_.c_str(); }
+	auto public_ip() -> const char *		{ return public_ip_.c_str(); }
 
 	void	set_channel(uint8_t channel)	{ channel_ = channel; }
-	uint8_t	channel()			{ return channel_; }
+	auto	channel() -> uint8_t			{ return channel_; }
 
 	void	set_listen_port(uint16_t port) { listen_port_ = port; }
-	uint16_t	listen_port() { return listen_port_; }
+	auto	listen_port() -> uint16_t { return listen_port_; }
 
 	void	set_p2_p_port(uint16_t port);
-	uint16_t	p2_p_port() { return p2_p_port_; }
+	auto	p2_p_port() -> uint16_t { return p2_p_port_; }
 
 	void	set_maps(int32_t* pl);
-	int32_t *	maps() { return &maps_[0]; }
+	auto	maps() -> int32_t * { return &maps_[0]; }
 
-	bool	set_item_id_range(item_id_range_table item_range);
-	bool	set_spare_item_id_range(item_id_range_table item_range);
-	bool	check_item_id_range_collision(item_id_range_table item_range);
+	auto	set_item_id_range(item_id_range_table item_range) -> bool;
+	auto	set_spare_item_id_range(item_id_range_table item_range) -> bool;
+	auto	check_item_id_range_collision(item_id_range_table item_range) -> bool;
 	void	send_spare_item_id_range();
 	void	return_item_id_range();
 

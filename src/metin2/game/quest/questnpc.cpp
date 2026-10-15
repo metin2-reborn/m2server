@@ -182,22 +182,22 @@ namespace quest
 		}
 	}
 
-	bool npc::on_enter_state(pc& pc, uint32_t quest_index, int state)
+	auto npc::on_enter_state(pc& pc, uint32_t quest_index, int state) -> bool
 	{
 		return execute_event_script(pc, QUEST_ENTER_STATE_EVENT, quest_index, state);
 	}
 
-	bool npc::on_leave_state(pc& pc, uint32_t quest_index, int state)
+	auto npc::on_leave_state(pc& pc, uint32_t quest_index, int state) -> bool
 	{
 		return execute_event_script(pc, QUEST_LEAVE_STATE_EVENT, quest_index, state);
 	}
 
-	bool npc::on_letter(pc& pc, uint32_t quest_index, int state)
+	auto npc::on_letter(pc& pc, uint32_t quest_index, int state) -> bool
 	{
 		return execute_event_script(pc, QUEST_LETTER_EVENT, quest_index, state);
 	}
 
-	bool npc::on_target(pc & pc, uint32_t quest_index, const char * target_name, const char * verb, bool & ret)
+	auto npc::on_target(pc & pc, uint32_t quest_index, const char * target_name, const char * verb, bool & ret) -> bool
 	{
 		metin2::log::debug( "OnTarget begin {} verb {} qi {:d}", target_name, verb, quest_index);
 
@@ -259,22 +259,22 @@ namespace quest
 		return false;
 	}
 
-	bool npc::on_attr_in(pc& pc)
+	auto npc::on_attr_in(pc& pc) -> bool
 	{
 		return handle_event(pc, QUEST_ATTR_IN_EVENT);
 	}
 
-	bool npc::on_attr_out(pc& pc)
+	auto npc::on_attr_out(pc& pc) -> bool
 	{
 		return handle_event(pc, QUEST_ATTR_OUT_EVENT);
 	}
 
-	bool npc::on_take_item(pc& pc)
+	auto npc::on_take_item(pc& pc) -> bool
 	{
 		return handle_event(pc, QUEST_ITEM_TAKE_EVENT);
 	}
 
-	bool npc::on_use_item(pc& pc, bool receive_all)
+	auto npc::on_use_item(pc& pc, bool receive_all) -> bool
 	{
 		if (receive_all)
 			return handle_receive_all_event(pc, QUEST_ITEM_USE_EVENT);
@@ -282,7 +282,7 @@ namespace quest
 			return handle_event(pc, QUEST_ITEM_USE_EVENT);
 	}
 
-	bool npc::on_sig_use(pc& pc, bool receive_all)
+	auto npc::on_sig_use(pc& pc, bool receive_all) -> bool
 	{
 		if (receive_all)
 			return handle_receive_all_event(pc, QUEST_SIG_USE_EVENT);
@@ -290,22 +290,22 @@ namespace quest
 			return handle_event(pc, QUEST_SIG_USE_EVENT);
 	}
 
-	bool npc::on_click(pc& pc)
+	auto npc::on_click(pc& pc) -> bool
 	{
 		return handle_event(pc, QUEST_CLICK_EVENT);
 	}
 
-	bool npc::on_server_timer(pc& pc)
+	auto npc::on_server_timer(pc& pc) -> bool
 	{
 		return handle_receive_all_event(pc, QUEST_SERVER_TIMER_EVENT);
 	}
 
-	bool npc::on_timer(pc& pc)
+	auto npc::on_timer(pc& pc) -> bool
 	{
 		return handle_event(pc, QUEST_TIMER_EVENT);
 	}
 
-	bool npc::on_kill(pc & pc)
+	auto npc::on_kill(pc & pc) -> bool
 	{
 		if (vnum_)
 		{
@@ -317,7 +317,7 @@ namespace quest
 		}
 	}
 
-	bool npc::on_party_kill(pc & pc)
+	auto npc::on_party_kill(pc & pc) -> bool
 	{
 		if (vnum_)
 		{
@@ -329,24 +329,24 @@ namespace quest
 		}
 	}
 
-	bool npc::on_level_up(pc& pc)
+	auto npc::on_level_up(pc& pc) -> bool
 	{
 		return handle_receive_all_event(pc, QUEST_LEVELUP_EVENT);
 	}
 
-	bool npc::on_login(pc& pc, const char * quest_name)
+	auto npc::on_login(pc& pc, const char * quest_name) -> bool
 	{
 		bool bRet = handle_receive_all_no_wait_event(pc, QUEST_LOGIN_EVENT);
 		handle_receive_all_event(pc, QUEST_LETTER_EVENT);
 		return bRet;
 	}
 
-	bool npc::on_logout(pc& pc)
+	auto npc::on_logout(pc& pc) -> bool
 	{
 		return handle_receive_all_event(pc, QUEST_LOGOUT_EVENT);
 	}
 
-	bool npc::on_unmount(pc& pc)
+	auto npc::on_unmount(pc& pc) -> bool
 	{
 		return handle_receive_all_event(pc, QUEST_UNMOUNT_EVENT);
 	}
@@ -359,7 +359,7 @@ namespace quest
 		func_miss_handle_event() : vdw_new_start_quest_indices(0), size(0)
 		{}
 
-		bool matched()
+		auto matched() -> bool
 		{
 			return vdw_new_start_quest_indices.size() != 0;
 		}
@@ -390,7 +390,7 @@ namespace quest
 			: found(false), vdw_ques_indices(0), vi_pc_states(0), vcodes(0), vcode_sizes(0), size(0)
 		{}
 
-		bool matched()
+		auto matched() -> bool
 		{
 			return found;
 		}
@@ -412,7 +412,7 @@ namespace quest
 		}
 	};
 
-	bool npc::handle_event(pc& pc, int event_index)
+	auto npc::handle_event(pc& pc, int event_index) -> bool
 	{
 		if (event_index < 0 || event_index >= QUEST_EVENT_COUNT)
 		{
@@ -531,7 +531,7 @@ namespace quest
 		}
 	};
 
-	bool npc::handle_receive_all_event(pc& pc, int event_index)
+	auto npc::handle_receive_all_event(pc& pc, int event_index) -> bool
 	{
 		if (event_index < 0 || event_index >= QUEST_EVENT_COUNT)
 		{
@@ -640,7 +640,7 @@ namespace quest
 		}
 	};
 
-	bool npc::handle_receive_all_no_wait_event(pc& pc, int event_index)
+	auto npc::handle_receive_all_no_wait_event(pc& pc, int event_index) -> bool
 	{
 		if (event_index<0 || event_index>=QUEST_EVENT_COUNT)
 		{
@@ -657,7 +657,7 @@ namespace quest
 		return fMatch.handled || fMiss.handled;
 	}
 
-	bool npc::on_info(pc & pc, unsigned int quest_index)
+	auto npc::on_info(pc & pc, unsigned int quest_index) -> bool
 	{
 		const int EventIndex = QUEST_INFO_EVENT;
 
@@ -706,7 +706,7 @@ namespace quest
 		return true;
 	}
 
-	bool npc::on_button(pc & pc, unsigned int quest_index)
+	auto npc::on_button(pc & pc, unsigned int quest_index) -> bool
 	{
 		const int EventIndex = QUEST_BUTTON_EVENT;
 
@@ -803,7 +803,7 @@ namespace quest
 		std::vector<a_arg_script*>& avail_script;
 	};
 
-	bool npc::on_chat(pc& pc)
+	auto npc::on_chat(pc& pc) -> bool
 	{
 		if (pc.is_running()) 
 		{
@@ -848,12 +848,12 @@ namespace quest
 		return true;
 	}
 
-	bool npc::has_chat()
+	auto npc::has_chat() -> bool
 	{
 		return !own_arg_quest_[QUEST_CHAT_EVENT].empty();
 	}
 
-	bool npc::execute_event_script(pc& pc, int event_index, uint32_t quest_index, int state)
+	auto npc::execute_event_script(pc& pc, int event_index, uint32_t quest_index, int state) -> bool
 	{
 		quest_map_type& rQuest = own_quest_[event_index];
 
@@ -877,14 +877,14 @@ namespace quest
 		return quest_manager::execute_quest_script(pc, quest_index, state, itState->second.get_code(), itState->second.size());
 	}
 
-	bool npc::on_pickup_item(pc& pc)
+	auto npc::on_pickup_item(pc& pc) -> bool
 	{
 		if (vnum_ == 0)
 			return handle_receive_all_event(pc, QUEST_ITEM_PICK_EVENT);
 		else
 			return handle_event(pc, QUEST_ITEM_PICK_EVENT);
 	}
-	bool npc::on_item_informer(pc& pc, unsigned int vnum)
+	auto npc::on_item_informer(pc& pc, unsigned int vnum) -> bool
 	{
 		return handle_event(pc, QUEST_ITEM_INFORMER_EVENT);
 	}

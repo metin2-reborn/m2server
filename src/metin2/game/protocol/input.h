@@ -46,8 +46,8 @@ class input_processor
 		input_processor();
 		virtual ~input_processor() {};
 
-		virtual bool process(desc * desc_value, const void * orig, int bytes, int & r_i_bytes_proceed);
-		virtual uint8_t type() = 0;
+		virtual auto process(desc * desc_value, const void * orig, int bytes, int & r_i_bytes_proceed) -> bool;
+		virtual auto type() -> uint8_t = 0;
 
 		void bind_packet_info(packet_info * packet_info_value);
 		void pong(desc * d);
@@ -55,7 +55,7 @@ class input_processor
 		void version(character * ch, const char* data);
 
 	protected:
-		virtual int	analyze(desc * d, uint8_t header, const char * data) = 0;
+		virtual auto	analyze(desc * d, uint8_t header, const char * data) -> int = 0;
 
 		packet_info * packet_info_;
 		int	buffer_left_;
@@ -66,9 +66,9 @@ class input_processor
 class input_close : public input_processor
 {
 	public:
-		uint8_t	type() override { return INPROC_CLOSE; }
+		auto	type() -> uint8_t override { return INPROC_CLOSE; }
 
-		bool	process(desc * d, const void * orig, int bytes, int & r_i_bytes_proceed) override
+		auto	process(desc * d, const void * orig, int bytes, int & r_i_bytes_proceed) -> bool override
 		{
 			r_i_bytes_proceed += bytes;
 			buffer_left_ = 0;
@@ -76,7 +76,7 @@ class input_close : public input_processor
 		}
 
 	protected:
-		int	analyze(desc * d, uint8_t header, const char * data) override { return 0; }
+		auto	analyze(desc * d, uint8_t header, const char * data) -> int override { return 0; }
 };
 
 class input_handshake : public input_processor
@@ -85,10 +85,10 @@ class input_handshake : public input_processor
 		input_handshake();
 		~input_handshake() override;
 
-		uint8_t	type() override { return INPROC_HANDSHAKE; }
+		auto	type() -> uint8_t override { return INPROC_HANDSHAKE; }
 
 	protected:
-		int	analyze(desc * d, uint8_t header_value, const char * data_value) override;
+		auto	analyze(desc * d, uint8_t header_value, const char * data_value) -> int override;
 
 	protected:
 
@@ -99,10 +99,10 @@ class input_handshake : public input_processor
 class input_login : public input_processor
 {
 	public:
-		uint8_t	type() override { return INPROC_LOGIN; }
+		auto	type() -> uint8_t override { return INPROC_LOGIN; }
 
 	protected:
-		int	analyze(desc * d, uint8_t header, const char * data) override;
+		auto	analyze(desc * d, uint8_t header, const char * data) -> int override;
 
 	protected:
 		void		login(desc * d, const char * data);
@@ -116,7 +116,7 @@ class input_login : public input_processor
 		void		guild_mark_crc_list(desc * d, const char* data);
 		void		guild_mark_idx_list(desc * d, const char* data);
 		void		guild_mark_upload(desc * d, const char* data);
-		int			guild_symbol_upload(desc * d, const char* data, size_t bytes);
+		auto			guild_symbol_upload(desc * d, const char* data, size_t bytes) -> int;
 		void		guild_symbol_crc(desc * d, const char* data);
 		void		change_name(desc * d, const char * data);
 };
@@ -124,16 +124,16 @@ class input_login : public input_processor
 class input_main : public input_processor
 {
 	public:
-		uint8_t	type() override { return INPROC_MAIN; }
+		auto	type() -> uint8_t override { return INPROC_MAIN; }
 
 	protected:
-		int	analyze(desc * d, uint8_t header, const char * data) override;
+		auto	analyze(desc * d, uint8_t header, const char * data) -> int override;
 
 	protected:
 		void		attack(character * ch, const uint8_t header, const char* data);
 
-		int			whisper(character * ch, const char * data, size_t bytes);
-		int			chat(character * ch, const char * data, size_t bytes);
+		auto			whisper(character * ch, const char * data, size_t bytes) -> int;
+		auto			chat(character * ch, const char * data, size_t bytes) -> int;
 		void		item_use(character * ch, const char * data);
 		void		item_drop(character * ch, const char * data);
 		void		item_drop2(character * ch, const char * data);
@@ -143,12 +143,12 @@ class input_main : public input_processor
 		void		quickslot_add(character * ch, const char * data);
 		void		quickslot_delete(character * ch, const char * data);
 		void		quickslot_swap(character * ch, const char * data);
-		int			shop(character * ch, const char * data, size_t bytes);
+		auto			shop(character * ch, const char * data, size_t bytes) -> int;
 		void		on_click(character * ch, const char * data);
 		void		exchange(character * ch, const char * data);
 		void		position(character * ch, const char * data);
 		void		move(character * ch, const char * data);
-		int			sync_position(character * ch, const char * pc_data, size_t bytes);
+		auto			sync_position(character * ch, const char * pc_data, size_t bytes) -> int;
 		void		fly_target(character * ch, const char * pc_data, uint8_t header);
 		void		use_skill(character * ch, const char * pc_data);
 		
@@ -163,7 +163,7 @@ class input_main : public input_processor
 		void		safebox_checkin(character * ch, const char * data);
 		void		safebox_checkout(character * ch, const char * data, bool mall_value);
 		void		safebox_item_move(character * ch, const char * data);
-		int			messenger(character * ch, const char* data, size_t bytes);
+		auto			messenger(character * ch, const char* data, size_t bytes) -> int;
 
 		void 		party_invite(character * ch, const char * data);
 		void 		party_invite_answer(character * ch, const char * data);
@@ -172,13 +172,13 @@ class input_main : public input_processor
 		void		party_use_skill(character * ch, const char * data);
 		void		party_parameter(character * ch, const char * data);
 
-		int			guild(character * ch, const char * data, size_t bytes);
+		auto			guild(character * ch, const char * data, size_t bytes) -> int;
 		void		answer_make_guild(character * ch, const char* data);
 
 		void		fishing(character * ch, const char* data);
 		void		item_give(character * ch, const char* data);
 		void		hack(character * ch, const char * data);
-		int			my_shop(character * ch, const char * data, size_t bytes);
+		auto			my_shop(character * ch, const char * data, size_t bytes) -> int;
 
 		void		refine(character * ch, const char* data);
 
@@ -187,11 +187,11 @@ class input_main : public input_processor
 class input_db : public input_processor
 {
 public:
-	bool process(desc * d, const void * orig, int bytes, int & r_i_bytes_proceed) override;
-	uint8_t type() override { return INPROC_DB; }
+	auto process(desc * d, const void * orig, int bytes, int & r_i_bytes_proceed) -> bool override;
+	auto type() -> uint8_t override { return INPROC_DB; }
 
 protected:
-	int	analyze(desc * d, uint8_t header, const char * data) override;
+	auto	analyze(desc * d, uint8_t header, const char * data) -> int override;
 
 protected:
 	void		map_locations(const char * data);
@@ -297,20 +297,20 @@ class input_p2_p : public input_processor
 {
 	public:
 		input_p2_p();
-		uint8_t	type() override { return INPROC_P2P; }
+		auto	type() -> uint8_t override { return INPROC_P2P; }
 
 	protected:
-		int	analyze(desc * d, uint8_t header, const char * data) override;
+		auto	analyze(desc * d, uint8_t header, const char * data) -> int override;
 
 	public:
 		void		setup(desc * d, const char * data);
 		void		login(desc * d, const char * data);
 		void		logout(desc * d, const char * data);
-		int			relay(desc * d, const char * data, size_t bytes);
-		int			notice(desc * d, const char * data, size_t bytes);
-		int			monarch_notice(desc * d, const char * data, size_t bytes);
-		int			monarch_transfer(desc * d, const char * data);
-		int			guild(desc * d, const char* data, size_t bytes);
+		auto			relay(desc * d, const char * data, size_t bytes) -> int;
+		auto			notice(desc * d, const char * data, size_t bytes) -> int;
+		auto			monarch_notice(desc * d, const char * data, size_t bytes) -> int;
+		auto			monarch_transfer(desc * d, const char * data) -> int;
+		auto			guild(desc * d, const char* data, size_t bytes) -> int;
 		void		shout(const char * data);
 		void		disconnect(const char * data);
 		void		messenger_add(const char * data);
@@ -332,16 +332,16 @@ class input_auth : public input_processor
 {
 	public:
 		input_auth();
-		uint8_t type() override { return INPROC_AUTH; }
+		auto type() -> uint8_t override { return INPROC_AUTH; }
 
 	protected:
-		int	analyze(desc * d, uint8_t header, const char * data) override;
+		auto	analyze(desc * d, uint8_t header, const char * data) -> int override;
 
 	public:
 		void		login(desc * d, const char * data);
 
 };
 
-extern bool race_to_job(unsigned race, unsigned *ret_job);
+extern auto race_to_job(unsigned race, unsigned *ret_job) -> bool;
 extern void send_shout(const char * text, uint8_t empire);
 }

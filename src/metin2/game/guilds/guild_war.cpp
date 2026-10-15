@@ -110,7 +110,7 @@ void guild::send_enemy_guild(character * ch)
 	}
 }
 
-int guild::get_guild_war_state(uint32_t opp_gid)
+auto guild::get_guild_war_state(uint32_t opp_gid) -> int
 {
 	if (opp_gid == id())
 		return GUILD_WAR_NONE;
@@ -119,7 +119,7 @@ int guild::get_guild_war_state(uint32_t opp_gid)
 	return (it != enemy_guild_.end()) ? (it->second.state) : static_cast<uint32_t>(GUILD_WAR_NONE);
 } 
 
-int guild::get_guild_war_type(uint32_t opp_gid)
+auto guild::get_guild_war_type(uint32_t opp_gid) -> int
 {
 	auto git = enemy_guild_.find(opp_gid);
 
@@ -129,7 +129,7 @@ int guild::get_guild_war_type(uint32_t opp_gid)
 	return git->second.type;
 }
 
-uint32_t guild::guild_war_map_index(uint32_t opp_gid)
+auto guild::guild_war_map_index(uint32_t opp_gid) -> uint32_t
 {
 	auto git = enemy_guild_.find(opp_gid);
 
@@ -139,7 +139,7 @@ uint32_t guild::guild_war_map_index(uint32_t opp_gid)
 	return git->second.map_index;
 }
 
-bool guild::can_start_war(uint8_t guild_war_type)
+auto guild::can_start_war(uint8_t guild_war_type) -> bool
 {
 	if (guild_war_type >= GUILD_WAR_TYPE_MAX_NUM)
 		return false;
@@ -150,7 +150,7 @@ bool guild::can_start_war(uint8_t guild_war_type)
 	return ladder_point() > 0 && member_count() >= GUILD_WAR_MIN_MEMBER_COUNT;
 }
 
-bool guild::under_war(uint32_t opp_gid)
+auto guild::under_war(uint32_t opp_gid) -> bool
 {
 	if (opp_gid == id())
 		return false;
@@ -159,7 +159,7 @@ bool guild::under_war(uint32_t opp_gid)
 	return (it != enemy_guild_.end()) && (it->second.is_war_begin());
 } 
 
-uint32_t guild::under_any_war(uint8_t type_value)
+auto guild::under_any_war(uint8_t type_value) -> uint32_t
 {
 	for (auto it = enemy_guild_.begin(); it != enemy_guild_.end(); ++it)
 	{
@@ -218,7 +218,7 @@ void guild::set_war_score_against_to(uint32_t opp_gid, int score_value)
 	}
 }
 
-int guild::war_score_against_to(uint32_t opp_gid)
+auto guild::war_score_against_to(uint32_t opp_gid) -> int
 {
 	auto it = enemy_guild_.find(opp_gid);
 
@@ -232,7 +232,7 @@ int guild::war_score_against_to(uint32_t opp_gid)
 	return 0;
 }
 
-uint32_t guild::war_start_time(uint32_t opp_gid)
+auto guild::war_start_time(uint32_t opp_gid) -> uint32_t
 {
 	if (opp_gid == id())
 		return 0;
@@ -245,17 +245,17 @@ uint32_t guild::war_start_time(uint32_t opp_gid)
 	return it->second.war_start_time;
 }
 
-const guild_war_info& guild_war_get_type_info(unsigned type)
+auto guild_war_get_type_info(unsigned type) -> const guild_war_info&
 {
 	return kor_a_guild_war_info[type];
 }
 
-unsigned guild_war_get_type_map_index(unsigned type)
+auto guild_war_get_type_map_index(unsigned type) -> unsigned
 {
 	return guild_war_get_type_info(type).map_index;
 }
 
-bool guild_war_is_war_map(unsigned type)
+auto guild_war_is_war_map(unsigned type) -> bool
 {
 	if (type == GUILD_WAR_TYPE_FIELD)
 		return true;
@@ -373,7 +373,7 @@ void guild::request_declare_war(uint32_t opp_gid, uint8_t type)
 	}
 }
 
-bool guild::declare_war(uint32_t opp_gid, uint8_t type, uint8_t state)
+auto guild::declare_war(uint32_t opp_gid, uint8_t type, uint8_t state) -> bool
 {
 	if (enemy_guild_.find(opp_gid) != enemy_guild_.end())
 		return false;
@@ -387,7 +387,7 @@ bool guild::declare_war(uint32_t opp_gid, uint8_t type, uint8_t state)
 	return true;
 }
 
-bool guild::check_start_war(uint32_t opp_gid)
+auto guild::check_start_war(uint32_t opp_gid) -> bool
 {
 	auto it = enemy_guild_.find(opp_gid);
 
@@ -423,7 +423,7 @@ void guild::start_war(uint32_t opp_gid)
 		guild_war_entry_ask(opp_gid);
 }
 
-bool guild::wait_start_war(uint32_t opp_gid)
+auto guild::wait_start_war(uint32_t opp_gid) -> bool
 {
 	if (opp_gid == id())
 	{

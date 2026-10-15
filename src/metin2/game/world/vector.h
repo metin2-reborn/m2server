@@ -11,8 +11,8 @@ struct vector {
 };
 
 extern void		normalize(vector * v1, vector * v2);
-extern float    get_degree_from_position(float x, float y);
-extern float    get_degree_from_position_xy(int32_t sx, int32_t sy, int32_t ex, int32_t ey);
+extern auto    get_degree_from_position(float x, float y) -> float;
+extern auto    get_degree_from_position_xy(int32_t sx, int32_t sy, int32_t ex, int32_t ey) -> float;
 extern void     get_delta_by_degree(float degree, float distance, float *x, float *y);
-extern float	get_degree_delta(float degree, float degree2);
+extern auto	get_degree_delta(float degree, float degree2) -> float;
 }

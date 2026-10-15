@@ -80,7 +80,7 @@ class special_item_group
 			items.push_back(special_item_info(vnum, count, rare));
 		}
 
-		int multi_index(std::vector <int> &idx_vec) const
+		auto multi_index(std::vector <int> &idx_vec) const -> int
 		{
 			idx_vec.clear();
 			if (type == PCT)
@@ -108,29 +108,29 @@ class special_item_group
 			}
 		}
 
-		int one_index() const
+		auto one_index() const -> int
 		{
 			int n = number(1, probs.back());
 			auto it = lower_bound(probs.begin(), probs.end(), n);
 			return std::distance(probs.begin(), it);
 		}
 
-		int get_vnum(int idx) const
+		auto get_vnum(int idx) const -> int
 		{
 			return items[idx].vnum;
 		}
 
-		int count(int idx) const
+		auto count(int idx) const -> int
 		{
 			return items[idx].count;
 		}
 
-		int rare_pct(int idx) const
+		auto rare_pct(int idx) const -> int
 		{
 			return items[idx].rare;
 		}
 
-		bool contains(uint32_t vnum_value) const
+		auto contains(uint32_t vnum_value) const -> bool
 		{
 			for (uint32_t i = 0; i < items.size(); i++)
 			{
@@ -140,7 +140,7 @@ class special_item_group
 			return false;
 		}
 		
-		uint32_t attr_vnum(uint32_t vnum_value) const
+		auto attr_vnum(uint32_t vnum_value) const -> uint32_t
 		{
 			if (special_item_group::SPECIAL != type)
 				return 0;
@@ -181,7 +181,7 @@ class mob_item_group
 		{
 		}
 
-		int kill_per_drop() const
+		auto kill_per_drop() const -> int
 		{
 			return kill_drop_;
 		}
@@ -194,19 +194,19 @@ class mob_item_group
 			items_.push_back(mob_item_group_info(item_vnum, count, rare_pct));
 		}
 
-		bool is_empty() const
+		auto is_empty() const -> bool
 		{
 			return probs_.empty();
 		}
 
-		int one_index() const
+		auto one_index() const -> int
 		{
 			int n = number(1, probs_.back());
 			auto it = lower_bound(probs_.begin(), probs_.end(), n);
 			return std::distance(probs_.begin(), it);
 		}
 
-		const mob_item_group_info& one() const
+		auto one() const -> const mob_item_group_info&
 		{
 			return items_[one_index()];
 		}
@@ -233,7 +233,7 @@ class drop_item_group
 	public:
 	drop_item_group() = default;
 
-	const std::vector<drop_item_group_info> & get_vector()
+	auto get_vector() -> const std::vector<drop_item_group_info> &
 	{
 		return vec_items_;
 	}
@@ -269,14 +269,14 @@ class level_item_group
 			: level_limit_(level_limit)
 		{}
 
-		uint32_t level_limit() { return level_limit_; }
+		auto level_limit() -> uint32_t { return level_limit_; }
 
 		void add_item(uint32_t item_vnum, uint32_t pct, int count)
 		{
 			vec_items_.push_back(level_item_group_info(item_vnum, pct, count));
 		}
 
-		const std::vector<level_item_group_info> & get_vector()
+		auto get_vector() -> const std::vector<level_item_group_info> &
 		{
 			return vec_items_;
 		}
@@ -298,7 +298,7 @@ class buyer_thief_gloves_item_group
 	public:
 	buyer_thief_gloves_item_group() = default;
 
-	const std::vector<thief_group_info> & get_vector()
+	auto get_vector() -> const std::vector<thief_group_info> &
 	{
 		return vec_items_;
 	}
@@ -319,51 +319,51 @@ class item_manager : public singleton<item_manager>
 		item_manager();
 		~item_manager() override;
 
-		bool                    initialize(item_table * table_value, int size);
+		auto                    initialize(item_table * table_value, int size) -> bool;
 		void			destroy();
 		void			update();
 		void			graceful_shutdown();
 
-		uint32_t			new_id();
-		bool			set_max_item_id(item_id_range_table range);
-		bool			set_max_spare_item_id(item_id_range_table range);
+		auto			new_id() -> uint32_t;
+		auto			set_max_item_id(item_id_range_table range) -> bool;
+		auto			set_max_spare_item_id(item_id_range_table range) -> bool;
 
 		void			delayed_save(item * item);
 		void			flush_delayed_save(item * item);
 		void			save_single_item(item * item);
 
-		item *                  create_item(uint32_t vnum, uint32_t count = 1, uint32_t id = 0, bool try_magic = false, int rare_pct = -1, bool skip_save = false);
+		auto                  create_item(uint32_t vnum, uint32_t count = 1, uint32_t id = 0, bool try_magic = false, int rare_pct = -1, bool skip_save = false) -> item *;
 		void destroy_item(item * item);
 		void			remove_item(item * item, const char * reason=nullptr);
 
-		item *			find(uint32_t id);
-		item *                  find_by_vid(uint32_t vid);
-		item_table *            table(uint32_t vnum);
-		bool			vnum(const char * name, uint32_t & r_dw_vnum);
-		bool			vnum_by_original_name(const char * name_value, uint32_t & r_dw_vnum);
+		auto			find(uint32_t id) -> item *;
+		auto                  find_by_vid(uint32_t vid) -> item *;
+		auto            table(uint32_t vnum) -> item_table *;
+		auto			vnum(const char * name, uint32_t & r_dw_vnum) -> bool;
+		auto			vnum_by_original_name(const char * name_value, uint32_t & r_dw_vnum) -> bool;
 
-		bool			drop_pct(character * chr, character * killer, int& delta_percent, int& rand_range);
-		bool			create_drop_item(character * chr, character * killer, std::vector<item *> & vec_item);
+		auto			drop_pct(character * chr, character * killer, int& delta_percent, int& rand_range) -> bool;
+		auto			create_drop_item(character * chr, character * killer, std::vector<item *> & vec_item) -> bool;
 
-		bool			read_common_drop_item_file(const char * file_name);
-		bool			read_etc_drop_item_file(const char * file_name);
-		bool			read_drop_item_group(const char * file_name);
-		bool			read_monster_drop_item_group(const char * file_name);
-		bool			read_special_drop_item_file(const char * file_name);
+		auto			read_common_drop_item_file(const char * file_name) -> bool;
+		auto			read_etc_drop_item_file(const char * file_name) -> bool;
+		auto			read_drop_item_group(const char * file_name) -> bool;
+		auto			read_monster_drop_item_group(const char * file_name) -> bool;
+		auto			read_special_drop_item_file(const char * file_name) -> bool;
 		
-		bool			conv_special_drop_item_file();
+		auto			conv_special_drop_item_file() -> bool;
 
-		uint32_t			refine_from_vnum(uint32_t vnum);
+		auto			refine_from_vnum(uint32_t vnum) -> uint32_t;
 
 		static void		copy_all_attr_to(item * old_item, item * new_item);
 
-		const special_item_group* get_special_item_group(uint32_t vnum);
-		const special_attr_group* get_special_attr_group(uint32_t vnum);
+		auto get_special_item_group(uint32_t vnum) -> const special_item_group*;
+		auto get_special_attr_group(uint32_t vnum) -> const special_attr_group*;
 
-		int			special_group_from_item(uint32_t vnum) const { auto it = item_to_special_group_.find(vnum); return (it == item_to_special_group_.end()) ? 0 : it->second; }
+		auto			special_group_from_item(uint32_t vnum) const -> int { auto it = item_to_special_group_.find(vnum); return (it == item_to_special_group_.end()) ? 0 : it->second; }
 
 	protected:
-		int                     real_number(uint32_t vnum);
+		auto                     real_number(uint32_t vnum) -> int;
 		void			create_quest_drop_item(character * chr, character * killer, std::vector<item *> & vec_item, int delta_percent, int rand_range);
 
 	protected:
@@ -397,15 +397,15 @@ class item_manager : public singleton<item_manager>
 		map_dw2_dw	map_new_to_ori_;
 
 	public:	
-		uint32_t	mask_vnum(uint32_t vnum);
+		auto	mask_vnum(uint32_t vnum) -> uint32_t;
 		std::map<uint32_t, item_table>  map_vid;
 		
 		const static int max_norm_attr_num = 5;
 		const static int max_rare_attr_num = 2;
-		bool read_item_vnum_mask_table(const char * file_name);
+		auto read_item_vnum_mask_table(const char * file_name) -> bool;
 	private:
 };
 
-extern bool drop_event_refine_box_set_value(const std::string& name, int value);
-extern bool drop_event_char_stone_set_value(const std::string& name, int value);
+extern auto drop_event_refine_box_set_value(const std::string& name, int value) -> bool;
+extern auto drop_event_char_stone_set_value(const std::string& name, int value) -> bool;
 }

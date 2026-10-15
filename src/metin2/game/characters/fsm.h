@@ -18,8 +18,8 @@ class fsm
 
 		virtual void update();
 
-		bool is_state(state &state_value) const;
-		bool goto_state(state &new_state);
+		auto is_state(state &state_value) const -> bool;
+		auto goto_state(state &new_state) -> bool;
 
 		virtual void begin_state_initial() {}
 		virtual void state_initial() {}

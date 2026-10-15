@@ -96,7 +96,7 @@ void desc_manager::destroy()
 	initialize();
 }
 
-uint32_t desc_manager::create_handshake()
+auto desc_manager::create_handshake() -> uint32_t
 {
 	char crc_buf[8];
 	crc_t crc;
@@ -121,7 +121,7 @@ RETRY:
 	return (crc);
 }
 
-desc * desc_manager::accept_desc(net::tcp::socket socket)
+auto desc_manager::accept_desc(net::tcp::socket socket) -> desc *
 {
 	auto connection = net::connection::create(std::move(socket), MAX_CLIENT_INPUT, MAX_CLIENT_OUTPUT);
 	const char * host = connection->remote_address().c_str();
@@ -163,7 +163,7 @@ desc * desc_manager::accept_desc(net::tcp::socket socket)
 	return (newd);
 }
 
-desc * desc_manager::accept_p2_p_desc(net::tcp::socket socket)
+auto desc_manager::accept_p2_p_desc(net::tcp::socket socket) -> desc *
 {
 	desc_p2_p * pkDesc = new desc_p2_p;
 
@@ -246,7 +246,7 @@ void desc_manager::destroy_closed()
 	}
 }
 
-desc * desc_manager::find_by_login_name(const std::string& login)
+auto desc_manager::find_by_login_name(const std::string& login) -> desc *
 {
 	desc_loginname_map::iterator it = map_login_name_.find(login);
 
@@ -256,7 +256,7 @@ desc * desc_manager::find_by_login_name(const std::string& login)
 	return (it->second); 
 }
 
-desc * desc_manager::find_by_handle(uint32_t handle)
+auto desc_manager::find_by_handle(uint32_t handle) -> desc *
 {
 	desc_handle_map::iterator it = map_handle_.find(handle);
 
@@ -266,7 +266,7 @@ desc * desc_manager::find_by_handle(uint32_t handle)
 	return (it->second); 
 }
 
-const desc_manager::desc_set & desc_manager::client_set()
+auto desc_manager::client_set() -> const desc_manager::desc_set &
 {
 	return set_pk_desc_;
 }
@@ -279,7 +279,7 @@ struct name_with_desc_func
 	{
 	}
 
-	bool operator () (desc * d)
+	auto operator () (desc * d) -> bool
 	{
 		if (d->get_character() && !strcmp(d->get_character()->name(), name))
 			return true;
@@ -288,13 +288,13 @@ struct name_with_desc_func
 	}
 };
 
-desc * desc_manager::find_by_character_name(const char *name)
+auto desc_manager::find_by_character_name(const char *name) -> desc *
 {
 	desc_set::iterator it = std::find_if (set_pk_desc_.begin(), set_pk_desc_.end(), name_with_desc_func(name));
 	return (it == set_pk_desc_.end()) ? nullptr : (*it);
 }
 
-client_desc * desc_manager::create_connection_desc(const char * host, uint16_t port, int phase_when_succeed, bool retry_when_closed)
+auto desc_manager::create_connection_desc(const char * host, uint16_t port, int phase_when_succeed, bool retry_when_closed) -> client_desc *
 {
 	client_desc * newd;
 
@@ -325,7 +325,7 @@ void desc_manager::try_connect()
 	std::for_each(set_pk_client_desc_.begin(), set_pk_client_desc_.end(), f);
 }
 
-bool desc_manager::is_p2_p_desc_exist(const char * host, uint16_t port)
+auto desc_manager::is_p2_p_desc_exist(const char * host, uint16_t port) -> bool
 {
 	client_desc_set::iterator it = set_pk_client_desc_.begin();
 	
@@ -390,20 +390,20 @@ void desc_manager::user_count(int & total, int ** pai_empire_user_count, int & l
 }
 
 
-uint32_t desc_manager::make_random_key(uint32_t handle)
+auto desc_manager::make_random_key(uint32_t handle) -> uint32_t
 { 
 	uint32_t random_key = thecore_random();
 	map_handle_random_key_[handle] = random_key;
 	return random_key;
 }
 
-bool desc_manager::check_random_key(uint32_t handle, uint32_t key)
+auto desc_manager::check_random_key(uint32_t handle, uint32_t key) -> bool
 {
 	auto it = map_handle_random_key_.find(handle);
 	return it != map_handle_random_key_.end() && it->second == key && find_by_handle(handle) != nullptr;
 }
 
-desc * desc_manager::find_by_login_key(uint32_t key)
+auto desc_manager::find_by_login_key(uint32_t key) -> desc *
 {
 	std::map<uint32_t, login_key *>::iterator it = map_pk_login_key_.find(key);
 
@@ -414,7 +414,7 @@ desc * desc_manager::find_by_login_key(uint32_t key)
 }
 
 
-uint32_t desc_manager::create_login_key(desc * d)
+auto desc_manager::create_login_key(desc * d) -> uint32_t
 {
 	uint32_t dwKey = 0;
 

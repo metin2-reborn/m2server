@@ -14,7 +14,7 @@ namespace metin2::game {
 
 namespace quest
 {
-	int affect_add(lua_State * lua)
+	auto affect_add(lua_State * lua) -> int
 	{
 		if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2) || !lua_isnumber(lua, 3))
 		{
@@ -45,7 +45,7 @@ namespace quest
 		return 0;
 	}
 
-	int affect_remove(lua_State * lua)
+	auto affect_remove(lua_State * lua) -> int
 	{
 		quest_manager & q = quest_manager::instance();
 		int iType;
@@ -65,21 +65,21 @@ namespace quest
 		return 0;
 	}
 
-	int affect_remove_bad(lua_State * lua)
+	auto affect_remove_bad(lua_State * lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		ch->remove_bad_affect();
 		return 0;
 	}
 
-	int affect_remove_good(lua_State * lua)
+	auto affect_remove_good(lua_State * lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		ch->remove_good_affect();
 		return 0;
 	}
 
-	int affect_add_hair(lua_State * lua)
+	auto affect_add_hair(lua_State * lua) -> int
 	{
 		if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2) || !lua_isnumber(lua, 3))
 		{
@@ -107,7 +107,7 @@ namespace quest
 		return 0;
 	}
 
-	int affect_remove_hair(lua_State * lua)
+	auto affect_remove_hair(lua_State * lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -126,7 +126,7 @@ namespace quest
 		return 1;
 	}
 	
-	int affect_get_apply_on(lua_State * lua)
+	auto affect_get_apply_on(lua_State * lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -149,7 +149,7 @@ namespace quest
 
 	}
 
-	int affect_add_collect(lua_State * lua)
+	auto affect_add_collect(lua_State * lua) -> int
 	{
 		if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2) || !lua_isnumber(lua, 3))
 		{
@@ -177,7 +177,7 @@ namespace quest
 		return 0;
 	}
 
-	int affect_add_collect_point(lua_State * lua)
+	auto affect_add_collect_point(lua_State * lua) -> int
 	{
 		if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2) || !lua_isnumber(lua, 3))
 		{
@@ -205,7 +205,7 @@ namespace quest
 		return 0;
 	}
 
-	int affect_remove_collect(lua_State* lua)
+	auto affect_remove_collect(lua_State* lua) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -245,7 +245,7 @@ namespace quest
 		return 0;
 	}
 
-	int affect_remove_all_collect( lua_State* lua )
+	auto affect_remove_all_collect( lua_State* lua ) -> int
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 

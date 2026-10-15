@@ -75,20 +75,20 @@ class motion
 		motion();
 		~motion();
 
-		bool			load_from_file(const char * file_name);
-		bool			load_mob_skill_from_file(const char * file_name, mob * mob_value, int skill_index);
+		auto			load_from_file(const char * file_name) -> bool;
+		auto			load_mob_skill_from_file(const char * file_name, mob * mob_value, int skill_index) -> bool;
 
-		float			duration() const;
-		const vector &	accum_vector() const;
+		auto			duration() const -> float;
+		auto	accum_vector() const -> const vector &;
 
-		bool			is_empty();
+		auto			is_empty() -> bool;
 
 	protected:
 		float			duration_;
 		vector		vec3_accumulation_;
 };
 
-constexpr uint32_t make_motion_key(uint32_t mode, uint32_t index) { return (mode << 24) | (index << 8); }
+constexpr auto make_motion_key(uint32_t mode, uint32_t index) -> uint32_t { return (mode << 24) | (index << 8); }
 
 class motion_set
 {
@@ -102,9 +102,9 @@ class motion_set
 		~motion_set();
 
 		void		insert(uint32_t key, std::unique_ptr<motion> motion_value);
-		bool		load(const char * file_name, int mode, int motion);
+		auto		load(const char * file_name, int mode, int motion) -> bool;
 
-		const motion *	get_motion(uint32_t key) const;
+		auto	get_motion(uint32_t key) const -> const motion *;
 
 	protected:
 		container			map_pk_motion_;
@@ -119,13 +119,13 @@ class motion_manager : public singleton<motion_manager>
 		motion_manager();
 		~motion_manager() override;
 
-		bool			build();
+		auto			build() -> bool;
 
-		const motion_set *	get_motion_set(uint32_t vnum);
-		const motion *		get_motion(uint32_t vnum, uint32_t key);
-		float			    motion_duration(uint32_t vnum, uint32_t key);
+		auto	get_motion_set(uint32_t vnum) -> const motion_set *;
+		auto		get_motion(uint32_t vnum, uint32_t key) -> const motion *;
+		auto			    motion_duration(uint32_t vnum, uint32_t key) -> float;
 
-		float			    normal_attack_duration(uint32_t vnum);
+		auto			    normal_attack_duration(uint32_t vnum) -> float;
 
 	protected:
 		container		map_pk_motion_set_;
