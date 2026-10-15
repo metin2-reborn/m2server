@@ -1,7 +1,7 @@
+#include <metin2/config/config.h>
 #include <metin2/game/protocol/desc_manager.h>
 
 #include <metin2/game/characters/character.h>
-#include <metin2/game/app/config.h>
 #include <metin2/game/app/crc32.h>
 #include <metin2/game/protocol/desc.h>
 #include <metin2/game/protocol/desc_client.h>

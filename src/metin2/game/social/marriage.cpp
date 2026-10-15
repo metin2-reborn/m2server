@@ -1,3 +1,4 @@
+#include <metin2/config/config.h>
 #include <metin2/game/social/marriage.h>
 
 #include <metin2/game/characters/character.h>
@@ -21,7 +22,6 @@
 
 #include <algorithm>
 #include <cstdint>
-#include <cstring>
 #include <ctime>
 #include <memory>
 #include <string>

@@ -12,7 +12,6 @@
 #include <mysql.h>
 
 #include <cstdio>
-#include <cstring>
 #include <memory>
 #include <string>
 #include <utility>

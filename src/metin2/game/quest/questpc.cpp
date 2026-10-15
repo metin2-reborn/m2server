@@ -1,8 +1,8 @@
+#include <metin2/config/config.h>
 #include <metin2/game/quest/questpc.h>
 
 #include <metin2/game/protocol/buffer_manager.h>
 #include <metin2/game/characters/character.h>
-#include <metin2/game/app/config.h>
 #include <metin2/game/protocol/desc_client.h>
 #include <metin2/game/app/event.h>
 #include <metin2/game/text/locale.hpp>
@@ -18,7 +18,6 @@
 
 #include <cassert>
 #include <cstdint>
-#include <cstring>
 #include <string>
 #include <utility>
 #include <vector>

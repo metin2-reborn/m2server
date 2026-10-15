@@ -1,8 +1,8 @@
+#include <metin2/config/config.h>
 #include <metin2/game/trade/shop_manager.h>
 
 #include <metin2/game/characters/character.h>
 #include <metin2/game/characters/character_manager.h>
-#include <metin2/game/app/config.h>
 #include <metin2/game/persistence/db.h>
 #include <metin2/game/protocol/desc.h>
 #include <metin2/game/data/group_text_parse_tree.h>

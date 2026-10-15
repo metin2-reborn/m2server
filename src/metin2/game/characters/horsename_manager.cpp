@@ -12,7 +12,6 @@
 #include <metin2/log/log.h>
 
 #include <cstdint>
-#include <cstring>
 #include <map>
 #include <string>
 

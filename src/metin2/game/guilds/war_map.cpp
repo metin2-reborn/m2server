@@ -1,3 +1,4 @@
+#include <metin2/config/config.h>
 #include <metin2/game/guilds/war_map.h>
 
 #include <metin2/game/characters/affect.h>

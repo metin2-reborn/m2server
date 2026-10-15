@@ -1,3 +1,4 @@
+#include <metin2/config/config.h>
 #include <metin2/game/items/item_manager.h>
 
 #include <metin2/game/items/blend_item.h>

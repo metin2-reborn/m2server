@@ -1,3 +1,4 @@
+#include <metin2/config/config.h>
 #include <metin2/game/quest/questmanager.h>
 
 #include <metin2/game/protocol/buffer_manager.h>
@@ -32,7 +33,6 @@
 #include <cctype>
 #include <climits>
 #include <cmath>
-#include <cstdarg>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>

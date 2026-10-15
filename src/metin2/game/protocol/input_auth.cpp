@@ -1,3 +1,4 @@
+#include <metin2/config/config.h>
 #include <metin2/game/app/config.h>
 #include <metin2/game/persistence/db.h>
 #include <metin2/game/protocol/desc.h>

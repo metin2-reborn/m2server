@@ -1,3 +1,4 @@
+#include <metin2/config/config.h>
 #include <metin2/game/protocol/desc_client.h>
 
 #include <metin2/game/protocol/buffer_manager.h>

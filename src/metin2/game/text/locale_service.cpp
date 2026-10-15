@@ -1,3 +1,4 @@
+#include <metin2/config/config.h>
 #include <metin2/game/text/locale_service.h>
 
 #include <metin2/game/text/banword.h>
@@ -12,7 +13,6 @@
 #include <metin2/log/log.h>
 
 #include <cctype>
-#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>

@@ -11,7 +11,6 @@
 #include <metin2/log/log.h>
 
 #include <cstdint>
-#include <cstdlib>
 #include <limits>
 
 namespace metin2::game::inline characters {

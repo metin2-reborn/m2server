@@ -1,9 +1,9 @@
 
 
+#include <metin2/config/config.h>
 #include <metin2/game/items/cube.h>
 
 #include <metin2/game/characters/character.h>
-#include <metin2/game/app/config.h>
 #include <metin2/game/items/item.h>
 #include <metin2/game/items/item_manager.h>
 #include <metin2/game/text/locale.hpp>

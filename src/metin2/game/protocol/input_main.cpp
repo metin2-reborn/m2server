@@ -1,3 +1,4 @@
+#include <metin2/config/config.h>
 #include <metin2/game/characters/affect.h>
 #include <metin2/game/characters/ani.h>
 #include <metin2/game/text/banword.h>

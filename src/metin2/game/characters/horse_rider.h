@@ -1,6 +1,5 @@
 #pragma once
 
-#include <metin2/game/admin/cmd.h>
 #include <metin2/game/app/event.h>
 
 #include <metin2/proto/tables.h>

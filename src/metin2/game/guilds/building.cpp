@@ -1,3 +1,4 @@
+#include <metin2/config/config.h>
 #include <metin2/game/guilds/building.h>
 #include <metin2/proto/building.h>
 

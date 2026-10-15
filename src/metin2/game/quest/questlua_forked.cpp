@@ -1,4 +1,5 @@
 
+#include <metin2/config/config.h>
 #include <metin2/game/characters/character.h>
 #include <metin2/game/app/config.h>
 #include <metin2/game/world/entity.h>

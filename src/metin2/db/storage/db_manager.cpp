@@ -2,7 +2,6 @@
 
 #include <metin2/db/clients/client_manager.h>
 
-#include <metin2/proto/tables.h>
 #include <metin2/sql/async_sql.h>
 #include <metin2/log/log.h>
 

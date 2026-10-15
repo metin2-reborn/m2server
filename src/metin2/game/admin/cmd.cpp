@@ -1,7 +1,7 @@
+#include <metin2/config/config.h>
 #include <metin2/game/admin/cmd.h>
 
 #include <metin2/game/characters/character.h>
-#include <metin2/game/app/config.h>
 #include <metin2/game/protocol/desc.h>
 #include <metin2/game/text/locale.hpp>
 #include <metin2/game/persistence/log.h>

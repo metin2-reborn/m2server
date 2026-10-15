@@ -1,6 +1,6 @@
+#include <metin2/config/config.h>
 #include <metin2/game/admin/gm.h>
 
-#include <metin2/game/app/config.h>
 
 #include <metin2/proto/length.h>
 #include <metin2/proto/tables.h>

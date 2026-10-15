@@ -13,7 +13,6 @@
 
 #include <mysql.h>
 
-#include <cstddef>
 #include <cstdint>
 #include <ctime>
 #include <functional>

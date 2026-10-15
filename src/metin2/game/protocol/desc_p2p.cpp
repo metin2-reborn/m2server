@@ -1,3 +1,4 @@
+#include <metin2/config/config.h>
 #include <metin2/game/protocol/desc_p2p.h>
 
 #include <metin2/game/app/config.h>

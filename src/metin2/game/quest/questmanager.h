@@ -11,7 +11,6 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <format>
 #include <map>
 #include <set>
 #include <source_location>

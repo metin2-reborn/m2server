@@ -14,7 +14,6 @@
 
 #include <cstdint>
 #include <cstdio>
-#include <cstring>
 #include <memory>
 
 namespace metin2::db::inline clients {

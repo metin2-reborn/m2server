@@ -1,4 +1,4 @@
-#include <metin2/game/app/config.h>
+#include <metin2/config/config.h>
 #include <metin2/game/quest/lua_incl.h>
 #include <metin2/game/quest/quest.h>
 #include <metin2/game/quest/questlua.h>

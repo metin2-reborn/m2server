@@ -1,3 +1,4 @@
+#include <metin2/config/config.h>
 #include <metin2/game/app/config.h>
 
 #include <metin2/game/characters/character.h>
@@ -5,7 +6,6 @@
 #include <metin2/game/persistence/db.h>
 #include <metin2/game/protocol/desc.h>
 #include <metin2/game/protocol/desc_manager.h>
-#include <metin2/game/protocol/ip_ban.h>
 #include <metin2/game/text/locale.hpp>
 #include <metin2/game/text/locale_service.h>
 #include <metin2/game/persistence/log.h>
@@ -15,9 +15,7 @@
 #include <metin2/game/guilds/war_map.h>
 
 #include <metin2/proto/length.h>
-#include <metin2/common/utils.h>
 #include <metin2/sql/async_sql.h>
-#include <metin2/core/utils.h>
 #include <metin2/log/log.h>
 
 #include <mysql.h>

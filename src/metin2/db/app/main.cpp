@@ -11,20 +11,13 @@
 #include <metin2/db/empire/priv_manager.h>
 
 #include <metin2/common/startup.h>
-#include <metin2/common/utils.h>
 #include <metin2/core/core_signal.h>
 #include <metin2/config/config.h>
 #include <metin2/log/log.h>
 #include <metin2/core/main.h>
 
-#include <algorithm>
 #include <csignal>
-#include <cstdint>
-#include <cstdio>
-#include <cstdlib>
-#include <filesystem>
 #include <string>
-#include <vector>
 
 #include <unistd.h>
 

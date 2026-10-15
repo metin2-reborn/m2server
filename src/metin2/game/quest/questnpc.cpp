@@ -1,3 +1,4 @@
+#include <metin2/config/config.h>
 #include <metin2/game/quest/questnpc.h>
 
 #include <metin2/game/characters/character.h>
@@ -11,7 +12,6 @@
 
 #include <algorithm>
 #include <cassert>
-#include <climits>
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>

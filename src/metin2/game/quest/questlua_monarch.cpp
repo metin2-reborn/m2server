@@ -1,3 +1,4 @@
+#include <metin2/config/config.h>
 #include <metin2/game/empire/castle.h>
 #include <metin2/game/characters/character.h>
 #include <metin2/game/characters/character_manager.h>
@@ -25,7 +26,6 @@
 
 #include <cstdint>
 #include <cstdio>
-#include <cstring>
 #include <string>
 
 namespace metin2::game {

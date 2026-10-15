@@ -2,7 +2,6 @@
 
 #include <array>
 #include <atomic>
-#include <chrono>
 #include <cstdlib>
 #include <ctime>
 #include <format>

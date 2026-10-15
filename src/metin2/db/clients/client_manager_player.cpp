@@ -19,7 +19,6 @@
 #include <mysql.h>
 
 #include <algorithm>
-#include <cstddef>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>

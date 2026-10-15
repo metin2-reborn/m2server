@@ -1,3 +1,4 @@
+#include <metin2/config/config.h>
 #include <metin2/game/empire/monarch.h>
 
 #include <metin2/game/characters/character.h>

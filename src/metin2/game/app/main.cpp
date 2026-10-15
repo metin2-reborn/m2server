@@ -22,7 +22,6 @@
 #include <metin2/game/events/fishing.h>
 #include <metin2/game/guilds/guild_manager.h>
 #include <metin2/game/characters/horsename_manager.h>
-#include <metin2/game/protocol/input.h>
 #include <metin2/game/items/item_addon.h>
 #include <metin2/game/items/item_manager.h>
 #include <metin2/game/persistence/log.h>
@@ -75,12 +74,9 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <filesystem>
-#include <map>
 #include <memory>
 #include <string>
 #include <utility>
-#include <vector>
 
 #include <sys/time.h>
 #include <unistd.h>

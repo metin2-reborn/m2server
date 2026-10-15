@@ -1,6 +1,6 @@
 #pragma once
 
-#include <metin2/game/app/config.h>
+#include <metin2/config/config.h>
 #include <metin2/game/quest/quest.h>
 #include <metin2/game/quest/questpc.h>
 

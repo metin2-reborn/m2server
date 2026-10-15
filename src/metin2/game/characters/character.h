@@ -28,7 +28,6 @@
 #include <unordered_map>
 #include <vector>
 
-#include <sys/time.h>
 
 namespace metin2::game::inline combat {
     class skill_proto;

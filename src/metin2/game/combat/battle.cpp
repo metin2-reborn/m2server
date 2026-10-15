@@ -1,3 +1,4 @@
+#include <metin2/config/config.h>
 #include <metin2/game/combat/battle.h>
 
 #include <metin2/game/characters/affect.h>
@@ -6,7 +7,6 @@
 #include <metin2/game/empire/castle.h>
 #include <metin2/game/characters/character.h>
 #include <metin2/game/characters/character_manager.h>
-#include <metin2/game/app/config.h>
 #include <metin2/game/app/event.h>
 #include <metin2/game/guilds/guild.h>
 #include <metin2/game/items/item.h>

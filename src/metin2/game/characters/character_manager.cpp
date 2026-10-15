@@ -1,3 +1,4 @@
+#include <metin2/config/config.h>
 #include <metin2/game/characters/character_manager.h>
 
 #include <metin2/game/characters/character.h>
@@ -30,7 +31,6 @@
 #include <cstdint>
 #include <cstdio>
 #include <functional>
-#include <iterator>
 #include <map>
 #include <string>
 #include <utility>

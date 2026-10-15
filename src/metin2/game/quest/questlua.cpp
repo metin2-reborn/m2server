@@ -1,4 +1,5 @@
 
+#include <metin2/config/config.h>
 #include <metin2/game/quest/questlua.h>
 
 #include <metin2/game/characters/affect.h>
@@ -24,7 +25,6 @@
 #include <metin2/log/log.h>
 #include <metin2/core/utils.h>
 
-#include <climits>
 #include <cmath>
 #include <cstdint>
 #include <cstdio>

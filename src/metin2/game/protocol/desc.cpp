@@ -1,3 +1,4 @@
+#include <metin2/config/config.h>
 #include <metin2/game/protocol/desc.h>
 
 #include <metin2/game/protocol/buffer_manager.h>
@@ -12,7 +13,6 @@
 #include <metin2/game/protocol/packet.h>
 #include <metin2/game/protocol/sequence.h>
 #include <metin2/game/app/typedef.h>
-#include <metin2/game/app/utils.h>
 
 #include <metin2/proto/length.h>
 #include <metin2/proto/tables.h>

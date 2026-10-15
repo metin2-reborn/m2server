@@ -14,7 +14,6 @@
 #include <metin2/log/log.h>
 
 #include <cstdint>
-#include <cstring>
 #include <vector>
 
 namespace metin2::game {
