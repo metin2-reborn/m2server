@@ -10,6 +10,7 @@
 #include <cstdint>
 #include <list>
 #include <map>
+#include <memory>
 
 enum MEMBER_IDENTITY {
     MEMBER_NO,
@@ -83,7 +84,7 @@ class CArenaMap {
 
   private:
     uint32_t m_dwMapIndex;
-    std::list<CArena *> m_listArena;
+    std::list<std::unique_ptr<CArena>> m_listArena;
 
   protected:
     void Destroy();
@@ -108,7 +109,7 @@ class CArenaMap {
 
 class CArenaManager : public singleton<CArenaManager> {
   private:
-    std::map<uint32_t, CArenaMap *> m_mapArenaMap;
+    std::map<uint32_t, std::unique_ptr<CArenaMap>> m_mapArenaMap;
 
   public:
     bool Initialize();

@@ -125,37 +125,31 @@ SQLMsg * DBManager::PopResult()
 
 void DBManager::Process()
 {
-	SQLMsg* pMsg = nullptr;
-
-	while ((pMsg = PopResult()))
+	while (std::unique_ptr<SQLMsg> pMsg{PopResult()})
 	{
 		if( nullptr != pMsg->pvUserData )
 		{
 			switch( reinterpret_cast<CQueryInfo*>(pMsg->pvUserData)->iQueryType )
 			{
 				case QUERY_TYPE_RETURN:
-					AnalyzeReturnQuery(pMsg);
+					AnalyzeReturnQuery(pMsg.get());
 					break;
 
 				case QUERY_TYPE_FUNCTION:
 					{
-						CFuncQueryInfo* qi = reinterpret_cast<CFuncQueryInfo*>( pMsg->pvUserData );
-						qi->f(pMsg);
-						delete qi;
+						std::unique_ptr<CFuncQueryInfo> qi(reinterpret_cast<CFuncQueryInfo*>( pMsg->pvUserData ));
+						qi->f(pMsg.get());
 					}
 					break;
 
 				case QUERY_TYPE_AFTER_FUNCTION:
 					{
-						CFuncAfterQueryInfo* qi = reinterpret_cast<CFuncAfterQueryInfo*>( pMsg->pvUserData );
+						std::unique_ptr<CFuncAfterQueryInfo> qi(reinterpret_cast<CFuncAfterQueryInfo*>( pMsg->pvUserData ));
 						qi->f();
-						delete qi;
 					}
 					break;
 			}
 		}
-
-		delete pMsg;
 	}
 }
 
@@ -193,29 +187,29 @@ void DBManager::FuncAfterQuery(std::function<void()> f, const char * c_pszFormat
 
 CLoginData * DBManager::GetLoginData(uint32_t dwKey)
 {
-	std::map<uint32_t, CLoginData *>::iterator it = m_map_pkLoginData.find(dwKey);
+	auto it = m_map_pkLoginData.find(dwKey);
 
 	if (it == m_map_pkLoginData.end())
 		return nullptr;
 
-	return it->second;
+	return it->second.get();
 }
 
-void DBManager::InsertLoginData(CLoginData * pkLD)
+void DBManager::InsertLoginData(std::unique_ptr<CLoginData> pkLD)
 {
-	m_map_pkLoginData.insert(std::make_pair(pkLD->GetKey(), pkLD));
+	const uint32_t dwKey = pkLD->GetKey();
+	m_map_pkLoginData.insert(std::make_pair(dwKey, std::move(pkLD)));
 }
 
 void DBManager::DeleteLoginData(CLoginData * pkLD)
 {
-	std::map<uint32_t, CLoginData *>::iterator it = m_map_pkLoginData.find(pkLD->GetKey());
+	auto it = m_map_pkLoginData.find(pkLD->GetKey());
 
 	if (it == m_map_pkLoginData.end())
 		return;
 
 	sys_log(0, "DeleteLoginData %s %p", pkLD->GetLogin(), pkLD);
 
-	delete it->second;
 	m_map_pkLoginData.erase(it);
 }
 
@@ -249,7 +243,7 @@ void DBManager::LoginPrepare(DESC * d, uint32_t * pdwClientKey, int * paiPremium
 {
 	const TAccountTable & r = d->GetAccountTable();
 
-	CLoginData * pkLD = new CLoginData;
+	auto pkLD = std::make_unique<CLoginData>();
 
 	pkLD->SetKey(d->GetLoginKey());
 	pkLD->SetLogin(r.login);
@@ -258,7 +252,7 @@ void DBManager::LoginPrepare(DESC * d, uint32_t * pdwClientKey, int * paiPremium
 	if (paiPremiumTimes)
 		pkLD->SetPremium(paiPremiumTimes);
 
-	InsertLoginData(pkLD);
+	InsertLoginData(std::move(pkLD));
 
 	SendAuthLogin(d);
 }
@@ -906,21 +900,17 @@ SQLMsg * AccountDB::PopResult()
 
 void AccountDB::Process()
 {
-	SQLMsg* pMsg = nullptr;
-
-	while ((pMsg = PopResult()))
+	while (std::unique_ptr<SQLMsg> pMsg{PopResult()})
 	{
 		CQueryInfo* qi = (CQueryInfo *) pMsg->pvUserData;
 
 		switch (qi->iQueryType)
 		{
 			case QUERY_TYPE_RETURN:
-				AnalyzeReturnQuery(pMsg);
+				AnalyzeReturnQuery(pMsg.get());
 				break;
 		}
 	}
-
-	delete pMsg;
 }
 
 

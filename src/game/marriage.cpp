@@ -23,6 +23,7 @@
 #include <cstdint>
 #include <cstring>
 #include <ctime>
+#include <memory>
 #include <string>
 #include <utility>
 
@@ -54,8 +55,6 @@ namespace marriage
 
 	const int MARRIAGE_POINT_PER_DAY = 1;
 	const int MARRIAGE_POINT_PER_DAY_FAST = 2;
-	using namespace std;
-
 	void SendLoverInfo(CHARACTER * ch, const std::string& lover_name, int love_point)
 	{
 		TPacketGCLoverInfo p;
@@ -74,8 +73,6 @@ namespace marriage
 			ch1->ChatPacket(CHAT_TYPE_COMMAND, "lover_divorce");
 			ch2->ChatPacket(CHAT_TYPE_COMMAND, "lover_divorce");
 		}
-		delete pWeddingInfo;
-		pWeddingInfo = nullptr;
 	}
 
 	int TMarriage::GetMarriageGrade()
@@ -680,16 +677,10 @@ namespace marriage
 			return;
 		}
 
-		TWeddingInfo* pwi;
-		if (pMarriage->pWeddingInfo)
-			pwi = pMarriage->pWeddingInfo;
-		else
-		{
-			pwi = new TWeddingInfo;
-			pMarriage->pWeddingInfo = pwi;
-		}
+		if (!pMarriage->pWeddingInfo)
+			pMarriage->pWeddingInfo = std::make_unique<TWeddingInfo>();
 
-		pwi->dwMapIndex = dwMapIndex;
+		pMarriage->pWeddingInfo->dwMapIndex = dwMapIndex;
 	}
 
 	void CManager::WeddingStart(uint32_t dwPID1, uint32_t dwPID2)
@@ -701,7 +692,7 @@ namespace marriage
 			return;
 		}
 
-		TWeddingInfo * pwi = pMarriage->pWeddingInfo;
+		TWeddingInfo * pwi = pMarriage->pWeddingInfo.get();
 
 		if (!pwi)
 			return;
@@ -737,8 +728,7 @@ namespace marriage
 				return;
 			}
 
-		delete pMarriage->pWeddingInfo;
-		pMarriage->pWeddingInfo = nullptr;
+		pMarriage->pWeddingInfo.reset();
 
 		m_setWedding.erase(std::make_pair(dwPID1, dwPID2));
 	}

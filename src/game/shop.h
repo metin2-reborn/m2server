@@ -4,6 +4,7 @@
 #include <common/tables.h>
 
 #include <cstdint>
+#include <memory>
 #include <unordered_map>
 #include <vector>
 
@@ -69,7 +70,7 @@ class CShop
 	protected:
 		uint32_t				m_dwVnum;
 
-		CGrid *				m_pGrid;
+		std::unique_ptr<CGrid>		m_pGrid;
 
 		typedef std::unordered_map<CHARACTER *, bool> GuestMapType;
 		GuestMapType m_map_guest;

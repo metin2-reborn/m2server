@@ -22,6 +22,7 @@
 #include <ctime>
 #include <list>
 #include <map>
+#include <memory>
 #include <set>
 #include <string>
 #include <unordered_map>
@@ -759,7 +760,7 @@ class CHARACTER : public CEntity, public CFSM, public CHorseRider
 		uint8_t			m_bAddChrState;
 		bool			m_bSkipSave;
 		std::string		m_stMobile;
-		char			m_szMobileAuth[5];
+		std::string		m_stMobileAuth;
 		uint8_t			m_bChatCounter;
 
 		// End of Basic Points
@@ -1399,7 +1400,7 @@ class CHARACTER : public CEntity, public CFSM, public CHorseRider
 		// Skill levels
 		//
 	protected:
-		TPlayerSkill*					m_pSkillLevels;
+		std::unique_ptr<TPlayerSkill[]>	m_pSkillLevels;
 		std::unordered_map<uint8_t, int>		m_SkillDamageBonus;
 		std::map<int, TSkillUseInfo>	m_SkillUseInfo;
 
@@ -1480,12 +1481,12 @@ class CHARACTER : public CEntity, public CFSM, public CHorseRider
 		float				GetDistanceFromSafeboxOpen() const;
 
 	protected:
-		CSafebox *			m_pkSafebox;
+		std::unique_ptr<CSafebox>	m_pkSafebox;
 		int					m_iSafeboxSize;
 		int					m_iSafeboxLoadTime;
 		bool				m_bOpeningSafebox;	///< Whether the safebox is being requested or open; true means requested or open.
 
-		CSafebox *			m_pkMall;
+		std::unique_ptr<CSafebox>	m_pkMall;
 		int					m_iMallLoadTime;
 
 		PIXEL_POSITION		m_posSafeboxOpen;
@@ -1524,10 +1525,10 @@ class CHARACTER : public CEntity, public CFSM, public CHorseRider
 		bool				IsRiding() const;
 
 	public:
-		CPetSystem*			GetPetSystem()				{ return m_petSystem; }
+		CPetSystem*			GetPetSystem()				{ return m_petSystem.get(); }
 
 	protected:
-		CPetSystem*			m_petSystem;
+		std::unique_ptr<CPetSystem>	m_petSystem;
 
 	public:
 
@@ -1670,7 +1671,7 @@ class CHARACTER : public CEntity, public CFSM, public CHorseRider
 		bool				m_bHasPoisoned;
 
 		const CMob *		m_pkMobData;
-		CMobInstance *		m_pkMobInst;
+		std::unique_ptr<CMobInstance>	m_pkMobInst;
 
 		std::map<int, LPEVENT> m_mapMobSkillEvent;
 
@@ -1872,7 +1873,7 @@ class CHARACTER : public CEntity, public CFSM, public CHorseRider
 		void BuffOnAttr_ValueChange(uint8_t bType, uint8_t bOldValue, uint8_t bNewValue);
 		void BuffOnAttr_ClearAll();
 
-		typedef std::map <uint8_t, CBuffOnAttributes*> TMapBuffOnAttrs;
+		typedef std::map <uint8_t, std::unique_ptr<CBuffOnAttributes>> TMapBuffOnAttrs;
 		TMapBuffOnAttrs m_map_buff_on_attrs;
 		// Invincible: for smoother testing.
 	public:

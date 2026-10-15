@@ -890,19 +890,18 @@ int CInputMain::Messenger(CHARACTER * ch, const char* c_pData, size_t uiBytes)
 				if (uiBytes < CHARACTER_NAME_MAX_LEN)
 					return -1;
 
-				char name[CHARACTER_NAME_MAX_LEN + 1];
-				strlcpy(name, c_pData, sizeof(name));
+				const std::string name(c_pData, strnlen(c_pData, CHARACTER_NAME_MAX_LEN));
 
-				if (ch->GetGMLevel() == GM_PLAYER && gm_get_level(name) != GM_PLAYER)
+				if (ch->GetGMLevel() == GM_PLAYER && gm_get_level(name.c_str()) != GM_PLAYER)
 				{
 					ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("<메신져> 운영자는 메신져에 추가할 수 없습니다."));
 					return CHARACTER_NAME_MAX_LEN;
 				}
 
-				CHARACTER * tch = CHARACTER_MANAGER::instance().FindPC(name);
+				CHARACTER * tch = CHARACTER_MANAGER::instance().FindPC(name.c_str());
 
 				if (!tch)
-					ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("%s 님은 접속되 있지 않습니다."), name);
+					ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("%s 님은 접속되 있지 않습니다."), name.c_str());
 				else
 				{
 					if (tch == ch) // cannot add yourself.
@@ -926,8 +925,7 @@ int CInputMain::Messenger(CHARACTER * ch, const char* c_pData, size_t uiBytes)
 				if (uiBytes < CHARACTER_NAME_MAX_LEN)
 					return -1;
 
-				char char_name[CHARACTER_NAME_MAX_LEN + 1];
-				strlcpy(char_name, c_pData, sizeof(char_name));
+				const std::string char_name(c_pData, strnlen(c_pData, CHARACTER_NAME_MAX_LEN));
 				MessengerManager::instance().RemoveFromList(ch->GetName(), char_name);
 			}
 			return CHARACTER_NAME_MAX_LEN;
@@ -1849,11 +1847,10 @@ void CInputMain::QuestInputString(CHARACTER * ch, const void* c_pData)
 {
 	TPacketCGQuestInputString * p = (TPacketCGQuestInputString*) c_pData;
 
-	char msg[65];
-	strlcpy(msg, p->msg, sizeof(msg));
-	sys_log(0, "QUEST InputString pid %u msg %s", ch->GetPlayerID(), msg);
+	const std::string msg(p->msg, strnlen(p->msg, sizeof(p->msg) - 1));
+	sys_log(0, "QUEST InputString pid %u msg %s", ch->GetPlayerID(), msg.c_str());
 
-	quest::CQuestManager::instance().Input(ch->GetPlayerID(), msg);
+	quest::CQuestManager::instance().Input(ch->GetPlayerID(), msg.c_str());
 }
 
 void CInputMain::QuestConfirm(CHARACTER * ch, const void* c_pData)

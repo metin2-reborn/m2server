@@ -14,10 +14,9 @@
 #include <cstring>
 #include <iterator>
 #include <map>
+#include <memory>
 #include <sstream>
 #include <string>
-
-using namespace std;
 
 inline std::string trim_left(const std::string& str)
 {
@@ -33,11 +32,11 @@ inline std::string trim_right(const std::string& str)
 
 std::string trim(const std::string& str){return trim_left(trim_right(str));}
 
-static string* StringSplit(string strOrigin, string strTok)
+static std::unique_ptr<std::string[]> StringSplit(std::string strOrigin, std::string strTok)
 {
     int     cutAt;                            //Cut position
     int     index     = 0;                    //String index
-    string* strResult = new string[30];		  //Variable to return as result
+    auto strResult = std::make_unique<std::string[]>(30);		  //Variable to return as result
 
     //Repeat until strTok is found
     while ((cutAt = strOrigin.find_first_of(strTok)) != strOrigin.npos)
@@ -250,7 +249,7 @@ int get_Item_AntiFlag_Value(std::string inputString)
 
 
 	int retValue = 0;
-	string* arInputString = StringSplit(inputString, "|");				//Array of the proto info split into words.
+	std::unique_ptr<std::string[]> arInputString = StringSplit(inputString, "|");				//Array of the proto info split into words.
 	for(int i =0;i<sizeof(arAntiFlag)/sizeof(arAntiFlag[0]);i++) {
 		std::string tempString = arAntiFlag[i];
 		for (int j=0; j<30 ; j++)		//Up to 30 words. (hardcoded)
@@ -264,7 +263,6 @@ int get_Item_AntiFlag_Value(std::string inputString)
 				break;
 		}
 	}
-	delete []arInputString;
 
 	return retValue;
 }
@@ -278,7 +276,7 @@ int get_Item_Flag_Value(std::string inputString)
 
 
 	int retValue = 0;
-	string* arInputString = StringSplit(inputString, "|");				//Array of the proto info split into words.
+	std::unique_ptr<std::string[]> arInputString = StringSplit(inputString, "|");				//Array of the proto info split into words.
 	for(int i =0;i<sizeof(arFlag)/sizeof(arFlag[0]);i++) {
 		std::string tempString = arFlag[i];
 		for (int j=0; j<30 ; j++)		//Up to 30 words. (hardcoded)
@@ -292,7 +290,6 @@ int get_Item_Flag_Value(std::string inputString)
 				break;
 		}
 	}
-	delete []arInputString;
 
 	return retValue;
 }
@@ -305,7 +302,7 @@ int get_Item_WearFlag_Value(std::string inputString)
 
 
 	int retValue = 0;
-	string* arInputString = StringSplit(inputString, "|");				//Array of the proto info split into words.
+	std::unique_ptr<std::string[]> arInputString = StringSplit(inputString, "|");				//Array of the proto info split into words.
 	for(int i =0;i<sizeof(arWearrFlag)/sizeof(arWearrFlag[0]);i++) {
 		std::string tempString = arWearrFlag[i];
 		for (int j=0; j<30 ; j++)		//Up to 30 words. (hardcoded)
@@ -319,7 +316,6 @@ int get_Item_WearFlag_Value(std::string inputString)
 				break;
 		}
 	}
-	delete []arInputString;
 
 	return retValue;
 }
@@ -330,7 +326,7 @@ int get_Item_Immune_Value(std::string inputString)
 	std::string arImmune[] = {"PARA","CURSE","STUN","SLEEP","SLOW","POISON","TERROR"};
 
 	int retValue = 0;
-	string* arInputString = StringSplit(inputString, "|");				//Array of the proto info split into words.
+	std::unique_ptr<std::string[]> arInputString = StringSplit(inputString, "|");				//Array of the proto info split into words.
 	for(int i =0;i<sizeof(arImmune)/sizeof(arImmune[0]);i++) {
 		std::string tempString = arImmune[i];
 		for (int j=0; j<30 ; j++)		//Up to 30 words. (hardcoded)
@@ -344,7 +340,6 @@ int get_Item_Immune_Value(std::string inputString)
 				break;
 		}
 	}
-	delete []arInputString;
 
 	return retValue;
 }
@@ -490,7 +485,7 @@ int get_Mob_AIFlag_Value(std::string inputString)
 
 
 	int retValue = 0;
-	string* arInputString = StringSplit(inputString, ",");				//Array of the proto info split into words.
+	std::unique_ptr<std::string[]> arInputString = StringSplit(inputString, ",");				//Array of the proto info split into words.
 	for(int i =0;i<sizeof(arAIFlag)/sizeof(arAIFlag[0]);i++) {
 		std::string tempString = arAIFlag[i];
 		for (int j=0; j<30 ; j++)		//Up to 30 words. (hardcoded)
@@ -504,7 +499,6 @@ int get_Mob_AIFlag_Value(std::string inputString)
 				break;
 		}
 	}
-	delete []arInputString;
 
 	return retValue;
 }
@@ -514,7 +508,7 @@ int get_Mob_RaceFlag_Value(std::string inputString)
 		"ATT_ELEC","ATT_FIRE","ATT_ICE","ATT_WIND","ATT_EARTH","ATT_DARK"};
 
 	int retValue = 0;
-	string* arInputString = StringSplit(inputString, ",");				//Array of the proto info split into words.
+	std::unique_ptr<std::string[]> arInputString = StringSplit(inputString, ",");				//Array of the proto info split into words.
 	for(int i =0;i<sizeof(arRaceFlag)/sizeof(arRaceFlag[0]);i++) {
 		std::string tempString = arRaceFlag[i];
 		for (int j=0; j<30 ; j++)		//Up to 30 words. (hardcoded)
@@ -528,7 +522,6 @@ int get_Mob_RaceFlag_Value(std::string inputString)
 				break;
 		}
 	}
-	delete []arInputString;
 
 	return retValue;
 }
@@ -537,7 +530,7 @@ int get_Mob_ImmuneFlag_Value(std::string inputString)
 	std::string arImmuneFlag[] = {"STUN","SLOW","FALL","CURSE","POISON","TERROR", "REFLECT"};
 
 	int retValue = 0;
-	string* arInputString = StringSplit(inputString, ",");				//Array of the proto info split into words.
+	std::unique_ptr<std::string[]> arInputString = StringSplit(inputString, ",");				//Array of the proto info split into words.
 	for(int i =0;i<sizeof(arImmuneFlag)/sizeof(arImmuneFlag[0]);i++) {
 		std::string tempString = arImmuneFlag[i];
 		for (int j=0; j<30 ; j++)		//Up to 30 words. (hardcoded)
@@ -551,7 +544,6 @@ int get_Mob_ImmuneFlag_Value(std::string inputString)
 				break;
 		}
 	}
-	delete []arInputString;
 
 
 	return retValue;

@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <map>
+#include <memory>
 #include <set>
 #include <string>
 #include <utility>
@@ -87,7 +88,7 @@ class CGuildManager : public singleton<CGuildManager>
 
 	private:
 		typedef std::map<uint32_t, CGuild*> TGuildMap;	
-		TGuildMap m_mapGuild;
+		std::map<uint32_t, std::unique_ptr<CGuild>> m_mapGuild;
 
 		typedef std::set<std::pair<uint32_t, uint32_t> > TGuildWarContainer;
 		TGuildWarContainer m_GuildWar;
@@ -97,7 +98,7 @@ class CGuildManager : public singleton<CGuildManager>
 
 		TGuildMap				m_map_pkGuildByPID;
 
-		std::map<uint32_t, CGuildWarReserveForGame *>	m_map_kReserveWar;
+		std::map<uint32_t, std::unique_ptr<CGuildWarReserveForGame>>	m_map_kReserveWar;
 		std::vector<CGuildWarReserveForGame *>		m_vec_kReserveWar;
 
 		friend class CGuild;

@@ -14,7 +14,9 @@
 #include <cstdlib>
 #include <cstring>
 #include <map>
+#include <memory>
 #include <string>
+#include <utility>
 
 #include <strings.h>
 
@@ -151,7 +153,7 @@ static void LoadMotion(CMotionSet* pMotionSet, TMobTable* mob_table, EPublicMoti
 		return;
 	}
 
-	CMotion* pMotion = new CMotion;
+	auto pMotion = std::make_unique<CMotion>();
 
 	if (pMotion->LoadFromFile(cpFileName) == true)
 	{
@@ -159,11 +161,10 @@ static void LoadMotion(CMotionSet* pMotionSet, TMobTable* mob_table, EPublicMoti
 			if (0.0f == pMotion->GetAccumVector().y)
 				sys_err("cannot find accumulation data in file '%s'", cpFileName);
 
-		pMotionSet->Insert(MAKE_MOTION_KEY(MOTION_MODE_GENERAL, motion), pMotion);
+		pMotionSet->Insert(MAKE_MOTION_KEY(MOTION_MODE_GENERAL, motion), std::move(pMotion));
 	}
 	else
 	{
-		delete pMotion;
 		sys_err("Motion: Load failed vnum(%d) motion(%d) file(%s)", mob_table->dwVnum, motion, cpFileName);
 	}
 }
@@ -191,11 +192,11 @@ static void LoadSkillMotion(CMotionSet* pMotionSet, CMob* pMob, EPublicMotion mo
 	const char* cpFileName = GetMotionFileName(mob_table, motion);
 	if (cpFileName == nullptr) return;
 
-	CMotion* pMotion = new CMotion;
+	auto pMotion = std::make_unique<CMotion>();
 
 	if (pMotion->LoadMobSkillFromFile(cpFileName, pMob, idx) == true)
 	{
-		pMotionSet->Insert(MAKE_MOTION_KEY(MOTION_MODE_GENERAL, motion), pMotion);
+		pMotionSet->Insert(MAKE_MOTION_KEY(MOTION_MODE_GENERAL, motion), std::move(pMotion));
 	}
 	else
 	{
@@ -204,7 +205,6 @@ static void LoadSkillMotion(CMotionSet* pMotionSet, CMob* pMob, EPublicMotion mo
 			sys_err("Motion: Skill exist but no motion data for index %d mob %u skill %u",
 				   	idx, mob_table->dwVnum, mob_table->Skills[idx].dwVnum);
 		}
-		delete pMotion;
 	}
 }
 
@@ -214,10 +214,6 @@ CMotionManager::CMotionManager()
 
 CMotionManager::~CMotionManager()
 {
-	iterator it = m_map_pkMotionSet.begin();
-	for ( ; it != m_map_pkMotionSet.end(); ++it) {
-		delete it->second;
-	}
 }
 
 const CMotionSet * CMotionManager::GetMotionSet(uint32_t dwVnum)
@@ -227,7 +223,7 @@ const CMotionSet * CMotionManager::GetMotionSet(uint32_t dwVnum)
 	if (m_map_pkMotionSet.end() == it)
 		return nullptr;
 
-	return it->second;
+	return it->second.get();
 }
 
 const CMotion * CMotionManager::GetMotion(uint32_t dwVnum, uint32_t dwKey)
@@ -289,8 +285,9 @@ bool CMotionManager::Build()
 	
 	for (int i = 0; i < MAIN_RACE_MAX_NUM; ++i)
 	{
-		CMotionSet * pkMotionSet = new CMotionSet;
-		m_map_pkMotionSet.insert(TContainer::value_type(i, pkMotionSet));
+		auto pkMotionSetOwner = std::make_unique<CMotionSet>();
+		CMotionSet * pkMotionSet = pkMotionSetOwner.get();
+		m_map_pkMotionSet.try_emplace(i, std::move(pkMotionSetOwner));
 
 		char sz[256];
 
@@ -344,8 +341,9 @@ bool CMotionManager::Build()
 
 		if ('\0' != t->szFolder[0])
 		{
-			CMotionSet * pkMotionSet = new CMotionSet;
-			m_map_pkMotionSet.insert(TContainer::value_type(t->dwVnum, pkMotionSet));
+			auto pkMotionSetOwner = std::make_unique<CMotionSet>();
+			CMotionSet * pkMotionSet = pkMotionSetOwner.get();
+			m_map_pkMotionSet.try_emplace(t->dwVnum, std::move(pkMotionSetOwner));
 
 			LoadMotion(pkMotionSet, t, MOTION_WALK);
 			LoadMotion(pkMotionSet, t, MOTION_RUN);
@@ -374,10 +372,6 @@ CMotionSet::CMotionSet()
 
 CMotionSet::~CMotionSet()
 {
-	iterator it = m_map_pkMotion.begin();
-	for ( ; it != m_map_pkMotion.end(); ++it) {
-		delete it->second;
-	}
 }
 
 const CMotion * CMotionSet::GetMotion(uint32_t dwKey) const
@@ -387,25 +381,22 @@ const CMotion * CMotionSet::GetMotion(uint32_t dwKey) const
 	if (it == m_map_pkMotion.end())
 		return nullptr;
 
-	return it->second;
+	return it->second.get();
 }
 
-void CMotionSet::Insert(uint32_t dwKey, CMotion * pkMotion)
+void CMotionSet::Insert(uint32_t dwKey, std::unique_ptr<CMotion> pkMotion)
 {
-	m_map_pkMotion.insert(TContainer::value_type(dwKey, pkMotion));
+	m_map_pkMotion.insert(TContainer::value_type(dwKey, std::move(pkMotion)));
 }
 
 bool CMotionSet::Load(const char * szFileName, int mode, int motion)
 {
-	CMotion * pkMotion = new CMotion;
+	auto pkMotion = std::make_unique<CMotion>();
 
 	if (!pkMotion->LoadFromFile(szFileName))
-	{
-		delete pkMotion;
 		return false;
-	}
 
-	Insert(MAKE_MOTION_KEY(mode, motion), pkMotion);
+	Insert(MAKE_MOTION_KEY(mode, motion), std::move(pkMotion));
 
 	return true;
 }

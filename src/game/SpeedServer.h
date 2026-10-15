@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <list>
 #include <map>
+#include <string>
 
 // Copy-pasted from castle.cpp
 
@@ -83,7 +84,7 @@ class CSpeedServerEmpireExp
 		bool LoadWdayExpTable (int wday, char *str);
 
 		uint8_t empire;
-		char file_name [256];
+		std::string file_name;
 		HME current_hme;
 		std::map <Date, std::list <HME> > holiday_map;
 		std::list <HME> wday_exp_table[7];

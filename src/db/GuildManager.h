@@ -12,10 +12,10 @@
 #include <mysql.h>
 
 #include <cstdint>
-#include <cstring>
 #include <ctime>
 #include <functional>
 #include <map>
+#include <memory>
 #include <queue>
 #include <set>
 #include <string>
@@ -111,10 +111,9 @@ inline bool operator < (const TGuildSkillUsed& a, const TGuildSkillUsed& b)
 struct TGuild {
 	TGuild() : ladder_point(0), win(0), draw(0), loss(0), gold(0), level(0)
 	{
-		memset(szName, 0, sizeof(szName));
 	}
 
-	char szName[GUILD_NAME_MAX_LEN+1];
+	std::string strName;
 	int	ladder_point;
 	int	win;
 	int	draw;
@@ -250,7 +249,7 @@ class CGuildManager : public singleton<CGuildManager>
 	std::priority_queue<stPairSkillUsed, std::vector<stPairSkillUsed>, std::greater<stPairSkillUsed> >
 	    m_pqSkill;
 
-	std::map<uint32_t, CGuildWarReserve *>			m_map_kWarReserve;
+	std::map<uint32_t, std::unique_ptr<CGuildWarReserve>>	m_map_kWarReserve;
 	CPoly							polyPower;
 	CPoly							polyHandicap;
 

@@ -12,6 +12,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <deque>
+#include <memory>
 #include <string>
 #include <utility>
 
@@ -50,12 +51,11 @@ bool CTextFileLoader::Load(const char * c_szFileName)
 	const size_t fileSize = ftell(fp);
 	fseek(fp, 0, SEEK_SET);
 
-	char * pData = new char[fileSize];
-	fread(pData, fileSize, 1, fp);
+	auto pData = std::make_unique_for_overwrite<char[]>(fileSize);
+	fread(pData.get(), fileSize, 1, fp);
 	fclose(fp);
 
-	m_fileLoader.Bind(fileSize, pData);
-	delete[] pData;
+	m_fileLoader.Bind(fileSize, pData.get());
 
 	LoadGroup(&m_globalNode);
 	return true;

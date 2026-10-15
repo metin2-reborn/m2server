@@ -35,23 +35,16 @@ struct BLEND_ITEM_INFO
 };
 
 
-typedef std::vector<BLEND_ITEM_INFO*>	T_BLEND_ITEM_INFO;
+typedef std::vector<BLEND_ITEM_INFO>	T_BLEND_ITEM_INFO;
 T_BLEND_ITEM_INFO	s_blend_info;
 
 bool	Blend_Item_init()
 {
-	BLEND_ITEM_INFO	*blend_item_info = nullptr;
-	T_BLEND_ITEM_INFO::iterator			iter;
 	char	file_name[256];
 	snprintf (file_name, sizeof(file_name), "%s/blend.txt", LocaleService_GetBasePath().c_str());
 
 	sys_log(0, "Blend_Item_init %s ", file_name);
 
-	DO_ALL_BLEND_INFO(iter)
-	{
-		blend_item_info = *iter;
-		delete blend_item_info;
-	}
 	s_blend_info.clear();
 
 	if (false==Blend_Item_load(file_name))
@@ -69,7 +62,7 @@ bool	Blend_Item_load(char *file)
 	const char	*delim = " \t\r\n";
 	char	*v;
 
-	BLEND_ITEM_INFO	*blend_item_info;
+	BLEND_ITEM_INFO	blend_item_info{};
 
 	if (nullptr==file || 0==file[0])
 		return false;
@@ -89,8 +82,7 @@ bool	Blend_Item_load(char *file)
 
 		TOKEN("section")
 		{
-			blend_item_info = new BLEND_ITEM_INFO;
-			memset(blend_item_info, 0x00, sizeof(BLEND_ITEM_INFO));
+			blend_item_info = {};
 		}
 		else TOKEN("item_vnum")
 		{
@@ -102,7 +94,7 @@ bool	Blend_Item_load(char *file)
 				return false;
 			}
 
-			str_to_number(blend_item_info->item_vnum, v);
+			str_to_number(blend_item_info.item_vnum, v);
 		}
 		else TOKEN("apply_type")
 		{
@@ -114,7 +106,7 @@ bool	Blend_Item_load(char *file)
 				return false;
 			}
 
-			if (0 == (blend_item_info->apply_type = FN_get_apply_type(v)))
+			if (0 == (blend_item_info.apply_type = FN_get_apply_type(v)))
 			{
 				sys_err ("Invalid apply_type(%s)", v);
 				fclose(fp);
@@ -133,7 +125,7 @@ bool	Blend_Item_load(char *file)
 					return false;
 				}
 
-				str_to_number(blend_item_info->apply_value[i], v); 
+				str_to_number(blend_item_info.apply_value[i], v); 
 			}
 		}
 		else TOKEN("apply_duration")
@@ -148,7 +140,7 @@ bool	Blend_Item_load(char *file)
 					return false;
 				}
 
-				str_to_number(blend_item_info->apply_duration[i], v);
+				str_to_number(blend_item_info.apply_duration[i], v);
 			}
 		}
 		else TOKEN("end")
@@ -212,7 +204,7 @@ bool	Blend_Item_set_value(CItem * item)
 
 	DO_ALL_BLEND_INFO(iter)
 	{
-		blend_info = *iter;
+		blend_info = &*iter;
 		if (blend_info->item_vnum == item->GetVnum())
 		{
 			int	apply_type;
@@ -249,7 +241,7 @@ bool	Blend_Item_find(uint32_t item_vnum)
 
 	DO_ALL_BLEND_INFO(iter)
 	{
-		blend_info = *iter;
+		blend_info = &*iter;
 		if (blend_info->item_vnum == item_vnum)
 			return true;
 	}

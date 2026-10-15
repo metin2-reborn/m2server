@@ -3,21 +3,13 @@
 #include <common/length.h>
 #include <common/singleton.h>
 
+#include <memory>
+
 class CTableBySkill : public singleton<CTableBySkill>
 {
 	public:
-		CTableBySkill()
-			: m_aiSkillDamageByLevel(nullptr)
-		{
-			//Initialize additional damage per skill level
-			for ( int job = 0; job < JOB_MAX_NUM * 2; ++job )
-				m_aiSkillPowerByLevelFromType[job] = nullptr;
-		}
-
-		~CTableBySkill() override
-		{
-			DeleteAll();
-		}
+		CTableBySkill() = default;
+		~CTableBySkill() override = default;
 
 		//Check table setup
 		bool 	Check() const;
@@ -34,6 +26,6 @@ class CTableBySkill : public singleton<CTableBySkill>
 		void 	DeleteSkillDamageByLevelTable();
 
 	private:
-		int * m_aiSkillPowerByLevelFromType[JOB_MAX_NUM*2];
-		int * m_aiSkillDamageByLevel;
+		std::unique_ptr<int[]> m_aiSkillPowerByLevelFromType[JOB_MAX_NUM*2];
+		std::unique_ptr<int[]> m_aiSkillDamageByLevel;
 };

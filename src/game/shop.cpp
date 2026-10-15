@@ -23,12 +23,12 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <memory>
 
 /* ------------------------------------------------------------------------------------ */
 CShop::CShop()
-	: m_dwVnum(0), m_pkPC(nullptr)
+	: m_dwVnum(0), m_pGrid(std::make_unique<CGrid>(5, 9)), m_pkPC(nullptr)
 {
-	m_pGrid = new CGrid(5, 9);
 }
 
 CShop::~CShop()
@@ -51,8 +51,6 @@ CShop::~CShop()
 		ch->SetShop(nullptr);
 		++it;
 	}
-
-	delete m_pGrid;
 }
 
 void CShop::SetPCShop(CHARACTER * ch)

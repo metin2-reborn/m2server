@@ -8,6 +8,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <map>
+#include <memory>
 #include <vector>
 
 enum
@@ -69,6 +70,7 @@ class CInputHandshake : public CInputProcessor
 	protected:
 
 		CPacketInfo *	m_pMainPacketInfo;
+		std::unique_ptr<CPacketInfoCG>	m_pkHandshakePacketInfo;
 };
 
 class CInputLogin : public CInputProcessor

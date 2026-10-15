@@ -9,6 +9,7 @@
 
 #include <cstdint>
 #include <map>
+#include <memory>
 #include <set>
 
 enum EWarMapTypes
@@ -162,7 +163,7 @@ class CWarMapManager : public singleton<CWarMapManager>
 		void		OnShutdown();
 
 	private:
-		std::map<int32_t, TWarMapInfo *> m_map_kWarMapInfo;
+		std::map<int32_t, std::unique_ptr<TWarMapInfo>> m_map_kWarMapInfo;
 		std::map<int32_t, CWarMap *> m_mapWarMap;
 };
 

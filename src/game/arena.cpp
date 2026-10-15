@@ -17,6 +17,7 @@
 #include <libthecore/log.h>
 
 #include <cstdint>
+#include <memory>
 #include <utility>
 
 CArena::CArena(uint16_t startA_X, uint16_t startA_Y, uint16_t startB_X, uint16_t startB_Y)
@@ -66,12 +67,11 @@ bool CArenaManager::AddArena(uint32_t mapIdx, uint16_t startA_X, uint16_t startA
 
 	if (iter == m_mapArenaMap.end())
 	{
-		pArenaMap = new CArenaMap;
-		m_mapArenaMap.insert(std::make_pair(mapIdx, pArenaMap));
+		pArenaMap = m_mapArenaMap.emplace(mapIdx, std::make_unique<CArenaMap>()).first->second.get();
 	}
 	else
 	{
-		pArenaMap = iter->second;
+		pArenaMap = iter->second.get();
 	}
 
 	if (pArenaMap->AddArena(mapIdx, startA_X, startA_Y, startB_X, startB_Y) == false)
@@ -98,8 +98,7 @@ bool CArenaMap::AddArena(uint32_t mapIdx, uint16_t startA_X, uint16_t startA_Y, 
 
 	m_dwMapIndex = mapIdx;
 
-	CArena *pArena = new CArena(startA_X, startA_Y, startB_X, startB_Y);
-	m_listArena.push_back(pArena);
+	m_listArena.push_back(std::unique_ptr<CArena>(new CArena(startA_X, startA_Y, startB_X, startB_Y)));
 
 	return true;
 }
@@ -110,10 +109,8 @@ void CArenaManager::Destroy()
 
 	for (; iter != m_mapArenaMap.end(); iter++)
 	{
-		CArenaMap* pArenaMap = iter->second;
+		CArenaMap* pArenaMap = iter->second.get();
 		pArenaMap->Destroy();
-
-		delete pArenaMap;
 	}
 	m_mapArenaMap.clear();
 }
@@ -126,10 +123,8 @@ void CArenaMap::Destroy()
 
 	for (; iter != m_listArena.end(); iter++)
 	{
-		CArena* pArena = *iter;
+		CArena* pArena = iter->get();
 		pArena->EndDuel();
-
-		delete pArena;
 	}
 	m_listArena.clear();
 }
@@ -148,7 +143,7 @@ void CArenaManager::SendArenaMapListTo(CHARACTER * pChar)
 
 	for (; iter != m_mapArenaMap.end(); iter++)
 	{
-		CArenaMap* pArena = iter->second;
+		CArenaMap* pArena = iter->second.get();
 		pArena->SendArenaMapListTo(pChar, (iter->first));
 	}
 }
@@ -175,7 +170,7 @@ bool CArenaManager::StartDuel(CHARACTER * pCharFrom, CHARACTER * pCharTo, int nS
 
 	for (; iter != m_mapArenaMap.end(); iter++)
 	{
-		CArenaMap* pArenaMap = iter->second;
+		CArenaMap* pArenaMap = iter->second.get();
 		if (pArenaMap->StartDuel(pCharFrom, pCharTo, nSetPoint, nMinute) == true)
 		{
 			return true;
@@ -191,7 +186,7 @@ bool CArenaMap::StartDuel(CHARACTER * pCharFrom, CHARACTER * pCharTo, int nSetPo
 
 	for (; iter != m_listArena.end(); iter++)
 	{
-		CArena* pArena = *iter;
+		CArena* pArena = iter->get();
 		if (pArena->IsEmpty() == true)
 		{
 			return pArena->StartDuel(pCharFrom, pCharTo, nSetPoint, nMinute);
@@ -519,7 +514,7 @@ void CArenaManager::EndAllDuel()
 
 	for (; iter != m_mapArenaMap.end(); iter++)
 	{
-		CArenaMap *pArenaMap = iter->second;
+		CArenaMap *pArenaMap = iter->second.get();
 		if (pArenaMap != nullptr)
 			pArenaMap->EndAllDuel();
 	}
@@ -533,7 +528,7 @@ void CArenaMap::EndAllDuel()
 
 	for (; iter != m_listArena.end(); iter++)
 	{
-		CArena *pArena = *iter;
+		CArena *pArena = iter->get();
 		if (pArena != nullptr)
 			pArena->EndDuel();
 	}
@@ -604,7 +599,7 @@ void CArenaManager::GetDuelList(lua_State* L)
 
 	for (; iter != m_mapArenaMap.end(); iter++)
 	{
-		CArenaMap* pArenaMap = iter->second;
+		CArenaMap* pArenaMap = iter->second.get();
 		if (pArenaMap != nullptr)
 			index = pArenaMap->GetDuelList(L, index);
 	}
@@ -616,7 +611,7 @@ int CArenaMap::GetDuelList(lua_State* L, int index)
 
 	for (; iter != m_listArena.end(); iter++)
 	{
-		CArena* pArena = *iter;
+		CArena* pArena = iter->get();
 
 		if (pArena == nullptr) continue;
 
@@ -665,7 +660,7 @@ bool CArenaManager::CanAttack(CHARACTER * pCharAttacker, CHARACTER * pCharVictim
 
 	if (iter == m_mapArenaMap.end()) return false;
 
-	CArenaMap* pArenaMap = (CArenaMap*)(iter->second);
+	CArenaMap* pArenaMap = iter->second.get();
 	return pArenaMap->CanAttack(pCharAttacker, pCharVictim);
 }
 
@@ -680,7 +675,7 @@ bool CArenaMap::CanAttack(CHARACTER * pCharAttacker, CHARACTER * pCharVictim)
 
 	for (; iter != m_listArena.end(); iter++)
 	{
-		CArena* pArena = *iter;
+		CArena* pArena = iter->get();
 		if (pArena->CanAttack(dwPIDA, dwPIDB) == true)
 		{
 			return true;
@@ -708,7 +703,7 @@ bool CArenaManager::OnDead(CHARACTER * pCharKiller, CHARACTER * pCharVictim)
 	auto iter = m_mapArenaMap.find(mapIndex);
 	if (iter == m_mapArenaMap.end()) return false;
 
-	CArenaMap* pArenaMap = (CArenaMap*)(iter->second);
+	CArenaMap* pArenaMap = iter->second.get();
 	return pArenaMap->OnDead(pCharKiller,  pCharVictim);
 }
 
@@ -721,7 +716,7 @@ bool CArenaMap::OnDead(CHARACTER * pCharKiller, CHARACTER * pCharVictim)
 
 	for (; iter != m_listArena.end(); iter++)
 	{
-		CArena* pArena = *iter;
+		CArena* pArena = iter->get();
 
 		if (pArena->IsMember(dwPIDA) == true && pArena->IsMember(dwPIDB) == true)
 		{
@@ -879,7 +874,7 @@ bool CArenaManager::AddObserver(CHARACTER * pChar, uint32_t mapIdx, uint16_t Obs
 
 	if (iter == m_mapArenaMap.end()) return false;
 
-	CArenaMap* pArenaMap = iter->second;
+	CArenaMap* pArenaMap = iter->second.get();
 	return pArenaMap->AddObserver(pChar, ObserverX, ObserverY);
 }
 
@@ -889,7 +884,7 @@ bool CArenaMap::AddObserver(CHARACTER * pChar, uint16_t ObserverX, uint16_t Obse
 
 	for (; iter != m_listArena.end(); iter++)
 	{
-		CArena* pArena = *iter;
+		CArena* pArena = iter->get();
 
 		if (pArena->IsMyObserver(ObserverX, ObserverY) == true)
 		{
@@ -929,7 +924,7 @@ MEMBER_IDENTITY CArenaManager::IsMember(uint32_t dwMapIndex, uint32_t PID)
 
 	if (iter != m_mapArenaMap.end())
 	{
-		CArenaMap* pArenaMap = iter->second;
+		CArenaMap* pArenaMap = iter->second.get();
 		return pArenaMap->IsMember(PID);
 	}
 
@@ -942,7 +937,7 @@ MEMBER_IDENTITY CArenaMap::IsMember(uint32_t PID)
 
 	for (; iter != m_listArena.end(); iter++)
 	{
-		CArena* pArena = *iter;
+		CArena* pArena = iter->get();
 
 		if (pArena->IsObserver(PID) == true) return MEMBER_OBSERVER;
 		if (pArena->IsMember(PID) == true) return MEMBER_DUELIST;
@@ -997,7 +992,7 @@ bool CArenaManager::EndDuel(uint32_t pid)
 
 	for (; iter != m_mapArenaMap.end(); iter++)
 	{
-		CArenaMap* pArenaMap = iter->second;
+		CArenaMap* pArenaMap = iter->second.get();
 		if (pArenaMap->EndDuel(pid) == true) return true;
 	}
 	return false;
@@ -1009,7 +1004,7 @@ bool CArenaMap::EndDuel(uint32_t pid)
 
 	for (; iter != m_listArena.end(); iter++)
 	{
-		CArena* pArena = *iter;
+		CArena* pArena = iter->get();
 		if (pArena->IsMember(pid) == true)
 		{
 			pArena->EndDuel();
@@ -1031,7 +1026,7 @@ bool CArenaManager::RegisterObserverPtr(CHARACTER * pChar, uint32_t mapIdx, uint
 		return false;
 	}
 
-	CArenaMap* pArenaMap = iter->second;
+	CArenaMap* pArenaMap = iter->second.get();
 	return pArenaMap->RegisterObserverPtr(pChar, mapIdx, ObserverX, ObserverY);
 }
 
@@ -1041,7 +1036,7 @@ bool CArenaMap::RegisterObserverPtr(CHARACTER * pChar, uint32_t mapIdx, uint16_t
 
 	for (; iter != m_listArena.end(); ++iter)
 	{
-		CArena* pArena = *iter;
+		CArena* pArena = iter->get();
 
 		if (pArena->IsMyObserver(ObserverX, ObserverY) == true)
 		{

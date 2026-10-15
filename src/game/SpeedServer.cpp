@@ -13,6 +13,7 @@
 #include <ctime>
 #include <list>
 #include <map>
+#include <string>
 #include <utility>
 
 // Speed server bonus experience system
@@ -52,7 +53,7 @@ bool CSpeedServerEmpireExp::Initialize (uint8_t e)
 {
 	empire = e;
 	sys_log (0, "empire exp init %d", empire);
-	snprintf (file_name, sizeof(file_name), "%s/exp_bonus_table_%d.txt", LocaleService_GetBasePath().c_str(), empire);
+	file_name = LocaleService_GetBasePath() + "/exp_bonus_table_" + std::to_string(empire) + ".txt";
 
 	for (int i = 1; i < 6; i++)
 	{
@@ -108,10 +109,10 @@ bool CSpeedServerEmpireExp::WriteExpTable()
 	FILE *fp;
 
 	sys_log (0, "write");
-	if (nullptr==file_name || 0==file_name[0])
+	if (file_name.empty())
 		return false;
 
-	if ((fp = fopen(file_name, "w"))==nullptr)
+	if ((fp = fopen(file_name.c_str(), "w"))==nullptr)
 	{
 		return false;
 	}
@@ -148,10 +149,10 @@ bool CSpeedServerEmpireExp::LoadExpTable()
 	const char	*delim = " \t\r\n";
 
 	sys_log (0, "load");
-	if (nullptr==file_name || 0==file_name[0])
+	if (file_name.empty())
 		return false;
 
-	if ((fp = fopen(file_name, "r"))==nullptr)
+	if ((fp = fopen(file_name.c_str(), "r"))==nullptr)
 		return false;
 
 	while (fgets(one_line, 256, fp))

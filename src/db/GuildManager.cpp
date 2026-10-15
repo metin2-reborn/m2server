@@ -128,7 +128,7 @@ void CGuildManager::ParseResult(SQLResult * pRes)
 
 		TGuild & r_info = TouchGuild(GID);
 
-		strlcpy(r_info.szName, row[1], sizeof(r_info.szName));
+		r_info.strName = row[1];
 		str_to_number(r_info.ladder_point, row[2]);
 		str_to_number(r_info.win, row[3]);
 		str_to_number(r_info.draw, row[4]);
@@ -138,7 +138,7 @@ void CGuildManager::ParseResult(SQLResult * pRes)
 
 		sys_log(0, 
 				"GuildWar: %-24s ladder %-5d win %-3d draw %-3d loss %-3d", 
-				r_info.szName,
+				r_info.strName.c_str(),
 				r_info.ladder_point,
 				r_info.win,
 				r_info.draw,
@@ -894,7 +894,7 @@ void CGuildManager::BootReserveWar()
 			str_to_number(t.lHandicap, row[col++]);
 			t.bStarted = 0;
 
-			CGuildWarReserve * pkReserve = new CGuildWarReserve(t);
+			auto pkReserve = std::make_unique<CGuildWarReserve>(t);
 
 			char buf[512];
 			snprintf(buf, sizeof(buf), "GuildWar: BootReserveWar : step %d id %u GID1 %u GID2 %u", i, t.dwID, t.dwGuildFrom, t.dwGuildTo);
@@ -908,12 +908,11 @@ void CGuildManager::BootReserveWar()
 					sys_log(0, "%s : left time lower than 5 minutes, will be canceled", buf);
 
 				pkReserve->Draw();
-				delete pkReserve;
 			}
 			else
 			{
 				sys_log(0, "%s : OK", buf);
-				m_map_kWarReserve.insert(std::make_pair(t.dwID, pkReserve));
+				m_map_kWarReserve.insert(std::make_pair(t.dwID, std::move(pkReserve)));
 			}
 		}
 	}
@@ -1040,7 +1039,7 @@ bool CGuildManager::ReserveWar(TPacketGuildWar * p)
 
 	t.dwID = pmsg->Get()->uiInsertID;
 
-	m_map_kWarReserve.insert(std::make_pair(t.dwID, new CGuildWarReserve(t)));
+	m_map_kWarReserve.insert(std::make_pair(t.dwID, std::make_unique<CGuildWarReserve>(t)));
 
 	CClientManager::instance().ForwardPacket(HEADER_DG_GUILD_WAR_RESERVE_ADD, &t, sizeof(TGuildWarReserve));
 	return true;
@@ -1056,7 +1055,7 @@ void CGuildManager::ProcessReserveWar()
 	{
 		auto it2 = it++;
 
-		CGuildWarReserve * pk = it2->second;
+		CGuildWarReserve * pk = it2->second.get();
 		TGuildWarReserve & r = pk->GetDataRef();
 
 		if (!r.bStarted && r.dwTime - 1800 <= dwCurTime) // announce starting 30 minutes before.
@@ -1143,13 +1142,13 @@ bool CGuildManager::ChangeMaster(uint32_t dwGID, uint32_t dwFrom, uint32_t dwTo)
 	char szQuery[1024];
 
 	snprintf(szQuery, sizeof(szQuery), "UPDATE guild%s SET master=%u WHERE id=%u", GetTablePostfix(), dwTo, dwGID);
-	delete CDBManager::instance().DirectQuery(szQuery);
+	std::unique_ptr<SQLMsg>(CDBManager::instance().DirectQuery(szQuery));
 
 	snprintf(szQuery, sizeof(szQuery), "UPDATE guild_member%s SET grade=1 WHERE pid=%u", GetTablePostfix(), dwTo);
-	delete CDBManager::instance().DirectQuery(szQuery);
+	std::unique_ptr<SQLMsg>(CDBManager::instance().DirectQuery(szQuery));
 
 	snprintf(szQuery, sizeof(szQuery), "UPDATE guild_member%s SET grade=15 WHERE pid=%u", GetTablePostfix(), dwFrom);
-	delete CDBManager::instance().DirectQuery(szQuery);
+	std::unique_ptr<SQLMsg>(CDBManager::instance().DirectQuery(szQuery));
 
 	return true;
 }

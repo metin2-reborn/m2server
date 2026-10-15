@@ -14,6 +14,7 @@
 
 #include <cstdint>
 #include <cstdio>
+#include <memory>
 
 CItemIDRangeManager::CItemIDRangeManager()
 {
@@ -98,12 +99,12 @@ bool CItemIDRangeManager::BuildRange(uint32_t dwMin, uint32_t dwMax, TItemIDRang
 {
 	char szQuery[1024];
 	uint32_t dwItemMaxID = 0;
-	SQLMsg* pMsg = nullptr;
+	std::unique_ptr<SQLMsg> pMsg;
 	MYSQL_ROW row;
 
 	snprintf(szQuery, sizeof(szQuery), "SELECT MAX(id) FROM item%s WHERE id >= %u and id <= %u", GetTablePostfix(), dwMin, dwMax);
 
-	pMsg = CDBManager::instance().DirectQuery(szQuery);
+	pMsg.reset(CDBManager::instance().DirectQuery(szQuery));
 
 	if (pMsg != nullptr)
 	{
@@ -112,7 +113,6 @@ bool CItemIDRangeManager::BuildRange(uint32_t dwMin, uint32_t dwMax, TItemIDRang
 			row = mysql_fetch_row(pMsg->Get()->pSQLResult);
 			str_to_number(dwItemMaxID, row[0]);
 		}
-		delete pMsg;
 	}
 
 	if (dwItemMaxID == 0)
@@ -134,7 +134,7 @@ bool CItemIDRangeManager::BuildRange(uint32_t dwMin, uint32_t dwMax, TItemIDRang
 		snprintf(szQuery, sizeof(szQuery), "SELECT COUNT(*) FROM item%s WHERE id >= %u AND id <= %u", 
 				GetTablePostfix(), range.dwUsableItemIDMin, range.dwMax);
 
-		pMsg = CDBManager::instance().DirectQuery(szQuery);
+		pMsg.reset(CDBManager::instance().DirectQuery(szQuery));
 
 		if (pMsg != nullptr)
 		{
@@ -155,8 +155,6 @@ bool CItemIDRangeManager::BuildRange(uint32_t dwMin, uint32_t dwMax, TItemIDRang
 					return true;
 				}
 			}
-
-			delete pMsg;
 		}
 	}
 

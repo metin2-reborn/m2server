@@ -20,6 +20,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <memory>
 #include <vector>
 
 void exchange_packet(CHARACTER * ch, uint8_t sub_header, bool is_me, uint32_t arg1, TItemPos arg2, uint32_t arg3, void * pvData = nullptr);
@@ -136,12 +137,11 @@ CExchange::CExchange(CHARACTER * pOwner)
 	m_pOwner = pOwner;
 	pOwner->SetExchange(this);
 
-	m_pGrid = new CGrid(4,3);
+	m_pGrid = std::make_unique<CGrid>(4,3);
 }
 
 CExchange::~CExchange()
 {
-	delete m_pGrid;
 }
 
 bool CExchange::AddItem(TItemPos item_pos, uint8_t display_pos)

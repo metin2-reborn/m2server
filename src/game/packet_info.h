@@ -33,7 +33,7 @@ class CPacketInfo
 		TPacketElement * GetElement(int header);
 
 	protected:
-		std::map<int, TPacketElement *> m_pPacketMap;
+		std::map<int, TPacketElement> m_pPacketMap;
 		TPacketElement * m_pCurrentPacket;
 		uint32_t m_dwStartTime;
 };

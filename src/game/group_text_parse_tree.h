@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <iterator>
 #include <map>
+#include <memory>
 #include <sstream>
 #include <string>
 
@@ -87,7 +88,7 @@ public:
 private:
 	bool LoadGroup(CGroupNode * pGroupNode);
 
-	CGroupNode *				m_pRootGroupNode;
+	std::unique_ptr<CGroupNode>	m_pRootGroupNode;
 	std::string					m_strFileName;
 	uint32_t						m_dwcurLineIndex;
 

@@ -4,6 +4,7 @@
 #include <common/tables.h>
 
 #include <cstdint>
+#include <memory>
 
 class CHARACTER;
 class CItem;
@@ -35,7 +36,7 @@ class CSafebox
 
 		CHARACTER *	m_pkChrOwner;
 		CItem *		m_pkItems[SAFEBOX_MAX_NUM];
-		CGrid *		m_pkGrid;
+		std::unique_ptr<CGrid>	m_pkGrid;
 		int		m_iSize;
 		int32_t		m_lGold;
 

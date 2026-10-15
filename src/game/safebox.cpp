@@ -17,6 +17,7 @@
 #include <cassert>
 #include <cstdint>
 #include <cstring>
+#include <memory>
 
 CSafebox::CSafebox(CHARACTER * pkChrOwner, int iSize, uint32_t dwGold) : m_pkChrOwner(pkChrOwner), m_iSize(iSize), m_lGold(dwGold)
 {
@@ -24,9 +25,7 @@ CSafebox::CSafebox(CHARACTER * pkChrOwner, int iSize, uint32_t dwGold) : m_pkChr
 	memset(m_pkItems, 0, sizeof(m_pkItems));
 
 	if (m_iSize)
-		m_pkGrid = new CGrid(5, m_iSize);
-	else
-		m_pkGrid = nullptr;
+		m_pkGrid = std::make_unique<CGrid>(5, m_iSize);
 
 	m_bWindowMode = SAFEBOX;
 }
@@ -55,11 +54,7 @@ void CSafebox::__Destroy()
 		}
 	}
 
-	if (m_pkGrid)
-	{
-		delete m_pkGrid;
-		m_pkGrid = nullptr;
-	}
+	m_pkGrid.reset();
 }
 
 bool CSafebox::Add(uint32_t dwPos, CItem * pkItem)
@@ -157,12 +152,10 @@ void CSafebox::ChangeSize(int iSize)
 
 	m_iSize = iSize;
 
-	CGrid * pkOldGrid = m_pkGrid;
-
-	if (pkOldGrid)
-		m_pkGrid = new CGrid(*pkOldGrid, 5, m_iSize);
+	if (m_pkGrid)
+		m_pkGrid = std::make_unique<CGrid>(*m_pkGrid, 5, m_iSize);
 	else
-		m_pkGrid = new CGrid(5, m_iSize);
+		m_pkGrid = std::make_unique<CGrid>(5, m_iSize);
 }
 
 CItem * CSafebox::GetItem(uint8_t bCell)

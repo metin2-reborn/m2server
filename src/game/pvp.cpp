@@ -21,9 +21,8 @@
 #include <cstdio>
 #include <cstring>
 #include <map>
+#include <memory>
 #include <unordered_set>
-
-using namespace std;
 
 CPVP::CPVP(uint32_t dwPID1, uint32_t dwPID2)
 {
@@ -195,12 +194,13 @@ void CPVPManager::Insert(CHARACTER * pkChr, CHARACTER * pkVictim)
 		return;
 	}
 
-	pkPVP = new CPVP(kPVP);
+	auto pkNewPVP = std::make_unique<CPVP>(kPVP);
+	pkPVP = pkNewPVP.get();
 
 	pkPVP->SetVID(pkChr->GetPlayerID(), pkChr->GetVID());
 	pkPVP->SetVID(pkVictim->GetPlayerID(), pkVictim->GetVID());
 
-	m_map_pkPVP.insert(map<uint32_t, CPVP *>::value_type(pkPVP->m_dwCRC, pkPVP));
+	m_map_pkPVP.emplace(pkPVP->m_dwCRC, std::move(pkNewPVP));
 
 	m_map_pkPVPSetByID[pkChr->GetPlayerID()].insert(pkPVP);
 	m_map_pkPVPSetByID[pkVictim->GetPlayerID()].insert(pkPVP);
@@ -489,31 +489,29 @@ bool CPVPManager::CanAttack(CHARACTER * pkChr, CHARACTER * pkVictim)
 
 CPVP * CPVPManager::Find(uint32_t dwCRC)
 {
-	map<uint32_t, CPVP *>::iterator it = m_map_pkPVP.find(dwCRC);
+	auto it = m_map_pkPVP.find(dwCRC);
 
 	if (it == m_map_pkPVP.end())
 		return nullptr;
 
-	return it->second;
+	return it->second.get();
 }
 
 void CPVPManager::Delete(CPVP * pkPVP)
 {
-	map<uint32_t, CPVP *>::iterator it = m_map_pkPVP.find(pkPVP->m_dwCRC);
+	auto it = m_map_pkPVP.find(pkPVP->m_dwCRC);
 
 	if (it == m_map_pkPVP.end())
 		return;
 
-	m_map_pkPVP.erase(it);
 	m_map_pkPVPSetByID[pkPVP->m_players[0].dwPID].erase(pkPVP);
 	m_map_pkPVPSetByID[pkPVP->m_players[1].dwPID].erase(pkPVP);
-
-	delete pkPVP;
+	m_map_pkPVP.erase(it);
 }
 
 void CPVPManager::SendList(DESC * d)
 {
-	map<uint32_t, CPVP *>::iterator it = m_map_pkPVP.begin();
+	auto it = m_map_pkPVP.begin();
 
 	uint32_t dwVID = d->GetCharacter()->GetVID();
 
@@ -523,7 +521,7 @@ void CPVPManager::SendList(DESC * d)
 
 	while (it != m_map_pkPVP.end())
 	{
-		CPVP * pkPVP = (it++)->second;
+		CPVP * pkPVP = (it++)->second.get();
 
 		if (!pkPVP->m_players[0].dwVID || !pkPVP->m_players[1].dwVID)
 			continue;
@@ -577,11 +575,11 @@ void CPVPManager::SendList(DESC * d)
 
 void CPVPManager::Process()
 {
-	map<uint32_t, CPVP *>::iterator it = m_map_pkPVP.begin();
+	auto it = m_map_pkPVP.begin();
 
 	while (it != m_map_pkPVP.end())
 	{
-		CPVP * pvp = (it++)->second;
+		CPVP * pvp = (it++)->second.get();
 
 		if (get_dword_time() - pvp->GetLastFightTime() > 600000) // If there has been no fighting for 10 minutes or more
 		{

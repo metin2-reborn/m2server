@@ -10,6 +10,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
+#include <string>
 
 static int global_time_gap = 0;
 
@@ -22,10 +23,9 @@ void set_global_time(time_t t)
 {
 	global_time_gap = t - time(nullptr);
 
-	char time_str_buf[32];
-	snprintf(time_str_buf, sizeof(time_str_buf), "%s", time_str(get_global_time()));
+	const std::string time_str_buf(time_str(get_global_time()));
 
-	sys_log(0, "GLOBAL_TIME: %s time_gap %d", time_str_buf, global_time_gap);
+	sys_log(0, "GLOBAL_TIME: %s time_gap %d", time_str_buf.c_str(), global_time_gap);
 }
 
 size_t str_lower(const char * src, char * dest, size_t dest_size)

@@ -178,17 +178,14 @@ bool CClientManager::Initialize()
 
 void CClientManager::MainLoop()
 {
-	SQLMsg * tmp;
-
 	sys_log(0, "ClientManager pointer is %p", this);
 
 	// Main loop
 	while (!m_bShutdowned)
 	{
-		while ((tmp = CDBManager::instance().PopResult()))
+		while (std::unique_ptr<SQLMsg> tmp{CDBManager::instance().PopResult()})
 		{
-			AnalyzeQueryResult(tmp);
-			delete tmp;
+			AnalyzeQueryResult(tmp.get());
 		}
 
 		if (!Process())
@@ -311,7 +308,7 @@ void CClientManager::QUERY_BOOT(CPeer* peer, TPacketGDBoot * p)
 
 	peer->EncodeWORD(sizeof(TShopTable));
 	peer->EncodeWORD(m_iShopTableSize);
-	peer->Encode(m_pShopTable, sizeof(TShopTable) * m_iShopTableSize);
+	peer->Encode(m_pShopTable.get(), sizeof(TShopTable) * m_iShopTableSize);
 
 	peer->EncodeWORD(sizeof(TSkillTable));
 	peer->EncodeWORD(m_vec_skillTable.size());
@@ -319,7 +316,7 @@ void CClientManager::QUERY_BOOT(CPeer* peer, TPacketGDBoot * p)
 
 	peer->EncodeWORD(sizeof(TRefineTable));
 	peer->EncodeWORD(m_iRefineTableSize);
-	peer->Encode(m_pRefineTable, sizeof(TRefineTable) * m_iRefineTableSize);
+	peer->Encode(m_pRefineTable.get(), sizeof(TRefineTable) * m_iRefineTableSize);
 
 	peer->EncodeWORD(sizeof(TItemAttrTable));
 	peer->EncodeWORD(m_vec_itemAttrTable.size());
@@ -347,7 +344,7 @@ void CClientManager::QUERY_BOOT(CPeer* peer, TPacketGDBoot * p)
 	auto it = m_map_pkObjectTable.begin();
 
 	while (it != m_map_pkObjectTable.end())
-		peer->Encode((it++)->second, sizeof(building::TObject));
+		peer->Encode((it++)->second.get(), sizeof(building::TObject));
 
 	// Auction Boot
 	int32_t now = time(nullptr);
@@ -499,17 +496,16 @@ void CClientManager::RESULT_SAFEBOX_LOAD(CPeer * pkPeer, SQLMsg * msg)
 
 	if (pi->account_index == 0)
 	{
-		char szSafeboxPassword[SAFEBOX_PASSWORD_MAX_LEN + 1];
-		strlcpy(szSafeboxPassword, pi->safebox_password, sizeof(szSafeboxPassword));
+		std::string strSafeboxPassword = pi->safebox_password;
 
-		TSafeboxTable * pSafebox = new TSafeboxTable;
-		memset(pSafebox, 0, sizeof(TSafeboxTable));
+		auto pSafebox = std::make_unique<TSafeboxTable>();
+		memset(pSafebox.get(), 0, sizeof(TSafeboxTable));
 
 		SQLResult * res = msg->Get();
 
 		if (res->uiNumRows == 0)
 		{
-			if (strcmp("000000", szSafeboxPassword))
+			if (strSafeboxPassword != "000000")
 			{
 				pkPeer->EncodeHeader(HEADER_DG_SAFEBOX_WRONG_PASSWORD, dwHandle, 0);
 				delete pi;
@@ -521,8 +517,8 @@ void CClientManager::RESULT_SAFEBOX_LOAD(CPeer * pkPeer, SQLMsg * msg)
 			MYSQL_ROW row = mysql_fetch_row(res->pSQLResult);
 
 			// If the password is wrong..
-			if (((!row[2] || !*row[2]) && strcmp("000000", szSafeboxPassword)) ||
-				((row[2] && *row[2]) && strcmp(row[2], szSafeboxPassword)))
+			if (((!row[2] || !*row[2]) && strSafeboxPassword != "000000") ||
+				((row[2] && *row[2]) && strSafeboxPassword != row[2]))
 			{
 				pkPeer->EncodeHeader(HEADER_DG_SAFEBOX_WRONG_PASSWORD, dwHandle, 0);
 				delete pi;
@@ -550,7 +546,7 @@ void CClientManager::RESULT_SAFEBOX_LOAD(CPeer * pkPeer, SQLMsg * msg)
 		if (0 == pSafebox->dwID)
 			pSafebox->dwID = pi->account_id;
 
-		pi->pSafebox = pSafebox;
+		pi->pSafebox = std::move(pSafebox);
 
 		char szQuery[512];
 		snprintf(szQuery, sizeof(szQuery), 
@@ -790,7 +786,7 @@ void CClientManager::RESULT_SAFEBOX_LOAD(CPeer * pkPeer, SQLMsg * msg)
 
 		pkPeer->EncodeHeader(pi->ip[0] == 0 ? HEADER_DG_SAFEBOX_LOAD : HEADER_DG_MALL_LOAD, dwHandle, sizeof(TSafeboxTable) + sizeof(TPlayerItem) * s_items.size());
 
-		pkPeer->Encode(pi->pSafebox, sizeof(TSafeboxTable));
+		pkPeer->Encode(pi->pSafebox.get(), sizeof(TSafeboxTable));
 
 		if (!s_items.empty())
 			pkPeer->Encode(&s_items[0], sizeof(TPlayerItem) * s_items.size());
@@ -974,7 +970,7 @@ void CClientManager::QUERY_EMPIRE_SELECT(CPeer * pkPeer, uint32_t dwHandle, TEmp
 	char szQuery[QUERY_MAX_LEN];
 
 	snprintf(szQuery, sizeof(szQuery), "UPDATE player_index%s SET empire=%u WHERE id=%u", GetTablePostfix(), p->bEmpire, p->dwAccountID);
-	delete CDBManager::instance().DirectQuery(szQuery);
+	std::unique_ptr<SQLMsg>(CDBManager::instance().DirectQuery(szQuery));
 
 	sys_log(0, "EmpireSelect: %s", szQuery);
 	{
@@ -1312,7 +1308,7 @@ CClientManager::TItemCacheSet * CClientManager::GetItemCacheSet(uint32_t pid)
 	if (it == m_map_pkItemCacheSetPtr.end())
 		return nullptr;
 
-	return it->second;
+	return it->second.get();
 }
 
 void CClientManager::CreateItemCacheSet(uint32_t pid)
@@ -1320,8 +1316,7 @@ void CClientManager::CreateItemCacheSet(uint32_t pid)
 	if (m_map_pkItemCacheSetPtr.find(pid) != m_map_pkItemCacheSetPtr.end())
 		return;
 
-	TItemCacheSet * pSet = new TItemCacheSet;
-	m_map_pkItemCacheSetPtr.insert(TItemCacheSetPtrMap::value_type(pid, pSet));
+	m_map_pkItemCacheSetPtr.insert(TItemCacheSetPtrMap::value_type(pid, std::make_unique<TItemCacheSet>()));
 
 	if (g_log)
 		sys_log(0, "ITEM_CACHE: new cache %u", pid);
@@ -1337,7 +1332,7 @@ void CClientManager::FlushItemCacheSet(uint32_t pid)
 		return;
 	}
 
-	TItemCacheSet * pSet = it->second;
+	TItemCacheSet * pSet = it->second.get();
 	TItemCacheSet::iterator it_set = pSet->begin();
 
 	while (it_set != pSet->end())
@@ -1350,7 +1345,6 @@ void CClientManager::FlushItemCacheSet(uint32_t pid)
 	}
 
 	pSet->clear();
-	delete pSet;
 
 	m_map_pkItemCacheSetPtr.erase(it);
 
@@ -1794,9 +1788,9 @@ void CClientManager::CreateObject(TPacketGDCreateObject * p)
 		return;
 	}
 
-	TObject * pkObj = new TObject;
+	auto pkObj = std::make_unique<TObject>();
 
-	memset(pkObj, 0, sizeof(TObject));
+	memset(pkObj.get(), 0, sizeof(TObject));
 
 	pkObj->dwID = pmsg->Get()->uiInsertID;
 	pkObj->dwVnum = p->dwVnum;
@@ -1809,9 +1803,9 @@ void CClientManager::CreateObject(TPacketGDCreateObject * p)
 	pkObj->zRot = p->zRot;
 	pkObj->lLife = 0;
 
-	ForwardPacket(HEADER_DG_CREATE_OBJECT, pkObj, sizeof(TObject));
+	ForwardPacket(HEADER_DG_CREATE_OBJECT, pkObj.get(), sizeof(TObject));
 
-	m_map_pkObjectTable.insert(std::make_pair(pkObj->dwID, pkObj));
+	m_map_pkObjectTable.insert(std::make_pair(pkObj->dwID, std::move(pkObj)));
 }
 
 void CClientManager::DeleteObject(uint32_t dwID)
@@ -1832,7 +1826,6 @@ void CClientManager::DeleteObject(uint32_t dwID)
 
 	if (it != m_map_pkObjectTable.end())
 	{
-		delete it->second;
 		m_map_pkObjectTable.erase(it);
 	}
 
@@ -2846,12 +2839,11 @@ bool CClientManager::InitializeLocalization()
 {
 	char szQuery[512];	
 	snprintf(szQuery, sizeof(szQuery), "SELECT mValue, mKey FROM locale");
-	SQLMsg * pMsg = CDBManager::instance().DirectQuery(szQuery, SQL_COMMON);
+	std::unique_ptr<SQLMsg> pMsg(CDBManager::instance().DirectQuery(szQuery, SQL_COMMON));
 
 	if (pMsg->Get()->uiNumRows == 0)
 	{
 		sys_err("InitializeLocalization() ==> DirectQuery failed(%s)", szQuery);
-		delete pMsg;
 		return false;
 	}
 
@@ -2894,8 +2886,6 @@ bool CClientManager::InitializeLocalization()
 		m_vec_Locale.push_back(locale);
 	}	
 
-	delete pMsg;
-
 	return true;
 }
 //END_BOOT_LOCALIZATION
@@ -2909,12 +2899,11 @@ bool CClientManager::__GetAdminInfo(const char *szIP, std::vector<tAdminInfo> & 
 			"SELECT mID,mAccount,mName,mContactIP,mServerIP,mAuthority FROM gmlist WHERE mServerIP='ALL' or mServerIP='%s'",
 		   	szIP ? szIP : "ALL");
 
-	SQLMsg * pMsg = CDBManager::instance().DirectQuery(szQuery, SQL_COMMON);
+	std::unique_ptr<SQLMsg> pMsg(CDBManager::instance().DirectQuery(szQuery, SQL_COMMON));
 
 	if (pMsg->Get()->uiNumRows == 0)
 	{
 		sys_err("__GetAdminInfo() ==> DirectQuery failed(%s)", szQuery);
-		delete pMsg;
 		return false;
 	}
 
@@ -2952,8 +2941,6 @@ bool CClientManager::__GetAdminInfo(const char *szIP, std::vector<tAdminInfo> & 
 			   	Info.m_ID, Info.m_szAccount, Info.m_szName, Info.m_szContactIP, Info.m_szServerIP, Info.m_Authority, stAuth.c_str());
 	}
 
-	delete pMsg;
-
 	return true;
 }
 
@@ -2961,12 +2948,11 @@ bool CClientManager::__GetHostInfo(std::vector<std::string> & rIPVec)
 {
 	char szQuery[512];
 	snprintf(szQuery, sizeof(szQuery), "SELECT mIP FROM gmhost");
-	SQLMsg * pMsg = CDBManager::instance().DirectQuery(szQuery, SQL_COMMON);
+	std::unique_ptr<SQLMsg> pMsg(CDBManager::instance().DirectQuery(szQuery, SQL_COMMON));
 
 	if (pMsg->Get()->uiNumRows == 0)
 	{
 		sys_err("__GetHostInfo() ==> DirectQuery failed(%s)", szQuery);
-		delete pMsg;
 		return false;
 	}
 
@@ -2983,7 +2969,6 @@ bool CClientManager::__GetHostInfo(std::vector<std::string> & rIPVec)
 		}
 	}
 
-	delete pMsg;
 	return true;
 }
 //END_ADMIN_MANAGER
@@ -3051,7 +3036,7 @@ void CClientManager::UpdateItemCacheSet(uint32_t pid)
 		return;
 	}
 
-	TItemCacheSet * pSet = it->second;
+	TItemCacheSet * pSet = it->second.get();
 	TItemCacheSet::iterator it_set = pSet->begin();
 
 	while (it_set != pSet->end())
@@ -3380,7 +3365,7 @@ void CClientManager::ChangeMonarchLord(CPeer * peer, uint32_t dwHandle, TPacketC
 			GetTablePostfix(), GetTablePostfix(), info->dwPID, info->bEmpire,
 		   	info->dwPID, info->dwPID, info->dwPID, info->dwPID);
 
-	SQLMsg * pMsg = CDBManager::instance().DirectQuery(szQuery, SQL_PLAYER);
+	std::unique_ptr<SQLMsg> pMsg(CDBManager::instance().DirectQuery(szQuery, SQL_PLAYER));
 
 	if (pMsg->Get()->uiNumRows != 0)
 	{
@@ -3393,7 +3378,7 @@ void CClientManager::ChangeMonarchLord(CPeer * peer, uint32_t dwHandle, TPacketC
 		strlcpy(ack.szDate, row[1], sizeof(ack.szDate));
 
 		snprintf(szQuery, sizeof(szQuery), "UPDATE monarch SET pid=%u, windate=NOW() WHERE empire=%d", ack.dwPID, ack.bEmpire);
-		SQLMsg* pMsg2 = CDBManager::instance().DirectQuery(szQuery, SQL_PLAYER);
+		std::unique_ptr<SQLMsg> pMsg2(CDBManager::instance().DirectQuery(szQuery, SQL_PLAYER));
 
 		if (pMsg2->Get()->uiAffectedRows > 0)
 		{

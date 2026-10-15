@@ -75,11 +75,6 @@ CGuildManager::CGuildManager()
 
 CGuildManager::~CGuildManager()
 {
-	for( TGuildMap::const_iterator iter = m_mapGuild.begin() ; iter != m_mapGuild.end() ; ++iter )
-	{
-		delete iter->second;
-	}
-
 	m_mapGuild.clear();
 }
 
@@ -125,9 +120,10 @@ uint32_t CGuildManager::CreateGuild(TGuildCreateParameter& gcp)
 
 	// new CGuild(gcp) queries guild tables and tell dbcache to notice other game servers.
 	// other game server calls CGuildManager::LoadGuild to load guild.
-	CGuild * pg = new CGuild(gcp);
-	m_mapGuild.insert(std::make_pair(pg->GetID(), pg));
-	return pg->GetID();
+	auto pg = std::make_unique<CGuild>(gcp);
+	const uint32_t dwGuildID = pg->GetID();
+	m_mapGuild.insert(std::make_pair(dwGuildID, std::move(pg)));
+	return dwGuildID;
 }
 
 void CGuildManager::Unlink(uint32_t pid)
@@ -184,27 +180,27 @@ void CGuildManager::LoginMember(CHARACTER * ch)
 
 CGuild* CGuildManager::TouchGuild(uint32_t guild_id)
 {
-	TGuildMap::iterator it = m_mapGuild.find(guild_id);
+	auto it = m_mapGuild.find(guild_id);
 
 	if (it == m_mapGuild.end())
 	{
-		m_mapGuild.insert(std::make_pair(guild_id, new CGuild(guild_id)));
+		m_mapGuild.insert(std::make_pair(guild_id, std::make_unique<CGuild>(guild_id)));
 		it = m_mapGuild.find(guild_id);
 
 		CHARACTER_MANAGER::instance().for_each_pc(FGuildNameSender(guild_id, it->second->GetName()));
 	}
 
-	return it->second;
+	return it->second.get();
 }
 
 CGuild* CGuildManager::FindGuild(uint32_t guild_id)
 {
-	TGuildMap::iterator it = m_mapGuild.find(guild_id);
+	auto it = m_mapGuild.find(guild_id);
 	if (it == m_mapGuild.end())
 	{
 		return nullptr;
 	}
-	return it->second;
+	return it->second.get();
 }
 
 CGuild*	CGuildManager::FindGuildByName(const std::string guild_name)
@@ -213,7 +209,7 @@ CGuild*	CGuildManager::FindGuildByName(const std::string guild_name)
 	for (it = m_mapGuild.begin(); it!=m_mapGuild.end(); ++it)
 	{
 		if (it->second->GetName()==guild_name)
-			return it->second;
+			return it->second.get();
 	}
 	return nullptr;
 }
@@ -249,24 +245,23 @@ void CGuildManager::Initialize()
 
 void CGuildManager::LoadGuild(uint32_t guild_id)
 {
-	TGuildMap::iterator it = m_mapGuild.find(guild_id);
+	auto it = m_mapGuild.find(guild_id);
 
 	if (it == m_mapGuild.end())
 	{
-		m_mapGuild.insert(std::make_pair(guild_id, new CGuild(guild_id)));
+		m_mapGuild.insert(std::make_pair(guild_id, std::make_unique<CGuild>(guild_id)));
 	}
 }
 
 void CGuildManager::DisbandGuild(uint32_t guild_id)
 {
-	TGuildMap::iterator it = m_mapGuild.find(guild_id);
+	auto it = m_mapGuild.find(guild_id);
 
 	if (it == m_mapGuild.end())
 		return;
 
 	it->second->Disband();
 
-	delete it->second;
 	m_mapGuild.erase(it);
 
 	CGuildMarkManager::instance().DeleteMark(guild_id);
@@ -274,7 +269,7 @@ void CGuildManager::DisbandGuild(uint32_t guild_id)
 
 void CGuildManager::SkillRecharge()
 {
-	for (TGuildMap::iterator it = m_mapGuild.begin(); it!=m_mapGuild.end();++it)
+	for (auto it = m_mapGuild.begin(); it!=m_mapGuild.end();++it)
 	{
 		it->second->SkillRecharge();
 	}
@@ -287,7 +282,7 @@ int CGuildManager::GetRank(CGuild* g)
 
 	for (auto it = m_mapGuild.begin(); it != m_mapGuild.end();++it)
 	{
-		CGuild * pg = it->second;
+		CGuild * pg = it->second.get();
 
 		if (pg->GetLadderPoint() > point)
 			rank++;
@@ -322,13 +317,12 @@ struct FGuildCompare
 
 void CGuildManager::GetHighRankString(uint32_t dwMyGuild, char * buffer, size_t buflen)
 {
-	using namespace std;
 	std::vector<CGuild*> v;
 
 	for (auto it = m_mapGuild.begin(); it != m_mapGuild.end(); ++it)
 	{
 		if (it->second)
-			v.push_back(it->second);
+			v.push_back(it->second.get());
 	}
 
 	std::sort(v.begin(), v.end(), FGuildCompare());
@@ -396,13 +390,12 @@ void CGuildManager::GetHighRankString(uint32_t dwMyGuild, char * buffer, size_t 
 
 void CGuildManager::GetAroundRankString(uint32_t dwMyGuild, char * buffer, size_t buflen)
 {
-	using namespace std;
 	std::vector<CGuild*> v;
 
 	for (auto it = m_mapGuild.begin(); it != m_mapGuild.end(); ++it)
 	{
 		if (it->second)
-			v.push_back(it->second);
+			v.push_back(it->second.get());
 	}
 
 	std::sort(v.begin(), v.end(), FGuildCompare());
@@ -883,12 +876,13 @@ void CGuildManager::ReserveWarAdd(TGuildWarReserve * p)
 	CGuildWarReserveForGame * pkReserve;
 
 	if (it != m_map_kReserveWar.end())
-		pkReserve = it->second;
+		pkReserve = it->second.get();
 	else
 	{
-		pkReserve = new CGuildWarReserveForGame;
+		auto pkNewReserve = std::make_unique<CGuildWarReserveForGame>();
+		pkReserve = pkNewReserve.get();
 
-		m_map_kReserveWar.insert(std::make_pair(p->dwID, pkReserve));
+		m_map_kReserveWar.insert(std::make_pair(p->dwID, std::move(pkNewReserve)));
 		m_vec_kReserveWar.push_back(pkReserve);
 	}
 
@@ -930,7 +924,7 @@ void CGuildManager::ReserveWarDelete(uint32_t dwID)
 
 	while (it_vec != m_vec_kReserveWar.end())
 	{
-		if (*it_vec == it->second)
+		if (*it_vec == it->second.get())
 		{
 			it_vec = m_vec_kReserveWar.erase(it_vec);
 			break;
@@ -939,7 +933,6 @@ void CGuildManager::ReserveWarDelete(uint32_t dwID)
 			++it_vec;
 	}
 
-	delete it->second;
 	m_map_kReserveWar.erase(it);
 }
 
@@ -954,15 +947,15 @@ std::vector<CGuildWarReserveForGame *> & CGuildManager::GetReserveWarRef()
 
 void CGuildManager::ChangeMaster(uint32_t dwGID)
 {
-	TGuildMap::iterator iter = m_mapGuild.find(dwGID);
+	auto iter = m_mapGuild.find(dwGID);
 
-	if ( iter != m_mapGuild.end() )
-	{
-		iter->second->Load(dwGID);
-	}
+	if ( iter == m_mapGuild.end() )
+		return;
+
+	iter->second->Load(dwGID);
 
 	// Send updated info
-	DBManager::instance().FuncQuery([guild = iter->second](SQLMsg *msg) { guild->SendGuildDataUpdateToAllMember(msg); },		
+	DBManager::instance().FuncQuery([guild = iter->second.get()](SQLMsg *msg) { guild->SendGuildDataUpdateToAllMember(msg); },
 			"SELECT 1");
 
 }

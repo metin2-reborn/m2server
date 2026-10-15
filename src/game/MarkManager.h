@@ -6,6 +6,7 @@
 
 #include <cstdint>
 #include <map>
+#include <memory>
 #include <set>
 #include <string>
 #include <vector>
@@ -62,14 +63,11 @@ class CGuildMarkManager : public singleton<CGuildMarkManager>
 		// 
 		// Mark
 		//
-		CGuildMarkImage * __NewImage();
-		void __DeleteImage(CGuildMarkImage * pkImgDel);
-
 		uint32_t __AllocMarkID(uint32_t guildID);
 
 		CGuildMarkImage * __GetImage(uint32_t imgIdx);
 
-		std::map<uint32_t, CGuildMarkImage *> m_mapIdx_Image; // index = image index
+		std::map<uint32_t, std::unique_ptr<CGuildMarkImage>> m_mapIdx_Image; // index = image index
 		std::map<uint32_t, uint32_t> m_mapGID_MarkID; // index = guild id
 
 		std::set<uint32_t> m_setFreeMarkID;

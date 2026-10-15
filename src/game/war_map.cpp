@@ -26,6 +26,7 @@
 #include <cstdio>
 #include <cstring>
 #include <map>
+#include <memory>
 #include <utility>
 
 EVENTINFO(war_map_info)
@@ -979,19 +980,11 @@ CWarMapManager::CWarMapManager()
 
 CWarMapManager::~CWarMapManager()
 {
-	for( std::map<int32_t, TWarMapInfo *>::const_iterator iter = m_map_kWarMapInfo.begin() ; iter != m_map_kWarMapInfo.end() ; ++iter )
-	{
-		delete iter->second;
-	}
-
-	m_map_kWarMapInfo.clear();
 }
 
 bool CWarMapManager::LoadWarMapInfo(const char * c_pszFileName)
 {
-	TWarMapInfo * k;
-
-	k = new TWarMapInfo;
+	auto k = std::make_unique<TWarMapInfo>();
 	k->bType = WAR_MAP_TYPE_NORMAL;
 
 	k->lMapIndex = 110;
@@ -1002,9 +995,9 @@ bool CWarMapManager::LoadWarMapInfo(const char * c_pszFileName)
 	k->posStart[2].x = 141 * 100 + 32000;
 	k->posStart[2].y = 117 * 100 + 0;
 
-	m_map_kWarMapInfo.insert(std::make_pair(k->lMapIndex, k));
+	m_map_kWarMapInfo.emplace(k->lMapIndex, std::move(k));
 
-	k = new TWarMapInfo;
+	k = std::make_unique<TWarMapInfo>();
 	k->bType = WAR_MAP_TYPE_FLAG;
 
 	k->lMapIndex = 111;
@@ -1015,7 +1008,7 @@ bool CWarMapManager::LoadWarMapInfo(const char * c_pszFileName)
 	k->posStart[2].x = 122 * 100 + 57600;
 	k->posStart[2].y = 131 * 100 + 0;
 
-	m_map_kWarMapInfo.insert(std::make_pair(k->lMapIndex, k));
+	m_map_kWarMapInfo.emplace(k->lMapIndex, std::move(k));
 	return true;
 }
 
@@ -1076,7 +1069,7 @@ TWarMapInfo * CWarMapManager::GetWarMapInfo(int32_t lMapIndex)
 	if (m_map_kWarMapInfo.end() == it)
 		return nullptr;
 
-	return it->second;
+	return it->second.get();
 }
 
 void CWarMapManager::DestroyWarMap(CWarMap* pMap)

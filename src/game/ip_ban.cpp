@@ -7,6 +7,7 @@
 #include <cstdio>
 #include <cstring>
 #include <map>
+#include <string>
 #include <vector>
 
 #include <arpa/inet.h>
@@ -129,8 +130,8 @@ bool LoadBanIP(const char * filename)
 		return false;
 
 	char buf[256];
-	char start[256];
-	char end[256];
+	std::string start;
+	std::string end;
 
 	fprintf(stderr, "LOADING BANNED IP LIST\n");
 
@@ -141,8 +142,8 @@ bool LoadBanIP(const char * filename)
 
 		if (!p)
 		{
-			strlcpy(start, buf, sizeof(start));
-			*end = '\0';
+			start = buf;
+			end.clear();
 		}
 		else
 		{
@@ -151,13 +152,13 @@ bool LoadBanIP(const char * filename)
 			if (p2)
 				*p2 = '\0';
 
-			strlcpy(end, p + 1, sizeof(end));
+			end = p + 1;
 
 			*p = '\0';
-			strlcpy(start, buf, sizeof(start));
+			start = buf;
 		}
 
-		IP ip(start, end);
+		IP ip(start.c_str(), end.c_str());
 
 		auto it = mapBanIP.find(ip.hash());
 

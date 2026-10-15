@@ -53,6 +53,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cstddef>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
@@ -232,21 +233,21 @@ bool FindInString(const char * c_pszFind, const char * c_pszIn)
 		return (0 == strncasecmp(c_pszFind, c_pszIn, strlen(c_pszFind)));
 	else
 	{
-		char sz[64 + 1];
+		std::string sz;
 
 		do
 		{
-			strlcpy(sz, c, std::min<int>(sizeof(sz), (p - c) + 1));
+			sz.assign(c, std::min<std::size_t>(64, p - c));
 
-			if (!strncasecmp(c_pszFind, sz, strlen(c_pszFind)))
+			if (!strncasecmp(c_pszFind, sz.c_str(), strlen(c_pszFind)))
 				return true;
 
 			c = p + 1;
 		} while ((p = strchr(c, '|')));
 
-		strlcpy(sz, c, sizeof(sz));
+		sz.assign(c, std::min<std::size_t>(64, strlen(c)));
 
-		if (!strncasecmp(c_pszFind, sz, strlen(c_pszFind)))
+		if (!strncasecmp(c_pszFind, sz.c_str(), strlen(c_pszFind)))
 			return true;
 	}
 
@@ -325,7 +326,7 @@ bool CHARACTER_GoToName(CHARACTER * ch, uint8_t empire, int mapIndex, const char
 { "사귀타워입구",		2, 65, 5905, 1108 },
 { "사귀타워입구",		3, 65, 5905, 1108 },
 
-{ NULL,			0,  0,    0,    0 },
+{ nullptr,			0,  0,    0,    0 },
 };
  */
 

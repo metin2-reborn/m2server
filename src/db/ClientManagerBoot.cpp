@@ -28,8 +28,6 @@
 #include <utility>
 #include <vector>
 
-using namespace std;
-
 
 bool CClientManager::InitializeTables()
 {
@@ -137,16 +135,15 @@ bool CClientManager::InitializeRefineTable()
 	if (m_pRefineTable)
 	{
 		sys_log(0, "RELOAD: refine_proto");
-		delete [] m_pRefineTable;
-		m_pRefineTable = nullptr;
+		m_pRefineTable.reset();
 	}
 
 	m_iRefineTableSize = pRes->uiNumRows;
 
-	m_pRefineTable	= new TRefineTable[m_iRefineTableSize];
-	memset(m_pRefineTable, 0, sizeof(TRefineTable) * m_iRefineTableSize);
+	m_pRefineTable	= std::make_unique<TRefineTable[]>(m_iRefineTableSize);
+	memset(m_pRefineTable.get(), 0, sizeof(TRefineTable) * m_iRefineTableSize);
 
-	TRefineTable* prt = m_pRefineTable;
+	TRefineTable* prt = m_pRefineTable.get();
 	MYSQL_ROW data;
 
 	while ((data = mysql_fetch_row(pRes->pSQLResult)))
@@ -244,13 +241,15 @@ bool CClientManager::InitializeMobTable()
 	}
 	//2. Build the (c)[test_map_mobTableByVnum](vnum:TMobTable) map.
 	std::map<uint32_t, TMobTable *> test_map_mobTableByVnum;
+	std::unique_ptr<TMobTable[]> test_mob_tables;
 	if (isTestFile) {
 		test_data.Next();	//Skip the description row.
 
 		//a. Create the test monster table.
 		TMobTable * test_mob_table = nullptr;
 		int test_MobTableSize = test_data.m_File.GetRowCount()-1;
-		test_mob_table = new TMobTable[test_MobTableSize];
+		test_mob_tables = std::make_unique<TMobTable[]>(test_MobTableSize);
+		test_mob_table = test_mob_tables.get();
 		memset(test_mob_table, 0, sizeof(TMobTable) * test_MobTableSize);
 
 		//b. Fill the test monster table and also insert into the map.
@@ -471,15 +470,14 @@ bool CClientManager::InitializeShopTable()
 		return false;
 	}
 
-	std::map<int, TShopTable *> map_shop;
+	std::map<int, std::unique_ptr<TShopTable>> map_shop;
 
 	if (m_pShopTable)
 	{
-		delete [] (m_pShopTable);
-		m_pShopTable = nullptr;
+		m_pShopTable.reset();
 	}
 
-	TShopTable * shop_table = m_pShopTable;
+	TShopTable * shop_table = m_pShopTable.get();
 
 	while ((data = mysql_fetch_row(pRes2->pSQLResult)))
 	{
@@ -490,14 +488,15 @@ bool CClientManager::InitializeShopTable()
 
 		if (map_shop.end() == map_shop.find(iShopVnum))
 		{
-			shop_table = new TShopTable;
+			auto pShopTable = std::make_unique<TShopTable>();
+			shop_table = pShopTable.get();
 			memset(shop_table, 0, sizeof(TShopTable));
 			shop_table->dwVnum	= iShopVnum;
 
-			map_shop[iShopVnum] = shop_table;
+			map_shop[iShopVnum] = std::move(pShopTable);
 		}
 		else
-			shop_table = map_shop[iShopVnum];
+			shop_table = map_shop[iShopVnum].get();
 
 		str_to_number(shop_table->dwNPCVnum, data[col++]);
 
@@ -512,7 +511,7 @@ bool CClientManager::InitializeShopTable()
 		++shop_table->byItemCount;
 	}
 
-	m_pShopTable = new TShopTable[map_shop.size()];
+	m_pShopTable = std::make_unique<TShopTable[]>(map_shop.size());
 	m_iShopTableSize = map_shop.size();
 
 	__typeof(map_shop.begin()) it = map_shop.begin();
@@ -521,8 +520,8 @@ bool CClientManager::InitializeShopTable()
 
 	while (it != map_shop.end())
 	{
-		std::memcpy((m_pShopTable + i), (it++)->second, sizeof(TShopTable));
-		sys_log(0, "SHOP: #%d items: %d", (m_pShopTable + i)->dwVnum, (m_pShopTable + i)->byItemCount);
+		std::memcpy((m_pShopTable.get() + i), (it++)->second.get(), sizeof(TShopTable));
+		sys_log(0, "SHOP: #%d items: %d", (m_pShopTable.get() + i)->dwVnum, (m_pShopTable.get() + i)->byItemCount);
 		++i;
 	}
 
@@ -576,6 +575,7 @@ bool CClientManager::InitializeItemTable()
 	//		build the (b)[test_map_itemTableByVnum](vnum:TItemTable) map.
 	//=================================================================//
 	std::map<uint32_t, TItemTable *> test_map_itemTableByVnum;
+	std::unique_ptr<TItemTable[]> test_item_tables;
 	//1. Read the file.
 	cCsvTable test_data;
 	if(!test_data.Load("item_proto_test.txt",'\t'))
@@ -587,7 +587,8 @@ bool CClientManager::InitializeItemTable()
 		//2. Create the test item table.
 		TItemTable * test_item_table = nullptr;
 		int test_itemTableSize = test_data.m_File.GetRowCount()-1;
-		test_item_table = new TItemTable[test_itemTableSize];
+		test_item_tables = std::make_unique<TItemTable[]>(test_itemTableSize);
+		test_item_table = test_item_tables.get();
 		memset(test_item_table, 0, sizeof(TItemTable) * test_itemTableSize);
 
 		//3. Fill the test item table and also insert into the map.
@@ -1264,9 +1265,9 @@ bool CClientManager::InitializeObjectTable()
 	if (pRes->uiNumRows > 0)
 		while ((data = mysql_fetch_row(pRes->pSQLResult)))
 		{
-			TObject * k = new TObject;
+			auto k = std::make_unique<TObject>();
 
-			memset(k, 0, sizeof(TObject));
+			memset(k.get(), 0, sizeof(TObject));
 
 			int col = 0;
 
@@ -1284,7 +1285,7 @@ bool CClientManager::InitializeObjectTable()
 			sys_log(0, "OBJ: %u vnum %u map %-4d %7dx%-7d life %d",
 					k->dwID, k->dwVnum, k->lMapIndex, k->x, k->y, k->lLife);
 
-			m_map_pkObjectTable.insert(std::make_pair(k->dwID, k));
+			m_map_pkObjectTable.insert(std::make_pair(k->dwID, std::move(k)));
 		}
 
 	return true;

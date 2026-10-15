@@ -30,8 +30,10 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <memory>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 
@@ -42,7 +44,7 @@
 /*--------------------------------------------------------*/
 /*                   GLOBAL VARIABLES                     */
 /*--------------------------------------------------------*/
-static std::vector<CUBE_DATA*>	s_cube_proto;
+static std::vector<std::unique_ptr<CUBE_DATA>>	s_cube_proto;
 static bool s_isInitializedCubeMaterialInformation = false;
 
 
@@ -161,7 +163,7 @@ static CUBE_DATA* FN_find_cube (CItem * *items, uint16_t npc_vnum)
 	for (i=0; i<end_index; ++i)
 	{
 		if ( s_cube_proto[i]->can_make_item(items, npc_vnum) )
-			return s_cube_proto[i];
+			return s_cube_proto[i].get();
 	}
 
 	return nullptr;
@@ -169,7 +171,7 @@ static CUBE_DATA* FN_find_cube (CItem * *items, uint16_t npc_vnum)
 
 static bool FN_check_valid_npc( uint16_t vnum )
 {
-	for ( std::vector<CUBE_DATA*>::iterator iter = s_cube_proto.begin(); iter != s_cube_proto.end(); iter++ )
+	for ( auto iter = s_cube_proto.begin(); iter != s_cube_proto.end(); iter++ )
 	{
 		if ( std::find((*iter)->npc_vnum.begin(), (*iter)->npc_vnum.end(), vnum) != (*iter)->npc_vnum.end() )
 			return true;
@@ -355,19 +357,10 @@ void Cube_close (CHARACTER * ch)
 
 void Cube_init()
 {
-	CUBE_DATA * p_cube = nullptr;
-	std::vector<CUBE_DATA*>::iterator iter;
-
 	char file_name[256+1];
 	snprintf(file_name, sizeof(file_name), "%s/cube.txt", LocaleService_GetBasePath().c_str());
 
 	sys_log(0, "Cube_Init %s", file_name);
-
-	for (iter = s_cube_proto.begin(); iter!=s_cube_proto.end(); iter++)
-	{
-		p_cube = *iter;
-		delete p_cube;
-	}
 
 	s_cube_proto.clear();
 
@@ -382,7 +375,7 @@ bool Cube_load (const char *file)
 	int		value1, value2;
 	const char	*delim = " \t\r\n";
 	char	*v, *token_string;
-	CUBE_DATA	*cube_data = nullptr;
+	std::unique_ptr<CUBE_DATA>	cube_data;
 	CUBE_VALUE	cube_value = {0,0};
 
 	if (nullptr == file || 0 == file[0])
@@ -412,7 +405,11 @@ bool Cube_load (const char *file)
 
 		TOKEN("section")
 		{
-			cube_data = new CUBE_DATA;
+			cube_data = std::make_unique<CUBE_DATA>();
+		}
+		else if (!cube_data)
+		{
+			sys_err("cube: '%s' outside a section", token_string);
 		}
 		else TOKEN("npc")
 		{
@@ -444,13 +441,13 @@ bool Cube_load (const char *file)
 		else TOKEN("end")
 		{
 			// TODO : check cube data
-			if (false == FN_check_cube_data(cube_data))
+			if (false == FN_check_cube_data(cube_data.get()))
 			{
 				dev_log(LOG_DEB0, "something wrong");
-				delete cube_data;
+				cube_data.reset();
 				continue;
 			}
-			s_cube_proto.push_back(cube_data);
+			s_cube_proto.push_back(std::move(cube_data));
 		}
 	}
 
@@ -752,7 +749,7 @@ bool Cube_InformationInitialize()
 {
 	for (int i = 0; i < s_cube_proto.size(); ++i)
 	{
-		CUBE_DATA* cubeData = s_cube_proto[i];
+		CUBE_DATA* cubeData = s_cube_proto[i].get();
 
 		const std::vector<CUBE_VALUE>& rewards = cubeData->reward;
 

@@ -9,6 +9,7 @@
 
 
 #include <cstdint>
+#include <memory>
 #include <set>
 #include <sstream>
 #include <string>
@@ -48,7 +49,7 @@ const std::string g_astMaterialName[] =
 
 bool DragonSoulTable::ReadDragonSoulTableFile(const char * c_pszFileName)
 {
-	m_pLoader = new CGroupTextParseTreeLoader;
+	m_pLoader = std::make_unique<CGroupTextParseTreeLoader>();
 	CGroupTextParseTreeLoader& loader = *m_pLoader;
 
 	if (false == loader.Load(c_pszFileName))
@@ -889,7 +890,7 @@ bool DragonSoulTable::GetDragonSoulExtValues(uint8_t ds_type, uint8_t grade_idx,
 	if (!m_pDragonSoulExtTableNode->GetGroupValue(stDragonSoulName, g_astGradeName[grade_idx], "prob", prob))
 	{
 		sys_err ("Invalid Prob. DragonSoulGroup(%s) Grade(%s)",
-			stDragonSoulName.c_str(), g_astGradeName[grade_idx].c_str(), g_astGradeName[grade_idx].c_str());
+			stDragonSoulName.c_str(), g_astGradeName[grade_idx].c_str());
 		return false;
 	}
 
@@ -905,10 +906,7 @@ bool DragonSoulTable::GetDragonSoulExtValues(uint8_t ds_type, uint8_t grade_idx,
 
 DragonSoulTable::DragonSoulTable()
 {
-	m_pLoader = nullptr;
 }
 DragonSoulTable::~DragonSoulTable ()
 {
-	if (m_pLoader)
-		delete m_pLoader;
 }

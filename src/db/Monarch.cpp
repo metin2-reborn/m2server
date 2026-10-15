@@ -14,6 +14,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <memory>
+#include <utility>
 
 
 CMonarch::CMonarch()
@@ -31,10 +33,10 @@ bool CMonarch::VoteMonarch(uint32_t pid, uint32_t selectdpid)
 
 	if (it == m_map_MonarchElection.end())
 	{
-		MonarchElectionInfo * p = new MonarchElectionInfo;
+		auto p = std::make_unique<MonarchElectionInfo>();
 		p->pid = pid;
 		p->selectedpid= selectdpid;
-		m_map_MonarchElection.insert(MAP_MONARCHELECTION::value_type(pid, p));
+		m_map_MonarchElection.insert(MAP_MONARCHELECTION::value_type(pid, std::move(p)));
 
 		char szQuery[256];
 		snprintf(szQuery, sizeof(szQuery),
@@ -51,7 +53,7 @@ void CMonarch::ElectMonarch()
 {
 	int size = GetVecMonarchCandidacy().size();
 
-	int * s = new int[size];
+	auto s = std::make_unique<int[]>(size);
 
 	auto it = m_map_MonarchElection.begin();
 
@@ -67,8 +69,6 @@ void CMonarch::ElectMonarch()
 		if (g_test_server)
 			sys_log (0, "[MONARCH_VOTE] pid(%d) come to vote candidacy pid(%d)", it->second->pid, m_vec_MonarchCandidacy[idx].pid);
 	}
-
-	delete [] s;
 }
 
 bool CMonarch::IsCandidacy(uint32_t pid)
@@ -188,11 +188,10 @@ bool CMonarch::LoadMonarch()
 	MonarchInfo * p = &m_MonarchInfo;
     char szQuery[256];
 	snprintf(szQuery, sizeof(szQuery), "SELECT empire, pid, name, money, windate FROM monarch a, player%s b where a.pid=b.id", GetTablePostfix());
-    SQLMsg * pMsg = CDBManager::instance().DirectQuery(szQuery, SQL_PLAYER);
+    std::unique_ptr<SQLMsg> pMsg(CDBManager::instance().DirectQuery(szQuery, SQL_PLAYER));
 
     if (pMsg->Get()->uiNumRows == 0)
     {
-        delete pMsg;
         return false;
     }
 
@@ -212,7 +211,6 @@ bool CMonarch::LoadMonarch()
 		sys_log(0, "[LOAD_MONARCH] Empire %d pid %d money %ld windate %s", Empire, p->pid[Empire], p->money[Empire], p->date[Empire]);
     }
 
-    delete pMsg;
     return true;
 }
 
@@ -221,12 +219,16 @@ bool CMonarch::SetMonarch(const char * name)
 	MonarchInfo * p = &m_MonarchInfo;
     char szQuery[256];
 
-	snprintf(szQuery, sizeof(szQuery), "SELECT empire, pid, name FROM player a where a.name = '%s'", name);
-    SQLMsg * pMsg = CDBManager::instance().DirectQuery(szQuery, SQL_PLAYER);
+	char szEscapedName[CHARACTER_NAME_MAX_LEN * 2 + 1];
+	CDBManager::instance().EscapeString(szEscapedName, name, strnlen(name, CHARACTER_NAME_MAX_LEN));
+
+	snprintf(szQuery, sizeof(szQuery),
+			"SELECT b.empire, a.id, a.name FROM player%s AS a, player_index%s AS b WHERE a.account_id=b.id AND a.name='%s'",
+			GetTablePostfix(), GetTablePostfix(), szEscapedName);
+    std::unique_ptr<SQLMsg> pMsg(CDBManager::instance().DirectQuery(szQuery, SQL_PLAYER));
 
     if (pMsg->Get()->uiNumRows == 0)
     {
-        delete pMsg;
         return false;
     }
 
@@ -239,12 +241,10 @@ bool CMonarch::SetMonarch(const char * name)
 
         str_to_number(p->pid[Empire], row[idx++]);
 		strlcpy(p->name[Empire], row[idx++], sizeof(p->name[Empire]));
-        p->money[Empire] = atoll(row[idx++]);
-	
+
 		if (g_test_server)
 			sys_log(0, "[Set_MONARCH] Empire %d pid %d money %ld windate %s", Empire, p->pid[Empire], p->money[Empire], p->date[Empire]);
     }
-    delete pMsg;
 
 	//Insert into db
 	snprintf(szQuery, sizeof(szQuery),
@@ -263,17 +263,14 @@ bool CMonarch::DelMonarch(const char * name)
 			char szQuery[256];
 
 			int Empire = n;
-			snprintf(szQuery, sizeof(szQuery), "DELETE from monarch where name=%d", Empire);
-			SQLMsg * pMsg = CDBManager::instance().DirectQuery(szQuery, SQL_PLAYER);
+			snprintf(szQuery, sizeof(szQuery), "DELETE FROM monarch WHERE empire=%d", Empire);
+			std::unique_ptr<SQLMsg> pMsg(CDBManager::instance().DirectQuery(szQuery, SQL_PLAYER));
 
-			if (pMsg->Get()->uiNumRows == 0)
+			if (pMsg->Get()->uiAffectedRows == 0 || pMsg->Get()->uiAffectedRows == (uint32_t)-1)
 			{
 				sys_err(" DirectQuery failed(%s)", szQuery);
-				delete pMsg;
 				return false;
 			}
-
-			delete pMsg;
 
 			memset(m_MonarchInfo.name[Empire], 0, 32);
 			m_MonarchInfo.money[Empire] = 0;

@@ -29,6 +29,7 @@
 #include <cstdio>
 #include <cstring>
 #include <map>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -52,14 +53,12 @@ bool CShopManager::Initialize(TShopTable * table, int size)
 
 	for (i = 0; i < size; ++i, ++table)
 	{
-		CShop * shop = new CShop;
+		auto pkNewShop = std::make_unique<CShop>();
 
-		if (!shop->Create(table->dwVnum, table->dwNPCVnum, table->items))
-		{
-			delete shop;
+		if (!pkNewShop->Create(table->dwVnum, table->dwNPCVnum, table->items))
 			continue;
-		}
 
+		CShop * shop = pkNewShop.release();
 		m_map_pkShop.insert(TShopMap::value_type(table->dwVnum, shop));
 		m_map_pkShopByNPCVnum.insert(TShopMap::value_type(table->dwNPCVnum, shop));
 	}

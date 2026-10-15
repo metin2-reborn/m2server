@@ -8,6 +8,7 @@
 #include <common/singleton.h>
 
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -60,7 +61,7 @@ class P2P_MANAGER : public singleton<P2P_MANAGER>
 
 		int			m_iHandleCount;
 
-		typedef std::unordered_map<std::string, CCI *> TCCIMap;
+		typedef std::unordered_map<std::string, std::unique_ptr<CCI>> TCCIMap;
 		typedef std::unordered_map<uint32_t, CCI*> TPIDCCIMap;
 		std::unordered_set<DESC *> m_set_pkPeers;
 		TCCIMap			m_map_pkCCI;

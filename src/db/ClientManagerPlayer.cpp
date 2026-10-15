@@ -25,6 +25,8 @@
 #include <map>
 #include <memory>
 #include <set>
+#include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -414,23 +416,24 @@ void CClientManager::QUERY_PLAYER_LOAD(CPeer * peer, uint32_t dwHandle, TPlayerL
 }
 void CClientManager::ItemAward(CPeer * peer,char* login)
 {
-	char login_t[LOGIN_MAX_LEN + 1] = "";
-	strlcpy(login_t,login,LOGIN_MAX_LEN + 1);	
-	std::set<TItemAward *> * pSet = ItemAwardManager::instance().GetByLogin(login_t);	
+	std::string login_t = login;
+	std::set<TItemAward *> * pSet = ItemAwardManager::instance().GetByLogin(login_t.c_str());	
 	if(pSet == nullptr)
 		return;
 	__typeof(pSet->begin()) it = pSet->begin();	//Read those whose taken_time is NULL	
 	while(it != pSet->end() )
 	{				
-		TItemAward * pItemAward = *(it++);		
+		TItemAward * pItemAward = *(it++);
 		InformGiftAward(pItemAward->szLogin, pItemAward->szWhy, pItemAward->dwVnum);
 	}
 }
 
 void CClientManager::InformGiftAward(const char * login, const char * why, uint32_t vnum)
 {
-	char command[20] = "";
-	char* tok;
+	// The command is the text between a leading '[' and the first ']' (or the end).
+	const std::string_view text(why);
+	if (!text.starts_with("[GIFT") || (text.size() > 5 && text[5] != ']'))
+		return;
 
 	TPacketItemAwardInfromer giftData{};
 	strlcpy(giftData.login, login, sizeof(giftData.login));
@@ -983,7 +986,7 @@ void CClientManager::__QUERY_PLAYER_DELETE(CPeer* peer, uint32_t dwHandle, TPlay
 void CClientManager::__RESULT_PLAYER_DELETE(CPeer *peer, SQLMsg* msg)
 {
 	CQueryInfo * qi = (CQueryInfo *) msg->pvUserData;
-	ClientHandleInfo * pi = (ClientHandleInfo *) qi->pvData;
+	std::unique_ptr<ClientHandleInfo> pi(static_cast<ClientHandleInfo *>(qi->pvData));
 
 	if (msg->Get() && msg->Get()->uiNumRows)
 	{
@@ -995,8 +998,7 @@ void CClientManager::__RESULT_PLAYER_DELETE(CPeer *peer, SQLMsg* msg)
 		int deletedLevelLimit = 0;
 		str_to_number(deletedLevelLimit, row[1]);
 
-		char szName[64];
-		strlcpy(szName, row[2], sizeof(szName));
+		std::string strName = row[2];
 
 		if (deletedLevelLimit >= m_iPlayerDeleteLevelLimit)
 		{
@@ -1059,7 +1061,6 @@ void CClientManager::__RESULT_PLAYER_DELETE(CPeer *peer, SQLMsg* msg)
 			}
 
 			pSet->clear();
-			delete pSet;
 
 			m_map_pkItemCacheSetPtr.erase(pi->player_id);
 		}
@@ -1081,10 +1082,10 @@ void CClientManager::__RESULT_PLAYER_DELETE(CPeer *peer, SQLMsg* msg)
 		}
 
 		snprintf(queryStr, sizeof(queryStr), "DELETE FROM player%s WHERE id=%d", GetTablePostfix(), pi->player_id);
-		delete CDBManager::instance().DirectQuery(queryStr);
+		std::unique_ptr<SQLMsg>(CDBManager::instance().DirectQuery(queryStr));
 
 		snprintf(queryStr, sizeof(queryStr), "DELETE FROM item%s WHERE owner_id=%d AND (window < %d or window = %d)", GetTablePostfix(), pi->player_id, SAFEBOX, DRAGON_SOUL_INVENTORY);
-		delete CDBManager::instance().DirectQuery(queryStr);
+		std::unique_ptr<SQLMsg>(CDBManager::instance().DirectQuery(queryStr));
 
 		snprintf(queryStr, sizeof(queryStr), "DELETE FROM quest%s WHERE dwPID=%d", GetTablePostfix(), pi->player_id);
 		CDBManager::instance().AsyncQuery(queryStr);
@@ -1100,7 +1101,7 @@ void CClientManager::__RESULT_PLAYER_DELETE(CPeer *peer, SQLMsg* msg)
 		CDBManager::instance().AsyncQuery(queryStr);
 		// END_OF_MYSHOP_PRICE_LIST
 
-		snprintf(queryStr, sizeof(queryStr), "DELETE FROM messenger_list%s WHERE account='%s' OR companion='%s'", GetTablePostfix(), szName, szName);
+		snprintf(queryStr, sizeof(queryStr), "DELETE FROM messenger_list%s WHERE account='%s' OR companion='%s'", GetTablePostfix(), strName.c_str(), strName.c_str());
 		CDBManager::instance().AsyncQuery(queryStr);
 
 		peer->EncodeHeader(HEADER_DG_PLAYER_DELETE_SUCCESS, pi->dwHandle, 1);
@@ -1246,10 +1247,10 @@ void CClientManager::InsertLogoutPlayer(uint32_t pid)
 		return;
 	}
 		
-	TLogoutPlayer * pLogout = new TLogoutPlayer;
+	auto pLogout = std::make_unique<TLogoutPlayer>();
 	pLogout->pid = pid;
 	pLogout->time = time(nullptr);
-	m_map_logout.insert(std::make_pair(pid, pLogout));
+	m_map_logout.insert(std::make_pair(pid, std::move(pLogout)));
 
 	if (g_log)
 		sys_log(0, "LOGOUT: Insert player pid(%d)", pid);
@@ -1261,7 +1262,6 @@ void CClientManager::DeleteLogoutPlayer(uint32_t pid)
 
 	if (it != m_map_logout.end())
 	{
-		delete it->second;
 		m_map_logout.erase(it);
 	}
 }
@@ -1275,14 +1275,13 @@ void CClientManager::UpdateLogoutPlayer()
 
 	while (it != m_map_logout.end())
 	{
-		TLogoutPlayer* pLogout = it->second;
+		TLogoutPlayer* pLogout = it->second.get();
 
 		if (now - g_iLogoutSeconds > pLogout->time)
 		{
 			FlushItemCacheSet(pLogout->pid);
 			FlushPlayerCacheSet(pLogout->pid);
 
-			delete pLogout;
 			m_map_logout.erase(it++);
 		}
 		else

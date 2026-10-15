@@ -62,8 +62,10 @@
 #include <ctime>
 #include <iterator>
 #include <map>
+#include <memory>
 #include <stack>
 #include <string>
+#include <utility>
 #include <vector>
 
 //auction_temp
@@ -6014,7 +6016,7 @@ void CHARACTER::BuffOnAttr_ClearAll()
 {
 	for (TMapBuffOnAttrs::iterator it = m_map_buff_on_attrs.begin(); it != m_map_buff_on_attrs.end(); it++)
 	{
-		CBuffOnAttributes* pBuff = it->second;
+		CBuffOnAttributes* pBuff = it->second.get();
 		if (pBuff)
 		{
 			pBuff->Initialize();
@@ -6038,30 +6040,32 @@ void CHARACTER::BuffOnAttr_ValueChange(uint8_t bType, uint8_t bOldValue, uint8_t
 		CBuffOnAttributes* pBuff;
 		if (m_map_buff_on_attrs.end() == it)
 		{
+			std::unique_ptr<CBuffOnAttributes> pNewBuff;
 			switch (bType)
 			{
 			case POINT_ENERGY:
 				{
 					static uint8_t abSlot[] = { WEAR_BODY, WEAR_HEAD, WEAR_FOOTS, WEAR_WRIST, WEAR_WEAPON, WEAR_NECK, WEAR_EAR, WEAR_SHIELD };
 					static std::vector <uint8_t> vec_slots (abSlot, abSlot + std::size(abSlot));
-					pBuff = new CBuffOnAttributes(this, bType, &vec_slots);
+					pNewBuff = std::make_unique<CBuffOnAttributes>(this, bType, &vec_slots);
 				}
 				break;
 			case POINT_COSTUME_ATTR_BONUS:
 				{
 					static uint8_t abSlot[] = { WEAR_COSTUME_BODY, WEAR_COSTUME_HAIR };
 					static std::vector <uint8_t> vec_slots (abSlot, abSlot + std::size(abSlot));
-					pBuff = new CBuffOnAttributes(this, bType, &vec_slots);
+					pNewBuff = std::make_unique<CBuffOnAttributes>(this, bType, &vec_slots);
 				}
 				break;
 			default:
 				break;
 			}
-			m_map_buff_on_attrs.insert(TMapBuffOnAttrs::value_type(bType, pBuff));
+			pBuff = pNewBuff.get();
+			m_map_buff_on_attrs.insert(TMapBuffOnAttrs::value_type(bType, std::move(pNewBuff)));
 
 		}
 		else
-			pBuff = it->second;
+			pBuff = it->second.get();
 
 		pBuff->On(bNewValue);
 	}

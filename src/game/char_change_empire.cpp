@@ -64,13 +64,11 @@ int CHARACTER::ChangeEmpire(uint8_t empire)
 		//   if even one character is in a guild, the empire cannot be changed.
 		uint32_t dwGuildID[4];
 		CGuild * pGuild[4];
-		SQLMsg * pMsg = nullptr;
-		
 		for (int i = 0; i < loop; ++i)
 		{
 			snprintf(szQuery, sizeof(szQuery), "SELECT guild_id FROM guild_member%s WHERE pid=%u", get_table_postfix(), dwPID[i]);
 
-			pMsg = DBManager::instance().DirectQuery(szQuery);
+			std::unique_ptr<SQLMsg> pMsg(DBManager::instance().DirectQuery(szQuery));
 
 			if (pMsg != nullptr)
 			{
@@ -84,7 +82,6 @@ int CHARACTER::ChangeEmpire(uint8_t empire)
 
 					if (pGuild[i] != nullptr)
 					{
-						delete pMsg;
 						return 2;
 					}
 				}
@@ -93,8 +90,6 @@ int CHARACTER::ChangeEmpire(uint8_t empire)
 					dwGuildID[i] = 0;
 					pGuild[i] = nullptr;
 				}
-
-				delete pMsg;
 			}
 		}
 	}
@@ -138,13 +133,12 @@ int CHARACTER::GetChangeEmpireCount() const
 
 	snprintf(szQuery, sizeof(szQuery), "SELECT change_count FROM change_empire WHERE account_id = %u", dwAID);
 
-	SQLMsg * pMsg = DBManager::instance().DirectQuery(szQuery);
+	std::unique_ptr<SQLMsg> pMsg(DBManager::instance().DirectQuery(szQuery));
 
 	if (pMsg != nullptr)
 	{
 		if (pMsg->Get()->uiNumRows == 0)
 		{
-			delete pMsg;
 			return 0;
 		}
 
@@ -152,8 +146,6 @@ int CHARACTER::GetChangeEmpireCount() const
 
 		uint32_t count = 0;
 		str_to_number(count, row[0]);
-
-		delete pMsg;
 
 		return count;
 	}
@@ -193,21 +185,18 @@ uint32_t CHARACTER::GetAID() const
 	snprintf(szQuery, sizeof(szQuery), "SELECT id FROM player_index%s WHERE (pid1=%u OR pid2=%u OR pid3=%u OR pid4=%u) AND empire=%u", 
 			get_table_postfix(), GetPlayerID(), GetPlayerID(), GetPlayerID(), GetPlayerID(), GetEmpire());
 
-	SQLMsg* pMsg = DBManager::instance().DirectQuery(szQuery);
+	std::unique_ptr<SQLMsg> pMsg(DBManager::instance().DirectQuery(szQuery));
 
 	if (pMsg != nullptr)
 	{
 		if (pMsg->Get()->uiNumRows == 0)
 		{
-			delete pMsg;
 			return 0;
 		}
 
 		MYSQL_ROW row = mysql_fetch_row(pMsg->Get()->pSQLResult);
 
 		str_to_number(dwAID, row[0]);
-
-		delete pMsg;
 
 		return dwAID;
 	}

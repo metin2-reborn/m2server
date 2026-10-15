@@ -4,6 +4,7 @@
 #include <libsql/AsyncSQL.h>
 
 #include <cstdint>
+#include <memory>
 
 class CQueryInfo {
   public:
@@ -20,9 +21,9 @@ enum eSQL_SLOT {
 };
 
 class CDBManager : public singleton<CDBManager> {
-    CAsyncSQL *m_mainSQL[SQL_MAX_NUM];
-    CAsyncSQL *m_directSQL[SQL_MAX_NUM];
-    CAsyncSQL *m_asyncSQL[SQL_MAX_NUM];
+    std::unique_ptr<CAsyncSQL> m_mainSQL[SQL_MAX_NUM];
+    std::unique_ptr<CAsyncSQL> m_directSQL[SQL_MAX_NUM];
+    std::unique_ptr<CAsyncSQL> m_asyncSQL[SQL_MAX_NUM];
 
   protected:
     void Initialize();

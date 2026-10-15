@@ -2029,8 +2029,7 @@ teleport_area:
 		LogManager::instance().ChangeNameLog(pid, ch->GetName(), szName, ch->GetDesc()->GetHostName());
 
 		snprintf(szQuery, sizeof(szQuery), "UPDATE player%s SET name='%s' WHERE id=%u", get_table_postfix(), szName, pid);
-		SQLMsg * msg = DBManager::instance().DirectQuery(szQuery);
-		delete msg;
+		std::unique_ptr<SQLMsg> msg(DBManager::instance().DirectQuery(szQuery));
 
 		ch->SetNewName(szName);
 		lua_pushnumber(L, 4);

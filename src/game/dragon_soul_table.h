@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <map>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -41,7 +42,7 @@ public:
 	bool	GetDragonSoulExtValues(uint8_t ds_type, uint8_t grade_idx, float& prob, uint32_t& by_product);
 
 private:
-	CGroupTextParseTreeLoader* m_pLoader;
+	std::unique_ptr<CGroupTextParseTreeLoader> m_pLoader;
 	std::string stFileName;
 
 	// caching m_pLoader's child nodes.

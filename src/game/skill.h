@@ -6,6 +6,7 @@
 
 #include <cstdint>
 #include <map>
+#include <memory>
 #include <string>
 
 enum ESkillFlags
@@ -246,5 +247,5 @@ class CSkillManager : public singleton<CSkillManager>
 		CSkillProto * Get(const char * c_pszSkillName);
 
 	protected:
-		std::map<uint32_t, CSkillProto *> m_map_pkSkillProto;
+		std::map<uint32_t, std::unique_ptr<CSkillProto>> m_map_pkSkillProto;
 };

@@ -6,6 +6,7 @@
 
 #include <cstdint>
 #include <map>
+#include <memory>
 #include <unordered_set>
 
 class CHARACTER;
@@ -74,6 +75,6 @@ class CPVPManager : public singleton<CPVPManager>
 	protected:
 	void			ConnectEx(CHARACTER * pkChr, bool bDisconnect);
 
-	std::map<uint32_t, CPVP *>	m_map_pkPVP;
+	std::map<uint32_t, std::unique_ptr<CPVP>>	m_map_pkPVP;
 	CPVPSetMap		m_map_pkPVPSetByID;
 };

@@ -20,6 +20,7 @@
 #include <cstdio>
 #include <cstring>
 #include <memory>
+#include <utility>
 
 #include <strings.h>
 
@@ -131,8 +132,8 @@ void CClientManager::QUERY_LOGIN_BY_KEY(CPeer * pkPeer, uint32_t dwHandle, TPack
 		return;
 	}
 
-	TAccountTable * pkTab = new TAccountTable;
-	memset(pkTab, 0, sizeof(TAccountTable));
+	auto pkTab = std::make_unique<TAccountTable>();
+	memset(pkTab.get(), 0, sizeof(TAccountTable));
 
 	pkTab->id = r.id;
 	trim_and_lower(r.login, pkTab->login, sizeof(pkTab->login));
@@ -141,7 +142,7 @@ void CClientManager::QUERY_LOGIN_BY_KEY(CPeer * pkPeer, uint32_t dwHandle, TPack
 	strlcpy(pkTab->status, "OK", sizeof(pkTab->status));
 
 	ClientHandleInfo * info = new ClientHandleInfo(dwHandle);
-	info->pAccountTable = pkTab;
+	info->pAccountTable = std::move(pkTab);
 	strlcpy(info->ip, p->szIP, sizeof(info->ip));
 
 	sys_log(0, "LOGIN_BY_KEY success %s %u %s", r.login, p->dwLoginKey, info->ip);
@@ -215,7 +216,7 @@ void CClientManager::RESULT_PLAYER_INDEX_CREATE(CPeer * pkPeer, SQLMsg * msg)
 }
 // END_PLAYER_INDEX_CREATE_BUG_FIX
 
-TAccountTable * CreateAccountTableFromRes(MYSQL_RES * res)
+std::unique_ptr<TAccountTable> CreateAccountTableFromRes(MYSQL_RES * res)
 {
 	char input_pwd[PASSWD_MAX_LEN + 1];
 	MYSQL_ROW row = nullptr;
@@ -224,8 +225,8 @@ TAccountTable * CreateAccountTableFromRes(MYSQL_RES * res)
 	row = mysql_fetch_row(res);
 	col = 0;
 
-	TAccountTable * pkTab = new TAccountTable;
-	memset(pkTab, 0, sizeof(TAccountTable));
+	auto pkTab = std::make_unique<TAccountTable>();
+	memset(pkTab.get(), 0, sizeof(TAccountTable));
 
 	// Only look at the first column (it's for the JOIN QUERY)
 	strlcpy(input_pwd, row[col++], sizeof(input_pwd));
@@ -242,7 +243,6 @@ TAccountTable * CreateAccountTableFromRes(MYSQL_RES * res)
 
 	if (strcmp(pkTab->passwd, input_pwd))
 	{
-		delete pkTab;
 		return nullptr;
 	}
 
@@ -406,20 +406,18 @@ void CClientManager::RESULT_LOGIN(CPeer * peer, SQLMsg * msg)
 			sys_log(0, "RESULT_LOGIN: login success %s rows: %u", info->pAccountTable->login, msg->Get()->uiNumRows);
 
 			if (msg->Get()->uiNumRows > 0)
-				CreateAccountPlayerDataFromRes(msg->Get()->pSQLResult, info->pAccountTable);
+				CreateAccountPlayerDataFromRes(msg->Get()->pSQLResult, info->pAccountTable.get());
 
 			//PREVENT_COPY_ITEM
 			CLoginData * p = GetLoginDataByLogin(info->pAccountTable->login);
-			memcpy(&p->GetAccountRef(), info->pAccountTable, sizeof(TAccountTable));
+			memcpy(&p->GetAccountRef(), info->pAccountTable.get(), sizeof(TAccountTable));
 
 			//END_PREVENT_COPY_ITEM
 			peer->EncodeHeader(HEADER_DG_LOGIN_SUCCESS, info->dwHandle, sizeof(TAccountTable));
-			peer->Encode(info->pAccountTable, sizeof(TAccountTable));
+			peer->Encode(info->pAccountTable.get(), sizeof(TAccountTable));
 
 		}
 
-		delete info->pAccountTable;
-		info->pAccountTable = nullptr;
 		delete info;
 	}
 }

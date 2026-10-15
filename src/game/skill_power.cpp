@@ -6,6 +6,8 @@
 
 #include <cstdio>
 #include <cstring>
+#include <memory>
+#include <utility>
 
 bool CTableBySkill::Check() const
 {
@@ -50,27 +52,19 @@ void CTableBySkill::SetSkillPowerByLevelFromType(int idx, const int* aTable)
 {
 	DeleteSkillPowerByLevelFromType(idx);
 
-	int* aiSkillTable = new int[SKILL_MAX_LEVEL+1];
+	auto aiSkillTable = std::make_unique_for_overwrite<int[]>(SKILL_MAX_LEVEL+1);
 
-	memcpy (aiSkillTable, aTable, sizeof(int) * (SKILL_MAX_LEVEL + 1));
-	m_aiSkillPowerByLevelFromType[idx] = aiSkillTable;
+	memcpy (aiSkillTable.get(), aTable, sizeof(int) * (SKILL_MAX_LEVEL + 1));
+	m_aiSkillPowerByLevelFromType[idx] = std::move(aiSkillTable);
 }
 
 void CTableBySkill::DeleteSkillPowerByLevelFromType(int idx)
 {
-	if (nullptr != m_aiSkillPowerByLevelFromType[idx])
-	{
-		delete[] m_aiSkillPowerByLevelFromType[idx];
-		m_aiSkillPowerByLevelFromType[idx] = nullptr;
-	}
+	m_aiSkillPowerByLevelFromType[idx].reset();
 }
 
 void CTableBySkill::DeleteSkillDamageByLevelTable()
 {
-	if (nullptr != m_aiSkillDamageByLevel)
-	{
-		delete[] m_aiSkillDamageByLevel;
-		m_aiSkillDamageByLevel = nullptr;
-	}
+	m_aiSkillDamageByLevel.reset();
 }
 

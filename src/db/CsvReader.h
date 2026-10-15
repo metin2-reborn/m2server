@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -91,7 +92,7 @@ private:
 class cCsvFile
 {
 private:
-    typedef std::vector<cCsvRow*> ROWS;
+    typedef std::vector<std::unique_ptr<cCsvRow>> ROWS;
 
     ROWS m_Rows; ///< row collection
 

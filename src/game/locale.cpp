@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <map>
+#include <memory>
 #include <string>
 #include <utility>
 
@@ -15,13 +16,13 @@ typedef std::map< std::string, std::string > LocaleStringMapType;
 LocaleStringMapType localeString;
 
 
-void locale_add(const char **strings)
+void locale_add(const char *key, const char *value)
 {
-	LocaleStringMapType::const_iterator iter = localeString.find( strings[0] );
+	LocaleStringMapType::const_iterator iter = localeString.find( key );
 
 	if( iter == localeString.end() )
 	{
-		localeString.insert( std::make_pair( strings[0], strings[1] ) );
+		localeString.insert( std::make_pair( key, value ) );
 	}
 }
 
@@ -70,20 +71,20 @@ const char *quote_find_end(const char *string)
 	return (nullptr);
 }
 
-char *locale_convert(const char *src, int len)
+std::unique_ptr<char[]> locale_convert(const char *src, int len)
 {
 	const char	*tmp;
 	int		i, j;
-	char	*buf, *dest;
+	char	*dest;
 	int		start = 0;
 	char	last_char = 0;
 
 	if (!len)
 		return nullptr;
 
-	buf = new char[len + 1];
+	auto buf = std::make_unique<char[]>(len + 1);
 
-	for (j = i = 0, tmp = src, dest = buf; i < len; i++, tmp++)
+	for (j = i = 0, tmp = src, dest = buf.get(); i < len; i++, tmp++)
 	{
 		if (*tmp == '"')
 		{
@@ -119,10 +120,7 @@ ENCODE:
 	}
 
 	if (!j)
-	{
-		delete[] buf;
 		return nullptr;
-	}
 
 	*dest = '\0';
 	return (buf);
@@ -132,7 +130,6 @@ constexpr int NUM_LOCALES = 2;
 void locale_init(const char *filename)
 {
 	FILE        *fp = fopen(filename, "rb");
-	char        *buf;
 
 	if (!fp) return;
 
@@ -142,18 +139,16 @@ void locale_init(const char *filename)
 
 	i++;
 
-	buf = new char[i];
+	auto buf = std::make_unique<char[]>(i);
 
-	memset(buf, 0, i);
-
-	fread(buf, i - 1, sizeof(char), fp);
+	fread(buf.get(), i - 1, sizeof(char), fp);
 
 	fclose(fp);
 
 	const char * tmp;
 	const char * end;
 
-	char *	strings[NUM_LOCALES];
+	std::unique_ptr<char[]>	strings[NUM_LOCALES];
 
 	if (!buf)
 	{
@@ -161,12 +156,12 @@ void locale_init(const char *filename)
 		exit(1);
 	}
 
-	tmp = buf;
+	tmp = buf.get();
 
 	do
 	{
 		for (i = 0; i < NUM_LOCALES; i++)
-			strings[i] = nullptr;
+			strings[i].reset();
 
 		if (*tmp == '"')
 		{
@@ -193,11 +188,7 @@ void locale_init(const char *filename)
 			if (strings[0] == nullptr || strings[1] == nullptr)
 				break;
 
-			locale_add((const char**)strings);
-
-			for (i = 0; i < NUM_LOCALES; i++)
-				if (strings[i])
-					delete[] strings[i];
+			locale_add(strings[0].get(), strings[1].get());
 		}
 		else
 		{
@@ -208,7 +199,5 @@ void locale_init(const char *filename)
 		}
 	}
 	while (tmp && *tmp);
-
-	delete[] buf;
 }
 

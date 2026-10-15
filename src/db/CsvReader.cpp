@@ -4,7 +4,9 @@
 #include <cstddef>
 #include <fstream>
 #include <ios>
+#include <memory>
 #include <string>
+#include <utility>
 
 
 namespace
@@ -46,7 +48,7 @@ bool cCsvFile::Load(const char* fileName, const char seperator, const char quote
 
     Destroy(); // Delete existing data
 
-    cCsvRow* row = nullptr;
+    std::unique_ptr<cCsvRow> row;
     ParseState state = STATE_NORMAL;
     std::string token = "";
     char buf[2048+1] = {0,};
@@ -100,7 +102,7 @@ bool cCsvFile::Load(const char* fileName, const char seperator, const char quote
             else if (state == STATE_NORMAL)
             {
                 if (row == nullptr)
-                    row = new cCsvRow();
+                    row = std::make_unique<cCsvRow>();
 
                 // a ',' character marks the end of a cell.
                 // Push the token into the cell list and reset the token.
@@ -130,9 +132,8 @@ bool cCsvFile::Load(const char* fileName, const char seperator, const char quote
         {
             assert(row != nullptr);
             row->push_back(token.substr(0, token.size()-2));
-            m_Rows.push_back(row);
+            m_Rows.push_back(std::move(row));
             token.clear();
-            row = nullptr;
         }
         else
         {
@@ -148,9 +149,6 @@ bool cCsvFile::Load(const char* fileName, const char seperator, const char quote
 ////////////////////////////////////////////////////////////////////////////////
 void cCsvFile::Destroy()
 {
-    for (ROWS::iterator itr(m_Rows.begin()); itr != m_Rows.end(); ++itr)
-        delete *itr;
-
     m_Rows.clear();
 }
 
@@ -163,7 +161,7 @@ void cCsvFile::Destroy()
 const cCsvRow* cCsvFile::operator [] (size_t index) const
 {
     assert(index < m_Rows.size());
-    return m_Rows[index];
+    return m_Rows[index].get();
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -1698,7 +1698,7 @@ void CInputDB::AuthLoginOpenID(DESC * d, const char * c_pData)
 		ptoc.dwLoginKey = 0;
 	}
 
-	strcpy(ptoc.login, d->GetLogin().c_str());
+	strlcpy(ptoc.login, d->GetLogin().c_str(), sizeof(ptoc.login));
 
 	ptoc.bResult = bResult;
 

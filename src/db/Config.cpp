@@ -88,7 +88,7 @@ auto CConfig::GetLine(FILE *fp, char *dest) -> bool {
 
 auto CConfig::LoadFile(const char *filename) -> bool {
     char szTmp[256];
-    char comment[256];
+    std::string comment;
 
     FILE *fp = fopen(filename, "rb");
 
@@ -106,7 +106,7 @@ auto CConfig::LoadFile(const char *filename) -> bool {
 
         switch (mode) {
         case 0:
-            strlcpy(comment, szTmp, sizeof(comment));
+            comment = szTmp;
             ++mode;
             break;
 
@@ -121,7 +121,7 @@ auto CConfig::LoadFile(const char *filename) -> bool {
             break;
         }
 
-        if (mode == 2 && strcmp(comment, "ITEM_ID_RANGE") == 0) {
+        if (mode == 2 && comment == "ITEM_ID_RANGE") {
             GetLine(fp, szTmp);
             m_valueMap.insert(TValueMap::value_type(comment, szTmp));
             mode = 0;
@@ -148,11 +148,16 @@ bool CConfig::GetParam(const char *key, int index, uint32_t *Param) {
         return false;
     }
 
-    char szParam[5][32];
+    // The index-th whitespace-separated word of the value.
+    std::istringstream words(*pstStr);
+    std::string word;
+    for (int i = 0; i <= index; ++i) {
+        if (!(words >> word)) {
+            return false;
+        }
+    }
 
-    sscanf(pstStr->c_str(), "%s %s %s %s %s", szParam[0], szParam[1], szParam[2], szParam[3], szParam[4]);
-
-    str_to_number(*Param, szParam[index]);
+    str_to_number(*Param, word.c_str());
 
     sys_log(0, "GetParam %d", *Param);
     return true;

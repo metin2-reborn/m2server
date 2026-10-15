@@ -10,7 +10,9 @@
 #include <cstdio>
 #include <cstring>
 #include <map>
+#include <memory>
 #include <string>
+#include <utility>
 
 #include <strings.h>
 
@@ -41,10 +43,6 @@ CSkillManager::CSkillManager()
 
 CSkillManager::~CSkillManager()
 {
-	auto it = m_map_pkSkillProto.begin();
-	for ( ; it != m_map_pkSkillProto.end(); ++it) {
-		delete it->second;
-	}
 }
 
 struct SPointOnType
@@ -100,14 +98,14 @@ int FindPointType(const char * c_sz)
 bool CSkillManager::Initialize(TSkillTable * pTab, int iSize)
 {
 	char buf[1024];
-	std::map<uint32_t, CSkillProto *> map_pkSkillProto;
+	std::map<uint32_t, std::unique_ptr<CSkillProto>> map_pkSkillProto;
 
 	TSkillTable * t = pTab;
 	bool bError = false;
 
 	for (int i = 0; i < iSize; ++i, ++t)
 	{
-		CSkillProto * pkProto = new CSkillProto;
+		auto pkProto = std::make_unique<CSkillProto>();
 
 		pkProto->dwVnum = t->dwVnum;
 		strlcpy(pkProto->szName, t->szName, sizeof(pkProto->szName));
@@ -136,7 +134,6 @@ bool CSkillManager::Initialize(TSkillTable * pTab, int iSize)
 			sys_err("%s", buf);
 			SendLog(buf);
 			bError = true;
-			delete pkProto;
 			continue;
 		}
 
@@ -150,7 +147,6 @@ bool CSkillManager::Initialize(TSkillTable * pTab, int iSize)
 			sys_err("%s", buf);
 			SendLog(buf);
 			bError = true;
-			delete pkProto;
 			continue;
 		}
 
@@ -170,7 +166,6 @@ bool CSkillManager::Initialize(TSkillTable * pTab, int iSize)
 				sys_err("%s", buf);
 				SendLog(buf);
 				bError = true;
-				delete pkProto;
 				continue;
 			}
 		}
@@ -183,7 +178,6 @@ bool CSkillManager::Initialize(TSkillTable * pTab, int iSize)
 			sys_err("%s", buf);
 			SendLog(buf);
 			bError = true;
-			delete pkProto;
 			continue;
 		}
 
@@ -193,7 +187,6 @@ bool CSkillManager::Initialize(TSkillTable * pTab, int iSize)
 			sys_err("%s", buf);
 			SendLog(buf);
 			bError = true;
-			delete pkProto;
 			continue;
 		}
 
@@ -203,7 +196,6 @@ bool CSkillManager::Initialize(TSkillTable * pTab, int iSize)
 			sys_err("%s", buf);
 			SendLog(buf);
 			bError = true;
-			delete pkProto;
 			continue;
 		}
 
@@ -213,7 +205,6 @@ bool CSkillManager::Initialize(TSkillTable * pTab, int iSize)
 			sys_err("%s", buf);
 			SendLog(buf);
 			bError = true;
-			delete pkProto;
 			continue;
 		}
 
@@ -223,7 +214,6 @@ bool CSkillManager::Initialize(TSkillTable * pTab, int iSize)
 			sys_err("%s", buf);
 			SendLog(buf);
 			bError = true;
-			delete pkProto;
 			continue;
 		}
 
@@ -233,7 +223,6 @@ bool CSkillManager::Initialize(TSkillTable * pTab, int iSize)
 			sys_err("%s", buf);
 			SendLog(buf);
 			bError = true;
-			delete pkProto;
 			continue;
 		}
 
@@ -243,7 +232,6 @@ bool CSkillManager::Initialize(TSkillTable * pTab, int iSize)
 			sys_err("%s", buf);
 			SendLog(buf);
 			bError = true;
-			delete pkProto;
 			continue;
 		}
 
@@ -253,7 +241,6 @@ bool CSkillManager::Initialize(TSkillTable * pTab, int iSize)
 			sys_err("%s", buf);
 			SendLog(buf);
 			bError = true;
-			delete pkProto;
 			continue;
 		}
 
@@ -263,7 +250,6 @@ bool CSkillManager::Initialize(TSkillTable * pTab, int iSize)
 			sys_err("%s", buf);
 			SendLog(buf);
 			bError = true;
-			delete pkProto;
 			continue;
 		}
 
@@ -273,7 +259,6 @@ bool CSkillManager::Initialize(TSkillTable * pTab, int iSize)
 			sys_err("%s", buf);
 			SendLog(buf);
 			bError = true;
-			delete pkProto;
 			continue;
 		}
 
@@ -283,7 +268,6 @@ bool CSkillManager::Initialize(TSkillTable * pTab, int iSize)
 			sys_err("%s", buf);
 			SendLog(buf);
 			bError = true;
-			delete pkProto;
 			continue;
 		}
 
@@ -294,36 +278,23 @@ bool CSkillManager::Initialize(TSkillTable * pTab, int iSize)
 			sys_err("%s", buf);
 			SendLog(buf);
 			bError = true;
-			delete pkProto;
 			continue;
 		}
 
 		sys_log(0, "#%-3d %-24s type %u flag %u affect %u point_poly: %s", 
 				pkProto->dwVnum, pkProto->szName, pkProto->dwType, pkProto->dwFlag, pkProto->dwAffectFlag, t->szPointPoly);
 
-		map_pkSkillProto.insert(std::map<uint32_t, CSkillProto *>::value_type(pkProto->dwVnum, pkProto));
+		map_pkSkillProto.emplace(pkProto->dwVnum, std::move(pkProto));
 	}
 
 	if (!bError)
 	{
 		// clear the existing table contents.
-		auto it = m_map_pkSkillProto.begin();
-
-		while (it != m_map_pkSkillProto.end()) {
-			delete it->second;
-			++it;
-		}
-
 		m_map_pkSkillProto.clear();
 
 		// insert the new contents
-		it = map_pkSkillProto.begin();
-
-		while (it != map_pkSkillProto.end())
-		{
-			m_map_pkSkillProto.insert(std::map<uint32_t, CSkillProto *>::value_type(it->first, it->second));
-			++it;
-		}
+		for (auto & [dwVnum, pkProto] : map_pkSkillProto)
+			m_map_pkSkillProto.emplace(dwVnum, std::move(pkProto));
 
 		SendLog("Skill Prototype reloaded!");
 	}
@@ -335,22 +306,22 @@ bool CSkillManager::Initialize(TSkillTable * pTab, int iSize)
 
 CSkillProto * CSkillManager::Get(uint32_t dwVnum)
 {
-	std::map<uint32_t, CSkillProto *>::iterator it = m_map_pkSkillProto.find(dwVnum);
+	auto it = m_map_pkSkillProto.find(dwVnum);
 
 	if (it == m_map_pkSkillProto.end())
 		return nullptr;
 
-	return it->second;
+	return it->second.get();
 }
 
 CSkillProto * CSkillManager::Get(const char * c_pszSkillName)
 {
-	std::map<uint32_t, CSkillProto *>::iterator it = m_map_pkSkillProto.begin();
+	auto it = m_map_pkSkillProto.begin();
 
 	while (it != m_map_pkSkillProto.end())
 	{
 		if (!strcasecmp(it->second->szName, c_pszSkillName))
-			return it->second;
+			return it->second.get();
 
 		it++;
 	}

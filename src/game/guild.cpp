@@ -1015,19 +1015,17 @@ void CGuild::AddComment(CHARACTER * ch, const std::string& str)
 
 void CGuild::DeleteComment(CHARACTER * ch, uint32_t comment_id)
 {
-	SQLMsg * pmsg;
+	std::unique_ptr<SQLMsg> pmsg;
 
 	if (GetMember(ch->GetPlayerID())->grade == GUILD_LEADER_GRADE)
-		pmsg = DBManager::instance().DirectQuery("DELETE FROM guild_comment%s WHERE id = %u AND guild_id = %u",get_table_postfix(), comment_id, m_data.guild_id);
+		pmsg.reset(DBManager::instance().DirectQuery("DELETE FROM guild_comment%s WHERE id = %u AND guild_id = %u",get_table_postfix(), comment_id, m_data.guild_id));
 	else
-		pmsg = DBManager::instance().DirectQuery("DELETE FROM guild_comment%s WHERE id = %u AND guild_id = %u AND name = '%s'",get_table_postfix(), comment_id, m_data.guild_id, ch->GetName());
+		pmsg.reset(DBManager::instance().DirectQuery("DELETE FROM guild_comment%s WHERE id = %u AND guild_id = %u AND name = '%s'",get_table_postfix(), comment_id, m_data.guild_id, ch->GetName()));
 
 	if (pmsg->Get()->uiAffectedRows == 0 || pmsg->Get()->uiAffectedRows == (uint32_t)-1)
 		ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("<길드> 삭제할 수 없는 글입니다."));
 	else
 		RefreshCommentForce(ch->GetPlayerID());
-
-	delete pmsg;
 }
 
 void CGuild::RefreshComment(CHARACTER * ch)

@@ -18,6 +18,7 @@
 #include <cassert>
 #include <cstdint>
 #include <cstring>
+#include <memory>
 #include <sstream>
 #include <string>
 #include <unordered_set>
@@ -113,7 +114,7 @@ void P2P_MANAGER::EraseUserByDesc(DESC * d)
 
 	while (it != m_map_pkCCI.end())
 	{
-		CCI * pkCCI = it->second;
+		CCI * pkCCI = it->second.get();
 		it++;
 
 		if (pkCCI->pkDesc == d)
@@ -145,7 +146,8 @@ void P2P_MANAGER::Login(DESC * d, const TPacketGGLogin * p)
 	if (nullptr == pkCCI)
 	{
 		UpdateP2P = true;
-		pkCCI = new CCI;
+		auto pkNewCCI = std::make_unique<CCI>();
+		pkCCI = pkNewCCI.get();
 
 		strlcpy(pkCCI->szName, p->szName, sizeof(pkCCI->szName));
 
@@ -164,8 +166,8 @@ void P2P_MANAGER::Login(DESC * d, const TPacketGGLogin * p)
 			}
 		}
 
-		m_map_pkCCI.insert(std::make_pair(pkCCI->szName, pkCCI));
 		m_map_dwPID_pkCCI.insert(std::make_pair(pkCCI->dwPID, pkCCI));
+		m_map_pkCCI.emplace(pkCCI->szName, std::move(pkNewCCI));
 	}
 
 	pkCCI->lMapIndex = p->lMapIndex;
@@ -208,9 +210,8 @@ void P2P_MANAGER::Logout(CCI * pkCCI)
 	MessengerManager::instance().P2PLogout(name);
 	marriage::CManager::instance().Logout(pkCCI->dwPID);
 
-	m_map_pkCCI.erase(name);
 	m_map_dwPID_pkCCI.erase(pkCCI->dwPID);
-	delete pkCCI;
+	m_map_pkCCI.erase(name);
 }
 
 void P2P_MANAGER::Logout(const char * c_pszName)
@@ -241,7 +242,7 @@ CCI * P2P_MANAGER::Find(const char * c_pszName)
 	if (it == m_map_pkCCI.end())
 		return nullptr;
 
-	return it->second;
+	return it->second.get();
 }
 
 int P2P_MANAGER::GetCount()

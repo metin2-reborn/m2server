@@ -4,6 +4,7 @@
 #include <common/length.h>
 
 #include <cstdint>
+#include <memory>
 
 class CGrid;
 
@@ -50,6 +51,6 @@ class CExchange
 		bool 		m_bAccept;
 		int32_t		m_lGold;
 
-		CGrid *		m_pGrid;
+		std::unique_ptr<CGrid>	m_pGrid;
 
 };

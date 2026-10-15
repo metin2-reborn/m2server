@@ -10,18 +10,17 @@
 #include <cstdio>
 #include <cstdlib>
 #include <iterator>
+#include <memory>
 #include <string>
 #include <utility>
 
 CGroupTextParseTreeLoader::CGroupTextParseTreeLoader()
-	: m_dwcurLineIndex(0), m_pRootGroupNode(nullptr)
+	: m_dwcurLineIndex(0)
 {
 }
 
 CGroupTextParseTreeLoader::~CGroupTextParseTreeLoader()
 {
-	if (nullptr != m_pRootGroupNode)
-		delete m_pRootGroupNode;
 }
 
 bool CGroupTextParseTreeLoader::Load(const char * c_szFileName)
@@ -39,22 +38,17 @@ bool CGroupTextParseTreeLoader::Load(const char * c_szFileName)
 	const size_t fileSize = ftell(fp);
 	fseek(fp, 0, SEEK_SET);
 
-	char * pData = new char[fileSize];
-	fread(pData, fileSize, 1, fp);
+	auto pData = std::make_unique<char[]>(fileSize);
+	fread(pData.get(), fileSize, 1, fp);
 	fclose(fp);
 
-	m_fileLoader.Bind(fileSize, pData);
-	delete[] pData;
+	m_fileLoader.Bind(fileSize, pData.get());
+	pData.reset();
 
-	if (nullptr != m_pRootGroupNode)
+	m_pRootGroupNode = std::make_unique<CGroupNode>();
+	if (!LoadGroup(m_pRootGroupNode.get()))
 	{
-		delete m_pRootGroupNode;
-	}
-
-	m_pRootGroupNode = new CGroupNode();
-	if (!LoadGroup(m_pRootGroupNode))
-	{
-		delete m_pRootGroupNode;
+		m_pRootGroupNode.reset();
 		return false;
 	}
 	return true;

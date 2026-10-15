@@ -8,6 +8,7 @@
 
 #include <cstdint>
 #include <map>
+#include <memory>
 #include <vector>
 
 namespace building
@@ -149,7 +150,7 @@ namespace building
 			std::vector<TObjectProto>		m_vec_kObjectProto;
 			std::map<uint32_t, TObjectProto *>	m_map_pkObjectProto;
 
-			std::map<uint32_t, CLand *>		m_map_pkLand;
+			std::map<uint32_t, std::unique_ptr<CLand>>	m_map_pkLand;
 			std::map<uint32_t, CObject *>		m_map_pkObjByID;
 			std::map<uint32_t, CObject *>		m_map_pkObjByVID;
 	};

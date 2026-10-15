@@ -40,7 +40,7 @@ class CClientManager : public singleton<CClientManager>
 	typedef std::unordered_map<uint32_t, CPlayerTableCache *> TPlayerTableCacheMap;
 	typedef std::unordered_map<uint32_t, CItemCache *> TItemCacheMap;
 	typedef std::unordered_set<CItemCache *, std::hash<CItemCache*> > TItemCacheSet;
-	typedef std::unordered_map<uint32_t, TItemCacheSet *> TItemCacheSetPtrMap;
+	typedef std::unordered_map<uint32_t, std::unique_ptr<TItemCacheSet>> TItemCacheSetPtrMap;
 	typedef std::unordered_map<uint32_t, CItemPriceListTableCache*> TItemPriceListCacheMap;
 	typedef std::unordered_map<short, uint8_t> TChannelStatusMap;
 
@@ -64,34 +64,21 @@ class CClientManager : public singleton<CClientManager>
 		char	safebox_password[SAFEBOX_PASSWORD_MAX_LEN + 1];
 		char	ip[MAX_HOST_LENGTH + 1];
 
-		TAccountTable * pAccountTable;
-		TSafeboxTable * pSafebox;
+		std::unique_ptr<TAccountTable> pAccountTable;
+		std::unique_ptr<TSafeboxTable> pSafebox;
 
 		ClientHandleInfo(uint32_t argHandle, uint32_t dwPID = 0)
 		{
 		    dwHandle = argHandle;
-		    pSafebox = nullptr;
-		    pAccountTable = nullptr;
 		    player_id = dwPID;
 		};
 		//Constructor for the German gift feature
 		ClientHandleInfo(uint32_t argHandle, uint32_t dwPID, uint32_t accountId)
 		{
 		    dwHandle = argHandle;
-		    pSafebox = nullptr;
-		    pAccountTable = nullptr;
 		    player_id = dwPID;
 			account_id = accountId;
 		};
-
-		~ClientHandleInfo()
-		{
-		    if (pSafebox)
-			{
-				delete pSafebox;
-				pSafebox = nullptr;
-			}
-		}
 	};
 
 	public:
@@ -395,10 +382,10 @@ class CClientManager : public singleton<CClientManager>
 	std::map<uint32_t, TItemTable *>		m_map_itemTableByVnum;
 
 	int					m_iShopTableSize;
-	TShopTable *				m_pShopTable;
+	std::unique_ptr<TShopTable[]>		m_pShopTable;
 
 	int					m_iRefineTableSize;
-	TRefineTable*				m_pRefineTable;
+	std::unique_ptr<TRefineTable[]>		m_pRefineTable;
 
 	std::vector<TSkillTable>		m_vec_skillTable;
 	std::vector<TBanwordTable>		m_vec_banwordTable;
@@ -407,8 +394,7 @@ class CClientManager : public singleton<CClientManager>
 
 	std::vector<building::TLand>		m_vec_kLandTable;
 	std::vector<building::TObjectProto>	m_vec_kObjectProto;
-	std::map<uint32_t, building::TObject *>	m_map_pkObjectTable;
-
+	std::map<uint32_t, std::unique_ptr<building::TObject>>	m_map_pkObjectTable;
 
 	bool					m_bShutdowned;
 
@@ -482,7 +468,7 @@ class CClientManager : public singleton<CClientManager>
 
 	};
 
-	typedef std::unordered_map<uint32_t, TLogoutPlayer*> TLogoutPlayerMap;
+	typedef std::unordered_map<uint32_t, std::unique_ptr<TLogoutPlayer>> TLogoutPlayerMap;
 	TLogoutPlayerMap m_map_logout;
 	
 	void InsertLogoutPlayer(uint32_t pid);

@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <functional>
 #include <map>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -91,7 +92,7 @@ class DBManager : public singleton<DBManager>
 		void			LoginPrepare(DESC * d, uint32_t * pdwClientKey, int * paiPremiumTimes);
 		void			SendAuthLogin(DESC * d);
 
-		void			InsertLoginData(CLoginData * pkLD);
+		void			InsertLoginData(std::unique_ptr<CLoginData> pkLD);
 		void			DeleteLoginData(CLoginData * pkLD);
 		CLoginData *		GetLoginData(uint32_t dwKey);
 
@@ -119,7 +120,7 @@ class DBManager : public singleton<DBManager>
 
 		std::map<std::string, std::string>	m_map_dbstring;
 		std::vector<std::string>		m_vec_GreetMessage;
-		std::map<uint32_t, CLoginData *>		m_map_pkLoginData;
+		std::map<uint32_t, std::unique_ptr<CLoginData>>		m_map_pkLoginData;
 };
 
 ////////////////////////////////////////////////////////////////

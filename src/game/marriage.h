@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <ctime>
 #include <map>
+#include <memory>
 #include <set>
 #include <string>
 #include <unordered_set>
@@ -34,7 +35,7 @@ namespace marriage
 		std::string name1;
 		std::string name2;
 
-		TWeddingInfo * pWeddingInfo;
+		std::unique_ptr<TWeddingInfo> pWeddingInfo;
 
 		TMarriage(uint32_t pid1, uint32_t pid2, int _love_point, time_t _marry_time, const char* name1, const char* name2) : 
 			m_pid1(pid1), 
@@ -44,7 +45,6 @@ namespace marriage
 			is_married(false),
 			name1(name1),
 			name2(name2),
-			pWeddingInfo(nullptr),
 			eventNearCheck(nullptr)
 		{
 			ch1 = ch2 = nullptr;

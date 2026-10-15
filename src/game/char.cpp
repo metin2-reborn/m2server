@@ -81,6 +81,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <map>
+#include <memory>
 #include <numbers>
 #include <set>
 #include <string>
@@ -292,7 +293,7 @@ void CHARACTER::Initialize()
 	m_dwQuestByVnum = 0;
 	m_pQuestItem = nullptr;
 
-	m_szMobileAuth[0] = '\0';
+	m_stMobileAuth.clear();
 
 	m_dwUnderGuildWarInfoMessageTime = get_dword_time()-60000;
 
@@ -436,9 +437,7 @@ void CHARACTER::Destroy()
 	if (m_petSystem)
 	{
 		m_petSystem->Destroy();
-		delete m_petSystem;
-
-		m_petSystem = nullptr;
+		m_petSystem.reset();
 	}
 
 	HorseSummon(false);
@@ -491,25 +490,12 @@ void CHARACTER::Destroy()
 		SetParty(nullptr); // Not strictly needed, but to be safe.
 	}
 
-	if (m_pkMobInst)
-	{
-		delete m_pkMobInst;
-		m_pkMobInst = nullptr;
-	}
+	m_pkMobInst.reset();
 
 	m_pkMobData = nullptr;
 
-	if (m_pkSafebox)
-	{
-		delete m_pkSafebox;
-		m_pkSafebox = nullptr;
-	}
-
-	if (m_pkMall)
-	{
-		delete m_pkMall;
-		m_pkMall = nullptr;
-	}
+	m_pkSafebox.reset();
+	m_pkMall.reset();
 
 	m_set_pkChrSpawnedBy.clear();
 
@@ -545,22 +531,11 @@ void CHARACTER::Destroy()
 
 	ClearAffect();
 
-	for (TMapBuffOnAttrs::iterator it = m_map_buff_on_attrs.begin();  it != m_map_buff_on_attrs.end(); it++)
-	{
-		if (nullptr != it->second)
-		{
-			delete it->second;
-		}
-	}
 	m_map_buff_on_attrs.clear();
 
 	event_cancel(&m_pkDestroyWhenIdleEvent);
 
-	if (m_pSkillLevels)
-	{
-		delete[] m_pSkillLevels;
-		m_pSkillLevels = nullptr;
-	}
+	m_pSkillLevels.reset();
 
 	CEntity::Destroy();
 
@@ -1170,13 +1145,13 @@ void CHARACTER::CreatePlayerProto(TPlayerTable & tab)
 	for (int i = 0; i < QUICKSLOT_MAX_NUM; ++i)
 		tab.quickslot[i] = m_quickslot[i];
 
-	if (m_stMobile.length() && !*m_szMobileAuth)
+	if (m_stMobile.length() && m_stMobileAuth.empty())
 		strlcpy(tab.szMobile, m_stMobile.c_str(), sizeof(tab.szMobile));
 
 	std::memcpy(tab.parts, m_pointsInstant.parts, sizeof(tab.parts));
 
 	// REMOVE_REAL_SKILL_LEVLES
-	std::memcpy(tab.skills, m_pSkillLevels, sizeof(TPlayerSkill) * SKILL_MAX_NUM);
+	std::memcpy(tab.skills, m_pSkillLevels.get(), sizeof(TPlayerSkill) * SKILL_MAX_NUM);
 	// END_OF_REMOVE_REAL_SKILL_LEVLES
 
 	tab.horse = GetHorseData();
@@ -1651,11 +1626,8 @@ void CHARACTER::SetPlayerProto(const TPlayerTable * t)
 	m_points.iRandomSP = t->sRandomSP;
 
 	// REMOVE_REAL_SKILL_LEVLES
-	if (m_pSkillLevels)
-		delete[] m_pSkillLevels;
-
-	m_pSkillLevels = new TPlayerSkill[SKILL_MAX_NUM];
-	std::memcpy(m_pSkillLevels, t->skills, sizeof(TPlayerSkill) * SKILL_MAX_NUM);
+	m_pSkillLevels = std::make_unique<TPlayerSkill[]>(SKILL_MAX_NUM);
+	std::memcpy(m_pSkillLevels.get(), t->skills, sizeof(TPlayerSkill) * SKILL_MAX_NUM);
 	// END_OF_REMOVE_REAL_SKILL_LEVLES
 
 	if (t->lMapIndex >= 10000)
@@ -1737,10 +1709,9 @@ void CHARACTER::SetPlayerProto(const TPlayerTable * t)
 	if (m_petSystem)
 	{
 		m_petSystem->Destroy();
-		delete m_petSystem;
 	}
 
-	m_petSystem = new CPetSystem(this);
+	m_petSystem = std::make_unique<CPetSystem>(this);
 }
 
 EVENTFUNC(kill_ore_load_event)
@@ -1764,11 +1735,8 @@ EVENTFUNC(kill_ore_load_event)
 
 void CHARACTER::SetProto(const CMob * pkMob)
 {
-	if (m_pkMobInst)
-		delete m_pkMobInst;
-
 	m_pkMobData = pkMob;
-	m_pkMobInst = new CMobInstance;
+	m_pkMobInst = std::make_unique<CMobInstance>();
 
 	m_bPKMode = PK_MODE_FREE;
 
@@ -5288,7 +5256,7 @@ void CHARACTER::SetSafeboxOpenPosition()
 
 CSafebox * CHARACTER::GetSafebox() const
 {
-	return m_pkSafebox;
+	return m_pkSafebox.get();
 }
 
 void CHARACTER::ReqSafeboxLoad(const char* pszPassword)
@@ -5345,7 +5313,7 @@ void CHARACTER::LoadSafebox(int iSize, uint32_t dwGold, int iItemCount, TPlayerI
 		bLoaded = true;
 
 	if (!m_pkSafebox)
-		m_pkSafebox = new CSafebox(this, iSize, dwGold);
+		m_pkSafebox = std::make_unique<CSafebox>(this, iSize, dwGold);
 	else
 		m_pkSafebox->ChangeSize(iSize);
 
@@ -5414,8 +5382,7 @@ void CHARACTER::CloseSafebox()
 
 	m_pkSafebox->Save();
 
-	delete m_pkSafebox;
-	m_pkSafebox = nullptr;
+	m_pkSafebox.reset();
 
 	ChatPacket(CHAT_TYPE_COMMAND, "CloseSafebox");
 
@@ -5427,7 +5394,7 @@ void CHARACTER::CloseSafebox()
 
 CSafebox * CHARACTER::GetMall() const
 {
-	return m_pkMall;
+	return m_pkMall.get();
 }
 
 void CHARACTER::LoadMall(int iItemCount, TPlayerItem * pItems)
@@ -5438,7 +5405,7 @@ void CHARACTER::LoadMall(int iItemCount, TPlayerItem * pItems)
 		bLoaded = true;
 
 	if (!m_pkMall)
-		m_pkMall = new CSafebox(this, 3 * SAFEBOX_PAGE_SIZE, 0);
+		m_pkMall = std::make_unique<CSafebox>(this, 3 * SAFEBOX_PAGE_SIZE, 0);
 	else
 		m_pkMall->ChangeSize(3 * SAFEBOX_PAGE_SIZE);
 
@@ -5485,8 +5452,7 @@ void CHARACTER::CloseMall()
 
 	m_pkMall->Save();
 
-	delete m_pkMall;
-	m_pkMall = nullptr;
+	m_pkMall.reset();
 
 	ChatPacket(CHAT_TYPE_COMMAND, "CloseMall");
 }

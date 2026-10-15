@@ -11,19 +11,10 @@
 #include <cstring>
 #include <iterator>
 #include <map>
+#include <memory>
 #include <set>
 #include <string>
 #include <utility>
-
-CGuildMarkImage * CGuildMarkManager::__NewImage()
-{
-	return new CGuildMarkImage;
-}
-
-void CGuildMarkManager::__DeleteImage(CGuildMarkImage * pkImgDel)
-{
-	delete pkImgDel;
-}
 
 CGuildMarkManager::CGuildMarkManager()
 {
@@ -34,10 +25,6 @@ CGuildMarkManager::CGuildMarkManager()
 
 CGuildMarkManager::~CGuildMarkManager()
 {
-	for (std::map<uint32_t, CGuildMarkImage *>::iterator it = m_mapIdx_Image.begin(); it != m_mapIdx_Image.end(); ++it)
-		__DeleteImage(it->second);
-
-	m_mapIdx_Image.clear();
 }
 
 bool CGuildMarkManager::GetMarkImageFilename(uint32_t imgIdx, std::string & path) const
@@ -133,7 +120,7 @@ void CGuildMarkManager::SaveMarkImage(uint32_t imgIdx)
 
 CGuildMarkImage * CGuildMarkManager::__GetImage(uint32_t imgIdx)
 {
-	std::map<uint32_t, CGuildMarkImage *>::iterator it = m_mapIdx_Image.find(imgIdx);
+	auto it = m_mapIdx_Image.find(imgIdx);
 
 	if (it == m_mapIdx_Image.end())
 	{
@@ -141,8 +128,7 @@ CGuildMarkImage * CGuildMarkManager::__GetImage(uint32_t imgIdx)
 
 		if (GetMarkImageFilename(imgIdx, imagePath))
 		{
-			CGuildMarkImage * pkImage = __NewImage();
-			m_mapIdx_Image.insert(std::map<uint32_t, CGuildMarkImage *>::value_type(imgIdx, pkImage));
+			CGuildMarkImage * pkImage = m_mapIdx_Image.emplace(imgIdx, std::make_unique<CGuildMarkImage>()).first->second.get();
 			
 			if (!pkImage->Load(imagePath.c_str()))
 			{
@@ -156,7 +142,7 @@ CGuildMarkImage * CGuildMarkManager::__GetImage(uint32_t imgIdx)
 			return nullptr;
 	}
 	else
-		return it->second;
+		return it->second.get();
 }
 
 bool CGuildMarkManager::AddMarkIDByGuildID(uint32_t guildID, uint32_t markID)

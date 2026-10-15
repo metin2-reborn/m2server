@@ -7,13 +7,14 @@
 
 #include <cstdint>
 #include <map>
+#include <string>
 #include <vector>
 
 inline constexpr int OXEVENT_MAP_INDEX = 113;
 struct tag_Quiz
 {
 	char level;
-	char Quiz[256];
+	std::string Quiz;
 	bool answer;
 };
 

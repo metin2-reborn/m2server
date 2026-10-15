@@ -22,6 +22,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <list>
+#include <memory>
 #include <set>
 #include <string>
 #include <vector>
@@ -110,7 +111,7 @@ uint8_t GetStrengthIdx(uint32_t dwVnum)
 
 bool DSManager::ReadDragonSoulTableFile(const char * c_pszFileName)
 {
-	m_pTable = new DragonSoulTable();
+	m_pTable = std::make_unique<DragonSoulTable>();
 	return m_pTable->ReadDragonSoulTableFile(c_pszFileName);
 }
 
@@ -1151,11 +1152,8 @@ void DSManager::RefreshDragonSoulState(CHARACTER * ch)
 
 DSManager::DSManager()
 {
-	m_pTable = nullptr;
 }
 
 DSManager::~DSManager()
 {
-	if (m_pTable)
-		delete m_pTable;
 }

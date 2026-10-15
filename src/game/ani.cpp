@@ -144,32 +144,32 @@ bool ANI::load() {
 }
 
 uint32_t ANI::load_one_weapon(const char *dir_name, int weapon, uint8_t combo, bool horse) {
-    char format[128];
+    const char *format;
     char filename[256];
 
     switch (weapon) {
     case WEAPON_SWORD:
-        strlcpy(format, "%s/%sonehand_sword/combo_%02d.msa", sizeof(format));
+        format = "%s/%sonehand_sword/combo_%02d.msa";
         break;
 
     case WEAPON_DAGGER:
-        strlcpy(format, "%s/%sdualhand_sword/combo_%02d.msa", sizeof(format));
+        format = "%s/%sdualhand_sword/combo_%02d.msa";
         break;
 
     case WEAPON_BOW:
-        strlcpy(format, "%s/%sbow/attack.msa", sizeof(format));
+        format = "%s/%sbow/attack.msa";
         break;
 
     case WEAPON_TWO_HANDED:
-        strlcpy(format, "%s/%stwohand_sword/combo_%02d.msa", sizeof(format));
+        format = "%s/%stwohand_sword/combo_%02d.msa";
         break;
 
     case WEAPON_BELL:
-        strlcpy(format, "%s/%sbell/combo_%02d.msa", sizeof(format));
+        format = "%s/%sbell/combo_%02d.msa";
         break;
 
     case WEAPON_FAN:
-        strlcpy(format, "%s/%sfan/combo_%02d.msa", sizeof(format));
+        format = "%s/%sfan/combo_%02d.msa";
         break;
 
     default:

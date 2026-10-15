@@ -31,6 +31,7 @@
 #include <cstring>
 #include <ctime>
 #include <map>
+#include <memory>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -227,20 +228,15 @@ void LoginFailure(DESC * d, const char * c_pszStatus)
 
 CInputHandshake::CInputHandshake()
 {
-	CPacketInfoCG * pkPacketInfo = new CPacketInfoCG;
-	pkPacketInfo->SetSequence(HEADER_CG_PONG, false);
+	m_pkHandshakePacketInfo = std::make_unique<CPacketInfoCG>();
+	m_pkHandshakePacketInfo->SetSequence(HEADER_CG_PONG, false);
 
 	m_pMainPacketInfo = m_pPacketInfo;
-	BindPacketInfo(pkPacketInfo);
+	BindPacketInfo(m_pkHandshakePacketInfo.get());
 }
 
 CInputHandshake::~CInputHandshake()
 {
-	if( nullptr != m_pPacketInfo )
-	{
-		delete m_pPacketInfo;
-		m_pPacketInfo = nullptr;
-	}
 }
 
 

@@ -22,6 +22,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <string>
 #include <utility>
 
 bool COXEventManager::Initialize()
@@ -153,7 +154,7 @@ bool COXEventManager::AddQuiz(unsigned char level, const char* pszQuestion, bool
 	struct tag_Quiz tmpQuiz;
 
 	tmpQuiz.level = level;
-	strlcpy(tmpQuiz.Quiz, pszQuestion, sizeof(tmpQuiz.Quiz));
+	tmpQuiz.Quiz = pszQuestion;
 	tmpQuiz.answer = answer;
 
 	m_vec_quiz[level].push_back(tmpQuiz);
@@ -168,7 +169,7 @@ bool COXEventManager::ShowQuizList(CHARACTER * pkChar)
 	{
 		for (size_t j = 0; j < m_vec_quiz[i].size(); ++j, ++c)
 		{
-			pkChar->ChatPacket(CHAT_TYPE_INFO, "%d %s %s", m_vec_quiz[i][j].level, m_vec_quiz[i][j].Quiz, m_vec_quiz[i][j].answer ? LC_TEXT("참") : LC_TEXT("거짓"));
+			pkChar->ChatPacket(CHAT_TYPE_INFO, "%d %s %s", m_vec_quiz[i][j].level, m_vec_quiz[i][j].Quiz.c_str(), m_vec_quiz[i][j].answer ? LC_TEXT("참") : LC_TEXT("거짓"));
 		}
 	}
 
@@ -254,7 +255,7 @@ bool COXEventManager::Quiz(unsigned char level, int timelimit)
 	int idx = number(0, m_vec_quiz[level].size()-1);
 
 	SendNoticeMap(LC_TEXT("문제 입니다."), OXEVENT_MAP_INDEX, true);
-	SendNoticeMap(m_vec_quiz[level][idx].Quiz, OXEVENT_MAP_INDEX, true);
+	SendNoticeMap(m_vec_quiz[level][idx].Quiz.c_str(), OXEVENT_MAP_INDEX, true);
 	SendNoticeMap(LC_TEXT("맞으면 O, 틀리면 X로 이동해주세요"), OXEVENT_MAP_INDEX, true);
 
 	if (m_timedEvent != nullptr) {

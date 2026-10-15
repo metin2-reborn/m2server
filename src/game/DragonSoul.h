@@ -6,7 +6,7 @@
 #include <common/singleton.h>
 
 #include <cstdint>
-
+#include <memory>
 
 class CHARACTER;
 class CItem;
@@ -59,5 +59,5 @@ private:
 	bool	PutAttributes(CItem * pDS);
 	bool	RefreshItemAttributes(CItem * pItem);
 
-	DragonSoulTable*	m_pTable;
+	std::unique_ptr<DragonSoulTable>	m_pTable;
 };

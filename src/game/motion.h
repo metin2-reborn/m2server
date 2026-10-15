@@ -6,6 +6,7 @@
 
 #include <cstdint>
 #include <map>
+#include <memory>
 
 enum EMotionMode
 {
@@ -90,7 +91,7 @@ constexpr uint32_t MAKE_MOTION_KEY(uint32_t mode, uint32_t index) { return (mode
 class CMotionSet
 {
 	public:
-		typedef std::map<uint32_t, CMotion *>	TContainer;
+		typedef std::map<uint32_t, std::unique_ptr<CMotion>>	TContainer;
 		typedef TContainer::iterator		iterator;
 		typedef TContainer::const_iterator	const_iterator;
 
@@ -98,7 +99,7 @@ class CMotionSet
 		CMotionSet();
 		~CMotionSet();
 
-		void		Insert(uint32_t dwKey, CMotion * pkMotion);
+		void		Insert(uint32_t dwKey, std::unique_ptr<CMotion> pkMotion);
 		bool		Load(const char * szFileName, int mode, int motion);
 
 		const CMotion *	GetMotion(uint32_t dwKey) const;
@@ -111,7 +112,7 @@ class CMotionSet
 class CMotionManager : public singleton<CMotionManager>
 {
 	public:
-		typedef std::map<uint32_t, CMotionSet *> TContainer;
+		typedef std::map<uint32_t, std::unique_ptr<CMotionSet>> TContainer;
 		typedef TContainer::iterator iterator;
 
 		CMotionManager();

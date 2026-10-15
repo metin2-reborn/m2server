@@ -34,6 +34,7 @@
 #include <cstring>
 #include <ios>
 #include <map>
+#include <memory>
 #include <sstream>
 #include <string>
 #include <utility>
@@ -423,7 +424,7 @@ bool SECTREE_MANAGER::LoadAttribute(SECTREE_MAP * pkMapSectree, const char * c_p
 	lzo_uint uiDestSize;
 
 	uint8_t abComp[maxMemSize];
-	uint32_t * attr = new uint32_t[maxMemSize];
+	auto attr = std::make_unique_for_overwrite<uint32_t[]>(maxMemSize);
 
 	for (int y = 0; y < iHeight; ++y)
 		for (int x = 0; x < iWidth; ++x)
@@ -446,7 +447,6 @@ bool SECTREE_MANAGER::LoadAttribute(SECTREE_MAP * pkMapSectree, const char * c_p
 				pkMapSectree->DumpAllToSysErr();
 				abort();
 
-				delete[] attr;
 				return false;
 			}
 			// END_OF_SERVER_ATTR_LOAD_ERROR
@@ -457,7 +457,6 @@ bool SECTREE_MANAGER::LoadAttribute(SECTREE_MAP * pkMapSectree, const char * c_p
 						tree->m_id.package, id.package);
 				fclose(fp);
 
-				delete[] attr;
 				return false;
 			}
 
@@ -465,7 +464,7 @@ bool SECTREE_MANAGER::LoadAttribute(SECTREE_MAP * pkMapSectree, const char * c_p
 			fread(abComp, sizeof(char), uiSize, fp);
 
 			uiDestSize = sizeof(uint32_t) * maxMemSize;
-			LZOManager::instance().Decompress(abComp, uiSize, (uint8_t *) attr, &uiDestSize);
+			LZOManager::instance().Decompress(abComp, uiSize, (uint8_t *) attr.get(), &uiDestSize);
 
 			if (uiDestSize != sizeof(uint32_t) * (SECTREE_SIZE / CELL_SIZE) * (SECTREE_SIZE / CELL_SIZE))
 			{
@@ -473,16 +472,14 @@ bool SECTREE_MANAGER::LoadAttribute(SECTREE_MAP * pkMapSectree, const char * c_p
 						c_pszFileName, tree->m_id.coord.x, tree->m_id.coord.y, static_cast<int>(uiDestSize));
 				fclose(fp);
 
-				delete[] attr;
 				return false;
 			}
 
-			tree->BindAttribute(new CAttribute(attr, SECTREE_SIZE / CELL_SIZE, SECTREE_SIZE / CELL_SIZE));
+			tree->BindAttribute(new CAttribute(attr.get(), SECTREE_SIZE / CELL_SIZE, SECTREE_SIZE / CELL_SIZE));
 		}
 
 	fclose(fp);
 
-	delete[] attr;
 	return true;
 }
 
@@ -1253,7 +1250,7 @@ bool SECTREE_MANAGER::SaveAttributeToImage(int lMapIndex, const char * c_pszFile
 	int x, x2;
 	int y, y2;
 
-	uint32_t * pdwLine = new uint32_t[SECTREE_SIZE / CELL_SIZE];
+	auto pdwLine = std::make_unique_for_overwrite<uint32_t[]>(SECTREE_SIZE / CELL_SIZE);
 
 	for (y = 0; y < 4 * iMapHeight; ++y)
 	{
@@ -1274,12 +1271,11 @@ bool SECTREE_MANAGER::SaveAttributeToImage(int lMapIndex, const char * c_pszFile
 					continue;
 				}
 
-				pSec->m_pkAttribute->CopyRow(y2, pdwLine);
+				pSec->m_pkAttribute->CopyRow(y2, pdwLine.get());
 
 				if (!pdwLine)
 				{
 					sys_err("cannot get attribute line pointer");
-					delete[] pdwLine;
 					continue;
 				}
 
@@ -1302,8 +1298,6 @@ bool SECTREE_MANAGER::SaveAttributeToImage(int lMapIndex, const char * c_pszFile
 			}
 		}
 	}
-
-	delete[] pdwLine;
 
 	if (save_tga_bgra(c_pszFileName, image.data(), iImageWidth, iImageHeight))
 	{

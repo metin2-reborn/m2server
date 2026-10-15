@@ -723,9 +723,8 @@ namespace quest
 		if (ch == nullptr)
 			return 0;
 
-		char vnum[256];
-		strlcpy(vnum, lua_tostring(L, 1), sizeof(vnum));
-		do_monarch_mob(ch, vnum, 0, 0);
+		std::string vnum(lua_tostring(L, 1));
+		do_monarch_mob(ch, vnum.c_str(), 0, 0);
 		return 0;
 	}
 

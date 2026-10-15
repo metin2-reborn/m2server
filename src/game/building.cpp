@@ -27,6 +27,7 @@
 #include <cstdint>
 #include <cstring>
 #include <map>
+#include <memory>
 #include <numbers>
 #include <utility>
 
@@ -633,10 +634,6 @@ CManager::~CManager()
 
 void CManager::Destroy()
 {
-	auto it = m_map_pkLand.begin();
-	for ( ; it != m_map_pkLand.end(); ++it) {
-		delete it->second;
-	}
 	m_map_pkLand.clear();
 }
 
@@ -691,8 +688,9 @@ bool CManager::LoadLand(TLand * pTable) // from DB
 	//	If the land isn't loaded, we can't tell which guild a guild building belongs to,
 	//	so the guild buff from guild buildings is not received.
 
-	CLand * pkLand = new CLand(pTable);
-	m_map_pkLand.insert(std::make_pair(pkLand->GetID(), pkLand));
+	auto pkLand = std::make_unique<CLand>(pTable);
+	uint32_t dwID = pkLand->GetID();
+	m_map_pkLand.insert(std::make_pair(dwID, std::move(pkLand)));
 
 	sys_log(0, "LAND: %u map %d %dx%d w %u h %u", 
 			pTable->dwID, pTable->lMapIndex, pTable->x, pTable->y, pTable->width, pTable->height);
@@ -750,12 +748,12 @@ void CManager::UpdateLand(TLand * pTable)
 
 CLand * CManager::FindLand(uint32_t dwID)
 {
-	std::map<uint32_t, CLand *>::iterator it = m_map_pkLand.find(dwID);
+	auto it = m_map_pkLand.find(dwID);
 
 	if (it == m_map_pkLand.end())
 		return nullptr;
 
-	return it->second;
+	return it->second.get();
 }
 
 CLand * CManager::FindLand(int32_t lMapIndex, int32_t x, int32_t y)
@@ -774,7 +772,7 @@ CLand * CManager::FindLand(int32_t lMapIndex, int32_t x, int32_t y)
 
 	while (it != m_map_pkLand.end())
 	{
-		CLand * pkLand = (it++)->second;
+		CLand * pkLand = (it++)->second.get();
 		const TLand & r = pkLand->GetData();
 
 		if (r.lMapIndex != lMapIndex)
@@ -798,7 +796,7 @@ CLand * CManager::FindLandByGuild(uint32_t GID)
 
 	while (it != m_map_pkLand.end())
 	{
-		CLand * pkLand = (it++)->second;
+		CLand * pkLand = (it++)->second.get();
 
 		if (pkLand->GetData().dwGuildID == GID)
 			return pkLand;
@@ -884,7 +882,7 @@ void CManager::FinalizeBoot()
 
 	while (it2 != m_map_pkLand.end())
 	{
-		CLand * pkLand = (it2++)->second;
+		CLand * pkLand = (it2++)->second.get();
 
 		const TLand & r = pkLand->GetData();
 
@@ -946,7 +944,7 @@ void CManager::SendLandList(DESC * d, int32_t lMapIndex)
 
 	while (it != m_map_pkLand.end())
 	{
-		CLand * pkLand = (it++)->second;
+		CLand * pkLand = (it++)->second.get();
 		const TLand & r = pkLand->GetData();
 
 		if (r.lMapIndex != lMapIndex)

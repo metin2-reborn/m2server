@@ -179,7 +179,7 @@ void CHARACTER::SkillLevelPacket()
 	TPacketGCSkillLevel pack;
 
 	pack.bHeader = HEADER_GC_SKILL_LEVEL;
-	std::memcpy(&pack.skills, m_pSkillLevels, sizeof(TPlayerSkill) * SKILL_MAX_NUM);
+	std::memcpy(&pack.skills, m_pSkillLevels.get(), sizeof(TPlayerSkill) * SKILL_MAX_NUM);
 	GetDesc()->Packet(&pack, sizeof(TPacketGCSkillLevel));
 }
 
@@ -815,7 +815,7 @@ void CHARACTER::ResetSkill()
 		vec.push_back(std::make_pair(s_adwSubSkillVnums[i], m_pSkillLevels[s_adwSubSkillVnums[i]]));
 	}
 
-	memset(m_pSkillLevels, 0, sizeof(TPlayerSkill) * SKILL_MAX_NUM);
+	memset(m_pSkillLevels.get(), 0, sizeof(TPlayerSkill) * SKILL_MAX_NUM);
 
 	std::vector<std::pair<uint32_t, TPlayerSkill> >::const_iterator iter = vec.begin();
 

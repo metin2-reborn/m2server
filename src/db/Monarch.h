@@ -7,12 +7,13 @@
 #include <cstddef>
 #include <cstdint>
 #include <map>
+#include <memory>
 #include <vector>
 
 class CMonarch : public singleton<CMonarch>
 {
 	public:
-		typedef std::map<uint32_t, MonarchElectionInfo*> MAP_MONARCHELECTION;
+		typedef std::map<uint32_t, std::unique_ptr<MonarchElectionInfo>> MAP_MONARCHELECTION;
 		typedef std::vector<MonarchCandidacy> VEC_MONARCHCANDIDACY;
 
 		CMonarch();

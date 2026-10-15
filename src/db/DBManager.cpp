@@ -10,6 +10,7 @@
 
 #include <cassert>
 #include <cstdint>
+#include <memory>
 
 // Character set of every connection; the game server connects with the same one.
 static constexpr const char CONNECTION_CHARSET[] = "latin1";
@@ -36,20 +37,9 @@ void CDBManager::Destroy() {
 
 void CDBManager::Clear() {
     for (int i = 0; i < SQL_MAX_NUM; ++i) {
-        if (m_mainSQL[i]) {
-            delete m_mainSQL[i];
-            m_mainSQL[i] = nullptr;
-        }
-
-        if (m_directSQL[i]) {
-            delete m_directSQL[i];
-            m_directSQL[i] = nullptr;
-        }
-
-        if (m_asyncSQL[i]) {
-            delete m_asyncSQL[i];
-            m_asyncSQL[i] = nullptr;
-        }
+        m_mainSQL[i].reset();
+        m_directSQL[i].reset();
+        m_asyncSQL[i].reset();
     }
 
     Initialize();
@@ -86,21 +76,21 @@ int CDBManager::Connect(int iSlot, const char *db_address, const int db_port, co
         return false;
 
     sys_log(0, "CREATING DIRECT_SQL");
-    m_directSQL[iSlot] = new CAsyncSQL;
+    m_directSQL[iSlot] = std::make_unique<CAsyncSQL>();
     if (!m_directSQL[iSlot]->Setup(db_address, user, pwd, db_name, CONNECTION_CHARSET, true, db_port)) {
         Clear();
         return false;
     }
 
     sys_log(0, "CREATING MAIN_SQL");
-    m_mainSQL[iSlot] = new CAsyncSQL;
+    m_mainSQL[iSlot] = std::make_unique<CAsyncSQL>();
     if (!m_mainSQL[iSlot]->Setup(db_address, user, pwd, db_name, CONNECTION_CHARSET, false, db_port)) {
         Clear();
         return false;
     }
 
     sys_log(0, "CREATING ASYNC_SQL");
-    m_asyncSQL[iSlot] = new CAsyncSQL;
+    m_asyncSQL[iSlot] = std::make_unique<CAsyncSQL>();
     if (!m_asyncSQL[iSlot]->Setup(db_address, user, pwd, db_name, CONNECTION_CHARSET, false, db_port)) {
         Clear();
         return false;
