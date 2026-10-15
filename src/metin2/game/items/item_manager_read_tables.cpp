@@ -1,0 +1,900 @@
+#include <metin2/game/app/constants.h>
+#include <metin2/game/data/file_loader.h>
+#include <metin2/game/items/item_manager.h>
+#include <metin2/game/items/item_manager_private_types.h>
+#include <metin2/game/text/locale_service.h>
+#include <metin2/game/quest/questmanager.h>
+#include <metin2/game/data/text_file_loader.h>
+
+#include <metin2/proto/length.h>
+#include <metin2/common/utils.h>
+#include <metin2/log/log.h>
+
+#include <algorithm>
+#include <cstdint>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <map>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
+
+namespace metin2::game::inline items {
+
+std::vector<CItemDropInfo> g_vec_pkCommonDropItem[MOB_RANK_MAX_NUM];
+
+bool ITEM_MANAGER::ReadCommonDropItemFile(const char * c_pszFileName)
+{
+	FILE * fp = fopen(c_pszFileName, "r");
+
+	if (!fp)
+	{
+		metin2::log::error("Cannot open {}", c_pszFileName);
+		return false;
+	}
+
+	char buf[1024];
+
+
+	while (fgets(buf, 1024, fp))
+	{
+
+		if (!*buf || *buf == '\n')
+			continue;
+
+		TDropItem d[MOB_RANK_MAX_NUM];
+		char szTemp[64];
+
+		memset(&d, 0, sizeof(d));
+
+		char * p = buf;
+		char * p2;
+
+		for (int i = 0; i <= MOB_RANK_S_KNIGHT; ++i)
+		{
+			for (int j = 0; j < 6; ++j)
+			{
+				p2 = strchr(p, '\t');
+
+				if (!p2)
+					break;
+
+				strlcpy(szTemp, p, std::min<int>(sizeof(szTemp), (p2 - p) + 1));
+				p = p2 + 1;
+
+				switch (j)
+				{
+				case 0: break;
+				case 1: str_to_number(d[i].iLvStart, szTemp);	break;
+				case 2: str_to_number(d[i].iLvEnd, szTemp);	break;
+				case 3: d[i].fPercent = atof(szTemp);	break;
+				case 4: strlcpy(d[i].szItemName, szTemp, sizeof(d[i].szItemName));	break;
+				case 5: str_to_number(d[i].iCount, szTemp);	break;
+				}
+			}
+
+			uint32_t dwPct = (uint32_t) (d[i].fPercent * 10000.0f);
+			uint32_t dwItemVnum = 0;
+
+			if (!ITEM_MANAGER::instance().GetVnumByOriginalName(d[i].szItemName, dwItemVnum))
+			{
+				// If not found by name, search by number
+				str_to_number(dwItemVnum, d[i].szItemName);
+				if (!ITEM_MANAGER::instance().GetTable(dwItemVnum))
+				{
+					metin2::log::error("No such an item (name: {})", d[i].szItemName);
+					fclose(fp);
+					return false;
+				}
+			}
+
+			if (d[i].iLvStart == 0)
+				continue;
+
+			g_vec_pkCommonDropItem[i].push_back(CItemDropInfo(d[i].iLvStart, d[i].iLvEnd, dwPct, dwItemVnum));
+		}
+	}
+
+	fclose(fp);
+
+	for (int i = 0; i < MOB_RANK_MAX_NUM; ++i)
+	{
+		std::vector<CItemDropInfo> & v = g_vec_pkCommonDropItem[i];
+		std::sort(v.begin(), v.end());
+
+		std::vector<CItemDropInfo>::iterator it = v.begin();
+
+		metin2::log::debug( "CommonItemDrop rank {:d}", i);
+
+		while (it != v.end())
+		{
+			const CItemDropInfo & c = *(it++);
+			metin2::log::debug( "CommonItemDrop {:d} {:d} {:d} {:d}", c.m_iLevelStart, c.m_iLevelEnd, c.m_iPercent, c.m_dwVnum);
+		}
+	}
+
+	return true;
+}
+
+bool ITEM_MANAGER::ReadSpecialDropItemFile(const char * c_pszFileName)
+{
+	CTextFileLoader loader;
+
+	if (!loader.Load(c_pszFileName))
+		return false;
+
+	std::string stName;
+
+	for (uint32_t i = 0; i < loader.GetChildNodeCount(); ++i)
+	{
+		loader.SetChildNode(i);
+
+		loader.GetCurrentNodeName(&stName);
+
+		int iVnum;
+
+		if (!loader.GetTokenInteger("vnum", &iVnum))
+		{
+			metin2::log::error("ReadSpecialDropItemFile : Syntax error {} : no vnum, node {}", c_pszFileName, stName.c_str());
+			loader.SetParentNode();
+			return false;
+		}
+
+		metin2::log::info("DROP_ITEM_GROUP {} {:d}", stName.c_str(), iVnum);
+
+		TTokenVector * pTok;
+
+		//
+		std::string stType;
+		int type = CSpecialItemGroup::NORMAL;
+		if (loader.GetTokenString("type", &stType))
+		{
+			to_lower(stType);
+			if (stType == "pct")
+			{
+				type = CSpecialItemGroup::PCT;
+			}
+			else if (stType == "quest")
+			{
+				type = CSpecialItemGroup::QUEST;
+				quest::CQuestManager::instance().RegisterNPCVnum(iVnum);
+			}
+			else if (stType == "special")
+			{
+				type = CSpecialItemGroup::SPECIAL;
+			}
+		}
+
+		if ("attr" == stType)
+		{
+			auto pkGroup = std::make_unique<CSpecialAttrGroup>(iVnum);
+			for (int k = 1; k < 256; ++k)
+			{
+				char buf[4];
+				snprintf(buf, sizeof(buf), "%d", k);
+
+				if (loader.GetTokenVector(buf, &pTok))
+				{
+					uint32_t apply_type = 0;
+					int	apply_value = 0;
+					str_to_number(apply_type, pTok->at(0).c_str());
+					if (0 == apply_type)
+					{
+						apply_type = FN_get_apply_type(pTok->at(0).c_str());
+						if (0 == apply_type)
+						{
+							metin2::log::error("Invalid APPLY_TYPE {} in Special Item Group Vnum {:d}", pTok->at(0).c_str(), iVnum);
+							return false;
+						}
+					}
+					str_to_number(apply_value, pTok->at(1).c_str());
+					if (apply_type > MAX_APPLY_NUM)
+					{
+						metin2::log::error("Invalid APPLY_TYPE {:d} in Special Item Group Vnum {:d}", apply_type, iVnum);
+						return false;
+					}
+					pkGroup->m_vecAttrs.push_back(CSpecialAttrGroup::CSpecialAttrInfo(apply_type, apply_value));
+				}
+				else
+				{
+					break;
+				}
+			}
+			if (loader.GetTokenVector("effect", &pTok))
+			{
+				pkGroup->m_stEffectFileName = pTok->at(0);
+			}
+			loader.SetParentNode();
+			m_map_pkSpecialAttrGroup.insert(std::make_pair(iVnum, pkGroup.release()));
+		}
+		else
+		{
+			auto pkGroup = std::make_unique<CSpecialItemGroup>(iVnum, type);
+			for (int k = 1; k < 256; ++k)
+			{
+				char buf[4];
+				snprintf(buf, sizeof(buf), "%d", k);
+
+				if (loader.GetTokenVector(buf, &pTok))
+				{
+					const std::string& name = pTok->at(0);
+					uint32_t dwVnum = 0;
+
+					if (!GetVnumByOriginalName(name.c_str(), dwVnum))
+					{
+						if (name == "경험치" || name == "exp")
+						{
+							dwVnum = CSpecialItemGroup::EXP;
+						}
+						else if (name == "mob")
+						{
+							dwVnum = CSpecialItemGroup::MOB;
+						}
+						else if (name == "slow")
+						{
+							dwVnum = CSpecialItemGroup::SLOW;
+						}
+						else if (name == "drain_hp")
+						{
+							dwVnum = CSpecialItemGroup::DRAIN_HP;
+						}
+						else if (name == "poison")
+						{
+							dwVnum = CSpecialItemGroup::POISON;
+						}
+						else if (name == "group")
+						{
+							dwVnum = CSpecialItemGroup::MOB_GROUP;
+						}
+						else
+						{
+							str_to_number(dwVnum, name.c_str());
+							if (!ITEM_MANAGER::instance().GetTable(dwVnum))
+							{
+								metin2::log::error("ReadSpecialDropItemFile : there is no item {} : node {}", name.c_str(), stName.c_str());
+								return false;
+							}
+						}
+					}
+
+					int iCount = 0;
+					str_to_number(iCount, pTok->at(1).c_str());
+					int iProb = 0;
+					str_to_number(iProb, pTok->at(2).c_str());
+
+					int iRarePct = 0;
+					if (pTok->size() > 3)
+					{
+						str_to_number(iRarePct, pTok->at(3).c_str());
+					}
+
+					metin2::log::info("        name {} count {:d} prob {:d} rare {:d}", name.c_str(), iCount, iProb, iRarePct);
+					pkGroup->AddItem(dwVnum, iCount, iProb, iRarePct);
+
+					// CHECK_UNIQUE_GROUP
+					if (iVnum < 30000)
+					{
+						m_ItemToSpecialGroup[dwVnum] = iVnum;
+					}
+					// END_OF_CHECK_UNIQUE_GROUP
+
+					continue;
+				}
+
+				break;
+			}
+			loader.SetParentNode();
+			if (CSpecialItemGroup::QUEST == type)
+			{
+				m_map_pkQuestItemGroup.insert(std::make_pair(iVnum, pkGroup.release()));
+			}
+			else
+			{
+				m_map_pkSpecialItemGroup.insert(std::make_pair(iVnum, pkGroup.release()));
+			}
+		}
+	}
+
+	return true;
+}
+
+
+bool ITEM_MANAGER::ConvSpecialDropItemFile()
+{
+	char szSpecialItemGroupFileName[256];
+	snprintf(szSpecialItemGroupFileName, sizeof(szSpecialItemGroupFileName),
+		"%s/special_item_group.txt", LocaleService_GetBasePath().c_str());
+
+	FILE *fp = fopen("special_item_group_vnum.txt", "w");
+	if (!fp)
+	{
+		metin2::log::error("could not open file ({})", "special_item_group_vnum.txt");
+		return false;
+	}
+
+	CTextFileLoader loader;
+
+	if (!loader.Load(szSpecialItemGroupFileName))
+	{
+		fclose(fp);
+		return false;
+	}
+
+	std::string stName;
+
+	for (uint32_t i = 0; i < loader.GetChildNodeCount(); ++i)
+	{
+		loader.SetChildNode(i);
+
+		loader.GetCurrentNodeName(&stName);
+
+		int iVnum;
+
+		if (!loader.GetTokenInteger("vnum", &iVnum))
+		{
+			metin2::log::error("ConvSpecialDropItemFile : Syntax error {} : no vnum, node {}", szSpecialItemGroupFileName, stName.c_str());
+			loader.SetParentNode();
+			fclose(fp);
+			return false;
+		}
+
+		std::string str;
+		int type = 0;
+		if (loader.GetTokenString("type", &str))
+		{
+			to_lower(str);
+			if (str == "pct")
+			{
+				type = 1;
+			}
+		}
+
+		TTokenVector * pTok;
+
+		fprintf(fp, "Group	%s\n", stName.c_str());
+		fprintf(fp, "{\n");
+		fprintf(fp, "	Vnum	%i\n", iVnum);
+		if (type)
+			fprintf(fp, "	Type	Pct");
+
+		for (int k = 1; k < 256; ++k)
+		{
+			char buf[4];
+			snprintf(buf, sizeof(buf), "%d", k);
+
+			if (loader.GetTokenVector(buf, &pTok))
+			{
+				const std::string& name = pTok->at(0);
+				uint32_t dwVnum = 0;
+
+				if (!GetVnumByOriginalName(name.c_str(), dwVnum))
+				{
+					if (	name == "경험치" ||
+						name == "mob" ||
+						name == "slow" ||
+						name == "drain_hp" ||
+						name == "poison" ||
+						name == "group")
+					{
+						dwVnum = 0;
+					}
+					else
+					{
+						str_to_number(dwVnum, name.c_str());
+						if (!ITEM_MANAGER::instance().GetTable(dwVnum))
+						{
+							metin2::log::error("ReadSpecialDropItemFile : there is no item {} : node {}", name.c_str(), stName.c_str());
+							fclose(fp);
+
+							return false;
+						}
+					}
+				}
+
+				int iCount = 0;
+				str_to_number(iCount, pTok->at(1).c_str());
+				int iProb = 0;
+				str_to_number(iProb, pTok->at(2).c_str());
+
+				int iRarePct = 0;
+				if (pTok->size() > 3)
+				{
+					str_to_number(iRarePct, pTok->at(3).c_str());
+				}
+
+				//    1   "기술 수련서"   1   100
+				if (0 == dwVnum)
+					fprintf(fp, "	%d	%s	%d	%d\n", k, name.c_str(), iCount, iProb);
+				else
+					fprintf(fp, "	%d	%u	%d	%d\n", k, dwVnum, iCount, iProb);
+
+				continue;
+			}
+
+			break;
+		}
+		fprintf(fp, "}\n");
+		fprintf(fp, "\n");
+
+		loader.SetParentNode();
+	}
+
+	fclose(fp);
+	return true;
+}
+
+bool ITEM_MANAGER::ReadEtcDropItemFile(const char * c_pszFileName)
+{
+	FILE * fp = fopen(c_pszFileName, "r");
+
+	if (!fp)
+	{
+		metin2::log::error("Cannot open {}", c_pszFileName);
+		return false;
+	}
+
+	char buf[512];
+
+
+	while (fgets(buf, 512, fp))
+	{
+
+		if (!*buf || *buf == '\n')
+			continue;
+
+		char szItemName[256];
+		float fProb = 0.0f;
+
+		strlcpy(szItemName, buf, sizeof(szItemName));
+		char * cpTab = strrchr(szItemName, '\t');
+
+		if (!cpTab)
+			continue;
+
+		*cpTab = '\0';
+		fProb = atof(cpTab + 1);
+
+		if (!*szItemName || fProb == 0.0f)
+			continue;
+
+		uint32_t dwItemVnum;
+
+		if (!ITEM_MANAGER::instance().GetVnumByOriginalName(szItemName, dwItemVnum))
+		{
+			metin2::log::error("No such an item (name: {})", szItemName);
+			fclose(fp);
+			return false;
+		}
+
+		m_map_dwEtcItemDropProb[dwItemVnum] = (uint32_t) (fProb * 10000.0f);
+		metin2::log::info( "ETC_DROP_ITEM: {} prob {:f}", szItemName, fProb);
+	}
+
+	fclose(fp);
+	return true;
+}
+
+bool ITEM_MANAGER::ReadMonsterDropItemGroup(const char * c_pszFileName)
+{
+	CTextFileLoader loader;
+
+	if (!loader.Load(c_pszFileName))
+		return false;
+
+	for (uint32_t i = 0; i < loader.GetChildNodeCount(); ++i)
+	{
+		std::string stName("");
+
+		loader.GetCurrentNodeName(&stName);
+
+		if (strncmp (stName.c_str(), "kr_", 3) == 0)
+		{
+			continue;
+		}
+
+		loader.SetChildNode(i);
+
+		int iMobVnum = 0;
+		int iKillDrop = 0;
+		int iLevelLimit = 0;
+
+		std::string strType("");
+
+		if (!loader.GetTokenString("type", &strType))
+		{
+			metin2::log::error("ReadMonsterDropItemGroup : Syntax error {} : no type (kill|drop), node {}", c_pszFileName, stName.c_str());
+			loader.SetParentNode();
+			return false;
+		}
+
+		if (!loader.GetTokenInteger("mob", &iMobVnum))
+		{
+			metin2::log::error("ReadMonsterDropItemGroup : Syntax error {} : no mob vnum, node {}", c_pszFileName, stName.c_str());
+			loader.SetParentNode();
+			return false;
+		}
+
+		if (strType == "kill")
+		{
+			if (!loader.GetTokenInteger("kill_drop", &iKillDrop))
+			{
+				metin2::log::error("ReadMonsterDropItemGroup : Syntax error {} : no kill drop count, node {}", c_pszFileName, stName.c_str());
+				loader.SetParentNode();
+				return false;
+			}
+		}
+		else
+		{
+			iKillDrop = 1;
+		}
+
+		if ( strType == "limit" )
+		{
+			if ( !loader.GetTokenInteger("level_limit", &iLevelLimit) )
+			{
+				metin2::log::error("ReadmonsterDropItemGroup : Syntax error {} : no level_limit, node {}", c_pszFileName, stName.c_str());
+				loader.SetParentNode();
+				return false;
+			}
+		}
+		else
+		{
+			iLevelLimit = 0;
+		}
+
+		metin2::log::info("MOB_ITEM_GROUP {} [{}] {:d} {:d}", stName.c_str(), strType.c_str(), iMobVnum, iKillDrop);
+
+		if (iKillDrop == 0)
+		{
+			loader.SetParentNode();
+			continue;
+		}
+
+		TTokenVector* pTok = nullptr;
+
+		if (strType == "kill")
+		{
+			auto pkGroup = std::make_unique<CMobItemGroup>(iKillDrop);
+
+			for (int k = 1; k < 256; ++k)
+			{
+				char buf[4];
+				snprintf(buf, sizeof(buf), "%d", k);
+
+				if (loader.GetTokenVector(buf, &pTok))
+				{
+					std::string& name = pTok->at(0);
+					uint32_t dwVnum = 0;
+
+					if (!GetVnumByOriginalName(name.c_str(), dwVnum))
+					{
+						str_to_number(dwVnum, name.c_str());
+						if (!ITEM_MANAGER::instance().GetTable(dwVnum))
+						{
+							metin2::log::error("ReadMonsterDropItemGroup : there is no item {} : node {} : vnum {:d}", name.c_str(), stName.c_str(), dwVnum);
+							return false;
+						}
+					}
+
+					int iCount = 0;
+					str_to_number(iCount, pTok->at(1).c_str());
+
+					if (iCount<1)
+					{
+						metin2::log::error("ReadMonsterDropItemGroup : there is no count for item {} : node {} : vnum {:d}, count {:d}", name.c_str(), stName.c_str(), dwVnum, iCount);
+						return false;
+					}
+
+					int iPartPct = 0;
+					str_to_number(iPartPct, pTok->at(2).c_str());
+
+					if (iPartPct == 0)
+					{
+						metin2::log::error("ReadMonsterDropItemGroup : there is no drop percent for item {} : node {} : vnum {:d}, count {:d}, pct {:d}", name.c_str(), stName.c_str(), dwVnum, iCount, iPartPct);
+						return false;
+					}
+
+					int iRarePct = 0;
+					str_to_number(iRarePct, pTok->at(3).c_str());
+					iRarePct = std::clamp(iRarePct, 0, 100);
+
+					metin2::log::info("        {} count {:d} rare {:d}", name.c_str(), iCount, iRarePct);
+					pkGroup->AddItem(dwVnum, iCount, iPartPct, iRarePct);
+					continue;
+				}
+
+				break;
+			}
+			m_map_pkMobItemGroup.insert(std::map<uint32_t, CMobItemGroup*>::value_type(iMobVnum, pkGroup.release()));
+
+		}
+		else if (strType == "drop")
+		{
+			CDropItemGroup* pkGroup = nullptr;
+			bool bNew = true;
+			auto it = m_map_pkDropItemGroup.find (iMobVnum);
+			if (it == m_map_pkDropItemGroup.end())
+			{
+				pkGroup = new CDropItemGroup;
+			}
+			else
+			{
+				pkGroup = it->second;
+				bNew = false;
+			}
+
+			for (int k = 1; k < 256; ++k)
+			{
+				char buf[4];
+				snprintf(buf, sizeof(buf), "%d", k);
+
+				if (loader.GetTokenVector(buf, &pTok))
+				{
+					std::string& name = pTok->at(0);
+					uint32_t dwVnum = 0;
+
+					if (!GetVnumByOriginalName(name.c_str(), dwVnum))
+					{
+						str_to_number(dwVnum, name.c_str());
+						if (!ITEM_MANAGER::instance().GetTable(dwVnum))
+						{
+							metin2::log::error("ReadDropItemGroup : there is no item {} : node {}", name.c_str(), stName.c_str());
+							if (bNew)
+								delete pkGroup;
+
+							return false;
+						}
+					}
+
+					int iCount = 0;
+					str_to_number(iCount, pTok->at(1).c_str());
+
+					if (iCount < 1)
+					{
+						metin2::log::error("ReadMonsterDropItemGroup : there is no count for item {} : node {}", name.c_str(), stName.c_str());
+						if (bNew)
+							delete pkGroup;
+
+						return false;
+					}
+
+					float fPercent = atof(pTok->at(2).c_str());
+
+					uint32_t dwPct = (uint32_t)(10000.0f * fPercent);
+
+					metin2::log::info("        name {} pct {:d} count {:d}", name.c_str(), dwPct, iCount);
+					pkGroup->AddItem(dwVnum, dwPct, iCount);
+
+					continue;
+				}
+
+				break;
+			}
+			if (bNew)
+				m_map_pkDropItemGroup.insert(std::map<uint32_t, CDropItemGroup*>::value_type(iMobVnum, pkGroup));
+
+		}
+		else if ( strType == "limit" )
+		{
+			auto pkLevelItemGroup = std::make_unique<CLevelItemGroup>(iLevelLimit);
+
+			for ( int k=1; k < 256; k++ )
+			{
+				char buf[4];
+				snprintf(buf, sizeof(buf), "%d", k);
+
+				if ( loader.GetTokenVector(buf, &pTok) )
+				{
+					std::string& name = pTok->at(0);
+					uint32_t dwItemVnum = 0;
+
+					if (false == GetVnumByOriginalName(name.c_str(), dwItemVnum))
+					{
+						str_to_number(dwItemVnum, name.c_str());
+						if ( !ITEM_MANAGER::instance().GetTable(dwItemVnum) )
+						{
+							return false;
+						}
+					}
+
+					int iCount = 0;
+					str_to_number(iCount, pTok->at(1).c_str());
+
+					if (iCount < 1)
+					{
+						return false;
+					}
+
+					float fPct = atof(pTok->at(2).c_str());
+					uint32_t dwPct = (uint32_t)(10000.0f * fPct);
+
+					pkLevelItemGroup->AddItem(dwItemVnum, dwPct, iCount);
+
+					continue;
+				}
+
+				break;
+			}
+
+			m_map_pkLevelItemGroup.insert(std::map<uint32_t, CLevelItemGroup*>::value_type(iMobVnum, pkLevelItemGroup.release()));
+		}
+		else if (strType == "thiefgloves")
+		{
+			auto pkGroup = std::make_unique<CBuyerThiefGlovesItemGroup>();
+
+			for (int k = 1; k < 256; ++k)
+			{
+				char buf[4];
+				snprintf(buf, sizeof(buf), "%d", k);
+
+				if (loader.GetTokenVector(buf, &pTok))
+				{
+					std::string& name = pTok->at(0);
+					uint32_t dwVnum = 0;
+
+					if (!GetVnumByOriginalName(name.c_str(), dwVnum))
+					{
+						str_to_number(dwVnum, name.c_str());
+						if (!ITEM_MANAGER::instance().GetTable(dwVnum))
+						{
+							metin2::log::error("ReadDropItemGroup : there is no item {} : node {}", name.c_str(), stName.c_str());
+							return false;
+						}
+					}
+
+					int iCount = 0;
+					str_to_number(iCount, pTok->at(1).c_str());
+
+					if (iCount < 1)
+					{
+						metin2::log::error("ReadMonsterDropItemGroup : there is no count for item {} : node {}", name.c_str(), stName.c_str());
+						return false;
+					}
+
+					float fPercent = atof(pTok->at(2).c_str());
+
+					uint32_t dwPct = (uint32_t)(10000.0f * fPercent);
+
+					metin2::log::info("        name {} pct {:d} count {:d}", name.c_str(), dwPct, iCount);
+					pkGroup->AddItem(dwVnum, dwPct, iCount);
+
+					continue;
+				}
+
+				break;
+			}
+
+			m_map_pkGloveItemGroup.insert(std::map<uint32_t, CBuyerThiefGlovesItemGroup*>::value_type(iMobVnum, pkGroup.release()));
+		}
+		else
+		{
+			metin2::log::error("ReadMonsterDropItemGroup : Syntax error {} : invalid type {} (kill|drop), node {}", c_pszFileName, strType.c_str(), stName.c_str());
+			loader.SetParentNode();
+			return false;
+		}
+
+		loader.SetParentNode();
+	}
+
+	return true;
+}
+
+bool ITEM_MANAGER::ReadDropItemGroup(const char * c_pszFileName)
+{
+	CTextFileLoader loader;
+
+	if (!loader.Load(c_pszFileName))
+		return false;
+
+	std::string stName;
+
+	for (uint32_t i = 0; i < loader.GetChildNodeCount(); ++i)
+	{
+		loader.SetChildNode(i);
+
+		loader.GetCurrentNodeName(&stName);
+
+		int iVnum;
+		int iMobVnum;
+
+		if (!loader.GetTokenInteger("vnum", &iVnum))
+		{
+			metin2::log::error("ReadDropItemGroup : Syntax error {} : no vnum, node {}", c_pszFileName, stName.c_str());
+			loader.SetParentNode();
+			return false;
+		}
+
+		if (!loader.GetTokenInteger("mob", &iMobVnum))
+		{
+			metin2::log::error("ReadDropItemGroup : Syntax error {} : no mob vnum, node {}", c_pszFileName, stName.c_str());
+			loader.SetParentNode();
+			return false;
+		}
+
+		metin2::log::info("DROP_ITEM_GROUP {} {:d}", stName.c_str(), iMobVnum);
+
+		TTokenVector * pTok;
+
+		auto it = m_map_pkDropItemGroup.find(iMobVnum);
+
+		std::unique_ptr<CDropItemGroup> pkNewGroup;
+		CDropItemGroup* pkGroup;
+
+		if (it == m_map_pkDropItemGroup.end())
+		{
+			pkNewGroup = std::make_unique<CDropItemGroup>();
+			pkGroup = pkNewGroup.get();
+		}
+		else
+			pkGroup = it->second;
+
+		for (int k = 1; k < 256; ++k)
+		{
+			char buf[4];
+			snprintf(buf, sizeof(buf), "%d", k);
+
+			if (loader.GetTokenVector(buf, &pTok))
+			{
+				std::string& name = pTok->at(0);
+				uint32_t dwVnum = 0;
+
+				if (!GetVnumByOriginalName(name.c_str(), dwVnum))
+				{
+					str_to_number(dwVnum, name.c_str());
+					if (!ITEM_MANAGER::instance().GetTable(dwVnum))
+					{
+						metin2::log::error("ReadDropItemGroup : there is no item {} : node {}", name.c_str(), stName.c_str());
+						return false;
+					}
+				}
+
+				float fPercent = atof(pTok->at(1).c_str());
+
+				uint32_t dwPct = (uint32_t)(10000.0f * fPercent);
+
+				int iCount = 1;
+				if (pTok->size() > 2)
+					str_to_number(iCount, pTok->at(2).c_str());
+
+				if (iCount < 1)
+				{
+					metin2::log::error("ReadDropItemGroup : there is no count for item {} : node {}", name.c_str(), stName.c_str());
+					return false;
+				}
+
+				metin2::log::info("        {} {:d} {:d}", name.c_str(), dwPct, iCount);
+				pkGroup->AddItem(dwVnum, dwPct, iCount);
+				continue;
+			}
+
+			break;
+		}
+
+		if (pkNewGroup)
+			m_map_pkDropItemGroup.insert(std::map<uint32_t, CDropItemGroup*>::value_type(iMobVnum, pkNewGroup.release()));
+
+		loader.SetParentNode();
+	}
+
+	return true;
+}
+
+bool ITEM_MANAGER::ReadItemVnumMaskTable(const char * c_pszFileName)
+{
+	FILE *fp = fopen(c_pszFileName, "r");
+	if (!fp)
+	{
+		return false;
+	}
+
+	int ori_vnum, new_vnum;
+	while (fscanf(fp, "%u %u", &ori_vnum, &new_vnum) != EOF)
+	{
+		m_map_new_to_ori.insert (TMapDW2DW::value_type (new_vnum, ori_vnum));
+	}
+	fclose(fp);
+	return true;
+}
+}

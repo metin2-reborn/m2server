@@ -1,6 +1,6 @@
 #include "check.h"
 
-#include <game/cipher.h>
+#include <metin2/game/protocol/cipher.h>
 
 #include <cstddef>
 #include <cstdint>

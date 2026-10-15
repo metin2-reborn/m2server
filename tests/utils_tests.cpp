@@ -1,7 +1,7 @@
 #include "check.h"
 
-#include <common/utils.h>
-#include <libthecore/utils.h>
+#include <metin2/common/utils.h>
+#include <metin2/core/utils.h>
 
 #include <cstdint>
 #include <cstring>

@@ -1,6 +1,6 @@
 #include "check.h"
 
-#include <libsql/query.h>
+#include <metin2/sql/query.h>
 
 #include <cstdint>
 #include <string>

@@ -1,6 +1,6 @@
 #include "check.h"
 
-#include <libgame/grid.h>
+#include <metin2/common/grid.h>
 
 using namespace metin2;
 

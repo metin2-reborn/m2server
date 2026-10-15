@@ -22,21 +22,7 @@ add_compile_options(
     $<$<CONFIG:Debug>:-Werror>
 )
 
-add_subdirectory(src/common)
-add_subdirectory(src/metin2/log)
-add_subdirectory(src/metin2/config)
-add_subdirectory(src/db)
-add_subdirectory(src/game)
-add_subdirectory(src/libgame)
-add_subdirectory(src/libnet)
-add_subdirectory(src/libpoly)
-add_subdirectory(src/libsql)
-add_subdirectory(src/libthecore)
-
-# One executable for every role; server.toml decides which one a process runs.
-add_executable(server src/metin2/main.cpp)
-target_link_libraries(server PRIVATE metin2_db metin2_game metin2_config metin2_log)
-target_compile_definitions(server PRIVATE M2_VERSION="${PROJECT_VERSION}")
+add_subdirectory(src/metin2)
 
 option(BUILD_TESTING "Build the unit tests" ON)
 if(BUILD_TESTING)

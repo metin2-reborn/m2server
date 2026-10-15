@@ -1,8 +1,8 @@
 #include "check.h"
 
-#include <libnet/connection.h>
-#include <libnet/io.h>
-#include <libnet/listener.h>
+#include <metin2/net/connection.h>
+#include <metin2/net/io.h>
+#include <metin2/net/listener.h>
 
 #include <chrono>
 #include <cstddef>

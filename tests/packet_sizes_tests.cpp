@@ -1,7 +1,7 @@
 #include "check.h"
 
-#include <common/tables.h>
-#include <game/packet.h>
+#include <metin2/proto/tables.h>
+#include <metin2/game/protocol/packet.h>
 
 #include <cstddef>
 

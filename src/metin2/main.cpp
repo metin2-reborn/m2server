@@ -8,11 +8,11 @@
 #include <utility>
 #include <vector>
 
-namespace metin2::db {
+namespace metin2::db::inline app {
     int run();
 }
 
-namespace metin2::game {
+namespace metin2::game::inline app {
     int run(int argc, char **argv);
 }
 
