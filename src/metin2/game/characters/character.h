@@ -792,7 +792,7 @@ class character : public entity, public fsm, public horse_rider
 		void			set_now_walking(bool bWalkFlag);	
 		void			reset_walking()			{ set_now_walking(walking_); }
 
-		bool			goto_(int32_t x, int32_t y);	// Blend to the target position instead of moving immediately.
+		bool			go_to(int32_t x, int32_t y);	// Blend to the target position instead of moving immediately.
 		void			stop();
 
 		bool			can_move() const;		// Can it move?
@@ -1432,7 +1432,7 @@ class character : public entity, public fsm, public horse_rider
 		character *		protege() const;	// Returns the target to protect
 
 		bool			follow(character * pkChr, float fMinimumDistance = 150.0f);
-		bool			return_();
+		bool			return_home();
 		bool			is_guard_npc() const;
 		bool			is_change_attack_position(character * target) const;
 		void			reset_change_attack_position_time() { last_change_attack_position_time_ = get_dword_time() - AI_CHANGE_ATTACK_POISITION_TIME_NEAR;}
@@ -1704,9 +1704,9 @@ class character : public entity, public fsm, public horse_rider
 		int				premium_times_[PREMIUM_MAX_NUM];
 
 		// CHANGE_ITEM_ATTRIBUTES
-		static const uint32_t		msc_dw_default_change_item_attr_cycle_;	///< Default interval for item attribute changes
-		static const char		msc_sz_last_change_item_attr_flag_[];		///< Quest Flag name for the time of the last item attribute change
-		static const char		msc_sz_change_item_attr_cycle_flag_[];		///< Quest Flag name for the item attribute change interval
+		static const uint32_t		default_change_item_attr_cycle_;	///< Default interval for item attribute changes
+		static const char		last_change_item_attr_flag_[];		///< Quest Flag name for the time of the last item attribute change
+		static const char		change_item_attr_cycle_flag_[];		///< Quest Flag name for the item attribute change interval
 		// END_OF_CHANGE_ITEM_ATTRIBUTES
 
 		// NEW_HAIR_STYLE_ADD

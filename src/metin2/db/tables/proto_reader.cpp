@@ -606,7 +606,7 @@ bool set_proto_mob_table(mob_table *mobTable, c_csv_table &csvTable,std::map<int
 	str_to_number(mobTable->str, csvTable.as_string_by_index(col++));
 	str_to_number(mobTable->dex, csvTable.as_string_by_index(col++));
 	str_to_number(mobTable->con, csvTable.as_string_by_index(col++));
-	str_to_number(mobTable->int_, csvTable.as_string_by_index(col++));
+	str_to_number(mobTable->iq, csvTable.as_string_by_index(col++));
 	str_to_number(mobTable->damage_range[0], csvTable.as_string_by_index(col++));
 	str_to_number(mobTable->damage_range[1], csvTable.as_string_by_index(col++));
 	str_to_number(mobTable->max_hp, csvTable.as_string_by_index(col++));

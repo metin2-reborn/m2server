@@ -72,7 +72,7 @@ pet_actor::pet_actor(character * owner, uint32_t vnum, uint32_t options)
 	vid_ = 0;
 	options_ = options;
 
-	char_ = nullptr;
+	character_ = nullptr;
 	owner_ = owner;
 
 	original_move_speed_ = 0;
@@ -102,7 +102,7 @@ void pet_actor::set_name(const char* name)
 		petName += name;
 
 	if (true == is_summoned())
-		char_->set_name(petName);
+		character_->set_name(petName);
 
 	name_ = petName;
 }
@@ -117,10 +117,10 @@ void pet_actor::unsummon()
 		if (nullptr != owner_)
 			owner_->compute_points();
 
-		if (nullptr != char_)
-			character_manager::instance().destroy_character(char_);
+		if (nullptr != character_)
+			character_manager::instance().destroy_character(character_);
 
-		char_ = nullptr;
+		character_ = nullptr;
 		vid_ = 0;
 	}
 }
@@ -142,39 +142,39 @@ uint32_t pet_actor::summon(const char* petName, item * pSummonItem, bool bSpawnF
 		y += number(-100, 100);
 	}
 
-	if (nullptr != char_)
+	if (nullptr != character_)
 	{
-		char_->show (owner_->map_index(), x, y);
-		vid_ = char_->get_vid();
+		character_->show (owner_->map_index(), x, y);
+		vid_ = character_->get_vid();
 
 		return vid_;
 	}
 	
-	char_ = character_manager::instance().spawn_mob(
+	character_ = character_manager::instance().spawn_mob(
 				vnum_, 
 				owner_->map_index(), 
 				x, y, z,
 				false, (int)(owner_->rotation()+180), false);
 
-	if (nullptr == char_)
+	if (nullptr == character_)
 	{
 		metin2::log::error("[CPetSystem::Summon] Failed to summon the pet. (vnum: {:d})", vnum_);
 		return 0;
 	}
 
-	char_->set_pet();
+	character_->set_pet();
 
 	//set the pet's empire to the owner's empire.
-	char_->set_empire(owner_->empire());
+	character_->set_empire(owner_->empire());
 
-	vid_ = char_->get_vid();
+	vid_ = character_->get_vid();
 
 	this->set_name(petName);
 
 	// calling ComputePoints after SetSummonItem(pSummonItem) applies the buff.
 	this->set_summon_item(pSummonItem);
 	owner_->compute_points();
-	char_->show(owner_->map_index(), x, y, z);
+	character_->show(owner_->map_index(), x, y, z);
 
 	return vid_;
 }
@@ -182,7 +182,7 @@ uint32_t pet_actor::summon(const char* petName, item * pSummonItem, bool bSpawnF
 // just copy-pasted the StateHorse function from char_state.cpp -_-;
 bool pet_actor::update_follow_ai()
 {
-	if (nullptr == char_->mob_data)
+	if (nullptr == character_->mob_data)
 	{
 		return false;
 	}
@@ -208,7 +208,7 @@ bool pet_actor::update_follow_ai()
 	uint32_t currentTime = get_dword_time();
 
 	int32_t ownerX = owner_->x();		int32_t ownerY = owner_->y();
-	int32_t charX = char_->x();			int32_t charY = char_->y();
+	int32_t charX = character_->x();			int32_t charY = character_->y();
 
 	float fDist = distance_approx(charX - ownerX, charY - ownerY);
 
@@ -217,7 +217,7 @@ bool pet_actor::update_follow_ai()
 		float fOwnerRot = owner_->rotation() * 3.141592f / 180.f;
 		float fx = -APPROACH * cos(fOwnerRot);
 		float fy = -APPROACH * sin(fOwnerRot);
-		if (char_->show(owner_->map_index(), ownerX + fx, ownerY + fy))
+		if (character_->show(owner_->map_index(), ownerX + fx, ownerY + fy))
 		{
 			return true;
 		}
@@ -231,15 +231,15 @@ bool pet_actor::update_follow_ai()
 			bRun = true;
 		}
 
-		char_->set_now_walking(!bRun);		// NOTE: from the function name I thought it stopped, but SetNowWalking(false) means running.. -_-;
+		character_->set_now_walking(!bRun);		// NOTE: from the function name I thought it stopped, but SetNowWalking(false) means running.. -_-;
 		
 		follow(APPROACH);
 
-		char_->set_last_attacked(currentTime);
+		character_->set_last_attacked(currentTime);
 	}
 	// following, but stop once within a certain distance of the owner
 	else 
-		char_->send_move_packet(FUNC_WAIT, 0, 0, 0, 0);
+		character_->send_move_packet(FUNC_WAIT, 0, 0, 0, 0);
 
 	return true;
 }
@@ -250,7 +250,7 @@ bool pet_actor::update(uint32_t deltaTime)
 
 	// remove the pet if its owner died or the summoned pet's state is abnormal. (NOTE: occasionally a summoned pet falls into DEAD state for various reasons -_-;)
 	// remove the pet if the item that summoned it is gone or no longer owned by me.
-	if (owner_->is_dead() || (is_summoned() && char_->is_dead()) 
+	if (owner_->is_dead() || (is_summoned() && character_->is_dead()) 
 		|| nullptr == item_manager::instance().find_by_vid(this->summon_item_vid())
 		|| item_manager::instance().find_by_vid(this->summon_item_vid())->owner() != this->owner()
 		)
@@ -269,30 +269,30 @@ bool pet_actor::update(uint32_t deltaTime)
 bool pet_actor::follow(float fMinDistance)
 {
 	// must face the position it is moving to.
-	if( !owner_ || !char_) 
+	if( !owner_ || !character_) 
 		return false;
 
 	float fOwnerX = owner_->x();
 	float fOwnerY = owner_->y();
 
-	float fPetX = char_->x();
-	float fPetY = char_->y();
+	float fPetX = character_->x();
+	float fPetY = character_->y();
 
 	float fDist = distance_sqrt(fOwnerX - fPetX, fOwnerY - fPetY);
 	if (fDist <= fMinDistance)
 		return false;
 
-	char_->set_rotation_to_xy(fOwnerX, fOwnerY);
+	character_->set_rotation_to_xy(fOwnerX, fOwnerY);
 
 	float fx, fy;
 
 	float fDistToGo = fDist - fMinDistance;
-	get_delta_by_degree(char_->rotation(), fDistToGo, &fx, &fy);
+	get_delta_by_degree(character_->rotation(), fDistToGo, &fx, &fy);
 	
-	if (!char_->goto_((int)(fPetX+fx+0.5f), (int)(fPetY+fy+0.5f)) )
+	if (!character_->go_to((int)(fPetX+fx+0.5f), (int)(fPetY+fy+0.5f)) )
 		return false;
 
-	char_->send_move_packet(FUNC_WAIT, 0, 0, 0, 0, 0);
+	character_->send_move_packet(FUNC_WAIT, 0, 0, 0, 0, 0);
 
 	return true;
 }

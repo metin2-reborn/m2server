@@ -1386,7 +1386,7 @@ struct func_splash_damage
 				int32_t ty = (int32_t)(pkChrVictim->y()+fy);
 
 				pkChrVictim->sync(tx, ty);
-				pkChrVictim->goto_(tx, ty);
+				pkChrVictim->go_to(tx, ty);
 				pkChrVictim->calculate_move_duration();
 
 				if (chr->is_pc() && chr->skill_use_info_[sk->vnum].main_target_vid() == (uint32_t) pkChrVictim->get_vid())

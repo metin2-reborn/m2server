@@ -74,9 +74,9 @@ namespace metin2::game::inline characters {
 const int ITEM_BROKEN_METIN_VNUM = 28960;
 
 // CHANGE_ITEM_ATTRIBUTES
-const uint32_t character::msc_dw_default_change_item_attr_cycle_ = 10;
-const char character::msc_sz_last_change_item_attr_flag_[] = "Item.LastChangeItemAttr";
-const char character::msc_sz_change_item_attr_cycle_flag_[] = "change_itemattr_cycle";
+const uint32_t character::default_change_item_attr_cycle_ = 10;
+const char character::last_change_item_attr_flag_[] = "Item.LastChangeItemAttr";
+const char character::change_item_attr_cycle_flag_[] = "change_itemattr_cycle";
 // END_OF_CHANGE_ITEM_ATTRIBUTES
 constexpr uint8_t buff_on_attr_points[] = { POINT_ENERGY, POINT_COSTUME_ATTR_BONUS };
 
@@ -4362,9 +4362,9 @@ bool character::use_item_ex(item * item, item_pos DestCell)
 										// and if so, record the time of the current attribute change.
 										//
 
-										uint32_t dwChangeItemAttrCycle = quest::quest_manager::instance().event_flag(msc_sz_change_item_attr_cycle_flag_);
-										if (dwChangeItemAttrCycle < msc_dw_default_change_item_attr_cycle_)
-											dwChangeItemAttrCycle = msc_dw_default_change_item_attr_cycle_;
+										uint32_t dwChangeItemAttrCycle = quest::quest_manager::instance().event_flag(change_item_attr_cycle_flag_);
+										if (dwChangeItemAttrCycle < default_change_item_attr_cycle_)
+											dwChangeItemAttrCycle = default_change_item_attr_cycle_;
 
 										quest::pc* pPC = quest::quest_manager::instance().get_pc(player_id());
 
@@ -4374,7 +4374,7 @@ bool character::use_item_ex(item * item, item_pos DestCell)
 
 												// ChatPacket(CHAT_TYPE_INFO, LC_TEXT("속성을 바꾼지 %d분 이내에는 다시 변경할 수 없습니다.(%d 분 남음)"),
 
-											pPC->set_flag(msc_sz_last_change_item_attr_flag_, dwNowMin);
+											pPC->set_flag(last_change_item_attr_flag_, dwNowMin);
 										}
 									}
 
@@ -5439,7 +5439,7 @@ bool character::move_item(item_pos Cell, item_pos DestCell, uint8_t count)
 	return true;
 }
 
-namespace NPartyPickupDistribute
+namespace party_pickup_distribute
 {
 	struct f_find_ownership
 	{
@@ -5516,7 +5516,7 @@ void character::give_gold(int iAmount)
 		uint32_t dwTotal = iAmount;
 		uint32_t dwMyAmount = dwTotal;
 
-		NPartyPickupDistribute::f_count_near_member funcCountNearMember(this);
+		party_pickup_distribute::f_count_near_member funcCountNearMember(this);
 		pParty->for_each_online_member(funcCountNearMember);
 
 		if (funcCountNearMember.total > 1)
@@ -5524,7 +5524,7 @@ void character::give_gold(int iAmount)
 			uint32_t dwShare = dwTotal / funcCountNearMember.total;
 			dwMyAmount -= dwShare * (funcCountNearMember.total - 1);
 
-			NPartyPickupDistribute::f_money_distributor funcMoneyDist(this, dwShare);
+			party_pickup_distribute::f_money_distributor funcMoneyDist(this, dwShare);
 
 			pParty->for_each_online_member(funcMoneyDist);
 		}
@@ -5657,7 +5657,7 @@ bool character::pickup_item(uint32_t dwVID)
 		else if (!is_set(item->anti_flag(), ITEM_ANTIFLAG_GIVE | ITEM_ANTIFLAG_DROP) && get_party())
 		{
 			// If trying to pick up an item owned by another party member
-			NPartyPickupDistribute::f_find_ownership funcFindOwnership(item);
+			party_pickup_distribute::f_find_ownership funcFindOwnership(item);
 
 			get_party()->for_each_online_member(funcFindOwnership);
 

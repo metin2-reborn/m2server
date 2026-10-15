@@ -341,7 +341,7 @@ struct f_skill_earth_quake
 					}
 
 					ch->sync( tx , ty );
-					ch->goto_( tx , ty );
+					ch->go_to( tx , ty );
 					ch->calculate_move_duration();
 
 					ch->sync_packet();

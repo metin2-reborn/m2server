@@ -12,9 +12,9 @@ namespace metin2::db::inline items {
 class item_id_range_manager : public singleton<item_id_range_manager>
 {
 	private :
-		const static uint32_t cs_dw_max_item_id_ = 4290000000UL;
-		const static uint32_t cs_dw_minimum_range_ = 10000000UL;
-		static constexpr uint32_t cs_dw_minimum_remain_count_ = 10000UL;
+		const static uint32_t max_item_id_ = 4290000000UL;
+		const static uint32_t minimum_range_ = 10000000UL;
+		static constexpr uint32_t minimum_remain_count_ = 10000UL;
 
 		std::list<item_id_range_table> data_;
 

@@ -547,7 +547,7 @@ void dungeon::spawn_move_unique(const char* key, uint32_t vnum, const char* pos_
 			ch->add_affect(AFFECT_DUNGEON_UNIQUE, POINT_NONE, 0, AFF_DUNGEON_UNIQUE, 65535, 0, true);
 			ch->set_dungeon(this);
 
-			if (ch->goto_(pkSectreeMap->setting.base_x+tx, pkSectreeMap->setting.base_y+ty))
+			if (ch->go_to(pkSectreeMap->setting.base_x+tx, pkSectreeMap->setting.base_y+ty))
 				ch->send_move_packet(FUNC_WAIT, 0, 0, 0, 0);
 		}
 		else

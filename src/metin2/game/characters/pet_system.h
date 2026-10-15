@@ -42,7 +42,7 @@ private:
 	bool follow(float fMinDistance = 50.f);
 
 public:
-	character *		get_character()	const					{ return char_; }
+	character *		get_character()	const					{ return character_; }
 	character *		owner()	const						{ return owner_; }
 	uint32_t			get_vid() const							{ return vid_; }
 
@@ -53,7 +53,7 @@ public:
 	uint32_t			summon(const char* petName, item * pSummonItem, bool bSpawnFar = false);
 	void			unsummon();
 
-	bool			is_summoned() const			{ return nullptr != char_; }
+	bool			is_summoned() const			{ return nullptr != character_; }
 	void			set_summon_item (item * pItem);
 	uint32_t			summon_item_vid () { return summon_item_vid_; }
 	// Functions to give and remove the buff.
@@ -77,7 +77,7 @@ private:
 
 	std::string		name_;
 
-	character *		char_;					// Instance of pet(CHARACTER)
+	character *		character_;					// Instance of pet(CHARACTER)
 	character *		owner_;
 
 //	SPetAbility		m_petAbility;				// stats

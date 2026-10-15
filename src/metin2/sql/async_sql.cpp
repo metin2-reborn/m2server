@@ -197,7 +197,7 @@ void async_sql::async_query(const char *c_pszQuery) {
 
 void async_sql::return_query(const char *c_pszQuery, void *pvUserData) {
     auto msg = new_message(c_pszQuery);
-    msg->return_ = true;
+    msg->returns_result = true;
     msg->pv_user_data = pvUserData;
     push_query(std::move(msg));
 }
@@ -247,7 +247,7 @@ auto async_sql::execute(ql_msg &msg) -> bool {
 
 // A finished query: results go to the result queue when the caller wants them.
 void async_sql::finish(std::unique_ptr<ql_msg> msg) {
-    if (msg->return_) {
+    if (msg->returns_result) {
         msg->store(&db_);
         std::lock_guard lock(mtx_result_);
         queue_result_.push_back(std::move(msg));

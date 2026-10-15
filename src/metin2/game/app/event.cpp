@@ -111,7 +111,7 @@ int event_process(int pulse)
 
 		if (pElem->cancel)
 		{
-			cxx_q.delete_(pElem);
+			cxx_q.remove(pElem);
 			continue;
 		}
 
@@ -119,7 +119,7 @@ int event_process(int pulse)
 
 		event_ptr the_event = pElem->pv_data;
 		int32_t processing_time = event_processing_time(the_event);
-		cxx_q.delete_(pElem);
+		cxx_q.remove(pElem);
 
 		/*
 		 * The return value is the new time; if it is greater than 0 the event is re-added. 
@@ -192,7 +192,7 @@ void event_destroy(void)
 			// no op here
 		}
 
-		cxx_q.delete_(pElem);
+		cxx_q.remove(pElem);
 	}
 }
 

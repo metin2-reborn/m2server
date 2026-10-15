@@ -26,7 +26,7 @@ class event_queue
 
 		queue_element *	enqueue(event_ptr data, int duration, int pulse);
 		queue_element *	dequeue();
-		void		delete_(queue_element * pElem);
+		void		remove(queue_element * pElem);
 		int		top_key();
 		int		size();
 

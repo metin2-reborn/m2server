@@ -13,7 +13,7 @@ class item_cache : public cache<player_item> {
 
     ~item_cache() override;
 
-    void delete_();
+    void remove();
     void on_flush() override;
 };
 

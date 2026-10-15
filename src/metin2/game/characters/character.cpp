@@ -1754,7 +1754,7 @@ void character::set_proto(const mob * pkMob)
 	set_real_point(POINT_ST, t->str);
 	set_real_point(POINT_DX, t->dex);
 	set_real_point(POINT_HT, t->con);
-	set_real_point(POINT_IQ, t->int_);
+	set_real_point(POINT_IQ, t->iq);
 
 	compute_points();
 
@@ -2533,7 +2533,7 @@ void character::stop()
 	pos_dest_.y = pos_start_.y = y();
 }
 
-bool character::goto_(int32_t x_value, int32_t y_value)
+bool character::go_to(int32_t x_value, int32_t y_value)
 {
 	// TODO distance check needed
 	// Same position, no need to move (automatic success)
@@ -2730,7 +2730,7 @@ int character::polymorph_point(uint8_t type) const
 					return pMob->table.con * iPower / 100 + point(POINT_HT);
 
 				case POINT_IQ:
-					return pMob->table.int_ * iPower / 100 + point(POINT_IQ);
+					return pMob->table.iq * iPower / 100 + point(POINT_IQ);
 
 				case POINT_DX:
 					return pMob->table.dex * iPower / 100 + point(POINT_DX);
@@ -5069,7 +5069,7 @@ void character::warp_end()
 	}
 }
 
-bool character::return_()
+bool character::return_home()
 {
 	if (!is_npc())
 		return false;
@@ -5082,7 +5082,7 @@ bool character::return_()
 
 	set_rotation_to_xy(x, y);
 
-	if (!goto_(x, y))
+	if (!go_to(x, y))
 		return false;
 
 	send_move_packet(FUNC_WAIT, 0, 0, 0, 0);
@@ -5116,7 +5116,7 @@ bool character::follow(character * pkChr, float fMinDistance)
 				{
 					// we are more than 50 meters from where we were last hit, give up and go back.
 					if (mob_data->table.attack_range < distance_approx(pkChr->x() - x(), pkChr->y() - y()))
-						if (return_())
+						if (return_home())
 							return true;
 				}
 			}
@@ -5137,7 +5137,7 @@ bool character::follow(character * pkChr, float fMinDistance)
 			{
 				// we are more than 50 meters from where we were last hit, give up and go back.
 				if (5000 < distance_approx(mob_inst->pos_last_attacked.x - x(), mob_inst->pos_last_attacked.y - y()))
-					if (return_())
+					if (return_home())
 						return true;
 			}
 		}
@@ -5146,7 +5146,7 @@ bool character::follow(character * pkChr, float fMinDistance)
 	if (is_guard_npc())
 	{
 		if (5000 < distance_approx(mob_inst->pos_last_attacked.x - x(), mob_inst->pos_last_attacked.y - y()))
-			if (return_())
+			if (return_home())
 				return true;
 	}
 
@@ -5228,7 +5228,7 @@ bool character::follow(character * pkChr, float fMinDistance)
 		}
 
 		//metin2::log::info( "근처 어딘가로 이동 {} retry {:d}", GetName(), retry);
-		if (!goto_(dx, dy))
+		if (!go_to(dx, dy))
 			return false;
 	}
 	else
@@ -5238,7 +5238,7 @@ bool character::follow(character * pkChr, float fMinDistance)
 		get_delta_by_degree(rotation(), fDistToGo, &fx, &fy);
 
 		//metin2::log::info( "직선으로 이동 {}", GetName());
-		if (!goto_(x() + (int) fx, y() + (int) fy))
+		if (!go_to(x() + (int) fx, y() + (int) fy))
 			return false;
 	}
 
@@ -6613,7 +6613,7 @@ struct f_find_reviver
 {
 	f_find_reviver()
 	{
-		char_ = nullptr;
+		reviver = nullptr;
 		has_reviver = false;
 	}
 	
@@ -6624,17 +6624,17 @@ struct f_find_reviver
 			return;
 		}
 
-		if (ch->is_reviver() == true && char_ != ch && ch->is_dead() != true)
+		if (ch->is_reviver() == true && reviver != ch && ch->is_dead() != true)
 		{
 			if (number(1, 100) <= ch->get_mob_table().revive_point)
 			{
 				has_reviver = true;
-				char_ = ch;
+				reviver = ch;
 			}
 		}
 	}
 
-	character * char_;
+	character * reviver;
 	bool has_reviver;
 };
 

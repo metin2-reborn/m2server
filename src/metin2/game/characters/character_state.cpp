@@ -310,7 +310,7 @@ void character::coward_escape()
 			int iDestX = x() + (int) fx;
 			int iDestY = y() + (int) fy;
 
-			if (goto_(iDestX, iDestY))
+			if (go_to(iDestX, iDestY))
 				send_move_packet(FUNC_WAIT, 0, 0, 0, 0);
 
 			metin2::log::info( "WAEGU move to {:d} {:d} (far)", iDestX, iDestY);
@@ -581,7 +581,7 @@ void character::state_idle_npc()
 
 				set_now_walking(true);
 
-				if (goto_(x() + (int) fx, y() + (int) fy))
+				if (go_to(x() + (int) fx, y() + (int) fy))
 					send_move_packet(FUNC_WAIT, 0, 0, 0, 0);
 
 				return;
@@ -698,7 +698,7 @@ void character::state_idle_monster()
 					set_now_walking(true);
 			}
 
-			if (goto_(x() + (int) fx, y() + (int) fy))
+			if (go_to(x() + (int) fx, y() + (int) fy))
 				send_move_packet(FUNC_WAIT, 0, 0, 0, 0);
 
 			return;
@@ -953,7 +953,7 @@ void character::state_battle()
 
 								set_rotation(get_degree_from_position(dx, dy));
 
-								if (goto_((int32_t) dx, (int32_t) dy))
+								if (go_to((int32_t) dx, (int32_t) dy))
 								{
 									metin2::log::info( "KILL_AND_GO: {} distance {:.1f}", name(), fDist);
 									send_move_packet(FUNC_WAIT, 0, 0, 0, 0);
@@ -968,7 +968,7 @@ void character::state_battle()
 		set_victim(nullptr);
 
 		if (is_guard_npc())
-			return_();
+			return_home();
 
 		state_duration_ = passes_per_sec(1);
 		return;
@@ -1196,7 +1196,7 @@ void character::state_horse()
 
 		set_now_walking(true);
 
-		if (goto_(x() + (int) fx, y() + (int) fy))
+		if (go_to(x() + (int) fx, y() + (int) fy))
 			send_move_packet(FUNC_WAIT, 0, 0, 0, 0);
 	}
 }

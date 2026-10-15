@@ -536,7 +536,7 @@ bool character_manager::spawn_move_group(uint32_t dwVnum, int32_t lMapIndex, int
 		if (bAggressive)
 			tch->set_aggressive();
 
-		if (tch->goto_(tx, ty))
+		if (tch->go_to(tx, ty))
 			tch->send_move_packet(FUNC_WAIT, 0, 0, 0, 0);
 	}
 

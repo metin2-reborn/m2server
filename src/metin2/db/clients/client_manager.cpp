@@ -1405,7 +1405,7 @@ bool client_manager::delete_item_cache(uint32_t dwID)
 	if (!c)
 		return false;
 
-	c->delete_();
+	c->remove();
 	return true;
 }
 

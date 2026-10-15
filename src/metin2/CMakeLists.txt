@@ -48,3 +48,4 @@ target_link_libraries(metin2_db PUBLIC metin2_common metin2_config metin2_core m
 add_executable(server main.cpp)
 target_link_libraries(server PRIVATE metin2_db metin2_game metin2_config metin2_log)
 target_compile_definitions(server PRIVATE M2_VERSION="${PROJECT_VERSION}")
+set_target_properties(server PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")

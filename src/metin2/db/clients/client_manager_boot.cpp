@@ -345,7 +345,7 @@ bool client_manager::initialize_mob_table()
 			mob_table->str = tempTable->str;
 			mob_table->dex = tempTable->dex;
 			mob_table->con = tempTable->con;
-			mob_table->int_ = tempTable->int_;
+			mob_table->iq = tempTable->iq;
 			mob_table->damage_range[0] = tempTable->damage_range[0];
 			mob_table->damage_range[1] = tempTable->damage_range[1];
 			mob_table->max_hp = tempTable->max_hp;
@@ -1346,7 +1346,7 @@ bool client_manager::mirror_mob_table_into_db()
 
 				t.vnum, t.name, /*t.szLocaleName, */t.type, t.rank, t.battle_type, t.level, t.size, t.ai_flag, t.race_flag, t.immune_flag,
 				t.on_click_type, t.empire, t.drop_item_vnum, t.resurrection_vnum, t.folder,
-				t.str, t.dex, t.con, t.int_, t.damage_range[0], t.damage_range[1], t.max_hp, t.regen_cycle, t.regen_percent, t.exp,
+				t.str, t.dex, t.con, t.iq, t.damage_range[0], t.damage_range[1], t.max_hp, t.regen_cycle, t.regen_percent, t.exp,
 
 				t.gold_min, t.gold_max, t.def, t.s_attack_speed, t.s_moving_speed, t.aggresive_hp_pct, t.aggressive_sight, t.attack_range, t.polymorph_item_vnum,
 				t.c_enchants[0], t.c_enchants[1], t.c_enchants[2], t.c_enchants[3], t.c_enchants[4], t.c_enchants[5],
@@ -1398,7 +1398,7 @@ bool client_manager::mirror_mob_table_into_db()
 
 				t.vnum, t.name, t.locale_name, t.type, t.rank, t.battle_type, t.level, t.size, t.ai_flag, t.race_flag, t.immune_flag,
 				t.on_click_type, t.empire, t.drop_item_vnum, t.resurrection_vnum, t.folder,
-				t.str, t.dex, t.con, t.int_, t.damage_range[0], t.damage_range[1], t.max_hp, t.regen_cycle, t.regen_percent, t.exp,
+				t.str, t.dex, t.con, t.iq, t.damage_range[0], t.damage_range[1], t.max_hp, t.regen_cycle, t.regen_percent, t.exp,
 
 				t.gold_min, t.gold_max, t.def, t.s_attack_speed, t.s_moving_speed, t.aggresive_hp_pct, t.aggressive_sight, t.attack_range, t.polymorph_item_vnum,
 				t.c_enchants[0], t.c_enchants[1], t.c_enchants[2], t.c_enchants[3], t.c_enchants[4], t.c_enchants[5],

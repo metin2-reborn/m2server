@@ -1476,7 +1476,7 @@ void input_main::move(character * ch, const char * data)
 		ch->set_rotation(pinfo->rot * 5);	// duplicate code
 		ch->reset_stop_time();				// ""
 
-		ch->goto_(pinfo->x, pinfo->y);
+		ch->go_to(pinfo->x, pinfo->y);
 	}
 	else
 	{

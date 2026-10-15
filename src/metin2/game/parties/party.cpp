@@ -891,7 +891,7 @@ void party::send_message(character * ch, uint8_t bMsg, uint32_t dwArg1, uint32_t
 						pkChr->set_victim(nullptr);
 						pkChr->set_rotation_to_xy(x, y);
 
-						if (pkChr->goto_(x, y))
+						if (pkChr->go_to(x, y))
 						{
 							character * victim = pkChr->victim();
 							metin2::log::info( "{} {} RETURN victim {}", pkChr->name(), static_cast<const void *>(pkChr), static_cast<const void *>(victim));

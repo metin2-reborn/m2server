@@ -438,7 +438,7 @@ struct mob_table : public entity_table {
     uint32_t race_flag;
     uint32_t immune_flag;
 
-    uint8_t str, dex, con, int_;
+    uint8_t str, dex, con, iq;
     uint32_t damage_range[2];
 
     short s_attack_speed;

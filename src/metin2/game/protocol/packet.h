@@ -487,7 +487,7 @@ struct packet_cg_player_create {
 	uint16_t        job;
 	uint8_t	shape;
 	uint8_t	con;
-	uint8_t	int_;
+	uint8_t	iq;
 	uint8_t	str;
 	uint8_t	dex;
 };

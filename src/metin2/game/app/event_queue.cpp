@@ -15,7 +15,7 @@ namespace metin2::game::inline app {
 event_queue::~event_queue()
 {
 	for (auto & [key, pElem] : queue_)
-		delete_(pElem);
+		remove(pElem);
 }
 
 queue_element * event_queue::enqueue(event_ptr pvData, int duration, int pulse)
@@ -42,7 +42,7 @@ queue_element * event_queue::dequeue()
 	return pElem;
 }
 
-void event_queue::delete_(queue_element * pElem)
+void event_queue::remove(queue_element * pElem)
 {
 	delete pElem;
 }

@@ -48,7 +48,7 @@ struct ql_msg {
     std::string query;
     std::vector<std::unique_ptr<ql_result>> vec_pk_result;
     void *pv_user_data{nullptr};
-    bool return_{false}; // the caller collects the result with PopResult
+    bool returns_result{false}; // the caller collects the result with PopResult
     unsigned int sql_errno{0};
 };
 

@@ -249,7 +249,7 @@ void character::horse_summon(bool bSummon, bool bFromFar, uint32_t dwVnum, const
 			float fx, fy;
 			chHorse->set_rotation(get_degree_from_position_xy(chHorse->x(), chHorse->y(), x(), y())+180);
 			get_delta_by_degree(chHorse->rotation(), 3500, &fx, &fy);
-			chHorse->goto_((int32_t)(chHorse->x()+fx), (int32_t) (chHorse->y()+fy));
+			chHorse->go_to((int32_t)(chHorse->x()+fx), (int32_t) (chHorse->y()+fy));
 			chHorse->send_move_packet(FUNC_WAIT, 0, 0, 0, 0);
 		}
 

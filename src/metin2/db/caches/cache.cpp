@@ -39,7 +39,7 @@ item_cache::~item_cache() {
 // The item is already gone... a double tap??????
 // fixme
 // by rtsummit
-void item_cache::delete_() {
+void item_cache::remove() {
     if (data_.vnum == 0) {
         return;
     }

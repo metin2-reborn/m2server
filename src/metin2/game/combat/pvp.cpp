@@ -499,7 +499,7 @@ pvp * pvp_manager::find(uint32_t dwCRC)
 	return it->second.get();
 }
 
-void pvp_manager::delete_(pvp * pkPVP)
+void pvp_manager::remove(pvp * pkPVP)
 {
 	auto it = map_pk_pvp_.find(pkPVP->crc_);
 
@@ -586,7 +586,7 @@ void pvp_manager::process()
 		if (get_dword_time() - pvp->last_fight_time() > 600000) // If there has been no fighting for 10 minutes or more
 		{
 			pvp->packet(true);
-			delete_(pvp);
+			remove(pvp);
 		}
 	}
 }

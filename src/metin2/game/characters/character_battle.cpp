@@ -2381,7 +2381,7 @@ static void give_exp(character * from, character * to, int iExp)
 	}
 }
 
-namespace NPartyExpDistribute
+namespace party_exp_distribute
 {
 	struct f_party_totaler
 	{
@@ -2464,7 +2464,7 @@ struct damage_info {
 			give_exp(ch, attacker, iExp);
 		else if (party)
 		{
-			NPartyExpDistribute::f_party_totaler f(ch);
+			party_exp_distribute::f_party_totaler f(ch);
 			party->for_each_online_member(f);
 
 			if (party->is_position_near_leader(ch))
@@ -2490,7 +2490,7 @@ struct damage_info {
 				}
 			}
 
-			NPartyExpDistribute::f_party_distributor fDist(ch, f.member_count, f.total, iExp, party->exp_distribution_mode());
+			party_exp_distribute::f_party_distributor fDist(ch, f.member_count, f.total, iExp, party->exp_distribution_mode());
 			party->for_each_online_member(fDist);
 		}
 	}
@@ -3305,7 +3305,7 @@ struct func_pull_monster
 			int32_t ty = (int32_t)(ch_value->y() + fy);
 
 			ch_value->sync(tx, ty);
-			ch_value->goto_(tx, ty);
+			ch_value->go_to(tx, ty);
 			ch_value->calculate_move_duration();
 
 			ch_value->sync_packet();

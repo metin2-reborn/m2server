@@ -31,10 +31,10 @@ void item_id_range_manager::build()
 
 	for (int i = 0; ; ++i)
 	{
-		dwMin = cs_dw_minimum_range_ * (i + 1) + 1;
-		dwMax = cs_dw_minimum_range_ * (i + 2);
+		dwMin = minimum_range_ * (i + 1) + 1;
+		dwMax = minimum_range_ * (i + 2);
 
-		if (dwMax == cs_dw_max_item_id_)
+		if (dwMax == max_item_id_)
 			break;
 
 		if (client_manager::instance().item_range().min <= dwMin &&
@@ -122,10 +122,10 @@ bool item_id_range_manager::build_range(uint32_t dwMin, uint32_t dwMax, item_id_
 	else
 		dwItemMaxID++;
 	
-	if ((dwMax < dwItemMaxID) || (dwMax - dwItemMaxID < cs_dw_minimum_remain_count_))
+	if ((dwMax < dwItemMaxID) || (dwMax - dwItemMaxID < minimum_remain_count_))
 	{
 		metin2::log::info( "ItemIDRange: Build {:d} ~ {:d} start: {:d}\tNOT USE remain count is below {:d}",
-			   	dwMin, dwMax, dwItemMaxID, cs_dw_minimum_remain_count_);
+			   	dwMin, dwMax, dwItemMaxID, minimum_remain_count_);
 	}
 	else
 	{

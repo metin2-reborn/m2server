@@ -71,7 +71,7 @@ class pvp_manager : public singleton<pvp_manager>
 	void			disconnect(character * pkChr);
 
 	void			send_list(desc * d);
-	void			delete_(pvp * pkPVP);
+	void			remove(pvp * pkPVP);
 
 	void			process();
 
