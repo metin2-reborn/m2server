@@ -2268,7 +2268,7 @@ void CInputMain::AnswerMakeGuild(CHARACTER * ch, const char* c_pData)
 	if (ch->GetLevel() < 40 || ch->GetGold() < 200000)
 		return;
 
-	if (get_global_time() - ch->GetQuestFlag("guild_manage.new_disband_time") <
+	if (get_global_time() - ch->GetQuestFlag("guild_building.new_disband_time") <
 			CGuildManager::instance().GetDisbandDelay())
 	{
 		ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("<길드> 해산한 후 %d일 이내에는 길드를 만들 수 없습니다."), 
@@ -2276,7 +2276,7 @@ void CInputMain::AnswerMakeGuild(CHARACTER * ch, const char* c_pData)
 		return;
 	}
 
-	if (get_global_time() - ch->GetQuestFlag("guild_manage.new_withdraw_time") <
+	if (get_global_time() - ch->GetQuestFlag("guild_building.new_withdraw_time") <
 			CGuildManager::instance().GetWithdrawDelay())
 	{
 		ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("<길드> 탈퇴한 후 %d일 이내에는 길드를 만들 수 없습니다."), 
@@ -2504,7 +2504,7 @@ int CInputMain::Guild(CHARACTER * ch, const char * data, size_t uiBytes)
 						return SubPacketLen;
 					}
 
-					member->SetQuestFlag("guild_manage.new_withdraw_time", get_global_time());
+					member->SetQuestFlag("guild_building.new_withdraw_time", get_global_time());
 					pGuild->RequestRemoveMember(member->GetPlayerID());
 
 				}

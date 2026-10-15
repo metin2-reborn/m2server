@@ -966,7 +966,7 @@ void CGuild::Disband()
 		CHARACTER * ch = *it;
 		ch->SetGuild(nullptr);
 		SendOnlineRemoveOnePacket(ch->GetPlayerID());
-		ch->SetQuestFlag("guild_manage.new_withdraw_time", get_global_time());
+		ch->SetQuestFlag("guild_building.new_withdraw_time", get_global_time());
 	}
 
 	for (TGuildMemberContainer::iterator it = m_member.begin(); it != m_member.end(); ++it)
@@ -1910,10 +1910,10 @@ void CGuild::InviteDeny( uint32_t dwPID )
 
 CGuild::GuildJoinErrCode CGuild::VerifyGuildJoinableCondition( CHARACTER * const pchInvitee )
 {
-	if ( get_global_time() - pchInvitee->GetQuestFlag( "guild_manage.new_withdraw_time" )
+	if ( get_global_time() - pchInvitee->GetQuestFlag( "guild_building.new_withdraw_time" )
 			< CGuildManager::instance().GetWithdrawDelay() )
 		return GERR_WITHDRAWPENALTY;
-	else if ( get_global_time() - pchInvitee->GetQuestFlag( "guild_manage.new_disband_time" )
+	else if ( get_global_time() - pchInvitee->GetQuestFlag( "guild_building.new_disband_time" )
 			< CGuildManager::instance().GetDisbandDelay() )
 		return GERR_COMMISSIONPENALTY;
 	else if ( pchInvitee->GetGuild() )
