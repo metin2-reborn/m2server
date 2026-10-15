@@ -10,7 +10,6 @@ void WriteVersion();
 
 // Configuration read by Start() (Main.cpp).
 extern bool g_test_server;
-extern bool g_bHotBackup;
 extern int g_log;
 extern std::string g_stLocaleNameColumn;
 

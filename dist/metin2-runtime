@@ -47,7 +47,7 @@ def configure(template, role):
         raise ValueError('invalid database host or port')
     result = template
     if role == 'db':
-        for name in ['ACCOUNT', 'COMMON', 'HOTBACKUP', 'PLAYER']:
+        for name in ['ACCOUNT', 'COMMON', 'PLAYER']:
             result = re.sub(rf'^SQL_{name}\s*=.*$', f'SQL_{name} = "{host} {name.lower()} {user} {password} {port}"', result, flags=re.M)
         return result + f'\nBIND_IP = "0.0.0.0"\nALLOWED_PEER_HOSTS = "{" ".join(PEERS)}"\n'
     for name in ['PLAYER', 'COMMON', 'LOG']:

@@ -17,14 +17,12 @@ CREATE DATABASE account;
 CREATE DATABASE common;
 CREATE DATABASE player;
 CREATE DATABASE log;
-CREATE DATABASE hotbackup;
 GRANT ALL PRIVILEGES ON account.* TO $user@'%';
 GRANT ALL PRIVILEGES ON common.* TO $user@'%';
 GRANT ALL PRIVILEGES ON player.* TO $user@'%';
 GRANT ALL PRIVILEGES ON log.* TO $user@'%';
-GRANT ALL PRIVILEGES ON hotbackup.* TO $user@'%';
 SQL
-for database in account common player log hotbackup; do
+for database in account common player log; do
     docker_process_sql --database="$database" < "${METIN2_DUMP_DIR:-/metin2-dumps}/$database.sql"
 done
 )

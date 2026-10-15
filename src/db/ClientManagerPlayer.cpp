@@ -2,7 +2,6 @@
 #include "Cache.h"
 #include "ClientManager.h"
 #include "DBManager.h"
-#include "HB.h"
 #include "ItemAwardManager.h"
 #include "LoginData.h"
 #include "Main.h"
@@ -211,9 +210,6 @@ void CClientManager::PutPlayerCache(TPlayerTable * pNew)
 		c = new CPlayerTableCache;
 		m_map_playerCache.insert(TPlayerTableCacheMap::value_type(pNew->id, c));
 	}
-
-	if (g_bHotBackup)
-		PlayerHB::instance().Put(pNew->id);
 
 	c->Put(pNew);
 }

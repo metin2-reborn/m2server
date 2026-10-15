@@ -18,8 +18,6 @@ add_executable(db
     DBManager.h
     GuildManager.cpp
     GuildManager.h
-    HB.cpp
-    HB.h
     ItemAwardManager.cpp
     ItemAwardManager.h
     ItemIDRangeManager.cpp
