@@ -4,6 +4,8 @@
 
 #include <cstdint>
 
+namespace metin2::game {
+
 extern char g_nation_name[4][32];
 extern uint32_t g_start_position[4][2];
 extern int32_t g_start_map[4];
@@ -72,4 +74,5 @@ inline uint32_t CREATE_START_Y(uint8_t e)
 	}
 
 	return 0;
+}
 }

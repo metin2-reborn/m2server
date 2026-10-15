@@ -17,6 +17,8 @@
 
 #include <sys/types.h>
 
+namespace metin2::game {
+
 const std::string g_astGradeName[] =
 {
 	"grade_normal",
@@ -909,4 +911,5 @@ DragonSoulTable::DragonSoulTable()
 }
 DragonSoulTable::~DragonSoulTable ()
 {
+}
 }

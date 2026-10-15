@@ -31,6 +31,8 @@
 #include <cstdio>
 #include <cstring>
 
+namespace metin2::game {
+
 constexpr int EMPIRE_NONE = 0; // No empire
 constexpr int EMPIRE_RED = 1; // Shinsoo
 constexpr int EMPIRE_YELLOW = 2; // Chunjo
@@ -1048,4 +1050,4 @@ bool castle_is_tower_vnum(uint32_t vnum)
 	}
 	return false;
 }
-
+}

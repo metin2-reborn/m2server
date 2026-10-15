@@ -6,6 +6,8 @@
 #include <cstdint>
 #include <utility>
 
+namespace metin2::game {
+
 CRefineManager::CRefineManager()
 {
 }
@@ -40,4 +42,5 @@ const TRefineTable* CRefineManager::GetRefineRecipe(uint32_t vnum)
 	}
 
 	return &it->second;
+}
 }

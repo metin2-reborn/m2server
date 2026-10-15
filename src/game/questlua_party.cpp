@@ -18,6 +18,8 @@
 #include <string>
 #include <vector>
 
+namespace metin2::game {
+
 
 namespace quest
 {
@@ -100,7 +102,7 @@ namespace quest
 	struct FCinematicSender
 	{
 		const char* str;
-		struct ::packet_script packet_script;
+		struct metin2::game::packet_script packet_script;
 		int len;
 
 		FCinematicSender(const char* str)
@@ -420,7 +422,4 @@ namespace quest
 		CQuestManager::instance().AddLuaFunctionTable("party", party_functions);
 	}
 }
-
-
-
-
+}

@@ -12,6 +12,8 @@
 
 #include <cstdint>
 
+namespace metin2::game {
+
 inline constexpr int MAX_CASTLE_GUARD_REGION = 4; // Guard placement area
 inline constexpr int MAX_CASTLE_GUARD_PER_REGION = 10; // Guard groups that can be placed in one area
 inline constexpr int MAX_CASTLE_FROG = 20; // Golden toad
@@ -65,3 +67,4 @@ bool		castle_can_attack(CHARACTER * ch, CHARACTER * victim);
 
 bool		castle_is_my_castle(int empire, int map_index);
 bool		castle_is_tower_vnum(uint32_t vnum);
+}

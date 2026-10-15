@@ -33,6 +33,11 @@ add_subdirectory(src/libpoly)
 add_subdirectory(src/libsql)
 add_subdirectory(src/libthecore)
 
+# One executable for every role; server.toml decides which one a process runs.
+add_executable(server src/metin2/main.cpp)
+target_link_libraries(server PRIVATE metin2_db metin2_game metin2_config metin2_log)
+target_compile_definitions(server PRIVATE M2_VERSION="${PROJECT_VERSION}")
+
 option(BUILD_TESTING "Build the unit tests" ON)
 if(BUILD_TESTING)
     enable_testing()
@@ -42,5 +47,5 @@ endif()
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
 
-install(TARGETS server db RUNTIME DESTINATION bin)
+install(TARGETS server RUNTIME DESTINATION bin)
 install(PROGRAMS dist/metin2-runtime DESTINATION bin)

@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <cstddef>
 
+namespace metin2::inline common {
+
 CGrid::CGrid(int w, int h) : m_iWidth(w), m_iHeight(h), m_cells(static_cast<std::size_t>(w) * h) {}
 
 CGrid::CGrid(const CGrid &other, int w, int h) : CGrid(w, h) {
@@ -79,4 +81,5 @@ void CGrid::Fill(int iPos, int w, int h, char value) {
             }
         }
     }
+}
 }

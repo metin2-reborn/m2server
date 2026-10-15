@@ -11,6 +11,8 @@
 #include <cstdint>
 #include <cstring>
 
+namespace metin2::game {
+
 const int HORSE_HEALTH_DROP_INTERVAL = 3 * 24 * 60 * 60;
 const int HORSE_STAMINA_CONSUME_INTERVAL = 6 * 60;
 const int HORSE_STAMINA_REGEN_INTERVAL = 12 * 60;
@@ -389,4 +391,4 @@ uint8_t CHorseRider::GetHorseGrade()
 
 	return grade;
 }
-
+}

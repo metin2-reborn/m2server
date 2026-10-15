@@ -12,6 +12,8 @@
 #include <cstdint>
 #include <vector>
 
+namespace metin2::game {
+
 CBuffOnAttributes::CBuffOnAttributes(CHARACTER * pOwner, uint8_t point_type, std::vector <uint8_t>* p_vec_buff_wear_targets)
 :	m_pBuffOwner(pOwner), m_bPointType(point_type), m_p_vec_buff_wear_targets(p_vec_buff_wear_targets)
 {
@@ -186,4 +188,5 @@ void CBuffOnAttributes::Off()
 		m_pBuffOwner->ApplyPoint(it->first, -it->second * m_bBuffValue / 100);
 	}
 	Initialize();
+}
 }

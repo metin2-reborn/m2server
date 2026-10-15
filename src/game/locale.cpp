@@ -11,6 +11,8 @@
 #include <string>
 #include <utility>
 
+namespace metin2::game {
+
 typedef std::map< std::string, std::string > LocaleStringMapType;
 
 LocaleStringMapType localeString;
@@ -200,4 +202,4 @@ void locale_init(const char *filename)
 	}
 	while (tmp && *tmp);
 }
-
+}

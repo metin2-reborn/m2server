@@ -7,6 +7,8 @@
 #include <cstring>
 #include <vector>
 
+using namespace metin2::game;
+
 namespace {
     // A client and a server cipher after the key agreement.
     struct cipher_pair {

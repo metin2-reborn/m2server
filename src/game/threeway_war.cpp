@@ -30,6 +30,8 @@
 #include <utility>
 #include <vector>
 
+namespace metin2::game {
+
 
 EVENTINFO(regen_mob_event_info)
 {
@@ -662,4 +664,4 @@ int GetSungziStartY( uint8_t bEmpire )
 
 	return 0;
 }
-
+}

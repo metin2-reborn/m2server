@@ -4,6 +4,8 @@
 
 #include <cstdint>
 
+namespace metin2::inline proto {
+
 // Internal game/DB routing capacity; all processes must use the same build.
 constexpr int MAX_MAPS_PER_SERVER = 128;
 
@@ -1184,3 +1186,4 @@ struct TChannelStatus {
 };
 
 #pragma pack()
+}

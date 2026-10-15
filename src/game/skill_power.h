@@ -5,6 +5,8 @@
 
 #include <memory>
 
+namespace metin2::game {
+
 class CTableBySkill : public singleton<CTableBySkill>
 {
 	public:
@@ -29,3 +31,4 @@ class CTableBySkill : public singleton<CTableBySkill>
 		std::unique_ptr<int[]> m_aiSkillPowerByLevelFromType[JOB_MAX_NUM*2];
 		std::unique_ptr<int[]> m_aiSkillDamageByLevel;
 };
+}

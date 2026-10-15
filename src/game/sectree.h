@@ -4,9 +4,12 @@
 #include "typedef.h"
 
 #include <metin2/log/log.h>
+#include <libgame/attribute.h>
 
 #include <cstdint>
 #include <vector>
+
+namespace metin2::game {
 
 enum ESectree
 {
@@ -50,7 +53,6 @@ struct FCollectEntity {
 	ListType result; // list collected
 };
 
-class CAttribute;
 
 class SECTREE
 {
@@ -169,3 +171,4 @@ class SECTREE
 
 		CAttribute *			m_pkAttribute;
 };
+}

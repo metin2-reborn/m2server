@@ -11,6 +11,8 @@
 #include <unordered_map>
 #include <vector>
 
+namespace metin2::game {
+
 struct ForkedSungziMapInfo
 {
 	int m_iForkedSung;
@@ -79,3 +81,4 @@ int GetSungziMapIndex();
 
 int GetSungziStartX( uint8_t bEmpire );
 int GetSungziStartY( uint8_t bEmpire );
+}

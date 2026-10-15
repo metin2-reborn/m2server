@@ -23,6 +23,8 @@
 #include <unordered_map>
 #include <utility>
 
+namespace metin2::game {
+
 
 struct FWarpToDragronLairWithGuildMembers
 {
@@ -262,4 +264,4 @@ void CDragonLairManager::OnDragonDead(CHARACTER * pDragon, uint32_t KillerGuildI
 
 	LairMap_.erase( iter );
 }
-
+}

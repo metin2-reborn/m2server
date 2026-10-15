@@ -4,6 +4,8 @@
 #include <variant>
 #include <vector>
 
+namespace metin2::inline common {
+
 // The attribute flags (block, water, no-PvP, ...) of one sectree's cells. Cells are stored in
 // the narrowest type that holds every value; a sectree whose cells all match stores none.
 class CAttribute {
@@ -24,3 +26,4 @@ class CAttribute {
     uint32_t m_uniform = 0; // the value of every cell while m_cells is empty
     std::variant<std::vector<uint8_t>, std::vector<uint16_t>, std::vector<uint32_t>> m_cells;
 };
+}

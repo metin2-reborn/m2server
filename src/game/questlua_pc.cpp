@@ -48,6 +48,8 @@
 #include <string>
 #include <vector>
 
+namespace metin2::game {
+
 const int ITEM_BROKEN_METIN_VNUM = 28960;
 
 namespace quest 
@@ -2914,3 +2916,4 @@ teleport_area:
 		CQuestManager::instance().AddLuaFunctionTable("pc", pc_functions);
 	}
 };
+}

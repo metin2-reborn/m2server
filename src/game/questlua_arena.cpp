@@ -9,6 +9,8 @@
 
 #include <cstdint>
 
+namespace metin2::game {
+
 namespace quest
 {
 	int arena_start_duel(lua_State * L)
@@ -134,4 +136,4 @@ namespace quest
 		CQuestManager::instance().AddLuaFunctionTable("arena", arena_functions);
 	}
 }
-
+}

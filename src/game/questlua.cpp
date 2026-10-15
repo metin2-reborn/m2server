@@ -35,6 +35,8 @@
 
 #include <dirent.h>
 
+namespace metin2::game {
+
 
 namespace quest
 {
@@ -855,4 +857,5 @@ namespace quest
 			qs.co = nullptr;
 		}
 	}
+}
 }

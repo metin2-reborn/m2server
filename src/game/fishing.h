@@ -6,6 +6,8 @@
 
 #include <cstdint>
 
+namespace metin2::game {
+
 namespace fishing
 {
 	enum
@@ -40,4 +42,5 @@ namespace fishing
 
 	extern bool RefinableRod(CItem * rod);
 	extern int RealRefineRod(CHARACTER * ch, CItem * rod);
+}
 }

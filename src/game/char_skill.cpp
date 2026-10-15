@@ -42,6 +42,8 @@
 #include <utility>
 #include <vector>
 
+namespace metin2::game {
+
 static const uint32_t s_adwSubSkillVnums[] =
 {
 	SKILL_LEADERSHIP,
@@ -3408,4 +3410,4 @@ bool CHARACTER::CheckSkillHitCount(const uint8_t SkillID, const VID TargetVID)
 
 	return true;
 }
-
+}

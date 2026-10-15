@@ -5,6 +5,8 @@
 
 #include <cstdint>
 
+namespace metin2::game {
+
 struct TAffectFlag {
     uint32_t bits[2];
 
@@ -50,4 +52,5 @@ inline auto operator==(const TAffectFlag &lhs, const TAffectFlag &rhs) -> bool {
 
 inline auto operator!=(const TAffectFlag &lhs, const TAffectFlag &rhs) -> bool {
     return !(lhs == rhs);
+}
 }

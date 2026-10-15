@@ -17,6 +17,8 @@
 #include <cstdint>
 #include <ctime>
 
+namespace metin2::game {
+
 time_t UseBlueDragonSkill(CHARACTER * pChar, unsigned int idx)
 {
 	SECTREE_MAP * pSecMap = SECTREE_MANAGER::instance().GetMap( pChar->GetMapIndex() );
@@ -193,4 +195,4 @@ int BlueDragon_Damage (CHARACTER * me, CHARACTER * pAttacker, int dam)
 
 	return dam;
 }
-
+}

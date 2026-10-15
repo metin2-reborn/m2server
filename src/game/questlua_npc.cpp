@@ -14,6 +14,8 @@
 #include <cstdint>
 #include <string>
 
+namespace metin2::game {
+
 namespace quest
 {
 	//
@@ -386,3 +388,4 @@ namespace quest
 		CQuestManager::instance().AddLuaFunctionTable("npc", npc_functions);
 	}
 };
+}

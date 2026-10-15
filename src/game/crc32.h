@@ -7,6 +7,8 @@
 
 #include <zconf.h>
 
+namespace metin2::game {
+
 using crc_t = uint32_t;
 
 // The standard CRC-32 (IEEE 802.3); the client computes the same for guild mark blocks.
@@ -22,4 +24,5 @@ inline auto GetFastHash(const char *key, size_t len) -> crc_t {
         h ^= static_cast<crc_t>(*key);
     }
     return h;
+}
 }

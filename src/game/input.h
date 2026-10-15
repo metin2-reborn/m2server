@@ -14,6 +14,8 @@
 #include <memory>
 #include <vector>
 
+namespace metin2::game {
+
 enum
 {
 	INPROC_CLOSE,
@@ -359,3 +361,4 @@ class CInputAuth : public CInputProcessor
 
 extern bool RaceToJob(unsigned race, unsigned *ret_job);
 extern void SendShout(const char * szText, uint8_t bEmpire);
+}

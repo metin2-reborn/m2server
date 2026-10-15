@@ -12,6 +12,8 @@
 #include <memory>
 #include <set>
 
+namespace metin2::game {
+
 enum EWarMapTypes
 {
 	WAR_MAP_TYPE_NORMAL,
@@ -173,4 +175,5 @@ template <typename Func> Func CWarMapManager::for_each(Func f)
 		f(it->second);
 
 	return f;
+}
 }

@@ -9,6 +9,8 @@
 #include <cstdint>
 #include <unordered_map>
 
+namespace metin2::game {
+
 inline constexpr int POLYMORPH_SKILL_ID = 129;
 inline constexpr int POLYMORPH_BOOK_ID = 50322;
 enum POLYMORPH_BONUS_TYPE
@@ -36,3 +38,4 @@ class CPolymorphUtils : public singleton<CPolymorphUtils>
 		bool GiveBook(CHARACTER * pChar, uint32_t dwMobVnum, uint32_t dwPracticeCount, uint8_t BookLevel, uint8_t LevelLimit);
 		bool BookUpgrade(CHARACTER * pChar, CItem * pItem);
 };
+}

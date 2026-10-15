@@ -10,6 +10,8 @@
 
 #include <cstdint>
 
+namespace metin2::game {
+
 
 
 namespace quest
@@ -347,4 +349,5 @@ namespace quest
 		};
 		CQuestManager::instance().AddLuaFunctionTable("marriage", marriage_functions);
 	}
+}
 }

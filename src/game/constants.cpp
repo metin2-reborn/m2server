@@ -8,6 +8,8 @@
 
 #include <strings.h>
 
+namespace metin2::game {
+
 TJobInitialPoints JobInitialPoints[JOB_MAX_NUM] = 
 {
 	// str con dex int initHP initSP  CON/HP INT/SP  HPrand/lv   MPrand/lv  initStam  stam/con stam/lv
@@ -914,4 +916,5 @@ int32_t FN_get_apply_type(const char *apply_type_string)
 			return value_name->lValue;
 	}
 	return 0;
+}
 }

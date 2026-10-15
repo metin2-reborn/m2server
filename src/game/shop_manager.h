@@ -7,6 +7,8 @@
 #include <cstdint>
 #include <map>
 
+namespace metin2::game {
+
 class CShop;
 
 class CShopManager : public singleton<CShopManager>
@@ -41,3 +43,4 @@ private:
 
 	bool	ReadShopTableEx(const char* stFileName);
 };
+}

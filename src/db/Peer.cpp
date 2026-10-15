@@ -15,6 +15,8 @@
 #include <system_error>
 #include <utility>
 
+namespace metin2::db {
+
 CPeer::CPeer(std::shared_ptr<net::connection> connection) : m_connection(std::move(connection))
 {
 	m_inputConsumed = 0;
@@ -204,5 +206,4 @@ bool CPeer::CheckItemIDRangeCollision(TItemIDRangeTable itemRange)
 	
 	return true;
 }
-
-
+}

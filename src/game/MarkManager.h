@@ -11,6 +11,8 @@
 #include <string>
 #include <vector>
 
+namespace metin2::game {
+
 class CGuildMarkManager : public singleton<CGuildMarkManager>
 {
 	public:
@@ -79,3 +81,4 @@ class CGuildMarkManager : public singleton<CGuildMarkManager>
 		//
 		std::map<uint32_t, TGuildSymbol> m_mapSymbol;
 };
+}

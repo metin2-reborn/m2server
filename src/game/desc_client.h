@@ -7,6 +7,8 @@
 #include <cstdint>
 #include <ctime>
 
+namespace metin2::game {
+
 class CLIENT_DESC : public DESC
 {
 	public:
@@ -46,3 +48,4 @@ class CLIENT_DESC : public DESC
 extern CLIENT_DESC * db_clientdesc;
 extern CLIENT_DESC * g_pkAuthMasterDesc;
 extern CLIENT_DESC * g_NetmarbleDBDesc;
+}

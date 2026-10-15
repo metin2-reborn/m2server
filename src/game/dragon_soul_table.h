@@ -7,6 +7,8 @@
 #include <string>
 #include <vector>
 
+namespace metin2::game {
+
 struct SApply
 {
 	SApply (EApplyTypes at, int av, float p = 0.f) : apply_type(at), apply_value(av), prob(p) {}
@@ -76,3 +78,4 @@ private:
 	bool	CheckDragonHeartExtTables();
 	bool	CheckDragonSoulExtTables();
 };
+}

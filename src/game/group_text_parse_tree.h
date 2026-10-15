@@ -10,6 +10,8 @@
 #include <sstream>
 #include <string>
 
+namespace metin2::game {
+
 typedef std::map<std::string, TTokenVector>	TTokenVectorMap;
 typedef std::map<std::string, int> TMapNameToIndex;
 
@@ -228,4 +230,5 @@ bool CGroupNode::CGroupNodeRow::GetValue(int idx, T& value) const
 	if (idx < 0 || static_cast<size_t>(idx) >= m_vec_values.size())
 		return false;
 	return from_string(value, m_vec_values[idx]);
+}
 }

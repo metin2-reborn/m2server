@@ -24,6 +24,8 @@
 #include <unordered_set>
 #include <utility>
 
+namespace metin2::game {
+
 P2P_MANAGER::P2P_MANAGER()
 {
 	m_iHandleCount = 0;
@@ -276,4 +278,5 @@ void P2P_MANAGER::GetP2PHostNames(std::string& hostNames)
 
 	}
 	hostNames += oss.str();
+}
 }

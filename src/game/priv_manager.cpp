@@ -22,6 +22,8 @@
 #include <cstring>
 #include <ctime>
 
+namespace metin2::game {
+
 static const char * GetEmpireName(int priv)
 {
 	return LC_TEXT(c_apszEmpireNames[priv]);
@@ -278,4 +280,4 @@ int CPrivManager::GetPrivByCharacter(uint32_t pid, uint8_t type)
 
 	return 0;
 }
-
+}

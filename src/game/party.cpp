@@ -29,6 +29,8 @@
 #include <string>
 #include <utility>
 
+namespace metin2::game {
+
 CPartyManager::CPartyManager()
 {
 	Initialize();
@@ -1630,4 +1632,4 @@ int CParty::ComputePartyBonusExpPercent()
 	return iBonusPartyExpFromItem + CHN_aiPartyBonusExpPercentByMemberCount[iMemberCount];
 	// END_OF_UPGRADE_PARTY_BONUS
 }
-
+}

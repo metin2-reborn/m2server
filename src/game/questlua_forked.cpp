@@ -13,6 +13,8 @@
 #include <metin2/log/log.h>
 #include <libthecore/utils.h>
 
+namespace metin2::game {
+
 
 namespace quest
 {
@@ -269,4 +271,4 @@ namespace quest
 		CQuestManager::instance().AddLuaFunctionTable("forked", forked_functions);
 	}
 }
-
+}

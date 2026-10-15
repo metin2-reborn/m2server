@@ -12,6 +12,8 @@
 #include <string>
 #include <unordered_map>
 
+namespace metin2::game {
+
 class CDungeon;
 class CHARACTER;
 class CharacterVectorInteractor;
@@ -154,3 +156,4 @@ class CharacterVectorInteractor : public CHARACTER_VECTOR
 	private:
 		bool m_bMyBegin;
 };
+}

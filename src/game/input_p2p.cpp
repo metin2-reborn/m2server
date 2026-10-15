@@ -28,6 +28,8 @@
 #include <cstring>
 #include <string>
 
+namespace metin2::game {
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Input Processor
@@ -509,4 +511,4 @@ int CInputP2P::Analyze(DESC * d, uint8_t bHeader, const char * c_pData)
 
 	return (iExtraLen);
 }
-
+}

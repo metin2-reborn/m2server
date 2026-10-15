@@ -7,6 +7,8 @@
 
 #include <cstdint>
 
+namespace metin2::game {
+
 const int HORSE_MAX_LEVEL = 30;
 
 struct THorseStat
@@ -95,3 +97,4 @@ class CHorseRider
 		friend EVENTFUNC(horse_stamina_consume_event);
 		friend ACMD(do_horse_set_stat);
 };
+}

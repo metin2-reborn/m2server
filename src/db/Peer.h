@@ -11,6 +11,8 @@
 #include <string>
 #include <system_error>
 
+namespace metin2::db {
+
 // A game or auth server connected to the db. Its packets are handed to
 // CClientManager::ProcessPackets as they arrive.
 class CPeer : public net::connection_handler
@@ -91,3 +93,4 @@ class CPeer : public net::connection_handler
 
 	std::string m_stPublicIP;
 };
+}

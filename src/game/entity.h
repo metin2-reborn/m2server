@@ -5,6 +5,8 @@
 #include <cstdint>
 #include <unordered_map>
 
+namespace metin2::game {
+
 class SECTREE;
 
 class CEntity
@@ -73,3 +75,4 @@ class CEntity
 
 		SECTREE *		m_pSectree;
 };
+}

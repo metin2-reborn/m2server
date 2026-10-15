@@ -12,6 +12,8 @@
 #include <cstdint>
 #include <memory>
 
+namespace metin2::db {
+
 // Character set of every connection; the game server connects with the same one.
 static constexpr const char CONNECTION_CHARSET[] = "latin1";
 
@@ -125,4 +127,5 @@ void CDBManager::AsyncQuery(const char *c_pszQuery, int iSlot) {
 uint32_t CDBManager::EscapeString(void *to, const void *from, uint32_t length, int iSlot) {
     assert(iSlot < SQL_MAX_NUM);
     return mysql_real_escape_string(m_directSQL[iSlot]->GetSQLHandle(), (char *)to, (const char *)from, length);
+}
 }

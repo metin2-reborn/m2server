@@ -9,6 +9,8 @@
 #include <string>
 #include <vector>
 
+namespace metin2::game {
+
 typedef std::map<std::string, TTokenVector>	TTokenVectorMap;
 
 class CTextFileLoader
@@ -67,3 +69,4 @@ class CTextFileLoader
 		// every group node of every loaded file; released by DestroySystem
 		static std::deque<TGroupNode>			ms_groupNodes;
 };
+}

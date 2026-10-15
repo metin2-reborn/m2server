@@ -45,6 +45,8 @@
 
 #include <dirent.h>
 
+namespace metin2::game {
+
 uint32_t g_GoldDropTimeLimitValue = 0;
 
 namespace quest
@@ -939,7 +941,7 @@ namespace quest
 		}
 
 		//send -_-!
-		struct ::packet_script packet_script;
+		struct metin2::game::packet_script packet_script;
 
 		packet_script.header = HEADER_GC_SCRIPT;
 		packet_script.skin = m_iCurrentSkin;
@@ -1778,4 +1780,4 @@ namespace quest
 		return m_pOtherPCBlockRootPC;
 	}
 }
-
+}

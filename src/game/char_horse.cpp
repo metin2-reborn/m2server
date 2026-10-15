@@ -20,6 +20,8 @@
 #include <cstdint>
 #include <cstring>
 
+namespace metin2::game {
+
 bool CHARACTER::StartRiding()
 {
 	if (IsDead() == true)
@@ -386,4 +388,4 @@ void CHARACTER::SetHorseLevel(int iLevel)
 	CHorseRider::SetHorseLevel(iLevel);
 	SetSkillLevel(SKILL_HORSE, GetHorseLevel());
 }
-
+}

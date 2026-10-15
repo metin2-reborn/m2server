@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+namespace metin2::game {
+
 typedef std::vector< std::string > TTokenVector;
 
 class CMemoryTextFileLoader
@@ -21,3 +23,4 @@ class CMemoryTextFileLoader
 	protected:
 		std::vector<std::string> m_stLineVector;
 };
+}

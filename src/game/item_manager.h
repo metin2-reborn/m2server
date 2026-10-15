@@ -16,6 +16,8 @@
 
 #include <sys/types.h>
 
+namespace metin2::game {
+
 // attribute group defined in special_item_group.txt
 // can be declared with type attr.
 // this attribute group can be used by UNIQUE ITEMs belonging to groups defined as Special type in special_item_group.txt.
@@ -440,3 +442,4 @@ class ITEM_MANAGER : public singleton<ITEM_MANAGER>
 
 extern bool DropEvent_RefineBox_SetValue(const std::string& name, int value);
 extern bool DropEvent_CharStone_SetValue(const std::string& name, int value);
+}

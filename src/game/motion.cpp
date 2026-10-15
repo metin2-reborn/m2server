@@ -20,6 +20,8 @@
 
 #include <strings.h>
 
+namespace metin2::game {
+
 // POLYMORPH_BUG_FIX
 static float MSA_GetNormalAttackDuration(const char* msaPath)
 {
@@ -545,4 +547,4 @@ const VECTOR & CMotion::GetAccumVector() const
 {
 	return m_vec3Accumulation;
 }
-
+}

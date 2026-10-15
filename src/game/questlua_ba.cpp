@@ -3,6 +3,8 @@
 #include "lua_incl.h"
 #include "questmanager.h"
 
+namespace metin2::game {
+
 
 namespace quest
 {
@@ -28,4 +30,4 @@ namespace quest
 		CQuestManager::instance(). AddLuaFunctionTable("ba", ba_functions);
 	}
 }
-
+}

@@ -12,6 +12,8 @@
 #include <ctime>
 #include <string>
 
+namespace metin2::game {
+
 static int global_time_gap = 0;
 
 time_t get_global_time()
@@ -271,4 +273,4 @@ bool WildCaseCmp(const char *w, const char *s)
 
 	return false;
 }
-
+}

@@ -39,6 +39,8 @@
 
 #include <strings.h>
 
+namespace metin2::game {
+
 ITEM_MANAGER::ITEM_MANAGER()
 	: m_dwVIDCount(0), m_dwCurrentID(0)
 {
@@ -1573,4 +1575,5 @@ void ITEM_MANAGER::CopyAllAttrTo(CItem * pkOldItem, CItem * pkNewItem)
 
 	// Set magic item
 	pkOldItem->CopyAttributeTo(pkNewItem);
+}
 }

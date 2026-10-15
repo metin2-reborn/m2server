@@ -15,6 +15,8 @@
 #include <cstdio>
 #include <string>
 
+namespace metin2::game {
+
 namespace
 {
 	// Callers pass nullptr for an unknown text or IP; log those as an empty string.
@@ -296,4 +298,4 @@ void LogManager::DragonSlayLog(uint32_t dwGuildID, uint32_t dwDragonVnum, uint32
 				// ch->GetDesc()->GetAccountTable().id, ch->GetDesc()->GetAccountTable().login,
 				// ch->GetPlayerID(), ch->GetName(),
 				// ErrorCode,
-
+}

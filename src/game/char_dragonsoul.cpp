@@ -11,6 +11,8 @@
 #include <common/length.h>
 #include <metin2/log/log.h>
 
+namespace metin2::game {
+
 // Dragon soul initialization
 // Dragon soul on/off is stored as an Affect, so
 // if there is a dragon soul Affect, the dragon souls in the deck must be activated.
@@ -146,4 +148,5 @@ bool CHARACTER::DragonSoul_RefineWindow_Close()
 bool CHARACTER::DragonSoul_RefineWindow_CanRefine()
 {
 	return nullptr != m_pointsInstant.m_pDragonSoulRefineWindowOpener;
+}
 }

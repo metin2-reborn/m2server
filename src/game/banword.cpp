@@ -13,6 +13,8 @@
 
 #include <sys/types.h>
 
+namespace metin2::game {
+
 
 CBanwordManager::CBanwordManager()
 {
@@ -103,4 +105,4 @@ void CBanwordManager::ConvertString(char * c_pszString, size_t _len)
 		it++;
 	}
 }
-
+}

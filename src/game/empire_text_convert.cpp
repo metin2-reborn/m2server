@@ -7,6 +7,8 @@
 #include <cstdio>
 #include <cstring>
 
+namespace metin2::game {
+
 namespace 
 {
 	struct STextConvertTable 
@@ -96,4 +98,5 @@ void ConvertEmpireText(uint32_t dwEmpireID, char* szText, size_t len, int iPct)
 
 		pos += seq;
 	}
+}
 }

@@ -6,6 +6,8 @@
 #include <string>
 #include <vector>
 
+namespace metin2::poly {
+
 namespace {
     // Tokens beside the operator characters lexan returns as themselves.
     enum Token : int {
@@ -486,4 +488,5 @@ auto CPoly::GetVar(const std::string &name) const -> double {
     }
 
     return symbols_[index].value;
+}
 }

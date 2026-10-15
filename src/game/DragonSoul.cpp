@@ -27,6 +27,8 @@
 #include <string>
 #include <vector>
 
+namespace metin2::game {
+
 typedef std::vector <std::string> TTokenVector;
 int Gamble(std::vector<float>& vec_probs)
 {
@@ -1160,4 +1162,5 @@ DSManager::DSManager()
 
 DSManager::~DSManager()
 {
+}
 }

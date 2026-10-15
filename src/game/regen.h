@@ -7,6 +7,8 @@
 #include <cstddef>
 #include <cstdint>
 
+namespace metin2::game {
+
 enum
 {
 	REGEN_TYPE_MOB,
@@ -95,3 +97,4 @@ extern bool	regen_load_in_file(const char* filename, int32_t lMapIndex, int base
 extern void	regen_free();
 
 extern void	regen_reset(int x, int y);
+}

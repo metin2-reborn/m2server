@@ -23,6 +23,8 @@
 
 #include <sys/types.h>
 
+namespace metin2::db {
+
 
 
 uint32_t g_dwLastCachedItemAwardID = 0;
@@ -129,4 +131,5 @@ std::map<uint32_t, TItemAward *>& ItemAwardManager::GetMapAward()
 std::map<std::string, std::set<TItemAward *> >& ItemAwardManager::GetMapkSetAwardByLogin()
 {
 	return m_map_kSetAwardByLogin;
+}
 }

@@ -14,6 +14,8 @@
 
 #include <unistd.h>
 
+namespace metin2::inline core {
+
 // "Mon dd hh:mm" of ct.
 auto time_str(time_t ct) -> char * {
     char *time_s = std::asctime(std::localtime(&ct));
@@ -174,4 +176,5 @@ auto utf8_strlcpy(char *dst, const char *src, size_t size) -> size_t {
     std::memcpy(dst, src, n);
     dst[n] = '\0';
     return src_len;
+}
 }

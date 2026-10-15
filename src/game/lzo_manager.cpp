@@ -8,6 +8,8 @@
 #include <cstdlib>
 #include <cstring>
 
+namespace metin2::game {
+
 LZOManager::LZOManager()
 {
 	if (lzo_init() != LZO_E_OK)
@@ -50,4 +52,4 @@ size_t LZOManager::GetMaxCompressedSize(size_t original)
 {
 	return (original + (original >> 4) + 64 + 3);
 }
-
+}

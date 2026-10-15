@@ -9,6 +9,8 @@
 #include <sys/random.h>
 #include <sys/types.h>
 
+namespace metin2::game {
+
 namespace {
     const uint8_t kNonce[8] = {};
     const char kLabel[] = "metin2 connection keys v1";
@@ -127,4 +129,4 @@ auto Cipher::Activate(bool polarity, size_t agreed_length, const void *buffer, s
     crypto_wipe(keys, sizeof(keys));
     return true;
 }
-
+}

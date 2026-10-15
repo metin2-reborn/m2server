@@ -6,6 +6,8 @@
 
 #include <cstdint>
 
+namespace metin2::db {
+
 class CLoginData
 {
     public:
@@ -46,3 +48,4 @@ class CLoginData
 
 	TAccountTable   m_data;
 };
+}

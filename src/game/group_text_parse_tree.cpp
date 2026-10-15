@@ -14,6 +14,8 @@
 #include <string>
 #include <utility>
 
+namespace metin2::game {
+
 CGroupTextParseTreeLoader::CGroupTextParseTreeLoader()
 	: m_dwcurLineIndex(0)
 {
@@ -246,4 +248,5 @@ CGroupNode::CGroupNodeRow::~CGroupNodeRow()
 int CGroupNode::CGroupNodeRow::GetSize() const
 {
 	return m_vec_values.size();
+}
 }

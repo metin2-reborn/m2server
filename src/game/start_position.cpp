@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+namespace metin2::game {
+
 
 char g_nation_name[4][32] =
 {
@@ -48,5 +50,4 @@ uint32_t g_create_position[4][2] =
 	{ 52070, 166600 },
 	{ 957300, 255200 },	
 };
-
-
+}

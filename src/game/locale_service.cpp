@@ -19,6 +19,8 @@
 #include <set>
 #include <string>
 
+namespace metin2::game {
+
 
 // The server runs the english locale only (common.locale LOCALE = english).
 static const std::string	g_stServiceBasePath = "locale/english";
@@ -132,4 +134,5 @@ const std::string& LocaleService_GetMapPath()
 const std::string& LocaleService_GetQuestPath()
 {
 	return g_stQuestDir;
+}
 }

@@ -11,6 +11,8 @@
 #include <cstdint>
 #include <string>
 
+namespace metin2::game {
+
 
 namespace quest
 {
@@ -235,7 +237,4 @@ namespace quest
 		CQuestManager::instance().AddLuaFunctionTable("q", quest_functions);
 	}
 }
-
-
-
-
+}

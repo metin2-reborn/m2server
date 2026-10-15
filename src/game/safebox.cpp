@@ -19,6 +19,8 @@
 #include <cstring>
 #include <memory>
 
+namespace metin2::game {
+
 CSafebox::CSafebox(CHARACTER * pkChrOwner, int iSize, uint32_t dwGold) : m_pkChrOwner(pkChrOwner), m_iSize(iSize), m_lGold(dwGold)
 {
 	assert(m_pkChrOwner != nullptr);
@@ -268,4 +270,4 @@ bool CSafebox::IsValidPosition(uint32_t dwPos)
 
 	return true;
 }
-
+}

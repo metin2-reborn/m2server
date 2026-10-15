@@ -10,7 +10,7 @@
 #include <span>
 #include <string>
 
-namespace net {
+namespace metin2::net {
     using tcp = asio::ip::tcp;
 
     // The process's event loop. It runs on the main thread only: the server's pulse loop polls it,

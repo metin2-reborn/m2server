@@ -9,6 +9,8 @@
 #include <set>
 #include <string>
 
+namespace metin2::db {
+
 struct TItemAward {
     uint32_t	dwID;
     char	szLogin[LOGIN_MAX_LEN+1];
@@ -42,3 +44,4 @@ class ItemAwardManager : public singleton<ItemAwardManager>
 	// PID, ItemAward pair
 	std::map<std::string, std::set<TItemAward *> >	m_map_kSetAwardByLogin;
 };
+}

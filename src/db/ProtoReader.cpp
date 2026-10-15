@@ -18,6 +18,8 @@
 #include <sstream>
 #include <string>
 
+namespace metin2::db {
+
 inline std::string trim_left(const std::string& str)
 {
     std::string::size_type n = str.find_first_not_of(" \t\v\n\r");
@@ -808,3 +810,4 @@ bool Set_Proto_Item_Table(TItemTable *itemTable, cCsvTable &csvTable,std::map<in
 }
 
 #endif
+}

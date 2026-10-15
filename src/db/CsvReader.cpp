@@ -8,6 +8,8 @@
 #include <string>
 #include <utility>
 
+namespace metin2::db {
+
 
 namespace
 {
@@ -245,4 +247,4 @@ const cCsvRow* cCsvTable::CurRow() const
 
     return m_File[m_CurRow];
 }
-
+}

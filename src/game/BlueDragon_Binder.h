@@ -2,6 +2,8 @@
 
 #include <cstddef>
 
+namespace metin2::game {
+
 enum BLUEDRAGON_STONE_EFFECT
 {
 	DEF_BONUS	=	1,
@@ -13,4 +15,4 @@ enum BLUEDRAGON_STONE_EFFECT
 extern unsigned int BlueDragon_GetRangeFactor (const char* key, const int val);
 extern unsigned int BlueDragon_GetSkillFactor (const size_t cnt, ...);
 extern unsigned int BlueDragon_GetIndexFactor (const char* container, const size_t idx, const char* key);
-
+}

@@ -3,6 +3,8 @@
 // Local Includes
 #include "state.h"
 
+namespace metin2::game {
+
 // FSM Class
 class CFSM
 {
@@ -29,3 +31,4 @@ class CFSM
 		virtual void StateInitial() {}
 		virtual void EndStateInitial() {}
 };
+}

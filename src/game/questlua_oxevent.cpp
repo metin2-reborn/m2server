@@ -8,6 +8,8 @@
 
 #include <cstdio>
 
+namespace metin2::game {
+
 namespace quest
 {
 	int oxevent_get_status(lua_State* L)
@@ -137,4 +139,4 @@ namespace quest
 		CQuestManager::instance().AddLuaFunctionTable("oxevent", oxevent_functions);
 	}
 }
-
+}

@@ -12,6 +12,8 @@
 #include <cstdint>
 #include <vector>
 
+namespace metin2::game {
+
 inline constexpr int CUBE_MAX_NUM = 24; // OLD:INVENTORY_MAX_NUM
 inline constexpr int CUBE_MAX_DISTANCE = 1000;
 struct CUBE_VALUE
@@ -59,3 +61,4 @@ void Cube_request_material_info(CHARACTER * ch, int request_start_index, int req
 // test print code
 
 bool Cube_InformationInitialize();
+}

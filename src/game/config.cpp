@@ -37,6 +37,8 @@
 #include <strings.h>
 #include <sys/socket.h>
 
+namespace metin2::game {
+
 char		g_szPublicIP[16] = "0";
 std::string	g_stProxyIP;
 bool		g_bNoMoreClient = false;
@@ -444,4 +446,4 @@ void LoadStateUserCount()
 
 	fclose(fp);
 }
-
+}

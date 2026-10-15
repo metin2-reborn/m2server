@@ -50,6 +50,8 @@
 
 #include <strings.h>
 
+namespace metin2::db {
+
 bool CreateItemTableFromRes(MYSQL_RES * res, std::vector<TPlayerItem> * pVec, uint32_t dwPID);
 
 uint32_t g_dwUsageMax = 0;
@@ -3451,4 +3453,4 @@ void CClientManager::ChargeCash(const TRequestChargeCash* packet)
 
 	CDBManager::instance().AsyncQuery(szQuery, SQL_ACCOUNT);
 }
-
+}

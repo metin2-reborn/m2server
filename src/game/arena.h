@@ -12,6 +12,8 @@
 #include <map>
 #include <memory>
 
+namespace metin2::game {
+
 enum MEMBER_IDENTITY {
     MEMBER_NO,
     MEMBER_DUELIST,
@@ -138,3 +140,4 @@ class CArenaManager : public singleton<CArenaManager> {
 
     bool IsLimitedItem(int32_t lMapIndex, uint32_t dwVnum);
 };
+}

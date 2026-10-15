@@ -113,7 +113,8 @@ def run(role):
     wait_for(os.environ.get('DB_HOST', 'mariadb'), int(os.environ.get('DB_PORT', '3306')), 120)
     if role != 'db':
         wait_for('db', DB_PORT, 120)
-    executable = PREFIX / 'bin' / ('db' if role == 'db' else 'server')
+    # One executable for every role; server.toml says which one this is.
+    executable = PREFIX / 'bin' / 'server'
     os.chdir(STATE)
     os.execv(executable, [str(executable)])
 

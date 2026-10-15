@@ -18,6 +18,8 @@
 #include <cstring>
 #include <memory>
 
+namespace metin2::db {
+
 
 void CClientManager::GuildCreate(CPeer * peer, uint32_t dwGuildID)
 {
@@ -244,4 +246,4 @@ void CClientManager::GuildChangeMaster(TPacketChangeGuildMaster* p)
 		ForwardPacket(HEADER_DG_ACK_CHANGE_GUILD_MASTER, &packet, sizeof(packet));
 	}
 }
-
+}

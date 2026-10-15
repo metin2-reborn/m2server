@@ -61,6 +61,8 @@
 
 #include <sys/time.h>
 
+namespace metin2::game {
+
 static int __deposit_limit()
 {
 	return (1000*10000); // 10 million
@@ -3181,4 +3183,4 @@ int CInputMain::Analyze(DESC * d, uint8_t bHeader, const char * c_pData)
 	}
 	return (iExtraLen);
 }
-
+}

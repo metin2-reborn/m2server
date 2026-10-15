@@ -19,7 +19,7 @@
 #include <poll.h>
 #include <sys/socket.h>
 
-namespace net {
+namespace metin2::net {
     namespace {
         std::uint64_t total_written = 0;
 

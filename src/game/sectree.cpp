@@ -14,6 +14,8 @@
 #include <cassert>
 #include <cstdint>
 
+namespace metin2::game {
+
 SECTREE::SECTREE()
 {
 	Initialize();
@@ -222,4 +224,4 @@ int SECTREE::GetEventAttribute(int32_t x, int32_t y)
 {
 	return GetAttribute(x, y) >> 8;
 }
-
+}

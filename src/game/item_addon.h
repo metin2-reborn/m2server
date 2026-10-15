@@ -4,6 +4,8 @@
 
 #include <common/singleton.h>
 
+namespace metin2::game {
+
 class CItemAddonManager : public singleton<CItemAddonManager>
 {
 	public:
@@ -12,3 +14,4 @@ class CItemAddonManager : public singleton<CItemAddonManager>
 
 		void ApplyAddonTo(int iAddonType, CItem * pItem);
 };
+}

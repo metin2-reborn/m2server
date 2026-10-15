@@ -13,6 +13,8 @@
 #include <unordered_map>
 #include <vector>
 
+namespace metin2::game {
+
 struct TMapRegion {
 	int			index;
 	int			sx, sy, ex, ey;
@@ -224,3 +226,4 @@ class SECTREE_MANAGER : public singleton<SECTREE_MANAGER>
 		typedef std::unordered_map<int32_t, int> PrivateIndexMapType;
 		PrivateIndexMapType next_private_index_map_;
 };
+}

@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <string>
 
+namespace metin2::game {
+
 namespace xmas
 {
 	enum
@@ -16,4 +18,5 @@ namespace xmas
 	void ProcessEventFlag(const std::string& name, int prev_value, int value);
 	void SpawnSanta(int32_t lMapIndex, int iTimeGapSec);
 	void SpawnEventHelper(bool spawn);
+}
 }

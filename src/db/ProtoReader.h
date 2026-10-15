@@ -7,6 +7,8 @@
 #include <map>
 #include <string>
 
+namespace metin2::db {
+
 //Reads a csv file and fills the item table.
 
 int get_Item_Type_Value(std::string inputString);
@@ -31,3 +33,4 @@ int get_Mob_ImmuneFlag_Value(std::string inputString);
 //
 bool Set_Proto_Mob_Table(TMobTable *mobTable, cCsvTable &csvTable, std::map<int,const char*> &nameMap);
 bool Set_Proto_Item_Table(TItemTable *itemTable, cCsvTable &csvTable,std::map<int,const char*> &nameMap);
+}

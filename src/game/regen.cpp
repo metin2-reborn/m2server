@@ -33,6 +33,8 @@
 		head = item;				\
 	}
 
+namespace metin2::game {
+
 REGEN *	regen_list = nullptr;
 REGEN_EXCEPTION * regen_exception_list = nullptr;
 
@@ -771,4 +773,4 @@ void regen_reset(int x, int y)
 			event_reset_time(regen->event, 1);
 	}
 }
-
+}

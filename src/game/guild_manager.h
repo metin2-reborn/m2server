@@ -13,6 +13,8 @@
 #include <utility>
 #include <vector>
 
+namespace metin2::game {
+
 class CGuild;
 struct TGuildCreateParameter;
 
@@ -113,3 +115,4 @@ template <typename Func> void CGuildManager::for_each_war(Func & f)
 }
 
 extern void SendGuildWarScore(uint32_t dwGuild, uint32_t dwGuildOpp, int iDelta, int iBetScoreDelta = 0);
+}

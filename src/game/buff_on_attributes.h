@@ -6,6 +6,8 @@
 #include <map>
 #include <vector>
 
+namespace metin2::game {
+
 class CHARACTER;
 
 class CBuffOnAttributes
@@ -43,3 +45,4 @@ private:
 	TMapAttr m_map_additional_attrs;
 
 };
+}

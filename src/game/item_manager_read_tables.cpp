@@ -21,6 +21,8 @@
 #include <utility>
 #include <vector>
 
+namespace metin2::game {
+
 std::vector<CItemDropInfo> g_vec_pkCommonDropItem[MOB_RANK_MAX_NUM];
 
 bool ITEM_MANAGER::ReadCommonDropItemFile(const char * c_pszFileName)
@@ -894,4 +896,5 @@ bool ITEM_MANAGER::ReadItemVnumMaskTable(const char * c_pszFileName)
 	}
 	fclose(fp);
 	return true;
+}
 }

@@ -2,6 +2,8 @@
 
 #include <libthecore/heart.h>
 
+namespace metin2::inline core {
+
 extern heart *thecore_heart;
 extern unsigned int thecore_idle_time; // ms spent waiting for pulses; the caller resets it
 
@@ -12,3 +14,4 @@ void thecore_destroy();
 auto thecore_pulse() -> int;
 auto thecore_is_shutdowned() -> bool;
 void thecore_tick(); // Increase tics
+}

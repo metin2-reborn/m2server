@@ -10,6 +10,8 @@
 #include <string>
 #include <vector>
 
+namespace metin2::game {
+
 inline constexpr int OXEVENT_MAP_INDEX = 113;
 struct tag_Quiz
 {
@@ -71,4 +73,4 @@ class COXEventManager : public singleton<COXEventManager>
 
 		uint32_t GetAttenderCount() { return m_map_attender.size(); }
 };
-
+}

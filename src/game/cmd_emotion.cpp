@@ -19,6 +19,8 @@
 #include <set>
 #include <utility>
 
+namespace metin2::game {
+
 constexpr int NEED_TARGET = (1 << 0);
 constexpr int NEED_PC = (1 << 1);
 constexpr int WOMAN_ONLY = (1 << 2);
@@ -274,4 +276,4 @@ ACMD(do_emotion)
 	else
 		metin2::log::debug( "ACTION: {}", emotion_types[i].command);
 }
-
+}

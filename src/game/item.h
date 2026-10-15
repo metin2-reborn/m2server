@@ -10,6 +10,8 @@
 #include <cstdint>
 #include <cstring>
 
+namespace metin2::game {
+
 class CItem : public CEntity
 {
 	protected:
@@ -310,3 +312,4 @@ EVENTINFO(item_vid_event_info)
 	{
 	}
 };
+}

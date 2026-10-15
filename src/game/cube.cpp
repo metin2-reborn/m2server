@@ -43,6 +43,8 @@
 /*--------------------------------------------------------*/
 /*                   GLOBAL VARIABLES                     */
 /*--------------------------------------------------------*/
+
+namespace metin2::game {
 static std::vector<std::unique_ptr<CUBE_DATA>>	s_cube_proto;
 static bool s_isInitializedCubeMaterialInformation = false;
 
@@ -971,4 +973,5 @@ void Cube_request_material_info(CHARACTER * ch, int requestStartIndex, int reque
 	ch->ChatPacket(CHAT_TYPE_COMMAND, "cube m_info %d %d %s", requestStartIndex, requestCount, materialInfoText.c_str());
 
 	
+}
 }

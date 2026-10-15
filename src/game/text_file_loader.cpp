@@ -16,6 +16,8 @@
 #include <string>
 #include <utility>
 
+namespace metin2::game {
+
 std::deque<CTextFileLoader::TGroupNode> CTextFileLoader::ms_groupNodes;
 
 void CTextFileLoader::DestroySystem()
@@ -351,4 +353,4 @@ bool CTextFileLoader::GetTokenString(const std::string & c_rstrKey, std::string 
 
 	return true;
 }
-
+}

@@ -29,6 +29,8 @@
 #include <unistd.h>
 
 #undef __FreeBSD__
+
+namespace metin2::db {
 void SetPlayerDBName(const char* c_pszPlayerDBName);
 void SetTablePostfix(const char* c_pszTablePostfix);
 int Start();
@@ -52,9 +54,8 @@ void emergency_sig(int sig)
 		abort();
 }
 
-int main()
+int run()
 {
-	WriteVersion();
 
 
 
@@ -109,31 +110,6 @@ int main()
 //
 // @version	05/06/13 Bang2ni - Added item price info cache flush timeout setting.
 //
-// server.toml with runtime.toml (written by the launcher) merged over it.
-static bool load_settings()
-{
-	std::vector<std::filesystem::path> files = {"server.toml"};
-	if (std::filesystem::exists("runtime.toml"))
-		files.emplace_back("runtime.toml");
-
-	auto settings = metin2::config::load(files);
-	if (!settings)
-	{
-		metin2::log::error("invalid configuration:\n{}", settings.error());
-		return false;
-	}
-	if (settings->role != metin2::config::role::db)
-	{
-		metin2::log::error("this executable runs role \"db\", the configuration says \"{}\"", metin2::config::role_name(settings->role));
-		return false;
-	}
-
-	metin2::config::set_current(std::move(*settings));
-	metin2::log::set_keep_days(metin2::config::current().log.keep_days);
-	metin2::log::set_level(metin2::config::current().log.level);
-	return true;
-}
-
 // Connects one database slot, retrying while MariaDB is still starting.
 static bool connect_database(int slot, const std::string & name)
 {
@@ -157,9 +133,6 @@ static bool connect_database(int slot, const std::string & name)
 
 int Start()
 {
-	if (!load_settings())
-		return false;
-
 	const metin2::config::db_settings & db = metin2::config::db();
 
 	if (!thecore_init(db.heart_fps))
@@ -220,4 +193,4 @@ const char * GetPlayerDBName()
 {
 	return g_stPlayerDBName.c_str();
 }
-
+}

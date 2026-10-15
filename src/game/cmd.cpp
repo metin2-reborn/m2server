@@ -16,6 +16,8 @@
 
 #include <strings.h>
 
+namespace metin2::game {
+
 ACMD(do_user_horse_ride);
 ACMD(do_user_horse_back);
 ACMD(do_user_horse_feed);
@@ -677,4 +679,4 @@ void interpret_command(CHARACTER * ch, const char * argument, size_t len)
 		}
 	}
 }
-
+}

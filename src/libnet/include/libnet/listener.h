@@ -7,7 +7,7 @@
 #include <memory>
 #include <string>
 
-namespace net {
+namespace metin2::net {
     // Accepts TCP connections on an address and port and hands each new socket to a callback.
     class listener : public std::enable_shared_from_this<listener> {
       public:

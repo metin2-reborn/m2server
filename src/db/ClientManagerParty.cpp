@@ -7,6 +7,8 @@
 
 #include <utility>
 
+namespace metin2::db {
+
 void CClientManager::QUERY_PARTY_CREATE(CPeer* peer, TPacketPartyCreate* p)
 {
 	TPartyMap & pm = m_map_pkChannelParty[peer->GetChannel()];
@@ -134,4 +136,5 @@ void CClientManager::QUERY_PARTY_SET_MEMBER_LEVEL(CPeer* peer, TPacketPartySetMe
 
 	ForwardPacket(HEADER_DG_PARTY_SET_MEMBER_LEVEL, p, sizeof(TPacketPartySetMemberLevel), peer->GetChannel());
 	metin2::log::info( "PARTY SetMemberLevel pid [{:d}] level {:d}",p->dwPID, p->bLevel);
+}
 }

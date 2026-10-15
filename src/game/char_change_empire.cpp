@@ -18,6 +18,7 @@
 #include <string>
 
 /*
+
    Return Value
 		0 : unknown error or query error
 		1 : trying to change to the same empire
@@ -26,6 +27,8 @@
 
 		999 : empire change succeeded
 */
+namespace metin2::game {
+
 int CHARACTER::ChangeEmpire(uint8_t empire)
 {
 	if (GetEmpire() == empire)
@@ -201,4 +204,4 @@ uint32_t CHARACTER::GetAID() const
 		return 0;
 	}
 }
-
+}

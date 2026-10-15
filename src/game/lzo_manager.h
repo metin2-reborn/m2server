@@ -7,6 +7,8 @@
 #include <cstddef>
 #include <cstdint>
 
+namespace metin2::game {
+
 class LZOManager : public singleton<LZOManager>
 {
 	public:
@@ -22,3 +24,4 @@ class LZOManager : public singleton<LZOManager>
 	private:
 		uint8_t *	m_workmem;
 };
+}

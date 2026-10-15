@@ -17,6 +17,8 @@
 #include <cstring>
 #include <vector>
 
+namespace metin2::game {
+
 
 namespace quest
 {
@@ -468,4 +470,4 @@ namespace quest
 		CQuestManager::instance().AddLuaFunctionTable("guild", guild_functions);
 	}
 }
-
+}

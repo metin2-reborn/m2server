@@ -21,6 +21,8 @@
 #include <utility>
 #include <vector>
 
+namespace metin2::game {
+
 class ITEM;
 class CHARACTER;
 class CDungeon;
@@ -271,4 +273,5 @@ namespace quest
 	{
 		report_error(format.location, metin2::log::format(format, args...));
 	}
+}
 }

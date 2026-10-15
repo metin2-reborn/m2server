@@ -14,7 +14,7 @@
 #include <system_error>
 #include <utility>
 
-namespace net {
+namespace metin2::net {
     auto listener::open(const std::string &address, std::uint16_t port, accept_handler on_accept) -> std::shared_ptr<listener> {
         std::error_code error;
         const auto ip = asio::ip::make_address(address, error);

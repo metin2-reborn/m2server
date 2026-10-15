@@ -6,6 +6,8 @@
 #include <cstdint>
 #include <memory>
 
+namespace metin2::db {
+
 class CQueryInfo {
   public:
     int iType;
@@ -71,3 +73,4 @@ class CDBManager : public singleton<CDBManager> {
         }
     }
 };
+}

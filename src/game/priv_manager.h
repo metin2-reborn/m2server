@@ -14,6 +14,8 @@
  * 			          Changed m_aPrivGuild type
  * 			          Added struct SPrivGuildData, member function GetPrivByGuildEx
  */
+
+namespace metin2::game {
 class CPrivManager : public singleton<CPrivManager>
 {
 	public:
@@ -61,3 +63,4 @@ class CPrivManager : public singleton<CPrivManager>
 		std::map<uint32_t, SPrivGuildData> m_aPrivGuild[MAX_PRIV_NUM];
 		std::map<uint32_t, int> m_aPrivChar[MAX_PRIV_NUM];
 };
+}

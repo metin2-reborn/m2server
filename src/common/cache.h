@@ -2,6 +2,8 @@
 
 #include <ctime>
 
+namespace metin2::inline common {
+
 // A cached row: Put marks it dirty, Flush writes it back through OnFlush.
 template <typename T>
 class cache {
@@ -54,3 +56,4 @@ class cache {
     std::time_t m_lastUpdateTime{0};
     std::time_t m_lastFlushTime{std::time(nullptr)};
 };
+}

@@ -15,7 +15,7 @@
 //
 // Escaping assumes what the server's connections use: a UTF-8 character set and the default
 // sql_mode, in which backslash escapes are active.
-namespace sql {
+namespace metin2::sql {
     struct raw {
         std::string_view text;
 
@@ -67,15 +67,15 @@ namespace sql {
 }
 
 template <>
-struct std::formatter<sql::raw> : std::formatter<std::string_view> {
-    auto format(const sql::raw &value, std::format_context &context) const {
+struct std::formatter<metin2::sql::raw> : std::formatter<std::string_view> {
+    auto format(const metin2::sql::raw &value, std::format_context &context) const {
         return std::formatter<std::string_view>::format(value.text, context);
     }
 };
 
 template <>
-struct std::formatter<sql::detail::quoted> : std::formatter<std::string_view> {
-    auto format(const sql::detail::quoted &value, std::format_context &context) const {
+struct std::formatter<metin2::sql::detail::quoted> : std::formatter<std::string_view> {
+    auto format(const metin2::sql::detail::quoted &value, std::format_context &context) const {
         return std::formatter<std::string_view>::format(value.text, context);
     }
 };

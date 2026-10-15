@@ -85,6 +85,8 @@
 #include <sys/time.h>
 #include <unistd.h>
 
+namespace metin2::game {
+
 // Always check the server key when testing on Windows
 
 
@@ -205,13 +207,13 @@ void heartbeat(heart * ht, int pulse)
 		if (thecore_pulse() > g_shutdown_disconnect_pulse)
 		{
 			const DESC_MANAGER::DESC_SET & c_set_desc = DESC_MANAGER::instance().GetClientSet();
-			std::for_each(c_set_desc.begin(), c_set_desc.end(), ::SendDisconnectFunc());
+			std::for_each(c_set_desc.begin(), c_set_desc.end(), metin2::game::SendDisconnectFunc());
 			g_shutdown_disconnect_pulse = INT_MAX;
 		}
 		else if (thecore_pulse() > g_shutdown_disconnect_force_pulse)
 		{
 			const DESC_MANAGER::DESC_SET & c_set_desc = DESC_MANAGER::instance().GetClientSet();
-			std::for_each(c_set_desc.begin(), c_set_desc.end(), ::DisconnectFunc());
+			std::for_each(c_set_desc.begin(), c_set_desc.end(), metin2::game::DisconnectFunc());
 		}
 		else if (thecore_pulse() > g_shutdown_disconnect_force_pulse + PASSES_PER_SEC(5))
 		{
@@ -224,12 +226,11 @@ static void CleanUpForEarlyExit() {
 	CancelReloadSpamEvent();
 }
 
-int main(int argc, char **argv)
+int run(int argc, char **argv)
 {
 
 	// // <Factor> start unit tests if option is set
 
-	WriteVersion();
 
 	SECTREE_MANAGER	sectree_manager;
 	CHARACTER_MANAGER	char_manager;
@@ -372,33 +373,10 @@ void usage()
 			"-v           : log to stdout\n");
 }
 
-// server.toml with runtime.toml (written by the launcher) merged over it.
-static bool load_settings()
-{
-	std::vector<std::filesystem::path> files = {"server.toml"};
-	if (std::filesystem::exists("runtime.toml"))
-		files.emplace_back("runtime.toml");
-
-	auto settings = metin2::config::load(files);
-	if (!settings)
-	{
-		metin2::log::error("invalid configuration:\n{}", settings.error());
-		return false;
-	}
-
-	metin2::config::set_current(std::move(*settings));
-	metin2::log::set_keep_days(metin2::config::current().log.keep_days);
-	metin2::log::set_level(metin2::config::current().log.level);
-	return true;
-}
-
 int start(int argc, char **argv)
 {
 	bool bVerbose = false;
 	int ch;
-
-	if (!load_settings())
-		return 0;
 
 	while ((ch = getopt(argc, argv, "vl:")) != -1)
 	{
@@ -589,4 +567,5 @@ int io_loop()
 	// Runs the network handlers that are ready (input, accepts, queued output); never blocks.
 	net::io().poll();
 	return 1;
+}
 }

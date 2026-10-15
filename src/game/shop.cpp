@@ -27,6 +27,8 @@
 #include <memory>
 
 /* ------------------------------------------------------------------------------------ */
+
+namespace metin2::game {
 CShop::CShop()
 	: m_dwVnum(0), m_pGrid(std::make_unique<CGrid>(5, 9)), m_pkPC(nullptr)
 {
@@ -556,4 +558,5 @@ bool CShop::IsSellingItem(uint32_t itemID)
 
 	return isSelling;
 
+}
 }

@@ -15,6 +15,8 @@
 #include <algorithm>
 #include <cstdint>
 
+namespace metin2::game {
+
 namespace quest
 {
 	//
@@ -307,7 +309,4 @@ namespace quest
 		CQuestManager::instance().AddLuaFunctionTable("horse", horse_functions);
 	}
 }
-
-
-
-
+}

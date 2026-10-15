@@ -13,6 +13,8 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 
+namespace metin2::game {
+
 
 class IP
 {
@@ -194,4 +196,4 @@ bool IsBanIP(struct in_addr in)
 
 	return false;
 }
-
+}

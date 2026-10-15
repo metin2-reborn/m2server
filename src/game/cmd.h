@@ -8,6 +8,8 @@
 
 #define ACMD(name)  void (name)(CHARACTER * ch, const char *argument, int cmd, int subcmd)
 
+namespace metin2::game {
+
 struct command_info
 {
 	const char * command;
@@ -72,3 +74,4 @@ ACMD(do_all_skill_master);
 ACMD(do_item_full_set);
 ACMD(do_attr_full_set);
 ACMD(do_in_game_mall);
+}

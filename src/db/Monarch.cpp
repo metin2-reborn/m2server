@@ -21,6 +21,8 @@
 #include <string_view>
 #include <utility>
 
+namespace metin2::db {
+
 
 CMonarch::CMonarch()
 {
@@ -292,4 +294,5 @@ int CMonarch::GetCandidacyIndex(uint32_t pid)
 	}
 
 	return -1;
+}
 }

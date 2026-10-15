@@ -6,6 +6,8 @@
 
 #include <common/length.h>
 
+namespace metin2::game {
+
 ACMD(do_oxevent_show_quiz)
 {
 	ch->ChatPacket(CHAT_TYPE_INFO, "===== OX QUIZ LIST =====");
@@ -29,4 +31,4 @@ ACMD(do_oxevent_get_attender)
 {
 	ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("현재 남은 참가자수 : %d"), COXEventManager::instance().GetAttenderCount());
 }
-
+}

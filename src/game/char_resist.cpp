@@ -16,6 +16,8 @@
 #include <cstdint>
 #include <cstdio>
 
+namespace metin2::game {
+
 // poison
 const int poison_damage_rate[MOB_RANK_MAX_NUM] = 
 {
@@ -281,4 +283,4 @@ bool CHARACTER::IsImmune(uint32_t dwImmuneFlag)
 
 	return false;
 }
-
+}

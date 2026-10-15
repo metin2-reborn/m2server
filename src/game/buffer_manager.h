@@ -4,6 +4,8 @@
 #include <cstdint>
 #include <vector>
 
+namespace metin2::game {
+
 // Scratch space for assembling a packet from several pieces before sending it in one call.
 class TEMP_BUFFER {
   public:
@@ -19,3 +21,4 @@ class TEMP_BUFFER {
   private:
     std::vector<uint8_t> m_data;
 };
+}

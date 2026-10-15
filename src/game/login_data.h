@@ -4,6 +4,8 @@
 #include <cstdint>
 #include <string>
 
+namespace metin2::game {
+
 class CLoginData
 {
 	public:
@@ -27,3 +29,4 @@ class CLoginData
 		std::string	m_stLogin;
 		int		m_aiPremiumTimes[PREMIUM_MAX_NUM];
 };
+}

@@ -25,6 +25,8 @@
 
 #define DO_ALL_BLEND_INFO(iter)	for (iter=s_blend_info.begin(); iter!=s_blend_info.end(); ++iter)
 
+namespace metin2::game {
+
 
 struct BLEND_ITEM_INFO
 {
@@ -247,4 +249,4 @@ bool	Blend_Item_find(uint32_t item_vnum)
 	}
 	return false;
 }
-
+}

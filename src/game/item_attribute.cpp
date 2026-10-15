@@ -17,6 +17,8 @@
 #include <cstring>
 #include <vector>
 
+namespace metin2::game {
+
 const int MAX_NORM_ATTR_NUM = ITEM_MANAGER::MAX_NORM_ATTR_NUM;
 const int MAX_RARE_ATTR_NUM = ITEM_MANAGER::MAX_RARE_ATTR_NUM;
 
@@ -415,4 +417,4 @@ bool CItem::AddRareAttribute()
 	LogManager::instance().ItemLog(pos, attr.bType, attr.sValue, GetID(), "SET_RARE", "", pszIP ? pszIP : "", GetOriginalVnum());
 	return true;
 }
-
+}

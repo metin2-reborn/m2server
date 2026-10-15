@@ -8,6 +8,8 @@
 
 #include <metin2/log/log.h>
 
+namespace metin2::game {
+
 void CEntity::ViewCleanup()
 {
 	ENTITY_MAP::iterator it = m_map_view.begin();
@@ -234,4 +236,4 @@ void CEntity::UpdateSectree()
 		}
 	}
 }
-
+}

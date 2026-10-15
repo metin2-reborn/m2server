@@ -7,6 +7,8 @@
 #include <cstdint>
 #include <list>
 
+namespace metin2::db {
+
 class CItemIDRangeManager : public singleton<CItemIDRangeManager>
 {
 	private :
@@ -25,3 +27,4 @@ class CItemIDRangeManager : public singleton<CItemIDRangeManager>
 
 		TItemIDRangeTable GetRange();
 };
+}

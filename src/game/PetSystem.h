@@ -8,6 +8,8 @@
 #include <string>
 #include <unordered_map>
 
+namespace metin2::game {
+
 class CHARACTER;
 
 class CPetActor //: public CHARACTER
@@ -142,3 +144,4 @@ CPetActor::Update(...)
 }
 
 */
+}

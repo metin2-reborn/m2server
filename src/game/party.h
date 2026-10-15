@@ -11,6 +11,8 @@
 #include <set>
 #include <string>
 
+namespace metin2::game {
+
 enum // unit : minute
 {
 	PARTY_ENOUGH_MINUTE_FOR_EXP_BONUS = 60, // Bonus experience starts 60 minutes after the party is formed
@@ -316,4 +318,5 @@ template <class Func> bool CParty::ForEachOnMapMemberBool(Func & f, int32_t lMap
 		}
 	}
 	return true;
+}
 }

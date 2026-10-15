@@ -11,6 +11,8 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+namespace metin2::inline core {
+
 namespace {
     void reap(int) {
         while (waitpid(-1, nullptr, WNOHANG) > 0)
@@ -67,4 +69,5 @@ void signal_setup() {
     std::signal(SIGPIPE, SIG_IGN);
     std::signal(SIGALRM, SIG_IGN);
     std::signal(SIGUSR1, usrsig);
+}
 }

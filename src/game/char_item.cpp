@@ -68,6 +68,8 @@
 #include <utility>
 #include <vector>
 
+namespace metin2::game {
+
 //auction_temp
 const int ITEM_BROKEN_METIN_VNUM = 28960;
 
@@ -7305,4 +7307,5 @@ bool CHARACTER::CanUnequipNow(CItem * const item, const TItemPos& srcCell, const
 	}
 
 	return true;
+}
 }

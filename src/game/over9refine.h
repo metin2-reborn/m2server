@@ -8,6 +8,8 @@
 #include <cstdint>
 #include <unordered_map>
 
+namespace metin2::game {
+
 class COver9RefineManager : public singleton<COver9RefineManager>
 {
 	private :
@@ -24,3 +26,4 @@ class COver9RefineManager : public singleton<COver9RefineManager>
 
 		uint32_t GetMaterialVnum(uint32_t baseVnum);
 };
+}

@@ -5,6 +5,8 @@
 
 #include <cstdint>
 
+namespace metin2::game {
+
 enum
 {
 	HEADER_CG_HANDSHAKE				= 0xff,
@@ -1784,3 +1786,4 @@ struct TPacketGCDragonSoulRefine {
 };
 
 #pragma pack()
+}

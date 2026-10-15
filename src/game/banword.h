@@ -9,6 +9,8 @@
 #include <string>
 #include <unordered_map>
 
+namespace metin2::game {
+
 class CBanwordManager : public singleton<CBanwordManager>
 {
 	public:
@@ -23,3 +25,4 @@ class CBanwordManager : public singleton<CBanwordManager>
 		typedef std::unordered_map<std::string, bool> TBanwordHashmap;
 		TBanwordHashmap m_hashmap_words;
 };
+}

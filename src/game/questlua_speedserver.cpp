@@ -8,6 +8,8 @@
 #include <cstdint>
 #include <list>
 
+namespace metin2::game {
+
 namespace quest
 {
 	// "sun", "mon", "tue", "wed", "thu", "fri", "sat", "week", "weekend"
@@ -204,4 +206,4 @@ namespace quest
 		CQuestManager::instance().AddLuaFunctionTable("speedserver", speed_server_functions);
 	}
 }
-
+}

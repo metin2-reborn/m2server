@@ -30,6 +30,8 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 
+namespace metin2::game {
+
 DESC_MANAGER::DESC_MANAGER() : m_bDestroyed(false)
 {
 	Initialize();
@@ -456,4 +458,4 @@ void DESC_MANAGER::ProcessExpiredLoginKey()
 		}
 	}
 }
-
+}

@@ -24,6 +24,8 @@
 #include <utility>
 #include <vector>
 
+namespace metin2::game {
+
 
 EVENTINFO(petsystem_event_info)
 {
@@ -530,4 +532,5 @@ void CPetSystem::RefreshBuff()
 			}
 		}
 	}
+}
 }

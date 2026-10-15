@@ -4,6 +4,8 @@
 #include <map>
 #include <string>
 
+namespace metin2::game {
+
 struct TPacketElement {
 	int		iSize;
 	std::string	stName;
@@ -54,3 +56,4 @@ class CPacketInfoGG : public CPacketInfo
 };
 
 /// Implemented in input_udp.cpp
+}

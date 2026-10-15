@@ -22,6 +22,8 @@
 #include <errmsg.h>
 #include <mysqld_error.h>
 
+namespace metin2::sql {
+
 namespace {
     // Errors after which the same query is tried again: the connection or the server is in
     // trouble, not the query.
@@ -345,4 +347,5 @@ auto CAsyncSQL::EscapeString(char *dst, size_t dstSize, const char *src, size_t 
     }
 
     return mysql_real_escape_string(&m_hDB, dst, src, srcSize);
+}
 }

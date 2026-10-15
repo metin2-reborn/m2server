@@ -8,6 +8,8 @@
 #include <cstdint>
 #include <string>
 
+namespace metin2::game {
+
 enum GOLDBAR_HOW
 {
 	PERSONAL_SHOP_BUY	= 1 ,
@@ -60,3 +62,4 @@ class LogManager : public singleton<LogManager>
 		CAsyncSQL	m_sql;
 		bool		m_bIsConnect;
 };
+}

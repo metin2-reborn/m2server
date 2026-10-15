@@ -10,6 +10,8 @@
 #include <cassert>
 #include <utility>
 
+namespace metin2::game {
+
 CEntity::CEntity()
 {
 	Initialize();
@@ -121,4 +123,4 @@ void CEntity::SetObserverMode(bool bFlag)
 		ch->ChatPacket(CHAT_TYPE_COMMAND, "ObserverMode %d", m_bIsObserver ? 1 : 0);
 	}
 }
-
+}

@@ -19,6 +19,8 @@
 #include <algorithm>
 #include <cstdint>
 
+namespace metin2::game {
+
 namespace mining
 {
 	enum
@@ -455,4 +457,4 @@ namespace mining
 		return false;
 	}
 }
-
+}

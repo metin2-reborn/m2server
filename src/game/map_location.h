@@ -5,6 +5,8 @@
 #include <cstdint>
 #include <map>
 
+namespace metin2::game {
+
 class CMapLocation : public singleton<CMapLocation>
 {
 	public:
@@ -20,4 +22,4 @@ class CMapLocation : public singleton<CMapLocation>
 	protected:
 		std::map<int32_t, TLocation> m_map_address;
 };      
-
+}

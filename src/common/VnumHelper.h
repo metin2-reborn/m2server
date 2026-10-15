@@ -1,6 +1,7 @@
 #pragma once
 
 /**
+
     Currently, existing and future items, mobs, etc. are identified in the source by
     hardcoded identifiers (numbers = VNum), which hurts readability badly.
 
@@ -15,6 +16,8 @@
 */
 
 #include <cstdint>
+
+namespace metin2::inline proto {
 
 class CItemVnumHelper {
   public:
@@ -40,3 +43,4 @@ class CMobVnumHelper {
                22022 == vnum;
     }
 };
+}

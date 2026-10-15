@@ -9,6 +9,8 @@
 #include <cstdarg>
 #include <cstddef>
 
+namespace metin2::game {
+
 unsigned int BlueDragon_GetSkillFactor(const size_t cnt, ...)
 {
 	lua_State* L = quest::CQuestManager::instance().GetLuaState();
@@ -219,4 +221,4 @@ unsigned int BlueDragon_GetIndexFactor(const char* container, const size_t idx, 
 
 	return ret;
 }
-
+}

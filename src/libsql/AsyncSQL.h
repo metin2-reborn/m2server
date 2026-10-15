@@ -13,6 +13,8 @@
 #include <thread>
 #include <vector>
 
+namespace metin2::sql {
+
 // One result set of a query (a multi-statement query has several).
 struct SQLResult {
     SQLResult() = default;
@@ -117,3 +119,11 @@ class CAsyncSQL {
     std::atomic<int> m_iQueryFinished{0};
     std::atomic<int> m_iCopiedQuery{0};
 };
+}
+
+// Used unqualified throughout game and db.
+namespace metin2 {
+    using sql::CAsyncSQL;
+    using sql::SQLMsg;
+    using sql::SQLResult;
+}

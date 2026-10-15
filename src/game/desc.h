@@ -19,6 +19,8 @@
 #include <system_error>
 #include <vector>
 
+namespace metin2::game {
+
 inline constexpr int MAX_ALLOW_USER = 4096;
 // Limits of a game client's connection: unprocessed input and unsent output.
 inline constexpr std::size_t MAX_CLIENT_INPUT = 256 * 1024;
@@ -245,3 +247,4 @@ class DESC : public net::connection_handler
 		void			push_seq (uint8_t hdr, uint8_t seq);
 		
 };
+}

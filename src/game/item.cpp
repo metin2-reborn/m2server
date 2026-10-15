@@ -34,6 +34,8 @@
 #include <cstring>
 #include <ctime>
 
+namespace metin2::game {
+
 CItem::CItem(uint32_t dwVnum)
 	: m_dwVnum(dwVnum), m_bWindow(0), m_dwID(0), m_bEquipped(false), m_dwVID(0), m_wCell(0), m_dwCount(0), m_lFlag(0), m_dwLastOwnerPID(0),
 	m_bExchanging(false), m_pkDestroyEvent(nullptr), m_pkUniqueExpireEvent(nullptr), m_pkTimerBasedOnWearExpireEvent(nullptr), m_pkRealTimeExpireEvent(nullptr),
@@ -1937,4 +1939,5 @@ bool CItem::IsSameSpecialGroup(CItem * const item) const
 		return true;
 
 	return false;
+}
 }

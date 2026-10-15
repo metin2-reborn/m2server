@@ -11,8 +11,13 @@
 #include <memory>
 #include <vector>
 
+namespace metin2::game {
+
 namespace building
 {
+	// The shared land and object tables (proto).
+	using namespace metin2::proto::building;
+
 	class CLand;
 
 	class CObject : public CEntity
@@ -154,4 +159,5 @@ namespace building
 			std::map<uint32_t, CObject *>		m_map_pkObjByID;
 			std::map<uint32_t, CObject *>		m_map_pkObjByVID;
 	};
+}
 }

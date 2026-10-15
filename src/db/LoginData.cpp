@@ -6,6 +6,8 @@
 #include <cstdint>
 #include <cstring>
 
+namespace metin2::db {
+
 CLoginData::CLoginData()
 {
 	m_dwKey = 0;
@@ -83,4 +85,4 @@ int * CLoginData::GetPremiumPtr()
 {
 	return &m_aiPremiumTimes[0];
 }
-
+}

@@ -24,6 +24,8 @@
 #include <memory>
 #include <unordered_set>
 
+namespace metin2::game {
+
 CPVP::CPVP(uint32_t dwPID1, uint32_t dwPID2)
 {
 	if (dwPID1 > dwPID2)
@@ -588,4 +590,4 @@ void CPVPManager::Process()
 		}
 	}
 }
-
+}

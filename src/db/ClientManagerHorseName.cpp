@@ -15,6 +15,8 @@
 #include <memory>
 #include <string>
 
+namespace metin2::db {
+
 void CClientManager::UpdateHorseName(TPacketUpdateHorseName* data, CPeer* peer)
 {
 	const std::string query = sql::format("REPLACE INTO horse_name VALUES({}, {})", data->dwPlayerID, data->szHorseName);
@@ -48,4 +50,4 @@ void CClientManager::AckHorseName(uint32_t dwPID, CPeer* peer)
 	peer->EncodeHeader(HEADER_DG_ACK_HORSE_NAME, 0, sizeof(TPacketUpdateHorseName));
 	peer->Encode(&packet, sizeof(TPacketUpdateHorseName));
 }
-
+}

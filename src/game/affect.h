@@ -4,6 +4,8 @@
 
 #include <cstdint>
 
+namespace metin2::game {
+
 class CAffect
 {
 	public:
@@ -178,3 +180,4 @@ enum AffectVariable
 	INFINITE_AFFECT_DURATION = 60 * 365 * 24 * 60 * 60
 };
 // END_AFFECT_DURATION_BUG_FIX
+}

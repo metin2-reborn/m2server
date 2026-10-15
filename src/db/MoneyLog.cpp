@@ -8,6 +8,8 @@
 
 #include <cstdint>
 
+namespace metin2::db {
+
 CMoneyLog::CMoneyLog()
 {
 }
@@ -41,4 +43,5 @@ void CMoneyLog::Save()
 void CMoneyLog::AddLog(uint8_t bType, uint32_t dwVnum, int iGold)
 {
 	m_MoneyLogContainer[bType][dwVnum] += iGold;
+}
 }

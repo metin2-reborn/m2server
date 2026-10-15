@@ -64,6 +64,8 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 
+namespace metin2::game {
+
 
 bool GetServerLocation(TAccountTable & rTab, uint8_t bEmpire)
 {
@@ -2393,4 +2395,5 @@ void CInputDB::RespondChannelStatus(DESC * desc, const char* pcData)
 	uint8_t bSuccess = 1;
 	desc->Packet(&bSuccess, sizeof(bSuccess));
 	desc->SetChannelStatusRequested(false);
+}
 }

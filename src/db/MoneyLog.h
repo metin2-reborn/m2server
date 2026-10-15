@@ -7,6 +7,8 @@
 #include <cstdint>
 #include <map>
 
+namespace metin2::db {
+
 class CMoneyLog : public singleton<CMoneyLog>
 {
     public:
@@ -19,3 +21,4 @@ class CMoneyLog : public singleton<CMoneyLog>
     private:
 	std::map<uint32_t, int> m_MoneyLogContainer[MONEY_LOG_TYPE_MAX_NUM];
 };
+}

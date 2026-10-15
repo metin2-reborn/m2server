@@ -8,6 +8,8 @@
 #include <map>
 #include <string>
 
+namespace metin2::game {
+
 // Copy-pasted from castle.cpp
 
 class HME
@@ -105,3 +107,4 @@ class CSpeedServerManager : public singleton<CSpeedServerManager>
 		CSpeedServerEmpireExp Empire[EMPIRE_MAX_NUM];
 		
 };
+}

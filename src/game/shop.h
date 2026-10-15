@@ -2,18 +2,20 @@
 #include "typedef.h"
 
 #include <common/tables.h>
+#include <libgame/grid.h>
 
 #include <cstdint>
 #include <memory>
 #include <unordered_map>
 #include <vector>
 
+namespace metin2::game {
+
 enum
 {
 	SHOP_MAX_DISTANCE = 1000
 };
 
-class CGrid;
 
 /* ---------------------------------------------------------------------------------- */
 class CShop
@@ -78,3 +80,4 @@ class CShop
 
 		CHARACTER *			m_pkPC;
 };
+}

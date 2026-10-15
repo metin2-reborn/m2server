@@ -7,6 +7,8 @@
 #include <cstring>
 #include <string>
 
+using namespace metin2;
+
 TEST(str_to_number_parses_like_strtol) {
     int value = -1;
     CHECK(str_to_number(value, "42"));

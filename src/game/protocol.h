@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+namespace metin2::game {
+
 inline const char *encode_byte(char ind)
 {
 	static char a[8];
@@ -29,4 +31,5 @@ inline uint16_t decode_2bytes(const void * a)
 inline int32_t decode_4bytes(const void *a)
 {
 	return (*((int32_t *) a));
+}
 }

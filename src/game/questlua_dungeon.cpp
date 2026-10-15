@@ -20,6 +20,8 @@
 #include <string>
 #include <utility>
 
+namespace metin2::game {
+
 
 
 template <class Func> Func CDungeon::ForEachMember(Func f)
@@ -1033,7 +1035,7 @@ namespace quest
 
 				if (ch->IsPC())
 				{
-					struct ::packet_script packet_script;
+					struct metin2::game::packet_script packet_script;
 					TEMP_BUFFER buf;
 					
 					for (CDungeon::ItemGroup::const_iterator it = item_group->begin(); it != item_group->end(); it++)
@@ -1497,4 +1499,5 @@ namespace quest
 
 		CQuestManager::instance().AddLuaFunctionTable("d", dungeon_functions);
 	}
+}
 }

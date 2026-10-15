@@ -37,6 +37,8 @@
 
 #include <arpa/inet.h>
 
+namespace metin2::game {
+
 
 DESC::DESC()
 {
@@ -747,4 +749,4 @@ void DESC::ChatPacket(uint8_t type, const char * format, ...)
 
 	Packet(buf.read_peek(), buf.size());
 }
-
+}

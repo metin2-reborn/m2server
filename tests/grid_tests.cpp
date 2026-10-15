@@ -2,6 +2,8 @@
 
 #include <libgame/grid.h>
 
+using namespace metin2;
+
 TEST(grid_places_and_frees_items) {
     CGrid grid(5, 3);
     CHECK_EQ(grid.GetSize(), 15u);

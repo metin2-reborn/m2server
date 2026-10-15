@@ -15,6 +15,8 @@
 #include <cassert>
 #include <cstdint>
 
+namespace metin2::game {
+
 
 
 static CEventQueue cxx_q;
@@ -207,4 +209,5 @@ void event_release(EVENT* p) {
 	if ( --(p->ref_count) == 0 ) {
 		delete p;
 	}
+}
 }

@@ -42,6 +42,8 @@
 
 #include <strings.h>
 
+namespace metin2::game {
+
 uint16_t SECTREE_MANAGER::current_sectree_version = 0x0300; // 3.0: major in the high byte
 
 SECTREE_MAP::SECTREE_MAP()
@@ -1447,5 +1449,4 @@ size_t SECTREE_MANAGER::GetMonsterCountInMap(int32_t lMapIndex, uint32_t dwVnum)
 
 	return 0;
 }
-
-
+}

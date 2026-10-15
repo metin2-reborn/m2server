@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+namespace metin2::game {
+
 class VID
 {
 	public:
@@ -51,3 +53,4 @@ class VID
 		uint32_t m_id;
 		uint32_t m_crc;
 };
+}

@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+namespace metin2::inline proto {
+
 namespace building {
     inline constexpr int OBJECT_MATERIAL_MAX_NUM = 5;
 
@@ -52,3 +54,4 @@ namespace building {
         int32_t lLife;
     };
 };
+}

@@ -11,7 +11,7 @@
 #include <system_error>
 #include <vector>
 
-namespace net {
+namespace metin2::net {
     // Receives a connection's input and its end.
     class connection_handler {
       public:

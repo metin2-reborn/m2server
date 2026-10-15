@@ -10,6 +10,8 @@
 #include <memory>
 #include <vector>
 
+namespace metin2::db {
+
 class CMonarch : public singleton<CMonarch>
 {
 	public:
@@ -58,3 +60,4 @@ class CMonarch : public singleton<CMonarch>
 		MonarchInfo m_MonarchInfo;
 
 };
+}

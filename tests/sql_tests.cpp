@@ -6,6 +6,8 @@
 #include <string>
 #include <string_view>
 
+using namespace metin2;
+
 TEST(escape_handles_special_characters) {
     CHECK_EQ(sql::escape("plain"), std::string("plain"));
     CHECK_EQ(sql::escape("O'Brien"), std::string("O\\'Brien"));

@@ -8,6 +8,8 @@
 #include <cstdint>
 #include <memory>
 
+namespace metin2::game {
+
 class CHARACTER;
 class CItem;
 
@@ -61,3 +63,4 @@ private:
 
 	std::unique_ptr<DragonSoulTable>	m_pTable;
 };
+}

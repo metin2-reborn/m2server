@@ -36,6 +36,8 @@
 
 #include <strings.h>
 
+namespace metin2::game {
+
 CShopManager::CShopManager()
 {
 }
@@ -570,4 +572,5 @@ bool CShopManager::ReadShopTableEx(const char* stFileName)
 	}
 
 	return true;
+}
 }

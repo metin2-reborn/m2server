@@ -24,6 +24,8 @@
 #include <string>
 #include <utility>
 
+namespace metin2::game {
+
 
 CLIENT_DESC * db_clientdesc = nullptr;
 CLIENT_DESC * g_pkAuthMasterDesc = nullptr;
@@ -303,4 +305,5 @@ void CLIENT_DESC::Reset()
 	// Restore connection target info
 	m_stHost = host;
 	m_wPort = port;
+}
 }

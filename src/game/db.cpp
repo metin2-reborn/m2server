@@ -40,6 +40,8 @@
 
 #include <sys/types.h>
 
+namespace metin2::game {
+
 
 
 DBManager::DBManager() : m_bIsConnect(false)
@@ -764,4 +766,5 @@ void AccountDB::AnalyzeReturnQuery(SQLMsg * pMsg)
 	}
 
 	delete qi;
+}
 }

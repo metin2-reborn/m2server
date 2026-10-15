@@ -10,6 +10,8 @@
 #include <set>
 #include <string>
 
+namespace metin2::game {
+
 class MessengerManager : public singleton<MessengerManager>
 {
 	public:
@@ -55,3 +57,4 @@ class MessengerManager : public singleton<MessengerManager>
 		std::map<keyT, std::set<keyT> >	m_InverseRelation;
 		std::set<uint32_t>			m_set_requestToAdd;
 };
+}

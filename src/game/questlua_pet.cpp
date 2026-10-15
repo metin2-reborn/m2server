@@ -8,6 +8,8 @@
 
 #include <cstdint>
 
+namespace metin2::game {
+
 
 
 namespace quest
@@ -143,4 +145,5 @@ namespace quest
 		CQuestManager::instance().AddLuaFunctionTable("pet", pet_functions);
 	}
 
+}
 }

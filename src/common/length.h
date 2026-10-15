@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+namespace metin2::inline proto {
+
 inline constexpr int WORD_MAX = 0xffff;
 inline constexpr int MAX_HOST_LENGTH = 15;
 inline constexpr int IP_ADDRESS_LENGTH = 15;
@@ -569,7 +571,9 @@ enum SPECIAL_EFFECT {
     SE_EQUIP_LOVE_PENDANT,    // effect when equipping the Valentine pendant of love (71145) (trigger effect, not a persistent one)
 };
 
+}
 #include "item_length.h"
+namespace metin2::inline proto {
 
 // struct representing an inventory position
 // The reason for the implicit conversion to/from int is that,
@@ -664,3 +668,4 @@ enum EShopCoinType {
 };
 
 #pragma pack(pop)
+}

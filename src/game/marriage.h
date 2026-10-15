@@ -14,6 +14,8 @@
 #include <unordered_set>
 #include <utility>
 
+namespace metin2::game {
+
 namespace marriage
 {
 	struct TWeddingInfo
@@ -155,4 +157,5 @@ namespace marriage
 			return f;
 		}
 
+}
 }

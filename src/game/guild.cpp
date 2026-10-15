@@ -41,6 +41,8 @@
 
 #include <sys/types.h>
 
+namespace metin2::game {
+
 	TGuildMember::TGuildMember(uint32_t pid, uint8_t grade, uint8_t is_general, uint8_t job, uint8_t level, uint32_t offer_exp, char* name)
 : pid(pid), grade(grade), is_general(is_general), job(job), level(level), offer_exp(offer_exp), name(name)
 {}
@@ -1957,4 +1959,4 @@ void CGuild::SendGuildDataUpdateToAllMember(SQLMsg* pmsg)
 		SendAllGradePacket(*iter);
 	}
 }
-
+}

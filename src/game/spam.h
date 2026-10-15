@@ -12,6 +12,8 @@
 #include <utility>
 #include <vector>
 
+namespace metin2::game {
+
 class SpamManager : public singleton<SpamManager>
 {
 	public:
@@ -51,3 +53,4 @@ class SpamManager : public singleton<SpamManager>
 	private:
 		std::vector< std::pair<std::string, unsigned int> > m_vec_word;
 };
+}

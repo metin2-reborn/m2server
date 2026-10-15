@@ -27,6 +27,8 @@
 #include <cstdint>
 #include <cstring>
 
+namespace metin2::game {
+
 static bool IS_NO_SAVE_AFFECT(uint32_t type) { return (type == AFFECT_WAR_FLAG || type == AFFECT_REVIVE_INVISIBLE || (type >= AFFECT_PREMIUM_START && type <= AFFECT_PREMIUM_END)); }
 static bool IS_NO_CLEAR_ON_DEATH_AFFECT(uint32_t type) { return (type == AFFECT_BLOCK_CHAT || (type >= 500 && type < 600)); }
 
@@ -828,4 +830,4 @@ void CHARACTER::RemoveBadAffect()
 
 	// Bu Dong Bak Bu       : Shaman skill
 }
-
+}

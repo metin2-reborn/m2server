@@ -9,6 +9,8 @@
 
 #include <cstdint>
 
+namespace metin2::game {
+
 enum EBattleTypes       // Relative to the opponent
 {
 	BATTLE_NONE,
@@ -95,3 +97,4 @@ uint32_t	GET_ATTACK_SPEED(CHARACTER * ch);
 void	SET_ATTACK_TIME(CHARACTER * ch, CHARACTER * victim, uint32_t current_time);
 void	SET_ATTACKED_TIME(CHARACTER * ch, CHARACTER * victim, uint32_t current_time);
 bool	IS_SPEED_HACK(CHARACTER * ch, CHARACTER * victim, uint32_t current_time);
+}

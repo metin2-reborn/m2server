@@ -6,6 +6,8 @@
 #include <cstdint>
 #include <map>
 
+namespace metin2::game {
+
 enum
 {
 	BLACKSMITH_MOB = 20016, // Probability-based upgrade
@@ -36,3 +38,4 @@ class CRefineManager : public singleton<CRefineManager>
 	TRefineRecipeMap    m_map_RefineRecipe;
 
 };
+}

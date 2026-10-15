@@ -7,13 +7,15 @@
 
 #include <common/length.h>
 #include <common/tables.h>
+#include <libsql/AsyncSQL.h>
 
 #include <cstdint>
 #include <map>
 #include <set>
 #include <string>
 
-struct SQLMsg;
+namespace metin2::game {
+
 
 enum
 {
@@ -387,3 +389,4 @@ class CGuild
 		EventMap	m_GuildInviteEventMap;	///< Guild invite event map. key: PID of the invited character
 		// END_OF_GUILD_JOIN_BUG_FIX
 };
+}

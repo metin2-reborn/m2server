@@ -5,6 +5,8 @@
 
 #include <cstdint>
 
+namespace metin2::game {
+
 namespace mining
 {
 	LPEVENT CreateMiningEvent(CHARACTER * ch, CHARACTER * load, int count);
@@ -18,4 +20,5 @@ namespace mining
 	// END_OF_REFINE_PICK
 
 	bool IsVeinOfOre (uint32_t vnum);
+}
 }

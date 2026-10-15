@@ -12,6 +12,8 @@
 #include <unordered_map>
 #include <unordered_set>
 
+namespace metin2::game {
+
 class CLoginKey;
 
 class DESC_MANAGER : public singleton<DESC_MANAGER>
@@ -89,3 +91,4 @@ class DESC_MANAGER : public singleton<DESC_MANAGER>
 		bool			m_bDestroyed;
 
 };
+}

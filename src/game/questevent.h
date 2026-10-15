@@ -2,6 +2,8 @@
 #include "event.h"
 #include "quest.h"
 
+namespace metin2::game {
+
 namespace quest
 {
 	EVENTINFO(quest_server_event_info)
@@ -39,4 +41,5 @@ namespace quest
 	extern LPEVENT quest_create_server_timer_event(const char* name, double when, unsigned int timernpc = QUEST_NO_NPC, bool loop = false, unsigned int arg = 0);
 	extern LPEVENT quest_create_timer_event(const char* name, unsigned int player_id, double when, unsigned int npc_id=QUEST_NO_NPC, bool loop = false);
 	extern void CancelTimerEvent(LPEVENT* ppEvent);
+}
 }

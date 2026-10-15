@@ -13,6 +13,8 @@
 /**
  * Base class for all event info data
  */
+
+namespace metin2::game {
 struct event_info_data 
 {
 	event_info_data() {}
@@ -103,3 +105,4 @@ extern void		event_cancel(LPEVENT * event);			// Cancel event
 extern int32_t		event_processing_time(LPEVENT event);	// Return execution time
 extern int32_t		event_time(LPEVENT event);			// Return remaining time
 extern void		event_reset_time(LPEVENT event, int32_t when);	// Reset execution time
+}

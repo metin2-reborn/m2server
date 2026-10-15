@@ -6,6 +6,8 @@
 #include "sectree_manager.h"
 #include "typedef.h"
 
+namespace metin2::game {
+
 namespace quest
 {
 	struct FWarpToHome
@@ -52,4 +54,4 @@ namespace quest
 		CQuestManager::instance().AddLuaFunctionTable("dance_event", dance_event_functions);
 	}
 }
-
+}

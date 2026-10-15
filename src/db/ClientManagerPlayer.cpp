@@ -32,6 +32,8 @@
 #include <utility>
 #include <vector>
 
+namespace metin2::db {
+
 
 
 //
@@ -1284,4 +1286,4 @@ void CClientManager::FlushPlayerCacheSet(uint32_t pid)
 		delete c; 
 	}
 }
-
+}

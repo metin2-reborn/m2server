@@ -22,6 +22,8 @@
 
 #include <sys/types.h>
 
+namespace metin2::db {
+
 CItemCache::CItemCache() {
     m_expireTime = std::min(1800, metin2::config::db().item_cache_flush_seconds);
 }
@@ -247,4 +249,5 @@ void CItemPriceListTableCache::OnFlush() {
     metin2::log::info( "ItemPriceListTableCache::Flush : OwnerID[{:d}] Update [{:d}]Items", m_data.dwOwnerID, m_data.byCount);
 
     m_bNeedQuery = false;
+}
 }

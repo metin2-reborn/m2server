@@ -15,6 +15,8 @@
 #include <utility>
 #include <vector>
 
+namespace metin2::game {
+
 class CParty;
 
 class CDungeon
@@ -201,3 +203,4 @@ class CDungeonManager : public singleton<CDungeonManager>
 	// <Factor> Introduced unsigned 32-bit dungeon identifier
 	CDungeon::IdType next_id_;
 };
+}

@@ -28,6 +28,8 @@
 #include <cstring>
 #include <string>
 
+namespace metin2::game {
+
 ACMD(do_monarch_mob);
 
 namespace quest
@@ -912,4 +914,4 @@ namespace quest
 	}
 
 }
-
+}

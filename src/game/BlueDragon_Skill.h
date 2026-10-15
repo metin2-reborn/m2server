@@ -16,6 +16,8 @@
 
 #pragma once
 
+namespace metin2::game {
+
 struct FSkillBreath
 {
 	EJobs Set1;
@@ -356,4 +358,4 @@ struct FSkillEarthQuake
 		}
 	}
 };
-
+}

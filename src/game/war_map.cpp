@@ -29,6 +29,8 @@
 #include <memory>
 #include <utility>
 
+namespace metin2::game {
+
 EVENTINFO(war_map_info)
 {
 	int iStep;
@@ -1101,4 +1103,4 @@ void CWarMapManager::OnShutdown()
 	while (it != m_mapWarMap.end())
 		(it++)->second->Draw();
 }
-
+}

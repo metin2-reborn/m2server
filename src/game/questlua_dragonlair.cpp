@@ -8,6 +8,8 @@
 
 #include <cstdint>
 
+namespace metin2::game {
+
 namespace quest
 {
 	int dl_startRaid(lua_State* L)
@@ -32,4 +34,4 @@ namespace quest
 		CQuestManager::instance(). AddLuaFunctionTable("DragonLair", dl_functions);
 	}
 }
-
+}

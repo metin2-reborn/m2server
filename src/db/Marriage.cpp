@@ -20,6 +20,8 @@
 
 #include <sys/types.h>
 
+namespace metin2::db {
+
 namespace marriage
 {
 	const uint32_t WEDDING_LENGTH = 60 * 60; // sec
@@ -348,4 +350,5 @@ namespace marriage
 			}
 		}
 	}
+}
 }

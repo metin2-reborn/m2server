@@ -11,6 +11,8 @@
 
 #include <arpa/inet.h>
 
+namespace metin2::game {
+
 CMapLocation g_mapLocations;
 
 bool CMapLocation::Get(int32_t x, int32_t y, int32_t & lIndex, int32_t & lAddr, uint16_t & wPort)
@@ -56,4 +58,4 @@ void CMapLocation::Insert(int32_t lIndex, const char * c_pszHost, uint16_t wPort
 	m_map_address.insert(std::make_pair(lIndex, loc));
 	metin2::log::info( "MapLocation::Insert : {:d} {} {:d}", lIndex, c_pszHost, wPort);
 }
-
+}

@@ -9,6 +9,8 @@
 #include <memory>
 #include <utility>
 
+namespace metin2::game {
+
 bool CTableBySkill::Check() const
 {
 	for (int job = 0; job < (JOB_MAX_NUM * 2); ++job)
@@ -67,4 +69,4 @@ void CTableBySkill::DeleteSkillDamageByLevelTable()
 {
 	m_aiSkillDamageByLevel.reset();
 }
-
+}

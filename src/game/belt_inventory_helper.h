@@ -8,6 +8,8 @@
 
 #include <cstdint>
 
+namespace metin2::game {
+
 class CBeltInventoryHelper
 {
 public:
@@ -83,3 +85,4 @@ public:
 	}
 
 };
+}

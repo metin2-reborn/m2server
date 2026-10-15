@@ -13,6 +13,8 @@
 #include <memory>
 #include <utility>
 
+namespace metin2::game {
+
 
 DESC_P2P::~DESC_P2P()
 {
@@ -75,4 +77,4 @@ void DESC_P2P::SetPhase(int iPhase)
 
 	m_iPhase = iPhase;
 }
-
+}

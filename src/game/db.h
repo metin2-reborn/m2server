@@ -13,6 +13,8 @@
 #include <string>
 #include <vector>
 
+namespace metin2::game {
+
 enum
 {
 	QUERY_TYPE_RETURN = 1,
@@ -167,3 +169,4 @@ class AccountDB : public singleton<AccountDB>
 
 extern void CancelReloadSpamEvent();
 extern void LoadSpamDB();
+}

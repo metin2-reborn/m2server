@@ -40,6 +40,8 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+namespace metin2::game {
+
 namespace
 {
 
@@ -960,4 +962,4 @@ void CGuildManager::ChangeMaster(uint32_t dwGID)
 			"SELECT 1");
 
 }
-
+}

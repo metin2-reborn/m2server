@@ -14,6 +14,8 @@
 #include <utility>
 #include <vector>
 
+namespace metin2::db {
+
 struct TPrivEmpireData {
     uint8_t type;
     int value;
@@ -102,3 +104,4 @@ class CPrivManager : public singleton<CPrivManager> {
     std::map<uint32_t, TPrivGuildData *> m_aPrivGuild[MAX_PRIV_NUM];
     std::map<uint32_t, TPrivCharData *> m_aPrivChar[MAX_PRIV_NUM];
 };
+}

@@ -25,6 +25,8 @@
 #include <cstdio>
 #include <utility>
 
+namespace metin2::game {
+
 // 
 // Packet
 //
@@ -746,5 +748,4 @@ void CGuild::ChangeLadderPoint(int iChange)
 	p.lChange = iChange;
 	db_clientdesc->DBPacket(HEADER_GD_GUILD_CHANGE_LADDER_POINT, 0, &p, sizeof(p));
 }
-
-
+}

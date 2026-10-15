@@ -9,6 +9,8 @@
 #include <sstream>
 #include <string>
 
+namespace metin2::game {
+
 namespace quest
 {
 	int quest_setstate(lua_State* L);
@@ -135,4 +137,5 @@ namespace quest
 		FBuildLuaGuildWarList(lua_State * L);
 		void operator() (uint32_t g1, uint32_t g2);
 	};
+}
 }

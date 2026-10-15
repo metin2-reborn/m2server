@@ -10,6 +10,8 @@
 #include <map>
 #include <string>
 
+namespace metin2::game {
+
 namespace marriage
 {
 	const uint32_t WEDDING_MAP_INDEX = 81;
@@ -82,4 +84,5 @@ namespace marriage
 
 			std::map<uint32_t, WeddingMap*> m_mapWedding;
 	};
+}
 }

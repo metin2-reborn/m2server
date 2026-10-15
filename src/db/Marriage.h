@@ -14,6 +14,8 @@
 #include <utility>
 #include <vector>
 
+namespace metin2::db {
+
 namespace marriage
 {
 	struct TWeddingInfo
@@ -111,4 +113,5 @@ namespace marriage
 
 			std::map<std::pair<uint32_t, uint32_t>, TWedding> m_mapRunningWedding;
 	};
+}
 }

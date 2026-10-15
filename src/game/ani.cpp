@@ -22,6 +22,8 @@
 
 #include <strings.h>
 
+namespace metin2::game {
+
 auto FN_race_name(int race) -> const char * {
 #define FN_NAME(race) \
     case race: return #race
@@ -278,4 +280,5 @@ uint32_t ani_combo_speed(CHARACTER * ch, uint8_t combo) {
         return 1000;
 
     return s_ANI.attack_speed(ch->GetRaceNum(), item->GetSubType(), combo, ch->IsRiding());
+}
 }

@@ -16,6 +16,8 @@
 #include <string>
 #include <utility>
 
+namespace metin2::game {
+
 // Speed server bonus experience system
 // by rtsummit
 
@@ -404,4 +406,5 @@ HME CSpeedServerEmpireExp::GetCurrentExpPriv(int &duration, bool &is_change)
 
 	return hme;
 
+}
 }

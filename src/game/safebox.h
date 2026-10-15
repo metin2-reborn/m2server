@@ -2,13 +2,15 @@
 #include "typedef.h"
 
 #include <common/tables.h>
+#include <libgame/grid.h>
 
 #include <cstdint>
 #include <memory>
 
+namespace metin2::game {
+
 class CHARACTER;
 class CItem;
-class CGrid;
 
 class CSafebox
 {
@@ -44,3 +46,4 @@ class CSafebox
 
 		uint8_t		m_bWindowMode;
 };
+}

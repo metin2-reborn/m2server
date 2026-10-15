@@ -20,6 +20,8 @@
 #include <cstdint>
 #include <cstring>
 
+namespace metin2::game {
+
 bool CShopEx::Create(uint32_t dwVnum, uint32_t dwNPCVnum)
 {
 	m_dwVnum = dwVnum;
@@ -219,4 +221,4 @@ int CShopEx::Buy(CHARACTER * ch, uint8_t pos)
 
     return (SHOP_SUBHEADER_GC_OK);
 }
-
+}

@@ -13,6 +13,8 @@
 #include <string>
 #include <vector>
 
+namespace metin2::game {
+
 struct TMobSplashAttackInfo {
 	uint32_t	dwTiming; // Time to wait after using a skill until damage actually lands (ms)
 	uint32_t	dwHitDistance; // Distance at which the skill is actually computed on use (cm forward)
@@ -159,3 +161,4 @@ class CMobManager : public singleton<CMobManager>
 
 		std::map<uint32_t, double> m_mapRegenCount;
 };
+}

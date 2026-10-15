@@ -26,6 +26,8 @@
 #include <cstdint>
 #include <cstdio>
 
+namespace metin2::game {
+
 int battle_hit(CHARACTER * ch, CHARACTER * victim, int & iRetDam);
 
 bool timed_event_cancel(CHARACTER * ch)
@@ -782,4 +784,4 @@ bool IS_SPEED_HACK(CHARACTER * ch, CHARACTER * victim, uint32_t current_time)
 	SET_ATTACKED_TIME(ch, victim, current_time);
 	return false;
 }
-
+}

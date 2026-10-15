@@ -24,6 +24,8 @@
 #include <utility>
 #include <vector>
 
+namespace metin2::game {
+
 
 CMob::CMob()
 {
@@ -389,4 +391,4 @@ bool CMobManager::LoadGroup(const char * c_pszFileName)
 
 	return true;
 }
-
+}

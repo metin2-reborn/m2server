@@ -65,6 +65,8 @@
 
 #include <strings.h>
 
+namespace metin2::game {
+
 // ADD_COMMAND_SLOW_STUN
 enum
 {
@@ -4186,4 +4188,5 @@ ACMD (do_ds_list)
 		if (item != nullptr)
 			ch->ChatPacket(CHAT_TYPE_INFO, "cell : %d, name : %s, id : %d", item->GetCell(), item->GetName(), item->GetID());
 	}
+}
 }

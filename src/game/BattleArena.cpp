@@ -20,6 +20,8 @@
 #include <cstdio>
 #include <string>
 
+namespace metin2::game {
+
 
 CBattleArena::CBattleArena()
 	: m_pEvent(nullptr),
@@ -342,4 +344,4 @@ void CBattleArena::SpawnLastBoss()
 
 	CHARACTER_MANAGER::instance().SpawnMob(vnum, m_nMapIndex, position[idx][0], position[idx][1], 0);
 }
-
+}

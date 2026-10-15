@@ -16,6 +16,8 @@
 #include <map>
 #include <string>
 
+namespace metin2::game {
+
 CHorseNameManager::CHorseNameManager()
 {
 	m_mapHorseNames.clear();
@@ -83,4 +85,4 @@ void CHorseNameManager::Validate(CHARACTER * pChar)
 		}
 	}
 }
-
+}

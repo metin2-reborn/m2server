@@ -31,6 +31,8 @@
 #include <numbers>
 #include <utility>
 
+namespace metin2::game {
+
 enum
 {
 	// ADD_SUPPLY_BUILDING
@@ -1261,4 +1263,4 @@ void CLand::RequestDeleteWallBlocks(uint32_t dwID)
 	}
 }
 // END_BUILD_WALL
-
+}

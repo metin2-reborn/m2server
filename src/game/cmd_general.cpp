@@ -53,6 +53,8 @@
 #include <ctime>
 #include <string>
 
+namespace metin2::game {
+
 ACMD(do_user_horse_ride)
 {
 	if (ch->IsObserverMode())
@@ -2263,4 +2265,4 @@ ACMD(do_ride)
     // When unable to mount or dismount
     ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("말을 먼저 소환해주세요."));
 }
-
+}

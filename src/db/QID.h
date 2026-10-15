@@ -3,6 +3,8 @@
 /**
  * @version	05/06/10 Bang2ni - Added item price queries (QID_ITEMPRICE_XXX)
  */
+
+namespace metin2::db {
 enum QID {
     QID_PLAYER,                         // 0
     QID_ITEM,                           // 1
@@ -33,3 +35,4 @@ enum QID {
     QID_ITEMPRICE_LOAD,            ///< 24, item price load query
     // END_OF_MYSHOP_PRICE_LIST
 };
+}

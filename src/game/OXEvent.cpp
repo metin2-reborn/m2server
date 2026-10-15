@@ -25,6 +25,8 @@
 #include <string>
 #include <utility>
 
+namespace metin2::game {
+
 bool COXEventManager::Initialize()
 {
 	m_timedEvent = nullptr;
@@ -444,4 +446,4 @@ bool COXEventManager::GiveItemToAttender(uint32_t dwItemVnum, uint8_t count)
 
 	return true;
 }
-
+}

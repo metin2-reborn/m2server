@@ -27,6 +27,8 @@
 
 #include <strings.h>
 
+namespace metin2::db {
+
 
 bool CClientManager::InsertLogonAccount(const char * c_pszLogin, uint32_t dwHandle)
 {
@@ -503,4 +505,4 @@ void CClientManager::QUERY_CHANGE_NAME(CPeer * peer, uint32_t dwHandle, TPacketG
 	strlcpy(pdg.name, p->name, sizeof(pdg.name));
 	peer->Encode(&pdg, sizeof(TPacketDGChangeName));
 }
-
+}

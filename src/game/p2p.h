@@ -13,6 +13,8 @@
 #include <unordered_map>
 #include <unordered_set>
 
+namespace metin2::game {
+
 struct CCI {
 	char	szName[CHARACTER_NAME_MAX_LEN + 1];
 	uint32_t	dwPID;
@@ -68,3 +70,4 @@ class P2P_MANAGER : public singleton<P2P_MANAGER>
 		TPIDCCIMap		m_map_dwPID_pkCCI;
 		int			m_aiEmpireUserCount[EMPIRE_MAX_NUM];
 };
+}

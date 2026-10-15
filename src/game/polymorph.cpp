@@ -14,6 +14,8 @@
 #include <unordered_map>
 #include <utility>
 
+namespace metin2::game {
+
 CPolymorphUtils::CPolymorphUtils()
 {
 	m_mapSPDType.insert(std::make_pair(101, 101));
@@ -161,4 +163,5 @@ bool CPolymorphUtils::BookUpgrade(CHARACTER * pChar, CItem * pItem)
 	pItem->SetSocket(1, pItem->GetSocket(2) * 50);
 	pItem->SetSocket(2, pItem->GetSocket(2)+1);
 	return true;
+}
 }

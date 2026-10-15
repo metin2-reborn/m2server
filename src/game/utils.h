@@ -6,6 +6,8 @@
 #include <cstdint>
 #include <ctime>
 
+namespace metin2::game {
+
 template <typename T, typename U> constexpr auto IS_SET(T flag, U bit) { return flag & bit; }
 template <typename T, typename U> constexpr void SET_BIT(T & var, U bit) { var |= bit; }
 template <typename T, typename U> constexpr void REMOVE_BIT(T & var, U bit) { var &= ~bit; }
@@ -62,3 +64,4 @@ extern bool WildCaseCmp(const char *w, const char *s);
 
 // Inside a config parser loop: compares the current token_string, ignoring case.
 #define TOKEN(string) if (!strcasecmp(token_string, string))
+}

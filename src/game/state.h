@@ -8,6 +8,8 @@
 // CState Class
 #include <cassert>
 
+namespace metin2::game {
+
 class CState
 {
 	public:
@@ -84,3 +86,4 @@ class CStateTemplate : public CState
 			(m_pInstance->*m_pfnEndState)();
 		}
 };
+}

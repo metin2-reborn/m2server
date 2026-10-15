@@ -23,6 +23,8 @@
 #include <string>
 #include <utility>
 
+namespace metin2::game {
+
 namespace marriage
 {
 	EVENTINFO(wedding_map_info)
@@ -392,4 +394,5 @@ namespace marriage
 		}
 	}
 
+}
 }

@@ -6,6 +6,8 @@
 #include <set>
 #include <string>
 
+namespace metin2::game {
+
 // Game and auth process setup from metin2::config (server.toml): database connections, locale, data
 // files. The settings themselves are read through metin2::config::server(), game(), auth(), ...; the
 // variables below are runtime state derived from them.
@@ -48,3 +50,4 @@ void map_allow_copy(int32_t * pl, int size);
 void map_allow_log();
 
 const char * get_table_postfix();
+}

@@ -11,6 +11,8 @@
 #include <algorithm>
 #include <cstdlib>
 
+namespace metin2::game {
+
 CItemAddonManager::CItemAddonManager()
 {
 }
@@ -40,4 +42,5 @@ void CItemAddonManager::ApplyAddonTo(int iAddonType, CItem * pItem)
 	pItem->RemoveAttributeType(APPLY_NORMAL_HIT_DAMAGE_BONUS);
 	pItem->AddAttribute(APPLY_NORMAL_HIT_DAMAGE_BONUS, iNormalHitBonus);
 	pItem->AddAttribute(APPLY_SKILL_DAMAGE_BONUS, iSkillBonus);
+}
 }

@@ -5,6 +5,8 @@
 
 #include <cstdint>
 
+namespace metin2::db {
+
 class CItemCache : public cache<TPlayerItem> {
   public:
     CItemCache();
@@ -52,3 +54,4 @@ class CItemPriceListTableCache : public cache<TItemPriceListTable> {
   private:
     static const int s_nMinFlushSec; ///< Minimum cache expire time
 };
+}

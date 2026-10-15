@@ -92,6 +92,8 @@
 #include <strings.h>
 #include <sys/time.h>
 
+namespace metin2::game {
+
 
 
 bool CAN_ENTER_ZONE(CHARACTER * const& ch, int map_index);
@@ -6907,4 +6909,5 @@ int	CHARACTER::GetSkillPowerByLevel(int level, bool bMob) const
 void CHARACTER::SetLastPMPulse(void)
 {
       m_iLastPMPulse = thecore_pulse() + 25;
+}
 }

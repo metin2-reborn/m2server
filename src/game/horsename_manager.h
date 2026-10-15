@@ -8,6 +8,8 @@
 #include <map>
 #include <string>
 
+namespace metin2::game {
+
 class CHorseNameManager : public singleton<CHorseNameManager>
 {
 	private :
@@ -24,4 +26,4 @@ class CHorseNameManager : public singleton<CHorseNameManager>
 
 		void Validate(CHARACTER * pChar);
 };
-
+}

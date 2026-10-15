@@ -16,6 +16,8 @@
 #include <cstdint>
 #include <string>
 
+namespace metin2::game {
+
 namespace xmas
 {
 	void ProcessEventFlag(const std::string& name, int prev_value, int value)
@@ -217,4 +219,5 @@ namespace xmas
 			}
 		}
 	}
+}
 }

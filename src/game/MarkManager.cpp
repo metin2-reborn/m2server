@@ -16,6 +16,8 @@
 #include <string>
 #include <utility>
 
+namespace metin2::game {
+
 CGuildMarkManager::CGuildMarkManager()
 {
 	// Build the set of remaining mark ids. (server only)
@@ -353,4 +355,4 @@ void CGuildMarkManager::UploadSymbol(uint32_t guildID, int iSize, const uint8_t*
 		rSymbol.crc = GetCRC32(reinterpret_cast<const char*>(pbyData), iSize);
 	}
 }
-
+}

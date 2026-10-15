@@ -8,6 +8,8 @@
 #include <variant>
 #include <vector>
 
+namespace metin2::inline common {
+
 CAttribute::CAttribute(const uint32_t *attr, uint32_t width, uint32_t height) : m_width(width), m_height(height) {
     const std::size_t size = static_cast<std::size_t>(width) * height;
     if (size == 0) {
@@ -79,4 +81,5 @@ void CAttribute::CopyRow(uint32_t y, uint32_t *row) const {
             }
         },
         m_cells);
+}
 }

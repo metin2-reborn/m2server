@@ -6,6 +6,8 @@
 #include <string>
 #include <vector>
 
+namespace metin2::game {
+
 namespace quest
 {
 	enum
@@ -110,4 +112,5 @@ namespace quest
 			_clock_value(0), _counter_value(0)
 		{}
 	};
+}
 }

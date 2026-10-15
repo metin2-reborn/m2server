@@ -6,6 +6,8 @@
 
 #include <memory>
 
+namespace metin2::game {
+
 class DESC_P2P : public DESC
 {
 	public:
@@ -15,4 +17,4 @@ class DESC_P2P : public DESC
 		void	SetPhase(int iPhase) override;
 		bool		Setup(std::shared_ptr<net::connection> connection);
 };
-
+}

@@ -12,6 +12,8 @@
 #include <cstdio>
 #include <utility>
 
+namespace metin2::game {
+
 void COver9RefineManager::enableOver9Refine(uint32_t dwVnumFrom, uint32_t dwVnumTo)
 {
 	m_mapItem.insert(std::make_pair(dwVnumFrom, dwVnumTo));
@@ -113,4 +115,4 @@ uint32_t COver9RefineManager::GetMaterialVnum(uint32_t baseVnum)
 
 	return 0;
 }
-
+}

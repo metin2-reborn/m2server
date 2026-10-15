@@ -61,6 +61,8 @@
 
 #include <unistd.h>
 
+namespace metin2::game {
+
 uint32_t AdjustExpByLevel(CHARACTER * const ch, const uint32_t exp)
 {
 	if (PLAYER_EXP_TABLE_MAX < ch->GetLevel())
@@ -3464,4 +3466,4 @@ void CHARACTER::ChangeVictimByAggro(int iNewAggro, CHARACTER * pNewVictim)
 		}
 	}
 }
-
+}

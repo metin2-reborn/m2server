@@ -29,6 +29,8 @@
 #include <string>
 #include <utility>
 
+namespace metin2::db {
+
 const int GUILD_RANK_MAX_NUM = 20;
 
 uint32_t GetGuildWarWaitStartDuration()
@@ -1434,4 +1436,4 @@ void CGuildWarReserve::End(int iScoreFrom, int iScoreTo)
 			break;
 	}
 }
-
+}

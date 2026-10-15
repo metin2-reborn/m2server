@@ -6,6 +6,8 @@
 #include <map>
 #include <vector>
 
+namespace metin2::game {
+
 typedef uint32_t Pixel;
 
 struct SGuildMark
@@ -87,3 +89,4 @@ class CGuildMarkImage
 		SGuildMarkBlock	m_aakBlock[BLOCK_ROW_COUNT][BLOCK_COL_COUNT];
 		std::vector<Pixel> m_pixels;	// WIDTH x HEIGHT, top row first
 };
+}

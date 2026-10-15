@@ -27,6 +27,8 @@
 #include <utility>
 #include <vector>
 
+namespace metin2::db {
+
 class CPlayerTableCache;
 class CItemCache;
 class CItemPriceListTableCache;
@@ -521,3 +523,4 @@ extern int g_item_count;
 extern int g_query_count[2];
 
 bool CreatePlayerTableFromRes(MYSQL_RES * res, TPlayerTable * pkTab);
+}

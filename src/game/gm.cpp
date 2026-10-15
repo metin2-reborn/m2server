@@ -12,6 +12,8 @@
 #include <set>
 #include <string>
 
+namespace metin2::game {
+
 
 //ADMIN_MANAGER
 struct tGM {
@@ -91,4 +93,4 @@ uint8_t gm_get_level(const char * name, const char * host, const char* account)
 {
 	return gm_new_get_level( name, host, account );
 }
-
+}

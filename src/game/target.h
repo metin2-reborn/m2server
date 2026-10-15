@@ -9,6 +9,8 @@
 #include <list>
 #include <map>
 
+namespace metin2::game {
+
 enum ETargetTypes
 {
 	TARGET_TYPE_POS	= (1 << 0),
@@ -73,3 +75,4 @@ class CTargetManager : public singleton<CTargetManager>
 		std::map<uint32_t, std::list<LPEVENT> > m_map_kListEvent;
 		int m_iID;
 };
+}

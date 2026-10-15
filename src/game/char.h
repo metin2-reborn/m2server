@@ -30,6 +30,8 @@
 
 #include <sys/time.h>
 
+namespace metin2::game {
+
 class CBuffOnAttributes;
 class CPetSystem;
 
@@ -1981,3 +1983,4 @@ ESex GET_SEX(CHARACTER * ch);
 
 extern bool IS_SUMMONABLE_ZONE(int map_index);
 extern CHARACTER * FindVictim(CHARACTER * pkChr, int iMaxDistance);
+}

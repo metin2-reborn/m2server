@@ -1,4 +1,4 @@
-add_executable(db
+add_library(metin2_db STATIC
     Cache.cpp
     Cache.h
     ClientManager.cpp
@@ -37,9 +37,7 @@ add_executable(db
     ProtoReader.cpp
     ProtoReader.h
     QID.h
-    version.cpp
 )
 
-target_compile_definitions(db PRIVATE __P4_VERSION__="40142")
-target_link_libraries(db PRIVATE common game metin2_config metin2_log net poly sql thecore)
-target_include_directories(db PRIVATE ../)
+target_link_libraries(metin2_db PUBLIC common game metin2_config metin2_log net poly sql thecore)
+target_include_directories(metin2_db PRIVATE ../)

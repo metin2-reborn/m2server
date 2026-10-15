@@ -4,6 +4,8 @@
 #include <cstdint>
 #include <numbers>
 
+namespace metin2::game {
+
 
 
 static float DegreeToRadian(float degree) { return degree * (std::numbers::pi_v<float> / 180.0f); }
@@ -70,4 +72,4 @@ float GetDegreeDelta(float iDegree, float iDegree2)
 
 	return fabs(iDegree - iDegree2);
 }
-
+}

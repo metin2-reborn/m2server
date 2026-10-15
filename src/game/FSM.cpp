@@ -6,6 +6,8 @@
 
 #include <cassert>
 
+namespace metin2::game {
+
 // Constructor
 CFSM::CFSM()
 {
@@ -62,4 +64,4 @@ bool CFSM::GotoState(CState & NewState)
 	m_pNewState = &NewState;
 	return true;
 }
-
+}

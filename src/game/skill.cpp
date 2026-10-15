@@ -16,6 +16,8 @@
 
 #include <strings.h>
 
+namespace metin2::game {
+
 void CSkillProto::SetPointVar(const std::string& strName, double dVar)
 {
 	kPointPoly.SetVar(strName, dVar);
@@ -328,4 +330,4 @@ CSkillProto * CSkillManager::Get(const char * c_pszSkillName)
 
 	return nullptr;
 }
-
+}

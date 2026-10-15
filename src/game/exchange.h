@@ -2,11 +2,13 @@
 #include "typedef.h"
 
 #include <common/length.h>
+#include <libgame/grid.h>
 
 #include <cstdint>
 #include <memory>
 
-class CGrid;
+namespace metin2::game {
+
 
 enum EExchangeValues
 {
@@ -54,3 +56,4 @@ class CExchange
 		std::unique_ptr<CGrid>	m_pGrid;
 
 };
+}

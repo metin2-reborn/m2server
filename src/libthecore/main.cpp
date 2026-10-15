@@ -17,6 +17,8 @@
 #include <sys/random.h>
 #include <unistd.h>
 
+namespace metin2::inline core {
+
 heart *thecore_heart = nullptr;
 
 volatile std::sig_atomic_t shutdowned = false;
@@ -94,4 +96,5 @@ bool thecore_is_shutdowned() {
 
 void thecore_tick() {
     tics = tics + 1;
+}
 }

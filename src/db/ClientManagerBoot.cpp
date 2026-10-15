@@ -29,6 +29,8 @@
 #include <utility>
 #include <vector>
 
+namespace metin2::db {
+
 
 bool CClientManager::InitializeTables()
 {
@@ -1477,4 +1479,5 @@ bool CClientManager::MirrorItemTableIntoDB()
 		}
 	}
 	return true;
+}
 }

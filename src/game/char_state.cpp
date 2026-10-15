@@ -31,6 +31,8 @@
 #include <cstdint>
 #include <cstdio>
 
+namespace metin2::game {
+
 
 namespace
 {
@@ -1198,4 +1200,4 @@ void CHARACTER::StateHorse()
 			SendMovePacket(FUNC_WAIT, 0, 0, 0, 0);
 	}
 }
-
+}

@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+namespace metin2::db {
+
 ////////////////////////////////////////////////////////////////////////////////
 /// \class cCsvRow 
 /// \brief class encapsulating one row of a CSV file
@@ -192,3 +194,4 @@ private:
     cCsvTable(const cCsvTable&) = delete;
     cCsvTable& operator = (const cCsvTable&) = delete;
 };
+}

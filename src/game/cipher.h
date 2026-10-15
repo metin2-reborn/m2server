@@ -3,6 +3,8 @@
 #include <cstddef>
 #include <cstdint>
 
+namespace metin2::game {
+
 // Encryption of the game connection (the client's EterBase/Cipher is the same code):
 //   - key agreement: X25519 with a fresh key pair per connection; each side sends its 32-byte
 //   - keys: BLAKE2b-512 keyed with the shared secret over a label and both public keys (client's
@@ -63,3 +65,4 @@ class Cipher {
     Stream encoder_;
     Stream decoder_;
 };
+}

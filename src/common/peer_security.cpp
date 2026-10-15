@@ -9,6 +9,8 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 
+namespace metin2::inline common {
+
 auto is_allowed_peer(const char *address, std::span<const std::string> hosts, const char *local) -> bool {
     in_addr remote{};
 
@@ -47,4 +49,5 @@ auto is_allowed_peer(const char *address, std::span<const std::string> hosts, co
     }
 
     return false;
+}
 }

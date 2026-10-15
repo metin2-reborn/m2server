@@ -13,6 +13,8 @@
 #include <chrono>
 #include <thread>
 
+namespace metin2::inline core {
+
 using clock_type = std::chrono::steady_clock;
 
 auto heart_new(int fps) -> heart * {
@@ -51,4 +53,5 @@ auto heart_idle(heart *ht) -> int {
     }
 
     return missed_pulse;
+}
 }

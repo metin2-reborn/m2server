@@ -6,6 +6,8 @@
 #include <ctime>
 #include <source_location>
 
+namespace metin2::inline core {
+
 // Logs where it was called from, then dumps core from a forked child; the server keeps running.
 void core_dump(std::source_location where = std::source_location::current());
 
@@ -37,3 +39,4 @@ auto thecore_random() -> uint32_t; // Random functions
 auto get_float_time() -> float;
 auto get_dword_time() -> uint32_t;
 auto time_str(time_t ct) -> char *;
+}

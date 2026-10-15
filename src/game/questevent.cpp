@@ -12,6 +12,8 @@
 #include <cstdint>
 #include <cstring>
 
+namespace metin2::game {
+
 namespace quest
 {
 	void CancelTimerEvent(LPEVENT * ppEvent)
@@ -129,4 +131,5 @@ END_OF_TIMER_EVENT:
 		info->time_cycle	= loop ? ltime_cycle : 0;
 		return event_create(quest_timer_event, info, ltime_cycle);
 	}
+}
 }

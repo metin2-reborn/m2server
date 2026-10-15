@@ -9,6 +9,8 @@
 #include <string>
 #include <vector>
 
+namespace metin2::game {
+
 class CHARACTER;
 
 namespace quest
@@ -208,4 +210,5 @@ namespace quest
 	{
 		return m_RunningQuestState;
 	}
+}
 }

@@ -10,6 +10,8 @@
 #include <cstdint>
 #include <cstdio>
 
+namespace metin2::game {
+
 int touch(const char *path)
 {
 	FILE	*fp;
@@ -89,4 +91,4 @@ bool ITEM_MANAGER::SetMaxSpareItemID(TItemIDRangeTable range)
 
 	return true;
 }
-
+}

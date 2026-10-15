@@ -46,6 +46,8 @@
 #include <sstream>
 #include <string>
 
+namespace metin2::game {
+
 
 
 namespace quest
@@ -728,7 +730,7 @@ namespace quest
 		size_t len = strlen(str);
 
 		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		::interpret_command(ch, str, len);
+		metin2::game::interpret_command(ch, str, len);
 		return 0;
 	}
 
@@ -988,7 +990,7 @@ namespace quest
 		Script += "[ENTER]";
 		Script += "[DONE]";
 		
-		struct ::packet_script packet_script;
+		struct metin2::game::packet_script packet_script;
 
 		packet_script.header = HEADER_GC_SCRIPT;
 		packet_script.skin = CQuestManager::QUEST_SKIN_NORMAL;
@@ -1421,4 +1423,4 @@ namespace quest
 		}
 	}
 }
-
+}

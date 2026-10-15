@@ -15,6 +15,8 @@
 #define STB_IMAGE_WRITE_STATIC
 #include <stb_image_write.h>
 
+namespace metin2::game {
+
 namespace {
 // Exchanges the red and blue channels: RGBA bytes <-> BGRA bytes.
 auto swap_red_blue(uint32_t pixel) -> uint32_t {
@@ -52,4 +54,5 @@ auto save_tga_bgra(const char *filename, const uint32_t *pixels, int width, int 
 
     stbi_write_tga_with_rle = 0;
     return stbi_write_tga(filename, width, height, 4, rgba.data()) != 0;
+}
 }

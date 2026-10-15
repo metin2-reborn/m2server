@@ -16,6 +16,8 @@
 #include <utility>
 #include <vector>
 
+namespace metin2::game {
+
 CGuildMarkImage::CGuildMarkImage() : m_pixels(WIDTH * HEIGHT)
 {
 }
@@ -155,4 +157,5 @@ void SGuildMarkBlock::Compress(const Pixel * pxBuf)
 	}
 
 	m_crc = GetCRC32((const char *) pxBuf, sizeof(Pixel) * SGuildMarkBlock::SIZE);
+}
 }

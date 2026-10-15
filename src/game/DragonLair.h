@@ -7,6 +7,8 @@
 #include <cstdint>
 #include <unordered_map>
 
+namespace metin2::game {
+
 class CDragonLair
 {
 	public:
@@ -34,4 +36,4 @@ class CDragonLairManager : public singleton<CDragonLairManager>
 	private:
 		std::unordered_map<uint32_t, CDragonLair*> LairMap_;
 };
-
+}

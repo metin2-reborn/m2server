@@ -8,6 +8,8 @@
 #include <map>
 #include <memory>
 
+namespace metin2::game {
+
 enum EMotionMode
 {
 	MOTION_MODE_GENERAL,
@@ -136,3 +138,4 @@ class CMotionManager : public singleton<CMotionManager>
 		std::map<uint32_t, float> m_map_normalAttackDuration;
 		// END_OF_POLYMORPH_BUG_FIX
 };
+}

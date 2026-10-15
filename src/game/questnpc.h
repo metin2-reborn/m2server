@@ -11,6 +11,8 @@
 #include <string>
 #include <vector>
 
+namespace metin2::game {
+
 namespace quest
 {
 	enum
@@ -129,4 +131,5 @@ namespace quest
 				}
 			}
 		}
+}
 }

@@ -10,6 +10,8 @@
 
 #include <climits>
 
+namespace metin2::game {
+
 CEventQueue::~CEventQueue()
 {
 	for (auto & [key, pElem] : m_queue)
@@ -56,4 +58,5 @@ int CEventQueue::GetTopKey()
 int CEventQueue::Size()
 {
 	return static_cast<int>(m_queue.size());
+}
 }

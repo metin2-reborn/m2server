@@ -3,7 +3,7 @@
 #include <string>
 #include <string_view>
 
-namespace sql {
+namespace metin2::sql {
     auto escape(std::string_view value) -> std::string {
         std::string result;
         result.reserve(value.size());

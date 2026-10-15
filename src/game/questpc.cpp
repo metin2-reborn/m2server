@@ -23,6 +23,8 @@
 #include <utility>
 #include <vector>
 
+namespace metin2::game {
+
 
 namespace quest
 {
@@ -711,4 +713,4 @@ namespace quest
 		}
 	}
 }
-
+}

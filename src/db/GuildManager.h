@@ -22,6 +22,8 @@
 #include <utility>
 #include <vector>
 
+namespace metin2::db {
+
 enum
 {
     GUILD_WARP_WAR_CHANNEL = 99
@@ -256,3 +258,4 @@ class CGuildManager : public singleton<CGuildManager>
 	// GID Ranking
 	std::map<uint32_t, int>					map_kLadderPointRankingByGID;
 };
+}

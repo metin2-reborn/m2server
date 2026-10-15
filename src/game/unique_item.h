@@ -1,6 +1,8 @@
 
 #pragma once
 
+namespace metin2::game {
+
 enum
 {
 	UNIQUE_GROUP_LUCKY_GOLD = 10024,
@@ -112,3 +114,4 @@ enum
 	// Dragon heart given when extracting from a dragon soul stone.
 	DRAGON_HEART_VNUM = 100000,
 };
+}

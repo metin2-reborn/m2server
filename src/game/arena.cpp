@@ -20,6 +20,8 @@
 #include <memory>
 #include <utility>
 
+namespace metin2::game {
+
 CArena::CArena(uint16_t startA_X, uint16_t startA_Y, uint16_t startB_X, uint16_t startB_Y)
 {
 	m_StartPointA.x = startA_X;
@@ -1066,4 +1068,4 @@ bool CArenaManager::IsLimitedItem( int32_t lMapIndex, uint32_t dwVnum )
 {
 	return false;
 }
-
+}

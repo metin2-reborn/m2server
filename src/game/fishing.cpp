@@ -31,6 +31,8 @@
 #include <numbers>
 #include <string>
 
+namespace metin2::game {
+
 namespace fishing
 {
 	enum
@@ -875,4 +877,4 @@ int RealRefineRod(CHARACTER * ch, CItem * item)
 	}
 }
 }
-
+}

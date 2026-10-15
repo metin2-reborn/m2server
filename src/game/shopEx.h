@@ -10,7 +10,8 @@
 #include <string>
 #include <vector>
 
-struct TShopTable;
+namespace metin2::game {
+
 struct TShopTableEx : TShopTable {
 	std::string name;
 	EShopCoinType coinType;
@@ -39,3 +40,4 @@ public:
 private:
 	std::vector <TShopTableEx> m_vec_shopTabs;
 };
+}

@@ -9,6 +9,8 @@
 #include <cstdio>
 #include <map>
 
+namespace metin2::game {
+
 CPacketInfo::CPacketInfo()
 	: m_pCurrentPacket(nullptr), m_dwStartTime(0)
 {
@@ -265,4 +267,4 @@ CPacketInfoGG::~CPacketInfoGG()
 {
 	Log("p2p_packet_info.txt");
 }
-
+}

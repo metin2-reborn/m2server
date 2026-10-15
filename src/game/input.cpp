@@ -34,6 +34,8 @@
 #include <string>
 #include <vector>
 
+namespace metin2::game {
+
 
 bool IsEmptyAdminPage()
 {
@@ -638,5 +640,4 @@ metin2::log::debug( "DC : '{}'", msg.c_str());
 
 	return 0;
 }
-
-
+}

@@ -16,6 +16,8 @@
 #include <cstdio>
 #include <memory>
 
+namespace metin2::db {
+
 CItemIDRangeManager::CItemIDRangeManager()
 {
 	m_listData.clear();
@@ -170,4 +172,4 @@ void CItemIDRangeManager::UpdateRange(uint32_t dwMin, uint32_t dwMax)
 		m_listData.push_back(range);
 	}
 }
-
+}

@@ -2,6 +2,8 @@
 
 #include <chrono>
 
+namespace metin2::inline core {
+
 // The main loop's clock: thecore_idle waits for the next of passes_per_sec pulses a second.
 struct heart {
     std::chrono::steady_clock::duration opt_time;    // one pulse
@@ -9,3 +11,4 @@ struct heart {
     int passes_per_sec;
     int pulse;
 };
+}

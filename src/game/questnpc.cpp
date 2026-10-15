@@ -27,6 +27,8 @@
 #include <dirent.h>
 #include <strings.h>
 
+namespace metin2::game {
+
 // questpc.h: PC::typedef Quest
 // typedef 
 
@@ -916,4 +918,5 @@ namespace quest
 	{
 		return HandleEvent(pc, QUEST_ITEM_INFORMER_EVENT);
 	}
+}
 }

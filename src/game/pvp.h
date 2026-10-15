@@ -9,6 +9,8 @@
 #include <memory>
 #include <unordered_set>
 
+namespace metin2::game {
+
 class CHARACTER;
 
 // CPVP takes two uint32_t IDs, builds m_dwCRC from them and keeps it.
@@ -78,3 +80,4 @@ class CPVPManager : public singleton<CPVPManager>
 	std::map<uint32_t, std::unique_ptr<CPVP>>	m_map_pkPVP;
 	CPVPSetMap		m_map_pkPVPSetByID;
 };
+}

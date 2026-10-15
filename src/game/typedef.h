@@ -4,6 +4,8 @@
 #include <unordered_set>
 #include <vector>
 
+namespace metin2::game {
+
 class DESC;
 
 class CLIENT_DESC;
@@ -46,3 +48,4 @@ enum EEntityTypes
 	ENTITY_ITEM,
 	ENTITY_OBJECT,
 };
+}

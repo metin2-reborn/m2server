@@ -44,6 +44,8 @@
 #include <cstring>
 #include <map>
 
+namespace metin2::game {
+
 static void _send_bonus_info(CHARACTER * ch)
 {
 	int	item_drop_bonus = 0;
@@ -1128,4 +1130,4 @@ int CInputLogin::Analyze(DESC * d, uint8_t bHeader, const char * c_pData)
 
 	return (iExtraLen);
 }
-
+}

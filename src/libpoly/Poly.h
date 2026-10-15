@@ -6,6 +6,8 @@
 #include <string>
 #include <vector>
 
+namespace metin2::poly {
+
 // A formula from the skill and guild tables (e.g. "(atk + 2 * k) * min(lv, 90)"): Analyze
 // compiles it to postfix once, SetVar binds its variables and Eval computes it. Supports
 // + - * / % ^, parentheses, pi and e, and the functions registered in the constructor.
@@ -46,3 +48,8 @@ class CPoly {
     std::map<std::string, int, std::less<>> symbol_index_;
     std::string data_;
 };
+}
+
+namespace metin2 {
+    using poly::CPoly;
+}

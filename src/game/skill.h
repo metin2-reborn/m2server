@@ -9,6 +9,8 @@
 #include <memory>
 #include <string>
 
+namespace metin2::game {
+
 enum ESkillFlags
 {
 	SKILL_FLAG_ATTACK			= (1 << 0),	// Attack skill
@@ -249,3 +251,4 @@ class CSkillManager : public singleton<CSkillManager>
 	protected:
 		std::map<uint32_t, std::unique_ptr<CSkillProto>> m_map_pkSkillProto;
 };
+}

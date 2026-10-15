@@ -28,6 +28,8 @@
 #include <string>
 #include <utility>
 
+namespace metin2::game {
+
 CDungeon::CDungeon(IdType id, int32_t lOriginalMapIndex, int32_t lMapIndex)
 	: m_id(id),
 	m_lMapIndex(lMapIndex),
@@ -1329,4 +1331,5 @@ const CDungeon::ItemGroup* CDungeon::GetItemGroup (std::string& group_name)
 		return &(it->second);
 	else
 		return nullptr;
+}
 }

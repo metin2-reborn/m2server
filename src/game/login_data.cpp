@@ -4,6 +4,8 @@
 #include <cstring>
 #include <string>
 
+namespace metin2::game {
+
 
 CLoginData::CLoginData()
 {
@@ -51,4 +53,4 @@ int * CLoginData::GetPremiumPtr()
 {
 	return &m_aiPremiumTimes[0];
 }
-
+}

@@ -23,6 +23,8 @@
 #include <memory>
 #include <vector>
 
+namespace metin2::game {
+
 void exchange_packet(CHARACTER * ch, uint8_t sub_header, bool is_me, uint32_t arg1, TItemPos arg2, uint32_t arg3, void * pvData = nullptr);
 
 // Trade packet
@@ -604,4 +606,4 @@ void CExchange::Cancel()
 
 	delete this;
 }
-
+}

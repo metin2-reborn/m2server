@@ -16,6 +16,8 @@
 #include <cstring>
 #include <string>
 
+namespace metin2::game {
+
 
 bool FN_IS_VALID_LOGIN_STRING(const char *str)
 {
@@ -200,4 +202,4 @@ int CInputAuth::Analyze(DESC * d, uint8_t bHeader, const char * c_pData)
 
 	return iExtraLen;
 }
-
+}

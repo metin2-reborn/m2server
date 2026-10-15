@@ -4,6 +4,8 @@
 
 #include <map>
 
+namespace metin2::game {
+
 struct TQueueElement
 {
 	LPEVENT	pvData;
@@ -31,3 +33,4 @@ class CEventQueue
 	private:
 		std::multimap<int, TQueueElement *> m_queue;
 };
+}

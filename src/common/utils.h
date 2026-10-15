@@ -8,6 +8,8 @@
 #include <system_error>
 #include <type_traits>
 
+namespace metin2::inline common {
+
 // Parses a decimal number like strtol/strtoul/strtof: leading whitespace and '+' are skipped,
 // parsing stops at the first character that does not belong to the number, a negative value
 // read into an unsigned type wraps, and anything unparsable reads as 0. Returns false only for
@@ -49,4 +51,5 @@ inline void to_lower(std::string &str) {
         [](unsigned char c) -> char {
             return static_cast<char>(std::tolower(c));
         });
+}
 }

@@ -11,6 +11,8 @@
 #include <ctime>
 #include <utility>
 
+namespace metin2::db {
+
 const int CHARACTER_GOOD_PRIV_DURATION = 2*60*60;
 const int CHARACTER_BAD_PRIV_DURATION = 60*60;
 
@@ -296,4 +298,5 @@ void CPrivManager::SendPrivOnSetup(CPeer* peer)
 			FSendChangeCharPriv(it->first, i, it->second->value)(peer);
 		}
 	}
+}
 }

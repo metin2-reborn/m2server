@@ -2,6 +2,8 @@
 
 #include <vector>
 
+namespace metin2::inline common {
+
 // Occupancy of a width x height cell grid (inventory pages, shops, exchange windows).
 // Positions are row-major cell indices; an item covers w x h cells from its top-left cell.
 class CGrid {
@@ -24,3 +26,4 @@ class CGrid {
     int m_iHeight;
     std::vector<char> m_cells;
 };
+}

@@ -5,6 +5,8 @@
 
 #pragma once
 
+namespace metin2::game {
+
 class CItemDropInfo
 {
 public:
@@ -33,4 +35,4 @@ struct TDropItem {
 	char	szItemName[PROTO_NAME_MAX_LEN + 1];
 	int		iCount;
 };
-
+}

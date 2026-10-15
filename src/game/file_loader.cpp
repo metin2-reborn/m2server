@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+namespace metin2::game {
+
 CMemoryTextFileLoader::CMemoryTextFileLoader()
 {
 }
@@ -113,4 +115,4 @@ void CMemoryTextFileLoader::Bind(int bufSize, const void* c_pvBuf)
 
 	m_stLineVector.push_back(stLine);
 }
-
+}

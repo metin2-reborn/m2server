@@ -16,6 +16,8 @@
 #include <cstring>
 #include <iterator>
 
+namespace metin2::game {
+
 
 CMonarch::CMonarch()
 {
@@ -281,4 +283,5 @@ bool IsMonarchWarpZone (int map_idx)
 	}
 
 	return (map_idx != 208 && map_idx != 216 && map_idx != 217);
+}
 }

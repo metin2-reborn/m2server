@@ -18,6 +18,8 @@
 #include <string>
 #include <utility>
 
+namespace metin2::db {
+
 void CClientManager::LoadEventFlag()
 {
 	char szQuery[1024];
@@ -83,4 +85,4 @@ void CClientManager::SendEventFlagsOnSetup(CPeer* peer)
 		peer->Encode(&p, sizeof(TPacketSetEventFlag));
 	}
 }
-
+}

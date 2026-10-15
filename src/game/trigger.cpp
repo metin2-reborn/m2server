@@ -14,6 +14,8 @@
 #include <cstdlib>
 #include <limits>
 
+namespace metin2::game {
+
 int	OnClickShop(TRIGGERPARAM);
 int	OnClickTalk(TRIGGERPARAM);
 
@@ -164,4 +166,4 @@ CHARACTER * FindVictim(CHARACTER * pkChr, int iMaxDistance)
 	}
 	return f.GetVictim();
 }
-
+}

@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+namespace metin2::inline proto {
+
 inline constexpr int ITEM_NAME_MAX_LEN = 24;
 inline constexpr int PROTO_NAME_MAX_LEN = 63; // item/mob prototype names (UTF-8: Korean takes 3 bytes a character)
 inline constexpr int ITEM_VALUES_MAX_NUM = 6;
@@ -325,3 +327,4 @@ enum ERefineType {
     REFINE_TYPE_MUSIN,
     REFINE_TYPE_BDRAGON,
 };
+}

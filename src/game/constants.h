@@ -7,6 +7,8 @@
 #include <cstdint>
 #include <map>
 
+namespace metin2::game {
+
 enum EMonsterChatState
 {
 	MONSTER_CHAT_WAIT,
@@ -143,3 +145,4 @@ int32_t FN_get_apply_type(const char *apply_type_string);
 // END_OF_ACCESSORY_REFINE
 
 int32_t FN_get_apply_type(const char *apply_type_string);
+}

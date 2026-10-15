@@ -14,6 +14,8 @@
 #include <system_error>
 #include <vector>
 
+using namespace metin2;
+
 namespace {
     using namespace std::chrono_literals;
 

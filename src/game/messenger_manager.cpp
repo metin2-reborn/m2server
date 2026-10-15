@@ -31,6 +31,8 @@
 
 #include <sys/types.h>
 
+namespace metin2::game {
+
 MessengerManager::MessengerManager()
 {
 }
@@ -412,4 +414,4 @@ void MessengerManager::SendLogout(MessengerManager::keyA account, MessengerManag
 	d->BufferedPacket(&bLen, sizeof(uint8_t));
 	d->Packet(companion.c_str(), companion.size());
 }
-
+}

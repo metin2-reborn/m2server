@@ -10,6 +10,8 @@
 #include <cstdint>
 #include <cstring>
 
+namespace metin2::game {
+
 /////////////////////////////////////////////////////////////////////////////
 // QUICKSLOT HANDLING
 /////////////////////////////////////////////////////////////////////////////
@@ -157,4 +159,4 @@ void CHARACTER::ChainQuickslotItem(CItem * pItem, uint8_t bType, uint8_t bOldPos
 		}
 	}
 }
-
+}

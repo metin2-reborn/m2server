@@ -19,7 +19,7 @@
 #include <utility>
 #include <vector>
 
-namespace net {
+namespace metin2::net {
     namespace {
         // Input grows in steps of at least this much free space per read.
         constexpr std::size_t min_read_space = 16 * 1024;

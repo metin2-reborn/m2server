@@ -38,6 +38,8 @@
 
 #include <strings.h>
 
+namespace metin2::game {
+
 CHARACTER_MANAGER::CHARACTER_MANAGER() :
 	m_iVIDCount(0),
 	m_pkChrSelectedStone(nullptr),
@@ -996,4 +998,4 @@ CharacterVectorInteractor::~CharacterVectorInteractor()
 	if (m_bMyBegin)
 		CHARACTER_MANAGER::instance().FlushPendingDestroy();
 }
-
+}

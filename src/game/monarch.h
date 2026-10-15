@@ -8,6 +8,8 @@
 #include <cstdint>
 #include <iterator>
 
+namespace metin2::game {
+
 class CMonarch : public singleton<CMonarch>
 {
 	public:
@@ -62,3 +64,4 @@ class CMonarch : public singleton<CMonarch>
 };
 
 bool IsMonarchWarpZone (int map_idx);
+}

@@ -27,6 +27,8 @@
 #include <string>
 #include <utility>
 
+namespace metin2::game {
+
 
 namespace marriage
 {
@@ -741,4 +743,5 @@ namespace marriage
 
 		db_clientdesc->DBPacket(HEADER_GD_WEDDING_END, 0, &p, sizeof(p));
 	}
+}
 }
