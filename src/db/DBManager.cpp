@@ -113,7 +113,7 @@ SQLMsg *CDBManager::DirectQuery(const char *c_pszQuery, int iSlot) {
     return m_directSQL[iSlot]->DirectQuery(c_pszQuery);
 }
 
-void CDBManager::ReturnQuery(const char *c_pszQuery, int iType, IDENT dwIdent, void *udata, int iSlot) {
+void CDBManager::ReturnQuery(const char *c_pszQuery, int iType, uint32_t dwIdent, void *udata, int iSlot) {
     assert(iSlot < SQL_MAX_NUM);
     CQueryInfo *p = new CQueryInfo;
 

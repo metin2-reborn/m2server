@@ -12,7 +12,6 @@
 #include "item.h"
 #include "typedef.h"
 
-#include <common/item_length.h>
 #include <common/length.h>
 #include <libthecore/log.h>
 

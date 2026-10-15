@@ -7,13 +7,12 @@
 #include "ProtoReader.h"
 
 #include <common/building.h>
-#include <common/item_length.h>
 #include <common/length.h>
 #include <common/tables.h>
 #include <common/utils.h>
 #include <libsql/AsyncSQL.h>
-#include <libthecore/hangul.h>
 #include <libthecore/log.h>
+#include <libthecore/utils.h>
 
 #include <mysql.h>
 
@@ -1131,7 +1130,7 @@ void parse_pair_number_string(const char * c_pszString, std::vector<std::pair<in
 
 	while (p)
 	{
-		if (isnhdigit(*t))
+		if (is_digit(*t))
 		{
 			strlcpy(szNum, t, std::min<int>(sizeof(szNum), (p-t)+1));
 
@@ -1153,7 +1152,7 @@ void parse_pair_number_string(const char * c_pszString, std::vector<std::pair<in
 		p = strchr(t, '/');
 	}
 
-	if (isnhdigit(*t))
+	if (is_digit(*t))
 	{
 		strlcpy(szNum, t, sizeof(szNum));
 

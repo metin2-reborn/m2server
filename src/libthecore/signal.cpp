@@ -1,9 +1,3 @@
-/*
- *    Filename: signal.cpp
- * Description: Signal-related functions.
- *
- *      Author: Biyeop aka. Cronan
- */
 #include "internal.h"
 
 #include <libthecore/core_signal.h>
@@ -17,59 +11,50 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-namespace
-{
-    void reap(int)
-    {
-	while (waitpid(-1, nullptr, WNOHANG) > 0);
-	std::signal(SIGCHLD, reap);
+namespace {
+    void reap(int) {
+        while (waitpid(-1, nullptr, WNOHANG) > 0)
+            ;
+        std::signal(SIGCHLD, reap);
     }
 
     // The virtual timer fires every 30s of CPU time; no tick since the last one means the
     // main loop is stuck.
-    void checkpointing(int)
-    {
-	if (!tics)
-	{
-	    sys_err("CHECKPOINT shutdown: tics did not updated.");
-	    std::abort();
-	}
-	tics = 0;
+    void checkpointing(int) {
+        if (!tics) {
+            sys_err("CHECKPOINT shutdown: tics did not updated.");
+            std::abort();
+        }
+        tics = 0;
     }
 
-    void hupsig(int)
-    {
-	shutdowned = true;
-	constexpr char message[] = "shutdown signal received\n";
-	(void) write(STDERR_FILENO, message, sizeof(message) - 1);
+    void hupsig(int) {
+        shutdowned = true;
+        constexpr char message[] = "shutdown signal received\n";
+        (void)write(STDERR_FILENO, message, sizeof(message) - 1);
     }
 
-    void usrsig(int)
-    {
-	core_dump();
+    void usrsig(int) {
+        core_dump();
     }
 
-    void set_virtual_timer(int seconds)
-    {
-	itimerval itime{};
-	itime.it_interval.tv_sec = seconds;
-	itime.it_value.tv_sec = seconds;
-	setitimer(ITIMER_VIRTUAL, &itime, nullptr);
+    void set_virtual_timer(int seconds) {
+        itimerval itime{};
+        itime.it_interval.tv_sec = seconds;
+        itime.it_value.tv_sec = seconds;
+        setitimer(ITIMER_VIRTUAL, &itime, nullptr);
     }
 }
 
-void signal_timer_disable()
-{
+void signal_timer_disable() {
     set_virtual_timer(0);
 }
 
-void signal_timer_enable(int sec)
-{
+void signal_timer_enable(int sec) {
     set_virtual_timer(sec);
 }
 
-void signal_setup()
-{
+void signal_setup() {
     signal_timer_enable(30);
 
     std::signal(SIGVTALRM, checkpointing);

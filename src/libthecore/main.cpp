@@ -1,9 +1,3 @@
-/*
- *    Filename: main.cpp
- * Description: library init/cleanup etc.
- *
- *      Author: Biyeop aka. Cronan
- */
 #include <libthecore/main.h>
 
 #include "internal.h"
@@ -23,89 +17,82 @@
 #include <sys/random.h>
 #include <unistd.h>
 
-heart *		thecore_heart = nullptr;
+heart *thecore_heart = nullptr;
 
-volatile std::sig_atomic_t	shutdowned = false;
-volatile std::sig_atomic_t	tics = 0;
-unsigned int			thecore_idle_time = 0;
+volatile std::sig_atomic_t shutdowned = false;
+volatile std::sig_atomic_t tics = 0;
+unsigned int thecore_idle_time = 0;
 
-namespace
-{
-	bool pid_init()
-	{
-		std::ofstream pid("pid");
-		if (!pid)
-		{
-			std::printf("pid_init(): could not open file for writing. (filename: ./pid)");
-			sys_err("\nError writing pid file\n");
-			return false;
-		}
+namespace {
+    auto pid_init() -> bool {
+        std::ofstream pid("pid");
+        if (!pid) {
+            std::printf("pid_init(): could not open file for writing. (filename: ./pid)");
+            sys_err("\nError writing pid file\n");
+            return false;
+        }
 
-		pid << getpid();
-		sys_err("\nStart of pid: %d\n", getpid());
-		return true;
-	}
+        pid << getpid();
+        sys_err("\nStart of pid: %d\n", getpid());
+        return true;
+    }
 
-	void pid_deinit()
-	{
-		std::remove("./pid");
-		sys_err("\nEnd of pid\n");
-	}
+    void pid_deinit() {
+        std::remove("./pid");
+        sys_err("\nEnd of pid\n");
+    }
 }
 
-bool thecore_init(int fps)
-{
-	unsigned int seed;
-	if (getrandom(&seed, sizeof(seed), 0) != sizeof(seed))
-	{
-		sys_err("getrandom failed: %s", std::strerror(errno));
-		return false;
-	}
-	srandom(seed);
-	signal_setup();
+auto thecore_init(int fps) -> bool {
+    unsigned int seed;
+    if (getrandom(&seed, sizeof(seed), 0) != sizeof(seed)) {
+        sys_err("getrandom failed: %s", std::strerror(errno));
+        return false;
+    }
 
-	if (!log_init() || !pid_init())
-		return false;
+    srandom(seed);
+    signal_setup();
 
-	thecore_heart = heart_new(fps);
-	return true;
+    if (!log_init() || !pid_init()) {
+        return false;
+    }
+
+    thecore_heart = heart_new(fps);
+    return true;
 }
 
-void thecore_shutdown()
-{
-	shutdowned = true;
+void thecore_shutdown() {
+    shutdowned = true;
 }
 
-int thecore_idle()
-{
-	thecore_tick();
+auto thecore_idle() -> int {
+    thecore_tick();
 
-	if (shutdowned)
-		return 0;
+    if (shutdowned) {
+        return 0;
+    }
 
-	const uint32_t t = get_dword_time();
-	const int pulses = heart_idle(thecore_heart);
-	thecore_idle_time += get_dword_time() - t;
-	return pulses;
+    const uint32_t t = get_dword_time();
+    const int pulses = heart_idle(thecore_heart);
+
+    thecore_idle_time += get_dword_time() - t;
+
+    return pulses;
 }
 
-void thecore_destroy()
-{
-	pid_deinit();
-	log_destroy();
+void thecore_destroy() {
+    pid_deinit();
+    log_destroy();
 }
 
-int thecore_pulse()
-{
-	return thecore_heart->pulse;
+auto thecore_pulse() -> int {
+    return thecore_heart->pulse;
 }
 
-bool thecore_is_shutdowned()
-{
-	return shutdowned;
+bool thecore_is_shutdowned() {
+    return shutdowned;
 }
 
-void thecore_tick()
-{
-	tics = tics + 1;
+void thecore_tick() {
+    tics = tics + 1;
 }

@@ -53,7 +53,6 @@
 #include <libthecore/core_signal.h>
 #include <libthecore/log.h>
 #include <libthecore/main.h>
-#include <libthecore/typedef.h>
 #include <libthecore/utils.h>
 
 #include <cstddef>
@@ -732,10 +731,10 @@ void CInputDB::Boot(const char* data)
 		for (uint16_t i = 0; i < size; ++i, ++kObj)
 			CManager::instance().LoadObject(kObj, true);
 	}
-	wire_time_t server_time;
+	int32_t server_time;
     memcpy(&server_time, data, sizeof(server_time));
     set_global_time(server_time);
-	data += sizeof(wire_time_t);
+	data += sizeof(int32_t);
 
 	if (decode_2bytes(data) != sizeof(TItemIDRangeTable) )
 	{
@@ -1603,7 +1602,7 @@ void CInputDB::PartySetMemberLevel(const char* c_pData)
 
 void CInputDB::Time(const char * c_pData)
 {
-	wire_time_t server_time;
+	int32_t server_time;
     memcpy(&server_time, c_pData, sizeof(server_time));
     set_global_time(server_time);
 }

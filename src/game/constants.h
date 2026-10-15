@@ -1,7 +1,6 @@
 #ifndef __INC_METIN_II_GAME_CONSTANTS_H__
 #define __INC_METIN_II_GAME_CONSTANTS_H__
 
-#include <common/item_length.h>
 #include <common/length.h>
 #include <common/tables.h>
 

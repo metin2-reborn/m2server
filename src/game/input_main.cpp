@@ -41,10 +41,8 @@
 #include "unique_item.h"
 #include "utils.h"
 
-#include <common/item_length.h>
 #include <common/length.h>
 #include <common/tables.h>
-#include <libthecore/buffer.h>
 #include <libthecore/log.h>
 #include <libthecore/main.h>
 #include <libthecore/utils.h>
@@ -58,6 +56,7 @@
 #include <string>
 #include <unordered_map>
 #include <utility>
+#include <vector>
 
 #include <sys/time.h>
 
@@ -1670,11 +1669,8 @@ int CInputMain::SyncPosition(CHARACTER * ch, const char * c_pcData, size_t uiByt
 		iCount = nCountLimit;
 	}
 
-	TEMP_BUFFER tbuf;
-	buffer * lpBuf = tbuf.getptr();
-
-	TPacketGCSyncPosition * pHeader = (TPacketGCSyncPosition *) buffer_write_peek(lpBuf);
-	buffer_write_proceed(lpBuf, sizeof(TPacketGCSyncPosition));
+	std::vector<TPacketCGSyncPositionElement> synced;
+	synced.reserve(iCount);
 
 	const TPacketCGSyncPositionElement* e = 
 		reinterpret_cast<const TPacketCGSyncPositionElement*>(c_pcData + sizeof(TPacketCGSyncPosition));
@@ -1774,16 +1770,20 @@ int CInputMain::SyncPosition(CHARACTER * ch, const char * c_pcData, size_t uiByt
 		{
 			victim->SetLastSyncTime(tvCurTime);
 			victim->Sync(e->lX, e->lY);
-			buffer_write(lpBuf, e, sizeof(TPacketCGSyncPositionElement));
+			synced.push_back(*e);
 		}
 	}
 
-	if (buffer_size(lpBuf) != sizeof(TPacketGCSyncPosition))
+	if (!synced.empty())
 	{
-		pHeader->bHeader = HEADER_GC_SYNC_POSITION;
-		pHeader->wSize = buffer_size(lpBuf);
+		TPacketGCSyncPosition header;
+		header.bHeader = HEADER_GC_SYNC_POSITION;
+		header.wSize = static_cast<uint16_t>(sizeof(header) + synced.size() * sizeof(TPacketCGSyncPositionElement));
 
-		ch->PacketAround(buffer_read_peek(lpBuf), buffer_size(lpBuf), ch);
+		TEMP_BUFFER buf;
+		buf.write(&header, sizeof(header));
+		buf.write(synced.data(), synced.size() * sizeof(TPacketCGSyncPositionElement));
+		ch->PacketAround(buf.read_peek(), buf.size(), ch);
 	}
 
 	return iExtraLen;

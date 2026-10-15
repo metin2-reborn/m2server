@@ -43,7 +43,6 @@
 #include "vector.h"
 #include "vid.h"
 
-#include <common/item_length.h>
 #include <common/length.h>
 #include <libthecore/log.h>
 #include <libthecore/main.h>

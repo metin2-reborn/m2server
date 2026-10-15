@@ -19,7 +19,6 @@
 #include <common/peer_security.h>
 #include <common/utils.h>
 #include <libsql/AsyncSQL.h>
-#include <libthecore/hangul.h>
 #include <libthecore/log.h>
 #include <libthecore/utils.h>
 
@@ -142,7 +141,7 @@ char	openid_uri[256];
 bool is_string_true(const char * string)
 {
 	bool	result = 0;
-	if (isnhdigit(*string))
+	if (is_digit(*string))
 	{
 		str_to_number(result, string);
 		return result > 0 ? true : false;
@@ -834,7 +833,7 @@ void config_init(const string& st_localeServiceName)
 
 			for (; *p; p++)
 			{   
-				if (isnhspace(*p))
+				if (is_space(*p))
 				{
 					if (stNum.length())
 					{

@@ -12,7 +12,6 @@
 #include "typedef.h"
 #include "utils.h"
 
-#include <common/item_length.h>
 #include <common/length.h>
 #include <libgame/grid.h>
 #include <libthecore/log.h>

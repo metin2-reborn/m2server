@@ -1,6 +1,4 @@
 add_library(thecore
-    buffer.cpp
-    hangul.cpp
     heart.cpp
     internal.h
     log.cpp

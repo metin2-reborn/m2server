@@ -12,7 +12,6 @@
 #include "typedef.h"
 #include "vid.h"
 
-#include <common/item_length.h>
 #include <common/length.h>
 #include <common/tables.h>
 #include <libthecore/main.h>

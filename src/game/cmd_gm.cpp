@@ -45,11 +45,9 @@
 #include "xmas_event.h"
 
 #include <common/building.h>
-#include <common/item_length.h>
 #include <common/length.h>
 #include <common/tables.h>
 #include <common/utils.h>
-#include <libthecore/hangul.h>
 #include <libthecore/log.h>
 #include <libthecore/utils.h>
 
@@ -344,7 +342,7 @@ ACMD(do_goto)
 		return;
 	}
 
-	if (isnhdigit(*arg1) && isnhdigit(*arg2))
+	if (is_digit(*arg1) && is_digit(*arg2))
 	{
 		str_to_number(x, arg1);
 		str_to_number(y, arg2);
@@ -367,7 +365,7 @@ ACMD(do_goto)
 		if (*arg1 == '#')
 			str_to_number(mapIndex,  (arg1 + 1));
 
-		if (*arg2 && isnhdigit(*arg2))
+		if (*arg2 && is_digit(*arg2))
 		{
 			str_to_number(empire, arg2);
 			empire = std::clamp<int>(empire, 1, 3);
@@ -406,7 +404,7 @@ ACMD(do_warp)
 
 	int x = 0, y = 0;
 
-	if (isnhdigit(*arg1) && isnhdigit(*arg2))
+	if (is_digit(*arg1) && is_digit(*arg2))
 	{
 		str_to_number(x, arg1);
 		str_to_number(y, arg2);
@@ -472,7 +470,7 @@ ACMD(do_item)
 
 	uint32_t dwVnum;
 
-	if (isnhdigit(*arg1))
+	if (is_digit(*arg1))
 		str_to_number(dwVnum, arg1);
 	else
 	{
@@ -723,7 +721,7 @@ ACMD(do_mob)
 
 	const CMob* pkMob = nullptr;
 
-	if (isnhdigit(*arg1))
+	if (is_digit(*arg1))
 	{
 		str_to_number(vnum, arg1);
 
@@ -784,7 +782,7 @@ ACMD(do_mob_ld)
 
 	const CMob* pkMob = nullptr;
 
-	if (isnhdigit(*arg1))
+	if (is_digit(*arg1))
 	{
 		str_to_number(vnum, arg1);
 
@@ -1765,7 +1763,7 @@ ACMD(do_book)
 
 	CSkillProto * pkProto;
 
-	if (isnhdigit(*arg1))
+	if (is_digit(*arg1))
 	{
 		uint32_t vnum = 0;
 		str_to_number(vnum, arg1);

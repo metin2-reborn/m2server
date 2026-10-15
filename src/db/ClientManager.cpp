@@ -18,7 +18,6 @@
 #include "QID.h"
 
 #include <common/building.h>
-#include <common/item_length.h>
 #include <common/length.h>
 #include <common/peer_security.h>
 #include <common/tables.h>
@@ -31,7 +30,6 @@
 #include <libthecore/core_signal.h>
 #include <libthecore/log.h>
 #include <libthecore/main.h>
-#include <libthecore/typedef.h>
 #include <libthecore/utils.h>
 
 #include <mysql.h>
@@ -271,7 +269,7 @@ void CClientManager::QUERY_BOOT(CPeer* peer, TPacketGDBoot * p)
 		sizeof(uint16_t) + sizeof(uint16_t) + sizeof(building::TLand) * m_vec_kLandTable.size() +
 		sizeof(uint16_t) + sizeof(uint16_t) + sizeof(building::TObjectProto) * m_vec_kObjectProto.size() + 
 		sizeof(uint16_t) + sizeof(uint16_t) + sizeof(building::TObject) * m_map_pkObjectTable.size() +
-		sizeof(wire_time_t) +
+		sizeof(int32_t) +
 		sizeof(uint16_t) + sizeof(uint16_t) + sizeof(TItemIDRangeTable)*2 +
 		//ADMIN_MANAGER
 		sizeof(uint16_t) + sizeof(uint16_t) + 16 * vHost.size() +
@@ -353,8 +351,8 @@ void CClientManager::QUERY_BOOT(CPeer* peer, TPacketGDBoot * p)
 		peer->Encode((it++)->second, sizeof(building::TObject));
 
 	// Auction Boot
-	wire_time_t now = time(nullptr);
-	peer->Encode(&now, sizeof(wire_time_t));
+	int32_t now = time(nullptr);
+	peer->Encode(&now, sizeof(int32_t));
 
 	TItemIDRangeTable itemRange = CItemIDRangeManager::instance().GetRange();
 	TItemIDRangeTable itemRangeSpare = CItemIDRangeManager::instance().GetRange();
@@ -2490,7 +2488,7 @@ void CClientManager::RemovePeer(CPeer * pPeer)
 	delete pPeer;
 }
 
-CPeer * CClientManager::GetPeer(IDENT ident)
+CPeer * CClientManager::GetPeer(uint32_t ident)
 {
 	for (auto i = m_peerList.begin(); i != m_peerList.end();++i)
 	{
@@ -2794,8 +2792,8 @@ uint32_t CClientManager::GetUserCount()
 
 void CClientManager::SendTime()
 {
-	wire_time_t now = GetCurrentTime();
-	ForwardPacket(HEADER_DG_TIME, &now, sizeof(wire_time_t));
+	int32_t now = GetCurrentTime();
+	ForwardPacket(HEADER_DG_TIME, &now, sizeof(int32_t));
 }
 
 void CClientManager::ForwardPacket(uint8_t header, const void* data, int size, uint8_t bChannel, CPeer* except)

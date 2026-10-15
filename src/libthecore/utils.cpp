@@ -1,12 +1,5 @@
-/*
- *    Filename: utils.cpp
- * Description: Miscellaneous utilities
- *
- *      Author: Biyeop aka. Cronan
- */
 #include <libthecore/utils.h>
 
-#include <libthecore/hangul.h>
 #include <libthecore/log.h>
 
 #include <cctype>
@@ -22,156 +15,149 @@
 #include <unistd.h>
 
 // "Mon dd hh:mm" of ct.
-char * time_str(time_t ct)
-{
-    char * time_s = std::asctime(std::localtime(&ct));
+auto time_str(time_t ct) -> char * {
+    char *time_s = std::asctime(std::localtime(&ct));
     time_s[std::strlen(time_s) - 6] = '\0';
     return time_s + 4;
 }
 
-void trim_and_lower(const char * src, char * dest, size_t dest_size)
-{
-    if (!dest || dest_size == 0)
-	return;
+void trim_and_lower(const char *src, char *dest, size_t dest_size) {
+    if (!dest || dest_size == 0) {
+        return;
+    }
 
-    if (!src)
-    {
-	*dest = '\0';
-	return;
+    if (!src) {
+        *dest = '\0';
+        return;
     }
 
     // Skip leading whitespace
-    while (*src && isnhspace(*src))
-	++src;
+    while (*src && is_space(*src)) {
+        ++src;
+    }
 
     // Reserve \0
     size_t len = 0;
-    while (src[len] && len < dest_size - 1)
-    {
-	dest[len] = static_cast<char>(std::tolower(static_cast<unsigned char>(src[len])));
-	++len;
+    while (src[len] && len < dest_size - 1) {
+        dest[len] = static_cast<char>(std::tolower(static_cast<unsigned char>(src[len])));
+        ++len;
     }
 
     // Trim trailing whitespace
-    while (len > 0 && isnhspace(dest[len - 1]))
-	--len;
+    while (len > 0 && is_space(dest[len - 1])) {
+        --len;
+    }
 
     dest[len] = '\0';
 }
 
 // In a string of the form "item : value", like "Name : 비엽",
 // copies the item into token and the value into value, and returns.
-void parse_token(char *src, char *token, char *value)
-{
-    char * tmp = src;
+void parse_token(char *src, char *token, char *value) {
+    char *tmp = src;
 
-    for (; *tmp && *tmp != ':'; ++tmp)
-    {
-	if (isnhspace(*tmp))
-	    continue;
+    for (; *tmp && *tmp != ':'; ++tmp) {
+        {
+            if (is_space(*tmp)) {
+                continue;
+            }
+        }
 
-	*(token++) = static_cast<char>(std::tolower(static_cast<unsigned char>(*tmp)));
+        *(token++) = static_cast<char>(std::tolower(static_cast<unsigned char>(*tmp)));
     }
 
     *token = '\0';
 
-    for (tmp += 2; *tmp; ++tmp)
-    {
-	if (*tmp == '\n' || *tmp == '\r')
-	    continue;
+    for (tmp += 2; *tmp; ++tmp) {
+        {
+            if (*tmp == '\n' || *tmp == '\r') {
+                continue;
+            }
+        }
 
-	*(value++) = *tmp;
+        *(value++) = *tmp;
     }
 
     *value = '\0';
 }
 
-uint32_t thecore_random()
-{
+auto thecore_random() -> uint32_t {
     return random();
 }
 
-int number(int from, int to, std::source_location where)
-{
-    if (from > to)
-    {
-	sys_err("number(): first argument is bigger than second argument %d -> %d, %s %u", from, to, where.file_name(), where.line());
-	std::swap(from, to);
+auto number(int from, int to, std::source_location where) -> int {
+    if (from > to) {
+        sys_err("number(): first argument is bigger than second argument %d -> %d, %s %u", from, to, where.file_name(), where.line());
+        std::swap(from, to);
     }
 
-    if (to - from + 1 == 0)
-    {
-	sys_err("number(): devided by 0");
-	return 0;
+    if (to - from + 1 == 0) {
+        sys_err("number(): devided by 0");
+        return 0;
     }
 
     return (thecore_random() % (to - from + 1)) + from;
 }
 
-float fnumber(float from, float to)
-{
+auto fnumber(float from, float to) -> float {
     return ((static_cast<float>(thecore_random()) / static_cast<float>(RAND_MAX)) * (to - from)) + from;
 }
 
-void core_dump(std::source_location where)
-{
+void core_dump(std::source_location where) {
     sys_err("*** Dumping Core %s:%u ***", where.file_name(), where.line());
 
     std::fflush(stdout);
     std::fflush(stderr);
 
     if (fork() == 0)
-	std::abort();
+        std::abort();
 }
 
-namespace
-{
+namespace {
     // Monotonic time since the first call, which happens during startup.
-    std::chrono::steady_clock::duration uptime()
-    {
-	static const auto boot = std::chrono::steady_clock::now();
-	return std::chrono::steady_clock::now() - boot;
+    std::chrono::steady_clock::duration uptime() {
+        static const auto boot = std::chrono::steady_clock::now();
+        return std::chrono::steady_clock::now() - boot;
     }
 }
 
-float get_float_time()
-{
+auto get_float_time() -> float {
     return std::chrono::duration<float>(uptime()).count();
 }
 
-uint32_t get_dword_time()
-{
+auto get_dword_time() -> uint32_t {
     return static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::milliseconds>(uptime()).count());
 }
 
-size_t utf8_sequence_length(unsigned char c)
-{
-    return c < 0x80 ? 1 : (c >> 5) == 0x6 ? 2 : (c >> 4) == 0xE ? 3 : (c >> 3) == 0x1E ? 4 : 1;
+auto utf8_sequence_length(unsigned char c) -> size_t {
+    return c < 0x80 ? 1 : (c >> 5) == 0x6 ? 2
+                      : (c >> 4) == 0xE   ? 3
+                      : (c >> 3) == 0x1E  ? 4
+                                          : 1;
 }
 
-size_t utf8_truncated_size(const char * s, size_t len, size_t max)
-{
+auto utf8_truncated_size(const char *s, size_t len, size_t max) -> size_t {
     size_t pos = 0;
 
-    while (pos < len)
-    {
-	const size_t seq = utf8_sequence_length(static_cast<unsigned char>(s[pos]));
+    while (pos < len) {
+        const size_t seq = utf8_sequence_length(static_cast<unsigned char>(s[pos]));
 
-	if (pos + seq > len || pos + seq > max)
-	    break;
+        if (pos + seq > len || pos + seq > max) {
+            break;
+        }
 
-	pos += seq;
+        pos += seq;
     }
 
     return pos;
 }
 
-size_t utf8_strlcpy(char * dst, const char * src, size_t size)
-{
+auto utf8_strlcpy(char *dst, const char *src, size_t size) -> size_t {
     const size_t src_len = std::strlen(src);
 
-    if (size == 0)
-	return src_len;
+    if (size == 0) {
+        return src_len;
+    }
 
     const size_t n = utf8_truncated_size(src, src_len, size - 1);
     std::memcpy(dst, src, n);

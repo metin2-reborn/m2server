@@ -8,7 +8,6 @@
 #include "typedef.h"
 #include "utils.h"
 
-#include <common/item_length.h>
 #include <common/length.h>
 #include <common/tables.h>
 #include <libgame/grid.h>

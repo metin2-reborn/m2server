@@ -15,9 +15,11 @@ inline auto mark_server_ready() -> bool {
 
     file << "ready\n";
     file.close();
+
     if (!file) {
         std::remove("ready");
         return false;
     }
+
     return true;
 }

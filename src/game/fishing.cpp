@@ -16,7 +16,6 @@
 #include "typedef.h"
 #include "unique_item.h"
 
-#include <common/item_length.h>
 #include <common/length.h>
 #include <common/tables.h>
 #include <common/utils.h>

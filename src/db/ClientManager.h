@@ -194,7 +194,7 @@ class CClientManager : public singleton<CClientManager>
 
 	void		AddPeer(net::tcp::socket socket);
 	void		RemovePeer(CPeer * pPeer);
-	CPeer *		GetPeer(IDENT ident);
+	CPeer *		GetPeer(uint32_t ident);
 
 	int		AnalyzeQueryResult(SQLMsg * msg);
 

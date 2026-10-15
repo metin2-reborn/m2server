@@ -566,7 +566,6 @@ tonumber
 tostring
 trim
 type
-under_han
 updateSkel
 wait
 warp_all_except_my_empire_in_map

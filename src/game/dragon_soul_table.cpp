@@ -4,7 +4,6 @@
 #include "group_text_parse_tree.h"
 #include "item_manager.h"
 
-#include <common/item_length.h>
 #include <common/length.h>
 #include <libthecore/log.h>
 

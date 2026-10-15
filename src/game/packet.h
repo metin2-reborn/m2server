@@ -1,9 +1,8 @@
 #ifndef __INC_PACKET_H__
 #define __INC_PACKET_H__
-#include <common/item_length.h>
+
 #include <common/length.h>
 #include <common/tables.h>
-#include <libthecore/typedef.h>
 
 #include <cstdint>
 
@@ -1710,7 +1709,7 @@ typedef struct SPacketCGMyShop
 typedef struct SPacketGCTime
 {
 	uint8_t	bHeader;
-	wire_time_t	time;
+	int32_t	time;
 } TPacketGCTime;
 
 enum

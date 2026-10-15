@@ -7,4 +7,4 @@ Checks: >
   modernize-use-equals-default,
   modernize-use-auto
 WarningsAsErrors: ''
-HeaderFilterRegex: '.*/src/server/.*'
+HeaderFilterRegex: '.*/src/.*'

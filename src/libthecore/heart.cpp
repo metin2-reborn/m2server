@@ -15,8 +15,7 @@
 
 using clock_type = std::chrono::steady_clock;
 
-heart * heart_new(int fps)
-{
+auto heart_new(int fps) -> heart * {
     auto ht = new heart{};
     ht->opt_time = std::chrono::duration_cast<clock_type::duration>(std::chrono::seconds(1)) / fps;
     ht->passes_per_sec = fps;
@@ -24,33 +23,31 @@ heart * heart_new(int fps)
     return ht;
 }
 
-int heart_idle(heart * ht)
-{
+auto heart_idle(heart *ht) -> int {
     const clock_type::time_point now = clock_type::now();
     const clock_type::duration process_time = now - ht->last_time;
 
     // When the last pass took longer than a pulse, count the missed pulses and carry on
     // without sleeping; otherwise sleep until the next pulse is due.
     int missed_pulse = 0;
-    if (process_time >= ht->opt_time)
-	missed_pulse = static_cast<int>(process_time / ht->opt_time);
+    if (process_time >= ht->opt_time) {
+        missed_pulse = static_cast<int>(process_time / ht->opt_time);
+    }
 
     // So busy we even missed a pulse, no time to sleep...
     // Pulse fps is off anyway; matching it exactly isn't important.
-    if (missed_pulse > 0)
-	ht->last_time = now;
-    else
-    {
-	ht->last_time += ht->opt_time;
-	std::this_thread::sleep_until(ht->last_time);
+    if (missed_pulse > 0) {
+        ht->last_time = now;
+    } else {
+        ht->last_time += ht->opt_time;
+        std::this_thread::sleep_until(ht->last_time);
     }
 
     ++missed_pulse;
 
-    if (missed_pulse > (30 * ht->passes_per_sec))
-    {
-	sys_err("losing %d seconds. (lag occured)", missed_pulse / ht->passes_per_sec);
-	missed_pulse = 30 * ht->passes_per_sec;
+    if (missed_pulse > (30 * ht->passes_per_sec)) {
+        sys_err("losing %d seconds. (lag occured)", missed_pulse / ht->passes_per_sec);
+        missed_pulse = 30 * ht->passes_per_sec;
     }
 
     return missed_pulse;

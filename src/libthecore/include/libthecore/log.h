@@ -1,5 +1,4 @@
-#ifndef __INC_LIBTHECORE_LOG_H__
-#define __INC_LIBTHECORE_LOG_H__
+#pragma once
 
 // syslog (everything), syserr (errors, also copied to syslog) and PTS in the working directory;
 // rotated hourly into ./log/YYYYMMDD/.
@@ -11,6 +10,4 @@ void _sys_err(const char *func, int line, const char *format, ...) __attribute__
 void sys_log(unsigned int lv, const char *format, ...) __attribute__((format(printf, 2, 3)));
 void pt_log(const char *format, ...) __attribute__((format(printf, 1, 2)));
 
-#define sys_err(fmt, ...) _sys_err(__FUNCTION__, __LINE__, fmt __VA_OPT__(,) __VA_ARGS__)
-
-#endif	// __INC_LIBTHECORE_LOG_H__
+#define sys_err(fmt, ...) _sys_err(__FUNCTION__, __LINE__, fmt __VA_OPT__(, ) __VA_ARGS__)

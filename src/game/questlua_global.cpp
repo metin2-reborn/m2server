@@ -33,7 +33,6 @@
 
 #include <common/length.h>
 #include <common/tables.h>
-#include <libthecore/hangul.h>
 #include <libthecore/log.h>
 #include <libthecore/utils.h>
 
@@ -879,15 +878,6 @@ namespace quest
 		return 1;
 	}
 
-	int _under_han(lua_State* L)
-	{
-		if (!lua_isstring(L, 1))
-			lua_pushboolean(L, 0);
-		else
-			lua_pushboolean(L, under_han(lua_tostring(L, 1)));
-		return 1;
-	}
-
 	int _notice_all( lua_State* L )
 	{
 		ostringstream s;
@@ -1404,7 +1394,6 @@ namespace quest
 			{	"find_npc_by_vnum",				_find_npc_by_vnum				},
 			{	"set_quest_state",				_set_quest_state				},
 			{	"get_quest_state",				_get_quest_state				},
-			{	"under_han",					_under_han						},
 			{	"notice",						_notice							},
 			{	"notice_all",					_notice_all						},
 			{	"notice_in_map",				_notice_in_map					},

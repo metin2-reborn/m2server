@@ -11,7 +11,6 @@
 #include "typedef.h"
 #include "unique_item.h"
 
-#include <common/item_length.h>
 #include <common/length.h>
 #include <libthecore/log.h>
 #include <libthecore/utils.h>

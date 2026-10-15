@@ -1,6 +1,5 @@
 // State and functions shared between libthecore's sources only.
-#ifndef __INC_LIBTHECORE_INTERNAL_H__
-#define __INC_LIBTHECORE_INTERNAL_H__
+#pragma once
 
 #include <libthecore/heart.h>
 
@@ -10,12 +9,10 @@
 extern volatile std::sig_atomic_t tics;
 extern volatile std::sig_atomic_t shutdowned;
 
-void	signal_setup();
+void signal_setup();
 
-bool	log_init();
-void	log_destroy();
+auto log_init() -> bool;
+void log_destroy();
 
-heart *	heart_new(int fps);
-int	heart_idle(heart * ht);	// Returns how many pulses have passed.
-
-#endif
+auto heart_new(int fps) -> heart *;
+auto heart_idle(heart *ht) -> int; // Returns how many pulses have passed.

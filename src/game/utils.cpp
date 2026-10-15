@@ -1,6 +1,5 @@
 #include <libthecore/utils.h>
 
-#include <libthecore/hangul.h>
 #include <libthecore/log.h>
 
 #include <cctype>
@@ -60,7 +59,7 @@ size_t str_lower(const char * src, char * dest, size_t dest_size)
 
 void skip_spaces(const char **string)
 {   
-	for (; **string != '\0' && isnhspace(**string); ++(*string));
+	for (; **string != '\0' && is_space(**string); ++(*string));
 }
 
 const char *one_argument(const char *argument, char *first_arg, size_t first_size)
@@ -89,7 +88,7 @@ const char *one_argument(const char *argument, char *first_arg, size_t first_siz
 			continue;   
 		}
 
-		if (!mark && isnhspace(*argument))      
+		if (!mark && is_space(*argument))      
 			break;
 
 		*(first_arg++) = *argument;
@@ -116,7 +115,7 @@ const char *first_cmd(const char *argument, char *first_arg, size_t first_arg_si
 	// Reserve room for \0
 	first_arg_size -= 1;
 
-	while (*argument && !isnhspace(*argument) && cur_len < first_arg_size)
+	while (*argument && !is_space(*argument) && cur_len < first_arg_size)
 	{
 		*(first_arg++) = std::tolower(static_cast<unsigned char>(*argument));
 		++argument;

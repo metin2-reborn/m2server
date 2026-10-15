@@ -6,7 +6,6 @@
 #include "log.h"
 #include "typedef.h"
 
-#include <common/item_length.h>
 #include <common/length.h>
 #include <common/tables.h>
 #include <libthecore/log.h>
