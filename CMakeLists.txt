@@ -22,6 +22,8 @@ add_compile_options(
     $<$<CONFIG:Debug>:-Werror>
 )
 
+set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
+
 add_subdirectory(src/metin2)
 
 option(BUILD_TESTING "Build the unit tests" ON)
@@ -29,9 +31,6 @@ if(BUILD_TESTING)
     enable_testing()
     add_subdirectory(tests)
 endif()
-
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
-set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
 
 install(TARGETS server RUNTIME DESTINATION bin)
 install(PROGRAMS dist/metin2-runtime DESTINATION bin)
