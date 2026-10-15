@@ -2,6 +2,10 @@ set shell := ["sh", "-eu", "-c"]
 
 image := "localhost/metin2-server:linux"
 
+# Clang unless the environment picks another compiler.
+export CC := env("CC", "clang")
+export CXX := env("CXX", "clang++")
+
 # Configure the build directory (idempotent).
 configure:
     cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE="${BUILD_TYPE:-Debug}"
