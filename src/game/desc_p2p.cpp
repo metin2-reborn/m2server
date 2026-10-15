@@ -40,7 +40,7 @@ bool DESC_P2P::Setup(std::shared_ptr<net::connection> connection)
 
 	m_connection->start(*this);
 
-	if (!is_allowed_peer(m_stHost.c_str(), g_allowedPeerHosts, g_szPublicIP)) // refuse if remote host != public ip (only the same machine must be able to connect in here)
+	if (!is_allowed_peer(m_stHost.c_str(), metin2::config::server().p2p_allowed_hosts, g_szPublicIP)) // refuse if remote host != public ip (only the same machine must be able to connect in here)
 	{
 		metin2::log::info( "PORT_SECURITY: new p2p connection from [{}] to [{}] BLOCKED", m_stHost.c_str(), g_szPublicIP);
 		SetPhase(PHASE_CLOSE);

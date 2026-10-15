@@ -101,7 +101,7 @@ int CMonarch::HealMyEmpire(CHARACTER * ch ,uint32_t price)
 	// Set cooldown	
 	ch->SetMC(CHARACTER::MI_HEAL);
 
-	if (test_server)
+	if (metin2::config::test_server())
 		ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("[TEST_ONLY]현재 국고 : %d "), GetMoney(Empire) - price);
 	return 1;
 }
@@ -217,7 +217,7 @@ bool CMonarch::CheckPowerUpCT(uint8_t Empire)
 
 	if (m_PowerUpCT[Empire] > thecore_pulse())
 	{
-		if (test_server)
+		if (metin2::config::test_server())
 			metin2::log::info( "[TEST_ONLY] : CheckPowerUpCT CT{:d} Now{:d} 60sec {:d}", m_PowerUpCT[Empire], thecore_pulse(), PASSES_PER_SEC(60 * 10));
 		return false;
 	}
@@ -232,7 +232,7 @@ bool CMonarch::CheckDefenseUpCT(uint8_t Empire)
 
 	if (m_DefenseUpCT[Empire] > thecore_pulse())
 	{
-		if (test_server)
+		if (metin2::config::test_server())
 			metin2::log::info( "[TEST_ONLY] : CheckPowerUpCT CT{:d} Now{:d} 60sec {:d}", m_PowerUpCT[Empire], thecore_pulse(), PASSES_PER_SEC(60 * 10));
 		return false;
 	}

@@ -10,8 +10,6 @@ add_executable(db
     ClientManagerLogin.cpp
     ClientManagerParty.cpp
     ClientManagerPlayer.cpp
-    Config.cpp
-    Config.h
     CsvReader.cpp
     CsvReader.h
     DBManager.cpp
@@ -43,5 +41,5 @@ add_executable(db
 )
 
 target_compile_definitions(db PRIVATE __P4_VERSION__="40142")
-target_link_libraries(db PRIVATE common game net poly sql thecore)
+target_link_libraries(db PRIVATE common game metin2_config metin2_log net poly sql thecore)
 target_include_directories(db PRIVATE ../)

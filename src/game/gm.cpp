@@ -64,7 +64,7 @@ void gm_new_host_inert( const char * host )
 
 uint8_t gm_new_get_level( const char * name, const char * host, const char* account)
 {
-	if ( test_server ) return GM_IMPLEMENTOR;
+	if ( metin2::config::test_server() ) return GM_IMPLEMENTOR;
 
 	std::map<std::string, tGM >::iterator it = g_map_GM.find(name);
 

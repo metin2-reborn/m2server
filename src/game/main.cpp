@@ -66,6 +66,7 @@
 #include <libthecore/heart.h>
 #include <metin2/log/log.h>
 #include <libthecore/utils.h>
+#include <metin2/config/config.h>
 
 #include <algorithm>
 #include <cassert>
@@ -74,6 +75,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <filesystem>
 #include <map>
 #include <memory>
 #include <string>
@@ -81,7 +83,6 @@
 #include <vector>
 
 #include <sys/time.h>
-#include <unistd.h>
 #include <unistd.h>
 
 // Always check the server key when testing on Windows
@@ -164,7 +165,7 @@ void heartbeat(heart * ht, int pulse)
 	if (!(pulse % ht->passes_per_sec))
 	{
 
-		if (!g_bAuthServer)
+		if (!metin2::config::is_auth())
 		{
 			TPlayerCountPacket pack;
 			pack.dwCount = DESC_MANAGER::instance().GetLocalUserCount();
@@ -181,13 +182,13 @@ void heartbeat(heart * ht, int pulse)
 	//
 
 	// About every 1.16 seconds
-	if (!(pulse % (passes_per_sec + 4)))
+	if (!(pulse % (metin2::config::server().passes_per_sec + 4)))
 		CHARACTER_MANAGER::instance().ProcessDelayedSave();
 
 	//Every 4 seconds
 
 	// About every 5.08 seconds
-	if (!(pulse % (passes_per_sec * 5 + 2)))
+	if (!(pulse % (metin2::config::server().passes_per_sec * 5 + 2)))
 	{
 		ITEM_MANAGER::instance().Update();
 		DESC_MANAGER::instance().UpdateLocalUserCount();
@@ -292,7 +293,7 @@ int main(int argc, char **argv)
 	CGuildManager::instance().Initialize();
 	fishing::Initialize();
 	OXEvent_manager.Initialize();
-	if (speed_server)
+	if (metin2::config::game().speed_server)
 		CSpeedServerManager::instance().Initialize();
 
 	Cube_init();
@@ -300,14 +301,14 @@ int main(int argc, char **argv)
 	ani_init();
 
 
-	if (g_bAuthServer && !mark_server_ready()) thecore_shutdown();
+	if (metin2::config::is_auth() && !mark_server_ready()) thecore_shutdown();
 	while (idle());
 
 	metin2::log::info( "<shutdown> Starting...");
 	g_bShutdown = true;
 	g_bNoMoreClient = true;
 
-	if (g_bAuthServer)
+	if (metin2::config::is_auth())
 	{
 		int iLimit = DBManager::instance().CountQuery() / 50;
 		int i = 0;
@@ -367,84 +368,66 @@ int main(int argc, char **argv)
 void usage()
 {
 	printf("Option list\n"
-			"-p <port>    : bind port number (port must be over 1024)\n"
-			"-l <level>   : sets log level\n"
-			"-v           : log to stdout\n"
-			"-r           : do not load regen tables\n"
-			"-t           : traffic proflie on\n");
+			"-l <level>   : sets log level (above 0: debug messages)\n"
+			"-v           : log to stdout\n");
+}
+
+// server.toml with runtime.toml (written by the launcher) merged over it.
+static bool load_settings()
+{
+	std::vector<std::filesystem::path> files = {"server.toml"};
+	if (std::filesystem::exists("runtime.toml"))
+		files.emplace_back("runtime.toml");
+
+	auto settings = metin2::config::load(files);
+	if (!settings)
+	{
+		metin2::log::error("invalid configuration:\n{}", settings.error());
+		return false;
+	}
+
+	metin2::config::set_current(std::move(*settings));
+	metin2::log::set_keep_days(metin2::config::current().log.keep_days);
+	metin2::log::set_level(metin2::config::current().log.level);
+	return true;
 }
 
 int start(int argc, char **argv)
 {
-	std::string st_localeServiceName;
-
 	bool bVerbose = false;
 	int ch;
 
-	while ((ch = getopt(argc, argv, "n:p:verl:I:")) != -1)
+	if (!load_settings())
+		return 0;
+
+	while ((ch = getopt(argc, argv, "vl:")) != -1)
 	{
 		char* ep = nullptr;
 
 		switch (ch)
 		{
-			case 'I': // IP
-				strlcpy(g_szPublicIP, optarg, sizeof(g_szPublicIP));
-
-				printf("IP %s\n", g_szPublicIP);
-
-				break;
-
-			case 'p': // port
-				mother_port = strtol(optarg, &ep, 10);
-
-				if (mother_port <= 1024)
-				{
-					usage();
-					return 0;
-				}
-
-				printf("port %d\n", mother_port);
-
-				break;
-
 			case 'l':
-				{
-					// Any level above 0 turns on debug messages.
-					if (strtol(optarg, &ep, 10) > 0)
-						metin2::log::set_level(metin2::log::level::debug);
-
-				}
+				// Any level above 0 turns on debug messages.
+				if (strtol(optarg, &ep, 10) > 0)
+					metin2::log::set_level(metin2::log::level::debug);
 				break;
-
-				// LOCALE_SERVICE
-			case 'n': 
-				{
-					if (optarg)
-					{
-						st_localeServiceName = optarg;
-					}
-				}
-				break;
-				// END_OF_LOCALE_SERVICE
 
 			case 'v': // verbose
 				bVerbose = true;
 				break;
 
-			case 'r':
-				g_bNoRegen = true;
-				break;
+			default:
+				usage();
+				return 0;
 		}
 	}
 
-	// LOCALE_SERVICE
-	config_init(st_localeServiceName);
-	// END_OF_LOCALE_SERVICE
+	config_init();
 
 	if (!bVerbose)
 		freopen("stdout", "a", stdout);
 
-	bool is_thecore_initialized = thecore_init(25);
+	bool is_thecore_initialized = thecore_init(metin2::config::server().passes_per_sec);
 
 	if (!is_thecore_initialized)
 	{
@@ -454,7 +437,7 @@ int start(int argc, char **argv)
 
 	if (false == CThreeWayWar::instance().LoadSetting("forkedmapindex.txt"))
 	{
-		if (false == g_bAuthServer)
+		if (false == metin2::config::is_auth())
 		{
 			fprintf(stderr, "Could not Load ThreeWayWar Setting file");
 			exit(0);
@@ -463,30 +446,30 @@ int start(int argc, char **argv)
 
 	signal_timer_disable();
 
-	client_listener = net::listener::open(g_szPublicIP, mother_port, [](net::tcp::socket socket) { DESC_MANAGER::instance().AcceptDesc(std::move(socket)); });
+	client_listener = net::listener::open(g_szPublicIP, metin2::config::server().port, [](net::tcp::socket socket) { DESC_MANAGER::instance().AcceptDesc(std::move(socket)); });
 
 	if (!client_listener)
 		return 0;
 
 	// if internal ip exists, p2p socket uses internal ip, if not use public ip
-	p2p_listener = net::listener::open(g_szPublicIP, p2p_port, [](net::tcp::socket socket) { DESC_MANAGER::instance().AcceptP2PDesc(std::move(socket)); });
+	p2p_listener = net::listener::open(g_szPublicIP, metin2::config::server().p2p_port, [](net::tcp::socket socket) { DESC_MANAGER::instance().AcceptP2PDesc(std::move(socket)); });
 
 	if (!p2p_listener)
 		return 0;
 
-	db_clientdesc = DESC_MANAGER::instance().CreateConnectionDesc(db_addr, db_port, PHASE_DBCLIENT, true);
-	if (!g_bAuthServer) {
+	db_clientdesc = DESC_MANAGER::instance().CreateConnectionDesc(metin2::config::server().db_host.c_str(), metin2::config::server().db_port, PHASE_DBCLIENT, true);
+	if (!metin2::config::is_auth()) {
 		db_clientdesc->UpdateChannelStatus(0, true);
 	}
 
-	if (g_bAuthServer)
+	if (metin2::config::is_auth())
 	{
-		if (g_stAuthMasterIP.length() != 0)
+		if (metin2::config::auth().master_host.length() != 0)
 		{
 			fprintf(stderr, "SlaveAuth");
-			g_pkAuthMasterDesc = DESC_MANAGER::instance().CreateConnectionDesc(g_stAuthMasterIP.c_str(), g_wAuthMasterPort, PHASE_P2P, true); 
+			g_pkAuthMasterDesc = DESC_MANAGER::instance().CreateConnectionDesc(metin2::config::auth().master_host.c_str(), metin2::config::auth().master_port, PHASE_P2P, true); 
 			P2P_MANAGER::instance().RegisterConnector(g_pkAuthMasterDesc);
-			g_pkAuthMasterDesc->SetP2P(g_stAuthMasterIP.c_str(), g_wAuthMasterPort);
+			g_pkAuthMasterDesc->SetP2P(metin2::config::auth().master_host.c_str(), metin2::config::auth().master_port);
 
 		}
 		else
@@ -498,7 +481,7 @@ int start(int argc, char **argv)
 	{
 
 		metin2::log::info( "SPAM_CONFIG: duration {:d} score {:d} reload cycle {:d}",
-				g_uiSpamBlockDuration, g_uiSpamBlockScore, g_uiSpamReloadCycle);
+				metin2::config::game().spam.block_duration, metin2::config::game().spam.block_score, metin2::config::game().spam.reload_cycle);
 
 		LoadSpamDB();
 	}

@@ -149,7 +149,7 @@ bool CGuild::CanStartWar(uint8_t bGuildWarType) // Different conditions may appl
 		return false;
 
 	// Don't check member count when testing.
-	if (test_server || quest::CQuestManager::instance().GetEventFlag("guild_war_test") != 0)
+	if (metin2::config::test_server() || quest::CQuestManager::instance().GetEventFlag("guild_war_test") != 0)
 		return GetLadderPoint() > 0;
 
 	return GetLadderPoint() > 0 && GetMemberCount() >= GUILD_WAR_MIN_MEMBER_COUNT;
@@ -369,7 +369,7 @@ void CGuild::RequestDeclareWar(uint32_t dwOppGID, uint8_t type)
 				p.lWarPrice = guildWarInfo.iWarPrice;
 				p.lInitialScore = guildWarInfo.iInitialScore;
 
-				if (test_server) 
+				if (metin2::config::test_server()) 
 					p.lInitialScore /= 10;
 
 				db_clientdesc->DBPacket(HEADER_GD_GUILD_WAR, 0, &p, sizeof(p));

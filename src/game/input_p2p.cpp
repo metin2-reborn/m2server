@@ -336,7 +336,7 @@ void CInputP2P::XmasWarpSanta(const char * c_pData)
 {
 	TPacketGGXmasWarpSanta * p =(TPacketGGXmasWarpSanta *) c_pData;
 
-	if (p->bChannel == g_bChannel && map_allow_find(p->lMapIndex))
+	if (p->bChannel == metin2::config::server().channel && map_allow_find(p->lMapIndex))
 	{
 		int	iNextSpawnDelay = 60;
 
@@ -346,7 +346,7 @@ void CInputP2P::XmasWarpSanta(const char * c_pData)
 
 		TPacketGGXmasWarpSantaReply pack_reply;
 		pack_reply.bHeader = HEADER_GG_XMAS_WARP_SANTA_REPLY;
-		pack_reply.bChannel = g_bChannel;
+		pack_reply.bChannel = metin2::config::server().channel;
 		P2P_MANAGER::instance().Send(&pack_reply, sizeof(pack_reply));
 	}
 }
@@ -355,7 +355,7 @@ void CInputP2P::XmasWarpSantaReply(const char* c_pData)
 {
 	TPacketGGXmasWarpSantaReply* p = (TPacketGGXmasWarpSantaReply*) c_pData;
 
-	if (p->bChannel == g_bChannel)
+	if (p->bChannel == metin2::config::server().channel)
 	{
 		CharacterVectorInteractor i;
 
@@ -399,7 +399,7 @@ void CInputP2P::IamAwake(DESC * d, const char * c_pData)
 
 int CInputP2P::Analyze(DESC * d, uint8_t bHeader, const char * c_pData)
 {
-	if (test_server)
+	if (metin2::config::test_server())
 		metin2::log::info( "CInputP2P::Anlayze[Header {:d}]", bHeader);
 
 	int iExtraLen = 0;
@@ -476,10 +476,6 @@ int CInputP2P::Analyze(DESC * d, uint8_t bHeader, const char * c_pData)
 
 		case HEADER_GG_XMAS_WARP_SANTA_REPLY:
 			XmasWarpSantaReply(c_pData);
-			break;
-
-		case HEADER_GG_RELOAD_CRC_LIST:
-			LoadValidCRCList();
 			break;
 
 		case HEADER_GG_CHECK_CLIENT_VERSION:

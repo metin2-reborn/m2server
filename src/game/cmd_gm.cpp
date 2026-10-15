@@ -136,9 +136,9 @@ ACMD(do_transfer)
 
 		if (pkCCI)
 		{
-			if (pkCCI->bChannel != g_bChannel)
+			if (pkCCI->bChannel != metin2::config::server().channel)
 			{
-				ch->ChatPacket(CHAT_TYPE_INFO, "Target is in %d channel (my channel %d)", pkCCI->bChannel, g_bChannel);
+				ch->ChatPacket(CHAT_TYPE_INFO, "Target is in %d channel (my channel %d)", pkCCI->bChannel, metin2::config::server().channel);
 				return;
 			}
 
@@ -420,9 +420,9 @@ ACMD(do_warp)
 
 			if (nullptr != pkCCI)
 			{
-				if (pkCCI->bChannel != g_bChannel)
+				if (pkCCI->bChannel != metin2::config::server().channel)
 				{
-					ch->ChatPacket(CHAT_TYPE_INFO, "Target is in %d channel (my channel %d)", pkCCI->bChannel, g_bChannel);
+					ch->ChatPacket(CHAT_TYPE_INFO, "Target is in %d channel (my channel %d)", pkCCI->bChannel, metin2::config::server().channel);
 					return;
 				}
 
@@ -558,7 +558,7 @@ ACMD(do_group)
 	uint32_t dwVnum = 0;
 	str_to_number(dwVnum, arg1);
 
-	if (test_server)
+	if (metin2::config::test_server())
 		metin2::log::info( "COMMAND GROUP SPAWN {:d} at {:d} {:d} {:d}", dwVnum, ch->GetMapIndex(), ch->GetX(), ch->GetY());
 
 	CHARACTER_MANAGER::instance().SpawnGroup(dwVnum, ch->GetMapIndex(), ch->GetX() - 500, ch->GetY() - 500, ch->GetX() + 500, ch->GetY() + 500);
@@ -750,7 +750,7 @@ ACMD(do_mob)
 	else
 		iCount = 1;
 
-	if (test_server)
+	if (metin2::config::test_server())
 		iCount = std::min(40, iCount);
 	else
 		iCount = std::min(20, iCount);
@@ -2717,7 +2717,7 @@ ACMD(do_build)
 					}
 				}
 
-				if (test_server || GMLevel == GM_PLAYER)
+				if (metin2::config::test_server() || GMLevel == GM_PLAYER)
 				{
 					// Only for non-GMs (on the test server GMs also consume)
 					// Check build cost
@@ -2772,12 +2772,12 @@ ACMD(do_build)
 
 				if (!isSuccess)
 				{
-					if (test_server)
+					if (metin2::config::test_server())
 						ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("건물을 지을 수 없는 위치입니다."));
 					return;
 				}
 
-				if (test_server || GMLevel == GM_PLAYER)
+				if (metin2::config::test_server() || GMLevel == GM_PLAYER)
 					// Consume build materials (on the test server GMs also consume)
 				{
 					// Consume build cost
@@ -3404,9 +3404,9 @@ ACMD(do_rmcandidacy)
 
 		if (pkCCI)
 		{
-			if (pkCCI->bChannel != g_bChannel)
+			if (pkCCI->bChannel != metin2::config::server().channel)
 			{
-				ch->ChatPacket(CHAT_TYPE_INFO, "Target is in %d channel (my channel %d)", pkCCI->bChannel, g_bChannel);
+				ch->ChatPacket(CHAT_TYPE_INFO, "Target is in %d channel (my channel %d)", pkCCI->bChannel, metin2::config::server().channel);
 				return;
 			}
 		}
@@ -3519,7 +3519,7 @@ ACMD(do_siege)
 
 ACMD(do_temp)
 {
-	if (false == test_server)
+	if (false == metin2::config::test_server())
 		return;
 
 	char	arg1[256], arg2[256];

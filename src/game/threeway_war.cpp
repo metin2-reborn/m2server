@@ -306,7 +306,7 @@ void CThreeWayWar::onDead(CHARACTER * pChar, CHARACTER * pkKiller)
 	if (false == pChar->IsPC())
 		return;
 
-	if (GM_PLAYER != pChar->GetGMLevel() && false == test_server)
+	if (GM_PLAYER != pChar->GetGMLevel() && false == metin2::config::test_server())
 		return;
 
 	if (-1 == GetRegenFlag())
@@ -333,7 +333,7 @@ void CThreeWayWar::onDead(CHARACTER * pChar, CHARACTER * pkKiller)
 		SetKillScore(pkKiller->GetEmpire(), nKillScore);
 	}
 
-	if (nKillScore != 0 && (test_server || (nKillScore % 5) == 0))
+	if (nKillScore != 0 && (metin2::config::test_server() || (nKillScore % 5) == 0))
 	{
 		char szBuf[64 + 1];
 

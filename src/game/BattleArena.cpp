@@ -57,7 +57,7 @@ struct FWarpToHome
 
 			if ( lpChar->IsPC() == true )
 			{
-				if ( !test_server ) 
+				if ( !metin2::config::test_server() ) 
 				{
 					if ( lpChar->GetGMLevel() != GM_PLAYER ) return;
 				}
@@ -114,14 +114,14 @@ EVENTFUNC(battle_arena_event)
 					++pInfo->state;
 					BroadcastNotice(LC_TEXT("몬스터들의 공격까지 5분 남았습니다!!!"));
 				}
-				return test_server ? PASSES_PER_SEC(60) : PASSES_PER_SEC(60*4);
+				return metin2::config::test_server() ? PASSES_PER_SEC(60) : PASSES_PER_SEC(60*4);
 
 			case 1:
 				{
 					++pInfo->state;
 					BroadcastNotice(LC_TEXT("몬스터들의 공격까지 1분 남았습니다!!!"));
 				}
-				return test_server ? PASSES_PER_SEC(10) : PASSES_PER_SEC(60);
+				return metin2::config::test_server() ? PASSES_PER_SEC(10) : PASSES_PER_SEC(60);
 
 			case 2:
 				{
@@ -144,7 +144,7 @@ EVENTFUNC(battle_arena_event)
 						}
 					}
 				}
-				return test_server ? PASSES_PER_SEC(60*1) : PASSES_PER_SEC(60*5);
+				return metin2::config::test_server() ? PASSES_PER_SEC(60*1) : PASSES_PER_SEC(60*5);
 
 			case 3 :
 				{
@@ -168,7 +168,7 @@ EVENTFUNC(battle_arena_event)
 						}
 					}
 				}
-				return test_server ? PASSES_PER_SEC(60) : PASSES_PER_SEC(60*5); 
+				return metin2::config::test_server() ? PASSES_PER_SEC(60) : PASSES_PER_SEC(60*5); 
 				
 			case 4 :
 				{
@@ -204,7 +204,7 @@ EVENTFUNC(battle_arena_event)
 
 					CBattleArena::instance().SpawnLastBoss();
 				}
-				return test_server ? PASSES_PER_SEC(60) : PASSES_PER_SEC(60*5);
+				return metin2::config::test_server() ? PASSES_PER_SEC(60) : PASSES_PER_SEC(60*5);
 
 			case 7 :
 				{
@@ -237,7 +237,7 @@ EVENTFUNC(battle_arena_event)
 						CBattleArena::instance().SpawnRandomStone();
 					}
 				}
-				return test_server ? PASSES_PER_SEC(60) : PASSES_PER_SEC(60*5);
+				return metin2::config::test_server() ? PASSES_PER_SEC(60) : PASSES_PER_SEC(60*5);
 		}
 	}
 	
@@ -268,7 +268,7 @@ bool CBattleArena::Start(int nEmpire)
 	info->state = 0;
 	info->wait_count = 0;
 
-	m_pEvent = event_create(battle_arena_event, info, test_server ? PASSES_PER_SEC(60) : PASSES_PER_SEC(5*60));
+	m_pEvent = event_create(battle_arena_event, info, metin2::config::test_server() ? PASSES_PER_SEC(60) : PASSES_PER_SEC(5*60));
 
 	SetStatus(STATUS_BATTLE);
 

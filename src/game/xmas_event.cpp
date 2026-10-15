@@ -151,7 +151,7 @@ namespace xmas
 
 	void SpawnSanta(int32_t lMapIndex, int iTimeGapSec)
 	{
-		if (test_server)
+		if (metin2::config::test_server())
 		{
 			iTimeGapSec /= 60;
 		}

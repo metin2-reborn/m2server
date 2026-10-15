@@ -81,7 +81,7 @@ EVENTFUNC(target_event)
 	int iDist = 5000;
 
 	if (info->iMapIndex != pkChr->GetMapIndex())
-		return std::clamp(iDist / (1500 / passes_per_sec), passes_per_sec / 2, passes_per_sec * 5);
+		return std::clamp(iDist / (1500 / metin2::config::server().passes_per_sec), metin2::config::server().passes_per_sec / 2, metin2::config::server().passes_per_sec * 5);
 
 	switch (info->iType)
 	{
@@ -132,9 +132,9 @@ EVENTFUNC(target_event)
 	}
 
 	if (!bRet)
-		return passes_per_sec;
+		return metin2::config::server().passes_per_sec;
 	else
-		return std::clamp(iDist / (1500 / passes_per_sec), passes_per_sec / 2, passes_per_sec * 5);
+		return std::clamp(iDist / (1500 / metin2::config::server().passes_per_sec), metin2::config::server().passes_per_sec / 2, metin2::config::server().passes_per_sec * 5);
 }
 
 void CTargetManager::CreateTarget(uint32_t dwPID,

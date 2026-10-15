@@ -1,7 +1,7 @@
 #include "peer_security.h"
 
 #include <cstring>
-#include <sstream>
+#include <span>
 #include <string>
 
 #include <arpa/inet.h>
@@ -9,9 +9,7 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 
-std::string g_allowedPeerHosts;
-
-auto is_allowed_peer(const char *address, const std::string &hosts, const char *local) -> bool {
+auto is_allowed_peer(const char *address, std::span<const std::string> hosts, const char *local) -> bool {
     in_addr remote{};
 
     if (!address || inet_pton(AF_INET, address, &remote) != 1) {
@@ -22,9 +20,7 @@ auto is_allowed_peer(const char *address, const std::string &hosts, const char *
         return local && std::strcmp(address, local) == 0;
     }
 
-    std::istringstream input(hosts);
-    std::string host;
-    while (input >> host) {
+    for (const std::string &host : hosts) {
         addrinfo hints{};
         hints.ai_family = AF_INET;
         hints.ai_socktype = SOCK_STREAM;

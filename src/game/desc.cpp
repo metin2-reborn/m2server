@@ -128,7 +128,7 @@ void DESC::Destroy()
 	event_cancel(&m_pkPingEvent);
 	event_cancel(&m_pkDisconnectEvent);
 
-	if (!g_bAuthServer)
+	if (!metin2::config::is_auth())
 	{
 		if (m_accountTable.login[0] && m_accountTable.passwd[0])
 		{
@@ -167,7 +167,7 @@ EVENTFUNC(ping_event)
 	DESC * desc = info->desc;
 
 	if (desc->IsAdminMode())
-		return (ping_event_second_cycle);
+		return (PASSES_PER_SEC(metin2::config::server().ping_seconds));
 
 	if (!desc->IsPong())
 	{
@@ -175,7 +175,7 @@ EVENTFUNC(ping_event)
 
 		desc->SetPhase(PHASE_CLOSE);
 
-		return (ping_event_second_cycle);
+		return (PASSES_PER_SEC(metin2::config::server().ping_seconds));
 	}
 	else
 	{
@@ -188,7 +188,7 @@ EVENTFUNC(ping_event)
 
 	desc->SendHandshake(get_dword_time(), 0);
 
-	return (ping_event_second_cycle);
+	return (PASSES_PER_SEC(metin2::config::server().ping_seconds));
 }
 
 bool DESC::IsPong()
@@ -216,7 +216,7 @@ bool DESC::Setup(std::shared_ptr<net::connection> connection, uint32_t _handle, 
 	info->desc = this;
 	assert(m_pkPingEvent == nullptr);
 
-	m_pkPingEvent = event_create(ping_event, info, ping_event_second_cycle);
+	m_pkPingEvent = event_create(ping_event, info, PASSES_PER_SEC(metin2::config::server().ping_seconds));
 
 
 	// Set Phase to handshake

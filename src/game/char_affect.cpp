@@ -93,7 +93,7 @@ EVENTFUNC(affect_event)
 	if (!ch->UpdateAffect())
 		return 0;
 	else
-		return passes_per_sec; // 1 second
+		return metin2::config::server().passes_per_sec; // 1 second
 }
 
 bool CHARACTER::UpdateAffect()
@@ -172,7 +172,7 @@ void CHARACTER::StartAffectEvent()
 
 	char_event_info* info = AllocEventInfo<char_event_info>();
 	info->ch = this;
-	m_pkAffectEvent = event_create(affect_event, info, passes_per_sec);
+	m_pkAffectEvent = event_create(affect_event, info, metin2::config::server().passes_per_sec);
 	metin2::log::debug( "StartAffectEvent {} {} {}", GetName(), static_cast<const void *>(this), static_cast<const void *>(m_pkAffectEvent.get()));
 }
 
@@ -443,7 +443,7 @@ void CHARACTER::LoadAffect(uint32_t dwCount, TPacketAffectElement * pElements)
 
 	if (!GetDesc()->IsPhase(PHASE_GAME))
 	{
-		if (test_server)
+		if (metin2::config::test_server())
 			metin2::log::info( "LOAD_AFFECT: Creating Event {} {:d}", GetName(), dwCount);
 
 		load_affect_login_event_info* info = AllocEventInfo<load_affect_login_event_info>();
@@ -460,7 +460,7 @@ void CHARACTER::LoadAffect(uint32_t dwCount, TPacketAffectElement * pElements)
 
 	ClearAffect(true);
 
-	if (test_server)
+	if (metin2::config::test_server())
 		metin2::log::info( "LOAD_AFFECT: {} count {:d}", GetName(), dwCount);
 
 	TAffectFlag afOld = m_afAffectFlag;
@@ -491,7 +491,7 @@ void CHARACTER::LoadAffect(uint32_t dwCount, TPacketAffectElement * pElements)
 			continue;
 		}
 
-		if (test_server)
+		if (metin2::config::test_server())
 		{
 			metin2::log::info( "Load Affect : Affect {} {:d} {:d}", GetName(), pElements->dwType, pElements->bApplyOn );
 		}
@@ -700,7 +700,7 @@ bool CHARACTER::RemoveAffect(CAffect * pkAff)
 
 	CheckMaximumPoints();
 
-	if (test_server)
+	if (metin2::config::test_server())
 		metin2::log::info( "AFFECT_REMOVE: {} (flag {:d} apply: {:d})", GetName(), pkAff->dwFlag, pkAff->bApplyOn);
 
 	if (IsPC())

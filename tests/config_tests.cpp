@@ -1,70 +1,175 @@
 #include "check.h"
 
-#include <db/Config.h>
+#include <metin2/config/config.h>
 
-#include <cstdint>
 #include <cstdio>
 #include <filesystem>
 #include <fstream>
 #include <string>
+#include <vector>
 
 #include <unistd.h>
 
 namespace {
-    // A config file in the temporary directory, removed again at the end of the test.
-    struct temp_config {
-        std::filesystem::path path;
+    namespace fs = std::filesystem;
+    using metin2::config::role;
 
-        explicit temp_config(const std::string &text)
-            : path(std::filesystem::temp_directory_path() / ("m2_config_test_" + std::to_string(::getpid()) + ".txt")) {
-            std::ofstream(path) << text;
+    auto contains(const std::string &text, const std::string &part) -> bool {
+        return text.find(part) != std::string::npos;
+    }
+
+    // Files in a temporary directory, removed again at the end of the test.
+    struct temp_dir {
+        fs::path path = fs::temp_directory_path() / ("m2_config_test_" + std::to_string(::getpid()));
+
+        temp_dir() { fs::create_directories(path); }
+        ~temp_dir() {
+            std::error_code error;
+            fs::remove_all(path, error);
         }
 
-        ~temp_config() {
-            std::error_code error;
-            std::filesystem::remove(path, error);
+        auto write(const char *name, const std::string &text) const -> fs::path {
+            std::ofstream(path / name) << text;
+            return path / name;
         }
     };
+
+    constexpr const char *game_config = R"(
+role = "game"
+
+[database]
+user = "metin2"
+password = "secret"
+
+[server]
+hostname = "first"
+channel = 1
+port = 13000
+p2p_allowed_hosts = ["auth", "channel1-first"]
+
+[game]
+map_allow = [1, 21, 41]
+max_level = 105
+
+[game.spam]
+block_score = 50
+)";
 }
 
-TEST(config_reads_values) {
-    const temp_config file("// comment line\n"
-                           "BIND_PORT = 15000\n"
-                           "WELCOME_MSG = \"DB Server has been started\"\r\n"
-                           "ITEM_ID_RANGE = 2000001 4000000\n");
-    CConfig config;
-    CHECK(config.LoadFile(file.path.c_str()));
+TEST(config_reads_a_game_file) {
+    const auto settings = metin2::config::parse(game_config);
+    CHECK(settings.has_value());
+    if (!settings)
+        return;
 
-    int port = 0;
-    CHECK(config.GetValue("BIND_PORT", &port));
-    CHECK_EQ(port, 15000);
-
-    char message[64];
-    CHECK(config.GetValue("WELCOME_MSG", message, sizeof(message)));
-    CHECK_EQ(std::string(message), std::string("DB Server has been started"));
-
-    uint32_t from = 0;
-    uint32_t to = 0;
-    CHECK(config.GetTwoValue("ITEM_ID_RANGE", &from, &to));
-    CHECK_EQ(from, 2000001u);
-    CHECK_EQ(to, 4000000u);
+    CHECK(settings->role == role::game);
+    CHECK_EQ(settings->database.user, std::string("metin2"));
+    CHECK_EQ(settings->server.hostname, std::string("first"));
+    CHECK_EQ(settings->server.channel, 1);
+    CHECK_EQ(settings->server.p2p_allowed_hosts.size(), std::size_t{2});
+    CHECK_EQ(settings->game.map_allow.size(), std::size_t{3});
+    CHECK_EQ(settings->game.max_level, 105);
+    CHECK_EQ(settings->game.spam.block_score, 50u);
+    // Defaults for what the file leaves out.
+    CHECK_EQ(settings->game.spam.block_duration, 900u);
+    CHECK_EQ(settings->server.passes_per_sec, 25);
+    CHECK(settings->game.empire_whisper);
 }
 
-TEST(config_reports_missing_values) {
-    const temp_config file("ONE_WORD = 5\n");
-    CConfig config;
-    CHECK(config.LoadFile(file.path.c_str()));
-
-    int value = 0;
-    CHECK(!config.GetValue("MISSING", &value));
-
-    // GetTwoValue needs two words.
-    uint32_t first = 0;
-    uint32_t second = 0;
-    CHECK(!config.GetTwoValue("ONE_WORD", &first, &second));
+TEST(config_reads_a_db_file) {
+    const auto settings = metin2::config::parse(R"(
+role = "db"
+[database]
+user = "metin2"
+[db]
+port = 15000
+player_id_start = 3
+item_id_range = [10000001, 20000000]
+[db.cache]
+item_flush_seconds = 60
+)");
+    CHECK(settings.has_value());
+    if (!settings)
+        return;
+    CHECK(settings->role == role::db);
+    CHECK_EQ(settings->db.item_id_min, 10000001u);
+    CHECK_EQ(settings->db.item_id_max, 20000000u);
+    CHECK_EQ(settings->db.item_cache_flush_seconds, 60);
+    CHECK_EQ(settings->db.player_cache_flush_seconds, 420);
 }
 
-TEST(config_fails_on_missing_file) {
-    CConfig config;
-    CHECK(!config.LoadFile("/nonexistent/metin2/conf.txt"));
+TEST(config_reports_required_keys) {
+    const auto settings = metin2::config::parse("role = \"db\"\n[database]\nuser = \"x\"\n");
+    CHECK(!settings.has_value());
+    if (settings)
+        return;
+    CHECK(contains(settings.error(), "db.player_id_start is required"));
+    CHECK(contains(settings.error(), "db.item_id_range"));
+
+    const auto no_role = metin2::config::parse("[database]\nuser = \"x\"\n");
+    CHECK(!no_role.has_value());
+}
+
+TEST(config_reports_wrong_types_and_unknown_keys) {
+    const auto settings = metin2::config::parse(R"(
+role = "game"
+[database]
+user = "metin2"
+[server]
+hostname = "first"
+channel = 300
+port = "13000"
+prot = 1
+)");
+    CHECK(!settings.has_value());
+    if (settings)
+        return;
+    CHECK(contains(settings.error(), "server.channel must be an integer from 0 to 255"));
+    CHECK(contains(settings.error(), "server.port must be an integer"));
+    CHECK(contains(settings.error(), "unknown key server.prot"));
+    CHECK(contains(settings.error(), "line "));
+}
+
+TEST(config_merges_files_in_order) {
+    temp_dir dir;
+    const std::vector<fs::path> files = {
+        dir.write("server.toml", game_config),
+        dir.write("runtime.toml", "[database]\nhost = \"mariadb\"\npassword = \"from-env\"\n[server]\nbind_ip = \"10.0.0.5\"\n"),
+    };
+
+    const auto settings = metin2::config::load(files);
+    CHECK(settings.has_value());
+    if (!settings)
+        return;
+    CHECK_EQ(settings->database.host, std::string("mariadb"));
+    CHECK_EQ(settings->database.password, std::string("from-env"));
+    CHECK_EQ(settings->database.user, std::string("metin2"));
+    CHECK_EQ(settings->server.bind_ip, std::string("10.0.0.5"));
+    CHECK_EQ(settings->server.hostname, std::string("first"));
+}
+
+TEST(config_reports_syntax_errors_with_position) {
+    temp_dir dir;
+    const std::vector<fs::path> files = {dir.write("server.toml", "role = \"game\"\n[server\nhostname = 1\n")};
+    const auto settings = metin2::config::load(files);
+    CHECK(!settings.has_value());
+    if (!settings)
+        CHECK(contains(settings.error(), "server.toml:2:"));
+}
+
+TEST(config_accepts_the_shipped_files) {
+    temp_dir dir;
+    const fs::path runtime = dir.write("runtime.toml", R"(
+[database]
+host = "mariadb"
+user = "metin2"
+password = "secret"
+)");
+    for (const char *role_dir : {"db", "auth", "channel1-first"}) {
+        const std::vector<fs::path> files = {fs::path(M2_SOURCE_DIR) / "dist/config" / role_dir / "server.toml", runtime};
+        const auto settings = metin2::config::load(files);
+        CHECK(settings.has_value());
+        if (!settings)
+            std::fprintf(stderr, "%s: %s", role_dir, settings.error().c_str());
+    }
 }

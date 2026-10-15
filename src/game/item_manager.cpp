@@ -99,7 +99,7 @@ bool ITEM_MANAGER::Initialize(TItemTable * table, int size)
 			quest::CQuestManager::instance().RegisterNPCVnum(m_vec_prototype[i].dwVnum);
 
 		m_map_vid.insert( std::map<uint32_t,TItemTable>::value_type( m_vec_prototype[i].dwVnum, m_vec_prototype[i] ) ); 
-		if ( test_server )
+		if ( metin2::config::test_server() )
 			metin2::log::info( "ITEM_INFO {:d} {} ", m_vec_prototype[i].dwVnum, m_vec_prototype[i].szName );	
 	}
 
@@ -117,7 +117,7 @@ bool ITEM_MANAGER::Initialize(TItemTable * table, int size)
 
 		if (!((i + 1) % 4))
 		{
-			if ( !test_server )
+			if ( !metin2::config::test_server() )
 				metin2::log::info( "{}", buf);
 			len = 0;
 		}
@@ -130,7 +130,7 @@ bool ITEM_MANAGER::Initialize(TItemTable * table, int size)
 
 	if ((i + 1) % 4)
 	{
-		if ( !test_server )
+		if ( !metin2::config::test_server() )
 			metin2::log::info( "{}", buf);
 	}
 
@@ -663,7 +663,7 @@ int GetDropPerKillPct(int iMinimum, int iDefault, int iDeltaPercent, const char 
 
 	if ((iVal = quest::CQuestManager::instance().GetEventFlag(c_pszFlag)))
 	{
-		if (!test_server)
+		if (!metin2::config::test_server())
 		{
 			if (iVal < iMinimum)
 				iVal = iDefault;
@@ -716,7 +716,7 @@ bool ITEM_MANAGER::GetDropPct(CHARACTER * pkChr, CHARACTER * pkKiller, int& iDel
 		 CPrivManager::instance().GetPriv(pkKiller, PRIV_ITEM_DROP) +
 		 (pkKiller->IsEquipUniqueItem(UNIQUE_ITEM_DOUBLE_ITEM) ? 100 : 0));
 
-	if (distribution_test_server) iRandRange /= 3;
+	if (metin2::config::game().distribution_test_server) iRandRange /= 3;
 
 	return true;
 }

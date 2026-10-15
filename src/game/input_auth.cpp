@@ -60,7 +60,7 @@ void CInputAuth::Login(DESC * d, const char * c_pData)
 
 	TPacketCGLogin3 * pinfo = (TPacketCGLogin3 *) c_pData;
 
-	if (!g_bAuthServer)
+	if (!metin2::config::is_auth())
 	{
 		metin2::log::error("CInputAuth class is not for game server. IP {} might be a hacker.", 
 			d->GetHostName());
@@ -167,7 +167,7 @@ void CInputAuth::Login(DESC * d, const char * c_pData)
 int CInputAuth::Analyze(DESC * d, uint8_t bHeader, const char * c_pData)
 {
 
-	if (!g_bAuthServer)
+	if (!metin2::config::is_auth())
 	{
 		metin2::log::error("CInputAuth class is not for game server. IP {} might be a hacker.", 
 			d->GetHostName());
@@ -177,7 +177,7 @@ int CInputAuth::Analyze(DESC * d, uint8_t bHeader, const char * c_pData)
 
 	int iExtraLen = 0;
 
-	if (test_server)
+	if (metin2::config::test_server())
 		metin2::log::info( " InputAuth Analyze Header[{:d}] ", bHeader);
 
 	switch (bHeader)

@@ -1,0 +1,15 @@
+# Database cache between the game processes and MariaDB.
+# The launcher adds runtime.toml with the MariaDB address and credentials and the peer list.
+role = "db"
+test_server = false
+
+[log]
+level = "info"
+keep_days = 3
+
+[db]
+port = 15000
+heart_fps = 10
+player_id_start = 3
+item_id_range = [10000001, 20000000]
+player_delete_level_limit = 70

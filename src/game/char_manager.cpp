@@ -341,7 +341,7 @@ CHARACTER * CHARACTER_MANAGER::SpawnMobRandomPosition(uint32_t dwVnum, int32_t l
 	int32_t local_y = y - pkSectreeMap->m_setting.iBaseY;
 	snprintf(buf, sizeof(buf), "spawn %s[%d] random position at %d %d %d %d (time: %ld)", ch->GetName(), dwVnum, x, y, local_x, local_y, get_global_time());
 	
-	if (test_server)
+	if (metin2::config::test_server())
 		SendNotice(buf);
 
 	metin2::log::info( "{}", buf);
@@ -694,7 +694,7 @@ void CHARACTER_MANAGER::Update(int iPulse)
 	}
 
 	// on the test server, count characters every 60 seconds
-	if (test_server && 0 == (iPulse % PASSES_PER_SEC(60)))
+	if (metin2::config::test_server() && 0 == (iPulse % PASSES_PER_SEC(60)))
 		metin2::log::info( "CHARACTER COUNT vid {:d} pid {:d}", m_map_pkChrByVID.size(), m_map_pkChrByPID.size());
 
 	// perform delayed DestroyCharacter

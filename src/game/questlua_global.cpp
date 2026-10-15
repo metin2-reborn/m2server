@@ -300,19 +300,19 @@ namespace quest
 
 	int _is_test_server(lua_State * L)
 	{
-		lua_pushboolean(L, test_server);
+		lua_pushboolean(L, metin2::config::test_server());
 		return 1;
 	}
 
 	int _is_speed_server(lua_State * L)
 	{
-		lua_pushboolean(L, speed_server);
+		lua_pushboolean(L, metin2::config::game().speed_server);
 		return 1;
 	}
 
 	int _raw_script(lua_State* L)
 	{
-		if ( test_server )
+		if ( metin2::config::test_server() )
 			metin2::log::info( "_raw_script : {} ", lua_tostring(L,-1));
 		if (lua_isstring(L, -1))
 			CQuestManager::instance().AddScript(lua_tostring(L,-1));
@@ -367,7 +367,7 @@ namespace quest
 
 		if (lua_tonumber(L, 1) >= 1)
 		{
-			if (!test_server)
+			if (!metin2::config::test_server())
 				return 0;
 		}
 
@@ -383,7 +383,7 @@ namespace quest
 
 		metin2::log::info( "QUEST: quest: {} player: {} : {}", pc->GetCurrentQuestName().c_str(), ch->GetName(), lua_tostring(L, 2));
 
-		if (true == test_server)
+		if (true == metin2::config::test_server())
 		{
 			ch->ChatPacket(CHAT_TYPE_INFO, "QUEST_SYSLOG %s", lua_tostring(L, 2));
 		}
@@ -714,7 +714,7 @@ namespace quest
 
 	int _get_channel_id(lua_State* L)
 	{
-		lua_pushnumber(L, g_bChannel);
+		lua_pushnumber(L, metin2::config::server().channel);
 
 		return 1;
 	}
@@ -763,7 +763,7 @@ namespace quest
 		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
 		CHARACTER * tch;
 
-		if (test_server)
+		if (metin2::config::test_server())
 		{
 			metin2::log::info( "find_pc_cond map={:d}, job={:d}, level={:d}~{:d}",
 					ch->GetMapIndex(),
@@ -833,7 +833,7 @@ namespace quest
 		{
 			const std::string stQuestName(lua_tostring(L, 1));
 			const std::string stStateName(lua_tostring(L, 2));
-			if ( test_server )
+			if ( metin2::config::test_server() )
 				metin2::log::info("set_state {} {} ", stQuestName.c_str(), stStateName.c_str() );
 			if (pPC->GetCurrentQuestName() == stQuestName)
 			{
@@ -865,12 +865,12 @@ namespace quest
 
 			lua_pushnumber(L, nRet );
 
-			if ( test_server )
+			if ( metin2::config::test_server() )
 				metin2::log::info("Get_quest_state name {} value {:d}", stQuestName.c_str(), nRet );
 		}
 		else
 		{
-			if ( test_server )
+			if ( metin2::config::test_server() )
 				metin2::log::info("PC == 0 ");
 
 			lua_pushnumber(L, 0);

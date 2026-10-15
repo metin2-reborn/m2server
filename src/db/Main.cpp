@@ -1,7 +1,6 @@
 #include "Main.h"
 
 #include "ClientManager.h"
-#include "Config.h"
 #include "DBManager.h"
 #include "GuildManager.h"
 #include "ItemAwardManager.h"
@@ -14,6 +13,7 @@
 #include <common/startup.h>
 #include <common/utils.h>
 #include <libthecore/core_signal.h>
+#include <metin2/config/config.h>
 #include <metin2/log/log.h>
 #include <libthecore/main.h>
 
@@ -22,7 +22,9 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
+#include <filesystem>
 #include <string>
+#include <vector>
 
 #include <unistd.h>
 
@@ -35,23 +37,8 @@ std::string g_stTablePostfix;
 std::string g_stLocaleNameColumn = "name";
 std::string g_stPlayerDBName = "";
 
-
-bool g_test_server = false;
-
-//in seconds
-int g_iPlayerCacheFlushSeconds = 60*7;
-int g_iItemCacheFlushSeconds = 60*5;
-
-//g_iLogoutSeconds must be longer than g_iPlayerCacheFlushSeconds and g_iItemCacheFlushSeconds.
+//g_iLogoutSeconds must be longer than the player and item cache flush intervals.
 int g_iLogoutSeconds = 60*10;
-
-int g_log = 1;
-
-
-// MYSHOP_PRICE_LIST
-int g_iItemPriceListTableCacheFlushSeconds = 540;
-// END_OF_MYSHOP_PRICE_LIST
-
 
 
 void emergency_sig(int sig)
@@ -70,7 +57,6 @@ int main()
 	WriteVersion();
 
 
-	CConfig Config;
 
 	// Removes the pid file and closes the logs once everything below is destroyed.
 	struct CoreCleanup
@@ -123,192 +109,73 @@ int main()
 //
 // @version	05/06/13 Bang2ni - Added item price info cache flush timeout setting.
 //
+// server.toml with runtime.toml (written by the launcher) merged over it.
+static bool load_settings()
+{
+	std::vector<std::filesystem::path> files = {"server.toml"};
+	if (std::filesystem::exists("runtime.toml"))
+		files.emplace_back("runtime.toml");
+
+	auto settings = metin2::config::load(files);
+	if (!settings)
+	{
+		metin2::log::error("invalid configuration:\n{}", settings.error());
+		return false;
+	}
+	if (settings->role != metin2::config::role::db)
+	{
+		metin2::log::error("this executable runs role \"db\", the configuration says \"{}\"", metin2::config::role_name(settings->role));
+		return false;
+	}
+
+	metin2::config::set_current(std::move(*settings));
+	metin2::log::set_keep_days(metin2::config::current().log.keep_days);
+	metin2::log::set_level(metin2::config::current().log.level);
+	return true;
+}
+
+// Connects one database slot, retrying while MariaDB is still starting.
+static bool connect_database(int slot, const std::string & name)
+{
+	const metin2::config::database_settings & database = metin2::config::database();
+
+	for (int attempt = 1; attempt <= 6; ++attempt)
+	{
+		if (CDBManager::instance().Connect(slot, database.host.c_str(), database.port, name.c_str(), database.user.c_str(), database.password.c_str()))
+		{
+			metin2::log::info("connected to database {}", name);
+			return true;
+		}
+
+		metin2::log::warn("cannot connect to database {} (attempt {:d}), retrying in 5 seconds", name, attempt);
+		sleep(5);
+	}
+
+	metin2::log::error("cannot connect to database {}", name);
+	return false;
+}
+
 int Start()
 {
-	if (!CConfig::instance().LoadFile("conf.txt"))
-	{
-		fprintf(stderr, "Loading conf.txt failed.\n");
+	if (!load_settings())
 		return false;
-	}
 
-	int test_server = 0;
-	if (!CConfig::instance().GetValue("TEST_SERVER", &test_server))
-	{
-		fprintf(stderr, "Real Server\n");
-	}
-	else
-		fprintf(stderr, "Test Server\n");
-	g_test_server = test_server != 0;
+	const metin2::config::db_settings & db = metin2::config::db();
 
-	if (!CConfig::instance().GetValue("LOG", &g_log))
-	{
-		fprintf(stderr, "Log Off");
-		g_log= 0;
-	}
-	else
-	{
-		g_log = 1;
-		fprintf(stderr, "Log On");
-	}
-	
-	
-	int tmpValue;
-
-	int heart_beat = 50;
-	if (!CConfig::instance().GetValue("CLIENT_HEART_FPS", &heart_beat))
-	{
-		fprintf(stderr, "Cannot find CLIENT_HEART_FPS configuration.\n");
+	if (!thecore_init(db.heart_fps))
 		return false;
-	}
-
-	metin2::log::set_keep_days(3);
-
-	if (CConfig::instance().GetValue("LOG_KEEP_DAYS", &tmpValue))
-	{
-		tmpValue = std::clamp(tmpValue, 3, 30);
-		metin2::log::set_keep_days(tmpValue);
-		fprintf(stderr, "Setting log keeping days to %d\n", tmpValue);
-	}
-
-	thecore_init(heart_beat);
 	signal_timer_enable(60);
 
-	char szBuf[256+1];
+	SetTablePostfix(metin2::config::database().table_postfix.c_str());
+	CClientManager::instance().SetCacheFlushCountLimit(db.cache_flush_limit_per_second);
+	CClientManager::instance().SetPlayerIDStart(db.player_id_start);
+	g_stLocaleNameColumn = db.name_column;
 
-	if (!CConfig::instance().GetValue("TABLE_POSTFIX", szBuf, 256))
-	{
-		metin2::log::error("TABLE_POSTFIX not configured use default");
-		szBuf[0] = '\0';
-	}
-
-	SetTablePostfix(szBuf);
-
-	if (CConfig::instance().GetValue("PLAYER_CACHE_FLUSH_SECONDS", szBuf, 256))
-	{
-		str_to_number(g_iPlayerCacheFlushSeconds, szBuf);
-		metin2::log::info( "PLAYER_CACHE_FLUSH_SECONDS: {:d}", g_iPlayerCacheFlushSeconds);
-	}
-
-	if (CConfig::instance().GetValue("ITEM_CACHE_FLUSH_SECONDS", szBuf, 256))
-	{
-		str_to_number(g_iItemCacheFlushSeconds, szBuf);
-		metin2::log::info( "ITEM_CACHE_FLUSH_SECONDS: {:d}", g_iItemCacheFlushSeconds);
-	}
-
-	// MYSHOP_PRICE_LIST
-	if (CConfig::instance().GetValue("ITEM_PRICELIST_CACHE_FLUSH_SECONDS", szBuf, 256)) 
-	{
-		str_to_number(g_iItemPriceListTableCacheFlushSeconds, szBuf);
-		metin2::log::info( "ITEM_PRICELIST_CACHE_FLUSH_SECONDS: {:d}", g_iItemPriceListTableCacheFlushSeconds);
-	}
-	// END_OF_MYSHOP_PRICE_LIST
-	//
-	if (CConfig::instance().GetValue("CACHE_FLUSH_LIMIT_PER_SECOND", szBuf, 256))
-	{
-		uint32_t dwVal = 0; str_to_number(dwVal, szBuf);
-		CClientManager::instance().SetCacheFlushCountLimit(dwVal);
-	}
-
-	int iIDStart;
-	if (!CConfig::instance().GetValue("PLAYER_ID_START", &iIDStart))
-	{
-		metin2::log::error("PLAYER_ID_START not configured");
+	const metin2::config::database_settings & database = metin2::config::database();
+	if (!connect_database(SQL_PLAYER, database.player) || !connect_database(SQL_ACCOUNT, database.account) ||
+		!connect_database(SQL_COMMON, database.common))
 		return false;
-	}
-
-	CClientManager::instance().SetPlayerIDStart(iIDStart);
-
-	if (CConfig::instance().GetValue("NAME_COLUMN", szBuf, 256))
-	{
-		fprintf(stderr, "%s %s", g_stLocaleNameColumn.c_str(), szBuf);
-		g_stLocaleNameColumn = szBuf;
-	}
-
-	char szAddr[64], szDB[64], szUser[64], szPassword[64];
-	int iPort;
-	char line[256+1];
-
-	if (CConfig::instance().GetValue("SQL_PLAYER", line, 256))
-	{
-		sscanf(line, " %63s %63s %63s %63s %d ", szAddr, szDB, szUser, szPassword, &iPort);
-		metin2::log::info( "connecting to MySQL server (player)");
-
-		int iRetry = 5;
-
-		do
-		{
-			if (CDBManager::instance().Connect(SQL_PLAYER, szAddr, iPort, szDB, szUser, szPassword))
-			{
-				metin2::log::info( "   OK");
-				break;
-			}
-
-			metin2::log::info( "   failed, retrying in 5 seconds");
-			fprintf(stderr, "   failed, retrying in 5 seconds");
-			sleep(5);
-		} while (iRetry--);
-		fprintf(stderr, "Success PLAYER\n");
-		SetPlayerDBName(szDB);
-	}
-	else
-	{
-		metin2::log::error("SQL_PLAYER not configured");
-		return false;
-	}
-
-	if (CConfig::instance().GetValue("SQL_ACCOUNT", line, 256))
-	{
-		sscanf(line, " %63s %63s %63s %63s %d ", szAddr, szDB, szUser, szPassword, &iPort);
-		metin2::log::info( "connecting to MySQL server (account)");
-
-		int iRetry = 5;
-
-		do
-		{
-			if (CDBManager::instance().Connect(SQL_ACCOUNT, szAddr, iPort, szDB, szUser, szPassword))
-			{
-				metin2::log::info( "   OK");
-				break;
-			}
-
-			metin2::log::info( "   failed, retrying in 5 seconds");
-			fprintf(stderr, "   failed, retrying in 5 seconds");
-			sleep(5);
-		} while (iRetry--);
-		fprintf(stderr, "Success ACCOUNT\n");
-	}
-	else
-	{
-		metin2::log::error("SQL_ACCOUNT not configured");
-		return false;
-	}
-
-	if (CConfig::instance().GetValue("SQL_COMMON", line, 256))
-	{
-		sscanf(line, " %63s %63s %63s %63s %d ", szAddr, szDB, szUser, szPassword, &iPort);
-		metin2::log::info( "connecting to MySQL server (common)");
-
-		int iRetry = 5;
-
-		do
-		{
-			if (CDBManager::instance().Connect(SQL_COMMON, szAddr, iPort, szDB, szUser, szPassword))
-			{
-				metin2::log::info( "   OK");
-				break;
-			}
-
-			metin2::log::info( "   failed, retrying in 5 seconds");
-			fprintf(stderr, "   failed, retrying in 5 seconds");
-			sleep(5);
-		} while (iRetry--);
-		fprintf(stderr, "Success COMMON\n");
-	}
-	else
-	{
-		metin2::log::error("SQL_COMMON not configured");
-		return false;
-	}
+	SetPlayerDBName(database.player.c_str());
 
 	metin2::log::info( "ClientManager initialization.. ");
 

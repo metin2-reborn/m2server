@@ -48,12 +48,12 @@ inline void AttackAffect(CHARACTER * pkAttacker,
 		{
 			pkVictim->AddAffect(affect_idx, affect_point, affect_amount, affect_flag, time, 0, true);
 
-			if (test_server)
+			if (metin2::config::test_server())
 			{
 				pkVictim->ChatPacket(CHAT_TYPE_PARTY, "%s %s(%d%%) SUCCESS", pkAttacker->GetName(), name, pkAttacker->GetPoint(att_point));
 			}
 		}
-		else if (test_server)
+		else if (metin2::config::test_server())
 		{
 			pkVictim->ChatPacket(CHAT_TYPE_PARTY, "%s %s(%d%%) FAIL", pkAttacker->GetName(), name, pkAttacker->GetPoint(att_point));
 		}
@@ -77,12 +77,12 @@ inline void SkillAttackAffect(CHARACTER * pkVictim,
 			pkVictim->AddAffect(affect_idx, affect_point, affect_amount, affect_flag, time, 0, true);
 
 			// SKILL_ATTACK_NO_LOG_TARGET_NAME_FIX
-			if (test_server)
+			if (metin2::config::test_server())
 				pkVictim->ChatPacket(CHAT_TYPE_PARTY, 
 						"%s(%d%%) -> %s SUCCESS", name, success_pct, name);
 			// END_OF_SKILL_ATTACK_LOG_NO_TARGET_NAME_FIX
 		}
-		else if (test_server)
+		else if (metin2::config::test_server())
 		{
 			// SKILL_ATTACK_NO_LOG_TARGET_NAME_FIX
 			pkVictim->ChatPacket(CHAT_TYPE_PARTY, "%s(%d%%) -> %s FAIL", name, success_pct, name);

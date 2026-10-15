@@ -366,13 +366,13 @@ void CInputDB::PlayerLoad(DESC * d, const char * data)
 		p.dwPID = ch->GetPlayerID();
 		p.bEmpire = ch->GetEmpire();
 		p.lMapIndex = SECTREE_MANAGER::instance().GetMapIndex(ch->GetX(), ch->GetY());
-		p.bChannel = g_bChannel;
+		p.bChannel = metin2::config::server().channel;
 
 		P2P_MANAGER::instance().Send(&p, sizeof(TPacketGGLogin));
 
 		char buf[51];
 		snprintf(buf, sizeof(buf), "%s %d %d %d %d",
-				ch->GetDesc()->GetHostName(), ch->GetGold(), g_bChannel, ch->GetMapIndex(), ch->GetAlignment());
+				ch->GetDesc()->GetHostName(), ch->GetGold(), metin2::config::server().channel, ch->GetMapIndex(), ch->GetAlignment());
 		LogManager::instance().CharLog(ch, 0, "LOGIN", buf);
 
 	}
@@ -793,7 +793,7 @@ void CInputDB::Boot(const char* data)
 	int CandidacyCount = decode_2bytes(data);
 	data += 2;
 
-	if (test_server)
+	if (metin2::config::test_server())
 		metin2::log::info( "[MONARCH] Size {:d} Count {:d}", CandidacySize, CandidacyCount);
 
 	data += CandidacySize * CandidacyCount;
@@ -933,7 +933,7 @@ void CInputDB::Boot(const char* data)
 
 	signal_timer_enable(30);
 
-	if (test_server)
+	if (metin2::config::test_server())
 	{
 		CMobManager::instance().DumpRegenCount("mob_count");
 	}
@@ -1711,7 +1711,7 @@ void CInputDB::MoneyLog(const char* c_pData)
 	if (p->type == 4) // QUEST_MONEY_LOG_SKIP
 		return;
 
-	if (g_bAuthServer ==true )
+	if (metin2::config::is_auth() ==true )
 		return;
 
 	LogManager::instance().MoneyLog(p->type, p->vnum, p->gold);

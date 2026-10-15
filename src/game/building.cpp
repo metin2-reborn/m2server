@@ -1125,7 +1125,7 @@ bool CLand::RequestCreateWall(int32_t nMapIndex, float rot)
 		RequestCreateObject(WALL_RIGHT_VNUM,	nMapIndex, wall_x, wall_y + wall_half_w, door_x, door_y,  90.0f, WALL_ANOTHER_CHECKING_ENABLE);
 	}
 
-	if (test_server)
+	if (metin2::config::test_server())
 	{
 		RequestCreateObject(FLAG_VNUM, nMapIndex, land.x + 50, 			land.y + 50, 0, 0, 0.0, WALL_ANOTHER_CHECKING_ENABLE);
 		RequestCreateObject(FLAG_VNUM, nMapIndex, land.x + land.width - 50,	land.y + 50, 0, 0, 90.0, WALL_ANOTHER_CHECKING_ENABLE);
@@ -1155,7 +1155,7 @@ void CLand::RequestDeleteWall()
 		}
 
 
-		if (test_server)
+		if (metin2::config::test_server())
 		{
 			if (FLAG_VNUM == vnum)
 				RequestDeleteObject(id);

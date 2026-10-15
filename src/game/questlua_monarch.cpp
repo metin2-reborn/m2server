@@ -202,7 +202,7 @@ namespace quest
 
 		if (!CMonarch::instance().CheckPowerUpCT(ch->GetEmpire()))
 		{
-			int	next_sec = CMonarch::instance().GetPowerUpCT(ch->GetEmpire()) / passes_per_sec;
+			int	next_sec = CMonarch::instance().GetPowerUpCT(ch->GetEmpire()) / metin2::config::server().passes_per_sec;
 			ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("쿨타임 적용중  %d 후 사용가능"), next_sec);
 			return 0;
 		}
@@ -259,7 +259,7 @@ namespace quest
 
 		if (!CMonarch::instance().CheckDefenseUpCT(ch->GetEmpire()))
 		{
-			int	next_sec = CMonarch::instance().GetDefenseUpCT(ch->GetEmpire()) / passes_per_sec;
+			int	next_sec = CMonarch::instance().GetDefenseUpCT(ch->GetEmpire()) / metin2::config::server().passes_per_sec;
 			ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("쿨타임 적용중  %d 후 사용가능"), next_sec);
 			return 0;
 		}	
@@ -465,9 +465,9 @@ namespace quest
 					ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("타제국 유저에게는 이동할수 없습니다"));
 					return 0;
 				}
-				if (pkCCI->bChannel != g_bChannel)
+				if (pkCCI->bChannel != metin2::config::server().channel)
 				{
-					ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("해당 유저는 %d 채널에 있습니다. (현재 채널 %d)"), pkCCI->bChannel, g_bChannel);
+					ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("해당 유저는 %d 채널에 있습니다. (현재 채널 %d)"), pkCCI->bChannel, metin2::config::server().channel);
 					return 0;
 				}
 
@@ -617,9 +617,9 @@ namespace quest
 					return 0;
 				}
 
-				if (pkCCI->bChannel != g_bChannel)
+				if (pkCCI->bChannel != metin2::config::server().channel)
 				{
-					ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("%s 님은 %d 채널에 접속 중 입니다. (현재 채널: %d)"), name.c_str(), pkCCI->bChannel, g_bChannel);
+					ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("%s 님은 %d 채널에 접속 중 입니다. (현재 채널: %d)"), name.c_str(), pkCCI->bChannel, metin2::config::server().channel);
 					return 0;
 				}
 
@@ -799,10 +799,10 @@ namespace quest
 					return 0;
 				}
 
-				if (pCCI->bChannel != g_bChannel)
+				if (pCCI->bChannel != metin2::config::server().channel)
 				{
 					ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("%s 님은 %d 채널에 접속중입니다. (현재 채널: %d)"),
-						   strTargetName.c_str(), pCCI->bChannel, g_bChannel);
+						   strTargetName.c_str(), pCCI->bChannel, metin2::config::server().channel);
 					return 0;
 				}
 

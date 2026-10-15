@@ -330,7 +330,7 @@ bool SECTREE_MANAGER::LoadMapRegion(const char * c_pszFileName, TMapSetting & r_
 {
 	FILE * fp = fopen(c_pszFileName, "r");
 
-	if ( test_server )
+	if ( metin2::config::test_server() )
 		metin2::log::info( "[LoadMapRegion] file({})", c_pszFileName );
 
 	if (!fp)
@@ -635,7 +635,7 @@ int SECTREE_MANAGER::GetMapIndex(int32_t x, int32_t y)
 
 int SECTREE_MANAGER::Build(const char * c_pszListFileName, const char* c_pszMapBasePath)
 {
-	if (true == test_server)
+	if (true == metin2::config::test_server())
 	{
 		metin2::log::info( "[BUILD] Build {} {} ", c_pszListFileName, c_pszMapBasePath );
 	}
@@ -680,7 +680,7 @@ int SECTREE_MANAGER::Build(const char * c_pszListFileName, const char* c_pszMapB
 			return 0;
 		}
 
-		if (true == test_server)
+		if (true == metin2::config::test_server())
 			metin2::log::info("[BUILD] Build {} {} {:d} ",c_pszMapBasePath, szMapName, iIndex );
 
 		// First check whether this server should spawn monsters for this map.
@@ -886,7 +886,7 @@ int32_t SECTREE_MANAGER::CreatePrivateMap(int32_t lMapIndex)
 	int32_t base = lMapIndex * 10000;
 	int index_cap = 10000;
 	if ( lMapIndex == 107 || lMapIndex == 108 || lMapIndex == 109 ) {
-		index_cap = (test_server ? 1 : 51);
+		index_cap = (metin2::config::test_server() ? 1 : 51);
 	}
 	PrivateIndexMapType::iterator it = next_private_index_map_.find(lMapIndex);
 	if (it == next_private_index_map_.end()) {

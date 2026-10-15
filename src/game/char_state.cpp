@@ -31,7 +31,6 @@
 #include <cstdint>
 #include <cstdio>
 
-bool g_test_server;
 
 namespace
 {
@@ -348,7 +347,7 @@ void CHARACTER::StateIdle()
 	else if (IsWarp() || IsGoto())
 	{
 		// Warp is handled by an event
-		m_dwStateDuration = 60 * passes_per_sec;
+		m_dwStateDuration = 60 * metin2::config::server().passes_per_sec;
 		return;
 	}
 
@@ -502,7 +501,7 @@ void CHARACTER::__StateIdle_NPC()
 
 			if (victim)
 			{
-				m_dwStateDuration = passes_per_sec/2;
+				m_dwStateDuration = metin2::config::server().passes_per_sec/2;
 
 				if (CanBeginFight())
 					BeginFight(victim);
@@ -540,7 +539,7 @@ void CHARACTER::__StateIdle_NPC()
 					// It's another server.
 					TPacketGGXmasWarpSanta p;
 					p.bHeader   = HEADER_GG_XMAS_WARP_SANTA;
-					p.bChannel  = g_bChannel;
+					p.bChannel  = metin2::config::server().channel;
 					p.lMapIndex = lNextMapIndex;
 					P2P_MANAGER::instance().Send(&p, sizeof(TPacketGGXmasWarpSanta));
 				}
@@ -631,7 +630,7 @@ void CHARACTER::__StateIdle_Monster()
 			victim = m_pkChrStone->GetNearestVictim(m_pkChrStone);
 		}
 		// Aggressive monster handling
-		else if (!no_wander && IsAggressive())
+		else if (!metin2::config::game().no_wander && IsAggressive())
 		{
 			if (GetMapIndex() == 61 && quest::CQuestManager::instance().GetEventFlag("xmas_tree"));
 			// On Seohan Mountain, don't attack first if there is a tree.
@@ -671,7 +670,7 @@ void CHARACTER::__StateIdle_Monster()
 	//
 	// Just wander back and forth.
 	//
-	if (!no_wander && !IS_SET(m_pointsInstant.dwAIFlag, AIFLAG_NOMOVE))
+	if (!metin2::config::game().no_wander && !IS_SET(m_pointsInstant.dwAIFlag, AIFLAG_NOMOVE))
 	{
 		if (!number(0, 6))
 		{
@@ -689,7 +688,7 @@ void CHARACTER::__StateIdle_Monster()
 
 			// NOTE: When a monster wanders around in IDLE state it currently always runs. (Never walks)
 			// The graphics team wanted to see monsters walking too, so temporarily walk or run with some probability. (Only active in test mode for now, since it changes the overall feel of the game)
-			if (g_test_server)
+			if (metin2::config::test_server())
 			{
 				if (number(0, 100) < 60)
 					SetNowWalking(false);
@@ -810,7 +809,7 @@ void CHARACTER::StateMove()
 			CHARACTER * victim = GetVictim();
 			UpdateAggrPoint(victim, DAMAGE_TYPE_NORMAL, -(victim->GetLevel() / 3 + 1));
 
-			if (g_test_server)
+			if (metin2::config::test_server())
 			{
 				// A monster chasing an enemy always runs.
 				SetNowWalking(false);
@@ -918,7 +917,7 @@ void CHARACTER::StateBattle()
 	if (!victim || (victim->IsStun() && IsGuardNPC()) || victim->IsDead())
 	{
 		if (victim && victim->IsDead() &&
-				!no_wander && IsAggressive() && (!GetParty() || GetParty()->GetLeader() == this))
+				!metin2::config::game().no_wander && IsAggressive() && (!GetParty() || GetParty()->GetLeader() == this))
 		{
 			CHARACTER * new_victim = FindVictim(this, m_pkMobData->m_table.wAggressiveSight);
 
@@ -1041,7 +1040,7 @@ void CHARACTER::StateBattle()
 
 	if ((dwCurTime - m_dwLastAttackTime) < dwDuration) // Must attack every 2 seconds.
 	{
-		m_dwStateDuration = std::max<int>(1, (passes_per_sec * (dwDuration - (dwCurTime - m_dwLastAttackTime)) / 1000));
+		m_dwStateDuration = std::max<int>(1, (metin2::config::server().passes_per_sec * (dwDuration - (dwCurTime - m_dwLastAttackTime)) / 1000));
 		return;
 	}
 
@@ -1073,7 +1072,7 @@ void CHARACTER::StateBattle()
 					float fDuration = CMotionManager::instance().GetMotionDuration(GetRaceNum(), MAKE_MOTION_KEY(MOTION_MODE_GENERAL, MOTION_SPECIAL_1 + iSkillIdx));
 					m_dwStateDuration = (uint32_t) (fDuration == 0.0f ? PASSES_PER_SEC(2) : PASSES_PER_SEC(fDuration));
 
-					if (test_server)
+					if (metin2::config::test_server())
 						metin2::log::info( "USE_MOB_SKILL: {} idx {:d} motion {:d} duration {:.0f}", GetName(), iSkillIdx, MOTION_SPECIAL_1 + iSkillIdx, fDuration);
 
 					return;
@@ -1083,7 +1082,7 @@ void CHARACTER::StateBattle()
 	}
 
 	if (!Attack(victim))    // Attack failed? Why did it fail? TODO
-		m_dwStateDuration = passes_per_sec / 2;
+		m_dwStateDuration = metin2::config::server().passes_per_sec / 2;
 	else
 	{
 		// Face the enemy.

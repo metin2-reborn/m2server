@@ -2,7 +2,6 @@
 #include "ClientManager.h"
 
 #include "Cache.h"
-#include "Config.h"
 #include "DBManager.h"
 #include "GuildManager.h"
 #include "ItemAwardManager.h"
@@ -28,6 +27,7 @@
 #include <libsql/AsyncSQL.h>
 #include <libsql/query.h>
 #include <libthecore/core_signal.h>
+#include <metin2/config/config.h>
 #include <metin2/log/log.h>
 #include <libthecore/main.h>
 #include <libthecore/utils.h>
@@ -105,7 +105,7 @@ void CClientManager::Destroy()
 
 bool CClientManager::Initialize()
 {
-	int tmpValue;
+
 
 	//BOOT_LOCALIZATION
 	if (!InitializeLocalization())
@@ -132,43 +132,20 @@ bool CClientManager::Initialize()
 
 	CGuildManager::instance().BootReserveWar();
 
-	if (!CConfig::instance().GetValue("BIND_PORT", &tmpValue))
-		tmpValue = 5300;
+	const metin2::config::db_settings & db = metin2::config::db();
 
-	char szBindIP[128];
-
-	if (!CConfig::instance().GetValue("BIND_IP", szBindIP, 128))
-		strlcpy(szBindIP, "127.0.0.1", sizeof(szBindIP)); // Fix: Now even if the DB port is publicly available an attacker can't connect to it with a fake auth.
-
-	// game/auth servers that may connect (host names or IPv4 addresses, space separated); without
-	// it only 127.0.0.1 is accepted (see AddPeer)
-	char szAllowedPeers[512];
-	if (CConfig::instance().GetValue("ALLOWED_PEER_HOSTS", szAllowedPeers, sizeof(szAllowedPeers)))
-		g_allowedPeerHosts = szAllowedPeers;
-
-	m_listener = net::listener::open(szBindIP, tmpValue, [this](net::tcp::socket socket) { AddPeer(std::move(socket)); });
+	m_listener = net::listener::open(db.bind_ip, db.port, [this](net::tcp::socket socket) { AddPeer(std::move(socket)); });
 
 	if (!m_listener)
 		return false;
 
-	metin2::log::info( "LISTEN: {}:{:d}", szBindIP, tmpValue);
+	metin2::log::info("LISTEN: {}:{:d}", db.bind_ip, db.port);
 
-	if (!CConfig::instance().GetValue("BACKUP_LIMIT_SEC", &tmpValue))
-		tmpValue = 600;
+	m_iPlayerDeleteLevelLimit = db.player_delete_level_limit > 0 ? db.player_delete_level_limit : PLAYER_MAX_LEVEL_CONST + 1;
+	m_iPlayerDeleteLevelLimitLower = db.player_delete_level_limit_lower;
 
-	if (!CConfig::instance().GetValue("PLAYER_DELETE_LEVEL_LIMIT", &m_iPlayerDeleteLevelLimit))
-	{
-		metin2::log::error("conf.txt: Cannot find PLAYER_DELETE_LEVEL_LIMIT, use default level {:d}", PLAYER_MAX_LEVEL_CONST + 1);
-		m_iPlayerDeleteLevelLimit = PLAYER_MAX_LEVEL_CONST + 1;
-	}
-
-	if (!CConfig::instance().GetValue("PLAYER_DELETE_LEVEL_LIMIT_LOWER", &m_iPlayerDeleteLevelLimitLower))
-	{
-		m_iPlayerDeleteLevelLimitLower = 0;
-	}
-
-	metin2::log::info( "PLAYER_DELETE_LEVEL_LIMIT set to {:d}", m_iPlayerDeleteLevelLimit);
-	metin2::log::info( "PLAYER_DELETE_LEVEL_LIMIT_LOWER set to {:d}", m_iPlayerDeleteLevelLimitLower);
+	metin2::log::info("PLAYER_DELETE_LEVEL_LIMIT set to {:d}", m_iPlayerDeleteLevelLimit);
+	metin2::log::info("PLAYER_DELETE_LEVEL_LIMIT_LOWER set to {:d}", m_iPlayerDeleteLevelLimitLower);
 
 	LoadEventFlag();
 
@@ -397,7 +374,7 @@ void CClientManager::QUERY_BOOT(CPeer* peer, TPacketGDBoot * p)
 	}
 	//END_MONARCE
 
-	if (g_test_server)
+	if (metin2::config::test_server())
 		metin2::log::info( "MONARCHCandidacy Size {:d}", CMonarch::instance().MonarchCandidacySize());
 
 	peer->EncodeWORD(0xffff);
@@ -479,7 +456,7 @@ void CClientManager::QUERY_SAFEBOX_LOAD(CPeer * pkPeer, uint32_t dwHandle, TSafe
 			"SELECT account_id, size, password FROM safebox%s WHERE account_id=%u",
 			GetTablePostfix(), packet->dwID);
 
-	if (g_log)
+	if (metin2::config::db().login_log)
 		metin2::log::info( "HEADER_GD_SAFEBOX_LOAD (handle: {:d} account.id {:d} is_mall {:d})", dwHandle, packet->dwID, bMall ? 1 : 0);
 
 	CDBManager::instance().ReturnQuery(szQuery, QID_SAFEBOX_LOAD, pkPeer->GetHandle(), pi);
@@ -1220,7 +1197,7 @@ void CClientManager::QUERY_ITEM_FLUSH(CPeer * pkPeer, const char * c_pData)
 {
 	uint32_t dwID = *(uint32_t *) c_pData;
 
-	if (g_log)
+	if (metin2::config::db().login_log)
 		metin2::log::info( "HEADER_GD_ITEM_FLUSH: {:d}", dwID);
 
 	CItemCache * c = GetItemCache(dwID);
@@ -1246,7 +1223,7 @@ void CClientManager::QUERY_ITEM_SAVE(CPeer * pkPeer, const char * c_pData)
 
 			if (it != m_map_pkItemCacheSetPtr.end())
 			{
-				if (g_test_server)
+				if (metin2::config::test_server())
 					metin2::log::info( "ITEM_CACHE: safebox owner {:d} id {:d}", c->Get()->owner, c->Get()->id);
 
 				it->second->erase(c);
@@ -1290,7 +1267,7 @@ void CClientManager::QUERY_ITEM_SAVE(CPeer * pkPeer, const char * c_pData)
 	}
 	else
 	{
-		if (g_test_server)
+		if (metin2::config::test_server())
 			metin2::log::info( "QUERY_ITEM_SAVE => PutItemCache() owner {:d} id {:d} vnum {:d} ", p->owner, p->id, p->vnum);
 
 		PutItemCache(p);
@@ -1314,7 +1291,7 @@ void CClientManager::CreateItemCacheSet(uint32_t pid)
 
 	m_map_pkItemCacheSetPtr.insert(TItemCacheSetPtrMap::value_type(pid, std::make_unique<TItemCacheSet>()));
 
-	if (g_log)
+	if (metin2::config::db().login_log)
 		metin2::log::info( "ITEM_CACHE: new cache {:d}", pid);
 }
 
@@ -1344,7 +1321,7 @@ void CClientManager::FlushItemCacheSet(uint32_t pid)
 
 	m_map_pkItemCacheSetPtr.erase(it);
 
-	if (g_log)
+	if (metin2::config::db().login_log)
 		metin2::log::info( "FLUSH_ITEMCACHESET : Deleted pid({:d})", pid);
 }
 
@@ -1367,7 +1344,7 @@ void CClientManager::PutItemCache(TPlayerItem * pNew, bool bSkipQuery)
 	// Create new item
 	if (!c)
 	{
-		if (g_log)
+		if (metin2::config::db().login_log)
 			metin2::log::info( "ITEM_CACHE: PutItemCache ==> New CItemCache id{:d} vnum{:d} new owner{:d}", pNew->id, pNew->vnum, pNew->owner);
 
 		c = new CItemCache;
@@ -1376,7 +1353,7 @@ void CClientManager::PutItemCache(TPlayerItem * pNew, bool bSkipQuery)
 	// If it exists
 	else
 	{
-		if (g_log)
+		if (metin2::config::db().login_log)
 			metin2::log::info( "ITEM_CACHE: PutItemCache ==> Have Cache");
 		// If the owner differs
 		if (pNew->owner != c->Get()->owner)
@@ -1386,7 +1363,7 @@ void CClientManager::PutItemCache(TPlayerItem * pNew, bool bSkipQuery)
 
 			if (it != m_map_pkItemCacheSetPtr.end())
 			{
-				if (g_log)
+				if (metin2::config::db().login_log)
 				metin2::log::info( "ITEM_CACHE: delete owner {:d} id {:d} new owner {:d}", c->Get()->owner, c->Get()->id, pNew->owner);
 				it->second->erase(c);
 			}
@@ -1400,7 +1377,7 @@ void CClientManager::PutItemCache(TPlayerItem * pNew, bool bSkipQuery)
 
 	if (it != m_map_pkItemCacheSetPtr.end())
 	{
-		if (g_log)
+		if (metin2::config::db().login_log)
 			metin2::log::info( "ITEM_CACHE: save {:d} id {:d}", c->Get()->owner, c->Get()->id);
 		else
 			metin2::log::debug( "ITEM_CACHE: save {:d} id {:d}", c->Get()->owner, c->Get()->id);
@@ -1410,7 +1387,7 @@ void CClientManager::PutItemCache(TPlayerItem * pNew, bool bSkipQuery)
 	{
 		// There is no current owner, so save it right away so it can be queried from SQL
 		// on the next login.
-		if (g_log)
+		if (metin2::config::db().login_log)
 			metin2::log::info( "ITEM_CACHE: direct save {:d} id {:d}", c->Get()->owner, c->Get()->id);
 		else
 			metin2::log::debug( "ITEM_CACHE: direct save {:d} id {:d}", c->Get()->owner, c->Get()->id);
@@ -1464,7 +1441,7 @@ void CClientManager::UpdatePlayerCache()
 
 		if (c->CheckTimeout())
 		{
-			if (g_log)
+			if (metin2::config::db().login_log)
 				metin2::log::info( "UPDATE : UpdatePlayerCache() ==> FlushPlayerCache {:d} {} ", c->Get(false)->id, c->Get(false)->name);
 
 			c->Flush();
@@ -1498,7 +1475,7 @@ void CClientManager::UpdateItemCache()
 		// Items are only flushed.
 		if (c->CheckFlushTimeout())
 		{
-			if (g_test_server)
+			if (metin2::config::test_server())
 				metin2::log::info( "UpdateItemCache ==> Flush() vnum {:d} id {:d} owner {:d}", c->Get()->vnum, c->Get()->id, c->Get()->owner);
 
 			c->Flush();
@@ -1539,7 +1516,7 @@ void CClientManager::QUERY_ITEM_DESTROY(CPeer * pkPeer, const char * c_pData)
 		char szQuery[64];
 		snprintf(szQuery, sizeof(szQuery), "DELETE FROM item%s WHERE id=%u", GetTablePostfix(), dwID);
 
-		if (g_log)
+		if (metin2::config::db().login_log)
 			metin2::log::info( "HEADER_GD_ITEM_DESTROY: PID {:d} ID {:d}", dwPID, dwID);
 
 		if (dwPID == 0) // If nobody had it, async query
@@ -1693,7 +1670,7 @@ void CClientManager::DeleteLoginData(CLoginData * pkLD)
 
 void CClientManager::QUERY_AUTH_LOGIN(CPeer * pkPeer, uint32_t dwHandle, TPacketGDAuthLogin * p)
 {
-	if (g_test_server)
+	if (metin2::config::test_server())
 		metin2::log::info( "QUERY_AUTH_LOGIN {:d} {:d} {}", p->dwID, p->dwLoginKey, p->szLogin);
 	CLoginData * pkLD = GetLoginDataByLogin(p->szLogin);
 
@@ -2008,7 +1985,7 @@ void CClientManager::ProcessPackets(CPeer * peer)
 		// END_OF_DISABLE_DB_HEADER_LOG
 		++iCount;
 
-		if (g_test_server)
+		if (metin2::config::test_server())
 		{
 			if (header != 10)
 				metin2::log::info( " ProcessPacket Header [{:d}] Handle[{:d}] Length[{:d}] iCount[{:d}]", header, dwHandle, dwLength, iCount);
@@ -2405,7 +2382,7 @@ void CClientManager::AddPeer(net::tcp::socket socket)
 	auto connection = net::connection::create(std::move(socket), MAX_PEER_BUFFER, MAX_PEER_BUFFER);
 
 	// only the configured game servers (ALLOWED_PEER_HOSTS), or localhost when none are configured
-	if (!is_allowed_peer(connection->remote_address().c_str(), g_allowedPeerHosts, "127.0.0.1"))
+	if (!is_allowed_peer(connection->remote_address().c_str(), metin2::config::db().allowed_peers, "127.0.0.1"))
 	{
 		metin2::log::info( "PORT_SECURITY: BLOCK CONNECTION FROM {}", connection->remote_address().c_str());
 		connection->close();
@@ -2621,7 +2598,7 @@ int CClientManager::Process()
 
 		if (!(thecore_heart->pulse % thecore_heart->passes_per_sec))
 		{
-			if (g_test_server)
+			if (metin2::config::test_server())
 			{
 
 				if (!(thecore_heart->pulse % (thecore_heart->passes_per_sec * 10)))	
@@ -2789,14 +2766,8 @@ time_t CClientManager::GetCurrentTime()
 // ITEM_UNIQUE_ID
 bool CClientManager::InitializeNowItemID()
 {
-	uint32_t dwMin, dwMax;
-
-	//Initialize item IDs.
-	if (!CConfig::instance().GetTwoValue("ITEM_ID_RANGE", &dwMin, &dwMax))
-	{
-		metin2::log::error("conf.txt: Cannot find ITEM_ID_RANGE [start_item_id] [end_item_id]");
-		return false;
-	}
+	const uint32_t dwMin = metin2::config::db().item_id_min;
+	const uint32_t dwMax = metin2::config::db().item_id_max;
 
 	metin2::log::info( "ItemRange From File {:d} ~ {:d} ", dwMin, dwMax);
 
@@ -3018,7 +2989,7 @@ void CClientManager::UpdateItemCacheSet(uint32_t pid)
 
 	if (it == m_map_pkItemCacheSetPtr.end())
 	{
-		if (g_test_server)
+		if (metin2::config::test_server())
 			metin2::log::info( "UPDATE_ITEMCACHESET : UpdateItemCacheSet ==> No ItemCacheSet pid({:d})", pid);
 		return;
 	}
@@ -3032,7 +3003,7 @@ void CClientManager::UpdateItemCacheSet(uint32_t pid)
 		c->Flush();
 	}
 
-	if (g_log)
+	if (metin2::config::db().login_log)
 		metin2::log::info( "UPDATE_ITEMCACHESET : UpdateItemCachsSet pid({:d})", pid);
 }
 
@@ -3051,7 +3022,7 @@ void CClientManager::Election(CPeer * peer, uint32_t dwHandle, const char* data)
 
 	if (!(Success = CMonarch::instance().VoteMonarch(selectingpid, idx)))
 	{
-		if (g_test_server)
+		if (metin2::config::test_server())
 		metin2::log::info( "[MONARCH_VOTE] Failed {:d} {:d}", idx, selectingpid);
 		peer->EncodeHeader(HEADER_DG_ELECT_MONARCH, dwHandle, sizeof(int));
 		peer->Encode(&Success, sizeof(int));
@@ -3059,7 +3030,7 @@ void CClientManager::Election(CPeer * peer, uint32_t dwHandle, const char* data)
 	}
 	else
 	{
-		if (g_test_server)
+		if (metin2::config::test_server())
 		metin2::log::info( "[MONARCH_VOTE] Success {:d} {:d}", idx, selectingpid);
 		peer->EncodeHeader(HEADER_DG_ELECT_MONARCH, dwHandle, sizeof(int));
 		peer->Encode(&Success, sizeof(int));
@@ -3076,7 +3047,7 @@ void CClientManager::Candidacy(CPeer *  peer, uint32_t dwHandle, const char* dat
 
 	if (!CMonarch::instance().AddCandidacy(pid, data))
 	{
-		if (g_test_server)
+		if (metin2::config::test_server())
 			metin2::log::info( "[MONARCH_CANDIDACY] Failed {:d} {}", pid, data);
 
 		peer->EncodeHeader(HEADER_DG_CANDIDACY, dwHandle, sizeof(int) + 32);
@@ -3086,7 +3057,7 @@ void CClientManager::Candidacy(CPeer *  peer, uint32_t dwHandle, const char* dat
 	}
 	else
 	{
-		if (g_test_server)
+		if (metin2::config::test_server())
 			metin2::log::info( "[MONARCH_CANDIDACY] Success {:d} {}", pid, data);
 
 		for (auto it = m_peerList.begin(); it != m_peerList.end(); ++it)
@@ -3120,7 +3091,7 @@ void CClientManager::AddMonarchMoney(CPeer * peer, uint32_t dwHandle, const char
 	int Money = *(int *) data;
 	data += sizeof(int);
 
-	if (g_test_server)
+	if (metin2::config::test_server())
 		metin2::log::info( "[MONARCH] Add money Empire({:d}) Money({:d})", Empire, Money);
 
 	CMonarch::instance().AddMoney(Empire, Money);
@@ -3155,7 +3126,7 @@ void CClientManager::DecMonarchMoney(CPeer * peer, uint32_t dwHandle, const char
 	int Money = *(int *) data;
 	data += sizeof(int);
 
-	if (g_test_server)
+	if (metin2::config::test_server())
 		metin2::log::info( "[MONARCH] Dec money Empire({:d}) Money({:d})", Empire, Money);
 
 	CMonarch::instance().DecMoney(Empire, Money);
@@ -3193,7 +3164,7 @@ void CClientManager::TakeMonarchMoney(CPeer * peer, uint32_t dwHandle, const cha
 	int Money = *(int *) data;
 	data += sizeof(int);
 
-	if (g_test_server)
+	if (metin2::config::test_server())
 		metin2::log::info( "[MONARCH] Take money Empire({:d}) Money({:d})", Empire, Money);
 
 	if (CMonarch::instance().TakeMoney(Empire, pid, Money) == true)
@@ -3263,7 +3234,7 @@ void CClientManager::SetMonarch(CPeer * peer, uint32_t dwHandle, const char * da
 
 	strlcpy(szName, data, sizeof(szName));
 
-	if (g_test_server)
+	if (metin2::config::test_server())
 		metin2::log::info( "[MONARCH_GM] Set Monarch name({})", szName); 
 
 	int iRet = CMonarch::instance().SetMonarch(szName) ? 1 : 0;
@@ -3306,7 +3277,7 @@ void CClientManager::RMMonarch(CPeer * peer, uint32_t dwHandle, const char * dat
 
 	strlcpy(szName, data, sizeof(szName));
 
-	if (g_test_server)
+	if (metin2::config::test_server())
 		metin2::log::info( "[MONARCH_GM] Remove Monarch name({})", szName); 
 
 	int iRet = CMonarch::instance().DelMonarch(szName) ? 1 : 0;

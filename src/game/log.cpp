@@ -54,7 +54,7 @@ void LogManager::Query(const char * c_pszFormat, ...)
 
 void LogManager::Query(const std::string & query)
 {
-	if (test_server)
+	if (metin2::config::test_server())
 		metin2::log::info( "LOG: {}", query.c_str());
 
 	m_sql.AsyncQuery(query.c_str());
@@ -117,7 +117,7 @@ void LogManager::MoneyLog(uint8_t type, uint32_t vnum, int gold)
 
 void LogManager::HackLog(const char * c_pszHackName, const char * c_pszLogin, const char * c_pszName, const char * c_pszIP)
 {
-	Query(sql::format("INSERT INTO hack_log (time, login, name, ip, server, why) VALUES(NOW(), {}, {}, {}, {}, {})", c_pszLogin, c_pszName, c_pszIP, g_stHostname, c_pszHackName));
+	Query(sql::format("INSERT INTO hack_log (time, login, name, ip, server, why) VALUES(NOW(), {}, {}, {}, {}, {})", c_pszLogin, c_pszName, c_pszIP, metin2::config::server().hostname, c_pszHackName));
 }
 
 void LogManager::HackLog(const char * c_pszHackName, CHARACTER * ch)
@@ -267,7 +267,7 @@ void LogManager::DetailLoginLog(bool isLogin, CHARACTER * ch)
 		Query(sql::format("INSERT INTO loginlog2(type, is_gm, login_time, channel, account_id, pid, ip, client_version) "
 				"VALUES('INVALID', {}, NOW(), {}, {}, {}, inet_aton({}), {})",
 				ch->IsGM() == true ? "Y" : "N",
-				g_bChannel,
+				metin2::config::server().channel,
 				ch->GetDesc()->GetAccountTable().id,
 				ch->GetPlayerID(),
 				ch->GetDesc()->GetHostName(),

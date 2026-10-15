@@ -37,14 +37,14 @@
 
 bool IsEmptyAdminPage()
 {
-	return g_stAdminPageIP.empty();
+	return metin2::config::server().admin.ips.empty();
 }
 
 bool IsAdminPage(const char * ip)
 {
-	for (size_t n = 0; n < g_stAdminPageIP.size(); ++n)
+	for (size_t n = 0; n < metin2::config::server().admin.ips.size(); ++n)
 	{
-		if (g_stAdminPageIP[n] == ip)
+		if (metin2::config::server().admin.ips[n] == ip)
 			return 1; 
 	}	
 	return 0;
@@ -95,7 +95,7 @@ bool CInputProcessor::Process(DESC * lpDesc, const void * c_pvOrig, int iBytes, 
 
 		if (bHeader)
 		{
-			if (test_server && bHeader != HEADER_CG_MOVE)
+			if (metin2::config::test_server() && bHeader != HEADER_CG_MOVE)
 				metin2::log::info( "Packet Analyze [Header {:d}][bufferLeft {:d}] ", bHeader, m_iBufferLeft);
 
 			m_pPacketInfo->Start();
@@ -309,7 +309,7 @@ int CInputHandshake::Analyze(DESC * d, uint8_t bHeader, const char * c_pData)
 				stResult = "YES";
 		}
 		//else if (!stBuf.compare("SHOWMETHEMONEY"))
-		else if (!g_stAdminPagePassword.empty() && stBuf == g_stAdminPagePassword)
+		else if (!metin2::config::server().admin.password.empty() && stBuf == metin2::config::server().admin.password)
 		{
 			if (!IsEmptyAdminPage())
 			{
@@ -440,14 +440,6 @@ metin2::log::debug( "DC : '{}'", msg.c_str());
 						strlcpy(p.login, msg.c_str(), sizeof(p.login));
 						db_clientdesc->DBPacket(HEADER_GD_DC, 0, &p, sizeof(p));
 					}
-				}
-				else if (!stBuf.compare(0, 10, "RELOAD_CRC"))
-				{
-					LoadValidCRCList();
-
-					uint8_t bHeader = HEADER_GG_RELOAD_CRC_LIST;
-					P2P_MANAGER::instance().Send(&bHeader, sizeof(uint8_t));
-					stResult = "OK";
 				}
 				else if (!stBuf.compare(0, 20, "CHECK_CLIENT_VERSION"))
 				{
@@ -581,7 +573,7 @@ metin2::log::debug( "DC : '{}'", msg.c_str());
 	}
 	else if (bHeader == HEADER_CG_MARK_LOGIN)
 	{
-		if (!guild_mark_server)
+		if (!metin2::config::game().mark.server)
 		{
 			// Disconnect! - requesting a mark when this isn't the mark server?
 			metin2::log::error("Guild Mark login requested but i'm not a mark server!");
@@ -630,7 +622,7 @@ metin2::log::debug( "DC : '{}'", msg.c_str());
 		}
 		if (d->FinishHandshake(p->wAgreedLength, p->data, p->wDataLength)) {
 			// Handshaking succeeded
-			if (g_bAuthServer) {
+			if (metin2::config::is_auth()) {
 				d->SetPhase(PHASE_AUTH);
 			} else {
 				d->SetPhase(PHASE_LOGIN);

@@ -445,7 +445,7 @@ namespace quest
 
 		if (pc.IsRunning()) 
 		{
-			if (test_server)
+			if (metin2::config::test_server())
 			{
 				CQuestManager & mgr = CQuestManager::instance();
 
@@ -566,7 +566,7 @@ namespace quest
 
 		if (pc.IsRunning()) 
 		{
-			if (test_server)
+			if (metin2::config::test_server())
 			{
 				CQuestManager & mgr = CQuestManager::instance();
 
@@ -688,7 +688,7 @@ namespace quest
 
 		if (pc.IsRunning()) 
 		{
-			if (test_server)
+			if (metin2::config::test_server())
 			{
 				CQuestManager & mgr = CQuestManager::instance();
 
@@ -737,7 +737,7 @@ namespace quest
 
 		if (pc.IsRunning()) 
 		{
-			if (test_server)
+			if (metin2::config::test_server())
 			{
 				CQuestManager & mgr = CQuestManager::instance();
 
@@ -834,7 +834,7 @@ namespace quest
 	{
 		if (pc.IsRunning()) 
 		{
-			if (test_server)
+			if (metin2::config::test_server())
 			{
 				CQuestManager & mgr = CQuestManager::instance();
 

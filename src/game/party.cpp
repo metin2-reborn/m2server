@@ -425,10 +425,10 @@ void CParty::P2PJoin(uint32_t dwPID)
 				CCI * pcci = P2P_MANAGER::instance().FindByPID(dwPID);
 
 				if (!pcci);
-				else if (pcci->bChannel == g_bChannel)
+				else if (pcci->bChannel == metin2::config::server().channel)
 					Member.strName = pcci->szName;
 				else
-					metin2::log::error("member is not in same channel PID: {:d} channel {:d}, this channel {:d}", dwPID, pcci->bChannel, g_bChannel);
+					metin2::log::error("member is not in same channel PID: {:d} channel {:d}, this channel {:d}", dwPID, pcci->bChannel, metin2::config::server().channel);
 			}
 		}
 

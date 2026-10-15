@@ -115,7 +115,7 @@ void CInputLogin::Login(DESC * d, const char * data)
 
 	TPacketGCLoginFailure failurePacket;
 
-	if (!test_server)
+	if (!metin2::config::test_server())
 	{
 		failurePacket.header = HEADER_GC_LOGIN_FAILURE;
 		strlcpy(failurePacket.szStatus, "VERSION", sizeof(failurePacket.szStatus));
@@ -131,7 +131,7 @@ void CInputLogin::Login(DESC * d, const char * data)
 		return;
 	}
 
-	if (g_iUserLimit > 0)
+	if (metin2::config::server().user_limit > 0)
 	{
 		int iTotal;
 		int * paiEmpireUserCount;
@@ -139,7 +139,7 @@ void CInputLogin::Login(DESC * d, const char * data)
 
 		DESC_MANAGER::instance().GetUserCount(iTotal, &paiEmpireUserCount, iLocal);
 
-		if (g_iUserLimit <= iTotal)
+		if (metin2::config::server().user_limit <= iTotal)
 		{
 			failurePacket.header = HEADER_GC_LOGIN_FAILURE;
 			strlcpy(failurePacket.szStatus, "FULL", sizeof(failurePacket.szStatus));
@@ -184,7 +184,7 @@ void CInputLogin::LoginByKey(DESC * d, const char * data)
 		return;
 	}
 
-	if (g_iUserLimit > 0)
+	if (metin2::config::server().user_limit > 0)
 	{
 		int iTotal;
 		int * paiEmpireUserCount;
@@ -192,7 +192,7 @@ void CInputLogin::LoginByKey(DESC * d, const char * data)
 
 		DESC_MANAGER::instance().GetUserCount(iTotal, &paiEmpireUserCount, iLocal);
 
-		if (g_iUserLimit <= iTotal)
+		if (metin2::config::server().user_limit <= iTotal)
 		{
 			TPacketGCLoginFailure failurePacket;
 
@@ -421,7 +421,7 @@ void CInputLogin::CharacterCreate(DESC * d, const char * data)
 	memset(&packFailure, 0, sizeof(packFailure));
 	packFailure.header = HEADER_GC_CHARACTER_CREATE_FAILURE;
 
-	if (true == g_BlockCharCreation)
+	if (true == metin2::config::game().block_char_creation)
 	{
 		d->Packet(&packFailure, sizeof(packFailure));
 		return;
@@ -583,7 +583,7 @@ void CInputLogin::Entergame(DESC * d, const char * data)
 
 	TPacketGCChannel p2;
 	p2.header = HEADER_GC_CHANNEL;
-	p2.channel = g_bChannel;
+	p2.channel = metin2::config::server().channel;
 	d->Packet(&p2, sizeof(p2));
 
 	ch->SendGreetMessage();
@@ -717,7 +717,7 @@ void CInputLogin::Entergame(DESC * d, const char * data)
 		if (CWarMapManager::instance().IsWarMap(ch->GetMapIndex()) ||
 				marriage::WeddingManager::instance().IsWeddingMap(ch->GetMapIndex()))
 		{
-			if (!test_server)
+			if (!metin2::config::test_server())
 				ch->WarpSet(EMPIRE_START_X(ch->GetEmpire()), EMPIRE_START_Y(ch->GetEmpire()));
 		}
 	}
@@ -731,7 +731,7 @@ void CInputLogin::Entergame(DESC * d, const char * data)
 	}
 
 	// Show guidance when entering a neutral map
-	if (g_noticeBattleZone)
+	if (metin2::config::game().notice_battle_zone)
 	{
 		if (FN_is_battle_zone(ch))
 		{
@@ -820,7 +820,7 @@ int CInputLogin::GuildSymbolUpload(DESC * d, const char* c_pData, size_t uiBytes
 	}
 
 	// For a guild that owns no land.
-	if (!test_server)
+	if (!metin2::config::test_server())
 		if (!building::CManager::instance().FindLandByGuild(p->guild_id))
 		{
 			d->SetPhase(PHASE_CLOSE);
@@ -883,9 +883,9 @@ void CInputLogin::GuildMarkUpload(DESC * d, const char* c_pData)
 		return;
 	}
 
-	if (pkGuild->GetLevel() < guild_mark_min_level)
+	if (pkGuild->GetLevel() < metin2::config::game().mark.min_level)
 	{
-		metin2::log::info( "MARK_SERVER: GuildMarkUpload: level < {:d} ({:d})", guild_mark_min_level, pkGuild->GetLevel());
+		metin2::log::info( "MARK_SERVER: GuildMarkUpload: level < {:d} ({:d})", metin2::config::game().mark.min_level, pkGuild->GetLevel());
 		return;
 	}
 

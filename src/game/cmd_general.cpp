@@ -208,12 +208,12 @@ EVENTFUNC(shutdown_event)
 		{
 			const DESC_MANAGER::DESC_SET & c_set_desc = DESC_MANAGER::instance().GetClientSet();
 			std::for_each(c_set_desc.begin(), c_set_desc.end(), DisconnectFunc());
-			return passes_per_sec;
+			return metin2::config::server().passes_per_sec;
 		}
 		else if (*pSec < -10)
 			return 0;
 
-		return passes_per_sec;
+		return metin2::config::server().passes_per_sec;
 	}
 	else if (*pSec == 0)
 	{
@@ -221,7 +221,7 @@ EVENTFUNC(shutdown_event)
 		std::for_each(c_set_desc.begin(), c_set_desc.end(), SendDisconnectFunc());
 		g_bNoMoreClient = true;
 		--*pSec;
-		return passes_per_sec;
+		return metin2::config::server().passes_per_sec;
 	}
 	else
 	{
@@ -230,7 +230,7 @@ EVENTFUNC(shutdown_event)
 		SendNotice(buf);
 
 		--*pSec;
-		return passes_per_sec;
+		return metin2::config::server().passes_per_sec;
 	}
 }
 
@@ -418,11 +418,11 @@ ACMD(do_restart)
 	if (nullptr == ch->m_pkDeadEvent)
 		return;
 
-	int iTimeToDead = (event_time(ch->m_pkDeadEvent) / passes_per_sec);
+	int iTimeToDead = (event_time(ch->m_pkDeadEvent) / metin2::config::server().passes_per_sec);
 
 	if (subcmd != SCMD_RESTART_TOWN && (!ch->GetWarMap() || ch->GetWarMap()->GetType() == GUILD_WAR_TYPE_FLAG))
 	{
-		if (!test_server)
+		if (!metin2::config::test_server())
 		{
 			if (ch->IsHack())
 			{
@@ -866,7 +866,7 @@ ACMD(do_mall_password)
 		return;
 	}
 
-	if (iPulse - ch->GetMallLoadTime() < passes_per_sec * 10) // Can only be requested once every 10 seconds
+	if (iPulse - ch->GetMallLoadTime() < metin2::config::server().passes_per_sec * 10) // Can only be requested once every 10 seconds
 	{
 		ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("<창고> 창고를 닫은지 10초 안에는 열 수 없습니다."));
 		return;
@@ -1178,7 +1178,7 @@ ACMD(do_pkmode)
 	if (mode == PK_MODE_PROTECT)
 		return;
 
-	if (ch->GetLevel() < PK_PROTECT_LEVEL && mode != 0)
+	if (ch->GetLevel() < metin2::config::game().pk_protect_level && mode != 0)
 		return;
 
 	ch->SetPKMode(mode);
@@ -1407,9 +1407,9 @@ ACMD(do_monarch_warpto)
 				return;
 			}
 
-			if (pkCCI->bChannel != g_bChannel)
+			if (pkCCI->bChannel != metin2::config::server().channel)
 			{
-				ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("해당 유저는 %d 채널에 있습니다. (현재 채널 %d)"), pkCCI->bChannel, g_bChannel);
+				ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("해당 유저는 %d 채널에 있습니다. (현재 채널 %d)"), pkCCI->bChannel, metin2::config::server().channel);
 				return;
 			}
 			if (!IsMonarchWarpZone(pkCCI->lMapIndex))
@@ -1517,9 +1517,9 @@ ACMD(do_monarch_transfer)
 				ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("다른 제국 유저는 소환할 수 없습니다."));
 				return;
 			}
-			if (pkCCI->bChannel != g_bChannel)
+			if (pkCCI->bChannel != metin2::config::server().channel)
 			{
-				ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("%s 님은 %d 채널에 접속 중 입니다. (현재 채널: %d)"), arg1, pkCCI->bChannel, g_bChannel);
+				ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("%s 님은 %d 채널에 접속 중 입니다. (현재 채널: %d)"), arg1, pkCCI->bChannel, metin2::config::server().channel);
 				return;
 			}
 			if (!IsMonarchWarpZone(pkCCI->lMapIndex))
@@ -2149,7 +2149,7 @@ ACMD(do_in_game_mall)
 	sas[i+i] = '\0';
 
 	snprintf(buf, sizeof(buf), "mall http://%s/ishop?pid=%u&c=%s&sid=%d&sas=%s",
-			g_strWebMallURL.c_str(), ch->GetPlayerID(), country_code, g_server_id, sas);
+			metin2::config::game().mall_url.c_str(), ch->GetPlayerID(), country_code, metin2::config::game().server_id, sas);
 
 	ch->ChatPacket(CHAT_TYPE_COMMAND, buf);
 }

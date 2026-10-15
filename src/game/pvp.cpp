@@ -419,7 +419,7 @@ bool CPVPManager::CanAttack(CHARACTER * pkChr, CHARACTER * pkVictim)
 
 		if (pkChr->GetAlignment() < 0 && pkVictim->GetAlignment() >= 0)
 		{
-		    if (g_protectNormalPlayer)
+		    if (metin2::config::game().protect_normal_player)
 		    {
 			// Outlaws cannot attack good players in peace mode.
 			if (PK_MODE_PEACE == pkVictim->GetPKMode())

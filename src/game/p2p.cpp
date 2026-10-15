@@ -52,7 +52,7 @@ void P2P_MANAGER::Boot(DESC * d)
 		p.dwPID = ch->GetPlayerID();
 		p.bEmpire = ch->GetEmpire();
 		p.lMapIndex = SECTREE_MANAGER::instance().GetMapIndex(ch->GetX(), ch->GetY());
-		p.bChannel = g_bChannel;
+		p.bChannel = metin2::config::server().channel;
 
 		d->Packet(&p, sizeof(p));
 	}
@@ -91,8 +91,8 @@ void P2P_MANAGER::RegisterConnector(DESC * d)
 
 	TPacketGGSetup p;
 	p.bHeader = HEADER_GG_SETUP;
-	p.wPort = p2p_port;
-	p.bChannel = g_bChannel;
+	p.wPort = metin2::config::server().p2p_port;
+	p.bChannel = metin2::config::server().channel;
 	d->Packet(&p, sizeof(p));
 }
 
@@ -154,7 +154,7 @@ void P2P_MANAGER::Login(DESC * d, const TPacketGGLogin * p)
 		pkCCI->dwPID = p->dwPID;
 		pkCCI->bEmpire = p->bEmpire;
 
-		if (p->bChannel == g_bChannel)
+		if (p->bChannel == metin2::config::server().channel)
 		{
 			if (pkCCI->bEmpire < EMPIRE_MAX_NUM)
 			{
@@ -187,7 +187,7 @@ void P2P_MANAGER::Login(DESC * d, const TPacketGGLogin * p)
 
 void P2P_MANAGER::Logout(CCI * pkCCI)
 {
-	if (pkCCI->bChannel == g_bChannel)
+	if (pkCCI->bChannel == metin2::config::server().channel)
 	{
 		if (pkCCI->bEmpire < EMPIRE_MAX_NUM)
 		{

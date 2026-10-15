@@ -94,7 +94,7 @@ class CFuncViewInsert
 		CEntity * m_me;
 
 		CFuncViewInsert(CEntity * ent) :
-			dwViewRange(VIEW_RANGE + VIEW_BONUS_RANGE),
+			dwViewRange(metin2::config::game().view_range + VIEW_BONUS_RANGE),
 			m_me(ent)
 		{
 		}

@@ -81,12 +81,12 @@ CGuildManager::~CGuildManager()
 
 int CGuildManager::GetDisbandDelay()
 {
-	return quest::CQuestManager::instance().GetEventFlag("guild_disband_delay") * (test_server ? 60 : 86400);
+	return quest::CQuestManager::instance().GetEventFlag("guild_disband_delay") * (metin2::config::test_server() ? 60 : 86400);
 }
 
 int CGuildManager::GetWithdrawDelay()
 {
-	return quest::CQuestManager::instance().GetEventFlag("guild_withdraw_delay") * (test_server ? 60 : 86400);
+	return quest::CQuestManager::instance().GetEventFlag("guild_withdraw_delay") * (metin2::config::test_server() ? 60 : 86400);
 }
 
 uint32_t CGuildManager::CreateGuild(TGuildCreateParameter& gcp)
@@ -219,7 +219,7 @@ void CGuildManager::Initialize()
 {
 	metin2::log::info( "Initializing Guild");
 
-	if (g_bAuthServer)
+	if (metin2::config::is_auth())
 	{
 		metin2::log::info( "	No need for auth server");
 		return;

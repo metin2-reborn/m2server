@@ -654,7 +654,7 @@ namespace quest
 
 		AddScript(os.str());
 		qs.suspend_state = SUSPEND_STATE_SELECT;
-		if ( test_server )
+		if ( metin2::config::test_server() )
 			metin2::log::info( "{}", m_strScript.c_str() );
 		SendScript();
 	}

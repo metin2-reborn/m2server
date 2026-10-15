@@ -131,7 +131,7 @@ bool TSkillUseInfo::UseSkill(bool isGrandMaster, uint32_t vid, uint32_t dwCoolti
 	iRange = range;
 	iMaxHitCount = iHitCount = hitcount;
 
-	if (test_server)
+	if (metin2::config::test_server())
 		metin2::log::info( "UseSkill NextUse {:d}  current {:d} cooltime {:d} hitcount {:d}/{:d}", dwNextSkillUsableTime, dwCur, dwCooltime, iHitCount, iMaxHitCount);
 
 	dwVID = vid;
@@ -424,7 +424,7 @@ bool CHARACTER::LearnSkillByBook(uint32_t dwSkillVnum, uint8_t bProb)
 
 	if (get_global_time() < GetSkillNextReadTime(dwSkillVnum))
 	{
-		if (!(test_server && quest::CQuestManager::instance().GetEventFlag("no_read_delay")))
+		if (!(metin2::config::test_server() && quest::CQuestManager::instance().GetEventFlag("no_read_delay")))
 		{
 			if (FindAffect(AFFECT_SKILL_NO_BOOK_DELAY))
 			{
@@ -457,14 +457,14 @@ bool CHARACTER::LearnSkillByBook(uint32_t dwSkillVnum, uint8_t bProb)
 
 		if (number(1, 100) <= bProb)
 		{
-			if (test_server)
+			if (metin2::config::test_server())
 				metin2::log::info( "LearnSkillByBook {:d} SUCC", dwSkillVnum);
 
 			SkillLevelUp(dwSkillVnum, SKILL_UP_BY_BOOK);
 		}
 		else
 		{
-			if (test_server)
+			if (metin2::config::test_server())
 				metin2::log::info( "LearnSkillByBook {:d} FAIL", dwSkillVnum);
 		}
 	}
@@ -562,7 +562,7 @@ bool CHARACTER::SkillLevelDown(uint32_t dwVnum)
 	if (nullptr == m_pSkillLevels)
 		return false;
 
-	if (g_bSkillDisable)
+	if (metin2::config::game().skill_disable)
 		return false;
 
 	if (IsPolymorphed())
@@ -629,7 +629,7 @@ void CHARACTER::SkillLevelUp(uint32_t dwVnum, uint8_t bMethod)
 	if (nullptr == m_pSkillLevels)
 		return;
 
-	if (g_bSkillDisable)
+	if (metin2::config::game().skill_disable)
 		return;
 
 	if (IsPolymorphed())
@@ -794,7 +794,7 @@ void CHARACTER::SkillLevelUp(uint32_t dwVnum, uint8_t bMethod)
 
 void CHARACTER::ComputeSkillPoints()
 {
-	if (g_bSkillDisable)
+	if (metin2::config::game().skill_disable)
 		return;
 }
 
@@ -1003,14 +1003,14 @@ struct FuncSplashDamage
 
 		if (DISTANCE_APPROX(m_x - pkChrVictim->GetX(), m_y - pkChrVictim->GetY()) > m_pkSk->iSplashRange)
 		{
-			if(test_server)
+			if(metin2::config::test_server())
 				metin2::log::info( "XXX target too far {}", m_pkChr->GetName());
 			return;
 		}
 
 		if (!battle_is_attackable(m_pkChr, pkChrVictim))
 		{
-			if(test_server)
+			if(metin2::config::test_server())
 				metin2::log::info( "XXX target not attackable {}", m_pkChr->GetName());
 			return;
 		}
@@ -1020,7 +1020,7 @@ struct FuncSplashDamage
 			if (!(m_pkSk->dwVnum >= GUILD_SKILL_START && m_pkSk->dwVnum <= GUILD_SKILL_END))
 				if (!m_bDisableCooltime && m_pInfo && !m_pInfo->HitOnce(m_pkSk->dwVnum) && m_pkSk->dwVnum != SKILL_MUYEONG)
 				{
-					if(test_server)
+					if(metin2::config::test_server())
 						metin2::log::info( "check guild skill {}", m_pkChr->GetName());
 					return;
 				}
@@ -1100,7 +1100,7 @@ struct FuncSplashDamage
 			iAmount = (int) m_pkSk->kPointPoly.Eval();
 		}
 
-		if (test_server && iAmount == 0 && m_pkSk->bPointOn != POINT_NONE)
+		if (metin2::config::test_server() && iAmount == 0 && m_pkSk->bPointOn != POINT_NONE)
 		{
 			m_pkChr->ChatPacket(CHAT_TYPE_INFO, "효과가 없습니다. 스킬 공식을 확인하세요");
 		}
@@ -1417,9 +1417,9 @@ struct FuncSplashDamage
 			info->dwVictim = pkChrVictim->GetVID();
 			info->dwChr = m_pkChr->GetVID();
 
-			event_create(ChainLightningEvent, info, passes_per_sec / 5);
+			event_create(ChainLightningEvent, info, metin2::config::server().passes_per_sec / 5);
 		}
-		if(test_server)
+		if(metin2::config::test_server())
 			metin2::log::info( "FuncSplashDamage End :{} ", m_pkChr->GetName());
 	}
 
@@ -1464,11 +1464,11 @@ struct FuncSplashAffect
 		{
 			CHARACTER * pkChr = (CHARACTER *) ent;
 
-			if (test_server)
+			if (metin2::config::test_server())
 				metin2::log::info( "FuncSplashAffect step 1 : name:{} vnum:{:d} iDur:{:d}", pkChr->GetName(), m_dwVnum, m_iDuration);
 			if (DISTANCE_APPROX(m_x - pkChr->GetX(), m_y - pkChr->GetY()) < m_iDist)
 			{
-				if (test_server)
+				if (metin2::config::test_server())
 					metin2::log::info( "FuncSplashAffect step 2 : name:{} vnum:{:d} iDur:{:d}", pkChr->GetName(), m_dwVnum, m_iDuration);
 				if (m_dwVnum == SKILL_TUSOK)
 					if (pkChr->CanBeginFight())
@@ -1514,7 +1514,7 @@ int CHARACTER::ComputeSkillAtPosition(uint32_t dwVnum, const PIXEL_POSITION& pos
 	if (IsPolymorphed())
 		return BATTLE_NONE;
 
-	if (g_bSkillDisable)
+	if (metin2::config::game().skill_disable)
 		return BATTLE_NONE;
 
 	CSkillProto * pkSk = CSkillManager::instance().Get(dwVnum);
@@ -1522,7 +1522,7 @@ int CHARACTER::ComputeSkillAtPosition(uint32_t dwVnum, const PIXEL_POSITION& pos
 	if (!pkSk)
 		return BATTLE_NONE;
 
-	if (test_server)
+	if (metin2::config::test_server())
 	{
 		metin2::log::info( "ComputeSkillAtPosition {} vnum {:d} x {:d} y {:d} level {:d}", 
 				GetName(), dwVnum, posTarget.x, posTarget.y, bSkillLevel); 
@@ -1607,7 +1607,7 @@ int CHARACTER::ComputeSkillAtPosition(uint32_t dwVnum, const PIXEL_POSITION& pos
 		iAmount = (int) pkSk->kMasterBonusPoly.Eval();
 	}
 
-	if (test_server && iAmount == 0 && pkSk->bPointOn != POINT_NONE)
+	if (metin2::config::test_server() && iAmount == 0 && pkSk->bPointOn != POINT_NONE)
 	{
 		ChatPacket(CHAT_TYPE_INFO, "효과가 없습니다. 스킬 공식을 확인하세요");
 	}
@@ -1806,7 +1806,7 @@ int CHARACTER::ComputeSkill(uint32_t dwVnum, CHARACTER * pkVictim, uint8_t bSkil
 	if (IsPolymorphed())
 		return BATTLE_NONE;
 
-	if (g_bSkillDisable)
+	if (metin2::config::game().skill_disable)
 		return BATTLE_NONE;
 
 	CSkillProto* pkSk = CSkillManager::instance().Get(dwVnum);
@@ -1826,7 +1826,7 @@ int CHARACTER::ComputeSkill(uint32_t dwVnum, CHARACTER * pkVictim, uint8_t bSkil
 
 	if (!pkVictim)
 	{
-		if (test_server)
+		if (metin2::config::test_server())
 			metin2::log::info( "ComputeSkill: {} Victim == null, skill {:d}", GetName(), dwVnum);
 
 		return BATTLE_NONE;
@@ -1834,7 +1834,7 @@ int CHARACTER::ComputeSkill(uint32_t dwVnum, CHARACTER * pkVictim, uint8_t bSkil
 
 	if (pkSk->dwTargetRange && DISTANCE_SQRT(GetX() - pkVictim->GetX(), GetY() - pkVictim->GetY()) >= pkSk->dwTargetRange + 50)
 	{
-		if (test_server)
+		if (metin2::config::test_server())
 			metin2::log::info( "ComputeSkill: Victim too far, skill {:d} : {} to {} (distance {:d} limit {:d})", 
 					dwVnum,
 					GetName(),
@@ -1849,7 +1849,7 @@ int CHARACTER::ComputeSkill(uint32_t dwVnum, CHARACTER * pkVictim, uint8_t bSkil
 	{
 		if ((bSkillLevel = GetSkillLevel(pkSk->dwVnum)) == 0)
 		{
-			if (test_server)
+			if (metin2::config::test_server())
 				metin2::log::info( "ComputeSkill : name:{} vnum:{:d}  skillLevelBySkill : {:d} ", GetName(), pkSk->dwVnum, bSkillLevel);
 			return BATTLE_NONE;
 		}
@@ -1932,7 +1932,7 @@ int CHARACTER::ComputeSkill(uint32_t dwVnum, CHARACTER * pkVictim, uint8_t bSkil
 	int iAmount2 = (int) pkSk->kPointPoly2.Eval();
 	int iAmount3 = (int) pkSk->kPointPoly3.Eval();
 
-	if (test_server && IsPC())
+	if (metin2::config::test_server() && IsPC())
 		metin2::log::info( "iAmount: {:d} {:d} {:d} , atk:{:f} skLevel:{:f} k:{:f} GetSkillPower({:d}) MaxLevel:{:d} Per:{:d}",
 				iAmount, iAmount2, iAmount3,
 				pkSk->kPointPoly.GetVar("atk"),
@@ -1949,7 +1949,7 @@ int CHARACTER::ComputeSkill(uint32_t dwVnum, CHARACTER * pkVictim, uint8_t bSkil
 		iAmount = (int) pkSk->kMasterBonusPoly.Eval();
 	}
 
-	if (test_server && iAmount == 0 && pkSk->bPointOn != POINT_NONE)
+	if (metin2::config::test_server() && iAmount == 0 && pkSk->bPointOn != POINT_NONE)
 	{
 		ChatPacket(CHAT_TYPE_INFO, "효과가 없습니다. 스킬 공식을 확인하세요");
 	}
@@ -2114,7 +2114,7 @@ int CHARACTER::ComputeSkill(uint32_t dwVnum, CHARACTER * pkVictim, uint8_t bSkil
 
 				if (iDur2 > 0)
 				{
-					if (test_server)
+					if (metin2::config::test_server())
 						metin2::log::info( "SKILL_AFFECT: {} {} Dur:{:d} To:{:d} Amount:{:d}", 
 								GetName(),
 								pkSk->szName,
@@ -2147,7 +2147,7 @@ int CHARACTER::ComputeSkill(uint32_t dwVnum, CHARACTER * pkVictim, uint8_t bSkil
 			}
 			else
 			{
-				if (test_server)
+				if (metin2::config::test_server())
 					metin2::log::info( "SKILL_AFFECT: {} {} Dur:{:d} To:{:d} Amount:{:d}", 
 							GetName(),
 							pkSk->szName,
@@ -2239,7 +2239,7 @@ bool CHARACTER::UseSkill(uint32_t dwVnum, CHARACTER * pkVictim, bool bUseGrandMa
 		return false;
 
 	// NO_GRANDMASTER
-	if (test_server)
+	if (metin2::config::test_server())
 	{
 		if (quest::CQuestManager::instance().GetEventFlag("no_grand_master"))
 		{
@@ -2248,7 +2248,7 @@ bool CHARACTER::UseSkill(uint32_t dwVnum, CHARACTER * pkVictim, bool bUseGrandMa
 	}
 	// END_OF_NO_GRANDMASTER
 
-	if (g_bSkillDisable)
+	if (metin2::config::game().skill_disable)
 		return false;
 
 	if (IsObserverMode())
@@ -2405,7 +2405,7 @@ bool CHARACTER::UseSkill(uint32_t dwVnum, CHARACTER * pkVictim, bool bUseGrandMa
 		if (GetSP() < iNeededSP)
 			return false;
 
-		if (test_server)
+		if (metin2::config::test_server())
 			ChatPacket(CHAT_TYPE_INFO, LC_TEXT("%s SP소모: %d"), pkSk->szName, iNeededSP);
 
 		PointChange(POINT_SP, -iNeededSP);
@@ -2432,7 +2432,7 @@ bool CHARACTER::UseSkill(uint32_t dwVnum, CHARACTER * pkVictim, bool bUseGrandMa
 				   	iSplashCount,
 				   	lMaxHit))
 		{
-			if (test_server)
+			if (metin2::config::test_server())
 				ChatPacket(CHAT_TYPE_NOTICE, "cooltime not finished %s %d", pkSk->szName, iCooltime);
 
 			return false;
@@ -2769,7 +2769,7 @@ bool CHARACTER::UseMobSkill(unsigned int idx)
 
 		if (rInfo.dwTiming)
 		{
-			if (test_server)
+			if (metin2::config::test_server())
 				metin2::log::info( "               timing {:d}ms", rInfo.dwTiming);
 
 			mob_skill_event_info* info = AllocEventInfo<mob_skill_event_info>();

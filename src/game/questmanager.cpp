@@ -72,7 +72,7 @@ namespace quest
 
 	bool CQuestManager::Initialize()
 	{
-		if (g_bAuthServer)
+		if (metin2::config::is_auth())
 			return true;
 
 		if (!InitializeLua())
@@ -147,7 +147,7 @@ namespace quest
 				if (n)
 					continue;
 
-				if ( test_server )
+				if ( metin2::config::test_server() )
 					metin2::log::info( "QUEST reading script of {}({:d})", s.c_str(), vnum);
 				m_mapNPC[vnum].Set(vnum, s);
 				m_mapNPCNameID[s] = vnum;
@@ -650,7 +650,7 @@ namespace quest
 
 	bool CQuestManager::UseItem(unsigned int pc, CItem * item, bool bReceiveAll)
 	{
-		if (test_server)
+		if (metin2::config::test_server())
 			metin2::log::info( "questmanager::UseItem Start : itemVnum : {:d} PC : {:d}", item->GetOriginalVnum(), pc);
 		PC* pPC;
 		if ((pPC = GetPC(pc)))
@@ -679,7 +679,7 @@ namespace quest
 	// Group Use defined in Special Item Group
 	bool CQuestManager::SIGUse(unsigned int pc, uint32_t sig_vnum, CItem * item, bool bReceiveAll)
 	{
-		if (test_server)
+		if (metin2::config::test_server())
 			metin2::log::info( "questmanager::SIGUse Start : itemVnum : {:d} PC : {:d}", item->GetOriginalVnum(), pc);
 		PC* pPC;
 		if ((pPC = GetPC(pc)))
@@ -748,7 +748,7 @@ namespace quest
 			}
 
 			TargetInfo * pInfo = CTargetManager::instance().GetTargetInfo(pc, TARGET_TYPE_VID, pkChrTarget->GetVID());
-			if (test_server)
+			if (metin2::config::test_server())
 			{
 				metin2::log::info( "CQuestManager::Click(pid={:d}, npc_name={}) - target_info({})", pc, pkChrTarget->GetName(), static_cast<const void *>(static_cast<void*>(pInfo)));
 			}
@@ -779,12 +779,12 @@ namespace quest
 				if (it->second.HasChat())
 				{
 					// if have chat, give chat
-					if (test_server)
+					if (metin2::config::test_server())
 						metin2::log::info( "CQuestManager::Click->OnChat");
 
 					if (!it->second.OnChat(*pPC))
 					{
-						if (test_server)
+						if (metin2::config::test_server())
 							metin2::log::info( "CQuestManager::Click->OnChat Failed");
 
 						return it->second.OnClick(*pPC);
@@ -952,7 +952,7 @@ namespace quest
 
 		GetCurrentCharacterPtr()->GetDesc()->Packet(buf.read_peek(), buf.size());
 
-		if (test_server)
+		if (metin2::config::test_server())
 			metin2::log::info( "m_strScript {} size {:d}", m_strScript.c_str(), buf.size());
 
 		ClearScript();
@@ -991,7 +991,7 @@ namespace quest
 
 		int v = (int)rint(lua_tonumber(L,-1));
 		lua_settop(L, x);
-		if ( test_server )
+		if ( metin2::config::test_server() )
 			metin2::log::info("[QUESTMANAGER] GetQuestStateIndex x({:d}) v({:d}) {} {}", v,x, quest_name.c_str(), state_name.c_str() );
 		return v;
 	}
@@ -1120,11 +1120,11 @@ namespace quest
 			const std::string& flagname = it->first;
 			int value = it->second;
 
-			if (!test_server && value == 1 && flagname == "valentine_drop")
+			if (!metin2::config::test_server() && value == 1 && flagname == "valentine_drop")
 				ch->ChatPacket(CHAT_TYPE_INFO, "%s %d prob 800", flagname.c_str(), value);
-			else if (!test_server && value == 1 && flagname == "newyear_wonso")
+			else if (!metin2::config::test_server() && value == 1 && flagname == "newyear_wonso")
 				ch->ChatPacket(CHAT_TYPE_INFO, "%s %d prob 500", flagname.c_str(), value);
-			else if (!test_server && value == 1 && flagname == "newyear_fire")
+			else if (!metin2::config::test_server() && value == 1 && flagname == "newyear_fire")
 				ch->ChatPacket(CHAT_TYPE_INFO, "%s %d prob 1000", flagname.c_str(), value);
 			else
 				ch->ChatPacket(CHAT_TYPE_INFO, "%s %d", flagname.c_str(), value);
@@ -1614,7 +1614,7 @@ namespace quest
 		}
 
 		metin2::log::error("LUA_ERROR: quest {}.{} {}", GetCurrentQuestName().c_str(), state_name, event_index_name.c_str() );
-		if (GetCurrentCharacterPtr() && test_server)
+		if (GetCurrentCharacterPtr() && metin2::config::test_server())
 			GetCurrentCharacterPtr()->ChatPacket(CHAT_TYPE_PARTY, "LUA_ERROR: quest %s.%s %s", GetCurrentQuestName().c_str(), state_name, event_index_name.c_str() );
 	}
 
@@ -1622,7 +1622,7 @@ namespace quest
 	{
 		metin2::log::write(metin2::log::level::error, where, message);
 
-		if (!test_server)
+		if (!metin2::config::test_server())
 			return;
 
 		if (CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr())
@@ -1700,7 +1700,7 @@ namespace quest
 	
 	bool CQuestManager::PickupItem(unsigned int pc, CItem * item)
 	{
-		if (test_server)
+		if (metin2::config::test_server())
 			metin2::log::info( "questmanager::PickupItem Start : itemVnum : {:d} PC : {:d}", item->GetOriginalVnum(), pc);
 		PC* pPC;
 		if ((pPC = GetPC(pc)))

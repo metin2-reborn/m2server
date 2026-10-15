@@ -89,7 +89,7 @@ namespace marriage
 
 	int TMarriage::GetMarriagePoint()
 	{
-		if (test_server)
+		if (metin2::config::test_server())
 		{
 			int value = quest::CQuestManager::instance().GetEventFlag("lovepoint");
 			if (value)
@@ -109,7 +109,7 @@ namespace marriage
 		}
 
 		int days = (get_global_time() - marry_time);
-		if (test_server)
+		if (metin2::config::test_server())
 			days /= 60;
 		else
 			days /= 86400;
@@ -439,7 +439,7 @@ namespace marriage
 
 			love_point = std::min( love_point, 2000000000 );
 
-			if (test_server)
+			if (metin2::config::test_server())
 			{
 				CHARACTER * ch;
 				ch = CHARACTER_MANAGER::instance().FindByPID(m_pid1);

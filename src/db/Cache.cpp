@@ -8,6 +8,7 @@
 
 #include <common/length.h>
 #include <common/tables.h>
+#include <metin2/config/config.h>
 #include <metin2/log/log.h>
 
 #include <algorithm>
@@ -22,7 +23,7 @@
 #include <sys/types.h>
 
 CItemCache::CItemCache() {
-    m_expireTime = std::min(1800, g_iItemCacheFlushSeconds);
+    m_expireTime = std::min(1800, metin2::config::db().item_cache_flush_seconds);
 }
 
 CItemCache::~CItemCache() {
@@ -41,7 +42,7 @@ void CItemCache::Delete() {
         return;
     }
 
-    if (g_test_server) {
+    if (metin2::config::test_server()) {
         metin2::log::info( "ItemCache::Delete : DELETE {:d}", m_data.id);
     }
 
@@ -60,7 +61,7 @@ void CItemCache::OnFlush() {
         snprintf(szQuery, sizeof(szQuery), "DELETE FROM item%s WHERE id=%u", GetTablePostfix(), m_data.id);
         CDBManager::instance().ReturnQuery(szQuery, QID_ITEM_DESTROY, 0, nullptr);
 
-        if (g_test_server) {
+        if (metin2::config::test_server()) {
             metin2::log::info( "ItemCache::Flush : DELETE {:d} {}", m_data.id, szQuery);
         }
     } else {
@@ -133,7 +134,7 @@ void CItemCache::OnFlush() {
         char szItemQuery[QUERY_MAX_LEN + QUERY_MAX_LEN];
         snprintf(szItemQuery, sizeof(szItemQuery), "REPLACE INTO item%s (%s) VALUES(%s)", GetTablePostfix(), szColumns, szValues);
 
-        if (g_test_server)
+        if (metin2::config::test_server())
             metin2::log::info( "ItemCache::Flush :REPLACE  ({})", szItemQuery);
 
         CDBManager::instance().ReturnQuery(szItemQuery, QID_ITEM_SAVE, 0, nullptr);
@@ -148,14 +149,14 @@ void CItemCache::OnFlush() {
 // CPlayerTableCache
 //
 CPlayerTableCache::CPlayerTableCache() {
-    m_expireTime = std::min(1800, g_iPlayerCacheFlushSeconds);
+    m_expireTime = std::min(1800, metin2::config::db().player_cache_flush_seconds);
 }
 
 CPlayerTableCache::~CPlayerTableCache() {
 }
 
 void CPlayerTableCache::OnFlush() {
-    if (g_test_server)
+    if (metin2::config::test_server())
         metin2::log::info( "PlayerTableCache::Flush : {}", m_data.name);
 
     const std::string query = CreatePlayerSaveQuery(&m_data);
@@ -165,7 +166,7 @@ void CPlayerTableCache::OnFlush() {
 const int CItemPriceListTableCache::s_nMinFlushSec = 1800;
 
 CItemPriceListTableCache::CItemPriceListTableCache() {
-    m_expireTime = std::min(s_nMinFlushSec, g_iItemPriceListTableCacheFlushSeconds);
+    m_expireTime = std::min(s_nMinFlushSec, metin2::config::db().pricelist_cache_flush_seconds);
 }
 
 void CItemPriceListTableCache::UpdateList(const TItemPriceListTable *pUpdateList) {

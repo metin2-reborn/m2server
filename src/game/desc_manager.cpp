@@ -125,7 +125,7 @@ DESC * DESC_MANAGER::AcceptDesc(net::tcp::socket socket)
 	auto connection = net::connection::create(std::move(socket), MAX_CLIENT_INPUT, MAX_CLIENT_OUTPUT);
 	const char * host = connection->remote_address().c_str();
 
-	if (g_bAuthServer)
+	if (metin2::config::is_auth())
 	{
 		in_addr addr{};
 

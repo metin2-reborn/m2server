@@ -196,7 +196,7 @@ namespace quest
 		}
 		//END_PREVENT_HACK
 
-		if ( test_server )
+		if ( metin2::config::test_server() )
 			ch->ChatPacket( CHAT_TYPE_INFO, "pc_warp %d %d %d",(int)lua_tonumber(L,1),
 					(int)lua_tonumber(L,2),map_index );
 		ch->WarpSet((int)lua_tonumber(L, 1), (int)lua_tonumber(L, 2), map_index);
@@ -1014,7 +1014,7 @@ namespace quest
 			CQuestManager& q = CQuestManager::instance();
 			PC* pPC = q.GetCurrentPC();
 			lua_pushnumber(L,pPC->GetFlag(pPC->GetCurrentQuestName() + "."+sz));
-			if ( test_server )
+			if ( metin2::config::test_server() )
 				metin2::log::info("GetQF ( {} . {} )", pPC->GetCurrentQuestName().c_str(), sz );
 		}
 		return 1;
@@ -1809,9 +1809,9 @@ namespace quest
 
 				if (pkCCI)
 				{
-					if (pkCCI->bChannel != g_bChannel)
+					if (pkCCI->bChannel != metin2::config::server().channel)
 					{
-						ch->ChatPacket(CHAT_TYPE_INFO, "Target is in %d channel (my channel %d)", pkCCI->bChannel, g_bChannel);
+						ch->ChatPacket(CHAT_TYPE_INFO, "Target is in %d channel (my channel %d)", pkCCI->bChannel, metin2::config::server().channel);
 					}
 					else
 					{
@@ -2484,7 +2484,7 @@ teleport_area:
 
 	int pc_get_channel_id(lua_State* L)
 	{
-		lua_pushnumber(L, g_bChannel);
+		lua_pushnumber(L, metin2::config::server().channel);
 
 		return 1;
 	}

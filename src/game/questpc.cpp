@@ -67,7 +67,7 @@ namespace quest
 
 	void PC::SetFlag(const std::string& name, int value, bool bSkipSave)
 	{
-		if ( test_server )
+		if ( metin2::config::test_server() )
 			metin2::log::info( "QUEST Setting flag {} {:d}", name.c_str(),value);
 		else
 			metin2::log::debug( "QUEST Setting flag {} {:d}", name.c_str(),value);

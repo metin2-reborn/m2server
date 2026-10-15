@@ -707,7 +707,7 @@ bool CWarMap::CheckScore()
 
 	int iEndScore = m_WarInfo.iEndScore;
 
-	if (test_server) iEndScore /= 10;
+	if (metin2::config::test_server()) iEndScore /= 10;
 
 	uint32_t dwWinner;
 	uint32_t dwLoser;

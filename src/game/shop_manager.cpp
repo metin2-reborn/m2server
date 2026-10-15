@@ -311,7 +311,7 @@ void CShopManager::Sell(CHARACTER * ch, uint8_t bCell, uint8_t bCount)
 	dwTax = dwPrice * iVal/100;
 	dwPrice -= dwTax;
 
-	if (test_server)
+	if (metin2::config::test_server())
 		metin2::log::info( "Sell Item price id {:d} {} itemid {:d}", ch->GetPlayerID(), ch->GetName(), item->GetID());
 
 	const int64_t nTotalMoney = static_cast<int64_t>(ch->GetGold()) + static_cast<int64_t>(dwPrice);

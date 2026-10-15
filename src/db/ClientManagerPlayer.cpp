@@ -13,6 +13,7 @@
 #include <common/utils.h>
 #include <libsql/AsyncSQL.h>
 #include <libsql/query.h>
+#include <metin2/config/config.h>
 #include <metin2/log/log.h>
 
 #include <mysql.h>
@@ -298,7 +299,7 @@ void CClientManager::QUERY_PLAYER_LOAD(CPeer * peer, uint32_t dwHandle, TPlayerL
 					std::memcpy(&s_items[dwCount++], p, sizeof(TPlayerItem));
 			}
 
-			if (g_test_server)
+			if (metin2::config::test_server())
 				metin2::log::info( "ITEM_CACHE: HIT! {} count: {:d}", pTab->name, dwCount);
 
 			peer->EncodeHeader(HEADER_DG_ITEM_LOAD, dwHandle, sizeof(uint32_t) + sizeof(TPlayerItem) * dwCount);
@@ -735,7 +736,7 @@ void CClientManager::RESULT_QUEST_LOAD(CPeer * peer, MYSQL_RES * pRes, uint32_t 
  */
 void CClientManager::QUERY_PLAYER_SAVE(CPeer * peer, uint32_t dwHandle, TPlayerTable * pkTab)
 {
-	if (g_test_server)
+	if (metin2::config::test_server())
 		metin2::log::info( "PLAYER_SAVE: {}", pkTab->name);
 
 	PutPlayerCache(pkTab);
@@ -851,7 +852,7 @@ void CClientManager::__QUERY_PLAYER_CREATE(CPeer *peer, uint32_t dwHandle, TPlay
 			packet->player_table.job);
 
 	std::unique_ptr<SQLMsg> pMsg2(CDBManager::instance().DirectQuery(query.c_str()));
-	if (g_test_server)
+	if (metin2::config::test_server())
 		metin2::log::info( "Create_Player queryLen[{:d}]", query.size());
 
 	if (pMsg2->Get()->uiAffectedRows <= 0)
@@ -1221,7 +1222,7 @@ void CClientManager::InsertLogoutPlayer(uint32_t pid)
 	if (it != m_map_logout.end())
 	{
 		// If it exists, only update the time
-		if (g_log)
+		if (metin2::config::db().login_log)
 			metin2::log::info( "LOGOUT: Update player time pid({:d})", pid);
 
 		it->second->time = time(nullptr);
@@ -1233,7 +1234,7 @@ void CClientManager::InsertLogoutPlayer(uint32_t pid)
 	pLogout->time = time(nullptr);
 	m_map_logout.insert(std::make_pair(pid, std::move(pLogout)));
 
-	if (g_log)
+	if (metin2::config::db().login_log)
 		metin2::log::info( "LOGOUT: Insert player pid({:d})", pid);
 }
 

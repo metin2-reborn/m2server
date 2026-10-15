@@ -195,7 +195,7 @@ void CHARACTER::DistributeSP(CHARACTER * pkKiller, int iMethod)
 
 bool CHARACTER::Attack(CHARACTER * pkVictim, uint8_t bType)
 {
-	if (test_server)
+	if (metin2::config::test_server())
 		metin2::log::info( "[TEST_SERVER] Attack : {} type {:d}, MobBattleType {:d}", GetName(), bType, !GetMobBattleType() ? 0 : GetMobAttackRange());
 	if (!CanMove())
 		return false;
@@ -343,7 +343,7 @@ void CHARACTER::DeathPenalty(uint8_t bTown)
 		if (IsEquipUniqueItem(UNIQUE_ITEM_TEARDROP_OF_GODNESS))
 			iLoss /= 2;
 
-		metin2::log::info( "DEATH_PENALTY({}) EXP_LOSS: {:d} percent {:d}%", GetName(), iLoss, aiExpLossPercents[std::min(gPlayerMaxLevel, GetLevel())]);
+		metin2::log::info( "DEATH_PENALTY({}) EXP_LOSS: {:d} percent {:d}%", GetName(), iLoss, aiExpLossPercents[std::min(metin2::config::game().max_level, GetLevel())]);
 
 		PointChange(POINT_EXP, -iLoss, true);
 	}
@@ -513,7 +513,7 @@ bool CHARACTER::IsDead() const
 	return false;
 }
 
-static int GetGoldMultipler() { return distribution_test_server ? 3 : 1; }
+static int GetGoldMultipler() { return metin2::config::game().distribution_test_server ? 3 : 1; }
 
 void CHARACTER::RewardGold(CHARACTER * pkAttacker)
 {
@@ -578,7 +578,7 @@ void CHARACTER::RewardGold(CHARACTER * pkAttacker)
 	//
 	// --------- Determine gold drop multiplier ----------
 	//
-	if (test_server)
+	if (metin2::config::test_server())
 		pkAttacker->ChatPacket(CHAT_TYPE_PARTY, "gold_mul %d rate %d", iGoldMultipler, CHARACTER_MANAGER::instance().GetMobGoldAmountRate(pkAttacker));
 
 	//
@@ -600,7 +600,7 @@ void CHARACTER::RewardGold(CHARACTER * pkAttacker)
 		for (int i = 0; i < iSplitCount; ++i)
 		{
 			int iGold = number(GetMobTable().dwGoldMin, GetMobTable().dwGoldMax) / iSplitCount;
-			if (test_server)
+			if (metin2::config::test_server())
 				metin2::log::info( "iGold {:d}", iGold);
 			iGold = iGold * CHARACTER_MANAGER::instance().GetMobGoldAmountRate(pkAttacker) / 100;
 			iGold *= iGoldMultipler;
@@ -610,7 +610,7 @@ void CHARACTER::RewardGold(CHARACTER * pkAttacker)
 				continue ;
 			}
 
-			if (test_server)
+			if (metin2::config::test_server())
 			{
 				metin2::log::info( "Drop Moeny MobGoldAmountRate {:d} {:d}", CHARACTER_MANAGER::instance().GetMobGoldAmountRate(pkAttacker), iGoldMultipler);
 				metin2::log::info( "Drop Money gold {:d} GoldMin {:d} GoldMax {:d}", iGold, GetMobTable().dwGoldMax, GetMobTable().dwGoldMax);
@@ -797,7 +797,7 @@ void CHARACTER::Reward(bool bItemDrop)
 	//
 	// Gold drop
 	//
-	if (test_server)
+	if (metin2::config::test_server())
 		metin2::log::info( "Drop money : Attacker {}", pkAttacker->GetName());
 	RewardGold(pkAttacker);
 
@@ -1239,7 +1239,7 @@ void CHARACTER::Dead(CHARACTER * pkKiller, bool bImmediateDead)
 			!isForked &&
 			!IS_CASTLE_MAP(GetMapIndex()))
 	{
-		if (GetGMLevel() == GM_PLAYER || test_server)
+		if (GetGMLevel() == GM_PLAYER || metin2::config::test_server())
 		{
 			ItemDropPenalty(pkKiller);
 		}
@@ -1406,7 +1406,7 @@ void CHARACTER::Dead(CHARACTER * pkKiller, bool bImmediateDead)
 	if (GetMobRank() >= MOB_RANK_BOSS && pkKiller && pkKiller->IsPC())
 	{
 		char buf[51];
-		snprintf(buf, sizeof(buf), "%d %d", g_bChannel, pkKiller->GetMapIndex());
+		snprintf(buf, sizeof(buf), "%d %d", metin2::config::server().channel, pkKiller->GetMapIndex());
 		if (IsStone())
 			LogManager::instance().CharLog(pkKiller, GetRaceNum(), "STONE_KILL", buf);
 		else
@@ -1729,7 +1729,7 @@ bool CHARACTER::Damage(CHARACTER * pAttacker, int dam, EDamageType type) // retu
 				{
 					IsPenetrate = true;
 
-					if (test_server)
+					if (metin2::config::test_server())
 						ChatPacket(CHAT_TYPE_INFO, LC_TEXT("관통 추가 데미지 %d"), GetPoint(POINT_DEF_GRADE) * (100 + GetPoint(POINT_DEF_BONUS)) / 100);
 
 					dam += GetPoint(POINT_DEF_GRADE) * (100 + GetPoint(POINT_DEF_BONUS)) / 100;
@@ -1752,7 +1752,7 @@ bool CHARACTER::Damage(CHARACTER * pAttacker, int dam, EDamageType type) // retu
 			// Melee normal attacks can be blocked
 			if (GetPoint(POINT_BLOCK) && number(1, 100) <= GetPoint(POINT_BLOCK))
 			{
-				if (test_server)
+				if (metin2::config::test_server())
 				{
 					pAttacker->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("%s 블럭! (%d%%)"), GetName(), GetPoint(POINT_BLOCK));
 					ChatPacket(CHAT_TYPE_INFO, LC_TEXT("%s 블럭! (%d%%)"), GetName(), GetPoint(POINT_BLOCK));
@@ -1767,7 +1767,7 @@ bool CHARACTER::Damage(CHARACTER * pAttacker, int dam, EDamageType type) // retu
 			// Ranged normal attacks can be dodged
 			if (GetPoint(POINT_DODGE) && number(1, 100) <= GetPoint(POINT_DODGE))
 			{
-				if (test_server)
+				if (metin2::config::test_server())
 				{
 					pAttacker->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("%s 회피! (%d%%)"), GetName(), GetPoint(POINT_DODGE));
 					ChatPacket(CHAT_TYPE_INFO, LC_TEXT("%s 회피! (%d%%)"), GetName(), GetPoint(POINT_DODGE));
@@ -1855,7 +1855,7 @@ bool CHARACTER::Damage(CHARACTER * pAttacker, int dam, EDamageType type) // retu
 				{
 					IsPenetrate = true;
 
-					if (test_server)
+					if (metin2::config::test_server())
 						ChatPacket(CHAT_TYPE_INFO, LC_TEXT("관통 추가 데미지 %d"), GetPoint(POINT_DEF_GRADE) * (100 + GetPoint(POINT_DEF_BONUS)) / 100);
 					dam += GetPoint(POINT_DEF_GRADE) * (100 + GetPoint(POINT_DEF_BONUS)) / 100;
 				}
@@ -2177,7 +2177,7 @@ bool CHARACTER::Damage(CHARACTER * pAttacker, int dam, EDamageType type) // retu
 		if (pAttacker)
 			SendDamagePacket(pAttacker, dam, damageFlag);
 
-		if (test_server)
+		if (metin2::config::test_server())
 		{
 			if(pAttacker)
 			{
@@ -2259,7 +2259,7 @@ static void GiveExp(CHARACTER * from, CHARACTER * to, int iExp)
 	iExp = CALCULATE_VALUE_LVDELTA(to->GetLevel(), from->GetLevel(), iExp);
 
 	// 3x experience bonus on external test server
-	if (distribution_test_server)
+	if (metin2::config::game().distribution_test_server)
 		iExp *= 3;
 
 	int iBaseExp = iExp;
@@ -2331,7 +2331,7 @@ static void GiveExp(CHARACTER * from, CHARACTER * to, int iExp)
 	iExp += (iExp * to->GetPoint(POINT_MALL_EXPBONUS)/100);
 	iExp += (iExp * to->GetPoint(POINT_EXP)/100);
 
-	if (test_server)
+	if (metin2::config::test_server())
 	{
 		metin2::log::info( "Bonus Exp : Ramadan Candy: {:d} MallExp: {:d} PointExp: {:d}", 
 				to->GetPoint(POINT_RAMADAN_CANDY_BONUS_EXP),
@@ -2346,7 +2346,7 @@ static void GiveExp(CHARACTER * from, CHARACTER * to, int iExp)
 	// Limit on experience gained at once
 	iExp = std::min<int>(to->GetNextExp() / 10, iExp);
 
-	if (test_server)
+	if (metin2::config::test_server())
 	{
 		if (quest::CQuestManager::instance().GetEventFlag("exp_bonus_log") && iBaseExp>0)
 			to->ChatPacket(CHAT_TYPE_INFO, "exp bonus %d%%", (iExp-iBaseExp)*100/iBaseExp);
@@ -2468,7 +2468,7 @@ struct TDamageInfo {
 			if (pParty->IsPositionNearLeader(ch))
 				iExp = iExp * (100 + pParty->GetExpBonusPercent()) / 100;
 
-			if (test_server)
+			if (metin2::config::test_server())
 			{
 				if (quest::CQuestManager::instance().GetEventFlag("exp_bonus_log") && pParty->GetExpBonusPercent())
 					pParty->ChatPacketToAllMember(CHAT_TYPE_INFO, "exp party bonus %d%%", pParty->GetExpBonusPercent());
@@ -2705,7 +2705,7 @@ class CFuncShoot
 		{
 			if (m_bType > 1)
 			{
-				if (g_bSkillDisable)
+				if (metin2::config::game().skill_disable)
 					return;
 
 				m_me->m_SkillUseInfo[m_bType].SetMainTargetVID(dwTargetVID);

@@ -130,7 +130,7 @@ void CLIENT_DESC::SetPhase(int iPhase)
 			{
 				metin2::log::debug( "PHASE_DBCLIENT");
 
-				if (!g_bAuthServer)
+				if (!metin2::config::is_auth())
 				{
 					static bool bSentBoot = false;
 
@@ -152,11 +152,11 @@ void CLIENT_DESC::SetPhase(int iPhase)
 				memset(&p, 0, sizeof(p));
 				strlcpy(p.szPublicIP, g_szPublicIP, sizeof(p.szPublicIP));
 
-				if (!g_bAuthServer)
+				if (!metin2::config::is_auth())
 				{
-					p.bChannel	= g_bChannel;
-					p.wListenPort = mother_port;
-					p.wP2PPort	= p2p_port;
+					p.bChannel	= metin2::config::server().channel;
+					p.wListenPort = metin2::config::server().port;
+					p.wP2PPort	= metin2::config::server().p2p_port;
 					p.bAuthServer = false;
 					map_allow_copy(p.alMaps, MAX_MAPS_PER_SERVER);
 
@@ -264,7 +264,7 @@ bool CLIENT_DESC::IsRetryWhenClosed()
 
 void CLIENT_DESC::Update(uint32_t t)
 {
-	if (!g_bAuthServer) {
+	if (!metin2::config::is_auth()) {
 		UpdateChannelStatus(t, false);
 	}
 }
@@ -281,7 +281,7 @@ void CLIENT_DESC::UpdateChannelStatus(uint32_t t, bool fForce)
 		DESC_MANAGER::instance().GetUserCount(iTotal, &paiEmpireUserCount, iLocal);
 
 		TChannelStatus channelStatus;
-		channelStatus.nPort = mother_port;
+		channelStatus.nPort = metin2::config::server().port;
 
 		if (g_bNoMoreClient) channelStatus.bStatus = 0;
 		else channelStatus.bStatus = iTotal > g_iFullUserCount ? 3 : iTotal > g_iBusyUserCount ? 2 : 1;

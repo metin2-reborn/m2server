@@ -449,7 +449,7 @@ void CGuild::SendListPacket(CHARACTER * ch)
 
 		buf.write(c, CHARACTER_NAME_MAX_LEN+1 );
 
-		if ( test_server )
+		if ( metin2::config::test_server() )
 			metin2::log::info("name {} job {:d}  ", it->second.name.c_str(), it->second.job );
 	}
 
@@ -1275,7 +1275,7 @@ void CGuild::UseSkill(uint32_t dwVnum, CHARACTER * ch, uint32_t pid)
 	}
 	abSkillUsable[dwRealVnum] = false;
 
-	if (test_server)
+	if (metin2::config::test_server())
 		ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("<길드> %d 스킬을 사용함 (%d, %d) to %u"), dwVnum, GetSP(), iNeededSP, pid);
 
 	switch (dwVnum)
@@ -1295,9 +1295,9 @@ void CGuild::UseSkill(uint32_t dwVnum, CHARACTER * ch, uint32_t pid)
 					// 3. Warp
 					CCI * pcci = P2P_MANAGER::instance().FindByPID(pid);
 
-					if (pcci->bChannel != g_bChannel)
+					if (pcci->bChannel != metin2::config::server().channel)
 					{
-						ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("<길드> 상대가 %d 채널에 있습니다. (현재 채널 %d)"), pcci->bChannel, g_bChannel);
+						ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("<길드> 상대가 %d 채널에 있습니다. (현재 채널 %d)"), pcci->bChannel, metin2::config::server().channel);
 					}
 					else
 					{
@@ -1306,7 +1306,7 @@ void CGuild::UseSkill(uint32_t dwVnum, CHARACTER * ch, uint32_t pid)
 						p.dwFromPID = ch->GetPlayerID();
 						p.dwTargetPID = pid;
 						pcci->pkDesc->Packet(&p, sizeof(TPacketGGFindPosition));
-						if (test_server) ch->ChatPacket(CHAT_TYPE_PARTY, "sent find position packet for guild teleport");
+						if (metin2::config::test_server()) ch->ChatPacket(CHAT_TYPE_PARTY, "sent find position packet for guild teleport");
 					}
 				}
 				else

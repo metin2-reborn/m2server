@@ -1,0 +1,23 @@
+# Login server. The launcher adds runtime.toml with the MariaDB credentials, the bind and proxy
+# addresses, the peer list and the admin password.
+role = "auth"
+test_server = false
+
+[log]
+level = "info"
+keep_days = 2
+
+[server]
+hostname = "Auth01"
+channel = 1
+port = 11000
+p2p_port = 12000
+db_host = "127.0.0.1"
+db_port = 15000
+ping_seconds = 180
+
+[server.admin]
+ips = ["127.0.0.1"]
+
+[auth]
+master = true

@@ -85,19 +85,19 @@ bool battle_is_attackable(CHARACTER * ch, CHARACTER * victim)
 
 int battle_melee_attack(CHARACTER * ch, CHARACTER * victim)
 {
-	if (test_server&&ch->IsPC())
+	if (metin2::config::test_server()&&ch->IsPC())
 		metin2::log::info( "battle_melee_attack : [{}] attack to [{}]", ch->GetName(), victim->GetName());
 
 	if (!victim || ch == victim)
 		return BATTLE_NONE;
 
-	if (test_server&&ch->IsPC())
+	if (metin2::config::test_server()&&ch->IsPC())
 		metin2::log::info( "battle_melee_attack : [{}] attack to [{}]", ch->GetName(), victim->GetName());
 
 	if (!battle_is_attackable(ch, victim))
 		return BATTLE_NONE;
 
-	if (test_server&&ch->IsPC())
+	if (metin2::config::test_server()&&ch->IsPC())
 		metin2::log::info( "battle_melee_attack : [{}] attack to [{}]", ch->GetName(), victim->GetName());
 
 	// Distance check
@@ -121,7 +121,7 @@ int battle_melee_attack(CHARACTER * ch, CHARACTER * victim)
 
 		if (distance > max)
 		{
-			if (test_server)
+			if (metin2::config::test_server())
 				metin2::log::info( "VICTIM_FAR: {} distance: {:d} max: {:d}", ch->GetName(), distance, max);
 
 			return BATTLE_NONE;
@@ -455,7 +455,7 @@ int CalcMeleeDamage(CHARACTER * pkAttacker, CHARACTER * pkVictim, bool bIgnoreDe
 
 	iDam = std::max(0, iAtk - iDef);
 
-	if (test_server)
+	if (metin2::config::test_server())
 	{
 		int DEBUG_iLV = pkAttacker->GetLevel()*2;
 		int DEBUG_iST = int((pkAttacker->GetPoint(POINT_ATT_GRADE) - DEBUG_iLV) * fAR);
@@ -571,7 +571,7 @@ int CalcArrowDamage(CHARACTER * pkAttacker, CHARACTER * pkVictim, CItem * pkBow,
 
 	iPureDam = (iPureDam * iPercent) / 100;
 
-	if (test_server)
+	if (metin2::config::test_server())
 	{
 		pkAttacker->ChatPacket(CHAT_TYPE_INFO, "ARROW %s -> %s, DAM %d DIST %d GAP %d %% %d",
 				pkAttacker->GetName(), 
@@ -602,7 +602,7 @@ void NormalAttackAffect(CHARACTER * pkAttacker, CHARACTER * pkVictim)
 
 int battle_hit(CHARACTER * pkAttacker, CHARACTER * pkVictim, int & iRetDam)
 {
-	if (test_server)
+	if (metin2::config::test_server())
 		metin2::log::info( "battle_hit : [{}] attack to [{}] : dam :{:d}", pkAttacker->GetName(), pkVictim->GetName(), iRetDam);
 
 	int iDam = CalcMeleeDamage(pkAttacker, pkVictim);
@@ -662,7 +662,7 @@ uint32_t GET_ATTACK_SPEED(CHARACTER * ch)
 		return 1000;
 
 	CItem * item = ch->GetWear(WEAR_WEAPON);	
-	uint32_t default_bonus = SPEEDHACK_LIMIT_BONUS * 3;    // Leeway attack speed (default 80) (*3 added to keep normal users from being flagged for speed hack. 2013.09.11 CYH)
+	uint32_t default_bonus = metin2::config::game().anti_cheat.speed_hack_bonus * 3;    // Leeway attack speed (default 80) (*3 added to keep normal users from being flagged for speed hack. 2013.09.11 CYH)
 	uint32_t riding_bonus = 0;
 
 	if (ch->IsRiding())
@@ -731,7 +731,7 @@ bool IS_SPEED_HACK(CHARACTER * ch, CHARACTER * victim, uint32_t current_time)
 		{
 			++ch->m_speed_hack_count;
 
-			if (test_server)
+			if (metin2::config::test_server())
 			{
 				metin2::log::info( "{} attack hack! time (delta, limit)=({:d}, {:d}) hack_count {:d}",
 						ch->GetName(),
@@ -760,7 +760,7 @@ bool IS_SPEED_HACK(CHARACTER * ch, CHARACTER * victim, uint32_t current_time)
 		{
 			++ch->m_speed_hack_count;
 
-			if (test_server)
+			if (metin2::config::test_server())
 			{
 				metin2::log::info( "{} Attack Speed HACK! time (delta, limit)=({:d}, {:d}), hack_count = {:d}",
 						ch->GetName(),

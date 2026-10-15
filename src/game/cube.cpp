@@ -305,14 +305,14 @@ void Cube_open (CHARACTER * ch)
 	npc = ch->GetQuestNPC();
 	if (nullptr==npc)
 	{
-		if (test_server)
+		if (metin2::config::test_server())
 			metin2::log::debug( "cube_npc is NULL");
 		return;
 	}
 
 	if ( FN_check_valid_npc(npc->GetRaceNum()) == false )
 	{
-		if ( test_server == true )
+		if ( metin2::config::test_server() == true )
 		{
 			metin2::log::debug( "cube not valid NPC");
 		}
@@ -642,7 +642,7 @@ void Cube_add_item (CHARACTER * ch, int cube_index, int inven_index)
 
 	cube_item[cube_index] = item;
 
-	if (test_server)
+	if (metin2::config::test_server())
 		ch->ChatPacket(CHAT_TYPE_INFO, "cube[%d]: inventory[%d]: %s added",
 									cube_index, inven_index, item->GetName());
 
@@ -671,7 +671,7 @@ void Cube_delete_item (CHARACTER * ch, int cube_index)
 	item = cube_item[cube_index];
 	cube_item[cube_index] = nullptr;
 
-	if (test_server)
+	if (metin2::config::test_server())
 		ch->ChatPacket(CHAT_TYPE_INFO, "cube[%d]: cube[%d]: %s deleted",
 				cube_index, item->GetCell(), item->GetName());
 

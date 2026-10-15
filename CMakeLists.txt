@@ -24,6 +24,7 @@ add_compile_options(
 
 add_subdirectory(src/common)
 add_subdirectory(src/metin2/log)
+add_subdirectory(src/metin2/config)
 add_subdirectory(src/db)
 add_subdirectory(src/game)
 add_subdirectory(src/libgame)

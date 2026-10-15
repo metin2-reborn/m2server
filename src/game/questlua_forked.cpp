@@ -95,7 +95,7 @@ namespace quest
 	{
 		lua_pushnumber( L, GetSungziMapIndex() ); 
 
-		if ( test_server )
+		if ( metin2::config::test_server() )
 			metin2::log::info( "forked_sungzi_map_index_by_empire {:d}", GetSungziMapIndex() );
 		return 1;
 	}

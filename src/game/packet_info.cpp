@@ -249,7 +249,6 @@ CPacketInfoGG::CPacketInfoGG()
 	Set(HEADER_GG_TRANSFER,		sizeof(TPacketGGTransfer),	"Transfer", false);
 	Set(HEADER_GG_XMAS_WARP_SANTA,	sizeof(TPacketGGXmasWarpSanta),	"XmasWarpSanta", false);
 	Set(HEADER_GG_XMAS_WARP_SANTA_REPLY, sizeof(TPacketGGXmasWarpSantaReply), "XmasWarpSantaReply", false);
-	Set(HEADER_GG_RELOAD_CRC_LIST,	sizeof(uint8_t),			"ReloadCRCList", false);
 	Set(HEADER_GG_CHECK_CLIENT_VERSION, sizeof(uint8_t),			"CheckClientVersion", false);
 
 	// BLOCK_CHAT

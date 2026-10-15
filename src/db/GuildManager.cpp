@@ -1,7 +1,7 @@
 #include "GuildManager.h"
 
 #include "ClientManager.h"
-#include "Config.h"
+#include <metin2/config/config.h>
 #include "DBManager.h"
 #include "Main.h"
 #include "Peer.h"
@@ -157,18 +157,16 @@ void CGuildManager::Initialize()
 	if (pmsg->Get()->uiNumRows)
 		ParseResult(pmsg->Get());
 
-	char str[128 + 1];
-
-	if (!CConfig::instance().GetValue("POLY_POWER", str, sizeof(str)))
-		*str = '\0';
+	std::string power = metin2::config::db().guild_war_power;
+	const char * str = power.c_str();
 
 	if (!polyPower.Analyze(str))
 		metin2::log::error("cannot set power poly: {}", str);
 	else
 		metin2::log::info( "POWER_POLY: {}", str);
 
-	if (!CConfig::instance().GetValue("POLY_HANDICAP", str, sizeof(str)))
-		*str = '\0';
+	std::string handicap = metin2::config::db().guild_war_handicap;
+	str = handicap.c_str();
 
 	if (!polyHandicap.Analyze(str))
 		metin2::log::error("cannot set handicap poly: {}", str);

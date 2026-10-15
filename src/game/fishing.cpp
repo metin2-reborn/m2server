@@ -624,7 +624,7 @@ void Take(fishing_event_info* info, CHARACTER * ch)
 					if (item)
 					{
 						item->SetSocket(0,GetFishLength(info->fish_id));
-						if (test_server)
+						if (metin2::config::test_server())
 						{
 							ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("이번에 잡은 물고기의 길이는 %.2fcm"), item->GetSocket(0)/100.f);
 						}

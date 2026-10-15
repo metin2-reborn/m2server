@@ -12,6 +12,7 @@
 #include <common/utils.h>
 #include <libsql/AsyncSQL.h>
 #include <libsql/query.h>
+#include <metin2/config/config.h>
 #include <metin2/log/log.h>
 #include <libthecore/utils.h>
 
@@ -442,14 +443,14 @@ void CClientManager::QUERY_LOGOUT(CPeer * peer, uint32_t dwHandle,const char * d
 	{
 		if (pLoginData->GetAccountRef().players[n].dwID == 0)
 		{
-			if (g_test_server)
+			if (metin2::config::test_server())
 				metin2::log::info( "LOGOUT {} {:d}", packet->login, pLoginData->GetAccountRef().players[n].dwID);
 			continue;
 		}
 		
 		pid[n] = pLoginData->GetAccountRef().players[n].dwID;
 
-		if (g_log)
+		if (metin2::config::db().login_log)
 			metin2::log::info( "LOGOUT InsertLogoutPlayer {} {:d}", packet->login, pid[n]);
 
 		InsertLogoutPlayer(pid[n]);
@@ -457,7 +458,7 @@ void CClientManager::QUERY_LOGOUT(CPeer * peer, uint32_t dwHandle,const char * d
 	
 	if (DeleteLogonAccount(packet->login, peer->GetHandle()))
 	{
-		if (g_log)
+		if (metin2::config::db().login_log)
 			metin2::log::info( "LOGOUT {} ", packet->login);
 	}
 }

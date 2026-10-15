@@ -118,7 +118,7 @@ namespace quest
 		if (L!=pqs->co) 
 		{
 			luaL_error(L, "running thread != current thread???");
-			if ( test_server )
+			if ( metin2::config::test_server() )
 				metin2::log::info("running thread != current thread???");
 			return 0;
 		}
@@ -128,7 +128,7 @@ namespace quest
 			//cerr << "QUEST new state" << pPC->GetCurrentQuestName(); << ":"
 			//
 			std::string stCurrentState = lua_tostring(L,-1);
-			if ( test_server )
+			if ( metin2::config::test_server() )
 				metin2::log::info("questlua->setstate( {}, {} )", pPC->GetCurrentQuestName().c_str(), stCurrentState.c_str() );
 			pqs->st = q.GetQuestStateIndex(pPC->GetCurrentQuestName(), stCurrentState);
 			pPC->SetCurrentQuestStateName(stCurrentState );

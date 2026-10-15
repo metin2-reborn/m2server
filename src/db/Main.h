@@ -8,13 +8,8 @@ const char * GetTablePostfix();
 const char * GetPlayerDBName();
 void WriteVersion();
 
-// Configuration read by Start() (Main.cpp).
-extern bool g_test_server;
-extern int g_log;
+// The proto name column (db.name_column, or from the locale).
 extern std::string g_stLocaleNameColumn;
 
-// Cache flush intervals in seconds; g_iLogoutSeconds must exceed the player and item ones.
-extern int g_iPlayerCacheFlushSeconds;
-extern int g_iItemCacheFlushSeconds;
+// Seconds after logout before a player's cache is dropped; longer than the cache flush intervals.
 extern int g_iLogoutSeconds;
-extern int g_iItemPriceListTableCacheFlushSeconds;

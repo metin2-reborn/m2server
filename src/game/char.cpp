@@ -1230,7 +1230,7 @@ void CHARACTER::Disconnect(const char * c_pszReason)
 	P2P_MANAGER::instance().Send(&p, sizeof(TPacketGGLogout));
 	char buf[51];
 	snprintf(buf, sizeof(buf), "%s %d %d %d %d",
-		GetDesc()->GetHostName(), GetGold(), g_bChannel, GetMapIndex(), GetAlignment());
+		GetDesc()->GetHostName(), GetGold(), metin2::config::server().channel, GetMapIndex(), GetAlignment());
 
 	LogManager::instance().CharLog(this, 0, "LOGOUT", buf);
 
@@ -1588,7 +1588,7 @@ void CHARACTER::SetLevel(uint8_t level)
 
 	if (IsPC())
 	{
-		if (level < PK_PROTECT_LEVEL)
+		if (level < metin2::config::game().pk_protect_level)
 			SetPKMode(PK_MODE_PROTECT);
 		else if (GetGMLevel() != GM_PLAYER)
 			SetPKMode(PK_MODE_PROTECT);
@@ -1675,7 +1675,7 @@ void CHARACTER::SetPlayerProto(const TPlayerTable * t)
 	SetStamina(t->stamina);
 
 	//Protection mode when GM  
-	if (!test_server)
+	if (!metin2::config::test_server())
 	{
 		if (GetGMLevel() > GM_LOW_WIZARD)
 		{
@@ -1684,7 +1684,7 @@ void CHARACTER::SetPlayerProto(const TPlayerTable * t)
 		}
 	}
 
-	if (GetLevel() < PK_PROTECT_LEVEL)
+	if (GetLevel() < metin2::config::game().pk_protect_level)
 		m_bPKMode = PK_MODE_PROTECT;
 
 	m_stMobile = t->szMobile;
@@ -1788,7 +1788,7 @@ void CHARACTER::SetProto(const CMob * pkMob)
 		//For Santa
 		//Sinseonja Nohae 
 		m_dwPlayStartTime = get_dword_time() + 30 * 1000;
-		if (test_server)
+		if (metin2::config::test_server())
 			m_dwPlayStartTime = get_dword_time() + 30 * 1000;
 	}
 
@@ -2674,7 +2674,7 @@ bool CHARACTER::Move(int32_t x, int32_t y)
 	if (GetX() == x && GetY() == y)
 		return true;
 
-	if (test_server)
+	if (metin2::config::test_server())
 		if (m_bDetailLog)
 			metin2::log::info( "{} position {:d} {:d}", GetName(), x, y);
 
@@ -2858,7 +2858,7 @@ void CHARACTER::PointChange(uint8_t type, int amount, bool bAmount, bool bBroadc
 			return;
 
 		case POINT_LEVEL:
-			if ((GetLevel() + amount) > gPlayerMaxLevel)
+			if ((GetLevel() + amount) > metin2::config::game().max_level)
 				return;
 
 			SetLevel(GetLevel() + amount);
@@ -2909,10 +2909,10 @@ void CHARACTER::PointChange(uint8_t type, int amount, bool bAmount, bool bBroadc
 				}
 				else
 				{
-					if (gPlayerMaxLevel <= GetLevel())
+					if (metin2::config::game().max_level <= GetLevel())
 						return;
 
-					if (test_server)
+					if (metin2::config::test_server())
 						ChatPacket(CHAT_TYPE_INFO, "You have gained %d exp.", amount);
 
 					uint32_t iExpBalance = 0;
@@ -3612,7 +3612,7 @@ EVENTFUNC(save_event)
 	metin2::log::debug( "SAVE_EVENT: {}", ch->GetName());
 	ch->Save();
 	ch->FlushDelayedSaveItem();
-	return (save_event_second_cycle);
+	return (PASSES_PER_SEC(metin2::config::game().save_seconds));
 }
 
 void CHARACTER::StartSaveEvent()
@@ -3623,12 +3623,12 @@ void CHARACTER::StartSaveEvent()
 	char_event_info* info = AllocEventInfo<char_event_info>();
 
 	info->ch = this;
-	m_pkSaveEvent = event_create(save_event, info, save_event_second_cycle);
+	m_pkSaveEvent = event_create(save_event, info, PASSES_PER_SEC(metin2::config::game().save_seconds));
 }
 
 void CHARACTER::MonsterLog(const char* format, ...)
 {
-	if (!test_server)
+	if (!metin2::config::test_server())
 		return;
 
 	if (IsPC())
@@ -3709,7 +3709,7 @@ void CHARACTER::ChatPacket(uint8_t type, const char * format, ...)
 
 	d->Packet(buf.read_peek(), buf.size());
 
-	if (type == CHAT_TYPE_COMMAND && test_server)
+	if (type == CHAT_TYPE_COMMAND && metin2::config::test_server())
 		metin2::log::info( "SEND_COMMAND {} {}", GetName(), chatbuf);
 }
 
@@ -4694,7 +4694,7 @@ void CHARACTER::OnClick(CHARACTER * pkChrCauser)
 				return;
 			}
 
-			if (test_server)
+			if (metin2::config::test_server())
 				metin2::log::error("{}.OnClickFailure({}) - target is PC", pkChrCauser->GetName(), GetName());
 
 			return;
@@ -4728,7 +4728,7 @@ void CHARACTER::OnClick(CHARACTER * pkChrCauser)
 
 uint8_t CHARACTER::GetGMLevel() const
 {
-	if (test_server)
+	if (metin2::config::test_server())
 		return GM_IMPLEMENTOR;
 	return m_pointsInstant.gm_level;
 }
@@ -4749,7 +4749,7 @@ bool CHARACTER::IsGM() const
 {
 	if (m_pointsInstant.gm_level != GM_PLAYER)
 		return true;
-	if (test_server)
+	if (metin2::config::test_server())
 		return true;
 	return false;
 }
@@ -5025,7 +5025,7 @@ bool CHARACTER::WarpSet(int32_t x, int32_t y, int32_t lPrivateMapIndex)
 
 void CHARACTER::WarpEnd()
 {
-	if (test_server)
+	if (metin2::config::test_server())
 		metin2::log::info( "WarpEnd {}", GetName());
 
 	if (m_posWarp.x == 0 && m_posWarp.y == 0)
@@ -5061,7 +5061,7 @@ void CHARACTER::WarpEnd()
 		p.dwPID = GetPlayerID();
 		p.bEmpire = GetEmpire();
 		p.lMapIndex = SECTREE_MANAGER::instance().GetMapIndex(GetX(), GetY());
-		p.bChannel = g_bChannel;
+		p.bChannel = metin2::config::server().channel;
 
 		P2P_MANAGER::instance().Send(&p, sizeof(TPacketGGLogin));
 	}
@@ -5085,7 +5085,7 @@ bool CHARACTER::Return()
 
 	SendMovePacket(FUNC_WAIT, 0, 0, 0, 0);
 
-	if (test_server)
+	if (metin2::config::test_server())
 		metin2::log::info( "{} {} 포기하고 돌아가자! {:d} {:d}", GetName(), static_cast<const void *>(this), x, y);
 
 	if (GetParty())
@@ -5561,9 +5561,9 @@ void CHARACTER::StartStaminaConsume()
 	PointChange(POINT_STAMINA, 0);
 	m_bStaminaConsume = true;
 	if (IsStaminaHalfConsume())
-		ChatPacket(CHAT_TYPE_COMMAND, "StartStaminaConsume %d %d", STAMINA_PER_STEP * passes_per_sec / 2, GetStamina());
+		ChatPacket(CHAT_TYPE_COMMAND, "StartStaminaConsume %d %d", STAMINA_PER_STEP * metin2::config::server().passes_per_sec / 2, GetStamina());
 	else
-		ChatPacket(CHAT_TYPE_COMMAND, "StartStaminaConsume %d %d", STAMINA_PER_STEP * passes_per_sec, GetStamina());
+		ChatPacket(CHAT_TYPE_COMMAND, "StartStaminaConsume %d %d", STAMINA_PER_STEP * metin2::config::server().passes_per_sec, GetStamina());
 }
 
 void CHARACTER::StopStaminaConsume()
@@ -5857,7 +5857,7 @@ bool CHARACTER::IsGuardNPC() const
 
 int CHARACTER::GetPolymorphPower() const
 {
-	if (test_server)
+	if (metin2::config::test_server())
 	{
 		int value = quest::CQuestManager::instance().GetEventFlag("poly");
 		if (value)
@@ -6159,7 +6159,7 @@ EVENTFUNC(warp_npc_event)
 	if (f.Valid())
 		ch->GetSectree()->ForEachAround(f);
 
-	return passes_per_sec / 2;
+	return metin2::config::server().passes_per_sec / 2;
 }
 
 
@@ -6175,7 +6175,7 @@ void CHARACTER::StartWarpNPCEvent()
 
 	info->ch = this;
 
-	m_pkWarpNPCEvent = event_create(warp_npc_event, info, passes_per_sec / 2);
+	m_pkWarpNPCEvent = event_create(warp_npc_event, info, metin2::config::server().passes_per_sec / 2);
 }
 
 void CHARACTER::SyncPacket()
@@ -6283,9 +6283,9 @@ bool CHARACTER::WarpToPID(uint32_t dwPID)
 			return false;
 		}
 
-		if (pcci->bChannel != g_bChannel)
+		if (pcci->bChannel != metin2::config::server().channel)
 		{
-			ChatPacket(CHAT_TYPE_INFO, LC_TEXT("상대방이 %d 채널에 있습니다. (현재 채널 %d)"), pcci->bChannel, g_bChannel);
+			ChatPacket(CHAT_TYPE_INFO, LC_TEXT("상대방이 %d 채널에 있습니다. (현재 채널 %d)"), pcci->bChannel, metin2::config::server().channel);
 			return false;
 		}
 		else if (false == IS_SUMMONABLE_ZONE(pcci->lMapIndex))
@@ -6307,7 +6307,7 @@ bool CHARACTER::WarpToPID(uint32_t dwPID)
 			p.dwTargetPID = dwPID;
 			pcci->pkDesc->Packet(&p, sizeof(TPacketGGFindPosition));
 
-			if (test_server) 
+			if (metin2::config::test_server()) 
 				ChatPacket(CHAT_TYPE_PARTY, "sent find position packet for teleport");
 		}
 	}
@@ -6372,7 +6372,7 @@ bool CHARACTER::IsHack(bool bSendMsg, bool bCheckShopOwner, int limittime)
 {
 	const int iPulse = thecore_pulse();
 
-	if (test_server)
+	if (metin2::config::test_server())
 		bSendMsg = true;
 
 	//Check after opening safebox
@@ -6381,7 +6381,7 @@ bool CHARACTER::IsHack(bool bSendMsg, bool bCheckShopOwner, int limittime)
 		if (bSendMsg)
 			ChatPacket(CHAT_TYPE_INFO, LC_TEXT("창고를 연후 %d초 이내에는 다른곳으로 이동할수 없습니다."), limittime);
 
-		if (test_server)
+		if (metin2::config::test_server())
 			ChatPacket(CHAT_TYPE_INFO, "[TestOnly]Pulse %d LoadTime %d PASS %d", iPulse, GetSafeboxLoadTime(), PASSES_PER_SEC(limittime));
 		return true; 
 	}
@@ -6487,13 +6487,13 @@ bool CHARACTER::IsMCOK(enum MONARCH_INDEX e) const
 
 	if ((iPulse -  GetMC(e)) <  GetMCL(e))
 	{
-		if (test_server)
+		if (metin2::config::test_server())
 			metin2::log::info( " Pulse {:d} cooltime {:d}, limit {:d}", iPulse, GetMC(e), GetMCL(e));
 		
 		return false;
 	}
 	
-	if (test_server)
+	if (metin2::config::test_server())
 		metin2::log::info( " Pulse {:d} cooltime {:d}, limit {:d}", iPulse, GetMC(e), GetMCL(e));
 
 	return true;
@@ -6508,10 +6508,10 @@ uint32_t CHARACTER::GetMCLTime(enum MONARCH_INDEX e) const
 {
 	int iPulse = thecore_pulse();
 
-	if (test_server)
+	if (metin2::config::test_server())
 		metin2::log::info( " Pulse {:d} cooltime {:d}, limit {:d}", iPulse, GetMC(e), GetMCL(e));
 
-	return  (GetMCL(e)) / passes_per_sec   -  (iPulse - GetMC(e)) / passes_per_sec;
+	return  (GetMCL(e)) / metin2::config::server().passes_per_sec   -  (iPulse - GetMC(e)) / metin2::config::server().passes_per_sec;
 }
 
 //------------------------------------------------
@@ -6670,7 +6670,7 @@ void CHARACTER::SetRevive(bool mode)
 	}
 }
 
-static bool IS_SPEED_HACK_PLAYER(CHARACTER * ch) { return ch->m_speed_hack_count > SPEEDHACK_LIMIT_COUNT; }
+static bool IS_SPEED_HACK_PLAYER(CHARACTER * ch) { return ch->m_speed_hack_count > metin2::config::game().anti_cheat.speed_hack_limit; }
 
 EVENTFUNC(check_speedhack_event)
 {

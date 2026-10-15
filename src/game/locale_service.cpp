@@ -27,7 +27,6 @@ static const std::string	g_stServiceMapPath = "locale/english/map";
 std::string g_stLocale = "latin1";
 std::string g_stLocaleFilename = "locale/english/locale_string.txt";
 
-uint8_t PK_PROTECT_LEVEL = 15;
 
 static_assert(PLAYER_PER_ACCOUNT == 4);
 
@@ -75,7 +74,7 @@ void LocaleService_LoadLocaleStringFile()
 	if (g_stLocaleFilename.empty())
 		return;
 
-	if (g_bAuthServer)
+	if (metin2::config::is_auth())
 		return;
 
 	fprintf(stderr, "LocaleService %s\n", g_stLocaleFilename.c_str());

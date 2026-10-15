@@ -69,7 +69,7 @@ EVENTFUNC(poison_event)
 	CHARACTER * pkAttacker = CHARACTER_MANAGER::instance().FindByPID(info->attacker_pid);
 
 	int dam = ch->GetMaxHP() * GetPoisonDamageRate(ch) / 1000;
-	if (test_server) ch->ChatPacket(CHAT_TYPE_NOTICE, "Poison Damage %d", dam);
+	if (metin2::config::test_server()) ch->ChatPacket(CHAT_TYPE_NOTICE, "Poison Damage %d", dam);
 
 	if (ch->Damage(pkAttacker, dam, DAMAGE_TYPE_POISON))
 	{
@@ -121,7 +121,7 @@ EVENTFUNC(fire_event)
 	CHARACTER * pkAttacker = CHARACTER_MANAGER::instance().FindByPID(info->attacker_pid);
 
 	int dam = info->amount;
-	if (test_server) ch->ChatPacket(CHAT_TYPE_NOTICE, "Fire Damage %d", dam);
+	if (metin2::config::test_server()) ch->ChatPacket(CHAT_TYPE_NOTICE, "Fire Damage %d", dam);
 
 	if (ch->Damage(pkAttacker, dam, DAMAGE_TYPE_FIRE))
 	{
@@ -218,7 +218,7 @@ void CHARACTER::AttackedByPoison(CHARACTER * pkAttacker)
 
 	m_pkPoisonEvent = event_create(poison_event, info, 1);
 
-	if (test_server && pkAttacker)
+	if (metin2::config::test_server() && pkAttacker)
 	{
 		char buf[256];
 		snprintf(buf, sizeof(buf), "POISON %s -> %s", pkAttacker->GetName(), GetName());
@@ -262,21 +262,21 @@ bool CHARACTER::IsImmune(uint32_t dwImmuneFlag)
 
 		if (percent <= immune_pct)	// 90% Immune
 		{
-			if (test_server && IsPC())
+			if (metin2::config::test_server() && IsPC())
 				ChatPacket(CHAT_TYPE_PARTY, "<IMMUNE_SUCCESS> (%s)", GetName()); 
 
 			return true;
 		}
 		else
 		{
-			if (test_server && IsPC())
+			if (metin2::config::test_server() && IsPC())
 				ChatPacket(CHAT_TYPE_PARTY, "<IMMUNE_FAIL> (%s)", GetName());
 
 			return false;
 		}
 	}
 
-	if (test_server && IsPC())
+	if (metin2::config::test_server() && IsPC())
 		ChatPacket(CHAT_TYPE_PARTY, "<IMMUNE_FAIL> (%s) NO_IMMUNE_FLAG", GetName());
 
 	return false;

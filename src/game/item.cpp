@@ -1271,7 +1271,7 @@ EVENTFUNC(timer_based_on_wear_expire_event)
 	}
 
 	CItem * pkItem = info->item;
-	int remain_time = pkItem->GetSocket(ITEM_SOCKET_REMAIN_SEC) - processing_time/passes_per_sec;
+	int remain_time = pkItem->GetSocket(ITEM_SOCKET_REMAIN_SEC) - processing_time/metin2::config::server().passes_per_sec;
 	if (remain_time <= 0)
 	{
 		metin2::log::info( "ITEM EXPIRED : expired {} {:d}", pkItem->GetName(), pkItem->GetID());
@@ -1432,7 +1432,7 @@ void CItem::StopUniqueExpireEvent()
 	if (GetVnum() == UNIQUE_ITEM_HIDE_ALIGNMENT_TITLE)
 		m_pOwner->ShowAlignment(true);
 
-	SetSocket(ITEM_SOCKET_UNIQUE_SAVE_TIME, event_time(m_pkUniqueExpireEvent) / passes_per_sec);
+	SetSocket(ITEM_SOCKET_UNIQUE_SAVE_TIME, event_time(m_pkUniqueExpireEvent) / metin2::config::server().passes_per_sec);
 	event_cancel(&m_pkUniqueExpireEvent);
 
 	ITEM_MANAGER::instance().SaveSingleItem(this);
@@ -1443,7 +1443,7 @@ void CItem::StopTimerBasedOnWearExpireEvent()
 	if (!m_pkTimerBasedOnWearExpireEvent)
 		return;
 
-	int remain_time = GetSocket(ITEM_SOCKET_REMAIN_SEC) - event_processing_time(m_pkTimerBasedOnWearExpireEvent) / passes_per_sec;
+	int remain_time = GetSocket(ITEM_SOCKET_REMAIN_SEC) - event_processing_time(m_pkTimerBasedOnWearExpireEvent) / metin2::config::server().passes_per_sec;
 
 	SetSocket(ITEM_SOCKET_REMAIN_SEC, remain_time);
 	event_cancel(&m_pkTimerBasedOnWearExpireEvent);
@@ -1488,7 +1488,7 @@ void CItem::SetAccessorySocketDownGradeTime(uint32_t time)
 { 
 	SetSocket(2, time); 
 
-	if (test_server && GetOwner())
+	if (metin2::config::test_server() && GetOwner())
 		GetOwner()->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("%s에서 소켓 빠질때까지 남은 시간 %d"), GetName(), time);
 }
 
@@ -1563,7 +1563,7 @@ void CItem::StopAccessorySocketExpireEvent()
 	if (!IsAccessoryForSocket())
 		return;
 
-	int new_time = GetAccessorySocketDownGradeTime() - (60 - event_time(m_pkAccessorySocketExpireEvent) / passes_per_sec);
+	int new_time = GetAccessorySocketDownGradeTime() - (60 - event_time(m_pkAccessorySocketExpireEvent) / metin2::config::server().passes_per_sec);
 
 	event_cancel(&m_pkAccessorySocketExpireEvent);
 
@@ -1624,7 +1624,7 @@ void CItem::AccessorySocketDegrade()
 
 		int iDownTime = aiAccessorySocketDegradeTime[GetAccessorySocketGrade()];
 
-		if (test_server)
+		if (metin2::config::test_server())
 			iDownTime /= 60;
 
 		SetAccessorySocketDownGradeTime(iDownTime);

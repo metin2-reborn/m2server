@@ -7,6 +7,7 @@
 #include <common/utils.h>
 #include <libsql/AsyncSQL.h>
 #include <libsql/query.h>
+#include <metin2/config/config.h>
 #include <metin2/log/log.h>
 
 #include <mysql.h>
@@ -69,7 +70,7 @@ void CMonarch::ElectMonarch()
 
 		++s[idx];
 
-		if (g_test_server)
+		if (metin2::config::test_server())
 			metin2::log::info( "[MONARCH_VOTE] pid({:d}) come to vote candidacy pid({:d})", it->second->pid, m_vec_MonarchCandidacy[idx].pid);
 	}
 }
@@ -181,7 +182,7 @@ bool CMonarch::TakeMoney(int Empire, uint32_t pid, int64_t Money)
 
 	CDBManager::instance().AsyncQuery(szQuery);
 
-	if (g_test_server)
+	if (metin2::config::test_server())
 		metin2::log::info( "[MONARCH] Take money empire({:d}) money({:d})", Empire, m_MonarchInfo.money[Empire]);
 	return true;
 }
@@ -210,7 +211,7 @@ bool CMonarch::LoadMonarch()
         str_to_number(p->money[Empire], row[idx++]);
 		strlcpy(p->date[Empire], row[idx++], sizeof(p->date[Empire]));
 
-		if (g_test_server)
+		if (metin2::config::test_server())
 		metin2::log::info( "[LOAD_MONARCH] Empire {:d} pid {:d} money {:d} windate {}", Empire, p->pid[Empire], p->money[Empire], p->date[Empire]);
     }
 
@@ -240,7 +241,7 @@ bool CMonarch::SetMonarch(const char * name)
         str_to_number(p->pid[Empire], row[idx++]);
 		strlcpy(p->name[Empire], row[idx++], sizeof(p->name[Empire]));
 
-		if (g_test_server)
+		if (metin2::config::test_server())
 			metin2::log::info( "[Set_MONARCH] Empire {:d} pid {:d} money {:d} windate {}", Empire, p->pid[Empire], p->money[Empire], p->date[Empire]);
     }
 

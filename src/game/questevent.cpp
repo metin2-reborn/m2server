@@ -40,7 +40,7 @@ namespace quest
 		CQuestManager& q = CQuestManager::instance();
 
 		if (!q.ServerTimer(info->npc_id, info->arg))
-			return passes_per_sec / 2 + 1;
+			return metin2::config::server().passes_per_sec / 2 + 1;
 
 		if (0 == info->time_cycle)	// Terminate if not looping.
 		{
@@ -67,7 +67,7 @@ namespace quest
 		if (CHARACTER_MANAGER::instance().FindByPID(info->player_id))
 		{
 			if (!CQuestManager::instance().Timer(info->player_id, info->npc_id))
-				return (passes_per_sec / 2 + 1);
+				return (metin2::config::server().passes_per_sec / 2 + 1);
 
 			if (0 == info->time_cycle)	// Terminate if not looping.
 				goto END_OF_TIMER_EVENT;

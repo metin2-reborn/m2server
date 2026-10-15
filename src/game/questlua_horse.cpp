@@ -235,7 +235,7 @@ namespace quest
 			}
 			else
 			{
-				int nHorseNameDuration = test_server == true ? 60*5 : 60*60*24*30;
+				int nHorseNameDuration = metin2::config::test_server() == true ? 60*5 : 60*60*24*30;
 
 				ch->SetQuestFlag("horse_name.valid_till", get_global_time() + nHorseNameDuration);
 				ch->AddAffect(AFFECT_HORSE_NAME, 0, 0, 0, PASSES_PER_SEC(nHorseNameDuration), 0, true);

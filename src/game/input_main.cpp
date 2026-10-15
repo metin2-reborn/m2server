@@ -133,7 +133,7 @@ EVENTFUNC(block_chat_by_ip_event)
 bool SpamBlockCheck(CHARACTER * ch, const char* const buf, const size_t buflen)
 {
 
-	if (ch->GetLevel() < g_iSpamBlockMaxLevel)
+	if (ch->GetLevel() < metin2::config::game().spam.block_max_level)
 	{
 		spam_score_of_ip_t::iterator it = spam_score_of_ip.find(ch->GetDesc()->GetHostName());
 
@@ -145,7 +145,7 @@ bool SpamBlockCheck(CHARACTER * ch, const char* const buf, const size_t buflen)
 
 		if (it->second.second)
 		{
-			SendBlockChatInfo(ch, event_time(it->second.second) / passes_per_sec);
+			SendBlockChatInfo(ch, event_time(it->second.second) / metin2::config::server().passes_per_sec);
 			return true;
 		}
 
@@ -157,17 +157,17 @@ bool SpamBlockCheck(CHARACTER * ch, const char* const buf, const size_t buflen)
 		if (word)
 			metin2::log::info( "SPAM_SCORE: {} text: {} score: {:d} total: {:d} word: {}", ch->GetName(), buf, score, it->second.first, word);
 
-		if (it->second.first >= g_uiSpamBlockScore)
+		if (it->second.first >= metin2::config::game().spam.block_score)
 		{
 			spam_event_info* info = AllocEventInfo<spam_event_info>();
 			strlcpy(info->host, ch->GetDesc()->GetHostName(), sizeof(info->host));
 
-			it->second.second = event_create(block_chat_by_ip_event, info, PASSES_PER_SEC(g_uiSpamBlockDuration));
-			metin2::log::info( "SPAM_IP: {} for {:d} seconds", info->host, g_uiSpamBlockDuration);
+			it->second.second = event_create(block_chat_by_ip_event, info, PASSES_PER_SEC(metin2::config::game().spam.block_duration));
+			metin2::log::info( "SPAM_IP: {} for {:d} seconds", info->host, metin2::config::game().spam.block_duration);
 
 			LogManager::instance().CharLog(ch, 0, "SPAM", word);
 
-			SendBlockChatInfo(ch, event_time(it->second.second) / passes_per_sec);
+			SendBlockChatInfo(ch, event_time(it->second.second) / metin2::config::server().passes_per_sec);
 
 			return true;
 		}
@@ -335,7 +335,7 @@ int CInputMain::Whisper(CHARACTER * ch, const char * data, size_t uiBytes)
 
 	uint8_t bOpponentEmpire = 0;
 
-	if (test_server)
+	if (metin2::config::test_server())
 	{
 		if (!pkChr)
 			metin2::log::info( "Whisper to {}({}) from {}", "Null", szNameTo, ch->GetName());
@@ -367,7 +367,7 @@ int CInputMain::Whisper(CHARACTER * ch, const char * data, size_t uiBytes)
 			pkDesc->SetRelay(szNameTo);
 			bOpponentEmpire = pkCCI->bEmpire;
 
-			if (test_server)
+			if (metin2::config::test_server())
 				metin2::log::info( "Whisper to {} from {} (Channel {:d} Mapindex {:d})", "Null", ch->GetName(), pkCCI->bChannel, pkCCI->lMapIndex);
 		}
 	}
@@ -441,7 +441,7 @@ int CInputMain::Whisper(CHARACTER * ch, const char * data, size_t uiBytes)
 
 			CBanwordManager::instance().ConvertString(buf, buflen);
 
-			if (g_bEmpireWhisper)
+			if (metin2::config::game().empire_whisper)
 				if (!ch->IsEquipUniqueGroup(UNIQUE_GROUP_RING_OF_LANGUAGE))
 					if (!(pkChr && pkChr->IsEquipUniqueGroup(UNIQUE_GROUP_RING_OF_LANGUAGE)))
 						if (bOpponentEmpire != ch->GetEmpire() && ch->GetEmpire() && bOpponentEmpire // if the empires differ
@@ -649,7 +649,7 @@ int CInputMain::Chat(CHARACTER * ch, const char * data, size_t uiBytes)
 
 	if (CHAT_TYPE_SHOUT == pinfo->type)
 	{
-		LogManager::instance().ShoutLog(g_bChannel, ch->GetEmpire(), chatbuf); // unfiltered, for moderation
+		LogManager::instance().ShoutLog(metin2::config::server().channel, ch->GetEmpire(), chatbuf); // unfiltered, for moderation
 	}
 
 	// filter the text and rebuild the line (filtering only buf after formatting had no effect)
@@ -686,7 +686,7 @@ int CInputMain::Chat(CHARACTER * ch, const char * data, size_t uiBytes)
 			return (iExtraLen);
 		}
 
-		if (thecore_heart->pulse - (int) ch->GetLastShoutPulse() < passes_per_sec * 15)
+		if (thecore_heart->pulse - (int) ch->GetLastShoutPulse() < metin2::config::server().passes_per_sec * 15)
 			return (iExtraLen);
 
 		ch->SetLastShoutPulse(thecore_heart->pulse);
@@ -949,7 +949,7 @@ int CInputMain::Shop(CHARACTER * ch, const char * data, size_t uiBytes)
 	if (uiBytes < sizeof(TPacketCGShop))
 		return -1;
 
-	if (test_server)
+	if (metin2::config::test_server())
 		metin2::log::info( "CInputMain::Shop() ==> SubHeader {:d}", p->subheader);
 
 	const char * c_pData = data + sizeof(TPacketCGShop);
@@ -1013,7 +1013,7 @@ void CInputMain::OnClick(CHARACTER * ch, const char * data)
 
 	if ((victim = CHARACTER_MANAGER::instance().Find(pinfo->vid)))
 		victim->OnClick(ch);
-	else if (test_server)
+	else if (metin2::config::test_server())
 	{
 		metin2::log::error("CInputMain::OnClick {}.Click.NOT_EXIST_VID[{:d}]", ch->GetName(), pinfo->vid);
 	}
@@ -1063,7 +1063,7 @@ void CInputMain::Exchange(CHARACTER * ch, const char * data)
 					{
 						ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("창고를 연후 %d초 이내에는 거래를 할수 없습니다."), g_nPortalLimitTime);
 
-						if (test_server)
+						if (metin2::config::test_server())
 							ch->ChatPacket(CHAT_TYPE_INFO, "[TestOnly][Safebox]Pulse %d LoadTime %d PASS %d", iPulse, ch->GetSafeboxLoadTime(), PASSES_PER_SEC(g_nPortalLimitTime));
 						return; 
 					}
@@ -1072,7 +1072,7 @@ void CInputMain::Exchange(CHARACTER * ch, const char * data)
 					{
 						to_ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("창고를 연후 %d초 이내에는 거래를 할수 없습니다."), g_nPortalLimitTime);
 
-						if (test_server)
+						if (metin2::config::test_server())
 							to_ch->ChatPacket(CHAT_TYPE_INFO, "[TestOnly][Safebox]Pulse %d LoadTime %d PASS %d", iPulse, to_ch->GetSafeboxLoadTime(), PASSES_PER_SEC(g_nPortalLimitTime));
 						return; 
 					}
@@ -1460,7 +1460,7 @@ void CInputMain::Move(CHARACTER * ch, const char * data)
 		//
 		// combo hack and speed hack check
 		//
-		if (pinfo->bFunc == FUNC_COMBO && g_bCheckMultiHack)
+		if (pinfo->bFunc == FUNC_COMBO && metin2::config::game().anti_cheat.check_multihack)
 		{
 			CheckComboHack(ch, pinfo->bArg, pinfo->dwTime, CheckSpeedHack); // combo check
 		}
@@ -1496,7 +1496,7 @@ void CInputMain::Move(CHARACTER * ch, const char * data)
 				LogManager::instance().HackLog(szBuf, ch->GetDesc()->GetAccountTable().login, ch->GetName(), ch->GetDesc()->GetHostName());
 				metin2::log::info( "{}", szBuf);
 
-				if (test_server)
+				if (metin2::config::test_server())
 				{
 					ch->GetDesc()->DelayedDisconnect(number(2, 8));
 					ch->ChatPacket(CHAT_TYPE_INFO, szBuf);
@@ -1582,7 +1582,7 @@ void CInputMain::Attack(CHARACTER * ch, const uint8_t header, const char* data)
 			case SKILL_HORSE_WILDATTACK_RANGE:
 				if (HEADER_CG_SHOOT != type->header)
 				{
-					if (test_server) 
+					if (metin2::config::test_server()) 
 						ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("Attack :name[%s] Vnum[%d] can't use skill by attack(warning)"), type->type);
 					return;
 				}
@@ -1709,7 +1709,7 @@ int CInputMain::SyncPosition(CHARACTER * ch, const char * c_pcData, size_t uiByt
 		if (fDistWithSyncOwner > fLimitDistWithSyncOwner)
 		{
 			// tolerate up to g_iSyncHackLimitCount times.
-			if (ch->GetSyncHackCount() < g_iSyncHackLimitCount)
+			if (ch->GetSyncHackCount() < metin2::config::game().anti_cheat.sync_hack_limit)
 			{
 				ch->SetSyncHackCount(ch->GetSyncHackCount() + 1);
 				continue;
@@ -1738,7 +1738,7 @@ int CInputMain::SyncPosition(CHARACTER * ch, const char * c_pcData, size_t uiByt
 		if (elapsed_usec < g_lValidSyncInterval)
 		{
 			// tolerate up to g_iSyncHackLimitCount times.
-			if (ch->GetSyncHackCount() < g_iSyncHackLimitCount)
+			if (ch->GetSyncHackCount() < metin2::config::game().anti_cheat.sync_hack_limit)
 			{
 				ch->SetSyncHackCount(ch->GetSyncHackCount() + 1);
 				continue;
@@ -2890,7 +2890,7 @@ int CInputMain::Analyze(DESC * d, uint8_t bHeader, const char * c_pData)
 		if (get_global_time() < ch->analyze_protect)
 		{
 			ch->analyze_protect_count = ch->analyze_protect_count + 1;
-			if (test_server)
+			if (metin2::config::test_server())
 			{
 				ch->ChatPacket(CHAT_TYPE_INFO, "<test server> analyze_protect_count. Count %d", ch->analyze_protect_count);
 			}
@@ -2910,7 +2910,7 @@ int CInputMain::Analyze(DESC * d, uint8_t bHeader, const char * c_pData)
 
 	int iExtraLen = 0;
 
-	if (test_server && bHeader != HEADER_CG_MOVE)
+	if (metin2::config::test_server() && bHeader != HEADER_CG_MOVE)
 		metin2::log::info( "CInputMain::Analyze() ==> Header [{:d}] ", bHeader);
 
 	switch (bHeader)
@@ -2924,7 +2924,7 @@ int CInputMain::Analyze(DESC * d, uint8_t bHeader, const char * c_pData)
 			break;
 
 		case HEADER_CG_CHAT:
-			if (test_server)
+			if (metin2::config::test_server())
 			{
 				char* pBuf = (char*)c_pData;
 				metin2::log::info( "{}", pBuf + sizeof(TPacketCGChat));

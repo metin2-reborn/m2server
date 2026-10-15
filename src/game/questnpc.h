@@ -104,7 +104,7 @@ namespace quest
 	template <typename TQuestMapType, typename FuncMatch, typename FuncMiss>
 		void NPC::MatchingQuest(PC& pc, TQuestMapType& QuestMap, FuncMatch& fMatch, FuncMiss& fMiss)
 		{
-			if (test_server)
+			if (metin2::config::test_server())
 				metin2::log::info( "Click Quest : MatchingQuest");
 
 			PC::QuestInfoIterator itPCQuest = pc.quest_begin();

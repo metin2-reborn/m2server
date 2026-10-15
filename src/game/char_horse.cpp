@@ -64,7 +64,7 @@ bool CHARACTER::StartRiding()
 
 	MountVnum(dwMountVnum);
 
-	if(test_server)
+	if(metin2::config::test_server())
 		metin2::log::info( "Ride Horse : {} ", GetName());
 
 	return true;

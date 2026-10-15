@@ -58,7 +58,7 @@ bool DBManager::Connect(const char * host, const int port, const char * user, co
 	if (!m_sql_direct.Setup(host, user, pwd, db, g_stLocale.c_str(), true, port))
 		metin2::log::error("cannot open direct sql connection to host {}", host);
 
-	if (m_bIsConnect && !g_bAuthServer)
+	if (m_bIsConnect && !metin2::config::is_auth())
 	{
 		LoadDBString();
 	}
@@ -392,7 +392,7 @@ void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
 					strftime(szCreateDate, 255, "%Y%m%d", tm1);
 
 					metin2::log::info( "Create_Time {:d} {}", retValue, szCreateDate);
-					metin2::log::info( "Block Time {:d} ", strncmp(szCreateDate, g_stBlockDate.c_str(), 8));
+					metin2::log::info( "Block Time {:d} ", strncmp(szCreateDate, metin2::config::auth().block_login_date.c_str(), 8));
 
 					int nPasswordDiff = strcmp(szEncrytPassword, szPassword);
 
@@ -424,7 +424,7 @@ void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
 					else
 					{
 						//stBlockData >= 0 == date is later than BlockDate 
-						if (strncmp(szCreateDate, g_stBlockDate.c_str(), 8) >= 0)
+						if (strncmp(szCreateDate, metin2::config::auth().block_login_date.c_str(), 8) >= 0)
 						{
 							LoginFailure(d, "BLKLOGIN");
 							metin2::log::info( "   BLKLOGIN");
@@ -724,7 +724,7 @@ EVENTINFO(reload_spam_event_info)
 EVENTFUNC(reload_spam_event)
 {
 	AccountDB::instance().ReturnQuery(QID_SPAM_DB, 0, nullptr, "SELECT word, score FROM spam_db WHERE type='SPAM'");
-	return PASSES_PER_SEC(g_uiSpamReloadCycle);
+	return PASSES_PER_SEC(metin2::config::game().spam.reload_cycle);
 }
 
 void LoadSpamDB()
@@ -734,7 +734,7 @@ void LoadSpamDB()
 	if (nullptr == s_pkReloadSpamEvent)
 	{
 		reload_spam_event_info* info = AllocEventInfo<reload_spam_event_info>();
-		s_pkReloadSpamEvent = event_create(reload_spam_event, info, PASSES_PER_SEC(g_uiSpamReloadCycle));
+		s_pkReloadSpamEvent = event_create(reload_spam_event, info, PASSES_PER_SEC(metin2::config::game().spam.reload_cycle));
 	}
 }
 

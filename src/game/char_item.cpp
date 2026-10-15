@@ -838,7 +838,7 @@ bool CHARACTER::DoRefine(CItem * item, bool bMoneyOnly)
 		{
 			if (CountSpecifyItem(prt->materials[i].vnum) < prt->materials[i].count)
 			{
-				if (test_server)
+				if (metin2::config::test_server())
 				{
 					ChatPacket(CHAT_TYPE_INFO, "Find %d, count %d, require %d", prt->materials[i].vnum, CountSpecifyItem(prt->materials[i].vnum), prt->materials[i].count);
 				}
@@ -1019,7 +1019,7 @@ bool CHARACTER::DoRefineWithScroll(CItem * item)
 	{
 		if (CountSpecifyItem(prt->materials[i].vnum) < prt->materials[i].count)
 		{
-			if (test_server)
+			if (metin2::config::test_server())
 			{
 				ChatPacket(CHAT_TYPE_INFO, "Find %d, count %d, require %d", prt->materials[i].vnum, CountSpecifyItem(prt->materials[i].vnum), prt->materials[i].count);
 			}
@@ -1057,7 +1057,7 @@ bool CHARACTER::DoRefineWithScroll(CItem * item)
 			metin2::log::error("REFINE : Unknown refine scroll item. Value0: {:d}", pkItemScroll->GetValue(0));
 		}
 
-		if (test_server) 
+		if (metin2::config::test_server()) 
 		{
 			ChatPacket(CHAT_TYPE_INFO, "[Only Test] Success_Prob %d, RefineLevel %d ", success_prob, item->GetRefineLevel());
 		}
@@ -1600,7 +1600,7 @@ bool CHARACTER::UseItemEx(CItem * item, TItemPos DestCell)
 		}
 	}
 
-	if (test_server)
+	if (metin2::config::test_server())
 	{
 		metin2::log::info( "USE_ITEM {}, Inven {:d}, Cell {:d}, ItemType {:d}, SubType {:d}", item->GetName(), bDestInven, wDestCell, item->GetType(), item->GetSubType());
 	}
@@ -2031,7 +2031,7 @@ bool CHARACTER::UseItemEx(CItem * item, TItemPos DestCell)
 
 					int iReadDelay = number(SKILLBOOK_DELAY_MIN, SKILLBOOK_DELAY_MAX);
 
-					if (distribution_test_server)
+					if (metin2::config::game().distribution_test_server)
 						iReadDelay /= 3;
 
 					//For the Korean main server, time is fixed at 24 hours
@@ -2045,7 +2045,7 @@ bool CHARACTER::UseItemEx(CItem * item, TItemPos DestCell)
 			{
 				if (item->GetVnum() > 50800 && item->GetVnum() <= 50820)
 				{
-					if (test_server)
+					if (metin2::config::test_server())
 						metin2::log::info( "ADD addtional effect : vnum({:d}) subtype({:d})", item->GetOriginalVnum(), item->GetSubType());
 
 					int affect_type = AFFECT_EXP_BONUS_EURO_FREE;
@@ -2198,7 +2198,7 @@ bool CHARACTER::UseItemEx(CItem * item, TItemPos DestCell)
 							{
 								if (item->GetVnum() == 50085 || item->GetVnum() == 50086)
 								{
-									if (test_server)
+									if (metin2::config::test_server())
 										ChatPacket(CHAT_TYPE_INFO, LC_TEXT("월병 또는 종자 를 사용하였습니다"));
 								}
 								if (GetDungeon())
@@ -2229,7 +2229,7 @@ bool CHARACTER::UseItemEx(CItem * item, TItemPos DestCell)
 					}
 				}
 
-				if (test_server)
+				if (metin2::config::test_server())
 				{
 					 metin2::log::info( "USE_ITEM {} Type {:d} SubType {:d} vnum {:d}", item->GetName(), item->GetType(), item->GetSubType(), item->GetOriginalVnum());
 				}
@@ -2888,7 +2888,7 @@ bool CHARACTER::UseItemEx(CItem * item, TItemPos DestCell)
 										ITEM_MANAGER::instance().RemoveItem(item);
 
 										int iReadDelay = number(SKILLBOOK_DELAY_MIN, SKILLBOOK_DELAY_MAX);
-										if (distribution_test_server) iReadDelay /= 3;
+										if (metin2::config::game().distribution_test_server) iReadDelay /= 3;
 
 										SetSkillNextReadTime(SKILL_LEADERSHIP, get_global_time() + iReadDelay);
 									}
@@ -2930,7 +2930,7 @@ bool CHARACTER::UseItemEx(CItem * item, TItemPos DestCell)
 										ITEM_MANAGER::instance().RemoveItem(item);
 
 										int iReadDelay = number(SKILLBOOK_DELAY_MIN, SKILLBOOK_DELAY_MAX);
-										if (distribution_test_server) iReadDelay /= 3;
+										if (metin2::config::game().distribution_test_server) iReadDelay /= 3;
 
 										SetSkillNextReadTime(SKILL_COMBO, get_global_time() + iReadDelay);
 									}
@@ -2959,7 +2959,7 @@ bool CHARACTER::UseItemEx(CItem * item, TItemPos DestCell)
 										ITEM_MANAGER::instance().RemoveItem(item);
 
 										int iReadDelay = number(SKILLBOOK_DELAY_MIN, SKILLBOOK_DELAY_MAX);
-										if (distribution_test_server) iReadDelay /= 3;
+										if (metin2::config::game().distribution_test_server) iReadDelay /= 3;
 
 										SetSkillNextReadTime(dwSkillVnum, get_global_time() + iReadDelay);
 									}
@@ -2988,7 +2988,7 @@ bool CHARACTER::UseItemEx(CItem * item, TItemPos DestCell)
 										ITEM_MANAGER::instance().RemoveItem(item);
 
 										int iReadDelay = number(SKILLBOOK_DELAY_MIN, SKILLBOOK_DELAY_MAX);
-										if (distribution_test_server) iReadDelay /= 3;
+										if (metin2::config::game().distribution_test_server) iReadDelay /= 3;
 
 										SetSkillNextReadTime(dwSkillVnum, get_global_time() + iReadDelay);
 									}
@@ -3061,7 +3061,7 @@ bool CHARACTER::UseItemEx(CItem * item, TItemPos DestCell)
 										ITEM_MANAGER::instance().RemoveItem(item);
 
 										int iReadDelay = number(SKILLBOOK_DELAY_MIN, SKILLBOOK_DELAY_MAX);
-										if (distribution_test_server) iReadDelay /= 3;
+										if (metin2::config::game().distribution_test_server) iReadDelay /= 3;
 
 										SetSkillNextReadTime(dwSkillVnum, get_global_time() + iReadDelay);
 									}
@@ -3092,18 +3092,18 @@ bool CHARACTER::UseItemEx(CItem * item, TItemPos DestCell)
 										ITEM_MANAGER::instance().RemoveItem(item);
 
 										int iReadDelay = number(SKILLBOOK_DELAY_MIN, SKILLBOOK_DELAY_MAX);
-										if (distribution_test_server) iReadDelay /= 3;
+										if (metin2::config::game().distribution_test_server) iReadDelay /= 3;
 
 										SetSkillNextReadTime(dwSkillVnum, get_global_time() + iReadDelay);
 
-										if (test_server) 
+										if (metin2::config::test_server()) 
 										{
 											ChatPacket(CHAT_TYPE_INFO, "[TEST_SERVER] Success to learn skill ");
 										}
 									}
 									else
 									{
-										if (test_server) 
+										if (metin2::config::test_server()) 
 										{
 											ChatPacket(CHAT_TYPE_INFO, "[TEST_SERVER] Failed to learn skill ");
 										}
@@ -3134,7 +3134,7 @@ bool CHARACTER::UseItemEx(CItem * item, TItemPos DestCell)
 										ITEM_MANAGER::instance().RemoveItem(item);
 
 										int iReadDelay = number(SKILLBOOK_DELAY_MIN, SKILLBOOK_DELAY_MAX);
-										if (distribution_test_server) iReadDelay /= 3;
+										if (metin2::config::game().distribution_test_server) iReadDelay /= 3;
 
 										SetSkillNextReadTime(dwSkillVnum, get_global_time() + iReadDelay);
 									}
@@ -3159,7 +3159,7 @@ bool CHARACTER::UseItemEx(CItem * item, TItemPos DestCell)
 										return false;
 									}
 
-									if (!test_server && get_global_time() < GetSkillNextReadTime(dwSkillVnum))
+									if (!metin2::config::test_server() && get_global_time() < GetSkillNextReadTime(dwSkillVnum))
 									{
 										if (FindAffect(AFFECT_SKILL_NO_BOOK_DELAY))
 										{
@@ -3189,9 +3189,9 @@ bool CHARACTER::UseItemEx(CItem * item, TItemPos DestCell)
 										PointChange(POINT_HORSE_SKILL, 1);
 
 										int iReadDelay = number(SKILLBOOK_DELAY_MIN, SKILLBOOK_DELAY_MAX);
-										if (distribution_test_server) iReadDelay /= 3;
+										if (metin2::config::game().distribution_test_server) iReadDelay /= 3;
 
-										if (!test_server)
+										if (!metin2::config::test_server())
 											SetSkillNextReadTime(dwSkillVnum, get_global_time() + iReadDelay);
 									}
 									else
@@ -3233,7 +3233,7 @@ bool CHARACTER::UseItemEx(CItem * item, TItemPos DestCell)
 
 									if (get_global_time() - last_use_time < interval * 60 * 60)
 									{
-										if (test_server == false)
+										if (metin2::config::test_server() == false)
 										{
 											ChatPacket(CHAT_TYPE_INFO, LC_TEXT("아직 사용할 수 없습니다."));
 											return false;
@@ -3975,7 +3975,7 @@ bool CHARACTER::UseItemEx(CItem * item, TItemPos DestCell)
 							{
 								if (item->GetVnum() == 50085 || item->GetVnum() == 50086)
 								{
-									if (test_server)
+									if (metin2::config::test_server())
 										ChatPacket(CHAT_TYPE_INFO, LC_TEXT("월병 또는 종자 를 사용하였습니다"));
 								}
 								if (GetDungeon())
@@ -4192,7 +4192,7 @@ bool CHARACTER::UseItemEx(CItem * item, TItemPos DestCell)
 								}
 								else
 								{
-									if (test_server)
+									if (metin2::config::test_server())
 										ChatPacket(CHAT_TYPE_INFO, LC_TEXT("원래 위치로 복귀"));	
 
 									ProcessRecallItem(item);
@@ -4353,7 +4353,7 @@ bool CHARACTER::UseItemEx(CItem * item, TItemPos DestCell)
 										return false;
 									}
 
-									if (GM_PLAYER == GetGMLevel() && false == test_server)
+									if (GM_PLAYER == GetGMLevel() && false == metin2::config::test_server())
 									{
 										//
 										// Use an event flag to check whether enough time has passed since the last attribute change,
@@ -5009,7 +5009,7 @@ bool CHARACTER::UseItem(TItemPos Cell, TItemPos DestCell)
 		{
 			ChatPacket(CHAT_TYPE_INFO, LC_TEXT("창고를 연후 %d초 이내에는 귀환부,귀환기억부를 사용할 수 없습니다."), g_nPortalLimitTime);
 
-			if (test_server)
+			if (metin2::config::test_server())
 				ChatPacket(CHAT_TYPE_INFO, "[TestOnly]Pulse %d LoadTime %d PASS %d", iPulse, GetSafeboxLoadTime(), PASSES_PER_SEC(g_nPortalLimitTime));
 			return false; 
 		}
@@ -5081,7 +5081,7 @@ bool CHARACTER::UseItem(TItemPos Cell, TItemPos DestCell)
 			if (nDistant > nDist)
 			{
 				ChatPacket(CHAT_TYPE_INFO, LC_TEXT("이동 되어질 위치와 너무 가까워 귀환부를 사용할수 없습니다."));				
-				if (test_server)
+				if (metin2::config::test_server())
 					ChatPacket(CHAT_TYPE_INFO, "PossibleDistant %f nNowDist %f", nDistant,nDist); 
 				return false;
 			}
@@ -5187,7 +5187,7 @@ bool CHARACTER::DropItem(TItemPos Cell, uint8_t bCount)
 	{
 		if (bCount == 0)
 		{
-			if (test_server)
+			if (metin2::config::test_server())
 				metin2::log::info( "[DROP_ITEM] drop item count == 0");
 			return false;
 		}

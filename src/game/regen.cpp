@@ -422,7 +422,7 @@ EVENTFUNC(dungeon_regen_event)
 
 bool regen_do(const char* filename, int32_t lMapIndex, int base_x, int base_y, CDungeon * pDungeon, bool bOnce)
 {
-	if (g_bNoRegen)
+	if (metin2::config::game().no_regen)
 		return true;
 
 	if ( lMapIndex >= 114 && lMapIndex <= 117 )
@@ -522,7 +522,7 @@ bool regen_do(const char* filename, int32_t lMapIndex, int base_x, int base_y, C
 
 bool regen_load_in_file(const char* filename, int32_t lMapIndex, int base_x, int base_y)
 {
-	if (g_bNoRegen)
+	if (metin2::config::game().no_regen)
 		return true;
 
 	REGEN * regen = nullptr;
@@ -614,7 +614,7 @@ EVENTFUNC(regen_event)
 
 bool regen_load(const char* filename, int32_t lMapIndex, int base_x, int base_y)
 {
-	if (g_bNoRegen)
+	if (metin2::config::game().no_regen)
 		return true;
 
 	REGEN * regen = nullptr;
@@ -638,7 +638,7 @@ bool regen_load(const char* filename, int32_t lMapIndex, int base_x, int base_y)
 			tmp.type == REGEN_TYPE_GROUP_GROUP ||
 			tmp.type == REGEN_TYPE_ANYWHERE)
 		{
-			if (test_server)
+			if (metin2::config::test_server())
 			{
 				CMobManager::instance().IncRegenCount(tmp.type, tmp.vnum, tmp.max_count, tmp.time);
 			}
