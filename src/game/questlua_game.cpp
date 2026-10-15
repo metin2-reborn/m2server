@@ -44,11 +44,21 @@ namespace quest
 	int game_request_make_guild(lua_State* L)
 	{
 		CQuestManager& q = CQuestManager::instance();
-		DESC * d = q.GetCurrentCharacterPtr()->GetDesc();
+		CHARACTER * ch = q.GetCurrentCharacterPtr();
+		DESC * d = ch->GetDesc();
 		if (d)
 		{
-			uint8_t header = HEADER_GC_REQUEST_MAKE_GUILD;
-			d->Packet(&header, 1);
+			// Never 0, which means "no request".
+			uint32_t key = 0;
+			while (key == 0)
+				key = thecore_random();
+
+			ch->SetGuildCreationKey(key);
+
+			TPacketGCRequestMakeGuild p;
+			p.header = HEADER_GC_REQUEST_MAKE_GUILD;
+			p.key = key;
+			d->Packet(&p, sizeof(p));
 		}
 		return 0;
 	}

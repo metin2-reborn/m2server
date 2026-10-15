@@ -155,6 +155,7 @@ void CHARACTER::Initialize()
 {
 	CEntity::Initialize(ENTITY_CHARACTER);
 
+	m_dwGuildCreationKey = 0;
 	m_bNoOpenedShop = true;
 
 	m_bOpeningSafebox = false;

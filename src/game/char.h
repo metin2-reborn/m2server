@@ -1901,6 +1901,15 @@ class CHARACTER : public CEntity, public CFSM, public CHorseRider
 	private:
 		bool IsValidItemPosition(TItemPos Pos) const;
 
+	public:
+		// Set when the guild NPC quest asks for a guild name (game.request_make_guild); the
+		// answer must carry it, and it is good for one answer.
+		void		SetGuildCreationKey(uint32_t dwKey) { m_dwGuildCreationKey = dwKey; }
+		uint32_t	GetGuildCreationKey() const { return m_dwGuildCreationKey; }
+
+	private:
+		uint32_t	m_dwGuildCreationKey;
+
 		//Temporary storage of German gift feature packet
 	private:
 		unsigned int itemAward_vnum;

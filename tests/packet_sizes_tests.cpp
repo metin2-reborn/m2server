@@ -262,7 +262,8 @@ TEST(packet_struct_sizes) {
     CHECK_SIZE(TPacketGCGuildName, 20);
     CHECK_SIZE(TPacketGCGuildWar, 10);
     CHECK_SIZE(TPacketCGGuild, 2);
-    CHECK_SIZE(TPacketCGAnswerMakeGuild, 14);
+    CHECK_SIZE(TPacketCGAnswerMakeGuild, 18);
+    CHECK_SIZE(TPacketGCRequestMakeGuild, 5);
     CHECK_SIZE(TPacketCGGuildUseSkill, 8);
     CHECK_SIZE(TPacketCGMarkLogin, 9);
     CHECK_SIZE(TPacketCGMarkUpload, 773);

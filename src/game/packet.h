@@ -1411,6 +1411,13 @@ struct TPacketCGGuild {
 struct TPacketCGAnswerMakeGuild {
 	uint8_t header;
 	char guild_name[GUILD_NAME_MAX_LEN+1];
+	uint32_t key;	// from TPacketGCRequestMakeGuild
+};
+
+// Asks the client for a guild name; only an answer carrying the key creates a guild.
+struct TPacketGCRequestMakeGuild {
+	uint8_t header;
+	uint32_t key;
 };
 
 struct TPacketCGGuildUseSkill {

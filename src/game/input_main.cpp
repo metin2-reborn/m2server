@@ -2254,7 +2254,18 @@ void CInputMain::AnswerMakeGuild(CHARACTER * ch, const char* c_pData)
 {
 	TPacketCGAnswerMakeGuild* p = (TPacketCGAnswerMakeGuild*) c_pData;
 
-	if (ch->GetGold() < 200000)
+	// Only an answer to the guild NPC's request counts, and only once.
+	const uint32_t dwKey = ch->GetGuildCreationKey();
+	ch->SetGuildCreationKey(0);
+
+	if (dwKey == 0 || p->key != dwKey)
+	{
+		sys_err("AnswerMakeGuild: %s answered without a matching request", ch->GetName());
+		return;
+	}
+
+	// The quest asks for the same.
+	if (ch->GetLevel() < 40 || ch->GetGold() < 200000)
 		return;
 
 	if (get_global_time() - ch->GetQuestFlag("guild_manage.new_disband_time") <
