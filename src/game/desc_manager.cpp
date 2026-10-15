@@ -22,7 +22,6 @@
 #include <algorithm>
 #include <climits>
 #include <cstdint>
-#include <cstdio>
 #include <cstring>
 #include <map>
 #include <string>
@@ -31,44 +30,6 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
-
-struct valid_ip
-{
-	const char *	ip;
-	uint8_t	network;
-	uint8_t	mask;
-};
-
-static struct valid_ip admin_ip[] =
-{
-	{ "210.123.10",     128,    128     },
-	{ "\n",             0,      0       }
-};
-
-int IsValidIP(struct valid_ip* ip_table, const char *host)
-{
-	int         i, j;
-	char        ip_addr[256];
-
-	for (i = 0; *(ip_table + i)->ip != '\n'; ++i)
-	{
-		j = 255 - (ip_table + i)->mask;
-
-		do
-		{
-			snprintf(ip_addr, sizeof(ip_addr), "%s.%d", (ip_table + i)->ip, (ip_table + i)->network + j);
-
-			if (!strcmp(ip_addr, host))
-				return true;
-
-			if (!j)
-				break;
-		}
-		while (j--);
-	}
-
-	return false;
-}
 
 DESC_MANAGER::DESC_MANAGER() : m_bDestroyed(false)
 {
@@ -177,14 +138,11 @@ DESC * DESC_MANAGER::AcceptDesc(net::tcp::socket socket)
 		}
 	}
 
-	if (!IsValidIP(admin_ip, host)) // IPs registered in admin_ip are not bound by the max user count.
+	if (m_iSocketsConnected >= MAX_ALLOW_USER)
 	{
-		if (m_iSocketsConnected >= MAX_ALLOW_USER)
-		{
-			sys_err("max connection reached. MAX_ALLOW_USER = %d", MAX_ALLOW_USER);
-			connection->close();
-			return nullptr;
-		}
+		sys_err("max connection reached. MAX_ALLOW_USER = %d", MAX_ALLOW_USER);
+		connection->close();
+		return nullptr;
 	}
 
 	DESC * newd = new DESC;
