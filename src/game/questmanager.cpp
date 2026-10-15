@@ -189,7 +189,7 @@ namespace quest
 	{
 		PC* pPC = GetPC(pc);
 
-		if (!pPC->IsRunning())
+		if (!pPC || !pPC->IsRunning())
 		{
 			sys_err("no quest running for pc, cannot process input : %u", pc);
 			return;

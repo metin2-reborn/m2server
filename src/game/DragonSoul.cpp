@@ -341,6 +341,10 @@ bool DSManager::ExtractDragonHeart(CHARACTER * ch, CItem * pItem, CItem * pExtra
 		return false;
 	}
 
+	// The stone is consumed; one offered in a trade window would leave the exchange with a dangling pointer.
+	if (pItem->IsExchanging())
+		return false;
+
 	uint32_t dwVnum = pItem->GetVnum();
 	uint8_t ds_type, grade_idx, step_idx, strength_idx;
 	GetDragonSoulInfo(dwVnum, ds_type, grade_idx, step_idx, strength_idx);
@@ -373,12 +377,13 @@ bool DSManager::ExtractDragonHeart(CHARACTER * ch, CItem * pItem, CItem * pExtra
 
 	if (fCharge < FLT_EPSILON)
 	{
+		// Log first: SetCount(0) destroys the item.
+		LogManager::instance().ItemLog(ch, pItem, "DS_HEART_EXTRACT_FAIL", "");
 		pItem->SetCount(pItem->GetCount() - 1);
 		if (nullptr != pExtractor)
 		{
 			pExtractor->SetCount(pExtractor->GetCount() - 1);
 		}
-		LogManager::instance().ItemLog(ch, pItem, "DS_HEART_EXTRACT_FAIL", "");
 	
 		ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("용심 추출에 실패하였습니다."));
 		return false;
@@ -393,19 +398,21 @@ bool DSManager::ExtractDragonHeart(CHARACTER * ch, CItem * pItem, CItem * pExtra
 			return false;
 		}
 
+		int iCharge = (int)(fCharge + 0.5f);
+
+		// Log first: SetCount(0) destroys the item.
+		std::string s = std::to_string(iCharge);
+		s += "%s";
+		LogManager::instance().ItemLog(ch, pItem, "DS_HEART_EXTRACT_SUCCESS", s.c_str());
+
 		pItem->SetCount(pItem->GetCount() - 1);
 		if (nullptr != pExtractor)
 		{
 			pExtractor->SetCount(pExtractor->GetCount() - 1);
 		}
 
-		int iCharge = (int)(fCharge + 0.5f);
 		pDH->SetSocket(ITEM_SOCKET_CHARGING_AMOUNT_IDX, iCharge);
 		ch->AutoGiveItem(pDH, true);
-
-		std::string s = std::to_string(iCharge);
-		s += "%s";
-		LogManager::instance().ItemLog(ch, pItem, "DS_HEART_EXTRACT_SUCCESS", s.c_str());
 		ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("용심 추출에 성공하였습니다."));
 		return true;
 	}
@@ -537,6 +544,10 @@ bool DSManager::DoRefineGrade(CHARACTER * ch, TItemPos (&aItemPoses)[DRAGON_SOUL
 		CItem * pItem = ch->GetItem(aItemPoses[i]);
 		if (nullptr != pItem)
 		{
+			// Materials are consumed: never take an equipped item or one offered in a trade window.
+			if (pItem->IsEquipped() || pItem->IsExchanging())
+				return false;
+
 			// Non-dragon-soul items cannot be in the refine window.
 			if (!pItem->IsDragonSoul())
 			{
@@ -689,6 +700,10 @@ bool DSManager::DoRefineStep(CHARACTER * ch, TItemPos (&aItemPoses)[DRAGON_SOUL_
 		CItem * pItem = ch->GetItem(aItemPoses[i]);
 		if (nullptr != pItem)
 		{
+			// Materials are consumed: never take an equipped item or one offered in a trade window.
+			if (pItem->IsEquipped() || pItem->IsExchanging())
+				return false;
+
 			// Non-dragon-soul items cannot be in the refine window.
 			if (!pItem->IsDragonSoul())
 			{
@@ -844,6 +859,10 @@ bool DSManager::DoRefineStrength(CHARACTER * ch, TItemPos (&aItemPoses)[DRAGON_S
 		CItem * pItem = ch->GetItem(aItemPoses[i]);
 		if (pItem)
 		{
+			// Materials are consumed: never take an equipped item or one offered in a trade window.
+			if (pItem->IsEquipped() || pItem->IsExchanging())
+				return false;
+
 			set_items.insert(pItem);
 		}
 	}

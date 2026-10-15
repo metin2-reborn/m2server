@@ -91,7 +91,7 @@ bool CSafebox::Add(uint32_t dwPos, CItem * pkItem)
 
 CItem * CSafebox::Get(uint32_t dwPos)
 {
-	if (dwPos >= m_pkGrid->GetSize())
+	if (!m_pkGrid || dwPos >= m_pkGrid->GetSize())
 		return nullptr;
 
 	return m_pkItems[dwPos];

@@ -456,6 +456,34 @@ bool Cube_load (const char *file)
 }
 
 
+// The cube holds raw pointers to inventory items. An item can be consumed while the cube is open
+// (e.g. prisms spent by chat hyperlinks, expiring items), so drop every pointer that is no longer
+// an item in the inventory before it is dereferenced. Only pointer values are compared here.
+static void FN_validate_cube_items(CHARACTER * ch)
+{
+	CItem ** cube_item = ch->GetCubeItem();
+
+	for (int i = 0; i < CUBE_MAX_NUM; ++i)
+	{
+		if (nullptr == cube_item[i])
+			continue;
+
+		bool bFound = false;
+
+		for (int cell = 0; cell < INVENTORY_MAX_NUM; ++cell)
+		{
+			if (ch->GetInventoryItem(cell) == cube_item[i])
+			{
+				bFound = true;
+				break;
+			}
+		}
+
+		if (!bFound)
+			cube_item[i] = nullptr;
+	}
+}
+
 static bool FN_update_cube_status(CHARACTER * ch)
 {
 	if (nullptr == ch)
@@ -463,6 +491,8 @@ static bool FN_update_cube_status(CHARACTER * ch)
 
 	if (!ch->IsCubeOpen())
 		return false;
+
+	FN_validate_cube_items(ch);
 
 	CHARACTER *	npc = ch->GetQuestNPC();
 	if (nullptr == npc)
@@ -506,6 +536,7 @@ bool Cube_make (CHARACTER * ch)
 		return false;
 	}
 
+	FN_validate_cube_items(ch);
 	items = ch->GetCubeItem();
 	cube_proto = FN_find_cube(items, npc->GetRaceNum());
 
@@ -538,7 +569,7 @@ bool Cube_make (CHARACTER * ch)
 		new_item = ch->AutoGiveItem(reward_value->vnum, reward_value->count);
 
 		LogManager::instance().CubeLog(ch->GetPlayerID(), ch->GetX(), ch->GetY(),
-				reward_value->vnum, new_item->GetID(), reward_value->count, 1);
+				reward_value->vnum, new_item ? new_item->GetID() : 0, reward_value->count, 1);
 		return true;
 	}
 	else
@@ -563,6 +594,7 @@ void Cube_show_list (CHARACTER * ch)
 
 	RETURN_IF_CUBE_IS_NOT_OPENED(ch);
 
+	FN_validate_cube_items(ch);
 	cube_item = ch->GetCubeItem();
 
 	for (int i=0; i<CUBE_MAX_NUM; ++i)
@@ -632,6 +664,7 @@ void Cube_delete_item (CHARACTER * ch, int cube_index)
 
 	if (cube_index<0 || CUBE_MAX_NUM<=cube_index)	return;
 
+	FN_validate_cube_items(ch);
 	cube_item = ch->GetCubeItem();
 
 	if ( nullptr== cube_item[cube_index] )	return;

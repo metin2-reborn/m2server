@@ -230,10 +230,16 @@ int CShop::Buy(CHARACTER * ch, uint8_t pos)
 		}
 	}
 
-	uint32_t dwPrice = r_item.price;
+	// if other empire, price is triple; computed wide so a large PC shop price cannot wrap
+	const int64_t llPrice = static_cast<int64_t>(r_item.price) * (it->second ? 3 : 1);
 
-	if (it->second)	// if other empire, price is triple
-		dwPrice *= 3;
+	if (llPrice > GOLD_MAX)
+	{
+		sys_log(0, "Shop::Buy : price overflow : %s price %lld", ch->GetName(), static_cast<long long>(llPrice));
+		return SHOP_SUBHEADER_GC_NOT_ENOUGH_MONEY;
+	}
+
+	uint32_t dwPrice = static_cast<uint32_t>(llPrice);
 
 	if (ch->GetGold() < (int) dwPrice)
 	{

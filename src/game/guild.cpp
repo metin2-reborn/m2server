@@ -1125,6 +1125,13 @@ void CGuild::ChangeMemberGrade(uint32_t pid, uint8_t grade)
 	if (grade == 1)
 		return;
 
+	// grade indexes grade_array[grade - 1] (HasGradeAuth)
+	if (grade < 1 || grade > GUILD_GRADE_COUNT)
+	{
+		sys_err("Wrong guild grade value %d", grade);
+		return;
+	}
+
 	TGuildMemberContainer::iterator it = m_member.find(pid);
 
 	if (it == m_member.end())

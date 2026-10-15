@@ -332,6 +332,12 @@ void CHARACTER::SetItem(TItemPos Cell, CItem * pItem)
 	// Dragon soul inventory
 	case DRAGON_SOUL_INVENTORY:
 		{
+			if (wCell >= DRAGON_SOUL_INVENTORY_MAX_NUM)
+			{
+				sys_err("CHARACTER::SetItem: invalid DS item cell %d", wCell);
+				return;
+			}
+
 			CItem * pOld = m_pointsInstant.pDSItems[wCell];
 
 			if (pOld)
@@ -513,6 +519,10 @@ bool CHARACTER::IsEmptyItemGrid(TItemPos Cell, uint8_t bSize, int iExceptionCell
 	{
 	case INVENTORY:
 		{
+			// The grid is indexed by an 8-bit cell; anything past the belt inventory is not a grid cell.
+			if (Cell.cell >= INVENTORY_AND_EQUIP_SLOT_MAX)
+				return false;
+
 			uint8_t bCell = Cell.cell;
 
 			// bItemCell is stored + 1 so that 0 can mean false.

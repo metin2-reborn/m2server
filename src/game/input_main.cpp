@@ -1,6 +1,7 @@
 #include "affect.h"
 #include "ani.h"
 #include "banword.h"
+#include "belt_inventory_helper.h"
 #include "buffer_manager.h"
 #include "building.h"
 #include "char.h"
@@ -319,7 +320,10 @@ int CInputMain::Whisper(CHARACTER * ch, const char * data, size_t uiBytes)
 		return (iExtraLen);
 	}
 
-	CHARACTER * pkChr = CHARACTER_MANAGER::instance().FindPC(pinfo->szNameTo);
+	char szNameTo[CHARACTER_NAME_MAX_LEN + 1];
+	CopyPacketString(szNameTo, sizeof(szNameTo), pinfo->szNameTo, sizeof(pinfo->szNameTo));
+
+	CHARACTER * pkChr = CHARACTER_MANAGER::instance().FindPC(szNameTo);
 
 	if (pkChr == ch)
 		return (iExtraLen);
@@ -334,9 +338,9 @@ int CInputMain::Whisper(CHARACTER * ch, const char * data, size_t uiBytes)
 	if (test_server)
 	{
 		if (!pkChr)
-			sys_log(0, "Whisper to %s(%s) from %s", "Null", pinfo->szNameTo, ch->GetName());
+			sys_log(0, "Whisper to %s(%s) from %s", "Null", szNameTo, ch->GetName());
 		else
-			sys_log(0, "Whisper to %s(%s) from %s", pkChr->GetName(), pinfo->szNameTo, ch->GetName());
+			sys_log(0, "Whisper to %s(%s) from %s", pkChr->GetName(), szNameTo, ch->GetName());
 	}
 
 	if (ch->IsBlockMode(BLOCK_WHISPER))
@@ -347,7 +351,7 @@ int CInputMain::Whisper(CHARACTER * ch, const char * data, size_t uiBytes)
 			pack.bHeader = HEADER_GC_WHISPER;
 			pack.bType = WHISPER_TYPE_SENDER_BLOCKED;
 			pack.wSize = sizeof(TPacketGCWhisper);
-			strlcpy(pack.szNameFrom, pinfo->szNameTo, sizeof(pack.szNameFrom));
+			strlcpy(pack.szNameFrom, szNameTo, sizeof(pack.szNameFrom));
 			ch->GetDesc()->Packet(&pack, sizeof(pack));
 		}
 		return iExtraLen;
@@ -355,12 +359,12 @@ int CInputMain::Whisper(CHARACTER * ch, const char * data, size_t uiBytes)
 
 	if (!pkChr)
 	{
-		CCI * pkCCI = P2P_MANAGER::instance().Find(pinfo->szNameTo);
+		CCI * pkCCI = P2P_MANAGER::instance().Find(szNameTo);
 
 		if (pkCCI)
 		{
 			pkDesc = pkCCI->pkDesc;
-			pkDesc->SetRelay(pinfo->szNameTo);
+			pkDesc->SetRelay(szNameTo);
 			bOpponentEmpire = pkCCI->bEmpire;
 
 			if (test_server)
@@ -382,7 +386,7 @@ int CInputMain::Whisper(CHARACTER * ch, const char * data, size_t uiBytes)
 			pack.bHeader = HEADER_GC_WHISPER;
 			pack.bType = WHISPER_TYPE_NOT_EXIST;
 			pack.wSize = sizeof(TPacketGCWhisper);
-			strlcpy(pack.szNameFrom, pinfo->szNameTo, sizeof(pack.szNameFrom));
+			strlcpy(pack.szNameFrom, szNameTo, sizeof(pack.szNameFrom));
 			ch->GetDesc()->Packet(&pack, sizeof(TPacketGCWhisper));
 			sys_log(0, "WHISPER: no player");
 		}
@@ -397,7 +401,7 @@ int CInputMain::Whisper(CHARACTER * ch, const char * data, size_t uiBytes)
 				pack.bHeader = HEADER_GC_WHISPER;
 				pack.bType = WHISPER_TYPE_SENDER_BLOCKED;
 				pack.wSize = sizeof(TPacketGCWhisper);
-				strlcpy(pack.szNameFrom, pinfo->szNameTo, sizeof(pack.szNameFrom));
+				strlcpy(pack.szNameFrom, szNameTo, sizeof(pack.szNameFrom));
 				ch->GetDesc()->Packet(&pack, sizeof(pack));
 			}
 		}
@@ -409,7 +413,7 @@ int CInputMain::Whisper(CHARACTER * ch, const char * data, size_t uiBytes)
 				pack.bHeader = HEADER_GC_WHISPER;
 				pack.bType = WHISPER_TYPE_TARGET_BLOCKED;
 				pack.wSize = sizeof(TPacketGCWhisper);
-				strlcpy(pack.szNameFrom, pinfo->szNameTo, sizeof(pack.szNameFrom));
+				strlcpy(pack.szNameFrom, szNameTo, sizeof(pack.szNameFrom));
 				ch->GetDesc()->Packet(&pack, sizeof(pack));
 			}
 		}
@@ -418,14 +422,14 @@ int CInputMain::Whisper(CHARACTER * ch, const char * data, size_t uiBytes)
 			uint8_t bType = WHISPER_TYPE_NORMAL;
 
 			char buf[CHAT_MAX_LEN + 1];
-			utf8_strlcpy(buf, data + sizeof(TPacketCGWhisper), std::min<int>(iExtraLen + 1, sizeof(buf)));
+			CopyPacketString(buf, sizeof(buf), data + sizeof(TPacketCGWhisper), iExtraLen);
 			const size_t buflen = strlen(buf);
 
 			if (true == SpamBlockCheck(ch, buf, buflen))
 			{
 				if (!pkChr)
 				{
-					CCI * pkCCI = P2P_MANAGER::instance().Find(pinfo->szNameTo);
+					CCI * pkCCI = P2P_MANAGER::instance().Find(szNameTo);
 
 					if (pkCCI)
 					{
@@ -441,7 +445,7 @@ int CInputMain::Whisper(CHARACTER * ch, const char * data, size_t uiBytes)
 				if (!ch->IsEquipUniqueGroup(UNIQUE_GROUP_RING_OF_LANGUAGE))
 					if (!(pkChr && pkChr->IsEquipUniqueGroup(UNIQUE_GROUP_RING_OF_LANGUAGE)))
 						if (bOpponentEmpire != ch->GetEmpire() && ch->GetEmpire() && bOpponentEmpire // if the empires differ
-								&& ch->GetGMLevel() == GM_PLAYER && gm_get_level(pinfo->szNameTo) == GM_PLAYER) // and both are normal players
+								&& ch->GetGMLevel() == GM_PLAYER && gm_get_level(szNameTo) == GM_PLAYER) // and both are normal players
 							// we only know the name, so use gm_get_level
 						{
 							if (!pkChr)
@@ -481,7 +485,7 @@ int CInputMain::Whisper(CHARACTER * ch, const char * data, size_t uiBytes)
 						pack.bHeader = HEADER_GC_WHISPER;
 						pack.bType = WHISPER_TYPE_ERROR;
 						pack.wSize = sizeof(TPacketGCWhisper) + len;
-						strlcpy(pack.szNameFrom, pinfo->szNameTo, sizeof(pack.szNameFrom));
+						strlcpy(pack.szNameFrom, szNameTo, sizeof(pack.szNameFrom));
 
 						ch->GetDesc()->BufferedPacket(&pack, sizeof(pack));
 						ch->GetDesc()->Packet(buf, len);
@@ -606,7 +610,7 @@ int CInputMain::Chat(CHARACTER * ch, const char * data, size_t uiBytes)
 	}
 
 	char buf[CHAT_MAX_LEN - (CHARACTER_NAME_MAX_LEN + 3) + 1];
-	utf8_strlcpy(buf, data + sizeof(TPacketCGChat), std::min<int>(iExtraLen + 1, sizeof(buf)));
+	CopyPacketString(buf, sizeof(buf), data + sizeof(TPacketCGChat), iExtraLen);
 	const size_t buflen = strlen(buf);
 
 	if (buflen > 1 && *buf == '/')
@@ -1904,6 +1908,9 @@ void CInputMain::SafeboxCheckin(CHARACTER * ch, const char * c_pData)
 	if (!pkSafebox || !pkItem)
 		return;
 
+	if (pkItem->IsExchanging())
+		return;
+
 	if (pkItem->GetType() == ITEM_BELT && pkItem->IsEquipped()) // Fix
 		return;
 
@@ -1970,6 +1977,10 @@ void CInputMain::SafeboxCheckout(CHARACTER * ch, const char * c_pData, bool bMal
 		return;
 
 	if (!ch->IsEmptyItemGrid(p->ItemPos, pkItem->GetSize()))
+		return;
+
+	// Same rule as CHARACTER::MoveItem: only some item types may go into the belt inventory.
+	if (INVENTORY == p->ItemPos.window_type && p->ItemPos.IsBeltInventoryPosition() && !CBeltInventoryHelper::CanMoveIntoBeltInventory(pkItem))
 		return;
 
 	// special handling for dragon soul stones when moving from the item mall to the inventory
@@ -2271,7 +2282,7 @@ void CInputMain::AnswerMakeGuild(CHARACTER * ch, const char* c_pData)
 	memset(&cp, 0, sizeof(cp));
 
 	cp.master = ch;
-	utf8_strlcpy(cp.name, p->guild_name, sizeof(cp.name));
+	CopyPacketString(cp.name, sizeof(cp.name), p->guild_name, sizeof(p->guild_name));
 
 	if (cp.name[0] == 0 || !check_name(cp.name))
 	{
@@ -2335,7 +2346,7 @@ void CInputMain::PartyParameter(CHARACTER * ch, const char * c_pData)
 {
 	TPacketCGPartyParameter * p = (TPacketCGPartyParameter *) c_pData;
 
-	if (ch->GetParty())
+	if (ch->GetParty() && ch->GetParty()->GetLeaderPID() == ch->GetPlayerID())
 		ch->GetParty()->SetParameter(p->bDistributeMode);
 }
 
@@ -2505,7 +2516,7 @@ int CInputMain::Guild(CHARACTER * ch, const char * data, size_t uiBytes)
 		case GUILD_SUBHEADER_CG_CHANGE_GRADE_NAME:
 			{
 				char gradename[GUILD_GRADE_NAME_MAX_LEN + 1];
-				utf8_strlcpy(gradename, c_pData + 1, sizeof(gradename));
+				CopyPacketString(gradename, sizeof(gradename), c_pData + 1, SubPacketLen - 1);
 
 				const TGuildMember * m = pGuild->GetMember(ch->GetPlayerID());
 
@@ -2581,9 +2592,9 @@ int CInputMain::Guild(CHARACTER * ch, const char * data, size_t uiBytes)
 		case GUILD_SUBHEADER_CG_CHARGE_GSP:
 			{
 				const int offer = *reinterpret_cast<const int*>(c_pData);
-				const int gold = offer * 100;
+				const int64_t gold = static_cast<int64_t>(offer) * 100;
 
-				if (offer < 0 || gold < offer || gold < 0 || ch->GetGold() < gold)
+				if (offer < 0 || gold > INT32_MAX || ch->GetGold() < gold)
 				{
 					ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("<길드> 돈이 부족합니다."));
 					return SubPacketLen;
@@ -2656,6 +2667,8 @@ int CInputMain::Guild(CHARACTER * ch, const char * data, size_t uiBytes)
 					ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("<길드> 길드장의 직위는 변경할 수 없습니다."));
 				else if (grade == 1)
 					ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("<길드> 길드장으로 직위를 변경할 수 없습니다."));
+				else if (grade < 1 || grade > GUILD_GRADE_COUNT)
+					sys_err("CHANGE_MEMBER_GRADE: %s sent invalid grade %u", ch->GetName(), grade);
 				else
 					pGuild->ChangeMemberGrade(pid, grade);
 			}
@@ -2738,7 +2751,7 @@ void CInputMain::Hack(CHARACTER * ch, const char * c_pData)
 	TPacketCGHack * p = (TPacketCGHack *) c_pData;
 
 	char buf[sizeof(p->szBuf)];
-	strlcpy(buf, p->szBuf, sizeof(buf));
+	CopyPacketString(buf, sizeof(buf), p->szBuf, sizeof(p->szBuf));
 
 	sys_err("HACK_DETECT: %s %s", ch->GetName(), buf);
 
@@ -2770,8 +2783,11 @@ int CInputMain::MyShop(CHARACTER * ch, const char * c_pData, size_t uiBytes)
 		return (iExtraLen);
 	}
 
+	char szSign[SHOP_SIGN_MAX_LEN + 1];
+	CopyPacketString(szSign, sizeof(szSign), p->szSign, sizeof(p->szSign));
+
 	sys_log(0, "MyShop count %d", p->bCount);
-	ch->OpenMyShop(p->szSign, (TShopItemTable *) (c_pData + sizeof(TPacketCGMyShop)), p->bCount);
+	ch->OpenMyShop(szSign, (TShopItemTable *) (c_pData + sizeof(TPacketCGMyShop)), p->bCount);
 	return (iExtraLen);
 }
 
