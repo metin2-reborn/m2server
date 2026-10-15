@@ -363,7 +363,8 @@ int CInputHandshake::Analyze(DESC * d, uint8_t bHeader, const char * c_pData)
 			}
 			stResult += szTmp;
 		}
-		else if (!stBuf.compare("CHECK_P2P_CONNECTIONS"))
+		// The commands below need the admin password (admin mode), not only an admin IP.
+		else if (d->IsAdminMode() && !stBuf.compare("CHECK_P2P_CONNECTIONS"))
 		{
 			std::ostringstream oss(std::ostringstream::out);
 			
@@ -377,13 +378,13 @@ int CInputHandshake::Analyze(DESC * d, uint8_t bHeader, const char * c_pData)
 
 			P2P_MANAGER::instance().Send(&packet, sizeof(packet));
 		}
-		else if (!stBuf.compare("PACKET_INFO"))
+		else if (d->IsAdminMode() && !stBuf.compare("PACKET_INFO"))
 		{
 			m_pMainPacketInfo->Log("packet_info.txt");
 			stResult = "OK";
 		}
 		//gift notify delete command
-		else if (!stBuf.compare(0,15,"DELETE_AWARDID "))
+		else if (d->IsAdminMode() && !stBuf.compare(0,15,"DELETE_AWARDID "))
 			{
 				char szTmp[64];
 				std::string msg = stBuf.substr(15,26);	// item_award id range?

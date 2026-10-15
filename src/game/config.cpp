@@ -96,7 +96,7 @@ string g_stDefaultQuestObjectDir = "./quest/object";
 std::set<string> g_setQuestObjectDir;
 
 std::vector<std::string>	g_stAdminPageIP;
-std::string	g_stAdminPagePassword = "SHOWMETHEMONEY";
+std::string	g_stAdminPagePassword;	// ADMINPAGE_PASSWORD; empty disables admin mode
 
 string g_stBlockDate = "30000705";
 
