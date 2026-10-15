@@ -804,11 +804,10 @@ const int aiAccessorySocketPutPct[ITEM_ACCESSORY_SOCKET_MAX_NUM + 1] =
 // END_OF_ACCESSORY_REFINE
 
 // from import_item_proto.c
-typedef struct SValueName
-{
+struct TValueName {
     const char *	c_pszName;
     int32_t		lValue;
-} TValueName;
+};
 
 TValueName c_aApplyTypeNames[] =
 {

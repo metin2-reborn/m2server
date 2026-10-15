@@ -1592,7 +1592,7 @@ ACMD(do_monarch_info)
 	if (CMonarch::instance().IsMonarch(ch->GetPlayerID(), ch->GetEmpire()))	
 	{
 		ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("나의 군주 정보"));
-		TMonarchInfo * p = CMonarch::instance().GetMonarch();
+		MonarchInfo * p = CMonarch::instance().GetMonarch();
 		for (int n = 1; n < 4; ++n)
 		{
 			if (n == ch->GetEmpire())
@@ -1605,7 +1605,7 @@ ACMD(do_monarch_info)
 	else
 	{
 		ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("군주 정보"));
-		TMonarchInfo * p = CMonarch::instance().GetMonarch();
+		MonarchInfo * p = CMonarch::instance().GetMonarch();
 		for (int n = 1; n < 4; ++n)
 		{
 			ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("[%s군주] : %s  "), EMPIRE_NAME(n), p->name[n]);

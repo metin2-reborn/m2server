@@ -10,12 +10,11 @@
 #include <string>
 #include <vector>
 
-struct SShopTable;
-typedef struct SShopTableEx : SShopTable
-{
+struct TShopTable;
+struct TShopTableEx : TShopTable {
 	std::string name;
 	EShopCoinType coinType;
-} TShopTableEx;
+};
 
 class CGroupNode;
 

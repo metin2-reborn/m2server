@@ -29,10 +29,7 @@ enum
 	GUILD_CREATE_ITEM_VNUM = 70101,
 };
 
-
-
-typedef struct SGuildMember
-{
+struct TGuildMember {
 	uint32_t pid; // id in the player table; primary key
 	uint8_t grade; // Player's guild rank, 1 to 15 (1 is the top)
 	uint8_t is_general;
@@ -43,13 +40,12 @@ typedef struct SGuildMember
 
 	std::string name;
 
-	SGuildMember(uint32_t pid, uint8_t grade, uint8_t is_general, uint8_t job, uint8_t level, uint32_t offer_exp, char* name);
+	TGuildMember(uint32_t pid, uint8_t grade, uint8_t is_general, uint8_t job, uint8_t level, uint32_t offer_exp, char* name);
 
-} TGuildMember;
+};
 
 #pragma pack(1)
-typedef struct SGuildMemberPacketData
-{   
+struct TGuildMemberPacketData {   
 	uint32_t pid;
 	uint8_t grade;
 	uint8_t is_general;
@@ -58,10 +54,9 @@ typedef struct SGuildMemberPacketData
 	uint32_t offer;
 	uint8_t name_flag;
 	char name[CHARACTER_NAME_MAX_LEN+1];
-} TGuildMemberPacketData;
+};
 
-typedef struct packet_guild_sub_info
-{
+struct TPacketGCGuildInfo {
 	uint16_t member_count;
 	uint16_t max_member_count;
 	uint32_t guild_id;
@@ -71,13 +66,12 @@ typedef struct packet_guild_sub_info
 	char name[GUILD_NAME_MAX_LEN+1];
 	uint32_t gold;
 	uint8_t has_land;
-} TPacketGCGuildInfo;
+};
 
-typedef struct SGuildGrade
-{
+struct TGuildGrade {
 	char grade_name[GUILD_GRADE_NAME_MAX_LEN+1]; // 8+1 names: guild leader, guild members, etc.
 	uint8_t auth_flag;
-} TGuildGrade;
+};
 
 struct TOneGradeNamePacket
 {
@@ -100,8 +94,7 @@ enum
 	GUILD_AUTH_USE_SKILL	= (1 << 3),
 };
 
-typedef struct SGuildData
-{
+struct TGuildData {
 	uint32_t	guild_id;
 	uint32_t	master_pid;
 	uint32_t	exp;
@@ -123,7 +116,7 @@ typedef struct SGuildData
 	int		loss;
 
 	int		gold;
-} TGuildData;
+};
 
 struct TGuildCreateParameter
 {
@@ -131,15 +124,14 @@ struct TGuildCreateParameter
 	char name[GUILD_NAME_MAX_LEN+1];
 };
 
-typedef struct SGuildWar
-{
+struct TGuildWar {
 	uint32_t war_start_time;
 	uint32_t score;
 	uint32_t state;
 	uint8_t type;
 	uint32_t map_index;
 
-	SGuildWar(uint8_t type)
+	TGuildWar(uint8_t type)
 		: war_start_time(0),
 	score(0),
 	state(GUILD_WAR_RECV_DECLARE),
@@ -151,7 +143,7 @@ typedef struct SGuildWar
 	{
 		return state == GUILD_WAR_ON_WAR;
 	}
-} TGuildWar;
+};
 
 class CGuild
 {

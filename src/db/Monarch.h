@@ -34,7 +34,7 @@ class CMonarch : public singleton<CMonarch>
 		bool DecMoney(int Empire, int64_t Money);
 		bool TakeMoney(int Empire, uint32_t pid, int64_t Money);
 
-		TMonarchInfo* GetMonarch()
+		MonarchInfo* GetMonarch()
 		{
 			return &m_MonarchInfo;
 		}
@@ -54,6 +54,6 @@ class CMonarch : public singleton<CMonarch>
 
 		MAP_MONARCHELECTION m_map_MonarchElection;
 		VEC_MONARCHCANDIDACY m_vec_MonarchCandidacy;
-		TMonarchInfo m_MonarchInfo;
+		MonarchInfo m_MonarchInfo;
 
 };

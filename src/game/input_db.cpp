@@ -461,7 +461,7 @@ void CInputDB::Boot(const char* data)
 	sys_log(0, "sizeof(TObjectProto) = %zu", sizeof(building::TObjectProto));
 	sys_log(0, "sizeof(TObject) = %zu", sizeof(building::TObject));
 	//ADMIN_MANAGER
-	sys_log(0, "sizeof(TAdminManager) = %zu", sizeof (TAdminInfo) );
+	sys_log(0, "sizeof(TAdminManager) = %zu", sizeof (tAdminInfo) );
 	//END_ADMIN_MANAGER
 
 	uint16_t size;
@@ -787,8 +787,8 @@ void CInputDB::Boot(const char* data)
 	data += 2;
 	data += 2;
 
-	TMonarchInfo& p = *(TMonarchInfo *) data;
-	data += sizeof(TMonarchInfo);
+	MonarchInfo& p = *(MonarchInfo *) data;
+	data += sizeof(MonarchInfo);
 
 	CMonarch::instance().SetMonarchInfo(&p);
 
@@ -2234,7 +2234,7 @@ int CInputDB::Analyze(DESC * d, uint8_t bHeader, const char * c_pData)
 		break;
 
 	case HEADER_DG_UPDATE_MONARCH_INFO :
-		UpdateMonarchInfo((TMonarchInfo*)c_pData);
+		UpdateMonarchInfo((MonarchInfo*)c_pData);
 		break;
 
 	case HEADER_DG_BLOCK_COUNTRY_IP:
@@ -2385,7 +2385,7 @@ void CInputDB::ChangeMonarchLord(TPacketChangeMonarchLordACK* info)
 	SendNotice(notice);
 }
 
-void CInputDB::UpdateMonarchInfo(TMonarchInfo* info)
+void CInputDB::UpdateMonarchInfo(MonarchInfo* info)
 {
 	CMonarch::instance().SetMonarchInfo(info);
 	sys_log(0, "MONARCH INFO UPDATED");

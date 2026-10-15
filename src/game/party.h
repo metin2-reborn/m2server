@@ -93,14 +93,13 @@ enum EPartyMessages
 class CParty
 {
 	public:
-		typedef struct SMember
-		{
+		struct TMember {
 			CHARACTER *	pCharacter;
 			bool	bNear;
 			uint8_t	bRole;
 			uint8_t	bLevel;
 			std::string strName;
-		} TMember;
+		};
 
 		typedef std::map<uint32_t, TMember> TMemberMap;
 

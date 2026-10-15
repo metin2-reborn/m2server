@@ -4,14 +4,13 @@
 #include <map>
 #include <string>
 
-typedef struct SPacketElement
-{
+struct TPacketElement {
 	int		iSize;
 	std::string	stName;
 	int		iCalled;
 	uint32_t	dwLoad;
 	bool	bSequencePacket;
-} TPacketElement;
+};
 
 class CPacketInfo
 {

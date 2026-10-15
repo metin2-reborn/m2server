@@ -2,12 +2,11 @@
 
 #include <cstdint>
 
-typedef struct SVector
-{
+struct VECTOR {
 	float x;
 	float y;
 	float z;
-} VECTOR;
+};
 
 extern void		Normalize(VECTOR * pV1, VECTOR * pV2);
 extern float    GetDegreeFromPosition(float x, float y);

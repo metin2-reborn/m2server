@@ -18,8 +18,7 @@ class CGrid;
 class CShop
 {
 	public:
-		typedef struct shop_item
-		{
+		struct SHOP_ITEM {
 			uint32_t	vnum;		// Item number
 			int32_t	price;		// Price
 			uint8_t	count;		// Item count
@@ -27,7 +26,7 @@ class CShop
 			CItem *	pkItem;
 			int		itemid;		// Item unique ID
 
-			shop_item()
+			SHOP_ITEM()
 			{
 				vnum = 0;
 				price = 0;
@@ -35,7 +34,7 @@ class CShop
 				itemid = 0;
 				pkItem = nullptr;
 			}
-		} SHOP_ITEM;
+		};
 
 		CShop();
 		virtual ~CShop();

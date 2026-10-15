@@ -13,9 +13,7 @@
 #include <unordered_map>
 #include <vector>
 
-
-typedef struct SMapRegion
-{
+struct TMapRegion {
 	int			index;
 	int			sx, sy, ex, ey;
 	PIXEL_POSITION	posSpawn;
@@ -24,7 +22,7 @@ typedef struct SMapRegion
 	PIXEL_POSITION	posEmpire[3];
 
 	std::string		strMapName;
-} TMapRegion;
+};
 
 struct TAreaInfo
 {
@@ -46,8 +44,7 @@ struct npc_info
 
 typedef std::map<std::string, TAreaInfo> TAreaMap;
 
-typedef struct SSetting
-{
+struct TMapSetting {
 	int			iIndex;
 	int			iCellScale;
 	int			iBaseX;
@@ -56,7 +53,7 @@ typedef struct SSetting
 	int			iHeight;
 
 	PIXEL_POSITION	posSpawn;
-} TMapSetting;
+};
 
 class SECTREE_MAP
 {

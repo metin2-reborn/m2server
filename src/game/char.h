@@ -350,8 +350,7 @@ struct DynamicCharacterPtr {
 };
 
 /* Saved data */
-typedef struct character_point
-{
+struct CHARACTER_POINT {
 	int32_t			points[POINT_MAX_NUM];
 
 	uint8_t			job;
@@ -370,11 +369,10 @@ typedef struct character_point
 	int				stamina;
 
 	uint8_t			skill_group;
-} CHARACTER_POINT;
+};
 
 /* Character data that is not saved */
-typedef struct character_point_instant
-{
+struct CHARACTER_POINT_INSTANT {
 	int32_t			points[POINT_MAX_NUM];
 
 	float			fRot;
@@ -414,7 +412,7 @@ typedef struct character_point_instant
 
 	int				iDragonSoulActiveDeck;
 	CEntity *		m_pDragonSoulRefineWindowOpener;
-} CHARACTER_POINT_INSTANT;
+};
 
 #define TRIGGERPARAM		CHARACTER * ch, CHARACTER * causer
 
@@ -459,7 +457,7 @@ struct TSkillUseInfo
 	void    SetMainTargetVID(uint32_t vid) { dwVID=vid; }
 };
 
-typedef struct packet_party_update TPacketGCPartyUpdate;
+struct TPacketGCPartyUpdate;
 class CExchange;
 class CSkillProto;
 class CParty;
@@ -474,7 +472,7 @@ class CShop;
 
 class CMob;
 class CMobInstance;
-typedef struct SMobSkillInfo TMobSkillInfo;
+struct TMobSkillInfo;
 
 //SKILL_POWER_BY_LEVEL
 extern int GetSkillPowerByLevelFromType(int job, int skillgroup, int skilllevel);
@@ -1181,11 +1179,10 @@ class CHARACTER : public CEntity, public CFSM, public CHorseRider
 		};
 		typedef std::map<VID, TBattleInfo>	TDamageMap;
 
-		typedef struct SAttackLog
-		{
+		struct AttackLog {
 			uint32_t	dwVID;
 			uint32_t	dwTime;
-		} AttackLog;
+		};
 
 		bool				Damage(CHARACTER * pAttacker, int dam, EDamageType type = DAMAGE_TYPE_NORMAL);
 		void				DeathPenalty(uint8_t bExpLossPercent);

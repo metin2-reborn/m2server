@@ -15,15 +15,11 @@ enum EMonsterChatState
 	MONSTER_CHAT_ATTACKED,
 };
 
-typedef struct SMobRankStat
-{
+struct TMobRankStat {
 	int iGoldPercent;   // Chance of gold dropping
-} TMobRankStat;
+};
 
-
-
-typedef struct SJobInitialPoints
-{
+struct TJobInitialPoints {
 	int		st, ht, dx, iq;
 	int		max_hp, max_sp;
 	int		hp_per_ht, sp_per_iq;
@@ -32,17 +28,15 @@ typedef struct SJobInitialPoints
 	int		max_stamina;
 	int		stamina_per_con;
 	int		stamina_per_lv_begin, stamina_per_lv_end;
-} TJobInitialPoints;
+};
 
-typedef struct __coord
-{
+struct Coord {
 	int		x, y;
-} Coord;
+};
 
-typedef struct SApplyInfo
-{
+struct TApplyInfo {
 	uint8_t	bPointType;                          // APPLY -> POINT
-} TApplyInfo;
+};
 
 enum {
 	FORTUNE_BIG_LUCK,
@@ -124,15 +118,14 @@ extern const char * c_apszEmpireNames[EMPIRE_MAX_NUM];
 extern const char * c_apszPrivNames[MAX_PRIV_NUM];
 extern const SStoneDropInfo aStoneDrop[STONE_INFO_MAX_NUM];
 
-typedef struct
-{
+struct TGuildWarInfo {
 	int32_t lMapIndex;
 	int iWarPrice;
 	int iWinnerPotionRewardPctToWinner;
 	int iLoserPotionRewardPctToWinner;
 	int iInitialScore;
 	int iEndScore;
-} TGuildWarInfo;
+};
 
 extern TGuildWarInfo KOR_aGuildWarInfo[GUILD_WAR_TYPE_MAX_NUM];
 

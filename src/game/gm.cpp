@@ -14,11 +14,10 @@
 
 
 //ADMIN_MANAGER
-typedef struct 
-{
+struct tGM {
 	tAdminInfo Info;		
 	std::set<std::string> *pset_Host;	
-} tGM;
+};
 
 std::set<std::string> g_set_Host;
 std::map<std::string, tGM> g_map_GM;

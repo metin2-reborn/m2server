@@ -14,11 +14,10 @@ enum ESectree
 	CELL_SIZE		= 50
 };
 
-typedef struct sectree_coord
-{
+struct SECTREE_COORD {
 	unsigned            x : 16;
 	unsigned            y : 16;
-} SECTREE_COORD;
+};
 
 typedef union sectreeid
 {

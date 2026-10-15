@@ -24,7 +24,7 @@ namespace quest
 			return 0;
 		}
 
-		TMonarchInfo* info = CMonarch::instance().GetMonarch();
+		MonarchInfo* info = CMonarch::instance().GetMonarch();
 
 		lua_pushstring(L, info->name[idx]);
 		lua_pushnumber(L, info->pid[idx]);

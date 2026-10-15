@@ -17,17 +17,16 @@ class CPVP
 	public:
 		friend class CPVPManager;
 
-		typedef struct _player
-		{
+		struct TPlayer {
 			uint32_t	dwPID;
 			uint32_t	dwVID;
 			bool	bAgree;
 			bool	bCanRevenge;
 
-			_player() : dwPID(0), dwVID(0), bAgree(false), bCanRevenge(false)
+			TPlayer() : dwPID(0), dwVID(0), bAgree(false), bCanRevenge(false)
 			{
 			}
-		} TPlayer;
+		};
 
 		CPVP(uint32_t dwID1, uint32_t dwID2);
 		CPVP(CPVP & v);

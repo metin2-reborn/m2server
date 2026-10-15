@@ -8,11 +8,10 @@
 class CMapLocation : public singleton<CMapLocation>
 {
 	public:
-		typedef struct SLocation
-		{
+		struct TLocation {
 			int32_t        addr;
 			uint16_t        port;
-		} TLocation;    
+		};    
 
 		bool    Get(int32_t x, int32_t y, int32_t & lMapIndex, int32_t & lAddr, uint16_t & wPort);
 		bool	Get(int iIndex, int32_t & lAddr, uint16_t & wPort);

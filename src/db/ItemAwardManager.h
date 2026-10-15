@@ -9,8 +9,7 @@
 #include <set>
 #include <string>
 
-typedef struct SItemAward
-{
+struct TItemAward {
     uint32_t	dwID;
     char	szLogin[LOGIN_MAX_LEN+1];
     uint32_t	dwVnum;
@@ -21,7 +20,7 @@ typedef struct SItemAward
     char	szWhy[ITEM_AWARD_WHY_MAX_LEN+1];
     bool	bTaken;
     bool	bMall;
-} TItemAward;
+};
 
 class ItemAwardManager : public singleton<ItemAwardManager>
 {

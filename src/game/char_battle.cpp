@@ -2443,8 +2443,7 @@ namespace NPartyExpDistribute
 	};
 }
 
-typedef struct SDamageInfo
-{
+struct TDamageInfo {
 	int iDam;
 	CHARACTER * pAttacker;
 	CParty * pParty;
@@ -2491,7 +2490,7 @@ typedef struct SDamageInfo
 			pParty->ForEachOnlineMember(fDist);
 		}
 	}
-} TDamageInfo;
+};
 
 CHARACTER * CHARACTER::DistributeExp()
 {

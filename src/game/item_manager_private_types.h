@@ -26,12 +26,11 @@ public:
 
 extern std::vector<CItemDropInfo> g_vec_pkCommonDropItem[MOB_RANK_MAX_NUM];
 
-typedef struct SDropItem
-{
+struct TDropItem {
 	int		iLvStart;
 	int		iLvEnd;
 	float	fPercent;
 	char	szItemName[PROTO_NAME_MAX_LEN + 1];
 	int		iCount;
-} TDropItem;
+};
 

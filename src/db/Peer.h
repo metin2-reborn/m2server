@@ -17,12 +17,11 @@ class CPeer : public net::connection_handler
 {
     public:
 #pragma pack(1)
-	typedef struct _header
-	{   
+	struct HEADER {   
 	    uint8_t    bHeader;
 	    uint32_t   dwHandle;
 	    uint32_t   dwSize;
-	} HEADER;
+	};
 #pragma pack()
 	enum EState
 	{

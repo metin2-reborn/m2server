@@ -96,7 +96,7 @@ EVENTFUNC(war_timeout_event)
 	return 0;
 }
 
-void CWarMap::STeamData::Initialize()
+void CWarMap::TeamData::Initialize()
 {
 	dwID = 0;
 	pkGuild = nullptr;
@@ -294,23 +294,23 @@ void CWarMap::UsePotion(CHARACTER * ch, CItem * item)
 		m_TeamData[1].iUsePotionPrice += iPrice;
 }
 
-int CWarMap::STeamData::GetAccumulatedJoinerCount()
+int CWarMap::TeamData::GetAccumulatedJoinerCount()
 {
 	return set_pidJoiner.size();
 }
 
-int CWarMap::STeamData::GetCurJointerCount()
+int CWarMap::TeamData::GetCurJointerCount()
 {
 	return iMemberCount;
 }
 
-void CWarMap::STeamData::AppendMember(CHARACTER * ch)
+void CWarMap::TeamData::AppendMember(CHARACTER * ch)
 {
 	set_pidJoiner.insert(ch->GetPlayerID());
 	++iMemberCount;
 }
 
-void CWarMap::STeamData::RemoveMember(CHARACTER * ch)
+void CWarMap::TeamData::RemoveMember(CHARACTER * ch)
 {
 	// set_pidJoiner counts cumulative members, so don't remove from it
 	--iMemberCount;

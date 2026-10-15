@@ -17,8 +17,7 @@ enum
 	REGEN_TYPE_MAX_NUM
 };
 
-typedef struct SRegen
-{
+struct REGEN {
 	REGEN * prev;
 	REGEN * next;
 	int32_t	lMapIndex;
@@ -40,7 +39,7 @@ typedef struct SRegen
 
 	size_t id; // to help dungeon regen identification
 
-	SRegen() :
+	REGEN() :
 		prev(nullptr), next(nullptr),
 		lMapIndex(0),
 		type(0),
@@ -55,7 +54,7 @@ typedef struct SRegen
 		event(nullptr),
 		id(0)
 	{}
-} REGEN;
+};
 
 EVENTINFO(regen_event_info)
 {
@@ -68,14 +67,13 @@ EVENTINFO(regen_event_info)
 };
 
 
-typedef struct SRegenException
-{
+struct REGEN_EXCEPTION {
 	REGEN_EXCEPTION * prev;
 	REGEN_EXCEPTION * next;
 
 	int		sx, sy, ex, ey;
 	uint8_t	z_section;
-} REGEN_EXCEPTION;
+};
 
 class CDungeon;
 

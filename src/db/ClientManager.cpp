@@ -275,7 +275,7 @@ void CClientManager::QUERY_BOOT(CPeer* peer, TPacketGDBoot * p)
 		sizeof(uint16_t) + sizeof(uint16_t) + 16 * vHost.size() +
 		sizeof(uint16_t) + sizeof(uint16_t) +  sizeof(tAdminInfo) *  vAdmin.size() +
 		//END_ADMIN_MANAGER
-		sizeof(uint16_t) + sizeof(uint16_t) + sizeof(TMonarchInfo) + 
+		sizeof(uint16_t) + sizeof(uint16_t) + sizeof(MonarchInfo) + 
 		sizeof(uint16_t) + sizeof(uint16_t) + sizeof(MonarchCandidacy)* CMonarch::instance().MonarchCandidacySize() +
 		sizeof(uint16_t); 
 
@@ -300,7 +300,7 @@ void CClientManager::QUERY_BOOT(CPeer* peer, TPacketGDBoot * p)
 	//ADMIN_MANAGER
 	sys_log(0, "sizeof(tAdminInfo) total = %zu ", sizeof(tAdminInfo) * vAdmin.size());
 	//END_ADMIN_MANAGER
-	sys_log(0, "sizeof(TMonarchInfo) = %zu", sizeof(TMonarchInfo));
+	sys_log(0, "sizeof(TMonarchInfo) = %zu", sizeof(MonarchInfo));
 
 	peer->EncodeWORD(sizeof(TMobTable));
 	peer->EncodeWORD(m_vec_mobTable.size());
@@ -386,9 +386,9 @@ void CClientManager::QUERY_BOOT(CPeer* peer, TPacketGDBoot * p)
 	//END_ADMIN_MANAGER
 
 	//MONARCH
-	peer->EncodeWORD(sizeof(TMonarchInfo));
+	peer->EncodeWORD(sizeof(MonarchInfo));
 	peer->EncodeWORD(1);
-	peer->Encode(CMonarch::instance().GetMonarch(), sizeof(TMonarchInfo));
+	peer->Encode(CMonarch::instance().GetMonarch(), sizeof(MonarchInfo));
 
 	CMonarch::VEC_MONARCHCANDIDACY & rVecMonarchCandidacy = CMonarch::instance().GetVecMonarchCandidacy();
 
@@ -2420,7 +2420,7 @@ void CClientManager::ProcessPackets(CPeer * peer)
 				break;
 
 			case HEADER_GD_UPDATE_CHANNELSTATUS:
-				UpdateChannelStatus((SChannelStatus*) data);
+				UpdateChannelStatus((TChannelStatus*) data);
 				break;
 			case HEADER_GD_REQUEST_CHANNELSTATUS:
 				RequestChannelStatus(peer, dwHandle);
@@ -3419,7 +3419,7 @@ void CClientManager::ChangeMonarchLord(CPeer * peer, uint32_t dwHandle, TPacketC
 		{
 			CMonarch::instance().LoadMonarch();
 
-			TMonarchInfo* newInfo = CMonarch::instance().GetMonarch();
+			MonarchInfo* newInfo = CMonarch::instance().GetMonarch();
 
 			for (auto it = m_peerList.begin(); it != m_peerList.end(); it++)
 			{
@@ -3428,8 +3428,8 @@ void CClientManager::ChangeMonarchLord(CPeer * peer, uint32_t dwHandle, TPacketC
 				client->EncodeHeader(HEADER_DG_CHANGE_MONARCH_LORD_ACK, 0, sizeof(TPacketChangeMonarchLordACK));
 				client->Encode(&ack, sizeof(TPacketChangeMonarchLordACK));
 
-				client->EncodeHeader(HEADER_DG_UPDATE_MONARCH_INFO, 0, sizeof(TMonarchInfo));
-				client->Encode(newInfo, sizeof(TMonarchInfo));
+				client->EncodeHeader(HEADER_DG_UPDATE_MONARCH_INFO, 0, sizeof(MonarchInfo));
+				client->Encode(newInfo, sizeof(MonarchInfo));
 			}
 		}
 

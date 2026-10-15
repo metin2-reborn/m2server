@@ -12,8 +12,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
-typedef struct _CCI
-{
+struct CCI {
 	char	szName[CHARACTER_NAME_MAX_LEN + 1];
 	uint32_t	dwPID;
 	uint8_t	bEmpire;
@@ -21,7 +20,7 @@ typedef struct _CCI
 	uint8_t	bChannel;
 
 	DESC *	pkDesc;
-} CCI;
+};
 
 class P2P_MANAGER : public singleton<P2P_MANAGER>
 {

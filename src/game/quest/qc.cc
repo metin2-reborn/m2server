@@ -34,10 +34,10 @@ extern "C" {
 #define OUTPUT_FOLDER "object"
 lua_State* L;
 
-typedef struct LoadF {
+struct LoadF {
 	FILE *f;
 	char buff[LUAL_BUFFERSIZE];
-} LoadF;
+};
 
 char * g_filename;
 

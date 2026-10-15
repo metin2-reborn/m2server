@@ -18,10 +18,9 @@ int	OnClickTalk(TRIGGERPARAM);
 
 int	OnAttackDefault(TRIGGERPARAM);
 
-typedef struct STriggerFunction
-{
+struct TTriggerFunction {
 	int (*func) (TRIGGERPARAM);
-} TTriggerFunction;
+};
 
 TTriggerFunction OnClickTriggers[ON_CLICK_MAX_NUM] =
 {

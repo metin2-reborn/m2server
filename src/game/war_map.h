@@ -17,12 +17,11 @@ enum EWarMapTypes
 	WAR_MAP_TYPE_FLAG,
 };
 
-typedef struct SWarMapInfo
-{
+struct TWarMapInfo {
 	uint8_t		bType;
 	int32_t		lMapIndex;
 	PIXEL_POSITION	posStart[3];
-} TWarMapInfo;
+};
 
 namespace warmap
 {
@@ -114,8 +113,7 @@ class CWarMap
 		LPEVENT m_pkEndEvent;
 		LPEVENT	m_pkResetFlagEvent;
 
-		typedef struct STeamData
-		{
+		struct TeamData {
 			uint32_t	dwID;
 			CGuild * pkGuild;
 			int		iMemberCount;
@@ -133,7 +131,7 @@ class CWarMap
 
 			void AppendMember(CHARACTER * ch);
 			void RemoveMember(CHARACTER * ch);
-		} TeamData;
+		};
 
 		TeamData	m_TeamData[2];
 		int		m_iObserverCount;

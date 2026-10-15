@@ -14,16 +14,14 @@ typedef std::map<std::string, TTokenVector>	TTokenVectorMap;
 class CTextFileLoader
 {
 	public:
-		typedef struct SGroupNode
-		{
+		struct TGroupNode {
 			std::string strGroupName;
 
 			TTokenVectorMap LocalTokenVectorMap;
 
-			SGroupNode * pParentNode;
-			std::vector<SGroupNode*> ChildNodeVector;
-		} TGroupNode;
-
+			TGroupNode * pParentNode;
+			std::vector<TGroupNode*> ChildNodeVector;
+		};
 
 	public:
 		static void DestroySystem();

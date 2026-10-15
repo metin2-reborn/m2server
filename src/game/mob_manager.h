@@ -13,23 +13,21 @@
 #include <string>
 #include <vector>
 
-typedef struct SMobSplashAttackInfo
-{
+struct TMobSplashAttackInfo {
 	uint32_t	dwTiming; // Time to wait after using a skill until damage actually lands (ms)
 	uint32_t	dwHitDistance; // Distance at which the skill is actually computed on use (cm forward)
 
-	SMobSplashAttackInfo(uint32_t dwTiming, uint32_t dwHitDistance)
+	TMobSplashAttackInfo(uint32_t dwTiming, uint32_t dwHitDistance)
 		: dwTiming(dwTiming)
 		, dwHitDistance(dwHitDistance)
 		{}
-} TMobSplashAttackInfo;
+};
 
-typedef struct SMobSkillInfo
-{
+struct TMobSkillInfo {
 	uint32_t	dwSkillVnum;
 	uint8_t	bSkillLevel;
 	std::vector<TMobSplashAttackInfo> vecSplashAttack;
-} TMobSkillInfo;
+};
 
 class CMob
 {

@@ -246,7 +246,7 @@ void CInputLogin::ChangeName(DESC * d, const char * data)
 
 void CInputLogin::CharacterSelect(DESC * d, const char * data)
 {
-	struct command_player_select * pinfo = (struct command_player_select *) data;
+	struct TPacketCGPlayerSelect * pinfo = (struct TPacketCGPlayerSelect *) data;
 	const TAccountTable & c_r = d->GetAccountTable();
 
 	sys_log(0, "player_select: login: %s index: %d", c_r.login, pinfo->index);
@@ -378,7 +378,7 @@ bool NewPlayerTable2(TPlayerTable * table, const char * name, uint8_t race, uint
 
 void CInputLogin::CharacterCreate(DESC * d, const char * data)
 {
-	struct command_player_create * pinfo = (struct command_player_create *) data;
+	struct TPacketCGPlayerCreate * pinfo = (struct TPacketCGPlayerCreate *) data;
 	TPlayerCreatePacket player_create_packet;
 
 	sys_log(0, "PlayerCreate: name %s pos %d job %d shape %d",
@@ -443,7 +443,7 @@ void CInputLogin::CharacterCreate(DESC * d, const char * data)
 
 void CInputLogin::CharacterDelete(DESC * d, const char * data)
 {
-	struct command_player_delete * pinfo = (struct command_player_delete *) data;
+	struct TPacketCGPlayerDelete * pinfo = (struct TPacketCGPlayerDelete *) data;
 	const TAccountTable & c_rAccountTable = d->GetAccountTable();
 
 	if (!c_rAccountTable.id)

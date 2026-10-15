@@ -181,7 +181,7 @@ EVENTFUNC(ping_event)
 	{
 		TPacketGCPing p;
 		p.header = HEADER_GC_PING;
-		desc->Packet(&p, sizeof(struct packet_ping));
+		desc->Packet(&p, sizeof(struct TPacketGCPing));
 		desc->SetPong(false);
 	}
 
@@ -760,16 +760,16 @@ void DESC::ChatPacket(uint8_t type, const char * format, ...)
 		chatbuf[len] = '\0';
 	}
 
-	struct packet_chat pack_chat;
+	struct TPacketGCChat pack_chat;
 
 	pack_chat.header    = HEADER_GC_CHAT;
-	pack_chat.size      = sizeof(struct packet_chat) + len;
+	pack_chat.size      = sizeof(struct TPacketGCChat) + len;
 	pack_chat.type      = type;
 	pack_chat.id        = 0;
 	pack_chat.bEmpire   = GetEmpire();
 
 	TEMP_BUFFER buf;
-	buf.write(&pack_chat, sizeof(struct packet_chat));
+	buf.write(&pack_chat, sizeof(struct TPacketGCChat));
 	buf.write(chatbuf, len);
 
 	Packet(buf.read_peek(), buf.size());

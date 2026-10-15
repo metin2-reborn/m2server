@@ -347,7 +347,7 @@ void CShopManager::Sell(CHARACTER * ch, uint8_t bCell, uint8_t bCount)
 	ch->PointChange(POINT_GOLD, dwPrice, false);
 }
 
-bool CompareShopItemName(const SShopItemTable& lhs, const SShopItemTable& rhs)
+bool CompareShopItemName(const TShopItemTable& lhs, const TShopItemTable& rhs)
 {
 	TItemTable* lItem = ITEM_MANAGER::instance().GetTable(lhs.vnum);
 	TItemTable* rItem = ITEM_MANAGER::instance().GetTable(rhs.vnum);

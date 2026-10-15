@@ -107,9 +107,9 @@ int CMonarch::HealMyEmpire(CHARACTER * ch ,uint32_t price)
 	return 1;
 }
 
-void CMonarch::SetMonarchInfo(TMonarchInfo * pInfo)
+void CMonarch::SetMonarchInfo(MonarchInfo * pInfo)
 {
-	memcpy(&m_MonarchInfo, pInfo, sizeof(TMonarchInfo));
+	memcpy(&m_MonarchInfo, pInfo, sizeof(MonarchInfo));
 }
 
 bool CMonarch::IsMonarch(uint32_t pid, uint8_t bEmpire)
@@ -191,7 +191,7 @@ int CMonarch::GetMoney(uint8_t bEmpire)
 	return m_MonarchInfo.money[bEmpire];
 }
 
-TMonarchInfo* CMonarch::GetMonarch()
+MonarchInfo* CMonarch::GetMonarch()
 {
 	return &m_MonarchInfo;
 }

@@ -3462,7 +3462,7 @@ void CHARACTER::PointChange(uint8_t type, int amount, bool bAmount, bool bBroadc
 
 	if (GetDesc())
 	{
-		struct packet_point_change pack;
+		struct TPacketGCPointChange pack;
 
 		pack.header = HEADER_GC_CHARACTER_POINT_CHANGE;
 		pack.dwVID = m_vid;
@@ -3475,7 +3475,7 @@ void CHARACTER::PointChange(uint8_t type, int amount, bool bAmount, bool bBroadc
 			pack.amount = 0;
 
 		if (!bBroadcast)
-			GetDesc()->Packet(&pack, sizeof(struct packet_point_change));
+			GetDesc()->Packet(&pack, sizeof(struct TPacketGCPointChange));
 		else
 			PacketAround(&pack, sizeof(pack));
 	}
@@ -3726,16 +3726,16 @@ void CHARACTER::ChatPacket(uint8_t type, const char * format, ...)
 		chatbuf[len] = '\0';
 	}
 
-	struct packet_chat pack_chat;
+	struct TPacketGCChat pack_chat;
 
 	pack_chat.header    = HEADER_GC_CHAT;
-	pack_chat.size      = sizeof(struct packet_chat) + len;
+	pack_chat.size      = sizeof(struct TPacketGCChat) + len;
 	pack_chat.type      = type;
 	pack_chat.id        = 0;
 	pack_chat.bEmpire   = d->GetEmpire();
 
 	TEMP_BUFFER buf;
-	buf.write(&pack_chat, sizeof(struct packet_chat));
+	buf.write(&pack_chat, sizeof(struct TPacketGCChat));
 	buf.write(chatbuf, len);
 
 	d->Packet(buf.read_peek(), buf.size());
@@ -5815,16 +5815,16 @@ void CHARACTER::MonsterChat(uint8_t bMonsterChatType)
 	if (text.empty())
 		return;
 
-	struct packet_chat pack_chat;
+	struct TPacketGCChat pack_chat;
 
 	pack_chat.header    = HEADER_GC_CHAT;
-	pack_chat.size	= sizeof(struct packet_chat) + text.size() + 1;
+	pack_chat.size	= sizeof(struct TPacketGCChat) + text.size() + 1;
 	pack_chat.type      = CHAT_TYPE_TALKING;
 	pack_chat.id        = GetVID();
 	pack_chat.bEmpire	= 0;
 
 	TEMP_BUFFER buf;
-	buf.write(&pack_chat, sizeof(struct packet_chat));
+	buf.write(&pack_chat, sizeof(struct TPacketGCChat));
 	buf.write(text.c_str(), text.size() + 1);
 
 	PacketAround(buf.read_peek(), buf.size());

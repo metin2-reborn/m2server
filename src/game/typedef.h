@@ -33,15 +33,12 @@ class CDungeon;
 
 class CParty;
 
-struct SRegen;
-struct SRegenException;
-using REGEN = SRegen;
-using REGEN_EXCEPTION = SRegenException;
+struct REGEN;
+struct REGEN_EXCEPTION;
 
-typedef struct pixel_position_s
-{
+struct PIXEL_POSITION {
 	int32_t x, y, z;
-} PIXEL_POSITION;
+};
 
 enum EEntityTypes
 {

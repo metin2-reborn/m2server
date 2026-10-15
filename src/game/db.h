@@ -124,13 +124,12 @@ class DBManager : public singleton<DBManager>
 };
 
 ////////////////////////////////////////////////////////////////
-typedef struct SHighscoreRegisterQueryInfo
-{
+struct THighscoreRegisterQueryInfo {
 	char    szBoard[20+1]; 
 	uint32_t   dwPID;
 	int     iValue;
 	bool    bOrder;
-} THighscoreRegisterQueryInfo;
+};
 
 // ACCOUNT_DB
 class AccountDB : public singleton<AccountDB>

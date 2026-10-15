@@ -257,7 +257,7 @@ protected:
 	void		SetMonarch( DESC * d, const char * data );
 
 	void		ChangeMonarchLord(TPacketChangeMonarchLordACK* data);
-	void		UpdateMonarchInfo(TMonarchInfo* data);
+	void		UpdateMonarchInfo(MonarchInfo* data);
 	void		AddBlockCountryIp(TPacketBlockCountryIp * data);
 	void		BlockException(TPacketBlockException * data);
 

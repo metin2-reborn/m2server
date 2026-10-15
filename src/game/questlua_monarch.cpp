@@ -539,7 +539,7 @@ namespace quest
 		if (nullptr == ch)
 			return false;
 
-		TMonarchInfo * p = CMonarch::instance().GetMonarch();
+		MonarchInfo * p = CMonarch::instance().GetMonarch();
 
 		if (CMonarch::instance().IsMonarch(ch->GetPlayerID(), ch->GetEmpire()))	
 		{

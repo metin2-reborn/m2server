@@ -17,7 +17,7 @@ class CMonarch : public singleton<CMonarch>
 		bool Initialize();
 
 		int HealMyEmpire(CHARACTER * ch, uint32_t price);
-		void SetMonarchInfo(TMonarchInfo * pInfo);
+		void SetMonarchInfo(MonarchInfo * pInfo);
 
 		bool IsMonarch(uint32_t pid, uint8_t bEmpire);
 		bool IsMoneyOk(int price, uint8_t bEmpire);
@@ -28,7 +28,7 @@ class CMonarch : public singleton<CMonarch>
 		bool DecMoney(int Money, uint8_t bEmpire);
 		int GetMoney(uint8_t bEmpire);
 
-		TMonarchInfo* GetMonarch();
+		MonarchInfo* GetMonarch();
 
 		uint32_t GetMonarchPID(uint8_t Empire);
 
@@ -52,7 +52,7 @@ class CMonarch : public singleton<CMonarch>
 		void DefenseUp(uint8_t Empire, bool On);
 
 	private:
-		TMonarchInfo m_MonarchInfo;	
+		MonarchInfo m_MonarchInfo;	
 
 		int m_PowerUp[4]; ///< Monarch's Lion's Roar
 		int m_DefenseUp[4]; ///< Monarch's Diamond Fist

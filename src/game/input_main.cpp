@@ -545,7 +545,7 @@ struct RawPacketToCharacterFunc
 
 struct FEmpireChatPacket
 {
-	packet_chat& p;
+	TPacketGCChat& p;
 	const char* orig_msg;
 	int orig_len;
 	char converted_msg[CHAT_MAX_LEN+1];
@@ -554,7 +554,7 @@ struct FEmpireChatPacket
 	int iMapIndex;
 	int namelen;
 
-	FEmpireChatPacket(packet_chat& p, const char* chat_msg, int len, uint8_t bEmpire, int iMapIndex, int iNameLen)
+	FEmpireChatPacket(TPacketGCChat& p, const char* chat_msg, int len, uint8_t bEmpire, int iMapIndex, int iNameLen)
 		: p(p), orig_msg(chat_msg), orig_len(len), bEmpire(bEmpire), iMapIndex(iMapIndex), namelen(iNameLen)
 	{
 		memset( converted_msg, 0, sizeof(converted_msg) );
@@ -568,7 +568,7 @@ struct FEmpireChatPacket
 		if (d->GetCharacter()->GetMapIndex() != iMapIndex)
 			return;
 
-		d->BufferedPacket(&p, sizeof(packet_chat));
+		d->BufferedPacket(&p, sizeof(TPacketGCChat));
 
 		if (d->GetEmpire() == bEmpire ||
 			bEmpire == 0 ||
@@ -759,7 +759,7 @@ int CInputMain::Chat(CHARACTER * ch, const char * data, size_t uiBytes)
 
 void CInputMain::ItemUse(CHARACTER * ch, const char * data)
 {
-	ch->UseItem(((struct command_item_use *) data)->Cell);
+	ch->UseItem(((struct TPacketCGItemUse *) data)->Cell);
 }
 
 void CInputMain::ItemToItem(CHARACTER * ch, const char * pcData)
@@ -771,7 +771,7 @@ void CInputMain::ItemToItem(CHARACTER * ch, const char * pcData)
 
 void CInputMain::ItemDrop(CHARACTER * ch, const char * data)
 {
-	struct command_item_drop * pinfo = (struct command_item_drop *) data;
+	struct TPacketCGItemDrop * pinfo = (struct TPacketCGItemDrop *) data;
 
 	//MONARCH_LIMIT
 	//END_MONARCH_LIMIT
@@ -804,7 +804,7 @@ void CInputMain::ItemDrop2(CHARACTER * ch, const char * data)
 
 void CInputMain::ItemMove(CHARACTER * ch, const char * data)
 {
-	struct command_item_move * pinfo = (struct command_item_move *) data;
+	struct TPacketCGItemMove * pinfo = (struct TPacketCGItemMove *) data;
 
 	if (ch)
 		ch->MoveItem(pinfo->Cell, pinfo->CellTo, pinfo->count);
@@ -812,26 +812,26 @@ void CInputMain::ItemMove(CHARACTER * ch, const char * data)
 
 void CInputMain::ItemPickup(CHARACTER * ch, const char * data)
 {
-	struct command_item_pickup * pinfo = (struct command_item_pickup*) data;
+	struct TPacketCGItemPickup * pinfo = (struct TPacketCGItemPickup*) data;
 	if (ch)
 		ch->PickupItem(pinfo->vid);
 }
 
 void CInputMain::QuickslotAdd(CHARACTER * ch, const char * data)
 {
-	struct command_quickslot_add * pinfo = (struct command_quickslot_add *) data;
+	struct TPacketCGQuickslotAdd * pinfo = (struct TPacketCGQuickslotAdd *) data;
 	ch->SetQuickslot(pinfo->pos, pinfo->slot);
 }
 
 void CInputMain::QuickslotDelete(CHARACTER * ch, const char * data)
 {
-	struct command_quickslot_del * pinfo = (struct command_quickslot_del *) data;
+	struct TPacketCGQuickslotDel * pinfo = (struct TPacketCGQuickslotDel *) data;
 	ch->DelQuickslot(pinfo->pos);
 }
 
 void CInputMain::QuickslotSwap(CHARACTER * ch, const char * data)
 {
-	struct command_quickslot_swap * pinfo = (struct command_quickslot_swap *) data;
+	struct TPacketCGQuickslotSwap * pinfo = (struct TPacketCGQuickslotSwap *) data;
 	ch->SwapQuickslot(pinfo->pos, pinfo->change_pos);
 }
 
@@ -1006,7 +1006,7 @@ int CInputMain::Shop(CHARACTER * ch, const char * data, size_t uiBytes)
 
 void CInputMain::OnClick(CHARACTER * ch, const char * data)
 {
-	struct command_on_click *	pinfo = (struct command_on_click *) data;
+	struct TPacketCGOnClick *	pinfo = (struct TPacketCGOnClick *) data;
 	CHARACTER *			victim;
 
 	if ((victim = CHARACTER_MANAGER::instance().Find(pinfo->vid)))
@@ -1019,7 +1019,7 @@ void CInputMain::OnClick(CHARACTER * ch, const char * data)
 
 void CInputMain::Exchange(CHARACTER * ch, const char * data)
 {
-	struct command_exchange * pinfo = (struct command_exchange *) data;
+	struct TPacketCGExchange * pinfo = (struct TPacketCGExchange *) data;
 	CHARACTER *	to_ch = nullptr;
 
 	if (!ch->CanHandleItem())
@@ -1159,7 +1159,7 @@ void CInputMain::Exchange(CHARACTER * ch, const char * data)
 
 void CInputMain::Position(CHARACTER * ch, const char * data)
 {
-	struct command_position * pinfo = (struct command_position *) data;
+	struct TPacketCGPosition * pinfo = (struct TPacketCGPosition *) data;
 
 	switch (pinfo->position)
 	{
@@ -1396,7 +1396,7 @@ void CInputMain::Move(CHARACTER * ch, const char * data)
 	if (!ch->CanMove())
 		return;
 
-	struct command_move * pinfo = (struct command_move *) data;
+	struct TPacketCGMove * pinfo = (struct TPacketCGMove *) data;
 
 	if (pinfo->bFunc >= FUNC_MAX_NUM && !(pinfo->bFunc & 0x80))
 	{
@@ -2047,7 +2047,7 @@ void CInputMain::SafeboxCheckout(CHARACTER * ch, const char * c_pData, bool bMal
 
 void CInputMain::SafeboxItemMove(CHARACTER * ch, const char * data)
 {
-	struct command_item_move * pinfo = (struct command_item_move *) data;
+	struct TPacketCGItemMove * pinfo = (struct TPacketCGItemMove *) data;
 
 	if (!ch->CanHandleItem())
 		return;

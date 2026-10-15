@@ -136,7 +136,7 @@ void CItem::EncodeInsertPacket(CEntity * ent)
 
 	const PIXEL_POSITION & c_pos = GetXYZ();
 
-	struct packet_item_ground_add pack;
+	struct TPacketGCItemGroundAdd pack;
 
 	pack.bHeader	= HEADER_GC_ITEM_GROUND_ADD;
 	pack.x		= c_pos.x;
@@ -174,7 +174,7 @@ void CItem::EncodeRemovePacket(CEntity * ent)
 	if (!(d = ent->GetDesc()))
 		return;
 
-	struct packet_item_ground_del pack;
+	struct TPacketGCItemGroundDel pack;
 
 	pack.bHeader	= HEADER_GC_ITEM_GROUND_DEL;
 	pack.dwVID		= m_dwVID;
