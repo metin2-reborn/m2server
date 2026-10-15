@@ -1,5 +1,4 @@
-#ifndef __INC_GUILD_H
-#define __INC_GUILD_H
+#pragma once
 
 #include "char.h"
 #include "event.h"
@@ -396,5 +395,3 @@ class CGuild
 		EventMap	m_GuildInviteEventMap;	///< Guild invite event map. key: PID of the invited character
 		// END_OF_GUILD_JOIN_BUG_FIX
 };
-
-#endif

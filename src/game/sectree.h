@@ -1,5 +1,4 @@
-#ifndef __INC_SECTREE_H__
-#define __INC_SECTREE_H__
+#pragma once
 
 #include "entity.h"
 #include "typedef.h"
@@ -132,7 +131,6 @@ class SECTREE
 		bool				InsertEntity(CEntity * ent);
 		void				RemoveEntity(CEntity * ent);
 
-
 		void				IncreasePC();
 		void				DecreasePC();
 
@@ -172,5 +170,3 @@ class SECTREE
 
 		CAttribute *			m_pkAttribute;
 };
-
-#endif

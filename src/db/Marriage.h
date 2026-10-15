@@ -1,6 +1,5 @@
 // vim: ts=4 sw=4
-#ifndef __MARRIAGE_H
-#define __MARRIAGE_H
+#pragma once
 
 #include "Peer.h"
 
@@ -95,7 +94,6 @@ namespace marriage
 			void	Remove(uint32_t dwPID1, uint32_t dwPID2);
 			void	Update(uint32_t dwPID1, uint32_t dwPID2, int32_t iLovePoint, uint8_t byMarried);
 
-
 			void	ReadyWedding(uint32_t dwMapIndex, uint32_t dwPID1, uint32_t dwPID2);
 			void	EndWedding(uint32_t dwPID1, uint32_t dwPID2);
 
@@ -114,5 +112,3 @@ namespace marriage
 			std::map<std::pair<uint32_t, uint32_t>, TWedding> m_mapRunningWedding;
 	};
 }
-
-#endif

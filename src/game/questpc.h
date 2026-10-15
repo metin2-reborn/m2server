@@ -1,5 +1,4 @@
-#ifndef __QUEST_PC_H
-#define __QUEST_PC_H
+#pragma once
 
 #include "event.h"
 #include "quest.h"
@@ -59,7 +58,6 @@ namespace quest
 			void		Destroy();
 			void		SetID(uint32_t dwID);
 			uint32_t		GetID() { return m_dwID; }
-
 
 			inline QuestInfoIterator quest_begin();
 			inline QuestInfoIterator quest_end();
@@ -213,5 +211,3 @@ namespace quest
 		return m_RunningQuestState;
 	}
 }
-
-#endif

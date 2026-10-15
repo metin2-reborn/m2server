@@ -1,7 +1,4 @@
-#ifndef __INC_METIN_II_MARKIMAGE_H__
-#define __INC_METIN_II_MARKIMAGE_H__
-
-
+#pragma once
 
 #include <lzo/lzo1x.h>
 
@@ -82,7 +79,6 @@ class CGuildMarkImage
 		bool SaveMark(uint32_t posMark, uint8_t * pbMarkImage);
 		bool DeleteMark(uint32_t posMark);
 
-
 		void GetDiffBlocks(const uint32_t * crcList, std::map<uint8_t, const SGuildMarkBlock *> & mapDiffBlocks);
 
 	private:
@@ -91,5 +87,3 @@ class CGuildMarkImage
 		SGuildMarkBlock	m_aakBlock[BLOCK_ROW_COUNT][BLOCK_COL_COUNT];
 		std::vector<Pixel> m_pixels;	// WIDTH x HEIGHT, top row first
 };
-
-#endif

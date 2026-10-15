@@ -1,5 +1,4 @@
-#ifndef __INC_METIN_II_GAME_INPUT_PROCESSOR__
-#define __INC_METIN_II_GAME_INPUT_PROCESSOR__
+#pragma once
 
 #include "packet_info.h"
 #include "typedef.h"
@@ -23,7 +22,6 @@ enum
 };
 
 void LoginFailure(DESC * d, const char * c_pszStatus);
-
 
 class CInputProcessor
 {
@@ -163,7 +161,6 @@ class CInputMain : public CInputProcessor
 
 };
 
-
 class CInputDB : public CInputProcessor
 {
 public:
@@ -238,7 +235,6 @@ protected:
 	void		MoneyLog(const char* c_pData);
 
 	void		SetEventFlag(const char* c_pData);
-
 
 	void		CreateObject(const char * c_pData);
 	void		DeleteObject(const char * c_pData);
@@ -345,6 +341,3 @@ extern std::map<uint32_t, CLoginSim *> g_simByPID;
 extern std::vector<TPlayerTable> g_vec_save;
 extern bool RaceToJob(unsigned race, unsigned *ret_job);
 extern void SendShout(const char * szText, uint8_t bEmpire);
-
-#endif /* __INC_METIN_II_GAME_INPUT_PROCESSOR__ */
-

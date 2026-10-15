@@ -1,5 +1,4 @@
-#ifndef __Item_CSV_READER_H__
-#define __Item_CSV_READER_H__
+#pragma once
 
 #include "CsvReader.h"
 
@@ -19,7 +18,6 @@ int get_Item_Immune_Value(std::string inputString);
 int get_Item_LimitType_Value(std::string inputString);
 int get_Item_ApplyType_Value(std::string inputString);
 
-
 //Can also read the monster proto.
 int get_Mob_Rank_Value(std::string inputString);
 int get_Mob_Type_Value(std::string inputString);
@@ -33,5 +31,3 @@ int get_Mob_ImmuneFlag_Value(std::string inputString);
 //
 bool Set_Proto_Mob_Table(TMobTable *mobTable, cCsvTable &csvTable, std::map<int,const char*> &nameMap);
 bool Set_Proto_Item_Table(TItemTable *itemTable, cCsvTable &csvTable,std::map<int,const char*> &nameMap);
-
-#endif

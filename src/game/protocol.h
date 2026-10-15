@@ -1,5 +1,4 @@
-#ifndef __PROTOCOL_H__
-#define __PROTOCOL_H__
+#pragma once
 
 #include <cstdint>
 
@@ -31,5 +30,3 @@ inline int32_t decode_4bytes(const void *a)
 {
 	return (*((int32_t *) a));
 }
-
-#endif

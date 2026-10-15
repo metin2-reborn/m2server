@@ -1,5 +1,4 @@
-#ifndef __ITEM_ADDON_H
-#define __ITEM_ADDON_H
+#pragma once
 
 #include "typedef.h"
 
@@ -13,5 +12,3 @@ class CItemAddonManager : public singleton<CItemAddonManager>
 
 		void ApplyAddonTo(int iAddonType, CItem * pItem);
 };
-
-#endif

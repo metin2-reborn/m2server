@@ -1,5 +1,4 @@
-#ifndef __CLIENT_H__
-#define __CLIENT_H__
+#pragma once
 
 #include "desc.h"
 #include "input.h"
@@ -44,9 +43,6 @@ class CLIENT_DESC : public DESC
 		CInputP2P 	m_inputP2P;
 };
 
-
 extern CLIENT_DESC * db_clientdesc;
 extern CLIENT_DESC * g_pkAuthMasterDesc;
 extern CLIENT_DESC * g_NetmarbleDBDesc;
-
-#endif

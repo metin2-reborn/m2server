@@ -1,6 +1,5 @@
 
-#ifndef OVER_9_REFINE_MANAGER_H_
-#define OVER_9_REFINE_MANAGER_H_
+#pragma once
 
 #include "typedef.h"
 
@@ -25,6 +24,3 @@ class COver9RefineManager : public singleton<COver9RefineManager>
 
 		uint32_t GetMaterialVnum(uint32_t baseVnum);
 };
-
-#endif /* OVER_9_REFINE_MANAGER_H_ */
-

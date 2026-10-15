@@ -1,6 +1,5 @@
 
-#ifndef __INC_METIN2_UNIQUE_ITEM_H
-#define __INC_METIN2_UNIQUE_ITEM_H
+#pragma once
 
 enum
 {
@@ -113,6 +112,3 @@ enum
 	// Dragon heart given when extracting from a dragon soul stone.
 	DRAGON_HEART_VNUM = 100000,
 };
-
-#endif /* __INC_METIN2_UNIQUE_ITEM_H */
-

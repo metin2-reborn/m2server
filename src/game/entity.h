@@ -1,5 +1,4 @@
-#ifndef __INC_METIN_II_GAME_ENTITY_H__
-#define __INC_METIN_II_GAME_ENTITY_H__
+#pragma once
 
 #include "typedef.h"
 
@@ -23,7 +22,6 @@ class CEntity
 	protected:
 		void			Initialize(int type = -1);
 		void			Destroy();
-
 
 	public:
 		int				GetType() const;
@@ -75,5 +73,3 @@ class CEntity
 
 		SECTREE *		m_pSectree;
 };
-
-#endif

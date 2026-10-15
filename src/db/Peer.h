@@ -1,6 +1,5 @@
 // vim: ts=8 sw=4
-#ifndef __INC_PEER_H__
-#define __INC_PEER_H__
+#pragma once
 
 #include <common/tables.h>
 #include <libnet/connection.h>
@@ -93,5 +92,3 @@ class CPeer : public net::connection_handler
 
 	std::string m_stPublicIP;
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef __INC_SPAM_MANAGER_H__
-#define __INC_SPAM_MANAGER_H__
+#pragma once
 
 #include "utils.h"
 
@@ -52,5 +51,3 @@ class SpamManager : public singleton<SpamManager>
 	private:
 		std::vector< std::pair<std::string, unsigned int> > m_vec_word;
 };
-
-#endif

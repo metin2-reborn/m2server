@@ -1,5 +1,4 @@
-#ifndef __INC_METIN_II_GAME_SHOP_H__
-#define __INC_METIN_II_GAME_SHOP_H__
+#pragma once
 #include "typedef.h"
 
 #include <common/tables.h>
@@ -79,5 +78,3 @@ class CShop
 
 		CHARACTER *			m_pkPC;
 };
-
-#endif 

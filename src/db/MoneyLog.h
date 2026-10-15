@@ -1,6 +1,5 @@
 // vim: ts=8 sw=4
-#ifndef __INC_MONEY_LOG
-#define __INC_MONEY_LOG
+#pragma once
 
 #include <common/length.h>
 #include <common/singleton.h>
@@ -20,5 +19,3 @@ class CMoneyLog : public singleton<CMoneyLog>
     private:
 	std::map<uint32_t, int> m_MoneyLogContainer[MONEY_LOG_TYPE_MAX_NUM];
 };
-
-#endif

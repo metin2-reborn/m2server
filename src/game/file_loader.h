@@ -1,5 +1,4 @@
-#ifndef __INC_METIN_II_COMMON_FILE_LOADER_H__
-#define __INC_METIN_II_COMMON_FILE_LOADER_H__
+#pragma once
 
 #include <cstdint>
 #include <string>
@@ -22,6 +21,3 @@ class CMemoryTextFileLoader
 	protected:
 		std::vector<std::string> m_stLineVector;
 };
-
-#endif /* __INC_METIN_II_COMMON_FILE_LOADER_H__ */
-

@@ -1,5 +1,4 @@
-#ifndef __INC_METIN_II_DRAGON_SOUL_TABLE_H__
-#define __INC_METIN_II_DRAGON_SOUL_TABLE_H__
+#pragma once
 #include <common/length.h>
 
 #include <cstdint>
@@ -76,5 +75,3 @@ private:
 	bool	CheckDragonHeartExtTables();
 	bool	CheckDragonSoulExtTables();
 };
-
-#endif

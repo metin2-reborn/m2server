@@ -1,5 +1,4 @@
-#ifndef __INC_LIBTHECORE_EVENT_QUEUE_H__
-#define __INC_LIBTHECORE_EVENT_QUEUE_H__
+#pragma once
 
 #include "event.h"
 
@@ -32,5 +31,3 @@ class CEventQueue
 	private:
 		std::multimap<int, TQueueElement *> m_queue;
 };
-
-#endif

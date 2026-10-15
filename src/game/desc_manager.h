@@ -1,5 +1,4 @@
-#ifndef __INC_METIN_II_GAME_DESC_MANAGER_H__
-#define __INC_METIN_II_GAME_DESC_MANAGER_H__
+#pragma once
 
 #include "typedef.h"
 
@@ -62,7 +61,6 @@ class DESC_MANAGER : public singleton<DESC_MANAGER>
 		DESC *			FindByLoginKey(uint32_t dwKey);
 		void			ProcessExpiredLoginKey();
 
-
 		bool			IsP2PDescExist(const char * szHost, uint16_t wPort);
 
 		// for C/S hybrid crypt
@@ -89,5 +87,3 @@ class DESC_MANAGER : public singleton<DESC_MANAGER>
 		bool			m_bDestroyed;
 
 };
-
-#endif

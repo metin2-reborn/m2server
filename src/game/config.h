@@ -1,7 +1,5 @@
 
-#ifndef __INC_METIN_II_GAME_CONFIG_H__
-#define __INC_METIN_II_GAME_CONFIG_H__
-
+#pragma once
 
 #include <cstdint>
 #include <ctime>
@@ -23,8 +21,6 @@ extern uint16_t p2p_port;
 
 extern char db_addr[ADDRESS_MAX_LEN + 1];
 extern uint16_t db_port;
-
-
 
 extern int passes_per_sec;
 inline auto PASSES_PER_SEC(auto sec) { return sec * passes_per_sec; }
@@ -60,7 +56,6 @@ extern char		g_szInternalIP[16];
 
 extern std::string	g_stProxyIP;
 
-
 extern bool		g_bSkillDisable;
 
 extern int		g_iFullUserCount;
@@ -84,7 +79,6 @@ extern void		CheckClientVersion();
 
 extern std::string	g_stQuestDir;
 extern std::set<std::string> g_setQuestObjectDir;
-
 
 extern std::vector<std::string>	g_stAdminPageIP;
 extern std::string	g_stAdminPagePassword;
@@ -120,6 +114,3 @@ extern char openid_host[256];
 extern char openid_uri[256];
 extern int g_iSpamBlockMaxLevel;
 extern void map_allow_log();
-
-#endif /* __INC_METIN_II_GAME_CONFIG_H__ */
-

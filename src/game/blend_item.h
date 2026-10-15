@@ -5,8 +5,7 @@
  * description : 
  */
 
-#ifndef _blend_item_h_
-#define _blend_item_h_
+#pragma once
 
 #include "typedef.h"
 
@@ -17,6 +16,3 @@ bool	Blend_Item_init();
 bool	Blend_Item_load(char *file);
 bool	Blend_Item_set_value(CItem * item);
 bool	Blend_Item_find(uint32_t item_vnum);
-
-#endif	/* _blend_item_h_ */
-

@@ -1,5 +1,4 @@
-#ifndef __INC_GAME_MOTION_H__
-#define __INC_GAME_MOTION_H__
+#pragma once
 
 #include "vector.h"
 
@@ -86,9 +85,7 @@ class CMotion
 		VECTOR		m_vec3Accumulation;
 };
 
-
 constexpr uint32_t MAKE_MOTION_KEY(uint32_t mode, uint32_t index) { return (mode << 24) | (index << 8); }
-
 
 class CMotionSet
 {
@@ -138,5 +135,3 @@ class CMotionManager : public singleton<CMotionManager>
 		std::map<uint32_t, float> m_map_normalAttackDuration;
 		// END_OF_POLYMORPH_BUG_FIX
 };
-
-#endif

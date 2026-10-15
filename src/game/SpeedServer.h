@@ -1,5 +1,4 @@
-#ifndef __INC_METIN_II_GAME_SPEEDSERVER_H__
-#define __INC_METIN_II_GAME_SPEEDSERVER_H__
+#pragma once
 
 #include <common/length.h>
 #include <common/singleton.h>
@@ -113,5 +112,3 @@ class CSpeedServerManager : public singleton<CSpeedServerManager>
 		CSpeedServerEmpireExp Empire[EMPIRE_MAX_NUM];
 		
 };
-
-#endif

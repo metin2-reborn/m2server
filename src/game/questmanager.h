@@ -1,5 +1,4 @@
-#ifndef __METIN2_SERVER_QUEST_MANAGER__
-#define __METIN2_SERVER_QUEST_MANAGER__
+#pragma once
 
 #include "event.h"
 #include "lua_incl.h"
@@ -263,5 +262,3 @@ namespace quest
 
 // sys_err for quest functions: the message goes to the quest error log with the running quest's context.
 #define quest_err(fmt, ...) quest::CQuestManager::instance().QuestError(__FUNCTION__, __LINE__, fmt __VA_OPT__(,) __VA_ARGS__)
-
-#endif

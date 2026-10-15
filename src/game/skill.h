@@ -1,5 +1,4 @@
-#ifndef __INC_METIN_II_GAME_CSkillManager_H__
-#define __INC_METIN_II_GAME_CSkillManager_H__
+#pragma once
 
 #include <common/singleton.h>
 #include <common/tables.h>
@@ -249,5 +248,3 @@ class CSkillManager : public singleton<CSkillManager>
 	protected:
 		std::map<uint32_t, CSkillProto *> m_map_pkSkillProto;
 };
-
-#endif

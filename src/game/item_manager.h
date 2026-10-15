@@ -1,5 +1,4 @@
-#ifndef __INC_ITEM_MANAGER__
-#define __INC_ITEM_MANAGER__
+#pragma once
 #include "char.h"
 #include "typedef.h"
 
@@ -16,7 +15,6 @@
 #include <vector>
 
 #include <sys/types.h>
-
 
 // attribute group defined in special_item_group.txt
 // can be declared with type attr.
@@ -378,7 +376,6 @@ class ITEM_MANAGER : public singleton<ITEM_MANAGER>
 
 		static void		CopyAllAttrTo(CItem * pkOldItem, CItem * pkNewItem);		// copies all attributes and socket values to pkNewItem.
 
-
 		const CSpecialItemGroup* GetSpecialItemGroup(uint32_t dwVnum);
 		const CSpecialAttrGroup* GetSpecialAttrGroup(uint32_t dwVnum);
 
@@ -441,8 +438,5 @@ class ITEM_MANAGER : public singleton<ITEM_MANAGER>
 	private:
 };
 
-
 extern bool DropEvent_RefineBox_SetValue(const std::string& name, int value);
 extern bool DropEvent_CharStone_SetValue(const std::string& name, int value);
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef __HEADER_BELT_INVENTORY_HELPER__
-#define __HEADER_BELT_INVENTORY_HELPER__
+#pragma once
 
 #include "char.h"
 #include "item.h"
@@ -8,7 +7,6 @@
 #include <common/length.h>
 
 #include <cstdint>
-
 
 class CBeltInventoryHelper
 {
@@ -85,5 +83,3 @@ public:
 	}
 
 };
-
-#endif //__HEADER_BELT_INVENTORY_HELPER__

@@ -1,5 +1,4 @@
-#ifndef __START_POSITION_H
-#define __START_POSITION_H
+#pragma once
 
 #include "locale.hpp"
 
@@ -10,7 +9,6 @@ extern uint32_t g_start_position[4][2];
 extern int32_t g_start_map[4];
 extern uint32_t g_create_position[4][2];
 extern uint32_t arena_return_position[4][2];
-
 
 inline const char* EMPIRE_NAME( uint8_t e)
 {
@@ -75,5 +73,3 @@ inline uint32_t CREATE_START_Y(uint8_t e)
 
 	return 0;
 }
-
-#endif

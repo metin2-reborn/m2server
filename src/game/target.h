@@ -1,5 +1,4 @@
-#ifndef __INC_METIN_II_GAME_TARGET_H__
-#define __INC_METIN_II_GAME_TARGET_H__
+#pragma once
 
 #include "event.h"
 
@@ -74,5 +73,3 @@ class CTargetManager : public singleton<CTargetManager>
 		std::map<uint32_t, std::list<LPEVENT> > m_map_kListEvent;
 		int m_iID;
 };
-
-#endif

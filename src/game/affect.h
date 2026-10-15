@@ -1,5 +1,4 @@
-#ifndef __INC_AFFECT_H
-#define __INC_AFFECT_H
+#pragma once
 
 #include "typedef.h"
 
@@ -103,7 +102,6 @@ enum EAffectTypes
 	AFFECT_DRAGON_SOUL_DECK_0 = 541,
 	AFFECT_DRAGON_SOUL_DECK_1 = 542,
 
-
 	AFFECT_RAMADAN_ABILITY = 300,
 	AFFECT_RAMADAN_RING	   = 301,
 
@@ -183,5 +181,3 @@ enum AffectVariable
 	INFINITE_AFFECT_DURATION = 60 * 365 * 24 * 60 * 60
 };
 // END_AFFECT_DURATION_BUG_FIX
-
-#endif

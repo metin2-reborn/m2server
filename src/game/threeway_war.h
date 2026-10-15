@@ -1,6 +1,5 @@
 
-#ifndef THREE_WAY_WAR_EVENT_
-#define THREE_WAY_WAR_EVENT_
+#pragma once
 
 #include "typedef.h"
 
@@ -80,6 +79,3 @@ int GetSungziMapIndex();
 
 int GetSungziStartX( uint8_t bEmpire );
 int GetSungziStartY( uint8_t bEmpire );
-
-#endif /* THREE_WAY_WAR_EVENT_ */
-

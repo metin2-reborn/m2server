@@ -1,6 +1,5 @@
 
-#ifndef __POLYMORPH_UTILS__
-#define __POLYMORPH_UTILS__
+#pragma once
 
 #include "char.h"
 #include "typedef.h"
@@ -37,5 +36,3 @@ class CPolymorphUtils : public singleton<CPolymorphUtils>
 		bool GiveBook(CHARACTER * pChar, uint32_t dwMobVnum, uint32_t dwPracticeCount, uint8_t BookLevel, uint8_t LevelLimit);
 		bool BookUpgrade(CHARACTER * pChar, CItem * pItem);
 };
-
-#endif /*__POLYMORPH_UTILS__*/

@@ -1,5 +1,4 @@
-#ifndef __INC_METIN_II_GAME_SAFEBOX_H__
-#define __INC_METIN_II_GAME_SAFEBOX_H__
+#pragma once
 #include "typedef.h"
 
 #include <common/tables.h>
@@ -42,5 +41,3 @@ class CSafebox
 
 		uint8_t		m_bWindowMode;
 };
-
-#endif

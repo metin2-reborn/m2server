@@ -1,6 +1,4 @@
-#ifndef __INC_METIN_II_GAME_PACKET_HEADER_INFO_H__
-#define __INC_METIN_II_GAME_PACKET_HEADER_INFO_H__
-
+#pragma once
 
 #include <cstdint>
 #include <map>
@@ -57,5 +55,3 @@ class CPacketInfoGG : public CPacketInfo
 };
 
 /// Implemented in input_udp.cpp
-
-#endif

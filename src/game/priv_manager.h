@@ -1,5 +1,4 @@
-#ifndef __PRIV_MANAGER_H
-#define __PRIV_MANAGER_H
+#pragma once
 #include "typedef.h"
 
 #include <common/length.h>
@@ -27,7 +26,6 @@ class CPrivManager : public singleton<CPrivManager>
 		void GiveGuildPriv(uint32_t guild_id, uint8_t type, int value, uint8_t bLog, time_t end_time_sec);
 		void GiveEmpirePriv(uint8_t empire, uint8_t type, int value, uint8_t bLog, time_t end_time_sec);
 		void GiveCharacterPriv(uint32_t pid, uint8_t type, int value, uint8_t bLog);
-
 
 		int GetPriv(CHARACTER * ch, uint8_t type);
 		int GetPrivByEmpire(uint8_t bEmpire, uint8_t type);
@@ -63,4 +61,3 @@ class CPrivManager : public singleton<CPrivManager>
 		std::map<uint32_t, SPrivGuildData> m_aPrivGuild[MAX_PRIV_NUM];
 		std::map<uint32_t, int> m_aPrivChar[MAX_PRIV_NUM];
 };
-#endif

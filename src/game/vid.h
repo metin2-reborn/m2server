@@ -1,5 +1,4 @@
-#ifndef __INC_METIN_II_VID_H__
-#define __INC_METIN_II_VID_H__
+#pragma once
 
 #include <cstdint>
 
@@ -52,5 +51,3 @@ class VID
 		uint32_t m_id;
 		uint32_t m_crc;
 };
-
-#endif

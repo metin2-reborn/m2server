@@ -1,5 +1,4 @@
-#ifndef __INC_METIN_II_GAME_PVP_H__
-#define __INC_METIN_II_GAME_PVP_H__
+#pragma once
 
 #include "typedef.h"
 
@@ -79,5 +78,3 @@ class CPVPManager : public singleton<CPVPManager>
 	std::map<uint32_t, CPVP *>	m_map_pkPVP;
 	CPVPSetMap		m_map_pkPVPSetByID;
 };
-
-#endif

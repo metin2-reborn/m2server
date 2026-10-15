@@ -1,5 +1,4 @@
-#ifndef __INC_METIN_II_MONARCH_H__
-#define __INC_METIN_II_MONARCH_H__
+#pragma once
 
 #include "typedef.h"
 
@@ -63,5 +62,3 @@ class CMonarch : public singleton<CMonarch>
 };
 
 bool IsMonarchWarpZone (int map_idx);
-
-#endif

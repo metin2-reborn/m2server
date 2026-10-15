@@ -1,5 +1,4 @@
-#ifndef __INC_METIN_II_GAME_EXCHANGE_H__
-#define __INC_METIN_II_GAME_EXCHANGE_H__
+#pragma once
 #include "typedef.h"
 
 #include <common/length.h>
@@ -54,5 +53,3 @@ class CExchange
 		CGrid *		m_pGrid;
 
 };
-
-#endif

@@ -1,6 +1,5 @@
 // vim:ts=8 sw=4
-#ifndef __INC_ITEM_AWARD_H
-#define __INC_ITEM_AWARD_H
+#pragma once
 #include <common/length.h>
 #include <common/singleton.h>
 #include <libsql/AsyncSQL.h>
@@ -44,5 +43,3 @@ class ItemAwardManager : public singleton<ItemAwardManager>
 	// PID, ItemAward pair
 	std::map<std::string, std::set<TItemAward *> >	m_map_kSetAwardByLogin;
 };
-
-#endif

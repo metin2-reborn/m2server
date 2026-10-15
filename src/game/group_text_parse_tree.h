@@ -1,5 +1,4 @@
-#ifndef __INC_METIN_II_GROUP_TEXT_PARSE_TREE_H__
-#define __INC_METIN_II_GROUP_TEXT_PARSE_TREE_H__
+#pragma once
 
 #include "file_loader.h"
 
@@ -42,7 +41,6 @@ public:
 	bool SetChildNode(const char * c_szKey, CGroupNode* pChildNode);
 	CGroupNode* GetChildNode(const std::string & c_rstrKey) const;
 	std::string GetNodeName() const;
-
 
 	int GetRowCount();
 	
@@ -230,6 +228,3 @@ bool CGroupNode::CGroupNodeRow::GetValue(int idx, T& value) const
 		return false;
 	return from_string(value, m_vec_values[idx]);
 }
-
-#endif
-

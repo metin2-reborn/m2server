@@ -1,5 +1,4 @@
-#ifndef __MINING_H
-#define __MINING_H
+#pragma once
 
 #include "event.h"
 #include "typedef.h"
@@ -20,5 +19,3 @@ namespace mining
 
 	bool IsVeinOfOre (uint32_t vnum);
 }
-
-#endif

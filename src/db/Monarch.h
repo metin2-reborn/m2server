@@ -1,6 +1,5 @@
 // vim: ts=4 sw=4
-#ifndef METIN2_MONARCH_H
-#define METIN2_MONARCH_H
+#pragma once
 
 #include <common/singleton.h>
 #include <common/tables.h>
@@ -58,5 +57,3 @@ class CMonarch : public singleton<CMonarch>
 		TMonarchInfo m_MonarchInfo;
 
 };
-
-#endif

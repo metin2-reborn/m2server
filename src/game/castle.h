@@ -5,9 +5,7 @@
  * description : 
  */
 
-#ifndef _castle_h_
-#define _castle_h_
-
+#pragma once
 
 #include "event.h"
 #include "typedef.h"
@@ -20,11 +18,9 @@ inline constexpr int MAX_CASTLE_FROG = 20; // Golden toad
 inline constexpr int MAX_CASTLE_TOWER = 10; // Max number of beacons summoned
 inline constexpr int MIN_CASTLE_TOWER = 5; // Min number of beacons summoned
 
-
 inline constexpr int CASTLE_FROG_VNUM = 11505; // Golden toad vnum
 //#define CASTLE_TOWER_VNUM		11506	// beacon vnum
 constexpr bool IS_CASTLE_MAP(int map) { return map == 181 || map == 182 || map == 183; }
-
 
 enum CASTLE_STATE
 {
@@ -32,7 +28,6 @@ enum CASTLE_STATE
 	CASTLE_SIEGE_STRUGGLE,		// Under siege
 	CASTLE_SIEGE_END			// If the defense succeeded, beacons can be destroyed for 1 hour.
 };
-
 
 struct CASTLE_DATA
 {
@@ -46,9 +41,6 @@ struct CASTLE_DATA
 	LPEVENT		siege_event;
 	LPEVENT		stone_event;
 };
-
-
-
 
 /* extern functions */
 bool		castle_boot();
@@ -73,6 +65,3 @@ bool		castle_can_attack(CHARACTER * ch, CHARACTER * victim);
 
 bool		castle_is_my_castle(int empire, int map_index);
 bool		castle_is_tower_vnum(uint32_t vnum);
-
-#endif	/* _castle_h_ */
-

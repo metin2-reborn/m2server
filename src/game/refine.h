@@ -1,5 +1,4 @@
-#ifndef __INC_REFINE_H
-#define __INC_REFINE_H
+#pragma once
 
 #include <common/singleton.h>
 #include <common/tables.h>
@@ -37,4 +36,3 @@ class CRefineManager : public singleton<CRefineManager>
 	TRefineRecipeMap    m_map_RefineRecipe;
 
 };
-#endif

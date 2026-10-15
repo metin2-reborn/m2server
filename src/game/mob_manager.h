@@ -1,5 +1,4 @@
-#ifndef __INC_METIN_II_MOB_MANAGER_H__
-#define __INC_METIN_II_MOB_MANAGER_H__
+#pragma once
 #include "typedef.h"
 
 #include <common/length.h>
@@ -162,5 +161,3 @@ class CMobManager : public singleton<CMobManager>
 
 		std::map<uint32_t, double> m_mapRegenCount;
 };
-
-#endif

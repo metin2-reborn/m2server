@@ -1,5 +1,4 @@
-#ifndef __INC_METIN_II_LOGIN_DATA_H__
-#define __INC_METIN_II_LOGIN_DATA_H__
+#pragma once
 #include <common/length.h>
 
 #include <cstdint>
@@ -28,5 +27,3 @@ class CLoginData
 		std::string	m_stLogin;
 		int		m_aiPremiumTimes[PREMIUM_MAX_NUM];
 };
-
-#endif

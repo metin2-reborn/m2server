@@ -1,5 +1,4 @@
-#ifndef __INC_METIN_II_GAME_DESC_H__
-#define __INC_METIN_II_GAME_DESC_H__
+#pragma once
 
 #include "cipher.h"
 #include "event.h"
@@ -54,7 +53,6 @@ class CLoginKey
 		uint32_t   m_dwExpireTime;
 		DESC *  m_pkDesc;
 };
-
 
 // Data for tracking down the sequence bug
 struct seq_t
@@ -164,7 +162,6 @@ class DESC : public net::connection_handler
 
 		void			AssembleCRCMagicCube(uint8_t bProcPiece, uint8_t bFilePiece);
 
-
 		void			SetClientVersion(const char * c_pszTimestamp) { m_stClientVersion = c_pszTimestamp; }
 		const char *		GetClientVersion() { return m_stClientVersion.c_str(); }
 
@@ -181,7 +178,6 @@ class DESC : public net::connection_handler
 		CInputLogin		m_inputLogin;
 		CInputMain		m_inputMain;
 		CInputAuth		m_inputAuth;
-
 
 		std::shared_ptr<net::connection>	m_connection;
 		int				m_iPhase;
@@ -213,7 +209,6 @@ class DESC : public net::connection_handler
 		bool			m_bPong;
 
 		int			m_iCurrentSequence;
-
 
 		CLoginKey *		m_pkLoginKey;
 		uint32_t			m_dwLoginKey;
@@ -250,5 +245,3 @@ class DESC : public net::connection_handler
 		void			push_seq (uint8_t hdr, uint8_t seq);
 		
 };
-
-#endif

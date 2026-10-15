@@ -1,5 +1,4 @@
-#ifndef __HEADER_QUEST_LUA__
-#define __HEADER_QUEST_LUA__
+#pragma once
 
 #include "buffer_manager.h"
 #include "event.h"
@@ -9,7 +8,6 @@
 #include <cstdint>
 #include <sstream>
 #include <string>
-
 
 namespace quest
 {
@@ -138,5 +136,3 @@ namespace quest
 		void operator() (uint32_t g1, uint32_t g2);
 	};
 }
-#endif /*__HEADER_QUEST_LUA__*/
-

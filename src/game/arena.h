@@ -1,5 +1,4 @@
-#ifndef __CLASS_ARENA_MANAGER__
-#define __CLASS_ARENA_MANAGER__
+#pragma once
 
 #include "char_manager.h"
 #include "event.h"
@@ -138,5 +137,3 @@ class CArenaManager : public singleton<CArenaManager> {
 
     bool IsLimitedItem(int32_t lMapIndex, uint32_t dwVnum);
 };
-
-#endif /*__CLASS_ARENA_MANAGER__*/

@@ -1,5 +1,4 @@
-#ifndef __INC_MESSENGER_MANAGER_H
-#define __INC_MESSENGER_MANAGER_H
+#pragma once
 
 #include "typedef.h"
 
@@ -56,5 +55,3 @@ class MessengerManager : public singleton<MessengerManager>
 		std::map<keyT, std::set<keyT> >	m_InverseRelation;
 		std::set<uint32_t>			m_set_requestToAdd;
 };
-
-#endif

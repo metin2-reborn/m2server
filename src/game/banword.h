@@ -1,6 +1,5 @@
 
-#ifndef BANWORD_MANAGER_H_
-#define BANWORD_MANAGER_H_
+#pragma once
 
 #include <common/singleton.h>
 #include <common/tables.h>
@@ -24,6 +23,3 @@ class CBanwordManager : public singleton<CBanwordManager>
 		typedef std::unordered_map<std::string, bool> TBanwordHashmap;
 		TBanwordHashmap m_hashmap_words;
 };
-
-#endif /* BANWORD_MANAGER_H_ */
-

@@ -1,6 +1,4 @@
-#ifndef __METIN2_SERVER_QUEST_H__
-#define __METIN2_SERVER_QUEST_H__
-
+#pragma once
 
 #include "lua_incl.h"
 
@@ -113,4 +111,3 @@ namespace quest
 		{}
 	};
 }
-#endif

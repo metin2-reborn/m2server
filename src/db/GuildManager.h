@@ -1,6 +1,5 @@
 // vim:ts=8 sw=4
-#ifndef __INC_GUILD_MANAGER_H
-#define __INC_GUILD_MANAGER_H
+#pragma once
 
 #include "Peer.h"
 
@@ -189,7 +188,6 @@ class CGuildManager : public singleton<CGuildManager>
 
 	bool	TakeBetPrice(uint32_t dwGuildTo, uint32_t dwGuildFrom, int32_t lWarPrice);
 
-
 	void	RecvWarEnd(uint32_t GID1, uint32_t GID2);
 	void	RecvWarOver(uint32_t dwGuildWinner, uint32_t dwGuildLoser, bool bDraw, int32_t lWarPrice);
 
@@ -261,5 +259,3 @@ class CGuildManager : public singleton<CGuildManager>
 	// GID Ranking
 	std::map<uint32_t, int>					map_kLadderPointRankingByGID;
 };
-
-#endif

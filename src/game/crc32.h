@@ -1,5 +1,4 @@
-#ifndef __INC_CRC32_H__
-#define __INC_CRC32_H__
+#pragma once
 
 #include <zlib.h>
 
@@ -24,5 +23,3 @@ inline auto GetFastHash(const char *key, size_t len) -> crc_t {
     }
     return h;
 }
-
-#endif

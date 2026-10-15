@@ -1,5 +1,4 @@
-#ifndef __INC_FISHING_H
-#define __INC_FISHING_H
+#pragma once
 
 #include "event.h"
 #include "item.h"
@@ -42,4 +41,3 @@ namespace fishing
 	extern bool RefinableRod(CItem * rod);
 	extern int RealRefineRod(CHARACTER * ch, CItem * rod);
 }
-#endif

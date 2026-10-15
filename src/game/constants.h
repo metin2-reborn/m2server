@@ -1,5 +1,4 @@
-#ifndef __INC_METIN_II_GAME_CONSTANTS_H__
-#define __INC_METIN_II_GAME_CONSTANTS_H__
+#pragma once
 
 #include <common/length.h>
 #include <common/tables.h>
@@ -74,7 +73,6 @@ inline bool operator < (const SStoneDropInfo& l, uint32_t r)
 extern const TApplyInfo		aApplyInfo[MAX_APPLY_NUM];
 extern const TMobRankStat       MobRankStats[MOB_RANK_MAX_NUM];
 
-
 extern const uint32_t		party_exp_distribute_table[PLAYER_MAX_LEVEL_CONST + 1];
 
 extern const uint32_t		exp_table[PLAYER_EXP_TABLE_MAX + 1];
@@ -102,7 +100,6 @@ extern const int aiItemMagicAttributePercentHigh[ITEM_ATTRIBUTE_MAX_LEVEL]; // U
 extern const int aiItemMagicAttributePercentLow[ITEM_ATTRIBUTE_MAX_LEVEL];
 
 extern const int aiItemAttributeAddPercent[ITEM_ATTRIBUTE_MAX_NUM];
-
 
 extern const int aiExpLossPercents[PLAYER_EXP_TABLE_MAX + 1];
 
@@ -153,5 +150,3 @@ int32_t FN_get_apply_type(const char *apply_type_string);
 // END_OF_ACCESSORY_REFINE
 
 int32_t FN_get_apply_type(const char *apply_type_string);
-#endif
-

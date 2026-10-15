@@ -1,5 +1,4 @@
-#ifndef QUEST_NPC
-#define QUEST_NPC
+#pragma once
 
 #include "config.h"
 #include "quest.h"
@@ -11,7 +10,6 @@
 #include <map>
 #include <string>
 #include <vector>
-
 
 namespace quest
 {
@@ -86,13 +84,11 @@ namespace quest
 			// Special item group USE EVENT
 			bool	OnSIGUse(PC& pc, bool bReceiveAll);
 
-
 			bool	HandleEvent(PC& pc, int EventIndex);
 			bool	HandleReceiveAllEvent(PC& pc, int EventIndex);
 			bool	HandleReceiveAllNoWaitEvent(PC& pc, int EventIndex);
 
 			bool	ExecuteEventScript(PC& pc, int EventIndex, uint32_t dwQuestIndex, int iState);
-
 
 		protected:
 			template <typename TQuestMapType, typename FuncMatch, typename FuncMiss>
@@ -136,4 +132,3 @@ namespace quest
 			}
 		}
 }
-#endif

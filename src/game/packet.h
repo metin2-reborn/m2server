@@ -1,5 +1,4 @@
-#ifndef __INC_PACKET_H__
-#define __INC_PACKET_H__
+#pragma once
 
 #include <common/length.h>
 #include <common/tables.h>
@@ -1997,4 +1996,3 @@ typedef struct SPacketGCDragonSoulRefine
 } TPacketGCDragonSoulRefine;
 
 #pragma pack()
-#endif

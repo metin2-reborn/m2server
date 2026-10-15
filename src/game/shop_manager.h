@@ -1,5 +1,4 @@
-#ifndef __INC_METIN_II_GAME_SHOP_MANAGER_H__
-#define __INC_METIN_II_GAME_SHOP_MANAGER_H__
+#pragma once
 #include "typedef.h"
 
 #include <common/singleton.h>
@@ -42,5 +41,3 @@ private:
 
 	bool	ReadShopTableEx(const char* stFileName);
 };
-
-#endif

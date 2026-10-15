@@ -1,6 +1,4 @@
-#ifndef	__HEADER_PET_SYSTEM__
-#define	__HEADER_PET_SYSTEM__
-
+#pragma once
 
 #include "event.h"
 #include "typedef.h"
@@ -21,7 +19,6 @@ public:
 		EPetOption_Summonable		= 1 << 2,
 		EPetOption_Combatable		= 1 << 3,		
 	};
-
 
 protected:
 	friend class CPetSystem;
@@ -50,7 +47,6 @@ public:
 	bool			HasOption(EPetOptions option) const		{ return m_dwOptions & option; }
 
 	void			SetName(const char* petName);
-
 
 	uint32_t			Summon(const char* petName, CItem * pSummonItem, bool bSpawnFar = false);
 	void			Unsummon();
@@ -134,13 +130,11 @@ if (0 == petActor)
 	ERROR_LOG(...)
 };
 
-
 // Unsummon Pet
 petSystem->Unsummon(petVID);
 
 // Mount Pet
 petActor->Mount()..
-
 
 CPetActor::Update(...)
 {
@@ -148,7 +142,3 @@ CPetActor::Update(...)
 }
 
 */
-
-
-
-#endif	//__HEADER_PET_SYSTEM__

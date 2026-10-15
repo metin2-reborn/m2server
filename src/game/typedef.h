@@ -1,5 +1,4 @@
-#ifndef __INC_METIN_II_GAME_TYPEDEF_H__
-#define __INC_METIN_II_GAME_TYPEDEF_H__
+#pragma once
 #include <cstdint>
 #include <list>
 #include <unordered_set>
@@ -50,6 +49,3 @@ enum EEntityTypes
 	ENTITY_ITEM,
 	ENTITY_OBJECT,
 };
-
-#endif /* __INC_METIN_II_GAME_TYPEDEF_H__ */
-

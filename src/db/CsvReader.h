@@ -1,10 +1,8 @@
-#ifndef __CSVFILE_H__
-#define __CSVFILE_H__
+#pragma once
 
 #include <cstddef>
 #include <string>
 #include <vector>
-
 
 ////////////////////////////////////////////////////////////////////////////////
 /// \class cCsvRow 
@@ -41,7 +39,6 @@ public:
     /// \brief destructor
     ~cCsvRow() {}
 
-
 public:
     /// \brief returns the cell's data as int.
 
@@ -56,12 +53,10 @@ public:
 
     /// \brief returns the data of the cell with the given name as a string.
 
-
 private:
     cCsvRow(const cCsvRow&) = delete;
     cCsvRow& operator = (const cCsvRow&) = delete;
 };
-
 
 ////////////////////////////////////////////////////////////////////////////////
 /// \class cCsvFile
@@ -100,14 +95,12 @@ private:
 
     ROWS m_Rows; ///< row collection
 
-
 public:
     /// \brief constructor
     cCsvFile() {}
 
     /// \brief destructor
     virtual ~cCsvFile() { Destroy(); }
-
 
 public:
     /// \brief loads the CSV file with the given name.
@@ -126,12 +119,10 @@ public:
     /// \brief returns the number of rows.
     size_t GetRowCount() const { return m_Rows.size(); }
 
-
 private:
     cCsvFile(const cCsvFile&) = delete;
     cCsvFile& operator = (const cCsvFile&) = delete;
 };
-
 
 ////////////////////////////////////////////////////////////////////////////////
 /// \class cCsvTable
@@ -166,7 +157,6 @@ public:
     /// \brief destructor
     virtual ~cCsvTable();
 
-
 public:
     /// \brief loads the CSV file with the given name.
     bool Load(const char* fileName, const char seperator=',', const char quote='"');
@@ -194,7 +184,6 @@ public:
     /// \brief deletes all data, including aliases.
     void Destroy();
 
-
 private:
     /// \brief returns the current row.
     const cCsvRow* const CurRow() const;
@@ -202,5 +191,3 @@ private:
     cCsvTable(const cCsvTable&) = delete;
     cCsvTable& operator = (const cCsvTable&) = delete;
 };
-
-#endif //__CSVFILE_H__

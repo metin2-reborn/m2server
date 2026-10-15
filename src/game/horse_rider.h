@@ -1,5 +1,4 @@
-#ifndef __HORSE_H
-#define __HORSE_H
+#pragma once
 
 #include "cmd.h"
 #include "event.h"
@@ -96,5 +95,3 @@ class CHorseRider
 		friend EVENTFUNC(horse_stamina_consume_event);
 		friend ACMD(do_horse_set_stat);
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef __LOCALE_SERVCICE__
-#define __LOCALE_SERVCICE__
+#pragma once
 
 #include <string>
 
@@ -12,5 +11,3 @@ const std::string& LocaleService_GetMapPath();
 const std::string& LocaleService_GetQuestPath();
 
 int check_name(const char * str);
-
-#endif

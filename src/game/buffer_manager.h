@@ -1,5 +1,4 @@
-#ifndef __INC_METIN_II_GAME_BUFFER_MANAGER_H__
-#define __INC_METIN_II_GAME_BUFFER_MANAGER_H__
+#pragma once
 
 #include <cstddef>
 #include <cstdint>
@@ -20,5 +19,3 @@ class TEMP_BUFFER {
   private:
     std::vector<uint8_t> m_data;
 };
-
-#endif

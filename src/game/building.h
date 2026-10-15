@@ -1,5 +1,4 @@
-#ifndef __INC_METIN_II_BUILDING_H__
-#define __INC_METIN_II_BUILDING_H__
+#pragma once
 
 #include "entity.h"
 #include "typedef.h"
@@ -155,5 +154,3 @@ namespace building
 			std::map<uint32_t, CObject *>		m_map_pkObjByVID;
 	};
 }
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef __INC_METIN_II_GAME_PARTY_H__
-#define __INC_METIN_II_GAME_PARTY_H__
+#pragma once
 
 #include "char.h"
 #include "event.h"
@@ -131,7 +130,6 @@ class CParty
 		uint32_t		GetNearMemberCount()	{ return m_iCountNearPartyMember; }
 
 		bool		IsMember(uint32_t pid) { return m_memberMap.find(pid) != m_memberMap.end(); }
-
 
 		bool		IsPositionNearLeader(CHARACTER * ch);
 
@@ -320,5 +318,3 @@ template <class Func> bool CParty::ForEachOnMapMemberBool(Func & f, int32_t lMap
 	}
 	return true;
 }
-
-#endif

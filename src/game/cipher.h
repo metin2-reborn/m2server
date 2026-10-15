@@ -1,6 +1,4 @@
-#ifndef __CIPHER_H__
-#define __CIPHER_H__
-
+#pragma once
 
 #include <cstddef>
 #include <cstdint>
@@ -65,6 +63,3 @@ class Cipher {
     Stream encoder_;
     Stream decoder_;
 };
-
-
-#endif // __CIPHER_H__

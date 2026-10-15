@@ -1,5 +1,4 @@
-#ifndef __INC_LOG_MANAGER_H__
-#define __INC_LOG_MANAGER_H__
+#pragma once
 
 #include "typedef.h"
 
@@ -59,5 +58,3 @@ class LogManager : public singleton<LogManager>
 		CAsyncSQL	m_sql;
 		bool		m_bIsConnect;
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef __WEDDING_H
-#define __WEDDING_H
+#pragma once
 
 #include "event.h"
 #include "typedef.h"
@@ -84,4 +83,3 @@ namespace marriage
 			std::map<uint32_t, WeddingMap*> m_mapWedding;
 	};
 }
-#endif

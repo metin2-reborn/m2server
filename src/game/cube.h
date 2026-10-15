@@ -5,9 +5,7 @@
  * description : Cube system
  */
 
-#ifndef _cube_h_
-#define _cube_h_
-
+#pragma once
 
 #include "typedef.h"
 
@@ -42,7 +40,6 @@ struct CUBE_DATA
 	void		remove_material (CHARACTER * ch);
 }; 
 
-
 void Cube_init ();
 bool Cube_load (const char *file);
 
@@ -62,6 +59,3 @@ void Cube_request_material_info(CHARACTER * ch, int request_start_index, int req
 // test print code
 
 bool Cube_InformationInitialize();
-
-#endif	/* _cube_h_ */
-

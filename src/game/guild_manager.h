@@ -1,5 +1,4 @@
-#ifndef __GUILD_MANAGER_H
-#define __GUILD_MANAGER_H
+#pragma once
 #include "typedef.h"
 
 #include <common/singleton.h>
@@ -113,5 +112,3 @@ template <typename Func> void CGuildManager::for_each_war(Func & f)
 }
 
 extern void SendGuildWarScore(uint32_t dwGuild, uint32_t dwGuildOpp, int iDelta, int iBetScoreDelta = 0);
-
-#endif

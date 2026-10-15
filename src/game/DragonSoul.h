@@ -1,5 +1,4 @@
-#ifndef __INC_METIN_II_GAME_DRAGON_SOUL_H__
-#define __INC_METIN_II_GAME_DRAGON_SOUL_H__
+#pragma once
 
 #include "typedef.h"
 
@@ -62,5 +61,3 @@ private:
 
 	DragonSoulTable*	m_pTable;
 };
-
-#endif

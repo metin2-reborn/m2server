@@ -1,6 +1,5 @@
 // vim: ts=8 sw=4
-#ifndef __INC_PRIV_MANAGER_H
-#define __INC_PRIV_MANAGER_H
+#pragma once
 
 #include "Peer.h"
 
@@ -103,5 +102,3 @@ class CPrivManager : public singleton<CPrivManager> {
     std::map<uint32_t, TPrivGuildData *> m_aPrivGuild[MAX_PRIV_NUM];
     std::map<uint32_t, TPrivCharData *> m_aPrivChar[MAX_PRIV_NUM];
 };
-
-#endif

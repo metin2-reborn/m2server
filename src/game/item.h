@@ -1,5 +1,4 @@
-#ifndef __INC_METIN_II_GAME_ITEM_H__
-#define __INC_METIN_II_GAME_ITEM_H__
+#pragma once
 
 #include "entity.h"
 #include "event.h"
@@ -28,7 +27,6 @@ class CItem : public CEntity
 
 		bool		IsPCBangItem();
 
-
 		bool		IsStackable()		{ return (GetFlag() & ITEM_FLAG_STACKABLE)?true:false; }
 
 		void		Initialize();
@@ -52,7 +50,6 @@ class CItem : public CEntity
 
 		void		SetFlag(int32_t flag)	{ m_lFlag = flag;	}
 		int32_t		GetFlag()		{ return m_lFlag;	}
-
 
 		uint32_t		GetWearFlag()		{ return m_pProto ? m_pProto->dwWearFlags : 0; }
 		uint32_t		GetAntiFlag()		{ return m_pProto ? m_pProto->dwAntiFlags : 0; }
@@ -101,8 +98,6 @@ class CItem : public CEntity
 
 		void		SetExchanging(bool isOn = true);
 		bool		IsExchanging()		{ return m_bExchanging;	}
-
-
 
 		void		ModifyPoints(bool bAdd);	// Applies the item's effects to the character. Removes them if bAdd is false
 
@@ -315,5 +310,3 @@ EVENTINFO(item_vid_event_info)
 	{
 	}
 };
-
-#endif

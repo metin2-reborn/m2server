@@ -1,5 +1,4 @@
-#ifndef __METIN2_BUFF_ON_ATTRIBUTES_H
-#define __METIN2_BUFF_ON_ATTRIBUTES_H
+#pragma once
 
 #include "typedef.h"
 
@@ -44,5 +43,3 @@ private:
 	TMapAttr m_map_additional_attrs;
 
 };
-
-#endif

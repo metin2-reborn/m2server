@@ -1,7 +1,5 @@
 
-#ifndef __INC_METIN_II_UTILS_H__
-#define __INC_METIN_II_UTILS_H__
-
+#pragma once
 
 #include <cmath>
 #include <cstddef>
@@ -64,5 +62,3 @@ extern bool WildCaseCmp(const char *w, const char *s);
 
 // Inside a config parser loop: compares the current token_string, ignoring case.
 #define TOKEN(string) if (!strcasecmp(token_string, string))
-
-#endif /* __INC_METIN_II_UTILS_H__ */

@@ -1,5 +1,4 @@
-#ifndef __INC_METIN_II_GAME_BATTLE_H__
-#define __INC_METIN_II_GAME_BATTLE_H__
+#pragma once
 
 #include "char.h"
 #include "config.h"
@@ -28,7 +27,6 @@ extern float	CalcAttackRating(CHARACTER * pkAttacker, CHARACTER * pkVictim, bool
 extern bool	battle_is_attackable(CHARACTER * ch, CHARACTER * victim);
 extern int	battle_melee_attack(CHARACTER * ch, CHARACTER * victim);
 extern void	battle_end(CHARACTER * ch);
-
 
 extern void	NormalAttackAffect(CHARACTER * pkAttacker, CHARACTER * pkVictim);
 
@@ -93,10 +91,7 @@ inline void SkillAttackAffect(CHARACTER * pkVictim,
 	}
 } 
 
-
 uint32_t	GET_ATTACK_SPEED(CHARACTER * ch);
 void	SET_ATTACK_TIME(CHARACTER * ch, CHARACTER * victim, uint32_t current_time);
 void	SET_ATTACKED_TIME(CHARACTER * ch, CHARACTER * victim, uint32_t current_time);
 bool	IS_SPEED_HACK(CHARACTER * ch, CHARACTER * victim, uint32_t current_time);
-
-#endif

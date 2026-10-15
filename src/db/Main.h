@@ -1,5 +1,4 @@
-#ifndef __INC_MAIN_H__
-#define __INC_MAIN_H__
+#pragma once
 
 #include <string>
 
@@ -20,5 +19,3 @@ extern int g_iPlayerCacheFlushSeconds;
 extern int g_iItemCacheFlushSeconds;
 extern int g_iLogoutSeconds;
 extern int g_iItemPriceListTableCacheFlushSeconds;
-
-#endif

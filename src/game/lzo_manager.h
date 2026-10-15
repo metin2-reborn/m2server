@@ -1,5 +1,4 @@
-#ifndef __INC_LZO_MANAGER_H
-#define __INC_LZO_MANAGER_H
+#pragma once
 
 #include <common/singleton.h>
 
@@ -23,5 +22,3 @@ class LZOManager : public singleton<LZOManager>
 	private:
 		uint8_t *	m_workmem;
 };
-
-#endif

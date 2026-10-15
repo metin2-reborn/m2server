@@ -1,6 +1,5 @@
 // vim:ts=8 sw=4
-#ifndef __INC_CLIENTMANAGER_H__
-#define __INC_CLIENTMANAGER_H__
+#pragma once
 
 #include "LoginData.h"
 #include "Peer.h"
@@ -111,7 +110,6 @@ class CClientManager : public singleton<CClientManager>
 	void	SetTablePostfix(const char* c_pszTablePostfix);
 	void	SetPlayerIDStart(int iIDStart);
 
-
 	uint32_t	GetUserCount();	// Returns the number of connected users.
 
 	void	SendTime();
@@ -146,11 +144,9 @@ class CClientManager : public singleton<CClientManager>
 	 */
 	void			PutItemPriceListCache(const TItemPriceListTable* pItemPriceList);
 
-
 	/// Flushes item price list caches whose flush time has expired and removes them from the cache.
 	void			UpdateItemPriceListCache(void);
 	// END_OF_MYSHOP_PRICE_LIST
-
 
 	void			SendGuildSkillUsable(uint32_t guild_id, uint32_t dwSkillVnum, bool bUsable);
 
@@ -200,7 +196,6 @@ class CClientManager : public singleton<CClientManager>
 
 	int		Process();
 
-
 	CLoginData *	GetLoginData(uint32_t dwKey);
 	CLoginData *	GetLoginDataByLogin(const char * c_pszLogin);
 	CLoginData *	GetLoginDataByAID(uint32_t dwAID);
@@ -229,7 +224,6 @@ class CClientManager : public singleton<CClientManager>
 	void		GuildWithdrawMoneyGiveReply(TPacketGDGuildMoneyWithdrawGiveReply* p);
 	void		GuildWarBet(TPacketGDGuildWarBet * p);
 	void		GuildChangeMaster(TPacketChangeGuildMaster* p);
-
 
 	void		QUERY_BOOT(CPeer * peer, TPacketGDBoot * p);
 
@@ -278,7 +272,6 @@ class CClientManager : public singleton<CClientManager>
 	void		QUERY_ITEM_SAVE(CPeer * pkPeer, const char * c_pData);
 	void		QUERY_ITEM_DESTROY(CPeer * pkPeer, const char * c_pData);
 	void		QUERY_ITEM_FLUSH(CPeer * pkPeer, const char * c_pData);
-
 
 	void		QUERY_QUEST_SAVE(CPeer * pkPeer, TQuestTable *, uint32_t dwLen);
 	void		QUERY_ADD_AFFECT(CPeer * pkPeer, TPacketGDAddAffect * p);
@@ -365,7 +358,6 @@ class CClientManager : public singleton<CClientManager>
 	void		CreateObject(TPacketGDCreateObject * p);
 	void		DeleteObject(uint32_t dwID);
 	void		UpdateLand(uint32_t * pdw);
-
 
 	// BLOCK_CHAT
 	void		BlockChat(TPacketBlockChat * p);
@@ -543,5 +535,3 @@ extern int g_item_count;
 extern int g_query_count[2];
 
 bool CreatePlayerTableFromRes(MYSQL_RES * res, TPlayerTable * pkTab);
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef __INC_METIN_II_GAME_CMD_H__
-#define __INC_METIN_II_GAME_CMD_H__
+#pragma once
 
 #include "typedef.h"
 
@@ -73,5 +72,3 @@ ACMD(do_all_skill_master);
 ACMD(do_item_full_set);
 ACMD(do_attr_full_set);
 ACMD(do_in_game_mall);
-
-#endif

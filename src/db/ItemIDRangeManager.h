@@ -1,6 +1,5 @@
 // vim:ts=4 sw=4
-#ifndef __INC_METIN_II_ITEM_ID_RANGE_MANAGER_H__
-#define __INC_METIN_II_ITEM_ID_RANGE_MANAGER_H__
+#pragma once
 
 #include <common/singleton.h>
 #include <common/tables.h>
@@ -26,5 +25,3 @@ class CItemIDRangeManager : public singleton<CItemIDRangeManager>
 
 		TItemIDRangeTable GetRange();
 };
-
-#endif

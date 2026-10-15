@@ -1,5 +1,4 @@
-#ifndef __INC_METIN_II_DB_MANAGER_H__
-#define __INC_METIN_II_DB_MANAGER_H__
+#pragma once
 
 #include "typedef.h"
 
@@ -33,7 +32,6 @@ enum
 	// BLOCK_CHAT
 	QID_BLOCK_CHAT_LIST,
 	// END_OF_BLOCK_CHAT
-
 
 	// PROTECT_CHILD_FOR_NEWCIBN
 	QID_PROTECT_CHILD,
@@ -70,7 +68,6 @@ class CFuncAfterQueryInfo : public CQueryInfo
 };
 
 class CLoginData;
-
 
 class DBManager : public singleton<DBManager>
 {
@@ -165,5 +162,3 @@ class AccountDB : public singleton<AccountDB>
 
 extern void CancelReloadSpamEvent();
 extern void LoadSpamDB();
-
-#endif

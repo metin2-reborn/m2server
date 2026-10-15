@@ -1,5 +1,4 @@
-#ifndef __INC_METIN_II_TEXTFILELOADER_H__
-#define __INC_METIN_II_TEXTFILELOADER_H__
+#pragma once
 
 #include "file_loader.h"
 #include "vector.h"
@@ -70,6 +69,3 @@ class CTextFileLoader
 		// every group node of every loaded file; released by DestroySystem
 		static std::deque<TGroupNode>			ms_groupNodes;
 };
-
-#endif
-

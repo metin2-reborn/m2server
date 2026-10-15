@@ -1,5 +1,4 @@
-#ifndef __INC_METIN_II_CHAR_H__
-#define __INC_METIN_II_CHAR_H__
+#pragma once
 
 #include "affect.h"
 #include "affect_flag.h"
@@ -419,7 +418,6 @@ typedef struct character_point_instant
 
 #define TRIGGERPARAM		CHARACTER * ch, CHARACTER * causer
 
-
 class CTrigger
 {
 	public:
@@ -712,7 +710,6 @@ class CHARACTER : public CEntity, public CFSM, public CHorseRider
 		void			SetRotation(float fRot);
 		void			SetRotationToXY(int32_t x, int32_t y);
 		float			GetRotation() const	{ return m_pointsInstant.fRot; }
-
 
 		void			ChatPacket(uint8_t type, const char *format, ...);
 		void			MonsterChat(uint8_t bMonsterChatType);
@@ -1199,7 +1196,6 @@ class CHARACTER : public CEntity, public CFSM, public CHorseRider
 		bool				CanBeginFight() const;
 		void				BeginFight(CHARACTER * pkVictim); // Starts fighting pkVictimr. (Forced; use CanBeginFight to check whether it can start)
 
-
 		bool				IsStun() const;
 		void				Stun();
 		bool				IsDead() const;
@@ -1425,7 +1421,6 @@ class CHARACTER : public CEntity, public CFSM, public CHorseRider
 		bool			IsChangeAttackPosition(CHARACTER * target) const;
 		void			ResetChangeAttackPositionTime() { m_dwLastChangeAttackPositionTime = get_dword_time() - AI_CHANGE_ATTACK_POISITION_TIME_NEAR;}
 		void			SetChangeAttackPositionTime() { m_dwLastChangeAttackPositionTime = get_dword_time();}
-
 
 		void			OnClick(CHARACTER * pkChrCauser);
 
@@ -1810,7 +1805,6 @@ class CHARACTER : public CEntity, public CFSM, public CHorseRider
 
 	public:
 
-
 	private:
 		int		m_deposit_pulse;
 
@@ -1980,5 +1974,3 @@ ESex GET_SEX(CHARACTER * ch);
 
 extern bool IS_SUMMONABLE_ZONE(int map_index);
 extern CHARACTER * FindVictim(CHARACTER * pkChr, int iMaxDistance);
-
-#endif

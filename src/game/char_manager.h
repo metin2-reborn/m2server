@@ -1,6 +1,4 @@
-#ifndef __INC_METIN_II_GAME_CHARACTER_MANAGER_H__
-#define __INC_METIN_II_GAME_CHARACTER_MANAGER_H__
-
+#pragma once
 
 #include "typedef.h"
 #include "vid.h"
@@ -156,6 +154,3 @@ class CharacterVectorInteractor : public CHARACTER_VECTOR
 	private:
 		bool m_bMyBegin;
 };
-
-
-#endif

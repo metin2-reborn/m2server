@@ -1,5 +1,4 @@
-#ifndef __MARRIAGE_H
-#define __MARRIAGE_H
+#pragma once
 
 #include "event.h"
 #include "typedef.h"
@@ -157,5 +156,3 @@ namespace marriage
 		}
 
 }
-
-#endif

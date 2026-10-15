@@ -67,6 +67,3 @@ extern void		event_cancel(LPEVENT * event);			// Cancel event
 extern int32_t		event_processing_time(LPEVENT event);	// Return execution time
 extern int32_t		event_time(LPEVENT event);			// Return remaining time
 extern void		event_reset_time(LPEVENT event, int32_t when);	// Reset execution time
-
-
-#endif
