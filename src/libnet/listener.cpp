@@ -48,6 +48,11 @@ namespace net {
         acceptor_.close(error);
     }
 
+    auto listener::port() const -> std::uint16_t {
+        std::error_code error;
+        return acceptor_.local_endpoint(error).port();
+    }
+
     void listener::accept() {
         acceptor_.async_accept([self = shared_from_this()](const std::error_code &error, tcp::socket socket) {
             if (!self->acceptor_.is_open()) {

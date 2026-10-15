@@ -20,6 +20,9 @@ namespace net {
 
         void close();
 
+        // The bound port, which tells the port picked when listening on port 0.
+        [[nodiscard]] auto port() const -> std::uint16_t;
+
       private:
         void accept();
 

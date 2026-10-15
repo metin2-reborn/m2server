@@ -1,0 +1,16 @@
+# Unit tests: one executable per area, each registered with CTest.
+function(m2_add_test name)
+    cmake_parse_arguments(PARSE_ARGV 1 TEST "" "" "SOURCES;LIBRARIES")
+    add_executable(${name} check_main.cpp ${TEST_SOURCES})
+    target_include_directories(${name} PRIVATE ${PROJECT_SOURCE_DIR}/src)
+    target_link_libraries(${name} PRIVATE ${TEST_LIBRARIES})
+    add_test(NAME ${name} COMMAND ${name})
+endfunction()
+
+m2_add_test(utils_tests SOURCES utils_tests.cpp LIBRARIES thecore)
+m2_add_test(grid_tests SOURCES grid_tests.cpp LIBRARIES game)
+m2_add_test(config_tests SOURCES config_tests.cpp ${PROJECT_SOURCE_DIR}/src/db/Config.cpp LIBRARIES thecore)
+m2_add_test(cipher_tests SOURCES cipher_tests.cpp ${PROJECT_SOURCE_DIR}/src/game/cipher.cpp LIBRARIES monocypher)
+m2_add_test(net_tests SOURCES net_tests.cpp LIBRARIES net thecore)
+m2_add_test(packet_sizes_tests SOURCES packet_sizes_tests.cpp LIBRARIES thecore)
+target_include_directories(packet_sizes_tests PRIVATE ${PROJECT_SOURCE_DIR}/src/game)

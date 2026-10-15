@@ -1,0 +1,90 @@
+#include "check.h"
+
+#include <common/utils.h>
+#include <libthecore/utils.h>
+
+#include <cstdint>
+#include <cstring>
+#include <string>
+
+TEST(str_to_number_parses_like_strtol) {
+    int value = -1;
+    CHECK(str_to_number(value, "42"));
+    CHECK_EQ(value, 42);
+
+    CHECK(str_to_number(value, "  +7 apples"));
+    CHECK_EQ(value, 7);
+
+    CHECK(str_to_number(value, "abc"));
+    CHECK_EQ(value, 0);
+
+    CHECK(!str_to_number(value, ""));
+    CHECK(!str_to_number(value, nullptr));
+}
+
+TEST(str_to_number_wraps_negative_unsigned) {
+    uint8_t byte = 0;
+    CHECK(str_to_number(byte, "-1"));
+    CHECK_EQ(byte, uint8_t{255});
+
+    bool flag = false;
+    CHECK(str_to_number(flag, "2"));
+    CHECK(flag);
+}
+
+TEST(str_to_number_reads_floats) {
+    float value = 0;
+    CHECK(str_to_number(value, "3.5"));
+    CHECK_EQ(value, 3.5f);
+}
+
+TEST(to_lower_is_ascii_only) {
+    std::string text = "MiXeD 가";
+    to_lower(text);
+    CHECK_EQ(text, std::string("mixed 가"));
+}
+
+TEST(trim_and_lower_trims_and_truncates) {
+    char buffer[16];
+    trim_and_lower("  HeLLo World \t", buffer, sizeof(buffer));
+    CHECK_EQ(std::string(buffer), std::string("hello world"));
+
+    char small[4];
+    trim_and_lower("ABCDEF", small, sizeof(small));
+    CHECK_EQ(std::string(small), std::string("abc"));
+
+    trim_and_lower(nullptr, buffer, sizeof(buffer));
+    CHECK_EQ(std::string(buffer), std::string(""));
+}
+
+TEST(parse_token_splits_config_lines) {
+    char line[] = "Map Allow: 1 21 41\r\n";
+    char token[32];
+    char value[32];
+    parse_token(line, token, value);
+    CHECK_EQ(std::string(token), std::string("mapallow"));
+    CHECK_EQ(std::string(value), std::string("1 21 41"));
+}
+
+TEST(utf8_truncation_keeps_whole_characters) {
+    const char *text = "가나다"; // three 3-byte characters
+    CHECK_EQ(utf8_sequence_length(static_cast<unsigned char>(text[0])), size_t{3});
+    CHECK_EQ(utf8_truncated_size(text, std::strlen(text), 7), size_t{6});
+    CHECK_EQ(utf8_truncated_size(text, std::strlen(text), 2), size_t{0});
+
+    char buffer[8];
+    CHECK_EQ(utf8_strlcpy(buffer, text, sizeof(buffer)), size_t{9});
+    CHECK_EQ(std::string(buffer), std::string("가나"));
+}
+
+TEST(number_stays_in_range) {
+    for (int i = 0; i < 1000; ++i) {
+        const int value = number(1, 6);
+        CHECK(value >= 1 && value <= 6);
+    }
+
+    // Swapped bounds are corrected.
+    const int swapped = number(10, 5);
+    CHECK(swapped >= 5 && swapped <= 10);
+    CHECK_EQ(number(3, 3), 3);
+}

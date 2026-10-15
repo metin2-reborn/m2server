@@ -11,6 +11,10 @@ configure:
 build: configure
     cmake --build build --parallel "${BUILD_JOBS:-4}"
 
+# Build natively and run the unit tests.
+test: build
+    ctest --test-dir build --output-on-failure
+
 # Build the image and (re)start the compose stack; volumes and the database are kept.
 deploy:
     # The containers run as a subuid that only gets the "other" permission bits on the mounted data.

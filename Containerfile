@@ -10,7 +10,7 @@ COPY src/ src/
 COPY vendor/ vendor/
 COPY CMakeLists.txt ./
 
-RUN cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX=/opt/metin2 \
+RUN cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX=/opt/metin2 -DBUILD_TESTING=OFF \
     && cmake --build build --parallel 4
 
 COPY dist/metin2-runtime dist/

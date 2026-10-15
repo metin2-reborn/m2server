@@ -35,6 +35,7 @@ src/
   libpoly/     polygon/expression library
   libsql/      asynchronous MariaDB access
   libthecore/  logging, timing, main loop
+tests/         unit tests (CTest)
 vendor/        third-party dependencies (fetched by CMake)
 dist/          runtime: launcher, configuration, game data, database dumps
 ```
@@ -113,6 +114,7 @@ podman compose down                   # stop (volumes are kept)
 ```sh
 just build                  # Debug build into build/
 BUILD_TYPE=Release just build
+just test                   # build, then run the unit tests with CTest
 just clean
 ```
 
