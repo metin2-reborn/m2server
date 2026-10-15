@@ -675,7 +675,7 @@ void CClientManager::RESULT_SAFEBOX_LOAD(CPeer * pkPeer, SQLMsg * msg)
 
 							dwSkillVnum = m_vec_skillTable[dwSkillIdx].dwVnum;
 
-							if (!dwSkillVnum > 120)
+							if (dwSkillVnum > 120)
 								continue;
 
 							break;

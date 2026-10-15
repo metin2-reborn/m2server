@@ -53,28 +53,28 @@ EVENTFUNC(regen_mob_event)
 
 	int iMapIndex = info->dwMapIndex;
 	
-	char filename[128];
+	std::string filename;
 	std::string szFilename(GetSungziMapPath());
 
 
 	int choice = quest::CQuestManager::instance().GetEventFlag("threeway_war_choice");
 	if (0 == choice)
-		sprintf (filename, "%sregen00.txt", GetSungziMapPath());
+		filename = szFilename + "regen00.txt";
 	else
 	{
-		sprintf (filename, "%sregen00_%d.txt", GetSungziMapPath(), choice);
+		filename = szFilename + "regen00_" + std::to_string(choice) + ".txt";
 	}
 
 	SECTREE_MAP * pkMap = SECTREE_MANAGER::instance().GetMap(iMapIndex);
 
 	if (nullptr != pkMap)
 	{
-		if (0 != choice)
-			if (regen_load_in_file(filename, iMapIndex, pkMap->m_setting.iBaseX, pkMap->m_setting.iBaseY))
-			{
-				sprintf (filename, "%sregen00.txt", GetSungziMapPath());
-				regen_load_in_file(filename, iMapIndex, pkMap->m_setting.iBaseX, pkMap->m_setting.iBaseY);
-			}
+		// A missing regen00_<choice>.txt falls back to regen00.txt.
+		if (!regen_load_in_file(filename.c_str(), iMapIndex, pkMap->m_setting.iBaseX, pkMap->m_setting.iBaseY) && 0 != choice)
+		{
+			filename = szFilename + "regen00.txt";
+			regen_load_in_file(filename.c_str(), iMapIndex, pkMap->m_setting.iBaseX, pkMap->m_setting.iBaseY);
+		}
 	}
 
 	return 0;

@@ -612,7 +612,7 @@ bool ITEM_MANAGER::ReadMonsterDropItemGroup(const char * c_pszFileName)
 		}
 		else if (strType == "drop")
 		{
-			CDropItemGroup* pkGroup;
+			CDropItemGroup* pkGroup = nullptr;
 			bool bNew = true;
 			auto it = m_map_pkDropItemGroup.find (iMobVnum);
 			if (it == m_map_pkDropItemGroup.end())
@@ -621,6 +621,7 @@ bool ITEM_MANAGER::ReadMonsterDropItemGroup(const char * c_pszFileName)
 			}
 			else
 			{
+				pkGroup = it->second;
 				bNew = false;
 			}
 
@@ -640,7 +641,8 @@ bool ITEM_MANAGER::ReadMonsterDropItemGroup(const char * c_pszFileName)
 						if (!ITEM_MANAGER::instance().GetTable(dwVnum))
 						{
 							sys_err("ReadDropItemGroup : there is no item %s : node %s", name.c_str(), stName.c_str());
-							delete pkGroup;
+							if (bNew)
+								delete pkGroup;
 
 							return false;
 						}
@@ -652,7 +654,8 @@ bool ITEM_MANAGER::ReadMonsterDropItemGroup(const char * c_pszFileName)
 					if (iCount < 1)
 					{
 						sys_err("ReadMonsterDropItemGroup : there is no count for item %s : node %s", name.c_str(), stName.c_str());
-						delete pkGroup;
+						if (bNew)
+							delete pkGroup;
 
 						return false;
 					}
