@@ -36,6 +36,7 @@
 #include <utility>
 #include <vector>
 
+#include <sys/stat.h>
 #include <sys/types.h>
 
 namespace
@@ -229,23 +230,17 @@ void CGuildManager::Initialize()
 
 	std::unique_ptr<SQLMsg> pmsg(DBManager::instance().DirectQuery("SELECT id FROM guild%s", get_table_postfix()));
 
-	std::vector<uint32_t> vecGuildID;
-	vecGuildID.reserve(pmsg->Get()->uiNumRows);
-
 	for (uint i = 0; i < pmsg->Get()->uiNumRows; i++)
 	{
 		MYSQL_ROW row = mysql_fetch_row(pmsg->Get()->pSQLResult);
 		uint32_t guild_id = strtoul(row[0], (char**) nullptr, 10);
 		LoadGuild(guild_id);
-
-		vecGuildID.push_back(guild_id);
 	}
 
 	CGuildMarkManager & rkMarkMgr = CGuildMarkManager::instance();
 
 	rkMarkMgr.SetMarkPathPrefix("mark");
-
-	GuildMarkConvert(vecGuildID);
+	mkdir("mark", S_IRWXU);	// the container launcher creates it already
 
 	rkMarkMgr.LoadMarkIndex();
 	rkMarkMgr.LoadMarkImages();

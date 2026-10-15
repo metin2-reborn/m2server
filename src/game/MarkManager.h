@@ -81,7 +81,3 @@ class CGuildMarkManager : public singleton<CGuildMarkManager>
 		//
 		std::map<uint32_t, TGuildSymbol> m_mapSymbol;
 };
-
-extern bool GuildMarkConvert(const std::vector<uint32_t> & vecGuildID);
-
-#endif
