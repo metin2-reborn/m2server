@@ -51,7 +51,7 @@ quest guild_building begin
 					if s==1 then
 						local old_vid = pc. select(u_vid , u_vid )
 						local curTime=get_time()
-						pc.setqf("new_withdraw_time", curTime-withdrawDelay*86400)
+						pc.setqf("new_disband_time", curTime-withdrawDelay*86400)
 						pc.setqf("new_withdraw_time", curTime-disbandDelay*86400)
 						pc. select(old_vid , old_vid )
 					end
