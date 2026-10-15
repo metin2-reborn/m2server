@@ -14,29 +14,38 @@ small container stack next to MariaDB.
 - **Modern C++:** C++23, standalone Asio for networking, X25519 + ChaCha20 (Monocypher) for connection
   encryption.
 - **UTF-8 end to end:** text in the code, the game data and the database is UTF-8.
-- **Simple deployment:** one image with the binaries; configuration and game data are mounted, not baked in.
+- **One binary:** a single `server` executable runs as the database cache, the login server or a game
+  channel, chosen by its TOML configuration.
+- **Simple deployment:** one image with the binary; configuration and game data are mounted, not baked in.
 
 ## Components
 
-| Process          | Description                                                    | Port             |
-|------------------|----------------------------------------------------------------|------------------|
-| `db`             | Database cache between the game processes and MariaDB          | 15000 (internal) |
-| `auth`           | Login server (`server` binary in auth mode)                    | 11000            |
-| `channel1-first` | Game server for channel 1, serving every map (`server` binary) | 13000, P2P 14000 |
+Every process runs the same `server` binary; the `role` in its configuration decides what it does.
 
-Source layout:
+| Service          | Role   | Description                                           | Port             |
+|------------------|--------|-------------------------------------------------------|------------------|
+| `db`             | `db`   | Database cache between the game processes and MariaDB | 15000 (internal) |
+| `auth`           | `auth` | Login server                                          | 11000            |
+| `channel1-first` | `game` | Game server for channel 1, serving every map          | 13000, P2P 14000 |
+
+Source layout: folders match namespaces, all under `metin2`, and headers are included as
+`<metin2/...>`.
 
 ```
-src/
-  game/        game server (the `server` executable)
-  db/          database cache (the `db` executable)
-  common/      shared tables and packet definitions
-  libgame/     game helpers (grids, attributes)
-  libnet/      networking on top of Asio
-  libpoly/     polygon/expression library
-  libsql/      asynchronous MariaDB access
-  libthecore/  logging, timing, main loop
+src/metin2/
+  main.cpp     entry point: loads the configuration and starts the role
+  config/      TOML configuration (metin2::config)
+  log/         logging (metin2::log)
+  core/        main loop, timing, utilities
+  net/         networking on top of Asio
+  sql/         asynchronous MariaDB access
+  poly/        expression evaluator
+  common/      shared helpers (grids, caches, singletons)
+  proto/       tables and packets shared between processes
+  db/          database cache (metin2::db): clients, caches, login, guilds, ...
+  game/        game and login server (metin2::game): characters, items, quests, protocol, ...
 tests/         unit tests (CTest)
+tools/         maintenance tools (identifier rename, quest compiler)
 vendor/        third-party dependencies (fetched by CMake)
 dist/          runtime: launcher, configuration, game data, database dumps
 ```
@@ -50,7 +59,7 @@ To build natively:
 - CMake 3.25+ and Ninja
 - Development packages for OpenSSL, zlib, LZO 2, MariaDB Connector/C (3.4+) and pkg-config
 
-Asio, Lua 5.0, Monocypher and stb are downloaded by CMake during configuration.
+Asio, Lua 5.0, Monocypher, stb and toml++ are downloaded by CMake during configuration.
 
 On Debian or Ubuntu:
 
@@ -126,25 +135,54 @@ cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 ```
 
-The binaries end up in `build/bin/` (`server` and `db`). `just build` also links `compile_commands.json`
-into the project root for editors and `clang-tidy`.
+The binary ends up in `build/bin/server`. `just build` also links `compile_commands.json` into the project
+root for editors and `clang-tidy`.
 
 ## Runtime layout
 
 | Path on the host           | Mounted at                | Contents                               |
 |----------------------------|---------------------------|----------------------------------------|
 | `dist/share`               | `/srv/metin2/share`       | Game data, locale and quests           |
-| `dist/config/<service>`    | `/srv/metin2/config`      | Per-service configuration              |
+| `dist/config/<service>`    | `/srv/metin2/config`      | Per-service `server.toml`              |
 | `dist/mariadb`             | MariaDB container         | Server settings, init script and dumps |
 
-`dist/metin2-runtime` is the container entrypoint: it fills in the configuration from the environment,
-waits for its dependencies and starts the right binary. Files under `dist/share` and `dist/config` must be
+`dist/metin2-runtime` is the container entrypoint: it writes a `runtime.toml` with the values that come
+from the environment (database credentials, addresses, admin password), waits for its dependencies and
+starts `server`, which reads `server.toml` and then `runtime.toml` on top of it. Files under `dist/share` and `dist/config` must be
 world-readable, since rootless containers access them as an unprivileged user (`just deploy` takes care
 of this).
 
+## Configuration
+
+Each process reads `server.toml` from its working directory. A minimal game channel:
+
+```toml
+role = "game"            # "db", "auth" or "game"
+
+[log]
+level = "info"           # "debug", "info", "warn" or "error"
+
+[server]
+hostname = "first"
+channel = 1
+port = 13000
+p2p_port = 14000
+db_host = "127.0.0.1"
+db_port = 15000
+
+[game]
+map_allow = [1, 3, 4]
+```
+
+Unknown keys, missing required keys and values of the wrong type stop the server at startup, with the
+file and line of the problem. The files in `dist/config` show every section in use;
+`src/metin2/config/settings.h` lists all options.
+
 ## Contributing
 
-Code style is defined by `.clang-format` and `.clang-tidy` in the repository root. 
+Code style is defined by `.clang-format` and `.clang-tidy` in the repository root. Names follow the
+standard library: `snake_case` for namespaces, types, functions and variables, a trailing `_` for private
+and protected data members, `UPPER_CASE` for constants and enumerators. `clang-tidy` checks this.
 
 Please format new code with `clang-format` and keep headers self-contained.
 
