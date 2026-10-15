@@ -5,6 +5,32 @@ Checks: >
   modernize-use-override,
   modernize-use-ranges,
   modernize-use-equals-default,
-  modernize-use-auto
+  modernize-use-auto,
+  readability-identifier-naming
 WarningsAsErrors: ''
 HeaderFilterRegex: '.*/src/.*'
+# snake_case like the standard library: types, functions, members and globals; private and protected
+# data members end in `_`. Locals, parameters, static members, enumerators, constants and macros are
+# not checked.
+CheckOptions:
+  readability-identifier-naming.NamespaceCase: lower_case
+  readability-identifier-naming.ClassCase: lower_case
+  readability-identifier-naming.StructCase: lower_case
+  readability-identifier-naming.UnionCase: lower_case
+  readability-identifier-naming.EnumCase: lower_case
+  readability-identifier-naming.TypeAliasCase: lower_case
+  readability-identifier-naming.TypedefCase: lower_case
+  readability-identifier-naming.FunctionCase: lower_case
+  readability-identifier-naming.MethodCase: lower_case
+  readability-identifier-naming.PublicMemberCase: lower_case
+  readability-identifier-naming.PrivateMemberCase: lower_case
+  readability-identifier-naming.PrivateMemberSuffix: _
+  readability-identifier-naming.ProtectedMemberCase: lower_case
+  readability-identifier-naming.ProtectedMemberSuffix: _
+  readability-identifier-naming.GlobalVariableCase: lower_case
+  readability-identifier-naming.GlobalConstantIgnoredRegexp: '.*'
+  readability-identifier-naming.ConstexprVariableIgnoredRegexp: '.*'
+  readability-identifier-naming.ClassConstantIgnoredRegexp: '.*'
+  readability-identifier-naming.ClassMemberIgnoredRegexp: '.*'
+  readability-identifier-naming.StaticConstantIgnoredRegexp: '.*'
+  readability-identifier-naming.StaticVariableIgnoredRegexp: '.*'
