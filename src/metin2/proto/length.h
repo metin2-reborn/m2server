@@ -601,9 +601,9 @@ using item_pos = struct item_pos {
         cell = WORD_MAX;
     }
 
-    item_pos(uint8_t _window_type, uint16_t _cell) {
-        window_type = _window_type;
-        cell = _cell;
+    item_pos(uint8_t window_type_value, uint16_t cell_value) {
+        window_type = window_type_value;
+        cell = cell_value;
     }
 
     auto is_valid_item_position() const -> bool {

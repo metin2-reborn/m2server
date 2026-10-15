@@ -159,7 +159,7 @@ bool item_manager::initialize(item_table * table_value, int size)
 	return true;
 }
 
-item * item_manager::create_item(uint32_t vnum, uint32_t count, uint32_t id, bool bTryMagic, int iRarePct, bool bSkipSave)
+item * item_manager::create_item(uint32_t vnum, uint32_t count, uint32_t id, bool try_magic, int rare_pct, bool skip_save)
 {
 	if (0 == vnum)
 		return nullptr;
@@ -251,7 +251,7 @@ item * item_manager::create_item(uint32_t vnum, uint32_t count, uint32_t id, boo
 	{
 		count = std::clamp<int>(count, 1, ITEM_MAX_COUNT);
 
-		if (bTryMagic && count <= 1 && is_set(item->flag(), ITEM_FLAG_MAKECOUNT))
+		if (try_magic && count <= 1 && is_set(item->flag(), ITEM_FLAG_MAKECOUNT))
 			count = item->value(1);
 	}
 	else
@@ -259,10 +259,10 @@ item * item_manager::create_item(uint32_t vnum, uint32_t count, uint32_t id, boo
 
 	item->set_vid(++vid_count_);
 
-	if (bSkipSave == false)
+	if (skip_save == false)
 		vid_map_.insert(item_vid_map::value_type(item->get_vid(), item));
 
-	if (item->id() != 0 && bSkipSave == false)
+	if (item->id() != 0 && skip_save == false)
 		map_pk_item_by_id_.insert(std::map<uint32_t, game::items::item *>::value_type(item->id(), item));
 
 	if (!item->set_count(count))
@@ -330,12 +330,12 @@ item * item_manager::create_item(uint32_t vnum, uint32_t count, uint32_t id, boo
 			item->apply_addon(table_value->s_addon_type);
 		}
 
-		if (bTryMagic)
+		if (try_magic)
 		{
-			if (iRarePct == -1)
-				iRarePct = table_value->alter_to_magic_item_pct;
+			if (rare_pct == -1)
+				rare_pct = table_value->alter_to_magic_item_pct;
 
-			if (number(1, 100) <= iRarePct)
+			if (number(1, 100) <= rare_pct)
 				item->alter_to_magic_item();
 		}
 
@@ -473,7 +473,7 @@ void item_manager::update()
 	}
 }
 
-void item_manager::remove_item(item * item, const char * c_pszReason)
+void item_manager::remove_item(item * item, const char * reason)
 {
 	character * o;
 
@@ -481,7 +481,7 @@ void item_manager::remove_item(item * item, const char * c_pszReason)
 	{
 		char szHint[64];
 		snprintf(szHint, sizeof(szHint), "%s %u ", item->name(), item->count());
-		log_manager::instance().item_log(o, item, c_pszReason ? c_pszReason : "REMOVE", szHint);
+		log_manager::instance().item_log(o, item, reason ? reason : "REMOVE", szHint);
 
 		// SAFEBOX_TIME_LIMIT_ITEM_BUG_FIX
 		if (item->window() == MALL || item->window() == SAFEBOX)
@@ -617,17 +617,17 @@ int item_manager::real_number(uint32_t vnum)
 	}
 }
 
-bool item_manager::vnum(const char * c_pszName, uint32_t & r_dwVnum)
+bool item_manager::vnum(const char * name, uint32_t & r_dw_vnum)
 {
-	int len = strlen(c_pszName);
+	int len = strlen(name);
 
 	item_table * pTable = &vec_prototype_[0];
 
 	for (uint32_t i = 0; i < vec_prototype_.size(); ++i, ++pTable)
 	{
-		if (!strncasecmp(c_pszName, pTable->locale_name, len))
+		if (!strncasecmp(name, pTable->locale_name, len))
 		{
-			r_dwVnum = pTable->vnum;
+			r_dw_vnum = pTable->vnum;
 			return true;
 		}
 	}
@@ -635,17 +635,17 @@ bool item_manager::vnum(const char * c_pszName, uint32_t & r_dwVnum)
 	return false;
 }
 
-bool item_manager::vnum_by_original_name(const char * c_pszName, uint32_t & r_dwVnum)
+bool item_manager::vnum_by_original_name(const char * name_value, uint32_t & r_dw_vnum)
 {
-	int len = strlen(c_pszName);
+	int len = strlen(name_value);
 
 	item_table * pTable = &vec_prototype_[0];
 
 	for (uint32_t i = 0; i < vec_prototype_.size(); ++i, ++pTable)
 	{
-		if (!strncasecmp(c_pszName, pTable->name, len))
+		if (!strncasecmp(name_value, pTable->name, len))
 		{
-			r_dwVnum = pTable->vnum;
+			r_dw_vnum = pTable->vnum;
 			return true;
 		}
 	}
@@ -659,19 +659,19 @@ std::set<uint32_t> set_lotto;
 // 20050503.ipkn.
 // If less than iMinimum, set iDefault (iMinimum must be greater than 0)
 // Exists to support ON/OFF switching as 1, 0
-int get_drop_per_kill_pct(int iMinimum, int iDefault, int iDeltaPercent, const char * c_pszFlag)
+int get_drop_per_kill_pct(int minimum, int fallback, int delta_percent, const char * flag)
 {
 	int iVal = 0;
 
-	if ((iVal = quest::quest_manager::instance().event_flag(c_pszFlag)))
+	if ((iVal = quest::quest_manager::instance().event_flag(flag)))
 	{
 		if (!metin2::config::test_server())
 		{
-			if (iVal < iMinimum)
-				iVal = iDefault;
+			if (iVal < minimum)
+				iVal = fallback;
 
 			if (iVal < 0)
-				iVal = iDefault;
+				iVal = fallback;
 		}
 	}
 
@@ -680,58 +680,58 @@ int get_drop_per_kill_pct(int iMinimum, int iDefault, int iDeltaPercent, const c
 
 	// Default setting (iDeltaPercent=100) 
 	// Constant meant to give a feel of one per 40000 iVal mobs
-	return (40000 * iDeltaPercent / iVal);
+	return (40000 * delta_percent / iVal);
 }
 
-bool item_manager::drop_pct(character * pkChr, character * pkKiller, int& iDeltaPercent, int& iRandRange)
+bool item_manager::drop_pct(character * chr, character * killer, int& delta_percent, int& rand_range)
 {
- 	if (nullptr == pkChr || nullptr == pkKiller)
+ 	if (nullptr == chr || nullptr == killer)
 		return false;
 
-	int iLevel = pkKiller->level();
-	iDeltaPercent = 100;
+	int iLevel = killer->level();
+	delta_percent = 100;
 
-	if (!pkChr->is_stone() && pkChr->get_mob_rank() >= MOB_RANK_BOSS)
-		iDeltaPercent = percent_lvdelta_boss(pkKiller->level(), pkChr->level());
+	if (!chr->is_stone() && chr->get_mob_rank() >= MOB_RANK_BOSS)
+		delta_percent = percent_lvdelta_boss(killer->level(), chr->level());
 	else
-		iDeltaPercent = percent_lvdelta(pkKiller->level(), pkChr->level());
+		delta_percent = percent_lvdelta(killer->level(), chr->level());
 
-	uint8_t bRank = pkChr->get_mob_rank();
+	uint8_t bRank = chr->get_mob_rank();
 
 	if (1 == number(1, 50000))
-		iDeltaPercent += 1000;
+		delta_percent += 1000;
 	else if (1 == number(1, 10000))
-		iDeltaPercent += 500;
+		delta_percent += 500;
 
-	metin2::log::debug( "CreateDropItem for level: {:d} rank: {:d} pct: {:d}", iLevel, bRank, iDeltaPercent);
-	iDeltaPercent = iDeltaPercent * character_manager::instance().mob_item_rate(pkKiller) / 100;
+	metin2::log::debug( "CreateDropItem for level: {:d} rank: {:d} pct: {:d}", iLevel, bRank, delta_percent);
+	delta_percent = delta_percent * character_manager::instance().mob_item_rate(killer) / 100;
 
 	// ADD_PREMIUM
-	if (pkKiller->premium_remain_seconds(PREMIUM_ITEM) > 0 ||
-			pkKiller->is_equip_unique_group(UNIQUE_GROUP_DOUBLE_ITEM))
-		iDeltaPercent += iDeltaPercent;
+	if (killer->premium_remain_seconds(PREMIUM_ITEM) > 0 ||
+			killer->is_equip_unique_group(UNIQUE_GROUP_DOUBLE_ITEM))
+		delta_percent += delta_percent;
 	// END_OF_ADD_PREMIUM
 
-	iRandRange = 4000000;
-	iRandRange = iRandRange * 100 / 
+	rand_range = 4000000;
+	rand_range = rand_range * 100 / 
 		(100 +
-		 priv_manager::instance().priv(pkKiller, PRIV_ITEM_DROP) +
-		 (pkKiller->is_equip_unique_item(UNIQUE_ITEM_DOUBLE_ITEM) ? 100 : 0));
+		 priv_manager::instance().priv(killer, PRIV_ITEM_DROP) +
+		 (killer->is_equip_unique_item(UNIQUE_ITEM_DOUBLE_ITEM) ? 100 : 0));
 
-	if (metin2::config::game().distribution_test_server) iRandRange /= 3;
+	if (metin2::config::game().distribution_test_server) rand_range /= 3;
 
 	return true;
 }
 
-bool item_manager::create_drop_item(character * pkChr, character * pkKiller, std::vector<item *> & vec_item)
+bool item_manager::create_drop_item(character * chr, character * killer, std::vector<item *> & vec_item)
 {
-	int iLevel = pkKiller->level();
+	int iLevel = killer->level();
 
 	int iDeltaPercent, iRandRange;
-	if (!drop_pct(pkChr, pkKiller, iDeltaPercent, iRandRange))
+	if (!drop_pct(chr, killer, iDeltaPercent, iRandRange))
 		return false;
 
-	uint8_t bRank = pkChr->get_mob_rank();
+	uint8_t bRank = chr->get_mob_rank();
 	item * item = nullptr;
 
 	// Common Drop Items
@@ -758,12 +758,12 @@ bool item_manager::create_drop_item(character * pkChr, character * pkKiller, std
 
 			if (table_value->type == ITEM_POLYMORPH)
 			{
-				if (c_rInfo.vnum == pkChr->polymorph_item_vnum())
+				if (c_rInfo.vnum == chr->polymorph_item_vnum())
 				{
 					item = create_item(c_rInfo.vnum, 1, 0, true);
 
 					if (item)
-						item->set_socket(0, pkChr->race_num());
+						item->set_socket(0, chr->race_num());
 				}
 			}
 			else
@@ -776,7 +776,7 @@ bool item_manager::create_drop_item(character * pkChr, character * pkKiller, std
 	// Drop Item Group
 	{
 		decltype(map_pk_drop_item_group_.begin()) it;
-		it = map_pk_drop_item_group_.find(pkChr->race_num());
+		it = map_pk_drop_item_group_.find(chr->race_num());
 
 		if (it != map_pk_drop_item_group_.end())
 		{
@@ -794,9 +794,9 @@ bool item_manager::create_drop_item(character * pkChr, character * pkKiller, std
 					{
 						if (item->type() == ITEM_POLYMORPH)
 						{
-							if (item->vnum() == pkChr->polymorph_item_vnum())
+							if (item->vnum() == chr->polymorph_item_vnum())
 							{
-								item->set_socket(0, pkChr->race_num());
+								item->set_socket(0, chr->race_num());
 							}
 						}
 
@@ -810,7 +810,7 @@ bool item_manager::create_drop_item(character * pkChr, character * pkKiller, std
 	// MobDropItem Group
 	{
 		decltype(map_pk_mob_item_group_.begin()) it;
-		it = map_pk_mob_item_group_.find(pkChr->race_num());
+		it = map_pk_mob_item_group_.find(chr->race_num());
 
 		if ( it != map_pk_mob_item_group_.end() )
 		{
@@ -836,7 +836,7 @@ bool item_manager::create_drop_item(character * pkChr, character * pkKiller, std
 	// Level Item Group
 	{
 		decltype(map_pk_level_item_group_.begin()) it;
-		it = map_pk_level_item_group_.find(pkChr->race_num());
+		it = map_pk_level_item_group_.find(chr->race_num());
 
 		if ( it != map_pk_level_item_group_.end() )
 		{
@@ -859,11 +859,11 @@ bool item_manager::create_drop_item(character * pkChr, character * pkKiller, std
 	
 	// BuyerTheitGloves Item Group
 	{
-		if (pkKiller->premium_remain_seconds(PREMIUM_ITEM) > 0 ||
-				pkKiller->is_equip_unique_group(UNIQUE_GROUP_DOUBLE_ITEM))
+		if (killer->premium_remain_seconds(PREMIUM_ITEM) > 0 ||
+				killer->is_equip_unique_group(UNIQUE_GROUP_DOUBLE_ITEM))
 		{
 			decltype(map_pk_glove_item_group_.begin()) it;
-			it = map_pk_glove_item_group_.find(pkChr->race_num());
+			it = map_pk_glove_item_group_.find(chr->race_num());
 
 			if (it != map_pk_glove_item_group_.end())
 			{
@@ -885,9 +885,9 @@ bool item_manager::create_drop_item(character * pkChr, character * pkKiller, std
 	}
 	
 	// Junk items
-	if (pkChr->mob_drop_item_vnum())
+	if (chr->mob_drop_item_vnum())
 	{
-		auto it = map_dw_etc_item_drop_prob_.find(pkChr->mob_drop_item_vnum());
+		auto it = map_dw_etc_item_drop_prob_.find(chr->mob_drop_item_vnum());
 
 		if (it != map_dw_etc_item_drop_prob_.end())
 		{
@@ -895,27 +895,27 @@ bool item_manager::create_drop_item(character * pkChr, character * pkKiller, std
 
 			if (iPercent >= number(1, iRandRange))
 			{
-				item = create_item(pkChr->mob_drop_item_vnum(), 1, 0, true);
+				item = create_item(chr->mob_drop_item_vnum(), 1, 0, true);
 				if (item) vec_item.push_back(item);
 			}
 		}
 	}
 
-	if (pkChr->is_stone())
+	if (chr->is_stone())
 	{
-		if (pkChr->drop_metin_stone_vnum())
+		if (chr->drop_metin_stone_vnum())
 		{
-			int iPercent = (pkChr->drop_metin_stone_pct() * iDeltaPercent) * 400;
+			int iPercent = (chr->drop_metin_stone_pct() * iDeltaPercent) * 400;
 
 			if (iPercent >= number(1, iRandRange))
 			{
-				item = create_item(pkChr->drop_metin_stone_vnum(), 1, 0, true);
+				item = create_item(chr->drop_metin_stone_vnum(), 1, 0, true);
 				if (item) vec_item.push_back(item);
 			}
 		}
 	}
 
-	if (pkKiller->is_horse_riding() && 
+	if (killer->is_horse_riding() && 
 			get_drop_per_kill_pct(1000, 1000000, iDeltaPercent, "horse_skill_book_drop") >= number(1, iRandRange))
 	{
 		metin2::log::info( "EVENT HORSE_SKILL_BOOK_DROP");
@@ -934,15 +934,15 @@ bool item_manager::create_drop_item(character * pkChr, character * pkKiller, std
 		pdw[2] = quest::quest_manager::instance().event_flag("lotto_round");
 
 		// Set the socket for the Book of Fortune
-		db_manager::instance().return_query(QID_LOTTO, pkKiller->player_id(), pdw,
+		db_manager::instance().return_query(QID_LOTTO, killer->player_id(), pdw,
 				"INSERT INTO lotto_list VALUES(0, 'server%s', %u, NOW())",
-				get_table_postfix(), pkKiller->player_id());
+				get_table_postfix(), killer->player_id());
 	}
 
 	//
 	// Special drop items
 	// 
-	create_quest_drop_item(pkChr, pkKiller, vec_item, iDeltaPercent, iRandRange);
+	create_quest_drop_item(chr, killer, vec_item, iDeltaPercent, iRandRange);
 
 	for (auto it = vec_item.begin(); it != vec_item.end(); ++it)
 	{
@@ -1019,7 +1019,7 @@ static int drop_event_char_stone_get_drop_percent(int killer_level)
 	return gs_drop_event_char_stone.percent_lv31_mx;
 }
 
-static void drop_event_char_stone_drop_item(character & killer, character & victim, item_manager& itemMgr, std::vector<item *>& vec_item)
+static void drop_event_char_stone_drop_item(character & killer, character & victim, item_manager& item_mgr, std::vector<item *>& vec_item)
 {
 	if (!gs_drop_event_char_stone.alive)
 		return;
@@ -1048,7 +1048,7 @@ static void drop_event_char_stone_drop_item(character & killer, character & vict
 
 		item * p_item = nullptr;
 
-		if ((p_item = itemMgr.create_item(item_vnum, 1, 0, true)))
+		if ((p_item = item_mgr.create_item(item_vnum, 1, 0, true)))
 		{
 			vec_item.push_back(p_item);
 
@@ -1119,7 +1119,7 @@ static struct drop_event_refine_box
 	}
 } gs_drop_event_refine_box;
 
-static item * drop_event_refine_box_get_drop_item(character & killer, character & victim, item_manager& itemMgr)
+static item * drop_event_refine_box_get_drop_item(character & killer, character & victim, item_manager& item_mgr)
 {
 	static const int lowerBox[] = { 50197, 50198, 50199 };
 	static const int lowerBox_range = 3;
@@ -1137,33 +1137,33 @@ static item * drop_event_refine_box_get_drop_item(character & killer, character 
 	{
 		if (number (1, gs_drop_event_refine_box.percent_low) == 1)
 		{
-			return itemMgr.create_item(lowerBox [number (1,lowerBox_range) - 1], 1, 0, true);
+			return item_mgr.create_item(lowerBox [number (1,lowerBox_range) - 1], 1, 0, true);
 		}
 	}
 	else if (killer_level <= gs_drop_event_refine_box.mid)
 	{
 		if (number (1, gs_drop_event_refine_box.percent_mid) == 1)
 		{
-			return itemMgr.create_item(midderBox [number (1,midderBox_range) - 1], 1, 0, true);
+			return item_mgr.create_item(midderBox [number (1,midderBox_range) - 1], 1, 0, true);
 		}
 	}
 	else
 	{
 		if (number (1, gs_drop_event_refine_box.percent_high) == 1)
 		{
-			return itemMgr.create_item(higherBox [number (1,higherBox_range) - 1], 1, 0, true);
+			return item_mgr.create_item(higherBox [number (1,higherBox_range) - 1], 1, 0, true);
 		}
 	}
 	return nullptr;
 }
 
-static void drop_event_refine_box_drop_item(character & killer, character & victim, item_manager& itemMgr, std::vector<item *>& vec_item)
+static void drop_event_refine_box_drop_item(character & killer, character & victim, item_manager& item_mgr, std::vector<item *>& vec_item)
 {
 	if (!gs_drop_event_refine_box.alive)
 		return;
 
 
-	item * p_item = drop_event_refine_box_get_drop_item(killer, victim, itemMgr);
+	item * p_item = drop_event_refine_box_get_drop_item(killer, victim, item_mgr);
 
 	if (p_item)
 	{
@@ -1206,22 +1206,22 @@ bool drop_event_refine_box_set_value(const std::string& name, int value)
 // Improved item reward end.
 
 
-void item_manager::create_quest_drop_item(character * pkChr, character * pkKiller, std::vector<item *> & vec_item, int iDeltaPercent, int iRandRange)
+void item_manager::create_quest_drop_item(character * chr, character * killer, std::vector<item *> & vec_item, int delta_percent, int rand_range)
 {
 	item * item = nullptr;
 
-	if (!pkChr)
+	if (!chr)
 		return;
 
-	if (!pkKiller)
+	if (!killer)
 		return;
 
-	metin2::log::debug( "CreateQuestDropItem victim({}), killer({})", pkChr->name(), pkKiller->name() );
+	metin2::log::debug( "CreateQuestDropItem victim({}), killer({})", chr->name(), killer->name() );
 
 	// DROPEVENT_CHARSTONE
-	drop_event_char_stone_drop_item(*pkKiller, *pkChr, *this, vec_item);
+	drop_event_char_stone_drop_item(*killer, *chr, *this, vec_item);
 	// END_OF_DROPEVENT_CHARSTONE
-	drop_event_refine_box_drop_item(*pkKiller, *pkChr, *this, vec_item);
+	drop_event_refine_box_drop_item(*killer, *chr, *this, vec_item);
 
 	// Christmas sock
 	if (quest::quest_manager::instance().event_flag("xmas_sock"))
@@ -1239,13 +1239,13 @@ void item_manager::create_quest_drop_item(character * pkChr, character * pkKille
 			0,
 		};
 
-		if ( iDropPerKill[pkChr->get_mob_rank()] != 0 )
+		if ( iDropPerKill[chr->get_mob_rank()] != 0 )
 		{
-			int iPercent = 40000 * iDeltaPercent / iDropPerKill[pkChr->get_mob_rank()];
+			int iPercent = 40000 * delta_percent / iDropPerKill[chr->get_mob_rank()];
 
 
-			metin2::log::info( "SOCK DROP {:d} {:d}", iPercent, iRandRange);
-			if (iPercent >= number(1, iRandRange))
+			metin2::log::info( "SOCK DROP {:d} {:d}", iPercent, rand_range);
+			if (iPercent >= number(1, rand_range))
 			{
 				if ((item = create_item(SOCK_ITEM_VNUM, 1, 0, true)))
 					vec_item.push_back(item);
@@ -1268,11 +1268,11 @@ void item_manager::create_quest_drop_item(character * pkChr, character * pkKille
 			0,
 		};
 
-		if (iDropPerKill[pkChr->get_mob_rank()])
+		if (iDropPerKill[chr->get_mob_rank()])
 		{
-			int iPercent = 40000 * iDeltaPercent / iDropPerKill[pkChr->get_mob_rank()];
+			int iPercent = 40000 * delta_percent / iDropPerKill[chr->get_mob_rank()];
 
-			if (iPercent >= number(1, iRandRange))
+			if (iPercent >= number(1, rand_range))
 			{
 				if ((item = create_item(ITEM_VNUM, 1, 0, true)))
 					vec_item.push_back(item);
@@ -1280,7 +1280,7 @@ void item_manager::create_quest_drop_item(character * pkChr, character * pkKille
 		}
 	}
 
-	if (pkKiller->level() >= 15 && abs(pkKiller->level() - pkChr->level()) <= 5)
+	if (killer->level() >= 15 && abs(killer->level() - chr->level()) <= 5)
 	{
 		int pct = quest::quest_manager::instance().event_flag("hc_drop");
 
@@ -1297,7 +1297,7 @@ void item_manager::create_quest_drop_item(character * pkChr, character * pkKille
 	}
 
 	//Hexagonal treasure box
-	if (get_drop_per_kill_pct(100, 2000, iDeltaPercent, "2006_drop") >= number(1, iRandRange))
+	if (get_drop_per_kill_pct(100, 2000, delta_percent, "2006_drop") >= number(1, rand_range))
 	{
 		metin2::log::info( "육각보합 DROP EVENT ");
 
@@ -1309,7 +1309,7 @@ void item_manager::create_quest_drop_item(character * pkChr, character * pkKille
 	}
 
 	//Hexagonal treasure box+
-	if (get_drop_per_kill_pct(100, 2000, iDeltaPercent, "2007_drop") >= number(1, iRandRange))
+	if (get_drop_per_kill_pct(100, 2000, delta_percent, "2007_drop") >= number(1, rand_range))
 	{
 		metin2::log::info( "육각보합 DROP EVENT ");
 
@@ -1320,7 +1320,7 @@ void item_manager::create_quest_drop_item(character * pkChr, character * pkKille
 	}
 
 	// New Year firecracker event
-	if (get_drop_per_kill_pct(/* minimum */ 100, /* default */ 1000, iDeltaPercent, "newyear_fire") >= number(1, iRandRange))
+	if (get_drop_per_kill_pct(/* minimum */ 100, /* default */ 1000, delta_percent, "newyear_fire") >= number(1, rand_range))
 	{
 		// Firecrackers in China, spinning tops in Korea
 		const uint32_t ITEM_VNUM_FIRE = 50107;
@@ -1330,7 +1330,7 @@ void item_manager::create_quest_drop_item(character * pkChr, character * pkKille
 	}
 
 	// New Year full-moon festival event
-	if (get_drop_per_kill_pct(100, 500, iDeltaPercent, "newyear_moon") >= number(1, iRandRange))
+	if (get_drop_per_kill_pct(100, 500, delta_percent, "newyear_moon") >= number(1, rand_range))
 	{
 		metin2::log::info( "EVENT NEWYEAR_MOON DROP");
 
@@ -1342,7 +1342,7 @@ void item_manager::create_quest_drop_item(character * pkChr, character * pkKille
 	}
 
 	// Valentine's Day event. Changed event minimum to 1 at OGE's request. (Other events left as they are for now.)
-	if (get_drop_per_kill_pct(1, 2000, iDeltaPercent, "valentine_drop") >= number(1, iRandRange))
+	if (get_drop_per_kill_pct(1, 2000, delta_percent, "valentine_drop") >= number(1, rand_range))
 	{
 		metin2::log::info( "EVENT VALENTINE_DROP");
 
@@ -1354,7 +1354,7 @@ void item_manager::create_quest_drop_item(character * pkChr, character * pkKille
 	}
 
 	// Ice cream event
-	if (get_drop_per_kill_pct(100, 2000, iDeltaPercent, "icecream_drop") >= number(1, iRandRange))
+	if (get_drop_per_kill_pct(100, 2000, delta_percent, "icecream_drop") >= number(1, rand_range))
 	{
 		const static uint32_t icecream = 50123;
 
@@ -1364,19 +1364,19 @@ void item_manager::create_quest_drop_item(character * pkChr, character * pkKille
 
 	// new Christmas event
 	// 53002 : baby reindeer summon ticket
-	if ((pkKiller->count_specify_item(53002) > 0) && (get_drop_per_kill_pct(50, 100, iDeltaPercent, "new_xmas_event") >= number(1, iRandRange)))
+	if ((killer->count_specify_item(53002) > 0) && (get_drop_per_kill_pct(50, 100, delta_percent, "new_xmas_event") >= number(1, rand_range)))
 	{
 		const static uint32_t xmas_sock = 50010;
-		pkKiller->auto_give_item (xmas_sock, 1);
+		killer->auto_give_item (xmas_sock, 1);
 	}
 
-	if ((pkKiller->count_specify_item(53007) > 0) && (get_drop_per_kill_pct(50, 100, iDeltaPercent, "new_xmas_event") >= number(1, iRandRange)))
+	if ((killer->count_specify_item(53007) > 0) && (get_drop_per_kill_pct(50, 100, delta_percent, "new_xmas_event") >= number(1, rand_range)))
 	{
 		const static uint32_t xmas_sock = 50010;
-		pkKiller->auto_give_item (xmas_sock, 1);
+		killer->auto_give_item (xmas_sock, 1);
 	}
 
-	if ( get_drop_per_kill_pct(100, 2000, iDeltaPercent, "halloween_drop") >= number(1, iRandRange) )
+	if ( get_drop_per_kill_pct(100, 2000, delta_percent, "halloween_drop") >= number(1, rand_range) )
 	{
 		const static uint32_t halloween_item = 30321;
 
@@ -1384,7 +1384,7 @@ void item_manager::create_quest_drop_item(character * pkChr, character * pkKille
 			vec_item.push_back(item);
 	}
 	
-	if ( get_drop_per_kill_pct(100, 2000, iDeltaPercent, "ramadan_drop") >= number(1, iRandRange) )
+	if ( get_drop_per_kill_pct(100, 2000, delta_percent, "ramadan_drop") >= number(1, rand_range) )
 	{
 		const static uint32_t ramadan_item = 30315;
 
@@ -1392,7 +1392,7 @@ void item_manager::create_quest_drop_item(character * pkChr, character * pkKille
 			vec_item.push_back(item);
 	}
 
-	if ( get_drop_per_kill_pct(100, 2000, iDeltaPercent, "easter_drop") >= number(1, iRandRange) )
+	if ( get_drop_per_kill_pct(100, 2000, delta_percent, "easter_drop") >= number(1, rand_range) )
 	{
 		const static uint32_t easter_item_base = 50160;
 
@@ -1401,7 +1401,7 @@ void item_manager::create_quest_drop_item(character * pkChr, character * pkKille
 	}
 
 	// World Cup event
-	if ( get_drop_per_kill_pct(100, 2000, iDeltaPercent, "football_drop") >= number(1, iRandRange) )
+	if ( get_drop_per_kill_pct(100, 2000, delta_percent, "football_drop") >= number(1, rand_range) )
 	{
 		const static uint32_t football_item = 50096;
 
@@ -1410,7 +1410,7 @@ void item_manager::create_quest_drop_item(character * pkChr, character * pkKille
 	}
 
 	// White Day event
-	if (get_drop_per_kill_pct(100, 2000, iDeltaPercent, "whiteday_drop") >= number(1, iRandRange))
+	if (get_drop_per_kill_pct(100, 2000, delta_percent, "whiteday_drop") >= number(1, rand_range))
 	{
 		metin2::log::info( "EVENT WHITEDAY_DROP");
 		const static uint32_t whiteday_items[2] = { ITEM_WHITEDAY_ROSE, ITEM_WHITEDAY_CANDY };
@@ -1421,9 +1421,9 @@ void item_manager::create_quest_drop_item(character * pkChr, character * pkKille
 	}
 
 	// Children's Day mystery box event
-	if (pkKiller->level()>=50)
+	if (killer->level()>=50)
 	{
-		if (get_drop_per_kill_pct(100, 1000, iDeltaPercent, "kids_day_drop_high") >= number(1, iRandRange))
+		if (get_drop_per_kill_pct(100, 1000, delta_percent, "kids_day_drop_high") >= number(1, rand_range))
 		{
 			uint32_t ITEM_QUIZ_BOX = 50034;
 
@@ -1433,7 +1433,7 @@ void item_manager::create_quest_drop_item(character * pkChr, character * pkKille
 	}
 	else
 	{
-		if (get_drop_per_kill_pct(100, 1000, iDeltaPercent, "kids_day_drop") >= number(1, iRandRange))
+		if (get_drop_per_kill_pct(100, 1000, delta_percent, "kids_day_drop") >= number(1, rand_range))
 		{
 			uint32_t ITEM_QUIZ_BOX = 50034;
 
@@ -1443,7 +1443,7 @@ void item_manager::create_quest_drop_item(character * pkChr, character * pkKille
 	}
 
 	// Olympic drop event
-	if (pkChr->level() >= 30 && get_drop_per_kill_pct(50, 100, iDeltaPercent, "medal_part_drop") >= number(1, iRandRange))
+	if (chr->level() >= 30 && get_drop_per_kill_pct(50, 100, delta_percent, "medal_part_drop") >= number(1, rand_range))
 	{
 		const static uint32_t drop_items[] = { 30265, 30266, 30267, 30268, 30269 };
 		int i = number (0, 4);
@@ -1454,7 +1454,7 @@ void item_manager::create_quest_drop_item(character * pkChr, character * pkKille
 
 	// ADD_GRANDMASTER_SKILL
 	// Soul stone item drop
-	if (pkChr->level() >= 40 && pkChr->get_mob_rank() >= MOB_RANK_BOSS && get_drop_per_kill_pct(/* minimum */ 1, /* default */ 1000, iDeltaPercent, "three_skill_item") / get_three_skill_level_adjust(pkChr->level()) >= number(1, iRandRange))
+	if (chr->level() >= 40 && chr->get_mob_rank() >= MOB_RANK_BOSS && get_drop_per_kill_pct(/* minimum */ 1, /* default */ 1000, delta_percent, "three_skill_item") / get_three_skill_level_adjust(chr->level()) >= number(1, rand_range))
 	{
 		const uint32_t ITEM_VNUM = 50513;
 
@@ -1466,7 +1466,7 @@ void item_manager::create_quest_drop_item(character * pkChr, character * pkKille
 	//
 	// Seed item drop
 	//
-	if (get_drop_per_kill_pct(100, 1000, iDeltaPercent, "dragon_boat_festival_drop") >= number(1, iRandRange))
+	if (get_drop_per_kill_pct(100, 1000, delta_percent, "dragon_boat_festival_drop") >= number(1, rand_range))
 	{
 		const uint32_t ITEM_SEED = 50085;
 
@@ -1475,7 +1475,7 @@ void item_manager::create_quest_drop_item(character * pkChr, character * pkKille
 	}
 
 	// Ten-thousand-year iron drop for the Blessing of the War God
-	if (pkKiller->level() >= 15 && quest::quest_manager::instance().event_flag("mars_drop"))
+	if (killer->level() >= 15 && quest::quest_manager::instance().event_flag("mars_drop"))
 	{
 		const uint32_t ITEM_HANIRON = 70035;
 		int iDropMultiply[MOB_RANK_MAX_NUM] =
@@ -1488,8 +1488,8 @@ void item_manager::create_quest_drop_item(character * pkChr, character * pkKille
 			0,
 		};
 
-		if (iDropMultiply[pkChr->get_mob_rank()] &&
-				get_drop_per_kill_pct(1000, 1500, iDeltaPercent, "mars_drop") >= number(1, iRandRange) * iDropMultiply[pkChr->get_mob_rank()])
+		if (iDropMultiply[chr->get_mob_rank()] &&
+				get_drop_per_kill_pct(1000, 1500, delta_percent, "mars_drop") >= number(1, rand_range) * iDropMultiply[chr->get_mob_rank()])
 		{
 			if ((item = create_item(ITEM_HANIRON, 1, 0, true)))
 				vec_item.push_back(item);
@@ -1497,17 +1497,17 @@ void item_manager::create_quest_drop_item(character * pkChr, character * pkKille
 	}
 }
 
-uint32_t item_manager::refine_from_vnum(uint32_t dwVnum)
+uint32_t item_manager::refine_from_vnum(uint32_t vnum)
 {
-	auto it = map_item_refine_from_.find(dwVnum);
+	auto it = map_item_refine_from_.find(vnum);
 	if (it != map_item_refine_from_.end())
 		return it->second;
 	return 0;
 }
 
-const special_item_group* item_manager::get_special_item_group(uint32_t dwVnum)
+const special_item_group* item_manager::get_special_item_group(uint32_t vnum)
 {
-	auto it = map_pk_special_item_group_.find(dwVnum);
+	auto it = map_pk_special_item_group_.find(vnum);
 	if (it != map_pk_special_item_group_.end())
 	{
 		return it->second;
@@ -1515,9 +1515,9 @@ const special_item_group* item_manager::get_special_item_group(uint32_t dwVnum)
 	return nullptr;
 }
 
-const special_attr_group* item_manager::get_special_attr_group(uint32_t dwVnum)
+const special_attr_group* item_manager::get_special_attr_group(uint32_t vnum)
 {
-	auto it = map_pk_special_attr_group_.find(dwVnum);
+	auto it = map_pk_special_attr_group_.find(vnum);
 	if (it != map_pk_special_attr_group_.end())
 	{
 		return it->second;
@@ -1525,9 +1525,9 @@ const special_attr_group* item_manager::get_special_attr_group(uint32_t dwVnum)
 	return nullptr;
 }
 
-uint32_t item_manager::mask_vnum(uint32_t dwVnum)
+uint32_t item_manager::mask_vnum(uint32_t vnum)
 {
-	map_d_w2_dw::iterator it = map_new_to_ori_.find (dwVnum);
+	map_dw2_dw::iterator it = map_new_to_ori_.find (vnum);
 	if (it != map_new_to_ori_.end())
 	{
 		return it->second;
@@ -1538,14 +1538,14 @@ uint32_t item_manager::mask_vnum(uint32_t dwVnum)
 
 // Copies all attributes and socket values to pkNewItem.
 // Copied as-is from TransformRefineItem, a local function formerly in char_item.cpp
-void item_manager::copy_all_attr_to(item * pkOldItem, item * pkNewItem)
+void item_manager::copy_all_attr_to(item * old_item, item * new_item)
 {
 	// ACCESSORY_REFINE
-	if (pkOldItem->is_accessory_for_socket())
+	if (old_item->is_accessory_for_socket())
 	{
 		for (int i = 0; i < ITEM_SOCKET_MAX_NUM; ++i)
 		{
-			pkNewItem->set_socket(i, pkOldItem->get_socket(i));
+			new_item->set_socket(i, old_item->get_socket(i));
 		}
 	}
 	// END_OF_ACCESSORY_REFINE
@@ -1554,10 +1554,10 @@ void item_manager::copy_all_attr_to(item * pkOldItem, item * pkNewItem)
 		// Broken stones are cleaned up automatically here
 		for (int i = 0; i < ITEM_SOCKET_MAX_NUM; ++i)
 		{
-			if (!pkOldItem->get_socket(i))
+			if (!old_item->get_socket(i))
 				break;
 			else
-				pkNewItem->set_socket(i, 1);
+				new_item->set_socket(i, 1);
 		}
 
 		// Set sockets
@@ -1565,15 +1565,15 @@ void item_manager::copy_all_attr_to(item * pkOldItem, item * pkNewItem)
 
 		for (int i = 0; i < ITEM_SOCKET_MAX_NUM; ++i)
 		{
-			int32_t socket = pkOldItem->get_socket(i);
+			int32_t socket = old_item->get_socket(i);
 			const int ITEM_BROKEN_METIN_VNUM = 28960; // Why is the same constant in 3 places... just make it one T_T I'm passing, Hong will do it
 			if (socket > 2 && socket != ITEM_BROKEN_METIN_VNUM)
-				pkNewItem->set_socket(slot++, socket);
+				new_item->set_socket(slot++, socket);
 		}
 
 	}
 
 	// Set magic item
-	pkOldItem->copy_attribute_to(pkNewItem);
+	old_item->copy_attribute_to(new_item);
 }
 }

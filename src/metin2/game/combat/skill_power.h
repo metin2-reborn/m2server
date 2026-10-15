@@ -20,8 +20,8 @@ class table_by_skill : public singleton<table_by_skill>
 		void 	delete_all();
 
 		//Skill power table per skill level
-		int 	skill_power_by_level_from_type( int job, int skillgroup, int skilllevel, bool bMob ) const;
-		void 	set_skill_power_by_level_from_type( int idx, const int* aTable );
+		int 	skill_power_by_level_from_type( int job, int skillgroup, int skilllevel, bool mob ) const;
+		void 	set_skill_power_by_level_from_type( int idx, const int* table );
 		void	delete_skill_power_by_level_from_type( int idx );
 
 		//Additional skill damage table per level

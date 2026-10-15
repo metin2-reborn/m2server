@@ -29,7 +29,7 @@ class messenger_manager : public singleton<messenger_manager>
 		void	logout(key_a account);
 
 		void	request_to_add(character * ch, character * target);
-		bool	auth_to_add(key_a account, key_a companion, bool bDeny);
+		bool	auth_to_add(key_a account, key_a companion, bool deny);
 
 		void	apply_add_to_list(key_a account, key_a companion);	// Method that actually modifies m_Relation, m_InverseRelation
 		void	add_to_list(key_a account, key_a companion);
@@ -48,7 +48,7 @@ class messenger_manager : public singleton<messenger_manager>
 		void	send_login(key_a account, key_a companion);
 		void	send_logout(key_a account, key_a companion);
 
-		void	load_list(ql_msg * pmsg);
+		void	load_list(ql_msg * msg);
 
 		void	destroy();
 

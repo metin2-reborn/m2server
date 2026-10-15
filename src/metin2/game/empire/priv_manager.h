@@ -21,16 +21,16 @@ class priv_manager : public singleton<priv_manager>
 	public:
 		priv_manager();
 
-		void request_give_guild_priv(uint32_t guild_id, uint8_t type, int value, time_t dur_time_sec);
-		void request_give_empire_priv(uint8_t empire, uint8_t type, int value, time_t dur_time_sec);
+		void request_give_guild_priv(uint32_t guild_id, uint8_t type, int value, time_t duration_sec);
+		void request_give_empire_priv(uint8_t empire, uint8_t type, int value, time_t duration_sec);
 		void request_give_character_priv(uint32_t pid, uint8_t type, int value);
 
-		void give_guild_priv(uint32_t guild_id, uint8_t type, int value, uint8_t bLog, time_t end_time_sec);
-		void give_empire_priv(uint8_t empire, uint8_t type, int value, uint8_t bLog, time_t end_time_sec);
-		void give_character_priv(uint32_t pid, uint8_t type, int value, uint8_t bLog);
+		void give_guild_priv(uint32_t guild_id, uint8_t type, int value, uint8_t log, time_t end_time_sec);
+		void give_empire_priv(uint8_t empire, uint8_t type, int value, uint8_t log, time_t end_time_sec);
+		void give_character_priv(uint32_t pid, uint8_t type, int value, uint8_t log);
 
 		int priv(character * ch, uint8_t type);
-		int priv_by_empire(uint8_t bEmpire, uint8_t type);
+		int priv_by_empire(uint8_t empire, uint8_t type);
 		int priv_by_guild(uint32_t guild_id, uint8_t type);
 		int priv_by_character(uint32_t pid, uint8_t type);
 
@@ -41,7 +41,7 @@ class priv_manager : public singleton<priv_manager>
 			time_t end_time_sec;
 		};
 
-		priv_empire_data* priv_by_empire_ex(uint8_t bEmpire, uint8_t type);
+		priv_empire_data* priv_by_empire_ex(uint8_t empire, uint8_t type);
 
 		/// Guild bonus data
 		struct priv_guild_data
@@ -56,7 +56,7 @@ class priv_manager : public singleton<priv_manager>
 		 * @param [in]	byType bonus type
 		 * @return	pointer to the target guild's bonus data, or NULL if there is no bonus data for the given bonus type and guild ID
 		 */
-		const priv_guild_data*	priv_by_guild_ex( uint32_t dwGuildID, uint8_t byType ) const;
+		const priv_guild_data*	priv_by_guild_ex( uint32_t guild_id, uint8_t type ) const;
 
 	private:
 		priv_empire_data aak_priv_empire_data_[MAX_PRIV_NUM][EMPIRE_MAX_NUM];

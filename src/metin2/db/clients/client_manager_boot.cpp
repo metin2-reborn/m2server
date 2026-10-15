@@ -1122,10 +1122,10 @@ bool client_manager::initialize_land_table()
 	return true;
 }
 
-void parse_pair_number_string(const char * c_pszString, std::vector<std::pair<int, int> > & vec)
+void parse_pair_number_string(const char * string, std::vector<std::pair<int, int> > & vec)
 {
 	// format: 10,1/20,3/300,50
-	const char * t = c_pszString;
+	const char * t = string;
 	const char * p = strchr(t, '/');
 	std::pair<int, int> k;
 

@@ -4,7 +4,7 @@
 
 namespace metin2::game::inline text {
 
-bool locale_service_init(const std::string& c_rstServiceName);
+bool locale_service_init(const std::string& rst_service_name);
 void locale_service_load_locale_string_file();
 void locale_service_load_empire_text_convert_tables();
 void locale_service_transfer_default_setting();

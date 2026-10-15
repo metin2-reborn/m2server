@@ -97,11 +97,11 @@ void locale_service_load_empire_text_convert_tables()
 	}
 }
 
-bool locale_service_init(const std::string& c_rstServiceName)
+bool locale_service_init(const std::string& rst_service_name)
 {
-	if (c_rstServiceName != "english")
+	if (rst_service_name != "english")
 	{
-		metin2::log::error("unsupported locale {} (only english)", c_rstServiceName.c_str());
+		metin2::log::error("unsupported locale {} (only english)", rst_service_name.c_str());
 		return false;
 	}
 
@@ -109,7 +109,7 @@ bool locale_service_init(const std::string& c_rstServiceName)
 	quest_object_dir.clear();
 	quest_object_dir.insert(quest_dir + "/object");
 
-	fprintf(stdout, "Setting Locale \"%s\" (Path: %s)\n", c_rstServiceName.c_str(), service_base_path.c_str());
+	fprintf(stdout, "Setting Locale \"%s\" (Path: %s)\n", rst_service_name.c_str(), service_base_path.c_str());
 	return true;
 }
 

@@ -30,18 +30,18 @@ void gm_new_clear()
 	map_gm.clear();
 }
 
-void gm_new_insert( const t_admin_info &rAdminInfo )
+void gm_new_insert( const t_admin_info &admin_info )
 {	
 	metin2::log::info( "InsertGMList(account:{}, player:{}, contact_ip:{}, server_ip:{}, auth:{:d})", 
-			rAdminInfo.account,
-			rAdminInfo.name,
-			rAdminInfo.contact_ip,
-			rAdminInfo.server_ip,
-			rAdminInfo.authority);
+			admin_info.account,
+			admin_info.name,
+			admin_info.contact_ip,
+			admin_info.server_ip,
+			admin_info.authority);
 
 	t_gm t;
 
-	if ( strlen( rAdminInfo.contact_ip ) == 0 )
+	if ( strlen( admin_info.contact_ip ) == 0 )
 	{
 		t.pset_host = &set_host;
 		metin2::log::info( "GM Use ContactIP" );
@@ -52,9 +52,9 @@ void gm_new_insert( const t_admin_info &rAdminInfo )
 		metin2::log::info( "GM Use Default Host List" );
 	}
 
-	memcpy ( &t.info, &rAdminInfo, sizeof ( rAdminInfo ) );
+	memcpy ( &t.info, &admin_info, sizeof ( admin_info ) );
 
-	map_gm[rAdminInfo.name] = t;
+	map_gm[admin_info.name] = t;
 
 }
 

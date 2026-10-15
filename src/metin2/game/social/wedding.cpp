@@ -62,14 +62,14 @@ namespace marriage
 	}
 
 	// Map instance
-	wedding_map::wedding_map(uint32_t dwMapIndex, uint32_t dwPID1, uint32_t dwPID2) :
-		map_index_(dwMapIndex),
+	wedding_map::wedding_map(uint32_t map_index, uint32_t pid1, uint32_t pid2) :
+		map_index_(map_index),
 		end_event_(nullptr),
 		is_dark_(false),
 		is_snow_(false),
 		is_music_(false),
-		pi_d1_(dwPID1),
-		pi_d2_(dwPID2)
+		pi_d1_(pid1),
+		pi_d2_(pid2)
 	{
 	}
 
@@ -217,12 +217,12 @@ namespace marriage
 		}
 	}
 
-	void wedding_map::set_music(bool bSet, const char* musicFileName)
+	void wedding_map::set_music(bool set, const char* music_file_name)
 	{
-		if (is_music_ != bSet)
+		if (is_music_ != set)
 		{
-			is_music_ = bSet;
-			music_file_name_ = musicFileName;
+			is_music_ = set;
+			music_file_name_ = music_file_name;
 
 			char szCommand[256];
 			if (is_music_)
@@ -236,11 +236,11 @@ namespace marriage
 		} 
 	}
 
-	void wedding_map::set_dark(bool bSet)
+	void wedding_map::set_dark(bool set)
 	{
-		if (is_dark_ != bSet)
+		if (is_dark_ != set)
 		{
-			is_dark_ = bSet;
+			is_dark_ = set;
 
 			if (is_dark_)
 				shout_in_map(CHAT_TYPE_COMMAND, "DayMode dark");
@@ -249,11 +249,11 @@ namespace marriage
 		}
 	}
 
-	void wedding_map::set_snow(bool bSet)
+	void wedding_map::set_snow(bool set)
 	{
-		if (is_snow_ != bSet)
+		if (is_snow_ != set)
 		{
-			is_snow_ = bSet;
+			is_snow_ = set;
 
 			if (is_snow_)
 				shout_in_map(CHAT_TYPE_COMMAND, "xmas_snow 1");
@@ -279,16 +279,16 @@ namespace marriage
 			ch->chat_packet(CHAT_TYPE_COMMAND, build_command_play_music(szCommand, sizeof(szCommand), 1, music_file_name_.c_str()));	
 	}
 
-	const char* wedding_map::build_command_play_music(char* szCommand, size_t nCmdLen, uint8_t bSet, const char* c_szMusicFileName)
+	const char* wedding_map::build_command_play_music(char* command, size_t cmd_len, uint8_t set, const char* music_file_name)
 	{
-		if (nCmdLen < 1)
+		if (cmd_len < 1)
 		{
-			szCommand[0] = '\0';
+			command[0] = '\0';
 			return "PlayMusic 0 CommandLengthError";
 		}
 
-		snprintf(szCommand, nCmdLen, "PlayMusic %d %s", bSet, c_szMusicFileName);
-		return szCommand;
+		snprintf(command, cmd_len, "PlayMusic %d %s", set, music_file_name);
+		return command;
 	}
 	// Manager
 
@@ -300,14 +300,14 @@ namespace marriage
 	{
 	}
 
-	bool wedding_manager::is_wedding_map(uint32_t dwMapIndex)
+	bool wedding_manager::is_wedding_map(uint32_t map_index)
 	{
-		return (dwMapIndex == WEDDING_MAP_INDEX || dwMapIndex / 10000 == WEDDING_MAP_INDEX);
+		return (map_index == WEDDING_MAP_INDEX || map_index / 10000 == WEDDING_MAP_INDEX);
 	}
 
-	wedding_map* wedding_manager::find(uint32_t dwMapIndex)
+	wedding_map* wedding_manager::find(uint32_t map_index)
 	{
-		auto it = wedding_.find(dwMapIndex);
+		auto it = wedding_.find(map_index);
 
 		if (it == wedding_.end())
 			return nullptr;
@@ -315,7 +315,7 @@ namespace marriage
 		return it->second;
 	}
 
-	uint32_t wedding_manager::create_wedding_map(uint32_t dwPID1, uint32_t dwPID2)
+	uint32_t wedding_manager::create_wedding_map(uint32_t pid1, uint32_t pid2)
 	{
 		sectree_manager& rkSecTreeMgr = sectree_manager::instance();
 
@@ -323,11 +323,11 @@ namespace marriage
 
 		if (!dwMapIndex)
 		{
-			metin2::log::error("CreateWeddingMap(pid1={:d}, pid2={:d}) / CreatePrivateMap({:d}) FAILED", dwPID1, dwPID2, WEDDING_MAP_INDEX);
+			metin2::log::error("CreateWeddingMap(pid1={:d}, pid2={:d}) / CreatePrivateMap({:d}) FAILED", pid1, pid2, WEDDING_MAP_INDEX);
 			return 0;
 		}
 
-		wedding_.insert(std::make_pair(dwMapIndex, new wedding_map(dwMapIndex, dwPID1, dwPID2)));
+		wedding_.insert(std::make_pair(dwMapIndex, new wedding_map(dwMapIndex, pid1, pid2)));
 
 
 		// LOCALE_SERVICE
@@ -342,29 +342,29 @@ namespace marriage
 
 		if (!regen_do(st_weddingMapRegenFileName.c_str(), dwMapIndex, pkSectreeMap->setting.base_x, pkSectreeMap->setting.base_y, nullptr, true))
 		{
-			metin2::log::error("CreateWeddingMap(pid1={:d}, pid2={:d}) / regen_do(fileName={}, mapIndex={:d}, basePos=({:d}, {:d})) FAILED", dwPID1, dwPID2, st_weddingMapRegenFileName.c_str(), dwMapIndex, pkSectreeMap->setting.base_x, pkSectreeMap->setting.base_y);
+			metin2::log::error("CreateWeddingMap(pid1={:d}, pid2={:d}) / regen_do(fileName={}, mapIndex={:d}, basePos=({:d}, {:d})) FAILED", pid1, pid2, st_weddingMapRegenFileName.c_str(), dwMapIndex, pkSectreeMap->setting.base_x, pkSectreeMap->setting.base_y);
 		}
 		else
 		{
-			metin2::log::info( "CreateWeddingMap(pid1={:d}, pid2={:d}) / regen_do(fileName={}, mapIndex={:d}, basePos=({:d}, {:d})) ok", dwPID1, dwPID2, st_weddingMapRegenFileName.c_str(), dwMapIndex, pkSectreeMap->setting.base_x, pkSectreeMap->setting.base_y);
+			metin2::log::info( "CreateWeddingMap(pid1={:d}, pid2={:d}) / regen_do(fileName={}, mapIndex={:d}, basePos=({:d}, {:d})) ok", pid1, pid2, st_weddingMapRegenFileName.c_str(), dwMapIndex, pkSectreeMap->setting.base_x, pkSectreeMap->setting.base_y);
 		}
 		// END_OF_LOCALE_SERVICE
 
 		return dwMapIndex;
 	}
 	
-	void wedding_manager::destroy_wedding_map(wedding_map* pMap)
+	void wedding_manager::destroy_wedding_map(wedding_map* map)
 	{
-		metin2::log::info( "DestroyWeddingMap(index={:d})", pMap->map_index());
-		pMap->destroy_all();
-		wedding_.erase(pMap->map_index());
-		sectree_manager::instance().destroy_private_map(pMap->map_index());
-		delete pMap;
+		metin2::log::info( "DestroyWeddingMap(index={:d})", map->map_index());
+		map->destroy_all();
+		wedding_.erase(map->map_index());
+		sectree_manager::instance().destroy_private_map(map->map_index());
+		delete map;
 	}
 
-	bool wedding_manager::end(uint32_t dwMapIndex)
+	bool wedding_manager::end(uint32_t map_index)
 	{
-		auto it = wedding_.find(dwMapIndex);
+		auto it = wedding_.find(map_index);
 
 		if (it == wedding_.end())
 			return false;
@@ -373,21 +373,21 @@ namespace marriage
 		return true;
 	}
 
-	void wedding_manager::request(uint32_t dwPID1, uint32_t dwPID2)
+	void wedding_manager::request(uint32_t pid1, uint32_t pid2)
 	{
 		if (map_allow_find(WEDDING_MAP_INDEX))
 		{
-			uint32_t dwMapIndex = create_wedding_map(dwPID1, dwPID2);
+			uint32_t dwMapIndex = create_wedding_map(pid1, pid2);
 
 			if (!dwMapIndex)
 			{
-				metin2::log::error("cannot create wedding map for {:d}, {:d}", dwPID1, dwPID2);
+				metin2::log::error("cannot create wedding map for {:d}, {:d}", pid1, pid2);
 				return;
 			}
 
 			packet_wedding_ready p;
-			p.pi_d1 = dwPID1;
-			p.pi_d2 = dwPID2;
+			p.pi_d1 = pid1;
+			p.pi_d2 = pid2;
 			p.map_index = dwMapIndex;
 
 			db_clientdesc->db_packet(HEADER_GD_WEDDING_READY, 0, &p, sizeof(p));

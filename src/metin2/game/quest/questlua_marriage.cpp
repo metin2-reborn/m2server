@@ -16,9 +16,9 @@ namespace metin2::game {
 
 namespace quest
 {
-	int marriage_engage_to(lua_State* L)
+	int marriage_engage_to(lua_State* lua)
 	{
-		uint32_t vid = (uint32_t) lua_tonumber(L, 1);
+		uint32_t vid = (uint32_t) lua_tonumber(lua, 1);
 		character * ch = quest_manager::instance().current_character_ptr();
 		character * ch_you = character_manager::instance().find(vid);
 		if (ch_you)
@@ -28,7 +28,7 @@ namespace quest
 		return 0;
 	}
 
-	int marriage_remove(lua_State* L)
+	int marriage_remove(lua_State* lua)
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		marriage::marriage* pMarriage = marriage::manager::instance().get(ch->player_id());
@@ -41,7 +41,7 @@ namespace quest
 		return 0;
 	}
 
-	int marriage_set_to_marriage(lua_State* L)
+	int marriage_set_to_marriage(lua_State* lua)
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		marriage::marriage* pMarriage = marriage::manager::instance().get(ch->player_id());
@@ -54,7 +54,7 @@ namespace quest
 		return 0;
 	}
 
-	int marriage_find_married_vid(lua_State* L)
+	int marriage_find_married_vid(lua_State* lua)
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		marriage::marriage* pMarriage = marriage::manager::instance().get(ch->player_id());
@@ -66,7 +66,7 @@ namespace quest
 				vid = you->get_vid();
 		}
 
-		lua_pushnumber(L, vid);
+		lua_pushnumber(lua, vid);
 
 		return 1;
 	}
@@ -75,45 +75,45 @@ namespace quest
 	{
 		lua_State * l;
 		int count;
-		f_build_lua_wedding_map_list(lua_State * L) : l(L), count(1)
+		f_build_lua_wedding_map_list(lua_State * lua) : l(lua), count(1)
 		{
-			lua_newtable(L);
+			lua_newtable(lua);
 		}
 
-		void operator() (marriage::marriage* pMarriage)
+		void operator() (marriage::marriage* marriage_value)
 		{
-			if (!pMarriage->wedding_info)
+			if (!marriage_value->wedding_info)
 				return;
 
 			lua_newtable(l);
-			lua_pushnumber(l, pMarriage->pid1);
+			lua_pushnumber(l, marriage_value->pid1);
 			lua_rawseti(l, -2, 1);
-			lua_pushnumber(l, pMarriage->pid2);
+			lua_pushnumber(l, marriage_value->pid2);
 			lua_rawseti(l, -2, 2);
-			lua_pushstring(l, pMarriage->name1.c_str());
+			lua_pushstring(l, marriage_value->name1.c_str());
 			lua_rawseti(l, -2, 3);
-			lua_pushstring(l, pMarriage->name2.c_str());
+			lua_pushstring(l, marriage_value->name2.c_str());
 			lua_rawseti(l, -2, 4);
 			lua_rawseti(l, -2, count++);
 		}
 	};
 
-	int marriage_get_wedding_list(lua_State* L)
+	int marriage_get_wedding_list(lua_State* lua)
 	{
-		marriage::manager::instance().for_each_wedding(f_build_lua_wedding_map_list(L));
+		marriage::manager::instance().for_each_wedding(f_build_lua_wedding_map_list(lua));
 		return 1;
 	}
 
-	int marriage_join_wedding(lua_State* L)
+	int marriage_join_wedding(lua_State* lua)
 	{
-		if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2))
+		if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2))
 		{
 			quest::error("invalid player id for wedding map");
 			return 0;
 		}
 
-		uint32_t pid1 = (uint32_t) lua_tonumber(L, 1);
-		uint32_t pid2 = (uint32_t) lua_tonumber(L, 2);
+		uint32_t pid1 = (uint32_t) lua_tonumber(lua, 1);
+		uint32_t pid2 = (uint32_t) lua_tonumber(lua, 2);
 
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -137,7 +137,7 @@ namespace quest
 		return 0;
 	}
 
-	int marriage_warp_to_my_marriage_map(lua_State* L)
+	int marriage_warp_to_my_marriage_map(lua_State* lua)
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		marriage::marriage* pMarriage = marriage::manager::instance().get(ch->player_id());
@@ -157,7 +157,7 @@ namespace quest
 		return 0;
 	}
 
-	int marriage_end_wedding(lua_State* L)
+	int marriage_end_wedding(lua_State* lua)
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		marriage::marriage* pMarriage = marriage::manager::instance().get(ch->player_id());
@@ -174,9 +174,9 @@ namespace quest
 		return 0;
 	}
 
-	int marriage_wedding_dark(lua_State* L)
+	int marriage_wedding_dark(lua_State* lua)
 	{
-		if (!lua_isboolean(L, 1))
+		if (!lua_isboolean(lua, 1))
 		{
 			quest::error("invalid argument 1 : must be boolean");
 			return 0;
@@ -192,15 +192,15 @@ namespace quest
 		if (pMarriage->wedding_info)
 		{
 			marriage::wedding_map* pWedding = marriage::wedding_manager::instance().find(pMarriage->wedding_info->map_index);
-			pWedding->set_dark(lua_toboolean(L, 1));
+			pWedding->set_dark(lua_toboolean(lua, 1));
 		}
 
 		return 0;
 	}
 
-	int marriage_wedding_client_command(lua_State* L)
+	int marriage_wedding_client_command(lua_State* lua)
 	{
-		if (!lua_isstring(L, 1))
+		if (!lua_isstring(lua, 1))
 		{
 			quest::error("invalid argument 1 : must be string");
 			return 0;
@@ -216,13 +216,13 @@ namespace quest
 		if (pMarriage->wedding_info)
 		{
 			marriage::wedding_map* pWedding = marriage::wedding_manager::instance().find(pMarriage->wedding_info->map_index);
-			pWedding->shout_in_map(CHAT_TYPE_COMMAND, lua_tostring(L, 1));
+			pWedding->shout_in_map(CHAT_TYPE_COMMAND, lua_tostring(lua, 1));
 		}
 		return 0;
 
 	}
 
-	int marriage_wedding_is_playing_music(lua_State* L)
+	int marriage_wedding_is_playing_music(lua_State* lua)
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		marriage::marriage* pMarriage = marriage::manager::instance().get(ch->player_id());
@@ -235,22 +235,22 @@ namespace quest
 		{
 			marriage::wedding_map* pWedding = marriage::wedding_manager::instance().find(pMarriage->wedding_info->map_index);
 			if (pWedding)
-				lua_pushboolean(L, pWedding->is_playing_music());
+				lua_pushboolean(lua, pWedding->is_playing_music());
 			else
-				lua_pushboolean(L, false);
+				lua_pushboolean(lua, false);
 		}
 
-		lua_pushboolean(L, false);
+		lua_pushboolean(lua, false);
 		return 1;
 	}
-	int marriage_wedding_music(lua_State* L)
+	int marriage_wedding_music(lua_State* lua)
 	{
-		if (!lua_isboolean(L, 1))
+		if (!lua_isboolean(lua, 1))
 		{
 			quest::error("invalid argument 1 : must be boolean");
 			return 0;
 		}
-		if (!lua_isstring(L, 2))
+		if (!lua_isstring(lua, 2))
 		{
 			quest::error("invalid argument 2 : must be string");
 			return 0;
@@ -267,15 +267,15 @@ namespace quest
 		{
 			marriage::wedding_map* pWedding = marriage::wedding_manager::instance().find(pMarriage->wedding_info->map_index);
 			pWedding->set_music(
-					lua_toboolean(L, 1),
-					lua_tostring(L, 2)
+					lua_toboolean(lua, 1),
+					lua_tostring(lua, 2)
 					);
 		}
 		return 0;
 	}
-	int marriage_wedding_snow(lua_State* L)
+	int marriage_wedding_snow(lua_State* lua)
 	{
-		if (!lua_isboolean(L, 1))
+		if (!lua_isboolean(lua, 1))
 		{
 			quest::error("invalid argument 1 : must be boolean");
 			return 0;
@@ -290,27 +290,27 @@ namespace quest
 		if (pMarriage->wedding_info)
 		{
 			marriage::wedding_map* pWedding = marriage::wedding_manager::instance().find(pMarriage->wedding_info->map_index);
-			pWedding->set_snow(lua_toboolean(L, 1));
+			pWedding->set_snow(lua_toboolean(lua, 1));
 		}
 		return 0;
 	}
 
-	int marriage_in_my_wedding(lua_State* L)
+	int marriage_in_my_wedding(lua_State* lua)
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		marriage::marriage* pMarriage = marriage::manager::instance().get(ch->player_id());
 		if (pMarriage->wedding_info)
 		{
-			lua_pushboolean(L, (uint32_t)ch->map_index() == pMarriage->wedding_info->map_index);
+			lua_pushboolean(lua, (uint32_t)ch->map_index() == pMarriage->wedding_info->map_index);
 		}
 		else
 		{
-			lua_pushboolean(L, 0);
+			lua_pushboolean(lua, 0);
 		}
 		return 1;
 	}
 
-	int marriage_get_married_time(lua_State* L)
+	int marriage_get_married_time(lua_State* lua)
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		marriage::marriage* pMarriage = marriage::manager::instance().get(ch->player_id());
@@ -318,11 +318,11 @@ namespace quest
 		if (!pMarriage)
 		{
 			quest::error("trying to get time for not married character");
-			lua_pushnumber(L, 0);
+			lua_pushnumber(lua, 0);
 			return 1;
 		}
 
-		lua_pushnumber(L, get_global_time() - pMarriage->marry_time);
+		lua_pushnumber(lua, get_global_time() - pMarriage->marry_time);
 		return 1;
 	}
 

@@ -12,16 +12,16 @@ namespace metin2::game {
 
 namespace quest
 {
-	int oxevent_get_status(lua_State* L)
+	int oxevent_get_status(lua_State* lua)
 	{
 		ox_event_status ret = ox_event_manager::instance().status();
 
-		lua_pushnumber(L, (int)ret);
+		lua_pushnumber(lua, (int)ret);
 
 		return 1;
 	}
 
-	int oxevent_open(lua_State* L)
+	int oxevent_open(lua_State* lua)
 	{
 		ox_event_manager::instance().clear_quiz();
 
@@ -31,12 +31,12 @@ namespace quest
 
 		if (result != 0)
 		{
-			lua_pushnumber(L, 0);
+			lua_pushnumber(lua, 0);
 			return 1;
 		}
 		else
 		{
-			lua_pushnumber(L, 1);
+			lua_pushnumber(lua, 1);
 		}
 		
 		ox_event_manager::instance().set_status(OXEVENT_OPEN);
@@ -44,35 +44,35 @@ namespace quest
 		return 1;
 	}
 	
-	int oxevent_close(lua_State* L)
+	int oxevent_close(lua_State* lua)
 	{
 		ox_event_manager::instance().set_status(OXEVENT_CLOSE);
 		
 		return 0;
 	}
 	
-	int oxevent_quiz(lua_State* L)
+	int oxevent_quiz(lua_State* lua)
 	{
-		if (lua_isnumber(L, 1) && lua_isnumber(L, 2))
+		if (lua_isnumber(lua, 1) && lua_isnumber(lua, 2))
 		{
-			bool ret = ox_event_manager::instance().quiz((int)lua_tonumber(L, 1), (int)lua_tonumber(L, 2));
+			bool ret = ox_event_manager::instance().quiz((int)lua_tonumber(lua, 1), (int)lua_tonumber(lua, 2));
 
 			if (ret == false)
 			{
-				lua_pushnumber(L, 0);
+				lua_pushnumber(lua, 0);
 			}
 			else
 			{
-				lua_pushnumber(L, 1);
+				lua_pushnumber(lua, 1);
 			}
 		}
 
 		return 1;
 	}
 	
-	int oxevent_get_attender(lua_State* L)
+	int oxevent_get_attender(lua_State* lua)
 	{
-		lua_pushnumber(L, (int)ox_event_manager::instance().attender_count());
+		lua_pushnumber(lua, (int)ox_event_manager::instance().attender_count());
 		return 1;
 	}
 
@@ -92,7 +92,7 @@ namespace quest
 		return 0;
 	}
 
-	int oxevent_end_event(lua_State* L)
+	int oxevent_end_event(lua_State* lua)
 	{
 		ox_event_manager::instance().set_status(OXEVENT_FINISH);
 
@@ -102,7 +102,7 @@ namespace quest
 		return 0;
 	}
 
-	int oxevent_end_event_force(lua_State* L)
+	int oxevent_end_event_force(lua_State* lua)
 	{
 		ox_event_manager::instance().close_event();
 		ox_event_manager::instance().set_status(OXEVENT_FINISH);
@@ -110,11 +110,11 @@ namespace quest
 		return 0;
 	}
 
-	int oxevent_give_item(lua_State* L)
+	int oxevent_give_item(lua_State* lua)
 	{
-		if (lua_isnumber(L, 1) && lua_isnumber(L, 2))
+		if (lua_isnumber(lua, 1) && lua_isnumber(lua, 2))
 		{
-			ox_event_manager::instance().give_item_to_attender((int)lua_tonumber(L, 1), (int)lua_tonumber(L, 2));
+			ox_event_manager::instance().give_item_to_attender((int)lua_tonumber(lua, 1), (int)lua_tonumber(lua, 2));
 		}
 
 		return 0;

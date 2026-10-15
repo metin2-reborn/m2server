@@ -107,7 +107,7 @@ public:
 
 public:
     /// \brief loads the CSV file with the given name.
-    bool load(const char* fileName, const char seperator=',', const char quote='"');
+    bool load(const char* file_name, const char seperator=',', const char quote='"');
 
     /// \brief saves the contents to a CSV file.
 
@@ -162,7 +162,7 @@ public:
 
 public:
     /// \brief loads the CSV file with the given name.
-    bool load(const char* fileName, const char seperator=',', const char quote='"');
+    bool load(const char* file_name, const char seperator=',', const char quote='"');
 
     /// \brief registers a name to use instead of a number when accessing cells.
 

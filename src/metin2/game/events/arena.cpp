@@ -22,18 +22,18 @@
 
 namespace metin2::game::inline events {
 
-arena::arena(uint16_t startA_X, uint16_t startA_Y, uint16_t startB_X, uint16_t startB_Y)
+arena::arena(uint16_t start_a_x, uint16_t start_a_y, uint16_t start_b_x, uint16_t start_b_y)
 {
-	start_point_a_.x = startA_X;
-	start_point_a_.y = startA_Y;
+	start_point_a_.x = start_a_x;
+	start_point_a_.y = start_a_y;
 	start_point_a_.z = 0;
 
-	start_point_b_.x = startB_X;
-	start_point_b_.y = startB_Y;
+	start_point_b_.x = start_b_x;
+	start_point_b_.y = start_b_y;
 	start_point_b_.z = 0;
 
-	observer_point_.x = (startA_X + startB_X) / 2;
-	observer_point_.y = (startA_Y + startB_Y) / 2;
+	observer_point_.x = (start_a_x + start_b_x) / 2;
+	observer_point_.y = (start_a_y + start_b_y) / 2;
 	observer_point_.z = 0;
 
 	event_ = nullptr;
@@ -62,45 +62,45 @@ void arena::clear()
 	set_point_of_b_ = 0;
 }
 
-bool arena_manager::add_arena(uint32_t mapIdx, uint16_t startA_X, uint16_t startA_Y, uint16_t startB_X, uint16_t startB_Y)
+bool arena_manager::add_arena(uint32_t idx, uint16_t start_a_x, uint16_t start_a_y, uint16_t start_b_x, uint16_t start_b_y)
 {
 	arena_map *pArenaMap = nullptr;
-	auto iter = arena_map_.find(mapIdx);
+	auto iter = arena_map_.find(idx);
 
 	if (iter == arena_map_.end())
 	{
-		pArenaMap = arena_map_.emplace(mapIdx, std::make_unique<arena_map>()).first->second.get();
+		pArenaMap = arena_map_.emplace(idx, std::make_unique<arena_map>()).first->second.get();
 	}
 	else
 	{
 		pArenaMap = iter->second.get();
 	}
 
-	if (pArenaMap->add_arena(mapIdx, startA_X, startA_Y, startB_X, startB_Y) == false)
+	if (pArenaMap->add_arena(idx, start_a_x, start_a_y, start_b_x, start_b_y) == false)
 	{
-		metin2::log::info( "CArenaManager::AddArena - AddMap Error MapID: {:d}", mapIdx);
+		metin2::log::info( "CArenaManager::AddArena - AddMap Error MapID: {:d}", idx);
 		return false;
 	}
 
 	return true;
 }
 
-bool arena_map::add_arena(uint32_t mapIdx, uint16_t startA_X, uint16_t startA_Y, uint16_t startB_X, uint16_t startB_Y)
+bool arena_map::add_arena(uint32_t idx, uint16_t start_a_x, uint16_t start_a_y, uint16_t start_b_x, uint16_t start_b_y)
 {
 	auto iter = arena_.begin();
 
 	for (; iter != arena_.end(); iter++)
 	{
-		if ((*iter)->check_area(startA_X, startA_Y, startB_X, startB_Y) == false)
+		if ((*iter)->check_area(start_a_x, start_a_y, start_b_x, start_b_y) == false)
 		{
-			metin2::log::info( "CArenaMap::AddArena - Same Start Position set. stA({:d}, {:d}) stB({:d}, {:d})", startA_X, startA_Y, startB_X, startB_Y);
+			metin2::log::info( "CArenaMap::AddArena - Same Start Position set. stA({:d}, {:d}) stB({:d}, {:d})", start_a_x, start_a_y, start_b_x, start_b_y);
 			return false;
 		}
 	}
 
-	map_index_ = mapIdx;
+	map_index_ = idx;
 
-	arena_.push_back(std::unique_ptr<arena>(new arena(startA_X, startA_Y, startB_X, startB_Y)));
+	arena_.push_back(std::unique_ptr<arena>(new arena(start_a_x, start_a_y, start_b_x, start_b_y)));
 
 	return true;
 }
@@ -131,49 +131,49 @@ void arena_map::destroy()
 	arena_.clear();
 }
 
-bool arena::check_area(uint16_t startA_X, uint16_t startA_Y, uint16_t startB_X, uint16_t startB_Y)
+bool arena::check_area(uint16_t start_a_x, uint16_t start_a_y, uint16_t start_b_x, uint16_t start_b_y)
 {
-	if (start_point_a_.x == startA_X && start_point_a_.y == startA_Y &&
-			start_point_b_.x == startB_X && start_point_b_.y == startB_Y)
+	if (start_point_a_.x == start_a_x && start_point_a_.y == start_a_y &&
+			start_point_b_.x == start_b_x && start_point_b_.y == start_b_y)
 		return false;	
 	return true;
 }
 
-void arena_manager::send_arena_map_list_to(character * pChar)
+void arena_manager::send_arena_map_list_to(character * ch)
 {
 	auto iter = arena_map_.begin();
 
 	for (; iter != arena_map_.end(); iter++)
 	{
 		arena_map* pArena = iter->second.get();
-		pArena->send_arena_map_list_to(pChar, (iter->first));
+		pArena->send_arena_map_list_to(ch, (iter->first));
 	}
 }
 
-void arena_map::send_arena_map_list_to(character * pChar, uint32_t mapIdx)
+void arena_map::send_arena_map_list_to(character * ch, uint32_t idx)
 {
-	if (pChar == nullptr) return;
+	if (ch == nullptr) return;
 
 	auto iter = arena_.begin();
 
 	for (; iter != arena_.end(); iter++)
 	{
-		pChar->chat_packet(CHAT_TYPE_INFO, "ArenaMapInfo Map: %d stA(%d, %d) stB(%d, %d)", mapIdx, 
+		ch->chat_packet(CHAT_TYPE_INFO, "ArenaMapInfo Map: %d stA(%d, %d) stB(%d, %d)", idx, 
 				static_cast<int>((*iter)->start_point_a().x), static_cast<int>((*iter)->start_point_a().y),
 				static_cast<int>((*iter)->start_point_b().x), static_cast<int>((*iter)->start_point_b().y));
 	}
 }
 
-bool arena_manager::start_duel(character * pCharFrom, character * pCharTo, int nSetPoint, int nMinute)
+bool arena_manager::start_duel(character * char_from, character * char_to, int set_point, int minute)
 {
-	if (pCharFrom == nullptr || pCharTo == nullptr) return false;
+	if (char_from == nullptr || char_to == nullptr) return false;
 
 	auto iter = arena_map_.begin();
 
 	for (; iter != arena_map_.end(); iter++)
 	{
 		arena_map* pArenaMap = iter->second.get();
-		if (pArenaMap->start_duel(pCharFrom, pCharTo, nSetPoint, nMinute) == true)
+		if (pArenaMap->start_duel(char_from, char_to, set_point, minute) == true)
 		{
 			return true;
 		}
@@ -182,7 +182,7 @@ bool arena_manager::start_duel(character * pCharFrom, character * pCharTo, int n
 	return false;
 }
 
-bool arena_map::start_duel(character * pCharFrom, character * pCharTo, int nSetPoint, int nMinute)
+bool arena_map::start_duel(character * char_from, character * char_to, int set_point, int minute)
 {
 	auto iter = arena_.begin();
 
@@ -191,7 +191,7 @@ bool arena_map::start_duel(character * pCharFrom, character * pCharTo, int nSetP
 		arena* pArena = iter->get();
 		if (pArena->is_empty() == true)
 		{
-			return pArena->start_duel(pCharFrom, pCharTo, nSetPoint, nMinute);
+			return pArena->start_duel(char_from, char_to, set_point, minute);
 		}
 	}
 
@@ -469,14 +469,14 @@ EVENTFUNC(duel_time_out)
 	return 0; 
 }
 
-bool arena::start_duel(character * pCharFrom, character * pCharTo, int nSetPoint, int nMinute)
+bool arena::start_duel(character * char_from, character * char_to, int set_point, int minute)
 {
-	this->pida_ = pCharFrom->player_id();
-	this->pidb_ = pCharTo->player_id();
-	this->set_count_ = nSetPoint;
+	this->pida_ = char_from->player_id();
+	this->pidb_ = char_to->player_id();
+	this->set_count_ = set_point;
 
-	pCharFrom->warp_set(start_point_a().x * 100, start_point_a().y * 100);
-	pCharTo->warp_set(start_point_b().x * 100, start_point_b().y * 100);
+	char_from->warp_set(start_point_a().x * 100, start_point_a().y * 100);
+	char_to->warp_set(start_point_b().x * 100, start_point_b().y * 100);
 
 	if (event_ != nullptr) {
 		event_cancel(&event_);
@@ -498,13 +498,13 @@ bool arena::start_duel(character * pCharFrom, character * pCharTo, int nSetPoint
 	info->arena = this;
 	info->state = 0;
 
-	time_out_event_ = event_create(duel_time_out, info, passes_per_sec(nMinute*60));
+	time_out_event_ = event_create(duel_time_out, info, passes_per_sec(minute*60));
 
-	pCharFrom->point_change(POINT_HP, pCharFrom->max_hp() - pCharFrom->hp());
-	pCharFrom->point_change(POINT_SP, pCharFrom->max_sp() - pCharFrom->sp());
+	char_from->point_change(POINT_HP, char_from->max_hp() - char_from->hp());
+	char_from->point_change(POINT_SP, char_from->max_sp() - char_from->sp());
 
-	pCharTo->point_change(POINT_HP, pCharTo->max_hp() - pCharTo->hp());
-	pCharTo->point_change(POINT_SP, pCharTo->max_sp() - pCharTo->sp());
+	char_to->point_change(POINT_HP, char_to->max_hp() - char_to->hp());
+	char_to->point_change(POINT_SP, char_to->max_sp() - char_to->sp());
 
 	metin2::log::info( "ARENA: Start Duel with PID_A({:d}) vs PID_B({:d})", player_apid(), player_bpid());
 	return true;
@@ -592,22 +592,22 @@ void arena::end_duel()
 	clear();
 }
 
-void arena_manager::duel_list(lua_State* L)
+void arena_manager::duel_list(lua_State* lua)
 {
 	auto iter = arena_map_.begin();
 
 	int index = 1;
-	lua_newtable(L);
+	lua_newtable(lua);
 
 	for (; iter != arena_map_.end(); iter++)
 	{
 		arena_map* pArenaMap = iter->second.get();
 		if (pArenaMap != nullptr)
-			index = pArenaMap->duel_list(L, index);
+			index = pArenaMap->duel_list(lua, index);
 	}
 }
 
-int arena_map::duel_list(lua_State* L, int index)
+int arena_map::duel_list(lua_State* lua, int index)
 {
 	auto iter = arena_.begin();
 
@@ -624,24 +624,24 @@ int arena_map::duel_list(lua_State* L, int index)
 
 			if (chA != nullptr && chB != nullptr)
 			{
-				lua_newtable(L);
+				lua_newtable(lua);
 
-				lua_pushstring(L, chA->name());
-				lua_rawseti(L, -2, 1);
+				lua_pushstring(lua, chA->name());
+				lua_rawseti(lua, -2, 1);
 
-				lua_pushstring(L, chB->name());
-				lua_rawseti(L, -2, 2);
+				lua_pushstring(lua, chB->name());
+				lua_rawseti(lua, -2, 2);
 
-				lua_pushnumber(L, map_index_);
-				lua_rawseti(L, -2, 3);
+				lua_pushnumber(lua, map_index_);
+				lua_rawseti(lua, -2, 3);
 
-				lua_pushnumber(L, pArena->observer_point().x);
-				lua_rawseti(L, -2, 4);
+				lua_pushnumber(lua, pArena->observer_point().x);
+				lua_rawseti(lua, -2, 4);
 
-				lua_pushnumber(L, pArena->observer_point().y);
-				lua_rawseti(L, -2, 5);
+				lua_pushnumber(lua, pArena->observer_point().y);
+				lua_rawseti(lua, -2, 5);
 
-				lua_rawseti(L, -2, index++);
+				lua_rawseti(lua, -2, index++);
 			}
 		}
 	}
@@ -649,29 +649,29 @@ int arena_map::duel_list(lua_State* L, int index)
 	return index;
 }
 
-bool arena_manager::can_attack(character * pCharAttacker, character * pCharVictim)
+bool arena_manager::can_attack(character * char_attacker, character * char_victim)
 {
-	if (pCharAttacker == nullptr || pCharVictim == nullptr) return false;
+	if (char_attacker == nullptr || char_victim == nullptr) return false;
 
-	if (pCharAttacker == pCharVictim) return false;
+	if (char_attacker == char_victim) return false;
 
-	int32_t mapIndex = pCharAttacker->map_index();
-	if (mapIndex != pCharVictim->map_index()) return false;
+	int32_t mapIndex = char_attacker->map_index();
+	if (mapIndex != char_victim->map_index()) return false;
 
 	auto iter = arena_map_.find(mapIndex);
 
 	if (iter == arena_map_.end()) return false;
 
 	arena_map* pArenaMap = iter->second.get();
-	return pArenaMap->can_attack(pCharAttacker, pCharVictim);
+	return pArenaMap->can_attack(char_attacker, char_victim);
 }
 
-bool arena_map::can_attack(character * pCharAttacker, character * pCharVictim)
+bool arena_map::can_attack(character * char_attacker, character * char_victim)
 {
-	if (pCharAttacker == nullptr || pCharVictim == nullptr) return false;
+	if (char_attacker == nullptr || char_victim == nullptr) return false;
 
-	uint32_t dwPIDA = pCharAttacker->player_id();
-	uint32_t dwPIDB = pCharVictim->player_id();
+	uint32_t dwPIDA = char_attacker->player_id();
+	uint32_t dwPIDB = char_victim->player_id();
 
 	auto iter = arena_.begin();
 
@@ -686,33 +686,33 @@ bool arena_map::can_attack(character * pCharAttacker, character * pCharVictim)
 	return false;
 }
 
-bool arena::can_attack(uint32_t dwPIDA, uint32_t dwPIDB)
+bool arena::can_attack(uint32_t pida, uint32_t pidb)
 {
 	// 1:1 only; needs changes for many-vs-many
-	if (pida_ == dwPIDA && pidb_ == dwPIDB) return true;
-	if (pida_ == dwPIDB && pidb_ == dwPIDA) return true;
+	if (pida_ == pida && pidb_ == pidb) return true;
+	if (pida_ == pidb && pidb_ == pida) return true;
 
 	return false;
 }
 
-bool arena_manager::on_dead(character * pCharKiller, character * pCharVictim)
+bool arena_manager::on_dead(character * char_killer, character * char_victim)
 {
-	if (pCharKiller == nullptr || pCharVictim == nullptr) return false;
+	if (char_killer == nullptr || char_victim == nullptr) return false;
 
-	int32_t mapIndex = pCharKiller->map_index();
-	if (mapIndex != pCharVictim->map_index()) return false;
+	int32_t mapIndex = char_killer->map_index();
+	if (mapIndex != char_victim->map_index()) return false;
 
 	auto iter = arena_map_.find(mapIndex);
 	if (iter == arena_map_.end()) return false;
 
 	arena_map* pArenaMap = iter->second.get();
-	return pArenaMap->on_dead(pCharKiller,  pCharVictim);
+	return pArenaMap->on_dead(char_killer,  char_victim);
 }
 
-bool arena_map::on_dead(character * pCharKiller, character * pCharVictim)
+bool arena_map::on_dead(character * char_killer, character * char_victim)
 {
-	uint32_t dwPIDA = pCharKiller->player_id();
-	uint32_t dwPIDB = pCharVictim->player_id();
+	uint32_t dwPIDA = char_killer->player_id();
+	uint32_t dwPIDB = char_victim->player_id();
 
 	auto iter = arena_.begin();
 
@@ -729,7 +729,7 @@ bool arena_map::on_dead(character * pCharKiller, character * pCharVictim)
 	return false;
 }
 
-bool arena::on_dead(uint32_t dwPIDA, uint32_t dwPIDB)
+bool arena::on_dead(uint32_t pida, uint32_t pidb)
 {
 	bool restart = false;
 
@@ -756,7 +756,7 @@ bool arena::on_dead(uint32_t dwPIDA, uint32_t dwPIDB)
 	}
 	else if (pCharA != nullptr && pCharB != nullptr)
 	{
-		if (pida_ == dwPIDA)
+		if (pida_ == pida)
 		{
 			set_point_of_a_++;
 
@@ -784,7 +784,7 @@ bool arena::on_dead(uint32_t dwPIDA, uint32_t dwPIDB)
 						pCharA->name(), player_apid(), pCharB->name(), player_bpid());
 			}
 		}
-		else if (pidb_ == dwPIDA)
+		else if (pidb_ == pida)
 		{
 			set_point_of_b_++;
 			if (set_point_of_b_ >= set_count_)
@@ -812,7 +812,7 @@ bool arena::on_dead(uint32_t dwPIDA, uint32_t dwPIDB)
 		else
 		{
 			// wtf
-			metin2::log::info( "ARENA : OnDead Error ({:d}, {:d}) ({:d}, {:d})", pida_, pidb_, dwPIDA, dwPIDB);
+			metin2::log::info( "ARENA : OnDead Error ({:d}, {:d}) ({:d}, {:d})", pida_, pidb_, pida, pidb);
 		}
 
 		int potion = quest::quest_manager::instance().event_flag("arena_potion_limit_count");
@@ -870,17 +870,17 @@ bool arena::on_dead(uint32_t dwPIDA, uint32_t dwPIDB)
 	return true;
 }
 
-bool arena_manager::add_observer(character * pChar, uint32_t mapIdx, uint16_t ObserverX, uint16_t ObserverY)
+bool arena_manager::add_observer(character * ch, uint32_t idx, uint16_t observer_x, uint16_t observer_y)
 {
-	auto iter = arena_map_.find(mapIdx);
+	auto iter = arena_map_.find(idx);
 
 	if (iter == arena_map_.end()) return false;
 
 	arena_map* pArenaMap = iter->second.get();
-	return pArenaMap->add_observer(pChar, ObserverX, ObserverY);
+	return pArenaMap->add_observer(ch, observer_x, observer_y);
 }
 
-bool arena_map::add_observer(character * pChar, uint16_t ObserverX, uint16_t ObserverY)
+bool arena_map::add_observer(character * ch, uint16_t observer_x, uint16_t observer_y)
 {
 	auto iter = arena_.begin();
 
@@ -888,52 +888,52 @@ bool arena_map::add_observer(character * pChar, uint16_t ObserverX, uint16_t Obs
 	{
 		arena* pArena = iter->get();
 
-		if (pArena->is_my_observer(ObserverX, ObserverY) == true)
+		if (pArena->is_my_observer(observer_x, observer_y) == true)
 		{
-			pChar->set_arena(pArena);
-			return pArena->add_observer(pChar);
+			ch->set_arena(pArena);
+			return pArena->add_observer(ch);
 		}
 	}
 
 	return false;
 }
 
-bool arena::is_my_observer(uint16_t ObserverX, uint16_t ObserverY)
+bool arena::is_my_observer(uint16_t observer_x, uint16_t observer_y)
 {
-	return ((ObserverX == observer_point_.x) && (ObserverY == observer_point_.y));
+	return ((observer_x == observer_point_.x) && (observer_y == observer_point_.y));
 }
 
-bool arena::add_observer(character * pChar)
+bool arena::add_observer(character * ch)
 {
-	uint32_t pid = pChar->player_id();
+	uint32_t pid = ch->player_id();
 
 	observer_.insert(std::make_pair(pid, (character *)nullptr));
 
-	pChar->save_exit_location();
-	pChar->warp_set(observer_point_.x * 100, observer_point_.y * 100);
+	ch->save_exit_location();
+	ch->warp_set(observer_point_.x * 100, observer_point_.y * 100);
 
 	return true;
 }
 
-bool arena_manager::is_arena_map(uint32_t dwMapIndex)
+bool arena_manager::is_arena_map(uint32_t map_index)
 {
-	return arena_map_.find(dwMapIndex) != arena_map_.end();
+	return arena_map_.find(map_index) != arena_map_.end();
 }
 
-member_identity arena_manager::is_member(uint32_t dwMapIndex, uint32_t PID)
+member_identity arena_manager::is_member(uint32_t map_index, uint32_t pid)
 {
-	auto iter = arena_map_.find(dwMapIndex);
+	auto iter = arena_map_.find(map_index);
 
 	if (iter != arena_map_.end())
 	{
 		arena_map* pArenaMap = iter->second.get();
-		return pArenaMap->is_member(PID);
+		return pArenaMap->is_member(pid);
 	}
 
 	return MEMBER_NO;
 }
 
-member_identity arena_map::is_member(uint32_t PID)
+member_identity arena_map::is_member(uint32_t pid)
 {
 	auto iter = arena_.begin();
 
@@ -941,15 +941,15 @@ member_identity arena_map::is_member(uint32_t PID)
 	{
 		arena* pArena = iter->get();
 
-		if (pArena->is_observer(PID) == true) return MEMBER_OBSERVER;
-		if (pArena->is_member(PID) == true) return MEMBER_DUELIST;
+		if (pArena->is_observer(pid) == true) return MEMBER_OBSERVER;
+		if (pArena->is_member(pid) == true) return MEMBER_DUELIST;
 	}
 	return MEMBER_NO;
 }
 
-bool arena::is_observer(uint32_t PID)
+bool arena::is_observer(uint32_t pid)
 {
-	auto iter = observer_.find(PID);
+	auto iter = observer_.find(pid);
 
 	return iter != observer_.end();
 }
@@ -1016,23 +1016,23 @@ bool arena_map::end_duel(uint32_t pid)
 	return false;
 }
 
-bool arena_manager::register_observer_ptr(character * pChar, uint32_t mapIdx, uint16_t ObserverX, uint16_t ObserverY)
+bool arena_manager::register_observer_ptr(character * ch, uint32_t idx, uint16_t observer_x, uint16_t observer_y)
 {
-	if (pChar == nullptr) return false;
+	if (ch == nullptr) return false;
 
-	auto iter = arena_map_.find(mapIdx);
+	auto iter = arena_map_.find(idx);
 
 	if (iter == arena_map_.end())
 	{
-		metin2::log::info( "ARENA : Cannot find ArenaMap. {:d} {:d} {:d}", mapIdx, ObserverX, ObserverY);
+		metin2::log::info( "ARENA : Cannot find ArenaMap. {:d} {:d} {:d}", idx, observer_x, observer_y);
 		return false;
 	}
 
 	arena_map* pArenaMap = iter->second.get();
-	return pArenaMap->register_observer_ptr(pChar, mapIdx, ObserverX, ObserverY);
+	return pArenaMap->register_observer_ptr(ch, idx, observer_x, observer_y);
 }
 
-bool arena_map::register_observer_ptr(character * pChar, uint32_t mapIdx, uint16_t ObserverX, uint16_t ObserverY)
+bool arena_map::register_observer_ptr(character * ch, uint32_t idx, uint16_t observer_x, uint16_t observer_y)
 {
 	auto iter = arena_.begin();
 
@@ -1040,18 +1040,18 @@ bool arena_map::register_observer_ptr(character * pChar, uint32_t mapIdx, uint16
 	{
 		arena* pArena = iter->get();
 
-		if (pArena->is_my_observer(ObserverX, ObserverY) == true)
+		if (pArena->is_my_observer(observer_x, observer_y) == true)
 		{
-			return pArena->register_observer_ptr(pChar);
+			return pArena->register_observer_ptr(ch);
 		}
 	}
 
 	return false;
 }
 
-bool arena::register_observer_ptr(character * pChar)
+bool arena::register_observer_ptr(character * ch)
 {
-	uint32_t pid = pChar->player_id();
+	uint32_t pid = ch->player_id();
 	auto iter = observer_.find(pid);
 
 	if (iter == observer_.end())
@@ -1060,11 +1060,11 @@ bool arena::register_observer_ptr(character * pChar)
 		return false;
 	}
 
-	observer_[pid] = pChar;
+	observer_[pid] = ch;
 	return true;
 }
 
-bool arena_manager::is_limited_item( int32_t lMapIndex, uint32_t dwVnum )
+bool arena_manager::is_limited_item( int32_t map_index, uint32_t vnum )
 {
 	return false;
 }

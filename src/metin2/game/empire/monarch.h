@@ -19,39 +19,39 @@ class monarch : public singleton<monarch>
 		bool initialize();
 
 		int heal_my_empire(character * ch, uint32_t price);
-		void set_monarch_info(monarch_info * pInfo);
+		void set_monarch_info(monarch_info * info);
 
-		bool is_monarch(uint32_t pid, uint8_t bEmpire);
-		bool is_money_ok(int price, uint8_t bEmpire);
-		bool sendto_db_add_money(int Money, uint8_t bEmpire, character * ch);
-		bool sendto_db_dec_money(int Money, uint8_t bEmpire, character * ch);
+		bool is_monarch(uint32_t pid, uint8_t empire);
+		bool is_money_ok(int price, uint8_t empire);
+		bool sendto_db_add_money(int money_value, uint8_t empire, character * ch);
+		bool sendto_db_dec_money(int money_value, uint8_t empire, character * ch);
 
-		bool add_money(int Money, uint8_t bEmpire);
-		bool dec_money(int Money, uint8_t bEmpire);
-		int money(uint8_t bEmpire);
+		bool add_money(int money_value, uint8_t empire);
+		bool dec_money(int money_value, uint8_t empire);
+		int money(uint8_t empire);
 
 		monarch_info* get_monarch();
 
-		uint32_t monarch_pid(uint8_t Empire);
+		uint32_t monarch_pid(uint8_t empire);
 
-		bool is_power_up(uint8_t Empire);
-		bool is_defence_up(uint8_t Empire);
+		bool is_power_up(uint8_t empire);
+		bool is_defence_up(uint8_t empire);
 
-		int	power_up_ct(uint8_t Empire)
+		int	power_up_ct(uint8_t empire)
 		{
-			return Empire < std::size(power_up_ct_) ? power_up_ct_[Empire] : 0;
+			return empire < std::size(power_up_ct_) ? power_up_ct_[empire] : 0;
 		}
 
-		bool check_power_up_ct(uint8_t Empire);
-		bool check_defense_up_ct(uint8_t Empire);
+		bool check_power_up_ct(uint8_t empire);
+		bool check_defense_up_ct(uint8_t empire);
 
-		int	defense_up_ct(uint8_t Empire)
+		int	defense_up_ct(uint8_t empire)
 		{
-			return Empire < std::size(defense_up_ct_) ? defense_up_ct_[Empire] : 0;
+			return empire < std::size(defense_up_ct_) ? defense_up_ct_[empire] : 0;
 		}
 
-		void power_up(uint8_t Empire, bool On);
-		void defense_up(uint8_t Empire, bool On);
+		void power_up(uint8_t empire, bool on);
+		void defense_up(uint8_t empire, bool on);
 
 	private:
 		monarch_info monarch_info_;	

@@ -20,16 +20,16 @@ class item : public entity
 {
 	protected:
 		// override methods from ENTITY class
-		void	encode_insert_packet(entity * entity) override;
-		void	encode_remove_packet(entity * entity) override;
+		void	encode_insert_packet(entity * ent) override;
+		void	encode_remove_packet(entity * ent) override;
 
 	public:
-		item(uint32_t dwVnum);
+		item(uint32_t vnum);
 		~item() override;
 
 		int			level_limit();
 
-		bool		check_item_use_level(int nLevel);
+		bool		check_item_use_level(int level);
 
 		bool		is_pc_bang_item();
 
@@ -85,15 +85,15 @@ class item : public entity
 		uint16_t		cell()				{ return cell_;	}
 
 		item *		remove_from_character();
-		bool		add_to_character(character * ch, item_pos Cell);
+		bool		add_to_character(character * ch, item_pos cell_value);
 		character *	owner()		{ return owner_; }
 
 		item *		remove_from_ground();
-		bool		add_to_ground(int32_t lMapIndex, const pixel_position & pos, bool skipOwnerCheck = false);
+		bool		add_to_ground(int32_t map_index, const pixel_position & pos, bool skip_owner_check = false);
 
-		int			find_equip_cell(character * ch, int bCandidateCell = -1);
+		int			find_equip_cell(character * ch, int candidate_cell = -1);
 		bool		is_equipped() const		{ return equipped_;	}
-		bool		equip_to(character * ch, uint8_t bWearCell);
+		bool		equip_to(character * ch, uint8_t wear_cell);
 		bool		is_equipable() const;
 
 		bool		can_used_by(character * ch);
@@ -102,16 +102,16 @@ class item : public entity
 
 		void		update_packet();
 
-		void		set_exchanging(bool isOn = true);
+		void		set_exchanging(bool on = true);
 		bool		is_exchanging()		{ return exchanging_;	}
 
-		void		modify_points(bool bAdd);	// Applies the item's effects to the character. Removes them if bAdd is false
+		void		modify_points(bool add);	// Applies the item's effects to the character. Removes them if bAdd is false
 
 		const int32_t *	sockets()		{ return &sockets_[0];	}
 		int32_t		get_socket(int i)	{ return sockets_[i];	}
 
 		void		set_sockets(const int32_t * al);
-		void		set_socket(int i, int32_t v, bool bLog = true);
+		void		set_socket(int i, int32_t v, bool log = true);
 
 		int		socket_count();
 		bool		add_socket();
@@ -122,16 +122,16 @@ class item : public entity
 		uint8_t		attribute_type(int i)	{ return attr_[i].type;	}
 		short		attribute_value(int i){ return attr_[i].s_value;	}
 
-		void		set_attributes(const player_item_attribute* c_pAttribute);
+		void		set_attributes(const player_item_attribute* attribute);
 		
-		int		find_attribute(uint8_t bType);
-		bool		remove_attribute_type(uint8_t bType);
+		int		find_attribute(uint8_t type);
+		bool		remove_attribute_type(uint8_t type);
 
-		bool		has_attr(uint8_t bApply);
-		bool		has_rare_attr(uint8_t bApply);
+		bool		has_attr(uint8_t apply);
+		bool		has_rare_attr(uint8_t apply);
 
-		void		set_destroy_event(event_ptr pkEvent);
-		void		start_destroy_event(int iSec=300);
+		void		set_destroy_event(event_ptr event);
+		void		start_destroy_event(int sec=300);
 
 		uint32_t		refined_vnum()	{ return proto_ ? proto_->refined_vnum : 0; }
 		uint32_t		refine_from_vnum();
@@ -141,22 +141,22 @@ class item : public entity
 		bool		skip_save()		{ return skip_save_; }
 
 		bool		is_ownership(character * ch);
-		void		set_ownership(character * ch, int iSec = 10);
-		void		set_ownership_event(event_ptr pkEvent);
+		void		set_ownership(character * ch, int sec = 10);
+		void		set_ownership_event(event_ptr event);
 
 		uint32_t		last_owner_pid()	{ return last_owner_pid_; }
 
 		int		attribute_set_index(); // Returns which index of the attribute-assignment array is used.
 		void		alter_to_magic_item();
-		void		alter_to_socket_item(int iSocketCount);
+		void		alter_to_socket_item(int socket_count);
 
 		uint16_t		refine_set()		{ return proto_ ? proto_->refine_set : 0;	}
 
 		void		start_unique_expire_event();
-		void		set_unique_expire_event(event_ptr pkEvent);
+		void		set_unique_expire_event(event_ptr event);
 
 		void		start_timer_based_on_wear_expire_event();
-		void		set_timer_based_on_wear_expire_event(event_ptr pkEvent);
+		void		set_timer_based_on_wear_expire_event(event_ptr event);
 
 		void		start_real_time_expire_event();
 		bool		is_real_time_item();
@@ -170,11 +170,11 @@ class item : public entity
 
 		int		attribute_count();
 		void		clear_attribute();
-		void		change_attribute(const int* aiChangeProb=nullptr);
+		void		change_attribute(const int* change_prob=nullptr);
 		void		add_attribute();
-		void		add_attribute(uint8_t bType, short sValue);
+		void		add_attribute(uint8_t apply, short s_value);
 
-		void		apply_addon(int iAddonType);
+		void		apply_addon(int addon_type);
 
 		int		special_group() const;
 		bool	is_same_special_group(item * const item) const;
@@ -187,21 +187,21 @@ class item : public entity
 		int		accessory_socket_max_grade();
 		int		accessory_socket_down_grade_time();
 
-		void		set_accessory_socket_grade(int iGrade);
-		void		set_accessory_socket_max_grade(int iMaxGrade);
+		void		set_accessory_socket_grade(int grade);
+		void		set_accessory_socket_max_grade(int max_grade);
 		void		set_accessory_socket_down_grade_time(uint32_t time);
 
 		void		accessory_socket_degrade();
 
 		// Timer that runs when an accessory (copper, etc.) is set into an item
 		void		start_accessory_socket_expire_event();
-		void		set_accessory_socket_expire_event(event_ptr pkEvent);
+		void		set_accessory_socket_expire_event(event_ptr event);
 
 		bool		can_put_into(item * item);
 		// END_OF_ACCESSORY_REFINE
 
-		void		copy_attribute_to(item * pItem);
-		void		copy_socket_to(item * pItem);
+		void		copy_attribute_to(item * item_value);
+		void		copy_socket_to(item * item_value);
 
 		int			rare_attr_count();
 		bool		add_rare_attribute();
@@ -213,16 +213,16 @@ class item : public entity
 		bool		is_locked() const { return is_locked_; }
 
 	private :
-		void		set_attribute(int i, uint8_t bType, short sValue);
+		void		set_attribute(int i, uint8_t type_value, short s_value_value);
 	public:
-		void		set_force_attribute(int i, uint8_t bType, short sValue);
+		void		set_force_attribute(int i, uint8_t type_value, short s_value_value);
 
 	protected:
 		bool		unequip();
 
-		void		add_attr(uint8_t bApply, uint8_t bLevel);
-		void		put_attribute(const int * aiAttrPercentTable);
-		void		put_attribute_with_level(uint8_t bLevel);
+		void		add_attr(uint8_t apply, uint8_t level);
+		void		put_attribute(const int * attr_percent_table);
+		void		put_attribute_with_level(uint8_t level);
 
 	protected:
 		friend class protocol::input_db;
@@ -246,8 +246,8 @@ class item : public entity
 
 		// Dragon soul
 		bool		is_dragon_soul();
-		int		give_more_time_per(float fPercent);
-		int		give_more_time_fix(uint32_t dwTime);
+		int		give_more_time_per(float percent);
+		int		give_more_time_fix(uint32_t time);
 
 	private:
 		item_table const * proto_;		// Prototype
@@ -285,9 +285,9 @@ class item : public entity
 		uint32_t		mask_vnum_;
 		uint32_t		sig_vnum_;
 	public:
-		void set_sig_vnum(uint32_t dwSIG)
+		void set_sig_vnum(uint32_t sig)
 		{
-			sig_vnum_ = dwSIG;
+			sig_vnum_ = sig;
 		}
 		uint32_t	sig_vnum() const
 		{

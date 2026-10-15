@@ -23,17 +23,17 @@ public:
 	bool	initialize(shop_table * table, int size);
 	void	destroy();
 
-	shop *	get(uint32_t dwVnum);
-	shop *	by_npc_vnum(uint32_t dwVnum);
+	shop *	get(uint32_t vnum);
+	shop *	by_npc_vnum(uint32_t vnum);
 
-	bool	start_shopping(character * pkChr, character * pkShopKeeper, int iShopVnum = 0);
+	bool	start_shopping(character * chr, character * chr_shop_keeper, int shop_vnum = 0);
 	void	stop_shopping(character * ch);
 
 	void	buy(character * ch, uint8_t pos);
-	void	sell(character * ch, uint8_t bCell, uint8_t bCount=0);
+	void	sell(character * ch, uint8_t cell, uint8_t count_value=0);
 
-	shop *	create_pc_shop(character * ch, shop_item_table * pTable, uint8_t bItemCount);
-	shop *	find_pc_shop(uint32_t dwVID);
+	shop *	create_pc_shop(character * ch, shop_item_table * table, uint8_t item_count);
+	shop *	find_pc_shop(uint32_t vid);
 	void	destroy_pc_shop(character * ch);
 
 private:
@@ -41,6 +41,6 @@ private:
 	shop_map	map_pk_shop_by_npc_vnum_;
 	shop_map	map_pk_shop_by_pc_;
 
-	bool	read_shop_table_ex(const char* stFileName);
+	bool	read_shop_table_ex(const char* file_name);
 };
 }

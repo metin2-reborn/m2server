@@ -80,10 +80,10 @@ void client_desc::set_retry_when_closed(bool b)
 	retry_when_closed_ = b;
 }
 
-bool client_desc::connect(int iPhaseWhenSucceed)
+bool client_desc::connect(int phase_when_succeed)
 {
-	if (iPhaseWhenSucceed != 0)
-		phase_when_succeed_ = iPhaseWhenSucceed;
+	if (phase_when_succeed != 0)
+		phase_when_succeed_ = phase_when_succeed;
 
 	if (get_global_time() - last_try_to_connect_time_ < 3)	// 3 seconds
 		return false;
@@ -113,15 +113,15 @@ bool client_desc::connect(int iPhaseWhenSucceed)
 	}
 }
 
-void client_desc::setup(const char * _host, uint16_t _port)
+void client_desc::setup(const char * host, uint16_t port)
 {
-	host_ = _host;
-	port_ = _port;
+	host_ = host;
+	port_ = port;
 }
 
-void client_desc::set_phase(int iPhase)
+void client_desc::set_phase(int phase)
 {
-	switch (iPhase)
+	switch (phase)
 	{
 		case PHASE_CLIENT_CONNECTING:
 			metin2::log::debug( "PHASE_CLIENT_DESC::CONNECTING");
@@ -225,38 +225,38 @@ void client_desc::set_phase(int iPhase)
 
 	}
 
-	phase_ = iPhase;
+	phase_ = phase;
 }
 
-void client_desc::db_packet_header(uint8_t bHeader, uint32_t dwHandle, uint32_t dwSize)
+void client_desc::db_packet_header(uint8_t header, uint32_t handle, uint32_t size)
 {
-	connection_->send(encode_byte(bHeader), sizeof(uint8_t));
-	connection_->send(encode_4bytes(dwHandle), sizeof(uint32_t));
-	connection_->send(encode_4bytes(dwSize), sizeof(uint32_t));
+	connection_->send(encode_byte(header), sizeof(uint8_t));
+	connection_->send(encode_4bytes(handle), sizeof(uint32_t));
+	connection_->send(encode_4bytes(size), sizeof(uint32_t));
 }
 
-void client_desc::db_packet(uint8_t bHeader, uint32_t dwHandle, const void * c_pvData, uint32_t dwSize)
+void client_desc::db_packet(uint8_t header, uint32_t handle, const void * data, uint32_t size)
 {
 	if (!connection_) {
 		metin2::log::info( "CLIENT_DESC [{}] trying DBPacket() while not connected",
 			get_known_client_desc_name(this));
 		return;
 	}
-	metin2::log::debug( "DB_PACKET: header {:d} handle {:d} size {:d} pending {:d}", bHeader, dwHandle, dwSize, connection_->pending_output());
-	db_packet_header(bHeader, dwHandle, dwSize);
+	metin2::log::debug( "DB_PACKET: header {:d} handle {:d} size {:d} pending {:d}", header, handle, size, connection_->pending_output());
+	db_packet_header(header, handle, size);
 
-	if (c_pvData)
-		connection_->send(c_pvData, dwSize);
+	if (data)
+		connection_->send(data, size);
 }
 
-void client_desc::packet(const void * c_pvData, int iSize)
+void client_desc::packet(const void * data, int size)
 {
 	if (!connection_) {
 		metin2::log::info( "CLIENT_DESC [{}] trying Packet() while not connected",
 			get_known_client_desc_name(this));
 		return;
 	}
-	connection_->send(c_pvData, iSize);
+	connection_->send(data, size);
 }
 
 bool client_desc::is_retry_when_closed()
@@ -271,12 +271,12 @@ void client_desc::update(uint32_t t)
 	}
 }
 
-void client_desc::update_channel_status(uint32_t t, bool fForce)
+void client_desc::update_channel_status(uint32_t t, bool force)
 {
 	enum {
 		CHANNELSTATUS_UPDATE_PERIOD = 5*60*1000,	// Every 5 minutes
 	};
-	if (fForce || t_last_channel_status_update_time_+CHANNELSTATUS_UPDATE_PERIOD < t) {
+	if (force || t_last_channel_status_update_time_+CHANNELSTATUS_UPDATE_PERIOD < t) {
 		int iTotal; 
 		int * paiEmpireUserCount;
 		int iLocal;

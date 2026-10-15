@@ -236,7 +236,7 @@ EVENTFUNC(shutdown_event)
 	}
 }
 
-void shutdown(int iSec)
+void shutdown(int sec)
 {
 	if (no_more_client)
 	{
@@ -247,12 +247,12 @@ void shutdown(int iSec)
 	war_map_manager::instance().on_shutdown();
 
 	char buf[64];
-	snprintf(buf, sizeof(buf), lc_text("%d초 후 게임이 셧다운 됩니다."), iSec);
+	snprintf(buf, sizeof(buf), lc_text("%d초 후 게임이 셧다운 됩니다."), sec);
 
 	send_notice(buf);
 
 	shutdown_event_data* info = alloc_event_info<shutdown_event_data>();
-	info->seconds = iSec;
+	info->seconds = sec;
 
 	event_create(shutdown_event, info, 1);
 }

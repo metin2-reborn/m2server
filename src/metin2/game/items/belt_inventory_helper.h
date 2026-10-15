@@ -41,13 +41,13 @@ public:
 		return availableRuleByGrade;
 	}
 
-	static bool is_available_cell(uint16_t cell, int beltGrade /*int beltLevel*/)
+	static bool is_available_cell(uint16_t cell, int belt_grade /*int beltLevel*/)
 	{
 		// Design changed again.. ugh...
 		//const TGradeUnit beltGrade = GetBeltGradeByRefineLevel(beltLevel);		
 		const grade_unit* ruleTable = available_rule_table_by_grade();
 
-		return ruleTable[cell] <= beltGrade;
+		return ruleTable[cell] <= belt_grade;
 	}
 
 	/// Checks whether the pc's belt inventory contains at least one item.

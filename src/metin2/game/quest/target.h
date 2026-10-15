@@ -62,13 +62,13 @@ class target_manager : public singleton<target_manager>
 		target_manager();
 		~target_manager() override;
 
-		void create_target(uint32_t dwPID, uint32_t dwQuestIndex, const char * c_pszTargetName, int iType, int iArg1, int iArg2, int iMapIndex, const char * c_pszTargetDesc = nullptr, int iSendFlag = 1);
-		void delete_target(uint32_t dwPID, uint32_t dwQuestIndex, const char * c_pszTargetName);
+		void create_target(uint32_t pid_value, uint32_t quest_index_value, const char * target_name_value, int type_value, int arg1_value, int arg2_value, int map_index_value, const char * target_desc_value = nullptr, int send_flag = 1);
+		void delete_target(uint32_t pid_value, uint32_t quest_index_value, const char * target_name_value);
 
-		void logout(uint32_t dwPID);
-		target_info * get_target_info(uint32_t dwPID, int iType, int iArg1);
+		void logout(uint32_t pid);
+		target_info * get_target_info(uint32_t pid, int type_value, int arg1_value);
 
-		event_ptr target_event(uint32_t dwPID, uint32_t dwQuestIndex, const char * c_pszTargetName);
+		event_ptr target_event(uint32_t pid, uint32_t quest_index_value, const char * target_name_value);
 
 	protected:
 		// first: PID

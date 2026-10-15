@@ -187,33 +187,33 @@ enum
 	TEXT_TAG_HYPERLINK_END, // |h ex) |Hitem:1234:1:1:1|h
 };
 
-int get_text_tag(const char * src, int maxLen, int & tagLen, std::string & extraInfo)
+int get_text_tag(const char * src, int max_len, int & tag_len, std::string & extra_info)
 {
-	tagLen = 1;
+	tag_len = 1;
 
-	if (maxLen < 2 || *src != '|')
+	if (max_len < 2 || *src != '|')
 		return TEXT_TAG_PLAIN;
 
 	const char * cur = ++src;
 
 	if (*cur == '|') // || is displayed as |.
 	{
-		tagLen = 2;
+		tag_len = 2;
 		return TEXT_TAG_TAG;
 	}
 	else if (*cur == 'c') // color |cffffffffblahblah|r
 	{
-		tagLen = 2;
+		tag_len = 2;
 		return TEXT_TAG_COLOR;
 	}
 	else if (*cur == 'H') // hyperlink |Hitem:10000:0:0:0:0|h[name]|h
 	{
-		tagLen = 2;
+		tag_len = 2;
 		return TEXT_TAG_HYPERLINK_START;
 	}
 	else if (*cur == 'h') // end of hyperlink
 	{
-		tagLen = 2;
+		tag_len = 2;
 		return TEXT_TAG_HYPERLINK_END;
 	}
 
@@ -242,7 +242,7 @@ void get_text_tag_info(const char * src, int src_len, int & hyperlinks, bool & c
 	}
 }
 
-int process_text_tag(character * ch, const char * c_pszText, size_t len)
+int process_text_tag(character * ch, const char * text, size_t len)
 {
 	//2012.05.17 Kim Yong-uk
 	//0 : used normally
@@ -253,7 +253,7 @@ int process_text_tag(character * ch, const char * c_pszText, size_t len)
 	int hyperlinks;
 	bool colored;
 
-	get_text_tag_info(c_pszText, len, hyperlinks, colored);
+	get_text_tag_info(text, len, hyperlinks, colored);
 
 	if (colored == true && hyperlinks == 0)
 		return 4;
@@ -291,18 +291,18 @@ int process_text_tag(character * ch, const char * c_pszText, size_t len)
 	return 4;
 }
 
-int input_main::whisper(character * ch, const char * data, size_t uiBytes)
+int input_main::whisper(character * ch, const char * data, size_t bytes)
 {
 	const packet_cg_whisper* pinfo = reinterpret_cast<const packet_cg_whisper*>(data);
 
-	if (uiBytes < pinfo->size)
+	if (bytes < pinfo->size)
 		return -1;
 
 	int iExtraLen = pinfo->size - sizeof(packet_cg_whisper);
 
 	if (iExtraLen < 0)
 	{
-		metin2::log::error("invalid packet length (len {:d} size {:d} buffer {:d})", iExtraLen, pinfo->size, uiBytes);
+		metin2::log::error("invalid packet length (len {:d} size {:d} buffer {:d})", iExtraLen, pinfo->size, bytes);
 		ch->get_desc()->set_phase(PHASE_CLOSE);
 		return -1;
 	}
@@ -560,8 +560,8 @@ struct f_empire_chat_packet
 	int map_index;
 	int namelen;
 
-	f_empire_chat_packet(packet_gc_chat& p, const char* chat_msg, int len, uint8_t bEmpire, int iMapIndex, int iNameLen)
-		: p(p), orig_msg(chat_msg), orig_len(len), empire(bEmpire), map_index(iMapIndex), namelen(iNameLen)
+	f_empire_chat_packet(packet_gc_chat& p, const char* chat_msg, int len, uint8_t empire_value, int map_index_value, int name_len)
+		: p(p), orig_msg(chat_msg), orig_len(len), empire(empire_value), map_index(map_index_value), namelen(name_len)
 	{
 		memset( converted_msg, 0, sizeof(converted_msg) );
 	}
@@ -595,18 +595,18 @@ struct f_empire_chat_packet
 	}
 };
 
-int input_main::chat(character * ch, const char * data, size_t uiBytes)
+int input_main::chat(character * ch, const char * data, size_t bytes)
 {
 	const packet_cg_chat* pinfo = reinterpret_cast<const packet_cg_chat*>(data);
 
-	if (uiBytes < pinfo->size)
+	if (bytes < pinfo->size)
 		return -1;
 
 	const int iExtraLen = pinfo->size - sizeof(packet_cg_chat);
 
 	if (iExtraLen < 0)
 	{
-		metin2::log::error("invalid packet length (len {:d} size {:d} buffer {:d})", iExtraLen, pinfo->size, uiBytes);
+		metin2::log::error("invalid packet length (len {:d} size {:d} buffer {:d})", iExtraLen, pinfo->size, bytes);
 		ch->get_desc()->set_phase(PHASE_CLOSE);
 		return -1;
 	}
@@ -768,9 +768,9 @@ void input_main::item_use(character * ch, const char * data)
 	ch->use_item(((struct packet_cg_item_use *) data)->cell);
 }
 
-void input_main::item_to_item(character * ch, const char * pcData)
+void input_main::item_to_item(character * ch, const char * pc_data)
 {
-	packet_cg_item_use_to_item * p = (packet_cg_item_use_to_item *) pcData;
+	packet_cg_item_use_to_item * p = (packet_cg_item_use_to_item *) pc_data;
 	if (ch)
 		ch->use_item(p->cell, p->target_cell);
 }
@@ -841,24 +841,24 @@ void input_main::quickslot_swap(character * ch, const char * data)
 	ch->swap_quickslot(pinfo->pos, pinfo->change_pos);
 }
 
-int input_main::messenger(character * ch, const char* c_pData, size_t uiBytes)
+int input_main::messenger(character * ch, const char* data, size_t bytes)
 {
-	packet_cg_messenger* p = (packet_cg_messenger*) c_pData;
+	packet_cg_messenger* p = (packet_cg_messenger*) data;
 
-	if (uiBytes < sizeof(packet_cg_messenger))
+	if (bytes < sizeof(packet_cg_messenger))
 		return -1;
 
-	c_pData += sizeof(packet_cg_messenger);
-	uiBytes -= sizeof(packet_cg_messenger);
+	data += sizeof(packet_cg_messenger);
+	bytes -= sizeof(packet_cg_messenger);
 
 	switch (p->subheader)
 	{
 		case MESSENGER_SUBHEADER_CG_ADD_BY_VID:
 			{
-				if (uiBytes < sizeof(packet_cg_messenger_add_by_vid))
+				if (bytes < sizeof(packet_cg_messenger_add_by_vid))
 					return -1;
 
-				packet_cg_messenger_add_by_vid * p2 = (packet_cg_messenger_add_by_vid *) c_pData;
+				packet_cg_messenger_add_by_vid * p2 = (packet_cg_messenger_add_by_vid *) data;
 				character * ch_companion = character_manager::instance().find(p2->vid);
 
 				if (!ch_companion)
@@ -893,10 +893,10 @@ int input_main::messenger(character * ch, const char* c_pData, size_t uiBytes)
 
 		case MESSENGER_SUBHEADER_CG_ADD_BY_NAME:
 			{
-				if (uiBytes < CHARACTER_NAME_MAX_LEN)
+				if (bytes < CHARACTER_NAME_MAX_LEN)
 					return -1;
 
-				const std::string name(c_pData, strnlen(c_pData, CHARACTER_NAME_MAX_LEN));
+				const std::string name(data, strnlen(data, CHARACTER_NAME_MAX_LEN));
 
 				if (ch->gm_level() == GM_PLAYER && gm_get_level(name.c_str()) != GM_PLAYER)
 				{
@@ -928,10 +928,10 @@ int input_main::messenger(character * ch, const char* c_pData, size_t uiBytes)
 
 		case MESSENGER_SUBHEADER_CG_REMOVE:
 			{
-				if (uiBytes < CHARACTER_NAME_MAX_LEN)
+				if (bytes < CHARACTER_NAME_MAX_LEN)
 					return -1;
 
-				const std::string char_name(c_pData, strnlen(c_pData, CHARACTER_NAME_MAX_LEN));
+				const std::string char_name(data, strnlen(data, CHARACTER_NAME_MAX_LEN));
 				messenger_manager::instance().remove_from_list(ch->name(), char_name);
 			}
 			return CHARACTER_NAME_MAX_LEN;
@@ -944,18 +944,18 @@ int input_main::messenger(character * ch, const char* c_pData, size_t uiBytes)
 	return 0;
 }
 
-int input_main::shop(character * ch, const char * data, size_t uiBytes)
+int input_main::shop(character * ch, const char * data, size_t bytes)
 {
 	packet_cg_shop * p = (packet_cg_shop *) data;
 
-	if (uiBytes < sizeof(packet_cg_shop))
+	if (bytes < sizeof(packet_cg_shop))
 		return -1;
 
 	if (metin2::config::test_server())
 		metin2::log::info( "CInputMain::Shop() ==> SubHeader {:d}", p->subheader);
 
 	const char * c_pData = data + sizeof(packet_cg_shop);
-	uiBytes -= sizeof(packet_cg_shop);
+	bytes -= sizeof(packet_cg_shop);
 
 	switch (p->subheader)
 	{
@@ -966,7 +966,7 @@ int input_main::shop(character * ch, const char * data, size_t uiBytes)
 
 		case SHOP_SUBHEADER_CG_BUY:
 			{
-				if (uiBytes < sizeof(uint8_t) + sizeof(uint8_t))
+				if (bytes < sizeof(uint8_t) + sizeof(uint8_t))
 					return -1;
 
 				uint8_t bPos = *(c_pData + 1);
@@ -977,7 +977,7 @@ int input_main::shop(character * ch, const char * data, size_t uiBytes)
 
 		case SHOP_SUBHEADER_CG_SELL:
 			{
-				if (uiBytes < sizeof(uint8_t))
+				if (bytes < sizeof(uint8_t))
 					return -1;
 
 				uint8_t pos = *c_pData;
@@ -989,7 +989,7 @@ int input_main::shop(character * ch, const char * data, size_t uiBytes)
 
 		case SHOP_SUBHEADER_CG_SELL2:
 			{
-				if (uiBytes < sizeof(uint8_t) + sizeof(uint8_t))
+				if (bytes < sizeof(uint8_t) + sizeof(uint8_t))
 					return -1;
 
 				uint8_t pos = *(c_pData++);
@@ -1190,7 +1190,7 @@ static const int combo_sequence_by_skill_level[3][8] =
 };
 
 constexpr int COMBO_HACK_ALLOWABLE_MS = 100; // [2013 09 11 CYH]
-uint32_t clac_valid_combo_interval( character * ch, uint8_t bArg )
+uint32_t clac_valid_combo_interval( character * ch, uint8_t arg )
 {
 	int nInterval = 300;
 	float fAdjustNum = 1.5f; // to prevent normal users from being caught by the speed hack check. 2013.09.10 CYH
@@ -1201,28 +1201,28 @@ uint32_t clac_valid_combo_interval( character * ch, uint8_t bArg )
 		return nInterval;
 	}	
 
-	if( bArg == 13 )
+	if( arg == 13 )
 	{
 		float normalAttackDuration = motion_manager::instance().normal_attack_duration(ch->race_num());
 		nInterval = (int) (normalAttackDuration / (((float) ch->point(POINT_ATT_SPEED) / 100.f) * 900.f) + fAdjustNum );
 	}
-	else if( bArg == 14 )
+	else if( arg == 14 )
 	{		
 		nInterval = (int)(ani_combo_speed(ch, 1 ) / ((ch->point(POINT_ATT_SPEED) / 100.f) + fAdjustNum) );
 	}
-	else if( bArg > 14 && bArg < 22 )
+	else if( arg > 14 && arg < 22 )
 	{
-		nInterval = (int)(ani_combo_speed(ch, bArg - 13 ) / ((ch->point(POINT_ATT_SPEED) / 100.f) + fAdjustNum) );
+		nInterval = (int)(ani_combo_speed(ch, arg - 13 ) / ((ch->point(POINT_ATT_SPEED) / 100.f) + fAdjustNum) );
 	}
 	else
 	{
-		metin2::log::error( "ClacValidComboInterval() Invalid bArg({:d}) ch({})", bArg, ch->name() );		
+		metin2::log::error( "ClacValidComboInterval() Invalid bArg({:d}) ch({})", arg, ch->name() );		
 	}	
 
 	return nInterval;
 }
 
-bool check_combo_hack(character * ch, uint8_t bArg, uint32_t dwTime, bool CheckSpeedHack)
+bool check_combo_hack(character * ch, uint8_t arg, uint32_t time, bool check_speed_hack)
 {
 	//	cannot attack while dead or stunned, so skip.
 	//	instead of this, adding it to CHRACTER::CanMove() 
@@ -1232,7 +1232,7 @@ bool check_combo_hack(character * ch, uint8_t bArg, uint32_t dwTime, bool CheckS
 	//	this band-aid code is written here.
 	if (ch->is_stun() || ch->is_dead())
 		return false;
-	int ComboInterval = dwTime - ch->last_combo_time();
+	int ComboInterval = time - ch->last_combo_time();
 	int HackScalar = 0; // base scalar unit 1
 
 	// [2013 09 11 CYH] debugging log
@@ -1248,9 +1248,9 @@ bool check_combo_hack(character * ch, uint8_t bArg, uint32_t dwTime, bool CheckS
 	// 1. the first combo (14) can repeat after a certain time
 	// 2. 15 ~ 21 cannot repeat
 	// 3. they increase in order.
-	if (bArg == 14)
+	if (arg == 14)
 	{
-		if (CheckSpeedHack && ComboInterval > 0 && ComboInterval < ch->valid_combo_interval() - COMBO_HACK_ALLOWABLE_MS)
+		if (check_speed_hack && ComboInterval > 0 && ComboInterval < ch->valid_combo_interval() - COMBO_HACK_ALLOWABLE_MS)
 		{
 			// FIXME the first combo can oddly arrive early, so divided by 300 -_-;
 			// when attacking while being knocked down by many monsters
@@ -1265,10 +1265,10 @@ bool check_combo_hack(character * ch, uint8_t bArg, uint32_t dwTime, bool CheckS
 
 		ch->set_combo_sequence(1);
 		// 2013 09 11 CYH edited
-		ch->set_valid_combo_interval( clac_valid_combo_interval(ch, bArg) );
-		ch->set_last_combo_time(dwTime);
+		ch->set_valid_combo_interval( clac_valid_combo_interval(ch, arg) );
+		ch->set_last_combo_time(time);
 	}
-	else if (bArg > 14 && bArg < 22)
+	else if (arg > 14 && arg < 22)
 	{
 		int idx = std::min<int>(2, ch->combo_index());
 
@@ -1279,34 +1279,34 @@ bool check_combo_hack(character * ch, uint8_t bArg, uint32_t dwTime, bool CheckS
 			metin2::log::info( "COMBO_HACK: 5 {} combo_seq:{:d}", ch->name(), ch->combo_sequence());
 		}
 		// assassin dual-wield combo exception
-		else if (bArg == 21 &&
+		else if (arg == 21 &&
 				 idx == 2 &&
 				 ch->combo_sequence() == 5 &&
 				 ch->job() == JOB_ASSASSIN &&
 				 ch->wear(WEAR_WEAPON) &&
 				 ch->wear(WEAR_WEAPON)->sub_type() == WEAPON_DAGGER)
 			ch->set_valid_combo_interval(300);
-		else if (combo_sequence_by_skill_level[idx][ch->combo_sequence()] != bArg)
+		else if (combo_sequence_by_skill_level[idx][ch->combo_sequence()] != arg)
 		{
 			HackScalar = 1;
 			ch->set_valid_combo_interval(300);
 
 			metin2::log::info( "COMBO_HACK: 3 {} arg:{:d} valid:{:d} combo_idx:{:d} combo_seq:{:d}",
 					ch->name(),
-					bArg,
+					arg,
 					combo_sequence_by_skill_level[idx][ch->combo_sequence()],
 					idx,
 					ch->combo_sequence());
 		}
 		else
 		{
-			if (CheckSpeedHack && ComboInterval < ch->valid_combo_interval() - COMBO_HACK_ALLOWABLE_MS)
+			if (check_speed_hack && ComboInterval < ch->valid_combo_interval() - COMBO_HACK_ALLOWABLE_MS)
 			{
 				HackScalar = 1 + (ch->valid_combo_interval() - ComboInterval) / 100;
 
 				metin2::log::info( "COMBO_HACK: 2 {} arg:{:d} interval:{:d} valid:{:d} atkspd:{:d} riding:{}",
 						ch->name(),
-						bArg,
+						arg,
 						ComboInterval,
 						ch->valid_combo_interval(),
 						ch->point(POINT_ATT_SPEED),
@@ -1321,13 +1321,13 @@ bool check_combo_hack(character * ch, uint8_t bArg, uint32_t dwTime, bool CheckS
 				ch->set_combo_sequence(ch->combo_sequence() + 1);
 
 			// 2013 09 11 CYH edited
-			ch->set_valid_combo_interval( clac_valid_combo_interval(ch, bArg) );
-			ch->set_last_combo_time(dwTime);
+			ch->set_valid_combo_interval( clac_valid_combo_interval(ch, arg) );
+			ch->set_last_combo_time(time);
 		}
 	}
-	else if (bArg == 13) // basic attack (sent while polymorphed)
+	else if (arg == 13) // basic attack (sent while polymorphed)
 	{
-		if (CheckSpeedHack && ComboInterval > 0 && ComboInterval < ch->valid_combo_interval() - COMBO_HACK_ALLOWABLE_MS)
+		if (check_speed_hack && ComboInterval > 0 && ComboInterval < ch->valid_combo_interval() - COMBO_HACK_ALLOWABLE_MS)
 		{
 			// when attacking while being knocked down by many monsters
 			// the first combo arrives at a very short interval.
@@ -1346,8 +1346,8 @@ bool check_combo_hack(character * ch, uint8_t bArg, uint32_t dwTime, bool CheckS
 			// DELETEME
 
 			// 2013 09 11 CYH edited
-			ch->set_valid_combo_interval( clac_valid_combo_interval(ch, bArg) );
-			ch->set_last_combo_time(dwTime);
+			ch->set_valid_combo_interval( clac_valid_combo_interval(ch, arg) );
+			ch->set_last_combo_time(time);
 			// END_OF_POLYMORPH_BUG_FIX
 		}
 		else
@@ -1376,7 +1376,7 @@ bool check_combo_hack(character * ch, uint8_t bArg, uint32_t dwTime, bool CheckS
 		if (ch->get_desc()->delayed_disconnect(number(2, 9)))
 		{
 			log_manager::instance().hack_log("Hacker", ch);
-			metin2::log::info( "HACKER: {} arg {:d}", ch->name(), bArg);
+			metin2::log::info( "HACKER: {} arg {:d}", ch->name(), arg);
 		}
 
 		HackScalar = 10;
@@ -1638,18 +1638,18 @@ void input_main::attack(character * ch, const uint8_t header, const char* data)
 	}
 }
 
-int input_main::sync_position(character * ch, const char * c_pcData, size_t uiBytes)
+int input_main::sync_position(character * ch, const char * pc_data, size_t bytes)
 {
-	const packet_cg_sync_position* pinfo = reinterpret_cast<const packet_cg_sync_position*>( c_pcData );
+	const packet_cg_sync_position* pinfo = reinterpret_cast<const packet_cg_sync_position*>( pc_data );
 
-	if (uiBytes < pinfo->size)
+	if (bytes < pinfo->size)
 		return -1;
 
 	int iExtraLen = pinfo->size - sizeof(packet_cg_sync_position);
 
 	if (iExtraLen < 0)
 	{
-		metin2::log::error("invalid packet length (len {:d} size {:d} buffer {:d})", iExtraLen, pinfo->size, uiBytes);
+		metin2::log::error("invalid packet length (len {:d} size {:d} buffer {:d})", iExtraLen, pinfo->size, bytes);
 		ch->get_desc()->set_phase(PHASE_CLOSE);
 		return -1;
 	}
@@ -1677,7 +1677,7 @@ int input_main::sync_position(character * ch, const char * c_pcData, size_t uiBy
 	synced.reserve(iCount);
 
 	const packet_cg_sync_position_element* e = 
-		reinterpret_cast<const packet_cg_sync_position_element*>(c_pcData + sizeof(packet_cg_sync_position));
+		reinterpret_cast<const packet_cg_sync_position_element*>(pc_data + sizeof(packet_cg_sync_position));
 
 	timeval tvCurTime;
 	gettimeofday(&tvCurTime, nullptr);
@@ -1793,21 +1793,21 @@ int input_main::sync_position(character * ch, const char * c_pcData, size_t uiBy
 	return iExtraLen;
 }
 
-void input_main::fly_target(character * ch, const char * pcData, uint8_t bHeader)
+void input_main::fly_target(character * ch, const char * pc_data, uint8_t header)
 {
-	packet_cg_fly_targeting * p = (packet_cg_fly_targeting *) pcData;
-	ch->fly_target(p->target_vid, p->x, p->y, bHeader);
+	packet_cg_fly_targeting * p = (packet_cg_fly_targeting *) pc_data;
+	ch->fly_target(p->target_vid, p->x, p->y, header);
 }
 
-void input_main::use_skill(character * ch, const char * pcData)
+void input_main::use_skill(character * ch, const char * pc_data)
 {
-	packet_cg_use_skill * p = (packet_cg_use_skill *) pcData;
+	packet_cg_use_skill * p = (packet_cg_use_skill *) pc_data;
 	ch->use_skill(p->vnum, character_manager::instance().find(p->vid));
 }
 
-void input_main::script_button(character * ch, const void* c_pData)
+void input_main::script_button(character * ch, const void* data)
 {
-	packet_cg_script_button * p = (packet_cg_script_button *) c_pData;
+	packet_cg_script_button * p = (packet_cg_script_button *) data;
 	metin2::log::info( "QUEST ScriptButton pid {:d} idx {:d}", ch->player_id(), p->idx);
 
 	quest::pc* pc = quest::quest_manager::instance().pc_force(ch->player_id());
@@ -1825,9 +1825,9 @@ void input_main::script_button(character * ch, const void* c_pData)
 	}
 }
 
-void input_main::script_answer(character * ch, const void* c_pData)
+void input_main::script_answer(character * ch, const void* data)
 {
-	packet_cg_script_answer * p = (packet_cg_script_answer *) c_pData;
+	packet_cg_script_answer * p = (packet_cg_script_answer *) data;
 	metin2::log::info( "QUEST ScriptAnswer pid {:d} answer {:d}", ch->player_id(), p->answer);
 
 	if (p->answer > 250) // packet sent in response to the Next button
@@ -1841,17 +1841,17 @@ void input_main::script_answer(character * ch, const void* c_pData)
 }
 
 // SCRIPT_SELECT_ITEM
-void input_main::script_select_item(character * ch, const void* c_pData)
+void input_main::script_select_item(character * ch, const void* data)
 {
-	packet_cg_script_select_item* p = (packet_cg_script_select_item*) c_pData;
+	packet_cg_script_select_item* p = (packet_cg_script_select_item*) data;
 	metin2::log::info( "QUEST ScriptSelectItem pid {:d} answer {:d}", ch->player_id(), p->selection);
 	quest::quest_manager::instance().select_item(ch->player_id(), p->selection);
 }
 // END_OF_SCRIPT_SELECT_ITEM
 
-void input_main::quest_input_string(character * ch, const void* c_pData)
+void input_main::quest_input_string(character * ch, const void* data)
 {
-	packet_cg_quest_input_string * p = (packet_cg_quest_input_string*) c_pData;
+	packet_cg_quest_input_string * p = (packet_cg_quest_input_string*) data;
 
 	const std::string msg(p->msg, strnlen(p->msg, sizeof(p->msg) - 1));
 	metin2::log::info( "QUEST InputString pid {:d} msg {}", ch->player_id(), msg.c_str());
@@ -1859,9 +1859,9 @@ void input_main::quest_input_string(character * ch, const void* c_pData)
 	quest::quest_manager::instance().input(ch->player_id(), msg.c_str());
 }
 
-void input_main::quest_confirm(character * ch, const void* c_pData)
+void input_main::quest_confirm(character * ch, const void* data)
 {
-	packet_cg_quest_confirm* p = (packet_cg_quest_confirm*) c_pData;
+	packet_cg_quest_confirm* p = (packet_cg_quest_confirm*) data;
 	character * ch_wait = character_manager::instance().find_by_pid(p->request_pid);
 	if (p->answer)
 		p->answer = quest::CONFIRM_YES;
@@ -1872,9 +1872,9 @@ void input_main::quest_confirm(character * ch, const void* c_pData)
 	}
 }
 
-void input_main::target(character * ch, const char * pcData)
+void input_main::target(character * ch, const char * pc_data)
 {
-	packet_cg_target * p = (packet_cg_target *) pcData;
+	packet_cg_target * p = (packet_cg_target *) pc_data;
 
 	building::object * pkObj = building::manager::instance().find_object_by_vid(p->vid);
 
@@ -1889,17 +1889,17 @@ void input_main::target(character * ch, const char * pcData)
 		ch->set_target(character_manager::instance().find(p->vid));
 }
 
-void input_main::warp(character * ch, const char * pcData)
+void input_main::warp(character * ch, const char * pc_data)
 {
 	ch->warp_end();
 }
 
-void input_main::safebox_checkin(character * ch, const char * c_pData)
+void input_main::safebox_checkin(character * ch, const char * data)
 {
 	if (quest::quest_manager::instance().pc_force(ch->player_id())->is_running() == true)
 		return;
 
-	packet_cg_safebox_checkin * p = (packet_cg_safebox_checkin *) c_pData;
+	packet_cg_safebox_checkin * p = (packet_cg_safebox_checkin *) data;
 
 	if (!ch->can_handle_item())
 		return;
@@ -1956,16 +1956,16 @@ void input_main::safebox_checkin(character * ch, const char * c_pData)
 	log_manager::instance().item_log(ch, pkItem, "SAFEBOX PUT", szHint);
 }
 
-void input_main::safebox_checkout(character * ch, const char * c_pData, bool bMall)
+void input_main::safebox_checkout(character * ch, const char * data, bool mall_value)
 {
-	packet_cg_safebox_checkout * p = (packet_cg_safebox_checkout *) c_pData;
+	packet_cg_safebox_checkout * p = (packet_cg_safebox_checkout *) data;
 
 	if (!ch->can_handle_item())
 		return;
 
 	safebox * pkSafebox;
 
-	if (bMall)
+	if (mall_value)
 		pkSafebox = ch->mall();
 	else
 		pkSafebox = ch->get_safebox();
@@ -1990,7 +1990,7 @@ void input_main::safebox_checkout(character * ch, const char * c_pData, bool bMa
 	//  so without this handling dragon soul stones would get no attributes at all.)
 	if (pkItem->is_dragon_soul())
 	{
-		if (bMall)
+		if (mall_value)
 		{
 			ds_manager::instance().dragon_soul_item_initialize(pkItem);
 		}
@@ -2026,7 +2026,7 @@ void input_main::safebox_checkout(character * ch, const char * c_pData, bool bMa
 		}
 
 		pkSafebox->remove(p->safe_pos);
-		if (bMall)
+		if (mall_value)
 		{
 			if (nullptr == pkItem->proto())
 			{
@@ -2049,7 +2049,7 @@ void input_main::safebox_checkout(character * ch, const char * c_pData, bool bMa
 
 	char szHint[128];
 	snprintf(szHint, sizeof(szHint), "%s %u", pkItem->name(), pkItem->count());
-	if (bMall)
+	if (mall_value)
 		log_manager::instance().item_log(ch, pkItem, "MALL GET", szHint);
 	else
 		log_manager::instance().item_log(ch, pkItem, "SAFEBOX GET", szHint);
@@ -2069,7 +2069,7 @@ void input_main::safebox_item_move(character * ch, const char * data)
 }
 
 // PARTY_JOIN_BUG_FIX
-void input_main::party_invite(character * ch, const char * c_pData)
+void input_main::party_invite(character * ch, const char * data)
 {
 	if (ch->get_arena())
 	{
@@ -2077,7 +2077,7 @@ void input_main::party_invite(character * ch, const char * c_pData)
 		return;
 	}
 
-	packet_cg_party_invite * p = (packet_cg_party_invite*) c_pData;
+	packet_cg_party_invite * p = (packet_cg_party_invite*) data;
 
 	character * pInvitee = character_manager::instance().find(p->vid);
 
@@ -2090,7 +2090,7 @@ void input_main::party_invite(character * ch, const char * c_pData)
 	ch->party_invite(pInvitee);
 }
 
-void input_main::party_invite_answer(character * ch, const char * c_pData)
+void input_main::party_invite_answer(character * ch, const char * data)
 {
 	if (ch->get_arena())
 	{
@@ -2098,7 +2098,7 @@ void input_main::party_invite_answer(character * ch, const char * c_pData)
 		return;
 	}
 
-	packet_cg_party_invite_answer * p = (packet_cg_party_invite_answer*) c_pData;
+	packet_cg_party_invite_answer * p = (packet_cg_party_invite_answer*) data;
 
 	character * pInviter = character_manager::instance().find(p->leader_vid);
 
@@ -2113,7 +2113,7 @@ void input_main::party_invite_answer(character * ch, const char * c_pData)
 }
 // END_OF_PARTY_JOIN_BUG_FIX
 
-void input_main::party_set_state(character * ch, const char* c_pData)
+void input_main::party_set_state(character * ch, const char* data)
 {
 	if (!party_manager::instance().is_enable_pc_party())
 	{
@@ -2121,7 +2121,7 @@ void input_main::party_set_state(character * ch, const char* c_pData)
 		return;
 	}
 
-	packet_cg_party_set_state* p = (packet_cg_party_set_state*) c_pData;
+	packet_cg_party_set_state* p = (packet_cg_party_set_state*) data;
 
 	if (!ch->get_party())
 		return;
@@ -2171,7 +2171,7 @@ void input_main::party_set_state(character * ch, const char* c_pData)
 	}
 }
 
-void input_main::party_remove(character * ch, const char* c_pData)
+void input_main::party_remove(character * ch, const char* data)
 {
 	if (ch->get_arena())
 	{
@@ -2191,7 +2191,7 @@ void input_main::party_remove(character * ch, const char* c_pData)
 		return;
 	}
 
-	packet_cg_party_remove* p = (packet_cg_party_remove*) c_pData;
+	packet_cg_party_remove* p = (packet_cg_party_remove*) data;
 
 	if (!ch->get_party())
 		return;
@@ -2252,9 +2252,9 @@ void input_main::party_remove(character * ch, const char* c_pData)
 	}
 }
 
-void input_main::answer_make_guild(character * ch, const char* c_pData)
+void input_main::answer_make_guild(character * ch, const char* data)
 {
-	packet_cg_answer_make_guild* p = (packet_cg_answer_make_guild*) c_pData;
+	packet_cg_answer_make_guild* p = (packet_cg_answer_make_guild*) data;
 
 	// Only an answer to the guild NPC's request counts, and only once.
 	const uint32_t dwKey = ch->guild_creation_key();
@@ -2326,9 +2326,9 @@ void input_main::answer_make_guild(character * ch, const char* c_pData)
 		ch->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> 길드 생성에 실패하였습니다."));
 }
 
-void input_main::party_use_skill(character * ch, const char* c_pData)
+void input_main::party_use_skill(character * ch, const char* data)
 {
-	packet_cg_party_use_skill* p = (packet_cg_party_use_skill*) c_pData; 
+	packet_cg_party_use_skill* p = (packet_cg_party_use_skill*) data; 
 	if (!ch->get_party())
 		return;
 
@@ -2355,9 +2355,9 @@ void input_main::party_use_skill(character * ch, const char* c_pData)
 	}
 }
 
-void input_main::party_parameter(character * ch, const char * c_pData)
+void input_main::party_parameter(character * ch, const char * data)
 {
-	packet_cg_party_parameter * p = (packet_cg_party_parameter *) c_pData;
+	packet_cg_party_parameter * p = (packet_cg_party_parameter *) data;
 
 	if (ch->get_party() && ch->get_party()->leader_pid() == ch->player_id())
 		ch->get_party()->set_parameter(p->distribute_mode);
@@ -2387,20 +2387,20 @@ size_t get_sub_packet_size(const guild_subheader_cg& header)
 	return 0;
 }
 
-int input_main::guild(character * ch, const char * data, size_t uiBytes)
+int input_main::guild(character * ch, const char * data, size_t bytes)
 {
-	if (uiBytes < sizeof(packet_cg_guild))
+	if (bytes < sizeof(packet_cg_guild))
 		return -1;
 
 	const packet_cg_guild* p = reinterpret_cast<const packet_cg_guild*>(data);
 	const char* c_pData = data + sizeof(packet_cg_guild);
 
-	uiBytes -= sizeof(packet_cg_guild);
+	bytes -= sizeof(packet_cg_guild);
 
 	const guild_subheader_cg SubHeader = static_cast<guild_subheader_cg>(p->subheader);
 	const size_t SubPacketLen = get_sub_packet_size(SubHeader);
 
-	if (uiBytes < SubPacketLen)
+	if (bytes < SubPacketLen)
 	{
 		return -1;
 	}
@@ -2632,7 +2632,7 @@ int input_main::guild(character * ch, const char * data, size_t uiBytes)
 					return -1;
 				}
 
-				if (uiBytes < 1 + length)
+				if (bytes < 1 + length)
 					return -1;
 
 				const guild_member* m = pGuild->member(ch->player_id());
@@ -2740,17 +2740,17 @@ int input_main::guild(character * ch, const char * data, size_t uiBytes)
 	return 0;
 }
 
-void input_main::fishing(character * ch, const char* c_pData)
+void input_main::fishing(character * ch, const char* data)
 {
-	packet_cg_fishing* p = (packet_cg_fishing*)c_pData;
+	packet_cg_fishing* p = (packet_cg_fishing*)data;
 	ch->set_rotation(p->dir * 5);
 	ch->fishing();
 	return;
 }
 
-void input_main::item_give(character * ch, const char* c_pData)
+void input_main::item_give(character * ch, const char* data)
 {
-	packet_cg_give_item* p = (packet_cg_give_item*) c_pData;
+	packet_cg_give_item* p = (packet_cg_give_item*) data;
 	character * to_ch = character_manager::instance().find(p->target_vid);
 
 	if (to_ch)
@@ -2759,9 +2759,9 @@ void input_main::item_give(character * ch, const char* c_pData)
 		ch->chat_packet(CHAT_TYPE_INFO, lc_text("아이템을 건네줄 수 없습니다."));
 }
 
-void input_main::hack(character * ch, const char * c_pData)
+void input_main::hack(character * ch, const char * data)
 {
-	packet_cg_hack * p = (packet_cg_hack *) c_pData;
+	packet_cg_hack * p = (packet_cg_hack *) data;
 
 	char buf[sizeof(p->buf)];
 	copy_packet_string(buf, sizeof(buf), p->buf, sizeof(p->buf));
@@ -2772,12 +2772,12 @@ void input_main::hack(character * ch, const char * c_pData)
 	ch->get_desc()->set_phase(PHASE_CLOSE);
 }
 
-int input_main::my_shop(character * ch, const char * c_pData, size_t uiBytes)
+int input_main::my_shop(character * ch, const char * data, size_t bytes)
 {
-	packet_cg_my_shop * p = (packet_cg_my_shop *) c_pData;
+	packet_cg_my_shop * p = (packet_cg_my_shop *) data;
 	int iExtraLen = p->count * sizeof(shop_item_table);
 
-	if (uiBytes < sizeof(packet_cg_my_shop) + iExtraLen)
+	if (bytes < sizeof(packet_cg_my_shop) + iExtraLen)
 		return -1;
 
 	if (ch->gold() >= GOLD_MAX)
@@ -2800,13 +2800,13 @@ int input_main::my_shop(character * ch, const char * c_pData, size_t uiBytes)
 	copy_packet_string(szSign, sizeof(szSign), p->sign, sizeof(p->sign));
 
 	metin2::log::info( "MyShop count {:d}", p->count);
-	ch->open_my_shop(szSign, (shop_item_table *) (c_pData + sizeof(packet_cg_my_shop)), p->count);
+	ch->open_my_shop(szSign, (shop_item_table *) (data + sizeof(packet_cg_my_shop)), p->count);
 	return (iExtraLen);
 }
 
-void input_main::refine(character * ch, const char* c_pData)
+void input_main::refine(character * ch, const char* data)
 {
-	const packet_cg_refine* p = reinterpret_cast<const packet_cg_refine*>(c_pData);
+	const packet_cg_refine* p = reinterpret_cast<const packet_cg_refine*>(data);
 
 	if (ch->get_exchange() || ch->is_open_safebox() || ch->shop_owner() || ch->my_shop() || ch->is_cube_open())
 	{
@@ -2876,7 +2876,7 @@ void input_main::refine(character * ch, const char* c_pData)
 	ch->clear_refine_mode();
 }
 
-int input_main::analyze(desc * d, uint8_t bHeader, const char * c_pData)
+int input_main::analyze(desc * d, uint8_t header, const char * data)
 {
 	character * ch;
 
@@ -2912,37 +2912,37 @@ int input_main::analyze(desc * d, uint8_t bHeader, const char * c_pData)
 
 	int iExtraLen = 0;
 
-	if (metin2::config::test_server() && bHeader != HEADER_CG_MOVE)
-		metin2::log::info( "CInputMain::Analyze() ==> Header [{:d}] ", bHeader);
+	if (metin2::config::test_server() && header != HEADER_CG_MOVE)
+		metin2::log::info( "CInputMain::Analyze() ==> Header [{:d}] ", header);
 
-	switch (bHeader)
+	switch (header)
 	{
 		case HEADER_CG_PONG:
 			pong(d); 
 			break;
 
 		case HEADER_CG_TIME_SYNC:
-			handshake(d, c_pData);
+			handshake(d, data);
 			break;
 
 		case HEADER_CG_CHAT:
 			if (metin2::config::test_server())
 			{
-				char* pBuf = (char*)c_pData;
+				char* pBuf = (char*)data;
 				metin2::log::info( "{}", pBuf + sizeof(packet_cg_chat));
 			}
 
-			if ((iExtraLen = chat(ch, c_pData, buffer_left_)) < 0)
+			if ((iExtraLen = chat(ch, data, buffer_left_)) < 0)
 				return -1;
 			break;
 
 		case HEADER_CG_WHISPER:
-			if ((iExtraLen = whisper(ch, c_pData, buffer_left_)) < 0)
+			if ((iExtraLen = whisper(ch, data, buffer_left_)) < 0)
 				return -1;
 			break;
 
 		case HEADER_CG_MOVE:
-			move(ch, c_pData);
+			move(ch, data);
 
 			if (check_client_version_enabled)
 			{
@@ -2959,203 +2959,203 @@ int input_main::analyze(desc * d, uint8_t bHeader, const char * c_pData)
 			break;
 
 		case HEADER_CG_CHARACTER_POSITION:
-			position(ch, c_pData);
+			position(ch, data);
 			break;
 
 		case HEADER_CG_ITEM_USE:
 			if (!ch->is_observer_mode())
-				item_use(ch, c_pData);
+				item_use(ch, data);
 			break;
 
 		case HEADER_CG_ITEM_DROP:
 			if (!ch->is_observer_mode())
 			{
-				item_drop(ch, c_pData);
+				item_drop(ch, data);
 			}
 			break;
 
 		case HEADER_CG_ITEM_DROP2:
 			if (!ch->is_observer_mode())
-				item_drop2(ch, c_pData);
+				item_drop2(ch, data);
 			break;
 
 		case HEADER_CG_ITEM_MOVE:
 			if (!ch->is_observer_mode())
-				item_move(ch, c_pData);
+				item_move(ch, data);
 			break;
 
 		case HEADER_CG_ITEM_PICKUP:
 			if (!ch->is_observer_mode())
-				item_pickup(ch, c_pData);
+				item_pickup(ch, data);
 			break;
 
 		case HEADER_CG_ITEM_USE_TO_ITEM:
 			if (!ch->is_observer_mode())
-				item_to_item(ch, c_pData);
+				item_to_item(ch, data);
 			break;
 
 		case HEADER_CG_ITEM_GIVE:
 			if (!ch->is_observer_mode())
-				item_give(ch, c_pData);
+				item_give(ch, data);
 			break;
 
 		case HEADER_CG_EXCHANGE:
 			if (!ch->is_observer_mode())
-				exchange(ch, c_pData);
+				exchange(ch, data);
 			break;
 
 		case HEADER_CG_ATTACK:
 		case HEADER_CG_SHOOT:
 			if (!ch->is_observer_mode())
 			{
-				attack(ch, bHeader, c_pData);
+				attack(ch, header, data);
 			}
 			break;
 
 		case HEADER_CG_USE_SKILL:
 			if (!ch->is_observer_mode())
-				use_skill(ch, c_pData);
+				use_skill(ch, data);
 			break;
 
 		case HEADER_CG_QUICKSLOT_ADD:
-			quickslot_add(ch, c_pData);
+			quickslot_add(ch, data);
 			break;
 
 		case HEADER_CG_QUICKSLOT_DEL:
-			quickslot_delete(ch, c_pData);
+			quickslot_delete(ch, data);
 			break;
 
 		case HEADER_CG_QUICKSLOT_SWAP:
-			quickslot_swap(ch, c_pData);
+			quickslot_swap(ch, data);
 			break;
 
 		case HEADER_CG_SHOP:
-			if ((iExtraLen = shop(ch, c_pData, buffer_left_)) < 0)
+			if ((iExtraLen = shop(ch, data, buffer_left_)) < 0)
 				return -1;
 			break;
 
 		case HEADER_CG_MESSENGER:
-			if ((iExtraLen = messenger(ch, c_pData, buffer_left_))<0)
+			if ((iExtraLen = messenger(ch, data, buffer_left_))<0)
 				return -1;
 			break;
 
 		case HEADER_CG_ON_CLICK:
-			on_click(ch, c_pData);
+			on_click(ch, data);
 			break;
 
 		case HEADER_CG_SYNC_POSITION:
-			if ((iExtraLen = sync_position(ch, c_pData, buffer_left_)) < 0)
+			if ((iExtraLen = sync_position(ch, data, buffer_left_)) < 0)
 				return -1;
 			break;
 
 		case HEADER_CG_ADD_FLY_TARGETING:
 		case HEADER_CG_FLY_TARGETING:
-			fly_target(ch, c_pData, bHeader);
+			fly_target(ch, data, header);
 			break;
 
 		case HEADER_CG_SCRIPT_BUTTON:
-			script_button(ch, c_pData);
+			script_button(ch, data);
 			break;
 
 			// SCRIPT_SELECT_ITEM
 		case HEADER_CG_SCRIPT_SELECT_ITEM:
-			script_select_item(ch, c_pData);
+			script_select_item(ch, data);
 			break;
 			// END_OF_SCRIPT_SELECT_ITEM
 
 		case HEADER_CG_SCRIPT_ANSWER:
-			script_answer(ch, c_pData);
+			script_answer(ch, data);
 			break;
 
 		case HEADER_CG_QUEST_INPUT_STRING:
-			quest_input_string(ch, c_pData);
+			quest_input_string(ch, data);
 			break;
 
 		case HEADER_CG_QUEST_CONFIRM:
-			quest_confirm(ch, c_pData);
+			quest_confirm(ch, data);
 			break;
 
 		case HEADER_CG_TARGET:
-			target(ch, c_pData);
+			target(ch, data);
 			break;
 
 		case HEADER_CG_WARP:
-			warp(ch, c_pData);
+			warp(ch, data);
 			break;
 
 		case HEADER_CG_SAFEBOX_CHECKIN:
-			safebox_checkin(ch, c_pData);
+			safebox_checkin(ch, data);
 			break;
 
 		case HEADER_CG_SAFEBOX_CHECKOUT:
-			safebox_checkout(ch, c_pData, false);
+			safebox_checkout(ch, data, false);
 			break;
 
 		case HEADER_CG_SAFEBOX_ITEM_MOVE:
-			safebox_item_move(ch, c_pData);
+			safebox_item_move(ch, data);
 			break;
 
 		case HEADER_CG_MALL_CHECKOUT:
-			safebox_checkout(ch, c_pData, true);
+			safebox_checkout(ch, data, true);
 			break;
 
 		case HEADER_CG_PARTY_INVITE:
-			party_invite(ch, c_pData);
+			party_invite(ch, data);
 			break;
 
 		case HEADER_CG_PARTY_REMOVE:
-			party_remove(ch, c_pData);
+			party_remove(ch, data);
 			break;
 
 		case HEADER_CG_PARTY_INVITE_ANSWER:
-			party_invite_answer(ch, c_pData);
+			party_invite_answer(ch, data);
 			break;
 
 		case HEADER_CG_PARTY_SET_STATE:
-			party_set_state(ch, c_pData);
+			party_set_state(ch, data);
 			break;
 
 		case HEADER_CG_PARTY_USE_SKILL:
-			party_use_skill(ch, c_pData);
+			party_use_skill(ch, data);
 			break;
 
 		case HEADER_CG_PARTY_PARAMETER:
-			party_parameter(ch, c_pData);
+			party_parameter(ch, data);
 			break;
 
 		case HEADER_CG_ANSWER_MAKE_GUILD:
-			answer_make_guild(ch, c_pData);
+			answer_make_guild(ch, data);
 			break;
 
 		case HEADER_CG_GUILD:
-			if ((iExtraLen = guild(ch, c_pData, buffer_left_)) < 0)
+			if ((iExtraLen = guild(ch, data, buffer_left_)) < 0)
 				return -1;
 			break;
 
 		case HEADER_CG_FISHING:
-			fishing(ch, c_pData);
+			fishing(ch, data);
 			break;
 
 		case HEADER_CG_HACK:
-			hack(ch, c_pData);
+			hack(ch, data);
 			break;
 
 		case HEADER_CG_MYSHOP:
-			if ((iExtraLen = my_shop(ch, c_pData, buffer_left_)) < 0)
+			if ((iExtraLen = my_shop(ch, data, buffer_left_)) < 0)
 				return -1;
 			break;
 
 		case HEADER_CG_REFINE:
-			refine(ch, c_pData);
+			refine(ch, data);
 			break;
 
 		case HEADER_CG_CLIENT_VERSION:
-			version(ch, c_pData);
+			version(ch, data);
 			break;
 
 		case HEADER_CG_DRAGON_SOUL_REFINE:
 			{
-				packet_cg_dragon_soul_refine* p = reinterpret_cast <packet_cg_dragon_soul_refine*>((void*)c_pData);
+				packet_cg_dragon_soul_refine* p = reinterpret_cast <packet_cg_dragon_soul_refine*>((void*)data);
 				switch(p->sub_type)
 				{
 				case DS_SUB_HEADER_CLOSE:

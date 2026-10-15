@@ -152,33 +152,33 @@ void horse_rider::feed_horse()
 	}
 }
 
-void horse_rider::set_horse_data(const horse_info& crInfo)
+void horse_rider::set_horse_data(const horse_info& cr_info)
 {
-	horse_ = crInfo;
+	horse_ = cr_info;
 }
 
 // Stamina
-void horse_rider::update_horse_data_by_logoff(uint32_t dwLogoffTime)
+void horse_rider::update_horse_data_by_logoff(uint32_t logoff_time)
 {
 	if (horse_level() <= 0)
 		return;
 
-	if (dwLogoffTime >= 12 * 60)
-		update_horse_stamina(dwLogoffTime / 12 / 60, false); // Recovers 1 per 12 minutes logged off
+	if (logoff_time >= 12 * 60)
+		update_horse_stamina(logoff_time / 12 / 60, false); // Recovers 1 per 12 minutes logged off
 }
 
-void horse_rider::update_horse_stamina(int iStamina, bool bSend)
+void horse_rider::update_horse_stamina(int stamina, bool send)
 {
 	int level = horse_level();
 
-	horse_.s_stamina = std::clamp(horse_.s_stamina + iStamina, 0, c_a_horse_stat[level].max_stamina);
+	horse_.s_stamina = std::clamp(horse_.s_stamina + stamina, 0, c_a_horse_stat[level].max_stamina);
 
 	if (horse_stamina() == 0 && is_horse_riding())
 	{
 		stop_riding();
 	}
 
-	if (bSend)
+	if (send)
 		send_horse_info();
 }
 
@@ -337,27 +337,27 @@ void horse_rider::reset_horse_health_drop_time()
 	horse_.horse_health_drop_time = get_global_time() + HORSE_HEALTH_DROP_INTERVAL;
 }
 
-void horse_rider::check_horse_health_drop_time(bool bSend)
+void horse_rider::check_horse_health_drop_time(bool send)
 {
 	uint32_t now = get_global_time();
 
 	while (horse_.horse_health_drop_time < now)
 	{
 		horse_.horse_health_drop_time += HORSE_HEALTH_DROP_INTERVAL;
-		update_horse_health(-1, bSend);
+		update_horse_health(-1, send);
 	}
 }
 
-void horse_rider::update_horse_health(int iHealth, bool bSend)
+void horse_rider::update_horse_health(int health, bool send)
 {
 	int level = horse_level();
 
-	horse_.s_health = std::clamp(horse_.s_health + iHealth, 0, c_a_horse_stat[level].max_health);
+	horse_.s_health = std::clamp(horse_.s_health + health, 0, c_a_horse_stat[level].max_health);
 
 	if (level && horse_.s_health == 0)
 		horse_die();
 
-	if (bSend)
+	if (send)
 		send_horse_info();
 }
 
@@ -369,12 +369,12 @@ void horse_rider::horse_die()
 	event_cancel(&event_stamina_consume_);
 }
 
-void horse_rider::set_horse_level(int iLevel)
+void horse_rider::set_horse_level(int level_value)
 {
-	horse_.level = iLevel = std::clamp(iLevel, 0, HORSE_MAX_LEVEL);
+	horse_.level = level_value = std::clamp(level_value, 0, HORSE_MAX_LEVEL);
 
-	horse_.s_stamina = c_a_horse_stat[iLevel].max_stamina;
-	horse_.s_health = c_a_horse_stat[iLevel].max_health;
+	horse_.s_stamina = c_a_horse_stat[level_value].max_stamina;
+	horse_.s_health = c_a_horse_stat[level_value].max_health;
 	horse_.horse_health_drop_time = 0;
 
 	reset_horse_health_drop_time();

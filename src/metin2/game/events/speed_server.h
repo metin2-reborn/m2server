@@ -59,7 +59,7 @@ class speed_server_empire_exp
 		speed_server_empire_exp();
 		~speed_server_empire_exp();
 
-		bool initialize (uint8_t empire);
+		bool initialize (uint8_t e);
 		
 		std::list <hme>& wday_exp_table(int wday);
 		void set_wday_exp_table(int wday, hme hme);

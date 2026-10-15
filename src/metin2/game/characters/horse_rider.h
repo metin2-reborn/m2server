@@ -63,7 +63,7 @@ class horse_rider
 
 		void reset_horse_health_drop_time();
 
-		virtual void set_horse_level(int iLevel);
+		virtual void set_horse_level(int level_value);
 
 		void enter_horse();
 
@@ -73,10 +73,10 @@ class horse_rider
 		virtual void update_ride_time(int interval) {}
 
 	protected:
-		void set_horse_data(const horse_info& crInfo);
+		void set_horse_data(const horse_info& cr_info);
 		const horse_info& horse_data() const { return horse_; }
 
-		void update_horse_data_by_logoff(uint32_t dwLogoffTime);
+		void update_horse_data_by_logoff(uint32_t logoff_time);
 
 		virtual bool start_riding();
 		virtual bool stop_riding();
@@ -84,13 +84,13 @@ class horse_rider
 		virtual	uint32_t my_horse_vnum() const { return 20030; }
 
 	private:
-		void update_horse_stamina(int iStamina, bool bSend = true);
+		void update_horse_stamina(int stamina, bool send = true);
 
 		void start_stamina_consume_event();
 		void start_stamina_regen_event();
 
-		void update_horse_health(int iHealth, bool bSend = true);
-		void check_horse_health_drop_time(bool bSend = true);
+		void update_horse_health(int health, bool send = true);
+		void check_horse_health_drop_time(bool send = true);
 
 		void initialize();
 		void destroy();

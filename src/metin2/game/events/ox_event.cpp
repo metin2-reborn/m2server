@@ -102,23 +102,23 @@ void ox_event_manager::set_status(ox_event_status status)
 	quest::quest_manager::instance().request_set_event_flag("oxevent_status", val);
 }
 
-bool ox_event_manager::enter(character * pkChar)
+bool ox_event_manager::enter(character * ch)
 {
 	if (status() == OXEVENT_FINISH)
 	{
-		metin2::log::info( "OXEVENT : map finished. but char enter. {}", pkChar->name());
+		metin2::log::info( "OXEVENT : map finished. but char enter. {}", ch->name());
 		return false;
 	}
 
-	pixel_position pos = pkChar->xyz();
+	pixel_position pos = ch->xyz();
 
 	if (pos.x == 896500 && pos.y == 24600)
 	{
-		return enter_attender(pkChar);
+		return enter_attender(ch);
 	}
 	else if (pos.x == 896300 && pos.y == 28900)
 	{
-		return enter_audience(pkChar);
+		return enter_audience(ch);
 	}
 	else
 	{
@@ -129,9 +129,9 @@ bool ox_event_manager::enter(character * pkChar)
 	return false;
 }
 
-bool ox_event_manager::enter_attender(character * pkChar)
+bool ox_event_manager::enter_attender(character * ch)
 {
-	uint32_t pid = pkChar->player_id();
+	uint32_t pid = ch->player_id();
 
 	map_char_.insert(std::make_pair(pid, pid));
 	map_attender_.insert(std::make_pair(pid, pid));
@@ -139,16 +139,16 @@ bool ox_event_manager::enter_attender(character * pkChar)
 	return true;
 }
 
-bool ox_event_manager::enter_audience(character * pkChar)
+bool ox_event_manager::enter_audience(character * ch)
 {
-	uint32_t pid = pkChar->player_id();
+	uint32_t pid = ch->player_id();
 
 	map_char_.insert(std::make_pair(pid, pid));
 
 	return true;
 }
 
-bool ox_event_manager::add_quiz(unsigned char level, const char* pszQuestion, bool answer)
+bool ox_event_manager::add_quiz(unsigned char level, const char* question, bool answer)
 {
 	if (vec_quiz_.size() < (size_t) level + 1)
 		vec_quiz_.resize(level + 1);
@@ -156,14 +156,14 @@ bool ox_event_manager::add_quiz(unsigned char level, const char* pszQuestion, bo
 	struct tag_quiz tmpQuiz;
 
 	tmpQuiz.level = level;
-	tmpQuiz.quiz = pszQuestion;
+	tmpQuiz.quiz = question;
 	tmpQuiz.answer = answer;
 
 	vec_quiz_[level].push_back(tmpQuiz);
 	return true;
 }
 
-bool ox_event_manager::show_quiz_list(character * pkChar)
+bool ox_event_manager::show_quiz_list(character * ch)
 {
 	int c = 0;
 	
@@ -171,11 +171,11 @@ bool ox_event_manager::show_quiz_list(character * pkChar)
 	{
 		for (size_t j = 0; j < vec_quiz_[i].size(); ++j, ++c)
 		{
-			pkChar->chat_packet(CHAT_TYPE_INFO, "%d %s %s", vec_quiz_[i][j].level, vec_quiz_[i][j].quiz.c_str(), vec_quiz_[i][j].answer ? lc_text("참") : lc_text("거짓"));
+			ch->chat_packet(CHAT_TYPE_INFO, "%d %s %s", vec_quiz_[i][j].level, vec_quiz_[i][j].quiz.c_str(), vec_quiz_[i][j].answer ? lc_text("참") : lc_text("거짓"));
 		}
 	}
 
-	pkChar->chat_packet(CHAT_TYPE_INFO, lc_text("총 퀴즈 수: %d"), c);	
+	ch->chat_packet(CHAT_TYPE_INFO, lc_text("총 퀴즈 수: %d"), c);	
 	return true;
 }
 
@@ -429,7 +429,7 @@ bool ox_event_manager::log_winner()
 	return true;
 }
 
-bool ox_event_manager::give_item_to_attender(uint32_t dwItemVnum, uint8_t count)
+bool ox_event_manager::give_item_to_attender(uint32_t item_vnum, uint8_t count)
 {
 	auto iter = map_attender_.begin();
 
@@ -439,8 +439,8 @@ bool ox_event_manager::give_item_to_attender(uint32_t dwItemVnum, uint8_t count)
 
 		if (pkChar)
 		{
-			pkChar->auto_give_item(dwItemVnum, count);
-			log_manager::instance().item_log(pkChar->player_id(), 0, count, dwItemVnum, "OXEVENT_REWARD", "", pkChar->get_desc()->host_name(), dwItemVnum);
+			pkChar->auto_give_item(item_vnum, count);
+			log_manager::instance().item_log(pkChar->player_id(), 0, count, item_vnum, "OXEVENT_REWARD", "", pkChar->get_desc()->host_name(), item_vnum);
 		}
 	}
 

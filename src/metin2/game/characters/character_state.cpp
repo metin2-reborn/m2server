@@ -39,8 +39,8 @@ namespace
 	class func_find_chr_for_flag
 	{
 		public:
-			func_find_chr_for_flag(character * pkChr) :
-				chr(pkChr), chr_find(nullptr), min_distance(INT_MAX)
+			func_find_chr_for_flag(character * chr_value) :
+				chr(chr_value), chr_find(nullptr), min_distance(INT_MAX)
 				{
 				}
 
@@ -104,7 +104,7 @@ namespace
 	class func_find_chr_for_flag_base
 	{
 		public:
-			func_find_chr_for_flag_base(character * pkChr) : chr(pkChr)
+			func_find_chr_for_flag_base(character * chr_value) : chr(chr_value)
 			{
 			}
 
@@ -173,11 +173,11 @@ namespace
 	class func_find_guard_victim
 	{
 		public:
-			func_find_guard_victim(character * pkChr, int iMaxDistance) :
+			func_find_guard_victim(character * chr, int max_distance) :
 			min_distance_(INT_MAX),
-			max_distance_(iMaxDistance),
-			lx_(pkChr->x()),
-			ly_(pkChr->y()),
+			max_distance_(max_distance),
+			lx_(chr->x()),
+			ly_(chr->y()),
 			chr_victim_(nullptr)
 			{
 			};

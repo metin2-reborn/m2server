@@ -62,7 +62,7 @@ void		castle_tower_die(character * ch, character * killer);
 int			castle_guard_count(int empire, int region_index);
 
 bool		castle_is_guard_vnum(uint32_t vnum);
-int			castle_cost_of_hiring_guard(uint32_t vnum);
+int			castle_cost_of_hiring_guard(uint32_t group_vnum);
 bool		castle_can_attack(character * ch, character * victim);
 
 bool		castle_is_my_castle(int empire, int map_index);

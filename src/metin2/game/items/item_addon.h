@@ -12,6 +12,6 @@ class item_addon_manager : public singleton<item_addon_manager>
 		item_addon_manager();
 		~item_addon_manager() override;
 
-		void apply_addon_to(int iAddonType, item * pItem);
+		void apply_addon_to(int addon_type, item * item_value);
 };
 }

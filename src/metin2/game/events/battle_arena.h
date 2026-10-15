@@ -36,12 +36,12 @@ class battle_arena : public singleton<battle_arena>
 	public :
 		battle_arena();
 
-		static bool is_battle_arena_map(int nMapIndex);
+		static bool is_battle_arena_map(int map_index);
 
 		bool is_running();
 		void set_status(battlearena_status status);
 
-		bool start(int nEmpire);
+		bool start(int empire_value);
 		void force_end();
 		void end();
 

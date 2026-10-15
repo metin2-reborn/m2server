@@ -25,13 +25,13 @@ namespace metin2::game::inline items {
 
 std::vector<item_drop_info> vec_pk_common_drop_item[MOB_RANK_MAX_NUM];
 
-bool item_manager::read_common_drop_item_file(const char * c_pszFileName)
+bool item_manager::read_common_drop_item_file(const char * file_name)
 {
-	FILE * fp = fopen(c_pszFileName, "r");
+	FILE * fp = fopen(file_name, "r");
 
 	if (!fp)
 	{
-		metin2::log::error("Cannot open {}", c_pszFileName);
+		metin2::log::error("Cannot open {}", file_name);
 		return false;
 	}
 
@@ -118,11 +118,11 @@ bool item_manager::read_common_drop_item_file(const char * c_pszFileName)
 	return true;
 }
 
-bool item_manager::read_special_drop_item_file(const char * c_pszFileName)
+bool item_manager::read_special_drop_item_file(const char * file_name)
 {
 	text_file_loader loader;
 
-	if (!loader.load(c_pszFileName))
+	if (!loader.load(file_name))
 		return false;
 
 	std::string stName;
@@ -137,7 +137,7 @@ bool item_manager::read_special_drop_item_file(const char * c_pszFileName)
 
 		if (!loader.token_integer("vnum", &iVnum))
 		{
-			metin2::log::error("ReadSpecialDropItemFile : Syntax error {} : no vnum, node {}", c_pszFileName, stName.c_str());
+			metin2::log::error("ReadSpecialDropItemFile : Syntax error {} : no vnum, node {}", file_name, stName.c_str());
 			loader.set_parent_node();
 			return false;
 		}
@@ -425,13 +425,13 @@ bool item_manager::conv_special_drop_item_file()
 	return true;
 }
 
-bool item_manager::read_etc_drop_item_file(const char * c_pszFileName)
+bool item_manager::read_etc_drop_item_file(const char * file_name)
 {
-	FILE * fp = fopen(c_pszFileName, "r");
+	FILE * fp = fopen(file_name, "r");
 
 	if (!fp)
 	{
-		metin2::log::error("Cannot open {}", c_pszFileName);
+		metin2::log::error("Cannot open {}", file_name);
 		return false;
 	}
 
@@ -476,11 +476,11 @@ bool item_manager::read_etc_drop_item_file(const char * c_pszFileName)
 	return true;
 }
 
-bool item_manager::read_monster_drop_item_group(const char * c_pszFileName)
+bool item_manager::read_monster_drop_item_group(const char * file_name)
 {
 	text_file_loader loader;
 
-	if (!loader.load(c_pszFileName))
+	if (!loader.load(file_name))
 		return false;
 
 	for (uint32_t i = 0; i < loader.child_node_count(); ++i)
@@ -504,14 +504,14 @@ bool item_manager::read_monster_drop_item_group(const char * c_pszFileName)
 
 		if (!loader.token_string("type", &strType))
 		{
-			metin2::log::error("ReadMonsterDropItemGroup : Syntax error {} : no type (kill|drop), node {}", c_pszFileName, stName.c_str());
+			metin2::log::error("ReadMonsterDropItemGroup : Syntax error {} : no type (kill|drop), node {}", file_name, stName.c_str());
 			loader.set_parent_node();
 			return false;
 		}
 
 		if (!loader.token_integer("mob", &iMobVnum))
 		{
-			metin2::log::error("ReadMonsterDropItemGroup : Syntax error {} : no mob vnum, node {}", c_pszFileName, stName.c_str());
+			metin2::log::error("ReadMonsterDropItemGroup : Syntax error {} : no mob vnum, node {}", file_name, stName.c_str());
 			loader.set_parent_node();
 			return false;
 		}
@@ -520,7 +520,7 @@ bool item_manager::read_monster_drop_item_group(const char * c_pszFileName)
 		{
 			if (!loader.token_integer("kill_drop", &iKillDrop))
 			{
-				metin2::log::error("ReadMonsterDropItemGroup : Syntax error {} : no kill drop count, node {}", c_pszFileName, stName.c_str());
+				metin2::log::error("ReadMonsterDropItemGroup : Syntax error {} : no kill drop count, node {}", file_name, stName.c_str());
 				loader.set_parent_node();
 				return false;
 			}
@@ -534,7 +534,7 @@ bool item_manager::read_monster_drop_item_group(const char * c_pszFileName)
 		{
 			if ( !loader.token_integer("level_limit", &iLevelLimit) )
 			{
-				metin2::log::error("ReadmonsterDropItemGroup : Syntax error {} : no level_limit, node {}", c_pszFileName, stName.c_str());
+				metin2::log::error("ReadmonsterDropItemGroup : Syntax error {} : no level_limit, node {}", file_name, stName.c_str());
 				loader.set_parent_node();
 				return false;
 			}
@@ -770,7 +770,7 @@ bool item_manager::read_monster_drop_item_group(const char * c_pszFileName)
 		}
 		else
 		{
-			metin2::log::error("ReadMonsterDropItemGroup : Syntax error {} : invalid type {} (kill|drop), node {}", c_pszFileName, strType.c_str(), stName.c_str());
+			metin2::log::error("ReadMonsterDropItemGroup : Syntax error {} : invalid type {} (kill|drop), node {}", file_name, strType.c_str(), stName.c_str());
 			loader.set_parent_node();
 			return false;
 		}
@@ -781,11 +781,11 @@ bool item_manager::read_monster_drop_item_group(const char * c_pszFileName)
 	return true;
 }
 
-bool item_manager::read_drop_item_group(const char * c_pszFileName)
+bool item_manager::read_drop_item_group(const char * file_name)
 {
 	text_file_loader loader;
 
-	if (!loader.load(c_pszFileName))
+	if (!loader.load(file_name))
 		return false;
 
 	std::string stName;
@@ -801,14 +801,14 @@ bool item_manager::read_drop_item_group(const char * c_pszFileName)
 
 		if (!loader.token_integer("vnum", &iVnum))
 		{
-			metin2::log::error("ReadDropItemGroup : Syntax error {} : no vnum, node {}", c_pszFileName, stName.c_str());
+			metin2::log::error("ReadDropItemGroup : Syntax error {} : no vnum, node {}", file_name, stName.c_str());
 			loader.set_parent_node();
 			return false;
 		}
 
 		if (!loader.token_integer("mob", &iMobVnum))
 		{
-			metin2::log::error("ReadDropItemGroup : Syntax error {} : no mob vnum, node {}", c_pszFileName, stName.c_str());
+			metin2::log::error("ReadDropItemGroup : Syntax error {} : no mob vnum, node {}", file_name, stName.c_str());
 			loader.set_parent_node();
 			return false;
 		}
@@ -881,9 +881,9 @@ bool item_manager::read_drop_item_group(const char * c_pszFileName)
 	return true;
 }
 
-bool item_manager::read_item_vnum_mask_table(const char * c_pszFileName)
+bool item_manager::read_item_vnum_mask_table(const char * file_name)
 {
-	FILE *fp = fopen(c_pszFileName, "r");
+	FILE *fp = fopen(file_name, "r");
 	if (!fp)
 	{
 		return false;
@@ -892,7 +892,7 @@ bool item_manager::read_item_vnum_mask_table(const char * c_pszFileName)
 	int ori_vnum, new_vnum;
 	while (fscanf(fp, "%u %u", &ori_vnum, &new_vnum) != EOF)
 	{
-		map_new_to_ori_.insert (map_d_w2_dw::value_type (new_vnum, ori_vnum));
+		map_new_to_ori_.insert (map_dw2_dw::value_type (new_vnum, ori_vnum));
 	}
 	fclose(fp);
 	return true;

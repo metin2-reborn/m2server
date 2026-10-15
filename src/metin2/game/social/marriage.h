@@ -39,11 +39,11 @@ namespace marriage
 
 		std::unique_ptr<game::social::marriage::wedding_info> wedding_info;
 
-		marriage(uint32_t pid1_value, uint32_t pid2_value, int _love_point, time_t _marry_time, const char* name1, const char* name2) : 
+		marriage(uint32_t pid1_value, uint32_t pid2_value, int love_point_value, time_t marry_time_value, const char* name1, const char* name2) : 
 			pid1(pid1_value), 
 			pid2(pid2_value), 
-			love_point(_love_point),
-			marry_time(_marry_time), 
+			love_point(love_point_value),
+			marry_time(marry_time_value), 
 			is_married(false),
 			name1(name1),
 			name2(name2),
@@ -67,12 +67,12 @@ namespace marriage
 
 		bool is_near();
 
-		uint32_t other(uint32_t PID) const
+		uint32_t other(uint32_t pid) const
 		{
-			if (pid1 == PID)
+			if (pid1 == pid)
 				return pid2;
 
-			if (pid2 == PID)
+			if (pid2 == pid)
 				return pid1;
 
 			return 0;
@@ -81,9 +81,9 @@ namespace marriage
 		int marriage_point();
 		int marriage_grade();
 
-		int bonus(uint32_t dwItemVnum, bool bShare = true, character * me = nullptr);
+		int bonus(uint32_t item_vnum, bool share = true, character * me = nullptr);
 
-		void warp_to_wedding_map(uint32_t dwPID);
+		void warp_to_wedding_map(uint32_t pid);
 		void save();
 		void set_married();
 
@@ -108,33 +108,33 @@ namespace marriage
 			bool	initialize();
 			void	destroy();
 
-			marriage*	get(uint32_t dwPlayerID);
+			marriage*	get(uint32_t player_id);
 
-			bool	is_marriage_unique_item(uint32_t dwItemVnum);
+			bool	is_marriage_unique_item(uint32_t item_vnum);
 
-			bool	is_married(uint32_t dwPlayerID);
-			bool	is_engaged(uint32_t dwPlayerID);
-			bool	is_engaged_or_married(uint32_t dwPlayerID);
+			bool	is_married(uint32_t player_id);
+			bool	is_engaged(uint32_t player_id);
+			bool	is_engaged_or_married(uint32_t player_id);
 
-			void	request_add(uint32_t dwPID1, uint32_t dwPID2, const char* szName1, const char* szName2);
-			void	add(uint32_t dwPID1, uint32_t dwPID2, time_t tMarryTime, const char* szName1, const char* szName2);
+			void	request_add(uint32_t pid1, uint32_t pid2, const char* name1_value, const char* name2_value);
+			void	add(uint32_t pid1, uint32_t pid2, time_t t_marry_time, const char* name1, const char* name2);
 
-			void	request_update(uint32_t dwPID1, uint32_t dwPID2, int iUpdatePoint, uint8_t byMarried);
-			void	update(uint32_t dwPID1, uint32_t dwPID2, int32_t lTotalPoint, uint8_t byMarried);
+			void	request_update(uint32_t pid1, uint32_t pid2, int update_point, uint8_t married_value);
+			void	update(uint32_t pid1, uint32_t pid2, int32_t total_point, uint8_t married);
 
-			void	request_remove(uint32_t dwPID1, uint32_t dwPID2);
-			void	remove(uint32_t dwPID1, uint32_t dwPID2);
+			void	request_remove(uint32_t pid1, uint32_t pid2);
+			void	remove(uint32_t pid1, uint32_t pid2);
 
 			void	login(character * ch);
 
 			void	logout(uint32_t pid);
 			void	logout(character * ch);
 
-			void	wedding_ready(uint32_t dwPID1, uint32_t dwPID2, uint32_t dwMapIndex);
-			void	wedding_start(uint32_t dwPID1, uint32_t dwPID2);
-			void	wedding_end(uint32_t dwPID1, uint32_t dwPID2);
+			void	wedding_ready(uint32_t pid1, uint32_t pid2, uint32_t map_index_value);
+			void	wedding_start(uint32_t pid1, uint32_t pid2);
+			void	wedding_end(uint32_t pid1, uint32_t pid2);
 
-			void	request_end_wedding(uint32_t dwPID1, uint32_t dwPID2);
+			void	request_end_wedding(uint32_t pid1, uint32_t pid2);
 
 			template <typename Func>
 				Func	for_each_wedding(Func f);

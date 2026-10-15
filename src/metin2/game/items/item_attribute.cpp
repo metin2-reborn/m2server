@@ -64,31 +64,31 @@ int item::attribute_set_index()
 	return -1;
 }
 
-bool item::has_attr(uint8_t bApply)
+bool item::has_attr(uint8_t apply)
 {
 	for (int i = 0; i < ITEM_APPLY_MAX_NUM; ++i)
-		if (proto_->applies[i].type == bApply)
+		if (proto_->applies[i].type == apply)
 			return true;
 
 	for (int i = 0; i < MAX_NORM_ATTR_NUM; ++i)
-		if (attribute_type(i) == bApply)
+		if (attribute_type(i) == apply)
 			return true;
 
 	return false;
 }
 
-bool item::has_rare_attr(uint8_t bApply)
+bool item::has_rare_attr(uint8_t apply)
 {
 	for (int i = 0; i < MAX_RARE_ATTR_NUM; ++i)
-		if (attribute_type(i + 5) == bApply)
+		if (attribute_type(i + 5) == apply)
 			return true;
 
 	return false;
 }
 
-void item::add_attribute(uint8_t bApply, short sValue)
+void item::add_attribute(uint8_t apply, short s_value)
 {
-	if (has_attr(bApply))
+	if (has_attr(apply))
 		return;
 
 	int i = attribute_count();
@@ -97,17 +97,17 @@ void item::add_attribute(uint8_t bApply, short sValue)
 		metin2::log::error("item attribute overflow!");
 	else
 	{
-		if (sValue)
-			set_attribute(i, bApply, sValue);
+		if (s_value)
+			set_attribute(i, apply, s_value);
 	}
 }
 
-void item::add_attr(uint8_t bApply, uint8_t bLevel)
+void item::add_attr(uint8_t apply, uint8_t level)
 {
-	if (has_attr(bApply))
+	if (has_attr(apply))
 		return;
 
-	if (bLevel <= 0)
+	if (level <= 0)
 		return;
 
 	int i = attribute_count();
@@ -116,22 +116,22 @@ void item::add_attr(uint8_t bApply, uint8_t bLevel)
 		metin2::log::error("item attribute overflow!");
 	else
 	{
-		const item_attr_table & r = map_item_attr[bApply];
-		int32_t lVal = r.values[std::min(4, bLevel - 1)];
+		const item_attr_table & r = map_item_attr[apply];
+		int32_t lVal = r.values[std::min(4, level - 1)];
 
 		if (lVal)
-			set_attribute(i, bApply, lVal);
+			set_attribute(i, apply, lVal);
 	}
 }
 
-void item::put_attribute_with_level(uint8_t bLevel)
+void item::put_attribute_with_level(uint8_t level)
 {
 	int iAttributeSet = attribute_set_index();
 
 	if (iAttributeSet < 0)
 		return;
 
-	if (bLevel > ITEM_ATTRIBUTE_MAX_LEVEL)
+	if (level > ITEM_ATTRIBUTE_MAX_LEVEL)
 		return;
 
 	std::vector<int> avail;
@@ -169,36 +169,36 @@ void item::put_attribute_with_level(uint8_t bLevel)
 
 	if (!attr_idx)
 	{
-		metin2::log::error("Cannot put item attribute {:d} {:d}", iAttributeSet, bLevel);
+		metin2::log::error("Cannot put item attribute {:d} {:d}", iAttributeSet, level);
 		return;
 	}
 
 	const item_attr_table & r = map_item_attr[attr_idx];
 
 	// Cap the max attribute level per type
-	if (bLevel > r.max_level_by_set[iAttributeSet])
-		bLevel = r.max_level_by_set[iAttributeSet];
+	if (level > r.max_level_by_set[iAttributeSet])
+		level = r.max_level_by_set[iAttributeSet];
 
-	add_attr(attr_idx, bLevel);
+	add_attr(attr_idx, level);
 }
 
-void item::put_attribute(const int * aiAttrPercentTable)
+void item::put_attribute(const int * attr_percent_table)
 {
 	int iAttrLevelPercent = number(1, 100);
 	int i;
 
 	for (i = 0; i < ITEM_ATTRIBUTE_MAX_LEVEL; ++i)
 	{
-		if (iAttrLevelPercent <= aiAttrPercentTable[i])
+		if (iAttrLevelPercent <= attr_percent_table[i])
 			break;
 
-		iAttrLevelPercent -= aiAttrPercentTable[i];
+		iAttrLevelPercent -= attr_percent_table[i];
 	}
 
 	put_attribute_with_level(i + 1);
 }
 
-void item::change_attribute(const int* aiChangeProb)
+void item::change_attribute(const int* change_prob)
 {
 	int iAttributeCount = attribute_count();
 
@@ -221,13 +221,13 @@ void item::change_attribute(const int* aiChangeProb)
 
 	for (int i = attribute_count(); i < iAttributeCount; ++i)
 	{
-		if (aiChangeProb == nullptr)
+		if (change_prob == nullptr)
 		{
 			put_attribute(tmpChangeProb);
 		}
 		else
 		{
-			put_attribute(aiChangeProb);
+			put_attribute(change_prob);
 		}
 	}
 }
@@ -265,73 +265,73 @@ int item::attribute_count()
 	return i;
 }
 
-int item::find_attribute(uint8_t bType)
+int item::find_attribute(uint8_t type)
 {
 	for (int i = 0; i < MAX_NORM_ATTR_NUM; ++i)
 	{
-		if (attribute_type(i) == bType)
+		if (attribute_type(i) == type)
 			return i;
 	}
 
 	return -1;
 }
 
-bool item::remove_attribute_type(uint8_t bType)
+bool item::remove_attribute_type(uint8_t type)
 {
-	int index = find_attribute(bType);
+	int index = find_attribute(type);
 	return index != -1 && remove_attribute_type(index);
 }
 
-void item::set_attributes(const player_item_attribute* c_pAttribute)
+void item::set_attributes(const player_item_attribute* attribute)
 {
-	std::memcpy(attr_, c_pAttribute, sizeof(attr_));
+	std::memcpy(attr_, attribute, sizeof(attr_));
 	save();
 }
 
-void item::set_attribute(int i, uint8_t bType, short sValue)
+void item::set_attribute(int i, uint8_t type_value, short s_value_value)
 {
 	assert(i < MAX_NORM_ATTR_NUM);
 
-	attr_[i].type = bType;
-	attr_[i].s_value = sValue;
+	attr_[i].type = type_value;
+	attr_[i].s_value = s_value_value;
 	update_packet();
 	save();
 
-	if (bType)
+	if (type_value)
 	{
 		const char * pszIP = nullptr;
 
 		if (owner() && owner()->get_desc())
 			pszIP = owner()->get_desc()->host_name();
 
-		log_manager::instance().item_log(i, bType, sValue, id(), "SET_ATTR", "", pszIP ? pszIP : "", original_vnum());
+		log_manager::instance().item_log(i, type_value, s_value_value, id(), "SET_ATTR", "", pszIP ? pszIP : "", original_vnum());
 	}
 }
 
-void item::set_force_attribute(int i, uint8_t bType, short sValue)
+void item::set_force_attribute(int i, uint8_t type_value, short s_value_value)
 {
 	assert(i < ITEM_ATTRIBUTE_MAX_NUM);
 
-	attr_[i].type = bType;
-	attr_[i].s_value = sValue;
+	attr_[i].type = type_value;
+	attr_[i].s_value = s_value_value;
 	update_packet();
 	save();
 
-	if (bType)
+	if (type_value)
 	{
 		const char * pszIP = nullptr;
 
 		if (owner() && owner()->get_desc())
 			pszIP = owner()->get_desc()->host_name();
 
-		log_manager::instance().item_log(i, bType, sValue, id(), "SET_FORCE_ATTR", "", pszIP ? pszIP : "", original_vnum());
+		log_manager::instance().item_log(i, type_value, s_value_value, id(), "SET_FORCE_ATTR", "", pszIP ? pszIP : "", original_vnum());
 	}
 }
 
 
-void item::copy_attribute_to(item * pItem)
+void item::copy_attribute_to(item * item_value)
 {
-	pItem->set_attributes(attr_);
+	item_value->set_attributes(attr_);
 }
 
 int item::rare_attr_count()

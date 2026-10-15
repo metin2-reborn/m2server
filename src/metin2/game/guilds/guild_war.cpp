@@ -30,7 +30,7 @@ namespace metin2::game::inline guilds {
 // 
 // Packet
 //
-void guild::guild_war_packet(uint32_t dwOppGID, uint8_t bWarType, uint8_t bWarState)
+void guild::guild_war_packet(uint32_t opp_gid, uint8_t war_type, uint8_t war_state_value)
 {
 	packet_gc_guild pack;
 	packet_gc_guild_war pack2;
@@ -39,22 +39,22 @@ void guild::guild_war_packet(uint32_t dwOppGID, uint8_t bWarType, uint8_t bWarSt
 	pack.subheader	= GUILD_SUBHEADER_GC_WAR;
 	pack.size		= sizeof(pack) + sizeof(pack2);
 	pack2.guild_self	= id();
-	pack2.guild_opp	= dwOppGID;
-	pack2.war_state	= bWarState;
-	pack2.type		= bWarType;
+	pack2.guild_opp	= opp_gid;
+	pack2.war_state	= war_state_value;
+	pack2.type		= war_type;
 
 	for (auto it = member_online_.begin(); it != member_online_.end(); ++it)
 	{
 		character * ch = *it;
 
-		if (bWarState == GUILD_WAR_ON_WAR)
+		if (war_state_value == GUILD_WAR_ON_WAR)
 			ch->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> 길드전중에는 사냥에 따른 이익이 없습니다."));
 
 		desc * d = ch->get_desc();
 
 		if (d)
 		{
-			ch->send_guild_name( dwOppGID );
+			ch->send_guild_name( opp_gid );
 
 			d->buffered_packet(&pack, sizeof(pack));
 			d->packet(&pack2, sizeof(pack2));
@@ -116,18 +116,18 @@ void guild::send_enemy_guild(character * ch)
 //
 // War Login
 //
-int guild::get_guild_war_state(uint32_t dwOppGID)
+int guild::get_guild_war_state(uint32_t opp_gid)
 {
-	if (dwOppGID == id())
+	if (opp_gid == id())
 		return GUILD_WAR_NONE;
 
-	auto it = enemy_guild_.find(dwOppGID);
+	auto it = enemy_guild_.find(opp_gid);
 	return (it != enemy_guild_.end()) ? (it->second.state) : static_cast<uint32_t>(GUILD_WAR_NONE);
 } 
 
-int guild::get_guild_war_type(uint32_t dwOppGID)
+int guild::get_guild_war_type(uint32_t opp_gid)
 {
-	auto git = enemy_guild_.find(dwOppGID);
+	auto git = enemy_guild_.find(opp_gid);
 
 	if (git == enemy_guild_.end())
 		return GUILD_WAR_TYPE_FIELD;
@@ -135,9 +135,9 @@ int guild::get_guild_war_type(uint32_t dwOppGID)
 	return git->second.type;
 }
 
-uint32_t guild::guild_war_map_index(uint32_t dwOppGID)
+uint32_t guild::guild_war_map_index(uint32_t opp_gid)
 {
-	auto git = enemy_guild_.find(dwOppGID);
+	auto git = enemy_guild_.find(opp_gid);
 
 	if (git == enemy_guild_.end())
 		return 0;
@@ -145,9 +145,9 @@ uint32_t guild::guild_war_map_index(uint32_t dwOppGID)
 	return git->second.map_index;
 }
 
-bool guild::can_start_war(uint8_t bGuildWarType) // Different conditions may apply depending on type
+bool guild::can_start_war(uint8_t guild_war_type) // Different conditions may apply depending on type
 {
-	if (bGuildWarType >= GUILD_WAR_TYPE_MAX_NUM)
+	if (guild_war_type >= GUILD_WAR_TYPE_MAX_NUM)
 		return false;
 
 	// Don't check member count when testing.
@@ -157,21 +157,21 @@ bool guild::can_start_war(uint8_t bGuildWarType) // Different conditions may app
 	return ladder_point() > 0 && member_count() >= GUILD_WAR_MIN_MEMBER_COUNT;
 }
 
-bool guild::under_war(uint32_t dwOppGID)
+bool guild::under_war(uint32_t opp_gid)
 {
-	if (dwOppGID == id())
+	if (opp_gid == id())
 		return false;
 
-	auto it = enemy_guild_.find(dwOppGID);
+	auto it = enemy_guild_.find(opp_gid);
 	return (it != enemy_guild_.end()) && (it->second.is_war_begin());
 } 
 
-uint32_t guild::under_any_war(uint8_t bType)
+uint32_t guild::under_any_war(uint8_t type_value)
 {
 	for (auto it = enemy_guild_.begin(); it != enemy_guild_.end(); ++it)
 	{
-		if (bType < GUILD_WAR_TYPE_MAX_NUM)
-			if (it->second.type != bType)
+		if (type_value < GUILD_WAR_TYPE_MAX_NUM)
+			if (it->second.type != type_value)
 				continue;
 
 		if (it->second.is_war_begin())
@@ -181,24 +181,24 @@ uint32_t guild::under_any_war(uint8_t bType)
 	return 0;
 }
 
-void guild::set_war_score_against_to(uint32_t dwOppGID, int iScore)
+void guild::set_war_score_against_to(uint32_t opp_gid, int score_value)
 {
 	uint32_t dwSelfGID = id();
 
-	metin2::log::info( "GuildWarScore Set {:d} from {:d} {:d}", dwSelfGID, dwOppGID, iScore);
-	auto it = enemy_guild_.find(dwOppGID);
+	metin2::log::info( "GuildWarScore Set {:d} from {:d} {:d}", dwSelfGID, opp_gid, score_value);
+	auto it = enemy_guild_.find(opp_gid);
 
 	if (it != enemy_guild_.end())
 	{
-		it->second.score = iScore;
+		it->second.score = score_value;
 
 		if (it->second.type != GUILD_WAR_TYPE_FIELD)
 		{
-			guild * gOpp = guild_manager::instance().touch_guild(dwOppGID);
+			guild * gOpp = guild_manager::instance().touch_guild(opp_gid);
 			war_map * pMap = war_map_manager::instance().find(it->second.map_index);
 
 			if (pMap)
-				pMap->update_score(dwSelfGID, iScore, dwOppGID, gOpp->war_score_against_to(dwSelfGID));
+				pMap->update_score(dwSelfGID, score_value, opp_gid, gOpp->war_score_against_to(dwSelfGID));
 		}
 		else
 		{
@@ -212,12 +212,12 @@ void guild::set_war_score_against_to(uint32_t dwOppGID, int iScore)
 			buf.write(&p, sizeof(p));
 
 			buf.write(&dwSelfGID, sizeof(uint32_t));
-			buf.write(&dwOppGID, sizeof(uint32_t));
-			buf.write(&iScore, sizeof(int32_t));
+			buf.write(&opp_gid, sizeof(uint32_t));
+			buf.write(&score_value, sizeof(int32_t));
 
 			packet(buf.read_peek(), buf.size());
 
-			guild * gOpp = guild_manager::instance().touch_guild(dwOppGID);
+			guild * gOpp = guild_manager::instance().touch_guild(opp_gid);
 
 			if (gOpp)
 				gOpp->packet(buf.read_peek(), buf.size());
@@ -225,26 +225,26 @@ void guild::set_war_score_against_to(uint32_t dwOppGID, int iScore)
 	}
 }
 
-int guild::war_score_against_to(uint32_t dwOppGID)
+int guild::war_score_against_to(uint32_t opp_gid)
 {
-	auto it = enemy_guild_.find(dwOppGID);
+	auto it = enemy_guild_.find(opp_gid);
 
 	if (it != enemy_guild_.end())
 	{
-		metin2::log::info( "GuildWarScore Get {:d} from {:d} {:d}", id(), dwOppGID, it->second.score);
+		metin2::log::info( "GuildWarScore Get {:d} from {:d} {:d}", id(), opp_gid, it->second.score);
 		return it->second.score;
 	}
 
-	metin2::log::info( "GuildWarScore Get {:d} from {:d} No data", id(), dwOppGID);
+	metin2::log::info( "GuildWarScore Get {:d} from {:d} No data", id(), opp_gid);
 	return 0;
 }
 
-uint32_t guild::war_start_time(uint32_t dwOppGID)
+uint32_t guild::war_start_time(uint32_t opp_gid)
 {
-	if (dwOppGID == id())
+	if (opp_gid == id())
 		return 0;
 
-	auto it = enemy_guild_.find(dwOppGID);
+	auto it = enemy_guild_.find(opp_gid);
 
 	if (it == enemy_guild_.end())
 		return 0;
@@ -294,27 +294,27 @@ void guild::notify_guild_master(const char* msg)
 //           -> B Declare -> WaitStart -> Fail
 //                                     -> StartWar -> EndWar
 //
-void guild::request_declare_war(uint32_t dwOppGID, uint8_t type)
+void guild::request_declare_war(uint32_t opp_gid, uint8_t type)
 {
-	if (dwOppGID == id())
+	if (opp_gid == id())
 	{
-		metin2::log::info( "GuildWar.DeclareWar.DECLARE_WAR_SELF id({:d} -> {:d}), type({:d})", id(), dwOppGID, type);
+		metin2::log::info( "GuildWar.DeclareWar.DECLARE_WAR_SELF id({:d} -> {:d}), type({:d})", id(), opp_gid, type);
 		return;
 	}
 
 	if (type >= GUILD_WAR_TYPE_MAX_NUM)
 	{
-		metin2::log::info( "GuildWar.DeclareWar.UNKNOWN_WAR_TYPE id({:d} -> {:d}), type({:d})", id(), dwOppGID, type);
+		metin2::log::info( "GuildWar.DeclareWar.UNKNOWN_WAR_TYPE id({:d} -> {:d}), type({:d})", id(), opp_gid, type);
 		return;
 	}
 
-	auto it = enemy_guild_.find(dwOppGID);
+	auto it = enemy_guild_.find(opp_gid);
 	if (it == enemy_guild_.end())
 	{
 		if (!guild_war_is_war_map(type))
 		{
 			metin2::log::error("GuildWar.DeclareWar.NOT_EXIST_MAP id({:d} -> {:d}), type({:d}), map({:d})", 
-					id(), dwOppGID, type, guild_war_get_type_map_index(type));
+					id(), opp_gid, type, guild_war_get_type_map_index(type));
 
 			map_allow_log();
 			notify_guild_master(lc_text("전쟁 서버가 열려있지 않아 길드전을 시작할 수 없습니다."));
@@ -326,9 +326,9 @@ void guild::request_declare_war(uint32_t dwOppGID, uint8_t type)
 		p.type = type;
 		p.war = GUILD_WAR_SEND_DECLARE;
 		p.guild_from = id();
-		p.guild_to = dwOppGID;
+		p.guild_to = opp_gid;
 		db_clientdesc->db_packet(HEADER_GD_GUILD_WAR, 0, &p, sizeof(p));
-		metin2::log::info( "GuildWar.DeclareWar id({:d} -> {:d}), type({:d})", id(), dwOppGID, type);
+		metin2::log::info( "GuildWar.DeclareWar id({:d} -> {:d}), type({:d})", id(), opp_gid, type);
 		return;
 	}
 
@@ -345,16 +345,16 @@ void guild::request_declare_war(uint32_t dwOppGID, uint8_t type)
 					p.type = saved_type;
 					p.war = GUILD_WAR_ON_WAR;
 					p.guild_from = id();
-					p.guild_to = dwOppGID;
+					p.guild_to = opp_gid;
 					db_clientdesc->db_packet(HEADER_GD_GUILD_WAR, 0, &p, sizeof(p));
-					metin2::log::info( "GuildWar.AcceptWar id({:d} -> {:d}), type({:d})", id(), dwOppGID, saved_type);
+					metin2::log::info( "GuildWar.AcceptWar id({:d} -> {:d}), type({:d})", id(), opp_gid, saved_type);
 					return;
 				}
 
 				if (!guild_war_is_war_map(saved_type))
 				{
 					metin2::log::error("GuildWar.AcceptWar.NOT_EXIST_MAP id({:d} -> {:d}), type({:d}), map({:d})", 
-							id(), dwOppGID, type, guild_war_get_type_map_index(type));
+							id(), opp_gid, type, guild_war_get_type_map_index(type));
 
 					map_allow_log();
 					notify_guild_master(lc_text("전쟁 서버가 열려있지 않아 길드전을 시작할 수 없습니다."));
@@ -367,7 +367,7 @@ void guild::request_declare_war(uint32_t dwOppGID, uint8_t type)
 				p.type = saved_type;
 				p.war = GUILD_WAR_WAIT_START;
 				p.guild_from = id();
-				p.guild_to = dwOppGID;
+				p.guild_to = opp_gid;
 				p.war_price = guildWarInfo.war_price;
 				p.initial_score = guildWarInfo.initial_score;
 
@@ -377,7 +377,7 @@ void guild::request_declare_war(uint32_t dwOppGID, uint8_t type)
 				db_clientdesc->db_packet(HEADER_GD_GUILD_WAR, 0, &p, sizeof(p));
 
 				metin2::log::info( "GuildWar.WaitStartSendToDB id({:d} vs {:d}), type({:d}), bet({:d}), map_index({:d})", 
-						id(), dwOppGID, saved_type, guildWarInfo.war_price, guildWarInfo.map_index);
+						id(), opp_gid, saved_type, guildWarInfo.war_price, guildWarInfo.map_index);
 
 			}
 			break;
@@ -388,28 +388,28 @@ void guild::request_declare_war(uint32_t dwOppGID, uint8_t type)
 			break;
 		default:
 			metin2::log::error("GuildWar.DeclareWar.UNKNOWN_STATE[{:d}]: id({:d} vs {:d}), type({:d}), guild({}:{:d})", 
-					it->second.state, id(), dwOppGID, type, name(), id());
+					it->second.state, id(), opp_gid, type, name(), id());
 			break;
 	}
 }
 
-bool guild::declare_war(uint32_t dwOppGID, uint8_t type, uint8_t state)
+bool guild::declare_war(uint32_t opp_gid, uint8_t type, uint8_t state)
 {
-	if (enemy_guild_.find(dwOppGID) != enemy_guild_.end())
+	if (enemy_guild_.find(opp_gid) != enemy_guild_.end())
 		return false;
 
 	guild_war gw(type);
 	gw.state = state;
 
-	enemy_guild_.insert(std::make_pair(dwOppGID, gw));
+	enemy_guild_.insert(std::make_pair(opp_gid, gw));
 
-	guild_war_packet(dwOppGID, type, state);
+	guild_war_packet(opp_gid, type, state);
 	return true;
 }
 
-bool guild::check_start_war(uint32_t dwOppGID)
+bool guild::check_start_war(uint32_t opp_gid)
 {
-	auto it = enemy_guild_.find(dwOppGID);
+	auto it = enemy_guild_.find(opp_gid);
 
 	if (it == enemy_guild_.end())
 		return false;
@@ -422,9 +422,9 @@ bool guild::check_start_war(uint32_t dwOppGID)
 	return true;
 }
 
-void guild::start_war(uint32_t dwOppGID)
+void guild::start_war(uint32_t opp_gid)
 {
-	auto it = enemy_guild_.find(dwOppGID);
+	auto it = enemy_guild_.find(opp_gid);
 
 	if (it == enemy_guild_.end())
 		return;
@@ -437,26 +437,26 @@ void guild::start_war(uint32_t dwOppGID)
 	gw.state = GUILD_WAR_ON_WAR;
 	gw.war_start_time = get_global_time();
 
-	guild_war_packet(dwOppGID, gw.type, GUILD_WAR_ON_WAR);
+	guild_war_packet(opp_gid, gw.type, GUILD_WAR_ON_WAR);
 
 	if (gw.type != GUILD_WAR_TYPE_FIELD)
-		guild_war_entry_ask(dwOppGID);
+		guild_war_entry_ask(opp_gid);
 }
 
-bool guild::wait_start_war(uint32_t dwOppGID)
+bool guild::wait_start_war(uint32_t opp_gid)
 {
 	//If it's ourselves 
-	if (dwOppGID == id())
+	if (opp_gid == id())
 	{
-		metin2::log::info("GuildWar.WaitStartWar.DECLARE_WAR_SELF id({:d} -> {:d})", id(), dwOppGID);
+		metin2::log::info("GuildWar.WaitStartWar.DECLARE_WAR_SELF id({:d} -> {:d})", id(), opp_gid);
 		return false;
 	}
 
 	//Get the opposing guild's TGuildWar.
-	auto it = enemy_guild_.find(dwOppGID);
+	auto it = enemy_guild_.find(opp_gid);
 	if (it == enemy_guild_.end())
 	{
-		metin2::log::info("GuildWar.WaitStartWar.UNKNOWN_ENEMY id({:d} -> {:d})", id(), dwOppGID);
+		metin2::log::info("GuildWar.WaitStartWar.UNKNOWN_ENEMY id({:d} -> {:d})", id(), opp_gid);
 		return false;
 	}
 
@@ -465,7 +465,7 @@ bool guild::wait_start_war(uint32_t dwOppGID)
 
 	if (gw.state == GUILD_WAR_WAIT_START)
 	{
-		metin2::log::info("GuildWar.WaitStartWar.UNKNOWN_STATE id({:d} -> {:d}), state({:d})", id(), dwOppGID, gw.state);
+		metin2::log::info("GuildWar.WaitStartWar.UNKNOWN_STATE id({:d} -> {:d}), state({:d})", id(), opp_gid, gw.state);
 		return false;
 	}
 
@@ -473,10 +473,10 @@ bool guild::wait_start_war(uint32_t dwOppGID)
 	gw.state = GUILD_WAR_WAIT_START;
 
 	//get the opposing guild's class pointer and
-	guild* g = guild_manager::instance().find_guild(dwOppGID);
+	guild* g = guild_manager::instance().find_guild(opp_gid);
 	if (!g)
 	{
-		metin2::log::info("GuildWar.WaitStartWar.NOT_EXIST_GUILD id({:d} -> {:d})", id(), dwOppGID);
+		metin2::log::info("GuildWar.WaitStartWar.NOT_EXIST_GUILD id({:d} -> {:d})", id(), opp_gid);
 		return false;
 	}
 
@@ -488,23 +488,23 @@ bool guild::wait_start_war(uint32_t dwOppGID)
 	// Don't create a map for field type
 	if (gw.type == GUILD_WAR_TYPE_FIELD)
 	{
-		metin2::log::info("GuildWar.WaitStartWar.FIELD_TYPE id({:d} -> {:d})", id(), dwOppGID);
+		metin2::log::info("GuildWar.WaitStartWar.FIELD_TYPE id({:d} -> {:d})", id(), opp_gid);
 		return true;
 	}		
 
 	// Check whether this is the war server
 	metin2::log::info("GuildWar.WaitStartWar.CheckWarServer id({:d} -> {:d}), type({:d}), map({:d})", 
-			id(), dwOppGID, gw.type, rkGuildWarInfo.map_index);
+			id(), opp_gid, gw.type, rkGuildWarInfo.map_index);
 
 	if (!map_allow_find(rkGuildWarInfo.map_index))
 	{
-		metin2::log::info("GuildWar.WaitStartWar.SKIP_WAR_MAP id({:d} -> {:d})", id(), dwOppGID);
+		metin2::log::info("GuildWar.WaitStartWar.SKIP_WAR_MAP id({:d} -> {:d})", id(), opp_gid);
 		return true;
 	}
 
 
 	uint32_t id1 = id();
-	uint32_t id2 = dwOppGID;
+	uint32_t id2 = opp_gid;
 
 	if (id1 > id2)
 		std::swap(id1, id2);
@@ -514,7 +514,7 @@ bool guild::wait_start_war(uint32_t dwOppGID)
 	if (!lMapIndex) 
 	{
 		metin2::log::error("GuildWar.WaitStartWar.CREATE_WARMAP_ERROR id({:d} vs {:d}), type({:d}), map({:d})", id1, id2, gw.type, rkGuildWarInfo.map_index);
-		guild_manager::instance().request_end_war(id(), dwOppGID);
+		guild_manager::instance().request_end_war(id(), opp_gid);
 		return false;
 	}
 
@@ -524,15 +524,15 @@ bool guild::wait_start_war(uint32_t dwOppGID)
 	gw.map_index = lMapIndex;
 
 	//Register on both sides(?)
-	set_guild_war_map_index(dwOppGID, lMapIndex);
+	set_guild_war_map_index(opp_gid, lMapIndex);
 	g->set_guild_war_map_index(id(), lMapIndex);
 
 	///////////////////////////////////////////////////////
 	packet_gg_guild_war_map_index p;
 
 	p.header	= HEADER_GG_GUILD_WAR_ZONE_MAP_INDEX;
-	p.guild_i_d1	= id1;
-	p.guild_i_d2 	= id2;
+	p.guild_id1	= id1;
+	p.guild_id2 	= id2;
 	p.map_index	= lMapIndex;
 
 	p2_p_manager::instance().send(&p, sizeof(p));
@@ -541,12 +541,12 @@ bool guild::wait_start_war(uint32_t dwOppGID)
 	return true;
 }
 
-void guild::request_refuse_war(uint32_t dwOppGID)
+void guild::request_refuse_war(uint32_t opp_gid)
 {
-	if (dwOppGID == id())
+	if (opp_gid == id())
 		return;
 
-	auto it = enemy_guild_.find(dwOppGID);
+	auto it = enemy_guild_.find(opp_gid);
 
 	if (it != enemy_guild_.end() && it->second.state == GUILD_WAR_RECV_DECLARE)
 	{
@@ -554,53 +554,53 @@ void guild::request_refuse_war(uint32_t dwOppGID)
 		packet_guild_war p;
 		p.war = GUILD_WAR_REFUSE;
 		p.guild_from = id();
-		p.guild_to = dwOppGID;
+		p.guild_to = opp_gid;
 
 		db_clientdesc->db_packet(HEADER_GD_GUILD_WAR, 0, &p, sizeof(p));
 	}
 }
 
-void guild::refuse_war(uint32_t dwOppGID)
+void guild::refuse_war(uint32_t opp_gid)
 {
-	if (dwOppGID == id())
+	if (opp_gid == id())
 		return;
 
-	auto it = enemy_guild_.find(dwOppGID);
+	auto it = enemy_guild_.find(opp_gid);
 
 	if (it != enemy_guild_.end() && (it->second.state == GUILD_WAR_SEND_DECLARE || it->second.state == GUILD_WAR_RECV_DECLARE))
 	{
 		uint8_t type = it->second.type;
-		enemy_guild_.erase(dwOppGID);
+		enemy_guild_.erase(opp_gid);
 
-		guild_war_packet(dwOppGID, type, GUILD_WAR_END);
+		guild_war_packet(opp_gid, type, GUILD_WAR_END);
 	}
 }
 
-void guild::reserve_war(uint32_t dwOppGID, uint8_t type)
+void guild::reserve_war(uint32_t opp_gid, uint8_t type)
 {
-	if (dwOppGID == id())
+	if (opp_gid == id())
 		return;
 
-	auto it = enemy_guild_.find(dwOppGID);
+	auto it = enemy_guild_.find(opp_gid);
 
 	if (it == enemy_guild_.end())
 	{
 		guild_war gw(type);
 		gw.state = GUILD_WAR_RESERVE;
-		enemy_guild_.insert(std::make_pair(dwOppGID, gw));
+		enemy_guild_.insert(std::make_pair(opp_gid, gw));
 	}
 	else
 		it->second.state = GUILD_WAR_RESERVE;
 
-	metin2::log::info( "Guild::ReserveWar {:d}", dwOppGID);
+	metin2::log::info( "Guild::ReserveWar {:d}", opp_gid);
 }
 
-void guild::end_war(uint32_t dwOppGID)
+void guild::end_war(uint32_t opp_gid)
 {
-	if (dwOppGID == id())
+	if (opp_gid == id())
 		return;
 
-	auto it = enemy_guild_.find(dwOppGID);
+	auto it = enemy_guild_.find(opp_gid);
 
 	if (it != enemy_guild_.end())
 	{
@@ -609,7 +609,7 @@ void guild::end_war(uint32_t dwOppGID)
 		if (pMap)
 			pMap->set_ended();
 
-		guild_war_packet(dwOppGID, it->second.type, GUILD_WAR_END);
+		guild_war_packet(opp_gid, it->second.type, GUILD_WAR_END);
 		enemy_guild_.erase(it);
 
 		if (!under_any_war())
@@ -630,20 +630,20 @@ void guild::end_war(uint32_t dwOppGID)
 	}
 }
 
-void guild::set_guild_war_map_index(uint32_t dwOppGID, int32_t lMapIndex)
+void guild::set_guild_war_map_index(uint32_t opp_gid, int32_t map_index_value)
 {
-	auto it = enemy_guild_.find(dwOppGID);
+	auto it = enemy_guild_.find(opp_gid);
 
 	if (it == enemy_guild_.end())
 		return;
 
-	it->second.map_index = lMapIndex;
-	metin2::log::info( "GuildWar.SetGuildWarMapIndex id({:d} -> {:d}), map({:d})", id(), dwOppGID, lMapIndex);
+	it->second.map_index = map_index_value;
+	metin2::log::info( "GuildWar.SetGuildWarMapIndex id({:d} -> {:d}), map({:d})", id(), opp_gid, map_index_value);
 }
 
-void guild::guild_war_entry_accept(uint32_t dwOppGID, character * ch)
+void guild::guild_war_entry_accept(uint32_t opp_gid, character * ch)
 {
-	auto git = enemy_guild_.find(dwOppGID);
+	auto git = enemy_guild_.find(opp_gid);
 
 	if (git == enemy_guild_.end())
 		return;
@@ -664,7 +664,7 @@ void guild::guild_war_entry_accept(uint32_t dwOppGID, character * ch)
 
 	pixel_position pos;
 
-	if (!war_map_manager::instance().start_position(gw.map_index, id() < dwOppGID ? 0 : 1, pos))
+	if (!war_map_manager::instance().start_position(gw.map_index, id() < opp_gid ? 0 : 1, pos))
 		return;
 
 	quest::pc * pPC = quest::quest_manager::instance().get_pc(ch->player_id());
@@ -674,28 +674,28 @@ void guild::guild_war_entry_accept(uint32_t dwOppGID, character * ch)
 	ch->warp_set(pos.x, pos.y, gw.map_index);
 }
 
-void guild::guild_war_entry_ask(uint32_t dwOppGID)
+void guild::guild_war_entry_ask(uint32_t opp_gid)
 {
-	auto git = enemy_guild_.find(dwOppGID);
+	auto git = enemy_guild_.find(opp_gid);
 	if (git == enemy_guild_.end())
 	{
-		metin2::log::error("GuildWar.GuildWarEntryAsk.UNKNOWN_ENEMY({:d})", dwOppGID);
+		metin2::log::error("GuildWar.GuildWarEntryAsk.UNKNOWN_ENEMY({:d})", opp_gid);
 		return;
 	}
 
 	guild_war & gw(git->second);
 
-	metin2::log::info( "GuildWar.GuildWarEntryAsk id({:d} vs {:d}), map({:d})", id(), dwOppGID, gw.map_index);
+	metin2::log::info( "GuildWar.GuildWarEntryAsk id({:d} vs {:d}), map({:d})", id(), opp_gid, gw.map_index);
 	if (!gw.map_index)
 	{
-		metin2::log::error("GuildWar.GuildWarEntryAsk.NOT_EXIST_MAP id({:d} vs {:d})", id(), dwOppGID);
+		metin2::log::error("GuildWar.GuildWarEntryAsk.NOT_EXIST_MAP id({:d} vs {:d})", id(), opp_gid);
 		return;
 	}
 
 	pixel_position pos;
-	if (!war_map_manager::instance().start_position(gw.map_index, id() < dwOppGID ? 0 : 1, pos))
+	if (!war_map_manager::instance().start_position(gw.map_index, id() < opp_gid ? 0 : 1, pos))
 	{
-		metin2::log::error("GuildWar.GuildWarEntryAsk.START_POSITION_ERROR id({:d} vs {:d}), pos({:d}, {:d})", id(), dwOppGID, pos.x, pos.y);
+		metin2::log::error("GuildWar.GuildWarEntryAsk.START_POSITION_ERROR id({:d} vs {:d}), pos({:d}, {:d})", id(), opp_gid, pos.x, pos.y);
 		return;
 	}
 
@@ -741,11 +741,11 @@ void guild::set_ladder_point(int point)
 	data_.ladder_point = point; 
 }
 
-void guild::change_ladder_point(int iChange)
+void guild::change_ladder_point(int change_value)
 {
 	packet_guild_ladder_point p;
 	p.guild = id();
-	p.change = iChange;
+	p.change = change_value;
 	db_clientdesc->db_packet(HEADER_GD_GUILD_CHANGE_LADDER_POINT, 0, &p, sizeof(p));
 }
 }

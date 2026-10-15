@@ -39,15 +39,15 @@ mob::mob()
 	}
 }
 
-void mob::add_skill_splash(int iIndex, uint32_t dwTiming, uint32_t dwHitDistance)
+void mob::add_skill_splash(int index, uint32_t timing, uint32_t hit_distance)
 {
-	if (iIndex >= MOB_SKILL_MAX_NUM || iIndex < 0)
+	if (index >= MOB_SKILL_MAX_NUM || index < 0)
 		return;
 
 	metin2::log::info( "MOB_SPLASH {} idx {:d} timing {:d} hit_distance {:d}",
-			table.locale_name, iIndex, dwTiming, dwHitDistance);
+			table.locale_name, index, timing, hit_distance);
 
-	mob_skill_info[iIndex].splash_attack.push_back(mob_splash_attack_info(dwTiming, dwHitDistance));
+	mob_skill_info[index].splash_attack.push_back(mob_splash_attack_info(timing, hit_distance));
 }
 
 mob_instance::mob_instance()
@@ -67,15 +67,15 @@ mob_manager::~mob_manager()
 {
 }
 
-bool mob_manager::initialize(mob_table * pTable, int iSize)
+bool mob_manager::initialize(mob_table * table_value, int size)
 {
 	map_pk_mob_by_vnum_.clear();
 	map_pk_mob_by_name_.clear();
 
-	mob_table * t = pTable;
+	mob_table * t = table_value;
 
 
-	for (int i = 0; i < iSize; ++i, ++t)
+	for (int i = 0; i < size; ++i, ++t)
 	{
 		mob * pkMob = new mob;
 
@@ -137,9 +137,9 @@ void mob_manager::rebind_mob_proto(character * ch)
 		ch->set_proto(pMob);
 }
 
-const mob * mob_manager::get(uint32_t dwVnum)
+const mob * mob_manager::get(uint32_t vnum)
 {
-	std::map<uint32_t, mob *>::iterator it = map_pk_mob_by_vnum_.find(dwVnum);
+	std::map<uint32_t, mob *>::iterator it = map_pk_mob_by_vnum_.find(vnum);
 
 	if (it == map_pk_mob_by_vnum_.end())
 		return nullptr;
@@ -147,13 +147,13 @@ const mob * mob_manager::get(uint32_t dwVnum)
 	return it->second;
 }
 
-const mob * mob_manager::get(const char * c_pszName, bool bIsAbbrev)
+const mob * mob_manager::get(const char * name, bool is_abbrev)
 {
 	std::map<std::string, mob *>::iterator it;
 
-	if (!bIsAbbrev)
+	if (!is_abbrev)
 	{
-		it = map_pk_mob_by_name_.find(c_pszName);
+		it = map_pk_mob_by_name_.find(name);
 
 		if (it == map_pk_mob_by_name_.end())
 			return nullptr;
@@ -161,12 +161,12 @@ const mob * mob_manager::get(const char * c_pszName, bool bIsAbbrev)
 		return it->second;
 	}
 
-	int len = strlen(c_pszName);
+	int len = strlen(name);
 	it = map_pk_mob_by_name_.begin();
 
 	while (it != map_pk_mob_by_name_.end())
 	{
-		if (!strncmp(it->first.c_str(), c_pszName, len))
+		if (!strncmp(it->first.c_str(), name, len))
 			return it->second;
 
 		++it;
@@ -175,29 +175,29 @@ const mob * mob_manager::get(const char * c_pszName, bool bIsAbbrev)
 	return nullptr;
 }
 
-void mob_manager::inc_regen_count(uint8_t bRegenType, uint32_t dwVnum, int iCount, int iTime)
+void mob_manager::inc_regen_count(uint8_t regen_type, uint32_t vnum, int count, int time)
 {
-	switch (bRegenType)
+	switch (regen_type)
 	{
 		case REGEN_TYPE_MOB:
-			regen_count_[dwVnum] += iCount * 86400. / iTime;
+			regen_count_[vnum] += count * 86400. / time;
 			break;
 
 		case REGEN_TYPE_GROUP:
 			{
-				mob_group * pkGroup = mob_manager::instance().group(dwVnum);
+				mob_group * pkGroup = mob_manager::instance().group(vnum);
 				if (!pkGroup)
 					return;
 				const std::vector<uint32_t> & c_rdwMembers = pkGroup->member_vector();
 
 				for (uint32_t i=0; i<c_rdwMembers.size(); i++)
-					regen_count_[c_rdwMembers[i]] += iCount * 86400. / iTime;
+					regen_count_[c_rdwMembers[i]] += count * 86400. / time;
 			}
 			break;
 
 		case REGEN_TYPE_GROUP_GROUP:
 			{
-				std::map<uint32_t, mob_group_group *>::iterator it = map_pk_mob_group_group_.find(dwVnum);
+				std::map<uint32_t, mob_group_group *>::iterator it = map_pk_mob_group_group_.find(vnum);
 
 				if (it == map_pk_mob_group_group_.end())
 					return;
@@ -211,16 +211,16 @@ void mob_manager::inc_regen_count(uint8_t bRegenType, uint32_t dwVnum, int iCoun
 					const std::vector<uint32_t> & c_rdwMembers = pkGroup->member_vector();
 
 					for (uint32_t i=0; i<c_rdwMembers.size(); i++)
-						regen_count_[c_rdwMembers[i]] += iCount * 86400. / iTime / v.size();
+						regen_count_[c_rdwMembers[i]] += count * 86400. / time / v.size();
 				}
 			}
 			break;
 	}
 }
 
-void mob_manager::dump_regen_count(const char* c_szFilename)
+void mob_manager::dump_regen_count(const char* filename)
 {
-	FILE* fp = fopen(c_szFilename, "w");
+	FILE* fp = fopen(filename, "w");
 
 	if (fp)
 	{
@@ -237,9 +237,9 @@ void mob_manager::dump_regen_count(const char* c_szFilename)
 	}
 }
 
-uint32_t mob_manager::group_from_group_group(uint32_t dwVnum)
+uint32_t mob_manager::group_from_group_group(uint32_t vnum)
 {
-	std::map<uint32_t, mob_group_group *>::iterator it = map_pk_mob_group_group_.find(dwVnum);
+	std::map<uint32_t, mob_group_group *>::iterator it = map_pk_mob_group_group_.find(vnum);
 
 	if (it == map_pk_mob_group_group_.end())
 		return 0;
@@ -247,9 +247,9 @@ uint32_t mob_manager::group_from_group_group(uint32_t dwVnum)
 	return it->second->member();
 }
 
-mob_group * mob_manager::group(uint32_t dwVnum)
+mob_group * mob_manager::group(uint32_t vnum)
 {
-	std::map<uint32_t, mob_group *>::iterator it = map_pk_mob_group_.find(dwVnum);
+	std::map<uint32_t, mob_group *>::iterator it = map_pk_mob_group_.find(vnum);
 
 	if (it == map_pk_mob_group_.end())
 		return nullptr;
@@ -257,11 +257,11 @@ mob_group * mob_manager::group(uint32_t dwVnum)
 	return it->second;
 }
 
-bool mob_manager::load_group_group(const char * c_pszFileName)
+bool mob_manager::load_group_group(const char * file_name)
 {
 	text_file_loader loader;
 
-	if (!loader.load(c_pszFileName))
+	if (!loader.load(file_name))
 		return false;
 
 	std::string stName;
@@ -276,7 +276,7 @@ bool mob_manager::load_group_group(const char * c_pszFileName)
 
 		if (!loader.token_integer("vnum", &iVnum))
 		{
-			metin2::log::error("LoadGroupGroup : Syntax error {} : no vnum, node {}", c_pszFileName, stName.c_str());
+			metin2::log::error("LoadGroupGroup : Syntax error {} : no vnum, node {}", file_name, stName.c_str());
 			loader.set_parent_node();
 			continue;
 		}
@@ -318,11 +318,11 @@ bool mob_manager::load_group_group(const char * c_pszFileName)
 	return true;
 }
 
-bool mob_manager::load_group(const char * c_pszFileName)
+bool mob_manager::load_group(const char * file_name)
 {
 	text_file_loader loader;
 
-	if (!loader.load(c_pszFileName))
+	if (!loader.load(file_name))
 		return false;
 
 	std::string stName;
@@ -337,7 +337,7 @@ bool mob_manager::load_group(const char * c_pszFileName)
 
 		if (!loader.token_integer("vnum", &iVnum))
 		{
-			metin2::log::error("LoadGroup : Syntax error {} : no vnum, node {}", c_pszFileName, stName.c_str());
+			metin2::log::error("LoadGroup : Syntax error {} : no vnum, node {}", file_name, stName.c_str());
 			loader.set_parent_node();
 			continue;
 		}
@@ -346,14 +346,14 @@ bool mob_manager::load_group(const char * c_pszFileName)
 
 		if (!loader.get_token_vector("leader", &pTok))
 		{
-			metin2::log::error("LoadGroup : Syntax error {} : no leader, node {}", c_pszFileName, stName.c_str());
+			metin2::log::error("LoadGroup : Syntax error {} : no leader, node {}", file_name, stName.c_str());
 			loader.set_parent_node();
 			continue;
 		}
 
 		if (pTok->size() < 2)
 		{
-			metin2::log::error("LoadGroup : Syntax error {} : no leader vnum, node {}", c_pszFileName, stName.c_str());
+			metin2::log::error("LoadGroup : Syntax error {} : no leader vnum, node {}", file_name, stName.c_str());
 			loader.set_parent_node();
 			continue;
 		}

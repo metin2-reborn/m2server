@@ -40,8 +40,8 @@ class dungeon
 	void	notice(const char* msg);
 	// END_OF_DUNGEON_NOTICE
 
-	void	join_party(party * pParty);
-	void	quit_party(party * pParty);
+	void	join_party(party * party_value);
+	void	quit_party(party * party_value);
 
 	void	join(character * ch);
 
@@ -57,10 +57,10 @@ class dungeon
 	void	dec_monster() { monster_count_--; check_eliminated(); }
 	int	count_monster() { return monster_count_; }	// number of monsters regenerated from data
 
-	void	inc_party_member(party * pParty, character * ch);
-	void	dec_party_member(party * pParty, character * ch);
+	void	inc_party_member(party * party_value, character * ch);
+	void	dec_party_member(party * party_value, character * ch);
 
-	void	inc_kill_count(character * pkKiller, character * pkVictim);
+	void	inc_kill_count(character * killer, character * victim);
 	int	kill_mob_count();
 	int	kill_stone_count();
 	bool	is_use_potion();
@@ -73,12 +73,12 @@ class dungeon
 	void	spawn(uint32_t vnum, const char* pos);
 	character *	spawn_mob(uint32_t vnum, int x, int y, int dir = 0);
 	character *	spawn_mob_ac_dir(uint32_t vnum, int x, int y, int dir = 0);
-	character *	spawn_group(uint32_t vnum, int32_t x, int32_t y, float radius, bool bAggressive=false, int count=1);
+	character *	spawn_group(uint32_t vnum, int32_t x, int32_t y, float radius, bool aggressive=false, int count=1);
 
 	void	spawn_name_mob(uint32_t vnum, int x, int y, const char* name);
-	void	spawn_goto_mob(int32_t lFromX, int32_t lFromY, int32_t lToX, int32_t lToY);
+	void	spawn_goto_mob(int32_t from_x, int32_t from_y, int32_t to_x, int32_t to_y);
 
-	void	spawn_regen(const char* filename, bool bOnce = true);
+	void	spawn_regen(const char* filename, bool once = true);
 	void	add_regen(regen * regen);
 	void	clear_regen();
 	bool	is_valid_regen(regen * regen, size_t regen_id);
@@ -97,23 +97,23 @@ class dungeon
 
 	void	dead_character(character * ch);
 
-	void	unique_set_max_hp(const std::string& key, int iMaxHP);
-	void	unique_set_hp(const std::string& key, int iHP);
-	void	unique_set_def_grade(const std::string& key, int iGrade);
+	void	unique_set_max_hp(const std::string& key, int max_hp);
+	void	unique_set_hp(const std::string& key, int hp);
+	void	unique_set_def_grade(const std::string& key, int grade);
 
-	void	send_dest_position_to_party(party * pParty, int32_t x, int32_t y);
+	void	send_dest_position_to_party(party * party_value, int32_t x, int32_t y);
 
 	void	check_eliminated();
 
-	void	jump_all(int32_t lFromMapIndex, int x, int y);
-	void	warp_all(int32_t lFromMapIndex, int x, int y);
-	void	jump_party(party * pParty, int32_t lFromMapIndex, int x, int y);
+	void	jump_all(int32_t from_map_index, int x, int y);
+	void	warp_all(int32_t from_map_index, int x, int y);
+	void	jump_party(party * party_value, int32_t from_map_index, int x, int y);
 
 	void	exit_all();
 	void	exit_all_to_start_position();
 	void	jump_to_eliminate_location();
 	void	set_exit_all_at_eliminate(int32_t time);
-	void	set_warp_at_eliminate(int32_t time, int32_t lMapIndex, int x, int y, const char* regen_file);
+	void	set_warp_at_eliminate(int32_t time, int32_t map_index, int x, int y, const char* regen_file);
 
 	int	flag(std::string name);
 	void	set_flag(std::string name, int value);
@@ -129,7 +129,7 @@ class dungeon
 	bool is_all_pc_near_to( int x, int y, int dist );
 
 	protected:
-	dungeon(id_type id, int32_t lOriginalMapIndex, int32_t lMapIndex);
+	dungeon(id_type id, int32_t original_map_index, int32_t map_index);
 
 	void	initialize();
 
@@ -194,10 +194,10 @@ class dungeon_manager : public singleton<dungeon_manager>
 	dungeon_manager();
 	~dungeon_manager() override;
 
-	dungeon *	create(int32_t lOriginalMapIndex);
+	dungeon *	create(int32_t original_map_index);
 	void		destroy(dungeon::id_type dungeon_id);
 	dungeon *	find(dungeon::id_type dungeon_id);
-	dungeon *	find_by_map_index(int32_t lMapIndex);
+	dungeon *	find_by_map_index(int32_t map_index);
 
 	private:
 	dungeon_map	map_pk_dungeon_;

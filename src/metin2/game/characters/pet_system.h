@@ -30,7 +30,7 @@ protected:
 
 	virtual ~pet_actor();
 
-	virtual bool	update(uint32_t deltaTime);
+	virtual bool	update(uint32_t delta_time);
 
 protected:
 	virtual bool	update_follow_ai();				///< AI that follows the owner			///< AI that idles alone near the owner
@@ -39,7 +39,7 @@ protected:
 	//virtual bool	_UpdateCombatAI();
 
 private:
-	bool follow(float fMinDistance = 50.f);
+	bool follow(float min_distance = 50.f);
 
 public:
 	character *		get_character()	const					{ return character_; }
@@ -48,13 +48,13 @@ public:
 
 	bool			has_option(pet_options option) const		{ return options_ & option; }
 
-	void			set_name(const char* petName);
+	void			set_name(const char* name);
 
-	uint32_t			summon(const char* petName, item * pSummonItem, bool bSpawnFar = false);
+	uint32_t			summon(const char* pet_name, item * summon_item, bool spawn_far = false);
 	void			unsummon();
 
 	bool			is_summoned() const			{ return nullptr != character_; }
-	void			set_summon_item (item * pItem);
+	void			set_summon_item (item * item_value);
 	uint32_t			summon_item_vid () { return summon_item_vid_; }
 	// Functions to give and remove the buff.
 	// This is a bit bizarre: because the server is dumb, 
@@ -96,21 +96,21 @@ public:
 
 	pet_actor*	by_vnum(uint32_t vnum) const;
 
-	bool		update(uint32_t deltaTime);
+	bool		update(uint32_t delta_time);
 	void		destroy();
 
 	size_t		count_summoned() const;			///< Number of currently summoned pets (with a materialized character)
 
 public:
 
-	pet_actor*	summon(uint32_t mobVnum, item * pSummonItem, const char* petName, bool bSpawnFar, uint32_t options = pet_actor::EPetOption_Followable | pet_actor::EPetOption_Summonable);
+	pet_actor*	summon(uint32_t mob_vnum, item * summon_item, const char* pet_name, bool spawn_far, uint32_t options = pet_actor::EPetOption_Followable | pet_actor::EPetOption_Summonable);
 
-	void		unsummon(uint32_t mobVnum, bool bDeleteFromList = false);
-	void		unsummon(pet_actor* petActor, bool bDeleteFromList = false);
+	void		unsummon(uint32_t vnum, bool delete_from_list = false);
+	void		unsummon(pet_actor* pet_actor, bool delete_from_list = false);
 
 	// TODO: implement when the real pet system goes in. (e.g. when adding info on pets owned by a character...)
 
-	void		delete_pet(pet_actor* petActor);
+	void		delete_pet(pet_actor* pet_actor_value);
 	void		refresh_buff();
 
 private:

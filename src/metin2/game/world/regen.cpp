@@ -268,7 +268,7 @@ static bool read_line(FILE *fp, regen * regen)
 	return false;
 }
 
-static void regen_spawn_dungeon(regen * regen, dungeon * pDungeon, bool bOnce)
+static void regen_spawn_dungeon(regen * regen, dungeon * dungeon_value, bool once)
 {
 	uint32_t	num;
 	uint32_t	i;
@@ -289,7 +289,7 @@ static void regen_spawn_dungeon(regen * regen, dungeon * pDungeon, bool bOnce)
 			if (ch)
 			{
 				++regen->count;
-				ch->set_dungeon(pDungeon);
+				ch->set_dungeon(dungeon_value);
 			}
 		}
 		else if (regen->sx == regen->ex && regen->sy == regen->ey)
@@ -305,7 +305,7 @@ static void regen_spawn_dungeon(regen * regen, dungeon * pDungeon, bool bOnce)
 			if (ch)
 			{
 				++regen->count;
-				ch->set_dungeon(pDungeon);
+				ch->set_dungeon(dungeon_value);
 			}
 		}
 		else
@@ -317,27 +317,27 @@ static void regen_spawn_dungeon(regen * regen, dungeon * pDungeon, bool bOnce)
 				if (ch)
 				{
 					++regen->count;
-					ch->set_dungeon(pDungeon);
+					ch->set_dungeon(dungeon_value);
 				}
 			}
 			else if (regen->type == REGEN_TYPE_GROUP)
 			{
-				if (character_manager::instance().spawn_group(regen->vnum, regen->map_index, regen->sx, regen->sy, regen->ex, regen->ey, bOnce ? nullptr : regen, regen->is_aggressive, pDungeon))
+				if (character_manager::instance().spawn_group(regen->vnum, regen->map_index, regen->sx, regen->sy, regen->ex, regen->ey, once ? nullptr : regen, regen->is_aggressive, dungeon_value))
 					++regen->count;
 			}
 			else if (regen->type == REGEN_TYPE_GROUP_GROUP)
 			{
-				if (character_manager::instance().spawn_group_group(regen->vnum, regen->map_index, regen->sx, regen->sy, regen->ex, regen->ey, bOnce ? nullptr : regen, regen->is_aggressive, pDungeon))
+				if (character_manager::instance().spawn_group_group(regen->vnum, regen->map_index, regen->sx, regen->sy, regen->ex, regen->ey, once ? nullptr : regen, regen->is_aggressive, dungeon_value))
 					++regen->count;
 			}
 		}
 
-		if (ch && !bOnce)
+		if (ch && !once)
 			ch->set_regen(regen);
 	}
 }
 
-static void regen_spawn(regen * regen, bool bOnce)
+static void regen_spawn(regen * regen, bool once)
 {
 	uint32_t	num;
 	uint32_t	i;
@@ -382,17 +382,17 @@ static void regen_spawn(regen * regen, bool bOnce)
 			}
 			else if (regen->type == REGEN_TYPE_GROUP)
 			{
-				if (character_manager::instance().spawn_group(regen->vnum, regen->map_index, regen->sx, regen->sy, regen->ex, regen->ey, bOnce ? nullptr : regen, regen->is_aggressive))
+				if (character_manager::instance().spawn_group(regen->vnum, regen->map_index, regen->sx, regen->sy, regen->ex, regen->ey, once ? nullptr : regen, regen->is_aggressive))
 					++regen->count;
 			}
 			else if (regen->type == REGEN_TYPE_GROUP_GROUP)
 			{
-				if (character_manager::instance().spawn_group_group(regen->vnum, regen->map_index, regen->sx, regen->sy, regen->ex, regen->ey, bOnce ? nullptr : regen, regen->is_aggressive))
+				if (character_manager::instance().spawn_group_group(regen->vnum, regen->map_index, regen->sx, regen->sy, regen->ex, regen->ey, once ? nullptr : regen, regen->is_aggressive))
 					++regen->count;
 			}
 		}
 
-		if (ch && !bOnce)
+		if (ch && !once)
 			ch->set_regen(regen);
 	}
 }
@@ -422,12 +422,12 @@ EVENTFUNC(dungeon_regen_event)
 	return passes_per_sec(regen->time);
 }
 
-bool regen_do(const char* filename, int32_t lMapIndex, int base_x, int base_y, dungeon * pDungeon, bool bOnce)
+bool regen_do(const char* filename, int32_t map_index_value, int base_x, int base_y, dungeon * dungeon_value, bool once)
 {
 	if (metin2::config::game().no_regen)
 		return true;
 
-	if ( lMapIndex >= 114 && lMapIndex <= 117 )
+	if ( map_index_value >= 114 && map_index_value <= 117 )
 		return true;
 
 	regen * regen = nullptr;
@@ -451,17 +451,17 @@ bool regen_do(const char* filename, int32_t lMapIndex, int base_x, int base_y, d
 			tmp.type == REGEN_TYPE_GROUP_GROUP ||
 			tmp.type == REGEN_TYPE_ANYWHERE)
 		{
-			if (!bOnce)
+			if (!once)
 			{
 				regen = new game::world::regen(tmp);
 			}
 			else
 				regen = &tmp;
 
-			if (pDungeon)
+			if (dungeon_value)
 				regen->is_aggressive = true;
 
-			regen->map_index = lMapIndex;
+			regen->map_index = map_index_value;
 			regen->count = 0;
 
 			regen->sx += base_x;
@@ -491,29 +491,29 @@ bool regen_do(const char* filename, int32_t lMapIndex, int base_x, int base_y, d
 				if (!p)
 				{
 					metin2::log::error("No mob data by vnum {:d}", regen->vnum);
-					if (!bOnce) {
+					if (!once) {
 						delete regen;
 					}
 					continue;
 				}
 			}
 
-			if (!bOnce && pDungeon != nullptr)
+			if (!once && dungeon_value != nullptr)
 			{
 				dungeon_regen_event_info* info = alloc_event_info<dungeon_regen_event_info>();
 
 				info->regen = regen;
-				info->dungeon_id = pDungeon->id();
+				info->dungeon_id = dungeon_value->id();
 
 				regen->event = event_create(dungeon_regen_event, info, passes_per_sec(number(0, 16)) + passes_per_sec(regen->time));
 
-				pDungeon->add_regen(regen);
+				dungeon_value->add_regen(regen);
 				// regen_id should be determined at this point,
 				// before the call to CHARACTER::SetRegen()
 			}
 
 			// Always regen the first time.
-			regen_spawn_dungeon(regen, pDungeon, bOnce);
+			regen_spawn_dungeon(regen, dungeon_value, once);
 
 		}
 	}
@@ -522,7 +522,7 @@ bool regen_do(const char* filename, int32_t lMapIndex, int base_x, int base_y, d
 	return true;
 }
 
-bool regen_load_in_file(const char* filename, int32_t lMapIndex, int base_x, int base_y)
+bool regen_load_in_file(const char* filename, int32_t map_index_value, int base_x, int base_y)
 {
 	if (metin2::config::game().no_regen)
 		return true;
@@ -552,7 +552,7 @@ bool regen_load_in_file(const char* filename, int32_t lMapIndex, int base_x, int
 
 			regen->is_aggressive = true;
 
-			regen->map_index = lMapIndex;
+			regen->map_index = map_index_value;
 			regen->count = 0;
 
 			regen->sx += base_x;
@@ -614,7 +614,7 @@ EVENTFUNC(regen_event)
 	return passes_per_sec(regen->time);
 }
 
-bool regen_load(const char* filename, int32_t lMapIndex, int base_x, int base_y)
+bool regen_load(const char* filename, int32_t map_index_value, int base_x, int base_y)
 {
 	if (metin2::config::game().no_regen)
 		return true;
@@ -648,7 +648,7 @@ bool regen_load(const char* filename, int32_t lMapIndex, int base_x, int base_y)
 			regen = new game::world::regen(tmp);
 			INSERT_TO_TW_LIST(regen, regen_list, prev, next);
 
-			regen->map_index = lMapIndex;
+			regen->map_index = map_index_value;
 			regen->count = 0;
 
 			regen->sx += base_x;
@@ -681,7 +681,7 @@ bool regen_load(const char* filename, int32_t lMapIndex, int base_x, int base_y)
 				}
 				else if (p->table.type == CHAR_TYPE_NPC || p->table.type == CHAR_TYPE_WARP || p->table.type == CHAR_TYPE_GOTO)
 				{
-					sectree_manager::instance().insert_npc_position(lMapIndex,
+					sectree_manager::instance().insert_npc_position(map_index_value,
 							p->table.type,
 							p->table.locale_name,
 							(regen->sx+regen->ex) / 2 - base_x,

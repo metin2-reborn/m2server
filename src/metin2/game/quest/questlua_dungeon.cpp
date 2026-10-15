@@ -41,27 +41,27 @@ namespace quest
 	//
 	// "dungeon" lua functions
 	//
-	int dungeon_notice(lua_State* L)
+	int dungeon_notice(lua_State* lua)
 	{
-		if (!lua_isstring(L, 1))
+		if (!lua_isstring(lua, 1))
 			return 0;
 
 		quest_manager& q = quest_manager::instance();
 		dungeon * pDungeon = q.current_dungeon();
 
 		if (pDungeon)
-			pDungeon->notice(lua_tostring(L, 1));
+			pDungeon->notice(lua_tostring(lua, 1));
 		return 0;
 	}
 
-	int dungeon_set_quest_flag(lua_State* L)
+	int dungeon_set_quest_flag(lua_State* lua)
 	{
 		quest_manager & q = quest_manager::instance();
 
 		f_set_quest_flag f;
 
-		f.flagname = q.current_pc()->current_quest_name() + "." + lua_tostring(L, 1);
-		f.value = (int) rint(lua_tonumber(L, 2));
+		f.flagname = q.current_pc()->current_quest_name() + "." + lua_tostring(lua, 1);
+		f.value = (int) rint(lua_tonumber(lua, 2));
 
 		dungeon * pDungeon = q.current_dungeon();
 
@@ -71,9 +71,9 @@ namespace quest
 		return 0;
 	}
 
-	int dungeon_set_flag(lua_State* L)
+	int dungeon_set_flag(lua_State* lua)
 	{
-		if (!lua_isstring(L,1) || !lua_isnumber(L,2))
+		if (!lua_isstring(lua,1) || !lua_isnumber(lua,2))
 		{
 			quest::error("wrong set flag");
 		}
@@ -84,8 +84,8 @@ namespace quest
 
 			if (pDungeon)
 			{
-				const char* sz = lua_tostring(L,1);
-				int value = int(lua_tonumber(L, 2));
+				const char* sz = lua_tostring(lua,1);
+				int value = int(lua_tonumber(lua, 2));
 				pDungeon->set_flag(sz, value);
 			}
 			else
@@ -96,9 +96,9 @@ namespace quest
 		return 0;
 	}
 
-	int dungeon_get_flag(lua_State* L)
+	int dungeon_get_flag(lua_State* lua)
 	{
-		if (!lua_isstring(L,1))
+		if (!lua_isstring(lua,1))
 		{
 			quest::error("wrong get flag");
 		}
@@ -108,48 +108,48 @@ namespace quest
 
 		if (pDungeon)
 		{
-			const char* sz = lua_tostring(L,1);
-			lua_pushnumber(L, pDungeon->flag(sz));
+			const char* sz = lua_tostring(lua,1);
+			lua_pushnumber(lua, pDungeon->flag(sz));
 		}
 		else
 		{
 			quest::error("no dungeon !!!");
-			lua_pushnumber(L, 0);
+			lua_pushnumber(lua, 0);
 		}
 
 		return 1;
 	}
 
-	int dungeon_get_flag_from_map_index(lua_State* L)
+	int dungeon_get_flag_from_map_index(lua_State* lua)
 	{
-		if (!lua_isstring(L,1) || !lua_isnumber(L,2))
+		if (!lua_isstring(lua,1) || !lua_isnumber(lua,2))
 		{
 			quest::error("wrong get flag");
 		}
 
-		uint32_t dwMapIndex = (uint32_t) lua_tonumber(L, 2);
+		uint32_t dwMapIndex = (uint32_t) lua_tonumber(lua, 2);
 		if (dwMapIndex)
 		{
 			dungeon * pDungeon = dungeon_manager::instance().find_by_map_index(dwMapIndex);
 			if (pDungeon)
 			{
-				const char* sz = lua_tostring(L,1);
-				lua_pushnumber(L, pDungeon->flag(sz));
+				const char* sz = lua_tostring(lua,1);
+				lua_pushnumber(lua, pDungeon->flag(sz));
 			}
 			else
 			{
 				quest::error("no dungeon !!!");
-				lua_pushnumber(L, 0);
+				lua_pushnumber(lua, 0);
 			}
 		}
 		else
 		{
-			lua_pushboolean(L, 0);
+			lua_pushboolean(lua, 0);
 		}
 		return 1;
 	}
 
-	int dungeon_get_map_index(lua_State* L)
+	int dungeon_get_map_index(lua_State* lua)
 	{
 		quest_manager& q = quest_manager::instance();
 		dungeon * pDungeon = q.current_dungeon();
@@ -157,20 +157,20 @@ namespace quest
 		if (pDungeon)
 		{
 			metin2::log::info( "Dungeon GetMapIndex {:d}",pDungeon->map_index());
-			lua_pushnumber(L, pDungeon->map_index());
+			lua_pushnumber(lua, pDungeon->map_index());
 		}
 		else
 		{
 			quest::error("no dungeon !!!");
-			lua_pushnumber(L, 0);
+			lua_pushnumber(lua, 0);
 		}
 
 		return 1;
 	}
 
-	int dungeon_regen_file(lua_State* L)
+	int dungeon_regen_file(lua_State* lua)
 	{
-		if (!lua_isstring(L,1))
+		if (!lua_isstring(lua,1))
 		{
 			quest::error("wrong filename");
 			return 0;
@@ -180,14 +180,14 @@ namespace quest
 		dungeon * pDungeon = q.current_dungeon();
 
 		if (pDungeon)
-			pDungeon->spawn_regen(lua_tostring(L,1));
+			pDungeon->spawn_regen(lua_tostring(lua,1));
 
 		return 0;
 	}
 
-	int dungeon_set_regen_file(lua_State* L)
+	int dungeon_set_regen_file(lua_State* lua)
 	{
-		if (!lua_isstring(L,1))
+		if (!lua_isstring(lua,1))
 		{
 			quest::error("wrong filename");
 			return 0;
@@ -196,11 +196,11 @@ namespace quest
 		dungeon * pDungeon = q.current_dungeon();
 
 		if (pDungeon)
-			pDungeon->spawn_regen(lua_tostring(L,1), false);
+			pDungeon->spawn_regen(lua_tostring(lua,1), false);
 		return 0;
 	}
 
-	int dungeon_clear_regen(lua_State* L)
+	int dungeon_clear_regen(lua_State* lua)
 	{
 		quest_manager& q = quest_manager::instance();
 		dungeon * pDungeon = q.current_dungeon();
@@ -209,7 +209,7 @@ namespace quest
 		return 0;
 	}
 
-	int dungeon_check_eliminated(lua_State* L)
+	int dungeon_check_eliminated(lua_State* lua)
 	{
 		quest_manager& q = quest_manager::instance();
 		dungeon * pDungeon = q.current_dungeon();
@@ -218,9 +218,9 @@ namespace quest
 		return 0;
 	}
 
-	int dungeon_set_exit_all_at_eliminate(lua_State* L)
+	int dungeon_set_exit_all_at_eliminate(lua_State* lua)
 	{
-		if (!lua_isnumber(L,1))
+		if (!lua_isnumber(lua,1))
 		{
 			quest::error("wrong time");
 			return 0;
@@ -230,32 +230,32 @@ namespace quest
 		dungeon * pDungeon = q.current_dungeon();
 
 		if (pDungeon)
-			pDungeon->set_exit_all_at_eliminate((int32_t)lua_tonumber(L, 1));
+			pDungeon->set_exit_all_at_eliminate((int32_t)lua_tonumber(lua, 1));
 
 		return 0;
 	}
 
-	int dungeon_set_warp_at_eliminate(lua_State* L)
+	int dungeon_set_warp_at_eliminate(lua_State* lua)
 	{
-		if (!lua_isnumber(L, 1))
+		if (!lua_isnumber(lua, 1))
 		{
 			quest::error("wrong time");
 			return 0;
 		}
 
-		if (!lua_isnumber(L, 2))
+		if (!lua_isnumber(lua, 2))
 		{
 			quest::error("wrong map index");
 			return 0;
 		}
 
-		if (!lua_isnumber(L, 3)) 
+		if (!lua_isnumber(lua, 3)) 
 		{
 			quest::error("wrong X");
 			return 0;
 		}
 
-		if (!lua_isnumber(L, 4))
+		if (!lua_isnumber(lua, 4))
 		{
 			quest::error("wrong Y");
 			return 0;
@@ -263,18 +263,18 @@ namespace quest
 
 		const char * c_pszRegenFile = nullptr;
 
-		if (lua_gettop(L) >= 5)
-			c_pszRegenFile = lua_tostring(L,5);
+		if (lua_gettop(lua) >= 5)
+			c_pszRegenFile = lua_tostring(lua,5);
 
 		quest_manager& q = quest_manager::instance();
 		dungeon * pDungeon = q.current_dungeon();
 
 		if (pDungeon)
 		{
-			pDungeon->set_warp_at_eliminate((int32_t)lua_tonumber(L,1),
-										 (int32_t)lua_tonumber(L,2),
-										 (int32_t)lua_tonumber(L,3),
-										 (int32_t)lua_tonumber(L,4),
+			pDungeon->set_warp_at_eliminate((int32_t)lua_tonumber(lua,1),
+										 (int32_t)lua_tonumber(lua,2),
+										 (int32_t)lua_tonumber(lua,3),
+										 (int32_t)lua_tonumber(lua,4),
 										 c_pszRegenFile);
 		}
 		else
@@ -283,21 +283,21 @@ namespace quest
 		return 0;
 	}
 
-	int dungeon_new_jump(lua_State* L)
+	int dungeon_new_jump(lua_State* lua)
 	{
-		if (lua_gettop(L) < 3)
+		if (lua_gettop(lua) < 3)
 		{
 			quest::error("not enough argument");
 			return 0;
 		}
 
-		if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2) || !lua_isnumber(L, 3))
+		if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2) || !lua_isnumber(lua, 3))
 		{
 			quest::error("wrong argument");
 			return 0;
 		}
 
-		int32_t lMapIndex = (int32_t)lua_tonumber(L,1);
+		int32_t lMapIndex = (int32_t)lua_tonumber(lua,1);
 
 		dungeon * pDungeon = dungeon_manager::instance().create(lMapIndex);
 
@@ -309,19 +309,19 @@ namespace quest
 
 		character * ch = quest_manager::instance().current_character_ptr();
 
-		ch->warp_set((int) lua_tonumber(L, 2), (int)lua_tonumber(L, 3), pDungeon->map_index());
+		ch->warp_set((int) lua_tonumber(lua, 2), (int)lua_tonumber(lua, 3), pDungeon->map_index());
 		return 0;
 	}
 
-	int dungeon_new_jump_all(lua_State* L)
+	int dungeon_new_jump_all(lua_State* lua)
 	{
-		if (lua_gettop(L)<3 || !lua_isnumber(L,1) || !lua_isnumber(L, 2) || !lua_isnumber(L,3))
+		if (lua_gettop(lua)<3 || !lua_isnumber(lua,1) || !lua_isnumber(lua, 2) || !lua_isnumber(lua,3))
 		{
 			quest::error("not enough argument");
 			return 0;
 		}
 
-		int32_t lMapIndex = (int32_t)lua_tonumber(L,1);
+		int32_t lMapIndex = (int32_t)lua_tonumber(lua,1);
 
 		dungeon * pDungeon = dungeon_manager::instance().create(lMapIndex);
 
@@ -333,20 +333,20 @@ namespace quest
 
 		character * ch = quest_manager::instance().current_character_ptr();
 
-		pDungeon->jump_all(ch->map_index(), (int)lua_tonumber(L, 2), (int)lua_tonumber(L, 3));
+		pDungeon->jump_all(ch->map_index(), (int)lua_tonumber(lua, 2), (int)lua_tonumber(lua, 3));
 
 		return 0;
 	}
 
-	int dungeon_new_jump_party (lua_State* L)
+	int dungeon_new_jump_party (lua_State* lua)
 	{
-		if (lua_gettop(L)<3 || !lua_isnumber(L,1) || !lua_isnumber(L, 2) || !lua_isnumber(L,3))
+		if (lua_gettop(lua)<3 || !lua_isnumber(lua,1) || !lua_isnumber(lua, 2) || !lua_isnumber(lua,3))
 		{
 			quest::error("not enough argument");
 			return 0;
 		}
 
-		int32_t lMapIndex = (int32_t)lua_tonumber(L,1);
+		int32_t lMapIndex = (int32_t)lua_tonumber(lua,1);
 
 		dungeon * pDungeon = dungeon_manager::instance().create(lMapIndex);
 
@@ -363,14 +363,14 @@ namespace quest
 			quest::error("cannot go to dungeon alone.");
 			return 0;
 		}
-		pDungeon->jump_party(ch->get_party(), ch->map_index(), (int)lua_tonumber(L, 2), (int)lua_tonumber(L, 3));
+		pDungeon->jump_party(ch->get_party(), ch->map_index(), (int)lua_tonumber(lua, 2), (int)lua_tonumber(lua, 3));
 
 		return 0;
 	}
 
-	int dungeon_jump_all(lua_State* L)
+	int dungeon_jump_all(lua_State* lua)
 	{
-		if (lua_gettop(L)<2 || !lua_isnumber(L, 1) || !lua_isnumber(L,2))
+		if (lua_gettop(lua)<2 || !lua_isnumber(lua, 1) || !lua_isnumber(lua,2))
 			return 0;
 
 		dungeon * pDungeon = quest_manager::instance().current_dungeon();
@@ -378,13 +378,13 @@ namespace quest
 		if (!pDungeon)
 			return 0;
 
-		pDungeon->jump_all(pDungeon->map_index(), (int)lua_tonumber(L, 1), (int)lua_tonumber(L, 2));
+		pDungeon->jump_all(pDungeon->map_index(), (int)lua_tonumber(lua, 1), (int)lua_tonumber(lua, 2));
 		return 0;
 	}
 
-	int dungeon_warp_all(lua_State* L)
+	int dungeon_warp_all(lua_State* lua)
 	{
-		if (lua_gettop(L)<2 || !lua_isnumber(L, 1) || !lua_isnumber(L,2))
+		if (lua_gettop(lua)<2 || !lua_isnumber(lua, 1) || !lua_isnumber(lua,2))
 			return 0;
 
 		dungeon * pDungeon = quest_manager::instance().current_dungeon();
@@ -392,15 +392,15 @@ namespace quest
 		if (!pDungeon)
 			return 0;
 
-		pDungeon->warp_all(pDungeon->map_index(), (int)lua_tonumber(L, 1), (int)lua_tonumber(L, 2));
+		pDungeon->warp_all(pDungeon->map_index(), (int)lua_tonumber(lua, 1), (int)lua_tonumber(lua, 2));
 		return 0;
 	}
 
-	int dungeon_get_kill_stone_count(lua_State* L)
+	int dungeon_get_kill_stone_count(lua_State* lua)
 	{
-		if (!lua_isnumber(L,1) || !lua_isnumber(L,2))
+		if (!lua_isnumber(lua,1) || !lua_isnumber(lua,2))
 		{
-			lua_pushnumber(L, 0);
+			lua_pushnumber(lua, 0);
 			return 1;
 		}
 
@@ -410,19 +410,19 @@ namespace quest
 
 		if (pDungeon)
 		{
-			lua_pushnumber(L, pDungeon->kill_stone_count());
+			lua_pushnumber(lua, pDungeon->kill_stone_count());
 			return 1;
 		}
 
-		lua_pushnumber(L, 0);
+		lua_pushnumber(lua, 0);
 		return 1;
 	}
 
-	int dungeon_get_kill_mob_count(lua_State * L)
+	int dungeon_get_kill_mob_count(lua_State * lua)
 	{
-		if (!lua_isnumber(L,1) || !lua_isnumber(L,2))
+		if (!lua_isnumber(lua,1) || !lua_isnumber(lua,2))
 		{
-			lua_pushnumber(L, 0);
+			lua_pushnumber(lua, 0);
 			return 1;
 		}
 
@@ -431,19 +431,19 @@ namespace quest
 
 		if (pDungeon)
 		{
-			lua_pushnumber(L, pDungeon->kill_mob_count());
+			lua_pushnumber(lua, pDungeon->kill_mob_count());
 			return 1;
 		}
 
-		lua_pushnumber(L, 0);
+		lua_pushnumber(lua, 0);
 		return 1;
 	}
 
-	int dungeon_is_use_potion(lua_State* L)
+	int dungeon_is_use_potion(lua_State* lua)
 	{
-		if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2))
+		if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2))
 		{
-			lua_pushboolean(L, 1);
+			lua_pushboolean(lua, 1);
 			return 1;
 		}
 
@@ -452,19 +452,19 @@ namespace quest
 
 		if (pDungeon)
 		{
-			lua_pushboolean(L, pDungeon->is_use_potion());
+			lua_pushboolean(lua, pDungeon->is_use_potion());
 			return 1;
 		}
 
-		lua_pushboolean(L, 1);
+		lua_pushboolean(lua, 1);
 		return 1;
 	}
 
-	int dungeon_revived(lua_State* L) 
+	int dungeon_revived(lua_State* lua) 
 	{
-		if (!lua_isnumber(L,1) || !lua_isnumber(L,2))
+		if (!lua_isnumber(lua,1) || !lua_isnumber(lua,2))
 		{
-			lua_pushboolean(L, 1);
+			lua_pushboolean(lua, 1);
 			return 1;
 		}
 
@@ -473,17 +473,17 @@ namespace quest
 
 		if (pDungeon)
 		{
-			lua_pushboolean(L, pDungeon->is_use_revive());
+			lua_pushboolean(lua, pDungeon->is_use_revive());
 			return 1;
 		}
 
-		lua_pushboolean(L, 1);
+		lua_pushboolean(lua, 1);
 		return 1;
 	}
 
-	int dungeon_set_dest(lua_State* L)
+	int dungeon_set_dest(lua_State* lua)
 	{
-		if (!lua_isnumber(L,1) || !lua_isnumber(L,2))
+		if (!lua_isnumber(lua,1) || !lua_isnumber(lua,2))
 			return 0;
 
 		character * ch = quest_manager::instance().current_character_ptr();
@@ -493,58 +493,58 @@ namespace quest
 		dungeon * pDungeon = q.current_dungeon();
 
 		if (pDungeon && pParty)
-			pDungeon->send_dest_position_to_party(pParty, (int)lua_tonumber(L,1), (int)lua_tonumber(L,2));
+			pDungeon->send_dest_position_to_party(pParty, (int)lua_tonumber(lua,1), (int)lua_tonumber(lua,2));
 
 		return 0;
 	}
 
-	int dungeon_unique_set_maxhp(lua_State* L)
+	int dungeon_unique_set_maxhp(lua_State* lua)
 	{
-		if (!lua_isstring(L,1) || !lua_isnumber(L,2))
+		if (!lua_isstring(lua,1) || !lua_isnumber(lua,2))
 			return 0;
 
 		quest_manager& q = quest_manager::instance();
 		dungeon * pDungeon = q.current_dungeon();
 
 		if (pDungeon)
-			pDungeon->unique_set_max_hp(lua_tostring(L,1), (int)lua_tonumber(L,2));
+			pDungeon->unique_set_max_hp(lua_tostring(lua,1), (int)lua_tonumber(lua,2));
 
 		return 0;
 	}
 
-	int dungeon_unique_set_hp(lua_State* L)
+	int dungeon_unique_set_hp(lua_State* lua)
 	{
-		if (!lua_isstring(L,1) || !lua_isnumber(L,2))
+		if (!lua_isstring(lua,1) || !lua_isnumber(lua,2))
 			return 0;
 
 		quest_manager& q = quest_manager::instance();
 		dungeon * pDungeon = q.current_dungeon();
 
 		if (pDungeon)
-			pDungeon->unique_set_hp(lua_tostring(L,1), (int)lua_tonumber(L,2));
+			pDungeon->unique_set_hp(lua_tostring(lua,1), (int)lua_tonumber(lua,2));
 
 		return 0;
 	}
 
-	int dungeon_unique_set_def_grade(lua_State* L)
+	int dungeon_unique_set_def_grade(lua_State* lua)
 	{
-		if (!lua_isstring(L,1) || !lua_isnumber(L,2))
+		if (!lua_isstring(lua,1) || !lua_isnumber(lua,2))
 			return 0;
 
 		quest_manager& q = quest_manager::instance();
 		dungeon * pDungeon = q.current_dungeon();
 
 		if (pDungeon)
-			pDungeon->unique_set_def_grade(lua_tostring(L,1), (int)lua_tonumber(L,2));
+			pDungeon->unique_set_def_grade(lua_tostring(lua,1), (int)lua_tonumber(lua,2));
 
 		return 0;
 	}
 
-	int dungeon_unique_get_hp_perc(lua_State* L)
+	int dungeon_unique_get_hp_perc(lua_State* lua)
 	{
-		if (!lua_isstring(L,1))
+		if (!lua_isstring(lua,1))
 		{
-			lua_pushnumber(L,0);
+			lua_pushnumber(lua,0);
 			return 1;
 		}
 
@@ -553,19 +553,19 @@ namespace quest
 
 		if (pDungeon)
 		{
-			lua_pushnumber(L, pDungeon->unique_hp_perc(lua_tostring(L,1)));
+			lua_pushnumber(lua, pDungeon->unique_hp_perc(lua_tostring(lua,1)));
 			return 1;
 		}
 
-		lua_pushnumber(L,0);
+		lua_pushnumber(lua,0);
 		return 1;
 	}
 
-	int dungeon_is_unique_dead(lua_State* L)
+	int dungeon_is_unique_dead(lua_State* lua)
 	{
-		if (!lua_isstring(L,1))
+		if (!lua_isstring(lua,1))
 		{
-			lua_pushboolean(L, 0);
+			lua_pushboolean(lua, 0);
 			return 1;
 		}
 
@@ -574,25 +574,25 @@ namespace quest
 
 		if (pDungeon)
 		{
-			lua_pushboolean(L, pDungeon->is_unique_dead(lua_tostring(L,1))?1:0);
+			lua_pushboolean(lua, pDungeon->is_unique_dead(lua_tostring(lua,1))?1:0);
 			return 1;
 		}
 
-		lua_pushboolean(L, 0);
+		lua_pushboolean(lua, 0);
 		return 1;
 	}
 
-	int dungeon_purge_unique(lua_State* L)
+	int dungeon_purge_unique(lua_State* lua)
 	{
-		if (!lua_isstring(L,1))
+		if (!lua_isstring(lua,1))
 			return 0;
-		metin2::log::info("QUEST_DUNGEON_PURGE_UNIQUE {}", lua_tostring(L,1));
+		metin2::log::info("QUEST_DUNGEON_PURGE_UNIQUE {}", lua_tostring(lua,1));
 
 		quest_manager& q = quest_manager::instance();
 		dungeon * pDungeon = q.current_dungeon();
 
 		if (pDungeon)
-			pDungeon->purge_unique(lua_tostring(L,1));
+			pDungeon->purge_unique(lua_tostring(lua,1));
 
 		return 0;
 	}
@@ -627,16 +627,16 @@ namespace quest
 		}
 	};
 	
-	int dungeon_purge_area(lua_State* L)
+	int dungeon_purge_area(lua_State* lua)
 	{
-		if (!lua_isnumber(L,1) || !lua_isnumber(L,2) || !lua_isnumber(L,3) || !lua_isnumber(L,4))
+		if (!lua_isnumber(lua,1) || !lua_isnumber(lua,2) || !lua_isnumber(lua,3) || !lua_isnumber(lua,4))
 			return 0;
 		metin2::log::info("QUEST_DUNGEON_PURGE_AREA");
 
-		int x1 = lua_tonumber(L, 1);
-		int y1 = lua_tonumber(L, 2);
-		int x2 = lua_tonumber(L, 3);
-		int y2 = lua_tonumber(L, 4);
+		int x1 = lua_tonumber(lua, 1);
+		int y1 = lua_tonumber(lua, 2);
+		int x2 = lua_tonumber(lua, 3);
+		int y2 = lua_tonumber(lua, 4);
 
 		quest_manager& q = quest_manager::instance();
 		dungeon * pDungeon = q.current_dungeon();
@@ -661,131 +661,131 @@ namespace quest
 		return 0;
 	}
 
-	int dungeon_kill_unique(lua_State* L)
+	int dungeon_kill_unique(lua_State* lua)
 	{
-		if (!lua_isstring(L,1))
+		if (!lua_isstring(lua,1))
 			return 0;
-		metin2::log::info("QUEST_DUNGEON_KILL_UNIQUE {}", lua_tostring(L,1));
+		metin2::log::info("QUEST_DUNGEON_KILL_UNIQUE {}", lua_tostring(lua,1));
 
 		quest_manager& q = quest_manager::instance();
 		dungeon * pDungeon = q.current_dungeon();
 
 		if (pDungeon)
-			pDungeon->kill_unique(lua_tostring(L,1));
+			pDungeon->kill_unique(lua_tostring(lua,1));
 
 		return 0;
 	}
 
-	int dungeon_spawn_stone_door(lua_State* L)
+	int dungeon_spawn_stone_door(lua_State* lua)
 	{
-		if (!lua_isstring(L,1) || !lua_isstring(L,2))
+		if (!lua_isstring(lua,1) || !lua_isstring(lua,2))
 			return 0;
-		metin2::log::info("QUEST_DUNGEON_SPAWN_STONE_DOOR {} {}", lua_tostring(L,1), lua_tostring(L,2));
+		metin2::log::info("QUEST_DUNGEON_SPAWN_STONE_DOOR {} {}", lua_tostring(lua,1), lua_tostring(lua,2));
 
 		quest_manager& q = quest_manager::instance();
 		dungeon * pDungeon = q.current_dungeon();
 
 		if (pDungeon)
-			pDungeon->spawn_stone_door(lua_tostring(L,1), lua_tostring(L,2));
+			pDungeon->spawn_stone_door(lua_tostring(lua,1), lua_tostring(lua,2));
 
 		return 0;
 	}
 
-	int dungeon_spawn_wooden_door(lua_State* L)
+	int dungeon_spawn_wooden_door(lua_State* lua)
 	{
-		if (!lua_isstring(L,1) || !lua_isstring(L,2))
+		if (!lua_isstring(lua,1) || !lua_isstring(lua,2))
 			return 0;
-		metin2::log::info("QUEST_DUNGEON_SPAWN_WOODEN_DOOR {} {}", lua_tostring(L,1), lua_tostring(L,2));
+		metin2::log::info("QUEST_DUNGEON_SPAWN_WOODEN_DOOR {} {}", lua_tostring(lua,1), lua_tostring(lua,2));
 
 		quest_manager& q = quest_manager::instance();
 		dungeon * pDungeon = q.current_dungeon();
 
 		if (pDungeon)
-			pDungeon->spawn_wooden_door(lua_tostring(L,1), lua_tostring(L,2));
+			pDungeon->spawn_wooden_door(lua_tostring(lua,1), lua_tostring(lua,2));
 
 		return 0;
 	}
 
-	int dungeon_spawn_move_group(lua_State* L)
+	int dungeon_spawn_move_group(lua_State* lua)
 	{
-		if (!lua_isnumber(L,1) || !lua_isstring(L,2) || !lua_isstring(L,3))
+		if (!lua_isnumber(lua,1) || !lua_isstring(lua,2) || !lua_isstring(lua,3))
 			return 0;
-		metin2::log::info("QUEST_DUNGEON_SPAWN_MOVE_GROUP {:d} {} {}", (int)lua_tonumber(L,1), lua_tostring(L,2), lua_tostring(L,3));
+		metin2::log::info("QUEST_DUNGEON_SPAWN_MOVE_GROUP {:d} {} {}", (int)lua_tonumber(lua,1), lua_tostring(lua,2), lua_tostring(lua,3));
 
 		quest_manager& q = quest_manager::instance();
 		dungeon * pDungeon = q.current_dungeon();
 
 		if (pDungeon)
-			pDungeon->spawn_move_group((uint32_t)lua_tonumber(L,1), lua_tostring(L,2), lua_tostring(L,3));
+			pDungeon->spawn_move_group((uint32_t)lua_tonumber(lua,1), lua_tostring(lua,2), lua_tostring(lua,3));
 
 		return 0;
 	}
 
-	int dungeon_spawn_move_unique(lua_State* L)
+	int dungeon_spawn_move_unique(lua_State* lua)
 	{
-		if (!lua_isstring(L,1) || !lua_isnumber(L,2) || !lua_isstring(L,3) || !lua_isstring(L,4))
+		if (!lua_isstring(lua,1) || !lua_isnumber(lua,2) || !lua_isstring(lua,3) || !lua_isstring(lua,4))
 			return 0;
-		metin2::log::info("QUEST_DUNGEON_SPAWN_MOVE_UNIQUE {} {:d} {} {}", lua_tostring(L,1), (int)lua_tonumber(L,2), lua_tostring(L,3), lua_tostring(L,4));
+		metin2::log::info("QUEST_DUNGEON_SPAWN_MOVE_UNIQUE {} {:d} {} {}", lua_tostring(lua,1), (int)lua_tonumber(lua,2), lua_tostring(lua,3), lua_tostring(lua,4));
 
 		quest_manager& q = quest_manager::instance();
 		dungeon * pDungeon = q.current_dungeon();
 
 		if (pDungeon)
-			pDungeon->spawn_move_unique(lua_tostring(L,1), (uint32_t)lua_tonumber(L,2), lua_tostring(L,3), lua_tostring(L,4));
+			pDungeon->spawn_move_unique(lua_tostring(lua,1), (uint32_t)lua_tonumber(lua,2), lua_tostring(lua,3), lua_tostring(lua,4));
 
 		return 0;
 	}
 
-	int dungeon_spawn_unique(lua_State* L)
+	int dungeon_spawn_unique(lua_State* lua)
 	{
-		if (!lua_isstring(L,1) || !lua_isnumber(L,2) || !lua_isstring(L,3))
+		if (!lua_isstring(lua,1) || !lua_isnumber(lua,2) || !lua_isstring(lua,3))
 			return 0;
-		metin2::log::info("QUEST_DUNGEON_SPAWN_UNIQUE {} {:d} {}", lua_tostring(L,1), (int)lua_tonumber(L,2), lua_tostring(L,3));
+		metin2::log::info("QUEST_DUNGEON_SPAWN_UNIQUE {} {:d} {}", lua_tostring(lua,1), (int)lua_tonumber(lua,2), lua_tostring(lua,3));
 
 		quest_manager& q = quest_manager::instance();
 		dungeon * pDungeon = q.current_dungeon();
 
 		if (pDungeon)
-			pDungeon->spawn_unique(lua_tostring(L,1), (uint32_t)lua_tonumber(L,2), lua_tostring(L,3));
+			pDungeon->spawn_unique(lua_tostring(lua,1), (uint32_t)lua_tonumber(lua,2), lua_tostring(lua,3));
 
 		return 0;
 	}
 
-	int dungeon_spawn(lua_State* L)
+	int dungeon_spawn(lua_State* lua)
 	{
-		if (!lua_isnumber(L,1) || !lua_isstring(L,2))
+		if (!lua_isnumber(lua,1) || !lua_isstring(lua,2))
 			return 0;
-		metin2::log::info("QUEST_DUNGEON_SPAWN {:d} {}", (int)lua_tonumber(L,1), lua_tostring(L,2));
+		metin2::log::info("QUEST_DUNGEON_SPAWN {:d} {}", (int)lua_tonumber(lua,1), lua_tostring(lua,2));
 
 		quest_manager& q = quest_manager::instance();
 		dungeon * pDungeon = q.current_dungeon();
 
 		if (pDungeon)
-			pDungeon->spawn((uint32_t)lua_tonumber(L,1), lua_tostring(L,2));
+			pDungeon->spawn((uint32_t)lua_tonumber(lua,1), lua_tostring(lua,2));
 
 		return 0;
 	}
 
-	int dungeon_set_unique(lua_State* L)
+	int dungeon_set_unique(lua_State* lua)
 	{
-		if (!lua_isstring(L, 1) || !lua_isnumber(L, 2))
+		if (!lua_isstring(lua, 1) || !lua_isnumber(lua, 2))
 			return 0;
 
 		quest_manager& q = quest_manager::instance();
 		dungeon * pDungeon = q.current_dungeon();
 
-		uint32_t vid = (uint32_t) lua_tonumber(L, 2);
+		uint32_t vid = (uint32_t) lua_tonumber(lua, 2);
 
 		if (pDungeon)
-			pDungeon->set_unique(lua_tostring(L, 1), vid);
+			pDungeon->set_unique(lua_tostring(lua, 1), vid);
 		return 0;
 	}
 
-	int dungeon_get_unique_vid(lua_State* L)
+	int dungeon_get_unique_vid(lua_State* lua)
 	{
-		if (!lua_isstring(L,1))
+		if (!lua_isstring(lua,1))
 		{
-			lua_pushnumber(L,0);
+			lua_pushnumber(lua,0);
 			return 1;
 		}
 
@@ -794,17 +794,17 @@ namespace quest
 
 		if (pDungeon)
 		{
-			lua_pushnumber(L, pDungeon->unique_vid(lua_tostring(L,1)));
+			lua_pushnumber(lua, pDungeon->unique_vid(lua_tostring(lua,1)));
 			return 1;
 		}
 
-		lua_pushnumber(L,0);
+		lua_pushnumber(lua,0);
 		return 1;
 	}
 
-	int dungeon_spawn_mob(lua_State* L)
+	int dungeon_spawn_mob(lua_State* lua)
 	{
-		if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2) || !lua_isnumber(L, 3))
+		if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2) || !lua_isnumber(lua, 3))
 		{
 			quest::error("invalid argument");
 			return 0;
@@ -817,11 +817,11 @@ namespace quest
 
 		if (pDungeon)
 		{
-			uint32_t dwVnum = (uint32_t) lua_tonumber(L, 1);
-			int32_t x = (int32_t) lua_tonumber(L, 2);
-			int32_t y = (int32_t) lua_tonumber(L, 3);
-			float radius = lua_isnumber(L, 4) ? (float) lua_tonumber(L, 4) : 0;
-			uint32_t count = (lua_isnumber(L, 5)) ? (uint32_t) lua_tonumber(L, 5) : 1;
+			uint32_t dwVnum = (uint32_t) lua_tonumber(lua, 1);
+			int32_t x = (int32_t) lua_tonumber(lua, 2);
+			int32_t y = (int32_t) lua_tonumber(lua, 3);
+			float radius = lua_isnumber(lua, 4) ? (float) lua_tonumber(lua, 4) : 0;
+			uint32_t count = (lua_isnumber(lua, 5)) ? (uint32_t) lua_tonumber(lua, 5) : 1;
 
 			metin2::log::info( "dungeon_spawn_mob {:d} {:d} {:d}", dwVnum, x, y);
 
@@ -851,13 +851,13 @@ namespace quest
 			}
 		}
 
-		lua_pushnumber(L, vid);
+		lua_pushnumber(lua, vid);
 		return 1;
 	}
 
-	int dungeon_spawn_mob_dir(lua_State* L)
+	int dungeon_spawn_mob_dir(lua_State* lua)
 	{
-		if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2) || !lua_isnumber(L, 3) || !lua_isnumber(L, 4))
+		if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2) || !lua_isnumber(lua, 3) || !lua_isnumber(lua, 4))
 		{
 			quest::error("invalid argument");
 			return 0;
@@ -870,22 +870,22 @@ namespace quest
 
 		if (pDungeon)
 		{
-			uint32_t dwVnum = (uint32_t) lua_tonumber(L, 1);
-			int32_t x = (int32_t) lua_tonumber(L, 2);
-			int32_t y = (int32_t) lua_tonumber(L, 3);
-			uint8_t dir = (int) lua_tonumber(L, 4);
+			uint32_t dwVnum = (uint32_t) lua_tonumber(lua, 1);
+			int32_t x = (int32_t) lua_tonumber(lua, 2);
+			int32_t y = (int32_t) lua_tonumber(lua, 3);
+			uint8_t dir = (int) lua_tonumber(lua, 4);
 			
 			character * ch = pDungeon->spawn_mob(dwVnum, x, y, dir);
 			if (ch && !vid)
 				vid = ch->get_vid();
 		}
-		lua_pushnumber(L, vid);
+		lua_pushnumber(lua, vid);
 		return 1;
 	}
 	
-	int dungeon_spawn_mob_ac_dir(lua_State* L)
+	int dungeon_spawn_mob_ac_dir(lua_State* lua)
 	{
-		if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2) || !lua_isnumber(L, 3) || !lua_isnumber(L, 4))
+		if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2) || !lua_isnumber(lua, 3) || !lua_isnumber(lua, 4))
 		{
 			quest::error("invalid argument");
 			return 0;
@@ -898,28 +898,28 @@ namespace quest
 
 		if (pDungeon)
 		{
-			uint32_t dwVnum = (uint32_t) lua_tonumber(L, 1);
-			int32_t x = (int32_t) lua_tonumber(L, 2);
-			int32_t y = (int32_t) lua_tonumber(L, 3);
-			uint8_t dir = (int) lua_tonumber(L, 4);
+			uint32_t dwVnum = (uint32_t) lua_tonumber(lua, 1);
+			int32_t x = (int32_t) lua_tonumber(lua, 2);
+			int32_t y = (int32_t) lua_tonumber(lua, 3);
+			uint8_t dir = (int) lua_tonumber(lua, 4);
 			
 			character * ch = pDungeon->spawn_mob_ac_dir(dwVnum, x, y, dir);
 			if (ch && !vid)
 				vid = ch->get_vid();
 		}
-		lua_pushnumber(L, vid);
+		lua_pushnumber(lua, vid);
 		return 1;
 	}
 
-	int dungeon_spawn_goto_mob(lua_State* L)
+	int dungeon_spawn_goto_mob(lua_State* lua)
 	{
-		if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2) || !lua_isnumber(L, 3) || !lua_isnumber(L, 4))
+		if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2) || !lua_isnumber(lua, 3) || !lua_isnumber(lua, 4))
 			return 0;
 
-		int32_t lFromX = (int32_t)lua_tonumber(L, 1);
-		int32_t lFromY = (int32_t)lua_tonumber(L, 2);
-		int32_t lToX   = (int32_t)lua_tonumber(L, 3);
-		int32_t lToY   = (int32_t)lua_tonumber(L, 4);
+		int32_t lFromX = (int32_t)lua_tonumber(lua, 1);
+		int32_t lFromY = (int32_t)lua_tonumber(lua, 2);
+		int32_t lToX   = (int32_t)lua_tonumber(lua, 3);
+		int32_t lToY   = (int32_t)lua_tonumber(lua, 4);
 
 		quest_manager& q = quest_manager::instance();
 		dungeon * pDungeon = q.current_dungeon();
@@ -930,9 +930,9 @@ namespace quest
 		return 0;
 	}
 
-	int dungeon_spawn_name_mob(lua_State* L)
+	int dungeon_spawn_name_mob(lua_State* lua)
 	{
-		if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2) || !lua_isnumber(L, 3) || !lua_isstring(L, 4))
+		if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2) || !lua_isnumber(lua, 3) || !lua_isstring(lua, 4))
 			return 0;
 
 		quest_manager& q = quest_manager::instance();
@@ -940,20 +940,20 @@ namespace quest
 
 		if (pDungeon)
 		{
-			uint32_t dwVnum = (uint32_t) lua_tonumber(L, 1);
-			int32_t x = (int32_t)lua_tonumber(L, 2);
-			int32_t y = (int32_t)lua_tonumber(L, 3);
-			pDungeon->spawn_name_mob(dwVnum, x, y, lua_tostring(L, 4));
+			uint32_t dwVnum = (uint32_t) lua_tonumber(lua, 1);
+			int32_t x = (int32_t)lua_tonumber(lua, 2);
+			int32_t y = (int32_t)lua_tonumber(lua, 3);
+			pDungeon->spawn_name_mob(dwVnum, x, y, lua_tostring(lua, 4));
 		}
 		return 0;
 	}
 
-	int dungeon_spawn_group(lua_State* L)
+	int dungeon_spawn_group(lua_State* lua)
 	{
 		//
 		// argument: vnum,x,y,radius,aggressive,count
 		//
-		if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2) || !lua_isnumber(L, 3) || !lua_isnumber(L, 4) || !lua_isnumber(L, 6))
+		if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2) || !lua_isnumber(lua, 3) || !lua_isnumber(lua, 4) || !lua_isnumber(lua, 6))
 		{
 			quest::error("invalid argument");
 			return 0;
@@ -966,28 +966,28 @@ namespace quest
 
 		if (pDungeon)
 		{
-			uint32_t group_vnum = (uint32_t)lua_tonumber(L, 1);
-			int32_t local_x = (int32_t) lua_tonumber(L, 2) * 100;
-			int32_t local_y = (int32_t) lua_tonumber(L, 3) * 100;
-			float radius = (float) lua_tonumber(L, 4) * 100;
-			bool bAggressive = lua_toboolean(L, 5);
-			uint32_t count = (uint32_t) lua_tonumber(L, 6);
+			uint32_t group_vnum = (uint32_t)lua_tonumber(lua, 1);
+			int32_t local_x = (int32_t) lua_tonumber(lua, 2) * 100;
+			int32_t local_y = (int32_t) lua_tonumber(lua, 3) * 100;
+			float radius = (float) lua_tonumber(lua, 4) * 100;
+			bool bAggressive = lua_toboolean(lua, 5);
+			uint32_t count = (uint32_t) lua_tonumber(lua, 6);
 
 			character * chRet = pDungeon->spawn_group(group_vnum, local_x, local_y, radius, bAggressive, count);
 			if (chRet)
 				vid = chRet->get_vid();
 		}
 
-		lua_pushnumber(L, vid);
+		lua_pushnumber(lua, vid);
 		return 1;
 	}
 
-	int dungeon_join(lua_State* L)
+	int dungeon_join(lua_State* lua)
 	{
-		if (lua_gettop(L) < 1 || !lua_isnumber(L, 1))
+		if (lua_gettop(lua) < 1 || !lua_isnumber(lua, 1))
 			return 0;
 
-		int32_t lMapIndex = (int32_t)lua_tonumber(L, 1);
+		int32_t lMapIndex = (int32_t)lua_tonumber(lua, 1);
 		dungeon * pDungeon = dungeon_manager::instance().create(lMapIndex);
 
 		if (!pDungeon)
@@ -1003,7 +1003,7 @@ namespace quest
 		return 0;
 	}
 
-	int dungeon_exit(lua_State* L) // send to the position before entering the dungeon
+	int dungeon_exit(lua_State* lua) // send to the position before entering the dungeon
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -1011,7 +1011,7 @@ namespace quest
 		return 0;
 	}
 
-	int dungeon_exit_all(lua_State* L) // send everyone in the dungeon to their position before entering the dungeon
+	int dungeon_exit_all(lua_State* lua) // send everyone in the dungeon to their position before entering the dungeon
 	{
 		quest_manager& q = quest_manager::instance();
 		dungeon * pDungeon = q.current_dungeon();
@@ -1068,9 +1068,9 @@ namespace quest
 	};
 
 
-	int dungeon_say_diff_by_item_group(lua_State* L)
+	int dungeon_say_diff_by_item_group(lua_State* lua)
 	{
-		if (!lua_isstring(L, 1) || !lua_isstring(L, 2) || !lua_isstring(L, 3))
+		if (!lua_isstring(lua, 1) || !lua_isstring(lua, 2) || !lua_isstring(lua, 3))
 		{
 			metin2::log::info( "QUEST wrong set flag");
 			return 0;
@@ -1095,7 +1095,7 @@ namespace quest
 		f_say_dungeon_by_item_group f;
 		metin2::log::info("diff_by_item");
 	
-		std::string group_name (lua_tostring (L, 1));
+		std::string group_name (lua_tostring (lua, 1));
 		f.item_group = pDungeon->get_item_group (group_name);
 
 		if (f.item_group == nullptr)
@@ -1104,9 +1104,9 @@ namespace quest
 			return 0;
 		}
 
-		f.can_enter_ment = lua_tostring(L, 2);
+		f.can_enter_ment = lua_tostring(lua, 2);
 		f.can_enter_ment+= "[ENTER][ENTER][ENTER][ENTER][DONE]";
-		f.cant_enter_ment = lua_tostring(L, 3);
+		f.cant_enter_ment = lua_tostring(lua, 3);
 		f.cant_enter_ment+= "[ENTER][ENTER][ENTER][ENTER][DONE]";
 
 		pMap -> for_each( f );
@@ -1139,9 +1139,9 @@ namespace quest
 		}
 	};
 	
-	int dungeon_exit_all_by_item_group (lua_State* L) // kick anyone who doesn't have an item from a specific item group
+	int dungeon_exit_all_by_item_group (lua_State* lua) // kick anyone who doesn't have an item from a specific item group
 	{
-		if (!lua_isstring(L, 1))
+		if (!lua_isstring(lua, 1))
 		{
 			metin2::log::info( "QUEST wrong set flag");
 			return 0;
@@ -1165,7 +1165,7 @@ namespace quest
 		}
 		f_exit_dungeon_by_item_group f;
 
-		std::string group_name (lua_tostring (L, 1));
+		std::string group_name (lua_tostring (lua, 1));
 		f.item_group = pDungeon->get_item_group (group_name);
 	
 		if (f.item_group == nullptr)
@@ -1204,9 +1204,9 @@ namespace quest
 		}
 	};
 	
-	int dungeon_delete_item_in_item_group_from_all(lua_State* L) // remove a specific item from PCs in the dungeon.
+	int dungeon_delete_item_in_item_group_from_all(lua_State* lua) // remove a specific item from PCs in the dungeon.
 	{
-		if (!lua_isstring(L, 1))
+		if (!lua_isstring(lua, 1))
 		{
 			metin2::log::info( "QUEST wrong set flag");
 			return 0;
@@ -1230,7 +1230,7 @@ namespace quest
 		}
 		f_delete_item_in_item_group f;
 
-		std::string group_name (lua_tostring (L, 1));
+		std::string group_name (lua_tostring (lua, 1));
 		f.item_group = pDungeon->get_item_group (group_name);
 
 		if (f.item_group == nullptr)
@@ -1245,7 +1245,7 @@ namespace quest
 	}
 
 
-	int dungeon_kill_all(lua_State* L)
+	int dungeon_kill_all(lua_State* lua)
 	{
 		quest_manager& q = quest_manager::instance();
 		dungeon * pDungeon = q.current_dungeon();
@@ -1256,7 +1256,7 @@ namespace quest
 		return 0;
 	}
 
-	int dungeon_purge(lua_State* L)
+	int dungeon_purge(lua_State* lua)
 	{
 		quest_manager& q = quest_manager::instance();
 		dungeon * pDungeon = q.current_dungeon();
@@ -1267,7 +1267,7 @@ namespace quest
 		return 0;
 	}
 
-	int dungeon_exit_all_to_start_position(lua_State * L)
+	int dungeon_exit_all_to_start_position(lua_State * lua)
 	{
 		quest_manager& q = quest_manager::instance();
 		dungeon * pDungeon = q.current_dungeon();
@@ -1278,86 +1278,86 @@ namespace quest
 		return 0;
 	}
 
-	int dungeon_count_monster(lua_State * L)
+	int dungeon_count_monster(lua_State * lua)
 	{
 		quest_manager& q = quest_manager::instance();
 		dungeon * pDungeon = q.current_dungeon();
 
 		if (pDungeon)
-			lua_pushnumber(L, pDungeon->count_monster());
+			lua_pushnumber(lua, pDungeon->count_monster());
 		else
 		{
 			quest::error("not in a dungeon");
-			lua_pushnumber(L, INT32_MAX);
+			lua_pushnumber(lua, INT32_MAX);
 		}
 
 		return 1;
 	}
 
-	int dungeon_select(lua_State* L)
+	int dungeon_select(lua_State* lua)
 	{
-		uint32_t dwMapIndex = (uint32_t) lua_tonumber(L, 1);
+		uint32_t dwMapIndex = (uint32_t) lua_tonumber(lua, 1);
 		if (dwMapIndex)
 		{
 			dungeon * pDungeon = dungeon_manager::instance().find_by_map_index(dwMapIndex);
 			if (pDungeon)
 			{
 				quest_manager::instance().select_dungeon(pDungeon);
-				lua_pushboolean(L, 1);
+				lua_pushboolean(lua, 1);
 			}
 			else
 			{
 				quest_manager::instance().select_dungeon(nullptr);
-				lua_pushboolean(L, 0);
+				lua_pushboolean(lua, 0);
 			}
 		}
 		else
 		{
 			quest_manager::instance().select_dungeon(nullptr);
-			lua_pushboolean(L, 0);
+			lua_pushboolean(lua, 0);
 		}
 		return 1;
 	}
 
-	int dungeon_find(lua_State* L)
+	int dungeon_find(lua_State* lua)
 	{
-		uint32_t dwMapIndex = (uint32_t) lua_tonumber(L, 1);
+		uint32_t dwMapIndex = (uint32_t) lua_tonumber(lua, 1);
 		if (dwMapIndex)
 		{
 			dungeon * pDungeon = dungeon_manager::instance().find_by_map_index(dwMapIndex);
 			if (pDungeon)
 			{
-				lua_pushboolean(L, 1);
+				lua_pushboolean(lua, 1);
 			}
 			else
 			{
-				lua_pushboolean(L, 0);
+				lua_pushboolean(lua, 0);
 			}
 		}
 		else
 		{
-			lua_pushboolean(L, 0);
+			lua_pushboolean(lua, 0);
 		}
 		return 1;
 	}
 
-	int dungeon_all_near_to( lua_State* L)
+	int dungeon_all_near_to( lua_State* lua)
 	{
 		dungeon * pDungeon = quest_manager::instance().current_dungeon();
 
 		if (pDungeon != nullptr)
 		{
-			lua_pushboolean(L, pDungeon->is_all_pc_near_to( (int)lua_tonumber(L, 1), (int)lua_tonumber(L, 2), 30));
+			lua_pushboolean(lua, pDungeon->is_all_pc_near_to( (int)lua_tonumber(lua, 1), (int)lua_tonumber(lua, 2), 30));
 		}
 		else
 		{
-			lua_pushboolean(L, false);
+			lua_pushboolean(lua, false);
 		}
 
 		return 1;
 	}
 
-	int dungeon_set_warp_location (lua_State* L)
+	int dungeon_set_warp_location (lua_State* lua)
 	{
 		dungeon * pDungeon = quest_manager::instance().current_dungeon();
 
@@ -1366,35 +1366,35 @@ namespace quest
 			return 0;
 		}
 		
-		if (lua_gettop(L)<3 || !lua_isnumber(L, 1) || !lua_isnumber(L,2) || !lua_isnumber(L, 3))
+		if (lua_gettop(lua)<3 || !lua_isnumber(lua, 1) || !lua_isnumber(lua,2) || !lua_isnumber(lua, 3))
 		{
 			return 0;
 		}
 
-		f_set_warp_location f ((int)lua_tonumber(L, 1), (int)lua_tonumber(L, 2), (int)lua_tonumber(L, 3));
+		f_set_warp_location f ((int)lua_tonumber(lua, 1), (int)lua_tonumber(lua, 2), (int)lua_tonumber(lua, 3));
 		pDungeon->for_each_member (f);
 
 		return 0;
 	}
 
-	int dungeon_set_item_group (lua_State* L)
+	int dungeon_set_item_group (lua_State* lua)
 	{
-		if (!lua_isstring (L, 1) || !lua_isnumber (L, 2))
+		if (!lua_isstring (lua, 1) || !lua_isnumber (lua, 2))
 		{
 			return 0;
 		}
-		std::string group_name (lua_tostring (L, 1));
-		int size = lua_tonumber (L, 2);
+		std::string group_name (lua_tostring (lua, 1));
+		int size = lua_tonumber (lua, 2);
 
 		dungeon::item_group item_group;
 		
 		for (int i = 0; i < size; i++)
 		{
-			if (!lua_isnumber (L, i * 2 + 3) || !lua_isnumber (L, i * 2 + 4))
+			if (!lua_isnumber (lua, i * 2 + 3) || !lua_isnumber (lua, i * 2 + 4))
 			{
 				return 0;
 			}
-			item_group.push_back (std::pair <uint32_t, int> (lua_tonumber (L, i * 2 + 3), lua_tonumber (L, i * 2 + 4)));
+			item_group.push_back (std::pair <uint32_t, int> (lua_tonumber (lua, i * 2 + 3), lua_tonumber (lua, i * 2 + 4)));
 		}
 		dungeon * pDungeon = quest_manager::instance().current_dungeon();
 
@@ -1407,19 +1407,19 @@ namespace quest
 		return 0;
 	}
 
-	int dungeon_set_quest_flag2(lua_State* L)
+	int dungeon_set_quest_flag2(lua_State* lua)
 	{
 		quest_manager & q = quest_manager::instance();
 
 		f_set_quest_flag f;
 
-		if (!lua_isstring(L, 1) || !lua_isstring(L, 2) || !lua_isnumber(L, 3))
+		if (!lua_isstring(lua, 1) || !lua_isstring(lua, 2) || !lua_isnumber(lua, 3))
 		{
 			quest::error("Invalid Argument");
 		}
 
-		f.flagname = std::string (lua_tostring(L, 1)) + "." + lua_tostring(L, 2);
-		f.value = (int) rint(lua_tonumber(L, 3));
+		f.flagname = std::string (lua_tostring(lua, 1)) + "." + lua_tostring(lua, 2);
+		f.value = (int) rint(lua_tonumber(lua, 3));
 
 		dungeon * pDungeon = q.current_dungeon();
 

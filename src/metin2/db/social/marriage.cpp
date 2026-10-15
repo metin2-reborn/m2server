@@ -83,9 +83,9 @@ namespace marriage
 		return true;
 	}
 
-	marriage* manager::get(uint32_t dwPlayerID)
+	marriage* manager::get(uint32_t player_id)
 	{
-		auto it = marriage_by_pid_.find(dwPlayerID);
+		auto it = marriage_by_pid_.find(player_id);
 
 		if (it != marriage_by_pid_.end())
 			return it->second;
@@ -93,25 +93,25 @@ namespace marriage
 		return nullptr;
 	}
 
-	void align(uint32_t& rPID1, uint32_t& rPID2)
+	void align(uint32_t& pid1, uint32_t& pid2)
 	{
-		if (rPID1 > rPID2)
-			std::swap(rPID1, rPID2);
+		if (pid1 > pid2)
+			std::swap(pid1, pid2);
 	}
 
-	void manager::add(uint32_t dwPID1, uint32_t dwPID2, const char* szName1, const char* szName2)
+	void manager::add(uint32_t pid1, uint32_t pid2, const char* name1_value, const char* name2_value)
 	{
 		uint32_t now = client_manager::instance().current_time();
-		if (is_married(dwPID1) || is_married(dwPID2))
+		if (is_married(pid1) || is_married(pid2))
 		{
-			metin2::log::error("cannot marry already married character. {:d} - {:d}", dwPID1, dwPID2);
+			metin2::log::error("cannot marry already married character. {:d} - {:d}", pid1, pid2);
 			return;
 		}
 
-		align(dwPID1, dwPID2);
+		align(pid1, pid2);
 
 		char szQuery[512];
-		snprintf(szQuery, sizeof(szQuery), "INSERT INTO marriage(pid1, pid2, love_point, time) VALUES (%u, %u, 0, %u)", dwPID1, dwPID2, now);
+		snprintf(szQuery, sizeof(szQuery), "INSERT INTO marriage(pid1, pid2, love_point, time) VALUES (%u, %u, 0, %u)", pid1, pid2, now);
 
 		std::unique_ptr<ql_msg> pmsg(db_manager::instance().direct_query(szQuery));
 
@@ -122,67 +122,67 @@ namespace marriage
 			return;
 		}
 
-		metin2::log::info( "MARRIAGE ADD {:d} {:d}", dwPID1, dwPID2);
+		metin2::log::info( "MARRIAGE ADD {:d} {:d}", pid1, pid2);
 
-		marriage* pMarriage = new marriage(dwPID1, dwPID2, 0, now, 0, szName1, szName2);
+		marriage* pMarriage = new marriage(pid1, pid2, 0, now, 0, name1_value, name2_value);
 		marriages_.insert(pMarriage);
-		marriage_by_pid_.insert(std::make_pair(dwPID1, pMarriage));
-		marriage_by_pid_.insert(std::make_pair(dwPID2, pMarriage));
+		marriage_by_pid_.insert(std::make_pair(pid1, pMarriage));
+		marriage_by_pid_.insert(std::make_pair(pid2, pMarriage));
 
 		packet_marriage_add p;
-		p.pi_d1 = dwPID1;
-		p.pi_d2 = dwPID2;
+		p.pi_d1 = pid1;
+		p.pi_d2 = pid2;
 		p.t_marry_time = now;
-		strlcpy(p.name1, szName1, sizeof(p.name1));
-		strlcpy(p.name2, szName2, sizeof(p.name2));
+		strlcpy(p.name1, name1_value, sizeof(p.name1));
+		strlcpy(p.name2, name2_value, sizeof(p.name2));
 		client_manager::instance().forward_packet(HEADER_DG_MARRIAGE_ADD, &p, sizeof(p));
 	}
 
-	void manager::update(uint32_t dwPID1, uint32_t dwPID2, int32_t iLovePoint, uint8_t byMarried)
+	void manager::update(uint32_t pid1_value, uint32_t pid2_value, int32_t love_point_value, uint8_t married_value)
 	{
-		marriage* pMarriage = get(dwPID1);
-		if (!pMarriage || pMarriage->other(dwPID1) != dwPID2)
+		marriage* pMarriage = get(pid1_value);
+		if (!pMarriage || pMarriage->other(pid1_value) != pid2_value)
 		{
-			metin2::log::error("not under marriage : {:d} {:d}", dwPID1, dwPID2);
+			metin2::log::error("not under marriage : {:d} {:d}", pid1_value, pid2_value);
 			return;
 		}
 
-		align(dwPID1, dwPID2);
+		align(pid1_value, pid2_value);
 
 		char szQuery[512];
 		snprintf(szQuery, sizeof(szQuery), "UPDATE marriage SET love_point = %d, is_married = %d WHERE pid1 = %u AND pid2 = %u", 
-				iLovePoint, byMarried, pMarriage->pid1, pMarriage->pid2);
+				love_point_value, married_value, pMarriage->pid1, pMarriage->pid2);
 
 		std::unique_ptr<ql_msg> pmsg(db_manager::instance().direct_query(szQuery));
 
 		ql_result* res = pmsg->get();
 		if (res->affected_rows == 0 || res->affected_rows == (uint32_t)-1)
 		{
-			metin2::log::error("cannot update marriage : PID:{:d} {:d}", dwPID1, dwPID2);
+			metin2::log::error("cannot update marriage : PID:{:d} {:d}", pid1_value, pid2_value);
 			return;
 		}
 
-		metin2::log::info( "MARRIAGE UPDATE PID:{:d} {:d} LP:{:d} ST:{:d}", dwPID1, dwPID2, iLovePoint, byMarried);
-		pMarriage->love_point = iLovePoint;
-		pMarriage->is_married = byMarried;
+		metin2::log::info( "MARRIAGE UPDATE PID:{:d} {:d} LP:{:d} ST:{:d}", pid1_value, pid2_value, love_point_value, married_value);
+		pMarriage->love_point = love_point_value;
+		pMarriage->is_married = married_value;
 
 		packet_marriage_update p;
-		p.pi_d1 = dwPID1;
-		p.pi_d2 = dwPID2;
+		p.pi_d1 = pid1_value;
+		p.pi_d2 = pid2_value;
 		p.love_point = pMarriage->love_point;
 		p.married = pMarriage->is_married;
 		client_manager::instance().forward_packet(HEADER_DG_MARRIAGE_UPDATE, &p, sizeof(p));
 	}
 
-	void manager::remove(uint32_t dwPID1, uint32_t dwPID2)
+	void manager::remove(uint32_t pid1_value, uint32_t pid2_value)
 	{
-		marriage* pMarriage = get(dwPID1);
+		marriage* pMarriage = get(pid1_value);
 
 		if (pMarriage)
 		{
-			metin2::log::info( "Break Marriage pid1 {:d} pid2 {:d} Other {:d}", dwPID1, dwPID2, pMarriage->other(dwPID1));
+			metin2::log::info( "Break Marriage pid1 {:d} pid2 {:d} Other {:d}", pid1_value, pid2_value, pMarriage->other(pid1_value));
 		}
-		if (!pMarriage || pMarriage->other(dwPID1) != dwPID2)
+		if (!pMarriage || pMarriage->other(pid1_value) != pid2_value)
 		{
 			auto it = marriage_by_pid_.begin();
 
@@ -190,33 +190,33 @@ namespace marriage
 			{
 				metin2::log::info( "Marriage List pid1 {:d} pid2 {:d}", it->second->pid1, it->second->pid2);
 			}
-			metin2::log::error("not under marriage : PID:{:d} {:d}", dwPID1, dwPID2);
+			metin2::log::error("not under marriage : PID:{:d} {:d}", pid1_value, pid2_value);
 			return;
 		}
 
-		align(dwPID1, dwPID2);
+		align(pid1_value, pid2_value);
 
 		char szQuery[512];
-		snprintf(szQuery, sizeof(szQuery), "DELETE FROM marriage WHERE pid1 = %u AND pid2 = %u", dwPID1, dwPID2);
+		snprintf(szQuery, sizeof(szQuery), "DELETE FROM marriage WHERE pid1 = %u AND pid2 = %u", pid1_value, pid2_value);
 
 		std::unique_ptr<ql_msg> pmsg(db_manager::instance().direct_query(szQuery));
 
 		ql_result* res = pmsg->get();
 		if (res->affected_rows == 0 || res->affected_rows == (uint32_t)-1)
 		{
-			metin2::log::error("cannot delete marriage : PID:{:d} {:d}", dwPID1, dwPID2);
+			metin2::log::error("cannot delete marriage : PID:{:d} {:d}", pid1_value, pid2_value);
 			return;
 		}
 
-		metin2::log::info( "MARRIAGE REMOVE PID:{:d} {:d}", dwPID1, dwPID2);
+		metin2::log::info( "MARRIAGE REMOVE PID:{:d} {:d}", pid1_value, pid2_value);
 
 		marriages_.erase(pMarriage);
-		marriage_by_pid_.erase(dwPID1);
-		marriage_by_pid_.erase(dwPID2);
+		marriage_by_pid_.erase(pid1_value);
+		marriage_by_pid_.erase(pid2_value);
 
 		packet_marriage_remove p;
-		p.pi_d1 = dwPID1;
-		p.pi_d2 = dwPID2;
+		p.pi_d1 = pid1_value;
+		p.pi_d2 = pid2_value;
 		client_manager::instance().forward_packet(HEADER_DG_MARRIAGE_REMOVE, &p, sizeof(p));
 
 		delete pMarriage;
@@ -273,18 +273,18 @@ namespace marriage
 		}
 	}
 
-	void manager::ready_wedding(uint32_t dwMapIndex, uint32_t dwPID1, uint32_t dwPID2)
+	void manager::ready_wedding(uint32_t map_index, uint32_t pid1, uint32_t pid2)
 	{
 		uint32_t dwStartTime = client_manager::instance().current_time();
-		pq_wedding_start_.push(wedding(dwStartTime + 5, dwMapIndex, dwPID1, dwPID2));
+		pq_wedding_start_.push(wedding(dwStartTime + 5, map_index, pid1, pid2));
 	}
 
-	void manager::end_wedding(uint32_t dwPID1, uint32_t dwPID2)
+	void manager::end_wedding(uint32_t pid1, uint32_t pid2)
 	{
-		auto it = running_wedding_.find(std::make_pair(dwPID1, dwPID2));
+		auto it = running_wedding_.find(std::make_pair(pid1, pid2));
 		if (it == running_wedding_.end())
 		{
-			metin2::log::error("try to end wedding {:d} {:d}", dwPID1, dwPID2);
+			metin2::log::error("try to end wedding {:d} {:d}", pid1, pid2);
 			return;
 		}
 

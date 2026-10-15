@@ -31,8 +31,8 @@
 #undef __FreeBSD__
 
 namespace metin2::db::inline app {
-void set_player_db_name(const char* c_pszPlayerDBName);
-void set_table_postfix(const char* c_pszTablePostfix);
+void set_player_db_name(const char* name);
+void set_table_postfix(const char* postfix);
 int start();
 
 std::string table_postfix;
@@ -165,12 +165,12 @@ int start()
 	return true;
 }
 
-void set_table_postfix(const char* c_pszTablePostfix)
+void set_table_postfix(const char* postfix)
 {
-	if (!c_pszTablePostfix || !*c_pszTablePostfix)
+	if (!postfix || !*postfix)
 		table_postfix = "";
 	else
-		table_postfix = c_pszTablePostfix;
+		table_postfix = postfix;
 }
 
 const char * get_table_postfix()
@@ -178,13 +178,13 @@ const char * get_table_postfix()
 	return table_postfix.c_str();
 }
 
-void set_player_db_name(const char* c_pszPlayerDBName)
+void set_player_db_name(const char* name)
 {
-	if (! c_pszPlayerDBName || ! *c_pszPlayerDBName)
+	if (! name || ! *name)
 		player_db_name = "";
 	else
 	{
-		player_db_name = c_pszPlayerDBName;
+		player_db_name = name;
 		player_db_name += ".";
 	}
 }

@@ -74,7 +74,7 @@ enum
 	COMMANDAFFECT_SLOW,
 };
 
-void command_apply_affect(character * ch, const char* argument, const char* affectName, int cmdAffect)
+void command_apply_affect(character * ch, const char* argument, const char* affect_name, int cmd_affect)
 {
 	char arg1[256];
 	one_argument(argument, arg1, sizeof(arg1));
@@ -83,7 +83,7 @@ void command_apply_affect(character * ch, const char* argument, const char* affe
 
 	if (!*arg1)
 	{
-		ch->chat_packet(CHAT_TYPE_INFO, "Usage: %s <name>", affectName);
+		ch->chat_packet(CHAT_TYPE_INFO, "Usage: %s <name>", affect_name);
 		return;
 	}
 
@@ -94,7 +94,7 @@ void command_apply_affect(character * ch, const char* argument, const char* affe
 		return;
 	}
 
-	switch (cmdAffect)
+	switch (cmd_affect)
 	{
 		case COMMANDAFFECT_STUN:
 			skill_attack_affect(tch, 1000, IMMUNE_STUN, AFFECT_STUN, POINT_NONE, 0, AFF_STUN, 30, "GM_STUN");
@@ -104,9 +104,9 @@ void command_apply_affect(character * ch, const char* argument, const char* affe
 			break;
 	}
 
-	metin2::log::info( "{} {}", arg1, affectName);
+	metin2::log::info( "{} {}", arg1, affect_name);
 
-	ch->chat_packet(CHAT_TYPE_INFO, "%s %s", arg1, affectName);
+	ch->chat_packet(CHAT_TYPE_INFO, "%s %s", arg1, affect_name);
 }
 // END_OF_ADD_COMMAND_SLOW_STUN
 
@@ -190,49 +190,49 @@ struct goto_info
 		x = 0;
 		y = 0;
 	}
-	goto_info(const goto_info& c_src)
+	goto_info(const goto_info& src)
 	{
-		copy(c_src);
+		copy(src);
 	}
-	void operator = (const goto_info& c_src)
+	void operator = (const goto_info& src)
 	{
-		copy(c_src);
+		copy(src);
 	}
-	void copy(const goto_info& c_src)
+	void copy(const goto_info& src)
 	{
-		st_name 	= c_src.st_name;
-		empire 		= c_src.empire;
-		index 	= c_src.index;
+		st_name 	= src.st_name;
+		empire 		= src.empire;
+		index 	= src.index;
 
-		x = c_src.x;
-		y = c_src.y;
+		x = src.x;
+		y = src.y;
 	}
 };
 
 static std::vector<goto_info> vec_goto_info;
 
-void character_add_goto_info(const std::string& c_st_name, uint8_t empire, int mapIndex, uint32_t x, uint32_t y)
+void character_add_goto_info(const std::string& st_name_value, uint8_t empire, int index_value, uint32_t x, uint32_t y)
 {
 	goto_info newGotoInfo;
-	newGotoInfo.st_name = c_st_name;
+	newGotoInfo.st_name = st_name_value;
 	newGotoInfo.empire = empire;
-	newGotoInfo.index = mapIndex;
+	newGotoInfo.index = index_value;
 	newGotoInfo.x = x;
 	newGotoInfo.y = y;
 	vec_goto_info.push_back(newGotoInfo);
 
-	metin2::log::info( "AddGotoInfo(name={}, empire={:d}, mapIndex={:d}, pos=({:d}, {:d}))", c_st_name.c_str(), empire, mapIndex, x, y);
+	metin2::log::info( "AddGotoInfo(name={}, empire={:d}, mapIndex={:d}, pos=({:d}, {:d}))", st_name_value.c_str(), empire, index_value, x, y);
 }
 
-bool find_in_string(const char * c_pszFind, const char * c_pszIn)
+bool find_in_string(const char * find, const char * in)
 {
-	const char * c = c_pszIn;
+	const char * c = in;
 	const char * p;
 
 	p = strchr(c, '|');
 
 	if (!p)
-		return (0 == strncasecmp(c_pszFind, c_pszIn, strlen(c_pszFind)));
+		return (0 == strncasecmp(find, in, strlen(find)));
 	else
 	{
 		std::string sz;
@@ -241,7 +241,7 @@ bool find_in_string(const char * c_pszFind, const char * c_pszIn)
 		{
 			sz.assign(c, std::min<std::size_t>(64, p - c));
 
-			if (!strncasecmp(c_pszFind, sz.c_str(), strlen(c_pszFind)))
+			if (!strncasecmp(find, sz.c_str(), strlen(find)))
 				return true;
 
 			c = p + 1;
@@ -249,26 +249,26 @@ bool find_in_string(const char * c_pszFind, const char * c_pszIn)
 
 		sz.assign(c, std::min<std::size_t>(64, strlen(c)));
 
-		if (!strncasecmp(c_pszFind, sz.c_str(), strlen(c_pszFind)))
+		if (!strncasecmp(find, sz.c_str(), strlen(find)))
 			return true;
 	}
 
 	return false;
 }
 
-bool character_go_to_name(character * ch, uint8_t empire, int mapIndex, const char* gotoName)
+bool character_go_to_name(character * ch, uint8_t empire, int index_value, const char* goto_name)
 {
 	std::vector<goto_info>::iterator i;
 	for (i = vec_goto_info.begin(); i != vec_goto_info.end(); ++i)
 	{
 		const goto_info& c_eachGotoInfo = *i;
 
-		if (mapIndex != 0)
+		if (index_value != 0)
 		{
-			if (mapIndex != c_eachGotoInfo.index)
+			if (index_value != c_eachGotoInfo.index)
 				continue;
 		}
-		else if (!find_in_string(gotoName, c_eachGotoInfo.st_name.c_str()))
+		else if (!find_in_string(goto_name, c_eachGotoInfo.st_name.c_str()))
 			continue;
 
 		if (c_eachGotoInfo.empire == 0 || c_eachGotoInfo.empire == empire)
@@ -1086,7 +1086,7 @@ struct monarch_notice_packet_func
 	const char * str;
 	uint8_t empire;
 
-	monarch_notice_packet_func(uint8_t bEmpire, const char * str_value) : str(str_value), empire(bEmpire)
+	monarch_notice_packet_func(uint8_t empire_value, const char * str_value) : str(str_value), empire(empire_value)
 	{
 	}
 
@@ -1102,16 +1102,16 @@ struct monarch_notice_packet_func
 	}
 };
 
-void send_notice(const char * c_pszBuf)
+void send_notice(const char * buf)
 {
 	const desc_manager::desc_set & c_ref_set = desc_manager::instance().client_set();
-	std::for_each(c_ref_set.begin(), c_ref_set.end(), notice_packet_func(c_pszBuf));
+	std::for_each(c_ref_set.begin(), c_ref_set.end(), notice_packet_func(buf));
 }
 
-void send_monarch_notice(uint8_t bEmpire, const char* c_pszBuf)
+void send_monarch_notice(uint8_t empire, const char* buf)
 {
 	const desc_manager::desc_set & c_ref_set = desc_manager::instance().client_set();
-	std::for_each(c_ref_set.begin(), c_ref_set.end(), monarch_notice_packet_func(bEmpire, c_pszBuf));
+	std::for_each(c_ref_set.begin(), c_ref_set.end(), monarch_notice_packet_func(empire, buf));
 }
 
 struct notice_map_packet_func
@@ -1120,7 +1120,7 @@ struct notice_map_packet_func
 	int index;
 	bool big_font;
 
-	notice_map_packet_func(const char* str_value, int idx, bool bBigFont) : str(str_value), index(idx), big_font(bBigFont)
+	notice_map_packet_func(const char* str_value, int idx, bool big_font_value) : str(str_value), index(idx), big_font(big_font_value)
 	{
 	}
 
@@ -1133,10 +1133,10 @@ struct notice_map_packet_func
 	}
 };
 
-void send_notice_map(const char* c_pszBuf, int nMapIndex, bool bBigFont)
+void send_notice_map(const char* buf, int map_index, bool big_font)
 {
 	const desc_manager::desc_set & c_ref_set = desc_manager::instance().client_set();
-	std::for_each(c_ref_set.begin(), c_ref_set.end(), notice_map_packet_func(c_pszBuf, nMapIndex, bBigFont));
+	std::for_each(c_ref_set.begin(), c_ref_set.end(), notice_map_packet_func(buf, map_index, big_font));
 }
 
 struct log_packet_func
@@ -1157,41 +1157,41 @@ struct log_packet_func
 	}
 };
 
-void send_log(const char * c_pszBuf)
+void send_log(const char * buf)
 {
 	const desc_manager::desc_set & c_ref_set = desc_manager::instance().client_set();
-	std::for_each(c_ref_set.begin(), c_ref_set.end(), log_packet_func(c_pszBuf));
+	std::for_each(c_ref_set.begin(), c_ref_set.end(), log_packet_func(buf));
 }
 
-void broadcast_notice(const char * c_pszBuf)
+void broadcast_notice(const char * buf_value)
 {
 	packet_gg_notice p;
 	p.header = HEADER_GG_NOTICE;
-	p.size = strlen(c_pszBuf) + 1;
+	p.size = strlen(buf_value) + 1;
 
 	temp_buffer buf;
 	buf.write(&p, sizeof(p));
-	buf.write(c_pszBuf, p.size);
+	buf.write(buf_value, p.size);
 
 	p2_p_manager::instance().send(buf.read_peek(), buf.size()); // HEADER_GG_NOTICE
 
-	send_notice(c_pszBuf);
+	send_notice(buf_value);
 }
 
-void broadcast_monarch_notice(uint8_t bEmpire, const char * c_pszBuf)
+void broadcast_monarch_notice(uint8_t empire_value, const char * buf_value)
 {
 	packet_gg_monarch_notice p;
 	p.header = HEADER_GG_MONARCH_NOTICE;
-	p.empire = bEmpire;
-	p.size = strlen(c_pszBuf) + 1;
+	p.empire = empire_value;
+	p.size = strlen(buf_value) + 1;
 
 	temp_buffer buf;
 	buf.write(&p, sizeof(p));
-	buf.write(c_pszBuf, p.size);
+	buf.write(buf_value, p.size);
 
 	p2_p_manager::instance().send(buf.read_peek(), buf.size());
 
-	send_monarch_notice(bEmpire, c_pszBuf);
+	send_monarch_notice(empire_value, buf_value);
 }
 
 ACMD(do_notice)
@@ -3352,7 +3352,7 @@ struct f_count_in_map
 				++count[ch->empire()];
 		}
 	}
-	int get_count(uint8_t bEmpire) { return count[bEmpire]; } 
+	int get_count(uint8_t empire) { return count[empire]; } 
 };
 
 ACMD(do_threeway_war_info)

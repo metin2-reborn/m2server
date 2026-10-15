@@ -20,16 +20,16 @@ class packet_info
 		packet_info();
 		virtual ~packet_info();
 
-		void set(int header, int size, const char * c_pszName, bool bSeq=false);
-		bool get(int header, int * size, const char ** c_ppszName);
+		void set(int header, int size_value, const char * name_value, bool seq=false);
+		bool get(int header, int * size, const char ** ppsz_name);
 
 		void start();
 		void end();
 
-		void log(const char * c_pszFileName);
+		void log(const char * file_name);
 
 		bool is_sequence(int header);
-		void set_sequence(int header, bool bSeq);
+		void set_sequence(int header, bool seq);
 
 	private:
 		packet_element * element(int header);

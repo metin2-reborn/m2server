@@ -20,25 +20,25 @@ packet_info::~packet_info()
 {
 }
 
-void packet_info::set(int header, int iSize, const char * c_pszName, bool bSeq)
+void packet_info::set(int header, int size_value, const char * name_value, bool seq)
 {
 	if (packet_map_.find(header) != packet_map_.end())
 		return;
 
 	packet_element * element = &packet_map_[header];
 
-	element->size = iSize;
-	element->name.assign(c_pszName);
+	element->size = size_value;
+	element->name.assign(name_value);
 	element->called = 0;
 	element->load = 0;
 
-	element->sequence_packet = bSeq;
+	element->sequence_packet = seq;
 
 	if (element->sequence_packet)
 		element->size += sizeof(uint8_t);
 }
 
-bool packet_info::get(int header, int * size, const char ** c_ppszName)
+bool packet_info::get(int header, int * size, const char ** ppsz_name)
 {
 	std::map<int, packet_element>::iterator it = packet_map_.find(header);
 
@@ -46,7 +46,7 @@ bool packet_info::get(int header, int * size, const char ** c_ppszName)
 		return false;
 
 	*size = it->second.size;
-	*c_ppszName = it->second.name.c_str();
+	*ppsz_name = it->second.name.c_str();
 
 	current_packet_ = &it->second;
 	return true;
@@ -58,13 +58,13 @@ bool packet_info::is_sequence(int header)
 	return pkElement ? pkElement->sequence_packet : false;
 }
 
-void packet_info::set_sequence(int header, bool bSeq)
+void packet_info::set_sequence(int header, bool seq)
 {
 	packet_element * pkElem = element(header);
 
 	if (pkElem)
 	{
-		if (bSeq)
+		if (seq)
 		{
 			if (!pkElem->sequence_packet)
 				pkElem->size++;
@@ -75,7 +75,7 @@ void packet_info::set_sequence(int header, bool bSeq)
 				pkElem->size--;
 		}
 
-		pkElem->sequence_packet = bSeq;
+		pkElem->sequence_packet = seq;
 	}
 }
 
@@ -101,11 +101,11 @@ void packet_info::end()
 	current_packet_->load += get_dword_time() - start_time_;
 }
 
-void packet_info::log(const char * c_pszFileName)
+void packet_info::log(const char * file_name)
 {
 	FILE * fp;
 
-	fp = fopen(c_pszFileName, "w");
+	fp = fopen(file_name, "w");
 
 	if (!fp)
 		return;

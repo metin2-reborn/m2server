@@ -43,11 +43,11 @@ namespace metin2::db::inline clients {
 //
 // Check all SELECT syntax on item table before change this function!!!
 //
-bool create_item_table_from_res(MYSQL_RES * res, std::vector<player_item> * pVec, uint32_t dwPID)
+bool create_item_table_from_res(MYSQL_RES * res, std::vector<player_item> * vec, uint32_t pid)
 {
 	if (!res)
 	{
-		pVec->clear();
+		vec->clear();
 		return true;
 	}
 
@@ -55,16 +55,16 @@ bool create_item_table_from_res(MYSQL_RES * res, std::vector<player_item> * pVec
 
 	if ((rows = mysql_num_rows(res)) <= 0)	// No data
 	{
-		pVec->clear();
+		vec->clear();
 		return true;
 	}
 
-	pVec->resize(rows);
+	vec->resize(rows);
 
 	for (int i = 0; i < rows; ++i)
 	{
 		MYSQL_ROW row = mysql_fetch_row(res);
-		player_item & item = pVec->at(i);
+		player_item & item = vec->at(i);
 
 		int cur = 0;
 
@@ -86,13 +86,13 @@ bool create_item_table_from_res(MYSQL_RES * res, std::vector<player_item> * pVec
 			str_to_number(item.attr[j].s_value, row[cur++]);
 		}
 
-		item.owner		= dwPID;
+		item.owner		= pid;
 	}
 
 	return true;
 }
 
-std::string create_player_save_query(const player_table * pkTab)
+std::string create_player_save_query(const player_table * tab)
 {
 	return sql::format(
 			"UPDATE player{} SET "
@@ -140,48 +140,48 @@ std::string create_player_save_query(const player_table * pkTab)
 			"quickslot = {} "
 			" WHERE id={}",
 		sql::raw(get_table_postfix()),
-		pkTab->job,
-		pkTab->voice,
-		pkTab->dir,
-		pkTab->x,
-		pkTab->y,
-		pkTab->z,
-		pkTab->map_index,
-		pkTab->exit_x,
-		pkTab->exit_y,
-		pkTab->exit_map_index,
-		pkTab->hp,
-		pkTab->sp,
-		pkTab->stamina,
-		pkTab->s_random_hp,
-		pkTab->s_random_sp,
-		pkTab->playtime,
-		pkTab->level,
-		pkTab->level_step,
-		pkTab->st,
-		pkTab->ht,
-		pkTab->dx,
-		pkTab->iq,
-		pkTab->gold,
-		pkTab->exp,
-		pkTab->stat_point,
-		pkTab->skill_point,
-		pkTab->sub_skill_point,
-		pkTab->stat_reset_count,
-		pkTab->ip,
-		pkTab->parts[PART_MAIN],
-		pkTab->parts[PART_HAIR],
-		pkTab->skill_group,
-		pkTab->alignment,
-		pkTab->horse.level,
-		pkTab->horse.riding,
-		pkTab->horse.s_health,
-		pkTab->horse.horse_health_drop_time,
-		pkTab->horse.s_stamina,
-		pkTab->horse_skill_point,
-		std::string_view(reinterpret_cast<const char *>(pkTab->skills), sizeof(pkTab->skills)),
-		std::string_view(reinterpret_cast<const char *>(pkTab->quickslot), sizeof(pkTab->quickslot)),
-		pkTab->id);
+		tab->job,
+		tab->voice,
+		tab->dir,
+		tab->x,
+		tab->y,
+		tab->z,
+		tab->map_index,
+		tab->exit_x,
+		tab->exit_y,
+		tab->exit_map_index,
+		tab->hp,
+		tab->sp,
+		tab->stamina,
+		tab->s_random_hp,
+		tab->s_random_sp,
+		tab->playtime,
+		tab->level,
+		tab->level_step,
+		tab->st,
+		tab->ht,
+		tab->dx,
+		tab->iq,
+		tab->gold,
+		tab->exp,
+		tab->stat_point,
+		tab->skill_point,
+		tab->sub_skill_point,
+		tab->stat_reset_count,
+		tab->ip,
+		tab->parts[PART_MAIN],
+		tab->parts[PART_HAIR],
+		tab->skill_group,
+		tab->alignment,
+		tab->horse.level,
+		tab->horse.riding,
+		tab->horse.s_health,
+		tab->horse.horse_health_drop_time,
+		tab->horse.s_stamina,
+		tab->horse_skill_point,
+		std::string_view(reinterpret_cast<const char *>(tab->skills), sizeof(tab->skills)),
+		std::string_view(reinterpret_cast<const char *>(tab->quickslot), sizeof(tab->quickslot)),
+		tab->id);
 }
 
 player_table_cache * client_manager::player_cache(uint32_t id)
@@ -196,25 +196,25 @@ player_table_cache * client_manager::player_cache(uint32_t id)
 	return it->second;
 }
 
-void client_manager::put_player_cache(player_table * pNew)
+void client_manager::put_player_cache(player_table * updated)
 {
 	player_table_cache * c;
 
-	c = player_cache(pNew->id);
+	c = player_cache(updated->id);
 
 	if (!c)
 	{
 		c = new player_table_cache;
-		map_player_cache_.insert(player_table_cache_map::value_type(pNew->id, c));
+		map_player_cache_.insert(player_table_cache_map::value_type(updated->id, c));
 	}
 
-	c->put(pNew);
+	c->put(updated);
 }
 
 /*
  * PLAYER LOAD
  */
-void client_manager::query_player_load(peer * peer, uint32_t dwHandle, player_load_packet * packet)
+void client_manager::query_player_load(peer * peer, uint32_t handle_value, player_load_packet * packet)
 {
 	player_table_cache * c;
 	player_table * pTab;
@@ -246,7 +246,7 @@ void client_manager::query_player_load(peer * peer, uint32_t dwHandle, player_lo
 		if (!pkLD || pkLD->is_play())
 		{
 			metin2::log::info( "PLAYER_LOAD_ERROR: LoginData {} IsPlay {:d}", static_cast<const void *>(pkLD), pkLD ? pkLD->is_play() : 0);
-			peer->encode_header(HEADER_DG_PLAYER_LOAD_FAILED, dwHandle, 0); 
+			peer->encode_header(HEADER_DG_PLAYER_LOAD_FAILED, handle_value, 0); 
 			return;
 		}
 
@@ -255,7 +255,7 @@ void client_manager::query_player_load(peer * peer, uint32_t dwHandle, player_lo
 		pkLD->set_play(true);
 		std::memcpy(pTab->premium_times, pkLD->premium_ptr(), sizeof(pTab->premium_times));
 
-		peer->encode_header(HEADER_DG_PLAYER_LOAD_SUCCESS, dwHandle, sizeof(player_table));
+		peer->encode_header(HEADER_DG_PLAYER_LOAD_SUCCESS, handle_value, sizeof(player_table));
 		peer->encode(pTab, sizeof(player_table));
 
 		if (packet->player_id != pkLD->last_player_id())
@@ -265,7 +265,7 @@ void client_manager::query_player_load(peer * peer, uint32_t dwHandle, player_lo
 
 			pkLD->set_last_player_id( packet->player_id );
 
-			peer->encode_header( HEADER_DG_NEED_LOGIN_LOG, dwHandle, sizeof(packet_need_login_log_info) );
+			peer->encode_header( HEADER_DG_NEED_LOGIN_LOG, handle_value, sizeof(packet_need_login_log_info) );
 			peer->encode( &logInfo, sizeof(packet_need_login_log_info) );
 		}
 
@@ -304,7 +304,7 @@ void client_manager::query_player_load(peer * peer, uint32_t dwHandle, player_lo
 			if (metin2::config::test_server())
 				metin2::log::info( "ITEM_CACHE: HIT! {} count: {:d}", pTab->name, dwCount);
 
-			peer->encode_header(HEADER_DG_ITEM_LOAD, dwHandle, sizeof(uint32_t) + sizeof(player_item) * dwCount);
+			peer->encode_header(HEADER_DG_ITEM_LOAD, handle_value, sizeof(uint32_t) + sizeof(player_item) * dwCount);
 			peer->encode_dword(dwCount);
 
 			if (dwCount)
@@ -315,13 +315,13 @@ void client_manager::query_player_load(peer * peer, uint32_t dwHandle, player_lo
 					"SELECT dwPID,szName,szState,lValue FROM quest%s WHERE dwPID=%d AND lValue<>0",
 					get_table_postfix(), pTab->id);
 			
-			db_manager::instance().return_query(szQuery, QID_QUEST, peer->handle(), new client_handle_info(dwHandle,0,packet->account_id));
+			db_manager::instance().return_query(szQuery, QID_QUEST, peer->handle(), new client_handle_info(handle_value,0,packet->account_id));
 
 			// Affect
 			snprintf(szQuery, sizeof(szQuery),
 					"SELECT dwPID,bType,bApplyOn,lApplyValue,dwFlag,lDuration,lSPCost FROM affect%s WHERE dwPID=%d",
 					get_table_postfix(), pTab->id);
-			db_manager::instance().return_query(szQuery, QID_AFFECT, peer->handle(), new client_handle_info(dwHandle));
+			db_manager::instance().return_query(szQuery, QID_AFFECT, peer->handle(), new client_handle_info(handle_value));
 		}
 		/////////////////////////////////////////////
 		// 2) Items not in DBCache: fetch from DB 
@@ -336,7 +336,7 @@ void client_manager::query_player_load(peer * peer, uint32_t dwHandle, player_lo
 			db_manager::instance().return_query(szQuery,
 					QID_ITEM,
 					peer->handle(),
-					new client_handle_info(dwHandle, pTab->id));
+					new client_handle_info(handle_value, pTab->id));
 			snprintf(szQuery, sizeof(szQuery), 
 					"SELECT dwPID, szName, szState, lValue FROM quest%s WHERE dwPID=%d",
 					get_table_postfix(), pTab->id);
@@ -344,7 +344,7 @@ void client_manager::query_player_load(peer * peer, uint32_t dwHandle, player_lo
 			db_manager::instance().return_query(szQuery,
 					QID_QUEST,
 					peer->handle(),
-					new client_handle_info(dwHandle, pTab->id));
+					new client_handle_info(handle_value, pTab->id));
 			snprintf(szQuery, sizeof(szQuery), 
 					"SELECT dwPID, bType, bApplyOn, lApplyValue, dwFlag, lDuration, lSPCost FROM affect%s WHERE dwPID=%d",
 					get_table_postfix(), pTab->id);
@@ -352,7 +352,7 @@ void client_manager::query_player_load(peer * peer, uint32_t dwHandle, player_lo
 			db_manager::instance().return_query(szQuery,
 					QID_AFFECT,
 					peer->handle(),
-					new client_handle_info(dwHandle, pTab->id));
+					new client_handle_info(handle_value, pTab->id));
 		}
 		//ljw
 	}
@@ -377,7 +377,7 @@ void client_manager::query_player_load(peer * peer, uint32_t dwHandle, player_lo
 				"UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(last_play),horse_skill_point FROM player%s WHERE id=%d",
 				get_table_postfix(), packet->player_id);
 
-		client_handle_info * pkInfo = new client_handle_info(dwHandle, packet->player_id);
+		client_handle_info * pkInfo = new client_handle_info(handle_value, packet->player_id);
 		pkInfo->account_id = packet->account_id;
 		db_manager::instance().return_query(queryStr, QID_PLAYER, peer->handle(), pkInfo);
 
@@ -388,7 +388,7 @@ void client_manager::query_player_load(peer * peer, uint32_t dwHandle, player_lo
 				"SELECT id,window+0,pos,count,vnum,socket0,socket1,socket2,attrtype0,attrvalue0,attrtype1,attrvalue1,attrtype2,attrvalue2,attrtype3,attrvalue3,attrtype4,attrvalue4,attrtype5,attrvalue5,attrtype6,attrvalue6 "
 				"FROM item%s WHERE owner_id=%d AND (window < %d or window = %d)",
 				get_table_postfix(), packet->player_id, SAFEBOX, DRAGON_SOUL_INVENTORY);
-		db_manager::instance().return_query(queryStr, QID_ITEM, peer->handle(), new client_handle_info(dwHandle, packet->player_id));
+		db_manager::instance().return_query(queryStr, QID_ITEM, peer->handle(), new client_handle_info(handle_value, packet->player_id));
 
 		//--------------------------------------------------------------
 		// Fetch QUEST 
@@ -396,7 +396,7 @@ void client_manager::query_player_load(peer * peer, uint32_t dwHandle, player_lo
 		snprintf(queryStr, sizeof(queryStr),
 				"SELECT dwPID,szName,szState,lValue FROM quest%s WHERE dwPID=%d",
 				get_table_postfix(), packet->player_id);
-		db_manager::instance().return_query(queryStr, QID_QUEST, peer->handle(), new client_handle_info(dwHandle, packet->player_id,packet->account_id));
+		db_manager::instance().return_query(queryStr, QID_QUEST, peer->handle(), new client_handle_info(handle_value, packet->player_id,packet->account_id));
 		//Also pass account id so the German gift feature can get login info from the item_award table
 		//--------------------------------------------------------------
 		// Fetch AFFECT 
@@ -404,7 +404,7 @@ void client_manager::query_player_load(peer * peer, uint32_t dwHandle, player_lo
 		snprintf(queryStr, sizeof(queryStr),
 				"SELECT dwPID,bType,bApplyOn,lApplyValue,dwFlag,lDuration,lSPCost FROM affect%s WHERE dwPID=%d",
 				get_table_postfix(), packet->player_id);
-		db_manager::instance().return_query(queryStr, QID_AFFECT, peer->handle(), new client_handle_info(dwHandle, packet->player_id));
+		db_manager::instance().return_query(queryStr, QID_AFFECT, peer->handle(), new client_handle_info(handle_value, packet->player_id));
 	}
 	
 	
@@ -437,12 +437,12 @@ void client_manager::inform_gift_award(const char * login, const char * why, uin
 	forward_packet(HEADER_DG_ITEMAWARD_INFORMER, &giftData, sizeof(giftData));
 }
 
-bool create_player_table_from_res(MYSQL_RES * res, player_table * pkTab)
+bool create_player_table_from_res(MYSQL_RES * res, player_table * tab)
 {
 	if (mysql_num_rows(res) == 0)	// No data
 		return false;
 
-	memset(pkTab, 0, sizeof(player_table));
+	memset(tab, 0, sizeof(player_table));
 
 	MYSQL_ROW row = mysql_fetch_row(res);
 
@@ -452,108 +452,108 @@ bool create_player_table_from_res(MYSQL_RES * res, player_table * pkTab)
 	// "gold,level,level_step,st,ht,dx,iq,exp,"
 	// "stat_point,skill_point,sub_skill_point,stat_reset_count,part_base,part_hair,"
 	// "skill_level,quickslot,skill_group,alignment,mobile,horse_level,horse_riding,horse_hp,horse_stamina FROM player%s WHERE id=%d",
-	str_to_number(pkTab->id, row[col++]);
-	strlcpy(pkTab->name, row[col++], sizeof(pkTab->name));
-	str_to_number(pkTab->job, row[col++]);
-	str_to_number(pkTab->voice, row[col++]);
-	str_to_number(pkTab->dir, row[col++]);
-	str_to_number(pkTab->x, row[col++]);
-	str_to_number(pkTab->y, row[col++]);
-	str_to_number(pkTab->z, row[col++]);
-	str_to_number(pkTab->map_index, row[col++]);
-	str_to_number(pkTab->exit_x, row[col++]);
-	str_to_number(pkTab->exit_y, row[col++]);
-	str_to_number(pkTab->exit_map_index,  row[col++]);
-	str_to_number(pkTab->hp, row[col++]);
-	str_to_number(pkTab->sp, row[col++]);
-	str_to_number(pkTab->stamina, row[col++]);
-	str_to_number(pkTab->s_random_hp, row[col++]);
-	str_to_number(pkTab->s_random_sp, row[col++]);
-	str_to_number(pkTab->playtime, row[col++]);
-	str_to_number(pkTab->gold, row[col++]);
-	str_to_number(pkTab->level, row[col++]);
-	str_to_number(pkTab->level_step, row[col++]);
-	str_to_number(pkTab->st, row[col++]);
-	str_to_number(pkTab->ht, row[col++]);
-	str_to_number(pkTab->dx, row[col++]);
-	str_to_number(pkTab->iq, row[col++]);
-	str_to_number(pkTab->exp, row[col++]);
-	str_to_number(pkTab->stat_point, row[col++]);
-	str_to_number(pkTab->skill_point, row[col++]);
-	str_to_number(pkTab->sub_skill_point, row[col++]);
-	str_to_number(pkTab->stat_reset_count, row[col++]);
-	str_to_number(pkTab->part_base, row[col++]);
-	str_to_number(pkTab->parts[PART_HAIR], row[col++]);
+	str_to_number(tab->id, row[col++]);
+	strlcpy(tab->name, row[col++], sizeof(tab->name));
+	str_to_number(tab->job, row[col++]);
+	str_to_number(tab->voice, row[col++]);
+	str_to_number(tab->dir, row[col++]);
+	str_to_number(tab->x, row[col++]);
+	str_to_number(tab->y, row[col++]);
+	str_to_number(tab->z, row[col++]);
+	str_to_number(tab->map_index, row[col++]);
+	str_to_number(tab->exit_x, row[col++]);
+	str_to_number(tab->exit_y, row[col++]);
+	str_to_number(tab->exit_map_index,  row[col++]);
+	str_to_number(tab->hp, row[col++]);
+	str_to_number(tab->sp, row[col++]);
+	str_to_number(tab->stamina, row[col++]);
+	str_to_number(tab->s_random_hp, row[col++]);
+	str_to_number(tab->s_random_sp, row[col++]);
+	str_to_number(tab->playtime, row[col++]);
+	str_to_number(tab->gold, row[col++]);
+	str_to_number(tab->level, row[col++]);
+	str_to_number(tab->level_step, row[col++]);
+	str_to_number(tab->st, row[col++]);
+	str_to_number(tab->ht, row[col++]);
+	str_to_number(tab->dx, row[col++]);
+	str_to_number(tab->iq, row[col++]);
+	str_to_number(tab->exp, row[col++]);
+	str_to_number(tab->stat_point, row[col++]);
+	str_to_number(tab->skill_point, row[col++]);
+	str_to_number(tab->sub_skill_point, row[col++]);
+	str_to_number(tab->stat_reset_count, row[col++]);
+	str_to_number(tab->part_base, row[col++]);
+	str_to_number(tab->parts[PART_HAIR], row[col++]);
 
 	if (row[col])
-		std::memcpy(pkTab->skills, row[col], sizeof(pkTab->skills));
+		std::memcpy(tab->skills, row[col], sizeof(tab->skills));
 	else
-		memset(&pkTab->skills, 0, sizeof(pkTab->skills));
+		memset(&tab->skills, 0, sizeof(tab->skills));
 
 	col++;
 
 	if (row[col])
-		std::memcpy(pkTab->quickslot, row[col], sizeof(pkTab->quickslot));
+		std::memcpy(tab->quickslot, row[col], sizeof(tab->quickslot));
 	else
-		memset(pkTab->quickslot, 0, sizeof(pkTab->quickslot));
+		memset(tab->quickslot, 0, sizeof(tab->quickslot));
 
 	col++;
 
-	str_to_number(pkTab->skill_group, row[col++]);
-	str_to_number(pkTab->alignment, row[col++]);
+	str_to_number(tab->skill_group, row[col++]);
+	str_to_number(tab->alignment, row[col++]);
 
 	if (row[col])
 	{
-		strlcpy(pkTab->mobile, row[col], sizeof(pkTab->mobile));
+		strlcpy(tab->mobile, row[col], sizeof(tab->mobile));
 	}
 
 	col++;
 
-	str_to_number(pkTab->horse.level, row[col++]);
-	str_to_number(pkTab->horse.riding, row[col++]);
-	str_to_number(pkTab->horse.s_health, row[col++]);
-	str_to_number(pkTab->horse.horse_health_drop_time, row[col++]);
-	str_to_number(pkTab->horse.s_stamina, row[col++]);
-	str_to_number(pkTab->logoff_interval, row[col++]);
-	str_to_number(pkTab->horse_skill_point, row[col++]);
+	str_to_number(tab->horse.level, row[col++]);
+	str_to_number(tab->horse.riding, row[col++]);
+	str_to_number(tab->horse.s_health, row[col++]);
+	str_to_number(tab->horse.horse_health_drop_time, row[col++]);
+	str_to_number(tab->horse.s_stamina, row[col++]);
+	str_to_number(tab->logoff_interval, row[col++]);
+	str_to_number(tab->horse_skill_point, row[col++]);
 
 	// reset sub_skill_point
 	{
-		pkTab->skills[123].level = 0; // SKILL_CREATE
+		tab->skills[123].level = 0; // SKILL_CREATE
 
-		if (pkTab->level > 9)
+		if (tab->level > 9)
 		{
-			int max_point = pkTab->level - 9;
+			int max_point = tab->level - 9;
 
 			int skill_point = 
-				std::min<int>(20, pkTab->skills[121].level) +	// SKILL_LEADERSHIP			Leadership
-				std::min<int>(20, pkTab->skills[124].level) +	// SKILL_MINING				Mining
-				std::min<int>(10, pkTab->skills[131].level) +	// SKILL_HORSE_SUMMON		Horse summon
-				std::min<int>(20, pkTab->skills[141].level) +	// SKILL_ADD_HP				HP boost
-				std::min<int>(20, pkTab->skills[142].level);		// SKILL_RESIST_PENETRATE	Penetration resistance
+				std::min<int>(20, tab->skills[121].level) +	// SKILL_LEADERSHIP			Leadership
+				std::min<int>(20, tab->skills[124].level) +	// SKILL_MINING				Mining
+				std::min<int>(10, tab->skills[131].level) +	// SKILL_HORSE_SUMMON		Horse summon
+				std::min<int>(20, tab->skills[141].level) +	// SKILL_ADD_HP				HP boost
+				std::min<int>(20, tab->skills[142].level);		// SKILL_RESIST_PENETRATE	Penetration resistance
 
-			pkTab->sub_skill_point = max_point - skill_point;
+			tab->sub_skill_point = max_point - skill_point;
 		}
 		else
-			pkTab->sub_skill_point = 0;
+			tab->sub_skill_point = 0;
 	}
 
 	return true;
 }
 
-void client_manager::result_composite_player(peer * peer, ql_msg * pMsg, uint32_t dwQID)
+void client_manager::result_composite_player(peer * peer, ql_msg * msg, uint32_t qid)
 {
-	query_info * qi = (query_info *) pMsg->pv_user_data;
+	query_info * qi = (query_info *) msg->pv_user_data;
 	std::unique_ptr<client_handle_info> info((client_handle_info *) qi->pv_data);
 	
-	MYSQL_RES * pSQLResult = pMsg->get()->sql_result;
+	MYSQL_RES * pSQLResult = msg->get()->sql_result;
 	if (!pSQLResult)
 	{
-		metin2::log::error("null MYSQL_RES QID {:d}", dwQID);
+		metin2::log::error("null MYSQL_RES QID {:d}", qid);
 		return;
 	}
 
-	switch (dwQID)
+	switch (qid)
 	{
 		case QID_PLAYER:
 			metin2::log::info( "QID_PLAYER {:d} {:d}", info->handle, info->player_id);
@@ -592,29 +592,29 @@ void client_manager::result_composite_player(peer * peer, ql_msg * pMsg, uint32_
 	
 }
 
-void client_manager::result_player_load(peer * peer, MYSQL_RES * pRes, client_handle_info * pkInfo)
+void client_manager::result_player_load(peer * peer, MYSQL_RES * res, client_handle_info * info_value)
 {
 	player_table tab;
 
-	if (!create_player_table_from_res(pRes, &tab))
+	if (!create_player_table_from_res(res, &tab))
 	{
-		peer->encode_header(HEADER_DG_PLAYER_LOAD_FAILED, pkInfo->handle, 0); 
+		peer->encode_header(HEADER_DG_PLAYER_LOAD_FAILED, info_value->handle, 0); 
 		return;
 	}
 
-	login_data * pkLD = get_login_data_by_aid(pkInfo->account_id);
+	login_data * pkLD = get_login_data_by_aid(info_value->account_id);
 	
 	if (!pkLD || pkLD->is_play())
 	{
 		metin2::log::info( "PLAYER_LOAD_ERROR: LoginData {} IsPlay {:d}", static_cast<const void *>(pkLD), pkLD ? pkLD->is_play() : 0);
-		peer->encode_header(HEADER_DG_PLAYER_LOAD_FAILED, pkInfo->handle, 0); 
+		peer->encode_header(HEADER_DG_PLAYER_LOAD_FAILED, info_value->handle, 0); 
 		return;
 	}
 
 	pkLD->set_play(true);
 	std::memcpy(tab.premium_times, pkLD->premium_ptr(), sizeof(tab.premium_times));
 
-	peer->encode_header(HEADER_DG_PLAYER_LOAD_SUCCESS, pkInfo->handle, sizeof(player_table));
+	peer->encode_header(HEADER_DG_PLAYER_LOAD_SUCCESS, info_value->handle, sizeof(player_table));
 	peer->encode(&tab, sizeof(player_table));
 
 	if (tab.id != pkLD->last_player_id())
@@ -624,26 +624,26 @@ void client_manager::result_player_load(peer * peer, MYSQL_RES * pRes, client_ha
 
 		pkLD->set_last_player_id( tab.id );
 
-		peer->encode_header( HEADER_DG_NEED_LOGIN_LOG, pkInfo->handle, sizeof(packet_need_login_log_info) );
+		peer->encode_header( HEADER_DG_NEED_LOGIN_LOG, info_value->handle, sizeof(packet_need_login_log_info) );
 		peer->encode( &logInfo, sizeof(packet_need_login_log_info) );
 	}
 }
 
-void client_manager::result_item_load(peer * peer, MYSQL_RES * pRes, uint32_t dwHandle, uint32_t dwPID)
+void client_manager::result_item_load(peer * peer, MYSQL_RES * res, uint32_t handle, uint32_t pid)
 {
 	static std::vector<player_item> s_items;
 	//Read item info from DB.
-	create_item_table_from_res(pRes, &s_items, dwPID);
+	create_item_table_from_res(res, &s_items, pid);
 	uint32_t dwCount = s_items.size();
 
-	peer->encode_header(HEADER_DG_ITEM_LOAD, dwHandle, sizeof(uint32_t) + sizeof(player_item) * dwCount);
+	peer->encode_header(HEADER_DG_ITEM_LOAD, handle, sizeof(uint32_t) + sizeof(player_item) * dwCount);
 	peer->encode_dword(dwCount);
 
 	//Create the CacheSet  
-	create_item_cache_set(dwPID);
+	create_item_cache_set(pid);
 
 	// ITEM_LOAD_LOG_ATTACH_PID
-	metin2::log::info( "ITEM_LOAD: count {:d} pid {:d}", dwCount, dwPID);
+	metin2::log::info( "ITEM_LOAD: count {:d} pid {:d}", dwCount, pid);
 	// END_OF_ITEM_LOAD_LOG_ATTACH_PID
 
 	if (dwCount)
@@ -655,11 +655,11 @@ void client_manager::result_item_load(peer * peer, MYSQL_RES * pRes, uint32_t dw
 	}
 }
 
-void client_manager::result_affect_load(peer * peer, MYSQL_RES * pRes, uint32_t dwHandle)
+void client_manager::result_affect_load(peer * peer, MYSQL_RES * res, uint32_t handle)
 {
 	int iNumRows;
 
-	if ((iNumRows = mysql_num_rows(pRes)) == 0) // No data
+	if ((iNumRows = mysql_num_rows(res)) == 0) // No data
 		return;
 
 	static std::vector<packet_affect_element> s_elements;
@@ -672,7 +672,7 @@ void client_manager::result_affect_load(peer * peer, MYSQL_RES * pRes, uint32_t 
 	for (int i = 0; i < iNumRows; ++i)
 	{
 		packet_affect_element & r = s_elements[i];
-		row = mysql_fetch_row(pRes);
+		row = mysql_fetch_row(res);
 
 		if (dwPID == 0)
 			str_to_number(dwPID, row[0]);
@@ -689,20 +689,20 @@ void client_manager::result_affect_load(peer * peer, MYSQL_RES * pRes, uint32_t 
 
 	uint32_t dwCount = s_elements.size();
 
-	peer->encode_header(HEADER_DG_AFFECT_LOAD, dwHandle, sizeof(uint32_t) + sizeof(uint32_t) + sizeof(packet_affect_element) * dwCount);
+	peer->encode_header(HEADER_DG_AFFECT_LOAD, handle, sizeof(uint32_t) + sizeof(uint32_t) + sizeof(packet_affect_element) * dwCount);
 	peer->encode(&dwPID, sizeof(uint32_t));
 	peer->encode(&dwCount, sizeof(uint32_t));
 	peer->encode(&s_elements[0], sizeof(packet_affect_element) * dwCount);
 }
 
-void client_manager::result_quest_load(peer * peer, MYSQL_RES * pRes, uint32_t dwHandle, uint32_t pid)
+void client_manager::result_quest_load(peer * peer, MYSQL_RES * res, uint32_t handle, uint32_t pid)
 {
 	int iNumRows;
 
-	if ((iNumRows = mysql_num_rows(pRes)) == 0)
+	if ((iNumRows = mysql_num_rows(res)) == 0)
 	{
 		uint32_t dwCount = 0; 
-		peer->encode_header(HEADER_DG_QUEST_LOAD, dwHandle, sizeof(uint32_t));
+		peer->encode_header(HEADER_DG_QUEST_LOAD, handle, sizeof(uint32_t));
 		peer->encode(&dwCount, sizeof(uint32_t));
 		return;
 	}
@@ -716,7 +716,7 @@ void client_manager::result_quest_load(peer * peer, MYSQL_RES * pRes, uint32_t d
 	{
 		quest_table & r = s_table[i];
 
-		row = mysql_fetch_row(pRes);
+		row = mysql_fetch_row(res);
 
 		str_to_number(r.pid, row[0]);
 		strlcpy(r.name, row[1], sizeof(r.name));
@@ -728,7 +728,7 @@ void client_manager::result_quest_load(peer * peer, MYSQL_RES * pRes, uint32_t d
 
 	uint32_t dwCount = s_table.size();
 
-	peer->encode_header(HEADER_DG_QUEST_LOAD, dwHandle, sizeof(uint32_t) + sizeof(quest_table) * dwCount);
+	peer->encode_header(HEADER_DG_QUEST_LOAD, handle, sizeof(uint32_t) + sizeof(quest_table) * dwCount);
 	peer->encode(&dwCount, sizeof(uint32_t));
 	peer->encode(&s_table[0], sizeof(quest_table) * dwCount);
 }
@@ -736,12 +736,12 @@ void client_manager::result_quest_load(peer * peer, MYSQL_RES * pRes, uint32_t d
 /*
  * PLAYER SAVE
  */
-void client_manager::query_player_save(peer * peer, uint32_t dwHandle, player_table * pkTab)
+void client_manager::query_player_save(peer * peer, uint32_t handle, player_table * tab)
 {
 	if (metin2::config::test_server())
-		metin2::log::info( "PLAYER_SAVE: {}", pkTab->name);
+		metin2::log::info( "PLAYER_SAVE: {}", tab->name);
 
-	put_player_cache(pkTab);
+	put_player_cache(tab);
 }
 
 typedef std::map<uint32_t, time_t> time_by_id_map_t;
@@ -750,7 +750,7 @@ static time_by_id_map_t create_time_by_account_id;
 /*
  * PLAYER CREATE
  */
-void client_manager::query_player_create(peer *peer, uint32_t dwHandle, player_create_packet* packet)
+void client_manager::query_player_create(peer *peer, uint32_t handle, player_create_packet* packet)
 {
 	int		player_id;
 
@@ -763,7 +763,7 @@ void client_manager::query_player_create(peer *peer, uint32_t dwHandle, player_c
 
 		if (curtime - it->second < 30)
 		{
-			peer->encode_header(HEADER_DG_PLAYER_CREATE_FAILED, dwHandle, 0);
+			peer->encode_header(HEADER_DG_PLAYER_CREATE_FAILED, handle, 0);
 			return;
 		}
 	}
@@ -779,7 +779,7 @@ void client_manager::query_player_create(peer *peer, uint32_t dwHandle, player_c
 	{
 		if (!pMsg0->get()->sql_result)
 		{
-			peer->encode_header(HEADER_DG_PLAYER_CREATE_FAILED, dwHandle, 0);
+			peer->encode_header(HEADER_DG_PLAYER_CREATE_FAILED, handle, 0);
 			return;
 		}
 
@@ -788,14 +788,14 @@ void client_manager::query_player_create(peer *peer, uint32_t dwHandle, player_c
 		uint32_t dwPID = 0; str_to_number(dwPID, row[0]);
 		if (row[0] && dwPID > 0)
 		{
-			peer->encode_header(HEADER_DG_PLAYER_CREATE_ALREADY, dwHandle, 0);
+			peer->encode_header(HEADER_DG_PLAYER_CREATE_ALREADY, handle, 0);
 			metin2::log::info( "ALREADY EXIST AccountChrIdx {:d} ID {:d}", packet->account_index, dwPID);
 			return;
 		}
 	}
 	else
 	{
-		peer->encode_header(HEADER_DG_PLAYER_CREATE_FAILED, dwHandle, 0);
+		peer->encode_header(HEADER_DG_PLAYER_CREATE_FAILED, handle, 0);
 		return;
 	}
 
@@ -808,7 +808,7 @@ void client_manager::query_player_create(peer *peer, uint32_t dwHandle, player_c
 	{
 		if (!pMsg1->get()->sql_result)
 		{
-			peer->encode_header(HEADER_DG_PLAYER_CREATE_FAILED, dwHandle, 0);
+			peer->encode_header(HEADER_DG_PLAYER_CREATE_FAILED, handle, 0);
 			return;
 		}
 
@@ -817,13 +817,13 @@ void client_manager::query_player_create(peer *peer, uint32_t dwHandle, player_c
 		if (*row[0] != '0')
 		{
 			metin2::log::info( "ALREADY EXIST name {}, row[0] {} query {}", packet->player_table.name, row[0], query.c_str());
-			peer->encode_header(HEADER_DG_PLAYER_CREATE_ALREADY, dwHandle, 0);
+			peer->encode_header(HEADER_DG_PLAYER_CREATE_ALREADY, handle, 0);
 			return;
 		}
 	}
 	else
 	{
-		peer->encode_header(HEADER_DG_PLAYER_CREATE_FAILED, dwHandle, 0);
+		peer->encode_header(HEADER_DG_PLAYER_CREATE_FAILED, handle, 0);
 		return;
 	}
 
@@ -859,7 +859,7 @@ void client_manager::query_player_create(peer *peer, uint32_t dwHandle, player_c
 
 	if (pMsg2->get()->affected_rows <= 0)
 	{
-		peer->encode_header(HEADER_DG_PLAYER_CREATE_ALREADY, dwHandle, 0);
+		peer->encode_header(HEADER_DG_PLAYER_CREATE_ALREADY, handle, 0);
 		metin2::log::info( "ALREADY EXIST3 query: {} AffectedRows {:d}", query.c_str(), pMsg2->get()->affected_rows);
 		return;
 	}
@@ -877,7 +877,7 @@ void client_manager::query_player_create(peer *peer, uint32_t dwHandle, player_c
 		query = sql::format("DELETE FROM player{} WHERE id={}", postfix, player_id);
 		db_manager::instance().direct_query(query.c_str());
 
-		peer->encode_header(HEADER_DG_PLAYER_CREATE_FAILED, dwHandle, 0);
+		peer->encode_header(HEADER_DG_PLAYER_CREATE_FAILED, handle, 0);
 		return;
 	}
 
@@ -899,7 +899,7 @@ void client_manager::query_player_create(peer *peer, uint32_t dwHandle, player_c
 	pack.player.x			= packet->player_table.x;
 	pack.player.y			= packet->player_table.y;
 
-	peer->encode_header(HEADER_DG_PLAYER_CREATE_SUCCESS, dwHandle, sizeof(packet_dg_create_success));
+	peer->encode_header(HEADER_DG_PLAYER_CREATE_SUCCESS, handle, sizeof(packet_dg_create_success));
 	peer->encode(&pack, sizeof(packet_dg_create_success));
 
 	metin2::log::info( "7 name {} job {:d}", pack.player.name, pack.player.job);
@@ -910,7 +910,7 @@ void client_manager::query_player_create(peer *peer, uint32_t dwHandle, player_c
 /*
  * PLAYER DELETE
  */
-void client_manager::query_player_delete(peer* peer, uint32_t dwHandle, player_delete_packet* packet)
+void client_manager::query_player_delete(peer* peer, uint32_t handle_value, player_delete_packet* packet)
 {
 	if (!packet->login[0] || !packet->player_id || packet->account_index >= PLAYER_PER_ACCOUNT)
 		return;
@@ -919,7 +919,7 @@ void client_manager::query_player_delete(peer* peer, uint32_t dwHandle, player_d
 
 	if (!ld)
 	{
-		peer->encode_header(HEADER_DG_PLAYER_DELETE_FAILED, dwHandle, 1);
+		peer->encode_header(HEADER_DG_PLAYER_DELETE_FAILED, handle_value, 1);
 		peer->encode_byte(packet->account_index);
 		return;
 	}
@@ -930,7 +930,7 @@ void client_manager::query_player_delete(peer* peer, uint32_t dwHandle, player_d
 	if (strlen(r.social_id) < 7 || strncmp(packet->private_code, r.social_id + strlen(r.social_id) - 7, 7))
 	{
 		metin2::log::info( "PLAYER_DELETE FAILED len({:d})", strlen(r.social_id));
-		peer->encode_header(HEADER_DG_PLAYER_DELETE_FAILED, dwHandle, 1);
+		peer->encode_header(HEADER_DG_PLAYER_DELETE_FAILED, handle_value, 1);
 		peer->encode_byte(packet->account_index);
 		return;
 	}
@@ -943,7 +943,7 @@ void client_manager::query_player_delete(peer* peer, uint32_t dwHandle, player_d
 		if (pTab->level >= player_delete_level_limit_)
 		{
 			metin2::log::info( "PLAYER_DELETE FAILED LEVEL {:d} >= DELETE LIMIT {:d}", pTab->level, player_delete_level_limit_);
-			peer->encode_header(HEADER_DG_PLAYER_DELETE_FAILED, dwHandle, 1);
+			peer->encode_header(HEADER_DG_PLAYER_DELETE_FAILED, handle_value, 1);
 			peer->encode_byte(packet->account_index);
 			return;
 		}
@@ -951,7 +951,7 @@ void client_manager::query_player_delete(peer* peer, uint32_t dwHandle, player_d
 		if (pTab->level < player_delete_level_limit_lower_)
 		{
 			metin2::log::info( "PLAYER_DELETE FAILED LEVEL {:d} < DELETE LIMIT {:d}", pTab->level, player_delete_level_limit_lower_);
-			peer->encode_header(HEADER_DG_PLAYER_DELETE_FAILED, dwHandle, 1);
+			peer->encode_header(HEADER_DG_PLAYER_DELETE_FAILED, handle_value, 1);
 			peer->encode_byte(packet->account_index);
 			return;
 		}
@@ -961,7 +961,7 @@ void client_manager::query_player_delete(peer* peer, uint32_t dwHandle, player_d
 	snprintf(szQuery, sizeof(szQuery), "SELECT p.id, p.level, p.name FROM player_index%s AS i, player%s AS p WHERE pid%u=%u AND pid%u=p.id", 
 			get_table_postfix(), get_table_postfix(), packet->account_index + 1, packet->player_id, packet->account_index + 1);
 
-	client_handle_info * pi = new client_handle_info(dwHandle, packet->player_id);
+	client_handle_info * pi = new client_handle_info(handle_value, packet->player_id);
 	pi->account_index = packet->account_index;
 
 	metin2::log::info( "PLAYER_DELETE TRY: {} {:d} pid{:d}", packet->login, packet->player_id, packet->account_index + 1);
@@ -1167,7 +1167,7 @@ void client_manager::query_highscore_register(peer* peer, packet_gd_highscore * 
 	db_manager::instance().return_query(query.c_str(), QID_HIGHSCORE_REGISTER, peer->handle(), pi);
 }
 
-void client_manager::result_highscore_register(peer * pkPeer, ql_msg * msg)
+void client_manager::result_highscore_register(peer * peer_value, ql_msg * msg)
 {
 	query_info * qi = (query_info *) msg->pv_user_data;
 	client_handle_info * pi = (client_handle_info *) qi->pv_data;

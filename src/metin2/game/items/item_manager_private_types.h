@@ -10,8 +10,8 @@ namespace metin2::game::inline items {
 class item_drop_info
 {
 public:
-	item_drop_info(int iLevelStart, int iLevelEnd, int iPercent, uint32_t dwVnum) :
-	  level_start(iLevelStart), level_end(iLevelEnd), percent(iPercent), vnum(dwVnum)
+	item_drop_info(int level_start_value, int level_end_value, int percent_value, uint32_t vnum_value) :
+	  level_start(level_start_value), level_end(level_end_value), percent(percent_value), vnum(vnum_value)
 	  {
 	  }
 

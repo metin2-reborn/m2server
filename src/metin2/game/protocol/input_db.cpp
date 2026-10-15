@@ -67,42 +67,42 @@
 namespace metin2::game::inline protocol {
 
 
-bool get_server_location(account_table & rTab, uint8_t bEmpire)
+bool get_server_location(account_table & tab, uint8_t empire_value)
 {
 	bool bFound = false;
 
 	for (int i = 0; i < PLAYER_PER_ACCOUNT; ++i)
 	{
-		if (0 == rTab.players[i].id)
+		if (0 == tab.players[i].id)
 			continue;
 
 		bFound = true;
 		int32_t lIndex = 0;
 
-		if (!map_locations::instance().get(rTab.players[i].x,
-					rTab.players[i].y,
+		if (!map_locations::instance().get(tab.players[i].x,
+					tab.players[i].y,
 					lIndex,
-					rTab.players[i].addr,
-					rTab.players[i].port))
+					tab.players[i].addr,
+					tab.players[i].port))
 		{
 			metin2::log::error("location error name {} mapindex {:d} {:d} x {:d} empire {:d}",
-					rTab.players[i].name, lIndex, rTab.players[i].x, rTab.players[i].y, rTab.empire);
+					tab.players[i].name, lIndex, tab.players[i].x, tab.players[i].y, tab.empire);
 
-			rTab.players[i].x = empire_start_x(rTab.empire);
-			rTab.players[i].y = empire_start_y(rTab.empire);
+			tab.players[i].x = empire_start_x(tab.empire);
+			tab.players[i].y = empire_start_y(tab.empire);
 
 			lIndex = 0;
 
-			if (!map_locations::instance().get(rTab.players[i].x, rTab.players[i].y, lIndex, rTab.players[i].addr, rTab.players[i].port))
+			if (!map_locations::instance().get(tab.players[i].x, tab.players[i].y, lIndex, tab.players[i].addr, tab.players[i].port))
 			{
 				metin2::log::error("cannot find server for mapindex {:d} {:d} x {:d} (name {})", 
 						lIndex,
-						rTab.players[i].x,
-						rTab.players[i].y,
-						rTab.players[i].name);
+						tab.players[i].x,
+						tab.players[i].y,
+						tab.players[i].name);
 
 				if (!proxy_ip.empty())
-					rTab.players[i].addr=inet_addr(proxy_ip.c_str());
+					tab.players[i].addr=inet_addr(proxy_ip.c_str());
 
 				continue;
 			}
@@ -111,23 +111,23 @@ bool get_server_location(account_table & rTab, uint8_t bEmpire)
 		struct in_addr in;
 
 		if (!proxy_ip.empty())
-			rTab.players[i].addr=inet_addr(proxy_ip.c_str());
+			tab.players[i].addr=inet_addr(proxy_ip.c_str());
 
-		in.s_addr = rTab.players[i].addr;
-		metin2::log::info( "success to {}:{:d}", inet_ntoa(in), rTab.players[i].port);
+		in.s_addr = tab.players[i].addr;
+		metin2::log::info( "success to {}:{:d}", inet_ntoa(in), tab.players[i].port);
 	}
 
 	return bFound;
 }
 
 
-void input_db::login_success(uint32_t dwHandle, const char *data)
+void input_db::login_success(uint32_t handle, const char *data)
 {
 	metin2::log::info( "LoginSuccess");
 
 	account_table * pTab = (account_table *) data;
 
-	desc * d = desc_manager::instance().find_by_handle(dwHandle);
+	desc * d = desc_manager::instance().find_by_handle(handle);
 
 	if (!d)
 	{
@@ -136,7 +136,7 @@ void input_db::login_success(uint32_t dwHandle, const char *data)
 		logout_packet pack;
 
 		strlcpy(pack.login, pTab->login, sizeof(pack.login));
-		db_clientdesc->db_packet(HEADER_GD_LOGOUT, dwHandle, &pack, sizeof(pack));
+		db_clientdesc->db_packet(HEADER_GD_LOGOUT, handle, &pack, sizeof(pack));
 		return;
 	}
 
@@ -147,7 +147,7 @@ void input_db::login_success(uint32_t dwHandle, const char *data)
 		logout_packet pack;
 
 		strlcpy(pack.login, pTab->login, sizeof(pack.login));
-		db_clientdesc->db_packet(HEADER_GD_LOGOUT, dwHandle, &pack, sizeof(pack));
+		db_clientdesc->db_packet(HEADER_GD_LOGOUT, handle, &pack, sizeof(pack));
 
 		login_failure(d, pTab->status);
 		return;
@@ -184,7 +184,7 @@ void input_db::login_success(uint32_t dwHandle, const char *data)
 	metin2::log::info( "InputDB::login_success: {}", pTab->login);
 }
 
-void input_db::player_create_failure(desc * d, uint8_t bType)
+void input_db::player_create_failure(desc * d, uint8_t type_value)
 {
 	if (!d)
 		return;
@@ -192,7 +192,7 @@ void input_db::player_create_failure(desc * d, uint8_t bType)
 	packet_gc_create_failure pack;
 
 	pack.header	= HEADER_GC_CHARACTER_CREATE_FAILURE;
-	pack.type	= bType;
+	pack.type	= type_value;
 
 	d->packet(&pack, sizeof(pack));
 }
@@ -1005,7 +1005,7 @@ EVENTFUNC(quest_login_event)
 	}
 }
 
-void input_db::quest_load(desc * d, const char * c_pData)
+void input_db::quest_load(desc * d, const char * data)
 {
 	if (nullptr == d)
 		return;
@@ -1015,9 +1015,9 @@ void input_db::quest_load(desc * d, const char * c_pData)
 	if (nullptr == ch)
 		return;
 
-	const uint32_t dwCount = decode_4bytes(c_pData);
+	const uint32_t dwCount = decode_4bytes(data);
 
-	const quest_table* pQuestTable = reinterpret_cast<const quest_table*>(c_pData+4);
+	const quest_table* pQuestTable = reinterpret_cast<const quest_table*>(data+4);
 
 	if (nullptr != pQuestTable)
 	{
@@ -1072,12 +1072,12 @@ void input_db::quest_load(desc * d, const char * c_pData)
 	}	
 }
 
-void input_db::safebox_load(desc * d, const char * c_pData)
+void input_db::safebox_load(desc * d, const char * data)
 {
 	if (!d)
 		return;
 
-	safebox_table * p = (safebox_table *) c_pData;
+	safebox_table * p = (safebox_table *) data;
 
 	if (d->get_account_table().id != p->id)
 	{
@@ -1110,15 +1110,15 @@ void input_db::safebox_load(desc * d, const char * c_pData)
 	//if (d->GetCharacter()->IsEquipUniqueItem(UNIQUE_ITEM_SAFEBOX_EXPAND))
 	//bSize = 3; // safebox expansion ticket
 
-	d->get_character()->load_safebox(bSize * SAFEBOX_PAGE_SIZE, p->gold, p->item_count, (player_item *) (c_pData + sizeof(safebox_table)));
+	d->get_character()->load_safebox(bSize * SAFEBOX_PAGE_SIZE, p->gold, p->item_count, (player_item *) (data + sizeof(safebox_table)));
 }
 
-void input_db::safebox_change_size(desc * d, const char * c_pData)
+void input_db::safebox_change_size(desc * d, const char * data)
 {
 	if (!d)
 		return;
 
-	uint8_t bSize = *(uint8_t *) c_pData;
+	uint8_t bSize = *(uint8_t *) data;
 
 	if (!d->get_character())
 		return;
@@ -1144,7 +1144,7 @@ void input_db::safebox_wrong_password(desc * d)
 	d->get_character()->cancel_safebox_load();
 }
 
-void input_db::safebox_change_password_answer(desc * d, const char* c_pData)
+void input_db::safebox_change_password_answer(desc * d, const char* data)
 {
 	if (!d)
 		return;
@@ -1152,7 +1152,7 @@ void input_db::safebox_change_password_answer(desc * d, const char* c_pData)
 	if (!d->get_character())
 		return;
 
-	safebox_change_password_packet_answer* p = (safebox_change_password_packet_answer*) c_pData;
+	safebox_change_password_packet_answer* p = (safebox_change_password_packet_answer*) data;
 	if (p->flag)
 	{
 		d->get_character()->chat_packet(CHAT_TYPE_INFO, lc_text("<창고> 창고 비밀번호가 변경되었습니다."));
@@ -1163,12 +1163,12 @@ void input_db::safebox_change_password_answer(desc * d, const char* c_pData)
 	}
 }
 
-void input_db::mall_load(desc * d, const char * c_pData)
+void input_db::mall_load(desc * d, const char * data)
 {
 	if (!d)
 		return;
 
-	safebox_table * p = (safebox_table *) c_pData;
+	safebox_table * p = (safebox_table *) data;
 
 	if (d->get_account_table().id != p->id)
 	{
@@ -1179,17 +1179,17 @@ void input_db::mall_load(desc * d, const char * c_pData)
 	if (!d->get_character())
 		return;
 
-	d->get_character()->load_mall(p->item_count, (player_item *) (c_pData + sizeof(safebox_table)));
+	d->get_character()->load_mall(p->item_count, (player_item *) (data + sizeof(safebox_table)));
 }
 
-void input_db::login_already(desc * d, const char * c_pData)
+void input_db::login_already(desc * d, const char * data)
 {
 	if (!d)
 		return;
 
 	// INTERNATIONAL_VERSION disconnect if already logged in
 	{ 
-		packet_dg_login_already * p = (packet_dg_login_already *) c_pData;
+		packet_dg_login_already * p = (packet_dg_login_already *) data;
 
 		desc * d2 = desc_manager::instance().find_by_login_name(p->login);
 
@@ -1210,7 +1210,7 @@ void input_db::login_already(desc * d, const char * c_pData)
 	login_failure(d, "ALREADY");
 }
 
-void input_db::empire_select(desc * d, const char * c_pData)
+void input_db::empire_select(desc * d, const char * data)
 {
 	metin2::log::info( "EmpireSelect {}", static_cast<const void *>(d));
 
@@ -1218,7 +1218,7 @@ void input_db::empire_select(desc * d, const char * c_pData)
 		return;
 
 	account_table & rTable = d->get_account_table();
-	rTable.empire = *(uint8_t *) c_pData;
+	rTable.empire = *(uint8_t *) data;
 
 	packet_gc_empire pe;
 	pe.header = HEADER_GC_EMPIRE;
@@ -1237,13 +1237,13 @@ void input_db::empire_select(desc * d, const char * c_pData)
 	d->send_login_success_packet();
 }
 
-void input_db::map_locations(const char * c_pData)
+void input_db::map_locations(const char * data)
 {
-	uint8_t bCount = *(uint8_t *) (c_pData++);
+	uint8_t bCount = *(uint8_t *) (data++);
 
 	metin2::log::info( "InputDB::MapLocations {:d}", bCount);
 
-	map_location * pLoc = (map_location *) c_pData;
+	map_location * pLoc = (map_location *) data;
 
 	while (bCount--)
 	{
@@ -1259,10 +1259,10 @@ void input_db::map_locations(const char * c_pData)
 	}
 }
 
-void input_db::p2_p(const char * c_pData)
+void input_db::p2_p(const char * data)
 {
 
-	packet_dg_p2_p * p = (packet_dg_p2_p *) c_pData;
+	packet_dg_p2_p * p = (packet_dg_p2_p *) data;
 
 	p2_p_manager& mgr = p2_p_manager::instance();
 
@@ -1276,14 +1276,14 @@ void input_db::p2_p(const char * c_pData)
 	}
 }
 
-void input_db::guild_load(const char * c_pData)
+void input_db::guild_load(const char * data)
 {
-	guild_manager::instance().load_guild(*(uint32_t *) c_pData);
+	guild_manager::instance().load_guild(*(uint32_t *) data);
 }
 
-void input_db::guild_skill_update(const char* c_pData)
+void input_db::guild_skill_update(const char* data)
 {
-	packet_guild_skill_update * p = (packet_guild_skill_update *) c_pData;
+	packet_guild_skill_update * p = (packet_guild_skill_update *) data;
 
 	guild * g = guild_manager::instance().touch_guild(p->guild_id);
 
@@ -1294,9 +1294,9 @@ void input_db::guild_skill_update(const char* c_pData)
 	}
 }
 
-void input_db::guild_war(const char* c_pData)
+void input_db::guild_war(const char* data)
 {
-	packet_guild_war * p = (packet_guild_war*) c_pData;
+	packet_guild_war * p = (packet_guild_war*) data;
 
 	metin2::log::info( "InputDB::GuildWar {:d} {:d} state {:d}", p->guild_from, p->guild_to, p->war);
 
@@ -1341,9 +1341,9 @@ void input_db::guild_war(const char* c_pData)
 	}
 }
 
-void input_db::guild_war_score(const char* c_pData)
+void input_db::guild_war_score(const char* data)
 {
-	packet_guild_war_score* p = (packet_guild_war_score*) c_pData;
+	packet_guild_war_score* p = (packet_guild_war_score*) data;
 	guild * g = guild_manager::instance().touch_guild(p->guild_gain_point);
 	g->set_war_score_against_to(p->guild_opponent, p->score);
 }
@@ -1353,9 +1353,9 @@ void input_db::guild_skill_recharge()
 	guild_manager::instance().skill_recharge();
 }
 
-void input_db::guild_exp_update(const char* c_pData)
+void input_db::guild_exp_update(const char* data)
 {
-	packet_guild_skill_update * p = (packet_guild_skill_update *) c_pData;
+	packet_guild_skill_update * p = (packet_guild_skill_update *) data;
 	metin2::log::debug( "GuildExpUpdate {:d}", p->amount);
 
 	guild * g = guild_manager::instance().touch_guild(p->guild_id);
@@ -1364,52 +1364,52 @@ void input_db::guild_exp_update(const char* c_pData)
 		g->guild_point_change(POINT_EXP, p->amount);
 }
 
-void input_db::guild_add_member(const char* c_pData)
+void input_db::guild_add_member(const char* data)
 {
-	packet_dg_guild_member * p = (packet_dg_guild_member *) c_pData;
+	packet_dg_guild_member * p = (packet_dg_guild_member *) data;
 	guild * g = guild_manager::instance().touch_guild(p->guild);
 
 	if (g)
 		g->add_member(p);
 }
 
-void input_db::guild_remove_member(const char* c_pData)
+void input_db::guild_remove_member(const char* data)
 {
-	packet_guild* p=(packet_guild*)c_pData;
+	packet_guild* p=(packet_guild*)data;
 	guild* g = guild_manager::instance().touch_guild(p->guild);
 
 	if (g)
 		g->remove_member(p->info);
 }
 
-void input_db::guild_change_grade(const char* c_pData)
+void input_db::guild_change_grade(const char* data)
 {
-	packet_guild* p=(packet_guild*)c_pData;
+	packet_guild* p=(packet_guild*)data;
 	guild* g = guild_manager::instance().touch_guild(p->guild);
 
 	if (g)
 		g->p2_p_change_grade((uint8_t)p->info);
 }
 
-void input_db::guild_change_member_data(const char* c_pData)
+void input_db::guild_change_member_data(const char* data)
 {
 	metin2::log::info( "Recv GuildChangeMemberData");
-	packet_guild_change_member_data * p = (packet_guild_change_member_data *) c_pData;
+	packet_guild_change_member_data * p = (packet_guild_change_member_data *) data;
 	guild * g = guild_manager::instance().touch_guild(p->guild_id);
 
 	if (g)
 		g->change_member_data(p->pid, p->offer, p->level, p->grade);
 }
 
-void input_db::guild_disband(const char* c_pData)
+void input_db::guild_disband(const char* data)
 {
-	packet_guild * p = (packet_guild*) c_pData;
+	packet_guild * p = (packet_guild*) data;
 	guild_manager::instance().disband_guild(p->guild);
 }
 
-void input_db::guild_ladder(const char* c_pData)
+void input_db::guild_ladder(const char* data)
 {
-	packet_guild_ladder* p = (packet_guild_ladder*) c_pData;
+	packet_guild_ladder* p = (packet_guild_ladder*) data;
 	metin2::log::info( "Recv GuildLadder {:d} {:d} / w {:d} d {:d} l {:d}", p->guild, p->ladder_point, p->win, p->draw, p->loss);
 	guild * g = guild_manager::instance().touch_guild(p->guild);
 
@@ -1417,7 +1417,7 @@ void input_db::guild_ladder(const char* c_pData)
 	g->set_war_data(p->win, p->draw, p->loss);
 }
 
-void input_db::item_load(desc * d, const char * c_pData)
+void input_db::item_load(desc * d, const char * data)
 {
 	character * ch;
 
@@ -1427,14 +1427,14 @@ void input_db::item_load(desc * d, const char * c_pData)
 	if (ch->is_item_loaded())
 		return;
 
-	uint32_t dwCount = decode_4bytes(c_pData);
-	c_pData += sizeof(uint32_t);
+	uint32_t dwCount = decode_4bytes(data);
+	data += sizeof(uint32_t);
 
 	metin2::log::info( "ITEM_LOAD: COUNT {} {:d}", ch->name(), dwCount);
 
 	std::vector<item *> v;
 
-	player_item * p = (player_item *) c_pData;
+	player_item * p = (player_item *) data;
 
 	for (uint32_t i = 0; i < dwCount; ++i, ++p)
 	{
@@ -1515,7 +1515,7 @@ void input_db::item_load(desc * d, const char * c_pData)
 	ch->set_item_loaded();
 }
 
-void input_db::affect_load(desc * d, const char * c_pData)
+void input_db::affect_load(desc * d, const char * data)
 {
 	if (!d)
 		return;
@@ -1525,48 +1525,48 @@ void input_db::affect_load(desc * d, const char * c_pData)
 
 	character * ch = d->get_character();
 
-	uint32_t dwPID = decode_4bytes(c_pData);
-	c_pData += sizeof(uint32_t);
+	uint32_t dwPID = decode_4bytes(data);
+	data += sizeof(uint32_t);
 
-	uint32_t dwCount = decode_4bytes(c_pData);
-	c_pData += sizeof(uint32_t);
+	uint32_t dwCount = decode_4bytes(data);
+	data += sizeof(uint32_t);
 
 	if (ch->player_id() != dwPID)
 		return;
 
-	ch->load_affect(dwCount, (packet_affect_element *) c_pData);
+	ch->load_affect(dwCount, (packet_affect_element *) data);
 	
 }
 	
 
 
-void input_db::party_create(const char* c_pData)
+void input_db::party_create(const char* data)
 {
-	packet_party_create* p = (packet_party_create*) c_pData;
+	packet_party_create* p = (packet_party_create*) data;
 	party_manager::instance().p2_p_create_party(p->leader_pid);
 }
 
-void input_db::party_delete(const char* c_pData)
+void input_db::party_delete(const char* data)
 {
-	packet_party_delete* p = (packet_party_delete*) c_pData;
+	packet_party_delete* p = (packet_party_delete*) data;
 	party_manager::instance().p2_p_delete_party(p->leader_pid);
 }
 
-void input_db::party_add(const char* c_pData)
+void input_db::party_add(const char* data)
 {
-	packet_party_add* p = (packet_party_add*) c_pData;
+	packet_party_add* p = (packet_party_add*) data;
 	party_manager::instance().p2_p_join_party(p->leader_pid, p->pid, p->state);
 }
 
-void input_db::party_remove(const char* c_pData)
+void input_db::party_remove(const char* data)
 {
-	packet_party_remove* p = (packet_party_remove*) c_pData;
+	packet_party_remove* p = (packet_party_remove*) data;
 	party_manager::instance().p2_p_quit_party(p->pid);
 }
 
-void input_db::party_state_change(const char* c_pData)
+void input_db::party_state_change(const char* data)
 {
-	packet_party_state_change * p = (packet_party_state_change *) c_pData;
+	packet_party_state_change * p = (packet_party_state_change *) data;
 	party * pParty = party_manager::instance().p2_p_create_party(p->leader_pid);
 
 	if (!pParty)
@@ -1575,9 +1575,9 @@ void input_db::party_state_change(const char* c_pData)
 	pParty->set_role(p->pid, p->role, p->flag);
 }
 
-void input_db::party_set_member_level(const char* c_pData)
+void input_db::party_set_member_level(const char* data)
 {
-	packet_party_set_member_level* p = (packet_party_set_member_level*) c_pData;
+	packet_party_set_member_level* p = (packet_party_set_member_level*) data;
 	party * pParty = party_manager::instance().p2_p_create_party(p->leader_pid);
 
 	if (!pParty)
@@ -1586,58 +1586,58 @@ void input_db::party_set_member_level(const char* c_pData)
 	pParty->p2_p_set_member_level(p->pid, p->level);
 }
 
-void input_db::time(const char * c_pData)
+void input_db::time(const char * data)
 {
 	int32_t server_time;
-    memcpy(&server_time, c_pData, sizeof(server_time));
+    memcpy(&server_time, data, sizeof(server_time));
     set_global_time(server_time);
 }
 
-void input_db::reload_proto(const char * c_pData)
+void input_db::reload_proto(const char * data)
 {
 	uint16_t wSize;
 
 	/*
 	 * Skill
 	 */
-	wSize = decode_2bytes(c_pData);
-	c_pData += sizeof(uint16_t);
-	if (wSize) skill_manager::instance().initialize((skill_table *) c_pData, wSize);
-	c_pData += sizeof(skill_table) * wSize;
+	wSize = decode_2bytes(data);
+	data += sizeof(uint16_t);
+	if (wSize) skill_manager::instance().initialize((skill_table *) data, wSize);
+	data += sizeof(skill_table) * wSize;
 
 	/*
 	 * Banwords
 	 */
 
-	wSize = decode_2bytes(c_pData);
-	c_pData += sizeof(uint16_t);
-	banword_manager::instance().initialize((banword_table *) c_pData, wSize);
-	c_pData += sizeof(banword_table) * wSize;
+	wSize = decode_2bytes(data);
+	data += sizeof(uint16_t);
+	banword_manager::instance().initialize((banword_table *) data, wSize);
+	data += sizeof(banword_table) * wSize;
 
 	/*
 	 * ITEM
 	 */
-	wSize = decode_2bytes(c_pData);
-	c_pData += 2;
+	wSize = decode_2bytes(data);
+	data += 2;
 	metin2::log::info( "RELOAD: ITEM: {:d}", wSize);
 
 	if (wSize)
 	{
-		item_manager::instance().initialize((item_table *) c_pData, wSize);
-		c_pData += wSize * sizeof(item_table);
+		item_manager::instance().initialize((item_table *) data, wSize);
+		data += wSize * sizeof(item_table);
 	}
 
 	/*
 	 * MONSTER
 	 */
-	wSize = decode_2bytes(c_pData);
-	c_pData += 2;
+	wSize = decode_2bytes(data);
+	data += 2;
 	metin2::log::info( "RELOAD: MOB: {:d}", wSize);
 
 	if (wSize)
 	{
-		mob_manager::instance().initialize((mob_table *) c_pData, wSize);
-		c_pData += wSize * sizeof(mob_table);
+		mob_manager::instance().initialize((mob_table *) data, wSize);
+		data += wSize * sizeof(mob_table);
 	}
 
 	motion_manager::instance().build();
@@ -1645,21 +1645,21 @@ void input_db::reload_proto(const char * c_pData)
 	character_manager::instance().for_each_pc(std::mem_fn(&character::compute_points));
 }
 
-void input_db::guild_skill_usable_change(const char* c_pData)
+void input_db::guild_skill_usable_change(const char* data)
 {
-	packet_guild_skill_usable_change* p = (packet_guild_skill_usable_change*) c_pData;
+	packet_guild_skill_usable_change* p = (packet_guild_skill_usable_change*) data;
 
 	guild* g = guild_manager::instance().touch_guild(p->guild);
 
 	g->skill_usable_change(p->skill_vnum, p->usable?true:false);
 }
 
-void input_db::auth_login(desc * d, const char * c_pData)
+void input_db::auth_login(desc * d, const char * data)
 {
 	if (!d)
 		return;
 
-	uint8_t bResult = *(uint8_t *) c_pData;
+	uint8_t bResult = *(uint8_t *) data;
 
 	packet_gc_auth_success ptoc;
 
@@ -1679,9 +1679,9 @@ void input_db::auth_login(desc * d, const char * c_pData)
 	d->packet(&ptoc, sizeof(packet_gc_auth_success));
 	metin2::log::info( "AuthLogin result {:d} key {:d}", bResult, d->get_login_key());
 }
-void input_db::change_empire_priv(const char* c_pData)
+void input_db::change_empire_priv(const char* data)
 {
-	packet_dg_change_empire_priv* p = (packet_dg_change_empire_priv*) c_pData;
+	packet_dg_change_empire_priv* p = (packet_dg_change_empire_priv*) data;
 
 	// ADD_EMPIRE_PRIV_TIME
 	priv_manager::instance().give_empire_priv(p->empire, p->type, p->value, p->log, p->end_time_sec);
@@ -1691,24 +1691,24 @@ void input_db::change_empire_priv(const char* c_pData)
 /**
  * @version 05/06/08	Bang2ni - added duration
  */
-void input_db::change_guild_priv(const char* c_pData)
+void input_db::change_guild_priv(const char* data)
 {
-	packet_dg_change_guild_priv* p = (packet_dg_change_guild_priv*) c_pData;
+	packet_dg_change_guild_priv* p = (packet_dg_change_guild_priv*) data;
 
 	// ADD_GUILD_PRIV_TIME
 	priv_manager::instance().give_guild_priv(p->guild_id, p->type, p->value, p->log, p->end_time_sec);
 	// END_OF_ADD_GUILD_PRIV_TIME
 }
 
-void input_db::change_character_priv(const char* c_pData)
+void input_db::change_character_priv(const char* data)
 {
-	packet_dg_change_character_priv* p = (packet_dg_change_character_priv*) c_pData;
+	packet_dg_change_character_priv* p = (packet_dg_change_character_priv*) data;
 	priv_manager::instance().give_character_priv(p->pid, p->type, p->value, p->log);
 }
 
-void input_db::money_log(const char* c_pData)
+void input_db::money_log(const char* data)
 {
-	packet_money_log * p = (packet_money_log *) c_pData;
+	packet_money_log * p = (packet_money_log *) data;
 
 	if (p->type == 4) // QUEST_MONEY_LOG_SKIP
 		return;
@@ -1719,9 +1719,9 @@ void input_db::money_log(const char* c_pData)
 	log_manager::instance().money_log(p->type, p->vnum, p->gold);
 }
 
-void input_db::guild_money_change(const char* c_pData)
+void input_db::guild_money_change(const char* data)
 {
-	packet_dg_guild_money_change* p = (packet_dg_guild_money_change*) c_pData;
+	packet_dg_guild_money_change* p = (packet_dg_guild_money_change*) data;
 
 	guild* g = guild_manager::instance().touch_guild(p->guild);
 	if (g)
@@ -1730,9 +1730,9 @@ void input_db::guild_money_change(const char* c_pData)
 	}
 }
 
-void input_db::guild_withdraw_money(const char* c_pData)
+void input_db::guild_withdraw_money(const char* data)
 {
-	packet_dg_guild_money_withdraw* p = (packet_dg_guild_money_withdraw*) c_pData;
+	packet_dg_guild_money_withdraw* p = (packet_dg_guild_money_withdraw*) data;
 
 	guild* g = guild_manager::instance().touch_guild(p->guild);
 	if (g)
@@ -1741,35 +1741,35 @@ void input_db::guild_withdraw_money(const char* c_pData)
 	}
 }
 
-void input_db::set_event_flag(const char* c_pData)
+void input_db::set_event_flag(const char* data)
 {
-	packet_set_event_flag* p = (packet_set_event_flag*) c_pData;
+	packet_set_event_flag* p = (packet_set_event_flag*) data;
 	quest::quest_manager::instance().set_event_flag(p->flag_name, p->value);
 }
 
-void input_db::create_object(const char * c_pData)
+void input_db::create_object(const char * data)
 {
 	using namespace building;
-	manager::instance().load_object((object_table *) c_pData);
+	manager::instance().load_object((object_table *) data);
 }
 
-void input_db::delete_object(const char * c_pData)
+void input_db::delete_object(const char * data)
 {
 	using namespace building;
-	manager::instance().delete_object(*(uint32_t *) c_pData);
+	manager::instance().delete_object(*(uint32_t *) data);
 }
 
-void input_db::update_land(const char * c_pData)
+void input_db::update_land(const char * data)
 {
 	using namespace building;
-	manager::instance().update_land((land_table *) c_pData);
+	manager::instance().update_land((land_table *) data);
 }
 
-void input_db::notice(const char * c_pData)
+void input_db::notice(const char * data)
 {
 
 	char szBuf[256+1];
-	strlcpy(szBuf, c_pData, sizeof(szBuf));
+	strlcpy(szBuf, data, sizeof(szBuf));
 
 	metin2::log::info( "InputDB:: Notice: {}", szBuf);
 
@@ -1781,9 +1781,9 @@ void input_db::guild_war_reserve_add(guild_war_reserve * p)
 	guild_manager::instance().reserve_war_add(p);
 }
 
-void input_db::guild_war_reserve_delete(uint32_t dwID)
+void input_db::guild_war_reserve_delete(uint32_t id)
 {
-	guild_manager::instance().reserve_war_delete(dwID);
+	guild_manager::instance().reserve_war_delete(id);
 }
 
 void input_db::guild_war_bet(packet_gd_guild_war_bet * p)
@@ -1848,32 +1848,32 @@ void input_db::myshop_pricelist_res(desc * d, const packet_myshop_pricelist_head
 
 
 //RELOAD_ADMIN
-void input_db::reload_admin(const char * c_pData )
+void input_db::reload_admin(const char * data )
 {
 	gm_new_clear();
-	int ChunkSize = decode_2bytes(c_pData );
-	c_pData += 2;
-	int HostSize = decode_2bytes(c_pData );
-	c_pData += 2;
+	int ChunkSize = decode_2bytes(data );
+	data += 2;
+	int HostSize = decode_2bytes(data );
+	data += 2;
 	
 	for (int n = 0; n < HostSize; ++n )
 	{
-		gm_new_host_inert(c_pData );
-		c_pData += ChunkSize;
+		gm_new_host_inert(data );
+		data += ChunkSize;
 	}
 	
 	
-	c_pData += 2;
-	int size = 	decode_2bytes(c_pData );
-	c_pData += 2;
+	data += 2;
+	int size = 	decode_2bytes(data );
+	data += 2;
 	
 	for (int n = 0; n < size; ++n )
 	{
-		t_admin_info& rAdminInfo = *(t_admin_info*)c_pData;
+		t_admin_info& rAdminInfo = *(t_admin_info*)data;
 
 		gm_new_insert(rAdminInfo );
 
-		c_pData += sizeof (t_admin_info );
+		data += sizeof (t_admin_info );
 	
 		character * pChar = character_manager::instance().find_pc(rAdminInfo.name );
 		if (pChar )
@@ -1889,16 +1889,16 @@ void input_db::reload_admin(const char * c_pData )
 // Analyze
 // @version	05/06/10 Bang2ni - added handling of the item price list packet (HEADER_DG_MYSHOP_PRICELIST_RES).
 ////////////////////////////////////////////////////////////////////
-int input_db::analyze(desc * d, uint8_t bHeader, const char * c_pData)
+int input_db::analyze(desc * d, uint8_t header, const char * data)
 {
-	switch (bHeader)
+	switch (header)
 	{
 	case HEADER_DG_BOOT:
-		boot(c_pData);
+		boot(data);
 		break;
 
 	case HEADER_DG_LOGIN_SUCCESS:
-		login_success(handle_, c_pData);
+		login_success(handle_, data);
 		break;
 
 	case HEADER_DG_LOGIN_NOT_EXIST:
@@ -1910,15 +1910,15 @@ int input_db::analyze(desc * d, uint8_t bHeader, const char * c_pData)
 		break;
 
 	case HEADER_DG_LOGIN_ALREADY:
-		login_already(desc_manager::instance().find_by_handle(handle_), c_pData);
+		login_already(desc_manager::instance().find_by_handle(handle_), data);
 		break;
 
 	case HEADER_DG_PLAYER_LOAD_SUCCESS:
-		player_load(desc_manager::instance().find_by_handle(handle_), c_pData);
+		player_load(desc_manager::instance().find_by_handle(handle_), data);
 		break;
 
 	case HEADER_DG_PLAYER_CREATE_SUCCESS:
-		player_create_success(desc_manager::instance().find_by_handle(handle_), c_pData);
+		player_create_success(desc_manager::instance().find_by_handle(handle_), data);
 		break;
 
 	case HEADER_DG_PLAYER_CREATE_FAILED:
@@ -1930,7 +1930,7 @@ int input_db::analyze(desc * d, uint8_t bHeader, const char * c_pData)
 		break;
 
 	case HEADER_DG_PLAYER_DELETE_SUCCESS:
-		player_delete_success(desc_manager::instance().find_by_handle(handle_), c_pData);
+		player_delete_success(desc_manager::instance().find_by_handle(handle_), data);
 		break;
 
 	case HEADER_DG_PLAYER_LOAD_FAILED:
@@ -1941,23 +1941,23 @@ int input_db::analyze(desc * d, uint8_t bHeader, const char * c_pData)
 		break;
 
 	case HEADER_DG_ITEM_LOAD:
-		item_load(desc_manager::instance().find_by_handle(handle_), c_pData);
+		item_load(desc_manager::instance().find_by_handle(handle_), data);
 		break;
 
 	case HEADER_DG_QUEST_LOAD:
-		quest_load(desc_manager::instance().find_by_handle(handle_), c_pData);
+		quest_load(desc_manager::instance().find_by_handle(handle_), data);
 		break;
 
 	case HEADER_DG_AFFECT_LOAD:
-		affect_load(desc_manager::instance().find_by_handle(handle_), c_pData);
+		affect_load(desc_manager::instance().find_by_handle(handle_), data);
 		break;
 
 	case HEADER_DG_SAFEBOX_LOAD:
-		safebox_load(desc_manager::instance().find_by_handle(handle_), c_pData);
+		safebox_load(desc_manager::instance().find_by_handle(handle_), data);
 		break;
 
 	case HEADER_DG_SAFEBOX_CHANGE_SIZE:
-		safebox_change_size(desc_manager::instance().find_by_handle(handle_), c_pData);
+		safebox_change_size(desc_manager::instance().find_by_handle(handle_), data);
 		break;
 
 	case HEADER_DG_SAFEBOX_WRONG_PASSWORD:
@@ -1965,31 +1965,31 @@ int input_db::analyze(desc * d, uint8_t bHeader, const char * c_pData)
 		break;
 
 	case HEADER_DG_SAFEBOX_CHANGE_PASSWORD_ANSWER:
-		safebox_change_password_answer(desc_manager::instance().find_by_handle(handle_), c_pData);
+		safebox_change_password_answer(desc_manager::instance().find_by_handle(handle_), data);
 		break;
 
 	case HEADER_DG_MALL_LOAD:
-		mall_load(desc_manager::instance().find_by_handle(handle_), c_pData);
+		mall_load(desc_manager::instance().find_by_handle(handle_), data);
 		break;
 
 	case HEADER_DG_EMPIRE_SELECT:
-		empire_select(desc_manager::instance().find_by_handle(handle_), c_pData);
+		empire_select(desc_manager::instance().find_by_handle(handle_), data);
 		break;
 
 	case HEADER_DG_MAP_LOCATIONS:
-		map_locations(c_pData);
+		map_locations(data);
 		break;
 
 	case HEADER_DG_P2P:
-		p2_p(c_pData);
+		p2_p(data);
 		break;
 
 	case HEADER_DG_GUILD_SKILL_UPDATE:
-		guild_skill_update(c_pData);
+		guild_skill_update(data);
 		break;
 
 	case HEADER_DG_GUILD_LOAD:
-		guild_load(c_pData);
+		guild_load(data);
 		break;
 
 	case HEADER_DG_GUILD_SKILL_RECHARGE:
@@ -1997,225 +1997,225 @@ int input_db::analyze(desc * d, uint8_t bHeader, const char * c_pData)
 		break;
 
 	case HEADER_DG_GUILD_EXP_UPDATE:
-		guild_exp_update(c_pData);
+		guild_exp_update(data);
 		break;
 
 	case HEADER_DG_PARTY_CREATE:
-		party_create(c_pData);
+		party_create(data);
 		break;
 
 	case HEADER_DG_PARTY_DELETE:
-		party_delete(c_pData);
+		party_delete(data);
 		break;
 
 	case HEADER_DG_PARTY_ADD:
-		party_add(c_pData);
+		party_add(data);
 		break;
 
 	case HEADER_DG_PARTY_REMOVE:
-		party_remove(c_pData);
+		party_remove(data);
 		break;
 
 	case HEADER_DG_PARTY_STATE_CHANGE:
-		party_state_change(c_pData);
+		party_state_change(data);
 		break;
 
 	case HEADER_DG_PARTY_SET_MEMBER_LEVEL:
-		party_set_member_level(c_pData);    
+		party_set_member_level(data);    
 		break;
 
 	case HEADER_DG_TIME:
-		time(c_pData);
+		time(data);
 		break;
 
 	case HEADER_DG_GUILD_ADD_MEMBER:
-		guild_add_member(c_pData);
+		guild_add_member(data);
 		break;
 
 	case HEADER_DG_GUILD_REMOVE_MEMBER:
-		guild_remove_member(c_pData);
+		guild_remove_member(data);
 		break;
 
 	case HEADER_DG_GUILD_CHANGE_GRADE:
-		guild_change_grade(c_pData);
+		guild_change_grade(data);
 		break;
 
 	case HEADER_DG_GUILD_CHANGE_MEMBER_DATA:
-		guild_change_member_data(c_pData);
+		guild_change_member_data(data);
 		break;
 
 	case HEADER_DG_GUILD_DISBAND:
-		guild_disband(c_pData);
+		guild_disband(data);
 		break;
 
 	case HEADER_DG_RELOAD_PROTO:
-		reload_proto(c_pData);
+		reload_proto(data);
 		break;
 
 	case HEADER_DG_GUILD_WAR:
-		guild_war(c_pData);
+		guild_war(data);
 		break;
 
 	case HEADER_DG_GUILD_WAR_SCORE:
-		guild_war_score(c_pData);
+		guild_war_score(data);
 		break;
 
 	case HEADER_DG_GUILD_LADDER:
-		guild_ladder(c_pData);
+		guild_ladder(data);
 		break;
 
 	case HEADER_DG_GUILD_SKILL_USABLE_CHANGE:
-		guild_skill_usable_change(c_pData);
+		guild_skill_usable_change(data);
 		break;
 
 	case HEADER_DG_CHANGE_NAME:
-		change_name(desc_manager::instance().find_by_handle(handle_), c_pData);
+		change_name(desc_manager::instance().find_by_handle(handle_), data);
 		break;
 
 	case HEADER_DG_AUTH_LOGIN:
-		auth_login(desc_manager::instance().find_by_handle(handle_), c_pData);
+		auth_login(desc_manager::instance().find_by_handle(handle_), data);
 		break;
 
 	case HEADER_DG_CHANGE_EMPIRE_PRIV:
-		change_empire_priv(c_pData);
+		change_empire_priv(data);
 		break;
 
 	case HEADER_DG_CHANGE_GUILD_PRIV:
-		change_guild_priv(c_pData);
+		change_guild_priv(data);
 		break;
 
 	case HEADER_DG_CHANGE_CHARACTER_PRIV:
-		change_character_priv(c_pData);
+		change_character_priv(data);
 		break;
 
 	case HEADER_DG_MONEY_LOG:
-		money_log(c_pData);
+		money_log(data);
 		break;
 
 	case HEADER_DG_GUILD_WITHDRAW_MONEY_GIVE:
-		guild_withdraw_money(c_pData);
+		guild_withdraw_money(data);
 		break;
 
 	case HEADER_DG_GUILD_MONEY_CHANGE:
-		guild_money_change(c_pData);
+		guild_money_change(data);
 		break;
 
 	case HEADER_DG_SET_EVENT_FLAG:
-		set_event_flag(c_pData);
+		set_event_flag(data);
 		break;
 
 	case HEADER_DG_CREATE_OBJECT:
-		create_object(c_pData);
+		create_object(data);
 		break;
 
 	case HEADER_DG_DELETE_OBJECT:
-		delete_object(c_pData);
+		delete_object(data);
 		break;
 
 	case HEADER_DG_UPDATE_LAND:
-		update_land(c_pData);
+		update_land(data);
 		break;
 
 	case HEADER_DG_NOTICE:
-		notice(c_pData);
+		notice(data);
 		break;
 
 	case HEADER_DG_GUILD_WAR_RESERVE_ADD:
-		guild_war_reserve_add((guild_war_reserve *) c_pData);
+		guild_war_reserve_add((guild_war_reserve *) data);
 		break;
 
 	case HEADER_DG_GUILD_WAR_RESERVE_DEL:
-		guild_war_reserve_delete(*(uint32_t *) c_pData);
+		guild_war_reserve_delete(*(uint32_t *) data);
 		break;
 
 	case HEADER_DG_GUILD_WAR_BET:
-		guild_war_bet((packet_gd_guild_war_bet *) c_pData);
+		guild_war_bet((packet_gd_guild_war_bet *) data);
 		break;
 
 	case HEADER_DG_MARRIAGE_ADD:
-		marriage_add((packet_marriage_add*) c_pData);
+		marriage_add((packet_marriage_add*) data);
 		break;
 
 	case HEADER_DG_MARRIAGE_UPDATE:
-		marriage_update((packet_marriage_update*) c_pData);
+		marriage_update((packet_marriage_update*) data);
 		break;
 
 	case HEADER_DG_MARRIAGE_REMOVE:
-		marriage_remove((packet_marriage_remove*) c_pData);
+		marriage_remove((packet_marriage_remove*) data);
 		break;
 
 	case HEADER_DG_WEDDING_REQUEST:
-		wedding_request((packet_wedding_request*) c_pData);
+		wedding_request((packet_wedding_request*) data);
 		break;
 
 	case HEADER_DG_WEDDING_READY:
-		wedding_ready((packet_wedding_ready*) c_pData);
+		wedding_ready((packet_wedding_ready*) data);
 		break;
 
 	case HEADER_DG_WEDDING_START:
-		wedding_start((packet_wedding_start*) c_pData);
+		wedding_start((packet_wedding_start*) data);
 		break;
 
 	case HEADER_DG_WEDDING_END:
-		wedding_end((packet_wedding_end*) c_pData);
+		wedding_end((packet_wedding_end*) data);
 		break;
 
 		// MYSHOP_PRICE_LIST
 	case HEADER_DG_MYSHOP_PRICELIST_RES:
-		myshop_pricelist_res(desc_manager::instance().find_by_handle(handle_), (packet_myshop_pricelist_header*) c_pData );
+		myshop_pricelist_res(desc_manager::instance().find_by_handle(handle_), (packet_myshop_pricelist_header*) data );
 		break;
 		// END_OF_MYSHOP_PRICE_LIST
 		//
 	// RELOAD_ADMIN
 	case HEADER_DG_RELOAD_ADMIN:
-		reload_admin(c_pData );		
+		reload_admin(data );		
 		break;
 	//END_RELOAD_ADMIN
 
 	case HEADER_DG_ADD_MONARCH_MONEY:
-		add_monarch_money(desc_manager::instance().find_by_handle(handle_), c_pData ); 
+		add_monarch_money(desc_manager::instance().find_by_handle(handle_), data ); 
 		break;
 
 	case HEADER_DG_DEC_MONARCH_MONEY:
-		dec_monarch_money(desc_manager::instance().find_by_handle(handle_), c_pData );
+		dec_monarch_money(desc_manager::instance().find_by_handle(handle_), data );
 		break;
 
 	case HEADER_DG_TAKE_MONARCH_MONEY:
-		take_monarch_money(desc_manager::instance().find_by_handle(handle_), c_pData );
+		take_monarch_money(desc_manager::instance().find_by_handle(handle_), data );
 		break;
 
 	case HEADER_DG_CHANGE_MONARCH_LORD_ACK :
-		change_monarch_lord((packet_change_monarch_lord_ack*)c_pData);
+		change_monarch_lord((packet_change_monarch_lord_ack*)data);
 		break;
 
 	case HEADER_DG_UPDATE_MONARCH_INFO :
-		update_monarch_info((monarch_info*)c_pData);
+		update_monarch_info((monarch_info*)data);
 		break;
 
 
 	case HEADER_DG_ACK_CHANGE_GUILD_MASTER :
-		this->guild_change_master((packet_change_guild_master*) c_pData);
+		this->guild_change_master((packet_change_guild_master*) data);
 		break;	
 	case HEADER_DG_ACK_SPARE_ITEM_ID_RANGE :
-		item_manager::instance().set_max_spare_item_id(*((item_id_range_table*)c_pData) );
+		item_manager::instance().set_max_spare_item_id(*((item_id_range_table*)data) );
 		break;
 
 	case HEADER_DG_UPDATE_HORSE_NAME :
 	case HEADER_DG_ACK_HORSE_NAME :
 		horse_name_manager::instance().update_horse_name(
-				((packet_update_horse_name*)c_pData)->player_id, 
-				((packet_update_horse_name*)c_pData)->horse_name);
+				((packet_update_horse_name*)data)->player_id, 
+				((packet_update_horse_name*)data)->horse_name);
 		break;
 
 	case HEADER_DG_NEED_LOGIN_LOG:
-		detail_log( (packet_need_login_log_info*) c_pData );
+		detail_log( (packet_need_login_log_info*) data );
 		break;
 	// Germany gift feature test
 	case HEADER_DG_ITEMAWARD_INFORMER:
-		item_award_informer((packet_item_award_infromer*) c_pData);
+		item_award_informer((packet_item_award_infromer*) data);
 		break;
 	case HEADER_DG_RESPOND_CHANNELSTATUS:
-		respond_channel_status(desc_manager::instance().find_by_handle(handle_), c_pData);
+		respond_channel_status(desc_manager::instance().find_by_handle(handle_), data);
 		break;
 	default:
 		return (-1);
@@ -2224,7 +2224,7 @@ int input_db::analyze(desc * d, uint8_t bHeader, const char * c_pData)
 	return 0;
 }
 
-bool input_db::process(desc * d, const void * orig, int bytes, int & r_iBytesProceed)
+bool input_db::process(desc * d, const void * orig, int bytes, int & r_i_bytes_proceed)
 {
 	const char *	c_pData = (const char *) orig;
 	uint8_t		bHeader, bLastHeader = 0;
@@ -2256,7 +2256,7 @@ bool input_db::process(desc * d, const void * orig, int bytes, int & r_iBytesPro
 
 		c_pData		+= 9 + iSize;
 		buffer_left_	-= 9 + iSize;
-		r_iBytesProceed	+= 9 + iSize;
+		r_i_bytes_proceed	+= 9 + iSize;
 
 		iLastPacketLen	= 9 + iSize;
 		bLastHeader	= bHeader;
@@ -2378,19 +2378,19 @@ void input_db::item_award_informer(packet_item_award_infromer *data)
 	}
 }
 
-void input_db::respond_channel_status(desc * desc, const char* pcData) 
+void input_db::respond_channel_status(desc * desc, const char* pc_data) 
 {
 	if (!desc) {
 		return;
 	}
-	const int nSize = decode_4bytes(pcData);
-	pcData += sizeof(nSize);
+	const int nSize = decode_4bytes(pc_data);
+	pc_data += sizeof(nSize);
 
 	uint8_t bHeader = HEADER_GC_RESPOND_CHANNELSTATUS;
 	desc->buffered_packet(&bHeader, sizeof(uint8_t));
 	desc->buffered_packet(&nSize, sizeof(nSize));
 	if (0 < nSize) {
-		desc->buffered_packet(pcData, sizeof(channel_status)*nSize);
+		desc->buffered_packet(pc_data, sizeof(channel_status)*nSize);
 	}
 	uint8_t bSuccess = 1;
 	desc->packet(&bSuccess, sizeof(bSuccess));

@@ -75,8 +75,8 @@ class motion
 		motion();
 		~motion();
 
-		bool			load_from_file(const char * c_pszFileName);
-		bool			load_mob_skill_from_file(const char * c_pszFileName, mob * pMob, int iSkillIndex);
+		bool			load_from_file(const char * file_name);
+		bool			load_mob_skill_from_file(const char * file_name, mob * mob_value, int skill_index);
 
 		float			duration() const;
 		const vector &	accum_vector() const;
@@ -101,10 +101,10 @@ class motion_set
 		motion_set();
 		~motion_set();
 
-		void		insert(uint32_t dwKey, std::unique_ptr<motion> pkMotion);
-		bool		load(const char * szFileName, int mode, int motion);
+		void		insert(uint32_t key, std::unique_ptr<motion> motion_value);
+		bool		load(const char * file_name, int mode, int motion);
 
-		const motion *	get_motion(uint32_t dwKey) const;
+		const motion *	get_motion(uint32_t key) const;
 
 	protected:
 		// uint32_t = MOTION_KEY
@@ -122,12 +122,12 @@ class motion_manager : public singleton<motion_manager>
 
 		bool			build();
 
-		const motion_set *	get_motion_set(uint32_t dwVnum);
-		const motion *		get_motion(uint32_t dwVnum, uint32_t dwKey);
-		float			    motion_duration(uint32_t dwVnum, uint32_t dwKey);
+		const motion_set *	get_motion_set(uint32_t vnum);
+		const motion *		get_motion(uint32_t vnum, uint32_t key);
+		float			    motion_duration(uint32_t vnum, uint32_t key);
 
 		// POLYMORPH_BUG_FIX
-		float			    normal_attack_duration(uint32_t dwVnum);
+		float			    normal_attack_duration(uint32_t vnum);
 		// END_OF_POLYMORPH_BUG_FIX
 
 	protected:

@@ -17,9 +17,9 @@ namespace quest
 	//
 	// "affect" Lua functions
 	//
-	int affect_add(lua_State * L)
+	int affect_add(lua_State * lua)
 	{
-		if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2) || !lua_isnumber(L, 3))
+		if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2) || !lua_isnumber(lua, 3))
 		{
 			metin2::log::error("invalid argument");
 			return 0;
@@ -27,7 +27,7 @@ namespace quest
 
 		quest_manager & q = quest_manager::instance();
 
-		uint8_t applyOn = (uint8_t) lua_tonumber(L, 1);
+		uint8_t applyOn = (uint8_t) lua_tonumber(lua, 1);
 
 		character * ch = q.current_character_ptr();
 
@@ -40,22 +40,22 @@ namespace quest
 		if (ch->find_affect(AFFECT_QUEST_START_IDX, applyOn)) // skip if an effect from a quest is already applied at the same spot
 			return 0;
 
-		int32_t value = (int32_t) lua_tonumber(L, 2);
-		int32_t duration = (int32_t) lua_tonumber(L, 3);
+		int32_t value = (int32_t) lua_tonumber(lua, 2);
+		int32_t duration = (int32_t) lua_tonumber(lua, 3);
 
 		ch->add_affect(AFFECT_QUEST_START_IDX, a_apply_info[applyOn].point_type, value, 0, duration, 0, false);
 
 		return 0;
 	}
 
-	int affect_remove(lua_State * L)
+	int affect_remove(lua_State * lua)
 	{
 		quest_manager & q = quest_manager::instance();
 		int iType;
 
-		if (lua_isnumber(L, 1))
+		if (lua_isnumber(lua, 1))
 		{
-			iType = (int) lua_tonumber(L, 1);
+			iType = (int) lua_tonumber(lua, 1);
 
 			if (iType == 0)
 				iType = q.current_pc()->current_quest_index() + AFFECT_QUEST_START_IDX;
@@ -68,23 +68,23 @@ namespace quest
 		return 0;
 	}
 
-	int affect_remove_bad(lua_State * L) // remove bad effects
+	int affect_remove_bad(lua_State * lua) // remove bad effects
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		ch->remove_bad_affect();
 		return 0;
 	}
 
-	int affect_remove_good(lua_State * L) // remove good effects
+	int affect_remove_good(lua_State * lua) // remove good effects
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		ch->remove_good_affect();
 		return 0;
 	}
 
-	int affect_add_hair(lua_State * L)
+	int affect_add_hair(lua_State * lua)
 	{
-		if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2) || !lua_isnumber(L, 3))
+		if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2) || !lua_isnumber(lua, 3))
 		{
 			metin2::log::error("invalid argument");
 			return 0;
@@ -92,7 +92,7 @@ namespace quest
 
 		quest_manager & q = quest_manager::instance();
 
-		uint8_t applyOn = (uint8_t) lua_tonumber(L, 1);
+		uint8_t applyOn = (uint8_t) lua_tonumber(lua, 1);
 
 		character * ch = q.current_character_ptr();
 
@@ -102,15 +102,15 @@ namespace quest
 			return 0;
 		}
 
-		int32_t value = (int32_t) lua_tonumber(L, 2);
-		int32_t duration = (int32_t) lua_tonumber(L, 3);
+		int32_t value = (int32_t) lua_tonumber(lua, 2);
+		int32_t duration = (int32_t) lua_tonumber(lua, 3);
 
 		ch->add_affect(AFFECT_HAIR, a_apply_info[applyOn].point_type, value, 0, duration, 0, false);
 
 		return 0;
 	}
 
-	int affect_remove_hair(lua_State * L) // remove hair effects.
+	int affect_remove_hair(lua_State * lua) // remove hair effects.
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -118,12 +118,12 @@ namespace quest
 
 		if ( pkAff != nullptr )
 		{
-			lua_pushnumber(L, pkAff->duration);
+			lua_pushnumber(lua, pkAff->duration);
 			ch->remove_affect( pkAff );
 		}
 		else
 		{
-			lua_pushnumber(L, 0);
+			lua_pushnumber(lua, 0);
 		}
 
 		return 1;
@@ -131,32 +131,32 @@ namespace quest
 	
 	// returns bApplyOn if the current character has an AFFECT_TYPE affect, otherwise nil.
 	// usage :	applyOn = affect.get_apply(AFFECT_TYPE) 
-	int affect_get_apply_on(lua_State * L)
+	int affect_get_apply_on(lua_State * lua)
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
-		if (!lua_isnumber(L, 1))
+		if (!lua_isnumber(lua, 1))
 		{
 			metin2::log::error("invalid argument");
 			return 0;
 		}
 
-		uint32_t affectType = lua_tonumber(L, 1);
+		uint32_t affectType = lua_tonumber(lua, 1);
 
 		affect* pkAff = ch->find_affect(affectType);
 
 		if ( pkAff != nullptr )
-			lua_pushnumber(L, pkAff->apply_on);
+			lua_pushnumber(lua, pkAff->apply_on);
 		else
-			lua_pushnil(L);
+			lua_pushnil(lua);
 
 		return 1;
 
 	}
 
-	int affect_add_collect(lua_State * L)
+	int affect_add_collect(lua_State * lua)
 	{
-		if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2) || !lua_isnumber(L, 3))
+		if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2) || !lua_isnumber(lua, 3))
 		{
 			metin2::log::error("invalid argument");
 			return 0;
@@ -164,7 +164,7 @@ namespace quest
 
 		quest_manager & q = quest_manager::instance();
 
-		uint8_t applyOn = (uint8_t) lua_tonumber(L, 1);
+		uint8_t applyOn = (uint8_t) lua_tonumber(lua, 1);
 
 		character * ch = q.current_character_ptr();
 
@@ -174,17 +174,17 @@ namespace quest
 			return 0;
 		}
 
-		int32_t value = (int32_t) lua_tonumber(L, 2);
-		int32_t duration = (int32_t) lua_tonumber(L, 3);
+		int32_t value = (int32_t) lua_tonumber(lua, 2);
+		int32_t duration = (int32_t) lua_tonumber(lua, 3);
 
 		ch->add_affect(AFFECT_COLLECT, a_apply_info[applyOn].point_type, value, 0, duration, 0, false);
 
 		return 0;
 	}
 
-	int affect_add_collect_point(lua_State * L)
+	int affect_add_collect_point(lua_State * lua)
 	{
-		if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2) || !lua_isnumber(L, 3))
+		if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2) || !lua_isnumber(lua, 3))
 		{
 			metin2::log::error("invalid argument");
 			return 0;
@@ -192,7 +192,7 @@ namespace quest
 
 		quest_manager & q = quest_manager::instance();
 
-		uint8_t point_type = (uint8_t) lua_tonumber(L, 1);
+		uint8_t point_type = (uint8_t) lua_tonumber(lua, 1);
 
 		character * ch = q.current_character_ptr();
 
@@ -202,26 +202,26 @@ namespace quest
 			return 0;
 		}
 
-		int32_t value = (int32_t) lua_tonumber(L, 2);
-		int32_t duration = (int32_t) lua_tonumber(L, 3);
+		int32_t value = (int32_t) lua_tonumber(lua, 2);
+		int32_t duration = (int32_t) lua_tonumber(lua, 3);
 
 		ch->add_affect(AFFECT_COLLECT, point_type, value, 0, duration, 0, false);
 
 		return 0;
 	}
 
-	int affect_remove_collect(lua_State* L)
+	int affect_remove_collect(lua_State* lua)
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
 		if ( ch != nullptr )
 		{
-			uint8_t bApply = (uint8_t)lua_tonumber(L, 1);
+			uint8_t bApply = (uint8_t)lua_tonumber(lua, 1);
 
 			if ( bApply >= MAX_APPLY_NUM ) return 0;
 
 			bApply = a_apply_info[bApply].point_type;
-			int32_t value = (int32_t)lua_tonumber(L, 2);
+			int32_t value = (int32_t)lua_tonumber(lua, 2);
 
 			const std::list<affect*>& rList = ch->affect_container();
 			const affect* pAffect = nullptr;
@@ -250,7 +250,7 @@ namespace quest
 		return 0;
 	}
 
-	int affect_remove_all_collect( lua_State* L )
+	int affect_remove_all_collect( lua_State* lua )
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 

@@ -39,8 +39,8 @@ struct npc_info
 	uint8_t type;
 	const char* name;
 	int32_t x, y;
-	npc_info(uint8_t bType, const char* name, int32_t x, int32_t y)
-		: type(bType), name(name), x(x), y(y)
+	npc_info(uint8_t type_value, const char* name, int32_t x, int32_t y)
+		: type(type_value), name(name), x(x), y(y)
 		{}
 };
 
@@ -70,7 +70,7 @@ class sectree_map
 			return map_.insert(map_type::value_type(key, sectree)).second;
 		}
 
-		sectree *	find(uint32_t dwPackage);
+		sectree *	find(uint32_t package);
 		sectree *	find(uint32_t x, uint32_t y);
 		void		build();
 
@@ -115,53 +115,53 @@ class sectree_manager : public singleton<sectree_manager>
 		sectree_manager();
 		~sectree_manager() override;
 
-		sectree_map * map(int32_t lMapIndex);
-		sectree * 	get(uint32_t dwIndex, uint32_t package);
-		sectree * 	get(uint32_t dwIndex, uint32_t x, uint32_t y);
+		sectree_map * map(int32_t map_index);
+		sectree * 	get(uint32_t index, uint32_t package);
+		sectree * 	get(uint32_t index, uint32_t x, uint32_t y);
 
 		template< typename Func >
-		void for_each( int iMapIndex, Func & rfunc )
+		void for_each( int map_index, Func & rfunc )
 		{
-			sectree_map * pSecMap = sectree_manager::instance().map( iMapIndex );
+			sectree_map * pSecMap = sectree_manager::instance().map( map_index );
 			if ( pSecMap )
 			{
 				pSecMap->for_each( rfunc );
 			}
 		}
 		
-		int		load_setting_file(int32_t lIndex, const char * c_pszSettingFileName, map_setting & r_setting);
-		bool		load_map_region(const char * c_pszFileName, map_setting & r_Setting, const char * c_pszMapName);
-		int		build(const char * c_pszListFileName, const char* c_pszBasePath);
+		int		load_setting_file(int32_t map_index, const char * setting_file_name, map_setting & r_setting);
+		bool		load_map_region(const char * file_name, map_setting & r_setting, const char * map_name_value);
+		int		build(const char * list_file_name, const char* map_base_path);
 		sectree_map * build_sectree_from_setting(map_setting & r_setting);
-		bool		load_attribute(sectree_map * pkMapSectree, const char * c_pszFileName, map_setting & r_setting);
-		void		load_dungeon(int iIndex, const char * c_pszFileName);
-		bool		valid_location(int32_t lMapIndex, int32_t x, int32_t y, int32_t & r_lValidMapIndex, pixel_position & r_pos, uint8_t empire = 0);
-		bool		recall_position_by_empire(int iMapIndex, uint8_t bEmpire, pixel_position & r_pos);
+		bool		load_attribute(sectree_map * map_sectree, const char * file_name, map_setting & r_setting);
+		void		load_dungeon(int index, const char * file_name);
+		bool		valid_location(int32_t map_index, int32_t x, int32_t y, int32_t & r_l_valid_map_index, pixel_position & r_pos, uint8_t empire = 0);
+		bool		recall_position_by_empire(int map_index, uint8_t empire, pixel_position & r_pos);
 
-		const map_region *	get_map_region(int32_t lMapIndex);
+		const map_region *	get_map_region(int32_t map_index);
 		int			map_index(int32_t x, int32_t y);
-		const map_region *	find_region_by_partial_name(const char* szMapName);
+		const map_region *	find_region_by_partial_name(const char* map_name_value);
 
 		bool		map_base_position(int32_t x, int32_t y, pixel_position & r_pos);
-		bool		map_base_position_by_map_index(int32_t lMapIndex, pixel_position & r_pos);
-		bool		movable_position(int32_t lMapIndex, int32_t x, int32_t y, pixel_position & pos);
-		bool		is_movable_position(int32_t lMapIndex, int32_t x, int32_t y);
-		bool		center_position_of_map(int32_t lMapIndex, pixel_position & r_pos);
-		bool        random_location(int32_t lMapIndex, pixel_position & r_pos, uint32_t dwCurrentX = 0, uint32_t dwCurrentY = 0, int iMaxDistance = 0);
+		bool		map_base_position_by_map_index(int32_t map_index, pixel_position & r_pos);
+		bool		movable_position(int32_t map_index, int32_t x, int32_t y, pixel_position & pos);
+		bool		is_movable_position(int32_t map_index, int32_t x, int32_t y);
+		bool		center_position_of_map(int32_t map_index, pixel_position & r_pos);
+		bool        random_location(int32_t map_index, pixel_position & r_pos, uint32_t current_x = 0, uint32_t current_y = 0, int max_distance = 0);
 
-		int32_t		create_private_map(int32_t lMapIndex);	// returns new private map index, returns 0 when fail
-		void		destroy_private_map(int32_t lMapIndex);
+		int32_t		create_private_map(int32_t map_index);	// returns new private map index, returns 0 when fail
+		void		destroy_private_map(int32_t map_index);
 
-		area_map&	dungeon_area(int32_t lMapIndex);
+		area_map&	dungeon_area(int32_t map_index);
 		void		send_npc_position(character * ch);
-		void		insert_npc_position(int32_t lMapIndex, uint8_t bType, const char* szName, int32_t x, int32_t y);
+		void		insert_npc_position(int32_t map_index, uint8_t type, const char* name, int32_t x, int32_t y);
 
-		uint8_t		empire_from_map_index(int32_t lMapIndex);
+		uint8_t		empire_from_map_index(int32_t map_index);
 
-		void		purge_monsters_in_map(int32_t lMapIndex);
-		void		purge_stones_in_map(int32_t lMapIndex);
-		size_t		monster_count_in_map(int32_t lMapIndex);
-		size_t		monster_count_in_map(int32_t lMpaIndex, uint32_t dwVnum);
+		void		purge_monsters_in_map(int32_t map_index);
+		void		purge_stones_in_map(int32_t map_index);
+		size_t		monster_count_in_map(int32_t map_index);
+		size_t		monster_count_in_map(int32_t map_index, uint32_t vnum);
 
 		/// Performs a specific operation on the Sectree Attribute for an area.
 		/**
@@ -174,9 +174,9 @@ class sectree_manager : public singleton<sectree_manager>
 		 * @param [in]	dwAttr Attribute to apply
 		 * @param [in]	mode type of operation on the Attribute
 		 */
-		bool		for_attr_region(int32_t lMapIndex, int32_t lStartX, int32_t lStartY, int32_t lEndX, int32_t lEndY, int32_t lRotate, uint32_t dwAttr, attr_region_mode mode);
+		bool		for_attr_region(int32_t map_index, int32_t start_x, int32_t start_y, int32_t end_x, int32_t end_y, int32_t rotate, uint32_t attr, attr_region_mode mode);
 
-		bool		save_attribute_to_image(int lMapIndex, const char * c_pszFileName, sectree_map * pMapSrc = nullptr);
+		bool		save_attribute_to_image(int map_index, const char * file_name, sectree_map * map_src = nullptr);
 
 	private:
 
@@ -191,7 +191,7 @@ class sectree_manager : public singleton<sectree_manager>
 		 * @param [in]	dwAttr Attribute to apply
 		 * @param [in]	mode type of operation on the Attribute
 		 */
-		bool		for_attr_region_right_angle( int32_t lMapIndex, int32_t lCX, int32_t lCY, int32_t lCW, int32_t lCH, int32_t lRotate, uint32_t dwAttr, attr_region_mode mode );
+		bool		for_attr_region_right_angle( int32_t map_index, int32_t cx, int32_t cy, int32_t cw, int32_t ch, int32_t rotate, uint32_t attr, attr_region_mode mode );
 
 		/// Performs a specific operation on the Sectree Attribute for a non-right-angled rectangular area.
 		/**
@@ -204,7 +204,7 @@ class sectree_manager : public singleton<sectree_manager>
 		 * @param [in]	dwAttr Attribute to apply
 		 * @param [in]	mode type of operation on the Attribute
 		 */
-		bool		for_attr_region_free_angle( int32_t lMapIndex, int32_t lCX, int32_t lCY, int32_t lCW, int32_t lCH, int32_t lRotate, uint32_t dwAttr, attr_region_mode mode );
+		bool		for_attr_region_free_angle( int32_t map_index, int32_t cx, int32_t cy, int32_t cw, int32_t ch, int32_t rotate, uint32_t attr, attr_region_mode mode );
 
 		/// Performs a specific operation on the Attribute of a single Cell.
 		/**
@@ -214,7 +214,7 @@ class sectree_manager : public singleton<sectree_manager>
 		 * @param [in]	dwAttr Attribute to apply
 		 * @param [in]	mode type of operation on the Attribute
 		 */
-		bool		for_attr_region_cell( int32_t lMapIndex, int32_t lCX, int32_t lCY, uint32_t dwAttr, attr_region_mode mode );
+		bool		for_attr_region_cell( int32_t map_index, int32_t cx, int32_t cy, uint32_t attr, attr_region_mode mode );
 
 		static uint16_t			current_sectree_version_;
 		std::map<uint32_t, sectree_map *>	map_pk_sectree_;

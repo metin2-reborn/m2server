@@ -5,6 +5,6 @@
 
 namespace metin2::game::inline empire {
 
-bool load_empire_text_convert_table(uint32_t dwEmpireID, const char* c_szFileName);
-void convert_empire_text(uint32_t dwEmpireID, char* szText, size_t len, int iPct);
+bool load_empire_text_convert_table(uint32_t empire_id, const char* file_name);
+void convert_empire_text(uint32_t empire_id, char* text, size_t len, int pct);
 }

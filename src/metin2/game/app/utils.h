@@ -54,7 +54,7 @@ extern const char *	one_argument(const char *argument, char *first_arg, size_t f
 extern const char *	two_arguments(const char *argument, char *first_arg, size_t first_size, char *second_arg, size_t second_size);
 extern const char *	first_cmd(const char *argument, char *first_arg, size_t first_arg_size, size_t *first_arg_len_result);
 
-extern int calculate_duration(int iSpd, int iDur);
+extern int calculate_duration(int spd, int dur);
 
 extern float gauss_random(float avg = 0, float sigma = 1);
 

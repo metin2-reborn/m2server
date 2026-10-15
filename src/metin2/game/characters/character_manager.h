@@ -35,26 +35,26 @@ class character_manager : public singleton<character_manager>
 
 		uint32_t			alloc_vid();
 
-		character *             create_character(const char * name, uint32_t dwPID = 0);
+		character *             create_character(const char * name, uint32_t pid = 0);
 		void destroy_character(character * ch);
 
-		void			update(int iPulse);
+		void			update(int pulse);
 
-		character *		spawn_mob(uint32_t dwVnum, int32_t lMapIndex, int32_t x, int32_t y, int32_t z, bool bSpawnMotion = false, int iRot = -1, bool bShow = true);
-		character *		spawn_mob_range(uint32_t dwVnum, int32_t lMapIndex, int sx, int sy, int ex, int ey, bool bIsException=false, bool bSpawnMotion = false , bool bAggressive = false);
-		character *		spawn_group(uint32_t dwVnum, int32_t lMapIndex, int sx, int sy, int ex, int ey, regen * pkRegen = nullptr, bool bAggressive_ = false, dungeon * pDungeon = nullptr);
-		bool			spawn_group_group(uint32_t dwVnum, int32_t lMapIndex, int sx, int sy, int ex, int ey, regen * pkRegen = nullptr, bool bAggressive_ = false, dungeon * pDungeon = nullptr);
-		bool			spawn_move_group(uint32_t dwVnum, int32_t lMapIndex, int sx, int sy, int ex, int ey, int tx, int ty, regen * pkRegen = nullptr, bool bAggressive_ = false);
-		character *		spawn_mob_random_position(uint32_t dwVnum, int32_t lMapIndex);
+		character *		spawn_mob(uint32_t vnum, int32_t map_index, int32_t x, int32_t y, int32_t z, bool spawn_motion = false, int rot = -1, bool show_value = true);
+		character *		spawn_mob_range(uint32_t vnum, int32_t map_index, int sx, int sy, int ex, int ey, bool is_exception=false, bool spawn_motion = false , bool aggressive = false);
+		character *		spawn_group(uint32_t vnum, int32_t map_index, int sx, int sy, int ex, int ey, regen * regen_value = nullptr, bool aggressive = false, dungeon * dungeon_value = nullptr);
+		bool			spawn_group_group(uint32_t vnum, int32_t map_index, int sx, int sy, int ex, int ey, regen * regen_value = nullptr, bool aggressive = false, dungeon * dungeon_value = nullptr);
+		bool			spawn_move_group(uint32_t vnum, int32_t map_index, int sx, int sy, int ex, int ey, int tx, int ty, regen * regen_value = nullptr, bool aggressive = false);
+		character *		spawn_mob_random_position(uint32_t vnum, int32_t map_index);
 
-		void			select_stone(character * pkChrStone);
+		void			select_stone(character * chr);
 
 		name_map &		pc_map() { return map_pk_pc_chr_; }
 
-		character *		find(uint32_t dwVID);
+		character *		find(uint32_t vid);
 		character *		find(const vid & vid);
 		character *		find_pc(const char * name);
-		character *		find_by_pid(uint32_t dwPID);
+		character *		find_by_pid(uint32_t pid);
 
 		bool			add_to_state_list(character * ch);
 		void			remove_from_state_list(character * ch);
@@ -72,14 +72,14 @@ class character_manager : public singleton<character_manager>
 		void			unregister_for_monster_log(character * ch);
 		void			packet_monster_log(character * ch, const void* buf, int size);
 
-		void			kill_log(uint32_t dwVnum);
+		void			kill_log(uint32_t vnum);
 
-		void			register_race_num(uint32_t dwVnum);
+		void			register_race_num(uint32_t vnum);
 		void			register_race_num_map(character * ch);
 		void			unregister_race_num_map(character * ch);
-		bool			characters_by_race_num(uint32_t dwRaceNum, character_vector_interactor & i);
+		bool			characters_by_race_num(uint32_t race_num, character_vector_interactor & i);
 
-		character *		find_specify_pc(unsigned int uiJobFlag, int32_t lMapIndex, character * except=nullptr, int iMinLevel = 1, int iMaxLevel = PLAYER_MAX_LEVEL_CONST);
+		character *		find_specify_pc(unsigned int job_flag, int32_t map_index_value, character * except=nullptr, int min_level = 1, int max_level = PLAYER_MAX_LEVEL_CONST);
 
 		void			set_mob_item_rate(int value)	{ mob_item_rate_ = value; }
 		void			set_mob_damage_rate(int value)	{ mob_damage_rate_ = value; }
@@ -98,7 +98,7 @@ class character_manager : public singleton<character_manager>
 		int			mob_gold_drop_rate(character * ch);
 		int			mob_exp_rate(character * ch);
 
-		void		send_script_to_map(int32_t lMapIndex, const std::string & s);
+		void		send_script_to_map(int32_t map_index, const std::string & s);
 
 		bool			begin_pending_destroy();
 		void			flush_pending_destroy();

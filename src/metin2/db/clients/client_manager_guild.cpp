@@ -21,12 +21,12 @@
 namespace metin2::db::inline clients {
 
 
-void client_manager::guild_create(peer * peer, uint32_t dwGuildID)
+void client_manager::guild_create(peer * peer, uint32_t guild_id)
 {
-	metin2::log::info( "GuildCreate {:d}", dwGuildID);
-	forward_packet(HEADER_DG_GUILD_LOAD, &dwGuildID, sizeof(uint32_t));
+	metin2::log::info( "GuildCreate {:d}", guild_id);
+	forward_packet(HEADER_DG_GUILD_LOAD, &guild_id, sizeof(uint32_t));
 
-	guild_manager::instance().load(dwGuildID);
+	guild_manager::instance().load(guild_id);
 }
 
 void client_manager::guild_change_grade(peer* peer, packet_guild* p)
@@ -221,15 +221,15 @@ void client_manager::guild_use_skill(packet_guild_use_skill* p)
 	send_guild_skill_usable(p->guild, p->skill_vnum, false);
 }
 
-void client_manager::send_guild_skill_usable(uint32_t guild_id, uint32_t dwSkillVnum, bool bUsable)
+void client_manager::send_guild_skill_usable(uint32_t guild_id, uint32_t skill_vnum_value, bool usable_value)
 {
-	metin2::log::info( "SendGuildSkillUsable Send {:d} {:d} {}", guild_id, dwSkillVnum, bUsable?"true":"false");
+	metin2::log::info( "SendGuildSkillUsable Send {:d} {:d} {}", guild_id, skill_vnum_value, usable_value?"true":"false");
 
 	packet_guild_skill_usable_change p;
 
 	p.guild = guild_id;
-	p.skill_vnum = dwSkillVnum;
-	p.usable = bUsable;
+	p.skill_vnum = skill_vnum_value;
+	p.usable = usable_value;
 
 	forward_packet(HEADER_DG_GUILD_SKILL_USABLE_CHANGE, &p, sizeof(packet_guild_skill_usable_change));
 }

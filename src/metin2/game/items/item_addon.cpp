@@ -21,9 +21,9 @@ item_addon_manager::~item_addon_manager()
 {
 }
 
-void item_addon_manager::apply_addon_to(int iAddonType, item * pItem)
+void item_addon_manager::apply_addon_to(int addon_type, item * item_value)
 {
-	if (!pItem)
+	if (!item_value)
 	{
 		metin2::log::error("ITEM pointer null");
 		return;
@@ -38,9 +38,9 @@ void item_addon_manager::apply_addon_to(int iAddonType, item * pItem)
 	else
 		iNormalHitBonus = -2 * iSkillBonus + number(1, 5);
 
-	pItem->remove_attribute_type(APPLY_SKILL_DAMAGE_BONUS);
-	pItem->remove_attribute_type(APPLY_NORMAL_HIT_DAMAGE_BONUS);
-	pItem->add_attribute(APPLY_NORMAL_HIT_DAMAGE_BONUS, iNormalHitBonus);
-	pItem->add_attribute(APPLY_SKILL_DAMAGE_BONUS, iSkillBonus);
+	item_value->remove_attribute_type(APPLY_SKILL_DAMAGE_BONUS);
+	item_value->remove_attribute_type(APPLY_NORMAL_HIT_DAMAGE_BONUS);
+	item_value->add_attribute(APPLY_NORMAL_HIT_DAMAGE_BONUS, iNormalHitBonus);
+	item_value->add_attribute(APPLY_SKILL_DAMAGE_BONUS, iSkillBonus);
 }
 }

@@ -84,24 +84,24 @@ class db_manager : public singleton<db_manager>
 		// The std::string overloads take a finished statement (see sql::format); the others format
 		// it printf-style first.
 		void			query(const std::string & query);
-		void			query(const char * c_pszFormat, ...) __attribute__((format(printf, 2, 3)));
+		void			query(const char * format, ...) __attribute__((format(printf, 2, 3)));
 
 		ql_msg *		direct_query(const std::string & query);
-		ql_msg *		direct_query(const char * c_pszFormat, ...) __attribute__((format(printf, 2, 3)));
-		void			return_query(int iType, uint32_t dwIdent, void* pvData, const std::string & query);
-		void			return_query(int iType, uint32_t dwIdent, void* pvData, const char * c_pszFormat, ...) __attribute__((format(printf, 5, 6)));
+		ql_msg *		direct_query(const char * format, ...) __attribute__((format(printf, 2, 3)));
+		void			return_query(int type_value, uint32_t ident_value, void* data, const std::string & query);
+		void			return_query(int type, uint32_t ident, void* data, const char * format, ...) __attribute__((format(printf, 5, 6)));
 
 		void			process();
-		void			analyze_return_query(ql_msg * pmsg);
+		void			analyze_return_query(ql_msg * msg_value);
 
 		void			send_money_log(uint8_t type, uint32_t vnum, int gold);
 
-		void			login_prepare(desc * d, uint32_t * pdwClientKey, int * paiPremiumTimes);
+		void			login_prepare(desc * d, uint32_t * client_key, int * pai_premium_times);
 		void			send_auth_login(desc * d);
 
-		void			insert_login_data(std::unique_ptr<login_data> pkLD);
-		void			delete_login_data(login_data * pkLD);
-		login_data *		get_login_data(uint32_t dwKey);
+		void			insert_login_data(std::unique_ptr<login_data> ld);
+		void			delete_login_data(login_data * ld);
+		login_data *		get_login_data(uint32_t key);
 
 		uint32_t			count_query()		{ return sql_.count_query(); }
 
@@ -113,12 +113,12 @@ class db_manager : public singleton<db_manager>
 
 		// Runs the query and calls f with its result (freed afterwards) on the main thread.
 		void			func_query(std::function<void(ql_msg *)> f, const std::string & query);
-		void			func_query(std::function<void(ql_msg *)> f, const char * c_pszFormat, ...) __attribute__((format(printf, 3, 4)));
+		void			func_query(std::function<void(ql_msg *)> f, const char * format, ...) __attribute__((format(printf, 3, 4)));
 		// Runs the query and calls f once it has completed.
 		void			func_after_query(std::function<void()> f, const std::string & query);
-		void			func_after_query(std::function<void()> f, const char * c_pszFormat, ...) __attribute__((format(printf, 3, 4)));
+		void			func_after_query(std::function<void()> f, const char * format, ...) __attribute__((format(printf, 3, 4)));
 
-		size_t escape_string(char* dst, size_t dstSize, const char *src, size_t srcSize);
+		size_t escape_string(char* dst, size_t dst_size, const char *src, size_t src_size);
 
 	private:
 		ql_msg *				pop_result();
@@ -152,16 +152,16 @@ class account_db : public singleton<account_db>
 
 		ql_msg* direct_query(const char * query);
 		ql_msg* direct_query(const std::string & query) { return direct_query(query.c_str()); }
-		void return_query(int iType, uint32_t dwIdent, void * pvData, const std::string & query);
-		void return_query(int iType, uint32_t dwIdent, void * pvData, const char * c_pszFormat, ...) __attribute__((format(printf, 5, 6)));
+		void return_query(int type_value, uint32_t ident_value, void * data, const std::string & query);
+		void return_query(int type, uint32_t ident, void * data, const char * format, ...) __attribute__((format(printf, 5, 6)));
 
-		void set_locale(const std::string & stLocale);
+		void set_locale(const std::string & locale);
 
 		void process();
 
 	private:
 		ql_msg * pop_result();
-		void analyze_return_query(ql_msg * pMsg);
+		void analyze_return_query(ql_msg * msg);
 
 		async_sql	sql_direct_;
 		async_sql	sql_;

@@ -20,7 +20,7 @@ namespace marriage
 	class wedding_map
 	{
 		public:
-			wedding_map(uint32_t dwMapIndex, uint32_t dwPID1, uint32_t dwPID2);
+			wedding_map(uint32_t map_index, uint32_t pid1, uint32_t pid2);
 			~wedding_map();
 
 			uint32_t map_index() { return map_index_; }
@@ -34,18 +34,18 @@ namespace marriage
 			void dec_member(character * ch);
 			bool is_member(character * ch );
 
-			void set_dark(bool bSet);
-			void set_snow(bool bSet);
-			void set_music(bool bSet, const char* szMusicFileName);
+			void set_dark(bool set);
+			void set_snow(bool set);
+			void set_music(bool set, const char* music_file_name);
 
 			bool is_playing_music();
 
 			void send_local_event(character * ch);
 
-			void shout_in_map(uint8_t type, const char* szMsg);
+			void shout_in_map(uint8_t type, const char* msg);
 		private:
 
-			const char* build_command_play_music(char* szCommand, size_t nCmdLen, uint8_t bSet, const char* c_szMusicFileName); 
+			const char* build_command_play_music(char* command, size_t cmd_len, uint8_t set, const char* music_file_name); 
 
 		private:
 			uint32_t map_index_;
@@ -68,17 +68,17 @@ namespace marriage
 			wedding_manager();
 			~wedding_manager() override;
 
-			bool is_wedding_map(uint32_t dwMapIndex);
+			bool is_wedding_map(uint32_t map_index);
 
-			void request(uint32_t dwPID1, uint32_t dwPID2);
-			bool end(uint32_t dwMapIndex);
+			void request(uint32_t pid1, uint32_t pid2);
+			bool end(uint32_t map_index);
 
-			void destroy_wedding_map(wedding_map* pMap);
+			void destroy_wedding_map(wedding_map* map);
 
-			wedding_map* find(uint32_t dwMapIndex);
+			wedding_map* find(uint32_t map_index);
 
 		private:
-			uint32_t create_wedding_map(uint32_t dwPID1, uint32_t dwPID2);
+			uint32_t create_wedding_map(uint32_t pid1, uint32_t pid2);
 
 		private:
 

@@ -93,21 +93,21 @@ namespace mining
 		11,				// 40
 	};
 
-	uint32_t get_raw_ore_from_load(uint32_t dwLoadVnum)
+	uint32_t get_raw_ore_from_load(uint32_t load_vnum_value)
 	{
 		for (int i = 0; i < MAX_ORE; ++i)
 		{
-			if (info[i].load_vnum == dwLoadVnum)
+			if (info[i].load_vnum == load_vnum_value)
 				return info[i].raw_ore_vnum;
 		}
 		return 0;
 	}
 
-	uint32_t get_refine_from_raw_ore(uint32_t dwRawOreVnum)
+	uint32_t get_refine_from_raw_ore(uint32_t raw_ore_vnum_value)
 	{
 		for (int i = 0; i < MAX_ORE; ++i)
 		{
-			if (info[i].raw_ore_vnum == dwRawOreVnum)
+			if (info[i].raw_ore_vnum == raw_ore_vnum_value)
 				return info[i].refine_vnum;
 		}
 		return 0;
@@ -128,9 +128,9 @@ namespace mining
 		return 0; 
 	}
 
-	void ore_drop(character * ch, uint32_t dwLoadVnum)
+	void ore_drop(character * ch, uint32_t load_vnum)
 	{
-		uint32_t dwRawOreVnum = get_raw_ore_from_load(dwLoadVnum);
+		uint32_t dwRawOreVnum = get_raw_ore_from_load(load_vnum);
 
 		int iFractionCount = get_fraction_count();
 
@@ -404,30 +404,30 @@ namespace mining
 		return event_create(mining_event, info, passes_per_sec(2 * count));
 	}
 
-	bool ore_refine(character * ch, character * npc, item * item, int cost, int pct, game::items::item * metinstone_item)
+	bool ore_refine(character * ch, character * npc, item * ore, int cost, int pct, game::items::item * metinstone_item)
 	{
 		if (!ch || !npc)
 			return false;
 
-		if (item->owner() != ch)
+		if (ore->owner() != ch)
 		{
 			metin2::log::error("wrong owner");
 			return false;
 		}
 
-		if (item->count() < ORE_COUNT_FOR_REFINE)
+		if (ore->count() < ORE_COUNT_FOR_REFINE)
 		{
 			metin2::log::error("not enough count");
 			return false;
 		}
 
-		uint32_t dwRefinedVnum = get_refine_from_raw_ore(item->vnum());
+		uint32_t dwRefinedVnum = get_refine_from_raw_ore(ore->vnum());
 
 		if (dwRefinedVnum == 0)
 			return false;
 
 		ch->set_refine_npc(npc);
-		item->set_count(item->count() - ORE_COUNT_FOR_REFINE);
+		ore->set_count(ore->count() - ORE_COUNT_FOR_REFINE);
 		int iCost = ch->compute_refine_fee(cost, 1);
 
 		if (ch->gold() < iCost)

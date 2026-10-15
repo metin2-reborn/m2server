@@ -46,32 +46,32 @@ class peer : public net::connection_handler
 	void	encode_dword(uint32_t dw)	{ encode(&dw, sizeof(dw)); }
 	void	encode(const void * data, uint32_t size);
 
-	void	encode_header(uint8_t header, uint32_t dwHandle, uint32_t dwSize);
-	bool 	peek_packet(int & iBytesProceed, uint8_t & header, uint32_t & dwHandle, uint32_t & dwLength, const char ** data);
-	void	encode_return(uint8_t header, uint32_t dwHandle);
-	void	recv_end(int iBytesProceed)	{ input_consumed_ = iBytesProceed; }
+	void	encode_header(uint8_t header, uint32_t handle_value, uint32_t size_value);
+	bool 	peek_packet(int & bytes_proceed, uint8_t & header, uint32_t & handle, uint32_t & length, const char ** data);
+	void	encode_return(uint8_t header, uint32_t handle);
+	void	recv_end(int bytes_proceed)	{ input_consumed_ = bytes_proceed; }
 
 	uint32_t	handle();
-	void	set_user_count(uint32_t dwCount);
+	void	set_user_count(uint32_t count);
 
 	void	set_public_ip(const char * ip)	{ public_ip_ = ip; }
 	const char * public_ip()		{ return public_ip_.c_str(); }
 
-	void	set_channel(uint8_t bChannel)	{ channel_ = bChannel; }
+	void	set_channel(uint8_t channel)	{ channel_ = channel; }
 	uint8_t	channel()			{ return channel_; }
 
-	void	set_listen_port(uint16_t wPort) { listen_port_ = wPort; }
+	void	set_listen_port(uint16_t port) { listen_port_ = port; }
 	uint16_t	listen_port() { return listen_port_; }
 
-	void	set_p2_p_port(uint16_t wPort);
+	void	set_p2_p_port(uint16_t port);
 	uint16_t	p2_p_port() { return p2_p_port_; }
 
 	void	set_maps(int32_t* pl);
 	int32_t *	maps() { return &maps_[0]; }
 
-	bool	set_item_id_range(item_id_range_table itemRange);
-	bool	set_spare_item_id_range(item_id_range_table itemRange);
-	bool	check_item_id_range_collision(item_id_range_table itemRange);
+	bool	set_item_id_range(item_id_range_table item_range);
+	bool	set_spare_item_id_range(item_id_range_table item_range);
+	bool	check_item_id_range_collision(item_id_range_table item_range);
 	void	send_spare_item_id_range();
 	void	return_item_id_range();	// gives the peer's item ID range back for reuse
 

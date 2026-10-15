@@ -22,7 +22,7 @@ namespace quest
 	// "forked_" lua functions
 	//
 
-	int forked_set_dead_count( lua_State* L )
+	int forked_set_dead_count( lua_State* lua )
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -36,23 +36,23 @@ namespace quest
 		return 0; 
 	}
 
-	int forked_get_dead_count( lua_State* L )
+	int forked_get_dead_count( lua_State* lua )
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
 		if (nullptr != ch)
 		{
-			lua_pushnumber( L, three_way_war::instance().revive_token_for_player(ch->player_id()) );
+			lua_pushnumber( lua, three_way_war::instance().revive_token_for_player(ch->player_id()) );
 		}
 		else
 		{
-			lua_pushnumber( L, 0 );
+			lua_pushnumber( lua, 0 );
 		}
 
 		return 1; 
 	}
 
-	int forked_init_kill_count_per_empire( lua_State* L )
+	int forked_init_kill_count_per_empire( lua_State* lua )
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -61,7 +61,7 @@ namespace quest
 		return 0;
 	}
 
-	int forked_init( lua_State* L )
+	int forked_init( lua_State* lua )
 	{
 		three_way_war::instance().initialize();
 		three_way_war::instance().random_event_map_set();
@@ -69,65 +69,65 @@ namespace quest
 		return 0;
 	}
 
-	int forked_sungzi_start_pos( lua_State* L )
+	int forked_sungzi_start_pos( lua_State* lua )
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
 		const forked_sungzi_map_info& info = three_way_war::instance().event_sung_zi_map_info();
 
-		lua_pushnumber( L, info.forked_sungzi_start_position[ch->empire()-1][0] );
-		lua_pushnumber( L, info.forked_sungzi_start_position[ch->empire()-1][1] );
+		lua_pushnumber( lua, info.forked_sungzi_start_position[ch->empire()-1][0] );
+		lua_pushnumber( lua, info.forked_sungzi_start_position[ch->empire()-1][1] );
 
 		return 2;
 	}
 
-	int forked_pass_start_pos( lua_State* L )
+	int forked_pass_start_pos( lua_State* lua )
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
 		const forked_pass_map_info& info = three_way_war::instance().event_pass_map_info();
 
-		lua_pushnumber( L, info.forked_pass_start_position[ch->empire()-1][0] );
-		lua_pushnumber( L, info.forked_pass_start_position[ch->empire()-1][1] );
+		lua_pushnumber( lua, info.forked_pass_start_position[ch->empire()-1][0] );
+		lua_pushnumber( lua, info.forked_pass_start_position[ch->empire()-1][1] );
 
 		return 2;
 	}
 
-	int forked_sungzi_mapindex (lua_State *L )
+	int forked_sungzi_mapindex (lua_State *lua )
 	{
-		lua_pushnumber( L, get_sungzi_map_index() ); 
+		lua_pushnumber( lua, get_sungzi_map_index() ); 
 
 		if ( metin2::config::test_server() )
 			metin2::log::info( "forked_sungzi_map_index_by_empire {:d}", get_sungzi_map_index() );
 		return 1;
 	}
 
-	int forked_pass_mapindex_by_empire( lua_State *L )
+	int forked_pass_mapindex_by_empire( lua_State *lua )
 	{
-		lua_pushnumber( L, get_pass_map_index(lua_tonumber(L,1)) ); 
+		lua_pushnumber( lua, get_pass_map_index(lua_tonumber(lua,1)) ); 
 
 		return 1;
 	}
 
-	int forked_get_pass_path_by_empire( lua_State *L )
+	int forked_get_pass_path_by_empire( lua_State *lua )
 	{
-		int iEmpire 	= (int)lua_tonumber(L, 1);
+		int iEmpire 	= (int)lua_tonumber(lua, 1);
 
-		lua_pushstring( L, get_pass_map_path(iEmpire) );
+		lua_pushstring( lua, get_pass_map_path(iEmpire) );
 		metin2::log::info( "[PASS_PATH] Empire {:d} Path  {}", iEmpire, get_pass_map_path( iEmpire ) );
 		return 1;
 	}
 
-	int forked_is_forked_mapindex( lua_State * L )
+	int forked_is_forked_mapindex( lua_State * lua )
 	{
-		lua_pushboolean( L, three_way_war::instance().is_three_way_war_map_index(lua_tonumber(L,1)) );
+		lua_pushboolean( lua, three_way_war::instance().is_three_way_war_map_index(lua_tonumber(lua,1)) );
 
 		return 1;
 	}
 
-	int forked_is_sungzi_mapindex( lua_State * L )
+	int forked_is_sungzi_mapindex( lua_State * lua )
 	{
-		lua_pushboolean( L, three_way_war::instance().is_sung_zi_map_index(lua_tonumber(L,1)) );
+		lua_pushboolean( lua, three_way_war::instance().is_sung_zi_map_index(lua_tonumber(lua,1)) );
 
 		return 1;
 	}
@@ -190,13 +190,13 @@ namespace quest
 		return 0;
 	}
 
-	int forked_warp_all_in_map( lua_State * L )
+	int forked_warp_all_in_map( lua_State * lua )
 	{
-		int iMapIndexFrom	= (int)lua_tonumber(L, 1 );
-		int iMapIndexTo		= (int)lua_tonumber(L, 2 );
-		int ix				= (int)lua_tonumber(L, 3 );
-		int iy				= (int)lua_tonumber(L, 4 );
-		int iTime			= (int)lua_tonumber(L, 5 );
+		int iMapIndexFrom	= (int)lua_tonumber(lua, 1 );
+		int iMapIndexTo		= (int)lua_tonumber(lua, 2 );
+		int ix				= (int)lua_tonumber(lua, 3 );
+		int iy				= (int)lua_tonumber(lua, 4 );
+		int iTime			= (int)lua_tonumber(lua, 5 );
 
 		warp_all_to_map_event_info* info = alloc_event_info<warp_all_to_map_event_info>();
 
@@ -210,23 +210,23 @@ namespace quest
 		return 0;
 	}	
 
-	int forked_is_registered_user( lua_State* L )
+	int forked_is_registered_user( lua_State* lua )
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
 		if (nullptr != ch)
 		{
-			lua_pushboolean( L, three_way_war::instance().is_registered_user(ch->player_id()) );
+			lua_pushboolean( lua, three_way_war::instance().is_registered_user(ch->player_id()) );
 		}
 		else
 		{
-			lua_pushboolean( L, false );
+			lua_pushboolean( lua, false );
 		}
 
 		return 1;
 	}
 
-	int forked_register_user( lua_State* L )
+	int forked_register_user( lua_State* lua )
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -238,7 +238,7 @@ namespace quest
 		return 0;
 	}
 
-	int forked_purge_all_monsters( lua_State* L )
+	int forked_purge_all_monsters( lua_State* lua )
 	{
 		three_way_war::instance().remove_all_monsters_in_three_way();
 

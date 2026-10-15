@@ -40,8 +40,8 @@ void money_log::save()
 	}
 }
 
-void money_log::add_log(uint8_t bType, uint32_t dwVnum, int iGold)
+void money_log::add_log(uint8_t type, uint32_t vnum, int gold)
 {
-	money_log_container_[bType][dwVnum] += iGold;
+	money_log_container_[type][vnum] += gold;
 }
 }

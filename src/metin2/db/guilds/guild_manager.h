@@ -36,11 +36,11 @@ struct guild_declare_info
 	uint8_t type;
 	uint32_t guild_id[2];
 
-	guild_declare_info(uint8_t _bType, uint32_t _dwGuildID1, uint32_t _dwGuildID2)
-		: type(_bType)
+	guild_declare_info(uint8_t type_value, uint32_t guild_id1, uint32_t guild_id2)
+		: type(type_value)
 	{
-		guild_id[0] = _dwGuildID1;
-		guild_id[1] = _dwGuildID2;
+		guild_id[0] = guild_id1;
+		guild_id[1] = guild_id2;
 	}
 
 	bool operator < (const guild_declare_info& r) const
@@ -57,16 +57,16 @@ struct guild_wait_start_info
 	int32_t			initial_score;
 	guild_war_reservation *	reserve;
 
-	guild_wait_start_info(uint8_t _bType,
-			uint32_t _g1,
-			uint32_t _g2,
-			int32_t _lWarPrice,
-			int32_t _lInitialScore,
-			guild_war_reservation * _pkReserve)
-		: type(_bType), war_price(_lWarPrice), initial_score(_lInitialScore), reserve(_pkReserve)
+	guild_wait_start_info(uint8_t type_value,
+			uint32_t g1,
+			uint32_t g2,
+			int32_t war_price_value,
+			int32_t initial_score_value,
+			guild_war_reservation * reserve_value)
+		: type(type_value), war_price(war_price_value), initial_score(initial_score_value), reserve(reserve_value)
 	{
-		gid[0] = _g1;
-		gid[1] = _g2;
+		gid[0] = g1;
+		gid[1] = g2;
 	}
 
 	bool operator < (const guild_wait_start_info& r) const
@@ -83,11 +83,11 @@ struct guild_war_pq_element
 	uint32_t	score[2];
 	uint32_t	bet_score[2];
 
-	guild_war_pq_element(uint8_t _bType, uint32_t GID1, uint32_t GID2) : end(false), type(_bType)
+	guild_war_pq_element(uint8_t type_value, uint32_t gid1, uint32_t gid2) : end(false), type(type_value)
 	{
-		type = _bType;
-		gid[0] = GID1;
-		gid[1] = GID2;
+		type = type_value;
+		gid[0] = gid1;
+		gid[1] = gid2;
 		score[0] = score[1] = 0;
 		bet_score[0] = bet_score[1] = 0;
 	}
@@ -99,7 +99,7 @@ struct guild_skill_used
     uint32_t skill_vnum;
 
     // GUILD_SKILL_COOLTIME_BUG_FIX
-    guild_skill_used(uint32_t _GID, uint32_t _dwSkillVnum) : gid(_GID), skill_vnum(_dwSkillVnum)
+    guild_skill_used(uint32_t gid_value, uint32_t skill_vnum_value) : gid(gid_value), skill_vnum(skill_vnum_value)
     {
     }
     // END_OF_GUILD_SKILL_COOLTIME_BUG_FIX
@@ -137,7 +137,7 @@ struct guild_war_info {
 class guild_war_reservation
 {
     public:
-	guild_war_reservation(const guild_war_reserve& rTable);
+	guild_war_reservation(const guild_war_reserve& table);
 
 	void initialize();
 
@@ -147,12 +147,12 @@ class guild_war_reservation
 	}
 
 	void	on_setup(peer * peer);
-	bool	bet(const char * pszLogin, uint32_t dwGold, uint32_t dwGuild);
+	bool	bet(const char * login_value, uint32_t gold_value, uint32_t guild_value);
 	void	draw();
-	void	end(int iScoreFrom, int iScoreTo);
+	void	end(int score_from, int score_to);
 
 	int	last_notice_min() { return last_notice_min_; }
-	void	set_last_notice_min(int iMin) { last_notice_min_ = iMin; }
+	void	set_last_notice_min(int min) { last_notice_min_ = min; }
 
     private:
 	guild_war_reservation();  // Intentionally not implemented to prevent use of the default constructor
@@ -171,38 +171,38 @@ class guild_manager : public singleton<guild_manager>
 
 	void	initialize();
 
-	void	load(uint32_t dwGuildID);
+	void	load(uint32_t guild_id);
 
-	guild & touch_guild(uint32_t GID);
+	guild & touch_guild(uint32_t gid);
 
 	void	update();
 
 	void	on_setup(peer * peer);
-	void	start_war(uint8_t bType, uint32_t GID1, uint32_t GID2, guild_war_reservation * pkReserve = nullptr);
+	void	start_war(uint8_t type, uint32_t gid1, uint32_t gid2, guild_war_reservation * reserve_value = nullptr);
 
-	void	update_score(uint32_t guild_gain_point, uint32_t guild_opponent, int iScore, int iBetScore);
+	void	update_score(uint32_t gain_gid, uint32_t opp_gid, int score_delta, int bet_score_delta);
 
-	void	add_declare(uint8_t bType, uint32_t guild_from, uint32_t guild_to);
+	void	add_declare(uint8_t type, uint32_t guild_from, uint32_t guild_to);
 	void	remove_declare(uint32_t guild_from, uint32_t guild_to);
 
-	bool	take_bet_price(uint32_t dwGuildTo, uint32_t dwGuildFrom, int32_t lWarPrice);
+	bool	take_bet_price(uint32_t guild_to, uint32_t guild_from, int32_t war_price);
 
-	void	recv_war_end(uint32_t GID1, uint32_t GID2);
-	void	recv_war_over(uint32_t dwGuildWinner, uint32_t dwGuildLoser, bool bDraw, int32_t lWarPrice);
+	void	recv_war_end(uint32_t gid1, uint32_t gid2);
+	void	recv_war_over(uint32_t guild_winner, uint32_t guild_loser, bool draw_value, int32_t war_price);
 
-	void	change_ladder_point(uint32_t GID, int change);
+	void	change_ladder_point(uint32_t gid, int change);
 
-	void	use_skill(uint32_t dwGuild, uint32_t dwSkillVnum, uint32_t dwCooltime);
+	void	use_skill(uint32_t gid, uint32_t skill_vnum, uint32_t cooltime);
 
-	void	deposit_money(uint32_t dwGuild, int32_t lGold);
-	void	withdraw_money(peer* peer, uint32_t dwGuild, int32_t lGold);
-	void	withdraw_money_reply(uint32_t dwGuild, uint8_t bGiveSuccess, int32_t lGold);
+	void	deposit_money(uint32_t guild, int32_t gold_value);
+	void	withdraw_money(peer* peer, uint32_t guild_value, int32_t gold_value);
+	void	withdraw_money_reply(uint32_t guild, uint8_t give_success, int32_t gold_value);
 
-	void	money_change(uint32_t dwGuild, uint32_t dwGold);
+	void	money_change(uint32_t guild_value, uint32_t gold);
 
 	void	query_ranking();
-	void	result_ranking(MYSQL_RES * pRes);
-	int	ranking(uint32_t dwGID);
+	void	result_ranking(MYSQL_RES * res);
+	int	ranking(uint32_t gid);
 
 	//
 	// Reserve War
@@ -210,29 +210,29 @@ class guild_manager : public singleton<guild_manager>
 	void	boot_reserve_war();
 	bool	reserve_war(packet_guild_war * p);
 	void	process_reserve_war();
-	bool	bet(uint32_t dwID, const char * c_pszLogin, uint32_t dwGold, uint32_t dwGuild);
+	bool	bet(uint32_t id, const char * login, uint32_t gold, uint32_t guild);
 
-	void	cancel_war(uint32_t GID1, uint32_t GID2);
+	void	cancel_war(uint32_t gid1, uint32_t gid2);
 
-	bool	change_master(uint32_t dwGID, uint32_t dwFrom, uint32_t dwTo);
+	bool	change_master(uint32_t gid, uint32_t from, uint32_t to);
 
     private:
-	void parse_result(ql_result * pRes);
+	void parse_result(ql_result * res);
 
-	void remove_war(uint32_t GID1, uint32_t GID2);	// erase war from m_WarMap and set end on priority queue
+	void remove_war(uint32_t gid1, uint32_t gid2);	// erase war from m_WarMap and set end on priority queue
 
-	void war_end(uint32_t GID1, uint32_t GID2, bool bDraw = false);
+	void war_end(uint32_t gid1, uint32_t gid2, bool force_draw = false);
 
-	int ladder_point(uint32_t GID);
+	int ladder_point(uint32_t gid);
 
-	void guild_war_win(uint32_t GID);
-	void guild_war_draw(uint32_t GID);
-	void guild_war_lose(uint32_t GID);
+	void guild_war_win(uint32_t gid);
+	void guild_war_draw(uint32_t gid);
+	void guild_war_lose(uint32_t gid);
 
-	void process_draw(uint32_t dwGuildID1, uint32_t dwGuildID2);
-	void process_win_lose(uint32_t dwGuildWinner, uint32_t dwGuildLoser);
+	void process_draw(uint32_t guild_id1, uint32_t guild_id2);
+	void process_win_lose(uint32_t guild_winner, uint32_t guild_loser);
 
-	bool is_half_win_ladder_point(uint32_t dwGuildWinner, uint32_t dwGuildLoser);
+	bool is_half_win_ladder_point(uint32_t guild_winner, uint32_t guild_loser);
 
 	std::map<uint32_t, guild>					map_k_guild_;
 	std::map<uint32_t, std::map<uint32_t, time_t> >		guild_war_end_time_;

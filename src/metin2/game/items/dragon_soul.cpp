@@ -91,51 +91,51 @@ bool make_distinct_random_number_set(std::list <float> prob_lst, std::vector<int
  * A : spare numbers... 	
  */
 
-uint8_t get_type(uint32_t dwVnum)
+uint8_t get_type(uint32_t vnum)
 {
-	return (dwVnum / 10000);
+	return (vnum / 10000);
 }
 
-uint8_t get_grade_idx(uint32_t dwVnum)
+uint8_t get_grade_idx(uint32_t vnum)
 {
-	return (dwVnum / 1000) % 10;
+	return (vnum / 1000) % 10;
 }
 
-uint8_t get_step_idx(uint32_t dwVnum)
+uint8_t get_step_idx(uint32_t vnum)
 {
-	return (dwVnum / 100) % 10;
+	return (vnum / 100) % 10;
 }
 
-uint8_t get_strength_idx(uint32_t dwVnum)
+uint8_t get_strength_idx(uint32_t vnum)
 {
-	return (dwVnum / 10) % 10;
+	return (vnum / 10) % 10;
 }
 
-bool ds_manager::read_dragon_soul_table_file(const char * c_pszFileName)
+bool ds_manager::read_dragon_soul_table_file(const char * file_name)
 {
 	table_ = std::make_unique<dragon_soul_table>();
-	return table_->read_dragon_soul_table_file(c_pszFileName);
+	return table_->read_dragon_soul_table_file(file_name);
 }
 
-void ds_manager::dragon_soul_info(uint32_t dwVnum, uint8_t& bType, uint8_t& bGrade, uint8_t& bStep, uint8_t& bStrength) const
+void ds_manager::dragon_soul_info(uint32_t vnum, uint8_t& type, uint8_t& grade, uint8_t& step, uint8_t& strength) const
 {
-	bType = get_type(dwVnum);
-	bGrade = get_grade_idx(dwVnum);
-	bStep = get_step_idx(dwVnum);
-	bStrength = get_strength_idx(dwVnum);
+	type = get_type(vnum);
+	grade = get_grade_idx(vnum);
+	step = get_step_idx(vnum);
+	strength = get_strength_idx(vnum);
 }
 
-bool ds_manager::is_valid_cell_for_this_item(item * const pItem, const item_pos& Cell) const
+bool ds_manager::is_valid_cell_for_this_item(item * const item_value, const item_pos& cell_value) const
 {
-	if (nullptr == pItem)
+	if (nullptr == item_value)
 		return false;
 
-	uint16_t wBaseCell = base_position(pItem);
+	uint16_t wBaseCell = base_position(item_value);
 	if (WORD_MAX == wBaseCell)
 		return false;
 
-	if (Cell.window_type != DRAGON_SOUL_INVENTORY
-		|| (Cell.cell < wBaseCell || Cell.cell >= wBaseCell + DRAGON_SOUL_BOX_SIZE))
+	if (cell_value.window_type != DRAGON_SOUL_INVENTORY
+		|| (cell_value.cell < wBaseCell || cell_value.cell >= wBaseCell + DRAGON_SOUL_BOX_SIZE))
 	{
 		return false;
 	}
@@ -144,15 +144,15 @@ bool ds_manager::is_valid_cell_for_this_item(item * const pItem, const item_pos&
 
 }
 
-uint16_t ds_manager::base_position(item * const pItem) const
+uint16_t ds_manager::base_position(item * const item_value) const
 {
-	if (nullptr == pItem)
+	if (nullptr == item_value)
 		return WORD_MAX;
 
 	uint8_t type, grade_idx, step_idx, strength_idx;
-	dragon_soul_info(pItem->vnum(), type, grade_idx, step_idx, strength_idx);
+	dragon_soul_info(item_value->vnum(), type, grade_idx, step_idx, strength_idx);
 
-	uint8_t col_type = pItem->sub_type();
+	uint8_t col_type = item_value->sub_type();
 	uint8_t row_type = grade_idx;
 	if (row_type > DRAGON_SOUL_GRADE_MAX)
 		return WORD_MAX;
@@ -160,16 +160,16 @@ uint16_t ds_manager::base_position(item * const pItem) const
 	return col_type * DRAGON_SOUL_STEP_MAX * DRAGON_SOUL_BOX_SIZE + row_type * DRAGON_SOUL_BOX_SIZE;
 }
 
-bool ds_manager::refresh_item_attributes(item * pDS)
+bool ds_manager::refresh_item_attributes(item * ds)
 {
-	if (!pDS->is_dragon_soul())
+	if (!ds->is_dragon_soul())
 	{
-		metin2::log::error("This item(ID : {:d}) is not DragonSoul.", pDS->id());
+		metin2::log::error("This item(ID : {:d}) is not DragonSoul.", ds->id());
 		return false;
 	}
 
 	uint8_t ds_type, grade_idx, step_idx, strength_idx;
-	dragon_soul_info(pDS->vnum(), ds_type, grade_idx, step_idx, strength_idx);
+	dragon_soul_info(ds->vnum(), ds_type, grade_idx, step_idx, strength_idx);
 
 	dragon_soul_table::vec_applys vec_basic_applys;
 	dragon_soul_table::vec_applys vec_addtional_applys;
@@ -208,12 +208,12 @@ bool ds_manager::refresh_item_attributes(item * pDS)
 		uint8_t bType = basic_apply.apply_type;
 		short sValue = (short)(ceil((float)basic_apply.apply_value * fWeight - 0.01f));
 
-		pDS->set_force_attribute(i, bType, sValue);
+		ds->set_force_attribute(i, bType, sValue);
 	}
 
 	for (int i = DRAGON_SOUL_ADDITIONAL_ATTR_START_IDX; i < ITEM_ATTRIBUTE_MAX_NUM; i++)
 	{
-		uint8_t bType = pDS->attribute_type(i);
+		uint8_t bType = ds->attribute_type(i);
 		short sValue = 0;
 		if (APPLY_NONE == bType)
 			continue;
@@ -225,21 +225,21 @@ bool ds_manager::refresh_item_attributes(item * pDS)
 				break;
 			}
 		}
-		pDS->set_force_attribute(i, bType, (short)(ceil((float)sValue * fWeight - 0.01f)));
+		ds->set_force_attribute(i, bType, (short)(ceil((float)sValue * fWeight - 0.01f)));
 	}
 	return true;
 }
 
-bool ds_manager::put_attributes(item * pDS)
+bool ds_manager::put_attributes(item * ds)
 {
-	if (!pDS->is_dragon_soul())
+	if (!ds->is_dragon_soul())
 	{
-		metin2::log::error("This item(ID : {:d}) is not DragonSoul.", pDS->id());
+		metin2::log::error("This item(ID : {:d}) is not DragonSoul.", ds->id());
 		return false;
 	}
 
 	uint8_t ds_type, grade_idx, step_idx, strength_idx;
-	dragon_soul_info(pDS->vnum(), ds_type, grade_idx, step_idx, strength_idx);
+	dragon_soul_info(ds->vnum(), ds_type, grade_idx, step_idx, strength_idx);
 
 	dragon_soul_table::vec_applys vec_basic_applys;
 	dragon_soul_table::vec_applys vec_addtional_applys;
@@ -277,7 +277,7 @@ bool ds_manager::put_attributes(item * pDS)
 		uint8_t bType = basic_apply.apply_type;
 		short sValue = (short)(ceil((float)basic_apply.apply_value * fWeight - 0.01f));
 
-		pDS->set_force_attribute(i, bType, sValue);
+		ds->set_force_attribute(i, bType, sValue);
 	}
 
 	uint8_t additional_attr_num = std::min(number (add_min, add_max), 3);
@@ -304,58 +304,58 @@ bool ds_manager::put_attributes(item * pDS)
 			uint8_t bType = additional_attr.apply_type;
 			short sValue = (short)(ceil((float)additional_attr.apply_value * fWeight - 0.01f));
 
-			pDS->set_force_attribute(DRAGON_SOUL_ADDITIONAL_ATTR_START_IDX + i, bType, sValue);
+			ds->set_force_attribute(DRAGON_SOUL_ADDITIONAL_ATTR_START_IDX + i, bType, sValue);
 		}
 	}
 
 	return true;
 }
 
-bool ds_manager::dragon_soul_item_initialize(item * pItem)
+bool ds_manager::dragon_soul_item_initialize(item * item_value)
 {
-	if (nullptr == pItem || !pItem->is_dragon_soul())
+	if (nullptr == item_value || !item_value->is_dragon_soul())
 		return false;
-	put_attributes(pItem);
-	int time = ds_manager::instance().duration(pItem);
+	put_attributes(item_value);
+	int time = ds_manager::instance().duration(item_value);
 	if (time > 0)
-		pItem->set_socket(ITEM_SOCKET_REMAIN_SEC, time);
+		item_value->set_socket(ITEM_SOCKET_REMAIN_SEC, time);
 	return true;
 }
 
-uint32_t ds_manager::make_dragon_soul_vnum(uint8_t bType, uint8_t grade, uint8_t step, uint8_t refine)
+uint32_t ds_manager::make_dragon_soul_vnum(uint8_t type, uint8_t grade, uint8_t step, uint8_t refine)
 {
-	return bType * 10000 + grade * 1000 + step * 100 + refine * 10;
+	return type * 10000 + grade * 1000 + step * 100 + refine * 10;
 }
 
-int ds_manager::duration(item * const pItem) const
+int ds_manager::duration(item * const item_value) const
 {
-	return pItem->duration();
+	return item_value->duration();
 }
 
 // Function that takes a dragon soul stone and extracts a dragon heart
-bool ds_manager::extract_dragon_heart(character * ch, item * pItem, item * pExtractor)
+bool ds_manager::extract_dragon_heart(character * ch, item * item_value, item * extractor)
 {
-	if (nullptr == ch || nullptr == pItem)
+	if (nullptr == ch || nullptr == item_value)
 		return false;
-	if (pItem->is_equipped())
+	if (item_value->is_equipped())
 	{
 		ch->chat_packet(CHAT_TYPE_INFO, lc_text("착용 중인 용혼석은 추출할 수 없습니다."));
 		return false;
 	}
 
 	// The stone is consumed; one offered in a trade window would leave the exchange with a dangling pointer.
-	if (pItem->is_exchanging())
+	if (item_value->is_exchanging())
 		return false;
 
-	uint32_t dwVnum = pItem->vnum();
+	uint32_t dwVnum = item_value->vnum();
 	uint8_t ds_type, grade_idx, step_idx, strength_idx;
 	dragon_soul_info(dwVnum, ds_type, grade_idx, step_idx, strength_idx);
 
 	int iBonus = 0;
 
-	if (nullptr != pExtractor)
+	if (nullptr != extractor)
 	{
-		iBonus = pExtractor->value(0);
+		iBonus = extractor->value(0);
 	}
 
 	std::vector <float> vec_chargings;
@@ -380,11 +380,11 @@ bool ds_manager::extract_dragon_heart(character * ch, item * pItem, item * pExtr
 	if (fCharge < FLT_EPSILON)
 	{
 		// Log first: SetCount(0) destroys the item.
-		log_manager::instance().item_log(ch, pItem, "DS_HEART_EXTRACT_FAIL", "");
-		pItem->set_count(pItem->count() - 1);
-		if (nullptr != pExtractor)
+		log_manager::instance().item_log(ch, item_value, "DS_HEART_EXTRACT_FAIL", "");
+		item_value->set_count(item_value->count() - 1);
+		if (nullptr != extractor)
 		{
-			pExtractor->set_count(pExtractor->count() - 1);
+			extractor->set_count(extractor->count() - 1);
 		}
 	
 		ch->chat_packet(CHAT_TYPE_INFO, lc_text("용심 추출에 실패하였습니다."));
@@ -405,12 +405,12 @@ bool ds_manager::extract_dragon_heart(character * ch, item * pItem, item * pExtr
 		// Log first: SetCount(0) destroys the item.
 		std::string s = std::to_string(iCharge);
 		s += "%s";
-		log_manager::instance().item_log(ch, pItem, "DS_HEART_EXTRACT_SUCCESS", s.c_str());
+		log_manager::instance().item_log(ch, item_value, "DS_HEART_EXTRACT_SUCCESS", s.c_str());
 
-		pItem->set_count(pItem->count() - 1);
-		if (nullptr != pExtractor)
+		item_value->set_count(item_value->count() - 1);
+		if (nullptr != extractor)
 		{
-			pExtractor->set_count(pExtractor->count() - 1);
+			extractor->set_count(extractor->count() - 1);
 		}
 
 		pDH->set_socket(ITEM_SOCKET_CHARGING_AMOUNT_IDX, iCharge);
@@ -421,18 +421,18 @@ bool ds_manager::extract_dragon_heart(character * ch, item * pItem, item * pExtr
 }
 
 // Function that decides success when removing a specific dragon soul stone from the equipment window, and gives a by-product on failure.
-bool ds_manager::pull_out(character * ch, item_pos DestCell, item *& pItem, item * pExtractor)
+bool ds_manager::pull_out(character * ch, item_pos dest_cell, item *& item_value, item * extractor)
 {
-	if (nullptr == ch || nullptr == pItem)
+	if (nullptr == ch || nullptr == item_value)
 	{
-		metin2::log::error("NULL POINTER. ch({}) or pItem({})", static_cast<const void *>(ch), static_cast<const void *>(pItem));
+		metin2::log::error("NULL POINTER. ch({}) or pItem({})", static_cast<const void *>(ch), static_cast<const void *>(item_value));
 		return false;
 	}
 
 	// Check whether the target position is valid; if not, find an arbitrary empty slot.
-	if (!is_valid_cell_for_this_item(pItem, DestCell))
+	if (!is_valid_cell_for_this_item(item_value, dest_cell))
 	{
-		int iEmptyCell = ch->empty_dragon_soul_inventory(pItem);
+		int iEmptyCell = ch->empty_dragon_soul_inventory(item_value);
 		if (iEmptyCell < 0)
 		{
 			ch->chat_packet(CHAT_TYPE_INFO, lc_text("소지품에 빈 공간이 없습니다."));
@@ -440,12 +440,12 @@ bool ds_manager::pull_out(character * ch, item_pos DestCell, item *& pItem, item
 		}
 		else
 		{
-			DestCell.window_type = DRAGON_SOUL_INVENTORY;
-			DestCell.cell = iEmptyCell;
+			dest_cell.window_type = DRAGON_SOUL_INVENTORY;
+			dest_cell.cell = iEmptyCell;
 		}
 	}
 
-	if (!pItem->is_equipped() || !pItem->remove_from_character())
+	if (!item_value->is_equipped() || !item_value->remove_from_character())
 		return false;
 
 	bool bSuccess;
@@ -457,20 +457,20 @@ bool ds_manager::pull_out(character * ch, item_pos DestCell, item *& pItem, item
 	{
 
 		uint8_t ds_type, grade_idx, step_idx, strength_idx;
-		dragon_soul_info(pItem->vnum(), ds_type, grade_idx, step_idx, strength_idx);
+		dragon_soul_info(item_value->vnum(), ds_type, grade_idx, step_idx, strength_idx);
 
 		// If there is no extraction info, assume it always succeeds for now.
 		if (!table_->dragon_soul_ext_values(ds_type, grade_idx, fProb, dwByProduct))
 		{
-			pItem->add_to_character(ch, DestCell);
+			item_value->add_to_character(ch, dest_cell);
 			return true;
 		}
 
 
-		if (nullptr != pExtractor)
+		if (nullptr != extractor)
 		{
-			iBonus = pExtractor->value(ITEM_VALUE_DRAGON_SOUL_POLL_OUT_BONUS_IDX);
-			pExtractor->set_count(pExtractor->count() - 1);
+			iBonus = extractor->value(ITEM_VALUE_DRAGON_SOUL_POLL_OUT_BONUS_IDX);
+			extractor->set_count(extractor->count() - 1);
 		}
 		fDice = fnumber(0.f, 100.f);
 		bSuccess = fDice <= (fProb * (100 + iBonus) / 100.f);
@@ -482,32 +482,32 @@ bool ds_manager::pull_out(character * ch, item_pos DestCell, item *& pItem, item
 
 		if (bSuccess)
 		{
-			if (pExtractor)
+			if (extractor)
 			{
-				snprintf(buf, sizeof(buf), "dice(%d) prob(%d + %d) EXTR(VN:%d)", (int)fDice, (int)fProb, iBonus, pExtractor->vnum());
+				snprintf(buf, sizeof(buf), "dice(%d) prob(%d + %d) EXTR(VN:%d)", (int)fDice, (int)fProb, iBonus, extractor->vnum());
 			}
 			else
 			{
 				snprintf(buf, sizeof(buf), "dice(%g) prob(%g)", fDice, fProb);
 			}
-			log_manager::instance().item_log(ch, pItem, "DS_PULL_OUT_SUCCESS", buf);
+			log_manager::instance().item_log(ch, item_value, "DS_PULL_OUT_SUCCESS", buf);
 			ch->chat_packet(CHAT_TYPE_INFO, lc_text("용혼석 추출에 성공하였습니다."));
-			pItem->add_to_character(ch, DestCell);
+			item_value->add_to_character(ch, dest_cell);
 			return true;
 		}
 		else
 		{
-			if (pExtractor)
+			if (extractor)
 			{
-				snprintf(buf, sizeof(buf), "dice(%d) prob(%d + %d) EXTR(VN:%d) ByProd(VN:%d)", (int)fDice, (int)fProb, iBonus, pExtractor->vnum(), dwByProduct);
+				snprintf(buf, sizeof(buf), "dice(%d) prob(%d + %d) EXTR(VN:%d) ByProd(VN:%d)", (int)fDice, (int)fProb, iBonus, extractor->vnum(), dwByProduct);
 			}
 			else
 			{
 				snprintf(buf, sizeof(buf), "dice(%d) prob(%d) ByProd(VNUM:%d)", (int)fDice, (int)fProb, dwByProduct);
 			}
-			log_manager::instance().item_log(ch, pItem, "DS_PULL_OUT_FAILED", buf);
-			item_manager::instance().destroy_item(pItem);
-			pItem = nullptr;
+			log_manager::instance().item_log(ch, item_value, "DS_PULL_OUT_FAILED", buf);
+			item_manager::instance().destroy_item(item_value);
+			item_value = nullptr;
 			if (dwByProduct)
 			{
 				item * pByProduct = ch->auto_give_item(dwByProduct, true);
@@ -524,7 +524,7 @@ bool ds_manager::pull_out(character * ch, item_pos DestCell, item *& pItem, item
 	return bSuccess;
 }
 
-bool ds_manager::do_refine_grade(character * ch, item_pos (&aItemPoses)[DRAGON_SOUL_REFINE_GRID_SIZE])
+bool ds_manager::do_refine_grade(character * ch, item_pos (&item_poses)[DRAGON_SOUL_REFINE_GRID_SIZE])
 {
 	if (nullptr == ch)
 		return false;
@@ -541,9 +541,9 @@ bool ds_manager::do_refine_grade(character * ch, item_pos (&aItemPoses)[DRAGON_S
 	std::set <item *> set_items;
 	for (int i = 0; i < DRAGON_SOUL_REFINE_GRID_SIZE; i++)
 	{
-		if (aItemPoses[i].is_equip_position())
+		if (item_poses[i].is_equip_position())
 			return false;
-		item * pItem = ch->get_item(aItemPoses[i]);
+		item * pItem = ch->get_item(item_poses[i]);
 		if (nullptr != pItem)
 		{
 			// Materials are consumed: never take an equipped item or one offered in a trade window.
@@ -683,7 +683,7 @@ bool ds_manager::do_refine_grade(character * ch, item_pos (&aItemPoses)[DRAGON_S
 	}
 }
 
-bool ds_manager::do_refine_step(character * ch, item_pos (&aItemPoses)[DRAGON_SOUL_REFINE_GRID_SIZE])
+bool ds_manager::do_refine_step(character * ch, item_pos (&item_poses)[DRAGON_SOUL_REFINE_GRID_SIZE])
 {
 	if (nullptr == ch)
 		return false;
@@ -699,7 +699,7 @@ bool ds_manager::do_refine_step(character * ch, item_pos (&aItemPoses)[DRAGON_SO
 	std::set <item *> set_items;
 	for (int i = 0; i < DRAGON_SOUL_REFINE_GRID_SIZE; i++)
 	{
-		item * pItem = ch->get_item(aItemPoses[i]);
+		item * pItem = ch->get_item(item_poses[i]);
 		if (nullptr != pItem)
 		{
 			// Materials are consumed: never take an equipped item or one offered in a trade window.
@@ -833,16 +833,16 @@ bool ds_manager::do_refine_step(character * ch, item_pos (&aItemPoses)[DRAGON_SO
 	}
 }
 
-bool is_dragon_soul_refine_material(item * pItem)
+bool is_dragon_soul_refine_material(item * item_value)
 {
-	if (pItem->type() != ITEM_MATERIAL)
+	if (item_value->type() != ITEM_MATERIAL)
 		return false;
-	return (pItem->sub_type() == MATERIAL_DS_REFINE_NORMAL ||
-		pItem->sub_type() == MATERIAL_DS_REFINE_BLESSED ||
-		pItem->sub_type() == MATERIAL_DS_REFINE_HOLLY);
+	return (item_value->sub_type() == MATERIAL_DS_REFINE_NORMAL ||
+		item_value->sub_type() == MATERIAL_DS_REFINE_BLESSED ||
+		item_value->sub_type() == MATERIAL_DS_REFINE_HOLLY);
 }
 
-bool ds_manager::do_refine_strength(character * ch, item_pos (&aItemPoses)[DRAGON_SOUL_REFINE_GRID_SIZE])
+bool ds_manager::do_refine_strength(character * ch, item_pos (&item_poses)[DRAGON_SOUL_REFINE_GRID_SIZE])
 {
 	if (nullptr == ch)
 		return false;
@@ -858,7 +858,7 @@ bool ds_manager::do_refine_strength(character * ch, item_pos (&aItemPoses)[DRAGO
 	std::set <item *> set_items;
 	for (int i = 0; i < DRAGON_SOUL_REFINE_GRID_SIZE; i++)
 	{
-		item * pItem = ch->get_item(aItemPoses[i]);
+		item * pItem = ch->get_item(item_poses[i]);
 		if (pItem)
 		{
 			// Materials are consumed: never take an equipped item or one offered in a trade window.
@@ -1021,10 +1021,10 @@ bool ds_manager::do_refine_strength(character * ch, item_pos (&aItemPoses)[DRAGO
 	return true;
 }
 
-void ds_manager::send_refine_result_packet(character * ch, uint8_t bSubHeader, const item_pos& pos)
+void ds_manager::send_refine_result_packet(character * ch, uint8_t sub_header, const item_pos& pos)
 {
 	packet_gc_dragon_soul_refine pack;
-	pack.sub_type = bSubHeader;
+	pack.sub_type = sub_header;
 
 	if (pos.is_valid_item_position())
 	{
@@ -1041,15 +1041,15 @@ void ds_manager::send_refine_result_packet(character * ch, uint8_t bSubHeader, c
 	}
 }
 
-int ds_manager::left_time(item * pItem) const
+int ds_manager::left_time(item * item_value) const
 {
-	if (pItem == nullptr)
+	if (item_value == nullptr)
 		return false;
 
 	// For now, only timer-based-on-wear dragon soul stones don't disappear when their time runs out.
-	if (pItem->proto()->c_limit_timer_based_on_wear_index >= 0)
+	if (item_value->proto()->c_limit_timer_based_on_wear_index >= 0)
 	{
-		return pItem->get_socket(ITEM_SOCKET_REMAIN_SEC);
+		return item_value->get_socket(ITEM_SOCKET_REMAIN_SEC);
 	}
 	// Dragon soul stones of other limit types all disappear when time runs out, so items reaching here are assumed to have time left.
 	else
@@ -1058,15 +1058,15 @@ int ds_manager::left_time(item * pItem) const
 	}
 }
 
-bool ds_manager::is_time_left_dragon_soul(item * pItem) const
+bool ds_manager::is_time_left_dragon_soul(item * item_value) const
 {
-	if (pItem == nullptr)
+	if (item_value == nullptr)
 		return false;
 
 	// For now, only timer-based-on-wear dragon soul stones don't disappear when their time runs out.
-	if (pItem->proto()->c_limit_timer_based_on_wear_index >= 0)
+	if (item_value->proto()->c_limit_timer_based_on_wear_index >= 0)
 	{
-		return pItem->get_socket(ITEM_SOCKET_REMAIN_SEC) > 0;
+		return item_value->get_socket(ITEM_SOCKET_REMAIN_SEC) > 0;
 	}
 	// Dragon soul stones of other limit types all disappear when time runs out, so items reaching here are assumed to have time left.
 	else
@@ -1075,16 +1075,16 @@ bool ds_manager::is_time_left_dragon_soul(item * pItem) const
 	}
 }
 
-bool ds_manager::is_active_dragon_soul(item * pItem) const
+bool ds_manager::is_active_dragon_soul(item * item_value) const
 {
-	return pItem->get_socket(ITEM_SOCKET_DRAGON_SOUL_ACTIVE_IDX);
+	return item_value->get_socket(ITEM_SOCKET_DRAGON_SOUL_ACTIVE_IDX);
 }
 
-bool ds_manager::activate_dragon_soul(item * pItem)
+bool ds_manager::activate_dragon_soul(item * item_value)
 {
-	if (nullptr == pItem)
+	if (nullptr == item_value)
 		return false;
-	character * pOwner = pItem->owner();
+	character * pOwner = item_value->owner();
 	if (nullptr == pOwner)
 		return false;
 
@@ -1093,18 +1093,18 @@ bool ds_manager::activate_dragon_soul(item * pItem)
 	if (deck_idx < 0)
 		return false;
 	
-	if (INVENTORY_MAX_NUM + WEAR_MAX_NUM + DS_SLOT_MAX * deck_idx <= pItem->cell() &&
-			pItem->cell() < INVENTORY_MAX_NUM + WEAR_MAX_NUM + DS_SLOT_MAX * (deck_idx + 1))
+	if (INVENTORY_MAX_NUM + WEAR_MAX_NUM + DS_SLOT_MAX * deck_idx <= item_value->cell() &&
+			item_value->cell() < INVENTORY_MAX_NUM + WEAR_MAX_NUM + DS_SLOT_MAX * (deck_idx + 1))
 	{
-		if (is_time_left_dragon_soul(pItem) && !is_active_dragon_soul(pItem))
+		if (is_time_left_dragon_soul(item_value) && !is_active_dragon_soul(item_value))
 		{
 			char buf[128];
-			sprintf (buf, "LEFT TIME(%d)", left_time(pItem));
-			log_manager::instance().item_log(pOwner, pItem, "DS_ACTIVATE", buf);
-			pItem->modify_points(true);
-			pItem->set_socket(ITEM_SOCKET_DRAGON_SOUL_ACTIVE_IDX, 1);
+			sprintf (buf, "LEFT TIME(%d)", left_time(item_value));
+			log_manager::instance().item_log(pOwner, item_value, "DS_ACTIVATE", buf);
+			item_value->modify_points(true);
+			item_value->set_socket(ITEM_SOCKET_DRAGON_SOUL_ACTIVE_IDX, 1);
 
-			pItem->start_timer_based_on_wear_expire_event();
+			item_value->start_timer_based_on_wear_expire_event();
 		}
 		return true;
 	}
@@ -1112,27 +1112,27 @@ bool ds_manager::activate_dragon_soul(item * pItem)
 		return false;
 }
 
-bool ds_manager::deactivate_dragon_soul(item * pItem, bool bSkipRefreshOwnerActiveState)
+bool ds_manager::deactivate_dragon_soul(item * item_value, bool skip_refresh_owner_active_state)
 {
-	if (nullptr == pItem)
+	if (nullptr == item_value)
 		return false;
 
-	character * pOwner = pItem->owner();
+	character * pOwner = item_value->owner();
 	if (nullptr == pOwner)
 		return false;
 
-	if (!is_active_dragon_soul(pItem))
+	if (!is_active_dragon_soul(item_value))
 		return false;
 
 	char buf[128];
-	pItem->stop_timer_based_on_wear_expire_event();
-	pItem->set_socket(ITEM_SOCKET_DRAGON_SOUL_ACTIVE_IDX, 0);
-	pItem->modify_points(false);
+	item_value->stop_timer_based_on_wear_expire_event();
+	item_value->set_socket(ITEM_SOCKET_DRAGON_SOUL_ACTIVE_IDX, 0);
+	item_value->modify_points(false);
 
-	sprintf (buf, "LEFT TIME(%d)", left_time(pItem));
-	log_manager::instance().item_log(pOwner, pItem, "DS_DEACTIVATE", buf);
+	sprintf (buf, "LEFT TIME(%d)", left_time(item_value));
+	log_manager::instance().item_log(pOwner, item_value, "DS_DEACTIVATE", buf);
 
-	if (false == bSkipRefreshOwnerActiveState)
+	if (false == skip_refresh_owner_active_state)
 		refresh_dragon_soul_state(pOwner);
 
 	return true;

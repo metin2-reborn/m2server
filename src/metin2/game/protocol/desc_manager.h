@@ -39,7 +39,7 @@ class desc_manager : public singleton<desc_manager>
 
 		uint32_t			create_handshake();
 
-		client_desc *		create_connection_desc(const char * host, uint16_t port, int iPhaseWhenSucceed, bool bRetryWhenClosed);
+		client_desc *		create_connection_desc(const char * host, uint16_t port, int phase_when_succeed, bool retry_when_closed);
 		void			try_connect();
 
 		desc *			find_by_handle(uint32_t handle);
@@ -53,19 +53,19 @@ class desc_manager : public singleton<desc_manager>
 
 		void			update_local_user_count();
 		uint32_t			local_user_count() { return local_user_count_; }
-		void			user_count(int & iTotal, int ** paiEmpireUserCount, int & iLocalCount);
+		void			user_count(int & total, int ** pai_empire_user_count, int & local_count);
 
 		const desc_set &	client_set();
 
-		uint32_t			make_random_key(uint32_t dwHandle);
+		uint32_t			make_random_key(uint32_t handle);
 		// True when dwKey is the mark key issued to the live connection dwHandle.
-		bool			check_random_key(uint32_t dwHandle, uint32_t dwKey);
+		bool			check_random_key(uint32_t handle, uint32_t key);
 
 		uint32_t			create_login_key(desc * d);
-		desc *			find_by_login_key(uint32_t dwKey);
+		desc *			find_by_login_key(uint32_t key);
 		void			process_expired_login_key();
 
-		bool			is_p2_p_desc_exist(const char * szHost, uint16_t wPort);
+		bool			is_p2_p_desc_exist(const char * host, uint16_t port);
 
 		// for C/S hybrid crypt
 

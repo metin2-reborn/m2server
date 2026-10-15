@@ -98,7 +98,7 @@ namespace quest
 		return returnBool;
 	}
 
-	f_party_chat::f_party_chat(int ChatType, const char* str) : chat_type(ChatType), str(str)
+	f_party_chat::f_party_chat(int chat_type_value, const char* str) : chat_type(chat_type_value), str(str)
 	{
 	}
 
@@ -195,31 +195,31 @@ namespace quest
 		return bStart != 0;
 	}
 
-	void combine_lua_string(lua_State * L, std::ostringstream & s)
+	void combine_lua_string(lua_State * lua, std::ostringstream & s)
 	{
 		char buf[32];
 
-		int n = lua_gettop(L);
+		int n = lua_gettop(lua);
 		int i;
 
 		for (i = 1; i <= n; ++i)
 		{
-			if (lua_isstring(L,i))
-				s << lua_tostring(L, i);
-			else if (lua_isnumber(L, i))
+			if (lua_isstring(lua,i))
+				s << lua_tostring(lua, i);
+			else if (lua_isnumber(lua, i))
 			{
-				snprintf(buf, sizeof(buf), "%.14g\n", lua_tonumber(L,i));
+				snprintf(buf, sizeof(buf), "%.14g\n", lua_tonumber(lua,i));
 				s << buf;
 			}
 		}
 	}
 
-	int highscore_show(lua_State* L)
+	int highscore_show(lua_State* lua)
 	{
 		quest_manager & q = quest_manager::instance();
-		const char * pszBoardName = lua_isstring(L, 1) ? lua_tostring(L, 1) : "";
+		const char * pszBoardName = lua_isstring(lua, 1) ? lua_tostring(lua, 1) : "";
 		uint32_t mypid = q.current_character_ptr()->player_id();
-		bool bOrder = (int) lua_tonumber(L, 2) != 0 ? true : false;
+		bool bOrder = (int) lua_tonumber(lua, 2) != 0 ? true : false;
 
 		db_manager::instance().return_query(QID_HIGHSCORE_SHOW, mypid, nullptr, sql::format(
 				"SELECT h.pid, p.name, h.value FROM highscore{} as h, player{} as p WHERE h.board = {} AND h.pid = p.id ORDER BY h.value {} LIMIT 10",
@@ -227,16 +227,16 @@ namespace quest
 		return 0;
 	}
 
-	int highscore_register(lua_State* L)
+	int highscore_register(lua_State* lua)
 	{
 		quest_manager & q = quest_manager::instance();
 
 		highscore_register_query_info * qi = new highscore_register_query_info;
 
-		strlcpy(qi->board, lua_tostring(L, 1), sizeof(qi->board));
+		strlcpy(qi->board, lua_tostring(lua, 1), sizeof(qi->board));
 		qi->pid = q.current_character_ptr()->player_id();
-		qi->value = (int) lua_tonumber(L, 2);
-		qi->order = (int) lua_tonumber(L, 3);
+		qi->value = (int) lua_tonumber(lua, 2);
+		qi->order = (int) lua_tonumber(lua, 3);
 
 		db_manager::instance().return_query(QID_HIGHSCORE_REGISTER, qi->pid, qi, sql::format(
 				"SELECT value FROM highscore{} WHERE board={} AND pid={}", sql::raw(get_table_postfix()), qi->board, qi->pid));
@@ -246,42 +246,42 @@ namespace quest
 	// 
 	// "member" Lua functions
 	//
-	int member_chat(lua_State* L)
+	int member_chat(lua_State* lua)
 	{
 		std::ostringstream s;
-		combine_lua_string(L, s);
+		combine_lua_string(lua, s);
 		quest_manager::instance().current_party_member()->chat_packet(CHAT_TYPE_TALKING, "%s", s.str().c_str());
 		return 0;
 	}
 
-	int member_clear_ready(lua_State* L)
+	int member_clear_ready(lua_State* lua)
 	{
 		character * ch = quest_manager::instance().current_party_member();
 		ch->remove_affect(AFFECT_DUNGEON_READY);
 		return 0;
 	}
 
-	int member_set_ready(lua_State* L)
+	int member_set_ready(lua_State* lua)
 	{
 		character * ch = quest_manager::instance().current_party_member();
 		ch->add_affect(AFFECT_DUNGEON_READY, POINT_NONE, 0, AFF_DUNGEON_READY, 65535, 0, true);
 		return 0;
 	}
 
-	int mob_spawn(lua_State* L)
+	int mob_spawn(lua_State* lua)
 	{
-		if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2) || !lua_isnumber(L, 3) || !lua_isnumber(L, 4))
+		if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2) || !lua_isnumber(lua, 3) || !lua_isnumber(lua, 4))
 		{
 			quest::error("invalid argument");
 			return 0;
 		}
 
-		uint32_t mob_vnum = (uint32_t)lua_tonumber(L, 1);
-		int32_t local_x = (int32_t) lua_tonumber(L, 2)*100;
-		int32_t local_y = (int32_t) lua_tonumber(L, 3)*100;
-		float radius = (float) lua_tonumber(L, 4)*100;
-		bool bAggressive = lua_toboolean(L, 5);
-		uint32_t count = (lua_isnumber(L, 6))?(uint32_t) lua_tonumber(L, 6):1;
+		uint32_t mob_vnum = (uint32_t)lua_tonumber(lua, 1);
+		int32_t local_x = (int32_t) lua_tonumber(lua, 2)*100;
+		int32_t local_y = (int32_t) lua_tonumber(lua, 3)*100;
+		float radius = (float) lua_tonumber(lua, 4)*100;
+		bool bAggressive = lua_toboolean(lua, 5);
+		uint32_t count = (lua_isnumber(lua, 6))?(uint32_t) lua_tonumber(lua, 6):1;
 
 		if (count == 0)
 			count = 1;
@@ -327,32 +327,32 @@ namespace quest
 				if (!ret)
 				{
 					ret = true;
-					lua_pushnumber(L, (uint32_t) mob->get_vid());
+					lua_pushnumber(lua, (uint32_t) mob->get_vid());
 				}
 			}
 		}
 
 		if (!ret)
-			lua_pushnumber(L, 0);
+			lua_pushnumber(lua, 0);
 
 		return 1;
 	}
 
-	int mob_spawn_group(lua_State* L)
+	int mob_spawn_group(lua_State* lua)
 	{
-		if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2) || !lua_isnumber(L, 3) || !lua_isnumber(L, 4) || !lua_isnumber(L, 6))
+		if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2) || !lua_isnumber(lua, 3) || !lua_isnumber(lua, 4) || !lua_isnumber(lua, 6))
 		{
 			quest::error("invalid argument");
-			lua_pushnumber(L, 0);
+			lua_pushnumber(lua, 0);
 			return 1;
 		}
 
-		uint32_t group_vnum = (uint32_t)lua_tonumber(L, 1);
-		int32_t local_x = (int32_t) lua_tonumber(L, 2) * 100;
-		int32_t local_y = (int32_t) lua_tonumber(L, 3) * 100;
-		float radius = (float) lua_tonumber(L, 4) * 100;
-		bool bAggressive = lua_toboolean(L, 5);
-		uint32_t count = (uint32_t) lua_tonumber(L, 6);
+		uint32_t group_vnum = (uint32_t)lua_tonumber(lua, 1);
+		int32_t local_x = (int32_t) lua_tonumber(lua, 2) * 100;
+		int32_t local_y = (int32_t) lua_tonumber(lua, 3) * 100;
+		float radius = (float) lua_tonumber(lua, 4) * 100;
+		bool bAggressive = lua_toboolean(lua, 5);
+		uint32_t count = (uint32_t) lua_tonumber(lua, 6);
 
 		if (count == 0)
 			count = 1;
@@ -365,7 +365,7 @@ namespace quest
 		character * ch = quest_manager::instance().current_character_ptr();
 		sectree_map * pMap = sectree_manager::instance().map(ch->map_index());
 		if (pMap == nullptr) {
-			lua_pushnumber(L, 0);
+			lua_pushnumber(lua, 0);
 			return 1;
 		}
 		uint32_t dwQuestIdx = quest_manager::instance().current_pc()->current_quest_index();
@@ -396,13 +396,13 @@ namespace quest
 				if (!ret)
 				{
 					ret = true;
-					lua_pushnumber(L, (uint32_t) mob->get_vid());
+					lua_pushnumber(lua, (uint32_t) mob->get_vid());
 				}
 			}
 		}
 
 		if (!ret)
-			lua_pushnumber(L, 0);
+			lua_pushnumber(lua, 0);
 
 		return 1;
 	}
@@ -413,7 +413,7 @@ namespace quest
 	//
 	// Registers Lua function table
 	//
-	void quest_manager::add_lua_function_table(const char * c_pszName, luaL_reg * preg)
+	void quest_manager::add_lua_function_table(const char * name_value, luaL_reg * preg)
 	{
 		lua_newtable(l_);
 
@@ -425,17 +425,17 @@ namespace quest
 			preg++;
 		}
 
-		lua_setglobal(l_, c_pszName);
+		lua_setglobal(l_, name_value);
 	}
 
-	void quest_manager::build_state_index_to_name(const char* questName)
+	void quest_manager::build_state_index_to_name(const char* quest_name)
 	{
 		int x = lua_gettop(l_);
-		lua_getglobal(l_, questName);
+		lua_getglobal(l_, quest_name);
 
 		if (lua_isnil(l_,-1))
 		{
-			quest::error("QUEST wrong quest state file for quest {}",questName);
+			quest::error("QUEST wrong quest state file for quest {}",quest_name);
 			lua_settop(l_,x);
 			return;
 		}

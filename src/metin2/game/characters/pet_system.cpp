@@ -125,13 +125,13 @@ void pet_actor::unsummon()
 	}
 }
 
-uint32_t pet_actor::summon(const char* petName, item * pSummonItem, bool bSpawnFar)
+uint32_t pet_actor::summon(const char* pet_name, item * summon_item, bool spawn_far)
 {
 	int32_t x = owner_->x();
 	int32_t y = owner_->y();
 	int32_t z = owner_->z();
 
-	if (true == bSpawnFar)
+	if (true == spawn_far)
 	{
 		x += (number(0, 1) * 2 - 1) * number(2000, 2500);
 		y += (number(0, 1) * 2 - 1) * number(2000, 2500);
@@ -169,10 +169,10 @@ uint32_t pet_actor::summon(const char* petName, item * pSummonItem, bool bSpawnF
 
 	vid_ = character_->get_vid();
 
-	this->set_name(petName);
+	this->set_name(pet_name);
 
 	// calling ComputePoints after SetSummonItem(pSummonItem) applies the buff.
-	this->set_summon_item(pSummonItem);
+	this->set_summon_item(summon_item);
 	owner_->compute_points();
 	character_->show(owner_->map_index(), x, y, z);
 
@@ -244,7 +244,7 @@ bool pet_actor::update_follow_ai()
 	return true;
 }
 
-bool pet_actor::update(uint32_t deltaTime)
+bool pet_actor::update(uint32_t delta_time)
 {
 	bool bResult = true;
 
@@ -266,7 +266,7 @@ bool pet_actor::update(uint32_t deltaTime)
 }
 
 //NOTE : careful!!! if MinDistance is large, it won't follow while the displacement is within that amount,
-bool pet_actor::follow(float fMinDistance)
+bool pet_actor::follow(float min_distance)
 {
 	// must face the position it is moving to.
 	if( !owner_ || !character_) 
@@ -279,14 +279,14 @@ bool pet_actor::follow(float fMinDistance)
 	float fPetY = character_->y();
 
 	float fDist = distance_sqrt(fOwnerX - fPetX, fOwnerY - fPetY);
-	if (fDist <= fMinDistance)
+	if (fDist <= min_distance)
 		return false;
 
 	character_->set_rotation_to_xy(fOwnerX, fOwnerY);
 
 	float fx, fy;
 
-	float fDistToGo = fDist - fMinDistance;
+	float fDistToGo = fDist - min_distance;
 	get_delta_by_degree(character_->rotation(), fDistToGo, &fx, &fy);
 	
 	if (!character_->go_to((int)(fPetX+fx+0.5f), (int)(fPetY+fy+0.5f)) )
@@ -297,17 +297,17 @@ bool pet_actor::follow(float fMinDistance)
 	return true;
 }
 
-void pet_actor::set_summon_item (item * pItem)
+void pet_actor::set_summon_item (item * item_value)
 {
-	if (nullptr == pItem)
+	if (nullptr == item_value)
 	{
 		summon_item_vid_ = 0;
 		summon_item_vnum_ = 0;
 		return;
 	}
 
-	summon_item_vid_ = pItem->get_vid();
-	summon_item_vnum_ = pItem->vnum();
+	summon_item_vid_ = item_value->get_vid();
+	summon_item_vnum_ = item_value->vnum();
 }
 
 void pet_actor::give_buff()
@@ -377,7 +377,7 @@ void pet_system::destroy()
 }
 
 /// pet system update. handles AI etc. of registered pets.
-bool pet_system::update(uint32_t deltaTime)
+bool pet_system::update(uint32_t delta_time)
 {
 	bool bResult = true;
 
@@ -405,7 +405,7 @@ bool pet_system::update(uint32_t deltaTime)
 			}
 			else
 			{
-				bResult = bResult && petActor->update(deltaTime);
+				bResult = bResult && petActor->update(delta_time);
 			}
 		}
 	}
@@ -418,23 +418,23 @@ bool pet_system::update(uint32_t deltaTime)
 }
 
 /// remove the pet from the managed list
-void pet_system::delete_pet(pet_actor* petActor)
+void pet_system::delete_pet(pet_actor* pet_actor_value)
 {
 	for (pet_actor_map::iterator iter = pet_actor_map_.begin(); iter != pet_actor_map_.end(); ++iter)
 	{
-		if (iter->second == petActor)
+		if (iter->second == pet_actor_value)
 		{
-			delete petActor;
+			delete pet_actor_value;
 			pet_actor_map_.erase(iter);
 
 			return;
 		}
 	}
 
-	metin2::log::error("[CPetSystem::DeletePet] Can't find petActor({}) on my list(size: {:d}) ", static_cast<const void *>(static_cast<void*>(petActor)), pet_actor_map_.size());
+	metin2::log::error("[CPetSystem::DeletePet] Can't find petActor({}) on my list(size: {:d}) ", static_cast<const void *>(static_cast<void*>(pet_actor_value)), pet_actor_map_.size());
 }
 
-void pet_system::unsummon(uint32_t vnum, bool bDeleteFromList)
+void pet_system::unsummon(uint32_t vnum, bool delete_from_list)
 {
 	pet_actor* actor = this->by_vnum(vnum);
 
@@ -445,7 +445,7 @@ void pet_system::unsummon(uint32_t vnum, bool bDeleteFromList)
 	}
 	actor->unsummon();
 
-	if (true == bDeleteFromList)
+	if (true == delete_from_list)
 		this->delete_pet(actor);
 
 	bool bActive = false;
@@ -461,18 +461,18 @@ void pet_system::unsummon(uint32_t vnum, bool bDeleteFromList)
 }
 
 
-pet_actor* pet_system::summon(uint32_t mobVnum, item * pSummonItem, const char* petName, bool bSpawnFar, uint32_t options)
+pet_actor* pet_system::summon(uint32_t mob_vnum, item * summon_item, const char* pet_name, bool spawn_far, uint32_t options)
 {
-	pet_actor* petActor = this->by_vnum(mobVnum);
+	pet_actor* petActor = this->by_vnum(mob_vnum);
 
 	// if not a registered pet, create it and register it in the managed list.
 	if (nullptr == petActor)
 	{
-		petActor = new pet_actor(owner_, mobVnum, options);
-		pet_actor_map_.insert(std::make_pair(mobVnum, petActor));
+		petActor = new pet_actor(owner_, mob_vnum, options);
+		pet_actor_map_.insert(std::make_pair(mob_vnum, petActor));
 	}
 
-	petActor->summon(petName, pSummonItem, bSpawnFar);
+	petActor->summon(pet_name, summon_item, spawn_far);
 
 	if (nullptr == pet_system_update_event_)
 	{

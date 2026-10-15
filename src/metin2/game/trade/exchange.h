@@ -19,13 +19,13 @@ enum exchange_values
 class exchange
 {
 	public:
-		exchange(character * pOwner);
+		exchange(character * owner);
 		~exchange();
 
-		bool		accept(bool bIsAccept = true);
+		bool		accept(bool accept = true);
 		void		cancel();
 
-		bool		add_gold(int32_t lGold);
+		bool		add_gold(int32_t gold);
 		bool		add_item(item_pos item_pos, uint8_t display_pos);
 		bool		remove_item(uint8_t pos);
 
@@ -34,11 +34,11 @@ class exchange
 
 		bool		accept_status() { return accept_; }
 
-		void		set_company(exchange * pExchange)	{ company_ = pExchange; }
+		void		set_company(exchange * exchange_value)	{ company_ = exchange_value; }
 
 	private:
 		bool		done();
-		bool		check(int * piItemCount);
+		bool		check(int * item_count_value);
 		bool		check_space();
 
 	private:

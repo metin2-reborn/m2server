@@ -921,7 +921,7 @@ void cube_request_result_list(character * ch)
 }
 
 // 
-void cube_request_material_info(character * ch, int requestStartIndex, int requestCount)
+void cube_request_material_info(character * ch, int request_start_index, int request_count)
 {
 	RETURN_IF_CUBE_IS_NOT_OPENED(ch);
 
@@ -940,7 +940,7 @@ void cube_request_material_info(character * ch, int requestStartIndex, int reque
 	{
 		const cube_material_info& materialInfo = *iter;
 
-		if (index++ == requestStartIndex)
+		if (index++ == request_start_index)
 		{
 			bCatchInfo = true;
 		}
@@ -950,14 +950,14 @@ void cube_request_material_info(character * ch, int requestStartIndex, int reque
 			materialInfoText += materialInfo.info_text + "@";
 		}
 
-		if (index >= requestStartIndex + requestCount)
+		if (index >= request_start_index + request_count)
 			break;
 	}
 
 	// if (false == bCatchInfo)
 	if (!bCatchInfo || materialInfoText.size() == 0) // Fix
 	{
-		metin2::log::error("[CubeInfo] Can't find matched material info (NPC: {:d}, index: {:d}, request count: {:d})", npcVNUM, requestStartIndex, requestCount);
+		metin2::log::error("[CubeInfo] Can't find matched material info (NPC: {:d}, index: {:d}, request count: {:d})", npcVNUM, request_start_index, request_count);
 		return;
 	}
 
@@ -967,10 +967,10 @@ void cube_request_material_info(character * ch, int requestStartIndex, int reque
 	// (Server -> Client) /cube m_info start_index count 125,1|126,2|127,2|123,5&555,5&555,4/120000
 	if (materialInfoText.size() - 20 >= CHAT_MAX_LEN)
 	{
-		metin2::log::error("[CubeInfo] Too long material info. (NPC: {:d}, requestStart: {:d}, requestCount: {:d}, length: {:d})", npcVNUM, requestStartIndex, requestCount, materialInfoText.size());
+		metin2::log::error("[CubeInfo] Too long material info. (NPC: {:d}, requestStart: {:d}, requestCount: {:d}, length: {:d})", npcVNUM, request_start_index, request_count, materialInfoText.size());
 	}
 
-	ch->chat_packet(CHAT_TYPE_COMMAND, "cube m_info %d %d %s", requestStartIndex, requestCount, materialInfoText.c_str());
+	ch->chat_packet(CHAT_TYPE_COMMAND, "cube m_info %d %d %s", request_start_index, request_count, materialInfoText.c_str());
 
 	
 }

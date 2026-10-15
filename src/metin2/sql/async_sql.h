@@ -62,16 +62,16 @@ class async_sql {
     auto operator=(const async_sql &) -> async_sql & = delete;
     ~async_sql();
 
-    auto setup(const char *c_pszHost, const char *c_pszUser, const char *c_pszPassword, const char *c_pszDB, const char *c_pszLocale, bool bNoThread = false, int iPort = 0) -> bool;
+    auto setup(const char *host, const char *user, const char *password, const char *db, const char *locale, bool no_thread = false, int port = 0) -> bool;
     void quit();
 
     // Applies m_stLocale as the connection character set.
     auto query_locale_set() -> bool;
-    void set_locale(const std::string &stLocale);
+    void set_locale(const std::string &locale);
 
-    void async_query(const char *c_pszQuery);
-    void return_query(const char *c_pszQuery, void *pvUserData);
-    auto direct_query(const char *c_pszQuery) -> ql_msg *;
+    void async_query(const char *query);
+    void return_query(const char *query, void *user_data);
+    auto direct_query(const char *query_value) -> ql_msg *;
     auto pop_result(ql_msg **pp) -> bool;
 
     auto count_query() -> uint32_t;
@@ -82,12 +82,12 @@ class async_sql {
     void reset_copied_query_count();
 
     auto sql_handle() -> MYSQL *;
-    auto escape_string(char *dst, size_t dstSize, const char *src, size_t srcSize) -> size_t;
+    auto escape_string(char *dst, size_t dst_size, const char *src, size_t src_size) -> size_t;
 
   private:
     auto connect() -> bool;
     void child_loop();
-    auto new_message(const char *c_pszQuery) -> std::unique_ptr<ql_msg>;
+    auto new_message(const char *query_value) -> std::unique_ptr<ql_msg>;
     void push_query(std::unique_ptr<ql_msg> msg);
     void check_reconnected();
     auto execute(ql_msg &msg) -> bool;

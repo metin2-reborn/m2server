@@ -42,14 +42,14 @@ class shop
 		shop();
 		virtual ~shop();
 
-		bool	create(uint32_t dwVnum, uint32_t dwNPCVnum, shop_item_table * pItemTable);
-		void	set_shop_items(shop_item_table * pItemTable, uint8_t bItemCount);
+		bool	create(uint32_t vnum_value, uint32_t npc_vnum, shop_item_table * table);
+		void	set_shop_items(shop_item_table * table_value, uint8_t item_count);
 
 		virtual void	set_pc_shop(character * ch);
 		virtual bool	is_pc_shop()	{ return pc_ ? true : false; }
 
 		// Add/remove guest
-		virtual bool	add_guest(character * ch,uint32_t owner_vid, bool bOtherEmpire);
+		virtual bool	add_guest(character * ch,uint32_t owner_vid, bool other_empire);
 		void	remove_guest(character * ch);
 
 		// Buy goods
@@ -59,10 +59,10 @@ class shop
 		void	broadcast_update_item(uint8_t pos);
 
 		// Returns the number of items on sale.
-		int		number_by_vnum(uint32_t dwVnum);
+		int		number_by_vnum(uint32_t vnum_value);
 
 		// Tells whether the item is listed in the shop.
-		virtual bool	is_selling_item(uint32_t itemID);
+		virtual bool	is_selling_item(uint32_t item_id);
 
 		uint32_t	vnum() { return vnum_; }
 

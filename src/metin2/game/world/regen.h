@@ -91,9 +91,9 @@ EVENTINFO(dungeon_regen_event_info)
 	}
 };
 
-extern bool	regen_load(const char *filename, int32_t lMapIndex, int base_x, int base_y);
-extern bool	regen_do(const char* filename, int32_t lMapIndex, int base_x, int base_y, dungeon * pDungeon, bool bOnce = true );
-extern bool	regen_load_in_file(const char* filename, int32_t lMapIndex, int base_x, int base_y );
+extern bool	regen_load(const char *filename, int32_t map_index_value, int base_x, int base_y);
+extern bool	regen_do(const char* filename, int32_t map_index_value, int base_x, int base_y, dungeon * dungeon_value, bool once = true );
+extern bool	regen_load_in_file(const char* filename, int32_t map_index_value, int base_x, int base_y );
 extern void	regen_free();
 
 extern void	regen_reset(int x, int y);

@@ -17,13 +17,13 @@ class over9_refine_manager : public singleton<over9_refine_manager>
 		ove_r9_item_map item_;
 
 	public :
-		void enable_over9_refine(uint32_t dwVnumFrom, uint32_t dwVnumTo);
+		void enable_over9_refine(uint32_t vnum_from, uint32_t vnum_to);
 
-		int can_over9_refine(uint32_t dwVnum);
+		int can_over9_refine(uint32_t vnum);
 
-		bool change9_to_over9(character * pChar, item * item);
-		bool over9_refine(character * pChat, item * item);
+		bool change9_to_over9(character * ch, item * item);
+		bool over9_refine(character * ch, item * item);
 
-		uint32_t material_vnum(uint32_t baseVnum);
+		uint32_t material_vnum(uint32_t base_vnum);
 };
 }

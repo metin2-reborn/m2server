@@ -47,21 +47,21 @@ class state_template : public state
 		}
 
 		// Initialize Functions
-		void set(T *pInstance, pfnstate pfnBeginState, pfnstate pfnState, pfnstate pfnEndState)
+		void set(T *instance, pfnstate begin_state, pfnstate state, pfnstate end_state)
 		{
 			// Set Instance
-			assert(pInstance);
-			instance_ = pInstance;
+			assert(instance);
+			instance_ = instance;
 
 			// Set Function Pointers
-			assert(pfnBeginState);
-			pfn_begin_state_ = pfnBeginState;
+			assert(begin_state);
+			pfn_begin_state_ = begin_state;
 
-			assert(pfnState);
-			pfn_state_ = pfnState;
+			assert(state);
+			pfn_state_ = state;
 
-			assert(pfnEndState);
-			pfn_end_state_ = pfnEndState;
+			assert(end_state);
+			pfn_end_state_ = end_state;
 		}
 
 		// State Functions

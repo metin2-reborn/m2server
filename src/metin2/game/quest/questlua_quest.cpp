@@ -19,7 +19,7 @@ namespace quest
 	//
 	// "quest" Lua functions
 	//
-	int quest_start(lua_State* L)
+	int quest_start(lua_State* lua)
 	{
 		quest_manager& q = quest_manager::instance();
 
@@ -27,7 +27,7 @@ namespace quest
 		return 0;
 	}
 
-	int quest_done(lua_State* L)
+	int quest_done(lua_State* lua)
 	{
 		quest_manager& q = quest_manager::instance();
 
@@ -35,79 +35,79 @@ namespace quest
 		return 0;
 	}
 
-	int quest_set_title(lua_State* L)
+	int quest_set_title(lua_State* lua)
 	{
 		quest_manager& q = quest_manager::instance();
 
-		if (lua_isstring(L,-1))
-			q.current_pc()->set_current_quest_title(lua_tostring(L,-1));
+		if (lua_isstring(lua,-1))
+			q.current_pc()->set_current_quest_title(lua_tostring(lua,-1));
 
 		return 0;
 	}
 
-	int quest_set_another_title(lua_State* L)
+	int quest_set_another_title(lua_State* lua)
 	{
 		quest_manager& q = quest_manager::instance();
 
-		if (lua_isstring(L,1) && lua_isstring(L,2))
-			q.current_pc()->set_quest_title(lua_tostring(L,1),lua_tostring(L,2));
+		if (lua_isstring(lua,1) && lua_isstring(lua,2))
+			q.current_pc()->set_quest_title(lua_tostring(lua,1),lua_tostring(lua,2));
 
 		return 0;
 	}
 
-	int quest_set_clock_name(lua_State* L)
+	int quest_set_clock_name(lua_State* lua)
 	{
 		quest_manager& q = quest_manager::instance();
 
-		if (lua_isstring(L,-1))
-			q.current_pc()->set_current_quest_clock_name(lua_tostring(L,-1));
+		if (lua_isstring(lua,-1))
+			q.current_pc()->set_current_quest_clock_name(lua_tostring(lua,-1));
 
 		return 0;
 	}
 
-	int quest_set_clock_value(lua_State* L)
+	int quest_set_clock_value(lua_State* lua)
 	{
 		quest_manager& q = quest_manager::instance();
 
-		if (lua_isnumber(L,-1))
-			q.current_pc()->set_current_quest_clock_value((int)rint(lua_tonumber(L,-1)));
+		if (lua_isnumber(lua,-1))
+			q.current_pc()->set_current_quest_clock_value((int)rint(lua_tonumber(lua,-1)));
 
 		return 0;
 	}
 
-	int quest_set_counter_name(lua_State* L)
+	int quest_set_counter_name(lua_State* lua)
 	{
 		quest_manager& q = quest_manager::instance();
 
-		if (lua_isstring(L,-1))
-			q.current_pc()->set_current_quest_counter_name(lua_tostring(L,-1));
+		if (lua_isstring(lua,-1))
+			q.current_pc()->set_current_quest_counter_name(lua_tostring(lua,-1));
 
 		return 0;
 	}
 
-	int quest_set_counter_value(lua_State* L)
+	int quest_set_counter_value(lua_State* lua)
 	{
 		quest_manager& q = quest_manager::instance();
 
-		if (lua_isnumber(L,-1))
-			q.current_pc()->set_current_quest_counter_value((int)rint(lua_tonumber(L,-1)));
+		if (lua_isnumber(lua,-1))
+			q.current_pc()->set_current_quest_counter_value((int)rint(lua_tonumber(lua,-1)));
 
 		return 0;
 	}
 
-	int quest_set_icon_file(lua_State* L)
+	int quest_set_icon_file(lua_State* lua)
 	{
 		quest_manager& q = quest_manager::instance();
 
-		if (lua_isstring(L,-1))
-			q.current_pc()->set_current_quest_icon_file(lua_tostring(L,-1));
+		if (lua_isstring(lua,-1))
+			q.current_pc()->set_current_quest_icon_file(lua_tostring(lua,-1));
 
 		return 0;
 	}
 
-	int quest_setstate(lua_State* L)
+	int quest_setstate(lua_State* lua)
 	{
-		if (lua_tostring(L, -1)==nullptr)
+		if (lua_tostring(lua, -1)==nullptr)
 		{
 			quest::error("state name is empty");
 			return 0;
@@ -117,9 +117,9 @@ namespace quest
 		quest_state * pqs = q.current_state();
 		pc* pPC = q.current_pc();
 
-		if (L!=pqs->co) 
+		if (lua!=pqs->co) 
 		{
-			luaL_error(L, "running thread != current thread???");
+			luaL_error(lua, "running thread != current thread???");
 			if ( metin2::config::test_server() )
 				metin2::log::info("running thread != current thread???");
 			return 0;
@@ -129,7 +129,7 @@ namespace quest
 		{
 			//cerr << "QUEST new state" << pPC->GetCurrentQuestName(); << ":"
 			//
-			std::string stCurrentState = lua_tostring(L,-1);
+			std::string stCurrentState = lua_tostring(lua,-1);
 			if ( metin2::config::test_server() )
 				metin2::log::info("questlua->setstate( {}, {} )", pPC->current_quest_name().c_str(), stCurrentState.c_str() );
 			pqs->st = q.quest_state_index(pPC->current_quest_name(), stCurrentState);
@@ -138,7 +138,7 @@ namespace quest
 		return 0;
 	}
 
-	int quest_coroutine_yield(lua_State * L)
+	int quest_coroutine_yield(lua_State * lua)
 	{
 		quest_manager& q = quest_manager::instance();
 		// A yield must never happen inside an other_pc_block. Never.
@@ -162,35 +162,35 @@ namespace quest
 			}
 			return 0;
 		}
-		return lua_yield(L, lua_gettop(L));
+		return lua_yield(lua, lua_gettop(lua));
 	}
 
-	int quest_no_send(lua_State* L)
+	int quest_no_send(lua_State* lua)
 	{
 		quest_manager& q = quest_manager::instance();
 		q.set_no_send();
 		return 0;
 	}
 
-	int quest_get_current_quest_index(lua_State* L)
+	int quest_get_current_quest_index(lua_State* lua)
 	{
 		quest_manager& q = quest_manager::instance();
 		pc* pPC = q.current_pc();
 
 		int idx = q.quest_index_by_name(pPC->current_quest_name());
-		lua_pushnumber(L, idx);
+		lua_pushnumber(lua, idx);
 		return 1;
 	}
 
-	int quest_begin_other_pc_block(lua_State* L)
+	int quest_begin_other_pc_block(lua_State* lua)
 	{
 		quest_manager& q = quest_manager::instance();
-		uint32_t pid = lua_tonumber(L, -1);
+		uint32_t pid = lua_tonumber(lua, -1);
 		q.begin_other_pc_block(pid);
 		return 0;
 	}
 
-	int quest_end_other_pc_block(lua_State* L)
+	int quest_end_other_pc_block(lua_State* lua)
 	{
 		quest_manager& q = quest_manager::instance();
 		q.end_other_pc_block();

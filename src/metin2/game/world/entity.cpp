@@ -108,12 +108,12 @@ void entity::packet_view(const void * data, int bytes, entity * except)
 	f(std::make_pair(this, 0));
 }
 
-void entity::set_observer_mode(bool bFlag)
+void entity::set_observer_mode(bool flag)
 {
-	if (is_observer_ == bFlag)
+	if (is_observer_ == flag)
 		return;
 
-	is_observer_ = bFlag;
+	is_observer_ = flag;
 	observer_mode_change_ = true;
 	update_sectree();
 

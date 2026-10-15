@@ -97,7 +97,7 @@ void priv_manager::request_give_character_priv(uint32_t pid, uint8_t type, int v
 	db_clientdesc->db_packet(HEADER_GD_REQUEST_CHARACTER_PRIV, 0, &p, sizeof(p));
 }
 
-void priv_manager::give_guild_priv(uint32_t guild_id, uint8_t type, int value, uint8_t bLog, time_t end_time_sec)
+void priv_manager::give_guild_priv(uint32_t guild_id, uint8_t type, int value, uint8_t log, time_t end_time_sec)
 {
 	if (MAX_PRIV_NUM <= type)
 	{
@@ -130,14 +130,14 @@ void priv_manager::give_guild_priv(uint32_t guild_id, uint8_t type, int value, u
 			send_notice(buf);
 		}
 
-		if (bLog)
+		if (log)
 		{
 			log_manager::instance().char_log(0, guild_id, type, value, "GUILD_PRIV", "", "");
 		}
 	}
 }
 
-void priv_manager::give_character_priv(uint32_t pid, uint8_t type, int value, uint8_t bLog)
+void priv_manager::give_character_priv(uint32_t pid, uint8_t type, int value, uint8_t log)
 {
 	if (MAX_PRIV_NUM <= type)
 	{
@@ -151,11 +151,11 @@ void priv_manager::give_character_priv(uint32_t pid, uint8_t type, int value, ui
 
 	priv_char_[type][pid] = value;
 
-	if (bLog)
+	if (log)
 		log_manager::instance().char_log(pid, 0, type, value, "CHARACTER_PRIV", "", "");
 }
 
-void priv_manager::give_empire_priv(uint8_t empire, uint8_t type, int value, uint8_t bLog, time_t end_time_sec)
+void priv_manager::give_empire_priv(uint8_t empire, uint8_t type, int value, uint8_t log, time_t end_time_sec)
 {
 	if (MAX_PRIV_NUM <= type)
 	{
@@ -193,7 +193,7 @@ void priv_manager::give_empire_priv(uint8_t empire, uint8_t type, int value, uin
 			send_log(buf);
 	}
 
-	if (bLog)
+	if (log)
 	{
 		log_manager::instance().char_log(0, empire, type, value, "EMPIRE_PRIV", "", "");
 	}
@@ -221,9 +221,9 @@ int priv_manager::priv(character * ch, uint8_t type)
 	}
 }
 
-int priv_manager::priv_by_empire(uint8_t bEmpire, uint8_t type)
+int priv_manager::priv_by_empire(uint8_t empire, uint8_t type)
 {
-	priv_empire_data* pkPrivEmpireData = priv_by_empire_ex(bEmpire, type);
+	priv_empire_data* pkPrivEmpireData = priv_by_empire_ex(empire, type);
 
 	if (pkPrivEmpireData)
 		return pkPrivEmpireData->value;
@@ -231,15 +231,15 @@ int priv_manager::priv_by_empire(uint8_t bEmpire, uint8_t type)
 	return 0;
 }
 
-priv_manager::priv_empire_data* priv_manager::priv_by_empire_ex(uint8_t bEmpire, uint8_t type)
+priv_manager::priv_empire_data* priv_manager::priv_by_empire_ex(uint8_t empire, uint8_t type)
 {
 	if (type >= MAX_PRIV_NUM)
 		return nullptr;
 
-	if (bEmpire >= EMPIRE_MAX_NUM)
+	if (empire >= EMPIRE_MAX_NUM)
 		return nullptr;
 
-	return &aak_priv_empire_data_[type][bEmpire];
+	return &aak_priv_empire_data_[type][empire];
 }
 
 int priv_manager::priv_by_guild(uint32_t guild_id, uint8_t type)
@@ -255,14 +255,14 @@ int priv_manager::priv_by_guild(uint32_t guild_id, uint8_t type)
 	return itFind->second.value;
 }
 
-const priv_manager::priv_guild_data* priv_manager::priv_by_guild_ex( uint32_t dwGuildID, uint8_t byType ) const
+const priv_manager::priv_guild_data* priv_manager::priv_by_guild_ex( uint32_t guild_id, uint8_t type ) const
 {
-	if ( byType >= MAX_PRIV_NUM )
+	if ( type >= MAX_PRIV_NUM )
 		return nullptr;
 
-	auto itFind = priv_guild_[ byType ].find( dwGuildID );
+	auto itFind = priv_guild_[ type ].find( guild_id );
 
-	if ( itFind == priv_guild_[ byType ].end() )
+	if ( itFind == priv_guild_[ type ].end() )
 		return nullptr;
 
 	return &itFind->second;

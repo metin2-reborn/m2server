@@ -18,25 +18,25 @@
 
 namespace metin2::game::inline combat {
 
-void skill_proto::set_point_var(const std::string& strName, double dVar)
+void skill_proto::set_point_var(const std::string& name, double var)
 {
-	point_poly.set_var(strName, dVar);
-	point_poly2.set_var(strName, dVar);
-	point_poly3.set_var(strName, dVar);
-	master_bonus_poly.set_var(strName, dVar);
+	point_poly.set_var(name, var);
+	point_poly2.set_var(name, var);
+	point_poly3.set_var(name, var);
+	master_bonus_poly.set_var(name, var);
 }
 
-void skill_proto::set_duration_var(const std::string& strName, double dVar)
+void skill_proto::set_duration_var(const std::string& name, double var)
 {
-	duration_poly.set_var(strName, dVar);
-	duration_poly2.set_var(strName, dVar);
-	duration_poly3.set_var(strName, dVar);
+	duration_poly.set_var(name, var);
+	duration_poly2.set_var(name, var);
+	duration_poly3.set_var(name, var);
 }
 
-void skill_proto::set_sp_cost_var(const std::string& strName, double dVar)
+void skill_proto::set_sp_cost_var(const std::string& name, double var)
 {
-	sp_cost_poly.set_var(strName, dVar);
-	grand_master_add_sp_cost_poly.set_var(strName, dVar);
+	sp_cost_poly.set_var(name, var);
+	grand_master_add_sp_cost_poly.set_var(name, var);
 }
 
 skill_manager::skill_manager()
@@ -87,25 +87,25 @@ struct point_on_type
 	{ "\n",		POINT_NONE		},
 };
 
-int find_point_type(const char * c_sz)
+int find_point_type(const char * sz)
 {
 	for (int i = 0; *point_on_types[i].psz_name != '\n'; ++i)
 	{
-		if (!strcasecmp(c_sz, point_on_types[i].psz_name))
+		if (!strcasecmp(sz, point_on_types[i].psz_name))
 			return point_on_types[i].point_on;
 	}
 	return -1;
 }
 
-bool skill_manager::initialize(skill_table * pTab, int iSize)
+bool skill_manager::initialize(skill_table * tab, int size)
 {
 	char buf[1024];
 	std::map<uint32_t, std::unique_ptr<skill_proto>> map_pkSkillProto;
 
-	skill_table * t = pTab;
+	skill_table * t = tab;
 	bool bError = false;
 
-	for (int i = 0; i < iSize; ++i, ++t)
+	for (int i = 0; i < size; ++i, ++t)
 	{
 		auto pkProto = std::make_unique<skill_proto>();
 
@@ -306,9 +306,9 @@ bool skill_manager::initialize(skill_table * pTab, int iSize)
 	return !bError;
 }
 
-skill_proto * skill_manager::get(uint32_t dwVnum)
+skill_proto * skill_manager::get(uint32_t vnum)
 {
-	auto it = map_pk_skill_proto_.find(dwVnum);
+	auto it = map_pk_skill_proto_.find(vnum);
 
 	if (it == map_pk_skill_proto_.end())
 		return nullptr;
@@ -316,13 +316,13 @@ skill_proto * skill_manager::get(uint32_t dwVnum)
 	return it->second.get();
 }
 
-skill_proto * skill_manager::get(const char * c_pszSkillName)
+skill_proto * skill_manager::get(const char * skill_name)
 {
 	auto it = map_pk_skill_proto_.begin();
 
 	while (it != map_pk_skill_proto_.end())
 	{
-		if (!strcasecmp(it->second->name, c_pszSkillName))
+		if (!strcasecmp(it->second->name, skill_name))
 			return it->second.get();
 
 		it++;

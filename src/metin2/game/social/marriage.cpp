@@ -145,7 +145,7 @@ namespace marriage
 	}
 
 	// Love (affection) value
-	int marriage::bonus(uint32_t dwItemVnum, bool bShare, character * me)
+	int marriage::bonus(uint32_t item_vnum, bool share, character * me)
 	{
 		if (!is_married)
 			return 0;
@@ -157,7 +157,7 @@ namespace marriage
 		{
 			for (iFindedBonusIndex = 0; iFindedBonusIndex < MAX_MARRIAGE_UNIQUE_ITEM; ++iFindedBonusIndex)
 			{
-				if (item_bonus[iFindedBonusIndex].vnum == dwItemVnum)
+				if (item_bonus[iFindedBonusIndex].vnum == item_vnum)
 					break;
 			}
 
@@ -165,13 +165,13 @@ namespace marriage
 				return 0;
 		}
 
-		if (bShare)
+		if (share)
 		{
 			// Sum the bonuses of both.
 			int count = 0;
-			if (nullptr != ch1 && ch1->is_equip_unique_item(dwItemVnum))
+			if (nullptr != ch1 && ch1->is_equip_unique_item(item_vnum))
 				count ++;
-			if (nullptr != ch2 && ch2->is_equip_unique_item(dwItemVnum))
+			if (nullptr != ch2 && ch2->is_equip_unique_item(item_vnum))
 				count ++;
 
 			const marriage_item_bonus_by_grade& rkBonus = item_bonus[iFindedBonusIndex];
@@ -184,9 +184,9 @@ namespace marriage
 		{
 			// Count only the partner's
 			int count = 0;
-			if (me != ch1 && nullptr!= ch1 && ch1->is_equip_unique_item(dwItemVnum))
+			if (me != ch1 && nullptr!= ch1 && ch1->is_equip_unique_item(item_vnum))
 				count ++;
-			if (me != ch2 && nullptr!= ch2 && ch2->is_equip_unique_item(dwItemVnum))
+			if (me != ch2 && nullptr!= ch2 && ch2->is_equip_unique_item(item_vnum))
 				count ++;
 
 			const marriage_item_bonus_by_grade& rkBonus = item_bonus[iFindedBonusIndex];
@@ -454,12 +454,12 @@ namespace marriage
 		}
 	}
 
-	void marriage::warp_to_wedding_map(uint32_t dwPID)
+	void marriage::warp_to_wedding_map(uint32_t pid)
 	{
 		if (!wedding_info)
 			return;
 
-		character * ch = character_manager::instance().find_by_pid(dwPID);
+		character * ch = character_manager::instance().find_by_pid(pid);
 		if (ch)
 		{
 			pixel_position pos;
@@ -488,37 +488,37 @@ namespace marriage
 	{
 	}
 
-	bool manager::is_marriage_unique_item(uint32_t dwItemVnum)
+	bool manager::is_marriage_unique_item(uint32_t item_vnum)
 	{
 		for (int i = 0; i < MAX_MARRIAGE_UNIQUE_ITEM; i++)
 		{
-			if (item_bonus[i].vnum == dwItemVnum)
+			if (item_bonus[i].vnum == item_vnum)
 				return true;
 		}
 		return false;
 	}
 
-	bool manager::is_married(uint32_t dwPlayerID) 
+	bool manager::is_married(uint32_t player_id) 
 	{ 
-		marriage* pkMarriageFinded=get(dwPlayerID);
+		marriage* pkMarriageFinded=get(player_id);
 		if (pkMarriageFinded && pkMarriageFinded->is_married)
 			return true;
 
 		return false;
 	}
 
-	bool manager::is_engaged(uint32_t dwPlayerID) 
+	bool manager::is_engaged(uint32_t player_id) 
 	{ 
-		marriage* pkMarriageFinded=get(dwPlayerID);
+		marriage* pkMarriageFinded=get(player_id);
 		if (pkMarriageFinded && !pkMarriageFinded->is_married)
 			return true;
 
 		return false;
 	}
 
-	bool manager::is_engaged_or_married(uint32_t dwPlayerID) 
+	bool manager::is_engaged_or_married(uint32_t player_id) 
 	{ 
-		return get(dwPlayerID) != nullptr; 
+		return get(player_id) != nullptr; 
 	}
 
 	bool manager::initialize()
@@ -526,15 +526,15 @@ namespace marriage
 		return true;
 	}
 
-	void align(uint32_t& dwPID1, uint32_t& dwPID2)
+	void align(uint32_t& pid1, uint32_t& pid2)
 	{
-		if (dwPID1 > dwPID2)
-			std::swap(dwPID1, dwPID2);
+		if (pid1 > pid2)
+			std::swap(pid1, pid2);
 	}
 
-	marriage* manager::get(uint32_t dwPlayerID)
+	marriage* manager::get(uint32_t player_id)
 	{
-		auto it = marriage_by_pid_.find(dwPlayerID);
+		auto it = marriage_by_pid_.find(player_id);
 
 		if (it != marriage_by_pid_.end())
 			return it->second;
@@ -542,104 +542,104 @@ namespace marriage
 		return nullptr;
 	}
 
-	void manager::request_add(uint32_t dwPID1, uint32_t dwPID2, const char* szName1, const char* szName2)
+	void manager::request_add(uint32_t pid1, uint32_t pid2, const char* name1_value, const char* name2_value)
 	{
-		if (dwPID1 > dwPID2)
+		if (pid1 > pid2)
 		{
-			std::swap(dwPID1, dwPID2);
-			std::swap(szName1, szName2);
+			std::swap(pid1, pid2);
+			std::swap(name1_value, name2_value);
 		}
 
 		packet_marriage_add p;
 
-		p.pi_d1 = dwPID1;
-		p.pi_d2 = dwPID2;
-		strlcpy(p.name1, szName1, sizeof(p.name1));
-		strlcpy(p.name2, szName2, sizeof(p.name2));
+		p.pi_d1 = pid1;
+		p.pi_d2 = pid2;
+		strlcpy(p.name1, name1_value, sizeof(p.name1));
+		strlcpy(p.name2, name2_value, sizeof(p.name2));
 		db_clientdesc->db_packet(HEADER_GD_MARRIAGE_ADD, 0, &p, sizeof(p));
 	}
 
-	void manager::add(uint32_t dwPID1, uint32_t dwPID2, time_t tMarryTime, const char* szName1, const char* szName2)
+	void manager::add(uint32_t pid1, uint32_t pid2, time_t t_marry_time, const char* name1, const char* name2)
 	{
-		if (is_engaged_or_married(dwPID1) || is_engaged_or_married(dwPID2))
+		if (is_engaged_or_married(pid1) || is_engaged_or_married(pid2))
 		{
-			metin2::log::error("cannot marry already married character. {:d} - {:d}", dwPID1, dwPID2);
+			metin2::log::error("cannot marry already married character. {:d} - {:d}", pid1, pid2);
 			return;
 		}
 
-		if (dwPID1 > dwPID2)
+		if (pid1 > pid2)
 		{
-			std::swap(dwPID1, dwPID2);
-			std::swap(szName1, szName2);
+			std::swap(pid1, pid2);
+			std::swap(name1, name2);
 		}
 
-		marriage* pMarriage = new marriage(dwPID1, dwPID2, 0, tMarryTime, szName1, szName2);
+		marriage* pMarriage = new marriage(pid1, pid2, 0, t_marry_time, name1, name2);
 		marriages_.insert(pMarriage);
-		marriage_by_pid_.insert(std::make_pair(dwPID1, pMarriage));
-		marriage_by_pid_.insert(std::make_pair(dwPID2, pMarriage));
+		marriage_by_pid_.insert(std::make_pair(pid1, pMarriage));
+		marriage_by_pid_.insert(std::make_pair(pid2, pMarriage));
 		{
-			character * A = character_manager::instance().find_by_pid(dwPID1);
-			character * B = character_manager::instance().find_by_pid(dwPID2);
+			character * A = character_manager::instance().find_by_pid(pid1);
+			character * B = character_manager::instance().find_by_pid(pid2);
 
 			if (A && B)
 			{
 				// Send the wedding map request
 				packet_wedding_request p;
-				p.pi_d1 = dwPID1;
-				p.pi_d2 = dwPID2;
+				p.pi_d1 = pid1;
+				p.pi_d2 = pid2;
 				db_clientdesc->db_packet(HEADER_GD_WEDDING_REQUEST, 0, &p, sizeof(p));
 			}
 		}
 	}
 
-	void manager::request_update(uint32_t dwPID1, uint32_t dwPID2, int iUpdatePoint, uint8_t byMarried)
+	void manager::request_update(uint32_t pid1, uint32_t pid2, int update_point, uint8_t married_value)
 	{
-		align(dwPID1, dwPID2);
+		align(pid1, pid2);
 
 		packet_marriage_update p;
-		p.pi_d1 = dwPID1;
-		p.pi_d2 = dwPID2;
-		p.love_point = iUpdatePoint;
-		p.married = byMarried;
+		p.pi_d1 = pid1;
+		p.pi_d2 = pid2;
+		p.love_point = update_point;
+		p.married = married_value;
 		db_clientdesc->db_packet(HEADER_GD_MARRIAGE_UPDATE, 0, &p, sizeof(p));
 	}
 
-	void manager::update(uint32_t dwPID1, uint32_t dwPID2, int32_t lTotalPoint, uint8_t byMarried)
+	void manager::update(uint32_t pid1, uint32_t pid2, int32_t total_point, uint8_t married)
 	{
-		marriage* pMarriage = get(dwPID1);
+		marriage* pMarriage = get(pid1);
 
-		if (!pMarriage || pMarriage->other(dwPID1) != dwPID2)
+		if (!pMarriage || pMarriage->other(pid1) != pid2)
 		{
-			metin2::log::error("not under marriage : {:d} {:d}", dwPID1, dwPID2);
+			metin2::log::error("not under marriage : {:d} {:d}", pid1, pid2);
 			return;
 		}
 
-		pMarriage->love_point = lTotalPoint;
-		pMarriage->is_married = byMarried;
+		pMarriage->love_point = total_point;
+		pMarriage->is_married = married;
 	}
 
-	void manager::request_remove(uint32_t dwPID1, uint32_t dwPID2)
+	void manager::request_remove(uint32_t pid1, uint32_t pid2)
 	{
-		align(dwPID1, dwPID2);
+		align(pid1, pid2);
 
 		packet_marriage_remove p;
-		p.pi_d1 = dwPID1;
-		p.pi_d2 = dwPID2;
+		p.pi_d1 = pid1;
+		p.pi_d2 = pid2;
 		db_clientdesc->db_packet(HEADER_GD_MARRIAGE_REMOVE, 0, &p, sizeof(p));
 	}
 
-	void manager::remove(uint32_t dwPID1, uint32_t dwPID2)
+	void manager::remove(uint32_t pid1, uint32_t pid2)
 	{
-		marriage* pMarriage = get(dwPID1);
-		if (!pMarriage || pMarriage->other(dwPID1) != dwPID2)
+		marriage* pMarriage = get(pid1);
+		if (!pMarriage || pMarriage->other(pid1) != pid2)
 		{
-			metin2::log::error("not under marriage : {:d} {:d}", dwPID1, dwPID2);
+			metin2::log::error("not under marriage : {:d} {:d}", pid1, pid2);
 			return;
 		}
 
 		marriages_.erase(pMarriage);
-		marriage_by_pid_.erase(dwPID1);
-		marriage_by_pid_.erase(dwPID2);
+		marriage_by_pid_.erase(pid1);
+		marriage_by_pid_.erase(pid2);
 
 		delete pMarriage;
 	}
@@ -670,27 +670,27 @@ namespace marriage
 		logout(ch->player_id());
 	}
 
-	void manager::wedding_ready(uint32_t dwPID1, uint32_t dwPID2, uint32_t dwMapIndex)
+	void manager::wedding_ready(uint32_t pid1, uint32_t pid2, uint32_t map_index_value)
 	{
-		marriage* pMarriage = get(dwPID1);
-		if (!pMarriage || pMarriage->other(dwPID1) != dwPID2)
+		marriage* pMarriage = get(pid1);
+		if (!pMarriage || pMarriage->other(pid1) != pid2)
 		{
-			metin2::log::error("wrong marriage {:d}, {:d}", dwPID1, dwPID2);
+			metin2::log::error("wrong marriage {:d}, {:d}", pid1, pid2);
 			return;
 		}
 
 		if (!pMarriage->wedding_info)
 			pMarriage->wedding_info = std::make_unique<wedding_info>();
 
-		pMarriage->wedding_info->map_index = dwMapIndex;
+		pMarriage->wedding_info->map_index = map_index_value;
 	}
 
-	void manager::wedding_start(uint32_t dwPID1, uint32_t dwPID2)
+	void manager::wedding_start(uint32_t pid1, uint32_t pid2)
 	{
-		marriage* pMarriage = get(dwPID1);
-		if (!pMarriage || pMarriage->other(dwPID1) != dwPID2)
+		marriage* pMarriage = get(pid1);
+		if (!pMarriage || pMarriage->other(pid1) != pid2)
 		{
-			metin2::log::error("wrong marriage {:d}, {:d}", dwPID1, dwPID2);
+			metin2::log::error("wrong marriage {:d}, {:d}", pid1, pid2);
 			return;
 		}
 
@@ -700,25 +700,25 @@ namespace marriage
 			return;
 
 		// Must warp the couple
-		pMarriage->warp_to_wedding_map(dwPID1);
-		pMarriage->warp_to_wedding_map(dwPID2);
+		pMarriage->warp_to_wedding_map(pid1);
+		pMarriage->warp_to_wedding_map(pid2);
 
 		// Must register so the name shows up in the menu window
-		wedding_.insert(std::make_pair(dwPID1, dwPID2));
+		wedding_.insert(std::make_pair(pid1, pid2));
 	}
 
-	void manager::wedding_end(uint32_t dwPID1, uint32_t dwPID2)
+	void manager::wedding_end(uint32_t pid1, uint32_t pid2)
 	{
-		marriage* pMarriage = get(dwPID1);
-		if (!pMarriage || pMarriage->other(dwPID1) != dwPID2)
+		marriage* pMarriage = get(pid1);
+		if (!pMarriage || pMarriage->other(pid1) != pid2)
 		{
-			metin2::log::error("wrong marriage {:d}, {:d}", dwPID1, dwPID2);
+			metin2::log::error("wrong marriage {:d}, {:d}", pid1, pid2);
 			return;
 		}
 
 		if (!pMarriage->wedding_info)
 		{
-			metin2::log::error("not under wedding {:d}, {:d}", dwPID1, dwPID2);
+			metin2::log::error("not under wedding {:d}, {:d}", pid1, pid2);
 			return;
 		}
 
@@ -732,14 +732,14 @@ namespace marriage
 
 		pMarriage->wedding_info.reset();
 
-		wedding_.erase(std::make_pair(dwPID1, dwPID2));
+		wedding_.erase(std::make_pair(pid1, pid2));
 	}
 
-	void manager::request_end_wedding(uint32_t dwPID1, uint32_t dwPID2)
+	void manager::request_end_wedding(uint32_t pid1, uint32_t pid2)
 	{
 		packet_wedding_end p;
-		p.pi_d1 = dwPID1;
-		p.pi_d2 = dwPID2;
+		p.pi_d1 = pid1;
+		p.pi_d2 = pid2;
 
 		db_clientdesc->db_packet(HEADER_GD_WEDDING_END, 0, &p, sizeof(p));
 	}

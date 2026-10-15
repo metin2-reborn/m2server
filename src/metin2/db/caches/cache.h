@@ -46,7 +46,7 @@ class item_price_list_table_cache : public cache<item_price_list_table> {
      * Updates the cached price info.
      * If the price list is full, previously cached entries are removed from the back.
      */
-    void update_list(const item_price_list_table *pUpdateList);
+    void update_list(const item_price_list_table *update_list);
 
     /// Writes the price info to the DB.
     void on_flush(void) override;

@@ -31,10 +31,10 @@ class item_award_manager : public singleton<item_award_manager>
 	~item_award_manager() override;
 
 	void				request_load();
-	void				load(ql_msg * pMsg);
-	std::set<item_award *> *	by_login(const char * c_pszLogin);
+	void				load(ql_msg * msg);
+	std::set<item_award *> *	by_login(const char * login);
 
-	void				taken(uint32_t dwAwardID, uint32_t dwItemID);
+	void				taken(uint32_t award_id, uint32_t item_id);
 	// gift notify
 	std::map<uint32_t, item_award *>& map_award();
 	std::map<std::string, std::set<item_award *> >& mapk_set_award_by_login();

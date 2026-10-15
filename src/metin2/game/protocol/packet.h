@@ -418,8 +418,8 @@ struct packet_gg_warp_character {
 
 struct packet_gg_guild_war_map_index {
 	uint8_t header;
-	uint32_t guild_i_d1;
-	uint32_t guild_i_d2;
+	uint32_t guild_id1;
+	uint32_t guild_id2;
 	int32_t map_index;
 };
 

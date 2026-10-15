@@ -26,16 +26,16 @@ void client_manager::update_horse_name(packet_update_horse_name* data, peer* pee
 	forward_packet(HEADER_DG_UPDATE_HORSE_NAME, data, sizeof(packet_update_horse_name), 0, peer);
 }
 
-void client_manager::ack_horse_name(uint32_t dwPID, peer* peer)
+void client_manager::ack_horse_name(uint32_t pid, peer* peer)
 {
 	char szQuery[512];
 
-	snprintf(szQuery, sizeof(szQuery), "SELECT name FROM horse_name WHERE id = %u", dwPID);
+	snprintf(szQuery, sizeof(szQuery), "SELECT name FROM horse_name WHERE id = %u", pid);
 
 	std::unique_ptr<ql_msg> pmsg(db_manager::instance().direct_query(szQuery));
 
 	packet_update_horse_name packet;
-	packet.player_id = dwPID;
+	packet.player_id = pid;
 
 	if (pmsg->get()->num_rows == 0)
 	{

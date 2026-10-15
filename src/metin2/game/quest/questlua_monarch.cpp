@@ -101,11 +101,11 @@ namespace quest
 	//
 	// "monarch_" lua functions
 	//
-	int takemonarchmoney(lua_State * L)
+	int takemonarchmoney(lua_State * lua)
 	{
 		character * ch = quest_manager::instance().current_character_ptr(); 
 
-		int nMoney = (int)lua_tonumber(L,1);
+		int nMoney = (int)lua_tonumber(lua,1);
 		int nPID = ch->player_id();
 		int nEmpire = ch->empire();
 		nMoney = nMoney * 10000;
@@ -119,7 +119,7 @@ namespace quest
 		return 1;
 	}
 
-	int	 is_guild_master(lua_State * L)
+	int	 is_guild_master(lua_State * lua)
 	{
 		character * ch = quest_manager::instance().current_character_ptr(); 
 
@@ -131,18 +131,18 @@ namespace quest
 			{
 				if (pMember->grade <= 4)
 				{
-					lua_pushnumber(L ,1);
+					lua_pushnumber(lua ,1);
 					return 1;
 				}
 			}
 
 		}
-		lua_pushnumber(L ,0);
+		lua_pushnumber(lua ,0);
 
 		return 1;
 	}
 
-	int monarch_bless(lua_State * L)
+	int monarch_bless(lua_State * lua)
 	{
 		character * ch = quest_manager::instance().current_character_ptr(); 
 
@@ -174,7 +174,7 @@ namespace quest
 	}
 
 	// Monarch's Lion's Roar quest function 
-	int monarch_powerup(lua_State * L)
+	int monarch_powerup(lua_State * lua)
 	{
 		character * ch = quest_manager::instance().current_character_ptr(); 
 
@@ -230,7 +230,7 @@ namespace quest
 		return 1;		
 	}
 	// Monarch's Diamond Fist quest function 
-	int monarch_defenseup(lua_State * L)
+	int monarch_defenseup(lua_State * lua)
 	{
 		character * ch = quest_manager::instance().current_character_ptr(); 
 
@@ -287,24 +287,24 @@ namespace quest
 		return 1;
 	}
 
-	int is_monarch(lua_State * L)
+	int is_monarch(lua_State * lua)
 	{
 		character * ch = quest_manager::instance().current_character_ptr(); 
 		if (!ch)
 			return 0;
-		lua_pushnumber(L, ch->is_monarch());
+		lua_pushnumber(lua, ch->is_monarch());
 		return 1;
 	}
 
-	int spawn_mob(lua_State * L)
+	int spawn_mob(lua_State * lua)
 	{
-		if (!lua_isnumber(L, 1))
+		if (!lua_isnumber(lua, 1))
 		{
 			quest::error("invalid argument");
 			return 0;
 		}
 
-		uint32_t mob_vnum = (uint32_t)lua_tonumber(L, 1);
+		uint32_t mob_vnum = (uint32_t)lua_tonumber(lua, 1);
 
 		character * ch = quest_manager::instance().current_character_ptr(); 
 
@@ -350,7 +350,7 @@ namespace quest
 				if (!ret)
 				{
 					ret = true;
-					lua_pushnumber(L, (uint32_t) mob->get_vid());
+					lua_pushnumber(lua, (uint32_t) mob->get_vid());
 				}
 			}
 		}
@@ -358,17 +358,17 @@ namespace quest
 		return 1;
 	}
 
-	int spawn_guard(lua_State * L)
+	int spawn_guard(lua_State * lua)
 	{
 		// mob_level(0-2), region(0~3)
-		if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2))
+		if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2))
 		{
 			quest::error("invalid argument");
 			return 0;
 		}
 
-		uint32_t	group_vnum		= (uint32_t)lua_tonumber(L,1);
-		int		region_index	= (int)lua_tonumber(L, 2);
+		uint32_t	group_vnum		= (uint32_t)lua_tonumber(lua,1);
+		int		region_index	= (int)lua_tonumber(lua, 2);
 		character * ch = quest_manager::instance().current_character_ptr(); 
 		if (!ch)
 			return 0;
@@ -413,15 +413,15 @@ namespace quest
 		return 1;
 	}
 
-	int monarch_warp(lua_State * L)
+	int monarch_warp(lua_State * lua)
 	{
-		if (!lua_isstring(L, 1))
+		if (!lua_isstring(lua, 1))
 		{
 			quest::error("invalid argument");
 			return 0;
 		}
 
-		std::string name = lua_tostring(L, 1);
+		std::string name = lua_tostring(lua, 1);
 
 		character * ch = quest_manager::instance().current_character_ptr(); 
 		if (!ch)
@@ -533,7 +533,7 @@ namespace quest
 		return 0;
 	}
 
-	int empire_info(lua_State * L)
+	int empire_info(lua_State * lua)
 	{
 		character * ch = quest_manager::instance().current_character_ptr(); 
 
@@ -565,15 +565,15 @@ namespace quest
 		return 0;
 	}
 
-	int monarch_transfer(lua_State * L)
+	int monarch_transfer(lua_State * lua)
 	{
-		if (!lua_isstring(L, 1))
+		if (!lua_isstring(lua, 1))
 		{
 			quest::error("invalid argument");
 			return 0;
 		}
 
-		std::string name = lua_tostring(L, 1);
+		std::string name = lua_tostring(lua, 1);
 
 		character * ch = quest_manager::instance().current_character_ptr(); 
 
@@ -690,9 +690,9 @@ namespace quest
 		return 0;
 	}
 
-	int monarch_notice(lua_State * L)
+	int monarch_notice(lua_State * lua)
 	{
-		if (!lua_isstring(L, 1))
+		if (!lua_isstring(lua, 1))
 			return 0;
 
 		character * ch = quest_manager::instance().current_character_ptr();
@@ -706,7 +706,7 @@ namespace quest
 			return 0;
 		}
 
-		std::string strNotice = lua_tostring(L, 1);
+		std::string strNotice = lua_tostring(lua, 1);
 
 		if (strNotice.length() > 0)
 			send_monarch_notice(ch->empire(), strNotice.c_str());
@@ -714,9 +714,9 @@ namespace quest
 		return 0;
 	}
 
-	int monarch_mob(lua_State * L)
+	int monarch_mob(lua_State * lua)
 	{
-		if (!lua_isstring(L, 1))
+		if (!lua_isstring(lua, 1))
 			return 0;
 
 		character * ch = quest_manager::instance().current_character_ptr();
@@ -724,7 +724,7 @@ namespace quest
 		if (ch == nullptr)
 			return 0;
 
-		std::string vnum(lua_tostring(L, 1));
+		std::string vnum(lua_tostring(lua, 1));
 		do_monarch_mob(ch, vnum.c_str(), 0, 0);
 		return 0;
 	}
@@ -756,9 +756,9 @@ namespace quest
 		return 0;
 	}
 
-	int monarch_transfer2(lua_State* L)
+	int monarch_transfer2(lua_State* lua)
 	{
-		if (lua_isstring(L, 1) == false) return 0;
+		if (lua_isstring(lua, 1) == false) return 0;
 
 		character * ch = quest_manager::instance().current_character_ptr();
 		if (ch == nullptr) return false;
@@ -784,7 +784,7 @@ namespace quest
 			return 0;
 		}
 
-		std::string strTargetName = lua_tostring(L, 1);
+		std::string strTargetName = lua_tostring(lua, 1);
 
 		character * pTargetChar = character_manager::instance().find_pc(strTargetName.c_str());
 

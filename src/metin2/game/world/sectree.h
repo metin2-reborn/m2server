@@ -135,17 +135,17 @@ class sectree
 		void				increase_pc();
 		void				decrease_pc();
 
-		void				bind_attribute(attribute * pkAttribute);
+		void				bind_attribute(attribute * attribute_value);
 
 		uint32_t				get_attribute(int32_t x, int32_t y);
-		bool				is_attr(int32_t x, int32_t y, uint32_t dwFlag);
+		bool				is_attr(int32_t x, int32_t y, uint32_t flag);
 
 		void				clone_attribute(sectree * tree); // Used when handling private maps
 
 		int				event_attribute(int32_t x, int32_t y); // As of 20050313, not used
 
-		void				set_attribute(uint32_t x, uint32_t y, uint32_t dwAttr);
-		void				remove_attribute(uint32_t x, uint32_t y, uint32_t dwAttr);
+		void				set_attribute(uint32_t x, uint32_t y, uint32_t attr);
+		void				remove_attribute(uint32_t x, uint32_t y, uint32_t attr);
 
 	private:
 		template <class _Func> void for_each_entity(_Func & func)

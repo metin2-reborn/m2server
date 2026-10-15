@@ -30,31 +30,31 @@
 namespace metin2::db::inline clients {
 
 
-bool client_manager::insert_logon_account(const char * c_pszLogin, uint32_t dwHandle)
+bool client_manager::insert_logon_account(const char * login, uint32_t handle)
 {
 	char szLogin[LOGIN_MAX_LEN + 1];
-	trim_and_lower(c_pszLogin, szLogin, sizeof(szLogin));
+	trim_and_lower(login, szLogin, sizeof(szLogin));
 
 	auto it = map_k_logon_account_.find(szLogin);
 
 	if (map_k_logon_account_.end() != it)
 		return false;
 
-	login_data * pkLD = get_login_data_by_login(c_pszLogin);
+	login_data * pkLD = get_login_data_by_login(login);
 
 	if (!pkLD)
 		return false;
 
-	pkLD->set_connected_peer_handle(dwHandle);
+	pkLD->set_connected_peer_handle(handle);
 
 	map_k_logon_account_.insert(logon_account_map::value_type(szLogin, pkLD));
 	return true;
 }
 
-bool client_manager::delete_logon_account(const char * c_pszLogin, uint32_t dwHandle)
+bool client_manager::delete_logon_account(const char * login, uint32_t handle)
 {
 	char szLogin[LOGIN_MAX_LEN + 1];
-	trim_and_lower(c_pszLogin, szLogin, sizeof(szLogin));
+	trim_and_lower(login, szLogin, sizeof(szLogin));
 
 	auto it = map_k_logon_account_.find(szLogin);
 
@@ -63,9 +63,9 @@ bool client_manager::delete_logon_account(const char * c_pszLogin, uint32_t dwHa
 
 	login_data * pkLD = it->second;
 
-	if (pkLD->connected_peer_handle() != dwHandle)
+	if (pkLD->connected_peer_handle() != handle)
 	{
-		metin2::log::error("{} tried to logout in other peer handle {:d}, current handle {:d}", szLogin, dwHandle, pkLD->connected_peer_handle());
+		metin2::log::error("{} tried to logout in other peer handle {:d}, current handle {:d}", szLogin, handle, pkLD->connected_peer_handle());
 		return false;
 	}
 
@@ -80,10 +80,10 @@ bool client_manager::delete_logon_account(const char * c_pszLogin, uint32_t dwHa
 	return true;
 }
 
-bool client_manager::find_logon_account(const char * c_pszLogin)
+bool client_manager::find_logon_account(const char * login)
 {
 	char szLogin[LOGIN_MAX_LEN + 1];
-	trim_and_lower(c_pszLogin, szLogin, sizeof(szLogin));
+	trim_and_lower(login, szLogin, sizeof(szLogin));
 
 	if (map_k_logon_account_.end() == map_k_logon_account_.find(szLogin))
 		return false;
@@ -91,7 +91,7 @@ bool client_manager::find_logon_account(const char * c_pszLogin)
 	return true;
 }
 
-void client_manager::query_login_by_key(peer * pkPeer, uint32_t dwHandle, packet_gd_login_by_key * p)
+void client_manager::query_login_by_key(peer * peer_value, uint32_t handle_value, packet_gd_login_by_key * p)
 {
 
 	login_data * pkLoginData = get_login_data(p->login_key);
@@ -101,7 +101,7 @@ void client_manager::query_login_by_key(peer * pkPeer, uint32_t dwHandle, packet
 	if (!pkLoginData)
 	{
 		metin2::log::info( "LOGIN_BY_KEY key not exist {} {:d}", szLogin, p->login_key);
-		pkPeer->encode_return(HEADER_DG_LOGIN_NOT_EXIST, dwHandle);
+		peer_value->encode_return(HEADER_DG_LOGIN_NOT_EXIST, handle_value);
 		return;
 	}
 
@@ -112,15 +112,15 @@ void client_manager::query_login_by_key(peer * pkPeer, uint32_t dwHandle, packet
 		metin2::log::info( "LOGIN_BY_KEY already login {} {:d}", r.login, p->login_key);
 		packet_dg_login_already ptog;
 		strlcpy(ptog.login, szLogin, sizeof(ptog.login));
-		pkPeer->encode_header(HEADER_DG_LOGIN_ALREADY, dwHandle, sizeof(packet_dg_login_already));
-		pkPeer->encode(&ptog, sizeof(packet_dg_login_already));
+		peer_value->encode_header(HEADER_DG_LOGIN_ALREADY, handle_value, sizeof(packet_dg_login_already));
+		peer_value->encode(&ptog, sizeof(packet_dg_login_already));
 		return;
 	}
 
 	if (strcasecmp(r.login, szLogin))
 	{
 		metin2::log::info( "LOGIN_BY_KEY login differ {} {:d} input {}", r.login, p->login_key, szLogin);
-		pkPeer->encode_return(HEADER_DG_LOGIN_NOT_EXIST, dwHandle);
+		peer_value->encode_return(HEADER_DG_LOGIN_NOT_EXIST, handle_value);
 		return;
 	}
 
@@ -133,7 +133,7 @@ void client_manager::query_login_by_key(peer * pkPeer, uint32_t dwHandle, packet
 				p->client_key[0], p->client_key[1], p->client_key[2], p->client_key[3],
 				pdwClientKey[0], pdwClientKey[1], pdwClientKey[2], pdwClientKey[3]);
 
-		pkPeer->encode_return(HEADER_DG_LOGIN_NOT_EXIST, dwHandle);
+		peer_value->encode_return(HEADER_DG_LOGIN_NOT_EXIST, handle_value);
 		return;
 	}
 
@@ -146,14 +146,14 @@ void client_manager::query_login_by_key(peer * pkPeer, uint32_t dwHandle, packet
 	strlcpy(pkTab->social_id, r.social_id, sizeof(pkTab->social_id));
 	strlcpy(pkTab->status, "OK", sizeof(pkTab->status));
 
-	client_handle_info * info = new client_handle_info(dwHandle);
+	client_handle_info * info = new client_handle_info(handle_value);
 	info->account_table = std::move(pkTab);
 	strlcpy(info->ip, p->ip, sizeof(info->ip));
 
 	metin2::log::info( "LOGIN_BY_KEY success {} {:d} {}", r.login, p->login_key, info->ip);
 	char szQuery[QUERY_MAX_LEN];
 	snprintf(szQuery, sizeof(szQuery), "SELECT pid1, pid2, pid3, pid4, empire FROM player_index%s WHERE id=%u", get_table_postfix(), r.id);
-	db_manager::instance().return_query(szQuery, QID_LOGIN_BY_KEY, pkPeer->handle(), info);
+	db_manager::instance().return_query(szQuery, QID_LOGIN_BY_KEY, peer_value->handle(), info);
 }
 
 void client_manager::result_login_by_key(peer * peer, ql_msg * msg)
@@ -209,7 +209,7 @@ void client_manager::result_login_by_key(peer * peer, ql_msg * msg)
 }
 
 // PLAYER_INDEX_CREATE_BUG_FIX
-void client_manager::result_player_index_create(peer * pkPeer, ql_msg * msg)
+void client_manager::result_player_index_create(peer * peer_value, ql_msg * msg)
 {
 	query_info * qi = (query_info *) msg->pv_user_data;
 	client_handle_info * info = (client_handle_info *) qi->pv_data;
@@ -217,7 +217,7 @@ void client_manager::result_player_index_create(peer * pkPeer, ql_msg * msg)
 	char szQuery[QUERY_MAX_LEN];
 	snprintf(szQuery, sizeof(szQuery), "SELECT pid1, pid2, pid3, pid4, empire FROM player_index%s WHERE id=%u", get_table_postfix(), 
 			info->account_table->id);
-	db_manager::instance().return_query(szQuery, QID_LOGIN_BY_KEY, pkPeer->handle(), info);
+	db_manager::instance().return_query(szQuery, QID_LOGIN_BY_KEY, peer_value->handle(), info);
 }
 // END_PLAYER_INDEX_CREATE_BUG_FIX
 
@@ -254,14 +254,14 @@ std::unique_ptr<account_table> create_account_table_from_res(MYSQL_RES * res)
 	return pkTab;
 }
 
-void create_account_player_data_from_res(MYSQL_RES * pRes, account_table * pkTab)
+void create_account_player_data_from_res(MYSQL_RES * res, account_table * tab)
 {
-	if (!pRes)
+	if (!res)
 		return;
 
-	for (uint32_t i = 0; i < mysql_num_rows(pRes); ++i)
+	for (uint32_t i = 0; i < mysql_num_rows(res); ++i)
 	{
-		MYSQL_ROW row = mysql_fetch_row(pRes);
+		MYSQL_ROW row = mysql_fetch_row(res);
 		int col = 0;
 
 		uint32_t player_id = 0;
@@ -274,67 +274,67 @@ void create_account_player_data_from_res(MYSQL_RES * pRes, account_table * pkTab
 
 		for (j = 0; j < PLAYER_PER_ACCOUNT; ++j)
 		{
-			if (pkTab->players[j].id == player_id)
+			if (tab->players[j].id == player_id)
 			{
 				player_table_cache * pc = client_manager::instance().player_cache(player_id);
 				player_table * pt = pc ? pc->get(false) : nullptr;
 
 				if (pt)
 				{
-					strlcpy(pkTab->players[j].name, pt->name, sizeof(pkTab->players[j].name));
+					strlcpy(tab->players[j].name, pt->name, sizeof(tab->players[j].name));
 
-					pkTab->players[j].job			= pt->job;
-					pkTab->players[j].level			= pt->level;
-					pkTab->players[j].play_minutes		= pt->playtime;
-					pkTab->players[j].st			= pt->st;
-					pkTab->players[j].ht			= pt->ht;
-					pkTab->players[j].dx			= pt->dx;
-					pkTab->players[j].iq			= pt->iq;
-					pkTab->players[j].main_part			= pt->parts[PART_MAIN];
-					pkTab->players[j].hair_part			= pt->parts[PART_HAIR];
-					pkTab->players[j].x				= pt->x;
-					pkTab->players[j].y				= pt->y;
-					pkTab->players[j].skill_group		= pt->skill_group;
-					pkTab->players[j].change_name		= 0;
+					tab->players[j].job			= pt->job;
+					tab->players[j].level			= pt->level;
+					tab->players[j].play_minutes		= pt->playtime;
+					tab->players[j].st			= pt->st;
+					tab->players[j].ht			= pt->ht;
+					tab->players[j].dx			= pt->dx;
+					tab->players[j].iq			= pt->iq;
+					tab->players[j].main_part			= pt->parts[PART_MAIN];
+					tab->players[j].hair_part			= pt->parts[PART_HAIR];
+					tab->players[j].x				= pt->x;
+					tab->players[j].y				= pt->y;
+					tab->players[j].skill_group		= pt->skill_group;
+					tab->players[j].change_name		= 0;
 				}
 				else
 				{
 					if (!row[col++])
-						*pkTab->players[j].name = '\0';
+						*tab->players[j].name = '\0';
 					else
-						strlcpy(pkTab->players[j].name, row[col - 1], sizeof(pkTab->players[j].name));
+						strlcpy(tab->players[j].name, row[col - 1], sizeof(tab->players[j].name));
 
-					pkTab->players[j].job			= 0;
-					pkTab->players[j].level		= 0;
-					pkTab->players[j].play_minutes	= 0;
-					pkTab->players[j].st			= 0;
-					pkTab->players[j].ht			= 0;
-					pkTab->players[j].dx			= 0;
-					pkTab->players[j].iq			= 0;
-					pkTab->players[j].main_part		= 0;
-					pkTab->players[j].hair_part		= 0;
-					pkTab->players[j].x				= 0;
-					pkTab->players[j].y				= 0;
-					pkTab->players[j].skill_group	= 0;
-					pkTab->players[j].change_name	= 0;
+					tab->players[j].job			= 0;
+					tab->players[j].level		= 0;
+					tab->players[j].play_minutes	= 0;
+					tab->players[j].st			= 0;
+					tab->players[j].ht			= 0;
+					tab->players[j].dx			= 0;
+					tab->players[j].iq			= 0;
+					tab->players[j].main_part		= 0;
+					tab->players[j].hair_part		= 0;
+					tab->players[j].x				= 0;
+					tab->players[j].y				= 0;
+					tab->players[j].skill_group	= 0;
+					tab->players[j].change_name	= 0;
 
-					str_to_number(pkTab->players[j].job, row[col++]);
-					str_to_number(pkTab->players[j].level, row[col++]);
-					str_to_number(pkTab->players[j].play_minutes, row[col++]);
-					str_to_number(pkTab->players[j].st, row[col++]);
-					str_to_number(pkTab->players[j].ht, row[col++]);
-					str_to_number(pkTab->players[j].dx, row[col++]);
-					str_to_number(pkTab->players[j].iq, row[col++]);
-					str_to_number(pkTab->players[j].main_part, row[col++]);
-					str_to_number(pkTab->players[j].hair_part, row[col++]);
-					str_to_number(pkTab->players[j].x, row[col++]);
-					str_to_number(pkTab->players[j].y, row[col++]);
-					str_to_number(pkTab->players[j].skill_group, row[col++]);
-					str_to_number(pkTab->players[j].change_name, row[col++]);
+					str_to_number(tab->players[j].job, row[col++]);
+					str_to_number(tab->players[j].level, row[col++]);
+					str_to_number(tab->players[j].play_minutes, row[col++]);
+					str_to_number(tab->players[j].st, row[col++]);
+					str_to_number(tab->players[j].ht, row[col++]);
+					str_to_number(tab->players[j].dx, row[col++]);
+					str_to_number(tab->players[j].iq, row[col++]);
+					str_to_number(tab->players[j].main_part, row[col++]);
+					str_to_number(tab->players[j].hair_part, row[col++]);
+					str_to_number(tab->players[j].x, row[col++]);
+					str_to_number(tab->players[j].y, row[col++]);
+					str_to_number(tab->players[j].skill_group, row[col++]);
+					str_to_number(tab->players[j].change_name, row[col++]);
 				}
 
 				metin2::log::info( "{} {:d} {:d} hair {:d}",
-						pkTab->players[j].name, pkTab->players[j].x, pkTab->players[j].y, pkTab->players[j].hair_part);
+						tab->players[j].name, tab->players[j].x, tab->players[j].y, tab->players[j].hair_part);
 				break;
 			}
 		}
@@ -427,7 +427,7 @@ void client_manager::result_login(peer * peer, ql_msg * msg)
 	}
 }
 
-void client_manager::query_logout(peer * peer, uint32_t dwHandle,const char * data)
+void client_manager::query_logout(peer * peer, uint32_t handle_value,const char * data)
 {
 	logout_packet* packet = (logout_packet*)data;
 
@@ -465,7 +465,7 @@ void client_manager::query_logout(peer * peer, uint32_t dwHandle,const char * da
 	}
 }
 
-void client_manager::query_change_name(peer * peer, uint32_t dwHandle, packet_gd_change_name * p)
+void client_manager::query_change_name(peer * peer, uint32_t handle, packet_gd_change_name * p)
 {
 	std::string query = sql::format(
 			"SELECT COUNT(*) as count FROM player{} WHERE name={} AND id <> {}", sql::raw(get_table_postfix()), p->name, p->pid);
@@ -476,7 +476,7 @@ void client_manager::query_change_name(peer * peer, uint32_t dwHandle, packet_gd
 	{
 		if (!pMsg->get()->sql_result)
 		{
-			peer->encode_header(HEADER_DG_PLAYER_CREATE_FAILED, dwHandle, 0);
+			peer->encode_header(HEADER_DG_PLAYER_CREATE_FAILED, handle, 0);
 			return;
 		}
 
@@ -484,13 +484,13 @@ void client_manager::query_change_name(peer * peer, uint32_t dwHandle, packet_gd
 
 		if (*row[0] != '0')
 		{
-			peer->encode_header(HEADER_DG_PLAYER_CREATE_ALREADY, dwHandle, 0);
+			peer->encode_header(HEADER_DG_PLAYER_CREATE_ALREADY, handle, 0);
 			return;
 		}
 	}   
 	else
 	{
-		peer->encode_header(HEADER_DG_PLAYER_CREATE_FAILED, dwHandle, 0);
+		peer->encode_header(HEADER_DG_PLAYER_CREATE_FAILED, handle, 0);
 		return;
 	}
 
@@ -500,7 +500,7 @@ void client_manager::query_change_name(peer * peer, uint32_t dwHandle, packet_gd
 	std::unique_ptr<ql_msg> pMsg0(db_manager::instance().direct_query(query.c_str(), SQL_PLAYER));
 
 	packet_dg_change_name pdg;
-	peer->encode_header(HEADER_DG_CHANGE_NAME, dwHandle, sizeof(packet_dg_change_name));
+	peer->encode_header(HEADER_DG_CHANGE_NAME, handle, sizeof(packet_dg_change_name));
 	pdg.pid = p->pid;
 	strlcpy(pdg.name, p->name, sizeof(pdg.name));
 	peer->encode(&pdg, sizeof(packet_dg_change_name));

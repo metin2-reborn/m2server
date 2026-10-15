@@ -36,8 +36,8 @@
 
 namespace metin2::game::inline items {
 
-item::item(uint32_t dwVnum)
-	: vnum_(dwVnum), window_(0), id_(0), equipped_(false), vid_(0), cell_(0), count_(0), flag_(0), last_owner_pid_(0),
+item::item(uint32_t vnum)
+	: vnum_(vnum), window_(0), id_(0), equipped_(false), vid_(0), cell_(0), count_(0), flag_(0), last_owner_pid_(0),
 	exchanging_(false), destroy_event_(nullptr), unique_expire_event_(nullptr), timer_based_on_wear_expire_event_(nullptr), real_time_expire_event_(nullptr),
    	accessory_socket_expire_event_(nullptr), ownership_event_(nullptr), ownership_pid_(0), skip_save_(false), is_locked_(false),
 	mask_vnum_(0), sig_vnum_ (0)
@@ -113,12 +113,12 @@ EVENTFUNC(item_destroy_event)
 	return 0;
 }
 
-void item::set_destroy_event(event_ptr pkEvent)
+void item::set_destroy_event(event_ptr event)
 {
-	destroy_event_ = pkEvent;
+	destroy_event_ = event;
 }
 
-void item::start_destroy_event(int iSec)
+void item::start_destroy_event(int sec)
 {
 	if (destroy_event_)
 		return;
@@ -126,7 +126,7 @@ void item::start_destroy_event(int iSec)
 	item_event_info* info = alloc_event_info<item_event_info>();
 	info->item = this;
 
-	set_destroy_event(event_create(item_destroy_event, info, passes_per_sec(iSec)));
+	set_destroy_event(event_create(item_destroy_event, info, passes_per_sec(sec)));
 }
 
 void item::encode_insert_packet(entity * ent)
@@ -326,12 +326,12 @@ item * item::remove_from_character()
 	}
 }
 
-bool item::add_to_character(character * ch, item_pos Cell)
+bool item::add_to_character(character * ch, item_pos cell_value)
 {
 	assert(get_sectree() == nullptr);
 	assert(owner_ == nullptr);
-	uint16_t pos = Cell.cell;
-	uint8_t window_type = Cell.window_type;
+	uint16_t pos = cell_value.cell;
+	uint8_t window_type = cell_value.window_type;
 	
 	if (INVENTORY == window_type)
 	{
@@ -378,11 +378,11 @@ item * item::remove_from_ground()
 	return (this);
 }
 
-bool item::add_to_ground(int32_t lMapIndex, const pixel_position & pos, bool skipOwnerCheck)
+bool item::add_to_ground(int32_t map_index, const pixel_position & pos, bool skip_owner_check)
 {
-	if (0 == lMapIndex)
+	if (0 == map_index)
 	{
-		metin2::log::error("wrong map index argument: {:d}", lMapIndex);
+		metin2::log::error("wrong map index argument: {:d}", map_index);
 		return false;
 	}
 
@@ -392,13 +392,13 @@ bool item::add_to_ground(int32_t lMapIndex, const pixel_position & pos, bool ski
 		return false;
 	}
 
-	if (!skipOwnerCheck && owner_)
+	if (!skip_owner_check && owner_)
 	{
 		metin2::log::error("owner pointer not null");
 		return false;
 	}
 
-	sectree * tree = sectree_manager::instance().get(lMapIndex, pos.x, pos.y);
+	sectree * tree = sectree_manager::instance().get(map_index, pos.x, pos.y);
 
 	if (!tree)
 	{
@@ -456,7 +456,7 @@ bool item::can_used_by(character * ch)
 	return true;
 }
 
-int item::find_equip_cell(character * ch, int iCandidateCell)
+int item::find_equip_cell(character * ch, int candidate_cell)
 {
 	// Costume items (ITEM_COSTUME) don't need a WearFlag. (The wear position is determined by sub type. Why bother with another wear flag..)
 	// Dragon soul stones (ITEM_DS, ITEM_SPECIAL_DS) are also distinguished by SUB_TYPE. The new rings and belt are distinguished by ITEM_TYPE -_-
@@ -470,7 +470,7 @@ int item::find_equip_cell(character * ch, int iCandidateCell)
 	// that WearCell originally returns with INVENTORY_MAX_NUM subtracted.
 	if (type() == ITEM_DS || type() == ITEM_SPECIAL_DS)
 	{
-		if (iCandidateCell < 0)
+		if (candidate_cell < 0)
 		{
 			return WEAR_MAX_NUM + sub_type();
 		}
@@ -478,9 +478,9 @@ int item::find_equip_cell(character * ch, int iCandidateCell)
 		{
 			for (int i = 0; i < DRAGON_SOUL_DECK_MAX_NUM; i++)
 			{
-				if (WEAR_MAX_NUM + i * DS_SLOT_MAX + sub_type() == iCandidateCell)
+				if (WEAR_MAX_NUM + i * DS_SLOT_MAX + sub_type() == candidate_cell)
 				{
-					return iCandidateCell;
+					return candidate_cell;
 				}
 			}
 			return -1;
@@ -571,7 +571,7 @@ int item::find_equip_cell(character * ch, int iCandidateCell)
 	return -1;
 }
 
-void item::modify_points(bool bAdd)
+void item::modify_points(bool add)
 {
 	int accessoryGrade;
 
@@ -604,9 +604,9 @@ void item::modify_points(bool bAdd)
 							continue;
 
 						if (p->applies[i].type == APPLY_SKILL)
-							owner_->apply_point(p->applies[i].type, bAdd ? p->applies[i].value : p->applies[i].value ^ 0x00800000);
+							owner_->apply_point(p->applies[i].type, add ? p->applies[i].value : p->applies[i].value ^ 0x00800000);
 						else
-							owner_->apply_point(p->applies[i].type, bAdd ? p->applies[i].value : -p->applies[i].value);
+							owner_->apply_point(p->applies[i].type, add ? p->applies[i].value : -p->applies[i].value);
 					}
 				}
 			}
@@ -628,14 +628,14 @@ void item::modify_points(bool bAdd)
 
 		if (proto_->applies[i].type == APPLY_SKILL)
 		{
-			owner_->apply_point(proto_->applies[i].type, bAdd ? value : value ^ 0x00800000);
+			owner_->apply_point(proto_->applies[i].type, add ? value : value ^ 0x00800000);
 		}
 		else
 		{
 			if (0 != accessoryGrade)
 				value += std::max(accessoryGrade, value * accessory_socket_effective_pct[accessoryGrade] / 100);
 
-			owner_->apply_point(proto_->applies[i].type, bAdd ? value : -value);
+			owner_->apply_point(proto_->applies[i].type, add ? value : -value);
 		}
 	}
 	// For the crescent ring, Halloween candy, ring of happiness, and pendant of eternal love,
@@ -658,9 +658,9 @@ void item::modify_points(bool bAdd)
 				const player_item_attribute& ia = get_attribute(i);
 
 				if (ia.type == APPLY_SKILL)
-					owner_->apply_point(ia.type, bAdd ? ia.s_value : ia.s_value ^ 0x00800000);
+					owner_->apply_point(ia.type, add ? ia.s_value : ia.s_value ^ 0x00800000);
 				else
-					owner_->apply_point(ia.type, bAdd ? ia.s_value : -ia.s_value);
+					owner_->apply_point(ia.type, add ? ia.s_value : -ia.s_value);
 			}
 		}
 	}
@@ -670,7 +670,7 @@ void item::modify_points(bool bAdd)
 		case ITEM_PICK:
 		case ITEM_ROD:
 			{
-				if (bAdd)
+				if (add)
 				{
 					if (cell_ == INVENTORY_MAX_NUM + WEAR_WEAPON)
 						owner_->set_part(PART_WEAPON, vnum());
@@ -685,7 +685,7 @@ void item::modify_points(bool bAdd)
 
 		case ITEM_WEAPON:
 			{
-				if (bAdd)
+				if (add)
 				{
 					if (cell_ == INVENTORY_MAX_NUM + WEAR_WEAPON)
 						owner_->set_part(PART_WEAPON, vnum());
@@ -706,7 +706,7 @@ void item::modify_points(bool bAdd)
 
 				if (sub_type() == ARMOR_BODY || sub_type() == ARMOR_HEAD || sub_type() == ARMOR_FOOTS || sub_type() == ARMOR_SHIELD)
 				{
-					if (bAdd)
+					if (add)
 					{
 						if (proto()->sub_type == ARMOR_BODY)
 							owner_->set_part(PART_MAIN, vnum());
@@ -731,7 +731,7 @@ void item::modify_points(bool bAdd)
 				{
 					toSetPart = PART_MAIN;
 
-					if (false == bAdd)
+					if (false == add)
 					{
 						// When the costume armor is removed, set the look to the original armor if one is worn, otherwise the default look
 						const item* pArmor = owner_->wear(WEAR_BODY);
@@ -747,7 +747,7 @@ void item::modify_points(bool bAdd)
 
 					// Costume hair sets its shape value in item proto value3. No special reason; the existing armor (ARMOR_BODY) shape value is in proto value3, so hair uses value3 too.
 					// [NOTE] Why armor sends the item vnum and hair sends the shape (value3)... that's just how the existing system works...
-					toSetValue = (true == bAdd) ? this->value(3) : 0;
+					toSetValue = (true == add) ? this->value(3) : 0;
 				}
 
 				if (PART_MAX_NUM != toSetPart)
@@ -770,7 +770,7 @@ void item::modify_points(bool bAdd)
 						break;
 					for (auto it = pAttrGroup->attrs.begin(); it != pAttrGroup->attrs.end(); it++)
 					{
-						owner_->apply_point(it->apply_type, bAdd ? it->apply_value : -it->apply_value);
+						owner_->apply_point(it->apply_type, add ? it->apply_value : -it->apply_value);
 					}
 				}
 			}
@@ -799,7 +799,7 @@ bool item::is_equipable() const
 }
 
 // return false on error state
-bool item::equip_to(character * ch, uint8_t bWearCell)
+bool item::equip_to(character * ch, uint8_t wear_cell)
 {
 	if (!ch)
 	{
@@ -810,35 +810,35 @@ bool item::equip_to(character * ch, uint8_t bWearCell)
 	// Dragon soul slot index is greater than WEAR_MAX_NUM.
 	if (is_dragon_soul())
 	{
-		if (bWearCell < WEAR_MAX_NUM || bWearCell >= WEAR_MAX_NUM + DRAGON_SOUL_DECK_MAX_NUM * static_cast<int>(DS_SLOT_MAX))
+		if (wear_cell < WEAR_MAX_NUM || wear_cell >= WEAR_MAX_NUM + DRAGON_SOUL_DECK_MAX_NUM * static_cast<int>(DS_SLOT_MAX))
 		{
-			metin2::log::error("EquipTo: invalid dragon soul cell (this: #{:d} {} wearflag: {:d} cell: {:d})", original_vnum(), name(), sub_type(), bWearCell - WEAR_MAX_NUM);
+			metin2::log::error("EquipTo: invalid dragon soul cell (this: #{:d} {} wearflag: {:d} cell: {:d})", original_vnum(), name(), sub_type(), wear_cell - WEAR_MAX_NUM);
 			return false;
 		}
 	}
 	else
 	{
-		if (bWearCell >= WEAR_MAX_NUM)
+		if (wear_cell >= WEAR_MAX_NUM)
 		{
-			metin2::log::error("EquipTo: invalid wear cell (this: #{:d} {} wearflag: {:d} cell: {:d})", original_vnum(), name(), wear_flag(), bWearCell);
+			metin2::log::error("EquipTo: invalid wear cell (this: #{:d} {} wearflag: {:d} cell: {:d})", original_vnum(), name(), wear_flag(), wear_cell);
 			return false;
 		}
 	}
 
-	if (ch->wear(bWearCell))
+	if (ch->wear(wear_cell))
 	{
-		metin2::log::error("EquipTo: item already exist (this: #{:d} {} cell: {:d} {})", original_vnum(), name(), bWearCell, ch->wear(bWearCell)->name());
+		metin2::log::error("EquipTo: item already exist (this: #{:d} {} cell: {:d} {})", original_vnum(), name(), wear_cell, ch->wear(wear_cell)->name());
 		return false;
 	}
 
 	if (owner())
 		remove_from_character();
 
-	ch->set_wear(bWearCell, this); // The packet is sent here
+	ch->set_wear(wear_cell, this); // The packet is sent here
 
 	owner_ = ch;
 	equipped_ = true;
-	cell_	= INVENTORY_MAX_NUM + bWearCell;
+	cell_	= INVENTORY_MAX_NUM + wear_cell;
 
 	// Original immun
 
@@ -982,9 +982,9 @@ int32_t item::value(uint32_t idx)
 	return proto()->values[idx];
 }
 
-void item::set_exchanging(bool bOn)
+void item::set_exchanging(bool on)
 {
-	exchanging_ = bOn;
+	exchanging_ = on;
 }
 
 void item::save()
@@ -995,19 +995,19 @@ void item::save()
 	item_manager::instance().delayed_save(this);
 }
 
-void item::set_sockets(const int32_t * c_al)
+void item::set_sockets(const int32_t * al)
 {
-	std::memcpy(sockets_, c_al, sizeof(sockets_));
+	std::memcpy(sockets_, al, sizeof(sockets_));
 	save();
 }
 
-void item::set_socket(int i, int32_t v, bool bLog)
+void item::set_socket(int i, int32_t v, bool log)
 {
 	assert(i < ITEM_SOCKET_MAX_NUM);
 	sockets_[i] = v;
 	update_packet();
 	save();
-	if (bLog)
+	if (log)
 		log_manager::instance().item_log(i, v, 0, id(), "SET_SOCKET", "", "", original_vnum());
 }
 
@@ -1048,12 +1048,12 @@ EVENTFUNC(ownership_event)
 	return 0;
 }
 
-void item::set_ownership_event(event_ptr pkEvent)
+void item::set_ownership_event(event_ptr event)
 {
-	ownership_event_ = pkEvent;
+	ownership_event_ = event;
 }
 
-void item::set_ownership(character * ch, int iSec)
+void item::set_ownership(character * ch, int sec)
 {
 	if (!ch)
 	{
@@ -1076,8 +1076,8 @@ void item::set_ownership(character * ch, int iSec)
 	if (ownership_event_)
 		return;
 
-	if (iSec <= 10)
-		iSec = 30;
+	if (sec <= 10)
+		sec = 30;
 
 	ownership_pid_ = ch->player_id();
 
@@ -1085,7 +1085,7 @@ void item::set_ownership(character * ch, int iSec)
 	strlcpy(info->owner_name, ch->name(), sizeof(info->owner_name));
 	info->item = this;
 
-	set_ownership_event(event_create(ownership_event, info, passes_per_sec(iSec)));
+	set_ownership_event(event_create(ownership_event, info, passes_per_sec(sec)));
 
 	packet_gc_item_ownership p;
 
@@ -1115,15 +1115,15 @@ bool item::add_socket()
 	return true;
 }
 
-void item::alter_to_socket_item(int iSocketCount)
+void item::alter_to_socket_item(int socket_count)
 {
-	if (iSocketCount >= ITEM_SOCKET_MAX_NUM)
+	if (socket_count >= ITEM_SOCKET_MAX_NUM)
 	{
 		metin2::log::info( "Invalid Socket Count {:d}, set to maximum", ITEM_SOCKET_MAX_NUM);
-		iSocketCount = ITEM_SOCKET_MAX_NUM;
+		socket_count = ITEM_SOCKET_MAX_NUM;
 	}
 
-	for (int i = 0; i < iSocketCount; ++i)
+	for (int i = 0; i < socket_count; ++i)
 		set_socket(i, 1);
 }
 
@@ -1295,14 +1295,14 @@ EVENTFUNC(timer_based_on_wear_expire_event)
 	return passes_per_sec (std::min(60, remain_time));
 }
 
-void item::set_unique_expire_event(event_ptr pkEvent)
+void item::set_unique_expire_event(event_ptr event)
 {
-	unique_expire_event_ = pkEvent;
+	unique_expire_event_ = event;
 }
 
-void item::set_timer_based_on_wear_expire_event(event_ptr pkEvent)
+void item::set_timer_based_on_wear_expire_event(event_ptr event)
 {
-	timer_based_on_wear_expire_event_ = pkEvent;
+	timer_based_on_wear_expire_event_ = event;
 }
 
 EVENTFUNC(real_time_expire_event)
@@ -1453,9 +1453,9 @@ void item::stop_timer_based_on_wear_expire_event()
 	item_manager::instance().save_single_item(this);
 }
 
-void item::apply_addon(int iAddonType)
+void item::apply_addon(int addon_type)
 {
-	item_addon_manager::instance().apply_addon_to(iAddonType, this);
+	item_addon_manager::instance().apply_addon_to(addon_type, this);
 }
 
 int item::special_group() const
@@ -1472,18 +1472,18 @@ bool item::is_accessory_for_socket()
 		(proto_->type == ITEM_BELT);				// For the 'belt' item added in Feb 2013, the design team asked to reuse the accessory socket system as is.
 }
 
-void item::set_accessory_socket_grade(int iGrade) 
+void item::set_accessory_socket_grade(int grade) 
 { 
-	set_socket(0, std::clamp(iGrade, 0, accessory_socket_max_grade())); 
+	set_socket(0, std::clamp(grade, 0, accessory_socket_max_grade())); 
 
 	int iDownTime = accessory_socket_degrade_time[accessory_socket_grade()];
 
 	set_accessory_socket_down_grade_time(iDownTime);
 }
 
-void item::set_accessory_socket_max_grade(int iMaxGrade) 
+void item::set_accessory_socket_max_grade(int max_grade) 
 { 
-	set_socket(1, std::clamp<int>(iMaxGrade, 0, ITEM_ACCESSORY_SOCKET_MAX_NUM)); 
+	set_socket(1, std::clamp<int>(max_grade, 0, ITEM_ACCESSORY_SOCKET_MAX_NUM)); 
 }
 
 void item::set_accessory_socket_down_grade_time(uint32_t time) 
@@ -1604,9 +1604,9 @@ void item::clear_mount_attribute_and_affect()
 	ch->point_change(POINT_IQ, 0);
 }
 
-void item::set_accessory_socket_expire_event(event_ptr pkEvent)
+void item::set_accessory_socket_expire_event(event_ptr event)
 {
-	accessory_socket_expire_event_ = pkEvent;
+	accessory_socket_expire_event_ = event;
 }
 
 void item::accessory_socket_degrade()
@@ -1767,24 +1767,24 @@ bool item::is_pc_bang_item()
 }
 // END_PC_BANG_ITEM_ADD
 
-bool item::check_item_use_level(int nLevel)
+bool item::check_item_use_level(int level)
 {
 	for (int i = 0; i < ITEM_LIMIT_MAX_NUM; ++i)
 	{
 		if (this->proto_->limits[i].type == LIMIT_LEVEL)
 		{
-			if (this->proto_->limits[i].value > nLevel) return false;
+			if (this->proto_->limits[i].value > level) return false;
 			else return true;
 		}
 	}
 	return true;
 }
 
-void item::copy_socket_to(item * pItem)
+void item::copy_socket_to(item * item_value)
 {
 	for (int i = 0; i < ITEM_SOCKET_MAX_NUM; ++i)
 	{
-		pItem->sockets_[i] = sockets_[i];
+		item_value->sockets_[i] = sockets_[i];
 	}
 }
 
@@ -1862,13 +1862,13 @@ bool item::is_dragon_soul()
 	return type() == ITEM_DS;
 }
 
-int item::give_more_time_per(float fPercent)
+int item::give_more_time_per(float percent)
 {
 	if (is_dragon_soul())
 	{
 		uint32_t duration = ds_manager::instance().duration(this);
 		int remain_sec = get_socket(ITEM_SOCKET_REMAIN_SEC);
-		int given_time = fPercent * duration / 100;
+		int given_time = percent * duration / 100;
 		if (static_cast<uint32_t>(remain_sec) == duration)
 			return false;
 		if (static_cast<uint32_t>(given_time + remain_sec) >= duration)
@@ -1887,7 +1887,7 @@ int item::give_more_time_per(float fPercent)
 		return 0;
 }
 
-int item::give_more_time_fix(uint32_t dwTime)
+int item::give_more_time_fix(uint32_t time)
 {
 	if (is_dragon_soul())
 	{
@@ -1895,15 +1895,15 @@ int item::give_more_time_fix(uint32_t dwTime)
 		int remain_sec = get_socket(ITEM_SOCKET_REMAIN_SEC);
 		if (static_cast<uint32_t>(remain_sec) == duration)
 			return false;
-		if ((dwTime + remain_sec) >= duration)
+		if ((time + remain_sec) >= duration)
 		{
 			set_socket(ITEM_SOCKET_REMAIN_SEC, duration);
 			return duration - remain_sec; 
 		}
 		else
 		{
-			set_socket(ITEM_SOCKET_REMAIN_SEC, dwTime + remain_sec);
-			return dwTime;
+			set_socket(ITEM_SOCKET_REMAIN_SEC, time + remain_sec);
+			return time;
 		}
 	}
 	// For now, do this only for dragon soul stones.

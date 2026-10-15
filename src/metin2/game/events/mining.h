@@ -10,7 +10,7 @@ namespace metin2::game::inline events {
 namespace mining
 {
 	event_ptr create_mining_event(character * ch, character * load, int count);
-	uint32_t get_raw_ore_from_load(uint32_t dwLoadVnum);
+	uint32_t get_raw_ore_from_load(uint32_t load_vnum_value);
 	bool ore_refine(character * ch, character * npc, item * ore, int cost, int pct, item * metinstone_item);
 	int get_fraction_count();
 

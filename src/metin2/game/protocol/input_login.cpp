@@ -343,7 +343,7 @@ bool race_to_job(unsigned race, unsigned* ret_job)
 }
 
 // New character support
-bool new_player_table2(player_table * table, const char * name, uint8_t race, uint8_t shape, uint8_t bEmpire)
+bool new_player_table2(player_table * table, const char * name, uint8_t race, uint8_t shape, uint8_t empire)
 {
 	if (race >= MAIN_RACE_MAX_NUM)
 	{
@@ -379,8 +379,8 @@ bool new_player_table2(player_table * table, const char * name, uint8_t race, ui
 	table->sp		= job_initial_points[job].max_sp + table->iq * job_initial_points[job].sp_per_iq;
 	table->stamina	= job_initial_points[job].max_stamina;
 
-	table->x		= create_start_x(bEmpire) + number(-300, 300);
-	table->y		= create_start_y(bEmpire) + number(-300, 300);
+	table->x		= create_start_x(empire) + number(-300, 300);
+	table->y		= create_start_y(empire) + number(-300, 300);
 	table->z		= 0;
 	table->dir		= 0;
 	table->playtime = 0;
@@ -744,9 +744,9 @@ void input_login::entergame(desc * d, const char * data)
 	}
 }
 
-void input_login::empire(desc * d, const char * c_pData)
+void input_login::empire(desc * d, const char * data)
 {
-	const packet_cg_empire* p = reinterpret_cast<const packet_cg_empire*>(c_pData);
+	const packet_cg_empire* p = reinterpret_cast<const packet_cg_empire*>(data);
 
 	// Empire 0 is "none": only 1 .. EMPIRE_MAX_NUM - 1 can be chosen.
 	if (p->empire == 0 || EMPIRE_MAX_NUM <= p->empire)
@@ -784,24 +784,24 @@ void input_login::empire(desc * d, const char * c_pData)
 }
 
 // Whether the player behind a mark connection is the master of guild dwGuildID.
-static bool is_mark_owner_guild_master(desc * d, uint32_t dwGuildID)
+static bool is_mark_owner_guild_master(desc * d, uint32_t guild_id)
 {
 	desc * pkOwner = desc_manager::instance().find_by_handle(d->mark_owner_handle());
 	character * ch = pkOwner ? pkOwner->get_character() : nullptr;
 
-	return ch && ch->get_guild() && ch->get_guild()->id() == dwGuildID && ch->get_guild()->master_pid() == ch->player_id();
+	return ch && ch->get_guild() && ch->get_guild()->id() == guild_id && ch->get_guild()->master_pid() == ch->player_id();
 }
 
-int input_login::guild_symbol_upload(desc * d, const char* c_pData, size_t uiBytes)
+int input_login::guild_symbol_upload(desc * d, const char* data, size_t bytes)
 {
-	if (uiBytes < sizeof(packet_cg_guild_symbol_upload))
+	if (bytes < sizeof(packet_cg_guild_symbol_upload))
 		return -1;
 
-	metin2::log::info( "GuildSymbolUpload uiBytes {:d}", uiBytes);
+	metin2::log::info( "GuildSymbolUpload uiBytes {:d}", bytes);
 
-	packet_cg_guild_symbol_upload* p = (packet_cg_guild_symbol_upload*) c_pData;
+	packet_cg_guild_symbol_upload* p = (packet_cg_guild_symbol_upload*) data;
 
-	if (uiBytes < p->size)
+	if (bytes < p->size)
 		return -1;
 
 	int iSymbolSize = p->size - sizeof(packet_cg_guild_symbol_upload);
@@ -829,16 +829,16 @@ int input_login::guild_symbol_upload(desc * d, const char* c_pData, size_t uiByt
 			return 0;
 		}
 
-	metin2::log::info( "GuildSymbolUpload Do Upload {:02X}{:02X}{:02X}{:02X} {:d}", c_pData[7], c_pData[8], c_pData[9], c_pData[10], sizeof(*p));
+	metin2::log::info( "GuildSymbolUpload Do Upload {:02X}{:02X}{:02X}{:02X} {:d}", data[7], data[8], data[9], data[10], sizeof(*p));
 
-	guild_mark_manager::instance().upload_symbol(p->guild_id, iSymbolSize, (const uint8_t*)(c_pData + sizeof(*p)));
+	guild_mark_manager::instance().upload_symbol(p->guild_id, iSymbolSize, (const uint8_t*)(data + sizeof(*p)));
 	guild_mark_manager::instance().save_symbol(GUILD_SYMBOL_FILENAME);
 	return iSymbolSize;
 }
 
-void input_login::guild_symbol_crc(desc * d, const char* c_pData)
+void input_login::guild_symbol_crc(desc * d, const char* data)
 {
-	const packet_cg_symbol_crc & CGPacket = *((packet_cg_symbol_crc *) c_pData);
+	const packet_cg_symbol_crc & CGPacket = *((packet_cg_symbol_crc *) data);
 
 	metin2::log::info( "GuildSymbolCRC {:d} {:d} {:d}", CGPacket.guild_id, CGPacket.crc, CGPacket.size);
 
@@ -866,9 +866,9 @@ void input_login::guild_symbol_crc(desc * d, const char* c_pData)
 	}
 }
 
-void input_login::guild_mark_upload(desc * d, const char* c_pData)
+void input_login::guild_mark_upload(desc * d, const char* data)
 {
-	packet_cg_mark_upload * p = (packet_cg_mark_upload *) c_pData;
+	packet_cg_mark_upload * p = (packet_cg_mark_upload *) data;
 	guild_manager& rkGuildMgr = guild_manager::instance();
 	guild * pkGuild;
 
@@ -907,7 +907,7 @@ void input_login::guild_mark_upload(desc * d, const char* c_pData)
 		rkMarkMgr.save_mark(p->gid, p->image);
 }
 
-void input_login::guild_mark_idx_list(desc * d, const char* c_pData)
+void input_login::guild_mark_idx_list(desc * d, const char* data)
 {
 	guild_mark_manager & rkMarkMgr = guild_mark_manager::instance();
 
@@ -937,9 +937,9 @@ void input_login::guild_mark_idx_list(desc * d, const char* c_pData)
 	metin2::log::info( "MARK_SERVER: GuildMarkIDXList {:d} bytes sent.", p.buf_size);
 }
 
-void input_login::guild_mark_crc_list(desc * d, const char* c_pData)
+void input_login::guild_mark_crc_list(desc * d, const char* data)
 {
-	packet_cg_mark_crc_list * pCG = (packet_cg_mark_crc_list *) c_pData;
+	packet_cg_mark_crc_list * pCG = (packet_cg_mark_crc_list *) data;
 
 	std::map<uint8_t, const guild_mark_block *> mapDiffBlocks;
 	guild_mark_manager::instance().diff_blocks(pCG->img_idx, pCG->crclist, mapDiffBlocks);
@@ -978,11 +978,11 @@ void input_login::guild_mark_crc_list(desc * d, const char* c_pData)
 		d->packet(&pGC, sizeof(packet_gc_mark_block));
 }
 
-int input_login::analyze(desc * d, uint8_t bHeader, const char * c_pData)
+int input_login::analyze(desc * d, uint8_t header, const char * data)
 {
 	int iExtraLen = 0;
 
-	switch (bHeader)
+	switch (header)
 	{
 		case HEADER_CG_PONG:
 		case HEADER_CG_TIME_SYNC:
@@ -997,7 +997,7 @@ int input_login::analyze(desc * d, uint8_t bHeader, const char * c_pData)
 		case HEADER_CG_SYMBOL_CRC:
 			if (!d->is_mark_login())
 			{
-				metin2::log::error("guild mark packet {:d} without mark login, host {}", bHeader, d->host_name());
+				metin2::log::error("guild mark packet {:d} without mark login, host {}", header, d->host_name());
 				d->set_phase(PHASE_CLOSE);
 				return 0;
 			}
@@ -1006,14 +1006,14 @@ int input_login::analyze(desc * d, uint8_t bHeader, const char * c_pData)
 		default:
 			if (d->is_mark_login())
 			{
-				metin2::log::error("mark connection sent packet {:d}, host {}", bHeader, d->host_name());
+				metin2::log::error("mark connection sent packet {:d}, host {}", header, d->host_name());
 				d->set_phase(PHASE_CLOSE);
 				return 0;
 			}
 			break;
 	}
 
-	switch (bHeader)
+	switch (header)
 	{
 		// Character slots are handled while choosing a character, by an account, with no
 		// character loaded yet.
@@ -1024,7 +1024,7 @@ int input_login::analyze(desc * d, uint8_t bHeader, const char * c_pData)
 		case HEADER_CG_EMPIRE:
 			if (!d->is_phase(PHASE_SELECT) || d->get_character())
 			{
-				metin2::log::error("packet {:d} outside of character select, host {}", bHeader, d->host_name());
+				metin2::log::error("packet {:d} outside of character select, host {}", header, d->host_name());
 				return 0;
 			}
 			break;
@@ -1033,48 +1033,48 @@ int input_login::analyze(desc * d, uint8_t bHeader, const char * c_pData)
 		case HEADER_CG_LOGIN2:
 			if (!d->is_phase(PHASE_LOGIN))
 			{
-				metin2::log::error("login packet {:d} outside of the login phase, host {}", bHeader, d->host_name());
+				metin2::log::error("login packet {:d} outside of the login phase, host {}", header, d->host_name());
 				return 0;
 			}
 			break;
 	}
 
-	switch (bHeader)
+	switch (header)
 	{
 		case HEADER_CG_PONG:
 			pong(d);
 			break;
 
 		case HEADER_CG_TIME_SYNC:
-			handshake(d, c_pData);
+			handshake(d, data);
 			break;
 
 		case HEADER_CG_LOGIN:
-			login(d, c_pData);
+			login(d, data);
 			break;
 
 		case HEADER_CG_LOGIN2:
-			login_by_key(d, c_pData);
+			login_by_key(d, data);
 			break;
 
 		case HEADER_CG_CHARACTER_SELECT:
-			character_select(d, c_pData);
+			character_select(d, data);
 			break;
 
 		case HEADER_CG_CHARACTER_CREATE:
-			character_create(d, c_pData);
+			character_create(d, data);
 			break;
 
 		case HEADER_CG_CHARACTER_DELETE:
-			character_delete(d, c_pData);
+			character_delete(d, data);
 			break;
 
 		case HEADER_CG_ENTERGAME:
-			entergame(d, c_pData);
+			entergame(d, data);
 			break;
 
 		case HEADER_CG_EMPIRE:
-			empire(d, c_pData);
+			empire(d, data);
 			break;
 
 		case HEADER_CG_MOVE:
@@ -1084,27 +1084,27 @@ int input_login::analyze(desc * d, uint8_t bHeader, const char * c_pData)
 			// Guild Mark
 			/////////////////////////////////////
 		case HEADER_CG_MARK_CRCLIST:
-			guild_mark_crc_list(d, c_pData);
+			guild_mark_crc_list(d, data);
 			break;
 
 		case HEADER_CG_MARK_IDXLIST:
-			guild_mark_idx_list(d, c_pData);
+			guild_mark_idx_list(d, data);
 			break;
 
 		case HEADER_CG_MARK_UPLOAD:
-			guild_mark_upload(d, c_pData);
+			guild_mark_upload(d, data);
 			break;
 
 			//////////////////////////////////////
 			// Guild Symbol
 			/////////////////////////////////////
 		case HEADER_CG_GUILD_SYMBOL_UPLOAD:
-			if ((iExtraLen = guild_symbol_upload(d, c_pData, buffer_left_)) < 0)
+			if ((iExtraLen = guild_symbol_upload(d, data, buffer_left_)) < 0)
 				return -1;
 			break;
 
 		case HEADER_CG_SYMBOL_CRC:
-			guild_symbol_crc(d, c_pData);
+			guild_symbol_crc(d, data);
 			break;
 			/////////////////////////////////////
 
@@ -1112,19 +1112,19 @@ int input_login::analyze(desc * d, uint8_t bHeader, const char * c_pData)
 			break;
 
 		case HEADER_CG_CHANGE_NAME:
-			change_name(d, c_pData);
+			change_name(d, data);
 			break;
 
 		case HEADER_CG_CLIENT_VERSION:
-			version(d->get_character(), c_pData);
+			version(d->get_character(), data);
 			break;
 
 		case HEADER_CG_CLIENT_VERSION2:
-			version(d->get_character(), c_pData);
+			version(d->get_character(), data);
 			break;
 
 		default:
-			metin2::log::error("login phase does not handle this packet! header {:d}", bHeader);
+			metin2::log::error("login phase does not handle this packet! header {:d}", header);
 			return (0);
 	}
 

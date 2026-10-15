@@ -8,7 +8,7 @@ namespace metin2::game {
 
 namespace quest 
 {
-	int ds_open_refine_window(lua_State* L)
+	int ds_open_refine_window(lua_State* lua)
 	{
 		character * const ch = quest_manager::instance().current_character_ptr();
 		if (nullptr == ch)
@@ -22,7 +22,7 @@ namespace quest
 		return 0;
 	}
 
-	int ds_give_qualification(lua_State* L)
+	int ds_give_qualification(lua_State* lua)
 	{
 		character * const ch = quest_manager::instance().current_character_ptr();
 		if (nullptr == ch)
@@ -35,17 +35,17 @@ namespace quest
 		return 0;
 	}
 
-	int ds_is_qualified(lua_State* L)
+	int ds_is_qualified(lua_State* lua)
 	{
 		character * const ch = quest_manager::instance().current_character_ptr();
 		if (nullptr == ch)
 		{
 			quest::error("NULL POINT ERROR");
-			lua_pushnumber(L, 0);
+			lua_pushnumber(lua, 0);
 			return 1;
 		}
 
-		lua_pushnumber(L, ch->dragon_soul_is_qualified());
+		lua_pushnumber(lua, ch->dragon_soul_is_qualified());
 		return 1;
 	}
 

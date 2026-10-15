@@ -35,9 +35,9 @@ void table_by_skill::delete_all()
 	delete_skill_damage_by_level_table();
 }
 
-int table_by_skill::skill_power_by_level_from_type(int job, int skillgroup, int skilllevel, bool bMob) const
+int table_by_skill::skill_power_by_level_from_type(int job, int skillgroup, int skilllevel, bool mob) const
 {
-	if (bMob)
+	if (mob)
 	{
 		return skill_power_by_level_from_type_[0][skilllevel];
 	}
@@ -50,13 +50,13 @@ int table_by_skill::skill_power_by_level_from_type(int job, int skillgroup, int 
 	return skill_power_by_level_from_type_[idx][skilllevel];
 }
 
-void table_by_skill::set_skill_power_by_level_from_type(int idx, const int* aTable)
+void table_by_skill::set_skill_power_by_level_from_type(int idx, const int* table)
 {
 	delete_skill_power_by_level_from_type(idx);
 
 	auto aiSkillTable = std::make_unique_for_overwrite<int[]>(SKILL_MAX_LEVEL+1);
 
-	memcpy (aiSkillTable.get(), aTable, sizeof(int) * (SKILL_MAX_LEVEL + 1));
+	memcpy (aiSkillTable.get(), table, sizeof(int) * (SKILL_MAX_LEVEL + 1));
 	skill_power_by_level_from_type_[idx] = std::move(aiSkillTable);
 }
 

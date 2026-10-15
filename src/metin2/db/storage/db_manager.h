@@ -39,15 +39,15 @@ class db_manager : public singleton<db_manager> {
     void clear();
     void quit();
 
-    auto connect(int iSlot, const char *host, int port, const char *dbname, const char *user, const char *pass) -> int;
+    auto connect(int slot, const char *db_address, int db_port, const char *db_name, const char *user, const char *pwd) -> int;
 
-    void return_query(const char *c_pszQuery, int iType, uint32_t dwIdent, void *pvData, int iSlot = SQL_PLAYER);
-    void async_query(const char *c_pszQuery, int iSlot = SQL_PLAYER);
-    auto direct_query(const char *c_pszQuery, int iSlot = SQL_PLAYER) -> ql_msg *;
+    void return_query(const char *query, int type_value, uint32_t ident_value, void *udata, int slot = SQL_PLAYER);
+    void async_query(const char *query, int slot = SQL_PLAYER);
+    auto direct_query(const char *query, int slot = SQL_PLAYER) -> ql_msg *;
 
     auto pop_result() -> ql_msg *;
 
-    auto escape_string(void *to, const void *from, uint32_t length, int iSlot = SQL_PLAYER) -> uint32_t;
+    auto escape_string(void *to, const void *from, uint32_t length, int slot = SQL_PLAYER) -> uint32_t;
 
     auto count_return_query(int i) -> uint32_t { return main_sql_[i] ? main_sql_[i]->count_query() : 0; }
     auto count_return_result(int i) -> uint32_t { return main_sql_[i] ? main_sql_[i]->count_result() : 0; }

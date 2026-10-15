@@ -25,10 +25,10 @@
 
 namespace metin2::game::inline trade {
 
-void exchange_packet(character * ch, uint8_t sub_header, bool is_me, uint32_t arg1, item_pos arg2, uint32_t arg3, void * pvData = nullptr);
+void exchange_packet(character * ch, uint8_t sub_header, bool is_me, uint32_t arg1, item_pos arg2, uint32_t arg3, void * data = nullptr);
 
 // Trade packet
-void exchange_packet(character * ch, uint8_t sub_header, bool is_me, uint32_t arg1, item_pos arg2, uint32_t arg3, void * pvData)
+void exchange_packet(character * ch, uint8_t sub_header, bool is_me, uint32_t arg1, item_pos arg2, uint32_t arg3, void * data)
 {
 	if (!ch->get_desc())
 		return;
@@ -42,10 +42,10 @@ void exchange_packet(character * ch, uint8_t sub_header, bool is_me, uint32_t ar
 	pack_exchg.arg2		= arg2;
 	pack_exchg.arg3		= arg3;
 
-	if (sub_header == EXCHANGE_SUBHEADER_GC_ITEM_ADD && pvData)
+	if (sub_header == EXCHANGE_SUBHEADER_GC_ITEM_ADD && data)
 	{
-		std::memcpy(&pack_exchg.sockets, ((item *) pvData)->sockets(), sizeof(pack_exchg.sockets));
-		std::memcpy(&pack_exchg.attr, ((item *) pvData)->attributes(), sizeof(pack_exchg.attr));
+		std::memcpy(&pack_exchg.sockets, ((item *) data)->sockets(), sizeof(pack_exchg.sockets));
+		std::memcpy(&pack_exchg.attr, ((item *) data)->attributes(), sizeof(pack_exchg.attr));
 	}
 	else
 	{
@@ -129,7 +129,7 @@ bool character::exchange_start(character * victim)
 
 namespace metin2::game::inline trade {
 
-exchange::exchange(character * pOwner)
+exchange::exchange(character * owner)
 {
 	company_ = nullptr;
 
@@ -144,8 +144,8 @@ exchange::exchange(character * pOwner)
 
 	gold_ = 0;
 
-	owner_ = pOwner;
-	pOwner->set_exchange(this);
+	owner_ = owner;
+	owner->set_exchange(this);
 
 	grid_ = std::make_unique<grid>(4,3);
 }
@@ -287,7 +287,7 @@ bool exchange::add_gold(int32_t gold)
 }
 
 // Checks that there is enough gold and that the items to trade actually exist.
-bool exchange::check(int * piItemCount)
+bool exchange::check(int * item_count_value)
 {
 	if (owner()->gold() < gold_)
 		return false;
@@ -308,7 +308,7 @@ bool exchange::check(int * piItemCount)
 		++item_count;
 	}
 
-	*piItemCount = item_count;
+	*item_count_value = item_count;
 	return true;
 }
 
@@ -504,12 +504,12 @@ bool exchange::done()
 }
 
 // Agree to the trade
-bool exchange::accept(bool bAccept)
+bool exchange::accept(bool accept)
 {
-	if (accept_ == bAccept)
+	if (accept_ == accept)
 		return true;
 
-	accept_ = bAccept;
+	accept_ = accept;
 
 	// Both agreed, so the trade goes through
 	if (accept_ && company()->accept_)

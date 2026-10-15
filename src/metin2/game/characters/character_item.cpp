@@ -84,11 +84,11 @@ struct f_find_stone
 {
 	std::map<uint32_t, character *> stone;
 
-	void operator()(entity * pEnt)
+	void operator()(entity * ent)
 	{
-		if (pEnt->is_type(ENTITY_CHARACTER) == true)
+		if (ent->is_type(ENTITY_CHARACTER) == true)
 		{
-			character * pChar = (character *)pEnt;
+			character * pChar = (character *)ent;
 
 			if (pChar->is_stone() == true)
 			{
@@ -201,16 +201,16 @@ static bool fn_check_item_sex(character * ch, item * item)
 /////////////////////////////////////////////////////////////////////////////
 // ITEM HANDLING
 /////////////////////////////////////////////////////////////////////////////
-bool character::can_handle_item(bool bSkipCheckRefine, bool bSkipObserver)
+bool character::can_handle_item(bool skip_check_refine, bool skip_observer)
 {
-	if (!bSkipObserver)
+	if (!skip_observer)
 		if (is_observer_)
 			return false;
 
 	if (my_shop())
 		return false;
 
-	if (!bSkipCheckRefine)
+	if (!skip_check_refine)
 		if (under_refine_)
 			return false;
 
@@ -223,16 +223,16 @@ bool character::can_handle_item(bool bSkipCheckRefine, bool bSkipObserver)
 	return true;
 }
 
-item * character::inventory_item(uint16_t wCell) const
+item * character::inventory_item(uint16_t cell) const
 {
-	return get_item(item_pos(INVENTORY, wCell));
+	return get_item(item_pos(INVENTORY, cell));
 }
-item * character::get_item(item_pos Cell) const
+item * character::get_item(item_pos cell_value) const
 {
-	if (!is_valid_item_position(Cell))
+	if (!is_valid_item_position(cell_value))
 		return nullptr;
-	uint16_t wCell = Cell.cell;
-	uint8_t window_type = Cell.window_type;
+	uint16_t wCell = cell_value.cell;
+	uint8_t window_type = cell_value.window_type;
 	switch (window_type)
 	{
 	case INVENTORY:
@@ -257,18 +257,18 @@ item * character::get_item(item_pos Cell) const
 	return nullptr;
 }
 
-void character::set_item(item_pos Cell, item * pItem)
+void character::set_item(item_pos cell_value, item * item_value)
 {
-	uint16_t wCell = Cell.cell;
-	uint8_t window_type = Cell.window_type;
-	if (reinterpret_cast<uintptr_t>((item*)pItem) == 0xff || reinterpret_cast<uintptr_t>((item*)pItem) == 0xffffffff || reinterpret_cast<uintptr_t>((item*)pItem) == UINTPTR_MAX)
+	uint16_t wCell = cell_value.cell;
+	uint8_t window_type = cell_value.window_type;
+	if (reinterpret_cast<uintptr_t>((item*)item_value) == 0xff || reinterpret_cast<uintptr_t>((item*)item_value) == 0xffffffff || reinterpret_cast<uintptr_t>((item*)item_value) == UINTPTR_MAX)
 	{
 		metin2::log::error("!!! FATAL ERROR !!! item == 0xff (char: {} cell: {:d})", name(), wCell);
 		core_dump();
 		return;
 	}
 
-	if (pItem && pItem->owner())
+	if (item_value && item_value->owner())
 	{
 		assert(!"GetOwner exist");
 		return;
@@ -308,11 +308,11 @@ void character::set_item(item_pos Cell, item * pItem)
 					points_instant_.item_grid[wCell] = 0;
 			}
 
-			if (pItem)
+			if (item_value)
 			{
 				if (wCell < INVENTORY_MAX_NUM)
 				{
-					for (int i = 0; i < pItem->size(); ++i)
+					for (int i = 0; i < item_value->size(); ++i)
 					{
 						int p = wCell + (i * 5);
 
@@ -328,7 +328,7 @@ void character::set_item(item_pos Cell, item * pItem)
 					points_instant_.item_grid[wCell] = wCell + 1;
 			}
 
-			points_instant_.items[wCell] = pItem;
+			points_instant_.items[wCell] = item_value;
 		}
 		break;
 	// Dragon soul inventory
@@ -363,7 +363,7 @@ void character::set_item(item_pos Cell, item * pItem)
 					points_instant_.ds_item_grid[wCell] = 0;
 			}
 
-			if (pItem)
+			if (item_value)
 			{
 				if (wCell >= DRAGON_SOUL_INVENTORY_MAX_NUM)
 				{
@@ -373,7 +373,7 @@ void character::set_item(item_pos Cell, item * pItem)
 
 				if (wCell < DRAGON_SOUL_INVENTORY_MAX_NUM)
 				{
-					for (int i = 0; i < pItem->size(); ++i)
+					for (int i = 0; i < item_value->size(); ++i)
 					{
 						int p = wCell + (i * DRAGON_SOUL_BOX_COLUMN_NUM);
 
@@ -389,7 +389,7 @@ void character::set_item(item_pos Cell, item * pItem)
 					points_instant_.ds_item_grid[wCell] = wCell + 1;
 			}
 
-			points_instant_.ds_items[wCell] = pItem;
+			points_instant_.ds_items[wCell] = item_value;
 		}
 		break;
 	default:
@@ -400,20 +400,20 @@ void character::set_item(item_pos Cell, item * pItem)
 	if (get_desc())
 	{
 		// Extended items: the server sends item flag info
-		if (pItem)
+		if (item_value)
 		{
 			packet_gc_item_set pack;
 			pack.header = HEADER_GC_ITEM_SET;
-			pack.cell = Cell;
+			pack.cell = cell_value;
 
-			pack.count = pItem->count();
-			pack.vnum = pItem->vnum();
-			pack.flags = pItem->flag();
-			pack.anti_flags	= pItem->anti_flag();
-			pack.highlight = (Cell.window_type == DRAGON_SOUL_INVENTORY);
+			pack.count = item_value->count();
+			pack.vnum = item_value->vnum();
+			pack.flags = item_value->flag();
+			pack.anti_flags	= item_value->anti_flag();
+			pack.highlight = (cell_value.window_type == DRAGON_SOUL_INVENTORY);
 
-			std::memcpy(pack.sockets, pItem->sockets(), sizeof(pack.sockets));
-			std::memcpy(pack.attr, pItem->attributes(), sizeof(pack.attr));
+			std::memcpy(pack.sockets, item_value->sockets(), sizeof(pack.sockets));
+			std::memcpy(pack.attr, item_value->attributes(), sizeof(pack.attr));
 
 			get_desc()->packet(&pack, sizeof(packet_gc_item_set));
 		}
@@ -421,7 +421,7 @@ void character::set_item(item_pos Cell, item * pItem)
 		{
 			packet_gc_item_del_deprecated pack;
 			pack.header = HEADER_GC_ITEM_DEL;
-			pack.cell = Cell;
+			pack.cell = cell_value;
 			pack.count = 0;
 			pack.vnum = 0;
 			memset(pack.sockets, 0, sizeof(pack.sockets));
@@ -431,49 +431,49 @@ void character::set_item(item_pos Cell, item * pItem)
 		}
 	}
 
-	if (pItem)
+	if (item_value)
 	{
-		pItem->set_cell(this, wCell);
+		item_value->set_cell(this, wCell);
 		switch (window_type)
 		{
 		case INVENTORY:
 		case EQUIPMENT:
 			if ((wCell < INVENTORY_MAX_NUM) || (BELT_INVENTORY_SLOT_START <= wCell && BELT_INVENTORY_SLOT_END > wCell))
-				pItem->set_window(INVENTORY);
+				item_value->set_window(INVENTORY);
 			else
-				pItem->set_window(EQUIPMENT);
+				item_value->set_window(EQUIPMENT);
 			break;
 		case DRAGON_SOUL_INVENTORY:
-			pItem->set_window(DRAGON_SOUL_INVENTORY);
+			item_value->set_window(DRAGON_SOUL_INVENTORY);
 			break;
 		}
 	}
 }
 
-item * character::wear(uint8_t bCell) const
+item * character::wear(uint8_t cell) const
 {
 	// > WEAR_MAX_NUM : dragon soul slots.
-	if (bCell >= WEAR_MAX_NUM + DRAGON_SOUL_DECK_MAX_NUM * static_cast<int>(DS_SLOT_MAX))
+	if (cell >= WEAR_MAX_NUM + DRAGON_SOUL_DECK_MAX_NUM * static_cast<int>(DS_SLOT_MAX))
 	{
-		metin2::log::error("CHARACTER::GetWear: invalid wear cell {:d}", bCell);
+		metin2::log::error("CHARACTER::GetWear: invalid wear cell {:d}", cell);
 		return nullptr;
 	}
 
-	return points_instant_.items[INVENTORY_MAX_NUM + bCell];
+	return points_instant_.items[INVENTORY_MAX_NUM + cell];
 }
 
-void character::set_wear(uint8_t bCell, item * item)
+void character::set_wear(uint8_t cell, item * item)
 {
 	// > WEAR_MAX_NUM : dragon soul slots.
-	if (bCell >= WEAR_MAX_NUM + DRAGON_SOUL_DECK_MAX_NUM * static_cast<int>(DS_SLOT_MAX))
+	if (cell >= WEAR_MAX_NUM + DRAGON_SOUL_DECK_MAX_NUM * static_cast<int>(DS_SLOT_MAX))
 	{
-		metin2::log::error("CHARACTER::SetItem: invalid item cell {:d}", bCell);
+		metin2::log::error("CHARACTER::SetItem: invalid item cell {:d}", cell);
 		return;
 	}
 
-	set_item(item_pos (INVENTORY, INVENTORY_MAX_NUM + bCell), item);
+	set_item(item_pos (INVENTORY, INVENTORY_MAX_NUM + cell), item);
 
-	if (!item && bCell == WEAR_WEAPON)
+	if (!item && cell == WEAR_WEAPON)
 	{
 		// If unequipping while the ghost sword is in use, the effect must be removed.
 		if (is_affect_flag(AFF_GWIGUM))
@@ -515,23 +515,23 @@ void character::clear_item()
 	}
 }
 
-bool character::is_empty_item_grid(item_pos Cell, uint8_t bSize, int iExceptionCell) const
+bool character::is_empty_item_grid(item_pos cell_value, uint8_t size, int exception_cell) const
 {
-	switch (Cell.window_type)
+	switch (cell_value.window_type)
 	{
 	case INVENTORY:
 		{
 			// The grid is indexed by an 8-bit cell; anything past the belt inventory is not a grid cell.
-			if (Cell.cell >= INVENTORY_AND_EQUIP_SLOT_MAX)
+			if (cell_value.cell >= INVENTORY_AND_EQUIP_SLOT_MAX)
 				return false;
 
-			uint8_t bCell = Cell.cell;
+			uint8_t bCell = cell_value.cell;
 
 			// bItemCell is stored + 1 so that 0 can mean false.
 			// So add 1 to iExceptionCell when comparing.
-			++iExceptionCell;
+			++exception_cell;
 
-			if (Cell.is_belt_inventory_position())
+			if (cell_value.is_belt_inventory_position())
 			{
 				item * beltItem = wear(WEAR_BELT);
 
@@ -543,13 +543,13 @@ bool character::is_empty_item_grid(item_pos Cell, uint8_t bSize, int iExceptionC
 
 				if (points_instant_.item_grid[bCell])
 				{
-					if (points_instant_.item_grid[bCell] == iExceptionCell)
+					if (points_instant_.item_grid[bCell] == exception_cell)
 						return true;
 
 					return false;
 				}
 
-				if (bSize == 1)
+				if (size == 1)
 					return true;
 
 			}
@@ -558,9 +558,9 @@ bool character::is_empty_item_grid(item_pos Cell, uint8_t bSize, int iExceptionC
 
 			if (points_instant_.item_grid[bCell])
 			{
-				if (points_instant_.item_grid[bCell] == iExceptionCell)
+				if (points_instant_.item_grid[bCell] == exception_cell)
 				{
-					if (bSize == 1)
+					if (size == 1)
 						return true;
 
 					int j = 1;
@@ -577,10 +577,10 @@ bool character::is_empty_item_grid(item_pos Cell, uint8_t bSize, int iExceptionC
 							return false;
 
 						if (points_instant_.item_grid[p])
-							if (points_instant_.item_grid[p] != iExceptionCell)
+							if (points_instant_.item_grid[p] != exception_cell)
 								return false;
 					}
-					while (++j < bSize);
+					while (++j < size);
 
 					return true;
 				}
@@ -589,7 +589,7 @@ bool character::is_empty_item_grid(item_pos Cell, uint8_t bSize, int iExceptionC
 			}
 
 			// Size 1 occupies a single cell, so just return
-			if (1 == bSize)
+			if (1 == size)
 				return true;
 			else
 			{
@@ -607,10 +607,10 @@ bool character::is_empty_item_grid(item_pos Cell, uint8_t bSize, int iExceptionC
 						return false;
 
 					if (points_instant_.item_grid[p])
-						if (points_instant_.item_grid[p] != iExceptionCell)
+						if (points_instant_.item_grid[p] != exception_cell)
 							return false;
 				}
-				while (++j < bSize);
+				while (++j < size);
 
 				return true;
 			}
@@ -618,19 +618,19 @@ bool character::is_empty_item_grid(item_pos Cell, uint8_t bSize, int iExceptionC
 		break;
 	case DRAGON_SOUL_INVENTORY:
 		{
-			uint16_t wCell = Cell.cell;
+			uint16_t wCell = cell_value.cell;
 			if (wCell >= DRAGON_SOUL_INVENTORY_MAX_NUM)
 				return false;
 
 			// bItemCell is stored + 1 so that 0 can mean false.
 			// So add 1 to iExceptionCell when comparing.
-			iExceptionCell++;
+			exception_cell++;
 
 			if (points_instant_.ds_item_grid[wCell])
 			{
-				if (points_instant_.ds_item_grid[wCell] == iExceptionCell)
+				if (points_instant_.ds_item_grid[wCell] == exception_cell)
 				{
-					if (bSize == 1)
+					if (size == 1)
 						return true;
 
 					int j = 1;
@@ -643,10 +643,10 @@ bool character::is_empty_item_grid(item_pos Cell, uint8_t bSize, int iExceptionC
 							return false;
 
 						if (points_instant_.ds_item_grid[p])
-							if (points_instant_.ds_item_grid[p] != iExceptionCell)
+							if (points_instant_.ds_item_grid[p] != exception_cell)
 								return false;
 					}
-					while (++j < bSize);
+					while (++j < size);
 
 					return true;
 				}
@@ -655,7 +655,7 @@ bool character::is_empty_item_grid(item_pos Cell, uint8_t bSize, int iExceptionC
 			}
 
 			// Size 1 occupies a single cell, so just return
-			if (1 == bSize)
+			if (1 == size)
 				return true;
 			else
 			{
@@ -669,10 +669,10 @@ bool character::is_empty_item_grid(item_pos Cell, uint8_t bSize, int iExceptionC
 						return false;
 
 					if (points_instant_.ds_item_grid[p])
-						if (points_instant_.ds_item_grid[p] != iExceptionCell)
+						if (points_instant_.ds_item_grid[p] != exception_cell)
 							return false;
 				}
-				while (++j < bSize);
+				while (++j < size);
 
 				return true;
 			}
@@ -692,16 +692,16 @@ int character::empty_inventory(uint8_t size) const
 	return -1;
 }
 
-int character::empty_dragon_soul_inventory(item * pItem) const
+int character::empty_dragon_soul_inventory(item * item_value) const
 {
-	if (nullptr == pItem || !pItem->is_dragon_soul())
+	if (nullptr == item_value || !item_value->is_dragon_soul())
 		return -1;
 	if (!dragon_soul_is_qualified())
 	{
 		return -1;
 	}
-	uint8_t bSize = pItem->size();
-	uint16_t wBaseCell = ds_manager::instance().base_position(pItem);
+	uint8_t bSize = item_value->size();
+	uint16_t wBaseCell = ds_manager::instance().base_position(item_value);
 
 	if (WORD_MAX == wBaseCell)
 		return -1;
@@ -713,11 +713,11 @@ int character::empty_dragon_soul_inventory(item * pItem) const
 	return -1;
 }
 
-void character::copy_dragon_soul_item_grid(std::vector<uint16_t>& vDragonSoulItemGrid) const
+void character::copy_dragon_soul_item_grid(std::vector<uint16_t>& dragon_soul_item_grid) const
 {
-	vDragonSoulItemGrid.resize(DRAGON_SOUL_INVENTORY_MAX_NUM);
+	dragon_soul_item_grid.resize(DRAGON_SOUL_INVENTORY_MAX_NUM);
 
-	std::copy(points_instant_.ds_item_grid, points_instant_.ds_item_grid + DRAGON_SOUL_INVENTORY_MAX_NUM, vDragonSoulItemGrid.begin());
+	std::copy(points_instant_.ds_item_grid, points_instant_.ds_item_grid + DRAGON_SOUL_INVENTORY_MAX_NUM, dragon_soul_item_grid.begin());
 }
 
 int character::count_empty_inventory() const
@@ -763,7 +763,7 @@ void character::set_refine_npc(character * ch)
 	}
 }
 
-bool character::do_refine(item * item, bool bMoneyOnly)
+bool character::do_refine(item * item, bool money_only)
 {
 	if (!can_handle_item(true))
 	{
@@ -834,7 +834,7 @@ bool character::do_refine(item * item, bool bMoneyOnly)
 		return false;
 	}
 
-	if (!bMoneyOnly && !RefineChance)
+	if (!money_only && !RefineChance)
 	{
 		for (int i = 0; i < prt->material_count; ++i)
 		{
@@ -855,7 +855,7 @@ bool character::do_refine(item * item, bool bMoneyOnly)
 
 	int prob = number(1, 100);
 
-	if (is_refine_through_guild() || bMoneyOnly)
+	if (is_refine_through_guild() || money_only)
 		prob -= 10;
 
 	// END_OF_REFINE_COST
@@ -1171,18 +1171,18 @@ bool character::do_refine_with_scroll(item * item)
 	return true;
 }
 
-bool character::refine_information(uint8_t bCell, uint8_t bType, int iAdditionalCell)
+bool character::refine_information(uint8_t cell, uint8_t type_value, int additional_cell)
 {
-	if (bCell > INVENTORY_MAX_NUM)
+	if (cell > INVENTORY_MAX_NUM)
 		return false;
 
-	item * item = inventory_item(bCell);
+	item * item = inventory_item(cell);
 
 	if (!item)
 		return false;
 
 	// REFINE_COST
-	if (bType == REFINE_TYPE_MONEY_ONLY && !quest_flag("deviltower_zone.can_refine"))
+	if (type_value == REFINE_TYPE_MONEY_ONLY && !quest_flag("deviltower_zone.can_refine"))
 	{
 		chat_packet(CHAT_TYPE_INFO, lc_text("사귀 타워 완료 보상은 한번까지 사용가능합니다."));
 		return false;
@@ -1192,10 +1192,10 @@ bool character::refine_information(uint8_t bCell, uint8_t bType, int iAdditional
 	packet_gc_refine_information p;
 
 	p.header = HEADER_GC_REFINE_INFORMATION;
-	p.pos = bCell;
+	p.pos = cell;
 	p.src_vnum = item->vnum();
 	p.result_vnum = item->refined_vnum();
-	p.type = bType;
+	p.type = type_value;
 
 	if (p.result_vnum == 0)
 	{
@@ -1206,14 +1206,14 @@ bool character::refine_information(uint8_t bCell, uint8_t bType, int iAdditional
 
 	if (item->type() == ITEM_USE && item->sub_type() == USE_TUNING)
 	{
-		if (bType == 0)
+		if (type_value == 0)
 		{
 			chat_packet(CHAT_TYPE_INFO, lc_text("이 아이템은 이 방식으로는 개량할 수 없습니다."));
 			return false;
 		}
 		else
 		{
-			game::items::item * itemScroll = inventory_item(iAdditionalCell);
+			game::items::item * itemScroll = inventory_item(additional_cell);
 			if (!itemScroll || item->vnum() == itemScroll->vnum())
 			{
 				chat_packet(CHAT_TYPE_INFO, lc_text("같은 개량서를 합칠 수는 없습니다."));
@@ -1252,7 +1252,7 @@ bool character::refine_information(uint8_t bCell, uint8_t bType, int iAdditional
 
 	//END_MAIN_QUEST_LV7
 	p.prob = prt->prob;
-	if (bType == REFINE_TYPE_MONEY_ONLY)
+	if (type_value == REFINE_TYPE_MONEY_ONLY)
 	{
 		p.material_count = 0;
 		memset(p.materials, 0, sizeof(p.materials));
@@ -1266,45 +1266,45 @@ bool character::refine_information(uint8_t bCell, uint8_t bType, int iAdditional
 
 	get_desc()->packet(&p, sizeof(packet_gc_refine_information));
 
-	set_refine_mode(iAdditionalCell);
+	set_refine_mode(additional_cell);
 	return true;
 }
 
-bool character::refine_item(item * pkItem, item * pkTarget)
+bool character::refine_item(item * item_value, item * target)
 {
 	if (!can_handle_item())
 		return false;
 
-	if (pkItem->sub_type() == USE_TUNING)
+	if (item_value->sub_type() == USE_TUNING)
 	{
 		// XXX performance and socket refine scrolls are gone...
 		// XXX the performance refine scroll became the blessing scroll!
 		// MUSIN_SCROLL
-		if (pkItem->value(0) == MUSIN_SCROLL)
-			refine_information(pkTarget->cell(), REFINE_TYPE_MUSIN, pkItem->cell());
+		if (item_value->value(0) == MUSIN_SCROLL)
+			refine_information(target->cell(), REFINE_TYPE_MUSIN, item_value->cell());
 		// END_OF_MUSIN_SCROLL
-		else if (pkItem->value(0) == HYUNIRON_CHN)
-			refine_information(pkTarget->cell(), REFINE_TYPE_HYUNIRON, pkItem->cell());
-		else if (pkItem->value(0) == BDRAGON_SCROLL)
+		else if (item_value->value(0) == HYUNIRON_CHN)
+			refine_information(target->cell(), REFINE_TYPE_HYUNIRON, item_value->cell());
+		else if (item_value->value(0) == BDRAGON_SCROLL)
 		{
-			if (pkTarget->refine_set() != 702) return false;
-			refine_information(pkTarget->cell(), REFINE_TYPE_BDRAGON, pkItem->cell());
+			if (target->refine_set() != 702) return false;
+			refine_information(target->cell(), REFINE_TYPE_BDRAGON, item_value->cell());
 		}
 		else
 		{
-			if (pkTarget->refine_set() == 501) return false;
-			refine_information(pkTarget->cell(), REFINE_TYPE_SCROLL, pkItem->cell());
+			if (target->refine_set() == 501) return false;
+			refine_information(target->cell(), REFINE_TYPE_SCROLL, item_value->cell());
 		}
 	}
-	else if (pkItem->sub_type() == USE_DETACHMENT && is_set(pkTarget->flag(), ITEM_FLAG_REFINEABLE))
+	else if (item_value->sub_type() == USE_DETACHMENT && is_set(target->flag(), ITEM_FLAG_REFINEABLE))
 	{
-		log_manager::instance().item_log(this, pkTarget, "USE_DETACHMENT", pkTarget->name());
+		log_manager::instance().item_log(this, target, "USE_DETACHMENT", target->name());
 
 		bool bHasMetinStone = false;
 
 		for (int i = 0; i < ITEM_SOCKET_MAX_NUM; i++)
 		{
-			int32_t socket = pkTarget->get_socket(i);
+			int32_t socket = target->get_socket(i);
 			if (socket > 2 && socket != ITEM_BROKEN_METIN_VNUM)
 			{
 				bHasMetinStone = true;
@@ -1316,15 +1316,15 @@ bool character::refine_item(item * pkItem, item * pkTarget)
 		{
 			for (int i = 0; i < ITEM_SOCKET_MAX_NUM; ++i)
 			{
-				int32_t socket = pkTarget->get_socket(i);
+				int32_t socket = target->get_socket(i);
 				if (socket > 2 && socket != ITEM_BROKEN_METIN_VNUM)
 				{
 					auto_give_item(socket);
 					// Replace with a broken stone
-					pkTarget->set_socket(i, ITEM_BROKEN_METIN_VNUM);
+					target->set_socket(i, ITEM_BROKEN_METIN_VNUM);
 				}
 			}
-			pkItem->set_count(pkItem->count() - 1);
+			item_value->set_count(item_value->count() - 1);
 			return true;
 		}
 		else
@@ -1483,10 +1483,10 @@ void character::open_private_shop()
 }
 
 // MYSHOP_PRICE_LIST
-void character::send_my_shop_price_list_cmd(uint32_t dwItemVnum, uint32_t dwItemPrice)
+void character::send_my_shop_price_list_cmd(uint32_t item_vnum, uint32_t item_price)
 {
 	char szLine[256];
-	snprintf(szLine, sizeof(szLine), "MyShopPriceList %u %u", dwItemVnum, dwItemPrice);
+	snprintf(szLine, sizeof(szLine), "MyShopPriceList %u %u", item_vnum, item_price);
 	chat_packet(CHAT_TYPE_COMMAND, szLine);
 	metin2::log::info( "{}", szLine);
 }
@@ -1557,28 +1557,28 @@ int calculate_consume(character * ch)
 	return consumeLife;
 }
 
-int calculate_consume_sp(character * lpChar)
+int calculate_consume_sp(character * ch)
 {
 	static const int NEED_WARP_SP_PERCENT = 30;
 
-	const int curSP = lpChar->sp();
-	const int needSP = lpChar->max_sp() * NEED_WARP_SP_PERCENT / 100;
+	const int curSP = ch->sp();
+	const int needSP = ch->max_sp() * NEED_WARP_SP_PERCENT / 100;
 
 	if (curSP < needSP)
 	{
-		lpChar->chat_packet(CHAT_TYPE_INFO, lc_text("남은 정신력 양이 모자라 사용할 수 없습니다."));
+		ch->chat_packet(CHAT_TYPE_INFO, lc_text("남은 정신력 양이 모자라 사용할 수 없습니다."));
 		return -1;
 	}
 
 	return needSP;
 }
 
-bool character::use_item_ex(item * item, item_pos DestCell)
+bool character::use_item_ex(item * item, item_pos dest_cell)
 {
 	int iLimitRealtimeStartFirstUseFlagIndex = -1;
 
-	uint16_t wDestCell = DestCell.cell;
-	uint8_t bDestInven = DestCell.window_type;
+	uint16_t wDestCell = dest_cell.cell;
+	uint8_t bDestInven = dest_cell.window_type;
 	for (int i = 0; i < ITEM_LIMIT_MAX_NUM; ++i)
 	{
 		int32_t limitValue = item->proto()->limits[i].value;
@@ -1838,7 +1838,7 @@ bool character::use_item_ex(item * item, item_pos DestCell)
 			{
 				game::items::item * item2;
 
-				if (!get_item(DestCell) || !(item2 = get_item(DestCell)))
+				if (!get_item(dest_cell) || !(item2 = get_item(dest_cell)))
 					return false;
 
 				if (item2->is_exchanging())
@@ -2240,7 +2240,7 @@ bool character::use_item_ex(item * item, item_pos DestCell)
 				{
 					case USE_TIME_CHARGE_PER:
 						{
-							game::items::item * pDestItem = get_item(DestCell);
+							game::items::item * pDestItem = get_item(dest_cell);
 							if (nullptr == pDestItem)
 							{
 								return false;
@@ -2296,7 +2296,7 @@ bool character::use_item_ex(item * item, item_pos DestCell)
 						break;
 					case USE_TIME_CHARGE_FIX:
 						{
-							game::items::item * pDestItem = get_item(DestCell);
+							game::items::item * pDestItem = get_item(dest_cell);
 							if (nullptr == pDestItem)
 							{
 								return false;
@@ -3278,7 +3278,7 @@ bool character::use_item_ex(item * item, item_pos DestCell)
 								{
 									game::items::item * item2;
 
-									if (!is_valid_item_position(DestCell) || !(item2 = get_item(DestCell)))
+									if (!is_valid_item_position(dest_cell) || !(item2 = get_item(dest_cell)))
 										return false;
 
 									if (item2->is_exchanging() == true)
@@ -3628,7 +3628,7 @@ bool character::use_item_ex(item * item, item_pos DestCell)
 
 									game::items::item * item2;
 
-									if (!is_valid_item_position(DestCell) || !(item2 = inventory_item(wDestCell)))
+									if (!is_valid_item_position(dest_cell) || !(item2 = inventory_item(wDestCell)))
 										return false;
 
 									if (item2->is_exchanging() == true)
@@ -3679,7 +3679,7 @@ bool character::use_item_ex(item * item, item_pos DestCell)
 
 									game::items::item * item2;
 
-									if (!is_valid_item_position(DestCell) || !(item2 = get_item(DestCell)))
+									if (!is_valid_item_position(dest_cell) || !(item2 = get_item(dest_cell)))
 										return false;
 
 									if (item2->is_exchanging() == true)
@@ -4232,7 +4232,7 @@ bool character::use_item_ex(item * item, item_pos DestCell)
 						{
 							game::items::item * item2;
 
-							if (!is_valid_item_position(DestCell) || !(item2 = get_item(DestCell)))
+							if (!is_valid_item_position(dest_cell) || !(item2 = get_item(dest_cell)))
 								return false;
 
 							if (item2->is_exchanging())
@@ -4277,7 +4277,7 @@ bool character::use_item_ex(item * item, item_pos DestCell)
 					case USE_ADD_ATTRIBUTE2:
 						{
 							game::items::item * item2;
-							if (!is_valid_item_position(DestCell) || !(item2 = get_item(DestCell)))
+							if (!is_valid_item_position(dest_cell) || !(item2 = get_item(dest_cell)))
 								return false;
 
 							if (item2->is_equipped())
@@ -4787,7 +4787,7 @@ bool character::use_item_ex(item * item, item_pos DestCell)
 			{
 				game::items::item * item2;
 
-				if (!is_valid_item_position(DestCell) || !(item2 = get_item(DestCell)))
+				if (!is_valid_item_position(dest_cell) || !(item2 = get_item(dest_cell)))
 					return false;
 
 				if (item2->is_exchanging())
@@ -4916,7 +4916,7 @@ bool character::use_item_ex(item * item, item_pos DestCell)
 			break;
 		case ITEM_EXTRACT:
 			{
-				game::items::item * pDestItem = get_item(DestCell);
+				game::items::item * pDestItem = get_item(dest_cell);
 				if (nullptr == pDestItem)
 				{
 					return false;
@@ -4955,16 +4955,16 @@ bool character::use_item_ex(item * item, item_pos DestCell)
 
 int portal_limit_time = 10;
 
-bool character::use_item(item_pos Cell, item_pos DestCell)
+bool character::use_item(item_pos cell_value, item_pos dest_cell)
 {
-	uint16_t wCell = Cell.cell;
-	uint8_t window_type = Cell.window_type;
+	uint16_t wCell = cell_value.cell;
+	uint8_t window_type = cell_value.window_type;
 	item * item;
 
 	if (!can_handle_item())
 		return false;
 
-	if (!is_valid_item_position(Cell) || !(item = get_item(Cell)))
+	if (!is_valid_item_position(cell_value) || !(item = get_item(cell_value)))
 			return false;
 
 	metin2::log::info( "{}: USE_ITEM {} (inven {:d}, cell: {:d})", name(), item->name(), window_type, wCell);
@@ -5124,7 +5124,7 @@ bool character::use_item(item_pos Cell, item_pos DestCell)
 		if (len < 0 || len >= (int) sizeof(hint) - 32)
 			len = (sizeof(hint) - 32) - 1;
 
-		bool ret = use_item_ex(item, DestCell);
+		bool ret = use_item_ex(item, dest_cell);
 
 		if (nullptr == item_manager::instance().find_by_vid(vid)) // The item was deleted in UseItemEx. Write a delete log
 		{
@@ -5138,10 +5138,10 @@ bool character::use_item(item_pos Cell, item_pos DestCell)
 		return (ret);
 	}
 	else
-		return use_item_ex(item, DestCell);
+		return use_item_ex(item, dest_cell);
 }
 
-bool character::drop_item(item_pos Cell, uint8_t bCount)
+bool character::drop_item(item_pos cell_value, uint8_t count_value)
 {
 	item * item = nullptr; 
 
@@ -5155,7 +5155,7 @@ bool character::drop_item(item_pos Cell, uint8_t bCount)
 	if (is_dead())
 		return false;
 
-	if (!is_valid_item_position(Cell) || !(item = get_item(Cell)))
+	if (!is_valid_item_position(cell_value) || !(item = get_item(cell_value)))
 		return false;
 
 	if (item->is_exchanging())
@@ -5173,21 +5173,21 @@ bool character::drop_item(item_pos Cell, uint8_t bCount)
 		return false;
 	}
 
-	if (bCount == 0 || bCount > item->count())
-		bCount = item->count();
+	if (count_value == 0 || count_value > item->count())
+		count_value = item->count();
 
-	sync_quickslot(QUICKSLOT_TYPE_ITEM, Cell.cell, 255);	// Remove from the quickslot
+	sync_quickslot(QUICKSLOT_TYPE_ITEM, cell_value.cell, 255);	// Remove from the quickslot
 
 	game::items::item * pkItemToDrop;
 
-	if (bCount == item->count())
+	if (count_value == item->count())
 	{
 		item->remove_from_character();
 		pkItemToDrop = item;
 	}
 	else
 	{
-		if (bCount == 0)
+		if (count_value == 0)
 		{
 			if (metin2::config::test_server())
 				metin2::log::info( "[DROP_ITEM] drop item count == 0");
@@ -5196,10 +5196,10 @@ bool character::drop_item(item_pos Cell, uint8_t bCount)
 
 		// check non-split items for china
 
-		item->set_count(item->count() - bCount);
+		item->set_count(item->count() - count_value);
 		item_manager::instance().flush_delayed_save(item);
 
-		pkItemToDrop = item_manager::instance().create_item(item->vnum(), bCount);
+		pkItemToDrop = item_manager::instance().create_item(item->vnum(), count_value);
 
 		// copy item socket -- by mhh
 		fn_copy_item_socket(pkItemToDrop, item);
@@ -5296,17 +5296,17 @@ bool character::drop_gold(int gold_value)
 	return false;
 }
 
-bool character::move_item(item_pos Cell, item_pos DestCell, uint8_t count)
+bool character::move_item(item_pos cell_value, item_pos dest_cell, uint8_t count)
 {
-	if (Cell.is_same_position(DestCell)) // ItemMove dupe exploit fix
+	if (cell_value.is_same_position(dest_cell)) // ItemMove dupe exploit fix
 		return false;
 
 	item * item = nullptr;
 
-	if (!is_valid_item_position(Cell))
+	if (!is_valid_item_position(cell_value))
 		return false;
 
-	if (!(item = get_item(Cell)))
+	if (!(item = get_item(cell_value)))
 		return false;
 
 	if (item->is_exchanging())
@@ -5315,13 +5315,13 @@ bool character::move_item(item_pos Cell, item_pos DestCell, uint8_t count)
 	if (item->count() < count)
 		return false;
 
-	if (INVENTORY == Cell.window_type && Cell.cell >= INVENTORY_MAX_NUM && is_set(item->flag(), ITEM_FLAG_IRREMOVABLE))
+	if (INVENTORY == cell_value.window_type && cell_value.cell >= INVENTORY_MAX_NUM && is_set(item->flag(), ITEM_FLAG_IRREMOVABLE))
 		return false;
 
 	if (true == item->is_locked())
 		return false;
 
-	if (!is_valid_item_position(DestCell))
+	if (!is_valid_item_position(dest_cell))
 	{
 		return false;
 	}
@@ -5334,26 +5334,26 @@ bool character::move_item(item_pos Cell, item_pos DestCell, uint8_t count)
 	}
 
 	// At the designers' request, only certain item types can go into the belt inventory.
-	if (DestCell.is_belt_inventory_position() && false == belt_inventory_helper::can_move_into_belt_inventory(item))
+	if (dest_cell.is_belt_inventory_position() && false == belt_inventory_helper::can_move_into_belt_inventory(item))
 	{
 		chat_packet(CHAT_TYPE_INFO, lc_text("이 아이템은 벨트 인벤토리로 옮길 수 없습니다."));			
 		return false;
 	}
 
 	// When moving an already-equipped item elsewhere, check that it can be unequipped before moving
-	if (Cell.is_equip_position() && !can_unequip_now(item))
+	if (cell_value.is_equip_position() && !can_unequip_now(item))
 		return false;
 
-	if (DestCell.is_equip_position())
+	if (dest_cell.is_equip_position())
 	{
-		if (get_item(DestCell))	// For equipment, checking one position is enough.
+		if (get_item(dest_cell))	// For equipment, checking one position is enough.
 		{
 			chat_packet(CHAT_TYPE_INFO, lc_text("이미 장비를 착용하고 있습니다."));
 
 			return false;
 		}
 
-		equip_item(item, DestCell.cell - INVENTORY_MAX_NUM);
+		equip_item(item, dest_cell.cell - INVENTORY_MAX_NUM);
 	}
 	else
 	{
@@ -5361,26 +5361,26 @@ bool character::move_item(item_pos Cell, item_pos DestCell, uint8_t count)
 		{
 			if (item->is_equipped())
 			{
-				return ds_manager::instance().pull_out(this, DestCell, item);
+				return ds_manager::instance().pull_out(this, dest_cell, item);
 			}
 			else
 			{
-				if (DestCell.window_type != DRAGON_SOUL_INVENTORY)
+				if (dest_cell.window_type != DRAGON_SOUL_INVENTORY)
 				{
 					return false;
 				}
 
-				if (!ds_manager::instance().is_valid_cell_for_this_item(item, DestCell))
+				if (!ds_manager::instance().is_valid_cell_for_this_item(item, dest_cell))
 					return false;
 			}
 		}
 		// Non-dragon-soul items cannot go into the dragon soul inventory.
-		else if (DRAGON_SOUL_INVENTORY == DestCell.window_type)
+		else if (DRAGON_SOUL_INVENTORY == dest_cell.window_type)
 			return false;
 
 		game::items::item * item2;
 
-		if ((item2 = get_item(DestCell)) && item != item2 && item2->is_stackable() &&
+		if ((item2 = get_item(dest_cell)) && item != item2 && item2->is_stackable() &&
 				!is_set(item2->anti_flag(), ITEM_ANTIFLAG_STACK) &&
 				item2->vnum() == item->vnum()) // For stackable items
 		{
@@ -5391,8 +5391,8 @@ bool character::move_item(item_pos Cell, item_pos DestCell, uint8_t count)
 			if (count == 0)
 				count = item->count();
 
-			metin2::log::info( "{}: ITEM_STACK {} (window: {:d}, cell : {:d}) -> (window:{:d}, cell {:d}) count {:d}", name(), item->name(), Cell.window_type, Cell.cell, 
-				DestCell.window_type, DestCell.cell, count);
+			metin2::log::info( "{}: ITEM_STACK {} (window: {:d}, cell : {:d}) -> (window:{:d}, cell {:d}) count {:d}", name(), item->name(), cell_value.window_type, cell_value.cell, 
+				dest_cell.window_type, dest_cell.cell, count);
 
 			count = std::min<int>(200 - item2->count(), count);
 
@@ -5401,26 +5401,26 @@ bool character::move_item(item_pos Cell, item_pos DestCell, uint8_t count)
 			return true;
 		}
 
-		if (!is_empty_item_grid(DestCell, item->size(), Cell.cell))
+		if (!is_empty_item_grid(dest_cell, item->size(), cell_value.cell))
 			return false;
 
 		if (count == 0 || count >= item->count() || !item->is_stackable() || is_set(item->anti_flag(), ITEM_ANTIFLAG_STACK))
 		{
-			metin2::log::info( "{}: ITEM_MOVE {} (window: {:d}, cell : {:d}) -> (window:{:d}, cell {:d}) count {:d}", name(), item->name(), Cell.window_type, Cell.cell, 
-				DestCell.window_type, DestCell.cell, count);
+			metin2::log::info( "{}: ITEM_MOVE {} (window: {:d}, cell : {:d}) -> (window:{:d}, cell {:d}) count {:d}", name(), item->name(), cell_value.window_type, cell_value.cell, 
+				dest_cell.window_type, dest_cell.cell, count);
 
 			item->remove_from_character();
-			set_item(DestCell, item);
+			set_item(dest_cell, item);
 
-			if (INVENTORY == Cell.window_type && INVENTORY == DestCell.window_type)
-				sync_quickslot(QUICKSLOT_TYPE_ITEM, Cell.cell, DestCell.cell);
+			if (INVENTORY == cell_value.window_type && INVENTORY == dest_cell.window_type)
+				sync_quickslot(QUICKSLOT_TYPE_ITEM, cell_value.cell, dest_cell.cell);
 		}
 		else if (count < item->count())
 		{
 			//check non-split items 
 
-			metin2::log::info( "{}: ITEM_SPLIT {} (window: {:d}, cell : {:d}) -> (window:{:d}, cell {:d}) count {:d}", name(), item->name(), Cell.window_type, Cell.cell, 
-				DestCell.window_type, DestCell.cell, count);
+			metin2::log::info( "{}: ITEM_SPLIT {} (window: {:d}, cell : {:d}) -> (window:{:d}, cell {:d}) count {:d}", name(), item->name(), cell_value.window_type, cell_value.cell, 
+				dest_cell.window_type, dest_cell.cell, count);
 
 			item->set_count(item->count() - count);
 			game::items::item * item2 = item_manager::instance().create_item(item->vnum(), count);
@@ -5428,7 +5428,7 @@ bool character::move_item(item_pos Cell, item_pos DestCell, uint8_t count)
 			// copy socket -- by mhh
 			fn_copy_item_socket(item2, item);
 
-			item2->add_to_character(this, DestCell);
+			item2->add_to_character(this, dest_cell);
 
 			char szBuf[51+1];
 			snprintf(szBuf, sizeof(szBuf), "%u %u %u %u ", item2->id(), item2->count(), item->count(), item->count() + item2->count());
@@ -5482,8 +5482,8 @@ namespace party_pickup_distribute
 		int		x, y;
 		int		money;
 
-		f_money_distributor(character * center, int iMoney) 
-			: total(0), c(center), x(center->x()), y(center->y()), money(iMoney) 
+		f_money_distributor(character * center, int money_value) 
+			: total(0), c(center), x(center->x()), y(center->y()), money(money_value) 
 		{
 		}
 
@@ -5501,19 +5501,19 @@ namespace party_pickup_distribute
 	};
 }
 
-void character::give_gold(int iAmount)
+void character::give_gold(int amount)
 {
-	if (iAmount <= 0)
+	if (amount <= 0)
 		return;
 
-	metin2::log::info( "GIVE_GOLD: {} {:d}", name(), iAmount);
+	metin2::log::info( "GIVE_GOLD: {} {:d}", name(), amount);
 
 	if (get_party())
 	{
 		party * pParty = get_party();
 
 		// Split among the party if there is one.
-		uint32_t dwTotal = iAmount;
+		uint32_t dwTotal = amount;
 		uint32_t dwMyAmount = dwTotal;
 
 		party_pickup_distribute::f_count_near_member funcCountNearMember(this);
@@ -5536,21 +5536,21 @@ void character::give_gold(int iAmount)
 	}
 	else
 	{
-		point_change(POINT_GOLD, iAmount, true);
+		point_change(POINT_GOLD, amount, true);
 
 		// There is a bug in Brazil where money disappears,
 		// and one possible scenario is,
 		// using macros or hacks to keep dropping amounts under 1000 until gold reaches 0, 
 		// then filing a restoration request claiming the money vanished.
 		// So log low gold amounts as well to catch such cases.
-		if (iAmount > 1000) // Only record 1000 or more.
-			log_manager::instance().char_log(this, iAmount, "GET_GOLD", "");
+		if (amount > 1000) // Only record 1000 or more.
+			log_manager::instance().char_log(this, amount, "GET_GOLD", "");
 	}
 }
 
-bool character::pickup_item(uint32_t dwVID)
+bool character::pickup_item(uint32_t vid)
 {
-	item * item = item_manager::instance().find_by_vid(dwVID);
+	item * item = item_manager::instance().find_by_vid(vid);
 
 	if (is_observer_mode())
 		return false;
@@ -5721,12 +5721,12 @@ bool character::pickup_item(uint32_t dwVID)
 	return false;
 }
 
-bool character::swap_item(uint8_t bCell, uint8_t bDestCell)
+bool character::swap_item(uint8_t cell_value, uint8_t dest_cell)
 {
 	if (!can_handle_item())
 		return false;
 
-	item_pos srcCell(INVENTORY, bCell), destCell(INVENTORY, bDestCell);
+	item_pos srcCell(INVENTORY, cell_value), destCell(INVENTORY, dest_cell);
 
 	// Check that the cell is valid
 	// Dragon soul stones cannot be swapped, so this catches them.
@@ -5735,7 +5735,7 @@ bool character::swap_item(uint8_t bCell, uint8_t bDestCell)
 		return false;
 
 	// Check whether it's the same cell
-	if (bCell == bDestCell)
+	if (cell_value == dest_cell)
 		return false;
 
 	// Cannot swap if both are in equipment slots.
@@ -5748,13 +5748,13 @@ bool character::swap_item(uint8_t bCell, uint8_t bDestCell)
 	// Make item2 the one in the equipment slot.
 	if (srcCell.is_equip_position())
 	{
-		item1 = inventory_item(bDestCell);
-		item2 = inventory_item(bCell);
+		item1 = inventory_item(dest_cell);
+		item2 = inventory_item(cell_value);
 	}
 	else
 	{
-		item1 = inventory_item(bCell);
-		item2 = inventory_item(bDestCell);
+		item1 = inventory_item(cell_value);
+		item2 = inventory_item(dest_cell);
 	}
 
 	if (!item1 || !item2)
@@ -5762,7 +5762,7 @@ bool character::swap_item(uint8_t bCell, uint8_t bDestCell)
 
 	if (item1 == item2)
 	{
-	    metin2::log::info( "[WARNING][WARNING][HACK USER!] : {} {:d} {:d}", name_.c_str(), bCell, bDestCell);
+	    metin2::log::info( "[WARNING][WARNING][HACK USER!] : {} {:d} {:d}", name_.c_str(), cell_value, dest_cell);
 	    return false;
 	}
 
@@ -5837,7 +5837,7 @@ bool character::unequip_item(item * item)
 //
 // @version	05/07/05 Bang2ni - No equipping within 1.5 seconds after using a skill
 //
-bool character::equip_item(item * item, int iCandidateCell)
+bool character::equip_item(item * item, int candidate_cell)
 {
 	if (item->is_exchanging())
 		return false;
@@ -5848,7 +5848,7 @@ bool character::equip_item(item * item, int iCandidateCell)
 	if (false == can_equip_now(item))
 		return false;
 
-	int iWearCell = item->find_equip_cell(this, iCandidateCell);
+	int iWearCell = item->find_equip_cell(this, candidate_cell);
 
 	if (iWearCell < 0)
 		return false;
@@ -6002,26 +6002,26 @@ bool character::equip_item(item * item, int iCandidateCell)
 	return true;
 }
 
-void character::buff_on_attr_add_buffs_from_item(item * pItem)
+void character::buff_on_attr_add_buffs_from_item(item * item_value)
 {
 	for (size_t i = 0; i < std::size(buff_on_attr_points); i++)
 	{
 		map_buff_on_attrs::iterator it = map_buff_on_attrs_.find(buff_on_attr_points[i]);
 		if (it != map_buff_on_attrs_.end())
 		{
-			it->second->add_buff_from_item(pItem);
+			it->second->add_buff_from_item(item_value);
 		}
 	}
 }
 
-void character::buff_on_attr_remove_buffs_from_item(item * pItem)
+void character::buff_on_attr_remove_buffs_from_item(item * item_value)
 {
 	for (size_t i = 0; i < std::size(buff_on_attr_points); i++)
 	{
 		map_buff_on_attrs::iterator it = map_buff_on_attrs_.find(buff_on_attr_points[i]);
 		if (it != map_buff_on_attrs_.end())
 		{
-			it->second->remove_buff_from_item(pItem);
+			it->second->remove_buff_from_item(item_value);
 		}
 	}
 }
@@ -6038,57 +6038,57 @@ void character::buff_on_attr_clear_all()
 	}
 }
 
-void character::buff_on_attr_value_change(uint8_t bType, uint8_t bOldValue, uint8_t bNewValue)
+void character::buff_on_attr_value_change(uint8_t type, uint8_t old_value, uint8_t new_value)
 {
-	map_buff_on_attrs::iterator it = map_buff_on_attrs_.find(bType);
+	map_buff_on_attrs::iterator it = map_buff_on_attrs_.find(type);
 
-	if (0 == bNewValue)
+	if (0 == new_value)
 	{
 		if (map_buff_on_attrs_.end() == it)
 			return;
 		else
 			it->second->off();
 	}
-	else if(0 == bOldValue)
+	else if(0 == old_value)
 	{
 		buff_on_attributes* pBuff;
 		if (map_buff_on_attrs_.end() == it)
 		{
 			std::unique_ptr<buff_on_attributes> pNewBuff;
-			switch (bType)
+			switch (type)
 			{
 			case POINT_ENERGY:
 				{
 					static uint8_t abSlot[] = { WEAR_BODY, WEAR_HEAD, WEAR_FOOTS, WEAR_WRIST, WEAR_WEAPON, WEAR_NECK, WEAR_EAR, WEAR_SHIELD };
 					static std::vector <uint8_t> vec_slots (abSlot, abSlot + std::size(abSlot));
-					pNewBuff = std::make_unique<buff_on_attributes>(this, bType, &vec_slots);
+					pNewBuff = std::make_unique<buff_on_attributes>(this, type, &vec_slots);
 				}
 				break;
 			case POINT_COSTUME_ATTR_BONUS:
 				{
 					static uint8_t abSlot[] = { WEAR_COSTUME_BODY, WEAR_COSTUME_HAIR };
 					static std::vector <uint8_t> vec_slots (abSlot, abSlot + std::size(abSlot));
-					pNewBuff = std::make_unique<buff_on_attributes>(this, bType, &vec_slots);
+					pNewBuff = std::make_unique<buff_on_attributes>(this, type, &vec_slots);
 				}
 				break;
 			default:
 				break;
 			}
 			pBuff = pNewBuff.get();
-			map_buff_on_attrs_.insert(map_buff_on_attrs::value_type(bType, std::move(pNewBuff)));
+			map_buff_on_attrs_.insert(map_buff_on_attrs::value_type(type, std::move(pNewBuff)));
 
 		}
 		else
 			pBuff = it->second.get();
 
-		pBuff->on(bNewValue);
+		pBuff->on(new_value);
 	}
 	else
 	{
 		if (map_buff_on_attrs_.end() == it)
 			return;
 		else
-			it->second->change_buff_value(bNewValue);
+			it->second->change_buff_value(new_value);
 	}
 }
 
@@ -6240,7 +6240,7 @@ void character::remove_specify_type_item(uint8_t type, uint32_t count)
 	}
 }
 
-void character::auto_give_item(item * item, bool longOwnerShip)
+void character::auto_give_item(item * item, bool long_owner_ship)
 {
 	if (nullptr == item)
 	{
@@ -6290,7 +6290,7 @@ void character::auto_give_item(item * item, bool longOwnerShip)
 		item->add_to_ground (map_index(), xyz());
 		item->start_destroy_event();
 
-		if (longOwnerShip)
+		if (long_owner_ship)
 			item->set_ownership (this, 300);
 		else
 			item->set_ownership (this, 60);
@@ -6298,14 +6298,14 @@ void character::auto_give_item(item * item, bool longOwnerShip)
 	}
 }
 
-item * character::auto_give_item(uint32_t dwItemVnum, uint8_t bCount, int iRarePct, bool bMsg)
+item * character::auto_give_item(uint32_t item_vnum, uint8_t count_value, int rare_pct, bool msg)
 {
-	item_table * p = item_manager::instance().table(dwItemVnum);
+	item_table * p = item_manager::instance().table(item_vnum);
 
 	if (!p)
 		return nullptr;
 
-	db_manager::instance().send_money_log(MONEY_LOG_DROP, dwItemVnum, bCount);
+	db_manager::instance().send_money_log(MONEY_LOG_DROP, item_vnum, count_value);
 
 	if (p->flags & ITEM_FLAG_STACKABLE && p->type != ITEM_BLEND) 
 	{
@@ -6316,22 +6316,22 @@ item * character::auto_give_item(uint32_t dwItemVnum, uint8_t bCount, int iRareP
 			if (!item)
 				continue;
 
-			if (item->vnum() == dwItemVnum && fn_check_item_socket(item))
+			if (item->vnum() == item_vnum && fn_check_item_socket(item))
 			{
 				if (is_set(p->flags, ITEM_FLAG_MAKECOUNT))
 				{
-					if (bCount < p->values[1])
-						bCount = p->values[1];
+					if (count_value < p->values[1])
+						count_value = p->values[1];
 				}
 
-				uint8_t bCount2 = std::min<int>(200 - item->count(), bCount);
-				bCount -= bCount2;
+				uint8_t bCount2 = std::min<int>(200 - item->count(), count_value);
+				count_value -= bCount2;
 
 				item->set_count(item->count() + bCount2);
 
-				if (bCount == 0)
+				if (count_value == 0)
 				{
-					if (bMsg)
+					if (msg)
 						chat_packet(CHAT_TYPE_INFO, lc_text("아이템 획득: %s"), item->name());
 
 					return item;
@@ -6340,11 +6340,11 @@ item * character::auto_give_item(uint32_t dwItemVnum, uint8_t bCount, int iRareP
 		}
 	}
 
-	game::items::item * item = item_manager::instance().create_item(dwItemVnum, bCount, 0, true);
+	game::items::item * item = item_manager::instance().create_item(item_vnum, count_value, 0, true);
 
 	if (!item)
 	{
-		metin2::log::error("cannot create item by vnum {:d} (name: {})", dwItemVnum, name());
+		metin2::log::error("cannot create item by vnum {:d} (name: {})", item_vnum, name());
 		return nullptr;
 	}
 
@@ -6383,7 +6383,7 @@ item * character::auto_give_item(uint32_t dwItemVnum, uint8_t bCount, int iRareP
 
 	if (iEmptyCell != -1)
 	{
-		if (bMsg)
+		if (msg)
 			chat_packet(CHAT_TYPE_INFO, lc_text("아이템 획득: %s"), item->name());
 
 		if (item->is_dragon_soul())
@@ -6420,16 +6420,16 @@ item * character::auto_give_item(uint32_t dwItemVnum, uint8_t bCount, int iRareP
 	}
 
 	metin2::log::info( 
-		"7: {:d} {:d}", dwItemVnum, bCount);
+		"7: {:d} {:d}", item_vnum, count_value);
 	return item;
 }
 
-bool character::give_item(character * victim, item_pos Cell)
+bool character::give_item(character * victim, item_pos cell)
 {
 	if (!can_handle_item())
 		return false;
 
-	item * item = get_item(Cell);
+	item * item = get_item(cell);
 
 	if (item && !item->is_exchanging())
 	{
@@ -6700,43 +6700,43 @@ void character::receive_item(character * from, item * item)
 	}
 }
 
-bool character::is_equip_unique_item(uint32_t dwItemVnum) const
+bool character::is_equip_unique_item(uint32_t item_vnum) const
 {
 	{
 		item * u = wear(WEAR_UNIQUE1);
 
-		if (u && u->vnum() == dwItemVnum)
+		if (u && u->vnum() == item_vnum)
 			return true;
 	}
 
 	{
 		item * u = wear(WEAR_UNIQUE2);
 
-		if (u && u->vnum() == dwItemVnum)
+		if (u && u->vnum() == item_vnum)
 			return true;
 	}
 
 	// For language rings, also check whether it's a language ring (sample).
-	if (dwItemVnum == UNIQUE_ITEM_RING_OF_LANGUAGE)
+	if (item_vnum == UNIQUE_ITEM_RING_OF_LANGUAGE)
 		return is_equip_unique_item(UNIQUE_ITEM_RING_OF_LANGUAGE_SAMPLE);
 
 	return false;
 }
 
 // CHECK_UNIQUE_GROUP
-bool character::is_equip_unique_group(uint32_t dwGroupVnum) const
+bool character::is_equip_unique_group(uint32_t group_vnum) const
 {
 	{
 		item * u = wear(WEAR_UNIQUE1);
 
-		if (u && u->special_group() == (int) dwGroupVnum)
+		if (u && u->special_group() == (int) group_vnum)
 			return true;
 	}
 
 	{
 		item * u = wear(WEAR_UNIQUE2);
 
-		if (u && u->special_group() == (int) dwGroupVnum)
+		if (u && u->special_group() == (int) group_vnum)
 			return true;
 	}
 
@@ -6744,9 +6744,9 @@ bool character::is_equip_unique_group(uint32_t dwGroupVnum) const
 }
 // END_OF_CHECK_UNIQUE_GROUP
 
-void character::set_refine_mode(int iAdditionalCell)
+void character::set_refine_mode(int additional_cell)
 {
-	refine_additional_cell_ = iAdditionalCell;
+	refine_additional_cell_ = additional_cell;
 	under_refine_ = true;
 }
 
@@ -6756,14 +6756,14 @@ void character::clear_refine_mode()
 	set_refine_npc( nullptr );
 }
 
-bool character::give_item_from_special_item_group(uint32_t dwGroupNum, std::vector<uint32_t> &dwItemVnums, 
-											std::vector<uint32_t> &dwItemCounts, std::vector <item *> &item_gets, int &count)
+bool character::give_item_from_special_item_group(uint32_t group_num, std::vector<uint32_t> &item_vnums, 
+											std::vector<uint32_t> &item_counts, std::vector <item *> &item_gets, int &count)
 {
-	const special_item_group* pGroup = item_manager::instance().get_special_item_group(dwGroupNum);
+	const special_item_group* pGroup = item_manager::instance().get_special_item_group(group_num);
 
 	if (!pGroup)
 	{
-		metin2::log::error("cannot find special item group {:d}", dwGroupNum);
+		metin2::log::error("cannot find special item group {:d}", group_num);
 		return false;
 	}
 
@@ -6858,8 +6858,8 @@ bool character::give_item_from_special_item_group(uint32_t dwGroupNum, std::vect
 
 		if (bSuccess)
 		{
-			dwItemVnums.push_back(dwVnum);
-			dwItemCounts.push_back(dwCount);
+			item_vnums.push_back(dwVnum);
+			item_counts.push_back(dwCount);
 			item_gets.push_back(item_get);
 			count++;
 
@@ -6873,7 +6873,7 @@ bool character::give_item_from_special_item_group(uint32_t dwGroupNum, std::vect
 }
 
 // NEW_HAIR_STYLE_ADD
-bool character::item_process_hair(item * item, int iDestCell)
+bool character::item_process_hair(item * item, int dest_cell)
 {
 	if (item->check_item_use_level(level()) == false)
 	{
@@ -7147,10 +7147,10 @@ void character::auto_recovery_item_process(const affect_types type)
 	}
 }
 
-bool character::is_valid_item_position(item_pos Pos) const
+bool character::is_valid_item_position(item_pos pos) const
 {
-	uint8_t window_type = Pos.window_type;
-	uint16_t cell = Pos.cell;
+	uint8_t window_type = pos.window_type;
+	uint16_t cell = pos.cell;
 
 	switch (window_type)
 	{
@@ -7188,7 +7188,7 @@ bool character::is_valid_item_position(item_pos Pos) const
 	}
 
 /// Checks whether the given item can be equipped given the character's current state, and if not, tells the character why
-bool character::can_equip_now(item * const item, const item_pos& srcCell, const item_pos& destCell) /*const*/
+bool character::can_equip_now(item * const item, const item_pos& src_cell, const item_pos& dest_cell) /*const*/
 {
 	const item_table* itemTable = item->proto();
 
@@ -7284,7 +7284,7 @@ bool character::can_equip_now(item * const item, const item_pos& srcCell, const 
 }
 
 /// Checks whether the equipped item can be removed given the character's current state, and if not, tells the character why
-bool character::can_unequip_now(item * const item, const item_pos& srcCell, const item_pos& destCell) /*const*/
+bool character::can_unequip_now(item * const item, const item_pos& src_cell, const item_pos& dest_cell) /*const*/
 {	
 
 	if (ITEM_BELT == item->type())

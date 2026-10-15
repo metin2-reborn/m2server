@@ -36,7 +36,7 @@ namespace metin2::db::inline caches {
 namespace metin2::db::inline clients {
 
 
-std::string create_player_save_query(const player_table * pkTab);
+std::string create_player_save_query(const player_table * tab);
 
 class client_manager : public singleton<client_manager>
 {
@@ -72,17 +72,17 @@ class client_manager : public singleton<client_manager>
 		std::unique_ptr<proto::account_table> account_table;
 		std::unique_ptr<safebox_table> safebox;
 
-		client_handle_info(uint32_t argHandle, uint32_t dwPID = 0)
+		client_handle_info(uint32_t arg_handle, uint32_t pid = 0)
 		{
-		    handle = argHandle;
-		    player_id = dwPID;
+		    handle = arg_handle;
+		    player_id = pid;
 		};
 		//Constructor for the German gift feature
-		client_handle_info(uint32_t argHandle, uint32_t dwPID, uint32_t accountId)
+		client_handle_info(uint32_t arg_handle, uint32_t pid, uint32_t account_id_value)
 		{
-		    handle = argHandle;
-		    player_id = dwPID;
-			account_id = accountId;
+		    handle = arg_handle;
+		    player_id = pid;
+			account_id = account_id_value;
 		};
 	};
 
@@ -99,22 +99,22 @@ class client_manager : public singleton<client_manager>
 	void	main_loop();
 	void	quit();
 
-	void	set_table_postfix(const char* c_pszTablePostfix);
-	void	set_player_id_start(int iIDStart);
+	void	set_table_postfix(const char* table_postfix);
+	void	set_player_id_start(int id_start);
 
 	uint32_t	user_count();	// Returns the number of connected users.
 
 	void	send_time();
 
 	player_table_cache *	player_cache(uint32_t id);
-	void			put_player_cache(player_table * pNew);
+	void			put_player_cache(player_table * updated);
 
-	void			create_item_cache_set(uint32_t dwID);
-	item_cache_set *		get_item_cache_set(uint32_t dwID);
-	void			flush_item_cache_set(uint32_t dwID);
+	void			create_item_cache_set(uint32_t pid);
+	item_cache_set *		get_item_cache_set(uint32_t pid);
+	void			flush_item_cache_set(uint32_t pid);
 
 	item_cache *		get_item_cache(uint32_t id);
-	void			put_item_cache(player_item * pNew, bool bSkipQuery = false);
+	void			put_item_cache(player_item * updated, bool skip_query = false);
 	bool			delete_item_cache(uint32_t id);
 
 	void			update_player_cache();
@@ -126,7 +126,7 @@ class client_manager : public singleton<client_manager>
 	 * @param [in]	dwID owner of the price list (player ID)
 	 * @return	pointer to the price list cache
 	 */
-	item_price_list_table_cache*	item_price_list_cache(uint32_t dwID);
+	item_price_list_table_cache*	item_price_list_cache(uint32_t id);
 
 	/// Puts a price list cache.
 	/**
@@ -134,24 +134,24 @@ class client_manager : public singleton<client_manager>
 	 *
 	 * If the cache already exists it is replaced, not updated.
 	 */
-	void			put_item_price_list_cache(const item_price_list_table* pItemPriceList);
+	void			put_item_price_list_cache(const item_price_list_table* item_price_list);
 
 	/// Flushes item price list caches whose flush time has expired and removes them from the cache.
 	void			update_item_price_list_cache(void);
 	// END_OF_MYSHOP_PRICE_LIST
 
-	void			send_guild_skill_usable(uint32_t guild_id, uint32_t dwSkillVnum, bool bUsable);
+	void			send_guild_skill_usable(uint32_t guild_id, uint32_t skill_vnum_value, bool usable_value);
 
-	void			set_cache_flush_count_limit(int iLimit);
+	void			set_cache_flush_count_limit(int limit);
 
 	template <class Func>
 	Func		for_each_peer(Func f);
 
 	peer *		any_peer();
 
-	void			forward_packet(uint8_t header, const void* data, int size, uint8_t bChannel = 0, peer * except = nullptr);
+	void			forward_packet(uint8_t header, const void* data, int size, uint8_t channel_value = 0, peer * except = nullptr);
 
-	void			send_notice(const char * c_pszFormat, ...);
+	void			send_notice(const char * format, ...);
 
 	// Tells the game about an item award whose why column starts with "[GIFT]" (German gift feature).
 	void			inform_gift_award(const char * login, const char * why, uint32_t vnum);
@@ -182,25 +182,25 @@ class client_manager : public singleton<client_manager>
 	bool		mirror_item_table_into_db();
 
 	void		add_peer(net::tcp::socket socket);
-	void		remove_peer(peer * pPeer);
+	void		remove_peer(peer * peer_value);
 	peer *		get_peer(uint32_t ident);
 
 	int		analyze_query_result(ql_msg * msg);
 
 	int		process();
 
-	login_data *	get_login_data(uint32_t dwKey);
-	login_data *	get_login_data_by_login(const char * c_pszLogin);
-	login_data *	get_login_data_by_aid(uint32_t dwAID);
+	login_data *	get_login_data(uint32_t key);
+	login_data *	get_login_data_by_login(const char * login);
+	login_data *	get_login_data_by_aid(uint32_t aid);
 
-	void		insert_login_data(login_data * pkLD);
-	void		delete_login_data(login_data * pkLD);
+	void		insert_login_data(login_data * ld);
+	void		delete_login_data(login_data * ld);
 
-	bool		insert_logon_account(const char * c_pszLogin, uint32_t dwHandle);
-	bool		delete_logon_account(const char * c_pszLogin, uint32_t dwHandle);
-	bool		find_logon_account(const char * c_pszLogin);
+	bool		insert_logon_account(const char * login, uint32_t handle);
+	bool		delete_logon_account(const char * login, uint32_t handle);
+	bool		find_logon_account(const char * login);
 
-	void		guild_create(peer * peer, uint32_t dwGuildID);
+	void		guild_create(peer * peer, uint32_t guild_id);
 	void		guild_skill_update(peer * peer, packet_guild_skill_update* p);
 	void		guild_exp_update(peer * peer, packet_guild_exp_update* p);
 	void		guild_add_member(peer * peer, packet_gd_guild_add_member* p);
@@ -220,19 +220,19 @@ class client_manager : public singleton<client_manager>
 
 	void		query_boot(peer * peer, packet_gd_boot * p);
 
-	void		query_logout(peer * peer, uint32_t dwHandle, const char *);
+	void		query_logout(peer * peer, uint32_t handle_value, const char *);
 
 	void		result_login(peer * peer, ql_msg *msg);
 
-	void		query_player_load(peer * peer, uint32_t dwHandle, player_load_packet*);
-	void		result_composite_player(peer * peer, ql_msg * pMsg, uint32_t dwQID);
-	void		result_player_load(peer * peer, MYSQL_RES * pRes, client_handle_info * pkInfo);
-	void		result_item_load(peer * peer, MYSQL_RES * pRes, uint32_t dwHandle, uint32_t dwPID);
-	void		result_quest_load(peer * pkPeer, MYSQL_RES * pRes, uint32_t dwHandle, uint32_t dwPID);
-	void		result_affect_load(peer * pkPeer, MYSQL_RES * pRes, uint32_t dwHandle);
+	void		query_player_load(peer * peer, uint32_t handle_value, player_load_packet*);
+	void		result_composite_player(peer * peer, ql_msg * msg, uint32_t qid);
+	void		result_player_load(peer * peer, MYSQL_RES * res, client_handle_info * info_value);
+	void		result_item_load(peer * peer, MYSQL_RES * res, uint32_t handle, uint32_t pid);
+	void		result_quest_load(peer * peer, MYSQL_RES * res, uint32_t handle, uint32_t pid);
+	void		result_affect_load(peer * peer, MYSQL_RES * res, uint32_t handle);
 
 	// PLAYER_INDEX_CREATE_BUG_FIX
-	void		result_player_index_create(peer *pkPeer, ql_msg *msg);
+	void		result_player_index_create(peer *peer_value, ql_msg *msg);
 	// END_PLAYER_INDEX_CREATE_BUG_FIX
  
 	// MYSHOP_PRICE_LIST
@@ -243,7 +243,7 @@ class client_manager : public singleton<client_manager>
 	 *
 	 * Stores the loaded price list in the cache and sends the list to the peer.
 	 */
-	void		result_pricelist_load(peer* peer, ql_msg* pMsg);
+	void		result_pricelist_load(peer* peer, ql_msg* msg);
 
 	/// Handles the result of the load query for a price info update
 	/**
@@ -251,44 +251,44 @@ class client_manager : public singleton<client_manager>
 	 *
 	 * Builds the price list cache from the loaded info and updates it with the received price info.
 	 */
-	void		result_pricelist_load_for_update(ql_msg* pMsg);
+	void		result_pricelist_load_for_update(ql_msg* msg);
 	// END_OF_MYSHOP_PRICE_LIST
 
-	void		query_player_save(peer * peer, uint32_t dwHandle, player_table*);
+	void		query_player_save(peer * peer, uint32_t handle, player_table*);
 
-	void		query_player_create(peer * peer, uint32_t dwHandle, player_create_packet *);
-	void		query_player_delete(peer * peer, uint32_t dwHandle, player_delete_packet *);
+	void		query_player_create(peer * peer, uint32_t handle, player_create_packet *);
+	void		query_player_delete(peer * peer, uint32_t handle_value, player_delete_packet *);
 	void		result_player_delete(peer * peer, ql_msg* msg);
 
-	void		query_player_count(peer * pkPeer, player_count_packet *);
+	void		query_player_count(peer * peer_value, player_count_packet *);
 
-	void		query_item_save(peer * pkPeer, const char * c_pData);
-	void		query_item_destroy(peer * pkPeer, const char * c_pData);
-	void		query_item_flush(peer * pkPeer, const char * c_pData);
+	void		query_item_save(peer * peer_value, const char * data);
+	void		query_item_destroy(peer * peer_value, const char * data);
+	void		query_item_flush(peer * peer_value, const char * data);
 
-	void		query_quest_save(peer * pkPeer, quest_table *, uint32_t dwLen);
-	void		query_add_affect(peer * pkPeer, packet_gd_add_affect * p);
-	void		query_remove_affect(peer * pkPeer, packet_gd_remove_affect * p);
+	void		query_quest_save(peer * peer_value, quest_table *, uint32_t len);
+	void		query_add_affect(peer * peer, packet_gd_add_affect * p);
+	void		query_remove_affect(peer * peer, packet_gd_remove_affect * p);
 
-	void		query_safebox_load(peer * pkPeer, uint32_t dwHandle, safebox_load_packet *, bool bMall);
-	void		query_safebox_save(peer * pkPeer, safebox_table * pTable);
-	void		query_safebox_change_size(peer * pkPeer, uint32_t dwHandle, safebox_change_size_packet * p);
-	void		query_safebox_change_password(peer * pkPeer, uint32_t dwHandle, safebox_change_password_packet * p);
+	void		query_safebox_load(peer * peer_value, uint32_t handle_value, safebox_load_packet *, bool mall);
+	void		query_safebox_save(peer * peer_value, safebox_table * table);
+	void		query_safebox_change_size(peer * peer_value, uint32_t handle_value, safebox_change_size_packet * p);
+	void		query_safebox_change_password(peer * peer_value, uint32_t handle_value, safebox_change_password_packet * p);
 
-	void		result_safebox_load(peer * pkPeer, ql_msg * msg);
-	void		result_safebox_change_size(peer * pkPeer, ql_msg * msg);
-	void		result_safebox_change_password(peer * pkPeer, ql_msg * msg);
-	void		result_safebox_change_password_second(peer * pkPeer, ql_msg * msg);
+	void		result_safebox_load(peer * peer_value, ql_msg * msg);
+	void		result_safebox_change_size(peer * peer_value, ql_msg * msg);
+	void		result_safebox_change_password(peer * peer_value, ql_msg * msg);
+	void		result_safebox_change_password_second(peer * peer_value, ql_msg * msg);
 
-	void		query_empire_select(peer * pkPeer, uint32_t dwHandle, empire_select_packet * p);
-	void		query_setup(peer * pkPeer, uint32_t dwHandle, const char * c_pData);
+	void		query_empire_select(peer * peer_value, uint32_t handle, empire_select_packet * p);
+	void		query_setup(peer * peer, uint32_t handle_value, const char * data);
 
-	void		send_party_on_setup(peer * peer);
+	void		send_party_on_setup(peer * peer_value);
 
 	void		query_highscore_register(peer * peer, packet_gd_highscore* data);
-	void		result_highscore_register(peer * pkPeer, ql_msg * msg);
+	void		result_highscore_register(peer * peer_value, ql_msg * msg);
 
-	void		query_flush_cache(peer * pkPeer, const char * c_pData);
+	void		query_flush_cache(peer * peer_value, const char * data);
 
 	void		query_party_create(peer * peer, packet_party_create* p);
 	void		query_party_delete(peer * peer, packet_party_delete* p);
@@ -299,9 +299,9 @@ class client_manager : public singleton<client_manager>
 
 	void		query_reload_proto();
 
-	void		query_change_name(peer * peer, uint32_t dwHandle, packet_gd_change_name * p);
+	void		query_change_name(peer * peer, uint32_t handle, packet_gd_change_name * p);
 
-	void		query_sms(peer * pkPeer, packet_gdsms * p);
+	void		query_sms(peer * peer_value, packet_gdsms * pack);
 
 	void		add_guild_priv(packet_give_guild_priv* p);
 	void		add_empire_priv(packet_give_empire_priv* p);
@@ -309,12 +309,12 @@ class client_manager : public singleton<client_manager>
 
 	void		money_log(packet_money_log* p);
 
-	void		query_auth_login(peer * pkPeer, uint32_t dwHandle, packet_gd_auth_login * p);
+	void		query_auth_login(peer * peer_value, uint32_t handle, packet_gd_auth_login * p);
 
-	void		query_login_by_key(peer * pkPeer, uint32_t dwHandle, packet_gd_login_by_key * p);
+	void		query_login_by_key(peer * peer_value, uint32_t handle_value, packet_gd_login_by_key * p);
 	void		result_login_by_key(peer * peer, ql_msg * msg);
 
-	void		charge_cash(const request_charge_cash * p);
+	void		charge_cash(const request_charge_cash * packet);
 
 	void		load_event_flag();
 	void		set_event_flag(packet_set_event_flag* p);
@@ -336,7 +336,7 @@ class client_manager : public singleton<client_manager>
 	/**
 	 * @param [in]	pPacket pointer to the packet data
 	 */
-	void		myshop_pricelist_update(const item_price_list_table* pPacket);
+	void		myshop_pricelist_update(const item_price_list_table* packet);
 
 	/// Handler for the item price list request packet (HEADER_GD_MYSHOP_PRICELIST_REQ)
 	/**
@@ -344,12 +344,12 @@ class client_manager : public singleton<client_manager>
 	 * @param [in]	dwHandle handle of the peer that requested the price info
 	 * @param [in]	dwPlayerID ID of the player who requested the price list
 	 */
-	void		myshop_pricelist_request(peer* peer, uint32_t dwHandle, uint32_t dwPlayerID);
+	void		myshop_pricelist_request(peer* peer, uint32_t handle_value, uint32_t player_id);
 	// END_OF_MYSHOP_PRICE_LIST
 
 	// Building
 	void		create_object(packet_gd_create_object * p);
-	void		delete_object(uint32_t dwID);
+	void		delete_object(uint32_t id);
 	void		update_land(uint32_t * pdw);
 
 	// BLOCK_CHAT
@@ -456,8 +456,8 @@ class client_manager : public singleton<client_manager>
 	//END_BOOT_LOCALIZATION
 	//ADMIN_MANAGER
 
-	bool admin_info(const char *szIP, std::vector<t_admin_info> & rAdminVec);
-	bool host_info(std::vector<std::string> & rIPVec);
+	bool admin_info(const char *ip, std::vector<t_admin_info> & admin_vec);
+	bool host_info(std::vector<std::string> & ip_vec);
 	//END_ADMIN_MANAGER
 
 		
@@ -484,31 +484,31 @@ class client_manager : public singleton<client_manager>
 	void flush_player_cache_set(uint32_t pid);
 
 	//MONARCH
-	void election(peer * peer, uint32_t dwHandle, const char * p);
-	void candidacy(peer * peer, uint32_t dwHandle, const char * p);
-	void add_monarch_money(peer * peer, uint32_t dwHandle, const char * p);
-	void take_monarch_money(peer * peer, uint32_t dwHandle, const char * p);
-	void come_to_vote(peer * peer, uint32_t dwHandle, const char * p);
-	void rm_candidacy(peer * peer, uint32_t dwHandle, const char * p);
-	void set_monarch(peer * peer, uint32_t dwHandle, const char * p);
-	void rm_monarch(peer * peer, uint32_t dwHandle, const char * p);
+	void election(peer * peer, uint32_t handle, const char * data);
+	void candidacy(peer * peer, uint32_t handle, const char * data);
+	void add_monarch_money(peer * peer, uint32_t handle, const char * data);
+	void take_monarch_money(peer * peer, uint32_t handle, const char * data);
+	void come_to_vote(peer * peer, uint32_t handle, const char * data);
+	void rm_candidacy(peer * peer, uint32_t handle, const char * data);
+	void set_monarch(peer * peer, uint32_t handle, const char * data);
+	void rm_monarch(peer * peer, uint32_t handle, const char * data);
 								
 
-	void dec_monarch_money(peer * peer, uint32_t dwHandle, const char * p);
+	void dec_monarch_money(peer * peer, uint32_t handle, const char * data);
 	//END_MONARCH
 
-	void change_monarch_lord(peer* peer, uint32_t dwHandle, packet_change_monarch_lord* info);
+	void change_monarch_lord(peer* peer, uint32_t handle, packet_change_monarch_lord* info);
 
 	void send_spare_item_id_range(peer* peer);
 
 	void update_horse_name(packet_update_horse_name* data, peer* peer);
-	void ack_horse_name(uint32_t dwPID, peer* peer);
+	void ack_horse_name(uint32_t pid, peer* peer);
 	void delete_login_key(packet_dc *data);
 	void reset_last_player_id(const packet_need_login_log_info* data);
 	//delete gift notify icon
 	void delete_award_id(packet_delete_award_id* data);
-	void update_channel_status(channel_status* pData);
-	void request_channel_status(peer* peer, uint32_t dwHandle);
+	void update_channel_status(channel_status* data);
+	void request_channel_status(peer* peer, uint32_t handle);
 };
 
 template<class Func>	
@@ -525,5 +525,5 @@ Func client_manager::for_each_peer(Func f)
 extern int item_count;
 extern int query_count[2];
 
-bool create_player_table_from_res(MYSQL_RES * res, player_table * pkTab);
+bool create_player_table_from_res(MYSQL_RES * res, player_table * tab);
 }

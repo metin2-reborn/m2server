@@ -395,7 +395,7 @@ namespace quest
 	// Quest Event related
 	//
 	///////////////////////////////////////////////////////////////////////////////////////////
-	void quest_manager::login(unsigned int pc, const char * c_pszQuest)
+	void quest_manager::login(unsigned int pc, const char * quest)
 	{
 		game::quest::pc * pPC;
 
@@ -404,7 +404,7 @@ namespace quest
 			if (!check_quest_loaded(pPC))
 				return;
 
-			npc_[QUEST_NO_NPC].on_login(*pPC, c_pszQuest);
+			npc_[QUEST_NO_NPC].on_login(*pPC, quest);
 		}
 		else
 		{
@@ -559,7 +559,7 @@ namespace quest
 		}
 	}
 
-	bool quest_manager::target(unsigned int pc, uint32_t dwQuestIndex, const char * c_pszTargetName, const char * c_pszVerb)
+	bool quest_manager::target(unsigned int pc, uint32_t quest_index, const char * target_name, const char * verb)
 	{
 		game::quest::pc * pPC;
 
@@ -569,7 +569,7 @@ namespace quest
 				return false;
 
 			bool bRet;
-			return npc_[QUEST_NO_NPC].on_target(*pPC, dwQuestIndex, c_pszTargetName, c_pszVerb, bRet);
+			return npc_[QUEST_NO_NPC].on_target(*pPC, quest_index, target_name, verb, bRet);
 		}
 
 		return false;
@@ -649,7 +649,7 @@ namespace quest
 		}
 	}
 
-	bool quest_manager::use_item(unsigned int pc, item * item, bool bReceiveAll)
+	bool quest_manager::use_item(unsigned int pc, item * item, bool receive_all)
 	{
 		if (metin2::config::test_server())
 			metin2::log::info( "questmanager::UseItem Start : itemVnum : {:d} PC : {:d}", item->original_vnum(), pc);
@@ -668,7 +668,7 @@ namespace quest
 			// call script
 			set_current_item(item);
 
-			return npc_[item->vnum()].on_use_item(*pPC, bReceiveAll);
+			return npc_[item->vnum()].on_use_item(*pPC, receive_all);
 		}
 		else
 		{
@@ -678,7 +678,7 @@ namespace quest
 	}
 
 	// Group Use defined in Special Item Group
-	bool quest_manager::sig_use(unsigned int pc, uint32_t sig_vnum, item * item, bool bReceiveAll)
+	bool quest_manager::sig_use(unsigned int pc, uint32_t sig_vnum, item * item, bool receive_all)
 	{
 		if (metin2::config::test_server())
 			metin2::log::info( "questmanager::SIGUse Start : itemVnum : {:d} PC : {:d}", item->original_vnum(), pc);
@@ -697,7 +697,7 @@ namespace quest
 			// call script
 			set_current_item(item);
 
-			return npc_[sig_vnum].on_sig_use(*pPC, bReceiveAll);
+			return npc_[sig_vnum].on_sig_use(*pPC, receive_all);
 		}
 		else
 		{
@@ -706,9 +706,9 @@ namespace quest
 		}
 	}
 
-	bool quest_manager::give_item_to_pc(unsigned int pc, character * pkChr)
+	bool quest_manager::give_item_to_pc(unsigned int pc, character * chr)
 	{
-		if (!pkChr->is_pc())
+		if (!chr->is_pc())
 			return false;
 
 		game::quest::pc * pPC = get_pc(pc);
@@ -718,7 +718,7 @@ namespace quest
 			if (!check_quest_loaded(pPC))
 				return false;
 
-			target_info * pInfo = target_manager::instance().get_target_info(pc, TARGET_TYPE_VID, pkChr->get_vid());
+			target_info * pInfo = target_manager::instance().get_target_info(pc, TARGET_TYPE_VID, chr->get_vid());
 
 			if (pInfo)
 			{
@@ -732,7 +732,7 @@ namespace quest
 		return false;
 	}
 
-	bool quest_manager::click(unsigned int pc, character * pkChrTarget)
+	bool quest_manager::click(unsigned int pc, character * chr_target)
 	{
 		game::quest::pc * pPC = get_pc(pc);
 
@@ -748,10 +748,10 @@ namespace quest
 				return false;
 			}
 
-			target_info * pInfo = target_manager::instance().get_target_info(pc, TARGET_TYPE_VID, pkChrTarget->get_vid());
+			target_info * pInfo = target_manager::instance().get_target_info(pc, TARGET_TYPE_VID, chr_target->get_vid());
 			if (metin2::config::test_server())
 			{
-				metin2::log::info( "CQuestManager::Click(pid={:d}, npc_name={}) - target_info({})", pc, pkChrTarget->name(), static_cast<const void *>(static_cast<void*>(pInfo)));
+				metin2::log::info( "CQuestManager::Click(pid={:d}, npc_name={}) - target_info({})", pc, chr_target->name(), static_cast<const void *>(static_cast<void*>(pInfo)));
 			}
 
 			if (pInfo)
@@ -761,9 +761,9 @@ namespace quest
 					return bRet;
 			}
 
-			uint32_t dwCurrentNPCRace = pkChrTarget->race_num();
+			uint32_t dwCurrentNPCRace = chr_target->race_num();
 
-			if (pkChrTarget->is_npc())
+			if (chr_target->is_npc())
 			{
 				std::map<unsigned int, npc>::iterator it = npc_.find(dwCurrentNPCRace);
 
@@ -771,7 +771,7 @@ namespace quest
 				{
 					metin2::log::error("CQuestManager::Click(pid={:d}, target_npc_name={}) - NOT EXIST NPC RACE VNUM[{:d}]",
 							pc, 
-							pkChrTarget->name(), 
+							chr_target->name(), 
 							dwCurrentNPCRace);
 					return false;
 				}
@@ -997,14 +997,14 @@ namespace quest
 		return v;
 	}
 
-	void quest_manager::set_skin_style(int iStyle)
+	void quest_manager::set_skin_style(int style)
 	{
-		if (iStyle<0 || iStyle >= QUEST_SKIN_COUNT)
+		if (style<0 || style >= QUEST_SKIN_COUNT)
 		{
 			current_skin_ = QUEST_SKIN_NORMAL;
 		}
 		else
-			current_skin_ = iStyle;
+			current_skin_ = style;
 	}
 
 	unsigned int quest_manager::load_timer_script(const std::string& name)
@@ -1071,20 +1071,20 @@ namespace quest
 		return ch->dungeon_force();
 	}
 
-	void quest_manager::register_quest(const std::string & stQuestName, unsigned int idx)
+	void quest_manager::register_quest(const std::string & quest_name, unsigned int idx)
 	{
 		assert(idx > 0);
 
 		decltype(hm_quest_name_.begin()) it;
 
-		if ((it = hm_quest_name_.find(stQuestName)) != hm_quest_name_.end())
+		if ((it = hm_quest_name_.find(quest_name)) != hm_quest_name_.end())
 			return;
 
-		hm_quest_name_.insert(make_pair(stQuestName, idx));
-		load_start_quest(stQuestName, idx);
-		quest_name_by_index_.insert(make_pair(idx, stQuestName));
+		hm_quest_name_.insert(make_pair(quest_name, idx));
+		load_start_quest(quest_name, idx);
+		quest_name_by_index_.insert(make_pair(idx, quest_name));
 
-		metin2::log::info( "QUEST: Register {:4d} {}", idx, stQuestName.c_str());
+		metin2::log::info( "QUEST: Register {:4d} {}", idx, quest_name.c_str());
 	}
 
 	unsigned int quest_manager::quest_index_by_name(const std::string& name)
@@ -1508,20 +1508,20 @@ namespace quest
 		}
 	}
 
-	bool quest_manager::execute_quest_script(pc& pc, uint32_t quest_index, const int state, const char* code, const int code_size, std::vector<a_arg_script*>* pChatScripts, bool bUseCache)
+	bool quest_manager::execute_quest_script(pc& pc, uint32_t quest_index, const int state, const char* code, const int code_size, std::vector<a_arg_script*>* chat_scripts, bool use_cache)
 	{
-		return execute_quest_script(pc, quest_manager::instance().quest_name_by_index(quest_index), state, code, code_size, pChatScripts, bUseCache);
+		return execute_quest_script(pc, quest_manager::instance().quest_name_by_index(quest_index), state, code, code_size, chat_scripts, use_cache);
 	}
 
-	bool quest_manager::execute_quest_script(pc& pc, const std::string& quest_name, const int state, const char* code, const int code_size, std::vector<a_arg_script*>* pChatScripts, bool bUseCache)
+	bool quest_manager::execute_quest_script(pc& pc, const std::string& quest_name, const int state, const char* code, const int code_size, std::vector<a_arg_script*>* chat_scripts_value, bool use_cache)
 	{
 		// Create the execution space
 		quest_state qs = quest_manager::instance().open_state(quest_name, state);
-		if (pChatScripts)
-			qs.chat_scripts.swap(*pChatScripts);
+		if (chat_scripts_value)
+			qs.chat_scripts.swap(*chat_scripts_value);
 
 		// Load the code
-		if (bUseCache)
+		if (use_cache)
 		{
 			lua_getglobal(qs.co, "__codecache");
 			// stack : __codecache
@@ -1573,12 +1573,12 @@ namespace quest
 		return true;
 	}
 
-	void quest_manager::register_npc_vnum(uint32_t dwVnum)
+	void quest_manager::register_npc_vnum(uint32_t vnum)
 	{
-		if (registered_npc_vnum_.find(dwVnum) != registered_npc_vnum_.end())
+		if (registered_npc_vnum_.find(vnum) != registered_npc_vnum_.end())
 			return;
 
-		registered_npc_vnum_.insert(dwVnum);
+		registered_npc_vnum_.insert(vnum);
 
 		char buf[256];
 		DIR* dir;
@@ -1586,16 +1586,16 @@ namespace quest
 		for (auto it = quest_object_dir.begin(); it != quest_object_dir.end(); ++it)
 		{
 			const std::string& stQuestObjectDir = *it;
-			snprintf(buf, sizeof(buf), "%s/%u", stQuestObjectDir.c_str(), dwVnum);
+			snprintf(buf, sizeof(buf), "%s/%u", stQuestObjectDir.c_str(), vnum);
 			metin2::log::info( "{}", buf);
 
 			if ((dir = opendir(buf)))
 			{
 				closedir(dir);
-				snprintf(buf, sizeof(buf), "%u", dwVnum);
+				snprintf(buf, sizeof(buf), "%u", vnum);
 				metin2::log::info( "{}", buf);
 
-				npc_[dwVnum].set(dwVnum, buf);
+				npc_[vnum].set(vnum, buf);
 			}
 		}
 	}
@@ -1684,9 +1684,9 @@ namespace quest
 		ServerTimersToDelete.clear();
 	}
 
-	void quest_manager::set_server_timer_arg(uint32_t dwArg)
+	void quest_manager::set_server_timer_arg(uint32_t arg)
 	{
-		server_timer_arg_ = dwArg;
+		server_timer_arg_ = arg;
 	}
 
 	uint32_t quest_manager::server_timer_arg()
@@ -1694,9 +1694,9 @@ namespace quest
 		return server_timer_arg_;
 	}
 
-	void quest_manager::select_dungeon(dungeon * pDungeon)
+	void quest_manager::select_dungeon(dungeon * dungeon_value)
 	{
-		selected_dungeon_ = pDungeon;
+		selected_dungeon_ = dungeon_value;
 	}
 	
 	bool quest_manager::pickup_item(unsigned int pc, item * item)

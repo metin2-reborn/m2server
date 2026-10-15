@@ -20,25 +20,25 @@ namespace metin2::game::inline trade {
 class safebox
 {
 	public:
-		safebox(character * pkChrOwner, int iSize, uint32_t dwGold);
+		safebox(character * chr_owner, int size, uint32_t gold);
 		~safebox();
 
-		bool		add(uint32_t dwPos, item * pkItem);
-		item *		get(uint32_t dwPos);
-		item *		remove(uint32_t dwPos);
-		void		change_size(int iSize);
+		bool		add(uint32_t pos, item * item_value);
+		item *		get(uint32_t pos);
+		item *		remove(uint32_t pos_value);
+		void		change_size(int size);
 
-		bool		move_item(uint8_t bCell, uint8_t bDestCell, uint8_t count);
-		item *		get_item(uint8_t bCell);
+		bool		move_item(uint8_t cell, uint8_t dest_cell, uint8_t count);
+		item *		get_item(uint8_t cell);
 
 		void		save();
 
-		bool		is_empty(uint32_t dwPos, uint8_t bSize);
+		bool		is_empty(uint32_t pos, uint8_t size);
 		// Tells the owner's client what is in a slot.
-		void		send_item_set(uint32_t dwPos);
-		bool		is_valid_position(uint32_t dwPos);
+		void		send_item_set(uint32_t pos);
+		bool		is_valid_position(uint32_t pos);
 
-		void		set_window_mode(uint8_t bWindowMode);
+		void		set_window_mode(uint8_t mode);
 
 	protected:
 		void		destroy();

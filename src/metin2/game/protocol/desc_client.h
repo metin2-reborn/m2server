@@ -19,18 +19,18 @@ class client_desc : public desc
 		void	destroy() override;
 		void	set_phase(int phase) override;
 
-		bool 		connect(int iPhaseWhenSucceed = 0);
-		void		setup(const char * _host, uint16_t _port);
+		bool 		connect(int phase_when_succeed = 0);
+		void		setup(const char * host, uint16_t port);
 
 		void		set_retry_when_closed(bool);
 
-		void		db_packet_header(uint8_t bHeader, uint32_t dwHandle, uint32_t dwSize);
-		void		db_packet(uint8_t bHeader, uint32_t dwHandle, const void * c_pvData, uint32_t dwSize);
-		void		packet(const void * c_pvData, int iSize);
+		void		db_packet_header(uint8_t header, uint32_t handle, uint32_t size);
+		void		db_packet(uint8_t header, uint32_t handle, const void * data, uint32_t size);
+		void		packet(const void * data, int size);
 		bool		is_retry_when_closed();
 
 		void		update(uint32_t t);
-		void		update_channel_status(uint32_t t, bool fForce);
+		void		update_channel_status(uint32_t t, bool force);
 
 		// Non-destructive close for reuse
 		void reset();

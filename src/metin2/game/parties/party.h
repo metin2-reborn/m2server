@@ -64,12 +64,12 @@ class party_manager : public singleton<party_manager>
 		void		disable_pc_party() { enable_pc_party_ = false; metin2::log::info("PARTY Disable"); }
 		bool		is_enable_pc_party() { return enable_pc_party_; }
 
-		party *		create_party(character * pkLeader);
-		void		delete_party(party * pParty);
+		party *		create_party(character * leader);
+		void		delete_party(party * party_value);
 		void		delete_all_party();
-		bool		set_party(character * pkChr);
+		bool		set_party(character * ch);
 
-		void		set_party_member(uint32_t dwPID, party * pParty);
+		void		set_party_member(uint32_t pid, party * party_value);
 
 		void		p2_p_login(uint32_t pid, const char* name);
 		void		p2_p_logout(uint32_t pid);
@@ -114,17 +114,17 @@ class party
 		party();
 		virtual ~party();
 
-		void		p2_p_join(uint32_t dwPID);
-		void		p2_p_quit(uint32_t dwPID);
-		virtual void	join(uint32_t dwPID);
-		void		quit(uint32_t dwPID);
-		void		link(character * pkChr);
-		void		unlink(character * pkChr);
+		void		p2_p_join(uint32_t pid);
+		void		p2_p_quit(uint32_t pid);
+		virtual void	join(uint32_t pid_value);
+		void		quit(uint32_t pid_value);
+		void		link(character * chr);
+		void		unlink(character * chr);
 
 		void		chat_packet_to_all_member(uint8_t type, const char* format, ...);	
 
-		void		update_online_state(uint32_t dwPID, const char* name);
-		void		update_offline_state(uint32_t dwPID);
+		void		update_online_state(uint32_t pid_value, const char* name);
+		void		update_offline_state(uint32_t pid_value);
 
 		uint32_t		leader_pid();
 		character *	leader_character();
@@ -137,11 +137,11 @@ class party
 
 		bool		is_position_near_leader(character * ch);
 
-		void		send_message(character * ch, uint8_t bMsg, uint32_t dwArg1, uint32_t dwArg2);
+		void		send_message(character * ch, uint8_t msg, uint32_t arg1, uint32_t arg2);
 
-		void		send_party_join_one_to_all(uint32_t dwPID);
+		void		send_party_join_one_to_all(uint32_t pid);
 		void		send_party_join_all_to_one(character * ch);
-		void		send_party_remove_one_to_all(uint32_t dwPID);
+		void		send_party_remove_one_to_all(uint32_t pid);
 
 		void		send_party_info_one_to_all(uint32_t pid);
 		void		send_party_info_one_to_all(character * ch);
@@ -159,19 +159,19 @@ class party
 		template <class Func> void for_each_member_ptr(Func & f);
 		template <class Func> void for_each_online_member(Func & f);
 		template <class Func> void for_each_near_member(Func & f);
-		template <class Func> void for_each_on_map_member (Func & f, int32_t lMapIndex);
-		template <class Func> bool for_each_on_map_member_bool (Func & f, int32_t lMapIndex);
+		template <class Func> void for_each_on_map_member (Func & f, int32_t map_index_value);
+		template <class Func> bool for_each_on_map_member_bool (Func & f, int32_t map_index_value);
 
 		void		update();
 
 		int		exp_bonus_percent();
 
-		bool		set_role(uint32_t pid, uint8_t bRole, bool on);
+		bool		set_role(uint32_t pid, uint8_t role_value, bool set);
 		uint8_t		role(uint32_t pid);
 
 		uint8_t		member_max_level();
 
-		void		compute_role_point(character * ch, uint8_t bRole, bool bAdd);
+		void		compute_role_point(character * ch, uint8_t role, bool add);
 
 		void		heal_party();
 		void		summon_to_leader(uint32_t pid);
@@ -183,12 +183,12 @@ class party
 		void		set_flag(const std::string& name, int value);
 		int		flag(const std::string& name);
 
-		void		set_dungeon(dungeon * pDungeon);
+		void		set_dungeon(dungeon * dungeon_value);
 		dungeon *	get_dungeon();
 
-		uint8_t		count_member_by_vnum(uint32_t dwVnum);
+		uint8_t		count_member_by_vnum(uint32_t vnum_value);
 
-		void		set_parameter(int iMode);
+		void		set_parameter(int mode);
 		int		exp_distribution_mode();
 
 		character *	exp_centralize_character();
@@ -248,7 +248,7 @@ class party
 		// so this is a temporary workaround until that is fixed.
 		dungeon *	dungeon_for_only_party_;
 	public:
-		void set_dungeon_for_only_party(dungeon * pDungeon);
+		void set_dungeon_for_only_party(dungeon * dungeon_value);
 		dungeon * dungeon_for_only_party();
 };
 
@@ -286,7 +286,7 @@ template <class Func> void party::for_each_near_member(Func & f)
 			f(it->second.character);
 }
 
-template <class Func> void party::for_each_on_map_member (Func & f, int32_t lMapIndex)
+template <class Func> void party::for_each_on_map_member (Func & f, int32_t map_index_value)
 {
 	member_map::iterator it;
 
@@ -295,13 +295,13 @@ template <class Func> void party::for_each_on_map_member (Func & f, int32_t lMap
 		character * ch = it->second.character;
 		if (ch)
 		{
-			if (ch->map_index () == lMapIndex)
+			if (ch->map_index () == map_index_value)
 				f(ch);
 		}
 	}
 }
 
-template <class Func> bool party::for_each_on_map_member_bool(Func & f, int32_t lMapIndex)
+template <class Func> bool party::for_each_on_map_member_bool(Func & f, int32_t map_index_value)
 {
 	member_map::iterator it;
 
@@ -310,7 +310,7 @@ template <class Func> bool party::for_each_on_map_member_bool(Func & f, int32_t 
 		character * ch = it->second.character;
 		if (ch)
 		{
-			if (ch->map_index () == lMapIndex)
+			if (ch->map_index () == map_index_value)
 			{
 				if(f(ch) == false)
 				{

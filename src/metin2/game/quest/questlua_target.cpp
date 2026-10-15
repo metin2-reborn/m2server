@@ -17,12 +17,12 @@ namespace quest
 	//
 	// "target" Lua functions
 	//
-	int target_pos(lua_State* L)
+	int target_pos(lua_State* lua)
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		int iQuestIndex = quest_manager::instance().current_pc()->current_quest_index();
 
-		if (!lua_isstring(L, 1) || !lua_isnumber(L, 2) || !lua_isnumber(L, 3))
+		if (!lua_isstring(lua, 1) || !lua_isnumber(lua, 2) || !lua_isnumber(lua, 3))
 		{
 			metin2::log::error("invalid argument, name: {}, quest_index {:d}", ch->name(), iQuestIndex);
 			return 0;
@@ -36,28 +36,28 @@ namespace quest
 			return 0;
 		}
 
-		int x = pos.x + (int) lua_tonumber(L, 2) * 100;
-		int y = pos.y + (int) lua_tonumber(L, 3) * 100;
+		int x = pos.x + (int) lua_tonumber(lua, 2) * 100;
+		int y = pos.y + (int) lua_tonumber(lua, 3) * 100;
 
 		target_manager::instance().create_target(ch->player_id(),
 				iQuestIndex,
-				lua_tostring(L, 1),
+				lua_tostring(lua, 1),
 				TARGET_TYPE_POS,
 				x,
 				y,
-				(int) lua_tonumber(L, 4),
-				lua_isstring(L, 5) ? lua_tostring(L, 5) : nullptr,
-				lua_isnumber(L, 6) ? (int)lua_tonumber(L, 6): 1);
+				(int) lua_tonumber(lua, 4),
+				lua_isstring(lua, 5) ? lua_tostring(lua, 5) : nullptr,
+				lua_isnumber(lua, 6) ? (int)lua_tonumber(lua, 6): 1);
 
 		return 0;
 	}
 
-	int target_vid(lua_State* L)
+	int target_vid(lua_State* lua)
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		int iQuestIndex = quest_manager::instance().current_pc()->current_quest_index();
 
-		if (!lua_isstring(L, 1) || !lua_isnumber(L, 2))
+		if (!lua_isstring(lua, 1) || !lua_isnumber(lua, 2))
 		{
 			metin2::log::error("invalid argument, name: {}, quest_index {:d}", ch->name(), iQuestIndex);
 			return 0;
@@ -66,36 +66,36 @@ namespace quest
 
 		target_manager::instance().create_target(ch->player_id(),
 				iQuestIndex,
-				lua_tostring(L, 1),
+				lua_tostring(lua, 1),
 				TARGET_TYPE_VID,
-				(int) lua_tonumber(L, 2),
+				(int) lua_tonumber(lua, 2),
 				0,
 				ch->map_index(),
-				lua_isstring(L, 3) ? lua_tostring(L, 3) : nullptr,
-				lua_isnumber(L, 4) ? (int)lua_tonumber(L, 4): 1);
+				lua_isstring(lua, 3) ? lua_tostring(lua, 3) : nullptr,
+				lua_isnumber(lua, 4) ? (int)lua_tonumber(lua, 4): 1);
 
 		return 0;
 	}
 
 	// Delete the target registered to the current quest.
-	int target_delete(lua_State* L)
+	int target_delete(lua_State* lua)
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		int iQuestIndex = quest_manager::instance().current_pc()->current_quest_index();
 
-		if (!lua_isstring(L, 1))
+		if (!lua_isstring(lua, 1))
 		{
 			metin2::log::error("invalid argument, name: {}, quest_index {:d}", ch->name(), iQuestIndex);
 			return 0;
 		}
 
-		target_manager::instance().delete_target(ch->player_id(), iQuestIndex, lua_tostring(L, 1));
+		target_manager::instance().delete_target(ch->player_id(), iQuestIndex, lua_tostring(lua, 1));
 
 		return 0;
 	}
 
 	// Delete all targets for the current quest index.
-	int target_clear(lua_State* L)
+	int target_clear(lua_State* lua)
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		int iQuestIndex = quest_manager::instance().current_pc()->current_quest_index();
@@ -105,19 +105,19 @@ namespace quest
 		return 0;
 	}
 
-	int target_id(lua_State* L)
+	int target_id(lua_State* lua)
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		uint32_t dwQuestIndex = quest_manager::instance().current_pc()->current_quest_index();
 
-		if (!lua_isstring(L, 1))
+		if (!lua_isstring(lua, 1))
 		{
 			metin2::log::error("invalid argument, name: {}, quest_index {:d}", ch->name(), dwQuestIndex);
-			lua_pushnumber(L, 0);
+			lua_pushnumber(lua, 0);
 			return 1;
 		}
 
-		event_ptr pkEvent = target_manager::instance().target_event(ch->player_id(), dwQuestIndex, (const char *) lua_tostring(L, 1));
+		event_ptr pkEvent = target_manager::instance().target_event(ch->player_id(), dwQuestIndex, (const char *) lua_tostring(lua, 1));
 
 		if (pkEvent)
 		{
@@ -126,18 +126,18 @@ namespace quest
 			if ( pInfo == nullptr )
 			{
 				metin2::log::error( "target_id> <Factor> Null pointer" );
-				lua_pushnumber(L, 0);
+				lua_pushnumber(lua, 0);
 				return 1;
 			}
 
 			if (pInfo->type == TARGET_TYPE_VID)
 			{
-				lua_pushnumber(L, pInfo->arg1);
+				lua_pushnumber(lua, pInfo->arg1);
 				return 1;
 			}
 		}
 
-		lua_pushnumber(L, 0);
+		lua_pushnumber(lua, 0);
 		return 1;
 	}
 

@@ -154,7 +154,7 @@ void messenger_manager::request_to_add(character * ch, character * target)
 	target->chat_packet(CHAT_TYPE_COMMAND, "messenger_auth %s", ch->name());
 }
 
-bool messenger_manager::auth_to_add(messenger_manager::key_a account, messenger_manager::key_a companion, bool bDeny)
+bool messenger_manager::auth_to_add(messenger_manager::key_a account, messenger_manager::key_a companion, bool deny)
 {
 	uint32_t dw1 = get_cr_c32(companion.c_str(), companion.length());
 	uint32_t dw2 = get_cr_c32(account.c_str(), account.length());
@@ -171,7 +171,7 @@ bool messenger_manager::auth_to_add(messenger_manager::key_a account, messenger_
 
 	set_request_to_add_.erase(dwComplex);
 
-	if (!bDeny)
+	if (!deny)
 	{
 		add_to_list(companion, account);
 		add_to_list(account, companion);

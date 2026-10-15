@@ -32,8 +32,8 @@ struct f_warp_to_dragron_lair_with_guild_members
 	int32_t index;
 	int32_t x, y;
 
-	f_warp_to_dragron_lair_with_guild_members( uint32_t guildID, int32_t map, int32_t X, int32_t Y )
-		: guild_id(guildID), index(map), x(X), y(Y)
+	f_warp_to_dragron_lair_with_guild_members( uint32_t guild_id_value, int32_t map, int32_t x_value, int32_t y_value )
+		: guild_id(guild_id_value), index(map), x(x_value), y(y_value)
 	{
 	}
 
@@ -141,8 +141,8 @@ EVENTFUNC( dragon_lair_collapse_event )
 
 
 
-dragon_lair::dragon_lair(uint32_t guildID)
-	: guild_id_(guildID)
+dragon_lair::dragon_lair(uint32_t guild_id)
+	: guild_id_(guild_id)
 {
 	start_time_ = get_global_time();
 }
@@ -156,11 +156,11 @@ uint32_t dragon_lair::estimated_time() const
 	return get_global_time() - start_time_;
 }
 
-void dragon_lair::on_dragon_dead(character * pDragon)
+void dragon_lair::on_dragon_dead(character * dragon)
 {
 	metin2::log::info( "DragonLair: 도라곤이 죽어써효");
 
-	log_manager::instance().dragon_slay_log(  guild_id_, pDragon->get_mob_table().vnum, start_time_, get_global_time() );
+	log_manager::instance().dragon_slay_log(  guild_id_, dragon->get_mob_table().vnum, start_time_, get_global_time() );
 }
 
 
@@ -182,19 +182,19 @@ dragon_lair_manager::~dragon_lair_manager()
 {
 }
 
-bool dragon_lair_manager::start(int32_t MapIndexFrom, int32_t BaseMapIndex, uint32_t GuildID)
+bool dragon_lair_manager::start(int32_t map_index_from, int32_t base_map_index, uint32_t guild_id)
 {
-	int32_t instanceMapIndex = sectree_manager::instance().create_private_map(BaseMapIndex);
+	int32_t instanceMapIndex = sectree_manager::instance().create_private_map(base_map_index);
 	if (instanceMapIndex == 0) {
 		metin2::log::error("CDragonLairManager::Start() : no private map index available");
 		return false;
 	}
 
-	sectree_map * pMap = sectree_manager::instance().map(MapIndexFrom);
+	sectree_map * pMap = sectree_manager::instance().map(map_index_from);
 
 	if (nullptr != pMap)
 	{
-		sectree_map * pTargetMap = sectree_manager::instance().map(BaseMapIndex);
+		sectree_map * pTargetMap = sectree_manager::instance().map(base_map_index);
 
 		if (nullptr == pTargetMap)
 		{
@@ -205,11 +205,11 @@ bool dragon_lair_manager::start(int32_t MapIndexFrom, int32_t BaseMapIndex, uint
 
 		if (nullptr != pRegionInfo)
 		{
-			f_warp_to_dragron_lair_with_guild_members f(GuildID, instanceMapIndex, 844000, 1066900);
+			f_warp_to_dragron_lair_with_guild_members f(guild_id, instanceMapIndex, 844000, 1066900);
 
 			pMap->for_each( f );
 
-			lair_map_.insert( std::make_pair(GuildID, new dragon_lair(GuildID)) );
+			lair_map_.insert( std::make_pair(guild_id, new dragon_lair(guild_id)) );
 
 			std::string strMapBasePath( locale_service_get_map_path() );
 
@@ -226,22 +226,22 @@ bool dragon_lair_manager::start(int32_t MapIndexFrom, int32_t BaseMapIndex, uint
 	return false;
 }
 
-void dragon_lair_manager::on_dragon_dead(character * pDragon, uint32_t KillerGuildID)
+void dragon_lair_manager::on_dragon_dead(character * dragon, uint32_t killer_guild_id)
 {
-	if (nullptr == pDragon)
+	if (nullptr == dragon)
 		return;
 
-	if (false == pDragon->is_monster())
+	if (false == dragon->is_monster())
 		return;
 
-	std::unordered_map<uint32_t, dragon_lair*>::iterator iter = lair_map_.find( KillerGuildID );
+	std::unordered_map<uint32_t, dragon_lair*>::iterator iter = lair_map_.find( killer_guild_id );
 
 	if (lair_map_.end() == iter)
 	{
 		return;
 	}
 
-	sectree_map * pMap = sectree_manager::instance().map( pDragon->map_index() );
+	sectree_map * pMap = sectree_manager::instance().map( dragon->map_index() );
 
 	if (nullptr == iter->second || nullptr == pMap)
 	{
@@ -249,7 +249,7 @@ void dragon_lair_manager::on_dragon_dead(character * pDragon, uint32_t KillerGui
 		return;
 	}
 
-	iter->second->on_dragon_dead( pDragon );
+	iter->second->on_dragon_dead( dragon );
 
 	// Send everyone home and destroy the map
 
@@ -258,7 +258,7 @@ void dragon_lair_manager::on_dragon_dead(character * pDragon, uint32_t KillerGui
 
 	info->step = 0;
 	info->lair = iter->second;
-	info->instance_map_index = pDragon->map_index();
+	info->instance_map_index = dragon->map_index();
 
 	event_create(dragon_lair_collapse_event, info, passes_per_sec(10));
 

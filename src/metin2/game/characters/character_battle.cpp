@@ -97,40 +97,40 @@ bool character::can_begin_fight() const
 	return points_instant_.position == POS_STANDING && !is_dead() && !is_stun();
 }
 
-void character::begin_fight(character * pkVictim)
+void character::begin_fight(character * victim)
 {
-	set_victim(pkVictim);
+	set_victim(victim);
 	set_position(POS_FIGHTING);
 	set_next_state_pulse(1);
 }
 
-void character::create_fly(uint8_t bType, character * pkVictim)
+void character::create_fly(uint8_t type_value, character * victim)
 {
 	packet_gc_create_fly packFly;
 
 	packFly.header         = HEADER_GC_CREATE_FLY;
-	packFly.type           = bType;
+	packFly.type           = type_value;
 	packFly.start_vid      = get_vid();
-	packFly.end_vid        = pkVictim->get_vid();
+	packFly.end_vid        = victim->get_vid();
 
 	packet_around(&packFly, sizeof(packet_gc_create_fly));
 }
 
-void character::distribute_sp(character * pkKiller, int iMethod)
+void character::distribute_sp(character * killer, int method)
 {
-	if (pkKiller->sp() >= pkKiller->max_sp())
+	if (killer->sp() >= killer->max_sp())
 		return;
 
 	bool bAttacking = (get_dword_time() - last_attack_time()) < 3000;
 	bool bMoving = (get_dword_time() - last_move_time()) < 3000;
 
-	if (iMethod == 1)
+	if (method == 1)
 	{
 		int num = number(0, 3);
 
 		if (!num)
 		{
-			int iLvDelta = level() - pkKiller->level();
+			int iLvDelta = level() - killer->level();
 			int iAmount = 0;
 
 			if (iLvDelta >= 5)
@@ -142,22 +142,22 @@ void character::distribute_sp(character * pkKiller, int iMethod)
 
 			if (iAmount != 0)
 			{
-				iAmount += (iAmount * pkKiller->point(POINT_SP_REGEN)) / 100;
+				iAmount += (iAmount * killer->point(POINT_SP_REGEN)) / 100;
 
 				if (iAmount >= 11)
-					create_fly(FLY_SP_BIG, pkKiller);
+					create_fly(FLY_SP_BIG, killer);
 				else if (iAmount >= 7)
-					create_fly(FLY_SP_MEDIUM, pkKiller);
+					create_fly(FLY_SP_MEDIUM, killer);
 				else
-					create_fly(FLY_SP_SMALL, pkKiller);
+					create_fly(FLY_SP_SMALL, killer);
 
-				pkKiller->point_change(POINT_SP, iAmount);
+				killer->point_change(POINT_SP, iAmount);
 			}
 		}
 	}
 	else
 	{
-		if (pkKiller->job() == JOB_SHAMAN || (pkKiller->job() == JOB_SURA && pkKiller->skill_group() == 2))
+		if (killer->job() == JOB_SHAMAN || (killer->job() == JOB_SURA && killer->skill_group() == 2))
 		{
 			int iAmount;
 
@@ -168,42 +168,42 @@ void character::distribute_sp(character * pkKiller, int iMethod)
 			else
 				iAmount = 10 + max_sp() * 3 / 100; // Normal state
 
-			iAmount += (iAmount * pkKiller->point(POINT_SP_REGEN)) / 100;
-			pkKiller->point_change(POINT_SP, iAmount);
+			iAmount += (iAmount * killer->point(POINT_SP_REGEN)) / 100;
+			killer->point_change(POINT_SP, iAmount);
 		}
 		else
 		{
 			int iAmount;
 
 			if (bAttacking)
-				iAmount = 2 + pkKiller->max_sp() / 200;
+				iAmount = 2 + killer->max_sp() / 200;
 			else if (bMoving)
-				iAmount = 2 + pkKiller->max_sp() / 100;
+				iAmount = 2 + killer->max_sp() / 100;
 			else
 			{
 				// Normal state
-				if (pkKiller->hp() < pkKiller->max_hp())
-					iAmount = 2 + (pkKiller->max_sp() / 100); // When HP is not full
+				if (killer->hp() < killer->max_hp())
+					iAmount = 2 + (killer->max_sp() / 100); // When HP is not full
 				else
-					iAmount = 9 + (pkKiller->max_sp() / 100); // Default
+					iAmount = 9 + (killer->max_sp() / 100); // Default
 			}
 
-			iAmount += (iAmount * pkKiller->point(POINT_SP_REGEN)) / 100;
-			pkKiller->point_change(POINT_SP, iAmount);
+			iAmount += (iAmount * killer->point(POINT_SP_REGEN)) / 100;
+			killer->point_change(POINT_SP, iAmount);
 		}
 	}
 }
 
 
-bool character::attack(character * pkVictim, uint8_t bType)
+bool character::attack(character * victim, uint8_t type)
 {
 	if (metin2::config::test_server())
-		metin2::log::info( "[TEST_SERVER] Attack : {} type {:d}, MobBattleType {:d}", name(), bType, !mob_battle_type() ? 0 : mob_attack_range());
+		metin2::log::info( "[TEST_SERVER] Attack : {} type {:d}, MobBattleType {:d}", name(), type, !mob_battle_type() ? 0 : mob_attack_range());
 	if (!can_move())
 		return false;
 
 	// CASTLE
-	if (is_castle_map(map_index()) && false == castle_can_attack(this, pkVictim))
+	if (is_castle_map(map_index()) && false == castle_can_attack(this, victim))
 		return false;
 	// CASTLE
 
@@ -211,10 +211,10 @@ bool character::attack(character * pkVictim, uint8_t bType)
 
 	if (is_pc())
 	{
-		if (is_speed_hack(this, pkVictim, dwCurrentTime))
+		if (is_speed_hack(this, victim, dwCurrentTime))
 			return false;
 
-		if (bType == 0 && dwCurrentTime < get_skip_combo_attack_by_time())
+		if (type == 0 && dwCurrentTime < get_skip_combo_attack_by_time())
 			return false;
 	}
 	else
@@ -222,14 +222,14 @@ bool character::attack(character * pkVictim, uint8_t bType)
 		monster_chat(MONSTER_CHAT_ATTACK);
 	}
 
-	pkVictim->set_sync_owner(this);
+	victim->set_sync_owner(this);
 
-	if (pkVictim->can_begin_fight())
-		pkVictim->begin_fight(this);
+	if (victim->can_begin_fight())
+		victim->begin_fight(this);
 
 	int iRet;
 
-	if (bType == 0)
+	if (type == 0)
 	{
 		//
 		// Normal attack
@@ -241,16 +241,16 @@ bool character::attack(character * pkVictim, uint8_t bType)
 			case BATTLE_TYPE_TANKER:
 			case BATTLE_TYPE_SUPER_POWER:
 			case BATTLE_TYPE_SUPER_TANKER:
-				iRet = battle_melee_attack(this, pkVictim);
+				iRet = battle_melee_attack(this, victim);
 				break;
 
 			case BATTLE_TYPE_RANGE:
-				fly_target(pkVictim->get_vid(), pkVictim->x(), pkVictim->y(), HEADER_CG_FLY_TARGETING);
+				fly_target(victim->get_vid(), victim->x(), victim->y(), HEADER_CG_FLY_TARGETING);
 				iRet = shoot(0) ? BATTLE_DAMAGE : BATTLE_NONE;
 				break;
 
 			case BATTLE_TYPE_MAGIC:
-				fly_target(pkVictim->get_vid(), pkVictim->x(), pkVictim->y(), HEADER_CG_FLY_TARGETING);
+				fly_target(victim->get_vid(), victim->x(), victim->y(), HEADER_CG_FLY_TARGETING);
 				iRet = shoot(1) ? BATTLE_DAMAGE : BATTLE_NONE;
 				break;
 
@@ -272,14 +272,14 @@ bool character::attack(character * pkVictim, uint8_t bType)
 			}
 		}
 
-		metin2::log::debug( "Attack call ComputeSkill {:d} {}", bType, pkVictim?pkVictim->name():"");
-		iRet = compute_skill(bType, pkVictim);
+		metin2::log::debug( "Attack call ComputeSkill {:d} {}", type, victim?victim->name():"");
+		iRet = compute_skill(type, victim);
 	}
 
 	if (iRet == BATTLE_DAMAGE || iRet == BATTLE_DEAD)
 	{
 		on_move(true);
-		pkVictim->on_move();
+		victim->on_move();
 
 		// only pc sets victim null. For npc, state machine will reset this.
 		if (BATTLE_DEAD == iRet && is_pc())
@@ -291,9 +291,9 @@ bool character::attack(character * pkVictim, uint8_t bType)
 	return false;
 }
 
-void character::death_penalty(uint8_t bTown)
+void character::death_penalty(uint8_t town)
 {
-	metin2::log::debug( "DEATH_PERNALY_CHECK({}) town({:d})", name(), bTown);
+	metin2::log::debug( "DEATH_PERNALY_CHECK({}) town({:d})", name(), town);
 
 	cube_close(this);
 
@@ -321,7 +321,7 @@ void character::death_penalty(uint8_t bTown)
 		remove_bit(points_instant_.instant_flag, INSTANT_FLAG_DEATH_PENALTY);
 
 		// NO_DEATH_PENALTY_BUG_FIX 
-		if (!bTown) // In the international version, Dragon God's Protection is used only when reviving in place. (No experience penalty when returning to town)
+		if (!town) // In the international version, Dragon God's Protection is used only when reviving in place. (No experience penalty when returning to town)
 		{
 			if (find_affect(AFFECT_NO_DEATH_PENALTY))
 			{
@@ -337,7 +337,7 @@ void character::death_penalty(uint8_t bTown)
 
 		iLoss = std::min(800000, iLoss);
 
-		if (bTown)
+		if (town)
 		{
 			iLoss = 0;
 		}
@@ -517,12 +517,12 @@ bool character::is_dead() const
 
 static int get_gold_multipler() { return metin2::config::game().distribution_test_server ? 3 : 1; }
 
-void character::reward_gold(character * pkAttacker)
+void character::reward_gold(character * attacker)
 {
 	// ADD_PREMIUM
 	bool isAutoLoot = 
-		(pkAttacker->premium_remain_seconds(PREMIUM_AUTOLOOT) > 0 ||
-		 pkAttacker->is_equip_unique_group(UNIQUE_GROUP_AUTOLOOT))
+		(attacker->premium_remain_seconds(PREMIUM_AUTOLOOT) > 0 ||
+		 attacker->is_equip_unique_group(UNIQUE_GROUP_AUTOLOOT))
 		? true : false; // Third Hand
 	// END_OF_ADD_PREMIUM
 
@@ -538,17 +538,17 @@ void character::reward_gold(character * pkAttacker)
 	//
 	int iGoldPercent = mob_rank_stats[get_mob_rank()].gold_percent;
 
-	if (pkAttacker->is_pc())
-		iGoldPercent = iGoldPercent * (100 + priv_manager::instance().priv(pkAttacker, PRIV_GOLD_DROP)) / 100;
+	if (attacker->is_pc())
+		iGoldPercent = iGoldPercent * (100 + priv_manager::instance().priv(attacker, PRIV_GOLD_DROP)) / 100;
 
-	if (pkAttacker->point(POINT_MALL_GOLDBONUS))
-		iGoldPercent += (iGoldPercent * pkAttacker->point(POINT_MALL_GOLDBONUS) / 100);
+	if (attacker->point(POINT_MALL_GOLDBONUS))
+		iGoldPercent += (iGoldPercent * attacker->point(POINT_MALL_GOLDBONUS) / 100);
 
-	iGoldPercent = iGoldPercent * character_manager::instance().mob_gold_drop_rate(pkAttacker) / 100;
+	iGoldPercent = iGoldPercent * character_manager::instance().mob_gold_drop_rate(attacker) / 100;
 
 	// ADD_PREMIUM
-	if (pkAttacker->premium_remain_seconds(PREMIUM_GOLD) > 0 ||
-			pkAttacker->is_equip_unique_group(UNIQUE_GROUP_LUCKY_GOLD))
+	if (attacker->premium_remain_seconds(PREMIUM_GOLD) > 0 ||
+			attacker->is_equip_unique_group(UNIQUE_GROUP_LUCKY_GOLD))
 		iGoldPercent += iGoldPercent;
 	// END_OF_ADD_PREMIUM
 
@@ -558,9 +558,9 @@ void character::reward_gold(character * pkAttacker)
 	int iPercent;
 
 	if (get_mob_rank() >= MOB_RANK_BOSS)
-		iPercent = ((iGoldPercent * percent_lvdelta_boss(pkAttacker->level(), level())) / 100);
+		iPercent = ((iGoldPercent * percent_lvdelta_boss(attacker->level(), level())) / 100);
 	else
-		iPercent = ((iGoldPercent * percent_lvdelta(pkAttacker->level(), level())) / 100);
+		iPercent = ((iGoldPercent * percent_lvdelta(attacker->level(), level())) / 100);
 
 	if (number(1, 100) > iPercent)
 		return;
@@ -573,15 +573,15 @@ void character::reward_gold(character * pkAttacker)
 		iGoldMultipler *= 5;
 
 	// Personal modifier
-	if (pkAttacker->point(POINT_GOLD_DOUBLE_BONUS))
-		if (number(1, 100) <= pkAttacker->point(POINT_GOLD_DOUBLE_BONUS))
+	if (attacker->point(POINT_GOLD_DOUBLE_BONUS))
+		if (number(1, 100) <= attacker->point(POINT_GOLD_DOUBLE_BONUS))
 			iGoldMultipler *= 2;
 
 	//
 	// --------- Determine gold drop multiplier ----------
 	//
 	if (metin2::config::test_server())
-		pkAttacker->chat_packet(CHAT_TYPE_PARTY, "gold_mul %d rate %d", iGoldMultipler, character_manager::instance().mob_gold_amount_rate(pkAttacker));
+		attacker->chat_packet(CHAT_TYPE_PARTY, "gold_mul %d rate %d", iGoldMultipler, character_manager::instance().mob_gold_amount_rate(attacker));
 
 	//
 	// --------- Actual drop handling -------------
@@ -589,7 +589,7 @@ void character::reward_gold(character * pkAttacker)
 	item * item;
 
 	int iGold10DropPct = 100;
-	iGold10DropPct = (iGold10DropPct * 100) / (100 + priv_manager::instance().priv(pkAttacker, PRIV_GOLD10_DROP));
+	iGold10DropPct = (iGold10DropPct * 100) / (100 + priv_manager::instance().priv(attacker, PRIV_GOLD10_DROP));
 
 	// If MOB_RANK is higher than BOSS, always a gold bomb
 	if (get_mob_rank() >= MOB_RANK_BOSS && !is_stone() && get_mob_table().gold_max != 0)
@@ -604,7 +604,7 @@ void character::reward_gold(character * pkAttacker)
 			int iGold = number(get_mob_table().gold_min, get_mob_table().gold_max) / iSplitCount;
 			if (metin2::config::test_server())
 				metin2::log::info( "iGold {:d}", iGold);
-			iGold = iGold * character_manager::instance().mob_gold_amount_rate(pkAttacker) / 100;
+			iGold = iGold * character_manager::instance().mob_gold_amount_rate(attacker) / 100;
 			iGold *= iGoldMultipler;
 
 			if (iGold == 0)
@@ -614,7 +614,7 @@ void character::reward_gold(character * pkAttacker)
 
 			if (metin2::config::test_server())
 			{
-				metin2::log::info( "Drop Moeny MobGoldAmountRate {:d} {:d}", character_manager::instance().mob_gold_amount_rate(pkAttacker), iGoldMultipler);
+				metin2::log::info( "Drop Moeny MobGoldAmountRate {:d} {:d}", character_manager::instance().mob_gold_amount_rate(attacker), iGoldMultipler);
 				metin2::log::info( "Drop Money gold {:d} GoldMin {:d} GoldMax {:d}", iGold, get_mob_table().gold_max, get_mob_table().gold_max);
 			}
 
@@ -640,7 +640,7 @@ void character::reward_gold(character * pkAttacker)
 		for (int i = 0; i < 10; ++i)
 		{
 			int iGold = number(get_mob_table().gold_min, get_mob_table().gold_max);
-			iGold = iGold * character_manager::instance().mob_gold_amount_rate(pkAttacker) / 100;
+			iGold = iGold * character_manager::instance().mob_gold_amount_rate(attacker) / 100;
 			iGold *= iGoldMultipler;
 
 			if (iGold == 0)
@@ -667,7 +667,7 @@ void character::reward_gold(character * pkAttacker)
 		// Normal gold drop
 		//
 		int iGold = number(get_mob_table().gold_min, get_mob_table().gold_max);
-		iGold = iGold * character_manager::instance().mob_gold_amount_rate(pkAttacker) / 100;
+		iGold = iGold * character_manager::instance().mob_gold_amount_rate(attacker) / 100;
 		iGold *= iGoldMultipler;
 
 		int iSplitCount;
@@ -692,7 +692,7 @@ void character::reward_gold(character * pkAttacker)
 			{
 				if (isAutoLoot)
 				{
-					pkAttacker->give_gold(iGold / iSplitCount);
+					attacker->give_gold(iGold / iSplitCount);
 				}
 				else if ((item = item_manager::instance().create_item(1, iGold / iSplitCount)))
 				{
@@ -709,7 +709,7 @@ void character::reward_gold(character * pkAttacker)
 	db_manager::instance().send_money_log(MONEY_LOG_MONSTER, race_num(), iTotalGold);
 }
 
-void character::reward(bool bItemDrop)
+void character::reward(bool item_drop)
 {
 	if (race_num() == 5001) // Pirates (Waegu) always drop gold
 	{
@@ -788,7 +788,7 @@ void character::reward(bool bItemDrop)
 		}
 	}
 
-	if (!bItemDrop)
+	if (!item_drop)
 		return;
 
 	pixel_position pos = xyz();
@@ -958,7 +958,7 @@ item_drop_penalty item_drop_penalty_kor[9] =
 	{ 100,   8, 20,  1 },	// Tyrant
 };
 
-void character::item_drop_penalty(character * pkKiller)
+void character::item_drop_penalty(character * killer)
 {
 	// Do not drop items while a private shop is open.
 	if (my_shop())
@@ -1135,18 +1135,18 @@ void character::item_drop_penalty(character * pkKiller)
 class f_party_alignment_compute
 {
 	public:
-		f_party_alignment_compute(int iAmount, int x, int y)
+		f_party_alignment_compute(int amount_value, int x, int y)
 		{
-			amount = iAmount;
+			amount = amount_value;
 			count = 0;
 			step = 0;
 			killer_x = x;
 			killer_y = y;
 		}
 
-		void operator () (character * pkChr)
+		void operator () (character * chr)
 		{
-			if (distance_approx(pkChr->x() - killer_x, pkChr->y() - killer_y) < PARTY_DEFAULT_RANGE)
+			if (distance_approx(chr->x() - killer_x, chr->y() - killer_y) < PARTY_DEFAULT_RANGE)
 			{
 				if (step == 0)
 				{
@@ -1154,7 +1154,7 @@ class f_party_alignment_compute
 				}
 				else
 				{
-					pkChr->update_alignment(amount / count);
+					chr->update_alignment(amount / count);
 				}
 			}
 		}
@@ -1169,7 +1169,7 @@ class f_party_alignment_compute
 
 
 
-void character::dead(character * pkKiller, bool bImmediateDead)
+void character::dead(character * killer, bool immediate_dead)
 {
 	if (is_dead())
 		return;
@@ -1189,8 +1189,8 @@ void character::dead(character * pkKiller, bool bImmediateDead)
 		}
 	}
 
-	if (!pkKiller && killer_pid_)
-		pkKiller = character_manager::instance().find_by_pid(killer_pid_);
+	if (!killer && killer_pid_)
+		killer = character_manager::instance().find_by_pid(killer_pid_);
 
 	killer_pid_ = 0; // Must be initialized DO NOT DELETE THIS LINE UNLESS YOU ARE 1000000% SURE
 
@@ -1199,29 +1199,29 @@ void character::dead(character * pkKiller, bool bImmediateDead)
 	bool isDuel = false;
 	bool isForked = false;
 
-	if (pkKiller && pkKiller->is_pc())
+	if (killer && killer->is_pc())
 	{
-		if (pkKiller->chr_target_ == this)
-			pkKiller->set_target(nullptr);
+		if (killer->chr_target_ == this)
+			killer->set_target(nullptr);
 
-		if (!is_pc() && pkKiller->get_dungeon())
-			pkKiller->get_dungeon()->inc_kill_count(pkKiller, this);
+		if (!is_pc() && killer->get_dungeon())
+			killer->get_dungeon()->inc_kill_count(killer, this);
 
-		isAgreedPVP = pvp_manager::instance().dead(this, pkKiller->player_id());
-		isDuel = arena_manager::instance().on_dead(pkKiller, this);
+		isAgreedPVP = pvp_manager::instance().dead(this, killer->player_id());
+		isDuel = arena_manager::instance().on_dead(killer, this);
 
 		if (is_pc())
 		{
 			guild * g1 = get_guild();
-			guild * g2 = pkKiller->get_guild();
+			guild * g2 = killer->get_guild();
 
 			if (g1 && g2)
 				if (g1->under_war(g2->id()))
 					isUnderGuildWar = true;
 
-			pkKiller->set_quest_npcid(get_vid());
-			quest::quest_manager::instance().kill(pkKiller->player_id(), quest::QUEST_NO_NPC);
-			guild_manager::instance().kill(pkKiller, this);
+			killer->set_quest_npcid(get_vid());
+			quest::quest_manager::instance().kill(killer->player_id(), quest::QUEST_NO_NPC);
+			guild_manager::instance().kill(killer, this);
 		}
 	}
 
@@ -1233,7 +1233,7 @@ void character::dead(character * pkKiller, bool bImmediateDead)
 	}
 	//END_CHECK_FORKEDROAD_WAR
 
-	if (pkKiller &&
+	if (killer &&
 			!isAgreedPVP &&
 			!isUnderGuildWar &&
 			is_pc() &&
@@ -1243,7 +1243,7 @@ void character::dead(character * pkKiller, bool bImmediateDead)
 	{
 		if (gm_level() == GM_PLAYER || metin2::config::test_server())
 		{
-			item_drop_penalty(pkKiller);
+			item_drop_penalty(killer);
 		}
 	}
 
@@ -1251,44 +1251,44 @@ void character::dead(character * pkKiller, bool bImmediateDead)
 	if (is_castle_map(map_index()))
 	{
 		if (CASTLE_FROG_VNUM == race_num())
-			castle_frog_die(this, pkKiller);
+			castle_frog_die(this, killer);
 		else if (castle_is_guard_vnum(race_num()))
-			castle_guard_die(this, pkKiller);
+			castle_guard_die(this, killer);
 		else if (castle_is_tower_vnum(race_num()))
-			castle_tower_die(this, pkKiller);
+			castle_tower_die(this, killer);
 	}
 	// CASTLE_SIEGE
 
 	if (true == isForked)
 	{
-		three_way_war::instance().on_dead( this, pkKiller );
+		three_way_war::instance().on_dead( this, killer );
 	}
 
 	set_position(POS_DEAD);
 	clear_affect(true);
 
-	if (pkKiller && is_pc())
+	if (killer && is_pc())
 	{
-		if (!pkKiller->is_pc())
+		if (!killer->is_pc())
 		{
 			if (!isForked)
 			{
 				metin2::log::debug( "DEAD: {} {} WITH PENALTY", name(), static_cast<const void *>(this));
 				set_bit(points_instant_.instant_flag, INSTANT_FLAG_DEATH_PENALTY);
-				log_manager::instance().char_log(this, pkKiller->race_num(), "DEAD_BY_NPC", pkKiller->name());
+				log_manager::instance().char_log(this, killer->race_num(), "DEAD_BY_NPC", killer->name());
 			}
 		}
 		else
 		{
-			metin2::log::debug( "DEAD_BY_PC: {} {} KILLER {} {}", name(), static_cast<const void *>(this), pkKiller->name(), static_cast<const void *>(pkKiller));
+			metin2::log::debug( "DEAD_BY_PC: {} {} KILLER {} {}", name(), static_cast<const void *>(this), killer->name(), static_cast<const void *>(killer));
 			remove_bit(points_instant_.instant_flag, INSTANT_FLAG_DEATH_PENALTY);
 
-			if (empire() != pkKiller->empire())
+			if (empire() != killer->empire())
 			{
-				int iEP = std::min(point(POINT_EMPIRE_POINT), pkKiller->point(POINT_EMPIRE_POINT));
+				int iEP = std::min(point(POINT_EMPIRE_POINT), killer->point(POINT_EMPIRE_POINT));
 
 				point_change(POINT_EMPIRE_POINT, -(iEP / 10));
-				pkKiller->point_change(POINT_EMPIRE_POINT, iEP / 5);
+				killer->point_change(POINT_EMPIRE_POINT, iEP / 5);
 
 				if (point(POINT_EMPIRE_POINT) < 10)
 				{
@@ -1299,9 +1299,9 @@ void character::dead(character * pkKiller, bool bImmediateDead)
 				snprintf(buf, sizeof(buf),
 						"%d %d %d %s %d %d %d %s",
 						empire(), alignment(), pk_mode(), name(),
-						pkKiller->empire(), pkKiller->alignment(), pkKiller->pk_mode(), pkKiller->name());
+						killer->empire(), killer->alignment(), killer->pk_mode(), killer->name());
 
-				log_manager::instance().char_log(this, pkKiller->player_id(), "DEAD_BY_PC", buf);
+				log_manager::instance().char_log(this, killer->player_id(), "DEAD_BY_PC", buf);
 			}
 			else
 			{
@@ -1309,32 +1309,32 @@ void character::dead(character * pkKiller, bool bImmediateDead)
 				{
 					int iNoPenaltyProb = 0;
 
-					if (pkKiller->alignment() >= 0)	// 1/3 percent down
+					if (killer->alignment() >= 0)	// 1/3 percent down
 						iNoPenaltyProb = 33;
 					else				// 4/5 percent down
 						iNoPenaltyProb = 20;
 
 					if (number(1, 100) < iNoPenaltyProb)
-						pkKiller->chat_packet(CHAT_TYPE_INFO, lc_text("용신의 보호로 아이템이 떨어지지 않았습니다."));
+						killer->chat_packet(CHAT_TYPE_INFO, lc_text("용신의 보호로 아이템이 떨어지지 않았습니다."));
 					else
 					{
-						if (pkKiller->get_party())
+						if (killer->get_party())
 						{
-							f_party_alignment_compute f(-20000, pkKiller->x(), pkKiller->y());
-							pkKiller->get_party()->for_each_online_member(f);
+							f_party_alignment_compute f(-20000, killer->x(), killer->y());
+							killer->get_party()->for_each_online_member(f);
 
 							if (f.count == 0)
-								pkKiller->update_alignment(-20000);
+								killer->update_alignment(-20000);
 							else
 							{
 								metin2::log::info( "ALIGNMENT PARTY count {:d} amount {:d}", f.count, f.amount);
 
 								f.step = 1;
-								pkKiller->get_party()->for_each_online_member(f);
+								killer->get_party()->for_each_online_member(f);
 							}
 						}
 						else
-							pkKiller->update_alignment(-20000);
+							killer->update_alignment(-20000);
 					}
 				}
 
@@ -1342,9 +1342,9 @@ void character::dead(character * pkKiller, bool bImmediateDead)
 				snprintf(buf, sizeof(buf),
 						"%d %d %d %s %d %d %d %s",
 						empire(), alignment(), pk_mode(), name(),
-						pkKiller->empire(), pkKiller->alignment(), pkKiller->pk_mode(), pkKiller->name());
+						killer->empire(), killer->alignment(), killer->pk_mode(), killer->name());
 
-				log_manager::instance().char_log(this, pkKiller->player_id(), "DEAD_BY_PC", buf);
+				log_manager::instance().char_log(this, killer->player_id(), "DEAD_BY_PC", buf);
 			}
 		}
 	}
@@ -1369,7 +1369,7 @@ void character::dead(character * pkKiller, bool bImmediateDead)
 		// Monsters attacked by guards must give no reward.
 		if (!is_set(points_instant_.instant_flag, INSTANT_FLAG_NO_REWARD))
 		{
-			if (!(pkKiller && pkKiller->is_pc() && pkKiller->get_guild() && pkKiller->get_guild()->under_any_war(GUILD_WAR_TYPE_FIELD)))
+			if (!(killer && killer->is_pc() && killer->get_guild() && killer->get_guild()->under_any_war(GUILD_WAR_TYPE_FIELD)))
 			{
 				// Reviving monsters give no reward.
 				if (get_mob_table().resurrection_vnum)
@@ -1395,24 +1395,24 @@ void character::dead(character * pkKiller, bool bImmediateDead)
 			}
 			else
 			{
-				if (pkKiller->under_guild_war_info_message_time_ < get_dword_time())
+				if (killer->under_guild_war_info_message_time_ < get_dword_time())
 				{
-					pkKiller->under_guild_war_info_message_time_ = get_dword_time() + 60000;
-					pkKiller->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> 길드전중에는 사냥에 따른 이익이 없습니다."));
+					killer->under_guild_war_info_message_time_ = get_dword_time() + 60000;
+					killer->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> 길드전중에는 사냥에 따른 이익이 없습니다."));
 				}
 			}
 		}
 	}
 
 	// BOSS_KILL_LOG
-	if (get_mob_rank() >= MOB_RANK_BOSS && pkKiller && pkKiller->is_pc())
+	if (get_mob_rank() >= MOB_RANK_BOSS && killer && killer->is_pc())
 	{
 		char buf[51];
-		snprintf(buf, sizeof(buf), "%d %d", metin2::config::server().channel, pkKiller->map_index());
+		snprintf(buf, sizeof(buf), "%d %d", metin2::config::server().channel, killer->map_index());
 		if (is_stone())
-			log_manager::instance().char_log(pkKiller, race_num(), "STONE_KILL", buf);
+			log_manager::instance().char_log(killer, race_num(), "STONE_KILL", buf);
 		else
-			log_manager::instance().char_log(pkKiller, race_num(), "BOSS_KILL", buf);
+			log_manager::instance().char_log(killer, race_num(), "BOSS_KILL", buf);
 	}
 	// END_OF_BOSS_KILL_LOG
 
@@ -1472,11 +1472,11 @@ void character::dead(character * pkKiller, bool bImmediateDead)
 
 			if (is_revive() == false && has_reviver_in_party() == true)
 			{
-				dead_event = event_create(game::characters::dead_event, pEventInfo, bImmediateDead ? 1 : passes_per_sec(3));
+				dead_event = event_create(game::characters::dead_event, pEventInfo, immediate_dead ? 1 : passes_per_sec(3));
 			}
 			else
 			{
-				dead_event = event_create(game::characters::dead_event, pEventInfo, bImmediateDead ? 1 : passes_per_sec(10));
+				dead_event = event_create(game::characters::dead_event, pEventInfo, immediate_dead ? 1 : passes_per_sec(10));
 			}
 		}
 
@@ -1499,9 +1499,9 @@ void character::dead(character * pkKiller, bool bImmediateDead)
 
 	if (true == is_monster() && 2493 == get_mob_table().vnum)
 	{
-		if (nullptr != pkKiller && nullptr != pkKiller->get_guild())
+		if (nullptr != killer && nullptr != killer->get_guild())
 		{
-			dragon_lair_manager::instance().on_dragon_dead( this, pkKiller->get_guild()->id() );
+			dragon_lair_manager::instance().on_dragon_dead( this, killer->get_guild()->id() );
 		}
 		else
 		{
@@ -1511,34 +1511,34 @@ void character::dead(character * pkKiller, bool bImmediateDead)
 }
 
 
-void character::set_last_attacked(uint32_t dwTime)
+void character::set_last_attacked(uint32_t time)
 {
 	assert(mob_inst != nullptr);
 
-	mob_inst->last_attacked_time = dwTime;
+	mob_inst->last_attacked_time = time;
 	mob_inst->pos_last_attacked = xyz();
 }
 
-void character::send_damage_packet(character * pAttacker, int Damage, uint8_t DamageFlag)
+void character::send_damage_packet(character * attacker, int damage_value, uint8_t damage_flag)
 {
-	if (is_pc() == true || (pAttacker->is_pc() == true && pAttacker->target() == this))
+	if (is_pc() == true || (attacker->is_pc() == true && attacker->target() == this))
 	{
 		packet_gc_damage_info damageInfo;
 		memset(&damageInfo, 0, sizeof(packet_gc_damage_info));
 
 		damageInfo.header = HEADER_GC_DAMAGE_INFO;
 		damageInfo.vid = (uint32_t)get_vid();
-		damageInfo.flag = DamageFlag;
-		damageInfo.damage = Damage;
+		damageInfo.flag = damage_flag;
+		damageInfo.damage = damage_value;
 
 		if (get_desc() != nullptr)
 		{
 			get_desc()->packet(&damageInfo, sizeof(packet_gc_damage_info));
 		}
 
-		if (pAttacker->get_desc() != nullptr)
+		if (attacker->get_desc() != nullptr)
 		{
-			pAttacker->get_desc()->packet(&damageInfo, sizeof(packet_gc_damage_info));
+			attacker->get_desc()->packet(&damageInfo, sizeof(packet_gc_damage_info));
 		}
 	}
 }
@@ -1555,11 +1555,11 @@ void character::send_damage_packet(character * pAttacker, int Damage, uint8_t Da
 //    true		: dead
 //    false		: not dead yet
 // 
-bool character::damage(character * pAttacker, int dam, damage_type type) // returns true if dead
+bool character::damage(character * attacker, int dam, damage_type type) // returns true if dead
 {
 	if (DAMAGE_TYPE_MAGIC == type)
 	{
-		dam = (int)((float)dam * (100 + (pAttacker->point(POINT_MAGIC_ATT_BONUS_PER) + pAttacker->point(POINT_MELEE_MAGIC_ATT_BONUS_PER))) / 100.f + 0.5f);
+		dam = (int)((float)dam * (100 + (attacker->point(POINT_MAGIC_ATT_BONUS_PER) + attacker->point(POINT_MELEE_MAGIC_ATT_BONUS_PER))) / 100.f + 0.5f);
 	}
 	if (race_num() == 5001)
 	{
@@ -1662,13 +1662,13 @@ bool character::damage(character * pAttacker, int dam, damage_type type) // retu
 	//
 	if (type == DAMAGE_TYPE_MELEE || type == DAMAGE_TYPE_RANGE || type == DAMAGE_TYPE_MAGIC)
 	{
-		if (pAttacker)
+		if (attacker)
 		{
 			// Critical
-			int iCriticalPct = pAttacker->point(POINT_CRITICAL_PCT);
+			int iCriticalPct = attacker->point(POINT_CRITICAL_PCT);
 
 			if (!is_pc())
-				iCriticalPct += pAttacker->marriage_bonus(UNIQUE_ITEM_MARRIAGE_CRITICAL_BONUS);
+				iCriticalPct += attacker->marriage_bonus(UNIQUE_ITEM_MARRIAGE_CRITICAL_BONUS);
 
 			if (iCriticalPct)
 			{
@@ -1694,10 +1694,10 @@ bool character::damage(character * pAttacker, int dam, damage_type type) // retu
 			}
 
 			// Penetration
-			int iPenetratePct = pAttacker->point(POINT_PENETRATE_PCT);
+			int iPenetratePct = attacker->point(POINT_PENETRATE_PCT);
 
 			if (!is_pc())
-				iPenetratePct += pAttacker->marriage_bonus(UNIQUE_ITEM_MARRIAGE_PENETRATE_BONUS);
+				iPenetratePct += attacker->marriage_bonus(UNIQUE_ITEM_MARRIAGE_PENETRATE_BONUS);
 
 
 			if (iPenetratePct)
@@ -1756,11 +1756,11 @@ bool character::damage(character * pAttacker, int dam, damage_type type) // retu
 			{
 				if (metin2::config::test_server())
 				{
-					pAttacker->chat_packet(CHAT_TYPE_INFO, lc_text("%s 블럭! (%d%%)"), name(), point(POINT_BLOCK));
+					attacker->chat_packet(CHAT_TYPE_INFO, lc_text("%s 블럭! (%d%%)"), name(), point(POINT_BLOCK));
 					chat_packet(CHAT_TYPE_INFO, lc_text("%s 블럭! (%d%%)"), name(), point(POINT_BLOCK));
 				}
 
-				send_damage_packet(pAttacker, 0, DAMAGE_BLOCK);
+				send_damage_packet(attacker, 0, DAMAGE_BLOCK);
 				return false;
 			}
 		}
@@ -1771,11 +1771,11 @@ bool character::damage(character * pAttacker, int dam, damage_type type) // retu
 			{
 				if (metin2::config::test_server())
 				{
-					pAttacker->chat_packet(CHAT_TYPE_INFO, lc_text("%s 회피! (%d%%)"), name(), point(POINT_DODGE));
+					attacker->chat_packet(CHAT_TYPE_INFO, lc_text("%s 회피! (%d%%)"), name(), point(POINT_DODGE));
 					chat_packet(CHAT_TYPE_INFO, lc_text("%s 회피! (%d%%)"), name(), point(POINT_DODGE));
 				}
 
-				send_damage_packet(pAttacker, 0, DAMAGE_DODGE);
+				send_damage_packet(attacker, 0, DAMAGE_DODGE);
 				return false;
 			}
 		}
@@ -1792,7 +1792,7 @@ bool character::damage(character * pAttacker, int dam, damage_type type) // retu
 		//
 		// Apply attacker attributes
 		//
-		if (pAttacker)
+		if (attacker)
 		{
 			if (type == DAMAGE_TYPE_NORMAL)
 			{
@@ -1803,18 +1803,18 @@ bool character::damage(character * pAttacker, int dam, damage_type type) // retu
 
 					// NOTE: design requested that if the attacker has IMMUNE_REFLECT, instead of not reflecting 
 					// at all, the damage is fixed at 1/3.
-					if (pAttacker->is_immune(IMMUNE_REFLECT))
+					if (attacker->is_immune(IMMUNE_REFLECT))
 						reflectDamage = int(reflectDamage / 3.0f + 0.5f);
 
-					pAttacker->damage(this, reflectDamage, DAMAGE_TYPE_SPECIAL);
+					attacker->damage(this, reflectDamage, DAMAGE_TYPE_SPECIAL);
 				}
 			}
 
 			// Critical
-			int iCriticalPct = pAttacker->point(POINT_CRITICAL_PCT);
+			int iCriticalPct = attacker->point(POINT_CRITICAL_PCT);
 
 			if (!is_pc())
-				iCriticalPct += pAttacker->marriage_bonus(UNIQUE_ITEM_MARRIAGE_CRITICAL_BONUS);
+				iCriticalPct += attacker->marriage_bonus(UNIQUE_ITEM_MARRIAGE_CRITICAL_BONUS);
 
 			if (iCriticalPct)
 			{
@@ -1830,10 +1830,10 @@ bool character::damage(character * pAttacker, int dam, damage_type type) // retu
 			}
 
 			// Penetration
-			int iPenetratePct = pAttacker->point(POINT_PENETRATE_PCT);
+			int iPenetratePct = attacker->point(POINT_PENETRATE_PCT);
 
 			if (!is_pc())
-				iPenetratePct += pAttacker->marriage_bonus(UNIQUE_ITEM_MARRIAGE_PENETRATE_BONUS);
+				iPenetratePct += attacker->marriage_bonus(UNIQUE_ITEM_MARRIAGE_PENETRATE_BONUS);
 
 			{
 				skill_proto* pkSk = skill_manager::instance().get(SKILL_RESIST_PENETRATE);
@@ -1864,25 +1864,25 @@ bool character::damage(character * pAttacker, int dam, damage_type type) // retu
 			}
 
 			// HP steal
-			if (pAttacker->point(POINT_STEAL_HP))
+			if (attacker->point(POINT_STEAL_HP))
 			{
 				int pct = 1;
 
 				if (number(1, 10) <= pct)
 				{
-					int iHP = std::min(dam, std::max(0, iCurHP)) * pAttacker->point(POINT_STEAL_HP) / 100;
+					int iHP = std::min(dam, std::max(0, iCurHP)) * attacker->point(POINT_STEAL_HP) / 100;
 
 					if (iHP > 0 && hp() >= iHP)
 					{
-						create_fly(FLY_HP_SMALL, pAttacker);
-						pAttacker->point_change(POINT_HP, iHP);
+						create_fly(FLY_HP_SMALL, attacker);
+						attacker->point_change(POINT_HP, iHP);
 						point_change(POINT_HP, -iHP);
 					}
 				}
 			}
 
 			// SP steal
-			if (pAttacker->point(POINT_STEAL_SP))
+			if (attacker->point(POINT_STEAL_SP))
 			{
 				int pct = 1;
 
@@ -1895,12 +1895,12 @@ bool character::damage(character * pAttacker, int dam, damage_type type) // retu
 					else
 						iCur = iCurHP;
 
-					int iSP = std::min(dam, std::max(0, iCur)) * pAttacker->point(POINT_STEAL_SP) / 100;
+					int iSP = std::min(dam, std::max(0, iCur)) * attacker->point(POINT_STEAL_SP) / 100;
 
 					if (iSP > 0 && iCur >= iSP)
 					{
-						create_fly(FLY_SP_SMALL, pAttacker);
-						pAttacker->point_change(POINT_SP, iSP);
+						create_fly(FLY_SP_SMALL, attacker);
+						attacker->point_change(POINT_SP, iSP);
 
 						if (is_pc())
 							point_change(POINT_SP, -iSP);
@@ -1909,44 +1909,44 @@ bool character::damage(character * pAttacker, int dam, damage_type type) // retu
 			}
 
 			// Gold steal
-			if (pAttacker->point(POINT_STEAL_GOLD))
+			if (attacker->point(POINT_STEAL_GOLD))
 			{
-				if (number(1, 100) <= pAttacker->point(POINT_STEAL_GOLD))
+				if (number(1, 100) <= attacker->point(POINT_STEAL_GOLD))
 				{
 					int iAmount = number(1, level());
-					pAttacker->point_change(POINT_GOLD, iAmount);
+					attacker->point_change(POINT_GOLD, iAmount);
 					db_manager::instance().send_money_log(MONEY_LOG_MISC, 1, iAmount);
 				}
 			}
 
 			// HP recovery on every hit
-			if (pAttacker->point(POINT_HIT_HP_RECOVERY) && number(0, 4) > 0) // 80% chance
+			if (attacker->point(POINT_HIT_HP_RECOVERY) && number(0, 4) > 0) // 80% chance
 			{
-				int i = ((iCurHP>=0)?std::min(dam, iCurHP):dam) * pAttacker->point(POINT_HIT_HP_RECOVERY) / 100; // Fix
+				int i = ((iCurHP>=0)?std::min(dam, iCurHP):dam) * attacker->point(POINT_HIT_HP_RECOVERY) / 100; // Fix
 
 				if (i)
 				{
-					create_fly(FLY_HP_SMALL, pAttacker);
-					pAttacker->point_change(POINT_HP, i);
+					create_fly(FLY_HP_SMALL, attacker);
+					attacker->point_change(POINT_HP, i);
 				}
 			}
 
 			// SP recovery on every hit
-			if (pAttacker->point(POINT_HIT_SP_RECOVERY) && number(0, 4) > 0) // 80% chance
+			if (attacker->point(POINT_HIT_SP_RECOVERY) && number(0, 4) > 0) // 80% chance
 			{
-				int i = ((iCurHP>=0)?std::min(dam, iCurHP):dam) * pAttacker->point(POINT_HIT_SP_RECOVERY) / 100; // Fix
+				int i = ((iCurHP>=0)?std::min(dam, iCurHP):dam) * attacker->point(POINT_HIT_SP_RECOVERY) / 100; // Fix
 
 				if (i)
 				{
-					create_fly(FLY_SP_SMALL, pAttacker);
-					pAttacker->point_change(POINT_SP, i);
+					create_fly(FLY_SP_SMALL, attacker);
+					attacker->point_change(POINT_SP, i);
 				}
 			}
 
 			// Remove the target's mana.
-			if (pAttacker->point(POINT_MANA_BURN_PCT))
+			if (attacker->point(POINT_MANA_BURN_PCT))
 			{
-				if (number(1, 100) <= pAttacker->point(POINT_MANA_BURN_PCT))
+				if (number(1, 100) <= attacker->point(POINT_MANA_BURN_PCT))
 					point_change(POINT_SP, -50);
 			}
 		}
@@ -1959,9 +1959,9 @@ bool character::damage(character * pAttacker, int dam, damage_type type) // retu
 	{
 		case DAMAGE_TYPE_NORMAL:
 		case DAMAGE_TYPE_NORMAL_RANGE:
-			if (pAttacker)
-				if (pAttacker->point(POINT_NORMAL_HIT_DAMAGE_BONUS))
-					dam = dam * (100 + pAttacker->point(POINT_NORMAL_HIT_DAMAGE_BONUS)) / 100;
+			if (attacker)
+				if (attacker->point(POINT_NORMAL_HIT_DAMAGE_BONUS))
+					dam = dam * (100 + attacker->point(POINT_NORMAL_HIT_DAMAGE_BONUS)) / 100;
 
 			dam = dam * (100 - std::min(99, point(POINT_NORMAL_HIT_DEFEND_BONUS))) / 100;
 			break;
@@ -1972,9 +1972,9 @@ bool character::damage(character * pAttacker, int dam, damage_type type) // retu
 		case DAMAGE_TYPE_ICE:
 		case DAMAGE_TYPE_ELEC:
 		case DAMAGE_TYPE_MAGIC:
-			if (pAttacker)
-				if (pAttacker->point(POINT_SKILL_DAMAGE_BONUS))
-					dam = dam * (100 + pAttacker->point(POINT_SKILL_DAMAGE_BONUS)) / 100;
+			if (attacker)
+				if (attacker->point(POINT_SKILL_DAMAGE_BONUS))
+					dam = dam * (100 + attacker->point(POINT_SKILL_DAMAGE_BONUS)) / 100;
 
 			dam = dam * (100 - std::min(99, point(POINT_SKILL_DEFEND_BONUS))) / 100;
 			break;
@@ -2016,14 +2016,14 @@ bool character::damage(character * pAttacker, int dam, damage_type type) // retu
 		dam -= dec_dam;
 	}
 
-	if (pAttacker)
+	if (attacker)
 	{
 		//
 		// Overall attack increase (mall item)
 		//
-		if (pAttacker->point(POINT_MALL_ATTBONUS) > 0)
+		if (attacker->point(POINT_MALL_ATTBONUS) > 0)
 		{
-			int add_dam = std::min(300, dam * pAttacker->limit_point(POINT_MALL_ATTBONUS) / 100);
+			int add_dam = std::min(300, dam * attacker->limit_point(POINT_MALL_ATTBONUS) / 100);
 			dam += add_dam;
 		}
 
@@ -2035,10 +2035,10 @@ bool character::damage(character * pAttacker, int dam, damage_type type) // retu
 		int iMapEmpire = sectree_manager::instance().empire_from_map_index(lMapIndex);
 
 
-		if (pAttacker->is_pc())
+		if (attacker->is_pc())
 		{
-			iEmpire = pAttacker->empire();
-			lMapIndex = pAttacker->map_index();
+			iEmpire = attacker->empire();
+			lMapIndex = attacker->map_index();
 			iMapEmpire = sectree_manager::instance().empire_from_map_index(lMapIndex);
 
 			// 10% less damage against people of another empire
@@ -2062,17 +2062,17 @@ bool character::damage(character * pAttacker, int dam, damage_type type) // retu
 			{
 				int iDrain = monster_drain_sp_point();
 
-				if (iDrain <= pAttacker->sp())
-					pAttacker->point_change(POINT_SP, -iDrain);
+				if (iDrain <= attacker->sp())
+					attacker->point_change(POINT_SP, -iDrain);
 				else
 				{
-					int iSP = pAttacker->sp();
-					pAttacker->point_change(POINT_SP, -iSP);
+					int iSP = attacker->sp();
+					attacker->point_change(POINT_SP, -iSP);
 				}
 			}
 
 		}
-		else if (pAttacker->is_guard_npc())
+		else if (attacker->is_guard_npc())
 		{
 			set_bit(points_instant_.instant_flag, INSTANT_FLAG_NO_REWARD);
 			stun();
@@ -2082,7 +2082,7 @@ bool character::damage(character * pAttacker, int dam, damage_type type) // retu
 		//
 		// Monarch's Diamond Fist & Lion's Roar 
 		//
-		if (pAttacker->is_pc() && monarch::instance().is_power_up(pAttacker->empire()))
+		if (attacker->is_pc() && monarch::instance().is_power_up(attacker->empire()))
 		{
 			// 10% more damage
 			dam += dam / 10;
@@ -2111,7 +2111,7 @@ bool character::damage(character * pAttacker, int dam, damage_type type) // retu
 
 	if (is_stun())
 	{
-		dead(pAttacker);
+		dead(attacker);
 		return true;
 	}
 
@@ -2138,12 +2138,12 @@ bool character::damage(character * pAttacker, int dam, damage_type type) // retu
 			dam /= 2;
 	}
 
-	if (pAttacker)
+	if (attacker)
 	{
 		// DEATH BLOW : chance of 4x damage (!? currently only used by event or siege monsters)
-		if (pAttacker->is_monster() && pAttacker->is_death_blower())
+		if (attacker->is_monster() && attacker->is_death_blower())
 		{
-			if (pAttacker->is_death_blow())
+			if (attacker->is_death_blow())
 			{
 				//if (number(1, 4) == GetJob())
 				if (number(JOB_WARRIOR, JOB_MAX_NUM - 1) == job())
@@ -2154,7 +2154,7 @@ bool character::damage(character * pAttacker, int dam, damage_type type) // retu
 			}
 		}
 
-		dam = blue_dragon_damage(this, pAttacker, dam);
+		dam = blue_dragon_damage(this, attacker, dam);
 
 		uint8_t damageFlag = 0;
 
@@ -2176,14 +2176,14 @@ bool character::damage(character * pAttacker, int dam, damage_type type) // retu
 		dam = tempDam * damMul + 0.5f;
 
 
-		if (pAttacker)
-			send_damage_packet(pAttacker, dam, damageFlag);
+		if (attacker)
+			send_damage_packet(attacker, dam, damageFlag);
 
 		if (metin2::config::test_server())
 		{
-			if(pAttacker)
+			if(attacker)
 			{
-				pAttacker->chat_packet(CHAT_TYPE_INFO, "-> %s, DAM %d HP %d(%d%%) %s%s",
+				attacker->chat_packet(CHAT_TYPE_INFO, "-> %s, DAM %d HP %d(%d%%) %s%s",
 						name(), 
 						dam, 
 						hp(),
@@ -2194,7 +2194,7 @@ bool character::damage(character * pAttacker, int dam, damage_type type) // retu
 			}
 
 			chat_packet(CHAT_TYPE_PARTY, "<- %s, DAM %d HP %d(%d%%) %s%s",
-					pAttacker ? pAttacker->name() : nullptr,
+					attacker ? attacker->name() : nullptr,
 					dam, 
 					hp(),
 					(hp() * 100) / max_hp(),
@@ -2205,7 +2205,7 @@ bool character::damage(character * pAttacker, int dam, damage_type type) // retu
 
 		if (detail_log_)
 		{
-			chat_packet(CHAT_TYPE_INFO, lc_text("%s[%d]가 공격 위치: %d %d"), pAttacker->name(), (uint32_t) pAttacker->get_vid(), pAttacker->x(), pAttacker->y());
+			chat_packet(CHAT_TYPE_INFO, lc_text("%s[%d]가 공격 위치: %d %d"), attacker->name(), (uint32_t) attacker->get_vid(), attacker->x(), attacker->y());
 		}
 	}
 
@@ -2217,14 +2217,14 @@ bool character::damage(character * pAttacker, int dam, damage_type type) // retu
 		point_change(POINT_HP, -dam, false);
 	}
 
-	if (pAttacker && dam > 0 && is_npc())
+	if (attacker && dam > 0 && is_npc())
 	{
-		damage_map::iterator it = map_k_damage_.find(pAttacker->get_vid());
+		damage_map::iterator it = map_k_damage_.find(attacker->get_vid());
 
 		if (it == map_k_damage_.end())
 		{
-			map_k_damage_.insert(damage_map::value_type(pAttacker->get_vid(), battle_info(dam, 0)));
-			it = map_k_damage_.find(pAttacker->get_vid());
+			map_k_damage_.insert(damage_map::value_type(attacker->get_vid(), battle_info(dam, 0)));
+			it = map_k_damage_.find(attacker->get_vid());
 		}
 		else
 		{
@@ -2233,15 +2233,15 @@ bool character::damage(character * pAttacker, int dam, damage_type type) // retu
 
 		start_recovery_event(); // Monsters start recovering when they take damage.
 
-		update_aggr_point_ex(pAttacker, type, dam, it->second);
+		update_aggr_point_ex(attacker, type, dam, it->second);
 	}
 
 	if (hp() <= 0)
 	{
 		stun();
 
-		if (pAttacker && !pAttacker->is_npc())
-			killer_pid_ = pAttacker->player_id();
+		if (attacker && !attacker->is_npc())
+			killer_pid_ = attacker->player_id();
 		else
 			killer_pid_ = 0;
 	}
@@ -2249,44 +2249,44 @@ bool character::damage(character * pAttacker, int dam, damage_type type) // retu
 	return false;
 }
 
-void character::distribute_hp(character * pkKiller)
+void character::distribute_hp(character * killer)
 {
-	if (pkKiller->get_dungeon()) // Dumplings don't appear inside dungeons
+	if (killer->get_dungeon()) // Dumplings don't appear inside dungeons
 		return;
 }
 
-static void give_exp(character * from, character * to, int iExp)
+static void give_exp(character * from, character * to, int exp)
 {
 	// Experience adjustment ratio by level difference
-	iExp = calculate_value_lvdelta(to->level(), from->level(), iExp);
+	exp = calculate_value_lvdelta(to->level(), from->level(), exp);
 
 	// 3x experience bonus on external test server
 	if (metin2::config::game().distribution_test_server)
-		iExp *= 3;
+		exp *= 3;
 
-	int iBaseExp = iExp;
+	int iBaseExp = exp;
 
 	// Apply fortune-telling and company experience events
-	iExp = iExp * (100 + priv_manager::instance().priv(to, PRIV_EXP_PCT)) / 100;
+	exp = exp * (100 + priv_manager::instance().priv(to, PRIV_EXP_PCT)) / 100;
 
 	// Default in-game experience bonus
 	{
 		// Labor Day medal
 		if (to->is_equip_unique_item(UNIQUE_ITEM_LARBOR_MEDAL))
-			iExp += iExp * 20 /100;
+			exp += exp * 20 /100;
 
 		// Demon Tower experience bonus
 		if (to->map_index() >= 660000 && to->map_index() < 670000) 
-			iExp += iExp * 20 / 100; // 1.2x (20%)
+			exp += exp * 20 / 100; // 1.2x (20%)
 
 		// Item double-experience attribute
 		if (to->point(POINT_EXP_DOUBLE_BONUS))
 			if (number(1, 100) <= to->point(POINT_EXP_DOUBLE_BONUS))
-				iExp += iExp * 30 / 100; // 1.3x (30%)
+				exp += exp * 30 / 100; // 1.3x (30%)
 
 		// Ring of Experience (2-hour)
 		if (to->is_equip_unique_item(UNIQUE_ITEM_DOUBLE_EXP))
-			iExp += iExp * 50 / 100;
+			exp += exp * 50 / 100;
 
 		switch (to->get_mount_vnum())
 		{
@@ -2297,7 +2297,7 @@ static void give_exp(character * from, character * to, int iExp)
 				if (to->is_equip_unique_item(71115) || to->is_equip_unique_item(71117) || to->is_equip_unique_item(71119) ||
 						to->is_equip_unique_item(71121) )
 				{
-					iExp += iExp * 10 / 100;
+					exp += exp * 10 / 100;
 				}
 				break;
 
@@ -2309,7 +2309,7 @@ static void give_exp(character * from, character * to, int iExp)
 			case 20124:
 			case 20125:
 				// White Lion experience bonus
-				iExp += iExp * 30 / 100;
+				exp += exp * 30 / 100;
 				break;
 		}
 	}
@@ -2318,20 +2318,20 @@ static void give_exp(character * from, character * to, int iExp)
 	// Item mall: experience purchase
 	if (to->premium_remain_seconds(PREMIUM_EXP) > 0)
 	{
-		iExp += (iExp * 50 / 100);
+		exp += (exp * 50 / 100);
 	}
 
 	if (to->is_equip_unique_group(UNIQUE_GROUP_RING_OF_EXP) == true)
 	{
-		iExp += (iExp * 50 / 100);
+		exp += (exp * 50 / 100);
 	}
 
 	// Marriage bonus
-	iExp += iExp * to->marriage_bonus(UNIQUE_ITEM_MARRIAGE_EXP_BONUS) / 100;
+	exp += exp * to->marriage_bonus(UNIQUE_ITEM_MARRIAGE_EXP_BONUS) / 100;
 
-	iExp += (iExp * to->point(POINT_RAMADAN_CANDY_BONUS_EXP)/100);
-	iExp += (iExp * to->point(POINT_MALL_EXPBONUS)/100);
-	iExp += (iExp * to->point(POINT_EXP)/100);
+	exp += (exp * to->point(POINT_RAMADAN_CANDY_BONUS_EXP)/100);
+	exp += (exp * to->point(POINT_MALL_EXPBONUS)/100);
+	exp += (exp * to->point(POINT_EXP)/100);
 
 	if (metin2::config::test_server())
 	{
@@ -2343,20 +2343,20 @@ static void give_exp(character * from, character * to, int iExp)
 	}
 
 	// Design-side adjustment value, 85% as of 2005.04.21
-	iExp = iExp * character_manager::instance().mob_exp_rate(to) / 100;
+	exp = exp * character_manager::instance().mob_exp_rate(to) / 100;
 
 	// Limit on experience gained at once
-	iExp = std::min<int>(to->next_exp() / 10, iExp);
+	exp = std::min<int>(to->next_exp() / 10, exp);
 
 	if (metin2::config::test_server())
 	{
 		if (quest::quest_manager::instance().event_flag("exp_bonus_log") && iBaseExp>0)
-			to->chat_packet(CHAT_TYPE_INFO, "exp bonus %d%%", (iExp-iBaseExp)*100/iBaseExp);
+			to->chat_packet(CHAT_TYPE_INFO, "exp bonus %d%%", (exp-iBaseExp)*100/iBaseExp);
 	}
 
-	iExp = adjust_exp_by_level(to, iExp);
+	exp = adjust_exp_by_level(to, exp);
 
-	to->point_change(POINT_EXP, iExp, true);
+	to->point_change(POINT_EXP, exp, true);
 	from->create_fly(FLY_EXP, to);
 
 	{
@@ -2365,7 +2365,7 @@ static void give_exp(character * from, character * to, int iExp)
 		if (you)
 		{
 			// 100 million is 100%
-			uint32_t dwUpdatePoint = 2000*iExp/to->level()/to->level()/3;
+			uint32_t dwUpdatePoint = 2000*exp/to->level()/to->level()/3;
 
 			if (to->premium_remain_seconds(PREMIUM_MARRIAGE_FAST) > 0 || 
 					you->premium_remain_seconds(PREMIUM_MARRIAGE_FAST) > 0)
@@ -2413,8 +2413,8 @@ namespace party_exp_distribute
 		int		mode;
 		int		member_count;
 
-		f_party_distributor(character * center, int member_count_value, int total, uint32_t iExp, int iMode) 
-			: total(total), c(center), x(center->x()), y(center->y()), i_exp(iExp), mode(iMode), member_count(member_count_value)
+		f_party_distributor(character * center, int member_count_value, int total, uint32_t exp, int mode_value) 
+			: total(total), c(center), x(center->x()), y(center->y()), i_exp(exp), mode(mode_value), member_count(member_count_value)
 			{
 				if (member_count == 0)
 					member_count = 1;
@@ -2458,17 +2458,17 @@ struct damage_info {
 		party = nullptr;
 	}
 
-	inline void distribute(character * ch, int iExp)
+	inline void distribute(character * ch, int exp)
 	{
 		if (attacker)
-			give_exp(ch, attacker, iExp);
+			give_exp(ch, attacker, exp);
 		else if (party)
 		{
 			party_exp_distribute::f_party_totaler f(ch);
 			party->for_each_online_member(f);
 
 			if (party->is_position_near_leader(ch))
-				iExp = iExp * (100 + party->exp_bonus_percent()) / 100;
+				exp = exp * (100 + party->exp_bonus_percent()) / 100;
 
 			if (metin2::config::test_server())
 			{
@@ -2483,14 +2483,14 @@ struct damage_info {
 
 				if (distance_approx(ch->x() - tch->x(), ch->y() - tch->y()) <= PARTY_DEFAULT_RANGE)
 				{
-					int iExpCenteralize = (int) (iExp * 0.05f);
-					iExp -= iExpCenteralize;
+					int iExpCenteralize = (int) (exp * 0.05f);
+					exp -= iExpCenteralize;
 
 					give_exp(ch, party->exp_centralize_character(), iExpCenteralize);
 				}
 			}
 
-			party_exp_distribute::f_party_distributor fDist(ch, f.member_count, f.total, iExp, party->exp_distribution_mode());
+			party_exp_distribute::f_party_distributor fDist(ch, f.member_count, f.total, exp, party->exp_distribution_mode());
 			party->for_each_online_member(fDist);
 		}
 	}
@@ -2649,7 +2649,7 @@ character * character::distribute_exp()
 }
 
 // Returns the arrow count
-int character::arrow_and_bow(item * * ppkBow, item * * ppkArrow, int iArrowCount/* = 1 */)
+int character::arrow_and_bow(item * * ppk_bow, item * * ppk_arrow, int arrow_count/* = 1 */)
 {
 	item * pkBow;
 
@@ -2666,20 +2666,20 @@ int character::arrow_and_bow(item * * ppkBow, item * * ppkArrow, int iArrowCount
 		return 0;
 	}
 
-	iArrowCount = std::min<int>(iArrowCount, pkArrow->count());
+	arrow_count = std::min<int>(arrow_count, pkArrow->count());
 
-	*ppkBow = pkBow;
-	*ppkArrow = pkArrow;
+	*ppk_bow = pkBow;
+	*ppk_arrow = pkArrow;
 
-	return iArrowCount;
+	return arrow_count;
 }
 
-void character::use_arrow(item * pkArrow, uint32_t dwArrowCount)
+void character::use_arrow(item * arrow, uint32_t arrow_count)
 {
-	int iCount = pkArrow->count();
-	uint32_t dwVnum = pkArrow->vnum();
-	iCount = iCount - std::min<int>(iCount, dwArrowCount);
-	pkArrow->set_count(iCount);
+	int iCount = arrow->count();
+	uint32_t dwVnum = arrow->vnum();
+	iCount = iCount - std::min<int>(iCount, arrow_count);
+	arrow->set_count(iCount);
 
 	if (iCount == 0)
 	{
@@ -2699,21 +2699,21 @@ class func_shoot
 		uint8_t		type;
 		bool		succeed;
 
-		func_shoot(character * ch, uint8_t bType) : me(ch), type(bType), succeed(false)
+		func_shoot(character * ch, uint8_t type_value) : me(ch), type(type_value), succeed(false)
 		{
 		}
 
-		void operator () (uint32_t dwTargetVID)
+		void operator () (uint32_t target_vid)
 		{
 			if (type > 1)
 			{
 				if (metin2::config::game().skill_disable)
 					return;
 
-				me->skill_use_info_[type].set_main_target_vid(dwTargetVID);
+				me->skill_use_info_[type].set_main_target_vid(target_vid);
 			}
 
-			character * pkVictim = character_manager::instance().find(dwTargetVID);
+			character * pkVictim = character_manager::instance().find(target_vid);
 
 			if (!pkVictim)
 				return;
@@ -2961,16 +2961,16 @@ class func_shoot
 		}
 };
 
-bool character::shoot(uint8_t bType)
+bool character::shoot(uint8_t type)
 {
-	metin2::log::debug( "Shoot {} type {:d} flyTargets.size {:d}", name(), bType, vec_dw_fly_targets_.size());
+	metin2::log::debug( "Shoot {} type {:d} flyTargets.size {:d}", name(), type, vec_dw_fly_targets_.size());
 
 	if (!can_move())
 	{
 		return false;
 	}	
 
-	func_shoot f(this, bType);
+	func_shoot f(this, type);
 
 	if (fly_target_id_ != 0)
 	{
@@ -2984,12 +2984,12 @@ bool character::shoot(uint8_t bType)
 	return f.succeed;
 }
 
-void character::fly_target(uint32_t dwTargetVID, int32_t x, int32_t y, uint8_t bHeader)
+void character::fly_target(uint32_t target_vid_value, int32_t x, int32_t y, uint8_t header_value)
 {
-	character * pkVictim = character_manager::instance().find(dwTargetVID);
+	character * pkVictim = character_manager::instance().find(target_vid_value);
 	packet_gc_fly_targeting pack;
 
-	pack.header	= (bHeader == HEADER_CG_FLY_TARGETING) ? HEADER_GC_FLY_TARGETING : HEADER_GC_ADD_FLY_TARGETING;
+	pack.header	= (header_value == HEADER_CG_FLY_TARGETING) ? HEADER_GC_FLY_TARGETING : HEADER_GC_ADD_FLY_TARGETING;
 	pack.shooter_vid	= get_vid();
 
 	if (pkVictim)
@@ -2998,10 +2998,10 @@ void character::fly_target(uint32_t dwTargetVID, int32_t x, int32_t y, uint8_t b
 		pack.x = pkVictim->x();
 		pack.y = pkVictim->y();
 
-		if (bHeader == HEADER_CG_FLY_TARGETING)
-			fly_target_id_ = dwTargetVID;
+		if (header_value == HEADER_CG_FLY_TARGETING)
+			fly_target_id_ = target_vid_value;
 		else
-			vec_dw_fly_targets_.push_back(dwTargetVID);
+			vec_dw_fly_targets_.push_back(target_vid_value);
 	}
 	else
 	{
@@ -3014,10 +3014,10 @@ void character::fly_target(uint32_t dwTargetVID, int32_t x, int32_t y, uint8_t b
 	packet_around(&pack, sizeof(pack), this);
 }
 
-character * character::nearest_victim(character * pkChr)
+character * character::nearest_victim(character * chr)
 {
-	if (nullptr == pkChr)
-		pkChr = this;
+	if (nullptr == chr)
+		chr = this;
 
 	float fMinDist = 99999.0f;
 	character * pkVictim = nullptr;
@@ -3040,7 +3040,7 @@ character * character::nearest_victim(character * pkChr)
 				pAttacker->is_affect_flag(AFF_REVIVE_INVISIBLE))
 			continue;
 
-		float fDist = distance_approx(pAttacker->x() - pkChr->x(), pAttacker->y() - pkChr->y());
+		float fDist = distance_approx(pAttacker->x() - chr->x(), pAttacker->y() - chr->y());
 
 		if (fDist < fMinDist)
 		{
@@ -3052,9 +3052,9 @@ character * character::nearest_victim(character * pkChr)
 	return pkVictim;
 }
 
-void character::set_victim(character * pkVictim)
+void character::set_victim(character * victim)
 {
-	if (!pkVictim)
+	if (!victim)
 	{
 		if (0 != (uint32_t)vid_victim)
 			monster_log("공격 대상을 해제");
@@ -3064,10 +3064,10 @@ void character::set_victim(character * pkVictim)
 	}
 	else
 	{
-		if (vid_victim != pkVictim->get_vid())
-			monster_log("공격 대상을 설정: %s", pkVictim->name());
+		if (vid_victim != victim->get_vid())
+			monster_log("공격 대상을 설정: %s", victim->name());
 
-		vid_victim = pkVictim->get_vid();
+		vid_victim = victim->get_vid();
 		last_victim_set_time_ = get_dword_time();
 	}
 }
@@ -3098,9 +3098,9 @@ int character::real_alignment() const
 	return real_alignment_;
 }
 
-void character::show_alignment(bool bShow)
+void character::show_alignment(bool show)
 {
-	if (bShow)
+	if (show)
 	{
 		if (alignment_ != real_alignment_)
 		{
@@ -3118,7 +3118,7 @@ void character::show_alignment(bool bShow)
 	}
 }
 
-void character::update_alignment(int iAmount)
+void character::update_alignment(int amount)
 {
 	bool bShow = false;
 
@@ -3127,7 +3127,7 @@ void character::update_alignment(int iAmount)
 
 	int i = alignment_ / 10;
 
-	real_alignment_ = std::clamp(real_alignment_ + iAmount, -200000, 200000);
+	real_alignment_ = std::clamp(real_alignment_ + amount, -200000, 200000);
 
 	if (bShow)
 	{
@@ -3138,12 +3138,12 @@ void character::update_alignment(int iAmount)
 	}
 }
 
-void character::set_killer_mode(bool isOn)
+void character::set_killer_mode(bool is_on)
 {
-	if ((isOn ? ADD_CHARACTER_STATE_KILLER : 0) == is_set(add_chr_state_, ADD_CHARACTER_STATE_KILLER))
+	if ((is_on ? ADD_CHARACTER_STATE_KILLER : 0) == is_set(add_chr_state_, ADD_CHARACTER_STATE_KILLER))
 		return;
 
-	if (isOn)
+	if (is_on)
 		set_bit(add_chr_state_, ADD_CHARACTER_STATE_KILLER);
 	else
 		remove_bit(add_chr_state_, ADD_CHARACTER_STATE_KILLER);
@@ -3169,18 +3169,18 @@ void character::update_killer_mode()
 		set_killer_mode(false);
 }
 
-void character::set_pk_mode(uint8_t bPKMode)
+void character::set_pk_mode(uint8_t pk_mode)
 {
-	if (bPKMode >= PK_MODE_MAX_NUM)
+	if (pk_mode >= PK_MODE_MAX_NUM)
 		return;
 
-	if (pk_mode_ == bPKMode)
+	if (pk_mode_ == pk_mode)
 		return;
 
-	if (bPKMode == PK_MODE_GUILD && !get_guild())
-		bPKMode = PK_MODE_FREE;
+	if (pk_mode == PK_MODE_GUILD && !get_guild())
+		pk_mode = PK_MODE_FREE;
 
-	pk_mode_ = bPKMode;
+	pk_mode_ = pk_mode;
 	update_packet();
 
 	metin2::log::info( "PK_MODE: {} {:d}", name(), pk_mode_);
@@ -3273,10 +3273,10 @@ struct func_pull_monster
 {
 	character * ch;
 	int length;
-	func_pull_monster(character * ch_value, int iLength = 300)
+	func_pull_monster(character * ch_value, int length_value = 300)
 	{
 		ch = ch_value;
-		length = iLength;
+		length = length_value;
 	}
 
 	void operator()(entity * ent)
@@ -3354,7 +3354,7 @@ void character::pull_monster()
 	}
 }
 
-void character::update_aggr_point_ex(character * pAttacker, damage_type type, int dam, character::battle_info & info)
+void character::update_aggr_point_ex(character * attacker, damage_type type, int dam, character::battle_info & info)
 {
 	// Increases further depending on attack type
 	switch (type)
@@ -3376,7 +3376,7 @@ void character::update_aggr_point_ex(character * pAttacker, damage_type type, in
 	}
 
 	// Give a bonus if the attacker is the current target.
-	if (pAttacker == victim())
+	if (attacker == victim())
 		dam = (int) (dam * 1.2f);
 
 	info.aggro += dam;
@@ -3396,38 +3396,38 @@ void character::update_aggr_point_ex(character * pAttacker, damage_type type, in
 		else
 			iPartyAggroDist /= 3;
 
-		pParty->send_message(this, PM_AGGRO_INCREASE, iPartyAggroDist, pAttacker->get_vid());
+		pParty->send_message(this, PM_AGGRO_INCREASE, iPartyAggroDist, attacker->get_vid());
 	}
 
-	change_victim_by_aggro(info.aggro, pAttacker);
+	change_victim_by_aggro(info.aggro, attacker);
 }
 
-void character::update_aggr_point(character * pAttacker, damage_type type, int dam)
+void character::update_aggr_point(character * attacker, damage_type type, int dam)
 {
 	if (is_dead() || is_stun())
 		return;
 
-	damage_map::iterator it = map_k_damage_.find(pAttacker->get_vid());
+	damage_map::iterator it = map_k_damage_.find(attacker->get_vid());
 
 	if (it == map_k_damage_.end())
 	{
-		map_k_damage_.insert(damage_map::value_type(pAttacker->get_vid(), battle_info(0, dam)));
-		it = map_k_damage_.find(pAttacker->get_vid());
+		map_k_damage_.insert(damage_map::value_type(attacker->get_vid(), battle_info(0, dam)));
+		it = map_k_damage_.find(attacker->get_vid());
 	}
 
-	update_aggr_point_ex(pAttacker, type, dam, it->second);
+	update_aggr_point_ex(attacker, type, dam, it->second);
 }
 
-void character::change_victim_by_aggro(int iNewAggro, character * pNewVictim)
+void character::change_victim_by_aggro(int new_aggro, character * new_victim)
 {
 	if (get_dword_time() - last_victim_set_time_ < 3000) // Must wait 3 seconds
 		return;
 
-	if (pNewVictim == victim())
+	if (new_victim == victim())
 	{
-		if (max_aggro_ < iNewAggro)
+		if (max_aggro_ < new_aggro)
 		{
-			max_aggro_ = iNewAggro;
+			max_aggro_ = new_aggro;
 			return;
 		}
 
@@ -3437,31 +3437,31 @@ void character::change_victim_by_aggro(int iNewAggro, character * pNewVictim)
 
 		for (it = map_k_damage_.begin(); it != map_k_damage_.end(); ++it)
 		{
-			if (it->second.aggro > iNewAggro)
+			if (it->second.aggro > new_aggro)
 			{
 				character * ch = character_manager::instance().find(it->first);
 
 				if (ch && !ch->is_dead() && distance_approx(ch->x() - x(), ch->y() - y()) < 5000)
 				{
 					itFind = it;
-					iNewAggro = it->second.aggro;
+					new_aggro = it->second.aggro;
 				}
 			}
 		}
 
 		if (itFind != map_k_damage_.end())
 		{
-			max_aggro_ = iNewAggro;
+			max_aggro_ = new_aggro;
 			set_victim(character_manager::instance().find(itFind->first));
 			state_duration_ = 1;
 		}
 	}
 	else
 	{
-		if (max_aggro_ < iNewAggro)
+		if (max_aggro_ < new_aggro)
 		{
-			max_aggro_ = iNewAggro;
-			set_victim(pNewVictim);
+			max_aggro_ = new_aggro;
+			set_victim(new_victim);
 			state_duration_ = 1;
 		}
 	}

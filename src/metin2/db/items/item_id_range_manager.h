@@ -22,8 +22,8 @@ class item_id_range_manager : public singleton<item_id_range_manager>
 		item_id_range_manager();
 
 		void build();
-		bool build_range(uint32_t dwMin, uint32_t dwMax, item_id_range_table& range);
-		void update_range(uint32_t dwMin, uint32_t dwMax);
+		bool build_range(uint32_t min_value, uint32_t max_value, item_id_range_table& range);
+		void update_range(uint32_t min, uint32_t max);
 
 		item_id_range_table range();
 };

@@ -52,7 +52,7 @@
 
 namespace metin2::db::inline clients {
 
-bool create_item_table_from_res(MYSQL_RES * res, std::vector<player_item> * pVec, uint32_t dwPID);
+bool create_item_table_from_res(MYSQL_RES * res, std::vector<player_item> * vec, uint32_t pid);
 
 uint32_t usage_max = 0;
 uint32_t usage_avg = 0;
@@ -85,9 +85,9 @@ client_manager::~client_manager()
 	destroy();
 }
 
-void client_manager::set_player_id_start(int iIDStart)
+void client_manager::set_player_id_start(int id_start)
 {
-	player_id_start_ = iIDStart;
+	player_id_start_ = id_start;
 }
 
 void client_manager::destroy()
@@ -382,75 +382,75 @@ void client_manager::query_boot(peer* peer, packet_gd_boot * p)
 	peer->encode_word(0xffff);
 }
 
-void client_manager::send_party_on_setup(peer* pkPeer)
+void client_manager::send_party_on_setup(peer* peer_value)
 {
-	party_map & pm = map_pk_channel_party_[pkPeer->channel()];
+	party_map & pm = map_pk_channel_party_[peer_value->channel()];
 
 	for (auto it_party = pm.begin(); it_party != pm.end(); ++it_party)
 	{
 		metin2::log::info( "PARTY SendPartyOnSetup Party [{:d}]", it_party->first);
-		pkPeer->encode_header(HEADER_DG_PARTY_CREATE, 0, sizeof(packet_party_create));
-		pkPeer->encode(&it_party->first, sizeof(uint32_t));
+		peer_value->encode_header(HEADER_DG_PARTY_CREATE, 0, sizeof(packet_party_create));
+		peer_value->encode(&it_party->first, sizeof(uint32_t));
 
 		for (auto it_member = it_party->second.begin(); it_member != it_party->second.end(); ++it_member)
 		{
 			metin2::log::info( "PARTY SendPartyOnSetup Party [{:d}] Member [{:d}]", it_party->first, it_member->first);
-			pkPeer->encode_header(HEADER_DG_PARTY_ADD, 0, sizeof(packet_party_add));
-			pkPeer->encode(&it_party->first, sizeof(uint32_t));
-			pkPeer->encode(&it_member->first, sizeof(uint32_t));
-			pkPeer->encode(&it_member->second.role, sizeof(uint8_t));
+			peer_value->encode_header(HEADER_DG_PARTY_ADD, 0, sizeof(packet_party_add));
+			peer_value->encode(&it_party->first, sizeof(uint32_t));
+			peer_value->encode(&it_member->first, sizeof(uint32_t));
+			peer_value->encode(&it_member->second.role, sizeof(uint8_t));
 
-			pkPeer->encode_header(HEADER_DG_PARTY_SET_MEMBER_LEVEL, 0, sizeof(packet_party_set_member_level));
-			pkPeer->encode(&it_party->first, sizeof(uint32_t));
-			pkPeer->encode(&it_member->first, sizeof(uint32_t));
-			pkPeer->encode(&it_member->second.level, sizeof(uint8_t));
+			peer_value->encode_header(HEADER_DG_PARTY_SET_MEMBER_LEVEL, 0, sizeof(packet_party_set_member_level));
+			peer_value->encode(&it_party->first, sizeof(uint32_t));
+			peer_value->encode(&it_member->first, sizeof(uint32_t));
+			peer_value->encode(&it_member->second.level, sizeof(uint8_t));
 		}
 	}
 }
 
-void client_manager::query_player_count(peer * pkPeer, player_count_packet * pPacket)
+void client_manager::query_player_count(peer * peer_value, player_count_packet * packet)
 {
-	pkPeer->set_user_count(pPacket->count);
+	peer_value->set_user_count(packet->count);
 }
 
-void client_manager::query_quest_save(peer * pkPeer, quest_table * pTable, uint32_t dwLen)
+void client_manager::query_quest_save(peer * peer_value, quest_table * table, uint32_t len)
 {
-	if (0 != (dwLen % sizeof(quest_table)))
+	if (0 != (len % sizeof(quest_table)))
 	{
-		metin2::log::error("invalid packet size {:d}, sizeof(TQuestTable) == {:d}", dwLen, sizeof(quest_table));
+		metin2::log::error("invalid packet size {:d}, sizeof(TQuestTable) == {:d}", len, sizeof(quest_table));
 		return;
 	}
 
-	int iSize = dwLen / sizeof(quest_table);
+	int iSize = len / sizeof(quest_table);
 
 	std::string query;
 
-	for (int i = 0; i < iSize; ++i, ++pTable)
+	for (int i = 0; i < iSize; ++i, ++table)
 	{
-		if (pTable->value == 0)
+		if (table->value == 0)
 		{
 			query = sql::format(
 					"DELETE FROM quest{} WHERE dwPID={} AND szName={} AND szState={}",
-					sql::raw(get_table_postfix()), pTable->pid, pTable->name, pTable->state);
+					sql::raw(get_table_postfix()), table->pid, table->name, table->state);
 		}
 		else
 		{
 			query = sql::format(
 					"REPLACE INTO quest{} (dwPID, szName, szState, lValue) VALUES({}, {}, {}, {})",
-					sql::raw(get_table_postfix()), pTable->pid, pTable->name, pTable->state, pTable->value);
+					sql::raw(get_table_postfix()), table->pid, table->name, table->state, table->value);
 		}
 
-		db_manager::instance().return_query(query.c_str(), QID_QUEST_SAVE, pkPeer->handle(), nullptr);
+		db_manager::instance().return_query(query.c_str(), QID_QUEST_SAVE, peer_value->handle(), nullptr);
 	}
 }
 
-void client_manager::query_safebox_load(peer * pkPeer, uint32_t dwHandle, safebox_load_packet * packet, bool bMall)
+void client_manager::query_safebox_load(peer * peer_value, uint32_t handle_value, safebox_load_packet * packet, bool mall)
 {
-	client_handle_info * pi = new client_handle_info(dwHandle);
+	client_handle_info * pi = new client_handle_info(handle_value);
 	strlcpy(pi->safebox_password, packet->password, sizeof(pi->safebox_password));
 	pi->account_id = packet->id;
 	pi->account_index = 0;
-	pi->ip[0] = bMall ? 1 : 0;
+	pi->ip[0] = mall ? 1 : 0;
 	strlcpy(pi->login, packet->login, sizeof(pi->login));
 
 	char szQuery[QUERY_MAX_LEN];
@@ -459,12 +459,12 @@ void client_manager::query_safebox_load(peer * pkPeer, uint32_t dwHandle, safebo
 			get_table_postfix(), packet->id);
 
 	if (metin2::config::db().login_log)
-		metin2::log::info( "HEADER_GD_SAFEBOX_LOAD (handle: {:d} account.id {:d} is_mall {:d})", dwHandle, packet->id, bMall ? 1 : 0);
+		metin2::log::info( "HEADER_GD_SAFEBOX_LOAD (handle: {:d} account.id {:d} is_mall {:d})", handle_value, packet->id, mall ? 1 : 0);
 
-	db_manager::instance().return_query(szQuery, QID_SAFEBOX_LOAD, pkPeer->handle(), pi);
+	db_manager::instance().return_query(szQuery, QID_SAFEBOX_LOAD, peer_value->handle(), pi);
 }
 
-void client_manager::result_safebox_load(peer * pkPeer, ql_msg * msg)
+void client_manager::result_safebox_load(peer * peer_value, ql_msg * msg)
 {
 	query_info * qi = (query_info *) msg->pv_user_data;
 	client_handle_info * pi = (client_handle_info *) qi->pv_data;
@@ -487,7 +487,7 @@ void client_manager::result_safebox_load(peer * pkPeer, ql_msg * msg)
 		{
 			if (strSafeboxPassword != "000000")
 			{
-				pkPeer->encode_header(HEADER_DG_SAFEBOX_WRONG_PASSWORD, dwHandle, 0);
+				peer_value->encode_header(HEADER_DG_SAFEBOX_WRONG_PASSWORD, dwHandle, 0);
 				delete pi;
 				return;
 			}
@@ -500,7 +500,7 @@ void client_manager::result_safebox_load(peer * pkPeer, ql_msg * msg)
 			if (((!row[2] || !*row[2]) && strSafeboxPassword != "000000") ||
 				((row[2] && *row[2]) && strSafeboxPassword != row[2]))
 			{
-				pkPeer->encode_header(HEADER_DG_SAFEBOX_WRONG_PASSWORD, dwHandle, 0);
+				peer_value->encode_header(HEADER_DG_SAFEBOX_WRONG_PASSWORD, dwHandle, 0);
 				delete pi;
 				return;
 			}
@@ -542,7 +542,7 @@ void client_manager::result_safebox_load(peer * pkPeer, ql_msg * msg)
 
 		pi->account_index = 1;
 
-		db_manager::instance().return_query(query.c_str(), QID_SAFEBOX_LOAD, pkPeer->handle(), pi);
+		db_manager::instance().return_query(query.c_str(), QID_SAFEBOX_LOAD, peer_value->handle(), pi);
 	}
 	else
 	{
@@ -763,20 +763,20 @@ void client_manager::result_safebox_load(peer * pkPeer, ql_msg * msg)
 
 		pi->safebox->item_count = s_items.size();
 
-		pkPeer->encode_header(pi->ip[0] == 0 ? HEADER_DG_SAFEBOX_LOAD : HEADER_DG_MALL_LOAD, dwHandle, sizeof(safebox_table) + sizeof(player_item) * s_items.size());
+		peer_value->encode_header(pi->ip[0] == 0 ? HEADER_DG_SAFEBOX_LOAD : HEADER_DG_MALL_LOAD, dwHandle, sizeof(safebox_table) + sizeof(player_item) * s_items.size());
 
-		pkPeer->encode(pi->safebox.get(), sizeof(safebox_table));
+		peer_value->encode(pi->safebox.get(), sizeof(safebox_table));
 
 		if (!s_items.empty())
-			pkPeer->encode(&s_items[0], sizeof(player_item) * s_items.size());
+			peer_value->encode(&s_items[0], sizeof(player_item) * s_items.size());
 
 		delete pi;
 	}
 }
 
-void client_manager::query_safebox_change_size(peer * pkPeer, uint32_t dwHandle, safebox_change_size_packet * p)
+void client_manager::query_safebox_change_size(peer * peer_value, uint32_t handle_value, safebox_change_size_packet * p)
 {
-	client_handle_info * pi = new client_handle_info(dwHandle);
+	client_handle_info * pi = new client_handle_info(handle_value);
 	pi->account_index = p->size;	// Temporarily use account_index as the size
 
 	char szQuery[QUERY_MAX_LEN];
@@ -786,10 +786,10 @@ void client_manager::query_safebox_change_size(peer * pkPeer, uint32_t dwHandle,
 	else
 		snprintf(szQuery, sizeof(szQuery), "UPDATE safebox%s SET size=%u WHERE account_id=%u", get_table_postfix(), p->size, p->id);
 
-	db_manager::instance().return_query(szQuery, QID_SAFEBOX_CHANGE_SIZE, pkPeer->handle(), pi);
+	db_manager::instance().return_query(szQuery, QID_SAFEBOX_CHANGE_SIZE, peer_value->handle(), pi);
 }
 
-void client_manager::result_safebox_change_size(peer * pkPeer, ql_msg * msg)
+void client_manager::result_safebox_change_size(peer * peer_value, ql_msg * msg)
 {
 	query_info * qi = (query_info *) msg->pv_user_data;
 	client_handle_info * p = (client_handle_info *) qi->pv_data;
@@ -800,14 +800,14 @@ void client_manager::result_safebox_change_size(peer * pkPeer, ql_msg * msg)
 
 	if (msg->get()->num_rows > 0)
 	{
-		pkPeer->encode_header(HEADER_DG_SAFEBOX_CHANGE_SIZE, dwHandle, sizeof(uint8_t));
-		pkPeer->encode_byte(bSize);
+		peer_value->encode_header(HEADER_DG_SAFEBOX_CHANGE_SIZE, dwHandle, sizeof(uint8_t));
+		peer_value->encode_byte(bSize);
 	}
 }
 
-void client_manager::query_safebox_change_password(peer * pkPeer, uint32_t dwHandle, safebox_change_password_packet * p)
+void client_manager::query_safebox_change_password(peer * peer_value, uint32_t handle_value, safebox_change_password_packet * p)
 {
-	client_handle_info * pi = new client_handle_info(dwHandle);
+	client_handle_info * pi = new client_handle_info(handle_value);
 	strlcpy(pi->safebox_password, p->new_password, sizeof(pi->safebox_password));
 	strlcpy(pi->login, p->old_password, sizeof(pi->login));
 	pi->account_id = p->id;
@@ -815,10 +815,10 @@ void client_manager::query_safebox_change_password(peer * pkPeer, uint32_t dwHan
 	char szQuery[QUERY_MAX_LEN];
 	snprintf(szQuery, sizeof(szQuery), "SELECT password FROM safebox%s WHERE account_id=%u", get_table_postfix(), p->id);
 
-	db_manager::instance().return_query(szQuery, QID_SAFEBOX_CHANGE_PASSWORD, pkPeer->handle(), pi);
+	db_manager::instance().return_query(szQuery, QID_SAFEBOX_CHANGE_PASSWORD, peer_value->handle(), pi);
 }
 
-void client_manager::result_safebox_change_password(peer * pkPeer, ql_msg * msg)
+void client_manager::result_safebox_change_password(peer * peer_value, ql_msg * msg)
 {
 	query_info * qi = (query_info *) msg->pv_user_data;
 	client_handle_info * p = (client_handle_info *) qi->pv_data;
@@ -832,7 +832,7 @@ void client_manager::result_safebox_change_password(peer * pkPeer, ql_msg * msg)
 		{
 			const std::string query = sql::format("UPDATE safebox{} SET password={} WHERE account_id={}", sql::raw(get_table_postfix()), p->safebox_password, p->account_id);
 
-			db_manager::instance().return_query(query.c_str(), QID_SAFEBOX_CHANGE_PASSWORD_SECOND, pkPeer->handle(), p);
+			db_manager::instance().return_query(query.c_str(), QID_SAFEBOX_CHANGE_PASSWORD_SECOND, peer_value->handle(), p);
 			return;
 		}
 	}
@@ -840,25 +840,25 @@ void client_manager::result_safebox_change_password(peer * pkPeer, ql_msg * msg)
 	delete p;
 
 	// Wrong old password
-	pkPeer->encode_header(HEADER_DG_SAFEBOX_CHANGE_PASSWORD_ANSWER, dwHandle, sizeof(uint8_t));
-	pkPeer->encode_byte(0);
+	peer_value->encode_header(HEADER_DG_SAFEBOX_CHANGE_PASSWORD_ANSWER, dwHandle, sizeof(uint8_t));
+	peer_value->encode_byte(0);
 }
 
-void client_manager::result_safebox_change_password_second(peer * pkPeer, ql_msg * msg)
+void client_manager::result_safebox_change_password_second(peer * peer_value, ql_msg * msg)
 {
 	query_info * qi = (query_info *) msg->pv_user_data;
 	client_handle_info * p = (client_handle_info *) qi->pv_data;
 	uint32_t dwHandle = p->handle;
 	delete p;
 
-	pkPeer->encode_header(HEADER_DG_SAFEBOX_CHANGE_PASSWORD_ANSWER, dwHandle, sizeof(uint8_t));
-	pkPeer->encode_byte(1);
+	peer_value->encode_header(HEADER_DG_SAFEBOX_CHANGE_PASSWORD_ANSWER, dwHandle, sizeof(uint8_t));
+	peer_value->encode_byte(1);
 }
 
 // MYSHOP_PRICE_LIST
-void client_manager::result_pricelist_load(peer* peer, ql_msg* pMsg)
+void client_manager::result_pricelist_load(peer* peer, ql_msg* msg)
 {
-	item_pricelist_req_info* pReqInfo = (item_pricelist_req_info*)static_cast<query_info*>(pMsg->pv_user_data)->pv_data;
+	item_pricelist_req_info* pReqInfo = (item_pricelist_req_info*)static_cast<query_info*>(msg->pv_user_data)->pv_data;
 
 	//
 	// Store info loaded from DB in the cache
@@ -870,7 +870,7 @@ void client_manager::result_pricelist_load(peer* peer, ql_msg* pMsg)
 
 	MYSQL_ROW row;
 
-	while ((row = mysql_fetch_row(pMsg->get()->sql_result)))
+	while ((row = mysql_fetch_row(msg->get()->sql_result)))
 	{
 		str_to_number(table.price_info[table.count].vnum, row[0]);
 		str_to_number(table.price_info[table.count].price, row[1]);
@@ -899,9 +899,9 @@ void client_manager::result_pricelist_load(peer* peer, ql_msg* pMsg)
 	delete pReqInfo;
 }
 
-void client_manager::result_pricelist_load_for_update(ql_msg* pMsg)
+void client_manager::result_pricelist_load_for_update(ql_msg* msg)
 {
-	item_price_list_table* pUpdateTable = (item_price_list_table*)static_cast<query_info*>(pMsg->pv_user_data)->pv_data;
+	item_price_list_table* pUpdateTable = (item_price_list_table*)static_cast<query_info*>(msg->pv_user_data)->pv_data;
 
 	//
 	// Store info loaded from DB in the cache
@@ -913,7 +913,7 @@ void client_manager::result_pricelist_load_for_update(ql_msg* pMsg)
 
 	MYSQL_ROW row;
 
-	while ((row = mysql_fetch_row(pMsg->get()->sql_result)))
+	while ((row = mysql_fetch_row(msg->get()->sql_result)))
 	{
 		str_to_number(table.price_info[table.count].vnum, row[0]);
 		str_to_number(table.price_info[table.count].price, row[1]);
@@ -929,18 +929,18 @@ void client_manager::result_pricelist_load_for_update(ql_msg* pMsg)
 }
 // END_OF_MYSHOP_PRICE_LIST
 
-void client_manager::query_safebox_save(peer * pkPeer, safebox_table * pTable)
+void client_manager::query_safebox_save(peer * peer_value, safebox_table * table)
 {
 	char szQuery[QUERY_MAX_LEN];
 
 	snprintf(szQuery, sizeof(szQuery),
 			"UPDATE safebox%s SET gold='%u' WHERE account_id=%u", 
-			get_table_postfix(), pTable->gold, pTable->id);
+			get_table_postfix(), table->gold, table->id);
 
-	db_manager::instance().return_query(szQuery, QID_SAFEBOX_SAVE, pkPeer->handle(), nullptr);
+	db_manager::instance().return_query(szQuery, QID_SAFEBOX_SAVE, peer_value->handle(), nullptr);
 }
 
-void client_manager::query_empire_select(peer * pkPeer, uint32_t dwHandle, empire_select_packet * p)
+void client_manager::query_empire_select(peer * peer_value, uint32_t handle, empire_select_packet * p)
 {
 	char szQuery[QUERY_MAX_LEN];
 
@@ -1003,14 +1003,14 @@ void client_manager::query_empire_select(peer * pkPeer, uint32_t dwHandle, empir
 		}
 	}
 
-	pkPeer->encode_header(HEADER_DG_EMPIRE_SELECT, dwHandle, sizeof(uint8_t));
-	pkPeer->encode_byte(p->empire);
+	peer_value->encode_header(HEADER_DG_EMPIRE_SELECT, handle, sizeof(uint8_t));
+	peer_value->encode_byte(p->empire);
 }
 
-void client_manager::query_setup(peer * peer, uint32_t dwHandle, const char * c_pData)
+void client_manager::query_setup(peer * peer, uint32_t handle_value, const char * data)
 {
-	packet_gd_setup * p = (packet_gd_setup *) c_pData;
-	c_pData += sizeof(packet_gd_setup);
+	packet_gd_setup * p = (packet_gd_setup *) data;
+	data += sizeof(packet_gd_setup);
 
 	if (p->auth_server)
 	{
@@ -1161,7 +1161,7 @@ void client_manager::query_setup(peer * peer, uint32_t dwHandle, const char * c_
 	//
 	// Restore the accounts that are logged in on this peer
 	//
-	packet_login_on_setup * pck = (packet_login_on_setup *) c_pData;
+	packet_login_on_setup * pck = (packet_login_on_setup *) data;
 
 	for (uint32_t c = 0; c < p->login_count; ++c, ++pck)
 	{
@@ -1195,9 +1195,9 @@ void client_manager::query_setup(peer * peer, uint32_t dwHandle, const char * c_
 	marriage::manager::instance().on_setup(peer);
 }
 
-void client_manager::query_item_flush(peer * pkPeer, const char * c_pData)
+void client_manager::query_item_flush(peer * peer_value, const char * data)
 {
-	uint32_t dwID = *(uint32_t *) c_pData;
+	uint32_t dwID = *(uint32_t *) data;
 
 	if (metin2::config::db().login_log)
 		metin2::log::info( "HEADER_GD_ITEM_FLUSH: {:d}", dwID);
@@ -1208,9 +1208,9 @@ void client_manager::query_item_flush(peer * pkPeer, const char * c_pData)
 		c->flush();
 }
 
-void client_manager::query_item_save(peer * pkPeer, const char * c_pData)
+void client_manager::query_item_save(peer * peer_value, const char * data)
 {
-	player_item * p = (player_item *) c_pData;
+	player_item * p = (player_item *) data;
 
 	// Safebox items are not cached, and any already in the cache must be removed.
 	// Auction must not take this route. It must go through EnrollInAuction.
@@ -1265,7 +1265,7 @@ void client_manager::query_item_save(peer * pkPeer, const char * c_pData)
 			p->attr[5].type, p->attr[5].s_value,
 			p->attr[6].type, p->attr[6].s_value);
 
-		db_manager::instance().return_query(szQuery, QID_ITEM_SAVE, pkPeer->handle(), nullptr);
+		db_manager::instance().return_query(szQuery, QID_ITEM_SAVE, peer_value->handle(), nullptr);
 	}
 	else
 	{
@@ -1337,20 +1337,20 @@ item_cache * client_manager::get_item_cache(uint32_t id)
 	return it->second;
 }
 
-void client_manager::put_item_cache(player_item * pNew, bool bSkipQuery)
+void client_manager::put_item_cache(player_item * updated, bool skip_query)
 {       
 	item_cache * c;     
 
-	c = get_item_cache(pNew->id);
+	c = get_item_cache(updated->id);
 
 	// Create new item
 	if (!c)
 	{
 		if (metin2::config::db().login_log)
-			metin2::log::info( "ITEM_CACHE: PutItemCache ==> New CItemCache id{:d} vnum{:d} new owner{:d}", pNew->id, pNew->vnum, pNew->owner);
+			metin2::log::info( "ITEM_CACHE: PutItemCache ==> New CItemCache id{:d} vnum{:d} new owner{:d}", updated->id, updated->vnum, updated->owner);
 
 		c = new item_cache;
-		map_item_cache_.insert(item_cache_map::value_type(pNew->id, c));
+		map_item_cache_.insert(item_cache_map::value_type(updated->id, c));
 	}
 	// If it exists
 	else
@@ -1358,7 +1358,7 @@ void client_manager::put_item_cache(player_item * pNew, bool bSkipQuery)
 		if (metin2::config::db().login_log)
 			metin2::log::info( "ITEM_CACHE: PutItemCache ==> Have Cache");
 		// If the owner differs
-		if (pNew->owner != c->get()->owner)
+		if (updated->owner != c->get()->owner)
 		{
 			// Remove the item from the user who already had it.
 			item_cache_set_ptr_map::iterator it = map_pk_item_cache_set_ptr_.find(c->get()->owner);
@@ -1366,14 +1366,14 @@ void client_manager::put_item_cache(player_item * pNew, bool bSkipQuery)
 			if (it != map_pk_item_cache_set_ptr_.end())
 			{
 				if (metin2::config::db().login_log)
-				metin2::log::info( "ITEM_CACHE: delete owner {:d} id {:d} new owner {:d}", c->get()->owner, c->get()->id, pNew->owner);
+				metin2::log::info( "ITEM_CACHE: delete owner {:d} id {:d} new owner {:d}", c->get()->owner, c->get()->id, updated->owner);
 				it->second->erase(c);
 			}
 		}
 	}
 
 	// Update with new info 
-	c->put(pNew, bSkipQuery);
+	c->put(updated, skip_query);
 
 	item_cache_set_ptr_map::iterator it = map_pk_item_cache_set_ptr_.find(c->get()->owner);
 
@@ -1398,9 +1398,9 @@ void client_manager::put_item_cache(player_item * pNew, bool bSkipQuery)
 	}
 }
 
-bool client_manager::delete_item_cache(uint32_t dwID)
+bool client_manager::delete_item_cache(uint32_t id)
 {
-	item_cache * c = get_item_cache(dwID);
+	item_cache * c = get_item_cache(id);
 
 	if (!c)
 		return false;
@@ -1410,9 +1410,9 @@ bool client_manager::delete_item_cache(uint32_t dwID)
 }
 
 // MYSHOP_PRICE_LIST
-item_price_list_table_cache* client_manager::item_price_list_cache(uint32_t dwID)
+item_price_list_table_cache* client_manager::item_price_list_cache(uint32_t id)
 {
-	item_price_list_cache_map::iterator it = item_price_list_cache_.find(dwID);
+	item_price_list_cache_map::iterator it = item_price_list_cache_.find(id);
 
 	if (it == item_price_list_cache_.end())
 		return nullptr;
@@ -1420,17 +1420,17 @@ item_price_list_table_cache* client_manager::item_price_list_cache(uint32_t dwID
 	return it->second;
 }
 
-void client_manager::put_item_price_list_cache(const item_price_list_table* pItemPriceList)
+void client_manager::put_item_price_list_cache(const item_price_list_table* item_price_list)
 {
-	item_price_list_table_cache* pCache = item_price_list_cache(pItemPriceList->owner_id);
+	item_price_list_table_cache* pCache = item_price_list_cache(item_price_list->owner_id);
 
 	if (!pCache)
 	{
 		pCache = new item_price_list_table_cache;
-		item_price_list_cache_.insert(item_price_list_cache_map::value_type(pItemPriceList->owner_id, pCache));
+		item_price_list_cache_.insert(item_price_list_cache_map::value_type(item_price_list->owner_id, pCache));
 	}
 
-	pCache->put(const_cast<item_price_list_table*>(pItemPriceList), true);
+	pCache->put(const_cast<item_price_list_table*>(item_price_list), true);
 }
 
 void client_manager::update_player_cache()
@@ -1457,9 +1457,9 @@ void client_manager::update_player_cache()
 }
 // END_OF_MYSHOP_PRICE_LIST
 
-void client_manager::set_cache_flush_count_limit(int iLimit)
+void client_manager::set_cache_flush_count_limit(int limit)
 {
-	cache_flush_count_limit_ = std::max(10, iLimit);
+	cache_flush_count_limit_ = std::max(10, limit);
 	metin2::log::info( "CACHE_FLUSH_LIMIT_PER_SECOND: {:d}", cache_flush_count_limit_);
 }
 
@@ -1506,12 +1506,12 @@ void client_manager::update_item_price_list_cache()
 	}
 }
 
-void client_manager::query_item_destroy(peer * pkPeer, const char * c_pData)
+void client_manager::query_item_destroy(peer * peer_value, const char * data)
 {
-	uint32_t dwID = *(uint32_t *) c_pData;
-	c_pData += sizeof(uint32_t);
+	uint32_t dwID = *(uint32_t *) data;
+	data += sizeof(uint32_t);
 
-	uint32_t dwPID = *(uint32_t *) c_pData;
+	uint32_t dwPID = *(uint32_t *) data;
 
 	if (!delete_item_cache(dwID))
 	{
@@ -1524,13 +1524,13 @@ void client_manager::query_item_destroy(peer * pkPeer, const char * c_pData)
 		if (dwPID == 0) // If nobody had it, async query
 			db_manager::instance().async_query(szQuery);
 		else
-			db_manager::instance().return_query(szQuery, QID_ITEM_DESTROY, pkPeer->handle(), nullptr);
+			db_manager::instance().return_query(szQuery, QID_ITEM_DESTROY, peer_value->handle(), nullptr);
 	}
 }
 
-void client_manager::query_flush_cache(peer * pkPeer, const char * c_pData)
+void client_manager::query_flush_cache(peer * peer_value, const char * data)
 {
-	uint32_t dwPID = *(uint32_t *) c_pData;
+	uint32_t dwPID = *(uint32_t *) data;
 
 	player_table_cache * pkCache = player_cache(dwPID);
 
@@ -1546,7 +1546,7 @@ void client_manager::query_flush_cache(peer * pkPeer, const char * c_pData)
 	delete pkCache;
 }
 
-void client_manager::query_sms(peer * pkPeer, packet_gdsms * pack)
+void client_manager::query_sms(peer * peer_value, packet_gdsms * pack)
 {
 	const std::string query = sql::format(
 			"INSERT INTO sms_pool (server, sender, receiver, mobile, msg) VALUES({}, {}, {}, {}, {})",
@@ -1615,9 +1615,9 @@ void client_manager::money_log(packet_money_log* p)
 	db::logs::money_log::instance().add_log(p->type, p->vnum, p->gold);
 }
 
-login_data * client_manager::get_login_data(uint32_t dwKey)
+login_data * client_manager::get_login_data(uint32_t key)
 {
-	login_data_by_login_key::iterator it = map_pk_login_data_.find(dwKey);
+	login_data_by_login_key::iterator it = map_pk_login_data_.find(key);
 
 	if (it == map_pk_login_data_.end())
 		return nullptr;
@@ -1625,10 +1625,10 @@ login_data * client_manager::get_login_data(uint32_t dwKey)
 	return it->second;
 }
 
-login_data * client_manager::get_login_data_by_login(const char * c_pszLogin)
+login_data * client_manager::get_login_data_by_login(const char * login)
 {
 	char szLogin[LOGIN_MAX_LEN + 1];
-	trim_and_lower(c_pszLogin, szLogin, sizeof(szLogin));
+	trim_and_lower(login, szLogin, sizeof(szLogin));
 
 	login_data_by_login::iterator it = map_pk_login_data_by_login_.find(szLogin);
 
@@ -1638,9 +1638,9 @@ login_data * client_manager::get_login_data_by_login(const char * c_pszLogin)
 	return it->second;
 }
 
-login_data * client_manager::get_login_data_by_aid(uint32_t dwAID)
+login_data * client_manager::get_login_data_by_aid(uint32_t aid)
 {
-	login_data_by_aid::iterator it = map_pk_login_data_by_aid_.find(dwAID);
+	login_data_by_aid::iterator it = map_pk_login_data_by_aid_.find(aid);
 
 	if (it == map_pk_login_data_by_aid_.end())
 		return nullptr;
@@ -1648,29 +1648,29 @@ login_data * client_manager::get_login_data_by_aid(uint32_t dwAID)
 	return it->second;
 }
 
-void client_manager::insert_login_data(login_data * pkLD)
+void client_manager::insert_login_data(login_data * ld)
 {
 	char szLogin[LOGIN_MAX_LEN + 1];
-	trim_and_lower(pkLD->account_ref().login, szLogin, sizeof(szLogin));
+	trim_and_lower(ld->account_ref().login, szLogin, sizeof(szLogin));
 
-	map_pk_login_data_.insert(std::make_pair(pkLD->key(), pkLD));
-	map_pk_login_data_by_login_.insert(std::make_pair(szLogin, pkLD));
-	map_pk_login_data_by_aid_.insert(std::make_pair(pkLD->account_ref().id, pkLD));
+	map_pk_login_data_.insert(std::make_pair(ld->key(), ld));
+	map_pk_login_data_by_login_.insert(std::make_pair(szLogin, ld));
+	map_pk_login_data_by_aid_.insert(std::make_pair(ld->account_ref().id, ld));
 }
 
-void client_manager::delete_login_data(login_data * pkLD)
+void client_manager::delete_login_data(login_data * ld)
 {
-	map_pk_login_data_.erase(pkLD->key());
-	map_pk_login_data_by_login_.erase(pkLD->account_ref().login);
-	map_pk_login_data_by_aid_.erase(pkLD->account_ref().id);
+	map_pk_login_data_.erase(ld->key());
+	map_pk_login_data_by_login_.erase(ld->account_ref().login);
+	map_pk_login_data_by_aid_.erase(ld->account_ref().id);
 
-	if (map_k_logon_account_.find(pkLD->account_ref().login) == map_k_logon_account_.end())
-		delete pkLD;
+	if (map_k_logon_account_.find(ld->account_ref().login) == map_k_logon_account_.end())
+		delete ld;
 	else
-		pkLD->set_deleted(true);
+		ld->set_deleted(true);
 }
 
-void client_manager::query_auth_login(peer * pkPeer, uint32_t dwHandle, packet_gd_auth_login * p)
+void client_manager::query_auth_login(peer * peer_value, uint32_t handle, packet_gd_auth_login * p)
 {
 	if (metin2::config::test_server())
 		metin2::log::info( "QUERY_AUTH_LOGIN {:d} {:d} {}", p->id, p->login_key, p->login);
@@ -1688,8 +1688,8 @@ void client_manager::query_auth_login(peer * pkPeer, uint32_t dwHandle, packet_g
 		metin2::log::error("LoginData already exist key {:d} login {}", p->login_key, p->login);
 		bResult = 0;
 
-		pkPeer->encode_header(HEADER_DG_AUTH_LOGIN, dwHandle, sizeof(uint8_t));
-		pkPeer->encode_byte(bResult);
+		peer_value->encode_header(HEADER_DG_AUTH_LOGIN, handle, sizeof(uint8_t));
+		peer_value->encode_byte(bResult);
 	}
 	else
 	{
@@ -1714,8 +1714,8 @@ void client_manager::query_auth_login(peer * pkPeer, uint32_t dwHandle, packet_g
 
 		insert_login_data(pkLD);
 
-		pkPeer->encode_header(HEADER_DG_AUTH_LOGIN, dwHandle, sizeof(uint8_t));
-		pkPeer->encode_byte(bResult);
+		peer_value->encode_header(HEADER_DG_AUTH_LOGIN, handle, sizeof(uint8_t));
+		peer_value->encode_byte(bResult);
 	}
 }
 
@@ -1777,28 +1777,28 @@ void client_manager::create_object(packet_gd_create_object * p)
 	map_pk_object_table_.insert(std::make_pair(pkObj->id, std::move(pkObj)));
 }
 
-void client_manager::delete_object(uint32_t dwID)
+void client_manager::delete_object(uint32_t id)
 {
 	char szQuery[128];
 
-	snprintf(szQuery, sizeof(szQuery), "DELETE FROM object%s WHERE id=%u", get_table_postfix(), dwID);
+	snprintf(szQuery, sizeof(szQuery), "DELETE FROM object%s WHERE id=%u", get_table_postfix(), id);
 
 	std::unique_ptr<ql_msg> pmsg(db_manager::instance().direct_query(szQuery));
 
 	if (pmsg->get()->affected_rows == 0 || pmsg->get()->affected_rows == (uint32_t)-1)
 	{
-		metin2::log::error("no object by id {:d}", dwID);
+		metin2::log::error("no object by id {:d}", id);
 		return;
 	}
 
-	auto it = map_pk_object_table_.find(dwID);
+	auto it = map_pk_object_table_.find(id);
 
 	if (it != map_pk_object_table_.end())
 	{
 		map_pk_object_table_.erase(it);
 	}
 
-	forward_packet(HEADER_DG_DELETE_OBJECT, &dwID, sizeof(uint32_t));
+	forward_packet(HEADER_DG_DELETE_OBJECT, &id, sizeof(uint32_t));
 }
 
 void client_manager::update_land(uint32_t * pdw)
@@ -1901,24 +1901,24 @@ void client_manager::wedding_end(packet_wedding_end * p)
 // Old code:
 
 // Fixed code:
-void client_manager::myshop_pricelist_update(const item_price_list_table* pPacket)
+void client_manager::myshop_pricelist_update(const item_price_list_table* packet)
 {
-	if (pPacket->count > SHOP_PRICELIST_MAX_NUM)
+	if (packet->count > SHOP_PRICELIST_MAX_NUM)
 	{
 		metin2::log::error("count overflow!");
 		return;
 	}
 
-	item_price_list_table_cache* pCache = item_price_list_cache(pPacket->owner_id);
+	item_price_list_table_cache* pCache = item_price_list_cache(packet->owner_id);
 
 	if (pCache)
 	{
 		item_price_list_table table;
 
-		table.owner_id = pPacket->owner_id;
-		table.count = pPacket->count;
+		table.owner_id = packet->owner_id;
+		table.count = packet->count;
 
-		std::memcpy(table.price_info, pPacket->price_info, sizeof(item_price_info) * pPacket->count);
+		std::memcpy(table.price_info, packet->price_info, sizeof(item_price_info) * packet->count);
 
 		pCache->update_list(&table);
 	}
@@ -1926,13 +1926,13 @@ void client_manager::myshop_pricelist_update(const item_price_list_table* pPacke
 	{
 		item_price_list_table* pUpdateTable = new item_price_list_table;
 
-		pUpdateTable->owner_id = pPacket->owner_id;
-		pUpdateTable->count = pPacket->count;
+		pUpdateTable->owner_id = packet->owner_id;
+		pUpdateTable->count = packet->count;
 
-		std::memcpy(pUpdateTable->price_info, pPacket->price_info, sizeof(item_price_info) * pPacket->count);
+		std::memcpy(pUpdateTable->price_info, packet->price_info, sizeof(item_price_info) * packet->count);
 
 		char szQuery[QUERY_MAX_LEN];
-		snprintf(szQuery, sizeof(szQuery), "SELECT item_vnum, price FROM myshop_pricelist%s WHERE owner_id=%u", get_table_postfix(), pPacket->owner_id);
+		snprintf(szQuery, sizeof(szQuery), "SELECT item_vnum, price FROM myshop_pricelist%s WHERE owner_id=%u", get_table_postfix(), packet->owner_id);
 		db_manager::instance().return_query(szQuery, QID_ITEMPRICE_LOAD_FOR_UPDATE, 0, pUpdateTable);
 	}
 }
@@ -1940,11 +1940,11 @@ void client_manager::myshop_pricelist_update(const item_price_list_table* pPacke
 // MYSHOP_PRICE_LIST
 // If price info is cached, read the cache and send it immediately; otherwise query the DB.
 //
-void client_manager::myshop_pricelist_request(peer* peer, uint32_t dwHandle, uint32_t dwPlayerID)
+void client_manager::myshop_pricelist_request(peer* peer, uint32_t handle_value, uint32_t player_id)
 {
-	if (item_price_list_table_cache* pCache = item_price_list_cache(dwPlayerID))
+	if (item_price_list_table_cache* pCache = item_price_list_cache(player_id))
 	{
-		metin2::log::info( "Cache MyShopPricelist handle[{:d}] pid[{:d}]", dwHandle, dwPlayerID);
+		metin2::log::info( "Cache MyShopPricelist handle[{:d}] pid[{:d}]", handle_value, player_id);
 
 		item_price_list_table* pTable = pCache->get(false);
 
@@ -1956,18 +1956,18 @@ void client_manager::myshop_pricelist_request(peer* peer, uint32_t dwHandle, uin
 
 		size_t sizePriceListSize = sizeof(item_price_info) * pTable->count;
 
-		peer->encode_header(HEADER_DG_MYSHOP_PRICELIST_RES, dwHandle, sizeof(header) + sizePriceListSize);
+		peer->encode_header(HEADER_DG_MYSHOP_PRICELIST_RES, handle_value, sizeof(header) + sizePriceListSize);
 		peer->encode(&header, sizeof(header));
 		peer->encode(pTable->price_info, sizePriceListSize);
 
 	}
 	else
 	{
-		metin2::log::info( "Query MyShopPricelist handle[{:d}] pid[{:d}]", dwHandle, dwPlayerID);
+		metin2::log::info( "Query MyShopPricelist handle[{:d}] pid[{:d}]", handle_value, player_id);
 
 		char szQuery[QUERY_MAX_LEN];
-		snprintf(szQuery, sizeof(szQuery), "SELECT item_vnum, price FROM myshop_pricelist%s WHERE owner_id=%u", get_table_postfix(), dwPlayerID);
-		db_manager::instance().return_query(szQuery, QID_ITEMPRICE_LOAD, peer->handle(), new item_pricelist_req_info(dwHandle, dwPlayerID));
+		snprintf(szQuery, sizeof(szQuery), "SELECT item_vnum, price FROM myshop_pricelist%s WHERE owner_id=%u", get_table_postfix(), player_id);
+		db_manager::instance().return_query(szQuery, QID_ITEMPRICE_LOAD, peer->handle(), new item_pricelist_req_info(handle_value, player_id));
 	}
 }
 // END_OF_MYSHOP_PRICE_LIST
@@ -2394,9 +2394,9 @@ void client_manager::add_peer(net::tcp::socket socket)
 	peer_list_.push_front(new peer(std::move(connection)));
 }
 
-void client_manager::remove_peer(peer * pPeer)
+void client_manager::remove_peer(peer * peer_value)
 {
-	if (auth_peer_ == pPeer)
+	if (auth_peer_ == peer_value)
 	{
 		auth_peer_ = nullptr;
 	}
@@ -2408,7 +2408,7 @@ void client_manager::remove_peer(peer * pPeer)
 		{
 			login_data * pkLD = it->second;
 
-			if (pkLD->connected_peer_handle() == pPeer->handle())
+			if (pkLD->connected_peer_handle() == peer_value->handle())
 			{
 				pkLD->set_play(false);
 
@@ -2425,9 +2425,9 @@ void client_manager::remove_peer(peer * pPeer)
 		}
 	}
 
-	pPeer->return_item_id_range();
-	peer_list_.remove(pPeer);
-	delete pPeer;
+	peer_value->return_item_id_range();
+	peer_list_.remove(peer_value);
+	delete peer_value;
 }
 
 peer * client_manager::get_peer(uint32_t ident)
@@ -2738,7 +2738,7 @@ void client_manager::send_time()
 	forward_packet(HEADER_DG_TIME, &now, sizeof(int32_t));
 }
 
-void client_manager::forward_packet(uint8_t header, const void* data, int size, uint8_t bChannel, peer* except)
+void client_manager::forward_packet(uint8_t header, const void* data, int size, uint8_t channel_value, peer* except)
 {
 	for (auto it = peer_list_.begin(); it != peer_list_.end(); ++it)
 	{
@@ -2750,7 +2750,7 @@ void client_manager::forward_packet(uint8_t header, const void* data, int size, 
 		if (!peer->channel())
 			continue;
 
-		if (bChannel && peer->channel() != bChannel)
+		if (channel_value && peer->channel() != channel_value)
 			continue;
 
 		peer->encode_header(header, 0, size);
@@ -2852,12 +2852,12 @@ bool client_manager::initialize_localization()
 //END_BOOT_LOCALIZATION
 //ADMIN_MANAGER
 
-bool client_manager::admin_info(const char *szIP, std::vector<t_admin_info> & rAdminVec)
+bool client_manager::admin_info(const char *ip, std::vector<t_admin_info> & admin_vec)
 {
 	//If szIP == NULL, has GM privileges on all servers.
 	const std::string query = sql::format(
 			"SELECT mID,mAccount,mName,mContactIP,mServerIP,mAuthority FROM gmlist WHERE mServerIP='ALL' or mServerIP={}",
-		   	szIP ? szIP : "ALL");
+		   	ip ? ip : "ALL");
 
 	std::unique_ptr<ql_msg> pMsg(db_manager::instance().direct_query(query.c_str(), SQL_COMMON));
 
@@ -2868,7 +2868,7 @@ bool client_manager::admin_info(const char *szIP, std::vector<t_admin_info> & rA
 	}
 
 	MYSQL_ROW row;
-	rAdminVec.reserve(pMsg->get()->num_rows);
+	admin_vec.reserve(pMsg->get()->num_rows);
 
 	while ((row = mysql_fetch_row(pMsg->get()->sql_result)))
 	{
@@ -2895,7 +2895,7 @@ bool client_manager::admin_info(const char *szIP, std::vector<t_admin_info> & rA
 		else 
 			continue;
 
-		rAdminVec.push_back(Info);
+		admin_vec.push_back(Info);
 
 		metin2::log::info( "GM: PID {:d} Login {} Character {} ContactIP {} ServerIP {} Authority {:d}[{}]",
 			   	Info.id, Info.account, Info.name, Info.contact_ip, Info.server_ip, Info.authority, stAuth.c_str());
@@ -2904,7 +2904,7 @@ bool client_manager::admin_info(const char *szIP, std::vector<t_admin_info> & rA
 	return true;
 }
 
-bool client_manager::host_info(std::vector<std::string> & rIPVec)
+bool client_manager::host_info(std::vector<std::string> & ip_vec)
 {
 	char szQuery[512];
 	snprintf(szQuery, sizeof(szQuery), "SELECT mIP FROM gmhost");
@@ -2916,7 +2916,7 @@ bool client_manager::host_info(std::vector<std::string> & rIPVec)
 		return false;
 	}
 
-	rIPVec.reserve(pMsg->get()->num_rows);
+	ip_vec.reserve(pMsg->get()->num_rows);
 
 	MYSQL_ROW row; 
 
@@ -2924,7 +2924,7 @@ bool client_manager::host_info(std::vector<std::string> & rIPVec)
 	{
 		if (row[0] && *row[0])
 		{
-			rIPVec.push_back(row[0]);
+			ip_vec.push_back(row[0]);
 			metin2::log::info( "GMHOST: {}", row[0]);
 		}
 	}
@@ -3009,7 +3009,7 @@ void client_manager::update_item_cache_set(uint32_t pid)
 		metin2::log::info( "UPDATE_ITEMCACHESET : UpdateItemCachsSet pid({:d})", pid);
 }
 
-void client_manager::election(peer * peer, uint32_t dwHandle, const char* data)
+void client_manager::election(peer * peer, uint32_t handle, const char* data)
 {
 	uint32_t idx;
 	uint32_t selectingpid;
@@ -3026,7 +3026,7 @@ void client_manager::election(peer * peer, uint32_t dwHandle, const char* data)
 	{
 		if (metin2::config::test_server())
 		metin2::log::info( "[MONARCH_VOTE] Failed {:d} {:d}", idx, selectingpid);
-		peer->encode_header(HEADER_DG_ELECT_MONARCH, dwHandle, sizeof(int));
+		peer->encode_header(HEADER_DG_ELECT_MONARCH, handle, sizeof(int));
 		peer->encode(&Success, sizeof(int));
 		return;
 	}
@@ -3034,13 +3034,13 @@ void client_manager::election(peer * peer, uint32_t dwHandle, const char* data)
 	{
 		if (metin2::config::test_server())
 		metin2::log::info( "[MONARCH_VOTE] Success {:d} {:d}", idx, selectingpid);
-		peer->encode_header(HEADER_DG_ELECT_MONARCH, dwHandle, sizeof(int));
+		peer->encode_header(HEADER_DG_ELECT_MONARCH, handle, sizeof(int));
 		peer->encode(&Success, sizeof(int));
 		return;
 	}
 
 }
-void client_manager::candidacy(peer *  peer, uint32_t dwHandle, const char* data)
+void client_manager::candidacy(peer *  peer, uint32_t handle, const char* data)
 {
 	uint32_t pid;
 
@@ -3052,7 +3052,7 @@ void client_manager::candidacy(peer *  peer, uint32_t dwHandle, const char* data
 		if (metin2::config::test_server())
 			metin2::log::info( "[MONARCH_CANDIDACY] Failed {:d} {}", pid, data);
 
-		peer->encode_header(HEADER_DG_CANDIDACY, dwHandle, sizeof(int) + 32);
+		peer->encode_header(HEADER_DG_CANDIDACY, handle, sizeof(int) + 32);
 		peer->encode(nullptr, sizeof(int));
 		peer->encode(data, 32);
 		return;
@@ -3071,7 +3071,7 @@ void client_manager::candidacy(peer *  peer, uint32_t dwHandle, const char* data
 
 			if (p == peer)
 			{	
-				p->encode_header(HEADER_DG_CANDIDACY, dwHandle, sizeof(int) + 32);
+				p->encode_header(HEADER_DG_CANDIDACY, handle, sizeof(int) + 32);
 				p->encode(&pid, sizeof(int));
 				p->encode(data, 32);
 			}
@@ -3085,7 +3085,7 @@ void client_manager::candidacy(peer *  peer, uint32_t dwHandle, const char* data
 	}
 }
 
-void client_manager::add_monarch_money(peer * peer, uint32_t dwHandle, const char * data)
+void client_manager::add_monarch_money(peer * peer, uint32_t handle, const char * data)
 {
 	int Empire = *(int *) data;
 	data += sizeof(int);
@@ -3107,7 +3107,7 @@ void client_manager::add_monarch_money(peer * peer, uint32_t dwHandle, const cha
 
 		if (p == peer)
 		{	
-			p->encode_header(HEADER_DG_ADD_MONARCH_MONEY, dwHandle, sizeof(int) + sizeof(int));
+			p->encode_header(HEADER_DG_ADD_MONARCH_MONEY, handle, sizeof(int) + sizeof(int));
 			p->encode(&Empire, sizeof(int));
 			p->encode(&Money, sizeof(int));
 		}
@@ -3120,7 +3120,7 @@ void client_manager::add_monarch_money(peer * peer, uint32_t dwHandle, const cha
 
 	}
 }
-void client_manager::dec_monarch_money(peer * peer, uint32_t dwHandle, const char * data)
+void client_manager::dec_monarch_money(peer * peer, uint32_t handle, const char * data)
 {
 	int Empire = *(int *) data;
 	data += sizeof(int);
@@ -3142,7 +3142,7 @@ void client_manager::dec_monarch_money(peer * peer, uint32_t dwHandle, const cha
 
 		if (p == peer)
 		{	
-			p->encode_header(HEADER_DG_DEC_MONARCH_MONEY, dwHandle, sizeof(int) + sizeof(int));
+			p->encode_header(HEADER_DG_DEC_MONARCH_MONEY, handle, sizeof(int) + sizeof(int));
 			p->encode(&Empire, sizeof(int));
 			p->encode(&Money, sizeof(int));
 		}
@@ -3155,7 +3155,7 @@ void client_manager::dec_monarch_money(peer * peer, uint32_t dwHandle, const cha
 	}
 }
 
-void client_manager::take_monarch_money(peer * peer, uint32_t dwHandle, const char * data)
+void client_manager::take_monarch_money(peer * peer, uint32_t handle, const char * data)
 {
 	int Empire = *(int *) data;
 	data += sizeof(int);
@@ -3171,25 +3171,25 @@ void client_manager::take_monarch_money(peer * peer, uint32_t dwHandle, const ch
 
 	if (monarch::instance().take_money(Empire, pid, Money) == true)
 	{
-		peer->encode_header(HEADER_DG_TAKE_MONARCH_MONEY, dwHandle, sizeof(int) + sizeof(int));
+		peer->encode_header(HEADER_DG_TAKE_MONARCH_MONEY, handle, sizeof(int) + sizeof(int));
 		peer->encode(&Empire, sizeof(int));
 		peer->encode(&Money, sizeof(int));
 	}
 	else
 	{
 		Money = 0;
-		peer->encode_header(HEADER_DG_TAKE_MONARCH_MONEY, dwHandle, sizeof(int) + sizeof(int));
+		peer->encode_header(HEADER_DG_TAKE_MONARCH_MONEY, handle, sizeof(int) + sizeof(int));
 		peer->encode(&Empire, sizeof(int));
 		peer->encode(&Money, sizeof(int));
 	}
 }
 
-void client_manager::come_to_vote(peer * peer, uint32_t dwHandle, const char * data)
+void client_manager::come_to_vote(peer * peer, uint32_t handle, const char * data)
 {
 	monarch::instance().elect_monarch();	
 }
 
-void client_manager::rm_candidacy(peer * peer, uint32_t dwHandle, const char * data)
+void client_manager::rm_candidacy(peer * peer, uint32_t handle, const char * data)
 {
 	char szName[32];
 
@@ -3209,13 +3209,13 @@ void client_manager::rm_candidacy(peer * peer, uint32_t dwHandle, const char * d
 
 			if (p == peer)
 			{
-				p->encode_header(HEADER_DG_RMCANDIDACY, dwHandle, sizeof(int) + sizeof(szName));
+				p->encode_header(HEADER_DG_RMCANDIDACY, handle, sizeof(int) + sizeof(szName));
 				p->encode(&iRet, sizeof(int));
 				p->encode(szName, sizeof(szName));
 			}
 			else
 			{
-				p->encode_header(HEADER_DG_RMCANDIDACY, dwHandle, sizeof(int) + sizeof(szName));
+				p->encode_header(HEADER_DG_RMCANDIDACY, handle, sizeof(int) + sizeof(szName));
 				p->encode(&iRet, sizeof(int));
 				p->encode(szName, sizeof(szName));
 			}
@@ -3224,13 +3224,13 @@ void client_manager::rm_candidacy(peer * peer, uint32_t dwHandle, const char * d
 	else
 	{
 		db::clients::peer * p = peer;
-		p->encode_header(HEADER_DG_RMCANDIDACY, dwHandle, sizeof(int) + sizeof(szName));
+		p->encode_header(HEADER_DG_RMCANDIDACY, handle, sizeof(int) + sizeof(szName));
 		p->encode(&iRet, sizeof(int));
 		p->encode(szName, sizeof(szName));
 	}
 }
 
-void client_manager::set_monarch(peer * peer, uint32_t dwHandle, const char * data)
+void client_manager::set_monarch(peer * peer, uint32_t handle, const char * data)
 {
 	char szName[32];
 
@@ -3252,13 +3252,13 @@ void client_manager::set_monarch(peer * peer, uint32_t dwHandle, const char * da
 
 			if (p == peer)
 			{
-				p->encode_header(HEADER_DG_RMCANDIDACY, dwHandle, sizeof(int) + sizeof(szName));
+				p->encode_header(HEADER_DG_RMCANDIDACY, handle, sizeof(int) + sizeof(szName));
 				p->encode(&iRet, sizeof(int));
 				p->encode(szName, sizeof(szName));
 			}
 			else
 			{
-				p->encode_header(HEADER_DG_RMCANDIDACY, dwHandle, sizeof(int) + sizeof(szName));
+				p->encode_header(HEADER_DG_RMCANDIDACY, handle, sizeof(int) + sizeof(szName));
 				p->encode(&iRet, sizeof(int));
 				p->encode(szName, sizeof(szName));
 			}
@@ -3267,13 +3267,13 @@ void client_manager::set_monarch(peer * peer, uint32_t dwHandle, const char * da
 	else
 	{
 		db::clients::peer * p = peer;
-		p->encode_header(HEADER_DG_RMCANDIDACY, dwHandle, sizeof(int) + sizeof(szName));
+		p->encode_header(HEADER_DG_RMCANDIDACY, handle, sizeof(int) + sizeof(szName));
 		p->encode(&iRet, sizeof(int));
 		p->encode(szName, sizeof(szName));
 	}
 }
 
-void client_manager::rm_monarch(peer * peer, uint32_t dwHandle, const char * data)
+void client_manager::rm_monarch(peer * peer, uint32_t handle, const char * data)
 {
 	char szName[32];
 
@@ -3295,13 +3295,13 @@ void client_manager::rm_monarch(peer * peer, uint32_t dwHandle, const char * dat
 
 			if (p == peer)
 			{
-				p->encode_header(HEADER_DG_RMMONARCH, dwHandle, sizeof(int) + sizeof(szName));
+				p->encode_header(HEADER_DG_RMMONARCH, handle, sizeof(int) + sizeof(szName));
 				p->encode(&iRet, sizeof(int));
 				p->encode(szName, sizeof(szName));
 			}
 			else
 			{
-				p->encode_header(HEADER_DG_RMMONARCH, dwHandle, sizeof(int) + sizeof(szName));
+				p->encode_header(HEADER_DG_RMMONARCH, handle, sizeof(int) + sizeof(szName));
 				p->encode(&iRet, sizeof(int));
 				p->encode(szName, sizeof(szName));
 			}
@@ -3310,13 +3310,13 @@ void client_manager::rm_monarch(peer * peer, uint32_t dwHandle, const char * dat
 	else
 	{
 		db::clients::peer * p = peer;
-		p->encode_header(HEADER_DG_RMCANDIDACY, dwHandle, sizeof(int) + sizeof(szName));
+		p->encode_header(HEADER_DG_RMCANDIDACY, handle, sizeof(int) + sizeof(szName));
 		p->encode(&iRet, sizeof(int));
 		p->encode(szName, sizeof(szName));
 	}
 }
 
-void client_manager::change_monarch_lord(peer * peer, uint32_t dwHandle, packet_change_monarch_lord* info)
+void client_manager::change_monarch_lord(peer * peer, uint32_t handle, packet_change_monarch_lord* info)
 {
 	char szQuery[1024];
 	snprintf(szQuery, sizeof(szQuery), 
@@ -3403,21 +3403,21 @@ void client_manager::delete_award_id(packet_delete_award_id *data)
 
 }
 
-void client_manager::update_channel_status(channel_status* pData)
+void client_manager::update_channel_status(channel_status* data)
 {
-	channel_status_map::iterator it = m_channel_status_.find(pData->port);
+	channel_status_map::iterator it = m_channel_status_.find(data->port);
 	if (it != m_channel_status_.end()) {
-		it->second = pData->status;
+		it->second = data->status;
 	}
 	else {
-		m_channel_status_.insert(channel_status_map::value_type(pData->port, pData->status));
+		m_channel_status_.insert(channel_status_map::value_type(data->port, data->status));
 	}
 }
 
-void client_manager::request_channel_status(peer* peer, uint32_t dwHandle)
+void client_manager::request_channel_status(peer* peer, uint32_t handle)
 {
 	const int nSize = m_channel_status_.size();
-	peer->encode_header(HEADER_DG_RESPOND_CHANNELSTATUS, dwHandle, sizeof(channel_status)*nSize+sizeof(int));
+	peer->encode_header(HEADER_DG_RESPOND_CHANNELSTATUS, handle, sizeof(channel_status)*nSize+sizeof(int));
 	peer->encode(&nSize, sizeof(int));
 	for (channel_status_map::iterator it = m_channel_status_.begin(); it != m_channel_status_.end(); it++) {
 		peer->encode(&it->first, sizeof(short));

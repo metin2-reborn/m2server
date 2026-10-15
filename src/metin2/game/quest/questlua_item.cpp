@@ -21,27 +21,27 @@ namespace quest
 	// "item" Lua functions
 	//
 
-	int item_get_cell(lua_State* L)
+	int item_get_cell(lua_State* lua)
 	{
 		quest_manager& q = quest_manager::instance();
 
 		if (q.current_item())
 		{
-			lua_pushnumber(L, q.current_item()->cell());
+			lua_pushnumber(lua, q.current_item()->cell());
 		}
 		else
-			lua_pushnumber(L, 0);
+			lua_pushnumber(lua, 0);
 		return 1;
 	}
 
-	int item_select_cell(lua_State* L)
+	int item_select_cell(lua_State* lua)
 	{
-		lua_pushboolean(L, 0);
-		if (!lua_isnumber(L, 1))
+		lua_pushboolean(lua, 0);
+		if (!lua_isnumber(lua, 1))
 		{
 			return 1;
 		}
-		uint32_t cell = (uint32_t) lua_tonumber(L, 1);
+		uint32_t cell = (uint32_t) lua_tonumber(lua, 1);
 
 		character * ch = quest_manager::instance().current_character_ptr();
 		item * item = ch ? ch->inventory_item(cell) : nullptr;
@@ -52,19 +52,19 @@ namespace quest
 		}
 
 		quest_manager::instance().set_current_item(item);
-		lua_pushboolean(L, 1);
+		lua_pushboolean(lua, 1);
 
 		return 1;
 	}
 
-	int item_select(lua_State* L)
+	int item_select(lua_State* lua)
 	{
-		lua_pushboolean(L, 0);
-		if (!lua_isnumber(L, 1))
+		lua_pushboolean(lua, 0);
+		if (!lua_isnumber(lua, 1))
 		{
 			return 1;
 		}
-		uint32_t id = (uint32_t) lua_tonumber(L, 1);
+		uint32_t id = (uint32_t) lua_tonumber(lua, 1);
 		item * item = item_manager::instance().find(id);
 
 		if (!item)
@@ -73,25 +73,25 @@ namespace quest
 		}
 
 		quest_manager::instance().set_current_item(item);
-		lua_pushboolean(L, 1);
+		lua_pushboolean(lua, 1);
 
 		return 1;
 	}
 
-	int item_get_id(lua_State* L)
+	int item_get_id(lua_State* lua)
 	{
 		quest_manager& q = quest_manager::instance();
 
 		if (q.current_item())
 		{
-			lua_pushnumber(L, q.current_item()->id());
+			lua_pushnumber(lua, q.current_item()->id());
 		}
 		else
-			lua_pushnumber(L, 0);
+			lua_pushnumber(lua, 0);
 		return 1;
 	}
 
-	int item_remove(lua_State* L)
+	int item_remove(lua_State* lua)
 	{
 		quest_manager& q = quest_manager::instance();
 		item * item = q.current_item();
@@ -107,289 +107,289 @@ namespace quest
 		return 0;
 	}
 
-	int item_get_socket(lua_State* L)
+	int item_get_socket(lua_State* lua)
 	{
 		quest_manager& q = quest_manager::instance();
-		if (q.current_item() && lua_isnumber(L, 1))
+		if (q.current_item() && lua_isnumber(lua, 1))
 		{
-			int idx = (int) lua_tonumber(L, 1);
+			int idx = (int) lua_tonumber(lua, 1);
 			if (idx < 0 || idx >= ITEM_SOCKET_MAX_NUM)
-				lua_pushnumber(L,0);
+				lua_pushnumber(lua,0);
 			else
-				lua_pushnumber(L, q.current_item()->get_socket(idx));
+				lua_pushnumber(lua, q.current_item()->get_socket(idx));
 		}
 		else
 		{
-			lua_pushnumber(L,0);
+			lua_pushnumber(lua,0);
 		}
 		return 1;
 	}
 
-	int item_set_socket(lua_State* L)
+	int item_set_socket(lua_State* lua)
 	{
 		quest_manager& q = quest_manager::instance();
-		if (q.current_item() && lua_isnumber(L,1) && lua_isnumber(L,2))
+		if (q.current_item() && lua_isnumber(lua,1) && lua_isnumber(lua,2))
 		{
-			int idx = (int) lua_tonumber(L, 1);
-			int value = (int) lua_tonumber(L, 2);
+			int idx = (int) lua_tonumber(lua, 1);
+			int value = (int) lua_tonumber(lua, 2);
 			if (idx >=0 && idx < ITEM_SOCKET_MAX_NUM)
 				q.current_item()->set_socket(idx, value);
 		}
 		return 0;
 	}
 
-	int item_get_vnum(lua_State* L)
+	int item_get_vnum(lua_State* lua)
 	{
 		quest_manager& q = quest_manager::instance();
 		item * item = q.current_item();
 
 		if (item) 
-			lua_pushnumber(L, item->vnum());
+			lua_pushnumber(lua, item->vnum());
 		else
-			lua_pushnumber(L, 0);
+			lua_pushnumber(lua, 0);
 
 		return 1;
 	}
 
-	int item_has_flag(lua_State* L)
+	int item_has_flag(lua_State* lua)
 	{
 		quest_manager& q = quest_manager::instance();
 		item * item = q.current_item();
 
-		if (!lua_isnumber(L, 1))
+		if (!lua_isnumber(lua, 1))
 		{
 			quest::error("flag is not a number.");
-			lua_pushboolean(L, 0);
+			lua_pushboolean(lua, 0);
 			return 1;
 		}
 
 		if (!item)
 		{
-			lua_pushboolean(L, 0);
+			lua_pushboolean(lua, 0);
 			return 1;
 		}
 
-		int32_t lCheckFlag = (int32_t) lua_tonumber(L, 1);
-		lua_pushboolean(L, is_set(item->flag(), lCheckFlag));
+		int32_t lCheckFlag = (int32_t) lua_tonumber(lua, 1);
+		lua_pushboolean(lua, is_set(item->flag(), lCheckFlag));
 
 		return 1;
 	}
 
-	int item_get_value(lua_State* L)
+	int item_get_value(lua_State* lua)
 	{
 		quest_manager& q = quest_manager::instance();
 		item * item = q.current_item();
 
 		if (!item)
 		{
-			lua_pushnumber(L, 0);
+			lua_pushnumber(lua, 0);
 			return 1;
 		}
 
-		if (!lua_isnumber(L, 1))
+		if (!lua_isnumber(lua, 1))
 		{
 			quest::error("index is not a number");
-			lua_pushnumber(L, 0);
+			lua_pushnumber(lua, 0);
 			return 1;
 		}
 
-		int index = (int) lua_tonumber(L, 1);
+		int index = (int) lua_tonumber(lua, 1);
 
 		if (index < 0 || index >= ITEM_VALUES_MAX_NUM)
 		{
 			quest::error("index({:d}) is out of range (0..{:d})", index, ITEM_VALUES_MAX_NUM);
-			lua_pushnumber(L, 0);
+			lua_pushnumber(lua, 0);
 		}
 		else
-			lua_pushnumber(L, item->value(index));
+			lua_pushnumber(lua, item->value(index));
 
 		return 1;
 	}
 
-	int item_set_value(lua_State* L)
+	int item_set_value(lua_State* lua)
 	{
 		quest_manager& q = quest_manager::instance();
 		item * item = q.current_item();
 
 		if (!item)
 		{
-			lua_pushnumber(L, 0);
+			lua_pushnumber(lua, 0);
 			return 1;
 		}
 
-		if (false == (lua_isnumber(L, 1) && lua_isnumber(L, 2) && lua_isnumber(L, 3)))
+		if (false == (lua_isnumber(lua, 1) && lua_isnumber(lua, 2) && lua_isnumber(lua, 3)))
 		{
 			quest::error("index is not a number");
-			lua_pushnumber(L, 0);
+			lua_pushnumber(lua, 0);
 			return 1;
 		}
 
 		item->set_force_attribute(
-			lua_tonumber(L, 1),		// index
-			lua_tonumber(L, 2),		// apply type
-			lua_tonumber(L, 3)		// apply value
+			lua_tonumber(lua, 1),		// index
+			lua_tonumber(lua, 2),		// apply type
+			lua_tonumber(lua, 3)		// apply value
 		);
 
 		return 0;
 	}
 
-	int item_get_name(lua_State* L)
+	int item_get_name(lua_State* lua)
 	{
 		quest_manager& q = quest_manager::instance();
 		item * item = q.current_item();
 
 		if (item)
-			lua_pushstring(L, item->name());
+			lua_pushstring(lua, item->name());
 		else
-			lua_pushstring(L, "");
+			lua_pushstring(lua, "");
 
 		return 1;
 	}
 
-	int item_get_size(lua_State* L)
+	int item_get_size(lua_State* lua)
 	{
 		quest_manager& q = quest_manager::instance();
 		item * item = q.current_item();
 
 		if (item)
-			lua_pushnumber(L, item->size());
+			lua_pushnumber(lua, item->size());
 		else
-			lua_pushnumber(L, 0);
+			lua_pushnumber(lua, 0);
 
 		return 1;
 	}
 
-	int item_get_count(lua_State* L)
+	int item_get_count(lua_State* lua)
 	{
 		quest_manager& q = quest_manager::instance();
 		item * item = q.current_item();
 
 		if (item)
-			lua_pushnumber(L, item->count());
+			lua_pushnumber(lua, item->count());
 		else
-			lua_pushnumber(L, 0);
+			lua_pushnumber(lua, 0);
 
 		return 1;
 	}
 
-	int item_get_type(lua_State* L)
+	int item_get_type(lua_State* lua)
 	{
 		quest_manager& q = quest_manager::instance();
 		item * item = q.current_item();
 
 		if (item)
-			lua_pushnumber(L, item->type());
+			lua_pushnumber(lua, item->type());
 		else
-			lua_pushnumber(L, 0);
+			lua_pushnumber(lua, 0);
 
 		return 1;
 	}
 
-	int item_get_sub_type(lua_State* L)
+	int item_get_sub_type(lua_State* lua)
 	{
 		quest_manager& q = quest_manager::instance();
 		item * item = q.current_item();
 
 		if (item)
-			lua_pushnumber(L, item->sub_type());
+			lua_pushnumber(lua, item->sub_type());
 		else
-			lua_pushnumber(L, 0);
+			lua_pushnumber(lua, 0);
 
 		return 1;
 	}
 
-	int item_get_refine_vnum(lua_State* L)
+	int item_get_refine_vnum(lua_State* lua)
 	{
 		quest_manager& q = quest_manager::instance();
 		item * item = q.current_item();
 
 		if (item)
-			lua_pushnumber(L, item->refined_vnum());
+			lua_pushnumber(lua, item->refined_vnum());
 		else
-			lua_pushnumber(L, 0);
+			lua_pushnumber(lua, 0);
 
 		return 1;
 	}
 
-	int item_next_refine_vnum(lua_State* L)
+	int item_next_refine_vnum(lua_State* lua)
 	{
 		uint32_t vnum = 0;
-		if (lua_isnumber(L, 1))
-			vnum = (uint32_t) lua_tonumber(L, 1);
+		if (lua_isnumber(lua, 1))
+			vnum = (uint32_t) lua_tonumber(lua, 1);
 
 		item_table* pTable = item_manager::instance().table(vnum);
 		if (pTable)
 		{
-			lua_pushnumber(L, pTable->refined_vnum);
+			lua_pushnumber(lua, pTable->refined_vnum);
 		}
 		else
 		{
 			quest::error("Cannot find item table of vnum {:d}", vnum);
-			lua_pushnumber(L, 0);
+			lua_pushnumber(lua, 0);
 		}
 		return 1;
 	}
 
-	int item_get_level(lua_State* L)
+	int item_get_level(lua_State* lua)
 	{
 		quest_manager& q = quest_manager::instance();
 		item * item = q.current_item();
 
 		if (item)
-			lua_pushnumber(L, item->refine_level());
+			lua_pushnumber(lua, item->refine_level());
 		else
-			lua_pushnumber(L, 0);
+			lua_pushnumber(lua, 0);
 
 		return 1;
 	}
 
-	int item_can_over9refine(lua_State* L)
+	int item_can_over9refine(lua_State* lua)
 	{
 		item * item = quest_manager::instance().current_item();
 
 		if ( item == nullptr ) return 0;
 
-		lua_pushnumber(L, over9_refine_manager::instance().can_over9_refine(item->vnum()));
+		lua_pushnumber(lua, over9_refine_manager::instance().can_over9_refine(item->vnum()));
 
 		return 1;
 	}
 
-	int item_change_to_over9(lua_State* L)
+	int item_change_to_over9(lua_State* lua)
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		item * item = quest_manager::instance().current_item();
 
 		if ( ch == nullptr || item == nullptr ) return 0;
 
-		lua_pushboolean(L, over9_refine_manager::instance().change9_to_over9(ch, item));
+		lua_pushboolean(lua, over9_refine_manager::instance().change9_to_over9(ch, item));
 		
 		return 1;
 	}
 	
-	int item_over9refine(lua_State* L)
+	int item_over9refine(lua_State* lua)
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		item * item = quest_manager::instance().current_item();
 
 		if ( ch == nullptr || item == nullptr ) return 0;
 
-		lua_pushboolean(L, over9_refine_manager::instance().over9_refine(ch, item));
+		lua_pushboolean(lua, over9_refine_manager::instance().over9_refine(ch, item));
 		
 		return 1;
 	}
 
-	int item_get_over9_material_vnum(lua_State* L)
+	int item_get_over9_material_vnum(lua_State* lua)
 	{
-		if ( lua_isnumber(L, 1) == true )
+		if ( lua_isnumber(lua, 1) == true )
 		{
-			lua_pushnumber(L, over9_refine_manager::instance().material_vnum((uint32_t)lua_tonumber(L, 1)));
+			lua_pushnumber(lua, over9_refine_manager::instance().material_vnum((uint32_t)lua_tonumber(lua, 1)));
 			return 1;
 		}
 
 		return 0;
 	}
 
-	int item_get_level_limit (lua_State* L)
+	int item_get_level_limit (lua_State* lua)
 	{
 		quest_manager& q = quest_manager::instance();
 
@@ -399,13 +399,13 @@ namespace quest
 			{
 				return 0;
 			}
-			lua_pushnumber(L, q.current_item() -> level_limit());
+			lua_pushnumber(lua, q.current_item() -> level_limit());
 			return 1;
 		}
 		return 0;
 	}
 
-	int item_start_realtime_expire(lua_State* L)
+	int item_start_realtime_expire(lua_State* lua)
 	{
 		quest_manager& q = quest_manager::instance();
 		item * pItem = q.current_item();
@@ -419,13 +419,13 @@ namespace quest
 		return 0;
 	}
 	
-	int item_copy_and_give_before_remove(lua_State* L)
+	int item_copy_and_give_before_remove(lua_State* lua)
 	{
-		lua_pushboolean(L, 0);
-		if (!lua_isnumber(L, 1))
+		lua_pushboolean(lua, 0);
+		if (!lua_isnumber(lua, 1))
 			return 1;
 
-		uint32_t vnum = (uint32_t)lua_tonumber(L, 1);
+		uint32_t vnum = (uint32_t)lua_tonumber(lua, 1);
 
 		quest_manager& q = quest_manager::instance();
 		item * pItem = q.current_item();
@@ -447,7 +447,7 @@ namespace quest
 			pkNewItem->attr_log();
 
 			// Success!
-			lua_pushboolean(L, 1);			
+			lua_pushboolean(lua, 1);			
 		}
 
 		return 1;

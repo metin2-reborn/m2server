@@ -45,21 +45,21 @@ class p2_p_manager : public singleton<p2_p_manager>
 
 		void			boot(desc * d);	// Send the info needed for p2p handling. (login info of all characters, etc.)
 
-		void			send(const void * c_pvData, int iSize, desc * except = nullptr);
+		void			send(const void * data, int size, desc * except = nullptr);
 
 		void			login(desc * d, const packet_gg_login * p);
-		void			logout(const char * c_pszName);
+		void			logout(const char * name);
 
-		cci *			find(const char * c_pszName);
+		cci *			find(const char * name);
 		cci *			find_by_pid(uint32_t pid);
 
 		int				count();
 		int				empire_user_count(int idx);
 		int				desc_count();
-		void			p2_p_host_names(std::string& hostNames);
+		void			p2_p_host_names(std::string& host_names);
 
 	private:
-		void			logout(cci * pkCCI);
+		void			logout(cci * cci_value);
 
 		int			handle_count_;
 

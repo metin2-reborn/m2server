@@ -233,9 +233,9 @@ class skill_proto
 
 		expression grand_master_add_sp_cost_poly;
 
-		void set_point_var(const std::string& strName, double dVar);
-		void set_duration_var(const std::string& strName, double dVar);
-		void set_sp_cost_var(const std::string& strName, double dVar);
+		void set_point_var(const std::string& name, double var);
+		void set_duration_var(const std::string& name, double var);
+		void set_sp_cost_var(const std::string& name, double var);
 };
 
 class skill_manager : public singleton<skill_manager>
@@ -244,9 +244,9 @@ class skill_manager : public singleton<skill_manager>
 		skill_manager();
 		~skill_manager() override;
 
-		bool initialize(skill_table * pTab, int iSize);
-		skill_proto * get(uint32_t dwVnum);
-		skill_proto * get(const char * c_pszSkillName);
+		bool initialize(skill_table * tab, int size);
+		skill_proto * get(uint32_t vnum);
+		skill_proto * get(const char * skill_name);
 
 	protected:
 		std::map<uint32_t, std::unique_ptr<skill_proto>> map_pk_skill_proto_;

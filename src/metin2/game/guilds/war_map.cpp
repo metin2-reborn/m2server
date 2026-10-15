@@ -112,20 +112,20 @@ void war_map::team_data::initialize()
 	set_pid_joiner.clear();
 }
 
-war_map::war_map(int32_t lMapIndex, const guild_war_info & r_info, war_map_info * pkWarMapInfo, uint32_t dwGuildID1, uint32_t dwGuildID2)
+war_map::war_map(int32_t map_index_value, const guild_war_info & r_info, war_map_info * war_map_info_value, uint32_t guild_id1, uint32_t guild_id2)
 {
-	map_info_ = *pkWarMapInfo;
-	map_info_.map_index = lMapIndex;
+	map_info_ = *war_map_info_value;
+	map_info_.map_index = map_index_value;
 
 	memcpy(&war_info_, &r_info, sizeof(guild_war_info));
 
 	team_data_[0].initialize();
-	team_data_[0].id = dwGuildID1;
-	team_data_[0].guild = guild_manager::instance().touch_guild(dwGuildID1);
+	team_data_[0].id = guild_id1;
+	team_data_[0].guild = guild_manager::instance().touch_guild(guild_id1);
 
 	team_data_[1].initialize();
-	team_data_[1].id = dwGuildID2;
-	team_data_[1].guild = guild_manager::instance().touch_guild(dwGuildID2);
+	team_data_[1].id = guild_id2;
+	team_data_[1].guild = guild_manager::instance().touch_guild(guild_id2);
 	observer_count_ = 0;
 
 	war_map_event_info* info = alloc_event_info<war_map_event_info>();
@@ -173,65 +173,65 @@ war_map::~war_map()
 	set_pk_chr_.clear();
 }
 
-void war_map::set_begin_event(event_ptr pkEv)
+void war_map::set_begin_event(event_ptr ev)
 {
 	if (begin_event_ != nullptr) {
 		event_cancel(&begin_event_);
 	}
-	if (pkEv != nullptr) {
-		begin_event_ = pkEv;
+	if (ev != nullptr) {
+		begin_event_ = ev;
 	}
 }
 
-void war_map::set_end_event(event_ptr pkEv)
+void war_map::set_end_event(event_ptr ev)
 {
 	if (end_event_ != nullptr) {
 		event_cancel(&end_event_);
 	}
-	if (pkEv != nullptr) {
-		end_event_ = pkEv;
+	if (ev != nullptr) {
+		end_event_ = ev;
 	}
 }
 
-void war_map::set_timeout_event(event_ptr pkEv)
+void war_map::set_timeout_event(event_ptr ev)
 {
 	if (timeout_event_ != nullptr) {
 		event_cancel(&timeout_event_);
 	}
-	if (pkEv != nullptr) {
-		timeout_event_ = pkEv;
+	if (ev != nullptr) {
+		timeout_event_ = ev;
 	}
 }
 
-void war_map::set_reset_flag_event(event_ptr pkEv)
+void war_map::set_reset_flag_event(event_ptr ev)
 {
 	if (reset_flag_event_ != nullptr) {
 		event_cancel(&reset_flag_event_);
 	}
-	if (pkEv != nullptr) {
-		reset_flag_event_ = pkEv;
+	if (ev != nullptr) {
+		reset_flag_event_ = ev;
 	}
 }
 
-bool war_map::team_index(uint32_t dwGuildID, uint8_t & bIdx)
+bool war_map::team_index(uint32_t guild_id, uint8_t & idx)
 {
-	if (team_data_[0].id == dwGuildID)
+	if (team_data_[0].id == guild_id)
 	{
-		bIdx = 0;
+		idx = 0;
 		return true;
 	}
-	else if (team_data_[1].id == dwGuildID)
+	else if (team_data_[1].id == guild_id)
 	{
-		bIdx = 1;
+		idx = 1;
 		return true;
 	}
 
 	return false;
 }
 
-guild * war_map::get_guild(uint8_t bIdx)
+guild * war_map::get_guild(uint8_t idx)
 {
-	return team_data_[bIdx].guild;
+	return team_data_[idx].guild;
 }
 
 int32_t war_map::map_index()
@@ -505,11 +505,11 @@ void war_map::check_war_end()
 		check_score();
 }
 
-int war_map::reward_gold(uint8_t bWinnerIdx)
+int war_map::reward_gold(uint8_t winner_idx)
 {
 	int iRewardGold = war_info_.war_price;
-	iRewardGold += (team_data_[bWinnerIdx].use_potion_price * war_info_.winner_potion_reward_pct_to_winner) / 100;
-	iRewardGold += (team_data_[bWinnerIdx ? 0 : 1].use_potion_price * war_info_.loser_potion_reward_pct_to_winner) / 100;
+	iRewardGold += (team_data_[winner_idx].use_potion_price * war_info_.winner_potion_reward_pct_to_winner) / 100;
+	iRewardGold += (team_data_[winner_idx ? 0 : 1].use_potion_price * war_info_.loser_potion_reward_pct_to_winner) / 100;
 	return iRewardGold;
 }
 
@@ -649,7 +649,7 @@ void war_map::send_war_packet(desc * d)
 	d->packet(&pack2, sizeof(pack2));
 }
 
-void war_map::send_score_packet(uint8_t bIdx, desc * d)
+void war_map::send_score_packet(uint8_t idx, desc * d)
 {
 	packet_gc_guild p;
 
@@ -659,9 +659,9 @@ void war_map::send_score_packet(uint8_t bIdx, desc * d)
 
 	temp_buffer buf;
 	buf.write(&p, sizeof(p));
-	buf.write(&team_data_[bIdx].id, sizeof(uint32_t));
-	buf.write(&team_data_[bIdx ? 0 : 1].id, sizeof(uint32_t));
-	buf.write(&team_data_[bIdx].score, sizeof(int32_t));
+	buf.write(&team_data_[idx].id, sizeof(uint32_t));
+	buf.write(&team_data_[idx ? 0 : 1].id, sizeof(uint32_t));
+	buf.write(&team_data_[idx].score, sizeof(int32_t));
 
 	if (d)
 		d->packet(buf.read_peek(), buf.size());
@@ -839,83 +839,83 @@ void war_map::on_kill(character * killer, character * ch)
 	}
 }
 
-void war_map::add_flag_base(uint8_t bIdx, uint32_t x, uint32_t y)
+void war_map::add_flag_base(uint8_t idx, uint32_t x, uint32_t y)
 {
 	if (ended_)
 		return;
 
-	assert(bIdx < 2);
+	assert(idx < 2);
 
-	team_data & r = team_data_[bIdx];
+	team_data & r = team_data_[idx];
 
 	if (r.chr_flag_base)
 		return;
 
 	if (x == 0)
 	{
-		x = map_info_.pos_start[bIdx].x;
-		y = map_info_.pos_start[bIdx].y;
+		x = map_info_.pos_start[idx].x;
+		y = map_info_.pos_start[idx].y;
 	}
 
 	r.chr_flag_base = character_manager::instance().spawn_mob(warmap::WAR_FLAG_BASE_VNUM, map_info_.map_index, x, y, 0);
-	metin2::log::info( "WarMap::AddFlagBase {:d} {} id {:d}", bIdx, static_cast<const void *>(r.chr_flag_base), r.id);
+	metin2::log::info( "WarMap::AddFlagBase {:d} {} id {:d}", idx, static_cast<const void *>(r.chr_flag_base), r.id);
 
 	r.chr_flag_base->set_point(POINT_STAT, r.id);
 	r.chr_flag_base->set_war_map(this);
 }
 
-void war_map::add_flag(uint8_t bIdx, uint32_t x, uint32_t y)
+void war_map::add_flag(uint8_t idx, uint32_t x, uint32_t y)
 {
 	if (ended_)
 		return;
 
-	assert(bIdx < 2);
+	assert(idx < 2);
 
-	team_data & r = team_data_[bIdx];
+	team_data & r = team_data_[idx];
 
 	if (r.chr_flag)
 		return;
 
 	if (x == 0)
 	{
-		x = map_info_.pos_start[bIdx].x;
-		y = map_info_.pos_start[bIdx].y;
+		x = map_info_.pos_start[idx].x;
+		y = map_info_.pos_start[idx].y;
 	}
 
-	r.chr_flag = character_manager::instance().spawn_mob(bIdx == 0 ? warmap::WAR_FLAG_VNUM0 : warmap::WAR_FLAG_VNUM1, map_info_.map_index, x, y, 0);
-	metin2::log::info( "WarMap::AddFlag {:d} {} id {:d}", bIdx, static_cast<const void *>(r.chr_flag), r.id);
+	r.chr_flag = character_manager::instance().spawn_mob(idx == 0 ? warmap::WAR_FLAG_VNUM0 : warmap::WAR_FLAG_VNUM1, map_info_.map_index, x, y, 0);
+	metin2::log::info( "WarMap::AddFlag {:d} {} id {:d}", idx, static_cast<const void *>(r.chr_flag), r.id);
 
 	r.chr_flag->set_point(POINT_STAT, r.id);
 	r.chr_flag->set_war_map(this);
 }
 
-void war_map::remove_flag(uint8_t bIdx)
+void war_map::remove_flag(uint8_t idx)
 {
-	assert(bIdx < 2);
+	assert(idx < 2);
 
-	team_data & r = team_data_[bIdx];
+	team_data & r = team_data_[idx];
 
 	if (!r.chr_flag)
 		return;
 
-	metin2::log::info( "WarMap::RemoveFlag {:d} {}", bIdx, static_cast<const void *>(r.chr_flag));
+	metin2::log::info( "WarMap::RemoveFlag {:d} {}", idx, static_cast<const void *>(r.chr_flag));
 
 	r.chr_flag->dead(nullptr, true);
 	r.chr_flag = nullptr;
 }
 
-bool war_map::is_flag_on_base(uint8_t bIdx)
+bool war_map::is_flag_on_base(uint8_t idx)
 {
-	assert(bIdx < 2);
+	assert(idx < 2);
 
-	team_data & r = team_data_[bIdx];
+	team_data & r = team_data_[idx];
 
 	if (!r.chr_flag)
 		return false;
 
 	const pixel_position & pos = r.chr_flag->xyz();
 
-	if (pos.x == map_info_.pos_start[bIdx].x && pos.y == map_info_.pos_start[bIdx].y)
+	if (pos.x == map_info_.pos_start[idx].x && pos.y == map_info_.pos_start[idx].y)
 		return true;
 
 	return false;
@@ -984,7 +984,7 @@ war_map_manager::~war_map_manager()
 {
 }
 
-bool war_map_manager::load_war_map_info(const char * c_pszFileName)
+bool war_map_manager::load_war_map_info(const char * file_name)
 {
 	auto k = std::make_unique<war_map_info>();
 	k->type = WAR_MAP_TYPE_NORMAL;
@@ -1014,59 +1014,59 @@ bool war_map_manager::load_war_map_info(const char * c_pszFileName)
 	return true;
 }
 
-bool war_map_manager::is_war_map(int32_t lMapIndex)
+bool war_map_manager::is_war_map(int32_t map_index)
 {
-	return get_war_map_info(lMapIndex) ? true : false;
+	return get_war_map_info(map_index) ? true : false;
 }
 
-bool war_map_manager::start_position(int32_t lMapIndex, uint8_t bIdx, pixel_position & pos)
+bool war_map_manager::start_position(int32_t map_index, uint8_t idx, pixel_position & pos)
 {
-	assert(bIdx < 3);
+	assert(idx < 3);
 
-	war_map_info * pi = get_war_map_info(lMapIndex);
+	war_map_info * pi = get_war_map_info(map_index);
 
 	if (!pi)
 	{
-		metin2::log::info( "GetStartPosition FAILED [{:d}] WarMapInfoSize({:d})", lMapIndex, map_k_war_map_info_.size());
+		metin2::log::info( "GetStartPosition FAILED [{:d}] WarMapInfoSize({:d})", map_index, map_k_war_map_info_.size());
 
 		decltype(map_k_war_map_info_.begin()) it;
 		for (it	= map_k_war_map_info_.begin(); it != map_k_war_map_info_.end(); ++it)
 		{
-			pixel_position& cur=it->second->pos_start[bIdx];
+			pixel_position& cur=it->second->pos_start[idx];
 			metin2::log::info( "WarMap[{:d}]=Pos({:d}, {:d})", it->first, cur.x, cur.y);
 		}
 		return false;
 	}
 
-	pos = pi->pos_start[bIdx];
+	pos = pi->pos_start[idx];
 	return true;
 }
 
-int32_t war_map_manager::create_war_map(const guild_war_info& guildWarInfo, uint32_t dwGuildID1, uint32_t dwGuildID2)
+int32_t war_map_manager::create_war_map(const guild_war_info& guild_war_info_value, uint32_t guild_id1, uint32_t guild_id2)
 {
-	war_map_info * pkInfo = get_war_map_info(guildWarInfo.map_index);
+	war_map_info * pkInfo = get_war_map_info(guild_war_info_value.map_index);
 	if (!pkInfo)
 	{
-		metin2::log::error("GuildWar.CreateWarMap.NOT_FOUND_MAPINFO[{:d}]", guildWarInfo.map_index);
+		metin2::log::error("GuildWar.CreateWarMap.NOT_FOUND_MAPINFO[{:d}]", guild_war_info_value.map_index);
 		return 0;
 	}
 
-	uint32_t lMapIndex = sectree_manager::instance().create_private_map(guildWarInfo.map_index);
+	uint32_t lMapIndex = sectree_manager::instance().create_private_map(guild_war_info_value.map_index);
 
 	if (lMapIndex)
 	{
-		war_map_.insert(std::make_pair(lMapIndex, new war_map(lMapIndex, guildWarInfo, pkInfo, dwGuildID1, dwGuildID2)));
+		war_map_.insert(std::make_pair(lMapIndex, new war_map(lMapIndex, guild_war_info_value, pkInfo, guild_id1, guild_id2)));
 	}
 
 	return lMapIndex;
 }
 
-war_map_info * war_map_manager::get_war_map_info(int32_t lMapIndex)
+war_map_info * war_map_manager::get_war_map_info(int32_t map_index)
 {
-	if (lMapIndex >= 10000)
-		lMapIndex /= 10000;
+	if (map_index >= 10000)
+		map_index /= 10000;
 
-	auto it = map_k_war_map_info_.find(lMapIndex);
+	auto it = map_k_war_map_info_.find(map_index);
 
 	if (map_k_war_map_info_.end() == it)
 		return nullptr;
@@ -1074,21 +1074,21 @@ war_map_info * war_map_manager::get_war_map_info(int32_t lMapIndex)
 	return it->second.get();
 }
 
-void war_map_manager::destroy_war_map(war_map* pMap)
+void war_map_manager::destroy_war_map(war_map* map)
 {
-	int32_t mapIdx = pMap->map_index();
+	int32_t mapIdx = map->map_index();
 
 	metin2::log::info( "WarMap::DestroyWarMap : {:d}", mapIdx);
 
-	war_map_.erase(pMap->map_index());
-	delete pMap;
+	war_map_.erase(map->map_index());
+	delete map;
 
 	sectree_manager::instance().destroy_private_map(mapIdx);
 }
 
-war_map * war_map_manager::find(int32_t lMapIndex)
+war_map * war_map_manager::find(int32_t map_index)
 {
-	auto it = war_map_.find(lMapIndex);
+	auto it = war_map_.find(map_index);
 
 	if (it == war_map_.end())
 		return nullptr;

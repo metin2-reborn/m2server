@@ -41,11 +41,11 @@ namespace
 /// \param quote Character used as the quote. Defaults to '"'.
 /// \return bool true if loaded successfully, false otherwise
 ////////////////////////////////////////////////////////////////////////////////
-bool c_csv_file::load(const char* fileName, const char seperator, const char quote)
+bool c_csv_file::load(const char* file_name, const char seperator, const char quote)
 {
     assert(seperator != quote);
 
-    std::ifstream file(fileName, std::ios::in);
+    std::ifstream file(file_name, std::ios::in);
     if (!file) return false;
 
     destroy(); // Delete existing data
@@ -188,10 +188,10 @@ c_csv_table::~c_csv_table()
 /// \param quote Character used as the quote. Defaults to '"'.
 /// \return bool true if loaded successfully, false otherwise
 ////////////////////////////////////////////////////////////////////////////////
-bool c_csv_table::load(const char* fileName, const char seperator, const char quote)
+bool c_csv_table::load(const char* file_name, const char seperator, const char quote)
 {
     destroy();
-    return file.load(fileName, seperator, quote);
+    return file.load(file_name, seperator, quote);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

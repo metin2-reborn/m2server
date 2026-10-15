@@ -58,14 +58,14 @@ input_processor::input_processor() : packet_info_(nullptr), buffer_left_(0)
 		bind_packet_info(&packet_info_cg_);
 }
 
-void input_processor::bind_packet_info(packet_info * pPacketInfo)
+void input_processor::bind_packet_info(packet_info * packet_info_value)
 {
-	packet_info_ = pPacketInfo;
+	packet_info_ = packet_info_value;
 }
 
-bool input_processor::process(desc * lpDesc, const void * c_pvOrig, int iBytes, int & r_iBytesProceed)
+bool input_processor::process(desc * desc_value, const void * orig, int bytes, int & r_i_bytes_proceed)
 {
-	const char * c_pData = (const char *) c_pvOrig;
+	const char * c_pData = (const char *) orig;
 
 	uint8_t	bLastHeader = 0;
 	int		iLastPacketLen = 0;
@@ -77,7 +77,7 @@ bool input_processor::process(desc * lpDesc, const void * c_pvOrig, int iBytes, 
 		return true;
 	}
 
-	for (buffer_left_ = iBytes; buffer_left_ > 0;)
+	for (buffer_left_ = bytes; buffer_left_ > 0;)
 	{
 		uint8_t bHeader = (uint8_t) *(c_pData);
 		const char * c_pszName;
@@ -87,8 +87,8 @@ bool input_processor::process(desc * lpDesc, const void * c_pvOrig, int iBytes, 
 		else if (!packet_info_->get(bHeader, &iPacketLen, &c_pszName))
 		{
 			metin2::log::error("UNKNOWN HEADER: {:d}, LAST HEADER: {:d}({:d}), REMAIN BYTES: {:d}, host: {}",
-					bHeader, bLastHeader, iLastPacketLen, buffer_left_, lpDesc->host_name());
-			lpDesc->set_phase(PHASE_CLOSE);
+					bHeader, bLastHeader, iLastPacketLen, buffer_left_, desc_value->host_name());
+			desc_value->set_phase(PHASE_CLOSE);
 			return true;
 		}
 
@@ -110,7 +110,7 @@ bool input_processor::process(desc * lpDesc, const void * c_pvOrig, int iBytes, 
 			if (packet_info_->is_sequence(bHeader))
 				--buffer_left_;
 
-			int iExtraPacketSize = analyze(lpDesc, bHeader, c_pData);
+			int iExtraPacketSize = analyze(desc_value, bHeader, c_pData);
 			buffer_left_ = iBufferLeft;
 
 			if (iExtraPacketSize < 0)
@@ -121,8 +121,8 @@ bool input_processor::process(desc * lpDesc, const void * c_pvOrig, int iBytes, 
 			if (iExtraPacketSize > buffer_left_ - iPacketLen)
 			{
 				metin2::log::error("packet {} (header {:d}) claims {:d} extra bytes, only {:d} left, host: {}",
-						c_pszName, bHeader, iExtraPacketSize, buffer_left_ - iPacketLen, lpDesc->host_name());
-				lpDesc->set_phase(PHASE_CLOSE);
+						c_pszName, bHeader, iExtraPacketSize, buffer_left_ - iPacketLen, desc_value->host_name());
+				desc_value->set_phase(PHASE_CLOSE);
 				return true;
 			}
 
@@ -135,14 +135,14 @@ bool input_processor::process(desc * lpDesc, const void * c_pvOrig, int iBytes, 
 
 		if (packet_info_->is_sequence(bHeader))
 		{
-			uint8_t bSeq = lpDesc->sequence();
+			uint8_t bSeq = desc_value->sequence();
 			uint8_t bSeqReceived = *(uint8_t *) (c_pData + iPacketLen - sizeof(uint8_t));
 
 			if (bSeq != bSeqReceived)
 			{
-				metin2::log::error("SEQUENCE {} mismatch 0x{:x} != 0x{:x} header {:d}", static_cast<const void *>(static_cast<void*>(lpDesc)), bSeq, bSeqReceived, bHeader);
+				metin2::log::error("SEQUENCE {} mismatch 0x{:x} != 0x{:x} header {:d}", static_cast<const void *>(static_cast<void*>(desc_value)), bSeq, bSeqReceived, bHeader);
 
-				character *	ch = lpDesc->get_character();
+				character *	ch = desc_value->get_character();
 
 				char buf[1024];
 				int	offset, len;
@@ -152,11 +152,11 @@ bool input_processor::process(desc * lpDesc, const void * c_pvOrig, int iBytes, 
 				if (offset < 0 || offset >= (int) sizeof(buf))
 					offset = sizeof(buf) - 1;
 
-				for (size_t i = 0; i < lpDesc->seq_vector.size(); ++i)
+				for (size_t i = 0; i < desc_value->seq_vector.size(); ++i)
 				{
 					len = snprintf(buf + offset, sizeof(buf) - offset, "\t[%03d : 0x%x]\n",
-							lpDesc->seq_vector[i].hdr,
-							lpDesc->seq_vector[i].seq);
+							desc_value->seq_vector[i].hdr,
+							desc_value->seq_vector[i].seq);
 
 					if (len < 0 || len >= (int) sizeof(buf) - offset)
 						offset += (sizeof(buf) - offset) - 1;
@@ -167,24 +167,24 @@ bool input_processor::process(desc * lpDesc, const void * c_pvOrig, int iBytes, 
 				snprintf(buf + offset, sizeof(buf) - offset, "\t[%03d : 0x%x]\n", bHeader, bSeq);
 				metin2::log::error("{}", buf);
 
-				lpDesc->set_phase(PHASE_CLOSE);
+				desc_value->set_phase(PHASE_CLOSE);
 				return true;
 			}
 			else
 			{
-				lpDesc->push_seq(bHeader, bSeq);
-				lpDesc->set_next_sequence();
+				desc_value->push_seq(bHeader, bSeq);
+				desc_value->set_next_sequence();
 			}
 		}
 
 		c_pData	+= iPacketLen;
 		buffer_left_ -= iPacketLen;
-		r_iBytesProceed += iPacketLen;
+		r_i_bytes_proceed += iPacketLen;
 
 		iLastPacketLen = iPacketLen;
 		bLastHeader	= bHeader;
 
-		if (type() != lpDesc->get_input_processor()->type())
+		if (type() != desc_value->get_input_processor()->type())
 			return false;
 	}
 
@@ -198,9 +198,9 @@ void input_processor::pong(desc * d)
 
 }
 
-void input_processor::handshake(desc * d, const char * c_pData)
+void input_processor::handshake(desc * d, const char * data)
 {
-	packet_cg_handshake * p = (packet_cg_handshake *) c_pData;
+	packet_cg_handshake * p = (packet_cg_handshake *) data;
 
 	if (d->handshake() != p->handshake)
 	{
@@ -221,7 +221,7 @@ void input_processor::handshake(desc * d, const char * c_pData)
 	}
 }
 
-void input_processor::version(character * ch, const char* c_pData)
+void input_processor::version(character * ch, const char* data)
 {
 	if (!ch)
 		return;
@@ -229,7 +229,7 @@ void input_processor::version(character * ch, const char* c_pData)
 	if (!ch->get_desc())
 		return;
 
-	packet_cg_client_version * p = (packet_cg_client_version *) c_pData;
+	packet_cg_client_version * p = (packet_cg_client_version *) data;
 
 	char szTimestamp[sizeof(p->timestamp)];
 	char szFilename[sizeof(p->filename)];
@@ -240,7 +240,7 @@ void input_processor::version(character * ch, const char* c_pData)
 	ch->get_desc()->set_client_version(szTimestamp);
 }
 
-void login_failure(desc * d, const char * c_pszStatus)
+void login_failure(desc * d, const char * status_value)
 {
 	if (!d)
 		return;
@@ -248,7 +248,7 @@ void login_failure(desc * d, const char * c_pszStatus)
 	packet_gc_login_failure failurePacket;
 
 	failurePacket.header = HEADER_GC_LOGIN_FAILURE;
-	strlcpy(failurePacket.status, c_pszStatus, sizeof(failurePacket.status));
+	strlcpy(failurePacket.status, status_value, sizeof(failurePacket.status));
 
 	d->packet(&failurePacket, sizeof(failurePacket));
 }
@@ -271,12 +271,12 @@ input_handshake::~input_handshake()
 // BLOCK_CHAT
 // END_OF_BLOCK_CHAT
 
-int input_handshake::analyze(desc * d, uint8_t bHeader, const char * c_pData)
+int input_handshake::analyze(desc * d, uint8_t header_value, const char * data_value)
 {
-	if (bHeader == 10) // Ignore enter
+	if (header_value == 10) // Ignore enter
 		return 0;
 
-	if (bHeader == HEADER_CG_TEXT)
+	if (header_value == HEADER_CG_TEXT)
 	{
 		if (is_empty_admin_page() || !is_admin_page(d->host_name())) // block if adminpage is not set or if not admin
 		{
@@ -285,20 +285,20 @@ int input_handshake::analyze(desc * d, uint8_t bHeader, const char * c_pData)
 			return -1;
 		}
 
-		++c_pData;
+		++data_value;
 
 		// The line ends at \n within what was received; the data is not NUL-terminated.
-		const char * c_pSep = (const char *) memchr(c_pData, '\n', buffer_left_ - 1);
+		const char * c_pSep = (const char *) memchr(data_value, '\n', buffer_left_ - 1);
 
 		if (!c_pSep)
 			return -1;
 
-		if (c_pSep > c_pData && *(c_pSep - 1) == '\r')
+		if (c_pSep > data_value && *(c_pSep - 1) == '\r')
 			--c_pSep;
 
 		std::string stResult;
 		std::string stBuf;
-		stBuf.assign(c_pData, c_pSep - c_pData);
+		stBuf.assign(data_value, c_pSep - data_value);
 
 		metin2::log::info( "SOCKET_CMD: FROM({}) CMD({})", d->host_name(), stBuf.c_str());
 
@@ -570,9 +570,9 @@ metin2::log::debug( "DC : '{}'", msg.c_str());
 		metin2::log::debug( "TEXT {} RESULT {}", stBuf.c_str(), stResult.c_str());
 		stResult += "\n";
 		d->packet(stResult.c_str(), stResult.length());
-		return (c_pSep - c_pData) + 1;
+		return (c_pSep - data_value) + 1;
 	}
-	else if (bHeader == HEADER_CG_MARK_LOGIN)
+	else if (header_value == HEADER_CG_MARK_LOGIN)
 	{
 		if (!metin2::config::game().mark.server)
 		{
@@ -585,7 +585,7 @@ metin2::log::debug( "DC : '{}'", msg.c_str());
 		// Marks are public, so anyone may download them. Uploads need the key that the login of
 		// the player's game connection on this core issued (one core serves every map here); the
 		// client's first download starts before it has one, so a missing key means download only.
-		const packet_cg_mark_login * p = (const packet_cg_mark_login *) c_pData;
+		const packet_cg_mark_login * p = (const packet_cg_mark_login *) data_value;
 		const bool bAuthenticated = desc_manager::instance().check_random_key(p->handle, p->random_key);
 
 		metin2::log::info( "MARK_SERVER: Login{}", bAuthenticated ? "" : " (download only)");
@@ -593,7 +593,7 @@ metin2::log::debug( "DC : '{}'", msg.c_str());
 		d->set_phase(PHASE_LOGIN);
 		return 0;
 	}
-	else if (bHeader == HEADER_CG_STATE_CHECKER)
+	else if (header_value == HEADER_CG_STATE_CHECKER)
 	{
 		if (d->is_channel_status_requested()) {
 			return 0;
@@ -601,11 +601,11 @@ metin2::log::debug( "DC : '{}'", msg.c_str());
 		d->set_channel_status_requested(true);
 		db_clientdesc->db_packet(HEADER_GD_REQUEST_CHANNELSTATUS, d->handle(), nullptr, 0);
 	}
-	else if (bHeader == HEADER_CG_PONG)
+	else if (header_value == HEADER_CG_PONG)
 		pong(d);
-	else if (bHeader == HEADER_CG_HANDSHAKE)
-		handshake(d, c_pData);
-	else if (bHeader == HEADER_CG_KEY_AGREEMENT)
+	else if (header_value == HEADER_CG_HANDSHAKE)
+		handshake(d, data_value);
+	else if (header_value == HEADER_CG_KEY_AGREEMENT)
 	{
 		// Send out the key agreement completion packet first
 		// to help client to enter encryption mode
@@ -614,7 +614,7 @@ metin2::log::debug( "DC : '{}'", msg.c_str());
 		// the encrypted packets queued next must not arrive in the same segment.
 		d->send_output_now();
 
-		packet_key_agreement* p = (packet_key_agreement*)c_pData;
+		packet_key_agreement* p = (packet_key_agreement*)data_value;
 		if (!d->is_cipher_prepared())
 		{
 			metin2::log::error("Cipher isn't prepared. {} maybe a Hacker.", d->host_name());
@@ -635,7 +635,7 @@ metin2::log::debug( "DC : '{}'", msg.c_str());
 		}
 	}
 	else
-		metin2::log::error("Handshake phase does not handle packet {:d} (host {})", bHeader, d->host_name());
+		metin2::log::error("Handshake phase does not handle packet {:d} (host {})", header_value, d->host_name());
 
 	return 0;
 }

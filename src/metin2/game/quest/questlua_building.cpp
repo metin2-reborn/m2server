@@ -22,33 +22,33 @@ namespace quest
 	//
 	// "building" Lua functions
 	//
-	int building_get_land_id(lua_State * L)
+	int building_get_land_id(lua_State * lua)
 	{
 		using namespace building;
 
-		if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2) || !lua_isnumber(L, 3))
+		if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2) || !lua_isnumber(lua, 3))
 		{
 			metin2::log::error("invalid argument");
-			lua_pushnumber(L, 0);
+			lua_pushnumber(lua, 0);
 			return 1;
 		}
 
-		land * pkLand = manager::instance().find_land((int) lua_tonumber(L, 1), (int) lua_tonumber(L, 2), (int) lua_tonumber(L, 3));
-		lua_pushnumber(L, pkLand ? pkLand->id() : 0);
+		land * pkLand = manager::instance().find_land((int) lua_tonumber(lua, 1), (int) lua_tonumber(lua, 2), (int) lua_tonumber(lua, 3));
+		lua_pushnumber(lua, pkLand ? pkLand->id() : 0);
 		return 1;
 	}
 
-	int building_get_land_info(lua_State * L)
+	int building_get_land_info(lua_State * lua)
 	{
 		int price = 1000000000;
 		int owner = 1000000000;
 		int level_limit = 1000000000;
 
-		if (lua_isnumber(L, 1))
+		if (lua_isnumber(lua, 1))
 		{
 			using namespace building;
 
-			land * pkLand = manager::instance().find_land((uint32_t) lua_tonumber(L, 1));
+			land * pkLand = manager::instance().find_land((uint32_t) lua_tonumber(lua, 1));
 
 			if (pkLand)
 			{
@@ -62,15 +62,15 @@ namespace quest
 		else
 			metin2::log::error("invalid argument");
 
-		lua_pushnumber(L, price);
-		lua_pushnumber(L, owner);
-		lua_pushnumber(L, level_limit);
+		lua_pushnumber(lua, price);
+		lua_pushnumber(lua, owner);
+		lua_pushnumber(lua, level_limit);
 		return 3;
 	}
 
-	int building_set_land_owner(lua_State * L)
+	int building_set_land_owner(lua_State * lua)
 	{
-		if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2))
+		if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2))
 		{
 			metin2::log::error("invalid argument");
 			return 0;
@@ -78,29 +78,29 @@ namespace quest
 
 		using namespace building;
 
-		land * pkLand = manager::instance().find_land((uint32_t) lua_tonumber(L, 1));
+		land * pkLand = manager::instance().find_land((uint32_t) lua_tonumber(lua, 1));
 
 		if (pkLand)
 		{
 			if (pkLand->data().guild_id == 0)
-				pkLand->set_owner((uint32_t) lua_tonumber(L, 2));
+				pkLand->set_owner((uint32_t) lua_tonumber(lua, 2));
 		}
 
 		return 0;
 	}
 
-	int building_has_land(lua_State * L)
+	int building_has_land(lua_State * lua)
 	{
 		using namespace building;
 
-		if (!lua_isnumber(L, 1))
+		if (!lua_isnumber(lua, 1))
 		{
 			metin2::log::error("invalid argument");
-			lua_pushboolean(L, true);
+			lua_pushboolean(lua, true);
 			return 1;
 		}
 
-		std::unique_ptr<ql_msg> pmsg(db_manager::instance().direct_query("SELECT COUNT(*) FROM land%s WHERE guild_id = %d", get_table_postfix(), (uint32_t)lua_tonumber(L,1)));
+		std::unique_ptr<ql_msg> pmsg(db_manager::instance().direct_query("SELECT COUNT(*) FROM land%s WHERE guild_id = %d", get_table_postfix(), (uint32_t)lua_tonumber(lua,1)));
 
 		if ( pmsg->get()->num_rows > 0 )
 		{
@@ -111,26 +111,26 @@ namespace quest
 
 			if (count == 0)
 			{
-				lua_pushboolean(L, false);
+				lua_pushboolean(lua, false);
 			}
 			else
 			{
-				lua_pushboolean(L, true);
+				lua_pushboolean(lua, true);
 			}
 		}
 		else
 		{
-			lua_pushboolean(L, true);
+			lua_pushboolean(lua, true);
 		}
 
 		return 1;
 	}
 
-	int building_reconstruct(lua_State* L)
+	int building_reconstruct(lua_State* lua)
 	{
 		using namespace building;
 
-		uint32_t dwNewBuilding = (uint32_t)lua_tonumber(L, 1);
+		uint32_t dwNewBuilding = (uint32_t)lua_tonumber(lua, 1);
 
 		quest_manager& q = quest_manager::instance();
 

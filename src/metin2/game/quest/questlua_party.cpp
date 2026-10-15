@@ -26,7 +26,7 @@ namespace quest
 	//
 	// "party" Lua functions
 	//
-	int party_clear_ready(lua_State* L)
+	int party_clear_ready(lua_State* lua)
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		
@@ -38,14 +38,14 @@ namespace quest
 		return 0;
 	}
 
-	int party_get_max_level(lua_State* L)
+	int party_get_max_level(lua_State* lua)
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
 		if (ch->get_party())
-			lua_pushnumber(L,ch->get_party()->member_max_level());
+			lua_pushnumber(lua,ch->get_party()->member_max_level());
 		else
-			lua_pushnumber(L, 1);
+			lua_pushnumber(lua, 1);
 
 		return 1;
 	}
@@ -80,17 +80,17 @@ namespace quest
         }
     };
 
-	int party_run_cinematic(lua_State* L)
+	int party_run_cinematic(lua_State* lua)
 	{
-		if (!lua_isstring(L, 1))
+		if (!lua_isstring(lua, 1))
 			return 0;
 		
-		metin2::log::info( "RUN_CINEMA {}", lua_tostring(L, 1));
+		metin2::log::info( "RUN_CINEMA {}", lua_tostring(lua, 1));
 		character * ch = quest_manager::instance().current_character_ptr();
 
 		if (ch->get_party())
 		{
-			f_run_cinematic_sender f(lua_tostring(L, 1));
+			f_run_cinematic_sender f(lua_tostring(lua, 1));
 
 			ch->get_party()->update();
 			ch->get_party()->for_each_near_member(f);
@@ -129,17 +129,17 @@ namespace quest
 		}
 	};
 
-	int party_show_cinematic(lua_State* L)
+	int party_show_cinematic(lua_State* lua)
 	{
-		if (!lua_isstring(L, 1))
+		if (!lua_isstring(lua, 1))
 			return 0;
 
-		metin2::log::info( "CINEMA {}", lua_tostring(L, 1));
+		metin2::log::info( "CINEMA {}", lua_tostring(lua, 1));
 		character * ch = quest_manager::instance().current_character_ptr();
 
 		if (ch->get_party())
 		{
-			f_cinematic_sender f(lua_tostring(L, 1));
+			f_cinematic_sender f(lua_tostring(lua, 1));
 
 			ch->get_party()->update();
 			ch->get_party()->for_each_near_member(f);
@@ -147,26 +147,26 @@ namespace quest
 		return 0;
 	}
 
-	int party_get_near_count(lua_State* L)
+	int party_get_near_count(lua_State* lua)
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
 		if (ch->get_party())
-			lua_pushnumber(L, ch->get_party()->near_member_count());
+			lua_pushnumber(lua, ch->get_party()->near_member_count());
 		else
-			lua_pushnumber(L, 0);
+			lua_pushnumber(lua, 0);
 
 		return 1;
 	}
 
-	int party_syschat(lua_State* L)
+	int party_syschat(lua_State* lua)
 	{
 		party * pParty = quest_manager::instance().current_character_ptr()->get_party();
 
 		if (pParty)
 		{
 			std::ostringstream s;
-			combine_lua_string(L, s);
+			combine_lua_string(lua, s);
 
 			f_party_chat f(CHAT_TYPE_INFO, s.str().c_str());
 
@@ -176,48 +176,48 @@ namespace quest
 		return 0;
 	}
 
-	int party_is_leader(lua_State* L)
+	int party_is_leader(lua_State* lua)
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
 		if (ch->get_party() && ch->get_party()->leader_pid() == ch->player_id())
-			lua_pushboolean(L, 1);
+			lua_pushboolean(lua, 1);
 		else
-			lua_pushboolean(L, 0);
+			lua_pushboolean(lua, 0);
 
 		return 1;
 	}
 
-	int party_is_party(lua_State* L)
+	int party_is_party(lua_State* lua)
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
-		lua_pushboolean(L, ch->get_party() ? 1 : 0);
+		lua_pushboolean(lua, ch->get_party() ? 1 : 0);
 		return 1;
 	}
 
-	int party_get_leader_pid(lua_State* L)
+	int party_get_leader_pid(lua_State* lua)
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		if (ch->get_party())
 		{
-			lua_pushnumber(L, ch->get_party()->leader_pid());
+			lua_pushnumber(lua, ch->get_party()->leader_pid());
 		}
 		else
 		{
-			lua_pushnumber(L, -1);
+			lua_pushnumber(lua, -1);
 		}
 		return 1;
 	}
 
 
-	int party_chat(lua_State* L)
+	int party_chat(lua_State* lua)
 	{
 		party * pParty = quest_manager::instance().current_character_ptr()->get_party();
 
 		if (pParty)
 		{
 			std::ostringstream s;
-			combine_lua_string(L, s);
+			combine_lua_string(lua, s);
 
 			f_party_chat f(CHAT_TYPE_TALKING, s.str().c_str());
 
@@ -228,12 +228,12 @@ namespace quest
 	}
 
 
-	int party_is_map_member_flag_lt(lua_State* L)
+	int party_is_map_member_flag_lt(lua_State* lua)
 	{
 
-		if (!lua_isstring(L, 1) || !lua_isnumber(L, 2))
+		if (!lua_isstring(lua, 1) || !lua_isnumber(lua, 2))
 		{
-			lua_pushnumber(L, 0);
+			lua_pushnumber(lua, 0);
 			return 1;
 		}
 
@@ -242,51 +242,51 @@ namespace quest
 		character * ch = q.current_character_ptr();
 		pc* pPC = q.current_pc();
 
-		const char* sz = lua_tostring(L,1);
+		const char* sz = lua_tostring(lua,1);
 
 		if (pParty)
 		{
 			f_party_check_flag_lt f;
 			f.flagname = pPC->current_quest_name() + "."+sz;
-			f.value = (int) rint(lua_tonumber(L, 2));
+			f.value = (int) rint(lua_tonumber(lua, 2));
 
 			bool returnBool = pParty->for_each_on_map_member_bool(f, ch->map_index());
-			lua_pushboolean(L, returnBool);
+			lua_pushboolean(lua, returnBool);
 		}
 
 		return 1;
 	}
 
-	int party_set_flag(lua_State* L)
+	int party_set_flag(lua_State* lua)
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
-		if (ch->get_party() && lua_isstring(L, 1) && lua_isnumber(L, 2))
-			ch->get_party()->set_flag(lua_tostring(L, 1), (int)lua_tonumber(L, 2));
+		if (ch->get_party() && lua_isstring(lua, 1) && lua_isnumber(lua, 2))
+			ch->get_party()->set_flag(lua_tostring(lua, 1), (int)lua_tonumber(lua, 2));
 
 		return 0;
 	}
 
-	int party_get_flag(lua_State* L)
+	int party_get_flag(lua_State* lua)
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
-		if (!ch->get_party() || !lua_isstring(L, 1))
-			lua_pushnumber(L, 0);
+		if (!ch->get_party() || !lua_isstring(lua, 1))
+			lua_pushnumber(lua, 0);
 		else
-			lua_pushnumber(L, ch->get_party()->flag(lua_tostring(L, 1)));
+			lua_pushnumber(lua, ch->get_party()->flag(lua_tostring(lua, 1)));
 
 		return 1;
 	}
 
-	int party_set_quest_flag(lua_State* L)
+	int party_set_quest_flag(lua_State* lua)
 	{
 		quest_manager & q = quest_manager::instance();
 
 		f_set_quest_flag f;
 
-		f.flagname = q.current_pc()->current_quest_name() + "." + lua_tostring(L, 1);
-		f.value = (int) rint(lua_tonumber(L, 2));
+		f.flagname = q.current_pc()->current_quest_name() + "." + lua_tostring(lua, 1);
+		f.value = (int) rint(lua_tonumber(lua, 2));
 
 		character * ch = q.current_character_ptr();
 
@@ -298,16 +298,16 @@ namespace quest
 		return 0;
 	}
 
-	int party_is_in_dungeon (lua_State* L)
+	int party_is_in_dungeon (lua_State* lua)
 	{
 		quest_manager & q = quest_manager::instance();
 		character * ch = q.current_character_ptr();
 		party * pParty = ch->get_party();
 		if (pParty != nullptr){
-			lua_pushboolean (L, pParty->get_dungeon() ? true : false);
+			lua_pushboolean (lua, pParty->get_dungeon() ? true : false);
 			return 1;
 		}
-		lua_pushboolean (L, false);
+		lua_pushboolean (lua, false);
 		return 1;
 	}
 
@@ -322,10 +322,10 @@ namespace quest
 		bool override;
 		bool is_cube;
 
-		f_give_buff (uint32_t _dwType, uint8_t _bApplyOn, int32_t _lApplyValue, uint32_t _dwFlag, int32_t _lDuration,
-					int32_t _lSPCost, bool _bOverride, bool _IsCube = false)
-			: type (_dwType), apply_on (_bApplyOn), apply_value (_lApplyValue), flag(_dwFlag), duration(_lDuration),
-				sp_cost(_lSPCost), override(_bOverride), is_cube(_IsCube)
+		f_give_buff (uint32_t type_value, uint8_t apply_on_value, int32_t apply_value_value, uint32_t flag_value, int32_t duration_value,
+					int32_t sp_cost_value, bool override_value, bool is_cube_value = false)
+			: type (type_value), apply_on (apply_on_value), apply_value (apply_value_value), flag(flag_value), duration(duration_value),
+				sp_cost(sp_cost_value), override(override_value), is_cube(is_cube_value)
 		{}
 		void operator () (character * ch)
 		{
@@ -335,25 +335,25 @@ namespace quest
 	
 	// gives a buff to the whole party.
 	// only party members on the same map are affected.
-	int party_give_buff (lua_State* L)
+	int party_give_buff (lua_State* lua)
 	{
 		quest_manager & q = quest_manager::instance();
 		character * ch = q.current_character_ptr();
 		
-		if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2) || !lua_isnumber(L, 3) || !lua_isnumber(L, 4) || 
-			!lua_isnumber(L, 5) || !lua_isnumber(L, 6) || !lua_isboolean(L, 7) || !lua_isboolean(L, 8))
+		if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2) || !lua_isnumber(lua, 3) || !lua_isnumber(lua, 4) || 
+			!lua_isnumber(lua, 5) || !lua_isnumber(lua, 6) || !lua_isboolean(lua, 7) || !lua_isboolean(lua, 8))
 		{
-			lua_pushboolean (L, false);
+			lua_pushboolean (lua, false);
 			return 1;
 		}
-		uint32_t dwType = lua_tonumber(L, 1);
-		uint8_t bApplyOn = lua_tonumber(L, 2);
-		int32_t lApplyValue = lua_tonumber(L, 3);
-		uint32_t dwFlag = lua_tonumber(L, 4);
-		int32_t lDuration = lua_tonumber(L, 5);
-		int32_t lSPCost = lua_tonumber(L, 6);
-		bool bOverride = lua_toboolean(L, 7);
-		bool IsCube = lua_toboolean(L, 8);
+		uint32_t dwType = lua_tonumber(lua, 1);
+		uint8_t bApplyOn = lua_tonumber(lua, 2);
+		int32_t lApplyValue = lua_tonumber(lua, 3);
+		uint32_t dwFlag = lua_tonumber(lua, 4);
+		int32_t lDuration = lua_tonumber(lua, 5);
+		int32_t lSPCost = lua_tonumber(lua, 6);
+		bool bOverride = lua_toboolean(lua, 7);
+		bool IsCube = lua_toboolean(lua, 8);
 
 		f_give_buff f (dwType, bApplyOn, lApplyValue, dwFlag, lDuration, lSPCost, bOverride, IsCube);
 		if (ch->get_party())
@@ -361,7 +361,7 @@ namespace quest
 		else
 			f(ch);
 
-		lua_pushboolean (L, true);
+		lua_pushboolean (lua, true);
 		return 1;
 	}
 
@@ -376,7 +376,7 @@ namespace quest
 			pi_ds.push_back(ch->player_id());
 		}
 	};
-	int party_get_member_pids(lua_State *L)
+	int party_get_member_pids(lua_State *lua)
 	{
 		quest_manager & q = quest_manager::instance();
 		character * ch = q.current_character_ptr();
@@ -390,7 +390,7 @@ namespace quest
 		
 		for (std::vector <uint32_t>::iterator it = f.pi_ds.begin(); it != f.pi_ds.end(); it++)
 		{
-			lua_pushnumber(L, *it);
+			lua_pushnumber(lua, *it);
 		}
 		return f.pi_ds.size();
 	}

@@ -124,7 +124,7 @@ void p2_p_manager::erase_user_by_desc(desc * d)
 	}
 }
 
-void p2_p_manager::send(const void * c_pvData, int iSize, desc * except)
+void p2_p_manager::send(const void * data, int size, desc * except)
 {
 	std::unordered_set<desc *>::iterator it = set_pk_peers_.begin();
 
@@ -135,7 +135,7 @@ void p2_p_manager::send(const void * c_pvData, int iSize, desc * except)
 		if (except == pkDesc)
 			continue;
 
-		pkDesc->packet(c_pvData, iSize);
+		pkDesc->packet(data, size);
 	}
 }
 
@@ -187,43 +187,43 @@ void p2_p_manager::login(desc * d, const packet_gg_login * p)
 	}
 }
 
-void p2_p_manager::logout(cci * pkCCI)
+void p2_p_manager::logout(cci * cci_value)
 {
-	if (pkCCI->channel == metin2::config::server().channel)
+	if (cci_value->channel == metin2::config::server().channel)
 	{
-		if (pkCCI->empire < EMPIRE_MAX_NUM)
+		if (cci_value->empire < EMPIRE_MAX_NUM)
 		{
-			--empire_user_count_[pkCCI->empire];
-			if (empire_user_count_[pkCCI->empire] < 0)
+			--empire_user_count_[cci_value->empire];
+			if (empire_user_count_[cci_value->empire] < 0)
 			{
-				metin2::log::error("m_aiEmpireUserCount[{:d}] < 0", pkCCI->empire);
+				metin2::log::error("m_aiEmpireUserCount[{:d}] < 0", cci_value->empire);
 			}
 		}
 		else
 		{
-			metin2::log::error("LOGOUT_EMPIRE_ERROR: {:d} >= MAX({:d})", pkCCI->empire, EMPIRE_MAX_NUM);
+			metin2::log::error("LOGOUT_EMPIRE_ERROR: {:d} >= MAX({:d})", cci_value->empire, EMPIRE_MAX_NUM);
 		}
 	}
 
-	std::string name(pkCCI->name);
+	std::string name(cci_value->name);
 
-	guild_manager::instance().p2_p_logout_member(pkCCI->pid);
-	party_manager::instance().p2_p_logout(pkCCI->pid);
+	guild_manager::instance().p2_p_logout_member(cci_value->pid);
+	party_manager::instance().p2_p_logout(cci_value->pid);
 	messenger_manager::instance().p2_p_logout(name);
-	marriage::manager::instance().logout(pkCCI->pid);
+	marriage::manager::instance().logout(cci_value->pid);
 
-	map_dw_pid_pk_cci_.erase(pkCCI->pid);
+	map_dw_pid_pk_cci_.erase(cci_value->pid);
 	map_pk_cci_.erase(name);
 }
 
-void p2_p_manager::logout(const char * c_pszName)
+void p2_p_manager::logout(const char * name)
 {
-	cci * pkCCI = find(c_pszName);
+	cci * pkCCI = find(name);
 
 	if (!pkCCI)
 		return;
 
-	metin2::log::info( "P2P: Logout {}", c_pszName);
+	metin2::log::info( "P2P: Logout {}", name);
 	logout(pkCCI);
 }
 
@@ -235,11 +235,11 @@ cci * p2_p_manager::find_by_pid(uint32_t pid)
 	return it->second;
 }
 
-cci * p2_p_manager::find(const char * c_pszName)
+cci * p2_p_manager::find(const char * name)
 {
 	cci_map::const_iterator it;
 
-	it = map_pk_cci_.find(c_pszName);
+	it = map_pk_cci_.find(name);
 
 	if (it == map_pk_cci_.end())
 		return nullptr;
@@ -264,7 +264,7 @@ int p2_p_manager::desc_count()
 	return set_pk_peers_.size();
 }
 
-void p2_p_manager::p2_p_host_names(std::string& hostNames)
+void p2_p_manager::p2_p_host_names(std::string& host_names)
 {
 	std::unordered_set<desc *>::iterator it = set_pk_peers_.begin();
 
@@ -277,6 +277,6 @@ void p2_p_manager::p2_p_host_names(std::string& hostNames)
 		oss << pkDesc->p2_p_host() << " " << pkDesc->p2_p_port() << "\n";
 
 	}
-	hostNames += oss.str();
+	host_names += oss.str();
 }
 }

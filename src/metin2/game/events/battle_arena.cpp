@@ -37,11 +37,11 @@ bool battle_arena::is_running()
 	return status_ == STATUS_CLOSE ? false : true;
 }
 
-bool battle_arena::is_battle_arena_map(int nMapIndex)
+bool battle_arena::is_battle_arena_map(int map_index)
 {
-	if ( nMapIndex == battle_arena_map[1] ||
-		nMapIndex == battle_arena_map[2] ||
-		nMapIndex == battle_arena_map[3] )
+	if ( map_index == battle_arena_map[1] ||
+		map_index == battle_arena_map[2] ||
+		map_index == battle_arena_map[3] )
 	{
 		return true;
 	}
@@ -246,13 +246,13 @@ EVENTFUNC(battle_arena_event)
 	return 0;
 }
 
-bool battle_arena::start(int nEmpire)
+bool battle_arena::start(int empire_value)
 {
 	if ( status_ != STATUS_CLOSE ) return false;
-	if ( nEmpire < 1 || nEmpire > 3 ) return false;
+	if ( empire_value < 1 || empire_value > 3 ) return false;
 
-	map_index_ = battle_arena_map[nEmpire];
-	empire_ = nEmpire;
+	map_index_ = battle_arena_map[empire_value];
+	empire_ = empire_value;
 
 	char szBuf[1024];
 	snprintf(szBuf, sizeof(szBuf), lc_text("%s의 성으로 몬스터들이 진군하고 있습니다."), empire_name(empire_));

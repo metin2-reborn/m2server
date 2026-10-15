@@ -38,22 +38,22 @@ input_p2_p::input_p2_p()
 	bind_packet_info(&packet_info_gg_);
 }
 
-void input_p2_p::login(desc * d, const char * c_pData)
+void input_p2_p::login(desc * d, const char * data)
 {
-	p2_p_manager::instance().login(d, (packet_gg_login *) c_pData);
+	p2_p_manager::instance().login(d, (packet_gg_login *) data);
 }
 
-void input_p2_p::logout(desc * d, const char * c_pData)
+void input_p2_p::logout(desc * d, const char * data)
 {
-	packet_gg_logout * p = (packet_gg_logout *) c_pData;
+	packet_gg_logout * p = (packet_gg_logout *) data;
 	p2_p_manager::instance().logout(p->name);
 }
 
-int input_p2_p::relay(desc * d, const char * c_pData, size_t uiBytes)
+int input_p2_p::relay(desc * d, const char * data, size_t bytes)
 {
-	packet_gg_relay * p = (packet_gg_relay *) c_pData;
+	packet_gg_relay * p = (packet_gg_relay *) data;
 
-	if (uiBytes < sizeof(packet_gg_relay) + p->size)
+	if (bytes < sizeof(packet_gg_relay) + p->size)
 		return -1;
 
 	if (p->size < 0)
@@ -67,7 +67,7 @@ int input_p2_p::relay(desc * d, const char * c_pData, size_t uiBytes)
 
 	character * pkChr = character_manager::instance().find_pc(p->name);
 
-	const uint8_t* c_pbData = (const uint8_t *) (c_pData + sizeof(packet_gg_relay));
+	const uint8_t* c_pbData = (const uint8_t *) (data + sizeof(packet_gg_relay));
 
 	if (!pkChr)
 		return p->size;
@@ -110,11 +110,11 @@ int input_p2_p::relay(desc * d, const char * c_pData, size_t uiBytes)
 	return (p->size);
 }
 
-int input_p2_p::notice(desc * d, const char * c_pData, size_t uiBytes)
+int input_p2_p::notice(desc * d, const char * data, size_t bytes)
 {
-	packet_gg_notice * p = (packet_gg_notice *) c_pData;
+	packet_gg_notice * p = (packet_gg_notice *) data;
 
-	if (uiBytes < sizeof(packet_gg_notice) + p->size)
+	if (bytes < sizeof(packet_gg_notice) + p->size)
 		return -1;
 
 	if (p->size < 0)
@@ -125,16 +125,16 @@ int input_p2_p::notice(desc * d, const char * c_pData, size_t uiBytes)
 	}
 
 	char szBuf[256+1];
-	strlcpy(szBuf, c_pData + sizeof(packet_gg_notice), std::min<int>(p->size + 1, sizeof(szBuf)));
+	strlcpy(szBuf, data + sizeof(packet_gg_notice), std::min<int>(p->size + 1, sizeof(szBuf)));
 	send_notice(szBuf);
 	return (p->size);
 }
 
-int input_p2_p::monarch_notice(desc * d, const char * c_pData, size_t uiBytes)
+int input_p2_p::monarch_notice(desc * d, const char * data, size_t bytes)
 {
-	packet_gg_monarch_notice * p = (packet_gg_monarch_notice *) c_pData;
+	packet_gg_monarch_notice * p = (packet_gg_monarch_notice *) data;
 
-	if (uiBytes < p->size + sizeof(packet_gg_monarch_notice))
+	if (bytes < p->size + sizeof(packet_gg_monarch_notice))
 		return -1;
 
 	if (p->size < 0)
@@ -145,14 +145,14 @@ int input_p2_p::monarch_notice(desc * d, const char * c_pData, size_t uiBytes)
 	}
 
 	char szBuf[256+1];
-	strlcpy(szBuf, c_pData + sizeof(packet_gg_monarch_notice), std::min<int>(p->size + 1, sizeof(szBuf)));
+	strlcpy(szBuf, data + sizeof(packet_gg_monarch_notice), std::min<int>(p->size + 1, sizeof(szBuf)));
 	send_monarch_notice(p->empire, szBuf);
 	return (p->size);
 }
 
-int input_p2_p::monarch_transfer(desc * d, const char* c_pData)
+int input_p2_p::monarch_transfer(desc * d, const char* data)
 {
-	packet_monarch_gg_transfer* p = (packet_monarch_gg_transfer*) c_pData;
+	packet_monarch_gg_transfer* p = (packet_monarch_gg_transfer*) data;
 	character * pTargetChar = character_manager::instance().find_by_pid(p->target_pid);
 
 	if (pTargetChar != nullptr)
@@ -170,11 +170,11 @@ int input_p2_p::monarch_transfer(desc * d, const char* c_pData)
 	return 0;
 }
 
-int input_p2_p::guild(desc * d, const char* c_pData, size_t uiBytes)
+int input_p2_p::guild(desc * d, const char* data, size_t bytes)
 {
-	packet_gg_guild * p = (packet_gg_guild *) c_pData;
-	uiBytes -= sizeof(packet_gg_guild);
-	c_pData += sizeof(packet_gg_guild);
+	packet_gg_guild * p = (packet_gg_guild *) data;
+	bytes -= sizeof(packet_gg_guild);
+	data += sizeof(packet_gg_guild);
 
 	game::guilds::guild * g = guild_manager::instance().find_guild(p->guild);
 
@@ -182,10 +182,10 @@ int input_p2_p::guild(desc * d, const char* c_pData, size_t uiBytes)
 	{
 		case GUILD_SUBHEADER_GG_CHAT:
 			{
-				if (uiBytes < sizeof(packet_gg_guild_chat))
+				if (bytes < sizeof(packet_gg_guild_chat))
 					return -1;
 
-				packet_gg_guild_chat * p = (packet_gg_guild_chat *) c_pData;
+				packet_gg_guild_chat * p = (packet_gg_guild_chat *) data;
 
 				if (g)
 					g->p2_p_chat(p->text);
@@ -195,10 +195,10 @@ int input_p2_p::guild(desc * d, const char* c_pData, size_t uiBytes)
 			
 		case GUILD_SUBHEADER_GG_SET_MEMBER_COUNT_BONUS:
 			{
-				if (uiBytes < sizeof(int))
+				if (bytes < sizeof(int))
 					return -1;
 
-				int iBonus = *((int *) c_pData);
+				int iBonus = *((int *) data);
 				game::guilds::guild* pGuild = guild_manager::instance().find_guild(p->guild);
 				if (pGuild)
 				{
@@ -219,7 +219,7 @@ struct func_shout
 	const char * str;
 	uint8_t empire;
 
-	func_shout(const char * str_value, uint8_t bEmpire) : str(str_value), empire(bEmpire)
+	func_shout(const char * str_value, uint8_t empire_value) : str(str_value), empire(empire_value)
 	{
 	}   
 
@@ -232,21 +232,21 @@ struct func_shout
 	}
 };
 
-void send_shout(const char * szText, uint8_t bEmpire)
+void send_shout(const char * text, uint8_t empire)
 {
 	const desc_manager::desc_set & c_ref_set = desc_manager::instance().client_set();
-	std::for_each(c_ref_set.begin(), c_ref_set.end(), func_shout(szText, bEmpire));
+	std::for_each(c_ref_set.begin(), c_ref_set.end(), func_shout(text, empire));
 }
 
-void input_p2_p::shout(const char * c_pData)
+void input_p2_p::shout(const char * data)
 {
-	packet_gg_shout * p = (packet_gg_shout *) c_pData;
+	packet_gg_shout * p = (packet_gg_shout *) data;
 	send_shout(p->text, p->empire);
 }
 
-void input_p2_p::disconnect(const char * c_pData)
+void input_p2_p::disconnect(const char * data)
 {
-	packet_gg_disconnect * p = (packet_gg_disconnect *) c_pData;
+	packet_gg_disconnect * p = (packet_gg_disconnect *) data;
 
 	desc * d = desc_manager::instance().find_by_login_name(p->login);
 
@@ -261,30 +261,30 @@ void input_p2_p::disconnect(const char * c_pData)
 		d->disconnect_of_same_login();
 }
 
-void input_p2_p::setup(desc * d, const char * c_pData)
+void input_p2_p::setup(desc * d, const char * data)
 {
-	packet_gg_setup * p = (packet_gg_setup *) c_pData;
+	packet_gg_setup * p = (packet_gg_setup *) data;
 	metin2::log::info( "P2P: Setup {}:{:d}", d->host_name(), p->port);
 	d->set_p2_p(d->host_name(), p->port);
 }
 
-void input_p2_p::messenger_add(const char * c_pData)
+void input_p2_p::messenger_add(const char * data)
 {
-	packet_gg_messenger * p = (packet_gg_messenger *) c_pData;
+	packet_gg_messenger * p = (packet_gg_messenger *) data;
 	metin2::log::info( "P2P: Messenger Add {} {}", p->account, p->companion);
 	messenger_manager::instance().apply_add_to_list(p->account, p->companion);
 }
 
-void input_p2_p::messenger_remove(const char * c_pData)
+void input_p2_p::messenger_remove(const char * data)
 {
-	packet_gg_messenger * p = (packet_gg_messenger *) c_pData;
+	packet_gg_messenger * p = (packet_gg_messenger *) data;
 	metin2::log::info( "P2P: Messenger Remove {} {}", p->account, p->companion);
 	messenger_manager::instance().apply_remove_from_list(p->account, p->companion);
 }
 
-void input_p2_p::find_position(desc * d, const char* c_pData)
+void input_p2_p::find_position(desc * d, const char* data)
 {
-	packet_gg_find_position* p = (packet_gg_find_position*) c_pData;
+	packet_gg_find_position* p = (packet_gg_find_position*) data;
 	character * ch = character_manager::instance().find_by_pid(p->target_pid);
 	if (ch && ch->map_index() < 10000)
 	{
@@ -297,9 +297,9 @@ void input_p2_p::find_position(desc * d, const char* c_pData)
 	}
 }
 
-void input_p2_p::warp_character(const char* c_pData)
+void input_p2_p::warp_character(const char* data)
 {
-	packet_gg_warp_character* p = (packet_gg_warp_character*) c_pData;
+	packet_gg_warp_character* p = (packet_gg_warp_character*) data;
 	character * ch = character_manager::instance().find_by_pid(p->pid);
 	if (ch)
 	{
@@ -307,26 +307,26 @@ void input_p2_p::warp_character(const char* c_pData)
 	}
 }
 
-void input_p2_p::guild_war_zone_map_index(const char* c_pData)
+void input_p2_p::guild_war_zone_map_index(const char* data)
 {
-	packet_gg_guild_war_map_index * p = (packet_gg_guild_war_map_index*) c_pData;
+	packet_gg_guild_war_map_index * p = (packet_gg_guild_war_map_index*) data;
 	guild_manager & gm = guild_manager::instance();
 
-	metin2::log::info( "P2P: GuildWarZoneMapIndex g1({:d}) vs g2({:d}), mapIndex({:d})", p->guild_i_d1, p->guild_i_d2, p->map_index);
+	metin2::log::info( "P2P: GuildWarZoneMapIndex g1({:d}) vs g2({:d}), mapIndex({:d})", p->guild_id1, p->guild_id2, p->map_index);
 
-	game::guilds::guild * g1 = gm.find_guild(p->guild_i_d1);
-	game::guilds::guild * g2 = gm.find_guild(p->guild_i_d2);
+	game::guilds::guild * g1 = gm.find_guild(p->guild_id1);
+	game::guilds::guild * g2 = gm.find_guild(p->guild_id2);
 
 	if (g1 && g2)
 	{
-		g1->set_guild_war_map_index(p->guild_i_d2, p->map_index);
-		g2->set_guild_war_map_index(p->guild_i_d1, p->map_index);
+		g1->set_guild_war_map_index(p->guild_id2, p->map_index);
+		g2->set_guild_war_map_index(p->guild_id1, p->map_index);
 	}
 }
 
-void input_p2_p::transfer(const char * c_pData)
+void input_p2_p::transfer(const char * data)
 {
-	packet_gg_transfer * p = (packet_gg_transfer *) c_pData;
+	packet_gg_transfer * p = (packet_gg_transfer *) data;
 
 	character * ch = character_manager::instance().find_pc(p->name);
 
@@ -334,9 +334,9 @@ void input_p2_p::transfer(const char * c_pData)
 		ch->warp_set(p->x, p->y);
 }
 
-void input_p2_p::xmas_warp_santa(const char * c_pData)
+void input_p2_p::xmas_warp_santa(const char * data)
 {
-	packet_gg_xmas_warp_santa * p =(packet_gg_xmas_warp_santa *) c_pData;
+	packet_gg_xmas_warp_santa * p =(packet_gg_xmas_warp_santa *) data;
 
 	if (p->channel == metin2::config::server().channel && map_allow_find(p->map_index))
 	{
@@ -353,9 +353,9 @@ void input_p2_p::xmas_warp_santa(const char * c_pData)
 	}
 }
 
-void input_p2_p::xmas_warp_santa_reply(const char* c_pData)
+void input_p2_p::xmas_warp_santa_reply(const char* data)
 {
-	packet_gg_xmas_warp_santa_reply* p = (packet_gg_xmas_warp_santa_reply*) c_pData;
+	packet_gg_xmas_warp_santa_reply* p = (packet_gg_xmas_warp_santa_reply*) data;
 
 	if (p->channel == metin2::config::server().channel)
 	{
@@ -373,9 +373,9 @@ void input_p2_p::xmas_warp_santa_reply(const char* c_pData)
 }
 
 // BLOCK_CHAT
-void input_p2_p::block_chat(const char * c_pData)
+void input_p2_p::block_chat(const char * data)
 {
-	packet_gg_block_chat * p = (packet_gg_block_chat *) c_pData;
+	packet_gg_block_chat * p = (packet_gg_block_chat *) data;
 
 	character * ch = character_manager::instance().find_pc(p->name);
 
@@ -392,41 +392,41 @@ void input_p2_p::block_chat(const char * c_pData)
 // END_OF_BLOCK_CHAT
 //
 
-void input_p2_p::iam_awake(desc * d, const char * c_pData)
+void input_p2_p::iam_awake(desc * d, const char * data)
 {
 	std::string hostNames;
 	p2_p_manager::instance().p2_p_host_names(hostNames);
 	metin2::log::info( "P2P Awakeness check from {}. My P2P connection number is {:d}. and details...\n{}", d->host_name(), p2_p_manager::instance().desc_count(), hostNames.c_str());
 }
 
-int input_p2_p::analyze(desc * d, uint8_t bHeader, const char * c_pData)
+int input_p2_p::analyze(desc * d, uint8_t header, const char * data)
 {
 	if (metin2::config::test_server())
-		metin2::log::info( "CInputP2P::Anlayze[Header {:d}]", bHeader);
+		metin2::log::info( "CInputP2P::Anlayze[Header {:d}]", header);
 
 	int iExtraLen = 0;
 
-	switch (bHeader)
+	switch (header)
 	{
 		case HEADER_GG_SETUP:
-			setup(d, c_pData);
+			setup(d, data);
 			break;
 
 		case HEADER_GG_LOGIN:
-			login(d, c_pData);
+			login(d, data);
 			break;
 
 		case HEADER_GG_LOGOUT:
-			logout(d, c_pData);
+			logout(d, data);
 			break;
 
 		case HEADER_GG_RELAY:
-			if ((iExtraLen = relay(d, c_pData, buffer_left_)) < 0)
+			if ((iExtraLen = relay(d, data, buffer_left_)) < 0)
 				return -1;
 			break;
 
 		case HEADER_GG_NOTICE:
-			if ((iExtraLen = notice(d, c_pData, buffer_left_)) < 0)
+			if ((iExtraLen = notice(d, data, buffer_left_)) < 0)
 				return -1;
 			break;
 
@@ -436,48 +436,48 @@ int input_p2_p::analyze(desc * d, uint8_t bHeader, const char * c_pData)
 			break;
 
 		case HEADER_GG_GUILD:
-			if ((iExtraLen = guild(d, c_pData, buffer_left_)) < 0)
+			if ((iExtraLen = guild(d, data, buffer_left_)) < 0)
 				return -1;
 			break;
 
 		case HEADER_GG_SHOUT:
-			shout(c_pData);
+			shout(data);
 			break;
 
 		case HEADER_GG_DISCONNECT:
-			disconnect(c_pData);
+			disconnect(data);
 			break;
 
 		case HEADER_GG_MESSENGER_ADD:
-			messenger_add(c_pData);
+			messenger_add(data);
 			break;
 
 		case HEADER_GG_MESSENGER_REMOVE:
-			messenger_remove(c_pData);
+			messenger_remove(data);
 			break;
 
 		case HEADER_GG_FIND_POSITION:
-			find_position(d, c_pData);
+			find_position(d, data);
 			break;
 
 		case HEADER_GG_WARP_CHARACTER:
-			warp_character(c_pData);
+			warp_character(data);
 			break;
 
 		case HEADER_GG_GUILD_WAR_ZONE_MAP_INDEX:
-			guild_war_zone_map_index(c_pData);
+			guild_war_zone_map_index(data);
 			break;
 
 		case HEADER_GG_TRANSFER:
-			transfer(c_pData);
+			transfer(data);
 			break;
 
 		case HEADER_GG_XMAS_WARP_SANTA:
-			xmas_warp_santa(c_pData);
+			xmas_warp_santa(data);
 			break;
 
 		case HEADER_GG_XMAS_WARP_SANTA_REPLY:
-			xmas_warp_santa_reply(c_pData);
+			xmas_warp_santa_reply(data);
 			break;
 
 		case HEADER_GG_CHECK_CLIENT_VERSION:
@@ -485,27 +485,27 @@ int input_p2_p::analyze(desc * d, uint8_t bHeader, const char * c_pData)
 			break;
 
 		case HEADER_GG_BLOCK_CHAT:
-			block_chat(c_pData);
+			block_chat(data);
 			break;
 
 		case HEADER_GG_SIEGE:
 			{
-				packet_gg_siege* pSiege = (packet_gg_siege*)c_pData;
+				packet_gg_siege* pSiege = (packet_gg_siege*)data;
 				castle_siege(pSiege->empire, pSiege->tower_count);
 			}
 			break;
 
 		case HEADER_GG_MONARCH_NOTICE:
-			if ((iExtraLen = monarch_notice(d, c_pData, buffer_left_)) < 0)
+			if ((iExtraLen = monarch_notice(d, data, buffer_left_)) < 0)
 				return -1;
 			break;
 
 		case HEADER_GG_MONARCH_TRANSFER :
-			monarch_transfer(d, c_pData);
+			monarch_transfer(d, data);
 			break;
 
 		case HEADER_GG_CHECK_AWAKENESS:
-			iam_awake(d, c_pData);
+			iam_awake(d, data);
 			break;
 	}
 

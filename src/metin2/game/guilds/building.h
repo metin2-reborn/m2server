@@ -23,7 +23,7 @@ namespace building
 	class object : public entity
 	{
 		public:
-			object(object_table * pData, object_proto * pProto);
+			object(object_table * data, object_proto * proto);
 			~object() override;
 
 			void	destroy();
@@ -33,14 +33,14 @@ namespace building
 
 			uint32_t	id() { return data_.id; }
 
-			void	set_vid(uint32_t dwVID);
+			void	set_vid(uint32_t vid);
 			uint32_t	get_vid() { return vid_; }
 
-			bool	show(int32_t lMapIndex, int32_t x, int32_t y);
+			bool	show(int32_t map_index_value, int32_t x, int32_t y);
 
 			void	save();
 
-			void	set_land(land * pkLand) { land_ = pkLand; }
+			void	set_land(land * land_value) { land_ = land_value; }
 			land *	get_land()		{ return land_; }
 
 			uint32_t	vnum()		{ return proto_ ? proto_->vnum : 0; }
@@ -52,7 +52,7 @@ namespace building
 			void	apply_special_effect();
 			void	remove_special_effect();
 
-			void	reconstruct(uint32_t dwVnum);
+			void	reconstruct(uint32_t vnum);
 
 			character * npc() { return ch_npc_; }
 			// END_OF_BUILDING_NPC
@@ -69,7 +69,7 @@ namespace building
 	class land
 	{
 		public:
-			land(land_table * pData);
+			land(land_table * data);
 			~land();
 
 			void	destroy();
@@ -78,32 +78,32 @@ namespace building
 			void	put_data(const land_table * data);
 
 			uint32_t	id() const { return data_.id; }
-			void	set_owner(uint32_t dwGID);
+			void	set_owner(uint32_t guild);
 			uint32_t	owner() const { return data_.guild_id; }
 
-			void	insert_object(object * pkObj);
-			object *	find_object(uint32_t dwID);
-			object *	find_object_by_vid(uint32_t dwVID);
-			object *	find_object_by_group(uint32_t dwGroupVnum);
+			void	insert_object(object * obj);
+			object *	find_object(uint32_t id);
+			object *	find_object_by_vid(uint32_t vid);
+			object *	find_object_by_group(uint32_t group_vnum);
 			object *	find_object_by_npc(character * npc);
-			void delete_object(uint32_t dwID);
+			void delete_object(uint32_t id);
 
-			bool	request_create_object(uint32_t dwVnum, int32_t lMapIndex, int32_t x, int32_t y, float xRot, float yRot, float zRot, bool checkAnother);
-			void	request_delete_object(uint32_t dwID);
-			void	request_delete_object_by_vid(uint32_t dwVID);
+			bool	request_create_object(uint32_t vnum_value, int32_t map_index_value, int32_t x, int32_t y, float x_rot_value, float y_rot_value, float z_rot_value, bool check_another);
+			void	request_delete_object(uint32_t id);
+			void	request_delete_object_by_vid(uint32_t vid);
 
-			void	request_update(uint32_t dwGuild);
+			void	request_update(uint32_t guild);
 
 			// LAND_CLEAR
 			void	clear_land();
 			// END_LAND_CLEAR
 
 			// BUILD_WALL
-			bool request_create_wall(int32_t nMapIndex, float rot);
+			bool request_create_wall(int32_t map_index, float rot);
 			void request_delete_wall();
 
-			bool request_create_wall_blocks(uint32_t dwVnum, int32_t nMapIndex, char wallSize, bool doorEast, bool doorWest, bool doorSouth, bool doorNorth);
-			void request_delete_wall_blocks(uint32_t dwVnum);
+			bool request_create_wall_blocks(uint32_t vnum, int32_t map_index, char wall_size, bool door_east, bool door_west, bool door_south, bool door_north);
+			void request_delete_wall_blocks(uint32_t id_value);
 			// END_BUILD_WALL
 
 			uint32_t map_index() { return data_.map_index; }
@@ -115,7 +115,7 @@ namespace building
 
 			// BUILD_WALL
 		private :
-			void draw_wall(uint32_t dwVnum, int32_t nMapIndex, int32_t& centerX, int32_t& centerY, char length, float zRot);
+			void draw_wall(uint32_t vnum, int32_t map_index, int32_t& x, int32_t& y, char length, float z_rot);
 			// END_BUILD_WALL
 	};
 
@@ -129,26 +129,26 @@ namespace building
 
 			void	finalize_boot();
 
-			bool	load_object_proto(const proto::building::object_proto * pProto, int size);
-			proto::building::object_proto * object_proto(uint32_t dwVnum);
+			bool	load_object_proto(const proto::building::object_proto * proto, int size);
+			proto::building::object_proto * object_proto(uint32_t vnum);
 
-			bool	load_land(land_table * pTable);
-			land *	find_land(uint32_t dwID);
-			land *	find_land(int32_t lMapIndex, int32_t x, int32_t y);
-			land *	find_land_by_guild(uint32_t GID);
-			void	update_land(land_table * pTable);
+			bool	load_land(land_table * table);
+			land *	find_land(uint32_t id);
+			land *	find_land(int32_t map_index_value, int32_t x, int32_t y);
+			land *	find_land_by_guild(uint32_t gid);
+			void	update_land(land_table * table);
 
-			bool	load_object(object_table * pTable, bool isBoot=false);
-			void	delete_object(uint32_t dwID);
-			void	unregister_object(object * pkObj);
+			bool	load_object(object_table * table, bool is_boot=false);
+			void	delete_object(uint32_t id);
+			void	unregister_object(object * obj);
 
-			object *	find_object_by_vid(uint32_t dwVID);
+			object *	find_object_by_vid(uint32_t vid);
 
-			void	send_land_list(desc * d, int32_t lMapIndex);
+			void	send_land_list(desc * d, int32_t map_index_value);
 
 			// LAND_CLEAR
-			void	clear_land(uint32_t dwLandID);
-			void	clear_land_by_guild_id(uint32_t dwGuildID);
+			void	clear_land(uint32_t land_id);
+			void	clear_land_by_guild_id(uint32_t guild_id);
 			// END_LAND_CLEAR
 
 		protected:

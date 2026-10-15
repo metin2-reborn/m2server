@@ -100,7 +100,7 @@ extern int		event_process(int pulse);
 extern int		event_count();
 
 extern event_ptr	event_create(event_func func, event_info_data* info, int32_t when);
-extern void		event_cancel(event_ptr * event);			// Cancel event
+extern void		event_cancel(event_ptr * ppevent);			// Cancel event
 extern int32_t		event_processing_time(event_ptr event);	// Return execution time
 extern int32_t		event_time(event_ptr event);			// Return remaining time
 extern void		event_reset_time(event_ptr event, int32_t when);	// Reset execution time

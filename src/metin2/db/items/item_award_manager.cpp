@@ -43,11 +43,11 @@ void item_award_manager::request_load()
 	db_manager::instance().return_query(szQuery, QID_ITEM_AWARD_LOAD, 0, nullptr);
 }
 
-void item_award_manager::load(ql_msg * pMsg)
+void item_award_manager::load(ql_msg * msg)
 {
-	MYSQL_RES * pRes = pMsg->get()->sql_result;
+	MYSQL_RES * pRes = msg->get()->sql_result;
 
-	for (uint i = 0; i < pMsg->get()->num_rows; ++i)
+	for (uint i = 0; i < msg->get()->num_rows; ++i)
 	{
 		MYSQL_ROW row = mysql_fetch_row(pRes);
 		int col = 0;
@@ -88,9 +88,9 @@ void item_award_manager::load(ql_msg * pMsg)
 	}
 }
 
-std::set<item_award *> * item_award_manager::by_login(const char * c_pszLogin)
+std::set<item_award *> * item_award_manager::by_login(const char * login)
 {
-	auto it = map_k_set_award_by_login_.find(c_pszLogin);
+	auto it = map_k_set_award_by_login_.find(login);
 
 	if (it == map_k_set_award_by_login_.end())
 		return nullptr;
@@ -98,13 +98,13 @@ std::set<item_award *> * item_award_manager::by_login(const char * c_pszLogin)
 	return &it->second;
 }
 
-void item_award_manager::taken(uint32_t dwAwardID, uint32_t dwItemID)
+void item_award_manager::taken(uint32_t award_id, uint32_t item_id)
 {
-	auto it = map_award_.find(dwAwardID);
+	auto it = map_award_.find(award_id);
 
 	if (it == map_award_.end())
 	{
-		metin2::log::info( "ITEM_AWARD: Taken ID not exist {:d}", dwAwardID);
+		metin2::log::info( "ITEM_AWARD: Taken ID not exist {:d}", award_id);
 		return;
 	}
 
@@ -118,7 +118,7 @@ void item_award_manager::taken(uint32_t dwAwardID, uint32_t dwItemID)
 
 	snprintf(szQuery, sizeof(szQuery), 
 			"UPDATE item_award SET taken_time=NOW(),item_id=%u WHERE id=%u AND taken_time IS NULL", 
-			dwItemID, dwAwardID);
+			item_id, award_id);
 
 	db_manager::instance().return_query(szQuery, QID_ITEM_AWARD_TAKEN, 0, nullptr);
 }

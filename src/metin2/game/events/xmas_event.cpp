@@ -151,19 +151,19 @@ namespace xmas
 		return passes_per_sec(5);
 	}
 
-	void spawn_santa(int32_t lMapIndex, int iTimeGapSec)
+	void spawn_santa(int32_t map_index_value, int time_gap_sec)
 	{
 		if (metin2::config::test_server())
 		{
-			iTimeGapSec /= 60;
+			time_gap_sec /= 60;
 		}
 
-		metin2::log::info( "santa respawn time = {:d}", iTimeGapSec);
+		metin2::log::info( "santa respawn time = {:d}", time_gap_sec);
 		spawn_santa_info* info = alloc_event_info<spawn_santa_info>();
 
-		info->map_index = lMapIndex;
+		info->map_index = map_index_value;
 
-		event_create(spawn_santa_event, info, passes_per_sec(iTimeGapSec));
+		event_create(spawn_santa_event, info, passes_per_sec(time_gap_sec));
 	}
 
 	void spawn_event_helper(bool spawn)

@@ -35,27 +35,27 @@ class three_way_war : public singleton<three_way_war>
 		~three_way_war () override;
 
 		void initialize ();
-		bool load_setting (const char* szFileName);
+		bool load_setting (const char* file_name);
 
 		int kill_score (uint8_t empire) const;
 		void set_kill_score (uint8_t empire, int count);
 
-		void set_revive_token_for_player (uint32_t PlayerID, int count);
-		int revive_token_for_player (uint32_t PlayerID);
-		void decrease_revive_token_for_player (uint32_t PlayerID);
+		void set_revive_token_for_player (uint32_t player_id, int count);
+		int revive_token_for_player (uint32_t player_id);
+		void decrease_revive_token_for_player (uint32_t player_id);
 
 		const forked_pass_map_info& event_pass_map_info () const;
 		const forked_sungzi_map_info& event_sung_zi_map_info () const;
 
-		bool is_three_way_war_map_index (int iMapIndex) const;
-		bool is_sung_zi_map_index (int iMapIndex) const;
+		bool is_three_way_war_map_index (int map_index) const;
+		bool is_sung_zi_map_index (int map_index) const;
 
 		void random_event_map_set ();
 
-		void register_user (uint32_t PlayerID);
-		bool is_registered_user (uint32_t PlayerID) const;
+		void register_user (uint32_t player_id);
+		bool is_registered_user (uint32_t player_id) const;
 
-		void on_dead (character * pChar, character * pKiller);
+		void on_dead (character * ch, character * killer);
 
 		void set_regen_flag (int flag) { regen_flag_ = flag; }
 		int regen_flag () const { return regen_flag_; }
@@ -75,10 +75,10 @@ class three_way_war : public singleton<three_way_war>
 };
 
 const char* get_sungzi_map_path();
-const char* get_pass_map_path( uint8_t bEmpire );
-int get_pass_map_index( uint8_t bEmpire );
+const char* get_pass_map_path( uint8_t empire );
+int get_pass_map_index( uint8_t empire );
 int get_sungzi_map_index();
 
-int get_sungzi_start_x( uint8_t bEmpire );
-int get_sungzi_start_y( uint8_t bEmpire );
+int get_sungzi_start_x( uint8_t empire );
+int get_sungzi_start_y( uint8_t empire );
 }

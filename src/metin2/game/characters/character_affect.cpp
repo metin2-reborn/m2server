@@ -47,21 +47,21 @@ void send_affect_remove_packet(desc * d, uint32_t pid, uint32_t type, uint8_t po
 	db_clientdesc->db_packet(HEADER_GD_REMOVE_AFFECT, 0, &ptod, sizeof(ptod));
 }
 
-void send_affect_add_packet(desc * d, affect * pkAff)
+void send_affect_add_packet(desc * d, affect * aff)
 {
 	packet_gc_affect_add ptoc;
 	ptoc.header		= HEADER_GC_AFFECT_ADD;
-	ptoc.elem.type		= pkAff->type;
-	ptoc.elem.apply_on		= pkAff->apply_on;
-	ptoc.elem.apply_value	= pkAff->apply_value;
-	ptoc.elem.flag		= pkAff->flag;
-	ptoc.elem.duration		= pkAff->duration;
-	ptoc.elem.sp_cost		= pkAff->sp_cost;
+	ptoc.elem.type		= aff->type;
+	ptoc.elem.apply_on		= aff->apply_on;
+	ptoc.elem.apply_value	= aff->apply_value;
+	ptoc.elem.flag		= aff->flag;
+	ptoc.elem.duration		= aff->duration;
+	ptoc.elem.sp_cost		= aff->sp_cost;
 	d->packet(&ptoc, sizeof(packet_gc_affect_add));
 }
 ////////////////////////////////////////////////////////////////////
 // Affect
-affect * character::find_affect(uint32_t dwType, uint8_t bApply) const
+affect * character::find_affect(uint32_t type_value, uint8_t apply) const
 {
 	auto it = list_pk_affect_.begin();
 
@@ -69,7 +69,7 @@ affect * character::find_affect(uint32_t dwType, uint8_t bApply) const
 	{
 		affect * pkAffect = *it++;
 
-		if (pkAffect->type == dwType && (bApply == APPLY_NONE || bApply == pkAffect->apply_on))
+		if (pkAffect->type == type_value && (apply == APPLY_NONE || apply == pkAffect->apply_on))
 			return pkAffect;
 	}
 
@@ -178,7 +178,7 @@ void character::start_affect_event()
 	metin2::log::debug( "StartAffectEvent {} {} {}", name(), static_cast<const void *>(this), static_cast<const void *>(affect_event.get()));
 }
 
-void character::clear_affect(bool bSave)
+void character::clear_affect(bool save)
 {
 	affect_flag afOld = af_affect_flag_;
 	uint16_t	wMovSpd = point(POINT_MOV_SPEED);
@@ -190,7 +190,7 @@ void character::clear_affect(bool bSave)
 	{
 		affect * pkAff = *it;
 
-		if (bSave)
+		if (save)
 		{
 			if ( is_no_clear_on_death_affect(pkAff->type) || is_no_save_affect(pkAff->type) )
 			{
@@ -440,20 +440,20 @@ EVENTFUNC(load_affect_login_event)
 	}
 }
 
-void character::load_affect(uint32_t dwCount, packet_affect_element * pElements)
+void character::load_affect(uint32_t count_value, packet_affect_element * elements)
 {
 
 	if (!get_desc()->is_phase(PHASE_GAME))
 	{
 		if (metin2::config::test_server())
-			metin2::log::info( "LOAD_AFFECT: Creating Event {} {:d}", name(), dwCount);
+			metin2::log::info( "LOAD_AFFECT: Creating Event {} {:d}", name(), count_value);
 
 		load_affect_login_event_info* info = alloc_event_info<load_affect_login_event_info>();
 
 		info->pid = player_id();
-		info->count = dwCount;
-		info->data = new char[sizeof(packet_affect_element) * dwCount];
-		std::memcpy(info->data, pElements, sizeof(packet_affect_element) * dwCount);
+		info->count = count_value;
+		info->data = new char[sizeof(packet_affect_element) * count_value];
+		std::memcpy(info->data, elements, sizeof(packet_affect_element) * count_value);
 
 		event_create(load_affect_login_event, info, passes_per_sec(1));
 
@@ -463,22 +463,22 @@ void character::load_affect(uint32_t dwCount, packet_affect_element * pElements)
 	clear_affect(true);
 
 	if (metin2::config::test_server())
-		metin2::log::info( "LOAD_AFFECT: {} count {:d}", name(), dwCount);
+		metin2::log::info( "LOAD_AFFECT: {} count {:d}", name(), count_value);
 
 	affect_flag afOld = af_affect_flag_;
 
 	int32_t lMovSpd = point(POINT_MOV_SPEED);
 	int32_t lAttSpd = point(POINT_ATT_SPEED);
 
-	for (uint32_t i = 0; i < dwCount; ++i, ++pElements)
+	for (uint32_t i = 0; i < count_value; ++i, ++elements)
 	{
 		// Do not load Mu Yeong Jin.
-		if (pElements->type == SKILL_MUYEONG)
+		if (elements->type == SKILL_MUYEONG)
 			continue;
 
-		if (AFFECT_AUTO_HP_RECOVERY == pElements->type || AFFECT_AUTO_SP_RECOVERY == pElements->type)
+		if (AFFECT_AUTO_HP_RECOVERY == elements->type || AFFECT_AUTO_SP_RECOVERY == elements->type)
 		{
-			item * item = find_item_by_id( pElements->flag );
+			item * item = find_item_by_id( elements->flag );
 
 			if (nullptr == item)
 				continue;
@@ -486,27 +486,27 @@ void character::load_affect(uint32_t dwCount, packet_affect_element * pElements)
 			item->lock(true);
 		}
 
-		if (pElements->apply_on >= POINT_MAX_NUM)
+		if (elements->apply_on >= POINT_MAX_NUM)
 		{
 			metin2::log::error("invalid affect data {} ApplyOn {:d} ApplyValue {:d}",
-					name(), pElements->apply_on, pElements->apply_value);
+					name(), elements->apply_on, elements->apply_value);
 			continue;
 		}
 
 		if (metin2::config::test_server())
 		{
-			metin2::log::info( "Load Affect : Affect {} {:d} {:d}", name(), pElements->type, pElements->apply_on );
+			metin2::log::info( "Load Affect : Affect {} {:d} {:d}", name(), elements->type, elements->apply_on );
 		}
 
 		affect* pkAff = new affect{};
 		list_pk_affect_.push_back(pkAff);
 
-		pkAff->type		= pElements->type;
-		pkAff->apply_on		= pElements->apply_on;
-		pkAff->apply_value	= pElements->apply_value;
-		pkAff->flag		= pElements->flag;
-		pkAff->duration	= pElements->duration;
-		pkAff->sp_cost		= pElements->sp_cost;
+		pkAff->type		= elements->type;
+		pkAff->apply_on		= elements->apply_on;
+		pkAff->apply_value	= elements->apply_value;
+		pkAff->flag		= elements->flag;
+		pkAff->duration	= elements->duration;
+		pkAff->sp_cost		= elements->sp_cost;
 
 		send_affect_add_packet(get_desc(), pkAff);
 
@@ -532,29 +532,29 @@ void character::load_affect(uint32_t dwCount, packet_affect_element * pElements)
 	dragon_soul_initialize();
 }
 
-bool character::add_affect(uint32_t dwType, uint8_t bApplyOn, int32_t lApplyValue, uint32_t dwFlag, int32_t lDuration, int32_t lSPCost, bool bOverride, bool IsCube )
+bool character::add_affect(uint32_t type_value, uint8_t apply_on_value, int32_t apply_value_value, uint32_t flag_value, int32_t duration_value, int32_t sp_cost_value, bool override, bool is_cube )
 {
 	// CHAT_BLOCK
-	if (dwType == AFFECT_BLOCK_CHAT && lDuration > 1)
+	if (type_value == AFFECT_BLOCK_CHAT && duration_value > 1)
 	{
 		chat_packet(CHAT_TYPE_INFO, lc_text("운영자 제제로 채팅이 금지 되었습니다."));
 	}
 	// END_OF_CHAT_BLOCK
 
-	if (lDuration == 0)
+	if (duration_value == 0)
 	{
-		metin2::log::error("Character::AddAffect lDuration == 0 type {:d}", dwType);
-		lDuration = 1;
+		metin2::log::error("Character::AddAffect lDuration == 0 type {:d}", type_value);
+		duration_value = 1;
 	}
 
 	affect * pkAff = nullptr;
 
-	if (IsCube)
-		pkAff = find_affect(dwType,bApplyOn);
+	if (is_cube)
+		pkAff = find_affect(type_value,apply_on_value);
 	else
-		pkAff = find_affect(dwType);
+		pkAff = find_affect(type_value);
 
-	if (dwFlag == AFF_STUN)
+	if (flag_value == AFF_STUN)
 	{
 		if (pos_dest_.x != x() || pos_dest_.y != y())
 		{
@@ -567,7 +567,7 @@ bool character::add_affect(uint32_t dwType, uint8_t bApplyOn, int32_t lApplyValu
 	}
 
 	// Overwrite an existing effect
-	if (pkAff && bOverride)
+	if (pkAff && override)
 	{
 		compute_affect(pkAff, false); // First remove the effect
 
@@ -586,15 +586,15 @@ bool character::add_affect(uint32_t dwType, uint8_t bApplyOn, int32_t lApplyValu
 
 	}
 
-	metin2::log::debug( "AddAffect {} type {:d} apply {:d} {:d} flag {:d} duration {:d}", name(), dwType, bApplyOn, lApplyValue, dwFlag, lDuration);
-	metin2::log::info( "AddAffect {} type {:d} apply {:d} {:d} flag {:d} duration {:d}", name(), dwType, bApplyOn, lApplyValue, dwFlag, lDuration);
+	metin2::log::debug( "AddAffect {} type {:d} apply {:d} {:d} flag {:d} duration {:d}", name(), type_value, apply_on_value, apply_value_value, flag_value, duration_value);
+	metin2::log::info( "AddAffect {} type {:d} apply {:d} {:d} flag {:d} duration {:d}", name(), type_value, apply_on_value, apply_value_value, flag_value, duration_value);
 
-	pkAff->type	= dwType;
-	pkAff->apply_on	= bApplyOn;
-	pkAff->apply_value	= lApplyValue;
-	pkAff->flag	= dwFlag;
-	pkAff->duration	= lDuration;
-	pkAff->sp_cost	= lSPCost;
+	pkAff->type	= type_value;
+	pkAff->apply_on	= apply_on_value;
+	pkAff->apply_value	= apply_value_value;
+	pkAff->flag	= flag_value;
+	pkAff->duration	= duration_value;
+	pkAff->sp_cost	= sp_cost_value;
 
 	uint16_t wMovSpd = point(POINT_MOV_SPEED);
 	uint16_t wAttSpd = point(POINT_ATT_SPEED);
@@ -638,9 +638,9 @@ void character::refresh_affect()
 	}
 }
 
-void character::compute_affect(affect * pkAff, bool bAdd)
+void character::compute_affect(affect * aff, bool add)
 {
-	if (bAdd && pkAff->type >= GUILD_SKILL_START && pkAff->type <= GUILD_SKILL_END)	
+	if (add && aff->type >= GUILD_SKILL_START && aff->type <= GUILD_SKILL_END)	
 	{
 		if (!get_guild())
 			return;
@@ -649,38 +649,38 @@ void character::compute_affect(affect * pkAff, bool bAdd)
 			return;
 	}
 
-	if (pkAff->flag)
+	if (aff->flag)
 	{
-		if (!bAdd)
-			af_affect_flag_.reset(pkAff->flag);
+		if (!add)
+			af_affect_flag_.reset(aff->flag);
 		else
-			af_affect_flag_.set(pkAff->flag);
+			af_affect_flag_.set(aff->flag);
 	}
 
-	if (bAdd)
-		point_change(pkAff->apply_on, pkAff->apply_value);
+	if (add)
+		point_change(aff->apply_on, aff->apply_value);
 	else
-		point_change(pkAff->apply_on, -pkAff->apply_value);
+		point_change(aff->apply_on, -aff->apply_value);
 
-	if (pkAff->type == SKILL_MUYEONG)
+	if (aff->type == SKILL_MUYEONG)
 	{
-		if (bAdd)
+		if (add)
 			start_muyeong_event();
 		else
 			stop_muyeong_event();
 	}
 }
 
-bool character::remove_affect(affect * pkAff)
+bool character::remove_affect(affect * aff)
 {
-	if (!pkAff)
+	if (!aff)
 		return false;
 
 	// AFFECT_BUF_FIX
-	list_pk_affect_.remove(pkAff);
+	list_pk_affect_.remove(aff);
 	// END_OF_AFFECT_BUF_FIX
 
-	compute_affect(pkAff, false);
+	compute_affect(aff, false);
 
 	// White flag (Baek-gi) bug fix.
 	// The white flag bug happens when you cast a buff skill -> transform -> use white flag (AFFECT_REVIVE_INVISIBLE) and attack immediately.
@@ -691,7 +691,7 @@ bool character::remove_affect(affect * pkAff)
 	// So only the case where AFFECT_REVIVE_INVISIBLE is removed via RemoveAffect is fixed.
 	// The bug does not occur when the white flag effect expires, so do the same as that case.
 	//		(See ProcessAffect: when an Affect is removed because it expired, ComputePoints is not called.)
-	if (AFFECT_REVIVE_INVISIBLE != pkAff->type)
+	if (AFFECT_REVIVE_INVISIBLE != aff->type)
 	{
 		compute_points();
 	}
@@ -703,21 +703,21 @@ bool character::remove_affect(affect * pkAff)
 	check_maximum_points();
 
 	if (metin2::config::test_server())
-		metin2::log::info( "AFFECT_REMOVE: {} (flag {:d} apply: {:d})", name(), pkAff->flag, pkAff->apply_on);
+		metin2::log::info( "AFFECT_REMOVE: {} (flag {:d} apply: {:d})", name(), aff->flag, aff->apply_on);
 
 	if (is_pc())
 	{
-		send_affect_remove_packet(get_desc(), player_id(), pkAff->type, pkAff->apply_on);
+		send_affect_remove_packet(get_desc(), player_id(), aff->type, aff->apply_on);
 	}
 
-	delete pkAff;
+	delete aff;
 	return true;
 }
 
-bool character::remove_affect(uint32_t dwType)
+bool character::remove_affect(uint32_t type)
 {
 	// CHAT_BLOCK
-	if (dwType == AFFECT_BLOCK_CHAT)
+	if (type == AFFECT_BLOCK_CHAT)
 	{
 		chat_packet(CHAT_TYPE_INFO, lc_text("채팅 금지가 풀렸습니다."));
 	}
@@ -727,7 +727,7 @@ bool character::remove_affect(uint32_t dwType)
 
 	affect * pkAff;
 
-	while ((pkAff = find_affect(dwType)))
+	while ((pkAff = find_affect(type)))
 	{
 		remove_affect(pkAff);
 		flag = true;
@@ -736,9 +736,9 @@ bool character::remove_affect(uint32_t dwType)
 	return flag;
 }
 
-bool character::is_affect_flag(uint32_t dwAff) const
+bool character::is_affect_flag(uint32_t aff) const
 {
-	return af_affect_flag_.is_set(dwAff);
+	return af_affect_flag_.is_set(aff);
 }
 
 void character::remove_good_affect()
@@ -767,9 +767,9 @@ void character::remove_good_affect()
 	remove_affect(SKILL_GICHEON);
 }
 
-bool character::is_good_affect(uint8_t bAffectType) const
+bool character::is_good_affect(uint8_t affect_type) const
 {
-	switch (bAffectType)
+	switch (affect_type)
 	{
 		case (AFFECT_MOV_SPEED):
 		case (AFFECT_ATT_SPEED):

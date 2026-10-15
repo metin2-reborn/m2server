@@ -21,14 +21,14 @@ namespace quest
 	//
 	// "npc" lua functions
 	//
-	int npc_open_shop(lua_State * L)
+	int npc_open_shop(lua_State * lua)
 	{
 		int iShopVnum = 0;
 
-		if (lua_gettop(L) == 1)
+		if (lua_gettop(lua) == 1)
 		{
-			if (lua_isnumber(L, 1))
-				iShopVnum = (int) lua_tonumber(L, 1);
+			if (lua_isnumber(lua, 1))
+				iShopVnum = (int) lua_tonumber(lua, 1);
 		}
 
 		if (quest_manager::instance().current_npc_character_ptr())
@@ -36,35 +36,35 @@ namespace quest
 		return 0;
 	}
 
-	int npc_is_pc(lua_State* L)
+	int npc_is_pc(lua_State* lua)
 	{
 		quest_manager& q = quest_manager::instance();
 		character * npc = q.current_npc_character_ptr();
 		if (npc && npc->is_pc())
-			lua_pushboolean(L, 1);
+			lua_pushboolean(lua, 1);
 		else
-			lua_pushboolean(L, 0);
+			lua_pushboolean(lua, 0);
 		return 1;
 	}
 
-	int npc_get_empire(lua_State * L)
+	int npc_get_empire(lua_State * lua)
 	{
 		quest_manager& q = quest_manager::instance();
 		character * npc = q.current_npc_character_ptr();
 		if (npc)
-			lua_pushnumber(L, npc->empire());
+			lua_pushnumber(lua, npc->empire());
 		else
-			lua_pushnumber(L, 0);
+			lua_pushnumber(lua, 0);
 		return 1;
 	}
 
-	int npc_get_race(lua_State * L)
+	int npc_get_race(lua_State * lua)
 	{
-		lua_pushnumber(L, quest_manager::instance().current_npc_race());
+		lua_pushnumber(lua, quest_manager::instance().current_npc_race());
 		return 1;
 	}
 
-	int npc_get_guild(lua_State* L)
+	int npc_get_guild(lua_State* lua)
 	{
 		quest_manager& q = quest_manager::instance();
 		character * npc = q.current_npc_character_ptr();
@@ -72,23 +72,23 @@ namespace quest
 		if (npc)
 			pGuild = npc->get_guild();
 
-		lua_pushnumber(L, pGuild ? pGuild->id() : 0);
+		lua_pushnumber(lua, pGuild ? pGuild->id() : 0);
 		return 1;
 	}
 
-	int npc_get_remain_skill_book_count(lua_State* L)
+	int npc_get_remain_skill_book_count(lua_State* lua)
 	{
 		character * npc = quest_manager::instance().current_npc_character_ptr();
 		if (!npc || npc->is_pc() || npc->race_num() != xmas::MOB_SANTA_VNUM)
 		{
-			lua_pushnumber(L, 0);
+			lua_pushnumber(lua, 0);
 			return 1;
 		}
-		lua_pushnumber(L, std::max(0, npc->point(POINT_ATT_GRADE_BONUS)));
+		lua_pushnumber(lua, std::max(0, npc->point(POINT_ATT_GRADE_BONUS)));
 		return 1;
 	}
 
-	int npc_dec_remain_skill_book_count(lua_State* L)
+	int npc_dec_remain_skill_book_count(lua_State* lua)
 	{
 		character * npc = quest_manager::instance().current_npc_character_ptr();
 		if (!npc || npc->is_pc() || npc->race_num() != xmas::MOB_SANTA_VNUM)
@@ -99,19 +99,19 @@ namespace quest
 		return 0;
 	}
 
-	int npc_get_remain_hairdye_count(lua_State* L)
+	int npc_get_remain_hairdye_count(lua_State* lua)
 	{
 		character * npc = quest_manager::instance().current_npc_character_ptr();
 		if (!npc || npc->is_pc() || npc->race_num() != xmas::MOB_SANTA_VNUM)
 		{
-			lua_pushnumber(L, 0);
+			lua_pushnumber(lua, 0);
 			return 1;
 		}
-		lua_pushnumber(L, std::max(0, npc->point(POINT_DEF_GRADE_BONUS)));
+		lua_pushnumber(lua, std::max(0, npc->point(POINT_DEF_GRADE_BONUS)));
 		return 1;
 	}
 
-	int npc_dec_remain_hairdye_count(lua_State* L)
+	int npc_dec_remain_hairdye_count(lua_State* lua)
 	{
 		character * npc = quest_manager::instance().current_npc_character_ptr();
 		if (!npc || npc->is_pc() || npc->race_num() != xmas::MOB_SANTA_VNUM)
@@ -122,7 +122,7 @@ namespace quest
 		return 0;
 	}
 
-	int npc_is_quest(lua_State * L)
+	int npc_is_quest(lua_State * lua)
 	{
 		quest_manager& q = quest_manager::instance();
 		character * npc = q.current_npc_character_ptr();
@@ -133,16 +133,16 @@ namespace quest
 
 			if (q.quest_index_by_name(r_st) == npc->quest_by())
 			{
-				lua_pushboolean(L, 1);
+				lua_pushboolean(lua, 1);
 				return 1;
 			}
 		}
 
-		lua_pushboolean(L, 0);
+		lua_pushboolean(lua, 0);
 		return 1;
 	}
 
-	int npc_kill(lua_State * L)
+	int npc_kill(lua_State * lua)
 	{
 		quest_manager& q = quest_manager::instance();
 		character * ch = q.current_character_ptr();
@@ -156,7 +156,7 @@ namespace quest
 		return 0;
 	}
 
-	int npc_purge(lua_State * L)
+	int npc_purge(lua_State * lua)
 	{
 		quest_manager& q = quest_manager::instance();
 		character * ch = q.current_character_ptr();
@@ -170,7 +170,7 @@ namespace quest
 		return 0;
 	}
 
-	int npc_is_near(lua_State * L)
+	int npc_is_near(lua_State * lua)
 	{
 		quest_manager& q = quest_manager::instance();
 		character * ch = q.current_character_ptr();
@@ -178,52 +178,52 @@ namespace quest
 
 		lua_Number dist = 10;
 
-		if (lua_isnumber(L, 1))
-			dist = lua_tonumber(L, 1);
+		if (lua_isnumber(lua, 1))
+			dist = lua_tonumber(lua, 1);
 
 		if (ch == nullptr || npc == nullptr)
 		{
-			lua_pushboolean(L, false);
+			lua_pushboolean(lua, false);
 		}
 		else
 		{
-			lua_pushboolean(L, distance_approx(ch->x() - npc->x(), ch->y() - npc->y()) < dist*100);
+			lua_pushboolean(lua, distance_approx(ch->x() - npc->x(), ch->y() - npc->y()) < dist*100);
 		}
 
 		return 1;
 	}
 
-	int npc_is_near_vid(lua_State* L)
+	int npc_is_near_vid(lua_State* lua)
 	{
-		if (!lua_isnumber(L, 1))
+		if (!lua_isnumber(lua, 1))
 		{
 			metin2::log::error("invalid vid");
-			lua_pushboolean(L, 0);
+			lua_pushboolean(lua, 0);
 			return 1;
 		}
 
 		quest_manager& q = quest_manager::instance();
-		character * ch = character_manager::instance().find((uint32_t)lua_tonumber(L, 1));
+		character * ch = character_manager::instance().find((uint32_t)lua_tonumber(lua, 1));
 		character * npc = q.current_npc_character_ptr();
 
 		lua_Number dist = 10;
 
-		if (lua_isnumber(L, 2))
-			dist = lua_tonumber(L, 2);
+		if (lua_isnumber(lua, 2))
+			dist = lua_tonumber(lua, 2);
 
 		if (ch == nullptr || npc == nullptr)
 		{
-			lua_pushboolean(L, false);
+			lua_pushboolean(lua, false);
 		}
 		else
 		{
-			lua_pushboolean(L, distance_approx(ch->x() - npc->x(), ch->y() - npc->y()) < dist*100);
+			lua_pushboolean(lua, distance_approx(ch->x() - npc->x(), ch->y() - npc->y()) < dist*100);
 		}
 
 		return 1;
 	}
 
-	int npc_unlock(lua_State* L)
+	int npc_unlock(lua_State* lua)
 	{
 		quest_manager& q = quest_manager::instance();
 		character * ch = q.current_character_ptr();
@@ -242,7 +242,7 @@ namespace quest
 		return 0;
 	}
 
-	int npc_lock(lua_State* L)
+	int npc_lock(lua_State* lua)
 	{
 		quest_manager& q = quest_manager::instance();
 		character * ch = q.current_character_ptr();
@@ -250,24 +250,24 @@ namespace quest
 
 		if (!npc || npc->is_pc())
 		{
-			lua_pushboolean(L, true);
+			lua_pushboolean(lua, true);
 			return 1;
 		}
 
 		if (npc->quest_npcid() == 0 || npc->quest_npcid() == ch->player_id())
 		{
 			npc->set_quest_npcid(ch->player_id());
-			lua_pushboolean(L, true);
+			lua_pushboolean(lua, true);
 		}
 		else
 		{
-			lua_pushboolean(L, false);
+			lua_pushboolean(lua, false);
 		}
 
 		return 1;
 	}
 
-	int npc_get_leader_vid(lua_State* L)
+	int npc_get_leader_vid(lua_State* lua)
 	{
 		quest_manager& q = quest_manager::instance();
 		character * npc = q.current_npc_character_ptr();
@@ -276,45 +276,45 @@ namespace quest
 		character * leader = party->leader();
 
 		if (leader)
-			lua_pushnumber(L, leader->get_vid());
+			lua_pushnumber(lua, leader->get_vid());
 		else
-			lua_pushnumber(L, 0);
+			lua_pushnumber(lua, 0);
 
 
 		return 1;
 	}
 
-	int npc_get_vid(lua_State* L)
+	int npc_get_vid(lua_State* lua)
 	{
 		quest_manager& q = quest_manager::instance();
 		character * npc = q.current_npc_character_ptr();
 		
-		lua_pushnumber(L, npc->get_vid());
+		lua_pushnumber(lua, npc->get_vid());
 
 
 		return 1;
 	}
 
-	int npc_get_vid_attack_mul(lua_State* L)
+	int npc_get_vid_attack_mul(lua_State* lua)
 	{
 
-		lua_Number vid = lua_tonumber(L, 1);
+		lua_Number vid = lua_tonumber(lua, 1);
 		character * targetChar = character_manager::instance().find(vid);
 
 		if (targetChar)
-			lua_pushnumber(L, targetChar->att_mul());
+			lua_pushnumber(lua, targetChar->att_mul());
 		else
-			lua_pushnumber(L, 0);
+			lua_pushnumber(lua, 0);
 
 
 		return 1;
 	}
 	
-	int npc_set_vid_attack_mul(lua_State* L)
+	int npc_set_vid_attack_mul(lua_State* lua)
 	{
 
-		lua_Number vid = lua_tonumber(L, 1);
-		lua_Number attack_mul = lua_tonumber(L, 2);
+		lua_Number vid = lua_tonumber(lua, 1);
+		lua_Number attack_mul = lua_tonumber(lua, 2);
 
 		character * targetChar = character_manager::instance().find(vid);
 
@@ -324,26 +324,26 @@ namespace quest
 		return 0;
 	}
 
-	int npc_get_vid_damage_mul(lua_State* L)
+	int npc_get_vid_damage_mul(lua_State* lua)
 	{
 
-		lua_Number vid = lua_tonumber(L, 1);
+		lua_Number vid = lua_tonumber(lua, 1);
 		character * targetChar = character_manager::instance().find(vid);
 
 		if (targetChar)
-			lua_pushnumber(L, targetChar->dam_mul());
+			lua_pushnumber(lua, targetChar->dam_mul());
 		else
-			lua_pushnumber(L, 0);
+			lua_pushnumber(lua, 0);
 
 
 		return 1;
 	}
 	
-	int npc_set_vid_damage_mul(lua_State* L)
+	int npc_set_vid_damage_mul(lua_State* lua)
 	{
 
-		lua_Number vid = lua_tonumber(L, 1);
-		lua_Number damage_mul = lua_tonumber(L, 2);
+		lua_Number vid = lua_tonumber(lua, 1);
+		lua_Number damage_mul = lua_tonumber(lua, 2);
 
 		character * targetChar = character_manager::instance().find(vid);
 

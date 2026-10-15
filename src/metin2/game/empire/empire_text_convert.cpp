@@ -23,12 +23,12 @@ namespace
 	bool text_conv_table_loaded[3];
 }
 
-bool load_empire_text_convert_table(uint32_t dwEmpireID, const char* c_szFileName)
+bool load_empire_text_convert_table(uint32_t empire_id, const char* file_name)
 {
-	if (dwEmpireID < 1 || dwEmpireID > 3)
+	if (empire_id < 1 || empire_id > 3)
 		return false;
 
-	FILE * fp = fopen(c_szFileName, "rb");
+	FILE * fp = fopen(file_name, "rb");
 
 	if (!fp)
 		return false;
@@ -37,7 +37,7 @@ bool load_empire_text_convert_table(uint32_t dwEmpireID, const char* c_szFileNam
 	uint32_t dwHanCount = (0xC8 - 0xB0+1) * (0xFE - 0xA1+1);
 	uint32_t dwHanSize = dwHanCount * 2;
 
-	text_convert_table& rkTextConvTable=text_conv_table[dwEmpireID-1];
+	text_convert_table& rkTextConvTable=text_conv_table[empire_id-1];
 
 	bool ok = fread(rkTextConvTable.ac_upper, 1, dwEngCount, fp) == dwEngCount;
 	ok = fread(rkTextConvTable.ac_lower, 1, dwEngCount, fp) == dwEngCount && ok;
@@ -48,7 +48,7 @@ bool load_empire_text_convert_table(uint32_t dwEmpireID, const char* c_szFileNam
 
 	fclose(fp);
 
-	text_conv_table_loaded[dwEmpireID - 1] = ok;
+	text_conv_table_loaded[empire_id - 1] = ok;
 	return ok;
 }
 
@@ -56,17 +56,17 @@ bool load_empire_text_convert_table(uint32_t dwEmpireID, const char* c_szFileNam
 // ASCII letters go through the empire's letter table, any other character is replaced in place by
 // a symbol of the same UTF-8 length (as the original did with two-byte symbols). Without the
 // empire's table (lang*.cvt) the text is left as it is.
-void convert_empire_text(uint32_t dwEmpireID, char* szText, size_t len, int iPct)
+void convert_empire_text(uint32_t empire_id, char* text, size_t len, int pct)
 {
-	if (dwEmpireID < 1 || dwEmpireID > 3 || len == 0 || !text_conv_table_loaded[dwEmpireID - 1])
+	if (empire_id < 1 || empire_id > 3 || len == 0 || !text_conv_table_loaded[empire_id - 1])
 		return;
 
 	static const char* s_aszSymbols2[] = { "¤", "§", "¶", "±", "×" };
 	static const char* s_aszSymbols3[] = { "∫", "＃", "＄", "⊃", "∝" };
 
-	const text_convert_table& rkTextConvTable = text_conv_table[dwEmpireID - 1];
+	const text_convert_table& rkTextConvTable = text_conv_table[empire_id - 1];
 
-	uint8_t* pbText = reinterpret_cast<uint8_t*>(szText);
+	uint8_t* pbText = reinterpret_cast<uint8_t*>(text);
 	size_t pos = 0;
 	while (pos < len && pbText[pos] != '\0')
 	{
@@ -74,7 +74,7 @@ void convert_empire_text(uint32_t dwEmpireID, char* szText, size_t len, int iPct
 		if (pos + seq > len)
 			break;
 
-		if (number(1,100) > iPct)
+		if (number(1,100) > pct)
 		{
 			uint8_t& c = pbText[pos];
 			if (seq == 1)

@@ -14,8 +14,8 @@
 
 namespace metin2::game::inline characters {
 
-buff_on_attributes::buff_on_attributes(character * pOwner, uint8_t point_type, std::vector <uint8_t>* p_vec_buff_wear_targets)
-:	buff_owner_(pOwner), point_type_(point_type), p_vec_buff_wear_targets_(p_vec_buff_wear_targets)
+buff_on_attributes::buff_on_attributes(character * owner, uint8_t point_type, std::vector <uint8_t>* p_vec_buff_wear_targets)
+:	buff_owner_(owner), point_type_(point_type), p_vec_buff_wear_targets_(p_vec_buff_wear_targets)
 {
 	initialize();
 }
@@ -31,22 +31,22 @@ void buff_on_attributes::initialize()
 	map_additional_attrs_.clear();
 }
 
-void buff_on_attributes::remove_buff_from_item(item * pItem)
+void buff_on_attributes::remove_buff_from_item(item * item_value)
 {
 	if (0 == buff_value_)
 		return ;
-	if (nullptr != pItem)
+	if (nullptr != item_value)
 	{
-		if (pItem->cell() < INVENTORY_MAX_NUM)
+		if (item_value->cell() < INVENTORY_MAX_NUM)
 			return;
-		std::vector <uint8_t>::iterator it = find (p_vec_buff_wear_targets_->begin(), p_vec_buff_wear_targets_->end(), pItem->cell() - INVENTORY_MAX_NUM);
+		std::vector <uint8_t>::iterator it = find (p_vec_buff_wear_targets_->begin(), p_vec_buff_wear_targets_->end(), item_value->cell() - INVENTORY_MAX_NUM);
 		if (p_vec_buff_wear_targets_->end() == it)
 			return;
 
-		int m = pItem->attribute_count();
+		int m = item_value->attribute_count();
 		for (int j = 0; j < m; j++)
 		{
-			player_item_attribute attr = pItem->get_attribute(j);
+			player_item_attribute attr = item_value->get_attribute(j);
 			map_attr::iterator it = map_additional_attrs_.find(attr.type);
 			// Remove the value for this attribute type from m_map_additional_attrs,
 			// and reduce the buff effect by (m_bBuffValue)% of the changed value
@@ -60,29 +60,29 @@ void buff_on_attributes::remove_buff_from_item(item * pItem)
 			}
 			else
 			{
-				metin2::log::error("Buff ERROR(type {:d}). This item({:d}) attr_type({:d}) was not in buff pool", point_type_, pItem->vnum(), attr.type);
+				metin2::log::error("Buff ERROR(type {:d}). This item({:d}) attr_type({:d}) was not in buff pool", point_type_, item_value->vnum(), attr.type);
 				return;
 			}
 		}
 	}
 }
 
-void buff_on_attributes::add_buff_from_item(item * pItem)
+void buff_on_attributes::add_buff_from_item(item * item_value)
 {
 	if (0 == buff_value_)
 		return ;
-	if (nullptr != pItem)
+	if (nullptr != item_value)
 	{
-		if (pItem->cell() < INVENTORY_MAX_NUM)
+		if (item_value->cell() < INVENTORY_MAX_NUM)
 			return;
-		std::vector <uint8_t>::iterator it = find (p_vec_buff_wear_targets_->begin(), p_vec_buff_wear_targets_->end(), pItem->cell() - INVENTORY_MAX_NUM);
+		std::vector <uint8_t>::iterator it = find (p_vec_buff_wear_targets_->begin(), p_vec_buff_wear_targets_->end(), item_value->cell() - INVENTORY_MAX_NUM);
 		if (p_vec_buff_wear_targets_->end() == it)
 			return;
 
-		int m = pItem->attribute_count();
+		int m = item_value->attribute_count();
 		for (int j = 0; j < m; j++)
 		{
-			player_item_attribute attr = pItem->get_attribute(j);
+			player_item_attribute attr = item_value->get_attribute(j);
 			map_attr::iterator it = map_additional_attrs_.find(attr.type);
 			
 			// If m_map_additional_attrs has no value for this attribute type, add it.
@@ -106,11 +106,11 @@ void buff_on_attributes::add_buff_from_item(item * pItem)
 	}
 }
 
-void buff_on_attributes::change_buff_value(uint8_t bNewValue)
+void buff_on_attributes::change_buff_value(uint8_t new_value)
 {
 	if (0 == buff_value_)
-		on(bNewValue);
-	else if (0 == bNewValue)
+		on(new_value);
+	else if (0 == new_value)
 		off();
 	else
 	{
@@ -122,7 +122,7 @@ void buff_on_attributes::change_buff_value(uint8_t bNewValue)
 			
 			buff_owner_->apply_point(it->first, -sum_of_attr_value * buff_value_ / 100);
 		}
-		buff_value_ = bNewValue;
+		buff_value_ = new_value;
 	}
 }
 
@@ -139,9 +139,9 @@ void buff_on_attributes::give_all_attributes()
 	}
 }
 
-bool buff_on_attributes::on(uint8_t bValue)
+bool buff_on_attributes::on(uint8_t value)
 {
-	if (0 != buff_value_ || 0 == bValue)
+	if (0 != buff_value_ || 0 == value)
 		return false;
 	
 	int n = p_vec_buff_wear_targets_->size();
@@ -170,10 +170,10 @@ bool buff_on_attributes::on(uint8_t bValue)
 
 	for (map_attr::iterator it = map_additional_attrs_.begin(); it != map_additional_attrs_.end(); it++)
 	{
-		buff_owner_->apply_point(it->first, it->second * bValue / 100);
+		buff_owner_->apply_point(it->first, it->second * value / 100);
 	}
 	
-	buff_value_ = bValue;
+	buff_value_ = value;
 
 	return true;
 }

@@ -18,11 +18,11 @@ event_queue::~event_queue()
 		remove(pElem);
 }
 
-queue_element * event_queue::enqueue(event_ptr pvData, int duration, int pulse)
+queue_element * event_queue::enqueue(event_ptr data, int duration, int pulse)
 {
 	queue_element * pElem = new queue_element;
 
-	pElem->pv_data = pvData;
+	pElem->pv_data = data;
 	pElem->start_time = pulse;
 	pElem->key = duration + pulse;
 	pElem->cancel = false;
@@ -42,9 +42,9 @@ queue_element * event_queue::dequeue()
 	return pElem;
 }
 
-void event_queue::remove(queue_element * pElem)
+void event_queue::remove(queue_element * elem)
 {
-	delete pElem;
+	delete elem;
 }
 
 int event_queue::top_key()

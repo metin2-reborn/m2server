@@ -59,7 +59,7 @@ namespace quest
 			~pc();
 
 			void		destroy();
-			void		set_id(uint32_t dwID);
+			void		set_id(uint32_t id);
 			uint32_t		id() { return id_; }
 
 			inline quest_info_iterator quest_begin();
@@ -90,10 +90,10 @@ namespace quest
 				int prev_state;
 				int next_state;
 
-				quest_state_change_info(uint32_t _quest_idx, int _prev_state, int _next_state) :
-					quest_idx(_quest_idx),
-					prev_state(_prev_state),
-					next_state(_next_state)
+				quest_state_change_info(uint32_t quest_idx_value, int prev_state_value, int next_state_value) :
+					quest_idx(quest_idx_value),
+					prev_state(prev_state_value),
+					next_state(next_state_value)
 				{
 				}
 			};
@@ -101,7 +101,7 @@ namespace quest
 			std::vector<quest_state_change_info> quest_state_change_;
 
 		public:
-			void		set_flag(const std::string & name, int value, bool bSkipSave = false);
+			void		set_flag(const std::string & name, int value, bool skip_save = false);
 			int			flag(const std::string & name);
 			bool		delete_flag(const std::string & name);
 
@@ -110,7 +110,7 @@ namespace quest
 
 			void		remove_timer(const std::string& name);
 			void		remove_timer_not_cancel(const std::string& name);
-			void		add_timer(const std::string& name, event_ptr pEvent);
+			void		add_timer(const std::string& name, event_ptr event);
 			void		clear_timer();
 
 			void		set_current_quest_start_flag();
@@ -134,7 +134,7 @@ namespace quest
 			bool		has_reward() { return !reward_data_.empty() || is_given_reward_; }
 			void		reward(character * ch);
 
-			void		give_item(const std::string& label, uint32_t dwVnum, int count);
+			void		give_item(const std::string& label, uint32_t vnum, int count);
 			void		give_exp(const std::string& label, uint32_t exp);
 
 			void 		set_send_done_flag() { should_send_done_ = true; }
@@ -142,12 +142,12 @@ namespace quest
 
 			void		send_flag_list(character * ch);
 
-			void		set_quest_state(const char* szQuestName, const char* szStateName);
+			void		set_quest_state(const char* quest_name, const char* state_name);
 
-			void		set_confirm_wait(uint32_t dwPID) { confirm_wait_ = true; wait_confirm_from_pid_ = dwPID; }
+			void		set_confirm_wait(uint32_t pid) { confirm_wait_ = true; wait_confirm_from_pid_ = pid; }
 			void		clear_confirm_wait() { confirm_wait_ = false; }
 			bool		is_confirm_wait() const	{ return confirm_wait_; }
-			bool		is_confirm_wait(uint32_t dwPID) const	{ return confirm_wait_ && dwPID == wait_confirm_from_pid_; }
+			bool		is_confirm_wait(uint32_t pid) const	{ return confirm_wait_ && pid == wait_confirm_from_pid_; }
 
 		private:
 			void		set_send_flag(int idx);

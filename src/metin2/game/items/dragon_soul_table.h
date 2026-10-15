@@ -32,14 +32,14 @@ public:
 	typedef std::vector <apply> vec_applys;
 	typedef std::map <uint8_t, vec_applys> map_apply_group;
 	
-	bool	read_dragon_soul_table_file(const char * c_pszFileName);
-	bool	dragon_soul_group_name(uint8_t bType, std::string& stGroupName) const;
+	bool	read_dragon_soul_table_file(const char * file_name);
+	bool	dragon_soul_group_name(uint8_t type, std::string& group_name) const;
 
 	bool	basic_applys(uint8_t ds_type, vec_applys& vec_basic_applys);
-	bool	additional_applys(uint8_t ds_type, vec_applys& vec_additional_attrs);
+	bool	additional_applys(uint8_t ds_type, vec_applys& vec_additional_applys);
 
 	bool	apply_num_settings(uint8_t ds_type, uint8_t grade_idx, int& basis, int& add_min, int& add_max);
-	bool	weight(uint8_t ds_type, uint8_t grade_idx, uint8_t step_index, uint8_t strength_idx, float& fWeight);
+	bool	weight(uint8_t ds_type, uint8_t grade_idx, uint8_t step_index, uint8_t strength_idx, float& weight);
 	bool	refine_grade_values(uint8_t ds_type, uint8_t grade_idx, int& need_count, int& fee, std::vector<float>& vec_probs);
 	bool	refine_step_values(uint8_t ds_type, uint8_t step_idx, int& need_count, int& fee, std::vector<float>& vec_probs);
 	bool	refine_strength_values(uint8_t ds_type, uint8_t material_type, uint8_t strength_idx, int& fee, float& prob);

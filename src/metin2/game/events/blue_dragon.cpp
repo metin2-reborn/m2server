@@ -19,9 +19,9 @@
 
 namespace metin2::game::inline events {
 
-time_t use_blue_dragon_skill(character * pChar, unsigned int idx)
+time_t use_blue_dragon_skill(character * ch, unsigned int idx)
 {
-	sectree_map * pSecMap = sectree_manager::instance().map( pChar->map_index() );
+	sectree_map * pSecMap = sectree_manager::instance().map( ch->map_index() );
 
 	if (nullptr == pSecMap)
 		return 0;
@@ -34,7 +34,7 @@ time_t use_blue_dragon_skill(character * pChar, unsigned int idx)
 			{
 				metin2::log::info( "BlueDragon: Using Skill Breath");
 
-				f_skill_breath f(pChar);
+				f_skill_breath f(ch);
 
 				pSecMap->for_each( f );
 
@@ -46,7 +46,7 @@ time_t use_blue_dragon_skill(character * pChar, unsigned int idx)
 			{
 				metin2::log::info( "BlueDragon: Using Skill Weak Breath");
 
-				f_skill_weak_breath f(pChar);
+				f_skill_weak_breath f(ch);
 
 				pSecMap->for_each( f );
 
@@ -58,7 +58,7 @@ time_t use_blue_dragon_skill(character * pChar, unsigned int idx)
 			{
 				metin2::log::info( "BlueDragon: Using Skill EarthQuake");
 
-				f_skill_earth_quake f(pChar);
+				f_skill_earth_quake f(ch);
 
 				pSecMap->for_each( f );
 
@@ -66,7 +66,7 @@ time_t use_blue_dragon_skill(character * pChar, unsigned int idx)
 
 				if (nullptr != f.farthest_char)
 				{
-					pChar->begin_fight( f.farthest_char );
+					ch->begin_fight( f.farthest_char );
 				}
 			}
 			break;
@@ -76,29 +76,29 @@ time_t use_blue_dragon_skill(character * pChar, unsigned int idx)
 			return 0;
 	}
 
-	int addPct = blue_dragon_get_range_factor("hp_period", pChar->hp_pct());
+	int addPct = blue_dragon_get_range_factor("hp_period", ch->hp_pct());
 
 	nextUsingTime += (nextUsingTime * addPct) / 100;
 
 	return nextUsingTime;
 }
 
-int blue_dragon_state_battle(character * pChar)
+int blue_dragon_state_battle(character * ch)
 {
-	if (pChar->hp_pct() > 98)
+	if (ch->hp_pct() > 98)
 		return passes_per_sec(1);
 
 	const int SkillCount = 3;
 	int SkillPriority[SkillCount];
 	static time_t timeSkillCanUseTime[SkillCount];
 
-	if (pChar->hp_pct() > 76)
+	if (ch->hp_pct() > 76)
 	{
 		SkillPriority[0] = 1;
 		SkillPriority[1] = 0;
 		SkillPriority[2] = 2;
 	}
-	else if (pChar->hp_pct() > 31)
+	else if (ch->hp_pct() > 31)
 	{
 		SkillPriority[0] = 0;
 		SkillPriority[1] = 1;
@@ -120,11 +120,11 @@ int blue_dragon_state_battle(character * pChar)
 		if (timeSkillCanUseTime[SkillIndex] < timeNow)
 		{
 			int SkillUsingDuration =
-				static_cast<int>(motion_manager::instance().motion_duration( pChar->race_num(), make_motion_key(MOTION_MODE_GENERAL, MOTION_SPECIAL_1 + SkillIndex) ));
+				static_cast<int>(motion_manager::instance().motion_duration( ch->race_num(), make_motion_key(MOTION_MODE_GENERAL, MOTION_SPECIAL_1 + SkillIndex) ));
 
-			timeSkillCanUseTime[SkillIndex] = timeNow + (use_blue_dragon_skill( pChar, SkillIndex ) * 1000) + SkillUsingDuration + 3000;
+			timeSkillCanUseTime[SkillIndex] = timeNow + (use_blue_dragon_skill( ch, SkillIndex ) * 1000) + SkillUsingDuration + 3000;
 
-			pChar->send_move_packet(FUNC_MOB_SKILL, SkillIndex, pChar->x(), pChar->y(), 0, timeNow);
+			ch->send_move_packet(FUNC_MOB_SKILL, SkillIndex, ch->x(), ch->y(), 0, timeNow);
 
 			return 0 == SkillUsingDuration ? passes_per_sec(1) : passes_per_sec(SkillUsingDuration);
 		}
@@ -133,12 +133,12 @@ int blue_dragon_state_battle(character * pChar)
 	return passes_per_sec(1);
 }
 
-int blue_dragon_damage (character * me, character * pAttacker, int dam)
+int blue_dragon_damage (character * me, character * attacker, int dam)
 {
-	if (nullptr == me || nullptr == pAttacker)
+	if (nullptr == me || nullptr == attacker)
 		return dam;
 
-	if (true == pAttacker->is_monster() && 2493 == pAttacker->get_mob_table().vnum)
+	if (true == attacker->is_monster() && 2493 == attacker->get_mob_table().vnum)
 	{
 		for (int i=1 ; i <= 4 ; ++i)
 		{
@@ -146,7 +146,7 @@ int blue_dragon_damage (character * me, character * pAttacker, int dam)
 			{
 				uint32_t dwDragonStoneID = blue_dragon_get_index_factor("DragonStone", i, "vnum");
 				size_t val = blue_dragon_get_index_factor("DragonStone", i, "val");
-				size_t cnt = sectree_manager::instance().monster_count_in_map( pAttacker->map_index(), dwDragonStoneID );
+				size_t cnt = sectree_manager::instance().monster_count_in_map( attacker->map_index(), dwDragonStoneID );
 
 				dam += (dam * (val*cnt))/100;
 
@@ -175,13 +175,13 @@ int blue_dragon_damage (character * me, character * pAttacker, int dam)
 		}
 	}
 
-	if (true == me->is_stone() && 0 != pAttacker->get_mount_vnum())
+	if (true == me->is_stone() && 0 != attacker->get_mount_vnum())
 	{
 		for (int i=1 ; i <= 4 ; ++i)
 		{
 			if (me->get_mob_table().vnum == blue_dragon_get_index_factor("DragonStone", i, "vnum"))
 			{
-				if (pAttacker->get_mount_vnum() == blue_dragon_get_index_factor("DragonStone", i, "enemy"))
+				if (attacker->get_mount_vnum() == blue_dragon_get_index_factor("DragonStone", i, "enemy"))
 				{
 					size_t val = blue_dragon_get_index_factor("DragonStone", i, "enemy_val");
 

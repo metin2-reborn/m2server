@@ -59,12 +59,12 @@ int on_click_shop(TRIGGERPARAM)
 class func_find_mob_victim
 {
 	public:
-		func_find_mob_victim(character * pkChr, int iMaxDistance) :
-			chr_(pkChr),
+		func_find_mob_victim(character * chr, int max_distance) :
+			chr_(chr),
 			min_distance_(std::numeric_limits<int>::max()),
-			max_distance_(iMaxDistance),
-			lx_(pkChr->x()),
-			ly_(pkChr->y()),
+			max_distance_(max_distance),
+			lx_(chr->x()),
+			ly_(chr->y()),
 			chr_victim_(nullptr),
 			chr_building_(nullptr)
 	{
@@ -158,11 +158,11 @@ class func_find_mob_victim
 		character *	chr_building_;
 };
 
-character * find_victim(character * pkChr, int iMaxDistance)
+character * find_victim(character * chr, int max_distance)
 {
-	func_find_mob_victim f(pkChr, iMaxDistance);
-	if (pkChr->get_sectree() != nullptr) {
-		pkChr->get_sectree()->for_each_around(f);	
+	func_find_mob_victim f(chr, max_distance);
+	if (chr->get_sectree() != nullptr) {
+		chr->get_sectree()->for_each_around(f);	
 	}
 	return f.victim();
 }

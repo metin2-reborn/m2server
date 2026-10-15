@@ -51,9 +51,9 @@ namespace quest
 		clear_timer();
 	}
 
-	void pc::set_id(uint32_t dwID)
+	void pc::set_id(uint32_t id)
 	{
-		id_ = dwID;
+		id_ = id;
 		should_send_done_ = false;
 	}
 
@@ -67,7 +67,7 @@ namespace quest
 		return quest_manager::instance().quest_index_by_name(current_quest_name());
 	}
 
-	void pc::set_flag(const std::string& name, int value, bool bSkipSave)
+	void pc::set_flag(const std::string& name, int value, bool skip_save)
 	{
 		if ( metin2::config::test_server() )
 			metin2::log::info( "QUEST Setting flag {} {:d}", name.c_str(),value);
@@ -87,9 +87,9 @@ namespace quest
 		else if (it->second != value)
 			it->second = value;
 		else
-			bSkipSave = true;
+			skip_save = true;
 
-		if (!bSkipSave)
+		if (!skip_save)
 			save_flag(name, value);
 	}
 
@@ -176,11 +176,11 @@ namespace quest
 		should_send_done_ = false;
 	}
 
-	void pc::add_timer(const std::string & name, event_ptr pEvent)
+	void pc::add_timer(const std::string & name, event_ptr event)
 	{
 		remove_timer(name);
-		timer_map_.insert(make_pair(name, pEvent));
-		metin2::log::info( "QUEST add timer {} {:d}", static_cast<const void *>(pEvent.get()), timer_map_.size());
+		timer_map_.insert(make_pair(name, event));
+		metin2::log::info( "QUEST add timer {} {:d}", static_cast<const void *>(event.get()), timer_map_.size());
 	}
 
 	void pc::remove_timer_not_cancel(const std::string & name)
@@ -591,12 +591,12 @@ namespace quest
 		flag_save_map_.clear();
 	}
 
-	void pc::give_item(const std::string& label, uint32_t dwVnum, int count)
+	void pc::give_item(const std::string& label, uint32_t vnum, int count)
 	{
-		metin2::log::debug( "QUEST GiveItem {} {:d} {:d}", label.c_str(),dwVnum,count);
+		metin2::log::debug( "QUEST GiveItem {} {:d} {:d}", label.c_str(),vnum,count);
 		if (!flag(cur_quest_+"."+label))
 		{
-			reward_data_.push_back(reward_data(reward_data::REWARD_TYPE_ITEM, dwVnum, count));
+			reward_data_.push_back(reward_data(reward_data::REWARD_TYPE_ITEM, vnum, count));
 		}
 		else
 			is_given_reward_ = true;

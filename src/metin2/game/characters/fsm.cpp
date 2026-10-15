@@ -49,19 +49,19 @@ void fsm::update()
 // State Functions
 
 // Is State
-bool fsm::is_state(state & State) const
+bool fsm::is_state(state & state_value) const
 {
-	return (current_state_ == &State);
+	return (current_state_ == &state_value);
 }
 
 // Goto State
-bool fsm::goto_state(state & NewState)
+bool fsm::goto_state(state & new_state)
 {
-	if (is_state(NewState) && new_state_ == &NewState)
+	if (is_state(new_state) && new_state_ == &new_state)
 		return true;
 
 	// Set New State
-	new_state_ = &NewState;
+	new_state_ = &new_state;
 	return true;
 }
 }

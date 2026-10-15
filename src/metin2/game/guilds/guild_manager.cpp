@@ -318,7 +318,7 @@ struct f_guild_compare
 	}
 };
 
-void guild_manager::high_rank_string(uint32_t dwMyGuild, char * buffer, size_t buflen)
+void guild_manager::high_rank_string(uint32_t my_guild, char * buffer, size_t buflen)
 {
 	std::vector<guild*> v;
 
@@ -346,7 +346,7 @@ void guild_manager::high_rank_string(uint32_t dwMyGuild, char * buffer, size_t b
 		if (g->ladder_point() <= 0)
 			break;
 
-		if (dwMyGuild == g->id())
+		if (my_guild == g->id())
 		{
 			len2 = snprintf(buffer + len, buflen - len, "[COLOR r;255|g;255|b;0]");
 
@@ -379,7 +379,7 @@ void guild_manager::high_rank_string(uint32_t dwMyGuild, char * buffer, size_t b
 		else
 			len += len2;
 
-		if (g->id() == dwMyGuild)
+		if (g->id() == my_guild)
 		{
 			len2 = snprintf(buffer + len, buflen - len, "[/COLOR]");
 
@@ -391,7 +391,7 @@ void guild_manager::high_rank_string(uint32_t dwMyGuild, char * buffer, size_t b
 	}
 }
 
-void guild_manager::around_rank_string(uint32_t dwMyGuild, char * buffer, size_t buflen)
+void guild_manager::around_rank_string(uint32_t my_guild, char * buffer, size_t buflen)
 {
 	std::vector<guild*> v;
 
@@ -406,7 +406,7 @@ void guild_manager::around_rank_string(uint32_t dwMyGuild, char * buffer, size_t
 	int idx;
 
 	for (idx = 0; idx < (int) v.size(); ++idx)
-		if (v[idx]->id() == dwMyGuild)
+		if (v[idx]->id() == my_guild)
 			break;
 
 	int len = 0, len2;
@@ -426,7 +426,7 @@ void guild_manager::around_rank_string(uint32_t dwMyGuild, char * buffer, size_t
 		if (!g)
 			continue;
 
-		if (dwMyGuild == g->id())
+		if (my_guild == g->id())
 		{
 			len2 = snprintf(buffer + len, buflen - len, "[COLOR r;255|g;255|b;0]");
 
@@ -461,7 +461,7 @@ void guild_manager::around_rank_string(uint32_t dwMyGuild, char * buffer, size_t
 
 		++count;
 
-		if (g->id() == dwMyGuild)
+		if (g->id() == my_guild)
 		{
 			len2 = snprintf(buffer + len, buflen - len, "[/COLOR]");
 
@@ -498,15 +498,15 @@ void guild_manager::request_end_war(uint32_t guild_id1, uint32_t guild_id2)
 	db_clientdesc->db_packet(HEADER_GD_GUILD_WAR, 0, &p, sizeof(p));
 }
 
-void guild_manager::request_war_over(uint32_t dwGuild1, uint32_t dwGuild2, uint32_t dwGuildWinner, int32_t lReward)
+void guild_manager::request_war_over(uint32_t guild1, uint32_t guild2, uint32_t guild_winner, int32_t reward)
 {
-	guild * g1 = touch_guild(dwGuild1);
-	guild * g2 = touch_guild(dwGuild2);
+	guild * g1 = touch_guild(guild1);
+	guild * g2 = touch_guild(guild2);
 
 	if (g1->get_guild_war_state(g2->id()) != GUILD_WAR_ON_WAR)
 	{
-		metin2::log::info( "RequestWarOver : both guild was not in war {:d} {:d}", dwGuild1, dwGuild2);
-		request_end_war(dwGuild1, dwGuild2);
+		metin2::log::info( "RequestWarOver : both guild was not in war {:d} {:d}", guild1, guild2);
+		request_end_war(guild1, guild2);
 		return;
 	}
 
@@ -515,24 +515,24 @@ void guild_manager::request_war_over(uint32_t dwGuild1, uint32_t dwGuild2, uint3
 	p.war = GUILD_WAR_OVER;
 	// No reward even when the guild war ends.
 	p.war_price = 0;
-	p.type = dwGuildWinner == 0 ? 1 : 0; // bType == 1 means draw for this packet.
+	p.type = guild_winner == 0 ? 1 : 0; // bType == 1 means draw for this packet.
 
-	if (dwGuildWinner == 0)
+	if (guild_winner == 0)
 	{
-		p.guild_from = dwGuild1;
-		p.guild_to = dwGuild2;
+		p.guild_from = guild1;
+		p.guild_to = guild2;
 	}
 	else
 	{
-		p.guild_from = dwGuildWinner;
-		p.guild_to = dwGuildWinner == dwGuild1 ? dwGuild2 : dwGuild1;
+		p.guild_from = guild_winner;
+		p.guild_to = guild_winner == guild1 ? guild2 : guild1;
 	}
 
 	db_clientdesc->db_packet(HEADER_GD_GUILD_WAR, 0, &p, sizeof(p));
 	metin2::log::info( "RequestWarOver : winner {:d} loser {:d} draw {:d} betprice {:d}", p.guild_from, p.guild_to, p.type, p.war_price);
 }
 
-void guild_manager::declare_war(uint32_t guild_id1, uint32_t guild_id2, uint8_t bType)
+void guild_manager::declare_war(uint32_t guild_id1, uint32_t guild_id2, uint8_t type)
 {
 	if (guild_id1 == guild_id2)
 		return;
@@ -543,8 +543,8 @@ void guild_manager::declare_war(uint32_t guild_id1, uint32_t guild_id2, uint8_t 
 	if (!g1 || !g2)
 		return;
 
-	if (g1->declare_war(guild_id2, bType, GUILD_WAR_SEND_DECLARE) &&
-		g2->declare_war(guild_id1, bType, GUILD_WAR_RECV_DECLARE))
+	if (g1->declare_war(guild_id2, type, GUILD_WAR_SEND_DECLARE) &&
+		g2->declare_war(guild_id1, type, GUILD_WAR_RECV_DECLARE))
 	{
 		char buf[256];
 		snprintf(buf, sizeof(buf), lc_text("%s 길드가 %s 길드에 선전포고를 하였습니다!"), touch_guild(guild_id1)->name(), touch_guild(guild_id2)->name());
@@ -642,13 +642,13 @@ void guild_manager::start_war(uint32_t guild_id1, uint32_t guild_id2)
 	guild_war_.insert(std::make_pair(guild_id1, guild_id2));
 }
 
-void send_guild_war_over_notice(guild* g1, guild* g2, bool bDraw)
+void send_guild_war_over_notice(guild* g1, guild* g2, bool draw)
 {
 	if (g1 && g2)
 	{
 		char buf[256];
 
-		if (bDraw)
+		if (draw)
 		{
 			snprintf(buf, sizeof(buf), lc_text("%s 길드와 %s 길드 사이의 전쟁이 무승부로 끝났습니다."), g1->name(), g2->name());
 		}
@@ -711,7 +711,7 @@ bool guild_manager::end_war(uint32_t guild_id1, uint32_t guild_id2)
 	return true;
 }
 
-void guild_manager::war_over(uint32_t guild_id1, uint32_t guild_id2, bool bDraw)
+void guild_manager::war_over(uint32_t guild_id1, uint32_t guild_id2, bool draw)
 {
 	guild * g1 = find_guild(guild_id1);
 	guild * g2 = find_guild(guild_id2);
@@ -726,7 +726,7 @@ void guild_manager::war_over(uint32_t guild_id1, uint32_t guild_id2, bool bDraw)
 	if (guild_war_.end() == it)
 		return;
 
-	send_guild_war_over_notice(g1, g2, bDraw);
+	send_guild_war_over_notice(g1, g2, draw);
 
 	end_war(guild_id1, guild_id2);
 }
@@ -763,18 +763,18 @@ void guild_manager::cancel_war(uint32_t guild_id1, uint32_t guild_id2)
 	}
 }
 
-void guild_manager::reserve_war(uint32_t dwGuild1, uint32_t dwGuild2, uint8_t bType) // from DB
+void guild_manager::reserve_war(uint32_t guild1, uint32_t guild2, uint8_t type) // from DB
 {
-	metin2::log::info( "GuildManager::ReserveWar {:d} {:d}", dwGuild1, dwGuild2);
+	metin2::log::info( "GuildManager::ReserveWar {:d} {:d}", guild1, guild2);
 
-	guild * g1 = find_guild(dwGuild1);
-	guild * g2 = find_guild(dwGuild2);
+	guild * g1 = find_guild(guild1);
+	guild * g2 = find_guild(guild2);
 
 	if (!g1 || !g2)
 		return;
 
-	g1->reserve_war(dwGuild2, bType);
-	g2->reserve_war(dwGuild1, bType);
+	g1->reserve_war(guild2, type);
+	g2->reserve_war(guild1, type);
 }
 
 void guild_manager::show_guild_war_list(character * ch)
@@ -817,17 +817,17 @@ void guild_manager::send_guild_war(character * ch)
 	ch->get_desc()->packet(buf.read_peek(), buf.size());
 }
 
-void send_guild_war_score(uint32_t dwGuild, uint32_t dwGuildOpp, int iDelta, int iBetScoreDelta)
+void send_guild_war_score(uint32_t guild, uint32_t guild_opp, int delta, int bet_score_delta)
 {
 	packet_guild_war_score p;
 
-	p.guild_gain_point = dwGuild;
-	p.guild_opponent = dwGuildOpp;
-	p.score = iDelta;
-	p.bet_score = iBetScoreDelta;
+	p.guild_gain_point = guild;
+	p.guild_opponent = guild_opp;
+	p.score = delta;
+	p.bet_score = bet_score_delta;
 
 	db_clientdesc->db_packet(HEADER_GD_GUILD_WAR_SCORE, 0, &p, sizeof(packet_guild_war_score));
-	metin2::log::info( "SendGuildWarScore {:d} {:d} {:d}", dwGuild, dwGuildOpp, iDelta);
+	metin2::log::info( "SendGuildWarScore {:d} {:d} {:d}", guild, guild_opp, delta);
 }
 
 void guild_manager::kill(character * killer, character * victim)
@@ -905,20 +905,20 @@ void guild_manager::reserve_war_bet(packet_gd_guild_war_bet * p)
 	it->second->bet.insert(std::make_pair(p->login, std::make_pair(p->guild, p->gold)));
 }
 
-bool guild_manager::is_bet(uint32_t dwID, const char * c_pszLogin)
+bool guild_manager::is_bet(uint32_t id, const char * login)
 {
-	auto it = map_k_reserve_war_.find(dwID);
+	auto it = map_k_reserve_war_.find(id);
 
 	if (it == map_k_reserve_war_.end())
 		return true;
 
-	return it->second->bet.end() != it->second->bet.find(c_pszLogin);
+	return it->second->bet.end() != it->second->bet.find(login);
 }
 
-void guild_manager::reserve_war_delete(uint32_t dwID)
+void guild_manager::reserve_war_delete(uint32_t id)
 {
-	metin2::log::info( "ReserveWarDelete {:d}", dwID);
-	auto it = map_k_reserve_war_.find(dwID);
+	metin2::log::info( "ReserveWarDelete {:d}", id);
+	auto it = map_k_reserve_war_.find(id);
 
 	if (it == map_k_reserve_war_.end())
 		return;
@@ -948,14 +948,14 @@ std::vector<guild_war_reserve_for_game *> & guild_manager::reserve_war_ref()
 // End of Guild War
 //
 
-void guild_manager::change_master(uint32_t dwGID)
+void guild_manager::change_master(uint32_t gid)
 {
-	auto iter = guild_.find(dwGID);
+	auto iter = guild_.find(gid);
 
 	if ( iter == guild_.end() )
 		return;
 
-	iter->second->load(dwGID);
+	iter->second->load(gid);
 
 	// Send updated info
 	db_manager::instance().func_query([guild = iter->second.get()](ql_msg *msg) { guild->send_guild_data_update_to_all_member(msg); },

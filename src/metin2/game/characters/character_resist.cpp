@@ -171,7 +171,7 @@ static int poison_level_adjust[9] =
 	100, 90, 80, 70, 50, 30, 10, 5, 0
 };
 
-void character::attacked_by_fire(character * pkAttacker, int amount, int count)
+void character::attacked_by_fire(character * attacker, int amount, int count)
 {
 	if (fire_event)
 		return;
@@ -183,12 +183,12 @@ void character::attacked_by_fire(character * pkAttacker, int amount, int count)
 	info->ch = this;
 	info->count = count;
 	info->amount = amount;
-	info->attacker_pid = pkAttacker->player_id();
+	info->attacker_pid = attacker->player_id();
 
 	fire_event = event_create(game::characters::fire_event, info, 1);
 }
 
-void character::attacked_by_poison(character * pkAttacker)
+void character::attacked_by_poison(character * attacker)
 {
 	if (poison_event)
 		return;
@@ -196,9 +196,9 @@ void character::attacked_by_poison(character * pkAttacker)
 	if (has_poisoned && !is_pc()) // monsters can only be poisoned once.
 		return;
 
-	if (pkAttacker && pkAttacker->level() < level())
+	if (attacker && attacker->level() < level())
 	{
-		int delta = level() - pkAttacker->level();
+		int delta = level() - attacker->level();
 
 		if (delta > 8)
 			delta = 8;
@@ -216,15 +216,15 @@ void character::attacked_by_poison(character * pkAttacker)
 
 	info->ch = this;
 	info->count = 10;
-	info->attacker_pid = pkAttacker?pkAttacker->player_id():0;
+	info->attacker_pid = attacker?attacker->player_id():0;
 
 	poison_event = event_create(game::characters::poison_event, info, 1);
 
-	if (metin2::config::test_server() && pkAttacker)
+	if (metin2::config::test_server() && attacker)
 	{
 		char buf[256];
-		snprintf(buf, sizeof(buf), "POISON %s -> %s", pkAttacker->name(), name());
-		pkAttacker->chat_packet(CHAT_TYPE_INFO, "%s", buf);
+		snprintf(buf, sizeof(buf), "POISON %s -> %s", attacker->name(), name());
+		attacker->chat_packet(CHAT_TYPE_INFO, "%s", buf);
 	}
 }
 
@@ -255,9 +255,9 @@ void character::apply_mob_attribute(const mob_table* table)
 	}
 }
 
-bool character::is_immune(uint32_t dwImmuneFlag)
+bool character::is_immune(uint32_t immune_flag_value)
 {
-	if (is_set(points_instant_.immune_flag, dwImmuneFlag))
+	if (is_set(points_instant_.immune_flag, immune_flag_value))
 	{
 		int immune_pct = 90;
 		int	percent = number(1, 100);

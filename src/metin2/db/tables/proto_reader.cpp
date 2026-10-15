@@ -34,25 +34,25 @@ inline std::string trim_right(const std::string& str)
 
 std::string trim(const std::string& str){return trim_left(trim_right(str));}
 
-static std::unique_ptr<std::string[]> string_split(std::string strOrigin, std::string strTok)
+static std::unique_ptr<std::string[]> string_split(std::string origin, std::string tok)
 {
     size_t  cutAt;                            //Cut position
     int     index     = 0;                    //String index
     auto strResult = std::make_unique<std::string[]>(30);		  //Variable to return as result
 
     //Repeat until strTok is found
-    while ((cutAt = strOrigin.find_first_of(strTok)) != strOrigin.npos)
+    while ((cutAt = origin.find_first_of(tok)) != origin.npos)
     {
        if (cutAt > 0 && index < 30)  //If the cut position is greater than 0 (on success)
        {
-            strResult[index++] = strOrigin.substr(0, cutAt);  //Add to the result array
+            strResult[index++] = origin.substr(0, cutAt);  //Add to the result array
        }
-       strOrigin = strOrigin.substr(cutAt+1);  //The source becomes the remainder after the cut part
+       origin = origin.substr(cutAt+1);  //The source becomes the remainder after the cut part
     }
 
-    if(strOrigin.length() > 0 && index < 30)  //If any of the source is left
+    if(origin.length() > 0 && index < 30)  //If any of the source is left
     {
-        strResult[index++] = strOrigin.substr(0, cutAt);  //Add the remainder to the result array
+        strResult[index++] = origin.substr(0, cutAt);  //Add the remainder to the result array
     }
 
 	for( int i=0;i<index;i++)
@@ -65,7 +65,7 @@ static std::unique_ptr<std::string[]> string_split(std::string strOrigin, std::s
 
 
 
-int get_item_type_value(std::string inputString)
+int get_item_type_value(std::string input_string)
 {
 	std::string arType[] = {"ITEM_NONE", "ITEM_WEAPON",
 		"ITEM_ARMOR", "ITEM_USE", 
@@ -96,7 +96,7 @@ int get_item_type_value(std::string inputString)
 	int retInt = -1;
 	for (size_t j = 0; j < sizeof(arType)/sizeof(arType[0]);j++) {
 		std::string tempString = arType[j];
-		if	(inputString.find(tempString)!=std::string::npos && tempString.find(inputString)!=std::string::npos) {
+		if	(input_string.find(tempString)!=std::string::npos && tempString.find(input_string)!=std::string::npos) {
 			retInt =  j;
 			break;
 		}
@@ -106,7 +106,7 @@ int get_item_type_value(std::string inputString)
 
 }
 
-int get_item_sub_type_value(int type_value, std::string inputString) 
+int get_item_sub_type_value(int type_value, std::string input_string) 
 {
 	static std::string arSub1[] = { "WEAPON_SWORD", "WEAPON_DAGGER", "WEAPON_BOW", "WEAPON_TWO_HANDED",
 				"WEAPON_BELL", "WEAPON_FAN", "WEAPON_ARROW", "WEAPON_MOUNT_SPEAR"};
@@ -227,7 +227,7 @@ int get_item_sub_type_value(int type_value, std::string inputString)
 	int retInt = -1;
 	for (int j=0;j<arNumberOfSubtype[type_value];j++) {
 		std::string tempString = arSubType[type_value][j];
-		std::string tempInputString = trim(inputString);
+		std::string tempInputString = trim(input_string);
 		if	(tempInputString.compare(tempString)==0)
 		{
 			retInt =  j;
@@ -242,7 +242,7 @@ int get_item_sub_type_value(int type_value, std::string inputString)
 
 
 
-int get_item_anti_flag_value(std::string inputString) 
+int get_item_anti_flag_value(std::string input_string) 
 {
 
 	std::string arAntiFlag[] = {"ANTI_FEMALE", "ANTI_MALE", "ANTI_MUSA", "ANTI_ASSASSIN", "ANTI_SURA", "ANTI_MUDANG",
@@ -251,7 +251,7 @@ int get_item_anti_flag_value(std::string inputString)
 
 
 	int retValue = 0;
-	std::unique_ptr<std::string[]> arInputString = string_split(inputString, "|");				//Array of the proto info split into words.
+	std::unique_ptr<std::string[]> arInputString = string_split(input_string, "|");				//Array of the proto info split into words.
 	for (size_t i = 0; i < sizeof(arAntiFlag)/sizeof(arAntiFlag[0]);i++) {
 		std::string tempString = arAntiFlag[i];
 		for (int j=0; j<30 ; j++)		//Up to 30 words. (hardcoded)
@@ -269,7 +269,7 @@ int get_item_anti_flag_value(std::string inputString)
 	return retValue;
 }
 
-int get_item_flag_value(std::string inputString) 
+int get_item_flag_value(std::string input_string) 
 {
 
 	std::string arFlag[] = {"ITEM_TUNABLE", "ITEM_SAVE", "ITEM_STACKABLE", "COUNT_PER_1GOLD", "ITEM_SLOW_QUERY", "ITEM_UNIQUE",
@@ -278,7 +278,7 @@ int get_item_flag_value(std::string inputString)
 
 
 	int retValue = 0;
-	std::unique_ptr<std::string[]> arInputString = string_split(inputString, "|");				//Array of the proto info split into words.
+	std::unique_ptr<std::string[]> arInputString = string_split(input_string, "|");				//Array of the proto info split into words.
 	for (size_t i = 0; i < sizeof(arFlag)/sizeof(arFlag[0]);i++) {
 		std::string tempString = arFlag[i];
 		for (int j=0; j<30 ; j++)		//Up to 30 words. (hardcoded)
@@ -296,7 +296,7 @@ int get_item_flag_value(std::string inputString)
 	return retValue;
 }
 
-int get_item_wear_flag_value(std::string inputString) 
+int get_item_wear_flag_value(std::string input_string) 
 {
 
 	std::string arWearrFlag[] = {"WEAR_BODY", "WEAR_HEAD", "WEAR_FOOTS", "WEAR_WRIST", "WEAR_WEAPON", "WEAR_NECK", "WEAR_EAR", "WEAR_SHIELD", "WEAR_UNIQUE",
@@ -304,7 +304,7 @@ int get_item_wear_flag_value(std::string inputString)
 
 
 	int retValue = 0;
-	std::unique_ptr<std::string[]> arInputString = string_split(inputString, "|");				//Array of the proto info split into words.
+	std::unique_ptr<std::string[]> arInputString = string_split(input_string, "|");				//Array of the proto info split into words.
 	for (size_t i = 0; i < sizeof(arWearrFlag)/sizeof(arWearrFlag[0]);i++) {
 		std::string tempString = arWearrFlag[i];
 		for (int j=0; j<30 ; j++)		//Up to 30 words. (hardcoded)
@@ -322,13 +322,13 @@ int get_item_wear_flag_value(std::string inputString)
 	return retValue;
 }
 
-int get_item_immune_value(std::string inputString) 
+int get_item_immune_value(std::string input_string) 
 {
 
 	std::string arImmune[] = {"PARA","CURSE","STUN","SLEEP","SLOW","POISON","TERROR"};
 
 	int retValue = 0;
-	std::unique_ptr<std::string[]> arInputString = string_split(inputString, "|");				//Array of the proto info split into words.
+	std::unique_ptr<std::string[]> arInputString = string_split(input_string, "|");				//Array of the proto info split into words.
 	for (size_t i = 0; i < sizeof(arImmune)/sizeof(arImmune[0]);i++) {
 		std::string tempString = arImmune[i];
 		for (int j=0; j<30 ; j++)		//Up to 30 words. (hardcoded)
@@ -349,14 +349,14 @@ int get_item_immune_value(std::string inputString)
 
 
 
-int get_item_limit_type_value(std::string inputString)
+int get_item_limit_type_value(std::string input_string)
 {
 	std::string arLimitType[] = {"LIMIT_NONE", "LEVEL", "STR", "DEX", "INT", "CON", "PC_BANG", "REAL_TIME", "REAL_TIME_FIRST_USE", "TIMER_BASED_ON_WEAR"};
 	
 	int retInt = -1;
 	for (size_t j = 0; j < sizeof(arLimitType)/sizeof(arLimitType[0]);j++) {
 		std::string tempString = arLimitType[j];
-		std::string tempInputString = trim(inputString);
+		std::string tempInputString = trim(input_string);
 		if	(tempInputString.compare(tempString)==0)
 		{
 			retInt =  j;
@@ -368,7 +368,7 @@ int get_item_limit_type_value(std::string inputString)
 }
 
 
-int get_item_apply_type_value(std::string inputString)
+int get_item_apply_type_value(std::string input_string)
 {
 	std::string arApplyType[] = {"APPLY_NONE", "APPLY_MAX_HP", "APPLY_MAX_SP", "APPLY_CON", "APPLY_INT", "APPLY_STR", "APPLY_DEX", "APPLY_ATT_SPEED",
 			"APPLY_MOV_SPEED", "APPLY_CAST_SPEED", "APPLY_HP_REGEN", "APPLY_SP_REGEN", "APPLY_POISON_PCT", "APPLY_STUN_PCT",
@@ -392,7 +392,7 @@ int get_item_apply_type_value(std::string inputString)
 	int retInt = -1;
 	for (size_t j = 0; j < sizeof(arApplyType)/sizeof(arApplyType[0]);j++) {
 		std::string tempString = arApplyType[j];
-		std::string tempInputString = trim(inputString);
+		std::string tempInputString = trim(input_string);
 		if	(tempInputString.compare(tempString)==0)
 		{ 
 			retInt =  j;
@@ -408,14 +408,14 @@ int get_item_apply_type_value(std::string inputString)
 //Also read the monster proto.
 
 
-int get_mob_rank_value(std::string inputString) 
+int get_mob_rank_value(std::string input_string) 
 {
 	std::string arRank[] = {"PAWN", "S_PAWN", "KNIGHT", "S_KNIGHT", "BOSS", "KING"};
 
 	int retInt = -1;
 	for (size_t j = 0; j < sizeof(arRank)/sizeof(arRank[0]);j++) {
 		std::string tempString = arRank[j];
-		std::string tempInputString = trim(inputString);
+		std::string tempInputString = trim(input_string);
 		if	(tempInputString.compare(tempString)==0) 
 		{
 			retInt =  j;
@@ -427,14 +427,14 @@ int get_mob_rank_value(std::string inputString)
 }
 
 
-int get_mob_type_value(std::string inputString)
+int get_mob_type_value(std::string input_string)
 {
 	std::string arType[] = { "MONSTER", "NPC", "STONE", "WARP", "DOOR", "BUILDING", "PC", "POLYMORPH_PC", "HORSE", "GOTO"};
 
 	int retInt = -1;
 	for (size_t j = 0; j < sizeof(arType)/sizeof(arType[0]);j++) {
 		std::string tempString = arType[j];
-		std::string tempInputString = trim(inputString);
+		std::string tempInputString = trim(input_string);
 		if	(tempInputString.compare(tempString)==0) 
 		{
 			retInt =  j;
@@ -445,14 +445,14 @@ int get_mob_type_value(std::string inputString)
 	return retInt;
 }
 
-int get_mob_battle_type_value(std::string inputString) 
+int get_mob_battle_type_value(std::string input_string) 
 {
 	std::string arBattleType[] = { "MELEE", "RANGE", "MAGIC", "SPECIAL", "POWER", "TANKER", "SUPER_POWER", "SUPER_TANKER"};
 
 	int retInt = -1;
 	for (size_t j = 0; j < sizeof(arBattleType)/sizeof(arBattleType[0]);j++) {
 		std::string tempString = arBattleType[j];
-		std::string tempInputString = trim(inputString);
+		std::string tempInputString = trim(input_string);
 		if	(tempInputString.compare(tempString)==0) 
 		{ 
 			retInt =  j;
@@ -463,14 +463,14 @@ int get_mob_battle_type_value(std::string inputString)
 	return retInt;
 }
 
-int get_mob_size_value(std::string inputString)
+int get_mob_size_value(std::string input_string)
 {
 	std::string arSize[] = { "SMALL", "MEDIUM", "BIG"};
 
 	int retInt = 0;
 	for (size_t j = 0; j < sizeof(arSize)/sizeof(arSize[0]);j++) {
 		std::string tempString = arSize[j];
-		std::string tempInputString = trim(inputString);
+		std::string tempInputString = trim(input_string);
 		if	(tempInputString.compare(tempString)==0) 
 		{
 			retInt =  j + 1;
@@ -481,13 +481,13 @@ int get_mob_size_value(std::string inputString)
 	return retInt;
 }
 
-int get_mob_ai_flag_value(std::string inputString)
+int get_mob_ai_flag_value(std::string input_string)
 {
 	std::string arAIFlag[] = {"AGGR","NOMOVE","COWARD","NOATTSHINSU","NOATTCHUNJO","NOATTJINNO","ATTMOB","BERSERK","STONESKIN","GODSPEED","DEATHBLOW","REVIVE"};
 
 
 	int retValue = 0;
-	std::unique_ptr<std::string[]> arInputString = string_split(inputString, ",");				//Array of the proto info split into words.
+	std::unique_ptr<std::string[]> arInputString = string_split(input_string, ",");				//Array of the proto info split into words.
 	for (size_t i = 0; i < sizeof(arAIFlag)/sizeof(arAIFlag[0]);i++) {
 		std::string tempString = arAIFlag[i];
 		for (int j=0; j<30 ; j++)		//Up to 30 words. (hardcoded)
@@ -504,13 +504,13 @@ int get_mob_ai_flag_value(std::string inputString)
 
 	return retValue;
 }
-int get_mob_race_flag_value(std::string inputString)
+int get_mob_race_flag_value(std::string input_string)
 {
 	std::string arRaceFlag[] = {"ANIMAL","UNDEAD","DEVIL","HUMAN","ORC","MILGYO","INSECT","FIRE","ICE","DESERT","TREE",
 		"ATT_ELEC","ATT_FIRE","ATT_ICE","ATT_WIND","ATT_EARTH","ATT_DARK"};
 
 	int retValue = 0;
-	std::unique_ptr<std::string[]> arInputString = string_split(inputString, ",");				//Array of the proto info split into words.
+	std::unique_ptr<std::string[]> arInputString = string_split(input_string, ",");				//Array of the proto info split into words.
 	for (size_t i = 0; i < sizeof(arRaceFlag)/sizeof(arRaceFlag[0]);i++) {
 		std::string tempString = arRaceFlag[i];
 		for (int j=0; j<30 ; j++)		//Up to 30 words. (hardcoded)
@@ -527,12 +527,12 @@ int get_mob_race_flag_value(std::string inputString)
 
 	return retValue;
 }
-int get_mob_immune_flag_value(std::string inputString)
+int get_mob_immune_flag_value(std::string input_string)
 {
 	std::string arImmuneFlag[] = {"STUN","SLOW","FALL","CURSE","POISON","TERROR", "REFLECT"};
 
 	int retValue = 0;
-	std::unique_ptr<std::string[]> arInputString = string_split(inputString, ",");				//Array of the proto info split into words.
+	std::unique_ptr<std::string[]> arInputString = string_split(input_string, ",");				//Array of the proto info split into words.
 	for (size_t i = 0; i < sizeof(arImmuneFlag)/sizeof(arImmuneFlag[0]);i++) {
 		std::string tempString = arImmuneFlag[i];
 		for (int j=0; j<30 ; j++)		//Up to 30 words. (hardcoded)
@@ -555,113 +555,113 @@ int get_mob_immune_flag_value(std::string inputString)
 #ifndef __DUMP_PROTO__
 
 //Set up the mob table.
-bool set_proto_mob_table(mob_table *mobTable, c_csv_table &csvTable,std::map<int,const char*> &nameMap)
+bool set_proto_mob_table(mob_table *mob_table_value, c_csv_table &csv_table,std::map<int,const char*> &name_map)
 {
 	int col = 0;
-	str_to_number(mobTable->vnum, csvTable.as_string_by_index(col++));
-	utf8_strlcpy(mobTable->name, csvTable.as_string_by_index(col++), sizeof(mobTable->name));
+	str_to_number(mob_table_value->vnum, csv_table.as_string_by_index(col++));
+	utf8_strlcpy(mob_table_value->name, csv_table.as_string_by_index(col++), sizeof(mob_table_value->name));
 
 	//3. Fill in the localized names.
 	std::map<int,const char*>::iterator it;
-	it = nameMap.find(mobTable->vnum);
-	if (it != nameMap.end()) {
+	it = name_map.find(mob_table_value->vnum);
+	if (it != name_map.end()) {
 		const char * localeName = it->second;
-		utf8_strlcpy(mobTable->locale_name, localeName, sizeof (mobTable->locale_name));
+		utf8_strlcpy(mob_table_value->locale_name, localeName, sizeof (mob_table_value->locale_name));
 	} else {
-		utf8_strlcpy(mobTable->locale_name, mobTable->name, sizeof (mobTable->locale_name));
+		utf8_strlcpy(mob_table_value->locale_name, mob_table_value->name, sizeof (mob_table_value->locale_name));
 	}
 
 	//RANK
-	int rankValue = get_mob_rank_value(csvTable.as_string_by_index(col++));
-	mobTable->rank = rankValue;
+	int rankValue = get_mob_rank_value(csv_table.as_string_by_index(col++));
+	mob_table_value->rank = rankValue;
 	//TYPE
-	int typeValue = get_mob_type_value(csvTable.as_string_by_index(col++));
-	mobTable->type = typeValue;
+	int typeValue = get_mob_type_value(csv_table.as_string_by_index(col++));
+	mob_table_value->type = typeValue;
 	//BATTLE_TYPE
-	int battleTypeValue = get_mob_battle_type_value(csvTable.as_string_by_index(col++));
-	mobTable->battle_type = battleTypeValue;
+	int battleTypeValue = get_mob_battle_type_value(csv_table.as_string_by_index(col++));
+	mob_table_value->battle_type = battleTypeValue;
 
-	str_to_number(mobTable->level, csvTable.as_string_by_index(col++));
+	str_to_number(mob_table_value->level, csv_table.as_string_by_index(col++));
 	//SIZE
-	int sizeValue = get_mob_size_value(csvTable.as_string_by_index(col++));
-	mobTable->size = sizeValue;
+	int sizeValue = get_mob_size_value(csv_table.as_string_by_index(col++));
+	mob_table_value->size = sizeValue;
 	//AI_FLAG
-	int aiFlagValue = get_mob_ai_flag_value(csvTable.as_string_by_index(col++));
-	mobTable->ai_flag = aiFlagValue;
+	int aiFlagValue = get_mob_ai_flag_value(csv_table.as_string_by_index(col++));
+	mob_table_value->ai_flag = aiFlagValue;
 	//mount_capacity;
 	col++;
 	//RACE_FLAG
-	int raceFlagValue = get_mob_race_flag_value(csvTable.as_string_by_index(col++));
-	mobTable->race_flag = raceFlagValue;
+	int raceFlagValue = get_mob_race_flag_value(csv_table.as_string_by_index(col++));
+	mob_table_value->race_flag = raceFlagValue;
 	//IMMUNE_FLAG
-	int immuneFlagValue = get_mob_immune_flag_value(csvTable.as_string_by_index(col++));
-	mobTable->immune_flag = immuneFlagValue;
+	int immuneFlagValue = get_mob_immune_flag_value(csv_table.as_string_by_index(col++));
+	mob_table_value->immune_flag = immuneFlagValue;
 
-	str_to_number(mobTable->empire, csvTable.as_string_by_index(col++));  //col = 11
+	str_to_number(mob_table_value->empire, csv_table.as_string_by_index(col++));  //col = 11
 
-	strlcpy(mobTable->folder, csvTable.as_string_by_index(col++), sizeof(mobTable->folder));
+	strlcpy(mob_table_value->folder, csv_table.as_string_by_index(col++), sizeof(mob_table_value->folder));
 
-	str_to_number(mobTable->on_click_type, csvTable.as_string_by_index(col++));	
+	str_to_number(mob_table_value->on_click_type, csv_table.as_string_by_index(col++));	
 
-	str_to_number(mobTable->str, csvTable.as_string_by_index(col++));
-	str_to_number(mobTable->dex, csvTable.as_string_by_index(col++));
-	str_to_number(mobTable->con, csvTable.as_string_by_index(col++));
-	str_to_number(mobTable->iq, csvTable.as_string_by_index(col++));
-	str_to_number(mobTable->damage_range[0], csvTable.as_string_by_index(col++));
-	str_to_number(mobTable->damage_range[1], csvTable.as_string_by_index(col++));
-	str_to_number(mobTable->max_hp, csvTable.as_string_by_index(col++));
-	str_to_number(mobTable->regen_cycle, csvTable.as_string_by_index(col++));
-	str_to_number(mobTable->regen_percent,	csvTable.as_string_by_index(col++));
-	str_to_number(mobTable->gold_min, csvTable.as_string_by_index(col++));
-	str_to_number(mobTable->gold_max, csvTable.as_string_by_index(col++));
-	str_to_number(mobTable->exp,	csvTable.as_string_by_index(col++));
-	str_to_number(mobTable->def, csvTable.as_string_by_index(col++));
-	str_to_number(mobTable->s_attack_speed, csvTable.as_string_by_index(col++));
-	str_to_number(mobTable->s_moving_speed, csvTable.as_string_by_index(col++));
-	str_to_number(mobTable->aggresive_hp_pct, csvTable.as_string_by_index(col++));
-	str_to_number(mobTable->aggressive_sight, csvTable.as_string_by_index(col++));
-	str_to_number(mobTable->attack_range, csvTable.as_string_by_index(col++));
+	str_to_number(mob_table_value->str, csv_table.as_string_by_index(col++));
+	str_to_number(mob_table_value->dex, csv_table.as_string_by_index(col++));
+	str_to_number(mob_table_value->con, csv_table.as_string_by_index(col++));
+	str_to_number(mob_table_value->iq, csv_table.as_string_by_index(col++));
+	str_to_number(mob_table_value->damage_range[0], csv_table.as_string_by_index(col++));
+	str_to_number(mob_table_value->damage_range[1], csv_table.as_string_by_index(col++));
+	str_to_number(mob_table_value->max_hp, csv_table.as_string_by_index(col++));
+	str_to_number(mob_table_value->regen_cycle, csv_table.as_string_by_index(col++));
+	str_to_number(mob_table_value->regen_percent,	csv_table.as_string_by_index(col++));
+	str_to_number(mob_table_value->gold_min, csv_table.as_string_by_index(col++));
+	str_to_number(mob_table_value->gold_max, csv_table.as_string_by_index(col++));
+	str_to_number(mob_table_value->exp,	csv_table.as_string_by_index(col++));
+	str_to_number(mob_table_value->def, csv_table.as_string_by_index(col++));
+	str_to_number(mob_table_value->s_attack_speed, csv_table.as_string_by_index(col++));
+	str_to_number(mob_table_value->s_moving_speed, csv_table.as_string_by_index(col++));
+	str_to_number(mob_table_value->aggresive_hp_pct, csv_table.as_string_by_index(col++));
+	str_to_number(mob_table_value->aggressive_sight, csv_table.as_string_by_index(col++));
+	str_to_number(mob_table_value->attack_range, csv_table.as_string_by_index(col++));
 
-	str_to_number(mobTable->drop_item_vnum, csvTable.as_string_by_index(col++));	//32
-	str_to_number(mobTable->resurrection_vnum, csvTable.as_string_by_index(col++));
+	str_to_number(mob_table_value->drop_item_vnum, csv_table.as_string_by_index(col++));	//32
+	str_to_number(mob_table_value->resurrection_vnum, csv_table.as_string_by_index(col++));
 	for (int i = 0; i < MOB_ENCHANTS_MAX_NUM; ++i)
-		str_to_number(mobTable->c_enchants[i], csvTable.as_string_by_index(col++));
+		str_to_number(mob_table_value->c_enchants[i], csv_table.as_string_by_index(col++));
 
 	for (int i = 0; i < MOB_RESISTS_MAX_NUM; ++i)
-		str_to_number(mobTable->c_resists[i], csvTable.as_string_by_index(col++));
+		str_to_number(mob_table_value->c_resists[i], csv_table.as_string_by_index(col++));
 
-	str_to_number(mobTable->dam_multiply, csvTable.as_string_by_index(col++));
-	str_to_number(mobTable->summon_vnum, csvTable.as_string_by_index(col++));
-	str_to_number(mobTable->drain_sp, csvTable.as_string_by_index(col++));
+	str_to_number(mob_table_value->dam_multiply, csv_table.as_string_by_index(col++));
+	str_to_number(mob_table_value->summon_vnum, csv_table.as_string_by_index(col++));
+	str_to_number(mob_table_value->drain_sp, csv_table.as_string_by_index(col++));
 
 	//Mob_Color
-	str_to_number(mobTable->mob_color, csvTable.as_string_by_index(col++));
+	str_to_number(mob_table_value->mob_color, csv_table.as_string_by_index(col++));
 
-	str_to_number(mobTable->polymorph_item_vnum, csvTable.as_string_by_index(col++));
+	str_to_number(mob_table_value->polymorph_item_vnum, csv_table.as_string_by_index(col++));
 
-	str_to_number(mobTable->skills[0].level, csvTable.as_string_by_index(col++));
-	str_to_number(mobTable->skills[0].vnum, csvTable.as_string_by_index(col++));
-	str_to_number(mobTable->skills[1].level, csvTable.as_string_by_index(col++));
-	str_to_number(mobTable->skills[1].vnum, csvTable.as_string_by_index(col++));
-	str_to_number(mobTable->skills[2].level, csvTable.as_string_by_index(col++));
-	str_to_number(mobTable->skills[2].vnum, csvTable.as_string_by_index(col++));
-	str_to_number(mobTable->skills[3].level, csvTable.as_string_by_index(col++));
-	str_to_number(mobTable->skills[3].vnum, csvTable.as_string_by_index(col++));
-	str_to_number(mobTable->skills[4].level, csvTable.as_string_by_index(col++));
-	str_to_number(mobTable->skills[4].vnum, csvTable.as_string_by_index(col++));
+	str_to_number(mob_table_value->skills[0].level, csv_table.as_string_by_index(col++));
+	str_to_number(mob_table_value->skills[0].vnum, csv_table.as_string_by_index(col++));
+	str_to_number(mob_table_value->skills[1].level, csv_table.as_string_by_index(col++));
+	str_to_number(mob_table_value->skills[1].vnum, csv_table.as_string_by_index(col++));
+	str_to_number(mob_table_value->skills[2].level, csv_table.as_string_by_index(col++));
+	str_to_number(mob_table_value->skills[2].vnum, csv_table.as_string_by_index(col++));
+	str_to_number(mob_table_value->skills[3].level, csv_table.as_string_by_index(col++));
+	str_to_number(mob_table_value->skills[3].vnum, csv_table.as_string_by_index(col++));
+	str_to_number(mob_table_value->skills[4].level, csv_table.as_string_by_index(col++));
+	str_to_number(mob_table_value->skills[4].vnum, csv_table.as_string_by_index(col++));
 
-	str_to_number(mobTable->berserk_point, csvTable.as_string_by_index(col++));
-	str_to_number(mobTable->stone_skin_point, csvTable.as_string_by_index(col++));
-	str_to_number(mobTable->god_speed_point, csvTable.as_string_by_index(col++));
-	str_to_number(mobTable->death_blow_point, csvTable.as_string_by_index(col++));
-	str_to_number(mobTable->revive_point, csvTable.as_string_by_index(col++));
+	str_to_number(mob_table_value->berserk_point, csv_table.as_string_by_index(col++));
+	str_to_number(mob_table_value->stone_skin_point, csv_table.as_string_by_index(col++));
+	str_to_number(mob_table_value->god_speed_point, csv_table.as_string_by_index(col++));
+	str_to_number(mob_table_value->death_blow_point, csv_table.as_string_by_index(col++));
+	str_to_number(mob_table_value->revive_point, csv_table.as_string_by_index(col++));
 
-	metin2::log::info( "MOB #{:<5d} {:<24} level: {:<3d} rank: {:d} empire: {:d}", mobTable->vnum, mobTable->locale_name, mobTable->level, mobTable->rank, mobTable->empire);
+	metin2::log::info( "MOB #{:<5d} {:<24} level: {:<3d} rank: {:d} empire: {:d}", mob_table_value->vnum, mob_table_value->locale_name, mob_table_value->level, mob_table_value->rank, mob_table_value->empire);
 
 	return true;
 }
 
-bool set_proto_item_table(item_table *itemTable, c_csv_table &csvTable,std::map<int,const char*> &nameMap)
+bool set_proto_item_table(item_table *item_table_value, c_csv_table &csv_table,std::map<int,const char*> &name_map)
 {
 	int col = 0;
 
@@ -669,40 +669,40 @@ bool set_proto_item_table(item_table *itemTable, c_csv_table &csvTable,std::map<
 	for (size_t i = 0; i < sizeof(dataArray)/sizeof(dataArray[0]);i++) {
 		int validCheck = 0;
 		if (i==2) {
-			dataArray[i] = get_item_type_value(csvTable.as_string_by_index(col));
+			dataArray[i] = get_item_type_value(csv_table.as_string_by_index(col));
 			validCheck = dataArray[i];
 		} else if (i==3) {
-			dataArray[i] = get_item_sub_type_value(dataArray[i-1], csvTable.as_string_by_index(col));
+			dataArray[i] = get_item_sub_type_value(dataArray[i-1], csv_table.as_string_by_index(col));
 			validCheck = dataArray[i];
 		} else if (i==5) {
-			dataArray[i] = get_item_anti_flag_value(csvTable.as_string_by_index(col));
+			dataArray[i] = get_item_anti_flag_value(csv_table.as_string_by_index(col));
 			validCheck = dataArray[i];
 		} else if (i==6) {
-			dataArray[i] = get_item_flag_value(csvTable.as_string_by_index(col));
+			dataArray[i] = get_item_flag_value(csv_table.as_string_by_index(col));
 			validCheck = dataArray[i];
 		} else if (i==7) {
-			dataArray[i] = get_item_wear_flag_value(csvTable.as_string_by_index(col));
+			dataArray[i] = get_item_wear_flag_value(csv_table.as_string_by_index(col));
 			validCheck = dataArray[i];
 		} else if (i==8) {
-			dataArray[i] = get_item_immune_value(csvTable.as_string_by_index(col));
+			dataArray[i] = get_item_immune_value(csv_table.as_string_by_index(col));
 			validCheck = dataArray[i];
 		} else if (i==14) {
-			dataArray[i] = get_item_limit_type_value(csvTable.as_string_by_index(col));
+			dataArray[i] = get_item_limit_type_value(csv_table.as_string_by_index(col));
 			validCheck = dataArray[i];
 		} else if (i==16) {
-			dataArray[i] = get_item_limit_type_value(csvTable.as_string_by_index(col));
+			dataArray[i] = get_item_limit_type_value(csv_table.as_string_by_index(col));
 			validCheck = dataArray[i];
 		} else if (i==18) {
-			dataArray[i] = get_item_apply_type_value(csvTable.as_string_by_index(col));
+			dataArray[i] = get_item_apply_type_value(csv_table.as_string_by_index(col));
 			validCheck = dataArray[i];
 		} else if (i==20) {
-			dataArray[i] = get_item_apply_type_value(csvTable.as_string_by_index(col));
+			dataArray[i] = get_item_apply_type_value(csv_table.as_string_by_index(col));
 			validCheck = dataArray[i];
 		} else if (i==22) {
-			dataArray[i] = get_item_apply_type_value(csvTable.as_string_by_index(col));
+			dataArray[i] = get_item_apply_type_value(csv_table.as_string_by_index(col));
 			validCheck = dataArray[i];
 		} else {
-			str_to_number(dataArray[i], csvTable.as_string_by_index(col));
+			str_to_number(dataArray[i], csv_table.as_string_by_index(col));
 		}
 
 		if (validCheck == -1)
@@ -712,7 +712,7 @@ bool set_proto_item_table(item_table *itemTable, c_csv_table &csvTable,std::map<
 			for (size_t j = 0; j < i; ++j)
 				dataStream << dataArray[j] << ",";
 
-			metin2::log::error("ItemProto Reading Failed : Invalid value. (index: {:d}, col: {:d}, value: {})", i, col, csvTable.as_string_by_index(col));
+			metin2::log::error("ItemProto Reading Failed : Invalid value. (index: {:d}, col: {:d}, value: {})", i, col, csv_table.as_string_by_index(col));
 			metin2::log::error("\t0 ~ {:d} Values: {}", i, dataStream.str().c_str());
 
 			exit(0);
@@ -723,13 +723,13 @@ bool set_proto_item_table(item_table *itemTable, c_csv_table &csvTable,std::map<
 
 	// Read vnum and vnum range.
 	{
-		std::string s(csvTable.as_string_by_index(0));
+		std::string s(csv_table.as_string_by_index(0));
 		size_t pos = s.find("~");
 		// Skip if the vnum field has no '~'
 		if (std::string::npos == pos)
 		{
-			itemTable->vnum = dataArray[0];
-			itemTable->vnum_range = 0;
+			item_table_value->vnum = dataArray[0];
+			item_table_value->vnum_range = 0;
 		}
 		else
 		{
@@ -743,68 +743,68 @@ bool set_proto_item_table(item_table *itemTable, c_csv_table &csvTable,std::map<
 				metin2::log::error("INVALID VNUM {}", s.c_str());
 				return false;
 			}
-			itemTable->vnum = start_vnum;
-			itemTable->vnum_range = end_vnum - start_vnum;
+			item_table_value->vnum = start_vnum;
+			item_table_value->vnum_range = end_vnum - start_vnum;
 		}
 	}
 
-	utf8_strlcpy(itemTable->name, csvTable.as_string_by_index(1), sizeof(itemTable->name));
+	utf8_strlcpy(item_table_value->name, csv_table.as_string_by_index(1), sizeof(item_table_value->name));
 	//Fill in the localized names.
 	std::map<int,const char*>::iterator it;
-	it = nameMap.find(itemTable->vnum);
-	if (it != nameMap.end()) {
+	it = name_map.find(item_table_value->vnum);
+	if (it != name_map.end()) {
 		const char * localeName = it->second;
-		utf8_strlcpy(itemTable->locale_name, localeName, sizeof (itemTable->locale_name));
+		utf8_strlcpy(item_table_value->locale_name, localeName, sizeof (item_table_value->locale_name));
 	} else {
-		utf8_strlcpy(itemTable->locale_name, itemTable->name, sizeof (itemTable->locale_name));
+		utf8_strlcpy(item_table_value->locale_name, item_table_value->name, sizeof (item_table_value->locale_name));
 	}
-	itemTable->type = dataArray[2];
-	itemTable->sub_type = dataArray[3];
-	itemTable->size = dataArray[4];
-	itemTable->anti_flags = dataArray[5];
-	itemTable->flags = dataArray[6];
-	itemTable->wear_flags = dataArray[7];
-	itemTable->immune_flag = dataArray[8];
-	itemTable->gold = dataArray[9];
-	itemTable->shop_buy_price = dataArray[10];
-	itemTable->refined_vnum = dataArray[11];
-	itemTable->refine_set = dataArray[12];
-	itemTable->alter_to_magic_item_pct = dataArray[13];
-	itemTable->c_limit_real_time_first_use_index = -1;
-	itemTable->c_limit_timer_based_on_wear_index = -1;
+	item_table_value->type = dataArray[2];
+	item_table_value->sub_type = dataArray[3];
+	item_table_value->size = dataArray[4];
+	item_table_value->anti_flags = dataArray[5];
+	item_table_value->flags = dataArray[6];
+	item_table_value->wear_flags = dataArray[7];
+	item_table_value->immune_flag = dataArray[8];
+	item_table_value->gold = dataArray[9];
+	item_table_value->shop_buy_price = dataArray[10];
+	item_table_value->refined_vnum = dataArray[11];
+	item_table_value->refine_set = dataArray[12];
+	item_table_value->alter_to_magic_item_pct = dataArray[13];
+	item_table_value->c_limit_real_time_first_use_index = -1;
+	item_table_value->c_limit_timer_based_on_wear_index = -1;
 
 	int i;
 
 	for (i = 0; i < ITEM_LIMIT_MAX_NUM; ++i)
 	{
-		itemTable->limits[i].type = dataArray[14+i*2];
-		itemTable->limits[i].value = dataArray[15+i*2];
+		item_table_value->limits[i].type = dataArray[14+i*2];
+		item_table_value->limits[i].value = dataArray[15+i*2];
 
-		if (LIMIT_REAL_TIME_START_FIRST_USE == itemTable->limits[i].type)
-			itemTable->c_limit_real_time_first_use_index = (char)i;
+		if (LIMIT_REAL_TIME_START_FIRST_USE == item_table_value->limits[i].type)
+			item_table_value->c_limit_real_time_first_use_index = (char)i;
 
-		if (LIMIT_TIMER_BASED_ON_WEAR == itemTable->limits[i].type)
-			itemTable->c_limit_timer_based_on_wear_index = (char)i;
+		if (LIMIT_TIMER_BASED_ON_WEAR == item_table_value->limits[i].type)
+			item_table_value->c_limit_timer_based_on_wear_index = (char)i;
 
 	}
 
 	for (i = 0; i < ITEM_APPLY_MAX_NUM; ++i)
 	{
-		itemTable->applies[i].type = dataArray[18+i*2];
-		itemTable->applies[i].value = dataArray[19+i*2];
+		item_table_value->applies[i].type = dataArray[18+i*2];
+		item_table_value->applies[i].value = dataArray[19+i*2];
 	}
 
 	for (i = 0; i < ITEM_VALUES_MAX_NUM; ++i)
-		itemTable->values[i] = dataArray[24+i];
+		item_table_value->values[i] = dataArray[24+i];
 
 	//column for 'Specular'
-	itemTable->specular = dataArray[30];
+	item_table_value->specular = dataArray[30];
 
-	itemTable->gain_socket_pct = dataArray[31];
-	itemTable->s_addon_type = dataArray[32];
+	item_table_value->gain_socket_pct = dataArray[31];
+	item_table_value->s_addon_type = dataArray[32];
 
 	//test
-	str_to_number(itemTable->weight, "0");
+	str_to_number(item_table_value->weight, "0");
 			
 	return true;
 }

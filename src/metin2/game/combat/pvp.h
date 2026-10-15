@@ -34,16 +34,16 @@ class pvp
 			}
 		};
 
-		pvp(uint32_t dwID1, uint32_t dwID2);
-		pvp(pvp & v);
+		pvp(uint32_t pid1, uint32_t pid2);
+		pvp(pvp & k);
 		~pvp();
 
-		void	win(uint32_t dwPID); // dwPID won!
+		void	win(uint32_t pid_value); // dwPID won!
 		bool	is_fight();
-		bool	agree(uint32_t dwPID);
+		bool	agree(uint32_t pid_value);
 
-		void	set_vid(uint32_t dwPID, uint32_t dwVID);
-		void	packet(bool bDelete = false);
+		void	set_vid(uint32_t pid_value, uint32_t vid_value);
+		void	packet(bool removing = false);
 
 		void	set_last_fight_time();
 		uint32_t	last_fight_time();
@@ -64,21 +64,21 @@ class pvp_manager : public singleton<pvp_manager>
 	pvp_manager();
 	~pvp_manager() override;
 
-	void			insert(character * pkChr, character * pkVictim);
-	bool			can_attack(character * pkChr, character * pkVictim);
-	bool			dead(character * pkChr, uint32_t dwKillerPID);	// Returns whether it was in PVP
-	void			connect(character * pkChr);
-	void			disconnect(character * pkChr);
+	void			insert(character * chr, character * victim);
+	bool			can_attack(character * chr, character * victim);
+	bool			dead(character * chr, uint32_t killer_pid);	// Returns whether it was in PVP
+	void			connect(character * chr);
+	void			disconnect(character * chr);
 
 	void			send_list(desc * d);
-	void			remove(pvp * pkPVP);
+	void			remove(pvp * pvp_value);
 
 	void			process();
 
 	public:
-	pvp *			find(uint32_t dwCRC);
+	pvp *			find(uint32_t crc);
 	protected:
-	void			connect_ex(character * pkChr, bool bDisconnect);
+	void			connect_ex(character * chr, bool disconnect);
 
 	std::map<uint32_t, std::unique_ptr<pvp>>	map_pk_pvp_;
 	pvp_set_map		map_pk_pvp_set_by_id_;

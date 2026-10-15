@@ -16,7 +16,7 @@ class money_log : public singleton<money_log>
 	~money_log() override;
 
 	void save();
-	void add_log(uint8_t bType, uint32_t dwVnum, int iGold);
+	void add_log(uint8_t type, uint32_t vnum, int gold);
 
     private:
 	std::map<uint32_t, int> money_log_container_[MONEY_LOG_TYPE_MAX_NUM];

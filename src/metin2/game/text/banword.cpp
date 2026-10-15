@@ -24,11 +24,11 @@ banword_manager::~banword_manager()
 {
 }
 
-bool banword_manager::initialize(banword_table * p, uint16_t wSize)
+bool banword_manager::initialize(banword_table * p, uint16_t size_value)
 {
 	hashmap_words_.clear();
 
-	for (uint16_t i = 0; i < wSize; ++i, ++p)
+	for (uint16_t i = 0; i < size_value; ++i, ++p)
 		hashmap_words_[p->word] = true;
 
 	char szBuf[256];
@@ -37,7 +37,7 @@ bool banword_manager::initialize(banword_table * p, uint16_t wSize)
 	return true;
 }
 
-bool banword_manager::check_string(const char * c_pszString, size_t _len)
+bool banword_manager::check_string(const char * string_value, size_t len_value)
 {
 	if (hashmap_words_.empty())
 		return false;
@@ -47,8 +47,8 @@ bool banword_manager::check_string(const char * c_pszString, size_t _len)
 	while (it != hashmap_words_.end())
 	{
 		const std::string & r = it->first;
-		const char * tmp = c_pszString;
-		ssize_t len = _len;
+		const char * tmp = string_value;
+		ssize_t len = len_value;
 
 		// words start on a character boundary (text is UTF-8)
 		while (len > 0)
@@ -67,7 +67,7 @@ bool banword_manager::check_string(const char * c_pszString, size_t _len)
 	return false;
 }
 
-void banword_manager::convert_string(char * c_pszString, size_t _len)
+void banword_manager::convert_string(char * string_value, size_t len_value)
 {
 	__typeof(hashmap_words_.begin()) it = hashmap_words_.begin();
 
@@ -75,8 +75,8 @@ void banword_manager::convert_string(char * c_pszString, size_t _len)
 	{
 		const std::string & r = it->first;
 
-		char * tmp = c_pszString;
-		ssize_t len = _len;
+		char * tmp = string_value;
+		ssize_t len = len_value;
 
 		// words start on a character boundary (text is UTF-8)
 		while (len > 0)

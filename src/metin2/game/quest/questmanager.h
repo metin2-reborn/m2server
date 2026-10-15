@@ -60,7 +60,7 @@ namespace quest
 
 			bool		initialize_lua();
 			lua_State *		lua_state() { return l_; }
-			void		add_lua_function_table(const char * c_pszName, luaL_reg * preg);
+			void		add_lua_function_table(const char * name_value, luaL_reg * preg);
 
 			event_name_map	event_name;
 
@@ -80,9 +80,9 @@ namespace quest
 
 			void		set_current_event_index(int index) { running_event_index_ = index; }
 
-			bool		use_item(unsigned int pc, item * item, bool bReceiveAll);
+			bool		use_item(unsigned int pc, item * item, bool receive_all);
 			bool		pickup_item(unsigned int pc, item * item);
-			bool		sig_use(unsigned int pc, uint32_t sig_vnum, item * item, bool bReceiveAll);
+			bool		sig_use(unsigned int pc, uint32_t sig_vnum, item * item, bool receive_all);
 			bool		take_item(unsigned int pc, unsigned int npc, item * item);
 			item *		current_item();
 			void		clear_current_item();
@@ -92,22 +92,22 @@ namespace quest
 			void		clear_server_timer_not_cancel(const std::string& name, uint32_t arg);
 			void		cancel_server_timers(uint32_t arg);
 
-			void		set_server_timer_arg(uint32_t dwArg);
+			void		set_server_timer_arg(uint32_t arg);
 			uint32_t		server_timer_arg();
 
 			// event over state and stae
 			bool		server_timer(unsigned int npc, unsigned int arg);
 
-			void		login(unsigned int pc, const char * c_pszQuestName = nullptr);
+			void		login(unsigned int pc, const char * quest = nullptr);
 			void		logout(unsigned int pc);
 			bool		timer(unsigned int pc, unsigned int npc);
-			bool		click(unsigned int pc, character * pkNPC);
+			bool		click(unsigned int pc, character * chr_target);
 			void		kill(unsigned int pc, unsigned int npc);
 			void		level_up(unsigned int pc);
 			void		attr_in(unsigned int pc, character * ch, int attr);
 			void		attr_out(unsigned int pc, character * ch, int attr);
-			bool		target(unsigned int pc, uint32_t dwQuestIndex, const char * c_pszTargetName, const char * c_pszVerb);
-			bool		give_item_to_pc(unsigned int pc, character * pkChr);
+			bool		target(unsigned int pc, uint32_t quest_index, const char * target_name, const char * verb);
+			bool		give_item_to_pc(unsigned int pc, character * chr);
 			void		unmount(unsigned int pc);
 
 			void		quest_button(unsigned int pc, unsigned int quest_index);
@@ -146,24 +146,24 @@ namespace quest
 			pc *		current_pc() { return current_pc_; }
 
 			dungeon *		current_dungeon();
-			void		select_dungeon(dungeon * pDungeon);
+			void		select_dungeon(dungeon * dungeon_value);
 
 			void		clear_script();
 			void		send_script();
 			void		add_script(const std::string& str);
 
-			void		build_state_index_to_name(const char* questName);
+			void		build_state_index_to_name(const char* quest_name);
 
 			int			quest_state_index(const std::string& quest_name, const std::string& state_name);
 			const char*		quest_state_name(const std::string& quest_name, const int state_index);
 
-			void		set_skin_style(int iStyle);
+			void		set_skin_style(int style);
 
 			void		set_no_send() { no_send_ = true; }
 
 			unsigned int	load_timer_script(const std::string& name);
 
-			void		register_quest(const std::string & name, unsigned int idx);
+			void		register_quest(const std::string & quest_name, unsigned int idx);
 			unsigned int 	quest_index_by_name(const std::string& name);
 			const std::string& 	quest_name_by_index(unsigned int idx);
 
@@ -182,7 +182,7 @@ namespace quest
 			bool		is_error() { return error_; }
 			void		write_running_state_to_syserr();
 
-			void		register_npc_vnum(uint32_t dwVnum);
+			void		register_npc_vnum(uint32_t vnum);
 
 		private:
 			dungeon *			selected_dungeon_;
@@ -251,8 +251,8 @@ namespace quest
 			bool						error_;
 
 		public:
-			static bool execute_quest_script(pc& pc, const std::string& quest_name, const int state, const char* code, const int code_size, std::vector<a_arg_script*>* pChatScripts = nullptr, bool bUseCache = true);
-			static bool execute_quest_script(pc& pc, uint32_t quest_index, const int state, const char* code, const int code_size, std::vector<a_arg_script*>* pChatScripts = nullptr, bool bUseCache = true);
+			static bool execute_quest_script(pc& pc, const std::string& quest_name, const int state, const char* code, const int code_size, std::vector<a_arg_script*>* chat_scripts_value = nullptr, bool use_cache = true);
+			static bool execute_quest_script(pc& pc, uint32_t quest_index, const int state, const char* code, const int code_size, std::vector<a_arg_script*>* chat_scripts = nullptr, bool use_cache = true);
 		
 
 		// Objects for begin_other_pc_blcok, end_other_pc_block.

@@ -14,13 +14,13 @@ class grid {
 
     void clear();
     auto find_blank(int w, int h) const -> int;
-    auto is_empty(int iPos, int w, int h) const -> bool;
-    auto put(int iPos, int w, int h) -> bool;
-    void get(int iPos, int w, int h);
+    auto is_empty(int pos, int w, int h) const -> bool;
+    auto put(int pos, int w, int h) -> bool;
+    void get(int pos, int w, int h);
     auto size() const -> unsigned int;
 
   private:
-    void fill(int iPos, int w, int h, char value);
+    void fill(int pos, int w, int h, char value);
 
     int width_;
     int height_;

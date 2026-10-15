@@ -36,22 +36,22 @@ strlcpy(pck.name, info->target_desc, sizeof(pck.name));
 d->packet(&pck, sizeof(packet_gc_target_create));
 }
 
-void send_target_update_packet(desc * d, int iID, int x, int y)
+void send_target_update_packet(desc * d, int id_value, int x, int y)
 {
 packet_gc_target_update pck;
 pck.header = HEADER_GC_TARGET_UPDATE;
-pck.id = iID;
+pck.id = id_value;
 pck.x = x;
 pck.y = y;
 d->packet(&pck, sizeof(packet_gc_target_update));
-metin2::log::info( "SendTargetUpdatePacket {:d} {:d}x{:d}", iID, x, y);
+metin2::log::info( "SendTargetUpdatePacket {:d} {:d}x{:d}", id_value, x, y);
 }
 
-void send_target_delete_packet(desc * d, int iID)
+void send_target_delete_packet(desc * d, int id_value)
 {
 packet_gc_target_delete pck;
 pck.header = HEADER_GC_TARGET_DELETE;
-pck.id = iID;
+pck.id = id_value;
 d->packet(&pck, sizeof(packet_gc_target_delete));
 }
 /////////////////////////////////////////////////////////////////////
@@ -139,31 +139,31 @@ EVENTFUNC(target_event)
 		return std::clamp(iDist / (1500 / metin2::config::server().passes_per_sec), metin2::config::server().passes_per_sec / 2, metin2::config::server().passes_per_sec * 5);
 }
 
-void target_manager::create_target(uint32_t dwPID,
-		uint32_t dwQuestIndex,
-		const char * c_pszTargetName,
-		int iType,
-		int iArg1,
-		int iArg2,
-		int iMapIndex,
-		const char * c_pszTargetDesc, 
-		int iSendFlag)
+void target_manager::create_target(uint32_t pid_value,
+		uint32_t quest_index_value,
+		const char * target_name_value,
+		int type_value,
+		int arg1_value,
+		int arg2_value,
+		int map_index_value,
+		const char * target_desc_value, 
+		int send_flag)
 {
 	metin2::log::info( "CreateTarget : target pid {:d} quest {:d} name {} arg {:d} {:d} {:d}",
-			dwPID, dwQuestIndex, c_pszTargetName, iType, iArg1, iArg2);
+			pid_value, quest_index_value, target_name_value, type_value, arg1_value, arg2_value);
 
-	character * pkChr = character_manager::instance().find_by_pid(dwPID);
+	character * pkChr = character_manager::instance().find_by_pid(pid_value);
 
 	if (!pkChr)
 	{
-		metin2::log::error("Cannot find character ptr by PID {:d}", dwPID);
+		metin2::log::error("Cannot find character ptr by PID {:d}", pid_value);
 		return;
 	}
 
-	if (pkChr->map_index() != iMapIndex)
+	if (pkChr->map_index() != map_index_value)
 		return;
 
-	auto it = map_k_list_event_.find(dwPID);
+	auto it = map_k_list_event_.find(pid_value);
 
 	if (it != map_k_list_event_.end())
 	{
@@ -180,16 +180,16 @@ void target_manager::create_target(uint32_t dwPID,
 				return;
 			}
 
-			if (existInfo->quest_index == dwQuestIndex && !strcmp(existInfo->target_name, c_pszTargetName))
+			if (existInfo->quest_index == quest_index_value && !strcmp(existInfo->target_name, target_name_value))
 			{
 				metin2::log::info( "CreateTarget : same target will be replaced");
 
 				if (existInfo->send_to_client)
 					send_target_delete_packet(pkChr->get_desc(), existInfo->id);
 
-				if (c_pszTargetDesc)
+				if (target_desc_value)
 				{
-					strlcpy(existInfo->target_desc, c_pszTargetDesc, sizeof(existInfo->target_desc));
+					strlcpy(existInfo->target_desc, target_desc_value, sizeof(existInfo->target_desc));
 				}
 				else
 				{
@@ -197,12 +197,12 @@ void target_manager::create_target(uint32_t dwPID,
 				}
 
 				existInfo->id = ++id_;
-				existInfo->type = iType;
-				existInfo->arg1 = iArg1;
-				existInfo->arg2 = iArg2;
+				existInfo->type = type_value;
+				existInfo->arg1 = arg1_value;
+				existInfo->arg2 = arg2_value;
 				existInfo->old_x = 0;
 				existInfo->old_y = 0;
-				existInfo->send_to_client = iSendFlag ? true : false;
+				existInfo->send_to_client = send_flag ? true : false;
 
 				send_target_create_packet(pkChr->get_desc(), existInfo);
 				return;
@@ -212,9 +212,9 @@ void target_manager::create_target(uint32_t dwPID,
 
 	target_info* newInfo = alloc_event_info<target_info>();
 
-	if (c_pszTargetDesc)
+	if (target_desc_value)
 	{
-		strlcpy(newInfo->target_desc, c_pszTargetDesc, sizeof(newInfo->target_desc));
+		strlcpy(newInfo->target_desc, target_desc_value, sizeof(newInfo->target_desc));
 	}
 	else
 	{
@@ -223,30 +223,30 @@ void target_manager::create_target(uint32_t dwPID,
 
 	newInfo->id = ++id_;
 	// <Factor> Removed pkChr
-	newInfo->pid = dwPID;
-	newInfo->quest_index = dwQuestIndex;
-	strlcpy(newInfo->target_name, c_pszTargetName, sizeof(newInfo->target_name));
-	newInfo->type = iType;
-	newInfo->arg1 = iArg1;
-	newInfo->arg2 = iArg2;
-	newInfo->map_index = iMapIndex;
+	newInfo->pid = pid_value;
+	newInfo->quest_index = quest_index_value;
+	strlcpy(newInfo->target_name, target_name_value, sizeof(newInfo->target_name));
+	newInfo->type = type_value;
+	newInfo->arg1 = arg1_value;
+	newInfo->arg2 = arg2_value;
+	newInfo->map_index = map_index_value;
 	newInfo->old_x = 0;
 	newInfo->old_y = 0;
-	newInfo->send_to_client = iSendFlag ? true : false;
+	newInfo->send_to_client = send_flag ? true : false;
 
 	event_ptr event = event_create(game::target_event, newInfo, passes_per_sec(1));
 
 	if (nullptr != event)
 	{
-		map_k_list_event_[dwPID].push_back(event);
+		map_k_list_event_[pid_value].push_back(event);
 
 		send_target_create_packet(pkChr->get_desc(), newInfo);
 	}
 }
 
-void target_manager::delete_target(uint32_t dwPID, uint32_t dwQuestIndex, const char * c_pszTargetName)
+void target_manager::delete_target(uint32_t pid_value, uint32_t quest_index_value, const char * target_name_value)
 {
-	auto it = map_k_list_event_.find(dwPID);
+	auto it = map_k_list_event_.find(pid_value);
 
 	if (it == map_k_list_event_.end())
 		return;
@@ -265,9 +265,9 @@ void target_manager::delete_target(uint32_t dwPID, uint32_t dwQuestIndex, const 
 			continue;
 		}
 
-		if (dwQuestIndex == info->quest_index)
+		if (quest_index_value == info->quest_index)
 		{
-			if (!c_pszTargetName || !strcmp(info->target_name, c_pszTargetName))
+			if (!target_name_value || !strcmp(info->target_name, target_name_value))
 			{
 				if (info->send_to_client) {
 					// <Factor> Removed pkChr
@@ -287,9 +287,9 @@ void target_manager::delete_target(uint32_t dwPID, uint32_t dwQuestIndex, const 
 	}
 }
 
-event_ptr target_manager::target_event(uint32_t dwPID, uint32_t dwQuestIndex, const char * c_pszTargetName)
+event_ptr target_manager::target_event(uint32_t pid, uint32_t quest_index_value, const char * target_name_value)
 {
-	auto it = map_k_list_event_.find(dwPID);
+	auto it = map_k_list_event_.find(pid);
 
 	if (it == map_k_list_event_.end())
 		return nullptr;
@@ -308,10 +308,10 @@ event_ptr target_manager::target_event(uint32_t dwPID, uint32_t dwQuestIndex, co
 			continue;
 		}
 
-		if (info->quest_index != dwQuestIndex)
+		if (info->quest_index != quest_index_value)
 			continue;
 
-		if (strcmp(info->target_name, c_pszTargetName))
+		if (strcmp(info->target_name, target_name_value))
 			continue;
 
 		return pkEvent;
@@ -320,9 +320,9 @@ event_ptr target_manager::target_event(uint32_t dwPID, uint32_t dwQuestIndex, co
 	return nullptr;
 }
 
-target_info * target_manager::get_target_info(uint32_t dwPID, int iType, int iArg1)
+target_info * target_manager::get_target_info(uint32_t pid, int type_value, int arg1_value)
 {
-	auto it = map_k_list_event_.find(dwPID);
+	auto it = map_k_list_event_.find(pid);
 
 	if (it == map_k_list_event_.end())
 		return nullptr;
@@ -341,10 +341,10 @@ target_info * target_manager::get_target_info(uint32_t dwPID, int iType, int iAr
 			continue;
 		}
 
-		if (!is_set(info->type, iType))
+		if (!is_set(info->type, type_value))
 			continue;
 
-		if (info->arg1 != iArg1)
+		if (info->arg1 != arg1_value)
 			continue;
 
 		return info;
@@ -353,9 +353,9 @@ target_info * target_manager::get_target_info(uint32_t dwPID, int iType, int iAr
 	return nullptr;
 }
 
-void target_manager::logout(uint32_t dwPID)
+void target_manager::logout(uint32_t pid)
 {
-	auto it = map_k_list_event_.find(dwPID);
+	auto it = map_k_list_event_.find(pid);
 
 	if (it == map_k_list_event_.end())
 		return;

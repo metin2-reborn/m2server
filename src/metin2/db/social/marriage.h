@@ -38,9 +38,9 @@ namespace marriage
 		uint32_t pi_d1;
 		uint32_t pi_d2;
 
-		wedding(uint32_t time_value, uint32_t dwMapIndex, uint32_t pid1, uint32_t pid2)
+		wedding(uint32_t time_value, uint32_t map_index_value, uint32_t pid1, uint32_t pid2)
 			: time(time_value),
-			map_index(dwMapIndex),
+			map_index(map_index_value),
 			pi_d1(pid1),
 			pi_d2(pid2)
 		{
@@ -61,17 +61,17 @@ namespace marriage
 		std::string name1;
 		std::string name2;
 
-		marriage(uint32_t _pid1, uint32_t _pid2, int _love_point, uint32_t _time, uint8_t _is_married, const char* name1, const char* name2)
-			: pid1(_pid1), pid2(_pid2), love_point(_love_point), time(_time), is_married(_is_married), name1(name1), name2(name2)
+		marriage(uint32_t pid1_value, uint32_t pid2_value, int love_point_value, uint32_t time_value, uint8_t is_married_value, const char* name1, const char* name2)
+			: pid1(pid1_value), pid2(pid2_value), love_point(love_point_value), time(time_value), is_married(is_married_value), name1(name1), name2(name2)
 		{
 		}
 
-		uint32_t other(uint32_t PID)
+		uint32_t other(uint32_t pid)
 		{
-			if (pid1 == PID)
+			if (pid1 == pid)
 				return pid2;
 
-			if (pid2 == PID)
+			if (pid2 == pid)
 				return pid1;
 
 			return 0;
@@ -86,18 +86,18 @@ namespace marriage
 
 			bool initialize();
 
-			marriage* get(uint32_t dwPlayerID);
-			bool is_married(uint32_t dwPlayerID)
+			marriage* get(uint32_t player_id);
+			bool is_married(uint32_t player_id)
 			{
-				return get(dwPlayerID) != nullptr;
+				return get(player_id) != nullptr;
 			}
 
-			void	add(uint32_t dwPID1, uint32_t dwPID2, const char* szName1, const char* szName2);
-			void	remove(uint32_t dwPID1, uint32_t dwPID2);
-			void	update(uint32_t dwPID1, uint32_t dwPID2, int32_t iLovePoint, uint8_t byMarried);
+			void	add(uint32_t pid1, uint32_t pid2, const char* name1_value, const char* name2_value);
+			void	remove(uint32_t pid1_value, uint32_t pid2_value);
+			void	update(uint32_t pid1_value, uint32_t pid2_value, int32_t love_point_value, uint8_t married_value);
 
-			void	ready_wedding(uint32_t dwMapIndex, uint32_t dwPID1, uint32_t dwPID2);
-			void	end_wedding(uint32_t dwPID1, uint32_t dwPID2);
+			void	ready_wedding(uint32_t map_index, uint32_t pid1, uint32_t pid2);
+			void	end_wedding(uint32_t pid1, uint32_t pid2);
 
 			void	on_setup(peer* peer);
 

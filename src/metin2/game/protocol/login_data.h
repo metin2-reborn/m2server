@@ -11,16 +11,16 @@ class login_data
 	public:
 		login_data();
 
-		void            set_client_key(const uint32_t * c_pdwClientKey);
+		void            set_client_key(const uint32_t * client_key);
 
 		const uint32_t *   client_key();
-		void            set_key(uint32_t dwKey);
+		void            set_key(uint32_t key);
 		uint32_t           key();
 
-		void		set_login(const char * c_pszLogin);
+		void		set_login(const char * login);
 		const char *	login();
 
-		void		set_premium(int * paiPremiumTimes);
+		void		set_premium(int * pai_premium_times);
 		int *		premium_ptr();
 
 	private:

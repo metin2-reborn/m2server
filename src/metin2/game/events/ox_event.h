@@ -44,8 +44,8 @@ class ox_event_manager : public singleton<ox_event_manager>
 	protected :
 		bool check_answer();
 
-		bool enter_audience(character * pChar);
-		bool enter_attender(character * pChar);
+		bool enter_audience(character * ch);
+		bool enter_attender(character * ch);
 
 	public :
 		bool initialize();
@@ -55,16 +55,16 @@ class ox_event_manager : public singleton<ox_event_manager>
 		void set_status(ox_event_status status);
 
 
-		bool enter(character * pChar);
+		bool enter(character * ch);
 		
 		bool close_event();
 
 		void clear_quiz();
-		bool add_quiz(unsigned char level, const char* pszQuestion, bool answer);
-		bool show_quiz_list(character * pChar);
+		bool add_quiz(unsigned char level, const char* question, bool answer);
+		bool show_quiz_list(character * ch);
 
 		bool quiz(unsigned char level, int timelimit);
-		bool give_item_to_attender(uint32_t dwItemVnum, uint8_t count);
+		bool give_item_to_attender(uint32_t item_vnum, uint8_t count);
 
 		bool check_answer(bool answer);
 		void warp_to_audience();

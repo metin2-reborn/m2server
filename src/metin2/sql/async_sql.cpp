@@ -74,19 +74,19 @@ async_sql::~async_sql() {
     }
 }
 
-auto async_sql::setup(const char *c_pszHost, const char *c_pszUser, const char *c_pszPassword, const char *c_pszDB, const char *c_pszLocale, bool bNoThread, int iPort) -> bool {
-    host_ = c_pszHost;
-    user_ = c_pszUser;
-    password_ = c_pszPassword;
-    m_st_db_ = c_pszDB;
-    port_ = iPort;
+auto async_sql::setup(const char *host, const char *user, const char *password, const char *db, const char *locale, bool no_thread, int port) -> bool {
+    host_ = host;
+    user_ = user;
+    password_ = password;
+    m_st_db_ = db;
+    port_ = port;
 
-    if (c_pszLocale) {
-        locale_ = c_pszLocale;
+    if (locale) {
+        locale_ = locale;
         metin2::log::info( "AsyncSQL: locale {}", locale_.c_str());
     }
 
-    if (bNoThread) {
+    if (no_thread) {
         return connect();
     }
 
@@ -152,8 +152,8 @@ auto async_sql::query_locale_set() -> bool {
     return true;
 }
 
-void async_sql::set_locale(const std::string &stLocale) {
-    locale_ = stLocale;
+void async_sql::set_locale(const std::string &locale) {
+    locale_ = locale;
     query_locale_set();
 }
 
@@ -170,17 +170,17 @@ void async_sql::check_reconnected() {
     thread_id_ = mysql_thread_id(&db_);
 }
 
-auto async_sql::new_message(const char *c_pszQuery) -> std::unique_ptr<ql_msg> {
+auto async_sql::new_message(const char *query_value) -> std::unique_ptr<ql_msg> {
     auto msg = std::make_unique<ql_msg>();
     msg->id = ++msg_count_;
-    msg->query = c_pszQuery;
+    msg->query = query_value;
     return msg;
 }
 
-auto async_sql::direct_query(const char *c_pszQuery) -> ql_msg * {
+auto async_sql::direct_query(const char *query_value) -> ql_msg * {
     check_reconnected();
 
-    auto msg = new_message(c_pszQuery);
+    auto msg = new_message(query_value);
 
     if (mysql_real_query(&db_, msg->query.c_str(), msg->query.length())) {
         metin2::log::error("AsyncSQL::DirectQuery : mysql_query error: {}\nquery: {}", mysql_error(&db_), msg->query.c_str());
@@ -191,14 +191,14 @@ auto async_sql::direct_query(const char *c_pszQuery) -> ql_msg * {
     return msg.release();
 }
 
-void async_sql::async_query(const char *c_pszQuery) {
-    push_query(new_message(c_pszQuery));
+void async_sql::async_query(const char *query) {
+    push_query(new_message(query));
 }
 
-void async_sql::return_query(const char *c_pszQuery, void *pvUserData) {
-    auto msg = new_message(c_pszQuery);
+void async_sql::return_query(const char *query, void *user_data) {
+    auto msg = new_message(query);
     msg->returns_result = true;
-    msg->pv_user_data = pvUserData;
+    msg->pv_user_data = user_data;
     push_query(std::move(msg));
 }
 
@@ -325,27 +325,27 @@ auto async_sql::sql_handle() -> MYSQL * {
     return &db_;
 }
 
-auto async_sql::escape_string(char *dst, size_t dstSize, const char *src, size_t srcSize) -> size_t {
-    if (srcSize == 0) {
-        std::ranges::fill_n(dst, static_cast<std::ptrdiff_t>(dstSize), '\0');
+auto async_sql::escape_string(char *dst, size_t dst_size, const char *src, size_t src_size) -> size_t {
+    if (src_size == 0) {
+        std::ranges::fill_n(dst, static_cast<std::ptrdiff_t>(dst_size), '\0');
         return 0;
     }
 
-    if (dstSize == 0) {
+    if (dst_size == 0) {
         return 0;
     }
 
-    if (dstSize < srcSize * 2 + 1) {
+    if (dst_size < src_size * 2 + 1) {
         // src may not be terminated: log at most 255 bytes of it
-        const std::string_view shown(src, std::min<size_t>(srcSize, 255));
+        const std::string_view shown(src, std::min<size_t>(src_size, 255));
 
         metin2::log::error("FATAL ERROR!! not enough buffer size (dstSize {:d} srcSize {:d} src{}: {})",
-            dstSize, srcSize, shown.size() != srcSize ? "(trimmed to 255 characters)" : "", std::string_view(shown.data(), static_cast<int>(shown.size())));
+            dst_size, src_size, shown.size() != src_size ? "(trimmed to 255 characters)" : "", std::string_view(shown.data(), static_cast<int>(shown.size())));
 
         dst[0] = '\0';
         return 0;
     }
 
-    return mysql_real_escape_string(&db_, dst, src, srcSize);
+    return mysql_real_escape_string(&db_, dst, src, src_size);
 }
 }

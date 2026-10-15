@@ -30,14 +30,14 @@ struct shop_table_ex : shop_table {
 class shop_ex: public shop
 {
 public:
-	bool			create(uint32_t dwVnum, uint32_t dwNPCVnum);
-	bool			add_shop_table(shop_table_ex& shopTable);
+	bool			create(uint32_t vnum, uint32_t npc_vnum);
+	bool			add_shop_table(shop_table_ex& shop_table);
 
-	bool	add_guest(character * ch,uint32_t owner_vid, bool bOtherEmpire) override;
+	bool	add_guest(character * ch,uint32_t owner_vid, bool other_empire) override;
 	void	set_pc_shop(character * ch) override { return; }
 	bool	is_pc_shop() override { return false; }
 	int		buy(character * ch, uint8_t pos) override;
-	bool	is_selling_item(uint32_t itemID) override { return false; }
+	bool	is_selling_item(uint32_t item_id) override { return false; }
 	
 	size_t			tab_count() { return vec_shop_tabs_.size(); }
 private:

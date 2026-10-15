@@ -29,8 +29,8 @@ public:
 	{}
 	struct special_attr_info
 	{
-		special_attr_info (uint32_t _apply_type, uint32_t _apply_value)
-			: apply_type(_apply_type), apply_value(_apply_value)
+		special_attr_info (uint32_t apply_type_value, uint32_t apply_value_value)
+			: apply_type(apply_type_value), apply_value(apply_value_value)
 		{}
 		uint32_t apply_type;
 		uint32_t apply_value;
@@ -68,8 +68,8 @@ class special_item_group
 			int count;
 			int rare;
 
-			special_item_info(uint32_t _vnum, int _count, int _rare)
-				: vnum(_vnum), count(_count), rare(_rare)
+			special_item_info(uint32_t vnum_value, int count_value, int rare_value)
+				: vnum(vnum_value), count(count_value), rare(rare_value)
 				{}
 		};
 
@@ -141,11 +141,11 @@ class special_item_group
 			return items[idx].rare;
 		}
 
-		bool contains(uint32_t dwVnum) const
+		bool contains(uint32_t vnum_value) const
 		{
 			for (uint32_t i = 0; i < items.size(); i++)
 			{
-				if (items[i].vnum == dwVnum)
+				if (items[i].vnum == vnum_value)
 					return true;
 			}
 			return false;
@@ -153,13 +153,13 @@ class special_item_group
 		
 		// when the Group's Type is Special
 		// returns the AttrVnum matching dwVnum.
-		uint32_t attr_vnum(uint32_t dwVnum) const
+		uint32_t attr_vnum(uint32_t vnum_value) const
 		{
 			if (special_item_group::SPECIAL != type)
 				return 0;
 			for (auto it = items.begin(); it != items.end(); it++)
 			{
-				if (it->vnum == dwVnum)
+				if (it->vnum == vnum_value)
 				{
 					return it->count;
 				}
@@ -182,15 +182,15 @@ class mob_item_group
 			int count;
 			int rare_pct;
 
-			mob_item_group_info(uint32_t dwItemVnum, int iCount, int iRarePct)
-				: item_vnum(dwItemVnum),
-			count(iCount),
-			rare_pct(iRarePct)
+			mob_item_group_info(uint32_t item_vnum_value, int count_value, int rare_pct_value)
+				: item_vnum(item_vnum_value),
+			count(count_value),
+			rare_pct(rare_pct_value)
 			{
 			}
 		};
 
-		explicit mob_item_group(int iKillDrop) : kill_drop_(iKillDrop)
+		explicit mob_item_group(int kill_drop) : kill_drop_(kill_drop)
 		{
 		}
 
@@ -199,12 +199,12 @@ class mob_item_group
 			return kill_drop_;
 		}
 
-		void add_item(uint32_t dwItemVnum, int iCount, int iPartPct, int iRarePct)
+		void add_item(uint32_t item_vnum, int count, int part_pct, int rare_pct)
 		{
 			if (!probs_.empty())
-				iPartPct += probs_.back();
-			probs_.push_back(iPartPct);
-			items_.push_back(mob_item_group_info(dwItemVnum, iCount, iRarePct));
+				part_pct += probs_.back();
+			probs_.push_back(part_pct);
+			items_.push_back(mob_item_group_info(item_vnum, count, rare_pct));
 		}
 
 		// MOB_DROP_ITEM_BUG_FIX
@@ -240,8 +240,8 @@ class drop_item_group
 		uint32_t	pct;
 		int	count;
 
-		drop_item_group_info(uint32_t dwVnum, uint32_t dwPct, int iCount)
-			: vnum(dwVnum), pct(dwPct), count(iCount)
+		drop_item_group_info(uint32_t vnum_value, uint32_t pct_value, int count_value)
+			: vnum(vnum_value), pct(pct_value), count(count_value)
 			{}
 	};
 
@@ -253,9 +253,9 @@ class drop_item_group
 		return vec_items_;
 	}
 
-	void add_item(uint32_t dwItemVnum, uint32_t dwPct, int iCount)
+	void add_item(uint32_t item_vnum, uint32_t pct, int count)
 	{
-		vec_items_.push_back(drop_item_group_info(dwItemVnum, dwPct, iCount));
+		vec_items_.push_back(drop_item_group_info(item_vnum, pct, count));
 	}
 
 	private:
@@ -270,8 +270,8 @@ class level_item_group
 		uint32_t pct;
 		int count;
 
-		level_item_group_info(uint32_t dwVnum, uint32_t dwPct, int iCount)
-			: v_num(dwVnum), pct(dwPct), count(iCount)
+		level_item_group_info(uint32_t vnum, uint32_t pct_value, int count_value)
+			: v_num(vnum), pct(pct_value), count(count_value)
 		{ }
 	};
 
@@ -280,15 +280,15 @@ class level_item_group
 		std::vector<level_item_group_info> vec_items_;
 
 	public :
-		level_item_group(uint32_t dwLevelLimit)
-			: level_limit_(dwLevelLimit)
+		level_item_group(uint32_t level_limit)
+			: level_limit_(level_limit)
 		{}
 
 		uint32_t level_limit() { return level_limit_; }
 
-		void add_item(uint32_t dwItemVnum, uint32_t dwPct, int iCount)
+		void add_item(uint32_t item_vnum, uint32_t pct, int count)
 		{
-			vec_items_.push_back(level_item_group_info(dwItemVnum, dwPct, iCount));
+			vec_items_.push_back(level_item_group_info(item_vnum, pct, count));
 		}
 
 		const std::vector<level_item_group_info> & get_vector()
@@ -305,8 +305,8 @@ class buyer_thief_gloves_item_group
 		uint32_t	pct;
 		int	count;
 
-		thief_group_info(uint32_t dwVnum, uint32_t dwPct, int iCount)
-			: vnum(dwVnum), pct(dwPct), count(iCount)
+		thief_group_info(uint32_t vnum_value, uint32_t pct_value, int count_value)
+			: vnum(vnum_value), pct(pct_value), count(count_value)
 			{}
 	};
 
@@ -318,9 +318,9 @@ class buyer_thief_gloves_item_group
 		return vec_items_;
 	}
 
-	void add_item(uint32_t dwItemVnum, uint32_t dwPct, int iCount)
+	void add_item(uint32_t item_vnum, uint32_t pct, int count)
 	{
-		vec_items_.push_back(thief_group_info(dwItemVnum, dwPct, iCount));
+		vec_items_.push_back(thief_group_info(item_vnum, pct, count));
 	}
 
 	private:
@@ -334,7 +334,7 @@ class item_manager : public singleton<item_manager>
 		item_manager();
 		~item_manager() override;
 
-		bool                    initialize(item_table * table, int size);
+		bool                    initialize(item_table * table_value, int size);
 		void			destroy();
 		void			update();	// called every loop.
 		void			graceful_shutdown();
@@ -350,43 +350,43 @@ class item_manager : public singleton<item_manager>
 		void			flush_delayed_save(item * item); // if in the Delayed list, remove it and save. used on disconnect handling.
 		void			save_single_item(item * item);
 
-		item *                  create_item(uint32_t vnum, uint32_t count = 1, uint32_t dwID = 0, bool bTryMagic = false, int iRarePct = -1, bool bSkipSave = false);
+		item *                  create_item(uint32_t vnum, uint32_t count = 1, uint32_t id = 0, bool try_magic = false, int rare_pct = -1, bool skip_save = false);
 		void destroy_item(item * item);
-		void			remove_item(item * item, const char * c_pszReason=nullptr); // remove the item from the user
+		void			remove_item(item * item, const char * reason=nullptr); // remove the item from the user
 
 		item *			find(uint32_t id);
 		item *                  find_by_vid(uint32_t vid);
 		item_table *            table(uint32_t vnum);
-		bool			vnum(const char * c_pszName, uint32_t & r_dwVnum);
-		bool			vnum_by_original_name(const char * c_pszName, uint32_t & r_dwVnum);
+		bool			vnum(const char * name, uint32_t & r_dw_vnum);
+		bool			vnum_by_original_name(const char * name_value, uint32_t & r_dw_vnum);
 
-		bool			drop_pct(character * pkChr, character * pkKiller, int& iDeltaPercent, int& iRandRange);
-		bool			create_drop_item(character * pkChr, character * pkKiller, std::vector<item *> & vec_item);
+		bool			drop_pct(character * chr, character * killer, int& delta_percent, int& rand_range);
+		bool			create_drop_item(character * chr, character * killer, std::vector<item *> & vec_item);
 
-		bool			read_common_drop_item_file(const char * c_pszFileName);
-		bool			read_etc_drop_item_file(const char * c_pszFileName);
-		bool			read_drop_item_group(const char * c_pszFileName);
-		bool			read_monster_drop_item_group(const char * c_pszFileName);
-		bool			read_special_drop_item_file(const char * c_pszFileName);
+		bool			read_common_drop_item_file(const char * file_name);
+		bool			read_etc_drop_item_file(const char * file_name);
+		bool			read_drop_item_group(const char * file_name);
+		bool			read_monster_drop_item_group(const char * file_name);
+		bool			read_special_drop_item_file(const char * file_name);
 		
 		// convert name -> vnum special_item_group.txt
 		bool			conv_special_drop_item_file();
 		// convert name -> vnum special_item_group.txt
 
-		uint32_t			refine_from_vnum(uint32_t dwVnum);
+		uint32_t			refine_from_vnum(uint32_t vnum);
 
-		static void		copy_all_attr_to(item * pkOldItem, item * pkNewItem);		// copies all attributes and socket values to pkNewItem.
+		static void		copy_all_attr_to(item * old_item, item * new_item);		// copies all attributes and socket values to pkNewItem.
 
-		const special_item_group* get_special_item_group(uint32_t dwVnum);
-		const special_attr_group* get_special_attr_group(uint32_t dwVnum);
+		const special_item_group* get_special_item_group(uint32_t vnum);
+		const special_attr_group* get_special_attr_group(uint32_t vnum);
 
 		// CHECK_UNIQUE_GROUP
-		int			special_group_from_item(uint32_t dwVnum) const { auto it = item_to_special_group_.find(dwVnum); return (it == item_to_special_group_.end()) ? 0 : it->second; }
+		int			special_group_from_item(uint32_t vnum) const { auto it = item_to_special_group_.find(vnum); return (it == item_to_special_group_.end()) ? 0 : it->second; }
 		// END_OF_CHECK_UNIQUE_GROUP
 
 	protected:
 		int                     real_number(uint32_t vnum);
-		void			create_quest_drop_item(character * pkChr, character * pkKiller, std::vector<item *> & vec_item, int iDeltaPercent, int iRandRange);
+		void			create_quest_drop_item(character * chr, character * killer, std::vector<item *> & vec_item, int delta_percent, int rand_range);
 
 	protected:
 		typedef std::map<uint32_t, item *> item_vid_map;		
@@ -426,16 +426,16 @@ class item_manager : public singleton<item_manager>
 		// so for an item with a new vnum, it runs on the server as the original item vnum,
 		// and is converted back to its own vnum when saving.
 		// for this, a map linking original vnums to new vnums is created.
-		typedef std::map <uint32_t, uint32_t> map_d_w2_dw;
-		map_d_w2_dw	map_new_to_ori_;
+		typedef std::map <uint32_t, uint32_t> map_dw2_dw;
+		map_dw2_dw	map_new_to_ori_;
 
 	public:	
-		uint32_t	mask_vnum(uint32_t dwVnum);
+		uint32_t	mask_vnum(uint32_t vnum);
 		std::map<uint32_t, item_table>  map_vid;
 		
 		const static int max_norm_attr_num = 5;
 		const static int max_rare_attr_num = 2;
-		bool read_item_vnum_mask_table(const char * c_pszFileName);
+		bool read_item_vnum_mask_table(const char * file_name);
 	private:
 };
 

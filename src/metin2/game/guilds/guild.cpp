@@ -469,9 +469,9 @@ void guild::send_list_packet(character * ch)
 
 }
 
-void guild::send_login_packet(character * ch, character * chLogin)
+void guild::send_login_packet(character * ch, character * ch_login)
 {
-	send_login_packet(ch, chLogin->player_id());
+	send_login_packet(ch, ch_login->player_id());
 }
 
 void guild::send_login_packet(character * ch, uint32_t pid)
@@ -498,9 +498,9 @@ void guild::send_login_packet(character * ch, uint32_t pid)
 	ch->get_desc()->packet(buf.read_peek(), buf.size());
 }
 
-void guild::send_logout_packet(character * ch, character * chLogout)
+void guild::send_logout_packet(character * ch, character * ch_logout)
 {
-	send_logout_packet(ch, chLogout->player_id());
+	send_logout_packet(ch, ch_logout->player_id());
 }
 
 void guild::send_logout_packet(character * ch, uint32_t pid)
@@ -661,12 +661,12 @@ guild_member* guild::member(uint32_t pid)
 	return &it->second;
 }
 
-uint32_t guild::member_pid(const std::string& strName)
+uint32_t guild::member_pid(const std::string& name_value)
 {
 	for ( guild_member_container::iterator iter = member_.begin();
 			iter != member_.end(); iter++ )
 	{
-		if ( iter->second.name == strName ) return iter->first;
+		if ( iter->second.name == name_value ) return iter->first;
 	}
 
 	return 0;
@@ -1173,18 +1173,18 @@ void guild::change_member_grade(uint32_t pid, uint8_t grade)
 	db_clientdesc->db_packet(HEADER_GD_GUILD_CHANGE_MEMBER_DATA, 0, &gd_guild, sizeof(gd_guild));
 }
 
-void guild::skill_level_up(uint32_t dwVnum)
+void guild::skill_level_up(uint32_t vnum_value)
 {
-	uint32_t dwRealVnum = dwVnum - GUILD_SKILL_START;
+	uint32_t dwRealVnum = vnum_value - GUILD_SKILL_START;
 
 	if (dwRealVnum >= GUILD_SKILL_COUNT)
 		return;
 
-	skill_proto* pkSk = skill_manager::instance().get(dwVnum);
+	skill_proto* pkSk = skill_manager::instance().get(vnum_value);
 
 	if (!pkSk)
 	{
-		metin2::log::error("There is no such guild skill by number {:d}", dwVnum);
+		metin2::log::error("There is no such guild skill by number {:d}", vnum_value);
 		return;
 	}
 
@@ -1206,16 +1206,16 @@ void guild::skill_level_up(uint32_t dwVnum)
 	metin2::log::info( "Guild SkillUp: {} {:d} level {:d} type {:d}", name(), pkSk->vnum, data_.aby_skill[dwRealVnum], pkSk->type);
 }
 
-void guild::use_skill(uint32_t dwVnum, character * ch, uint32_t pid)
+void guild::use_skill(uint32_t vnum_value, character * ch, uint32_t pid)
 {
 	character * victim = nullptr;
 
 	if (!member(ch->player_id()) || !has_grade_auth(member(ch->player_id())->grade, GUILD_AUTH_USE_SKILL))
 		return;
 
-	metin2::log::info("GUILD_USE_SKILL : cname({}), skill({:d})", ch ? ch->name() : "", dwVnum);
+	metin2::log::info("GUILD_USE_SKILL : cname({}), skill({:d})", ch ? ch->name() : "", vnum_value);
 
-	uint32_t dwRealVnum = dwVnum - GUILD_SKILL_START;
+	uint32_t dwRealVnum = vnum_value - GUILD_SKILL_START;
 
 	if (!ch->can_move())
 		return;
@@ -1223,11 +1223,11 @@ void guild::use_skill(uint32_t dwVnum, character * ch, uint32_t pid)
 	if (dwRealVnum >= GUILD_SKILL_COUNT)
 		return;
 
-	skill_proto* pkSk = skill_manager::instance().get(dwVnum);
+	skill_proto* pkSk = skill_manager::instance().get(vnum_value);
 
 	if (!pkSk)
 	{
-		metin2::log::error("There is no such guild skill by number {:d}", dwVnum);
+		metin2::log::error("There is no such guild skill by number {:d}", vnum_value);
 		return;
 	}
 
@@ -1278,9 +1278,9 @@ void guild::use_skill(uint32_t dwVnum, character * ch, uint32_t pid)
 	skill_usable_[dwRealVnum] = false;
 
 	if (metin2::config::test_server())
-		ch->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> %d 스킬을 사용함 (%d, %d) to %u"), dwVnum, sp(), iNeededSP, pid);
+		ch->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> %d 스킬을 사용함 (%d, %d) to %u"), vnum_value, sp(), iNeededSP, pid);
 
-	switch (dwVnum)
+	switch (vnum_value)
 	{
 		case GUILD_SKILL_TELEPORT:
 			// Try people on the current server first.
@@ -1330,8 +1330,8 @@ void guild::use_skill(uint32_t dwVnum, character * ch, uint32_t pid)
 				for (auto it = member_online_.begin(); it != member_online_.end(); ++it)
 				{
 					character * victim = *it;
-					victim->remove_affect(dwVnum);
-					ch->compute_skill(dwVnum, victim, data_.aby_skill[dwRealVnum]);
+					victim->remove_affect(vnum_value);
+					ch->compute_skill(vnum_value, victim, data_.aby_skill[dwRealVnum]);
 				}
 			}
 			break;
@@ -1558,8 +1558,8 @@ namespace
 	{
 		const char* psz_text;
 
-		f_guild_chat(const char* c_pszText)
-			: psz_text(c_pszText)
+		f_guild_chat(const char* text)
+			: psz_text(text)
 			{}
 
 		void operator()(character * ch)
@@ -1569,14 +1569,14 @@ namespace
 	};
 }
 
-void guild::p2_p_chat(const char* c_pszText)
+void guild::p2_p_chat(const char* text)
 {
-	std::for_each(member_online_.begin(), member_online_.end(), f_guild_chat(c_pszText));
+	std::for_each(member_online_.begin(), member_online_.end(), f_guild_chat(text));
 }
 
-void guild::chat(const char* c_pszText)
+void guild::chat(const char* text_value)
 {
-	std::for_each(member_online_.begin(), member_online_.end(), f_guild_chat(c_pszText));
+	std::for_each(member_online_.begin(), member_online_.end(), f_guild_chat(text_value));
 
 	packet_gg_guild p1;
 	packet_gg_guild_chat p2;
@@ -1584,7 +1584,7 @@ void guild::chat(const char* c_pszText)
 	p1.header = HEADER_GG_GUILD;
 	p1.sub_header = GUILD_SUBHEADER_GG_CHAT;
 	p1.guild = id();
-	strlcpy(p2.text, c_pszText, sizeof(p2.text));
+	strlcpy(p2.text, text_value, sizeof(p2.text));
 
 	p2_p_manager::instance().send(&p1, sizeof(packet_gg_guild));
 	p2_p_manager::instance().send(&p2, sizeof(packet_gg_guild_chat));
@@ -1606,50 +1606,50 @@ void guild::packet(const void* buf, int size)
 	}
 }
 
-bool guild::charge_sp(character * ch, int iSP)
+bool guild::charge_sp(character * ch, int sp)
 {
-	int gold = iSP * 100;
+	int gold = sp * 100;
 
-	if (gold < iSP || ch->gold() < gold)
+	if (gold < sp || ch->gold() < gold)
 		return false;
 
 	int iRemainSP = data_.max_power - data_.power;
 
-	if (iSP > iRemainSP)
+	if (sp > iRemainSP)
 	{
-		iSP = iRemainSP;
-		gold = iSP * 100;
+		sp = iRemainSP;
+		gold = sp * 100;
 	}
 
 	ch->point_change(POINT_GOLD, -gold);
 	db_manager::instance().send_money_log(MONEY_LOG_GUILD, 1, -gold);
 
-	send_db_skill_update(iSP);
+	send_db_skill_update(sp);
 	{
-		ch->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> %u의 용신력을 회복하였습니다."), iSP);
+		ch->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> %u의 용신력을 회복하였습니다."), sp);
 	}
 	return true;
 }
 
-void guild::skill_usable_change(uint32_t dwSkillVnum, bool bUsable)
+void guild::skill_usable_change(uint32_t skill_vnum, bool usable)
 {
-	uint32_t dwRealVnum = dwSkillVnum - GUILD_SKILL_START;
+	uint32_t dwRealVnum = skill_vnum - GUILD_SKILL_START;
 
 	if (dwRealVnum >= GUILD_SKILL_COUNT)
 		return; 
 
-	skill_usable_[dwRealVnum] = bUsable;
+	skill_usable_[dwRealVnum] = usable;
 
 	// GUILD_SKILL_COOLTIME_BUG_FIX
-	metin2::log::info( "CGuild::SkillUsableChange(guild={}, skill={:d}, usable={:d})", name(), dwSkillVnum, bUsable);
+	metin2::log::info( "CGuild::SkillUsableChange(guild={}, skill={:d}, usable={:d})", name(), skill_vnum, usable);
 	// END_OF_GUILD_SKILL_COOLTIME_BUG_FIX
 }
 
 // GUILD_MEMBER_COUNT_BONUS
-void guild::set_member_count_bonus(int iBonus)
+void guild::set_member_count_bonus(int bonus)
 {
-	member_count_bonus_ = iBonus;
-	metin2::log::info( "GUILD_IS_FULL_BUG : Bonus set to {:d}(val:{:d})", iBonus, member_count_bonus_);
+	member_count_bonus_ = bonus;
+	metin2::log::info( "GUILD_IS_FULL_BUG : Bonus set to {:d}(val:{:d})", bonus, member_count_bonus_);
 }
 
 void guild::broadcast_member_count_bonus()
@@ -1675,7 +1675,7 @@ int guild::max_member_count()
 }
 // END_OF_GUILD_MEMBER_COUNT_BONUS
 
-void guild::request_deposit_money(character * ch, int iGold)
+void guild::request_deposit_money(character * ch, int gold_value)
 {
 	if (false==ch->can_deposit())
 	{
@@ -1683,27 +1683,27 @@ void guild::request_deposit_money(character * ch, int iGold)
 		return;
 	}
 
-	if (ch->gold() < iGold)
+	if (ch->gold() < gold_value)
 		return;
 
-	ch->point_change(POINT_GOLD, -iGold);
+	ch->point_change(POINT_GOLD, -gold_value);
 
 	packet_gd_guild_money p;
 	p.guild = id();
-	p.gold = iGold;
+	p.gold = gold_value;
 	db_clientdesc->db_packet(HEADER_GD_GUILD_DEPOSIT_MONEY, 0, &p, sizeof(p));
 
 	char buf[64+1];
 	snprintf(buf, sizeof(buf), "%u %s", id(), name());
-	log_manager::instance().char_log(ch, iGold, "GUILD_DEPOSIT", buf);
+	log_manager::instance().char_log(ch, gold_value, "GUILD_DEPOSIT", buf);
 
 	ch->update_deposit_pulse();
-	metin2::log::info( "GUILD: DEPOSIT {}:{:d} player {}[{:d}] gold {:d}", name(), id(), ch->name(), ch->player_id(), iGold);
+	metin2::log::info( "GUILD: DEPOSIT {}:{:d} player {}[{:d}] gold {:d}", name(), id(), ch->name(), ch->player_id(), gold_value);
 }
 
-void guild::recv_money_change(int iGold)
+void guild::recv_money_change(int gold_value)
 {
-	data_.gold = iGold;
+	data_.gold = gold_value;
 
 	packet_gc_guild p;
 	p.header = HEADER_GC_GUILD;
@@ -1715,23 +1715,23 @@ void guild::recv_money_change(int iGold)
 		character * ch = *it;
 		desc * d = ch->get_desc();
 		d->buffered_packet(&p, sizeof(p));
-		d->packet(&iGold, sizeof(int));
+		d->packet(&gold_value, sizeof(int));
 	}
 }
 
-void guild::recv_withdraw_money_give(int iChangeGold)
+void guild::recv_withdraw_money_give(int change_gold_value)
 {
 	character * ch = master_character();
 
 	if (ch)
 	{
-		ch->point_change(POINT_GOLD, iChangeGold);
-		metin2::log::info( "GUILD: WITHDRAW {}:{:d} player {}[{:d}] gold {:d}", name(), id(), ch->name(), ch->player_id(), iChangeGold);
+		ch->point_change(POINT_GOLD, change_gold_value);
+		metin2::log::info( "GUILD: WITHDRAW {}:{:d} player {}[{:d}] gold {:d}", name(), id(), ch->name(), ch->player_id(), change_gold_value);
 	}
 
 	packet_gd_guild_money_withdraw_give_reply p;
 	p.guild = id();
-	p.change_gold = iChangeGold;
+	p.change_gold = change_gold_value;
 	p.give_success = ch ? 1 : 0;
 	db_clientdesc->db_packet(HEADER_GD_GUILD_WITHDRAW_MONEY_GIVE_REPLY, 0, &p, sizeof(p));
 }
@@ -1780,66 +1780,66 @@ EVENTFUNC( guild_invite_event )
 	return 0;
 }
 
-void guild::invite( character * pchInviter, character * pchInvitee )
+void guild::invite( character * pch_inviter, character * pch_invitee )
 {
-	if (quest::quest_manager::instance().pc_force(pchInviter->player_id())->is_running() == true)
+	if (quest::quest_manager::instance().pc_force(pch_inviter->player_id())->is_running() == true)
 	{
-	    pchInviter->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> 상대방이 초대 신청을 받을 수 없는 상태입니다."));
+	    pch_inviter->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> 상대방이 초대 신청을 받을 수 없는 상태입니다."));
 	    return;
 	}
 
-	if (quest::quest_manager::instance().pc_force(pchInvitee->player_id())->is_running() == true)
+	if (quest::quest_manager::instance().pc_force(pch_invitee->player_id())->is_running() == true)
 		return;
 
-	if ( pchInvitee->is_block_mode( BLOCK_GUILD_INVITE ) ) 
+	if ( pch_invitee->is_block_mode( BLOCK_GUILD_INVITE ) ) 
 	{
-		pchInviter->chat_packet( CHAT_TYPE_INFO, lc_text("<길드> 상대방이 길드 초대 거부 상태입니다.") );
+		pch_inviter->chat_packet( CHAT_TYPE_INFO, lc_text("<길드> 상대방이 길드 초대 거부 상태입니다.") );
 		return;
 	} 
-	else if ( !has_grade_auth( member( pchInviter->player_id() )->grade, GUILD_AUTH_ADD_MEMBER ) ) 
+	else if ( !has_grade_auth( member( pch_inviter->player_id() )->grade, GUILD_AUTH_ADD_MEMBER ) ) 
 	{
-		pchInviter->chat_packet( CHAT_TYPE_INFO, lc_text("<길드> 길드원을 초대할 권한이 없습니다.") );
+		pch_inviter->chat_packet( CHAT_TYPE_INFO, lc_text("<길드> 길드원을 초대할 권한이 없습니다.") );
 		return;
 	} 
-	else if ( pchInvitee->empire() != pchInviter->empire() ) 
+	else if ( pch_invitee->empire() != pch_inviter->empire() ) 
 	{
-		pchInviter->chat_packet( CHAT_TYPE_INFO, lc_text("<길드> 다른 제국 사람을 길드에 초대할 수 없습니다.") );
+		pch_inviter->chat_packet( CHAT_TYPE_INFO, lc_text("<길드> 다른 제국 사람을 길드에 초대할 수 없습니다.") );
 		return;
 	}
 
-	guild_join_err_code errcode = verify_guild_joinable_condition( pchInvitee );
+	guild_join_err_code errcode = verify_guild_joinable_condition( pch_invitee );
 	switch ( errcode ) 
 	{
 		case GERR_NONE: break;
 		case GERR_WITHDRAWPENALTY:
-						pchInviter->chat_packet( CHAT_TYPE_INFO, 
+						pch_inviter->chat_packet( CHAT_TYPE_INFO, 
 								lc_text("<길드> 탈퇴한 후 %d일이 지나지 않은 사람은 길드에 초대할 수 없습니다."), 
 								quest::quest_manager::instance().event_flag( "guild_withdraw_delay" ) );
 						return;
 		case GERR_COMMISSIONPENALTY:
-						pchInviter->chat_packet( CHAT_TYPE_INFO, 
+						pch_inviter->chat_packet( CHAT_TYPE_INFO, 
 								lc_text("<길드> 길드를 해산한 지 %d일이 지나지 않은 사람은 길드에 초대할 수 없습니다."), 
 								quest::quest_manager::instance().event_flag( "guild_disband_delay") );
 						return;
-		case GERR_ALREADYJOIN:	pchInviter->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> 상대방이 이미 다른 길드에 속해있습니다.")); return;
-		case GERR_GUILDISFULL:	pchInviter->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> 최대 길드원 수를 초과했습니다.")); return;
-		case GERR_GUILD_IS_IN_WAR : pchInviter->chat_packet( CHAT_TYPE_INFO, lc_text("<길드> 현재 길드가 전쟁 중 입니다.") ); return;
-		case GERR_INVITE_LIMIT : pchInviter->chat_packet( CHAT_TYPE_INFO, lc_text("<길드> 현재 신규 가입 제한 상태 입니다.") ); return;
+		case GERR_ALREADYJOIN:	pch_inviter->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> 상대방이 이미 다른 길드에 속해있습니다.")); return;
+		case GERR_GUILDISFULL:	pch_inviter->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> 최대 길드원 수를 초과했습니다.")); return;
+		case GERR_GUILD_IS_IN_WAR : pch_inviter->chat_packet( CHAT_TYPE_INFO, lc_text("<길드> 현재 길드가 전쟁 중 입니다.") ); return;
+		case GERR_INVITE_LIMIT : pch_inviter->chat_packet( CHAT_TYPE_INFO, lc_text("<길드> 현재 신규 가입 제한 상태 입니다.") ); return;
 
 		default: metin2::log::error( "ignore guild join error({:d})", errcode ); return;
 	}
 
-	if ( guild_invite_event_map_.end() != guild_invite_event_map_.find( pchInvitee->player_id() ) )
+	if ( guild_invite_event_map_.end() != guild_invite_event_map_.find( pch_invitee->player_id() ) )
 		return;
 
 	//
 	// Create event
 	// 
 	invite_guild_event_info* pInfo = alloc_event_info<invite_guild_event_info>();
-	pInfo->invitee_pid = pchInvitee->player_id();
+	pInfo->invitee_pid = pch_invitee->player_id();
 	pInfo->guild_id = id();
 
-	guild_invite_event_map_.insert(event_map::value_type(pchInvitee->player_id(), event_create(guild_invite_event, pInfo, passes_per_sec(10))));
+	guild_invite_event_map_.insert(event_map::value_type(pch_invitee->player_id(), event_create(guild_invite_event, pInfo, passes_per_sec(10))));
 
 	//
 	// Send invite packet to the invited character
@@ -1857,52 +1857,52 @@ void guild::invite( character * pchInviter, character * pchInvitee )
 	buf.write( &gid, sizeof(uint32_t) );
 	buf.write( name(), GUILD_NAME_MAX_LEN + 1 );
 
-	pchInvitee->get_desc()->packet( buf.read_peek(), buf.size() );
+	pch_invitee->get_desc()->packet( buf.read_peek(), buf.size() );
 }
 
-void guild::invite_accept( character * pchInvitee )
+void guild::invite_accept( character * pch_invitee )
 {
-	event_map::iterator itFind = guild_invite_event_map_.find( pchInvitee->player_id() );
+	event_map::iterator itFind = guild_invite_event_map_.find( pch_invitee->player_id() );
 	if ( itFind == guild_invite_event_map_.end() ) 
 	{
-		metin2::log::info( "GuildInviteAccept from not invited character(invite guild: {}, invitee: {})", name(), pchInvitee->name() );
+		metin2::log::info( "GuildInviteAccept from not invited character(invite guild: {}, invitee: {})", name(), pch_invitee->name() );
 		return;
 	}
 
 	event_cancel( &itFind->second );
 	guild_invite_event_map_.erase( itFind );
 
-	guild_join_err_code errcode = verify_guild_joinable_condition( pchInvitee );
+	guild_join_err_code errcode = verify_guild_joinable_condition( pch_invitee );
 	switch ( errcode ) 
 	{
 		case GERR_NONE: break;
 		case GERR_WITHDRAWPENALTY:
-						pchInvitee->chat_packet( CHAT_TYPE_INFO, 
+						pch_invitee->chat_packet( CHAT_TYPE_INFO, 
 								lc_text("<길드> 탈퇴한 후 %d일이 지나지 않은 사람은 길드에 초대할 수 없습니다."), 
 								quest::quest_manager::instance().event_flag( "guild_withdraw_delay" ) );
 						return;
 		case GERR_COMMISSIONPENALTY:
-						pchInvitee->chat_packet( CHAT_TYPE_INFO, 
+						pch_invitee->chat_packet( CHAT_TYPE_INFO, 
 								lc_text("<길드> 길드를 해산한 지 %d일이 지나지 않은 사람은 길드에 초대할 수 없습니다."), 
 								quest::quest_manager::instance().event_flag( "guild_disband_delay") );
 						return;
-		case GERR_ALREADYJOIN:	pchInvitee->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> 상대방이 이미 다른 길드에 속해있습니다.")); return;
-		case GERR_GUILDISFULL:	pchInvitee->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> 최대 길드원 수를 초과했습니다.")); return;
-		case GERR_GUILD_IS_IN_WAR : pchInvitee->chat_packet( CHAT_TYPE_INFO, lc_text("<길드> 현재 길드가 전쟁 중 입니다.") ); return;
-		case GERR_INVITE_LIMIT : pchInvitee->chat_packet( CHAT_TYPE_INFO, lc_text("<길드> 현재 신규 가입 제한 상태 입니다.") ); return;
+		case GERR_ALREADYJOIN:	pch_invitee->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> 상대방이 이미 다른 길드에 속해있습니다.")); return;
+		case GERR_GUILDISFULL:	pch_invitee->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> 최대 길드원 수를 초과했습니다.")); return;
+		case GERR_GUILD_IS_IN_WAR : pch_invitee->chat_packet( CHAT_TYPE_INFO, lc_text("<길드> 현재 길드가 전쟁 중 입니다.") ); return;
+		case GERR_INVITE_LIMIT : pch_invitee->chat_packet( CHAT_TYPE_INFO, lc_text("<길드> 현재 신규 가입 제한 상태 입니다.") ); return;
 
 		default: metin2::log::error( "ignore guild join error({:d})", errcode ); return;
 	}
 
-	request_add_member( pchInvitee, 15 );
+	request_add_member( pch_invitee, 15 );
 }
 
-void guild::invite_deny( uint32_t dwPID )
+void guild::invite_deny( uint32_t pid )
 {
-	event_map::iterator itFind = guild_invite_event_map_.find( dwPID );
+	event_map::iterator itFind = guild_invite_event_map_.find( pid );
 	if ( itFind == guild_invite_event_map_.end() ) 
 	{
-		metin2::log::info( "GuildInviteDeny from not invited character(invite guild: {}, invitee PID: {:d})", name(), dwPID );
+		metin2::log::info( "GuildInviteDeny from not invited character(invite guild: {}, invitee PID: {:d})", name(), pid );
 		return;
 	}
 
@@ -1910,15 +1910,15 @@ void guild::invite_deny( uint32_t dwPID )
 	guild_invite_event_map_.erase( itFind );
 }
 
-guild::guild_join_err_code guild::verify_guild_joinable_condition( character * const pchInvitee )
+guild::guild_join_err_code guild::verify_guild_joinable_condition( character * const pch_invitee )
 {
-	if ( get_global_time() - pchInvitee->quest_flag( "guild_building.new_withdraw_time" )
+	if ( get_global_time() - pch_invitee->quest_flag( "guild_building.new_withdraw_time" )
 			< guild_manager::instance().withdraw_delay() )
 		return GERR_WITHDRAWPENALTY;
-	else if ( get_global_time() - pchInvitee->quest_flag( "guild_building.new_disband_time" )
+	else if ( get_global_time() - pch_invitee->quest_flag( "guild_building.new_disband_time" )
 			< guild_manager::instance().disband_delay() )
 		return GERR_COMMISSIONPENALTY;
-	else if ( pchInvitee->get_guild() )
+	else if ( pch_invitee->get_guild() )
 		return GERR_ALREADYJOIN;
 	else if ( member_count() >= max_member_count() )
 	{
@@ -1935,14 +1935,14 @@ guild::guild_join_err_code guild::verify_guild_joinable_condition( character * c
 }
 // END_OF_GUILD_JOIN_BUG_FIX
 
-bool guild::change_master_to(uint32_t dwPID)
+bool guild::change_master_to(uint32_t pid)
 {
-	if ( member(dwPID) == nullptr ) return false;
+	if ( member(pid) == nullptr ) return false;
 
 	packet_change_guild_master p;
 	p.guild_id = id();
 	p.id_from = master_pid();
-	p.id_to = dwPID;
+	p.id_to = pid;
 
 	db_clientdesc->db_packet(HEADER_GD_REQ_CHANGE_GUILD_MASTER, 0, &p, sizeof(p));
 

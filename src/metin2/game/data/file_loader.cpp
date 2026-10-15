@@ -15,18 +15,18 @@ memory_text_file_loader::~memory_text_file_loader()
 {
 }
 
-bool memory_text_file_loader::split_line(uint32_t dwLine, std::vector<std::string>* pstTokenVector, const char * c_szDelimeter)
+bool memory_text_file_loader::split_line(uint32_t line, std::vector<std::string>* pst_token_vector, const char * delimeter)
 {
-	pstTokenVector->clear();
+	pst_token_vector->clear();
 
 	std::string stToken;
-	const std::string & c_rstLine = line_string(dwLine);
+	const std::string & c_rstLine = line_string(line);
 
 	uint32_t basePos = 0;
 
 	do
 	{
-		int beginPos = c_rstLine.find_first_not_of(c_szDelimeter, basePos);
+		int beginPos = c_rstLine.find_first_not_of(delimeter, basePos);
 		if (beginPos < 0)
 			return false;
 
@@ -48,14 +48,14 @@ bool memory_text_file_loader::split_line(uint32_t dwLine, std::vector<std::strin
 		}
 		else
 		{
-			endPos = c_rstLine.find_first_of(c_szDelimeter, beginPos);
+			endPos = c_rstLine.find_first_of(delimeter, beginPos);
 			basePos = endPos;
 		}
 
-		pstTokenVector->push_back(c_rstLine.substr(beginPos, endPos - beginPos));
+		pst_token_vector->push_back(c_rstLine.substr(beginPos, endPos - beginPos));
 
 		// Added code. Checks for a trailing tab. - [levites]
-		if (int(c_rstLine.find_first_not_of(c_szDelimeter, basePos)) < 0)
+		if (int(c_rstLine.find_first_not_of(delimeter, basePos)) < 0)
 			break;
 	} while (basePos < c_rstLine.length());
 
@@ -67,35 +67,35 @@ uint32_t memory_text_file_loader::line_count()
 	return line_vector_.size();
 }
 
-bool memory_text_file_loader::check_line_index(uint32_t dwLine)
+bool memory_text_file_loader::check_line_index(uint32_t line)
 {
-	if (dwLine >= line_vector_.size())
+	if (line >= line_vector_.size())
 		return false;
 
 	return true;
 }
 
-const std::string & memory_text_file_loader::line_string(uint32_t dwLine)
+const std::string & memory_text_file_loader::line_string(uint32_t line)
 {
-	assert(check_line_index(dwLine));
-	return line_vector_[dwLine];
+	assert(check_line_index(line));
+	return line_vector_[line];
 }
 
-void memory_text_file_loader::bind(int bufSize, const void* c_pvBuf)
+void memory_text_file_loader::bind(int buf_size, const void* buf)
 {
 	line_vector_.clear();
 
-	const char * c_pcBuf = (const char *)c_pvBuf;
+	const char * c_pcBuf = (const char *)buf;
 	std::string stLine;
 	int pos = 0;
 
-	while (pos < bufSize)
+	while (pos < buf_size)
 	{
 		const char c = c_pcBuf[pos++];
 
 		if ('\n' == c || '\r' == c)
 		{
-			if (pos < bufSize)
+			if (pos < buf_size)
 				if ('\n' == c_pcBuf[pos] || '\r' == c_pcBuf[pos])
 					++pos;
 

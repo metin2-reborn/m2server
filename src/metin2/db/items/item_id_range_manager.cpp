@@ -97,14 +97,14 @@ item_id_range_table item_id_range_manager::range()
 	return ret;
 }
 
-bool item_id_range_manager::build_range(uint32_t dwMin, uint32_t dwMax, item_id_range_table& range)
+bool item_id_range_manager::build_range(uint32_t min_value, uint32_t max_value, item_id_range_table& range)
 {
 	char szQuery[1024];
 	uint32_t dwItemMaxID = 0;
 	std::unique_ptr<ql_msg> pMsg;
 	MYSQL_ROW row;
 
-	snprintf(szQuery, sizeof(szQuery), "SELECT MAX(id) FROM item%s WHERE id >= %u and id <= %u", get_table_postfix(), dwMin, dwMax);
+	snprintf(szQuery, sizeof(szQuery), "SELECT MAX(id) FROM item%s WHERE id >= %u and id <= %u", get_table_postfix(), min_value, max_value);
 
 	pMsg.reset(db_manager::instance().direct_query(szQuery));
 
@@ -118,19 +118,19 @@ bool item_id_range_manager::build_range(uint32_t dwMin, uint32_t dwMax, item_id_
 	}
 
 	if (dwItemMaxID == 0)
-		dwItemMaxID = dwMin;
+		dwItemMaxID = min_value;
 	else
 		dwItemMaxID++;
 	
-	if ((dwMax < dwItemMaxID) || (dwMax - dwItemMaxID < minimum_remain_count_))
+	if ((max_value < dwItemMaxID) || (max_value - dwItemMaxID < minimum_remain_count_))
 	{
 		metin2::log::info( "ItemIDRange: Build {:d} ~ {:d} start: {:d}\tNOT USE remain count is below {:d}",
-			   	dwMin, dwMax, dwItemMaxID, minimum_remain_count_);
+			   	min_value, max_value, dwItemMaxID, minimum_remain_count_);
 	}
 	else
 	{
-		range.min = dwMin;
-		range.max = dwMax;
+		range.min = min_value;
+		range.max = max_value;
 		range.usable_item_id_min = dwItemMaxID;
 
 		snprintf(szQuery, sizeof(szQuery), "SELECT COUNT(*) FROM item%s WHERE id >= %u AND id <= %u", 
@@ -163,11 +163,11 @@ bool item_id_range_manager::build_range(uint32_t dwMin, uint32_t dwMax, item_id_
 	return false;
 }
 
-void item_id_range_manager::update_range(uint32_t dwMin, uint32_t dwMax)
+void item_id_range_manager::update_range(uint32_t min, uint32_t max)
 {
 	item_id_range_table range;
 
-	if (build_range(dwMin, dwMax, range) == true)
+	if (build_range(min, max, range) == true)
 	{
 		data_.push_back(range);
 	}

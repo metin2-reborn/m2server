@@ -38,13 +38,13 @@ text_file_loader::~text_file_loader()
 {	
 }
 
-bool text_file_loader::load(const char * c_szFileName)
+bool text_file_loader::load(const char * file_name)
 {
-	file_name_ = c_szFileName;
+	file_name_ = file_name;
 
 	dwcur_line_index_ = 0;
 
-	FILE* fp = fopen(c_szFileName, "rb");
+	FILE* fp = fopen(file_name, "rb");
 
 	if (nullptr == fp)
 		return false;
@@ -63,7 +63,7 @@ bool text_file_loader::load(const char * c_szFileName)
 	return true;
 }
 
-bool text_file_loader::load_group(group_node * pGroupNode)
+bool text_file_loader::load_group(group_node * group_node_value)
 {
 	token_vector stTokenVector;
 	for (; dwcur_line_index_ < file_loader_.line_count(); ++dwcur_line_index_)
@@ -92,10 +92,10 @@ bool text_file_loader::load_group(group_node * pGroupNode)
 			}
 
 			group_node * pNewNode = &group_nodes_.emplace_back();
-			pNewNode->parent_node = pGroupNode;
+			pNewNode->parent_node = group_node_value;
 			pNewNode->group_name = stTokenVector[1];
 			to_lower(pNewNode->group_name);
-			pGroupNode->child_node_vector.push_back(pNewNode);
+			group_node_value->child_node_vector.push_back(pNewNode);
 
 			++dwcur_line_index_;
 
@@ -134,7 +134,7 @@ bool text_file_loader::load_group(group_node * pGroupNode)
 				}
 			}
 
-			pGroupNode->local_token_vector_map.insert(std::make_pair(key, stTokenVector));
+			group_node_value->local_token_vector_map.insert(std::make_pair(key, stTokenVector));
 		}
 		else
 		{
@@ -150,7 +150,7 @@ bool text_file_loader::load_group(group_node * pGroupNode)
 			}
 
 			stTokenVector.erase(stTokenVector.begin());
-			pGroupNode->local_token_vector_map.insert(std::make_pair(key, stTokenVector));
+			group_node_value->local_token_vector_map.insert(std::make_pair(key, stTokenVector));
 		}
 	}
 
@@ -173,7 +173,7 @@ uint32_t text_file_loader::child_node_count()
 	return pcur_node_->child_node_vector.size();
 }
 
-bool text_file_loader::set_child_node(const char * c_szKey)
+bool text_file_loader::set_child_node(const char * key)
 {
 	if (!pcur_node_)
 	{
@@ -184,7 +184,7 @@ bool text_file_loader::set_child_node(const char * c_szKey)
 	for (uint32_t i = 0; i < pcur_node_->child_node_vector.size(); ++i)
 	{
 		group_node * pGroupNode = pcur_node_->child_node_vector[i];
-		if (0 == pGroupNode->group_name.compare(c_szKey))
+		if (0 == pGroupNode->group_name.compare(key))
 		{
 			pcur_node_ = pGroupNode;
 			return true;
@@ -194,14 +194,14 @@ bool text_file_loader::set_child_node(const char * c_szKey)
 	return false;
 }
 
-bool text_file_loader::set_child_node(const std::string & c_rstrKeyHead, uint32_t dwIndex)
+bool text_file_loader::set_child_node(const std::string & rstr_key_head, uint32_t index)
 {
 	char szKey[32];
-	snprintf(szKey, sizeof(szKey), "%s%02u", c_rstrKeyHead.c_str(), (unsigned int) dwIndex);
+	snprintf(szKey, sizeof(szKey), "%s%02u", rstr_key_head.c_str(), (unsigned int) index);
 	return set_child_node(szKey);
 }
 
-bool text_file_loader::set_child_node(uint32_t dwIndex)
+bool text_file_loader::set_child_node(uint32_t index)
 {
 	if (!pcur_node_)
 	{
@@ -209,13 +209,13 @@ bool text_file_loader::set_child_node(uint32_t dwIndex)
 		return false;
 	}
 
-	if (dwIndex >= pcur_node_->child_node_vector.size())
+	if (index >= pcur_node_->child_node_vector.size())
 	{
 		assert(!"Node index to set is too large to access!");
 		return false;
 	}
 
-	pcur_node_ = pcur_node_->child_node_vector[dwIndex];
+	pcur_node_ = pcur_node_->child_node_vector[index];
 
 	return true;
 }
@@ -239,19 +239,19 @@ bool text_file_loader::set_parent_node()
 	return true;
 }
 
-bool text_file_loader::current_node_name(std::string * pstrName)
+bool text_file_loader::current_node_name(std::string * pstr_name)
 {
 	if (!pcur_node_)
 		return false;
 	if (nullptr == pcur_node_->parent_node)
 		return false;
 
-	*pstrName = pcur_node_->group_name;
+	*pstr_name = pcur_node_->group_name;
 
 	return true;
 }
 
-bool text_file_loader::get_token_vector(const std::string & c_rstrKey, token_vector ** ppTokenVector)
+bool text_file_loader::get_token_vector(const std::string & rstr_key, token_vector ** pp_token_vector)
 {
 	if (!pcur_node_)
 	{
@@ -259,97 +259,97 @@ bool text_file_loader::get_token_vector(const std::string & c_rstrKey, token_vec
 		return false;
 	}
 
-	token_vector_map::iterator it = pcur_node_->local_token_vector_map.find(c_rstrKey);
+	token_vector_map::iterator it = pcur_node_->local_token_vector_map.find(rstr_key);
 	if (pcur_node_->local_token_vector_map.end() == it)
 	{
-		metin2::log::debug( " CTextFileLoader::GetTokenVector - Failed to find the key {} [{} :: {}]", file_name_.c_str(), pcur_node_->group_name.c_str(), c_rstrKey.c_str());
+		metin2::log::debug( " CTextFileLoader::GetTokenVector - Failed to find the key {} [{} :: {}]", file_name_.c_str(), pcur_node_->group_name.c_str(), rstr_key.c_str());
 		return false;
 	}
 
-	*ppTokenVector = &it->second;
+	*pp_token_vector = &it->second;
 
 	return true;
 }
 
-bool text_file_loader::token_integer(const std::string & c_rstrKey, int * pData)
+bool text_file_loader::token_integer(const std::string & rstr_key, int * data)
 {
 	token_vector * pTokenVector;
-	if (!get_token_vector(c_rstrKey, &pTokenVector))
+	if (!get_token_vector(rstr_key, &pTokenVector))
 		return false;
 
 	if (pTokenVector->empty())
 	{
-		metin2::log::debug( " CTextFileLoader::GetTokenInteger - Failed to find the value {} [{} : {}]", file_name_.c_str(), pcur_node_->group_name.c_str(), c_rstrKey.c_str());
+		metin2::log::debug( " CTextFileLoader::GetTokenInteger - Failed to find the value {} [{} : {}]", file_name_.c_str(), pcur_node_->group_name.c_str(), rstr_key.c_str());
 		return false;
 	}
 
 	int out = 0;
 	str_to_number(out, pTokenVector->at(0).c_str());
-	*pData = out;
+	*data = out;
 
 	return true;
 }
 
-bool text_file_loader::token_double_word(const std::string & c_rstrKey, uint32_t * pData)
+bool text_file_loader::token_double_word(const std::string & rstr_key, uint32_t * data)
 {
-	return token_integer(c_rstrKey, (int *) pData);
+	return token_integer(rstr_key, (int *) data);
 }
 
-bool text_file_loader::token_float(const std::string & c_rstrKey, float * pData)
+bool text_file_loader::token_float(const std::string & rstr_key, float * data)
 {
 	token_vector * pTokenVector;
-	if (!get_token_vector(c_rstrKey, &pTokenVector))
+	if (!get_token_vector(rstr_key, &pTokenVector))
 		return false;
 
 	if (pTokenVector->empty())
 	{
-		metin2::log::debug( " CTextFileLoader::GetTokenFloat - Failed to find the value {} [{} : {}]", file_name_.c_str(), pcur_node_->group_name.c_str(), c_rstrKey.c_str());
+		metin2::log::debug( " CTextFileLoader::GetTokenFloat - Failed to find the value {} [{} : {}]", file_name_.c_str(), pcur_node_->group_name.c_str(), rstr_key.c_str());
 		return false;
 	}
 
-	*pData = atof(pTokenVector->at(0).c_str());
+	*data = atof(pTokenVector->at(0).c_str());
 
 	return true;
 }
 
-bool text_file_loader::token_vector3(const std::string & c_rstrKey, vector * pVector3)
+bool text_file_loader::token_vector3(const std::string & rstr_key, vector * vector3)
 {
 	token_vector * pTokenVector;
-	if (!get_token_vector(c_rstrKey, &pTokenVector))
+	if (!get_token_vector(rstr_key, &pTokenVector))
 		return false;
 
 	if (pTokenVector->size() != 3)
 	{
-		metin2::log::debug( " CTextFileLoader::GetTokenVector3 - This key should have 3 values {} [{} : {}]", file_name_.c_str(), pcur_node_->group_name.c_str(), c_rstrKey.c_str());
+		metin2::log::debug( " CTextFileLoader::GetTokenVector3 - This key should have 3 values {} [{} : {}]", file_name_.c_str(), pcur_node_->group_name.c_str(), rstr_key.c_str());
 		return false;
 	}
 
-	pVector3->x = atof(pTokenVector->at(0).c_str());
-	pVector3->y = atof(pTokenVector->at(1).c_str());
-	pVector3->z = atof(pTokenVector->at(2).c_str());
+	vector3->x = atof(pTokenVector->at(0).c_str());
+	vector3->y = atof(pTokenVector->at(1).c_str());
+	vector3->z = atof(pTokenVector->at(2).c_str());
 
 	return true;
 }
 
 
-bool text_file_loader::token_position(const std::string & c_rstrKey, vector * pVector)
+bool text_file_loader::token_position(const std::string & rstr_key, vector * vector_value)
 {
-	return token_vector3(c_rstrKey, pVector);
+	return token_vector3(rstr_key, vector_value);
 }
 
-bool text_file_loader::token_string(const std::string & c_rstrKey, std::string * pString)
+bool text_file_loader::token_string(const std::string & rstr_key, std::string * string_value)
 {
 	token_vector * pTokenVector;
-	if (!get_token_vector(c_rstrKey, &pTokenVector))
+	if (!get_token_vector(rstr_key, &pTokenVector))
 		return false;
 
 	if (pTokenVector->empty())
 	{
-		metin2::log::debug( " CTextFileLoader::GetTokenString - Failed to find the value {} [{} : {}]", file_name_.c_str(), pcur_node_->group_name.c_str(), c_rstrKey.c_str());
+		metin2::log::debug( " CTextFileLoader::GetTokenString - Failed to find the value {} [{} : {}]", file_name_.c_str(), pcur_node_->group_name.c_str(), rstr_key.c_str());
 		return false;
 	}
 
-	*pString = pTokenVector->at(0);
+	*string_value = pTokenVector->at(0);
 
 	return true;
 }

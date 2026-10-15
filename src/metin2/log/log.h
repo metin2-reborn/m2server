@@ -78,7 +78,7 @@ namespace metin2::log {
     void set_keep_days(unsigned int days);
 
     // Messages below the threshold are dropped (default: info).
-    void set_level(level threshold);
+    void set_level(level value);
     [[nodiscard]] auto enabled(level severity) -> bool;
 
     // Rotates the files when the hour changed; call it from the main loop.

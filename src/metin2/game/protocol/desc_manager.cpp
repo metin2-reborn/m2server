@@ -196,9 +196,9 @@ metin2::log::debug( "BBBB DisConnectAccount({})", login.c_str());
 	map_login_name_.erase(login);
 }
 
-void desc_manager::destroy_desc(desc * d, bool bEraseFromSet)
+void desc_manager::destroy_desc(desc * d, bool erase_from_set)
 {
-	if (bEraseFromSet)
+	if (erase_from_set)
 		set_pk_desc_.erase(d);
 
 	if (d->handshake())
@@ -296,15 +296,15 @@ desc * desc_manager::find_by_character_name(const char *name)
 	return (it == set_pk_desc_.end()) ? nullptr : (*it);
 }
 
-client_desc * desc_manager::create_connection_desc(const char * host, uint16_t port, int iPhaseWhenSucceed, bool bRetryWhenClosed)
+client_desc * desc_manager::create_connection_desc(const char * host, uint16_t port, int phase_when_succeed, bool retry_when_closed)
 {
 	client_desc * newd;
 
 	newd = new client_desc;
 
 	newd->setup(host, port);
-	newd->connect(iPhaseWhenSucceed);
-	newd->set_retry_when_closed(bRetryWhenClosed);
+	newd->connect(phase_when_succeed);
+	newd->set_retry_when_closed(retry_when_closed);
 
 	set_pk_desc_.insert(newd);
 	set_pk_client_desc_.insert(newd);
@@ -327,7 +327,7 @@ void desc_manager::try_connect()
 	std::for_each(set_pk_client_desc_.begin(), set_pk_client_desc_.end(), f);
 }
 
-bool desc_manager::is_p2_p_desc_exist(const char * szHost, uint16_t wPort)
+bool desc_manager::is_p2_p_desc_exist(const char * host, uint16_t port)
 {
 	client_desc_set::iterator it = set_pk_client_desc_.begin();
 	
@@ -335,7 +335,7 @@ bool desc_manager::is_p2_p_desc_exist(const char * szHost, uint16_t wPort)
 	{
 		client_desc * d = *(it++);
 
-		if (!strcmp(d->p2_p_host(), szHost) && d->p2_p_port() == wPort)
+		if (!strcmp(d->p2_p_host(), host) && d->p2_p_port() == port)
 			return true;
 	}
 
@@ -378,36 +378,36 @@ void desc_manager::update_local_user_count()
 	empire_user_count_[3] += p2_p_manager::instance().empire_user_count(3);
 }
 
-void desc_manager::user_count(int & iTotal, int ** paiEmpireUserCount, int & iLocalCount)
+void desc_manager::user_count(int & total, int ** pai_empire_user_count, int & local_count)
 {
-	*paiEmpireUserCount = &empire_user_count_[0];
+	*pai_empire_user_count = &empire_user_count_[0];
 	
 	int iCount = p2_p_manager::instance().count();
 	if (iCount < 0)
 	{
 		metin2::log::error("P2P_MANAGER::instance().GetCount() == -1");
 	}
-	iTotal = local_user_count_ + iCount;
-	iLocalCount = local_user_count_;
+	total = local_user_count_ + iCount;
+	local_count = local_user_count_;
 }
 
 
-uint32_t desc_manager::make_random_key(uint32_t dwHandle)
+uint32_t desc_manager::make_random_key(uint32_t handle)
 { 
 	uint32_t random_key = thecore_random();
-	map_handle_random_key_[dwHandle] = random_key;
+	map_handle_random_key_[handle] = random_key;
 	return random_key;
 }
 
-bool desc_manager::check_random_key(uint32_t dwHandle, uint32_t dwKey)
+bool desc_manager::check_random_key(uint32_t handle, uint32_t key)
 {
-	auto it = map_handle_random_key_.find(dwHandle);
-	return it != map_handle_random_key_.end() && it->second == dwKey && find_by_handle(dwHandle) != nullptr;
+	auto it = map_handle_random_key_.find(handle);
+	return it != map_handle_random_key_.end() && it->second == key && find_by_handle(handle) != nullptr;
 }
 
-desc * desc_manager::find_by_login_key(uint32_t dwKey)
+desc * desc_manager::find_by_login_key(uint32_t key)
 {
-	std::map<uint32_t, login_key *>::iterator it = map_pk_login_key_.find(dwKey);
+	std::map<uint32_t, login_key *>::iterator it = map_pk_login_key_.find(key);
 
 	if (it == map_pk_login_key_.end())
 		return nullptr;

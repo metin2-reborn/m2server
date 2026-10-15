@@ -171,7 +171,7 @@ item_price_list_table_cache::item_price_list_table_cache() {
     expire_time_ = std::min(min_flush_sec_, metin2::config::db().pricelist_cache_flush_seconds);
 }
 
-void item_price_list_table_cache::update_list(const item_price_list_table *pUpdateList) {
+void item_price_list_table_cache::update_list(const item_price_list_table *update_list) {
     //
     // Find items duplicating already-cached items and put the non-duplicated old info into tmpvec.
     //
@@ -179,11 +179,11 @@ void item_price_list_table_cache::update_list(const item_price_list_table *pUpda
     std::vector<item_price_info> tmpvec;
 
     for (uint idx = 0; idx < data_.count; ++idx) {
-        const item_price_info *pos = pUpdateList->price_info;
-        for (; pos != pUpdateList->price_info + pUpdateList->count && data_.price_info[idx].vnum != pos->vnum; ++pos)
+        const item_price_info *pos = update_list->price_info;
+        for (; pos != update_list->price_info + update_list->count && data_.price_info[idx].vnum != pos->vnum; ++pos)
             ;
 
-        if (pos == pUpdateList->price_info + pUpdateList->count)
+        if (pos == update_list->price_info + update_list->count)
             tmpvec.push_back(data_.price_info[idx]);
     }
 
@@ -191,25 +191,25 @@ void item_price_list_table_cache::update_list(const item_price_list_table *pUpda
     // Copy pUpdateList into m_data and fill the remaining space from the front of tmpvec.
     //
 
-    if (pUpdateList->count > SHOP_PRICELIST_MAX_NUM) {
+    if (update_list->count > SHOP_PRICELIST_MAX_NUM) {
         metin2::log::error("Count overflow!");
         return;
     }
 
-    data_.count = pUpdateList->count;
+    data_.count = update_list->count;
 
-    std::memcpy(data_.price_info, pUpdateList->price_info, sizeof(item_price_info) * pUpdateList->count);
+    std::memcpy(data_.price_info, update_list->price_info, sizeof(item_price_info) * update_list->count);
 
     int nDeletedNum; // Number of deleted price entries
 
-    if (pUpdateList->count < SHOP_PRICELIST_MAX_NUM) {
-        size_t sizeAddOldDataSize = SHOP_PRICELIST_MAX_NUM - pUpdateList->count;
+    if (update_list->count < SHOP_PRICELIST_MAX_NUM) {
+        size_t sizeAddOldDataSize = SHOP_PRICELIST_MAX_NUM - update_list->count;
 
         if (tmpvec.size() < sizeAddOldDataSize) {
             sizeAddOldDataSize = tmpvec.size();
         }
 
-        std::memcpy(data_.price_info + pUpdateList->count, &tmpvec[0], sizeof(item_price_info) * sizeAddOldDataSize);
+        std::memcpy(data_.price_info + update_list->count, &tmpvec[0], sizeof(item_price_info) * sizeAddOldDataSize);
         data_.count += sizeAddOldDataSize;
 
         nDeletedNum = tmpvec.size() - sizeAddOldDataSize;
@@ -221,7 +221,7 @@ void item_price_list_table_cache::update_list(const item_price_list_table *pUpda
 
     metin2::log::info(
         "ItemPriceListTableCache::UpdateList : OwnerID[{:d}] Update [{:d}] Items, Delete [{:d}] Items, Total [{:d}] Items",
-        data_.owner_id, pUpdateList->count, nDeletedNum, data_.count);
+        data_.owner_id, update_list->count, nDeletedNum, data_.count);
 }
 
 void item_price_list_table_cache::on_flush() {

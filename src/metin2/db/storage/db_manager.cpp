@@ -70,30 +70,30 @@ ql_msg *db_manager::pop_result() {
     return nullptr;
 }
 
-int db_manager::connect(int iSlot, const char *db_address, const int db_port, const char *db_name, const char *user, const char *pwd) {
+int db_manager::connect(int slot, const char *db_address, const int db_port, const char *db_name, const char *user, const char *pwd) {
     if (db_address == nullptr || db_name == nullptr)
         return false;
 
-    if (iSlot < 0 || iSlot >= SQL_MAX_NUM)
+    if (slot < 0 || slot >= SQL_MAX_NUM)
         return false;
 
     metin2::log::info( "CREATING DIRECT_SQL");
-    direct_sql_[iSlot] = std::make_unique<async_sql>();
-    if (!direct_sql_[iSlot]->setup(db_address, user, pwd, db_name, CONNECTION_CHARSET, true, db_port)) {
+    direct_sql_[slot] = std::make_unique<async_sql>();
+    if (!direct_sql_[slot]->setup(db_address, user, pwd, db_name, CONNECTION_CHARSET, true, db_port)) {
         clear();
         return false;
     }
 
     metin2::log::info( "CREATING MAIN_SQL");
-    main_sql_[iSlot] = std::make_unique<async_sql>();
-    if (!main_sql_[iSlot]->setup(db_address, user, pwd, db_name, CONNECTION_CHARSET, false, db_port)) {
+    main_sql_[slot] = std::make_unique<async_sql>();
+    if (!main_sql_[slot]->setup(db_address, user, pwd, db_name, CONNECTION_CHARSET, false, db_port)) {
         clear();
         return false;
     }
 
     metin2::log::info( "CREATING ASYNC_SQL");
-    async_sql_[iSlot] = std::make_unique<async_sql>();
-    if (!async_sql_[iSlot]->setup(db_address, user, pwd, db_name, CONNECTION_CHARSET, false, db_port)) {
+    async_sql_[slot] = std::make_unique<async_sql>();
+    if (!async_sql_[slot]->setup(db_address, user, pwd, db_name, CONNECTION_CHARSET, false, db_port)) {
         clear();
         return false;
     }
@@ -101,31 +101,31 @@ int db_manager::connect(int iSlot, const char *db_address, const int db_port, co
     return true;
 }
 
-ql_msg *db_manager::direct_query(const char *c_pszQuery, int iSlot) {
-    return direct_sql_[iSlot]->direct_query(c_pszQuery);
+ql_msg *db_manager::direct_query(const char *query, int slot) {
+    return direct_sql_[slot]->direct_query(query);
 }
 
-void db_manager::return_query(const char *c_pszQuery, int iType, uint32_t dwIdent, void *udata, int iSlot) {
-    assert(iSlot < SQL_MAX_NUM);
+void db_manager::return_query(const char *query, int type_value, uint32_t ident_value, void *udata, int slot) {
+    assert(slot < SQL_MAX_NUM);
     query_info *p = new query_info;
 
-    p->type = iType;
-    p->ident = dwIdent;
+    p->type = type_value;
+    p->ident = ident_value;
     p->pv_data = udata;
 
-    main_sql_[iSlot]->return_query(c_pszQuery, p);
+    main_sql_[slot]->return_query(query, p);
 
     ++query_count[0];
 }
 
-void db_manager::async_query(const char *c_pszQuery, int iSlot) {
-    assert(iSlot < SQL_MAX_NUM);
-    async_sql_[iSlot]->async_query(c_pszQuery);
+void db_manager::async_query(const char *query, int slot) {
+    assert(slot < SQL_MAX_NUM);
+    async_sql_[slot]->async_query(query);
     ++query_count[1];
 }
 
-uint32_t db_manager::escape_string(void *to, const void *from, uint32_t length, int iSlot) {
-    assert(iSlot < SQL_MAX_NUM);
-    return mysql_real_escape_string(direct_sql_[iSlot]->sql_handle(), (char *)to, (const char *)from, length);
+uint32_t db_manager::escape_string(void *to, const void *from, uint32_t length, int slot) {
+    assert(slot < SQL_MAX_NUM);
+    return mysql_real_escape_string(direct_sql_[slot]->sql_handle(), (char *)to, (const char *)from, length);
 }
 }

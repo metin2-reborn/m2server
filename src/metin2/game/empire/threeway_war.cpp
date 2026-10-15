@@ -125,34 +125,34 @@ void three_way_war::set_kill_score( uint8_t empire, int count )
 	kill_score_[empire-1] = count;
 }
 
-void three_way_war::set_revive_token_for_player(uint32_t PlayerID, int count)
+void three_way_war::set_revive_token_for_player(uint32_t player_id, int count)
 {
-	if (0 == PlayerID)
+	if (0 == player_id)
 		return;
 
-	revive_token_map_[PlayerID] = count;
+	revive_token_map_[player_id] = count;
 }
 
-int three_way_war::revive_token_for_player(uint32_t PlayerID)
+int three_way_war::revive_token_for_player(uint32_t player_id)
 {
-	if (0 == PlayerID)
+	if (0 == player_id)
 		return 0;
 
-	return revive_token_map_[PlayerID];
+	return revive_token_map_[player_id];
 }
 
-void three_way_war::decrease_revive_token_for_player(uint32_t PlayerID)
+void three_way_war::decrease_revive_token_for_player(uint32_t player_id)
 {
-	if (0 == PlayerID)
+	if (0 == player_id)
 		return;
 
-	revive_token_map_[PlayerID] = revive_token_map_[PlayerID] - 1;
+	revive_token_map_[player_id] = revive_token_map_[player_id] - 1;
 }
 
-bool three_way_war::load_setting(const char* szFileName)
+bool three_way_war::load_setting(const char* file_name)
 {
 	char szPath[1024];
-	snprintf( szPath, sizeof(szPath), "%s/%s", locale_service_get_base_path().c_str(), szFileName);
+	snprintf( szPath, sizeof(szPath), "%s/%s", locale_service_get_base_path().c_str(), file_name);
 
 	FILE* pf = fopen( szPath, "r" );
 
@@ -228,18 +228,18 @@ const forked_sungzi_map_info& three_way_war::event_sung_zi_map_info() const
 	return sung_zi_info_map_[idx];
 }
 
-bool three_way_war::is_three_way_war_map_index(int iMapIndex) const
+bool three_way_war::is_three_way_war_map_index(int map_index) const
 {
-	return map_index_set_.find(iMapIndex) != map_index_set_.end();
+	return map_index_set_.find(map_index) != map_index_set_.end();
 }
 
-bool three_way_war::is_sung_zi_map_index(int iMapIndex) const
+bool three_way_war::is_sung_zi_map_index(int map_index) const
 {
 	std::vector<forked_sungzi_map_info>::const_iterator it = sung_zi_info_map_.begin();
 
 	for( ; it != sung_zi_info_map_.end() ; ++it )
 	{
-		if (iMapIndex == it->forked_sung)
+		if (map_index == it->forked_sung)
 		{
 			return true;
 		}
@@ -257,9 +257,9 @@ void three_way_war::random_event_map_set()
 	quest::quest_manager::instance().request_set_event_flag( "threeway_war_pass_idx", pass_idx );
 }
 
-bool three_way_war::is_registered_user(uint32_t PlayerID) const
+bool three_way_war::is_registered_user(uint32_t player_id) const
 {
-	std::unordered_map<uint32_t, uint32_t>::const_iterator iter = register_user_map_.find(PlayerID);
+	std::unordered_map<uint32_t, uint32_t>::const_iterator iter = register_user_map_.find(player_id);
 
 	if (iter == register_user_map_.end())
 	{
@@ -269,12 +269,12 @@ bool three_way_war::is_registered_user(uint32_t PlayerID) const
 	return true;
 }
 
-void three_way_war::register_user(uint32_t PlayerID)
+void three_way_war::register_user(uint32_t player_id)
 {
-	if (0 == PlayerID)
+	if (0 == player_id)
 		return;
 
-	register_user_map_.insert( std::make_pair(PlayerID, PlayerID) );
+	register_user_map_.insert( std::make_pair(player_id, player_id) );
 }
 
 int get_kill_value(int level)
@@ -303,36 +303,36 @@ int get_kill_value(int level)
 	return 0;
 }
 
-void three_way_war::on_dead(character * pChar, character * pkKiller)
+void three_way_war::on_dead(character * dead, character * killer)
 {
-	if (false == pChar->is_pc())
+	if (false == dead->is_pc())
 		return;
 
-	if (GM_PLAYER != pChar->gm_level() && false == metin2::config::test_server())
+	if (GM_PLAYER != dead->gm_level() && false == metin2::config::test_server())
 		return;
 
 	if (-1 == regen_flag())
 		return;
 
-	decrease_revive_token_for_player( pChar->player_id() );
+	decrease_revive_token_for_player( dead->player_id() );
 
-	if (false == is_sung_zi_map_index(pChar->map_index()))
+	if (false == is_sung_zi_map_index(dead->map_index()))
 		return;
 
-	if (nullptr == pkKiller || true != pkKiller->is_pc())
+	if (nullptr == killer || true != killer->is_pc())
 		return;
 
 	// Don't count the same empire
-	if (pChar->empire() == pkKiller->empire())
+	if (dead->empire() == killer->empire())
 		return;
 
-	int nKillScore = kill_score(pkKiller->empire());
+	int nKillScore = kill_score(killer->empire());
 
 	// An empire kill score of -1 means an eliminated empire, so its score must not be checked.
 	if (nKillScore >= 0)
 	{
-		nKillScore += get_kill_value(pChar->level());
-		set_kill_score(pkKiller->empire(), nKillScore);
+		nKillScore += get_kill_value(dead->level());
+		set_kill_score(killer->empire(), nKillScore);
 	}
 
 	if (nKillScore != 0 && (metin2::config::test_server() || (nKillScore % 5) == 0))
@@ -411,7 +411,7 @@ void three_way_war::on_dead(character * pChar, character * pkKiller)
 				"[ENTER][DONE]"
 				);
 
-		character_manager::instance().send_script_to_map(pChar->map_index(), Script);
+		character_manager::instance().send_script_to_map(dead->map_index(), Script);
 
 		//----------------------
 		// Send out a notice.
@@ -428,7 +428,7 @@ void three_way_war::on_dead(character * pChar, character * pkKiller)
 		//----------------------
 		regen_mob_event_info* regen_info = alloc_event_info<regen_mob_event_info>();
 
-		regen_info->map_index = pChar->map_index();
+		regen_info->map_index = dead->map_index();
 
 		event_create(regen_mob_event, regen_info, passes_per_sec(10));
 
@@ -502,7 +502,7 @@ void three_way_war::on_dead(character * pChar, character * pkKiller)
 		}
 
 		// Show a message.
-		sectree_map * pSecMap = sectree_manager::instance().map(pChar->map_index());
+		sectree_map * pSecMap = sectree_manager::instance().map(dead->map_index());
 
 		if (nullptr != pSecMap)
 		{
@@ -537,21 +537,21 @@ void three_way_war::on_dead(character * pChar, character * pkKiller)
 		//-----------------------------	
 		for (int n = 0; n < quest::quest_manager::instance().event_flag("threeway_war_boss_count");)
 		{
-			int x = pChar->x();
-			int y = pChar->y();
+			int x = dead->x();
+			int y = dead->y();
 
 			x = (thecore_random() & 1) ? x - number(200, 1000) : x + number(200, 1000);
 			y = (thecore_random() & 1) ? y - number(200, 1000) : y + number(200, 1000);
 
 			if (x < 0)
-				x = pChar->x();
+				x = dead->x();
 
 			if (y < 0)
-				y = pChar->y();
+				y = dead->y();
 
 			character * ch = character_manager::instance().spawn_mob(
 					event_sung_zi_map_info().boss_mob_vnum,
-					pChar->map_index(),
+					dead->map_index(),
 					x, y, 0, false);
 
 			if (nullptr != ch)
@@ -614,15 +614,15 @@ const char* get_sungzi_map_path()
 	return s_szMapPath;
 }
 
-const char* get_pass_map_path( uint8_t bEmpire )
+const char* get_pass_map_path( uint8_t empire )
 {
-	if (bEmpire > 0 && bEmpire < EMPIRE_MAX_NUM)
+	if (empire > 0 && empire < EMPIRE_MAX_NUM)
 	{
 		static char s_szMapPath[128];
 
 		snprintf(s_szMapPath, sizeof(s_szMapPath), "%s/map/%s/",
 				locale_service_get_base_path().c_str(),
-				three_way_war::instance().event_pass_map_info().map_name[bEmpire-1].c_str());
+				three_way_war::instance().event_pass_map_info().map_name[empire-1].c_str());
 
 		return s_szMapPath;
 	}
@@ -630,11 +630,11 @@ const char* get_pass_map_path( uint8_t bEmpire )
 	return nullptr;
 }
 
-int get_pass_map_index( uint8_t bEmpire )
+int get_pass_map_index( uint8_t empire )
 {
-	if (bEmpire > 0 && bEmpire < EMPIRE_MAX_NUM)
+	if (empire > 0 && empire < EMPIRE_MAX_NUM)
 	{
-		return three_way_war::instance().event_pass_map_info().forked_pass[bEmpire-1];
+		return three_way_war::instance().event_pass_map_info().forked_pass[empire-1];
 	}
 
 	return 0;
@@ -645,21 +645,21 @@ int get_sungzi_map_index()
 	return three_way_war::instance().event_sung_zi_map_info().forked_sung;
 }
 
-int get_sungzi_start_x( uint8_t bEmpire )
+int get_sungzi_start_x( uint8_t empire )
 {
-	if (bEmpire > 0 && bEmpire < EMPIRE_MAX_NUM)
+	if (empire > 0 && empire < EMPIRE_MAX_NUM)
 	{
-		return three_way_war::instance().event_sung_zi_map_info().forked_sungzi_start_position[bEmpire-1][0];
+		return three_way_war::instance().event_sung_zi_map_info().forked_sungzi_start_position[empire-1][0];
 	}
 
 	return 0;
 }
 
-int get_sungzi_start_y( uint8_t bEmpire )
+int get_sungzi_start_y( uint8_t empire )
 {
-	if (bEmpire > 0 && bEmpire < EMPIRE_MAX_NUM)
+	if (empire > 0 && empire < EMPIRE_MAX_NUM)
 	{
-		return three_way_war::instance().event_sung_zi_map_info().forked_sungzi_start_position[bEmpire-1][1];
+		return three_way_war::instance().event_sung_zi_map_info().forked_sungzi_start_position[empire-1][1];
 	}
 
 	return 0;

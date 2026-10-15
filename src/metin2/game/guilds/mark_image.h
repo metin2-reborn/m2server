@@ -46,7 +46,7 @@ struct guild_mark_block
 
 	///////////////////////////////////////////////////////////////////////////////
 
-	void	compress(const pixel * pxBuf);
+	void	compress(const pixel * px_buf);
 };
 
 class guild_mark_image
@@ -71,17 +71,17 @@ class guild_mark_image
 
 		guild_mark_image();
 
-		bool build(const char * c_szFileName);
-		bool save(const char* c_szFileName);
-		bool load(const char* c_szFileName);
+		bool build(const char * file_name);
+		bool save(const char* file_name);
+		bool load(const char* file_name);
 
 		void put_data(uint32_t x, uint32_t y, uint32_t width, uint32_t height, void* data);
 		void data(uint32_t x, uint32_t y, uint32_t width, uint32_t height, void* data);
 
-		bool save_mark(uint32_t posMark, uint8_t * pbMarkImage);
-		bool delete_mark(uint32_t posMark);
+		bool save_mark(uint32_t pos_mark, uint8_t * image);
+		bool delete_mark(uint32_t pos_mark);
 
-		void diff_blocks(const uint32_t * crcList, std::map<uint8_t, const guild_mark_block *> & mapDiffBlocks);
+		void diff_blocks(const uint32_t * crc_list, std::map<uint8_t, const guild_mark_block *> & diff_blocks);
 
 	private:
 		void	build_all_blocks();

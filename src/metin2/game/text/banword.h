@@ -17,9 +17,9 @@ class banword_manager : public singleton<banword_manager>
 		banword_manager();
 		~banword_manager() override;
 
-		bool initialize(banword_table * p, uint16_t wSize);
-		bool check_string(const char * c_pszString, size_t _len);
-		void convert_string(char * c_pszString, size_t _len);
+		bool initialize(banword_table * p, uint16_t size_value);
+		bool check_string(const char * string_value, size_t len_value);
+		void convert_string(char * string_value, size_t len_value);
 
 	protected:
 		typedef std::unordered_map<std::string, bool> banword_hashmap;

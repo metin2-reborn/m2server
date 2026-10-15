@@ -56,37 +56,37 @@ class guild_manager : public singleton<guild_manager>
 
 		void		request_end_war(uint32_t guild_id1, uint32_t guild_id2);
 		void		request_cancel_war(uint32_t guild_id1, uint32_t guild_id2);
-		void		request_war_over(uint32_t dwGuild1, uint32_t dwGuild2, uint32_t dwGuildWinner, int32_t lReward);
+		void		request_war_over(uint32_t guild1, uint32_t guild2, uint32_t guild_winner, int32_t reward);
 
-		void		declare_war(uint32_t guild_id1, uint32_t guild_id2, uint8_t bType);
+		void		declare_war(uint32_t guild_id1, uint32_t guild_id2, uint8_t type);
 		void		refuse_war(uint32_t guild_id1, uint32_t guild_id2);
 		void		start_war(uint32_t guild_id1, uint32_t guild_id2);
 		void		wait_start_war(uint32_t guild_id1, uint32_t guild_id2);
-		void		war_over(uint32_t guild_id1, uint32_t guild_id2, bool bDraw);
+		void		war_over(uint32_t guild_id1, uint32_t guild_id2, bool draw);
 		void		cancel_war(uint32_t guild_id1, uint32_t guild_id2);
 		bool		end_war(uint32_t guild_id1, uint32_t guild_id2);
-		void		reserve_war(uint32_t dwGuild1, uint32_t dwGuild2, uint8_t bType);
+		void		reserve_war(uint32_t guild1, uint32_t guild2, uint8_t type);
 
 		void            reserve_war_add(guild_war_reserve * p);
-		void            reserve_war_delete(uint32_t dwID);
+		void            reserve_war_delete(uint32_t id);
 		std::vector<guild_war_reserve_for_game *> & reserve_war_ref();
 		void		reserve_war_bet(packet_gd_guild_war_bet * p);
-		bool		is_bet(uint32_t dwID, const char * c_pszLogin);
+		bool		is_bet(uint32_t id, const char * login);
 
 		void		stop_all_guild_war();
 
 		void		kill(character * killer, character * victim);
 
 		int		rank(guild* g);
-		void		high_rank_string(uint32_t dwMyGuild, char * buffer, size_t buflen);
-		void		around_rank_string(uint32_t dwMyGuild, char * buffer, size_t buflen);
+		void		high_rank_string(uint32_t my_guild, char * buffer, size_t buflen);
+		void		around_rank_string(uint32_t my_guild, char * buffer, size_t buflen);
 
 		template <typename Func> void for_each_war(Func & f);
 
 		int		disband_delay();
 		int		withdraw_delay();
 
-		void		change_master(uint32_t dwGID);
+		void		change_master(uint32_t gid);
 
 	private:
 		typedef std::map<uint32_t, guild*> guild_map;	
@@ -114,5 +114,5 @@ template <typename Func> void guild_manager::for_each_war(Func & f)
 	}
 }
 
-extern void send_guild_war_score(uint32_t dwGuild, uint32_t dwGuildOpp, int iDelta, int iBetScoreDelta = 0);
+extern void send_guild_war_score(uint32_t guild, uint32_t guild_opp, int delta, int bet_score_delta = 0);
 }

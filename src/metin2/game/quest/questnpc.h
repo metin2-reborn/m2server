@@ -60,13 +60,13 @@ namespace quest
 			bool	on_party_kill(pc& pc);
 			bool	on_timer(pc& pc);
 			bool	on_level_up(pc& pc);
-			bool	on_login(pc& pc, const char * c_pszQuestName = nullptr);
+			bool	on_login(pc& pc, const char * quest_name = nullptr);
 			bool	on_logout(pc& pc);
 			bool	on_button(pc& pc, unsigned int quest_index);
 			bool	on_info(pc& pc, unsigned int quest_index);
 			bool	on_attr_in(pc& pc);
 			bool	on_attr_out(pc& pc);
-			bool	on_use_item(pc& pc, bool bReceiveAll);
+			bool	on_use_item(pc& pc, bool receive_all);
 			bool	on_take_item(pc& pc);
 			bool	on_enter_state(pc& pc, uint32_t quest_index, int state);
 			bool	on_leave_state(pc& pc, uint32_t quest_index, int state);
@@ -76,27 +76,27 @@ namespace quest
 
 			bool	on_item_informer(pc& pc,unsigned int vnum);	// Germany gift feature test
 
-			bool	on_target(pc& pc, uint32_t dwQuestIndex, const char * c_pszTargetName, const char * c_pszVerb, bool & bRet);
+			bool	on_target(pc& pc, uint32_t quest_index, const char * target_name, const char * verb, bool & ret);
 			bool	on_unmount(pc& pc);
 
 			// ITEM_PICK EVENT
 			bool	on_pickup_item(pc& pc);
 			// Special item group USE EVENT
-			bool	on_sig_use(pc& pc, bool bReceiveAll);
+			bool	on_sig_use(pc& pc, bool receive_all);
 
-			bool	handle_event(pc& pc, int EventIndex);
-			bool	handle_receive_all_event(pc& pc, int EventIndex);
-			bool	handle_receive_all_no_wait_event(pc& pc, int EventIndex);
+			bool	handle_event(pc& pc, int event_index);
+			bool	handle_receive_all_event(pc& pc, int event_index);
+			bool	handle_receive_all_no_wait_event(pc& pc, int event_index);
 
-			bool	execute_event_script(pc& pc, int EventIndex, uint32_t dwQuestIndex, int iState);
+			bool	execute_event_script(pc& pc, int event_index, uint32_t quest_index, int state);
 
 		protected:
 			template <typename TQuestMapType, typename FuncMatch, typename FuncMiss>
-				void matching_quest(pc& pc, TQuestMapType& QuestMap, FuncMatch& fMatch, FuncMiss& fMiss);
+				void matching_quest(pc& pc, TQuestMapType& quest_map, FuncMatch& match, FuncMiss& miss);
 
 			// true if quest still running, false if ended
 
-			void load_state_script(int idx, const char* filename, const char* script_name);
+			void load_state_script(int event_index, const char* filename, const char* script_name);
 
 			unsigned int vnum_;
 			quest_map_type own_quest_[QUEST_EVENT_COUNT];
@@ -104,19 +104,19 @@ namespace quest
 	};
 
 	template <typename TQuestMapType, typename FuncMatch, typename FuncMiss>
-		void npc::matching_quest(pc& pc, TQuestMapType& QuestMap, FuncMatch& fMatch, FuncMiss& fMiss)
+		void npc::matching_quest(pc& pc, TQuestMapType& quest_map, FuncMatch& match, FuncMiss& miss)
 		{
 			if (metin2::config::test_server())
 				metin2::log::info( "Click Quest : MatchingQuest");
 
 			game::quest::pc::quest_info_iterator itPCQuest = pc.quest_begin();
-			typename TQuestMapType::iterator itQuestMap = QuestMap.begin();
+			typename TQuestMapType::iterator itQuestMap = quest_map.begin();
 
-			while (itQuestMap != QuestMap.end())
+			while (itQuestMap != quest_map.end())
 			{
 				if (itPCQuest == pc.quest_end() || itPCQuest->first > itQuestMap->first)
 				{
-					fMiss(itPCQuest, itQuestMap);
+					miss(itPCQuest, itQuestMap);
 					++itQuestMap;
 				}
 				else if (itPCQuest->first < itQuestMap->first)
@@ -125,7 +125,7 @@ namespace quest
 				}
 				else
 				{
-					fMatch(itPCQuest, itQuestMap);
+					match(itPCQuest, itQuestMap);
 					++itPCQuest;
 					++itQuestMap;
 				}

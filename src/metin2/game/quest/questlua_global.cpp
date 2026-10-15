@@ -52,94 +52,94 @@ namespace metin2::game {
 
 namespace quest
 {
-	int get_locale(lua_State* L)
+	int get_locale(lua_State* lua)
 	{
-		lua_pushstring(L, locale.c_str());
+		lua_pushstring(lua, locale.c_str());
 		return 1;
 	}
 
-	int random_number(lua_State* L)
+	int random_number(lua_State* lua)
 	{
-		if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2))
-			lua_pushnumber(L, 0);
+		if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2))
+			lua_pushnumber(lua, 0);
 		else
-			lua_pushnumber(L, number((int)lua_tonumber(L, 1), (int)lua_tonumber(L, 2)));
+			lua_pushnumber(lua, number((int)lua_tonumber(lua, 1), (int)lua_tonumber(lua, 2)));
 		return 1;
 	}
 
-	int time_to_str(lua_State* L)
+	int time_to_str(lua_State* lua)
 	{
-		time_t curTime = (time_t)lua_tonumber(L, -1);
-		lua_pushstring(L, asctime(gmtime(&curTime)));
+		time_t curTime = (time_t)lua_tonumber(lua, -1);
+		lua_pushstring(lua, asctime(gmtime(&curTime)));
 		return 1;
 	}
 
-	int say(lua_State* L)
+	int say(lua_State* lua)
 	{
 		std::ostringstream s;
-		combine_lua_string(L, s);
+		combine_lua_string(lua, s);
 		quest_manager::instance().add_script(s.str() + "[ENTER]");
 		return 0;
 	}
 
-	int chat(lua_State* L)
+	int chat(lua_State* lua)
 	{
 		std::ostringstream s;
-		combine_lua_string(L, s);
+		combine_lua_string(lua, s);
 
 		quest_manager::instance().current_character_ptr()->chat_packet(CHAT_TYPE_TALKING, "%s", s.str().c_str());
 		return 0;
 	}
 
-	int cmdchat(lua_State* L)
+	int cmdchat(lua_State* lua)
 	{
 		std::ostringstream s;
-		combine_lua_string(L, s);
+		combine_lua_string(lua, s);
 		quest_manager::instance().current_character_ptr()->chat_packet(CHAT_TYPE_COMMAND, "%s", s.str().c_str());
 		return 0;
 	}
 
-	int syschat(lua_State* L)
+	int syschat(lua_State* lua)
 	{
 		std::ostringstream s;
-		combine_lua_string(L, s);
+		combine_lua_string(lua, s);
 		quest_manager::instance().current_character_ptr()->chat_packet(CHAT_TYPE_INFO, "%s", s.str().c_str());
 		return 0;
 	}
 
-	int notice(lua_State* L)
+	int notice(lua_State* lua)
 	{
 		std::ostringstream s;
-		combine_lua_string(L, s);
+		combine_lua_string(lua, s);
 		quest_manager::instance().current_character_ptr()->chat_packet(CHAT_TYPE_NOTICE, "%s", s.str().c_str());
 		return 0;
 	}
 
-	int left_image(lua_State* L)
+	int left_image(lua_State* lua)
 	{
-		if (lua_isstring(L, -1))
+		if (lua_isstring(lua, -1))
 		{
-			std::string s = lua_tostring(L,-1);
+			std::string s = lua_tostring(lua,-1);
 			quest_manager::instance().add_script("[LEFTIMAGE src;"+s+"]");
 		}
 		return 0;
 	}
 
-	int top_image(lua_State* L)
+	int top_image(lua_State* lua)
 	{
-		if (lua_isstring(L, -1))
+		if (lua_isstring(lua, -1))
 		{
-			std::string s = lua_tostring(L,-1);
+			std::string s = lua_tostring(lua,-1);
 			quest_manager::instance().add_script("[TOPIMAGE src;"+s+"]");
 		}
 		return 0;
 	}
 
-	int set_skin(lua_State* L) // Quest UI style
+	int set_skin(lua_State* lua) // Quest UI style
 	{
-		if (lua_isnumber(L, -1))
+		if (lua_isnumber(lua, -1))
 		{
-			quest_manager::instance().set_skin_style((int)rint(lua_tonumber(L,-1)));
+			quest_manager::instance().set_skin_style((int)rint(lua_tonumber(lua,-1)));
 		}
 		else
 		{
@@ -149,24 +149,24 @@ namespace quest
 		return 0;
 	}
 
-	int set_server_timer(lua_State* L)
+	int set_server_timer(lua_State* lua)
 	{
-		int n = lua_gettop(L);
-		if ((n != 2 || !lua_isnumber(L, 2) || !lua_isstring(L, 1)) &&
-				(n != 3 || !lua_isstring(L, 1) || !lua_isnumber(L, 2) || !lua_isnumber(L, 3)))
+		int n = lua_gettop(lua);
+		if ((n != 2 || !lua_isnumber(lua, 2) || !lua_isstring(lua, 1)) &&
+				(n != 3 || !lua_isstring(lua, 1) || !lua_isnumber(lua, 2) || !lua_isnumber(lua, 3)))
 		{
 			quest::error("QUEST set_server_timer argument count wrong.");
 			return 0;
 		}
 
-		const char * name = lua_tostring(L, 1);
-		double t = lua_tonumber(L, 2);
+		const char * name = lua_tostring(lua, 1);
+		double t = lua_tonumber(lua, 2);
 		uint32_t arg = 0;
 
 		quest_manager & q = quest_manager::instance();
 
-		if (lua_isnumber(L, 3))
-			arg = (uint32_t) lua_tonumber(L, 3);
+		if (lua_isnumber(lua, 3))
+			arg = (uint32_t) lua_tonumber(lua, 3);
 
 		int timernpc = q.load_timer_script(name);
 
@@ -175,22 +175,22 @@ namespace quest
 		return 0;
 	}
 
-	int set_server_loop_timer(lua_State* L)
+	int set_server_loop_timer(lua_State* lua)
 	{
-		int n = lua_gettop(L);
-		if ((n != 2 || !lua_isnumber(L, 2) || !lua_isstring(L, 1)) &&
-				(n != 3 || !lua_isstring(L, 1) || !lua_isnumber(L, 2) || !lua_isnumber(L, 3)))
+		int n = lua_gettop(lua);
+		if ((n != 2 || !lua_isnumber(lua, 2) || !lua_isstring(lua, 1)) &&
+				(n != 3 || !lua_isstring(lua, 1) || !lua_isnumber(lua, 2) || !lua_isnumber(lua, 3)))
 		{
 			quest::error("QUEST set_server_timer argument count wrong.");
 			return 0;
 		}
-		const char * name = lua_tostring(L, 1);
-		double t = lua_tonumber(L, 2);
+		const char * name = lua_tostring(lua, 1);
+		double t = lua_tonumber(lua, 2);
 		uint32_t arg = 0;
 		quest_manager & q = quest_manager::instance();
 
-		if (lua_isnumber(L, 3))
-			arg = (uint32_t) lua_tonumber(L, 3);
+		if (lua_isnumber(lua, 3))
+			arg = (uint32_t) lua_tonumber(lua, 3);
 
 		int timernpc = q.load_timer_script(name);
 
@@ -199,25 +199,25 @@ namespace quest
 		return 0;
 	}
 
-	int clear_server_timer(lua_State* L)
+	int clear_server_timer(lua_State* lua)
 	{
 		quest_manager & q = quest_manager::instance();
-		const char * name = lua_tostring(L, 1);
-		uint32_t arg = (uint32_t) lua_tonumber(L, 2);
+		const char * name = lua_tostring(lua, 1);
+		uint32_t arg = (uint32_t) lua_tonumber(lua, 2);
 		q.clear_server_timer(name, arg);
 		return 0;
 	}
 
-	int set_named_loop_timer(lua_State* L)
+	int set_named_loop_timer(lua_State* lua)
 	{
-		int n = lua_gettop(L);
+		int n = lua_gettop(lua);
 
-		if (n != 2 || !lua_isnumber(L, -1) || !lua_isstring(L, -2))
+		if (n != 2 || !lua_isnumber(lua, -1) || !lua_isstring(lua, -2))
 			quest::error("QUEST set_timer argument count wrong.");
 		else
 		{
-			const char * name = lua_tostring(L, -2);
-			double t = lua_tonumber(L, -1);
+			const char * name = lua_tostring(lua, -2);
+			double t = lua_tonumber(lua, -1);
 
 			quest_manager & q = quest_manager::instance();
 			int timernpc = q.load_timer_script(name);
@@ -227,19 +227,19 @@ namespace quest
 		return 0;
 	}
 
-	int get_server_timer_arg(lua_State* L)
+	int get_server_timer_arg(lua_State* lua)
 	{
-		lua_pushnumber(L, quest_manager::instance().server_timer_arg());
+		lua_pushnumber(lua, quest_manager::instance().server_timer_arg());
 		return 1;
 	}
 
-	int set_timer(lua_State* L)
+	int set_timer(lua_State* lua)
 	{
-		if (lua_gettop(L) != 1 || !lua_isnumber(L, -1))
+		if (lua_gettop(lua) != 1 || !lua_isnumber(lua, -1))
 			quest::error("QUEST invalid argument.");
 		else
 		{
-			double t = lua_tonumber(L, -1);
+			double t = lua_tonumber(lua, -1);
 
 			quest_manager& q = quest_manager::instance();
 			quest_create_timer_event("", q.current_character_ptr()->player_id(), t);
@@ -248,18 +248,18 @@ namespace quest
 		return 0;
 	}
 
-	int set_named_timer(lua_State* L)
+	int set_named_timer(lua_State* lua)
 	{
-		int n = lua_gettop(L);
+		int n = lua_gettop(lua);
 
-		if (n != 2 || !lua_isnumber(L, -1) || !lua_isstring(L, -2))
+		if (n != 2 || !lua_isnumber(lua, -1) || !lua_isstring(lua, -2))
 		{
 			quest::error("QUEST set_timer argument count wrong.");
 		}
 		else
 		{
-			const char * name = lua_tostring(L,-2);
-			double t = lua_tonumber(L, -1);
+			const char * name = lua_tostring(lua,-2);
+			double t = lua_tonumber(lua, -1);
 
 			quest_manager & q = quest_manager::instance();
 			int timernpc = q.load_timer_script(name);
@@ -269,62 +269,62 @@ namespace quest
 		return 0;
 	}
 
-	int timer(lua_State * L)
+	int timer(lua_State * lua)
 	{
-		if (lua_gettop(L) == 1)
-			return set_timer(L);
+		if (lua_gettop(lua) == 1)
+			return set_timer(lua);
 		else
-			return set_named_timer(L);
+			return set_named_timer(lua);
 	}
 
-	int clear_named_timer(lua_State* L)
+	int clear_named_timer(lua_State* lua)
 	{
-		int n = lua_gettop(L);
+		int n = lua_gettop(lua);
 
-		if (n != 1 || !lua_isstring(L, -1))
+		if (n != 1 || !lua_isstring(lua, -1))
 			quest::error("QUEST set_timer argument count wrong.");
 		else
 		{
 			quest_manager & q = quest_manager::instance();
-			q.current_pc()->remove_timer(lua_tostring(L, -1));
+			q.current_pc()->remove_timer(lua_tostring(lua, -1));
 		}
 
 		return 0;
 	}
 
-	int getnpcid(lua_State * L)
+	int getnpcid(lua_State * lua)
 	{
-		const char * name = lua_tostring(L, -1);
+		const char * name = lua_tostring(lua, -1);
 		quest_manager & q = quest_manager::instance();
-		lua_pushnumber(L, q.find_npcid_by_name(name));
+		lua_pushnumber(lua, q.find_npcid_by_name(name));
 		return 1;
 	}
 
-	int is_test_server(lua_State * L)
+	int is_test_server(lua_State * lua)
 	{
-		lua_pushboolean(L, metin2::config::test_server());
+		lua_pushboolean(lua, metin2::config::test_server());
 		return 1;
 	}
 
-	int is_speed_server(lua_State * L)
+	int is_speed_server(lua_State * lua)
 	{
-		lua_pushboolean(L, metin2::config::game().speed_server);
+		lua_pushboolean(lua, metin2::config::game().speed_server);
 		return 1;
 	}
 
-	int raw_script(lua_State* L)
+	int raw_script(lua_State* lua)
 	{
 		if ( metin2::config::test_server() )
-			metin2::log::info( "_raw_script : {} ", lua_tostring(L,-1));
-		if (lua_isstring(L, -1))
-			quest_manager::instance().add_script(lua_tostring(L,-1));
+			metin2::log::info( "_raw_script : {} ", lua_tostring(lua,-1));
+		if (lua_isstring(lua, -1))
+			quest_manager::instance().add_script(lua_tostring(lua,-1));
 		else
 			quest::error("QUEST wrong argument: questname: {}", quest_manager::instance().current_quest_name().c_str());
 
 		return 0;
 	}
 
-	int char_log(lua_State * L)
+	int char_log(lua_State * lua)
 	{
 		quest_manager& q = quest_manager::instance();
 		character * ch = q.current_character_ptr();
@@ -333,15 +333,15 @@ namespace quest
 		const char* how = "";
 		const char* hint = "";
 
-		if (lua_isnumber(L, 1)) what = (uint32_t)lua_tonumber(L, 1);
-		if (lua_isstring(L, 2)) how = lua_tostring(L, 2);
-		if (lua_tostring(L, 3)) hint = lua_tostring(L, 3);
+		if (lua_isnumber(lua, 1)) what = (uint32_t)lua_tonumber(lua, 1);
+		if (lua_isstring(lua, 2)) how = lua_tostring(lua, 2);
+		if (lua_tostring(lua, 3)) hint = lua_tostring(lua, 3);
 
 		log_manager::instance().char_log(ch, what, how, hint);
 		return 0;
 	}
 	
-	int item_log(lua_State* L)
+	int item_log(lua_State* lua)
 	{
 		quest_manager& q = quest_manager::instance();
 		character * ch = q.current_character_ptr();
@@ -350,9 +350,9 @@ namespace quest
 		const char* how = "";
 		const char* hint = "";
 
-		if ( lua_isnumber(L, 1) ) dwItemID = (uint32_t)lua_tonumber(L, 1);
-		if ( lua_isstring(L, 2) ) how = lua_tostring(L, 2);
-		if ( lua_tostring(L, 3) ) hint = lua_tostring(L, 3);
+		if ( lua_isnumber(lua, 1) ) dwItemID = (uint32_t)lua_tonumber(lua, 1);
+		if ( lua_isstring(lua, 2) ) how = lua_tostring(lua, 2);
+		if ( lua_tostring(lua, 3) ) hint = lua_tostring(lua, 3);
 
 		item * item = item_manager::instance().find(dwItemID);
 
@@ -362,12 +362,12 @@ namespace quest
 		return 0;
 	}
 
-	int syslog(lua_State* L)
+	int syslog(lua_State* lua)
 	{
-		if (!lua_isnumber(L, 1) || !lua_isstring(L, 2))
+		if (!lua_isnumber(lua, 1) || !lua_isstring(lua, 2))
 			return 0;
 
-		if (lua_tonumber(L, 1) >= 1)
+		if (lua_tonumber(lua, 1) >= 1)
 		{
 			if (!metin2::config::test_server())
 				return 0;
@@ -383,19 +383,19 @@ namespace quest
 		if (!ch)
 			return 0;
 
-		metin2::log::info( "QUEST: quest: {} player: {} : {}", pc->current_quest_name().c_str(), ch->name(), lua_tostring(L, 2));
+		metin2::log::info( "QUEST: quest: {} player: {} : {}", pc->current_quest_name().c_str(), ch->name(), lua_tostring(lua, 2));
 
 		if (true == metin2::config::test_server())
 		{
-			ch->chat_packet(CHAT_TYPE_INFO, "QUEST_SYSLOG %s", lua_tostring(L, 2));
+			ch->chat_packet(CHAT_TYPE_INFO, "QUEST_SYSLOG %s", lua_tostring(lua, 2));
 		}
 
 		return 0;
 	}
 
-	int syserr(lua_State* L)
+	int syserr(lua_State* lua)
 	{
-		if (!lua_isstring(L, 1))
+		if (!lua_isstring(lua, 1))
 			return 0;
 
 		pc* pc = quest_manager::instance().current_pc();
@@ -408,31 +408,31 @@ namespace quest
 		if (!ch)
 			return 0;
 
-		quest::error("QUEST: quest: {} player: {} : {}", pc->current_quest_name().c_str(), ch->name(), lua_tostring(L, 1));
-		ch->chat_packet(CHAT_TYPE_INFO, "QUEST_SYSERR %s", lua_tostring(L, 1));
+		quest::error("QUEST: quest: {} player: {} : {}", pc->current_quest_name().c_str(), ch->name(), lua_tostring(lua, 1));
+		ch->chat_packet(CHAT_TYPE_INFO, "QUEST_SYSERR %s", lua_tostring(lua, 1));
 		return 0;
 	}
 	
 	// LUA_ADD_BGM_INFO
-	int set_bgm_volume_enable(lua_State* L)
+	int set_bgm_volume_enable(lua_State* lua)
 	{
 		character_set_bgm_volume_enable();
 
 		return 0;
 	}
 
-	int add_bgm_info(lua_State* L)
+	int add_bgm_info(lua_State* lua)
 	{
-		if (!lua_isnumber(L, 1) || !lua_isstring(L, 2))
+		if (!lua_isnumber(lua, 1) || !lua_isstring(lua, 2))
 			return 0;
 
-		int mapIndex		= (int)lua_tonumber(L, 1);
+		int mapIndex		= (int)lua_tonumber(lua, 1);
 
-		const char*	bgmName	= lua_tostring(L, 2);
+		const char*	bgmName	= lua_tostring(lua, 2);
 		if (!bgmName)
 			return 0;
 
-		float bgmVol = lua_isnumber(L, 3) ? lua_tonumber(L, 3) : (1.0f/5.0f)*0.1f;
+		float bgmVol = lua_isnumber(lua, 3) ? lua_tonumber(lua, 3) : (1.0f/5.0f)*0.1f;
 
 		character_add_bgm_info(mapIndex, bgmName, bgmVol);
 
@@ -441,14 +441,14 @@ namespace quest
 	// END_OF_LUA_ADD_BGM_INFO	
 
 	// LUA_ADD_GOTO_INFO
-	int add_goto_info(lua_State* L)
+	int add_goto_info(lua_State* lua)
 	{
-		const char* name = lua_tostring(L, 1);
+		const char* name = lua_tostring(lua, 1);
 
-		int empire 	= (int)lua_tonumber(L, 2);
-		int mapIndex 	= (int)lua_tonumber(L, 3);
-		int x 		= (int)lua_tonumber(L, 4);
-		int y 		= (int)lua_tonumber(L, 5);
+		int empire 	= (int)lua_tonumber(lua, 2);
+		int mapIndex 	= (int)lua_tonumber(lua, 3);
+		int x 		= (int)lua_tonumber(lua, 4);
+		int y 		= (int)lua_tonumber(lua, 5);
 
 		if (!name)
 			return 0;
@@ -459,9 +459,9 @@ namespace quest
 	// END_OF_LUA_ADD_GOTO_INFO
 
 	// REFINE_PICK
-	int refine_pick(lua_State* L)
+	int refine_pick(lua_State* lua)
 	{
-		uint8_t bCell = (uint8_t) lua_tonumber(L,-1);
+		uint8_t bCell = (uint8_t) lua_tonumber(lua,-1);
 
 		quest_manager& q = quest_manager::instance();
 
@@ -470,14 +470,14 @@ namespace quest
 		item * item = ch->inventory_item(bCell);
 
 		int ret = mining::real_refine_pick(ch, item);
-		lua_pushnumber(L, ret);
+		lua_pushnumber(lua, ret);
 		return 1;
 	}
 	// END_OF_REFINE_PICK
 
-	int fish_real_refine_rod(lua_State* L)
+	int fish_real_refine_rod(lua_State* lua)
 	{
-		uint8_t bCell = (uint8_t) lua_tonumber(L,-1);
+		uint8_t bCell = (uint8_t) lua_tonumber(lua,-1);
 
 		quest_manager& q = quest_manager::instance();
 
@@ -486,15 +486,15 @@ namespace quest
 		item * item = ch->inventory_item(bCell);
 
 		int ret = fishing::real_refine_rod(ch, item);
-		lua_pushnumber(L, ret);
+		lua_pushnumber(lua, ret);
 		return 1;
 	}
 
-	int give_char_privilege(lua_State* L)
+	int give_char_privilege(lua_State* lua)
 	{
 		int pid = quest_manager::instance().current_character_ptr()->player_id();
-		int type = (int)lua_tonumber(L, 1);
-		int value = (int)lua_tonumber(L, 2);
+		int type = (int)lua_tonumber(lua, 1);
+		int value = (int)lua_tonumber(lua, 2);
 
 		if (MAX_PRIV_NUM <= type)
 		{
@@ -507,12 +507,12 @@ namespace quest
 		return 0;
 	}
 
-	int give_empire_privilege(lua_State* L)
+	int give_empire_privilege(lua_State* lua)
 	{
-		int empire = (int)lua_tonumber(L,1);
-		int type = (int)lua_tonumber(L, 2);
-		int value = (int)lua_tonumber(L, 3);
-		int time = (int) lua_tonumber(L,4);
+		int empire = (int)lua_tonumber(lua,1);
+		int type = (int)lua_tonumber(lua, 2);
+		int value = (int)lua_tonumber(lua, 3);
+		int time = (int) lua_tonumber(lua,4);
 		character * ch = quest_manager::instance().current_character_ptr();
 
 		if (MAX_PRIV_NUM <= type)
@@ -532,12 +532,12 @@ namespace quest
 		return 0;
 	}
 
-	int give_guild_privilege(lua_State* L)
+	int give_guild_privilege(lua_State* lua)
 	{
-		int guild_id = (int)lua_tonumber(L,1);
-		int type = (int)lua_tonumber(L, 2);
-		int value = (int)lua_tonumber(L, 3);
-		int time = (int)lua_tonumber( L, 4 );
+		int guild_id = (int)lua_tonumber(lua,1);
+		int type = (int)lua_tonumber(lua, 2);
+		int value = (int)lua_tonumber(lua, 3);
+		int time = (int)lua_tonumber( lua, 4 );
 
 		if (MAX_PRIV_NUM <= type)
 		{
@@ -553,9 +553,9 @@ namespace quest
 		return 0;
 	}
 
-	int get_empire_privilege_string(lua_State* L)
+	int get_empire_privilege_string(lua_State* lua)
 	{
-		int empire = (int) lua_tonumber(L, 1);
+		int empire = (int) lua_tonumber(lua, 1);
 		std::ostringstream os;
 		bool found = false;
 
@@ -578,27 +578,27 @@ namespace quest
 		if (!found)
 			os << "None!" << std::endl;
 
-		lua_pushstring(L, os.str().c_str());
+		lua_pushstring(lua, os.str().c_str());
 		return 1;
 	}
 
-	int get_empire_privilege(lua_State* L)
+	int get_empire_privilege(lua_State* lua)
 	{
-		if (!lua_isnumber(L,1) || !lua_isnumber(L,2))
+		if (!lua_isnumber(lua,1) || !lua_isnumber(lua,2))
 		{
-			lua_pushnumber(L,0);
+			lua_pushnumber(lua,0);
 			return 1;
 		}
-		int empire = (int)lua_tonumber(L,1);
-		int type = (int)lua_tonumber(L,2);
+		int empire = (int)lua_tonumber(lua,1);
+		int type = (int)lua_tonumber(lua,2);
 		int value = priv_manager::instance().priv_by_empire(empire,type);
-		lua_pushnumber(L, value);
+		lua_pushnumber(lua, value);
 		return 1;
 	}
 
-	int get_guild_privilege_string(lua_State* L)
+	int get_guild_privilege_string(lua_State* lua)
 	{
-		int guild = (int) lua_tonumber(L,1);
+		int guild = (int) lua_tonumber(lua,1);
 		std::ostringstream os;
 		bool found = false;
 
@@ -620,113 +620,113 @@ namespace quest
 		if (!found)
 			os << "None!" << std::endl;
 
-		lua_pushstring(L, os.str().c_str());
+		lua_pushstring(lua, os.str().c_str());
 		return 1;
 	}
 
-	int get_guildid_byname( lua_State* L )
+	int get_guildid_byname( lua_State* lua )
 	{
-		if ( !lua_isstring( L, 1 ) ) {
+		if ( !lua_isstring( lua, 1 ) ) {
 			quest::error( "_get_guildid_byname() - invalud argument" );
-			lua_pushnumber( L, 0 );
+			lua_pushnumber( lua, 0 );
 			return 1;
 		}
 
-		const char* pszGuildName = lua_tostring( L, 1 );
+		const char* pszGuildName = lua_tostring( lua, 1 );
 		guild* pFindGuild = guild_manager::instance().find_guild_by_name( pszGuildName );
 		if ( pFindGuild )
-			lua_pushnumber( L, pFindGuild->id() );
+			lua_pushnumber( lua, pFindGuild->id() );
 		else
-			lua_pushnumber( L, 0 );
+			lua_pushnumber( lua, 0 );
 
 		return 1;
 	}
 
-	int get_guild_privilege(lua_State* L)
+	int get_guild_privilege(lua_State* lua)
 	{
-		if (!lua_isnumber(L,1) || !lua_isnumber(L,2))
+		if (!lua_isnumber(lua,1) || !lua_isnumber(lua,2))
 		{
-			lua_pushnumber(L,0);
+			lua_pushnumber(lua,0);
 			return 1;
 		}
-		int guild = (int)lua_tonumber(L,1);
-		int type = (int)lua_tonumber(L,2);
+		int guild = (int)lua_tonumber(lua,1);
+		int type = (int)lua_tonumber(lua,2);
 		int value = priv_manager::instance().priv_by_guild(guild,type);
-		lua_pushnumber(L, value);
+		lua_pushnumber(lua, value);
 		return 1;
 	}
 
-	int item_name(lua_State* L)
+	int item_name(lua_State* lua)
 	{
-		if (lua_isnumber(L,1))
+		if (lua_isnumber(lua,1))
 		{
-			uint32_t dwVnum = (uint32_t)lua_tonumber(L,1);
+			uint32_t dwVnum = (uint32_t)lua_tonumber(lua,1);
 			item_table* pTable = item_manager::instance().table(dwVnum);
 			if (pTable)
-				lua_pushstring(L,pTable->locale_name);
+				lua_pushstring(lua,pTable->locale_name);
 			else
-				lua_pushstring(L,"");
+				lua_pushstring(lua,"");
 		}
 		else
-			lua_pushstring(L,"");
+			lua_pushstring(lua,"");
 		return 1;
 	}
 
-	int mob_name(lua_State* L)
+	int mob_name(lua_State* lua)
 	{
-		if (lua_isnumber(L, 1))
+		if (lua_isnumber(lua, 1))
 		{
-			uint32_t dwVnum = (uint32_t) lua_tonumber(L,1);
+			uint32_t dwVnum = (uint32_t) lua_tonumber(lua,1);
 			const mob * pkMob = mob_manager::instance().get(dwVnum);
 
 			if (pkMob)
-				lua_pushstring(L, pkMob->table.locale_name);
+				lua_pushstring(lua, pkMob->table.locale_name);
 			else
-				lua_pushstring(L, "");
+				lua_pushstring(lua, "");
 		}
 		else
-			lua_pushstring(L,"");
+			lua_pushstring(lua,"");
 
 		return 1;
 	}
 
-	int mob_vnum(lua_State* L)
+	int mob_vnum(lua_State* lua)
 	{
-		if (lua_isstring(L,1))
+		if (lua_isstring(lua,1))
 		{
-			const char* str = lua_tostring(L, 1);
+			const char* str = lua_tostring(lua, 1);
 			const mob* pkMob = mob_manager::instance().get(str, false);
 			if (pkMob)
-				lua_pushnumber(L,pkMob->table.vnum);
+				lua_pushnumber(lua,pkMob->table.vnum);
 			else
-				lua_pushnumber(L,0);
+				lua_pushnumber(lua,0);
 		}
 		else
-			lua_pushnumber(L,0);
+			lua_pushnumber(lua,0);
 
 		return 1;
 	}
 
-	int global_time(lua_State* L)
+	int global_time(lua_State* lua)
 	{
-		lua_pushnumber(L, get_global_time());
+		lua_pushnumber(lua, get_global_time());
 		return 1;
 	}
 	
 
-	int get_channel_id(lua_State* L)
+	int get_channel_id(lua_State* lua)
 	{
-		lua_pushnumber(L, metin2::config::server().channel);
+		lua_pushnumber(lua, metin2::config::server().channel);
 
 		return 1;
 	}
 
-	int do_command(lua_State* L)
+	int do_command(lua_State* lua)
 	{
-		if (!lua_isstring(L, 1))
+		if (!lua_isstring(lua, 1))
 			return 0;
 
-		const char * str = lua_tostring(L, 1);
+		const char * str = lua_tostring(lua, 1);
 		size_t len = strlen(str);
 
 		character * ch = quest_manager::instance().current_character_ptr();
@@ -734,33 +734,33 @@ namespace quest
 		return 0;
 	}
 
-	int find_pc(lua_State* L)
+	int find_pc(lua_State* lua)
 	{
-		if (!lua_isstring(L, 1))
+		if (!lua_isstring(lua, 1))
 		{
 			quest::error("invalid argument");
-			lua_pushnumber(L, 0);
+			lua_pushnumber(lua, 0);
 			return 1;
 		}
 
-		const char * name = lua_tostring(L, 1);
+		const char * name = lua_tostring(lua, 1);
 		character * tch = character_manager::instance().find_pc(name);
-		lua_pushnumber(L, tch ? tch->get_vid() : 0);
+		lua_pushnumber(lua, tch ? tch->get_vid() : 0);
 		return 1;
 	}
 
-	int find_pc_cond(lua_State* L)
+	int find_pc_cond(lua_State* lua)
 	{
-		if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2) || !lua_isnumber(L, 3))
+		if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2) || !lua_isnumber(lua, 3))
 		{
 			quest::error("invalid argument");
-			lua_pushnumber(L, 0);
+			lua_pushnumber(lua, 0);
 			return 1;
 		}
 
-		int iMinLev = (int) lua_tonumber(L, 1);
-		int iMaxLev = (int) lua_tonumber(L, 2);
-		unsigned int uiJobFlag = (unsigned int) lua_tonumber(L, 3);
+		int iMinLev = (int) lua_tonumber(lua, 1);
+		int iMaxLev = (int) lua_tonumber(lua, 2);
+		unsigned int uiJobFlag = (unsigned int) lua_tonumber(lua, 3);
 
 		character * ch = quest_manager::instance().current_character_ptr();
 		character * tch;
@@ -779,20 +779,20 @@ namespace quest
 				iMinLev,
 				iMaxLev);
 
-		lua_pushnumber(L, tch ? tch->get_vid() : 0);
+		lua_pushnumber(lua, tch ? tch->get_vid() : 0);
 		return 1;
 	}
 
-	int find_npc_by_vnum(lua_State* L)
+	int find_npc_by_vnum(lua_State* lua)
 	{
-		if (!lua_isnumber(L, 1))
+		if (!lua_isnumber(lua, 1))
 		{
 			quest::error("invalid argument");
-			lua_pushnumber(L, 0);
+			lua_pushnumber(lua, 0);
 			return 1;
 		}
 
-		uint32_t race = (uint32_t) lua_tonumber(L, 1);
+		uint32_t race = (uint32_t) lua_tonumber(lua, 1);
 
 		character_vector_interactor i;
 
@@ -806,41 +806,41 @@ namespace quest
 
 				if (tch->map_index() == quest_manager::instance().current_character_ptr()->map_index())
 				{
-					lua_pushnumber(L, tch->get_vid());
+					lua_pushnumber(lua, tch->get_vid());
 					return 1;
 				}
 			}
 		}
 
-		lua_pushnumber(L, 0);
+		lua_pushnumber(lua, 0);
 		return 1;
 	}
 
 	// Create a new state.
-	int set_quest_state(lua_State* L)
+	int set_quest_state(lua_State* lua)
 	{
-		if (!lua_isstring(L, 1) || !lua_isstring(L, 2))
+		if (!lua_isstring(lua, 1) || !lua_isstring(lua, 2))
 			return 0;
 
 		quest_manager& q = quest_manager::instance();
 		quest_state * pqs = q.current_state();
 		pc* pPC = q.current_pc();
-		if (L!=pqs->co) 
+		if (lua!=pqs->co) 
 		{
-			luaL_error(L, "running thread != current thread???");
+			luaL_error(lua, "running thread != current thread???");
 			metin2::log::info("running thread != current thread???");
 			return -1;
 		}
 		if (pPC)
 		{
-			const std::string stQuestName(lua_tostring(L, 1));
-			const std::string stStateName(lua_tostring(L, 2));
+			const std::string stQuestName(lua_tostring(lua, 1));
+			const std::string stStateName(lua_tostring(lua, 2));
 			if ( metin2::config::test_server() )
 				metin2::log::info("set_state {} {} ", stQuestName.c_str(), stStateName.c_str() );
 			if (pPC->current_quest_name() == stQuestName)
 			{
-				pqs->st = q.quest_state_index(pPC->current_quest_name(), lua_tostring(L, -1));
-				pPC->set_current_quest_state_name(lua_tostring(L,-1));
+				pqs->st = q.quest_state_index(pPC->current_quest_name(), lua_tostring(lua, -1));
+				pPC->set_current_quest_state_name(lua_tostring(lua,-1));
 			}
 			else
 			{
@@ -850,9 +850,9 @@ namespace quest
 		return 0;
 	}
 
-	int get_quest_state(lua_State* L)
+	int get_quest_state(lua_State* lua)
 	{
-		if (!lua_isstring(L, 1) )
+		if (!lua_isstring(lua, 1) )
 			return 0;
 
 		quest_manager& q = quest_manager::instance();
@@ -860,12 +860,12 @@ namespace quest
 		
 		if (pPC)
 		{
-			std::string stQuestName	= lua_tostring(L, 1);
+			std::string stQuestName	= lua_tostring(lua, 1);
 			stQuestName += ".__status";
 
 			int nRet = pPC->flag( stQuestName.c_str() ); 
 
-			lua_pushnumber(L, nRet );
+			lua_pushnumber(lua, nRet );
 
 			if ( metin2::config::test_server() )
 				metin2::log::info("Get_quest_state name {} value {:d}", stQuestName.c_str(), nRet );
@@ -875,15 +875,15 @@ namespace quest
 			if ( metin2::config::test_server() )
 				metin2::log::info("PC == 0 ");
 
-			lua_pushnumber(L, 0);
+			lua_pushnumber(lua, 0);
 		}
 		return 1;
 	}
 
-	int notice_all( lua_State* L )
+	int notice_all( lua_State* lua )
 	{
 		std::ostringstream s;
-		combine_lua_string(L, s);
+		combine_lua_string(lua, s);
 
 		packet_gg_notice p;
 		p.header = HEADER_GG_NOTICE;
@@ -953,10 +953,10 @@ namespace quest
 		return 0;
 	}
 
-	int warp_all_to_village( lua_State * L )
+	int warp_all_to_village( lua_State * lua )
 	{
-		int iMapIndex 	= static_cast<int>(lua_tonumber(L, 1));
-		int iSec		= static_cast<int>(lua_tonumber(L, 2));
+		int iMapIndex 	= static_cast<int>(lua_tonumber(lua, 1));
+		int iSec		= static_cast<int>(lua_tonumber(lua, 2));
 		
 		warp_all_to_village_event_info* info = alloc_event_info<warp_all_to_village_event_info>();
 
@@ -969,7 +969,7 @@ namespace quest
 		return 0;
 	}
 
-	int warp_to_village( lua_State * L )
+	int warp_to_village( lua_State * lua )
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 	
@@ -982,10 +982,10 @@ namespace quest
 		return 0;
 	}
 
-	int say_in_map( lua_State * L )
+	int say_in_map( lua_State * lua )
 	{
-		int iMapIndex 		= static_cast<int>(lua_tonumber( L, 1 ));
-		std::string Script(lua_tostring( L, 2 ));
+		int iMapIndex 		= static_cast<int>(lua_tonumber( lua, 1 ));
+		std::string Script(lua_tostring( lua, 2 ));
 
 		Script += "[ENTER]";
 		Script += "[DONE]";
@@ -1025,9 +1025,9 @@ namespace quest
 		}
 	};
 
-	int kill_all_in_map ( lua_State * L )
+	int kill_all_in_map ( lua_State * lua )
 	{
-		sectree_map * pSecMap = sectree_manager::instance().map( lua_tonumber(L,1) );
+		sectree_map * pSecMap = sectree_manager::instance().map( lua_tonumber(lua,1) );
 
 		if (nullptr != pSecMap)
 		{
@@ -1039,10 +1039,10 @@ namespace quest
 	}
 
 	//Caution: only use on maps without mob regen
-	int regen_in_map( lua_State * L )
+	int regen_in_map( lua_State * lua )
 	{
-		int iMapIndex = static_cast<int>(lua_tonumber(L, 1));
-		std::string szFilename(lua_tostring(L, 2));
+		int iMapIndex = static_cast<int>(lua_tonumber(lua, 1));
+		std::string szFilename(lua_tostring(lua, 2));
 
 		sectree_map * pkMap = sectree_manager::instance().map(iMapIndex);
 
@@ -1054,12 +1054,12 @@ namespace quest
 		return 0;
 	}
 
-	int enable_over9refine( lua_State* L )
+	int enable_over9refine( lua_State* lua )
 	{
-		if ( lua_isnumber(L, 1) == true && lua_isnumber(L, 2) == true )
+		if ( lua_isnumber(lua, 1) == true && lua_isnumber(lua, 2) == true )
 		{
-			uint32_t dwVnumFrom = (uint32_t)lua_tonumber(L, 1);
-			uint32_t dwVnumTo = (uint32_t)lua_tonumber(L, 2);
+			uint32_t dwVnumFrom = (uint32_t)lua_tonumber(lua, 1);
+			uint32_t dwVnumTo = (uint32_t)lua_tonumber(lua, 2);
 
 			over9_refine_manager::instance().enable_over9_refine(dwVnumFrom, dwVnumTo);
 		}
@@ -1067,11 +1067,11 @@ namespace quest
 		return 0;
 	}
 
-	int add_ox_quiz(lua_State* L)
+	int add_ox_quiz(lua_State* lua)
 	{
-		int level = (int)lua_tonumber(L, 1);
-		const char* quiz = lua_tostring(L, 2);
-		bool answer = lua_toboolean(L, 3);
+		int level = (int)lua_tonumber(lua, 1);
+		const char* quiz = lua_tostring(lua, 2);
+		bool answer = lua_toboolean(lua, 3);
 
 		if ( ox_event_manager::instance().add_quiz(level, quiz, answer) == false )
 		{
@@ -1108,44 +1108,44 @@ namespace quest
 		return 0;
 	}
 
-	int block_chat(lua_State* L)
+	int block_chat(lua_State* lua)
 	{
 		character * pChar = quest_manager::instance().current_character_ptr();
 
 		if (pChar != nullptr)
 		{
-			if (lua_isstring(L, 1) != true && lua_isstring(L, 2) != true)
+			if (lua_isstring(lua, 1) != true && lua_isstring(lua, 2) != true)
 			{
-				lua_pushboolean(L, false);
+				lua_pushboolean(lua, false);
 				return 1;
 			}
 
-			std::string strName(lua_tostring(L, 1));
-			std::string strTime(lua_tostring(L, 2));
+			std::string strName(lua_tostring(lua, 1));
+			std::string strTime(lua_tostring(lua, 2));
 
 			std::string strArg = strName + " " + strTime;
 
 			do_block_chat(pChar, const_cast<char*>(strArg.c_str()), 0, 0);
 
-			lua_pushboolean(L, true);
+			lua_pushboolean(lua, true);
 			return 1;
 		}
 
-		lua_pushboolean(L, false);
+		lua_pushboolean(lua, false);
 		return 1;
 	}
 
-	int spawn_mob_at(lua_State* L)
+	int spawn_mob_at(lua_State* lua)
 	{
-		if( false == lua_isnumber(L, 1) || false == lua_isnumber(L, 2) || false == lua_isboolean(L, 3) )
+		if( false == lua_isnumber(lua, 1) || false == lua_isnumber(lua, 2) || false == lua_isboolean(lua, 3) )
 		{
-			lua_pushnumber(L, 0);
+			lua_pushnumber(lua, 0);
 			return 1;
 		}
 
-		const uint32_t dwVnum = static_cast<uint32_t>(lua_tonumber(L, 1));
-		const size_t count = std::clamp<int>(static_cast<size_t>(lua_tonumber(L, 2)), 1, 10);
-		const bool isAggresive = static_cast<bool>(lua_toboolean(L, 3));
+		const uint32_t dwVnum = static_cast<uint32_t>(lua_tonumber(lua, 1));
+		const size_t count = std::clamp<int>(static_cast<size_t>(lua_tonumber(lua, 2)), 1, 10);
+		const bool isAggresive = static_cast<bool>(lua_toboolean(lua, 3));
 		size_t SpawnCount = 0;
 
 		const mob* pMonster = mob_manager::instance().get( dwVnum );
@@ -1175,26 +1175,26 @@ namespace quest
 			metin2::log::info( "QUEST Spawn Monstster: VNUM({:d}) COUNT({:d}) isAggresive({})", dwVnum, SpawnCount, isAggresive);
 		}
 
-		lua_pushnumber(L, SpawnCount);
+		lua_pushnumber(lua, SpawnCount);
 
 		return 1;
 	}
 
-	int notice_in_map( lua_State* L )
+	int notice_in_map( lua_State* lua )
 	{
 		character * const pChar = quest_manager::instance().current_character_ptr();
 
 		if (nullptr != pChar)
 		{
-			send_notice_map( lua_tostring(L,1), pChar->map_index(), lua_toboolean(L,2) );
+			send_notice_map( lua_tostring(lua,1), pChar->map_index(), lua_toboolean(lua,2) );
 		}
 
 		return 0;
 	}
 
-	int get_locale_base_path( lua_State* L )
+	int get_locale_base_path( lua_State* lua )
 	{
-		lua_pushstring( L, locale_service_get_base_path().c_str() );
+		lua_pushstring( lua, locale_service_get_base_path().c_str() );
 
 		return 1;
 	}
@@ -1229,12 +1229,12 @@ namespace quest
 		}
 	};
 
-	int purge_area( lua_State* L )
+	int purge_area( lua_State* lua )
 	{
-		int x1 = lua_tonumber(L, 1);
-		int y1 = lua_tonumber(L, 2);
-		int x2 = lua_tonumber(L, 3);
-		int y2 = lua_tonumber(L, 4);
+		int x1 = lua_tonumber(lua, 1);
+		int y1 = lua_tonumber(lua, 2);
+		int x2 = lua_tonumber(lua, 3);
+		int y2 = lua_tonumber(lua, 4);
 
 		const int mapIndex = sectree_manager::instance().map_index( x1, y1 );
 
@@ -1287,24 +1287,24 @@ namespace quest
 		}
 	};
 
-	int warp_all_in_area_to_area( lua_State* L )
+	int warp_all_in_area_to_area( lua_State* lua )
 	{
-		int from_x1 = lua_tonumber(L, 1);
-		int from_y1 = lua_tonumber(L, 2);
-		int from_x2 = lua_tonumber(L, 3);
-		int from_y2 = lua_tonumber(L, 4);
+		int from_x1 = lua_tonumber(lua, 1);
+		int from_y1 = lua_tonumber(lua, 2);
+		int from_x2 = lua_tonumber(lua, 3);
+		int from_y2 = lua_tonumber(lua, 4);
 
-		int to_x1 = lua_tonumber(L, 5);
-		int to_y1 = lua_tonumber(L, 6);
-		int to_x2 = lua_tonumber(L, 7);
-		int to_y2 = lua_tonumber(L, 8);
+		int to_x1 = lua_tonumber(lua, 5);
+		int to_y1 = lua_tonumber(lua, 6);
+		int to_x2 = lua_tonumber(lua, 7);
+		int to_y2 = lua_tonumber(lua, 8);
 
 		const int mapIndex = sectree_manager::instance().map_index( from_x1, from_y1 );
 
 		if (0 == mapIndex)
 		{
 			quest::error("_warp_all_in_area_to_area: cannot get a map index with ({:d}, {:d})", from_x1, from_y1);
-			lua_pushnumber(L, 0);
+			lua_pushnumber(lua, 0);
 			return 1;
 		}
 
@@ -1316,19 +1316,19 @@ namespace quest
 
 			pSectree->for_each(func);
 
-			lua_pushnumber(L, func.warp_count);
+			lua_pushnumber(lua, func.warp_count);
 			metin2::log::info( "_warp_all_in_area_to_area: {:d} character warp", func.warp_count);
 			return 1;
 		}
 		else
 		{
-			lua_pushnumber(L, 0);
+			lua_pushnumber(lua, 0);
 			quest::error("_warp_all_in_area_to_area: no sectree");
 			return 1;
 		}
 	}
 
-	void register_global_function_table(lua_State* L)
+	void register_global_function_table(lua_State* lua)
 	{
 
 		luaL_reg global_functions[] =
@@ -1418,7 +1418,7 @@ namespace quest
 
 		while (global_functions[i].name != nullptr)
 		{
-			lua_register(L, global_functions[i].name, global_functions[i].func);
+			lua_register(lua, global_functions[i].name, global_functions[i].func);
 			++i;
 		}
 	}

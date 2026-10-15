@@ -13,7 +13,7 @@ namespace metin2::game {
 
 namespace quest
 {
-	int quest_setstate(lua_State* L);
+	int quest_setstate(lua_State* lua);
 	extern void register_pc_function_table();
 	extern void register_npc_function_table();
 	extern void register_target_function_table();
@@ -29,7 +29,7 @@ namespace quest
 	extern void register_guild_function_table();
 	extern void register_game_function_table();
 	extern void register_arena_function_table();
-	extern void register_global_function_table(lua_State* L);
+	extern void register_global_function_table(lua_State* lua);
 	extern void register_forked_function_table();
 	extern void register_monarch_function_table(); 
 	extern void register_ox_event_function_table();
@@ -40,7 +40,7 @@ namespace quest
 	extern void register_speed_server_function_table();
 	extern void register_dragon_soul_function_table();
 
-	extern void combine_lua_string(lua_State* L, std::ostringstream &s);
+	extern void combine_lua_string(lua_State* lua, std::ostringstream &s);
 	
 	struct f_set_warp_location
 	{
@@ -48,8 +48,8 @@ namespace quest
 		int32_t x;
 		int32_t y;
 
-		f_set_warp_location (int32_t _map_index, int32_t _x, int32_t _y) :
-			map_index (_map_index), x (_x), y (_y)
+		f_set_warp_location (int32_t map_index_value, int32_t x_value, int32_t y_value) :
+			map_index (map_index_value), x (x_value), y (y_value)
 		{}
 		void operator () (character * ch);
 	};
@@ -75,7 +75,7 @@ namespace quest
 		int chat_type;
 		const char* str;
 
-		f_party_chat(int ChatType, const char* str);
+		f_party_chat(int chat_type_value, const char* str);
 		void operator() (character * ch);
 	};
 
@@ -134,7 +134,7 @@ namespace quest
 		lua_State * l;
 		int count;
 
-		f_build_lua_guild_war_list(lua_State * L);
+		f_build_lua_guild_war_list(lua_State * lua_state);
 		void operator() (uint32_t g1, uint32_t g2);
 	};
 }

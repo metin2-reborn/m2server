@@ -129,9 +129,9 @@ const char *first_cmd(const char *argument, char *first_arg, size_t first_arg_si
 	return (argument);
 }
 
-int calculate_duration(int iSpd, int iDur)
+int calculate_duration(int spd, int dur)
 {
-	int i = 100 - iSpd;
+	int i = 100 - spd;
 
 	if (i > 0) 
 		i = 100 + i;
@@ -140,7 +140,7 @@ int calculate_duration(int iSpd, int iDur)
 	else
 		i = 100;
 
-	return iDur * i / 100;
+	return dur * i / 100;
 }
 double uniform_random(double a, double b)
 {

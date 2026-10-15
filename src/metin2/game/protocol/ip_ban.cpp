@@ -27,16 +27,16 @@ class ip
 			mask_ = r.mask_;
 		}
 
-		ip(const char * c_pszStart, const char * c_pszEnd = nullptr)
+		ip(const char * start_value, const char * end_value = nullptr)
 		{
 			uint8_t start[4];
 			uint8_t end[4];
 			uint8_t mask[4];
 
-			read(c_pszStart, start);
+			read(start_value, start);
 
-			if (c_pszEnd && *c_pszEnd)
-				read(c_pszEnd, end);
+			if (end_value && *end_value)
+				read(end_value, end);
 			else
 				memcpy(end, start, sizeof(uint8_t) * 4);
 

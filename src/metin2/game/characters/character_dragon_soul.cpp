@@ -117,11 +117,11 @@ void character::dragon_soul_clean_up()
 	}
 }
 
-bool character::dragon_soul_refine_window_open(entity * pEntity)
+bool character::dragon_soul_refine_window_open(entity * entity_value)
 {
 	if (nullptr == points_instant_.dragon_soul_refine_window_opener)
 	{
-		points_instant_.dragon_soul_refine_window_opener = pEntity;
+		points_instant_.dragon_soul_refine_window_opener = entity_value;
 	}
 
 	packet_gc_dragon_soul_refine PDS;

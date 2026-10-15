@@ -16,9 +16,9 @@ namespace metin2::game {
 
 namespace quest
 {
-	void cancel_timer_event(event_ptr * ppEvent)
+	void cancel_timer_event(event_ptr * pp_event)
 	{
-		quest_event_info* info = dynamic_cast<quest_event_info*>((*ppEvent)->info);
+		quest_event_info* info = dynamic_cast<quest_event_info*>((*pp_event)->info);
 
 		if (info)
 		{
@@ -26,7 +26,7 @@ namespace quest
 			info->name = nullptr;
 		}
 
-		event_cancel(ppEvent);
+		event_cancel(pp_event);
 	}
 
 	EVENTFUNC(quest_server_timer_event)

@@ -14,22 +14,22 @@ class login_data
 	login_data();
 
 	account_table & account_ref();
-	void            set_client_key(const uint32_t * c_pdwClientKey);
+	void            set_client_key(const uint32_t * client_key);
 
 	const uint32_t *   client_key();
-	void            set_key(uint32_t dwKey);
+	void            set_key(uint32_t key);
 	uint32_t           key();
 
-	void            set_connected_peer_handle(uint32_t dwHandle);
+	void            set_connected_peer_handle(uint32_t handle);
 	uint32_t		connected_peer_handle();
 
-	void		set_play(bool bOn);
+	void		set_play(bool on);
 	bool		is_play();
 
-	void		set_deleted(bool bSet);
+	void		set_deleted(bool set);
 	bool		is_deleted();
 
-	void            set_premium(int * paiPremiumTimes);
+	void            set_premium(int * pai_premium_times);
 	int *           premium_ptr();
 
 	uint32_t		last_player_id() const { return last_player_id_; }

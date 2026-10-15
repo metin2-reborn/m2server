@@ -221,13 +221,13 @@ namespace quest
 		return execute_event_script(pc, QUEST_LETTER_EVENT, quest_index, state);
 	}
 
-	bool npc::on_target(pc & pc, uint32_t dwQuestIndex, const char * c_pszTargetName, const char * c_pszVerb, bool & bRet)
+	bool npc::on_target(pc & pc, uint32_t quest_index, const char * target_name, const char * verb, bool & ret)
 	{
-		metin2::log::debug( "OnTarget begin {} verb {} qi {:d}", c_pszTargetName, c_pszVerb, dwQuestIndex);
+		metin2::log::debug( "OnTarget begin {} verb {} qi {:d}", target_name, verb, quest_index);
 
-		bRet = false;
+		ret = false;
 
-		game::quest::pc::quest_info_iterator itPCQuest = pc.quest_find(dwQuestIndex);
+		game::quest::pc::quest_info_iterator itPCQuest = pc.quest_find(quest_index);
 
 		if (itPCQuest == pc.quest_end())
 		{
@@ -237,7 +237,7 @@ namespace quest
 
 		int iState = itPCQuest->second.st;
 
-		a_arg_quest_script_type & r = own_arg_quest_[QUEST_TARGET_EVENT][dwQuestIndex];
+		a_arg_quest_script_type & r = own_arg_quest_[QUEST_TARGET_EVENT][quest_index];
 		a_arg_quest_script_type::iterator it = r.find(iState);
 
 		if (it == r.end())
@@ -248,7 +248,7 @@ namespace quest
 
 		std::vector<a_arg_script>::iterator it_vec = it->second.begin();
 
-		int iTargetLen = strlen(c_pszTargetName);
+		int iTargetLen = strlen(target_name);
 
 		while (it_vec != it->second.end())
 		{
@@ -257,7 +257,7 @@ namespace quest
 
 			metin2::log::debug( "OnTarget compare {} {:d}", c_pszArg, argScript.arg.length());
 
-			if (strncmp(c_pszArg, c_pszTargetName, iTargetLen))
+			if (strncmp(c_pszArg, target_name, iTargetLen))
 				continue;
 
 			const char * c_pszArgVerb = strchr(c_pszArg, '.');
@@ -265,7 +265,7 @@ namespace quest
 			if (!c_pszArgVerb)
 				continue;
 
-			if (strcmp(++c_pszArgVerb, c_pszVerb))
+			if (strcmp(++c_pszArgVerb, verb))
 				continue;
 
 			if (argScript.when_condition.size() > 0)
@@ -274,9 +274,9 @@ namespace quest
 			if (argScript.when_condition.size() != 0 && !is_script_true(&argScript.when_condition[0], argScript.when_condition.size()))
 				continue;
 
-			metin2::log::debug( "OnTarget execute qi {:d} st {:d} code {}", dwQuestIndex, iState, (const char *) argScript.script.get_code());
-			bRet = quest_manager::execute_quest_script(pc, dwQuestIndex, iState, argScript.script.get_code(), argScript.script.size());
-			bRet = true;
+			metin2::log::debug( "OnTarget execute qi {:d} st {:d} code {}", quest_index, iState, (const char *) argScript.script.get_code());
+			ret = quest_manager::execute_quest_script(pc, quest_index, iState, argScript.script.get_code(), argScript.script.size());
+			ret = true;
 			return true;
 		}
 
@@ -298,17 +298,17 @@ namespace quest
 		return handle_event(pc, QUEST_ITEM_TAKE_EVENT);
 	}
 
-	bool npc::on_use_item(pc& pc, bool bReceiveAll)
+	bool npc::on_use_item(pc& pc, bool receive_all)
 	{
-		if (bReceiveAll)
+		if (receive_all)
 			return handle_receive_all_event(pc, QUEST_ITEM_USE_EVENT);
 		else
 			return handle_event(pc, QUEST_ITEM_USE_EVENT);
 	}
 
-	bool npc::on_sig_use(pc& pc, bool bReceiveAll)
+	bool npc::on_sig_use(pc& pc, bool receive_all)
 	{
-		if (bReceiveAll)
+		if (receive_all)
 			return handle_receive_all_event(pc, QUEST_SIG_USE_EVENT);
 		else
 			return handle_event(pc, QUEST_SIG_USE_EVENT);
@@ -358,7 +358,7 @@ namespace quest
 		return handle_receive_all_event(pc, QUEST_LEVELUP_EVENT);
 	}
 
-	bool npc::on_login(pc& pc, const char * c_pszQuestName)
+	bool npc::on_login(pc& pc, const char * quest_name)
 	{
 		bool bRet = handle_receive_all_no_wait_event(pc, QUEST_LOGIN_EVENT);
 		handle_receive_all_event(pc, QUEST_LETTER_EVENT);
@@ -388,12 +388,12 @@ namespace quest
 			return vdw_new_start_quest_indices.size() != 0;
 		}
 
-		void operator()(pc::quest_info_iterator& itPCQuest, npc::quest_map_type::iterator& itQuestMap)
+		void operator()(pc::quest_info_iterator& pc_quest, npc::quest_map_type::iterator& quest_map)
 		{
 			// None, so start fresh
-			uint32_t dwQuestIndex = itQuestMap->first;
+			uint32_t dwQuestIndex = quest_map->first;
 
-			if (npc::has_start_state(itQuestMap->second) && quest_manager::instance().can_start_quest(dwQuestIndex))
+			if (npc::has_start_state(quest_map->second) && quest_manager::instance().can_start_quest(dwQuestIndex))
 			{
 				size++;
 				vdw_new_start_quest_indices.push_back(dwQuestIndex);
@@ -420,16 +420,16 @@ namespace quest
 			return found;
 		}
 
-		void operator()(pc::quest_info_iterator& itPCQuest, npc::quest_map_type::iterator& itQuestMap)
+		void operator()(pc::quest_info_iterator& pc_quest, npc::quest_map_type::iterator& quest_map)
 		{
 			npc::a_quest_script_type::iterator itQuestScript;
 
-			int iState = itPCQuest->second.st;
-			if ((itQuestScript = itQuestMap->second.find(iState)) != itQuestMap->second.end())
+			int iState = pc_quest->second.st;
+			if ((itQuestScript = quest_map->second.find(iState)) != quest_map->second.end())
 			{
 				found = true;
 				size++;
-				vdw_ques_indices.push_back(itQuestMap->first);
+				vdw_ques_indices.push_back(quest_map->first);
 				vi_pc_states.push_back(iState);
 				vcodes.push_back(itQuestScript->second.get_code());
 				vcode_sizes.push_back(itQuestScript->second.size());
@@ -437,11 +437,11 @@ namespace quest
 		}
 	};
 
-	bool npc::handle_event(pc& pc, int EventIndex)
+	bool npc::handle_event(pc& pc, int event_index)
 	{
-		if (EventIndex < 0 || EventIndex >= QUEST_EVENT_COUNT)
+		if (event_index < 0 || event_index >= QUEST_EVENT_COUNT)
 		{
-			metin2::log::error("QUEST invalid EventIndex : {:d}", EventIndex);
+			metin2::log::error("QUEST invalid EventIndex : {:d}", event_index);
 			return false;
 		}
 
@@ -461,7 +461,7 @@ namespace quest
 
 		func_miss_handle_event fMiss;
 		func_match_handle_event fMatch;
-		matching_quest(pc, own_quest_[EventIndex], fMatch, fMiss);
+		matching_quest(pc, own_quest_[event_index], fMatch, fMiss);
 
 		bool r = false;
 		if (fMatch.matched())
@@ -481,7 +481,7 @@ namespace quest
 		}
 		if (fMiss.matched())
 		{
-			quest_map_type& rmapEventOwnQuest = own_quest_[EventIndex];
+			quest_map_type& rmapEventOwnQuest = own_quest_[event_index];
 			
 			for (int i = 0; i < fMiss.size; i++)
 			{
@@ -506,13 +506,13 @@ namespace quest
 			handled = false;
 		}
 
-		void operator() (pc::quest_info_iterator& itPCQuest, npc::quest_map_type::iterator& itQuestMap)
+		void operator() (pc::quest_info_iterator& pc_quest, npc::quest_map_type::iterator& quest_map)
 		{
-			uint32_t dwQuestIndex = itQuestMap->first;
+			uint32_t dwQuestIndex = quest_map->first;
 
-			if (npc::has_start_state(itQuestMap->second) && quest_manager::instance().can_start_quest(dwQuestIndex))
+			if (npc::has_start_state(quest_map->second) && quest_manager::instance().can_start_quest(dwQuestIndex))
 			{
-				const npc::a_quest_script_type & QuestScript = itQuestMap->second;
+				const npc::a_quest_script_type & QuestScript = quest_map->second;
 				auto it = QuestScript.find(QUEST_START_STATE_INDEX);
 
 				if (it != QuestScript.end())
@@ -538,10 +538,10 @@ namespace quest
 			handled = false;
 		}
 
-		void operator() (pc::quest_info_iterator& itPCQuest, npc::quest_map_type::iterator& itQuestMap)
+		void operator() (pc::quest_info_iterator& pc_quest, npc::quest_map_type::iterator& quest_map)
 		{
-			const npc::a_quest_script_type& QuestScript = itQuestMap->second;
-			int iPCState = itPCQuest->second.st;
+			const npc::a_quest_script_type& QuestScript = quest_map->second;
+			int iPCState = pc_quest->second.st;
 			auto itQuestScript = QuestScript.find(iPCState);
 
 			if (itQuestScript != QuestScript.end())
@@ -550,7 +550,7 @@ namespace quest
 
 				quest_manager::execute_quest_script(
 						*quest_manager::instance().current_pc(), 
-						itQuestMap->first, 
+						quest_map->first, 
 						iPCState, 
 						itQuestScript->second.get_code(), 
 						itQuestScript->second.size());
@@ -558,11 +558,11 @@ namespace quest
 		}
 	};
 
-	bool npc::handle_receive_all_event(pc& pc, int EventIndex)
+	bool npc::handle_receive_all_event(pc& pc, int event_index)
 	{
-		if (EventIndex < 0 || EventIndex >= QUEST_EVENT_COUNT)
+		if (event_index < 0 || event_index >= QUEST_EVENT_COUNT)
 		{
-			metin2::log::error("QUEST invalid EventIndex : {:d}", EventIndex);
+			metin2::log::error("QUEST invalid EventIndex : {:d}", event_index);
 			return false;
 		}
 
@@ -583,7 +583,7 @@ namespace quest
 		func_miss_handle_receive_all_event fMiss;
 		func_match_handle_receive_all_event fMatch;
 
-		matching_quest(pc, own_quest_[EventIndex], fMatch, fMiss);
+		matching_quest(pc, own_quest_[event_index], fMatch, fMiss);
 		return fMiss.handled || fMatch.handled;
 	}
 
@@ -598,13 +598,13 @@ namespace quest
 		}
 
 
-		void operator()(pc::quest_info_iterator& itPCQuest, npc::quest_map_type::iterator& itQuestMap)
+		void operator()(pc::quest_info_iterator& pc_quest, npc::quest_map_type::iterator& quest_map)
 		{
-			uint32_t dwQuestIndex = itQuestMap->first;
+			uint32_t dwQuestIndex = quest_map->first;
 
-			if (npc::has_start_state(itQuestMap->second) && quest_manager::instance().can_start_quest(dwQuestIndex))
+			if (npc::has_start_state(quest_map->second) && quest_manager::instance().can_start_quest(dwQuestIndex))
 			{
-				const npc::a_quest_script_type& QuestScript = itQuestMap->second;
+				const npc::a_quest_script_type& QuestScript = quest_map->second;
 				auto it = QuestScript.find(QUEST_START_STATE_INDEX);
 				if (it != QuestScript.end())
 				{
@@ -618,7 +618,7 @@ namespace quest
 								it->second.size()))
 					{
 						metin2::log::error("QUEST NOT END RUNNING on Login/Logout - {}", 
-								quest_manager::instance().quest_name_by_index(itQuestMap->first).c_str());
+								quest_manager::instance().quest_name_by_index(quest_map->first).c_str());
 
 						quest_state& rqs = *pPC->running_quest_state();
 						quest_manager::instance().close_state(rqs);
@@ -638,10 +638,10 @@ namespace quest
 			handled = false;
 		}
 
-		void operator()(pc::quest_info_iterator & itPCQuest, npc::quest_map_type::iterator & itQuestMap)
+		void operator()(pc::quest_info_iterator & pc_quest, npc::quest_map_type::iterator & quest_map)
 		{
-			const npc::a_quest_script_type & QuestScript = itQuestMap->second;
-			int iPCState = itPCQuest->second.st;
+			const npc::a_quest_script_type & QuestScript = quest_map->second;
+			int iPCState = pc_quest->second.st;
 			auto itQuestScript = QuestScript.find(iPCState);
 
 			if (itQuestScript != QuestScript.end())
@@ -650,13 +650,13 @@ namespace quest
 
 				if (quest_manager::execute_quest_script(
 							*pPC,
-							itQuestMap->first, 
+							quest_map->first, 
 							iPCState, 
 							itQuestScript->second.get_code(), 
 							itQuestScript->second.size()))
 				{
 					metin2::log::error("QUEST NOT END RUNNING on Login/Logout - {}", 
-							quest_manager::instance().quest_name_by_index(itQuestMap->first).c_str());
+							quest_manager::instance().quest_name_by_index(quest_map->first).c_str());
 
 					quest_state& rqs = *pPC->running_quest_state();
 					quest_manager::instance().close_state(rqs);
@@ -667,18 +667,18 @@ namespace quest
 		}
 	};
 
-	bool npc::handle_receive_all_no_wait_event(pc& pc, int EventIndex)
+	bool npc::handle_receive_all_no_wait_event(pc& pc, int event_index)
 	{
-		if (EventIndex<0 || EventIndex>=QUEST_EVENT_COUNT)
+		if (event_index<0 || event_index>=QUEST_EVENT_COUNT)
 		{
-			metin2::log::error("QUEST invalid EventIndex : {:d}", EventIndex);
+			metin2::log::error("QUEST invalid EventIndex : {:d}", event_index);
 			return false;
 		}
 
 		func_miss_handle_receive_all_no_wait_event fMiss;
 		func_match_handle_receive_all_no_wait_event fMatch;
 
-		quest_map_type& rmapEventOwnQuest = own_quest_[EventIndex];
+		quest_map_type& rmapEventOwnQuest = own_quest_[event_index];
 		matching_quest(pc, rmapEventOwnQuest, fMatch, fMiss);
 
 		return fMatch.handled || fMiss.handled;
@@ -786,20 +786,20 @@ namespace quest
 
 	struct func_miss_chat_event
 	{
-		func_miss_chat_event(std::vector<a_arg_script*>& rAvailScript)
-			: avail_script(rAvailScript)
+		func_miss_chat_event(std::vector<a_arg_script*>& avail_script_value)
+			: avail_script(avail_script_value)
 			{}
 
-		void operator()(pc::quest_info_iterator& itPCQuest, npc::arg_quest_map_type::iterator& itQuestMap)
+		void operator()(pc::quest_info_iterator& pc_quest, npc::arg_quest_map_type::iterator& quest_map)
 		{
-			if (quest_manager::instance().can_start_quest(itQuestMap->first) && npc::has_start_state(itQuestMap->second))
+			if (quest_manager::instance().can_start_quest(quest_map->first) && npc::has_start_state(quest_map->second))
 			{
 				size_t i;
-				for (i = 0; i < itQuestMap->second[QUEST_START_STATE_INDEX].size(); ++i)
+				for (i = 0; i < quest_map->second[QUEST_START_STATE_INDEX].size(); ++i)
 				{
-					if (itQuestMap->second[QUEST_START_STATE_INDEX][i].when_condition.size() == 0 || 
-							is_script_true(&itQuestMap->second[QUEST_START_STATE_INDEX][i].when_condition[0], itQuestMap->second[QUEST_START_STATE_INDEX][i].when_condition.size()))
-						avail_script.push_back(&itQuestMap->second[QUEST_START_STATE_INDEX][i]);
+					if (quest_map->second[QUEST_START_STATE_INDEX][i].when_condition.size() == 0 || 
+							is_script_true(&quest_map->second[QUEST_START_STATE_INDEX][i].when_condition[0], quest_map->second[QUEST_START_STATE_INDEX][i].when_condition.size()))
+						avail_script.push_back(&quest_map->second[QUEST_START_STATE_INDEX][i]);
 				}
 			}
 		}
@@ -809,22 +809,22 @@ namespace quest
 
 	struct func_match_chat_event
 	{
-		func_match_chat_event(std::vector<a_arg_script*>& rAvailScript)
-			: avail_script(rAvailScript)
+		func_match_chat_event(std::vector<a_arg_script*>& avail_script_value)
+			: avail_script(avail_script_value)
 			{}
 
-		void operator()(pc::quest_info_iterator& itPCQuest, npc::arg_quest_map_type::iterator& itQuestMap)
+		void operator()(pc::quest_info_iterator& pc_quest, npc::arg_quest_map_type::iterator& quest_map)
 		{
-			int iState = itPCQuest->second.st;
-			std::map<int, std::vector<a_arg_script> >::iterator itQuestScript = itQuestMap->second.find(iState);
-			if (itQuestScript != itQuestMap->second.end())
+			int iState = pc_quest->second.st;
+			std::map<int, std::vector<a_arg_script> >::iterator itQuestScript = quest_map->second.find(iState);
+			if (itQuestScript != quest_map->second.end())
 			{
 				size_t i;
-				for (i = 0; i < itQuestMap->second[iState].size(); i++)
+				for (i = 0; i < quest_map->second[iState].size(); i++)
 				{
-					if ( itQuestMap->second[iState][i].when_condition.size() == 0 ||
-							is_script_true(&itQuestMap->second[iState][i].when_condition[0], itQuestMap->second[iState][i].when_condition.size()))
-						avail_script.push_back(&itQuestMap->second[iState][i]);
+					if ( quest_map->second[iState][i].when_condition.size() == 0 ||
+							is_script_true(&quest_map->second[iState][i].when_condition[0], quest_map->second[iState][i].when_condition.size()))
+						avail_script.push_back(&quest_map->second[iState][i]);
 				}
 			}
 		}
@@ -882,28 +882,28 @@ namespace quest
 		return !own_arg_quest_[QUEST_CHAT_EVENT].empty();
 	}
 
-	bool npc::execute_event_script(pc& pc, int EventIndex, uint32_t dwQuestIndex, int iState)
+	bool npc::execute_event_script(pc& pc, int event_index, uint32_t quest_index, int state)
 	{
-		quest_map_type& rQuest = own_quest_[EventIndex];
+		quest_map_type& rQuest = own_quest_[event_index];
 
-		auto itQuest = rQuest.find(dwQuestIndex);
+		auto itQuest = rQuest.find(quest_index);
 		if (itQuest == rQuest.end())
 		{
-			metin2::log::info( "ExecuteEventScript ei {:d} qi {:d} is {:d} - NO QUEST", EventIndex, dwQuestIndex, iState);
+			metin2::log::info( "ExecuteEventScript ei {:d} qi {:d} is {:d} - NO QUEST", event_index, quest_index, state);
 			return false;
 		}
 
 		a_quest_script_type& rScript = itQuest->second;
-		auto itState = rScript.find(iState);
+		auto itState = rScript.find(state);
 		if (itState == rScript.end())
 		{
-			metin2::log::info( "ExecuteEventScript ei {:d} qi {:d} is {:d} - NO STATE", EventIndex, dwQuestIndex, iState);
+			metin2::log::info( "ExecuteEventScript ei {:d} qi {:d} is {:d} - NO STATE", event_index, quest_index, state);
 			return false;
 		}
 
-		metin2::log::info( "ExecuteEventScript ei {:d} qi {:d} is {:d}", EventIndex, dwQuestIndex, iState);
-		quest_manager::instance().set_current_event_index(EventIndex);
-		return quest_manager::execute_quest_script(pc, dwQuestIndex, iState, itState->second.get_code(), itState->second.size());
+		metin2::log::info( "ExecuteEventScript ei {:d} qi {:d} is {:d}", event_index, quest_index, state);
+		quest_manager::instance().set_current_event_index(event_index);
+		return quest_manager::execute_quest_script(pc, quest_index, state, itState->second.get_code(), itState->second.size());
 	}
 
 	bool npc::on_pickup_item(pc& pc)

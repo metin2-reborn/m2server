@@ -46,9 +46,9 @@ bool fn_is_valid_login_string(const char *str)
 	return true;
 }
 
-bool login_is_in_channel_service(const char* c_login)
+bool login_is_in_channel_service(const char* login)
 {
-	if (c_login[0] == '[')
+	if (login[0] == '[')
 		return true;
 	return false;
 }
@@ -57,10 +57,10 @@ input_auth::input_auth()
 {
 }
 
-void input_auth::login(desc * d, const char * c_pData)
+void input_auth::login(desc * d, const char * data)
 {
 
-	packet_cg_login3 * pinfo = (packet_cg_login3 *) c_pData;
+	packet_cg_login3 * pinfo = (packet_cg_login3 *) data;
 
 	if (!metin2::config::is_auth())
 	{
@@ -166,7 +166,7 @@ void input_auth::login(desc * d, const char * c_pData)
 	}
 }
 
-int input_auth::analyze(desc * d, uint8_t bHeader, const char * c_pData)
+int input_auth::analyze(desc * d, uint8_t header, const char * data)
 {
 
 	if (!metin2::config::is_auth())
@@ -180,23 +180,23 @@ int input_auth::analyze(desc * d, uint8_t bHeader, const char * c_pData)
 	int iExtraLen = 0;
 
 	if (metin2::config::test_server())
-		metin2::log::info( " InputAuth Analyze Header[{:d}] ", bHeader);
+		metin2::log::info( " InputAuth Analyze Header[{:d}] ", header);
 
-	switch (bHeader)
+	switch (header)
 	{
 		case HEADER_CG_PONG:
 			pong(d);
 			break;
 
 		case HEADER_CG_LOGIN3:
-			login(d, c_pData);
+			login(d, data);
 			break;
 
 		case HEADER_CG_HANDSHAKE:
 			break;
 
 		default:
-			metin2::log::error("This phase does not handle this header {:d} (0x{:x})(phase: AUTH)", bHeader, bHeader);
+			metin2::log::error("This phase does not handle this header {:d} (0x{:x})(phase: AUTH)", header, header);
 			break;
 	}
 

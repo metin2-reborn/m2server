@@ -55,11 +55,11 @@ bool desc_p2_p::setup(std::shared_ptr<net::connection> connection)
 	return true;
 }
 
-void desc_p2_p::set_phase(int iPhase)
+void desc_p2_p::set_phase(int phase)
 {
 	static input_p2_p s_inputP2P;
 
-	switch (iPhase)
+	switch (phase)
 	{
 		case PHASE_P2P:
 			metin2::log::debug( "PHASE_P2P");
@@ -75,6 +75,6 @@ void desc_p2_p::set_phase(int iPhase)
 			break;
 	}
 
-	phase_ = iPhase;
+	phase_ = phase;
 }
 }

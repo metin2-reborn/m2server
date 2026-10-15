@@ -166,7 +166,7 @@ enum affect_bits
 	AFF_BITS_MAX
 };
 
-extern void send_affect_add_packet(desc * d, affect * pkAff);
+extern void send_affect_add_packet(desc * d, affect * aff);
 
 // AFFECT_DURATION_BUG_FIX
 enum affect_variable

@@ -8,11 +8,11 @@ namespace metin2::game {
 
 namespace quest
 {
-	int ba_start(lua_State* L)
+	int ba_start(lua_State* lua)
 	{
-		if ( lua_isnumber(L, 1) )
+		if ( lua_isnumber(lua, 1) )
 		{
-			battle_arena::instance().start((int)lua_tonumber(L, 1));
+			battle_arena::instance().start((int)lua_tonumber(lua, 1));
 		}
 
 		return 0;

@@ -61,25 +61,25 @@ void shop::set_pc_shop(character * ch)
 	pc_ = ch;
 }
 
-bool shop::create(uint32_t dwVnum, uint32_t dwNPCVnum, shop_item_table * pTable)
+bool shop::create(uint32_t vnum_value, uint32_t npc_vnum, shop_item_table * table)
 {
-	metin2::log::info( "SHOP #{:d} (Shopkeeper {:d})", dwVnum, dwNPCVnum);
+	metin2::log::info( "SHOP #{:d} (Shopkeeper {:d})", vnum_value, npc_vnum);
 
-	vnum_ = dwVnum;
+	vnum_ = vnum_value;
 
 	uint8_t bItemCount;
 
 	for (bItemCount = 0; bItemCount < SHOP_HOST_ITEM_MAX_NUM; ++bItemCount)
-		if (0 == (pTable + bItemCount)->vnum)
+		if (0 == (table + bItemCount)->vnum)
 			break;
 
-	set_shop_items(pTable, bItemCount);
+	set_shop_items(table, bItemCount);
 	return true;
 }
 
-void shop::set_shop_items(shop_item_table * pTable, uint8_t bItemCount)
+void shop::set_shop_items(shop_item_table * table_value, uint8_t item_count)
 {
-	if (bItemCount > SHOP_HOST_ITEM_MAX_NUM)
+	if (item_count > SHOP_HOST_ITEM_MAX_NUM)
 		return;
 
 	grid_->clear();
@@ -87,18 +87,18 @@ void shop::set_shop_items(shop_item_table * pTable, uint8_t bItemCount)
 	item_vector_.resize(SHOP_HOST_ITEM_MAX_NUM);
 	std::fill(item_vector_.begin(), item_vector_.end(), shop_item());
 
-	for (int i = 0; i < bItemCount; ++i)
+	for (int i = 0; i < item_count; ++i)
 	{
 		item * pkItem = nullptr;
 		const item_table * item_table;
 
 		if (pc_)
 		{
-			pkItem = pc_->get_item(pTable->pos);
+			pkItem = pc_->get_item(table_value->pos);
 
 			if (!pkItem)
 			{
-				metin2::log::error("cannot find item on pos ({:d}, {:d}) (name: {})", pTable->pos.window_type, pTable->pos.cell, pc_->name());
+				metin2::log::error("cannot find item on pos ({:d}, {:d}) (name: {})", table_value->pos.window_type, table_value->pos.cell, pc_->name());
 				continue;
 			}
 
@@ -106,15 +106,15 @@ void shop::set_shop_items(shop_item_table * pTable, uint8_t bItemCount)
 		}
 		else
 		{
-			if (!pTable->vnum)
+			if (!table_value->vnum)
 				continue;
 
-			item_table = item_manager::instance().table(pTable->vnum);
+			item_table = item_manager::instance().table(table_value->vnum);
 		}
 
 		if (!item_table)
 		{
-			metin2::log::error("Shop: no item table by item vnum #{:d}", pTable->vnum);
+			metin2::log::error("Shop: no item table by item vnum #{:d}", table_value->vnum);
 			continue;
 		}
 
@@ -122,8 +122,8 @@ void shop::set_shop_items(shop_item_table * pTable, uint8_t bItemCount)
 
 		if (is_pc_shop())
 		{
-			metin2::log::info( "MyShop: use position {:d}", pTable->display_pos);
-			iPos = pTable->display_pos;
+			metin2::log::info( "MyShop: use position {:d}", table_value->display_pos);
+			iPos = table_value->display_pos;
 		}
 		else
 			iPos = grid_->find_blank(1, item_table->size);
@@ -158,13 +158,13 @@ void shop::set_shop_items(shop_item_table * pTable, uint8_t bItemCount)
 		{
 			item.vnum = pkItem->vnum();
 			item.count = pkItem->count(); // For PC shops, the item count must be the real item count.
-			item.price = pTable->price; // The price is also as the user set it..
+			item.price = table_value->price; // The price is also as the user set it..
 			item.itemid	= pkItem->id();
 		}
 		else
 		{
-			item.vnum = pTable->vnum;
-			item.count = pTable->count;
+			item.vnum = table_value->vnum;
+			item.count = table_value->count;
 
 			if (is_set(item_table->flags, ITEM_FLAG_COUNT_PER_1GOLD))
 			{
@@ -181,7 +181,7 @@ void shop::set_shop_items(shop_item_table * pTable, uint8_t bItemCount)
 		snprintf(name, sizeof(name), "%-20s(#%-5d) (x %d)", item_table->name, (int) item.vnum, item.count);
 
 		metin2::log::info( "SHOP_ITEM: {:<36} PRICE {:<5d}", name, item.price);
-		++pTable;
+		++table_value;
 	}
 }
 
@@ -386,7 +386,7 @@ int shop::buy(character * ch, uint8_t pos)
     return (SHOP_SUBHEADER_GC_OK);
 }
 
-bool shop::add_guest(character * ch, uint32_t owner_vid, bool bOtherEmpire)
+bool shop::add_guest(character * ch, uint32_t owner_vid, bool other_empire)
 {
 	if (!ch)
 		return false;
@@ -399,7 +399,7 @@ bool shop::add_guest(character * ch, uint32_t owner_vid, bool bOtherEmpire)
 
 	ch->set_shop(this);
 
-	map_guest_.insert(guest_map_type::value_type(ch, bOtherEmpire));
+	map_guest_.insert(guest_map_type::value_type(ch, other_empire));
 
 	packet_gc_shop pack;
 
@@ -430,7 +430,7 @@ bool shop::add_guest(character * ch, uint32_t owner_vid, bool bOtherEmpire)
 
 		pack2.items[i].vnum = item.vnum;
 
-		if (bOtherEmpire) // no empire price penalty for pc shop
+		if (other_empire) // no empire price penalty for pc shop
 			pack2.items[i].price = item.price * 3;
 		else
 			pack2.items[i].price = item.price;
@@ -526,7 +526,7 @@ void shop::broadcast_update_item(uint8_t pos)
 	broadcast(buf.read_peek(), buf.size());
 }
 
-int shop::number_by_vnum(uint32_t dwVnum)
+int shop::number_by_vnum(uint32_t vnum_value)
 {
 	int itemNumber = 0;
 
@@ -534,7 +534,7 @@ int shop::number_by_vnum(uint32_t dwVnum)
 	{
 		const shop_item & item = item_vector_[i];
 
-		if (item.vnum == dwVnum)
+		if (item.vnum == vnum_value)
 		{
 			itemNumber += item.count;
 		}
@@ -543,13 +543,13 @@ int shop::number_by_vnum(uint32_t dwVnum)
 	return itemNumber;
 }
 
-bool shop::is_selling_item(uint32_t itemID)
+bool shop::is_selling_item(uint32_t item_id)
 {
 	bool isSelling = false;
 
 	for (uint32_t i = 0; i < item_vector_.size() && i < SHOP_HOST_ITEM_MAX_NUM; ++i)
 	{
-		if (static_cast<uint32_t>(item_vector_[i].itemid) == itemID)
+		if (static_cast<uint32_t>(item_vector_[i].itemid) == item_id)
 		{
 			isSelling = true;
 			break;

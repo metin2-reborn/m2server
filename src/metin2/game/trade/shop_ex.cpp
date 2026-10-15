@@ -22,27 +22,27 @@
 
 namespace metin2::game::inline trade {
 
-bool shop_ex::create(uint32_t dwVnum, uint32_t dwNPCVnum)
+bool shop_ex::create(uint32_t vnum, uint32_t npc_vnum)
 {
-	vnum_ = dwVnum;
+	vnum_ = vnum;
 	return true;
 }
 
-bool shop_ex::add_shop_table(shop_table_ex& shopTable)
+bool shop_ex::add_shop_table(shop_table_ex& shop_table)
 {
 	for (auto it = vec_shop_tabs_.begin(); it != vec_shop_tabs_.end(); it++)
 	{
 		const shop_table_ex& _shopTable = *it;
-		if (0 != _shopTable.vnum && _shopTable.vnum == shopTable.vnum)
+		if (0 != _shopTable.vnum && _shopTable.vnum == shop_table.vnum)
 			return false;
-		if (0 != _shopTable.npc_vnum && _shopTable.npc_vnum == shopTable.vnum)
+		if (0 != _shopTable.npc_vnum && _shopTable.npc_vnum == shop_table.vnum)
 			return false;
 	}
-	vec_shop_tabs_.push_back(shopTable);
+	vec_shop_tabs_.push_back(shop_table);
 	return true;
 }
 
-bool shop_ex::add_guest(character * ch,uint32_t owner_vid, bool bOtherEmpire)
+bool shop_ex::add_guest(character * ch,uint32_t owner_vid, bool other_empire)
 {
 	if (!ch)
 		return false;
@@ -55,7 +55,7 @@ bool shop_ex::add_guest(character * ch,uint32_t owner_vid, bool bOtherEmpire)
 
 	ch->set_shop(this);
 
-	map_guest_.insert(guest_map_type::value_type(ch, bOtherEmpire));
+	map_guest_.insert(guest_map_type::value_type(ch, other_empire));
 
 	packet_gc_shop pack;
 
@@ -85,7 +85,7 @@ bool shop_ex::add_guest(character * ch,uint32_t owner_vid, bool bOtherEmpire)
 			switch(shop_tab.coin_type)
 			{
 			case SHOP_COIN_TYPE_GOLD:
-				if (bOtherEmpire) // no empire price penalty for pc shop
+				if (other_empire) // no empire price penalty for pc shop
 					pack_tab.items[i].price = shop_tab.items[i].price * 3;
 				else
 					pack_tab.items[i].price = shop_tab.items[i].price;

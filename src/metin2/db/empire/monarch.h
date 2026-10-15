@@ -21,7 +21,7 @@ class monarch : public singleton<monarch>
 		monarch();
 		~monarch() override;
 
-		bool vote_monarch(uint32_t pid, uint32_t selectedpid);
+		bool vote_monarch(uint32_t pid, uint32_t selectdpid);
 		void elect_monarch();
 
 		bool is_candidacy(uint32_t pid);
@@ -32,10 +32,10 @@ class monarch : public singleton<monarch>
 		bool set_monarch(const char * name);
 		bool del_monarch(const char * name);
 
-		bool is_monarch(int Empire, uint32_t pid);
-		bool add_money(int Empire, int64_t Money);
-		bool dec_money(int Empire, int64_t Money);
-		bool take_money(int Empire, uint32_t pid, int64_t Money);
+		bool is_monarch(int empire, uint32_t pid);
+		bool add_money(int empire, int64_t money_value);
+		bool dec_money(int empire, int64_t money_value);
+		bool take_money(int empire, uint32_t pid, int64_t money_value);
 
 		monarch_info* get_monarch()
 		{

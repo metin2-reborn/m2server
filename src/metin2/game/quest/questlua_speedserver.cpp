@@ -14,14 +14,14 @@ namespace quest
 {
 	// "sun", "mon", "tue", "wed", "thu", "fri", "sat", "week", "weekend"
 
-	int speedserver_get_wday (lua_State* L)
+	int speedserver_get_wday (lua_State* lua)
 	{
-		if (!lua_isnumber(L,1) || !lua_isnumber(L,2))
+		if (!lua_isnumber(lua,1) || !lua_isnumber(lua,2))
 		{
 			metin2::log::error("wrong argument");
 		}
 
-		uint8_t empire = lua_tonumber(L,1);
+		uint8_t empire = lua_tonumber(lua,1);
 
 		if (empire > 3)
 		{
@@ -29,7 +29,7 @@ namespace quest
 			return 0;
 		}
 
-		int wday = lua_tonumber(L,2) - 1;
+		int wday = lua_tonumber(lua,2) - 1;
 
 		if (wday < 0 || wday > 6)
 		{
@@ -46,38 +46,38 @@ namespace quest
 				it != time_lst.end(); it++)
 		{
 			metin2::log::info( "{:d}",i);
-			lua_pushnumber (L, it->hour);
-			lua_pushnumber (L, it->min);
-			lua_pushnumber (L, it->exp);
+			lua_pushnumber (lua, it->hour);
+			lua_pushnumber (lua, it->min);
+			lua_pushnumber (lua, it->exp);
 			i++;
 		}
 
 		return i * 3;
 	}
 
-	int speedserver_set_wday (lua_State* L)
+	int speedserver_set_wday (lua_State* lua)
 	{
-		uint8_t empire = lua_tonumber (L, 1);
-		int wday = lua_tonumber (L, 2);
-		uint8_t end_hour = lua_tonumber(L, 3);
-		uint8_t end_minite = lua_tonumber(L, 4);
-		int exp_percent = lua_tonumber(L, 5);
+		uint8_t empire = lua_tonumber (lua, 1);
+		int wday = lua_tonumber (lua, 2);
+		uint8_t end_hour = lua_tonumber(lua, 3);
+		uint8_t end_minite = lua_tonumber(lua, 4);
+		int exp_percent = lua_tonumber(lua, 5);
 
 		speed_server_manager::instance().set_wday_exp_table_of_empire (empire, wday - 1, hme (end_hour, end_minite, exp_percent));
 
 		return 0;
 	}
 
-	int speedserver_init_wday (lua_State* L)
+	int speedserver_init_wday (lua_State* lua)
 	{
-		if (!lua_isnumber (L, 1) || !lua_isnumber (L, 2))
+		if (!lua_isnumber (lua, 1) || !lua_isnumber (lua, 2))
 		{
 			metin2::log::error("invalid argument.");
 			return 0;
 		}
 
-		uint8_t empire = lua_tonumber (L, 1);
-		int wday = lua_tonumber (L, 2);
+		uint8_t empire = lua_tonumber (lua, 1);
+		int wday = lua_tonumber (lua, 2);
 		
 		metin2::log::info( "init_wday {:d} {:d}",empire, wday);
 
@@ -86,14 +86,14 @@ namespace quest
 		return 0;
 	}
 
-	int speedserver_get_holiday (lua_State* L)
+	int speedserver_get_holiday (lua_State* lua)
 	{
-		if (!lua_isnumber(L,1) || !lua_isnumber(L,2) || !lua_isnumber(L,3) || !lua_isnumber(L,4))
+		if (!lua_isnumber(lua,1) || !lua_isnumber(lua,2) || !lua_isnumber(lua,3) || !lua_isnumber(lua,4))
 		{
 			metin2::log::error("wrong argument");
 		}
 
-		uint8_t empire = lua_tonumber(L,1);
+		uint8_t empire = lua_tonumber(lua,1);
 
 		if (empire > 4)
 		{
@@ -101,7 +101,7 @@ namespace quest
 			return 0;
 		}
 
-		date date = game::events::date (lua_tonumber(L,2) - 1900, lua_tonumber(L,3) - 1, lua_tonumber(L,4));
+		date date = game::events::date (lua_tonumber(lua,2) - 1900, lua_tonumber(lua,3) - 1, lua_tonumber(lua,4));
 		
 		metin2::log::info( "empire {:d} date {:d} {:d} {:d}", empire, date.year, date.mon, date.day);
 		
@@ -115,9 +115,9 @@ namespace quest
 			for (std::list <hme>::iterator it = time_lst.begin();
 					it != time_lst.end(); it++)
 			{
-				lua_pushnumber (L, it->hour);
-				lua_pushnumber (L, it->min);
-				lua_pushnumber (L, it->exp);
+				lua_pushnumber (lua, it->hour);
+				lua_pushnumber (lua, it->min);
+				lua_pushnumber (lua, it->exp);
 				i++;
 			}
 			return i * 3;
@@ -127,19 +127,19 @@ namespace quest
 
 	}
 
-	int speedserver_set_holiday (lua_State* L)
+	int speedserver_set_holiday (lua_State* lua)
 	{
-		if (!lua_isnumber(L,1) || !lua_isnumber(L,2) || !lua_isnumber(L,3) || !lua_isnumber(L,4) 
-				|| !lua_isnumber(L,5) || !lua_isnumber(L,6) || !lua_isnumber(L,7))
+		if (!lua_isnumber(lua,1) || !lua_isnumber(lua,2) || !lua_isnumber(lua,3) || !lua_isnumber(lua,4) 
+				|| !lua_isnumber(lua,5) || !lua_isnumber(lua,6) || !lua_isnumber(lua,7))
 		{
 			metin2::log::error("wrong argument");
 		}
 
-		uint8_t empire = lua_tonumber (L, 1);
-		date date = game::events::date (lua_tonumber(L,2) - 1900, lua_tonumber(L,3) - 1, lua_tonumber(L,4));
-		uint8_t end_hour = lua_tonumber(L, 5);
-		uint8_t end_minite = lua_tonumber(L, 6);
-		int exp_percent = lua_tonumber(L, 7);
+		uint8_t empire = lua_tonumber (lua, 1);
+		date date = game::events::date (lua_tonumber(lua,2) - 1900, lua_tonumber(lua,3) - 1, lua_tonumber(lua,4));
+		uint8_t end_hour = lua_tonumber(lua, 5);
+		uint8_t end_minite = lua_tonumber(lua, 6);
+		int exp_percent = lua_tonumber(lua, 7);
 
 		metin2::log::info("h {:d} m {:d} e {:d}", end_hour, end_minite, exp_percent);
 
@@ -148,40 +148,40 @@ namespace quest
 		return 0;
 	}
 
-	int speedserver_init_holiday (lua_State* L)
+	int speedserver_init_holiday (lua_State* lua)
 	{
-		if (!lua_isnumber(L,1) || !lua_isnumber(L,2) || !lua_isnumber(L,3) || !lua_isnumber(L,4))
+		if (!lua_isnumber(lua,1) || !lua_isnumber(lua,2) || !lua_isnumber(lua,3) || !lua_isnumber(lua,4))
 		{
 			metin2::log::error("wrong argument");
 		}
 
-		uint8_t empire = lua_tonumber (L, 1);
-		date date = game::events::date (lua_tonumber(L,2) - 1900, lua_tonumber(L,3) - 1, lua_tonumber(L,4));
+		uint8_t empire = lua_tonumber (lua, 1);
+		date date = game::events::date (lua_tonumber(lua,2) - 1900, lua_tonumber(lua,3) - 1, lua_tonumber(lua,4));
 	
 		speed_server_manager::instance().init_holiday_exp_table_of_empire (empire, date);
 		
 		return 0;
 	}
 
-	int speedserver_get_current_exp_priv (lua_State* L)
+	int speedserver_get_current_exp_priv (lua_State* lua)
 	{
-		if (!lua_isnumber (L, 1))
+		if (!lua_isnumber (lua, 1))
 		{
 			metin2::log::error("invalid empire");
 			return 0;
 		}
-		uint8_t empire = lua_tonumber(L, 1);
+		uint8_t empire = lua_tonumber(lua, 1);
 
 		int duration;
 		bool is_change;
 
 		hme hme = speed_server_manager::instance().current_exp_priv_of_empire (empire, duration, is_change);
 
-		lua_pushnumber (L, hme.hour);
-		lua_pushnumber (L, hme.min);
-		lua_pushnumber (L, hme.exp);
-		lua_pushnumber (L, duration);
-		lua_pushboolean (L, is_change);
+		lua_pushnumber (lua, hme.hour);
+		lua_pushnumber (lua, hme.min);
+		lua_pushnumber (lua, hme.exp);
+		lua_pushnumber (lua, duration);
+		lua_pushboolean (lua, is_change);
 
 		metin2::log::info( "empire : {:d} is_change : {:d}",empire, is_change);
 

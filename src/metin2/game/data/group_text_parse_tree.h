@@ -21,11 +21,11 @@ public:
 	class group_node_row
 	{
 	public:
-		group_node_row(group_node* pGroupNode, token_vector& vec_values);
+		group_node_row(group_node* group_node_value, token_vector& vec_values);
 		virtual ~group_node_row();
 
 		template <typename T>
-		bool value(const std::string & stColKey, T& value) const;
+		bool value(const std::string & col_key, T& value) const;
 		template <typename T>
 		bool value(int idx, T& value) const;
 
@@ -39,33 +39,33 @@ public:
 	group_node();
 	virtual ~group_node();
 
-	bool load(const char * c_szFileName);
+	bool load(const char * file_name);
 
-	bool set_child_node(const char * c_szKey, group_node* pChildNode);
-	group_node* child_node(const std::string & c_rstrKey) const;
+	bool set_child_node(const char * key, group_node* child_group);
+	group_node* child_node(const std::string & rstr_key) const;
 	std::string node_name() const;
 
 	int row_count();
 	
 	template <typename T>
-	bool value(size_t i, const std::string & c_rstrColKey, T& tValue) const;	// Returns the value of a given column in the n-th row (n is just the order in the map, unrelated to the order in the txt). 
+	bool value(size_t i, const std::string & rstr_col_key, T& t_value) const;	// Returns the value of a given column in the n-th row (n is just the order in the map, unrelated to the order in the txt). 
 																				// Out of place, but a convenience function.
 	template <typename T>
-	bool value(const std::string & c_rstrRowKey, const std::string & c_rstrColKey, T& tValue) const;
+	bool value(const std::string & rstr_row_key, const std::string & rstr_col_key, T& t_value) const;
 	template <typename T>
-	bool value(const std::string & c_rstrRowKey, int index, T& tValue) const;
+	bool value(const std::string & rstr_row_key, int index, T& t_value) const;
 
-	bool row(const std::string & c_rstrKey, const group_node_row ** ppRow) const;
+	bool row(const std::string & rstr_row_key, const group_node_row ** pp_row) const;
 	// Note: idx is unrelated to the order written in the txt.
-	bool row(int idx, const group_node_row ** ppRow) const;
-	bool group_row(const std::string& stGroupName, const std::string& stRow, const group_node::group_node_row ** ppRow) const;
+	bool row(int idx, const group_node_row ** pp_row) const;
+	bool group_row(const std::string& group_name, const std::string& row_value, const group_node::group_node_row ** pp_row) const;
 
 	template <typename T>
-	bool group_value(const std::string& stGroupName, const std::string& stRow, int iCol, T& tValue) const;
+	bool group_value(const std::string& group_name, const std::string& row, int col, T& t_value) const;
 	template <typename T>
-	bool group_value(const std::string& stGroupName, const std::string& stRow, const std::string& stCol, T& tValue) const;
+	bool group_value(const std::string& group_name, const std::string& row, const std::string& col, T& t_value) const;
 
-	int	column_index_from_name(const std::string& stName) const;
+	int	column_index_from_name(const std::string& name) const;
 
 private:
 	typedef std::map <std::string, group_node*> map_group;
@@ -84,11 +84,11 @@ public:
 	group_text_parse_tree_loader();
 	virtual ~group_text_parse_tree_loader();
 
-	bool load(const char * c_szFileName);
+	bool load(const char * file_name);
 
-	group_node*	group(const char * c_szGroupName);
+	group_node*	group(const char * group_name);
 private:
-	bool load_group(group_node * pGroupNode);
+	bool load_group(group_node * group_node_value);
 
 	std::unique_ptr<group_node>	root_group_node_;
 	std::string					file_name_;
@@ -115,7 +115,7 @@ inline bool from_string <uint8_t>(uint8_t& t, const std::string& s)
 }
 
 template <typename T>
-bool group_node::value(size_t i, const std::string & c_rstrColKey, T& tValue) const
+bool group_node::value(size_t i, const std::string & rstr_col_key, T& t_value) const
 {
 	if (i > map_rows_.size())
 		return false;
@@ -123,7 +123,7 @@ bool group_node::value(size_t i, const std::string & c_rstrColKey, T& tValue) co
 	map_row::const_iterator row_it = map_rows_.begin();
 	std::advance(row_it, i);
 	
-	auto col_idx_it = map_column_name_to_index_.find(c_rstrColKey);
+	auto col_idx_it = map_column_name_to_index_.find(rstr_col_key);
 	if (map_column_name_to_index_.end() == col_idx_it)
 	{
 		return false;
@@ -135,18 +135,18 @@ bool group_node::value(size_t i, const std::string & c_rstrColKey, T& tValue) co
 		return false;
 	}
 	
-	return row_it->second.value(index, tValue);
+	return row_it->second.value(index, t_value);
 }
 
 template <typename T>
-bool group_node::value(const std::string & c_rstrRowKey, const std::string & c_rstrColKey, T& tValue) const
+bool group_node::value(const std::string & rstr_row_key, const std::string & rstr_col_key, T& t_value) const
 {
-	map_row::const_iterator row_it = map_rows_.find(c_rstrRowKey);
+	map_row::const_iterator row_it = map_rows_.find(rstr_row_key);
 	if (map_rows_.end() == row_it)
 	{
 		return false;
 	}
-	auto col_idx_it = map_column_name_to_index_.find(c_rstrColKey);
+	auto col_idx_it = map_column_name_to_index_.find(rstr_col_key);
 	if (map_column_name_to_index_.end() == col_idx_it)
 	{
 		return false;
@@ -158,13 +158,13 @@ bool group_node::value(const std::string & c_rstrRowKey, const std::string & c_r
 		return false;
 	}
 	
-	return row_it->second.value(index, tValue);
+	return row_it->second.value(index, t_value);
 }
 
 template <typename T>
-bool group_node::value(const std::string & c_rstrRowKey, int index, T& tValue) const
+bool group_node::value(const std::string & rstr_row_key, int index, T& t_value) const
 {
-	map_row::const_iterator row_it = map_rows_.find(c_rstrRowKey);
+	map_row::const_iterator row_it = map_rows_.find(rstr_row_key);
 	if (map_rows_.end() == row_it)
 	{
 		return false;
@@ -174,51 +174,51 @@ bool group_node::value(const std::string & c_rstrRowKey, int index, T& tValue) c
 	{
 		return false;
 	}
-	return row_it->second.value(index, tValue);
+	return row_it->second.value(index, t_value);
 }
 
 template <typename T>
-bool group_node::group_value(const std::string& stGroupName, const std::string& stRow, int iCol, T& tValue) const
+bool group_node::group_value(const std::string& group_name, const std::string& row, int col, T& t_value) const
 {
-	group_node* pChildGroup = child_node(stGroupName);
+	group_node* pChildGroup = child_node(group_name);
 	if (nullptr != pChildGroup)
 	{
-		if (pChildGroup->value(stRow, iCol, tValue))
+		if (pChildGroup->value(row, col, t_value))
 			return true;
 	}
 	// Look in the default group.
 	pChildGroup = child_node("default");
 	if (nullptr != pChildGroup)
 	{
-		if (pChildGroup->value(stRow, iCol, tValue))
+		if (pChildGroup->value(row, col, t_value))
 			return true;
 	}
 	return false;
 }
 
 template <typename T>
-bool group_node::group_value(const std::string& stGroupName, const std::string& stRow, const std::string& stCol, T& tValue) const
+bool group_node::group_value(const std::string& group_name, const std::string& row, const std::string& col, T& t_value) const
 {
-	group_node* pChildGroup = child_node(stGroupName);
+	group_node* pChildGroup = child_node(group_name);
 	if (nullptr != pChildGroup)
 	{
-		if (pChildGroup->value(stRow, stCol, tValue))
+		if (pChildGroup->value(row, col, t_value))
 			return true;
 	}
 	// Look in the default group.
 	pChildGroup = child_node("default");
 	if (nullptr != pChildGroup)
 	{
-		if (pChildGroup->value(stRow, stCol, tValue))
+		if (pChildGroup->value(row, col, t_value))
 			return true;
 	}
 	return false;
 }
 
 template <typename T>
-bool group_node::group_node_row::value(const std::string & stColKey, T& value) const
+bool group_node::group_node_row::value(const std::string & col_key, T& value) const
 {
-	int idx = owner_group_node_->column_index_from_name(stColKey);
+	int idx = owner_group_node_->column_index_from_name(col_key);
 	if (idx < 0 || static_cast<size_t>(idx) >= vec_values_.size())
 		return false;
 	return from_string(value, vec_values_[idx]);

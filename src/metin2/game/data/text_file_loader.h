@@ -32,28 +32,28 @@ class text_file_loader
 		text_file_loader();
 		virtual ~text_file_loader();
 
-		bool load(const char * c_szFileName);
+		bool load(const char * file_name);
 
 		void set_top();
 		uint32_t child_node_count();
-		bool set_child_node(const char * c_szKey);
-		bool set_child_node(const std::string & c_rstrKeyHead, uint32_t dwIndex);
-		bool set_child_node(uint32_t dwIndex);
+		bool set_child_node(const char * key);
+		bool set_child_node(const std::string & rstr_key_head, uint32_t index);
+		bool set_child_node(uint32_t index);
 		bool set_parent_node();
-		bool current_node_name(std::string * pstrName);
+		bool current_node_name(std::string * pstr_name);
 
-		bool get_token_vector(const std::string & c_rstrKey, token_vector ** ppTokenVector);
-		bool token_integer(const std::string & c_rstrKey, int * pData);
-		bool token_double_word(const std::string & c_rstrKey, uint32_t * pData);
-		bool token_float(const std::string & c_rstrKey, float * pData);
+		bool get_token_vector(const std::string & rstr_key, token_vector ** pp_token_vector);
+		bool token_integer(const std::string & rstr_key, int * data);
+		bool token_double_word(const std::string & rstr_key, uint32_t * data);
+		bool token_float(const std::string & rstr_key, float * data);
 
-		bool token_vector3(const std::string & c_rstrKey, vector * pVector3);
+		bool token_vector3(const std::string & rstr_key, vector * vector3);
 
-		bool token_position(const std::string & c_rstrKey, vector * pVector);
-		bool token_string(const std::string & c_rstrKey, std::string * pString);
+		bool token_position(const std::string & rstr_key, vector * vector_value);
+		bool token_string(const std::string & rstr_key, std::string * string_value);
 
 	protected:
-		bool load_group(group_node * pGroupNode);
+		bool load_group(group_node * group_node_value);
 
 	protected:
 		std::string					file_name_;

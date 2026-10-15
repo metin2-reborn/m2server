@@ -12,10 +12,10 @@ namespace metin2::game {
 
 namespace quest
 {
-	int dl_start_raid(lua_State* L)
+	int dl_start_raid(lua_State* lua)
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
-		int32_t baseMapIndex = lua_tonumber(L, -1);
+		int32_t baseMapIndex = lua_tonumber(lua, -1);
 
 		dragon_lair_manager::instance().start(ch->map_index(), baseMapIndex, ch->get_guild()->id());
 

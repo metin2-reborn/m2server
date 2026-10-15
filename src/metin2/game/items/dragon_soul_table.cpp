@@ -49,12 +49,12 @@ const std::string ast_material_name[] =
 	"material_ds_refine_holly",
 };
 
-bool dragon_soul_table::read_dragon_soul_table_file(const char * c_pszFileName)
+bool dragon_soul_table::read_dragon_soul_table_file(const char * file_name)
 {
 	loader_ = std::make_unique<group_text_parse_tree_loader>();
 	group_text_parse_tree_loader& loader = *loader_;
 
-	if (false == loader.load(c_pszFileName))
+	if (false == loader.load(file_name))
 	{
 		metin2::log::error("dragon_soul_table.txt load error");
 		return false;
@@ -97,17 +97,17 @@ bool dragon_soul_table::read_dragon_soul_table_file(const char * c_pszFileName)
 	}
 }
 
-bool dragon_soul_table::dragon_soul_group_name(uint8_t bType, std::string& stGroupName) const
+bool dragon_soul_table::dragon_soul_group_name(uint8_t type, std::string& group_name) const
 {
-	dragon_soul_table::map_type_to_name::const_iterator it = map_type_to_name_.find (bType);
+	dragon_soul_table::map_type_to_name::const_iterator it = map_type_to_name_.find (type);
 	if (it != map_type_to_name_.end())
 	{
-		stGroupName = it->second;
+		group_name = it->second;
 		return true;
 	}
 	else
 	{
-		metin2::log::error("Invalid DragonSoul Type({:d})", bType);
+		metin2::log::error("Invalid DragonSoul Type({:d})", type);
 		return false;
 	}
 }
@@ -645,7 +645,7 @@ bool dragon_soul_table::apply_num_settings(uint8_t ds_type, uint8_t grade_idx, i
 	return true;
 }
 
-bool dragon_soul_table::weight(uint8_t ds_type, uint8_t grade_idx, uint8_t step_index, uint8_t strength_idx, float& fWeight)
+bool dragon_soul_table::weight(uint8_t ds_type, uint8_t grade_idx, uint8_t step_index, uint8_t strength_idx, float& weight)
 {
 	if (grade_idx >= DRAGON_SOUL_GRADE_MAX || step_index >= DRAGON_SOUL_STEP_MAX || strength_idx >= DRAGON_SOUL_STRENGTH_MAX)
 	{
@@ -664,7 +664,7 @@ bool dragon_soul_table::weight(uint8_t ds_type, uint8_t grade_idx, uint8_t step_
 	group_node* pDragonSoulGroup = weight_table_node_->child_node(stDragonSoulName);
 	if (nullptr != pDragonSoulGroup)
 	{
-		if (pDragonSoulGroup->group_value(ast_grade_name[grade_idx], ast_step_name[step_index], strength_idx, fWeight))
+		if (pDragonSoulGroup->group_value(ast_grade_name[grade_idx], ast_step_name[step_index], strength_idx, weight))
 		{
 			return true;
 		}
@@ -673,7 +673,7 @@ bool dragon_soul_table::weight(uint8_t ds_type, uint8_t grade_idx, uint8_t step_
 	pDragonSoulGroup = weight_table_node_->child_node("default");
 	if (nullptr != pDragonSoulGroup)
 	{
-		if (!pDragonSoulGroup->group_value(ast_grade_name[grade_idx], ast_step_name[step_index], strength_idx, fWeight))
+		if (!pDragonSoulGroup->group_value(ast_grade_name[grade_idx], ast_step_name[step_index], strength_idx, weight))
 		{
 			metin2::log::error("Invalid float. DragonSoulGroup({}) Grade({}) Row({}) Col({:d}))", stDragonSoulName.c_str(), ast_grade_name[grade_idx].c_str(), ast_step_name[step_index].c_str(), strength_idx);
 			return false;

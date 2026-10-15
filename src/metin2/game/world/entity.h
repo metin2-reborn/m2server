@@ -48,13 +48,13 @@ class entity
 		void			packet_around(const void * data, int bytes, entity * except = nullptr);
 		void			packet_view(const void * data, int bytes, entity * except = nullptr);
 
-		void			bind_desc(desc * _d)     { desc_ = _d; }
+		void			bind_desc(desc * d)     { desc_ = d; }
 		desc *			get_desc() const			{ return desc_; }
 
 		void			set_map_index(int32_t l)	{ map_index_ = l; }
 		int32_t			map_index() const	{ return map_index_; }
 
-		void			set_observer_mode(bool bFlag);
+		void			set_observer_mode(bool flag);
 		bool			is_observer_mode() const	{ return is_observer_; }
 
 	protected:

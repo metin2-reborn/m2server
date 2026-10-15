@@ -30,40 +30,40 @@ auto grid::find_blank(int w, int h) const -> int {
     return -1;
 }
 
-auto grid::put(int iPos, int w, int h) -> bool {
-    if (!is_empty(iPos, w, h)) {
+auto grid::put(int pos, int w, int h) -> bool {
+    if (!is_empty(pos, w, h)) {
         return false;
     }
 
-    fill(iPos, w, h, 1);
+    fill(pos, w, h, 1);
     return true;
 }
 
-void grid::get(int iPos, int w, int h) {
-    if (iPos < 0 || iPos >= width_ * height_) {
+void grid::get(int pos, int w, int h) {
+    if (pos < 0 || pos >= width_ * height_) {
         return;
     }
 
-    fill(iPos, w, h, 0);
+    fill(pos, w, h, 0);
 }
 
 auto grid::size() const -> unsigned int {
     return static_cast<unsigned int>(cells_.size());
 }
 
-auto grid::is_empty(int iPos, int w, int h) const -> bool {
-    if (iPos < 0) {
+auto grid::is_empty(int pos, int w, int h) const -> bool {
+    if (pos < 0) {
         return false;
     }
 
     // The block must lie inside the grid without wrapping into the next row.
-    const int iRow = iPos / width_;
-    if (iRow + h > height_ || iPos % width_ + w > width_) {
+    const int iRow = pos / width_;
+    if (iRow + h > height_ || pos % width_ + w > width_) {
         return false;
     }
 
     for (int y = 0; y < h; ++y) {
-        const auto row = cells_.begin() + iPos + y * width_;
+        const auto row = cells_.begin() + pos + y * width_;
         if (std::any_of(row, row + w, [](char cell) -> bool { return cell != 0; })) {
             return false;
         }
@@ -72,10 +72,10 @@ auto grid::is_empty(int iPos, int w, int h) const -> bool {
     return true;
 }
 
-void grid::fill(int iPos, int w, int h, char value) {
+void grid::fill(int pos, int w, int h, char value) {
     for (int y = 0; y < h; ++y) {
         for (int x = 0; x < w; ++x) {
-            const std::size_t index = iPos + y * width_ + x;
+            const std::size_t index = pos + y * width_ + x;
             if (index < cells_.size()) {
                 cells_[index] = value;
             }

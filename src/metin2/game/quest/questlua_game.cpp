@@ -21,29 +21,29 @@ namespace metin2::game {
 
 namespace quest
 {
-	int game_set_event_flag(lua_State* L)
+	int game_set_event_flag(lua_State* lua)
 	{
 		quest_manager & q = quest_manager::instance();
 
-		if (lua_isstring(L,1) && lua_isnumber(L, 2))
-			q.request_set_event_flag(lua_tostring(L,1), (int)lua_tonumber(L,2));
+		if (lua_isstring(lua,1) && lua_isnumber(lua, 2))
+			q.request_set_event_flag(lua_tostring(lua,1), (int)lua_tonumber(lua,2));
 
 		return 0;
 	}
 
-	int game_get_event_flag(lua_State* L)
+	int game_get_event_flag(lua_State* lua)
 	{
 		quest_manager& q = quest_manager::instance();
 
-		if (lua_isstring(L,1))
-			lua_pushnumber(L, q.event_flag(lua_tostring(L,1)));
+		if (lua_isstring(lua,1))
+			lua_pushnumber(lua, q.event_flag(lua_tostring(lua,1)));
 		else
-			lua_pushnumber(L, 0);
+			lua_pushnumber(lua, 0);
 
 		return 1;
 	}
 
-	int game_request_make_guild(lua_State* L)
+	int game_request_make_guild(lua_State* lua)
 	{
 		quest_manager& q = quest_manager::instance();
 		character * ch = q.current_character_ptr();
@@ -65,23 +65,23 @@ namespace quest
 		return 0;
 	}
 
-	int game_get_safebox_level(lua_State* L)
+	int game_get_safebox_level(lua_State* lua)
 	{
 		quest_manager& q = quest_manager::instance();
-		lua_pushnumber(L, q.current_character_ptr()->safebox_size()/SAFEBOX_PAGE_SIZE);
+		lua_pushnumber(lua, q.current_character_ptr()->safebox_size()/SAFEBOX_PAGE_SIZE);
 		return 1;
 	}
 
-	int game_set_safebox_level(lua_State* L)
+	int game_set_safebox_level(lua_State* lua)
 	{
 		quest_manager& q = quest_manager::instance();
 
 		safebox_change_size_packet p;
 		p.id = q.current_character_ptr()->get_desc()->get_account_table().id;
-		p.size = (int)lua_tonumber(L,-1);
+		p.size = (int)lua_tonumber(lua,-1);
 		db_clientdesc->db_packet(HEADER_GD_SAFEBOX_CHANGE_SIZE,  q.current_character_ptr()->get_desc()->handle(), &p, sizeof(p));
 
-		q.current_character_ptr()->set_safebox_size(SAFEBOX_PAGE_SIZE * (int)lua_tonumber(L,-1));
+		q.current_character_ptr()->set_safebox_size(SAFEBOX_PAGE_SIZE * (int)lua_tonumber(lua,-1));
 		return 0;
 	}
 
@@ -103,15 +103,15 @@ namespace quest
 		return 0;
 	}
 
-	int game_drop_item(lua_State* L)
+	int game_drop_item(lua_State* lua)
 	{
 		//
 		// Syntax: game.drop_item(50050, 1)
 		//
 		character * ch = quest_manager::instance().current_character_ptr();
 
-		uint32_t item_vnum = (uint32_t) lua_tonumber(L, 1);
-		int count = (int) lua_tonumber(L, 2);
+		uint32_t item_vnum = (uint32_t) lua_tonumber(lua, 1);
+		int count = (int) lua_tonumber(lua, 2);
 		int32_t x = ch->x();
 		int32_t y = ch->y();
 
@@ -133,19 +133,19 @@ namespace quest
 		return 0;
 	}
 
-	int game_drop_item_with_ownership(lua_State* L)
+	int game_drop_item_with_ownership(lua_State* lua)
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
 		item * item = nullptr;
-		switch (lua_gettop(L))
+		switch (lua_gettop(lua))
 		{
 		case 1:
-			item = item_manager::instance().create_item((uint32_t) lua_tonumber(L, 1));
+			item = item_manager::instance().create_item((uint32_t) lua_tonumber(lua, 1));
 			break;
 		case 2:
 		case 3:
-			item = item_manager::instance().create_item((uint32_t) lua_tonumber(L, 1), (int) lua_tonumber(L, 2));
+			item = item_manager::instance().create_item((uint32_t) lua_tonumber(lua, 1), (int) lua_tonumber(lua, 2));
 			break;
 		default:
 			return 0;
@@ -156,9 +156,9 @@ namespace quest
 			return 0;
 		}
 
-		if (lua_isnumber(L, 3))
+		if (lua_isnumber(lua, 3))
 		{
-			int sec = (int) lua_tonumber(L, 3);
+			int sec = (int) lua_tonumber(lua, 3);
 			if (sec <= 0)
 			{
 				item->set_ownership( ch );
@@ -181,7 +181,7 @@ namespace quest
 		return 0;
 	}
 
-	int game_web_mall(lua_State* L)
+	int game_web_mall(lua_State* lua)
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 

@@ -63,24 +63,24 @@ static const uint32_t sub_skill_vnums[] =
 	SKILL_RESIST_PENETRATE
 };
 
-time_t character::skill_next_read_time(uint32_t dwVnum) const
+time_t character::skill_next_read_time(uint32_t vnum) const
 {
-	if (dwVnum >= SKILL_MAX_NUM)
+	if (vnum >= SKILL_MAX_NUM)
 	{
-		metin2::log::error("vnum overflow (vnum: {:d})", dwVnum);
+		metin2::log::error("vnum overflow (vnum: {:d})", vnum);
 		return 0;
 	}
 
-	return skill_levels_ ? skill_levels_[dwVnum].t_next_read : 0;
+	return skill_levels_ ? skill_levels_[vnum].t_next_read : 0;
 }
 
-void character::set_skill_next_read_time(uint32_t dwVnum, time_t time)
+void character::set_skill_next_read_time(uint32_t vnum, time_t time)
 {
-	if (skill_levels_ && dwVnum < SKILL_MAX_NUM)
-		skill_levels_[dwVnum].t_next_read = time;
+	if (skill_levels_ && vnum < SKILL_MAX_NUM)
+		skill_levels_[vnum].t_next_read = time;
 }
 
-bool skill_use_info::hit_once(uint32_t dwVnum)
+bool skill_use_info::hit_once(uint32_t vnum)
 {
 	// if it wasn't used, it can't hit.
 	if (!used)
@@ -88,7 +88,7 @@ bool skill_use_info::hit_once(uint32_t dwVnum)
 
 	metin2::log::debug( "__HitOnce NextUse {:d} current {:d} count {:d} scount {:d}", next_skill_usable_time, get_dword_time(), hit_count, splash_count);
 
-	if (next_skill_usable_time && next_skill_usable_time<get_dword_time() && dwVnum != SKILL_MUYEONG && dwVnum != SKILL_HORSE_WILDATTACK)
+	if (next_skill_usable_time && next_skill_usable_time<get_dword_time() && vnum != SKILL_MUYEONG && vnum != SKILL_HORSE_WILDATTACK)
 	{
 		metin2::log::debug( "__HitOnce can't hit");
 
@@ -110,9 +110,9 @@ bool skill_use_info::hit_once(uint32_t dwVnum)
 	return false;
 }
 
-bool skill_use_info::use_skill(bool isGrandMaster, uint32_t vid_value, uint32_t dwCooltime, int splashcount, int hitcount, int range_value)
+bool skill_use_info::use_skill(bool is_grand_master_value, uint32_t vid_value, uint32_t cooltime, int splashcount, int hitcount, int range_value)
 {
-	this->is_grand_master = isGrandMaster;
+	this->is_grand_master = is_grand_master_value;
 	uint32_t dwCur = get_dword_time();
 
 	// cooldown has not finished yet.
@@ -125,8 +125,8 @@ bool skill_use_info::use_skill(bool isGrandMaster, uint32_t vid_value, uint32_t 
 
 	used = true;
 
-	if (dwCooltime)
-		next_skill_usable_time = dwCur + dwCooltime;
+	if (cooltime)
+		next_skill_usable_time = dwCur + cooltime;
 	else
 		next_skill_usable_time = 0;
 
@@ -134,7 +134,7 @@ bool skill_use_info::use_skill(bool isGrandMaster, uint32_t vid_value, uint32_t 
 	max_hit_count = hit_count = hitcount;
 
 	if (metin2::config::test_server())
-		metin2::log::info( "UseSkill NextUse {:d}  current {:d} cooltime {:d} hitcount {:d}/{:d}", next_skill_usable_time, dwCur, dwCooltime, hit_count, max_hit_count);
+		metin2::log::info( "UseSkill NextUse {:d}  current {:d} cooltime {:d} hitcount {:d}/{:d}", next_skill_usable_time, dwCur, cooltime, hit_count, max_hit_count);
 
 	vid = vid_value;
 	splash_count = splashcount;
@@ -151,15 +151,15 @@ void character::set_affected_eunhyung()
 	affected_eunhyung_level_ = skill_power(SKILL_EUNHYUNG); 
 }
 
-void character::set_skill_group(uint8_t bSkillGroup)
+void character::set_skill_group(uint8_t skill_group_value)
 {
-	if (bSkillGroup > 2) 
+	if (skill_group_value > 2) 
 		return;
 
 	if (level() < 5)
 		return;
 
-	points_.skill_group = bSkillGroup; 
+	points_.skill_group = skill_group_value; 
 
 	packet_gc_change_skill_group p;
 	p.header = HEADER_GC_SKILL_GROUP;
@@ -185,42 +185,42 @@ void character::skill_level_packet()
 	get_desc()->packet(&pack, sizeof(packet_gc_skill_level));
 }
 
-void character::set_skill_level(uint32_t dwVnum, uint8_t bLev)
+void character::set_skill_level(uint32_t vnum, uint8_t lev)
 {
 	if (nullptr == skill_levels_)
 		return;
 
-	if (dwVnum >= SKILL_MAX_NUM)
+	if (vnum >= SKILL_MAX_NUM)
 	{
-		metin2::log::error("vnum overflow (vnum {:d})", dwVnum);
+		metin2::log::error("vnum overflow (vnum {:d})", vnum);
 		return;
 	}
 
-	skill_levels_[dwVnum].level = std::min<int>(40, bLev);
+	skill_levels_[vnum].level = std::min<int>(40, lev);
 
-	if (bLev >= 40)
-		skill_levels_[dwVnum].master_type = SKILL_PERFECT_MASTER;
-	else if (bLev >= 30)
-		skill_levels_[dwVnum].master_type = SKILL_GRAND_MASTER;
-	else if (bLev >= 20)
-		skill_levels_[dwVnum].master_type = SKILL_MASTER;
+	if (lev >= 40)
+		skill_levels_[vnum].master_type = SKILL_PERFECT_MASTER;
+	else if (lev >= 30)
+		skill_levels_[vnum].master_type = SKILL_GRAND_MASTER;
+	else if (lev >= 20)
+		skill_levels_[vnum].master_type = SKILL_MASTER;
 	else
-		skill_levels_[dwVnum].master_type = SKILL_NORMAL;
+		skill_levels_[vnum].master_type = SKILL_NORMAL;
 }
 
-bool character::is_learnable_skill(uint32_t dwSkillVnum) const
+bool character::is_learnable_skill(uint32_t skill_vnum) const
 {
-	const skill_proto * pkSkill = skill_manager::instance().get(dwSkillVnum);
+	const skill_proto * pkSkill = skill_manager::instance().get(skill_vnum);
 
 	if (!pkSkill)
 		return false;
 
-	if (skill_level(dwSkillVnum) >= SKILL_MAX_LEVEL)
+	if (skill_level(skill_vnum) >= SKILL_MAX_LEVEL)
 		return false;
 
 	if (pkSkill->type == 0)
 	{
-		if (skill_level(dwSkillVnum) >= pkSkill->max_level)
+		if (skill_level(skill_vnum) >= pkSkill->max_level)
 			return false;
 
 		return true;
@@ -228,7 +228,7 @@ bool character::is_learnable_skill(uint32_t dwSkillVnum) const
 
 	if (pkSkill->type == 5)
 	{
-		if (dwSkillVnum == SKILL_HORSE_WILDATTACK_RANGE && job() != JOB_ASSASSIN)
+		if (skill_vnum == SKILL_HORSE_WILDATTACK_RANGE && job() != JOB_ASSASSIN)
 			return false; 
 
 		return true;
@@ -242,11 +242,11 @@ bool character::is_learnable_skill(uint32_t dwSkillVnum) const
 
 	if (6 == pkSkill->type)
 	{
-		if (SKILL_7_A_ANTI_TANHWAN <= dwSkillVnum && dwSkillVnum <= SKILL_7_D_ANTI_YONGBI)
+		if (SKILL_7_A_ANTI_TANHWAN <= skill_vnum && skill_vnum <= SKILL_7_D_ANTI_YONGBI)
 		{
 			for (int i=0 ; i < 4 ; i++)
 			{
-				if (unsigned(SKILL_7_A_ANTI_TANHWAN + i) != dwSkillVnum)
+				if (unsigned(SKILL_7_A_ANTI_TANHWAN + i) != skill_vnum)
 				{
 					if (0 != skill_level(SKILL_7_A_ANTI_TANHWAN + i))
 					{
@@ -258,11 +258,11 @@ bool character::is_learnable_skill(uint32_t dwSkillVnum) const
 			return true;
 		}
 
-		if (SKILL_8_A_ANTI_GIGONGCHAM <= dwSkillVnum && dwSkillVnum <= SKILL_8_D_ANTI_BYEURAK)
+		if (SKILL_8_A_ANTI_GIGONGCHAM <= skill_vnum && skill_vnum <= SKILL_8_D_ANTI_BYEURAK)
 		{
 			for (int i=0 ; i < 4 ; i++)
 			{
-				if (unsigned(SKILL_8_A_ANTI_GIGONGCHAM + i) != dwSkillVnum)
+				if (unsigned(SKILL_8_A_ANTI_GIGONGCHAM + i) != skill_vnum)
 				{
 					if (0 != skill_level(SKILL_8_A_ANTI_GIGONGCHAM + i))
 						return false;
@@ -277,20 +277,20 @@ bool character::is_learnable_skill(uint32_t dwSkillVnum) const
 }
 
 // ADD_GRANDMASTER_SKILL
-bool character::learn_grand_master_skill(uint32_t dwSkillVnum)
+bool character::learn_grand_master_skill(uint32_t skill_vnum)
 {
-	skill_proto * pkSk = skill_manager::instance().get(dwSkillVnum);
+	skill_proto * pkSk = skill_manager::instance().get(skill_vnum);
 
 	if (!pkSk)
 		return false;
 
-	if (!is_learnable_skill(dwSkillVnum))
+	if (!is_learnable_skill(skill_vnum))
 	{
 		chat_packet(CHAT_TYPE_INFO, lc_text("수련할 수 없는 스킬입니다."));
 		return false;
 	}
 
-	metin2::log::info( "learn grand master skill[{:d}] cur {:d}, next {:d}", dwSkillVnum, get_global_time(), skill_next_read_time(dwSkillVnum));
+	metin2::log::info( "learn grand master skill[{:d}] cur {:d}, next {:d}", skill_vnum, get_global_time(), skill_next_read_time(skill_vnum));
 
 	// if bType is 0, can be trained with books from the start
 	if (pkSk->type == 0)
@@ -299,9 +299,9 @@ bool character::learn_grand_master_skill(uint32_t dwSkillVnum)
 		return false;
 	}
 
-	if (skill_master_type(dwSkillVnum) != SKILL_GRAND_MASTER)
+	if (skill_master_type(skill_vnum) != SKILL_GRAND_MASTER)
 	{
-		if (skill_master_type(dwSkillVnum) > SKILL_GRAND_MASTER)
+		if (skill_master_type(skill_vnum) > SKILL_GRAND_MASTER)
 			chat_packet(CHAT_TYPE_INFO, lc_text("퍼펙트 마스터된 스킬입니다. 더 이상 수련 할 수 없습니다."));
 		else
 			chat_packet(CHAT_TYPE_INFO, lc_text("이 스킬은 아직 그랜드 마스터 수련을 할 경지에 이르지 않았습니다."));
@@ -311,14 +311,14 @@ bool character::learn_grand_master_skill(uint32_t dwSkillVnum)
 	std::string strTrainSkill;
 	{
 		std::ostringstream os;
-		os << "training_grandmaster_skill.skill" << dwSkillVnum;
+		os << "training_grandmaster_skill.skill" << skill_vnum;
 		strTrainSkill = os.str();
 	}
 
 	// probability is calculated here.
-	uint8_t bLastLevel = skill_level(dwSkillVnum);
+	uint8_t bLastLevel = skill_level(skill_vnum);
 
-	int idx = std::min(9, skill_level(dwSkillVnum) - 30);
+	int idx = std::min(9, skill_level(skill_vnum) - 30);
 
 	metin2::log::info( "LearnGrandMasterSkill {} table idx {:d} value {:d}", name(), idx, grand_master_skill_book_count_for_level_up[idx]);
 
@@ -356,23 +356,23 @@ bool character::learn_grand_master_skill(uint32_t dwSkillVnum)
 
 	if (bSuccess)
 	{
-		skill_level_up(dwSkillVnum, SKILL_UP_BY_QUEST);
+		skill_level_up(skill_vnum, SKILL_UP_BY_QUEST);
 	}
 
-	set_skill_next_read_time(dwSkillVnum, nextTime);
+	set_skill_next_read_time(skill_vnum, nextTime);
 
-	if (bLastLevel == skill_level(dwSkillVnum))
+	if (bLastLevel == skill_level(skill_vnum))
 	{
 		chat_packet(CHAT_TYPE_TALKING, lc_text("크윽, 기가 역류하고 있어! 이거 설마 주화입마인가!? 젠장!"));
 		chat_packet(CHAT_TYPE_INFO, lc_text("수련이 실패로 끝났습니다. 다시 도전해주시기 바랍니다."));
-		log_manager::instance().char_log(this, dwSkillVnum, "GM_READ_FAIL", "");
+		log_manager::instance().char_log(this, skill_vnum, "GM_READ_FAIL", "");
 		return false;
 	}
 
 	chat_packet(CHAT_TYPE_TALKING, lc_text("몸에서 뭔가 힘이 터져 나오는 기분이야!"));
 	chat_packet(CHAT_TYPE_TALKING, lc_text("뜨거운 무엇이 계속 용솟음치고 있어! 이건, 이것은!"));
 	chat_packet(CHAT_TYPE_INFO, lc_text("더 높은 경지의 수련을 성공적으로 끝내셨습니다."));
-	log_manager::instance().char_log(this, dwSkillVnum, "GM_READ_SUCCESS", "");
+	log_manager::instance().char_log(this, skill_vnum, "GM_READ_SUCCESS", "");
 	return true;
 }
 // END_OF_ADD_GRANDMASTER_SKILL
@@ -385,14 +385,14 @@ static bool fn_should_check_exp(character * ch)
 	return false;
 }
 
-bool character::learn_skill_by_book(uint32_t dwSkillVnum, uint8_t bProb)
+bool character::learn_skill_by_book(uint32_t skill_vnum, uint8_t prob)
 {
-	const skill_proto* pkSk = skill_manager::instance().get(dwSkillVnum);
+	const skill_proto* pkSk = skill_manager::instance().get(skill_vnum);
 
 	if (!pkSk)
 		return false;
 
-	if (!is_learnable_skill(dwSkillVnum))
+	if (!is_learnable_skill(skill_vnum))
 	{
 		chat_packet(CHAT_TYPE_INFO, lc_text("수련할 수 없는 스킬입니다."));
 		return false;
@@ -414,9 +414,9 @@ bool character::learn_skill_by_book(uint32_t dwSkillVnum, uint8_t bProb)
 	// if bType is 0, can be trained with books from the start
 	if (pkSk->type != 0)
 	{
-		if (skill_master_type(dwSkillVnum) != SKILL_MASTER)
+		if (skill_master_type(skill_vnum) != SKILL_MASTER)
 		{
-			if (skill_master_type(dwSkillVnum) > SKILL_MASTER)
+			if (skill_master_type(skill_vnum) > SKILL_MASTER)
 				chat_packet(CHAT_TYPE_INFO, lc_text("이 스킬은 책으로 더이상 수련할 수 없습니다."));
 			else
 				chat_packet(CHAT_TYPE_INFO, lc_text("이 스킬은 아직 책으로 수련할 경지에 이르지 않았습니다."));
@@ -424,7 +424,7 @@ bool character::learn_skill_by_book(uint32_t dwSkillVnum, uint8_t bProb)
 		}
 	}
 
-	if (get_global_time() < skill_next_read_time(dwSkillVnum))
+	if (get_global_time() < skill_next_read_time(skill_vnum))
 	{
 		if (!(metin2::config::test_server() && quest::quest_manager::instance().event_flag("no_read_delay")))
 		{
@@ -436,47 +436,47 @@ bool character::learn_skill_by_book(uint32_t dwSkillVnum, uint8_t bProb)
 			}
 			else 	    
 			{
-				skill_learn_wait_more_time_message(skill_next_read_time(dwSkillVnum) - get_global_time());
+				skill_learn_wait_more_time_message(skill_next_read_time(skill_vnum) - get_global_time());
 				return false;
 			}
 		}
 	}
 
 	// probability is calculated here.
-	uint8_t bLastLevel = skill_level(dwSkillVnum);
+	uint8_t bLastLevel = skill_level(skill_vnum);
 
-	if (bProb != 0)
+	if (prob != 0)
 	{
 		// SKILL_BOOK_BONUS
 		if (find_affect(AFFECT_SKILL_BOOK_BONUS))
 		{
-			bProb += bProb / 2;
+			prob += prob / 2;
 			remove_affect(AFFECT_SKILL_BOOK_BONUS);
 		}
 		// END_OF_SKILL_BOOK_BONUS
 
-		metin2::log::info( "LearnSkillByBook Pct {:d} prob {:d}", dwSkillVnum, bProb);
+		metin2::log::info( "LearnSkillByBook Pct {:d} prob {:d}", skill_vnum, prob);
 
-		if (number(1, 100) <= bProb)
+		if (number(1, 100) <= prob)
 		{
 			if (metin2::config::test_server())
-				metin2::log::info( "LearnSkillByBook {:d} SUCC", dwSkillVnum);
+				metin2::log::info( "LearnSkillByBook {:d} SUCC", skill_vnum);
 
-			skill_level_up(dwSkillVnum, SKILL_UP_BY_BOOK);
+			skill_level_up(skill_vnum, SKILL_UP_BY_BOOK);
 		}
 		else
 		{
 			if (metin2::config::test_server())
-				metin2::log::info( "LearnSkillByBook {:d} FAIL", dwSkillVnum);
+				metin2::log::info( "LearnSkillByBook {:d} FAIL", skill_vnum);
 		}
 	}
 	else
 	{
-		int idx = std::min(9, skill_level(dwSkillVnum) - 20);
+		int idx = std::min(9, skill_level(skill_vnum) - 20);
 
 		metin2::log::info( "LearnSkillByBook {} table idx {:d} value {:d}", name(), idx, skill_book_count_for_level_up[idx]);
 
-		int need_bookcount = skill_level(dwSkillVnum) - 20;
+		int need_bookcount = skill_level(skill_vnum) - 20;
 
 		point_change(POINT_EXP, -need_exp);
 
@@ -487,7 +487,7 @@ bool character::learn_skill_by_book(uint32_t dwSkillVnum, uint8_t bProb)
 		{
 			char flag[128+1];
 			memset(flag, 0, sizeof(flag));
-			snprintf(flag, sizeof(flag), "traning_master_skill.%u.read_count", dwSkillVnum);
+			snprintf(flag, sizeof(flag), "traning_master_skill.%u.read_count", skill_vnum);
 
 			int read_count = pPC->flag(flag);
 			int percent = 65;
@@ -503,11 +503,11 @@ bool character::learn_skill_by_book(uint32_t dwSkillVnum, uint8_t bProb)
 				// book reading succeeded
 				if (read_count >= need_bookcount)
 				{
-					skill_level_up(dwSkillVnum, SKILL_UP_BY_BOOK);
+					skill_level_up(skill_vnum, SKILL_UP_BY_BOOK);
 					pPC->set_flag(flag, 0);
 
 					chat_packet(CHAT_TYPE_INFO, lc_text("책으로 더 높은 경지의 수련을 성공적으로 끝내셨습니다."));
-					log_manager::instance().char_log(this, dwSkillVnum, "READ_SUCCESS", "");
+					log_manager::instance().char_log(this, skill_vnum, "READ_SUCCESS", "");
 					return true;
 				}
 				else
@@ -542,24 +542,24 @@ bool character::learn_skill_by_book(uint32_t dwSkillVnum, uint8_t bProb)
 		// END_OF_INTERNATIONAL_VERSION
 	}
 
-	if (bLastLevel != skill_level(dwSkillVnum))
+	if (bLastLevel != skill_level(skill_vnum))
 	{
 		chat_packet(CHAT_TYPE_TALKING, lc_text("몸에서 뭔가 힘이 터져 나오는 기분이야!"));
 		chat_packet(CHAT_TYPE_TALKING, lc_text("뜨거운 무엇이 계속 용솟음치고 있어! 이건, 이것은!"));
 		chat_packet(CHAT_TYPE_INFO, lc_text("책으로 더 높은 경지의 수련을 성공적으로 끝내셨습니다."));
-		log_manager::instance().char_log(this, dwSkillVnum, "READ_SUCCESS", "");
+		log_manager::instance().char_log(this, skill_vnum, "READ_SUCCESS", "");
 	}
 	else
 	{
 		chat_packet(CHAT_TYPE_TALKING, lc_text("크윽, 기가 역류하고 있어! 이거 설마 주화입마인가!? 젠장!"));
 		chat_packet(CHAT_TYPE_INFO, lc_text("수련이 실패로 끝났습니다. 다시 도전해주시기 바랍니다."));
-		log_manager::instance().char_log(this, dwSkillVnum, "READ_FAIL", "");
+		log_manager::instance().char_log(this, skill_vnum, "READ_FAIL", "");
 	}
 
 	return true;
 }
 
-bool character::skill_level_down(uint32_t dwVnum)
+bool character::skill_level_down(uint32_t vnum_value)
 {
 	if (nullptr == skill_levels_)
 		return false;
@@ -570,15 +570,15 @@ bool character::skill_level_down(uint32_t dwVnum)
 	if (is_polymorphed())
 		return false;
 
-	skill_proto * pkSk = skill_manager::instance().get(dwVnum);
+	skill_proto * pkSk = skill_manager::instance().get(vnum_value);
 
 	if (!pkSk)
 	{
-		metin2::log::error("There is no such skill by number {:d}", dwVnum);
+		metin2::log::error("There is no such skill by number {:d}", vnum_value);
 		return false;
 	}
 
-	if (!is_learnable_skill(dwVnum))
+	if (!is_learnable_skill(vnum_value))
 		return false;
 
 	if (skill_master_type(pkSk->vnum) != SKILL_NORMAL)
@@ -626,7 +626,7 @@ bool character::skill_level_down(uint32_t dwVnum)
 	return true;
 }
 
-void character::skill_level_up(uint32_t dwVnum, uint8_t bMethod)
+void character::skill_level_up(uint32_t vnum_value, uint8_t method)
 {
 	if (nullptr == skill_levels_)
 		return;
@@ -640,27 +640,27 @@ void character::skill_level_up(uint32_t dwVnum, uint8_t bMethod)
 		return;
 	}
 
-	if (SKILL_7_A_ANTI_TANHWAN <= dwVnum && dwVnum <= SKILL_8_D_ANTI_BYEURAK)
+	if (SKILL_7_A_ANTI_TANHWAN <= vnum_value && vnum_value <= SKILL_8_D_ANTI_BYEURAK)
 	{
-		if (0 == skill_level(dwVnum))
+		if (0 == skill_level(vnum_value))
 			return;
 	}
 
-	const skill_proto* pkSk = skill_manager::instance().get(dwVnum);
+	const skill_proto* pkSk = skill_manager::instance().get(vnum_value);
 
 	if (!pkSk)
 	{
-		metin2::log::error("There is no such skill by number (vnum {:d})", dwVnum);
+		metin2::log::error("There is no such skill by number (vnum {:d})", vnum_value);
 		return;
 	}
 
 	if (pkSk->vnum >= SKILL_MAX_NUM)
 	{
-		metin2::log::error("Skill Vnum overflow (vnum {:d})", dwVnum);
+		metin2::log::error("Skill Vnum overflow (vnum {:d})", vnum_value);
 		return;
 	}
 
-	if (!is_learnable_skill(dwVnum))
+	if (!is_learnable_skill(vnum_value))
 		return;
 
 	// grand master can only be done through quests
@@ -669,7 +669,7 @@ void character::skill_level_up(uint32_t dwVnum, uint8_t bMethod)
 		switch (skill_master_type(pkSk->vnum))
 		{
 			case SKILL_GRAND_MASTER:
-				if (bMethod != SKILL_UP_BY_QUEST)
+				if (method != SKILL_UP_BY_QUEST)
 					return;
 				break;
 
@@ -678,7 +678,7 @@ void character::skill_level_up(uint32_t dwVnum, uint8_t bMethod)
 		}
 	}
 
-	if (bMethod == SKILL_UP_BY_POINT)
+	if (method == SKILL_UP_BY_POINT)
 	{
 		// can only train when not master
 		if (skill_master_type(pkSk->vnum) != SKILL_NORMAL)
@@ -687,7 +687,7 @@ void character::skill_level_up(uint32_t dwVnum, uint8_t bMethod)
 		if (is_set(pkSk->flag, SKILL_FLAG_DISABLE_BY_POINT_UP))
 			return;
 	}
-	else if (bMethod == SKILL_UP_BY_BOOK)
+	else if (method == SKILL_UP_BY_BOOK)
 	{
 		if (pkSk->type != 0) // skills not belonging to a job or that can't be raised with points can be learned with books from the start.
 			if (skill_master_type(pkSk->vnum) != SKILL_MASTER)
@@ -705,7 +705,7 @@ void character::skill_level_up(uint32_t dwVnum, uint8_t bMethod)
 	if (!skill_group())
 		return;
 
-	if (bMethod == SKILL_UP_BY_POINT)
+	if (method == SKILL_UP_BY_POINT)
 	{
 		int idx;
 
@@ -954,43 +954,43 @@ EVENTFUNC(chain_lightning_event)
 	return 0;
 }
 
-void set_poly_var_for_attack(character * ch, skill_proto * pkSk, item * pkWeapon)
+void set_poly_var_for_attack(character * ch, skill_proto * sk, item * weapon)
 {
 	if (ch->is_pc())
 	{
-		if (pkWeapon && pkWeapon->type() == ITEM_WEAPON)
+		if (weapon && weapon->type() == ITEM_WEAPON)
 		{
-			int iWep = number(pkWeapon->value(3), pkWeapon->value(4));
-			iWep += pkWeapon->value(5);
+			int iWep = number(weapon->value(3), weapon->value(4));
+			iWep += weapon->value(5);
 
-			int iMtk = number(pkWeapon->value(1), pkWeapon->value(2));
-			iMtk += pkWeapon->value(5);
+			int iMtk = number(weapon->value(1), weapon->value(2));
+			iMtk += weapon->value(5);
 
-			pkSk->set_point_var("wep", iWep);
-			pkSk->set_point_var("mtk", iMtk);
-			pkSk->set_point_var("mwep", iMtk);
+			sk->set_point_var("wep", iWep);
+			sk->set_point_var("mtk", iMtk);
+			sk->set_point_var("mwep", iMtk);
 		}
 		else
 		{
-			pkSk->set_point_var("wep", 0);
-			pkSk->set_point_var("mtk", 0);
-			pkSk->set_point_var("mwep", 0);
+			sk->set_point_var("wep", 0);
+			sk->set_point_var("mtk", 0);
+			sk->set_point_var("mwep", 0);
 		}
 	}
 	else
 	{
 		int iWep = number(ch->mob_damage_min(), ch->mob_damage_max());
-		pkSk->set_point_var("wep", iWep);
-		pkSk->set_point_var("mwep", iWep);
-		pkSk->set_point_var("mtk", iWep);
+		sk->set_point_var("wep", iWep);
+		sk->set_point_var("mwep", iWep);
+		sk->set_point_var("mtk", iWep);
 	}
 }
 
 struct func_splash_damage
 {
-	func_splash_damage(int x_value, int y_value, skill_proto * pkSk, character * pkChr, int iAmount, int iAG, int iMaxHit, item * pkWeapon, bool bDisableCooltime, skill_use_info* pInfo, uint8_t bUseSkillPower)
+	func_splash_damage(int x_value, int y_value, skill_proto * sk_value, character * chr_value, int amount_value, int ag, int max_hit_value, item * weapon_value, bool disable_cooltime_value, skill_use_info* info_value, uint8_t use_skill_power_value)
 		:
-		x(x_value), y(y_value), sk(pkSk), chr(pkChr), amount(iAmount), count(0), max_hit(iMaxHit), weapon(pkWeapon), disable_cooltime(bDisableCooltime), info(pInfo), use_skill_power(bUseSkillPower)
+		x(x_value), y(y_value), sk(sk_value), chr(chr_value), amount(amount_value), count(0), max_hit(max_hit_value), weapon(weapon_value), disable_cooltime(disable_cooltime_value), info(info_value), use_skill_power(use_skill_power_value)
 		{
 		}
 
@@ -1440,20 +1440,20 @@ struct func_splash_damage
 
 struct func_splash_affect
 {
-	func_splash_affect(character * ch, int x_value, int y_value, int iDist, uint32_t dwVnum, uint8_t bPointOn, int iAmount, uint32_t dwAffectFlag, int iDuration, int iSPCost, bool bOverride, int iMaxHit)
+	func_splash_affect(character * ch, int x_value, int y_value, int dist_value, uint32_t vnum_value, uint8_t point_on_value, int amount_value, uint32_t affect_flag_value, int duration_value, int sp_cost_value, bool override_value, int max_hit_value)
 	{
 		x = x_value;
 		y = y_value;
-		dist = iDist;
-		vnum = dwVnum;
-		point_on = bPointOn;
-		amount = iAmount;
-		affect_flag = dwAffectFlag;
-		duration = iDuration;
-		sp_cost = iSPCost;
-		override = bOverride;
+		dist = dist_value;
+		vnum = vnum_value;
+		point_on = point_on_value;
+		amount = amount_value;
+		affect_flag = affect_flag_value;
+		duration = duration_value;
+		sp_cost = sp_cost_value;
+		override = override_value;
 		chr_attacker = ch;
-		max_hit = iMaxHit;
+		max_hit = max_hit_value;
 		count = 0;
 	}
 
@@ -1508,7 +1508,7 @@ EVENTINFO(skill_gwihwan_info)
 
 };
 
-int character::compute_skill_at_position(uint32_t dwVnum, const pixel_position& posTarget, uint8_t bSkillLevel)
+int character::compute_skill_at_position(uint32_t vnum_value, const pixel_position& pos_target, uint8_t skill_level_value)
 {
 	if (get_mount_vnum())
 		return BATTLE_NONE;
@@ -1519,7 +1519,7 @@ int character::compute_skill_at_position(uint32_t dwVnum, const pixel_position& 
 	if (metin2::config::game().skill_disable)
 		return BATTLE_NONE;
 
-	skill_proto * pkSk = skill_manager::instance().get(dwVnum);
+	skill_proto * pkSk = skill_manager::instance().get(vnum_value);
 
 	if (!pkSk)
 		return BATTLE_NONE;
@@ -1527,7 +1527,7 @@ int character::compute_skill_at_position(uint32_t dwVnum, const pixel_position& 
 	if (metin2::config::test_server())
 	{
 		metin2::log::info( "ComputeSkillAtPosition {} vnum {:d} x {:d} y {:d} level {:d}", 
-				name(), dwVnum, posTarget.x, posTarget.y, bSkillLevel); 
+				name(), vnum_value, pos_target.x, pos_target.y, skill_level_value); 
 	}
 
 	// skills used on myself use my position.
@@ -1536,15 +1536,15 @@ int character::compute_skill_at_position(uint32_t dwVnum, const pixel_position& 
 	if (!is_set(pkSk->flag, SKILL_FLAG_SPLASH))
 		return BATTLE_NONE;
 
-	if (0 == bSkillLevel)
+	if (0 == skill_level_value)
 	{
-		if ((bSkillLevel = skill_level(pkSk->vnum)) == 0)
+		if ((skill_level_value = skill_level(pkSk->vnum)) == 0)
 		{
 			return BATTLE_NONE;
 		}
 	}
 
-	const float k = 1.0 * skill_power(pkSk->vnum, bSkillLevel) * pkSk->max_level / 100;
+	const float k = 1.0 * skill_power(pkSk->vnum, skill_level_value) * pkSk->max_level / 100;
 
 	pkSk->set_point_var("k", k);
 	pkSk->splash_around_damage_adjust_poly.set_var("k", k);
@@ -1634,7 +1634,7 @@ int character::compute_skill_at_position(uint32_t dwVnum, const pixel_position& 
 		{
 			int iAG = 0;
 
-			func_splash_damage f(posTarget.x, posTarget.y, pkSk, this, iAmount, iAG, pkSk->max_hit, pkWeapon, disable_cooltime_, is_pc()?&skill_use_info_[dwVnum]:nullptr, skill_power(dwVnum, bSkillLevel));
+			func_splash_damage f(pos_target.x, pos_target.y, pkSk, this, iAmount, iAG, pkSk->max_hit, pkWeapon, disable_cooltime_, is_pc()?&skill_use_info_[vnum_value]:nullptr, skill_power(vnum_value, skill_level_value));
 
 			if (is_set(pkSk->flag, SKILL_FLAG_SPLASH))
 			{
@@ -1651,8 +1651,8 @@ int character::compute_skill_at_position(uint32_t dwVnum, const pixel_position& 
 			int iDur = (int) pkSk->duration_poly.eval();
 
 			if (is_pc())
-				if (!(dwVnum >= GUILD_SKILL_START && dwVnum <= GUILD_SKILL_END)) // guild skills have no cooldown handling.
-					if (!disable_cooltime_ && !skill_use_info_[dwVnum].hit_once(dwVnum) && dwVnum != SKILL_MUYEONG)
+				if (!(vnum_value >= GUILD_SKILL_START && vnum_value <= GUILD_SKILL_END)) // guild skills have no cooldown handling.
+					if (!disable_cooltime_ && !skill_use_info_[vnum_value].hit_once(vnum_value) && vnum_value != SKILL_MUYEONG)
 					{
 						return BATTLE_NONE;
 					}
@@ -1667,7 +1667,7 @@ int character::compute_skill_at_position(uint32_t dwVnum, const pixel_position& 
 				{
 					if (get_sectree())
 					{
-						func_splash_affect f(this, posTarget.x, posTarget.y, pkSk->splash_range, pkSk->vnum, pkSk->point_on, iAmount, pkSk->affect_flag, iDur, 0, true, pkSk->max_hit);
+						func_splash_affect f(this, pos_target.x, pos_target.y, pkSk->splash_range, pkSk->vnum, pkSk->point_on, iAmount, pkSk->affect_flag, iDur, 0, true, pkSk->max_hit);
 						get_sectree()->for_each_around(f);
 					}
 				}
@@ -1691,7 +1691,7 @@ int character::compute_skill_at_position(uint32_t dwVnum, const pixel_position& 
 				{
 					if (get_sectree())
 					{
-						func_splash_affect f(this, posTarget.x, posTarget.y, pkSk->splash_range, pkSk->vnum, pkSk->point_on2, iAmount2, pkSk->affect_flag2, iDur, 0, !bAdded, pkSk->max_hit);
+						func_splash_affect f(this, pos_target.x, pos_target.y, pkSk->splash_range, pkSk->vnum, pkSk->point_on2, iAmount2, pkSk->affect_flag2, iDur, 0, !bAdded, pkSk->max_hit);
 						get_sectree()->for_each_around(f);
 					}
 				}
@@ -1718,7 +1718,7 @@ int character::compute_skill_at_position(uint32_t dwVnum, const pixel_position& 
 				{
 					if (get_sectree())
 					{
-						func_splash_affect f(this, posTarget.x, posTarget.y, pkSk->splash_range, pkSk->vnum, pkSk->point_on3, iAmount3, 0 /*pkSk->dwAffectFlag3*/, iDur, 0, !bAdded, pkSk->max_hit);
+						func_splash_affect f(this, pos_target.x, pos_target.y, pkSk->splash_range, pkSk->vnum, pkSk->point_on3, iAmount3, 0 /*pkSk->dwAffectFlag3*/, iDur, 0, !bAdded, pkSk->max_hit);
 						get_sectree()->for_each_around(f);
 					}
 				}
@@ -1797,7 +1797,7 @@ int character::compute_skill_at_position(uint32_t dwVnum, const pixel_position& 
 
 // if bSkillLevel is non-zero, m_abSkillLevels is not used and it is forcibly
 // calculated with bSkillLevel.
-int character::compute_skill(uint32_t dwVnum, character * pkVictim, uint8_t bSkillLevel)
+int character::compute_skill(uint32_t vnum_value, character * victim, uint8_t skill_level_value)
 {
 	const bool bCanUseHorseSkill = can_use_horse_skill();
 
@@ -1811,7 +1811,7 @@ int character::compute_skill(uint32_t dwVnum, character * pkVictim, uint8_t bSki
 	if (metin2::config::game().skill_disable)
 		return BATTLE_NONE;
 
-	skill_proto* pkSk = skill_manager::instance().get(dwVnum);
+	skill_proto* pkSk = skill_manager::instance().get(vnum_value);
 
 	if (!pkSk)
 		return BATTLE_NONE;
@@ -1824,45 +1824,45 @@ int character::compute_skill(uint32_t dwVnum, character * pkVictim, uint8_t bSki
 
 	// if not used on the target, it must be used on myself.
 	if (is_set(pkSk->flag, SKILL_FLAG_SELFONLY))
-		pkVictim = this;
+		victim = this;
 
-	if (!pkVictim)
+	if (!victim)
 	{
 		if (metin2::config::test_server())
-			metin2::log::info( "ComputeSkill: {} Victim == null, skill {:d}", name(), dwVnum);
+			metin2::log::info( "ComputeSkill: {} Victim == null, skill {:d}", name(), vnum_value);
 
 		return BATTLE_NONE;
 	}
 
-	if (pkSk->target_range && distance_sqrt(x() - pkVictim->x(), y() - pkVictim->y()) >= pkSk->target_range + 50)
+	if (pkSk->target_range && distance_sqrt(x() - victim->x(), y() - victim->y()) >= pkSk->target_range + 50)
 	{
 		if (metin2::config::test_server())
 			metin2::log::info( "ComputeSkill: Victim too far, skill {:d} : {} to {} (distance {:d} limit {:d})", 
-					dwVnum,
+					vnum_value,
 					name(),
-					pkVictim->name(),
-					(int32_t)distance_sqrt(x() - pkVictim->x(), y() - pkVictim->y()),
+					victim->name(),
+					(int32_t)distance_sqrt(x() - victim->x(), y() - victim->y()),
 					pkSk->target_range);
 
 		return BATTLE_NONE;
 	}
 
-	if (0 == bSkillLevel)
+	if (0 == skill_level_value)
 	{
-		if ((bSkillLevel = skill_level(pkSk->vnum)) == 0)
+		if ((skill_level_value = skill_level(pkSk->vnum)) == 0)
 		{
 			if (metin2::config::test_server())
-				metin2::log::info( "ComputeSkill : name:{} vnum:{:d}  skillLevelBySkill : {:d} ", name(), pkSk->vnum, bSkillLevel);
+				metin2::log::info( "ComputeSkill : name:{} vnum:{:d}  skillLevelBySkill : {:d} ", name(), pkSk->vnum, skill_level_value);
 			return BATTLE_NONE;
 		}
 	}
 
-	if (pkVictim->is_affect_flag(AFF_PABEOP) && pkVictim->is_good_affect(dwVnum))
+	if (victim->is_affect_flag(AFF_PABEOP) && victim->is_good_affect(vnum_value))
 	{
 		return BATTLE_NONE;
 	}
 
-	const float k = 1.0 * skill_power(pkSk->vnum, bSkillLevel) * pkSk->max_level / 100;
+	const float k = 1.0 * skill_power(pkSk->vnum, skill_level_value) * pkSk->max_level / 100;
 
 	pkSk->set_point_var("k", k);
 	pkSk->splash_around_damage_adjust_poly.set_var("k", k);
@@ -1873,20 +1873,20 @@ int character::compute_skill(uint32_t dwVnum, character * pkVictim, uint8_t bSki
 		item * pkArrow;
 		if (1 == arrow_and_bow(&pkBow, &pkArrow, 1))
 		{
-			pkSk->set_point_var("atk", calc_arrow_damage(this, pkVictim, pkBow, pkArrow, true));
+			pkSk->set_point_var("atk", calc_arrow_damage(this, victim, pkBow, pkArrow, true));
 		}
 		else
 		{
-			pkSk->set_point_var("atk", calc_melee_damage(this, pkVictim, true, false));
+			pkSk->set_point_var("atk", calc_melee_damage(this, victim, true, false));
 		}
 	}
 	else if (is_set(pkSk->flag, SKILL_FLAG_USE_MELEE_DAMAGE))
 	{
-		pkSk->set_point_var("atk", calc_melee_damage(this, pkVictim, true, false));
+		pkSk->set_point_var("atk", calc_melee_damage(this, victim, true, false));
 	}
 	else if (is_set(pkSk->flag, SKILL_FLAG_USE_MAGIC_DAMAGE))
 	{
-		pkSk->set_point_var("atk", calc_magic_damage(this, pkVictim));
+		pkSk->set_point_var("atk", calc_magic_damage(this, victim));
 	}
 	else if (is_set(pkSk->flag, SKILL_FLAG_USE_ARROW_DAMAGE))
 	{
@@ -1894,7 +1894,7 @@ int character::compute_skill(uint32_t dwVnum, character * pkVictim, uint8_t bSki
 		item * pkArrow;
 		if (1 == arrow_and_bow(&pkBow, &pkArrow, 1))
 		{
-			pkSk->set_point_var("atk", calc_arrow_damage(this, pkVictim, pkBow, pkArrow, true));
+			pkSk->set_point_var("atk", calc_arrow_damage(this, victim, pkBow, pkArrow, true));
 		}
 		else
 		{
@@ -1904,7 +1904,7 @@ int character::compute_skill(uint32_t dwVnum, character * pkVictim, uint8_t bSki
 
 	if (pkSk->point_on == POINT_MOV_SPEED)
 	{
-		pkSk->set_point_var("maxv", pkVictim->limit_point(POINT_MOV_SPEED));
+		pkSk->set_point_var("maxv", victim->limit_point(POINT_MOV_SPEED));
 	}
 
 	pkSk->set_point_var("lv", level());
@@ -1912,10 +1912,10 @@ int character::compute_skill(uint32_t dwVnum, character * pkVictim, uint8_t bSki
 	pkSk->set_point_var("str", point(POINT_ST));
 	pkSk->set_point_var("dex", point(POINT_DX));
 	pkSk->set_point_var("con", point(POINT_HT));
-	pkSk->set_point_var("maxhp", pkVictim->max_hp());
-	pkSk->set_point_var("maxsp", pkVictim->max_sp());
+	pkSk->set_point_var("maxhp", victim->max_hp());
+	pkSk->set_point_var("maxsp", victim->max_sp());
 	pkSk->set_point_var("chain", 0);
-	pkSk->set_point_var("ar", calc_attack_rating(this, pkVictim));
+	pkSk->set_point_var("ar", calc_attack_rating(this, victim));
 	pkSk->set_point_var("def", point(POINT_DEF_GRADE));
 	pkSk->set_point_var("odef", point(POINT_DEF_GRADE) - point(POINT_DEF_GRADE_BONUS));
 	pkSk->set_point_var("horse_level", horse_level());
@@ -1940,7 +1940,7 @@ int character::compute_skill(uint32_t dwVnum, character * pkVictim, uint8_t bSki
 				pkSk->point_poly.var("atk"),
 				pkSk->point_poly.var("k"),
 				k,
-				skill_power(pkSk->vnum, bSkillLevel),
+				skill_power(pkSk->vnum, skill_level_value),
 				pkSk->max_level,
 				pkSk->max_level/100
 				);
@@ -1962,13 +1962,13 @@ int character::compute_skill(uint32_t dwVnum, character * pkVictim, uint8_t bSki
 	{
 		if (number(1, 100) <= iAmount2)
 		{
-			pkVictim->remove_bad_affect();
+			victim->remove_bad_affect();
 		}
 	}
 	// END_OF_REMOVE_BAD_AFFECT_BUG_FIX
 
 	if (is_set(pkSk->flag, SKILL_FLAG_ATTACK | SKILL_FLAG_USE_MELEE_DAMAGE | SKILL_FLAG_USE_MAGIC_DAMAGE) &&
-		!(pkSk->vnum == SKILL_MUYEONG && pkVictim == this) && !(pkSk->is_charge_skill() && pkVictim == this))
+		!(pkSk->vnum == SKILL_MUYEONG && victim == this) && !(pkSk->is_charge_skill() && victim == this))
 	{
 		bool bAdded = false;
 
@@ -1976,15 +1976,15 @@ int character::compute_skill(uint32_t dwVnum, character * pkVictim, uint8_t bSki
 		{
 			int iAG = 0;
 
-			func_splash_damage f(pkVictim->x(), pkVictim->y(), pkSk, this, iAmount, iAG, pkSk->max_hit, pkWeapon, disable_cooltime_, is_pc()?&skill_use_info_[dwVnum]:nullptr, skill_power(dwVnum, bSkillLevel));
+			func_splash_damage f(victim->x(), victim->y(), pkSk, this, iAmount, iAG, pkSk->max_hit, pkWeapon, disable_cooltime_, is_pc()?&skill_use_info_[vnum_value]:nullptr, skill_power(vnum_value, skill_level_value));
 			if (is_set(pkSk->flag, SKILL_FLAG_SPLASH))
 			{
-				if (pkVictim->get_sectree())
-					pkVictim->get_sectree()->for_each_around(f);
+				if (victim->get_sectree())
+					victim->get_sectree()->for_each_around(f);
 			}
 			else
 			{
-				f(pkVictim);
+				f(victim);
 			}
 		}
 		else
@@ -1993,8 +1993,8 @@ int character::compute_skill(uint32_t dwVnum, character * pkVictim, uint8_t bSki
 			int iDur = (int) pkSk->duration_poly.eval();
 
 			if (is_pc())
-				if (!(dwVnum >= GUILD_SKILL_START && dwVnum <= GUILD_SKILL_END)) // guild skills have no cooldown handling.
-					if (!disable_cooltime_ && !skill_use_info_[dwVnum].hit_once(dwVnum) && dwVnum != SKILL_MUYEONG)
+				if (!(vnum_value >= GUILD_SKILL_START && vnum_value <= GUILD_SKILL_END)) // guild skills have no cooldown handling.
+					if (!disable_cooltime_ && !skill_use_info_[vnum_value].hit_once(vnum_value) && vnum_value != SKILL_MUYEONG)
 					{
 						return BATTLE_NONE;
 					}
@@ -2004,13 +2004,13 @@ int character::compute_skill(uint32_t dwVnum, character * pkVictim, uint8_t bSki
 				iDur += point(POINT_PARTY_BUFFER_BONUS);
 
 				if (!is_set(pkSk->flag, SKILL_FLAG_SPLASH))
-					pkVictim->add_affect(pkSk->vnum, pkSk->point_on, iAmount, pkSk->affect_flag, iDur, 0, true);
+					victim->add_affect(pkSk->vnum, pkSk->point_on, iAmount, pkSk->affect_flag, iDur, 0, true);
 				else
 				{
-					if (pkVictim->get_sectree())
+					if (victim->get_sectree())
 					{
-						func_splash_affect f(this, pkVictim->x(), pkVictim->y(), pkSk->splash_range, pkSk->vnum, pkSk->point_on, iAmount, pkSk->affect_flag, iDur, 0, true, pkSk->max_hit);
-						pkVictim->get_sectree()->for_each_around(f);
+						func_splash_affect f(this, victim->x(), victim->y(), pkSk->splash_range, pkSk->vnum, pkSk->point_on, iAmount, pkSk->affect_flag, iDur, 0, true, pkSk->max_hit);
+						victim->get_sectree()->for_each_around(f);
 					}
 				}
 				bAdded = true;
@@ -2027,13 +2027,13 @@ int character::compute_skill(uint32_t dwVnum, character * pkVictim, uint8_t bSki
 				iDur += point(POINT_PARTY_BUFFER_BONUS);
 
 				if (!is_set(pkSk->flag, SKILL_FLAG_SPLASH))
-					pkVictim->add_affect(pkSk->vnum, pkSk->point_on2, iAmount2, pkSk->affect_flag2, iDur, 0, !bAdded);
+					victim->add_affect(pkSk->vnum, pkSk->point_on2, iAmount2, pkSk->affect_flag2, iDur, 0, !bAdded);
 				else
 				{
-					if (pkVictim->get_sectree())
+					if (victim->get_sectree())
 					{
-						func_splash_affect f(this, pkVictim->x(), pkVictim->y(), pkSk->splash_range, pkSk->vnum, pkSk->point_on2, iAmount2, pkSk->affect_flag2, iDur, 0, !bAdded, pkSk->max_hit);
-						pkVictim->get_sectree()->for_each_around(f);
+						func_splash_affect f(this, victim->x(), victim->y(), pkSk->splash_range, pkSk->vnum, pkSk->point_on2, iAmount2, pkSk->affect_flag2, iDur, 0, !bAdded, pkSk->max_hit);
+						victim->get_sectree()->for_each_around(f);
 					}
 				}
 
@@ -2041,7 +2041,7 @@ int character::compute_skill(uint32_t dwVnum, character * pkVictim, uint8_t bSki
 			}
 			else
 			{
-				pkVictim->point_change(pkSk->point_on2, iAmount2);
+				victim->point_change(pkSk->point_on2, iAmount2);
 			}
 		}
 
@@ -2056,13 +2056,13 @@ int character::compute_skill(uint32_t dwVnum, character * pkVictim, uint8_t bSki
 				iDur += point(POINT_PARTY_BUFFER_BONUS);
 
 				if (!is_set(pkSk->flag, SKILL_FLAG_SPLASH))
-					pkVictim->add_affect(pkSk->vnum, pkSk->point_on3, iAmount3, /*pkSk->dwAffectFlag3*/ 0, iDur, 0, !bAdded);
+					victim->add_affect(pkSk->vnum, pkSk->point_on3, iAmount3, /*pkSk->dwAffectFlag3*/ 0, iDur, 0, !bAdded);
 				else
 				{
-					if (pkVictim->get_sectree())
+					if (victim->get_sectree())
 					{
-						func_splash_affect f(this, pkVictim->x(), pkVictim->y(), pkSk->splash_range, pkSk->vnum, pkSk->point_on3, iAmount3, /*pkSk->dwAffectFlag3*/ 0, iDur, 0, !bAdded, pkSk->max_hit);
-						pkVictim->get_sectree()->for_each_around(f);
+						func_splash_affect f(this, victim->x(), victim->y(), pkSk->splash_range, pkSk->vnum, pkSk->point_on3, iAmount3, /*pkSk->dwAffectFlag3*/ 0, iDur, 0, !bAdded, pkSk->max_hit);
+						victim->get_sectree()->for_each_around(f);
 					}
 				}
 
@@ -2070,7 +2070,7 @@ int character::compute_skill(uint32_t dwVnum, character * pkVictim, uint8_t bSki
 			}
 			else
 			{
-				pkVictim->point_change(pkSk->point_on3, iAmount3);
+				victim->point_change(pkSk->point_on3, iAmount3);
 			}
 		}
 		// END_OF_ADD_GRANDMASTER_SKILL
@@ -2079,7 +2079,7 @@ int character::compute_skill(uint32_t dwVnum, character * pkVictim, uint8_t bSki
 	}
 	else
 	{
-		if (dwVnum == SKILL_MUYEONG)
+		if (vnum_value == SKILL_MUYEONG)
 		{
 			pkSk->duration_poly.set_var("k", k/*bSkillLevel*/);
 			pkSk->duration_sp_cost_poly.set_var("k", k/*bSkillLevel*/);
@@ -2087,8 +2087,8 @@ int character::compute_skill(uint32_t dwVnum, character * pkVictim, uint8_t bSki
 			int iDur = (int32_t) pkSk->duration_poly.eval();
 			iDur += point(POINT_PARTY_BUFFER_BONUS);
 
-			if (pkVictim == this)
-				add_affect(dwVnum,
+			if (victim == this)
+				add_affect(vnum_value,
 						POINT_NONE, 0,
 						AFF_MUYEONG, 
 						iDur,
@@ -2110,7 +2110,7 @@ int character::compute_skill(uint32_t dwVnum, character * pkVictim, uint8_t bSki
 
 			if (pkSk->point_on2 != POINT_NONE)
 			{
-				pkVictim->remove_affect(pkSk->vnum);
+				victim->remove_affect(pkSk->vnum);
 
 				int iDur2 = (int) pkSk->duration_poly2.eval();
 
@@ -2125,11 +2125,11 @@ int character::compute_skill(uint32_t dwVnum, character * pkVictim, uint8_t bSki
 								iAmount2);
 
 					iDur2 += point(POINT_PARTY_BUFFER_BONUS);
-					pkVictim->add_affect(pkSk->vnum, pkSk->point_on2, iAmount2, pkSk->affect_flag2, iDur2, 0, false);
+					victim->add_affect(pkSk->vnum, pkSk->point_on2, iAmount2, pkSk->affect_flag2, iDur2, 0, false);
 				}
 				else
 				{
-					pkVictim->point_change(pkSk->point_on2, iAmount2);
+					victim->point_change(pkSk->point_on2, iAmount2);
 				}
 
 				uint32_t affact_flag = pkSk->affect_flag;
@@ -2139,7 +2139,7 @@ int character::compute_skill(uint32_t dwVnum, character * pkVictim, uint8_t bSki
 					affact_flag = AFF_CHEONGEUN_WITH_FALL;
 				// END_OF_ADD_GRANDMASTER_SKILL
 
-				pkVictim->add_affect(pkSk->vnum,
+				victim->add_affect(pkSk->vnum,
 						pkSk->point_on,
 						iAmount,
 						affact_flag,
@@ -2157,7 +2157,7 @@ int character::compute_skill(uint32_t dwVnum, character * pkVictim, uint8_t bSki
 							pkSk->point_on,
 							iAmount);
 
-				pkVictim->add_affect(pkSk->vnum,
+				victim->add_affect(pkSk->vnum,
 						pkSk->point_on,
 						iAmount,
 						pkSk->affect_flag,
@@ -2173,11 +2173,11 @@ int character::compute_skill(uint32_t dwVnum, character * pkVictim, uint8_t bSki
 		else
 		{
 			if (!pkSk->is_charge_skill())
-				pkVictim->point_change(pkSk->point_on, iAmount);
+				victim->point_change(pkSk->point_on, iAmount);
 
 			if (pkSk->point_on2 != POINT_NONE)
 			{
-				pkVictim->remove_affect(pkSk->vnum);
+				victim->remove_affect(pkSk->vnum);
 
 				int iDur2 = (int) pkSk->duration_poly2.eval();
 
@@ -2186,13 +2186,13 @@ int character::compute_skill(uint32_t dwVnum, character * pkVictim, uint8_t bSki
 					iDur2 += point(POINT_PARTY_BUFFER_BONUS);
 
 					if (pkSk->is_charge_skill())
-						pkVictim->add_affect(pkSk->vnum, pkSk->point_on2, iAmount2, AFF_TANHWAN_DASH, iDur2, 0, false);
+						victim->add_affect(pkSk->vnum, pkSk->point_on2, iAmount2, AFF_TANHWAN_DASH, iDur2, 0, false);
 					else
-						pkVictim->add_affect(pkSk->vnum, pkSk->point_on2, iAmount2, pkSk->affect_flag2, iDur2, 0, false);
+						victim->add_affect(pkSk->vnum, pkSk->point_on2, iAmount2, pkSk->affect_flag2, iDur2, 0, false);
 				}
 				else
 				{
-					pkVictim->point_change(pkSk->point_on2, iAmount2);
+					victim->point_change(pkSk->point_on2, iAmount2);
 				}
 
 			}
@@ -2212,13 +2212,13 @@ int character::compute_skill(uint32_t dwVnum, character * pkVictim, uint8_t bSki
 				iDur += point(POINT_PARTY_BUFFER_BONUS);
 
 				if (!is_set(pkSk->flag, SKILL_FLAG_SPLASH))
-					pkVictim->add_affect(pkSk->vnum, pkSk->point_on3, iAmount3, /*pkSk->dwAffectFlag3*/ 0, iDur, 0, !bAdded);
+					victim->add_affect(pkSk->vnum, pkSk->point_on3, iAmount3, /*pkSk->dwAffectFlag3*/ 0, iDur, 0, !bAdded);
 				else
 				{
-					if (pkVictim->get_sectree())
+					if (victim->get_sectree())
 					{
-						func_splash_affect f(this, pkVictim->x(), pkVictim->y(), pkSk->splash_range, pkSk->vnum, pkSk->point_on3, iAmount3, /*pkSk->dwAffectFlag3*/ 0, iDur, 0, !bAdded, pkSk->max_hit);
-						pkVictim->get_sectree()->for_each_around(f);
+						func_splash_affect f(this, victim->x(), victim->y(), pkSk->splash_range, pkSk->vnum, pkSk->point_on3, iAmount3, /*pkSk->dwAffectFlag3*/ 0, iDur, 0, !bAdded, pkSk->max_hit);
+						victim->get_sectree()->for_each_around(f);
 					}
 				}
 
@@ -2226,7 +2226,7 @@ int character::compute_skill(uint32_t dwVnum, character * pkVictim, uint8_t bSki
 			}
 			else
 			{
-				pkVictim->point_change(pkSk->point_on3, iAmount3);
+				victim->point_change(pkSk->point_on3, iAmount3);
 			}
 		}
 		// END_OF_ADD_GRANDMASTER_SKILL
@@ -2235,9 +2235,9 @@ int character::compute_skill(uint32_t dwVnum, character * pkVictim, uint8_t bSki
 	}
 }
 
-bool character::use_skill(uint32_t dwVnum, character * pkVictim, bool bUseGrandMaster)
+bool character::use_skill(uint32_t vnum_value, character * victim, bool use_grand_master)
 {
-	if (false == can_use_skill(dwVnum))
+	if (false == can_use_skill(vnum_value))
 		return false;
 
 	// NO_GRANDMASTER
@@ -2245,7 +2245,7 @@ bool character::use_skill(uint32_t dwVnum, character * pkVictim, bool bUseGrandM
 	{
 		if (quest::quest_manager::instance().event_flag("no_grand_master"))
 		{
-			bUseGrandMaster = false;
+			use_grand_master = false;
 		}
 	}
 	// END_OF_NO_GRANDMASTER
@@ -2264,9 +2264,9 @@ bool character::use_skill(uint32_t dwVnum, character * pkVictim, bool bUseGrandM
 
 	const bool bCanUseHorseSkill = can_use_horse_skill();
 
-	if (dwVnum == SKILL_HORSE_SUMMON)
+	if (vnum_value == SKILL_HORSE_SUMMON)
 	{
-		if (skill_level(dwVnum) == 0)
+		if (skill_level(vnum_value) == 0)
 			return false;
 
 		if (horse_level() <= 0)
@@ -2281,8 +2281,8 @@ bool character::use_skill(uint32_t dwVnum, character * pkVictim, bool bUseGrandM
 	if (false == bCanUseHorseSkill && true == is_riding())
 		return false;
 
-	skill_proto * pkSk = skill_manager::instance().get(dwVnum);
-	metin2::log::info( "{}: USE_SKILL: {:d} pkVictim {}", name(), dwVnum, static_cast<const void *>(pkVictim));
+	skill_proto * pkSk = skill_manager::instance().get(vnum_value);
+	metin2::log::info( "{}: USE_SKILL: {:d} pkVictim {}", name(), vnum_value, static_cast<const void *>(victim));
 
 	if (!pkSk)
 		return false;
@@ -2293,12 +2293,12 @@ bool character::use_skill(uint32_t dwVnum, character * pkVictim, bool bUseGrandM
 	if (!bCanUseHorseSkill && pkSk->type == SKILL_TYPE_HORSE)
 		return BATTLE_NONE;
 
-	if (skill_level(dwVnum) == 0)
+	if (skill_level(vnum_value) == 0)
 		return false;
 
 	// NO_GRANDMASTER
-	if (skill_master_type(dwVnum) < SKILL_GRAND_MASTER)
-		bUseGrandMaster = false;
+	if (skill_master_type(vnum_value) < SKILL_GRAND_MASTER)
+		use_grand_master = false;
 	// END_OF_NO_GRANDMASTER
 
 	// MINING
@@ -2306,30 +2306,30 @@ bool character::use_skill(uint32_t dwVnum, character * pkVictim, bool bUseGrandM
 		return false;
 	// END_OF_MINING
 
-	skill_use_info_[dwVnum].target_vid_map.clear();
+	skill_use_info_[vnum_value].target_vid_map.clear();
 
 	if (pkSk->is_charge_skill())
 	{
-		if (is_affect_flag(AFF_TANHWAN_DASH) || (pkVictim && pkVictim != this))
+		if (is_affect_flag(AFF_TANHWAN_DASH) || (victim && victim != this))
 		{
-			if (!pkVictim)
+			if (!victim)
 				return false;
 
 			if (!is_affect_flag(AFF_TANHWAN_DASH))
 			{
-				if (!use_skill(dwVnum, this))
+				if (!use_skill(vnum_value, this))
 					return false;
 			}
 
-			skill_use_info_[dwVnum].set_main_target_vid(pkVictim->get_vid());
+			skill_use_info_[vnum_value].set_main_target_vid(victim->get_vid());
 			// Tanhwan-gyeok in DASH state is an attack skill
-			compute_skill(dwVnum, pkVictim);
-			remove_affect(dwVnum);
+			compute_skill(vnum_value, victim);
+			remove_affect(vnum_value);
 			return true;
 		}
 	}
 
-	if (dwVnum == SKILL_COMBO)
+	if (vnum_value == SKILL_COMBO)
 	{
 		if (combo_index_)
 			combo_index_ = 0;
@@ -2363,9 +2363,9 @@ bool character::use_skill(uint32_t dwVnum, character * pkVictim, bool bUseGrandM
 
 	uint32_t dwCur = get_dword_time();
 
-	if (dwVnum == SKILL_TERROR && skill_use_info_[dwVnum].used && skill_use_info_[dwVnum].next_skill_usable_time > dwCur )
+	if (vnum_value == SKILL_TERROR && skill_use_info_[vnum_value].used && skill_use_info_[vnum_value].next_skill_usable_time > dwCur )
 	{
-		metin2::log::info( " SKILL_TERROR's Cooltime is not delta over {:d}", skill_use_info_[dwVnum].next_skill_usable_time  - dwCur );
+		metin2::log::info( " SKILL_TERROR's Cooltime is not delta over {:d}", skill_use_info_[vnum_value].next_skill_usable_time  - dwCur );
 		return false;
 	}
 
@@ -2378,7 +2378,7 @@ bool character::use_skill(uint32_t dwVnum, character * pkVictim, bool bUseGrandM
 		iNeededSP = (int) pkSk->sp_cost_poly.eval();
 
 		// ADD_GRANDMASTER_SKILL
-		if (skill_master_type(dwVnum) >= SKILL_GRAND_MASTER && bUseGrandMaster)
+		if (skill_master_type(vnum_value) >= SKILL_GRAND_MASTER && use_grand_master)
 		{
 			iNeededSP = (int) pkSk->grand_master_add_sp_cost_poly.eval();
 		}
@@ -2398,7 +2398,7 @@ bool character::use_skill(uint32_t dwVnum, character * pkVictim, bool bUseGrandM
 
 		iNeededSP = (int) pkSk->sp_cost_poly.eval();
 
-		if (skill_master_type(dwVnum) >= SKILL_GRAND_MASTER && bUseGrandMaster)
+		if (skill_master_type(vnum_value) >= SKILL_GRAND_MASTER && use_grand_master)
 		{
 			iNeededSP = (int) pkSk->grand_master_add_sp_cost_poly.eval();
 		}
@@ -2414,12 +2414,12 @@ bool character::use_skill(uint32_t dwVnum, character * pkVictim, bool bUseGrandM
 	}
 
 	if (is_set(pkSk->flag, SKILL_FLAG_SELFONLY))
-		pkVictim = this;
+		victim = this;
 
-	if (pkSk->vnum == SKILL_MUYEONG || (pkSk->is_charge_skill() && !is_affect_flag(AFF_TANHWAN_DASH) && !pkVictim))
+	if (pkSk->vnum == SKILL_MUYEONG || (pkSk->is_charge_skill() && !is_affect_flag(AFF_TANHWAN_DASH) && !victim))
 	{
 		// Muyeongjin on first use attaches an affect to self.
-		pkVictim = this;
+		victim = this;
 	}
 
 	int iSplashCount = 1;
@@ -2427,9 +2427,9 @@ bool character::use_skill(uint32_t dwVnum, character * pkVictim, bool bUseGrandM
 	if (false == disable_cooltime_)
 	{
 		if (false == 
-				skill_use_info_[dwVnum].use_skill(
-					bUseGrandMaster,
-				   	(nullptr != pkVictim && SKILL_HORSE_WILDATTACK != dwVnum) ? pkVictim->get_vid() : 0,
+				skill_use_info_[vnum_value].use_skill(
+					use_grand_master,
+				   	(nullptr != victim && SKILL_HORSE_WILDATTACK != vnum_value) ? victim->get_vid() : 0,
 				   	compute_cooltime(iCooltime * 1000),
 				   	iSplashCount,
 				   	lMaxHit))
@@ -2441,97 +2441,97 @@ bool character::use_skill(uint32_t dwVnum, character * pkVictim, bool bUseGrandM
 		}
 	}
 
-	if (dwVnum == SKILL_CHAIN)
+	if (vnum_value == SKILL_CHAIN)
 	{
 		reset_chain_lightning_index();
-		add_chain_lightning_except(pkVictim);
+		add_chain_lightning_except(victim);
 	}
 
 	if (is_set(pkSk->flag, SKILL_FLAG_SELFONLY))
-		compute_skill(dwVnum, this);
+		compute_skill(vnum_value, this);
 	else if (!is_set(pkSk->flag, SKILL_FLAG_ATTACK))
-		compute_skill(dwVnum, pkVictim);
-	else if (dwVnum == SKILL_BYEURAK)
-		compute_skill(dwVnum, pkVictim);
-	else if (dwVnum == SKILL_MUYEONG || pkSk->is_charge_skill())
-		compute_skill(dwVnum, pkVictim);
+		compute_skill(vnum_value, victim);
+	else if (vnum_value == SKILL_BYEURAK)
+		compute_skill(vnum_value, victim);
+	else if (vnum_value == SKILL_MUYEONG || pkSk->is_charge_skill())
+		compute_skill(vnum_value, victim);
 
 	last_skill_time_ = get_dword_time();
 
 	return true;
 }
 
-int character::used_skill_master_type(uint32_t dwVnum)
+int character::used_skill_master_type(uint32_t vnum)
 {
-	const skill_use_info& rInfo = skill_use_info_[dwVnum];
+	const skill_use_info& rInfo = skill_use_info_[vnum];
 
-	if (skill_master_type(dwVnum) < SKILL_GRAND_MASTER)
-		return skill_master_type(dwVnum);
+	if (skill_master_type(vnum) < SKILL_GRAND_MASTER)
+		return skill_master_type(vnum);
 
 	if (rInfo.is_grand_master)
-		return skill_master_type(dwVnum);
+		return skill_master_type(vnum);
 
-	return std::min<int>(skill_master_type(dwVnum), SKILL_MASTER);
+	return std::min<int>(skill_master_type(vnum), SKILL_MASTER);
 }
 
-int character::skill_master_type(uint32_t dwVnum) const
+int character::skill_master_type(uint32_t vnum) const
 {
 	if (!is_pc())
 		return 0;
 
-	if (dwVnum >= SKILL_MAX_NUM)
+	if (vnum >= SKILL_MAX_NUM)
 	{
-		metin2::log::error("{} skill vnum overflow {:d}", name(), dwVnum);
+		metin2::log::error("{} skill vnum overflow {:d}", name(), vnum);
 		return 0;
 	}
 
-	return skill_levels_ ? skill_levels_[dwVnum].master_type : static_cast<uint8_t>(SKILL_NORMAL);
+	return skill_levels_ ? skill_levels_[vnum].master_type : static_cast<uint8_t>(SKILL_NORMAL);
 }
 
-int character::skill_power(uint32_t dwVnum, uint8_t bLevel) const
+int character::skill_power(uint32_t vnum, uint8_t level) const
 {
 	// mermaid ring item
-	if (dwVnum >= SKILL_LANGUAGE1 && dwVnum <= SKILL_LANGUAGE3 && is_equip_unique_group(UNIQUE_GROUP_RING_OF_LANGUAGE))
+	if (vnum >= SKILL_LANGUAGE1 && vnum <= SKILL_LANGUAGE3 && is_equip_unique_group(UNIQUE_GROUP_RING_OF_LANGUAGE))
 	{
 		return 100;
 	}
 
-	if (dwVnum >= GUILD_SKILL_START && dwVnum <= GUILD_SKILL_END)
+	if (vnum >= GUILD_SKILL_START && vnum <= GUILD_SKILL_END)
 	{
 		if (get_guild())
-			return 100 * get_guild()->skill_level(dwVnum) / 7 / 7;
+			return 100 * get_guild()->skill_level(vnum) / 7 / 7;
 		else
 			return 0;
 	}
 
-	if (bLevel)
+	if (level)
 	{
 		//SKILL_POWER_BY_LEVEL
-		return skill_power_by_level(bLevel, true);
+		return skill_power_by_level(level, true);
 		//END_SKILL_POWER_BY_LEVEL;
 	}
 
-	if (dwVnum >= SKILL_MAX_NUM)
+	if (vnum >= SKILL_MAX_NUM)
 	{
-		metin2::log::error("{} skill vnum overflow {:d}", name(), dwVnum);
+		metin2::log::error("{} skill vnum overflow {:d}", name(), vnum);
 		return 0;
 	}
 
 	//SKILL_POWER_BY_LEVEL
-	return skill_power_by_level(skill_level(dwVnum));
+	return skill_power_by_level(skill_level(vnum));
 	//SKILL_POWER_BY_LEVEL
 }
 
-int character::skill_level(uint32_t dwVnum) const
+int character::skill_level(uint32_t vnum) const
 {
-	if (dwVnum >= SKILL_MAX_NUM)
+	if (vnum >= SKILL_MAX_NUM)
 	{
-		metin2::log::error("{} skill vnum overflow {:d}", name(), dwVnum);
-		metin2::log::info( "{} skill vnum overflow {:d}", name(), dwVnum);
+		metin2::log::error("{} skill vnum overflow {:d}", name(), vnum);
+		metin2::log::info( "{} skill vnum overflow {:d}", name(), vnum);
 		return 0;
 	}
 
-	return std::min(SKILL_MAX_LEVEL, skill_levels_ ? skill_levels_[dwVnum].level : 0);
+	return std::min(SKILL_MAX_LEVEL, skill_levels_ ? skill_levels_[vnum].level : 0);
 }
 
 EVENTFUNC(skill_muyoung_event)
@@ -2806,7 +2806,7 @@ void character::reset_mob_skill_cooltime()
 	memset(mob_skill_cooltime_, 0, sizeof(mob_skill_cooltime_));
 }
 
-bool character::is_usable_skill_motion(uint32_t dwMotionIndex) const
+bool character::is_usable_skill_motion(uint32_t motion_index) const
 {
 	uint32_t selfJobGroup = (job()+1) * 10 + skill_group();
 
@@ -3161,13 +3161,13 @@ bool character::is_usable_skill_motion(uint32_t dwMotionIndex) const
 		// riding skills end
 	};
 
-	if (dwMotionIndex >= MOTION_MAX_NUM)
+	if (motion_index >= MOTION_MAX_NUM)
 	{
-		metin2::log::error("OUT_OF_MOTION_VNUM: name={}, motion={:d}/{:d}", name(), dwMotionIndex, MOTION_MAX_NUM);
+		metin2::log::error("OUT_OF_MOTION_VNUM: name={}, motion={:d}/{:d}", name(), motion_index, MOTION_MAX_NUM);
 		return false;
 	}
 
-	uint32_t* skillVNums = s_anMotion2SkillVnumList[dwMotionIndex];
+	uint32_t* skillVNums = s_anMotion2SkillVnumList[motion_index];
 
 	uint32_t skillCount = *skillVNums++;
 	if (skillCount >= SKILL_LIST_MAX_COUNT)
@@ -3252,32 +3252,32 @@ void character::clear_sub_skill()
 	skill_level_packet();
 }
 
-bool character::reset_one_skill(uint32_t dwVnum)
+bool character::reset_one_skill(uint32_t vnum)
 {
 	if (nullptr == skill_levels_)
 	{
-		metin2::log::error("m_pSkillLevels nil (name {}, vnum {:d})", name(), dwVnum);
+		metin2::log::error("m_pSkillLevels nil (name {}, vnum {:d})", name(), vnum);
 		return false;
 	}
 
-	if (dwVnum >= SKILL_MAX_NUM)
+	if (vnum >= SKILL_MAX_NUM)
 	{
-		metin2::log::error("vnum overflow (name {}, vnum {:d})", name(), dwVnum);
+		metin2::log::error("vnum overflow (name {}, vnum {:d})", name(), vnum);
 		return false;
 	}
 
-	uint8_t level = skill_levels_[dwVnum].level;
+	uint8_t level = skill_levels_[vnum].level;
 
-	skill_levels_[dwVnum].level = 0;
-	skill_levels_[dwVnum].master_type = 0;
-	skill_levels_[dwVnum].t_next_read = 0;
+	skill_levels_[vnum].level = 0;
+	skill_levels_[vnum].master_type = 0;
+	skill_levels_[vnum].t_next_read = 0;
 
 	if (level > 17)
 		level = 17;
 
 	point_change(POINT_SKILL, level);
 
-	log_manager::instance().char_log(this, dwVnum, "ONE_SKILL_RESET_BY_SCROLL", "");
+	log_manager::instance().char_log(this, vnum, "ONE_SKILL_RESET_BY_SCROLL", "");
 
 	compute_points();
 	skill_level_packet();
@@ -3285,9 +3285,9 @@ bool character::reset_one_skill(uint32_t dwVnum)
 	return true;
 }
 
-bool character::can_use_skill(uint32_t dwSkillVnum) const
+bool character::can_use_skill(uint32_t skill_vnum) const
 {
-	if (0 == dwSkillVnum) return false;
+	if (0 == skill_vnum) return false;
 
 	if (0 < skill_group())
 	{
@@ -3304,7 +3304,7 @@ bool character::can_use_skill(uint32_t dwSkillVnum) const
 
 		for (int i=0 ; i < SKILL_COUNT ; ++i)
 		{
-			if (pSkill[i] == dwSkillVnum) return true;
+			if (pSkill[i] == skill_vnum) return true;
 		}
 	}
 
@@ -3320,7 +3320,7 @@ bool character::can_use_skill(uint32_t dwSkillVnum) const
 					return false;
 		}
 
-		switch(dwSkillVnum)
+		switch(skill_vnum)
 		{
 			case SKILL_HORSE_WILDATTACK:
 			case SKILL_HORSE_CHARGE:
@@ -3330,7 +3330,7 @@ bool character::can_use_skill(uint32_t dwSkillVnum) const
 		}
 	}
 
-	switch( dwSkillVnum )
+	switch( skill_vnum )
 	{
 		case 121: case 122: case 124: case 126: case 127: case 128: case 129: case 130:
 		case 131:
@@ -3341,13 +3341,13 @@ bool character::can_use_skill(uint32_t dwSkillVnum) const
 	return false;
 }
 
-bool character::check_skill_hit_count(const uint8_t SkillID, const vid TargetVID)
+bool character::check_skill_hit_count(const uint8_t skill_id, const vid target_vid)
 {
-	std::map<int, skill_use_info>::iterator iter = skill_use_info_.find(SkillID);
+	std::map<int, skill_use_info>::iterator iter = skill_use_info_.find(skill_id);
 
 	if (iter == skill_use_info_.end())
 	{
-		metin2::log::info( "SkillHack: Skill({:d}) is not in container", SkillID);
+		metin2::log::info( "SkillHack: Skill({:d}) is not in container", skill_id);
 		return false;
 	}
 
@@ -3355,27 +3355,27 @@ bool character::check_skill_hit_count(const uint8_t SkillID, const vid TargetVID
 
 	if (false == rSkillUseInfo.used)
 	{
-		metin2::log::info( "SkillHack: not used skill({:d})", SkillID);
+		metin2::log::info( "SkillHack: not used skill({:d})", skill_id);
 		return false;
 	}
 
-	switch (SkillID)
+	switch (skill_id)
 	{
 		case SKILL_YONGKWON:
 		case SKILL_HWAYEOMPOK:
 		case SKILL_DAEJINGAK:
 		case SKILL_PAERYONG:
-			metin2::log::info( "SkillHack: cannot use attack packet for skill({:d})", SkillID);
+			metin2::log::info( "SkillHack: cannot use attack packet for skill({:d})", skill_id);
 			return false;
 	}
 
-	auto iterTargetMap = rSkillUseInfo.target_vid_map.find(TargetVID);
+	auto iterTargetMap = rSkillUseInfo.target_vid_map.find(target_vid);
 
 	if (rSkillUseInfo.target_vid_map.end() != iterTargetMap)
 	{
 		size_t MaxAttackCountPerTarget = 1;
 
-		switch (SkillID)
+		switch (skill_id)
 		{
 			case SKILL_SAMYEON:
 			case SKILL_CHARYUN:
@@ -3397,7 +3397,7 @@ bool character::check_skill_hit_count(const uint8_t SkillID, const vid TargetVID
 
 		if (iterTargetMap->second >= MaxAttackCountPerTarget)
 		{
-			metin2::log::info( "SkillHack: Too Many Hit count from SkillID({:d}) count({:d})", SkillID, iterTargetMap->second);
+			metin2::log::info( "SkillHack: Too Many Hit count from SkillID({:d}) count({:d})", skill_id, iterTargetMap->second);
 			return false;
 		}
 
@@ -3405,7 +3405,7 @@ bool character::check_skill_hit_count(const uint8_t SkillID, const vid TargetVID
 	}
 	else
 	{
-		rSkillUseInfo.target_vid_map.insert( std::make_pair(TargetVID, 1) );
+		rSkillUseInfo.target_vid_map.insert( std::make_pair(target_vid, 1) );
 	}
 
 	return true;

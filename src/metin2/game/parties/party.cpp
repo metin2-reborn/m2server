@@ -150,52 +150,52 @@ void party_manager::p2_p_delete_party(uint32_t pid)
 		metin2::log::error("PARTY P2PDeleteParty Cannot find party [{:d}]", pid);
 }
 
-party * party_manager::create_party(character * pLeader)
+party * party_manager::create_party(character * leader)
 {
-	if (pLeader->get_party())
-		return pLeader->get_party();
+	if (leader->get_party())
+		return leader->get_party();
 
 	party * pParty = new party;
 
-	if (pLeader->is_pc())
+	if (leader->is_pc())
 	{
 		packet_party_create p;
-		p.leader_pid = pLeader->player_id();
+		p.leader_pid = leader->player_id();
 
 		db_clientdesc->db_packet(HEADER_GD_PARTY_CREATE, 0, &p, sizeof(packet_party_create));
 
-		metin2::log::info( "PARTY: Create {} pid {:d}", pLeader->name(), pLeader->player_id());
+		metin2::log::info( "PARTY: Create {} pid {:d}", leader->name(), leader->player_id());
 		pParty->set_pc_party(true);
-		pParty->join(pLeader->player_id());
+		pParty->join(leader->player_id());
 
 		set_pk_pc_party_.insert(pParty);
 	}
 	else
 	{
 		pParty->set_pc_party(false);
-		pParty->join(pLeader->get_vid());
+		pParty->join(leader->get_vid());
 	}
 
-	pParty->link(pLeader);
+	pParty->link(leader);
 	return (pParty);
 }
 
-void party_manager::delete_party(party * pParty)
+void party_manager::delete_party(party * party_value)
 {
 	packet_party_delete p;
-	p.leader_pid = pParty->leader_pid();
+	p.leader_pid = party_value->leader_pid();
 
 	db_clientdesc->db_packet(HEADER_GD_PARTY_DELETE, 0, &p, sizeof(packet_party_delete));
 
-	set_pk_pc_party_.erase(pParty);
-	delete pParty;
+	set_pk_pc_party_.erase(party_value);
+	delete party_value;
 }
 
-void party_manager::set_party_member(uint32_t dwPID, party * pParty)
+void party_manager::set_party_member(uint32_t pid, party * party_value)
 {
-	party_map::iterator it = map_pk_party_.find(dwPID);
+	party_map::iterator it = map_pk_party_.find(pid);
 
-	if (pParty == nullptr)
+	if (party_value == nullptr)
 	{
 		if (it != map_pk_party_.end())
 			map_pk_party_.erase(it);
@@ -204,14 +204,14 @@ void party_manager::set_party_member(uint32_t dwPID, party * pParty)
 	{
 		if (it != map_pk_party_.end())
 		{
-			if (it->second != pParty)
+			if (it->second != party_value)
 			{
-				it->second->quit(dwPID);
-				it->second = pParty;
+				it->second->quit(pid);
+				it->second = party_value;
 			}
 		}
 		else
-			map_pk_party_.insert(party_map::value_type(dwPID, pParty));
+			map_pk_party_.insert(party_map::value_type(pid, party_value));
 	}
 }
 
@@ -391,9 +391,9 @@ uint32_t party::member_count()
 	return member_map_.size();
 }
 
-void party::p2_p_join(uint32_t dwPID)
+void party::p2_p_join(uint32_t pid)
 {
-	member_map::iterator it = member_map_.find(dwPID);
+	member_map::iterator it = member_map_.find(pid);
 
 	if (it == member_map_.end())
 	{
@@ -405,18 +405,18 @@ void party::p2_p_join(uint32_t dwPID)
 		if (member_map_.empty())
 		{
 			Member.role = PARTY_ROLE_LEADER;
-			leader_pid_ = dwPID;
+			leader_pid_ = pid;
 		}
 		else
 			Member.role = PARTY_ROLE_NORMAL;
 
 		if (pc_party_)
 		{
-			character * ch = character_manager::instance().find_by_pid(dwPID);
+			character * ch = character_manager::instance().find_by_pid(pid);
 
 			if (ch)
 			{
-				metin2::log::info( "PARTY: Join {} pid {:d} leader {:d}", ch->name(), dwPID, leader_pid_);
+				metin2::log::info( "PARTY: Join {} pid {:d} leader {:d}", ch->name(), pid, leader_pid_);
 				Member.name = ch->name();
 
 				if (Member.role == PARTY_ROLE_LEADER)
@@ -424,29 +424,29 @@ void party::p2_p_join(uint32_t dwPID)
 			}
 			else
 			{
-				cci * pcci = p2_p_manager::instance().find_by_pid(dwPID);
+				cci * pcci = p2_p_manager::instance().find_by_pid(pid);
 
 				if (!pcci);
 				else if (pcci->channel == metin2::config::server().channel)
 					Member.name = pcci->name;
 				else
-					metin2::log::error("member is not in same channel PID: {:d} channel {:d}, this channel {:d}", dwPID, pcci->channel, metin2::config::server().channel);
+					metin2::log::error("member is not in same channel PID: {:d} channel {:d}, this channel {:d}", pid, pcci->channel, metin2::config::server().channel);
 			}
 		}
 
 		metin2::log::debug( "PARTY[{:d}] MemberCountChange {:d} -> {:d}", leader_pid(), member_count(), member_count()+1);
 
-		member_map_.insert(member_map::value_type(dwPID, Member));
+		member_map_.insert(member_map::value_type(pid, Member));
 
 		if (member_map_.size() == 1)
 			next_owner_ = member_map_.begin();
 
 		if (pc_party_)
 		{
-			party_manager::instance().set_party_member(dwPID, this);
-			send_party_join_one_to_all(dwPID);
+			party_manager::instance().set_party_member(pid, this);
+			send_party_join_one_to_all(pid);
 
-			character * ch = character_manager::instance().find_by_pid(dwPID);
+			character * ch = character_manager::instance().find_by_pid(pid);
 
 			if (ch)
 				send_parameter(ch);
@@ -459,35 +459,35 @@ void party::p2_p_join(uint32_t dwPID)
 	}
 }
 
-void party::join(uint32_t dwPID)
+void party::join(uint32_t pid_value)
 {
-	p2_p_join(dwPID);
+	p2_p_join(pid_value);
 
 	if (pc_party_)
 	{
 		packet_party_add p;
 		p.leader_pid = leader_pid();
-		p.pid = dwPID;
+		p.pid = pid_value;
 		p.state = PARTY_ROLE_NORMAL; // #0000790: [M2EU] CZ crash increase: initialization matters! 
 		db_clientdesc->db_packet(HEADER_GD_PARTY_ADD, 0, &p, sizeof(p));
 	}
 }
 
-void party::p2_p_quit(uint32_t dwPID)
+void party::p2_p_quit(uint32_t pid)
 {
-	member_map::iterator it = member_map_.find(dwPID);
+	member_map::iterator it = member_map_.find(pid);
 
 	if (it == member_map_.end())
 		return;
 
 	if (pc_party_)
-		send_party_remove_one_to_all(dwPID);
+		send_party_remove_one_to_all(pid);
 
 	if (it == next_owner_)
 		increase_ownership();
 
 	if (pc_party_)
-		remove_bonus_for_one(dwPID);
+		remove_bonus_for_one(pid);
 
 	character * ch = it->second.character;
 	uint8_t bRole = it->second.role;
@@ -512,7 +512,7 @@ void party::p2_p_quit(uint32_t dwPID)
 	}
 
 	if (pc_party_)
-		party_manager::instance().set_party_member(dwPID, nullptr);
+		party_manager::instance().set_party_member(pid, nullptr);
 
 	// If the leader leaves, the party must be disbanded.
 	if (bRole == PARTY_ROLE_LEADER)
@@ -521,32 +521,32 @@ void party::p2_p_quit(uint32_t dwPID)
 	// Do not add code below this!!! After DeleteParty above, this no longer exists.
 }
 
-void party::quit(uint32_t dwPID)
+void party::quit(uint32_t pid_value)
 {
 	// Always PC
-	p2_p_quit(dwPID);
+	p2_p_quit(pid_value);
 
-	if (pc_party_ && dwPID != leader_pid())
+	if (pc_party_ && pid_value != leader_pid())
 	{
 		packet_party_remove p;
-		p.pid = dwPID;
+		p.pid = pid_value;
 		p.leader_pid = leader_pid();
 		db_clientdesc->db_packet(HEADER_GD_PARTY_REMOVE, 0, &p, sizeof(p));
 	}
 }
 
-void party::link(character * pkChr)
+void party::link(character * chr)
 {
 	member_map::iterator it;
 
-	if (pkChr->is_pc())
-		it = member_map_.find(pkChr->player_id());
+	if (chr->is_pc())
+		it = member_map_.find(chr->player_id());
 	else
-		it = member_map_.find(pkChr->get_vid());
+		it = member_map_.find(chr->get_vid());
 
 	if (it == member_map_.end())
 	{
-		metin2::log::error("{} is not member of this party", pkChr->name());
+		metin2::log::error("{} is not member of this party", chr->name());
 		return;
 	}
 
@@ -559,36 +559,36 @@ void party::link(character * pkChr)
 	}
 
 	if (it->second.role == PARTY_ROLE_LEADER)
-		chr_leader_ = pkChr;
+		chr_leader_ = chr;
 
-	metin2::log::debug( "PARTY[{:d}] {} linked to party", leader_pid(), pkChr->name());
+	metin2::log::debug( "PARTY[{:d}] {} linked to party", leader_pid(), chr->name());
 
-	it->second.character = pkChr;
-	pkChr->set_party(this);
+	it->second.character = chr;
+	chr->set_party(this);
 
-	if (pkChr->is_pc())
+	if (chr->is_pc())
 	{
 		if (it->second.name.empty())
 		{
-			it->second.name = pkChr->name();
+			it->second.name = chr->name();
 		}
 
-		send_party_join_one_to_all(pkChr->player_id());
+		send_party_join_one_to_all(chr->player_id());
 
-		send_party_join_all_to_one(pkChr);
-		send_party_link_one_to_all(pkChr);
-		send_party_link_all_to_one(pkChr);
-		send_party_info_all_to_one(pkChr);
-		send_party_info_one_to_all(pkChr);
+		send_party_join_all_to_one(chr);
+		send_party_link_one_to_all(chr);
+		send_party_link_all_to_one(chr);
+		send_party_info_all_to_one(chr);
+		send_party_info_one_to_all(chr);
 
-		send_parameter(pkChr);
+		send_parameter(chr);
 
-		if (get_dungeon() && get_dungeon()->map_index() == pkChr->map_index())
+		if (get_dungeon() && get_dungeon()->map_index() == chr->map_index())
 		{
-			pkChr->set_dungeon(get_dungeon());
+			chr->set_dungeon(get_dungeon());
 		}
 
-		request_set_member_level(pkChr->player_id(), pkChr->level());
+		request_set_member_level(chr->player_id(), chr->level());
 
 	}
 }
@@ -629,24 +629,24 @@ namespace
 	};
 }
 
-void party::unlink(character * pkChr)
+void party::unlink(character * chr)
 {
 	member_map::iterator it;
 
-	if (pkChr->is_pc())
-		it = member_map_.find(pkChr->player_id());
+	if (chr->is_pc())
+		it = member_map_.find(chr->player_id());
 	else
-		it = member_map_.find(pkChr->get_vid());
+		it = member_map_.find(chr->get_vid());
 
 	if (it == member_map_.end())
 	{
-		metin2::log::error("{} is not member of this party", pkChr->name());
+		metin2::log::error("{} is not member of this party", chr->name());
 		return;
 	}
 
-	if (pkChr->is_pc())
+	if (chr->is_pc())
 	{
-		send_party_unlink_one_to_all(pkChr);
+		send_party_unlink_one_to_all(chr);
 		//SendPartyUnlinkAllToOne(pkChr); // Disconnecting, so no need to send Unlink packets.
 
 		if (it->second.role == PARTY_ROLE_LEADER)
@@ -666,7 +666,7 @@ void party::unlink(character * pkChr)
 		chr_leader_ = nullptr;
 
 	it->second.character = nullptr;
-	pkChr->set_party(nullptr);
+	chr->set_party(nullptr);
 }
 
 void party::send_party_remove_one_to_all(uint32_t pid)
@@ -859,7 +859,7 @@ void party::send_party_info_all_to_one(character * ch)
 	}
 }
 
-void party::send_message(character * ch, uint8_t bMsg, uint32_t dwArg1, uint32_t dwArg2)
+void party::send_message(character * ch, uint8_t msg, uint32_t arg1, uint32_t arg2)
 {
 	if (ch->get_party() != this)
 	{
@@ -867,7 +867,7 @@ void party::send_message(character * ch, uint8_t bMsg, uint32_t dwArg1, uint32_t
 		return;
 	}
 
-	switch (bMsg)
+	switch (msg)
 	{
 		case PM_ATTACK:
 			break;
@@ -885,8 +885,8 @@ void party::send_message(character * ch, uint8_t bMsg, uint32_t dwArg1, uint32_t
 
 					if ((pkChr = rMember.character) && ch != pkChr)
 					{
-						uint32_t x = dwArg1 + number(-500, 500);
-						uint32_t y = dwArg2 + number(-500, 500);
+						uint32_t x = arg1 + number(-500, 500);
+						uint32_t y = arg2 + number(-500, 500);
 
 						pkChr->set_victim(nullptr);
 						pkChr->set_rotation_to_xy(x, y);
@@ -930,7 +930,7 @@ void party::send_message(character * ch, uint8_t bMsg, uint32_t dwArg1, uint32_t
 
 		case PM_AGGRO_INCREASE:
 			{
-				character * victim = character_manager::instance().find(dwArg2);
+				character * victim = character_manager::instance().find(arg2);
 
 				if (!victim)
 					return;
@@ -946,7 +946,7 @@ void party::send_message(character * ch, uint8_t bMsg, uint32_t dwArg1, uint32_t
 
 					if ((pkChr = rMember.character) && ch != pkChr)
 					{
-						pkChr->update_aggr_point(victim, DAMAGE_TYPE_SPECIAL, dwArg1);
+						pkChr->update_aggr_point(victim, DAMAGE_TYPE_SPECIAL, arg1);
 					}
 				}
 			}
@@ -959,9 +959,9 @@ character * party::leader_character()
 	return member_map_[leader_pid()].character;
 }
 
-bool party::set_role(uint32_t dwPID, uint8_t bRole, bool bSet)
+bool party::set_role(uint32_t pid, uint8_t role_value, bool set)
 {
-	member_map::iterator it = member_map_.find(dwPID);
+	member_map::iterator it = member_map_.find(pid);
 
 	if (it == member_map_.end())
 	{
@@ -970,26 +970,26 @@ bool party::set_role(uint32_t dwPID, uint8_t bRole, bool bSet)
 
 	character * ch = it->second.character;
 
-	if (bSet)
+	if (set)
 	{
-		if (an_role_count_[bRole] >= an_max_role_[bRole])
+		if (an_role_count_[role_value] >= an_max_role_[role_value])
 			return false;
 
 		if (it->second.role != PARTY_ROLE_NORMAL)
 			return false;
 
-		it->second.role = bRole;
+		it->second.role = role_value;
 
 		if (ch && leader())
-			compute_role_point(ch, bRole, true);
+			compute_role_point(ch, role_value, true);
 
-		if (bRole < PARTY_ROLE_MAX_NUM)
+		if (role_value < PARTY_ROLE_MAX_NUM)
 		{
-			++an_role_count_[bRole];
+			++an_role_count_[role_value];
 		}
 		else
 		{
-			metin2::log::error("ROLE_COUNT_INC_ERROR: INDEX({:d}) > MAX({:d})", bRole, PARTY_ROLE_MAX_NUM);
+			metin2::log::error("ROLE_COUNT_INC_ERROR: INDEX({:d}) > MAX({:d})", role_value, PARTY_ROLE_MAX_NUM);
 		}
 	}
 	else
@@ -1005,17 +1005,17 @@ bool party::set_role(uint32_t dwPID, uint8_t bRole, bool bSet)
 		if (ch && leader())
 			compute_role_point(ch, PARTY_ROLE_NORMAL, false);
 
-		if (bRole < PARTY_ROLE_MAX_NUM)
+		if (role_value < PARTY_ROLE_MAX_NUM)
 		{
-			--an_role_count_[bRole];
+			--an_role_count_[role_value];
 		}
 		else
 		{
-			metin2::log::error("ROLE_COUNT_DEC_ERROR: INDEX({:d}) > MAX({:d})", bRole, PARTY_ROLE_MAX_NUM);
+			metin2::log::error("ROLE_COUNT_DEC_ERROR: INDEX({:d}) > MAX({:d})", role_value, PARTY_ROLE_MAX_NUM);
 		}
 	}
 
-	send_party_info_one_to_all(dwPID);
+	send_party_info_one_to_all(pid);
 	return true;
 }
 
@@ -1197,9 +1197,9 @@ character * party::next_ownership(character * ch, int32_t x, int32_t y)
 	return ch;
 }
 
-void party::compute_role_point(character * ch, uint8_t bRole, bool bAdd)
+void party::compute_role_point(character * ch, uint8_t role, bool add)
 {
-	if (!bAdd)
+	if (!add)
 	{
 		ch->point_change(POINT_PARTY_ATTACKER_BONUS, -ch->point(POINT_PARTY_ATTACKER_BONUS));
 		ch->point_change(POINT_PARTY_TANKER_BONUS, -ch->point(POINT_PARTY_TANKER_BONUS));
@@ -1215,7 +1215,7 @@ void party::compute_role_point(character * ch, uint8_t bRole, bool bAdd)
 	float k = (float) ch->skill_power_by_level( std::min(SKILL_MAX_LEVEL, leadership_ ) )/ 100.0f;
 	//END_SKILL_POWER_BY_LEVEL
 
-	switch (bRole)
+	switch (role)
 	{
 		case PARTY_ROLE_ATTACKER:
 			{
@@ -1414,14 +1414,14 @@ void party::update()
 	}
 }
 
-void party::update_online_state(uint32_t dwPID, const char* name)
+void party::update_online_state(uint32_t pid_value, const char* name)
 {
-	member& r = member_map_[dwPID];
+	member& r = member_map_[pid_value];
 
 	packet_gc_party_add p;
 
 	p.header = HEADER_GC_PARTY_ADD;
-	p.pid = dwPID;
+	p.pid = pid_value;
 	r.name = name;
 	strlcpy(p.name, name, sizeof(p.name));
 
@@ -1431,12 +1431,12 @@ void party::update_online_state(uint32_t dwPID, const char* name)
 			it->second.character->get_desc()->packet(&p, sizeof(p));
 	}
 }
-void party::update_offline_state(uint32_t dwPID)
+void party::update_offline_state(uint32_t pid_value)
 {
 
 	packet_gc_party_add p;
 	p.header = HEADER_GC_PARTY_ADD;
-	p.pid = dwPID;
+	p.pid = pid_value;
 	memset(p.name, 0, CHARACTER_NAME_MAX_LEN+1);
 
 	for (member_map::iterator it = member_map_.begin(); it != member_map_.end(); ++it)
@@ -1472,9 +1472,9 @@ void party::set_flag(const std::string& name, int value)
 	}
 }
 
-void party::set_dungeon(dungeon * pDungeon)
+void party::set_dungeon(dungeon * dungeon_value)
 {
-	dungeon_ = pDungeon;
+	dungeon_ = dungeon_value;
 	map_i_flag_.clear();
 }
 
@@ -1483,9 +1483,9 @@ dungeon * party::get_dungeon()
 	return dungeon_;
 }
 
-void party::set_dungeon_for_only_party(dungeon * pDungeon)
+void party::set_dungeon_for_only_party(dungeon * dungeon_value)
 {
-	dungeon_for_only_party_ = pDungeon;
+	dungeon_for_only_party_ = dungeon_value;
 }
 
 dungeon * party::dungeon_for_only_party()
@@ -1514,7 +1514,7 @@ int party::exp_bonus_percent()
 	return exp_bonus_ + long_time_exp_bonus_;
 }
 
-uint8_t party::count_member_by_vnum(uint32_t dwVnum)
+uint8_t party::count_member_by_vnum(uint32_t vnum_value)
 {
 	if (pc_party_)
 		return 0;
@@ -1532,7 +1532,7 @@ uint8_t party::count_member_by_vnum(uint32_t dwVnum)
 		if (tch->is_pc())
 			continue;
 
-		if (tch->get_mob_table().vnum == dwVnum)
+		if (tch->get_mob_table().vnum == vnum_value)
 			++bCount;
 	}
 
@@ -1566,15 +1566,15 @@ void party::send_parameter_to_all()
 			send_parameter(it->second.character);
 }
 
-void party::set_parameter(int iMode)
+void party::set_parameter(int mode)
 {
-	if (iMode >= PARTY_EXP_DISTRIBUTION_MAX_NUM)
+	if (mode >= PARTY_EXP_DISTRIBUTION_MAX_NUM)
 	{
-		metin2::log::error("Invalid exp distribution mode {:d}", iMode);
+		metin2::log::error("Invalid exp distribution mode {:d}", mode);
 		return;
 	}
 
-	exp_distribution_mode_ = iMode;
+	exp_distribution_mode_ = mode;
 	send_parameter_to_all();
 }
 

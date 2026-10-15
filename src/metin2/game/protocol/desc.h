@@ -40,7 +40,7 @@ enum desc_type
 class login_key
 {
 	public:
-		login_key(uint32_t dwKey, game::protocol::desc * pkDesc) : key(dwKey), desc(pkDesc)
+		login_key(uint32_t key_value, game::protocol::desc * desc_value) : key(key_value), desc(desc_value)
 		{
 			expire_time = 0;
 		}
@@ -84,12 +84,12 @@ class desc : public net::connection_handler
 
 		virtual uint8_t		type() { return DESC_TYPE_ACCEPTOR; }
 		virtual void		destroy();
-		virtual void		set_phase(int _phase);
+		virtual void		set_phase(int phase_value);
 
 		void			flush_output();
 		void			send_output_now();	// writes the queued output without waiting for the event loop
 
-		bool			setup(std::shared_ptr<net::connection> connection, uint32_t _handle, uint32_t _handshake);
+		bool			setup(std::shared_ptr<net::connection> connection, uint32_t handle, uint32_t handshake);
 
 		bool			is_connected() const	{ return connection_ != nullptr; }
 		const char *	host_name()		{ return host_.c_str(); }
@@ -98,9 +98,9 @@ class desc : public net::connection_handler
 		const char *	p2_p_host()		{ return p2_p_host_.c_str();	}
 		uint16_t			p2_p_port() const		{ return p2_p_port_; }
 
-		void			buffered_packet(const void * c_pvData, int iSize);
-		void			packet(const void * c_pvData, int iSize);
-		void			large_packet(const void * c_pvData, int iSize);
+		void			buffered_packet(const void * data_value, int size);
+		void			packet(const void * data_value, int size_value);
+		void			large_packet(const void * data, int size);
 
 		auto			on_receive(std::span<std::uint8_t> input, std::size_t received) -> std::size_t override;
 		void			on_close(const std::error_code & error) override;
@@ -109,7 +109,7 @@ class desc : public net::connection_handler
 
 		uint32_t			handle() const	{ return handle_; }
 
-		void			bind_account_table(account_table * pTable);
+		void			bind_account_table(account_table * account_table_value);
 		account_table &		get_account_table()	{ return account_table_; }
 
 		void			bind_character(character * ch);
@@ -119,9 +119,9 @@ class desc : public net::connection_handler
 
 
 		// Handshake (time synchronization)
-		void			start_handshake(uint32_t _dw);
-		void			send_handshake(uint32_t dwCurTime, int32_t lNewDelta);
-		bool			handshake_process(uint32_t dwTime, int32_t lDelta, bool bInfiniteRetry=false);
+		void			start_handshake(uint32_t handshake);
+		void			send_handshake(uint32_t cur_time, int32_t new_delta);
+		bool			handshake_process(uint32_t time, int32_t delta, bool infinite_retry=false);
 		bool			is_handshaking();
 
 		uint32_t			handshake() const	{ return handshake_; }
@@ -136,8 +136,8 @@ class desc : public net::connection_handler
 		uint8_t			empire();
 
 		// for p2p
-		void			set_relay(const char * c_pszName);
-		bool			delayed_disconnect(int iSec);
+		void			set_relay(const char * name);
+		bool			delayed_disconnect(int sec);
 		void			disconnect_of_same_login();
 
 		void			set_admin_mode();
@@ -145,7 +145,7 @@ class desc : public net::connection_handler
 
 		// A guild mark connection (HEADER_CG_MARK_LOGIN): unencrypted, mark packets only. It belongs
 		// to the game connection with handle dwOwnerHandle, whose login issued the random key.
-		void			set_mark_login(uint32_t dwOwnerHandle)	{ mark_login_ = true; mark_owner_handle_ = dwOwnerHandle; }
+		void			set_mark_login(uint32_t owner_handle)	{ mark_login_ = true; mark_owner_handle_ = owner_handle; }
 		bool			is_mark_login() const	{ return mark_login_; }
 		uint32_t		mark_owner_handle() const	{ return mark_owner_handle_; }
 
@@ -157,17 +157,17 @@ class desc : public net::connection_handler
 
 		void			send_login_success_packet();
 
-		void			set_login_key(uint32_t dwKey);
-		void			set_login_key(login_key * pkKey);
+		void			set_login_key(uint32_t key);
+		void			set_login_key(login_key * key_value);
 		uint32_t			get_login_key();
 
-		void			assemble_crc_magic_cube(uint8_t bProcPiece, uint8_t bFilePiece);
+		void			assemble_crc_magic_cube(uint8_t proc_piece, uint8_t file_piece);
 
-		void			set_client_version(const char * c_pszTimestamp) { client_version_ = c_pszTimestamp; }
+		void			set_client_version(const char * timestamp) { client_version_ = timestamp; }
 		const char *		client_version() { return client_version_.c_str(); }
 
 		bool			is_channel_status_requested() const { return channel_status_requested_; }
-		void			set_channel_status_requested(bool bChannelStatusRequested) { channel_status_requested_ = bChannelStatusRequested; }
+		void			set_channel_status_requested(bool channel_status_requested) { channel_status_requested_ = channel_status_requested; }
 
 	protected:
 		void			initialize();

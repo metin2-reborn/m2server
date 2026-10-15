@@ -140,9 +140,9 @@ character * character::rider() const
 }
 
 
-void character::horse_summon(bool bSummon, bool bFromFar, uint32_t dwVnum, const char* pPetName)
+void character::horse_summon(bool summon, bool from_far, uint32_t vnum, const char* pet_name)
 {
-	if ( bSummon )
+	if ( summon )
 	{
 		//NOTE : On summon, do nothing if a horse already exists.
 		if( ch_horse_ != nullptr )
@@ -155,15 +155,15 @@ void character::horse_summon(bool bSummon, bool bFromFar, uint32_t dwVnum, const
 		if (is_riding())
 			return;
 
-		metin2::log::info( "HorseSummon : {} lv:{:d} bSummon:{:d} fromFar:{:d}", name(), level(), bSummon, bFromFar);
+		metin2::log::info( "HorseSummon : {} lv:{:d} bSummon:{:d} fromFar:{:d}", name(), level(), summon, from_far);
 
 		int32_t x_value = x();
 		int32_t y_value = y();
 
 		if (horse_health() <= 0)
-			bFromFar = false;
+			from_far = false;
 
-		if (bFromFar)
+		if (from_far)
 		{
 			x_value += (number(0, 1) * 2 - 1) * number(2000, 2500);
 			y_value += (number(0, 1) * 2 - 1) * number(2000, 2500);
@@ -175,7 +175,7 @@ void character::horse_summon(bool bSummon, bool bFromFar, uint32_t dwVnum, const
 		}
 
 		ch_horse_ = character_manager::instance().spawn_mob(
-				(0 == dwVnum) ? my_horse_vnum() : dwVnum, 
+				(0 == vnum) ? my_horse_vnum() : vnum, 
 				map_index(), 
 				x_value, y_value,
 				z(), false, (int)(rotation()+180), false);
@@ -238,7 +238,7 @@ void character::horse_summon(bool bSummon, bool bFromFar, uint32_t dwVnum, const
 
 		chHorse->set_rider(nullptr); // m_chHorse assign to NULL
 
-		if (!bFromFar)
+		if (!from_far)
 		{
 			character_manager::instance().destroy_character(chHorse);
 		}
@@ -383,9 +383,9 @@ bool character::can_use_horse_skill()
 	return false;
 }
 
-void character::set_horse_level(int iLevel)
+void character::set_horse_level(int level)
 {
-	horse_rider::set_horse_level(iLevel);
+	horse_rider::set_horse_level(level);
 	set_skill_level(SKILL_HORSE, horse_level());
 }
 }

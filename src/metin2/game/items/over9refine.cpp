@@ -14,31 +14,31 @@
 
 namespace metin2::game::inline items {
 
-void over9_refine_manager::enable_over9_refine(uint32_t dwVnumFrom, uint32_t dwVnumTo)
+void over9_refine_manager::enable_over9_refine(uint32_t vnum_from, uint32_t vnum_to)
 {
-	item_.insert(std::make_pair(dwVnumFrom, dwVnumTo));
+	item_.insert(std::make_pair(vnum_from, vnum_to));
 }
 
-int over9_refine_manager::can_over9_refine(uint32_t dwVnum)
+int over9_refine_manager::can_over9_refine(uint32_t vnum)
 {
-	ove_r9_item_map::iterator iter = item_.find(dwVnum);
+	ove_r9_item_map::iterator iter = item_.find(vnum);
 
 	if (iter != item_.end())
 		return 1;
 
-	if (dwVnum % 10 == 9)
+	if (vnum % 10 == 9)
 		return 0;
 
-	dwVnum -= dwVnum % 10;
+	vnum -= vnum % 10;
 
 	for (iter = item_.begin(); iter != item_.end(); ++iter)
-		if (iter->second == dwVnum)
+		if (iter->second == vnum)
 			return 2;
 
 	return 0;
 }
 
-bool over9_refine_manager::change9_to_over9(character * pChar, item * item)
+bool over9_refine_manager::change9_to_over9(character * ch, item * item)
 {
 	ove_r9_item_map::iterator iter = item_.find(item->vnum());
 
@@ -55,22 +55,22 @@ bool over9_refine_manager::change9_to_over9(character * pChar, item * item)
 	item->copy_socket_to(over9);
 	item->copy_attribute_to(over9);
 
-	int iEmptyCell = pChar->empty_inventory(over9->size());
+	int iEmptyCell = ch->empty_inventory(over9->size());
 
 	if (iEmptyCell == -1)
 		return false;
 
 	item->remove_from_character();
 
-	over9->add_to_character(pChar, item_pos(INVENTORY, iEmptyCell));
+	over9->add_to_character(ch, item_pos(INVENTORY, iEmptyCell));
 
 	char szBuf[256];
 	snprintf(szBuf, sizeof(szBuf), "SUCCESS %u %s %u", over9->id(), over9->name(), over9->original_vnum());
-	log_manager::instance().item_log(pChar, item, "REFINE OVER9", szBuf);
+	log_manager::instance().item_log(ch, item, "REFINE OVER9", szBuf);
 	return true;
 }
 
-bool over9_refine_manager::over9_refine(character * pChar, item * item)
+bool over9_refine_manager::over9_refine(character * ch, item * item)
 {
 	uint32_t dwVnum = item->refined_vnum();
 
@@ -85,32 +85,32 @@ bool over9_refine_manager::over9_refine(character * pChar, item * item)
 	item->copy_socket_to(over9);
 	item->copy_attribute_to(over9);
 
-	int iEmptyCell = pChar->empty_inventory(over9->size());
+	int iEmptyCell = ch->empty_inventory(over9->size());
 
 	if (iEmptyCell == -1)
 		return false;
 
 	item->remove_from_character();
 
-	over9->add_to_character(pChar, item_pos(INVENTORY, iEmptyCell));
+	over9->add_to_character(ch, item_pos(INVENTORY, iEmptyCell));
 
 	char szBuf[256];
 	snprintf(szBuf, sizeof(szBuf), "SUCCESS %u %s %u", over9->id(), over9->name(), over9->original_vnum());
-	log_manager::instance().item_log(pChar, item, "REFINE OVER9", szBuf);
+	log_manager::instance().item_log(ch, item, "REFINE OVER9", szBuf);
 	return true;
 }
 
-uint32_t over9_refine_manager::material_vnum(uint32_t baseVnum)
+uint32_t over9_refine_manager::material_vnum(uint32_t base_vnum)
 {
-	ove_r9_item_map::iterator iter = item_.find(baseVnum);
+	ove_r9_item_map::iterator iter = item_.find(base_vnum);
 
 	if (iter != item_.end())
-		return (baseVnum - (baseVnum % 10));
+		return (base_vnum - (base_vnum % 10));
 
-	baseVnum -= baseVnum % 10;
+	base_vnum -= base_vnum % 10;
 
 	for (iter = item_.begin(); iter != item_.end(); ++iter)
-		if (iter->second == baseVnum)
+		if (iter->second == base_vnum)
 			return (iter->first - (iter->first % 10));
 
 	return 0;

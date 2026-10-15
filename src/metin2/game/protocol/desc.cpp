@@ -203,12 +203,12 @@ void desc::set_pong(bool b)
 	pong_ = b;
 }
 
-bool desc::setup(std::shared_ptr<net::connection> connection, uint32_t _handle, uint32_t _handshake)
+bool desc::setup(std::shared_ptr<net::connection> connection, uint32_t handle, uint32_t handshake)
 {
 	connection_	= std::move(connection);
 	host_		= connection_->remote_address();
 	port_			= connection_->remote_port();
-	handle_		= _handle;
+	handle_		= handle;
 
 	connection_->start(*this);
 
@@ -223,7 +223,7 @@ bool desc::setup(std::shared_ptr<net::connection> connection, uint32_t _handle, 
 
 	// Set Phase to handshake
 	set_phase(PHASE_HANDSHAKE);
-	start_handshake(_handshake);
+	start_handshake(handshake);
 
 	metin2::log::info( "SYSTEM: new connection from [{}] handle {:d} handshake {:d} ptr {}",
 			host_.c_str(), handle_, handshake_, static_cast<const void *>(this));
@@ -262,18 +262,18 @@ void desc::on_close(const std::error_code & error)
 	set_phase(PHASE_CLOSE);
 }
 
-void desc::buffered_packet(const void * c_pvData, int iSize)
+void desc::buffered_packet(const void * data_value, int size)
 {
 	if (phase_ == PHASE_CLOSE)
 		return;
 
-	const auto * data = static_cast<const uint8_t *>(c_pvData);
-	buffered_output_.insert(buffered_output_.end(), data, data + iSize);
+	const auto * data = static_cast<const uint8_t *>(data_value);
+	buffered_output_.insert(buffered_output_.end(), data, data + size);
 }
 
-void desc::packet(const void * c_pvData, int iSize)
+void desc::packet(const void * data_value, int size_value)
 {
-	assert(iSize > 0);
+	assert(size_value > 0);
 
 	if (phase_ == PHASE_CLOSE || !connection_) // Don't send while disconnecting.
 		return;
@@ -285,11 +285,11 @@ void desc::packet(const void * c_pvData, int iSize)
 
 		p.header = HEADER_GG_RELAY;
 		strlcpy(p.name, relay_name_.c_str(), sizeof(p.name));
-		p.size = iSize;
+		p.size = size_value;
 
 		relay_name_.clear();
 
-		if (!connection_->send(&p, sizeof(p)) || !connection_->send(c_pvData, iSize))
+		if (!connection_->send(&p, sizeof(p)) || !connection_->send(data_value, size_value))
 			phase_ = PHASE_CLOSE;
 
 		return;
@@ -297,15 +297,15 @@ void desc::packet(const void * c_pvData, int iSize)
 
 	if (!buffered_output_.empty())
 	{
-		const auto * data = static_cast<const uint8_t *>(c_pvData);
-		buffered_output_.insert(buffered_output_.end(), data, data + iSize);
+		const auto * data = static_cast<const uint8_t *>(data_value);
+		buffered_output_.insert(buffered_output_.end(), data, data + size_value);
 
-		c_pvData = buffered_output_.data();
-		iSize = (int) buffered_output_.size();
+		data_value = buffered_output_.data();
+		size_value = (int) buffered_output_.size();
 	}
 
 	// The output limit closes connections that stopped reading.
-	const std::span<uint8_t> out = connection_->prepare(iSize);
+	const std::span<uint8_t> out = connection_->prepare(size_value);
 
 	if (out.empty())
 	{
@@ -314,7 +314,7 @@ void desc::packet(const void * c_pvData, int iSize)
 	}
 	else
 	{
-		std::memcpy(out.data(), c_pvData, iSize);
+		std::memcpy(out.data(), data_value, size_value);
 
 		if (cipher_.activated())
 			cipher_.encrypt(out.data(), out.size());
@@ -323,23 +323,23 @@ void desc::packet(const void * c_pvData, int iSize)
 	buffered_output_.clear();
 }
 
-void desc::large_packet(const void * c_pvData, int iSize)
+void desc::large_packet(const void * data, int size)
 {
 	if (connection_)
-		connection_->raise_output_limit(iSize);
+		connection_->raise_output_limit(size);
 
-	metin2::log::info( "LargePacket Size {:d}", iSize);
+	metin2::log::info( "LargePacket Size {:d}", size);
 
-	packet(c_pvData, iSize);
+	packet(data, size);
 }
 
-void desc::set_phase(int _phase)
+void desc::set_phase(int phase_value)
 {
-	phase_ = _phase;
+	phase_ = phase_value;
 
 	packet_gc_phase pack;
 	pack.header = HEADER_GC_PHASE;
-	pack.phase = _phase;
+	pack.phase = phase_value;
 	packet(&pack, sizeof(packet_gc_phase));
 
 	switch (phase_)
@@ -373,59 +373,59 @@ void desc::set_phase(int _phase)
 	}
 }
 
-void desc::bind_account_table(account_table * pAccountTable)
+void desc::bind_account_table(account_table * account_table_value)
 {
-	assert(pAccountTable != nullptr);
+	assert(account_table_value != nullptr);
 
 	// A second login on this connection (two requests in flight): the login map must not keep
 	// pointing here under the old name once this connection is gone.
-	if (account_table_.id && strcmp(account_table_.login, pAccountTable->login) != 0)
+	if (account_table_.id && strcmp(account_table_.login, account_table_value->login) != 0)
 		desc_manager::instance().disconnect_account(account_table_.login);
 
-	std::memcpy(&account_table_, pAccountTable, sizeof(account_table));
+	std::memcpy(&account_table_, account_table_value, sizeof(account_table));
 	desc_manager::instance().connect_account(account_table_.login, this);
 }
 
-void desc::start_handshake(uint32_t _handshake)
+void desc::start_handshake(uint32_t handshake)
 {
 	// Handshake
-	handshake_ = _handshake;
+	handshake_ = handshake;
 
 	send_handshake(get_dword_time(), 0);
 
 	handshake_retry_ = 0;
 }
 
-void desc::send_handshake(uint32_t dwCurTime, int32_t lNewDelta)
+void desc::send_handshake(uint32_t cur_time, int32_t new_delta)
 {
 	packet_gc_handshake pack;
 
 	pack.header		= HEADER_GC_HANDSHAKE;
 	pack.handshake	= handshake_;
-	pack.time			= dwCurTime;
-	pack.delta			= lNewDelta;
+	pack.time			= cur_time;
+	pack.delta			= new_delta;
 
 	packet(&pack, sizeof(packet_gc_handshake));
 
-	handshake_sent_time_ = dwCurTime;
+	handshake_sent_time_ = cur_time;
 	handshaking_ = true;
 }
 
-bool desc::handshake_process(uint32_t dwTime, int32_t lDelta, bool bInfiniteRetry)
+bool desc::handshake_process(uint32_t time, int32_t delta, bool infinite_retry)
 {
 	uint32_t dwCurTime = get_dword_time();
 
-	if (lDelta < 0)
+	if (delta < 0)
 	{
-		metin2::log::error("Desc::HandshakeProcess : value error (lDelta {:d}, ip {})", lDelta, host_.c_str());
+		metin2::log::error("Desc::HandshakeProcess : value error (lDelta {:d}, ip {})", delta, host_.c_str());
 		return false;
 	}
 
-	int bias = (int) (dwCurTime - (dwTime + lDelta));
+	int bias = (int) (dwCurTime - (time + delta));
 
 	if (bias >= 0 && bias <= 50)
 	{
-		if (bInfiniteRetry)
+		if (infinite_retry)
 		{
 			uint8_t bHeader = HEADER_GC_TIME_SYNC;
 			packet(&bHeader, sizeof(uint8_t));
@@ -434,14 +434,14 @@ bool desc::handshake_process(uint32_t dwTime, int32_t lDelta, bool bInfiniteRetr
 		if (get_character())
 			metin2::log::info( "Handshake: client_time {:d} server_time {:d} name: {}", client_time_, dwCurTime, get_character()->name());
 		else
-			metin2::log::info( "Handshake: client_time {:d} server_time {:d} delta {:d}", client_time_, dwCurTime, static_cast<long>(lDelta));
+			metin2::log::info( "Handshake: client_time {:d} server_time {:d} delta {:d}", client_time_, dwCurTime, static_cast<long>(delta));
 
 		client_time_ = dwCurTime;
 		handshaking_ = false;
 		return true; 
 	}
 
-	int32_t lNewDelta = (int32_t) (dwCurTime - dwTime) / 2;
+	int32_t lNewDelta = (int32_t) (dwCurTime - time) / 2;
 
 	if (lNewDelta < 0)
 	{
@@ -449,9 +449,9 @@ bool desc::handshake_process(uint32_t dwTime, int32_t lDelta, bool bInfiniteRetr
 		lNewDelta = (dwCurTime - handshake_sent_time_) / 2;
 	}
 
-	metin2::log::debug( "Handshake: ServerTime {:d} dwTime {:d} lDelta {:d} SentTime {:d} lNewDelta {:d}", dwCurTime, dwTime, lDelta, handshake_sent_time_, lNewDelta);
+	metin2::log::debug( "Handshake: ServerTime {:d} dwTime {:d} lDelta {:d} SentTime {:d} lNewDelta {:d}", dwCurTime, time, delta, handshake_sent_time_, lNewDelta);
 
-	if (!bInfiniteRetry)
+	if (!infinite_retry)
 		if (++handshake_retry_ > HANDSHAKE_RETRY_LIMIT)
 		{
 			metin2::log::error("handshake retry limit reached! (limit {:d} character {})", 
@@ -519,9 +519,9 @@ bool desc::is_cipher_prepared()
 	return cipher_.is_key_prepared();
 }
 
-void desc::set_relay(const char * c_pszName)
+void desc::set_relay(const char * name)
 {
-	relay_name_ = c_pszName;
+	relay_name_ = name;
 }
 
 void desc::bind_character(character * ch)
@@ -565,7 +565,7 @@ EVENTFUNC(disconnect_event)
 	return 0;
 }
 
-bool desc::delayed_disconnect(int iSec)
+bool desc::delayed_disconnect(int sec)
 {
 	if (disconnect_event != nullptr) {
 		return false;
@@ -574,7 +574,7 @@ bool desc::delayed_disconnect(int iSec)
 	desc_event_info* info = alloc_event_info<desc_event_info>();
 	info->desc = this;
 
-	disconnect_event = event_create(game::protocol::disconnect_event, info, passes_per_sec(iSec));
+	disconnect_event = event_create(game::protocol::disconnect_event, info, passes_per_sec(sec));
 	return true;
 }
 
@@ -650,18 +650,18 @@ void desc::send_login_success_packet()
 	packet(&p, sizeof(packet_gc_login_success));
 }
 
-void desc::set_login_key(uint32_t dwKey)
+void desc::set_login_key(uint32_t key)
 {
-	login_key_ = dwKey;
+	login_key_ = key;
 }
 
-void desc::set_login_key(login_key * pkKey)
+void desc::set_login_key(login_key * key_value)
 {
 	// The replaced key must not keep pointing at this connection after it is destroyed.
-	if (m_pk_login_key_ && m_pk_login_key_ != pkKey)
+	if (m_pk_login_key_ && m_pk_login_key_ != key_value)
 		m_pk_login_key_->expire();
 
-	m_pk_login_key_ = pkKey;
+	m_pk_login_key_ = key_value;
 	metin2::log::info( "SetLoginKey {:d}", m_pk_login_key_->key);
 }
 
@@ -674,7 +674,7 @@ uint32_t desc::get_login_key()
 }
 
 
-void desc::assemble_crc_magic_cube(uint8_t bProcPiece, uint8_t bFilePiece)
+void desc::assemble_crc_magic_cube(uint8_t proc_piece, uint8_t file_piece)
 {
 	static uint8_t abXORTable[32] =
 	{
@@ -684,11 +684,11 @@ void desc::assemble_crc_magic_cube(uint8_t bProcPiece, uint8_t bFilePiece)
 		43,   5, 0, 0, 0, 0, 0, 0,
 	};
 
-	bProcPiece = (bProcPiece ^ abXORTable[crc_magic_cube_idx_]);
-	bFilePiece = (bFilePiece ^ abXORTable[crc_magic_cube_idx_+1]);
+	proc_piece = (proc_piece ^ abXORTable[crc_magic_cube_idx_]);
+	file_piece = (file_piece ^ abXORTable[crc_magic_cube_idx_+1]);
 
-	proc_crc_ |= static_cast<uint32_t>(bProcPiece) << crc_magic_cube_idx_;
-	file_crc_ |= static_cast<uint32_t>(bFilePiece) << crc_magic_cube_idx_;
+	proc_crc_ |= static_cast<uint32_t>(proc_piece) << crc_magic_cube_idx_;
+	file_crc_ |= static_cast<uint32_t>(file_piece) << crc_magic_cube_idx_;
 
 	crc_magic_cube_idx_ += 8;
 

@@ -129,63 +129,63 @@ bool monarch::del_candidacy(const char * name)
 
 }
 
-bool monarch::is_monarch(int Empire, uint32_t pid)
+bool monarch::is_monarch(int empire, uint32_t pid)
 {
-	if (monarch_info_.pid[Empire] != pid)
+	if (monarch_info_.pid[empire] != pid)
 		return false;
 	return true;
 }
 
-bool monarch::add_money(int Empire, int64_t Money)
+bool monarch::add_money(int empire, int64_t money_value)
 {
-	if (monarch_info_.money[Empire] + Money > 2000000000)
+	if (monarch_info_.money[empire] + money_value > 2000000000)
 		return true;
 
-	monarch_info_.money[Empire] += Money;
+	monarch_info_.money[empire] += money_value;
 
-	int64_t Money64 = monarch_info_.money[Empire];
+	int64_t Money64 = monarch_info_.money[empire];
 
 	char szQuery[1024];	
-	snprintf(szQuery, sizeof(szQuery), "UPDATE monarch set money=%ld where empire=%d", Money64, Empire);
+	snprintf(szQuery, sizeof(szQuery), "UPDATE monarch set money=%ld where empire=%d", Money64, empire);
 
 	db_manager::instance().async_query(szQuery);
 
 	return true;
 }
 
-bool monarch::dec_money(int Empire, int64_t Money)
+bool monarch::dec_money(int empire, int64_t money_value)
 {
-	if (monarch_info_.money[Empire] - Money <  0)
+	if (monarch_info_.money[empire] - money_value <  0)
 		return false;
-	monarch_info_.money[Empire] -= Money;
+	monarch_info_.money[empire] -= money_value;
 
-	int64_t Money64 = monarch_info_.money[Empire];
+	int64_t Money64 = monarch_info_.money[empire];
 
 	char szQuery[1024];	
-	snprintf(szQuery, sizeof(szQuery), "UPDATE monarch set money=%ld where empire=%d", Money64, Empire);
+	snprintf(szQuery, sizeof(szQuery), "UPDATE monarch set money=%ld where empire=%d", Money64, empire);
 
 	db_manager::instance().async_query(szQuery);
 	return true;
 }
 
-bool monarch::take_money(int Empire, uint32_t pid, int64_t Money)
+bool monarch::take_money(int empire, uint32_t pid, int64_t money_value)
 {
-	if (is_monarch(Empire, pid) == false)
+	if (is_monarch(empire, pid) == false)
 		return false;
 
-	if (monarch_info_.money[Empire] < Money)
+	if (monarch_info_.money[empire] < money_value)
 		return false;
 	
-	monarch_info_.money[Empire] -= Money;
+	monarch_info_.money[empire] -= money_value;
 
 	char szQuery[1024];	
 	snprintf(szQuery, sizeof(szQuery), 
-			"UPDATE monarch SET money=%ld WHERE empire=%d", monarch_info_.money[Empire], Empire);
+			"UPDATE monarch SET money=%ld WHERE empire=%d", monarch_info_.money[empire], empire);
 
 	db_manager::instance().async_query(szQuery);
 
 	if (metin2::config::test_server())
-		metin2::log::info( "[MONARCH] Take money empire({:d}) money({:d})", Empire, monarch_info_.money[Empire]);
+		metin2::log::info( "[MONARCH] Take money empire({:d}) money({:d})", empire, monarch_info_.money[empire]);
 	return true;
 }
 

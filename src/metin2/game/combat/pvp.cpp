@@ -26,18 +26,18 @@
 
 namespace metin2::game::inline combat {
 
-pvp::pvp(uint32_t dwPID1, uint32_t dwPID2)
+pvp::pvp(uint32_t pid1, uint32_t pid2)
 {
-	if (dwPID1 > dwPID2)
+	if (pid1 > pid2)
 	{
-		players_[0].pid = dwPID1;
-		players_[1].pid = dwPID2;
+		players_[0].pid = pid1;
+		players_[1].pid = pid2;
 		players_[0].agree = true;
 	}
 	else
 	{
-		players_[0].pid = dwPID2;
-		players_[1].pid = dwPID1;
+		players_[0].pid = pid2;
+		players_[1].pid = pid1;
 		players_[1].agree = true;
 	}
 
@@ -65,11 +65,11 @@ pvp::~pvp()
 {
 }
 
-void pvp::packet(bool bDelete)
+void pvp::packet(bool removing)
 {
 	if (!players_[0].vid || !players_[1].vid)
 	{
-		if (bDelete)
+		if (removing)
 			metin2::log::error("null vid when removing {:d} {:d}", players_[0].vid, players_[0].vid);
 
 		return;
@@ -79,7 +79,7 @@ void pvp::packet(bool bDelete)
 
 	pack.header = HEADER_GC_PVP;
 
-	if (bDelete)
+	if (removing)
 	{
 		pack.mode = PVP_MODE_NONE;
 		pack.vid_src = players_[0].vid;
@@ -119,9 +119,9 @@ void pvp::packet(bool bDelete)
 	}
 }
 
-bool pvp::agree(uint32_t dwPID)
+bool pvp::agree(uint32_t pid_value)
 {
-	players_[players_[0].pid != dwPID ? 1 : 0].agree = true;
+	players_[players_[0].pid != pid_value ? 1 : 0].agree = true;
 
 	if (is_fight())
 	{
@@ -137,9 +137,9 @@ bool pvp::is_fight()
 	return (players_[0].agree == players_[1].agree) && players_[0].agree;
 }
 
-void pvp::win(uint32_t dwPID)
+void pvp::win(uint32_t pid_value)
 {
-	int iSlot = players_[0].pid != dwPID ? 1 : 0;
+	int iSlot = players_[0].pid != pid_value ? 1 : 0;
 
 	revenge_ = true;
 
@@ -150,12 +150,12 @@ void pvp::win(uint32_t dwPID)
 	packet();
 }
 
-void pvp::set_vid(uint32_t dwPID, uint32_t dwVID)
+void pvp::set_vid(uint32_t pid_value, uint32_t vid_value)
 {
-	if (players_[0].pid == dwPID)
-		players_[0].vid = dwVID;
+	if (players_[0].pid == pid_value)
+		players_[0].vid = vid_value;
 	else
-		players_[1].vid = dwVID;
+		players_[1].vid = vid_value;
 }
 
 void pvp::set_last_fight_time()
@@ -176,22 +176,22 @@ pvp_manager::~pvp_manager()
 {
 }
 
-void pvp_manager::insert(character * pkChr, character * pkVictim)
+void pvp_manager::insert(character * chr, character * victim)
 {
-	if (pkChr->is_dead() || pkVictim->is_dead())
+	if (chr->is_dead() || victim->is_dead())
 		return;
 
-	pvp kPVP(pkChr->player_id(), pkVictim->player_id());
+	pvp kPVP(chr->player_id(), victim->player_id());
 
 	pvp * pkPVP;
 
 	if ((pkPVP = find(kPVP.crc_)))
 	{
 		// If revenge is possible, fight right away!
-		if (pkPVP->agree(pkChr->player_id()))
+		if (pkPVP->agree(chr->player_id()))
 		{
-			pkVictim->chat_packet(CHAT_TYPE_INFO, lc_text("%s님과의 대결 시작!"), pkChr->name());
-			pkChr->chat_packet(CHAT_TYPE_INFO, lc_text("%s님과의 대결 시작!"), pkVictim->name());
+			victim->chat_packet(CHAT_TYPE_INFO, lc_text("%s님과의 대결 시작!"), chr->name());
+			chr->chat_packet(CHAT_TYPE_INFO, lc_text("%s님과의 대결 시작!"), victim->name());
 		}
 		return;
 	}
@@ -199,24 +199,24 @@ void pvp_manager::insert(character * pkChr, character * pkVictim)
 	auto pkNewPVP = std::make_unique<pvp>(kPVP);
 	pkPVP = pkNewPVP.get();
 
-	pkPVP->set_vid(pkChr->player_id(), pkChr->get_vid());
-	pkPVP->set_vid(pkVictim->player_id(), pkVictim->get_vid());
+	pkPVP->set_vid(chr->player_id(), chr->get_vid());
+	pkPVP->set_vid(victim->player_id(), victim->get_vid());
 
 	map_pk_pvp_.emplace(pkPVP->crc_, std::move(pkNewPVP));
 
-	map_pk_pvp_set_by_id_[pkChr->player_id()].insert(pkPVP);
-	map_pk_pvp_set_by_id_[pkVictim->player_id()].insert(pkPVP);
+	map_pk_pvp_set_by_id_[chr->player_id()].insert(pkPVP);
+	map_pk_pvp_set_by_id_[victim->player_id()].insert(pkPVP);
 
 	pkPVP->packet();
 
 	char msg[CHAT_MAX_LEN + 1];
-	snprintf(msg, sizeof(msg), lc_text("%s님이 대결신청을 했습니다. 승낙하려면 대결동의를 하세요."), pkChr->name());
+	snprintf(msg, sizeof(msg), lc_text("%s님이 대결신청을 했습니다. 승낙하려면 대결동의를 하세요."), chr->name());
 
-	pkVictim->chat_packet(CHAT_TYPE_INFO, msg);
-	pkChr->chat_packet(CHAT_TYPE_INFO, lc_text("%s에게 대결신청을 했습니다."), pkVictim->name());
+	victim->chat_packet(CHAT_TYPE_INFO, msg);
+	chr->chat_packet(CHAT_TYPE_INFO, lc_text("%s에게 대결신청을 했습니다."), victim->name());
 
 	// NOTIFY_PVP_MESSAGE
-	desc * pkVictimDesc = pkVictim->get_desc();
+	desc * pkVictimDesc = victim->get_desc();
 	if (pkVictimDesc)
 	{
 		packet_gc_whisper pack;
@@ -226,7 +226,7 @@ void pvp_manager::insert(character * pkChr, character * pkVictim)
 		pack.header = HEADER_GC_WHISPER;
 		pack.size = sizeof(packet_gc_whisper) + len;
 		pack.type = WHISPER_TYPE_SYSTEM;
-		strlcpy(pack.name_from, pkChr->name(), sizeof(pack.name_from));
+		strlcpy(pack.name_from, chr->name(), sizeof(pack.name_from));
 
 		temp_buffer buf;
 
@@ -238,45 +238,45 @@ void pvp_manager::insert(character * pkChr, character * pkVictim)
 	// END_OF_NOTIFY_PVP_MESSAGE
 }
 
-void pvp_manager::connect_ex(character * pkChr, bool bDisconnect)
+void pvp_manager::connect_ex(character * chr, bool disconnect)
 {
-	pvp_set_map::iterator it = map_pk_pvp_set_by_id_.find(pkChr->player_id());
+	pvp_set_map::iterator it = map_pk_pvp_set_by_id_.find(chr->player_id());
 
 	if (it == map_pk_pvp_set_by_id_.end())
 		return;
 
-	uint32_t dwVID = bDisconnect ? 0 : pkChr->get_vid();
+	uint32_t dwVID = disconnect ? 0 : chr->get_vid();
 
 	std::unordered_set<pvp*>::iterator it2 = it->second.begin();
 
 	while (it2 != it->second.end())
 	{
 		pvp * pkPVP = *it2++;
-		pkPVP->set_vid(pkChr->player_id(), dwVID);
+		pkPVP->set_vid(chr->player_id(), dwVID);
 	}
 }
 
-void pvp_manager::connect(character * pkChr)
+void pvp_manager::connect(character * chr)
 {
-	connect_ex(pkChr, false);
+	connect_ex(chr, false);
 }
 
-void pvp_manager::disconnect(character * pkChr)
+void pvp_manager::disconnect(character * chr)
 {
 }
 
 // Return value: 0 = PK, 1 = PVP
 // If PVP is returned, experience or items are dropped; if PK, they are not.
-bool pvp_manager::dead(character * pkChr, uint32_t dwKillerPID)
+bool pvp_manager::dead(character * chr, uint32_t killer_pid)
 {
-	pvp_set_map::iterator it = map_pk_pvp_set_by_id_.find(pkChr->player_id());
+	pvp_set_map::iterator it = map_pk_pvp_set_by_id_.find(chr->player_id());
 
 	if (it == map_pk_pvp_set_by_id_.end())
 		return false;
 
 	bool found = false;
 
-	metin2::log::debug( "PVPManager::Dead {:d}", pkChr->player_id());
+	metin2::log::debug( "PVPManager::Dead {:d}", chr->player_id());
 	std::unordered_set<pvp*>::iterator it2 = it->second.begin();
 
 	while (it2 != it->second.end())
@@ -285,17 +285,17 @@ bool pvp_manager::dead(character * pkChr, uint32_t dwKillerPID)
 
 		uint32_t dwCompanionPID;
 
-		if (pkPVP->players_[0].pid == pkChr->player_id())
+		if (pkPVP->players_[0].pid == chr->player_id())
 			dwCompanionPID = pkPVP->players_[1].pid;
 		else
 			dwCompanionPID = pkPVP->players_[0].pid;
 
-		if (dwCompanionPID == dwKillerPID)
+		if (dwCompanionPID == killer_pid)
 		{
 			if (pkPVP->is_fight())
 			{
 				pkPVP->set_last_fight_time();
-				pkPVP->win(dwKillerPID);
+				pkPVP->win(killer_pid);
 				found = true;
 				break;
 			}
@@ -310,9 +310,9 @@ bool pvp_manager::dead(character * pkChr, uint32_t dwKillerPID)
 	return found;
 }
 
-bool pvp_manager::can_attack(character * pkChr, character * pkVictim)
+bool pvp_manager::can_attack(character * chr, character * victim)
 {
-	switch (pkVictim->get_char_type())
+	switch (victim->get_char_type())
 	{
 		case CHAR_TYPE_NPC:
 		case CHAR_TYPE_WARP:
@@ -320,20 +320,20 @@ bool pvp_manager::can_attack(character * pkChr, character * pkVictim)
 			return false;
 	}
 
-	if (pkChr == pkVictim)  // I'm trying to hit myself -_-
+	if (chr == victim)  // I'm trying to hit myself -_-
 		return false;
 
-	if (pkVictim->is_npc() && pkChr->is_npc() && !pkChr->is_guard_npc())
+	if (victim->is_npc() && chr->is_npc() && !chr->is_guard_npc())
 		return false;
 
-	if( true == pkChr->is_horse_riding() )
+	if( true == chr->is_horse_riding() )
 	{
-		if( pkChr->horse_level() > 0 && 1 == pkChr->horse_grade() ) 
+		if( chr->horse_level() > 0 && 1 == chr->horse_grade() ) 
 			return false;
 	}
 	else
 	{
-		switch( pkChr->get_mount_vnum() )
+		switch( chr->get_mount_vnum() )
 		{
 			case 0:
 			case 20030:
@@ -381,25 +381,25 @@ bool pvp_manager::can_attack(character * pkChr, character * pkVictim)
 		}
 	}
 
-	if (pkVictim->is_npc() || pkChr->is_npc())
+	if (victim->is_npc() || chr->is_npc())
 	{
 		return true;
 	}
 
-	if (pkVictim->is_observer_mode() || pkChr->is_observer_mode())
+	if (victim->is_observer_mode() || chr->is_observer_mode())
 		return false;
 
 	{
-		uint8_t bMapEmpire = sectree_manager::instance().empire_from_map_index(pkChr->map_index());
+		uint8_t bMapEmpire = sectree_manager::instance().empire_from_map_index(chr->map_index());
 
-		if ( (pkChr->pk_mode() == PK_MODE_PROTECT && pkChr->empire() == bMapEmpire) ||
-				(pkVictim->pk_mode() == PK_MODE_PROTECT && pkVictim->empire() == bMapEmpire) )
+		if ( (chr->pk_mode() == PK_MODE_PROTECT && chr->empire() == bMapEmpire) ||
+				(victim->pk_mode() == PK_MODE_PROTECT && victim->empire() == bMapEmpire) )
 		{
 			return false;
 		}
 	}
 
-	if (pkChr->empire() != pkVictim->empire())
+	if (chr->empire() != victim->empire())
 	{
 
 		return true;
@@ -407,80 +407,80 @@ bool pvp_manager::can_attack(character * pkChr, character * pkVictim)
 
 	bool beKillerMode = false;
 
-	if (pkVictim->get_party() && pkVictim->get_party() == pkChr->get_party())
+	if (victim->get_party() && victim->get_party() == chr->get_party())
 	{
 		return false;
 		// Cannot attack same party on any pvp model
 	}
 	else
 	{
-		if (pkVictim->is_killer_mode())
+		if (victim->is_killer_mode())
 		{
 			return true;
 		}
 
-		if (pkChr->alignment() < 0 && pkVictim->alignment() >= 0)
+		if (chr->alignment() < 0 && victim->alignment() >= 0)
 		{
 		    if (metin2::config::game().protect_normal_player)
 		    {
 			// Outlaws cannot attack good players in peace mode.
-			if (PK_MODE_PEACE == pkVictim->pk_mode())
+			if (PK_MODE_PEACE == victim->pk_mode())
 			    return false;
 		    }
 		}
 
 
-		switch (pkChr->pk_mode())
+		switch (chr->pk_mode())
 		{
 			case PK_MODE_PEACE:
 			case PK_MODE_REVENGE:
 				// Cannot attack same guild
-				if (pkVictim->get_guild() && pkVictim->get_guild() == pkChr->get_guild())
+				if (victim->get_guild() && victim->get_guild() == chr->get_guild())
 					break;
 
-				if (pkChr->pk_mode() == PK_MODE_REVENGE)
+				if (chr->pk_mode() == PK_MODE_REVENGE)
 				{
-					if (pkChr->alignment() < 0 && pkVictim->alignment() >= 0)
+					if (chr->alignment() < 0 && victim->alignment() >= 0)
 					{
-						pkChr->set_killer_mode(true);
+						chr->set_killer_mode(true);
 						return true;
 					}
-					else if (pkChr->alignment() >= 0 && pkVictim->alignment() < 0)
+					else if (chr->alignment() >= 0 && victim->alignment() < 0)
 						return true;
 				}
 				break;
 
 			case PK_MODE_GUILD:
 				// Same implementation from PK_MODE_FREE except for attacking same guild
-				if (!pkChr->get_guild() || (pkVictim->get_guild() != pkChr->get_guild()))
+				if (!chr->get_guild() || (victim->get_guild() != chr->get_guild()))
 				{
-					if (pkVictim->alignment() >= 0)
-						pkChr->set_killer_mode(true);
-					else if (pkChr->alignment() < 0 && pkVictim->alignment() < 0)
-						pkChr->set_killer_mode(true);
+					if (victim->alignment() >= 0)
+						chr->set_killer_mode(true);
+					else if (chr->alignment() < 0 && victim->alignment() < 0)
+						chr->set_killer_mode(true);
 
 					return true;
 				}
 				break;
 
 			case PK_MODE_FREE:
-				if (pkVictim->alignment() >= 0)
-					pkChr->set_killer_mode(true);
-				else if (pkChr->alignment() < 0 && pkVictim->alignment() < 0)
-					pkChr->set_killer_mode(true);
+				if (victim->alignment() >= 0)
+					chr->set_killer_mode(true);
+				else if (chr->alignment() < 0 && victim->alignment() < 0)
+					chr->set_killer_mode(true);
 
 				return true;
 				break;
 		}
 	}
 
-	pvp kPVP(pkChr->player_id(), pkVictim->player_id());
+	pvp kPVP(chr->player_id(), victim->player_id());
 	pvp * pkPVP = find(kPVP.crc_);
 
 	if (!pkPVP || !pkPVP->is_fight())
 	{
 		if (beKillerMode)
-			pkChr->set_killer_mode(true);
+			chr->set_killer_mode(true);
 
 		return (beKillerMode);
 	}
@@ -489,9 +489,9 @@ bool pvp_manager::can_attack(character * pkChr, character * pkVictim)
 	return true;
 }
 
-pvp * pvp_manager::find(uint32_t dwCRC)
+pvp * pvp_manager::find(uint32_t crc)
 {
-	auto it = map_pk_pvp_.find(dwCRC);
+	auto it = map_pk_pvp_.find(crc);
 
 	if (it == map_pk_pvp_.end())
 		return nullptr;
@@ -499,15 +499,15 @@ pvp * pvp_manager::find(uint32_t dwCRC)
 	return it->second.get();
 }
 
-void pvp_manager::remove(pvp * pkPVP)
+void pvp_manager::remove(pvp * pvp_value)
 {
-	auto it = map_pk_pvp_.find(pkPVP->crc_);
+	auto it = map_pk_pvp_.find(pvp_value->crc_);
 
 	if (it == map_pk_pvp_.end())
 		return;
 
-	map_pk_pvp_set_by_id_[pkPVP->players_[0].pid].erase(pkPVP);
-	map_pk_pvp_set_by_id_[pkPVP->players_[1].pid].erase(pkPVP);
+	map_pk_pvp_set_by_id_[pvp_value->players_[0].pid].erase(pvp_value);
+	map_pk_pvp_set_by_id_[pvp_value->players_[1].pid].erase(pvp_value);
 	map_pk_pvp_.erase(it);
 }
 

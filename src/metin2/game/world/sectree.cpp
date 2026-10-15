@@ -126,28 +126,28 @@ void sectree::decrease_pc()
 	}
 }
 
-bool sectree::insert_entity(entity * pkEnt)
+bool sectree::insert_entity(entity * ent)
 {
 	sectree * pkCurTree;
 
-	if ((pkCurTree = pkEnt->get_sectree()) == this)
+	if ((pkCurTree = ent->get_sectree()) == this)
 		return false;
 
-	if (set_entity_.find(pkEnt) != set_entity_.end()) {
-		metin2::log::error("entity {} already exist in this sectree!", static_cast<const void *>(pkEnt));
+	if (set_entity_.find(ent) != set_entity_.end()) {
+		metin2::log::error("entity {} already exist in this sectree!", static_cast<const void *>(ent));
 		return false;
 	}
 
 	if (pkCurTree)
-		pkCurTree->set_entity_.erase(pkEnt);
+		pkCurTree->set_entity_.erase(ent);
 
-	pkEnt->set_sectree(this);
+	ent->set_sectree(this);
 
-	set_entity_.insert(pkEnt);
+	set_entity_.insert(ent);
 
-	if (pkEnt->is_type(ENTITY_CHARACTER))
+	if (ent->is_type(ENTITY_CHARACTER))
 	{
-		character * pkChr = (character *) pkEnt;
+		character * pkChr = (character *) ent;
 
 		if (pkChr->is_pc())
 		{
@@ -165,27 +165,27 @@ bool sectree::insert_entity(entity * pkEnt)
 	return true;
 }
 
-void sectree::remove_entity(entity * pkEnt)
+void sectree::remove_entity(entity * ent)
 {
-	entity_set::iterator it = set_entity_.find(pkEnt);
+	entity_set::iterator it = set_entity_.find(ent);
 
 	if (it == set_entity_.end()) {
 		return;
 	}
 	set_entity_.erase(it);
 
-	pkEnt->set_sectree(nullptr);
+	ent->set_sectree(nullptr);
 
-	if (pkEnt->is_type(ENTITY_CHARACTER))
+	if (ent->is_type(ENTITY_CHARACTER))
 	{
-		if (((character *) pkEnt)->is_pc())
+		if (((character *) ent)->is_pc())
 			decrease_pc();
 	}
 }
 
-void sectree::bind_attribute(attribute * pkAttribute)
+void sectree::bind_attribute(attribute * attribute_value)
 {
-	attribute_ = pkAttribute;
+	attribute_ = attribute_value;
 }
 
 void sectree::clone_attribute(sectree * tree)
@@ -194,16 +194,16 @@ void sectree::clone_attribute(sectree * tree)
 	is_clone_ = true;
 }
 
-void sectree::set_attribute(uint32_t x, uint32_t y, uint32_t dwAttr)
+void sectree::set_attribute(uint32_t x, uint32_t y, uint32_t attr)
 {
 	assert(attribute_ != nullptr);
-	attribute_->set(x, y, dwAttr);
+	attribute_->set(x, y, attr);
 }
 
-void sectree::remove_attribute(uint32_t x, uint32_t y, uint32_t dwAttr)
+void sectree::remove_attribute(uint32_t x, uint32_t y, uint32_t attr)
 {
 	assert(attribute_ != nullptr);
-	attribute_->remove(x, y, dwAttr);
+	attribute_->remove(x, y, attr);
 }
 
 uint32_t sectree::get_attribute(int32_t x, int32_t y)
@@ -212,9 +212,9 @@ uint32_t sectree::get_attribute(int32_t x, int32_t y)
 	return attribute_->get((x % SECTREE_SIZE) / CELL_SIZE, (y % SECTREE_SIZE) / CELL_SIZE);
 }
 
-bool sectree::is_attr(int32_t x, int32_t y, uint32_t dwFlag)
+bool sectree::is_attr(int32_t x, int32_t y, uint32_t flag)
 {
-	if (is_set(get_attribute(x, y), dwFlag))
+	if (is_set(get_attribute(x, y), flag))
 		return true;
 
 	return false;

@@ -28,7 +28,7 @@
 
 namespace metin2::game::inline combat {
 
-int battle_hit(character * ch, character * victim, int & iRetDam);
+int battle_hit(character * attacker, character * victim, int & ret_dam);
 
 bool timed_event_cancel(character * ch)
 {
@@ -161,50 +161,50 @@ void battle_end(character * ch)
 
 // AG = Attack Grade
 // AL = Attack Limit
-int calc_battle_damage(int iDam, int iAttackerLev, int iVictimLev)
+int calc_battle_damage(int dam, int attacker_lev, int victim_lev)
 {
-	if (iDam < 3)
-		iDam = number(1, 5); 
+	if (dam < 3)
+		dam = number(1, 5); 
 
-	return iDam;
+	return dam;
 }
 
-int calc_magic_damage_with_value(int iDam, character * pkAttacker, character * pkVictim)
+int calc_magic_damage_with_value(int dam, character * attacker, character * victim)
 {
-	return calc_battle_damage(iDam, pkAttacker->level(), pkVictim->level());
+	return calc_battle_damage(dam, attacker->level(), victim->level());
 }
 
-int calc_magic_damage(character * pkAttacker, character * pkVictim)
+int calc_magic_damage(character * attacker, character * victim)
 {
 	int iDam = 0;
 
-	if (pkAttacker->is_npc())
+	if (attacker->is_npc())
 	{
-		iDam = calc_melee_damage(pkAttacker, pkVictim, false, false);	
+		iDam = calc_melee_damage(attacker, victim, false, false);	
 	}
 
-	iDam += pkAttacker->point(POINT_PARTY_ATTACKER_BONUS);
+	iDam += attacker->point(POINT_PARTY_ATTACKER_BONUS);
 
-	return calc_magic_damage_with_value(iDam, pkAttacker, pkVictim);
+	return calc_magic_damage_with_value(iDam, attacker, victim);
 }
 
-float calc_attack_rating(character * pkAttacker, character * pkVictim, bool bIgnoreTargetRating)
+float calc_attack_rating(character * attacker, character * victim, bool ignore_target_rating)
 {
 	int iARSrc;
 	int iERSrc;
 
-	int attacker_dx = pkAttacker->polymorph_point(POINT_DX);
-	int attacker_lv = pkAttacker->level();
+	int attacker_dx = attacker->polymorph_point(POINT_DX);
+	int attacker_lv = attacker->level();
 
-	int victim_dx = pkVictim->polymorph_point(POINT_DX);
-	int victim_lv = pkAttacker->level();
+	int victim_dx = victim->polymorph_point(POINT_DX);
+	int victim_lv = attacker->level();
 
 	iARSrc = std::min(90, (attacker_dx * 4	+ attacker_lv * 2) / 6);
 	iERSrc = std::min(90, (victim_dx	  * 4	+ victim_lv   * 2) / 6);
 
 	float fAR = ((float) iARSrc + 210.0f) / 300.0f; // fAR = 0.7 ~ 1.0
 
-	if (bIgnoreTargetRating)
+	if (ignore_target_rating)
 		return fAR;
 
 	// ((Edx * 2 + 20) / (Edx + 110)) * 0.3
@@ -213,93 +213,93 @@ float calc_attack_rating(character * pkAttacker, character * pkVictim, bool bIgn
 	return fAR - fER;
 }
 
-int calc_att_bonus(character * pkAttacker, character * pkVictim, int iAtk)
+int calc_att_bonus(character * attacker, character * victim, int atk)
 {
 	// Not applied in PvP
-	if (!pkVictim->is_pc())
-		iAtk += pkAttacker->marriage_bonus(UNIQUE_ITEM_MARRIAGE_ATTACK_BONUS);
+	if (!victim->is_pc())
+		atk += attacker->marriage_bonus(UNIQUE_ITEM_MARRIAGE_ATTACK_BONUS);
 
 	// Not applied in PvP
-	if (!pkAttacker->is_pc())
+	if (!attacker->is_pc())
 	{
-		int iReduceDamagePct = pkVictim->marriage_bonus(UNIQUE_ITEM_MARRIAGE_TRANSFER_DAMAGE);
-		iAtk = iAtk * (100 + iReduceDamagePct) / 100;
+		int iReduceDamagePct = victim->marriage_bonus(UNIQUE_ITEM_MARRIAGE_TRANSFER_DAMAGE);
+		atk = atk * (100 + iReduceDamagePct) / 100;
 	}
 
-	if (pkAttacker->is_npc() && pkVictim->is_pc())
+	if (attacker->is_npc() && victim->is_pc())
 	{
-		iAtk = (iAtk * character_manager::instance().mob_damage_rate(pkAttacker)) / 100;
+		atk = (atk * character_manager::instance().mob_damage_rate(attacker)) / 100;
 	}
 
-	if (pkVictim->is_npc())
+	if (victim->is_npc())
 	{
-		if (pkVictim->is_race_flag(RACE_FLAG_ANIMAL))
-			iAtk += (iAtk * pkAttacker->point(POINT_ATTBONUS_ANIMAL)) / 100;
-		else if (pkVictim->is_race_flag(RACE_FLAG_UNDEAD))
-			iAtk += (iAtk * pkAttacker->point(POINT_ATTBONUS_UNDEAD)) / 100;
-		else if (pkVictim->is_race_flag(RACE_FLAG_DEVIL))
-			iAtk += (iAtk * pkAttacker->point(POINT_ATTBONUS_DEVIL)) / 100;
-		else if (pkVictim->is_race_flag(RACE_FLAG_HUMAN))
-			iAtk += (iAtk * pkAttacker->point(POINT_ATTBONUS_HUMAN)) / 100;
-		else if (pkVictim->is_race_flag(RACE_FLAG_ORC))
-			iAtk += (iAtk * pkAttacker->point(POINT_ATTBONUS_ORC)) / 100;
-		else if (pkVictim->is_race_flag(RACE_FLAG_MILGYO))
-			iAtk += (iAtk * pkAttacker->point(POINT_ATTBONUS_MILGYO)) / 100;
-		else if (pkVictim->is_race_flag(RACE_FLAG_INSECT))
-			iAtk += (iAtk * pkAttacker->point(POINT_ATTBONUS_INSECT)) / 100;
-		else if (pkVictim->is_race_flag(RACE_FLAG_FIRE))
-			iAtk += (iAtk * pkAttacker->point(POINT_ATTBONUS_FIRE)) / 100;
-		else if (pkVictim->is_race_flag(RACE_FLAG_ICE))
-			iAtk += (iAtk * pkAttacker->point(POINT_ATTBONUS_ICE)) / 100;
-		else if (pkVictim->is_race_flag(RACE_FLAG_DESERT))
-			iAtk += (iAtk * pkAttacker->point(POINT_ATTBONUS_DESERT)) / 100;
-		else if (pkVictim->is_race_flag(RACE_FLAG_TREE))
-			iAtk += (iAtk * pkAttacker->point(POINT_ATTBONUS_TREE)) / 100;
+		if (victim->is_race_flag(RACE_FLAG_ANIMAL))
+			atk += (atk * attacker->point(POINT_ATTBONUS_ANIMAL)) / 100;
+		else if (victim->is_race_flag(RACE_FLAG_UNDEAD))
+			atk += (atk * attacker->point(POINT_ATTBONUS_UNDEAD)) / 100;
+		else if (victim->is_race_flag(RACE_FLAG_DEVIL))
+			atk += (atk * attacker->point(POINT_ATTBONUS_DEVIL)) / 100;
+		else if (victim->is_race_flag(RACE_FLAG_HUMAN))
+			atk += (atk * attacker->point(POINT_ATTBONUS_HUMAN)) / 100;
+		else if (victim->is_race_flag(RACE_FLAG_ORC))
+			atk += (atk * attacker->point(POINT_ATTBONUS_ORC)) / 100;
+		else if (victim->is_race_flag(RACE_FLAG_MILGYO))
+			atk += (atk * attacker->point(POINT_ATTBONUS_MILGYO)) / 100;
+		else if (victim->is_race_flag(RACE_FLAG_INSECT))
+			atk += (atk * attacker->point(POINT_ATTBONUS_INSECT)) / 100;
+		else if (victim->is_race_flag(RACE_FLAG_FIRE))
+			atk += (atk * attacker->point(POINT_ATTBONUS_FIRE)) / 100;
+		else if (victim->is_race_flag(RACE_FLAG_ICE))
+			atk += (atk * attacker->point(POINT_ATTBONUS_ICE)) / 100;
+		else if (victim->is_race_flag(RACE_FLAG_DESERT))
+			atk += (atk * attacker->point(POINT_ATTBONUS_DESERT)) / 100;
+		else if (victim->is_race_flag(RACE_FLAG_TREE))
+			atk += (atk * attacker->point(POINT_ATTBONUS_TREE)) / 100;
 
-		iAtk += (iAtk * pkAttacker->point(POINT_ATTBONUS_MONSTER)) / 100;
+		atk += (atk * attacker->point(POINT_ATTBONUS_MONSTER)) / 100;
 	}
-	else if (pkVictim->is_pc())
+	else if (victim->is_pc())
 	{
-		iAtk += (iAtk * pkAttacker->point(POINT_ATTBONUS_HUMAN)) / 100;
+		atk += (atk * attacker->point(POINT_ATTBONUS_HUMAN)) / 100;
 
-		switch (pkVictim->job())
+		switch (victim->job())
 		{
 			case JOB_WARRIOR:
-				iAtk += (iAtk * pkAttacker->point(POINT_ATTBONUS_WARRIOR)) / 100;
+				atk += (atk * attacker->point(POINT_ATTBONUS_WARRIOR)) / 100;
 				break;
 
 			case JOB_ASSASSIN:
-				iAtk += (iAtk * pkAttacker->point(POINT_ATTBONUS_ASSASSIN)) / 100;
+				atk += (atk * attacker->point(POINT_ATTBONUS_ASSASSIN)) / 100;
 				break;
 
 			case JOB_SURA:
-				iAtk += (iAtk * pkAttacker->point(POINT_ATTBONUS_SURA)) / 100;
+				atk += (atk * attacker->point(POINT_ATTBONUS_SURA)) / 100;
 				break;
 
 			case JOB_SHAMAN:
-				iAtk += (iAtk * pkAttacker->point(POINT_ATTBONUS_SHAMAN)) / 100;
+				atk += (atk * attacker->point(POINT_ATTBONUS_SHAMAN)) / 100;
 				break;
 		}
 	}
 
-	if (pkAttacker->is_pc() == true)
+	if (attacker->is_pc() == true)
 	{
-		switch (pkAttacker->job())
+		switch (attacker->job())
 		{
 			case JOB_WARRIOR:
-				iAtk -= (iAtk * pkVictim->point(POINT_RESIST_WARRIOR)) / 100;
+				atk -= (atk * victim->point(POINT_RESIST_WARRIOR)) / 100;
 				break;
 
 			case JOB_ASSASSIN:
-				iAtk -= (iAtk * pkVictim->point(POINT_RESIST_ASSASSIN)) / 100;
+				atk -= (atk * victim->point(POINT_RESIST_ASSASSIN)) / 100;
 				break;
 
 			case JOB_SURA:
-				iAtk -= (iAtk * pkVictim->point(POINT_RESIST_SURA)) / 100;
+				atk -= (atk * victim->point(POINT_RESIST_SURA)) / 100;
 				break;
 
 			case JOB_SHAMAN:
-				iAtk -= (iAtk * pkVictim->point(POINT_RESIST_SHAMAN)) / 100;
+				atk -= (atk * victim->point(POINT_RESIST_SHAMAN)) / 100;
 				break;
 		}
 	}
@@ -307,54 +307,54 @@ int calc_att_bonus(character * pkAttacker, character * pkVictim, int iAtk)
 	//[ mob -> PC ] apply elemental attribute defense
 	//2013/01/17
 	//Resistance applies only to the portion equal to 30% of the monster's elemental attack damage.
-	if (pkAttacker->is_npc() && pkVictim->is_pc())
+	if (attacker->is_npc() && victim->is_pc())
 	{
-		if (pkAttacker->is_race_flag(RACE_FLAG_ATT_ELEC))
-			iAtk -= (iAtk * 30 * pkVictim->point(POINT_RESIST_ELEC))		/ 10000;
-		else if (pkAttacker->is_race_flag(RACE_FLAG_ATT_FIRE))
-			iAtk -= (iAtk * 30 * pkVictim->point(POINT_RESIST_FIRE))		/ 10000;
-		else if (pkAttacker->is_race_flag(RACE_FLAG_ATT_ICE))
-			iAtk -= (iAtk * 30 * pkVictim->point(POINT_RESIST_ICE))		/ 10000;
-		else if (pkAttacker->is_race_flag(RACE_FLAG_ATT_WIND))
-			iAtk -= (iAtk * 30 * pkVictim->point(POINT_RESIST_WIND))		/ 10000;
-		else if (pkAttacker->is_race_flag(RACE_FLAG_ATT_EARTH))
-			iAtk -= (iAtk * 30 * pkVictim->point(POINT_RESIST_EARTH))	/ 10000;
-		else if (pkAttacker->is_race_flag(RACE_FLAG_ATT_DARK))
-			iAtk -= (iAtk * 30 * pkVictim->point(POINT_RESIST_DARK))		/ 10000;
+		if (attacker->is_race_flag(RACE_FLAG_ATT_ELEC))
+			atk -= (atk * 30 * victim->point(POINT_RESIST_ELEC))		/ 10000;
+		else if (attacker->is_race_flag(RACE_FLAG_ATT_FIRE))
+			atk -= (atk * 30 * victim->point(POINT_RESIST_FIRE))		/ 10000;
+		else if (attacker->is_race_flag(RACE_FLAG_ATT_ICE))
+			atk -= (atk * 30 * victim->point(POINT_RESIST_ICE))		/ 10000;
+		else if (attacker->is_race_flag(RACE_FLAG_ATT_WIND))
+			atk -= (atk * 30 * victim->point(POINT_RESIST_WIND))		/ 10000;
+		else if (attacker->is_race_flag(RACE_FLAG_ATT_EARTH))
+			atk -= (atk * 30 * victim->point(POINT_RESIST_EARTH))	/ 10000;
+		else if (attacker->is_race_flag(RACE_FLAG_ATT_DARK))
+			atk -= (atk * 30 * victim->point(POINT_RESIST_DARK))		/ 10000;
 	}
 
 	
-	return iAtk;
+	return atk;
 }
 
-void item_get_damage(item * pkItem, int* pdamMin, int* pdamMax)
+void item_get_damage(item * item_value, int* pdam_min, int* pdam_max)
 {
-	*pdamMin = 0;
-	*pdamMax = 1;
+	*pdam_min = 0;
+	*pdam_max = 1;
 
-	if (!pkItem)
+	if (!item_value)
 		return;
 
-	switch (pkItem->type())
+	switch (item_value->type())
 	{
 		case ITEM_ROD:
 		case ITEM_PICK:
 			return;
 	}
 
-	if (pkItem->type() != ITEM_WEAPON)
-		metin2::log::error("Item_GetDamage - !ITEM_WEAPON vnum={:d}, type={:d}", pkItem->original_vnum(), pkItem->type());
+	if (item_value->type() != ITEM_WEAPON)
+		metin2::log::error("Item_GetDamage - !ITEM_WEAPON vnum={:d}, type={:d}", item_value->original_vnum(), item_value->type());
 
-	*pdamMin = pkItem->value(3);
-	*pdamMax = pkItem->value(4);
+	*pdam_min = item_value->value(3);
+	*pdam_max = item_value->value(4);
 }
 
-int calc_melee_damage(character * pkAttacker, character * pkVictim, bool bIgnoreDefense, bool bIgnoreTargetRating)
+int calc_melee_damage(character * attacker, character * victim, bool ignore_defense, bool ignore_target_rating)
 {
-	item * pWeapon = pkAttacker->wear(WEAR_WEAPON);
-	bool bPolymorphed = pkAttacker->is_polymorphed();
+	item * pWeapon = attacker->wear(WEAR_WEAPON);
+	bool bPolymorphed = attacker->is_polymorphed();
 
-	if (pWeapon && !(bPolymorphed && !pkAttacker->is_poly_maintain_stat()))
+	if (pWeapon && !(bPolymorphed && !attacker->is_poly_maintain_stat()))
 	{
 		if (pWeapon->type() != ITEM_WEAPON)
 			return 0;
@@ -370,7 +370,7 @@ int calc_melee_damage(character * pkAttacker, character * pkVictim, bool bIgnore
 				break;
 
 			case WEAPON_BOW:
-				metin2::log::error("CalcMeleeDamage should not handle bows (name: {})", pkAttacker->name());
+				metin2::log::error("CalcMeleeDamage should not handle bows (name: {})", attacker->name());
 				return 0;
 
 			default:
@@ -379,7 +379,7 @@ int calc_melee_damage(character * pkAttacker, character * pkVictim, bool bIgnore
 	}
 
 	int iDam = 0;
-	float fAR = calc_attack_rating(pkAttacker, pkVictim, bIgnoreTargetRating);
+	float fAR = calc_attack_rating(attacker, victim, ignore_target_rating);
 	int iDamMin = 0, iDamMax = 0;
 
 	// TESTSERVER_SHOW_ATTACKINFO
@@ -387,18 +387,18 @@ int calc_melee_damage(character * pkAttacker, character * pkVictim, bool bIgnore
 	int DEBUG_iDamBonus = 0;
 	// END_OF_TESTSERVER_SHOW_ATTACKINFO
 
-	if (bPolymorphed && !pkAttacker->is_poly_maintain_stat())
+	if (bPolymorphed && !attacker->is_poly_maintain_stat())
 	{
 		// MONKEY_ROD_ATTACK_BUG_FIX
 		item_get_damage(pWeapon, &iDamMin, &iDamMax);
 		// END_OF_MONKEY_ROD_ATTACK_BUG_FIX
 
-		uint32_t dwMobVnum = pkAttacker->polymorph_vnum();
+		uint32_t dwMobVnum = attacker->polymorph_vnum();
 		const mob * pMob = mob_manager::instance().get(dwMobVnum);
 
 		if (pMob)
 		{
-			int iPower = pkAttacker->polymorph_power();
+			int iPower = attacker->polymorph_power();
 			iDamMin += pMob->table.damage_range[0] * iPower / 100;
 			iDamMax += pMob->table.damage_range[1] * iPower / 100;
 		}
@@ -409,10 +409,10 @@ int calc_melee_damage(character * pkAttacker, character * pkVictim, bool bIgnore
 		item_get_damage(pWeapon, &iDamMin, &iDamMax);
 		// END_OF_MONKEY_ROD_ATTACK_BUG_FIX
 	}
-	else if (pkAttacker->is_npc())
+	else if (attacker->is_npc())
 	{
-		iDamMin = pkAttacker->mob_damage_min();
-		iDamMax = pkAttacker->mob_damage_max();
+		iDamMin = attacker->mob_damage_min();
+		iDamMax = attacker->mob_damage_max();
 	}
 
 	iDam = number(iDamMin, iDamMax) * 2;
@@ -424,9 +424,9 @@ int calc_melee_damage(character * pkAttacker, character * pkVictim, bool bIgnore
 	int iAtk = 0;
 
 	// level must be ignored when multiply by fAR, so subtract it before calculation.
-	iAtk = pkAttacker->point(POINT_ATT_GRADE) + iDam - (pkAttacker->level() * 2);
+	iAtk = attacker->point(POINT_ATT_GRADE) + iDam - (attacker->level() * 2);
 	iAtk = (int) (iAtk * fAR);
-	iAtk += pkAttacker->level() * 2; // and add again
+	iAtk += attacker->level() * 2; // and add again
 
 	if (pWeapon)
 	{
@@ -437,31 +437,31 @@ int calc_melee_damage(character * pkAttacker, character * pkVictim, bool bIgnore
 		///////////////////////////////////////////////
 	}
 
-	iAtk += pkAttacker->point(POINT_PARTY_ATTACKER_BONUS); // party attacker role bonus
-	iAtk = (int) (iAtk * (100 + (pkAttacker->point(POINT_ATT_BONUS) + pkAttacker->point(POINT_MELEE_MAGIC_ATT_BONUS_PER))) / 100);
+	iAtk += attacker->point(POINT_PARTY_ATTACKER_BONUS); // party attacker role bonus
+	iAtk = (int) (iAtk * (100 + (attacker->point(POINT_ATT_BONUS) + attacker->point(POINT_MELEE_MAGIC_ATT_BONUS_PER))) / 100);
 
-	iAtk = calc_att_bonus(pkAttacker, pkVictim, iAtk);
+	iAtk = calc_att_bonus(attacker, victim, iAtk);
 
 	int iDef = 0;
 
-	if (!bIgnoreDefense)
+	if (!ignore_defense)
 	{
-		iDef = (pkVictim->point(POINT_DEF_GRADE) * (100 + pkVictim->point(POINT_DEF_BONUS)) / 100);
+		iDef = (victim->point(POINT_DEF_GRADE) * (100 + victim->point(POINT_DEF_BONUS)) / 100);
 
-		if (!pkAttacker->is_pc())
-			iDef += pkVictim->marriage_bonus(UNIQUE_ITEM_MARRIAGE_DEFENSE_BONUS);
+		if (!attacker->is_pc())
+			iDef += victim->marriage_bonus(UNIQUE_ITEM_MARRIAGE_DEFENSE_BONUS);
 	}
 
-	if (pkAttacker->is_npc())
-		iAtk = (int) (iAtk * pkAttacker->mob_damage_multiply());
+	if (attacker->is_npc())
+		iAtk = (int) (iAtk * attacker->mob_damage_multiply());
 
 	iDam = std::max(0, iAtk - iDef);
 
 	if (metin2::config::test_server())
 	{
-		int DEBUG_iLV = pkAttacker->level()*2;
-		int DEBUG_iST = int((pkAttacker->point(POINT_ATT_GRADE) - DEBUG_iLV) * fAR);
-		int DEBUG_iPT = pkAttacker->point(POINT_PARTY_ATTACKER_BONUS);
+		int DEBUG_iLV = attacker->level()*2;
+		int DEBUG_iST = int((attacker->point(POINT_ATT_GRADE) - DEBUG_iLV) * fAR);
+		int DEBUG_iPT = attacker->point(POINT_PARTY_ATTACKER_BONUS);
 		int DEBUG_iWP = 0;
 		int DEBUG_iPureAtk = 0;
 		int DEBUG_iPureDam = 0;
@@ -472,10 +472,10 @@ int calc_melee_damage(character * pkAttacker, character * pkVictim, bool bIgnore
 		DEBUG_iPureAtk = DEBUG_iLV + DEBUG_iST + DEBUG_iWP+DEBUG_iDamBonus;
 		DEBUG_iPureDam = iAtk - iDef;
 
-		if (pkAttacker->is_npc())
+		if (attacker->is_npc())
 		{
-			snprintf(szGradeAtkBonus, sizeof(szGradeAtkBonus), "=%d*%.1f", DEBUG_iPureAtk, pkAttacker->mob_damage_multiply());
-			DEBUG_iPureAtk = int(DEBUG_iPureAtk * pkAttacker->mob_damage_multiply());
+			snprintf(szGradeAtkBonus, sizeof(szGradeAtkBonus), "=%d*%.1f", DEBUG_iPureAtk, attacker->mob_damage_multiply());
+			DEBUG_iPureAtk = int(DEBUG_iPureAtk * attacker->mob_damage_multiply());
 		}
 
 		if (DEBUG_iDamBonus != 0)
@@ -500,9 +500,9 @@ int calc_melee_damage(character * pkAttacker, character * pkVictim, bool bIgnore
 
 		snprintf(szMeleeAttack, sizeof(szMeleeAttack), 
 				"%s(%d)-%s(%d)=%d%s, ATK=LV(%d)+ST(%d)+WP(%d)%s%s%s, AR=%.3g%s", 
-				pkAttacker->name(),
+				attacker->name(),
 				iAtk,
-				pkVictim->name(),
+				victim->name(),
 				iDef,
 				iDam,
 				szUnknownDam,
@@ -515,24 +515,24 @@ int calc_melee_damage(character * pkAttacker, character * pkVictim, bool bIgnore
 				fAR,
 				szPT);
 
-		pkAttacker->chat_packet(CHAT_TYPE_TALKING, "%s", szMeleeAttack);
-		pkVictim->chat_packet(CHAT_TYPE_TALKING, "%s", szMeleeAttack);
+		attacker->chat_packet(CHAT_TYPE_TALKING, "%s", szMeleeAttack);
+		victim->chat_packet(CHAT_TYPE_TALKING, "%s", szMeleeAttack);
 	}
 
-	return calc_battle_damage(iDam, pkAttacker->level(), pkVictim->level());
+	return calc_battle_damage(iDam, attacker->level(), victim->level());
 }
 
-int calc_arrow_damage(character * pkAttacker, character * pkVictim, item * pkBow, item * pkArrow, bool bIgnoreDefense)
+int calc_arrow_damage(character * attacker, character * victim, item * bow, item * arrow, bool ignore_defense)
 {
-	if (!pkBow || pkBow->type() != ITEM_WEAPON || pkBow->sub_type() != WEAPON_BOW)
+	if (!bow || bow->type() != ITEM_WEAPON || bow->sub_type() != WEAPON_BOW)
 		return 0;
 
-	if (!pkArrow)
+	if (!arrow)
 		return 0;
 
 	// Hit value calculation
-	int iDist = (int) (distance_sqrt(pkAttacker->x() - pkVictim->x(), pkAttacker->y() - pkVictim->y()));
-	int iGap = (iDist / 100) - 5 - pkAttacker->point(POINT_BOW_DISTANCE);
+	int iDist = (int) (distance_sqrt(attacker->x() - victim->x(), attacker->y() - victim->y()));
+	int iGap = (iDist / 100) - 5 - attacker->point(POINT_BOW_DISTANCE);
 	int iPercent = 100 - (iGap * 5);
 
 	if (iPercent <= 0)
@@ -542,30 +542,30 @@ int calc_arrow_damage(character * pkAttacker, character * pkVictim, item * pkBow
 
 	int iDam = 0;
 
-	float fAR = calc_attack_rating(pkAttacker, pkVictim, false);
-	iDam = number(pkBow->value(3), pkBow->value(4)) * 2 + pkArrow->value(3);
+	float fAR = calc_attack_rating(attacker, victim, false);
+	iDam = number(bow->value(3), bow->value(4)) * 2 + arrow->value(3);
 	int iAtk;
 
 	// level must be ignored when multiply by fAR, so subtract it before calculation.
-	iAtk = pkAttacker->point(POINT_ATT_GRADE) + iDam - (pkAttacker->level() * 2);
+	iAtk = attacker->point(POINT_ATT_GRADE) + iDam - (attacker->level() * 2);
 	iAtk = (int) (iAtk * fAR);
-	iAtk += pkAttacker->level() * 2; // and add again
+	iAtk += attacker->level() * 2; // and add again
 
 	// Refine Grade
-	iAtk += pkBow->value(5) * 2;
+	iAtk += bow->value(5) * 2;
 
-	iAtk += pkAttacker->point(POINT_PARTY_ATTACKER_BONUS);
-	iAtk = (int) (iAtk * (100 + (pkAttacker->point(POINT_ATT_BONUS) + pkAttacker->point(POINT_MELEE_MAGIC_ATT_BONUS_PER))) / 100);
+	iAtk += attacker->point(POINT_PARTY_ATTACKER_BONUS);
+	iAtk = (int) (iAtk * (100 + (attacker->point(POINT_ATT_BONUS) + attacker->point(POINT_MELEE_MAGIC_ATT_BONUS_PER))) / 100);
 
-	iAtk = calc_att_bonus(pkAttacker, pkVictim, iAtk);
+	iAtk = calc_att_bonus(attacker, victim, iAtk);
 
 	int iDef = 0;
 
-	if (!bIgnoreDefense)
-		iDef = (pkVictim->point(POINT_DEF_GRADE) * (100 + pkAttacker->point(POINT_DEF_BONUS)) / 100);
+	if (!ignore_defense)
+		iDef = (victim->point(POINT_DEF_GRADE) * (100 + attacker->point(POINT_DEF_BONUS)) / 100);
 
-	if (pkAttacker->is_npc())
-		iAtk = (int) (iAtk * pkAttacker->mob_damage_multiply());
+	if (attacker->is_npc())
+		iAtk = (int) (iAtk * attacker->mob_damage_multiply());
 
 	iDam = std::max(0, iAtk - iDef);
 
@@ -575,9 +575,9 @@ int calc_arrow_damage(character * pkAttacker, character * pkVictim, item * pkBow
 
 	if (metin2::config::test_server())
 	{
-		pkAttacker->chat_packet(CHAT_TYPE_INFO, "ARROW %s -> %s, DAM %d DIST %d GAP %d %% %d",
-				pkAttacker->name(), 
-				pkVictim->name(), 
+		attacker->chat_packet(CHAT_TYPE_INFO, "ARROW %s -> %s, DAM %d DIST %d GAP %d %% %d",
+				attacker->name(), 
+				victim->name(), 
 				iPureDam, 
 				iDist, iGap, iPercent);
 	}
@@ -585,74 +585,74 @@ int calc_arrow_damage(character * pkAttacker, character * pkVictim, item * pkBow
 	return iPureDam;
 }
 
-void normal_attack_affect(character * pkAttacker, character * pkVictim)
+void normal_attack_affect(character * attacker, character * victim)
 {
 	// Poison attack is unusual, so special handling
-	if (pkAttacker->point(POINT_POISON_PCT) && !pkVictim->is_affect_flag(AFF_POISON))
+	if (attacker->point(POINT_POISON_PCT) && !victim->is_affect_flag(AFF_POISON))
 	{
-		if (number(1, 100) <= pkAttacker->point(POINT_POISON_PCT))
-			pkVictim->attacked_by_poison(pkAttacker);
+		if (number(1, 100) <= attacker->point(POINT_POISON_PCT))
+			victim->attacked_by_poison(attacker);
 	}
 
 	int iStunDuration = 2;
-	if (pkAttacker->is_pc() && !pkVictim->is_pc())
+	if (attacker->is_pc() && !victim->is_pc())
 		iStunDuration = 4;
 
-	attack_affect(pkAttacker, pkVictim, POINT_STUN_PCT, IMMUNE_STUN,  AFFECT_STUN, POINT_NONE,        0, AFF_STUN, iStunDuration, "STUN");
-	attack_affect(pkAttacker, pkVictim, POINT_SLOW_PCT, IMMUNE_SLOW,  AFFECT_SLOW, POINT_MOV_SPEED, -30, AFF_SLOW, 20,		"SLOW");
+	attack_affect(attacker, victim, POINT_STUN_PCT, IMMUNE_STUN,  AFFECT_STUN, POINT_NONE,        0, AFF_STUN, iStunDuration, "STUN");
+	attack_affect(attacker, victim, POINT_SLOW_PCT, IMMUNE_SLOW,  AFFECT_SLOW, POINT_MOV_SPEED, -30, AFF_SLOW, 20,		"SLOW");
 }
 
-int battle_hit(character * pkAttacker, character * pkVictim, int & iRetDam)
+int battle_hit(character * attacker, character * victim, int & ret_dam)
 {
 	if (metin2::config::test_server())
-		metin2::log::info( "battle_hit : [{}] attack to [{}] : dam :{:d}", pkAttacker->name(), pkVictim->name(), iRetDam);
+		metin2::log::info( "battle_hit : [{}] attack to [{}] : dam :{:d}", attacker->name(), victim->name(), ret_dam);
 
-	int iDam = calc_melee_damage(pkAttacker, pkVictim);
+	int iDam = calc_melee_damage(attacker, victim);
 
 	if (iDam <= 0)
 		return (BATTLE_DAMAGE);
 
-	normal_attack_affect(pkAttacker, pkVictim);
+	normal_attack_affect(attacker, victim);
 
 	// Damage calculation
-	item * pkWeapon = pkAttacker->wear(WEAR_WEAPON);
+	item * pkWeapon = attacker->wear(WEAR_WEAPON);
 
 	if (pkWeapon)
 		switch (pkWeapon->sub_type())
 		{
 			case WEAPON_SWORD:
-				iDam = iDam * (100 - pkVictim->point(POINT_RESIST_SWORD)) / 100;
+				iDam = iDam * (100 - victim->point(POINT_RESIST_SWORD)) / 100;
 				break;
 
 			case WEAPON_TWO_HANDED:
-				iDam = iDam * (100 - pkVictim->point(POINT_RESIST_TWOHAND)) / 100;
+				iDam = iDam * (100 - victim->point(POINT_RESIST_TWOHAND)) / 100;
 				break;
 
 			case WEAPON_DAGGER:
-				iDam = iDam * (100 - pkVictim->point(POINT_RESIST_DAGGER)) / 100;
+				iDam = iDam * (100 - victim->point(POINT_RESIST_DAGGER)) / 100;
 				break;
 
 			case WEAPON_BELL:
-				iDam = iDam * (100 - pkVictim->point(POINT_RESIST_BELL)) / 100;
+				iDam = iDam * (100 - victim->point(POINT_RESIST_BELL)) / 100;
 				break;
 
 			case WEAPON_FAN:
-				iDam = iDam * (100 - pkVictim->point(POINT_RESIST_FAN)) / 100;
+				iDam = iDam * (100 - victim->point(POINT_RESIST_FAN)) / 100;
 				break;
 
 			case WEAPON_BOW:
-				iDam = iDam * (100 - pkVictim->point(POINT_RESIST_BOW)) / 100;
+				iDam = iDam * (100 - victim->point(POINT_RESIST_BOW)) / 100;
 				break;
 		}
 
 	//Final damage adjustment. (As of Feb 2011, applies only to the Giant Spider.)
-	float attMul = pkAttacker->att_mul();
+	float attMul = attacker->att_mul();
 	float tempIDam = iDam;
 	iDam = attMul * tempIDam + 0.5f;
 
-	iRetDam = iDam;
+	ret_dam = iDam;
 
-	if (pkVictim->damage(pkAttacker, iDam, DAMAGE_TYPE_NORMAL))
+	if (victim->damage(attacker, iDam, DAMAGE_TYPE_NORMAL))
 		return (BATTLE_DEAD);
 
 	return (BATTLE_DAMAGE);
