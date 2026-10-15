@@ -45,7 +45,7 @@ src/metin2/
   db/          database cache (metin2::db): clients, caches, login, guilds, ...
   game/        game and login server (metin2::game): characters, items, quests, protocol, ...
 tests/         unit tests (CTest)
-tools/         maintenance tools (identifier rename, quest compiler)
+tools/         quest compiler (unbuilt)
 vendor/        third-party dependencies (fetched by CMake)
 dist/          runtime: launcher, configuration, game data, database dumps
 ```
