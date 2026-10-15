@@ -22,14 +22,6 @@ class HME
 			exp = e;
 		}
 
-		HME& operator=(const HME &rhs)
-		{
-			hour = rhs.hour;
-			min = rhs.min;
-			exp = rhs.exp;
-			return *this;
-		}
-
 		bool operator==(const HME &rhs) const
 		{
 			return hour == rhs.hour
@@ -54,8 +46,8 @@ class Date
 		bool operator<(const Date &rhs) const
 		{
 			return (year<rhs.year)
-				|| (year==rhs.year) && (mon<rhs.mon)
-				|| (year==rhs.year) && (mon==rhs.mon) && (day<rhs.day);
+				|| ((year==rhs.year) && (mon<rhs.mon))
+				|| ((year==rhs.year) && (mon==rhs.mon) && (day<rhs.day));
 		}
 };
 

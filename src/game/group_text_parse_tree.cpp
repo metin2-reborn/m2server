@@ -96,7 +96,7 @@ bool CGroupTextParseTreeLoader::LoadGroup(CGroupNode * pGroupNode)
 		// Column Names
 		else if (0 == stTokenVector[0].compare("#--#"))
 		{
-			for (int i = 1; i < stTokenVector.size(); i++)
+			for (size_t i = 1; i < stTokenVector.size(); i++)
 			{
 				to_lower(stTokenVector[i]);
 				pGroupNode->m_map_columnNameToIndex.insert(TMapNameToIndex::value_type (stTokenVector[i], i - 1));
@@ -193,7 +193,7 @@ bool CGroupNode::GetRow(const std::string & c_rstrRowKey, const CGroupNode::CGro
 // Note: idx is unrelated to the order written in the txt.
 bool CGroupNode::GetRow(int idx, const CGroupNode::CGroupNodeRow ** ppRow) const
 {
-	if (idx >= m_map_rows.size())
+	if (idx < 0 || static_cast<size_t>(idx) >= m_map_rows.size())
 		return false;
 
 	TMapRow::const_iterator row_it = m_map_rows.begin();

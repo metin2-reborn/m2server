@@ -24,6 +24,7 @@
 #include <libthecore/log.h>
 
 #include <algorithm>
+#include <iterator>
 #include <cctype>
 #include <cstdint>
 #include <cstdio>
@@ -448,9 +449,9 @@ bool ConvertToShopItemTable(CGroupNode* pNode, TShopTableEx& shopTable)
 	CGrid grid = CGrid(5, 9);
 	int iPos;
 
-	memset(&shopTable.items[0], 0, sizeof(shopTable.items));
+	std::fill(std::begin(shopTable.items), std::end(shopTable.items), TShopItemTable());
 
-	for (int i = 0; i < shopItems.size(); i++)
+	for (size_t i = 0; i < shopItems.size(); i++)
 	{
 		TItemTable * item_table = ITEM_MANAGER::instance().GetTable(shopItems[i].vnum);
 		if (!item_table)

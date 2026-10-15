@@ -1210,7 +1210,7 @@ void CClientManager::RESULT_HIGHSCORE_REGISTER(CPeer * pkPeer, SQLMsg * msg)
 		if (row && row[0])
 		{
 			int current_value = 0; str_to_number(current_value, row[0]);
-			if (pi->account_index && current_value >= value || !pi->account_index && current_value <= value)
+			if ((pi->account_index && current_value >= value) || (!pi->account_index && current_value <= value))
 			{
 				value = current_value;
 			}

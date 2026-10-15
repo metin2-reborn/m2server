@@ -2719,7 +2719,7 @@ int CHARACTER::GetPolymorphPoint(uint8_t type) const
 			switch (type)
 			{
 				case POINT_ST:
-					if (GetJob() == JOB_SHAMAN || GetJob() == JOB_SURA && GetSkillGroup() == 2)
+					if (GetJob() == JOB_SHAMAN || (GetJob() == JOB_SURA && GetSkillGroup() == 2))
 						return pMob->m_table.bStr * iPower / 100 + GetPoint(POINT_IQ);
 					return pMob->m_table.bStr * iPower / 100 + GetPoint(POINT_ST);
 
@@ -2898,7 +2898,7 @@ void CHARACTER::PointChange(uint8_t type, int amount, bool bAmount, bool bBroadc
 				// Youth protection
 
 				// Keep exp from going below 0
-				if (amount < 0 && exp < -amount)
+				if (amount < 0 && exp < static_cast<uint32_t>(-amount))
 				{
 					sys_log(1, "%s AMOUNT < 0 %d, CUR EXP: %d", GetName(), -amount, exp);
 					amount = -exp;
@@ -4848,7 +4848,7 @@ void CHARACTER::SetTarget(CHARACTER * pkChrTarget)
 
 		p.dwVID	= m_pkChrTarget->GetVID();
 
-		if (m_pkChrTarget->IsPC() && !m_pkChrTarget->IsPolymorphed() || m_pkChrTarget->GetMaxHP() <= 0)
+		if ((m_pkChrTarget->IsPC() && !m_pkChrTarget->IsPolymorphed()) || m_pkChrTarget->GetMaxHP() <= 0)
 			p.bHPPercent = 0;
 		else 
 		{
@@ -6000,7 +6000,7 @@ void CHARACTER::SendEquipment(CHARACTER * ch)
 
 bool CHARACTER::CanSummon(int iLeaderShip)
 {
-	return (iLeaderShip >= 20 || iLeaderShip >= 12 && m_dwLastDeadTime + 180 > get_dword_time());
+	return (iLeaderShip >= 20 || (iLeaderShip >= 12 && m_dwLastDeadTime + 180 > get_dword_time()));
 }
 
 

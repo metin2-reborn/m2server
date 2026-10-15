@@ -573,7 +573,7 @@ TItemTable * ITEM_MANAGER::GetTable(uint32_t vnum)
 
 	if (rnum < 0)
 	{
-		for (int i = 0; i < m_vec_item_vnum_range_info.size(); i++)
+		for (size_t i = 0; i < m_vec_item_vnum_range_info.size(); i++)
 		{
 			TItemTable* p = m_vec_item_vnum_range_info[i];
 			if ((p->dwVnum < vnum) &&

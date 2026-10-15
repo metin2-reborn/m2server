@@ -2224,11 +2224,11 @@ ACMD(do_ride)
 
 	for (uint8_t i=0; i<INVENTORY_MAX_NUM; ++i)
 	{
-	    CItem * item = ch->GetInventoryItem(i);
-	    if (nullptr == item)
-		continue;
+		CItem * item = ch->GetInventoryItem(i);
+		if (nullptr == item)
+			continue;
 
-	    // Unique mount item
+		// Unique mount item
 		if (item->IsRideItem())
 		{
 			if (nullptr==ch->GetWear(WEAR_UNIQUE1) || nullptr==ch->GetWear(WEAR_UNIQUE2))

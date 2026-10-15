@@ -332,7 +332,7 @@ CHARACTER * CHARACTER_MANAGER::SpawnMobRandomPosition(uint32_t dwVnum, int32_t l
 	if (!ch->Show(lMapIndex, x, y, 0, false))
 	{
 		CHARACTER_MANAGER::instance().DestroyCharacter(ch);
-		sys_err(nullptr, "SpawnMobRandomPosition: cannot show monster");
+		sys_err("SpawnMobRandomPosition: cannot show monster");
 		return nullptr;
 	}
 

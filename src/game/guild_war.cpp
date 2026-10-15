@@ -120,7 +120,7 @@ int CGuild::GetGuildWarState(uint32_t dwOppGID)
 		return GUILD_WAR_NONE;
 
 	auto it = m_EnemyGuild.find(dwOppGID);
-	return (it != m_EnemyGuild.end()) ? (it->second.state) : GUILD_WAR_NONE;
+	return (it != m_EnemyGuild.end()) ? (it->second.state) : static_cast<uint32_t>(GUILD_WAR_NONE);
 } 
 
 int CGuild::GetGuildWarType(uint32_t dwOppGID)

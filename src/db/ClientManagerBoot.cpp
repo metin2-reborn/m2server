@@ -490,7 +490,7 @@ bool CClientManager::InitializeShopTable()
 		{
 			auto pShopTable = std::make_unique<TShopTable>();
 			shop_table = pShopTable.get();
-			memset(shop_table, 0, sizeof(TShopTable));
+			*shop_table = TShopTable();
 			shop_table->dwVnum	= iShopVnum;
 
 			map_shop[iShopVnum] = std::move(pShopTable);
@@ -950,7 +950,7 @@ bool CClientManager::InitializeItemAttrTable()
 	{
 		TItemAttrTable t;
 
-		memset(&t, 0, sizeof(TItemAttrTable));
+		t = TItemAttrTable();
 
 		int col = 0;
 
@@ -1024,7 +1024,7 @@ bool CClientManager::InitializeItemRareTable()
 	{
 		TItemAttrTable t;
 
-		memset(&t, 0, sizeof(TItemAttrTable));
+		t = TItemAttrTable();
 
 		int col = 0;
 

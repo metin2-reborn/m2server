@@ -291,7 +291,7 @@ void SECTREE_MANAGER::LoadDungeon(int iIndex, const char * c_pszFileName)
 		if (nullptr == fgets(buf, 1024, fp))
 			break;
 
-		if (buf[0] == '#' || buf[0] == '/' && buf[1] == '/')
+		if (buf[0] == '#' || (buf[0] == '/' && buf[1] == '/'))
 			continue;
 
 		std::istringstream ins(buf, std::ios_base::in);
@@ -423,7 +423,7 @@ bool SECTREE_MANAGER::LoadAttribute(SECTREE_MAP * pkMapSectree, const char * c_p
 	unsigned int uiSize;
 	lzo_uint uiDestSize;
 
-	uint8_t abComp[maxMemSize];
+	std::vector<uint8_t> abComp(maxMemSize);
 	auto attr = std::make_unique_for_overwrite<uint32_t[]>(maxMemSize);
 
 	for (int y = 0; y < iHeight; ++y)
@@ -461,10 +461,16 @@ bool SECTREE_MANAGER::LoadAttribute(SECTREE_MAP * pkMapSectree, const char * c_p
 			}
 
 			fread(&uiSize, sizeof(int), 1, fp);
-			fread(abComp, sizeof(char), uiSize, fp);
+			if (uiSize > abComp.size())
+			{
+				sys_err("attribute block of %u bytes is larger than %zu", uiSize, abComp.size());
+				fclose(fp);
+				return false;
+			}
+			fread(abComp.data(), sizeof(char), uiSize, fp);
 
 			uiDestSize = sizeof(uint32_t) * maxMemSize;
-			LZOManager::instance().Decompress(abComp, uiSize, (uint8_t *) attr.get(), &uiDestSize);
+			LZOManager::instance().Decompress(abComp.data(), uiSize, (uint8_t *) attr.get(), &uiDestSize);
 
 			if (uiDestSize != sizeof(uint32_t) * (SECTREE_SIZE / CELL_SIZE) * (SECTREE_SIZE / CELL_SIZE))
 			{

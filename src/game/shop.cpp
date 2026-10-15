@@ -20,6 +20,7 @@
 #include <libgame/grid.h>
 #include <libthecore/log.h>
 
+#include <algorithm>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
@@ -82,7 +83,7 @@ void CShop::SetShopItems(TShopItemTable * pTable, uint8_t bItemCount)
 	m_pGrid->Clear();
 
 	m_itemVector.resize(SHOP_HOST_ITEM_MAX_NUM);
-	memset(&m_itemVector[0], 0, sizeof(SHOP_ITEM) * m_itemVector.size());
+	std::fill(m_itemVector.begin(), m_itemVector.end(), SHOP_ITEM());
 
 	for (int i = 0; i < bItemCount; ++i)
 	{
@@ -540,7 +541,7 @@ bool CShop::IsSellingItem(uint32_t itemID)
 
 	for (uint32_t i = 0; i < m_itemVector.size() && i < SHOP_HOST_ITEM_MAX_NUM; ++i)
 	{
-		if (m_itemVector[i].itemid == itemID)
+		if (static_cast<uint32_t>(m_itemVector[i].itemid) == itemID)
 		{
 			isSelling = true;
 			break;

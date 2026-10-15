@@ -153,7 +153,7 @@ int CShopEx::Buy(CHARACTER * ch, uint8_t pos)
 	case SHOP_COIN_TYPE_SECONDARY_COIN:
 		{
 			int count = ch->CountSpecifyTypeItem(ITEM_SECONDARY_COIN);
-			if (count < dwPrice)
+			if (static_cast<uint32_t>(count) < dwPrice)
 			{
 				sys_log(1, "ShopEx::Buy : Not enough myeongdojun : %s has %d, price %d", ch->GetName(), count, dwPrice);
 				return SHOP_SUBHEADER_GC_NOT_ENOUGH_MONEY_EX;

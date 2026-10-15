@@ -658,8 +658,8 @@ int battle_hit(CHARACTER * pkAttacker, CHARACTER * pkVictim, int & iRetDam)
 
 uint32_t GET_ATTACK_SPEED(CHARACTER * ch)
 {
-    if (nullptr == ch)
-        return 1000;
+	if (nullptr == ch)
+		return 1000;
 
 	CItem * item = ch->GetWear(WEAR_WEAPON);	
 	uint32_t default_bonus = SPEEDHACK_LIMIT_BONUS * 3;    // Leeway attack speed (default 80) (*3 added to keep normal users from being flagged for speed hack. 2013.09.11 CYH)

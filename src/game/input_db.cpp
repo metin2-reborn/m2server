@@ -784,7 +784,7 @@ void CInputDB::Boot(const char* data)
 
 	for (int n = 1; n < 4; ++n)
 	{
-		if (p.name[n] && *p.name[n])
+		if (*p.name[n])
 			sys_log(0, "[MONARCH] Empire %d Pid %d Money %ld %s", n, p.pid[n], p.money[n], p.name[n]);
 	}
 	
@@ -999,7 +999,7 @@ EVENTFUNC(quest_login_event)
 	}
 	else
 	{
-		sys_err(nullptr, "input_db.cpp:quest_login_event INVALID PHASE pid %d", ch->GetPlayerID());
+		sys_err("input_db.cpp:quest_login_event INVALID PHASE pid %d", ch->GetPlayerID());
 		return 0;
 	}
 }

@@ -3407,8 +3407,8 @@ bool CHARACTER::UseItemEx(CItem * item, TItemPos DestCell)
 									std::vector <CItem *> item_gets;
 									int count = 0;
 
-									if (item->GetVnum() == ITEM_VALENTINE_ROSE && SEX_MALE==GET_SEX(this) ||
-										item->GetVnum() == ITEM_VALENTINE_CHOCOLATE && SEX_FEMALE==GET_SEX(this))
+									if ((item->GetVnum() == ITEM_VALENTINE_ROSE && SEX_MALE==GET_SEX(this)) ||
+										(item->GetVnum() == ITEM_VALENTINE_CHOCOLATE && SEX_FEMALE==GET_SEX(this)))
 									{
 										// Cannot be used: wrong gender.
 										ChatPacket(CHAT_TYPE_INFO, LC_TEXT("성별이 맞지않아 이 아이템을 열 수 없습니다."));
@@ -3429,8 +3429,8 @@ bool CHARACTER::UseItemEx(CItem * item, TItemPos DestCell)
 									std::vector <CItem *> item_gets;
 									int count = 0;
 
-									if (item->GetVnum() == ITEM_WHITEDAY_CANDY && SEX_MALE==GET_SEX(this) ||
-										item->GetVnum() == ITEM_WHITEDAY_ROSE && SEX_FEMALE==GET_SEX(this))
+									if ((item->GetVnum() == ITEM_WHITEDAY_CANDY && SEX_MALE==GET_SEX(this)) ||
+										(item->GetVnum() == ITEM_WHITEDAY_ROSE && SEX_FEMALE==GET_SEX(this)))
 									{
 										// Cannot be used: wrong gender.
 										ChatPacket(CHAT_TYPE_INFO, LC_TEXT("성별이 맞지않아 이 아이템을 열 수 없습니다."));
@@ -3730,6 +3730,7 @@ bool CHARACTER::UseItemEx(CItem * item, TItemPos DestCell)
 									{
 										case ITEM_AUTO_HP_RECOVERY_X:
 											isSpecialPotion = true;
+											[[fallthrough]];
 
 										case ITEM_AUTO_HP_RECOVERY_S:
 										case ITEM_AUTO_HP_RECOVERY_M:
@@ -3742,6 +3743,7 @@ bool CHARACTER::UseItemEx(CItem * item, TItemPos DestCell)
 
 										case ITEM_AUTO_SP_RECOVERY_X:
 											isSpecialPotion = true;
+											[[fallthrough]];
 
 										case ITEM_AUTO_SP_RECOVERY_S:
 										case ITEM_AUTO_SP_RECOVERY_M:
@@ -5087,7 +5089,7 @@ bool CHARACTER::UseItem(TItemPos Cell, TItemPos DestCell)
 	}
 
 	//Check trade window restriction when using silk bundle 
-	if (item->GetVnum() == 50200 | item->GetVnum() == 71049)
+	if (item->GetVnum() == 50200 || item->GetVnum() == 71049)
 	{
 		if (GetExchange() || GetMyShop() || GetShopOwner() || IsOpenSafebox() || IsCubeOpen())
 		{
@@ -5926,7 +5928,7 @@ bool CHARACTER::EquipItem(CItem * item, int iCandidateCell)
 			if (0 == item->GetSocket(1))
 			{
 				// Usable time defaults to the Limit Value, but if Socket0 has a value, use that instead. (in seconds)
-				int32_t duration = (0 != item->GetSocket(0)) ? item->GetSocket(0) : item->GetProto()->aLimits[item->GetProto()->cLimitRealTimeFirstUseIndex].lValue;
+				int32_t duration = (0 != item->GetSocket(0)) ? item->GetSocket(0) : item->GetProto()->aLimits[static_cast<int>(item->GetProto()->cLimitRealTimeFirstUseIndex)].lValue;
 
 				if (0 == duration)
 					duration = 60 * 60 * 24 * 7;

@@ -515,7 +515,7 @@ bool Cube_make (CHARACTER * ch)
 		return false;
 	}
 
-	if (ch->GetGold() < cube_proto->gold)
+	if (static_cast<int64_t>(ch->GetGold()) < static_cast<int64_t>(cube_proto->gold))
 	{
 		ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("돈이 부족하거나 아이템이 제자리에 없습니다."));	// This text is already widely used, so no additional translation needed
 		return false;
@@ -747,7 +747,7 @@ void Cube_MakeCubeInformationText()
 
 bool Cube_InformationInitialize()
 {
-	for (int i = 0; i < s_cube_proto.size(); ++i)
+	for (size_t i = 0; i < s_cube_proto.size(); ++i)
 	{
 		CUBE_DATA* cubeData = s_cube_proto[i].get();
 

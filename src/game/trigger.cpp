@@ -136,7 +136,7 @@ class FuncFindMobVictim
 		CHARACTER * GetVictim()
 		{
 			// if there's a building nearby and HP is high, attack the building. attack it even if there's only a building
-			if (m_pkChrBuilding && m_pkChr->GetHP() * 2 > m_pkChr->GetMaxHP() || !m_pkChrVictim)
+			if ((m_pkChrBuilding && m_pkChr->GetHP() * 2 > m_pkChr->GetMaxHP()) || !m_pkChrVictim)
 			{
 				return m_pkChrBuilding;
 			}

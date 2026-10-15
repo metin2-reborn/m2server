@@ -230,7 +230,7 @@ void cCsvTable::Destroy()
 /// \return const cCsvRow* If an accessible current row exists, returns a pointer
 /// to that row; if there are no more accessible rows, returns NULL
 ////////////////////////////////////////////////////////////////////////////////
-const cCsvRow* const cCsvTable::CurRow() const
+const cCsvRow* cCsvTable::CurRow() const
 {
     if (m_CurRow < 0)
     {

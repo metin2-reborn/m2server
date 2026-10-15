@@ -1635,7 +1635,7 @@ void CItem::AccessorySocketDegrade()
 }
 
 // Checks and returns whether an item can be inserted into the ring
-static const bool CanPutIntoRing(CItem * ring, CItem * item)
+static bool CanPutIntoRing(CItem * ring, CItem * item)
 {
 	return false;
 }
@@ -1669,7 +1669,7 @@ bool CItem::CanPutInto(CItem * item)
 	};
 	
 	uint32_t item_type = (item->GetVnum() / 10) * 10;
-	for (int i = 0; i < sizeof(infos) / sizeof(infos[0]); i++)
+	for (size_t i = 0; i < sizeof(infos) / sizeof(infos[0]); i++)
 	{
 		const JewelAccessoryInfo& info = infos[i];
 		switch(item->GetSubType())
@@ -1726,7 +1726,7 @@ bool CItem::CanPutInto(CItem * item)
 
 	uint32_t type = vnum / 20;
 
-	if (type < 0 || type > 11)
+	if (type > 11)
 	{
 		type = (vnum - 170) / 20;
 
@@ -1867,9 +1867,9 @@ int CItem::GiveMoreTime_Per(float fPercent)
 		uint32_t duration = DSManager::instance().GetDuration(this);
 		int remain_sec = GetSocket(ITEM_SOCKET_REMAIN_SEC);
 		int given_time = fPercent * duration / 100;
-		if (remain_sec == duration)
+		if (static_cast<uint32_t>(remain_sec) == duration)
 			return false;
-		if ((given_time + remain_sec) >= duration)
+		if (static_cast<uint32_t>(given_time + remain_sec) >= duration)
 		{
 			SetSocket(ITEM_SOCKET_REMAIN_SEC, duration);
 			return duration - remain_sec;
@@ -1891,7 +1891,7 @@ int CItem::GiveMoreTime_Fix(uint32_t dwTime)
 	{
 		uint32_t duration = DSManager::instance().GetDuration(this);
 		int remain_sec = GetSocket(ITEM_SOCKET_REMAIN_SEC);
-		if (remain_sec == duration)
+		if (static_cast<uint32_t>(remain_sec) == duration)
 			return false;
 		if ((dwTime + remain_sec) >= duration)
 		{
@@ -1922,7 +1922,7 @@ int	CItem::GetDuration()
 	}
 	
 	if (-1 != GetProto()->cLimitTimerBasedOnWearIndex)
-		return GetProto()->aLimits[GetProto()->cLimitTimerBasedOnWearIndex].lValue;	
+		return GetProto()->aLimits[static_cast<int>(GetProto()->cLimitTimerBasedOnWearIndex)].lValue;	
 
 	return -1;
 }

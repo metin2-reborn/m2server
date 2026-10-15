@@ -187,7 +187,7 @@ public:
 
 private:
     /// \brief returns the current row.
-    const cCsvRow* const CurRow() const;
+    const cCsvRow* CurRow() const;
 
     cCsvTable(const cCsvTable&) = delete;
     cCsvTable& operator = (const cCsvTable&) = delete;

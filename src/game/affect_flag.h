@@ -42,11 +42,6 @@ struct TAffectFlag {
         REMOVE_BIT(bits[(flag - 1) >> 5], (((uint32_t)1) << ((flag - 1) & 31)));
     }
 
-    inline auto operator=(const TAffectFlag &rhs) -> TAffectFlag & {
-        bits[0] = rhs.bits[0];
-        bits[1] = rhs.bits[1];
-        return *this;
-    }
 };
 
 inline auto operator==(const TAffectFlag &lhs, const TAffectFlag &rhs) -> bool {

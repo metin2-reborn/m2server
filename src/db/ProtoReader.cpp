@@ -34,7 +34,7 @@ std::string trim(const std::string& str){return trim_left(trim_right(str));}
 
 static std::unique_ptr<std::string[]> StringSplit(std::string strOrigin, std::string strTok)
 {
-    int     cutAt;                            //Cut position
+    size_t  cutAt;                            //Cut position
     int     index     = 0;                    //String index
     auto strResult = std::make_unique<std::string[]>(30);		  //Variable to return as result
 
@@ -92,7 +92,7 @@ int get_Item_Type_Value(std::string inputString)
 
 	
 	int retInt = -1;
-	for (int j=0;j<sizeof(arType)/sizeof(arType[0]);j++) {
+	for (size_t j = 0; j < sizeof(arType)/sizeof(arType[0]);j++) {
 		std::string tempString = arType[j];
 		if	(inputString.find(tempString)!=std::string::npos && tempString.find(inputString)!=std::string::npos) {
 			retInt =  j;
@@ -207,7 +207,7 @@ int get_Item_SubType_Value(int type_value, std::string inputString)
 	};
 	
 
-	assert(std::size(arSubType) > type_value && "Subtype rule: Out of range!!");
+	assert(std::size(arSubType) > static_cast<size_t>(type_value) && "Subtype rule: Out of range!!");
 
 	// assert doesn't seem to work..
 	if (static_cast<int>(std::size(arSubType)) <= type_value)
@@ -250,7 +250,7 @@ int get_Item_AntiFlag_Value(std::string inputString)
 
 	int retValue = 0;
 	std::unique_ptr<std::string[]> arInputString = StringSplit(inputString, "|");				//Array of the proto info split into words.
-	for(int i =0;i<sizeof(arAntiFlag)/sizeof(arAntiFlag[0]);i++) {
+	for (size_t i = 0; i < sizeof(arAntiFlag)/sizeof(arAntiFlag[0]);i++) {
 		std::string tempString = arAntiFlag[i];
 		for (int j=0; j<30 ; j++)		//Up to 30 words. (hardcoded)
 		{
@@ -277,7 +277,7 @@ int get_Item_Flag_Value(std::string inputString)
 
 	int retValue = 0;
 	std::unique_ptr<std::string[]> arInputString = StringSplit(inputString, "|");				//Array of the proto info split into words.
-	for(int i =0;i<sizeof(arFlag)/sizeof(arFlag[0]);i++) {
+	for (size_t i = 0; i < sizeof(arFlag)/sizeof(arFlag[0]);i++) {
 		std::string tempString = arFlag[i];
 		for (int j=0; j<30 ; j++)		//Up to 30 words. (hardcoded)
 		{
@@ -303,7 +303,7 @@ int get_Item_WearFlag_Value(std::string inputString)
 
 	int retValue = 0;
 	std::unique_ptr<std::string[]> arInputString = StringSplit(inputString, "|");				//Array of the proto info split into words.
-	for(int i =0;i<sizeof(arWearrFlag)/sizeof(arWearrFlag[0]);i++) {
+	for (size_t i = 0; i < sizeof(arWearrFlag)/sizeof(arWearrFlag[0]);i++) {
 		std::string tempString = arWearrFlag[i];
 		for (int j=0; j<30 ; j++)		//Up to 30 words. (hardcoded)
 		{
@@ -327,7 +327,7 @@ int get_Item_Immune_Value(std::string inputString)
 
 	int retValue = 0;
 	std::unique_ptr<std::string[]> arInputString = StringSplit(inputString, "|");				//Array of the proto info split into words.
-	for(int i =0;i<sizeof(arImmune)/sizeof(arImmune[0]);i++) {
+	for (size_t i = 0; i < sizeof(arImmune)/sizeof(arImmune[0]);i++) {
 		std::string tempString = arImmune[i];
 		for (int j=0; j<30 ; j++)		//Up to 30 words. (hardcoded)
 		{
@@ -352,7 +352,7 @@ int get_Item_LimitType_Value(std::string inputString)
 	std::string arLimitType[] = {"LIMIT_NONE", "LEVEL", "STR", "DEX", "INT", "CON", "PC_BANG", "REAL_TIME", "REAL_TIME_FIRST_USE", "TIMER_BASED_ON_WEAR"};
 	
 	int retInt = -1;
-	for (int j=0;j<sizeof(arLimitType)/sizeof(arLimitType[0]);j++) {
+	for (size_t j = 0; j < sizeof(arLimitType)/sizeof(arLimitType[0]);j++) {
 		std::string tempString = arLimitType[j];
 		std::string tempInputString = trim(inputString);
 		if	(tempInputString.compare(tempString)==0)
@@ -388,7 +388,7 @@ int get_Item_ApplyType_Value(std::string inputString)
 	};
 
 	int retInt = -1;
-	for (int j=0;j<sizeof(arApplyType)/sizeof(arApplyType[0]);j++) {
+	for (size_t j = 0; j < sizeof(arApplyType)/sizeof(arApplyType[0]);j++) {
 		std::string tempString = arApplyType[j];
 		std::string tempInputString = trim(inputString);
 		if	(tempInputString.compare(tempString)==0)
@@ -411,7 +411,7 @@ int get_Mob_Rank_Value(std::string inputString)
 	std::string arRank[] = {"PAWN", "S_PAWN", "KNIGHT", "S_KNIGHT", "BOSS", "KING"};
 
 	int retInt = -1;
-	for (int j=0;j<sizeof(arRank)/sizeof(arRank[0]);j++) {
+	for (size_t j = 0; j < sizeof(arRank)/sizeof(arRank[0]);j++) {
 		std::string tempString = arRank[j];
 		std::string tempInputString = trim(inputString);
 		if	(tempInputString.compare(tempString)==0) 
@@ -430,7 +430,7 @@ int get_Mob_Type_Value(std::string inputString)
 	std::string arType[] = { "MONSTER", "NPC", "STONE", "WARP", "DOOR", "BUILDING", "PC", "POLYMORPH_PC", "HORSE", "GOTO"};
 
 	int retInt = -1;
-	for (int j=0;j<sizeof(arType)/sizeof(arType[0]);j++) {
+	for (size_t j = 0; j < sizeof(arType)/sizeof(arType[0]);j++) {
 		std::string tempString = arType[j];
 		std::string tempInputString = trim(inputString);
 		if	(tempInputString.compare(tempString)==0) 
@@ -448,7 +448,7 @@ int get_Mob_BattleType_Value(std::string inputString)
 	std::string arBattleType[] = { "MELEE", "RANGE", "MAGIC", "SPECIAL", "POWER", "TANKER", "SUPER_POWER", "SUPER_TANKER"};
 
 	int retInt = -1;
-	for (int j=0;j<sizeof(arBattleType)/sizeof(arBattleType[0]);j++) {
+	for (size_t j = 0; j < sizeof(arBattleType)/sizeof(arBattleType[0]);j++) {
 		std::string tempString = arBattleType[j];
 		std::string tempInputString = trim(inputString);
 		if	(tempInputString.compare(tempString)==0) 
@@ -466,7 +466,7 @@ int get_Mob_Size_Value(std::string inputString)
 	std::string arSize[] = { "SMALL", "MEDIUM", "BIG"};
 
 	int retInt = 0;
-	for (int j=0;j<sizeof(arSize)/sizeof(arSize[0]);j++) {
+	for (size_t j = 0; j < sizeof(arSize)/sizeof(arSize[0]);j++) {
 		std::string tempString = arSize[j];
 		std::string tempInputString = trim(inputString);
 		if	(tempInputString.compare(tempString)==0) 
@@ -486,7 +486,7 @@ int get_Mob_AIFlag_Value(std::string inputString)
 
 	int retValue = 0;
 	std::unique_ptr<std::string[]> arInputString = StringSplit(inputString, ",");				//Array of the proto info split into words.
-	for(int i =0;i<sizeof(arAIFlag)/sizeof(arAIFlag[0]);i++) {
+	for (size_t i = 0; i < sizeof(arAIFlag)/sizeof(arAIFlag[0]);i++) {
 		std::string tempString = arAIFlag[i];
 		for (int j=0; j<30 ; j++)		//Up to 30 words. (hardcoded)
 		{
@@ -509,7 +509,7 @@ int get_Mob_RaceFlag_Value(std::string inputString)
 
 	int retValue = 0;
 	std::unique_ptr<std::string[]> arInputString = StringSplit(inputString, ",");				//Array of the proto info split into words.
-	for(int i =0;i<sizeof(arRaceFlag)/sizeof(arRaceFlag[0]);i++) {
+	for (size_t i = 0; i < sizeof(arRaceFlag)/sizeof(arRaceFlag[0]);i++) {
 		std::string tempString = arRaceFlag[i];
 		for (int j=0; j<30 ; j++)		//Up to 30 words. (hardcoded)
 		{
@@ -531,7 +531,7 @@ int get_Mob_ImmuneFlag_Value(std::string inputString)
 
 	int retValue = 0;
 	std::unique_ptr<std::string[]> arInputString = StringSplit(inputString, ",");				//Array of the proto info split into words.
-	for(int i =0;i<sizeof(arImmuneFlag)/sizeof(arImmuneFlag[0]);i++) {
+	for (size_t i = 0; i < sizeof(arImmuneFlag)/sizeof(arImmuneFlag[0]);i++) {
 		std::string tempString = arImmuneFlag[i];
 		for (int j=0; j<30 ; j++)		//Up to 30 words. (hardcoded)
 		{
@@ -664,7 +664,7 @@ bool Set_Proto_Item_Table(TItemTable *itemTable, cCsvTable &csvTable,std::map<in
 	int col = 0;
 
 	int dataArray[33];
-	for (int i=0; i<sizeof(dataArray)/sizeof(dataArray[0]);i++) {
+	for (size_t i = 0; i < sizeof(dataArray)/sizeof(dataArray[0]);i++) {
 		int validCheck = 0;
 		if (i==2) {
 			dataArray[i] = get_Item_Type_Value(csvTable.AsStringByIndex(col));
@@ -707,11 +707,11 @@ bool Set_Proto_Item_Table(TItemTable *itemTable, cCsvTable &csvTable,std::map<in
 		{
 			std::ostringstream dataStream;
 
-			for (int j = 0; j < i; ++j)
+			for (size_t j = 0; j < i; ++j)
 				dataStream << dataArray[j] << ",";
 
-			sys_err("ItemProto Reading Failed : Invalid value. (index: %d, col: %d, value: %s)", i, col, csvTable.AsStringByIndex(col));
-			sys_err("\t%d ~ %d Values: %s", 0, i, dataStream.str().c_str());
+			sys_err("ItemProto Reading Failed : Invalid value. (index: %zu, col: %d, value: %s)", i, col, csvTable.AsStringByIndex(col));
+			sys_err("\t0 ~ %zu Values: %s", i, dataStream.str().c_str());
 
 			exit(0);
 		}
@@ -722,7 +722,7 @@ bool Set_Proto_Item_Table(TItemTable *itemTable, cCsvTable &csvTable,std::map<in
 	// Read vnum and vnum range.
 	{
 		std::string s(csvTable.AsStringByIndex(0));
-		int pos = s.find("~");
+		size_t pos = s.find("~");
 		// Skip if the vnum field has no '~'
 		if (std::string::npos == pos)
 		{

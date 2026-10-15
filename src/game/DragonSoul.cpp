@@ -31,13 +31,13 @@ typedef std::vector <std::string> TTokenVector;
 int Gamble(std::vector<float>& vec_probs)
 {
 	float range = 0.f;
-	for (int i = 0; i < vec_probs.size(); i++)
+	for (size_t i = 0; i < vec_probs.size(); i++)
 	{
 		range += vec_probs[i];
 	}
 	float fProb = fnumber(0.f, range);
 	float sum = 0.f;
-	for (int idx = 0; idx < vec_probs.size(); idx++)
+	for (size_t idx = 0; idx < vec_probs.size(); idx++)
 	{
 		sum += vec_probs[idx];
 		if (sum >= fProb)
@@ -215,7 +215,7 @@ bool DSManager::RefreshItemAttributes(CItem * pDS)
 		short sValue = 0;
 		if (APPLY_NONE == bType)
 			continue;
-		for (int j = 0; j < vec_addtional_applys.size(); j++)
+		for (size_t j = 0; j < vec_addtional_applys.size(); j++)
 		{
 			if (vec_addtional_applys[j].apply_type == bType)
 			{
@@ -285,7 +285,7 @@ bool DSManager::PutAttributes(CItem * pDS)
 	{
 		random_set.resize(additional_attr_num);
 		std::list <float> list_probs;
-		for (int i = 0; i < vec_addtional_applys.size(); i++)
+		for (size_t i = 0; i < vec_addtional_applys.size(); i++)
 		{
 			list_probs.push_back(vec_addtional_applys[i].prob);
 		}
@@ -520,11 +520,6 @@ bool DSManager::DoRefineGrade(CHARACTER * ch, TItemPos (&aItemPoses)[DRAGON_SOUL
 	if (nullptr == ch)
 		return false;
 
-	if (nullptr == aItemPoses)
-	{
-		return false;
-	}
-
 	if (!ch->DragonSoul_RefineWindow_CanRefine())
 	{
 		sys_err ("%s do not activate DragonSoulRefineWindow. But how can he come here?", ch->GetName());
@@ -679,11 +674,6 @@ bool DSManager::DoRefineStep(CHARACTER * ch, TItemPos (&aItemPoses)[DRAGON_SOUL_
 {
 	if (nullptr == ch)
 		return false;
-	if (nullptr == aItemPoses)
-	{
-		return false;
-	}
-
 	if (!ch->DragonSoul_RefineWindow_CanRefine())
 	{
 		sys_err ("%s do not activate DragonSoulRefineWindow. But how can he come here?", ch->GetName());
@@ -839,11 +829,6 @@ bool DSManager::DoRefineStrength(CHARACTER * ch, TItemPos (&aItemPoses)[DRAGON_S
 {
 	if (nullptr == ch)
 		return false;
-	if (nullptr == aItemPoses)
-	{
-		return false;
-	}
-
 	if (!ch->DragonSoul_RefineWindow_CanRefine())
 	{
 		sys_err ("%s do not activate DragonSoulRefineWindow. But how can he come here?", ch->GetName());
@@ -909,7 +894,7 @@ bool DSManager::DoRefineStrength(CHARACTER * ch, TItemPos (&aItemPoses)[DRAGON_S
 		}
 	}
 
-	uint8_t bType, bGrade, bStep, bStrength;
+	uint8_t bType = 0, bGrade = 0, bStep = 0, bStrength = 0;
 	
 	if (!pDragonSoul || !pRefineStone)
 	{

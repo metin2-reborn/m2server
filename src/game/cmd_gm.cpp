@@ -804,8 +804,10 @@ ACMD(do_mob_ld)
 		return;
 	}
 
+	// Without coordinates the mob appears where the GM stands.
 	int dir = 1;
-	int32_t x, y;
+	int32_t x = ch->GetX() / 100;
+	int32_t y = ch->GetY() / 100;
 
 	if (*arg2)
 		str_to_number(x, arg2);
@@ -2361,8 +2363,6 @@ USAGE:
  */
 ACMD(do_priv_guild)
 {
-	static const char msg[] = { '\0' };
-
 	char arg1[256];
 	one_argument(argument, arg1, sizeof(arg1));
 
@@ -2381,8 +2381,8 @@ ACMD(do_priv_guild)
 			ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("그런 이름 또는 번호의 길드가 없습니다."));
 		else
 		{
-			char buf[1024+1];
-			snprintf(buf, sizeof(buf), msg, g->GetID());
+			// The guild bonus script was removed, so this runs an empty one.
+			const char buf[] = "";
 
 			using namespace quest;
 			PC * pc = CQuestManager::instance().GetPC(ch->GetPlayerID());

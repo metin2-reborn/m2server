@@ -849,7 +849,7 @@ void CClientManager::RESULT_SAFEBOX_CHANGE_PASSWORD(CPeer * pkPeer, SQLMsg * msg
 	{
 		MYSQL_ROW row = mysql_fetch_row(msg->Get()->pSQLResult);
 
-		if (row[0] && *row[0] && !strcasecmp(row[0], p->login) || (!row[0] || !*row[0]) && !strcmp("000000", p->login))
+		if ((row[0] && *row[0] && !strcasecmp(row[0], p->login)) || ((!row[0] || !*row[0]) && !strcmp("000000", p->login)))
 		{
 			char szQuery[QUERY_MAX_LEN];
 			char escape_pwd[64];
@@ -2636,7 +2636,7 @@ int CClientManager::Process()
 			if (g_test_server)
 			{
 
-				if (!(thecore_heart->pulse % thecore_heart->passes_per_sec * 10))	
+				if (!(thecore_heart->pulse % (thecore_heart->passes_per_sec * 10)))	
 
 				{
 					pt_log("[%9d] return %d/%d/%d/%d async %d/%d/%d/%d",

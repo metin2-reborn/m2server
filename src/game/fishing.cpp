@@ -97,7 +97,7 @@ namespace fishing
 	int g_prob_sum[MAX_PROB];
 	int g_prob_accumulate[MAX_PROB][MAX_FISH];
 
-	SFishInfo fish_info[MAX_FISH] = { { "\0", }, };
+	SFishInfo fish_info[MAX_FISH] = {};
 	/*
 	   {
 	   { "꽝",		00000, 00000, 00000, {  750, 1750, 2750 },   10, FISHING_LIMIT_NONE,	{  0,   0,   0}, FISHING_TIME_NORMAL, { 0,           }, 

@@ -2308,7 +2308,7 @@ bool CHARACTER::UseSkill(uint32_t dwVnum, CHARACTER * pkVictim, bool bUseGrandMa
 
 	if (pkSk->IsChargeSkill())
 	{
-		if (IsAffectFlag(AFF_TANHWAN_DASH) || pkVictim && pkVictim != this)
+		if (IsAffectFlag(AFF_TANHWAN_DASH) || (pkVictim && pkVictim != this))
 		{
 			if (!pkVictim)
 				return false;
@@ -2414,7 +2414,7 @@ bool CHARACTER::UseSkill(uint32_t dwVnum, CHARACTER * pkVictim, bool bUseGrandMa
 	if (IS_SET(pkSk->dwFlag, SKILL_FLAG_SELFONLY))
 		pkVictim = this;
 
-	if (pkSk->dwVnum == SKILL_MUYEONG || pkSk->IsChargeSkill() && !IsAffectFlag(AFF_TANHWAN_DASH) && !pkVictim)
+	if (pkSk->dwVnum == SKILL_MUYEONG || (pkSk->IsChargeSkill() && !IsAffectFlag(AFF_TANHWAN_DASH) && !pkVictim))
 	{
 		// Muyeongjin on first use attaches an affect to self.
 		pkVictim = this;
@@ -2483,7 +2483,7 @@ int CHARACTER::GetSkillMasterType(uint32_t dwVnum) const
 		return 0;
 	}
 
-	return m_pSkillLevels ? m_pSkillLevels[dwVnum].bMasterType:SKILL_NORMAL;
+	return m_pSkillLevels ? m_pSkillLevels[dwVnum].bMasterType : static_cast<uint8_t>(SKILL_NORMAL);
 }
 
 int CHARACTER::GetSkillPower(uint32_t dwVnum, uint8_t bLevel) const
