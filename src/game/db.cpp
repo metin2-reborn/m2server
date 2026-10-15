@@ -17,6 +17,7 @@
 #include <common/tables.h>
 #include <common/utils.h>
 #include <libsql/AsyncSQL.h>
+#include <libsql/query.h>
 #include <libthecore/log.h>
 #include <libthecore/utils.h>
 
@@ -65,6 +66,11 @@ bool DBManager::Connect(const char * host, const int port, const char * user, co
 	return m_bIsConnect;
 }
 
+void DBManager::Query(const std::string & query)
+{
+	m_sql.AsyncQuery(query.c_str());
+}
+
 void DBManager::Query(const char * c_pszFormat, ...)
 {
 	char szQuery[4096];
@@ -75,6 +81,11 @@ void DBManager::Query(const char * c_pszFormat, ...)
 	va_end(args);
 
 	m_sql.AsyncQuery(szQuery);
+}
+
+SQLMsg * DBManager::DirectQuery(const std::string & query)
+{
+	return m_sql_direct.DirectQuery(query.c_str());
 }
 
 SQLMsg * DBManager::DirectQuery(const char * c_pszFormat, ...)
@@ -103,6 +114,11 @@ void DBManager::ReturnQuery(int iType, uint32_t dwIdent, void * pvData, const ch
 	vsnprintf(szQuery, sizeof(szQuery), c_pszFormat, args);
 	va_end(args);
 
+	ReturnQuery(iType, dwIdent, pvData, std::string(szQuery));
+}
+
+void DBManager::ReturnQuery(int iType, uint32_t dwIdent, void * pvData, const std::string & query)
+{
 	CReturnQueryInfo * p = new CReturnQueryInfo;
 
 	p->iQueryType = QUERY_TYPE_RETURN;
@@ -110,7 +126,7 @@ void DBManager::ReturnQuery(int iType, uint32_t dwIdent, void * pvData, const ch
 	p->dwIdent = dwIdent;
 	p->pvData = pvData;
 
-	m_sql.ReturnQuery(szQuery, p);
+	m_sql.ReturnQuery(query.c_str(), p);
 }
 
 SQLMsg * DBManager::PopResult()
@@ -162,11 +178,16 @@ void DBManager::FuncQuery(std::function<void(SQLMsg *)> f, const char * c_pszFor
 	vsnprintf(szQuery, sizeof(szQuery), c_pszFormat, args);
 	va_end(args);
 
+	FuncQuery(std::move(f), std::string(szQuery));
+}
+
+void DBManager::FuncQuery(std::function<void(SQLMsg *)> f, const std::string & query)
+{
 	CFuncQueryInfo * p = new CFuncQueryInfo;
 	p->iQueryType = QUERY_TYPE_FUNCTION;
 	p->f = std::move(f);
 
-	m_sql.ReturnQuery(szQuery, p);
+	m_sql.ReturnQuery(query.c_str(), p);
 }
 
 void DBManager::FuncAfterQuery(std::function<void()> f, const char * c_pszFormat, ...)
@@ -178,11 +199,16 @@ void DBManager::FuncAfterQuery(std::function<void()> f, const char * c_pszFormat
 	vsnprintf(szQuery, sizeof(szQuery), c_pszFormat, args);
 	va_end(args);
 
+	FuncAfterQuery(std::move(f), std::string(szQuery));
+}
+
+void DBManager::FuncAfterQuery(std::function<void()> f, const std::string & query)
+{
 	CFuncAfterQueryInfo * p = new CFuncAfterQueryInfo;
 	p->iQueryType = QUERY_TYPE_AFTER_FUNCTION;
 	p->f = std::move(f);
 
-	m_sql.ReturnQuery(szQuery, p);
+	m_sql.ReturnQuery(query.c_str(), p);
 }
 
 CLoginData * DBManager::GetLoginData(uint32_t dwKey)
@@ -406,9 +432,7 @@ void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
 							break;
 						}
 
-						char szQuery[1024];
-						snprintf(szQuery, sizeof(szQuery), "UPDATE account SET last_play=NOW() WHERE id=%u", dwID);
-						std::unique_ptr<SQLMsg> msg( DBManager::instance().DirectQuery(szQuery) );
+						std::unique_ptr<SQLMsg> msg( DBManager::instance().DirectQuery(sql::format("UPDATE account SET last_play=NOW() WHERE id={}", dwID)) );
 
 						TAccountTable & r = d->GetAccountTable();
 
@@ -575,9 +599,7 @@ void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
 							break;
 						}
 
-						char szQuery[1024];
-						snprintf(szQuery, sizeof(szQuery), "UPDATE account SET last_play=NOW() WHERE id=%u", dwID);
-						std::unique_ptr<SQLMsg> msg( DBManager::instance().DirectQuery(szQuery) );
+						std::unique_ptr<SQLMsg> msg( DBManager::instance().DirectQuery(sql::format("UPDATE account SET last_play=NOW() WHERE id={}", dwID)) );
 
 						TAccountTable & r = d->GetAccountTable();
 
@@ -693,8 +715,8 @@ void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
 				}
 
 				if (bQuery)
-					Query("REPLACE INTO highscore%s VALUES('%s', %u, %d)",
-							get_table_postfix(), info->szBoard, info->dwPID, info->iValue);
+					Query(sql::format("REPLACE INTO highscore{} VALUES({}, {}, {})",
+							sql::raw(get_table_postfix()), info->szBoard, info->dwPID, info->iValue));
 
 				delete info;
 			}
@@ -745,8 +767,8 @@ void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
 				{
 					sys_log(0, "[AUTH_BRAZIL] : Succeed to create a new account %s", pinfo->login) ;
 
-					ReturnQuery(QID_AUTH_LOGIN, qi->dwIdent, pinfo,
-							"SELECT PASSWORD('%s'),password,social_id,id,status,availDt - NOW() > 0,"
+					ReturnQuery(QID_AUTH_LOGIN, qi->dwIdent, pinfo, sql::format(
+							"SELECT PASSWORD({}),password,social_id,id,status,availDt - NOW() > 0,"
 							"UNIX_TIMESTAMP(silver_expire),"
 							"UNIX_TIMESTAMP(gold_expire),"
 							"UNIX_TIMESTAMP(safebox_expire),"
@@ -755,8 +777,8 @@ void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
 							"UNIX_TIMESTAMP(marriage_fast_expire),"
 							"UNIX_TIMESTAMP(money_drop_rate_expire),"
 							"UNIX_TIMESTAMP(create_time)"
-							" FROM account WHERE login='%s'",
-							pinfo->passwd, pinfo->login) ;
+							" FROM account WHERE login={}",
+							pinfo->passwd, pinfo->login)) ;
 				}
 			}
 			break;
@@ -776,8 +798,8 @@ void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
 				{
 					sys_log(0, "[AUTH_JAPAN] : Succeed to create a new account %s", pinfo->login) ;
 
-					ReturnQuery(QID_AUTH_LOGIN_OPENID, qi->dwIdent, pinfo,
-							"SELECT PASSWORD('%s'),password,social_id,id,status,availDt - NOW() > 0,"
+					ReturnQuery(QID_AUTH_LOGIN_OPENID, qi->dwIdent, pinfo, sql::format(
+							"SELECT PASSWORD({}),password,social_id,id,status,availDt - NOW() > 0,"
 							"UNIX_TIMESTAMP(silver_expire),"
 							"UNIX_TIMESTAMP(gold_expire),"
 							"UNIX_TIMESTAMP(safebox_expire),"
@@ -786,8 +808,8 @@ void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
 							"UNIX_TIMESTAMP(marriage_fast_expire),"
 							"UNIX_TIMESTAMP(money_drop_rate_expire),"
 							"UNIX_TIMESTAMP(create_time)"
-							" FROM account WHERE login='%s'",
-							pinfo->passwd, pinfo->login) ;
+							" FROM account WHERE login={}",
+							pinfo->passwd, pinfo->login)) ;
 				}
 			}
 			break;
@@ -802,7 +824,7 @@ void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
 
 void DBManager::LoadDBString()
 {
-	ReturnQuery(QID_DB_STRING, 0, nullptr, "SELECT name, text FROM string%s", get_table_postfix());
+	ReturnQuery(QID_DB_STRING, 0, nullptr, sql::format("SELECT name, text FROM string{}", sql::raw(get_table_postfix())));
 }
 
 const std::vector<std::string>& DBManager::GetGreetMessage()
@@ -878,6 +900,11 @@ void AccountDB::ReturnQuery(int iType, uint32_t dwIdent, void * pvData, const ch
 	vsnprintf(szQuery, sizeof(szQuery), c_pszFormat, args);
 	va_end(args);
 
+	ReturnQuery(iType, dwIdent, pvData, std::string(szQuery));
+}
+
+void AccountDB::ReturnQuery(int iType, uint32_t dwIdent, void * pvData, const std::string & query)
+{
 	CReturnQueryInfo * p = new CReturnQueryInfo;
 
 	p->iQueryType = QUERY_TYPE_RETURN;
@@ -885,7 +912,7 @@ void AccountDB::ReturnQuery(int iType, uint32_t dwIdent, void * pvData, const ch
 	p->dwIdent = dwIdent;
 	p->pvData = pvData;
 
-	m_sql.ReturnQuery(szQuery, p);
+	m_sql.ReturnQuery(query.c_str(), p);
 }
 
 SQLMsg * AccountDB::PopResult()

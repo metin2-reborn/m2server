@@ -11,6 +11,7 @@
 #include <common/tables.h>
 #include <common/utils.h>
 #include <libsql/AsyncSQL.h>
+#include <libsql/query.h>
 #include <libthecore/log.h>
 #include <libthecore/utils.h>
 
@@ -25,6 +26,7 @@
 #include <ctime>
 #include <map>
 #include <memory>
+#include <string>
 #include <utility>
 
 const int GUILD_RANK_MAX_NUM = 20;
@@ -1103,23 +1105,21 @@ bool CGuildManager::Bet(uint32_t dwID, const char * c_pszLogin, uint32_t dwGold,
 {
 	auto it = m_map_kWarReserve.find(dwID);
 
-	char szQuery[1024];
-
 	if (it == m_map_kWarReserve.end())
 	{
 		sys_log(0, "WAR_RESERVE: Bet: cannot find reserve war by id %u", dwID);
-		snprintf(szQuery, sizeof(szQuery), "INSERT INTO item_award (login, vnum, socket0, given_time) VALUES('%s', %d, %u, NOW())",
+		const std::string query = sql::format("INSERT INTO item_award (login, vnum, socket0, given_time) VALUES({}, {}, {}, NOW())",
 				c_pszLogin, ITEM_ELK_VNUM, dwGold);
-		CDBManager::instance().AsyncQuery(szQuery);
+		CDBManager::instance().AsyncQuery(query.c_str());
 		return false;
 	}
 
 	if (!it->second->Bet(c_pszLogin, dwGold, dwGuild))
 	{
 		sys_log(0, "WAR_RESERVE: Bet: cannot bet id %u, login %s, gold %u, guild %u", dwID, c_pszLogin, dwGold, dwGuild);
-		snprintf(szQuery, sizeof(szQuery), "INSERT INTO item_award (login, vnum, socket0, given_time) VALUES('%s', %d, %u, NOW())", 
+		const std::string query = sql::format("INSERT INTO item_award (login, vnum, socket0, given_time) VALUES({}, {}, {}, NOW())", 
 				c_pszLogin, ITEM_ELK_VNUM, dwGold);
-		CDBManager::instance().AsyncQuery(szQuery);
+		CDBManager::instance().AsyncQuery(query.c_str());
 		return false;
 	}
 
@@ -1222,8 +1222,6 @@ void CGuildWarReserve::OnSetup(CPeer * peer)
 
 bool CGuildWarReserve::Bet(const char * pszLogin, uint32_t dwGold, uint32_t dwGuild)
 {
-	char szQuery[1024];
-
 	if (m_data.dwGuildFrom != dwGuild && m_data.dwGuildTo != dwGuild)
 	{
 		sys_log(0, "GuildWarReserve::Bet: invalid guild id");
@@ -1242,11 +1240,11 @@ bool CGuildWarReserve::Bet(const char * pszLogin, uint32_t dwGold, uint32_t dwGu
 		return false;
 	}
 
-	snprintf(szQuery, sizeof(szQuery), 
-			"INSERT INTO guild_war_bet (war_id, login, gold, guild) VALUES(%u, '%s', %u, %u)",
+	std::string query = sql::format(
+			"INSERT INTO guild_war_bet (war_id, login, gold, guild) VALUES({}, {}, {}, {})",
 			m_data.dwID, pszLogin, dwGold, dwGuild);
 
-	std::unique_ptr<SQLMsg> pmsg(CDBManager::instance().DirectQuery(szQuery));
+	std::unique_ptr<SQLMsg> pmsg(CDBManager::instance().DirectQuery(query.c_str()));
 
 	if (pmsg->Get()->uiAffectedRows == 0 || pmsg->Get()->uiAffectedRows == (uint32_t)-1)
 	{
@@ -1261,10 +1259,10 @@ bool CGuildWarReserve::Bet(const char * pszLogin, uint32_t dwGold, uint32_t dwGu
 
 	CClientManager::instance().ForwardPacket(HEADER_DG_GUILD_WAR_RESERVE_ADD, &m_data, sizeof(TGuildWarReserve));
 
-	snprintf(szQuery, sizeof(szQuery), "UPDATE guild_war_reservation SET bet_from=%u,bet_to=%u WHERE id=%u", 
+	query = sql::format("UPDATE guild_war_reservation SET bet_from={},bet_to={} WHERE id={}", 
 			m_data.dwBetFrom, m_data.dwBetTo, m_data.dwID);
 
-	CDBManager::instance().AsyncQuery(szQuery);
+	CDBManager::instance().AsyncQuery(query.c_str());
 
 	sys_log(0, "GuildWarReserve::Bet: success. %s %u war_id %u bet %u : %u", pszLogin, dwGuild, m_data.dwID, m_data.dwBetFrom, m_data.dwBetTo);
 	mapBet.insert(std::make_pair(pszLogin, std::make_pair(dwGuild, dwGold)));
@@ -1285,10 +1283,8 @@ bool CGuildWarReserve::Bet(const char * pszLogin, uint32_t dwGold, uint32_t dwGu
 //
 void CGuildWarReserve::Draw() 
 {
-	char szQuery[1024];
-
-	snprintf(szQuery, sizeof(szQuery), "UPDATE guild_war_reservation SET started=1,winner=0 WHERE id=%u", m_data.dwID);
-	CDBManager::instance().AsyncQuery(szQuery);
+	std::string query = sql::format("UPDATE guild_war_reservation SET started=1,winner=0 WHERE id={}", m_data.dwID);
+	CDBManager::instance().AsyncQuery(query.c_str());
 
 	if (mapBet.empty())
 		return;
@@ -1299,23 +1295,22 @@ void CGuildWarReserve::Draw()
 
 	while (1)
 	{
-		int iLen = 0;
 		int iRow = 0;
 
-		iLen += snprintf(szQuery, sizeof(szQuery) - iLen, "INSERT INTO item_award (login, vnum, socket0, given_time) VALUES");
+		query = "INSERT INTO item_award (login, vnum, socket0, given_time) VALUES";
 
 		while (it != mapBet.end())
 		{
 			if (iRow == 0)
-				iLen += snprintf(szQuery + iLen, sizeof(szQuery) - iLen, "('%s', %d, %u, NOW())", 
-						it->first.c_str(), ITEM_ELK_VNUM, it->second.second);
+				query += sql::format("({}, {}, {}, NOW())", 
+						it->first, ITEM_ELK_VNUM, it->second.second);
 			else
-				iLen += snprintf(szQuery + iLen, sizeof(szQuery) - iLen, ",('%s', %d, %u, NOW())", 
-						it->first.c_str(), ITEM_ELK_VNUM, it->second.second);
+				query += sql::format(",({}, {}, {}, NOW())", 
+						it->first, ITEM_ELK_VNUM, it->second.second);
 
 			it++;
 
-			if (iLen > 384)
+			if (query.size() > 384)
 				break;
 
 			++iRow;
@@ -1323,8 +1318,8 @@ void CGuildWarReserve::Draw()
 
 		if (iRow > 0)
 		{
-			sys_log(0, "WAR_REWARD: QUERY: %s", szQuery);
-			CDBManager::instance().AsyncQuery(szQuery);
+			sys_log(0, "WAR_REWARD: QUERY: %s", query.c_str());
+			CDBManager::instance().AsyncQuery(query.c_str());
 		}
 
 		if (it == mapBet.end())
@@ -1365,10 +1360,9 @@ void CGuildWarReserve::End(int iScoreFrom, int iScoreTo)
 		}
 	}
 
-	char szQuery[1024];
-	snprintf(szQuery, sizeof(szQuery), "UPDATE guild_war_reservation SET started=1,winner=%u,result1=%d,result2=%d WHERE id=%u", 
+	std::string query = sql::format("UPDATE guild_war_reservation SET started=1,winner={},result1={},result2={} WHERE id={}", 
 			dwWinner, iScoreFrom, iScoreTo, m_data.dwID);
-	CDBManager::instance().AsyncQuery(szQuery);
+	CDBManager::instance().AsyncQuery(query.c_str());
 
 	if (mapBet.empty())
 		return;
@@ -1398,10 +1392,9 @@ void CGuildWarReserve::End(int iScoreFrom, int iScoreTo)
 
 	while (1)
 	{
-		int iLen = 0;
 		int iRow = 0;
 
-		iLen += snprintf(szQuery, sizeof(szQuery) - iLen, "INSERT INTO item_award (login, vnum, socket0, given_time) VALUES");
+		query = "INSERT INTO item_award (login, vnum, socket0, given_time) VALUES";
 
 		while (it != mapBet.end())
 		{
@@ -1419,15 +1412,15 @@ void CGuildWarReserve::End(int iScoreFrom, int iScoreTo)
 			uint32_t dwGold = (uint32_t) (dwTotalBet * ratio * 0.9);
 
 			if (iRow == 0)
-				iLen += snprintf(szQuery + iLen, sizeof(szQuery) - iLen, "('%s', %d, %u, NOW())",
-						it->first.c_str(), ITEM_ELK_VNUM, dwGold);
+				query += sql::format("({}, {}, {}, NOW())",
+						it->first, ITEM_ELK_VNUM, dwGold);
 			else
-				iLen += snprintf(szQuery + iLen, sizeof(szQuery) - iLen, ",('%s', %d, %u, NOW())",
-						it->first.c_str(), ITEM_ELK_VNUM, dwGold);
+				query += sql::format(",({}, {}, {}, NOW())",
+						it->first, ITEM_ELK_VNUM, dwGold);
 
 			++it;
 
-			if (iLen > 384)
+			if (query.size() > 384)
 				break;
 
 			++iRow;
@@ -1435,8 +1428,8 @@ void CGuildWarReserve::End(int iScoreFrom, int iScoreTo)
 
 		if (iRow > 0)
 		{
-			sys_log(0, "WAR_REWARD: query: %s", szQuery);
-			CDBManager::instance().AsyncQuery(szQuery);
+			sys_log(0, "WAR_REWARD: query: %s", query.c_str());
+			CDBManager::instance().AsyncQuery(query.c_str());
 		}
 
 		if (it == mapBet.end())

@@ -16,6 +16,7 @@
 
 #include <common/length.h>
 #include <libsql/AsyncSQL.h>
+#include <libsql/query.h>
 #include <libthecore/log.h>
 
 #include <mysql.h>
@@ -58,7 +59,7 @@ void MessengerManager::Login(MessengerManager::keyA account)
 		return;
 
 	DBManager::instance().FuncQuery([this](SQLMsg *msg) { LoadList(msg); },
-			"SELECT account, companion FROM messenger_list%s WHERE account='%s'", get_table_postfix(), account.c_str());
+			sql::format("SELECT account, companion FROM messenger_list{} WHERE account={}", sql::raw(get_table_postfix()), account));
 
 	m_set_loginAccount.insert(account);
 }
@@ -207,8 +208,8 @@ void MessengerManager::AddToList(MessengerManager::keyA account, MessengerManage
 		return;
 
 	sys_log(0, "Messenger Add %s %s", account.c_str(), companion.c_str());
-	DBManager::instance().Query("INSERT INTO messenger_list%s VALUES ('%s', '%s')", 
-			get_table_postfix(), account.c_str(), companion.c_str());
+	DBManager::instance().Query(sql::format("INSERT INTO messenger_list{} VALUES ({}, {})", 
+			sql::raw(get_table_postfix()), account, companion));
 
 	__AddToList(account, companion);
 
@@ -254,14 +255,11 @@ void MessengerManager::RemoveFromList(MessengerManager::keyA account, MessengerM
 	if (!IsInList(account, companion)) // Fix
 		return;
 	
-	char companionEscaped[CHARACTER_NAME_MAX_LEN * 2 + 1];
-		DBManager::instance().EscapeString(companionEscaped, sizeof(companionEscaped), companion.c_str(), companion.length());
-
 	sys_log(1, "Messenger Remove %s %s", account.c_str(), companion.c_str());
 	
 	// Fix
-	DBManager::instance().Query("DELETE FROM messenger_list%s WHERE account='%s' AND companion = '%s'",
-			get_table_postfix(), account.c_str(), companionEscaped);
+	DBManager::instance().Query(sql::format("DELETE FROM messenger_list{} WHERE account={} AND companion = {}",
+			sql::raw(get_table_postfix()), account, companion));
 
 	__RemoveFromList(account, companion);
 
@@ -278,8 +276,8 @@ void MessengerManager::RemoveAllList(keyA account)
 	std::set<keyT>	company(m_Relation[account]);
 
 	/* Delete SQL data */
-	DBManager::instance().Query("DELETE FROM messenger_list%s WHERE account='%s' OR companion='%s'",
-			get_table_postfix(), account.c_str(), account.c_str());
+	DBManager::instance().Query(sql::format("DELETE FROM messenger_list{} WHERE account={} OR companion={}",
+			sql::raw(get_table_postfix()), account, account));
 
 	/* Delete my list */
 	for (std::set<keyT>::iterator iter = company.begin();

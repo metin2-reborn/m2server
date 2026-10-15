@@ -20,6 +20,7 @@
 #include "typedef.h"
 
 #include <common/length.h>
+#include <libsql/query.h>
 #include <libthecore/log.h>
 #include <libthecore/utils.h>
 
@@ -214,13 +215,13 @@ namespace quest
 	int highscore_show(lua_State* L)
 	{
 		CQuestManager & q = CQuestManager::instance();
-		const char * pszBoardName = lua_tostring(L, 1);
+		const char * pszBoardName = lua_isstring(L, 1) ? lua_tostring(L, 1) : "";
 		uint32_t mypid = q.GetCurrentCharacterPtr()->GetPlayerID();
 		bool bOrder = (int) lua_tonumber(L, 2) != 0 ? true : false;
 
-		DBManager::instance().ReturnQuery(QID_HIGHSCORE_SHOW, mypid, nullptr, 
-				"SELECT h.pid, p.name, h.value FROM highscore%s as h, player%s as p WHERE h.board = '%s' AND h.pid = p.id ORDER BY h.value %s LIMIT 10",
-				get_table_postfix(), get_table_postfix(), pszBoardName, bOrder ? "DESC" : "");
+		DBManager::instance().ReturnQuery(QID_HIGHSCORE_SHOW, mypid, nullptr, sql::format(
+				"SELECT h.pid, p.name, h.value FROM highscore{} as h, player{} as p WHERE h.board = {} AND h.pid = p.id ORDER BY h.value {} LIMIT 10",
+				sql::raw(get_table_postfix()), sql::raw(get_table_postfix()), pszBoardName, sql::raw(bOrder ? "DESC" : "")));
 		return 0;
 	}
 
@@ -235,8 +236,8 @@ namespace quest
 		qi->iValue = (int) lua_tonumber(L, 2);
 		qi->bOrder = (int) lua_tonumber(L, 3);
 
-		DBManager::instance().ReturnQuery(QID_HIGHSCORE_REGISTER, qi->dwPID, qi, 
-				"SELECT value FROM highscore%s WHERE board='%s' AND pid=%u", get_table_postfix(), qi->szBoard, qi->dwPID);
+		DBManager::instance().ReturnQuery(QID_HIGHSCORE_REGISTER, qi->dwPID, qi, sql::format(
+				"SELECT value FROM highscore{} WHERE board={} AND pid={}", sql::raw(get_table_postfix()), qi->szBoard, qi->dwPID));
 		return 1;
 	}
 

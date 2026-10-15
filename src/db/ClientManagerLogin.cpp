@@ -11,6 +11,7 @@
 #include <common/tables.h>
 #include <common/utils.h>
 #include <libsql/AsyncSQL.h>
+#include <libsql/query.h>
 #include <libthecore/log.h>
 #include <libthecore/utils.h>
 
@@ -20,6 +21,7 @@
 #include <cstdio>
 #include <cstring>
 #include <memory>
+#include <string>
 #include <utility>
 
 #include <strings.h>
@@ -462,12 +464,10 @@ void CClientManager::QUERY_LOGOUT(CPeer * peer, uint32_t dwHandle,const char * d
 
 void CClientManager::QUERY_CHANGE_NAME(CPeer * peer, uint32_t dwHandle, TPacketGDChangeName * p)
 {
-	char queryStr[QUERY_MAX_LEN];
+	std::string query = sql::format(
+			"SELECT COUNT(*) as count FROM player{} WHERE name={} AND id <> {}", sql::raw(GetTablePostfix()), p->name, p->pid);
 
-	snprintf(queryStr, sizeof(queryStr),
-			"SELECT COUNT(*) as count FROM player%s WHERE name='%s' AND id <> %u", GetTablePostfix(), p->name, p->pid);
-
-	std::unique_ptr<SQLMsg> pMsg(CDBManager::instance().DirectQuery(queryStr, SQL_PLAYER));
+	std::unique_ptr<SQLMsg> pMsg(CDBManager::instance().DirectQuery(query.c_str(), SQL_PLAYER));
 
 	if (pMsg->Get()->uiNumRows)
 	{
@@ -491,10 +491,10 @@ void CClientManager::QUERY_CHANGE_NAME(CPeer * peer, uint32_t dwHandle, TPacketG
 		return;
 	}
 
-	snprintf(queryStr, sizeof(queryStr),
-			"UPDATE player%s SET name='%s',change_name=0 WHERE id=%u", GetTablePostfix(), p->name, p->pid);
+	query = sql::format(
+			"UPDATE player{} SET name={},change_name=0 WHERE id={}", sql::raw(GetTablePostfix()), p->name, p->pid);
 
-	std::unique_ptr<SQLMsg> pMsg0(CDBManager::instance().DirectQuery(queryStr, SQL_PLAYER));
+	std::unique_ptr<SQLMsg> pMsg0(CDBManager::instance().DirectQuery(query.c_str(), SQL_PLAYER));
 
 	TPacketDGChangeName pdg;
 	peer->EncodeHeader(HEADER_DG_CHANGE_NAME, dwHandle, sizeof(TPacketDGChangeName));

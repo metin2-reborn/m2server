@@ -6,6 +6,7 @@
 #include <common/tables.h>
 #include <common/utils.h>
 #include <libsql/AsyncSQL.h>
+#include <libsql/query.h>
 #include <libthecore/log.h>
 
 #include <mysql.h>
@@ -15,6 +16,8 @@
 #include <cstdlib>
 #include <cstring>
 #include <memory>
+#include <string>
+#include <string_view>
 #include <utility>
 
 
@@ -217,15 +220,10 @@ bool CMonarch::LoadMonarch()
 bool CMonarch::SetMonarch(const char * name)
 {
 	MonarchInfo * p = &m_MonarchInfo;
-    char szQuery[256];
-
-	char szEscapedName[CHARACTER_NAME_MAX_LEN * 2 + 1];
-	CDBManager::instance().EscapeString(szEscapedName, name, strnlen(name, CHARACTER_NAME_MAX_LEN));
-
-	snprintf(szQuery, sizeof(szQuery),
-			"SELECT b.empire, a.id, a.name FROM player%s AS a, player_index%s AS b WHERE a.account_id=b.id AND a.name='%s'",
-			GetTablePostfix(), GetTablePostfix(), szEscapedName);
-    std::unique_ptr<SQLMsg> pMsg(CDBManager::instance().DirectQuery(szQuery, SQL_PLAYER));
+	std::string query = sql::format(
+			"SELECT b.empire, a.id, a.name FROM player{} AS a, player_index{} AS b WHERE a.account_id=b.id AND a.name={}",
+			sql::raw(GetTablePostfix()), sql::raw(GetTablePostfix()), std::string_view(name, strnlen(name, CHARACTER_NAME_MAX_LEN)));
+    std::unique_ptr<SQLMsg> pMsg(CDBManager::instance().DirectQuery(query.c_str(), SQL_PLAYER));
 
     if (pMsg->Get()->uiNumRows == 0)
     {
@@ -247,10 +245,10 @@ bool CMonarch::SetMonarch(const char * name)
     }
 
 	//Insert into db
-	snprintf(szQuery, sizeof(szQuery),
-					"REPLACE INTO monarch (empire, pid, windate, money) VALUES(%d, %u, NOW(), %ld)", Empire, p->pid[Empire], p->money[Empire]);
+	query = sql::format(
+					"REPLACE INTO monarch (empire, pid, windate, money) VALUES({}, {}, NOW(), {})", Empire, p->pid[Empire], p->money[Empire]);
 
- 	CDBManager::instance().AsyncQuery(szQuery, SQL_PLAYER);	
+ 	CDBManager::instance().AsyncQuery(query.c_str(), SQL_PLAYER);	
     return true;
 }
 

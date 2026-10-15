@@ -23,6 +23,7 @@
 #include <common/length.h>
 #include <common/tables.h>
 #include <common/utils.h>
+#include <libsql/query.h>
 #include <libthecore/log.h>
 
 #include <mysql.h>
@@ -35,6 +36,7 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <utility>
 
 #include <sys/types.h>
@@ -91,22 +93,22 @@ CGuild::CGuild(TGuildCreateParameter & cp)
 		m_data.grade_array[i].auth_flag = 0;
 	}
 
-	std::unique_ptr<SQLMsg> pmsg (DBManager::instance().DirectQuery(
-				"INSERT INTO guild%s(name, master, sp, level, exp, skill_point, skill) "
-				"VALUES('%s', %u, 1000, 1, 0, 0, '\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0')", 
-				get_table_postfix(), m_data.name, m_data.master_pid));
+	std::unique_ptr<SQLMsg> pmsg (DBManager::instance().DirectQuery(sql::format(
+				"INSERT INTO guild{}(name, master, sp, level, exp, skill_point, skill) "
+				"VALUES({}, {}, 1000, 1, 0, 0, '\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0')", 
+				sql::raw(get_table_postfix()), m_data.name, m_data.master_pid)));
 
 	// TODO if error occur?
 	m_data.guild_id = pmsg->Get()->uiInsertID;
 
 	for (int i = 0; i < GUILD_GRADE_COUNT; ++i)
 	{
-		DBManager::instance().Query("INSERT INTO guild_grade%s VALUES(%u, %d, '%s', %d)", 
-				get_table_postfix(),
+		DBManager::instance().Query(sql::format("INSERT INTO guild_grade{} VALUES({}, {}, {}, {})", 
+				sql::raw(get_table_postfix()),
 				m_data.guild_id, 
 				i + 1, 
 				m_data.grade_array[i].grade_name, 
-				m_data.grade_array[i].auth_flag);
+				m_data.grade_array[i].auth_flag));
 	}
 
 	ComputeGuildPoints();
@@ -643,11 +645,9 @@ void CGuild::SendDBSkillUpdate(int amount)
 
 void CGuild::SaveSkill()
 {
-	char text[GUILD_SKILL_COUNT * 2 + 1];
-
-	DBManager::instance().EscapeString(text, sizeof(text), (const char *) m_data.abySkill, sizeof(m_data.abySkill));
-	DBManager::instance().Query("UPDATE guild%s SET sp = %d, skill_point=%d, skill='%s' WHERE id = %u",
-			get_table_postfix(), m_data.power, m_data.skill_point, text, m_data.guild_id);
+	const std::string_view skill(reinterpret_cast<const char *>(m_data.abySkill), sizeof(m_data.abySkill));
+	DBManager::instance().Query(sql::format("UPDATE guild{} SET sp = {}, skill_point={}, skill={} WHERE id = {}",
+			sql::raw(get_table_postfix()), m_data.power, m_data.skill_point, skill, m_data.guild_id));
 }
 
 TGuildMember* CGuild::GetMember(uint32_t pid)
@@ -792,10 +792,7 @@ void CGuild::ChangeGradeName(uint8_t grade, const char* grade_name)
 	if (!*grade_name)
 		return;
 
-	char text[GUILD_NAME_MAX_LEN * 2 + 1];
-
-	DBManager::instance().EscapeString(text, sizeof(text), grade_name, strlen(grade_name));
-	DBManager::instance().FuncAfterQuery(FSendChangeGrade(GetID(), grade), "UPDATE guild_grade%s SET name = '%s' where guild_id = %u and grade = %d", get_table_postfix(), text, m_data.guild_id, grade);
+	DBManager::instance().FuncAfterQuery(FSendChangeGrade(GetID(), grade), sql::format("UPDATE guild_grade{} SET name = {} where guild_id = {} and grade = {}", sql::raw(get_table_postfix()), grade_name, m_data.guild_id, grade));
 
 	grade--;
 	strlcpy(m_data.grade_array[grade].grade_name, grade_name, sizeof(m_data.grade_array[grade].grade_name));
@@ -1005,12 +1002,9 @@ void CGuild::AddComment(CHARACTER * ch, const std::string& str)
 		return;
 	}
 
-	char text[GUILD_COMMENT_MAX_LEN * 2 + 1];
-	DBManager::instance().EscapeString(text, sizeof(text), str.c_str(), str.length());
-
 	DBManager::instance().FuncAfterQuery([this, pid = ch->GetPlayerID()] { RefreshCommentForce(pid); },
-			"INSERT INTO guild_comment%s(guild_id, name, notice, content, time) VALUES(%u, '%s', %d, '%s', NOW())", 
-			get_table_postfix(), m_data.guild_id, ch->GetName(), (str[0] == '!') ? 1 : 0, text);
+			sql::format("INSERT INTO guild_comment{}(guild_id, name, notice, content, time) VALUES({}, {}, {}, {}, NOW())", 
+			sql::raw(get_table_postfix()), m_data.guild_id, ch->GetName(), (str[0] == '!') ? 1 : 0, str));
 }
 
 void CGuild::DeleteComment(CHARACTER * ch, uint32_t comment_id)
@@ -1018,9 +1012,9 @@ void CGuild::DeleteComment(CHARACTER * ch, uint32_t comment_id)
 	std::unique_ptr<SQLMsg> pmsg;
 
 	if (GetMember(ch->GetPlayerID())->grade == GUILD_LEADER_GRADE)
-		pmsg.reset(DBManager::instance().DirectQuery("DELETE FROM guild_comment%s WHERE id = %u AND guild_id = %u",get_table_postfix(), comment_id, m_data.guild_id));
+		pmsg.reset(DBManager::instance().DirectQuery(sql::format("DELETE FROM guild_comment{} WHERE id = {} AND guild_id = {}",sql::raw(get_table_postfix()), comment_id, m_data.guild_id)));
 	else
-		pmsg.reset(DBManager::instance().DirectQuery("DELETE FROM guild_comment%s WHERE id = %u AND guild_id = %u AND name = '%s'",get_table_postfix(), comment_id, m_data.guild_id, ch->GetName()));
+		pmsg.reset(DBManager::instance().DirectQuery(sql::format("DELETE FROM guild_comment{} WHERE id = {} AND guild_id = {} AND name = {}",sql::raw(get_table_postfix()), comment_id, m_data.guild_id, ch->GetName())));
 
 	if (pmsg->Get()->uiAffectedRows == 0 || pmsg->Get()->uiAffectedRows == (uint32_t)-1)
 		ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("<길드> 삭제할 수 없는 글입니다."));

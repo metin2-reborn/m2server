@@ -6,6 +6,7 @@
 #include <libsql/AsyncSQL.h>
 
 #include <cstdint>
+#include <string>
 
 enum GOLDBAR_HOW
 {
@@ -53,7 +54,8 @@ class LogManager : public singleton<LogManager>
 		void		DragonSlayLog(uint32_t dwGuildID, uint32_t dwDragonVnum, uint32_t dwStartTime, uint32_t dwEndTime);
 
 	private:
-		void		Query(const char * c_pszFormat, ...);
+		void		Query(const std::string & query);
+		void		Query(const char * c_pszFormat, ...) __attribute__((format(printf, 2, 3)));
 
 		CAsyncSQL	m_sql;
 		bool		m_bIsConnect;

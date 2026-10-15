@@ -9,6 +9,7 @@
 #include <common/length.h>
 #include <common/utils.h>
 #include <libnet/io.h>
+#include <libsql/query.h>
 #include <libthecore/log.h>
 #include <libthecore/utils.h>
 
@@ -18,6 +19,7 @@
 #include <cstdio>
 #include <cstring>
 #include <span>
+#include <string>
 
 
 bool FN_IS_VALID_LOGIN_STRING(const char *str)
@@ -115,19 +117,13 @@ void CInputAuth::Login(DESC * d, const char * c_pData)
 	TPacketCGLogin3 * p = new TPacketCGLogin3;
 	std::memcpy(p, pinfo, sizeof(TPacketCGLogin3));
 
-	char szPasswd[PASSWD_MAX_LEN * 2 + 1];
-	DBManager::instance().EscapeString(szPasswd, sizeof(szPasswd), passwd, strlen(passwd));
-
-	char szLogin[LOGIN_MAX_LEN * 2 + 1];
-	DBManager::instance().EscapeString(szLogin, sizeof(szLogin), login, strlen(login));
-
 	// CHANNEL_SERVICE_LOGIN
-	if (Login_IsInChannelService(szLogin))
+	if (Login_IsInChannelService(login))
 	{
-		sys_log(0, "ChannelServiceLogin [%s]", szLogin);
+		sys_log(0, "ChannelServiceLogin [%s]", login);
 
-		DBManager::instance().ReturnQuery(QID_AUTH_LOGIN, dwKey, p,
-				"SELECT '%s',password,social_id,id,status,availDt - NOW() > 0,"
+		DBManager::instance().ReturnQuery(QID_AUTH_LOGIN, dwKey, p, sql::format(
+				"SELECT {},password,social_id,id,status,availDt - NOW() > 0,"
 				"UNIX_TIMESTAMP(silver_expire),"
 				"UNIX_TIMESTAMP(gold_expire),"
 				"UNIX_TIMESTAMP(safebox_expire),"
@@ -136,15 +132,14 @@ void CInputAuth::Login(DESC * d, const char * c_pData)
 				"UNIX_TIMESTAMP(marriage_fast_expire),"
 				"UNIX_TIMESTAMP(money_drop_rate_expire),"
 				"UNIX_TIMESTAMP(create_time)"
-				" FROM account WHERE login='%s'",
-
-				szPasswd, szLogin);
+				" FROM account WHERE login={}",
+				passwd, login));
 	}
 	// END_OF_CHANNEL_SERVICE_LOGIN
 	else
 	{
-		DBManager::instance().ReturnQuery(QID_AUTH_LOGIN, dwKey, p, 
-				"SELECT PASSWORD('%s'),password,social_id,id,status,availDt - NOW() > 0,"
+		DBManager::instance().ReturnQuery(QID_AUTH_LOGIN, dwKey, p, sql::format(
+				"SELECT PASSWORD({}),password,social_id,id,status,availDt - NOW() > 0,"
 				"UNIX_TIMESTAMP(silver_expire),"
 				"UNIX_TIMESTAMP(gold_expire),"
 				"UNIX_TIMESTAMP(safebox_expire),"
@@ -153,8 +148,8 @@ void CInputAuth::Login(DESC * d, const char * c_pData)
 				"UNIX_TIMESTAMP(marriage_fast_expire),"
 				"UNIX_TIMESTAMP(money_drop_rate_expire),"
 				"UNIX_TIMESTAMP(create_time)"
-				" FROM account WHERE login='%s'",
-				szPasswd, szLogin);
+				" FROM account WHERE login={}",
+				passwd, login));
 	}
 }
 
@@ -236,19 +231,13 @@ void CInputAuth::LoginOpenID(DESC * d, const char * c_pData)
 	TPacketCGLogin3 * p = new TPacketCGLogin3;
 	std::memcpy(p, pinfo, sizeof(TPacketCGLogin3));
 
-	char szPasswd[PASSWD_MAX_LEN * 2 + 1];
-	DBManager::instance().EscapeString(szPasswd, sizeof(szPasswd), passwd, strlen(passwd));
-
-	char szLogin[LOGIN_MAX_LEN * 2 + 1];
-	DBManager::instance().EscapeString(szLogin, sizeof(szLogin), login, strlen(login));
-
 	// CHANNEL_SERVICE_LOGIN
-	if (Login_IsInChannelService(szLogin))
+	if (Login_IsInChannelService(login))
 	{
-		sys_log(0, "ChannelServiceLogin [%s]", szLogin);
+		sys_log(0, "ChannelServiceLogin [%s]", login);
 
-		DBManager::instance().ReturnQuery(QID_AUTH_LOGIN_OPENID, dwKey, p,
-				"SELECT '%s',password,social_id,id,status,availDt - NOW() > 0,"
+		DBManager::instance().ReturnQuery(QID_AUTH_LOGIN_OPENID, dwKey, p, sql::format(
+				"SELECT {},password,social_id,id,status,availDt - NOW() > 0,"
 				"UNIX_TIMESTAMP(silver_expire),"
 				"UNIX_TIMESTAMP(gold_expire),"
 				"UNIX_TIMESTAMP(safebox_expire),"
@@ -257,15 +246,14 @@ void CInputAuth::LoginOpenID(DESC * d, const char * c_pData)
 				"UNIX_TIMESTAMP(marriage_fast_expire),"
 				"UNIX_TIMESTAMP(money_drop_rate_expire),"
 				"UNIX_TIMESTAMP(create_time)"
-				" FROM account WHERE login='%s'",
-
-				szPasswd, szLogin);
+				" FROM account WHERE login={}",
+				passwd, login));
 	}
 	// END_OF_CHANNEL_SERVICE_LOGIN
 	else
 	{
-		DBManager::instance().ReturnQuery(QID_AUTH_LOGIN_OPENID, dwKey, p, 
-				"SELECT PASSWORD('%s'),password,social_id,id,status,availDt - NOW() > 0,"
+		DBManager::instance().ReturnQuery(QID_AUTH_LOGIN_OPENID, dwKey, p, sql::format(
+				"SELECT PASSWORD({}),password,social_id,id,status,availDt - NOW() > 0,"
 				"UNIX_TIMESTAMP(silver_expire),"
 				"UNIX_TIMESTAMP(gold_expire),"
 				"UNIX_TIMESTAMP(safebox_expire),"
@@ -274,8 +262,8 @@ void CInputAuth::LoginOpenID(DESC * d, const char * c_pData)
 				"UNIX_TIMESTAMP(marriage_fast_expire),"
 				"UNIX_TIMESTAMP(money_drop_rate_expire),"
 				"UNIX_TIMESTAMP(create_time)"
-				" FROM account WHERE login='%s'",
-				szPasswd, szLogin);
+				" FROM account WHERE login={}",
+				passwd, login));
 	}
 }
 

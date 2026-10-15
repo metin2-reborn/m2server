@@ -5,6 +5,7 @@
 
 #include <common/tables.h>
 #include <libsql/AsyncSQL.h>
+#include <libsql/query.h>
 
 #include <mysql.h>
 
@@ -12,14 +13,13 @@
 #include <cstdio>
 #include <cstring>
 #include <memory>
+#include <string>
 
 void CClientManager::UpdateHorseName(TPacketUpdateHorseName* data, CPeer* peer)
 {
-	char szQuery[512];
+	const std::string query = sql::format("REPLACE INTO horse_name VALUES({}, {})", data->dwPlayerID, data->szHorseName);
 
-	snprintf(szQuery, sizeof(szQuery), "REPLACE INTO horse_name VALUES(%u, '%s')", data->dwPlayerID, data->szHorseName);
-
-	std::unique_ptr<SQLMsg> pmsg_insert(CDBManager::instance().DirectQuery(szQuery));
+	std::unique_ptr<SQLMsg> pmsg_insert(CDBManager::instance().DirectQuery(query.c_str()));
 
 	ForwardPacket(HEADER_DG_UPDATE_HORSE_NAME, data, sizeof(TPacketUpdateHorseName), 0, peer);
 }

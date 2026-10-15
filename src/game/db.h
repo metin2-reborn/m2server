@@ -79,10 +79,15 @@ class DBManager : public singleton<DBManager>
 		bool			IsConnected();
 
 		bool			Connect(const char * host, const int port, const char * user, const char * pwd, const char * db);
-		void			Query(const char * c_pszFormat, ...);
+		// The std::string overloads take a finished statement (see sql::format); the others format
+		// it printf-style first.
+		void			Query(const std::string & query);
+		void			Query(const char * c_pszFormat, ...) __attribute__((format(printf, 2, 3)));
 
-		SQLMsg *		DirectQuery(const char * c_pszFormat, ...);
-		void			ReturnQuery(int iType, uint32_t dwIdent, void* pvData, const char * c_pszFormat, ...);
+		SQLMsg *		DirectQuery(const std::string & query);
+		SQLMsg *		DirectQuery(const char * c_pszFormat, ...) __attribute__((format(printf, 2, 3)));
+		void			ReturnQuery(int iType, uint32_t dwIdent, void* pvData, const std::string & query);
+		void			ReturnQuery(int iType, uint32_t dwIdent, void* pvData, const char * c_pszFormat, ...) __attribute__((format(printf, 5, 6)));
 
 		void			Process();
 		void			AnalyzeReturnQuery(SQLMsg * pmsg);
@@ -105,8 +110,10 @@ class DBManager : public singleton<DBManager>
 		const std::vector<std::string> & GetGreetMessage();
 
 		// Runs the query and calls f with its result (freed afterwards) on the main thread.
+		void			FuncQuery(std::function<void(SQLMsg *)> f, const std::string & query);
 		void			FuncQuery(std::function<void(SQLMsg *)> f, const char * c_pszFormat, ...) __attribute__((format(printf, 3, 4)));
 		// Runs the query and calls f once it has completed.
+		void			FuncAfterQuery(std::function<void()> f, const std::string & query);
 		void			FuncAfterQuery(std::function<void()> f, const char * c_pszFormat, ...) __attribute__((format(printf, 3, 4)));
 
 		size_t EscapeString(char* dst, size_t dstSize, const char *src, size_t srcSize);
@@ -141,8 +148,10 @@ class AccountDB : public singleton<AccountDB>
 		bool Connect(const char * host, const int port, const char * user, const char * pwd, const char * db);
 		bool ConnectAsync(const char * host, const int port, const char * user, const char * pwd, const char * db, const char * locale);
 
-		SQLMsg* DirectQuery(const char * query);		
-		void ReturnQuery(int iType, uint32_t dwIdent, void * pvData, const char * c_pszFormat, ...);
+		SQLMsg* DirectQuery(const char * query);
+		SQLMsg* DirectQuery(const std::string & query) { return DirectQuery(query.c_str()); }
+		void ReturnQuery(int iType, uint32_t dwIdent, void * pvData, const std::string & query);
+		void ReturnQuery(int iType, uint32_t dwIdent, void * pvData, const char * c_pszFormat, ...) __attribute__((format(printf, 5, 6)));
 
 		void SetLocale(const std::string & stLocale);
 

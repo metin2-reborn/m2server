@@ -26,6 +26,7 @@
 #include <libnet/io.h>
 #include <libnet/listener.h>
 #include <libsql/AsyncSQL.h>
+#include <libsql/query.h>
 #include <libthecore/core_signal.h>
 #include <libthecore/log.h>
 #include <libthecore/main.h>
@@ -443,24 +444,24 @@ void CClientManager::QUERY_QUEST_SAVE(CPeer * pkPeer, TQuestTable * pTable, uint
 
 	int iSize = dwLen / sizeof(TQuestTable);
 
-	char szQuery[1024];
+	std::string query;
 
 	for (int i = 0; i < iSize; ++i, ++pTable)
 	{
 		if (pTable->lValue == 0)
 		{
-			snprintf(szQuery, sizeof(szQuery),
-					"DELETE FROM quest%s WHERE dwPID=%d AND szName='%s' AND szState='%s'",
-					GetTablePostfix(), pTable->dwPID, pTable->szName, pTable->szState);
+			query = sql::format(
+					"DELETE FROM quest{} WHERE dwPID={} AND szName={} AND szState={}",
+					sql::raw(GetTablePostfix()), pTable->dwPID, pTable->szName, pTable->szState);
 		}
 		else
 		{
-			snprintf(szQuery, sizeof(szQuery),
-					"REPLACE INTO quest%s (dwPID, szName, szState, lValue) VALUES(%d, '%s', '%s', %d)",
-					GetTablePostfix(), pTable->dwPID, pTable->szName, pTable->szState, pTable->lValue);
+			query = sql::format(
+					"REPLACE INTO quest{} (dwPID, szName, szState, lValue) VALUES({}, {}, {}, {})",
+					sql::raw(GetTablePostfix()), pTable->dwPID, pTable->szName, pTable->szState, pTable->lValue);
 		}
 
-		CDBManager::instance().ReturnQuery(szQuery, QID_QUEST_SAVE, pkPeer->GetHandle(), nullptr);
+		CDBManager::instance().ReturnQuery(query.c_str(), QID_QUEST_SAVE, pkPeer->GetHandle(), nullptr);
 	}
 }
 
@@ -548,8 +549,7 @@ void CClientManager::RESULT_SAFEBOX_LOAD(CPeer * pkPeer, SQLMsg * msg)
 
 		pi->pSafebox = std::move(pSafebox);
 
-		char szQuery[512];
-		snprintf(szQuery, sizeof(szQuery), 
+		const std::string query = sql::format(
 				"SELECT id, window+0, pos, count, vnum, socket0, socket1, socket2, "
 				"attrtype0, attrvalue0, "
 				"attrtype1, attrvalue1, "
@@ -558,12 +558,12 @@ void CClientManager::RESULT_SAFEBOX_LOAD(CPeer * pkPeer, SQLMsg * msg)
 				"attrtype4, attrvalue4, "
 				"attrtype5, attrvalue5, "
 				"attrtype6, attrvalue6 "
-				"FROM item%s WHERE owner_id=%d AND window='%s'",
-				GetTablePostfix(), pi->account_id, pi->ip[0] == 0 ? "SAFEBOX" : "MALL");
+				"FROM item{} WHERE owner_id={} AND window={}",
+				sql::raw(GetTablePostfix()), pi->account_id, pi->ip[0] == 0 ? "SAFEBOX" : "MALL");
 
 		pi->account_index = 1;
 
-		CDBManager::instance().ReturnQuery(szQuery, QID_SAFEBOX_LOAD, pkPeer->GetHandle(), pi);
+		CDBManager::instance().ReturnQuery(query.c_str(), QID_SAFEBOX_LOAD, pkPeer->GetHandle(), pi);
 	}
 	else
 	{
@@ -617,7 +617,7 @@ void CClientManager::RESULT_SAFEBOX_LOAD(CPeer * pkPeer, SQLMsg * msg)
 
 				__typeof(pSet->begin()) it = pSet->begin();
 
-				char szQuery[512];
+				std::string query;
 
 				while (it != pSet->end())
 				{
@@ -745,10 +745,10 @@ void CClientManager::RESULT_SAFEBOX_LOAD(CPeer * pkPeer, SQLMsg * msg)
 							}
 						}
 
-						snprintf(szQuery, sizeof(szQuery), 
-								"INSERT INTO item%s (id, owner_id, window, pos, vnum, count, socket0, socket1, socket2) "
-								"VALUES(%u, %u, '%s', %d, %u, %u, %u, %u, %u)",
-								GetTablePostfix(),
+						query = sql::format(
+								"INSERT INTO item{} (id, owner_id, window, pos, vnum, count, socket0, socket1, socket2) "
+								"VALUES({}, {}, {}, {}, {}, {}, {}, {}, {})",
+								sql::raw(GetTablePostfix()),
 								GainItemID(),
 								pi->account_id,
 								pi->ip[0] == 0 ? "SAFEBOX" : "MALL",
@@ -756,9 +756,9 @@ void CClientManager::RESULT_SAFEBOX_LOAD(CPeer * pkPeer, SQLMsg * msg)
 								pItemAward->dwVnum, pItemAward->dwCount, pItemAward->dwSocket0, pItemAward->dwSocket1, dwSocket2);
 					}
 
-					std::unique_ptr<SQLMsg> pmsg(CDBManager::instance().DirectQuery(szQuery));
+					std::unique_ptr<SQLMsg> pmsg(CDBManager::instance().DirectQuery(query.c_str()));
 					SQLResult * pRes = pmsg->Get();
-					sys_log(0, "SAFEBOX Query : [%s]", szQuery);
+					sys_log(0, "SAFEBOX Query : [%s]", query.c_str());
 
 					if (pRes->uiAffectedRows == 0 || pRes->uiInsertID == 0 || pRes->uiAffectedRows == (uint32_t)-1)
 						break;
@@ -851,13 +851,9 @@ void CClientManager::RESULT_SAFEBOX_CHANGE_PASSWORD(CPeer * pkPeer, SQLMsg * msg
 
 		if ((row[0] && *row[0] && !strcasecmp(row[0], p->login)) || ((!row[0] || !*row[0]) && !strcmp("000000", p->login)))
 		{
-			char szQuery[QUERY_MAX_LEN];
-			char escape_pwd[64];
-			CDBManager::instance().EscapeString(escape_pwd, p->safebox_password, strlen(p->safebox_password));
+			const std::string query = sql::format("UPDATE safebox{} SET password={} WHERE account_id={}", sql::raw(GetTablePostfix()), p->safebox_password, p->account_id);
 
-			snprintf(szQuery, sizeof(szQuery), "UPDATE safebox%s SET password='%s' WHERE account_id=%u", GetTablePostfix(), escape_pwd, p->account_id);
-
-			CDBManager::instance().ReturnQuery(szQuery, QID_SAFEBOX_CHANGE_PASSWORD_SECOND, pkPeer->GetHandle(), p);
+			CDBManager::instance().ReturnQuery(query.c_str(), QID_SAFEBOX_CHANGE_PASSWORD_SECOND, pkPeer->GetHandle(), p);
 			return;
 		}
 	}
@@ -1573,17 +1569,11 @@ void CClientManager::QUERY_FLUSH_CACHE(CPeer * pkPeer, const char * c_pData)
 
 void CClientManager::QUERY_SMS(CPeer * pkPeer, TPacketGDSMS * pack)
 {
-	char szQuery[QUERY_MAX_LEN];
+	const std::string query = sql::format(
+			"INSERT INTO sms_pool (server, sender, receiver, mobile, msg) VALUES({}, {}, {}, {}, {})",
+			(m_iPlayerIDStart + 2) / 3, pack->szFrom, pack->szTo, pack->szMobile, pack->szMsg);
 
-	char szMsg[256+1];
-	uint32_t len = CDBManager::instance().EscapeString(szMsg, pack->szMsg, strlen(pack->szMsg));
-	szMsg[len] = '\0';
-
-	snprintf(szQuery, sizeof(szQuery),
-			"INSERT INTO sms_pool (server, sender, receiver, mobile, msg) VALUES(%d, '%s', '%s', '%s', '%s')",
-			(m_iPlayerIDStart + 2) / 3, pack->szFrom, pack->szTo, pack->szMobile, szMsg);
-
-	CDBManager::instance().AsyncQuery(szQuery);
+	CDBManager::instance().AsyncQuery(query.c_str());
 }
 
 void CClientManager::QUERY_RELOAD_PROTO()
@@ -1861,10 +1851,8 @@ void CClientManager::UpdateLand(uint32_t * pdw)
 // BLOCK_CHAT
 void CClientManager::BlockChat(TPacketBlockChat* p)
 {
-	char szQuery[256];
-
-	snprintf(szQuery, sizeof(szQuery), "SELECT id FROM player%s WHERE name = '%s'", GetTablePostfix(), p->szName);
-	std::unique_ptr<SQLMsg> pmsg(CDBManager::instance().DirectQuery(szQuery));
+	const std::string query = sql::format("SELECT id FROM player{} WHERE name = {}", sql::raw(GetTablePostfix()), p->szName);
+	std::unique_ptr<SQLMsg> pmsg(CDBManager::instance().DirectQuery(query.c_str()));
 	SQLResult * pRes = pmsg->Get();
 
 	if (pRes->uiNumRows)
@@ -2894,16 +2882,15 @@ bool CClientManager::InitializeLocalization()
 bool CClientManager::__GetAdminInfo(const char *szIP, std::vector<tAdminInfo> & rAdminVec)
 {
 	//If szIP == NULL, has GM privileges on all servers.
-	char szQuery[512];
-	snprintf(szQuery, sizeof(szQuery),
-			"SELECT mID,mAccount,mName,mContactIP,mServerIP,mAuthority FROM gmlist WHERE mServerIP='ALL' or mServerIP='%s'",
+	const std::string query = sql::format(
+			"SELECT mID,mAccount,mName,mContactIP,mServerIP,mAuthority FROM gmlist WHERE mServerIP='ALL' or mServerIP={}",
 		   	szIP ? szIP : "ALL");
 
-	std::unique_ptr<SQLMsg> pMsg(CDBManager::instance().DirectQuery(szQuery, SQL_COMMON));
+	std::unique_ptr<SQLMsg> pMsg(CDBManager::instance().DirectQuery(query.c_str(), SQL_COMMON));
 
 	if (pMsg->Get()->uiNumRows == 0)
 	{
-		sys_err("__GetAdminInfo() ==> DirectQuery failed(%s)", szQuery);
+		sys_err("__GetAdminInfo() ==> DirectQuery failed(%s)", query.c_str());
 		return false;
 	}
 

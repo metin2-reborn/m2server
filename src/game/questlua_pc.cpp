@@ -33,6 +33,7 @@
 #include <common/tables.h>
 #include <common/utils.h>
 #include <libsql/AsyncSQL.h>
+#include <libsql/query.h>
 #include <libthecore/log.h>
 #include <libthecore/utils.h>
 
@@ -1535,9 +1536,9 @@ namespace quest
 		pdw[2] = q.GetEventFlag("lotto_round");
 
 		// Lottery tickets set sockets
-		DBManager::instance().ReturnQuery(QID_LOTTO, ch->GetPlayerID(), pdw,
-				"INSERT INTO lotto_list VALUES(0, 'server%s', %u, NOW())",
-				get_table_postfix(), ch->GetPlayerID());
+		DBManager::instance().ReturnQuery(QID_LOTTO, ch->GetPlayerID(), pdw, sql::format(
+				"INSERT INTO lotto_list VALUES(0, 'server{}', {}, NOW())",
+				sql::raw(get_table_postfix()), ch->GetPlayerID()));
 
 		return 0;
 	}
@@ -2000,9 +2001,7 @@ teleport_area:
 			return 1;
 		}
 
-		char szQuery[1024];
-		snprintf(szQuery, sizeof(szQuery), "SELECT COUNT(*) FROM player%s WHERE name='%s'", get_table_postfix(), szName);
-		std::unique_ptr<SQLMsg> pmsg(DBManager::instance().DirectQuery(szQuery));
+		std::unique_ptr<SQLMsg> pmsg(DBManager::instance().DirectQuery(sql::format("SELECT COUNT(*) FROM player{} WHERE name={}", sql::raw(get_table_postfix()), szName)));
 
 		if ( pmsg->Get()->uiNumRows > 0 )
 		{
@@ -2028,8 +2027,7 @@ teleport_area:
 		/* change_name_log */
 		LogManager::instance().ChangeNameLog(pid, ch->GetName(), szName, ch->GetDesc()->GetHostName());
 
-		snprintf(szQuery, sizeof(szQuery), "UPDATE player%s SET name='%s' WHERE id=%u", get_table_postfix(), szName, pid);
-		std::unique_ptr<SQLMsg> msg(DBManager::instance().DirectQuery(szQuery));
+		std::unique_ptr<SQLMsg> msg(DBManager::instance().DirectQuery(sql::format("UPDATE player{} SET name={} WHERE id={}", sql::raw(get_table_postfix()), szName, pid)));
 
 		ch->SetNewName(szName);
 		lua_pushnumber(L, 4);
@@ -2607,13 +2605,13 @@ teleport_area:
 
 		sys_log(0, "QUEST [award] item %d to login %s", dwVnum, ch->GetDesc()->GetAccountTable().login);
 
-		DBManager::instance().Query("INSERT INTO item_award (login, vnum, count, given_time, why, mall)select '%s', %d, %d, now(), '%s', 1 from DUAL where not exists (select login, why from item_award where login = '%s' and why  = '%s') ;", 
+		DBManager::instance().Query(sql::format("INSERT INTO item_award (login, vnum, count, given_time, why, mall)select {}, {}, {}, now(), {}, 1 from DUAL where not exists (select login, why from item_award where login = {} and why  = {}) ;", 
 			ch->GetDesc()->GetAccountTable().login,
 			dwVnum, 
 			icount, 
 			lua_tostring(L,3),
 			ch->GetDesc()->GetAccountTable().login,
-			lua_tostring(L,3));
+			lua_tostring(L,3)));
 
 		lua_pushnumber (L, 0);
 		return 1;
@@ -2635,16 +2633,21 @@ teleport_area:
 
 		sys_log(0, "QUEST [award] item %d to login %s", dwVnum, ch->GetDesc()->GetAccountTable().login);
 
-		DBManager::instance().Query("INSERT INTO item_award (login, vnum, count, given_time, why, mall, socket0, socket1, socket2)select '%s', %d, %d, now(), '%s', 1, %s, %s, %s from DUAL where not exists (select login, why from item_award where login = '%s' and why  = '%s') ;", 
+		// Socket values may come as numbers or numeric strings; anything else reads as 0.
+		int64_t sockets[3] = {};
+		for (int i = 0; i < 3; ++i)
+			str_to_number(sockets[i], lua_tostring(L, 4 + i));
+
+		DBManager::instance().Query(sql::format("INSERT INTO item_award (login, vnum, count, given_time, why, mall, socket0, socket1, socket2)select {}, {}, {}, now(), {}, 1, {}, {}, {} from DUAL where not exists (select login, why from item_award where login = {} and why  = {}) ;", 
 			ch->GetDesc()->GetAccountTable().login,
 			dwVnum, 
 			icount, 
 			lua_tostring(L,3),
-			lua_tostring(L,4),
-			lua_tostring(L,5),
-			lua_tostring(L,6),
+			sockets[0],
+			sockets[1],
+			sockets[2],
 			ch->GetDesc()->GetAccountTable().login,
-			lua_tostring(L,3));
+			lua_tostring(L,3)));
 
 		lua_pushnumber (L, 0);
 		return 1;

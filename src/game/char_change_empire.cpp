@@ -8,13 +8,14 @@
 
 #include <common/utils.h>
 #include <libsql/AsyncSQL.h>
+#include <libsql/query.h>
 
 #include <mysql.h>
 
 #include <cstdint>
-#include <cstdio>
 #include <cstring>
 #include <memory>
+#include <string>
 
 /*
    Return Value
@@ -30,18 +31,17 @@ int CHARACTER::ChangeEmpire(uint8_t empire)
 	if (GetEmpire() == empire)
 		return 1;
 
-	char szQuery[1024+1];
 	uint32_t dwAID;
 	uint32_t dwPID[4];
 	memset(dwPID, 0, sizeof(dwPID));
 
 	{
 		// 1. get all pids of my account
-		snprintf(szQuery, sizeof(szQuery), 
-				"SELECT id, pid1, pid2, pid3, pid4 FROM player_index%s WHERE (pid1=%u OR pid2=%u OR pid3=%u OR pid4=%u) AND empire=%u", 
-				get_table_postfix(), GetPlayerID(), GetPlayerID(), GetPlayerID(), GetPlayerID(), GetEmpire());
+		const std::string query = sql::format(
+				"SELECT id, pid1, pid2, pid3, pid4 FROM player_index{} WHERE (pid1={} OR pid2={} OR pid3={} OR pid4={}) AND empire={}", 
+				sql::raw(get_table_postfix()), GetPlayerID(), GetPlayerID(), GetPlayerID(), GetPlayerID(), GetEmpire());
 
-		std::unique_ptr<SQLMsg> msg(DBManager::instance().DirectQuery(szQuery));
+		std::unique_ptr<SQLMsg> msg(DBManager::instance().DirectQuery(query));
 
 		if (msg->Get()->uiNumRows == 0)
 		{
@@ -66,9 +66,9 @@ int CHARACTER::ChangeEmpire(uint8_t empire)
 		CGuild * pGuild[4];
 		for (int i = 0; i < loop; ++i)
 		{
-			snprintf(szQuery, sizeof(szQuery), "SELECT guild_id FROM guild_member%s WHERE pid=%u", get_table_postfix(), dwPID[i]);
+			const std::string query = sql::format("SELECT guild_id FROM guild_member{} WHERE pid={}", sql::raw(get_table_postfix()), dwPID[i]);
 
-			std::unique_ptr<SQLMsg> pMsg(DBManager::instance().DirectQuery(szQuery));
+			std::unique_ptr<SQLMsg> pMsg(DBManager::instance().DirectQuery(query));
 
 			if (pMsg != nullptr)
 			{
@@ -106,10 +106,10 @@ int CHARACTER::ChangeEmpire(uint8_t empire)
 	
 	{
 		// 4. update the empire info in the db.
-		snprintf(szQuery, sizeof(szQuery), "UPDATE player_index%s SET empire=%u WHERE (pid1=%u OR pid2=%u OR pid3=%u OR pid4=%u) AND empire=%u", 
-				get_table_postfix(), empire, GetPlayerID(), GetPlayerID(), GetPlayerID(), GetPlayerID(), GetEmpire());
+		const std::string query = sql::format("UPDATE player_index{} SET empire={} WHERE (pid1={} OR pid2={} OR pid3={} OR pid4={}) AND empire={}", 
+				sql::raw(get_table_postfix()), empire, GetPlayerID(), GetPlayerID(), GetPlayerID(), GetPlayerID(), GetEmpire());
 
-		std::unique_ptr<SQLMsg> msg(DBManager::instance().DirectQuery(szQuery));
+		std::unique_ptr<SQLMsg> msg(DBManager::instance().DirectQuery(query));
 
 		if (msg->Get()->uiAffectedRows > 0)
 		{
@@ -125,15 +125,12 @@ int CHARACTER::ChangeEmpire(uint8_t empire)
 
 int CHARACTER::GetChangeEmpireCount() const
 {
-	char szQuery[1024+1];
 	uint32_t dwAID = GetAID();
 
 	if (dwAID == 0)
 		return 0;
 
-	snprintf(szQuery, sizeof(szQuery), "SELECT change_count FROM change_empire WHERE account_id = %u", dwAID);
-
-	std::unique_ptr<SQLMsg> pMsg(DBManager::instance().DirectQuery(szQuery));
+	std::unique_ptr<SQLMsg> pMsg(DBManager::instance().DirectQuery(sql::format("SELECT change_count FROM change_empire WHERE account_id = {}", dwAID)));
 
 	if (pMsg != nullptr)
 	{
@@ -155,7 +152,7 @@ int CHARACTER::GetChangeEmpireCount() const
 
 void CHARACTER::SetChangeEmpireCount()
 {
-	char szQuery[1024+1];
+	std::string query;
 
 	uint32_t dwAID = GetAID();
 
@@ -166,26 +163,25 @@ void CHARACTER::SetChangeEmpireCount()
 	if (count == 0)
 	{
 		count++;
-		snprintf(szQuery, sizeof(szQuery), "INSERT INTO change_empire VALUES(%u, %d, NOW())", dwAID, count);
+		query = sql::format("INSERT INTO change_empire VALUES({}, {}, NOW())", dwAID, count);
 	}
 	else
 	{
 		count++;
-		snprintf(szQuery, sizeof(szQuery), "UPDATE change_empire SET change_count=%d WHERE account_id=%u", count, dwAID);
+		query = sql::format("UPDATE change_empire SET change_count={} WHERE account_id={}", count, dwAID);
 	}
 
-	std::unique_ptr<SQLMsg> pmsg(DBManager::instance().DirectQuery(szQuery));
+	std::unique_ptr<SQLMsg> pmsg(DBManager::instance().DirectQuery(query));
 }
 
 uint32_t CHARACTER::GetAID() const
 {
-	char szQuery[1024+1];
 	uint32_t dwAID = 0;
 
-	snprintf(szQuery, sizeof(szQuery), "SELECT id FROM player_index%s WHERE (pid1=%u OR pid2=%u OR pid3=%u OR pid4=%u) AND empire=%u", 
-			get_table_postfix(), GetPlayerID(), GetPlayerID(), GetPlayerID(), GetPlayerID(), GetEmpire());
+	const std::string query = sql::format("SELECT id FROM player_index{} WHERE (pid1={} OR pid2={} OR pid3={} OR pid4={}) AND empire={}", 
+			sql::raw(get_table_postfix()), GetPlayerID(), GetPlayerID(), GetPlayerID(), GetPlayerID(), GetEmpire());
 
-	std::unique_ptr<SQLMsg> pMsg(DBManager::instance().DirectQuery(szQuery));
+	std::unique_ptr<SQLMsg> pMsg(DBManager::instance().DirectQuery(query));
 
 	if (pMsg != nullptr)
 	{

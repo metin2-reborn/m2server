@@ -16,6 +16,7 @@
 #include <cstdio>
 #include <cstring>
 #include <ctime>
+#include <string>
 #include <vector>
 
 #include <sys/types.h>
@@ -157,9 +158,8 @@ void CPlayerTableCache::OnFlush() {
     if (g_test_server)
         sys_log(0, "PlayerTableCache::Flush : %s", m_data.name);
 
-    char szQuery[QUERY_MAX_LEN];
-    CreatePlayerSaveQuery(szQuery, sizeof(szQuery), &m_data);
-    CDBManager::instance().ReturnQuery(szQuery, QID_PLAYER_SAVE, 0, nullptr);
+    const std::string query = CreatePlayerSaveQuery(&m_data);
+    CDBManager::instance().ReturnQuery(query.c_str(), QID_PLAYER_SAVE, 0, nullptr);
 }
 
 const int CItemPriceListTableCache::s_nMinFlushSec = 1800;

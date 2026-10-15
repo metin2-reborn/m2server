@@ -31,7 +31,7 @@ class CPlayerTableCache;
 class CItemCache;
 class CItemPriceListTableCache;
 
-size_t CreatePlayerSaveQuery(char * pszQuery, size_t querySize, TPlayerTable * pkTab);
+std::string CreatePlayerSaveQuery(const TPlayerTable * pkTab);
 
 class CClientManager : public singleton<CClientManager>
 {

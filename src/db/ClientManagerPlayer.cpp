@@ -12,6 +12,7 @@
 #include <common/tables.h>
 #include <common/utils.h>
 #include <libsql/AsyncSQL.h>
+#include <libsql/query.h>
 #include <libthecore/log.h>
 
 #include <mysql.h>
@@ -88,54 +89,54 @@ bool CreateItemTableFromRes(MYSQL_RES * res, std::vector<TPlayerItem> * pVec, ui
 	return true;
 }
 
-size_t CreatePlayerSaveQuery(char * pszQuery, size_t querySize, TPlayerTable * pkTab)
+std::string CreatePlayerSaveQuery(const TPlayerTable * pkTab)
 {
-	size_t queryLen;
-
-	queryLen = snprintf(pszQuery, querySize,
-			"UPDATE player%s SET "
-			"job = %d, "
-			"voice = %d, "
-			"dir = %d, "
-			"x = %d, "
-			"y = %d, "
-			"z = %d, "
-			"map_index = %d, "
-			"exit_x = %d, "
-			"exit_y = %d, "
-			"exit_map_index = %d, "
-			"hp = %d, "
-			"mp = %d, "
-			"stamina = %d, "
-			"random_hp = %d, "
-			"random_sp = %d, "
-			"playtime = %d, "
-			"level = %d, "
-			"level_step = %d, "
-			"st = %d, "
-			"ht = %d, "
-			"dx = %d, "
-			"iq = %d, "
-			"gold = %d, "
-			"exp = %u, "
-			"stat_point = %d, "
-			"skill_point = %d, "
-			"sub_skill_point = %d, "
-			"stat_reset_count = %d, "
-			"ip = '%s', "
-			"part_main = %d, "
-			"part_hair = %d, "
+	return sql::format(
+			"UPDATE player{} SET "
+			"job = {}, "
+			"voice = {}, "
+			"dir = {}, "
+			"x = {}, "
+			"y = {}, "
+			"z = {}, "
+			"map_index = {}, "
+			"exit_x = {}, "
+			"exit_y = {}, "
+			"exit_map_index = {}, "
+			"hp = {}, "
+			"mp = {}, "
+			"stamina = {}, "
+			"random_hp = {}, "
+			"random_sp = {}, "
+			"playtime = {}, "
+			"level = {}, "
+			"level_step = {}, "
+			"st = {}, "
+			"ht = {}, "
+			"dx = {}, "
+			"iq = {}, "
+			"gold = {}, "
+			"exp = {}, "
+			"stat_point = {}, "
+			"skill_point = {}, "
+			"sub_skill_point = {}, "
+			"stat_reset_count = {}, "
+			"ip = {}, "
+			"part_main = {}, "
+			"part_hair = {}, "
 			"last_play = NOW(), "
-			"skill_group = %d, "
-			"alignment = %d, "
-			"horse_level = %d, "
-			"horse_riding = %d, "
-			"horse_hp = %d, "
-			"horse_hp_droptime = %u, "
-			"horse_stamina = %d, "
-			"horse_skill_point = %d, "
-			,
-		GetTablePostfix(),
+			"skill_group = {}, "
+			"alignment = {}, "
+			"horse_level = {}, "
+			"horse_riding = {}, "
+			"horse_hp = {}, "
+			"horse_hp_droptime = {}, "
+			"horse_stamina = {}, "
+			"horse_skill_point = {}, "
+			"skill_level = {}, "
+			"quickslot = {} "
+			" WHERE id={}",
+		sql::raw(GetTablePostfix()),
 		pkTab->job,
 		pkTab->voice,
 		pkTab->dir,
@@ -174,19 +175,10 @@ size_t CreatePlayerSaveQuery(char * pszQuery, size_t querySize, TPlayerTable * p
 		pkTab->horse.sHealth,
 		pkTab->horse.dwHorseHealthDropTime,
 		pkTab->horse.sStamina,
-		pkTab->horse_skill_point);
-
-	// Temporary space for converting to binary
-	static char text[8192 + 1];
-
-	CDBManager::instance().EscapeString(text, pkTab->skills, sizeof(pkTab->skills));
-	queryLen += snprintf(pszQuery + queryLen, querySize - queryLen, "skill_level = '%s', ", text);
-
-	CDBManager::instance().EscapeString(text, pkTab->quickslot, sizeof(pkTab->quickslot));
-	queryLen += snprintf(pszQuery + queryLen, querySize - queryLen, "quickslot = '%s' ", text);
-
-	queryLen += snprintf(pszQuery + queryLen, querySize - queryLen, " WHERE id=%d", pkTab->id);
-	return queryLen;
+		pkTab->horse_skill_point,
+		std::string_view(reinterpret_cast<const char *>(pkTab->skills), sizeof(pkTab->skills)),
+		std::string_view(reinterpret_cast<const char *>(pkTab->quickslot), sizeof(pkTab->quickslot)),
+		pkTab->id);
 }
 
 CPlayerTableCache * CClientManager::GetPlayerCache(uint32_t id)
@@ -757,8 +749,6 @@ static time_by_id_map_t s_createTimeByAccountID;
  */
 void CClientManager::__QUERY_PLAYER_CREATE(CPeer *peer, uint32_t dwHandle, TPlayerCreatePacket* packet)
 {
-	char	queryStr[QUERY_MAX_LEN];
-	int		queryLen;
 	int		player_id;
 
 	// Cannot create a character within X seconds on one account.
@@ -775,10 +765,12 @@ void CClientManager::__QUERY_PLAYER_CREATE(CPeer *peer, uint32_t dwHandle, TPlay
 		}
 	}
 
-	queryLen = snprintf(queryStr, sizeof(queryStr), 
-			"SELECT pid%u FROM player_index%s WHERE id=%d", packet->account_index + 1, GetTablePostfix(), packet->account_id);
+	const auto postfix = sql::raw(GetTablePostfix());
 
-	std::unique_ptr<SQLMsg> pMsg0(CDBManager::instance().DirectQuery(queryStr));
+	std::string query = sql::format(
+			"SELECT pid{} FROM player_index{} WHERE id={}", packet->account_index + 1, postfix, packet->account_id);
+
+	std::unique_ptr<SQLMsg> pMsg0(CDBManager::instance().DirectQuery(query.c_str()));
 
 	if (pMsg0->Get()->uiNumRows != 0)
 	{
@@ -804,10 +796,10 @@ void CClientManager::__QUERY_PLAYER_CREATE(CPeer *peer, uint32_t dwHandle, TPlay
 		return;
 	}
 
-	snprintf(queryStr, sizeof(queryStr), 
-			"SELECT COUNT(*) as count FROM player%s WHERE name='%s'", GetTablePostfix(), packet->player_table.name);
+	query = sql::format(
+			"SELECT COUNT(*) as count FROM player{} WHERE name={}", postfix, packet->player_table.name);
 
-	std::unique_ptr<SQLMsg> pMsg1(CDBManager::instance().DirectQuery(queryStr));
+	std::unique_ptr<SQLMsg> pMsg1(CDBManager::instance().DirectQuery(query.c_str()));
 
 	if (pMsg1->Get()->uiNumRows)
 	{
@@ -821,7 +813,7 @@ void CClientManager::__QUERY_PLAYER_CREATE(CPeer *peer, uint32_t dwHandle, TPlay
 
 		if (*row[0] != '0')
 		{
-			sys_log(0, "ALREADY EXIST name %s, row[0] %s query %s", packet->player_table.name, row[0], queryStr);
+			sys_log(0, "ALREADY EXIST name %s, row[0] %s query %s", packet->player_table.name, row[0], query.c_str());
 			peer->EncodeHeader(HEADER_DG_PLAYER_CREATE_ALREADY, dwHandle, 0);
 			return;
 		}
@@ -832,19 +824,22 @@ void CClientManager::__QUERY_PLAYER_CREATE(CPeer *peer, uint32_t dwHandle, TPlay
 		return;
 	}
 
-	queryLen = snprintf(queryStr, sizeof(queryStr), 
-			"INSERT INTO player%s "
+	query = sql::format(
+			"INSERT INTO player{} "
 			"(id, account_id, name, level, st, ht, dx, iq, "
 			"job, voice, dir, x, y, z, "
 			"hp, mp, random_hp, random_sp, stat_point, stamina, part_base, part_main, part_hair, gold, playtime, "
 			"skill_level, quickslot) "
-			"VALUES(0, %u, '%s', %d, %d, %d, %d, %d, "
-			"%d, %d, %d, %d, %d, %d, %d, "
-			"%d, %d, %d, %d, %d, %d, %d, 0, %d, 0, ",
-			GetTablePostfix(),
+			"VALUES(0, {}, {}, {}, {}, {}, {}, {}, "
+			"{}, {}, {}, {}, {}, {}, {}, "
+			"{}, {}, {}, {}, {}, {}, {}, 0, {}, 0, "
+			"{}, {})",
+			postfix,
 			packet->account_id, packet->player_table.name, packet->player_table.level, packet->player_table.st, packet->player_table.ht, packet->player_table.dx, packet->player_table.iq,
 			packet->player_table.job, packet->player_table.voice, packet->player_table.dir, packet->player_table.x, packet->player_table.y, packet->player_table.z,
-			packet->player_table.hp, packet->player_table.sp, packet->player_table.sRandomHP, packet->player_table.sRandomSP, packet->player_table.stat_point, packet->player_table.stamina, packet->player_table.part_base, packet->player_table.part_base, packet->player_table.gold);
+			packet->player_table.hp, packet->player_table.sp, packet->player_table.sRandomHP, packet->player_table.sRandomSP, packet->player_table.stat_point, packet->player_table.stamina, packet->player_table.part_base, packet->player_table.part_base, packet->player_table.gold,
+			std::string_view(reinterpret_cast<const char *>(packet->player_table.skills), sizeof(packet->player_table.skills)),
+			std::string_view(reinterpret_cast<const char *>(packet->player_table.quickslot), sizeof(packet->player_table.quickslot)));
 
 	sys_log(0, "PlayerCreate accountid %d name %s level %d gold %d, st %d ht %d job %d",
 			packet->account_id, 
@@ -855,39 +850,29 @@ void CClientManager::__QUERY_PLAYER_CREATE(CPeer *peer, uint32_t dwHandle, TPlay
 			packet->player_table.ht, 
 			packet->player_table.job);
 
-	static char text[4096 + 1];
-
-	CDBManager::instance().EscapeString(text, packet->player_table.skills, sizeof(packet->player_table.skills));
-	queryLen += snprintf(queryStr + queryLen, sizeof(queryStr) - queryLen, "'%s', ", text);
+	std::unique_ptr<SQLMsg> pMsg2(CDBManager::instance().DirectQuery(query.c_str()));
 	if (g_test_server)
-		sys_log(0, "Create_Player queryLen[%d] TEXT[%s]", queryLen, text);
-
-	CDBManager::instance().EscapeString(text, packet->player_table.quickslot, sizeof(packet->player_table.quickslot));
-	queryLen += snprintf(queryStr + queryLen, sizeof(queryStr) - queryLen, "'%s')", text);
-
-	std::unique_ptr<SQLMsg> pMsg2(CDBManager::instance().DirectQuery(queryStr));
-	if (g_test_server)
-		sys_log(0, "Create_Player queryLen[%d] TEXT[%s]", queryLen, text);
+		sys_log(0, "Create_Player queryLen[%zu]", query.size());
 
 	if (pMsg2->Get()->uiAffectedRows <= 0)
 	{
 		peer->EncodeHeader(HEADER_DG_PLAYER_CREATE_ALREADY, dwHandle, 0);
-		sys_log(0, "ALREADY EXIST3 query: %s AffectedRows %u", queryStr, pMsg2->Get()->uiAffectedRows);
+		sys_log(0, "ALREADY EXIST3 query: %s AffectedRows %u", query.c_str(), pMsg2->Get()->uiAffectedRows);
 		return;
 	}
 
 	player_id = pMsg2->Get()->uiInsertID;
 
-	snprintf(queryStr, sizeof(queryStr), "UPDATE player_index%s SET pid%d=%d WHERE id=%d", 
-			GetTablePostfix(), packet->account_index + 1, player_id, packet->account_id);
-	std::unique_ptr<SQLMsg> pMsg3(CDBManager::instance().DirectQuery(queryStr));
+	query = sql::format("UPDATE player_index{} SET pid{}={} WHERE id={}", 
+			postfix, packet->account_index + 1, player_id, packet->account_id);
+	std::unique_ptr<SQLMsg> pMsg3(CDBManager::instance().DirectQuery(query.c_str()));
 
 	if (pMsg3->Get()->uiAffectedRows <= 0)
 	{
-		sys_err("QUERY_ERROR: %s", queryStr);
+		sys_err("QUERY_ERROR: %s", query.c_str());
 
-		snprintf(queryStr, sizeof(queryStr), "DELETE FROM player%s WHERE id=%d", GetTablePostfix(), player_id);
-		CDBManager::instance().DirectQuery(queryStr);
+		query = sql::format("DELETE FROM player{} WHERE id={}", postfix, player_id);
+		CDBManager::instance().DirectQuery(query.c_str());
 
 		peer->EncodeHeader(HEADER_DG_PLAYER_CREATE_FAILED, dwHandle, 0);
 		return;
@@ -1016,11 +1001,11 @@ void CClientManager::__RESULT_PLAYER_DELETE(CPeer *peer, SQLMsg* msg)
 			return;
 		}
 
-		char queryStr[QUERY_MAX_LEN];
+		const auto postfix = sql::raw(GetTablePostfix());
 
-		snprintf(queryStr, sizeof(queryStr), "INSERT INTO player%s_deleted SELECT * FROM player%s WHERE id=%d", 
-				GetTablePostfix(), GetTablePostfix(), pi->player_id);
-		std::unique_ptr<SQLMsg> pIns(CDBManager::instance().DirectQuery(queryStr));
+		std::string query = sql::format("INSERT INTO player{}_deleted SELECT * FROM player{} WHERE id={}", 
+				postfix, postfix, pi->player_id);
+		std::unique_ptr<SQLMsg> pIns(CDBManager::instance().DirectQuery(query.c_str()));
 
 		if (pIns->Get()->uiAffectedRows == 0 || pIns->Get()->uiAffectedRows == (uint32_t)-1)
 		{
@@ -1065,13 +1050,13 @@ void CClientManager::__RESULT_PLAYER_DELETE(CPeer *peer, SQLMsg* msg)
 			m_map_pkItemCacheSetPtr.erase(pi->player_id);
 		}
 
-		snprintf(queryStr, sizeof(queryStr), "UPDATE player_index%s SET pid%u=0 WHERE pid%u=%d", 
-				GetTablePostfix(), 
+		query = sql::format("UPDATE player_index{} SET pid{}=0 WHERE pid{}={}", 
+				postfix, 
 				pi->account_index + 1, 
 				pi->account_index + 1, 
 				pi->player_id);
 
-		std::unique_ptr<SQLMsg> pMsg(CDBManager::instance().DirectQuery(queryStr));
+		std::unique_ptr<SQLMsg> pMsg(CDBManager::instance().DirectQuery(query.c_str()));
 
 		if (pMsg->Get()->uiAffectedRows == 0 || pMsg->Get()->uiAffectedRows == (uint32_t)-1)
 		{
@@ -1081,28 +1066,28 @@ void CClientManager::__RESULT_PLAYER_DELETE(CPeer *peer, SQLMsg* msg)
 			return;
 		}
 
-		snprintf(queryStr, sizeof(queryStr), "DELETE FROM player%s WHERE id=%d", GetTablePostfix(), pi->player_id);
-		std::unique_ptr<SQLMsg>(CDBManager::instance().DirectQuery(queryStr));
+		query = sql::format("DELETE FROM player{} WHERE id={}", postfix, pi->player_id);
+		std::unique_ptr<SQLMsg>(CDBManager::instance().DirectQuery(query.c_str()));
 
-		snprintf(queryStr, sizeof(queryStr), "DELETE FROM item%s WHERE owner_id=%d AND (window < %d or window = %d)", GetTablePostfix(), pi->player_id, SAFEBOX, DRAGON_SOUL_INVENTORY);
-		std::unique_ptr<SQLMsg>(CDBManager::instance().DirectQuery(queryStr));
+		query = sql::format("DELETE FROM item{} WHERE owner_id={} AND (window < {} or window = {})", postfix, pi->player_id, SAFEBOX, DRAGON_SOUL_INVENTORY);
+		std::unique_ptr<SQLMsg>(CDBManager::instance().DirectQuery(query.c_str()));
 
-		snprintf(queryStr, sizeof(queryStr), "DELETE FROM quest%s WHERE dwPID=%d", GetTablePostfix(), pi->player_id);
-		CDBManager::instance().AsyncQuery(queryStr);
+		query = sql::format("DELETE FROM quest{} WHERE dwPID={}", postfix, pi->player_id);
+		CDBManager::instance().AsyncQuery(query.c_str());
 
-		snprintf(queryStr, sizeof(queryStr), "DELETE FROM affect%s WHERE dwPID=%d", GetTablePostfix(), pi->player_id);
-		CDBManager::instance().AsyncQuery(queryStr);
+		query = sql::format("DELETE FROM affect{} WHERE dwPID={}", postfix, pi->player_id);
+		CDBManager::instance().AsyncQuery(query.c_str());
 
-		snprintf(queryStr, sizeof(queryStr), "DELETE FROM guild_member%s WHERE pid=%d", GetTablePostfix(), pi->player_id);
-		CDBManager::instance().AsyncQuery(queryStr);
+		query = sql::format("DELETE FROM guild_member{} WHERE pid={}", postfix, pi->player_id);
+		CDBManager::instance().AsyncQuery(query.c_str());
 
 		// MYSHOP_PRICE_LIST
-		snprintf(queryStr, sizeof(queryStr), "DELETE FROM myshop_pricelist%s WHERE owner_id=%d", GetTablePostfix(), pi->player_id);
-		CDBManager::instance().AsyncQuery(queryStr);
+		query = sql::format("DELETE FROM myshop_pricelist{} WHERE owner_id={}", postfix, pi->player_id);
+		CDBManager::instance().AsyncQuery(query.c_str());
 		// END_OF_MYSHOP_PRICE_LIST
 
-		snprintf(queryStr, sizeof(queryStr), "DELETE FROM messenger_list%s WHERE account='%s' OR companion='%s'", GetTablePostfix(), strName.c_str(), strName.c_str());
-		CDBManager::instance().AsyncQuery(queryStr);
+		query = sql::format("DELETE FROM messenger_list{} WHERE account={} OR companion={}", postfix, strName, strName);
+		CDBManager::instance().AsyncQuery(query.c_str());
 
 		peer->EncodeHeader(HEADER_DG_PLAYER_DELETE_SUCCESS, pi->dwHandle, 1);
 		peer->EncodeBYTE(pi->account_index);
@@ -1166,8 +1151,7 @@ void CClientManager::QUERY_REMOVE_AFFECT(CPeer * peer, TPacketGDRemoveAffect * p
 
 void CClientManager::QUERY_HIGHSCORE_REGISTER(CPeer* peer, TPacketGDHighscore * data)
 {
-	char szQuery[128];
-	snprintf(szQuery, sizeof(szQuery), "SELECT value FROM highscore%s WHERE board='%s' AND pid = %u", GetTablePostfix(), data->szBoard, data->dwPID);
+	const std::string query = sql::format("SELECT value FROM highscore{} WHERE board={} AND pid = {}", sql::raw(GetTablePostfix()), data->szBoard, data->dwPID);
 
 	sys_log(0, "HEADER_GD_HIGHSCORE_REGISTER: PID %u", data->dwPID);
 
@@ -1177,7 +1161,7 @@ void CClientManager::QUERY_HIGHSCORE_REGISTER(CPeer* peer, TPacketGDHighscore * 
 	pi->player_id = data->dwPID;
 	pi->account_index = (data->cDir > 0);
 
-	CDBManager::instance().ReturnQuery(szQuery, QID_HIGHSCORE_REGISTER, peer->GetHandle(), pi);
+	CDBManager::instance().ReturnQuery(query.c_str(), QID_HIGHSCORE_REGISTER, peer->GetHandle(), pi);
 }
 
 void CClientManager::RESULT_HIGHSCORE_REGISTER(CPeer * pkPeer, SQLMsg * msg)
@@ -1194,9 +1178,8 @@ void CClientManager::RESULT_HIGHSCORE_REGISTER(CPeer * pkPeer, SQLMsg * msg)
 	if (res->uiNumRows == 0)
 	{
 		// Insert a new high score
-		char buf[256];
-		snprintf(buf, sizeof(buf), "INSERT INTO highscore%s VALUES('%s', %u, %d)", GetTablePostfix(), szBoard, pi->player_id, value);
-		CDBManager::instance().AsyncQuery(buf);
+		const std::string query = sql::format("INSERT INTO highscore{} VALUES({}, {}, {})", sql::raw(GetTablePostfix()), szBoard, pi->player_id, value);
+		CDBManager::instance().AsyncQuery(query.c_str());
 	}
 	else
 	{
@@ -1216,16 +1199,14 @@ void CClientManager::RESULT_HIGHSCORE_REGISTER(CPeer * pkPeer, SQLMsg * msg)
 			}
 			else
 			{
-				char buf[256];
-				snprintf(buf, sizeof(buf), "REPLACE INTO highscore%s VALUES('%s', %u, %d)", GetTablePostfix(), szBoard, pi->player_id, value);
-				CDBManager::instance().AsyncQuery(buf);
+				const std::string query = sql::format("REPLACE INTO highscore{} VALUES({}, {}, {})", sql::raw(GetTablePostfix()), szBoard, pi->player_id, value);
+				CDBManager::instance().AsyncQuery(query.c_str());
 			}
 		}
 		else
 		{
-			char buf[256];
-			snprintf(buf, sizeof(buf), "INSERT INTO highscore%s VALUES('%s', %u, %d)", GetTablePostfix(), szBoard, pi->player_id, value);
-			CDBManager::instance().AsyncQuery(buf);
+			const std::string query = sql::format("INSERT INTO highscore{} VALUES({}, {}, {})", sql::raw(GetTablePostfix()), szBoard, pi->player_id, value);
+			CDBManager::instance().AsyncQuery(query.c_str());
 		}
 	}
 	// TODO: check here whether the high score was updated and broadcast a notice.

@@ -20,6 +20,7 @@
 #include <common/length.h>
 #include <common/tables.h>
 #include <libsql/AsyncSQL.h>
+#include <libsql/query.h>
 #include <libthecore/log.h>
 
 #include <mysql.h>
@@ -99,8 +100,8 @@ uint32_t CGuildManager::CreateGuild(TGuildCreateParameter& gcp)
 		return 0;
 	}
 
-	std::unique_ptr<SQLMsg> pmsg(DBManager::instance().DirectQuery("SELECT COUNT(*) FROM guild%s WHERE name = '%s'",
-				get_table_postfix(), gcp.name));
+	std::unique_ptr<SQLMsg> pmsg(DBManager::instance().DirectQuery(sql::format("SELECT COUNT(*) FROM guild{} WHERE name = {}",
+				sql::raw(get_table_postfix()), gcp.name)));
 
 	if (pmsg->Get()->uiNumRows > 0)
 	{

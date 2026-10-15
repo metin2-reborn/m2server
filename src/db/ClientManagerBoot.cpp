@@ -11,6 +11,7 @@
 #include <common/tables.h>
 #include <common/utils.h>
 #include <libsql/AsyncSQL.h>
+#include <libsql/query.h>
 #include <libthecore/log.h>
 #include <libthecore/utils.h>
 
@@ -1303,11 +1304,11 @@ bool CClientManager::MirrorMobTableIntoDB()
 	for (auto it = m_vec_mobTable.begin(); it != m_vec_mobTable.end(); it++)
 	{
 		const TMobTable& t = *it;
-		char query[4096];
+		std::string query;
 		if (g_stLocaleNameColumn == "name")
 		{
-			snprintf(query, sizeof(query),
-				"replace into mob_proto%s "
+			query = sql::format(
+				"replace into mob_proto{} "
 				"("
 				"vnum, name, type, rank, battle_type, level, size, ai_flag, setRaceFlag, setImmuneFlag, "
 				"on_click, empire, drop_item, resurrection_vnum, folder, "
@@ -1325,21 +1326,21 @@ bool CClientManager::MirrorMobTableIntoDB()
 				") "
 				"values ("
 
-				"%d, \"%s\", %d, %d, %d, %d, %d, %u, %u, %u, " 
-				"%d, %d, %d, %d, '%s', "
-				"%d, %d, %d, %d, %d, %d, %d, %d, %d, %d, "
-				"%d, %d, %d, %d, %d, %d, %d, %d, %d, "
+				"{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, " 
+				"{}, {}, {}, {}, {}, "
+				"{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, "
+				"{}, {}, {}, {}, {}, {}, {}, {}, {}, "
 
-				"%d, %d, %d, %d, %d, %d, "
-				"%d, %d, %d, %d, %d, %d, "
-				"%d, %d, %d, %d, %d, "
-				"%f, %d, %d, %d, "
+				"{}, {}, {}, {}, {}, {}, "
+				"{}, {}, {}, {}, {}, {}, "
+				"{}, {}, {}, {}, {}, "
+				"{:f}, {}, {}, {}, "
 
-				"%d, %d, %d, %d, %d, %d, "
-				"%d, %d, %d, %d, "
-				"%d, %d, %d, %d, %d"
+				"{}, {}, {}, {}, {}, {}, "
+				"{}, {}, {}, {}, "
+				"{}, {}, {}, {}, {}"
 				")",
-				GetTablePostfix(), /*g_stLocaleNameColumn.c_str(),*/
+				sql::raw(GetTablePostfix()),
 
 				t.dwVnum, t.szName, /*t.szLocaleName, */t.bType, t.bRank, t.bBattleType, t.bLevel, t.bSize, t.dwAIFlag, t.dwRaceFlag, t.dwImmuneFlag,
 				t.bOnClickType, t.bEmpire, t.dwDropItemVnum, t.dwResurrectionVnum, t.szFolder,
@@ -1358,10 +1359,10 @@ bool CClientManager::MirrorMobTableIntoDB()
 		}
 		else
 		{
-			snprintf(query, sizeof(query),
-				"replace into mob_proto%s "
+			query = sql::format(
+				"replace into mob_proto{} "
 				"("
-				"vnum, name, %s, type, rank, battle_type, level, size, ai_flag, setRaceFlag, setImmuneFlag, "
+				"vnum, name, {}, type, rank, battle_type, level, size, ai_flag, setRaceFlag, setImmuneFlag, "
 				"on_click, empire, drop_item, resurrection_vnum, folder, "
 				"st, dx, ht, iq, damage_min, damage_max, max_hp, regen_cycle, regen_percent, exp, "
 				"gold_min, gold_max, def, attack_speed, move_speed, aggressive_hp_pct, aggressive_sight, attack_range, polymorph_item, "
@@ -1377,21 +1378,21 @@ bool CClientManager::MirrorMobTableIntoDB()
 				") "
 				"values ("
 
-				"%d, \"%s\", \"%s\", %d, %d, %d, %d, %d, %u, %u, %u, " 
-				"%d, %d, %d, %d, '%s', "
-				"%d, %d, %d, %d, %d, %d, %d, %d, %d, %d, "
-				"%d, %d, %d, %d, %d, %d, %d, %d, %d, "
+				"{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, " 
+				"{}, {}, {}, {}, {}, "
+				"{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, "
+				"{}, {}, {}, {}, {}, {}, {}, {}, {}, "
 
-				"%d, %d, %d, %d, %d, %d, "
-				"%d, %d, %d, %d, %d, %d, "
-				"%d, %d, %d, %d, %d, "
-				"%f, %d, %d, %d, "
+				"{}, {}, {}, {}, {}, {}, "
+				"{}, {}, {}, {}, {}, {}, "
+				"{}, {}, {}, {}, {}, "
+				"{:f}, {}, {}, {}, "
 
-				"%d, %d, %d, %d, %d, %d, "
-				"%d, %d, %d, %d, "
-				"%d, %d, %d, %d, %d"
+				"{}, {}, {}, {}, {}, {}, "
+				"{}, {}, {}, {}, "
+				"{}, {}, {}, {}, {}"
 				")",
-				GetTablePostfix(), g_stLocaleNameColumn.c_str(),
+				sql::raw(GetTablePostfix()), sql::raw(g_stLocaleNameColumn),
 
 				t.dwVnum, t.szName, t.szLocaleName, t.bType, t.bRank, t.bBattleType, t.bLevel, t.bSize, t.dwAIFlag, t.dwRaceFlag, t.dwImmuneFlag,
 				t.bOnClickType, t.bEmpire, t.dwDropItemVnum, t.dwResurrectionVnum, t.szFolder,
@@ -1409,7 +1410,7 @@ bool CClientManager::MirrorMobTableIntoDB()
 				);
 		}
 
-		CDBManager::instance().AsyncQuery(query);
+		CDBManager::instance().AsyncQuery(query.c_str());
 	}
 	return true;
 }
@@ -1421,37 +1422,36 @@ bool CClientManager::MirrorItemTableIntoDB()
 		if (g_stLocaleNameColumn != "name")
 		{
 			const TItemTable& t = *it;
-			char query[4096];
-			snprintf(query, sizeof(query),
-				"replace into item_proto%s ("
-				"vnum, type, subtype, name, %s, gold, shop_buy_price, weight, size, "
+			const std::string query = sql::format(
+				"replace into item_proto{} ("
+				"vnum, type, subtype, name, {}, gold, shop_buy_price, weight, size, "
 				"flag, wearflag, antiflag, immuneflag, "
 				"refined_vnum, refine_set, magic_pct, socket_pct, addon_type, specular, "
 				"limittype0, limitvalue0, limittype1, limitvalue1, "
 				"applytype0, applyvalue0, applytype1, applyvalue1, applytype2, applyvalue2, "
 				"value0, value1, value2, value3, value4, value5 ) "
 				"values ("
-				"%d, %d, %d, \"%s\", \"%s\", %d, %d, %d, %d, "
-				"%d, %d, %d, %d, "
-				"%d, %d, %d, %d, %d, %d, "
-				"%d, %d, %d, %d, "
-				"%d, %d, %d, %d, %d, %d, "
-				"%d, %d, %d, %d, %d, %d )",
-				GetTablePostfix(), g_stLocaleNameColumn.c_str(), 
-				t.dwVnum, t.bType, t.bSubType, t.szName, t.szLocaleName, t.dwGold, t.dwShopBuyPrice, t.bWeight, t.bSize,
-				t.dwFlags, t.dwWearFlags, t.dwAntiFlags, t.dwImmuneFlag, 
+				"{}, {}, {}, {}, {}, {}, {}, {}, {}, "
+				"{}, {}, {}, {}, "
+				"{}, {}, {}, {}, {}, {}, "
+				"{}, {}, {}, {}, "
+				"{}, {}, {}, {}, {}, {}, "
+				"{}, {}, {}, {}, {}, {} )",
+				sql::raw(GetTablePostfix()), sql::raw(g_stLocaleNameColumn), 
+				t.dwVnum, t.bType, t.bSubType, t.szName, t.szLocaleName, static_cast<int32_t>(t.dwGold), t.dwShopBuyPrice, t.bWeight, t.bSize,
+				// signed int columns: keep the bit pattern as the old printf %d did
+				static_cast<int32_t>(t.dwFlags), static_cast<int32_t>(t.dwWearFlags), static_cast<int32_t>(t.dwAntiFlags), t.dwImmuneFlag, 
 				t.dwRefinedVnum, t.wRefineSet, t.bAlterToMagicItemPct, t.bGainSocketPct, t.sAddonType, t.bSpecular,
 				t.aLimits[0].bType, t.aLimits[0].lValue, t.aLimits[1].bType, t.aLimits[1].lValue,
 				t.aApplies[0].bType, t.aApplies[0].lValue, t.aApplies[1].bType, t.aApplies[1].lValue, t.aApplies[2].bType, t.aApplies[2].lValue,
 				t.alValues[0], t.alValues[1], t.alValues[2], t.alValues[3], t.alValues[4], t.alValues[5]);
-			CDBManager::instance().AsyncQuery(query);
+			CDBManager::instance().AsyncQuery(query.c_str());
 		}
 		else
 		{
 			const TItemTable& t = *it;
-			char query[4096];
-			snprintf(query, sizeof(query),
-				"replace into item_proto%s ("
+			const std::string query = sql::format(
+				"replace into item_proto{} ("
 				"vnum, type, subtype, name, gold, shop_buy_price, weight, size, "
 				"flag, wearflag, antiflag, immuneflag, "
 				"refined_vnum, refine_set, magic_pct, socket_pct, addon_type, specular, "
@@ -1459,20 +1459,21 @@ bool CClientManager::MirrorItemTableIntoDB()
 				"applytype0, applyvalue0, applytype1, applyvalue1, applytype2, applyvalue2, "
 				"value0, value1, value2, value3, value4, value5 ) "
 				"values ("
-				"%d, %d, %d, \"%s\", %d, %d, %d, %d, "
-				"%d, %d, %d, %d, "
-				"%d, %d, %d, %d, %d, %d, "
-				"%d, %d, %d, %d, "
-				"%d, %d, %d, %d, %d, %d, "
-				"%d, %d, %d, %d, %d, %d )",
-				GetTablePostfix(), 
-				t.dwVnum, t.bType, t.bSubType, t.szName, t.dwGold, t.dwShopBuyPrice, t.bWeight, t.bSize,
-				t.dwFlags, t.dwWearFlags, t.dwAntiFlags, t.dwImmuneFlag, 
+				"{}, {}, {}, {}, {}, {}, {}, {}, "
+				"{}, {}, {}, {}, "
+				"{}, {}, {}, {}, {}, {}, "
+				"{}, {}, {}, {}, "
+				"{}, {}, {}, {}, {}, {}, "
+				"{}, {}, {}, {}, {}, {} )",
+				sql::raw(GetTablePostfix()), 
+				t.dwVnum, t.bType, t.bSubType, t.szName, static_cast<int32_t>(t.dwGold), t.dwShopBuyPrice, t.bWeight, t.bSize,
+				// signed int columns: keep the bit pattern as the old printf %d did
+				static_cast<int32_t>(t.dwFlags), static_cast<int32_t>(t.dwWearFlags), static_cast<int32_t>(t.dwAntiFlags), t.dwImmuneFlag, 
 				t.dwRefinedVnum, t.wRefineSet, t.bAlterToMagicItemPct, t.bGainSocketPct, t.sAddonType, t.bSpecular,
 				t.aLimits[0].bType, t.aLimits[0].lValue, t.aLimits[1].bType, t.aLimits[1].lValue,
 				t.aApplies[0].bType, t.aApplies[0].lValue, t.aApplies[1].bType, t.aApplies[1].lValue, t.aApplies[2].bType, t.aApplies[2].lValue,
 				t.alValues[0], t.alValues[1], t.alValues[2], t.alValues[3], t.alValues[4], t.alValues[5]);
-			CDBManager::instance().AsyncQuery(query);
+			CDBManager::instance().AsyncQuery(query.c_str());
 		}
 	}
 	return true;

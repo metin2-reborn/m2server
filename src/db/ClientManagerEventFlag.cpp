@@ -7,6 +7,7 @@
 #include <common/tables.h>
 #include <common/utils.h>
 #include <libsql/AsyncSQL.h>
+#include <libsql/query.h>
 #include <libthecore/log.h>
 
 #include <mysql.h>
@@ -59,13 +60,11 @@ void CClientManager::SetEventFlag(TPacketSetEventFlag* p)
 
 	if (bChanged)
 	{
-		char szQuery[1024];
-		snprintf(szQuery, sizeof(szQuery),
-				"REPLACE INTO quest%s (dwPID, szName, szState, lValue) VALUES(0, '%s', '', %d)",
-				GetTablePostfix(), p->szFlagName, p->lValue);
-		szQuery[1023] = '\0';
+		const std::string query = sql::format(
+				"REPLACE INTO quest{} (dwPID, szName, szState, lValue) VALUES(0, {}, '', {})",
+				sql::raw(GetTablePostfix()), p->szFlagName, p->lValue);
 
-		CDBManager::instance().AsyncQuery(szQuery);
+		CDBManager::instance().AsyncQuery(query.c_str());
 		sys_log(0, "HEADER_GD_SET_EVENT_FLAG : Changed CClientmanager::SetEventFlag(%s %d) ", p->szFlagName, p->lValue);
 		return;
 	}
