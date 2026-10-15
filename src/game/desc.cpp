@@ -78,6 +78,7 @@ void DESC::Initialize()
 
 	m_bAdminMode = false;
 	m_bMarkLogin = false;
+	m_dwMarkOwnerHandle = 0;
 	m_bPong = true;
 	m_bChannelStatusRequested = false;
 

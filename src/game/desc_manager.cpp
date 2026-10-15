@@ -246,7 +246,10 @@ void DESC_MANAGER::DestroyDesc(DESC * d, bool bEraseFromSet)
 		m_map_handshake.erase(d->GetHandshake());
 
 	if (d->GetHandle() != 0)
+	{
 		m_map_handle.erase(d->GetHandle());
+		m_map_handle_random_key.erase(d->GetHandle());
+	}
 	else
 		m_set_pkClientDesc.erase((CLIENT_DESC *) d);
 
@@ -432,9 +435,15 @@ void DESC_MANAGER::GetUserCount(int & iTotal, int ** paiEmpireUserCount, int & i
 
 uint32_t DESC_MANAGER::MakeRandomKey(uint32_t dwHandle)
 { 
-	uint32_t random_key = thecore_random(); 
-	m_map_handle_random_key.insert(std::make_pair(dwHandle, random_key));
+	uint32_t random_key = thecore_random();
+	m_map_handle_random_key[dwHandle] = random_key;
 	return random_key;
+}
+
+bool DESC_MANAGER::CheckRandomKey(uint32_t dwHandle, uint32_t dwKey)
+{
+	auto it = m_map_handle_random_key.find(dwHandle);
+	return it != m_map_handle_random_key.end() && it->second == dwKey && FindByHandle(dwHandle) != nullptr;
 }
 
 DESC * DESC_MANAGER::FindByLoginKey(uint32_t dwKey)

@@ -9,7 +9,6 @@
 #include "desc.h"
 #include "desc_client.h"
 #include "desc_manager.h"
-#include "dev_log.h"
 #include "dungeon.h"
 #include "guild_manager.h"
 #include "horsename_manager.h"
@@ -782,6 +781,15 @@ void CInputLogin::Empire(DESC * d, const char * c_pData)
 	db_clientdesc->DBPacket(HEADER_GD_EMPIRE_SELECT, d->GetHandle(), &pd, sizeof(pd));
 }
 
+// Whether the player behind a mark connection is the master of guild dwGuildID.
+static bool IsMarkOwnerGuildMaster(DESC * d, uint32_t dwGuildID)
+{
+	DESC * pkOwner = DESC_MANAGER::instance().FindByHandle(d->GetMarkOwnerHandle());
+	CHARACTER * ch = pkOwner ? pkOwner->GetCharacter() : nullptr;
+
+	return ch && ch->GetGuild() && ch->GetGuild()->GetID() == dwGuildID && ch->GetGuild()->GetMasterPID() == ch->GetPlayerID();
+}
+
 int CInputLogin::GuildSymbolUpload(DESC * d, const char* c_pData, size_t uiBytes)
 {
 	if (uiBytes < sizeof(TPacketCGGuildSymbolUpload))
@@ -800,6 +808,13 @@ int CInputLogin::GuildSymbolUpload(DESC * d, const char* c_pData, size_t uiBytes
 	{
 		// Guild symbols larger than 64k cannot be uploaded
 		// Disconnect and ignore
+		d->SetPhase(PHASE_CLOSE);
+		return 0;
+	}
+
+	if (!IsMarkOwnerGuildMaster(d, p->guild_id))
+	{
+		sys_err("GuildSymbolUpload: guild %u not uploaded by its master, host %s", p->guild_id, d->GetHostName());
 		d->SetPhase(PHASE_CLOSE);
 		return 0;
 	}
@@ -858,6 +873,13 @@ void CInputLogin::GuildMarkUpload(DESC * d, const char* c_pData)
 	if (!(pkGuild = rkGuildMgr.FindGuild(p->gid)))
 	{
 		sys_err("MARK_SERVER: GuildMarkUpload: no guild. gid %u", p->gid);
+		return;
+	}
+
+	if (!IsMarkOwnerGuildMaster(d, p->gid))
+	{
+		sys_err("MARK_SERVER: GuildMarkUpload: gid %u not uploaded by its master, host %s", p->gid, d->GetHostName());
+		d->SetPhase(PHASE_CLOSE);
 		return;
 	}
 

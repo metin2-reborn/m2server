@@ -30,7 +30,6 @@
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
-#include <map>
 #include <memory>
 #include <sstream>
 #include <string>
@@ -592,9 +591,14 @@ dev_log(LOG_DEB0, "DC : '%s'", msg.c_str());
 			return 0;
 		}
 
-		// Always authenticate --;
-		sys_log(0, "MARK_SERVER: Login");
-		d->SetMarkLogin();
+		// Marks are public, so anyone may download them. Uploads need the key that the login of
+		// the player's game connection on this core issued (one core serves every map here); the
+		// client's first download starts before it has one, so a missing key means download only.
+		const TPacketCGMarkLogin * p = (const TPacketCGMarkLogin *) c_pData;
+		const bool bAuthenticated = DESC_MANAGER::instance().CheckRandomKey(p->handle, p->random_key);
+
+		sys_log(0, "MARK_SERVER: Login%s", bAuthenticated ? "" : " (download only)");
+		d->SetMarkLogin(bAuthenticated ? p->handle : 0);
 		d->SetPhase(PHASE_LOGIN);
 		return 0;
 	}

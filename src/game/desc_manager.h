@@ -56,6 +56,8 @@ class DESC_MANAGER : public singleton<DESC_MANAGER>
 		const DESC_SET &	GetClientSet();
 
 		uint32_t			MakeRandomKey(uint32_t dwHandle);
+		// True when dwKey is the mark key issued to the live connection dwHandle.
+		bool			CheckRandomKey(uint32_t dwHandle, uint32_t dwKey);
 
 		uint32_t			CreateLoginKey(DESC * d);
 		DESC *			FindByLoginKey(uint32_t dwKey);

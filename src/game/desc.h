@@ -142,9 +142,11 @@ class DESC : public net::connection_handler
 		void			SetAdminMode();
 		bool			IsAdminMode();		// Can admin commands be used during the Handshake?
 
-		// A guild mark connection (HEADER_CG_MARK_LOGIN): unencrypted, mark packets only.
-		void			SetMarkLogin()		{ m_bMarkLogin = true; }
+		// A guild mark connection (HEADER_CG_MARK_LOGIN): unencrypted, mark packets only. It belongs
+		// to the game connection with handle dwOwnerHandle, whose login issued the random key.
+		void			SetMarkLogin(uint32_t dwOwnerHandle)	{ m_bMarkLogin = true; m_dwMarkOwnerHandle = dwOwnerHandle; }
 		bool			IsMarkLogin() const	{ return m_bMarkLogin; }
+		uint32_t		GetMarkOwnerHandle() const	{ return m_dwMarkOwnerHandle; }
 
 		void			SetPong(bool b);
 		bool			IsPong();
@@ -205,6 +207,7 @@ class DESC : public net::connection_handler
 
 		bool			m_bAdminMode; // Can admin commands be used during the Handshake?
 		bool			m_bMarkLogin;
+		uint32_t		m_dwMarkOwnerHandle;
 		bool			m_bPong;
 
 		int			m_iCurrentSequence;
