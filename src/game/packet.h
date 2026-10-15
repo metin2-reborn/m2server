@@ -98,7 +98,6 @@ enum
 	HEADER_CG_LOGIN5_OPENID			= 116,	//OpenID : receives the OpenID auth key from the client.
 
 //	HEADER_CG_ROULETTE				= 200,
-//	HEADER_CG_RUNUP_MATRIX_ANSWER	= 201,
 
 	//
 
@@ -220,7 +219,6 @@ enum
 
 	HEADER_GC_NPC_POSITION			= 115,
 
-	HEADER_GC_MATRIX_CARD			= 116,
 	HEADER_GC_REFINE_INFORMATION		= 119,
 	HEADER_GC_CHANNEL				= 121,
 
@@ -478,15 +476,7 @@ struct TPacketCGLogin5 {
 	uint32_t	adwClientKey[4];
 };
 
-typedef struct packet_matrix_card
-{
-	uint8_t	bHeader;
-	uint32_t	dwRows;
-	uint32_t	dwCols;
-} TPacketGCMatrixCard;
-
-typedef struct command_player_select
-{
+struct TPacketCGPlayerSelect {
 	uint8_t	header;
 	uint8_t	index;
 };
@@ -1734,13 +1724,6 @@ struct TPacketGCDamageInfo {
 	uint32_t dwVID;
 	uint8_t flag;
 	int damage;
-};
-
-enum 
-{
-	RUNUP_MATRIX_ANSWER_MAX_LEN = 4,
-	RUNUP_MATRIX_QUIZ_MAX_LEN = 8 ,
-
 };
 
 struct TPacketGGSiege {

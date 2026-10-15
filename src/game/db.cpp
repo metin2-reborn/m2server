@@ -9,7 +9,6 @@
 #include "input.h"
 #include "item.h"
 #include "login_data.h"
-#include "matrix_card.h"
 #include "packet.h"
 #include "spam.h"
 #include "typedef.h"
@@ -261,37 +260,7 @@ void DBManager::LoginPrepare(DESC * d, uint32_t * pdwClientKey, int * paiPremium
 
 	InsertLoginData(pkLD);
 
-	if (*d->GetMatrixCode())
-	{
-		uint32_t rows = 0, cols = 0;
-		MatrixCardRndCoordinate(rows, cols);
-
-		d->SetMatrixCardRowsAndColumns(rows, cols);
-
-		TPacketGCMatrixCard pm;
-
-		pm.bHeader = HEADER_GC_MATRIX_CARD;
-		pm.dwRows = rows;
-		pm.dwCols = cols;
-
-		d->Packet(&pm, sizeof(TPacketGCMatrixCard));
-
-		sys_log(0, "MATRIX_QUERY: %s %c%d %c%d %c%d %c%d %s", 
-				r.login,
-				MATRIX_CARD_ROW(rows, 0) + 'A',
-				MATRIX_CARD_COL(cols, 0) + 1,
-				MATRIX_CARD_ROW(rows, 1) + 'A',
-				MATRIX_CARD_COL(cols, 1) + 1,
-				MATRIX_CARD_ROW(rows, 2) + 'A',
-				MATRIX_CARD_COL(cols, 2) + 1,
-				MATRIX_CARD_ROW(rows, 3) + 'A',
-				MATRIX_CARD_COL(cols, 3) + 1,
-				d->GetMatrixCode());
-	}
-	else
-	{
-		SendAuthLogin(d);
-	}
+	SendAuthLogin(d);
 }
 
 void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
@@ -326,10 +295,9 @@ void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
 					MYSQL_ROW row = mysql_fetch_row(pMsg->Get()->pSQLResult);
 					int col = 0;
 
-					// PASSWORD('%s'), password, securitycode, social_id, id, status
+					// PASSWORD('%s'), password, social_id, id, status
 					char szEncrytPassword[45 + 1];
 					char szPassword[45 + 1];
-					char szMatrixCode[MATRIX_CODE_MAX_LEN + 1];
 					char szSocialID[SOCIAL_ID_MAX_LEN + 1];
 					char szStatus[ACCOUNT_STATUS_MAX_LEN + 1];
 					uint32_t dwID = 0;
@@ -351,16 +319,6 @@ void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
 				   	}
 				
 					strlcpy(szPassword, row[col++], sizeof(szPassword));
-
-					if (!row[col]) 
-					{
-						*szMatrixCode = '\0'; 
-						col++;
-					}
-					else
-					{
-						strlcpy(szMatrixCode, row[col++], sizeof(szMatrixCode));
-					}
 
 					if (!row[col])
 				   	{ 
@@ -466,7 +424,6 @@ void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
 						strlcpy(r.social_id, szSocialID, sizeof(r.social_id));
 						DESC_MANAGER::instance().ConnectAccount(r.login, d);
 
-						d->SetMatrixCode(szMatrixCode);
 
 						LoginPrepare(d, pinfo->adwClientKey, aiPremiumTimes);
 						sys_log(0, "QID_AUTH_LOGIN: SUCCESS %s", pinfo->login);
@@ -501,10 +458,9 @@ void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
 					MYSQL_ROW row = mysql_fetch_row(pMsg->Get()->pSQLResult);
 					int col = 0;
 
-					// PASSWORD('%s'), password, securitycode, social_id, id, status
+					// PASSWORD('%s'), password, social_id, id, status
 					char szEncrytPassword[45 + 1];
 					char szPassword[45 + 1];
-					char szMatrixCode[MATRIX_CODE_MAX_LEN + 1];
 					char szSocialID[SOCIAL_ID_MAX_LEN + 1];
 					char szStatus[ACCOUNT_STATUS_MAX_LEN + 1];
 					uint32_t dwID = 0;
@@ -526,16 +482,6 @@ void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
 				   	}
 				
 					strlcpy(szPassword, row[col++], sizeof(szPassword));
-
-					if (!row[col]) 
-					{
-						*szMatrixCode = '\0'; 
-						col++;
-					}
-					else
-					{
-						strlcpy(szMatrixCode, row[col++], sizeof(szMatrixCode));
-					}
 
 					if (!row[col])
 				   	{ 
@@ -647,7 +593,6 @@ void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
 						strlcpy(r.social_id, szSocialID, sizeof(r.social_id));
 						DESC_MANAGER::instance().ConnectAccount(r.login, d);
 
-						d->SetMatrixCode(szMatrixCode);
 
 						LoginPrepare(d, pinfo->adwClientKey, aiPremiumTimes);
 						sys_log(0, "QID_AUTH_LOGIN_OPENID: SUCCESS %s", pinfo->login);
@@ -807,7 +752,7 @@ void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
 					sys_log(0, "[AUTH_BRAZIL] : Succeed to create a new account %s", pinfo->login) ;
 
 					ReturnQuery(QID_AUTH_LOGIN, qi->dwIdent, pinfo,
-							"SELECT PASSWORD('%s'),password,securitycode,social_id,id,status,availDt - NOW() > 0,"
+							"SELECT PASSWORD('%s'),password,social_id,id,status,availDt - NOW() > 0,"
 							"UNIX_TIMESTAMP(silver_expire),"
 							"UNIX_TIMESTAMP(gold_expire),"
 							"UNIX_TIMESTAMP(safebox_expire),"
@@ -838,7 +783,7 @@ void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
 					sys_log(0, "[AUTH_JAPAN] : Succeed to create a new account %s", pinfo->login) ;
 
 					ReturnQuery(QID_AUTH_LOGIN_OPENID, qi->dwIdent, pinfo,
-							"SELECT PASSWORD('%s'),password,securitycode,social_id,id,status,availDt - NOW() > 0,"
+							"SELECT PASSWORD('%s'),password,social_id,id,status,availDt - NOW() > 0,"
 							"UNIX_TIMESTAMP(silver_expire),"
 							"UNIX_TIMESTAMP(gold_expire),"
 							"UNIX_TIMESTAMP(safebox_expire),"

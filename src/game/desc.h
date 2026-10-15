@@ -150,12 +150,6 @@ class DESC : public net::connection_handler
 
 		void			SendLoginSuccessPacket();
 
-		void			SetMatrixCode(const char * c_psz) { m_stMatrixCode = c_psz; }
-		const char *		GetMatrixCode() { return m_stMatrixCode.c_str(); }
-
-		void			SetMatrixCardRowsAndColumns(uint32_t rows, uint32_t cols);
-
-
 		void			SetLoginKey(uint32_t dwKey);
 		void			SetLoginKey(CLoginKey * pkKey);
 		uint32_t			GetLoginKey();
@@ -218,7 +212,6 @@ class DESC : public net::connection_handler
 		uint32_t                   m_dwFileCRC;
 
 		std::string		m_stClientVersion;
-		std::string		m_stMatrixCode;
 
 		std::string		m_Login;
 

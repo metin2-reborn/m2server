@@ -92,8 +92,6 @@ inline constexpr int BELT_INVENTORY_SLOT_COUNT = BELT_INVENTORY_SLOT_WIDTH * BEL
 +------------------------------------------------------+ ??
 */
 
-inline constexpr int MATRIX_CODE_MAX_LEN = 192;
-inline constexpr int MATRIX_ANSWER_MAX_LEN = 8;
 
 enum EWearPositions {
     WEAR_BODY,         // 0

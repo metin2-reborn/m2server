@@ -675,10 +675,6 @@ void DESC::SendLoginSuccessPacket()
 	Packet(&p, sizeof(TPacketGCLoginSuccess));
 }
 
-void DESC::SetMatrixCardRowsAndColumns(uint32_t rows, uint32_t cols)
-{
-}
-
 void DESC::SetLoginKey(uint32_t dwKey)
 {
 	m_dwLoginKey = dwKey;
