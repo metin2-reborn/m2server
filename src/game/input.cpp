@@ -16,7 +16,6 @@
 #include "packet_info.h"
 #include "priv_manager.h"
 #include "questmanager.h"
-#include "TrafficProfiler.h"
 #include "typedef.h"
 
 #include <common/length.h>
@@ -112,11 +111,6 @@ bool CInputProcessor::Process(DESC * lpDesc, const void * c_pvOrig, int iBytes, 
 			lpDesc->Log("%s %d", c_pszName, iPacketLen);
 			m_pPacketInfo->End();
 		}
-
-		// TRAFFIC_PROFILER
-		if (g_bTrafficProfileOn)
-			TrafficProfiler::instance().Report(TrafficProfiler::IODIR_INPUT, bHeader, iPacketLen);
-		// END_OF_TRAFFIC_PROFILER
 
 		if (bHeader == HEADER_CG_PONG)
 			sys_log(0, "PONG! %u %u", m_pPacketInfo->IsSequence(bHeader), *(uint8_t *) (c_pData + iPacketLen - sizeof(uint8_t)));

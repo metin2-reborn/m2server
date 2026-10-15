@@ -54,7 +54,6 @@
 #include "target.h"
 #include "text_file_loader.h"
 #include "threeway_war.h"
-#include "TrafficProfiler.h"
 #include "typedef.h"
 #include "war_map.h"
 #include "wedding.h"
@@ -88,9 +87,6 @@
 
 // Always check the server key when testing on Windows
 
-// TRAFFIC_PROFILER
-static const uint32_t	TRAFFIC_PROFILE_FLUSH_CYCLE = 3600;	///< TrafficProfiler flush cycle. Every hour
-// END_OF_TRAFFIC_PROFILER
 
 volatile int	num_events_called = 0;
 
@@ -303,7 +299,6 @@ int main(int argc, char **argv)
 
 	DESC_MANAGER	desc_manager;
 
-	TrafficProfiler	trafficProfiler;
 	CTableBySkill SkillPowerByLevel;
 	CPolymorphUtils polymorph_utils;
 	CBattleArena	ba;
@@ -338,8 +333,6 @@ int main(int argc, char **argv)
 	Blend_Item_init();
 	ani_init();
 
-	if ( g_bTrafficProfileOn )
-		TrafficProfiler::instance().Initialize( TRAFFIC_PROFILE_FLUSH_CYCLE, "ProfileLog" );
 
 	if (g_bAuthServer && !mark_server_ready()) thecore_shutdown();
 	while (idle());
@@ -400,9 +393,6 @@ int main(int argc, char **argv)
 	sys_log(0, "<shutdown> Destroying building::CManager...");
 	building_manager.Destroy();
 
-	sys_log(0, "<shutdown> Flushing TrafficProfiler...");
-	trafficProfiler.Flush();
-
 	destroy();
 
 	return 0;
@@ -425,7 +415,7 @@ int start(int argc, char **argv)
 	bool bVerbose = false;
 	int ch;
 
-	while ((ch = getopt(argc, argv, "n:p:verl:tI:")) != -1)
+	while ((ch = getopt(argc, argv, "n:p:verl:I:")) != -1)
 	{
 		char* ep = nullptr;
 
@@ -478,12 +468,6 @@ int start(int argc, char **argv)
 			case 'r':
 				g_bNoRegen = true;
 				break;
-
-				// TRAFFIC_PROFILER
-			case 't':
-				g_bTrafficProfileOn = true;
-				break;
-				// END_OF_TRAFFIC_PROFILER
 		}
 	}
 

@@ -13,7 +13,6 @@ PING_EVENT_SECOND_CYCLE: 180
 ADMINPAGE_PASSWORD: metin2adminpass
 ADMINPAGE_IP: 127.0.0.1
 AUTH_SERVER: master
-TRAFFIC_PROFILE: 
 TEST_SERVER: 0
 #BIND_IP: Your Private/Internal IPv4 address
 #PROXY_IP: Your Public/External IPv4 address

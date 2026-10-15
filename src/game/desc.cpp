@@ -11,7 +11,6 @@
 #include "locale.hpp"
 #include "packet.h"
 #include "sequence.h"
-#include "TrafficProfiler.h"
 #include "typedef.h"
 #include "utils.h"
 
@@ -302,11 +301,6 @@ void DESC::Packet(const void * c_pvData, int iSize)
 		c_pvData = m_bufferedOutput.data();
 		iSize = (int) m_bufferedOutput.size();
 	}
-
-	// TRAFFIC_PROFILE
-	if (g_bTrafficProfileOn)
-		TrafficProfiler::instance().Report(TrafficProfiler::IODIR_OUTPUT, *(uint8_t *) c_pvData, iSize);
-	// END_OF_TRAFFIC_PROFILER
 
 	// The output limit closes connections that stopped reading.
 	const std::span<uint8_t> out = m_connection->prepare(iSize);

@@ -57,10 +57,6 @@ int		ping_event_second_cycle = passes_per_sec * 60;
 bool	g_bNoMoreClient = false;
 bool	g_bNoRegen = false;
 
-// TRAFFIC_PROFILER
-bool		g_bTrafficProfileOn = false;
-// END_OF_TRAFFIC_PROFILER
-
 int			test_server = 0;
 int			speed_server = 0;
 bool		distribution_test_server = false;
@@ -817,12 +813,6 @@ void config_init(const string& st_localeServiceName)
 		TOKEN("no_regen")
 		{
 			g_bNoRegen = true;
-			continue;
-		}
-
-		TOKEN("traffic_profile")
-		{
-			g_bTrafficProfileOn = true;
 			continue;
 		}
 
