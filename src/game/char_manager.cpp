@@ -25,9 +25,6 @@
 #include <libthecore/log.h>
 #include <libthecore/utils.h>
 
-#include <boost/bind/bind.hpp>
-#include <boost/bind/placeholders.hpp>
-
 #include <algorithm>
 #include <cassert>
 #include <cstdint>
@@ -651,7 +648,8 @@ void CHARACTER_MANAGER::Update(int iPulse)
 			// copy container
 			CHARACTER_VECTOR v;
 			v.reserve(m_map_pkPCChr.size());
-			transform(m_map_pkPCChr.begin(), m_map_pkPCChr.end(), back_inserter(v), boost::bind(&NAME_MAP::value_type::second, boost::placeholders::_1));
+			for (const auto & [name, chr] : m_map_pkPCChr)
+				v.push_back(chr);
 			if (0 == (iPulse % PASSES_PER_SEC(5)))
 			{
 				FuncUpdateAndResetChatCounter f;

@@ -199,11 +199,11 @@ int event_count()
 	return cxx_q.Size();
 }
 
-void intrusive_ptr_add_ref(EVENT* p) {
+void event_add_ref(EVENT* p) {
 	++(p->ref_count);
 }
 
-void intrusive_ptr_release(EVENT* p) {
+void event_release(EVENT* p) {
 	if ( --(p->ref_count) == 0 ) {
 		delete p;
 	}

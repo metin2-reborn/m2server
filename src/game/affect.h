@@ -13,9 +13,6 @@ class CAffect
 		uint32_t   dwFlag;
 		int32_t	lDuration;
 		int32_t	lSPCost;
-
-		static CAffect* Acquire();
-		static void Release(CAffect* p);
 };
 
 enum EAffectTypes

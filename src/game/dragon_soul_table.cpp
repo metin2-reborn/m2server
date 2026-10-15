@@ -7,7 +7,6 @@
 #include <common/length.h>
 #include <libthecore/log.h>
 
-#include <boost/lexical_cast.hpp>
 
 #include <cstdint>
 #include <set>
@@ -801,7 +800,7 @@ bool DragonSoulTable::GetRefineStrengthValues(uint8_t ds_type, uint8_t material_
 			stDragonSoulName.c_str(), g_astMaterialName[material_type].c_str());
 		return false;
 	}
-	std::string stStrengthIdx = boost::lexical_cast <std::string> ((int)strength_idx);
+	std::string stStrengthIdx = std::to_string(static_cast<int>(strength_idx));
 
 	if (!m_pRefineStrengthTableNode->GetGroupValue(stDragonSoulName, g_astMaterialName[material_type], stStrengthIdx, prob))
 	{

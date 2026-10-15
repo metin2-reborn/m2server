@@ -15,8 +15,6 @@
 #include <libthecore/log.h>
 #include <libthecore/utils.h>
 
-#include <boost/lexical_cast.hpp>
-
 #include <algorithm>
 #include <cfloat>
 #include <climits>
@@ -404,7 +402,7 @@ bool DSManager::ExtractDragonHeart(CHARACTER * ch, CItem * pItem, CItem * pExtra
 		pDH->SetSocket(ITEM_SOCKET_CHARGING_AMOUNT_IDX, iCharge);
 		ch->AutoGiveItem(pDH, true);
 
-		std::string s = boost::lexical_cast <std::string> (iCharge);
+		std::string s = std::to_string(iCharge);
 		s += "%s";
 		LogManager::instance().ItemLog(ch, pItem, "DS_HEART_EXTRACT_SUCCESS", s.c_str());
 		ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("용심 추출에 성공하였습니다."));

@@ -13,7 +13,7 @@ pkg_check_modules(LZO2 REQUIRED IMPORTED_TARGET lzo2)
 
 target_link_libraries(server
     PRIVATE common game net poly sql thecore
-    PRIVATE boost lua50 lzo2 mariadb monocypher stb
+    PRIVATE lua50 lzo2 mariadb monocypher stb
     ZLIB::ZLIB OpenSSL::Crypto
 )
 

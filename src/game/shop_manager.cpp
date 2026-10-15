@@ -23,8 +23,6 @@
 #include <libgame/grid.h>
 #include <libthecore/log.h>
 
-#include <boost/algorithm/string/predicate.hpp>
-
 #include <algorithm>
 #include <cctype>
 #include <cstdint>
@@ -33,6 +31,8 @@
 #include <map>
 #include <string>
 #include <vector>
+
+#include <strings.h>
 
 CShopManager::CShopManager()
 {
@@ -383,11 +383,11 @@ bool ConvertToShopItemTable(CGroupNode* pNode, TShopTableEx& shopTable)
 		stCoinType = "Gold";
 	}
 	
-	if (boost::iequals(stCoinType, "Gold"))
+	if (strcasecmp(stCoinType.c_str(), "Gold") == 0)
 	{
 		shopTable.coinType = SHOP_COIN_TYPE_GOLD;
 	}
-	else if (boost::iequals(stCoinType, "SecondaryCoin"))
+	else if (strcasecmp(stCoinType.c_str(), "SecondaryCoin") == 0)
 	{
 		shopTable.coinType = SHOP_COIN_TYPE_SECONDARY_COIN;
 	}
@@ -437,11 +437,11 @@ bool ConvertToShopItemTable(CGroupNode* pNode, TShopTableEx& shopTable)
 		stSort = "None";
 	}
 
-	if (boost::iequals(stSort, "Asc"))
+	if (strcasecmp(stSort.c_str(), "Asc") == 0)
 	{
 		std::sort(shopItems.begin(), shopItems.end(), CompareShopItemName);
 	}
-	else if(boost::iequals(stSort, "Desc"))
+	else if(strcasecmp(stSort.c_str(), "Desc") == 0)
 	{
 		std::sort(shopItems.rbegin(), shopItems.rend(), CompareShopItemName);
 	}

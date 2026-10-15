@@ -48,7 +48,7 @@ To build natively:
 - CMake 3.25+ and Ninja
 - Development packages for OpenSSL, zlib, LZO 2, MariaDB Connector/C (3.4+) and pkg-config
 
-Asio, Boost (headers), Lua 5.0, Monocypher and stb are downloaded by CMake during configuration.
+Asio, Lua 5.0, Monocypher and stb are downloaded by CMake during configuration.
 
 On Debian or Ubuntu:
 

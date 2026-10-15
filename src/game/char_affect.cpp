@@ -205,7 +205,7 @@ void CHARACTER::ClearAffect(bool bSave)
 		ComputeAffect(pkAff, false);
 
 		it = m_list_pkAffect.erase(it);
-		CAffect::Release(pkAff);
+		delete pkAff;
 	}
 
 	if (afOld != m_afAffectFlag ||
@@ -317,7 +317,7 @@ int CHARACTER::ProcessAffect()
 				SendAffectRemovePacket(GetDesc(), GetPlayerID(), pkAff->dwType, pkAff->bApplyOn);
 			}
 
-			CAffect::Release(pkAff);
+			delete pkAff;
 
 			continue;
 		}
@@ -496,7 +496,7 @@ void CHARACTER::LoadAffect(uint32_t dwCount, TPacketAffectElement * pElements)
 			sys_log(0, "Load Affect : Affect %s %d %d", GetName(), pElements->dwType, pElements->bApplyOn );
 		}
 
-		CAffect* pkAff = CAffect::Acquire();
+		CAffect* pkAff = new CAffect{};
 		m_list_pkAffect.push_back(pkAff);
 
 		pkAff->dwType		= pElements->dwType;
@@ -579,7 +579,7 @@ bool CHARACTER::AddAffect(uint32_t dwType, uint8_t bApplyOn, int32_t lApplyValue
 		//
 		// NOTE: So multiple effects can be attached with the same type.
 		// 
-		pkAff = CAffect::Acquire();
+		pkAff = new CAffect{};
 		m_list_pkAffect.push_back(pkAff);
 
 	}
@@ -708,7 +708,7 @@ bool CHARACTER::RemoveAffect(CAffect * pkAff)
 		SendAffectRemovePacket(GetDesc(), GetPlayerID(), pkAff->dwType, pkAff->bApplyOn);
 	}
 
-	CAffect::Release(pkAff);
+	delete pkAff;
 	return true;
 }
 
