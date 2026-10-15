@@ -77,6 +77,25 @@ TEST(utf8_truncation_keeps_whole_characters) {
     CHECK_EQ(std::string(buffer), std::string("가나"));
 }
 
+TEST(utf8_strnlcpy_bounds_unterminated_fields) {
+    // A packet field filled to the brim, with no terminator.
+    const char field[4] = {'a', 'b', 'c', 'd'};
+    char buffer[16];
+    CHECK_EQ(utf8_strnlcpy(buffer, sizeof(buffer), field, sizeof(field)), size_t{4});
+    CHECK_EQ(std::string(buffer), std::string("abcd"));
+
+    // Truncation keeps whole UTF-8 characters.
+    char small[5];
+    CHECK_EQ(utf8_strnlcpy(small, sizeof(small), "가나", 6), size_t{3});
+    CHECK_EQ(std::string(small), std::string("가"));
+
+    // A terminator inside the field ends the copy.
+    CHECK_EQ(utf8_strnlcpy(buffer, sizeof(buffer), "hi\0junk", 7), size_t{2});
+    CHECK_EQ(std::string(buffer), std::string("hi"));
+
+    CHECK_EQ(utf8_strnlcpy(buffer, 0, "x", 1), size_t{0});
+}
+
 TEST(number_stays_in_range) {
     for (int i = 0; i < 1000; ++i) {
         const int value = number(1, 6);

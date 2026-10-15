@@ -152,6 +152,17 @@ auto utf8_truncated_size(const char *s, size_t len, size_t max) -> size_t {
     return pos;
 }
 
+auto utf8_strnlcpy(char *dst, size_t dst_size, const char *src, size_t src_max) -> size_t {
+    if (dst_size == 0) {
+        return 0;
+    }
+
+    const size_t n = utf8_truncated_size(src, strnlen(src, src_max), dst_size - 1);
+    std::memcpy(dst, src, n);
+    dst[n] = '\0';
+    return n;
+}
+
 auto utf8_strlcpy(char *dst, const char *src, size_t size) -> size_t {
     const size_t src_len = std::strlen(src);
 
