@@ -161,7 +161,8 @@ class CClientManager : public singleton<CClientManager>
 
 	void			SendNotice(const char * c_pszFormat, ...);
 
-	char*			GetCommand(char* str);					//Function that gets commands for the German gift feature
+	// Tells the game about an item award whose why column starts with "[GIFT]" (German gift feature).
+	void			InformGiftAward(const char * login, const char * why, uint32_t vnum);
 	void			ItemAward(CPeer * peer, char* login);	//German gift feature
 
     protected:

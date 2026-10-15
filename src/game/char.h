@@ -1909,7 +1909,7 @@ class CHARACTER : public CEntity, public CFSM, public CHorseRider
 		char*		 GetItemAward_cmd() { return itemAward_cmd;	  }
 		//bool		 GetItemAward_flag() { return itemAward_flag; }
 		void		 SetItemAward_vnum(unsigned int vnum) { itemAward_vnum = vnum; }
-		void		 SetItemAward_cmd(char* cmd) { strcpy(itemAward_cmd,cmd); }
+		void		 SetItemAward_cmd(const char* cmd) { strlcpy(itemAward_cmd, cmd, sizeof(itemAward_cmd)); }
 		//void		 SetItemAward_flag(bool flag) { itemAward_flag = flag; }
 
 	public:

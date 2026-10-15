@@ -453,7 +453,7 @@ bool DESC::HandshakeProcess(uint32_t dwTime, int32_t lDelta, bool bInfiniteRetry
 		if (GetCharacter())
 			sys_log(0, "Handshake: client_time %u server_time %u name: %s", m_dwClientTime, dwCurTime, GetCharacter()->GetName());
 		else
-			sys_log(0, "Handshake: client_time %u server_time %u", m_dwClientTime, dwCurTime, lDelta);
+			sys_log(0, "Handshake: client_time %u server_time %u delta %ld", m_dwClientTime, dwCurTime, static_cast<long>(lDelta));
 
 		m_dwClientTime = dwCurTime;
 		m_bHandshaking = false;

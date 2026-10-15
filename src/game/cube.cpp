@@ -715,7 +715,7 @@ void Cube_MakeCubeInformationText()
 				for (TCubeValueVector::iterator iter = materialInfo.complicateMaterial.begin(); materialInfo.complicateMaterial.end() != iter; ++iter)
 				{
 					char tempBuffer[128];
-					sprintf(tempBuffer, "%d,%d|", iter->vnum, iter->count);
+					snprintf(tempBuffer, sizeof(tempBuffer), "%d,%d|", iter->vnum, iter->count);
 					
 					infoText += std::string(tempBuffer);
 				}
@@ -730,7 +730,7 @@ void Cube_MakeCubeInformationText()
 			for (TCubeValueVector::iterator iter = materialInfo.material.begin(); materialInfo.material.end() != iter; ++iter)
 			{
 				char tempBuffer[128];
-				sprintf(tempBuffer, "%d,%d&", iter->vnum, iter->count);
+				snprintf(tempBuffer, sizeof(tempBuffer), "%d,%d&", iter->vnum, iter->count);
 				infoText += std::string(tempBuffer);
 			}
 
@@ -740,7 +740,7 @@ void Cube_MakeCubeInformationText()
 			if (0 < materialInfo.gold)
 			{
 				char temp[128];
-				sprintf(temp, "%d", materialInfo.gold);
+				snprintf(temp, sizeof(temp), "%d", materialInfo.gold);
 				infoText += std::string("/") + temp;
 			}
 
@@ -859,7 +859,7 @@ void Cube_request_result_list(CHARACTER * ch)
 		{
 			const SCubeMaterialInfo& materialInfo = *iter;
 			char temp[128];
-			sprintf(temp, "%d,%d", materialInfo.reward.vnum, materialInfo.reward.count);
+			snprintf(temp, sizeof(temp), "%d,%d", materialInfo.reward.vnum, materialInfo.reward.count);
 
 			resultText += std::string(temp) + "/";
 		}

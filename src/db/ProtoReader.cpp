@@ -42,14 +42,14 @@ static string* StringSplit(string strOrigin, string strTok)
     //Repeat until strTok is found
     while ((cutAt = strOrigin.find_first_of(strTok)) != strOrigin.npos)
     {
-       if (cutAt > 0)  //If the cut position is greater than 0 (on success)
+       if (cutAt > 0 && index < 30)  //If the cut position is greater than 0 (on success)
        {
             strResult[index++] = strOrigin.substr(0, cutAt);  //Add to the result array
        }
        strOrigin = strOrigin.substr(cutAt+1);  //The source becomes the remainder after the cut part
     }
 
-    if(strOrigin.length() > 0)  //If any of the source is left
+    if(strOrigin.length() > 0 && index < 30)  //If any of the source is left
     {
         strResult[index++] = strOrigin.substr(0, cutAt);  //Add the remainder to the result array
     }

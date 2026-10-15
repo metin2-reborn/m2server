@@ -76,7 +76,7 @@ void Command_ApplyAffect(CHARACTER * ch, const char* argument, const char* affec
 	char arg1[256];
 	one_argument(argument, arg1, sizeof(arg1));
 
-	sys_log(0, arg1);
+	sys_log(0, "%s", arg1);
 
 	if (!*arg1)
 	{

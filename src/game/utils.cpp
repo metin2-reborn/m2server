@@ -142,7 +142,7 @@ int CalculateDuration(int iSpd, int iDur)
 }
 double uniform_random(double a, double b)
 {
-	return thecore_random() / (RAND_MAX + 1.f) * (b - a) + a;
+	return thecore_random() / (RAND_MAX + 1.0) * (b - a) + a;
 }
 
 float gauss_random(float avg, float sigma)

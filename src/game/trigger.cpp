@@ -12,6 +12,7 @@
 
 #include <cstdint>
 #include <cstdlib>
+#include <limits>
 
 int	OnClickShop(TRIGGERPARAM);
 int	OnClickTalk(TRIGGERPARAM);
@@ -58,7 +59,7 @@ class FuncFindMobVictim
 	public:
 		FuncFindMobVictim(CHARACTER * pkChr, int iMaxDistance) :
 			m_pkChr(pkChr),
-			m_iMinDistance(~(1L << 31)),
+			m_iMinDistance(std::numeric_limits<int>::max()),
 			m_iMaxDistance(iMaxDistance),
 			m_lx(pkChr->GetX()),
 			m_ly(pkChr->GetY()),

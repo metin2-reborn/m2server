@@ -423,33 +423,20 @@ void CClientManager::ItemAward(CPeer * peer,char* login)
 	while(it != pSet->end() )
 	{				
 		TItemAward * pItemAward = *(it++);		
-		char* whyStr = pItemAward->szWhy;	//Read the why column
-		char cmdStr[100] = "";	//Copy the value read from the why column into a temporary string
-		strcpy(cmdStr,whyStr);	//Because tokenizing while extracting the command would also tokenize the original
-		char command[20] = "";
-		strcpy(command,GetCommand(cmdStr));	// Get command		
-		if( !(strcmp(command,"GIFT") ))	// If command is GIFT
-		{
-			TPacketItemAwardInfromer giftData;
-			strcpy(giftData.login, pItemAward->szLogin);	//Copy login ID
-			strcpy(giftData.command, command);					//Copy command
-			giftData.vnum = pItemAward->dwVnum;				//Copy item vnum too
-			ForwardPacket(HEADER_DG_ITEMAWARD_INFORMER,&giftData,sizeof(TPacketItemAwardInfromer));
-		}
+		InformGiftAward(pItemAward->szLogin, pItemAward->szWhy, pItemAward->dwVnum);
 	}
 }
-char* CClientManager::GetCommand(char* str)
+
+void CClientManager::InformGiftAward(const char * login, const char * why, uint32_t vnum)
 {
 	char command[20] = "";
 	char* tok;
 
-	if( str[0] == '[' )
-	{
-		tok = strtok(str,"]");			
-		strcat(command,&tok[1]);		
-	}
-
-	return command;
+	TPacketItemAwardInfromer giftData{};
+	strlcpy(giftData.login, login, sizeof(giftData.login));
+	strlcpy(giftData.command, "GIFT", sizeof(giftData.command));
+	giftData.vnum = vnum;
+	ForwardPacket(HEADER_DG_ITEMAWARD_INFORMER, &giftData, sizeof(giftData));
 }
 
 bool CreatePlayerTableFromRes(MYSQL_RES * res, TPlayerTable * pkTab)
@@ -592,9 +579,7 @@ void CClientManager::RESULT_COMPOSITE_PLAYER(CPeer * peer, SQLMsg * pMsg, uint32
 				
 				CLoginData* pLoginData1 = GetLoginDataByAID(temp1->account_id);	//				
 				//German gift feature
-				if( pLoginData1->GetAccountRef().login == nullptr)
-					break;
-				if( pLoginData1 == nullptr )
+				if (pLoginData1 == nullptr)
 					break;
 				sys_log(0,"info of pLoginData1 before call ItemAwardfunction %p",static_cast<void*>(pLoginData1));
 				ItemAward(peer,pLoginData1->GetAccountRef().login);

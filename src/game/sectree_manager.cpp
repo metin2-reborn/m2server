@@ -267,7 +267,7 @@ SECTREE_MAP * SECTREE_MANAGER::BuildSectreeFromSetting(TMapSetting & r_setting)
 	{
 		tree = new SECTREE;
 		tree->m_id.coord.x = ((r_setting.iBaseX + r_setting.iWidth) / SECTREE_SIZE);
-		tree->m_id.coord.y = ((r_setting.iBaseX + r_setting.iHeight) / SECTREE_SIZE) + 1;
+		tree->m_id.coord.y = ((r_setting.iBaseY + r_setting.iHeight) / SECTREE_SIZE) + 1;
 		pkMapSectree->Add(tree->m_id.package, tree);
 	}
 

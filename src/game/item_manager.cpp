@@ -712,8 +712,8 @@ bool ITEM_MANAGER::GetDropPct(CHARACTER * pkChr, CHARACTER * pkKiller, int& iDel
 
 	iRandRange = 4000000;
 	iRandRange = iRandRange * 100 / 
-		(100 + 
-		 CPrivManager::instance().GetPriv(pkKiller, PRIV_ITEM_DROP) + 
+		(100 +
+		 CPrivManager::instance().GetPriv(pkKiller, PRIV_ITEM_DROP) +
 		 pkKiller->IsEquipUniqueItem(UNIQUE_ITEM_DOUBLE_ITEM)?100:0);
 
 	if (distribution_test_server) iRandRange /= 3;
@@ -743,7 +743,7 @@ bool ITEM_MANAGER::CreateDropItem(CHARACTER * pkChr, CHARACTER * pkKiller, std::
 			continue;
 
 		int iPercent = (c_rInfo.m_iPercent * iDeltaPercent) / 100;
-		sys_log(3, "CreateDropItem %d ~ %d %d(%d)", c_rInfo.m_iLevelStart, c_rInfo.m_iLevelEnd, c_rInfo.m_dwVnum, iPercent, c_rInfo.m_iPercent);
+		sys_log(3, "CreateDropItem %d ~ %d %u %d(%d)", c_rInfo.m_iLevelStart, c_rInfo.m_iLevelEnd, c_rInfo.m_dwVnum, iPercent, c_rInfo.m_iPercent);
 
 		if (iPercent >= number(1, iRandRange))
 		{

@@ -162,8 +162,8 @@ void CArenaMap::SendArenaMapListTo(CHARACTER * pChar, uint32_t mapIdx)
 	for (; iter != m_listArena.end(); iter++)
 	{
 		pChar->ChatPacket(CHAT_TYPE_INFO, "ArenaMapInfo Map: %d stA(%d, %d) stB(%d, %d)", mapIdx, 
-				(CArena*)(*iter)->GetStartPointA().x, (CArena*)(*iter)->GetStartPointA().y,
-				(CArena*)(*iter)->GetStartPointB().x, (CArena*)(*iter)->GetStartPointB().y);
+				static_cast<int>((*iter)->GetStartPointA().x), static_cast<int>((*iter)->GetStartPointA().y),
+				static_cast<int>((*iter)->GetStartPointB().x), static_cast<int>((*iter)->GetStartPointB().y));
 	}
 }
 

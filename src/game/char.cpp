@@ -5129,7 +5129,7 @@ bool CHARACTER::Follow(CHARACTER * pkChr, float fMinDistance)
 {
 	if (IsPC())
 	{
-		sys_err("CHARACTER::Follow : PC cannot use this method", GetName());
+		sys_err("CHARACTER::Follow : PC cannot use this method (%s)", GetName());
 		return false;
 	}
 

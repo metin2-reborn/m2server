@@ -159,7 +159,7 @@ bool CSpeedServerEmpireExp::LoadExpTable()
 		if (one_line[0]=='#')
 			continue;
 
-		strcpy(temp, one_line);
+		strlcpy(temp, one_line, sizeof(temp));
 
 		const char* token_string = strtok(one_line, delim);
 

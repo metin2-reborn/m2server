@@ -331,7 +331,7 @@ int CInputAuth::auth_OpenID(const char *authKey, const char *ipAddr, char *rID)
 
 	//Parse the result
 	char buffer[1024];
-	strcpy(buffer, reply);
+	strlcpy(buffer, reply, sizeof(buffer));
 
 	const char *delim = "\r\n";
 	char *v = strtok(buffer, delim);
@@ -384,7 +384,7 @@ int CInputAuth::auth_OpenID(const char *authKey, const char *ipAddr, char *rID)
 		}
 	}
 
-	strcpy(rID, id);
+	strlcpy(rID, id, LOGIN_MAX_LEN + 1);	// rID is the caller's returnID buffer
 
 	return 0;
 }

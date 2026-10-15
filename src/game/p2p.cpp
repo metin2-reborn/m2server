@@ -220,8 +220,8 @@ void P2P_MANAGER::Logout(const char * c_pszName)
 	if (!pkCCI)
 		return;
 
-	Logout(pkCCI);
 	sys_log(0, "P2P: Logout %s", c_pszName);
+	Logout(pkCCI);
 }
 
 CCI * P2P_MANAGER::FindByPID(uint32_t pid)

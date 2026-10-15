@@ -230,7 +230,7 @@ int Start()
 
 	if (CConfig::instance().GetValue("SQL_PLAYER", line, 256))
 	{
-		sscanf(line, " %s %s %s %s %d ", szAddr, szDB, szUser, szPassword, &iPort);
+		sscanf(line, " %63s %63s %63s %63s %d ", szAddr, szDB, szUser, szPassword, &iPort);
 		sys_log(0, "connecting to MySQL server (player)");
 
 		int iRetry = 5;
@@ -258,7 +258,7 @@ int Start()
 
 	if (CConfig::instance().GetValue("SQL_ACCOUNT", line, 256))
 	{
-		sscanf(line, " %s %s %s %s %d ", szAddr, szDB, szUser, szPassword, &iPort);
+		sscanf(line, " %63s %63s %63s %63s %d ", szAddr, szDB, szUser, szPassword, &iPort);
 		sys_log(0, "connecting to MySQL server (account)");
 
 		int iRetry = 5;
@@ -285,7 +285,7 @@ int Start()
 
 	if (CConfig::instance().GetValue("SQL_COMMON", line, 256))
 	{
-		sscanf(line, " %s %s %s %s %d ", szAddr, szDB, szUser, szPassword, &iPort);
+		sscanf(line, " %63s %63s %63s %63s %d ", szAddr, szDB, szUser, szPassword, &iPort);
 		sys_log(0, "connecting to MySQL server (common)");
 
 		int iRetry = 5;

@@ -28,7 +28,7 @@ void CGuildMarkManager::__DeleteImage(CGuildMarkImage * pkImgDel)
 CGuildMarkManager::CGuildMarkManager()
 {
 	// Build the set of remaining mark ids. (server only)
-	for (uint32_t i = 0; i < MAX_IMAGE_COUNT * CGuildMarkImage::MARK_TOTAL_COUNT; ++i)
+	for (uint32_t i = 0; i < MAX_IMAGE_COUNT * static_cast<uint32_t>(CGuildMarkImage::MARK_TOTAL_COUNT); ++i)
 		m_setFreeMarkID.insert(i);
 }
 
@@ -113,7 +113,7 @@ void CGuildMarkManager::LoadMarkImages()
 	{
 		uint32_t markID = it->second;
 
-		if (markID < MAX_IMAGE_COUNT * CGuildMarkImage::MARK_TOTAL_COUNT)
+		if (markID < MAX_IMAGE_COUNT * static_cast<uint32_t>(CGuildMarkImage::MARK_TOTAL_COUNT))
 			isMarkExists[markID / CGuildMarkImage::MARK_TOTAL_COUNT] = true;
 	}
 
@@ -161,7 +161,7 @@ CGuildMarkImage * CGuildMarkManager::__GetImage(uint32_t imgIdx)
 
 bool CGuildMarkManager::AddMarkIDByGuildID(uint32_t guildID, uint32_t markID)
 {
-	if (markID >= MAX_IMAGE_COUNT * CGuildMarkImage::MARK_TOTAL_COUNT)
+	if (markID >= MAX_IMAGE_COUNT * static_cast<uint32_t>(CGuildMarkImage::MARK_TOTAL_COUNT))
 		return false;
 
 	m_mapGID_MarkID.insert(std::map<uint32_t, uint32_t>::value_type(guildID, markID));

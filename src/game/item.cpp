@@ -808,7 +808,7 @@ bool CItem::EquipTo(CHARACTER * ch, uint8_t bWearCell)
 	// Dragon soul slot index is greater than WEAR_MAX_NUM.
 	if (IsDragonSoul())
 	{
-		if (bWearCell < WEAR_MAX_NUM || bWearCell >= WEAR_MAX_NUM + DRAGON_SOUL_DECK_MAX_NUM * DS_SLOT_MAX)
+		if (bWearCell < WEAR_MAX_NUM || bWearCell >= WEAR_MAX_NUM + DRAGON_SOUL_DECK_MAX_NUM * static_cast<int>(DS_SLOT_MAX))
 		{
 			sys_err("EquipTo: invalid dragon soul cell (this: #%d %s wearflag: %d cell: %d)", GetOriginalVnum(), GetName(), GetSubType(), bWearCell - WEAR_MAX_NUM);
 			return false;
@@ -846,7 +846,7 @@ bool CItem::EquipTo(CHARACTER * ch, uint8_t bWearCell)
 	 
 	for (int i = 0; i < WEAR_MAX_NUM; ++i)
 	{
-		if (item=m_pOwner->GetWear(i))
+		if ((item = m_pOwner->GetWear(i)))
 		{
 			if (item->GetImmuneFlag() != 0)
 				SET_BIT(dwImmuneFlag, item->GetImmuneFlag());
@@ -944,7 +944,7 @@ bool CItem::Unequip()
 	 
 	for (int i = 0; i < WEAR_MAX_NUM; ++i)
 	{
-		if (item=m_pOwner->GetWear(i))
+		if ((item = m_pOwner->GetWear(i)))
 		{
 			if (item->GetImmuneFlag() != 0)
 				SET_BIT(dwImmuneFlag, item->GetImmuneFlag());

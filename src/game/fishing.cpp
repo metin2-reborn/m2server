@@ -67,10 +67,6 @@ namespace fishing
 		MAX_FISHING_TIME_COUNT = 31,
 	};
 
-	enum
-	{
-	};
-
 	int aFishingTime[FISHING_TIME_COUNT][MAX_FISHING_TIME_COUNT] =
 	{
 		{   0,   0,   0,   0,   0,   2,   4,   8,  12,  16,  20,  22,  25,  30,  50,  80,  50,  30,  25,  22,  20,  16,  12,   8,   4,   2,   0,   0,   0,   0,   0 },

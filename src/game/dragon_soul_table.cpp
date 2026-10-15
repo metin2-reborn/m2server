@@ -888,7 +888,7 @@ bool DragonSoulTable::GetDragonSoulExtValues(uint8_t ds_type, uint8_t grade_idx,
 
 	if (!m_pDragonSoulExtTableNode->GetGroupValue(stDragonSoulName, g_astGradeName[grade_idx], "prob", prob))
 	{
-		sys_err ("Invalid Prob. DragonSoulGroup(%s) Grade(%s)", 
+		sys_err ("Invalid Prob. DragonSoulGroup(%s) Grade(%s)",
 			stDragonSoulName.c_str(), g_astGradeName[grade_idx].c_str(), g_astGradeName[grade_idx].c_str());
 		return false;
 	}

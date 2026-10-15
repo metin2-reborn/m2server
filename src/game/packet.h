@@ -720,10 +720,6 @@ struct TPacketGCPhase {
 	uint8_t	phase;
 };
 
-enum
-{
-};
-
 struct TPacketGCLoginSuccess {
 	uint8_t		bHeader;
 	TSimplePlayer	players[PLAYER_PER_ACCOUNT];
@@ -1338,10 +1334,6 @@ struct TPacketCGEmpire {
 struct TPacketGCEmpire {
 	uint8_t	bHeader;
 	uint8_t	bEmpire;
-};
-
-enum
-{
 };
 
 // Guild

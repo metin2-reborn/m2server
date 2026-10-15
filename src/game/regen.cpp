@@ -441,8 +441,6 @@ bool regen_do(const char* filename, int32_t lMapIndex, int base_x, int base_y, C
 	{
 		REGEN tmp;
 
-		memset(&tmp, 0, sizeof(tmp));
-
 		if (!read_line(fp, &tmp))
 			break;
 
@@ -453,8 +451,7 @@ bool regen_do(const char* filename, int32_t lMapIndex, int base_x, int base_y, C
 		{
 			if (!bOnce)
 			{
-				regen = new REGEN;
-				memcpy(regen, &tmp, sizeof(REGEN));
+				regen = new REGEN(tmp);
 			}
 			else
 				regen = &tmp;
@@ -540,8 +537,6 @@ bool regen_load_in_file(const char* filename, int32_t lMapIndex, int base_x, int
 	while (true)
 	{
 		REGEN tmp;
-
-		memset(&tmp, 0, sizeof(tmp));
 
 		if (!read_line(fp, &tmp))
 			break;
@@ -635,8 +630,6 @@ bool regen_load(const char* filename, int32_t lMapIndex, int base_x, int base_y)
 	{
 		REGEN tmp;
 
-		memset(&tmp, 0, sizeof(tmp));
-
 		if (!read_line(fp, &tmp))
 			break;
 
@@ -650,8 +643,7 @@ bool regen_load(const char* filename, int32_t lMapIndex, int base_x, int base_y)
 				CMobManager::instance().IncRegenCount(tmp.type, tmp.vnum, tmp.max_count, tmp.time);
 			}
 
-			regen = new REGEN;
-			memcpy(regen, &tmp, sizeof(REGEN));
+			regen = new REGEN(tmp);
 			INSERT_TO_TW_LIST(regen, regen_list, prev, next);
 
 			regen->lMapIndex = lMapIndex;

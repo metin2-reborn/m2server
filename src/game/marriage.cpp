@@ -336,7 +336,7 @@ namespace marriage
 			StopNearCheckEvent();
 			return;
 		}
-		sys_log(0, "NearCheck %u %u %d %d %d", m_pid1, m_pid2, IsNear(), isLastNear, byLastLovePoint, GetMarriagePoint());
+		sys_log(0, "NearCheck %u %u %d %d %d %d", m_pid1, m_pid2, IsNear(), isLastNear, byLastLovePoint, GetMarriagePoint());
 
 		if (IsNear() && !isLastNear)
 		{

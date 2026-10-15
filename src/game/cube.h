@@ -19,7 +19,7 @@ struct CUBE_VALUE
 	uint32_t	vnum;
 	int		count;
 
-	bool operator == (const CUBE_VALUE& b)
+	bool operator == (const CUBE_VALUE& b) const
 	{
 		return (this->count == b.count) && (this->vnum == b.vnum);
 	}

@@ -1509,7 +1509,7 @@ void CClientManager::UpdateItemCache()
 		if (c->CheckFlushTimeout())
 		{
 			if (g_test_server)
-				sys_log(0, "UpdateItemCache ==> Flush() vnum %d id owner %d", c->Get()->vnum, c->Get()->id, c->Get()->owner);
+				sys_log(0, "UpdateItemCache ==> Flush() vnum %d id %d owner %d", c->Get()->vnum, c->Get()->id, c->Get()->owner);
 
 			c->Flush();
 
@@ -2670,7 +2670,7 @@ int CClientManager::Process()
 			}
 			else
 			{
-				pt_log("[%9d] return %d/%d/%d/%d async %d/%d/%d%/%d",
+				pt_log("[%9d] return %d/%d/%d/%d async %d/%d/%d/%d",
 						thecore_heart->pulse,
 						CDBManager::instance().CountReturnQuery(SQL_PLAYER),
 						CDBManager::instance().CountReturnResult(SQL_PLAYER),
@@ -3337,8 +3337,6 @@ void CClientManager::RMMonarch(CPeer * peer, uint32_t dwHandle, const char * dat
 	if (g_test_server)
 		sys_log(0, "[MONARCH_GM] Remove Monarch name(%s)", szName); 
 
-	CMonarch::instance().DelMonarch(szName);
-
 	int iRet = CMonarch::instance().DelMonarch(szName) ? 1 : 0;
 
 	if (1 == iRet)
@@ -3497,9 +3495,9 @@ void CClientManager::ChargeCash(const TRequestChargeCash* packet)
 	char szQuery[512];
 
 	if (ERequestCharge_Cash == packet->eChargeType)
-		sprintf(szQuery, "update account set `cash` = `cash` + %d where id = %d limit 1", packet->dwAmount, packet->dwAID);
+		snprintf(szQuery, sizeof(szQuery), "update account set `cash` = `cash` + %d where id = %d limit 1", packet->dwAmount, packet->dwAID);
 	else if(ERequestCharge_Mileage == packet->eChargeType)
-		sprintf(szQuery, "update account set `mileage` = `mileage` + %d where id = %d limit 1", packet->dwAmount, packet->dwAID);
+		snprintf(szQuery, sizeof(szQuery), "update account set `mileage` = `mileage` + %d where id = %d limit 1", packet->dwAmount, packet->dwAID);
 	else
 	{
 		sys_err ("Invalid request charge type (type : %d, amount : %d, aid : %d)", packet->eChargeType, packet->dwAmount, packet->dwAID);

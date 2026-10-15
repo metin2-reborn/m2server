@@ -71,20 +71,7 @@ void ItemAwardManager::Load(SQLMsg * pMsg)
 		if (row[col])
 		{
 			strlcpy(kData->szWhy, row[col], sizeof(kData->szWhy));
-			//If the why column changes during the game				
-			char* whyStr = kData->szWhy;	//Read the why column
-			char cmdStr[100] = "";	//Copy the value read from the why column into a temporary string
-			strcpy(cmdStr,whyStr);	//because tokenizing while getting the command would tokenize the original too
-			char command[20] = "";
-			strcpy(command,CClientManager::instance().GetCommand(cmdStr));	// Get the command
-			if( !(strcmp(command,"GIFT") ))	// If the command is GIFT
-			{
-				TPacketItemAwardInfromer giftData;
-				strcpy(giftData.login, kData->szLogin);	//Copy the login ID
-				strcpy(giftData.command, command);					//Copy the command
-				giftData.vnum = kData->dwVnum;				//Also copy the item vnum
-				CClientManager::instance().ForwardPacket(HEADER_DG_ITEMAWARD_INFORMER,&giftData,sizeof(TPacketItemAwardInfromer));
-			}
+			CClientManager::instance().InformGiftAward(kData->szLogin, kData->szWhy, kData->dwVnum);
 		}
 
 		m_map_award.insert(std::make_pair(dwID, kData));

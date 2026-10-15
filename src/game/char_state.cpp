@@ -773,6 +773,7 @@ void CHARACTER::StateMove()
 
 		// If in combat and running
 		if (!IsWalking() && !IsRiding())
+		{
 			if ((get_dword_time() - GetLastAttackTime()) < 20000)
 			{
 				StartAffectEvent();
@@ -799,6 +800,7 @@ void CHARACTER::StateMove()
 			{
 				StopStaminaConsume();
 			}
+		}
 	}
 	else
 	{

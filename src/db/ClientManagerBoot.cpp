@@ -328,7 +328,7 @@ bool CClientManager::InitializeMobTable()
 
 			mob_table->dwVnum = tempTable->dwVnum;
 			strlcpy(mob_table->szName, tempTable->szName, sizeof(tempTable->szName));
-			strlcpy(mob_table->szLocaleName, tempTable->szLocaleName, sizeof(tempTable->szName));
+			strlcpy(mob_table->szLocaleName, tempTable->szLocaleName, sizeof(mob_table->szLocaleName));
 			mob_table->bRank = tempTable->bRank;
 			mob_table->bType = tempTable->bType;
 			mob_table->bBattleType = tempTable->bBattleType;
@@ -338,7 +338,7 @@ bool CClientManager::InitializeMobTable()
 			mob_table->dwRaceFlag = tempTable->dwRaceFlag;
 			mob_table->dwImmuneFlag = tempTable->dwImmuneFlag;
 			mob_table->bEmpire = tempTable->bEmpire;
-			strlcpy(mob_table->szFolder, tempTable->szFolder, sizeof(tempTable->szName));
+			strlcpy(mob_table->szFolder, tempTable->szFolder, sizeof(mob_table->szFolder));
 			mob_table->bOnClickType = tempTable->bOnClickType;
 			mob_table->bStr = tempTable->bStr;
 			mob_table->bDex = tempTable->bDex;
@@ -970,7 +970,7 @@ bool CClientManager::InitializeItemAttrTable()
 		str_to_number(t.bMaxLevelBySet[ATTRIBUTE_SET_SHIELD], data[col++]);
 		str_to_number(t.bMaxLevelBySet[ATTRIBUTE_SET_EAR], data[col++]);
 
-		sys_log(0, "ITEM_ATTR: %-20s %4u { %3d %3d %3d %3d %3d } { %d %d %d %d %d %d %d }",
+		sys_log(0, "ITEM_ATTR: %-20s %4u { %3d %3d %3d %3d %3d } { %d %d %d %d %d %d %d %d }",
 				t.szApply,
 				t.dwProb,
 				t.lValues[0],
@@ -1044,7 +1044,7 @@ bool CClientManager::InitializeItemRareTable()
 		str_to_number(t.bMaxLevelBySet[ATTRIBUTE_SET_SHIELD], data[col++]);
 		str_to_number(t.bMaxLevelBySet[ATTRIBUTE_SET_EAR], data[col++]);
 
-		sys_log(0, "ITEM_RARE: %-20s %4u { %3d %3d %3d %3d %3d } { %d %d %d %d %d %d %d }",
+		sys_log(0, "ITEM_RARE: %-20s %4u { %3d %3d %3d %3d %3d } { %d %d %d %d %d %d %d %d }",
 				t.szApply,
 				t.dwProb,
 				t.lValues[0],

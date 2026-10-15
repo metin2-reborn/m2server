@@ -29,7 +29,7 @@ extern "C" {
 #include <sys/stat.h>
 #include <cerrno>
 
-#include <game/src/crc32.h>
+#include <game/crc32.h>
 
 #define OUTPUT_FOLDER "object"
 lua_State* L;
