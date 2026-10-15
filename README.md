@@ -1,5 +1,6 @@
 # Metin2 Server
 
+[![CI](https://github.com/metin2-reborn/m2server/actions/workflows/ci.yml/badge.svg)](https://github.com/metin2-reborn/m2server/actions/workflows/ci.yml)
 ![C++23](https://img.shields.io/badge/C%2B%2B-23-00599C?logo=cplusplus)
 ![Platform](https://img.shields.io/badge/platform-Linux-FCC624?logo=linux&logoColor=black)
 ![Podman](https://img.shields.io/badge/deploy-Podman%20Compose-892CA0?logo=podman)

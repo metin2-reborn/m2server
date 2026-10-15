@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build and test (${{ matrix.compiler }})
+    runs-on: ubuntu-latest
+    # The same Debian release as the image: Ubuntu's MariaDB Connector/C is older than the 3.4 we need.
+    container: docker.io/library/debian:13-slim
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - compiler: clang
+            cc: clang
+            cxx: clang++
+          - compiler: gcc
+            cc: gcc
+            cxx: g++
+    env:
+      CC: ${{ matrix.cc }}
+      CXX: ${{ matrix.cxx }}
+    steps:
+      - name: Install packages
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends build-essential clang cmake ninja-build git ca-certificates \
+            pkgconf libssl-dev zlib1g-dev liblzo2-dev libmariadb-dev
+
+      - uses: actions/checkout@v4
+
+      - name: Cache third-party downloads
+        uses: actions/cache@v4
+        with:
+          path: .deps
+          key: deps-${{ hashFiles('vendor/*.cmake') }}
+
+      - name: Configure
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DFETCHCONTENT_BASE_DIR="$PWD/.deps"
+
+      - name: Build
+        run: cmake --build build --parallel "$(nproc)"
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+
+  image:
+    name: Container image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build image
+        run: docker build -f Containerfile -t metin2-server:ci .
