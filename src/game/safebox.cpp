@@ -73,6 +73,18 @@ bool CSafebox::Add(uint32_t dwPos, CItem * pkItem)
 	m_pkGrid->Put(dwPos, 1, pkItem->GetSize());
 	m_pkItems[dwPos] = pkItem;
 
+	SendItemSet(dwPos);
+	sys_log(1, "SAFEBOX: ADD %s %s count %d", m_pkChrOwner->GetName(), pkItem->GetName(), pkItem->GetCount());
+	return true;
+}
+
+void CSafebox::SendItemSet(uint32_t dwPos)
+{
+	CItem * pkItem = m_pkItems[dwPos];
+
+	if (!pkItem || !m_pkChrOwner->GetDesc())
+		return;
+
 	TPacketGCItemSet pack;
 
 	pack.header	= m_bWindowMode == SAFEBOX ? HEADER_GC_SAFEBOX_SET : HEADER_GC_MALL_SET;
@@ -85,8 +97,6 @@ bool CSafebox::Add(uint32_t dwPos, CItem * pkItem)
 	std::memcpy(pack.aAttr, pkItem->GetAttributes(), sizeof(pack.aAttr));
 
 	m_pkChrOwner->GetDesc()->Packet(&pack, sizeof(pack));
-	sys_log(1, "SAFEBOX: ADD %s %s count %d", m_pkChrOwner->GetName(), pkItem->GetName(), pkItem->GetCount());
-	return true;
 }
 
 CItem * CSafebox::Get(uint32_t dwPos)
@@ -201,13 +211,23 @@ bool CSafebox::MoveItem(uint8_t bCell, uint8_t bDestCell, uint8_t count)
 			if (count == 0)
 				count = item->GetCount();
 
-			count = std::min<int>(200 - item2->GetCount(), count);
+			count = std::min<int>(ITEM_MAX_COUNT - item2->GetCount(), count);
 
-			if (item->GetCount() >= count)
-				Remove(bCell);
+			// The destination stack is full: nothing moves.
+			if (count == 0)
+				return false;
 
-			item->SetCount(item->GetCount() - count);
 			item2->SetCount(item2->GetCount() + count);
+			SendItemSet(bDestCell);
+
+			// The whole source stack merged: it goes away; otherwise the rest stays where it was.
+			if (count == item->GetCount())
+				ITEM_MANAGER::instance().RemoveItem(item, "SAFEBOX_STACK");
+			else
+			{
+				item->SetCount(item->GetCount() - count);
+				SendItemSet(bCell);
+			}
 
 			sys_log(1, "SAFEBOX: STACK %s %d -> %d %s count %d", m_pkChrOwner->GetName(), bCell, bDestCell, item2->GetName(), item2->GetCount());
 			return true;

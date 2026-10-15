@@ -27,6 +27,8 @@ class CSafebox
 		void		Save();
 
 		bool		IsEmpty(uint32_t dwPos, uint8_t bSize);
+		// Tells the owner's client what is in a slot.
+		void		SendItemSet(uint32_t dwPos);
 		bool		IsValidPosition(uint32_t dwPos);
 
 		void		SetWindowMode(uint8_t bWindowMode);
