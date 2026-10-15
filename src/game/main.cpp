@@ -26,7 +26,6 @@
 #include "item_addon.h"
 #include "item_manager.h"
 #include "log.h"
-#include "login_sim.h"
 #include "lzo_manager.h"
 #include "MarkManager.h"
 #include "marriage.h"
@@ -151,8 +150,6 @@ namespace
 	};
 }
 
-unsigned int save_idx = 0;
-
 void heartbeat(heart * ht, int pulse) 
 {
 	uint32_t t;
@@ -176,37 +173,6 @@ void heartbeat(heart * ht, int pulse)
 		else
 		{
 			DESC_MANAGER::instance().ProcessExpiredLoginKey();
-		}
-
-		{
-			int count = 0;
-			auto it = g_sim.begin();
-
-			while (it != g_sim.end())
-			{
-				if (!it->second->IsCheck())
-				{
-					it->second->SendLogin();
-
-					if (++count > 50)
-					{
-						sys_log(0, "FLUSH_SENT");
-						break;
-					}
-				}
-
-				it++;
-			}
-
-			if (save_idx < g_vec_save.size())
-			{
-				count = std::min<int>(100, g_vec_save.size() - save_idx);
-
-				for (int i = 0; i < count; ++i, ++save_idx)
-					db_clientdesc->DBPacket(HEADER_GD_PLAYER_SAVE, 0, &g_vec_save[save_idx], sizeof(TPlayerTable));
-
-				sys_log(0, "SAVE_FLUSH %d", count);
-			}
 		}
 	}
 

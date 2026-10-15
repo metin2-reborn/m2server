@@ -10,7 +10,6 @@
 #include "dev_log.h"
 #include "fishing.h"
 #include "log.h"
-#include "login_sim.h"
 #include "p2p.h"
 #include "packet.h"
 #include "packet_info.h"
@@ -245,9 +244,6 @@ CInputHandshake::~CInputHandshake()
 }
 
 
-std::map<uint32_t, CLoginSim *> g_sim;
-std::map<uint32_t, CLoginSim *> g_simByPID;
-std::vector<TPlayerTable> g_vec_save;
 
 // BLOCK_CHAT
 ACMD(do_block_chat);

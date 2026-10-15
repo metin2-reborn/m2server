@@ -22,7 +22,6 @@
 #include "locale.hpp"
 #include "locale_service.h"
 #include "log.h"
-#include "login_sim.h"
 #include "map_location.h"
 #include "marriage.h"
 #include "mob_manager.h"
@@ -126,14 +125,6 @@ void CInputDB::LoginSuccess(uint32_t dwHandle, const char *data)
 	sys_log(0, "LoginSuccess");
 
 	TAccountTable * pTab = (TAccountTable *) data;
-
-	auto it = g_sim.find(pTab->id);
-	if (g_sim.end() != it)
-	{
-		sys_log(0, "CInputDB::LoginSuccess - already exist sim [%s]", pTab->login);
-		it->second->SendLoad();
-		return;
-	}
 
 	DESC * d = DESC_MANAGER::instance().FindByHandle(dwHandle);
 

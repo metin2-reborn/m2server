@@ -333,9 +333,5 @@ class CInputAuth : public CInputProcessor
 
 };
 
-class CLoginSim;
-extern std::map<uint32_t, CLoginSim *> g_sim;
-extern std::map<uint32_t, CLoginSim *> g_simByPID;
-extern std::vector<TPlayerTable> g_vec_save;
 extern bool RaceToJob(unsigned race, unsigned *ret_job);
 extern void SendShout(const char * szText, uint8_t bEmpire);
