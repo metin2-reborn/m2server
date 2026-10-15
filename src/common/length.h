@@ -658,7 +658,7 @@ using TItemPos = struct SItemPos {
 
 const TItemPos NPOS(RESERVED_WINDOW, WORD_MAX);
 
-using EShopCoinType = enum {
+enum EShopCoinType {
     SHOP_COIN_TYPE_GOLD, // DEFAULT VALUE
     SHOP_COIN_TYPE_SECONDARY_COIN,
 };
