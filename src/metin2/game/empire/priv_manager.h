@@ -16,35 +16,35 @@
  */
 
 namespace metin2::game::inline empire {
-class CPrivManager : public singleton<CPrivManager>
+class priv_manager : public singleton<priv_manager>
 {
 	public:
-		CPrivManager();
+		priv_manager();
 
-		void RequestGiveGuildPriv(uint32_t guild_id, uint8_t type, int value, time_t dur_time_sec);
-		void RequestGiveEmpirePriv(uint8_t empire, uint8_t type, int value, time_t dur_time_sec);
-		void RequestGiveCharacterPriv(uint32_t pid, uint8_t type, int value);
+		void request_give_guild_priv(uint32_t guild_id, uint8_t type, int value, time_t dur_time_sec);
+		void request_give_empire_priv(uint8_t empire, uint8_t type, int value, time_t dur_time_sec);
+		void request_give_character_priv(uint32_t pid, uint8_t type, int value);
 
-		void GiveGuildPriv(uint32_t guild_id, uint8_t type, int value, uint8_t bLog, time_t end_time_sec);
-		void GiveEmpirePriv(uint8_t empire, uint8_t type, int value, uint8_t bLog, time_t end_time_sec);
-		void GiveCharacterPriv(uint32_t pid, uint8_t type, int value, uint8_t bLog);
+		void give_guild_priv(uint32_t guild_id, uint8_t type, int value, uint8_t bLog, time_t end_time_sec);
+		void give_empire_priv(uint8_t empire, uint8_t type, int value, uint8_t bLog, time_t end_time_sec);
+		void give_character_priv(uint32_t pid, uint8_t type, int value, uint8_t bLog);
 
-		int GetPriv(CHARACTER * ch, uint8_t type);
-		int GetPrivByEmpire(uint8_t bEmpire, uint8_t type);
-		int GetPrivByGuild(uint32_t guild_id, uint8_t type);
-		int GetPrivByCharacter(uint32_t pid, uint8_t type);
+		int priv(character * ch, uint8_t type);
+		int priv_by_empire(uint8_t bEmpire, uint8_t type);
+		int priv_by_guild(uint32_t guild_id, uint8_t type);
+		int priv_by_character(uint32_t pid, uint8_t type);
 
 	public:
-		struct SPrivEmpireData
+		struct priv_empire_data
 		{
-			int m_value;
-			time_t m_end_time_sec;
+			int value;
+			time_t end_time_sec;
 		};
 
-		SPrivEmpireData* GetPrivByEmpireEx(uint8_t bEmpire, uint8_t type);
+		priv_empire_data* priv_by_empire_ex(uint8_t bEmpire, uint8_t type);
 
 		/// Guild bonus data
-		struct SPrivGuildData
+		struct priv_guild_data
 		{
 			int		value;		///< Bonus value
 			time_t	end_time_sec;	///< Duration
@@ -56,11 +56,11 @@ class CPrivManager : public singleton<CPrivManager>
 		 * @param [in]	byType bonus type
 		 * @return	pointer to the target guild's bonus data, or NULL if there is no bonus data for the given bonus type and guild ID
 		 */
-		const SPrivGuildData*	GetPrivByGuildEx( uint32_t dwGuildID, uint8_t byType ) const;
+		const priv_guild_data*	priv_by_guild_ex( uint32_t dwGuildID, uint8_t byType ) const;
 
 	private:
-		SPrivEmpireData m_aakPrivEmpireData[MAX_PRIV_NUM][EMPIRE_MAX_NUM];
-		std::map<uint32_t, SPrivGuildData> m_aPrivGuild[MAX_PRIV_NUM];
-		std::map<uint32_t, int> m_aPrivChar[MAX_PRIV_NUM];
+		priv_empire_data aak_priv_empire_data_[MAX_PRIV_NUM][EMPIRE_MAX_NUM];
+		std::map<uint32_t, priv_guild_data> priv_guild_[MAX_PRIV_NUM];
+		std::map<uint32_t, int> priv_char_[MAX_PRIV_NUM];
 };
 }

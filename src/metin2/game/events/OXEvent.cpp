@@ -27,32 +27,32 @@
 
 namespace metin2::game::inline events {
 
-bool COXEventManager::Initialize()
+bool ox_event_manager::initialize()
 {
-	m_timedEvent = nullptr;
-	m_map_char.clear();
-	m_map_attender.clear();
-	m_vec_quiz.clear();
+	timed_event_ = nullptr;
+	map_char_.clear();
+	map_attender_.clear();
+	vec_quiz_.clear();
 
-	SetStatus(OXEVENT_FINISH);
+	set_status(OXEVENT_FINISH);
 
 	return true;
 }
 
-void COXEventManager::Destroy()
+void ox_event_manager::destroy()
 {
-	CloseEvent();
+	close_event();
 
-	m_map_char.clear();
-	m_map_attender.clear();
-	m_vec_quiz.clear();
+	map_char_.clear();
+	map_attender_.clear();
+	vec_quiz_.clear();
 
-	SetStatus(OXEVENT_FINISH);
+	set_status(OXEVENT_FINISH);
 }
 
-OXEventStatus COXEventManager::GetStatus()
+ox_event_status ox_event_manager::status()
 {
-	uint8_t ret = quest::CQuestManager::instance().GetEventFlag("oxevent_status");
+	uint8_t ret = quest::quest_manager::instance().event_flag("oxevent_status");
 
 	switch (ret)
 	{
@@ -75,7 +75,7 @@ OXEventStatus COXEventManager::GetStatus()
 	return OXEVENT_ERR;
 }
 
-void COXEventManager::SetStatus(OXEventStatus status)
+void ox_event_manager::set_status(ox_event_status status)
 {
 	uint8_t val = 0;
 	
@@ -99,26 +99,26 @@ void COXEventManager::SetStatus(OXEventStatus status)
 			val = 0;
 			break;
 	}
-	quest::CQuestManager::instance().RequestSetEventFlag("oxevent_status", val);
+	quest::quest_manager::instance().request_set_event_flag("oxevent_status", val);
 }
 
-bool COXEventManager::Enter(CHARACTER * pkChar)
+bool ox_event_manager::enter(character * pkChar)
 {
-	if (GetStatus() == OXEVENT_FINISH)
+	if (status() == OXEVENT_FINISH)
 	{
-		metin2::log::info( "OXEVENT : map finished. but char enter. {}", pkChar->GetName());
+		metin2::log::info( "OXEVENT : map finished. but char enter. {}", pkChar->name());
 		return false;
 	}
 
-	PIXEL_POSITION pos = pkChar->GetXYZ();
+	pixel_position pos = pkChar->xyz();
 
 	if (pos.x == 896500 && pos.y == 24600)
 	{
-		return EnterAttender(pkChar);
+		return enter_attender(pkChar);
 	}
 	else if (pos.x == 896300 && pos.y == 28900)
 	{
-		return EnterAudience(pkChar);
+		return enter_audience(pkChar);
 	}
 	else
 	{
@@ -129,71 +129,71 @@ bool COXEventManager::Enter(CHARACTER * pkChar)
 	return false;
 }
 
-bool COXEventManager::EnterAttender(CHARACTER * pkChar)
+bool ox_event_manager::enter_attender(character * pkChar)
 {
-	uint32_t pid = pkChar->GetPlayerID();
+	uint32_t pid = pkChar->player_id();
 
-	m_map_char.insert(std::make_pair(pid, pid));
-	m_map_attender.insert(std::make_pair(pid, pid));
+	map_char_.insert(std::make_pair(pid, pid));
+	map_attender_.insert(std::make_pair(pid, pid));
 
 	return true;
 }
 
-bool COXEventManager::EnterAudience(CHARACTER * pkChar)
+bool ox_event_manager::enter_audience(character * pkChar)
 {
-	uint32_t pid = pkChar->GetPlayerID();
+	uint32_t pid = pkChar->player_id();
 
-	m_map_char.insert(std::make_pair(pid, pid));
+	map_char_.insert(std::make_pair(pid, pid));
 
 	return true;
 }
 
-bool COXEventManager::AddQuiz(unsigned char level, const char* pszQuestion, bool answer)
+bool ox_event_manager::add_quiz(unsigned char level, const char* pszQuestion, bool answer)
 {
-	if (m_vec_quiz.size() < (size_t) level + 1)
-		m_vec_quiz.resize(level + 1);
+	if (vec_quiz_.size() < (size_t) level + 1)
+		vec_quiz_.resize(level + 1);
 
-	struct tag_Quiz tmpQuiz;
+	struct tag_quiz tmpQuiz;
 
 	tmpQuiz.level = level;
-	tmpQuiz.Quiz = pszQuestion;
+	tmpQuiz.quiz = pszQuestion;
 	tmpQuiz.answer = answer;
 
-	m_vec_quiz[level].push_back(tmpQuiz);
+	vec_quiz_[level].push_back(tmpQuiz);
 	return true;
 }
 
-bool COXEventManager::ShowQuizList(CHARACTER * pkChar)
+bool ox_event_manager::show_quiz_list(character * pkChar)
 {
 	int c = 0;
 	
-	for (size_t i = 0; i < m_vec_quiz.size(); ++i)
+	for (size_t i = 0; i < vec_quiz_.size(); ++i)
 	{
-		for (size_t j = 0; j < m_vec_quiz[i].size(); ++j, ++c)
+		for (size_t j = 0; j < vec_quiz_[i].size(); ++j, ++c)
 		{
-			pkChar->ChatPacket(CHAT_TYPE_INFO, "%d %s %s", m_vec_quiz[i][j].level, m_vec_quiz[i][j].Quiz.c_str(), m_vec_quiz[i][j].answer ? LC_TEXT("참") : LC_TEXT("거짓"));
+			pkChar->chat_packet(CHAT_TYPE_INFO, "%d %s %s", vec_quiz_[i][j].level, vec_quiz_[i][j].quiz.c_str(), vec_quiz_[i][j].answer ? lc_text("참") : lc_text("거짓"));
 		}
 	}
 
-	pkChar->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("총 퀴즈 수: %d"), c);	
+	pkChar->chat_packet(CHAT_TYPE_INFO, lc_text("총 퀴즈 수: %d"), c);	
 	return true;
 }
 
-void COXEventManager::ClearQuiz()
+void ox_event_manager::clear_quiz()
 {
-	for (unsigned int i = 0; i < m_vec_quiz.size(); ++i)
+	for (unsigned int i = 0; i < vec_quiz_.size(); ++i)
 	{
-		m_vec_quiz[i].clear();
+		vec_quiz_[i].clear();
 	}
 
-	m_vec_quiz.clear();
+	vec_quiz_.clear();
 }
 
-EVENTINFO(OXEventInfoData)
+EVENTINFO(ox_event_info_data)
 {
 	bool answer;
 
-	OXEventInfoData()
+	ox_event_info_data()
 	: answer( false )
 	{
 	}
@@ -202,7 +202,7 @@ EVENTINFO(OXEventInfoData)
 EVENTFUNC(oxevent_timer)
 {
 	static uint8_t flag = 0;
-	OXEventInfoData* info = dynamic_cast<OXEventInfoData*>(event->info);
+	ox_event_info_data* info = dynamic_cast<ox_event_info_data*>(event->info);
 
 	if ( info == nullptr )
 	{
@@ -213,78 +213,78 @@ EVENTFUNC(oxevent_timer)
 	switch (flag)
 	{
 		case 0:
-			SendNoticeMap(LC_TEXT("10초뒤 판정하겠습니다."), OXEVENT_MAP_INDEX, true);
+			send_notice_map(lc_text("10초뒤 판정하겠습니다."), OXEVENT_MAP_INDEX, true);
 			flag++;
-			return PASSES_PER_SEC(10);
+			return passes_per_sec(10);
 			
 		case 1:
-			SendNoticeMap(LC_TEXT("정답은"), OXEVENT_MAP_INDEX, true);
+			send_notice_map(lc_text("정답은"), OXEVENT_MAP_INDEX, true);
 
 			if (info->answer == true)
 			{
-				COXEventManager::instance().CheckAnswer(true);
-				SendNoticeMap(LC_TEXT("O 입니다"), OXEVENT_MAP_INDEX, true);
+				ox_event_manager::instance().check_answer(true);
+				send_notice_map(lc_text("O 입니다"), OXEVENT_MAP_INDEX, true);
 			}
 			else
 			{
-				COXEventManager::instance().CheckAnswer(false);
-				SendNoticeMap(LC_TEXT("X 입니다"), OXEVENT_MAP_INDEX, true);
+				ox_event_manager::instance().check_answer(false);
+				send_notice_map(lc_text("X 입니다"), OXEVENT_MAP_INDEX, true);
 			}
 
-			SendNoticeMap(LC_TEXT("5초 뒤 틀리신 분들을 바깥으로 이동 시키겠습니다."), OXEVENT_MAP_INDEX, true);
+			send_notice_map(lc_text("5초 뒤 틀리신 분들을 바깥으로 이동 시키겠습니다."), OXEVENT_MAP_INDEX, true);
 
 			flag++;
-			return PASSES_PER_SEC(5);
+			return passes_per_sec(5);
 
 		case 2:
-			COXEventManager::instance().WarpToAudience();
-			COXEventManager::instance().SetStatus(OXEVENT_CLOSE);
-			SendNoticeMap(LC_TEXT("다음 문제 준비해주세요."), OXEVENT_MAP_INDEX, true);
+			ox_event_manager::instance().warp_to_audience();
+			ox_event_manager::instance().set_status(OXEVENT_CLOSE);
+			send_notice_map(lc_text("다음 문제 준비해주세요."), OXEVENT_MAP_INDEX, true);
 			flag = 0;
 			break;
 	}
 	return 0;
 }
 
-bool COXEventManager::Quiz(unsigned char level, int timelimit)
+bool ox_event_manager::quiz(unsigned char level, int timelimit)
 {
-	if (m_vec_quiz.size() == 0) return false;
-	if (level > m_vec_quiz.size()) level = m_vec_quiz.size() - 1;
-	if (m_vec_quiz[level].size() <= 0) return false;
+	if (vec_quiz_.size() == 0) return false;
+	if (level > vec_quiz_.size()) level = vec_quiz_.size() - 1;
+	if (vec_quiz_[level].size() <= 0) return false;
 
 	if (timelimit < 0) timelimit = 30;
 
-	int idx = number(0, m_vec_quiz[level].size()-1);
+	int idx = number(0, vec_quiz_[level].size()-1);
 
-	SendNoticeMap(LC_TEXT("문제 입니다."), OXEVENT_MAP_INDEX, true);
-	SendNoticeMap(m_vec_quiz[level][idx].Quiz.c_str(), OXEVENT_MAP_INDEX, true);
-	SendNoticeMap(LC_TEXT("맞으면 O, 틀리면 X로 이동해주세요"), OXEVENT_MAP_INDEX, true);
+	send_notice_map(lc_text("문제 입니다."), OXEVENT_MAP_INDEX, true);
+	send_notice_map(vec_quiz_[level][idx].quiz.c_str(), OXEVENT_MAP_INDEX, true);
+	send_notice_map(lc_text("맞으면 O, 틀리면 X로 이동해주세요"), OXEVENT_MAP_INDEX, true);
 
-	if (m_timedEvent != nullptr) {
-		event_cancel(&m_timedEvent);
+	if (timed_event_ != nullptr) {
+		event_cancel(&timed_event_);
 	}
 
-	OXEventInfoData* answer = AllocEventInfo<OXEventInfoData>();
+	ox_event_info_data* answer = alloc_event_info<ox_event_info_data>();
 
-	answer->answer = m_vec_quiz[level][idx].answer;
+	answer->answer = vec_quiz_[level][idx].answer;
 
 	timelimit -= 15;
-	m_timedEvent = event_create(oxevent_timer, answer, PASSES_PER_SEC(timelimit));
+	timed_event_ = event_create(oxevent_timer, answer, passes_per_sec(timelimit));
 
-	SetStatus(OXEVENT_QUIZ);
+	set_status(OXEVENT_QUIZ);
 
-	m_vec_quiz[level].erase(m_vec_quiz[level].begin()+idx);
+	vec_quiz_[level].erase(vec_quiz_[level].begin()+idx);
 	return true;
 }
 
-bool COXEventManager::CheckAnswer(bool answer)
+bool ox_event_manager::check_answer(bool answer)
 {
-	if (m_map_attender.size() <= 0) return true;
+	if (map_attender_.size() <= 0) return true;
 	
-	auto iter = m_map_attender.begin();
-	decltype(m_map_attender.begin()) iter_tmp;
+	auto iter = map_attender_.begin();
+	decltype(map_attender_.begin()) iter_tmp;
 	
-	m_map_miss.clear();
+	map_miss_.clear();
 
 	int rect[4];
 	if (answer != true)
@@ -302,29 +302,29 @@ bool COXEventManager::CheckAnswer(bool answer)
 		rect[3] = 26400;
 	}
 	
-	CHARACTER * pkChar = nullptr;
-	PIXEL_POSITION pos;
-	for (; iter != m_map_attender.end();)
+	character * pkChar = nullptr;
+	pixel_position pos;
+	for (; iter != map_attender_.end();)
 	{
-		pkChar = CHARACTER_MANAGER::instance().FindByPID(iter->second);
+		pkChar = character_manager::instance().find_by_pid(iter->second);
 		if (pkChar != nullptr)
 		{
-			pos = pkChar->GetXYZ();
+			pos = pkChar->xyz();
 
 			if (pos.x < rect[0] || pos.x > rect[2] || pos.y < rect[1] || pos.y > rect[3])
 			{
-				pkChar->EffectPacket(SE_FAIL);
+				pkChar->effect_packet(SE_FAIL);
 				iter_tmp = iter;
 				iter++;
-				m_map_attender.erase(iter_tmp);
-				m_map_miss.insert(std::make_pair(pkChar->GetPlayerID(), pkChar->GetPlayerID()));
+				map_attender_.erase(iter_tmp);
+				map_miss_.insert(std::make_pair(pkChar->player_id(), pkChar->player_id()));
 			}
 			else
 			{
-				pkChar->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("정답입니다!"));
+				pkChar->chat_packet(CHAT_TYPE_INFO, lc_text("정답입니다!"));
 				char chatbuf[256];
 				int len = snprintf(chatbuf, sizeof(chatbuf), 
-						"%s %u %u", number(0, 1) == 1 ? "cheer1" : "cheer2", (uint32_t)pkChar->GetVID(), 0);
+						"%s %u %u", number(0, 1) == 1 ? "cheer1" : "cheer2", (uint32_t)pkChar->get_vid(), 0);
 
 				// A return value >= sizeof(chatbuf) means it was truncated..
 				if (len < 0 || len >= (int) sizeof(chatbuf))
@@ -333,114 +333,114 @@ bool COXEventManager::CheckAnswer(bool answer)
 				// including the \0 character
 				++len;
 
-				TPacketGCChat pack_chat;
+				packet_gc_chat pack_chat;
 				pack_chat.header = HEADER_GC_CHAT;
-				pack_chat.size = sizeof(TPacketGCChat) + len;
+				pack_chat.size = sizeof(packet_gc_chat) + len;
 				pack_chat.type = CHAT_TYPE_COMMAND;
 				pack_chat.id = 0;
 
-				TEMP_BUFFER buf;
-				buf.write(&pack_chat, sizeof(TPacketGCChat));
+				temp_buffer buf;
+				buf.write(&pack_chat, sizeof(packet_gc_chat));
 				buf.write(chatbuf, len);
 
-				pkChar->PacketAround(buf.read_peek(), buf.size());
-				pkChar->EffectPacket(SE_SUCCESS);
+				pkChar->packet_around(buf.read_peek(), buf.size());
+				pkChar->effect_packet(SE_SUCCESS);
 
 				++iter;
 			}
 		}
 		else
 		{
-			auto err = m_map_char.find(iter->first);
-			if (err != m_map_char.end()) m_map_char.erase(err);
+			auto err = map_char_.find(iter->first);
+			if (err != map_char_.end()) map_char_.erase(err);
 
-			auto err2 = m_map_miss.find(iter->first);
-			if (err2 != m_map_miss.end()) m_map_miss.erase(err2);
+			auto err2 = map_miss_.find(iter->first);
+			if (err2 != map_miss_.end()) map_miss_.erase(err2);
 
 			iter_tmp = iter;
 			++iter;
-			m_map_attender.erase(iter_tmp);
+			map_attender_.erase(iter_tmp);
 		}
 	}
 	return true;
 }
 
-void COXEventManager::WarpToAudience()
+void ox_event_manager::warp_to_audience()
 {
-	if (m_map_miss.size() <= 0) return;
+	if (map_miss_.size() <= 0) return;
 
-	auto iter = m_map_miss.begin();
-	CHARACTER * pkChar = nullptr;
+	auto iter = map_miss_.begin();
+	character * pkChar = nullptr;
 	
-	for (; iter != m_map_miss.end(); ++iter)
+	for (; iter != map_miss_.end(); ++iter)
 	{
-		pkChar = CHARACTER_MANAGER::instance().FindByPID(iter->second);
+		pkChar = character_manager::instance().find_by_pid(iter->second);
 
 		if (pkChar != nullptr)
 		{
 			switch ( number(0, 3))
 			{
-				case 0 : pkChar->Show(OXEVENT_MAP_INDEX, 896300, 28900); break;
-				case 1 : pkChar->Show(OXEVENT_MAP_INDEX, 890900, 28100); break;
-				case 2 : pkChar->Show(OXEVENT_MAP_INDEX, 896600, 20500); break;
-				case 3 : pkChar->Show(OXEVENT_MAP_INDEX, 902500, 28100); break;
-				default : pkChar->Show(OXEVENT_MAP_INDEX, 896300, 28900); break;
+				case 0 : pkChar->show(OXEVENT_MAP_INDEX, 896300, 28900); break;
+				case 1 : pkChar->show(OXEVENT_MAP_INDEX, 890900, 28100); break;
+				case 2 : pkChar->show(OXEVENT_MAP_INDEX, 896600, 20500); break;
+				case 3 : pkChar->show(OXEVENT_MAP_INDEX, 902500, 28100); break;
+				default : pkChar->show(OXEVENT_MAP_INDEX, 896300, 28900); break;
 			}
 		}
 	}
 
-	m_map_miss.clear();
+	map_miss_.clear();
 }
 
-bool COXEventManager::CloseEvent()
+bool ox_event_manager::close_event()
 {
-	if (m_timedEvent != nullptr) {
-		event_cancel(&m_timedEvent);
+	if (timed_event_ != nullptr) {
+		event_cancel(&timed_event_);
 	}
 
-	auto iter = m_map_char.begin();
+	auto iter = map_char_.begin();
 
-	CHARACTER * pkChar = nullptr;
-	for (; iter != m_map_char.end(); ++iter)
+	character * pkChar = nullptr;
+	for (; iter != map_char_.end(); ++iter)
 	{
-		pkChar = CHARACTER_MANAGER::instance().FindByPID(iter->second);
+		pkChar = character_manager::instance().find_by_pid(iter->second);
 
 		if (pkChar != nullptr)
-			pkChar->WarpSet(EMPIRE_START_X(pkChar->GetEmpire()), EMPIRE_START_Y(pkChar->GetEmpire()));
+			pkChar->warp_set(empire_start_x(pkChar->empire()), empire_start_y(pkChar->empire()));
 	}
 
-	m_map_char.clear();
+	map_char_.clear();
 
 	return true;
 }
 
-bool COXEventManager::LogWinner()
+bool ox_event_manager::log_winner()
 {
-	auto iter = m_map_attender.begin();
+	auto iter = map_attender_.begin();
 	
-	for (; iter != m_map_attender.end(); ++iter)
+	for (; iter != map_attender_.end(); ++iter)
 	{
-		CHARACTER * pkChar = CHARACTER_MANAGER::instance().FindByPID(iter->second);
+		character * pkChar = character_manager::instance().find_by_pid(iter->second);
 
 		if (pkChar)
-			LogManager::instance().CharLog(pkChar, 0, "OXEVENT", "LastManStanding");
+			log_manager::instance().char_log(pkChar, 0, "OXEVENT", "LastManStanding");
 	}
 
 	return true;
 }
 
-bool COXEventManager::GiveItemToAttender(uint32_t dwItemVnum, uint8_t count)
+bool ox_event_manager::give_item_to_attender(uint32_t dwItemVnum, uint8_t count)
 {
-	auto iter = m_map_attender.begin();
+	auto iter = map_attender_.begin();
 
-	for (; iter != m_map_attender.end(); ++iter)
+	for (; iter != map_attender_.end(); ++iter)
 	{
-		CHARACTER * pkChar = CHARACTER_MANAGER::instance().FindByPID(iter->second);
+		character * pkChar = character_manager::instance().find_by_pid(iter->second);
 
 		if (pkChar)
 		{
-			pkChar->AutoGiveItem(dwItemVnum, count);
-			LogManager::instance().ItemLog(pkChar->GetPlayerID(), 0, count, dwItemVnum, "OXEVENT_REWARD", "", pkChar->GetDesc()->GetHostName(), dwItemVnum);
+			pkChar->auto_give_item(dwItemVnum, count);
+			log_manager::instance().item_log(pkChar->player_id(), 0, count, dwItemVnum, "OXEVENT_REWARD", "", pkChar->get_desc()->host_name(), dwItemVnum);
 		}
 	}
 

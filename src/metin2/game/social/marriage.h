@@ -18,139 +18,139 @@ namespace metin2::game::inline social {
 
 namespace marriage
 {
-	struct TWeddingInfo
+	struct wedding_info
 	{
-		uint32_t dwMapIndex;
+		uint32_t map_index;
 	};
 
 	extern const int MARRIAGE_POINT_PER_DAY;
-	struct TMarriage
+	struct marriage
 	{
-		uint32_t m_pid1;
-		uint32_t m_pid2;
+		uint32_t pid1;
+		uint32_t pid2;
 		int   love_point;
 		time_t marry_time;
-		CHARACTER * ch1;
-		CHARACTER * ch2;
-		bool bSave;
+		character * ch1;
+		character * ch2;
+		bool needs_save;
 		bool is_married;
 		std::string name1;
 		std::string name2;
 
-		std::unique_ptr<TWeddingInfo> pWeddingInfo;
+		std::unique_ptr<game::social::marriage::wedding_info> wedding_info;
 
-		TMarriage(uint32_t pid1, uint32_t pid2, int _love_point, time_t _marry_time, const char* name1, const char* name2) : 
-			m_pid1(pid1), 
-			m_pid2(pid2), 
+		marriage(uint32_t pid1_value, uint32_t pid2_value, int _love_point, time_t _marry_time, const char* name1, const char* name2) : 
+			pid1(pid1_value), 
+			pid2(pid2_value), 
 			love_point(_love_point),
 			marry_time(_marry_time), 
 			is_married(false),
 			name1(name1),
 			name2(name2),
-			eventNearCheck(nullptr)
+			event_near_check(nullptr)
 		{
 			ch1 = ch2 = nullptr;
-			bSave = false;
-			isLastNear = false;
-			byLastLovePoint = 0;
+			needs_save = false;
+			is_last_near = false;
+			last_love_point = 0;
 		}
 
-		~TMarriage();
+		~marriage();
 
-		void Login(CHARACTER * ch);
-		void Logout(uint32_t pid);
+		void login(character * ch);
+		void logout(uint32_t pid);
 
-		bool IsOnline()
+		bool is_online()
 		{
 			return ch1 && ch2;
 		}
 
-		bool IsNear();
+		bool is_near();
 
-		uint32_t GetOther(uint32_t PID) const
+		uint32_t other(uint32_t PID) const
 		{
-			if (m_pid1 == PID)
-				return m_pid2;
+			if (pid1 == PID)
+				return pid2;
 
-			if (m_pid2 == PID)
-				return m_pid1;
+			if (pid2 == PID)
+				return pid1;
 
 			return 0;
 		}
 
-		int GetMarriagePoint();
-		int GetMarriageGrade();
+		int marriage_point();
+		int marriage_grade();
 
-		int GetBonus(uint32_t dwItemVnum, bool bShare = true, CHARACTER * me = nullptr);
+		int bonus(uint32_t dwItemVnum, bool bShare = true, character * me = nullptr);
 
-		void WarpToWeddingMap(uint32_t dwPID);
-		void Save();
-		void SetMarried();
+		void warp_to_wedding_map(uint32_t dwPID);
+		void save();
+		void set_married();
 
-		void Update(uint32_t point);
-		void RequestEndWedding();
+		void update(uint32_t point);
+		void request_end_wedding();
 
-		void StartNearCheckEvent();
-		void StopNearCheckEvent();
-		void NearCheck();
+		void start_near_check_event();
+		void stop_near_check_event();
+		void near_check();
 
-		bool isLastNear;
-		uint8_t byLastLovePoint;
-		LPEVENT eventNearCheck;
+		bool is_last_near;
+		uint8_t last_love_point;
+		event_ptr event_near_check;
 	};
 
-	class CManager : public singleton<CManager>
+	class manager : public singleton<manager>
 	{
 		public:
-			CManager();
-			~CManager() override;
+			manager();
+			~manager() override;
 
-			bool	Initialize();
-			void	Destroy();
+			bool	initialize();
+			void	destroy();
 
-			TMarriage*	Get(uint32_t dwPlayerID);
+			marriage*	get(uint32_t dwPlayerID);
 
-			bool	IsMarriageUniqueItem(uint32_t dwItemVnum);
+			bool	is_marriage_unique_item(uint32_t dwItemVnum);
 
-			bool	IsMarried(uint32_t dwPlayerID);
-			bool	IsEngaged(uint32_t dwPlayerID);
-			bool	IsEngagedOrMarried(uint32_t dwPlayerID);
+			bool	is_married(uint32_t dwPlayerID);
+			bool	is_engaged(uint32_t dwPlayerID);
+			bool	is_engaged_or_married(uint32_t dwPlayerID);
 
-			void	RequestAdd(uint32_t dwPID1, uint32_t dwPID2, const char* szName1, const char* szName2);
-			void	Add(uint32_t dwPID1, uint32_t dwPID2, time_t tMarryTime, const char* szName1, const char* szName2);
+			void	request_add(uint32_t dwPID1, uint32_t dwPID2, const char* szName1, const char* szName2);
+			void	add(uint32_t dwPID1, uint32_t dwPID2, time_t tMarryTime, const char* szName1, const char* szName2);
 
-			void	RequestUpdate(uint32_t dwPID1, uint32_t dwPID2, int iUpdatePoint, uint8_t byMarried);
-			void	Update(uint32_t dwPID1, uint32_t dwPID2, int32_t lTotalPoint, uint8_t byMarried);
+			void	request_update(uint32_t dwPID1, uint32_t dwPID2, int iUpdatePoint, uint8_t byMarried);
+			void	update(uint32_t dwPID1, uint32_t dwPID2, int32_t lTotalPoint, uint8_t byMarried);
 
-			void	RequestRemove(uint32_t dwPID1, uint32_t dwPID2);
-			void	Remove(uint32_t dwPID1, uint32_t dwPID2);
+			void	request_remove(uint32_t dwPID1, uint32_t dwPID2);
+			void	remove(uint32_t dwPID1, uint32_t dwPID2);
 
-			void	Login(CHARACTER * ch);
+			void	login(character * ch);
 
-			void	Logout(uint32_t pid);
-			void	Logout(CHARACTER * ch);
+			void	logout(uint32_t pid);
+			void	logout(character * ch);
 
-			void	WeddingReady(uint32_t dwPID1, uint32_t dwPID2, uint32_t dwMapIndex);
-			void	WeddingStart(uint32_t dwPID1, uint32_t dwPID2);
-			void	WeddingEnd(uint32_t dwPID1, uint32_t dwPID2);
+			void	wedding_ready(uint32_t dwPID1, uint32_t dwPID2, uint32_t dwMapIndex);
+			void	wedding_start(uint32_t dwPID1, uint32_t dwPID2);
+			void	wedding_end(uint32_t dwPID1, uint32_t dwPID2);
 
-			void	RequestEndWedding(uint32_t dwPID1, uint32_t dwPID2);
+			void	request_end_wedding(uint32_t dwPID1, uint32_t dwPID2);
 
 			template <typename Func>
 				Func	for_each_wedding(Func f);
 
 		private:
-			std::unordered_set<TMarriage*> m_Marriages;
-			std::map<uint32_t, TMarriage *> m_MarriageByPID;
-			std::set<std::pair<uint32_t, uint32_t> > m_setWedding;
+			std::unordered_set<marriage*> marriages_;
+			std::map<uint32_t, marriage *> marriage_by_pid_;
+			std::set<std::pair<uint32_t, uint32_t> > wedding_;
 	};
 
 	template <typename Func>
-		Func CManager::for_each_wedding(Func f)
+		Func manager::for_each_wedding(Func f)
 		{
-			for (auto it = m_setWedding.begin(); it!=m_setWedding.end(); ++it)
+			for (auto it = wedding_.begin(); it!=wedding_.end(); ++it)
 			{
-				TMarriage* pMarriage = Get(it->first);
+				marriage* pMarriage = get(it->first);
 				if (pMarriage)
 					f(pMarriage);
 			}

@@ -10,7 +10,7 @@
 
 namespace metin2::game::inline protocol {
 
-LZOManager::LZOManager()
+lzo_manager::lzo_manager()
 {
 	if (lzo_init() != LZO_E_OK)
 	{
@@ -18,19 +18,19 @@ LZOManager::LZOManager()
 		abort();
 	}
 
-	m_workmem = (uint8_t *) malloc(LZO1X_MEM_COMPRESS);
-	memset( m_workmem, 0, LZO1X_MEM_COMPRESS );
+	workmem_ = (uint8_t *) malloc(LZO1X_MEM_COMPRESS);
+	memset( workmem_, 0, LZO1X_MEM_COMPRESS );
 }
 
-LZOManager::~LZOManager()
+lzo_manager::~lzo_manager()
 {
-	free(m_workmem);
-	m_workmem = nullptr;
+	free(workmem_);
+	workmem_ = nullptr;
 }
 
-bool LZOManager::Compress(const uint8_t* src, size_t srcsize, uint8_t* dest, lzo_uint * puiDestSize)
+bool lzo_manager::compress(const uint8_t* src, size_t srcsize, uint8_t* dest, lzo_uint * puiDestSize)
 {
-	int ret = lzo1x_1_compress(src, srcsize, dest, puiDestSize, GetWorkMemory());
+	int ret = lzo1x_1_compress(src, srcsize, dest, puiDestSize, work_memory());
 
 	if (ret != LZO_E_OK)
 		return false;
@@ -38,9 +38,9 @@ bool LZOManager::Compress(const uint8_t* src, size_t srcsize, uint8_t* dest, lzo
 	return true;
 }
 
-bool LZOManager::Decompress(const uint8_t * src, size_t srcsize, uint8_t * dest, lzo_uint * puiDestSize)
+bool lzo_manager::decompress(const uint8_t * src, size_t srcsize, uint8_t * dest, lzo_uint * puiDestSize)
 {
-	int ret = lzo1x_decompress_safe(src, srcsize, dest, puiDestSize, GetWorkMemory());
+	int ret = lzo1x_decompress_safe(src, srcsize, dest, puiDestSize, work_memory());
 
 	if (ret != LZO_E_OK)
 		return false;
@@ -48,7 +48,7 @@ bool LZOManager::Decompress(const uint8_t * src, size_t srcsize, uint8_t * dest,
 	return true;
 }
 
-size_t LZOManager::GetMaxCompressedSize(size_t original)
+size_t lzo_manager::max_compressed_size(size_t original)
 {
 	return (original + (original >> 4) + 64 + 3);
 }

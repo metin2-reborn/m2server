@@ -26,7 +26,7 @@ namespace quest
 			return 0;
 		}
 
-		MonarchInfo* info = CMonarch::instance().GetMonarch();
+		monarch_info* info = monarch::instance().get_monarch();
 
 		lua_pushstring(L, info->name[idx]);
 		lua_pushnumber(L, info->pid[idx]);
@@ -43,16 +43,16 @@ namespace quest
 			return 0;
 		}
 
-		TPacketChangeMonarchLord info;
-		info.bEmpire = (uint8_t)lua_tonumber(L, 1);
-		info.dwPID = (uint32_t)lua_tonumber(L, 2);
+		packet_change_monarch_lord info;
+		info.empire = (uint8_t)lua_tonumber(L, 1);
+		info.pid = (uint32_t)lua_tonumber(L, 2);
 
-		db_clientdesc->DBPacket(HEADER_GD_CHANGE_MONARCH_LORD, 0, &info, sizeof(info));
+		db_clientdesc->db_packet(HEADER_GD_CHANGE_MONARCH_LORD, 0, &info, sizeof(info));
 
 		return 0;
 	}
 	
-	void RegisterMgmtFunctionTable()
+	void register_mgmt_function_table()
 	{
 		luaL_reg mgmt_functions[] =
 		{
@@ -62,7 +62,7 @@ namespace quest
 			{	nullptr,	nullptr}
 		};
 		
-		CQuestManager::instance().AddLuaFunctionTable("mgmt", mgmt_functions);
+		quest_manager::instance().add_lua_function_table("mgmt", mgmt_functions);
 	}
 }
 }

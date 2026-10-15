@@ -24,7 +24,7 @@
 
 namespace metin2::game::inline characters {
 
-auto FN_race_name(int race) -> const char * {
+auto fn_race_name(int race) -> const char * {
 #define FN_NAME(race) \
     case race: return #race
     switch (race) {
@@ -43,7 +43,7 @@ auto FN_race_name(int race) -> const char * {
 #undef FN_NAME
 }
 
-auto FN_weapon_type(int weapon) -> const char * {
+auto fn_weapon_type(int weapon) -> const char * {
 #define FN_NAME(weapon) \
     case weapon: return #weapon
     switch (weapon) {
@@ -62,13 +62,13 @@ auto FN_weapon_type(int weapon) -> const char * {
 #undef FN_NAME
 }
 
-class ANI {
+class ani {
   protected:
     // [race][normal0 mounted1][weapon][combo]
-    uint32_t m_speed[MAIN_RACE_MAX_NUM][2][WEAPON_NUM_TYPES][9];
+    uint32_t speed_[MAIN_RACE_MAX_NUM][2][WEAPON_NUM_TYPES][9];
 
   public:
-    ANI();
+    ani();
 
   public:
     bool load();
@@ -77,9 +77,9 @@ class ANI {
     uint32_t attack_speed(int race, int weapon, uint8_t combo = 0, bool horse = false);
 };
 
-static class ANI s_ANI;
+static class ani s_ani;
 
-uint32_t FN_attack_speed_from_file(const char *file) {
+uint32_t fn_attack_speed_from_file(const char *file) {
     FILE *fp = fopen(file, "r");
 
     if (nullptr == fp)
@@ -110,19 +110,19 @@ uint32_t FN_attack_speed_from_file(const char *file) {
     return speed;
 }
 
-ANI::ANI() {
+ani::ani() {
     // set default value
     for (int race = 0; race < MAIN_RACE_MAX_NUM; ++race) {
         for (int weapon = 0; weapon < WEAPON_NUM_TYPES; ++weapon) {
             for (uint8_t combo = 0; combo <= 8; ++combo) {
-                m_speed[race][0][weapon][combo] = 1000;
-                m_speed[race][1][weapon][combo] = 1000;
+                speed_[race][0][weapon][combo] = 1000;
+                speed_[race][1][weapon][combo] = 1000;
             }
         }
     }
 }
 
-bool ANI::load() {
+bool ani::load() {
     const char *dir_name[MAIN_RACE_MAX_NUM] = {
         "data/pc/warrior",   // warrior (male)
         "data/pc/assassin",  // assassin (female)
@@ -144,7 +144,7 @@ bool ANI::load() {
     return true;
 }
 
-uint32_t ANI::load_one_weapon(const char *dir_name, int weapon, uint8_t combo, bool horse) {
+uint32_t ani::load_one_weapon(const char *dir_name, int weapon, uint8_t combo, bool horse) {
     const char *format;
     char filename[256];
 
@@ -178,7 +178,7 @@ uint32_t ANI::load_one_weapon(const char *dir_name, int weapon, uint8_t combo, b
     }
 
     snprintf(filename, sizeof(filename), format, dir_name, horse ? "horse_" : "", combo);
-    uint32_t speed = FN_attack_speed_from_file(filename);
+    uint32_t speed = fn_attack_speed_from_file(filename);
 
     if (speed == 0)
         return 1000;
@@ -186,33 +186,33 @@ uint32_t ANI::load_one_weapon(const char *dir_name, int weapon, uint8_t combo, b
     return speed;
 }
 
-bool ANI::load_one_race(int race, const char *dir_name) {
+bool ani::load_one_race(int race, const char *dir_name) {
     if (nullptr == dir_name || '\0' == dir_name[0])
         return false;
 
     for (int weapon = WEAPON_SWORD; weapon < WEAPON_NUM_TYPES; ++weapon) {
-        metin2::log::debug( "ANI ({},{})", FN_race_name(race), FN_weapon_type(weapon));
+        metin2::log::debug( "ANI ({},{})", fn_race_name(race), fn_weapon_type(weapon));
 
         for (uint8_t combo = 1; combo <= 8; ++combo) {
             // when not riding a horse
-            m_speed[race][0][weapon][combo] = load_one_weapon(dir_name, weapon, combo, false);
-            m_speed[race][0][weapon][0] = std::min<int>(m_speed[race][0][weapon][0], m_speed[race][0][weapon][combo]); // minimum
+            speed_[race][0][weapon][combo] = load_one_weapon(dir_name, weapon, combo, false);
+            speed_[race][0][weapon][0] = std::min<int>(speed_[race][0][weapon][0], speed_[race][0][weapon][combo]); // minimum
 
             // when riding a horse
-            m_speed[race][1][weapon][combo] = load_one_weapon(dir_name, weapon, combo, true);
-            m_speed[race][1][weapon][0] = std::min<int>(m_speed[race][1][weapon][0], m_speed[race][1][weapon][combo]); // minimum
+            speed_[race][1][weapon][combo] = load_one_weapon(dir_name, weapon, combo, true);
+            speed_[race][1][weapon][0] = std::min<int>(speed_[race][1][weapon][0], speed_[race][1][weapon][combo]); // minimum
 
             metin2::log::debug( "combo{:02d} speed={:d} horse={:d}",
-                combo, m_speed[race][0][weapon][combo], m_speed[race][1][weapon][combo]);
+                combo, speed_[race][0][weapon][combo], speed_[race][1][weapon][combo]);
         }
 
-        metin2::log::debug( "minspeed={:d}", m_speed[race][0][weapon][0]);
+        metin2::log::debug( "minspeed={:d}", speed_[race][0][weapon][0]);
     }
 
     return true;
 }
 
-uint32_t ANI::attack_speed(int race, int weapon, uint8_t combo, bool horse) {
+uint32_t ani::attack_speed(int race, int weapon, uint8_t combo, bool horse) {
     switch (race) {
     case MAIN_RACE_WARRIOR_M:
     case MAIN_RACE_ASSASSIN_W:
@@ -241,44 +241,44 @@ uint32_t ANI::attack_speed(int race, int weapon, uint8_t combo, bool horse) {
         return 1000;
     }
 
-    return m_speed[race][horse ? 1 : 0][weapon][combo];
+    return speed_[race][horse ? 1 : 0][weapon][combo];
 }
 
 void ani_init() {
-    s_ANI.load();
+    s_ani.load();
 }
 
-uint32_t ani_attack_speed(CHARACTER * ch) {
+uint32_t ani_attack_speed(character * ch) {
     uint32_t speed = 1000;
 
     if (nullptr == ch)
         return speed;
 
-    CItem * item = ch->GetWear(WEAR_WEAPON);
+    item * item = ch->wear(WEAR_WEAPON);
 
     if (nullptr == item)
         return speed;
 
-    if (ITEM_WEAPON != item->GetType())
+    if (ITEM_WEAPON != item->type())
         return speed;
 
-    int race = ch->GetRaceNum();
-    int weapon = item->GetSubType();
+    int race = ch->race_num();
+    int weapon = item->sub_type();
 
     /* for two-handed swords, the triple-slash attack and riding */
     /* have many errors, so treat as one-handed sword speed */
     if (weapon == WEAPON_TWO_HANDED)
         weapon = WEAPON_SWORD;
 
-    return s_ANI.attack_speed(race, weapon);
+    return s_ani.attack_speed(race, weapon);
 }
 
-uint32_t ani_combo_speed(CHARACTER * ch, uint8_t combo) {
-    CItem * item = ch->GetWear(WEAR_WEAPON);
+uint32_t ani_combo_speed(character * ch, uint8_t combo) {
+    item * item = ch->wear(WEAR_WEAPON);
 
     if (nullptr == item || combo > 8)
         return 1000;
 
-    return s_ANI.attack_speed(ch->GetRaceNum(), item->GetSubType(), combo, ch->IsRiding());
+    return s_ani.attack_speed(ch->race_num(), item->sub_type(), combo, ch->is_riding());
 }
 }

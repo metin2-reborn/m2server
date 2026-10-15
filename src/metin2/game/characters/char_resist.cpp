@@ -24,28 +24,28 @@ const int poison_damage_rate[MOB_RANK_MAX_NUM] =
 	80, 50, 40, 30, 25, 1
 };
 
-int GetPoisonDamageRate(CHARACTER * ch)
+int get_poison_damage_rate(character * ch)
 {
 	int iRate;
 
-	if (ch->IsPC())
+	if (ch->is_pc())
 	{
 		iRate = 50;
 	}
 	else
-		iRate = poison_damage_rate[ch->GetMobRank()];
+		iRate = poison_damage_rate[ch->get_mob_rank()];
 
-	iRate = std::max(0, iRate - ch->GetPoint(POINT_POISON_REDUCE));
+	iRate = std::max(0, iRate - ch->point(POINT_POISON_REDUCE));
 	return iRate;
 }
 
-EVENTINFO(TPoisonEventInfo)
+EVENTINFO(poison_event_info)
 {
-	DynamicCharacterPtr ch;
+	dynamic_character_ptr ch;
 	int		count;
 	uint32_t	attacker_pid;
 
-	TPoisonEventInfo()
+	poison_event_info()
 	: ch()
 	, count(0)
 	, attacker_pid(0)
@@ -55,7 +55,7 @@ EVENTINFO(TPoisonEventInfo)
 
 EVENTFUNC(poison_event)
 {
-	TPoisonEventInfo * info = dynamic_cast<TPoisonEventInfo *>( event->info );
+	poison_event_info * info = dynamic_cast<poison_event_info *>( event->info );
 	
 	if ( info == nullptr )
 	{
@@ -63,41 +63,41 @@ EVENTFUNC(poison_event)
 		return 0;
 	}
 
-	CHARACTER * ch = info->ch;
+	character * ch = info->ch;
 
 	if (ch == nullptr) { // <Factor>
 		return 0;
 	}
-	CHARACTER * pkAttacker = CHARACTER_MANAGER::instance().FindByPID(info->attacker_pid);
+	character * pkAttacker = character_manager::instance().find_by_pid(info->attacker_pid);
 
-	int dam = ch->GetMaxHP() * GetPoisonDamageRate(ch) / 1000;
-	if (metin2::config::test_server()) ch->ChatPacket(CHAT_TYPE_NOTICE, "Poison Damage %d", dam);
+	int dam = ch->max_hp() * get_poison_damage_rate(ch) / 1000;
+	if (metin2::config::test_server()) ch->chat_packet(CHAT_TYPE_NOTICE, "Poison Damage %d", dam);
 
-	if (ch->Damage(pkAttacker, dam, DAMAGE_TYPE_POISON))
+	if (ch->damage(pkAttacker, dam, DAMAGE_TYPE_POISON))
 	{
-		ch->m_pkPoisonEvent = nullptr;
+		ch->poison_event = nullptr;
 		return 0;
 	}
 
 	--info->count;
 
 	if (info->count)
-		return PASSES_PER_SEC(3);
+		return passes_per_sec(3);
 	else
 	{
-		ch->m_pkPoisonEvent = nullptr;
+		ch->poison_event = nullptr;
 		return 0;
 	}
 }
 
-EVENTINFO(TFireEventInfo)
+EVENTINFO(fire_event_info)
 {
-	DynamicCharacterPtr ch;
+	dynamic_character_ptr ch;
 	int		count;
 	int		amount;
 	uint32_t	attacker_pid;
 
-	TFireEventInfo()
+	fire_event_info()
 	: ch()
 	, count(0)
 	, amount(0)
@@ -108,7 +108,7 @@ EVENTINFO(TFireEventInfo)
 
 EVENTFUNC(fire_event)
 {
-	TFireEventInfo * info = dynamic_cast<TFireEventInfo *>( event->info );
+	fire_event_info * info = dynamic_cast<fire_event_info *>( event->info );
 
 	if ( info == nullptr )
 	{
@@ -116,28 +116,28 @@ EVENTFUNC(fire_event)
 		return 0;
 	}
 
-	CHARACTER * ch = info->ch;
+	character * ch = info->ch;
 	if (ch == nullptr) { // <Factor>
 		return 0;
 	}
-	CHARACTER * pkAttacker = CHARACTER_MANAGER::instance().FindByPID(info->attacker_pid);
+	character * pkAttacker = character_manager::instance().find_by_pid(info->attacker_pid);
 
 	int dam = info->amount;
-	if (metin2::config::test_server()) ch->ChatPacket(CHAT_TYPE_NOTICE, "Fire Damage %d", dam);
+	if (metin2::config::test_server()) ch->chat_packet(CHAT_TYPE_NOTICE, "Fire Damage %d", dam);
 
-	if (ch->Damage(pkAttacker, dam, DAMAGE_TYPE_FIRE))
+	if (ch->damage(pkAttacker, dam, DAMAGE_TYPE_FIRE))
 	{
-		ch->m_pkFireEvent = nullptr;
+		ch->fire_event = nullptr;
 		return 0;
 	}
 
 	--info->count;
 
 	if (info->count)
-		return PASSES_PER_SEC(3);
+		return passes_per_sec(3);
 	else
 	{
-		ch->m_pkFireEvent = nullptr;
+		ch->fire_event = nullptr;
 		return 0;
 	}
 }
@@ -171,34 +171,34 @@ static int poison_level_adjust[9] =
 	100, 90, 80, 70, 50, 30, 10, 5, 0
 };
 
-void CHARACTER::AttackedByFire(CHARACTER * pkAttacker, int amount, int count)
+void character::attacked_by_fire(character * pkAttacker, int amount, int count)
 {
-	if (m_pkFireEvent)
+	if (fire_event)
 		return;
 
-	AddAffect(AFFECT_FIRE, POINT_NONE, 0, AFF_FIRE, count*3+1, 0, true);
+	add_affect(AFFECT_FIRE, POINT_NONE, 0, AFF_FIRE, count*3+1, 0, true);
 
-	TFireEventInfo* info = AllocEventInfo<TFireEventInfo>();
+	fire_event_info* info = alloc_event_info<fire_event_info>();
 
 	info->ch = this;
 	info->count = count;
 	info->amount = amount;
-	info->attacker_pid = pkAttacker->GetPlayerID();
+	info->attacker_pid = pkAttacker->player_id();
 
-	m_pkFireEvent = event_create(fire_event, info, 1);
+	fire_event = event_create(game::characters::fire_event, info, 1);
 }
 
-void CHARACTER::AttackedByPoison(CHARACTER * pkAttacker)
+void character::attacked_by_poison(character * pkAttacker)
 {
-	if (m_pkPoisonEvent)
+	if (poison_event)
 		return;
 
-	if (m_bHasPoisoned && !IsPC()) // monsters can only be poisoned once.
+	if (has_poisoned && !is_pc()) // monsters can only be poisoned once.
 		return;
 
-	if (pkAttacker && pkAttacker->GetLevel() < GetLevel())
+	if (pkAttacker && pkAttacker->level() < level())
 	{
-		int delta = GetLevel() - pkAttacker->GetLevel();
+		int delta = level() - pkAttacker->level();
 
 		if (delta > 8)
 			delta = 8;
@@ -208,78 +208,78 @@ void CHARACTER::AttackedByPoison(CHARACTER * pkAttacker)
 	}
 
 	// poison resist roll failed, poisoned!
-	m_bHasPoisoned = true;
+	has_poisoned = true;
 
-	AddAffect(AFFECT_POISON, POINT_NONE, 0, AFF_POISON, POISON_LENGTH + 1, 0, true);
+	add_affect(AFFECT_POISON, POINT_NONE, 0, AFF_POISON, POISON_LENGTH + 1, 0, true);
 
-	TPoisonEventInfo* info = AllocEventInfo<TPoisonEventInfo>();
+	poison_event_info* info = alloc_event_info<poison_event_info>();
 
 	info->ch = this;
 	info->count = 10;
-	info->attacker_pid = pkAttacker?pkAttacker->GetPlayerID():0;
+	info->attacker_pid = pkAttacker?pkAttacker->player_id():0;
 
-	m_pkPoisonEvent = event_create(poison_event, info, 1);
+	poison_event = event_create(game::characters::poison_event, info, 1);
 
 	if (metin2::config::test_server() && pkAttacker)
 	{
 		char buf[256];
-		snprintf(buf, sizeof(buf), "POISON %s -> %s", pkAttacker->GetName(), GetName());
-		pkAttacker->ChatPacket(CHAT_TYPE_INFO, "%s", buf);
+		snprintf(buf, sizeof(buf), "POISON %s -> %s", pkAttacker->name(), name());
+		pkAttacker->chat_packet(CHAT_TYPE_INFO, "%s", buf);
 	}
 }
 
-void CHARACTER::RemoveFire()
+void character::remove_fire()
 {
-	RemoveAffect(AFFECT_FIRE);
-	event_cancel(&m_pkFireEvent);
+	remove_affect(AFFECT_FIRE);
+	event_cancel(&fire_event);
 }
 
-void CHARACTER::RemovePoison()
+void character::remove_poison()
 {
-	RemoveAffect(AFFECT_POISON);
-	event_cancel(&m_pkPoisonEvent);
+	remove_affect(AFFECT_POISON);
+	event_cancel(&poison_event);
 }
 
-void CHARACTER::ApplyMobAttribute(const TMobTable* table)
+void character::apply_mob_attribute(const mob_table* table)
 {
 	for (int i = 0; i < MOB_ENCHANTS_MAX_NUM; ++i)
 	{
-		if (table->cEnchants[i] != 0)
-			ApplyPoint(aiMobEnchantApplyIdx[i], table->cEnchants[i]);
+		if (table->c_enchants[i] != 0)
+			apply_point(mob_enchant_apply_idx[i], table->c_enchants[i]);
 	}
 
 	for (int i = 0; i < MOB_RESISTS_MAX_NUM; ++i)
 	{
-		if (table->cResists[i] != 0)
-			ApplyPoint(aiMobResistsApplyIdx[i], table->cResists[i]);
+		if (table->c_resists[i] != 0)
+			apply_point(mob_resists_apply_idx[i], table->c_resists[i]);
 	}
 }
 
-bool CHARACTER::IsImmune(uint32_t dwImmuneFlag)
+bool character::is_immune(uint32_t dwImmuneFlag)
 {
-	if (IS_SET(m_pointsInstant.dwImmuneFlag, dwImmuneFlag))
+	if (is_set(points_instant_.immune_flag, dwImmuneFlag))
 	{
 		int immune_pct = 90;
 		int	percent = number(1, 100);
 
 		if (percent <= immune_pct)	// 90% Immune
 		{
-			if (metin2::config::test_server() && IsPC())
-				ChatPacket(CHAT_TYPE_PARTY, "<IMMUNE_SUCCESS> (%s)", GetName()); 
+			if (metin2::config::test_server() && is_pc())
+				chat_packet(CHAT_TYPE_PARTY, "<IMMUNE_SUCCESS> (%s)", name()); 
 
 			return true;
 		}
 		else
 		{
-			if (metin2::config::test_server() && IsPC())
-				ChatPacket(CHAT_TYPE_PARTY, "<IMMUNE_FAIL> (%s)", GetName());
+			if (metin2::config::test_server() && is_pc())
+				chat_packet(CHAT_TYPE_PARTY, "<IMMUNE_FAIL> (%s)", name());
 
 			return false;
 		}
 	}
 
-	if (metin2::config::test_server() && IsPC())
-		ChatPacket(CHAT_TYPE_PARTY, "<IMMUNE_FAIL> (%s) NO_IMMUNE_FLAG", GetName());
+	if (metin2::config::test_server() && is_pc())
+		chat_packet(CHAT_TYPE_PARTY, "<IMMUNE_FAIL> (%s) NO_IMMUNE_FLAG", name());
 
 	return false;
 }

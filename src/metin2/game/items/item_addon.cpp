@@ -13,15 +13,15 @@
 
 namespace metin2::game::inline items {
 
-CItemAddonManager::CItemAddonManager()
+item_addon_manager::item_addon_manager()
 {
 }
 
-CItemAddonManager::~CItemAddonManager()
+item_addon_manager::~item_addon_manager()
 {
 }
 
-void CItemAddonManager::ApplyAddonTo(int iAddonType, CItem * pItem)
+void item_addon_manager::apply_addon_to(int iAddonType, item * pItem)
 {
 	if (!pItem)
 	{
@@ -38,9 +38,9 @@ void CItemAddonManager::ApplyAddonTo(int iAddonType, CItem * pItem)
 	else
 		iNormalHitBonus = -2 * iSkillBonus + number(1, 5);
 
-	pItem->RemoveAttributeType(APPLY_SKILL_DAMAGE_BONUS);
-	pItem->RemoveAttributeType(APPLY_NORMAL_HIT_DAMAGE_BONUS);
-	pItem->AddAttribute(APPLY_NORMAL_HIT_DAMAGE_BONUS, iNormalHitBonus);
-	pItem->AddAttribute(APPLY_SKILL_DAMAGE_BONUS, iSkillBonus);
+	pItem->remove_attribute_type(APPLY_SKILL_DAMAGE_BONUS);
+	pItem->remove_attribute_type(APPLY_NORMAL_HIT_DAMAGE_BONUS);
+	pItem->add_attribute(APPLY_NORMAL_HIT_DAMAGE_BONUS, iNormalHitBonus);
+	pItem->add_attribute(APPLY_SKILL_DAMAGE_BONUS, iSkillBonus);
 }
 }

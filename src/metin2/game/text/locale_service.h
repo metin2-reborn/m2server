@@ -4,16 +4,16 @@
 
 namespace metin2::game::inline text {
 
-bool LocaleService_Init(const std::string& c_rstServiceName);
-void LocaleService_LoadLocaleStringFile();
-void LocaleService_LoadEmpireTextConvertTables();
-void LocaleService_TransferDefaultSetting();
-const std::string& LocaleService_GetBasePath();
-const std::string& LocaleService_GetMapPath();
-const std::string& LocaleService_GetQuestPath();
+bool locale_service_init(const std::string& c_rstServiceName);
+void locale_service_load_locale_string_file();
+void locale_service_load_empire_text_convert_tables();
+void locale_service_transfer_default_setting();
+const std::string& locale_service_get_base_path();
+const std::string& locale_service_get_map_path();
+const std::string& locale_service_get_quest_path();
 
 int check_name(const char * str);
 
-extern std::string g_stLocale;
-extern std::string g_stLocaleFilename;
+extern std::string locale;
+extern std::string locale_filename;
 }

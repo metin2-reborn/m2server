@@ -13,14 +13,14 @@
 namespace metin2::game::inline events {
 
 inline constexpr int OXEVENT_MAP_INDEX = 113;
-struct tag_Quiz
+struct tag_quiz
 {
 	char level;
-	std::string Quiz;
+	std::string quiz;
 	bool answer;
 };
 
-enum OXEventStatus
+enum ox_event_status
 {
 	OXEVENT_FINISH = 0, // OX event fully finished
 	OXEVENT_OPEN = 1,	// OX event started. Entry possible through Euldoji (20012)
@@ -30,47 +30,47 @@ enum OXEventStatus
 	OXEVENT_ERR = 0xff
 };
 
-class COXEventManager : public singleton<COXEventManager>
+class ox_event_manager : public singleton<ox_event_manager>
 {
 	private :
-		std::map<uint32_t, uint32_t> m_map_char;
-		std::map<uint32_t, uint32_t> m_map_attender;
-		std::map<uint32_t, uint32_t> m_map_miss;
+		std::map<uint32_t, uint32_t> map_char_;
+		std::map<uint32_t, uint32_t> map_attender_;
+		std::map<uint32_t, uint32_t> map_miss_;
 
-		std::vector<std::vector<tag_Quiz> > m_vec_quiz;
+		std::vector<std::vector<tag_quiz> > vec_quiz_;
 
-		LPEVENT m_timedEvent;
+		event_ptr timed_event_;
 
 	protected :
-		bool CheckAnswer();
+		bool check_answer();
 
-		bool EnterAudience(CHARACTER * pChar);
-		bool EnterAttender(CHARACTER * pChar);
+		bool enter_audience(character * pChar);
+		bool enter_attender(character * pChar);
 
 	public :
-		bool Initialize();
-		void Destroy();
+		bool initialize();
+		void destroy();
 
-		OXEventStatus GetStatus();
-		void SetStatus(OXEventStatus status);
+		ox_event_status status();
+		void set_status(ox_event_status status);
 
 
-		bool Enter(CHARACTER * pChar);
+		bool enter(character * pChar);
 		
-		bool CloseEvent();
+		bool close_event();
 
-		void ClearQuiz();
-		bool AddQuiz(unsigned char level, const char* pszQuestion, bool answer);
-		bool ShowQuizList(CHARACTER * pChar);
+		void clear_quiz();
+		bool add_quiz(unsigned char level, const char* pszQuestion, bool answer);
+		bool show_quiz_list(character * pChar);
 
-		bool Quiz(unsigned char level, int timelimit);
-		bool GiveItemToAttender(uint32_t dwItemVnum, uint8_t count);
+		bool quiz(unsigned char level, int timelimit);
+		bool give_item_to_attender(uint32_t dwItemVnum, uint8_t count);
 
-		bool CheckAnswer(bool answer);
-		void WarpToAudience();
+		bool check_answer(bool answer);
+		void warp_to_audience();
 
-		bool LogWinner();
+		bool log_winner();
 
-		uint32_t GetAttenderCount() { return m_map_attender.size(); }
+		uint32_t attender_count() { return map_attender_.size(); }
 };
 }

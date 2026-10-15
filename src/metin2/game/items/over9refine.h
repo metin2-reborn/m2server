@@ -10,20 +10,20 @@
 
 namespace metin2::game::inline items {
 
-class COver9RefineManager : public singleton<COver9RefineManager>
+class over9_refine_manager : public singleton<over9_refine_manager>
 {
 	private :
-		typedef std::unordered_map<uint32_t, uint32_t> OVER9ITEM_MAP;
-		OVER9ITEM_MAP m_mapItem;
+		typedef std::unordered_map<uint32_t, uint32_t> ove_r9_item_map;
+		ove_r9_item_map item_;
 
 	public :
-		void enableOver9Refine(uint32_t dwVnumFrom, uint32_t dwVnumTo);
+		void enable_over9_refine(uint32_t dwVnumFrom, uint32_t dwVnumTo);
 
-		int canOver9Refine(uint32_t dwVnum);
+		int can_over9_refine(uint32_t dwVnum);
 
-		bool Change9ToOver9(CHARACTER * pChar, CItem * item);
-		bool Over9Refine(CHARACTER * pChat, CItem * item);
+		bool change9_to_over9(character * pChar, item * item);
+		bool over9_refine(character * pChat, item * item);
 
-		uint32_t GetMaterialVnum(uint32_t baseVnum);
+		uint32_t material_vnum(uint32_t baseVnum);
 };
 }

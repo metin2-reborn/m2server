@@ -7,50 +7,50 @@
 namespace metin2::game::inline protocol {
 
 
-CLoginData::CLoginData()
+login_data::login_data()
 {
-	m_dwKey = 0;
-	memset(m_adwClientKey, 0, sizeof(m_adwClientKey));
-	memset(m_aiPremiumTimes, 0, sizeof(m_aiPremiumTimes));
+	key_ = 0;
+	memset(client_key_, 0, sizeof(client_key_));
+	memset(premium_times_, 0, sizeof(premium_times_));
 }
 
-void CLoginData::SetClientKey(const uint32_t * c_pdwClientKey)
+void login_data::set_client_key(const uint32_t * c_pdwClientKey)
 {
-	std::memcpy(&m_adwClientKey, c_pdwClientKey, sizeof(uint32_t) * 4);
+	std::memcpy(&client_key_, c_pdwClientKey, sizeof(uint32_t) * 4);
 }
 
-const uint32_t * CLoginData::GetClientKey()
+const uint32_t * login_data::client_key()
 {
-	return &m_adwClientKey[0];
+	return &client_key_[0];
 }
 
-void CLoginData::SetKey(uint32_t dwKey)
+void login_data::set_key(uint32_t dwKey)
 {
-	m_dwKey = dwKey;
+	key_ = dwKey;
 }
 
-uint32_t CLoginData::GetKey()
+uint32_t login_data::key()
 {
-	return m_dwKey;
+	return key_;
 }
 
-void CLoginData::SetLogin(const char * c_pszLogin)
+void login_data::set_login(const char * c_pszLogin)
 {
-	m_stLogin = c_pszLogin;
+	login_ = c_pszLogin;
 }
 
-const char * CLoginData::GetLogin()
+const char * login_data::login()
 {
-	return m_stLogin.c_str();
+	return login_.c_str();
 }
 
-void CLoginData::SetPremium(int * paiPremiumTimes)
+void login_data::set_premium(int * paiPremiumTimes)
 {
-	std::memcpy(m_aiPremiumTimes, paiPremiumTimes, sizeof(m_aiPremiumTimes));
+	std::memcpy(premium_times_, paiPremiumTimes, sizeof(premium_times_));
 }
 
-int * CLoginData::GetPremiumPtr()
+int * login_data::premium_ptr()
 {
-	return &m_aiPremiumTimes[0];
+	return &premium_times_[0];
 }
 }

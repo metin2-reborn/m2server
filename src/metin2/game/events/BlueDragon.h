@@ -6,7 +6,7 @@
 
 namespace metin2::game::inline events {
 
-extern int BlueDragon_StateBattle (CHARACTER *);
-extern time_t UseBlueDragonSkill (CHARACTER *, unsigned int);
-extern int BlueDragon_Damage (CHARACTER * me, CHARACTER * attacker, int dam);
+extern int blue_dragon_state_battle (character *);
+extern time_t use_blue_dragon_skill (character *, unsigned int);
+extern int blue_dragon_damage (character * me, character * attacker, int dam);
 }

@@ -12,51 +12,51 @@
 
 namespace metin2::game::inline app {
 
-CEventQueue::~CEventQueue()
+event_queue::~event_queue()
 {
-	for (auto & [key, pElem] : m_queue)
-		Delete(pElem);
+	for (auto & [key, pElem] : queue_)
+		delete_(pElem);
 }
 
-TQueueElement * CEventQueue::Enqueue(LPEVENT pvData, int duration, int pulse)
+queue_element * event_queue::enqueue(event_ptr pvData, int duration, int pulse)
 {
-	TQueueElement * pElem = new TQueueElement;
+	queue_element * pElem = new queue_element;
 
-	pElem->pvData = pvData;
-	pElem->iStartTime = pulse;
-	pElem->iKey = duration + pulse;
-	pElem->bCancel = false;
+	pElem->pv_data = pvData;
+	pElem->start_time = pulse;
+	pElem->key = duration + pulse;
+	pElem->cancel = false;
 
-	m_queue.emplace(pElem->iKey, pElem);
+	queue_.emplace(pElem->key, pElem);
 	return pElem;
 }
 
-TQueueElement * CEventQueue::Dequeue()
+queue_element * event_queue::dequeue()
 {
-	if (m_queue.empty())
+	if (queue_.empty())
 		return nullptr;
 
-	const auto first = m_queue.begin();
-	TQueueElement * pElem = first->second;
-	m_queue.erase(first);
+	const auto first = queue_.begin();
+	queue_element * pElem = first->second;
+	queue_.erase(first);
 	return pElem;
 }
 
-void CEventQueue::Delete(TQueueElement * pElem)
+void event_queue::delete_(queue_element * pElem)
 {
 	delete pElem;
 }
 
-int CEventQueue::GetTopKey()
+int event_queue::top_key()
 {
-	if (m_queue.empty())
+	if (queue_.empty())
 		return INT_MAX;
 
-	return m_queue.begin()->first;
+	return queue_.begin()->first;
 }
 
-int CEventQueue::Size()
+int event_queue::size()
 {
-	return static_cast<int>(m_queue.size());
+	return static_cast<int>(queue_.size());
 }
 }

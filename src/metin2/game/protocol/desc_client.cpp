@@ -27,105 +27,105 @@
 namespace metin2::game::inline protocol {
 
 
-CLIENT_DESC * db_clientdesc = nullptr;
-CLIENT_DESC * g_pkAuthMasterDesc = nullptr;
-CLIENT_DESC * g_NetmarbleDBDesc = nullptr;
+client_desc * db_clientdesc = nullptr;
+client_desc * auth_master_desc = nullptr;
+client_desc * netmarble_db_desc = nullptr;
 
-static const char* GetKnownClientDescName(CLIENT_DESC * desc) {
+static const char* get_known_client_desc_name(client_desc * desc) {
 	if (desc == db_clientdesc) {
 		return "db_clientdesc";
-	} else if (desc == g_pkAuthMasterDesc) {
+	} else if (desc == auth_master_desc) {
 		return "g_pkAuthMasterDesc";
-	} else if (desc == g_NetmarbleDBDesc) {
+	} else if (desc == netmarble_db_desc) {
 		return "g_NetmarbleDBDesc";
 	}
 	return "unknown";
 }
 
-CLIENT_DESC::CLIENT_DESC()
+client_desc::client_desc()
 {
-	m_iPhaseWhenSucceed = 0;
-	m_bRetryWhenClosed = false;
-	m_LastTryToConnectTime = 0;
-	m_tLastChannelStatusUpdateTime = 0;
+	phase_when_succeed_ = 0;
+	retry_when_closed_ = false;
+	last_try_to_connect_time_ = 0;
+	t_last_channel_status_update_time_ = 0;
 }
 
-CLIENT_DESC::~CLIENT_DESC()
+client_desc::~client_desc()
 {
 }
 
-void CLIENT_DESC::Destroy()
+void client_desc::destroy()
 {
-	if (!m_connection) {
+	if (!connection_) {
 		return;
 	}
 
-	P2P_MANAGER::instance().UnregisterConnector(this);
+	p2_p_manager::instance().unregister_connector(this);
 
 	if (this == db_clientdesc)
 	{
-		CPartyManager::instance().DeleteAllParty();
-		CPartyManager::instance().DisablePCParty();
-		CGuildManager::instance().StopAllGuildWar();
+		party_manager::instance().delete_all_party();
+		party_manager::instance().disable_pc_party();
+		guild_manager::instance().stop_all_guild_war();
 	}
 
-	metin2::log::info( "SYSTEM: closing connection to {}:{:d}", m_stHost.c_str(), m_wPort);
+	metin2::log::info( "SYSTEM: closing connection to {}:{:d}", host_.c_str(), port_);
 
 	// Chain up to base class Destroy()
-	DESC::Destroy();
+	desc::destroy();
 }
 
-void CLIENT_DESC::SetRetryWhenClosed(bool b)
+void client_desc::set_retry_when_closed(bool b)
 {
-	m_bRetryWhenClosed = b;
+	retry_when_closed_ = b;
 }
 
-bool CLIENT_DESC::Connect(int iPhaseWhenSucceed)
+bool client_desc::connect(int iPhaseWhenSucceed)
 {
 	if (iPhaseWhenSucceed != 0)
-		m_iPhaseWhenSucceed = iPhaseWhenSucceed;
+		phase_when_succeed_ = iPhaseWhenSucceed;
 
-	if (get_global_time() - m_LastTryToConnectTime < 3)	// 3 seconds
+	if (get_global_time() - last_try_to_connect_time_ < 3)	// 3 seconds
 		return false;
 
-	m_LastTryToConnectTime = get_global_time();
+	last_try_to_connect_time_ = get_global_time();
 
-	if (m_connection)
+	if (connection_)
 		return false;
 
-	metin2::log::info( "SYSTEM: Trying to connect to {}:{:d}", m_stHost.c_str(), m_wPort);
+	metin2::log::info( "SYSTEM: Trying to connect to {}:{:d}", host_.c_str(), port_);
 
 	// Blocking (at most 10 seconds) so that packets sent right after the connect go out in order.
-	auto socket = net::connect(m_stHost, m_wPort, std::chrono::seconds(10));
+	auto socket = net::connect(host_, port_, std::chrono::seconds(10));
 
 	if (socket)
 	{
-		m_connection = net::connection::create(std::move(*socket), MAX_SERVER_INPUT, MAX_SERVER_OUTPUT);
-		m_connection->start(*this);
+		connection_ = net::connection::create(std::move(*socket), MAX_SERVER_INPUT, MAX_SERVER_OUTPUT);
+		connection_->start(*this);
 		metin2::log::info( "SYSTEM: connected to server (ptr {})", static_cast<const void *>(this));
-		SetPhase(m_iPhaseWhenSucceed);
+		set_phase(phase_when_succeed_);
 		return true;
 	}
 	else
 	{
-		SetPhase(PHASE_CLIENT_CONNECTING);
+		set_phase(PHASE_CLIENT_CONNECTING);
 		return false;
 	}
 }
 
-void CLIENT_DESC::Setup(const char * _host, uint16_t _port)
+void client_desc::setup(const char * _host, uint16_t _port)
 {
-	m_stHost = _host;
-	m_wPort = _port;
+	host_ = _host;
+	port_ = _port;
 }
 
-void CLIENT_DESC::SetPhase(int iPhase)
+void client_desc::set_phase(int iPhase)
 {
 	switch (iPhase)
 	{
 		case PHASE_CLIENT_CONNECTING:
 			metin2::log::debug( "PHASE_CLIENT_DESC::CONNECTING");
-			m_pInputProcessor = nullptr;
+			input_processor_ = nullptr;
 			break;
 
 		case PHASE_DBCLIENT:
@@ -139,171 +139,171 @@ void CLIENT_DESC::SetPhase(int iPhase)
 					if (!bSentBoot)
 					{
 						bSentBoot = true;
-						TPacketGDBoot p;
-						p.dwItemIDRange[0] = 0;
-						p.dwItemIDRange[1] = 0;
-						memcpy(p.szIP, g_szPublicIP, 16);
-						DBPacket(HEADER_GD_BOOT, 0, &p, sizeof(p));
+						packet_gd_boot p;
+						p.item_id_range[0] = 0;
+						p.item_id_range[1] = 0;
+						memcpy(p.ip, public_ip, 16);
+						db_packet(HEADER_GD_BOOT, 0, &p, sizeof(p));
 					}
 				}
 
-				TEMP_BUFFER buf;
+				temp_buffer buf;
 
-				TPacketGDSetup p;
+				packet_gd_setup p;
 
 				memset(&p, 0, sizeof(p));
-				strlcpy(p.szPublicIP, g_szPublicIP, sizeof(p.szPublicIP));
+				strlcpy(p.public_ip, public_ip, sizeof(p.public_ip));
 
 				if (!metin2::config::is_auth())
 				{
-					p.bChannel	= metin2::config::server().channel;
-					p.wListenPort = metin2::config::server().port;
-					p.wP2PPort	= metin2::config::server().p2p_port;
-					p.bAuthServer = false;
-					map_allow_copy(p.alMaps, MAX_MAPS_PER_SERVER);
+					p.channel	= metin2::config::server().channel;
+					p.listen_port = metin2::config::server().port;
+					p.p2_p_port	= metin2::config::server().p2p_port;
+					p.auth_server = false;
+					map_allow_copy(p.maps, MAX_MAPS_PER_SERVER);
 
-					const DESC_MANAGER::DESC_SET & c_set = DESC_MANAGER::instance().GetClientSet();
-					DESC_MANAGER::DESC_SET::const_iterator it;
+					const desc_manager::desc_set & c_set = desc_manager::instance().client_set();
+					desc_manager::desc_set::const_iterator it;
 
 					for (it = c_set.begin(); it != c_set.end(); ++it)
 					{
-						DESC * d = *it;
+						desc * d = *it;
 
-						if (d->GetAccountTable().id != 0)
-							++p.dwLoginCount;
+						if (d->get_account_table().id != 0)
+							++p.login_count;
 					}
 
 					buf.write(&p, sizeof(p));
 
-					if (p.dwLoginCount)
+					if (p.login_count)
 					{
-						TPacketLoginOnSetup pck;
+						packet_login_on_setup pck;
 
 						for (it = c_set.begin(); it != c_set.end(); ++it)
 						{
-							DESC * d = *it;
+							desc * d = *it;
 
-							TAccountTable & r = d->GetAccountTable();
+							account_table & r = d->get_account_table();
 
 							if (r.id != 0)
 							{
-								pck.dwID = r.id;
-								strlcpy(pck.szLogin, r.login, sizeof(pck.szLogin));
-								strlcpy(pck.szSocialID, r.social_id, sizeof(pck.szSocialID));
-								strlcpy(pck.szHost, d->GetHostName(), sizeof(pck.szHost));
-								pck.dwLoginKey = d->GetLoginKey();
+								pck.id = r.id;
+								strlcpy(pck.login, r.login, sizeof(pck.login));
+								strlcpy(pck.social_id, r.social_id, sizeof(pck.social_id));
+								strlcpy(pck.host, d->host_name(), sizeof(pck.host));
+								pck.login_key = d->get_login_key();
 
-								buf.write(&pck, sizeof(TPacketLoginOnSetup));
+								buf.write(&pck, sizeof(packet_login_on_setup));
 							}
 						}
 					}
 
-					metin2::log::info( "DB_SETUP current user {:d} size {:d}", p.dwLoginCount, buf.size());
+					metin2::log::info( "DB_SETUP current user {:d} size {:d}", p.login_count, buf.size());
 
 					// Party processing is now possible.
-					CPartyManager::instance().EnablePCParty();
+					party_manager::instance().enable_pc_party();
 				}
 				else
 				{
-					p.bAuthServer = true;
+					p.auth_server = true;
 					buf.write(&p, sizeof(p));
 				}
 
-				DBPacket(HEADER_GD_SETUP, 0, buf.read_peek(), buf.size());
-				m_pInputProcessor = &m_inputDB;
+				db_packet(HEADER_GD_SETUP, 0, buf.read_peek(), buf.size());
+				input_processor_ = &input_db_;
 			}
 			break;
 
 		case PHASE_P2P:
 			metin2::log::debug( "PHASE_P2P");
-			m_pInputProcessor = &m_inputP2P;
+			input_processor_ = &input_p2_p_;
 			break;
 
 		case PHASE_CLOSE:
-			m_pInputProcessor = nullptr;
+			input_processor_ = nullptr;
 			break;
 
 	}
 
-	m_iPhase = iPhase;
+	phase_ = iPhase;
 }
 
-void CLIENT_DESC::DBPacketHeader(uint8_t bHeader, uint32_t dwHandle, uint32_t dwSize)
+void client_desc::db_packet_header(uint8_t bHeader, uint32_t dwHandle, uint32_t dwSize)
 {
-	m_connection->send(encode_byte(bHeader), sizeof(uint8_t));
-	m_connection->send(encode_4bytes(dwHandle), sizeof(uint32_t));
-	m_connection->send(encode_4bytes(dwSize), sizeof(uint32_t));
+	connection_->send(encode_byte(bHeader), sizeof(uint8_t));
+	connection_->send(encode_4bytes(dwHandle), sizeof(uint32_t));
+	connection_->send(encode_4bytes(dwSize), sizeof(uint32_t));
 }
 
-void CLIENT_DESC::DBPacket(uint8_t bHeader, uint32_t dwHandle, const void * c_pvData, uint32_t dwSize)
+void client_desc::db_packet(uint8_t bHeader, uint32_t dwHandle, const void * c_pvData, uint32_t dwSize)
 {
-	if (!m_connection) {
+	if (!connection_) {
 		metin2::log::info( "CLIENT_DESC [{}] trying DBPacket() while not connected",
-			GetKnownClientDescName(this));
+			get_known_client_desc_name(this));
 		return;
 	}
-	metin2::log::debug( "DB_PACKET: header {:d} handle {:d} size {:d} pending {:d}", bHeader, dwHandle, dwSize, m_connection->pending_output());
-	DBPacketHeader(bHeader, dwHandle, dwSize);
+	metin2::log::debug( "DB_PACKET: header {:d} handle {:d} size {:d} pending {:d}", bHeader, dwHandle, dwSize, connection_->pending_output());
+	db_packet_header(bHeader, dwHandle, dwSize);
 
 	if (c_pvData)
-		m_connection->send(c_pvData, dwSize);
+		connection_->send(c_pvData, dwSize);
 }
 
-void CLIENT_DESC::Packet(const void * c_pvData, int iSize)
+void client_desc::packet(const void * c_pvData, int iSize)
 {
-	if (!m_connection) {
+	if (!connection_) {
 		metin2::log::info( "CLIENT_DESC [{}] trying Packet() while not connected",
-			GetKnownClientDescName(this));
+			get_known_client_desc_name(this));
 		return;
 	}
-	m_connection->send(c_pvData, iSize);
+	connection_->send(c_pvData, iSize);
 }
 
-bool CLIENT_DESC::IsRetryWhenClosed()
+bool client_desc::is_retry_when_closed()
 {
-	return (0 == thecore_is_shutdowned() && m_bRetryWhenClosed);
+	return (0 == thecore_is_shutdowned() && retry_when_closed_);
 }
 
-void CLIENT_DESC::Update(uint32_t t)
+void client_desc::update(uint32_t t)
 {
 	if (!metin2::config::is_auth()) {
-		UpdateChannelStatus(t, false);
+		update_channel_status(t, false);
 	}
 }
 
-void CLIENT_DESC::UpdateChannelStatus(uint32_t t, bool fForce)
+void client_desc::update_channel_status(uint32_t t, bool fForce)
 {
 	enum {
 		CHANNELSTATUS_UPDATE_PERIOD = 5*60*1000,	// Every 5 minutes
 	};
-	if (fForce || m_tLastChannelStatusUpdateTime+CHANNELSTATUS_UPDATE_PERIOD < t) {
+	if (fForce || t_last_channel_status_update_time_+CHANNELSTATUS_UPDATE_PERIOD < t) {
 		int iTotal; 
 		int * paiEmpireUserCount;
 		int iLocal;
-		DESC_MANAGER::instance().GetUserCount(iTotal, &paiEmpireUserCount, iLocal);
+		desc_manager::instance().user_count(iTotal, &paiEmpireUserCount, iLocal);
 
-		TChannelStatus channelStatus;
-		channelStatus.nPort = metin2::config::server().port;
+		channel_status channelStatus;
+		channelStatus.port = metin2::config::server().port;
 
-		if (g_bNoMoreClient) channelStatus.bStatus = 0;
-		else channelStatus.bStatus = iTotal > g_iFullUserCount ? 3 : iTotal > g_iBusyUserCount ? 2 : 1;
+		if (no_more_client) channelStatus.status = 0;
+		else channelStatus.status = iTotal > full_user_count ? 3 : iTotal > busy_user_count ? 2 : 1;
 
-		DBPacket(HEADER_GD_UPDATE_CHANNELSTATUS, 0, &channelStatus, sizeof(channelStatus));
-		m_tLastChannelStatusUpdateTime = t;
+		db_packet(HEADER_GD_UPDATE_CHANNELSTATUS, 0, &channelStatus, sizeof(channelStatus));
+		t_last_channel_status_update_time_ = t;
 	}
 }
 
-void CLIENT_DESC::Reset()
+void client_desc::reset()
 {
 	// Backup connection target info
-	std::string host = m_stHost;
-	uint16_t port = m_wPort;
+	std::string host = host_;
+	uint16_t port = port_;
 
-	Destroy();
-	Initialize();
+	destroy();
+	initialize();
 
 	// Restore connection target info
-	m_stHost = host;
-	m_wPort = port;
+	host_ = host;
+	port_ = port;
 }
 }

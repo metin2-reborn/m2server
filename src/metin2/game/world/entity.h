@@ -7,72 +7,72 @@
 
 namespace metin2::game::inline world {
 
-class SECTREE;
+class sectree;
 
-class CEntity
+class entity
 {
 	public:
-		typedef std::unordered_map<CEntity *, int> ENTITY_MAP;
+		typedef std::unordered_map<entity *, int> entity_map;
 
 	public:
-		CEntity();
-		virtual	~CEntity();
+		entity();
+		virtual	~entity();
 
-		virtual void	EncodeInsertPacket(CEntity * entity) = 0;
-		virtual	void	EncodeRemovePacket(CEntity * entity) = 0;
+		virtual void	encode_insert_packet(entity * entity) = 0;
+		virtual	void	encode_remove_packet(entity * entity) = 0;
 
 	protected:
-		void			Initialize(int type = -1);
-		void			Destroy();
+		void			initialize(int type = -1);
+		void			destroy();
 
 	public:
-		int				GetType() const;
-		bool			IsType(int type) const;
+		int				type() const;
+		bool			is_type(int type) const;
 
-		void			ViewCleanup();
-		void			ViewInsert(CEntity * entity, bool recursive = true);
-		void			ViewRemove(CEntity * entity, bool recursive = true);
-		void			ViewReencode();	// Resend packets to surrounding entities.
+		void			view_cleanup();
+		void			view_insert(entity * entity, bool recursive = true);
+		void			view_remove(entity * entity, bool recursive = true);
+		void			view_reencode();	// Resend packets to surrounding entities.
 
-		int32_t			GetX() const		{ return m_pos.x; }
-		int32_t			GetY() const		{ return m_pos.y; }
-		int32_t			GetZ() const		{ return m_pos.z; }
-		const PIXEL_POSITION &	GetXYZ() const		{ return m_pos; }
+		int32_t			x() const		{ return pos_.x; }
+		int32_t			y() const		{ return pos_.y; }
+		int32_t			z() const		{ return pos_.z; }
+		const pixel_position &	xyz() const		{ return pos_; }
 
-		void			SetXYZ(int32_t x, int32_t y, int32_t z)		{ m_pos.x = x, m_pos.y = y, m_pos.z = z; }
+		void			set_xyz(int32_t x, int32_t y, int32_t z)		{ pos_.x = x, pos_.y = y, pos_.z = z; }
 
-		SECTREE *		GetSectree() const			{ return m_pSectree;	}
-		void			SetSectree(SECTREE * tree)	{ m_pSectree = tree;	}
+		sectree *		get_sectree() const			{ return sectree_;	}
+		void			set_sectree(sectree * tree)	{ sectree_ = tree;	}
 
-		void			UpdateSectree();
-		void			PacketAround(const void * data, int bytes, CEntity * except = nullptr);
-		void			PacketView(const void * data, int bytes, CEntity * except = nullptr);
+		void			update_sectree();
+		void			packet_around(const void * data, int bytes, entity * except = nullptr);
+		void			packet_view(const void * data, int bytes, entity * except = nullptr);
 
-		void			BindDesc(DESC * _d)     { m_lpDesc = _d; }
-		DESC *			GetDesc() const			{ return m_lpDesc; }
+		void			bind_desc(desc * _d)     { desc_ = _d; }
+		desc *			get_desc() const			{ return desc_; }
 
-		void			SetMapIndex(int32_t l)	{ m_lMapIndex = l; }
-		int32_t			GetMapIndex() const	{ return m_lMapIndex; }
+		void			set_map_index(int32_t l)	{ map_index_ = l; }
+		int32_t			map_index() const	{ return map_index_; }
 
-		void			SetObserverMode(bool bFlag);
-		bool			IsObserverMode() const	{ return m_bIsObserver; }
+		void			set_observer_mode(bool bFlag);
+		bool			is_observer_mode() const	{ return is_observer_; }
 
 	protected:
-		bool			m_bIsObserver;
-		bool			m_bObserverModeChange;
-		ENTITY_MAP		m_map_view;
-		int32_t			m_lMapIndex;
+		bool			is_observer_;
+		bool			observer_mode_change_;
+		entity_map		map_view_;
+		int32_t			map_index_;
 
 	private:
-		DESC *			m_lpDesc;
+		desc *			desc_;
 
-		int			m_iType;
-		bool			m_bIsDestroyed;
+		int			type_;
+		bool			is_destroyed_;
 
-		PIXEL_POSITION		m_pos;
+		pixel_position		pos_;
 
-		int			m_iViewAge;
+		int			view_age_;
 
-		SECTREE *		m_pSectree;
+		sectree *		sectree_;
 };
 }

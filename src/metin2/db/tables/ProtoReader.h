@@ -11,26 +11,26 @@ namespace metin2::db::inline tables {
 
 //Reads a csv file and fills the item table.
 
-int get_Item_Type_Value(std::string inputString);
-int get_Item_SubType_Value(int type_value, std::string inputString);
-int get_Item_AntiFlag_Value(std::string inputString);
-int get_Item_Flag_Value(std::string inputString);
-int get_Item_WearFlag_Value(std::string inputString);
-int get_Item_Immune_Value(std::string inputString);
-int get_Item_LimitType_Value(std::string inputString);
-int get_Item_ApplyType_Value(std::string inputString);
+int get_item_type_value(std::string inputString);
+int get_item_sub_type_value(int type_value, std::string inputString);
+int get_item_anti_flag_value(std::string inputString);
+int get_item_flag_value(std::string inputString);
+int get_item_wear_flag_value(std::string inputString);
+int get_item_immune_value(std::string inputString);
+int get_item_limit_type_value(std::string inputString);
+int get_item_apply_type_value(std::string inputString);
 
 //Can also read the monster proto.
-int get_Mob_Rank_Value(std::string inputString);
-int get_Mob_Type_Value(std::string inputString);
-int get_Mob_BattleType_Value(std::string inputString);
+int get_mob_rank_value(std::string inputString);
+int get_mob_type_value(std::string inputString);
+int get_mob_battle_type_value(std::string inputString);
 
-int get_Mob_Size_Value(std::string inputString);
-int get_Mob_AIFlag_Value(std::string inputString);
-int get_Mob_RaceFlag_Value(std::string inputString);
-int get_Mob_ImmuneFlag_Value(std::string inputString);
+int get_mob_size_value(std::string inputString);
+int get_mob_ai_flag_value(std::string inputString);
+int get_mob_race_flag_value(std::string inputString);
+int get_mob_immune_flag_value(std::string inputString);
 
 //
-bool Set_Proto_Mob_Table(TMobTable *mobTable, cCsvTable &csvTable, std::map<int,const char*> &nameMap);
-bool Set_Proto_Item_Table(TItemTable *itemTable, cCsvTable &csvTable,std::map<int,const char*> &nameMap);
+bool set_proto_mob_table(mob_table *mobTable, c_csv_table &csvTable, std::map<int,const char*> &nameMap);
+bool set_proto_item_table(item_table *itemTable, c_csv_table &csvTable,std::map<int,const char*> &nameMap);
 }

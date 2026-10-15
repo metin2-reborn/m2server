@@ -11,11 +11,11 @@
 
 namespace metin2::game::inline combat {
 
-bool CTableBySkill::Check() const
+bool table_by_skill::check() const
 {
 	for (int job = 0; job < (JOB_MAX_NUM * 2); ++job)
 	{
-		if (!m_aiSkillPowerByLevelFromType[job])
+		if (!skill_power_by_level_from_type_[job])
 		{
 			fprintf( stderr, "[NO SETTING SKILL] aiSkillPowerByLevelFromType[%d]", job);
 			return false;
@@ -25,21 +25,21 @@ bool CTableBySkill::Check() const
 	return true;
 }
 
-void CTableBySkill::DeleteAll()
+void table_by_skill::delete_all()
 {
 	for ( int job = 0; job < JOB_MAX_NUM * 2; ++job )
 	{
-		DeleteSkillPowerByLevelFromType( job );
+		delete_skill_power_by_level_from_type( job );
 	}
 
-	DeleteSkillDamageByLevelTable();
+	delete_skill_damage_by_level_table();
 }
 
-int CTableBySkill::GetSkillPowerByLevelFromType(int job, int skillgroup, int skilllevel, bool bMob) const
+int table_by_skill::skill_power_by_level_from_type(int job, int skillgroup, int skilllevel, bool bMob) const
 {
 	if (bMob)
 	{
-		return m_aiSkillPowerByLevelFromType[0][skilllevel];
+		return skill_power_by_level_from_type_[0][skilllevel];
 	}
 
 	if (job >= JOB_MAX_NUM || skillgroup == 0)
@@ -47,26 +47,26 @@ int CTableBySkill::GetSkillPowerByLevelFromType(int job, int skillgroup, int ski
 
 	int idx = (job * 2) + (skillgroup - 1);
 
-	return m_aiSkillPowerByLevelFromType[idx][skilllevel];
+	return skill_power_by_level_from_type_[idx][skilllevel];
 }
 
-void CTableBySkill::SetSkillPowerByLevelFromType(int idx, const int* aTable)
+void table_by_skill::set_skill_power_by_level_from_type(int idx, const int* aTable)
 {
-	DeleteSkillPowerByLevelFromType(idx);
+	delete_skill_power_by_level_from_type(idx);
 
 	auto aiSkillTable = std::make_unique_for_overwrite<int[]>(SKILL_MAX_LEVEL+1);
 
 	memcpy (aiSkillTable.get(), aTable, sizeof(int) * (SKILL_MAX_LEVEL + 1));
-	m_aiSkillPowerByLevelFromType[idx] = std::move(aiSkillTable);
+	skill_power_by_level_from_type_[idx] = std::move(aiSkillTable);
 }
 
-void CTableBySkill::DeleteSkillPowerByLevelFromType(int idx)
+void table_by_skill::delete_skill_power_by_level_from_type(int idx)
 {
-	m_aiSkillPowerByLevelFromType[idx].reset();
+	skill_power_by_level_from_type_[idx].reset();
 }
 
-void CTableBySkill::DeleteSkillDamageByLevelTable()
+void table_by_skill::delete_skill_damage_by_level_table()
 {
-	m_aiSkillDamageByLevel.reset();
+	skill_damage_by_level_.reset();
 }
 }

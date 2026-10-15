@@ -9,16 +9,16 @@
 
 namespace metin2::db::inline logs {
 
-class CMoneyLog : public singleton<CMoneyLog>
+class money_log : public singleton<money_log>
 {
     public:
-	CMoneyLog();
-	~CMoneyLog() override;
+	money_log();
+	~money_log() override;
 
-	void Save();
-	void AddLog(uint8_t bType, uint32_t dwVnum, int iGold);
+	void save();
+	void add_log(uint8_t bType, uint32_t dwVnum, int iGold);
 
     private:
-	std::map<uint32_t, int> m_MoneyLogContainer[MONEY_LOG_TYPE_MAX_NUM];
+	std::map<uint32_t, int> money_log_container_[MONEY_LOG_TYPE_MAX_NUM];
 };
 }

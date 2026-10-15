@@ -30,115 +30,115 @@
 namespace metin2::db::inline clients {
 
 
-bool CClientManager::InsertLogonAccount(const char * c_pszLogin, uint32_t dwHandle)
+bool client_manager::insert_logon_account(const char * c_pszLogin, uint32_t dwHandle)
 {
 	char szLogin[LOGIN_MAX_LEN + 1];
 	trim_and_lower(c_pszLogin, szLogin, sizeof(szLogin));
 
-	auto it = m_map_kLogonAccount.find(szLogin);
+	auto it = map_k_logon_account_.find(szLogin);
 
-	if (m_map_kLogonAccount.end() != it)
+	if (map_k_logon_account_.end() != it)
 		return false;
 
-	CLoginData * pkLD = GetLoginDataByLogin(c_pszLogin);
+	login_data * pkLD = get_login_data_by_login(c_pszLogin);
 
 	if (!pkLD)
 		return false;
 
-	pkLD->SetConnectedPeerHandle(dwHandle);
+	pkLD->set_connected_peer_handle(dwHandle);
 
-	m_map_kLogonAccount.insert(TLogonAccountMap::value_type(szLogin, pkLD));
+	map_k_logon_account_.insert(logon_account_map::value_type(szLogin, pkLD));
 	return true;
 }
 
-bool CClientManager::DeleteLogonAccount(const char * c_pszLogin, uint32_t dwHandle)
+bool client_manager::delete_logon_account(const char * c_pszLogin, uint32_t dwHandle)
 {
 	char szLogin[LOGIN_MAX_LEN + 1];
 	trim_and_lower(c_pszLogin, szLogin, sizeof(szLogin));
 
-	auto it = m_map_kLogonAccount.find(szLogin);
+	auto it = map_k_logon_account_.find(szLogin);
 
-	if (it == m_map_kLogonAccount.end())
+	if (it == map_k_logon_account_.end())
 		return false;
 
-	CLoginData * pkLD = it->second;
+	login_data * pkLD = it->second;
 
-	if (pkLD->GetConnectedPeerHandle() != dwHandle)
+	if (pkLD->connected_peer_handle() != dwHandle)
 	{
-		metin2::log::error("{} tried to logout in other peer handle {:d}, current handle {:d}", szLogin, dwHandle, pkLD->GetConnectedPeerHandle());
+		metin2::log::error("{} tried to logout in other peer handle {:d}, current handle {:d}", szLogin, dwHandle, pkLD->connected_peer_handle());
 		return false;
 	}
 
-	pkLD->SetPlay(false);
+	pkLD->set_play(false);
 
-	if (pkLD->IsDeleted())
+	if (pkLD->is_deleted())
 	{
 		delete pkLD;
 	}
 
-	m_map_kLogonAccount.erase(it);
+	map_k_logon_account_.erase(it);
 	return true;
 }
 
-bool CClientManager::FindLogonAccount(const char * c_pszLogin)
+bool client_manager::find_logon_account(const char * c_pszLogin)
 {
 	char szLogin[LOGIN_MAX_LEN + 1];
 	trim_and_lower(c_pszLogin, szLogin, sizeof(szLogin));
 
-	if (m_map_kLogonAccount.end() == m_map_kLogonAccount.find(szLogin))
+	if (map_k_logon_account_.end() == map_k_logon_account_.find(szLogin))
 		return false;
 
 	return true;
 }
 
-void CClientManager::QUERY_LOGIN_BY_KEY(CPeer * pkPeer, uint32_t dwHandle, TPacketGDLoginByKey * p)
+void client_manager::query_login_by_key(peer * pkPeer, uint32_t dwHandle, packet_gd_login_by_key * p)
 {
 
-	CLoginData * pkLoginData = GetLoginData(p->dwLoginKey);
+	login_data * pkLoginData = get_login_data(p->login_key);
 	char szLogin[LOGIN_MAX_LEN + 1];
-	trim_and_lower(p->szLogin, szLogin, sizeof(szLogin));
+	trim_and_lower(p->login, szLogin, sizeof(szLogin));
 
 	if (!pkLoginData)
 	{
-		metin2::log::info( "LOGIN_BY_KEY key not exist {} {:d}", szLogin, p->dwLoginKey);
-		pkPeer->EncodeReturn(HEADER_DG_LOGIN_NOT_EXIST, dwHandle);
+		metin2::log::info( "LOGIN_BY_KEY key not exist {} {:d}", szLogin, p->login_key);
+		pkPeer->encode_return(HEADER_DG_LOGIN_NOT_EXIST, dwHandle);
 		return;
 	}
 
-	TAccountTable & r = pkLoginData->GetAccountRef();
+	account_table & r = pkLoginData->account_ref();
 
-	if (FindLogonAccount(r.login))
+	if (find_logon_account(r.login))
 	{
-		metin2::log::info( "LOGIN_BY_KEY already login {} {:d}", r.login, p->dwLoginKey);
-		TPacketDGLoginAlready ptog;
-		strlcpy(ptog.szLogin, szLogin, sizeof(ptog.szLogin));
-		pkPeer->EncodeHeader(HEADER_DG_LOGIN_ALREADY, dwHandle, sizeof(TPacketDGLoginAlready));
-		pkPeer->Encode(&ptog, sizeof(TPacketDGLoginAlready));
+		metin2::log::info( "LOGIN_BY_KEY already login {} {:d}", r.login, p->login_key);
+		packet_dg_login_already ptog;
+		strlcpy(ptog.login, szLogin, sizeof(ptog.login));
+		pkPeer->encode_header(HEADER_DG_LOGIN_ALREADY, dwHandle, sizeof(packet_dg_login_already));
+		pkPeer->encode(&ptog, sizeof(packet_dg_login_already));
 		return;
 	}
 
 	if (strcasecmp(r.login, szLogin))
 	{
-		metin2::log::info( "LOGIN_BY_KEY login differ {} {:d} input {}", r.login, p->dwLoginKey, szLogin);
-		pkPeer->EncodeReturn(HEADER_DG_LOGIN_NOT_EXIST, dwHandle);
+		metin2::log::info( "LOGIN_BY_KEY login differ {} {:d} input {}", r.login, p->login_key, szLogin);
+		pkPeer->encode_return(HEADER_DG_LOGIN_NOT_EXIST, dwHandle);
 		return;
 	}
 
-	if (memcmp(pkLoginData->GetClientKey(), p->adwClientKey, sizeof(uint32_t) * 4))
+	if (memcmp(pkLoginData->client_key(), p->client_key, sizeof(uint32_t) * 4))
 	{
-		const uint32_t * pdwClientKey = pkLoginData->GetClientKey();
+		const uint32_t * pdwClientKey = pkLoginData->client_key();
 
 		metin2::log::info( "LOGIN_BY_KEY client key differ {} {:d} {:d} {:d} {:d}, {:d} {:d} {:d} {:d}",
 				r.login,
-				p->adwClientKey[0], p->adwClientKey[1], p->adwClientKey[2], p->adwClientKey[3],
+				p->client_key[0], p->client_key[1], p->client_key[2], p->client_key[3],
 				pdwClientKey[0], pdwClientKey[1], pdwClientKey[2], pdwClientKey[3]);
 
-		pkPeer->EncodeReturn(HEADER_DG_LOGIN_NOT_EXIST, dwHandle);
+		pkPeer->encode_return(HEADER_DG_LOGIN_NOT_EXIST, dwHandle);
 		return;
 	}
 
-	auto pkTab = std::make_unique<TAccountTable>();
-	memset(pkTab.get(), 0, sizeof(TAccountTable));
+	auto pkTab = std::make_unique<account_table>();
+	memset(pkTab.get(), 0, sizeof(account_table));
 
 	pkTab->id = r.id;
 	trim_and_lower(r.login, pkTab->login, sizeof(pkTab->login));
@@ -146,82 +146,82 @@ void CClientManager::QUERY_LOGIN_BY_KEY(CPeer * pkPeer, uint32_t dwHandle, TPack
 	strlcpy(pkTab->social_id, r.social_id, sizeof(pkTab->social_id));
 	strlcpy(pkTab->status, "OK", sizeof(pkTab->status));
 
-	ClientHandleInfo * info = new ClientHandleInfo(dwHandle);
-	info->pAccountTable = std::move(pkTab);
-	strlcpy(info->ip, p->szIP, sizeof(info->ip));
+	client_handle_info * info = new client_handle_info(dwHandle);
+	info->account_table = std::move(pkTab);
+	strlcpy(info->ip, p->ip, sizeof(info->ip));
 
-	metin2::log::info( "LOGIN_BY_KEY success {} {:d} {}", r.login, p->dwLoginKey, info->ip);
+	metin2::log::info( "LOGIN_BY_KEY success {} {:d} {}", r.login, p->login_key, info->ip);
 	char szQuery[QUERY_MAX_LEN];
-	snprintf(szQuery, sizeof(szQuery), "SELECT pid1, pid2, pid3, pid4, empire FROM player_index%s WHERE id=%u", GetTablePostfix(), r.id);
-	CDBManager::instance().ReturnQuery(szQuery, QID_LOGIN_BY_KEY, pkPeer->GetHandle(), info);
+	snprintf(szQuery, sizeof(szQuery), "SELECT pid1, pid2, pid3, pid4, empire FROM player_index%s WHERE id=%u", get_table_postfix(), r.id);
+	db_manager::instance().return_query(szQuery, QID_LOGIN_BY_KEY, pkPeer->handle(), info);
 }
 
-void CClientManager::RESULT_LOGIN_BY_KEY(CPeer * peer, SQLMsg * msg)
+void client_manager::result_login_by_key(peer * peer, ql_msg * msg)
 {
-	CQueryInfo * qi = (CQueryInfo *) msg->pvUserData;
-	ClientHandleInfo * info = (ClientHandleInfo *) qi->pvData;
+	query_info * qi = (query_info *) msg->pv_user_data;
+	client_handle_info * info = (client_handle_info *) qi->pv_data;
 
-	if (msg->uiSQLErrno != 0)
+	if (msg->sql_errno != 0)
 	{
-		peer->EncodeReturn(HEADER_DG_LOGIN_NOT_EXIST, info->dwHandle);
+		peer->encode_return(HEADER_DG_LOGIN_NOT_EXIST, info->handle);
 		delete info;
 		return;
 	}
 
 	char szQuery[QUERY_MAX_LEN];
 
-	if (msg->Get()->uiNumRows == 0)
+	if (msg->get()->num_rows == 0)
 	{
-		uint32_t account_id = info->pAccountTable->id;
+		uint32_t account_id = info->account_table->id;
 		char szQuery[QUERY_MAX_LEN];
-		snprintf(szQuery, sizeof(szQuery), "SELECT pid1, pid2, pid3, pid4, empire FROM player_index%s WHERE id=%u", GetTablePostfix(), account_id);
-		std::unique_ptr<SQLMsg> pMsg(CDBManager::instance().DirectQuery(szQuery, SQL_PLAYER));
+		snprintf(szQuery, sizeof(szQuery), "SELECT pid1, pid2, pid3, pid4, empire FROM player_index%s WHERE id=%u", get_table_postfix(), account_id);
+		std::unique_ptr<ql_msg> pMsg(db_manager::instance().direct_query(szQuery, SQL_PLAYER));
 		
 		metin2::log::info( "RESULT_LOGIN_BY_KEY FAIL player_index's NULL : ID:{:d}", account_id);
 
-		if (pMsg->Get()->uiNumRows == 0)
+		if (pMsg->get()->num_rows == 0)
 		{
 			metin2::log::info( "RESULT_LOGIN_BY_KEY FAIL player_index's NULL : ID:{:d}", account_id);
 
 			// PLAYER_INDEX_CREATE_BUG_FIX
-			snprintf(szQuery, sizeof(szQuery), "INSERT INTO player_index%s (id) VALUES(%u)", GetTablePostfix(), info->pAccountTable->id);
-			CDBManager::instance().ReturnQuery(szQuery, QID_PLAYER_INDEX_CREATE, peer->GetHandle(), info);
+			snprintf(szQuery, sizeof(szQuery), "INSERT INTO player_index%s (id) VALUES(%u)", get_table_postfix(), info->account_table->id);
+			db_manager::instance().return_query(szQuery, QID_PLAYER_INDEX_CREATE, peer->handle(), info);
 			// END_PLAYER_INDEX_CREATE_BUF_FIX
 		}
 		return;
 	}
 
-	MYSQL_ROW row = mysql_fetch_row(msg->Get()->pSQLResult);
+	MYSQL_ROW row = mysql_fetch_row(msg->get()->sql_result);
 
 	int col = 0;
 
 	for (; col < PLAYER_PER_ACCOUNT; ++col)
-		str_to_number(info->pAccountTable->players[col].dwID, row[col]);
+		str_to_number(info->account_table->players[col].id, row[col]);
 
-	str_to_number(info->pAccountTable->bEmpire, row[col++]);
+	str_to_number(info->account_table->empire, row[col++]);
 	info->account_index = 1;
 
 	snprintf(szQuery, sizeof(szQuery),
 			"SELECT id, name, job, level, playtime, st, ht, dx, iq, part_main, part_hair, x, y, skill_group, change_name FROM player%s WHERE account_id=%u",
-			GetTablePostfix(), info->pAccountTable->id);
+			get_table_postfix(), info->account_table->id);
 
-	CDBManager::instance().ReturnQuery(szQuery, QID_LOGIN, peer->GetHandle(), info);
+	db_manager::instance().return_query(szQuery, QID_LOGIN, peer->handle(), info);
 }
 
 // PLAYER_INDEX_CREATE_BUG_FIX
-void CClientManager::RESULT_PLAYER_INDEX_CREATE(CPeer * pkPeer, SQLMsg * msg)
+void client_manager::result_player_index_create(peer * pkPeer, ql_msg * msg)
 {
-	CQueryInfo * qi = (CQueryInfo *) msg->pvUserData;
-	ClientHandleInfo * info = (ClientHandleInfo *) qi->pvData;
+	query_info * qi = (query_info *) msg->pv_user_data;
+	client_handle_info * info = (client_handle_info *) qi->pv_data;
 
 	char szQuery[QUERY_MAX_LEN];
-	snprintf(szQuery, sizeof(szQuery), "SELECT pid1, pid2, pid3, pid4, empire FROM player_index%s WHERE id=%u", GetTablePostfix(), 
-			info->pAccountTable->id);
-	CDBManager::instance().ReturnQuery(szQuery, QID_LOGIN_BY_KEY, pkPeer->GetHandle(), info);
+	snprintf(szQuery, sizeof(szQuery), "SELECT pid1, pid2, pid3, pid4, empire FROM player_index%s WHERE id=%u", get_table_postfix(), 
+			info->account_table->id);
+	db_manager::instance().return_query(szQuery, QID_LOGIN_BY_KEY, pkPeer->handle(), info);
 }
 // END_PLAYER_INDEX_CREATE_BUG_FIX
 
-std::unique_ptr<TAccountTable> CreateAccountTableFromRes(MYSQL_RES * res)
+std::unique_ptr<account_table> create_account_table_from_res(MYSQL_RES * res)
 {
 	char input_pwd[PASSWD_MAX_LEN + 1];
 	MYSQL_ROW row = nullptr;
@@ -230,8 +230,8 @@ std::unique_ptr<TAccountTable> CreateAccountTableFromRes(MYSQL_RES * res)
 	row = mysql_fetch_row(res);
 	col = 0;
 
-	auto pkTab = std::make_unique<TAccountTable>();
-	memset(pkTab.get(), 0, sizeof(TAccountTable));
+	auto pkTab = std::make_unique<account_table>();
+	memset(pkTab.get(), 0, sizeof(account_table));
 
 	// Only look at the first column (it's for the JOIN QUERY)
 	strlcpy(input_pwd, row[col++], sizeof(input_pwd));
@@ -239,10 +239,10 @@ std::unique_ptr<TAccountTable> CreateAccountTableFromRes(MYSQL_RES * res)
 	strlcpy(pkTab->login, row[col++], sizeof(pkTab->login));
 	strlcpy(pkTab->passwd, row[col++], sizeof(pkTab->passwd));
 	strlcpy(pkTab->social_id, row[col++], sizeof(pkTab->social_id));
-	str_to_number(pkTab->bEmpire, row[col++]);
+	str_to_number(pkTab->empire, row[col++]);
 
 	for (int j = 0; j < PLAYER_PER_ACCOUNT; ++j)
-		str_to_number(pkTab->players[j].dwID, row[col++]);
+		str_to_number(pkTab->players[j].id, row[col++]);
 
 	strlcpy(pkTab->status, row[col++], sizeof(pkTab->status));
 
@@ -254,7 +254,7 @@ std::unique_ptr<TAccountTable> CreateAccountTableFromRes(MYSQL_RES * res)
 	return pkTab;
 }
 
-void CreateAccountPlayerDataFromRes(MYSQL_RES * pRes, TAccountTable * pkTab)
+void create_account_player_data_from_res(MYSQL_RES * pRes, account_table * pkTab)
 {
 	if (!pRes)
 		return;
@@ -274,67 +274,67 @@ void CreateAccountPlayerDataFromRes(MYSQL_RES * pRes, TAccountTable * pkTab)
 
 		for (j = 0; j < PLAYER_PER_ACCOUNT; ++j)
 		{
-			if (pkTab->players[j].dwID == player_id)
+			if (pkTab->players[j].id == player_id)
 			{
-				CPlayerTableCache * pc = CClientManager::instance().GetPlayerCache(player_id);
-				TPlayerTable * pt = pc ? pc->Get(false) : nullptr;
+				player_table_cache * pc = client_manager::instance().player_cache(player_id);
+				player_table * pt = pc ? pc->get(false) : nullptr;
 
 				if (pt)
 				{
-					strlcpy(pkTab->players[j].szName, pt->name, sizeof(pkTab->players[j].szName));
+					strlcpy(pkTab->players[j].name, pt->name, sizeof(pkTab->players[j].name));
 
-					pkTab->players[j].byJob			= pt->job;
-					pkTab->players[j].byLevel			= pt->level;
-					pkTab->players[j].dwPlayMinutes		= pt->playtime;
-					pkTab->players[j].byST			= pt->st;
-					pkTab->players[j].byHT			= pt->ht;
-					pkTab->players[j].byDX			= pt->dx;
-					pkTab->players[j].byIQ			= pt->iq;
-					pkTab->players[j].wMainPart			= pt->parts[PART_MAIN];
-					pkTab->players[j].wHairPart			= pt->parts[PART_HAIR];
+					pkTab->players[j].job			= pt->job;
+					pkTab->players[j].level			= pt->level;
+					pkTab->players[j].play_minutes		= pt->playtime;
+					pkTab->players[j].st			= pt->st;
+					pkTab->players[j].ht			= pt->ht;
+					pkTab->players[j].dx			= pt->dx;
+					pkTab->players[j].iq			= pt->iq;
+					pkTab->players[j].main_part			= pt->parts[PART_MAIN];
+					pkTab->players[j].hair_part			= pt->parts[PART_HAIR];
 					pkTab->players[j].x				= pt->x;
 					pkTab->players[j].y				= pt->y;
 					pkTab->players[j].skill_group		= pt->skill_group;
-					pkTab->players[j].bChangeName		= 0;
+					pkTab->players[j].change_name		= 0;
 				}
 				else
 				{
 					if (!row[col++])
-						*pkTab->players[j].szName = '\0';
+						*pkTab->players[j].name = '\0';
 					else
-						strlcpy(pkTab->players[j].szName, row[col - 1], sizeof(pkTab->players[j].szName));
+						strlcpy(pkTab->players[j].name, row[col - 1], sizeof(pkTab->players[j].name));
 
-					pkTab->players[j].byJob			= 0;
-					pkTab->players[j].byLevel		= 0;
-					pkTab->players[j].dwPlayMinutes	= 0;
-					pkTab->players[j].byST			= 0;
-					pkTab->players[j].byHT			= 0;
-					pkTab->players[j].byDX			= 0;
-					pkTab->players[j].byIQ			= 0;
-					pkTab->players[j].wMainPart		= 0;
-					pkTab->players[j].wHairPart		= 0;
+					pkTab->players[j].job			= 0;
+					pkTab->players[j].level		= 0;
+					pkTab->players[j].play_minutes	= 0;
+					pkTab->players[j].st			= 0;
+					pkTab->players[j].ht			= 0;
+					pkTab->players[j].dx			= 0;
+					pkTab->players[j].iq			= 0;
+					pkTab->players[j].main_part		= 0;
+					pkTab->players[j].hair_part		= 0;
 					pkTab->players[j].x				= 0;
 					pkTab->players[j].y				= 0;
 					pkTab->players[j].skill_group	= 0;
-					pkTab->players[j].bChangeName	= 0;
+					pkTab->players[j].change_name	= 0;
 
-					str_to_number(pkTab->players[j].byJob, row[col++]);
-					str_to_number(pkTab->players[j].byLevel, row[col++]);
-					str_to_number(pkTab->players[j].dwPlayMinutes, row[col++]);
-					str_to_number(pkTab->players[j].byST, row[col++]);
-					str_to_number(pkTab->players[j].byHT, row[col++]);
-					str_to_number(pkTab->players[j].byDX, row[col++]);
-					str_to_number(pkTab->players[j].byIQ, row[col++]);
-					str_to_number(pkTab->players[j].wMainPart, row[col++]);
-					str_to_number(pkTab->players[j].wHairPart, row[col++]);
+					str_to_number(pkTab->players[j].job, row[col++]);
+					str_to_number(pkTab->players[j].level, row[col++]);
+					str_to_number(pkTab->players[j].play_minutes, row[col++]);
+					str_to_number(pkTab->players[j].st, row[col++]);
+					str_to_number(pkTab->players[j].ht, row[col++]);
+					str_to_number(pkTab->players[j].dx, row[col++]);
+					str_to_number(pkTab->players[j].iq, row[col++]);
+					str_to_number(pkTab->players[j].main_part, row[col++]);
+					str_to_number(pkTab->players[j].hair_part, row[col++]);
 					str_to_number(pkTab->players[j].x, row[col++]);
 					str_to_number(pkTab->players[j].y, row[col++]);
 					str_to_number(pkTab->players[j].skill_group, row[col++]);
-					str_to_number(pkTab->players[j].bChangeName, row[col++]);
+					str_to_number(pkTab->players[j].change_name, row[col++]);
 				}
 
 				metin2::log::info( "{} {:d} {:d} hair {:d}",
-						pkTab->players[j].szName, pkTab->players[j].x, pkTab->players[j].y, pkTab->players[j].wHairPart);
+						pkTab->players[j].name, pkTab->players[j].x, pkTab->players[j].y, pkTab->players[j].hair_part);
 				break;
 			}
 		}
@@ -349,28 +349,28 @@ void CreateAccountPlayerDataFromRes(MYSQL_RES * pRes, TAccountTable * pkTab)
 	}
 }
 
-void CClientManager::RESULT_LOGIN(CPeer * peer, SQLMsg * msg)
+void client_manager::result_login(peer * peer, ql_msg * msg)
 {
-	CQueryInfo * qi = (CQueryInfo *) msg->pvUserData;
-	ClientHandleInfo * info = (ClientHandleInfo *) qi->pvData;
+	query_info * qi = (query_info *) msg->pv_user_data;
+	client_handle_info * info = (client_handle_info *) qi->pv_data;
 
 	if (info->account_index == 0)
 	{
 		// No account?
-		if (msg->Get()->uiNumRows == 0)
+		if (msg->get()->num_rows == 0)
 		{
 			metin2::log::info( "RESULT_LOGIN: no account");
-			peer->EncodeHeader(HEADER_DG_LOGIN_NOT_EXIST, info->dwHandle, 0);
+			peer->encode_header(HEADER_DG_LOGIN_NOT_EXIST, info->handle, 0);
 			delete info;
 			return;
 		}
 
-		info->pAccountTable = CreateAccountTableFromRes(msg->Get()->pSQLResult);
+		info->account_table = create_account_table_from_res(msg->get()->sql_result);
 
-		if (!info->pAccountTable)
+		if (!info->account_table)
 		{
 			metin2::log::info( "RESULT_LOGIN: no account : WRONG_PASSWD");
-			peer->EncodeReturn(HEADER_DG_LOGIN_WRONG_PASSWD, info->dwHandle);
+			peer->encode_return(HEADER_DG_LOGIN_WRONG_PASSWD, info->handle);
 			delete info;
 		}
 		else
@@ -380,46 +380,46 @@ void CClientManager::RESULT_LOGIN(CPeer * peer, SQLMsg * msg)
 			char queryStr[512];
 			snprintf(queryStr, sizeof(queryStr),
 					"SELECT id, name, job, level, playtime, st, ht, dx, iq, part_main, part_hair, x, y, skill_group, change_name FROM player%s WHERE account_id=%u",
-					GetTablePostfix(), info->pAccountTable->id);
+					get_table_postfix(), info->account_table->id);
 
-			CDBManager::instance().ReturnQuery(queryStr, QID_LOGIN, peer->GetHandle(), info);
+			db_manager::instance().return_query(queryStr, QID_LOGIN, peer->handle(), info);
 		}
 		return;
 	}
 	else
 	{
-		if (!info->pAccountTable) // This shouldn't happen, but;;
+		if (!info->account_table) // This shouldn't happen, but;;
 		{
-			peer->EncodeReturn(HEADER_DG_LOGIN_WRONG_PASSWD, info->dwHandle);
+			peer->encode_return(HEADER_DG_LOGIN_WRONG_PASSWD, info->handle);
 			delete info;
 			return;
 		}
 
 		// If another connection has already logged in.. we must reply that it's already connected.
-		if (!InsertLogonAccount(info->pAccountTable->login, peer->GetHandle()))
+		if (!insert_logon_account(info->account_table->login, peer->handle()))
 		{
-			metin2::log::info( "RESULT_LOGIN: already logon {}", info->pAccountTable->login);
+			metin2::log::info( "RESULT_LOGIN: already logon {}", info->account_table->login);
 
-			TPacketDGLoginAlready p;
-			strlcpy(p.szLogin, info->pAccountTable->login, sizeof(p.szLogin));
+			packet_dg_login_already p;
+			strlcpy(p.login, info->account_table->login, sizeof(p.login));
 
-			peer->EncodeHeader(HEADER_DG_LOGIN_ALREADY, info->dwHandle, sizeof(TPacketDGLoginAlready));
-			peer->Encode(&p, sizeof(p));
+			peer->encode_header(HEADER_DG_LOGIN_ALREADY, info->handle, sizeof(packet_dg_login_already));
+			peer->encode(&p, sizeof(p));
 		}
 		else
 		{
-			metin2::log::info( "RESULT_LOGIN: login success {} rows: {:d}", info->pAccountTable->login, msg->Get()->uiNumRows);
+			metin2::log::info( "RESULT_LOGIN: login success {} rows: {:d}", info->account_table->login, msg->get()->num_rows);
 
-			if (msg->Get()->uiNumRows > 0)
-				CreateAccountPlayerDataFromRes(msg->Get()->pSQLResult, info->pAccountTable.get());
+			if (msg->get()->num_rows > 0)
+				create_account_player_data_from_res(msg->get()->sql_result, info->account_table.get());
 
 			//PREVENT_COPY_ITEM
-			CLoginData * p = GetLoginDataByLogin(info->pAccountTable->login);
-			memcpy(&p->GetAccountRef(), info->pAccountTable.get(), sizeof(TAccountTable));
+			login_data * p = get_login_data_by_login(info->account_table->login);
+			memcpy(&p->account_ref(), info->account_table.get(), sizeof(account_table));
 
 			//END_PREVENT_COPY_ITEM
-			peer->EncodeHeader(HEADER_DG_LOGIN_SUCCESS, info->dwHandle, sizeof(TAccountTable));
-			peer->Encode(info->pAccountTable.get(), sizeof(TAccountTable));
+			peer->encode_header(HEADER_DG_LOGIN_SUCCESS, info->handle, sizeof(account_table));
+			peer->encode(info->account_table.get(), sizeof(account_table));
 
 		}
 
@@ -427,14 +427,14 @@ void CClientManager::RESULT_LOGIN(CPeer * peer, SQLMsg * msg)
 	}
 }
 
-void CClientManager::QUERY_LOGOUT(CPeer * peer, uint32_t dwHandle,const char * data)
+void client_manager::query_logout(peer * peer, uint32_t dwHandle,const char * data)
 {
-	TLogoutPacket* packet = (TLogoutPacket*)data;
+	logout_packet* packet = (logout_packet*)data;
 
 	if (!*packet->login)
 		return;
 
-	CLoginData * pLoginData = GetLoginDataByLogin(packet->login);
+	login_data * pLoginData = get_login_data_by_login(packet->login);
 
 	if (pLoginData == nullptr)
 		return;
@@ -443,66 +443,66 @@ void CClientManager::QUERY_LOGOUT(CPeer * peer, uint32_t dwHandle,const char * d
 
 	for (int n = 0; n < PLAYER_PER_ACCOUNT; ++n)
 	{
-		if (pLoginData->GetAccountRef().players[n].dwID == 0)
+		if (pLoginData->account_ref().players[n].id == 0)
 		{
 			if (metin2::config::test_server())
-				metin2::log::info( "LOGOUT {} {:d}", packet->login, pLoginData->GetAccountRef().players[n].dwID);
+				metin2::log::info( "LOGOUT {} {:d}", packet->login, pLoginData->account_ref().players[n].id);
 			continue;
 		}
 		
-		pid[n] = pLoginData->GetAccountRef().players[n].dwID;
+		pid[n] = pLoginData->account_ref().players[n].id;
 
 		if (metin2::config::db().login_log)
 			metin2::log::info( "LOGOUT InsertLogoutPlayer {} {:d}", packet->login, pid[n]);
 
-		InsertLogoutPlayer(pid[n]);
+		insert_logout_player(pid[n]);
 	}
 	
-	if (DeleteLogonAccount(packet->login, peer->GetHandle()))
+	if (delete_logon_account(packet->login, peer->handle()))
 	{
 		if (metin2::config::db().login_log)
 			metin2::log::info( "LOGOUT {} ", packet->login);
 	}
 }
 
-void CClientManager::QUERY_CHANGE_NAME(CPeer * peer, uint32_t dwHandle, TPacketGDChangeName * p)
+void client_manager::query_change_name(peer * peer, uint32_t dwHandle, packet_gd_change_name * p)
 {
 	std::string query = sql::format(
-			"SELECT COUNT(*) as count FROM player{} WHERE name={} AND id <> {}", sql::raw(GetTablePostfix()), p->name, p->pid);
+			"SELECT COUNT(*) as count FROM player{} WHERE name={} AND id <> {}", sql::raw(get_table_postfix()), p->name, p->pid);
 
-	std::unique_ptr<SQLMsg> pMsg(CDBManager::instance().DirectQuery(query.c_str(), SQL_PLAYER));
+	std::unique_ptr<ql_msg> pMsg(db_manager::instance().direct_query(query.c_str(), SQL_PLAYER));
 
-	if (pMsg->Get()->uiNumRows)
+	if (pMsg->get()->num_rows)
 	{
-		if (!pMsg->Get()->pSQLResult)
+		if (!pMsg->get()->sql_result)
 		{
-			peer->EncodeHeader(HEADER_DG_PLAYER_CREATE_FAILED, dwHandle, 0);
+			peer->encode_header(HEADER_DG_PLAYER_CREATE_FAILED, dwHandle, 0);
 			return;
 		}
 
-		MYSQL_ROW row = mysql_fetch_row(pMsg->Get()->pSQLResult);
+		MYSQL_ROW row = mysql_fetch_row(pMsg->get()->sql_result);
 
 		if (*row[0] != '0')
 		{
-			peer->EncodeHeader(HEADER_DG_PLAYER_CREATE_ALREADY, dwHandle, 0);
+			peer->encode_header(HEADER_DG_PLAYER_CREATE_ALREADY, dwHandle, 0);
 			return;
 		}
 	}   
 	else
 	{
-		peer->EncodeHeader(HEADER_DG_PLAYER_CREATE_FAILED, dwHandle, 0);
+		peer->encode_header(HEADER_DG_PLAYER_CREATE_FAILED, dwHandle, 0);
 		return;
 	}
 
 	query = sql::format(
-			"UPDATE player{} SET name={},change_name=0 WHERE id={}", sql::raw(GetTablePostfix()), p->name, p->pid);
+			"UPDATE player{} SET name={},change_name=0 WHERE id={}", sql::raw(get_table_postfix()), p->name, p->pid);
 
-	std::unique_ptr<SQLMsg> pMsg0(CDBManager::instance().DirectQuery(query.c_str(), SQL_PLAYER));
+	std::unique_ptr<ql_msg> pMsg0(db_manager::instance().direct_query(query.c_str(), SQL_PLAYER));
 
-	TPacketDGChangeName pdg;
-	peer->EncodeHeader(HEADER_DG_CHANGE_NAME, dwHandle, sizeof(TPacketDGChangeName));
+	packet_dg_change_name pdg;
+	peer->encode_header(HEADER_DG_CHANGE_NAME, dwHandle, sizeof(packet_dg_change_name));
 	pdg.pid = p->pid;
 	strlcpy(pdg.name, p->name, sizeof(pdg.name));
-	peer->Encode(&pdg, sizeof(TPacketDGChangeName));
+	peer->encode(&pdg, sizeof(packet_dg_change_name));
 }
 }

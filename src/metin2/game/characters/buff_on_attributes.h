@@ -8,41 +8,41 @@
 
 namespace metin2::game::inline characters {
 
-class CHARACTER;
+class character;
 
-class CBuffOnAttributes
+class buff_on_attributes
 {
 public:
-	CBuffOnAttributes(CHARACTER * pOwner, uint8_t m_point_type, std::vector <uint8_t>* vec_buff_targets);
-	~CBuffOnAttributes();
+	buff_on_attributes(character * pOwner, uint8_t m_point_type, std::vector <uint8_t>* vec_buff_targets);
+	~buff_on_attributes();
 
 	// If equipped and in m_p_vec_buff_wear_targets, remove the effect applied by that item.
-	void RemoveBuffFromItem(CItem * pItem);
+	void remove_buff_from_item(item * pItem);
 	// If in m_p_vec_buff_wear_targets, add the effect for that item's attributes.
-	void AddBuffFromItem(CItem * pItem);
+	void add_buff_from_item(item * pItem);
 	// Change m_bBuffValue and also the buff value.
-	void ChangeBuffValue(uint8_t bNewValue);
+	void change_buff_value(uint8_t bNewValue);
 	// CHRACTRE::ComputePoints resets and recalculates attribute values, so 
 	// forcibly give the buff attribute values to the owner.
-	void GiveAllAttributes();
+	void give_all_attributes();
 
 	// Sum the attributes of all items in m_p_vec_buff_wear_targets by type,
 	// and give (m_bBuffValue)% of those attributes as a buff.
-	bool On(uint8_t bValue);
+	bool on(uint8_t bValue);
 	// Remove the buff, then reset
-	void Off();
+	void off();
 
-	void Initialize();
+	void initialize();
 private:
-	CHARACTER * m_pBuffOwner;
-	uint8_t m_bPointType;
-	uint8_t m_bBuffValue;
-	std::vector <uint8_t>* m_p_vec_buff_wear_targets;
+	character * buff_owner_;
+	uint8_t point_type_;
+	uint8_t buff_value_;
+	std::vector <uint8_t>* p_vec_buff_wear_targets_;
 	
 	// Map of apply_type, apply_value pairs
-	typedef std::map <uint8_t, int> TMapAttr;
+	typedef std::map <uint8_t, int> map_attr;
 	// Holds the attributes of all items in m_p_vec_buff_wear_targets summed by type.
-	TMapAttr m_map_additional_attrs;
+	map_attr map_additional_attrs_;
 
 };
 }

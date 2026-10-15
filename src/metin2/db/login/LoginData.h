@@ -8,44 +8,44 @@
 
 namespace metin2::db::inline login {
 
-class CLoginData
+class login_data
 {
     public:
-	CLoginData();
+	login_data();
 
-	TAccountTable & GetAccountRef();
-	void            SetClientKey(const uint32_t * c_pdwClientKey);
+	account_table & account_ref();
+	void            set_client_key(const uint32_t * c_pdwClientKey);
 
-	const uint32_t *   GetClientKey();
-	void            SetKey(uint32_t dwKey);
-	uint32_t           GetKey();
+	const uint32_t *   client_key();
+	void            set_key(uint32_t dwKey);
+	uint32_t           key();
 
-	void            SetConnectedPeerHandle(uint32_t dwHandle);
-	uint32_t		GetConnectedPeerHandle();
+	void            set_connected_peer_handle(uint32_t dwHandle);
+	uint32_t		connected_peer_handle();
 
-	void		SetPlay(bool bOn);
-	bool		IsPlay();
+	void		set_play(bool bOn);
+	bool		is_play();
 
-	void		SetDeleted(bool bSet);
-	bool		IsDeleted();
+	void		set_deleted(bool bSet);
+	bool		is_deleted();
 
-	void            SetPremium(int * paiPremiumTimes);
-	int *           GetPremiumPtr();
+	void            set_premium(int * paiPremiumTimes);
+	int *           premium_ptr();
 
-	uint32_t		GetLastPlayerID() const { return m_dwLastPlayerID; }
-	void		SetLastPlayerID(uint32_t id) { m_dwLastPlayerID = id; }
+	uint32_t		last_player_id() const { return last_player_id_; }
+	void		set_last_player_id(uint32_t id) { last_player_id_ = id; }
 
     private:
-	uint32_t           m_dwKey;
-	uint32_t           m_adwClientKey[4];
-	uint32_t           m_dwConnectedPeerHandle;
-	bool		m_bPlay;
-	bool		m_bDeleted;
+	uint32_t           key_;
+	uint32_t           client_key_[4];
+	uint32_t           connected_peer_handle_;
+	bool		play_;
+	bool		deleted_;
 
-	int		m_aiPremiumTimes[PREMIUM_MAX_NUM];
+	int		premium_times_[PREMIUM_MAX_NUM];
 
-	uint32_t		m_dwLastPlayerID;
+	uint32_t		last_player_id_;
 
-	TAccountTable   m_data;
+	account_table   data_;
 };
 }

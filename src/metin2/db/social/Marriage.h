@@ -18,40 +18,40 @@ namespace metin2::db::inline social {
 
 namespace marriage
 {
-	struct TWeddingInfo
+	struct wedding_info
 	{
-		uint32_t dwTime;
-		uint32_t dwPID1;
-		uint32_t dwPID2;
-		TWeddingInfo(uint32_t time, uint32_t pid1, uint32_t pid2)
-			: dwTime(time),
-			dwPID1(pid1),
-			dwPID2(pid2)
+		uint32_t time;
+		uint32_t pi_d1;
+		uint32_t pi_d2;
+		wedding_info(uint32_t time_value, uint32_t pid1, uint32_t pid2)
+			: time(time_value),
+			pi_d1(pid1),
+			pi_d2(pid2)
 		{
 		}
 	};
 
-	struct TWedding
+	struct wedding
 	{
-		uint32_t dwTime;
-		uint32_t dwMapIndex;
-		uint32_t dwPID1;
-		uint32_t dwPID2;
+		uint32_t time;
+		uint32_t map_index;
+		uint32_t pi_d1;
+		uint32_t pi_d2;
 
-		TWedding(uint32_t time, uint32_t dwMapIndex, uint32_t pid1, uint32_t pid2)
-			: dwTime(time),
-			dwMapIndex(dwMapIndex),
-			dwPID1(pid1),
-			dwPID2(pid2)
+		wedding(uint32_t time_value, uint32_t dwMapIndex, uint32_t pid1, uint32_t pid2)
+			: time(time_value),
+			map_index(dwMapIndex),
+			pi_d1(pid1),
+			pi_d2(pid2)
 		{
 		}
 	};
 
-	extern bool operator < (const TWedding& lhs, const TWedding& rhs);
-	extern bool operator > (const TWedding& lhs, const TWedding& rhs);
-	extern bool operator > (const TWeddingInfo& lhs, const TWeddingInfo& rhs);
+	extern bool operator < (const wedding& lhs, const wedding& rhs);
+	extern bool operator > (const wedding& lhs, const wedding& rhs);
+	extern bool operator > (const wedding_info& lhs, const wedding_info& rhs);
 
-	struct TMarriage
+	struct marriage
 	{
 		uint32_t pid1;
 		uint32_t pid2;
@@ -61,12 +61,12 @@ namespace marriage
 		std::string name1;
 		std::string name2;
 
-		TMarriage(uint32_t _pid1, uint32_t _pid2, int _love_point, uint32_t _time, uint8_t _is_married, const char* name1, const char* name2)
+		marriage(uint32_t _pid1, uint32_t _pid2, int _love_point, uint32_t _time, uint8_t _is_married, const char* name1, const char* name2)
 			: pid1(_pid1), pid2(_pid2), love_point(_love_point), time(_time), is_married(_is_married), name1(name1), name2(name2)
 		{
 		}
 
-		uint32_t GetOther(uint32_t PID)
+		uint32_t other(uint32_t PID)
 		{
 			if (pid1 == PID)
 				return pid2;
@@ -78,40 +78,40 @@ namespace marriage
 		}
 	};
 
-	class CManager : public singleton<CManager>
+	class manager : public singleton<manager>
 	{
 		public:
-			CManager();
-			~CManager() override;
+			manager();
+			~manager() override;
 
-			bool Initialize();
+			bool initialize();
 
-			TMarriage* Get(uint32_t dwPlayerID);
-			bool IsMarried(uint32_t dwPlayerID)
+			marriage* get(uint32_t dwPlayerID);
+			bool is_married(uint32_t dwPlayerID)
 			{
-				return Get(dwPlayerID) != nullptr;
+				return get(dwPlayerID) != nullptr;
 			}
 
-			void	Add(uint32_t dwPID1, uint32_t dwPID2, const char* szName1, const char* szName2);
-			void	Remove(uint32_t dwPID1, uint32_t dwPID2);
-			void	Update(uint32_t dwPID1, uint32_t dwPID2, int32_t iLovePoint, uint8_t byMarried);
+			void	add(uint32_t dwPID1, uint32_t dwPID2, const char* szName1, const char* szName2);
+			void	remove(uint32_t dwPID1, uint32_t dwPID2);
+			void	update(uint32_t dwPID1, uint32_t dwPID2, int32_t iLovePoint, uint8_t byMarried);
 
-			void	ReadyWedding(uint32_t dwMapIndex, uint32_t dwPID1, uint32_t dwPID2);
-			void	EndWedding(uint32_t dwPID1, uint32_t dwPID2);
+			void	ready_wedding(uint32_t dwMapIndex, uint32_t dwPID1, uint32_t dwPID2);
+			void	end_wedding(uint32_t dwPID1, uint32_t dwPID2);
 
-			void	OnSetup(CPeer* peer);
+			void	on_setup(peer* peer);
 
-			void	Update();
+			void	update();
 
 		private:
-			std::set<TMarriage *> m_Marriages;
-			std::map<uint32_t, TMarriage *> m_MarriageByPID;
+			std::set<marriage *> marriages_;
+			std::map<uint32_t, marriage *> marriage_by_pid_;
 
-			std::priority_queue<TWedding, std::vector<TWedding>, std::greater<TWedding> > m_pqWeddingStart;
+			std::priority_queue<wedding, std::vector<wedding>, std::greater<wedding> > pq_wedding_start_;
 
-			std::priority_queue<TWeddingInfo, std::vector<TWeddingInfo>, std::greater<TWeddingInfo> > m_pqWeddingEnd;
+			std::priority_queue<wedding_info, std::vector<wedding_info>, std::greater<wedding_info> > pq_wedding_end_;
 
-			std::map<std::pair<uint32_t, uint32_t>, TWedding> m_mapRunningWedding;
+			std::map<std::pair<uint32_t, uint32_t>, wedding> running_wedding_;
 	};
 }
 }

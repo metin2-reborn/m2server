@@ -9,19 +9,19 @@
 
 namespace metin2::game::inline protocol {
 
-class LZOManager : public singleton<LZOManager>
+class lzo_manager : public singleton<lzo_manager>
 {
 	public:
-		LZOManager();
-		~LZOManager() override;
+		lzo_manager();
+		~lzo_manager() override;
 
-		bool	Compress(const uint8_t* src, size_t srcsize, uint8_t* dest, lzo_uint * puiDestSize);
-		bool	Decompress(const uint8_t* src, size_t srcsize, uint8_t* dest, lzo_uint * puiDestSize);
-		size_t	GetMaxCompressedSize(size_t original);
+		bool	compress(const uint8_t* src, size_t srcsize, uint8_t* dest, lzo_uint * puiDestSize);
+		bool	decompress(const uint8_t* src, size_t srcsize, uint8_t* dest, lzo_uint * puiDestSize);
+		size_t	max_compressed_size(size_t original);
 
-		uint8_t *	GetWorkMemory() { return m_workmem; }
+		uint8_t *	work_memory() { return workmem_; }
 
 	private:
-		uint8_t *	m_workmem;
+		uint8_t *	workmem_;
 };
 }

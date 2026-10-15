@@ -129,7 +129,7 @@ const char *first_cmd(const char *argument, char *first_arg, size_t first_arg_si
 	return (argument);
 }
 
-int CalculateDuration(int iSpd, int iDur)
+int calculate_duration(int iSpd, int iDur)
 {
 	int i = 100 - iSpd;
 
@@ -229,7 +229,7 @@ int parse_time_str(const char* str)
 	return secs + tmp;
 }
 
-bool WildCaseCmp(const char *w, const char *s)
+bool wild_case_cmp(const char *w, const char *s)
 {
 	for (;;)
 	{
@@ -241,7 +241,7 @@ bool WildCaseCmp(const char *w, const char *s)
 				{
 					for (size_t i = 0; i <= strlen(s); ++i)
 					{
-						if (true == WildCaseCmp(w + 1, s + i))
+						if (true == wild_case_cmp(w + 1, s + i))
 							return true;
 					}
 				}

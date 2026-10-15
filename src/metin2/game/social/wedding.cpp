@@ -29,12 +29,12 @@ namespace marriage
 {
 	EVENTINFO(wedding_map_info)
 	{
-		WeddingMap * pWeddingMap;
-		int iStep;
+		game::social::marriage::wedding_map * wedding_map;
+		int step;
 
 		wedding_map_info()
-		: pWeddingMap( nullptr )
-		, iStep( 0 )
+		: wedding_map( nullptr )
+		, step( 0 )
 		{
 		}
 	};
@@ -49,237 +49,237 @@ namespace marriage
 			return 0;
 		}
 		
-		WeddingMap* pMap = info->pWeddingMap;
+		wedding_map* pMap = info->wedding_map;
 
-		if (info->iStep == 0)
+		if (info->step == 0)
 		{
-			++info->iStep;
-			pMap->WarpAll(); 
-			return PASSES_PER_SEC(15);
+			++info->step;
+			pMap->warp_all(); 
+			return passes_per_sec(15);
 		}
-		WeddingManager::instance().DestroyWeddingMap(pMap);
+		wedding_manager::instance().destroy_wedding_map(pMap);
 		return 0;
 	}
 
 	// Map instance
-	WeddingMap::WeddingMap(uint32_t dwMapIndex, uint32_t dwPID1, uint32_t dwPID2) :
-		m_dwMapIndex(dwMapIndex),
-		m_pEndEvent(nullptr),
-		m_isDark(false),
-		m_isSnow(false),
-		m_isMusic(false),
-		dwPID1(dwPID1),
-		dwPID2(dwPID2)
+	wedding_map::wedding_map(uint32_t dwMapIndex, uint32_t dwPID1, uint32_t dwPID2) :
+		map_index_(dwMapIndex),
+		end_event_(nullptr),
+		is_dark_(false),
+		is_snow_(false),
+		is_music_(false),
+		pi_d1_(dwPID1),
+		pi_d2_(dwPID2)
 	{
 	}
 
-	WeddingMap::~WeddingMap()
+	wedding_map::~wedding_map()
 	{
-		event_cancel(&m_pEndEvent);
+		event_cancel(&end_event_);
 	}
 
-	void WeddingMap::SetEnded()
+	void wedding_map::set_ended()
 	{
-		if (m_pEndEvent)
+		if (end_event_)
 		{
-			metin2::log::error("WeddingMap::SetEnded - ALREADY EndEvent(m_pEndEvent={})", static_cast<const void *>(static_cast<void*>(m_pEndEvent.get())));
+			metin2::log::error("WeddingMap::SetEnded - ALREADY EndEvent(m_pEndEvent={})", static_cast<const void *>(static_cast<void*>(end_event_.get())));
 			return;
 		}
 
-		wedding_map_info* info = AllocEventInfo<wedding_map_info>();
+		wedding_map_info* info = alloc_event_info<wedding_map_info>();
 
-		info->pWeddingMap = this;
+		info->wedding_map = this;
 
-		m_pEndEvent = event_create(wedding_end_event, info, PASSES_PER_SEC(5));
+		end_event_ = event_create(wedding_end_event, info, passes_per_sec(5));
 
-		Notice(LC_TEXT("결혼식이 종료됩니다."));
-		Notice(LC_TEXT("자동으로 나가게됩니다."));
+		notice(lc_text("결혼식이 종료됩니다."));
+		notice(lc_text("자동으로 나가게됩니다."));
 
-		for (auto it = m_set_pkChr.begin(); it != m_set_pkChr.end(); ++it)
+		for (auto it = set_pk_chr_.begin(); it != set_pk_chr_.end(); ++it)
 		{
-			CHARACTER * ch = *it;
-			if (ch->GetPlayerID() == dwPID1 || ch->GetPlayerID() == dwPID2)
+			character * ch = *it;
+			if (ch->player_id() == pi_d1_ || ch->player_id() == pi_d2_)
 				continue;
 
-			if (ch->GetLevel() < 10) // Not given to level 10 and below.
+			if (ch->level() < 10) // Not given to level 10 and below.
 				continue;
 
-			ch->AutoGiveItem(27002, 5);
+			ch->auto_give_item(27002, 5);
 		}
 	}
 
-	struct FNotice
+	struct f_notice
 	{
-		FNotice(const char * psz) :
-			m_psz(psz)
+		f_notice(const char * psz_value) :
+			psz(psz_value)
 		{
 		}
 
-		void operator() (CHARACTER * ch)
+		void operator() (character * ch)
 		{
-			ch->ChatPacket(CHAT_TYPE_NOTICE, "%s", m_psz);
+			ch->chat_packet(CHAT_TYPE_NOTICE, "%s", psz);
 		}
 
-		const char * m_psz;
+		const char * psz;
 	};
 
-	void WeddingMap::Notice(const char * psz)
+	void wedding_map::notice(const char * psz)
 	{
-		FNotice f(psz);
-		std::for_each(m_set_pkChr.begin(), m_set_pkChr.end(), f);
+		f_notice f(psz);
+		std::for_each(set_pk_chr_.begin(), set_pk_chr_.end(), f);
 	}
 
-	struct FWarpEveryone
+	struct f_warp_everyone
 	{
-		void operator() (CHARACTER * ch)
+		void operator() (character * ch)
 		{
-			if (ch->IsPC())
+			if (ch->is_pc())
 			{
 				// ExitToSavedLocation calls WarpSet, and in that function
 				// Sectree becomes NULL. Afterwards this character can't be found
 				// via SectreeManager, so it's handled separately in DestroyAll below
-				ch->ExitToSavedLocation();
+				ch->exit_to_saved_location();
 			}
 		}
 	};
 
-	void WeddingMap::WarpAll()
+	void wedding_map::warp_all()
 	{
-		FWarpEveryone f;
-		std::for_each(m_set_pkChr.begin(), m_set_pkChr.end(), f);
+		f_warp_everyone f;
+		std::for_each(set_pk_chr_.begin(), set_pk_chr_.end(), f);
 	}
 
-	struct FDestroyEveryone
+	struct f_destroy_everyone
 	{
-		void operator() (CHARACTER * ch)
+		void operator() (character * ch)
 		{
-			metin2::log::info( "WeddingMap::DestroyAll: {}", ch->GetName());
+			metin2::log::info( "WeddingMap::DestroyAll: {}", ch->name());
 
-			if (ch->GetDesc())
-				DESC_MANAGER::instance().DestroyDesc(ch->GetDesc());
+			if (ch->get_desc())
+				desc_manager::instance().destroy_desc(ch->get_desc());
 			else
-				CHARACTER_MANAGER::instance().DestroyCharacter(ch);
+				character_manager::instance().destroy_character(ch);
 		}
 	};
 
-	void WeddingMap::DestroyAll()
+	void wedding_map::destroy_all()
 	{
-		metin2::log::info( "WeddingMap::DestroyAll: m_set_pkChr size {:d}", m_set_pkChr.size());
+		metin2::log::info( "WeddingMap::DestroyAll: m_set_pkChr size {:d}", set_pk_chr_.size());
 		
-		FDestroyEveryone f;
+		f_destroy_everyone f;
 
-		for (charset_t::iterator it = m_set_pkChr.begin(); it != m_set_pkChr.end(); it = m_set_pkChr.begin())
+		for (charset_t::iterator it = set_pk_chr_.begin(); it != set_pk_chr_.end(); it = set_pk_chr_.begin())
 			f(*it);
 	}
 
-	void WeddingMap::IncMember(CHARACTER * ch)
+	void wedding_map::inc_member(character * ch)
 	{
-		if (IsMember(ch) == true)
+		if (is_member(ch) == true)
 			return;
 
-		m_set_pkChr.insert(ch);
+		set_pk_chr_.insert(ch);
 
-		SendLocalEvent(ch);
+		send_local_event(ch);
 
-		if (ch->GetLevel() < 10)
+		if (ch->level() < 10)
 		{
-			ch->SetObserverMode(true);
+			ch->set_observer_mode(true);
 		}
 	}
 
-	void WeddingMap::DecMember(CHARACTER * ch)
+	void wedding_map::dec_member(character * ch)
 	{
-		if (IsMember(ch) == false)
+		if (is_member(ch) == false)
 			return;
 
-		m_set_pkChr.erase(ch);
+		set_pk_chr_.erase(ch);
 
-		if (ch->GetLevel() < 10)
+		if (ch->level() < 10)
 		{
-			ch->SetObserverMode(false);
+			ch->set_observer_mode(false);
 		}
 	}
 
-	bool WeddingMap::IsMember(CHARACTER * ch)
+	bool wedding_map::is_member(character * ch)
 	{
-		if (m_set_pkChr.size() <= 0)
+		if (set_pk_chr_.size() <= 0)
 			return false;
 
-		return m_set_pkChr.find(ch) != m_set_pkChr.end();
+		return set_pk_chr_.find(ch) != set_pk_chr_.end();
 	}
 
-	void WeddingMap::ShoutInMap(uint8_t type, const char* msg)
+	void wedding_map::shout_in_map(uint8_t type, const char* msg)
 	{
-		for (auto it = m_set_pkChr.begin(); it != m_set_pkChr.end(); ++it)
+		for (auto it = set_pk_chr_.begin(); it != set_pk_chr_.end(); ++it)
 		{
-			CHARACTER * ch = *it;
-			ch->ChatPacket(CHAT_TYPE_COMMAND, msg);
+			character * ch = *it;
+			ch->chat_packet(CHAT_TYPE_COMMAND, msg);
 		}
 	}
 
-	void WeddingMap::SetMusic(bool bSet, const char* musicFileName)
+	void wedding_map::set_music(bool bSet, const char* musicFileName)
 	{
-		if (m_isMusic != bSet)
+		if (is_music_ != bSet)
 		{
-			m_isMusic = bSet;
-			m_stMusicFileName = musicFileName;
+			is_music_ = bSet;
+			music_file_name_ = musicFileName;
 
 			char szCommand[256];
-			if (m_isMusic)
+			if (is_music_)
 			{
-				ShoutInMap(CHAT_TYPE_COMMAND, __BuildCommandPlayMusic(szCommand, sizeof(szCommand), 1, m_stMusicFileName.c_str()));
+				shout_in_map(CHAT_TYPE_COMMAND, build_command_play_music(szCommand, sizeof(szCommand), 1, music_file_name_.c_str()));
 			}
 			else
 			{
-				ShoutInMap(CHAT_TYPE_COMMAND, __BuildCommandPlayMusic(szCommand, sizeof(szCommand), 0, "default"));
+				shout_in_map(CHAT_TYPE_COMMAND, build_command_play_music(szCommand, sizeof(szCommand), 0, "default"));
 			}
 		} 
 	}
 
-	void WeddingMap::SetDark(bool bSet)
+	void wedding_map::set_dark(bool bSet)
 	{
-		if (m_isDark != bSet)
+		if (is_dark_ != bSet)
 		{
-			m_isDark = bSet;
+			is_dark_ = bSet;
 
-			if (m_isDark)
-				ShoutInMap(CHAT_TYPE_COMMAND, "DayMode dark");
+			if (is_dark_)
+				shout_in_map(CHAT_TYPE_COMMAND, "DayMode dark");
 			else
-				ShoutInMap(CHAT_TYPE_COMMAND, "DayMode light");
+				shout_in_map(CHAT_TYPE_COMMAND, "DayMode light");
 		}
 	}
 
-	void WeddingMap::SetSnow(bool bSet)
+	void wedding_map::set_snow(bool bSet)
 	{
-		if (m_isSnow != bSet)
+		if (is_snow_ != bSet)
 		{
-			m_isSnow = bSet;
+			is_snow_ = bSet;
 
-			if (m_isSnow)
-				ShoutInMap(CHAT_TYPE_COMMAND, "xmas_snow 1");
+			if (is_snow_)
+				shout_in_map(CHAT_TYPE_COMMAND, "xmas_snow 1");
 			else
-				ShoutInMap(CHAT_TYPE_COMMAND, "xmas_snow 0");
+				shout_in_map(CHAT_TYPE_COMMAND, "xmas_snow 0");
 		}
 	}
 
-	bool WeddingMap::IsPlayingMusic()
+	bool wedding_map::is_playing_music()
 	{
-		return m_isMusic;
+		return is_music_;
 	}
 
-	void WeddingMap::SendLocalEvent(CHARACTER * ch)
+	void wedding_map::send_local_event(character * ch)
 	{
 		char szCommand[256];
 
-		if (m_isDark)
-			ch->ChatPacket(CHAT_TYPE_COMMAND, "DayMode dark");
-		if (m_isSnow)
-			ch->ChatPacket(CHAT_TYPE_COMMAND, "xmas_snow 1");
-		if (m_isMusic)
-			ch->ChatPacket(CHAT_TYPE_COMMAND, __BuildCommandPlayMusic(szCommand, sizeof(szCommand), 1, m_stMusicFileName.c_str()));	
+		if (is_dark_)
+			ch->chat_packet(CHAT_TYPE_COMMAND, "DayMode dark");
+		if (is_snow_)
+			ch->chat_packet(CHAT_TYPE_COMMAND, "xmas_snow 1");
+		if (is_music_)
+			ch->chat_packet(CHAT_TYPE_COMMAND, build_command_play_music(szCommand, sizeof(szCommand), 1, music_file_name_.c_str()));	
 	}
 
-	const char* WeddingMap::__BuildCommandPlayMusic(char* szCommand, size_t nCmdLen, uint8_t bSet, const char* c_szMusicFileName)
+	const char* wedding_map::build_command_play_music(char* szCommand, size_t nCmdLen, uint8_t bSet, const char* c_szMusicFileName)
 	{
 		if (nCmdLen < 1)
 		{
@@ -292,34 +292,34 @@ namespace marriage
 	}
 	// Manager
 
-	WeddingManager::WeddingManager()
+	wedding_manager::wedding_manager()
 	{
 	}
 
-	WeddingManager::~WeddingManager()
+	wedding_manager::~wedding_manager()
 	{
 	}
 
-	bool WeddingManager::IsWeddingMap(uint32_t dwMapIndex)
+	bool wedding_manager::is_wedding_map(uint32_t dwMapIndex)
 	{
 		return (dwMapIndex == WEDDING_MAP_INDEX || dwMapIndex / 10000 == WEDDING_MAP_INDEX);
 	}
 
-	WeddingMap* WeddingManager::Find(uint32_t dwMapIndex)
+	wedding_map* wedding_manager::find(uint32_t dwMapIndex)
 	{
-		auto it = m_mapWedding.find(dwMapIndex);
+		auto it = wedding_.find(dwMapIndex);
 
-		if (it == m_mapWedding.end())
+		if (it == wedding_.end())
 			return nullptr;
 
 		return it->second;
 	}
 
-	uint32_t WeddingManager::__CreateWeddingMap(uint32_t dwPID1, uint32_t dwPID2)
+	uint32_t wedding_manager::create_wedding_map(uint32_t dwPID1, uint32_t dwPID2)
 	{
-		SECTREE_MANAGER& rkSecTreeMgr = SECTREE_MANAGER::instance();
+		sectree_manager& rkSecTreeMgr = sectree_manager::instance();
 
-		uint32_t dwMapIndex = rkSecTreeMgr.CreatePrivateMap(WEDDING_MAP_INDEX);
+		uint32_t dwMapIndex = rkSecTreeMgr.create_private_map(WEDDING_MAP_INDEX);
 
 		if (!dwMapIndex)
 		{
@@ -327,57 +327,57 @@ namespace marriage
 			return 0;
 		}
 
-		m_mapWedding.insert(std::make_pair(dwMapIndex, new WeddingMap(dwMapIndex, dwPID1, dwPID2)));
+		wedding_.insert(std::make_pair(dwMapIndex, new wedding_map(dwMapIndex, dwPID1, dwPID2)));
 
 
 		// LOCALE_SERVICE
-		SECTREE_MAP * pkSectreeMap = rkSecTreeMgr.GetMap(dwMapIndex);
+		sectree_map * pkSectreeMap = rkSecTreeMgr.map(dwMapIndex);
 		if (pkSectreeMap == nullptr) {
 			return 0;
 		}
 		std::string st_weddingMapRegenFileName;
 		st_weddingMapRegenFileName.reserve(64);
-		st_weddingMapRegenFileName  = LocaleService_GetMapPath();
+		st_weddingMapRegenFileName  = locale_service_get_map_path();
 		st_weddingMapRegenFileName += "/metin2_map_wedding_01/npc.txt";
 
-		if (!regen_do(st_weddingMapRegenFileName.c_str(), dwMapIndex, pkSectreeMap->m_setting.iBaseX, pkSectreeMap->m_setting.iBaseY, nullptr, true))
+		if (!regen_do(st_weddingMapRegenFileName.c_str(), dwMapIndex, pkSectreeMap->setting.base_x, pkSectreeMap->setting.base_y, nullptr, true))
 		{
-			metin2::log::error("CreateWeddingMap(pid1={:d}, pid2={:d}) / regen_do(fileName={}, mapIndex={:d}, basePos=({:d}, {:d})) FAILED", dwPID1, dwPID2, st_weddingMapRegenFileName.c_str(), dwMapIndex, pkSectreeMap->m_setting.iBaseX, pkSectreeMap->m_setting.iBaseY);
+			metin2::log::error("CreateWeddingMap(pid1={:d}, pid2={:d}) / regen_do(fileName={}, mapIndex={:d}, basePos=({:d}, {:d})) FAILED", dwPID1, dwPID2, st_weddingMapRegenFileName.c_str(), dwMapIndex, pkSectreeMap->setting.base_x, pkSectreeMap->setting.base_y);
 		}
 		else
 		{
-			metin2::log::info( "CreateWeddingMap(pid1={:d}, pid2={:d}) / regen_do(fileName={}, mapIndex={:d}, basePos=({:d}, {:d})) ok", dwPID1, dwPID2, st_weddingMapRegenFileName.c_str(), dwMapIndex, pkSectreeMap->m_setting.iBaseX, pkSectreeMap->m_setting.iBaseY);
+			metin2::log::info( "CreateWeddingMap(pid1={:d}, pid2={:d}) / regen_do(fileName={}, mapIndex={:d}, basePos=({:d}, {:d})) ok", dwPID1, dwPID2, st_weddingMapRegenFileName.c_str(), dwMapIndex, pkSectreeMap->setting.base_x, pkSectreeMap->setting.base_y);
 		}
 		// END_OF_LOCALE_SERVICE
 
 		return dwMapIndex;
 	}
 	
-	void WeddingManager::DestroyWeddingMap(WeddingMap* pMap)
+	void wedding_manager::destroy_wedding_map(wedding_map* pMap)
 	{
-		metin2::log::info( "DestroyWeddingMap(index={:d})", pMap->GetMapIndex());
-		pMap->DestroyAll();
-		m_mapWedding.erase(pMap->GetMapIndex());
-		SECTREE_MANAGER::instance().DestroyPrivateMap(pMap->GetMapIndex());
+		metin2::log::info( "DestroyWeddingMap(index={:d})", pMap->map_index());
+		pMap->destroy_all();
+		wedding_.erase(pMap->map_index());
+		sectree_manager::instance().destroy_private_map(pMap->map_index());
 		delete pMap;
 	}
 
-	bool WeddingManager::End(uint32_t dwMapIndex)
+	bool wedding_manager::end(uint32_t dwMapIndex)
 	{
-		auto it = m_mapWedding.find(dwMapIndex);
+		auto it = wedding_.find(dwMapIndex);
 
-		if (it == m_mapWedding.end())
+		if (it == wedding_.end())
 			return false;
 
-		it->second->SetEnded();
+		it->second->set_ended();
 		return true;
 	}
 
-	void WeddingManager::Request(uint32_t dwPID1, uint32_t dwPID2)
+	void wedding_manager::request(uint32_t dwPID1, uint32_t dwPID2)
 	{
 		if (map_allow_find(WEDDING_MAP_INDEX))
 		{
-			uint32_t dwMapIndex = __CreateWeddingMap(dwPID1, dwPID2);
+			uint32_t dwMapIndex = create_wedding_map(dwPID1, dwPID2);
 
 			if (!dwMapIndex)
 			{
@@ -385,12 +385,12 @@ namespace marriage
 				return;
 			}
 
-			TPacketWeddingReady p;
-			p.dwPID1 = dwPID1;
-			p.dwPID2 = dwPID2;
-			p.dwMapIndex = dwMapIndex;
+			packet_wedding_ready p;
+			p.pi_d1 = dwPID1;
+			p.pi_d2 = dwPID2;
+			p.map_index = dwMapIndex;
 
-			db_clientdesc->DBPacket(HEADER_GD_WEDDING_READY, 0, &p, sizeof(p));
+			db_clientdesc->db_packet(HEADER_GD_WEDDING_READY, 0, &p, sizeof(p));
 		}
 	}
 

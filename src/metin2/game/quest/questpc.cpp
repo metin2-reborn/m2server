@@ -28,46 +28,46 @@ namespace metin2::game {
 
 namespace quest
 {
-	PC::PC() :
-		m_bIsGivenReward(false),
-		m_bShouldSendDone(false),
-		m_dwID(0),
-		m_RunningQuestState(nullptr),
-		m_iSendToClient(0),
-		m_bLoaded(false),
-		m_iLastState(0),
-		m_dwWaitConfirmFromPID(0),
-		m_bConfirmWait(false)
+	pc::pc() :
+		is_given_reward_(false),
+		should_send_done_(false),
+		id_(0),
+		running_quest_state_(nullptr),
+		send_to_client_(0),
+		loaded_(false),
+		last_state_(0),
+		wait_confirm_from_pid_(0),
+		confirm_wait_(false)
 	{
 	}
 
-	PC::~PC()
+	pc::~pc()
 	{
-		Destroy();
+		destroy();
 	}
 
-	void PC::Destroy()
+	void pc::destroy()
 	{
-		ClearTimer();
+		clear_timer();
 	}
 
-	void PC::SetID(uint32_t dwID)
+	void pc::set_id(uint32_t dwID)
 	{
-		m_dwID = dwID;
-		m_bShouldSendDone = false;
+		id_ = dwID;
+		should_send_done_ = false;
 	}
 
-	const std::string & PC::GetCurrentQuestName() const
+	const std::string & pc::current_quest_name() const
 	{
-		return m_stCurQuest;
+		return cur_quest_;
 	}
 
-	int	PC::GetCurrentQuestIndex()
+	int	pc::current_quest_index()
 	{
-		return CQuestManager::instance().GetQuestIndexByName(GetCurrentQuestName());
+		return quest_manager::instance().quest_index_by_name(current_quest_name());
 	}
 
-	void PC::SetFlag(const std::string& name, int value, bool bSkipSave)
+	void pc::set_flag(const std::string& name, int value, bool bSkipSave)
 	{
 		if ( metin2::config::test_server() )
 			metin2::log::info( "QUEST Setting flag {} {:d}", name.c_str(),value);
@@ -76,42 +76,42 @@ namespace quest
 
 		if (value == 0)
 		{
-			DeleteFlag(name);
+			delete_flag(name);
 			return;
 		}
 
-		TFlagMap::iterator it = m_FlagMap.find(name);
+		flag_map::iterator it = flag_map_.find(name);
 
-		if (it == m_FlagMap.end())
-			m_FlagMap.insert(make_pair(name, value));
+		if (it == flag_map_.end())
+			flag_map_.insert(make_pair(name, value));
 		else if (it->second != value)
 			it->second = value;
 		else
 			bSkipSave = true;
 
 		if (!bSkipSave)
-			SaveFlag(name, value);
+			save_flag(name, value);
 	}
 
-	bool PC::DeleteFlag(const std::string & name)
+	bool pc::delete_flag(const std::string & name)
 	{
-		TFlagMap::iterator it = m_FlagMap.find(name);
+		flag_map::iterator it = flag_map_.find(name);
 
-		if (it != m_FlagMap.end())
+		if (it != flag_map_.end())
 		{
-			m_FlagMap.erase(it);
-			SaveFlag(name, 0);
+			flag_map_.erase(it);
+			save_flag(name, 0);
 			return true;
 		}
 
 		return false;
 	}
 
-	int PC::GetFlag(const std::string & name)
+	int pc::flag(const std::string & name)
 	{
-		TFlagMap::iterator it = m_FlagMap.find(name);
+		flag_map::iterator it = flag_map_.find(name);
 
-		if (it != m_FlagMap.end())
+		if (it != flag_map_.end())
 		{
 			metin2::log::debug( "QUEST getting flag {} {:d}", name.c_str(),it->second);
 			return it->second;
@@ -119,294 +119,294 @@ namespace quest
 		return 0;
 	}
 
-	void PC::SaveFlag(const std::string & name, int value)
+	void pc::save_flag(const std::string & name, int value)
 	{
-		TFlagMap::iterator it = m_FlagSaveMap.find(name);
+		flag_map::iterator it = flag_save_map_.find(name);
 
-		if (it == m_FlagSaveMap.end())
-			m_FlagSaveMap.insert(make_pair(name, value));
+		if (it == flag_save_map_.end())
+			flag_save_map_.insert(make_pair(name, value));
 		else if (it->second != value)
 			it->second = value;
 	}
 
 	// only from lua call
-	void PC::SetCurrentQuestStateName(const std::string& state_name) 
+	void pc::set_current_quest_state_name(const std::string& state_name) 
 	{
-		SetFlag(m_stCurQuest + ".__status", CQuestManager::instance().GetQuestStateIndex(m_stCurQuest,state_name));
+		set_flag(cur_quest_ + ".__status", quest_manager::instance().quest_state_index(cur_quest_,state_name));
 	}
 
-	void PC::SetQuestState(const std::string& quest_name, const std::string& state_name)
+	void pc::set_quest_state(const std::string& quest_name, const std::string& state_name)
 	{
-		SetQuestState(quest_name, CQuestManager::instance().GetQuestStateIndex(quest_name, state_name));
+		set_quest_state(quest_name, quest_manager::instance().quest_state_index(quest_name, state_name));
 	}
 
-	void PC::SetQuestState(const std::string& quest_name, int new_state_index)
+	void pc::set_quest_state(const std::string& quest_name, int new_state_index)
 	{
-		int iNowState = GetFlag(quest_name + ".__status");
+		int iNowState = flag(quest_name + ".__status");
 
 		if (iNowState != new_state_index)
-			AddQuestStateChange(quest_name, iNowState, new_state_index);
+			add_quest_state_change(quest_name, iNowState, new_state_index);
 	}
 
-	void PC::AddQuestStateChange(const std::string& quest_name, int prev_state, int next_state)
+	void pc::add_quest_state_change(const std::string& quest_name, int prev_state, int next_state)
 	{
-		uint32_t dwQuestIndex = CQuestManager::instance().GetQuestIndexByName(quest_name);
+		uint32_t dwQuestIndex = quest_manager::instance().quest_index_by_name(quest_name);
 		metin2::log::info( "QUEST reserve Quest State Change quest {}[{:d}] from {:d} to {:d}", quest_name.c_str(), dwQuestIndex, prev_state, next_state);
-		m_QuestStateChange.push_back(TQuestStateChangeInfo(dwQuestIndex, prev_state, next_state));
+		quest_state_change_.push_back(quest_state_change_info(dwQuestIndex, prev_state, next_state));
 	}
 
-	void PC::SetQuest(const std::string& quest_name, QuestState& qs)
+	void pc::set_quest(const std::string& quest_name, quest_state& qs)
 	{
-		unsigned int qi = CQuestManager::instance().GetQuestIndexByName(quest_name);
-		QuestInfo::iterator it = m_QuestInfo.find(qi);
+		unsigned int qi = quest_manager::instance().quest_index_by_name(quest_name);
+		quest_info::iterator it = quest_info_.find(qi);
 
-		if (it == m_QuestInfo.end())
-			m_QuestInfo.insert(std::make_pair(qi, qs));
+		if (it == quest_info_.end())
+			quest_info_.insert(std::make_pair(qi, qs));
 		else
 			it->second = qs;
 
-		m_stCurQuest = quest_name;
-		m_RunningQuestState = &m_QuestInfo[qi];
-		m_iSendToClient = 0;
+		cur_quest_ = quest_name;
+		running_quest_state_ = &quest_info_[qi];
+		send_to_client_ = 0;
 
-		m_iLastState = qs.st;
-		SetFlag(quest_name + ".__status", qs.st);
+		last_state_ = qs.st;
+		set_flag(quest_name + ".__status", qs.st);
 
-		m_RunningQuestState->iIndex = qi;
-		m_bShouldSendDone = false;
+		running_quest_state_->index = qi;
+		should_send_done_ = false;
 	}
 
-	void PC::AddTimer(const std::string & name, LPEVENT pEvent)
+	void pc::add_timer(const std::string & name, event_ptr pEvent)
 	{
-		RemoveTimer(name);
-		m_TimerMap.insert(make_pair(name, pEvent));
-		metin2::log::info( "QUEST add timer {} {:d}", static_cast<const void *>(pEvent.get()), m_TimerMap.size());
+		remove_timer(name);
+		timer_map_.insert(make_pair(name, pEvent));
+		metin2::log::info( "QUEST add timer {} {:d}", static_cast<const void *>(pEvent.get()), timer_map_.size());
 	}
 
-	void PC::RemoveTimerNotCancel(const std::string & name)
+	void pc::remove_timer_not_cancel(const std::string & name)
 	{
-		TTimerMap::iterator it = m_TimerMap.find(name);
+		timer_map::iterator it = timer_map_.find(name);
 
-		if (it != m_TimerMap.end())
+		if (it != timer_map_.end())
 		{
 			metin2::log::info( "QUEST remove with no cancel {}", static_cast<const void *>(it->second.get()));
-			m_TimerMap.erase(it);
+			timer_map_.erase(it);
 		}
 
-		metin2::log::debug( "QUEST timer map size {:d} by RemoveTimerNotCancel", m_TimerMap.size());
+		metin2::log::debug( "QUEST timer map size {:d} by RemoveTimerNotCancel", timer_map_.size());
 	}
 
-	void PC::RemoveTimer(const std::string & name)
+	void pc::remove_timer(const std::string & name)
 	{
-		TTimerMap::iterator it = m_TimerMap.find(name);
+		timer_map::iterator it = timer_map_.find(name);
 
-		if (it != m_TimerMap.end())
+		if (it != timer_map_.end())
 		{
 			metin2::log::info( "QUEST remove timer {}", static_cast<const void *>(it->second.get()));
-			CancelTimerEvent(&it->second);
-			m_TimerMap.erase(it);
+			cancel_timer_event(&it->second);
+			timer_map_.erase(it);
 		}
 
-		metin2::log::debug( "QUEST timer map size {:d} by RemoveTimer", m_TimerMap.size());
+		metin2::log::debug( "QUEST timer map size {:d} by RemoveTimer", timer_map_.size());
 	}
 
-	void PC::ClearTimer()
+	void pc::clear_timer()
 	{
-		metin2::log::info( "QUEST clear timer {:d}", m_TimerMap.size());
-		TTimerMap::iterator it = m_TimerMap.begin();
+		metin2::log::info( "QUEST clear timer {:d}", timer_map_.size());
+		timer_map::iterator it = timer_map_.begin();
 
-		while (it != m_TimerMap.end())
+		while (it != timer_map_.end())
 		{
-			CancelTimerEvent(&it->second);
+			cancel_timer_event(&it->second);
 			++it;
 		}
 
-		m_TimerMap.clear();
+		timer_map_.clear();
 	}
 
-	void PC::SetCurrentQuestStartFlag()
+	void pc::set_current_quest_start_flag()
 	{
-		if (!GetCurrentQuestBeginFlag())
+		if (!current_quest_begin_flag())
 		{
-			SetCurrentQuestBeginFlag();
+			set_current_quest_begin_flag();
 		}
 	}
 
-	void PC::SetCurrentQuestDoneFlag()
+	void pc::set_current_quest_done_flag()
 	{
-		if (GetCurrentQuestBeginFlag())
+		if (current_quest_begin_flag())
 		{
-			ClearCurrentQuestBeginFlag();
+			clear_current_quest_begin_flag();
 		}
 	}
 
-	void PC::SendQuestInfoPakcet()
+	void pc::send_quest_info_pakcet()
 	{
-		assert(m_iSendToClient);
-		assert(m_RunningQuestState);
+		assert(send_to_client_);
+		assert(running_quest_state_);
 
 		packet_quest_info qi;
 
 		qi.header = HEADER_GC_QUEST_INFO;
 		qi.size = sizeof(struct packet_quest_info);
-		qi.index = m_RunningQuestState->iIndex;
-		qi.flag = m_iSendToClient;
+		qi.index = running_quest_state_->index;
+		qi.flag = send_to_client_;
 
-		TEMP_BUFFER buf;
+		temp_buffer buf;
 		buf.write(&qi, sizeof(qi));
 
-		if (m_iSendToClient & QUEST_SEND_ISBEGIN)
+		if (send_to_client_ & QUEST_SEND_ISBEGIN)
 		{
-			uint8_t temp = m_RunningQuestState->bStart?1:0;
+			uint8_t temp = running_quest_state_->start?1:0;
 			buf.write(&temp,1);		
 			qi.size+=1;
 
 			metin2::log::debug( "QUEST BeginFlag {:d}", (int)temp);
 		}
-		if (m_iSendToClient & QUEST_SEND_TITLE)
+		if (send_to_client_ & QUEST_SEND_TITLE)
 		{
-			m_RunningQuestState->_title.reserve(30+1);
-			buf.write(m_RunningQuestState->_title.c_str(), 30+1);
+			running_quest_state_->title.reserve(30+1);
+			buf.write(running_quest_state_->title.c_str(), 30+1);
 			qi.size+=30+1;
 
-			metin2::log::debug( "QUEST Title {}", m_RunningQuestState->_title.c_str());
+			metin2::log::debug( "QUEST Title {}", running_quest_state_->title.c_str());
 		}
-		if (m_iSendToClient & QUEST_SEND_CLOCK_NAME)
+		if (send_to_client_ & QUEST_SEND_CLOCK_NAME)
 		{
-			m_RunningQuestState->_clock_name.reserve(16+1);
-			buf.write(m_RunningQuestState->_clock_name.c_str(), 16+1);
+			running_quest_state_->clock_name.reserve(16+1);
+			buf.write(running_quest_state_->clock_name.c_str(), 16+1);
 			qi.size+=16+1;
 
-			metin2::log::debug( "QUEST Clock Name {}", m_RunningQuestState->_clock_name.c_str());
+			metin2::log::debug( "QUEST Clock Name {}", running_quest_state_->clock_name.c_str());
 		}
-		if (m_iSendToClient & QUEST_SEND_CLOCK_VALUE)
+		if (send_to_client_ & QUEST_SEND_CLOCK_VALUE)
 		{
-			buf.write(&m_RunningQuestState->_clock_value, sizeof(int));
+			buf.write(&running_quest_state_->clock_value, sizeof(int));
 			qi.size+=4;
 
-			metin2::log::debug( "QUEST Clock Value {:d}", m_RunningQuestState->_clock_value);
+			metin2::log::debug( "QUEST Clock Value {:d}", running_quest_state_->clock_value);
 		}
-		if (m_iSendToClient & QUEST_SEND_COUNTER_NAME)
+		if (send_to_client_ & QUEST_SEND_COUNTER_NAME)
 		{
-			m_RunningQuestState->_counter_name.reserve(16+1);
-			buf.write(m_RunningQuestState->_counter_name.c_str(), 16+1);
+			running_quest_state_->counter_name.reserve(16+1);
+			buf.write(running_quest_state_->counter_name.c_str(), 16+1);
 			qi.size+=16+1;
 
-			metin2::log::debug( "QUEST Counter Name {}", m_RunningQuestState->_counter_name.c_str());
+			metin2::log::debug( "QUEST Counter Name {}", running_quest_state_->counter_name.c_str());
 		}
-		if (m_iSendToClient & QUEST_SEND_COUNTER_VALUE)
+		if (send_to_client_ & QUEST_SEND_COUNTER_VALUE)
 		{
-			buf.write(&m_RunningQuestState->_counter_value, sizeof(int));
+			buf.write(&running_quest_state_->counter_value, sizeof(int));
 			qi.size+=4;
 
-			metin2::log::debug( "QUEST Counter Value {:d}", m_RunningQuestState->_counter_value);
+			metin2::log::debug( "QUEST Counter Value {:d}", running_quest_state_->counter_value);
 		}
-		if (m_iSendToClient & QUEST_SEND_ICON_FILE)
+		if (send_to_client_ & QUEST_SEND_ICON_FILE)
 		{
-			m_RunningQuestState->_icon_file.reserve(24+1);
-			buf.write(m_RunningQuestState->_icon_file.c_str(), 24+1);
+			running_quest_state_->icon_file.reserve(24+1);
+			buf.write(running_quest_state_->icon_file.c_str(), 24+1);
 			qi.size+=24+1;
 
-			metin2::log::debug( "QUEST Icon File {}", m_RunningQuestState->_icon_file.c_str());
+			metin2::log::debug( "QUEST Icon File {}", running_quest_state_->icon_file.c_str());
 		}
 
-		CQuestManager::instance().GetCurrentCharacterPtr()->GetDesc()->Packet(buf.read_peek(),buf.size());
+		quest_manager::instance().current_character_ptr()->get_desc()->packet(buf.read_peek(),buf.size());
 
-		m_iSendToClient = 0;
+		send_to_client_ = 0;
 
 	}
 
-	void PC::EndRunning()
+	void pc::end_running()
 	{
 		// unlocked locked npc
 		{
-			CHARACTER * npc = CQuestManager::instance().GetCurrentNPCCharacterPtr();
-			CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+			character * npc = quest_manager::instance().current_npc_character_ptr();
+			character * ch = quest_manager::instance().current_character_ptr();
 			// If there was an npc
-			if (npc && !npc->IsPC())
+			if (npc && !npc->is_pc())
 			{
 				// If that npc is locked to me
-				if (ch->GetPlayerID() == npc->GetQuestNPCID())
+				if (ch->player_id() == npc->quest_npcid())
 				{
-					npc->SetQuestNPCID(0);
-					metin2::log::info( "QUEST NPC lock isn't unlocked : pid {:d}", ch->GetPlayerID());
-					CQuestManager::instance().WriteRunningStateToSyserr();
+					npc->set_quest_npcid(0);
+					metin2::log::info( "QUEST NPC lock isn't unlocked : pid {:d}", ch->player_id());
+					quest_manager::instance().write_running_state_to_syserr();
 				}
 			}
 		}
 
 		// commit data
-		if (HasReward())
+		if (has_reward())
 		{
-			Save();
+			save();
 
-			CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+			character * ch = quest_manager::instance().current_character_ptr();
 			if (ch != nullptr) {
-				Reward(ch);
-				ch->Save();
+				reward(ch);
+				ch->save();
 			}
 		}
-		m_bIsGivenReward = false;
+		is_given_reward_ = false;
 
-		if (m_iSendToClient)
+		if (send_to_client_)
 		{
-			metin2::log::debug( "QUEST end running {:d}", m_iSendToClient);
-			SendQuestInfoPakcet();
+			metin2::log::debug( "QUEST end running {:d}", send_to_client_);
+			send_quest_info_pakcet();
 		}
 
-		if (m_RunningQuestState == nullptr) {
+		if (running_quest_state_ == nullptr) {
 			metin2::log::info( "Entered PC::EndRunning() with invalid running quest state");
 			return;
 		}
-		QuestState * pOldState = m_RunningQuestState;
-		int iNowState = m_RunningQuestState->st;
+		quest_state * pOldState = running_quest_state_;
+		int iNowState = running_quest_state_->st;
 
-		m_RunningQuestState = nullptr;
+		running_quest_state_ = nullptr;
 
-		if (m_iLastState != iNowState)
+		if (last_state_ != iNowState)
 		{
-			CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-			uint32_t dwQuestIndex = CQuestManager::instance().GetQuestIndexByName(m_stCurQuest);
+			character * ch = quest_manager::instance().current_character_ptr();
+			uint32_t dwQuestIndex = quest_manager::instance().quest_index_by_name(cur_quest_);
 			if (ch)
 			{
-				SetFlag(m_stCurQuest + ".__status", m_iLastState);
-				CQuestManager::instance().LeaveState(ch->GetPlayerID(), dwQuestIndex, m_iLastState);
+				set_flag(cur_quest_ + ".__status", last_state_);
+				quest_manager::instance().leave_state(ch->player_id(), dwQuestIndex, last_state_);
 				pOldState->st = iNowState;
-				SetFlag(m_stCurQuest + ".__status", iNowState);
-				CQuestManager::instance().EnterState(ch->GetPlayerID(), dwQuestIndex, iNowState);
-				if (GetFlag(m_stCurQuest + ".__status") == iNowState)
-					CQuestManager::instance().Letter(ch->GetPlayerID(), dwQuestIndex, iNowState);
+				set_flag(cur_quest_ + ".__status", iNowState);
+				quest_manager::instance().enter_state(ch->player_id(), dwQuestIndex, iNowState);
+				if (flag(cur_quest_ + ".__status") == iNowState)
+					quest_manager::instance().letter(ch->player_id(), dwQuestIndex, iNowState);
 			}
 		}
 
 
-		DoQuestStateChange();
+		do_quest_state_change();
 	}
 
-	void PC::DoQuestStateChange()
+	void pc::do_quest_state_change()
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
-		std::vector<TQuestStateChangeInfo> vecQuestStateChange;
-		m_QuestStateChange.swap(vecQuestStateChange);
+		std::vector<quest_state_change_info> vecQuestStateChange;
+		quest_state_change_.swap(vecQuestStateChange);
 
 		for (uint32_t i=0; i<vecQuestStateChange.size(); ++i)
 		{
-			const TQuestStateChangeInfo& rInfo = vecQuestStateChange[i];
+			const quest_state_change_info& rInfo = vecQuestStateChange[i];
 			if (rInfo.quest_idx == 0)
 				continue;
 
 			uint32_t dwQuestIdx = rInfo.quest_idx;
-			QuestInfoIterator it = quest_find(dwQuestIdx);
-			const std::string stQuestName = CQuestManager::instance().GetQuestNameByIndex(dwQuestIdx);
+			quest_info_iterator it = quest_find(dwQuestIdx);
+			const std::string stQuestName = quest_manager::instance().quest_name_by_index(dwQuestIdx);
 
 			if (it == quest_end())
 			{
-				QuestState qs;
+				quest_state qs;
 				qs.st = 0;
 
-				m_QuestInfo.insert(std::make_pair(dwQuestIdx, qs));
-				SetFlag(stQuestName + ".__status", 0);
+				quest_info_.insert(std::make_pair(dwQuestIdx, qs));
+				set_flag(stQuestName + ".__status", 0);
 
 				it = quest_find(dwQuestIdx);
 			}
@@ -415,124 +415,124 @@ namespace quest
 
 			assert(it->second.st == rInfo.prev_state);
 
-			CQuestManager::instance().LeaveState(ch->GetPlayerID(), dwQuestIdx, rInfo.prev_state);
+			quest_manager::instance().leave_state(ch->player_id(), dwQuestIdx, rInfo.prev_state);
 			it->second.st = rInfo.next_state;
-			SetFlag(stQuestName + ".__status", rInfo.next_state);
+			set_flag(stQuestName + ".__status", rInfo.next_state);
 
-			CQuestManager::instance().EnterState(ch->GetPlayerID(), dwQuestIdx, rInfo.next_state);
+			quest_manager::instance().enter_state(ch->player_id(), dwQuestIdx, rInfo.next_state);
 
-			if (GetFlag(stQuestName + ".__status")==rInfo.next_state)
-				CQuestManager::instance().Letter(ch->GetPlayerID(), dwQuestIdx, rInfo.next_state);
+			if (flag(stQuestName + ".__status")==rInfo.next_state)
+				quest_manager::instance().letter(ch->player_id(), dwQuestIdx, rInfo.next_state);
 		}
 	}
 
-	void PC::CancelRunning()
+	void pc::cancel_running()
 	{
 		// cancel data
-		m_RunningQuestState = nullptr;
-		m_iSendToClient = 0;
-		m_bShouldSendDone = false;
+		running_quest_state_ = nullptr;
+		send_to_client_ = 0;
+		should_send_done_ = false;
 	}
 
-	void PC::SetSendFlag(int idx)
+	void pc::set_send_flag(int idx)
 	{
-		m_iSendToClient |= idx;
+		send_to_client_ |= idx;
 	}
 
-	void PC::ClearCurrentQuestBeginFlag()
+	void pc::clear_current_quest_begin_flag()
 	{
-		SetSendFlag(QUEST_SEND_ISBEGIN);
-		m_RunningQuestState->bStart = false;
+		set_send_flag(QUEST_SEND_ISBEGIN);
+		running_quest_state_->start = false;
 	}
 
-	void PC::SetCurrentQuestBeginFlag()
+	void pc::set_current_quest_begin_flag()
 	{
-		CQuestManager& q = CQuestManager::instance();
-		int iQuestIndex = q.GetQuestIndexByName(m_stCurQuest);
-		m_RunningQuestState->bStart = true;
-		m_RunningQuestState->iIndex = iQuestIndex;
+		quest_manager& q = quest_manager::instance();
+		int iQuestIndex = q.quest_index_by_name(cur_quest_);
+		running_quest_state_->start = true;
+		running_quest_state_->index = iQuestIndex;
 
-		SetSendFlag(QUEST_SEND_ISBEGIN);
+		set_send_flag(QUEST_SEND_ISBEGIN);
 	}
 
-	int PC::GetCurrentQuestBeginFlag()
+	int pc::current_quest_begin_flag()
 	{
-		return m_RunningQuestState?m_RunningQuestState->iIndex:0;
+		return running_quest_state_?running_quest_state_->index:0;
 	}
 
-	void PC::SetCurrentQuestTitle(const std::string& title)
+	void pc::set_current_quest_title(const std::string& title)
 	{
-		SetSendFlag(QUEST_SEND_TITLE);
-		m_RunningQuestState->_title = title;
+		set_send_flag(QUEST_SEND_TITLE);
+		running_quest_state_->title = title;
 	}
 
-	void PC::SetQuestTitle(const std::string& quest, const std::string& title)
+	void pc::set_quest_title(const std::string& quest, const std::string& title)
 	{
-		QuestInfo::iterator it = m_QuestInfo.find(CQuestManager::instance().GetQuestIndexByName(quest));
+		quest_info::iterator it = quest_info_.find(quest_manager::instance().quest_index_by_name(quest));
 
-		if (it != m_QuestInfo.end()) 
+		if (it != quest_info_.end()) 
 		{
-			QuestState* old = m_RunningQuestState;
-			int old2 = m_iSendToClient;
-			std::string oldquestname = m_stCurQuest;
-			m_stCurQuest = quest;
-			m_RunningQuestState = &it->second;
-			m_iSendToClient = QUEST_SEND_TITLE;
-			m_RunningQuestState->iIndex = GetCurrentQuestBeginFlag();
+			quest_state* old = running_quest_state_;
+			int old2 = send_to_client_;
+			std::string oldquestname = cur_quest_;
+			cur_quest_ = quest;
+			running_quest_state_ = &it->second;
+			send_to_client_ = QUEST_SEND_TITLE;
+			running_quest_state_->index = current_quest_begin_flag();
 
-			SetCurrentQuestTitle(title);
+			set_current_quest_title(title);
 
-			SendQuestInfoPakcet();
+			send_quest_info_pakcet();
 
-			m_stCurQuest = oldquestname;
-			m_RunningQuestState = old;
-			m_iSendToClient = old2;
+			cur_quest_ = oldquestname;
+			running_quest_state_ = old;
+			send_to_client_ = old2;
 		}
 	}
 
-	void PC::SetCurrentQuestClockName(const std::string& name)
+	void pc::set_current_quest_clock_name(const std::string& name)
 	{
-		SetSendFlag(QUEST_SEND_CLOCK_NAME);
-		m_RunningQuestState->_clock_name = name;
+		set_send_flag(QUEST_SEND_CLOCK_NAME);
+		running_quest_state_->clock_name = name;
 	}
 
-	void PC::SetCurrentQuestClockValue(int value)
+	void pc::set_current_quest_clock_value(int value)
 	{
-		SetSendFlag(QUEST_SEND_CLOCK_VALUE);
-		m_RunningQuestState->_clock_value = value;
+		set_send_flag(QUEST_SEND_CLOCK_VALUE);
+		running_quest_state_->clock_value = value;
 	}
 
-	void PC::SetCurrentQuestCounterName(const std::string& name)
+	void pc::set_current_quest_counter_name(const std::string& name)
 	{
-		SetSendFlag(QUEST_SEND_COUNTER_NAME);
-		m_RunningQuestState->_counter_name = name;
+		set_send_flag(QUEST_SEND_COUNTER_NAME);
+		running_quest_state_->counter_name = name;
 	}
 
-	void PC::SetCurrentQuestCounterValue(int value)
+	void pc::set_current_quest_counter_value(int value)
 	{
-		SetSendFlag(QUEST_SEND_COUNTER_VALUE);
-		m_RunningQuestState->_counter_value = value;
+		set_send_flag(QUEST_SEND_COUNTER_VALUE);
+		running_quest_state_->counter_value = value;
 	}
 
-	void PC::SetCurrentQuestIconFile(const std::string& icon_file)
+	void pc::set_current_quest_icon_file(const std::string& icon_file)
 	{
-		SetSendFlag(QUEST_SEND_ICON_FILE);
-		m_RunningQuestState->_icon_file = icon_file;
+		set_send_flag(QUEST_SEND_ICON_FILE);
+		running_quest_state_->icon_file = icon_file;
 	}
 
-	void PC::Save()
+	void pc::save()
 	{
-		if (m_FlagSaveMap.empty())
+		if (flag_save_map_.empty())
 			return;
 
-		static std::vector<TQuestTable> s_table;
-		s_table.resize(m_FlagSaveMap.size());
+		static std::vector<quest_table> s_table;
+		s_table.resize(flag_save_map_.size());
 
 		int i = 0;
 
-		TFlagMap::iterator it = m_FlagSaveMap.begin();
+		flag_map::iterator it = flag_save_map_.begin();
 
-		while (it != m_FlagSaveMap.end())
+		while (it != flag_save_map_.end())
 		{
 			const std::string & stComp = it->first;
 			int32_t lValue = it->second;
@@ -573,116 +573,116 @@ namespace quest
 				continue;
 			}
 
-			TQuestTable & r = s_table[i++];
+			quest_table & r = s_table[i++];
 
-			r.dwPID = m_dwID;
-			strlcpy(r.szName, stName.c_str(), sizeof(r.szName));
-			strlcpy(r.szState, stState.c_str(), sizeof(r.szState));
-			r.lValue = lValue;
+			r.pid = id_;
+			strlcpy(r.name, stName.c_str(), sizeof(r.name));
+			strlcpy(r.state, stState.c_str(), sizeof(r.state));
+			r.value = lValue;
 		}
 
 		if (i > 0)
 		{
 			metin2::log::debug( "QuestPC::Save {:d}", i);
-			db_clientdesc->DBPacketHeader(HEADER_GD_QUEST_SAVE, 0, sizeof(TQuestTable) * i);
-			db_clientdesc->Packet(&s_table[0], sizeof(TQuestTable) * i);
+			db_clientdesc->db_packet_header(HEADER_GD_QUEST_SAVE, 0, sizeof(quest_table) * i);
+			db_clientdesc->packet(&s_table[0], sizeof(quest_table) * i);
 		}
 
-		m_FlagSaveMap.clear();
+		flag_save_map_.clear();
 	}
 
-	void PC::GiveItem(const std::string& label, uint32_t dwVnum, int count)
+	void pc::give_item(const std::string& label, uint32_t dwVnum, int count)
 	{
 		metin2::log::debug( "QUEST GiveItem {} {:d} {:d}", label.c_str(),dwVnum,count);
-		if (!GetFlag(m_stCurQuest+"."+label))
+		if (!flag(cur_quest_+"."+label))
 		{
-			m_vRewardData.push_back(RewardData(RewardData::REWARD_TYPE_ITEM, dwVnum, count));
+			reward_data_.push_back(reward_data(reward_data::REWARD_TYPE_ITEM, dwVnum, count));
 		}
 		else
-			m_bIsGivenReward = true;
+			is_given_reward_ = true;
 	}
 
-	void PC::GiveExp(const std::string& label, uint32_t exp)
+	void pc::give_exp(const std::string& label, uint32_t exp)
 	{
 		metin2::log::debug( "QUEST GiveExp {} {:d}", label.c_str(),exp);
 
-		if (!GetFlag(m_stCurQuest+"."+label))
+		if (!flag(cur_quest_+"."+label))
 		{
-			m_vRewardData.push_back(RewardData(RewardData::REWARD_TYPE_EXP, exp));
+			reward_data_.push_back(reward_data(reward_data::REWARD_TYPE_EXP, exp));
 		}
 		else
-			m_bIsGivenReward = true;
+			is_given_reward_ = true;
 	}
 
-	void PC::Reward(CHARACTER * ch)
+	void pc::reward(character * ch)
 	{
-		if (m_bIsGivenReward)
+		if (is_given_reward_)
 		{
-			ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("<퀘스트> 이전에 같은 보상을 받은 적이 있어 다시 받지 않습니다."));
-			m_bIsGivenReward = false;
+			ch->chat_packet(CHAT_TYPE_INFO, lc_text("<퀘스트> 이전에 같은 보상을 받은 적이 있어 다시 받지 않습니다."));
+			is_given_reward_ = false;
 		}
 
-		for (std::vector<RewardData>::iterator it = m_vRewardData.begin(); it != m_vRewardData.end(); ++it)
+		for (std::vector<reward_data>::iterator it = reward_data_.begin(); it != reward_data_.end(); ++it)
 		{
 			switch (it->type)
 			{
-				case RewardData::REWARD_TYPE_EXP:
-					metin2::log::info( "EXP cur {:d} add {:d} next {:d}",ch->GetExp(), it->value1, ch->GetNextExp());
+				case reward_data::REWARD_TYPE_EXP:
+					metin2::log::info( "EXP cur {:d} add {:d} next {:d}",ch->get_exp(), it->value1, ch->next_exp());
 
-					if (ch->GetExp() + it->value1 > ch->GetNextExp())
-						ch->PointChange(POINT_EXP, ch->GetNextExp() - 1 - ch->GetExp());
+					if (ch->get_exp() + it->value1 > ch->next_exp())
+						ch->point_change(POINT_EXP, ch->next_exp() - 1 - ch->get_exp());
 					else
-						ch->PointChange(POINT_EXP, it->value1);
+						ch->point_change(POINT_EXP, it->value1);
 
 					break;
 
-				case RewardData::REWARD_TYPE_ITEM:
-					ch->AutoGiveItem(it->value1, it->value2);
+				case reward_data::REWARD_TYPE_ITEM:
+					ch->auto_give_item(it->value1, it->value2);
 					break;
 
-				case RewardData::REWARD_TYPE_NONE:
+				case reward_data::REWARD_TYPE_NONE:
 				default:
 					metin2::log::error("Invalid RewardData type");
 					break;
 			}
 		}
 
-		m_vRewardData.clear();
+		reward_data_.clear();
 	}
 
-	void PC::Build()
+	void pc::build()
 	{
-		decltype(m_FlagMap.begin()) it;
-		for (it = m_FlagMap.begin(); it != m_FlagMap.end(); ++it)
+		decltype(flag_map_.begin()) it;
+		for (it = flag_map_.begin(); it != flag_map_.end(); ++it)
 		{
 			if (it->first.size()>9 && it->first.compare(it->first.size()-9,9, ".__status") == 0)
 			{
-				uint32_t dwQuestIndex = CQuestManager::instance().GetQuestIndexByName(it->first.substr(0, it->first.size()-9));
+				uint32_t dwQuestIndex = quest_manager::instance().quest_index_by_name(it->first.substr(0, it->first.size()-9));
 				int state = it->second;
-				QuestState qs;
+				quest_state qs;
 				qs.st = state;
 
-				m_QuestInfo.insert(std::make_pair(dwQuestIndex, qs));
+				quest_info_.insert(std::make_pair(dwQuestIndex, qs));
 			}
 		}
 	}
 
-	void PC::ClearQuest(const std::string& quest_name)
+	void pc::clear_quest(const std::string& quest_name)
 	{
 		std::string quest_name_with_dot = quest_name + '.';
-		for (auto it = m_FlagMap.begin(); it!= m_FlagMap.end();)
+		for (auto it = flag_map_.begin(); it!= flag_map_.end();)
 		{
 			auto itNow = it++;
 			if (itNow->second != 0 && itNow->first.compare(0, quest_name_with_dot.size(), quest_name_with_dot) == 0)
 			{
-				SetFlag(itNow->first, 0);
+				set_flag(itNow->first, 0);
 			}
 		}
 
-		ClearTimer();
+		clear_timer();
 
-		quest::PC::QuestInfoIterator it = quest_begin();
-		unsigned int questindex = quest::CQuestManager::instance().GetQuestIndexByName(quest_name);
+		quest::pc::quest_info_iterator it = quest_begin();
+		unsigned int questindex = quest::quest_manager::instance().quest_index_by_name(quest_name);
 
 		while (it!= quest_end())
 		{
@@ -696,19 +696,19 @@ namespace quest
 		}
 	}
 
-	void PC::SendFlagList(CHARACTER * ch)
+	void pc::send_flag_list(character * ch)
 	{
-		for (auto it = m_FlagMap.begin(); it!= m_FlagMap.end(); ++it)
+		for (auto it = flag_map_.begin(); it!= flag_map_.end(); ++it)
 		{
 			if (it->first.size()>9 && it->first.compare(it->first.size()-9,9, ".__status") == 0)
 			{
 				const std::string quest_name = it->first.substr(0, it->first.size()-9);
-				const char* state_name = CQuestManager::instance().GetQuestStateName(quest_name, it->second);
-				ch->ChatPacket(CHAT_TYPE_INFO, "%s %s (%d)", quest_name.c_str(), state_name, it->second);
+				const char* state_name = quest_manager::instance().quest_state_name(quest_name, it->second);
+				ch->chat_packet(CHAT_TYPE_INFO, "%s %s (%d)", quest_name.c_str(), state_name, it->second);
 			}
 			else
 			{
-				ch->ChatPacket(CHAT_TYPE_INFO, "%s %d", it->first.c_str(), it->second);
+				ch->chat_packet(CHAT_TYPE_INFO, "%s %d", it->first.c_str(), it->second);
 			}
 		}
 	}

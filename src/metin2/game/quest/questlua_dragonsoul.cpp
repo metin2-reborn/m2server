@@ -10,34 +10,34 @@ namespace quest
 {
 	int ds_open_refine_window(lua_State* L)
 	{
-		CHARACTER * const ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * const ch = quest_manager::instance().current_character_ptr();
 		if (nullptr == ch)
 		{
 			quest::error("NULL POINT ERROR");
 			return 0;
 		}
-		if (ch->DragonSoul_IsQualified())
-			ch->DragonSoul_RefineWindow_Open(CQuestManager::instance().GetCurrentNPCCharacterPtr());
+		if (ch->dragon_soul_is_qualified())
+			ch->dragon_soul_refine_window_open(quest_manager::instance().current_npc_character_ptr());
 
 		return 0;
 	}
 
 	int ds_give_qualification(lua_State* L)
 	{
-		CHARACTER * const ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * const ch = quest_manager::instance().current_character_ptr();
 		if (nullptr == ch)
 		{
 			quest::error("NULL POINT ERROR");
 			return 0;
 		}
-		ch->DragonSoul_GiveQualification();
+		ch->dragon_soul_give_qualification();
 
 		return 0;
 	}
 
 	int ds_is_qualified(lua_State* L)
 	{
-		CHARACTER * const ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * const ch = quest_manager::instance().current_character_ptr();
 		if (nullptr == ch)
 		{
 			quest::error("NULL POINT ERROR");
@@ -45,11 +45,11 @@ namespace quest
 			return 1;
 		}
 
-		lua_pushnumber(L, ch->DragonSoul_IsQualified());
+		lua_pushnumber(L, ch->dragon_soul_is_qualified());
 		return 1;
 	}
 
-	void RegisterDragonSoulFunctionTable()
+	void register_dragon_soul_function_table()
 	{
 		luaL_reg ds_functions[] = 
 		{
@@ -59,7 +59,7 @@ namespace quest
 			{ nullptr					, nullptr					}
 		};
 
-		CQuestManager::instance().AddLuaFunctionTable("ds", ds_functions);
+		quest_manager::instance().add_lua_function_table("ds", ds_functions);
 	}
 };
 }

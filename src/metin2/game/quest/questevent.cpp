@@ -16,7 +16,7 @@ namespace metin2::game {
 
 namespace quest
 {
-	void CancelTimerEvent(LPEVENT * ppEvent)
+	void cancel_timer_event(event_ptr * ppEvent)
 	{
 		quest_event_info* info = dynamic_cast<quest_event_info*>((*ppEvent)->info);
 
@@ -39,14 +39,14 @@ namespace quest
 			return 0;
 		}
 
-		CQuestManager& q = CQuestManager::instance();
+		quest_manager& q = quest_manager::instance();
 
-		if (!q.ServerTimer(info->npc_id, info->arg))
+		if (!q.server_timer(info->npc_id, info->arg))
 			return metin2::config::server().passes_per_sec / 2 + 1;
 
 		if (0 == info->time_cycle)	// Terminate if not looping.
 		{
-			q.ClearServerTimerNotCancel(info->name, info->arg);
+			q.clear_server_timer_not_cancel(info->name, info->arg);
 			delete[] info->name;
 			info->name = nullptr;
 		}
@@ -64,11 +64,11 @@ namespace quest
 			return 0;
 		}
 
-		CQuestManager & q = CQuestManager::instance();
+		quest_manager & q = quest_manager::instance();
 
-		if (CHARACTER_MANAGER::instance().FindByPID(info->player_id))
+		if (character_manager::instance().find_by_pid(info->player_id))
 		{
-			if (!CQuestManager::instance().Timer(info->player_id, info->npc_id))
+			if (!quest_manager::instance().timer(info->player_id, info->npc_id))
 				return (metin2::config::server().passes_per_sec / 2 + 1);
 
 			if (0 == info->time_cycle)	// Terminate if not looping.
@@ -77,10 +77,10 @@ namespace quest
 		else
 		{
 END_OF_TIMER_EVENT:
-			PC * pPC = q.GetPC(info->player_id);
+			pc * pPC = q.get_pc(info->player_id);
 
 			if (pPC)
-				pPC->RemoveTimerNotCancel(info->name);
+				pPC->remove_timer_not_cancel(info->name);
 			else
 				metin2::log::error("quest::PC pointer null. player_id: {:d}", info->player_id);
 
@@ -92,13 +92,13 @@ END_OF_TIMER_EVENT:
 		return info->time_cycle;
 	}
 
-	LPEVENT quest_create_server_timer_event(const char * name, double when, unsigned int timernpc, bool loop, unsigned int arg)
+	event_ptr quest_create_server_timer_event(const char * name, double when, unsigned int timernpc, bool loop, unsigned int arg)
 	{
 		const int nameCapacity = strlen(name) + 1;
 
-		int32_t ltime_cycle = (int32_t) (rint(PASSES_PER_SEC(when)));
+		int32_t ltime_cycle = (int32_t) (rint(passes_per_sec(when)));
 
-		quest_server_event_info* info = AllocEventInfo<quest_server_event_info>();
+		quest_server_event_info* info = alloc_event_info<quest_server_event_info>();
 
 		info->npc_id = timernpc;
 		info->time_cycle = loop ? ltime_cycle : 0;
@@ -111,13 +111,13 @@ END_OF_TIMER_EVENT:
 		return event_create(quest_server_timer_event, info, ltime_cycle);
 	}
 
-	LPEVENT quest_create_timer_event(const char * name, unsigned int player_id, double when, unsigned int npc_id, bool loop)
+	event_ptr quest_create_timer_event(const char * name, unsigned int player_id, double when, unsigned int npc_id, bool loop)
 	{
 		const int nameCapacity = strlen(name) + 1;
 
-		int32_t ltime_cycle = (int) (rint(PASSES_PER_SEC(when)));
+		int32_t ltime_cycle = (int) (rint(passes_per_sec(when)));
 
-		quest_event_info* info = AllocEventInfo<quest_event_info>();
+		quest_event_info* info = alloc_event_info<quest_event_info>();
 
 		info->player_id		= player_id;
 		info->npc_id		= npc_id;

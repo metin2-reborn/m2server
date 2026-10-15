@@ -15,8 +15,8 @@ namespace xmas
 		MOB_XMAS_FIRWORK_SELLER_VNUM = 9004,
 	};
 
-	void ProcessEventFlag(const std::string& name, int prev_value, int value);
-	void SpawnSanta(int32_t lMapIndex, int iTimeGapSec);
-	void SpawnEventHelper(bool spawn);
+	void process_event_flag(const std::string& name, int prev_value, int value);
+	void spawn_santa(int32_t lMapIndex, int iTimeGapSec);
+	void spawn_event_helper(bool spawn);
 }
 }

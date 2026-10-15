@@ -12,49 +12,49 @@
 
 namespace metin2::game::inline social {
 
-class MessengerManager : public singleton<MessengerManager>
+class messenger_manager : public singleton<messenger_manager>
 {
 	public:
-		typedef std::string keyT;
-		typedef const std::string & keyA;
+		typedef std::string key_t;
+		typedef const std::string & key_a;
 
-		MessengerManager();
-		~MessengerManager() override;
+		messenger_manager();
+		~messenger_manager() override;
 
 	public:
-		void	P2PLogin(keyA account);
-		void	P2PLogout(keyA account);
+		void	p2_p_login(key_a account);
+		void	p2_p_logout(key_a account);
 
-		void	Login(keyA account);
-		void	Logout(keyA account);
+		void	login(key_a account);
+		void	logout(key_a account);
 
-		void	RequestToAdd(CHARACTER * ch, CHARACTER * target);
-		bool	AuthToAdd(keyA account, keyA companion, bool bDeny);
+		void	request_to_add(character * ch, character * target);
+		bool	auth_to_add(key_a account, key_a companion, bool bDeny);
 
-		void	__AddToList(keyA account, keyA companion);	// Method that actually modifies m_Relation, m_InverseRelation
-		void	AddToList(keyA account, keyA companion);
+		void	apply_add_to_list(key_a account, key_a companion);	// Method that actually modifies m_Relation, m_InverseRelation
+		void	add_to_list(key_a account, key_a companion);
 
-		void	__RemoveFromList(keyA account, keyA companion); // Method that actually modifies m_Relation, m_InverseRelation
-		void	RemoveFromList(keyA account, keyA companion);	
+		void	apply_remove_from_list(key_a account, key_a companion); // Method that actually modifies m_Relation, m_InverseRelation
+		void	remove_from_list(key_a account, key_a companion);	
 
-		void	RemoveAllList(keyA account);
+		void	remove_all_list(key_a account);
 
-		void	Initialize();
+		void	initialize();
 		
-		bool	IsInList(MessengerManager::keyA account, MessengerManager::keyA companion);
+		bool	is_in_list(messenger_manager::key_a account, messenger_manager::key_a companion);
 
 	private:
-		void	SendList(keyA account);
-		void	SendLogin(keyA account, keyA companion);
-		void	SendLogout(keyA account, keyA companion);
+		void	send_list(key_a account);
+		void	send_login(key_a account, key_a companion);
+		void	send_logout(key_a account, key_a companion);
 
-		void	LoadList(SQLMsg * pmsg);
+		void	load_list(ql_msg * pmsg);
 
-		void	Destroy();
+		void	destroy();
 
-		std::set<keyT>			m_set_loginAccount;
-		std::map<keyT, std::set<keyT> >	m_Relation;
-		std::map<keyT, std::set<keyT> >	m_InverseRelation;
-		std::set<uint32_t>			m_set_requestToAdd;
+		std::set<key_t>			set_login_account_;
+		std::map<key_t, std::set<key_t> >	relation_;
+		std::map<key_t, std::set<key_t> >	inverse_relation_;
+		std::set<uint32_t>			set_request_to_add_;
 };
 }

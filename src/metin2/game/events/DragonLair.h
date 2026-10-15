@@ -9,31 +9,31 @@
 
 namespace metin2::game::inline events {
 
-class CDragonLair
+class dragon_lair
 {
 	public:
-		explicit CDragonLair (uint32_t dwGuildID);
-		virtual ~CDragonLair ();
+		explicit dragon_lair (uint32_t dwGuildID);
+		virtual ~dragon_lair ();
 
-		uint32_t GetEstimatedTime () const;
+		uint32_t estimated_time () const;
 
-		void OnDragonDead (CHARACTER * pDragon);
+		void on_dragon_dead (character * pDragon);
 
 	private:
-		uint32_t StartTime_;
-		uint32_t GuildID_;
+		uint32_t start_time_;
+		uint32_t guild_id_;
 };
 
-class CDragonLairManager : public singleton<CDragonLairManager>
+class dragon_lair_manager : public singleton<dragon_lair_manager>
 {
 	public:
-		CDragonLairManager ();
-		~CDragonLairManager () override;
+		dragon_lair_manager ();
+		~dragon_lair_manager () override;
 
-		bool Start (int32_t MapIndexFrom, int32_t BaseMapIndex, uint32_t GuildID);
-		void OnDragonDead (CHARACTER * pDragon, uint32_t KillerGuildID);
+		bool start (int32_t MapIndexFrom, int32_t BaseMapIndex, uint32_t GuildID);
+		void on_dragon_dead (character * pDragon, uint32_t KillerGuildID);
 
 	private:
-		std::unordered_map<uint32_t, CDragonLair*> LairMap_;
+		std::unordered_map<uint32_t, dragon_lair*> lair_map_;
 };
 }

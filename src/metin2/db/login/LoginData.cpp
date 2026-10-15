@@ -8,81 +8,81 @@
 
 namespace metin2::db::inline login {
 
-CLoginData::CLoginData()
+login_data::login_data()
 {
-	m_dwKey = 0;
-	memset(m_adwClientKey, 0, sizeof(m_adwClientKey));
-	m_dwConnectedPeerHandle = 0;
-	m_bPlay = false;
-	m_bDeleted = false;
-	m_dwLastPlayerID = 0;
+	key_ = 0;
+	memset(client_key_, 0, sizeof(client_key_));
+	connected_peer_handle_ = 0;
+	play_ = false;
+	deleted_ = false;
+	last_player_id_ = 0;
 
-	memset(&m_data, 0, sizeof(TAccountTable));
+	memset(&data_, 0, sizeof(account_table));
 }
 
-TAccountTable & CLoginData::GetAccountRef()
+account_table & login_data::account_ref()
 {
-	return m_data;
+	return data_;
 }
 
-void CLoginData::SetClientKey(const uint32_t * c_pdwClientKey)
+void login_data::set_client_key(const uint32_t * c_pdwClientKey)
 {
-	std::memcpy(&m_adwClientKey, c_pdwClientKey, sizeof(uint32_t) * 4);
+	std::memcpy(&client_key_, c_pdwClientKey, sizeof(uint32_t) * 4);
 }
 
-const uint32_t * CLoginData::GetClientKey()
+const uint32_t * login_data::client_key()
 {
-	return &m_adwClientKey[0];
+	return &client_key_[0];
 }
 
-void CLoginData::SetKey(uint32_t dwKey)
+void login_data::set_key(uint32_t dwKey)
 {
-	m_dwKey = dwKey;
+	key_ = dwKey;
 }
 
-uint32_t CLoginData::GetKey()
+uint32_t login_data::key()
 {
-	return m_dwKey;
+	return key_;
 }
 
-void CLoginData::SetConnectedPeerHandle(uint32_t dwHandle)
+void login_data::set_connected_peer_handle(uint32_t dwHandle)
 {
-	m_dwConnectedPeerHandle = dwHandle;
+	connected_peer_handle_ = dwHandle;
 }
 
-uint32_t CLoginData::GetConnectedPeerHandle()
+uint32_t login_data::connected_peer_handle()
 {
-	return m_dwConnectedPeerHandle;
+	return connected_peer_handle_;
 }
 
-void CLoginData::SetPlay(bool bOn)
+void login_data::set_play(bool bOn)
 {
-	metin2::log::info( "SetPlay {} {:d} {}", bOn ? "on" : "off", GetKey(), m_data.login);
-	m_bPlay = bOn;
+	metin2::log::info( "SetPlay {} {:d} {}", bOn ? "on" : "off", key(), data_.login);
+	play_ = bOn;
 }
 
-bool CLoginData::IsPlay()
+bool login_data::is_play()
 {
-	return m_bPlay;
+	return play_;
 }
 
-void CLoginData::SetDeleted(bool bSet)
+void login_data::set_deleted(bool bSet)
 {
-	m_bDeleted = bSet;
+	deleted_ = bSet;
 }
 
-bool CLoginData::IsDeleted()
+bool login_data::is_deleted()
 {
-	return m_bDeleted;
+	return deleted_;
 }
 
-void CLoginData::SetPremium(int * paiPremiumTimes)
+void login_data::set_premium(int * paiPremiumTimes)
 {
-	std::memcpy(m_aiPremiumTimes, paiPremiumTimes, sizeof(m_aiPremiumTimes));
+	std::memcpy(premium_times_, paiPremiumTimes, sizeof(premium_times_));
 }
 
-int * CLoginData::GetPremiumPtr()
+int * login_data::premium_ptr()
 {
-	return &m_aiPremiumTimes[0];
+	return &premium_times_[0];
 }
 }

@@ -14,14 +14,14 @@ namespace metin2::db::inline tables {
 namespace
 {
     /// Parser state enum
-    enum ParseState
+    enum parse_state
     {
         STATE_NORMAL = 0, ///< Normal state
         STATE_QUOTE       ///< State after a quote
     };
 
     /// Returns the string with leading and trailing whitespace removed.
-    std::string Trim(std::string str)
+    std::string trim(std::string str)
     {
         str = str.erase(str.find_last_not_of(" \t\r\n") + 1);
         str = str.erase(0, str.find_first_not_of(" \t\r\n"));
@@ -41,17 +41,17 @@ namespace
 /// \param quote Character used as the quote. Defaults to '"'.
 /// \return bool true if loaded successfully, false otherwise
 ////////////////////////////////////////////////////////////////////////////////
-bool cCsvFile::Load(const char* fileName, const char seperator, const char quote)
+bool c_csv_file::load(const char* fileName, const char seperator, const char quote)
 {
     assert(seperator != quote);
 
     std::ifstream file(fileName, std::ios::in);
     if (!file) return false;
 
-    Destroy(); // Delete existing data
+    destroy(); // Delete existing data
 
-    std::unique_ptr<cCsvRow> row;
-    ParseState state = STATE_NORMAL;
+    std::unique_ptr<c_csv_row> row;
+    parse_state state = STATE_NORMAL;
     std::string token = "";
     char buf[2048+1] = {0,};
 
@@ -60,7 +60,7 @@ bool cCsvFile::Load(const char* fileName, const char seperator, const char quote
         file.getline(buf, 2048);
         buf[sizeof(buf)-1] = 0;
 
-        std::string line(Trim(buf));
+        std::string line(trim(buf));
         if (line.empty() || (state == STATE_NORMAL && line[0] == '#')) continue;
         
         std::string text  = std::string(line) + "  "; // Appended for the parser lookahead.
@@ -104,7 +104,7 @@ bool cCsvFile::Load(const char* fileName, const char seperator, const char quote
             else if (state == STATE_NORMAL)
             {
                 if (row == nullptr)
-                    row = std::make_unique<cCsvRow>();
+                    row = std::make_unique<c_csv_row>();
 
                 // a ',' character marks the end of a cell.
                 // Push the token into the cell list and reset the token.
@@ -134,7 +134,7 @@ bool cCsvFile::Load(const char* fileName, const char seperator, const char quote
         {
             assert(row != nullptr);
             row->push_back(token.substr(0, token.size()-2));
-            m_Rows.push_back(std::move(row));
+            rows_.push_back(std::move(row));
             token.clear();
         }
         else
@@ -149,9 +149,9 @@ bool cCsvFile::Load(const char* fileName, const char seperator, const char quote
 ////////////////////////////////////////////////////////////////////////////////
 /// \brief Deletes all data from memory.
 ////////////////////////////////////////////////////////////////////////////////
-void cCsvFile::Destroy()
+void c_csv_file::destroy()
 {
-    m_Rows.clear();
+    rows_.clear();
 }
 
 
@@ -160,24 +160,24 @@ void cCsvFile::Destroy()
 /// \param index Index
 /// \return const cCsvRow* The row
 ////////////////////////////////////////////////////////////////////////////////
-const cCsvRow* cCsvFile::operator [] (size_t index) const
+const c_csv_row* c_csv_file::operator [] (size_t index) const
 {
-    assert(index < m_Rows.size());
-    return m_Rows[index].get();
+    assert(index < rows_.size());
+    return rows_[index].get();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 /// \brief Constructor
 ////////////////////////////////////////////////////////////////////////////////
-cCsvTable::cCsvTable()
-: m_CurRow(-1)
+c_csv_table::c_csv_table()
+: cur_row_(-1)
 {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 /// \brief Destructor
 ////////////////////////////////////////////////////////////////////////////////
-cCsvTable::~cCsvTable()
+c_csv_table::~c_csv_table()
 {
 }
 
@@ -188,10 +188,10 @@ cCsvTable::~cCsvTable()
 /// \param quote Character used as the quote. Defaults to '"'.
 /// \return bool true if loaded successfully, false otherwise
 ////////////////////////////////////////////////////////////////////////////////
-bool cCsvTable::Load(const char* fileName, const char seperator, const char quote)
+bool c_csv_table::load(const char* fileName, const char seperator, const char quote)
 {
-    Destroy();
-    return m_File.Load(fileName, seperator, quote);
+    destroy();
+    return file.load(fileName, seperator, quote);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -199,10 +199,10 @@ bool cCsvTable::Load(const char* fileName, const char seperator, const char quot
 /// \return bool Returns true if it advanced to the next row, and false if there
 /// are no more rows to advance to.
 ////////////////////////////////////////////////////////////////////////////////
-bool cCsvTable::Next()
+bool c_csv_table::next()
 {
     // This overflows after about 2 billion calls... should be fine?
-    return ++m_CurRow < (int)m_File.GetRowCount() ? true : false;
+    return ++cur_row_ < (int)file.row_count() ? true : false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -210,21 +210,21 @@ bool cCsvTable::Next()
 /// \param index Cell index
 /// \return const char* Cell value
 ////////////////////////////////////////////////////////////////////////////////
-const char* cCsvTable::AsStringByIndex(size_t index) const
+const char* c_csv_table::as_string_by_index(size_t index) const
 {
-    const cCsvRow* const row = CurRow();
+    const c_csv_row* const row = cur_row();
     assert(row);
     assert(index < row->size());
-    return row->AsString(index);
+    return row->as_string(index);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 /// \brief Deletes all data.
 ////////////////////////////////////////////////////////////////////////////////
-void cCsvTable::Destroy()
+void c_csv_table::destroy()
 {
-    m_File.Destroy();
-    m_CurRow = -1;
+    file.destroy();
+    cur_row_ = -1;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -232,19 +232,19 @@ void cCsvTable::Destroy()
 /// \return const cCsvRow* If an accessible current row exists, returns a pointer
 /// to that row; if there are no more accessible rows, returns NULL
 ////////////////////////////////////////////////////////////////////////////////
-const cCsvRow* cCsvTable::CurRow() const
+const c_csv_row* c_csv_table::cur_row() const
 {
-    if (m_CurRow < 0)
+    if (cur_row_ < 0)
     {
         assert(false && "call Next() first!");
         return nullptr;
     }
-    else if (m_CurRow >= (int)m_File.GetRowCount())
+    else if (cur_row_ >= (int)file.row_count())
     {
         assert(false && "no more rows!");
         return nullptr;
     }
 
-    return m_File[m_CurRow];
+    return file[cur_row_];
 }
 }

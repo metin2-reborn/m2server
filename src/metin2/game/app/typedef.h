@@ -5,31 +5,31 @@
 #include <vector>
 
 namespace metin2::game::inline characters {
-    class CHARACTER;
+    class character;
 }
 namespace metin2::game::inline guilds {
     namespace building {
-        class CObject;
+        class object;
     }
 }
 namespace metin2::game::inline items {
-    class CItem;
+    class item;
 }
 namespace metin2::game::inline parties {
-    class CParty;
+    class party;
 }
 namespace metin2::game::inline protocol {
-    class CLIENT_DESC;
-    class DESC;
-    class DESC_P2P;
+    class client_desc;
+    class desc;
+    class desc_p2_p;
 }
 namespace metin2::game::inline world {
-    class CDungeon;
-    class CEntity;
-    class SECTREE;
-    class SECTREE_MAP;
-    struct REGEN;
-    struct REGEN_EXCEPTION;
+    class dungeon;
+    class entity;
+    class sectree;
+    class sectree_map;
+    struct regen;
+    struct regen_exception;
 }
 
 namespace metin2::game::inline app {
@@ -37,25 +37,25 @@ namespace metin2::game::inline app {
 
 
 
-typedef std::vector<CHARACTER *> CHARACTER_VECTOR;
-typedef std::list<CHARACTER *> CHARACTER_LIST;
-typedef std::unordered_set<CHARACTER *> CHARACTER_SET;
+typedef std::vector<character *> character_vector;
+typedef std::list<character *> character_list;
+typedef std::unordered_set<character *> character_set;
 
 
 
-typedef std::unordered_set<CEntity *> ENTITY_SET;
+typedef std::unordered_set<entity *> entity_set;
 
-using SECTREE_LIST = std::list<SECTREE *>;
-
-
+using sectree_list = std::list<sectree *>;
 
 
 
-struct PIXEL_POSITION {
+
+
+struct pixel_position {
 	int32_t x, y, z;
 };
 
-enum EEntityTypes
+enum entity_types
 {
 	ENTITY_CHARACTER,
 	ENTITY_ITEM,

@@ -14,34 +14,34 @@ namespace metin2::game::inline app {
 void config_init();
 
 // Pulses in sec seconds.
-inline auto PASSES_PER_SEC(auto sec) { return sec * metin2::config::server().passes_per_sec; }
+inline auto passes_per_sec(auto sec) { return sec * metin2::config::server().passes_per_sec; }
 
 // Address the listeners bind to: server.bind_ip, or detected.
-extern char g_szPublicIP[16];
+extern char public_ip[16];
 // Address told to the clients instead of g_szPublicIP (server.proxy_ip, resolved).
-extern std::string g_stProxyIP;
+extern std::string proxy_ip;
 
 // New clients are refused (game.refuse_clients at start, set at shutdown).
-extern bool g_bNoMoreClient;
+extern bool no_more_client;
 
 // Thresholds of the user count shown as full/busy; state_user_count may change them at run time.
-extern int g_iFullUserCount;
-extern int g_iBusyUserCount;
-void LoadStateUserCount();
+extern int full_user_count;
+extern int busy_user_count;
+void load_state_user_count();
 
 // The locale's quest directories plus game.quest.
-extern std::string g_stQuestDir;
-extern std::set<std::string> g_setQuestObjectDir;
+extern std::string quest_dir;
+extern std::set<std::string> quest_object_dir;
 
 
-extern std::string g_stClientVersion;
-extern bool g_bCheckClientVersion;
-void CheckClientVersion();
+extern std::string client_version;
+extern bool check_client_version_enabled;
+void check_client_version();
 
 // View = VIEW_RANGE + VIEW_BONUS_RANGE: a 500 cm margin, since an exact match with the client's range causes problems.
 inline constexpr int VIEW_BONUS_RANGE = 500;
 
-extern uint32_t g_GoldDropTimeLimitValue;
+extern uint32_t gold_drop_time_limit_value;
 
 bool map_allow_find(int index);
 void map_allow_copy(int32_t * pl, int size);

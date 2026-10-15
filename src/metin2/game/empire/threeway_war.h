@@ -13,72 +13,72 @@
 
 namespace metin2::game::inline empire {
 
-struct ForkedSungziMapInfo
+struct forked_sungzi_map_info
 {
-	int m_iForkedSung;
-	int m_iForkedSungziStartPosition[3][2];
-	std::string m_stMapName;
-	int m_iBossMobVnum;
+	int forked_sung;
+	int forked_sungzi_start_position[3][2];
+	std::string map_name;
+	int boss_mob_vnum;
 };
 
-struct ForkedPassMapInfo
+struct forked_pass_map_info
 {
-	int m_iForkedPass[3];
-	int m_iForkedPassStartPosition[3][2];
-	std::string m_stMapName[3];
+	int forked_pass[3];
+	int forked_pass_start_position[3][2];
+	std::string map_name[3];
 };
 
-class CThreeWayWar : public singleton<CThreeWayWar>
+class three_way_war : public singleton<three_way_war>
 {
 	public:
-		CThreeWayWar ();
-		~CThreeWayWar () override;
+		three_way_war ();
+		~three_way_war () override;
 
-		void Initialize ();
-		bool LoadSetting (const char* szFileName);
+		void initialize ();
+		bool load_setting (const char* szFileName);
 
-		int GetKillScore (uint8_t empire) const;
-		void SetKillScore (uint8_t empire, int count);
+		int kill_score (uint8_t empire) const;
+		void set_kill_score (uint8_t empire, int count);
 
-		void SetReviveTokenForPlayer (uint32_t PlayerID, int count);
-		int GetReviveTokenForPlayer (uint32_t PlayerID);
-		void DecreaseReviveTokenForPlayer (uint32_t PlayerID);
+		void set_revive_token_for_player (uint32_t PlayerID, int count);
+		int revive_token_for_player (uint32_t PlayerID);
+		void decrease_revive_token_for_player (uint32_t PlayerID);
 
-		const ForkedPassMapInfo& GetEventPassMapInfo () const;
-		const ForkedSungziMapInfo& GetEventSungZiMapInfo () const;
+		const forked_pass_map_info& event_pass_map_info () const;
+		const forked_sungzi_map_info& event_sung_zi_map_info () const;
 
-		bool IsThreeWayWarMapIndex (int iMapIndex) const;
-		bool IsSungZiMapIndex (int iMapIndex) const;
+		bool is_three_way_war_map_index (int iMapIndex) const;
+		bool is_sung_zi_map_index (int iMapIndex) const;
 
-		void RandomEventMapSet ();
+		void random_event_map_set ();
 
-		void RegisterUser (uint32_t PlayerID);
-		bool IsRegisteredUser (uint32_t PlayerID) const;
+		void register_user (uint32_t PlayerID);
+		bool is_registered_user (uint32_t PlayerID) const;
 
-		void onDead (CHARACTER * pChar, CHARACTER * pKiller);
+		void on_dead (character * pChar, character * pKiller);
 
-		void SetRegenFlag (int flag) { RegenFlag_ = flag; }
-		int GetRegenFlag () const { return RegenFlag_; }
+		void set_regen_flag (int flag) { regen_flag_ = flag; }
+		int regen_flag () const { return regen_flag_; }
 
-		void RemoveAllMonstersInThreeWay () const;
+		void remove_all_monsters_in_three_way () const;
 
 	private:
-		int KillScore_[3];
-		int RegenFlag_;
+		int kill_score_[3];
+		int regen_flag_;
 
-		std::set<int>	MapIndexSet_;
-		std::vector<ForkedPassMapInfo>	PassInfoMap_;
-		std::vector<ForkedSungziMapInfo>	SungZiInfoMap_;
+		std::set<int>	map_index_set_;
+		std::vector<forked_pass_map_info>	pass_info_map_;
+		std::vector<forked_sungzi_map_info>	sung_zi_info_map_;
 
-		std::unordered_map<uint32_t, uint32_t>	RegisterUserMap_;
-		std::unordered_map<uint32_t, int>	ReviveTokenMap_;
+		std::unordered_map<uint32_t, uint32_t>	register_user_map_;
+		std::unordered_map<uint32_t, int>	revive_token_map_;
 };
 
-const char* GetSungziMapPath();
-const char* GetPassMapPath( uint8_t bEmpire );
-int GetPassMapIndex( uint8_t bEmpire );
-int GetSungziMapIndex();
+const char* get_sungzi_map_path();
+const char* get_pass_map_path( uint8_t bEmpire );
+int get_pass_map_index( uint8_t bEmpire );
+int get_sungzi_map_index();
 
-int GetSungziStartX( uint8_t bEmpire );
-int GetSungziStartY( uint8_t bEmpire );
+int get_sungzi_start_x( uint8_t bEmpire );
+int get_sungzi_start_y( uint8_t bEmpire );
 }

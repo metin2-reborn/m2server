@@ -14,127 +14,127 @@ namespace metin2::game {
 namespace quest
 {
 	int quest_setstate(lua_State* L);
-	extern void RegisterPCFunctionTable();
-	extern void RegisterNPCFunctionTable();
-	extern void RegisterTargetFunctionTable();
-	extern void RegisterAffectFunctionTable();
-	extern void RegisterBuildingFunctionTable();
-	extern void RegisterMarriageFunctionTable();
-	extern void RegisterITEMFunctionTable();
-	extern void RegisterDungeonFunctionTable();
-	extern void RegisterQuestFunctionTable();
-	extern void RegisterPartyFunctionTable();
-	extern void RegisterHorseFunctionTable();
-	extern void RegisterPetFunctionTable();
-	extern void RegisterGuildFunctionTable();
-	extern void RegisterGameFunctionTable();
-	extern void RegisterArenaFunctionTable();
-	extern void RegisterGlobalFunctionTable(lua_State* L);
-	extern void RegisterForkedFunctionTable();
-	extern void RegisterMonarchFunctionTable(); 
-	extern void RegisterOXEventFunctionTable();
-	extern void RegisterMgmtFunctionTable();
-	extern void RegisterBattleArenaFunctionTable();
-	extern void RegisterDanceEventFunctionTable();
-	extern void RegisterDragonLairFunctionTable();
-	extern void RegisterSpeedServerFunctionTable();
-	extern void RegisterDragonSoulFunctionTable();
+	extern void register_pc_function_table();
+	extern void register_npc_function_table();
+	extern void register_target_function_table();
+	extern void register_affect_function_table();
+	extern void register_building_function_table();
+	extern void register_marriage_function_table();
+	extern void register_item_function_table();
+	extern void register_dungeon_function_table();
+	extern void register_quest_function_table();
+	extern void register_party_function_table();
+	extern void register_horse_function_table();
+	extern void register_pet_function_table();
+	extern void register_guild_function_table();
+	extern void register_game_function_table();
+	extern void register_arena_function_table();
+	extern void register_global_function_table(lua_State* L);
+	extern void register_forked_function_table();
+	extern void register_monarch_function_table(); 
+	extern void register_ox_event_function_table();
+	extern void register_mgmt_function_table();
+	extern void register_battle_arena_function_table();
+	extern void register_dance_event_function_table();
+	extern void register_dragon_lair_function_table();
+	extern void register_speed_server_function_table();
+	extern void register_dragon_soul_function_table();
 
 	extern void combine_lua_string(lua_State* L, std::ostringstream &s);
 	
-	struct FSetWarpLocation
+	struct f_set_warp_location
 	{
 		int32_t map_index;
 		int32_t x;
 		int32_t y;
 
-		FSetWarpLocation (int32_t _map_index, int32_t _x, int32_t _y) :
+		f_set_warp_location (int32_t _map_index, int32_t _x, int32_t _y) :
 			map_index (_map_index), x (_x), y (_y)
 		{}
-		void operator () (CHARACTER * ch);
+		void operator () (character * ch);
 	};
 
-	struct FSetQuestFlag
+	struct f_set_quest_flag
 	{
 		std::string flagname;
 		int value;
 
-		void operator () (CHARACTER * ch);
+		void operator () (character * ch);
 	};
 
-	struct FPartyCheckFlagLt
+	struct f_party_check_flag_lt
 	{
 		std::string flagname;
 		int value;
 
-		bool operator () (CHARACTER * ch);
+		bool operator () (character * ch);
 	};
 
-	struct FPartyChat
+	struct f_party_chat
 	{
-		int iChatType;
+		int chat_type;
 		const char* str;
 
-		FPartyChat(int ChatType, const char* str);
-		void operator() (CHARACTER * ch);
+		f_party_chat(int ChatType, const char* str);
+		void operator() (character * ch);
 	};
 
-	struct FPartyClearReady
+	struct f_party_clear_ready
 	{
-		void operator() (CHARACTER * ch);
+		void operator() (character * ch);
 	};
 
-	struct FSendPacket
+	struct f_send_packet
 	{
-		TEMP_BUFFER buf;
+		temp_buffer buf;
 
-		void operator() (CEntity * ent);
+		void operator() (entity * ent);
 	};
 
-	struct FSendPacketToEmpire
+	struct f_send_packet_to_empire
 	{
-		TEMP_BUFFER buf;
-		uint8_t bEmpire;
+		temp_buffer buf;
+		uint8_t empire;
 
-		void operator() (CEntity * ent);
+		void operator() (entity * ent);
 	};
 
-	struct FWarpEmpire
+	struct f_warp_empire
 	{
-		uint8_t m_bEmpire;
-		int32_t m_lMapIndexTo;
-		int32_t m_x;
-		int32_t m_y;
+		uint8_t empire;
+		int32_t map_index_to;
+		int32_t x;
+		int32_t y;
 
-		void operator() (CEntity * ent);
+		void operator() (entity * ent);
 	};
 
 	EVENTINFO(warp_all_to_map_my_empire_event_info)
 	{
-		uint8_t 	m_bEmpire;
-		int32_t	m_lMapIndexFrom;
-		int32_t 	m_lMapIndexTo;
-		int32_t 	m_x;
-		int32_t	m_y;
+		uint8_t 	empire;
+		int32_t	map_index_from;
+		int32_t 	map_index_to;
+		int32_t 	x;
+		int32_t	y;
 
 		warp_all_to_map_my_empire_event_info() 
-		: m_bEmpire( 0 )
-		, m_lMapIndexFrom( 0 )
-		, m_lMapIndexTo( 0 )
-		, m_x( 0 )
-		, m_y( 0 )
+		: empire( 0 )
+		, map_index_from( 0 )
+		, map_index_to( 0 )
+		, x( 0 )
+		, y( 0 )
 		{
 		}
 	};
 
 	EVENTFUNC(warp_all_to_map_my_empire_event);
 
-	struct FBuildLuaGuildWarList
+	struct f_build_lua_guild_war_list
 	{
-		lua_State * L;
-		int m_count;
+		lua_State * l;
+		int count;
 
-		FBuildLuaGuildWarList(lua_State * L);
+		f_build_lua_guild_war_list(lua_State * L);
 		void operator() (uint32_t g1, uint32_t g2);
 	};
 }

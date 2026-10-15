@@ -39,28 +39,28 @@
 
 namespace metin2::game::inline app {
 
-char		g_szPublicIP[16] = "0";
-std::string	g_stProxyIP;
-bool		g_bNoMoreClient = false;
-int			g_iFullUserCount = 1200;
-int			g_iBusyUserCount = 650;
+char		public_ip[16] = "0";
+std::string	proxy_ip;
+bool		no_more_client = false;
+int			full_user_count = 1200;
+int			busy_user_count = 650;
 
-bool		g_bCheckClientVersion = true;
-std::string	g_stClientVersion = "1215955205";
+bool		check_client_version_enabled = true;
+std::string	client_version = "1215955205";
 
-uint32_t	g_GoldDropTimeLimitValue = 0;
+uint32_t	gold_drop_time_limit_value = 0;
 
-std::string g_stQuestDir = "./quest";
-std::set<std::string> g_setQuestObjectDir;
+std::string quest_dir = "./quest";
+std::set<std::string> quest_object_dir;
 
-static std::set<int> s_set_map_allows;
+static std::set<int> set_map_allows;
 
 bool map_allow_find(int index)
 {
 	if (metin2::config::is_auth())
 		return false;
 
-	if (s_set_map_allows.find(index) == s_set_map_allows.end())
+	if (set_map_allows.find(index) == set_map_allows.end())
 		return false;
 
 	return true;
@@ -70,7 +70,7 @@ void map_allow_log()
 {
 	std::set<int>::iterator i;
 
-	for (i = s_set_map_allows.begin(); i != s_set_map_allows.end(); ++i)
+	for (i = set_map_allows.begin(); i != set_map_allows.end(); ++i)
 		metin2::log::info( "MAP_ALLOW: {:d}", *i);
 }
 
@@ -78,21 +78,21 @@ void map_allow_log()
 void map_allow_copy(int32_t * pl, int size)
 {
 	int iCount = 0;
-	std::set<int>::iterator it = s_set_map_allows.begin();
+	std::set<int>::iterator it = set_map_allows.begin();
 
-	if (s_set_map_allows.size() > static_cast<size_t>(size))
+	if (set_map_allows.size() > static_cast<size_t>(size))
 	{
 		metin2::log::error("too many maps for the internal routing capacity ({:d})", size);
 		exit(1);
 	}
-	while (it != s_set_map_allows.end() && iCount < size)
+	while (it != set_map_allows.end() && iCount < size)
 	{
 		*(pl++) = *(it++);
 		++iCount;
 	}
 }
 
-static bool GetIPInfo()
+static bool get_ip_info()
 {
 	char szInternalIP[16] = "0";
 	struct ifaddrs* ifaddrp = nullptr;
@@ -120,15 +120,15 @@ static bool GetIPInfo()
 		{
 			strlcpy(szInternalIP, netip, sizeof(szInternalIP));
 		}
-		else if (g_szPublicIP[0] == '0')
+		else if (public_ip[0] == '0')
 		{
-			strlcpy(g_szPublicIP, netip, sizeof(g_szPublicIP));
+			strlcpy(public_ip, netip, sizeof(public_ip));
 		}
 	}
 
 	freeifaddrs( ifaddrp );
 
-	if (g_szPublicIP[0] != '0')
+	if (public_ip[0] != '0')
 	{
 		return true;
 	}
@@ -140,7 +140,7 @@ static bool GetIPInfo()
 		}
 		else
 		{
-			strlcpy(g_szPublicIP, szInternalIP, sizeof(g_szPublicIP));
+			strlcpy(public_ip, szInternalIP, sizeof(public_ip));
 			return true;
 		}
 	}
@@ -153,8 +153,8 @@ void config_init()
 	const metin2::config::database_settings & db = metin2::config::database();
 
 	if (!server.bind_ip.empty())
-		strlcpy(g_szPublicIP, server.bind_ip.c_str(), sizeof(g_szPublicIP));
-	else if (!GetIPInfo())
+		strlcpy(public_ip, server.bind_ip.c_str(), sizeof(public_ip));
+	else if (!get_ip_info())
 	{
 		metin2::log::error("cannot detect the address to bind to; set server.bind_ip");
 		exit(1);
@@ -164,11 +164,11 @@ void config_init()
 	{
 		in_addr address{};
 		if (inet_pton(AF_INET, server.proxy_ip.c_str(), &address) == 1)
-			g_stProxyIP = server.proxy_ip;
+			proxy_ip = server.proxy_ip;
 		else if (const hostent * host = gethostbyname(server.proxy_ip.c_str()); host && host->h_addr_list[0])
 		{
-			g_stProxyIP = inet_ntoa(*reinterpret_cast<const in_addr *>(host->h_addr_list[0]));
-			metin2::log::info("server.proxy_ip {} resolves to {}", server.proxy_ip, g_stProxyIP);
+			proxy_ip = inet_ntoa(*reinterpret_cast<const in_addr *>(host->h_addr_list[0]));
+			metin2::log::info("server.proxy_ip {} resolves to {}", server.proxy_ip, proxy_ip);
 		}
 		else
 		{
@@ -177,10 +177,10 @@ void config_init()
 		}
 	}
 
-	g_bNoMoreClient = metin2::config::game().refuse_clients;
+	no_more_client = metin2::config::game().refuse_clients;
 
 	for (long index : metin2::config::game().map_allow)
-		s_set_map_allows.insert(static_cast<int>(index));
+		set_map_allows.insert(static_cast<int>(index));
 
 	if (metin2::config::game().max_level < 1 || metin2::config::game().max_level > PLAYER_MAX_LEVEL_CONST)
 	{
@@ -189,9 +189,9 @@ void config_init()
 	}
 
 	// The Common DB holds the locale info, so connect to it first.
-	AccountDB::instance().Connect(db.host.c_str(), db.port, db.user.c_str(), db.password.c_str(), db.common.c_str());
+	account_db::instance().connect(db.host.c_str(), db.port, db.user.c_str(), db.password.c_str(), db.common.c_str());
 
-	if (false == AccountDB::instance().IsConnected())
+	if (false == account_db::instance().is_connected())
 	{
 		metin2::log::error( "cannot start server while no common sql connected");
 		exit(1);
@@ -205,9 +205,9 @@ void config_init()
 		char szQuery[512];
 		snprintf(szQuery, sizeof(szQuery), "SELECT mKey, mValue FROM locale");
 
-		std::unique_ptr<SQLMsg> pMsg(AccountDB::instance().DirectQuery(szQuery));
+		std::unique_ptr<ql_msg> pMsg(account_db::instance().direct_query(szQuery));
 
-		if (pMsg->Get()->uiNumRows == 0)
+		if (pMsg->get()->num_rows == 0)
 		{
 			metin2::log::error( "COMMON_SQL: DirectQuery failed : {}", szQuery);
 			exit(1);
@@ -215,12 +215,12 @@ void config_init()
 
 		MYSQL_ROW row; 
 
-		while (nullptr != (row = mysql_fetch_row(pMsg->Get()->pSQLResult)))
+		while (nullptr != (row = mysql_fetch_row(pMsg->get()->sql_result)))
 		{
 			// Locale setup
 			if (strcasecmp(row[0], "LOCALE") == 0)
 			{
-				if (LocaleService_Init(row[1]) == false)
+				if (locale_service_init(row[1]) == false)
 				{
 					metin2::log::error( "COMMON_SQL: invalid locale key {}", row[1]);
 					exit(1);
@@ -231,18 +231,18 @@ void config_init()
 
 	// Set the locale info on the COMMON SQL.
 	// Note: g_stLocale is set inside LocaleService_Init().
-	metin2::log::info( "Setting DB to locale {}", g_stLocale.c_str());
+	metin2::log::info( "Setting DB to locale {}", locale.c_str());
 
-	AccountDB::instance().SetLocale(g_stLocale);
+	account_db::instance().set_locale(locale);
 
-	AccountDB::instance().ConnectAsync(db.host.c_str(), db.port, db.user.c_str(), db.password.c_str(), db.common.c_str(), g_stLocale.c_str());
+	account_db::instance().connect_async(db.host.c_str(), db.port, db.user.c_str(), db.password.c_str(), db.common.c_str(), locale.c_str());
 
 	// Connect to Player DB
 	// The auth server reads accounts where the game reads players.
 	const std::string & player_db = metin2::config::is_auth() ? db.account : db.player;
-	DBManager::instance().Connect(db.host.c_str(), db.port, db.user.c_str(), db.password.c_str(), player_db.c_str());
+	db_manager::instance().connect(db.host.c_str(), db.port, db.user.c_str(), db.password.c_str(), player_db.c_str());
 
-	if (!DBManager::instance().IsConnected())
+	if (!db_manager::instance().is_connected())
 	{
 		metin2::log::error( "PlayerSQL.ConnectError");
 		exit(1);
@@ -253,9 +253,9 @@ void config_init()
 	if (!metin2::config::is_auth())
 	{
 		// Connect to Log DB
-		LogManager::instance().Connect(db.host.c_str(), db.port, db.user.c_str(), db.password.c_str(), db.log.c_str());
+		log_manager::instance().connect(db.host.c_str(), db.port, db.user.c_str(), db.password.c_str(), db.log.c_str());
 
-		if (!LogManager::instance().IsConnected())
+		if (!log_manager::instance().is_connected())
 		{
 			metin2::log::error( "LogSQL.ConnectError");
 			exit(1);
@@ -263,7 +263,7 @@ void config_init()
 
 		metin2::log::info( "LogSQL connected");
 
-		LogManager::instance().BootLog(server.hostname.c_str(), server.channel);
+		log_manager::instance().boot_log(server.hostname.c_str(), server.channel);
 	}
 
 	// SKILL_POWER_BY_LEVEL
@@ -272,9 +272,9 @@ void config_init()
 	{
 		char szQuery[256];
 		snprintf(szQuery, sizeof(szQuery), "SELECT mValue FROM locale WHERE mKey='SKILL_POWER_BY_LEVEL'");
-		std::unique_ptr<SQLMsg> pMsg(AccountDB::instance().DirectQuery(szQuery));
+		std::unique_ptr<ql_msg> pMsg(account_db::instance().direct_query(szQuery));
 
-		if (pMsg->Get()->uiNumRows == 0)
+		if (pMsg->get()->num_rows == 0)
 		{
 			metin2::log::error( "[SKILL_PERCENT] Query failed: {}", szQuery);
 			exit(1);
@@ -282,7 +282,7 @@ void config_init()
 
 		MYSQL_ROW row; 
 
-		row = mysql_fetch_row(pMsg->Get()->pSQLResult);
+		row = mysql_fetch_row(pMsg->get()->sql_result);
 
 		const char * p = row[0];
 		int cnt = 0;
@@ -312,16 +312,16 @@ void config_init()
 		for (int job = 0; job < JOB_MAX_NUM * 2; ++job)
 		{
 			snprintf(szQuery, sizeof(szQuery), "SELECT mValue from locale where mKey='SKILL_POWER_BY_LEVEL_TYPE%d' ORDER BY CAST(mValue AS unsigned)", job);
-			std::unique_ptr<SQLMsg> pMsg(AccountDB::instance().DirectQuery(szQuery));
+			std::unique_ptr<ql_msg> pMsg(account_db::instance().direct_query(szQuery));
 
 			// Use the default table if not set.
-			if (pMsg->Get()->uiNumRows == 0)
+			if (pMsg->get()->num_rows == 0)
 			{
-				CTableBySkill::instance().SetSkillPowerByLevelFromType(job, aiBaseSkillPowerByLevelTable);
+				table_by_skill::instance().set_skill_power_by_level_from_type(job, aiBaseSkillPowerByLevelTable);
 				continue;
 			}
 
-			row = mysql_fetch_row(pMsg->Get()->pSQLResult);
+			row = mysql_fetch_row(pMsg->get()->sql_result);
 			cnt = 0;
 			p = row[0];
 			int aiSkillTable[SKILL_MAX_LEVEL + 1];
@@ -345,21 +345,21 @@ void config_init()
 				}
 			}
 
-			CTableBySkill::instance().SetSkillPowerByLevelFromType(job, aiSkillTable);
+			table_by_skill::instance().set_skill_power_by_level_from_type(job, aiSkillTable);
 		}		
 	}
 	// END_SKILL_POWER_BY_LEVEL
 
 
 	if (!metin2::config::game().quest.dir.empty())
-		g_stQuestDir = metin2::config::game().quest.dir;
+		quest_dir = metin2::config::game().quest.dir;
 	for (const std::string & dir : metin2::config::game().quest.object_dirs)
-		g_setQuestObjectDir.insert(dir);
+		quest_object_dir.insert(dir);
 
 	// LOCALE_SERVICE
-	LocaleService_LoadLocaleStringFile();
-	LocaleService_TransferDefaultSetting();
-	LocaleService_LoadEmpireTextConvertTables();
+	locale_service_load_locale_string_file();
+	locale_service_transfer_default_setting();
+	locale_service_load_empire_text_convert_tables();
 	// END_OF_LOCALE_SERVICE
 
 	if (FILE * fp = fopen("CMD", "r"))
@@ -402,9 +402,9 @@ void config_init()
 		fclose(fp);
 	}
 
-	LoadStateUserCount();
+	load_state_user_count();
 
-	CWarMapManager::instance().LoadWarMapInfo(nullptr);
+	war_map_manager::instance().load_war_map_info(nullptr);
 }
 
 const char* get_table_postfix()
@@ -412,39 +412,39 @@ const char* get_table_postfix()
 	return metin2::config::database().table_postfix.c_str();
 }
 
-void CheckClientVersion()
+void check_client_version()
 {
-	g_bCheckClientVersion = true;
+	check_client_version_enabled = true;
 
-	const DESC_MANAGER::DESC_SET & set = DESC_MANAGER::instance().GetClientSet();
-	DESC_MANAGER::DESC_SET::const_iterator it = set.begin();
+	const desc_manager::desc_set & set = desc_manager::instance().client_set();
+	desc_manager::desc_set::const_iterator it = set.begin();
 
 	while (it != set.end())
 	{
-		DESC * d = *(it++);
+		desc * d = *(it++);
 
-		if (!d->GetCharacter())
+		if (!d->get_character())
 			continue;
 
-		int version = atoi(g_stClientVersion.c_str());
-		int date	= atoi(d->GetClientVersion() );
+		int version = atoi(client_version.c_str());
+		int date	= atoi(d->client_version() );
 
 		if (version != date) // Fix
 		{
-			d->GetCharacter()->ChatPacket(CHAT_TYPE_NOTICE, LC_TEXT("클라이언트 버전이 틀려 로그아웃 됩니다. 정상적으로 패치 후 접속하세요."));
-			d->DelayedDisconnect(10);
+			d->get_character()->chat_packet(CHAT_TYPE_NOTICE, lc_text("클라이언트 버전이 틀려 로그아웃 됩니다. 정상적으로 패치 후 접속하세요."));
+			d->delayed_disconnect(10);
 		}
 	}
 }
 
-void LoadStateUserCount()
+void load_state_user_count()
 {
 	FILE * fp = fopen("state_user_count", "r");
 
 	if (!fp)
 		return;
 
-	fscanf(fp, " %d %d ", &g_iFullUserCount, &g_iBusyUserCount);
+	fscanf(fp, " %d %d ", &full_user_count, &busy_user_count);
 
 	fclose(fp);
 }

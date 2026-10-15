@@ -8,35 +8,35 @@
 
 namespace metin2::game::inline items {
 
-CRefineManager::CRefineManager()
+refine_manager::refine_manager()
 {
 }
 
-CRefineManager::~CRefineManager()
+refine_manager::~refine_manager()
 {
 }
 
-bool CRefineManager::Initialize(TRefineTable * table, int size)
+bool refine_manager::initialize(refine_table * table, int size)
 {
 	for (int i = 0; i < size; ++i, ++table)
 	{
 		metin2::log::info( "REFINE {:d} prob {:d} cost {:d}", table->id, table->prob, table->cost);
-		m_map_RefineRecipe.insert(std::make_pair(table->id, *table));
+		map_refine_recipe_.insert(std::make_pair(table->id, *table));
 	}
 
-	metin2::log::info( "REFINE: COUNT {:d}", m_map_RefineRecipe.size());
+	metin2::log::info( "REFINE: COUNT {:d}", map_refine_recipe_.size());
 	return true;
 }
 
-const TRefineTable* CRefineManager::GetRefineRecipe(uint32_t vnum)
+const refine_table* refine_manager::refine_recipe(uint32_t vnum)
 {
 	if (vnum == 0)
 		return nullptr;
 
-	auto it = m_map_RefineRecipe.find(vnum);
-	metin2::log::info( "REFINE: FIND {:d} {}", vnum, it == m_map_RefineRecipe.end() ? "FALSE" : "TRUE");
+	auto it = map_refine_recipe_.find(vnum);
+	metin2::log::info( "REFINE: FIND {:d} {}", vnum, it == map_refine_recipe_.end() ? "FALSE" : "TRUE");
 
-	if (it == m_map_RefineRecipe.end())
+	if (it == map_refine_recipe_.end())
 	{
 		return nullptr;
 	}

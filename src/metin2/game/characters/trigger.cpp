@@ -16,39 +16,39 @@
 
 namespace metin2::game::inline characters {
 
-int	OnClickShop(TRIGGERPARAM);
-int	OnClickTalk(TRIGGERPARAM);
+int	on_click_shop(TRIGGERPARAM);
+int	on_click_talk(TRIGGERPARAM);
 
-int	OnAttackDefault(TRIGGERPARAM);
+int	on_attack_default(TRIGGERPARAM);
 
-struct TTriggerFunction {
+struct trigger_function {
 	int (*func) (TRIGGERPARAM);
 };
 
-TTriggerFunction OnClickTriggers[ON_CLICK_MAX_NUM] =
+trigger_function on_click_triggers[ON_CLICK_MAX_NUM] =
 {
 	{ nullptr,          	},	// ON_CLICK_NONE,
-	{ OnClickShop,	},	// ON_CLICK_SHOP,
+	{ on_click_shop,	},	// ON_CLICK_SHOP,
 };
 
-void CHARACTER::AssignTriggers(const TMobTable * table)
+void character::assign_triggers(const mob_table * table)
 {
-	if (table->bOnClickType >= ON_CLICK_MAX_NUM)
+	if (table->on_click_type >= ON_CLICK_MAX_NUM)
 	{
-		metin2::log::error("{} has invalid OnClick value {:d}", GetName(), table->bOnClickType);
+		metin2::log::error("{} has invalid OnClick value {:d}", name(), table->on_click_type);
 		abort();
 	}
 
-	m_triggerOnClick.bType = table->bOnClickType;
-	m_triggerOnClick.pFunc = OnClickTriggers[table->bOnClickType].func;
+	trigger_on_click_.type = table->on_click_type;
+	trigger_on_click_.func = on_click_triggers[table->on_click_type].func;
 }
 
 /*
  * ON_CLICK
  */
-int OnClickShop(TRIGGERPARAM)
+int on_click_shop(TRIGGERPARAM)
 {
-	CShopManager::instance().StartShopping(causer, ch);
+	shop_manager::instance().start_shopping(causer, ch);
 	return 1;
 }
 
@@ -56,114 +56,114 @@ int OnClickShop(TRIGGERPARAM)
  * monster AI functions changed into the BattleAI class
  */
 
-class FuncFindMobVictim
+class func_find_mob_victim
 {
 	public:
-		FuncFindMobVictim(CHARACTER * pkChr, int iMaxDistance) :
-			m_pkChr(pkChr),
-			m_iMinDistance(std::numeric_limits<int>::max()),
-			m_iMaxDistance(iMaxDistance),
-			m_lx(pkChr->GetX()),
-			m_ly(pkChr->GetY()),
-			m_pkChrVictim(nullptr),
-			m_pkChrBuilding(nullptr)
+		func_find_mob_victim(character * pkChr, int iMaxDistance) :
+			chr_(pkChr),
+			min_distance_(std::numeric_limits<int>::max()),
+			max_distance_(iMaxDistance),
+			lx_(pkChr->x()),
+			ly_(pkChr->y()),
+			chr_victim_(nullptr),
+			chr_building_(nullptr)
 	{
 	};
 
-		bool operator () (CEntity * ent)
+		bool operator () (entity * ent)
 		{
-			if (!ent->IsType(ENTITY_CHARACTER))
+			if (!ent->is_type(ENTITY_CHARACTER))
 				return false;
 
-			CHARACTER * pkChr = (CHARACTER *) ent;
+			character * pkChr = (character *) ent;
 
-			if (pkChr->IsBuilding() && 
-				(pkChr->IsAffectFlag(AFF_BUILDING_CONSTRUCTION_SMALL) ||
-				 pkChr->IsAffectFlag(AFF_BUILDING_CONSTRUCTION_LARGE) ||
-				 pkChr->IsAffectFlag(AFF_BUILDING_UPGRADE)))
+			if (pkChr->is_building() && 
+				(pkChr->is_affect_flag(AFF_BUILDING_CONSTRUCTION_SMALL) ||
+				 pkChr->is_affect_flag(AFF_BUILDING_CONSTRUCTION_LARGE) ||
+				 pkChr->is_affect_flag(AFF_BUILDING_UPGRADE)))
 			{
-				m_pkChrBuilding = pkChr;
+				chr_building_ = pkChr;
 			}
 
-			if (pkChr->IsNPC())
+			if (pkChr->is_npc())
 			{
-				if ( !pkChr->IsMonster() || !m_pkChr->IsAttackMob() || m_pkChr->IsAggressive()  )
+				if ( !pkChr->is_monster() || !chr_->is_attack_mob() || chr_->is_aggressive()  )
 					return false;
 					
 			}
 
-			if (pkChr->IsDead())
+			if (pkChr->is_dead())
 				return false;
 
-			if (pkChr->IsAffectFlag(AFF_EUNHYUNG) || 
-					pkChr->IsAffectFlag(AFF_INVISIBILITY) ||
-					pkChr->IsAffectFlag(AFF_REVIVE_INVISIBLE))
+			if (pkChr->is_affect_flag(AFF_EUNHYUNG) || 
+					pkChr->is_affect_flag(AFF_INVISIBILITY) ||
+					pkChr->is_affect_flag(AFF_REVIVE_INVISIBLE))
 				return false;
 
-			if (pkChr->IsAffectFlag(AFF_TERROR) && m_pkChr->IsImmune(IMMUNE_TERROR) == false )	// fear handling
+			if (pkChr->is_affect_flag(AFF_TERROR) && chr_->is_immune(IMMUNE_TERROR) == false )	// fear handling
 			{
-				if ( pkChr->GetLevel() >= m_pkChr->GetLevel() )
+				if ( pkChr->level() >= chr_->level() )
 					return false;
 			}
 
-		 	if ( m_pkChr->IsNoAttackShinsu() )
+		 	if ( chr_->is_no_attack_shinsu() )
 			{
-				if ( pkChr->GetEmpire() == 1 )
+				if ( pkChr->empire() == 1 )
 					return false;
 			}
 
-			if ( m_pkChr->IsNoAttackChunjo() )
+			if ( chr_->is_no_attack_chunjo() )
 			{
-				if ( pkChr->GetEmpire() == 2 )
+				if ( pkChr->empire() == 2 )
 					return false;
 			}
 			
 
-			if ( m_pkChr->IsNoAttackJinno() )
+			if ( chr_->is_no_attack_jinno() )
 			{
-				if ( pkChr->GetEmpire() == 3 )
+				if ( pkChr->empire() == 3 )
 					return false;
 			}
 
-			int iDistance = DISTANCE_APPROX(m_lx - pkChr->GetX(), m_ly - pkChr->GetY());
+			int iDistance = distance_approx(lx_ - pkChr->x(), ly_ - pkChr->y());
 
-			if (iDistance < m_iMinDistance && iDistance <= m_iMaxDistance)
+			if (iDistance < min_distance_ && iDistance <= max_distance_)
 			{
-				m_pkChrVictim = pkChr;
-				m_iMinDistance = iDistance;
+				chr_victim_ = pkChr;
+				min_distance_ = iDistance;
 			}
 			return true;
 		}
 
-		CHARACTER * GetVictim()
+		character * victim()
 		{
 			// if there's a building nearby and HP is high, attack the building. attack it even if there's only a building
-			if ((m_pkChrBuilding && m_pkChr->GetHP() * 2 > m_pkChr->GetMaxHP()) || !m_pkChrVictim)
+			if ((chr_building_ && chr_->hp() * 2 > chr_->max_hp()) || !chr_victim_)
 			{
-				return m_pkChrBuilding;
+				return chr_building_;
 			}
 
-			return (m_pkChrVictim);
+			return (chr_victim_);
 		}
 
 	private:
-		CHARACTER *	m_pkChr;
+		character *	chr_;
 
-		int		m_iMinDistance;
-		int		m_iMaxDistance;
-		int32_t		m_lx;
-		int32_t		m_ly;
+		int		min_distance_;
+		int		max_distance_;
+		int32_t		lx_;
+		int32_t		ly_;
 
-		CHARACTER *	m_pkChrVictim;
-		CHARACTER *	m_pkChrBuilding;
+		character *	chr_victim_;
+		character *	chr_building_;
 };
 
-CHARACTER * FindVictim(CHARACTER * pkChr, int iMaxDistance)
+character * find_victim(character * pkChr, int iMaxDistance)
 {
-	FuncFindMobVictim f(pkChr, iMaxDistance);
-	if (pkChr->GetSectree() != nullptr) {
-		pkChr->GetSectree()->ForEachAround(f);	
+	func_find_mob_victim f(pkChr, iMaxDistance);
+	if (pkChr->get_sectree() != nullptr) {
+		pkChr->get_sectree()->for_each_around(f);	
 	}
-	return f.GetVictim();
+	return f.victim();
 }
 }

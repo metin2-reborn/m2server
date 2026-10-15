@@ -41,68 +41,68 @@
 
 namespace metin2::game::inline items {
 
-ITEM_MANAGER::ITEM_MANAGER()
-	: m_dwVIDCount(0), m_dwCurrentID(0)
+item_manager::item_manager()
+	: vid_count_(0), current_id_(0)
 {
-	m_ItemIDRange.dwMin = m_ItemIDRange.dwMax = m_ItemIDRange.dwUsableItemIDMin = 0;
-	m_ItemIDSpareRange.dwMin = m_ItemIDSpareRange.dwMax = m_ItemIDSpareRange.dwUsableItemIDMin = 0;
+	item_id_range_.min = item_id_range_.max = item_id_range_.usable_item_id_min = 0;
+	item_id_spare_range_.min = item_id_spare_range_.max = item_id_spare_range_.usable_item_id_min = 0;
 }
 
-ITEM_MANAGER::~ITEM_MANAGER()
+item_manager::~item_manager()
 {
-	Destroy();
+	destroy();
 }
 
-void ITEM_MANAGER::Destroy()
+void item_manager::destroy()
 {
-	auto it = m_VIDMap.begin();
-	for ( ; it != m_VIDMap.end(); ++it) {
+	auto it = vid_map_.begin();
+	for ( ; it != vid_map_.end(); ++it) {
 		delete it->second;
 	}
-	m_VIDMap.clear();
+	vid_map_.clear();
 }
 
-void ITEM_MANAGER::GracefulShutdown()
+void item_manager::graceful_shutdown()
 {
-	std::unordered_set<CItem *>::iterator it = m_set_pkItemForDelayedSave.begin();
+	std::unordered_set<item *>::iterator it = set_pk_item_for_delayed_save_.begin();
 
-	while (it != m_set_pkItemForDelayedSave.end())
-		SaveSingleItem(*(it++));
+	while (it != set_pk_item_for_delayed_save_.end())
+		save_single_item(*(it++));
 
-	m_set_pkItemForDelayedSave.clear();
+	set_pk_item_for_delayed_save_.clear();
 }
 
-bool ITEM_MANAGER::Initialize(TItemTable * table, int size)
+bool item_manager::initialize(item_table * table_value, int size)
 {
-	if (!m_vec_prototype.empty())
-		m_vec_prototype.clear();
+	if (!vec_prototype_.empty())
+		vec_prototype_.clear();
 
 	int	i;
 
-	m_vec_prototype.resize(size);
-	std::memcpy(&m_vec_prototype[0], table, sizeof(TItemTable) * size);
+	vec_prototype_.resize(size);
+	std::memcpy(&vec_prototype_[0], table_value, sizeof(item_table) * size);
 	for (int i = 0; i < size; i++)
 	{
-		if (0 != m_vec_prototype[i].dwVnumRange)
+		if (0 != vec_prototype_[i].vnum_range)
 		{
-			m_vec_item_vnum_range_info.push_back( &m_vec_prototype[i]);
+			vec_item_vnum_range_info_.push_back( &vec_prototype_[i]);
 		}
 	}
 
-	m_map_ItemRefineFrom.clear();
+	map_item_refine_from_.clear();
 	for (i = 0; i < size; ++i)
 	{
 
-		if (m_vec_prototype[i].dwRefinedVnum)
-			m_map_ItemRefineFrom.insert(std::make_pair(m_vec_prototype[i].dwRefinedVnum, m_vec_prototype[i].dwVnum));
+		if (vec_prototype_[i].refined_vnum)
+			map_item_refine_from_.insert(std::make_pair(vec_prototype_[i].refined_vnum, vec_prototype_[i].vnum));
 
 		// NOTE : the QUEST_GIVE flag is triggered by an npc event.
-		if (m_vec_prototype[i].bType == ITEM_QUEST || IS_SET(m_vec_prototype[i].dwFlags, ITEM_FLAG_QUEST_USE | ITEM_FLAG_QUEST_USE_MULTIPLE))
-			quest::CQuestManager::instance().RegisterNPCVnum(m_vec_prototype[i].dwVnum);
+		if (vec_prototype_[i].type == ITEM_QUEST || is_set(vec_prototype_[i].flags, ITEM_FLAG_QUEST_USE | ITEM_FLAG_QUEST_USE_MULTIPLE))
+			quest::quest_manager::instance().register_npc_vnum(vec_prototype_[i].vnum);
 
-		m_map_vid.insert( std::map<uint32_t,TItemTable>::value_type( m_vec_prototype[i].dwVnum, m_vec_prototype[i] ) ); 
+		map_vid.insert( std::map<uint32_t,item_table>::value_type( vec_prototype_[i].vnum, vec_prototype_[i] ) ); 
 		if ( metin2::config::test_server() )
-			metin2::log::info( "ITEM_INFO {:d} {} ", m_vec_prototype[i].dwVnum, m_vec_prototype[i].szName );	
+			metin2::log::info( "ITEM_INFO {:d} {} ", vec_prototype_[i].vnum, vec_prototype_[i].name );	
 	}
 
 	int len = 0, len2;
@@ -110,7 +110,7 @@ bool ITEM_MANAGER::Initialize(TItemTable * table, int size)
 
 	for (i = 0; i < size; ++i)
 	{
-		len2 = snprintf(buf + len, sizeof(buf) - len, "%5u %-16s", m_vec_prototype[i].dwVnum, m_vec_prototype[i].szLocaleName);
+		len2 = snprintf(buf + len, sizeof(buf) - len, "%5u %-16s", vec_prototype_[i].vnum, vec_prototype_[i].locale_name);
 
 		if (len2 < 0 || len2 >= (int) sizeof(buf) - len)
 			len += (sizeof(buf) - len) - 1;
@@ -136,93 +136,93 @@ bool ITEM_MANAGER::Initialize(TItemTable * table, int size)
 			metin2::log::info( "{}", buf);
 	}
 
-	ITEM_VID_MAP::iterator it = m_VIDMap.begin();
+	item_vid_map::iterator it = vid_map_.begin();
 
-	metin2::log::debug( "ITEM_VID_MAP {:d}", m_VIDMap.size() );
+	metin2::log::debug( "ITEM_VID_MAP {:d}", vid_map_.size() );
 
-	while (it != m_VIDMap.end())
+	while (it != vid_map_.end())
 	{
-		CItem * item = it->second;
+		item * item = it->second;
 		++it;
 
-		const TItemTable* tableInfo = GetTable(item->GetOriginalVnum());
+		const item_table* tableInfo = table(item->original_vnum());
 
 		if (nullptr == tableInfo)
 		{
 			metin2::log::error("cannot reset item table");
-			item->SetProto(nullptr);
+			item->set_proto(nullptr);
 		}
 
-		item->SetProto(tableInfo);
+		item->set_proto(tableInfo);
 	}
 
 	return true;
 }
 
-CItem * ITEM_MANAGER::CreateItem(uint32_t vnum, uint32_t count, uint32_t id, bool bTryMagic, int iRarePct, bool bSkipSave)
+item * item_manager::create_item(uint32_t vnum, uint32_t count, uint32_t id, bool bTryMagic, int iRarePct, bool bSkipSave)
 {
 	if (0 == vnum)
 		return nullptr;
 
 	uint32_t dwMaskVnum = 0;
-	if (GetMaskVnum(vnum))
+	if (mask_vnum(vnum))
 	{
-		dwMaskVnum = GetMaskVnum(vnum);
+		dwMaskVnum = mask_vnum(vnum);
 	}
 
 
-	const TItemTable* table = GetTable(vnum);
+	const item_table* table_value = table(vnum);
 
-	if (nullptr == table)
+	if (nullptr == table_value)
 		return nullptr;
 
-	CItem * item = nullptr;
+	item * item = nullptr;
 
 	//if it exists when checked by id -- return! 
-	if (m_map_pkItemByID.find(id) != m_map_pkItemByID.end())
+	if (map_pk_item_by_id_.find(id) != map_pk_item_by_id_.end())
 	{
-		item = m_map_pkItemByID[id];
-		CHARACTER * owner = item->GetOwner();
-		metin2::log::error("ITEM_ID_DUP: {:d} {} owner {}", id, item->GetName(), static_cast<const void *>(owner));
+		item = map_pk_item_by_id_[id];
+		character * owner = item->owner();
+		metin2::log::error("ITEM_ID_DUP: {:d} {} owner {}", id, item->name(), static_cast<const void *>(owner));
 		return nullptr;
 	}
 
 	//allocate one item
-	item = new CItem(vnum);
+	item = new game::items::item(vnum);
 
 	bool bIsNewItem = (0 == id);
 
 	//initialize it. set the table
-	item->Initialize();
-	item->SetProto(table);
-	item->SetMaskVnum(dwMaskVnum);
+	item->initialize();
+	item->set_proto(table_value);
+	item->set_mask_vnum(dwMaskVnum);
 
-	if (item->GetType() == ITEM_ELK) // Gold needs no ID and no saving.
-		item->SetSkipSave(true);
+	if (item->type() == ITEM_ELK) // Gold needs no ID and no saving.
+		item->set_skip_save(true);
 
 	// Set the Unique ID
 	else if (!bIsNewItem)
 	{
-		item->SetID(id);
-		item->SetSkipSave(true);
+		item->set_id(id);
+		item->set_skip_save(true);
 	}
 	else
 	{
-		item->SetID(GetNewID());
+		item->set_id(new_id());
 
-		if (item->GetType() == ITEM_UNIQUE) // Unique items record the remaining time in a socket on creation.
+		if (item->type() == ITEM_UNIQUE) // Unique items record the remaining time in a socket on creation.
 		{
-			if (item->GetValue(2) == 0)
-				item->SetSocket(ITEM_SOCKET_UNIQUE_REMAIN_TIME, item->GetValue(0)); // Game-time unique
+			if (item->value(2) == 0)
+				item->set_socket(ITEM_SOCKET_UNIQUE_REMAIN_TIME, item->value(0)); // Game-time unique
 			else
 			{
-				item->SetSocket(ITEM_SOCKET_UNIQUE_REMAIN_TIME, get_global_time() + item->GetValue(0)); // Real-time unique
+				item->set_socket(ITEM_SOCKET_UNIQUE_REMAIN_TIME, get_global_time() + item->value(0)); // Real-time unique
 			}
 		}
 	}
 
 
-	switch (item->GetVnum())
+	switch (item->vnum())
 	{
 		case ITEM_AUTO_HP_RECOVERY_S:
 		case ITEM_AUTO_HP_RECOVERY_M:
@@ -239,76 +239,76 @@ CItem * ITEM_MANAGER::CreateItem(uint32_t vnum, uint32_t count, uint32_t id, boo
 		case FUCKING_BRAZIL_ITEM_AUTO_SP_RECOVERY_S:
 		case FUCKING_BRAZIL_ITEM_AUTO_HP_RECOVERY_S:
 			if (bIsNewItem)
-				item->SetSocket(2, item->GetValue(0), true);
+				item->set_socket(2, item->value(0), true);
 			else
-				item->SetSocket(2, item->GetValue(0), false);
+				item->set_socket(2, item->value(0), false);
 			break;
 	}
 
-	if (item->GetType() == ITEM_ELK) // Gold needs no processing
+	if (item->type() == ITEM_ELK) // Gold needs no processing
 		;
-	else if (item->IsStackable())  // For stackable items
+	else if (item->is_stackable())  // For stackable items
 	{
 		count = std::clamp<int>(count, 1, ITEM_MAX_COUNT);
 
-		if (bTryMagic && count <= 1 && IS_SET(item->GetFlag(), ITEM_FLAG_MAKECOUNT))
-			count = item->GetValue(1);
+		if (bTryMagic && count <= 1 && is_set(item->flag(), ITEM_FLAG_MAKECOUNT))
+			count = item->value(1);
 	}
 	else
 		count = 1;
 
-	item->SetVID(++m_dwVIDCount);
+	item->set_vid(++vid_count_);
 
 	if (bSkipSave == false)
-		m_VIDMap.insert(ITEM_VID_MAP::value_type(item->GetVID(), item));
+		vid_map_.insert(item_vid_map::value_type(item->get_vid(), item));
 
-	if (item->GetID() != 0 && bSkipSave == false)
-		m_map_pkItemByID.insert(std::map<uint32_t, CItem *>::value_type(item->GetID(), item));
+	if (item->id() != 0 && bSkipSave == false)
+		map_pk_item_by_id_.insert(std::map<uint32_t, game::items::item *>::value_type(item->id(), item));
 
-	if (!item->SetCount(count))
+	if (!item->set_count(count))
 		return nullptr;
 
-	item->SetSkipSave(false);
+	item->set_skip_save(false);
 
-	if (item->GetType() == ITEM_UNIQUE && item->GetValue(2) != 0)
-		item->StartUniqueExpireEvent();
+	if (item->type() == ITEM_UNIQUE && item->value(2) != 0)
+		item->start_unique_expire_event();
 
 	for (int i=0 ; i < ITEM_LIMIT_MAX_NUM ; i++)
 	{
 		// Time is deducted from creation even if unused
-		if (LIMIT_REAL_TIME == item->GetLimitType(i))
+		if (LIMIT_REAL_TIME == item->limit_type(i))
 		{
-			if (item->GetLimitValue(i))
+			if (item->limit_value(i))
 			{
-				item->SetSocket(0, time(nullptr) + item->GetLimitValue(i)); 
+				item->set_socket(0, time(nullptr) + item->limit_value(i)); 
 			}
 			else
 			{
-				item->SetSocket(0, time(nullptr) + 60*60*24*7); 
+				item->set_socket(0, time(nullptr) + 60*60*24*7); 
 			}
 
-			item->StartRealTimeExpireEvent();
+			item->start_real_time_expire_event();
 		}
 
 		// Like existing unique items, usable time is deducted only while equipped
-		else if (LIMIT_TIMER_BASED_ON_WEAR == item->GetLimitType(i))
+		else if (LIMIT_TIMER_BASED_ON_WEAR == item->limit_type(i))
 		{
 			// If the item is already equipped, start the timer; for newly created items, set the usable time. (
 			// When granted through the item mall, Socket0 must be set before entering this logic.
-			if (true == item->IsEquipped())
+			if (true == item->is_equipped())
 			{
-				item->StartTimerBasedOnWearExpireEvent();
+				item->start_timer_based_on_wear_expire_event();
 			}
 			else if(0 == id)
 			{
-				int32_t duration = item->GetSocket(0);
+				int32_t duration = item->get_socket(0);
 				if (0 == duration)
-					duration = item->GetLimitValue(i);
+					duration = item->limit_value(i);
 
 				if (0 == duration)
 					duration = 60 * 60 * 10;	// If there is no info, default to 10 hours
 
-				item->SetSocket(0, duration);
+				item->set_socket(0, duration);
 			}
 		}
 	}
@@ -316,31 +316,31 @@ CItem * ITEM_MANAGER::CreateItem(uint32_t vnum, uint32_t count, uint32_t id, boo
 	if (id == 0) // Only for newly created items
 	{
 		// Newly added herbs get different stats
-		if (ITEM_BLEND==item->GetType())
+		if (ITEM_BLEND==item->type())
 		{
-			if (Blend_Item_find(item->GetVnum()))
+			if (blend_item_find(item->vnum()))
 			{
-				Blend_Item_set_value(item);
+				blend_item_set_value(item);
 				return item;
 			}
 		}
 
-		if (table->sAddonType)
+		if (table_value->s_addon_type)
 		{
-			item->ApplyAddon(table->sAddonType);
+			item->apply_addon(table_value->s_addon_type);
 		}
 
 		if (bTryMagic)
 		{
 			if (iRarePct == -1)
-				iRarePct = table->bAlterToMagicItemPct;
+				iRarePct = table_value->alter_to_magic_item_pct;
 
 			if (number(1, 100) <= iRarePct)
-				item->AlterToMagicItem();
+				item->alter_to_magic_item();
 		}
 
-		if (table->bGainSocketPct)
-			item->AlterToSocketItem(table->bGainSocketPct);
+		if (table_value->gain_socket_pct)
+			item->alter_to_socket_item(table_value->gain_socket_pct);
 
 		// 50300 == skill book
 		if (vnum == 50300 || vnum == ITEM_SKILLFORGET_VNUM)
@@ -351,11 +351,11 @@ CItem * ITEM_MANAGER::CreateItem(uint32_t vnum, uint32_t count, uint32_t id, boo
 			{
 				dwSkillVnum = number(1, 111);
 
-				if (nullptr != CSkillManager::instance().Get(dwSkillVnum))
+				if (nullptr != skill_manager::instance().get(dwSkillVnum))
 					break;
 			} while (true);
 
-			item->SetSocket(0, dwSkillVnum);
+			item->set_socket(0, dwSkillVnum);
 		}
 		else if (ITEM_SKILLFORGET2_VNUM == vnum)
 		{
@@ -365,221 +365,221 @@ CItem * ITEM_MANAGER::CreateItem(uint32_t vnum, uint32_t count, uint32_t id, boo
 			{
 				dwSkillVnum = number(112, 119);
 
-				if (nullptr != CSkillManager::instance().Get(dwSkillVnum))
+				if (nullptr != skill_manager::instance().get(dwSkillVnum))
 					break;
 			} while (true);
 
-			item->SetSocket(0, dwSkillVnum);
+			item->set_socket(0, dwSkillVnum);
 		}
 	}
 
-	if (item->GetType() == ITEM_QUEST)
+	if (item->type() == ITEM_QUEST)
 	{
-		for (auto it = m_map_pkQuestItemGroup.begin(); it != m_map_pkQuestItemGroup.end(); it++)
+		for (auto it = map_pk_quest_item_group_.begin(); it != map_pk_quest_item_group_.end(); it++)
 		{
-			if (it->second->m_bType == CSpecialItemGroup::QUEST && it->second->Contains(vnum))
+			if (it->second->type == special_item_group::QUEST && it->second->contains(vnum))
 			{
-				item->SetSIGVnum(it->first);
+				item->set_sig_vnum(it->first);
 			}
 		}
 	}
-	else if (item->GetType() == ITEM_UNIQUE)
+	else if (item->type() == ITEM_UNIQUE)
 	{
-		for (auto it = m_map_pkSpecialItemGroup.begin(); it != m_map_pkSpecialItemGroup.end(); it++)
+		for (auto it = map_pk_special_item_group_.begin(); it != map_pk_special_item_group_.end(); it++)
 		{
-			if (it->second->m_bType == CSpecialItemGroup::SPECIAL && it->second->Contains(vnum))
+			if (it->second->type == special_item_group::SPECIAL && it->second->contains(vnum))
 			{
-				item->SetSIGVnum(it->first);
+				item->set_sig_vnum(it->first);
 			}
 		}
 	}
 
 	// Handle newly created dragon soul stones.
-	if (item->IsDragonSoul() && 0 == id)
+	if (item->is_dragon_soul() && 0 == id)
 	{
-		DSManager::instance().DragonSoulItemInitialize(item);
+		ds_manager::instance().dragon_soul_item_initialize(item);
 	}
 	return item;
 }
 
-void ITEM_MANAGER::DelayedSave(CItem * item)
+void item_manager::delayed_save(item * item)
 {
-	if (item->GetID() != 0)
-		m_set_pkItemForDelayedSave.insert(item);
+	if (item->id() != 0)
+		set_pk_item_for_delayed_save_.insert(item);
 }
 
-void ITEM_MANAGER::FlushDelayedSave(CItem * item)
+void item_manager::flush_delayed_save(item * item)
 {
-	std::unordered_set<CItem *>::iterator it = m_set_pkItemForDelayedSave.find(item);
+	std::unordered_set<game::items::item *>::iterator it = set_pk_item_for_delayed_save_.find(item);
 
-	if (it == m_set_pkItemForDelayedSave.end())
+	if (it == set_pk_item_for_delayed_save_.end())
 	{
 		return;
 	}
 
-	m_set_pkItemForDelayedSave.erase(it);
-	SaveSingleItem(item);
+	set_pk_item_for_delayed_save_.erase(it);
+	save_single_item(item);
 }
 
-void ITEM_MANAGER::SaveSingleItem(CItem * item)
+void item_manager::save_single_item(item * item)
 {
-	if (!item->GetOwner())
+	if (!item->owner())
 	{
-		uint32_t dwID = item->GetID();
-		uint32_t dwOwnerID = item->GetLastOwnerPID();
+		uint32_t dwID = item->id();
+		uint32_t dwOwnerID = item->last_owner_pid();
 
-		db_clientdesc->DBPacketHeader(HEADER_GD_ITEM_DESTROY, 0, sizeof(uint32_t) + sizeof(uint32_t));
-		db_clientdesc->Packet(&dwID, sizeof(uint32_t));
-		db_clientdesc->Packet(&dwOwnerID, sizeof(uint32_t));
+		db_clientdesc->db_packet_header(HEADER_GD_ITEM_DESTROY, 0, sizeof(uint32_t) + sizeof(uint32_t));
+		db_clientdesc->packet(&dwID, sizeof(uint32_t));
+		db_clientdesc->packet(&dwOwnerID, sizeof(uint32_t));
 
-		metin2::log::debug( "ITEM_DELETE {}:{:d}", item->GetName(), dwID);
+		metin2::log::debug( "ITEM_DELETE {}:{:d}", item->name(), dwID);
 		return;
 	}
 
-	metin2::log::debug( "ITEM_SAVE {}:{:d} in {} window {:d}", item->GetName(), item->GetID(), item->GetOwner()->GetName(), item->GetWindow());
+	metin2::log::debug( "ITEM_SAVE {}:{:d} in {} window {:d}", item->name(), item->id(), item->owner()->name(), item->window());
 
-	TPlayerItem t;
+	player_item t;
 
-	t.id = item->GetID();
-	t.window = item->GetWindow();
-	t.pos = t.window == EQUIPMENT ? item->GetCell() - INVENTORY_MAX_NUM : item->GetCell();
-	t.count = item->GetCount();
-	t.vnum = item->GetOriginalVnum();
-	t.owner = (t.window == SAFEBOX || t.window == MALL) ? item->GetOwner()->GetDesc()->GetAccountTable().id : item->GetOwner()->GetPlayerID();
-	std::memcpy(t.alSockets, item->GetSockets(), sizeof(t.alSockets));
-	std::memcpy(t.aAttr, item->GetAttributes(), sizeof(t.aAttr));
+	t.id = item->id();
+	t.window = item->window();
+	t.pos = t.window == EQUIPMENT ? item->cell() - INVENTORY_MAX_NUM : item->cell();
+	t.count = item->count();
+	t.vnum = item->original_vnum();
+	t.owner = (t.window == SAFEBOX || t.window == MALL) ? item->owner()->get_desc()->get_account_table().id : item->owner()->player_id();
+	std::memcpy(t.sockets, item->sockets(), sizeof(t.sockets));
+	std::memcpy(t.attr, item->attributes(), sizeof(t.attr));
 
-	db_clientdesc->DBPacketHeader(HEADER_GD_ITEM_SAVE, 0, sizeof(TPlayerItem));
-	db_clientdesc->Packet(&t, sizeof(TPlayerItem));
+	db_clientdesc->db_packet_header(HEADER_GD_ITEM_SAVE, 0, sizeof(player_item));
+	db_clientdesc->packet(&t, sizeof(player_item));
 }
 
-void ITEM_MANAGER::Update()
+void item_manager::update()
 {
-	std::unordered_set<CItem *>::iterator it = m_set_pkItemForDelayedSave.begin();
-	std::unordered_set<CItem *>::iterator this_it;
+	std::unordered_set<item *>::iterator it = set_pk_item_for_delayed_save_.begin();
+	std::unordered_set<item *>::iterator this_it;
 
-	while (it != m_set_pkItemForDelayedSave.end())
+	while (it != set_pk_item_for_delayed_save_.end())
 	{
 		this_it = it++;
-		CItem * item = *this_it;
+		item * item = *this_it;
 
 		// Items with the SLOW_QUERY flag are saved only on shutdown.
-		if (item->GetOwner() && IS_SET(item->GetFlag(), ITEM_FLAG_SLOW_QUERY))
+		if (item->owner() && is_set(item->flag(), ITEM_FLAG_SLOW_QUERY))
 			continue;
 
-		SaveSingleItem(item);
+		save_single_item(item);
 
-		m_set_pkItemForDelayedSave.erase(this_it);
+		set_pk_item_for_delayed_save_.erase(this_it);
 	}
 }
 
-void ITEM_MANAGER::RemoveItem(CItem * item, const char * c_pszReason)
+void item_manager::remove_item(item * item, const char * c_pszReason)
 {
-	CHARACTER * o;
+	character * o;
 
-	if ((o = item->GetOwner()))
+	if ((o = item->owner()))
 	{
 		char szHint[64];
-		snprintf(szHint, sizeof(szHint), "%s %u ", item->GetName(), item->GetCount());
-		LogManager::instance().ItemLog(o, item, c_pszReason ? c_pszReason : "REMOVE", szHint);
+		snprintf(szHint, sizeof(szHint), "%s %u ", item->name(), item->count());
+		log_manager::instance().item_log(o, item, c_pszReason ? c_pszReason : "REMOVE", szHint);
 
 		// SAFEBOX_TIME_LIMIT_ITEM_BUG_FIX
-		if (item->GetWindow() == MALL || item->GetWindow() == SAFEBOX)
+		if (item->window() == MALL || item->window() == SAFEBOX)
 		{
 			// 20050613.ipkn.If a timed item is in a shop, the server crashes when it expires.
-			CSafebox* pSafebox = item->GetWindow() == MALL ? o->GetMall() : o->GetSafebox();
+			safebox* pSafebox = item->window() == MALL ? o->mall() : o->get_safebox();
 			if (pSafebox)
 			{
-				pSafebox->Remove(item->GetCell());
+				pSafebox->remove(item->cell());
 			}
 		}
 		// END_OF_SAFEBOX_TIME_LIMIT_ITEM_BUG_FIX
 		else
 		{
-			o->SyncQuickslot(QUICKSLOT_TYPE_ITEM, item->GetCell(), 255);
-			item->RemoveFromCharacter();
+			o->sync_quickslot(QUICKSLOT_TYPE_ITEM, item->cell(), 255);
+			item->remove_from_character();
 		}
 	}
 
-	ITEM_MANAGER::instance().DestroyItem(item);
+	item_manager::instance().destroy_item(item);
 }
 
-void ITEM_MANAGER::DestroyItem(CItem * item)
+void item_manager::destroy_item(item * item)
 {
-	if (item->GetSectree())
-		item->RemoveFromGround();
+	if (item->get_sectree())
+		item->remove_from_ground();
 
-	if (item->GetOwner())
+	if (item->owner())
 	{
-		if (CHARACTER_MANAGER::instance().Find(item->GetOwner()->GetPlayerID()) != nullptr)
+		if (character_manager::instance().find(item->owner()->player_id()) != nullptr)
 		{
-			metin2::log::error("DestroyItem: GetOwner {} {}!!", item->GetName(), item->GetOwner()->GetName());
-			item->RemoveFromCharacter();
+			metin2::log::error("DestroyItem: GetOwner {} {}!!", item->name(), item->owner()->name());
+			item->remove_from_character();
 		}
 		else
 		{
-			metin2::log::error("WTH! Invalid item owner. owner pointer : {}", static_cast<const void *>(item->GetOwner()));
+			metin2::log::error("WTH! Invalid item owner. owner pointer : {}", static_cast<const void *>(item->owner()));
 		}
 	}
 
-	std::unordered_set<CItem *>::iterator it = m_set_pkItemForDelayedSave.find(item);
+	std::unordered_set<game::items::item *>::iterator it = set_pk_item_for_delayed_save_.find(item);
 
-	if (it != m_set_pkItemForDelayedSave.end())
-		m_set_pkItemForDelayedSave.erase(it);
+	if (it != set_pk_item_for_delayed_save_.end())
+		set_pk_item_for_delayed_save_.erase(it);
 
-	uint32_t dwID = item->GetID();
-	metin2::log::debug( "ITEM_DESTROY {}:{:d}", item->GetName(), dwID);
+	uint32_t dwID = item->id();
+	metin2::log::debug( "ITEM_DESTROY {}:{:d}", item->name(), dwID);
 
-	if (!item->GetSkipSave() && dwID)
+	if (!item->skip_save() && dwID)
 	{
-		uint32_t dwOwnerID = item->GetLastOwnerPID();
+		uint32_t dwOwnerID = item->last_owner_pid();
 
-		db_clientdesc->DBPacketHeader(HEADER_GD_ITEM_DESTROY, 0, sizeof(uint32_t) + sizeof(uint32_t));
-		db_clientdesc->Packet(&dwID, sizeof(uint32_t));
-		db_clientdesc->Packet(&dwOwnerID, sizeof(uint32_t));
+		db_clientdesc->db_packet_header(HEADER_GD_ITEM_DESTROY, 0, sizeof(uint32_t) + sizeof(uint32_t));
+		db_clientdesc->packet(&dwID, sizeof(uint32_t));
+		db_clientdesc->packet(&dwOwnerID, sizeof(uint32_t));
 	}
 	else
 	{
-		metin2::log::debug( "ITEM_DESTROY_SKIP {}:{:d} (skip={:d})", item->GetName(), dwID, item->GetSkipSave());
+		metin2::log::debug( "ITEM_DESTROY_SKIP {}:{:d} (skip={:d})", item->name(), dwID, item->skip_save());
 	}
 
 	if (dwID)
-		m_map_pkItemByID.erase(dwID);
+		map_pk_item_by_id_.erase(dwID);
 
-	m_VIDMap.erase(item->GetVID());
+	vid_map_.erase(item->get_vid());
 
 	delete item;
 }
 
-CItem * ITEM_MANAGER::Find(uint32_t id)
+item * item_manager::find(uint32_t id)
 {
-	auto it = m_map_pkItemByID.find(id);
-	if (it == m_map_pkItemByID.end())
+	auto it = map_pk_item_by_id_.find(id);
+	if (it == map_pk_item_by_id_.end())
 		return nullptr;
 	return it->second;
 }
 
-CItem * ITEM_MANAGER::FindByVID(uint32_t vid)
+item * item_manager::find_by_vid(uint32_t vid)
 {
-	ITEM_VID_MAP::iterator it = m_VIDMap.find(vid);
+	item_vid_map::iterator it = vid_map_.find(vid);
 
-	if (it == m_VIDMap.end())
+	if (it == vid_map_.end())
 		return nullptr;
 
 	return (it->second);
 }
 
-TItemTable * ITEM_MANAGER::GetTable(uint32_t vnum)
+item_table * item_manager::table(uint32_t vnum)
 {
-	int rnum = RealNumber(vnum);
+	int rnum = real_number(vnum);
 
 	if (rnum < 0)
 	{
-		for (size_t i = 0; i < m_vec_item_vnum_range_info.size(); i++)
+		for (size_t i = 0; i < vec_item_vnum_range_info_.size(); i++)
 		{
-			TItemTable* p = m_vec_item_vnum_range_info[i];
-			if ((p->dwVnum < vnum) &&
-				vnum < (p->dwVnum + p->dwVnumRange))
+			item_table* p = vec_item_vnum_range_info_[i];
+			if ((p->vnum < vnum) &&
+				vnum < (p->vnum + p->vnum_range))
 			{
 				return p;
 			}
@@ -588,46 +588,46 @@ TItemTable * ITEM_MANAGER::GetTable(uint32_t vnum)
 		return nullptr;
 	}
 
-	return &m_vec_prototype[rnum];
+	return &vec_prototype_[rnum];
 }
 
-int ITEM_MANAGER::RealNumber(uint32_t vnum)
+int item_manager::real_number(uint32_t vnum)
 {
 	int bot, top, mid;
 
 	bot = 0;
-	top = m_vec_prototype.size();
+	top = vec_prototype_.size();
 
-	TItemTable * pTable = &m_vec_prototype[0];
+	item_table * pTable = &vec_prototype_[0];
 
 	while (1)
 	{
 		mid = (bot + top) >> 1;
 
-		if ((pTable + mid)->dwVnum == vnum)
+		if ((pTable + mid)->vnum == vnum)
 			return (mid);
 
 		if (bot >= top)
 			return (-1);
 
-		if ((pTable + mid)->dwVnum > vnum)
+		if ((pTable + mid)->vnum > vnum)
 			top = mid - 1;
 		else        
 			bot = mid + 1;
 	}
 }
 
-bool ITEM_MANAGER::GetVnum(const char * c_pszName, uint32_t & r_dwVnum)
+bool item_manager::vnum(const char * c_pszName, uint32_t & r_dwVnum)
 {
 	int len = strlen(c_pszName);
 
-	TItemTable * pTable = &m_vec_prototype[0];
+	item_table * pTable = &vec_prototype_[0];
 
-	for (uint32_t i = 0; i < m_vec_prototype.size(); ++i, ++pTable)
+	for (uint32_t i = 0; i < vec_prototype_.size(); ++i, ++pTable)
 	{
-		if (!strncasecmp(c_pszName, pTable->szLocaleName, len))
+		if (!strncasecmp(c_pszName, pTable->locale_name, len))
 		{
-			r_dwVnum = pTable->dwVnum;
+			r_dwVnum = pTable->vnum;
 			return true;
 		}
 	}
@@ -635,17 +635,17 @@ bool ITEM_MANAGER::GetVnum(const char * c_pszName, uint32_t & r_dwVnum)
 	return false;
 }
 
-bool ITEM_MANAGER::GetVnumByOriginalName(const char * c_pszName, uint32_t & r_dwVnum)
+bool item_manager::vnum_by_original_name(const char * c_pszName, uint32_t & r_dwVnum)
 {
 	int len = strlen(c_pszName);
 
-	TItemTable * pTable = &m_vec_prototype[0];
+	item_table * pTable = &vec_prototype_[0];
 
-	for (uint32_t i = 0; i < m_vec_prototype.size(); ++i, ++pTable)
+	for (uint32_t i = 0; i < vec_prototype_.size(); ++i, ++pTable)
 	{
-		if (!strncasecmp(c_pszName, pTable->szName, len))
+		if (!strncasecmp(c_pszName, pTable->name, len))
 		{
-			r_dwVnum = pTable->dwVnum;
+			r_dwVnum = pTable->vnum;
 			return true;
 		}
 	}
@@ -653,17 +653,17 @@ bool ITEM_MANAGER::GetVnumByOriginalName(const char * c_pszName, uint32_t & r_dw
 	return false;
 }
 
-std::set<uint32_t> g_set_lotto;
+std::set<uint32_t> set_lotto;
 
 
 // 20050503.ipkn.
 // If less than iMinimum, set iDefault (iMinimum must be greater than 0)
 // Exists to support ON/OFF switching as 1, 0
-int GetDropPerKillPct(int iMinimum, int iDefault, int iDeltaPercent, const char * c_pszFlag)
+int get_drop_per_kill_pct(int iMinimum, int iDefault, int iDeltaPercent, const char * c_pszFlag)
 {
 	int iVal = 0;
 
-	if ((iVal = quest::CQuestManager::instance().GetEventFlag(c_pszFlag)))
+	if ((iVal = quest::quest_manager::instance().event_flag(c_pszFlag)))
 	{
 		if (!metin2::config::test_server())
 		{
@@ -683,20 +683,20 @@ int GetDropPerKillPct(int iMinimum, int iDefault, int iDeltaPercent, const char 
 	return (40000 * iDeltaPercent / iVal);
 }
 
-bool ITEM_MANAGER::GetDropPct(CHARACTER * pkChr, CHARACTER * pkKiller, int& iDeltaPercent, int& iRandRange)
+bool item_manager::drop_pct(character * pkChr, character * pkKiller, int& iDeltaPercent, int& iRandRange)
 {
  	if (nullptr == pkChr || nullptr == pkKiller)
 		return false;
 
-	int iLevel = pkKiller->GetLevel();
+	int iLevel = pkKiller->level();
 	iDeltaPercent = 100;
 
-	if (!pkChr->IsStone() && pkChr->GetMobRank() >= MOB_RANK_BOSS)
-		iDeltaPercent = PERCENT_LVDELTA_BOSS(pkKiller->GetLevel(), pkChr->GetLevel());
+	if (!pkChr->is_stone() && pkChr->get_mob_rank() >= MOB_RANK_BOSS)
+		iDeltaPercent = percent_lvdelta_boss(pkKiller->level(), pkChr->level());
 	else
-		iDeltaPercent = PERCENT_LVDELTA(pkKiller->GetLevel(), pkChr->GetLevel());
+		iDeltaPercent = percent_lvdelta(pkKiller->level(), pkChr->level());
 
-	uint8_t bRank = pkChr->GetMobRank();
+	uint8_t bRank = pkChr->get_mob_rank();
 
 	if (1 == number(1, 50000))
 		iDeltaPercent += 1000;
@@ -704,70 +704,70 @@ bool ITEM_MANAGER::GetDropPct(CHARACTER * pkChr, CHARACTER * pkKiller, int& iDel
 		iDeltaPercent += 500;
 
 	metin2::log::debug( "CreateDropItem for level: {:d} rank: {:d} pct: {:d}", iLevel, bRank, iDeltaPercent);
-	iDeltaPercent = iDeltaPercent * CHARACTER_MANAGER::instance().GetMobItemRate(pkKiller) / 100;
+	iDeltaPercent = iDeltaPercent * character_manager::instance().mob_item_rate(pkKiller) / 100;
 
 	// ADD_PREMIUM
-	if (pkKiller->GetPremiumRemainSeconds(PREMIUM_ITEM) > 0 ||
-			pkKiller->IsEquipUniqueGroup(UNIQUE_GROUP_DOUBLE_ITEM))
+	if (pkKiller->premium_remain_seconds(PREMIUM_ITEM) > 0 ||
+			pkKiller->is_equip_unique_group(UNIQUE_GROUP_DOUBLE_ITEM))
 		iDeltaPercent += iDeltaPercent;
 	// END_OF_ADD_PREMIUM
 
 	iRandRange = 4000000;
 	iRandRange = iRandRange * 100 / 
 		(100 +
-		 CPrivManager::instance().GetPriv(pkKiller, PRIV_ITEM_DROP) +
-		 (pkKiller->IsEquipUniqueItem(UNIQUE_ITEM_DOUBLE_ITEM) ? 100 : 0));
+		 priv_manager::instance().priv(pkKiller, PRIV_ITEM_DROP) +
+		 (pkKiller->is_equip_unique_item(UNIQUE_ITEM_DOUBLE_ITEM) ? 100 : 0));
 
 	if (metin2::config::game().distribution_test_server) iRandRange /= 3;
 
 	return true;
 }
 
-bool ITEM_MANAGER::CreateDropItem(CHARACTER * pkChr, CHARACTER * pkKiller, std::vector<CItem *> & vec_item)
+bool item_manager::create_drop_item(character * pkChr, character * pkKiller, std::vector<item *> & vec_item)
 {
-	int iLevel = pkKiller->GetLevel();
+	int iLevel = pkKiller->level();
 
 	int iDeltaPercent, iRandRange;
-	if (!GetDropPct(pkChr, pkKiller, iDeltaPercent, iRandRange))
+	if (!drop_pct(pkChr, pkKiller, iDeltaPercent, iRandRange))
 		return false;
 
-	uint8_t bRank = pkChr->GetMobRank();
-	CItem * item = nullptr;
+	uint8_t bRank = pkChr->get_mob_rank();
+	item * item = nullptr;
 
 	// Common Drop Items
-	std::vector<CItemDropInfo>::iterator it = g_vec_pkCommonDropItem[bRank].begin();
+	std::vector<item_drop_info>::iterator it = vec_pk_common_drop_item[bRank].begin();
 
-	while (it != g_vec_pkCommonDropItem[bRank].end())
+	while (it != vec_pk_common_drop_item[bRank].end())
 	{
-		const CItemDropInfo & c_rInfo = *(it++);
+		const item_drop_info & c_rInfo = *(it++);
 
-		if (iLevel < c_rInfo.m_iLevelStart || iLevel > c_rInfo.m_iLevelEnd)
+		if (iLevel < c_rInfo.level_start || iLevel > c_rInfo.level_end)
 			continue;
 
-		int iPercent = (c_rInfo.m_iPercent * iDeltaPercent) / 100;
-		metin2::log::debug( "CreateDropItem {:d} ~ {:d} {:d} {:d}({:d})", c_rInfo.m_iLevelStart, c_rInfo.m_iLevelEnd, c_rInfo.m_dwVnum, iPercent, c_rInfo.m_iPercent);
+		int iPercent = (c_rInfo.percent * iDeltaPercent) / 100;
+		metin2::log::debug( "CreateDropItem {:d} ~ {:d} {:d} {:d}({:d})", c_rInfo.level_start, c_rInfo.level_end, c_rInfo.vnum, iPercent, c_rInfo.percent);
 
 		if (iPercent >= number(1, iRandRange))
 		{
-			TItemTable * table = GetTable(c_rInfo.m_dwVnum);
+			item_table * table_value = table(c_rInfo.vnum);
 
-			if (!table)
+			if (!table_value)
 				continue;
 
 			item = nullptr;
 
-			if (table->bType == ITEM_POLYMORPH)
+			if (table_value->type == ITEM_POLYMORPH)
 			{
-				if (c_rInfo.m_dwVnum == pkChr->GetPolymorphItemVnum())
+				if (c_rInfo.vnum == pkChr->polymorph_item_vnum())
 				{
-					item = CreateItem(c_rInfo.m_dwVnum, 1, 0, true);
+					item = create_item(c_rInfo.vnum, 1, 0, true);
 
 					if (item)
-						item->SetSocket(0, pkChr->GetRaceNum());
+						item->set_socket(0, pkChr->race_num());
 				}
 			}
 			else
-				item = CreateItem(c_rInfo.m_dwVnum, 1, 0, true);
+				item = create_item(c_rInfo.vnum, 1, 0, true);
 
 			if (item) vec_item.push_back(item);
 		}
@@ -775,28 +775,28 @@ bool ITEM_MANAGER::CreateDropItem(CHARACTER * pkChr, CHARACTER * pkKiller, std::
 
 	// Drop Item Group
 	{
-		decltype(m_map_pkDropItemGroup.begin()) it;
-		it = m_map_pkDropItemGroup.find(pkChr->GetRaceNum());
+		decltype(map_pk_drop_item_group_.begin()) it;
+		it = map_pk_drop_item_group_.find(pkChr->race_num());
 
-		if (it != m_map_pkDropItemGroup.end())
+		if (it != map_pk_drop_item_group_.end())
 		{
-			__typeof(it->second->GetVector()) v = it->second->GetVector();
+			__typeof(it->second->get_vector()) v = it->second->get_vector();
 
 			for (uint32_t i = 0; i < v.size(); ++i)
 			{
-				int iPercent = (v[i].dwPct * iDeltaPercent) / 100;
+				int iPercent = (v[i].pct * iDeltaPercent) / 100;
 
 				if (iPercent >= number(1, iRandRange))
 				{
-					item = CreateItem(v[i].dwVnum, v[i].iCount, 0, true);
+					item = create_item(v[i].vnum, v[i].count, 0, true);
 
 					if (item)
 					{
-						if (item->GetType() == ITEM_POLYMORPH)
+						if (item->type() == ITEM_POLYMORPH)
 						{
-							if (item->GetVnum() == pkChr->GetPolymorphItemVnum())
+							if (item->vnum() == pkChr->polymorph_item_vnum())
 							{
-								item->SetSocket(0, pkChr->GetRaceNum());
+								item->set_socket(0, pkChr->race_num());
 							}
 						}
 
@@ -809,22 +809,22 @@ bool ITEM_MANAGER::CreateDropItem(CHARACTER * pkChr, CHARACTER * pkKiller, std::
 
 	// MobDropItem Group
 	{
-		decltype(m_map_pkMobItemGroup.begin()) it;
-		it = m_map_pkMobItemGroup.find(pkChr->GetRaceNum());
+		decltype(map_pk_mob_item_group_.begin()) it;
+		it = map_pk_mob_item_group_.find(pkChr->race_num());
 
-		if ( it != m_map_pkMobItemGroup.end() )
+		if ( it != map_pk_mob_item_group_.end() )
 		{
-			CMobItemGroup* pGroup = it->second;
+			mob_item_group* pGroup = it->second;
 
 			// MOB_DROP_ITEM_BUG_FIX
 			// 20050805.myevan.Fixed problem accessing CMobItemGroup::GetOne() when MobDropItem has no items
-			if (pGroup && !pGroup->IsEmpty())
+			if (pGroup && !pGroup->is_empty())
 			{
-				int iPercent = 40000 * iDeltaPercent / pGroup->GetKillPerDrop();
+				int iPercent = 40000 * iDeltaPercent / pGroup->kill_per_drop();
 				if (iPercent >= number(1, iRandRange))
 				{
-					const CMobItemGroup::SMobItemGroupInfo& info = pGroup->GetOne();
-					item = CreateItem(info.dwItemVnum, info.iCount, 0, true, info.iRarePct);
+					const mob_item_group::mob_item_group_info& info = pGroup->one();
+					item = create_item(info.item_vnum, info.count, 0, true, info.rare_pct);
 
 					if (item) vec_item.push_back(item);
 				}
@@ -835,21 +835,21 @@ bool ITEM_MANAGER::CreateDropItem(CHARACTER * pkChr, CHARACTER * pkKiller, std::
 
 	// Level Item Group
 	{
-		decltype(m_map_pkLevelItemGroup.begin()) it;
-		it = m_map_pkLevelItemGroup.find(pkChr->GetRaceNum());
+		decltype(map_pk_level_item_group_.begin()) it;
+		it = map_pk_level_item_group_.find(pkChr->race_num());
 
-		if ( it != m_map_pkLevelItemGroup.end() )
+		if ( it != map_pk_level_item_group_.end() )
 		{
-			if ( it->second->GetLevelLimit() <= (uint32_t)iLevel )
+			if ( it->second->level_limit() <= (uint32_t)iLevel )
 			{
-				__typeof(it->second->GetVector()) v = it->second->GetVector();
+				__typeof(it->second->get_vector()) v = it->second->get_vector();
 
 				for ( uint32_t i=0; i < v.size(); i++ )
 				{
-					if ( v[i].dwPct >= (uint32_t)number(1, 1000000/*iRandRange*/) )
+					if ( v[i].pct >= (uint32_t)number(1, 1000000/*iRandRange*/) )
 					{
-						uint32_t dwVnum = v[i].dwVNum;
-						item = CreateItem(dwVnum, v[i].iCount, 0, true);
+						uint32_t dwVnum = v[i].v_num;
+						item = create_item(dwVnum, v[i].count, 0, true);
 						if ( item ) vec_item.push_back(item);
 					}
 				}
@@ -859,24 +859,24 @@ bool ITEM_MANAGER::CreateDropItem(CHARACTER * pkChr, CHARACTER * pkKiller, std::
 	
 	// BuyerTheitGloves Item Group
 	{
-		if (pkKiller->GetPremiumRemainSeconds(PREMIUM_ITEM) > 0 ||
-				pkKiller->IsEquipUniqueGroup(UNIQUE_GROUP_DOUBLE_ITEM))
+		if (pkKiller->premium_remain_seconds(PREMIUM_ITEM) > 0 ||
+				pkKiller->is_equip_unique_group(UNIQUE_GROUP_DOUBLE_ITEM))
 		{
-			decltype(m_map_pkGloveItemGroup.begin()) it;
-			it = m_map_pkGloveItemGroup.find(pkChr->GetRaceNum());
+			decltype(map_pk_glove_item_group_.begin()) it;
+			it = map_pk_glove_item_group_.find(pkChr->race_num());
 
-			if (it != m_map_pkGloveItemGroup.end())
+			if (it != map_pk_glove_item_group_.end())
 			{
-				__typeof(it->second->GetVector()) v = it->second->GetVector();
+				__typeof(it->second->get_vector()) v = it->second->get_vector();
 
 				for (uint32_t i = 0; i < v.size(); ++i)
 				{
-					int iPercent = (v[i].dwPct * iDeltaPercent) / 100;
+					int iPercent = (v[i].pct * iDeltaPercent) / 100;
 
 					if (iPercent >= number(1, iRandRange))
 					{
-						uint32_t dwVnum = v[i].dwVnum;
-						item = CreateItem(dwVnum, v[i].iCount, 0, true);
+						uint32_t dwVnum = v[i].vnum;
+						item = create_item(dwVnum, v[i].count, 0, true);
 						if (item) vec_item.push_back(item);
 					}
 				}
@@ -885,69 +885,69 @@ bool ITEM_MANAGER::CreateDropItem(CHARACTER * pkChr, CHARACTER * pkKiller, std::
 	}
 	
 	// Junk items
-	if (pkChr->GetMobDropItemVnum())
+	if (pkChr->mob_drop_item_vnum())
 	{
-		auto it = m_map_dwEtcItemDropProb.find(pkChr->GetMobDropItemVnum());
+		auto it = map_dw_etc_item_drop_prob_.find(pkChr->mob_drop_item_vnum());
 
-		if (it != m_map_dwEtcItemDropProb.end())
+		if (it != map_dw_etc_item_drop_prob_.end())
 		{
 			int iPercent = (it->second * iDeltaPercent) / 100;
 
 			if (iPercent >= number(1, iRandRange))
 			{
-				item = CreateItem(pkChr->GetMobDropItemVnum(), 1, 0, true);
+				item = create_item(pkChr->mob_drop_item_vnum(), 1, 0, true);
 				if (item) vec_item.push_back(item);
 			}
 		}
 	}
 
-	if (pkChr->IsStone())
+	if (pkChr->is_stone())
 	{
-		if (pkChr->GetDropMetinStoneVnum())
+		if (pkChr->drop_metin_stone_vnum())
 		{
-			int iPercent = (pkChr->GetDropMetinStonePct() * iDeltaPercent) * 400;
+			int iPercent = (pkChr->drop_metin_stone_pct() * iDeltaPercent) * 400;
 
 			if (iPercent >= number(1, iRandRange))
 			{
-				item = CreateItem(pkChr->GetDropMetinStoneVnum(), 1, 0, true);
+				item = create_item(pkChr->drop_metin_stone_vnum(), 1, 0, true);
 				if (item) vec_item.push_back(item);
 			}
 		}
 	}
 
-	if (pkKiller->IsHorseRiding() && 
-			GetDropPerKillPct(1000, 1000000, iDeltaPercent, "horse_skill_book_drop") >= number(1, iRandRange))
+	if (pkKiller->is_horse_riding() && 
+			get_drop_per_kill_pct(1000, 1000000, iDeltaPercent, "horse_skill_book_drop") >= number(1, iRandRange))
 	{
 		metin2::log::info( "EVENT HORSE_SKILL_BOOK_DROP");
 
-		if ((item = CreateItem(ITEM_HORSE_SKILL_TRAIN_BOOK, 1, 0, true)))
+		if ((item = create_item(ITEM_HORSE_SKILL_TRAIN_BOOK, 1, 0, true)))
 			vec_item.push_back(item);
 	}
 
 
-	if (GetDropPerKillPct(100, 1000, iDeltaPercent, "lotto_drop") >= number(1, iRandRange))
+	if (get_drop_per_kill_pct(100, 1000, iDeltaPercent, "lotto_drop") >= number(1, iRandRange))
 	{
 		uint32_t * pdw = new uint32_t[3];
 
 		pdw[0] = 50001;
 		pdw[1] = 1;
-		pdw[2] = quest::CQuestManager::instance().GetEventFlag("lotto_round");
+		pdw[2] = quest::quest_manager::instance().event_flag("lotto_round");
 
 		// Set the socket for the Book of Fortune
-		DBManager::instance().ReturnQuery(QID_LOTTO, pkKiller->GetPlayerID(), pdw,
+		db_manager::instance().return_query(QID_LOTTO, pkKiller->player_id(), pdw,
 				"INSERT INTO lotto_list VALUES(0, 'server%s', %u, NOW())",
-				get_table_postfix(), pkKiller->GetPlayerID());
+				get_table_postfix(), pkKiller->player_id());
 	}
 
 	//
 	// Special drop items
 	// 
-	CreateQuestDropItem(pkChr, pkKiller, vec_item, iDeltaPercent, iRandRange);
+	create_quest_drop_item(pkChr, pkKiller, vec_item, iDeltaPercent, iRandRange);
 
 	for (auto it = vec_item.begin(); it != vec_item.end(); ++it)
 	{
-		CItem * item = *it;
-		DBManager::instance().SendMoneyLog(MONEY_LOG_DROP, item->GetVnum(), item->GetCount());
+		game::items::item * item = *it;
+		db_manager::instance().send_money_log(MONEY_LOG_DROP, item->vnum(), item->count());
 	}
 
 	//
@@ -962,7 +962,7 @@ bool ITEM_MANAGER::CreateDropItem(CHARACTER * pkChr, CHARACTER * pkKiller, std::
 }
 
 // ADD_GRANDMASTER_SKILL
-int GetThreeSkillLevelAdjust(int level)
+int get_three_skill_level_adjust(int level)
 {
 	if (level < 40)
 		return 32;
@@ -984,86 +984,86 @@ int GetThreeSkillLevelAdjust(int level)
 // drop_char_stone.percent_lv11_30 10
 // drop_char_stone.percent_lv31_MX 15
 // drop_char_stone.level_range	   10
-static struct DropEvent_CharStone
+static struct drop_event_char_stone
 {
 	int percent_lv01_10;
 	int percent_lv11_30;
-	int percent_lv31_MX;
+	int percent_lv31_mx;
 	int level_range;
 	bool alive;
 
-	DropEvent_CharStone()
+	drop_event_char_stone()
 	{
 		percent_lv01_10 =  100;
 		percent_lv11_30 =  200;
-		percent_lv31_MX =  300;
+		percent_lv31_mx =  300;
 		level_range = 10;
 		alive = false;
 	}
-} gs_dropEvent_charStone;
+} gs_drop_event_char_stone;
 
-static int __DropEvent_CharStone_GetDropPercent(int killer_level)
+static int drop_event_char_stone_get_drop_percent(int killer_level)
 {
 	int killer_levelStep = (killer_level-1)/10;
 
 	switch (killer_levelStep)
 	{
 		case 0:
-			return gs_dropEvent_charStone.percent_lv01_10;
+			return gs_drop_event_char_stone.percent_lv01_10;
 
 		case 1:
 		case 2:
-			return gs_dropEvent_charStone.percent_lv11_30;
+			return gs_drop_event_char_stone.percent_lv11_30;
 	}
 
-	return gs_dropEvent_charStone.percent_lv31_MX;
+	return gs_drop_event_char_stone.percent_lv31_mx;
 }
 
-static void __DropEvent_CharStone_DropItem(CHARACTER & killer, CHARACTER & victim, ITEM_MANAGER& itemMgr, std::vector<CItem *>& vec_item)
+static void drop_event_char_stone_drop_item(character & killer, character & victim, item_manager& itemMgr, std::vector<item *>& vec_item)
 {
-	if (!gs_dropEvent_charStone.alive)
+	if (!gs_drop_event_char_stone.alive)
 		return;
 
-	int killer_level = killer.GetLevel();
-	int dropPercent = __DropEvent_CharStone_GetDropPercent(killer_level);
+	int killer_level = killer.level();
+	int dropPercent = drop_event_char_stone_get_drop_percent(killer_level);
 
 	int MaxRange = 10000;
 
 
 	if (number(1, MaxRange) <= dropPercent)
 	{
-		int victim_level = victim.GetLevel();
+		int victim_level = victim.level();
 		int level_diff = victim_level - killer_level;
 
-		if (level_diff >= +gs_dropEvent_charStone.level_range || level_diff <= -gs_dropEvent_charStone.level_range)
+		if (level_diff >= +gs_drop_event_char_stone.level_range || level_diff <= -gs_drop_event_char_stone.level_range)
 		{
 			metin2::log::debug( 
 					"dropevent.drop_char_stone.level_range_over: killer({}: lv{:d}), victim({}: lv:{:d}), level_diff({:d})",
-					killer.GetName(), killer.GetLevel(), victim.GetName(), victim.GetLevel(), level_diff);	
+					killer.name(), killer.level(), victim.name(), victim.level(), level_diff);	
 			return;
 		}
 
 		static const int Stones[] = { 30210, 30211, 30212, 30213, 30214, 30215, 30216, 30217, 30218, 30219, 30258, 30259, 30260, 30261, 30262, 30263 };
 		int item_vnum = Stones[number(0, static_cast<int>(std::size(Stones)) - 1)];
 
-		CItem * p_item = nullptr;
+		item * p_item = nullptr;
 
-		if ((p_item = itemMgr.CreateItem(item_vnum, 1, 0, true)))
+		if ((p_item = itemMgr.create_item(item_vnum, 1, 0, true)))
 		{
 			vec_item.push_back(p_item);
 
 			metin2::log::debug( 
 					"dropevent.drop_char_stone.item_drop: killer({}: lv{:d}), victim({}: lv:{:d}), item_name({})",
-					killer.GetName(), killer.GetLevel(), victim.GetName(), victim.GetLevel(), p_item->GetName());	
+					killer.name(), killer.level(), victim.name(), victim.level(), p_item->name());	
 		}
 	}
 }
 
-bool DropEvent_CharStone_SetValue(const std::string& name, int value)
+bool drop_event_char_stone_set_value(const std::string& name, int value)
 {
 	if (name == "drop_char_stone")
 	{
-		gs_dropEvent_charStone.alive = value;
+		gs_drop_event_char_stone.alive = value;
 
 		if (value)
 			metin2::log::info( "dropevent.drop_char_stone = on");
@@ -1072,21 +1072,21 @@ bool DropEvent_CharStone_SetValue(const std::string& name, int value)
 
 	}
 	else if (name == "drop_char_stone.percent_lv01_10")
-		gs_dropEvent_charStone.percent_lv01_10 = value;
+		gs_drop_event_char_stone.percent_lv01_10 = value;
 	else if (name == "drop_char_stone.percent_lv11_30")
-		gs_dropEvent_charStone.percent_lv11_30 = value;
+		gs_drop_event_char_stone.percent_lv11_30 = value;
 	else if (name == "drop_char_stone.percent_lv31_MX")
-		gs_dropEvent_charStone.percent_lv31_MX = value;
+		gs_drop_event_char_stone.percent_lv31_mx = value;
 	else if (name == "drop_char_stone.level_range")
-		gs_dropEvent_charStone.level_range = value;
+		gs_drop_event_char_stone.level_range = value;
 	else
 		return false;
 
-	metin2::log::info( "dropevent.drop_char_stone: {:d}", gs_dropEvent_charStone.alive ? true : false);
-	metin2::log::info( "dropevent.drop_char_stone.percent_lv01_10: {:f}", gs_dropEvent_charStone.percent_lv01_10/100.0f);
-	metin2::log::info( "dropevent.drop_char_stone.percent_lv11_30: {:f}", gs_dropEvent_charStone.percent_lv11_30/100.0f);
-	metin2::log::info( "dropevent.drop_char_stone.percent_lv31_MX: {:f}", gs_dropEvent_charStone.percent_lv31_MX/100.0f);
-	metin2::log::info( "dropevent.drop_char_stone.level_range: {:d}", gs_dropEvent_charStone.level_range);
+	metin2::log::info( "dropevent.drop_char_stone: {:d}", gs_drop_event_char_stone.alive ? true : false);
+	metin2::log::info( "dropevent.drop_char_stone.percent_lv01_10: {:f}", gs_drop_event_char_stone.percent_lv01_10/100.0f);
+	metin2::log::info( "dropevent.drop_char_stone.percent_lv11_30: {:f}", gs_drop_event_char_stone.percent_lv11_30/100.0f);
+	metin2::log::info( "dropevent.drop_char_stone.percent_lv31_MX: {:f}", gs_drop_event_char_stone.percent_lv31_mx/100.0f);
+	metin2::log::info( "dropevent.drop_char_stone.level_range: {:d}", gs_drop_event_char_stone.level_range);
 
 	return true;
 }
@@ -1099,7 +1099,7 @@ bool DropEvent_CharStone_SetValue(const std::string& name, int value)
 // �?. I hate hardcoding T_T
 // Improved item reward start.
 // by rtsummit really need to fix this
-static struct DropEvent_RefineBox
+static struct drop_event_refine_box
 {
 	int percent_low;
 	int low;
@@ -1108,7 +1108,7 @@ static struct DropEvent_RefineBox
 	int percent_high;
 	bool alive;
 
-	DropEvent_RefineBox()
+	drop_event_refine_box()
 	{
 		percent_low =  100;
 		low = 20;
@@ -1117,9 +1117,9 @@ static struct DropEvent_RefineBox
 		percent_high =  100;
 		alive = false;
 	}
-} gs_dropEvent_refineBox;
+} gs_drop_event_refine_box;
 
-static CItem * __DropEvent_RefineBox_GetDropItem(CHARACTER & killer, CHARACTER & victim, ITEM_MANAGER& itemMgr)
+static item * drop_event_refine_box_get_drop_item(character & killer, character & victim, item_manager& itemMgr)
 {
 	static const int lowerBox[] = { 50197, 50198, 50199 };
 	static const int lowerBox_range = 3;
@@ -1128,42 +1128,42 @@ static CItem * __DropEvent_RefineBox_GetDropItem(CHARACTER & killer, CHARACTER &
 	static const int higherBox[] = { 50207, 50208, 50209, 50210, 50211 };
 	static const int higherBox_range = 5;
 
-	if (victim.GetMobRank() < MOB_RANK_KNIGHT)
+	if (victim.get_mob_rank() < MOB_RANK_KNIGHT)
 		return nullptr;
 
-	int killer_level = killer.GetLevel();
+	int killer_level = killer.level();
 
-	if (killer_level <= gs_dropEvent_refineBox.low)
+	if (killer_level <= gs_drop_event_refine_box.low)
 	{
-		if (number (1, gs_dropEvent_refineBox.percent_low) == 1)
+		if (number (1, gs_drop_event_refine_box.percent_low) == 1)
 		{
-			return itemMgr.CreateItem(lowerBox [number (1,lowerBox_range) - 1], 1, 0, true);
+			return itemMgr.create_item(lowerBox [number (1,lowerBox_range) - 1], 1, 0, true);
 		}
 	}
-	else if (killer_level <= gs_dropEvent_refineBox.mid)
+	else if (killer_level <= gs_drop_event_refine_box.mid)
 	{
-		if (number (1, gs_dropEvent_refineBox.percent_mid) == 1)
+		if (number (1, gs_drop_event_refine_box.percent_mid) == 1)
 		{
-			return itemMgr.CreateItem(midderBox [number (1,midderBox_range) - 1], 1, 0, true);
+			return itemMgr.create_item(midderBox [number (1,midderBox_range) - 1], 1, 0, true);
 		}
 	}
 	else
 	{
-		if (number (1, gs_dropEvent_refineBox.percent_high) == 1)
+		if (number (1, gs_drop_event_refine_box.percent_high) == 1)
 		{
-			return itemMgr.CreateItem(higherBox [number (1,higherBox_range) - 1], 1, 0, true);
+			return itemMgr.create_item(higherBox [number (1,higherBox_range) - 1], 1, 0, true);
 		}
 	}
 	return nullptr;
 }
 
-static void __DropEvent_RefineBox_DropItem(CHARACTER & killer, CHARACTER & victim, ITEM_MANAGER& itemMgr, std::vector<CItem *>& vec_item)
+static void drop_event_refine_box_drop_item(character & killer, character & victim, item_manager& itemMgr, std::vector<item *>& vec_item)
 {
-	if (!gs_dropEvent_refineBox.alive)
+	if (!gs_drop_event_refine_box.alive)
 		return;
 
 
-	CItem * p_item = __DropEvent_RefineBox_GetDropItem(killer, victim, itemMgr);
+	item * p_item = drop_event_refine_box_get_drop_item(killer, victim, itemMgr);
 
 	if (p_item)
 	{
@@ -1171,15 +1171,15 @@ static void __DropEvent_RefineBox_DropItem(CHARACTER & killer, CHARACTER & victi
 
 		metin2::log::debug( 
 			"dropevent.drop_refine_box.item_drop: killer({}: lv{:d}), victim({}: lv:{:d}), item_name({})",
-			killer.GetName(), killer.GetLevel(), victim.GetName(), victim.GetLevel(), p_item->GetName());	
+			killer.name(), killer.level(), victim.name(), victim.level(), p_item->name());	
 	}
 }
 
-bool DropEvent_RefineBox_SetValue(const std::string& name, int value)
+bool drop_event_refine_box_set_value(const std::string& name, int value)
 {
 	if (name == "refine_box_drop")
 	{
-		gs_dropEvent_refineBox.alive = value;
+		gs_drop_event_refine_box.alive = value;
 
 		if (value)
 			metin2::log::info( "refine_box_drop = on");
@@ -1188,27 +1188,27 @@ bool DropEvent_RefineBox_SetValue(const std::string& name, int value)
 
 	}
 	else if (name == "refine_box_low")
-		gs_dropEvent_refineBox.percent_low = value < 100 ? 100 : value;
+		gs_drop_event_refine_box.percent_low = value < 100 ? 100 : value;
 	else if (name == "refine_box_mid")
-		gs_dropEvent_refineBox.percent_mid = value < 100 ? 100 : value;
+		gs_drop_event_refine_box.percent_mid = value < 100 ? 100 : value;
 	else if (name == "refine_box_high")
-		gs_dropEvent_refineBox.percent_high = value < 100 ? 100 : value;
+		gs_drop_event_refine_box.percent_high = value < 100 ? 100 : value;
 	else
 		return false;
 
-	metin2::log::info( "refine_box_drop: {:d}", gs_dropEvent_refineBox.alive ? true : false);
-	metin2::log::info( "refine_box_low: {:d}", gs_dropEvent_refineBox.percent_low);
-	metin2::log::info( "refine_box_mid: {:d}", gs_dropEvent_refineBox.percent_mid);
-	metin2::log::info( "refine_box_high: {:d}", gs_dropEvent_refineBox.percent_high);
+	metin2::log::info( "refine_box_drop: {:d}", gs_drop_event_refine_box.alive ? true : false);
+	metin2::log::info( "refine_box_low: {:d}", gs_drop_event_refine_box.percent_low);
+	metin2::log::info( "refine_box_mid: {:d}", gs_drop_event_refine_box.percent_mid);
+	metin2::log::info( "refine_box_high: {:d}", gs_drop_event_refine_box.percent_high);
 
 	return true;
 }
 // Improved item reward end.
 
 
-void ITEM_MANAGER::CreateQuestDropItem(CHARACTER * pkChr, CHARACTER * pkKiller, std::vector<CItem *> & vec_item, int iDeltaPercent, int iRandRange)
+void item_manager::create_quest_drop_item(character * pkChr, character * pkKiller, std::vector<item *> & vec_item, int iDeltaPercent, int iRandRange)
 {
-	CItem * item = nullptr;
+	item * item = nullptr;
 
 	if (!pkChr)
 		return;
@@ -1216,15 +1216,15 @@ void ITEM_MANAGER::CreateQuestDropItem(CHARACTER * pkChr, CHARACTER * pkKiller, 
 	if (!pkKiller)
 		return;
 
-	metin2::log::debug( "CreateQuestDropItem victim({}), killer({})", pkChr->GetName(), pkKiller->GetName() );
+	metin2::log::debug( "CreateQuestDropItem victim({}), killer({})", pkChr->name(), pkKiller->name() );
 
 	// DROPEVENT_CHARSTONE
-	__DropEvent_CharStone_DropItem(*pkKiller, *pkChr, *this, vec_item);
+	drop_event_char_stone_drop_item(*pkKiller, *pkChr, *this, vec_item);
 	// END_OF_DROPEVENT_CHARSTONE
-	__DropEvent_RefineBox_DropItem(*pkKiller, *pkChr, *this, vec_item);
+	drop_event_refine_box_drop_item(*pkKiller, *pkChr, *this, vec_item);
 
 	// Christmas sock
-	if (quest::CQuestManager::instance().GetEventFlag("xmas_sock"))
+	if (quest::quest_manager::instance().event_flag("xmas_sock"))
 	{
 		uint32_t	SOCK_ITEM_VNUM	= 0;
 		SOCK_ITEM_VNUM = 50010;
@@ -1239,22 +1239,22 @@ void ITEM_MANAGER::CreateQuestDropItem(CHARACTER * pkChr, CHARACTER * pkKiller, 
 			0,
 		};
 
-		if ( iDropPerKill[pkChr->GetMobRank()] != 0 )
+		if ( iDropPerKill[pkChr->get_mob_rank()] != 0 )
 		{
-			int iPercent = 40000 * iDeltaPercent / iDropPerKill[pkChr->GetMobRank()];
+			int iPercent = 40000 * iDeltaPercent / iDropPerKill[pkChr->get_mob_rank()];
 
 
 			metin2::log::info( "SOCK DROP {:d} {:d}", iPercent, iRandRange);
 			if (iPercent >= number(1, iRandRange))
 			{
-				if ((item = CreateItem(SOCK_ITEM_VNUM, 1, 0, true)))
+				if ((item = create_item(SOCK_ITEM_VNUM, 1, 0, true)))
 					vec_item.push_back(item);
 			}
 		}
 	}
 
 	// Moonlight treasure box
-	if (quest::CQuestManager::instance().GetEventFlag("drop_moon"))
+	if (quest::quest_manager::instance().event_flag("drop_moon"))
 	{
 		const uint32_t ITEM_VNUM = 50011;
 
@@ -1268,21 +1268,21 @@ void ITEM_MANAGER::CreateQuestDropItem(CHARACTER * pkChr, CHARACTER * pkKiller, 
 			0,
 		};
 
-		if (iDropPerKill[pkChr->GetMobRank()])
+		if (iDropPerKill[pkChr->get_mob_rank()])
 		{
-			int iPercent = 40000 * iDeltaPercent / iDropPerKill[pkChr->GetMobRank()];
+			int iPercent = 40000 * iDeltaPercent / iDropPerKill[pkChr->get_mob_rank()];
 
 			if (iPercent >= number(1, iRandRange))
 			{
-				if ((item = CreateItem(ITEM_VNUM, 1, 0, true)))
+				if ((item = create_item(ITEM_VNUM, 1, 0, true)))
 					vec_item.push_back(item);
 			}
 		}
 	}
 
-	if (pkKiller->GetLevel() >= 15 && abs(pkKiller->GetLevel() - pkChr->GetLevel()) <= 5)
+	if (pkKiller->level() >= 15 && abs(pkKiller->level() - pkChr->level()) <= 5)
 	{
-		int pct = quest::CQuestManager::instance().GetEventFlag("hc_drop");
+		int pct = quest::quest_manager::instance().event_flag("hc_drop");
 
 		if (pct > 0)
 		{
@@ -1290,175 +1290,175 @@ void ITEM_MANAGER::CreateQuestDropItem(CHARACTER * pkChr, CHARACTER * pkKiller, 
 
 			if (number(1,100) <= pct)
 			{
-				if ((item = CreateItem(ITEM_VNUM, 1, 0, true)))
+				if ((item = create_item(ITEM_VNUM, 1, 0, true)))
 					vec_item.push_back(item);
 			}
 		}
 	}
 
 	//Hexagonal treasure box
-	if (GetDropPerKillPct(100, 2000, iDeltaPercent, "2006_drop") >= number(1, iRandRange))
+	if (get_drop_per_kill_pct(100, 2000, iDeltaPercent, "2006_drop") >= number(1, iRandRange))
 	{
 		metin2::log::info( "육각보합 DROP EVENT ");
 
 		const static uint32_t dwVnum = 50037;
 
-		if ((item = CreateItem(dwVnum, 1, 0, true)))
+		if ((item = create_item(dwVnum, 1, 0, true)))
 			vec_item.push_back(item);
 
 	}
 
 	//Hexagonal treasure box+
-	if (GetDropPerKillPct(100, 2000, iDeltaPercent, "2007_drop") >= number(1, iRandRange))
+	if (get_drop_per_kill_pct(100, 2000, iDeltaPercent, "2007_drop") >= number(1, iRandRange))
 	{
 		metin2::log::info( "육각보합 DROP EVENT ");
 
 		const static uint32_t dwVnum = 50043;
 
-		if ((item = CreateItem(dwVnum, 1, 0, true)))
+		if ((item = create_item(dwVnum, 1, 0, true)))
 			vec_item.push_back(item);
 	}
 
 	// New Year firecracker event
-	if (GetDropPerKillPct(/* minimum */ 100, /* default */ 1000, iDeltaPercent, "newyear_fire") >= number(1, iRandRange))
+	if (get_drop_per_kill_pct(/* minimum */ 100, /* default */ 1000, iDeltaPercent, "newyear_fire") >= number(1, iRandRange))
 	{
 		// Firecrackers in China, spinning tops in Korea
 		const uint32_t ITEM_VNUM_FIRE = 50107;
 
-		if ((item = CreateItem(ITEM_VNUM_FIRE, 1, 0, true)))
+		if ((item = create_item(ITEM_VNUM_FIRE, 1, 0, true)))
 			vec_item.push_back(item);
 	}
 
 	// New Year full-moon festival event
-	if (GetDropPerKillPct(100, 500, iDeltaPercent, "newyear_moon") >= number(1, iRandRange))
+	if (get_drop_per_kill_pct(100, 500, iDeltaPercent, "newyear_moon") >= number(1, iRandRange))
 	{
 		metin2::log::info( "EVENT NEWYEAR_MOON DROP");
 
 		const static uint32_t wonso_items[6] = { 50016, 50017, 50018, 50019, 50019, 50019, };
 		uint32_t dwVnum = wonso_items[number(0,5)];
 
-		if ((item = CreateItem(dwVnum, 1, 0, true)))
+		if ((item = create_item(dwVnum, 1, 0, true)))
 			vec_item.push_back(item);
 	}
 
 	// Valentine's Day event. Changed event minimum to 1 at OGE's request. (Other events left as they are for now.)
-	if (GetDropPerKillPct(1, 2000, iDeltaPercent, "valentine_drop") >= number(1, iRandRange))
+	if (get_drop_per_kill_pct(1, 2000, iDeltaPercent, "valentine_drop") >= number(1, iRandRange))
 	{
 		metin2::log::info( "EVENT VALENTINE_DROP");
 
 		const static uint32_t valentine_items[2] = { 50024, 50025 };
 		uint32_t dwVnum = valentine_items[number(0, 1)];
 
-		if ((item = CreateItem(dwVnum, 1, 0, true)))
+		if ((item = create_item(dwVnum, 1, 0, true)))
 			vec_item.push_back(item);
 	}
 
 	// Ice cream event
-	if (GetDropPerKillPct(100, 2000, iDeltaPercent, "icecream_drop") >= number(1, iRandRange))
+	if (get_drop_per_kill_pct(100, 2000, iDeltaPercent, "icecream_drop") >= number(1, iRandRange))
 	{
 		const static uint32_t icecream = 50123;
 
-		if ((item = CreateItem(icecream, 1, 0, true)))
+		if ((item = create_item(icecream, 1, 0, true)))
 			vec_item.push_back(item);
 	}
 
 	// new Christmas event
 	// 53002 : baby reindeer summon ticket
-	if ((pkKiller->CountSpecifyItem(53002) > 0) && (GetDropPerKillPct(50, 100, iDeltaPercent, "new_xmas_event") >= number(1, iRandRange)))
+	if ((pkKiller->count_specify_item(53002) > 0) && (get_drop_per_kill_pct(50, 100, iDeltaPercent, "new_xmas_event") >= number(1, iRandRange)))
 	{
 		const static uint32_t xmas_sock = 50010;
-		pkKiller->AutoGiveItem (xmas_sock, 1);
+		pkKiller->auto_give_item (xmas_sock, 1);
 	}
 
-	if ((pkKiller->CountSpecifyItem(53007) > 0) && (GetDropPerKillPct(50, 100, iDeltaPercent, "new_xmas_event") >= number(1, iRandRange)))
+	if ((pkKiller->count_specify_item(53007) > 0) && (get_drop_per_kill_pct(50, 100, iDeltaPercent, "new_xmas_event") >= number(1, iRandRange)))
 	{
 		const static uint32_t xmas_sock = 50010;
-		pkKiller->AutoGiveItem (xmas_sock, 1);
+		pkKiller->auto_give_item (xmas_sock, 1);
 	}
 
-	if ( GetDropPerKillPct(100, 2000, iDeltaPercent, "halloween_drop") >= number(1, iRandRange) )
+	if ( get_drop_per_kill_pct(100, 2000, iDeltaPercent, "halloween_drop") >= number(1, iRandRange) )
 	{
 		const static uint32_t halloween_item = 30321;
 
-		if ( (item=CreateItem(halloween_item, 1, 0, true)) )
+		if ( (item=create_item(halloween_item, 1, 0, true)) )
 			vec_item.push_back(item);
 	}
 	
-	if ( GetDropPerKillPct(100, 2000, iDeltaPercent, "ramadan_drop") >= number(1, iRandRange) )
+	if ( get_drop_per_kill_pct(100, 2000, iDeltaPercent, "ramadan_drop") >= number(1, iRandRange) )
 	{
 		const static uint32_t ramadan_item = 30315;
 
-		if ( (item=CreateItem(ramadan_item, 1, 0, true)) )
+		if ( (item=create_item(ramadan_item, 1, 0, true)) )
 			vec_item.push_back(item);
 	}
 
-	if ( GetDropPerKillPct(100, 2000, iDeltaPercent, "easter_drop") >= number(1, iRandRange) )
+	if ( get_drop_per_kill_pct(100, 2000, iDeltaPercent, "easter_drop") >= number(1, iRandRange) )
 	{
 		const static uint32_t easter_item_base = 50160;
 
-		if ( (item=CreateItem(easter_item_base+number(0,19), 1, 0, true)) )
+		if ( (item=create_item(easter_item_base+number(0,19), 1, 0, true)) )
 			vec_item.push_back(item);
 	}
 
 	// World Cup event
-	if ( GetDropPerKillPct(100, 2000, iDeltaPercent, "football_drop") >= number(1, iRandRange) )
+	if ( get_drop_per_kill_pct(100, 2000, iDeltaPercent, "football_drop") >= number(1, iRandRange) )
 	{
 		const static uint32_t football_item = 50096;
 
-		if ( (item=CreateItem(football_item, 1, 0, true)) )
+		if ( (item=create_item(football_item, 1, 0, true)) )
 			vec_item.push_back(item);
 	}
 
 	// White Day event
-	if (GetDropPerKillPct(100, 2000, iDeltaPercent, "whiteday_drop") >= number(1, iRandRange))
+	if (get_drop_per_kill_pct(100, 2000, iDeltaPercent, "whiteday_drop") >= number(1, iRandRange))
 	{
 		metin2::log::info( "EVENT WHITEDAY_DROP");
 		const static uint32_t whiteday_items[2] = { ITEM_WHITEDAY_ROSE, ITEM_WHITEDAY_CANDY };
 		uint32_t dwVnum = whiteday_items[number(0,1)];
 
-		if ((item = CreateItem(dwVnum, 1, 0, true)))
+		if ((item = create_item(dwVnum, 1, 0, true)))
 			vec_item.push_back(item);
 	}
 
 	// Children's Day mystery box event
-	if (pkKiller->GetLevel()>=50)
+	if (pkKiller->level()>=50)
 	{
-		if (GetDropPerKillPct(100, 1000, iDeltaPercent, "kids_day_drop_high") >= number(1, iRandRange))
+		if (get_drop_per_kill_pct(100, 1000, iDeltaPercent, "kids_day_drop_high") >= number(1, iRandRange))
 		{
 			uint32_t ITEM_QUIZ_BOX = 50034;
 
-			if ((item = CreateItem(ITEM_QUIZ_BOX, 1, 0, true)))
+			if ((item = create_item(ITEM_QUIZ_BOX, 1, 0, true)))
 				vec_item.push_back(item);
 		}
 	}
 	else
 	{
-		if (GetDropPerKillPct(100, 1000, iDeltaPercent, "kids_day_drop") >= number(1, iRandRange))
+		if (get_drop_per_kill_pct(100, 1000, iDeltaPercent, "kids_day_drop") >= number(1, iRandRange))
 		{
 			uint32_t ITEM_QUIZ_BOX = 50034;
 
-			if ((item = CreateItem(ITEM_QUIZ_BOX, 1, 0, true)))
+			if ((item = create_item(ITEM_QUIZ_BOX, 1, 0, true)))
 				vec_item.push_back(item);
 		}
 	}
 
 	// Olympic drop event
-	if (pkChr->GetLevel() >= 30 && GetDropPerKillPct(50, 100, iDeltaPercent, "medal_part_drop") >= number(1, iRandRange))
+	if (pkChr->level() >= 30 && get_drop_per_kill_pct(50, 100, iDeltaPercent, "medal_part_drop") >= number(1, iRandRange))
 	{
 		const static uint32_t drop_items[] = { 30265, 30266, 30267, 30268, 30269 };
 		int i = number (0, 4);
-		item = CreateItem(drop_items[i]);
+		item = create_item(drop_items[i]);
 		if (item != nullptr)
 			vec_item.push_back(item);
 	}
 
 	// ADD_GRANDMASTER_SKILL
 	// Soul stone item drop
-	if (pkChr->GetLevel() >= 40 && pkChr->GetMobRank() >= MOB_RANK_BOSS && GetDropPerKillPct(/* minimum */ 1, /* default */ 1000, iDeltaPercent, "three_skill_item") / GetThreeSkillLevelAdjust(pkChr->GetLevel()) >= number(1, iRandRange))
+	if (pkChr->level() >= 40 && pkChr->get_mob_rank() >= MOB_RANK_BOSS && get_drop_per_kill_pct(/* minimum */ 1, /* default */ 1000, iDeltaPercent, "three_skill_item") / get_three_skill_level_adjust(pkChr->level()) >= number(1, iRandRange))
 	{
 		const uint32_t ITEM_VNUM = 50513;
 
-		if ((item = CreateItem(ITEM_VNUM, 1, 0, true)))
+		if ((item = create_item(ITEM_VNUM, 1, 0, true)))
 			vec_item.push_back(item);
 	}
 	// END_OF_ADD_GRANDMASTER_SKILL
@@ -1466,16 +1466,16 @@ void ITEM_MANAGER::CreateQuestDropItem(CHARACTER * pkChr, CHARACTER * pkKiller, 
 	//
 	// Seed item drop
 	//
-	if (GetDropPerKillPct(100, 1000, iDeltaPercent, "dragon_boat_festival_drop") >= number(1, iRandRange))
+	if (get_drop_per_kill_pct(100, 1000, iDeltaPercent, "dragon_boat_festival_drop") >= number(1, iRandRange))
 	{
 		const uint32_t ITEM_SEED = 50085;
 
-		if ((item = CreateItem(ITEM_SEED, 1, 0, true)))
+		if ((item = create_item(ITEM_SEED, 1, 0, true)))
 			vec_item.push_back(item);
 	}
 
 	// Ten-thousand-year iron drop for the Blessing of the War God
-	if (pkKiller->GetLevel() >= 15 && quest::CQuestManager::instance().GetEventFlag("mars_drop"))
+	if (pkKiller->level() >= 15 && quest::quest_manager::instance().event_flag("mars_drop"))
 	{
 		const uint32_t ITEM_HANIRON = 70035;
 		int iDropMultiply[MOB_RANK_MAX_NUM] =
@@ -1488,47 +1488,47 @@ void ITEM_MANAGER::CreateQuestDropItem(CHARACTER * pkChr, CHARACTER * pkKiller, 
 			0,
 		};
 
-		if (iDropMultiply[pkChr->GetMobRank()] &&
-				GetDropPerKillPct(1000, 1500, iDeltaPercent, "mars_drop") >= number(1, iRandRange) * iDropMultiply[pkChr->GetMobRank()])
+		if (iDropMultiply[pkChr->get_mob_rank()] &&
+				get_drop_per_kill_pct(1000, 1500, iDeltaPercent, "mars_drop") >= number(1, iRandRange) * iDropMultiply[pkChr->get_mob_rank()])
 		{
-			if ((item = CreateItem(ITEM_HANIRON, 1, 0, true)))
+			if ((item = create_item(ITEM_HANIRON, 1, 0, true)))
 				vec_item.push_back(item);
 		}
 	}
 }
 
-uint32_t ITEM_MANAGER::GetRefineFromVnum(uint32_t dwVnum)
+uint32_t item_manager::refine_from_vnum(uint32_t dwVnum)
 {
-	auto it = m_map_ItemRefineFrom.find(dwVnum);
-	if (it != m_map_ItemRefineFrom.end())
+	auto it = map_item_refine_from_.find(dwVnum);
+	if (it != map_item_refine_from_.end())
 		return it->second;
 	return 0;
 }
 
-const CSpecialItemGroup* ITEM_MANAGER::GetSpecialItemGroup(uint32_t dwVnum)
+const special_item_group* item_manager::get_special_item_group(uint32_t dwVnum)
 {
-	auto it = m_map_pkSpecialItemGroup.find(dwVnum);
-	if (it != m_map_pkSpecialItemGroup.end())
+	auto it = map_pk_special_item_group_.find(dwVnum);
+	if (it != map_pk_special_item_group_.end())
 	{
 		return it->second;
 	}
 	return nullptr;
 }
 
-const CSpecialAttrGroup* ITEM_MANAGER::GetSpecialAttrGroup(uint32_t dwVnum)
+const special_attr_group* item_manager::get_special_attr_group(uint32_t dwVnum)
 {
-	auto it = m_map_pkSpecialAttrGroup.find(dwVnum);
-	if (it != m_map_pkSpecialAttrGroup.end())
+	auto it = map_pk_special_attr_group_.find(dwVnum);
+	if (it != map_pk_special_attr_group_.end())
 	{
 		return it->second;
 	}
 	return nullptr;
 }
 
-uint32_t ITEM_MANAGER::GetMaskVnum(uint32_t dwVnum)
+uint32_t item_manager::mask_vnum(uint32_t dwVnum)
 {
-	TMapDW2DW::iterator it = m_map_new_to_ori.find (dwVnum);
-	if (it != m_map_new_to_ori.end())
+	map_d_w2_dw::iterator it = map_new_to_ori_.find (dwVnum);
+	if (it != map_new_to_ori_.end())
 	{
 		return it->second;
 	}
@@ -1538,14 +1538,14 @@ uint32_t ITEM_MANAGER::GetMaskVnum(uint32_t dwVnum)
 
 // Copies all attributes and socket values to pkNewItem.
 // Copied as-is from TransformRefineItem, a local function formerly in char_item.cpp
-void ITEM_MANAGER::CopyAllAttrTo(CItem * pkOldItem, CItem * pkNewItem)
+void item_manager::copy_all_attr_to(item * pkOldItem, item * pkNewItem)
 {
 	// ACCESSORY_REFINE
-	if (pkOldItem->IsAccessoryForSocket())
+	if (pkOldItem->is_accessory_for_socket())
 	{
 		for (int i = 0; i < ITEM_SOCKET_MAX_NUM; ++i)
 		{
-			pkNewItem->SetSocket(i, pkOldItem->GetSocket(i));
+			pkNewItem->set_socket(i, pkOldItem->get_socket(i));
 		}
 	}
 	// END_OF_ACCESSORY_REFINE
@@ -1554,10 +1554,10 @@ void ITEM_MANAGER::CopyAllAttrTo(CItem * pkOldItem, CItem * pkNewItem)
 		// Broken stones are cleaned up automatically here
 		for (int i = 0; i < ITEM_SOCKET_MAX_NUM; ++i)
 		{
-			if (!pkOldItem->GetSocket(i))
+			if (!pkOldItem->get_socket(i))
 				break;
 			else
-				pkNewItem->SetSocket(i, 1);
+				pkNewItem->set_socket(i, 1);
 		}
 
 		// Set sockets
@@ -1565,15 +1565,15 @@ void ITEM_MANAGER::CopyAllAttrTo(CItem * pkOldItem, CItem * pkNewItem)
 
 		for (int i = 0; i < ITEM_SOCKET_MAX_NUM; ++i)
 		{
-			int32_t socket = pkOldItem->GetSocket(i);
+			int32_t socket = pkOldItem->get_socket(i);
 			const int ITEM_BROKEN_METIN_VNUM = 28960; // Why is the same constant in 3 places... just make it one T_T I'm passing, Hong will do it
 			if (socket > 2 && socket != ITEM_BROKEN_METIN_VNUM)
-				pkNewItem->SetSocket(slot++, socket);
+				pkNewItem->set_socket(slot++, socket);
 		}
 
 	}
 
 	// Set magic item
-	pkOldItem->CopyAttributeTo(pkNewItem);
+	pkOldItem->copy_attribute_to(pkNewItem);
 }
 }

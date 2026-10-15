@@ -141,7 +141,7 @@ namespace metin2::config {
     };
 
     struct settings {
-        config::role role = role::game;
+        config::role role = config::role::game;
         bool test_server = false;
         log_settings log;
         database_settings database;

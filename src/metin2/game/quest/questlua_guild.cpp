@@ -27,14 +27,14 @@ namespace quest
 	//
 	int guild_around_ranking_string(lua_State* L)
 	{
-		CQuestManager& q = CQuestManager::instance();
-		CHARACTER * ch = q.GetCurrentCharacterPtr();
-		if (!ch->GetGuild())
+		quest_manager& q = quest_manager::instance();
+		character * ch = q.current_character_ptr();
+		if (!ch->get_guild())
 			lua_pushstring(L,"");
 		else
 		{
 			char szBuf[4096+1];
-			CGuildManager::instance().GetAroundRankString(ch->GetGuild()->GetID(), szBuf, sizeof(szBuf));
+			guild_manager::instance().around_rank_string(ch->get_guild()->id(), szBuf, sizeof(szBuf));
 			lua_pushstring(L, szBuf);
 		}
 		return 1;
@@ -42,45 +42,45 @@ namespace quest
 
 	int guild_high_ranking_string(lua_State* L)
 	{
-		CQuestManager& q = CQuestManager::instance();
-		CHARACTER * ch = q.GetCurrentCharacterPtr();
+		quest_manager& q = quest_manager::instance();
+		character * ch = q.current_character_ptr();
 		uint32_t dwMyGuild = 0;
-		if (ch->GetGuild())
-			dwMyGuild = ch->GetGuild()->GetID();
+		if (ch->get_guild())
+			dwMyGuild = ch->get_guild()->id();
 
 		char szBuf[4096+1];
-		CGuildManager::instance().GetHighRankString(dwMyGuild, szBuf, sizeof(szBuf));
+		guild_manager::instance().high_rank_string(dwMyGuild, szBuf, sizeof(szBuf));
 		lua_pushstring(L, szBuf);
 		return 1;
 	}
 
 	int guild_get_ladder_point(lua_State* L)
 	{
-		CQuestManager& q = CQuestManager::instance();
-		CHARACTER * ch = q.GetCurrentCharacterPtr();
-		if (!ch->GetGuild())
+		quest_manager& q = quest_manager::instance();
+		character * ch = q.current_character_ptr();
+		if (!ch->get_guild())
 		{
 			lua_pushnumber(L, -1);
 		}
 		else
 		{
-			lua_pushnumber(L, ch->GetGuild()->GetLadderPoint());
+			lua_pushnumber(L, ch->get_guild()->ladder_point());
 		}
 		return 1;
 	}
 
 	int guild_get_rank(lua_State* L)
 	{
-		CQuestManager& q = CQuestManager::instance();
-		CHARACTER * ch = q.GetCurrentCharacterPtr();
+		quest_manager& q = quest_manager::instance();
+		character * ch = q.current_character_ptr();
 
-		if (!ch->GetGuild())
+		if (!ch->get_guild())
 		{
 			lua_pushnumber(L, -1);
 		}
 		else
 		{
-			lua_pushnumber(L, CGuildManager::instance().GetRank(ch->GetGuild()));
+			lua_pushnumber(L, guild_manager::instance().rank(ch->get_guild()));
 		}
 		return 1;
 	}
@@ -93,9 +93,9 @@ namespace quest
 			return 0;
 		}
 
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
-		if (ch->GetGuild() && ch->GetGuild()->UnderWar((uint32_t) lua_tonumber(L, 1)))
+		if (ch->get_guild() && ch->get_guild()->under_war((uint32_t) lua_tonumber(L, 1)))
 			lua_pushboolean(L, true);
 		else
 			lua_pushboolean(L, false);
@@ -111,10 +111,10 @@ namespace quest
 			return 0;
 		}
 
-		CGuild * pkGuild = CGuildManager::instance().FindGuild((uint32_t) lua_tonumber(L, 1));
+		guild * pkGuild = guild_manager::instance().find_guild((uint32_t) lua_tonumber(L, 1));
 
 		if (pkGuild)
-			lua_pushstring(L, pkGuild->GetName());
+			lua_pushstring(L, pkGuild->name());
 		else
 			lua_pushstring(L, "");
 
@@ -125,10 +125,10 @@ namespace quest
 	{
 		luaL_checknumber(L, 1);
 
-		CGuild * pkGuild = CGuildManager::instance().FindGuild((uint32_t) lua_tonumber(L, 1));
+		guild * pkGuild = guild_manager::instance().find_guild((uint32_t) lua_tonumber(L, 1));
 
 		if (pkGuild)
-			lua_pushnumber(L, pkGuild->GetLevel());
+			lua_pushnumber(L, pkGuild->level());
 		else
 			lua_pushnumber(L, 0);
 
@@ -143,21 +143,21 @@ namespace quest
 			return 0;
 		}
 
-		CQuestManager& q = CQuestManager::instance();
-		CHARACTER * ch = q.GetCurrentCharacterPtr();
+		quest_manager& q = quest_manager::instance();
+		character * ch = q.current_character_ptr();
 
-		if (ch->GetGuild())
-			ch->GetGuild()->GuildWarEntryAccept((uint32_t) lua_tonumber(L, 1), ch);
+		if (ch->get_guild())
+			ch->get_guild()->guild_war_entry_accept((uint32_t) lua_tonumber(L, 1), ch);
 
 		return 0;
 	}
 
 	int guild_get_any_war(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
-		if (ch->GetGuild())
-			lua_pushnumber(L, ch->GetGuild()->UnderAnyWar());
+		if (ch->get_guild())
+			lua_pushnumber(L, ch->get_guild()->under_any_war());
 		else
 			lua_pushnumber(L, 0);
 
@@ -172,10 +172,10 @@ namespace quest
 			return 1;
 		}
 
-		CGuild * pkGuild = CGuildManager::instance().FindGuild((uint32_t) lua_tonumber(L, 1));
+		guild * pkGuild = guild_manager::instance().find_guild((uint32_t) lua_tonumber(L, 1));
 
 		if (pkGuild)
-			lua_pushstring(L, pkGuild->GetName());
+			lua_pushstring(L, pkGuild->name());
 		else
 			lua_pushstring(L, "");
 
@@ -190,19 +190,19 @@ namespace quest
 			return 0;
 		}
 
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
-		TPacketGDGuildWarBet p;
+		packet_gd_guild_war_bet p;
 
-		p.dwWarID = (uint32_t) lua_tonumber(L, 1);
-		strlcpy(p.szLogin, ch->GetDesc()->GetAccountTable().login, sizeof(p.szLogin));
-		p.dwGuild = (uint32_t) lua_tonumber(L, 2);
-		p.dwGold = (uint32_t) lua_tonumber(L, 3);
+		p.war_id = (uint32_t) lua_tonumber(L, 1);
+		strlcpy(p.login, ch->get_desc()->get_account_table().login, sizeof(p.login));
+		p.guild = (uint32_t) lua_tonumber(L, 2);
+		p.gold = (uint32_t) lua_tonumber(L, 3);
 
 		metin2::log::info( "GUILD_WAR_BET: {} login {} war_id {:d} guild {:d} gold {:d}", 
-				ch->GetName(), p.szLogin, p.dwWarID, p.dwGuild, p.dwGold);
+				ch->name(), p.login, p.war_id, p.guild, p.gold);
 
-		db_clientdesc->DBPacket(HEADER_GD_GUILD_WAR_BET, 0, &p, sizeof(p));
+		db_clientdesc->db_packet(HEADER_GD_GUILD_WAR_BET, 0, &p, sizeof(p));
 		return 0;
 	}
 
@@ -215,8 +215,8 @@ namespace quest
 			return 1;
 		}
 
-		bool bBet = CGuildManager::instance().IsBet((uint32_t) lua_tonumber(L, 1),
-				CQuestManager::instance().GetCurrentCharacterPtr()->GetDesc()->GetAccountTable().login);
+		bool bBet = guild_manager::instance().is_bet((uint32_t) lua_tonumber(L, 1),
+				quest_manager::instance().current_character_ptr()->get_desc()->get_account_table().login);
 
 		lua_pushboolean(L, bBet);
 		return 1;
@@ -224,17 +224,17 @@ namespace quest
 
 	int guild_get_warp_war_list(lua_State* L)
 	{
-		FBuildLuaGuildWarList f(L);
-		CGuildManager::instance().for_each_war(f);
+		f_build_lua_guild_war_list f(L);
+		guild_manager::instance().for_each_war(f);
 		return 1;
 	}
 
 	int guild_get_reserve_war_table(lua_State * L)
 	{
-		std::vector<CGuildWarReserveForGame *> & con = CGuildManager::instance().GetReserveWarRef();
+		std::vector<guild_war_reserve_for_game *> & con = guild_manager::instance().reserve_war_ref();
 
 		int i = 0;
-		std::vector<CGuildWarReserveForGame *>::iterator it = con.begin();
+		std::vector<guild_war_reserve_for_game *>::iterator it = con.begin();
 
 		metin2::log::info( "con.size(): {:d}", con.size());
 
@@ -243,37 +243,37 @@ namespace quest
 
 		while (it != con.end())
 		{
-			TGuildWarReserve * p = &(*(it++))->data;
+			guild_war_reserve * p = &(*(it++))->data;
 
-			if (p->bType != GUILD_WAR_TYPE_BATTLE)
+			if (p->type != GUILD_WAR_TYPE_BATTLE)
 				continue;
 
 			lua_newtable(L);
 
-			metin2::log::info( "con.size(): {:d} {:d} {:d} handi {:d}", p->dwID, p->dwGuildFrom, p->dwGuildTo, p->lHandicap);
+			metin2::log::info( "con.size(): {:d} {:d} {:d} handi {:d}", p->id, p->guild_from, p->guild_to, p->handicap);
 
 			// stack : table1 table2
-			lua_pushnumber(L, p->dwID);
+			lua_pushnumber(L, p->id);
 			// stack : table1 table2 dwID
 			lua_rawseti(L, -2, 1);
 
 			// stack : table1 table2
-			if (p->lPowerFrom > p->lPowerTo)
-				lua_pushnumber(L, p->dwGuildFrom);
+			if (p->power_from > p->power_to)
+				lua_pushnumber(L, p->guild_from);
 			else
-				lua_pushnumber(L, p->dwGuildTo);
+				lua_pushnumber(L, p->guild_to);
 			// stack : table1 table2 guildfrom
 			lua_rawseti(L, -2, 2);
 
 			// stack : table1 table2
-			if (p->lPowerFrom > p->lPowerTo)
-				lua_pushnumber(L, p->dwGuildTo);
+			if (p->power_from > p->power_to)
+				lua_pushnumber(L, p->guild_to);
 			else
-				lua_pushnumber(L, p->dwGuildFrom);
+				lua_pushnumber(L, p->guild_from);
 			// stack : table1 table2 guildto
 			lua_rawseti(L, -2, 3);
 
-			lua_pushnumber(L, p->lHandicap);
+			lua_pushnumber(L, p->handicap);
 			lua_rawseti(L, -2, 4);
 
 			// stack : table1 table2
@@ -285,7 +285,7 @@ namespace quest
 
 	int guild_get_member_count(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 		
 		if ( ch == nullptr )
 		{
@@ -293,7 +293,7 @@ namespace quest
 			return 1;
 		}
 
-		CGuild* pGuild = ch->GetGuild();
+		guild* pGuild = ch->get_guild();
 
 		if ( pGuild == nullptr )
 		{
@@ -301,7 +301,7 @@ namespace quest
 			return 1;
 		}
 
-		lua_pushnumber(L, pGuild->GetMemberCount());
+		lua_pushnumber(L, pGuild->member_count());
 
 		return 1;
 	}
@@ -315,13 +315,13 @@ namespace quest
 		//	3 : request succeeded
 		//	4 : no guild
 
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
-		CGuild* pGuild = ch->GetGuild();
+		guild* pGuild = ch->get_guild();
 
 		if ( pGuild != nullptr )
 		{
-			if ( pGuild->GetMasterPID() == ch->GetPlayerID() )
+			if ( pGuild->master_pid() == ch->player_id() )
 			{
 				if ( lua_isstring(L, 1) == false )
 				{
@@ -329,7 +329,7 @@ namespace quest
 				}
 				else
 				{
-					bool ret = pGuild->ChangeMasterTo(pGuild->GetMemberPID(lua_tostring(L, 1)));
+					bool ret = pGuild->change_master_to(pGuild->member_pid(lua_tostring(L, 1)));
 
 					lua_pushnumber(L, ret == false ? 2 : 3 );
 				}
@@ -367,13 +367,13 @@ namespace quest
 		//	6 : the named character's level is below the required level
 		//	7 : the new guild leader is blocked by the be_other_leader limit
 
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
-		CGuild* pGuild = ch->GetGuild();
+		guild* pGuild = ch->get_guild();
 
 		if ( pGuild != nullptr )
 		{
-			if ( pGuild->GetMasterPID() == ch->GetPlayerID() )
+			if ( pGuild->master_pid() == ch->player_id() )
 			{
 				if ( lua_isstring(L, 1) == false )
 				{
@@ -381,18 +381,18 @@ namespace quest
 				}
 				else
 				{
-					CHARACTER * pNewMaster = CHARACTER_MANAGER::instance().FindPC( lua_tostring(L,1) );
+					character * pNewMaster = character_manager::instance().find_pc( lua_tostring(L,1) );
 
 					if ( pNewMaster != nullptr )
 					{
-						if ( pNewMaster->GetLevel() < lua_tonumber(L, 2) )
+						if ( pNewMaster->level() < lua_tonumber(L, 2) )
 						{
 							lua_pushnumber(L, 6);
 						}
 						else
 						{
-							int nBeOtherLeader = pNewMaster->GetQuestFlag("change_guild_master.be_other_leader");
-							CQuestManager::instance().GetPC( ch->GetPlayerID() );
+							int nBeOtherLeader = pNewMaster->quest_flag("change_guild_master.be_other_leader");
+							quest_manager::instance().get_pc( ch->player_id() );
 
 							if ( lua_toboolean(L, 6) == true ) nBeOtherLeader = 0;
 
@@ -402,7 +402,7 @@ namespace quest
 							}
 							else
 							{
-								bool ret = pGuild->ChangeMasterTo(pGuild->GetMemberPID(lua_tostring(L, 1)));
+								bool ret = pGuild->change_master_to(pGuild->member_pid(lua_tostring(L, 1)));
 
 								if ( ret == false )
 								{
@@ -412,13 +412,13 @@ namespace quest
 								{
 									lua_pushnumber(L, 3);
 
-									pNewMaster->SetQuestFlag("change_guild_master.be_other_leader", 0);
-									pNewMaster->SetQuestFlag("change_guild_master.be_other_member", 0);
-									pNewMaster->SetQuestFlag("change_guild_master.resign_limit", (int)lua_tonumber(L, 3));
+									pNewMaster->set_quest_flag("change_guild_master.be_other_leader", 0);
+									pNewMaster->set_quest_flag("change_guild_master.be_other_member", 0);
+									pNewMaster->set_quest_flag("change_guild_master.resign_limit", (int)lua_tonumber(L, 3));
 
-									ch->SetQuestFlag("change_guild_master.be_other_leader", (int)lua_tonumber(L, 4));
-									ch->SetQuestFlag("change_guild_master.be_other_member", (int)lua_tonumber(L, 5));
-									ch->SetQuestFlag("change_guild_master.resign_limit", 0);
+									ch->set_quest_flag("change_guild_master.be_other_leader", (int)lua_tonumber(L, 4));
+									ch->set_quest_flag("change_guild_master.be_other_member", (int)lua_tonumber(L, 5));
+									ch->set_quest_flag("change_guild_master.resign_limit", 0);
 								}
 							}
 						}
@@ -442,7 +442,7 @@ namespace quest
 		return 1;
 	}
 
-	void RegisterGuildFunctionTable()
+	void register_guild_function_table()
 	{
 		luaL_reg guild_functions[] =
 		{
@@ -467,7 +467,7 @@ namespace quest
 			{ nullptr,						nullptr						}
 		};
 
-		CQuestManager::instance().AddLuaFunctionTable("guild", guild_functions);
+		quest_manager::instance().add_lua_function_table("guild", guild_functions);
 	}
 }
 }

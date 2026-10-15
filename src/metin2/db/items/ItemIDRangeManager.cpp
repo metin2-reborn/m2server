@@ -18,76 +18,76 @@
 
 namespace metin2::db::inline items {
 
-CItemIDRangeManager::CItemIDRangeManager()
+item_id_range_manager::item_id_range_manager()
 {
-	m_listData.clear();
+	data_.clear();
 }
 
-void CItemIDRangeManager::Build()
+void item_id_range_manager::build()
 {
 	uint32_t dwMin = 0;
 	uint32_t dwMax = 0;
-	TItemIDRangeTable range;
+	item_id_range_table range;
 
 	for (int i = 0; ; ++i)
 	{
-		dwMin = cs_dwMinimumRange * (i + 1) + 1;
-		dwMax = cs_dwMinimumRange * (i + 2);
+		dwMin = cs_dw_minimum_range_ * (i + 1) + 1;
+		dwMax = cs_dw_minimum_range_ * (i + 2);
 
-		if (dwMax == cs_dwMaxItemID)
+		if (dwMax == cs_dw_max_item_id_)
 			break;
 
-		if (CClientManager::instance().GetItemRange().dwMin <= dwMin &&
-			CClientManager::instance().GetItemRange().dwMax >= dwMax)
+		if (client_manager::instance().item_range().min <= dwMin &&
+			client_manager::instance().item_range().max >= dwMax)
 		{
 			continue;
 		}
 
-		if (BuildRange(dwMin, dwMax, range) == true)
+		if (build_range(dwMin, dwMax, range) == true)
 		{
-			m_listData.push_back(range);
+			data_.push_back(range);
 		}
 	}
 }
 
-struct FCheckCollision
+struct f_check_collision
 {
-	bool hasCollision;
-	TItemIDRangeTable range;
+	bool has_collision;
+	item_id_range_table range;
 
-	FCheckCollision(TItemIDRangeTable data)
+	f_check_collision(item_id_range_table data)
 	{
-		hasCollision = false;
+		has_collision = false;
 		range = data;
 	}
 
-	void operator() (CPeer* peer)
+	void operator() (peer* peer)
 	{
-		if (hasCollision == false)
+		if (has_collision == false)
 		{
-			hasCollision = peer->CheckItemIDRangeCollision(range);
+			has_collision = peer->check_item_id_range_collision(range);
 		}
 	}
 };
 
-TItemIDRangeTable CItemIDRangeManager::GetRange()
+item_id_range_table item_id_range_manager::range()
 {
-	TItemIDRangeTable ret;
-	ret.dwMin = 0;
-	ret.dwMax = 0;
-	ret.dwUsableItemIDMin = 0;
+	item_id_range_table ret;
+	ret.min = 0;
+	ret.max = 0;
+	ret.usable_item_id_min = 0;
 
-	if (m_listData.size() > 0)
+	if (data_.size() > 0)
 	{
-		while (m_listData.size() > 0)
+		while (data_.size() > 0)
 		{
-			ret = m_listData.front();
-			m_listData.pop_front();
+			ret = data_.front();
+			data_.pop_front();
 
-			FCheckCollision f(ret);
-			CClientManager::instance().for_each_peer(f);
+			f_check_collision f(ret);
+			client_manager::instance().for_each_peer(f);
 
-			if (f.hasCollision == false) return ret;
+			if (f.has_collision == false) return ret;
 		}
 	}
 
@@ -97,22 +97,22 @@ TItemIDRangeTable CItemIDRangeManager::GetRange()
 	return ret;
 }
 
-bool CItemIDRangeManager::BuildRange(uint32_t dwMin, uint32_t dwMax, TItemIDRangeTable& range)
+bool item_id_range_manager::build_range(uint32_t dwMin, uint32_t dwMax, item_id_range_table& range)
 {
 	char szQuery[1024];
 	uint32_t dwItemMaxID = 0;
-	std::unique_ptr<SQLMsg> pMsg;
+	std::unique_ptr<ql_msg> pMsg;
 	MYSQL_ROW row;
 
-	snprintf(szQuery, sizeof(szQuery), "SELECT MAX(id) FROM item%s WHERE id >= %u and id <= %u", GetTablePostfix(), dwMin, dwMax);
+	snprintf(szQuery, sizeof(szQuery), "SELECT MAX(id) FROM item%s WHERE id >= %u and id <= %u", get_table_postfix(), dwMin, dwMax);
 
-	pMsg.reset(CDBManager::instance().DirectQuery(szQuery));
+	pMsg.reset(db_manager::instance().direct_query(szQuery));
 
 	if (pMsg != nullptr)
 	{
-		if (pMsg->Get()->uiNumRows > 0)
+		if (pMsg->get()->num_rows > 0)
 		{
-			row = mysql_fetch_row(pMsg->Get()->pSQLResult);
+			row = mysql_fetch_row(pMsg->get()->sql_result);
 			str_to_number(dwItemMaxID, row[0]);
 		}
 	}
@@ -122,38 +122,38 @@ bool CItemIDRangeManager::BuildRange(uint32_t dwMin, uint32_t dwMax, TItemIDRang
 	else
 		dwItemMaxID++;
 	
-	if ((dwMax < dwItemMaxID) || (dwMax - dwItemMaxID < cs_dwMinimumRemainCount))
+	if ((dwMax < dwItemMaxID) || (dwMax - dwItemMaxID < cs_dw_minimum_remain_count_))
 	{
 		metin2::log::info( "ItemIDRange: Build {:d} ~ {:d} start: {:d}\tNOT USE remain count is below {:d}",
-			   	dwMin, dwMax, dwItemMaxID, cs_dwMinimumRemainCount);
+			   	dwMin, dwMax, dwItemMaxID, cs_dw_minimum_remain_count_);
 	}
 	else
 	{
-		range.dwMin = dwMin;
-		range.dwMax = dwMax;
-		range.dwUsableItemIDMin = dwItemMaxID;
+		range.min = dwMin;
+		range.max = dwMax;
+		range.usable_item_id_min = dwItemMaxID;
 
 		snprintf(szQuery, sizeof(szQuery), "SELECT COUNT(*) FROM item%s WHERE id >= %u AND id <= %u", 
-				GetTablePostfix(), range.dwUsableItemIDMin, range.dwMax);
+				get_table_postfix(), range.usable_item_id_min, range.max);
 
-		pMsg.reset(CDBManager::instance().DirectQuery(szQuery));
+		pMsg.reset(db_manager::instance().direct_query(szQuery));
 
 		if (pMsg != nullptr)
 		{
-			if (pMsg->Get()->uiNumRows > 0)
+			if (pMsg->get()->num_rows > 0)
 			{
 				uint32_t count = 0;
-				row = mysql_fetch_row(pMsg->Get()->pSQLResult);
+				row = mysql_fetch_row(pMsg->get()->sql_result);
 				str_to_number(count, row[0]);
 
 				if (count > 0)
 				{
-					metin2::log::error("ItemIDRange: Build: {:d} ~ {:d}\thave a item", range.dwUsableItemIDMin, range.dwMax);
+					metin2::log::error("ItemIDRange: Build: {:d} ~ {:d}\thave a item", range.usable_item_id_min, range.max);
 					return false;
 				}
 				else
 				{
-					metin2::log::info( "ItemIDRange: Build: {:d} ~ {:d} start:{:d}", range.dwMin, range.dwMax, range.dwUsableItemIDMin);
+					metin2::log::info( "ItemIDRange: Build: {:d} ~ {:d} start:{:d}", range.min, range.max, range.usable_item_id_min);
 					return true;
 				}
 			}
@@ -163,13 +163,13 @@ bool CItemIDRangeManager::BuildRange(uint32_t dwMin, uint32_t dwMax, TItemIDRang
 	return false;
 }
 
-void CItemIDRangeManager::UpdateRange(uint32_t dwMin, uint32_t dwMax)
+void item_id_range_manager::update_range(uint32_t dwMin, uint32_t dwMax)
 {
-	TItemIDRangeTable range;
+	item_id_range_table range;
 
-	if (BuildRange(dwMin, dwMax, range) == true)
+	if (build_range(dwMin, dwMax, range) == true)
 	{
-		m_listData.push_back(range);
+		data_.push_back(range);
 	}
 }
 }

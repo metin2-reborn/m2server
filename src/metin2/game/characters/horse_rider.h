@@ -8,100 +8,100 @@
 #include <cstdint>
 
 namespace metin2::game::inline characters {
-    class CHARACTER;
+    class character;
 }
 namespace metin2::game::inline admin {
-    void do_horse_set_stat(CHARACTER *ch, const char *argument, int cmd, int subcmd);
+    void do_horse_set_stat(character *ch, const char *argument, int cmd, int subcmd);
 }
 
 namespace metin2::game::inline characters {
 
 const int HORSE_MAX_LEVEL = 30;
 
-struct THorseStat
+struct horse_stat
 {
-	int iMinLevel;      // Minimum level to ride
-	int iNPCRace;
-	int iMaxHealth;     // Horse max HP
-	int iMaxStamina;    // Horse max stamina
-	int iST;
-	int iDX;
-	int iHT;
-	int iIQ;
-	int iDamMean;
-	int iDamMin;
-	int iDamMax;
-	int iArmor;
+	int min_level;      // Minimum level to ride
+	int npc_race;
+	int max_health;     // Horse max HP
+	int max_stamina;    // Horse max stamina
+	int st;
+	int dx;
+	int ht;
+	int iq;
+	int dam_mean;
+	int dam_min;
+	int dam_max;
+	int armor;
 };
 
-extern THorseStat c_aHorseStat[HORSE_MAX_LEVEL+1];
+extern horse_stat c_a_horse_stat[HORSE_MAX_LEVEL+1];
 
-class CHorseRider
+class horse_rider
 {
 	public:
-		CHorseRider();
-		virtual ~CHorseRider();
+		horse_rider();
+		virtual ~horse_rider();
 		
-		uint8_t		GetHorseLevel() const { return m_Horse.bLevel; }
-		uint8_t		GetHorseGrade();
-		short		GetHorseHealth() const	{ return m_Horse.sHealth; }
-		short		GetHorseStamina() const	{ return m_Horse.sStamina; }
-		short		GetHorseMaxHealth();
-		short		GetHorseMaxStamina();
+		uint8_t		horse_level() const { return horse_.level; }
+		uint8_t		horse_grade();
+		short		horse_health() const	{ return horse_.s_health; }
+		short		horse_stamina() const	{ return horse_.s_stamina; }
+		short		horse_max_health();
+		short		horse_max_stamina();
 
-		int		GetHorseST()		{ return c_aHorseStat[GetHorseLevel()].iST; }
-		int		GetHorseDX()		{ return c_aHorseStat[GetHorseLevel()].iDX; }
-		int		GetHorseHT()		{ return c_aHorseStat[GetHorseLevel()].iHT; }
-		int		GetHorseIQ()		{ return c_aHorseStat[GetHorseLevel()].iIQ; }
-		int		GetHorseArmor()		{ return c_aHorseStat[GetHorseLevel()].iArmor; }
+		int		horse_st()		{ return c_a_horse_stat[horse_level()].st; }
+		int		horse_dx()		{ return c_a_horse_stat[horse_level()].dx; }
+		int		horse_ht()		{ return c_a_horse_stat[horse_level()].ht; }
+		int		horse_iq()		{ return c_a_horse_stat[horse_level()].iq; }
+		int		horse_armor()		{ return c_a_horse_stat[horse_level()].armor; }
 
-		virtual bool ReviveHorse();
-		void FeedHorse();
-		virtual void HorseDie();
+		virtual bool revive_horse();
+		void feed_horse();
+		virtual void horse_die();
 
-		bool IsHorseRiding() const		{ return m_Horse.bRiding; }
+		bool is_horse_riding() const		{ return horse_.riding; }
 
-		void ResetHorseHealthDropTime();
+		void reset_horse_health_drop_time();
 
-		virtual void SetHorseLevel(int iLevel);
+		virtual void set_horse_level(int iLevel);
 
-		void EnterHorse();
+		void enter_horse();
 
-		virtual void SendHorseInfo() {}
-		virtual void ClearHorseInfo() {}
+		virtual void send_horse_info() {}
+		virtual void clear_horse_info() {}
 
-		virtual void UpdateRideTime(int interval) {}
+		virtual void update_ride_time(int interval) {}
 
 	protected:
-		void SetHorseData(const THorseInfo& crInfo);
-		const THorseInfo& GetHorseData() const { return m_Horse; }
+		void set_horse_data(const horse_info& crInfo);
+		const horse_info& horse_data() const { return horse_; }
 
-		void UpdateHorseDataByLogoff(uint32_t dwLogoffTime);
+		void update_horse_data_by_logoff(uint32_t dwLogoffTime);
 
-		virtual bool StartRiding();
-		virtual bool StopRiding();
+		virtual bool start_riding();
+		virtual bool stop_riding();
 
-		virtual	uint32_t GetMyHorseVnum() const { return 20030; }
+		virtual	uint32_t my_horse_vnum() const { return 20030; }
 
 	private:
-		void UpdateHorseStamina(int iStamina, bool bSend = true);
+		void update_horse_stamina(int iStamina, bool bSend = true);
 
-		void StartStaminaConsumeEvent();
-		void StartStaminaRegenEvent();
+		void start_stamina_consume_event();
+		void start_stamina_regen_event();
 
-		void UpdateHorseHealth(int iHealth, bool bSend = true);
-		void CheckHorseHealthDropTime(bool bSend = true);
+		void update_horse_health(int iHealth, bool bSend = true);
+		void check_horse_health_drop_time(bool bSend = true);
 
-		void Initialize();
-		void Destroy();
+		void initialize();
+		void destroy();
 
-		THorseInfo m_Horse;
+		horse_info horse_;
 
-		LPEVENT	m_eventStaminaRegen;
-		LPEVENT	m_eventStaminaConsume;
+		event_ptr	event_stamina_regen_;
+		event_ptr	event_stamina_consume_;
 
 		friend EVENTFUNC(horse_stamina_regen_event);
 		friend EVENTFUNC(horse_stamina_consume_event);
-		friend void admin::do_horse_set_stat(CHARACTER *ch, const char *argument, int cmd, int subcmd);
+		friend void admin::do_horse_set_stat(character *ch, const char *argument, int cmd, int subcmd);
 };
 }

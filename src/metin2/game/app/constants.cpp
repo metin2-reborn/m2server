@@ -10,7 +10,7 @@
 
 namespace metin2::game::inline app {
 
-TJobInitialPoints JobInitialPoints[JOB_MAX_NUM] = 
+job_initial_point job_initial_points[JOB_MAX_NUM] = 
 {
 	// str con dex int initHP initSP  CON/HP INT/SP  HPrand/lv   MPrand/lv  initStam  stam/con stam/lv
 	{   6,  4,  3,  3,  600,   200,     40,    20,    36, 44,     18, 22,     800,      5,      1, 3  }, // JOB_WARRIOR  16
@@ -19,7 +19,7 @@ TJobInitialPoints JobInitialPoints[JOB_MAX_NUM] =
 	{   3,  4,  3,  6,  700,   200,     40,    20,    36, 44,     18, 22,     800,      5,      1, 3  }  // JOB_SHAMANa  16
 };
 
-const TMobRankStat MobRankStats[MOB_RANK_MAX_NUM] =
+const mob_rank_stat mob_rank_stats[MOB_RANK_MAX_NUM] =
 {
 	{  20,  }, // MOB_RANK_PAWN, 
 	{  20,  }, // MOB_RANK_S_PAWN, 
@@ -161,7 +161,7 @@ const uint32_t exp_table[PLAYER_EXP_TABLE_MAX + 1] =
 
 // Table used for calculations based on the level difference between the enemy and me
 // std::min(MAX_EXP_DELTA_OF_LEV - 1, (enemyLv + 15) - myLv))
-const int aiPercentByDeltaLevForBoss[MAX_EXP_DELTA_OF_LEV] =
+const int percent_by_delta_lev_for_boss[MAX_EXP_DELTA_OF_LEV] =
 {
 	1,      // -15  0
 	3,          // -14  1
@@ -198,7 +198,7 @@ const int aiPercentByDeltaLevForBoss[MAX_EXP_DELTA_OF_LEV] =
 
 
 
-const int aiPercentByDeltaLev[MAX_EXP_DELTA_OF_LEV] =
+const int percent_by_delta_lev[MAX_EXP_DELTA_OF_LEV] =
 {
 	1,  //  -15 0
 	5,  //  -14 1
@@ -250,7 +250,7 @@ const uint32_t party_exp_distribute_table[PLAYER_MAX_LEVEL_CONST + 1] =
 	12000,	12000,	12000,	12000,	12000,	12000,	12000,	12000,	12000,	12000,	// 111 - 120
 };
 
-Coord aArroundCoords[ARROUND_COORD_MAX_NUM] = 
+coord arround_coords[ARROUND_COORD_MAX_NUM] = 
 {
 	{	     0,	      0	    },
 	{        0,      50     },
@@ -443,7 +443,7 @@ const uint32_t guild_exp_table2[GUILD_MAX_LEVEL+1] =
 };
 // END_OF_INTERNATIONAL_VERSION guild experience
 
-const int aiMobEnchantApplyIdx[MOB_ENCHANTS_MAX_NUM] =
+const int mob_enchant_apply_idx[MOB_ENCHANTS_MAX_NUM] =
 {
 	APPLY_CURSE_PCT,
 	APPLY_SLOW_PCT,
@@ -453,7 +453,7 @@ const int aiMobEnchantApplyIdx[MOB_ENCHANTS_MAX_NUM] =
 	APPLY_PENETRATE_PCT,
 };
 
-const int aiMobResistsApplyIdx[MOB_RESISTS_MAX_NUM] =
+const int mob_resists_apply_idx[MOB_RESISTS_MAX_NUM] =
 {
 	APPLY_RESIST_SWORD,
 	APPLY_RESIST_TWOHAND,
@@ -471,10 +471,10 @@ const int aiMobResistsApplyIdx[MOB_RESISTS_MAX_NUM] =
 
 
 
-TItemAttrMap g_map_itemAttr;
-TItemAttrMap g_map_itemRare;
+item_attr_map map_item_attr;
+item_attr_map map_item_rare;
 
-const TApplyInfo aApplyInfo[MAX_APPLY_NUM] =
+const apply_info a_apply_info[MAX_APPLY_NUM] =
 {
 	// Point Type
 	{ POINT_NONE,			},   // APPLY_NONE,		0
@@ -579,26 +579,26 @@ const TApplyInfo aApplyInfo[MAX_APPLY_NUM] =
 	{ POINT_RESIST_PENETRATE,		},   // APPLY_ANTI_PENETRATE_PCT,	91
 };
 
-const int aiItemMagicAttributePercentHigh[ITEM_ATTRIBUTE_MAX_LEVEL] =
+const int item_magic_attribute_percent_high[ITEM_ATTRIBUTE_MAX_LEVEL] =
 {
 	//25, 25, 40, 8, 2,
 	30, 40, 20, 8, 2
 };
 
-const int aiItemMagicAttributePercentLow[ITEM_ATTRIBUTE_MAX_LEVEL] =
+const int item_magic_attribute_percent_low[ITEM_ATTRIBUTE_MAX_LEVEL] =
 {
 	//45, 25, 20, 10, 0,
 	50, 40, 10, 0, 0
 };
 
 // ADD_ITEM_ATTRIBUTE
-const int aiItemAttributeAddPercent[ITEM_ATTRIBUTE_MAX_NUM] =
+const int item_attribute_add_percent[ITEM_ATTRIBUTE_MAX_NUM] =
 {
 	100, 80, 60, 50, 30, 0, 0, 
 };
 // END_OF_ADD_ITEM_ATTRIBUTE
 
-const int aiExpLossPercents[PLAYER_EXP_TABLE_MAX + 1] =
+const int exp_loss_percents[PLAYER_EXP_TABLE_MAX + 1] =
 {
 	0,
 	5, 5, 5, 5, 5, 5, 5, 5, 5, 4, // 1 - 10
@@ -615,25 +615,25 @@ const int aiExpLossPercents[PLAYER_EXP_TABLE_MAX + 1] =
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 111 - 120
 };
 
-const int aiSkillBookCountForLevelUp[10] =
+const int skill_book_count_for_level_up[10] =
 {
 	3, 3, 3, 3, 3, 4, 4, 5, 5, 6
 };
 
 // ADD_GRANDMASTER_SKILL
-const int aiGrandMasterSkillBookCountForLevelUp[10] =
+const int grand_master_skill_book_count_for_level_up[10] =
 {
 	3, 3, 5, 5, 7, 7, 10, 10, 10, 20, 
 };
 
-const int aiGrandMasterSkillBookMinCount[10] = 
+const int grand_master_skill_book_min_count[10] = 
 {
 //	1, 1, 3, 5, 10, 15, 20, 30, 40, 50, 
 //	3, 3, 5, 5, 10, 10, 15, 15, 20, 30
 	1, 1, 1, 2,  2,  3,  3,  4,  5,  6
 };
 
-const int aiGrandMasterSkillBookMaxCount[10] = 
+const int grand_master_skill_book_max_count[10] = 
 {
 //	6, 15, 30, 45, 60, 80, 100, 120, 160, 200,
 //	6, 10, 15, 20, 30, 40, 50, 60, 70, 80
@@ -641,7 +641,7 @@ const int aiGrandMasterSkillBookMaxCount[10] =
 };
 // END_OF_ADD_GRANDMASTER_SKILL
 
-const int CHN_aiPartyBonusExpPercentByMemberCount[9] =
+const int chn_ai_party_bonus_exp_percent_by_member_count[9] =
 {
 	0, 0, 12, 18, 26, 40, 53, 70, 100
 };
@@ -652,7 +652,7 @@ const int CHN_aiPartyBonusExpPercentByMemberCount[9] =
 // END_OF_UPGRADE_PARTY_BONUS
 
 
-const int aiChainLightningCountBySkillLevel[SKILL_MAX_LEVEL+1] =
+const int chain_lightning_count_by_skill_level[SKILL_MAX_LEVEL+1] =
 {
 	0,	// 0
 	2,	// 1
@@ -697,7 +697,7 @@ const int aiChainLightningCountBySkillLevel[SKILL_MAX_LEVEL+1] =
 	5,	// 40
 };
 
-const SStoneDropInfo aStoneDrop[STONE_INFO_MAX_NUM] =
+const stone_drop_info stone_drop[STONE_INFO_MAX_NUM] =
 {
 	//  mob		pct	{+0	+1	+2	+3	+4}
 	{8005,	60,	{30,	30,	30,	9,	1}	},
@@ -712,7 +712,7 @@ const SStoneDropInfo aStoneDrop[STONE_INFO_MAX_NUM] =
 	{8014,	60,	{0,	26,	41,	30,	3}	},
 };
 
-const char * c_apszEmpireNames[EMPIRE_MAX_NUM] =
+const char * apsz_empire_names[EMPIRE_MAX_NUM] =
 {
 	"전제국",
 	"신수국",
@@ -720,7 +720,7 @@ const char * c_apszEmpireNames[EMPIRE_MAX_NUM] =
 	"진노국"
 };
 
-const char * c_apszPrivNames[MAX_PRIV_NUM] =
+const char * apsz_priv_names[MAX_PRIV_NUM] =
 {
 	"",
 	"아이템이 나올 확률",
@@ -729,7 +729,7 @@ const char * c_apszPrivNames[MAX_PRIV_NUM] =
 	"경험치 배율",
 };
 
-const int aiPolymorphPowerByLevel[SKILL_MAX_LEVEL + 1] =
+const int polymorph_power_by_level[SKILL_MAX_LEVEL + 1] =
 {
 	10,   // 1
 	11,   // 2
@@ -773,7 +773,7 @@ const int aiPolymorphPowerByLevel[SKILL_MAX_LEVEL + 1] =
 	100,  // 40
 };
 
-TGuildWarInfo KOR_aGuildWarInfo[GUILD_WAR_TYPE_MAX_NUM] =
+guild_war_info kor_a_guild_war_info[GUILD_WAR_TYPE_MAX_NUM] =
 {
 	{ 0,        0,      0,      0,      0,      0       },
 	{ 110,      0,      100,    50,     0,      100     },
@@ -787,31 +787,31 @@ TGuildWarInfo KOR_aGuildWarInfo[GUILD_WAR_TYPE_MAX_NUM] =
 // Probability when adding a socket with a diamond
 
 // What % of the accessory value is added as performance
-const int aiAccessorySocketEffectivePct[ITEM_ACCESSORY_SOCKET_MAX_NUM + 1] = 
+const int accessory_socket_effective_pct[ITEM_ACCESSORY_SOCKET_MAX_NUM + 1] = 
 {
 	0, 10, 20, 40
 };
 
 // Socket duration 24, 12, 6
-const int aiAccessorySocketDegradeTime[ITEM_ACCESSORY_SOCKET_MAX_NUM + 1] =
+const int accessory_socket_degrade_time[ITEM_ACCESSORY_SOCKET_MAX_NUM + 1] =
 {
 	0, 3600 * 24, 3600 * 12, 3600 * 6
 };
 
 // Socket insertion success rate
-const int aiAccessorySocketPutPct[ITEM_ACCESSORY_SOCKET_MAX_NUM + 1] =
+const int accessory_socket_put_pct[ITEM_ACCESSORY_SOCKET_MAX_NUM + 1] =
 {
 	90, 80, 70, 0
 };
 // END_OF_ACCESSORY_REFINE
 
 // from import_item_proto.c
-struct TValueName {
-    const char *	c_pszName;
-    int32_t		lValue;
+struct value_name {
+    const char *	psz_name;
+    int32_t		value;
 };
 
-TValueName c_aApplyTypeNames[] =
+value_name apply_type_names[] =
 {
     { "STR",		APPLY_STR		},
     { "DEX",		APPLY_DEX		},
@@ -907,13 +907,13 @@ TValueName c_aApplyTypeNames[] =
 };
 // from import_item_proto.c
 
-int32_t FN_get_apply_type(const char *apply_type_string)
+int32_t fn_get_apply_type(const char *apply_type_string)
 {
-	TValueName	*value_name;
-	for (value_name = c_aApplyTypeNames; value_name->c_pszName; ++value_name)
+	value_name	*value_name;
+	for (value_name = apply_type_names; value_name->psz_name; ++value_name)
 	{
-		if (0==strcasecmp(value_name->c_pszName, apply_type_string))
-			return value_name->lValue;
+		if (0==strcasecmp(value_name->psz_name, apply_type_string))
+			return value_name->value;
 	}
 	return 0;
 }

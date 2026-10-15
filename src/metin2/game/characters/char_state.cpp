@@ -36,266 +36,266 @@ namespace metin2::game::inline characters {
 
 namespace
 {
-	class FuncFindChrForFlag
+	class func_find_chr_for_flag
 	{
 		public:
-			FuncFindChrForFlag(CHARACTER * pkChr) :
-				m_pkChr(pkChr), m_pkChrFind(nullptr), m_iMinDistance(INT_MAX)
+			func_find_chr_for_flag(character * pkChr) :
+				chr(pkChr), chr_find(nullptr), min_distance(INT_MAX)
 				{
 				}
 
-			void operator () (CEntity * ent)
+			void operator () (entity * ent)
 			{
-				if (!ent->IsType(ENTITY_CHARACTER))
+				if (!ent->is_type(ENTITY_CHARACTER))
 					return;
 
-				if (ent->IsObserverMode())
+				if (ent->is_observer_mode())
 					return;
 
-				CHARACTER * pkChr = (CHARACTER *) ent;
+				character * pkChr = (character *) ent;
 
-				if (!pkChr->IsPC())
+				if (!pkChr->is_pc())
 					return;
 
-				if (!pkChr->GetGuild())
+				if (!pkChr->get_guild())
 					return;
 
-				if (pkChr->IsDead())
+				if (pkChr->is_dead())
 					return;
 
-				int iDist = DISTANCE_APPROX(pkChr->GetX()-m_pkChr->GetX(), pkChr->GetY()-m_pkChr->GetY());
+				int iDist = distance_approx(pkChr->x()-chr->x(), pkChr->y()-chr->y());
 
-				if (iDist <= 500 && m_iMinDistance > iDist &&
-						!pkChr->IsAffectFlag(AFF_WAR_FLAG1) &&
-						!pkChr->IsAffectFlag(AFF_WAR_FLAG2) &&
-						!pkChr->IsAffectFlag(AFF_WAR_FLAG3))
+				if (iDist <= 500 && min_distance > iDist &&
+						!pkChr->is_affect_flag(AFF_WAR_FLAG1) &&
+						!pkChr->is_affect_flag(AFF_WAR_FLAG2) &&
+						!pkChr->is_affect_flag(AFF_WAR_FLAG3))
 				{
 					// If it's our team's flag
-					if ((uint32_t) m_pkChr->GetPoint(POINT_STAT) == pkChr->GetGuild()->GetID())
+					if ((uint32_t) chr->point(POINT_STAT) == pkChr->get_guild()->id())
 					{
-						CWarMap * pMap = pkChr->GetWarMap();
+						war_map * pMap = pkChr->get_war_map();
 						uint8_t idx;
 
-						if (!pMap || !pMap->GetTeamIndex(pkChr->GetGuild()->GetID(), idx))
+						if (!pMap || !pMap->team_index(pkChr->get_guild()->id(), idx))
 							return;
 
 						// Only pick up the flag when there is no flag at our base. Otherwise the flag at the base
 						// could get picked up even when we want to leave it alone..
-						if (!pMap->IsFlagOnBase(idx))
+						if (!pMap->is_flag_on_base(idx))
 						{
-							m_pkChrFind = pkChr;
-							m_iMinDistance = iDist;
+							chr_find = pkChr;
+							min_distance = iDist;
 						}
 					}
 					else
 					{
 						// Always pick up the enemy team's flag.
-						m_pkChrFind = pkChr;
-						m_iMinDistance = iDist;
+						chr_find = pkChr;
+						min_distance = iDist;
 					}
 				}
 			}
 
-			CHARACTER *	m_pkChr;
-			CHARACTER * m_pkChrFind;
-			int		m_iMinDistance;
+			character *	chr;
+			character * chr_find;
+			int		min_distance;
 	};
 
-	class FuncFindChrForFlagBase
+	class func_find_chr_for_flag_base
 	{
 		public:
-			FuncFindChrForFlagBase(CHARACTER * pkChr) : m_pkChr(pkChr)
+			func_find_chr_for_flag_base(character * pkChr) : chr(pkChr)
 			{
 			}
 
-			void operator () (CEntity * ent)
+			void operator () (entity * ent)
 			{
-				if (!ent->IsType(ENTITY_CHARACTER))
+				if (!ent->is_type(ENTITY_CHARACTER))
 					return;
 
-				if (ent->IsObserverMode())
+				if (ent->is_observer_mode())
 					return;
 
-				CHARACTER * pkChr = (CHARACTER *) ent;
+				character * pkChr = (character *) ent;
 
-				if (!pkChr->IsPC())
+				if (!pkChr->is_pc())
 					return;
 
-				CGuild * pkGuild = pkChr->GetGuild();
+				guild * pkGuild = pkChr->get_guild();
 
 				if (!pkGuild)
 					return;
 
-				int iDist = DISTANCE_APPROX(pkChr->GetX()-m_pkChr->GetX(), pkChr->GetY()-m_pkChr->GetY());
+				int iDist = distance_approx(pkChr->x()-chr->x(), pkChr->y()-chr->y());
 
 				if (iDist <= 500 &&
-						(pkChr->IsAffectFlag(AFF_WAR_FLAG1) || 
-						 pkChr->IsAffectFlag(AFF_WAR_FLAG2) ||
-						 pkChr->IsAffectFlag(AFF_WAR_FLAG3)))
+						(pkChr->is_affect_flag(AFF_WAR_FLAG1) || 
+						 pkChr->is_affect_flag(AFF_WAR_FLAG2) ||
+						 pkChr->is_affect_flag(AFF_WAR_FLAG3)))
 				{
-					CAffect * pkAff = pkChr->FindAffect(AFFECT_WAR_FLAG);
+					affect * pkAff = pkChr->find_affect(AFFECT_WAR_FLAG);
 
 					metin2::log::info( "FlagBase {} dist {:d} aff {} flag gid {:d} chr gid {:d}",
-							pkChr->GetName(), iDist, static_cast<const void *>(pkAff), m_pkChr->GetPoint(POINT_STAT),
-							pkChr->GetGuild()->GetID());
+							pkChr->name(), iDist, static_cast<const void *>(pkAff), chr->point(POINT_STAT),
+							pkChr->get_guild()->id());
 
 					if (pkAff)
 					{
-						if ((uint32_t) m_pkChr->GetPoint(POINT_STAT) == pkGuild->GetID() &&
-								m_pkChr->GetPoint(POINT_STAT) != pkAff->lApplyValue)
+						if ((uint32_t) chr->point(POINT_STAT) == pkGuild->id() &&
+								chr->point(POINT_STAT) != pkAff->apply_value)
 						{
-							CWarMap * pMap = pkChr->GetWarMap();
+							war_map * pMap = pkChr->get_war_map();
 							uint8_t idx;
 
-							if (!pMap || !pMap->GetTeamIndex(pkGuild->GetID(), idx))
+							if (!pMap || !pMap->team_index(pkGuild->id(), idx))
 								return;
 
 							//if (pMap->IsFlagOnBase(idx))
 							{
 								uint8_t idx_opp = idx == 0 ? 1 : 0;
 
-								SendGuildWarScore(m_pkChr->GetPoint(POINT_STAT), pkAff->lApplyValue, 1);
+								send_guild_war_score(chr->point(POINT_STAT), pkAff->apply_value, 1);
 
-								pMap->ResetFlag();
+								pMap->reset_flag();
 
 								char buf[256];
-								snprintf(buf, sizeof(buf), LC_TEXT("%s 길드가 %s 길드의 깃발을 빼앗았습니다!"), pMap->GetGuild(idx)->GetName(), pMap->GetGuild(idx_opp)->GetName());
-								pMap->Notice(buf);
+								snprintf(buf, sizeof(buf), lc_text("%s 길드가 %s 길드의 깃발을 빼앗았습니다!"), pMap->get_guild(idx)->name(), pMap->get_guild(idx_opp)->name());
+								pMap->notice(buf);
 							}
 						}
 					}
 				}
 			}
 
-			CHARACTER * m_pkChr;
+			character * chr;
 	};
 
-	class FuncFindGuardVictim
+	class func_find_guard_victim
 	{
 		public:
-			FuncFindGuardVictim(CHARACTER * pkChr, int iMaxDistance) :
-			m_iMinDistance(INT_MAX),
-			m_iMaxDistance(iMaxDistance),
-			m_lx(pkChr->GetX()),
-			m_ly(pkChr->GetY()),
-			m_pkChrVictim(nullptr)
+			func_find_guard_victim(character * pkChr, int iMaxDistance) :
+			min_distance_(INT_MAX),
+			max_distance_(iMaxDistance),
+			lx_(pkChr->x()),
+			ly_(pkChr->y()),
+			chr_victim_(nullptr)
 			{
 			};
 
-			void operator () (CEntity * ent)
+			void operator () (entity * ent)
 			{
-				if (!ent->IsType(ENTITY_CHARACTER))
+				if (!ent->is_type(ENTITY_CHARACTER))
 					return;
 
-				CHARACTER * pkChr = (CHARACTER *) ent;
+				character * pkChr = (character *) ent;
 
 				// Don't attack PCs for now
-				if (pkChr->IsPC())
+				if (pkChr->is_pc())
 					return;
 
-				if (pkChr->IsNPC() && !pkChr->IsMonster())
+				if (pkChr->is_npc() && !pkChr->is_monster())
 					return;
 
-				if (pkChr->IsDead())
+				if (pkChr->is_dead())
 					return;
 
-				if (pkChr->IsAffectFlag(AFF_EUNHYUNG) || 
-						pkChr->IsAffectFlag(AFF_INVISIBILITY) ||
-						pkChr->IsAffectFlag(AFF_REVIVE_INVISIBLE))
+				if (pkChr->is_affect_flag(AFF_EUNHYUNG) || 
+						pkChr->is_affect_flag(AFF_INVISIBILITY) ||
+						pkChr->is_affect_flag(AFF_REVIVE_INVISIBLE))
 					return;
 
 				// Skip Japanese pirates (Wae-gu)
-				if (pkChr->GetRaceNum() == 5001)
+				if (pkChr->race_num() == 5001)
 					return;
 
-				int iDistance = DISTANCE_APPROX(m_lx - pkChr->GetX(), m_ly - pkChr->GetY());
+				int iDistance = distance_approx(lx_ - pkChr->x(), ly_ - pkChr->y());
 
-				if (iDistance < m_iMinDistance && iDistance <= m_iMaxDistance)
+				if (iDistance < min_distance_ && iDistance <= max_distance_)
 				{
-					m_pkChrVictim = pkChr;
-					m_iMinDistance = iDistance;
+					chr_victim_ = pkChr;
+					min_distance_ = iDistance;
 				}
 			}
 
-			CHARACTER * GetVictim()
+			character * victim()
 			{
-				return (m_pkChrVictim);
+				return (chr_victim_);
 			}
 
 		private:
-			int		m_iMinDistance;
-			int		m_iMaxDistance;
-			int32_t	m_lx;
-			int32_t	m_ly;
+			int		min_distance_;
+			int		max_distance_;
+			int32_t	lx_;
+			int32_t	ly_;
 
-			CHARACTER *	m_pkChrVictim;
+			character *	chr_victim_;
 	};
 
 }
 
-bool CHARACTER::IsAggressive() const
+bool character::is_aggressive() const
 {
-	return IS_SET(m_pointsInstant.dwAIFlag, AIFLAG_AGGRESSIVE);
+	return is_set(points_instant_.ai_flag, AIFLAG_AGGRESSIVE);
 }
 
-void CHARACTER::SetAggressive()
+void character::set_aggressive()
 {
-	SET_BIT(m_pointsInstant.dwAIFlag, AIFLAG_AGGRESSIVE);
+	set_bit(points_instant_.ai_flag, AIFLAG_AGGRESSIVE);
 }
 
-bool CHARACTER::IsCoward() const
+bool character::is_coward() const
 {
-	return IS_SET(m_pointsInstant.dwAIFlag, AIFLAG_COWARD);
+	return is_set(points_instant_.ai_flag, AIFLAG_COWARD);
 }
 
-void CHARACTER::SetCoward()
+void character::set_coward()
 {
-	SET_BIT(m_pointsInstant.dwAIFlag, AIFLAG_COWARD);
+	set_bit(points_instant_.ai_flag, AIFLAG_COWARD);
 }
 
-bool CHARACTER::IsBerserker() const
+bool character::is_berserker() const
 {
-	return IS_SET(m_pointsInstant.dwAIFlag, AIFLAG_BERSERK);
+	return is_set(points_instant_.ai_flag, AIFLAG_BERSERK);
 }
 
-bool CHARACTER::IsStoneSkinner() const
+bool character::is_stone_skinner() const
 {
-	return IS_SET(m_pointsInstant.dwAIFlag, AIFLAG_STONESKIN);
+	return is_set(points_instant_.ai_flag, AIFLAG_STONESKIN);
 }
 
-bool CHARACTER::IsGodSpeeder() const
+bool character::is_god_speeder() const
 {
-	return IS_SET(m_pointsInstant.dwAIFlag, AIFLAG_GODSPEED);
+	return is_set(points_instant_.ai_flag, AIFLAG_GODSPEED);
 }
 
-bool CHARACTER::IsDeathBlower() const
+bool character::is_death_blower() const
 {
-	return IS_SET(m_pointsInstant.dwAIFlag, AIFLAG_DEATHBLOW);
+	return is_set(points_instant_.ai_flag, AIFLAG_DEATHBLOW);
 }
 
-bool CHARACTER::IsReviver() const
+bool character::is_reviver() const
 {
-	return IS_SET(m_pointsInstant.dwAIFlag, AIFLAG_REVIVE);
+	return is_set(points_instant_.ai_flag, AIFLAG_REVIVE);
 }
 
-void CHARACTER::CowardEscape()
+void character::coward_escape()
 {
 	int iDist[4] = {500, 1000, 3000, 5000};
 
 	for (int iDistIdx = 2; iDistIdx >= 0; --iDistIdx)
 		for (int iTryCount = 0; iTryCount < 8; ++iTryCount)
 		{
-			SetRotation(number(0, 359));        // Pick a random direction
+			set_rotation(number(0, 359));        // Pick a random direction
 
 			float fx, fy;
 			float fDist = number(iDist[iDistIdx], iDist[iDistIdx+1]);
 
-			GetDeltaByDegree(GetRotation(), fDist, &fx, &fy);
+			get_delta_by_degree(rotation(), fDist, &fx, &fy);
 
 			bool bIsWayBlocked = false;
 			for (int j = 1; j <= 100; ++j)
 			{
-				if (!SECTREE_MANAGER::instance().IsMovablePosition(GetMapIndex(), GetX() + (int) fx*j/100, GetY() + (int) fy*j/100))
+				if (!sectree_manager::instance().is_movable_position(map_index(), x() + (int) fx*j/100, y() + (int) fy*j/100))
 				{
 					bIsWayBlocked = true;
 					break;
@@ -305,220 +305,220 @@ void CHARACTER::CowardEscape()
 			if (bIsWayBlocked)
 				continue;
 
-			m_dwStateDuration = PASSES_PER_SEC(1);
+			state_duration_ = passes_per_sec(1);
 
-			int iDestX = GetX() + (int) fx;
-			int iDestY = GetY() + (int) fy;
+			int iDestX = x() + (int) fx;
+			int iDestY = y() + (int) fy;
 
-			if (Goto(iDestX, iDestY))
-				SendMovePacket(FUNC_WAIT, 0, 0, 0, 0);
+			if (goto_(iDestX, iDestY))
+				send_move_packet(FUNC_WAIT, 0, 0, 0, 0);
 
 			metin2::log::info( "WAEGU move to {:d} {:d} (far)", iDestX, iDestY);
 			return;
 		}
 }
 
-bool CHARACTER::IsNoAttackShinsu() const
+bool character::is_no_attack_shinsu() const
 {
-	return IS_SET(m_pointsInstant.dwAIFlag, AIFLAG_NOATTACKSHINSU);
+	return is_set(points_instant_.ai_flag, AIFLAG_NOATTACKSHINSU);
 }
 
-bool CHARACTER::IsNoAttackChunjo() const
+bool character::is_no_attack_chunjo() const
 {
-	return IS_SET(m_pointsInstant.dwAIFlag, AIFLAG_NOATTACKCHUNJO);
+	return is_set(points_instant_.ai_flag, AIFLAG_NOATTACKCHUNJO);
 }
 
-bool CHARACTER::IsNoAttackJinno() const
+bool character::is_no_attack_jinno() const
 {
-	return IS_SET(m_pointsInstant.dwAIFlag, AIFLAG_NOATTACKJINNO);
+	return is_set(points_instant_.ai_flag, AIFLAG_NOATTACKJINNO);
 }
 
-bool CHARACTER::IsAttackMob() const
+bool character::is_attack_mob() const
 {
-	return IS_SET(m_pointsInstant.dwAIFlag, AIFLAG_ATTACKMOB);
+	return is_set(points_instant_.ai_flag, AIFLAG_ATTACKMOB);
 }
 
 // STATE_IDLE_REFACTORING
-void CHARACTER::StateIdle()
+void character::state_idle()
 {
-	if (IsStone())
+	if (is_stone())
 	{
-		__StateIdle_Stone();
+		state_idle_stone();
 		return;
 	}
-	else if (IsWarp() || IsGoto())
+	else if (is_warp() || is_goto())
 	{
 		// Warp is handled by an event
-		m_dwStateDuration = 60 * metin2::config::server().passes_per_sec;
+		state_duration_ = 60 * metin2::config::server().passes_per_sec;
 		return;
 	}
 
-	if (IsPC())
+	if (is_pc())
 		return;
 
 	// NPC handling
-	if (!IsMonster())
+	if (!is_monster())
 	{
-		__StateIdle_NPC();
+		state_idle_npc();
 		return;
 	}
 
-	__StateIdle_Monster();
+	state_idle_monster();
 }
 
-void CHARACTER::__StateIdle_Stone()
+void character::state_idle_stone()
 {
-	m_dwStateDuration = PASSES_PER_SEC(1);
+	state_duration_ = passes_per_sec(1);
 
-	int iPercent = (GetHP() * 100) / GetMaxHP();
-	uint32_t dwVnum = number(std::min<int>(GetMobTable().sAttackSpeed, GetMobTable().sMovingSpeed ), std::max<int>(GetMobTable().sAttackSpeed, GetMobTable().sMovingSpeed));
+	int iPercent = (hp() * 100) / max_hp();
+	uint32_t dwVnum = number(std::min<int>(get_mob_table().s_attack_speed, get_mob_table().s_moving_speed ), std::max<int>(get_mob_table().s_attack_speed, get_mob_table().s_moving_speed));
 
-	if (iPercent <= 10 && GetMaxSP() < 10)
+	if (iPercent <= 10 && max_sp() < 10)
 	{
-		SetMaxSP(10);
-		SendMovePacket(FUNC_ATTACK, 0, GetX(), GetY(), 0);
+		set_max_sp(10);
+		send_move_packet(FUNC_ATTACK, 0, x(), y(), 0);
 
-		CHARACTER_MANAGER::instance().SelectStone(this);
-		CHARACTER_MANAGER::instance().SpawnGroup(dwVnum, GetMapIndex(), GetX() - 500, GetY() - 500, GetX() + 500, GetY() + 500);
-		CHARACTER_MANAGER::instance().SpawnGroup(dwVnum, GetMapIndex(), GetX() - 1000, GetY() - 1000, GetX() + 1000, GetY() + 1000);
-		CHARACTER_MANAGER::instance().SpawnGroup(dwVnum, GetMapIndex(), GetX() - 1500, GetY() - 1500, GetX() + 1500, GetY() + 1500);
-		CHARACTER_MANAGER::instance().SelectStone(nullptr);
+		character_manager::instance().select_stone(this);
+		character_manager::instance().spawn_group(dwVnum, map_index(), x() - 500, y() - 500, x() + 500, y() + 500);
+		character_manager::instance().spawn_group(dwVnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
+		character_manager::instance().spawn_group(dwVnum, map_index(), x() - 1500, y() - 1500, x() + 1500, y() + 1500);
+		character_manager::instance().select_stone(nullptr);
 	}
-	else if (iPercent <= 20 && GetMaxSP() < 9)
+	else if (iPercent <= 20 && max_sp() < 9)
 	{
-		SetMaxSP(9);
-		SendMovePacket(FUNC_ATTACK, 0, GetX(), GetY(), 0);
+		set_max_sp(9);
+		send_move_packet(FUNC_ATTACK, 0, x(), y(), 0);
 
-		CHARACTER_MANAGER::instance().SelectStone(this);
-		CHARACTER_MANAGER::instance().SpawnGroup(dwVnum, GetMapIndex(), GetX() - 500, GetY() - 500, GetX() + 500, GetY() + 500);
-		CHARACTER_MANAGER::instance().SpawnGroup(dwVnum, GetMapIndex(), GetX() - 1000, GetY() - 1000, GetX() + 1000, GetY() + 1000);
-		CHARACTER_MANAGER::instance().SpawnGroup(dwVnum, GetMapIndex(), GetX() - 1500, GetY() - 1500, GetX() + 1500, GetY() + 1500);
-		CHARACTER_MANAGER::instance().SelectStone(nullptr);
+		character_manager::instance().select_stone(this);
+		character_manager::instance().spawn_group(dwVnum, map_index(), x() - 500, y() - 500, x() + 500, y() + 500);
+		character_manager::instance().spawn_group(dwVnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
+		character_manager::instance().spawn_group(dwVnum, map_index(), x() - 1500, y() - 1500, x() + 1500, y() + 1500);
+		character_manager::instance().select_stone(nullptr);
 	}
-	else if (iPercent <= 30 && GetMaxSP() < 8)
+	else if (iPercent <= 30 && max_sp() < 8)
 	{
-		SetMaxSP(8);
-		SendMovePacket(FUNC_ATTACK, 0, GetX(), GetY(), 0);
+		set_max_sp(8);
+		send_move_packet(FUNC_ATTACK, 0, x(), y(), 0);
 
-		CHARACTER_MANAGER::instance().SelectStone(this);
-		CHARACTER_MANAGER::instance().SpawnGroup(dwVnum, GetMapIndex(), GetX() - 500, GetY() - 500, GetX() + 500, GetY() + 500);
-		CHARACTER_MANAGER::instance().SpawnGroup(dwVnum, GetMapIndex(), GetX() - 1000, GetY() - 1000, GetX() + 1000, GetY() + 1000);
-		CHARACTER_MANAGER::instance().SpawnGroup(dwVnum, GetMapIndex(), GetX() - 1000, GetY() - 1000, GetX() + 1000, GetY() + 1000);
-		CHARACTER_MANAGER::instance().SelectStone(nullptr);
+		character_manager::instance().select_stone(this);
+		character_manager::instance().spawn_group(dwVnum, map_index(), x() - 500, y() - 500, x() + 500, y() + 500);
+		character_manager::instance().spawn_group(dwVnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
+		character_manager::instance().spawn_group(dwVnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
+		character_manager::instance().select_stone(nullptr);
 	}
-	else if (iPercent <= 40 && GetMaxSP() < 7)
+	else if (iPercent <= 40 && max_sp() < 7)
 	{
-		SetMaxSP(7);
-		SendMovePacket(FUNC_ATTACK, 0, GetX(), GetY(), 0);
+		set_max_sp(7);
+		send_move_packet(FUNC_ATTACK, 0, x(), y(), 0);
 
-		CHARACTER_MANAGER::instance().SelectStone(this);
-		CHARACTER_MANAGER::instance().SpawnGroup(dwVnum, GetMapIndex(), GetX() - 1000, GetY() - 1000, GetX() + 1000, GetY() + 1000);
-		CHARACTER_MANAGER::instance().SpawnGroup(dwVnum, GetMapIndex(), GetX() - 1000, GetY() - 1000, GetX() + 1000, GetY() + 1000);
-		CHARACTER_MANAGER::instance().SpawnGroup(dwVnum, GetMapIndex(), GetX() - 1000, GetY() - 1000, GetX() + 1000, GetY() + 1000);
-		CHARACTER_MANAGER::instance().SelectStone(nullptr);
+		character_manager::instance().select_stone(this);
+		character_manager::instance().spawn_group(dwVnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
+		character_manager::instance().spawn_group(dwVnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
+		character_manager::instance().spawn_group(dwVnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
+		character_manager::instance().select_stone(nullptr);
 	}
-	else if (iPercent <= 50 && GetMaxSP() < 6)
+	else if (iPercent <= 50 && max_sp() < 6)
 	{
-		SetMaxSP(6);
-		SendMovePacket(FUNC_ATTACK, 0, GetX(), GetY(), 0);
+		set_max_sp(6);
+		send_move_packet(FUNC_ATTACK, 0, x(), y(), 0);
 
-		CHARACTER_MANAGER::instance().SelectStone(this);
-		CHARACTER_MANAGER::instance().SpawnGroup(dwVnum, GetMapIndex(), GetX() - 1000, GetY() - 1000, GetX() + 1000, GetY() + 1000);
-		CHARACTER_MANAGER::instance().SpawnGroup(dwVnum, GetMapIndex(), GetX() - 1000, GetY() - 1000, GetX() + 1000, GetY() + 1000);
-		CHARACTER_MANAGER::instance().SelectStone(nullptr);
+		character_manager::instance().select_stone(this);
+		character_manager::instance().spawn_group(dwVnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
+		character_manager::instance().spawn_group(dwVnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
+		character_manager::instance().select_stone(nullptr);
 	}
-	else if (iPercent <= 60 && GetMaxSP() < 5)
+	else if (iPercent <= 60 && max_sp() < 5)
 	{
-		SetMaxSP(5);
-		SendMovePacket(FUNC_ATTACK, 0, GetX(), GetY(), 0);
+		set_max_sp(5);
+		send_move_packet(FUNC_ATTACK, 0, x(), y(), 0);
 
-		CHARACTER_MANAGER::instance().SelectStone(this);
-		CHARACTER_MANAGER::instance().SpawnGroup(dwVnum, GetMapIndex(), GetX() - 1000, GetY() - 1000, GetX() + 1000, GetY() + 1000);
-		CHARACTER_MANAGER::instance().SpawnGroup(dwVnum, GetMapIndex(), GetX() - 500, GetY() - 500, GetX() + 500, GetY() + 500);
-		CHARACTER_MANAGER::instance().SelectStone(nullptr);
+		character_manager::instance().select_stone(this);
+		character_manager::instance().spawn_group(dwVnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
+		character_manager::instance().spawn_group(dwVnum, map_index(), x() - 500, y() - 500, x() + 500, y() + 500);
+		character_manager::instance().select_stone(nullptr);
 	}
-	else if (iPercent <= 70 && GetMaxSP() < 4)
+	else if (iPercent <= 70 && max_sp() < 4)
 	{
-		SetMaxSP(4);
-		SendMovePacket(FUNC_ATTACK, 0, GetX(), GetY(), 0);
+		set_max_sp(4);
+		send_move_packet(FUNC_ATTACK, 0, x(), y(), 0);
 
-		CHARACTER_MANAGER::instance().SelectStone(this);
-		CHARACTER_MANAGER::instance().SpawnGroup(dwVnum, GetMapIndex(), GetX() - 500, GetY() - 500, GetX() + 500, GetY() + 500);
-		CHARACTER_MANAGER::instance().SpawnGroup(dwVnum, GetMapIndex(), GetX() - 1000, GetY() - 1000, GetX() + 1000, GetY() + 1000);
-		CHARACTER_MANAGER::instance().SelectStone(nullptr);
+		character_manager::instance().select_stone(this);
+		character_manager::instance().spawn_group(dwVnum, map_index(), x() - 500, y() - 500, x() + 500, y() + 500);
+		character_manager::instance().spawn_group(dwVnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
+		character_manager::instance().select_stone(nullptr);
 	}
-	else if (iPercent <= 80 && GetMaxSP() < 3)
+	else if (iPercent <= 80 && max_sp() < 3)
 	{
-		SetMaxSP(3);
-		SendMovePacket(FUNC_ATTACK, 0, GetX(), GetY(), 0);
+		set_max_sp(3);
+		send_move_packet(FUNC_ATTACK, 0, x(), y(), 0);
 
-		CHARACTER_MANAGER::instance().SelectStone(this);
-		CHARACTER_MANAGER::instance().SpawnGroup(dwVnum, GetMapIndex(), GetX() - 1000, GetY() - 1000, GetX() + 1000, GetY() + 1000);
-		CHARACTER_MANAGER::instance().SpawnGroup(dwVnum, GetMapIndex(), GetX() - 1000, GetY() - 1000, GetX() + 1000, GetY() + 1000);
-		CHARACTER_MANAGER::instance().SelectStone(nullptr);
+		character_manager::instance().select_stone(this);
+		character_manager::instance().spawn_group(dwVnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
+		character_manager::instance().spawn_group(dwVnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
+		character_manager::instance().select_stone(nullptr);
 	}
-	else if (iPercent <= 90 && GetMaxSP() < 2)
+	else if (iPercent <= 90 && max_sp() < 2)
 	{
-		SetMaxSP(2);
-		SendMovePacket(FUNC_ATTACK, 0, GetX(), GetY(), 0);
+		set_max_sp(2);
+		send_move_packet(FUNC_ATTACK, 0, x(), y(), 0);
 
-		CHARACTER_MANAGER::instance().SelectStone(this);
-		CHARACTER_MANAGER::instance().SpawnGroup(dwVnum, GetMapIndex(), GetX() - 500, GetY() - 500, GetX() + 500, GetY() + 500);
-		CHARACTER_MANAGER::instance().SelectStone(nullptr);
+		character_manager::instance().select_stone(this);
+		character_manager::instance().spawn_group(dwVnum, map_index(), x() - 500, y() - 500, x() + 500, y() + 500);
+		character_manager::instance().select_stone(nullptr);
 	}
-	else if (iPercent <= 99 && GetMaxSP() < 1)
+	else if (iPercent <= 99 && max_sp() < 1)
 	{
-		SetMaxSP(1);
-		SendMovePacket(FUNC_ATTACK, 0, GetX(), GetY(), 0);
+		set_max_sp(1);
+		send_move_packet(FUNC_ATTACK, 0, x(), y(), 0);
 
-		CHARACTER_MANAGER::instance().SelectStone(this);
-		CHARACTER_MANAGER::instance().SpawnGroup(dwVnum, GetMapIndex(), GetX() - 1000, GetY() - 1000, GetX() + 1000, GetY() + 1000);
-		CHARACTER_MANAGER::instance().SelectStone(nullptr);
+		character_manager::instance().select_stone(this);
+		character_manager::instance().spawn_group(dwVnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
+		character_manager::instance().select_stone(nullptr);
 	}
 	else
 		return;
 
-	UpdatePacket();
+	update_packet();
 	return;
 }
 
-void CHARACTER::__StateIdle_NPC()
+void character::state_idle_npc()
 {
-	MonsterChat(MONSTER_CHAT_WAIT);
-	m_dwStateDuration = PASSES_PER_SEC(5);
+	monster_chat(MONSTER_CHAT_WAIT);
+	state_duration_ = passes_per_sec(5);
 
 	// The pet system's Idle is handled in CPetActor::Update, not in the state machine shared by almost all other character types.
-	if (IsPet())
+	if (is_pet())
 		return;
-	else if (IsGuardNPC())
+	else if (is_guard_npc())
 	{
-		if (!quest::CQuestManager::instance().GetEventFlag("noguard"))
+		if (!quest::quest_manager::instance().event_flag("noguard"))
 		{
-			FuncFindGuardVictim f(this, 50000);
+			func_find_guard_victim f(this, 50000);
 
-			if (GetSectree())
-				GetSectree()->ForEachAround(f);
+			if (get_sectree())
+				get_sectree()->for_each_around(f);
 
-			CHARACTER * victim = f.GetVictim();
+			character * victim = f.victim();
 
 			if (victim)
 			{
-				m_dwStateDuration = metin2::config::server().passes_per_sec/2;
+				state_duration_ = metin2::config::server().passes_per_sec/2;
 
-				if (CanBeginFight())
-					BeginFight(victim);
+				if (can_begin_fight())
+					begin_fight(victim);
 			}
 		}
 	}
 	else
 	{
-		if (GetRaceNum() == xmas::MOB_SANTA_VNUM) // Santa
+		if (race_num() == xmas::MOB_SANTA_VNUM) // Santa
 		{
-			if (get_dword_time() > m_dwPlayStartTime)
+			if (get_dword_time() > play_start_time_)
 			{
 				int	next_warp_time = 2 * 1000;	// 2 seconds
 
-				m_dwPlayStartTime = get_dword_time() + next_warp_time;
+				play_start_time_ = get_dword_time() + next_warp_time;
 
 				// Time's up, let's warp.
 				// Sinseonja Noh Hae-yong
@@ -530,59 +530,59 @@ void CHARACTER::__StateIdle_NPC()
 				if (map_allow_find(lNextMapIndex))
 				{
 					// It's here.
-					CHARACTER_MANAGER::instance().DestroyCharacter(this);
+					character_manager::instance().destroy_character(this);
 					int iNextSpawnDelay = 0;
 					iNextSpawnDelay = 50 * 60;
 
-					xmas::SpawnSanta(lNextMapIndex, iNextSpawnDelay);
+					xmas::spawn_santa(lNextMapIndex, iNextSpawnDelay);
 				}
 				else
 				{
 					// It's another server.
-					TPacketGGXmasWarpSanta p;
-					p.bHeader   = HEADER_GG_XMAS_WARP_SANTA;
-					p.bChannel  = metin2::config::server().channel;
-					p.lMapIndex = lNextMapIndex;
-					P2P_MANAGER::instance().Send(&p, sizeof(TPacketGGXmasWarpSanta));
+					packet_gg_xmas_warp_santa p;
+					p.header   = HEADER_GG_XMAS_WARP_SANTA;
+					p.channel  = metin2::config::server().channel;
+					p.map_index = lNextMapIndex;
+					p2_p_manager::instance().send(&p, sizeof(packet_gg_xmas_warp_santa));
 				}
 				return;
 			}
 		}
 
-		if (!IS_SET(m_pointsInstant.dwAIFlag, AIFLAG_NOMOVE))
+		if (!is_set(points_instant_.ai_flag, AIFLAG_NOMOVE))
 		{
 			//
 			// Move around here and there.
 			// 
-			CHARACTER * pkChrProtege = GetProtege();
+			character * pkChrProtege = protege();
 
 			if (pkChrProtege)
 			{
-				if (DISTANCE_APPROX(GetX() - pkChrProtege->GetX(), GetY() - pkChrProtege->GetY()) > 500)
+				if (distance_approx(x() - pkChrProtege->x(), y() - pkChrProtege->y()) > 500)
 				{
-					if (Follow(pkChrProtege, number(100, 300)))
+					if (follow(pkChrProtege, number(100, 300)))
 						return;
 				}
 			}
 
 			if (!number(0, 6))
 			{
-				SetRotation(number(0, 359));        // Pick a random direction
+				set_rotation(number(0, 359));        // Pick a random direction
 
 				float fx, fy;
 				float fDist = number(200, 400);
 
-				GetDeltaByDegree(GetRotation(), fDist, &fx, &fy);
+				get_delta_by_degree(rotation(), fDist, &fx, &fy);
 
 				// Loose blocked-attribute check; don't go if the final or midpoint position is unreachable.
-				if (!(SECTREE_MANAGER::instance().IsMovablePosition(GetMapIndex(), GetX() + (int) fx, GetY() + (int) fy) 
-					&& SECTREE_MANAGER::instance().IsMovablePosition(GetMapIndex(), GetX() + (int) fx / 2, GetY() + (int) fy / 2)))
+				if (!(sectree_manager::instance().is_movable_position(map_index(), x() + (int) fx, y() + (int) fy) 
+					&& sectree_manager::instance().is_movable_position(map_index(), x() + (int) fx / 2, y() + (int) fy / 2)))
 					return;
 
-				SetNowWalking(true);
+				set_now_walking(true);
 
-				if (Goto(GetX() + (int) fx, GetY() + (int) fy))
-					SendMovePacket(FUNC_WAIT, 0, 0, 0, 0);
+				if (goto_(x() + (int) fx, y() + (int) fy))
+					send_move_packet(FUNC_WAIT, 0, 0, 0, 0);
 
 				return;
 			}
@@ -590,80 +590,80 @@ void CHARACTER::__StateIdle_NPC()
 	}
 }
 
-void CHARACTER::__StateIdle_Monster()
+void character::state_idle_monster()
 {
-	if (IsStun())
+	if (is_stun())
 		return;
 
-	if (!CanMove())
+	if (!can_move())
 		return;
 
-	if (IsCoward())
+	if (is_coward())
 	{
 		// Cowardly monsters only run away.
-		if (!IsDead())
-			CowardEscape();
+		if (!is_dead())
+			coward_escape();
 
 		return;
 	}
 
-	if (IsBerserker())
-		if (IsBerserk())
-			SetBerserk(false);
+	if (is_berserker())
+		if (is_berserk())
+			set_berserk(false);
 
-	if (IsGodSpeeder())
-		if (IsGodSpeed())
-			SetGodSpeed(false);
+	if (is_god_speeder())
+		if (is_god_speed())
+			set_god_speed(false);
 
-	CHARACTER * victim = GetVictim();
+	character * victim_value = victim();
 
-	if (!victim || victim->IsDead())
+	if (!victim_value || victim_value->is_dead())
 	{
-		SetVictim(nullptr);
-		victim = nullptr;
-		m_dwStateDuration = PASSES_PER_SEC(1);
+		set_victim(nullptr);
+		victim_value = nullptr;
+		state_duration_ = passes_per_sec(1);
 	}
 
-	if (!victim || victim->IsBuilding())
+	if (!victim_value || victim_value->is_building())
 	{
 		// Stone protection handling
-		if (m_pkChrStone)
+		if (chr_stone_)
 		{
-			victim = m_pkChrStone->GetNearestVictim(m_pkChrStone);
+			victim_value = chr_stone_->nearest_victim(chr_stone_);
 		}
 		// Aggressive monster handling
-		else if (!metin2::config::game().no_wander && IsAggressive())
+		else if (!metin2::config::game().no_wander && is_aggressive())
 		{
-			if (GetMapIndex() == 61 && quest::CQuestManager::instance().GetEventFlag("xmas_tree"));
+			if (map_index() == 61 && quest::quest_manager::instance().event_flag("xmas_tree"));
 			// On Seohan Mountain, don't attack first if there is a tree.
 			else
-				victim = FindVictim(this, m_pkMobData->m_table.wAggressiveSight);
+				victim_value = find_victim(this, mob_data->table.aggressive_sight);
 		}
 	}
 
-	if (victim && !victim->IsDead())
+	if (victim_value && !victim_value->is_dead())
 	{
-		if (CanBeginFight())
-			BeginFight(victim);
+		if (can_begin_fight())
+			begin_fight(victim_value);
 
 		return;
 	}
 
-	if (IsAggressive() && !victim)
-		m_dwStateDuration = PASSES_PER_SEC(number(1, 3));
+	if (is_aggressive() && !victim_value)
+		state_duration_ = passes_per_sec(number(1, 3));
 	else
-		m_dwStateDuration = PASSES_PER_SEC(number(3, 5));
+		state_duration_ = passes_per_sec(number(3, 5));
 
-	CHARACTER * pkChrProtege = GetProtege();
+	character * pkChrProtege = protege();
 
 	// Follow if far from what we protect (stone, party leader).
 	if (pkChrProtege)
 	{
-		if (DISTANCE_APPROX(GetX() - pkChrProtege->GetX(), GetY() - pkChrProtege->GetY()) > 1000)
+		if (distance_approx(x() - pkChrProtege->x(), y() - pkChrProtege->y()) > 1000)
 		{
-			if (Follow(pkChrProtege, number(150, 400)))
+			if (follow(pkChrProtege, number(150, 400)))
 			{
-				MonsterLog("[IDLE] 리더로부터 너무 멀리 떨어졌다! 복귀한다.");
+				monster_log("[IDLE] 리더로부터 너무 멀리 떨어졌다! 복귀한다.");
 				return;
 			}
 		}
@@ -672,20 +672,20 @@ void CHARACTER::__StateIdle_Monster()
 	//
 	// Just wander back and forth.
 	//
-	if (!metin2::config::game().no_wander && !IS_SET(m_pointsInstant.dwAIFlag, AIFLAG_NOMOVE))
+	if (!metin2::config::game().no_wander && !is_set(points_instant_.ai_flag, AIFLAG_NOMOVE))
 	{
 		if (!number(0, 6))
 		{
-			SetRotation(number(0, 359));        // Pick a random direction
+			set_rotation(number(0, 359));        // Pick a random direction
 
 			float fx, fy;
 			float fDist = number(300, 700);
 
-			GetDeltaByDegree(GetRotation(), fDist, &fx, &fy);
+			get_delta_by_degree(rotation(), fDist, &fx, &fy);
 
 			// Loose blocked-attribute check; don't go if the final or midpoint position is unreachable.
-			if (!(SECTREE_MANAGER::instance().IsMovablePosition(GetMapIndex(), GetX() + (int) fx, GetY() + (int) fy) 
-						&& SECTREE_MANAGER::instance().IsMovablePosition(GetMapIndex(), GetX() + (int) fx/2, GetY() + (int) fy/2)))
+			if (!(sectree_manager::instance().is_movable_position(map_index(), x() + (int) fx, y() + (int) fy) 
+						&& sectree_manager::instance().is_movable_position(map_index(), x() + (int) fx/2, y() + (int) fy/2)))
 				return;
 
 			// NOTE: When a monster wanders around in IDLE state it currently always runs. (Never walks)
@@ -693,156 +693,156 @@ void CHARACTER::__StateIdle_Monster()
 			if (metin2::config::test_server())
 			{
 				if (number(0, 100) < 60)
-					SetNowWalking(false);
+					set_now_walking(false);
 				else
-					SetNowWalking(true);
+					set_now_walking(true);
 			}
 
-			if (Goto(GetX() + (int) fx, GetY() + (int) fy))
-				SendMovePacket(FUNC_WAIT, 0, 0, 0, 0);
+			if (goto_(x() + (int) fx, y() + (int) fy))
+				send_move_packet(FUNC_WAIT, 0, 0, 0, 0);
 
 			return;
 		}
 	}
 
-	MonsterChat(MONSTER_CHAT_WAIT);
+	monster_chat(MONSTER_CHAT_WAIT);
 }
 // END_OF_STATE_IDLE_REFACTORING
 
-bool __CHARACTER_GotoNearTarget(CHARACTER * self, CHARACTER * victim)
+bool character_goto_near_target(character * self, character * victim)
 {
-	if (IS_SET(self->GetAIFlag(), AIFLAG_NOMOVE))
+	if (is_set(self->ai_flag(), AIFLAG_NOMOVE))
 		return false;
 
-	switch (self->GetMobBattleType())
+	switch (self->mob_battle_type())
 	{
 		case BATTLE_TYPE_RANGE:
 		case BATTLE_TYPE_MAGIC:
 			// Mages and archers move to 80% of their attack range before attacking.
-			if (self->Follow(victim, self->GetMobAttackRange() * 8 / 10))
+			if (self->follow(victim, self->mob_attack_range() * 8 / 10))
 				return true;
 			break;
 
 		default:
 			// The rest 90%?
-			if (self->Follow(victim, self->GetMobAttackRange() * 9 / 10))
+			if (self->follow(victim, self->mob_attack_range() * 9 / 10))
 				return true;
 	}
 
 	return false;
 }
 
-void CHARACTER::StateMove()
+void character::state_move()
 {
-	uint32_t dwElapsedTime = get_dword_time() - m_dwMoveStartTime;
-	float fRate = (float) dwElapsedTime / (float) m_dwMoveDuration;
+	uint32_t dwElapsedTime = get_dword_time() - move_start_time_;
+	float fRate = (float) dwElapsedTime / (float) move_duration_;
 
 	if (fRate > 1.0f)
 		fRate = 1.0f;
 
-	int x = (int) ((float) (m_posDest.x - m_posStart.x) * fRate + m_posStart.x);
-	int y = (int) ((float) (m_posDest.y - m_posStart.y) * fRate + m_posStart.y);
+	int x_value = (int) ((float) (pos_dest_.x - pos_start_.x) * fRate + pos_start_.x);
+	int y_value = (int) ((float) (pos_dest_.y - pos_start_.y) * fRate + pos_start_.y);
 
-	Move(x, y);
+	move(x_value, y_value);
 
-	if (IsPC() && (thecore_pulse() & 15) == 0)
+	if (is_pc() && (thecore_pulse() & 15) == 0)
 	{
-		UpdateSectree();
+		update_sectree();
 
-		if (GetExchange())
+		if (get_exchange())
 		{
-			CHARACTER * victim = GetExchange()->GetCompany()->GetOwner();
-			int iDist = DISTANCE_APPROX(GetX() - victim->GetX(), GetY() - victim->GetY());
+			character * victim_value = get_exchange()->company()->owner();
+			int iDist = distance_approx(x() - victim_value->x(), y() - victim_value->y());
 
 			// Distance check
 			if (iDist >= EXCHANGE_MAX_DISTANCE)
 			{
-				GetExchange()->Cancel();
+				get_exchange()->cancel();
 			}
 		}
 	}
 
 	// Stamina must be above 0.
-	if (IsPC())
+	if (is_pc())
 	{
-		if (IsWalking() && GetStamina() < GetMaxStamina())
+		if (is_walking() && stamina() < max_stamina())
 		{
 			// Stamina increases after 5 seconds
-			if (get_dword_time() - GetWalkStartTime() > 5000)
-				PointChange(POINT_STAMINA, GetMaxStamina() / 1);
+			if (get_dword_time() - walk_start_time() > 5000)
+				point_change(POINT_STAMINA, max_stamina() / 1);
 		}
 
 		// If in combat and running
-		if (!IsWalking() && !IsRiding())
+		if (!is_walking() && !is_riding())
 		{
-			if ((get_dword_time() - GetLastAttackTime()) < 20000)
+			if ((get_dword_time() - last_attack_time()) < 20000)
 			{
-				StartAffectEvent();
+				start_affect_event();
 
-				if (IsStaminaHalfConsume())
+				if (is_stamina_half_consume())
 				{
 					if (thecore_pulse()&1)
-						PointChange(POINT_STAMINA, -STAMINA_PER_STEP);
+						point_change(POINT_STAMINA, -STAMINA_PER_STEP);
 				}
 				else
-					PointChange(POINT_STAMINA, -STAMINA_PER_STEP);
+					point_change(POINT_STAMINA, -STAMINA_PER_STEP);
 
-				StartStaminaConsume();
+				start_stamina_consume();
 
-				if (GetStamina() <= 0)
+				if (stamina() <= 0)
 				{
 					// Not enough stamina, must walk
-					SetStamina(0);
-					SetNowWalking(true);
-					StopStaminaConsume();
+					set_stamina(0);
+					set_now_walking(true);
+					stop_stamina_consume();
 				}
 			}
-			else if (IsStaminaConsume())
+			else if (is_stamina_consume())
 			{
-				StopStaminaConsume();
+				stop_stamina_consume();
 			}
 		}
 	}
 	else
 	{
 		// XXX AGGRO 
-		if (IsMonster() && GetVictim())
+		if (is_monster() && victim())
 		{
-			CHARACTER * victim = GetVictim();
-			UpdateAggrPoint(victim, DAMAGE_TYPE_NORMAL, -(victim->GetLevel() / 3 + 1));
+			character * victim_value = victim();
+			update_aggr_point(victim_value, DAMAGE_TYPE_NORMAL, -(victim_value->level() / 3 + 1));
 
 			if (metin2::config::test_server())
 			{
 				// A monster chasing an enemy always runs.
-				SetNowWalking(false);
+				set_now_walking(false);
 			}
 		}
 
-		if (IsMonster() && GetMobRank() >= MOB_RANK_BOSS && GetVictim())
+		if (is_monster() && get_mob_rank() >= MOB_RANK_BOSS && victim())
 		{
-			CHARACTER * victim = GetVictim();
+			character * victim_value = victim();
 
 			// Giant turtle
-			if (GetRaceNum() == 2191 && number(1, 20) == 1 && get_dword_time() - m_pkMobInst->m_dwLastWarpTime > 1000)
+			if (race_num() == 2191 && number(1, 20) == 1 && get_dword_time() - mob_inst->last_warp_time > 1000)
 			{
 				// Warp test
 				float fx, fy;
-				GetDeltaByDegree(victim->GetRotation(), 400, &fx, &fy);
-				int32_t new_x = victim->GetX() + (int32_t)fx;
-				int32_t new_y = victim->GetY() + (int32_t)fy;
-				SetRotation(GetDegreeFromPositionXY(new_x, new_y, victim->GetX(), victim->GetY()));
-				Show(victim->GetMapIndex(), new_x, new_y, 0, true);
-				GotoState(m_stateBattle);
-				m_dwStateDuration = 1;
-				ResetMobSkillCooltime();
-				m_pkMobInst->m_dwLastWarpTime = get_dword_time();
+				get_delta_by_degree(victim_value->rotation(), 400, &fx, &fy);
+				int32_t new_x = victim_value->x() + (int32_t)fx;
+				int32_t new_y = victim_value->y() + (int32_t)fy;
+				set_rotation(get_degree_from_position_xy(new_x, new_y, victim_value->x(), victim_value->y()));
+				show(victim_value->map_index(), new_x, new_y, 0, true);
+				goto_state(state_battle_);
+				state_duration_ = 1;
+				reset_mob_skill_cooltime();
+				mob_inst->last_warp_time = get_dword_time();
 				return;
 			}
 
 			// TODO Turn around to be less dumb!
 			if (number(0, 3) == 0)
 			{
-				if (__CHARACTER_GotoNearTarget(this, victim))
+				if (character_goto_near_target(this, victim_value))
 					return;
 			}
 		}
@@ -850,85 +850,85 @@ void CHARACTER::StateMove()
 
 	if (1.0f == fRate)
 	{
-		if (IsPC())
+		if (is_pc())
 		{
-			metin2::log::debug( "도착 {} {:d} {:d}", GetName(), x, y);
-			GotoState(m_stateIdle);
-			StopStaminaConsume();
+			metin2::log::debug( "도착 {} {:d} {:d}", name(), x_value, y_value);
+			goto_state(state_idle_);
+			stop_stamina_consume();
 		}
 		else
 		{
-			if (GetVictim() && !IsCoward())
+			if (victim() && !is_coward())
 			{
-				if (!IsState(m_stateBattle))
-					MonsterLog("[BATTLE] 근처에 왔으니 공격시작 %s", GetVictim()->GetName());
+				if (!is_state(state_battle_))
+					monster_log("[BATTLE] 근처에 왔으니 공격시작 %s", victim()->name());
 
-				GotoState(m_stateBattle);
-				m_dwStateDuration = 1;
+				goto_state(state_battle_);
+				state_duration_ = 1;
 			}
 			else
 			{
-				if (!IsState(m_stateIdle))
-					MonsterLog("[IDLE] 대상이 없으니 쉬자");
+				if (!is_state(state_idle_))
+					monster_log("[IDLE] 대상이 없으니 쉬자");
 
-				GotoState(m_stateIdle);
+				goto_state(state_idle_);
 
-				m_dwStateDuration = PASSES_PER_SEC(number(1, 3));
+				state_duration_ = passes_per_sec(number(1, 3));
 			}
 		}
 	}
 }
 
-void CHARACTER::StateBattle()
+void character::state_battle()
 {
-	if (IsStone())
+	if (is_stone())
 	{
-		metin2::log::error("Stone must not use battle state (name {})", GetName());
+		metin2::log::error("Stone must not use battle state (name {})", name());
 		return;
 	}
 
-	if (IsPC())
+	if (is_pc())
 		return; 
 
-	if (!CanMove())
+	if (!can_move())
 		return;
 
-	if (IsStun())
+	if (is_stun())
 		return;
 
-	CHARACTER * victim = GetVictim();
+	character * victim_value = victim();
 
-	if (IsCoward())
+	if (is_coward())
 	{
-		if (IsDead())
+		if (is_dead())
 			return;
 
-		SetVictim(nullptr);
+		set_victim(nullptr);
 
 		if (number(1, 50) != 1)
 		{
-			GotoState(m_stateIdle);
-			m_dwStateDuration = 1;
+			goto_state(state_idle_);
+			state_duration_ = 1;
 		}
 		else
-			CowardEscape();
+			coward_escape();
 
 		return;
 	}
 
-	if (!victim || (victim->IsStun() && IsGuardNPC()) || victim->IsDead())
+	if (!victim_value || (victim_value->is_stun() && is_guard_npc()) || victim_value->is_dead())
 	{
-		if (victim && victim->IsDead() &&
-				!metin2::config::game().no_wander && IsAggressive() && (!GetParty() || GetParty()->GetLeader() == this))
+		if (victim_value && victim_value->is_dead() &&
+				!metin2::config::game().no_wander && is_aggressive() && (!get_party() || get_party()->leader() == this))
 		{
-			CHARACTER * new_victim = FindVictim(this, m_pkMobData->m_table.wAggressiveSight);
+			character * new_victim = find_victim(this, mob_data->table.aggressive_sight);
 
-			SetVictim(new_victim);
-			m_dwStateDuration = PASSES_PER_SEC(1);
+			set_victim(new_victim);
+			state_duration_ = passes_per_sec(1);
 
 			if (!new_victim)
 			{
-				switch (GetMobBattleType())
+				switch (mob_battle_type())
 				{
 					case BATTLE_TYPE_MELEE:
 					case BATTLE_TYPE_SUPER_POWER:
@@ -939,24 +939,24 @@ void CHARACTER::StateBattle()
 							float fx, fy;
 							float fDist = number(400, 1500);
 
-							GetDeltaByDegree(number(0, 359), fDist, &fx, &fy);
+							get_delta_by_degree(number(0, 359), fDist, &fx, &fy);
 
-							if (SECTREE_MANAGER::instance().IsMovablePosition(victim->GetMapIndex(),
-										victim->GetX() + (int) fx, 
-										victim->GetY() + (int) fy) && 
-									SECTREE_MANAGER::instance().IsMovablePosition(victim->GetMapIndex(),
-										victim->GetX() + (int) fx/2,
-										victim->GetY() + (int) fy/2))
+							if (sectree_manager::instance().is_movable_position(victim_value->map_index(),
+										victim_value->x() + (int) fx, 
+										victim_value->y() + (int) fy) && 
+									sectree_manager::instance().is_movable_position(victim_value->map_index(),
+										victim_value->x() + (int) fx/2,
+										victim_value->y() + (int) fy/2))
 							{
-								float dx = victim->GetX() + fx;
-								float dy = victim->GetY() + fy;
+								float dx = victim_value->x() + fx;
+								float dy = victim_value->y() + fy;
 
-								SetRotation(GetDegreeFromPosition(dx, dy));
+								set_rotation(get_degree_from_position(dx, dy));
 
-								if (Goto((int32_t) dx, (int32_t) dy))
+								if (goto_((int32_t) dx, (int32_t) dy))
 								{
-									metin2::log::info( "KILL_AND_GO: {} distance {:.1f}", GetName(), fDist);
-									SendMovePacket(FUNC_WAIT, 0, 0, 0, 0);
+									metin2::log::info( "KILL_AND_GO: {} distance {:.1f}", name(), fDist);
+									send_move_packet(FUNC_WAIT, 0, 0, 0, 0);
 								}
 							}
 						}
@@ -965,117 +965,117 @@ void CHARACTER::StateBattle()
 			return;
 		}
 
-		SetVictim(nullptr);
+		set_victim(nullptr);
 
-		if (IsGuardNPC())
-			Return();
+		if (is_guard_npc())
+			return_();
 
-		m_dwStateDuration = PASSES_PER_SEC(1);
+		state_duration_ = passes_per_sec(1);
 		return;
 	}
 
-	if (IsSummonMonster() && !IsDead() && !IsStun())
+	if (is_summon_monster() && !is_dead() && !is_stun())
 	{
-		if (!GetParty())
+		if (!get_party())
 		{
 			// Create a party to fill with summons.
-			CPartyManager::instance().CreateParty(this);
+			party_manager::instance().create_party(this);
 		}
 
-		CParty * pParty = GetParty();
+		party * pParty = get_party();
 		bool bPct = !number(0, 3);
 
-		if (bPct && pParty->CountMemberByVnum(GetSummonVnum()) < SUMMON_MONSTER_COUNT)
+		if (bPct && pParty->count_member_by_vnum(summon_vnum()) < SUMMON_MONSTER_COUNT)
 		{
-			MonsterLog("부하 몬스터 소환!");
+			monster_log("부하 몬스터 소환!");
 			// Summon the missing ones to fill it up.
-			int sx = GetX() - 300;
-			int sy = GetY() - 300;
-			int ex = GetX() + 300;
-			int ey = GetY() + 300;
+			int sx = x() - 300;
+			int sy = y() - 300;
+			int ex = x() + 300;
+			int ey = y() + 300;
 
-			CHARACTER * tch = CHARACTER_MANAGER::instance().SpawnMobRange(GetSummonVnum(), GetMapIndex(), sx, sy, ex, ey, true, true);
+			character * tch = character_manager::instance().spawn_mob_range(summon_vnum(), map_index(), sx, sy, ex, ey, true, true);
 
 			if (tch)
 			{
-				pParty->Join(tch->GetVID());
-				pParty->Link(tch);
+				pParty->join(tch->get_vid());
+				pParty->link(tch);
 			}
 		}
 	}
 
-	CHARACTER * pkChrProtege = GetProtege();
+	character * pkChrProtege = protege();
 
-	float fDist = DISTANCE_APPROX(GetX() - victim->GetX(), GetY() - victim->GetY());
+	float fDist = distance_approx(x() - victim_value->x(), y() - victim_value->y());
 
 	if (fDist >= 4000.0f)   // Give up if more than 40 meters away
 	{
-		MonsterLog("타겟이 멀어서 포기");
-		SetVictim(nullptr);
+		monster_log("타겟이 멀어서 포기");
+		set_victim(nullptr);
 
 		// Go near what we protect (stone, party leader).
 		if (pkChrProtege)
-			if (DISTANCE_APPROX(GetX() - pkChrProtege->GetX(), GetY() - pkChrProtege->GetY()) > 1000)
-				Follow(pkChrProtege, number(150, 400));
+			if (distance_approx(x() - pkChrProtege->x(), y() - pkChrProtege->y()) > 1000)
+				follow(pkChrProtege, number(150, 400));
 
 		return;
 	}
 
-	if (fDist >= GetMobAttackRange() * 1.15)
+	if (fDist >= mob_attack_range() * 1.15)
 	{
-		__CHARACTER_GotoNearTarget(this, victim);
+		character_goto_near_target(this, victim_value);
 		return;
 	}
 
-	if (m_pkParty)
-		m_pkParty->SendMessage(this, PM_ATTACKED_BY, 0, 0);
+	if (party_)
+		party_->send_message(this, PM_ATTACKED_BY, 0, 0);
 
-	if (2493 == m_pkMobData->m_table.dwVnum)
+	if (2493 == mob_data->table.vnum)
 	{
 		// Special handling for the Water Dragon (2493)
-		m_dwStateDuration = BlueDragon_StateBattle(this);
+		state_duration_ = blue_dragon_state_battle(this);
 		return;
 	}
 
 	uint32_t dwCurTime = get_dword_time();
-	uint32_t dwDuration = CalculateDuration(GetLimitPoint(POINT_ATT_SPEED), 2000);
+	uint32_t dwDuration = calculate_duration(limit_point(POINT_ATT_SPEED), 2000);
 
-	if ((dwCurTime - m_dwLastAttackTime) < dwDuration) // Must attack every 2 seconds.
+	if ((dwCurTime - last_attack_time_) < dwDuration) // Must attack every 2 seconds.
 	{
-		m_dwStateDuration = std::max<int>(1, (metin2::config::server().passes_per_sec * (dwDuration - (dwCurTime - m_dwLastAttackTime)) / 1000));
+		state_duration_ = std::max<int>(1, (metin2::config::server().passes_per_sec * (dwDuration - (dwCurTime - last_attack_time_)) / 1000));
 		return;
 	}
 
-	if (IsBerserker() == true)
-		if (GetHPPct() < m_pkMobData->m_table.bBerserkPoint)
-			if (IsBerserk() != true)
-				SetBerserk(true);
+	if (is_berserker() == true)
+		if (hp_pct() < mob_data->table.berserk_point)
+			if (is_berserk() != true)
+				set_berserk(true);
 
-	if (IsGodSpeeder() == true)
-		if (GetHPPct() < m_pkMobData->m_table.bGodSpeedPoint)
-			if (IsGodSpeed() != true)
-				SetGodSpeed(true);
+	if (is_god_speeder() == true)
+		if (hp_pct() < mob_data->table.god_speed_point)
+			if (is_god_speed() != true)
+				set_god_speed(true);
 
 	//
 	// Mob skill handling
 	//
-	if (HasMobSkill())
+	if (has_mob_skill())
 	{
 		for (unsigned int iSkillIdx = 0; iSkillIdx < MOB_SKILL_MAX_NUM; ++iSkillIdx)
 		{
-			if (CanUseMobSkill(iSkillIdx))
+			if (can_use_mob_skill(iSkillIdx))
 			{
-				SetRotationToXY(victim->GetX(), victim->GetY());
+				set_rotation_to_xy(victim_value->x(), victim_value->y());
 
-				if (UseMobSkill(iSkillIdx))
+				if (use_mob_skill(iSkillIdx))
 				{
-					SendMovePacket(FUNC_MOB_SKILL, iSkillIdx, GetX(), GetY(), 0, dwCurTime);
+					send_move_packet(FUNC_MOB_SKILL, iSkillIdx, x(), y(), 0, dwCurTime);
 
-					float fDuration = CMotionManager::instance().GetMotionDuration(GetRaceNum(), MAKE_MOTION_KEY(MOTION_MODE_GENERAL, MOTION_SPECIAL_1 + iSkillIdx));
-					m_dwStateDuration = (uint32_t) (fDuration == 0.0f ? PASSES_PER_SEC(2) : PASSES_PER_SEC(fDuration));
+					float fDuration = motion_manager::instance().motion_duration(race_num(), make_motion_key(MOTION_MODE_GENERAL, MOTION_SPECIAL_1 + iSkillIdx));
+					state_duration_ = (uint32_t) (fDuration == 0.0f ? passes_per_sec(2) : passes_per_sec(fDuration));
 
 					if (metin2::config::test_server())
-						metin2::log::info( "USE_MOB_SKILL: {} idx {:d} motion {:d} duration {:.0f}", GetName(), iSkillIdx, MOTION_SPECIAL_1 + iSkillIdx, fDuration);
+						metin2::log::info( "USE_MOB_SKILL: {} idx {:d} motion {:d} duration {:.0f}", name(), iSkillIdx, MOTION_SPECIAL_1 + iSkillIdx, fDuration);
 
 					return;
 				}
@@ -1083,121 +1083,121 @@ void CHARACTER::StateBattle()
 		}
 	}
 
-	if (!Attack(victim))    // Attack failed? Why did it fail? TODO
-		m_dwStateDuration = metin2::config::server().passes_per_sec / 2;
+	if (!attack(victim_value))    // Attack failed? Why did it fail? TODO
+		state_duration_ = metin2::config::server().passes_per_sec / 2;
 	else
 	{
 		// Face the enemy.
-		SetRotationToXY(victim->GetX(), victim->GetY());
+		set_rotation_to_xy(victim_value->x(), victim_value->y());
 
-		SendMovePacket(FUNC_ATTACK, 0, GetX(), GetY(), 0, dwCurTime);
+		send_move_packet(FUNC_ATTACK, 0, x(), y(), 0, dwCurTime);
 
-		float fDuration = CMotionManager::instance().GetMotionDuration(GetRaceNum(), MAKE_MOTION_KEY(MOTION_MODE_GENERAL, MOTION_NORMAL_ATTACK));
-		m_dwStateDuration = (uint32_t) (fDuration == 0.0f ? PASSES_PER_SEC(2) : PASSES_PER_SEC(fDuration));
+		float fDuration = motion_manager::instance().motion_duration(race_num(), make_motion_key(MOTION_MODE_GENERAL, MOTION_NORMAL_ATTACK));
+		state_duration_ = (uint32_t) (fDuration == 0.0f ? passes_per_sec(2) : passes_per_sec(fDuration));
 	}
 }
 
-void CHARACTER::StateFlag()
+void character::state_flag()
 {
-	m_dwStateDuration = (uint32_t) PASSES_PER_SEC(0.5);
+	state_duration_ = (uint32_t) passes_per_sec(0.5);
 
-	CWarMap * pMap = GetWarMap();
+	war_map * pMap = get_war_map();
 
 	if (!pMap)
 		return;
 
-	FuncFindChrForFlag f(this);
-	GetSectree()->ForEachAround(f);
+	func_find_chr_for_flag f(this);
+	get_sectree()->for_each_around(f);
 
-	if (!f.m_pkChrFind)
+	if (!f.chr_find)
 		return;
 
-	if (nullptr == f.m_pkChrFind->GetGuild())
+	if (nullptr == f.chr_find->get_guild())
 		return;
 
 	char buf[256];
 	uint8_t idx;
 
-	if (!pMap->GetTeamIndex(GetPoint(POINT_STAT), idx))
+	if (!pMap->team_index(point(POINT_STAT), idx))
 		return;
 
-	f.m_pkChrFind->AddAffect(AFFECT_WAR_FLAG, POINT_NONE, GetPoint(POINT_STAT), idx == 0 ? AFF_WAR_FLAG1 : AFF_WAR_FLAG2, INFINITE_AFFECT_DURATION, 0, false);
-	f.m_pkChrFind->AddAffect(AFFECT_WAR_FLAG, POINT_MOV_SPEED, 50 - f.m_pkChrFind->GetPoint(POINT_MOV_SPEED), 0, INFINITE_AFFECT_DURATION, 0, false);
+	f.chr_find->add_affect(AFFECT_WAR_FLAG, POINT_NONE, point(POINT_STAT), idx == 0 ? AFF_WAR_FLAG1 : AFF_WAR_FLAG2, INFINITE_AFFECT_DURATION, 0, false);
+	f.chr_find->add_affect(AFFECT_WAR_FLAG, POINT_MOV_SPEED, 50 - f.chr_find->point(POINT_MOV_SPEED), 0, INFINITE_AFFECT_DURATION, 0, false);
 
-	pMap->RemoveFlag(idx);
+	pMap->remove_flag(idx);
 
-	snprintf(buf, sizeof(buf), LC_TEXT("%s 길드의 깃발을 %s 님이 획득하였습니다."), pMap->GetGuild(idx)->GetName(), f.m_pkChrFind->GetName());
-	pMap->Notice(buf);
+	snprintf(buf, sizeof(buf), lc_text("%s 길드의 깃발을 %s 님이 획득하였습니다."), pMap->get_guild(idx)->name(), f.chr_find->name());
+	pMap->notice(buf);
 }
 
-void CHARACTER::StateFlagBase()
+void character::state_flag_base()
 {
-	m_dwStateDuration = (uint32_t) PASSES_PER_SEC(0.5);
+	state_duration_ = (uint32_t) passes_per_sec(0.5);
 
-	FuncFindChrForFlagBase f(this);
-	GetSectree()->ForEachAround(f);
+	func_find_chr_for_flag_base f(this);
+	get_sectree()->for_each_around(f);
 }
 
-void CHARACTER::StateHorse()
+void character::state_horse()
 {
 	float	START_FOLLOW_DISTANCE = 400.0f;		// Start following when farther than this distance
 	float	START_RUN_DISTANCE = 700.0f;		// Run to follow when farther than this distance.
 	int		MIN_APPROACH = 150;					// Minimum approach distance
 	int		MAX_APPROACH = 300;					// Maximum approach distance	
 
-	uint32_t	STATE_DURATION = (uint32_t)PASSES_PER_SEC(0.5);	// State duration
+	uint32_t	STATE_DURATION = (uint32_t)passes_per_sec(0.5);	// State duration
 
 	bool bDoMoveAlone = true;					// Whether to wander around alone when near the character -_-;
 	bool bRun = true;							// Should it run?
 
-	if (IsDead())
+	if (is_dead())
 		return;
 
-	m_dwStateDuration = STATE_DURATION;
+	state_duration_ = STATE_DURATION;
 
-	CHARACTER * victim = GetRider();
+	character * victim = rider();
 
 	// not ! // If there is no target, the summoner will clear me directly
 	if (!victim)
 	{
-		CHARACTER_MANAGER::instance().DestroyCharacter(this);
+		character_manager::instance().destroy_character(this);
 		return;
 	}
 
-	m_pkMobInst->m_posLastAttacked = GetXYZ();
+	mob_inst->pos_last_attacked = xyz();
 
-	float fDist = DISTANCE_APPROX(GetX() - victim->GetX(), GetY() - victim->GetY());
+	float fDist = distance_approx(x() - victim->x(), y() - victim->y());
 
 	if (fDist >= START_FOLLOW_DISTANCE)
 	{
 		if (fDist > START_RUN_DISTANCE)
-			SetNowWalking(!bRun);		// NOTE: From the function name I thought it stops, but SetNowWalking(false) means running.. -_-;
+			set_now_walking(!bRun);		// NOTE: From the function name I thought it stops, but SetNowWalking(false) means running.. -_-;
 
-		Follow(victim, number(MIN_APPROACH, MAX_APPROACH));
+		follow(victim, number(MIN_APPROACH, MAX_APPROACH));
 
-		m_dwStateDuration = STATE_DURATION;
+		state_duration_ = STATE_DURATION;
 	}
-	else if (bDoMoveAlone && (get_dword_time() > m_dwLastAttackTime))
+	else if (bDoMoveAlone && (get_dword_time() > last_attack_time_))
 	{
 		// wondering-.-
-		m_dwLastAttackTime = get_dword_time() + number(5000, 12000);
+		last_attack_time_ = get_dword_time() + number(5000, 12000);
 
-		SetRotation(number(0, 359));        // Pick a random direction
+		set_rotation(number(0, 359));        // Pick a random direction
 
 		float fx, fy;
 		float fDist = number(200, 400);
 
-		GetDeltaByDegree(GetRotation(), fDist, &fx, &fy);
+		get_delta_by_degree(rotation(), fDist, &fx, &fy);
 
 		// Loose blocked-attribute check; don't go if the final or midpoint position is unreachable.
-		if (!(SECTREE_MANAGER::instance().IsMovablePosition(GetMapIndex(), GetX() + (int) fx, GetY() + (int) fy) 
-					&& SECTREE_MANAGER::instance().IsMovablePosition(GetMapIndex(), GetX() + (int) fx/2, GetY() + (int) fy/2)))
+		if (!(sectree_manager::instance().is_movable_position(map_index(), x() + (int) fx, y() + (int) fy) 
+					&& sectree_manager::instance().is_movable_position(map_index(), x() + (int) fx/2, y() + (int) fy/2)))
 			return;
 
-		SetNowWalking(true);
+		set_now_walking(true);
 
-		if (Goto(GetX() + (int) fx, GetY() + (int) fy))
-			SendMovePacket(FUNC_WAIT, 0, 0, 0, 0);
+		if (goto_(x() + (int) fx, y() + (int) fy))
+			send_move_packet(FUNC_WAIT, 0, 0, 0, 0);
 	}
 }
 }

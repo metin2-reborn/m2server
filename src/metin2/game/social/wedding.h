@@ -15,74 +15,74 @@ namespace metin2::game::inline social {
 namespace marriage
 {
 	const uint32_t WEDDING_MAP_INDEX = 81;
-	typedef CHARACTER_SET charset_t;
+	typedef character_set charset_t;
 
-	class WeddingMap
+	class wedding_map
 	{
 		public:
-			WeddingMap(uint32_t dwMapIndex, uint32_t dwPID1, uint32_t dwPID2);
-			~WeddingMap();
+			wedding_map(uint32_t dwMapIndex, uint32_t dwPID1, uint32_t dwPID2);
+			~wedding_map();
 
-			uint32_t GetMapIndex() { return m_dwMapIndex; }
+			uint32_t map_index() { return map_index_; }
 
-			void WarpAll();
-			void DestroyAll();
-			void Notice(const char* psz);
-			void SetEnded();
+			void warp_all();
+			void destroy_all();
+			void notice(const char* psz);
+			void set_ended();
 
-			void IncMember(CHARACTER * ch);
-			void DecMember(CHARACTER * ch);
-			bool IsMember(CHARACTER * ch );
+			void inc_member(character * ch);
+			void dec_member(character * ch);
+			bool is_member(character * ch );
 
-			void SetDark(bool bSet);
-			void SetSnow(bool bSet);
-			void SetMusic(bool bSet, const char* szMusicFileName);
+			void set_dark(bool bSet);
+			void set_snow(bool bSet);
+			void set_music(bool bSet, const char* szMusicFileName);
 
-			bool IsPlayingMusic();
+			bool is_playing_music();
 
-			void SendLocalEvent(CHARACTER * ch);
+			void send_local_event(character * ch);
 
-			void ShoutInMap(uint8_t type, const char* szMsg);
+			void shout_in_map(uint8_t type, const char* szMsg);
 		private:
 
-			const char* __BuildCommandPlayMusic(char* szCommand, size_t nCmdLen, uint8_t bSet, const char* c_szMusicFileName); 
+			const char* build_command_play_music(char* szCommand, size_t nCmdLen, uint8_t bSet, const char* c_szMusicFileName); 
 
 		private:
-			uint32_t m_dwMapIndex;
-			LPEVENT m_pEndEvent;
-			charset_t m_set_pkChr;
+			uint32_t map_index_;
+			event_ptr end_event_;
+			charset_t set_pk_chr_;
 
-			bool m_isDark;
-			bool m_isSnow;
-			bool m_isMusic;
+			bool is_dark_;
+			bool is_snow_;
+			bool is_music_;
 
-			uint32_t dwPID1;
-			uint32_t dwPID2;
+			uint32_t pi_d1_;
+			uint32_t pi_d2_;
 
-			std::string m_stMusicFileName;
+			std::string music_file_name_;
 	};
 
-	class WeddingManager : public singleton<WeddingManager>
+	class wedding_manager : public singleton<wedding_manager>
 	{
 		public:
-			WeddingManager();
-			~WeddingManager() override;
+			wedding_manager();
+			~wedding_manager() override;
 
-			bool IsWeddingMap(uint32_t dwMapIndex);
+			bool is_wedding_map(uint32_t dwMapIndex);
 
-			void Request(uint32_t dwPID1, uint32_t dwPID2);
-			bool End(uint32_t dwMapIndex);
+			void request(uint32_t dwPID1, uint32_t dwPID2);
+			bool end(uint32_t dwMapIndex);
 
-			void DestroyWeddingMap(WeddingMap* pMap);
+			void destroy_wedding_map(wedding_map* pMap);
 
-			WeddingMap* Find(uint32_t dwMapIndex);
-
-		private:
-			uint32_t __CreateWeddingMap(uint32_t dwPID1, uint32_t dwPID2);
+			wedding_map* find(uint32_t dwMapIndex);
 
 		private:
+			uint32_t create_wedding_map(uint32_t dwPID1, uint32_t dwPID2);
 
-			std::map<uint32_t, WeddingMap*> m_mapWedding;
+		private:
+
+			std::map<uint32_t, wedding_map*> wedding_;
 	};
 }
 }

@@ -15,104 +15,104 @@
 
 namespace metin2::game::inline guilds {
 
-class CGuild;
-struct TGuildCreateParameter;
+class guild;
+struct guild_create_parameter;
 
 inline constexpr const char GUILD_SYMBOL_FILENAME[] = "guild_symbol.tga";
-class CGuildWarReserveForGame
+class guild_war_reserve_for_game
 {
 	public:
-		TGuildWarReserve				data;
-		std::map<std::string, std::pair<uint32_t, uint32_t> > mapBet;
+		guild_war_reserve				data;
+		std::map<std::string, std::pair<uint32_t, uint32_t> > bet;
 };
 
-class CGuildManager : public singleton<CGuildManager>
+class guild_manager : public singleton<guild_manager>
 {
 	public:
-		CGuildManager();
-		~CGuildManager() override;
+		guild_manager();
+		~guild_manager() override;
 
-		uint32_t		CreateGuild(TGuildCreateParameter& gcp);
-		CGuild *	FindGuild(uint32_t guild_id);
-		CGuild *	FindGuildByName(const std::string guild_name);
-		void		LoadGuild(uint32_t guild_id);
-		CGuild *	TouchGuild(uint32_t guild_id);
-		void		DisbandGuild(uint32_t guild_id);
+		uint32_t		create_guild(guild_create_parameter& gcp);
+		guild *	find_guild(uint32_t guild_id);
+		guild *	find_guild_by_name(const std::string guild_name);
+		void		load_guild(uint32_t guild_id);
+		guild *	touch_guild(uint32_t guild_id);
+		void		disband_guild(uint32_t guild_id);
 
-		void		Initialize();
+		void		initialize();
 
-		void		Link(uint32_t pid, CGuild* guild);
-		void		Unlink(uint32_t pid);
-		CGuild *	GetLinkedGuild(uint32_t pid);
+		void		link(uint32_t pid, guild* guild);
+		void		unlink(uint32_t pid);
+		guild *	linked_guild(uint32_t pid);
 
-		void		LoginMember(CHARACTER * ch);
-		void		P2PLoginMember(uint32_t pid);
-		void		P2PLogoutMember(uint32_t pid);
+		void		login_member(character * ch);
+		void		p2_p_login_member(uint32_t pid);
+		void		p2_p_logout_member(uint32_t pid);
 
-		void		SkillRecharge();
+		void		skill_recharge();
 
-		void		ShowGuildWarList(CHARACTER * ch);
-		void		SendGuildWar(CHARACTER * ch);
+		void		show_guild_war_list(character * ch);
+		void		send_guild_war(character * ch);
 
-		void		RequestEndWar(uint32_t guild_id1, uint32_t guild_id2);
-		void		RequestCancelWar(uint32_t guild_id1, uint32_t guild_id2);
-		void		RequestWarOver(uint32_t dwGuild1, uint32_t dwGuild2, uint32_t dwGuildWinner, int32_t lReward);
+		void		request_end_war(uint32_t guild_id1, uint32_t guild_id2);
+		void		request_cancel_war(uint32_t guild_id1, uint32_t guild_id2);
+		void		request_war_over(uint32_t dwGuild1, uint32_t dwGuild2, uint32_t dwGuildWinner, int32_t lReward);
 
-		void		DeclareWar(uint32_t guild_id1, uint32_t guild_id2, uint8_t bType);
-		void		RefuseWar(uint32_t guild_id1, uint32_t guild_id2);
-		void		StartWar(uint32_t guild_id1, uint32_t guild_id2);
-		void		WaitStartWar(uint32_t guild_id1, uint32_t guild_id2);
-		void		WarOver(uint32_t guild_id1, uint32_t guild_id2, bool bDraw);
-		void		CancelWar(uint32_t guild_id1, uint32_t guild_id2);
-		bool		EndWar(uint32_t guild_id1, uint32_t guild_id2);
-		void		ReserveWar(uint32_t dwGuild1, uint32_t dwGuild2, uint8_t bType);
+		void		declare_war(uint32_t guild_id1, uint32_t guild_id2, uint8_t bType);
+		void		refuse_war(uint32_t guild_id1, uint32_t guild_id2);
+		void		start_war(uint32_t guild_id1, uint32_t guild_id2);
+		void		wait_start_war(uint32_t guild_id1, uint32_t guild_id2);
+		void		war_over(uint32_t guild_id1, uint32_t guild_id2, bool bDraw);
+		void		cancel_war(uint32_t guild_id1, uint32_t guild_id2);
+		bool		end_war(uint32_t guild_id1, uint32_t guild_id2);
+		void		reserve_war(uint32_t dwGuild1, uint32_t dwGuild2, uint8_t bType);
 
-		void            ReserveWarAdd(TGuildWarReserve * p);
-		void            ReserveWarDelete(uint32_t dwID);
-		std::vector<CGuildWarReserveForGame *> & GetReserveWarRef();
-		void		ReserveWarBet(TPacketGDGuildWarBet * p);
-		bool		IsBet(uint32_t dwID, const char * c_pszLogin);
+		void            reserve_war_add(guild_war_reserve * p);
+		void            reserve_war_delete(uint32_t dwID);
+		std::vector<guild_war_reserve_for_game *> & reserve_war_ref();
+		void		reserve_war_bet(packet_gd_guild_war_bet * p);
+		bool		is_bet(uint32_t dwID, const char * c_pszLogin);
 
-		void		StopAllGuildWar();
+		void		stop_all_guild_war();
 
-		void		Kill(CHARACTER * killer, CHARACTER * victim);
+		void		kill(character * killer, character * victim);
 
-		int		GetRank(CGuild* g);
-		void		GetHighRankString(uint32_t dwMyGuild, char * buffer, size_t buflen);
-		void		GetAroundRankString(uint32_t dwMyGuild, char * buffer, size_t buflen);
+		int		rank(guild* g);
+		void		high_rank_string(uint32_t dwMyGuild, char * buffer, size_t buflen);
+		void		around_rank_string(uint32_t dwMyGuild, char * buffer, size_t buflen);
 
 		template <typename Func> void for_each_war(Func & f);
 
-		int		GetDisbandDelay();
-		int		GetWithdrawDelay();
+		int		disband_delay();
+		int		withdraw_delay();
 
-		void		ChangeMaster(uint32_t dwGID);
+		void		change_master(uint32_t dwGID);
 
 	private:
-		typedef std::map<uint32_t, CGuild*> TGuildMap;	
-		std::map<uint32_t, std::unique_ptr<CGuild>> m_mapGuild;
+		typedef std::map<uint32_t, guild*> guild_map;	
+		std::map<uint32_t, std::unique_ptr<guild>> guild_;
 
-		typedef std::set<std::pair<uint32_t, uint32_t> > TGuildWarContainer;
-		TGuildWarContainer m_GuildWar;
+		typedef std::set<std::pair<uint32_t, uint32_t> > guild_war_container;
+		guild_war_container guild_war_;
 
-		typedef std::map<std::pair<uint32_t, uint32_t>, uint32_t> TGuildWarEndTimeContainer;
-		TGuildWarEndTimeContainer m_GuildWarEndTime;
+		typedef std::map<std::pair<uint32_t, uint32_t>, uint32_t> guild_war_end_time_container;
+		guild_war_end_time_container guild_war_end_time_;
 
-		TGuildMap				m_map_pkGuildByPID;
+		guild_map				map_pk_guild_by_pid_;
 
-		std::map<uint32_t, std::unique_ptr<CGuildWarReserveForGame>>	m_map_kReserveWar;
-		std::vector<CGuildWarReserveForGame *>		m_vec_kReserveWar;
+		std::map<uint32_t, std::unique_ptr<guild_war_reserve_for_game>>	map_k_reserve_war_;
+		std::vector<guild_war_reserve_for_game *>		vec_k_reserve_war_;
 
-		friend class CGuild;
+		friend class guild;
 };
 
-template <typename Func> void CGuildManager::for_each_war(Func & f)
+template <typename Func> void guild_manager::for_each_war(Func & f)
 {
-	for (auto it = m_GuildWar.begin(); it != m_GuildWar.end(); ++it)
+	for (auto it = guild_war_.begin(); it != guild_war_.end(); ++it)
 	{
 		f(it->first, it->second);
 	}
 }
 
-extern void SendGuildWarScore(uint32_t dwGuild, uint32_t dwGuildOpp, int iDelta, int iBetScoreDelta = 0);
+extern void send_guild_war_score(uint32_t dwGuild, uint32_t dwGuildOpp, int iDelta, int iBetScoreDelta = 0);
 }

@@ -24,11 +24,11 @@
 
 namespace metin2::db::inline caches {
 
-CItemCache::CItemCache() {
-    m_expireTime = std::min(1800, metin2::config::db().item_cache_flush_seconds);
+item_cache::item_cache() {
+    expire_time_ = std::min(1800, metin2::config::db().item_cache_flush_seconds);
 }
 
-CItemCache::~CItemCache() {
+item_cache::~item_cache() {
 }
 
 // This is weird...
@@ -39,48 +39,48 @@ CItemCache::~CItemCache() {
 // The item is already gone... a double tap??????
 // fixme
 // by rtsummit
-void CItemCache::Delete() {
-    if (m_data.vnum == 0) {
+void item_cache::delete_() {
+    if (data_.vnum == 0) {
         return;
     }
 
     if (metin2::config::test_server()) {
-        metin2::log::info( "ItemCache::Delete : DELETE {:d}", m_data.id);
+        metin2::log::info( "ItemCache::Delete : DELETE {:d}", data_.id);
     }
 
-    m_data.vnum = 0;
-    m_bNeedQuery = true;
-    m_lastUpdateTime = time(nullptr);
-    OnFlush();
+    data_.vnum = 0;
+    need_query_ = true;
+    last_update_time_ = time(nullptr);
+    on_flush();
 
     // m_lastUpdateTime = time(0) - m_expireTime; // make it time out immediately.
 }
 
-void CItemCache::OnFlush() {
-    if (m_data.vnum == 0) // A vnum of 0 means it is marked for deletion.
+void item_cache::on_flush() {
+    if (data_.vnum == 0) // A vnum of 0 means it is marked for deletion.
     {
         char szQuery[QUERY_MAX_LEN];
-        snprintf(szQuery, sizeof(szQuery), "DELETE FROM item%s WHERE id=%u", GetTablePostfix(), m_data.id);
-        CDBManager::instance().ReturnQuery(szQuery, QID_ITEM_DESTROY, 0, nullptr);
+        snprintf(szQuery, sizeof(szQuery), "DELETE FROM item%s WHERE id=%u", get_table_postfix(), data_.id);
+        db_manager::instance().return_query(szQuery, QID_ITEM_DESTROY, 0, nullptr);
 
         if (metin2::config::test_server()) {
-            metin2::log::info( "ItemCache::Flush : DELETE {:d} {}", m_data.id, szQuery);
+            metin2::log::info( "ItemCache::Flush : DELETE {:d} {}", data_.id, szQuery);
         }
     } else {
         int32_t alSockets[ITEM_SOCKET_MAX_NUM];
-        TPlayerItemAttribute aAttr[ITEM_ATTRIBUTE_MAX_NUM];
+        player_item_attribute aAttr[ITEM_ATTRIBUTE_MAX_NUM];
         bool isSocket = false, isAttr = false;
 
         memset(&alSockets, 0, sizeof(int32_t) * ITEM_SOCKET_MAX_NUM);
-        memset(&aAttr, 0, sizeof(TPlayerItemAttribute) * ITEM_ATTRIBUTE_MAX_NUM);
+        memset(&aAttr, 0, sizeof(player_item_attribute) * ITEM_ATTRIBUTE_MAX_NUM);
 
-        TPlayerItem *p = &m_data;
+        player_item *p = &data_;
 
-        if (memcmp(alSockets, p->alSockets, sizeof(int32_t) * ITEM_SOCKET_MAX_NUM)) {
+        if (memcmp(alSockets, p->sockets, sizeof(int32_t) * ITEM_SOCKET_MAX_NUM)) {
             isSocket = true;
         }
 
-        if (memcmp(aAttr, p->aAttr, sizeof(TPlayerItemAttribute) * ITEM_ATTRIBUTE_MAX_NUM)) {
+        if (memcmp(aAttr, p->attr, sizeof(player_item_attribute) * ITEM_ATTRIBUTE_MAX_NUM)) {
             isAttr = true;
         }
 
@@ -96,9 +96,9 @@ void CItemCache::OnFlush() {
         if (isSocket) {
             iLen += snprintf(szColumns + iLen, sizeof(szColumns) - iLen, ", socket0, socket1, socket2");
             iValueLen += snprintf(szValues + iValueLen, sizeof(szValues) - iValueLen,
-                ", %u, %u, %u", p->alSockets[0], p->alSockets[1], p->alSockets[2]);
+                ", %u, %u, %u", p->sockets[0], p->sockets[1], p->sockets[2]);
             iUpdateLen += snprintf(szUpdate + iUpdateLen, sizeof(szUpdate) - iUpdateLen,
-                ", socket0=%u, socket1=%u, socket2=%u", p->alSockets[0], p->alSockets[1], p->alSockets[2]);
+                ", socket0=%u, socket1=%u, socket2=%u", p->sockets[0], p->sockets[1], p->sockets[2]);
         }
 
         if (isAttr) {
@@ -108,13 +108,13 @@ void CItemCache::OnFlush() {
 
             iValueLen += snprintf(szValues + iValueLen, sizeof(szValues) - iValueLen,
                 ", %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d",
-                p->aAttr[0].bType, p->aAttr[0].sValue,
-                p->aAttr[1].bType, p->aAttr[1].sValue,
-                p->aAttr[2].bType, p->aAttr[2].sValue,
-                p->aAttr[3].bType, p->aAttr[3].sValue,
-                p->aAttr[4].bType, p->aAttr[4].sValue,
-                p->aAttr[5].bType, p->aAttr[5].sValue,
-                p->aAttr[6].bType, p->aAttr[6].sValue);
+                p->attr[0].type, p->attr[0].s_value,
+                p->attr[1].type, p->attr[1].s_value,
+                p->attr[2].type, p->attr[2].s_value,
+                p->attr[3].type, p->attr[3].s_value,
+                p->attr[4].type, p->attr[4].s_value,
+                p->attr[5].type, p->attr[5].s_value,
+                p->attr[6].type, p->attr[6].s_value);
 
             iUpdateLen += snprintf(szUpdate + iUpdateLen, sizeof(szUpdate) - iUpdateLen,
                 ", attrtype0=%d, attrvalue0=%d"
@@ -124,130 +124,130 @@ void CItemCache::OnFlush() {
                 ", attrtype4=%d, attrvalue4=%d"
                 ", attrtype5=%d, attrvalue5=%d"
                 ", attrtype6=%d, attrvalue6=%d",
-                p->aAttr[0].bType, p->aAttr[0].sValue,
-                p->aAttr[1].bType, p->aAttr[1].sValue,
-                p->aAttr[2].bType, p->aAttr[2].sValue,
-                p->aAttr[3].bType, p->aAttr[3].sValue,
-                p->aAttr[4].bType, p->aAttr[4].sValue,
-                p->aAttr[5].bType, p->aAttr[5].sValue,
-                p->aAttr[6].bType, p->aAttr[6].sValue);
+                p->attr[0].type, p->attr[0].s_value,
+                p->attr[1].type, p->attr[1].s_value,
+                p->attr[2].type, p->attr[2].s_value,
+                p->attr[3].type, p->attr[3].s_value,
+                p->attr[4].type, p->attr[4].s_value,
+                p->attr[5].type, p->attr[5].s_value,
+                p->attr[6].type, p->attr[6].s_value);
         }
 
         char szItemQuery[QUERY_MAX_LEN + QUERY_MAX_LEN];
-        snprintf(szItemQuery, sizeof(szItemQuery), "REPLACE INTO item%s (%s) VALUES(%s)", GetTablePostfix(), szColumns, szValues);
+        snprintf(szItemQuery, sizeof(szItemQuery), "REPLACE INTO item%s (%s) VALUES(%s)", get_table_postfix(), szColumns, szValues);
 
         if (metin2::config::test_server())
             metin2::log::info( "ItemCache::Flush :REPLACE  ({})", szItemQuery);
 
-        CDBManager::instance().ReturnQuery(szItemQuery, QID_ITEM_SAVE, 0, nullptr);
+        db_manager::instance().return_query(szItemQuery, QID_ITEM_SAVE, 0, nullptr);
 
-        ++g_item_count;
+        ++item_count;
     }
 
-    m_bNeedQuery = false;
+    need_query_ = false;
 }
 
 //
 // CPlayerTableCache
 //
-CPlayerTableCache::CPlayerTableCache() {
-    m_expireTime = std::min(1800, metin2::config::db().player_cache_flush_seconds);
+player_table_cache::player_table_cache() {
+    expire_time_ = std::min(1800, metin2::config::db().player_cache_flush_seconds);
 }
 
-CPlayerTableCache::~CPlayerTableCache() {
+player_table_cache::~player_table_cache() {
 }
 
-void CPlayerTableCache::OnFlush() {
+void player_table_cache::on_flush() {
     if (metin2::config::test_server())
-        metin2::log::info( "PlayerTableCache::Flush : {}", m_data.name);
+        metin2::log::info( "PlayerTableCache::Flush : {}", data_.name);
 
-    const std::string query = CreatePlayerSaveQuery(&m_data);
-    CDBManager::instance().ReturnQuery(query.c_str(), QID_PLAYER_SAVE, 0, nullptr);
+    const std::string query = create_player_save_query(&data_);
+    db_manager::instance().return_query(query.c_str(), QID_PLAYER_SAVE, 0, nullptr);
 }
 
-const int CItemPriceListTableCache::s_nMinFlushSec = 1800;
+const int item_price_list_table_cache::min_flush_sec_ = 1800;
 
-CItemPriceListTableCache::CItemPriceListTableCache() {
-    m_expireTime = std::min(s_nMinFlushSec, metin2::config::db().pricelist_cache_flush_seconds);
+item_price_list_table_cache::item_price_list_table_cache() {
+    expire_time_ = std::min(min_flush_sec_, metin2::config::db().pricelist_cache_flush_seconds);
 }
 
-void CItemPriceListTableCache::UpdateList(const TItemPriceListTable *pUpdateList) {
+void item_price_list_table_cache::update_list(const item_price_list_table *pUpdateList) {
     //
     // Find items duplicating already-cached items and put the non-duplicated old info into tmpvec.
     //
 
-    std::vector<TItemPriceInfo> tmpvec;
+    std::vector<item_price_info> tmpvec;
 
-    for (uint idx = 0; idx < m_data.byCount; ++idx) {
-        const TItemPriceInfo *pos = pUpdateList->aPriceInfo;
-        for (; pos != pUpdateList->aPriceInfo + pUpdateList->byCount && m_data.aPriceInfo[idx].dwVnum != pos->dwVnum; ++pos)
+    for (uint idx = 0; idx < data_.count; ++idx) {
+        const item_price_info *pos = pUpdateList->price_info;
+        for (; pos != pUpdateList->price_info + pUpdateList->count && data_.price_info[idx].vnum != pos->vnum; ++pos)
             ;
 
-        if (pos == pUpdateList->aPriceInfo + pUpdateList->byCount)
-            tmpvec.push_back(m_data.aPriceInfo[idx]);
+        if (pos == pUpdateList->price_info + pUpdateList->count)
+            tmpvec.push_back(data_.price_info[idx]);
     }
 
     //
     // Copy pUpdateList into m_data and fill the remaining space from the front of tmpvec.
     //
 
-    if (pUpdateList->byCount > SHOP_PRICELIST_MAX_NUM) {
+    if (pUpdateList->count > SHOP_PRICELIST_MAX_NUM) {
         metin2::log::error("Count overflow!");
         return;
     }
 
-    m_data.byCount = pUpdateList->byCount;
+    data_.count = pUpdateList->count;
 
-    std::memcpy(m_data.aPriceInfo, pUpdateList->aPriceInfo, sizeof(TItemPriceInfo) * pUpdateList->byCount);
+    std::memcpy(data_.price_info, pUpdateList->price_info, sizeof(item_price_info) * pUpdateList->count);
 
     int nDeletedNum; // Number of deleted price entries
 
-    if (pUpdateList->byCount < SHOP_PRICELIST_MAX_NUM) {
-        size_t sizeAddOldDataSize = SHOP_PRICELIST_MAX_NUM - pUpdateList->byCount;
+    if (pUpdateList->count < SHOP_PRICELIST_MAX_NUM) {
+        size_t sizeAddOldDataSize = SHOP_PRICELIST_MAX_NUM - pUpdateList->count;
 
         if (tmpvec.size() < sizeAddOldDataSize) {
             sizeAddOldDataSize = tmpvec.size();
         }
 
-        std::memcpy(m_data.aPriceInfo + pUpdateList->byCount, &tmpvec[0], sizeof(TItemPriceInfo) * sizeAddOldDataSize);
-        m_data.byCount += sizeAddOldDataSize;
+        std::memcpy(data_.price_info + pUpdateList->count, &tmpvec[0], sizeof(item_price_info) * sizeAddOldDataSize);
+        data_.count += sizeAddOldDataSize;
 
         nDeletedNum = tmpvec.size() - sizeAddOldDataSize;
     } else {
         nDeletedNum = tmpvec.size();
     }
 
-    m_bNeedQuery = true;
+    need_query_ = true;
 
     metin2::log::info(
         "ItemPriceListTableCache::UpdateList : OwnerID[{:d}] Update [{:d}] Items, Delete [{:d}] Items, Total [{:d}] Items",
-        m_data.dwOwnerID, pUpdateList->byCount, nDeletedNum, m_data.byCount);
+        data_.owner_id, pUpdateList->count, nDeletedNum, data_.count);
 }
 
-void CItemPriceListTableCache::OnFlush() {
+void item_price_list_table_cache::on_flush() {
     char szQuery[QUERY_MAX_LEN];
 
     //
     // Delete all item price info previously stored in the DB for this cache's owner.
     //
 
-    snprintf(szQuery, sizeof(szQuery), "DELETE FROM myshop_pricelist%s WHERE owner_id = %u", GetTablePostfix(), m_data.dwOwnerID);
-    CDBManager::instance().ReturnQuery(szQuery, QID_ITEMPRICE_DESTROY, 0, nullptr);
+    snprintf(szQuery, sizeof(szQuery), "DELETE FROM myshop_pricelist%s WHERE owner_id = %u", get_table_postfix(), data_.owner_id);
+    db_manager::instance().return_query(szQuery, QID_ITEMPRICE_DESTROY, 0, nullptr);
 
     //
     // Write the entire cache contents to the DB.
     //
 
-    for (int idx = 0; idx < m_data.byCount; ++idx) {
+    for (int idx = 0; idx < data_.count; ++idx) {
         snprintf(szQuery, sizeof(szQuery),
             // "INSERT INTO myshop_pricelist%s(owner_id, item_vnum, price) VALUES(%u, %u, %u)",
             "REPLACE myshop_pricelist%s (owner_id, item_vnum, price) VALUES(%u, %u, %u)",
-            GetTablePostfix(), m_data.dwOwnerID, m_data.aPriceInfo[idx].dwVnum, m_data.aPriceInfo[idx].dwPrice);
-        CDBManager::instance().ReturnQuery(szQuery, QID_ITEMPRICE_SAVE, 0, nullptr);
+            get_table_postfix(), data_.owner_id, data_.price_info[idx].vnum, data_.price_info[idx].price);
+        db_manager::instance().return_query(szQuery, QID_ITEMPRICE_SAVE, 0, nullptr);
     }
 
-    metin2::log::info( "ItemPriceListTableCache::Flush : OwnerID[{:d}] Update [{:d}]Items", m_data.dwOwnerID, m_data.byCount);
+    metin2::log::info( "ItemPriceListTableCache::Flush : OwnerID[{:d}] Update [{:d}]Items", data_.owner_id, data_.count);
 
-    m_bNeedQuery = false;
+    need_query_ = false;
 }
 }

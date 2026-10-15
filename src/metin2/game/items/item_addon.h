@@ -6,12 +6,12 @@
 
 namespace metin2::game::inline items {
 
-class CItemAddonManager : public singleton<CItemAddonManager>
+class item_addon_manager : public singleton<item_addon_manager>
 {
 	public:
-		CItemAddonManager();
-		~CItemAddonManager() override;
+		item_addon_manager();
+		~item_addon_manager() override;
 
-		void ApplyAddonTo(int iAddonType, CItem * pItem);
+		void apply_addon_to(int iAddonType, item * pItem);
 };
 }

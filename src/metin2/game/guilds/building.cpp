@@ -50,118 +50,118 @@ enum
 
 using namespace building;
 
-CObject::CObject(TObject * pData, TObjectProto * pProto)
-	: m_pProto(pProto), m_dwVID(0), m_chNPC(nullptr)
+object::object(object_table * pData, object_proto * pProto)
+	: proto_(pProto), vid_(0), ch_npc_(nullptr)
 {
-	CEntity::Initialize(ENTITY_OBJECT);
+	entity::initialize(ENTITY_OBJECT);
 
-	std::memcpy(&m_data, pData, sizeof(TObject));
+	std::memcpy(&data_, pData, sizeof(object_table));
 }
 
-CObject::~CObject()
+object::~object()
 {
-	Destroy();
+	destroy();
 }
 
-void CObject::Destroy()
+void object::destroy()
 {
-	if (m_pProto)
+	if (proto_)
 	{
-		SECTREE_MANAGER::instance().ForAttrRegion(GetMapIndex(),
-				GetX() + m_pProto->lRegion[0],
-				GetY() + m_pProto->lRegion[1],
-				GetX() + m_pProto->lRegion[2],
-				GetY() + m_pProto->lRegion[3],
-				(int32_t)m_data.zRot, // ADD_BUILDING_ROTATION
+		sectree_manager::instance().for_attr_region(map_index(),
+				x() + proto_->region[0],
+				y() + proto_->region[1],
+				x() + proto_->region[2],
+				y() + proto_->region[3],
+				(int32_t)data_.z_rot, // ADD_BUILDING_ROTATION
 				ATTR_OBJECT,
 				ATTR_REGION_MODE_REMOVE);
 	}
 
-	CEntity::Destroy();
+	entity::destroy();
 
-	if (GetSectree())
-		GetSectree()->RemoveEntity(this);
+	if (get_sectree())
+		get_sectree()->remove_entity(this);
 
 	// <Factor> NPC should be destroyed in CHARACTER_MANAGER
 	// BUILDING_NPC
 
-	RemoveSpecialEffect();
+	remove_special_effect();
 	// END_OF_BUILDING_NPC
 }
 
 // BUILDING_NPC
-void CObject::Reconstruct(uint32_t dwVnum)
+void object::reconstruct(uint32_t dwVnum)
 {
-	const TMapRegion * r = SECTREE_MANAGER::instance().GetMapRegion(m_data.lMapIndex);
+	const map_region * r = sectree_manager::instance().get_map_region(data_.map_index);
 	if (!r)
 		return;
 
-	CLand* pLand = GetLand();
-	pLand->RequestDeleteObject(GetID());
-	pLand->RequestCreateObject(dwVnum, m_data.lMapIndex, m_data.x - r->sx, m_data.y - r->sy, m_data.xRot, m_data.yRot, m_data.zRot, false);
+	land* pLand = get_land();
+	pLand->request_delete_object(id());
+	pLand->request_create_object(dwVnum, data_.map_index, data_.x - r->sx, data_.y - r->sy, data_.x_rot, data_.y_rot, data_.z_rot, false);
 }
 // END_OF_BUILDING_NPC
 
-void CObject::EncodeInsertPacket(CEntity * entity)
+void object::encode_insert_packet(entity * entity)
 {
-	DESC * d;
+	desc * d;
 
-	if (!(d = entity->GetDesc()))
+	if (!(d = entity->get_desc()))
 		return;
 
 	metin2::log::info( "ObjectInsertPacket vid {:d} vnum {:d} rot {:f} {:f} {:f}", 
-			m_dwVID, m_data.dwVnum, m_data.xRot, m_data.yRot, m_data.zRot);
+			vid_, data_.vnum, data_.x_rot, data_.y_rot, data_.z_rot);
 
-	TPacketGCCharacterAdd pack;
+	packet_gc_character_add pack;
 
-	memset(&pack, 0, sizeof(TPacketGCCharacterAdd));
+	memset(&pack, 0, sizeof(packet_gc_character_add));
 
 	pack.header         = HEADER_GC_CHARACTER_ADD;
-	pack.dwVID          = m_dwVID;
-	pack.bType          = CHAR_TYPE_BUILDING;
-	pack.angle          = m_data.zRot;
-	pack.x              = GetX();
-	pack.y              = GetY();
-	pack.z              = GetZ();
-	pack.wRaceNum       = m_data.dwVnum;
+	pack.vid          = vid_;
+	pack.type          = CHAR_TYPE_BUILDING;
+	pack.angle          = data_.z_rot;
+	pack.x              = x();
+	pack.y              = y();
+	pack.z              = z();
+	pack.race_num       = data_.vnum;
 
 	// Convert building rotation info (door position for walls)
-	pack.dwAffectFlag[0] = unsigned(m_data.xRot);
-	pack.dwAffectFlag[1] = unsigned(m_data.yRot);
+	pack.affect_flag[0] = unsigned(data_.x_rot);
+	pack.affect_flag[1] = unsigned(data_.y_rot);
 
 
-	if (GetLand())
+	if (get_land())
 	{
 	}
 
-	d->Packet(&pack, sizeof(pack));
+	d->packet(&pack, sizeof(pack));
 }
 
-void CObject::EncodeRemovePacket(CEntity * entity)
+void object::encode_remove_packet(entity * entity)
 {
-	DESC * d;
+	desc * d;
 
-	if (!(d = entity->GetDesc()))
+	if (!(d = entity->get_desc()))
 		return;
 
-	metin2::log::info( "ObjectRemovePacket vid {:d}", m_dwVID);
+	metin2::log::info( "ObjectRemovePacket vid {:d}", vid_);
 
-	TPacketGCCharacterDelete pack;
+	packet_gc_character_delete pack;
 
 	pack.header = HEADER_GC_CHARACTER_DEL;
-	pack.id     = m_dwVID;
+	pack.id     = vid_;
 
-	d->Packet(&pack, sizeof(TPacketGCCharacterDelete));
+	d->packet(&pack, sizeof(packet_gc_character_delete));
 }
 
-void CObject::SetVID(uint32_t dwVID)
+void object::set_vid(uint32_t dwVID)
 {
-	m_dwVID = dwVID;
+	vid_ = dwVID;
 }
 
-bool CObject::Show(int32_t lMapIndex, int32_t x, int32_t y)
+bool object::show(int32_t lMapIndex, int32_t x, int32_t y)
 {
-	SECTREE * tree = SECTREE_MANAGER::instance().Get(lMapIndex, x, y);
+	sectree * tree = sectree_manager::instance().get(lMapIndex, x, y);
 
 	if (!tree)
 	{
@@ -169,71 +169,71 @@ bool CObject::Show(int32_t lMapIndex, int32_t x, int32_t y)
 		return false;
 	}
 
-	if (GetSectree())
+	if (get_sectree())
 	{
-		GetSectree()->RemoveEntity(this);
-		ViewCleanup();
+		get_sectree()->remove_entity(this);
+		view_cleanup();
 	}
 
-	m_data.lMapIndex = lMapIndex;
-	m_data.x = x;
-	m_data.y = y;
+	data_.map_index = lMapIndex;
+	data_.x = x;
+	data_.y = y;
 
-	Save();
+	save();
 
-	SetMapIndex(lMapIndex);
-	SetXYZ(x, y, 0);
+	set_map_index(lMapIndex);
+	set_xyz(x, y, 0);
 
-	tree->InsertEntity(this);
-	UpdateSectree();
+	tree->insert_entity(this);
+	update_sectree();
 
-	SECTREE_MANAGER::instance().ForAttrRegion(lMapIndex,
-			x + m_pProto->lRegion[0],
-			y + m_pProto->lRegion[1],
-			x + m_pProto->lRegion[2],
-			y + m_pProto->lRegion[3],
-			(int32_t)m_data.zRot,
+	sectree_manager::instance().for_attr_region(lMapIndex,
+			x + proto_->region[0],
+			y + proto_->region[1],
+			x + proto_->region[2],
+			y + proto_->region[3],
+			(int32_t)data_.z_rot,
 			ATTR_OBJECT,
 			ATTR_REGION_MODE_SET);
 
 	return true;
 }
 
-void CObject::Save()
+void object::save()
 {
 }
 
-void CObject::ApplySpecialEffect()
+void object::apply_special_effect()
 {
-	if (m_pProto)
+	if (proto_)
 	{
 		// ADD_SUPPLY_BUILDING
-		if (m_pProto->dwVnum == BUILDING_INCREASE_GUILD_MEMBER_COUNT_SMALL ||
-				m_pProto->dwVnum == BUILDING_INCREASE_GUILD_MEMBER_COUNT_MEDIUM ||
-				m_pProto->dwVnum == BUILDING_INCREASE_GUILD_MEMBER_COUNT_LARGE)
+		if (proto_->vnum == BUILDING_INCREASE_GUILD_MEMBER_COUNT_SMALL ||
+				proto_->vnum == BUILDING_INCREASE_GUILD_MEMBER_COUNT_MEDIUM ||
+				proto_->vnum == BUILDING_INCREASE_GUILD_MEMBER_COUNT_LARGE)
 		{
-			CLand* pLand = GetLand();
+			land* pLand = get_land();
 			uint32_t guild_id = 0;
 			if (pLand)
-				guild_id = pLand->GetOwner();
-			CGuild* pGuild = CGuildManager::instance().FindGuild(guild_id);
+				guild_id = pLand->owner();
+			guild* pGuild = guild_manager::instance().find_guild(guild_id);
 			if (pGuild)
 			{
-				switch (m_pProto->dwVnum)
+				switch (proto_->vnum)
 				{
 					case BUILDING_INCREASE_GUILD_MEMBER_COUNT_SMALL:
-						pGuild->SetMemberCountBonus(6);
+						pGuild->set_member_count_bonus(6);
 						break;
 					case BUILDING_INCREASE_GUILD_MEMBER_COUNT_MEDIUM:
-						pGuild->SetMemberCountBonus(12);
+						pGuild->set_member_count_bonus(12);
 						break;
 					case BUILDING_INCREASE_GUILD_MEMBER_COUNT_LARGE:
-						pGuild->SetMemberCountBonus(18);
+						pGuild->set_member_count_bonus(18);
 						break;
 				}
-				if (map_allow_find(pLand->GetMapIndex()))
+				if (map_allow_find(pLand->map_index()))
 				{
-					pGuild->BroadcastMemberCountBonus();
+					pGuild->broadcast_member_count_bonus();
 				}
 			}
 		}
@@ -241,25 +241,25 @@ void CObject::ApplySpecialEffect()
 	}
 }
 
-void CObject::RemoveSpecialEffect()
+void object::remove_special_effect()
 {
-	if (m_pProto)
+	if (proto_)
 	{
 		// ADD_SUPPLY_BUILDING
-		if (m_pProto->dwVnum == BUILDING_INCREASE_GUILD_MEMBER_COUNT_SMALL ||
-				m_pProto->dwVnum == BUILDING_INCREASE_GUILD_MEMBER_COUNT_MEDIUM ||
-				m_pProto->dwVnum == BUILDING_INCREASE_GUILD_MEMBER_COUNT_LARGE)
+		if (proto_->vnum == BUILDING_INCREASE_GUILD_MEMBER_COUNT_SMALL ||
+				proto_->vnum == BUILDING_INCREASE_GUILD_MEMBER_COUNT_MEDIUM ||
+				proto_->vnum == BUILDING_INCREASE_GUILD_MEMBER_COUNT_LARGE)
 		{
-			CLand* pLand = GetLand();
+			land* pLand = get_land();
 			uint32_t guild_id = 0;
 			if (pLand)
-				guild_id = pLand->GetOwner();
-			CGuild* pGuild = CGuildManager::instance().FindGuild(guild_id);
+				guild_id = pLand->owner();
+			guild* pGuild = guild_manager::instance().find_guild(guild_id);
 			if (pGuild)
 			{
-				pGuild->SetMemberCountBonus(0);
-				if (map_allow_find(pLand->GetMapIndex()))
-					pGuild->BroadcastMemberCountBonus();
+				pGuild->set_member_count_bonus(0);
+				if (map_allow_find(pLand->map_index()))
+					pGuild->broadcast_member_count_bonus();
 			}
 		}
 		// END_OF_ADD_SUPPLY_BUILDING
@@ -267,57 +267,57 @@ void CObject::RemoveSpecialEffect()
 }
 
 // BUILDING_NPC
-void CObject::RegenNPC()
+void object::regen_npc()
 {
-	if (!m_pProto)
+	if (!proto_)
 		return;
 
-	if (!m_pProto->dwNPCVnum)
+	if (!proto_->npc_vnum)
 		return;
 
-	if (!m_pkLand)
+	if (!land_)
 		return;
 
-	uint32_t dwGuildID = m_pkLand->GetOwner();
-	CGuild* pGuild = CGuildManager::instance().FindGuild(dwGuildID);
+	uint32_t dwGuildID = land_->owner();
+	guild* pGuild = guild_manager::instance().find_guild(dwGuildID);
 
 	if (!pGuild)
 		return;
 
-	int x = m_pProto->lNPCX;
-	int y = m_pProto->lNPCY;
+	int x_value = proto_->npcx;
+	int y_value = proto_->npcy;
 	int newX, newY;
 
-	float rot = m_data.zRot * 2.0f * std::numbers::pi / 360.0f;
+	float rot = data_.z_rot * 2.0f * std::numbers::pi / 360.0f;
 
-	newX = (int)(( x * cosf(rot)) + ( y * sinf(rot)));
-	newY = (int)(( y * cosf(rot)) - ( x * sinf(rot)));
+	newX = (int)(( x_value * cosf(rot)) + ( y_value * sinf(rot)));
+	newY = (int)(( y_value * cosf(rot)) - ( x_value * sinf(rot)));
 
-	m_chNPC = CHARACTER_MANAGER::instance().SpawnMob(m_pProto->dwNPCVnum,
-			GetMapIndex(),
-			GetX() + newX,
-			GetY() + newY,
-			GetZ(),
+	ch_npc_ = character_manager::instance().spawn_mob(proto_->npc_vnum,
+			map_index(),
+			x() + newX,
+			y() + newY,
+			z(),
 			false,
-			(int)m_data.zRot);
+			(int)data_.z_rot);
 
 
-	if (!m_chNPC)
+	if (!ch_npc_)
 	{
 		metin2::log::error("Cannot create guild npc");
 		return;
 	}
 
-	m_chNPC->SetGuild(pGuild);
+	ch_npc_->set_guild(pGuild);
 
 	// For the Temple of Power, store the guild level on the guild master
-	if ( m_pProto->dwVnum == 14061 || m_pProto->dwVnum == 14062 || m_pProto->dwVnum == 14063 )
+	if ( proto_->vnum == 14061 || proto_->vnum == 14062 || proto_->vnum == 14063 )
 	{
-		quest::PC* pPC = quest::CQuestManager::instance().GetPC(pGuild->GetMasterPID());
+		quest::pc* pPC = quest::quest_manager::instance().get_pc(pGuild->master_pid());
 
 		if ( pPC != nullptr )
 		{
-			pPC->SetFlag("alter_of_power.build_level", pGuild->GetLevel());
+			pPC->set_flag("alter_of_power.build_level", pGuild->level());
 		}
 	}
 }
@@ -325,100 +325,100 @@ void CObject::RegenNPC()
 
 ////////////////////////////////////////////////////////////////////////////////////
 
-CLand::CLand(TLand * pData)
+land::land(land_table * pData)
 {
-	std::memcpy(&m_data, pData, sizeof(TLand));
+	std::memcpy(&data_, pData, sizeof(land_table));
 }
 
-CLand::~CLand()
+land::~land()
 {
-	Destroy();
+	destroy();
 }
 
-void CLand::Destroy()
+void land::destroy()
 {
-	auto it = m_map_pkObject.begin();
+	auto it = map_pk_object_.begin();
 
-	while (it != m_map_pkObject.end())
+	while (it != map_pk_object_.end())
 	{
-		CObject * pkObj = (it++)->second;
-		CManager::instance().UnregisterObject(pkObj);
+		object * pkObj = (it++)->second;
+		manager::instance().unregister_object(pkObj);
 		delete pkObj;
 	}
 
-	m_map_pkObject.clear();
-	m_map_pkObjectByVID.clear();
+	map_pk_object_.clear();
+	map_pk_object_by_vid_.clear();
 }
 
-const TLand & CLand::GetData()
+const land_table & land::data()
 {
-	return m_data;
+	return data_;
 }
 
-void CLand::PutData(const TLand * data)
+void land::put_data(const land_table * data)
 {
-	memcpy(&m_data, data, sizeof(TLand));
+	memcpy(&data_, data, sizeof(land_table));
 
-	if (m_data.dwGuildID)
+	if (data_.guild_id)
 	{
-		const TMapRegion * r = SECTREE_MANAGER::instance().GetMapRegion(m_data.lMapIndex);
+		const map_region * r = sectree_manager::instance().get_map_region(data_.map_index);
 
 		if (r)
 		{
-			CharacterVectorInteractor i;
+			character_vector_interactor i;
 
-			if (CHARACTER_MANAGER::instance().GetCharactersByRaceNum(20040, i))
+			if (character_manager::instance().characters_by_race_num(20040, i))
 			{
-				CharacterVectorInteractor::iterator it = i.begin();
+				character_vector_interactor::iterator it = i.begin();
 
 				while (it != i.end())
 				{
-					CHARACTER * ch = *(it++);
+					character * ch = *(it++);
 
-					if (ch->GetMapIndex() != m_data.lMapIndex)
+					if (ch->map_index() != data_.map_index)
 						continue;
 
-					int x = ch->GetX() - r->sx;
-					int y = ch->GetY() - r->sy;
+					int x = ch->x() - r->sx;
+					int y = ch->y() - r->sy;
 
-					if (x > m_data.x + m_data.width || x < m_data.x)
+					if (x > data_.x + data_.width || x < data_.x)
 						continue;
 
-					if (y > m_data.y + m_data.height || y < m_data.y)
+					if (y > data_.y + data_.height || y < data_.y)
 						continue;
 
-					CHARACTER_MANAGER::instance().DestroyCharacter(ch);
+					character_manager::instance().destroy_character(ch);
 				}
 			}
 		}
 	}
 }
 
-void CLand::InsertObject(CObject * pkObj)
+void land::insert_object(object * pkObj)
 {
-	m_map_pkObject.insert(std::make_pair(pkObj->GetID(), pkObj));
-	m_map_pkObjectByVID.insert(std::make_pair(pkObj->GetVID(), pkObj));
+	map_pk_object_.insert(std::make_pair(pkObj->id(), pkObj));
+	map_pk_object_by_vid_.insert(std::make_pair(pkObj->get_vid(), pkObj));
 
-	pkObj->SetLand(this);
+	pkObj->set_land(this);
 }
 
-CObject * CLand::FindObject(uint32_t dwID)
+object * land::find_object(uint32_t dwID)
 {
-	std::map<uint32_t, CObject *>::iterator it = m_map_pkObject.find(dwID);
+	std::map<uint32_t, object *>::iterator it = map_pk_object_.find(dwID);
 
-	if (it == m_map_pkObject.end())
+	if (it == map_pk_object_.end())
 		return nullptr;
 
 	return it->second;
 }
 
-CObject * CLand::FindObjectByGroup(uint32_t dwGroupVnum)
+object * land::find_object_by_group(uint32_t dwGroupVnum)
 {
-	std::map<uint32_t, CObject *>::iterator it;
-	for (it = m_map_pkObject.begin(); it != m_map_pkObject.end(); ++it)
+	std::map<uint32_t, object *>::iterator it;
+	for (it = map_pk_object_.begin(); it != map_pk_object_.end(); ++it)
 	{
-		CObject * pObj = it->second;
-		if (pObj->GetGroup() == dwGroupVnum)
+		object * pObj = it->second;
+		if (pObj->group() == dwGroupVnum)
 			return pObj;
 	}
 
@@ -426,16 +426,16 @@ CObject * CLand::FindObjectByGroup(uint32_t dwGroupVnum)
 }
 
 // BUILDING_NPC
-CObject * CLand::FindObjectByNPC(CHARACTER * npc)
+object * land::find_object_by_npc(character * npc)
 {
 	if (!npc)
 		return nullptr;
 
-	std::map<uint32_t, CObject *>::iterator it;
-	for (it = m_map_pkObject.begin(); it != m_map_pkObject.end(); ++it)
+	std::map<uint32_t, object *>::iterator it;
+	for (it = map_pk_object_.begin(); it != map_pk_object_.end(); ++it)
 	{
-		CObject * pObj = it->second;
-		if (pObj->GetNPC() == npc)
+		object * pObj = it->second;
+		if (pObj->npc() == npc)
 			return pObj;
 	}
 
@@ -443,72 +443,72 @@ CObject * CLand::FindObjectByNPC(CHARACTER * npc)
 }
 // END_OF_BUILDING_NPC
 
-CObject * CLand::FindObjectByVID(uint32_t dwVID)
+object * land::find_object_by_vid(uint32_t dwVID)
 {
-	std::map<uint32_t, CObject *>::iterator it = m_map_pkObjectByVID.find(dwVID);
+	std::map<uint32_t, object *>::iterator it = map_pk_object_by_vid_.find(dwVID);
 
-	if (it == m_map_pkObjectByVID.end())
+	if (it == map_pk_object_by_vid_.end())
 		return nullptr;
 
 	return it->second;
 }
 
-void CLand::DeleteObject(uint32_t dwID)
+void land::delete_object(uint32_t dwID)
 {
-	CObject * pkObj;
+	object * pkObj;
 
-	if (!(pkObj = FindObject(dwID)))
+	if (!(pkObj = find_object(dwID)))
 		return;
 
 	metin2::log::info( "Land::DeleteObject {:d}", dwID);
-	CManager::instance().UnregisterObject(pkObj);
-	CHARACTER_MANAGER::instance().DestroyCharacter(pkObj->GetNPC());
+	manager::instance().unregister_object(pkObj);
+	character_manager::instance().destroy_character(pkObj->npc());
 
-	m_map_pkObject.erase(dwID);
-	m_map_pkObjectByVID.erase(dwID);
+	map_pk_object_.erase(dwID);
+	map_pk_object_by_vid_.erase(dwID);
 
 	delete pkObj;
 }
 
-struct FIsIn
+struct f_is_in
 {
 	int32_t sx, sy;
 	int32_t ex, ey;
 	
-	bool bIn;
-	FIsIn (	int32_t sx_, int32_t sy_, int32_t ex_, int32_t ey_)
-		: sx(sx_), sy(sy_), ex(ex_), ey(ey_), bIn(false) 
+	bool in;
+	f_is_in (	int32_t sx_, int32_t sy_, int32_t ex_, int32_t ey_)
+		: sx(sx_), sy(sy_), ex(ex_), ey(ey_), in(false) 
 	{}
 
-	void operator () (CEntity * ent)
+	void operator () (entity * ent)
 	{
-		if (ent->IsType(ENTITY_CHARACTER))
+		if (ent->is_type(ENTITY_CHARACTER))
 		{
-			CHARACTER * ch = (CHARACTER *) ent;
-			if (ch->IsMonster())
+			character * ch = (character *) ent;
+			if (ch->is_monster())
 			{
 				return;
 			}
-			if (sx <= ch->GetX() && ch->GetX() <= ex
-				&& sy <= ch->GetY() && ch->GetY() <= ey)
+			if (sx <= ch->x() && ch->x() <= ex
+				&& sy <= ch->y() && ch->y() <= ey)
 			{
-				bIn = true;
+				in = true;
 			}
 		}
 	}
 };
 
-bool CLand::RequestCreateObject(uint32_t dwVnum, int32_t lMapIndex, int32_t x, int32_t y, float xRot, float yRot, float zRot, bool checkAnother)
+bool land::request_create_object(uint32_t dwVnum, int32_t lMapIndex, int32_t x, int32_t y, float xRot, float yRot, float zRot, bool checkAnother)
 {
-	SECTREE_MANAGER& rkSecTreeMgr = SECTREE_MANAGER::instance();
-	TObjectProto * pkProto = CManager::instance().GetObjectProto(dwVnum);
+	sectree_manager& rkSecTreeMgr = sectree_manager::instance();
+	object_proto * pkProto = manager::instance().object_proto(dwVnum);
 
 	if (!pkProto)
 	{
 		metin2::log::error("Invalid Object vnum {:d}", dwVnum);
 		return false;
 	}
-	const TMapRegion * r = rkSecTreeMgr.GetMapRegion(lMapIndex);
+	const map_region * r = rkSecTreeMgr.get_map_region(lMapIndex);
 	if (!r)
 		return false;
 
@@ -518,23 +518,23 @@ bool CLand::RequestCreateObject(uint32_t dwVnum, int32_t lMapIndex, int32_t x, i
 	x += r->sx;
 	y += r->sy;
 
-	int sx = r->sx + m_data.x;
-	int ex = sx + m_data.width;
-	int sy = r->sy + m_data.y;
-	int ey = sy + m_data.height;
+	int sx = r->sx + data_.x;
+	int ex = sx + data_.width;
+	int sy = r->sy + data_.y;
+	int ey = sy + data_.height;
 
-	int osx = x + pkProto->lRegion[0];
-	int osy = y + pkProto->lRegion[1];
-	int oex = x + pkProto->lRegion[2];
-	int oey = y + pkProto->lRegion[3];
+	int osx = x + pkProto->region[0];
+	int osy = y + pkProto->region[1];
+	int oex = x + pkProto->region[2];
+	int oey = y + pkProto->region[3];
 
 	float rad = zRot * 2.0f * std::numbers::pi / 360.0f;
 
-	int tsx = (int)(pkProto->lRegion[0] * cosf(rad) + pkProto->lRegion[1] * sinf(rad) + x);
-	int tsy = (int)(pkProto->lRegion[0] * -sinf(rad) + pkProto->lRegion[1] * cosf(rad) + y);
+	int tsx = (int)(pkProto->region[0] * cosf(rad) + pkProto->region[1] * sinf(rad) + x);
+	int tsy = (int)(pkProto->region[0] * -sinf(rad) + pkProto->region[1] * cosf(rad) + y);
 
-	int tex = (int)(pkProto->lRegion[2] * cosf(rad) + pkProto->lRegion[3] * sinf(rad) + x);
-	int tey = (int)(pkProto->lRegion[2] * -sinf(rad) + pkProto->lRegion[3] * cosf(rad) + y);
+	int tex = (int)(pkProto->region[2] * cosf(rad) + pkProto->region[3] * sinf(rad) + x);
+	int tey = (int)(pkProto->region[2] * -sinf(rad) + pkProto->region[3] * cosf(rad) + y);
 
 	if (tsx < sx || tex > ex || tsy < sy || tey > ey)
 	{
@@ -545,15 +545,15 @@ bool CLand::RequestCreateObject(uint32_t dwVnum, int32_t lMapIndex, int32_t x, i
 	// ADD_BUILDING_ROTATION
 	if ( checkAnother )
 	{
-		if (rkSecTreeMgr.ForAttrRegion(lMapIndex, osx, osy, oex, oey, (int32_t)zRot, ATTR_OBJECT, ATTR_REGION_MODE_CHECK))
+		if (rkSecTreeMgr.for_attr_region(lMapIndex, osx, osy, oex, oey, (int32_t)zRot, ATTR_OBJECT, ATTR_REGION_MODE_CHECK))
 		{
 			metin2::log::error("another object already exist");
 			return false;
 		}
-		FIsIn f (osx, osy, oex, oey);
-		rkSecTreeMgr.GetMap(lMapIndex)->for_each(f);
+		f_is_in f (osx, osy, oex, oey);
+		rkSecTreeMgr.map(lMapIndex)->for_each(f);
 		
-		if (f.bIn)
+		if (f.in)
 		{
 			metin2::log::error("another object already exist");
 			return false;
@@ -561,208 +561,208 @@ bool CLand::RequestCreateObject(uint32_t dwVnum, int32_t lMapIndex, int32_t x, i
 	}
 	// END_OF_BUILDING_NPC
 
-	TPacketGDCreateObject p;
+	packet_gd_create_object p;
 
-	p.dwVnum = dwVnum;
-	p.dwLandID = m_data.dwID;
-	p.lMapIndex = lMapIndex;
+	p.vnum = dwVnum;
+	p.land_id = data_.id;
+	p.map_index = lMapIndex;
 	p.x = x;
 	p.y = y;
-	p.xRot = xRot;
-	p.yRot = yRot;
-	p.zRot = zRot;
+	p.x_rot = xRot;
+	p.y_rot = yRot;
+	p.z_rot = zRot;
 
-	db_clientdesc->DBPacket(HEADER_GD_CREATE_OBJECT, 0, &p, sizeof(TPacketGDCreateObject));
+	db_clientdesc->db_packet(HEADER_GD_CREATE_OBJECT, 0, &p, sizeof(packet_gd_create_object));
 	return true;
 }
 
-void CLand::RequestDeleteObject(uint32_t dwID)
+void land::request_delete_object(uint32_t dwID)
 {
-	if (!FindObject(dwID))
+	if (!find_object(dwID))
 	{
 		metin2::log::error("no object by id {:d}", dwID);
 		return;
 	}
 
-	db_clientdesc->DBPacket(HEADER_GD_DELETE_OBJECT, 0, &dwID, sizeof(uint32_t));
+	db_clientdesc->db_packet(HEADER_GD_DELETE_OBJECT, 0, &dwID, sizeof(uint32_t));
 	metin2::log::info( "RequestDeleteObject id {:d}", dwID);
 }
 
-void CLand::RequestDeleteObjectByVID(uint32_t dwVID)
+void land::request_delete_object_by_vid(uint32_t dwVID)
 {
-	CObject * pkObj;
+	object * pkObj;
 
-	if (!(pkObj = FindObjectByVID(dwVID)))
+	if (!(pkObj = find_object_by_vid(dwVID)))
 	{
 		metin2::log::error("no object by vid {:d}", dwVID);
 		return;
 	}
 
-	uint32_t dwID = pkObj->GetID();
-	db_clientdesc->DBPacket(HEADER_GD_DELETE_OBJECT, 0, &dwID, sizeof(uint32_t));
+	uint32_t dwID = pkObj->id();
+	db_clientdesc->db_packet(HEADER_GD_DELETE_OBJECT, 0, &dwID, sizeof(uint32_t));
 	metin2::log::info( "RequestDeleteObject vid {:d} id {:d}", dwVID, dwID);
 }
 
-void CLand::SetOwner(uint32_t dwGuild)
+void land::set_owner(uint32_t dwGuild)
 {
-	if (m_data.dwGuildID != dwGuild)
+	if (data_.guild_id != dwGuild)
 	{
-		m_data.dwGuildID = dwGuild;
-		RequestUpdate(dwGuild);
+		data_.guild_id = dwGuild;
+		request_update(dwGuild);
 	}
 }
 
-void CLand::RequestUpdate(uint32_t dwGuild)
+void land::request_update(uint32_t dwGuild)
 {
 	uint32_t a[2];
 
-	a[0] = GetID();
+	a[0] = id();
 	a[1] = dwGuild;
 
-	db_clientdesc->DBPacket(HEADER_GD_UPDATE_LAND, 0, &a[0], sizeof(uint32_t) * 2);
+	db_clientdesc->db_packet(HEADER_GD_UPDATE_LAND, 0, &a[0], sizeof(uint32_t) * 2);
 	metin2::log::info( "RequestUpdate id {:d} guild {:d}", a[0], a[1]);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
 
-CManager::CManager()
+manager::manager()
 {
 }
 
-CManager::~CManager()
+manager::~manager()
 {
-	Destroy();
+	destroy();
 }
 
-void CManager::Destroy()
+void manager::destroy()
 {
-	m_map_pkLand.clear();
+	map_pk_land_.clear();
 }
 
-bool CManager::LoadObjectProto(const TObjectProto * pProto, int size) // from DB
+bool manager::load_object_proto(const proto::building::object_proto * pProto, int size) // from DB
 {
-	m_vec_kObjectProto.resize(size);
-	std::memcpy(&m_vec_kObjectProto[0], pProto, sizeof(TObjectProto) * size);
+	vec_k_object_proto_.resize(size);
+	std::memcpy(&vec_k_object_proto_[0], pProto, sizeof(proto::building::object_proto) * size);
 
 	for (int i = 0; i < size; ++i)
 	{
-		TObjectProto & r = m_vec_kObjectProto[i];
+		proto::building::object_proto & r = vec_k_object_proto_[i];
 
 		// BUILDING_NPC
 		metin2::log::info( "ObjectProto {:d} price {:d} upgrade {:d} upg_limit {:d} life {:d} NPC {:d}",
-				r.dwVnum, r.dwPrice, r.dwUpgradeVnum, r.dwUpgradeLimitTime, r.lLife, r.dwNPCVnum);
+				r.vnum, r.price, r.upgrade_vnum, r.upgrade_limit_time, r.life, r.npc_vnum);
 		// END_OF_BUILDING_NPC
 
 		for (int j = 0; j < OBJECT_MATERIAL_MAX_NUM; ++j)
 		{
-			if (!r.kMaterials[j].dwItemVnum)
+			if (!r.materials[j].item_vnum)
 				break;
 
-			if (nullptr == ITEM_MANAGER::instance().GetTable(r.kMaterials[j].dwItemVnum))
+			if (nullptr == item_manager::instance().table(r.materials[j].item_vnum))
 			{
-				metin2::log::error("          mat: ERROR!! no item by vnum {:d}", r.kMaterials[j].dwItemVnum);
+				metin2::log::error("          mat: ERROR!! no item by vnum {:d}", r.materials[j].item_vnum);
 				return false;
 			}
 
-			metin2::log::info( "          mat: {:d} {:d}", r.kMaterials[j].dwItemVnum, r.kMaterials[j].dwCount);
+			metin2::log::info( "          mat: {:d} {:d}", r.materials[j].item_vnum, r.materials[j].count);
 		}
 
-		m_map_pkObjectProto.insert(std::make_pair(r.dwVnum, &m_vec_kObjectProto[i]));
+		map_pk_object_proto_.insert(std::make_pair(r.vnum, &vec_k_object_proto_[i]));
 	}
 
 	return true;
 }
 
-TObjectProto * CManager::GetObjectProto(uint32_t dwVnum)
+proto::building::object_proto * manager::object_proto(uint32_t dwVnum)
 {
-	auto it = m_map_pkObjectProto.find(dwVnum);
+	auto it = map_pk_object_proto_.find(dwVnum);
 
-	if (it == m_map_pkObjectProto.end())
+	if (it == map_pk_object_proto_.end())
 		return nullptr;
 
 	return it->second;
 }
 
-bool CManager::LoadLand(TLand * pTable) // from DB
+bool manager::load_land(land_table * pTable) // from DB
 {
 	// Land must be loaded even if its map is not in MapAllow.
 	//	To know which guild a building (object) belongs to, we must know which guild owns the land it was built on.
 	//	If the land isn't loaded, we can't tell which guild a guild building belongs to,
 	//	so the guild buff from guild buildings is not received.
 
-	auto pkLand = std::make_unique<CLand>(pTable);
-	uint32_t dwID = pkLand->GetID();
-	m_map_pkLand.insert(std::make_pair(dwID, std::move(pkLand)));
+	auto pkLand = std::make_unique<land>(pTable);
+	uint32_t dwID = pkLand->id();
+	map_pk_land_.insert(std::make_pair(dwID, std::move(pkLand)));
 
 	metin2::log::info( "LAND: {:d} map {:d} {:d}x{:d} w {:d} h {:d}", 
-			pTable->dwID, pTable->lMapIndex, pTable->x, pTable->y, pTable->width, pTable->height);
+			pTable->id, pTable->map_index, pTable->x, pTable->y, pTable->width, pTable->height);
 
 	return true;
 }
 
-void CManager::UpdateLand(TLand * pTable)
+void manager::update_land(land_table * pTable)
 {
-	CLand * pkLand = FindLand(pTable->dwID);
+	land * pkLand = find_land(pTable->id);
 
 	if (!pkLand)
 	{
-		metin2::log::error("cannot find land by id {:d}", pTable->dwID);
+		metin2::log::error("cannot find land by id {:d}", pTable->id);
 		return;
 	}
 
-	pkLand->PutData(pTable);
+	pkLand->put_data(pTable);
 
-	const DESC_MANAGER::DESC_SET & cont = DESC_MANAGER::instance().GetClientSet();
+	const desc_manager::desc_set & cont = desc_manager::instance().client_set();
 
 	auto it = cont.begin();
 
-	TPacketGCLandList p;
+	packet_gc_land_list p;
 
 	p.header = HEADER_GC_LAND_LIST;
-	p.size = sizeof(TPacketGCLandList) + sizeof(TLandPacketElement);
+	p.size = sizeof(packet_gc_land_list) + sizeof(land_packet_element);
 
-	TLandPacketElement e;
+	land_packet_element e;
 
-	e.dwID = pTable->dwID;
+	e.id = pTable->id;
 	e.x = pTable->x;
 	e.y = pTable->y;
 	e.width = pTable->width;
 	e.height = pTable->height;
-	e.dwGuildID = pTable->dwGuildID;
+	e.guild_id = pTable->guild_id;
 
-	metin2::log::info( "BUILDING: UpdateLand {:d} pos {:d}x{:d} guild {:d}", e.dwID, e.x, e.y, e.dwGuildID);
+	metin2::log::info( "BUILDING: UpdateLand {:d} pos {:d}x{:d} guild {:d}", e.id, e.x, e.y, e.guild_id);
 
-	CGuild *guild = CGuildManager::instance().FindGuild(pTable->dwGuildID);
+	guild *guild = guild_manager::instance().find_guild(pTable->guild_id);
 	while (it != cont.end())
 	{
-		DESC * d = *(it++);
+		desc * d = *(it++);
 
-		if (d->GetCharacter() && d->GetCharacter()->GetMapIndex() == pTable->lMapIndex)
+		if (d->get_character() && d->get_character()->map_index() == pTable->map_index)
 		{
 			// we must send the guild name first
-			d->GetCharacter()->SendGuildName(guild);
+			d->get_character()->send_guild_name(guild);
 
-			d->BufferedPacket(&p, sizeof(TPacketGCLandList));
-			d->Packet(&e, sizeof(TLandPacketElement));
+			d->buffered_packet(&p, sizeof(packet_gc_land_list));
+			d->packet(&e, sizeof(land_packet_element));
 		}
 	}
 }
 
-CLand * CManager::FindLand(uint32_t dwID)
+land * manager::find_land(uint32_t dwID)
 {
-	auto it = m_map_pkLand.find(dwID);
+	auto it = map_pk_land_.find(dwID);
 
-	if (it == m_map_pkLand.end())
+	if (it == map_pk_land_.end())
 		return nullptr;
 
 	return it->second.get();
 }
 
-CLand * CManager::FindLand(int32_t lMapIndex, int32_t x, int32_t y)
+land * manager::find_land(int32_t lMapIndex, int32_t x, int32_t y)
 {
 	metin2::log::info( "BUILDING: FindLand {:d} {:d} {:d}", lMapIndex, x, y);
 
-	const TMapRegion * r = SECTREE_MANAGER::instance().GetMapRegion(lMapIndex);
+	const map_region * r = sectree_manager::instance().get_map_region(lMapIndex);
 
 	if (!r)
 		return nullptr;
@@ -770,14 +770,14 @@ CLand * CManager::FindLand(int32_t lMapIndex, int32_t x, int32_t y)
 	x -= r->sx;
 	y -= r->sy;
 
-	auto it = m_map_pkLand.begin();
+	auto it = map_pk_land_.begin();
 
-	while (it != m_map_pkLand.end())
+	while (it != map_pk_land_.end())
 	{
-		CLand * pkLand = (it++)->second.get();
-		const TLand & r = pkLand->GetData();
+		land * pkLand = (it++)->second.get();
+		const land_table & r = pkLand->data();
 
-		if (r.lMapIndex != lMapIndex)
+		if (r.map_index != lMapIndex)
 			continue;
 
 		if (x < r.x || y < r.y)
@@ -792,87 +792,87 @@ CLand * CManager::FindLand(int32_t lMapIndex, int32_t x, int32_t y)
 	return nullptr;
 }
 
-CLand * CManager::FindLandByGuild(uint32_t GID)
+land * manager::find_land_by_guild(uint32_t GID)
 {
-	auto it = m_map_pkLand.begin();
+	auto it = map_pk_land_.begin();
 
-	while (it != m_map_pkLand.end())
+	while (it != map_pk_land_.end())
 	{
-		CLand * pkLand = (it++)->second.get();
+		land * pkLand = (it++)->second.get();
 
-		if (pkLand->GetData().dwGuildID == GID)
+		if (pkLand->data().guild_id == GID)
 			return pkLand;
 	}
 
 	return nullptr;
 }
 
-bool CManager::LoadObject(TObject * pTable, bool isBoot) // from DB
+bool manager::load_object(object_table * pTable, bool isBoot) // from DB
 {
-	if (!map_allow_find(pTable->lMapIndex)) // Fix
+	if (!map_allow_find(pTable->map_index)) // Fix
 		return false;
 
-	CLand * pkLand = FindLand(pTable->dwLandID);
+	land * pkLand = find_land(pTable->land_id);
 
 	if (!pkLand)
 	{
-		metin2::log::info( "Cannot find land by id {:d}", pTable->dwLandID);
+		metin2::log::info( "Cannot find land by id {:d}", pTable->land_id);
 		return false;
 	}
 
-	TObjectProto * pkProto = GetObjectProto(pTable->dwVnum);
+	proto::building::object_proto * pkProto = object_proto(pTable->vnum);
 
 	if (!pkProto)
 	{
-		metin2::log::error("Cannot find object {:d} in prototype (id {:d})", pTable->dwVnum, pTable->dwID);
+		metin2::log::error("Cannot find object {:d} in prototype (id {:d})", pTable->vnum, pTable->id);
 		return false;
 	}
 
-	metin2::log::info( "OBJ: id {:d} vnum {:d} map {:d} pos {:d}x{:d}", pTable->dwID, pTable->dwVnum, pTable->lMapIndex, pTable->x, pTable->y);
+	metin2::log::info( "OBJ: id {:d} vnum {:d} map {:d} pos {:d}x{:d}", pTable->id, pTable->vnum, pTable->map_index, pTable->x, pTable->y);
 
-	CObject * pkObj = new CObject(pTable, pkProto);
+	object * pkObj = new object(pTable, pkProto);
 
-	uint32_t dwVID = CHARACTER_MANAGER::instance().AllocVID();
-	pkObj->SetVID(dwVID);
+	uint32_t dwVID = character_manager::instance().alloc_vid();
+	pkObj->set_vid(dwVID);
 
-	m_map_pkObjByVID.insert(std::make_pair(dwVID, pkObj));
-	m_map_pkObjByID.insert(std::make_pair(pTable->dwID, pkObj));
+	map_pk_obj_by_vid_.insert(std::make_pair(dwVID, pkObj));
+	map_pk_obj_by_id_.insert(std::make_pair(pTable->id, pkObj));
 
-	pkLand->InsertObject(pkObj);
+	pkLand->insert_object(pkObj);
 
 	if (!isBoot)
-		pkObj->Show(pTable->lMapIndex, pTable->x, pTable->y);
+		pkObj->show(pTable->map_index, pTable->x, pTable->y);
 	else
 	{
-		pkObj->SetMapIndex(pTable->lMapIndex);
-		pkObj->SetXYZ(pTable->x, pTable->y, 0);
+		pkObj->set_map_index(pTable->map_index);
+		pkObj->set_xyz(pTable->x, pTable->y, 0);
 	}
 
 	// BUILDING_NPC
 	if (!isBoot)
 	{ 
-		if (pkProto->dwNPCVnum)
-			pkObj->RegenNPC();
+		if (pkProto->npc_vnum)
+			pkObj->regen_npc();
 
-		pkObj->ApplySpecialEffect();
+		pkObj->apply_special_effect();
 	}
 	// END_OF_BUILDING_NPC
 
 	return true;
 }
 
-void CManager::FinalizeBoot()
+void manager::finalize_boot()
 {
-	auto it = m_map_pkObjByID.begin();
+	auto it = map_pk_obj_by_id_.begin();
 
-	while (it != m_map_pkObjByID.end())
+	while (it != map_pk_obj_by_id_.end())
 	{
-		CObject * pkObj = (it++)->second;
+		object * pkObj = (it++)->second;
 
-		pkObj->Show(pkObj->GetMapIndex(), pkObj->GetX(), pkObj->GetY());
+		pkObj->show(pkObj->map_index(), pkObj->x(), pkObj->y());
 		// BUILDING_NPC
-		pkObj->RegenNPC();
-		pkObj->ApplySpecialEffect();
+		pkObj->regen_npc();
+		pkObj->apply_special_effect();
 		// END_OF_BUILDING_NPC
 	}
 
@@ -880,95 +880,95 @@ void CManager::FinalizeBoot()
 	metin2::log::info( "FinalizeBoot");
 	// END_OF_BUILDING_NPC
 
-	auto it2 = m_map_pkLand.begin();
+	auto it2 = map_pk_land_.begin();
 
-	while (it2 != m_map_pkLand.end())
+	while (it2 != map_pk_land_.end())
 	{
-		CLand * pkLand = (it2++)->second.get();
+		land * pkLand = (it2++)->second.get();
 
-		const TLand & r = pkLand->GetData();
+		const land_table & r = pkLand->data();
 
 		// LAND_MASTER_LOG	
-		metin2::log::info( "LandMaster map_index={:d} pos=({:d}, {:d})", r.lMapIndex, r.x, r.y);
+		metin2::log::info( "LandMaster map_index={:d} pos=({:d}, {:d})", r.map_index, r.x, r.y);
 		// END_OF_LAND_MASTER_LOG
 
-		if (r.dwGuildID != 0)
+		if (r.guild_id != 0)
 			continue;
 
-		if (!map_allow_find(r.lMapIndex))
+		if (!map_allow_find(r.map_index))
 			continue;
 
-		const TMapRegion * region = SECTREE_MANAGER::instance().GetMapRegion(r.lMapIndex);
+		const map_region * region = sectree_manager::instance().get_map_region(r.map_index);
 		if (!region)
 			continue;
 
-		CHARACTER_MANAGER::instance().SpawnMob(20040, r.lMapIndex, region->sx + r.x + (r.width / 2), region->sy + r.y + (r.height / 2), 0);
+		character_manager::instance().spawn_mob(20040, r.map_index, region->sx + r.x + (r.width / 2), region->sy + r.y + (r.height / 2), 0);
 	}
 }
 
-void CManager::DeleteObject(uint32_t dwID) // from DB
+void manager::delete_object(uint32_t dwID) // from DB
 {
 	metin2::log::info( "OBJ_DEL: {:d}", dwID);
 
-	auto it = m_map_pkObjByID.find(dwID);
+	auto it = map_pk_obj_by_id_.find(dwID);
 
-	if (it == m_map_pkObjByID.end())
+	if (it == map_pk_obj_by_id_.end())
 		return;
 
-	it->second->GetLand()->DeleteObject(dwID);
+	it->second->get_land()->delete_object(dwID);
 }
 
-CObject * CManager::FindObjectByVID(uint32_t dwVID)
+object * manager::find_object_by_vid(uint32_t dwVID)
 {
-	auto it = m_map_pkObjByVID.find(dwVID);
+	auto it = map_pk_obj_by_vid_.find(dwVID);
 
-	if (it == m_map_pkObjByVID.end())
+	if (it == map_pk_obj_by_vid_.end())
 		return nullptr;
 
 	return it->second;
 }
 
-void CManager::UnregisterObject(CObject * pkObj)
+void manager::unregister_object(object * pkObj)
 {
-	m_map_pkObjByID.erase(pkObj->GetID());
-	m_map_pkObjByVID.erase(pkObj->GetVID());
+	map_pk_obj_by_id_.erase(pkObj->id());
+	map_pk_obj_by_vid_.erase(pkObj->get_vid());
 }
 
-void CManager::SendLandList(DESC * d, int32_t lMapIndex)
+void manager::send_land_list(desc * d, int32_t lMapIndex)
 {
-	TLandPacketElement e;
+	land_packet_element e;
 
-	TEMP_BUFFER buf;
+	temp_buffer buf;
 
 	uint16_t wCount = 0;
 
-	auto it = m_map_pkLand.begin();
+	auto it = map_pk_land_.begin();
 
-	while (it != m_map_pkLand.end())
+	while (it != map_pk_land_.end())
 	{
-		CLand * pkLand = (it++)->second.get();
-		const TLand & r = pkLand->GetData();
+		land * pkLand = (it++)->second.get();
+		const land_table & r = pkLand->data();
 
-		if (r.lMapIndex != lMapIndex)
+		if (r.map_index != lMapIndex)
 			continue;
 
 		//
-		CHARACTER * ch  = d->GetCharacter();
+		character * ch  = d->get_character();
 		if (ch)
 		{
-			CGuild *guild = CGuildManager::instance().FindGuild(r.dwGuildID);
-			ch->SendGuildName(guild);
+			guild *guild = guild_manager::instance().find_guild(r.guild_id);
+			ch->send_guild_name(guild);
 		}
 		//
 
-		e.dwID = r.dwID;
+		e.id = r.id;
 		e.x = r.x;
 		e.y = r.y;
 		e.width = r.width;
 		e.height = r.height;
-		e.dwGuildID = r.dwGuildID;
+		e.guild_id = r.guild_id;
 
-		buf.write(&e, sizeof(TLandPacketElement));
+		buf.write(&e, sizeof(land_packet_element));
 		++wCount;
 	}
 
@@ -976,20 +976,20 @@ void CManager::SendLandList(DESC * d, int32_t lMapIndex)
 
 	if (wCount != 0)
 	{
-		TPacketGCLandList p;
+		packet_gc_land_list p;
 
 		p.header = HEADER_GC_LAND_LIST;
-		p.size = sizeof(TPacketGCLandList) + buf.size();
+		p.size = sizeof(packet_gc_land_list) + buf.size();
 
-		d->BufferedPacket(&p, sizeof(TPacketGCLandList));
-		d->Packet(buf.read_peek(), buf.size());
+		d->buffered_packet(&p, sizeof(packet_gc_land_list));
+		d->packet(buf.read_peek(), buf.size());
 	}
 }
 
 // LAND_CLEAR
-void CManager::ClearLand(uint32_t dwLandID)
+void manager::clear_land(uint32_t dwLandID)
 {
-	CLand* pLand = FindLand(dwLandID);
+	land* pLand = find_land(dwLandID);
 
 	if ( pLand == nullptr )
 	{
@@ -997,14 +997,14 @@ void CManager::ClearLand(uint32_t dwLandID)
 		return;
 	}
 
-	pLand->ClearLand();
+	pLand->clear_land();
 
-	metin2::log::info( "LAND_CLEAR: request Land Clear. LandID: {:d}", pLand->GetID());
+	metin2::log::info( "LAND_CLEAR: request Land Clear. LandID: {:d}", pLand->id());
 }
 
-void CManager::ClearLandByGuildID(uint32_t dwGuildID)
+void manager::clear_land_by_guild_id(uint32_t dwGuildID)
 {
-	CLand* pLand = FindLandByGuild(dwGuildID);
+	land* pLand = find_land_by_guild(dwGuildID);
 
 	if ( pLand == nullptr )
 	{
@@ -1012,32 +1012,32 @@ void CManager::ClearLandByGuildID(uint32_t dwGuildID)
 		return;
 	}
 
-	pLand->ClearLand();
+	pLand->clear_land();
 
-	metin2::log::info( "LAND_CLEAR: request Land Clear. LandID: {:d}", pLand->GetID());
+	metin2::log::info( "LAND_CLEAR: request Land Clear. LandID: {:d}", pLand->id());
 }
 
-void CLand::ClearLand()
+void land::clear_land()
 {
-	auto iter = m_map_pkObject.begin();
+	auto iter = map_pk_object_.begin();
 
-	while ( iter != m_map_pkObject.end() )
+	while ( iter != map_pk_object_.end() )
 	{
-		RequestDeleteObject(iter->second->GetID());
+		request_delete_object(iter->second->id());
 		iter++;
 	}
 
-	SetOwner(0);
+	set_owner(0);
 
-	const TLand & r = GetData();
-	const TMapRegion * region = SECTREE_MANAGER::instance().GetMapRegion(r.lMapIndex);
+	const land_table & r = data();
+	const map_region * region = sectree_manager::instance().get_map_region(r.map_index);
 
-	CHARACTER_MANAGER::instance().SpawnMob(20040, r.lMapIndex, region->sx + r.x + (r.width / 2), region->sy + r.y + (r.height / 2), 0);
+	character_manager::instance().spawn_mob(20040, r.map_index, region->sx + r.x + (r.width / 2), region->sy + r.y + (r.height / 2), 0);
 }
 // END_LAND_CLEAR
 
 // BUILD_WALL
-void CLand::DrawWall(uint32_t dwVnum, int32_t nMapIndex, int32_t& x, int32_t& y, char length, float zRot)
+void land::draw_wall(uint32_t dwVnum, int32_t nMapIndex, int32_t& x, int32_t& y, char length, float zRot)
 {
 	int rot = (int)zRot;
 	rot = ((rot%360) / 90) * 90;
@@ -1069,18 +1069,18 @@ void CLand::DrawWall(uint32_t dwVnum, int32_t nMapIndex, int32_t& x, int32_t& y,
 
 	for ( int i=0; i < length; i++ )
 	{
-		this->RequestCreateObject(dwVnum, nMapIndex, x, y, 0, 0, rot, false);
+		this->request_create_object(dwVnum, nMapIndex, x, y, 0, 0, rot, false);
 		x += dx;
 		y += dy;
 	}
 }
 
 
-bool CLand::RequestCreateWall(int32_t nMapIndex, float rot)
+bool land::request_create_wall(int32_t nMapIndex, float rot)
 {
 	const bool 	WALL_ANOTHER_CHECKING_ENABLE = false;
 
-	const TLand& land = GetData();
+	const land_table& land = data();
 
 	int center_x = land.x + land.width  / 2;
 	int center_y = land.y + land.height / 2;
@@ -1094,57 +1094,57 @@ bool CLand::RequestCreateWall(int32_t nMapIndex, float rot)
 	{
 		int door_x = wall_x;
 		int door_y = wall_y + wall_half_h;
-		RequestCreateObject(WALL_DOOR_VNUM,	nMapIndex, wall_x, wall_y + wall_half_h, door_x, door_y,   0.0f, WALL_ANOTHER_CHECKING_ENABLE);
-		RequestCreateObject(WALL_BACK_VNUM,	nMapIndex, wall_x, wall_y - wall_half_h, door_x, door_y,   0.0f, WALL_ANOTHER_CHECKING_ENABLE);
-		RequestCreateObject(WALL_LEFT_VNUM,	nMapIndex, wall_x - wall_half_w, wall_y, door_x, door_y,   0.0f, WALL_ANOTHER_CHECKING_ENABLE);
-		RequestCreateObject(WALL_RIGHT_VNUM,	nMapIndex, wall_x + wall_half_w, wall_y, door_x, door_y,   0.0f, WALL_ANOTHER_CHECKING_ENABLE);
+		request_create_object(WALL_DOOR_VNUM,	nMapIndex, wall_x, wall_y + wall_half_h, door_x, door_y,   0.0f, WALL_ANOTHER_CHECKING_ENABLE);
+		request_create_object(WALL_BACK_VNUM,	nMapIndex, wall_x, wall_y - wall_half_h, door_x, door_y,   0.0f, WALL_ANOTHER_CHECKING_ENABLE);
+		request_create_object(WALL_LEFT_VNUM,	nMapIndex, wall_x - wall_half_w, wall_y, door_x, door_y,   0.0f, WALL_ANOTHER_CHECKING_ENABLE);
+		request_create_object(WALL_RIGHT_VNUM,	nMapIndex, wall_x + wall_half_w, wall_y, door_x, door_y,   0.0f, WALL_ANOTHER_CHECKING_ENABLE);
 	}	
 	else if (rot == 180.0f)		// North gate
 	{
 		int door_x = wall_x;
 		int door_y = wall_y - wall_half_h;
-		RequestCreateObject(WALL_DOOR_VNUM,	nMapIndex, wall_x, wall_y - wall_half_h, door_x, door_y, 180.0f, WALL_ANOTHER_CHECKING_ENABLE);
-		RequestCreateObject(WALL_BACK_VNUM,	nMapIndex, wall_x, wall_y + wall_half_h, door_x, door_y,   0.0f, WALL_ANOTHER_CHECKING_ENABLE);
-		RequestCreateObject(WALL_LEFT_VNUM,	nMapIndex, wall_x - wall_half_w, wall_y, door_x, door_y,   0.0f, WALL_ANOTHER_CHECKING_ENABLE);
-		RequestCreateObject(WALL_RIGHT_VNUM,	nMapIndex, wall_x + wall_half_w, wall_y, door_x, door_y,   0.0f, WALL_ANOTHER_CHECKING_ENABLE);
+		request_create_object(WALL_DOOR_VNUM,	nMapIndex, wall_x, wall_y - wall_half_h, door_x, door_y, 180.0f, WALL_ANOTHER_CHECKING_ENABLE);
+		request_create_object(WALL_BACK_VNUM,	nMapIndex, wall_x, wall_y + wall_half_h, door_x, door_y,   0.0f, WALL_ANOTHER_CHECKING_ENABLE);
+		request_create_object(WALL_LEFT_VNUM,	nMapIndex, wall_x - wall_half_w, wall_y, door_x, door_y,   0.0f, WALL_ANOTHER_CHECKING_ENABLE);
+		request_create_object(WALL_RIGHT_VNUM,	nMapIndex, wall_x + wall_half_w, wall_y, door_x, door_y,   0.0f, WALL_ANOTHER_CHECKING_ENABLE);
 	}
 	else if (rot == 90.0f)		// East gate 
 	{
 		int door_x = wall_x + wall_half_h;
 		int door_y = wall_y;
-		RequestCreateObject(WALL_DOOR_VNUM,	nMapIndex, wall_x + wall_half_h, wall_y, door_x, door_y,  90.0f, WALL_ANOTHER_CHECKING_ENABLE);
-		RequestCreateObject(WALL_BACK_VNUM,	nMapIndex, wall_x - wall_half_h, wall_y, door_x, door_y,  90.0f, WALL_ANOTHER_CHECKING_ENABLE);
-		RequestCreateObject(WALL_LEFT_VNUM,	nMapIndex, wall_x, wall_y - wall_half_w, door_x, door_y,  90.0f, WALL_ANOTHER_CHECKING_ENABLE);
-		RequestCreateObject(WALL_RIGHT_VNUM,	nMapIndex, wall_x, wall_y + wall_half_w, door_x, door_y,  90.0f, WALL_ANOTHER_CHECKING_ENABLE);
+		request_create_object(WALL_DOOR_VNUM,	nMapIndex, wall_x + wall_half_h, wall_y, door_x, door_y,  90.0f, WALL_ANOTHER_CHECKING_ENABLE);
+		request_create_object(WALL_BACK_VNUM,	nMapIndex, wall_x - wall_half_h, wall_y, door_x, door_y,  90.0f, WALL_ANOTHER_CHECKING_ENABLE);
+		request_create_object(WALL_LEFT_VNUM,	nMapIndex, wall_x, wall_y - wall_half_w, door_x, door_y,  90.0f, WALL_ANOTHER_CHECKING_ENABLE);
+		request_create_object(WALL_RIGHT_VNUM,	nMapIndex, wall_x, wall_y + wall_half_w, door_x, door_y,  90.0f, WALL_ANOTHER_CHECKING_ENABLE);
 	}
 	else if (rot == 270.0f)		// West gate 
 	{
 		int door_x = wall_x - wall_half_h;
 		int door_y = wall_y;
-		RequestCreateObject(WALL_DOOR_VNUM,	nMapIndex, wall_x - wall_half_h, wall_y, door_x, door_y,  90.0f, WALL_ANOTHER_CHECKING_ENABLE);
-		RequestCreateObject(WALL_BACK_VNUM,	nMapIndex, wall_x + wall_half_h, wall_y, door_x, door_y,  90.0f, WALL_ANOTHER_CHECKING_ENABLE);
-		RequestCreateObject(WALL_LEFT_VNUM,	nMapIndex, wall_x, wall_y - wall_half_w, door_x, door_y,  90.0f, WALL_ANOTHER_CHECKING_ENABLE);
-		RequestCreateObject(WALL_RIGHT_VNUM,	nMapIndex, wall_x, wall_y + wall_half_w, door_x, door_y,  90.0f, WALL_ANOTHER_CHECKING_ENABLE);
+		request_create_object(WALL_DOOR_VNUM,	nMapIndex, wall_x - wall_half_h, wall_y, door_x, door_y,  90.0f, WALL_ANOTHER_CHECKING_ENABLE);
+		request_create_object(WALL_BACK_VNUM,	nMapIndex, wall_x + wall_half_h, wall_y, door_x, door_y,  90.0f, WALL_ANOTHER_CHECKING_ENABLE);
+		request_create_object(WALL_LEFT_VNUM,	nMapIndex, wall_x, wall_y - wall_half_w, door_x, door_y,  90.0f, WALL_ANOTHER_CHECKING_ENABLE);
+		request_create_object(WALL_RIGHT_VNUM,	nMapIndex, wall_x, wall_y + wall_half_w, door_x, door_y,  90.0f, WALL_ANOTHER_CHECKING_ENABLE);
 	}
 
 	if (metin2::config::test_server())
 	{
-		RequestCreateObject(FLAG_VNUM, nMapIndex, land.x + 50, 			land.y + 50, 0, 0, 0.0, WALL_ANOTHER_CHECKING_ENABLE);
-		RequestCreateObject(FLAG_VNUM, nMapIndex, land.x + land.width - 50,	land.y + 50, 0, 0, 90.0, WALL_ANOTHER_CHECKING_ENABLE);
-		RequestCreateObject(FLAG_VNUM, nMapIndex, land.x + land.width - 50,	land.y + land.height - 50, 0, 0, 180.0, WALL_ANOTHER_CHECKING_ENABLE); 
-		RequestCreateObject(FLAG_VNUM, nMapIndex, land.x + 50, 			land.y + land.height - 50, 0, 0, 270.0, WALL_ANOTHER_CHECKING_ENABLE);
+		request_create_object(FLAG_VNUM, nMapIndex, land.x + 50, 			land.y + 50, 0, 0, 0.0, WALL_ANOTHER_CHECKING_ENABLE);
+		request_create_object(FLAG_VNUM, nMapIndex, land.x + land.width - 50,	land.y + 50, 0, 0, 90.0, WALL_ANOTHER_CHECKING_ENABLE);
+		request_create_object(FLAG_VNUM, nMapIndex, land.x + land.width - 50,	land.y + land.height - 50, 0, 0, 180.0, WALL_ANOTHER_CHECKING_ENABLE); 
+		request_create_object(FLAG_VNUM, nMapIndex, land.x + 50, 			land.y + land.height - 50, 0, 0, 270.0, WALL_ANOTHER_CHECKING_ENABLE);
 	}
 	return true;
 }
 
-void CLand::RequestDeleteWall()
+void land::request_delete_wall()
 {
-	auto iter = m_map_pkObject.begin();
+	auto iter = map_pk_object_.begin();
 
-	while (iter != m_map_pkObject.end())
+	while (iter != map_pk_object_.end())
 	{
-		unsigned id   = iter->second->GetID();
-		unsigned vnum = iter->second->GetVnum();
+		unsigned id   = iter->second->id();
+		unsigned vnum = iter->second->vnum();
 
 		switch (vnum)
 		{
@@ -1152,7 +1152,7 @@ void CLand::RequestDeleteWall()
 			case WALL_BACK_VNUM:
 			case WALL_LEFT_VNUM:
 			case WALL_RIGHT_VNUM:
-				RequestDeleteObject(id);
+				request_delete_object(id);
 				break;
 		}
 
@@ -1160,7 +1160,7 @@ void CLand::RequestDeleteWall()
 		if (metin2::config::test_server())
 		{
 			if (FLAG_VNUM == vnum)
-				RequestDeleteObject(id);
+				request_delete_object(id);
 
 		}
 
@@ -1168,9 +1168,9 @@ void CLand::RequestDeleteWall()
 	}
 }
 
-bool CLand::RequestCreateWallBlocks(uint32_t dwVnum, int32_t nMapIndex, char wallSize, bool doorEast, bool doorWest, bool doorSouth, bool doorNorth)
+bool land::request_create_wall_blocks(uint32_t dwVnum, int32_t nMapIndex, char wallSize, bool doorEast, bool doorWest, bool doorSouth, bool doorNorth)
 {
-	const TLand & r = GetData();
+	const land_table & r = data();
 
 	int32_t startX = r.x + (r.width  / 2) - (1300 + wallSize*500);
 	int32_t startY = r.y + (r.height / 2) + (1300 + wallSize*500);
@@ -1215,25 +1215,25 @@ bool CLand::RequestCreateWallBlocks(uint32_t dwVnum, int32_t nMapIndex, char wal
 				break;
 		}
 
-		this->RequestCreateObject(corner, nMapIndex, startX, startY, 0, 0, rot, checkAnother);
+		this->request_create_object(corner, nMapIndex, startX, startY, 0, 0, rot, checkAnother);
 
 		*ptr = *ptr + ( 700 * delta );
 
 		if ( doorOpen[i] )
 		{
-			this->DrawWall(wall, nMapIndex, startX, startY, wallSize, rot);
+			this->draw_wall(wall, nMapIndex, startX, startY, wallSize, rot);
 
 			*ptr = *ptr + ( 700 * delta );
 
-			this->RequestCreateObject(door, nMapIndex, startX, startY, 0, 0, rot, checkAnother);
+			this->request_create_object(door, nMapIndex, startX, startY, 0, 0, rot, checkAnother);
 
 			*ptr = *ptr + ( 1300 * delta );
 
-			this->DrawWall(wall, nMapIndex, startX, startY, wallSize, rot);
+			this->draw_wall(wall, nMapIndex, startX, startY, wallSize, rot);
 		}
 		else
 		{
-			this->DrawWall(wall, nMapIndex, startX, startY, wallSize*2 + 4, rot);
+			this->draw_wall(wall, nMapIndex, startX, startY, wallSize*2 + 4, rot);
 		}
 
 		*ptr = *ptr + ( 100 * delta );
@@ -1242,22 +1242,22 @@ bool CLand::RequestCreateWallBlocks(uint32_t dwVnum, int32_t nMapIndex, char wal
 	return true;
 }
 
-void CLand::RequestDeleteWallBlocks(uint32_t dwID)
+void land::request_delete_wall_blocks(uint32_t dwID)
 {
-	auto iter = m_map_pkObject.begin();
+	auto iter = map_pk_object_.begin();
 
 	uint32_t corner = dwID - 4;
 	uint32_t wall = dwID - 3;
 	uint32_t door = dwID - 1;
 	uint32_t dwVnum = 0;
 
-	while ( iter != m_map_pkObject.end() )
+	while ( iter != map_pk_object_.end() )
 	{
-		dwVnum = iter->second->GetVnum();
+		dwVnum = iter->second->vnum();
 
 		if ( dwVnum == corner || dwVnum == wall || dwVnum == door )
 		{
-			RequestDeleteObject(iter->second->GetID());
+			request_delete_object(iter->second->id());
 		}
 		iter++;
 	}

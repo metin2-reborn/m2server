@@ -7,28 +7,28 @@
 
 namespace metin2::game::inline combat {
 
-class CTableBySkill : public singleton<CTableBySkill>
+class table_by_skill : public singleton<table_by_skill>
 {
 	public:
-		CTableBySkill() = default;
-		~CTableBySkill() override = default;
+		table_by_skill() = default;
+		~table_by_skill() override = default;
 
 		//Check table setup
-		bool 	Check() const;
+		bool 	check() const;
 
 		//Delete
-		void 	DeleteAll();
+		void 	delete_all();
 
 		//Skill power table per skill level
-		int 	GetSkillPowerByLevelFromType( int job, int skillgroup, int skilllevel, bool bMob ) const;
-		void 	SetSkillPowerByLevelFromType( int idx, const int* aTable );
-		void	DeleteSkillPowerByLevelFromType( int idx );
+		int 	skill_power_by_level_from_type( int job, int skillgroup, int skilllevel, bool bMob ) const;
+		void 	set_skill_power_by_level_from_type( int idx, const int* aTable );
+		void	delete_skill_power_by_level_from_type( int idx );
 
 		//Additional skill damage table per level
-		void 	DeleteSkillDamageByLevelTable();
+		void 	delete_skill_damage_by_level_table();
 
 	private:
-		std::unique_ptr<int[]> m_aiSkillPowerByLevelFromType[JOB_MAX_NUM*2];
-		std::unique_ptr<int[]> m_aiSkillDamageByLevel;
+		std::unique_ptr<int[]> skill_power_by_level_from_type_[JOB_MAX_NUM*2];
+		std::unique_ptr<int[]> skill_damage_by_level_;
 };
 }

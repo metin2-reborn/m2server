@@ -98,13 +98,13 @@ struct emotion_type_s
 };
 
 
-std::set<std::pair<uint32_t, uint32_t> > s_emotion_set;
+std::set<std::pair<uint32_t, uint32_t> > emotion_set;
 
 ACMD(do_emotion_allow)
 {
-	if ( ch->GetArena() )
+	if ( ch->get_arena() )
 	{
-		ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("대련장에서 사용하실 수 없습니다."));
+		ch->chat_packet(CHAT_TYPE_INFO, lc_text("대련장에서 사용하실 수 없습니다."));
 		return;
 	}
 
@@ -115,20 +115,20 @@ ACMD(do_emotion_allow)
 		return;
 
 	uint32_t	val = 0; str_to_number(val, arg1);
-	s_emotion_set.insert(std::make_pair(ch->GetVID(), val));
+	emotion_set.insert(std::make_pair(ch->get_vid(), val));
 }
 
-bool CHARACTER_CanEmotion(CHARACTER& rch)
+bool character_can_emotion(character& rch)
 {
 	// Can be used on the wedding map.
-	if (marriage::WeddingManager::instance().IsWeddingMap(rch.GetMapIndex()))
+	if (marriage::wedding_manager::instance().is_wedding_map(rch.map_index()))
 		return true;
 
 	// Can be used while wearing the Mask of Passion.
-	if (rch.IsEquipUniqueItem(UNIQUE_ITEM_EMOTION_MASK))
+	if (rch.is_equip_unique_item(UNIQUE_ITEM_EMOTION_MASK))
 		return true;
 
-	if (rch.IsEquipUniqueItem(UNIQUE_ITEM_EMOTION_MASK2))
+	if (rch.is_equip_unique_item(UNIQUE_ITEM_EMOTION_MASK2))
 		return true;
 
 	return false;
@@ -138,9 +138,9 @@ ACMD(do_emotion)
 {
 	int i;
 	{
-		if (ch->IsRiding())
+		if (ch->is_riding())
 		{
-			ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("말을 탄 상태에서 감정표현을 할 수 없습니다."));
+			ch->chat_packet(CHAT_TYPE_INFO, lc_text("말을 탄 상태에서 감정표현을 할 수 없습니다."));
 			return;
 		}
 	}
@@ -160,119 +160,119 @@ ACMD(do_emotion)
 		return;
 	}
 
-	if (!CHARACTER_CanEmotion(*ch))
+	if (!character_can_emotion(*ch))
 	{
-		ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("열정의 가면을 착용시에만 할 수 있습니다."));
+		ch->chat_packet(CHAT_TYPE_INFO, lc_text("열정의 가면을 착용시에만 할 수 있습니다."));
 		return;
 	}
 
-	if (IS_SET(emotion_types[i].flag, WOMAN_ONLY) && SEX_MALE==GET_SEX(ch))
+	if (is_set(emotion_types[i].flag, WOMAN_ONLY) && SEX_MALE==get_sex(ch))
 	{
-		ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("여자만 할 수 있습니다."));
+		ch->chat_packet(CHAT_TYPE_INFO, lc_text("여자만 할 수 있습니다."));
 		return;
 	}
 
 	char arg1[256];
 	one_argument(argument, arg1, sizeof(arg1));
 
-	CHARACTER * victim = nullptr;
+	character * victim = nullptr;
 
 	if (*arg1)
-		victim = ch->FindCharacterInView(arg1, IS_SET(emotion_types[i].flag, NEED_PC));
+		victim = ch->find_character_in_view(arg1, is_set(emotion_types[i].flag, NEED_PC));
 
-	if (IS_SET(emotion_types[i].flag, NEED_TARGET | NEED_PC))
+	if (is_set(emotion_types[i].flag, NEED_TARGET | NEED_PC))
 	{
 		if (!victim)
 		{
-			ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("그런 사람이 없습니다."));
+			ch->chat_packet(CHAT_TYPE_INFO, lc_text("그런 사람이 없습니다."));
 			return;
 		}
 	}
 
 	if (victim)
 	{
-		if (!victim->IsPC() || victim == ch)
+		if (!victim->is_pc() || victim == ch)
 			return;
 
-		if (victim->IsRiding())
+		if (victim->is_riding())
 		{
-			ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("말을 탄 상대와 감정표현을 할 수 없습니다."));
+			ch->chat_packet(CHAT_TYPE_INFO, lc_text("말을 탄 상대와 감정표현을 할 수 없습니다."));
 			return;
 		}
 
-		int32_t distance = DISTANCE_APPROX(ch->GetX() - victim->GetX(), ch->GetY() - victim->GetY());
+		int32_t distance = distance_approx(ch->x() - victim->x(), ch->y() - victim->y());
 
 		if (distance < 10)
 		{
-			ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("너무 가까이 있습니다."));
+			ch->chat_packet(CHAT_TYPE_INFO, lc_text("너무 가까이 있습니다."));
 			return;
 		}
 
 		if (distance > 500)
 		{
-			ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("너무 멀리 있습니다"));
+			ch->chat_packet(CHAT_TYPE_INFO, lc_text("너무 멀리 있습니다"));
 			return;
 		}
 
-		if (IS_SET(emotion_types[i].flag, OTHER_SEX_ONLY))
+		if (is_set(emotion_types[i].flag, OTHER_SEX_ONLY))
 		{
-			if (GET_SEX(ch)==GET_SEX(victim))
+			if (get_sex(ch)==get_sex(victim))
 			{
-				ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("이성간에만 할 수 있습니다."));
+				ch->chat_packet(CHAT_TYPE_INFO, lc_text("이성간에만 할 수 있습니다."));
 				return;
 			}
 		}
 
-		if (IS_SET(emotion_types[i].flag, NEED_PC))
+		if (is_set(emotion_types[i].flag, NEED_PC))
 		{
-			if (s_emotion_set.find(std::make_pair(victim->GetVID(), ch->GetVID())) == s_emotion_set.end())
+			if (emotion_set.find(std::make_pair(victim->get_vid(), ch->get_vid())) == emotion_set.end())
 			{
-				if (true == marriage::CManager::instance().IsMarried( ch->GetPlayerID() ))
+				if (true == marriage::manager::instance().is_married( ch->player_id() ))
 				{
-					const marriage::TMarriage* marriageInfo = marriage::CManager::instance().Get( ch->GetPlayerID() );
+					const marriage::marriage* marriageInfo = marriage::manager::instance().get( ch->player_id() );
 
-					const uint32_t other = marriageInfo->GetOther( ch->GetPlayerID() );
+					const uint32_t other = marriageInfo->other( ch->player_id() );
 
-					if (0 == other || other != victim->GetPlayerID())
+					if (0 == other || other != victim->player_id())
 					{
-						ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("이 행동은 상호동의 하에 가능 합니다."));
+						ch->chat_packet(CHAT_TYPE_INFO, lc_text("이 행동은 상호동의 하에 가능 합니다."));
 						return;
 					}
 				}
 				else
 				{
-					ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("이 행동은 상호동의 하에 가능 합니다."));
+					ch->chat_packet(CHAT_TYPE_INFO, lc_text("이 행동은 상호동의 하에 가능 합니다."));
 					return;
 				}
 			}
 
-			s_emotion_set.insert(std::make_pair(ch->GetVID(), victim->GetVID()));
+			emotion_set.insert(std::make_pair(ch->get_vid(), victim->get_vid()));
 		}
 	}
 
 	char chatbuf[256+1];
 	int len = snprintf(chatbuf, sizeof(chatbuf), "%s %u %u", 
 			emotion_types[i].command_to_client,
-			(uint32_t) ch->GetVID(), victim ? (uint32_t) victim->GetVID() : 0);
+			(uint32_t) ch->get_vid(), victim ? (uint32_t) victim->get_vid() : 0);
 
 	if (len < 0 || len >= (int) sizeof(chatbuf))
 		len = sizeof(chatbuf) - 1;
 
 	++len;  // including the \0 character
 
-	TPacketGCChat pack_chat;
+	packet_gc_chat pack_chat;
 	pack_chat.header = HEADER_GC_CHAT;
-	pack_chat.size = sizeof(TPacketGCChat) + len;
+	pack_chat.size = sizeof(packet_gc_chat) + len;
 	pack_chat.type = CHAT_TYPE_COMMAND;
 	pack_chat.id = 0;
-	TEMP_BUFFER buf;
-	buf.write(&pack_chat, sizeof(TPacketGCChat));
+	temp_buffer buf;
+	buf.write(&pack_chat, sizeof(packet_gc_chat));
 	buf.write(chatbuf, len);
 
-	ch->PacketAround(buf.read_peek(), buf.size());
+	ch->packet_around(buf.read_peek(), buf.size());
 
 	if (victim)
-		metin2::log::debug( "ACTION: {} TO {}", emotion_types[i].command, victim->GetName());
+		metin2::log::debug( "ACTION: {} TO {}", emotion_types[i].command, victim->name());
 	else
 		metin2::log::debug( "ACTION: {}", emotion_types[i].command);
 }

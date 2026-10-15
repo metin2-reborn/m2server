@@ -6,39 +6,39 @@
 
 namespace metin2::game::inline empire {
 
-extern char g_nation_name[4][32];
-extern uint32_t g_start_position[4][2];
-extern int32_t g_start_map[4];
-extern uint32_t g_create_position[4][2];
+extern char nation_name[4][32];
+extern uint32_t start_position[4][2];
+extern int32_t start_map[4];
+extern uint32_t create_position[4][2];
 extern uint32_t arena_return_position[4][2];
 
-inline const char* EMPIRE_NAME( uint8_t e)
+inline const char* empire_name( uint8_t e)
 {
-	return LC_TEXT(g_nation_name[e]);
+	return lc_text(nation_name[e]);
 }
 
-inline uint32_t EMPIRE_START_MAP(uint8_t e)
+inline uint32_t empire_start_map(uint8_t e)
 {
-	return g_start_map[e];
+	return start_map[e];
 }
 
-inline uint32_t EMPIRE_START_X(uint8_t e)
+inline uint32_t empire_start_x(uint8_t e)
 {
 	if (1 <= e && e <= 3)
-		return g_start_position[e][0];
+		return start_position[e][0];
 
 	return 0;
 }
 
-inline uint32_t EMPIRE_START_Y(uint8_t e)
+inline uint32_t empire_start_y(uint8_t e)
 {
 	if (1 <= e && e <= 3)
-		return g_start_position[e][1];
+		return start_position[e][1];
 
 	return 0;
 }
 
-inline uint32_t ARENA_RETURN_POINT_X(uint8_t e)
+inline uint32_t arena_return_point_x(uint8_t e)
 {
 	if (1 <= e && e <= 3)
 		return arena_return_position[e][0];
@@ -46,7 +46,7 @@ inline uint32_t ARENA_RETURN_POINT_X(uint8_t e)
 	return 0;
 }
 
-inline uint32_t ARENA_RETURN_POINT_Y(uint8_t e)
+inline uint32_t arena_return_point_y(uint8_t e)
 {
 	if (1 <= e && e <= 3)
 		return arena_return_position[e][1];
@@ -54,23 +54,23 @@ inline uint32_t ARENA_RETURN_POINT_Y(uint8_t e)
 	return 0;
 }
 
-inline uint32_t CREATE_START_X(uint8_t e)
+inline uint32_t create_start_x(uint8_t e)
 {
 	if (1 <= e && e <= 3)
 	{
 
-		return g_create_position[e][0];
+		return create_position[e][0];
 	}
 
 	return 0;
 }
 
-inline uint32_t CREATE_START_Y(uint8_t e)
+inline uint32_t create_start_y(uint8_t e)
 {
 	if (1 <= e && e <= 3)
 	{
 
-		return g_create_position[e][1];
+		return create_position[e][1];
 	}
 
 	return 0;

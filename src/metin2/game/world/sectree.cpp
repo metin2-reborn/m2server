@@ -16,212 +16,212 @@
 
 namespace metin2::game::inline world {
 
-SECTREE::SECTREE()
+sectree::sectree()
 {
-	Initialize();
+	initialize();
 }
 
-SECTREE::~SECTREE()
+sectree::~sectree()
 {
-	Destroy();
+	destroy();
 }
 
-void SECTREE::Initialize()
+void sectree::initialize()
 {
-	m_id.package = 0;
-	m_pkAttribute = nullptr;
-	m_iPCCount = 0;
-	isClone = false;
+	id_.package = 0;
+	attribute_ = nullptr;
+	pc_count_ = 0;
+	is_clone_ = false;
 }
 
-void SECTREE::Destroy()
+void sectree::destroy()
 {
-	if (!m_set_entity.empty())
+	if (!set_entity_.empty())
 	{
 		metin2::log::error("Sectree: entity set not empty!!");
 
-		ENTITY_SET::iterator it = m_set_entity.begin();
+		entity_set::iterator it = set_entity_.begin();
 
-		for ( ; it != m_set_entity.end(); ++it)
+		for ( ; it != set_entity_.end(); ++it)
 		{
-			CEntity * ent = *it;
+			entity * ent = *it;
 
-			if (ent->IsType(ENTITY_CHARACTER))
+			if (ent->is_type(ENTITY_CHARACTER))
 			{
-				CHARACTER * ch = (CHARACTER *) ent;
+				character * ch = (character *) ent;
 
-				metin2::log::error("Sectree: destroying character: {} is_pc {:d}", ch->GetName(), ch->IsPC() ? 1 : 0);
+				metin2::log::error("Sectree: destroying character: {} is_pc {:d}", ch->name(), ch->is_pc() ? 1 : 0);
 
-				if (ch->GetDesc())
-					DESC_MANAGER::instance().DestroyDesc(ch->GetDesc());
+				if (ch->get_desc())
+					desc_manager::instance().destroy_desc(ch->get_desc());
 				else
-					CHARACTER_MANAGER::instance().DestroyCharacter(ch);
+					character_manager::instance().destroy_character(ch);
 			}
-			else if (ent->IsType(ENTITY_ITEM))
+			else if (ent->is_type(ENTITY_ITEM))
 			{
-				CItem * item = (CItem *) ent;
+				item * item = (game::items::item *) ent;
 
-				metin2::log::error("Sectree: destroying Item: {}", item->GetName());
+				metin2::log::error("Sectree: destroying Item: {}", item->name());
 
-				ITEM_MANAGER::instance().DestroyItem(item);
+				item_manager::instance().destroy_item(item);
 			}
 			else
-				metin2::log::error("Sectree: unknown type: {:d}", ent->GetType());
+				metin2::log::error("Sectree: unknown type: {:d}", ent->type());
 		}
 	}
-	m_set_entity.clear();
+	set_entity_.clear();
 
-	if (!isClone && m_pkAttribute)
+	if (!is_clone_ && attribute_)
 	{
-		delete m_pkAttribute;
-		m_pkAttribute = nullptr;
+		delete attribute_;
+		attribute_ = nullptr;
 	}
 }
 
-SECTREEID SECTREE::GetID()
+sectreeid sectree::id()
 {
-	return m_id;
+	return id_;
 }
 
-void SECTREE::IncreasePC()
+void sectree::increase_pc()
 {
-	SECTREE_LIST::iterator it_tree = m_neighbor_list.begin();
+	sectree_list::iterator it_tree = neighbor_list_.begin();
 
-	while (it_tree != m_neighbor_list.end())
+	while (it_tree != neighbor_list_.end())
 	{
-		++(*it_tree)->m_iPCCount;
+		++(*it_tree)->pc_count_;
 		++it_tree;
 	}
 }
 
-void SECTREE::DecreasePC()
+void sectree::decrease_pc()
 {
-	SECTREE_LIST::iterator it_tree = m_neighbor_list.begin();
+	sectree_list::iterator it_tree = neighbor_list_.begin();
 
-	while (it_tree != m_neighbor_list.end())
+	while (it_tree != neighbor_list_.end())
 	{
-		SECTREE * tree = *it_tree++;
+		sectree * tree = *it_tree++;
 
-		if (--tree->m_iPCCount <= 0)
+		if (--tree->pc_count_ <= 0)
 		{
-			if (tree->m_iPCCount < 0)
+			if (tree->pc_count_ < 0)
 			{
-				metin2::log::error("tree pc count lower than zero (value {:d} coord {:d} {:d})", tree->m_iPCCount, tree->m_id.coord.x, tree->m_id.coord.y);
-				tree->m_iPCCount = 0;
+				metin2::log::error("tree pc count lower than zero (value {:d} coord {:d} {:d})", tree->pc_count_, tree->id_.coord.x, tree->id_.coord.y);
+				tree->pc_count_ = 0;
 			}
 
-			ENTITY_SET::iterator it_entity = tree->m_set_entity.begin();
+			entity_set::iterator it_entity = tree->set_entity_.begin();
 
-			while (it_entity != tree->m_set_entity.end())
+			while (it_entity != tree->set_entity_.end())
 			{
-				CEntity * pkEnt = *(it_entity++);
+				entity * pkEnt = *(it_entity++);
 
-				if (pkEnt->IsType(ENTITY_CHARACTER))
+				if (pkEnt->is_type(ENTITY_CHARACTER))
 				{
-					CHARACTER * ch = (CHARACTER *) pkEnt;
-					ch->StopStateMachine();
+					character * ch = (character *) pkEnt;
+					ch->stop_state_machine();
 				}
 			}
 		}
 	}
 }
 
-bool SECTREE::InsertEntity(CEntity * pkEnt)
+bool sectree::insert_entity(entity * pkEnt)
 {
-	SECTREE * pkCurTree;
+	sectree * pkCurTree;
 
-	if ((pkCurTree = pkEnt->GetSectree()) == this)
+	if ((pkCurTree = pkEnt->get_sectree()) == this)
 		return false;
 
-	if (m_set_entity.find(pkEnt) != m_set_entity.end()) {
+	if (set_entity_.find(pkEnt) != set_entity_.end()) {
 		metin2::log::error("entity {} already exist in this sectree!", static_cast<const void *>(pkEnt));
 		return false;
 	}
 
 	if (pkCurTree)
-		pkCurTree->m_set_entity.erase(pkEnt);
+		pkCurTree->set_entity_.erase(pkEnt);
 
-	pkEnt->SetSectree(this);
+	pkEnt->set_sectree(this);
 
-	m_set_entity.insert(pkEnt);
+	set_entity_.insert(pkEnt);
 
-	if (pkEnt->IsType(ENTITY_CHARACTER))
+	if (pkEnt->is_type(ENTITY_CHARACTER))
 	{
-		CHARACTER * pkChr = (CHARACTER *) pkEnt;
+		character * pkChr = (character *) pkEnt;
 
-		if (pkChr->IsPC())
+		if (pkChr->is_pc())
 		{
-			IncreasePC();
+			increase_pc();
 
 			if (pkCurTree)
-				pkCurTree->DecreasePC();
+				pkCurTree->decrease_pc();
 		}
-		else if (m_iPCCount > 0 && !pkChr->IsWarp() && !pkChr->IsGoto()) // If it's not a PC and there's a PC here, start the Idle event.
+		else if (pc_count_ > 0 && !pkChr->is_warp() && !pkChr->is_goto()) // If it's not a PC and there's a PC here, start the Idle event.
 		{
-			pkChr->StartStateMachine();
+			pkChr->start_state_machine();
 		}
 	}
 
 	return true;
 }
 
-void SECTREE::RemoveEntity(CEntity * pkEnt)
+void sectree::remove_entity(entity * pkEnt)
 {
-	ENTITY_SET::iterator it = m_set_entity.find(pkEnt);
+	entity_set::iterator it = set_entity_.find(pkEnt);
 
-	if (it == m_set_entity.end()) {
+	if (it == set_entity_.end()) {
 		return;
 	}
-	m_set_entity.erase(it);
+	set_entity_.erase(it);
 
-	pkEnt->SetSectree(nullptr);
+	pkEnt->set_sectree(nullptr);
 
-	if (pkEnt->IsType(ENTITY_CHARACTER))
+	if (pkEnt->is_type(ENTITY_CHARACTER))
 	{
-		if (((CHARACTER *) pkEnt)->IsPC())
-			DecreasePC();
+		if (((character *) pkEnt)->is_pc())
+			decrease_pc();
 	}
 }
 
-void SECTREE::BindAttribute(CAttribute * pkAttribute)
+void sectree::bind_attribute(attribute * pkAttribute)
 {
-	m_pkAttribute = pkAttribute;
+	attribute_ = pkAttribute;
 }
 
-void SECTREE::CloneAttribute(SECTREE * tree)
+void sectree::clone_attribute(sectree * tree)
 {
-	m_pkAttribute = tree->m_pkAttribute;
-	isClone = true;
+	attribute_ = tree->attribute_;
+	is_clone_ = true;
 }
 
-void SECTREE::SetAttribute(uint32_t x, uint32_t y, uint32_t dwAttr)
+void sectree::set_attribute(uint32_t x, uint32_t y, uint32_t dwAttr)
 {
-	assert(m_pkAttribute != nullptr);
-	m_pkAttribute->Set(x, y, dwAttr);
+	assert(attribute_ != nullptr);
+	attribute_->set(x, y, dwAttr);
 }
 
-void SECTREE::RemoveAttribute(uint32_t x, uint32_t y, uint32_t dwAttr)
+void sectree::remove_attribute(uint32_t x, uint32_t y, uint32_t dwAttr)
 {
-	assert(m_pkAttribute != nullptr);
-	m_pkAttribute->Remove(x, y, dwAttr);
+	assert(attribute_ != nullptr);
+	attribute_->remove(x, y, dwAttr);
 }
 
-uint32_t SECTREE::GetAttribute(int32_t x, int32_t y)
+uint32_t sectree::get_attribute(int32_t x, int32_t y)
 {
-	assert(m_pkAttribute != nullptr);
-	return m_pkAttribute->Get((x % SECTREE_SIZE) / CELL_SIZE, (y % SECTREE_SIZE) / CELL_SIZE);
+	assert(attribute_ != nullptr);
+	return attribute_->get((x % SECTREE_SIZE) / CELL_SIZE, (y % SECTREE_SIZE) / CELL_SIZE);
 }
 
-bool SECTREE::IsAttr(int32_t x, int32_t y, uint32_t dwFlag)
+bool sectree::is_attr(int32_t x, int32_t y, uint32_t dwFlag)
 {
-	if (IS_SET(GetAttribute(x, y), dwFlag))
+	if (is_set(get_attribute(x, y), dwFlag))
 		return true;
 
 	return false;
 }
 
-int SECTREE::GetEventAttribute(int32_t x, int32_t y)
+int sectree::event_attribute(int32_t x, int32_t y)
 {
-	return GetAttribute(x, y) >> 8;
+	return get_attribute(x, y) >> 8;
 }
 }

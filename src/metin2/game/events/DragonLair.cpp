@@ -26,30 +26,30 @@
 namespace metin2::game::inline events {
 
 
-struct FWarpToDragronLairWithGuildMembers
+struct f_warp_to_dragron_lair_with_guild_members
 {
-	uint32_t dwGuildID;
-	int32_t mapIndex;
+	uint32_t guild_id;
+	int32_t index;
 	int32_t x, y;
 
-	FWarpToDragronLairWithGuildMembers( uint32_t guildID, int32_t map, int32_t X, int32_t Y )
-		: dwGuildID(guildID), mapIndex(map), x(X), y(Y)
+	f_warp_to_dragron_lair_with_guild_members( uint32_t guildID, int32_t map, int32_t X, int32_t Y )
+		: guild_id(guildID), index(map), x(X), y(Y)
 	{
 	}
 
-	void operator()(CEntity * ent)
+	void operator()(entity * ent)
 	{
-		if (nullptr != ent && true == ent->IsType(ENTITY_CHARACTER))
+		if (nullptr != ent && true == ent->is_type(ENTITY_CHARACTER))
 		{
-			CHARACTER * pChar = static_cast<CHARACTER *>(ent);
+			character * pChar = static_cast<character *>(ent);
 
-			if (true == pChar->IsPC())
+			if (true == pChar->is_pc())
 			{
-				if (nullptr != pChar->GetGuild())
+				if (nullptr != pChar->get_guild())
 				{
-					if (dwGuildID == pChar->GetGuild()->GetID())
+					if (guild_id == pChar->get_guild()->id())
 					{
-						pChar->WarpSet(x, y, mapIndex);
+						pChar->warp_set(x, y, index);
 					}
 				}
 			}
@@ -57,42 +57,42 @@ struct FWarpToDragronLairWithGuildMembers
 	}
 };
 
-struct FWarpToVillage
+struct f_warp_to_village
 {
-	void operator() (CEntity * ent)
+	void operator() (entity * ent)
 	{
 		if (nullptr != ent)
 		{
-			CHARACTER * pChar = static_cast<CHARACTER *>(ent);
+			character * pChar = static_cast<character *>(ent);
 
 			if (nullptr != pChar)
 			{
-				if (true == pChar->IsPC())
+				if (true == pChar->is_pc())
 				{
-					pChar->GoHome();
+					pChar->go_home();
 				}
 			}
 		}
 	}
 };
 
-EVENTINFO(tag_DragonLair_Collapse_EventInfo)
+EVENTINFO(tag_dragon_lair_collapse_event_info)
 {
 	int step;
-	CDragonLair* pLair;
-	int32_t InstanceMapIndex;
+	dragon_lair* lair;
+	int32_t instance_map_index;
 
-	tag_DragonLair_Collapse_EventInfo()
+	tag_dragon_lair_collapse_event_info()
 	: step( 0 )
-	, pLair( nullptr )
-	, InstanceMapIndex( 0 )
+	, lair( nullptr )
+	, instance_map_index( 0 )
 	{
 	}
 };
 
-EVENTFUNC( DragonLair_Collapse_Event )
+EVENTFUNC( dragon_lair_collapse_event )
 {
-	tag_DragonLair_Collapse_EventInfo* pInfo = dynamic_cast<tag_DragonLair_Collapse_EventInfo*>(event->info);
+	tag_dragon_lair_collapse_event_info* pInfo = dynamic_cast<tag_dragon_lair_collapse_event_info*>(event->info);
 
 	if ( pInfo == nullptr )
 	{
@@ -103,31 +103,31 @@ EVENTFUNC( DragonLair_Collapse_Event )
 	if (0 == pInfo->step)
 	{
 		char buf[512];
-		snprintf(buf, 512, LC_TEXT("용가리가 %d 초만에 죽어써효ㅠㅠ"), pInfo->pLair->GetEstimatedTime());
-		SendNoticeMap(buf, pInfo->InstanceMapIndex, true);
+		snprintf(buf, 512, lc_text("용가리가 %d 초만에 죽어써효ㅠㅠ"), pInfo->lair->estimated_time());
+		send_notice_map(buf, pInfo->instance_map_index, true);
 
 		pInfo->step++;
 
-		return PASSES_PER_SEC( 30 );
+		return passes_per_sec( 30 );
 	}
 	else if (1 == pInfo->step)
 	{
-		SECTREE_MAP * pMap = SECTREE_MANAGER::instance().GetMap( pInfo->InstanceMapIndex );
+		sectree_map * pMap = sectree_manager::instance().map( pInfo->instance_map_index );
 
 		if (nullptr != pMap)
 		{
-			FWarpToVillage f;
+			f_warp_to_village f;
 			pMap->for_each( f );
 		}
 
 		pInfo->step++;
 
-		return PASSES_PER_SEC( 30 );
+		return passes_per_sec( 30 );
 	}
 	else
 	{
-		SECTREE_MANAGER::instance().DestroyPrivateMap( pInfo->InstanceMapIndex );
-		delete pInfo->pLair;
+		sectree_manager::instance().destroy_private_map( pInfo->instance_map_index );
+		delete pInfo->lair;
 	}
 
 	return 0;
@@ -141,26 +141,26 @@ EVENTFUNC( DragonLair_Collapse_Event )
 
 
 
-CDragonLair::CDragonLair(uint32_t guildID)
-	: GuildID_(guildID)
+dragon_lair::dragon_lair(uint32_t guildID)
+	: guild_id_(guildID)
 {
-	StartTime_ = get_global_time();
+	start_time_ = get_global_time();
 }
 
-CDragonLair::~CDragonLair()
+dragon_lair::~dragon_lair()
 {
 }
 
-uint32_t CDragonLair::GetEstimatedTime() const
+uint32_t dragon_lair::estimated_time() const
 {
-	return get_global_time() - StartTime_;
+	return get_global_time() - start_time_;
 }
 
-void CDragonLair::OnDragonDead(CHARACTER * pDragon)
+void dragon_lair::on_dragon_dead(character * pDragon)
 {
 	metin2::log::info( "DragonLair: 도라곤이 죽어써효");
 
-	LogManager::instance().DragonSlayLog(  GuildID_, pDragon->GetMobTable().dwVnum, StartTime_, get_global_time() );
+	log_manager::instance().dragon_slay_log(  guild_id_, pDragon->get_mob_table().vnum, start_time_, get_global_time() );
 }
 
 
@@ -174,50 +174,50 @@ void CDragonLair::OnDragonDead(CHARACTER * pDragon)
 
 
 
-CDragonLairManager::CDragonLairManager()
+dragon_lair_manager::dragon_lair_manager()
 {
 }
 
-CDragonLairManager::~CDragonLairManager()
+dragon_lair_manager::~dragon_lair_manager()
 {
 }
 
-bool CDragonLairManager::Start(int32_t MapIndexFrom, int32_t BaseMapIndex, uint32_t GuildID)
+bool dragon_lair_manager::start(int32_t MapIndexFrom, int32_t BaseMapIndex, uint32_t GuildID)
 {
-	int32_t instanceMapIndex = SECTREE_MANAGER::instance().CreatePrivateMap(BaseMapIndex);
+	int32_t instanceMapIndex = sectree_manager::instance().create_private_map(BaseMapIndex);
 	if (instanceMapIndex == 0) {
 		metin2::log::error("CDragonLairManager::Start() : no private map index available");
 		return false;
 	}
 
-	SECTREE_MAP * pMap = SECTREE_MANAGER::instance().GetMap(MapIndexFrom);
+	sectree_map * pMap = sectree_manager::instance().map(MapIndexFrom);
 
 	if (nullptr != pMap)
 	{
-		SECTREE_MAP * pTargetMap = SECTREE_MANAGER::instance().GetMap(BaseMapIndex);
+		sectree_map * pTargetMap = sectree_manager::instance().map(BaseMapIndex);
 
 		if (nullptr == pTargetMap)
 		{
 			return false;
 		}
 
-		const TMapRegion* pRegionInfo = SECTREE_MANAGER::instance().GetMapRegion( pTargetMap->m_setting.iIndex );
+		const map_region* pRegionInfo = sectree_manager::instance().get_map_region( pTargetMap->setting.index );
 
 		if (nullptr != pRegionInfo)
 		{
-			FWarpToDragronLairWithGuildMembers f(GuildID, instanceMapIndex, 844000, 1066900);
+			f_warp_to_dragron_lair_with_guild_members f(GuildID, instanceMapIndex, 844000, 1066900);
 
 			pMap->for_each( f );
 
-			LairMap_.insert( std::make_pair(GuildID, new CDragonLair(GuildID)) );
+			lair_map_.insert( std::make_pair(GuildID, new dragon_lair(GuildID)) );
 
-			std::string strMapBasePath( LocaleService_GetMapPath() );
+			std::string strMapBasePath( locale_service_get_map_path() );
 
-			strMapBasePath += "/" + pRegionInfo->strMapName + "/instance_regen.txt";
+			strMapBasePath += "/" + pRegionInfo->map_name + "/instance_regen.txt";
 
 			metin2::log::info( "{}", strMapBasePath.c_str());
 
-			regen_do(strMapBasePath.c_str(), instanceMapIndex, pTargetMap->m_setting.iBaseX, pTargetMap->m_setting.iBaseY, nullptr, true);
+			regen_do(strMapBasePath.c_str(), instanceMapIndex, pTargetMap->setting.base_x, pTargetMap->setting.base_y, nullptr, true);
 
 			return true;
 		}
@@ -226,42 +226,42 @@ bool CDragonLairManager::Start(int32_t MapIndexFrom, int32_t BaseMapIndex, uint3
 	return false;
 }
 
-void CDragonLairManager::OnDragonDead(CHARACTER * pDragon, uint32_t KillerGuildID)
+void dragon_lair_manager::on_dragon_dead(character * pDragon, uint32_t KillerGuildID)
 {
 	if (nullptr == pDragon)
 		return;
 
-	if (false == pDragon->IsMonster())
+	if (false == pDragon->is_monster())
 		return;
 
-	std::unordered_map<uint32_t, CDragonLair*>::iterator iter = LairMap_.find( KillerGuildID );
+	std::unordered_map<uint32_t, dragon_lair*>::iterator iter = lair_map_.find( KillerGuildID );
 
-	if (LairMap_.end() == iter)
+	if (lair_map_.end() == iter)
 	{
 		return;
 	}
 
-	SECTREE_MAP * pMap = SECTREE_MANAGER::instance().GetMap( pDragon->GetMapIndex() );
+	sectree_map * pMap = sectree_manager::instance().map( pDragon->map_index() );
 
 	if (nullptr == iter->second || nullptr == pMap)
 	{
-		LairMap_.erase( iter );
+		lair_map_.erase( iter );
 		return;
 	}
 
-	iter->second->OnDragonDead( pDragon );
+	iter->second->on_dragon_dead( pDragon );
 
 	// Send everyone home and destroy the map
 
-	tag_DragonLair_Collapse_EventInfo* info;
-	info = AllocEventInfo<tag_DragonLair_Collapse_EventInfo>();
+	tag_dragon_lair_collapse_event_info* info;
+	info = alloc_event_info<tag_dragon_lair_collapse_event_info>();
 
 	info->step = 0;
-	info->pLair = iter->second;
-	info->InstanceMapIndex = pDragon->GetMapIndex();
+	info->lair = iter->second;
+	info->instance_map_index = pDragon->map_index();
 
-	event_create(DragonLair_Collapse_Event, info, PASSES_PER_SEC(10));
+	event_create(dragon_lair_collapse_event, info, passes_per_sec(10));
 
-	LairMap_.erase( iter );
+	lair_map_.erase( iter );
 }
 }

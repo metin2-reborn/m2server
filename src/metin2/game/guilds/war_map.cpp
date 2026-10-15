@@ -31,21 +31,21 @@
 
 namespace metin2::game::inline guilds {
 
-EVENTINFO(war_map_info)
+EVENTINFO(war_map_event_info)
 {
-	int iStep;
-	CWarMap * pWarMap;
+	int step;
+	game::guilds::war_map * war_map;
 
-	war_map_info() 
-	: iStep( 0 )
-	, pWarMap( nullptr )
+	war_map_event_info() 
+	: step( 0 )
+	, war_map( nullptr )
 	{
 	}
 };
 
 EVENTFUNC(war_begin_event)
 {
-	war_map_info* info = dynamic_cast<war_map_info*>( event->info );
+	war_map_event_info* info = dynamic_cast<war_map_event_info*>( event->info );
 
 	if ( info == nullptr )
 	{
@@ -53,14 +53,14 @@ EVENTFUNC(war_begin_event)
 		return 0;
 	}
 
-	CWarMap * pMap = info->pWarMap;
-	pMap->CheckWarEnd();
-	return PASSES_PER_SEC(10);
+	war_map * pMap = info->war_map;
+	pMap->check_war_end();
+	return passes_per_sec(10);
 }
 
 EVENTFUNC(war_end_event)
 {
-	war_map_info* info = dynamic_cast<war_map_info*>( event->info );
+	war_map_event_info* info = dynamic_cast<war_map_event_info*>( event->info );
 
 	if ( info == nullptr )
 	{
@@ -68,25 +68,25 @@ EVENTFUNC(war_end_event)
 		return 0;
 	}
 
-	CWarMap * pMap = info->pWarMap;
+	war_map * pMap = info->war_map;
 
-	if (info->iStep == 0)
+	if (info->step == 0)
 	{
-		++info->iStep;
-		pMap->ExitAll();
-		return PASSES_PER_SEC(5);
+		++info->step;
+		pMap->exit_all();
+		return passes_per_sec(5);
 	}
 	else
 	{
-		pMap->SetEndEvent(nullptr);
-		CWarMapManager::instance().DestroyWarMap(pMap);
+		pMap->set_end_event(nullptr);
+		war_map_manager::instance().destroy_war_map(pMap);
 		return 0;
 	}
 }
 
 EVENTFUNC(war_timeout_event)
 {
-	war_map_info* info = dynamic_cast<war_map_info*>( event->info );
+	war_map_event_info* info = dynamic_cast<war_map_event_info*>( event->info );
 
 	if ( info == nullptr )
 	{
@@ -94,133 +94,133 @@ EVENTFUNC(war_timeout_event)
 		return 0;
 	}
 
-	CWarMap * pMap = info->pWarMap;
-	pMap->Timeout();
+	war_map * pMap = info->war_map;
+	pMap->timeout();
 	return 0;
 }
 
-void CWarMap::TeamData::Initialize()
+void war_map::team_data::initialize()
 {
-	dwID = 0;
-	pkGuild = nullptr;
-	iMemberCount = 0;
-	iUsePotionPrice = 0;
-	iScore = 0;
-	pkChrFlag = nullptr;
-	pkChrFlagBase = nullptr;
+	id = 0;
+	guild = nullptr;
+	member_count = 0;
+	use_potion_price = 0;
+	score = 0;
+	chr_flag = nullptr;
+	chr_flag_base = nullptr;
 
-	set_pidJoiner.clear();
+	set_pid_joiner.clear();
 }
 
-CWarMap::CWarMap(int32_t lMapIndex, const TGuildWarInfo & r_info, TWarMapInfo * pkWarMapInfo, uint32_t dwGuildID1, uint32_t dwGuildID2)
+war_map::war_map(int32_t lMapIndex, const guild_war_info & r_info, war_map_info * pkWarMapInfo, uint32_t dwGuildID1, uint32_t dwGuildID2)
 {
-	m_kMapInfo = *pkWarMapInfo;
-	m_kMapInfo.lMapIndex = lMapIndex;
+	map_info_ = *pkWarMapInfo;
+	map_info_.map_index = lMapIndex;
 
-	memcpy(&m_WarInfo, &r_info, sizeof(TGuildWarInfo));
+	memcpy(&war_info_, &r_info, sizeof(guild_war_info));
 
-	m_TeamData[0].Initialize();
-	m_TeamData[0].dwID = dwGuildID1;
-	m_TeamData[0].pkGuild = CGuildManager::instance().TouchGuild(dwGuildID1);
+	team_data_[0].initialize();
+	team_data_[0].id = dwGuildID1;
+	team_data_[0].guild = guild_manager::instance().touch_guild(dwGuildID1);
 
-	m_TeamData[1].Initialize();
-	m_TeamData[1].dwID = dwGuildID2;
-	m_TeamData[1].pkGuild = CGuildManager::instance().TouchGuild(dwGuildID2);
-	m_iObserverCount = 0;
+	team_data_[1].initialize();
+	team_data_[1].id = dwGuildID2;
+	team_data_[1].guild = guild_manager::instance().touch_guild(dwGuildID2);
+	observer_count_ = 0;
 
-	war_map_info* info = AllocEventInfo<war_map_info>();
-	info->pWarMap = this;
+	war_map_event_info* info = alloc_event_info<war_map_event_info>();
+	info->war_map = this;
 
-	SetBeginEvent(event_create(war_begin_event, info, PASSES_PER_SEC(60)));
-	m_pkEndEvent = nullptr;
-	m_pkTimeoutEvent = nullptr;
-	m_pkResetFlagEvent = nullptr;
-	m_bTimeout = false;
-	m_dwStartTime = get_dword_time();
-	m_bEnded = false;
+	set_begin_event(event_create(war_begin_event, info, passes_per_sec(60)));
+	end_event_ = nullptr;
+	timeout_event_ = nullptr;
+	reset_flag_event_ = nullptr;
+	timeout_ = false;
+	start_time_ = get_dword_time();
+	ended_ = false;
 
-	if (GetType() == WAR_MAP_TYPE_FLAG)
+	if (type() == WAR_MAP_TYPE_FLAG)
 	{
-		AddFlagBase(0);
-		AddFlagBase(1);
-		AddFlag(0);
-		AddFlag(1);
+		add_flag_base(0);
+		add_flag_base(1);
+		add_flag(0);
+		add_flag(1);
 	}
 }
 
-CWarMap::~CWarMap()
+war_map::~war_map()
 {
-	event_cancel(&m_pkBeginEvent);
-	event_cancel(&m_pkEndEvent);
-	event_cancel(&m_pkTimeoutEvent);
-	event_cancel(&m_pkResetFlagEvent);
+	event_cancel(&begin_event_);
+	event_cancel(&end_event_);
+	event_cancel(&timeout_event_);
+	event_cancel(&reset_flag_event_);
 
-	metin2::log::info( "WarMap::~WarMap : map index {:d}", GetMapIndex());
+	metin2::log::info( "WarMap::~WarMap : map index {:d}", map_index());
 
-	auto it = m_set_pkChr.begin();
+	auto it = set_pk_chr_.begin();
 
-	while (it != m_set_pkChr.end())
+	while (it != set_pk_chr_.end())
 	{
-		CHARACTER * ch = *(it++);
+		character * ch = *(it++);
 
-		if (ch->GetDesc())
+		if (ch->get_desc())
 		{
-			metin2::log::info( "WarMap::~WarMap : disconnecting {}", ch->GetName());
-			DESC_MANAGER::instance().DestroyDesc(ch->GetDesc());
+			metin2::log::info( "WarMap::~WarMap : disconnecting {}", ch->name());
+			desc_manager::instance().destroy_desc(ch->get_desc());
 		}
 	}
 
-	m_set_pkChr.clear();
+	set_pk_chr_.clear();
 }
 
-void CWarMap::SetBeginEvent(LPEVENT pkEv)
+void war_map::set_begin_event(event_ptr pkEv)
 {
-	if (m_pkBeginEvent != nullptr) {
-		event_cancel(&m_pkBeginEvent);
+	if (begin_event_ != nullptr) {
+		event_cancel(&begin_event_);
 	}
 	if (pkEv != nullptr) {
-		m_pkBeginEvent = pkEv;
+		begin_event_ = pkEv;
 	}
 }
 
-void CWarMap::SetEndEvent(LPEVENT pkEv)
+void war_map::set_end_event(event_ptr pkEv)
 {
-	if (m_pkEndEvent != nullptr) {
-		event_cancel(&m_pkEndEvent);
+	if (end_event_ != nullptr) {
+		event_cancel(&end_event_);
 	}
 	if (pkEv != nullptr) {
-		m_pkEndEvent = pkEv;
+		end_event_ = pkEv;
 	}
 }
 
-void CWarMap::SetTimeoutEvent(LPEVENT pkEv)
+void war_map::set_timeout_event(event_ptr pkEv)
 {
-	if (m_pkTimeoutEvent != nullptr) {
-		event_cancel(&m_pkTimeoutEvent);
+	if (timeout_event_ != nullptr) {
+		event_cancel(&timeout_event_);
 	}
 	if (pkEv != nullptr) {
-		m_pkTimeoutEvent = pkEv;
+		timeout_event_ = pkEv;
 	}
 }
 
-void CWarMap::SetResetFlagEvent(LPEVENT pkEv)
+void war_map::set_reset_flag_event(event_ptr pkEv)
 {
-	if (m_pkResetFlagEvent != nullptr) {
-		event_cancel(&m_pkResetFlagEvent);
+	if (reset_flag_event_ != nullptr) {
+		event_cancel(&reset_flag_event_);
 	}
 	if (pkEv != nullptr) {
-		m_pkResetFlagEvent = pkEv;
+		reset_flag_event_ = pkEv;
 	}
 }
 
-bool CWarMap::GetTeamIndex(uint32_t dwGuildID, uint8_t & bIdx)
+bool war_map::team_index(uint32_t dwGuildID, uint8_t & bIdx)
 {
-	if (m_TeamData[0].dwID == dwGuildID)
+	if (team_data_[0].id == dwGuildID)
 	{
 		bIdx = 0;
 		return true;
 	}
-	else if (m_TeamData[1].dwID == dwGuildID)
+	else if (team_data_[1].id == dwGuildID)
 	{
 		bIdx = 1;
 		return true;
@@ -229,312 +229,312 @@ bool CWarMap::GetTeamIndex(uint32_t dwGuildID, uint8_t & bIdx)
 	return false;
 }
 
-CGuild * CWarMap::GetGuild(uint8_t bIdx)
+guild * war_map::get_guild(uint8_t bIdx)
 {
-	return m_TeamData[bIdx].pkGuild;
+	return team_data_[bIdx].guild;
 }
 
-int32_t CWarMap::GetMapIndex()
+int32_t war_map::map_index()
 {
-	return m_kMapInfo.lMapIndex;
+	return map_info_.map_index;
 }
 
-uint8_t CWarMap::GetType()
+uint8_t war_map::type()
 {
-	return m_kMapInfo.bType;
+	return map_info_.type;
 }
 
-uint32_t CWarMap::GetGuildOpponent(CHARACTER * ch)
+uint32_t war_map::guild_opponent(character * ch)
 {
-	if (ch->GetGuild())
+	if (ch->get_guild())
 	{
-		uint32_t gid = ch->GetGuild()->GetID();
+		uint32_t gid = ch->get_guild()->id();
 		uint8_t idx;
 
-		if (GetTeamIndex(gid, idx))
-			return m_TeamData[!idx].dwID;
+		if (team_index(gid, idx))
+			return team_data_[!idx].id;
 	}
 	return 0;
 }
 
-uint32_t CWarMap::GetWinnerGuild()
+uint32_t war_map::winner_guild()
 {
 	uint32_t win_gid = 0;
 
-	if (m_TeamData[1].iScore > m_TeamData[0].iScore)
+	if (team_data_[1].score > team_data_[0].score)
 	{
-		win_gid = m_TeamData[1].dwID;
+		win_gid = team_data_[1].id;
 	}
-	else if (m_TeamData[0].iScore > m_TeamData[1].iScore)
+	else if (team_data_[0].score > team_data_[1].score)
 	{
-		win_gid = m_TeamData[0].dwID;
+		win_gid = team_data_[0].id;
 	}
 
 	return (win_gid);
 }
 
-void CWarMap::UsePotion(CHARACTER * ch, CItem * item)
+void war_map::use_potion(character * ch, item * item)
 {
-	if (m_pkEndEvent)
+	if (end_event_)
 		return;
 
-	if (ch->IsObserverMode())
+	if (ch->is_observer_mode())
 		return;
 
-	if (!ch->GetGuild())
+	if (!ch->get_guild())
 		return;
 
-	if (!item->GetProto())
+	if (!item->proto())
 		return;
 
-	int iPrice = item->GetProto()->dwGold;
+	int iPrice = item->proto()->gold;
 
-	uint32_t gid = ch->GetGuild()->GetID();
+	uint32_t gid = ch->get_guild()->id();
 
-	if (gid == m_TeamData[0].dwID)
-		m_TeamData[0].iUsePotionPrice += iPrice;
-	else if (gid == m_TeamData[1].dwID)
-		m_TeamData[1].iUsePotionPrice += iPrice;
+	if (gid == team_data_[0].id)
+		team_data_[0].use_potion_price += iPrice;
+	else if (gid == team_data_[1].id)
+		team_data_[1].use_potion_price += iPrice;
 }
 
-int CWarMap::TeamData::GetAccumulatedJoinerCount()
+int war_map::team_data::accumulated_joiner_count()
 {
-	return set_pidJoiner.size();
+	return set_pid_joiner.size();
 }
 
-int CWarMap::TeamData::GetCurJointerCount()
+int war_map::team_data::cur_jointer_count()
 {
-	return iMemberCount;
+	return member_count;
 }
 
-void CWarMap::TeamData::AppendMember(CHARACTER * ch)
+void war_map::team_data::append_member(character * ch)
 {
-	set_pidJoiner.insert(ch->GetPlayerID());
-	++iMemberCount;
+	set_pid_joiner.insert(ch->player_id());
+	++member_count;
 }
 
-void CWarMap::TeamData::RemoveMember(CHARACTER * ch)
+void war_map::team_data::remove_member(character * ch)
 {
 	// set_pidJoiner counts cumulative members, so don't remove from it
-	--iMemberCount;
+	--member_count;
 }
 
 
-struct FSendUserCount
+struct f_send_user_count
 {
 	char buf1[30];
 	char buf2[128];
 
-	FSendUserCount(uint32_t g1, int g1_count, uint32_t g2, int g2_count, int observer)
+	f_send_user_count(uint32_t g1, int g1_count, uint32_t g2, int g2_count, int observer)
 	{
 		snprintf(buf1, sizeof(buf1), "ObserverCount %d", observer);
 		snprintf(buf2, sizeof(buf2), "WarUC %u %d %u %d %d", g1, g1_count, g2, g2_count, observer);
 	}
 
-	void operator() (CHARACTER * ch)
+	void operator() (character * ch)
 	{
-		ch->ChatPacket(CHAT_TYPE_COMMAND, buf1);
-		ch->ChatPacket(CHAT_TYPE_COMMAND, buf2);
+		ch->chat_packet(CHAT_TYPE_COMMAND, buf1);
+		ch->chat_packet(CHAT_TYPE_COMMAND, buf2);
 	}
 };
 
-void CWarMap::UpdateUserCount()
+void war_map::update_user_count()
 {
-	FSendUserCount f(
-			m_TeamData[0].dwID, 
-			m_TeamData[0].GetAccumulatedJoinerCount(), 
-			m_TeamData[1].dwID, 
-			m_TeamData[1].GetAccumulatedJoinerCount(), 
-			m_iObserverCount);
+	f_send_user_count f(
+			team_data_[0].id, 
+			team_data_[0].accumulated_joiner_count(), 
+			team_data_[1].id, 
+			team_data_[1].accumulated_joiner_count(), 
+			observer_count_);
 
-	std::for_each(m_set_pkChr.begin(), m_set_pkChr.end(), f);
+	std::for_each(set_pk_chr_.begin(), set_pk_chr_.end(), f);
 }
 
-void CWarMap::IncMember(CHARACTER * ch)
+void war_map::inc_member(character * ch)
 {
-	if (!ch->IsPC())
+	if (!ch->is_pc())
 		return;
 
 	metin2::log::info( "WarMap::IncMember");
 	uint32_t gid = 0;
 
-	if (ch->GetGuild())
-		gid = ch->GetGuild()->GetID();
+	if (ch->get_guild())
+		gid = ch->get_guild()->id();
 
-	bool isWarMember = ch->GetQuestFlag("war.is_war_member") > 0 ? true : false;
+	bool isWarMember = ch->quest_flag("war.is_war_member") > 0 ? true : false;
 
-	if (isWarMember && gid != m_TeamData[0].dwID && gid != m_TeamData[1].dwID)
+	if (isWarMember && gid != team_data_[0].id && gid != team_data_[1].id)
 	{
-		ch->SetQuestFlag("war.is_war_member", 0);
+		ch->set_quest_flag("war.is_war_member", 0);
 		isWarMember = false;
 	}
 
 	if (isWarMember)
 	{
-		if (gid == m_TeamData[0].dwID)
+		if (gid == team_data_[0].id)
 		{
-			m_TeamData[0].AppendMember(ch);
+			team_data_[0].append_member(ch);
 
 		}
-		else if (gid == m_TeamData[1].dwID)
+		else if (gid == team_data_[1].id)
 		{
-			m_TeamData[1].AppendMember(ch);
+			team_data_[1].append_member(ch);
 
 		}
 
-		event_cancel(&m_pkTimeoutEvent);
+		event_cancel(&timeout_event_);
 
 		metin2::log::info( "WarMap +m {:d}(cur:{:d}, acc:{:d}) vs {:d}(cur:{:d}, acc:{:d})",
-				m_TeamData[0].dwID, m_TeamData[0].GetCurJointerCount(), m_TeamData[0].GetAccumulatedJoinerCount(),
-				m_TeamData[1].dwID, m_TeamData[1].GetCurJointerCount(), m_TeamData[1].GetAccumulatedJoinerCount());
+				team_data_[0].id, team_data_[0].cur_jointer_count(), team_data_[0].accumulated_joiner_count(),
+				team_data_[1].id, team_data_[1].cur_jointer_count(), team_data_[1].accumulated_joiner_count());
 	}
 	else
 	{
-		++m_iObserverCount; 
-		metin2::log::info( "WarMap +o {:d}", m_iObserverCount);
-		ch->SetObserverMode(true);
-		ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("관전 모드로 길드전에 참가하셨습니다."));
-		ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("자신을 선택하시면 밖으로 나갈 수 있는 <관람 종료> 버튼이 나옵니다."));
+		++observer_count_; 
+		metin2::log::info( "WarMap +o {:d}", observer_count_);
+		ch->set_observer_mode(true);
+		ch->chat_packet(CHAT_TYPE_INFO, lc_text("관전 모드로 길드전에 참가하셨습니다."));
+		ch->chat_packet(CHAT_TYPE_INFO, lc_text("자신을 선택하시면 밖으로 나갈 수 있는 <관람 종료> 버튼이 나옵니다."));
 	}
 
-	UpdateUserCount();
+	update_user_count();
 
-	m_set_pkChr.insert(ch);
+	set_pk_chr_.insert(ch);
 
-	DESC * d = ch->GetDesc();
+	desc * d = ch->get_desc();
 
-	SendWarPacket(d);
-	SendScorePacket(0, d);
-	SendScorePacket(1, d);
+	send_war_packet(d);
+	send_score_packet(0, d);
+	send_score_packet(1, d);
 }
 
-void CWarMap::DecMember(CHARACTER * ch)
+void war_map::dec_member(character * ch)
 {
-	if (!ch->IsPC())
+	if (!ch->is_pc())
 		return;
 
 	metin2::log::info( "WarMap::DecMember");
 	uint32_t gid = 0;
 
-	if (ch->GetGuild())
-		gid = ch->GetGuild()->GetID();
+	if (ch->get_guild())
+		gid = ch->get_guild()->id();
 
-	if (!ch->IsObserverMode())
+	if (!ch->is_observer_mode())
 	{
-		if (gid == m_TeamData[0].dwID)
-			m_TeamData[0].RemoveMember(ch);
-		else if (gid == m_TeamData[1].dwID)
-			m_TeamData[1].RemoveMember(ch);
+		if (gid == team_data_[0].id)
+			team_data_[0].remove_member(ch);
+		else if (gid == team_data_[1].id)
+			team_data_[1].remove_member(ch);
 
-		if (m_kMapInfo.bType == WAR_MAP_TYPE_FLAG)
+		if (map_info_.type == WAR_MAP_TYPE_FLAG)
 		{
-			CAffect * pkAff = ch->FindAffect(AFFECT_WAR_FLAG);
+			affect * pkAff = ch->find_affect(AFFECT_WAR_FLAG);
 
 			if (pkAff)
 			{
 				uint8_t idx;
 
-				if (GetTeamIndex(pkAff->lApplyValue, idx))
-					AddFlag(idx, ch->GetX(), ch->GetY());
+				if (team_index(pkAff->apply_value, idx))
+					add_flag(idx, ch->x(), ch->y());
 
-				ch->RemoveAffect(AFFECT_WAR_FLAG);
+				ch->remove_affect(AFFECT_WAR_FLAG);
 			}
 		}
 
 		metin2::log::info( "WarMap -m {:d}(cur:{:d}, acc:{:d}) vs {:d}(cur:{:d}, acc:{:d})",
-				m_TeamData[0].dwID, m_TeamData[0].GetCurJointerCount(), m_TeamData[0].GetAccumulatedJoinerCount(),
-				m_TeamData[1].dwID, m_TeamData[1].GetCurJointerCount(), m_TeamData[1].GetAccumulatedJoinerCount());
+				team_data_[0].id, team_data_[0].cur_jointer_count(), team_data_[0].accumulated_joiner_count(),
+				team_data_[1].id, team_data_[1].cur_jointer_count(), team_data_[1].accumulated_joiner_count());
 
-		CheckWarEnd();
-		ch->SetQuestFlag("war.is_war_member", 0);
+		check_war_end();
+		ch->set_quest_flag("war.is_war_member", 0);
 	}
 	else
 	{
-		--m_iObserverCount;
+		--observer_count_;
 
-		metin2::log::info( "WarMap -o {:d}", m_iObserverCount);
-		ch->SetObserverMode(false);
+		metin2::log::info( "WarMap -o {:d}", observer_count_);
+		ch->set_observer_mode(false);
 	}
 
-	UpdateUserCount();
+	update_user_count();
 
-	m_set_pkChr.erase(ch);
+	set_pk_chr_.erase(ch);
 }
 
-struct FExitGuildWar
+struct f_exit_guild_war
 {
-	void operator() (CHARACTER * ch)
+	void operator() (character * ch)
 	{
-		if (ch->IsPC())
+		if (ch->is_pc())
 		{
-			ch->ExitToSavedLocation();
+			ch->exit_to_saved_location();
 		}
 	}
 };
 
-void CWarMap::ExitAll()
+void war_map::exit_all()
 {
-	FExitGuildWar f;
-	std::for_each(m_set_pkChr.begin(), m_set_pkChr.end(), f);
+	f_exit_guild_war f;
+	std::for_each(set_pk_chr_.begin(), set_pk_chr_.end(), f);
 }
 
-void CWarMap::CheckWarEnd()
+void war_map::check_war_end()
 {
-	if (m_bEnded)
+	if (ended_)
 		return;
 
-	if (m_TeamData[0].iMemberCount == 0 || m_TeamData[1].iMemberCount == 0)
+	if (team_data_[0].member_count == 0 || team_data_[1].member_count == 0)
 	{
-		if (m_bTimeout)
+		if (timeout_)
 			return;
 
-		if (m_pkTimeoutEvent)
+		if (timeout_event_)
 			return;
 
-		Notice(LC_TEXT("길드전에 참가한 상대방 길드원이 아무도 없습니다."));
-		Notice(LC_TEXT("1분 이내에 아무도 접속하지 않으면 길드전이 자동 종료됩니다."));
+		notice(lc_text("길드전에 참가한 상대방 길드원이 아무도 없습니다."));
+		notice(lc_text("1분 이내에 아무도 접속하지 않으면 길드전이 자동 종료됩니다."));
 
-		metin2::log::info( "CheckWarEnd: Timeout begin {:d} vs {:d}", m_TeamData[0].dwID, m_TeamData[1].dwID);
+		metin2::log::info( "CheckWarEnd: Timeout begin {:d} vs {:d}", team_data_[0].id, team_data_[1].id);
 
-		war_map_info* info = AllocEventInfo<war_map_info>();
-		info->pWarMap = this;
+		war_map_event_info* info = alloc_event_info<war_map_event_info>();
+		info->war_map = this;
 
-		SetTimeoutEvent(event_create(war_timeout_event, info, PASSES_PER_SEC(60)));
+		set_timeout_event(event_create(war_timeout_event, info, passes_per_sec(60)));
 	}
 	else
-		CheckScore();
+		check_score();
 }
 
-int CWarMap::GetRewardGold(uint8_t bWinnerIdx)
+int war_map::reward_gold(uint8_t bWinnerIdx)
 {
-	int iRewardGold = m_WarInfo.iWarPrice;
-	iRewardGold += (m_TeamData[bWinnerIdx].iUsePotionPrice * m_WarInfo.iWinnerPotionRewardPctToWinner) / 100;
-	iRewardGold += (m_TeamData[bWinnerIdx ? 0 : 1].iUsePotionPrice * m_WarInfo.iLoserPotionRewardPctToWinner) / 100;
+	int iRewardGold = war_info_.war_price;
+	iRewardGold += (team_data_[bWinnerIdx].use_potion_price * war_info_.winner_potion_reward_pct_to_winner) / 100;
+	iRewardGold += (team_data_[bWinnerIdx ? 0 : 1].use_potion_price * war_info_.loser_potion_reward_pct_to_winner) / 100;
 	return iRewardGold;
 }
 
-void CWarMap::Draw()
+void war_map::draw()
 {
-	CGuildManager::instance().RequestWarOver(m_TeamData[0].dwID, m_TeamData[1].dwID, 0, 0);
+	guild_manager::instance().request_war_over(team_data_[0].id, team_data_[1].id, 0, 0);
 }
 
-void CWarMap::Timeout()
+void war_map::timeout()
 {
-	SetTimeoutEvent(nullptr);
+	set_timeout_event(nullptr);
 
-	if (m_bTimeout)
+	if (timeout_)
 		return;
 
-	if (m_bEnded)
+	if (ended_)
 		return;
 
 	uint32_t dwWinner = 0;
 	uint32_t dwLoser = 0;
 	int iRewardGold = 0;
 
-	if (get_dword_time() - m_dwStartTime < 60000 * 5)
+	if (get_dword_time() - start_time_ < 60000 * 5)
 	{
-		Notice(LC_TEXT("길드전이 일찍 종료되어 무승부로 판정 되었습니다. (5분이 지나지 않음)"));
+		notice(lc_text("길드전이 일찍 종료되어 무승부로 판정 되었습니다. (5분이 지나지 않음)"));
 		dwWinner = 0;
 		dwLoser = 0;
 	}
@@ -542,380 +542,380 @@ void CWarMap::Timeout()
 	{
 		int iWinnerIdx = -1;
 
-		if (m_TeamData[0].iMemberCount == 0)
+		if (team_data_[0].member_count == 0)
 			iWinnerIdx = 1;
-		else if (m_TeamData[1].iMemberCount == 0)
+		else if (team_data_[1].member_count == 0)
 			iWinnerIdx = 0;
 
 		if (iWinnerIdx == -1)
 		{
-			dwWinner = GetWinnerGuild();
+			dwWinner = winner_guild();
 
-			if (dwWinner == m_TeamData[0].dwID)
+			if (dwWinner == team_data_[0].id)
 			{
-				iRewardGold = GetRewardGold(0);
-				dwLoser = m_TeamData[1].dwID;
+				iRewardGold = reward_gold(0);
+				dwLoser = team_data_[1].id;
 			}
-			else if (dwWinner == m_TeamData[1].dwID)
+			else if (dwWinner == team_data_[1].id)
 			{
-				iRewardGold = GetRewardGold(1);
-				dwLoser = m_TeamData[0].dwID;
+				iRewardGold = reward_gold(1);
+				dwLoser = team_data_[0].id;
 			}
 
 			metin2::log::error("WarMap: member count is not zero, guild1 {:d} {:d} guild2 {:d} {:d}, winner {:d}",
-					m_TeamData[0].dwID, m_TeamData[0].iMemberCount,
-					m_TeamData[1].dwID, m_TeamData[1].iMemberCount,
+					team_data_[0].id, team_data_[0].member_count,
+					team_data_[1].id, team_data_[1].member_count,
 					dwWinner);
 		}
 		else
 		{
-			dwWinner = m_TeamData[iWinnerIdx].dwID;
-			dwLoser = m_TeamData[iWinnerIdx == 0 ? 1 : 0].dwID;
+			dwWinner = team_data_[iWinnerIdx].id;
+			dwLoser = team_data_[iWinnerIdx == 0 ? 1 : 0].id;
 
-			iRewardGold = GetRewardGold(iWinnerIdx);
+			iRewardGold = reward_gold(iWinnerIdx);
 		}
 	}
 
 	metin2::log::info( "WarMap: Timeout {:d} {:d} winner {:d} loser {:d} reward {:d} map {:d}",
-			m_TeamData[0].dwID, m_TeamData[1].dwID, dwWinner, dwLoser, iRewardGold, m_kMapInfo.lMapIndex);
+			team_data_[0].id, team_data_[1].id, dwWinner, dwLoser, iRewardGold, map_info_.map_index);
 
 	if (dwWinner)
-		CGuildManager::instance().RequestWarOver(dwWinner, dwLoser, dwWinner, iRewardGold);
+		guild_manager::instance().request_war_over(dwWinner, dwLoser, dwWinner, iRewardGold);
 	else
-		CGuildManager::instance().RequestWarOver(m_TeamData[0].dwID, m_TeamData[1].dwID, dwWinner, iRewardGold);
+		guild_manager::instance().request_war_over(team_data_[0].id, team_data_[1].id, dwWinner, iRewardGold);
 
-	m_bTimeout = true;
+	timeout_ = true;
 }
 
 namespace
 {
-	struct FPacket
+	struct f_packet
 	{
-		FPacket(const void * p, int size) : m_pvData(p), m_iSize(size)
+		f_packet(const void * p, int size_value) : pv_data(p), size(size_value)
 		{
 		}
 
-		void operator () (CHARACTER * ch)
+		void operator () (character * ch)
 		{
-			ch->GetDesc()->Packet(m_pvData, m_iSize);
+			ch->get_desc()->packet(pv_data, size);
 		}
 
-		const void * m_pvData;
-		int m_iSize;
+		const void * pv_data;
+		int size;
 	};
 
-	struct FNotice
+	struct f_notice
 	{
-		FNotice(const char * psz) : m_psz(psz)
+		f_notice(const char * psz_value) : psz(psz_value)
 		{
 		}
 
-		void operator() (CHARACTER * ch)
+		void operator() (character * ch)
 		{
-			ch->ChatPacket(CHAT_TYPE_NOTICE, "%s", m_psz);
+			ch->chat_packet(CHAT_TYPE_NOTICE, "%s", psz);
 		}
 
-		const char * m_psz;
+		const char * psz;
 	};
 };
 
-void CWarMap::Notice(const char * psz)
+void war_map::notice(const char * psz)
 {
-	FNotice f(psz);
-	std::for_each(m_set_pkChr.begin(), m_set_pkChr.end(), f);
+	f_notice f(psz);
+	std::for_each(set_pk_chr_.begin(), set_pk_chr_.end(), f);
 }
 
-void CWarMap::Packet(const void * p, int size)
+void war_map::packet(const void * p, int size)
 {
-	FPacket f(p, size);
-	std::for_each(m_set_pkChr.begin(), m_set_pkChr.end(), f);
+	f_packet f(p, size);
+	std::for_each(set_pk_chr_.begin(), set_pk_chr_.end(), f);
 }
 
-void CWarMap::SendWarPacket(DESC * d)
+void war_map::send_war_packet(desc * d)
 {
-	TPacketGCGuild pack;
-	TPacketGCGuildWar pack2;
+	packet_gc_guild pack;
+	packet_gc_guild_war pack2;
 
 	pack.header		= HEADER_GC_GUILD;
 	pack.subheader	= GUILD_SUBHEADER_GC_WAR;
 	pack.size		= sizeof(pack) + sizeof(pack2);
 
-	pack2.dwGuildSelf	= m_TeamData[0].dwID;
-	pack2.dwGuildOpp	= m_TeamData[1].dwID;
-	pack2.bType		= CGuildManager::instance().TouchGuild(m_TeamData[0].dwID)->GetGuildWarType(m_TeamData[1].dwID);
-	pack2.bWarState	= CGuildManager::instance().TouchGuild(m_TeamData[0].dwID)->GetGuildWarState(m_TeamData[1].dwID);
+	pack2.guild_self	= team_data_[0].id;
+	pack2.guild_opp	= team_data_[1].id;
+	pack2.type		= guild_manager::instance().touch_guild(team_data_[0].id)->get_guild_war_type(team_data_[1].id);
+	pack2.war_state	= guild_manager::instance().touch_guild(team_data_[0].id)->get_guild_war_state(team_data_[1].id);
 
-	d->BufferedPacket(&pack, sizeof(pack));
-	d->Packet(&pack2, sizeof(pack2));
+	d->buffered_packet(&pack, sizeof(pack));
+	d->packet(&pack2, sizeof(pack2));
 }
 
-void CWarMap::SendScorePacket(uint8_t bIdx, DESC * d)
+void war_map::send_score_packet(uint8_t bIdx, desc * d)
 {
-	TPacketGCGuild p;
+	packet_gc_guild p;
 
 	p.header = HEADER_GC_GUILD;
 	p.subheader = GUILD_SUBHEADER_GC_WAR_SCORE;
 	p.size = sizeof(p) + sizeof(uint32_t) + sizeof(uint32_t) + sizeof(int32_t);
 
-	TEMP_BUFFER buf;
+	temp_buffer buf;
 	buf.write(&p, sizeof(p));
-	buf.write(&m_TeamData[bIdx].dwID, sizeof(uint32_t));
-	buf.write(&m_TeamData[bIdx ? 0 : 1].dwID, sizeof(uint32_t));
-	buf.write(&m_TeamData[bIdx].iScore, sizeof(int32_t));
+	buf.write(&team_data_[bIdx].id, sizeof(uint32_t));
+	buf.write(&team_data_[bIdx ? 0 : 1].id, sizeof(uint32_t));
+	buf.write(&team_data_[bIdx].score, sizeof(int32_t));
 
 	if (d)
-		d->Packet(buf.read_peek(), buf.size());
+		d->packet(buf.read_peek(), buf.size());
 	else
-		Packet(buf.read_peek(), buf.size());
+		packet(buf.read_peek(), buf.size());
 }
 
-void CWarMap::UpdateScore(uint32_t g1, int score1, uint32_t g2, int score2)
+void war_map::update_score(uint32_t g1, int score1, uint32_t g2, int score2)
 {
 	uint8_t idx;
 
-	if (GetTeamIndex(g1, idx))
+	if (team_index(g1, idx))
 	{
-		if (m_TeamData[idx].iScore != score1)
+		if (team_data_[idx].score != score1)
 		{
-			m_TeamData[idx].iScore = score1;
-			SendScorePacket(idx);
+			team_data_[idx].score = score1;
+			send_score_packet(idx);
 		}
 	}
 
-	if (GetTeamIndex(g2, idx))
+	if (team_index(g2, idx))
 	{
-		if (m_TeamData[idx].iScore != score2)
+		if (team_data_[idx].score != score2)
 		{
-			m_TeamData[idx].iScore = score2;
-			SendScorePacket(idx);
+			team_data_[idx].score = score2;
+			send_score_packet(idx);
 		}
 	}
 
-	CheckScore();
+	check_score();
 }
 
-bool CWarMap::CheckScore()
+bool war_map::check_score()
 {
-	if (m_bEnded)
+	if (ended_)
 		return true;
 
 	// Check only after 30 seconds.
-	if (get_dword_time() - m_dwStartTime < 30000)
+	if (get_dword_time() - start_time_ < 30000)
 		return false;
 
 	// Don't check if the scores are equal.
-	if (m_TeamData[0].iScore == m_TeamData[1].iScore)
+	if (team_data_[0].score == team_data_[1].score)
 		return false;
 
-	int iEndScore = m_WarInfo.iEndScore;
+	int iEndScore = war_info_.end_score;
 
 	if (metin2::config::test_server()) iEndScore /= 10;
 
 	uint32_t dwWinner;
 	uint32_t dwLoser;
 
-	if (m_TeamData[0].iScore >= iEndScore)
+	if (team_data_[0].score >= iEndScore)
 	{
-		dwWinner = m_TeamData[0].dwID;
-		dwLoser = m_TeamData[1].dwID;
+		dwWinner = team_data_[0].id;
+		dwLoser = team_data_[1].id;
 	}
-	else if (m_TeamData[1].iScore >= iEndScore)
+	else if (team_data_[1].score >= iEndScore)
 	{
-		dwWinner = m_TeamData[1].dwID;
-		dwLoser = m_TeamData[0].dwID;
+		dwWinner = team_data_[1].id;
+		dwLoser = team_data_[0].id;
 	}
 	else
 		return false;
 
 	int iRewardGold = 0;
 
-	if (dwWinner == m_TeamData[0].dwID)
-		iRewardGold = GetRewardGold(0);
-	else if (dwWinner == m_TeamData[1].dwID)
-		iRewardGold = GetRewardGold(1);
+	if (dwWinner == team_data_[0].id)
+		iRewardGold = reward_gold(0);
+	else if (dwWinner == team_data_[1].id)
+		iRewardGold = reward_gold(1);
 
 	metin2::log::info( "WarMap::CheckScore end score {:d} guild1 {:d} score guild2 {:d} {:d} score {:d} winner {:d} reward {:d}", 
 			iEndScore,
-			m_TeamData[0].dwID,
-			m_TeamData[0].iScore,
-			m_TeamData[1].dwID,
-			m_TeamData[1].iScore,
+			team_data_[0].id,
+			team_data_[0].score,
+			team_data_[1].id,
+			team_data_[1].score,
 			dwWinner,
 			iRewardGold);
 
-	CGuildManager::instance().RequestWarOver(dwWinner, dwLoser, dwWinner, iRewardGold);
+	guild_manager::instance().request_war_over(dwWinner, dwLoser, dwWinner, iRewardGold);
 	return true;
 }
 
-bool CWarMap::SetEnded()
+bool war_map::set_ended()
 {
-	metin2::log::info( "WarMap::SetEnded {:d}", m_kMapInfo.lMapIndex);
+	metin2::log::info( "WarMap::SetEnded {:d}", map_info_.map_index);
 
-	if (m_pkEndEvent)
+	if (end_event_)
 		return false;
 
-	if (m_TeamData[0].pkChrFlag)
+	if (team_data_[0].chr_flag)
 	{
-		CHARACTER_MANAGER::instance().DestroyCharacter(m_TeamData[0].pkChrFlag);
-		m_TeamData[0].pkChrFlag = nullptr;
+		character_manager::instance().destroy_character(team_data_[0].chr_flag);
+		team_data_[0].chr_flag = nullptr;
 	}
 
-	if (m_TeamData[0].pkChrFlagBase)
+	if (team_data_[0].chr_flag_base)
 	{
-		CHARACTER_MANAGER::instance().DestroyCharacter(m_TeamData[0].pkChrFlagBase);
-		m_TeamData[0].pkChrFlagBase = nullptr;
+		character_manager::instance().destroy_character(team_data_[0].chr_flag_base);
+		team_data_[0].chr_flag_base = nullptr;
 	}
 
-	if (m_TeamData[1].pkChrFlag)
+	if (team_data_[1].chr_flag)
 	{
-		CHARACTER_MANAGER::instance().DestroyCharacter(m_TeamData[1].pkChrFlag);
-		m_TeamData[1].pkChrFlag = nullptr;
+		character_manager::instance().destroy_character(team_data_[1].chr_flag);
+		team_data_[1].chr_flag = nullptr;
 	}
 
-	if (m_TeamData[1].pkChrFlagBase)
+	if (team_data_[1].chr_flag_base)
 	{
-		CHARACTER_MANAGER::instance().DestroyCharacter(m_TeamData[1].pkChrFlagBase);
-		m_TeamData[1].pkChrFlagBase = nullptr;
+		character_manager::instance().destroy_character(team_data_[1].chr_flag_base);
+		team_data_[1].chr_flag_base = nullptr;
 	}
 
-	event_cancel(&m_pkResetFlagEvent);
-	m_bEnded = true;
+	event_cancel(&reset_flag_event_);
+	ended_ = true;
 
-	war_map_info* info = AllocEventInfo<war_map_info>();
+	war_map_event_info* info = alloc_event_info<war_map_event_info>();
 
-	info->pWarMap = this;
-	info->iStep = 0;
-	SetEndEvent(event_create(war_end_event, info, PASSES_PER_SEC(10)));
+	info->war_map = this;
+	info->step = 0;
+	set_end_event(event_create(war_end_event, info, passes_per_sec(10)));
 	return true;
 }
 
-void CWarMap::OnKill(CHARACTER * killer, CHARACTER * ch)
+void war_map::on_kill(character * killer, character * ch)
 {
-	if (m_bEnded)
+	if (ended_)
 		return;
 
 	uint32_t dwKillerGuild = 0;
 	uint32_t dwDeadGuild = 0;
 
-	if (killer->GetGuild())
-		dwKillerGuild = killer->GetGuild()->GetID();
+	if (killer->get_guild())
+		dwKillerGuild = killer->get_guild()->id();
 
-	if (ch->GetGuild())
-		dwDeadGuild = ch->GetGuild()->GetID();
+	if (ch->get_guild())
+		dwDeadGuild = ch->get_guild()->id();
 
 	uint8_t idx;
 
 	metin2::log::info( "WarMap::OnKill {:d} {:d}", dwKillerGuild, dwDeadGuild);
 
-	if (!GetTeamIndex(dwKillerGuild, idx))
+	if (!team_index(dwKillerGuild, idx))
 		return;
 
-	if (!GetTeamIndex(dwDeadGuild, idx))
+	if (!team_index(dwDeadGuild, idx))
 		return;
 
-	switch (m_kMapInfo.bType)
+	switch (map_info_.type)
 	{
 		case WAR_MAP_TYPE_NORMAL:
-			SendGuildWarScore(dwKillerGuild, dwDeadGuild, 1, ch->GetLevel());
+			send_guild_war_score(dwKillerGuild, dwDeadGuild, 1, ch->level());
 			break;
 
 		case WAR_MAP_TYPE_FLAG:
 			{
-				CAffect * pkAff = ch->FindAffect(AFFECT_WAR_FLAG);
+				affect * pkAff = ch->find_affect(AFFECT_WAR_FLAG);
 
 				if (pkAff)
 				{
-					if (GetTeamIndex(pkAff->lApplyValue, idx))
-						AddFlag(idx, ch->GetX(), ch->GetY());
+					if (team_index(pkAff->apply_value, idx))
+						add_flag(idx, ch->x(), ch->y());
 
-					ch->RemoveAffect(AFFECT_WAR_FLAG);
+					ch->remove_affect(AFFECT_WAR_FLAG);
 				}
 			}
 			break;
 
 		default:
-			metin2::log::error("unknown war map type {:d} index {:d}", m_kMapInfo.bType, m_kMapInfo.lMapIndex);
+			metin2::log::error("unknown war map type {:d} index {:d}", map_info_.type, map_info_.map_index);
 			break;
 	}
 }
 
-void CWarMap::AddFlagBase(uint8_t bIdx, uint32_t x, uint32_t y)
+void war_map::add_flag_base(uint8_t bIdx, uint32_t x, uint32_t y)
 {
-	if (m_bEnded)
+	if (ended_)
 		return;
 
 	assert(bIdx < 2);
 
-	TeamData & r = m_TeamData[bIdx];
+	team_data & r = team_data_[bIdx];
 
-	if (r.pkChrFlagBase)
+	if (r.chr_flag_base)
 		return;
 
 	if (x == 0)
 	{
-		x = m_kMapInfo.posStart[bIdx].x;
-		y = m_kMapInfo.posStart[bIdx].y;
+		x = map_info_.pos_start[bIdx].x;
+		y = map_info_.pos_start[bIdx].y;
 	}
 
-	r.pkChrFlagBase = CHARACTER_MANAGER::instance().SpawnMob(warmap::WAR_FLAG_BASE_VNUM, m_kMapInfo.lMapIndex, x, y, 0);
-	metin2::log::info( "WarMap::AddFlagBase {:d} {} id {:d}", bIdx, static_cast<const void *>(r.pkChrFlagBase), r.dwID);
+	r.chr_flag_base = character_manager::instance().spawn_mob(warmap::WAR_FLAG_BASE_VNUM, map_info_.map_index, x, y, 0);
+	metin2::log::info( "WarMap::AddFlagBase {:d} {} id {:d}", bIdx, static_cast<const void *>(r.chr_flag_base), r.id);
 
-	r.pkChrFlagBase->SetPoint(POINT_STAT, r.dwID);
-	r.pkChrFlagBase->SetWarMap(this);
+	r.chr_flag_base->set_point(POINT_STAT, r.id);
+	r.chr_flag_base->set_war_map(this);
 }
 
-void CWarMap::AddFlag(uint8_t bIdx, uint32_t x, uint32_t y)
+void war_map::add_flag(uint8_t bIdx, uint32_t x, uint32_t y)
 {
-	if (m_bEnded)
+	if (ended_)
 		return;
 
 	assert(bIdx < 2);
 
-	TeamData & r = m_TeamData[bIdx];
+	team_data & r = team_data_[bIdx];
 
-	if (r.pkChrFlag)
+	if (r.chr_flag)
 		return;
 
 	if (x == 0)
 	{
-		x = m_kMapInfo.posStart[bIdx].x;
-		y = m_kMapInfo.posStart[bIdx].y;
+		x = map_info_.pos_start[bIdx].x;
+		y = map_info_.pos_start[bIdx].y;
 	}
 
-	r.pkChrFlag = CHARACTER_MANAGER::instance().SpawnMob(bIdx == 0 ? warmap::WAR_FLAG_VNUM0 : warmap::WAR_FLAG_VNUM1, m_kMapInfo.lMapIndex, x, y, 0);
-	metin2::log::info( "WarMap::AddFlag {:d} {} id {:d}", bIdx, static_cast<const void *>(r.pkChrFlag), r.dwID);
+	r.chr_flag = character_manager::instance().spawn_mob(bIdx == 0 ? warmap::WAR_FLAG_VNUM0 : warmap::WAR_FLAG_VNUM1, map_info_.map_index, x, y, 0);
+	metin2::log::info( "WarMap::AddFlag {:d} {} id {:d}", bIdx, static_cast<const void *>(r.chr_flag), r.id);
 
-	r.pkChrFlag->SetPoint(POINT_STAT, r.dwID);
-	r.pkChrFlag->SetWarMap(this);
+	r.chr_flag->set_point(POINT_STAT, r.id);
+	r.chr_flag->set_war_map(this);
 }
 
-void CWarMap::RemoveFlag(uint8_t bIdx)
+void war_map::remove_flag(uint8_t bIdx)
 {
 	assert(bIdx < 2);
 
-	TeamData & r = m_TeamData[bIdx];
+	team_data & r = team_data_[bIdx];
 
-	if (!r.pkChrFlag)
+	if (!r.chr_flag)
 		return;
 
-	metin2::log::info( "WarMap::RemoveFlag {:d} {}", bIdx, static_cast<const void *>(r.pkChrFlag));
+	metin2::log::info( "WarMap::RemoveFlag {:d} {}", bIdx, static_cast<const void *>(r.chr_flag));
 
-	r.pkChrFlag->Dead(nullptr, true);
-	r.pkChrFlag = nullptr;
+	r.chr_flag->dead(nullptr, true);
+	r.chr_flag = nullptr;
 }
 
-bool CWarMap::IsFlagOnBase(uint8_t bIdx)
+bool war_map::is_flag_on_base(uint8_t bIdx)
 {
 	assert(bIdx < 2);
 
-	TeamData & r = m_TeamData[bIdx];
+	team_data & r = team_data_[bIdx];
 
-	if (!r.pkChrFlag)
+	if (!r.chr_flag)
 		return false;
 
-	const PIXEL_POSITION & pos = r.pkChrFlag->GetXYZ();
+	const pixel_position & pos = r.chr_flag->xyz();
 
-	if (pos.x == m_kMapInfo.posStart[bIdx].x && pos.y == m_kMapInfo.posStart[bIdx].y)
+	if (pos.x == map_info_.pos_start[bIdx].x && pos.y == map_info_.pos_start[bIdx].y)
 		return true;
 
 	return false;
@@ -923,7 +923,7 @@ bool CWarMap::IsFlagOnBase(uint8_t bIdx)
 
 EVENTFUNC(war_reset_flag_event)
 {
-	war_map_info* info = dynamic_cast<war_map_info*>( event->info );
+	war_map_event_info* info = dynamic_cast<war_map_event_info*>( event->info );
 
 	if ( info == nullptr )
 	{
@@ -931,176 +931,176 @@ EVENTFUNC(war_reset_flag_event)
 		return 0;
 	}
 
-	CWarMap * pMap = info->pWarMap;
+	war_map * pMap = info->war_map;
 
-	pMap->AddFlag(0);
-	pMap->AddFlag(1);
+	pMap->add_flag(0);
+	pMap->add_flag(1);
 
-	pMap->SetResetFlagEvent(nullptr);
+	pMap->set_reset_flag_event(nullptr);
 	return 0;
 }
 
-struct FRemoveFlagAffect
+struct f_remove_flag_affect
 {
-	void operator() (CHARACTER * ch)
+	void operator() (character * ch)
 	{
-		if (ch->FindAffect(AFFECT_WAR_FLAG))
-			ch->RemoveAffect(AFFECT_WAR_FLAG);
+		if (ch->find_affect(AFFECT_WAR_FLAG))
+			ch->remove_affect(AFFECT_WAR_FLAG);
 	}
 };
 
-void CWarMap::ResetFlag()
+void war_map::reset_flag()
 {
-	if (m_kMapInfo.bType != WAR_MAP_TYPE_FLAG)
+	if (map_info_.type != WAR_MAP_TYPE_FLAG)
 		return;
 
-	if (m_pkResetFlagEvent)
+	if (reset_flag_event_)
 		return;
 
-	if (m_bEnded)
+	if (ended_)
 		return;
 
-	FRemoveFlagAffect f;
-	std::for_each(m_set_pkChr.begin(), m_set_pkChr.end(), f);
+	f_remove_flag_affect f;
+	std::for_each(set_pk_chr_.begin(), set_pk_chr_.end(), f);
 
-	RemoveFlag(0);
-	RemoveFlag(1);
+	remove_flag(0);
+	remove_flag(1);
 
-	war_map_info* info = AllocEventInfo<war_map_info>();
+	war_map_event_info* info = alloc_event_info<war_map_event_info>();
 
-	info->pWarMap = this;
-	info->iStep = 0;
-	SetResetFlagEvent(event_create(war_reset_flag_event, info, PASSES_PER_SEC(10)));
+	info->war_map = this;
+	info->step = 0;
+	set_reset_flag_event(event_create(war_reset_flag_event, info, passes_per_sec(10)));
 }
 
 /////////////////////////////////////////////////////////////////////////////////
 // WarMapManager
 /////////////////////////////////////////////////////////////////////////////////
-CWarMapManager::CWarMapManager()
+war_map_manager::war_map_manager()
 {
 }
 
-CWarMapManager::~CWarMapManager()
+war_map_manager::~war_map_manager()
 {
 }
 
-bool CWarMapManager::LoadWarMapInfo(const char * c_pszFileName)
+bool war_map_manager::load_war_map_info(const char * c_pszFileName)
 {
-	auto k = std::make_unique<TWarMapInfo>();
-	k->bType = WAR_MAP_TYPE_NORMAL;
+	auto k = std::make_unique<war_map_info>();
+	k->type = WAR_MAP_TYPE_NORMAL;
 
-	k->lMapIndex = 110;
-	k->posStart[0].x = 48 * 100 + 32000;
-	k->posStart[0].y = 52 * 100 + 0;
-	k->posStart[1].x = 183 * 100 + 32000;
-	k->posStart[1].y = 206 * 100 + 0;
-	k->posStart[2].x = 141 * 100 + 32000;
-	k->posStart[2].y = 117 * 100 + 0;
+	k->map_index = 110;
+	k->pos_start[0].x = 48 * 100 + 32000;
+	k->pos_start[0].y = 52 * 100 + 0;
+	k->pos_start[1].x = 183 * 100 + 32000;
+	k->pos_start[1].y = 206 * 100 + 0;
+	k->pos_start[2].x = 141 * 100 + 32000;
+	k->pos_start[2].y = 117 * 100 + 0;
 
-	m_map_kWarMapInfo.emplace(k->lMapIndex, std::move(k));
+	map_k_war_map_info_.emplace(k->map_index, std::move(k));
 
-	k = std::make_unique<TWarMapInfo>();
-	k->bType = WAR_MAP_TYPE_FLAG;
+	k = std::make_unique<war_map_info>();
+	k->type = WAR_MAP_TYPE_FLAG;
 
-	k->lMapIndex = 111;
-	k->posStart[0].x = 68 * 100 + 57600;
-	k->posStart[0].y = 69 * 100 + 0;
-	k->posStart[1].x = 171 * 100 + 57600;
-	k->posStart[1].y = 182 * 100 + 0; 
-	k->posStart[2].x = 122 * 100 + 57600;
-	k->posStart[2].y = 131 * 100 + 0;
+	k->map_index = 111;
+	k->pos_start[0].x = 68 * 100 + 57600;
+	k->pos_start[0].y = 69 * 100 + 0;
+	k->pos_start[1].x = 171 * 100 + 57600;
+	k->pos_start[1].y = 182 * 100 + 0; 
+	k->pos_start[2].x = 122 * 100 + 57600;
+	k->pos_start[2].y = 131 * 100 + 0;
 
-	m_map_kWarMapInfo.emplace(k->lMapIndex, std::move(k));
+	map_k_war_map_info_.emplace(k->map_index, std::move(k));
 	return true;
 }
 
-bool CWarMapManager::IsWarMap(int32_t lMapIndex)
+bool war_map_manager::is_war_map(int32_t lMapIndex)
 {
-	return GetWarMapInfo(lMapIndex) ? true : false;
+	return get_war_map_info(lMapIndex) ? true : false;
 }
 
-bool CWarMapManager::GetStartPosition(int32_t lMapIndex, uint8_t bIdx, PIXEL_POSITION & pos)
+bool war_map_manager::start_position(int32_t lMapIndex, uint8_t bIdx, pixel_position & pos)
 {
 	assert(bIdx < 3);
 
-	TWarMapInfo * pi = GetWarMapInfo(lMapIndex);
+	war_map_info * pi = get_war_map_info(lMapIndex);
 
 	if (!pi)
 	{
-		metin2::log::info( "GetStartPosition FAILED [{:d}] WarMapInfoSize({:d})", lMapIndex, m_map_kWarMapInfo.size());
+		metin2::log::info( "GetStartPosition FAILED [{:d}] WarMapInfoSize({:d})", lMapIndex, map_k_war_map_info_.size());
 
-		decltype(m_map_kWarMapInfo.begin()) it;
-		for (it	= m_map_kWarMapInfo.begin(); it != m_map_kWarMapInfo.end(); ++it)
+		decltype(map_k_war_map_info_.begin()) it;
+		for (it	= map_k_war_map_info_.begin(); it != map_k_war_map_info_.end(); ++it)
 		{
-			PIXEL_POSITION& cur=it->second->posStart[bIdx];
+			pixel_position& cur=it->second->pos_start[bIdx];
 			metin2::log::info( "WarMap[{:d}]=Pos({:d}, {:d})", it->first, cur.x, cur.y);
 		}
 		return false;
 	}
 
-	pos = pi->posStart[bIdx];
+	pos = pi->pos_start[bIdx];
 	return true;
 }
 
-int32_t CWarMapManager::CreateWarMap(const TGuildWarInfo& guildWarInfo, uint32_t dwGuildID1, uint32_t dwGuildID2)
+int32_t war_map_manager::create_war_map(const guild_war_info& guildWarInfo, uint32_t dwGuildID1, uint32_t dwGuildID2)
 {
-	TWarMapInfo * pkInfo = GetWarMapInfo(guildWarInfo.lMapIndex);
+	war_map_info * pkInfo = get_war_map_info(guildWarInfo.map_index);
 	if (!pkInfo)
 	{
-		metin2::log::error("GuildWar.CreateWarMap.NOT_FOUND_MAPINFO[{:d}]", guildWarInfo.lMapIndex);
+		metin2::log::error("GuildWar.CreateWarMap.NOT_FOUND_MAPINFO[{:d}]", guildWarInfo.map_index);
 		return 0;
 	}
 
-	uint32_t lMapIndex = SECTREE_MANAGER::instance().CreatePrivateMap(guildWarInfo.lMapIndex);
+	uint32_t lMapIndex = sectree_manager::instance().create_private_map(guildWarInfo.map_index);
 
 	if (lMapIndex)
 	{
-		m_mapWarMap.insert(std::make_pair(lMapIndex, new CWarMap(lMapIndex, guildWarInfo, pkInfo, dwGuildID1, dwGuildID2)));
+		war_map_.insert(std::make_pair(lMapIndex, new war_map(lMapIndex, guildWarInfo, pkInfo, dwGuildID1, dwGuildID2)));
 	}
 
 	return lMapIndex;
 }
 
-TWarMapInfo * CWarMapManager::GetWarMapInfo(int32_t lMapIndex)
+war_map_info * war_map_manager::get_war_map_info(int32_t lMapIndex)
 {
 	if (lMapIndex >= 10000)
 		lMapIndex /= 10000;
 
-	auto it = m_map_kWarMapInfo.find(lMapIndex);
+	auto it = map_k_war_map_info_.find(lMapIndex);
 
-	if (m_map_kWarMapInfo.end() == it)
+	if (map_k_war_map_info_.end() == it)
 		return nullptr;
 
 	return it->second.get();
 }
 
-void CWarMapManager::DestroyWarMap(CWarMap* pMap)
+void war_map_manager::destroy_war_map(war_map* pMap)
 {
-	int32_t mapIdx = pMap->GetMapIndex();
+	int32_t mapIdx = pMap->map_index();
 
 	metin2::log::info( "WarMap::DestroyWarMap : {:d}", mapIdx);
 
-	m_mapWarMap.erase(pMap->GetMapIndex());
+	war_map_.erase(pMap->map_index());
 	delete pMap;
 
-	SECTREE_MANAGER::instance().DestroyPrivateMap(mapIdx);
+	sectree_manager::instance().destroy_private_map(mapIdx);
 }
 
-CWarMap * CWarMapManager::Find(int32_t lMapIndex)
+war_map * war_map_manager::find(int32_t lMapIndex)
 {
-	auto it = m_mapWarMap.find(lMapIndex);
+	auto it = war_map_.find(lMapIndex);
 
-	if (it == m_mapWarMap.end())
+	if (it == war_map_.end())
 		return nullptr;
 
 	return it->second;
 }
 
-void CWarMapManager::OnShutdown()
+void war_map_manager::on_shutdown()
 {
-	auto it = m_mapWarMap.begin();
+	auto it = war_map_.begin();
 
-	while (it != m_mapWarMap.end())
-		(it++)->second->Draw();
+	while (it != war_map_.end())
+		(it++)->second->draw();
 }
 }

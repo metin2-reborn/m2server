@@ -14,16 +14,16 @@
 
 namespace metin2::game::inline items {
 
-void COver9RefineManager::enableOver9Refine(uint32_t dwVnumFrom, uint32_t dwVnumTo)
+void over9_refine_manager::enable_over9_refine(uint32_t dwVnumFrom, uint32_t dwVnumTo)
 {
-	m_mapItem.insert(std::make_pair(dwVnumFrom, dwVnumTo));
+	item_.insert(std::make_pair(dwVnumFrom, dwVnumTo));
 }
 
-int COver9RefineManager::canOver9Refine(uint32_t dwVnum)
+int over9_refine_manager::can_over9_refine(uint32_t dwVnum)
 {
-	OVER9ITEM_MAP::iterator iter = m_mapItem.find(dwVnum);
+	ove_r9_item_map::iterator iter = item_.find(dwVnum);
 
-	if (iter != m_mapItem.end())
+	if (iter != item_.end())
 		return 1;
 
 	if (dwVnum % 10 == 9)
@@ -31,85 +31,85 @@ int COver9RefineManager::canOver9Refine(uint32_t dwVnum)
 
 	dwVnum -= dwVnum % 10;
 
-	for (iter = m_mapItem.begin(); iter != m_mapItem.end(); ++iter)
+	for (iter = item_.begin(); iter != item_.end(); ++iter)
 		if (iter->second == dwVnum)
 			return 2;
 
 	return 0;
 }
 
-bool COver9RefineManager::Change9ToOver9(CHARACTER * pChar, CItem * item)
+bool over9_refine_manager::change9_to_over9(character * pChar, item * item)
 {
-	OVER9ITEM_MAP::iterator iter = m_mapItem.find(item->GetVnum());
+	ove_r9_item_map::iterator iter = item_.find(item->vnum());
 
-	if (iter == m_mapItem.end())
+	if (iter == item_.end())
 		return false;
 
 	uint32_t dwVnum = iter->second;
 
-	CItem * over9 = ITEM_MANAGER::instance().CreateItem(dwVnum, 1);
+	game::items::item * over9 = item_manager::instance().create_item(dwVnum, 1);
 
 	if (over9 == nullptr)
 		return false;
 
-	item->CopySocketTo(over9);
-	item->CopyAttributeTo(over9);
+	item->copy_socket_to(over9);
+	item->copy_attribute_to(over9);
 
-	int iEmptyCell = pChar->GetEmptyInventory(over9->GetSize());
+	int iEmptyCell = pChar->empty_inventory(over9->size());
 
 	if (iEmptyCell == -1)
 		return false;
 
-	item->RemoveFromCharacter();
+	item->remove_from_character();
 
-	over9->AddToCharacter(pChar, TItemPos(INVENTORY, iEmptyCell));
+	over9->add_to_character(pChar, item_pos(INVENTORY, iEmptyCell));
 
 	char szBuf[256];
-	snprintf(szBuf, sizeof(szBuf), "SUCCESS %u %s %u", over9->GetID(), over9->GetName(), over9->GetOriginalVnum());
-	LogManager::instance().ItemLog(pChar, item, "REFINE OVER9", szBuf);
+	snprintf(szBuf, sizeof(szBuf), "SUCCESS %u %s %u", over9->id(), over9->name(), over9->original_vnum());
+	log_manager::instance().item_log(pChar, item, "REFINE OVER9", szBuf);
 	return true;
 }
 
-bool COver9RefineManager::Over9Refine(CHARACTER * pChar, CItem * item)
+bool over9_refine_manager::over9_refine(character * pChar, item * item)
 {
-	uint32_t dwVnum = item->GetRefinedVnum();
+	uint32_t dwVnum = item->refined_vnum();
 
 	if (dwVnum == 0)
 		return false;
 
-	CItem * over9 = ITEM_MANAGER::instance().CreateItem(dwVnum, 1);
+	game::items::item * over9 = item_manager::instance().create_item(dwVnum, 1);
 
 	if (over9 == nullptr)
 		return false;
 
-	item->CopySocketTo(over9);
-	item->CopyAttributeTo(over9);
+	item->copy_socket_to(over9);
+	item->copy_attribute_to(over9);
 
-	int iEmptyCell = pChar->GetEmptyInventory(over9->GetSize());
+	int iEmptyCell = pChar->empty_inventory(over9->size());
 
 	if (iEmptyCell == -1)
 		return false;
 
-	item->RemoveFromCharacter();
+	item->remove_from_character();
 
-	over9->AddToCharacter(pChar, TItemPos(INVENTORY, iEmptyCell));
+	over9->add_to_character(pChar, item_pos(INVENTORY, iEmptyCell));
 
 	char szBuf[256];
-	snprintf(szBuf, sizeof(szBuf), "SUCCESS %u %s %u", over9->GetID(), over9->GetName(), over9->GetOriginalVnum());
-	LogManager::instance().ItemLog(pChar, item, "REFINE OVER9", szBuf);
+	snprintf(szBuf, sizeof(szBuf), "SUCCESS %u %s %u", over9->id(), over9->name(), over9->original_vnum());
+	log_manager::instance().item_log(pChar, item, "REFINE OVER9", szBuf);
 	return true;
 }
 
-uint32_t COver9RefineManager::GetMaterialVnum(uint32_t baseVnum)
+uint32_t over9_refine_manager::material_vnum(uint32_t baseVnum)
 {
-	OVER9ITEM_MAP::iterator iter = m_mapItem.find(baseVnum);
+	ove_r9_item_map::iterator iter = item_.find(baseVnum);
 
-	if (iter != m_mapItem.end())
+	if (iter != item_.end())
 		return (baseVnum - (baseVnum % 10));
 
 	baseVnum -= baseVnum % 10;
 
-	for (iter = m_mapItem.begin(); iter != m_mapItem.end(); ++iter)
+	for (iter = item_.begin(); iter != item_.end(); ++iter)
 		if (iter->second == baseVnum)
 			return (iter->first - (iter->first % 10));
 

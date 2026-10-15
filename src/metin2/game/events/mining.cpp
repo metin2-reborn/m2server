@@ -30,14 +30,14 @@ namespace mining
 		ORE_COUNT_FOR_REFINE = 100,
 	};
 
-	struct SInfo
+	struct mining_info
 	{
-		uint32_t dwLoadVnum;
-		uint32_t dwRawOreVnum;
-		uint32_t dwRefineVnum;
+		uint32_t load_vnum;
+		uint32_t raw_ore_vnum;
+		uint32_t refine_vnum;
 	};
 
-	SInfo info[MAX_ORE] =
+	mining_info info[MAX_ORE] =
 	{
 		{ 20047, 50601, 50621 },
 		{ 20048, 50602, 50622 },
@@ -72,12 +72,12 @@ namespace mining
 		{  1, 81, 90 },
 	};
 
-	int PickGradeAddPct[10] =
+	int pick_grade_add_pct[10] =
 	{
 		3, 5, 8, 11, 15, 20, 26, 32, 40, 50
 	};
 
-	int SkillLevelAddPct[SKILL_MAX_LEVEL + 1] =
+	int skill_level_add_pct[SKILL_MAX_LEVEL + 1] =
 	{
 		0,
 		1, 1, 1, 1,		//  1 - 4
@@ -93,27 +93,27 @@ namespace mining
 		11,				// 40
 	};
 
-	uint32_t GetRawOreFromLoad(uint32_t dwLoadVnum)
+	uint32_t get_raw_ore_from_load(uint32_t dwLoadVnum)
 	{
 		for (int i = 0; i < MAX_ORE; ++i)
 		{
-			if (info[i].dwLoadVnum == dwLoadVnum)
-				return info[i].dwRawOreVnum;
+			if (info[i].load_vnum == dwLoadVnum)
+				return info[i].raw_ore_vnum;
 		}
 		return 0;
 	}
 
-	uint32_t GetRefineFromRawOre(uint32_t dwRawOreVnum)
+	uint32_t get_refine_from_raw_ore(uint32_t dwRawOreVnum)
 	{
 		for (int i = 0; i < MAX_ORE; ++i)
 		{
-			if (info[i].dwRawOreVnum == dwRawOreVnum)
-				return info[i].dwRefineVnum;
+			if (info[i].raw_ore_vnum == dwRawOreVnum)
+				return info[i].refine_vnum;
 		}
 		return 0;
 	}
 
-	int GetFractionCount()
+	int get_fraction_count()
 	{
 		int r = number(1, 100);
 
@@ -128,11 +128,11 @@ namespace mining
 		return 0; 
 	}
 
-	void OreDrop(CHARACTER * ch, uint32_t dwLoadVnum)
+	void ore_drop(character * ch, uint32_t dwLoadVnum)
 	{
-		uint32_t dwRawOreVnum = GetRawOreFromLoad(dwLoadVnum);
+		uint32_t dwRawOreVnum = get_raw_ore_from_load(dwLoadVnum);
 
-		int iFractionCount = GetFractionCount();
+		int iFractionCount = get_fraction_count();
 
 		if (iFractionCount == 0)
 		{
@@ -140,7 +140,7 @@ namespace mining
 			return;
 		}
 
-		CItem * item = ITEM_MANAGER::instance().CreateItem(dwRawOreVnum, GetFractionCount());
+		item * item = item_manager::instance().create_item(dwRawOreVnum, get_fraction_count());
 
 		if (!item)
 		{
@@ -148,28 +148,28 @@ namespace mining
 			return;
 		}
 
-		PIXEL_POSITION pos;
-		pos.x = ch->GetX() + number(-200, 200);
-		pos.y = ch->GetY() + number(-200, 200);
+		pixel_position pos;
+		pos.x = ch->x() + number(-200, 200);
+		pos.y = ch->y() + number(-200, 200);
 
-		item->AddToGround(ch->GetMapIndex(), pos);
-		item->StartDestroyEvent();
-		item->SetOwnership(ch, 15);
+		item->add_to_ground(ch->map_index(), pos);
+		item->start_destroy_event();
+		item->set_ownership(ch, 15);
 
-		DBManager::instance().SendMoneyLog(MONEY_LOG_DROP, item->GetVnum(), item->GetCount());
+		db_manager::instance().send_money_log(MONEY_LOG_DROP, item->vnum(), item->count());
 	}
 
-	int GetOrePct(CHARACTER * ch)
+	int get_ore_pct(character * ch)
 	{
 		int defaultPct = 20;
-		int iSkillLevel = ch->GetSkillLevel(SKILL_MINING);
+		int iSkillLevel = ch->skill_level(SKILL_MINING);
 
-		CItem * pick = ch->GetWear(WEAR_WEAPON);
+		item * pick = ch->wear(WEAR_WEAPON);
 
-		if (!pick || pick->GetType() != ITEM_PICK)
+		if (!pick || pick->type() != ITEM_PICK)
 			return 0;
 
-		return defaultPct + SkillLevelAddPct[std::clamp(iSkillLevel, 0, 40)] + PickGradeAddPct[std::clamp(pick->GetRefineLevel(), 0, 9)];
+		return defaultPct + skill_level_add_pct[std::clamp(iSkillLevel, 0, 40)] + pick_grade_add_pct[std::clamp(pick->refine_level(), 0, 9)];
 	}
 
 	EVENTINFO(mining_event_info)
@@ -185,90 +185,90 @@ namespace mining
 	};
 
 	// REFINE_PICK
-	bool Pick_Check(CItem& item)
+	bool pick_check(item& item)
 	{
-		if (item.GetType() != ITEM_PICK)    
+		if (item.type() != ITEM_PICK)    
 			return false;
 
 		return true;
 	}
 
-	int Pick_GetMaxExp(CItem& pick)
+	int pick_get_max_exp(item& pick)
 	{
-		return pick.GetValue(2);
+		return pick.value(2);
 	}
 
-	int Pick_GetCurExp(CItem& pick)
+	int pick_get_cur_exp(item& pick)
 	{
-		return pick.GetSocket(0);
+		return pick.get_socket(0);
 	}
 
-	void Pick_IncCurExp(CItem& pick)
+	void pick_inc_cur_exp(item& pick)
 	{
-		int cur = Pick_GetCurExp(pick);
-		pick.SetSocket(0, cur + 1);
+		int cur = pick_get_cur_exp(pick);
+		pick.set_socket(0, cur + 1);
 	}
 
-	void Pick_MaxCurExp(CItem& pick)
+	void pick_max_cur_exp(item& pick)
 	{
-		int max = Pick_GetMaxExp(pick);
-		pick.SetSocket(0, max);
+		int max = pick_get_max_exp(pick);
+		pick.set_socket(0, max);
 	}
 
-	bool Pick_Refinable(CItem& item)
+	bool pick_refinable(item& item)
 	{
-		if (Pick_GetCurExp(item) < Pick_GetMaxExp(item))
+		if (pick_get_cur_exp(item) < pick_get_max_exp(item))
 			return false;
 
 		return true;
 	}
 
-	bool Pick_IsPracticeSuccess(CItem& pick)
+	bool pick_is_practice_success(item& pick)
 	{
-		return (number(1,pick.GetValue(1))==1);
+		return (number(1,pick.value(1))==1);
 	}
 	
-	bool Pick_IsRefineSuccess(CItem& pick)
+	bool pick_is_refine_success(item& pick)
 	{
-		return (number(1,100) <= pick.GetValue(3));
+		return (number(1,100) <= pick.value(3));
 	}
 
-	int RealRefinePick(CHARACTER * ch, CItem * item)
+	int real_refine_pick(character * ch, item * item)
 	{
 		if (!ch || !item)
 			return 2;
 
-		LogManager& rkLogMgr = LogManager::instance();
-		ITEM_MANAGER& rkItemMgr = ITEM_MANAGER::instance();
+		log_manager& rkLogMgr = log_manager::instance();
+		item_manager& rkItemMgr = item_manager::instance();
 
-		if (!Pick_Check(*item))
+		if (!pick_check(*item))
 		{
-			metin2::log::error("REFINE_PICK_HACK pid({:d}) item({}:{:d}) type({:d})", ch->GetPlayerID(), item->GetName(), item->GetID(), item->GetType());
-			rkLogMgr.RefineLog(ch->GetPlayerID(), item->GetName(), item->GetID(), -1, 1, "PICK_HACK");
+			metin2::log::error("REFINE_PICK_HACK pid({:d}) item({}:{:d}) type({:d})", ch->player_id(), item->name(), item->id(), item->type());
+			rkLogMgr.refine_log(ch->player_id(), item->name(), item->id(), -1, 1, "PICK_HACK");
 			return 2;
 		}
 
-		CItem& rkOldPick = *item;
+		game::items::item& rkOldPick = *item;
 
-		if (!Pick_Refinable(rkOldPick))
+		if (!pick_refinable(rkOldPick))
 			return 2;
 
-		int iAdv = rkOldPick.GetValue(0) / 10;
+		int iAdv = rkOldPick.value(0) / 10;
 
-		if (rkOldPick.IsEquipped() == true)
+		if (rkOldPick.is_equipped() == true)
 			return 2;
 
-		if (Pick_IsRefineSuccess(rkOldPick))
+		if (pick_is_refine_success(rkOldPick))
 		{
-			rkLogMgr.RefineLog(ch->GetPlayerID(), rkOldPick.GetName(), rkOldPick.GetID(), iAdv, 1, "PICK");
+			rkLogMgr.refine_log(ch->player_id(), rkOldPick.name(), rkOldPick.id(), iAdv, 1, "PICK");
 
-			CItem * pkNewPick = ITEM_MANAGER::instance().CreateItem(rkOldPick.GetRefinedVnum(), 1);
+			game::items::item * pkNewPick = item_manager::instance().create_item(rkOldPick.refined_vnum(), 1);
 			if (pkNewPick)
 			{
-				uint8_t bCell = rkOldPick.GetCell();
-				rkItemMgr.RemoveItem(item, "REMOVE (REFINE PICK)");
-				pkNewPick->AddToCharacter(ch, TItemPos(INVENTORY, bCell));
-				LogManager::instance().ItemLog(ch, pkNewPick, "REFINE PICK SUCCESS", pkNewPick->GetName());
+				uint8_t bCell = rkOldPick.cell();
+				rkItemMgr.remove_item(item, "REMOVE (REFINE PICK)");
+				pkNewPick->add_to_character(ch, item_pos(INVENTORY, bCell));
+				log_manager::instance().item_log(ch, pkNewPick, "REFINE PICK SUCCESS", pkNewPick->name());
 				return 1;
 			}
 
@@ -276,16 +276,16 @@ namespace mining
 		}
 		else
 		{
-			rkLogMgr.RefineLog(ch->GetPlayerID(), rkOldPick.GetName(), rkOldPick.GetID(), iAdv, 0, "PICK");
+			rkLogMgr.refine_log(ch->player_id(), rkOldPick.name(), rkOldPick.id(), iAdv, 0, "PICK");
 
-			CItem * pkNewPick = ITEM_MANAGER::instance().CreateItem(rkOldPick.GetValue(4), 1);
+			game::items::item * pkNewPick = item_manager::instance().create_item(rkOldPick.value(4), 1);
 
 			if (pkNewPick)
 			{
-				uint8_t bCell = rkOldPick.GetCell();
-				rkItemMgr.RemoveItem(item, "REMOVE (REFINE PICK)");
-				pkNewPick->AddToCharacter(ch, TItemPos(INVENTORY, bCell));
-				rkLogMgr.ItemLog(ch, pkNewPick, "REFINE PICK FAIL", pkNewPick->GetName());
+				uint8_t bCell = rkOldPick.cell();
+				rkItemMgr.remove_item(item, "REMOVE (REFINE PICK)");
+				pkNewPick->add_to_character(ch, item_pos(INVENTORY, bCell));
+				rkLogMgr.item_log(ch, pkNewPick, "REFINE PICK FAIL", pkNewPick->name());
 				return 0;
 			}
 
@@ -293,51 +293,51 @@ namespace mining
 		}
 	}
 
-	void CHEAT_MAX_PICK(CHARACTER * ch, CItem * item)
+	void cheat_max_pick(character * ch, item * item)
 	{
 		if (!item)
 			return;
 
-		if (!Pick_Check(*item))
+		if (!pick_check(*item))
 			return;
 
-		CItem& pick = *item;
-		Pick_MaxCurExp(pick);
+		game::items::item& pick = *item;
+		pick_max_cur_exp(pick);
 
-		ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("곡괭이 수련도가 최대(%d)가 되었습니다."), Pick_GetCurExp(pick));
+		ch->chat_packet(CHAT_TYPE_INFO, lc_text("곡괭이 수련도가 최대(%d)가 되었습니다."), pick_get_cur_exp(pick));
 	}
 
-	void PracticePick(CHARACTER * ch, CItem * item)
+	void practice_pick(character * ch, item * item)
 	{
 		if (!item)
 			return;
 
-		if (!Pick_Check(*item))
+		if (!pick_check(*item))
 			return;
 
-		CItem& pick = *item;
-		if (pick.GetRefinedVnum()<=0)
+		game::items::item& pick = *item;
+		if (pick.refined_vnum()<=0)
 			return;
 
-		if (Pick_IsPracticeSuccess(pick))
+		if (pick_is_practice_success(pick))
 		{
 
-			if (Pick_Refinable(pick))
+			if (pick_refinable(pick))
 			{
-				ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("곡괭이가 최대 수련도에 도달하였습니다."));
-				ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("나무꾼를 통해 다음 레벨의 곡괭이로 업그레이드 할 수 있습니다."));
+				ch->chat_packet(CHAT_TYPE_INFO, lc_text("곡괭이가 최대 수련도에 도달하였습니다."));
+				ch->chat_packet(CHAT_TYPE_INFO, lc_text("나무꾼를 통해 다음 레벨의 곡괭이로 업그레이드 할 수 있습니다."));
 			}
 			else
 			{
-				Pick_IncCurExp(pick);	
+				pick_inc_cur_exp(pick);	
 
-				ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("곡괭이의 수련도가 증가하였습니다! (%d/%d)"),
-						Pick_GetCurExp(pick), Pick_GetMaxExp(pick));
+				ch->chat_packet(CHAT_TYPE_INFO, lc_text("곡괭이의 수련도가 증가하였습니다! (%d/%d)"),
+						pick_get_cur_exp(pick), pick_get_max_exp(pick));
 
-				if (Pick_Refinable(pick))
+				if (pick_refinable(pick))
 				{
-					ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("곡괭이가 최대 수련도에 도달하였습니다."));
-					ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("나무꾼를 통해 다음 레벨의 곡괭이로 업그레이드 할 수 있습니다."));
+					ch->chat_packet(CHAT_TYPE_INFO, lc_text("곡괭이가 최대 수련도에 도달하였습니다."));
+					ch->chat_packet(CHAT_TYPE_INFO, lc_text("나무꾼를 통해 다음 레벨의 곡괭이로 업그레이드 할 수 있습니다."));
 				}
 			}
 		}
@@ -354,104 +354,104 @@ namespace mining
 			return 0;
 		}
 
-		CHARACTER * ch = CHARACTER_MANAGER::instance().FindByPID(info->pid);
-		CHARACTER * load = CHARACTER_MANAGER::instance().Find(info->vid_load);
+		character * ch = character_manager::instance().find_by_pid(info->pid);
+		character * load = character_manager::instance().find(info->vid_load);
 
 		if (!ch)
 			return 0;
 
 		ch->mining_take();
 
-		CItem * pick = ch->GetWear(WEAR_WEAPON);
+		item * pick = ch->wear(WEAR_WEAPON);
 
 		// REFINE_PICK
-		if (!pick || !Pick_Check(*pick))
+		if (!pick || !pick_check(*pick))
 		{
-			ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("곡괭이를 들고 있지 않아서 캘 수 없습니다."));
+			ch->chat_packet(CHAT_TYPE_INFO, lc_text("곡괭이를 들고 있지 않아서 캘 수 없습니다."));
 			return 0;
 		}
 		// END_OF_REFINE_PICK
 
 		if (!load)
 		{
-			ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("더이상 캐낼 수 없습니다."));
+			ch->chat_packet(CHAT_TYPE_INFO, lc_text("더이상 캐낼 수 없습니다."));
 			return 0;
 		}
 
-		int iPct = GetOrePct(ch);
+		int iPct = get_ore_pct(ch);
 
 		if (number(1, 100) <= iPct)
 		{
-			OreDrop(ch, load->GetRaceNum());
-			ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("채광에 성공하였습니다."));
+			ore_drop(ch, load->race_num());
+			ch->chat_packet(CHAT_TYPE_INFO, lc_text("채광에 성공하였습니다."));
 		}
 		else
 		{
-			ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("채광에 실패하였습니다."));
+			ch->chat_packet(CHAT_TYPE_INFO, lc_text("채광에 실패하였습니다."));
 		}
 
-		PracticePick(ch, pick);
+		practice_pick(ch, pick);
 
 		return 0;
 	}
 
-	LPEVENT CreateMiningEvent(CHARACTER * ch, CHARACTER * load, int count)
+	event_ptr create_mining_event(character * ch, character * load, int count)
 	{
-		mining_event_info* info = AllocEventInfo<mining_event_info>();
-		info->pid = ch->GetPlayerID();
-		info->vid_load = load->GetVID();
+		mining_event_info* info = alloc_event_info<mining_event_info>();
+		info->pid = ch->player_id();
+		info->vid_load = load->get_vid();
 
-		return event_create(mining_event, info, PASSES_PER_SEC(2 * count));
+		return event_create(mining_event, info, passes_per_sec(2 * count));
 	}
 
-	bool OreRefine(CHARACTER * ch, CHARACTER * npc, CItem * item, int cost, int pct, CItem * metinstone_item)
+	bool ore_refine(character * ch, character * npc, item * item, int cost, int pct, game::items::item * metinstone_item)
 	{
 		if (!ch || !npc)
 			return false;
 
-		if (item->GetOwner() != ch)
+		if (item->owner() != ch)
 		{
 			metin2::log::error("wrong owner");
 			return false;
 		}
 
-		if (item->GetCount() < ORE_COUNT_FOR_REFINE)
+		if (item->count() < ORE_COUNT_FOR_REFINE)
 		{
 			metin2::log::error("not enough count");
 			return false;
 		}
 
-		uint32_t dwRefinedVnum = GetRefineFromRawOre(item->GetVnum());
+		uint32_t dwRefinedVnum = get_refine_from_raw_ore(item->vnum());
 
 		if (dwRefinedVnum == 0)
 			return false;
 
-		ch->SetRefineNPC(npc);
-		item->SetCount(item->GetCount() - ORE_COUNT_FOR_REFINE);
-		int iCost = ch->ComputeRefineFee(cost, 1);
+		ch->set_refine_npc(npc);
+		item->set_count(item->count() - ORE_COUNT_FOR_REFINE);
+		int iCost = ch->compute_refine_fee(cost, 1);
 
-		if (ch->GetGold() < iCost)
+		if (ch->gold() < iCost)
 			return false;
 
-		ch->PayRefineFee(iCost);
+		ch->pay_refine_fee(iCost);
 
 		if (metinstone_item)
-			ITEM_MANAGER::instance().RemoveItem(metinstone_item, "REMOVE (MELT)");
+			item_manager::instance().remove_item(metinstone_item, "REMOVE (MELT)");
 
 		if (number(1, 100) <= pct)
 		{
-			ch->AutoGiveItem(dwRefinedVnum, 1);
+			ch->auto_give_item(dwRefinedVnum, 1);
 			return true;
 		}
 
 		return false;
 	}
 
-	bool IsVeinOfOre (uint32_t vnum)
+	bool is_vein_of_ore (uint32_t vnum)
 	{
 		for (int i = 0; i < MAX_ORE; i++)
 		{
-			if (info[i].dwLoadVnum == vnum)
+			if (info[i].load_vnum == vnum)
 				return true;
 		}
 		return false;

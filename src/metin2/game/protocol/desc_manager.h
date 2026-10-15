@@ -14,81 +14,81 @@
 
 namespace metin2::game::inline protocol {
 
-class CLoginKey;
+class login_key;
 
-class DESC_MANAGER : public singleton<DESC_MANAGER>
+class desc_manager : public singleton<desc_manager>
 {
 	public:
-		typedef std::unordered_set<DESC *>			DESC_SET;
-		typedef std::unordered_set<CLIENT_DESC *>	CLIENT_DESC_SET;
-		typedef std::map<int, DESC *>					DESC_HANDLE_MAP;
-		typedef std::map<uint32_t, DESC *>					DESC_HANDSHAKE_MAP;
-		typedef std::unordered_map<std::string, DESC *>	DESC_LOGINNAME_MAP;
-		typedef std::map<uint32_t, uint32_t>					DESC_HANDLE_RANDOM_KEY_MAP;
+		typedef std::unordered_set<desc *>			desc_set;
+		typedef std::unordered_set<client_desc *>	client_desc_set;
+		typedef std::map<int, desc *>					desc_handle_map;
+		typedef std::map<uint32_t, desc *>					desc_handshake_map;
+		typedef std::unordered_map<std::string, desc *>	desc_loginname_map;
+		typedef std::map<uint32_t, uint32_t>					desc_handle_random_key_map;
 
 	public:
-		DESC_MANAGER();
-		~DESC_MANAGER() override;
+		desc_manager();
+		~desc_manager() override;
 
-		void			Initialize();
-		void			Destroy();
+		void			initialize();
+		void			destroy();
 
-		DESC *			AcceptDesc(net::tcp::socket socket);
-		DESC *			AcceptP2PDesc(net::tcp::socket socket);
-		void			DestroyDesc(DESC * d, bool erase_from_set = true);
+		desc *			accept_desc(net::tcp::socket socket);
+		desc *			accept_p2_p_desc(net::tcp::socket socket);
+		void			destroy_desc(desc * d, bool erase_from_set = true);
 
-		uint32_t			CreateHandshake();
+		uint32_t			create_handshake();
 
-		CLIENT_DESC *		CreateConnectionDesc(const char * host, uint16_t port, int iPhaseWhenSucceed, bool bRetryWhenClosed);
-		void			TryConnect();
+		client_desc *		create_connection_desc(const char * host, uint16_t port, int iPhaseWhenSucceed, bool bRetryWhenClosed);
+		void			try_connect();
 
-		DESC *			FindByHandle(uint32_t handle);
+		desc *			find_by_handle(uint32_t handle);
 
-		DESC *			FindByCharacterName(const char* name);
-		DESC *			FindByLoginName(const std::string& login);
-		void			ConnectAccount(const std::string& login, DESC * d);
-		void			DisconnectAccount(const std::string& login);
+		desc *			find_by_character_name(const char* name);
+		desc *			find_by_login_name(const std::string& login);
+		void			connect_account(const std::string& login, desc * d);
+		void			disconnect_account(const std::string& login);
 
-		void			DestroyClosed();
+		void			destroy_closed();
 
-		void			UpdateLocalUserCount();
-		uint32_t			GetLocalUserCount() { return m_iLocalUserCount; }
-		void			GetUserCount(int & iTotal, int ** paiEmpireUserCount, int & iLocalCount);
+		void			update_local_user_count();
+		uint32_t			local_user_count() { return local_user_count_; }
+		void			user_count(int & iTotal, int ** paiEmpireUserCount, int & iLocalCount);
 
-		const DESC_SET &	GetClientSet();
+		const desc_set &	client_set();
 
-		uint32_t			MakeRandomKey(uint32_t dwHandle);
+		uint32_t			make_random_key(uint32_t dwHandle);
 		// True when dwKey is the mark key issued to the live connection dwHandle.
-		bool			CheckRandomKey(uint32_t dwHandle, uint32_t dwKey);
+		bool			check_random_key(uint32_t dwHandle, uint32_t dwKey);
 
-		uint32_t			CreateLoginKey(DESC * d);
-		DESC *			FindByLoginKey(uint32_t dwKey);
-		void			ProcessExpiredLoginKey();
+		uint32_t			create_login_key(desc * d);
+		desc *			find_by_login_key(uint32_t dwKey);
+		void			process_expired_login_key();
 
-		bool			IsP2PDescExist(const char * szHost, uint16_t wPort);
+		bool			is_p2_p_desc_exist(const char * szHost, uint16_t wPort);
 
 		// for C/S hybrid crypt
 
 	private:
 
-		DESC_HANDLE_RANDOM_KEY_MAP	m_map_handle_random_key;
+		desc_handle_random_key_map	map_handle_random_key_;
 
-		CLIENT_DESC_SET		m_set_pkClientDesc;
-		DESC_SET			m_set_pkDesc;
+		client_desc_set		set_pk_client_desc_;
+		desc_set			set_pk_desc_;
 
-		DESC_HANDLE_MAP			m_map_handle;
-		DESC_HANDSHAKE_MAP		m_map_handshake;
-		DESC_LOGINNAME_MAP		m_map_loginName;
-		std::map<uint32_t, CLoginKey *>	m_map_pkLoginKey;
+		desc_handle_map			map_handle_;
+		desc_handshake_map		map_handshake_;
+		desc_loginname_map		map_login_name_;
+		std::map<uint32_t, login_key *>	map_pk_login_key_;
 
-		int				m_iSocketsConnected;
+		int				sockets_connected_;
 
-		int				m_iHandleCount;
+		int				handle_count_;
 
-		int				m_iLocalUserCount;
-		int				m_aiEmpireUserCount[EMPIRE_MAX_NUM];
+		int				local_user_count_;
+		int				empire_user_count_[EMPIRE_MAX_NUM];
 
-		bool			m_bDestroyed;
+		bool			destroyed_;
 
 };
 }

@@ -29,43 +29,43 @@
 /* ------------------------------------------------------------------------------------ */
 
 namespace metin2::game::inline trade {
-CShop::CShop()
-	: m_dwVnum(0), m_pGrid(std::make_unique<CGrid>(5, 9)), m_pkPC(nullptr)
+shop::shop()
+	: vnum_(0), grid_(std::make_unique<grid>(5, 9)), pc_(nullptr)
 {
 }
 
-CShop::~CShop()
+shop::~shop()
 {
-	TPacketGCShop pack;
+	packet_gc_shop pack;
 
 	pack.header		= HEADER_GC_SHOP;
 	pack.subheader	= SHOP_SUBHEADER_GC_END;
-	pack.size		= sizeof(TPacketGCShop);
+	pack.size		= sizeof(packet_gc_shop);
 
-	Broadcast(&pack, sizeof(pack));
+	broadcast(&pack, sizeof(pack));
 
-	GuestMapType::iterator it;
+	guest_map_type::iterator it;
 
-	it = m_map_guest.begin();
+	it = map_guest_.begin();
 
-	while (it != m_map_guest.end())
+	while (it != map_guest_.end())
 	{
-		CHARACTER * ch = it->first;
-		ch->SetShop(nullptr);
+		character * ch = it->first;
+		ch->set_shop(nullptr);
 		++it;
 	}
 }
 
-void CShop::SetPCShop(CHARACTER * ch)
+void shop::set_pc_shop(character * ch)
 {
-	m_pkPC = ch;
+	pc_ = ch;
 }
 
-bool CShop::Create(uint32_t dwVnum, uint32_t dwNPCVnum, TShopItemTable * pTable)
+bool shop::create(uint32_t dwVnum, uint32_t dwNPCVnum, shop_item_table * pTable)
 {
 	metin2::log::info( "SHOP #{:d} (Shopkeeper {:d})", dwVnum, dwNPCVnum);
 
-	m_dwVnum = dwVnum;
+	vnum_ = dwVnum;
 
 	uint8_t bItemCount;
 
@@ -73,43 +73,43 @@ bool CShop::Create(uint32_t dwVnum, uint32_t dwNPCVnum, TShopItemTable * pTable)
 		if (0 == (pTable + bItemCount)->vnum)
 			break;
 
-	SetShopItems(pTable, bItemCount);
+	set_shop_items(pTable, bItemCount);
 	return true;
 }
 
-void CShop::SetShopItems(TShopItemTable * pTable, uint8_t bItemCount)
+void shop::set_shop_items(shop_item_table * pTable, uint8_t bItemCount)
 {
 	if (bItemCount > SHOP_HOST_ITEM_MAX_NUM)
 		return;
 
-	m_pGrid->Clear();
+	grid_->clear();
 
-	m_itemVector.resize(SHOP_HOST_ITEM_MAX_NUM);
-	std::fill(m_itemVector.begin(), m_itemVector.end(), SHOP_ITEM());
+	item_vector_.resize(SHOP_HOST_ITEM_MAX_NUM);
+	std::fill(item_vector_.begin(), item_vector_.end(), shop_item());
 
 	for (int i = 0; i < bItemCount; ++i)
 	{
-		CItem * pkItem = nullptr;
-		const TItemTable * item_table;
+		item * pkItem = nullptr;
+		const item_table * item_table;
 
-		if (m_pkPC)
+		if (pc_)
 		{
-			pkItem = m_pkPC->GetItem(pTable->pos);
+			pkItem = pc_->get_item(pTable->pos);
 
 			if (!pkItem)
 			{
-				metin2::log::error("cannot find item on pos ({:d}, {:d}) (name: {})", pTable->pos.window_type, pTable->pos.cell, m_pkPC->GetName());
+				metin2::log::error("cannot find item on pos ({:d}, {:d}) (name: {})", pTable->pos.window_type, pTable->pos.cell, pc_->name());
 				continue;
 			}
 
-			item_table = pkItem->GetProto();
+			item_table = pkItem->proto();
 		}
 		else
 		{
 			if (!pTable->vnum)
 				continue;
 
-			item_table = ITEM_MANAGER::instance().GetTable(pTable->vnum);
+			item_table = item_manager::instance().table(pTable->vnum);
 		}
 
 		if (!item_table)
@@ -120,13 +120,13 @@ void CShop::SetShopItems(TShopItemTable * pTable, uint8_t bItemCount)
 
 		int iPos;
 
-		if (IsPCShop())
+		if (is_pc_shop())
 		{
 			metin2::log::info( "MyShop: use position {:d}", pTable->display_pos);
 			iPos = pTable->display_pos;
 		}
 		else
-			iPos = m_pGrid->FindBlank(1, item_table->bSize);
+			iPos = grid_->find_blank(1, item_table->size);
 
 		if (iPos < 0)
 		{
@@ -134,11 +134,11 @@ void CShop::SetShopItems(TShopItemTable * pTable, uint8_t bItemCount)
 			continue;
 		}
 
-		if (!m_pGrid->IsEmpty(iPos, 1, item_table->bSize))
+		if (!grid_->is_empty(iPos, 1, item_table->size))
 		{
-			if (IsPCShop())
+			if (is_pc_shop())
 			{
-				metin2::log::error("not empty position for pc shop {}[{:d}]", m_pkPC->GetName(), m_pkPC->GetPlayerID());
+				metin2::log::error("not empty position for pc shop {}[{:d}]", pc_->name(), pc_->player_id());
 			}
 			else
 			{
@@ -147,86 +147,86 @@ void CShop::SetShopItems(TShopItemTable * pTable, uint8_t bItemCount)
 			continue;
 		}
 
-		m_pGrid->Put(iPos, 1, item_table->bSize);
+		grid_->put(iPos, 1, item_table->size);
 
-		SHOP_ITEM & item = m_itemVector[iPos];
+		shop_item & item = item_vector_[iPos];
 
-		item.pkItem = pkItem;
+		item.item = pkItem;
 		item.itemid = 0;
 
-		if (item.pkItem)
+		if (item.item)
 		{
-			item.vnum = pkItem->GetVnum();
-			item.count = pkItem->GetCount(); // For PC shops, the item count must be the real item count.
+			item.vnum = pkItem->vnum();
+			item.count = pkItem->count(); // For PC shops, the item count must be the real item count.
 			item.price = pTable->price; // The price is also as the user set it..
-			item.itemid	= pkItem->GetID();
+			item.itemid	= pkItem->id();
 		}
 		else
 		{
 			item.vnum = pTable->vnum;
 			item.count = pTable->count;
 
-			if (IS_SET(item_table->dwFlags, ITEM_FLAG_COUNT_PER_1GOLD))
+			if (is_set(item_table->flags, ITEM_FLAG_COUNT_PER_1GOLD))
 			{
-				if (item_table->dwGold == 0)
+				if (item_table->gold == 0)
 					item.price = item.count;
 				else
-					item.price = item.count / item_table->dwGold;
+					item.price = item.count / item_table->gold;
 			}
 			else
-				item.price = item_table->dwGold * item.count;
+				item.price = item_table->gold * item.count;
 		}
 
 		char name[36];
-		snprintf(name, sizeof(name), "%-20s(#%-5d) (x %d)", item_table->szName, (int) item.vnum, item.count);
+		snprintf(name, sizeof(name), "%-20s(#%-5d) (x %d)", item_table->name, (int) item.vnum, item.count);
 
 		metin2::log::info( "SHOP_ITEM: {:<36} PRICE {:<5d}", name, item.price);
 		++pTable;
 	}
 }
 
-int CShop::Buy(CHARACTER * ch, uint8_t pos)
+int shop::buy(character * ch, uint8_t pos)
 {
-	if (pos >= m_itemVector.size())
+	if (pos >= item_vector_.size())
 	{
-		metin2::log::info( "Shop::Buy : invalid position {:d} : {}", pos, ch->GetName());
+		metin2::log::info( "Shop::Buy : invalid position {:d} : {}", pos, ch->name());
 		return SHOP_SUBHEADER_GC_INVALID_POS;
 	}
 
-	metin2::log::info( "Shop::Buy : name {} pos {:d}", ch->GetName(), pos);
+	metin2::log::info( "Shop::Buy : name {} pos {:d}", ch->name(), pos);
 
-	GuestMapType::iterator it = m_map_guest.find(ch);
+	guest_map_type::iterator it = map_guest_.find(ch);
 
-	if (it == m_map_guest.end())
+	if (it == map_guest_.end())
 		return SHOP_SUBHEADER_GC_END;
 
-	SHOP_ITEM& r_item = m_itemVector[pos];
+	shop_item& r_item = item_vector_[pos];
 
 	// if (r_item.price <= 0)
 	if (r_item.price < 0) // Fix
 	{
-		LogManager::instance().HackLog("SHOP_BUY_GOLD_OVERFLOW", ch);
+		log_manager::instance().hack_log("SHOP_BUY_GOLD_OVERFLOW", ch);
 		return SHOP_SUBHEADER_GC_NOT_ENOUGH_MONEY;
 	}
 
-	CItem * pkSelectedItem = ITEM_MANAGER::instance().Find(r_item.itemid);
+	item * pkSelectedItem = item_manager::instance().find(r_item.itemid);
 
-	if (IsPCShop())
+	if (is_pc_shop())
 	{
 		if (!pkSelectedItem)
 		{
 			metin2::log::info( "Shop::Buy : Critical: This user seems to be a hacker : invalid pcshop item : BuyerPID:{:d} SellerPID:{:d}",
-					ch->GetPlayerID(),
-					m_pkPC->GetPlayerID());
+					ch->player_id(),
+					pc_->player_id());
 
 			return false;
 		}
 
-		if ((pkSelectedItem->GetOwner() != m_pkPC))
+		if ((pkSelectedItem->owner() != pc_))
 		{
 			metin2::log::info( "Shop::Buy : Critical: This user seems to be a hacker : invalid pcshop item : BuyerPID:{:d} SellerPID:{:d}",
-					ch->GetPlayerID(),
-					m_pkPC->GetPlayerID());
+					ch->player_id(),
+					pc_->player_id());
 
 			return false;
 		}
@@ -237,34 +237,34 @@ int CShop::Buy(CHARACTER * ch, uint8_t pos)
 
 	if (llPrice > GOLD_MAX)
 	{
-		metin2::log::info( "Shop::Buy : price overflow : {} price {:d}", ch->GetName(), static_cast<long long>(llPrice));
+		metin2::log::info( "Shop::Buy : price overflow : {} price {:d}", ch->name(), static_cast<long long>(llPrice));
 		return SHOP_SUBHEADER_GC_NOT_ENOUGH_MONEY;
 	}
 
 	uint32_t dwPrice = static_cast<uint32_t>(llPrice);
 
-	if (ch->GetGold() < (int) dwPrice)
+	if (ch->gold() < (int) dwPrice)
 	{
-		metin2::log::debug( "Shop::Buy : Not enough money : {} has {:d}, price {:d}", ch->GetName(), ch->GetGold(), dwPrice);
+		metin2::log::debug( "Shop::Buy : Not enough money : {} has {:d}, price {:d}", ch->name(), ch->gold(), dwPrice);
 		return SHOP_SUBHEADER_GC_NOT_ENOUGH_MONEY;
 	}
 
-	CItem * item;
+	item * item;
 
-	if (m_pkPC) // A shop run by a PC requires the PC to actually own the items.
-		item = r_item.pkItem;
+	if (pc_) // A shop run by a PC requires the PC to actually own the items.
+		item = r_item.item;
 	else
-		item = ITEM_MANAGER::instance().CreateItem(r_item.vnum, r_item.count);
+		item = item_manager::instance().create_item(r_item.vnum, r_item.count);
 
 	if (!item)
 		return SHOP_SUBHEADER_GC_SOLD_OUT;
 
-	if (!m_pkPC)
+	if (!pc_)
 	{
-		if (quest::CQuestManager::instance().GetEventFlag("hivalue_item_sell") == 0)
+		if (quest::quest_manager::instance().event_flag("hivalue_item_sell") == 0)
 		{
 			//Bead of Blessing && Ten-thousand-year iron event 
-			if (item->GetVnum() == 70024 || item->GetVnum() == 70035)
+			if (item->vnum() == 70024 || item->vnum() == 70035)
 			{
 				return SHOP_SUBHEADER_GC_END;
 			}
@@ -272,37 +272,37 @@ int CShop::Buy(CHARACTER * ch, uint8_t pos)
 	}
 
 	int iEmptyPos;
-	if (item->IsDragonSoul())
+	if (item->is_dragon_soul())
 	{
-		iEmptyPos = ch->GetEmptyDragonSoulInventory(item);
+		iEmptyPos = ch->empty_dragon_soul_inventory(item);
 	}
 	else
 	{
-		iEmptyPos = ch->GetEmptyInventory(item->GetSize());
+		iEmptyPos = ch->empty_inventory(item->size());
 	}
 
 	if (iEmptyPos < 0)
 	{
-		if (m_pkPC)
+		if (pc_)
 		{
-			metin2::log::debug( "Shop::Buy at PC Shop : Inventory full : {} size {:d}", ch->GetName(), item->GetSize());
+			metin2::log::debug( "Shop::Buy at PC Shop : Inventory full : {} size {:d}", ch->name(), item->size());
 			return SHOP_SUBHEADER_GC_INVENTORY_FULL;
 		}
 		else
 		{
-			metin2::log::debug( "Shop::Buy : Inventory full : {} size {:d}", ch->GetName(), item->GetSize());
-			ITEM_MANAGER::instance().DestroyItem(item);
+			metin2::log::debug( "Shop::Buy : Inventory full : {} size {:d}", ch->name(), item->size());
+			item_manager::instance().destroy_item(item);
 			return SHOP_SUBHEADER_GC_INVENTORY_FULL;
 		}
 	}
 
-	ch->PointChange(POINT_GOLD, -dwPrice, false);
+	ch->point_change(POINT_GOLD, -dwPrice, false);
 
 	//Tax calculation
 	uint32_t dwTax = 0;
 	int iVal = 0;
 
-	iVal = quest::CQuestManager::instance().GetEventFlag("personal_shop");
+	iVal = quest::quest_manager::instance().event_flag("personal_shop");
 
 	if (0 < iVal)
 	{
@@ -319,104 +319,104 @@ int CShop::Buy(CHARACTER * ch, uint8_t pos)
 	}
 
 	// 5% tax when buying from a shop
-	if (!m_pkPC) 
+	if (!pc_) 
 	{
-		CMonarch::instance().SendtoDBAddMoney(dwTax, ch->GetEmpire(), ch);
+		monarch::instance().sendto_db_add_money(dwTax, ch->empire(), ch);
 	}
 
 	// Monarch system: tax collection
-	if (m_pkPC)
+	if (pc_)
 	{
-		m_pkPC->SyncQuickslot(QUICKSLOT_TYPE_ITEM, item->GetCell(), 255);
+		pc_->sync_quickslot(QUICKSLOT_TYPE_ITEM, item->cell(), 255);
 
 		char buf[512];
 
-		if (item->GetVnum() >= 80003 && item->GetVnum() <= 80007)
+		if (item->vnum() >= 80003 && item->vnum() <= 80007)
 		{
-			snprintf(buf, sizeof(buf), "%s FROM: %u TO: %u PRICE: %u", item->GetName(), ch->GetPlayerID(), m_pkPC->GetPlayerID(), dwPrice);
-			LogManager::instance().GoldBarLog(ch->GetPlayerID(), item->GetID(), SHOP_BUY, buf);
-			LogManager::instance().GoldBarLog(m_pkPC->GetPlayerID(), item->GetID(), SHOP_SELL, buf);
+			snprintf(buf, sizeof(buf), "%s FROM: %u TO: %u PRICE: %u", item->name(), ch->player_id(), pc_->player_id(), dwPrice);
+			log_manager::instance().gold_bar_log(ch->player_id(), item->id(), SHOP_BUY, buf);
+			log_manager::instance().gold_bar_log(pc_->player_id(), item->id(), SHOP_SELL, buf);
 		}
 		
-		item->RemoveFromCharacter();
-		if (item->IsDragonSoul())
-			item->AddToCharacter(ch, TItemPos(DRAGON_SOUL_INVENTORY, iEmptyPos));
+		item->remove_from_character();
+		if (item->is_dragon_soul())
+			item->add_to_character(ch, item_pos(DRAGON_SOUL_INVENTORY, iEmptyPos));
 		else
-			item->AddToCharacter(ch, TItemPos(INVENTORY, iEmptyPos));
-		ITEM_MANAGER::instance().FlushDelayedSave(item);
+			item->add_to_character(ch, item_pos(INVENTORY, iEmptyPos));
+		item_manager::instance().flush_delayed_save(item);
 
-		snprintf(buf, sizeof(buf), "%s %u(%s) %u %u", item->GetName(), m_pkPC->GetPlayerID(), m_pkPC->GetName(), dwPrice, item->GetCount());
-		LogManager::instance().ItemLog(ch, item, "SHOP_BUY", buf);
+		snprintf(buf, sizeof(buf), "%s %u(%s) %u %u", item->name(), pc_->player_id(), pc_->name(), dwPrice, item->count());
+		log_manager::instance().item_log(ch, item, "SHOP_BUY", buf);
 
-		snprintf(buf, sizeof(buf), "%s %u(%s) %u %u", item->GetName(), ch->GetPlayerID(), ch->GetName(), dwPrice, item->GetCount());
-		LogManager::instance().ItemLog(m_pkPC, item, "SHOP_SELL", buf);
+		snprintf(buf, sizeof(buf), "%s %u(%s) %u %u", item->name(), ch->player_id(), ch->name(), dwPrice, item->count());
+		log_manager::instance().item_log(pc_, item, "SHOP_SELL", buf);
 
-		r_item.pkItem = nullptr;
-		BroadcastUpdateItem(pos);
+		r_item.item = nullptr;
+		broadcast_update_item(pos);
 
-		m_pkPC->PointChange(POINT_GOLD, dwPrice, false);
+		pc_->point_change(POINT_GOLD, dwPrice, false);
 
 		if (iVal > 0)
-			m_pkPC->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("판매금액의 %d %% 가 세금으로 나가게됩니다"), iVal);
+			pc_->chat_packet(CHAT_TYPE_INFO, lc_text("판매금액의 %d %% 가 세금으로 나가게됩니다"), iVal);
 
-		CMonarch::instance().SendtoDBAddMoney(dwTax, m_pkPC->GetEmpire(), m_pkPC);
+		monarch::instance().sendto_db_add_money(dwTax, pc_->empire(), pc_);
 	}
 	else
 	{
-		if (item->IsDragonSoul())
-			item->AddToCharacter(ch, TItemPos(DRAGON_SOUL_INVENTORY, iEmptyPos));
+		if (item->is_dragon_soul())
+			item->add_to_character(ch, item_pos(DRAGON_SOUL_INVENTORY, iEmptyPos));
 		else
-			item->AddToCharacter(ch, TItemPos(INVENTORY, iEmptyPos));
-		ITEM_MANAGER::instance().FlushDelayedSave(item);
-		LogManager::instance().ItemLog(ch, item, "BUY", item->GetName());
+			item->add_to_character(ch, item_pos(INVENTORY, iEmptyPos));
+		item_manager::instance().flush_delayed_save(item);
+		log_manager::instance().item_log(ch, item, "BUY", item->name());
 
-		if (item->GetVnum() >= 80003 && item->GetVnum() <= 80007)
+		if (item->vnum() >= 80003 && item->vnum() <= 80007)
 		{
-			LogManager::instance().GoldBarLog(ch->GetPlayerID(), item->GetID(), PERSONAL_SHOP_BUY, "");
+			log_manager::instance().gold_bar_log(ch->player_id(), item->id(), PERSONAL_SHOP_BUY, "");
 		}
 
-		DBManager::instance().SendMoneyLog(MONEY_LOG_SHOP, item->GetVnum(), -dwPrice);
+		db_manager::instance().send_money_log(MONEY_LOG_SHOP, item->vnum(), -dwPrice);
 	}
 
 	if (item)
-		metin2::log::info( "SHOP: BUY: name {} {}(x {:d}):{:d} price {:d}", ch->GetName(), item->GetName(), item->GetCount(), item->GetID(), dwPrice);
+		metin2::log::info( "SHOP: BUY: name {} {}(x {:d}):{:d} price {:d}", ch->name(), item->name(), item->count(), item->id(), dwPrice);
 
-    ch->Save();
+    ch->save();
 
     return (SHOP_SUBHEADER_GC_OK);
 }
 
-bool CShop::AddGuest(CHARACTER * ch, uint32_t owner_vid, bool bOtherEmpire)
+bool shop::add_guest(character * ch, uint32_t owner_vid, bool bOtherEmpire)
 {
 	if (!ch)
 		return false;
 
-	if (ch->GetExchange())
+	if (ch->get_exchange())
 		return false;
 
-	if (ch->GetShop())
+	if (ch->get_shop())
 		return false;
 
-	ch->SetShop(this);
+	ch->set_shop(this);
 
-	m_map_guest.insert(GuestMapType::value_type(ch, bOtherEmpire));
+	map_guest_.insert(guest_map_type::value_type(ch, bOtherEmpire));
 
-	TPacketGCShop pack;
+	packet_gc_shop pack;
 
 	pack.header		= HEADER_GC_SHOP;
 	pack.subheader	= SHOP_SUBHEADER_GC_START;
 
-	TPacketGCShopStart pack2;
+	packet_gc_shop_start pack2;
 
 	memset(&pack2, 0, sizeof(pack2));
 	pack2.owner_vid = owner_vid;
 
-	for (uint32_t i = 0; i < m_itemVector.size() && i < SHOP_HOST_ITEM_MAX_NUM; ++i)
+	for (uint32_t i = 0; i < item_vector_.size() && i < SHOP_HOST_ITEM_MAX_NUM; ++i)
 	{
-		const SHOP_ITEM & item = m_itemVector[i];
+		const shop_item & item = item_vector_[i];
 
 		//HIVALUE_ITEM_EVENT
-		if (quest::CQuestManager::instance().GetEventFlag("hivalue_item_sell") == 0)
+		if (quest::quest_manager::instance().event_flag("hivalue_item_sell") == 0)
 		{
 			//Bead of Blessing && Ten-thousand-year iron event 
 			if (item.vnum == 70024 || item.vnum == 70035)
@@ -425,7 +425,7 @@ bool CShop::AddGuest(CHARACTER * ch, uint32_t owner_vid, bool bOtherEmpire)
 			}
 		}
 		//END_HIVALUE_ITEM_EVENT
-		if (m_pkPC && !item.pkItem)
+		if (pc_ && !item.item)
 			continue;
 
 		pack2.items[i].vnum = item.vnum;
@@ -437,62 +437,62 @@ bool CShop::AddGuest(CHARACTER * ch, uint32_t owner_vid, bool bOtherEmpire)
 
 		pack2.items[i].count = item.count;
 
-		if (item.pkItem)
+		if (item.item)
 		{
-			std::memcpy(pack2.items[i].alSockets, item.pkItem->GetSockets(), sizeof(pack2.items[i].alSockets));
-			std::memcpy(pack2.items[i].aAttr, item.pkItem->GetAttributes(), sizeof(pack2.items[i].aAttr));
+			std::memcpy(pack2.items[i].sockets, item.item->sockets(), sizeof(pack2.items[i].sockets));
+			std::memcpy(pack2.items[i].attr, item.item->attributes(), sizeof(pack2.items[i].attr));
 		}
 	}
 
 	pack.size = sizeof(pack) + sizeof(pack2);
 
-	ch->GetDesc()->BufferedPacket(&pack, sizeof(TPacketGCShop));
-	ch->GetDesc()->Packet(&pack2, sizeof(TPacketGCShopStart));
+	ch->get_desc()->buffered_packet(&pack, sizeof(packet_gc_shop));
+	ch->get_desc()->packet(&pack2, sizeof(packet_gc_shop_start));
 	return true;
 }
 
-void CShop::RemoveGuest(CHARACTER * ch)
+void shop::remove_guest(character * ch)
 {
-	if (ch->GetShop() != this)
+	if (ch->get_shop() != this)
 		return;
 
-	m_map_guest.erase(ch);
-	ch->SetShop(nullptr);
+	map_guest_.erase(ch);
+	ch->set_shop(nullptr);
 
-	TPacketGCShop pack;
+	packet_gc_shop pack;
 
 	pack.header		= HEADER_GC_SHOP;
 	pack.subheader	= SHOP_SUBHEADER_GC_END;
-	pack.size		= sizeof(TPacketGCShop);
+	pack.size		= sizeof(packet_gc_shop);
 
-	ch->GetDesc()->Packet(&pack, sizeof(pack));
+	ch->get_desc()->packet(&pack, sizeof(pack));
 }
 
-void CShop::Broadcast(const void * data, int bytes)
+void shop::broadcast(const void * data, int bytes)
 {
 	metin2::log::debug( "Shop::Broadcast {} {:d}", static_cast<const void *>(data), bytes);
 
-	GuestMapType::iterator it;
+	guest_map_type::iterator it;
 
-	it = m_map_guest.begin();
+	it = map_guest_.begin();
 
-	while (it != m_map_guest.end())
+	while (it != map_guest_.end())
 	{
-		CHARACTER * ch = it->first;
+		character * ch = it->first;
 
-		if (ch->GetDesc())
-			ch->GetDesc()->Packet(data, bytes);
+		if (ch->get_desc())
+			ch->get_desc()->packet(data, bytes);
 
 		++it;
 	}
 }
 
-void CShop::BroadcastUpdateItem(uint8_t pos)
+void shop::broadcast_update_item(uint8_t pos)
 {
-	TPacketGCShop pack;
-	TPacketGCShopUpdateItem pack2;
+	packet_gc_shop pack;
+	packet_gc_shop_update_item pack2;
 
-	TEMP_BUFFER	buf;
+	temp_buffer	buf;
 
 	pack.header		= HEADER_GC_SHOP;
 	pack.subheader	= SHOP_SUBHEADER_GC_UPDATE_ITEM;
@@ -500,39 +500,39 @@ void CShop::BroadcastUpdateItem(uint8_t pos)
 
 	pack2.pos		= pos;
 
-	if (m_pkPC && !m_itemVector[pos].pkItem)
+	if (pc_ && !item_vector_[pos].item)
 		pack2.item.vnum = 0;
 	else
 	{
-		pack2.item.vnum	= m_itemVector[pos].vnum;
-		if (m_itemVector[pos].pkItem)
+		pack2.item.vnum	= item_vector_[pos].vnum;
+		if (item_vector_[pos].item)
 		{
-			std::memcpy(pack2.item.alSockets, m_itemVector[pos].pkItem->GetSockets(), sizeof(pack2.item.alSockets));
-			std::memcpy(pack2.item.aAttr, m_itemVector[pos].pkItem->GetAttributes(), sizeof(pack2.item.aAttr));
+			std::memcpy(pack2.item.sockets, item_vector_[pos].item->sockets(), sizeof(pack2.item.sockets));
+			std::memcpy(pack2.item.attr, item_vector_[pos].item->attributes(), sizeof(pack2.item.attr));
 		}
 		else
 		{
-			memset(pack2.item.alSockets, 0, sizeof(pack2.item.alSockets));
-			memset(pack2.item.aAttr, 0, sizeof(pack2.item.aAttr));
+			memset(pack2.item.sockets, 0, sizeof(pack2.item.sockets));
+			memset(pack2.item.attr, 0, sizeof(pack2.item.attr));
 		}
 	}
 
-	pack2.item.price	= m_itemVector[pos].price;
-	pack2.item.count	= m_itemVector[pos].count;
+	pack2.item.price	= item_vector_[pos].price;
+	pack2.item.count	= item_vector_[pos].count;
 
 	buf.write(&pack, sizeof(pack));
 	buf.write(&pack2, sizeof(pack2));
 
-	Broadcast(buf.read_peek(), buf.size());
+	broadcast(buf.read_peek(), buf.size());
 }
 
-int CShop::GetNumberByVnum(uint32_t dwVnum)
+int shop::number_by_vnum(uint32_t dwVnum)
 {
 	int itemNumber = 0;
 
-	for (uint32_t i = 0; i < m_itemVector.size() && i < SHOP_HOST_ITEM_MAX_NUM; ++i)
+	for (uint32_t i = 0; i < item_vector_.size() && i < SHOP_HOST_ITEM_MAX_NUM; ++i)
 	{
-		const SHOP_ITEM & item = m_itemVector[i];
+		const shop_item & item = item_vector_[i];
 
 		if (item.vnum == dwVnum)
 		{
@@ -543,13 +543,13 @@ int CShop::GetNumberByVnum(uint32_t dwVnum)
 	return itemNumber;
 }
 
-bool CShop::IsSellingItem(uint32_t itemID)
+bool shop::is_selling_item(uint32_t itemID)
 {
 	bool isSelling = false;
 
-	for (uint32_t i = 0; i < m_itemVector.size() && i < SHOP_HOST_ITEM_MAX_NUM; ++i)
+	for (uint32_t i = 0; i < item_vector_.size() && i < SHOP_HOST_ITEM_MAX_NUM; ++i)
 	{
-		if (static_cast<uint32_t>(m_itemVector[i].itemid) == itemID)
+		if (static_cast<uint32_t>(item_vector_[i].itemid) == itemID)
 		{
 			isSelling = true;
 			break;

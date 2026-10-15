@@ -35,11 +35,11 @@ namespace marriage
 	const int MAX_LOVE_GRADE = 4;
 	const int MAX_MARRIAGE_UNIQUE_ITEM = 6;
 
-	struct TMarriageItemBonusByGrade
+	struct marriage_item_bonus_by_grade
 	{
-		uint32_t dwVnum;
+		uint32_t vnum;
 		int value[MAX_LOVE_GRADE];
-	} g_ItemBonus[MAX_MARRIAGE_UNIQUE_ITEM] = {
+	} item_bonus[MAX_MARRIAGE_UNIQUE_ITEM] = {
 		{ 71069,	{ 4,	5,	6,	8,  } }, // Piercing increase
 		{ 71070,	{ 10,	12,	15,	20, } }, // Experience increase
 		{ 71071,	{ 4,	5,	6,	8,  } }, // Critical increase
@@ -57,29 +57,29 @@ namespace marriage
 
 	const int MARRIAGE_POINT_PER_DAY = 1;
 	const int MARRIAGE_POINT_PER_DAY_FAST = 2;
-	void SendLoverInfo(CHARACTER * ch, const std::string& lover_name, int love_point)
+	void send_lover_info(character * ch, const std::string& lover_name, int love_point)
 	{
-		TPacketGCLoverInfo p;
+		packet_gc_lover_info p;
 
 		p.header = HEADER_GC_LOVER_INFO;
 		strlcpy(p.name, lover_name.c_str(), sizeof(p.name));
 		p.love_point = love_point;
-		ch->GetDesc()->Packet(&p, sizeof(p));
+		ch->get_desc()->packet(&p, sizeof(p));
 	}
 
-	TMarriage::~TMarriage()
+	marriage::~marriage()
 	{
-		StopNearCheckEvent();
-		if (IsOnline())
+		stop_near_check_event();
+		if (is_online())
 		{
-			ch1->ChatPacket(CHAT_TYPE_COMMAND, "lover_divorce");
-			ch2->ChatPacket(CHAT_TYPE_COMMAND, "lover_divorce");
+			ch1->chat_packet(CHAT_TYPE_COMMAND, "lover_divorce");
+			ch2->chat_packet(CHAT_TYPE_COMMAND, "lover_divorce");
 		}
 	}
 
-	int TMarriage::GetMarriageGrade()
+	int marriage::marriage_grade()
 	{
-		int point = std::clamp(GetMarriagePoint(), 50, 100);
+		int point = std::clamp(marriage_point(), 50, 100);
 		if (point < 65)
 			return 0;
 		else if (point < 80)
@@ -89,21 +89,21 @@ namespace marriage
 		return 3;
 	}
 
-	int TMarriage::GetMarriagePoint()
+	int marriage::marriage_point()
 	{
 		if (metin2::config::test_server())
 		{
-			int value = quest::CQuestManager::instance().GetEventFlag("lovepoint");
+			int value = quest::quest_manager::instance().event_flag("lovepoint");
 			if (value)
 				return std::clamp(value, 0, 100);
 		}
 
 		int point_per_day = MARRIAGE_POINT_PER_DAY;
 		int max_limit = 30;
-		if (IsOnline())
+		if (is_online())
 		{
-			if (ch1->GetPremiumRemainSeconds(PREMIUM_MARRIAGE_FAST) > 0 || 
-					ch2->GetPremiumRemainSeconds(PREMIUM_MARRIAGE_FAST) > 0)
+			if (ch1->premium_remain_seconds(PREMIUM_MARRIAGE_FAST) > 0 || 
+					ch2->premium_remain_seconds(PREMIUM_MARRIAGE_FAST) > 0)
 			{
 				point_per_day = MARRIAGE_POINT_PER_DAY_FAST;
 				max_limit = 40;
@@ -130,14 +130,14 @@ namespace marriage
 		return std::min(50 + std::min(days * point_per_day, max_limit) + std::min(love_point / 1000000, max_limit), 100);
 	}
 
-	bool TMarriage::IsNear()
+	bool marriage::is_near()
 	{
 		if (!is_married)
 			return false;
-		if (!IsOnline())
+		if (!is_online())
 			return false;
 
-		return ch1->GetMapIndex() == ch2->GetMapIndex();
+		return ch1->map_index() == ch2->map_index();
 
 		// Party check removed
 
@@ -145,7 +145,7 @@ namespace marriage
 	}
 
 	// Love (affection) value
-	int TMarriage::GetBonus(uint32_t dwItemVnum, bool bShare, CHARACTER * me)
+	int marriage::bonus(uint32_t dwItemVnum, bool bShare, character * me)
 	{
 		if (!is_married)
 			return 0;
@@ -157,7 +157,7 @@ namespace marriage
 		{
 			for (iFindedBonusIndex = 0; iFindedBonusIndex < MAX_MARRIAGE_UNIQUE_ITEM; ++iFindedBonusIndex)
 			{
-				if (g_ItemBonus[iFindedBonusIndex].dwVnum == dwItemVnum)
+				if (item_bonus[iFindedBonusIndex].vnum == dwItemVnum)
 					break;
 			}
 
@@ -169,205 +169,205 @@ namespace marriage
 		{
 			// Sum the bonuses of both.
 			int count = 0;
-			if (nullptr != ch1 && ch1->IsEquipUniqueItem(dwItemVnum))
+			if (nullptr != ch1 && ch1->is_equip_unique_item(dwItemVnum))
 				count ++;
-			if (nullptr != ch2 && ch2->IsEquipUniqueItem(dwItemVnum))
+			if (nullptr != ch2 && ch2->is_equip_unique_item(dwItemVnum))
 				count ++;
 
-			const TMarriageItemBonusByGrade& rkBonus = g_ItemBonus[iFindedBonusIndex];
+			const marriage_item_bonus_by_grade& rkBonus = item_bonus[iFindedBonusIndex];
 
 			if (count>=1)
-				return rkBonus.value[GetMarriageGrade()];
+				return rkBonus.value[marriage_grade()];
 			return 0;
 		}
 		else
 		{
 			// Count only the partner's
 			int count = 0;
-			if (me != ch1 && nullptr!= ch1 && ch1->IsEquipUniqueItem(dwItemVnum))
+			if (me != ch1 && nullptr!= ch1 && ch1->is_equip_unique_item(dwItemVnum))
 				count ++;
-			if (me != ch2 && nullptr!= ch2 && ch2->IsEquipUniqueItem(dwItemVnum))
+			if (me != ch2 && nullptr!= ch2 && ch2->is_equip_unique_item(dwItemVnum))
 				count ++;
 
-			const TMarriageItemBonusByGrade& rkBonus = g_ItemBonus[iFindedBonusIndex];
+			const marriage_item_bonus_by_grade& rkBonus = item_bonus[iFindedBonusIndex];
 
 			if (count>=1)
-				return rkBonus.value[GetMarriageGrade()];
+				return rkBonus.value[marriage_grade()];
 			return 0;
 		}
 	}
 
-	void TMarriage::Login(CHARACTER * ch)
+	void marriage::login(character * ch)
 	{
-		if (ch->GetPlayerID() == m_pid1)
+		if (ch->player_id() == pid1)
 		{
 			ch1 = ch;
 			if (is_married)
-				SendLoverInfo(ch1, name2, GetMarriagePoint());
+				send_lover_info(ch1, name2, marriage_point());
 		}
-		else if (ch->GetPlayerID() == m_pid2)
+		else if (ch->player_id() == pid2)
 		{
 			ch2 = ch;
 			if (is_married)
-				SendLoverInfo(ch2, name1, GetMarriagePoint());
+				send_lover_info(ch2, name1, marriage_point());
 		}
 
 		// If both are logged in on this process, link the pointers and fire the event
-		if (IsOnline())
+		if (is_online())
 		{
-			ch1->SetMarryPartner(ch2);
-			ch2->SetMarryPartner(ch1);
+			ch1->set_marry_partner(ch2);
+			ch2->set_marry_partner(ch1);
 
-			StartNearCheckEvent();
+			start_near_check_event();
 		}
 
 		// If both are logged in, send the packet.
 		if (is_married)
 		{
-			DESC * d1;
-			DESC * d2;
-			CCI * pkCCI;
+			desc * d1;
+			desc * d2;
+			cci * pkCCI;
 
-			d1 = ch1 ? ch1->GetDesc() : nullptr;
+			d1 = ch1 ? ch1->get_desc() : nullptr;
 
 			if (!d1)
 			{
-				pkCCI = P2P_MANAGER::instance().FindByPID(m_pid1);
+				pkCCI = p2_p_manager::instance().find_by_pid(pid1);
 
 				if (pkCCI)
 				{
-					d1 = pkCCI->pkDesc;
-					d1->SetRelay(pkCCI->szName);
+					d1 = pkCCI->desc;
+					d1->set_relay(pkCCI->name);
 				}
 			}
 
-			d2 = ch2 ? ch2->GetDesc() : nullptr;
+			d2 = ch2 ? ch2->get_desc() : nullptr;
 
 			if (!d2)
 			{
-				pkCCI = P2P_MANAGER::instance().FindByPID(m_pid2);
+				pkCCI = p2_p_manager::instance().find_by_pid(pid2);
 
 				if (pkCCI)
 				{
-					d2 = pkCCI->pkDesc;
-					d2->SetRelay(pkCCI->szName);
+					d2 = pkCCI->desc;
+					d2->set_relay(pkCCI->name);
 				}
 			}
 
 			if (d1 && d2)
 			{
-				d1->ChatPacket(CHAT_TYPE_COMMAND, "lover_login");
-				d2->ChatPacket(CHAT_TYPE_COMMAND, "lover_login");
-				metin2::log::info( "lover_login {:d} {:d}", m_pid1, m_pid2);
+				d1->chat_packet(CHAT_TYPE_COMMAND, "lover_login");
+				d2->chat_packet(CHAT_TYPE_COMMAND, "lover_login");
+				metin2::log::info( "lover_login {:d} {:d}", pid1, pid2);
 			}
 		}
 	}
 
-	void TMarriage::Logout(uint32_t pid)
+	void marriage::logout(uint32_t pid)
 	{
-		if (pid == m_pid1)
+		if (pid == pid1)
 			ch1 = nullptr;
-		else if (pid == m_pid2)
+		else if (pid == pid2)
 			ch2 = nullptr;
 
 		if (ch1 || ch2)
 		{
-			Save();
+			save();
 
 			if (ch1)
-				ch1->SetMarryPartner(nullptr);
+				ch1->set_marry_partner(nullptr);
 
 			if (ch2)
-				ch2->SetMarryPartner(nullptr);
+				ch2->set_marry_partner(nullptr);
 
-			StopNearCheckEvent();
+			stop_near_check_event();
 		}
 
 		if (is_married)
 		{
-			DESC * d1;
-			DESC * d2;
-			CCI * pkCCI;
+			desc * d1;
+			desc * d2;
+			cci * pkCCI;
 
-			d1 = ch1 ? ch1->GetDesc() : nullptr;
+			d1 = ch1 ? ch1->get_desc() : nullptr;
 
 			if (!d1)
 			{
-				pkCCI = P2P_MANAGER::instance().FindByPID(m_pid1);
+				pkCCI = p2_p_manager::instance().find_by_pid(pid1);
 
 				if (pkCCI)
 				{
-					d1 = pkCCI->pkDesc;
-					d1->SetRelay(pkCCI->szName);
+					d1 = pkCCI->desc;
+					d1->set_relay(pkCCI->name);
 				}
 			}
 
-			if (d1 && !g_bShutdown) {
-				d1->ChatPacket(CHAT_TYPE_COMMAND, "lover_logout");
+			if (d1 && !shutting_down) {
+				d1->chat_packet(CHAT_TYPE_COMMAND, "lover_logout");
 			}
 
-			d2 = ch2 ? ch2->GetDesc() : nullptr;
+			d2 = ch2 ? ch2->get_desc() : nullptr;
 
 			if (!d2)
 			{
-				pkCCI = P2P_MANAGER::instance().FindByPID(m_pid2);
+				pkCCI = p2_p_manager::instance().find_by_pid(pid2);
 
 				if (pkCCI)
 				{
-					d2 = pkCCI->pkDesc;
-					d2->SetRelay(pkCCI->szName);
+					d2 = pkCCI->desc;
+					d2->set_relay(pkCCI->name);
 				}
 			}
 
-			if (d2 && !g_bShutdown) {
-				d2->ChatPacket(CHAT_TYPE_COMMAND, "lover_logout");
+			if (d2 && !shutting_down) {
+				d2->chat_packet(CHAT_TYPE_COMMAND, "lover_logout");
 			}
 		}
 	}
 
-	void TMarriage::NearCheck()
+	void marriage::near_check()
 	{
 		if (!is_married)
 			return;
 
-		if (!IsOnline())
+		if (!is_online())
 		{
-			StopNearCheckEvent();
+			stop_near_check_event();
 			return;
 		}
-		metin2::log::info( "NearCheck {:d} {:d} {:d} {:d} {:d} {:d}", m_pid1, m_pid2, IsNear(), isLastNear, byLastLovePoint, GetMarriagePoint());
+		metin2::log::info( "NearCheck {:d} {:d} {:d} {:d} {:d} {:d}", pid1, pid2, is_near(), is_last_near, last_love_point, marriage_point());
 
-		if (IsNear() && !isLastNear)
+		if (is_near() && !is_last_near)
 		{
-			isLastNear = true;
-			ch1->ChatPacket(CHAT_TYPE_COMMAND, "lover_near");
-			ch2->ChatPacket(CHAT_TYPE_COMMAND, "lover_near");
+			is_last_near = true;
+			ch1->chat_packet(CHAT_TYPE_COMMAND, "lover_near");
+			ch2->chat_packet(CHAT_TYPE_COMMAND, "lover_near");
 		}
-		else if (!IsNear() && isLastNear)
+		else if (!is_near() && is_last_near)
 		{
-			isLastNear = false;
-			ch1->ChatPacket(CHAT_TYPE_COMMAND, "lover_far");
-			ch2->ChatPacket(CHAT_TYPE_COMMAND, "lover_far");
+			is_last_near = false;
+			ch1->chat_packet(CHAT_TYPE_COMMAND, "lover_far");
+			ch2->chat_packet(CHAT_TYPE_COMMAND, "lover_far");
 		}
 
-		if (byLastLovePoint != GetMarriagePoint())
+		if (last_love_point != marriage_point())
 		{
-			byLastLovePoint = GetMarriagePoint();
-			TPacketGCLovePointUpdate p;
+			last_love_point = marriage_point();
+			packet_gc_love_point_update p;
 			p.header = HEADER_GC_LOVE_POINT_UPDATE;
-			p.love_point = byLastLovePoint;
+			p.love_point = last_love_point;
 
-			ch1->GetDesc()->Packet(&p, sizeof(p));
-			ch2->GetDesc()->Packet(&p, sizeof(p));
+			ch1->get_desc()->packet(&p, sizeof(p));
+			ch2->get_desc()->packet(&p, sizeof(p));
 		}
 	}
 
 	EVENTINFO(near_check_event_info)
 	{
-		TMarriage* pMarriage;
+		game::social::marriage::marriage* marriage;
 
 		near_check_event_info()
-		: pMarriage( nullptr )
+		: marriage( nullptr )
 		{
 		}
 	};
@@ -382,167 +382,167 @@ namespace marriage
 			return 0;
 		}
 
-		TMarriage* pMarriage = info->pMarriage;
-		pMarriage->NearCheck();
-		return PASSES_PER_SEC(5);
+		marriage* pMarriage = info->marriage;
+		pMarriage->near_check();
+		return passes_per_sec(5);
 	}
 
-	void TMarriage::StartNearCheckEvent()
+	void marriage::start_near_check_event()
 	{
-		StopNearCheckEvent();
+		stop_near_check_event();
 
-		near_check_event_info* info = AllocEventInfo<near_check_event_info>();
-		info->pMarriage = this;
-		eventNearCheck = event_create(near_check_event, info, 1);
+		near_check_event_info* info = alloc_event_info<near_check_event_info>();
+		info->marriage = this;
+		event_near_check = event_create(near_check_event, info, 1);
 	}
 
-	void TMarriage::StopNearCheckEvent()
+	void marriage::stop_near_check_event()
 	{
-		byLastLovePoint = 0;
-		isLastNear = false;
-		event_cancel(&eventNearCheck);
+		last_love_point = 0;
+		is_last_near = false;
+		event_cancel(&event_near_check);
 	}
 
-	void TMarriage::Save()
+	void marriage::save()
 	{
-		metin2::log::info( "TMarriage::Save() - RequestUpdate.bSave={:d}", bSave);
-		if (bSave)
+		metin2::log::info( "TMarriage::Save() - RequestUpdate.bSave={:d}", needs_save);
+		if (needs_save)
 		{
-			CManager::instance().RequestUpdate(m_pid1, m_pid2, love_point, is_married);
-			bSave = false;
+			manager::instance().request_update(pid1, pid2, love_point, is_married);
+			needs_save = false;
 		}
 	}
 
-	void TMarriage::SetMarried()
+	void marriage::set_married()
 	{ 
 		is_married = 1; 
-		bSave = true; 
-		Save(); 
+		needs_save = true; 
+		save(); 
 
-		if (IsOnline())
+		if (is_online())
 		{
-			SendLoverInfo(ch1, name2, GetMarriagePoint());
-			SendLoverInfo(ch2, name1, GetMarriagePoint());
+			send_lover_info(ch1, name2, marriage_point());
+			send_lover_info(ch2, name1, marriage_point());
 
-			ch1->ChatPacket(CHAT_TYPE_COMMAND, "lover_login");
-			ch2->ChatPacket(CHAT_TYPE_COMMAND, "lover_login");
+			ch1->chat_packet(CHAT_TYPE_COMMAND, "lover_login");
+			ch2->chat_packet(CHAT_TYPE_COMMAND, "lover_login");
 		}
 	}
 
-	void TMarriage::Update(uint32_t point)
+	void marriage::update(uint32_t point)
 	{
-		if (!IsOnline())
+		if (!is_online())
 			return;
 
 		if (point > 0 && is_married)
 		{
-			bSave = true;
+			needs_save = true;
 			love_point += point;
 
 			love_point = std::min( love_point, 2000000000 );
 
 			if (metin2::config::test_server())
 			{
-				CHARACTER * ch;
-				ch = CHARACTER_MANAGER::instance().FindByPID(m_pid1);
+				character * ch;
+				ch = character_manager::instance().find_by_pid(pid1);
 				if (ch)
-					ch->ChatPacket(CHAT_TYPE_PARTY, "lovepoint bykill %.3g total %d", love_point / 1000000., GetMarriagePoint());
-				ch = CHARACTER_MANAGER::instance().FindByPID(m_pid2);
+					ch->chat_packet(CHAT_TYPE_PARTY, "lovepoint bykill %.3g total %d", love_point / 1000000., marriage_point());
+				ch = character_manager::instance().find_by_pid(pid2);
 				if (ch)
-					ch->ChatPacket(CHAT_TYPE_PARTY, "lovepoint bykill %.3g total %d", love_point / 1000000., GetMarriagePoint());
+					ch->chat_packet(CHAT_TYPE_PARTY, "lovepoint bykill %.3g total %d", love_point / 1000000., marriage_point());
 			}
 		}
 	}
 
-	void TMarriage::WarpToWeddingMap(uint32_t dwPID)
+	void marriage::warp_to_wedding_map(uint32_t dwPID)
 	{
-		if (!pWeddingInfo)
+		if (!wedding_info)
 			return;
 
-		CHARACTER * ch = CHARACTER_MANAGER::instance().FindByPID(dwPID);
+		character * ch = character_manager::instance().find_by_pid(dwPID);
 		if (ch)
 		{
-			PIXEL_POSITION pos;
-			if (!SECTREE_MANAGER::instance().GetRecallPositionByEmpire(pWeddingInfo->dwMapIndex/10000, 0, pos))
+			pixel_position pos;
+			if (!sectree_manager::instance().recall_position_by_empire(wedding_info->map_index/10000, 0, pos))
 			{
 				metin2::log::error("cannot get warp position");
 				return;
 			}
-			ch->SaveExitLocation();
-			ch->WarpSet(pos.x, pos.y, pWeddingInfo->dwMapIndex);
+			ch->save_exit_location();
+			ch->warp_set(pos.x, pos.y, wedding_info->map_index);
 		}
 	}
 
-	void TMarriage::RequestEndWedding()
+	void marriage::request_end_wedding()
 	{
-		if (!pWeddingInfo)
+		if (!wedding_info)
 			return;
-		CManager::instance().RequestEndWedding(m_pid1, m_pid2);
+		manager::instance().request_end_wedding(pid1, pid2);
 	}
 
-	CManager::CManager()
+	manager::manager()
 	{
 	}
 
-	CManager::~CManager()
+	manager::~manager()
 	{
 	}
 
-	bool CManager::IsMarriageUniqueItem(uint32_t dwItemVnum)
+	bool manager::is_marriage_unique_item(uint32_t dwItemVnum)
 	{
 		for (int i = 0; i < MAX_MARRIAGE_UNIQUE_ITEM; i++)
 		{
-			if (g_ItemBonus[i].dwVnum == dwItemVnum)
+			if (item_bonus[i].vnum == dwItemVnum)
 				return true;
 		}
 		return false;
 	}
 
-	bool CManager::IsMarried(uint32_t dwPlayerID) 
+	bool manager::is_married(uint32_t dwPlayerID) 
 	{ 
-		TMarriage* pkMarriageFinded=Get(dwPlayerID);
+		marriage* pkMarriageFinded=get(dwPlayerID);
 		if (pkMarriageFinded && pkMarriageFinded->is_married)
 			return true;
 
 		return false;
 	}
 
-	bool CManager::IsEngaged(uint32_t dwPlayerID) 
+	bool manager::is_engaged(uint32_t dwPlayerID) 
 	{ 
-		TMarriage* pkMarriageFinded=Get(dwPlayerID);
+		marriage* pkMarriageFinded=get(dwPlayerID);
 		if (pkMarriageFinded && !pkMarriageFinded->is_married)
 			return true;
 
 		return false;
 	}
 
-	bool CManager::IsEngagedOrMarried(uint32_t dwPlayerID) 
+	bool manager::is_engaged_or_married(uint32_t dwPlayerID) 
 	{ 
-		return Get(dwPlayerID) != nullptr; 
+		return get(dwPlayerID) != nullptr; 
 	}
 
-	bool CManager::Initialize()
+	bool manager::initialize()
 	{
 		return true;
 	}
 
-	void Align(uint32_t& dwPID1, uint32_t& dwPID2)
+	void align(uint32_t& dwPID1, uint32_t& dwPID2)
 	{
 		if (dwPID1 > dwPID2)
 			std::swap(dwPID1, dwPID2);
 	}
 
-	TMarriage* CManager::Get(uint32_t dwPlayerID)
+	marriage* manager::get(uint32_t dwPlayerID)
 	{
-		auto it = m_MarriageByPID.find(dwPlayerID);
+		auto it = marriage_by_pid_.find(dwPlayerID);
 
-		if (it != m_MarriageByPID.end())
+		if (it != marriage_by_pid_.end())
 			return it->second;
 
 		return nullptr;
 	}
 
-	void CManager::RequestAdd(uint32_t dwPID1, uint32_t dwPID2, const char* szName1, const char* szName2)
+	void manager::request_add(uint32_t dwPID1, uint32_t dwPID2, const char* szName1, const char* szName2)
 	{
 		if (dwPID1 > dwPID2)
 		{
@@ -550,18 +550,18 @@ namespace marriage
 			std::swap(szName1, szName2);
 		}
 
-		TPacketMarriageAdd p;
+		packet_marriage_add p;
 
-		p.dwPID1 = dwPID1;
-		p.dwPID2 = dwPID2;
-		strlcpy(p.szName1, szName1, sizeof(p.szName1));
-		strlcpy(p.szName2, szName2, sizeof(p.szName2));
-		db_clientdesc->DBPacket(HEADER_GD_MARRIAGE_ADD, 0, &p, sizeof(p));
+		p.pi_d1 = dwPID1;
+		p.pi_d2 = dwPID2;
+		strlcpy(p.name1, szName1, sizeof(p.name1));
+		strlcpy(p.name2, szName2, sizeof(p.name2));
+		db_clientdesc->db_packet(HEADER_GD_MARRIAGE_ADD, 0, &p, sizeof(p));
 	}
 
-	void CManager::Add(uint32_t dwPID1, uint32_t dwPID2, time_t tMarryTime, const char* szName1, const char* szName2)
+	void manager::add(uint32_t dwPID1, uint32_t dwPID2, time_t tMarryTime, const char* szName1, const char* szName2)
 	{
-		if (IsEngagedOrMarried(dwPID1) || IsEngagedOrMarried(dwPID2))
+		if (is_engaged_or_married(dwPID1) || is_engaged_or_married(dwPID2))
 		{
 			metin2::log::error("cannot marry already married character. {:d} - {:d}", dwPID1, dwPID2);
 			return;
@@ -573,42 +573,42 @@ namespace marriage
 			std::swap(szName1, szName2);
 		}
 
-		TMarriage* pMarriage = new TMarriage(dwPID1, dwPID2, 0, tMarryTime, szName1, szName2);
-		m_Marriages.insert(pMarriage);
-		m_MarriageByPID.insert(std::make_pair(dwPID1, pMarriage));
-		m_MarriageByPID.insert(std::make_pair(dwPID2, pMarriage));
+		marriage* pMarriage = new marriage(dwPID1, dwPID2, 0, tMarryTime, szName1, szName2);
+		marriages_.insert(pMarriage);
+		marriage_by_pid_.insert(std::make_pair(dwPID1, pMarriage));
+		marriage_by_pid_.insert(std::make_pair(dwPID2, pMarriage));
 		{
-			CHARACTER * A = CHARACTER_MANAGER::instance().FindByPID(dwPID1);
-			CHARACTER * B = CHARACTER_MANAGER::instance().FindByPID(dwPID2);
+			character * A = character_manager::instance().find_by_pid(dwPID1);
+			character * B = character_manager::instance().find_by_pid(dwPID2);
 
 			if (A && B)
 			{
 				// Send the wedding map request
-				TPacketWeddingRequest p;
-				p.dwPID1 = dwPID1;
-				p.dwPID2 = dwPID2;
-				db_clientdesc->DBPacket(HEADER_GD_WEDDING_REQUEST, 0, &p, sizeof(p));
+				packet_wedding_request p;
+				p.pi_d1 = dwPID1;
+				p.pi_d2 = dwPID2;
+				db_clientdesc->db_packet(HEADER_GD_WEDDING_REQUEST, 0, &p, sizeof(p));
 			}
 		}
 	}
 
-	void CManager::RequestUpdate(uint32_t dwPID1, uint32_t dwPID2, int iUpdatePoint, uint8_t byMarried)
+	void manager::request_update(uint32_t dwPID1, uint32_t dwPID2, int iUpdatePoint, uint8_t byMarried)
 	{
-		Align(dwPID1, dwPID2);
+		align(dwPID1, dwPID2);
 
-		TPacketMarriageUpdate p;
-		p.dwPID1 = dwPID1;
-		p.dwPID2 = dwPID2;
-		p.iLovePoint = iUpdatePoint;
-		p.byMarried = byMarried;
-		db_clientdesc->DBPacket(HEADER_GD_MARRIAGE_UPDATE, 0, &p, sizeof(p));
+		packet_marriage_update p;
+		p.pi_d1 = dwPID1;
+		p.pi_d2 = dwPID2;
+		p.love_point = iUpdatePoint;
+		p.married = byMarried;
+		db_clientdesc->db_packet(HEADER_GD_MARRIAGE_UPDATE, 0, &p, sizeof(p));
 	}
 
-	void CManager::Update(uint32_t dwPID1, uint32_t dwPID2, int32_t lTotalPoint, uint8_t byMarried)
+	void manager::update(uint32_t dwPID1, uint32_t dwPID2, int32_t lTotalPoint, uint8_t byMarried)
 	{
-		TMarriage* pMarriage = Get(dwPID1);
+		marriage* pMarriage = get(dwPID1);
 
-		if (!pMarriage || pMarriage->GetOther(dwPID1) != dwPID2)
+		if (!pMarriage || pMarriage->other(dwPID1) != dwPID2)
 		{
 			metin2::log::error("not under marriage : {:d} {:d}", dwPID1, dwPID2);
 			return;
@@ -618,105 +618,105 @@ namespace marriage
 		pMarriage->is_married = byMarried;
 	}
 
-	void CManager::RequestRemove(uint32_t dwPID1, uint32_t dwPID2)
+	void manager::request_remove(uint32_t dwPID1, uint32_t dwPID2)
 	{
-		Align(dwPID1, dwPID2);
+		align(dwPID1, dwPID2);
 
-		TPacketMarriageRemove p;
-		p.dwPID1 = dwPID1;
-		p.dwPID2 = dwPID2;
-		db_clientdesc->DBPacket(HEADER_GD_MARRIAGE_REMOVE, 0, &p, sizeof(p));
+		packet_marriage_remove p;
+		p.pi_d1 = dwPID1;
+		p.pi_d2 = dwPID2;
+		db_clientdesc->db_packet(HEADER_GD_MARRIAGE_REMOVE, 0, &p, sizeof(p));
 	}
 
-	void CManager::Remove(uint32_t dwPID1, uint32_t dwPID2)
+	void manager::remove(uint32_t dwPID1, uint32_t dwPID2)
 	{
-		TMarriage* pMarriage = Get(dwPID1);
-		if (!pMarriage || pMarriage->GetOther(dwPID1) != dwPID2)
+		marriage* pMarriage = get(dwPID1);
+		if (!pMarriage || pMarriage->other(dwPID1) != dwPID2)
 		{
 			metin2::log::error("not under marriage : {:d} {:d}", dwPID1, dwPID2);
 			return;
 		}
 
-		m_Marriages.erase(pMarriage);
-		m_MarriageByPID.erase(dwPID1);
-		m_MarriageByPID.erase(dwPID2);
+		marriages_.erase(pMarriage);
+		marriage_by_pid_.erase(dwPID1);
+		marriage_by_pid_.erase(dwPID2);
 
 		delete pMarriage;
 	}
 
-	void CManager::Login(CHARACTER * ch)
+	void manager::login(character * ch)
 	{
-		uint32_t pid = ch->GetPlayerID();
+		uint32_t pid = ch->player_id();
 
-		TMarriage* pMarriage = Get(pid);
+		marriage* pMarriage = get(pid);
 		if (!pMarriage)
 			return;
 
-		pMarriage->Login(ch);
+		pMarriage->login(ch);
 	}
 
-	void CManager::Logout(uint32_t pid)
+	void manager::logout(uint32_t pid)
 	{
-		TMarriage * pMarriage = Get(pid);
+		marriage * pMarriage = get(pid);
 
 		if (!pMarriage)
 			return;
 
-		pMarriage->Logout(pid);
+		pMarriage->logout(pid);
 	}
 
-	void CManager::Logout(CHARACTER * ch)
+	void manager::logout(character * ch)
 	{
-		Logout(ch->GetPlayerID());
+		logout(ch->player_id());
 	}
 
-	void CManager::WeddingReady(uint32_t dwPID1, uint32_t dwPID2, uint32_t dwMapIndex)
+	void manager::wedding_ready(uint32_t dwPID1, uint32_t dwPID2, uint32_t dwMapIndex)
 	{
-		TMarriage* pMarriage = Get(dwPID1);
-		if (!pMarriage || pMarriage->GetOther(dwPID1) != dwPID2)
+		marriage* pMarriage = get(dwPID1);
+		if (!pMarriage || pMarriage->other(dwPID1) != dwPID2)
 		{
 			metin2::log::error("wrong marriage {:d}, {:d}", dwPID1, dwPID2);
 			return;
 		}
 
-		if (!pMarriage->pWeddingInfo)
-			pMarriage->pWeddingInfo = std::make_unique<TWeddingInfo>();
+		if (!pMarriage->wedding_info)
+			pMarriage->wedding_info = std::make_unique<wedding_info>();
 
-		pMarriage->pWeddingInfo->dwMapIndex = dwMapIndex;
+		pMarriage->wedding_info->map_index = dwMapIndex;
 	}
 
-	void CManager::WeddingStart(uint32_t dwPID1, uint32_t dwPID2)
+	void manager::wedding_start(uint32_t dwPID1, uint32_t dwPID2)
 	{
-		TMarriage* pMarriage = Get(dwPID1);
-		if (!pMarriage || pMarriage->GetOther(dwPID1) != dwPID2)
+		marriage* pMarriage = get(dwPID1);
+		if (!pMarriage || pMarriage->other(dwPID1) != dwPID2)
 		{
 			metin2::log::error("wrong marriage {:d}, {:d}", dwPID1, dwPID2);
 			return;
 		}
 
-		TWeddingInfo * pwi = pMarriage->pWeddingInfo.get();
+		wedding_info * pwi = pMarriage->wedding_info.get();
 
 		if (!pwi)
 			return;
 
 		// Must warp the couple
-		pMarriage->WarpToWeddingMap(dwPID1);
-		pMarriage->WarpToWeddingMap(dwPID2);
+		pMarriage->warp_to_wedding_map(dwPID1);
+		pMarriage->warp_to_wedding_map(dwPID2);
 
 		// Must register so the name shows up in the menu window
-		m_setWedding.insert(std::make_pair(dwPID1, dwPID2));
+		wedding_.insert(std::make_pair(dwPID1, dwPID2));
 	}
 
-	void CManager::WeddingEnd(uint32_t dwPID1, uint32_t dwPID2)
+	void manager::wedding_end(uint32_t dwPID1, uint32_t dwPID2)
 	{
-		TMarriage* pMarriage = Get(dwPID1);
-		if (!pMarriage || pMarriage->GetOther(dwPID1) != dwPID2)
+		marriage* pMarriage = get(dwPID1);
+		if (!pMarriage || pMarriage->other(dwPID1) != dwPID2)
 		{
 			metin2::log::error("wrong marriage {:d}, {:d}", dwPID1, dwPID2);
 			return;
 		}
 
-		if (!pMarriage->pWeddingInfo)
+		if (!pMarriage->wedding_info)
 		{
 			metin2::log::error("not under wedding {:d}, {:d}", dwPID1, dwPID2);
 			return;
@@ -724,24 +724,24 @@ namespace marriage
 
 		// Must remove from the map
 		if (map_allow_find(WEDDING_MAP_INDEX))
-			if (!WeddingManager::instance().End(pMarriage->pWeddingInfo->dwMapIndex))
+			if (!wedding_manager::instance().end(pMarriage->wedding_info->map_index))
 			{
-				metin2::log::error("wedding map error: map_index={:d}", pMarriage->pWeddingInfo->dwMapIndex);
+				metin2::log::error("wedding map error: map_index={:d}", pMarriage->wedding_info->map_index);
 				return;
 			}
 
-		pMarriage->pWeddingInfo.reset();
+		pMarriage->wedding_info.reset();
 
-		m_setWedding.erase(std::make_pair(dwPID1, dwPID2));
+		wedding_.erase(std::make_pair(dwPID1, dwPID2));
 	}
 
-	void CManager::RequestEndWedding(uint32_t dwPID1, uint32_t dwPID2)
+	void manager::request_end_wedding(uint32_t dwPID1, uint32_t dwPID2)
 	{
-		TPacketWeddingEnd p;
-		p.dwPID1 = dwPID1;
-		p.dwPID2 = dwPID2;
+		packet_wedding_end p;
+		p.pi_d1 = dwPID1;
+		p.pi_d2 = dwPID2;
 
-		db_clientdesc->DBPacket(HEADER_GD_WEDDING_END, 0, &p, sizeof(p));
+		db_clientdesc->db_packet(HEADER_GD_WEDDING_END, 0, &p, sizeof(p));
 	}
 }
 }

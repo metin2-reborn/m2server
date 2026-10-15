@@ -7,20 +7,20 @@
 
 namespace metin2::game::inline data {
 
-CMemoryTextFileLoader::CMemoryTextFileLoader()
+memory_text_file_loader::memory_text_file_loader()
 {
 }
 
-CMemoryTextFileLoader::~CMemoryTextFileLoader()
+memory_text_file_loader::~memory_text_file_loader()
 {
 }
 
-bool CMemoryTextFileLoader::SplitLine(uint32_t dwLine, std::vector<std::string>* pstTokenVector, const char * c_szDelimeter)
+bool memory_text_file_loader::split_line(uint32_t dwLine, std::vector<std::string>* pstTokenVector, const char * c_szDelimeter)
 {
 	pstTokenVector->clear();
 
 	std::string stToken;
-	const std::string & c_rstLine = GetLineString(dwLine);
+	const std::string & c_rstLine = line_string(dwLine);
 
 	uint32_t basePos = 0;
 
@@ -62,28 +62,28 @@ bool CMemoryTextFileLoader::SplitLine(uint32_t dwLine, std::vector<std::string>*
 	return true;
 }
 
-uint32_t CMemoryTextFileLoader::GetLineCount()
+uint32_t memory_text_file_loader::line_count()
 {
-	return m_stLineVector.size();
+	return line_vector_.size();
 }
 
-bool CMemoryTextFileLoader::CheckLineIndex(uint32_t dwLine)
+bool memory_text_file_loader::check_line_index(uint32_t dwLine)
 {
-	if (dwLine >= m_stLineVector.size())
+	if (dwLine >= line_vector_.size())
 		return false;
 
 	return true;
 }
 
-const std::string & CMemoryTextFileLoader::GetLineString(uint32_t dwLine)
+const std::string & memory_text_file_loader::line_string(uint32_t dwLine)
 {
-	assert(CheckLineIndex(dwLine));
-	return m_stLineVector[dwLine];
+	assert(check_line_index(dwLine));
+	return line_vector_[dwLine];
 }
 
-void CMemoryTextFileLoader::Bind(int bufSize, const void* c_pvBuf)
+void memory_text_file_loader::bind(int bufSize, const void* c_pvBuf)
 {
-	m_stLineVector.clear();
+	line_vector_.clear();
 
 	const char * c_pcBuf = (const char *)c_pvBuf;
 	std::string stLine;
@@ -99,7 +99,7 @@ void CMemoryTextFileLoader::Bind(int bufSize, const void* c_pvBuf)
 				if ('\n' == c_pcBuf[pos] || '\r' == c_pcBuf[pos])
 					++pos;
 
-			m_stLineVector.push_back(stLine);
+			line_vector_.push_back(stLine);
 			stLine = "";
 		}
 		else if (c < 0)
@@ -113,6 +113,6 @@ void CMemoryTextFileLoader::Bind(int bufSize, const void* c_pvBuf)
 		}
 	}
 
-	m_stLineVector.push_back(stLine);
+	line_vector_.push_back(stLine);
 }
 }

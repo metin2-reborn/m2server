@@ -23,12 +23,12 @@
 #include <cstring>
 #include <vector>
 
-#define DO_ALL_BLEND_INFO(iter)	for (iter=s_blend_info.begin(); iter!=s_blend_info.end(); ++iter)
+#define DO_ALL_BLEND_INFO(iter)	for (iter=blend_info.begin(); iter!=blend_info.end(); ++iter)
 
 namespace metin2::game::inline items {
 
 
-struct BLEND_ITEM_INFO
+struct blend_item_info
 {
 	uint32_t	item_vnum;
 	int		apply_type;
@@ -37,19 +37,19 @@ struct BLEND_ITEM_INFO
 };
 
 
-typedef std::vector<BLEND_ITEM_INFO>	T_BLEND_ITEM_INFO;
-T_BLEND_ITEM_INFO	s_blend_info;
+typedef std::vector<blend_item_info>	t_blend_item_info;
+t_blend_item_info	blend_info;
 
-bool	Blend_Item_init()
+bool	blend_item_init()
 {
 	char	file_name[256];
-	snprintf (file_name, sizeof(file_name), "%s/blend.txt", LocaleService_GetBasePath().c_str());
+	snprintf (file_name, sizeof(file_name), "%s/blend.txt", locale_service_get_base_path().c_str());
 
 	metin2::log::info( "Blend_Item_init {} ", file_name);
 
-	s_blend_info.clear();
+	blend_info.clear();
 
-	if (false==Blend_Item_load(file_name))
+	if (false==blend_item_load(file_name))
 	{
 		metin2::log::error("<Blend_Item_init> fail");
 		return false;
@@ -57,14 +57,14 @@ bool	Blend_Item_init()
 	return true;
 }
 
-bool	Blend_Item_load(char *file)
+bool	blend_item_load(char *file)
 {
 	FILE	*fp;
 	char	one_line[256];
 	const char	*delim = " \t\r\n";
 	char	*v;
 
-	BLEND_ITEM_INFO	blend_item_info{};
+	blend_item_info	blend_item_info{};
 
 	if (nullptr==file || 0==file[0])
 		return false;
@@ -108,7 +108,7 @@ bool	Blend_Item_load(char *file)
 				return false;
 			}
 
-			if (0 == (blend_item_info.apply_type = FN_get_apply_type(v)))
+			if (0 == (blend_item_info.apply_type = fn_get_apply_type(v)))
 			{
 				metin2::log::error("Invalid apply_type({})", v);
 				fclose(fp);
@@ -147,7 +147,7 @@ bool	Blend_Item_load(char *file)
 		}
 		else TOKEN("end")
 		{
-			s_blend_info.push_back(blend_item_info);
+			blend_info.push_back(blend_item_info);
 		}
 	}
 
@@ -156,7 +156,7 @@ bool	Blend_Item_load(char *file)
 	return true;
 }
 
-static int FN_random_index()
+static int fn_random_index()
 {
 	int	percent = number(1,100);
 
@@ -180,7 +180,7 @@ static int FN_random_index()
 // which could cause confusion, so it's added like this.
 // by rtsummit
 
-static int FN_ECS_random_index()
+static int fn_ecs_random_index()
 {
 	int	percent = number(1,100);
 
@@ -199,36 +199,36 @@ static int FN_ECS_random_index()
 }
 
 
-bool	Blend_Item_set_value(CItem * item)
+bool	blend_item_set_value(item * item)
 {
-	BLEND_ITEM_INFO	*blend_info;
-	T_BLEND_ITEM_INFO::iterator	iter;
+	blend_item_info	*blend_info_value;
+	t_blend_item_info::iterator	iter;
 
 	DO_ALL_BLEND_INFO(iter)
 	{
-		blend_info = &*iter;
-		if (blend_info->item_vnum == item->GetVnum())
+		blend_info_value = &*iter;
+		if (blend_info_value->item_vnum == item->vnum())
 		{
 			int	apply_type;
 			int	apply_value;
 			int	apply_duration;
 	
-			if (item->GetVnum() == 51002)
+			if (item->vnum() == 51002)
 			{
-				apply_type		= blend_info->apply_type;
-				apply_value		= blend_info->apply_value		[FN_ECS_random_index()];
-				apply_duration	= blend_info->apply_duration	[FN_ECS_random_index()];
+				apply_type		= blend_info_value->apply_type;
+				apply_value		= blend_info_value->apply_value		[fn_ecs_random_index()];
+				apply_duration	= blend_info_value->apply_duration	[fn_ecs_random_index()];
 			}
 			else
 			{
-				apply_type		= blend_info->apply_type;
-				apply_value		= blend_info->apply_value		[FN_random_index()];
-				apply_duration	= blend_info->apply_duration	[FN_random_index()];
+				apply_type		= blend_info_value->apply_type;
+				apply_value		= blend_info_value->apply_value		[fn_random_index()];
+				apply_duration	= blend_info_value->apply_duration	[fn_random_index()];
 			}
 			metin2::log::info( "blend_item : type : {:d}, value : {:d}, du : {:d}", apply_type, apply_value, apply_duration);
-			item->SetSocket(0, apply_type);
-			item->SetSocket(1, apply_value);
-			item->SetSocket(2, apply_duration);
+			item->set_socket(0, apply_type);
+			item->set_socket(1, apply_value);
+			item->set_socket(2, apply_duration);
 			return true;
 		}
 
@@ -236,15 +236,15 @@ bool	Blend_Item_set_value(CItem * item)
 	return false;
 }
 
-bool	Blend_Item_find(uint32_t item_vnum)
+bool	blend_item_find(uint32_t item_vnum)
 {
-	BLEND_ITEM_INFO	*blend_info;
-	T_BLEND_ITEM_INFO::iterator	iter;
+	blend_item_info	*blend_info_value;
+	t_blend_item_info::iterator	iter;
 
 	DO_ALL_BLEND_INFO(iter)
 	{
-		blend_info = &*iter;
-		if (blend_info->item_vnum == item_vnum)
+		blend_info_value = &*iter;
+		if (blend_info_value->item_vnum == item_vnum)
 			return true;
 	}
 	return false;

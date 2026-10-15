@@ -8,47 +8,47 @@
 #include <memory>
 
 namespace metin2::game::inline characters {
-    class CHARACTER;
+    class character;
 }
 namespace metin2::game::inline items {
-    class CItem;
+    class item;
 }
 
 namespace metin2::game::inline trade {
 
 
-class CSafebox
+class safebox
 {
 	public:
-		CSafebox(CHARACTER * pkChrOwner, int iSize, uint32_t dwGold);
-		~CSafebox();
+		safebox(character * pkChrOwner, int iSize, uint32_t dwGold);
+		~safebox();
 
-		bool		Add(uint32_t dwPos, CItem * pkItem);
-		CItem *		Get(uint32_t dwPos);
-		CItem *		Remove(uint32_t dwPos);
-		void		ChangeSize(int iSize);
+		bool		add(uint32_t dwPos, item * pkItem);
+		item *		get(uint32_t dwPos);
+		item *		remove(uint32_t dwPos);
+		void		change_size(int iSize);
 
-		bool		MoveItem(uint8_t bCell, uint8_t bDestCell, uint8_t count);
-		CItem *		GetItem(uint8_t bCell);
+		bool		move_item(uint8_t bCell, uint8_t bDestCell, uint8_t count);
+		item *		get_item(uint8_t bCell);
 
-		void		Save();
+		void		save();
 
-		bool		IsEmpty(uint32_t dwPos, uint8_t bSize);
+		bool		is_empty(uint32_t dwPos, uint8_t bSize);
 		// Tells the owner's client what is in a slot.
-		void		SendItemSet(uint32_t dwPos);
-		bool		IsValidPosition(uint32_t dwPos);
+		void		send_item_set(uint32_t dwPos);
+		bool		is_valid_position(uint32_t dwPos);
 
-		void		SetWindowMode(uint8_t bWindowMode);
+		void		set_window_mode(uint8_t bWindowMode);
 
 	protected:
-		void		__Destroy();
+		void		destroy();
 
-		CHARACTER *	m_pkChrOwner;
-		CItem *		m_pkItems[SAFEBOX_MAX_NUM];
-		std::unique_ptr<CGrid>	m_pkGrid;
-		int		m_iSize;
-		int32_t		m_lGold;
+		character *	chr_owner_;
+		item *		items_[SAFEBOX_MAX_NUM];
+		std::unique_ptr<grid>	grid_;
+		int		size_;
+		int32_t		gold_;
 
-		uint8_t		m_bWindowMode;
+		uint8_t		window_mode_;
 };
 }

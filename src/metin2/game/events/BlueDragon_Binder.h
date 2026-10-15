@@ -4,7 +4,7 @@
 
 namespace metin2::game::inline events {
 
-enum BLUEDRAGON_STONE_EFFECT
+enum bluedragon_stone_effect
 {
 	DEF_BONUS	=	1,
 	ATK_BONUS	=	2,
@@ -12,7 +12,7 @@ enum BLUEDRAGON_STONE_EFFECT
 	REGEN_PECT_BONUS	=	4,
 };
 
-extern unsigned int BlueDragon_GetRangeFactor (const char* key, const int val);
-extern unsigned int BlueDragon_GetSkillFactor (const size_t cnt, ...);
-extern unsigned int BlueDragon_GetIndexFactor (const char* container, const size_t idx, const char* key);
+extern unsigned int blue_dragon_get_range_factor (const char* key, const int val);
+extern unsigned int blue_dragon_get_skill_factor (const size_t cnt, ...);
+extern unsigned int blue_dragon_get_index_factor (const char* container, const size_t idx, const char* key);
 }

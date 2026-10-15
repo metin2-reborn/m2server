@@ -19,252 +19,252 @@
 namespace metin2::game::inline empire {
 
 
-CMonarch::CMonarch()
+monarch::monarch()
 {
-	memset( &m_MonarchInfo, 0, sizeof(m_MonarchInfo) );
+	memset( &monarch_info_, 0, sizeof(monarch_info_) );
 
-	Initialize();
+	initialize();
 }
 
-CMonarch::~CMonarch()
+monarch::~monarch()
 {
 }
 
-bool CMonarch::Initialize()
+bool monarch::initialize()
 {
-	memset(m_PowerUp, 0, sizeof(m_PowerUp));
-	memset(m_DefenseUp, 0, sizeof(m_DefenseUp));
-	memset(m_PowerUpCT, 0, sizeof(m_PowerUpCT));
-	memset(m_DefenseUpCT, 0, sizeof(m_DefenseUpCT));
+	memset(power_up_, 0, sizeof(power_up_));
+	memset(defense_up_, 0, sizeof(defense_up_));
+	memset(power_up_ct_, 0, sizeof(power_up_ct_));
+	memset(defense_up_ct_, 0, sizeof(defense_up_ct_));
 
 	return 0;
 }
 
-struct FHealMyEmpire 
+struct f_heal_my_empire 
 {
-	uint8_t m_bEmpire;
-	void operator () (CEntity * ent)
+	uint8_t empire;
+	void operator () (entity * ent)
 	{
-		if (ent->IsType(ENTITY_CHARACTER))
+		if (ent->is_type(ENTITY_CHARACTER))
 		{
-			CHARACTER * ch = (CHARACTER *) ent;
+			character * ch = (character *) ent;
 
-			if (ch->IsPC() && m_bEmpire == ch->GetEmpire())
+			if (ch->is_pc() && empire == ch->empire())
 			{
-				ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("군주가 내린 축복으로 모든 에너지가 가득 채워집니다"));
-				ch->PointChange(POINT_HP, ch->GetMaxHP() - ch->GetHP());
-				ch->PointChange(POINT_SP, ch->GetMaxSP() - ch->GetSP());
-				ch->EffectPacket(SE_SPUP_BLUE);
-				ch->EffectPacket(SE_HPUP_RED);
+				ch->chat_packet(CHAT_TYPE_INFO, lc_text("군주가 내린 축복으로 모든 에너지가 가득 채워집니다"));
+				ch->point_change(POINT_HP, ch->max_hp() - ch->hp());
+				ch->point_change(POINT_SP, ch->max_sp() - ch->sp());
+				ch->effect_packet(SE_SPUP_BLUE);
+				ch->effect_packet(SE_HPUP_RED);
 			}
 		}
 	}
 };
 
-int CMonarch::HealMyEmpire(CHARACTER * ch ,uint32_t price)
+int monarch::heal_my_empire(character * ch ,uint32_t price)
 {
-	uint8_t Empire = ch->GetEmpire();
-	uint32_t pid = ch->GetPlayerID();
+	uint8_t Empire = ch->empire();
+	uint32_t pid = ch->player_id();
 
 	metin2::log::info( "HealMyEmpire[{:d}] pid:{:d} price {:d}", pid, Empire, price);
 
-	if (IsMonarch(pid, Empire) == 0)
+	if (is_monarch(pid, Empire) == 0)
 	{
-		if (!ch->IsGM())
+		if (!ch->is_gm())
 		{
-			ch->ChatPacket(CHAT_TYPE_INFO ,LC_TEXT("군주의 자격을 가지고 있지 않습니다"));
+			ch->chat_packet(CHAT_TYPE_INFO ,lc_text("군주의 자격을 가지고 있지 않습니다"));
 			metin2::log::error("No Monarch pid {:d} ", pid);
 			return 0;
 		}
 	}
 
-	if (!ch->IsMCOK(CHARACTER::MI_HEAL))
+	if (!ch->is_mcok(character::MI_HEAL))
 	{
-		ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("%d 초 후에 군주의 축복을 사용할 수 있습니다"), ch->GetMCLTime(CHARACTER::MI_HEAL));
+		ch->chat_packet(CHAT_TYPE_INFO, lc_text("%d 초 후에 군주의 축복을 사용할 수 있습니다"), ch->mcl_time(character::MI_HEAL));
 
 		return 0;
 	}
 
-	if (!IsMoneyOk(price, Empire)) 
+	if (!is_money_ok(price, Empire)) 
 	{
-		ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("국고에 돈이 부족합니다. 현재 : %u 필요금액 : %u"), GetMoney(Empire), price);
+		ch->chat_packet(CHAT_TYPE_INFO, lc_text("국고에 돈이 부족합니다. 현재 : %u 필요금액 : %u"), money(Empire), price);
 		return 0;
 	}
 
-	int iMapIndex = ch->GetMapIndex();
+	int iMapIndex = ch->map_index();
 
-	FHealMyEmpire f;
-	f.m_bEmpire = Empire;
-	SECTREE_MANAGER::instance().for_each(iMapIndex, f);	
+	f_heal_my_empire f;
+	f.empire = Empire;
+	sectree_manager::instance().for_each(iMapIndex, f);	
 
 	// Send money deduction to DB 
-	SendtoDBDecMoney(price, Empire, ch);
+	sendto_db_dec_money(price, Empire, ch);
 
 	// Set cooldown	
-	ch->SetMC(CHARACTER::MI_HEAL);
+	ch->set_mc(character::MI_HEAL);
 
 	if (metin2::config::test_server())
-		ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("[TEST_ONLY]현재 국고 : %d "), GetMoney(Empire) - price);
+		ch->chat_packet(CHAT_TYPE_INFO, lc_text("[TEST_ONLY]현재 국고 : %d "), money(Empire) - price);
 	return 1;
 }
 
-void CMonarch::SetMonarchInfo(MonarchInfo * pInfo)
+void monarch::set_monarch_info(monarch_info * pInfo)
 {
-	memcpy(&m_MonarchInfo, pInfo, sizeof(MonarchInfo));
+	memcpy(&monarch_info_, pInfo, sizeof(monarch_info));
 }
 
-bool CMonarch::IsMonarch(uint32_t pid, uint8_t bEmpire)
+bool monarch::is_monarch(uint32_t pid, uint8_t bEmpire)
 {
-	if (bEmpire >= std::size(m_MonarchInfo.pid))
+	if (bEmpire >= std::size(monarch_info_.pid))
 		return false;
 
-	return (m_MonarchInfo.pid[bEmpire] == pid);
+	return (monarch_info_.pid[bEmpire] == pid);
 }
 
-bool CMonarch::IsMoneyOk(int price, uint8_t bEmpire)
+bool monarch::is_money_ok(int price, uint8_t bEmpire)
 {
-	metin2::log::debug( "GetMoney({:d}), price = ({:d},{:d})", bEmpire, GetMoney(bEmpire), price);
-	return (GetMoney(bEmpire) >= price);
+	metin2::log::debug( "GetMoney({:d}), price = ({:d},{:d})", bEmpire, money(bEmpire), price);
+	return (money(bEmpire) >= price);
 }
 
-bool CMonarch::SendtoDBAddMoney(int Money, uint8_t bEmpire, CHARACTER * ch)
+bool monarch::sendto_db_add_money(int Money, uint8_t bEmpire, character * ch)
 {
-	if (GetMoney(bEmpire) + Money > 2000000000)
+	if (money(bEmpire) + Money > 2000000000)
 		return false;
 
-	if (GetMoney(bEmpire) + Money < 0)
+	if (money(bEmpire) + Money < 0)
 		return false;
 
 	int nEmpire = bEmpire;	
-	db_clientdesc->DBPacketHeader(HEADER_GD_ADD_MONARCH_MONEY, ch->GetDesc()->GetHandle(), sizeof(int) + sizeof(int));
-	db_clientdesc->Packet(&nEmpire, sizeof(int));	
-	db_clientdesc->Packet(&Money, sizeof(int));	
+	db_clientdesc->db_packet_header(HEADER_GD_ADD_MONARCH_MONEY, ch->get_desc()->handle(), sizeof(int) + sizeof(int));
+	db_clientdesc->packet(&nEmpire, sizeof(int));	
+	db_clientdesc->packet(&Money, sizeof(int));	
 	return true;
 }
 
-bool CMonarch::SendtoDBDecMoney(int Money, uint8_t bEmpire, CHARACTER * ch)
+bool monarch::sendto_db_dec_money(int Money, uint8_t bEmpire, character * ch)
 {
-	if (bEmpire >= std::size(m_MonarchInfo.money))
+	if (bEmpire >= std::size(monarch_info_.money))
 		return false;
 
-	if (GetMoney(bEmpire) - Money < 0)
+	if (money(bEmpire) - Money < 0)
 		return false;
 
 	// The actual deduction is processed after the round trip to the server
 	int nEmpire = bEmpire;	
 
-	db_clientdesc->DBPacketHeader(HEADER_GD_DEC_MONARCH_MONEY, ch->GetDesc()->GetHandle(), sizeof(int) + sizeof(int));
-	db_clientdesc->Packet(&nEmpire, sizeof(int));	
-	db_clientdesc->Packet(&Money, sizeof(int));	
+	db_clientdesc->db_packet_header(HEADER_GD_DEC_MONARCH_MONEY, ch->get_desc()->handle(), sizeof(int) + sizeof(int));
+	db_clientdesc->packet(&nEmpire, sizeof(int));	
+	db_clientdesc->packet(&Money, sizeof(int));	
 	return true;
 }
 
-bool CMonarch::AddMoney(int Money, uint8_t bEmpire)
+bool monarch::add_money(int Money, uint8_t bEmpire)
 {
-	if (bEmpire >= std::size(m_MonarchInfo.money))
+	if (bEmpire >= std::size(monarch_info_.money))
 		return false;
 
 	// Cannot deposit 2 billion or more
-	if (GetMoney(bEmpire) + Money > 2000000000)
+	if (money(bEmpire) + Money > 2000000000)
 		return false;
 
-	m_MonarchInfo.money[bEmpire] += Money;
+	monarch_info_.money[bEmpire] += Money;
 	return true;
 }
 
-bool CMonarch::DecMoney(int Money, uint8_t bEmpire)
+bool monarch::dec_money(int Money, uint8_t bEmpire)
 {
-	if (bEmpire >= std::size(m_MonarchInfo.money))
+	if (bEmpire >= std::size(monarch_info_.money))
 		return false;
 
-	if (GetMoney(bEmpire) - Money < 0)
+	if (money(bEmpire) - Money < 0)
 		return false;
 
-	m_MonarchInfo.money[bEmpire] -= Money;
+	monarch_info_.money[bEmpire] -= Money;
 	return true;
 }
 
-int CMonarch::GetMoney(uint8_t bEmpire)
+int monarch::money(uint8_t bEmpire)
 {
-	if (bEmpire >= std::size(m_MonarchInfo.money))
+	if (bEmpire >= std::size(monarch_info_.money))
 		return 0;
 
-	return m_MonarchInfo.money[bEmpire];
+	return monarch_info_.money[bEmpire];
 }
 
-MonarchInfo* CMonarch::GetMonarch()
+monarch_info* monarch::get_monarch()
 {
-	return &m_MonarchInfo;
+	return &monarch_info_;
 }
 
-uint32_t CMonarch::GetMonarchPID(uint8_t Empire)
+uint32_t monarch::monarch_pid(uint8_t Empire)
 {
-	return Empire < std::size(m_MonarchInfo.pid) ? m_MonarchInfo.pid[Empire] : 0;
+	return Empire < std::size(monarch_info_.pid) ? monarch_info_.pid[Empire] : 0;
 }
 
-bool CMonarch::IsPowerUp(uint8_t Empire)
+bool monarch::is_power_up(uint8_t Empire)
 {
-	return Empire < std::size(m_PowerUp) ? m_PowerUp[Empire] : false;
+	return Empire < std::size(power_up_) ? power_up_[Empire] : false;
 }
 
-bool CMonarch::IsDefenceUp(uint8_t Empire)
+bool monarch::is_defence_up(uint8_t Empire)
 {
-	return Empire < std::size(m_DefenseUp) ? m_DefenseUp[Empire] : false;
+	return Empire < std::size(defense_up_) ? defense_up_[Empire] : false;
 }
 
-bool CMonarch::CheckPowerUpCT(uint8_t Empire)
+bool monarch::check_power_up_ct(uint8_t Empire)
 {
-	if (Empire >= std::size(m_PowerUpCT))
+	if (Empire >= std::size(power_up_ct_))
 		return false;
 
-	if (m_PowerUpCT[Empire] > thecore_pulse())
+	if (power_up_ct_[Empire] > thecore_pulse())
 	{
 		if (metin2::config::test_server())
-			metin2::log::info( "[TEST_ONLY] : CheckPowerUpCT CT{:d} Now{:d} 60sec {:d}", m_PowerUpCT[Empire], thecore_pulse(), PASSES_PER_SEC(60 * 10));
+			metin2::log::info( "[TEST_ONLY] : CheckPowerUpCT CT{:d} Now{:d} 60sec {:d}", power_up_ct_[Empire], thecore_pulse(), passes_per_sec(60 * 10));
 		return false;
 	}
 
 	return true;
 }
 
-bool CMonarch::CheckDefenseUpCT(uint8_t Empire)
+bool monarch::check_defense_up_ct(uint8_t Empire)
 {
-	if (Empire >= std::size(m_DefenseUpCT))
+	if (Empire >= std::size(defense_up_ct_))
 		return false;
 
-	if (m_DefenseUpCT[Empire] > thecore_pulse())
+	if (defense_up_ct_[Empire] > thecore_pulse())
 	{
 		if (metin2::config::test_server())
-			metin2::log::info( "[TEST_ONLY] : CheckPowerUpCT CT{:d} Now{:d} 60sec {:d}", m_PowerUpCT[Empire], thecore_pulse(), PASSES_PER_SEC(60 * 10));
+			metin2::log::info( "[TEST_ONLY] : CheckPowerUpCT CT{:d} Now{:d} 60sec {:d}", power_up_ct_[Empire], thecore_pulse(), passes_per_sec(60 * 10));
 		return false;
 	}
 
 	return true;
 }
 
-void CMonarch::PowerUp(uint8_t Empire, bool On)
+void monarch::power_up(uint8_t Empire, bool On)
 {
-	if (Empire >= std::size(m_PowerUpCT))
+	if (Empire >= std::size(power_up_ct_))
 		return;
 
-	m_PowerUp[Empire] = On;
+	power_up_[Empire] = On;
 
 	// Monarch Lion's Roar cooldown 
-	m_PowerUpCT[Empire] = thecore_pulse() + PASSES_PER_SEC(60 * 10);
+	power_up_ct_[Empire] = thecore_pulse() + passes_per_sec(60 * 10);
 }
 
-void CMonarch::DefenseUp(uint8_t Empire, bool On)
+void monarch::defense_up(uint8_t Empire, bool On)
 {
-	if (Empire >= std::size(m_DefenseUpCT))
+	if (Empire >= std::size(defense_up_ct_))
 		return;
 
-	m_DefenseUp[Empire] = On;
+	defense_up_[Empire] = On;
 
 	// Monarch Diamond Fist cooldown 
-	m_DefenseUpCT[Empire] = thecore_pulse() + PASSES_PER_SEC(60 * 10);
+	defense_up_ct_[Empire] = thecore_pulse() + passes_per_sec(60 * 10);
 }
 
-bool IsMonarchWarpZone (int map_idx)
+bool is_monarch_warp_zone (int map_idx)
 {
 	// Hungry Ghost Cave, Cave of a Thousand.
 	if (map_idx >= 10000)

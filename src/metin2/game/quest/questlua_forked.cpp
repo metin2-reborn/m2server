@@ -24,13 +24,13 @@ namespace quest
 
 	int forked_set_dead_count( lua_State* L )
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
-		CQuestManager& q = CQuestManager::instance();
+		quest_manager& q = quest_manager::instance();
 
 		if (nullptr != ch)
 		{
-			CThreeWayWar::instance().SetReviveTokenForPlayer( ch->GetPlayerID(), q.GetEventFlag("threeway_war_dead_count") );
+			three_way_war::instance().set_revive_token_for_player( ch->player_id(), q.event_flag("threeway_war_dead_count") );
 		}
 
 		return 0; 
@@ -38,11 +38,11 @@ namespace quest
 
 	int forked_get_dead_count( lua_State* L )
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
 		if (nullptr != ch)
 		{
-			lua_pushnumber( L, CThreeWayWar::instance().GetReviveTokenForPlayer(ch->GetPlayerID()) );
+			lua_pushnumber( L, three_way_war::instance().revive_token_for_player(ch->player_id()) );
 		}
 		else
 		{
@@ -54,57 +54,57 @@ namespace quest
 
 	int forked_init_kill_count_per_empire( lua_State* L )
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
-		CThreeWayWar::instance().SetKillScore( ch->GetEmpire(), 0 );
+		three_way_war::instance().set_kill_score( ch->empire(), 0 );
 
 		return 0;
 	}
 
 	int forked_init( lua_State* L )
 	{
-		CThreeWayWar::instance().Initialize();
-		CThreeWayWar::instance().RandomEventMapSet();
+		three_way_war::instance().initialize();
+		three_way_war::instance().random_event_map_set();
 
 		return 0;
 	}
 
 	int forked_sungzi_start_pos( lua_State* L )
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
-		const ForkedSungziMapInfo& info = CThreeWayWar::instance().GetEventSungZiMapInfo();
+		const forked_sungzi_map_info& info = three_way_war::instance().event_sung_zi_map_info();
 
-		lua_pushnumber( L, info.m_iForkedSungziStartPosition[ch->GetEmpire()-1][0] );
-		lua_pushnumber( L, info.m_iForkedSungziStartPosition[ch->GetEmpire()-1][1] );
+		lua_pushnumber( L, info.forked_sungzi_start_position[ch->empire()-1][0] );
+		lua_pushnumber( L, info.forked_sungzi_start_position[ch->empire()-1][1] );
 
 		return 2;
 	}
 
 	int forked_pass_start_pos( lua_State* L )
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
-		const ForkedPassMapInfo& info = CThreeWayWar::instance().GetEventPassMapInfo();
+		const forked_pass_map_info& info = three_way_war::instance().event_pass_map_info();
 
-		lua_pushnumber( L, info.m_iForkedPassStartPosition[ch->GetEmpire()-1][0] );
-		lua_pushnumber( L, info.m_iForkedPassStartPosition[ch->GetEmpire()-1][1] );
+		lua_pushnumber( L, info.forked_pass_start_position[ch->empire()-1][0] );
+		lua_pushnumber( L, info.forked_pass_start_position[ch->empire()-1][1] );
 
 		return 2;
 	}
 
 	int forked_sungzi_mapindex (lua_State *L )
 	{
-		lua_pushnumber( L, GetSungziMapIndex() ); 
+		lua_pushnumber( L, get_sungzi_map_index() ); 
 
 		if ( metin2::config::test_server() )
-			metin2::log::info( "forked_sungzi_map_index_by_empire {:d}", GetSungziMapIndex() );
+			metin2::log::info( "forked_sungzi_map_index_by_empire {:d}", get_sungzi_map_index() );
 		return 1;
 	}
 
 	int forked_pass_mapindex_by_empire( lua_State *L )
 	{
-		lua_pushnumber( L, GetPassMapIndex(lua_tonumber(L,1)) ); 
+		lua_pushnumber( L, get_pass_map_index(lua_tonumber(L,1)) ); 
 
 		return 1;
 	}
@@ -113,39 +113,39 @@ namespace quest
 	{
 		int iEmpire 	= (int)lua_tonumber(L, 1);
 
-		lua_pushstring( L, GetPassMapPath(iEmpire) );
-		metin2::log::info( "[PASS_PATH] Empire {:d} Path  {}", iEmpire, GetPassMapPath( iEmpire ) );
+		lua_pushstring( L, get_pass_map_path(iEmpire) );
+		metin2::log::info( "[PASS_PATH] Empire {:d} Path  {}", iEmpire, get_pass_map_path( iEmpire ) );
 		return 1;
 	}
 
 	int forked_is_forked_mapindex( lua_State * L )
 	{
-		lua_pushboolean( L, CThreeWayWar::instance().IsThreeWayWarMapIndex(lua_tonumber(L,1)) );
+		lua_pushboolean( L, three_way_war::instance().is_three_way_war_map_index(lua_tonumber(L,1)) );
 
 		return 1;
 	}
 
 	int forked_is_sungzi_mapindex( lua_State * L )
 	{
-		lua_pushboolean( L, CThreeWayWar::instance().IsSungZiMapIndex(lua_tonumber(L,1)) );
+		lua_pushboolean( L, three_way_war::instance().is_sung_zi_map_index(lua_tonumber(L,1)) );
 
 		return 1;
 	}
 
-	struct FWarpInMap
+	struct f_warp_in_map
 	{
-		int m_iMapIndexTo;
-		int m_x;
-		int m_y;
+		int map_index_to;
+		int x;
+		int y;
 
-		void operator()(CEntity * ent)
+		void operator()(entity * ent)
 		{
-			if (ent->IsType(ENTITY_CHARACTER))
+			if (ent->is_type(ENTITY_CHARACTER))
 			{
-				CHARACTER * ch = (CHARACTER *) ent;
-				if (ch->IsPC())
+				character * ch = (character *) ent;
+				if (ch->is_pc())
 				{
-					ch->WarpSet( m_x+(number(0,5)*100), m_y+(number(0,5)*100), m_iMapIndexTo);
+					ch->warp_set( x+(number(0,5)*100), y+(number(0,5)*100), map_index_to);
 				}
 			}
 		}
@@ -153,16 +153,16 @@ namespace quest
 
 	EVENTINFO(warp_all_to_map_event_info)
 	{
-		int		m_iMapIndexFrom;
-		int 	m_iMapIndexTo;
-		int 	m_x;
-		int		m_y;
+		int		map_index_from;
+		int 	map_index_to;
+		int 	x;
+		int		y;
 
 		warp_all_to_map_event_info()
-		: m_iMapIndexFrom( 0 )
-		, m_iMapIndexTo( 0 )
-		, m_x( 0 )
-		, m_y( 0 )
+		: map_index_from( 0 )
+		, map_index_to( 0 )
+		, x( 0 )
+		, y( 0 )
 		{
 		}
 	};
@@ -177,13 +177,13 @@ namespace quest
 			return 0;
 		}
 
-		SECTREE_MAP * pSecMap = SECTREE_MANAGER::instance().GetMap( info->m_iMapIndexFrom );
+		sectree_map * pSecMap = sectree_manager::instance().map( info->map_index_from );
 		if ( pSecMap )
 		{
-			FWarpInMap f;
-			f.m_iMapIndexTo = info->m_iMapIndexTo;
-			f.m_x			= info->m_x;
-			f.m_y			= info->m_y;
+			f_warp_in_map f;
+			f.map_index_to = info->map_index_to;
+			f.x			= info->x;
+			f.y			= info->y;
 			pSecMap->for_each( f );
 		}
 
@@ -198,25 +198,25 @@ namespace quest
 		int iy				= (int)lua_tonumber(L, 4 );
 		int iTime			= (int)lua_tonumber(L, 5 );
 
-		warp_all_to_map_event_info* info = AllocEventInfo<warp_all_to_map_event_info>();
+		warp_all_to_map_event_info* info = alloc_event_info<warp_all_to_map_event_info>();
 
-		info->m_iMapIndexFrom	= iMapIndexFrom;
-		info->m_iMapIndexTo		= iMapIndexTo;
-		info->m_x				= ix;
-		info->m_y				= iy;
+		info->map_index_from	= iMapIndexFrom;
+		info->map_index_to		= iMapIndexTo;
+		info->x				= ix;
+		info->y				= iy;
 
-		event_create(warp_all_to_map_event, info, PASSES_PER_SEC(iTime));
+		event_create(warp_all_to_map_event, info, passes_per_sec(iTime));
 
 		return 0;
 	}	
 
 	int forked_is_registered_user( lua_State* L )
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
 		if (nullptr != ch)
 		{
-			lua_pushboolean( L, CThreeWayWar::instance().IsRegisteredUser(ch->GetPlayerID()) );
+			lua_pushboolean( L, three_way_war::instance().is_registered_user(ch->player_id()) );
 		}
 		else
 		{
@@ -228,11 +228,11 @@ namespace quest
 
 	int forked_register_user( lua_State* L )
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
 		if (nullptr != ch)
 		{
-			CThreeWayWar::instance().RegisterUser( ch->GetPlayerID() );
+			three_way_war::instance().register_user( ch->player_id() );
 		}
 
 		return 0;
@@ -240,12 +240,12 @@ namespace quest
 
 	int forked_purge_all_monsters( lua_State* L )
 	{
-		CThreeWayWar::instance().RemoveAllMonstersInThreeWay();
+		three_way_war::instance().remove_all_monsters_in_three_way();
 
 		return 0;
 	}
 
-	void RegisterForkedFunctionTable() 
+	void register_forked_function_table() 
 	{
 		luaL_reg forked_functions[] = 
 		{
@@ -268,7 +268,7 @@ namespace quest
 			{ nullptr,				nullptr			}
 		};
 
-		CQuestManager::instance().AddLuaFunctionTable("forked", forked_functions);
+		quest_manager::instance().add_lua_function_table("forked", forked_functions);
 	}
 }
 }

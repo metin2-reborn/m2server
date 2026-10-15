@@ -11,13 +11,13 @@
 
 namespace metin2::game::inline world {
 
-enum ESectree
+enum sectree_constants
 {
 	SECTREE_SIZE	= 6400,
 	CELL_SIZE		= 50
 };
 
-struct SECTREE_COORD {
+struct sectree_coord {
 	unsigned            x : 16;
 	unsigned            y : 16;
 };
@@ -25,8 +25,8 @@ struct SECTREE_COORD {
 typedef union sectreeid
 {
 	uint32_t		package;
-	SECTREE_COORD	coord;
-} SECTREEID;
+	sectree_coord	coord;
+} sectreeid;
 
 enum
 {
@@ -36,39 +36,39 @@ enum
 	ATTR_OBJECT = (1 << 7),
 };
 
-struct FCollectEntity {
-	void operator()(CEntity * entity) {
+struct f_collect_entity {
+	void operator()(entity * entity) {
 		// Consider removing sanity check after debug pass
 		result.push_back(entity);
 	}
 	template<typename F>
-	void ForEach(F& f) {
-		std::vector<CEntity *>::iterator it = result.begin();
+	void for_each(F& f) {
+		std::vector<entity *>::iterator it = result.begin();
 		for ( ; it != result.end(); ++it) {
-			CEntity * entity = *it;
+			entity * entity = *it;
 			f(entity);
 		}
 	}
-	typedef std::vector<CEntity *> ListType;
-	ListType result; // list collected
+	typedef std::vector<entity *> list_type;
+	list_type result; // list collected
 };
 
 
-class SECTREE
+class sectree
 {
 	public:
-		friend class SECTREE_MANAGER;
-		friend class SECTREE_MAP;
+		friend class sectree_manager;
+		friend class sectree_map;
 
-		template <class _Func> CEntity *	find_if (_Func & func) const
+		template <class _Func> entity *	find_if (_Func & func) const
 		{
-			auto it_tree = m_neighbor_list.begin();
+			auto it_tree = neighbor_list_.begin();
 
-			while (it_tree != m_neighbor_list.end())
+			while (it_tree != neighbor_list_.end())
 			{
-				ENTITY_SET::iterator it_entity = (*it_tree)->m_set_entity.begin();
+				entity_set::iterator it_entity = (*it_tree)->set_entity_.begin();
 
-				while (it_entity != (*it_tree)->m_set_entity.end())
+				while (it_entity != (*it_tree)->set_entity_.end())
 				{
 					if (func(*it_entity))
 						return (*it_entity);
@@ -82,24 +82,24 @@ class SECTREE
 			return nullptr;
 		}
 
-		template <class _Func> void ForEachAround(_Func & func)
+		template <class _Func> void for_each_around(_Func & func)
 		{
 			// <Factor> Using snapshot copy to avoid side-effects
-			FCollectEntity collector;
-			SECTREE_LIST::iterator it = m_neighbor_list.begin();
-			for ( ; it != m_neighbor_list.end(); ++it)
+			f_collect_entity collector;
+			sectree_list::iterator it = neighbor_list_.begin();
+			for ( ; it != neighbor_list_.end(); ++it)
 			{
-				SECTREE * sectree = *it;
+				sectree * sectree = *it;
 				sectree->for_each_entity(collector);
 			}
-			collector.ForEach(func);
+			collector.for_each(func);
 		}
 
 		template <class _Func> void for_each_for_find_victim(_Func & func)
 		{
-			SECTREE_LIST::iterator it_tree = m_neighbor_list.begin();
+			sectree_list::iterator it_tree = neighbor_list_.begin();
 
-			while (it_tree != m_neighbor_list.end())
+			while (it_tree != neighbor_list_.end())
 			{
 				//Return as soon as the first one is found
 				if ( (*(it_tree++))->for_each_entity_for_find_victim(func) )
@@ -108,9 +108,9 @@ class SECTREE
 		}
 		template <class _Func> bool for_each_entity_for_find_victim(_Func & func)
 		{
-			auto it = m_set_entity.begin();
+			auto it = set_entity_.begin();
 
-			while (it != m_set_entity.end())
+			while (it != set_entity_.end())
 			{
 				//Return as soon as it is found
 				if ( func(*it++) )
@@ -121,54 +121,54 @@ class SECTREE
 		
 
 	public:
-		SECTREE();
-		~SECTREE();
+		sectree();
+		~sectree();
 
-		void				Initialize();
-		void				Destroy();
+		void				initialize();
+		void				destroy();
 
-		SECTREEID			GetID();
+		sectreeid			id();
 
-		bool				InsertEntity(CEntity * ent);
-		void				RemoveEntity(CEntity * ent);
+		bool				insert_entity(entity * ent);
+		void				remove_entity(entity * ent);
 
-		void				IncreasePC();
-		void				DecreasePC();
+		void				increase_pc();
+		void				decrease_pc();
 
-		void				BindAttribute(CAttribute * pkAttribute);
+		void				bind_attribute(attribute * pkAttribute);
 
-		uint32_t				GetAttribute(int32_t x, int32_t y);
-		bool				IsAttr(int32_t x, int32_t y, uint32_t dwFlag);
+		uint32_t				get_attribute(int32_t x, int32_t y);
+		bool				is_attr(int32_t x, int32_t y, uint32_t dwFlag);
 
-		void				CloneAttribute(SECTREE * tree); // Used when handling private maps
+		void				clone_attribute(sectree * tree); // Used when handling private maps
 
-		int				GetEventAttribute(int32_t x, int32_t y); // As of 20050313, not used
+		int				event_attribute(int32_t x, int32_t y); // As of 20050313, not used
 
-		void				SetAttribute(uint32_t x, uint32_t y, uint32_t dwAttr);
-		void				RemoveAttribute(uint32_t x, uint32_t y, uint32_t dwAttr);
+		void				set_attribute(uint32_t x, uint32_t y, uint32_t dwAttr);
+		void				remove_attribute(uint32_t x, uint32_t y, uint32_t dwAttr);
 
 	private:
 		template <class _Func> void for_each_entity(_Func & func)
 		{
-			auto it = m_set_entity.begin();
-			for ( ; it != m_set_entity.end(); ++it) {
-				CEntity * entity = *it;
+			auto it = set_entity_.begin();
+			for ( ; it != set_entity_.end(); ++it) {
+				entity * entity = *it;
 				// <Factor> Sanity check
-				if (entity->GetSectree() != this) {
+				if (entity->get_sectree() != this) {
 					metin2::log::error("<Factor> SECTREE-ENTITY relationship mismatch");
-					m_set_entity.erase(it);
+					set_entity_.erase(it);
 					continue;
 				}
 				func(entity);
 			}
 		}
 
-		SECTREEID			m_id;
-		ENTITY_SET			m_set_entity;
-		SECTREE_LIST			m_neighbor_list;
-		int				m_iPCCount;
-		bool				isClone;
+		sectreeid			id_;
+		entity_set			set_entity_;
+		sectree_list			neighbor_list_;
+		int				pc_count_;
+		bool				is_clone_;
 
-		CAttribute *			m_pkAttribute;
+		attribute *			attribute_;
 };
 }

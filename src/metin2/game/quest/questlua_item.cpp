@@ -23,11 +23,11 @@ namespace quest
 
 	int item_get_cell(lua_State* L)
 	{
-		CQuestManager& q = CQuestManager::instance();
+		quest_manager& q = quest_manager::instance();
 
-		if (q.GetCurrentItem())
+		if (q.current_item())
 		{
-			lua_pushnumber(L, q.GetCurrentItem()->GetCell());
+			lua_pushnumber(L, q.current_item()->cell());
 		}
 		else
 			lua_pushnumber(L, 0);
@@ -43,15 +43,15 @@ namespace quest
 		}
 		uint32_t cell = (uint32_t) lua_tonumber(L, 1);
 
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		CItem * item = ch ? ch->GetInventoryItem(cell) : nullptr;
+		character * ch = quest_manager::instance().current_character_ptr();
+		item * item = ch ? ch->inventory_item(cell) : nullptr;
 
 		if (!item)
 		{
 			return 1;
 		}
 
-		CQuestManager::instance().SetCurrentItem(item);
+		quest_manager::instance().set_current_item(item);
 		lua_pushboolean(L, 1);
 
 		return 1;
@@ -65,14 +65,14 @@ namespace quest
 			return 1;
 		}
 		uint32_t id = (uint32_t) lua_tonumber(L, 1);
-		CItem * item = ITEM_MANAGER::instance().Find(id);
+		item * item = item_manager::instance().find(id);
 
 		if (!item)
 		{
 			return 1;
 		}
 
-		CQuestManager::instance().SetCurrentItem(item);
+		quest_manager::instance().set_current_item(item);
 		lua_pushboolean(L, 1);
 
 		return 1;
@@ -80,11 +80,11 @@ namespace quest
 
 	int item_get_id(lua_State* L)
 	{
-		CQuestManager& q = CQuestManager::instance();
+		quest_manager& q = quest_manager::instance();
 
-		if (q.GetCurrentItem())
+		if (q.current_item())
 		{
-			lua_pushnumber(L, q.GetCurrentItem()->GetID());
+			lua_pushnumber(L, q.current_item()->id());
 		}
 		else
 			lua_pushnumber(L, 0);
@@ -93,15 +93,15 @@ namespace quest
 
 	int item_remove(lua_State* L)
 	{
-		CQuestManager& q = CQuestManager::instance();
-		CItem * item = q.GetCurrentItem();
+		quest_manager& q = quest_manager::instance();
+		item * item = q.current_item();
 		if (item != nullptr) {
-			if (q.GetCurrentCharacterPtr() == item->GetOwner()) {
-				ITEM_MANAGER::instance().RemoveItem(item);
+			if (q.current_character_ptr() == item->owner()) {
+				item_manager::instance().remove_item(item);
 			} else {
 				quest::error("Tried to remove invalid item {}", static_cast<const void *>(item));
 			}
-			q.ClearCurrentItem();
+			q.clear_current_item();
 		}
 
 		return 0;
@@ -109,14 +109,14 @@ namespace quest
 
 	int item_get_socket(lua_State* L)
 	{
-		CQuestManager& q = CQuestManager::instance();
-		if (q.GetCurrentItem() && lua_isnumber(L, 1))
+		quest_manager& q = quest_manager::instance();
+		if (q.current_item() && lua_isnumber(L, 1))
 		{
 			int idx = (int) lua_tonumber(L, 1);
 			if (idx < 0 || idx >= ITEM_SOCKET_MAX_NUM)
 				lua_pushnumber(L,0);
 			else
-				lua_pushnumber(L, q.GetCurrentItem()->GetSocket(idx));
+				lua_pushnumber(L, q.current_item()->get_socket(idx));
 		}
 		else
 		{
@@ -127,24 +127,24 @@ namespace quest
 
 	int item_set_socket(lua_State* L)
 	{
-		CQuestManager& q = CQuestManager::instance();
-		if (q.GetCurrentItem() && lua_isnumber(L,1) && lua_isnumber(L,2))
+		quest_manager& q = quest_manager::instance();
+		if (q.current_item() && lua_isnumber(L,1) && lua_isnumber(L,2))
 		{
 			int idx = (int) lua_tonumber(L, 1);
 			int value = (int) lua_tonumber(L, 2);
 			if (idx >=0 && idx < ITEM_SOCKET_MAX_NUM)
-				q.GetCurrentItem()->SetSocket(idx, value);
+				q.current_item()->set_socket(idx, value);
 		}
 		return 0;
 	}
 
 	int item_get_vnum(lua_State* L)
 	{
-		CQuestManager& q = CQuestManager::instance();
-		CItem * item = q.GetCurrentItem();
+		quest_manager& q = quest_manager::instance();
+		item * item = q.current_item();
 
 		if (item) 
-			lua_pushnumber(L, item->GetVnum());
+			lua_pushnumber(L, item->vnum());
 		else
 			lua_pushnumber(L, 0);
 
@@ -153,8 +153,8 @@ namespace quest
 
 	int item_has_flag(lua_State* L)
 	{
-		CQuestManager& q = CQuestManager::instance();
-		CItem * item = q.GetCurrentItem();
+		quest_manager& q = quest_manager::instance();
+		item * item = q.current_item();
 
 		if (!lua_isnumber(L, 1))
 		{
@@ -170,15 +170,15 @@ namespace quest
 		}
 
 		int32_t lCheckFlag = (int32_t) lua_tonumber(L, 1);
-		lua_pushboolean(L, IS_SET(item->GetFlag(), lCheckFlag));
+		lua_pushboolean(L, is_set(item->flag(), lCheckFlag));
 
 		return 1;
 	}
 
 	int item_get_value(lua_State* L)
 	{
-		CQuestManager& q = CQuestManager::instance();
-		CItem * item = q.GetCurrentItem();
+		quest_manager& q = quest_manager::instance();
+		item * item = q.current_item();
 
 		if (!item)
 		{
@@ -201,15 +201,15 @@ namespace quest
 			lua_pushnumber(L, 0);
 		}
 		else
-			lua_pushnumber(L, item->GetValue(index));
+			lua_pushnumber(L, item->value(index));
 
 		return 1;
 	}
 
 	int item_set_value(lua_State* L)
 	{
-		CQuestManager& q = CQuestManager::instance();
-		CItem * item = q.GetCurrentItem();
+		quest_manager& q = quest_manager::instance();
+		item * item = q.current_item();
 
 		if (!item)
 		{
@@ -224,7 +224,7 @@ namespace quest
 			return 1;
 		}
 
-		item->SetForceAttribute(
+		item->set_force_attribute(
 			lua_tonumber(L, 1),		// index
 			lua_tonumber(L, 2),		// apply type
 			lua_tonumber(L, 3)		// apply value
@@ -235,11 +235,11 @@ namespace quest
 
 	int item_get_name(lua_State* L)
 	{
-		CQuestManager& q = CQuestManager::instance();
-		CItem * item = q.GetCurrentItem();
+		quest_manager& q = quest_manager::instance();
+		item * item = q.current_item();
 
 		if (item)
-			lua_pushstring(L, item->GetName());
+			lua_pushstring(L, item->name());
 		else
 			lua_pushstring(L, "");
 
@@ -248,11 +248,11 @@ namespace quest
 
 	int item_get_size(lua_State* L)
 	{
-		CQuestManager& q = CQuestManager::instance();
-		CItem * item = q.GetCurrentItem();
+		quest_manager& q = quest_manager::instance();
+		item * item = q.current_item();
 
 		if (item)
-			lua_pushnumber(L, item->GetSize());
+			lua_pushnumber(L, item->size());
 		else
 			lua_pushnumber(L, 0);
 
@@ -261,11 +261,11 @@ namespace quest
 
 	int item_get_count(lua_State* L)
 	{
-		CQuestManager& q = CQuestManager::instance();
-		CItem * item = q.GetCurrentItem();
+		quest_manager& q = quest_manager::instance();
+		item * item = q.current_item();
 
 		if (item)
-			lua_pushnumber(L, item->GetCount());
+			lua_pushnumber(L, item->count());
 		else
 			lua_pushnumber(L, 0);
 
@@ -274,11 +274,11 @@ namespace quest
 
 	int item_get_type(lua_State* L)
 	{
-		CQuestManager& q = CQuestManager::instance();
-		CItem * item = q.GetCurrentItem();
+		quest_manager& q = quest_manager::instance();
+		item * item = q.current_item();
 
 		if (item)
-			lua_pushnumber(L, item->GetType());
+			lua_pushnumber(L, item->type());
 		else
 			lua_pushnumber(L, 0);
 
@@ -287,11 +287,11 @@ namespace quest
 
 	int item_get_sub_type(lua_State* L)
 	{
-		CQuestManager& q = CQuestManager::instance();
-		CItem * item = q.GetCurrentItem();
+		quest_manager& q = quest_manager::instance();
+		item * item = q.current_item();
 
 		if (item)
-			lua_pushnumber(L, item->GetSubType());
+			lua_pushnumber(L, item->sub_type());
 		else
 			lua_pushnumber(L, 0);
 
@@ -300,11 +300,11 @@ namespace quest
 
 	int item_get_refine_vnum(lua_State* L)
 	{
-		CQuestManager& q = CQuestManager::instance();
-		CItem * item = q.GetCurrentItem();
+		quest_manager& q = quest_manager::instance();
+		item * item = q.current_item();
 
 		if (item)
-			lua_pushnumber(L, item->GetRefinedVnum());
+			lua_pushnumber(L, item->refined_vnum());
 		else
 			lua_pushnumber(L, 0);
 
@@ -317,10 +317,10 @@ namespace quest
 		if (lua_isnumber(L, 1))
 			vnum = (uint32_t) lua_tonumber(L, 1);
 
-		TItemTable* pTable = ITEM_MANAGER::instance().GetTable(vnum);
+		item_table* pTable = item_manager::instance().table(vnum);
 		if (pTable)
 		{
-			lua_pushnumber(L, pTable->dwRefinedVnum);
+			lua_pushnumber(L, pTable->refined_vnum);
 		}
 		else
 		{
@@ -332,11 +332,11 @@ namespace quest
 
 	int item_get_level(lua_State* L)
 	{
-		CQuestManager& q = CQuestManager::instance();
-		CItem * item = q.GetCurrentItem();
+		quest_manager& q = quest_manager::instance();
+		item * item = q.current_item();
 
 		if (item)
-			lua_pushnumber(L, item->GetRefineLevel());
+			lua_pushnumber(L, item->refine_level());
 		else
 			lua_pushnumber(L, 0);
 
@@ -345,35 +345,35 @@ namespace quest
 
 	int item_can_over9refine(lua_State* L)
 	{
-		CItem * item = CQuestManager::instance().GetCurrentItem();
+		item * item = quest_manager::instance().current_item();
 
 		if ( item == nullptr ) return 0;
 
-		lua_pushnumber(L, COver9RefineManager::instance().canOver9Refine(item->GetVnum()));
+		lua_pushnumber(L, over9_refine_manager::instance().can_over9_refine(item->vnum()));
 
 		return 1;
 	}
 
 	int item_change_to_over9(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		CItem * item = CQuestManager::instance().GetCurrentItem();
+		character * ch = quest_manager::instance().current_character_ptr();
+		item * item = quest_manager::instance().current_item();
 
 		if ( ch == nullptr || item == nullptr ) return 0;
 
-		lua_pushboolean(L, COver9RefineManager::instance().Change9ToOver9(ch, item));
+		lua_pushboolean(L, over9_refine_manager::instance().change9_to_over9(ch, item));
 		
 		return 1;
 	}
 	
 	int item_over9refine(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		CItem * item = CQuestManager::instance().GetCurrentItem();
+		character * ch = quest_manager::instance().current_character_ptr();
+		item * item = quest_manager::instance().current_item();
 
 		if ( ch == nullptr || item == nullptr ) return 0;
 
-		lua_pushboolean(L, COver9RefineManager::instance().Over9Refine(ch, item));
+		lua_pushboolean(L, over9_refine_manager::instance().over9_refine(ch, item));
 		
 		return 1;
 	}
@@ -382,7 +382,7 @@ namespace quest
 	{
 		if ( lua_isnumber(L, 1) == true )
 		{
-			lua_pushnumber(L, COver9RefineManager::instance().GetMaterialVnum((uint32_t)lua_tonumber(L, 1)));
+			lua_pushnumber(L, over9_refine_manager::instance().material_vnum((uint32_t)lua_tonumber(L, 1)));
 			return 1;
 		}
 
@@ -391,15 +391,15 @@ namespace quest
 
 	int item_get_level_limit (lua_State* L)
 	{
-		CQuestManager& q = CQuestManager::instance();
+		quest_manager& q = quest_manager::instance();
 
-		if (q.GetCurrentItem())
+		if (q.current_item())
 		{
-			if (q.GetCurrentItem()->GetType() != ITEM_WEAPON && q.GetCurrentItem()->GetType() != ITEM_ARMOR)
+			if (q.current_item()->type() != ITEM_WEAPON && q.current_item()->type() != ITEM_ARMOR)
 			{
 				return 0;
 			}
-			lua_pushnumber(L, q.GetCurrentItem() -> GetLevelLimit());
+			lua_pushnumber(L, q.current_item() -> level_limit());
 			return 1;
 		}
 		return 0;
@@ -407,12 +407,12 @@ namespace quest
 
 	int item_start_realtime_expire(lua_State* L)
 	{
-		CQuestManager& q = CQuestManager::instance();
-		CItem * pItem = q.GetCurrentItem();
+		quest_manager& q = quest_manager::instance();
+		item * pItem = q.current_item();
 
 		if (pItem)
 		{
-			pItem->StartRealTimeExpireEvent();
+			pItem->start_real_time_expire_event();
 			return 1;
 		}
 
@@ -427,24 +427,24 @@ namespace quest
 
 		uint32_t vnum = (uint32_t)lua_tonumber(L, 1);
 
-		CQuestManager& q = CQuestManager::instance();
-		CItem * pItem = q.GetCurrentItem();
-		CHARACTER * pChar = q.GetCurrentCharacterPtr();
+		quest_manager& q = quest_manager::instance();
+		item * pItem = q.current_item();
+		character * pChar = q.current_character_ptr();
 
-		CItem * pkNewItem = ITEM_MANAGER::instance().CreateItem(vnum, 1, 0, false);
+		item * pkNewItem = item_manager::instance().create_item(vnum, 1, 0, false);
 
 		if (pkNewItem)
 		{
-			ITEM_MANAGER::CopyAllAttrTo(pItem, pkNewItem);
-			LogManager::instance().ItemLog(pChar, pkNewItem, "COPY SUCCESS", pkNewItem->GetName());
+			item_manager::copy_all_attr_to(pItem, pkNewItem);
+			log_manager::instance().item_log(pChar, pkNewItem, "COPY SUCCESS", pkNewItem->name());
 
-			uint8_t bCell = pItem->GetCell();
+			uint8_t bCell = pItem->cell();
 
-			ITEM_MANAGER::instance().RemoveItem(pItem, "REMOVE (COPY SUCCESS)");
+			item_manager::instance().remove_item(pItem, "REMOVE (COPY SUCCESS)");
 
-			pkNewItem->AddToCharacter(pChar, TItemPos(INVENTORY, bCell)); 
-			ITEM_MANAGER::instance().FlushDelayedSave(pkNewItem);
-			pkNewItem->AttrLog();
+			pkNewItem->add_to_character(pChar, item_pos(INVENTORY, bCell)); 
+			item_manager::instance().flush_delayed_save(pkNewItem);
+			pkNewItem->attr_log();
 
 			// Success!
 			lua_pushboolean(L, 1);			
@@ -453,7 +453,7 @@ namespace quest
 		return 1;
 	}
 
-	void RegisterITEMFunctionTable()
+	void register_item_function_table()
 	{
 
 		luaL_reg item_functions[] =
@@ -487,7 +487,7 @@ namespace quest
 
 			{ nullptr,			nullptr			}
 		};
-		CQuestManager::instance().AddLuaFunctionTable("item", item_functions);
+		quest_manager::instance().add_lua_function_table("item", item_functions);
 	}
 }
 }

@@ -11,7 +11,7 @@
 
 namespace metin2::game::inline combat {
 
-enum EBattleTypes       // Relative to the opponent
+enum battle_types       // Relative to the opponent
 {
 	BATTLE_NONE,
 	BATTLE_DAMAGE,
@@ -19,22 +19,22 @@ enum EBattleTypes       // Relative to the opponent
 	BATTLE_DEAD
 };
 
-extern int	CalcAttBonus(CHARACTER * pkAttacker, CHARACTER * pkVictim, int iAtk);
-extern int	CalcBattleDamage(int iDam, int iAttackerLev, int iVictimLev);
-extern int	CalcMeleeDamage(CHARACTER * pAttacker, CHARACTER * pVictim, bool bIgnoreDefense = false, bool bIgnoreTargetRating = false);
-extern int	CalcMagicDamage(CHARACTER * pAttacker, CHARACTER * pVictim);
-extern int	CalcArrowDamage(CHARACTER * pkAttacker, CHARACTER * pkVictim, CItem * pkBow, CItem * pkArrow, bool bIgnoreDefense = false);
-extern float	CalcAttackRating(CHARACTER * pkAttacker, CHARACTER * pkVictim, bool bIgnoreTargetRating = false);
+extern int	calc_att_bonus(character * pkAttacker, character * pkVictim, int iAtk);
+extern int	calc_battle_damage(int iDam, int iAttackerLev, int iVictimLev);
+extern int	calc_melee_damage(character * pAttacker, character * pVictim, bool bIgnoreDefense = false, bool bIgnoreTargetRating = false);
+extern int	calc_magic_damage(character * pAttacker, character * pVictim);
+extern int	calc_arrow_damage(character * pkAttacker, character * pkVictim, item * pkBow, item * pkArrow, bool bIgnoreDefense = false);
+extern float	calc_attack_rating(character * pkAttacker, character * pkVictim, bool bIgnoreTargetRating = false);
 
-extern bool	battle_is_attackable(CHARACTER * ch, CHARACTER * victim);
-extern int	battle_melee_attack(CHARACTER * ch, CHARACTER * victim);
-extern void	battle_end(CHARACTER * ch);
+extern bool	battle_is_attackable(character * ch, character * victim);
+extern int	battle_melee_attack(character * ch, character * victim);
+extern void	battle_end(character * ch);
 
-extern void	NormalAttackAffect(CHARACTER * pkAttacker, CHARACTER * pkVictim);
+extern void	normal_attack_affect(character * pkAttacker, character * pkVictim);
 
 // Special attack
-inline void AttackAffect(CHARACTER * pkAttacker,
-		CHARACTER * pkVictim,
+inline void attack_affect(character * pkAttacker,
+		character * pkVictim,
 		uint8_t att_point,
 		uint32_t immune_flag,
 		uint32_t affect_idx,
@@ -44,25 +44,25 @@ inline void AttackAffect(CHARACTER * pkAttacker,
 		int time,
 		const char* name)
 {
-	if (pkAttacker->GetPoint(att_point) && !pkVictim->IsAffectFlag(affect_flag))
+	if (pkAttacker->point(att_point) && !pkVictim->is_affect_flag(affect_flag))
 	{
-		if (number(1, 100) <= pkAttacker->GetPoint(att_point) && !pkVictim->IsImmune(immune_flag))
+		if (number(1, 100) <= pkAttacker->point(att_point) && !pkVictim->is_immune(immune_flag))
 		{
-			pkVictim->AddAffect(affect_idx, affect_point, affect_amount, affect_flag, time, 0, true);
+			pkVictim->add_affect(affect_idx, affect_point, affect_amount, affect_flag, time, 0, true);
 
 			if (metin2::config::test_server())
 			{
-				pkVictim->ChatPacket(CHAT_TYPE_PARTY, "%s %s(%d%%) SUCCESS", pkAttacker->GetName(), name, pkAttacker->GetPoint(att_point));
+				pkVictim->chat_packet(CHAT_TYPE_PARTY, "%s %s(%d%%) SUCCESS", pkAttacker->name(), name, pkAttacker->point(att_point));
 			}
 		}
 		else if (metin2::config::test_server())
 		{
-			pkVictim->ChatPacket(CHAT_TYPE_PARTY, "%s %s(%d%%) FAIL", pkAttacker->GetName(), name, pkAttacker->GetPoint(att_point));
+			pkVictim->chat_packet(CHAT_TYPE_PARTY, "%s %s(%d%%) FAIL", pkAttacker->name(), name, pkAttacker->point(att_point));
 		}
 	}
 }
 
-inline void SkillAttackAffect(CHARACTER * pkVictim,
+inline void skill_attack_affect(character * pkVictim,
 		int success_pct,
 		uint32_t immune_flag,
 		uint32_t affect_idx,
@@ -72,29 +72,29 @@ inline void SkillAttackAffect(CHARACTER * pkVictim,
 		int time,
 		const char* name)
 {
-	if (success_pct && !pkVictim->IsAffectFlag(affect_flag))
+	if (success_pct && !pkVictim->is_affect_flag(affect_flag))
 	{
-		if (number(1, 1000) <= success_pct && !pkVictim->IsImmune(immune_flag))
+		if (number(1, 1000) <= success_pct && !pkVictim->is_immune(immune_flag))
 		{
-			pkVictim->AddAffect(affect_idx, affect_point, affect_amount, affect_flag, time, 0, true);
+			pkVictim->add_affect(affect_idx, affect_point, affect_amount, affect_flag, time, 0, true);
 
 			// SKILL_ATTACK_NO_LOG_TARGET_NAME_FIX
 			if (metin2::config::test_server())
-				pkVictim->ChatPacket(CHAT_TYPE_PARTY, 
+				pkVictim->chat_packet(CHAT_TYPE_PARTY, 
 						"%s(%d%%) -> %s SUCCESS", name, success_pct, name);
 			// END_OF_SKILL_ATTACK_LOG_NO_TARGET_NAME_FIX
 		}
 		else if (metin2::config::test_server())
 		{
 			// SKILL_ATTACK_NO_LOG_TARGET_NAME_FIX
-			pkVictim->ChatPacket(CHAT_TYPE_PARTY, "%s(%d%%) -> %s FAIL", name, success_pct, name);
+			pkVictim->chat_packet(CHAT_TYPE_PARTY, "%s(%d%%) -> %s FAIL", name, success_pct, name);
 			// END_OF_SKILL_ATTACK_LOG_NO_TARGET_NAME_FIX
 		}
 	}
 } 
 
-uint32_t	GET_ATTACK_SPEED(CHARACTER * ch);
-void	SET_ATTACK_TIME(CHARACTER * ch, CHARACTER * victim, uint32_t current_time);
-void	SET_ATTACKED_TIME(CHARACTER * ch, CHARACTER * victim, uint32_t current_time);
-bool	IS_SPEED_HACK(CHARACTER * ch, CHARACTER * victim, uint32_t current_time);
+uint32_t	get_attack_speed(character * ch);
+void	set_attack_time(character * ch, character * victim, uint32_t current_time);
+void	set_attacked_time(character * ch, character * victim, uint32_t current_time);
+bool	is_speed_hack(character * ch, character * victim, uint32_t current_time);
 }

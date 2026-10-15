@@ -23,7 +23,7 @@
 namespace metin2::game::inline characters {
 
 // POLYMORPH_BUG_FIX
-static float MSA_GetNormalAttackDuration(const char* msaPath)
+static float msa_get_normal_attack_duration(const char* msaPath)
 {
 	float duration = 99.0f;
 	FILE * fp = fopen(msaPath, "rt");
@@ -48,11 +48,11 @@ static float MSA_GetNormalAttackDuration(const char* msaPath)
 	return duration;
 }
 
-static float MOB_GetNormalAttackDuration(TMobTable* mobTable)
+static float mob_get_normal_attack_duration(mob_table* mobTable)
 {
 	float minDuration = 99.0f;
 
-	const char * folder = mobTable->szFolder;
+	const char * folder = mobTable->folder;
 
 	char motlistPath[1024];
 	snprintf(motlistPath, sizeof(motlistPath), "data/monster/%s/motlist.txt", folder);
@@ -74,7 +74,7 @@ static float MOB_GetNormalAttackDuration(TMobTable* mobTable)
 		{
 			char msaPath[1024];
 			snprintf(msaPath, sizeof(msaPath), "data/monster/%s/%s", folder, msaName);
-			float curDuration = MSA_GetNormalAttackDuration(msaPath);
+			float curDuration = msa_get_normal_attack_duration(msaPath);
 			if (curDuration < minDuration)
 				minDuration = curDuration;
 		}
@@ -85,10 +85,10 @@ static float MOB_GetNormalAttackDuration(TMobTable* mobTable)
 }
 // END_OF_POLYMORPH_BUG_FIX
 
-static const char* GetMotionFileName(TMobTable* mobTable, EPublicMotion motion)
+static const char* get_motion_file_name(mob_table* mobTable, public_motion motion)
 {
 	char buf[1024];
-	const char * folder = mobTable->szFolder;
+	const char * folder = mobTable->folder;
 	snprintf(buf, sizeof(buf), "data/monster/%s/motlist.txt", folder);
 
 	FILE * fp = fopen(buf, "rt");
@@ -111,7 +111,7 @@ static const char* GetMotionFileName(TMobTable* mobTable, EPublicMotion motion)
 
 			default:
 				fclose(fp);
-				metin2::log::error("Motion: no process for this motion({:d}) vnum({:d})", motion, mobTable->dwVnum);
+				metin2::log::error("Motion: no process for this motion({:d}) vnum({:d})", motion, mobTable->vnum);
 				return nullptr;
 		}
 
@@ -140,38 +140,38 @@ static const char* GetMotionFileName(TMobTable* mobTable, EPublicMotion motion)
 	}
 	else
 	{
-		metin2::log::error("Motion: {} have not motlist.txt vnum({:d}) folder({})", folder, mobTable->dwVnum, mobTable->szFolder);
+		metin2::log::error("Motion: {} have not motlist.txt vnum({:d}) folder({})", folder, mobTable->vnum, mobTable->folder);
 	}
 
 	return nullptr;
 }
 
-static void LoadMotion(CMotionSet* pMotionSet, TMobTable* mob_table, EPublicMotion motion)
+static void load_motion(motion_set* pMotionSet, mob_table* mob_table, public_motion motion)
 {
-	const char* cpFileName = GetMotionFileName(mob_table, motion);
+	const char* cpFileName = get_motion_file_name(mob_table, motion);
 
 	if (cpFileName == nullptr)
 	{
 		return;
 	}
 
-	auto pMotion = std::make_unique<CMotion>();
+	auto pMotion = std::make_unique<game::characters::motion>();
 
-	if (pMotion->LoadFromFile(cpFileName) == true)
+	if (pMotion->load_from_file(cpFileName) == true)
 	{
 		if (motion == MOTION_RUN)
-			if (0.0f == pMotion->GetAccumVector().y)
+			if (0.0f == pMotion->accum_vector().y)
 				metin2::log::error("cannot find accumulation data in file '{}'", cpFileName);
 
-		pMotionSet->Insert(MAKE_MOTION_KEY(MOTION_MODE_GENERAL, motion), std::move(pMotion));
+		pMotionSet->insert(make_motion_key(MOTION_MODE_GENERAL, motion), std::move(pMotion));
 	}
 	else
 	{
-		metin2::log::error("Motion: Load failed vnum({:d}) motion({:d}) file({})", mob_table->dwVnum, motion, cpFileName);
+		metin2::log::error("Motion: Load failed vnum({:d}) motion({:d}) file({})", mob_table->vnum, motion, cpFileName);
 	}
 }
 
-static void LoadSkillMotion(CMotionSet* pMotionSet, CMob* pMob, EPublicMotion motion)
+static void load_skill_motion(motion_set* pMotionSet, mob* pMob, public_motion motion)
 {
 	int idx = 0;
 
@@ -187,75 +187,75 @@ static void LoadSkillMotion(CMotionSet* pMotionSet, CMob* pMob, EPublicMotion mo
 			return;					
 	}
 
-	TMobTable* mob_table = &pMob->m_table;
+	mob_table* mob_table = &pMob->table;
 
-	if (mob_table->Skills[idx].dwVnum == 0) return;
+	if (mob_table->skills[idx].vnum == 0) return;
 
-	const char* cpFileName = GetMotionFileName(mob_table, motion);
+	const char* cpFileName = get_motion_file_name(mob_table, motion);
 	if (cpFileName == nullptr) return;
 
-	auto pMotion = std::make_unique<CMotion>();
+	auto pMotion = std::make_unique<game::characters::motion>();
 
-	if (pMotion->LoadMobSkillFromFile(cpFileName, pMob, idx) == true)
+	if (pMotion->load_mob_skill_from_file(cpFileName, pMob, idx) == true)
 	{
-		pMotionSet->Insert(MAKE_MOTION_KEY(MOTION_MODE_GENERAL, motion), std::move(pMotion));
+		pMotionSet->insert(make_motion_key(MOTION_MODE_GENERAL, motion), std::move(pMotion));
 	}
 	else
 	{
-		if (mob_table->Skills[idx].dwVnum != 0)
+		if (mob_table->skills[idx].vnum != 0)
 		{
 			metin2::log::error("Motion: Skill exist but no motion data for index {:d} mob {:d} skill {:d}",
-				   	idx, mob_table->dwVnum, mob_table->Skills[idx].dwVnum);
+				   	idx, mob_table->vnum, mob_table->skills[idx].vnum);
 		}
 	}
 }
 
-CMotionManager::CMotionManager()
+motion_manager::motion_manager()
 {
 }
 
-CMotionManager::~CMotionManager()
+motion_manager::~motion_manager()
 {
 }
 
-const CMotionSet * CMotionManager::GetMotionSet(uint32_t dwVnum)
+const motion_set * motion_manager::get_motion_set(uint32_t dwVnum)
 {
-	iterator it = m_map_pkMotionSet.find(dwVnum);
+	iterator it = map_pk_motion_set_.find(dwVnum);
 
-	if (m_map_pkMotionSet.end() == it)
+	if (map_pk_motion_set_.end() == it)
 		return nullptr;
 
 	return it->second.get();
 }
 
-const CMotion * CMotionManager::GetMotion(uint32_t dwVnum, uint32_t dwKey)
+const motion * motion_manager::get_motion(uint32_t dwVnum, uint32_t dwKey)
 {
-	const CMotionSet * pkMotionSet = GetMotionSet(dwVnum);
+	const motion_set * pkMotionSet = get_motion_set(dwVnum);
 
 	if (!pkMotionSet)
 		return nullptr;
 
-	return pkMotionSet->GetMotion(dwKey);
+	return pkMotionSet->get_motion(dwKey);
 }
 
-float CMotionManager::GetMotionDuration(uint32_t dwVnum, uint32_t dwKey)
+float motion_manager::motion_duration(uint32_t dwVnum, uint32_t dwKey)
 {
-	const CMotion * pkMotion = GetMotion(dwVnum, dwKey);
-	return pkMotion ? pkMotion->GetDuration() : 0.0f;
+	const motion * pkMotion = get_motion(dwVnum, dwKey);
+	return pkMotion ? pkMotion->duration() : 0.0f;
 }
 
 // POLYMORPH_BUG_FIX
-float	CMotionManager::GetNormalAttackDuration(uint32_t dwVnum)
+float	motion_manager::normal_attack_duration(uint32_t dwVnum)
 {
-	std::map<uint32_t, float>::iterator f = m_map_normalAttackDuration.find(dwVnum);
-	if (m_map_normalAttackDuration.end() == f)
+	std::map<uint32_t, float>::iterator f = map_normal_attack_duration_.find(dwVnum);
+	if (map_normal_attack_duration_.end() == f)
 		return 0.0f;
 	else
 		return f->second;
 }
 // END_OF_POLYMORPH_BUG_FIX
 
-enum EMotionEventType
+enum motion_event_type
 {
 	MOTION_EVENT_TYPE_NONE,					// 0
 	MOTION_EVENT_TYPE_EFFECT,				// 1
@@ -271,7 +271,7 @@ enum EMotionEventType
 	MOTION_EVENT_TYPE_MAX_NUM,				// 11
 };
 
-bool CMotionManager::Build()
+bool motion_manager::build()
 {
 	const char * c_apszFolderName[MAIN_RACE_MAX_NUM] =
 	{
@@ -287,80 +287,80 @@ bool CMotionManager::Build()
 	
 	for (int i = 0; i < MAIN_RACE_MAX_NUM; ++i)
 	{
-		auto pkMotionSetOwner = std::make_unique<CMotionSet>();
-		CMotionSet * pkMotionSet = pkMotionSetOwner.get();
-		m_map_pkMotionSet.try_emplace(i, std::move(pkMotionSetOwner));
+		auto pkMotionSetOwner = std::make_unique<motion_set>();
+		motion_set * pkMotionSet = pkMotionSetOwner.get();
+		map_pk_motion_set_.try_emplace(i, std::move(pkMotionSetOwner));
 
 		char sz[256];
 
 		snprintf(sz, sizeof(sz), "%s/general/run.msa", c_apszFolderName[i]);
-		pkMotionSet->Load(sz, MOTION_MODE_GENERAL, MOTION_RUN);
+		pkMotionSet->load(sz, MOTION_MODE_GENERAL, MOTION_RUN);
 		snprintf(sz, sizeof(sz), "%s/general/walk.msa", c_apszFolderName[i]);
-		pkMotionSet->Load(sz, MOTION_MODE_GENERAL, MOTION_WALK);
+		pkMotionSet->load(sz, MOTION_MODE_GENERAL, MOTION_WALK);
 
 		snprintf(sz, sizeof(sz), "%s/twohand_sword/run.msa", c_apszFolderName[i]);
-		pkMotionSet->Load(sz, MOTION_MODE_TWOHAND_SWORD, MOTION_RUN);
+		pkMotionSet->load(sz, MOTION_MODE_TWOHAND_SWORD, MOTION_RUN);
 		snprintf(sz, sizeof(sz), "%s/twohand_sword/walk.msa", c_apszFolderName[i]);
-		pkMotionSet->Load(sz, MOTION_MODE_TWOHAND_SWORD, MOTION_WALK);
+		pkMotionSet->load(sz, MOTION_MODE_TWOHAND_SWORD, MOTION_WALK);
 
 		snprintf(sz, sizeof(sz), "%s/onehand_sword/run.msa", c_apszFolderName[i]);
-		pkMotionSet->Load(sz, MOTION_MODE_ONEHAND_SWORD, MOTION_RUN);
+		pkMotionSet->load(sz, MOTION_MODE_ONEHAND_SWORD, MOTION_RUN);
 		snprintf(sz, sizeof(sz), "%s/onehand_sword/walk.msa", c_apszFolderName[i]);
-		pkMotionSet->Load(sz, MOTION_MODE_ONEHAND_SWORD, MOTION_WALK);
+		pkMotionSet->load(sz, MOTION_MODE_ONEHAND_SWORD, MOTION_WALK);
 
 		snprintf(sz, sizeof(sz), "%s/dualhand_sword/run.msa", c_apszFolderName[i]);
-		pkMotionSet->Load(sz, MOTION_MODE_DUALHAND_SWORD, MOTION_RUN);
+		pkMotionSet->load(sz, MOTION_MODE_DUALHAND_SWORD, MOTION_RUN);
 		snprintf(sz, sizeof(sz), "%s/dualhand_sword/walk.msa", c_apszFolderName[i]);
-		pkMotionSet->Load(sz, MOTION_MODE_DUALHAND_SWORD, MOTION_WALK);
+		pkMotionSet->load(sz, MOTION_MODE_DUALHAND_SWORD, MOTION_WALK);
 
 		snprintf(sz, sizeof(sz), "%s/bow/run.msa", c_apszFolderName[i]);
-		pkMotionSet->Load(sz, MOTION_MODE_BOW, MOTION_RUN);
+		pkMotionSet->load(sz, MOTION_MODE_BOW, MOTION_RUN);
 		snprintf(sz, sizeof(sz), "%s/bow/walk.msa", c_apszFolderName[i]);
-		pkMotionSet->Load(sz, MOTION_MODE_BOW, MOTION_WALK);
+		pkMotionSet->load(sz, MOTION_MODE_BOW, MOTION_WALK);
 
 		snprintf(sz, sizeof(sz), "%s/bell/run.msa", c_apszFolderName[i]);
-		pkMotionSet->Load(sz, MOTION_MODE_BELL, MOTION_RUN);
+		pkMotionSet->load(sz, MOTION_MODE_BELL, MOTION_RUN);
 		snprintf(sz, sizeof(sz), "%s/bell/walk.msa", c_apszFolderName[i]);
-		pkMotionSet->Load(sz, MOTION_MODE_BELL, MOTION_WALK);
+		pkMotionSet->load(sz, MOTION_MODE_BELL, MOTION_WALK);
 
 		snprintf(sz, sizeof(sz), "%s/fan/run.msa", c_apszFolderName[i]);
-		pkMotionSet->Load(sz, MOTION_MODE_FAN, MOTION_RUN);
+		pkMotionSet->load(sz, MOTION_MODE_FAN, MOTION_RUN);
 		snprintf(sz, sizeof(sz), "%s/fan/walk.msa", c_apszFolderName[i]);
-		pkMotionSet->Load(sz, MOTION_MODE_FAN, MOTION_WALK);
+		pkMotionSet->load(sz, MOTION_MODE_FAN, MOTION_WALK);
 
 		snprintf(sz, sizeof(sz), "%s/horse/run.msa", c_apszFolderName[i]);
-		pkMotionSet->Load(sz, MOTION_MODE_HORSE, MOTION_RUN);
+		pkMotionSet->load(sz, MOTION_MODE_HORSE, MOTION_RUN);
 		snprintf(sz, sizeof(sz), "%s/horse/walk.msa", c_apszFolderName[i]);
-		pkMotionSet->Load(sz, MOTION_MODE_HORSE, MOTION_WALK);
+		pkMotionSet->load(sz, MOTION_MODE_HORSE, MOTION_WALK);
 	}
 
-	CMobManager::iterator it = CMobManager::instance().begin();
+	mob_manager::iterator it = mob_manager::instance().begin();
 
-	while (it != CMobManager::instance().end())
+	while (it != mob_manager::instance().end())
 	{
-		CMob * pkMob = (it++)->second;
-		TMobTable * t = &pkMob->m_table;
+		mob * pkMob = (it++)->second;
+		mob_table * t = &pkMob->table;
 
-		if ('\0' != t->szFolder[0])
+		if ('\0' != t->folder[0])
 		{
-			auto pkMotionSetOwner = std::make_unique<CMotionSet>();
-			CMotionSet * pkMotionSet = pkMotionSetOwner.get();
-			m_map_pkMotionSet.try_emplace(t->dwVnum, std::move(pkMotionSetOwner));
+			auto pkMotionSetOwner = std::make_unique<motion_set>();
+			motion_set * pkMotionSet = pkMotionSetOwner.get();
+			map_pk_motion_set_.try_emplace(t->vnum, std::move(pkMotionSetOwner));
 
-			LoadMotion(pkMotionSet, t, MOTION_WALK);
-			LoadMotion(pkMotionSet, t, MOTION_RUN);
-			LoadMotion(pkMotionSet, t, MOTION_NORMAL_ATTACK);
+			load_motion(pkMotionSet, t, MOTION_WALK);
+			load_motion(pkMotionSet, t, MOTION_RUN);
+			load_motion(pkMotionSet, t, MOTION_NORMAL_ATTACK);
 
-			LoadSkillMotion(pkMotionSet, pkMob, MOTION_SPECIAL_1);
-			LoadSkillMotion(pkMotionSet, pkMob, MOTION_SPECIAL_2);
-			LoadSkillMotion(pkMotionSet, pkMob, MOTION_SPECIAL_3);
-			LoadSkillMotion(pkMotionSet, pkMob, MOTION_SPECIAL_4);
-			LoadSkillMotion(pkMotionSet, pkMob, MOTION_SPECIAL_5);
+			load_skill_motion(pkMotionSet, pkMob, MOTION_SPECIAL_1);
+			load_skill_motion(pkMotionSet, pkMob, MOTION_SPECIAL_2);
+			load_skill_motion(pkMotionSet, pkMob, MOTION_SPECIAL_3);
+			load_skill_motion(pkMotionSet, pkMob, MOTION_SPECIAL_4);
+			load_skill_motion(pkMotionSet, pkMob, MOTION_SPECIAL_5);
 
 			// POLYMORPH_BUG_FIX
-			float normalAttackDuration = MOB_GetNormalAttackDuration(t);
-			metin2::log::info( "mob_normal_attack_duration:{:d}:{}:{:.2f}", t->dwVnum, t->szFolder, normalAttackDuration);
-			m_map_normalAttackDuration.insert(std::map<uint32_t, float>::value_type(t->dwVnum, normalAttackDuration));
+			float normalAttackDuration = mob_get_normal_attack_duration(t);
+			metin2::log::info( "mob_normal_attack_duration:{:d}:{}:{:.2f}", t->vnum, t->folder, normalAttackDuration);
+			map_normal_attack_duration_.insert(std::map<uint32_t, float>::value_type(t->vnum, normalAttackDuration));
 			// END_OF_POLYMORPH_BUG_FIX
 		}
 	}
@@ -368,96 +368,96 @@ bool CMotionManager::Build()
 	return true;
 }
 
-CMotionSet::CMotionSet()
+motion_set::motion_set()
 {
 }
 
-CMotionSet::~CMotionSet()
+motion_set::~motion_set()
 {
 }
 
-const CMotion * CMotionSet::GetMotion(uint32_t dwKey) const
+const motion * motion_set::get_motion(uint32_t dwKey) const
 {
-	const_iterator it = m_map_pkMotion.find(dwKey);
+	const_iterator it = map_pk_motion_.find(dwKey);
 
-	if (it == m_map_pkMotion.end())
+	if (it == map_pk_motion_.end())
 		return nullptr;
 
 	return it->second.get();
 }
 
-void CMotionSet::Insert(uint32_t dwKey, std::unique_ptr<CMotion> pkMotion)
+void motion_set::insert(uint32_t dwKey, std::unique_ptr<motion> pkMotion)
 {
-	m_map_pkMotion.insert(TContainer::value_type(dwKey, std::move(pkMotion)));
+	map_pk_motion_.insert(container::value_type(dwKey, std::move(pkMotion)));
 }
 
-bool CMotionSet::Load(const char * szFileName, int mode, int motion)
+bool motion_set::load(const char * szFileName, int mode, int motion)
 {
-	auto pkMotion = std::make_unique<CMotion>();
+	auto pkMotion = std::make_unique<game::characters::motion>();
 
-	if (!pkMotion->LoadFromFile(szFileName))
+	if (!pkMotion->load_from_file(szFileName))
 		return false;
 
-	Insert(MAKE_MOTION_KEY(mode, motion), std::move(pkMotion));
+	insert(make_motion_key(mode, motion), std::move(pkMotion));
 
 	return true;
 }
 
-CMotion::CMotion() : m_fDuration(0.0f)
+motion::motion() : duration_(0.0f)
 {
-	m_vec3Accumulation.x = 0.0f;
-	m_vec3Accumulation.y = 0.0f;
-	m_vec3Accumulation.z = 0.0f;
+	vec3_accumulation_.x = 0.0f;
+	vec3_accumulation_.y = 0.0f;
+	vec3_accumulation_.z = 0.0f;
 }  
 
-CMotion::~CMotion()
+motion::~motion()
 {
 }
 
-bool CMotion::LoadMobSkillFromFile(const char * c_pszFileName, CMob* pMob, int iSkillIndex)
+bool motion::load_mob_skill_from_file(const char * c_pszFileName, mob* pMob, int iSkillIndex)
 {
-	CTextFileLoader rkTextFileLoader;
-	if (!rkTextFileLoader.Load(c_pszFileName))
+	text_file_loader rkTextFileLoader;
+	if (!rkTextFileLoader.load(c_pszFileName))
 		return false;
 
-	rkTextFileLoader.SetTop();
+	rkTextFileLoader.set_top();
 
-	if (!rkTextFileLoader.GetTokenFloat("motionduration", &m_fDuration))
+	if (!rkTextFileLoader.token_float("motionduration", &duration_))
 	{
 		metin2::log::error("Motion: no motion duration {}", c_pszFileName);
 		return false;
 	}
 
 	std::string strNodeName;
-	for (uint32_t i = 0; i < rkTextFileLoader.GetChildNodeCount(); ++i)
+	for (uint32_t i = 0; i < rkTextFileLoader.child_node_count(); ++i)
 	{
-		rkTextFileLoader.SetChildNode(i);
+		rkTextFileLoader.set_child_node(i);
 
-		rkTextFileLoader.GetCurrentNodeName(&strNodeName);
+		rkTextFileLoader.current_node_name(&strNodeName);
 
 		if (0 == strNodeName.compare("motioneventdata"))
 		{
 			uint32_t dwMotionEventDataCount;
 
-			if (!rkTextFileLoader.GetTokenDoubleWord("motioneventdatacount", &dwMotionEventDataCount))
+			if (!rkTextFileLoader.token_double_word("motioneventdatacount", &dwMotionEventDataCount))
 				continue;
 
 			for (uint32_t j = 0; j < dwMotionEventDataCount; ++j)
 			{
-				if (!rkTextFileLoader.SetChildNode("event", j))
+				if (!rkTextFileLoader.set_child_node("event", j))
 				{
 					metin2::log::error("Motion: no event data {:d} {}", j, c_pszFileName);
 					return false;
 				}
 
 				int iType;
-				if (!rkTextFileLoader.GetTokenInteger("motioneventtype", &iType))
+				if (!rkTextFileLoader.token_integer("motioneventtype", &iType))
 				{
 					metin2::log::error("Motion: no motioneventtype data {}", c_pszFileName);
 					return false;
 				}
 
-				VECTOR v3Position;
+				vector v3Position;
 
 				switch (iType)
 				{
@@ -469,24 +469,24 @@ bool CMotion::LoadMobSkillFromFile(const char * c_pszFileName, CMob* pMob, int i
 					case MOTION_EVENT_TYPE_CHARACTER_HIDE:
 					case MOTION_EVENT_TYPE_WARP:
 					case MOTION_EVENT_TYPE_EFFECT_TO_TARGET:
-						rkTextFileLoader.SetParentNode();
+						rkTextFileLoader.set_parent_node();
 						continue;
 
 					case MOTION_EVENT_TYPE_SPECIAL_ATTACKING:
 						// Assume old data has only one
-						if (!rkTextFileLoader.SetChildNode("spheredata", 0))
+						if (!rkTextFileLoader.set_child_node("spheredata", 0))
 						{
 							metin2::log::error("Motion: no sphere data {}", c_pszFileName);
 							return false;
 						}
 
-						if (!rkTextFileLoader.GetTokenPosition("position", &v3Position))
+						if (!rkTextFileLoader.token_position("position", &v3Position))
 						{
 							metin2::log::error("Motion: no position data {}", c_pszFileName);
 							return false;
 						}
 
-						rkTextFileLoader.SetParentNode();
+						rkTextFileLoader.set_parent_node();
 						break;
 					default:
 						assert(!" CRaceMotionData::LoadMotionData - Strange Event Type");
@@ -496,55 +496,55 @@ bool CMotion::LoadMobSkillFromFile(const char * c_pszFileName, CMob* pMob, int i
 
 				float fStartingTime;
 
-				if (!rkTextFileLoader.GetTokenFloat("startingtime", &fStartingTime))
+				if (!rkTextFileLoader.token_float("startingtime", &fStartingTime))
 				{
 					metin2::log::error("Motion: no startingtime data {}", c_pszFileName);
 					return false;
 				}
 
-				pMob->AddSkillSplash(iSkillIndex, 100 + uint32_t(fStartingTime * 1000), -(uint32_t)(v3Position.y));
+				pMob->add_skill_splash(iSkillIndex, 100 + uint32_t(fStartingTime * 1000), -(uint32_t)(v3Position.y));
 
-				rkTextFileLoader.SetParentNode();
+				rkTextFileLoader.set_parent_node();
 			}
 		}
-		rkTextFileLoader.SetParentNode();
+		rkTextFileLoader.set_parent_node();
 	}
 
-	pMob->m_mobSkillInfo[iSkillIndex].dwSkillVnum = pMob->m_table.Skills[iSkillIndex].dwVnum;
-	pMob->m_mobSkillInfo[iSkillIndex].bSkillLevel = pMob->m_table.Skills[iSkillIndex].bLevel;
+	pMob->mob_skill_info[iSkillIndex].skill_vnum = pMob->table.skills[iSkillIndex].vnum;
+	pMob->mob_skill_info[iSkillIndex].skill_level = pMob->table.skills[iSkillIndex].level;
 	return true;
 }
 
-bool CMotion::LoadFromFile(const char * c_pszFileName)
+bool motion::load_from_file(const char * c_pszFileName)
 {
-	CTextFileLoader loader;
+	text_file_loader loader;
 
-	if (!loader.Load(c_pszFileName))
+	if (!loader.load(c_pszFileName))
 	{
 		metin2::log::info( "Motion: LoadFromFile fail: {}", c_pszFileName);
 		return false;
 	}
 
-	if (!loader.GetTokenFloat("motionduration", &m_fDuration))
+	if (!loader.token_float("motionduration", &duration_))
 	{
 		metin2::log::error("Motion: {} does not have a duration", c_pszFileName);
 		return false;
 	}
 
-	if (loader.GetTokenPosition("accumulation", &m_vec3Accumulation))
+	if (loader.token_position("accumulation", &vec3_accumulation_))
 
-	metin2::log::debug( "{:<48} {:.3f} {:f}", strchr(c_pszFileName, '/') + 1, GetDuration(), GetAccumVector().y);
+	metin2::log::debug( "{:<48} {:.3f} {:f}", strchr(c_pszFileName, '/') + 1, duration(), accum_vector().y);
 
 	return true;
 }
 
-float CMotion::GetDuration() const
+float motion::duration() const
 {
-	return m_fDuration;
+	return duration_;
 }
 
-const VECTOR & CMotion::GetAccumVector() const
+const vector & motion::accum_vector() const
 {
-	return m_vec3Accumulation;
+	return vec3_accumulation_;
 }
 }

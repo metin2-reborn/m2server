@@ -14,7 +14,7 @@
 
 namespace metin2::game::inline events {
 
-enum MEMBER_IDENTITY {
+enum member_identity {
     MEMBER_NO,
     MEMBER_DUELIST,
     MEMBER_OBSERVER,
@@ -22,122 +22,122 @@ enum MEMBER_IDENTITY {
     MEMBER_MAX
 };
 
-class CArena {
-    friend class CArenaMap;
+class arena {
+    friend class arena_map;
 
   private:
-    uint32_t m_dwPIDA;
-    uint32_t m_dwPIDB;
+    uint32_t pida_;
+    uint32_t pidb_;
 
-    LPEVENT m_pEvent;
-    LPEVENT m_pTimeOutEvent;
+    event_ptr event_;
+    event_ptr time_out_event_;
 
-    PIXEL_POSITION m_StartPointA;
-    PIXEL_POSITION m_StartPointB;
-    PIXEL_POSITION m_ObserverPoint;
+    pixel_position start_point_a_;
+    pixel_position start_point_b_;
+    pixel_position observer_point_;
 
-    uint32_t m_dwSetCount;
-    uint32_t m_dwSetPointOfA;
-    uint32_t m_dwSetPointOfB;
+    uint32_t set_count_;
+    uint32_t set_point_of_a_;
+    uint32_t set_point_of_b_;
 
-    std::map<uint32_t, CHARACTER *> m_mapObserver;
+    std::map<uint32_t, character *> observer_;
 
   protected:
-    CArena(uint16_t startA_X, uint16_t startA_Y, uint16_t startB_X, uint16_t startB_Y);
+    arena(uint16_t startA_X, uint16_t startA_Y, uint16_t startB_X, uint16_t startB_Y);
 
-    bool StartDuel(CHARACTER * pCharFrom, CHARACTER * pCharTo, int nSetPoint, int nMinute = 5);
+    bool start_duel(character * pCharFrom, character * pCharTo, int nSetPoint, int nMinute = 5);
 
-    bool IsEmpty() const { return ((m_dwPIDA == 0) && (m_dwPIDB == 0)); }
-    bool IsMember(uint32_t dwPID) const { return ((m_dwPIDA == dwPID) || (m_dwPIDB == dwPID)); }
+    bool is_empty() const { return ((pida_ == 0) && (pidb_ == 0)); }
+    bool is_member(uint32_t dwPID) const { return ((pida_ == dwPID) || (pidb_ == dwPID)); }
 
-    bool CheckArea(uint16_t startA_X, uint16_t startA_Y, uint16_t startB_X, uint16_t startB_Y);
-    void Clear();
+    bool check_area(uint16_t startA_X, uint16_t startA_Y, uint16_t startB_X, uint16_t startB_Y);
+    void clear();
 
-    bool CanAttack(uint32_t dwPIDA, uint32_t dwPIDB);
-    bool OnDead(uint32_t dwPIDA, uint32_t dwPIDB);
+    bool can_attack(uint32_t dwPIDA, uint32_t dwPIDB);
+    bool on_dead(uint32_t dwPIDA, uint32_t dwPIDB);
 
-    bool IsObserver(uint32_t pid);
-    bool IsMyObserver(uint16_t ObserverX, uint16_t ObserverY);
-    bool AddObserver(CHARACTER * pChar);
-    bool RegisterObserverPtr(CHARACTER * pChar);
+    bool is_observer(uint32_t pid);
+    bool is_my_observer(uint16_t ObserverX, uint16_t ObserverY);
+    bool add_observer(character * pChar);
+    bool register_observer_ptr(character * pChar);
 
   public:
-    uint32_t GetPlayerAPID() { return m_dwPIDA; }
-    uint32_t GetPlayerBPID() { return m_dwPIDB; }
+    uint32_t player_apid() { return pida_; }
+    uint32_t player_bpid() { return pidb_; }
 
-    CHARACTER * GetPlayerA() { return CHARACTER_MANAGER::instance().FindByPID(m_dwPIDA); }
-    CHARACTER * GetPlayerB() { return CHARACTER_MANAGER::instance().FindByPID(m_dwPIDB); }
+    character * player_a() { return character_manager::instance().find_by_pid(pida_); }
+    character * player_b() { return character_manager::instance().find_by_pid(pidb_); }
 
-    PIXEL_POSITION GetStartPointA() { return m_StartPointA; }
-    PIXEL_POSITION GetStartPointB() { return m_StartPointB; }
+    pixel_position start_point_a() { return start_point_a_; }
+    pixel_position start_point_b() { return start_point_b_; }
 
-    PIXEL_POSITION GetObserverPoint() { return m_ObserverPoint; }
+    pixel_position observer_point() { return observer_point_; }
 
-    void EndDuel();
-    void ClearEvent() { m_pEvent = nullptr; }
-    void OnDisconnect(uint32_t pid);
-    void RemoveObserver(uint32_t pid);
+    void end_duel();
+    void clear_event() { event_ = nullptr; }
+    void on_disconnect(uint32_t pid);
+    void remove_observer(uint32_t pid);
 
-    void SendChatPacketToObserver(uint8_t type, const char *format, ...);
+    void send_chat_packet_to_observer(uint8_t type, const char *format, ...);
 };
 
-class CArenaMap {
-    friend class CArenaManager;
+class arena_map {
+    friend class arena_manager;
 
   private:
-    uint32_t m_dwMapIndex;
-    std::list<std::unique_ptr<CArena>> m_listArena;
+    uint32_t map_index_;
+    std::list<std::unique_ptr<arena>> arena_;
 
   protected:
-    void Destroy();
+    void destroy();
 
-    bool AddArena(uint32_t mapIdx, uint16_t startA_X, uint16_t startA_Y, uint16_t startB_X, uint16_t startB_Y);
-    void SendArenaMapListTo(CHARACTER * pChar, uint32_t dwMapIndex);
+    bool add_arena(uint32_t mapIdx, uint16_t startA_X, uint16_t startA_Y, uint16_t startB_X, uint16_t startB_Y);
+    void send_arena_map_list_to(character * pChar, uint32_t dwMapIndex);
 
-    bool StartDuel(CHARACTER * pCharFrom, CHARACTER * pCharTo, int nSetPoint, int nMinute = 5);
-    void EndAllDuel();
-    bool EndDuel(uint32_t pid);
+    bool start_duel(character * pCharFrom, character * pCharTo, int nSetPoint, int nMinute = 5);
+    void end_all_duel();
+    bool end_duel(uint32_t pid);
 
-    int GetDuelList(lua_State *L, int index);
+    int duel_list(lua_State *L, int index);
 
-    bool CanAttack(CHARACTER * pCharAttacker, CHARACTER * pCharVictim);
-    bool OnDead(CHARACTER * pCharKiller, CHARACTER * pCharVictim);
+    bool can_attack(character * pCharAttacker, character * pCharVictim);
+    bool on_dead(character * pCharKiller, character * pCharVictim);
 
-    bool AddObserver(CHARACTER * pChar, uint16_t ObserverX, uint16_t ObserverY);
-    bool RegisterObserverPtr(CHARACTER * pChar, uint32_t mapIdx, uint16_t ObserverX, uint16_t ObserverY);
+    bool add_observer(character * pChar, uint16_t ObserverX, uint16_t ObserverY);
+    bool register_observer_ptr(character * pChar, uint32_t mapIdx, uint16_t ObserverX, uint16_t ObserverY);
 
-    MEMBER_IDENTITY IsMember(uint32_t PID);
+    member_identity is_member(uint32_t PID);
 };
 
-class CArenaManager : public singleton<CArenaManager> {
+class arena_manager : public singleton<arena_manager> {
   private:
-    std::map<uint32_t, std::unique_ptr<CArenaMap>> m_mapArenaMap;
+    std::map<uint32_t, std::unique_ptr<arena_map>> arena_map_;
 
   public:
-    bool Initialize();
-    void Destroy();
+    bool initialize();
+    void destroy();
 
-    bool StartDuel(CHARACTER * pCharFrom, CHARACTER * pCharTo, int nSetPoint, int nMinute = 5);
+    bool start_duel(character * pCharFrom, character * pCharTo, int nSetPoint, int nMinute = 5);
 
-    bool AddArena(uint32_t mapIdx, uint16_t startA_X, uint16_t startA_Y, uint16_t startB_X, uint16_t startB_Y);
+    bool add_arena(uint32_t mapIdx, uint16_t startA_X, uint16_t startA_Y, uint16_t startB_X, uint16_t startB_Y);
 
-    void SendArenaMapListTo(CHARACTER * pChar);
+    void send_arena_map_list_to(character * pChar);
 
-    void EndAllDuel();
-    bool EndDuel(uint32_t pid);
+    void end_all_duel();
+    bool end_duel(uint32_t pid);
 
-    void GetDuelList(lua_State *L);
+    void duel_list(lua_State *L);
 
-    bool CanAttack(CHARACTER * pCharAttacker, CHARACTER * pCharVictim);
+    bool can_attack(character * pCharAttacker, character * pCharVictim);
 
-    bool OnDead(CHARACTER * pCharKiller, CHARACTER * pCharVictim);
+    bool on_dead(character * pCharKiller, character * pCharVictim);
 
-    bool AddObserver(CHARACTER * pChar, uint32_t mapIdx, uint16_t ObserverX, uint16_t ObserverY);
-    bool RegisterObserverPtr(CHARACTER * pChar, uint32_t mapIdx, uint16_t ObserverX, uint16_t ObserverY);
+    bool add_observer(character * pChar, uint32_t mapIdx, uint16_t ObserverX, uint16_t ObserverY);
+    bool register_observer_ptr(character * pChar, uint32_t mapIdx, uint16_t ObserverX, uint16_t ObserverY);
 
-    bool IsArenaMap(uint32_t dwMapIndex);
-    MEMBER_IDENTITY IsMember(uint32_t dwMapIndex, uint32_t PID);
+    bool is_arena_map(uint32_t dwMapIndex);
+    member_identity is_member(uint32_t dwMapIndex, uint32_t PID);
 
-    bool IsLimitedItem(int32_t lMapIndex, uint32_t dwVnum);
+    bool is_limited_item(int32_t lMapIndex, uint32_t dwVnum);
 };
 }

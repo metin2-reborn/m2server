@@ -20,55 +20,55 @@ namespace metin2::game::inline events {
 
 namespace xmas
 {
-	void ProcessEventFlag(const std::string& name, int prev_value, int value)
+	void process_event_flag(const std::string& name, int prev_value, int value)
 	{
 		if (name == "xmas_snow" || name == "xmas_boom" || name == "xmas_song" || name == "xmas_tree")
 		{
 			// Spread them
-			const DESC_MANAGER::DESC_SET & c_ref_set = DESC_MANAGER::instance().GetClientSet();
+			const desc_manager::desc_set & c_ref_set = desc_manager::instance().client_set();
 
 			for (auto it = c_ref_set.begin(); it != c_ref_set.end(); ++it)
 			{
-				CHARACTER * ch = (*it)->GetCharacter();
+				character * ch = (*it)->get_character();
 
 				if (!ch)
 					continue;
 
-				ch->ChatPacket(CHAT_TYPE_COMMAND, "%s %d", name.c_str(), value);
+				ch->chat_packet(CHAT_TYPE_COMMAND, "%s %d", name.c_str(), value);
 			}
 
 			if (name == "xmas_boom")
 			{
 				if (value && !prev_value)
 				{
-					SpawnEventHelper(true);
+					spawn_event_helper(true);
 				}
 				else if (!value && prev_value)
 				{
-					SpawnEventHelper(false);
+					spawn_event_helper(false);
 				}
 			}
 			else if (name == "xmas_tree")
 			{
 				if (value > 0 && prev_value == 0)
 				{
-					CharacterVectorInteractor i;
+					character_vector_interactor i;
 
 					// Create if it doesn't exist
-					if (!CHARACTER_MANAGER::instance().GetCharactersByRaceNum(MOB_XMAS_TREE_VNUM, i))
-						CHARACTER_MANAGER::instance().SpawnMob(MOB_XMAS_TREE_VNUM, 61, 76500 + 358400, 60900 + 153600, 0, false, -1);
+					if (!character_manager::instance().characters_by_race_num(MOB_XMAS_TREE_VNUM, i))
+						character_manager::instance().spawn_mob(MOB_XMAS_TREE_VNUM, 61, 76500 + 358400, 60900 + 153600, 0, false, -1);
 				}
 				else if (prev_value > 0 && value == 0)
 				{
 					// Remove if it exists
-					CharacterVectorInteractor i;
+					character_vector_interactor i;
 
-					if (CHARACTER_MANAGER::instance().GetCharactersByRaceNum(MOB_XMAS_TREE_VNUM, i))
+					if (character_manager::instance().characters_by_race_num(MOB_XMAS_TREE_VNUM, i))
 					{
-						CharacterVectorInteractor::iterator it = i.begin();
+						character_vector_interactor::iterator it = i.begin();
 
 						while (it != i.end())
-							CHARACTER_MANAGER::instance().DestroyCharacter(*it++);
+							character_manager::instance().destroy_character(*it++);
 					}
 				}
 			}
@@ -80,14 +80,14 @@ namespace xmas
 				case 0:
 					// Code that removes it if it exists
 					{
-						CharacterVectorInteractor i;
+						character_vector_interactor i;
 
-						if (CHARACTER_MANAGER::instance().GetCharactersByRaceNum(MOB_SANTA_VNUM, i))
+						if (character_manager::instance().characters_by_race_num(MOB_SANTA_VNUM, i))
 						{
-							CharacterVectorInteractor::iterator it = i.begin();
+							character_vector_interactor::iterator it = i.begin();
 
 							while (it != i.end())
-								CHARACTER_MANAGER::instance().DestroyCharacter(*it++);
+								character_manager::instance().destroy_character(*it++);
 						}
 					}
 
@@ -97,12 +97,12 @@ namespace xmas
 					// If I am Mt. Seohan, create Santa if missing and set the state to 2.
 					if (map_allow_find(61))
 					{
-						quest::CQuestManager::instance().RequestSetEventFlag("xmas_santa", 2);
+						quest::quest_manager::instance().request_set_event_flag("xmas_santa", 2);
 
-						CharacterVectorInteractor i;
+						character_vector_interactor i;
 
-						if (CHARACTER_MANAGER::instance().GetCharactersByRaceNum(MOB_SANTA_VNUM, i))
-							CHARACTER_MANAGER::instance().SpawnMobRandomPosition(MOB_SANTA_VNUM, 61);
+						if (character_manager::instance().characters_by_race_num(MOB_SANTA_VNUM, i))
+							character_manager::instance().spawn_mob_random_position(MOB_SANTA_VNUM, 61);
 					}
 					break;
 
@@ -114,10 +114,10 @@ namespace xmas
 
 	EVENTINFO(spawn_santa_info)
 	{
-		int32_t lMapIndex;
+		int32_t map_index;
 
 		spawn_santa_info() 
-		: lMapIndex( 0 )
+		: map_index( 0 )
 		{
 		}
 	};
@@ -132,26 +132,26 @@ namespace xmas
 			return 0;
 		}
 
-		int32_t lMapIndex = info->lMapIndex;
+		int32_t lMapIndex = info->map_index;
 
-		if (quest::CQuestManager::instance().GetEventFlag("xmas_santa") == 0)
+		if (quest::quest_manager::instance().event_flag("xmas_santa") == 0)
 			return 0;
 
-		CharacterVectorInteractor i;
+		character_vector_interactor i;
 
-		if (CHARACTER_MANAGER::instance().GetCharactersByRaceNum(MOB_SANTA_VNUM, i))
+		if (character_manager::instance().characters_by_race_num(MOB_SANTA_VNUM, i))
 			return 0;
 
-		if (CHARACTER_MANAGER::instance().SpawnMobRandomPosition(xmas::MOB_SANTA_VNUM, lMapIndex))
+		if (character_manager::instance().spawn_mob_random_position(xmas::MOB_SANTA_VNUM, lMapIndex))
 		{
 			metin2::log::info( "santa comes to town!");
 			return 0;
 		}
 
-		return PASSES_PER_SEC(5);
+		return passes_per_sec(5);
 	}
 
-	void SpawnSanta(int32_t lMapIndex, int iTimeGapSec)
+	void spawn_santa(int32_t lMapIndex, int iTimeGapSec)
 	{
 		if (metin2::config::test_server())
 		{
@@ -159,21 +159,21 @@ namespace xmas
 		}
 
 		metin2::log::info( "santa respawn time = {:d}", iTimeGapSec);
-		spawn_santa_info* info = AllocEventInfo<spawn_santa_info>();
+		spawn_santa_info* info = alloc_event_info<spawn_santa_info>();
 
-		info->lMapIndex = lMapIndex;
+		info->map_index = lMapIndex;
 
-		event_create(spawn_santa_event, info, PASSES_PER_SEC(iTimeGapSec));
+		event_create(spawn_santa_event, info, passes_per_sec(iTimeGapSec));
 	}
 
-	void SpawnEventHelper(bool spawn)
+	void spawn_event_helper(bool spawn)
 	{
 		if ( spawn == true )
 		{
 			// Create if it doesn't exist
-			struct SNPCSellFireworkPosition
+			struct npc_sell_firework_position
 			{
-				int32_t lMapIndex;
+				int32_t map_index;
 				int x;
 				int y;
 			} positions[] = {
@@ -186,36 +186,36 @@ namespace xmas
 				{ 0,	0,	0   },
 			};
 
-			SNPCSellFireworkPosition* p = positions;
-			while (p->lMapIndex)
+			npc_sell_firework_position* p = positions;
+			while (p->map_index)
 			{
-				if (map_allow_find(p->lMapIndex))
+				if (map_allow_find(p->map_index))
 				{
-					PIXEL_POSITION posBase;
-					if (!SECTREE_MANAGER::instance().GetMapBasePositionByMapIndex(p->lMapIndex, posBase))
+					pixel_position posBase;
+					if (!sectree_manager::instance().map_base_position_by_map_index(p->map_index, posBase))
 					{
-						metin2::log::error("cannot get map base position {:d}", p->lMapIndex);
+						metin2::log::error("cannot get map base position {:d}", p->map_index);
 						p++;
 						continue;
 					}
 
-					CHARACTER_MANAGER::instance().SpawnMob(
-							MOB_XMAS_FIRWORK_SELLER_VNUM, p->lMapIndex, posBase.x + p->x * 100, posBase.y + p->y * 100, 0, false, -1);
+					character_manager::instance().spawn_mob(
+							MOB_XMAS_FIRWORK_SELLER_VNUM, p->map_index, posBase.x + p->x * 100, posBase.y + p->y * 100, 0, false, -1);
 				}
 				p++;
 			}
 		}
 		else
 		{
-			CharacterVectorInteractor i;
+			character_vector_interactor i;
 
 			// Remove if it exists
-			if (CHARACTER_MANAGER::instance().GetCharactersByRaceNum(MOB_XMAS_FIRWORK_SELLER_VNUM, i))
+			if (character_manager::instance().characters_by_race_num(MOB_XMAS_FIRWORK_SELLER_VNUM, i))
 			{
-				CharacterVectorInteractor::iterator it = i.begin();
+				character_vector_interactor::iterator it = i.begin();
 
 				while (it != i.end())
-					CHARACTER_MANAGER::instance().DestroyCharacter(*it++);
+					character_manager::instance().destroy_character(*it++);
 			}
 		}
 	}

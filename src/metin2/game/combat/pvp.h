@@ -10,7 +10,7 @@
 #include <unordered_set>
 
 namespace metin2::game::inline characters {
-    class CHARACTER;
+    class character;
 }
 
 namespace metin2::game::inline combat {
@@ -18,69 +18,69 @@ namespace metin2::game::inline combat {
 
 // CPVP takes two uint32_t IDs, builds m_dwCRC from them and keeps it.
 // CPVPManager looks entries up by the CRC built this way.
-class CPVP
+class pvp
 {
 	public:
-		friend class CPVPManager;
+		friend class pvp_manager;
 
-		struct TPlayer {
-			uint32_t	dwPID;
-			uint32_t	dwVID;
-			bool	bAgree;
-			bool	bCanRevenge;
+		struct player {
+			uint32_t	pid;
+			uint32_t	vid;
+			bool	agree;
+			bool	can_revenge;
 
-			TPlayer() : dwPID(0), dwVID(0), bAgree(false), bCanRevenge(false)
+			player() : pid(0), vid(0), agree(false), can_revenge(false)
 			{
 			}
 		};
 
-		CPVP(uint32_t dwID1, uint32_t dwID2);
-		CPVP(CPVP & v);
-		~CPVP();
+		pvp(uint32_t dwID1, uint32_t dwID2);
+		pvp(pvp & v);
+		~pvp();
 
-		void	Win(uint32_t dwPID); // dwPID won!
-		bool	IsFight();
-		bool	Agree(uint32_t dwPID);
+		void	win(uint32_t dwPID); // dwPID won!
+		bool	is_fight();
+		bool	agree(uint32_t dwPID);
 
-		void	SetVID(uint32_t dwPID, uint32_t dwVID);
-		void	Packet(bool bDelete = false);
+		void	set_vid(uint32_t dwPID, uint32_t dwVID);
+		void	packet(bool bDelete = false);
 
-		void	SetLastFightTime();
-		uint32_t	GetLastFightTime();
+		void	set_last_fight_time();
+		uint32_t	last_fight_time();
 
 	protected:
-		TPlayer	m_players[2];
-		uint32_t	m_dwCRC;
-		bool	m_bRevenge;
+		player	players_[2];
+		uint32_t	crc_;
+		bool	revenge_;
 
-		uint32_t   m_dwLastFightTime;
+		uint32_t   last_fight_time_;
 };
 
-class CPVPManager : public singleton<CPVPManager>
+class pvp_manager : public singleton<pvp_manager>
 {
-	typedef std::map<uint32_t, std::unordered_set<CPVP*> > CPVPSetMap;
+	typedef std::map<uint32_t, std::unordered_set<pvp*> > pvp_set_map;
 
 	public:
-	CPVPManager();
-	~CPVPManager() override;
+	pvp_manager();
+	~pvp_manager() override;
 
-	void			Insert(CHARACTER * pkChr, CHARACTER * pkVictim);
-	bool			CanAttack(CHARACTER * pkChr, CHARACTER * pkVictim);
-	bool			Dead(CHARACTER * pkChr, uint32_t dwKillerPID);	// Returns whether it was in PVP
-	void			Connect(CHARACTER * pkChr);
-	void			Disconnect(CHARACTER * pkChr);
+	void			insert(character * pkChr, character * pkVictim);
+	bool			can_attack(character * pkChr, character * pkVictim);
+	bool			dead(character * pkChr, uint32_t dwKillerPID);	// Returns whether it was in PVP
+	void			connect(character * pkChr);
+	void			disconnect(character * pkChr);
 
-	void			SendList(DESC * d);
-	void			Delete(CPVP * pkPVP);
+	void			send_list(desc * d);
+	void			delete_(pvp * pkPVP);
 
-	void			Process();
+	void			process();
 
 	public:
-	CPVP *			Find(uint32_t dwCRC);
+	pvp *			find(uint32_t dwCRC);
 	protected:
-	void			ConnectEx(CHARACTER * pkChr, bool bDisconnect);
+	void			connect_ex(character * pkChr, bool bDisconnect);
 
-	std::map<uint32_t, std::unique_ptr<CPVP>>	m_map_pkPVP;
-	CPVPSetMap		m_map_pkPVPSetByID;
+	std::map<uint32_t, std::unique_ptr<pvp>>	map_pk_pvp_;
+	pvp_set_map		map_pk_pvp_set_by_id_;
 };
 }

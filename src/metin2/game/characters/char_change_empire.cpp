@@ -29,9 +29,9 @@
 */
 namespace metin2::game::inline characters {
 
-int CHARACTER::ChangeEmpire(uint8_t empire)
+int character::change_empire(uint8_t empire_value)
 {
-	if (GetEmpire() == empire)
+	if (empire() == empire_value)
 		return 1;
 
 	uint32_t dwAID;
@@ -42,16 +42,16 @@ int CHARACTER::ChangeEmpire(uint8_t empire)
 		// 1. get all pids of my account
 		const std::string query = sql::format(
 				"SELECT id, pid1, pid2, pid3, pid4 FROM player_index{} WHERE (pid1={} OR pid2={} OR pid3={} OR pid4={}) AND empire={}", 
-				sql::raw(get_table_postfix()), GetPlayerID(), GetPlayerID(), GetPlayerID(), GetPlayerID(), GetEmpire());
+				sql::raw(get_table_postfix()), player_id(), player_id(), player_id(), player_id(), empire());
 
-		std::unique_ptr<SQLMsg> msg(DBManager::instance().DirectQuery(query));
+		std::unique_ptr<ql_msg> msg(db_manager::instance().direct_query(query));
 
-		if (msg->Get()->uiNumRows == 0)
+		if (msg->get()->num_rows == 0)
 		{
 			return 0;
 		}
 
-		MYSQL_ROW row = mysql_fetch_row(msg->Get()->pSQLResult);
+		MYSQL_ROW row = mysql_fetch_row(msg->get()->sql_result);
 
 		str_to_number(dwAID, row[0]);
 		str_to_number(dwPID[0], row[1]);
@@ -66,22 +66,22 @@ int CHARACTER::ChangeEmpire(uint8_t empire)
 		// 2. get guild info for each character.
 		//   if even one character is in a guild, the empire cannot be changed.
 		uint32_t dwGuildID[4];
-		CGuild * pGuild[4];
+		guild * pGuild[4];
 		for (int i = 0; i < loop; ++i)
 		{
 			const std::string query = sql::format("SELECT guild_id FROM guild_member{} WHERE pid={}", sql::raw(get_table_postfix()), dwPID[i]);
 
-			std::unique_ptr<SQLMsg> pMsg(DBManager::instance().DirectQuery(query));
+			std::unique_ptr<ql_msg> pMsg(db_manager::instance().direct_query(query));
 
 			if (pMsg != nullptr)
 			{
-				if (pMsg->Get()->uiNumRows > 0)
+				if (pMsg->get()->num_rows > 0)
 				{
-					MYSQL_ROW row = mysql_fetch_row(pMsg->Get()->pSQLResult);
+					MYSQL_ROW row = mysql_fetch_row(pMsg->get()->sql_result);
 
 					str_to_number(dwGuildID[i], row[0]);
 
-					pGuild[i] = CGuildManager::instance().FindGuild(dwGuildID[i]);
+					pGuild[i] = guild_manager::instance().find_guild(dwGuildID[i]);
 
 					if (pGuild[i] != nullptr)
 					{
@@ -102,7 +102,7 @@ int CHARACTER::ChangeEmpire(uint8_t empire)
 		//   if even one character is married, the empire cannot be changed.
 		for (int i = 0; i < loop; ++i)
 		{
-			if (marriage::CManager::instance().IsEngagedOrMarried(dwPID[i]) == true)
+			if (marriage::manager::instance().is_engaged_or_married(dwPID[i]) == true)
 				return 3;
 		}
 	}
@@ -110,14 +110,14 @@ int CHARACTER::ChangeEmpire(uint8_t empire)
 	{
 		// 4. update the empire info in the db.
 		const std::string query = sql::format("UPDATE player_index{} SET empire={} WHERE (pid1={} OR pid2={} OR pid3={} OR pid4={}) AND empire={}", 
-				sql::raw(get_table_postfix()), empire, GetPlayerID(), GetPlayerID(), GetPlayerID(), GetPlayerID(), GetEmpire());
+				sql::raw(get_table_postfix()), empire_value, player_id(), player_id(), player_id(), player_id(), empire());
 
-		std::unique_ptr<SQLMsg> msg(DBManager::instance().DirectQuery(query));
+		std::unique_ptr<ql_msg> msg(db_manager::instance().direct_query(query));
 
-		if (msg->Get()->uiAffectedRows > 0)
+		if (msg->get()->affected_rows > 0)
 		{
 			// 5. add an empire change history record.
-			SetChangeEmpireCount();
+			set_change_empire_count();
 
 			return 999;
 		}
@@ -126,23 +126,23 @@ int CHARACTER::ChangeEmpire(uint8_t empire)
 	return 0;
 }
 
-int CHARACTER::GetChangeEmpireCount() const
+int character::change_empire_count() const
 {
-	uint32_t dwAID = GetAID();
+	uint32_t dwAID = aid();
 
 	if (dwAID == 0)
 		return 0;
 
-	std::unique_ptr<SQLMsg> pMsg(DBManager::instance().DirectQuery(sql::format("SELECT change_count FROM change_empire WHERE account_id = {}", dwAID)));
+	std::unique_ptr<ql_msg> pMsg(db_manager::instance().direct_query(sql::format("SELECT change_count FROM change_empire WHERE account_id = {}", dwAID)));
 
 	if (pMsg != nullptr)
 	{
-		if (pMsg->Get()->uiNumRows == 0)
+		if (pMsg->get()->num_rows == 0)
 		{
 			return 0;
 		}
 
-		MYSQL_ROW row = mysql_fetch_row(pMsg->Get()->pSQLResult);
+		MYSQL_ROW row = mysql_fetch_row(pMsg->get()->sql_result);
 
 		uint32_t count = 0;
 		str_to_number(count, row[0]);
@@ -153,15 +153,15 @@ int CHARACTER::GetChangeEmpireCount() const
 	return 0;
 }
 
-void CHARACTER::SetChangeEmpireCount()
+void character::set_change_empire_count()
 {
 	std::string query;
 
-	uint32_t dwAID = GetAID();
+	uint32_t dwAID = aid();
 
 	if (dwAID == 0) return;
 
-	int count = GetChangeEmpireCount();
+	int count = change_empire_count();
 
 	if (count == 0)
 	{
@@ -174,26 +174,26 @@ void CHARACTER::SetChangeEmpireCount()
 		query = sql::format("UPDATE change_empire SET change_count={} WHERE account_id={}", count, dwAID);
 	}
 
-	std::unique_ptr<SQLMsg> pmsg(DBManager::instance().DirectQuery(query));
+	std::unique_ptr<ql_msg> pmsg(db_manager::instance().direct_query(query));
 }
 
-uint32_t CHARACTER::GetAID() const
+uint32_t character::aid() const
 {
 	uint32_t dwAID = 0;
 
 	const std::string query = sql::format("SELECT id FROM player_index{} WHERE (pid1={} OR pid2={} OR pid3={} OR pid4={}) AND empire={}", 
-			sql::raw(get_table_postfix()), GetPlayerID(), GetPlayerID(), GetPlayerID(), GetPlayerID(), GetEmpire());
+			sql::raw(get_table_postfix()), player_id(), player_id(), player_id(), player_id(), empire());
 
-	std::unique_ptr<SQLMsg> pMsg(DBManager::instance().DirectQuery(query));
+	std::unique_ptr<ql_msg> pMsg(db_manager::instance().direct_query(query));
 
 	if (pMsg != nullptr)
 	{
-		if (pMsg->Get()->uiNumRows == 0)
+		if (pMsg->get()->num_rows == 0)
 		{
 			return 0;
 		}
 
-		MYSQL_ROW row = mysql_fetch_row(pMsg->Get()->pSQLResult);
+		MYSQL_ROW row = mysql_fetch_row(pMsg->get()->sql_result);
 
 		str_to_number(dwAID, row[0]);
 

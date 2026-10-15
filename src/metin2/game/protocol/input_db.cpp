@@ -67,42 +67,42 @@
 namespace metin2::game::inline protocol {
 
 
-bool GetServerLocation(TAccountTable & rTab, uint8_t bEmpire)
+bool get_server_location(account_table & rTab, uint8_t bEmpire)
 {
 	bool bFound = false;
 
 	for (int i = 0; i < PLAYER_PER_ACCOUNT; ++i)
 	{
-		if (0 == rTab.players[i].dwID)
+		if (0 == rTab.players[i].id)
 			continue;
 
 		bFound = true;
 		int32_t lIndex = 0;
 
-		if (!CMapLocation::instance().Get(rTab.players[i].x,
+		if (!map_locations::instance().get(rTab.players[i].x,
 					rTab.players[i].y,
 					lIndex,
-					rTab.players[i].lAddr,
-					rTab.players[i].wPort))
+					rTab.players[i].addr,
+					rTab.players[i].port))
 		{
 			metin2::log::error("location error name {} mapindex {:d} {:d} x {:d} empire {:d}",
-					rTab.players[i].szName, lIndex, rTab.players[i].x, rTab.players[i].y, rTab.bEmpire);
+					rTab.players[i].name, lIndex, rTab.players[i].x, rTab.players[i].y, rTab.empire);
 
-			rTab.players[i].x = EMPIRE_START_X(rTab.bEmpire);
-			rTab.players[i].y = EMPIRE_START_Y(rTab.bEmpire);
+			rTab.players[i].x = empire_start_x(rTab.empire);
+			rTab.players[i].y = empire_start_y(rTab.empire);
 
 			lIndex = 0;
 
-			if (!CMapLocation::instance().Get(rTab.players[i].x, rTab.players[i].y, lIndex, rTab.players[i].lAddr, rTab.players[i].wPort))
+			if (!map_locations::instance().get(rTab.players[i].x, rTab.players[i].y, lIndex, rTab.players[i].addr, rTab.players[i].port))
 			{
 				metin2::log::error("cannot find server for mapindex {:d} {:d} x {:d} (name {})", 
 						lIndex,
 						rTab.players[i].x,
 						rTab.players[i].y,
-						rTab.players[i].szName);
+						rTab.players[i].name);
 
-				if (!g_stProxyIP.empty())
-					rTab.players[i].lAddr=inet_addr(g_stProxyIP.c_str());
+				if (!proxy_ip.empty())
+					rTab.players[i].addr=inet_addr(proxy_ip.c_str());
 
 				continue;
 			}
@@ -110,33 +110,33 @@ bool GetServerLocation(TAccountTable & rTab, uint8_t bEmpire)
 
 		struct in_addr in;
 
-		if (!g_stProxyIP.empty())
-			rTab.players[i].lAddr=inet_addr(g_stProxyIP.c_str());
+		if (!proxy_ip.empty())
+			rTab.players[i].addr=inet_addr(proxy_ip.c_str());
 
-		in.s_addr = rTab.players[i].lAddr;
-		metin2::log::info( "success to {}:{:d}", inet_ntoa(in), rTab.players[i].wPort);
+		in.s_addr = rTab.players[i].addr;
+		metin2::log::info( "success to {}:{:d}", inet_ntoa(in), rTab.players[i].port);
 	}
 
 	return bFound;
 }
 
 
-void CInputDB::LoginSuccess(uint32_t dwHandle, const char *data)
+void input_db::login_success(uint32_t dwHandle, const char *data)
 {
 	metin2::log::info( "LoginSuccess");
 
-	TAccountTable * pTab = (TAccountTable *) data;
+	account_table * pTab = (account_table *) data;
 
-	DESC * d = DESC_MANAGER::instance().FindByHandle(dwHandle);
+	desc * d = desc_manager::instance().find_by_handle(dwHandle);
 
 	if (!d)
 	{
 		metin2::log::info( "CInputDB::LoginSuccess - cannot find handle [{}]", pTab->login);
 
-		TLogoutPacket pack;
+		logout_packet pack;
 
 		strlcpy(pack.login, pTab->login, sizeof(pack.login));
-		db_clientdesc->DBPacket(HEADER_GD_LOGOUT, dwHandle, &pack, sizeof(pack));
+		db_clientdesc->db_packet(HEADER_GD_LOGOUT, dwHandle, &pack, sizeof(pack));
 		return;
 	}
 
@@ -144,174 +144,174 @@ void CInputDB::LoginSuccess(uint32_t dwHandle, const char *data)
 	{
 		metin2::log::info( "CInputDB::LoginSuccess - status[{}] is not OK [{}]", pTab->status, pTab->login);
 
-		TLogoutPacket pack;
+		logout_packet pack;
 
 		strlcpy(pack.login, pTab->login, sizeof(pack.login));
-		db_clientdesc->DBPacket(HEADER_GD_LOGOUT, dwHandle, &pack, sizeof(pack));
+		db_clientdesc->db_packet(HEADER_GD_LOGOUT, dwHandle, &pack, sizeof(pack));
 
-		LoginFailure(d, pTab->status);
+		login_failure(d, pTab->status);
 		return;
 	}
 
 	for (int i = 0; i != PLAYER_PER_ACCOUNT; ++i)
 	{
-		TSimplePlayer& player = pTab->players[i];
-		metin2::log::info( "\tplayer({}).job({:d})", player.szName, player.byJob);
+		simple_player& player = pTab->players[i];
+		metin2::log::info( "\tplayer({}).job({:d})", player.name, player.job);
 	}
 
-	bool bFound = GetServerLocation(*pTab, pTab->bEmpire);
+	bool bFound = get_server_location(*pTab, pTab->empire);
 
-	d->BindAccountTable(pTab);
+	d->bind_account_table(pTab);
 
 	if (!bFound) // if there's no character, send to a random empire.. -_-
 	{
-		TPacketGCEmpire pe;
-		pe.bHeader = HEADER_GC_EMPIRE;
-		pe.bEmpire = number(1, 3);
-		d->Packet(&pe, sizeof(pe));
+		packet_gc_empire pe;
+		pe.header = HEADER_GC_EMPIRE;
+		pe.empire = number(1, 3);
+		d->packet(&pe, sizeof(pe));
 	}
 	else
 	{
-		TPacketGCEmpire pe;
-		pe.bHeader = HEADER_GC_EMPIRE;
-		pe.bEmpire = d->GetEmpire();
-		d->Packet(&pe, sizeof(pe));
+		packet_gc_empire pe;
+		pe.header = HEADER_GC_EMPIRE;
+		pe.empire = d->empire();
+		d->packet(&pe, sizeof(pe));
 	}
 
-	d->SetPhase(PHASE_SELECT);
-	d->SendLoginSuccessPacket();
+	d->set_phase(PHASE_SELECT);
+	d->send_login_success_packet();
 
 	metin2::log::info( "InputDB::login_success: {}", pTab->login);
 }
 
-void CInputDB::PlayerCreateFailure(DESC * d, uint8_t bType)
+void input_db::player_create_failure(desc * d, uint8_t bType)
 {
 	if (!d)
 		return;
 
-	TPacketGCCreateFailure pack;
+	packet_gc_create_failure pack;
 
 	pack.header	= HEADER_GC_CHARACTER_CREATE_FAILURE;
-	pack.bType	= bType;
+	pack.type	= bType;
 
-	d->Packet(&pack, sizeof(pack));
+	d->packet(&pack, sizeof(pack));
 }
 
-void CInputDB::PlayerCreateSuccess(DESC * d, const char * data)
+void input_db::player_create_success(desc * d, const char * data)
 {
 	if (!d)
 		return;
 
-	TPacketDGCreateSuccess * pPacketDB = (TPacketDGCreateSuccess *) data;
+	packet_dg_create_success * pPacketDB = (packet_dg_create_success *) data;
 
-	if (pPacketDB->bAccountCharacterIndex >= PLAYER_PER_ACCOUNT)
+	if (pPacketDB->account_character_index >= PLAYER_PER_ACCOUNT)
 	{
-		d->Packet(encode_byte(HEADER_GC_CHARACTER_CREATE_FAILURE), 1);
+		d->packet(encode_byte(HEADER_GC_CHARACTER_CREATE_FAILURE), 1);
 		return;
 	}
 
 	int32_t lIndex = 0;
 
-	if (!CMapLocation::instance().Get(pPacketDB->player.x,
+	if (!game::world::map_locations::instance().get(pPacketDB->player.x,
 				pPacketDB->player.y,
 				lIndex,
-				pPacketDB->player.lAddr,
-				pPacketDB->player.wPort))
+				pPacketDB->player.addr,
+				pPacketDB->player.port))
 	{
 		metin2::log::error("InputDB::PlayerCreateSuccess: cannot find server for mapindex {:d} {:d} x {:d} (name {})", 
 				lIndex,
 				pPacketDB->player.x,
 				pPacketDB->player.y,
-				pPacketDB->player.szName);
+				pPacketDB->player.name);
 	}
 
-	TAccountTable & r_Tab = d->GetAccountTable();
-	r_Tab.players[pPacketDB->bAccountCharacterIndex] = pPacketDB->player;
+	account_table & r_Tab = d->get_account_table();
+	r_Tab.players[pPacketDB->account_character_index] = pPacketDB->player;
 
-	TPacketGCPlayerCreateSuccess pack;
+	packet_gc_player_create_success pack;
 
 	pack.header = HEADER_GC_CHARACTER_CREATE_SUCCESS;
-	pack.bAccountCharacterIndex = pPacketDB->bAccountCharacterIndex;
+	pack.account_character_index = pPacketDB->account_character_index;
 	pack.player = pPacketDB->player;
 
-	if (!g_stProxyIP.empty())
-		pack.player.lAddr=inet_addr(g_stProxyIP.c_str());
+	if (!proxy_ip.empty())
+		pack.player.addr=inet_addr(proxy_ip.c_str());
 
-	d->Packet(&pack, sizeof(TPacketGCPlayerCreateSuccess));
+	d->packet(&pack, sizeof(packet_gc_player_create_success));
 
-	LogManager::instance().CharLog(pack.player.dwID, 0, 0, 0, "CREATE PLAYER", "", d->GetHostName());
+	log_manager::instance().char_log(pack.player.id, 0, 0, 0, "CREATE PLAYER", "", d->host_name());
 }
 
-void CInputDB::PlayerDeleteSuccess(DESC * d, const char * data)
+void input_db::player_delete_success(desc * d, const char * data)
 {
 	if (!d)
 		return;
 
 	uint8_t account_index;
 	account_index = decode_byte(data);
-	d->BufferedPacket(encode_byte(HEADER_GC_CHARACTER_DELETE_SUCCESS),	1);
-	d->Packet(encode_byte(account_index),			1);
+	d->buffered_packet(encode_byte(HEADER_GC_CHARACTER_DELETE_SUCCESS),	1);
+	d->packet(encode_byte(account_index),			1);
 
-	d->GetAccountTable().players[account_index].dwID = 0;
+	d->get_account_table().players[account_index].id = 0;
 }
 
-void CInputDB::PlayerDeleteFail(DESC * d)
+void input_db::player_delete_fail(desc * d)
 {
 	if (!d)
 		return;
 
-	d->Packet(encode_byte(HEADER_GC_CHARACTER_DELETE_WRONG_SOCIAL_ID),	1);
+	d->packet(encode_byte(HEADER_GC_CHARACTER_DELETE_WRONG_SOCIAL_ID),	1);
 
 }
 
-void CInputDB::ChangeName(DESC * d, const char * data)
+void input_db::change_name(desc * d, const char * data)
 {
 	if (!d)
 		return;
 
-	TPacketDGChangeName * p = (TPacketDGChangeName *) data;
+	packet_dg_change_name * p = (packet_dg_change_name *) data;
 
-	TAccountTable & r = d->GetAccountTable();
+	account_table & r = d->get_account_table();
 
 	if (!r.id)
 		return;
 
 	for (size_t i = 0; i < PLAYER_PER_ACCOUNT; ++i)
-		if (r.players[i].dwID == p->pid)
+		if (r.players[i].id == p->pid)
 		{
-			strlcpy(r.players[i].szName, p->name, sizeof(r.players[i].szName));
-			r.players[i].bChangeName = 0;
+			strlcpy(r.players[i].name, p->name, sizeof(r.players[i].name));
+			r.players[i].change_name = 0;
 
-			TPacketGCChangeName pgc;
+			packet_gc_change_name pgc;
 
 			pgc.header = HEADER_GC_CHANGE_NAME;
 			pgc.pid = p->pid;
 			strlcpy(pgc.name, p->name, sizeof(pgc.name));
 
-			d->Packet(&pgc, sizeof(TPacketGCChangeName));
+			d->packet(&pgc, sizeof(packet_gc_change_name));
 			break;
 		}
 }
 
-void CInputDB::PlayerLoad(DESC * d, const char * data)
+void input_db::player_load(desc * d, const char * data)
 {
-	TPlayerTable * pTab = (TPlayerTable *) data;
+	player_table * pTab = (player_table *) data;
 
 	if (!d)
 		return;
 
-	int32_t lMapIndex = pTab->lMapIndex;
-	PIXEL_POSITION pos;
+	int32_t lMapIndex = pTab->map_index;
+	pixel_position pos;
 
 	if (lMapIndex == 0)
 	{
-		lMapIndex = SECTREE_MANAGER::instance().GetMapIndex(pTab->x, pTab->y);
+		lMapIndex = sectree_manager::instance().map_index(pTab->x, pTab->y);
 
 		if (lMapIndex == 0) // coordinates not found.
 		{
-			lMapIndex = EMPIRE_START_MAP(d->GetAccountTable().bEmpire);
-			pos.x = EMPIRE_START_X(d->GetAccountTable().bEmpire);
-			pos.y = EMPIRE_START_Y(d->GetAccountTable().bEmpire);
+			lMapIndex = empire_start_map(d->get_account_table().empire);
+			pos.x = empire_start_x(d->get_account_table().empire);
+			pos.y = empire_start_y(d->get_account_table().empire);
 		}
 		else
 		{
@@ -319,7 +319,7 @@ void CInputDB::PlayerLoad(DESC * d, const char * data)
 			pos.y = pTab->y;
 		}
 	}
-	pTab->lMapIndex = lMapIndex;
+	pTab->map_index = lMapIndex;
 
 	// if they were on a private map and the private map is gone, they must return to the exit.
 	// ----
@@ -327,60 +327,60 @@ void CInputDB::PlayerLoad(DESC * d, const char * data)
 	// I don't know the history... so hardcoding again.
 	// if it's the Demon's Cave, go to the exit...
 	// by rtsummit
-	if (!SECTREE_MANAGER::instance().GetValidLocation(pTab->lMapIndex, pTab->x, pTab->y, lMapIndex, pos, d->GetEmpire()))
+	if (!sectree_manager::instance().valid_location(pTab->map_index, pTab->x, pTab->y, lMapIndex, pos, d->empire()))
 	{
 		metin2::log::error("InputDB::PlayerLoad : cannot find valid location {:d} x {:d} (name: {})", pTab->x, pTab->y, pTab->name);
-		d->SetPhase(PHASE_CLOSE);
+		d->set_phase(PHASE_CLOSE);
 		return;
 	}
 
 	pTab->x = pos.x;
 	pTab->y = pos.y;
-	pTab->lMapIndex = lMapIndex;
+	pTab->map_index = lMapIndex;
 
-	if (d->GetCharacter() || d->IsPhase(PHASE_GAME))
+	if (d->get_character() || d->is_phase(PHASE_GAME))
 	{
-		CHARACTER * p = d->GetCharacter();
-		metin2::log::error("login state already has main state (character {} {})", p->GetName(), static_cast<const void *>(p));
+		character * p = d->get_character();
+		metin2::log::error("login state already has main state (character {} {})", p->name(), static_cast<const void *>(p));
 		return;
 	}
 
-	if (nullptr != CHARACTER_MANAGER::instance().FindPC(pTab->name))
+	if (nullptr != character_manager::instance().find_pc(pTab->name))
 	{
 		metin2::log::error("InputDB: PlayerLoad : {} already exist in game", pTab->name);
 		return;
 	}
 
-	CHARACTER * ch = CHARACTER_MANAGER::instance().CreateCharacter(pTab->name, pTab->id);
+	character * ch = character_manager::instance().create_character(pTab->name, pTab->id);
 
-	ch->BindDesc(d);
-	ch->SetPlayerProto(pTab);
-	ch->SetEmpire(d->GetEmpire());
+	ch->bind_desc(d);
+	ch->set_player_proto(pTab);
+	ch->set_empire(d->empire());
 
-	d->BindCharacter(ch);
+	d->bind_character(ch);
 	
 	{
 		// P2P Login
-		TPacketGGLogin p;
+		packet_gg_login p;
 
-		p.bHeader = HEADER_GG_LOGIN;
-		strlcpy(p.szName, ch->GetName(), sizeof(p.szName));
-		p.dwPID = ch->GetPlayerID();
-		p.bEmpire = ch->GetEmpire();
-		p.lMapIndex = SECTREE_MANAGER::instance().GetMapIndex(ch->GetX(), ch->GetY());
-		p.bChannel = metin2::config::server().channel;
+		p.header = HEADER_GG_LOGIN;
+		strlcpy(p.name, ch->name(), sizeof(p.name));
+		p.pid = ch->player_id();
+		p.empire = ch->empire();
+		p.map_index = sectree_manager::instance().map_index(ch->x(), ch->y());
+		p.channel = metin2::config::server().channel;
 
-		P2P_MANAGER::instance().Send(&p, sizeof(TPacketGGLogin));
+		p2_p_manager::instance().send(&p, sizeof(packet_gg_login));
 
 		char buf[51];
 		snprintf(buf, sizeof(buf), "%s %d %d %d %d",
-				ch->GetDesc()->GetHostName(), ch->GetGold(), metin2::config::server().channel, ch->GetMapIndex(), ch->GetAlignment());
-		LogManager::instance().CharLog(ch, 0, "LOGIN", buf);
+				ch->get_desc()->host_name(), ch->gold(), metin2::config::server().channel, ch->map_index(), ch->alignment());
+		log_manager::instance().char_log(ch, 0, "LOGIN", buf);
 
 	}
 
-	d->SetPhase(PHASE_LOADING);
-	ch->MainCharacterPacket();
+	d->set_phase(PHASE_LOADING);
+	ch->main_character_packet();
 
 	int32_t lPublicMapIndex = lMapIndex >= 10000 ? lMapIndex / 10000 : lMapIndex;
 
@@ -388,39 +388,39 @@ void CInputDB::PlayerLoad(DESC * d, const char * data)
 	if (!map_allow_find(lPublicMapIndex))
 	{
 		metin2::log::error("InputDB::PlayerLoad : entering {:d} map is not allowed here (name: {}, empire {:d})", 
-				lMapIndex, pTab->name, d->GetEmpire());
+				lMapIndex, pTab->name, d->empire());
 
-		ch->SetWarpLocation(EMPIRE_START_MAP(d->GetEmpire()),
-				EMPIRE_START_X(d->GetEmpire()) / 100,
-				EMPIRE_START_Y(d->GetEmpire()) / 100);
+		ch->set_warp_location(empire_start_map(d->empire()),
+				empire_start_x(d->empire()) / 100,
+				empire_start_y(d->empire()) / 100);
 
-		d->SetPhase(PHASE_CLOSE);
+		d->set_phase(PHASE_CLOSE);
 		return;
 	}
 
-	quest::CQuestManager::instance().BroadcastEventFlagOnLogin(ch);
+	quest::quest_manager::instance().broadcast_event_flag_on_login(ch);
 
 	for (int i = 0; i < QUICKSLOT_MAX_NUM; ++i)
-		ch->SetQuickslot(i, pTab->quickslot[i]);
+		ch->set_quickslot(i, pTab->quickslot[i]);
 
-	ch->PointsPacket();
-	ch->SkillLevelPacket();
+	ch->points_packet();
+	ch->skill_level_packet();
 
 	metin2::log::info( "InputDB: player_load {} {:d}x{:d}x{:d} LEVEL {:d} MOV_SPEED {:d} JOB {:d} ATG {:d} DFG {:d} GMLv {:d}",
 			pTab->name, 
-			ch->GetX(), ch->GetY(), ch->GetZ(),
-			ch->GetLevel(),
-			ch->GetPoint(POINT_MOV_SPEED),
-			ch->GetJob(),
-			ch->GetPoint(POINT_ATT_GRADE),
-			ch->GetPoint(POINT_DEF_GRADE),
-			ch->GetGMLevel());
+			ch->x(), ch->y(), ch->z(),
+			ch->level(),
+			ch->point(POINT_MOV_SPEED),
+			ch->job(),
+			ch->point(POINT_ATT_GRADE),
+			ch->point(POINT_DEF_GRADE),
+			ch->gm_level());
 
-	ch->QuerySafeboxSize();
+	ch->query_safebox_size();
 
 }
 
-void CInputDB::Boot(const char* data)
+void input_db::boot(const char* data)
 {
 	signal_timer_disable();
 
@@ -440,19 +440,19 @@ void CInputDB::Boot(const char* data)
 		thecore_shutdown();
 	}
 
-	metin2::log::info( "sizeof(TMobTable) = {:d}", sizeof(TMobTable));
-	metin2::log::info( "sizeof(TItemTable) = {:d}", sizeof(TItemTable));
-	metin2::log::info( "sizeof(TShopTable) = {:d}", sizeof(TShopTable));
-	metin2::log::info( "sizeof(TSkillTable) = {:d}", sizeof(TSkillTable));
-	metin2::log::info( "sizeof(TRefineTable) = {:d}", sizeof(TRefineTable));
-	metin2::log::info( "sizeof(TItemAttrTable) = {:d}", sizeof(TItemAttrTable));
-	metin2::log::info( "sizeof(TItemRareTable) = {:d}", sizeof(TItemAttrTable));
-	metin2::log::info( "sizeof(TBanwordTable) = {:d}", sizeof(TBanwordTable));
-	metin2::log::info( "sizeof(TLand) = {:d}", sizeof(building::TLand));
-	metin2::log::info( "sizeof(TObjectProto) = {:d}", sizeof(building::TObjectProto));
-	metin2::log::info( "sizeof(TObject) = {:d}", sizeof(building::TObject));
+	metin2::log::info( "sizeof(TMobTable) = {:d}", sizeof(mob_table));
+	metin2::log::info( "sizeof(TItemTable) = {:d}", sizeof(item_table));
+	metin2::log::info( "sizeof(TShopTable) = {:d}", sizeof(shop_table));
+	metin2::log::info( "sizeof(TSkillTable) = {:d}", sizeof(skill_table));
+	metin2::log::info( "sizeof(TRefineTable) = {:d}", sizeof(refine_table));
+	metin2::log::info( "sizeof(TItemAttrTable) = {:d}", sizeof(item_attr_table));
+	metin2::log::info( "sizeof(TItemRareTable) = {:d}", sizeof(item_attr_table));
+	metin2::log::info( "sizeof(TBanwordTable) = {:d}", sizeof(banword_table));
+	metin2::log::info( "sizeof(TLand) = {:d}", sizeof(building::land_table));
+	metin2::log::info( "sizeof(TObjectProto) = {:d}", sizeof(building::object_proto));
+	metin2::log::info( "sizeof(TObject) = {:d}", sizeof(building::object_table));
 	//ADMIN_MANAGER
-	metin2::log::info( "sizeof(TAdminManager) = {:d}", sizeof (tAdminInfo) );
+	metin2::log::info( "sizeof(TAdminManager) = {:d}", sizeof (t_admin_info) );
 	//END_ADMIN_MANAGER
 
 	uint16_t size;
@@ -461,7 +461,7 @@ void CInputDB::Boot(const char* data)
 	 * MOB
 	 */
 
-	if (decode_2bytes(data)!=sizeof(TMobTable))
+	if (decode_2bytes(data)!=sizeof(mob_table))
 	{
 		metin2::log::error("mob table size error");
 		thecore_shutdown();
@@ -475,15 +475,15 @@ void CInputDB::Boot(const char* data)
 
 	if (size)
 	{
-		CMobManager::instance().Initialize((TMobTable *) data, size);
-		data += size * sizeof(TMobTable);
+		mob_manager::instance().initialize((mob_table *) data, size);
+		data += size * sizeof(mob_table);
 	}
 
 	/*
 	 * ITEM
 	 */
 
-	if (decode_2bytes(data) != sizeof(TItemTable))
+	if (decode_2bytes(data) != sizeof(item_table))
 	{
 		metin2::log::error("item table size error");
 		thecore_shutdown();
@@ -498,15 +498,15 @@ void CInputDB::Boot(const char* data)
 
 	if (size)
 	{
-		ITEM_MANAGER::instance().Initialize((TItemTable *) data, size);
-		data += size * sizeof(TItemTable);
+		item_manager::instance().initialize((item_table *) data, size);
+		data += size * sizeof(item_table);
 	}
 
 	/*
 	 * SHOP
 	 */
 
-	if (decode_2bytes(data) != sizeof(TShopTable))
+	if (decode_2bytes(data) != sizeof(shop_table))
 	{
 		metin2::log::error("shop table size error");
 		thecore_shutdown();
@@ -521,20 +521,20 @@ void CInputDB::Boot(const char* data)
 
 	if (size)
 	{
-		if (!CShopManager::instance().Initialize((TShopTable *) data, size))
+		if (!shop_manager::instance().initialize((shop_table *) data, size))
 		{
 			metin2::log::error("shop table Initialize error");
 			thecore_shutdown();
 			return;
 		}
-		data += size * sizeof(TShopTable);
+		data += size * sizeof(shop_table);
 	}
 
 	/*
 	 * SKILL
 	 */
 
-	if (decode_2bytes(data) != sizeof(TSkillTable))
+	if (decode_2bytes(data) != sizeof(skill_table))
 	{
 		metin2::log::error("skill table size error");
 		thecore_shutdown();
@@ -548,19 +548,19 @@ void CInputDB::Boot(const char* data)
 
 	if (size)
 	{
-		if (!CSkillManager::instance().Initialize((TSkillTable *) data, size))
+		if (!skill_manager::instance().initialize((skill_table *) data, size))
 		{
 			metin2::log::error("cannot initialize skill table");
 			thecore_shutdown();
 			return;
 		}
 
-		data += size * sizeof(TSkillTable);
+		data += size * sizeof(skill_table);
 	}
 	/*
 	 * REFINE RECIPE
 	 */
-	if (decode_2bytes(data) != sizeof(TRefineTable))
+	if (decode_2bytes(data) != sizeof(refine_table))
 	{
 		metin2::log::error("refine table size error");
 		thecore_shutdown();
@@ -574,14 +574,14 @@ void CInputDB::Boot(const char* data)
 
 	if (size)
 	{
-		CRefineManager::instance().Initialize((TRefineTable*) data, size);
-		data += size * sizeof(TRefineTable);
+		refine_manager::instance().initialize((refine_table*) data, size);
+		data += size * sizeof(refine_table);
 	}
 
 	/*
 	 * ITEM ATTR
 	 */
-	if (decode_2bytes(data) != sizeof(TItemAttrTable))
+	if (decode_2bytes(data) != sizeof(item_attr_table))
 	{
 		metin2::log::error("item attr table size error");
 		thecore_shutdown();
@@ -595,25 +595,25 @@ void CInputDB::Boot(const char* data)
 
 	if (size)
 	{
-		TItemAttrTable * p = (TItemAttrTable *) data;
+		item_attr_table * p = (item_attr_table *) data;
 
 		for (int i = 0; i < size; ++i, ++p)
 		{
-			if (p->dwApplyIndex >= MAX_APPLY_NUM)
+			if (p->apply_index >= MAX_APPLY_NUM)
 				continue;
 
-			g_map_itemAttr[p->dwApplyIndex] = *p;
-			metin2::log::info( "ITEM_ATTR[{:d}]: {} {:d}", p->dwApplyIndex, p->szApply, p->dwProb);
+			map_item_attr[p->apply_index] = *p;
+			metin2::log::info( "ITEM_ATTR[{:d}]: {} {:d}", p->apply_index, p->apply, p->prob);
 		}
 	}
 
-	data += size * sizeof(TItemAttrTable);
+	data += size * sizeof(item_attr_table);
 
 
 	/*
      * ITEM RARE
      */
-	if (decode_2bytes(data) != sizeof(TItemAttrTable))
+	if (decode_2bytes(data) != sizeof(item_attr_table))
 	{
 		metin2::log::error("item rare table size error");
 		thecore_shutdown();
@@ -627,26 +627,26 @@ void CInputDB::Boot(const char* data)
 
 	if (size)
 	{
-		TItemAttrTable * p = (TItemAttrTable *) data;
+		item_attr_table * p = (item_attr_table *) data;
 
 		for (int i = 0; i < size; ++i, ++p)
 		{
-			if (p->dwApplyIndex >= MAX_APPLY_NUM)
+			if (p->apply_index >= MAX_APPLY_NUM)
 				continue;
 
-			g_map_itemRare[p->dwApplyIndex] = *p;
-			metin2::log::info( "ITEM_RARE[{:d}]: {} {:d}", p->dwApplyIndex, p->szApply, p->dwProb);
+			map_item_rare[p->apply_index] = *p;
+			metin2::log::info( "ITEM_RARE[{:d}]: {} {:d}", p->apply_index, p->apply, p->prob);
 		}
 	}
 
-	data += size * sizeof(TItemAttrTable);
+	data += size * sizeof(item_attr_table);
 
 
 	/*
 	 * BANWORDS
 	 */
 
-	if (decode_2bytes(data) != sizeof(TBanwordTable))
+	if (decode_2bytes(data) != sizeof(banword_table))
 	{
 		metin2::log::error("ban word table size error");
 		thecore_shutdown();
@@ -657,8 +657,8 @@ void CInputDB::Boot(const char* data)
 	size = decode_2bytes(data);
 	data += 2;
 
-	CBanwordManager::instance().Initialize((TBanwordTable *) data, size);
-	data += size * sizeof(TBanwordTable);
+	banword_manager::instance().initialize((banword_table *) data, size);
+	data += size * sizeof(banword_table);
 
 	{
 		using namespace building;
@@ -667,7 +667,7 @@ void CInputDB::Boot(const char* data)
 		 * LANDS
 		 */
 
-		if (decode_2bytes(data) != sizeof(TLand))
+		if (decode_2bytes(data) != sizeof(land_table))
 		{
 			metin2::log::error("land table size error");
 			thecore_shutdown();
@@ -678,17 +678,17 @@ void CInputDB::Boot(const char* data)
 		size = decode_2bytes(data);
 		data += 2;
 
-		TLand * kLand = (TLand *) data;
-		data += size * sizeof(TLand);
+		land_table * kLand = (land_table *) data;
+		data += size * sizeof(land_table);
 
 		for (uint16_t i = 0; i < size; ++i, ++kLand)
-			CManager::instance().LoadLand(kLand);
+			manager::instance().load_land(kLand);
 
 		/*
 		 * OBJECT PROTO
 		 */
 
-		if (decode_2bytes(data) != sizeof(TObjectProto))
+		if (decode_2bytes(data) != sizeof(object_proto))
 		{
 			metin2::log::error("object proto table size error");
 			thecore_shutdown();
@@ -699,13 +699,13 @@ void CInputDB::Boot(const char* data)
 		size = decode_2bytes(data);
 		data += 2;
 
-		CManager::instance().LoadObjectProto((TObjectProto *) data, size);
-		data += size * sizeof(TObjectProto);
+		manager::instance().load_object_proto((object_proto *) data, size);
+		data += size * sizeof(object_proto);
 
 		/*
 		 * OBJECT 
 		 */
-		if (decode_2bytes(data) != sizeof(TObject))
+		if (decode_2bytes(data) != sizeof(object_table))
 		{
 			metin2::log::error("object table size error");
 			thecore_shutdown();
@@ -716,18 +716,18 @@ void CInputDB::Boot(const char* data)
 		size = decode_2bytes(data);
 		data += 2;
 
-		TObject * kObj = (TObject *) data;
-		data += size * sizeof(TObject);
+		object_table * kObj = (object_table *) data;
+		data += size * sizeof(object_table);
 
 		for (uint16_t i = 0; i < size; ++i, ++kObj)
-			CManager::instance().LoadObject(kObj, true);
+			manager::instance().load_object(kObj, true);
 	}
 	int32_t server_time;
     memcpy(&server_time, data, sizeof(server_time));
     set_global_time(server_time);
 	data += sizeof(int32_t);
 
-	if (decode_2bytes(data) != sizeof(TItemIDRangeTable) )
+	if (decode_2bytes(data) != sizeof(item_id_range_table) )
 	{
 		metin2::log::error("ITEM ID RANGE size error");
 		thecore_shutdown();
@@ -738,11 +738,11 @@ void CInputDB::Boot(const char* data)
 	size = decode_2bytes(data);
 	data += 2;
 
-	TItemIDRangeTable* range = (TItemIDRangeTable*) data;
-	data += size * sizeof(TItemIDRangeTable);
+	item_id_range_table* range = (item_id_range_table*) data;
+	data += size * sizeof(item_id_range_table);
 
-	TItemIDRangeTable* rangespare = (TItemIDRangeTable*) data;
-	data += size * sizeof(TItemIDRangeTable);
+	item_id_range_table* rangespare = (item_id_range_table*) data;
+	data += size * sizeof(item_id_range_table);
 
 	//ADMIN_MANAGER
 	//register admin
@@ -765,7 +765,7 @@ void CInputDB::Boot(const char* data)
 
 	for (int n = 0; n < adminsize; ++n )
 	{
-		tAdminInfo& rAdminInfo = *(tAdminInfo*)data;
+		t_admin_info& rAdminInfo = *(t_admin_info*)data;
 
 		gm_new_insert(rAdminInfo );
 		
@@ -778,10 +778,10 @@ void CInputDB::Boot(const char* data)
 	data += 2;
 	data += 2;
 
-	MonarchInfo& p = *(MonarchInfo *) data;
-	data += sizeof(MonarchInfo);
+	monarch_info& p = *(monarch_info *) data;
+	data += sizeof(monarch_info);
 
-	CMonarch::instance().SetMonarchInfo(&p);
+	monarch::instance().set_monarch_info(&p);
 
 	for (int n = 1; n < 4; ++n)
 	{
@@ -814,14 +814,14 @@ void CInputDB::Boot(const char* data)
 		metin2::log::info( "boot packet end check ok [{:x}]==0xffff", endCheck );
 	data +=2; 
 
-	if (!ITEM_MANAGER::instance().SetMaxItemID(*range))
+	if (!item_manager::instance().set_max_item_id(*range))
 	{
 		metin2::log::error("not enough item id contact your administrator!");
 		thecore_shutdown();
 		return;
 	}
 
-	if (!ITEM_MANAGER::instance().SetMaxSpareItemID(*rangespare))
+	if (!item_manager::instance().set_max_spare_item_id(*rangespare))
 	{
 		metin2::log::error("not enough item id for spare contact your administrator!");
 		thecore_shutdown();
@@ -842,24 +842,24 @@ void CInputDB::Boot(const char* data)
 	char szDragonSoulTableFileName[FILE_NAME_LEN];
 
 	snprintf(szCommonDropItemFileName, sizeof(szCommonDropItemFileName),
-			"%s/common_drop_item.txt", LocaleService_GetBasePath().c_str());
+			"%s/common_drop_item.txt", locale_service_get_base_path().c_str());
 	snprintf(szETCDropItemFileName, sizeof(szETCDropItemFileName),
-			"%s/etc_drop_item.txt", LocaleService_GetBasePath().c_str());
+			"%s/etc_drop_item.txt", locale_service_get_base_path().c_str());
 	snprintf(szMOBDropItemFileName, sizeof(szMOBDropItemFileName),
-			"%s/mob_drop_item.txt", LocaleService_GetBasePath().c_str());
+			"%s/mob_drop_item.txt", locale_service_get_base_path().c_str());
 	snprintf(szSpecialItemGroupFileName, sizeof(szSpecialItemGroupFileName),
-			"%s/special_item_group.txt", LocaleService_GetBasePath().c_str());
+			"%s/special_item_group.txt", locale_service_get_base_path().c_str());
 	snprintf(szDropItemGroupFileName, sizeof(szDropItemGroupFileName),
-			"%s/drop_item_group.txt", LocaleService_GetBasePath().c_str());
+			"%s/drop_item_group.txt", locale_service_get_base_path().c_str());
 	snprintf(szMapIndexFileName, sizeof(szMapIndexFileName),
-			"%s/index", LocaleService_GetMapPath().c_str());
+			"%s/index", locale_service_get_map_path().c_str());
 	snprintf(szItemVnumMaskTableFileName, sizeof(szItemVnumMaskTableFileName),
-			"%s/ori_to_new_table.txt", LocaleService_GetBasePath().c_str());
+			"%s/ori_to_new_table.txt", locale_service_get_base_path().c_str());
 	snprintf(szDragonSoulTableFileName, sizeof(szDragonSoulTableFileName),
-			"%s/dragon_soul_table.txt", LocaleService_GetBasePath().c_str());
+			"%s/dragon_soul_table.txt", locale_service_get_base_path().c_str());
 
 	metin2::log::info( "Initializing Informations of Cube System");
-	if (!Cube_InformationInitialize())
+	if (!cube_information_initialize())
 	{
 		metin2::log::error("cannot init cube infomation.");
 		thecore_shutdown();
@@ -867,7 +867,7 @@ void CInputDB::Boot(const char* data)
 	}
 
 	metin2::log::info( "LoadLocaleFile: CommonDropItem: {}", szCommonDropItemFileName);
-	if (!ITEM_MANAGER::instance().ReadCommonDropItemFile(szCommonDropItemFileName))
+	if (!item_manager::instance().read_common_drop_item_file(szCommonDropItemFileName))
 	{
 		metin2::log::error("cannot load CommonDropItem: {}", szCommonDropItemFileName);
 		thecore_shutdown();
@@ -875,7 +875,7 @@ void CInputDB::Boot(const char* data)
 	}
 
 	metin2::log::info( "LoadLocaleFile: ETCDropItem: {}", szETCDropItemFileName);
-	if (!ITEM_MANAGER::instance().ReadEtcDropItemFile(szETCDropItemFileName))
+	if (!item_manager::instance().read_etc_drop_item_file(szETCDropItemFileName))
 	{
 		metin2::log::error("cannot load ETCDropItem: {}", szETCDropItemFileName);
 		thecore_shutdown();
@@ -883,7 +883,7 @@ void CInputDB::Boot(const char* data)
 	}
 
 	metin2::log::info( "LoadLocaleFile: DropItemGroup: {}", szDropItemGroupFileName);
-	if (!ITEM_MANAGER::instance().ReadDropItemGroup(szDropItemGroupFileName))
+	if (!item_manager::instance().read_drop_item_group(szDropItemGroupFileName))
 	{
 		metin2::log::error("cannot load DropItemGroup: {}", szDropItemGroupFileName);
 		thecore_shutdown();
@@ -891,7 +891,7 @@ void CInputDB::Boot(const char* data)
 	}
 
 	metin2::log::info( "LoadLocaleFile: SpecialItemGroup: {}", szSpecialItemGroupFileName);
-	if (!ITEM_MANAGER::instance().ReadSpecialDropItemFile(szSpecialItemGroupFileName))
+	if (!item_manager::instance().read_special_drop_item_file(szSpecialItemGroupFileName))
 	{
 		metin2::log::error("cannot load SpecialItemGroup: {}", szSpecialItemGroupFileName);
 		thecore_shutdown();
@@ -899,13 +899,13 @@ void CInputDB::Boot(const char* data)
 	}
 
 	metin2::log::info( "LoadLocaleFile: ItemVnumMaskTable : {}", szItemVnumMaskTableFileName);
-	if (!ITEM_MANAGER::instance().ReadItemVnumMaskTable(szItemVnumMaskTableFileName))
+	if (!item_manager::instance().read_item_vnum_mask_table(szItemVnumMaskTableFileName))
 	{
 		metin2::log::info( "Could not open MaskItemTable");
 	}
 
 	metin2::log::info( "LoadLocaleFile: MOBDropItemFile: {}", szMOBDropItemFileName);
-	if (!ITEM_MANAGER::instance().ReadMonsterDropItemGroup(szMOBDropItemFileName))
+	if (!item_manager::instance().read_monster_drop_item_group(szMOBDropItemFileName))
 	{
 		metin2::log::error("cannot load MOBDropItemFile: {}", szMOBDropItemFileName);
 		thecore_shutdown();
@@ -913,7 +913,7 @@ void CInputDB::Boot(const char* data)
 	}
 
 	metin2::log::info( "LoadLocaleFile: MapIndex: {}", szMapIndexFileName);
-	if (!SECTREE_MANAGER::instance().Build(szMapIndexFileName, LocaleService_GetMapPath().c_str()))
+	if (!sectree_manager::instance().build(szMapIndexFileName, locale_service_get_map_path().c_str()))
 	{
 		metin2::log::error("cannot load MapIndex: {}", szMapIndexFileName);
 		thecore_shutdown();
@@ -921,7 +921,7 @@ void CInputDB::Boot(const char* data)
 	}
 
 	metin2::log::info( "LoadLocaleFile: DragonSoulTable: {}", szDragonSoulTableFileName);
-	if (!DSManager::instance().ReadDragonSoulTableFile(szDragonSoulTableFileName))
+	if (!ds_manager::instance().read_dragon_soul_table_file(szDragonSoulTableFileName))
 	{
 		metin2::log::error("cannot load DragonSoulTable: {}", szDragonSoulTableFileName);
 	}
@@ -929,15 +929,15 @@ void CInputDB::Boot(const char* data)
 	// END_OF_LOCALE_SERVICE
 
 
-	building::CManager::instance().FinalizeBoot();
+	building::manager::instance().finalize_boot();
 
-	CMotionManager::instance().Build();
+	motion_manager::instance().build();
 
 	signal_timer_enable(30);
 
 	if (metin2::config::test_server())
 	{
-		CMobManager::instance().DumpRegenCount("mob_count");
+		mob_manager::instance().dump_regen_count("mob_count");
 	}
 
 
@@ -950,10 +950,10 @@ void CInputDB::Boot(const char* data)
 
 EVENTINFO(quest_login_event_info)
 {
-	uint32_t dwPID;
+	uint32_t pid;
 
 	quest_login_event_info() 
-	: dwPID( 0 )
+	: pid( 0 )
 	{
 	}
 };
@@ -968,371 +968,371 @@ EVENTFUNC(quest_login_event)
 		return 0;
 	}
 
-	uint32_t dwPID = info->dwPID;
+	uint32_t dwPID = info->pid;
 
-	CHARACTER * ch = CHARACTER_MANAGER::instance().FindByPID(dwPID);
+	character * ch = character_manager::instance().find_by_pid(dwPID);
 
 	if (!ch)
 		return 0;
 
-	DESC * d = ch->GetDesc();
+	desc * d = ch->get_desc();
 
 	if (!d)
 		return 0;
 
-	if (d->IsPhase(PHASE_HANDSHAKE) ||
-		d->IsPhase(PHASE_LOGIN) ||
-		d->IsPhase(PHASE_SELECT) ||
-		d->IsPhase(PHASE_DEAD) ||
-		d->IsPhase(PHASE_LOADING))
+	if (d->is_phase(PHASE_HANDSHAKE) ||
+		d->is_phase(PHASE_LOGIN) ||
+		d->is_phase(PHASE_SELECT) ||
+		d->is_phase(PHASE_DEAD) ||
+		d->is_phase(PHASE_LOADING))
 	{
-		return PASSES_PER_SEC(1);
+		return passes_per_sec(1);
 	}
-	else if (d->IsPhase(PHASE_CLOSE))
+	else if (d->is_phase(PHASE_CLOSE))
 	{
 		return 0;
 	}
-	else if (d->IsPhase(PHASE_GAME))
+	else if (d->is_phase(PHASE_GAME))
 	{
-		metin2::log::info( "QUEST_LOAD: Login pc {:d} by event", ch->GetPlayerID());
-		quest::CQuestManager::instance().Login(ch->GetPlayerID());
+		metin2::log::info( "QUEST_LOAD: Login pc {:d} by event", ch->player_id());
+		quest::quest_manager::instance().login(ch->player_id());
 		return 0;
 	}
 	else
 	{
-		metin2::log::error("input_db.cpp:quest_login_event INVALID PHASE pid {:d}", ch->GetPlayerID());
+		metin2::log::error("input_db.cpp:quest_login_event INVALID PHASE pid {:d}", ch->player_id());
 		return 0;
 	}
 }
 
-void CInputDB::QuestLoad(DESC * d, const char * c_pData)
+void input_db::quest_load(desc * d, const char * c_pData)
 {
 	if (nullptr == d)
 		return;
 
-	CHARACTER * ch = d->GetCharacter();
+	character * ch = d->get_character();
 
 	if (nullptr == ch)
 		return;
 
 	const uint32_t dwCount = decode_4bytes(c_pData);
 
-	const TQuestTable* pQuestTable = reinterpret_cast<const TQuestTable*>(c_pData+4);
+	const quest_table* pQuestTable = reinterpret_cast<const quest_table*>(c_pData+4);
 
 	if (nullptr != pQuestTable)
 	{
 		if (dwCount != 0)
 		{
-			if (ch->GetPlayerID() != pQuestTable[0].dwPID)
+			if (ch->player_id() != pQuestTable[0].pid)
 			{
-				metin2::log::error("PID differs {:d} {:d}", ch->GetPlayerID(), pQuestTable[0].dwPID);
+				metin2::log::error("PID differs {:d} {:d}", ch->player_id(), pQuestTable[0].pid);
 				return;
 			}
 		}
 
 		metin2::log::info( "QUEST_LOAD: count {:d}", dwCount);
 
-		quest::PC * pkPC = quest::CQuestManager::instance().GetPCForce(ch->GetPlayerID());
+		quest::pc * pkPC = quest::quest_manager::instance().pc_force(ch->player_id());
 
 		if (!pkPC)
 		{
-			metin2::log::error("null quest::PC with id {:d}", pQuestTable[0].dwPID);
+			metin2::log::error("null quest::PC with id {:d}", pQuestTable[0].pid);
 			return;
 		}
 
-		if (pkPC->IsLoaded())
+		if (pkPC->is_loaded())
 			return;
 
 		for (unsigned int i = 0; i < dwCount; ++i)
 		{
-			std::string st(pQuestTable[i].szName);
+			std::string st(pQuestTable[i].name);
 
 			st += ".";
-			st += pQuestTable[i].szState;
+			st += pQuestTable[i].state;
 
-			metin2::log::info(  "            {} {:d}", st.c_str(), pQuestTable[i].lValue);
-			pkPC->SetFlag(st.c_str(), pQuestTable[i].lValue, false);
+			metin2::log::info(  "            {} {:d}", st.c_str(), pQuestTable[i].value);
+			pkPC->set_flag(st.c_str(), pQuestTable[i].value, false);
 		}
 
-		pkPC->SetLoaded();
-		pkPC->Build();
+		pkPC->set_loaded();
+		pkPC->build();
 
-		if (ch->GetDesc()->IsPhase(PHASE_GAME))
+		if (ch->get_desc()->is_phase(PHASE_GAME))
 		{
-			metin2::log::info( "QUEST_LOAD: Login pc {:d}", pQuestTable[0].dwPID);
-			quest::CQuestManager::instance().Login(pQuestTable[0].dwPID);
+			metin2::log::info( "QUEST_LOAD: Login pc {:d}", pQuestTable[0].pid);
+			quest::quest_manager::instance().login(pQuestTable[0].pid);
 		}
 		else
 		{
-			quest_login_event_info* info = AllocEventInfo<quest_login_event_info>();
-			info->dwPID = ch->GetPlayerID();
+			quest_login_event_info* info = alloc_event_info<quest_login_event_info>();
+			info->pid = ch->player_id();
 
-			event_create(quest_login_event, info, PASSES_PER_SEC(1));
+			event_create(quest_login_event, info, passes_per_sec(1));
 		}
 	}	
 }
 
-void CInputDB::SafeboxLoad(DESC * d, const char * c_pData)
+void input_db::safebox_load(desc * d, const char * c_pData)
 {
 	if (!d)
 		return;
 
-	TSafeboxTable * p = (TSafeboxTable *) c_pData;
+	safebox_table * p = (safebox_table *) c_pData;
 
-	if (d->GetAccountTable().id != p->dwID)
+	if (d->get_account_table().id != p->id)
 	{
-		metin2::log::error("SafeboxLoad: safebox has different id {:d} != {:d}", d->GetAccountTable().id, p->dwID);
+		metin2::log::error("SafeboxLoad: safebox has different id {:d} != {:d}", d->get_account_table().id, p->id);
 		return;
 	}
 
-	if (!d->GetCharacter())
+	if (!d->get_character())
 		return;
 
 	uint8_t bSize = 1;
 
-	CHARACTER * ch = d->GetCharacter();
+	character * ch = d->get_character();
 
 	//PREVENT_TRADE_WINDOW
-	if (ch->GetShopOwner() || ch->GetExchange() || ch->GetMyShop() || ch->IsCubeOpen() )
+	if (ch->shop_owner() || ch->get_exchange() || ch->my_shop() || ch->is_cube_open() )
 	{
-		d->GetCharacter()->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("다른거래창이 열린상태에서는 창고를 열수가 없습니다." ) );
-		d->GetCharacter()->CancelSafeboxLoad();
+		d->get_character()->chat_packet(CHAT_TYPE_INFO, lc_text("다른거래창이 열린상태에서는 창고를 열수가 없습니다." ) );
+		d->get_character()->cancel_safebox_load();
 		return;
 	}
 	//END_PREVENT_TRADE_WINDOW
 
 	// ADD_PREMIUM
-	if (d->GetCharacter()->GetPremiumRemainSeconds(PREMIUM_SAFEBOX) > 0 ||
-			d->GetCharacter()->IsEquipUniqueGroup(UNIQUE_GROUP_LARGE_SAFEBOX))
+	if (d->get_character()->premium_remain_seconds(PREMIUM_SAFEBOX) > 0 ||
+			d->get_character()->is_equip_unique_group(UNIQUE_GROUP_LARGE_SAFEBOX))
 		bSize = 3;
 	// END_OF_ADD_PREMIUM
 
 	//if (d->GetCharacter()->IsEquipUniqueItem(UNIQUE_ITEM_SAFEBOX_EXPAND))
 	//bSize = 3; // safebox expansion ticket
 
-	d->GetCharacter()->LoadSafebox(bSize * SAFEBOX_PAGE_SIZE, p->dwGold, p->wItemCount, (TPlayerItem *) (c_pData + sizeof(TSafeboxTable)));
+	d->get_character()->load_safebox(bSize * SAFEBOX_PAGE_SIZE, p->gold, p->item_count, (player_item *) (c_pData + sizeof(safebox_table)));
 }
 
-void CInputDB::SafeboxChangeSize(DESC * d, const char * c_pData)
+void input_db::safebox_change_size(desc * d, const char * c_pData)
 {
 	if (!d)
 		return;
 
 	uint8_t bSize = *(uint8_t *) c_pData;
 
-	if (!d->GetCharacter())
+	if (!d->get_character())
 		return;
 
-	d->GetCharacter()->ChangeSafeboxSize(bSize);
+	d->get_character()->change_safebox_size(bSize);
 }
 
 //
 // @version	05/06/20 Bang2ni - cancel ReqSafeboxLoad
 //
-void CInputDB::SafeboxWrongPassword(DESC * d)
+void input_db::safebox_wrong_password(desc * d)
 {
 	if (!d)
 		return;
 
-	if (!d->GetCharacter())
+	if (!d->get_character())
 		return;
 
-	TPacketCGSafeboxWrongPassword p;
-	p.bHeader = HEADER_GC_SAFEBOX_WRONG_PASSWORD;
-	d->Packet(&p, sizeof(p));
+	packet_cg_safebox_wrong_password p;
+	p.header = HEADER_GC_SAFEBOX_WRONG_PASSWORD;
+	d->packet(&p, sizeof(p));
 
-	d->GetCharacter()->CancelSafeboxLoad();
+	d->get_character()->cancel_safebox_load();
 }
 
-void CInputDB::SafeboxChangePasswordAnswer(DESC * d, const char* c_pData)
+void input_db::safebox_change_password_answer(desc * d, const char* c_pData)
 {
 	if (!d)
 		return;
 
-	if (!d->GetCharacter())
+	if (!d->get_character())
 		return;
 
-	TSafeboxChangePasswordPacketAnswer* p = (TSafeboxChangePasswordPacketAnswer*) c_pData;
+	safebox_change_password_packet_answer* p = (safebox_change_password_packet_answer*) c_pData;
 	if (p->flag)
 	{
-		d->GetCharacter()->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("<창고> 창고 비밀번호가 변경되었습니다."));
+		d->get_character()->chat_packet(CHAT_TYPE_INFO, lc_text("<창고> 창고 비밀번호가 변경되었습니다."));
 	}
 	else
 	{
-		d->GetCharacter()->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("<창고> 기존 비밀번호가 틀렸습니다."));
+		d->get_character()->chat_packet(CHAT_TYPE_INFO, lc_text("<창고> 기존 비밀번호가 틀렸습니다."));
 	}
 }
 
-void CInputDB::MallLoad(DESC * d, const char * c_pData)
+void input_db::mall_load(desc * d, const char * c_pData)
 {
 	if (!d)
 		return;
 
-	TSafeboxTable * p = (TSafeboxTable *) c_pData;
+	safebox_table * p = (safebox_table *) c_pData;
 
-	if (d->GetAccountTable().id != p->dwID)
+	if (d->get_account_table().id != p->id)
 	{
-		metin2::log::error("safebox has different id {:d} != {:d}", d->GetAccountTable().id, p->dwID);
+		metin2::log::error("safebox has different id {:d} != {:d}", d->get_account_table().id, p->id);
 		return;
 	}
 
-	if (!d->GetCharacter())
+	if (!d->get_character())
 		return;
 
-	d->GetCharacter()->LoadMall(p->wItemCount, (TPlayerItem *) (c_pData + sizeof(TSafeboxTable)));
+	d->get_character()->load_mall(p->item_count, (player_item *) (c_pData + sizeof(safebox_table)));
 }
 
-void CInputDB::LoginAlready(DESC * d, const char * c_pData)
+void input_db::login_already(desc * d, const char * c_pData)
 {
 	if (!d)
 		return;
 
 	// INTERNATIONAL_VERSION disconnect if already logged in
 	{ 
-		TPacketDGLoginAlready * p = (TPacketDGLoginAlready *) c_pData;
+		packet_dg_login_already * p = (packet_dg_login_already *) c_pData;
 
-		DESC * d2 = DESC_MANAGER::instance().FindByLoginName(p->szLogin);
+		desc * d2 = desc_manager::instance().find_by_login_name(p->login);
 
 		if (d2)
-			d2->DisconnectOfSameLogin();
+			d2->disconnect_of_same_login();
 		else
 		{
-			TPacketGGDisconnect pgg;
+			packet_gg_disconnect pgg;
 
-			pgg.bHeader = HEADER_GG_DISCONNECT;
-			strlcpy(pgg.szLogin, p->szLogin, sizeof(pgg.szLogin));
+			pgg.header = HEADER_GG_DISCONNECT;
+			strlcpy(pgg.login, p->login, sizeof(pgg.login));
 
-			P2P_MANAGER::instance().Send(&pgg, sizeof(TPacketGGDisconnect));
+			p2_p_manager::instance().send(&pgg, sizeof(packet_gg_disconnect));
 		}
 	}
 	// END_OF_INTERNATIONAL_VERSION
 
-	LoginFailure(d, "ALREADY");
+	login_failure(d, "ALREADY");
 }
 
-void CInputDB::EmpireSelect(DESC * d, const char * c_pData)
+void input_db::empire_select(desc * d, const char * c_pData)
 {
 	metin2::log::info( "EmpireSelect {}", static_cast<const void *>(d));
 
 	if (!d)
 		return;
 
-	TAccountTable & rTable = d->GetAccountTable();
-	rTable.bEmpire = *(uint8_t *) c_pData;
+	account_table & rTable = d->get_account_table();
+	rTable.empire = *(uint8_t *) c_pData;
 
-	TPacketGCEmpire pe;
-	pe.bHeader = HEADER_GC_EMPIRE;
-	pe.bEmpire = rTable.bEmpire;
-	d->Packet(&pe, sizeof(pe));
+	packet_gc_empire pe;
+	pe.header = HEADER_GC_EMPIRE;
+	pe.empire = rTable.empire;
+	d->packet(&pe, sizeof(pe));
 
 	for (int i = 0; i < PLAYER_PER_ACCOUNT; ++i) 
-		if (rTable.players[i].dwID)
+		if (rTable.players[i].id)
 		{
-			rTable.players[i].x = EMPIRE_START_X(rTable.bEmpire);
-			rTable.players[i].y = EMPIRE_START_Y(rTable.bEmpire);
+			rTable.players[i].x = empire_start_x(rTable.empire);
+			rTable.players[i].y = empire_start_y(rTable.empire);
 		}
 
-	GetServerLocation(d->GetAccountTable(), rTable.bEmpire);
+	get_server_location(d->get_account_table(), rTable.empire);
 
-	d->SendLoginSuccessPacket();
+	d->send_login_success_packet();
 }
 
-void CInputDB::MapLocations(const char * c_pData)
+void input_db::map_locations(const char * c_pData)
 {
 	uint8_t bCount = *(uint8_t *) (c_pData++);
 
 	metin2::log::info( "InputDB::MapLocations {:d}", bCount);
 
-	TMapLocation * pLoc = (TMapLocation *) c_pData;
+	map_location * pLoc = (map_location *) c_pData;
 
 	while (bCount--)
 	{
 		for (int i = 0; i < MAX_MAPS_PER_SERVER; ++i)
 		{
-			if (0 == pLoc->alMaps[i])
+			if (0 == pLoc->maps[i])
 				break;
 
-			CMapLocation::instance().Insert(pLoc->alMaps[i], pLoc->szHost, pLoc->wPort);
+			game::world::map_locations::instance().insert(pLoc->maps[i], pLoc->host, pLoc->port);
 		}
 
 		pLoc++;
 	}
 }
 
-void CInputDB::P2P(const char * c_pData)
+void input_db::p2_p(const char * c_pData)
 {
 
-	TPacketDGP2P * p = (TPacketDGP2P *) c_pData;
+	packet_dg_p2_p * p = (packet_dg_p2_p *) c_pData;
 
-	P2P_MANAGER& mgr = P2P_MANAGER::instance();
+	p2_p_manager& mgr = p2_p_manager::instance();
 
-	if (false == DESC_MANAGER::instance().IsP2PDescExist(p->szHost, p->wPort))
+	if (false == desc_manager::instance().is_p2_p_desc_exist(p->host, p->port))
 	{
-	    CLIENT_DESC * pkDesc = nullptr;
-		metin2::log::info( "InputDB:P2P {}:{:d}", p->szHost, p->wPort);
-	    pkDesc = DESC_MANAGER::instance().CreateConnectionDesc(p->szHost, p->wPort, PHASE_P2P, false);
-		mgr.RegisterConnector(pkDesc);
-		pkDesc->SetP2P(p->szHost, p->wPort);
+	    client_desc * pkDesc = nullptr;
+		metin2::log::info( "InputDB:P2P {}:{:d}", p->host, p->port);
+	    pkDesc = desc_manager::instance().create_connection_desc(p->host, p->port, PHASE_P2P, false);
+		mgr.register_connector(pkDesc);
+		pkDesc->set_p2_p(p->host, p->port);
 	}
 }
 
-void CInputDB::GuildLoad(const char * c_pData)
+void input_db::guild_load(const char * c_pData)
 {
-	CGuildManager::instance().LoadGuild(*(uint32_t *) c_pData);
+	guild_manager::instance().load_guild(*(uint32_t *) c_pData);
 }
 
-void CInputDB::GuildSkillUpdate(const char* c_pData)
+void input_db::guild_skill_update(const char* c_pData)
 {
-	TPacketGuildSkillUpdate * p = (TPacketGuildSkillUpdate *) c_pData;
+	packet_guild_skill_update * p = (packet_guild_skill_update *) c_pData;
 
-	CGuild * g = CGuildManager::instance().TouchGuild(p->guild_id);
+	guild * g = guild_manager::instance().touch_guild(p->guild_id);
 
 	if (g)
 	{
-		g->UpdateSkill(p->skill_point, p->skill_levels);
-		g->GuildPointChange(POINT_SP, p->amount, p->save?true:false);
+		g->update_skill(p->skill_point, p->skill_levels);
+		g->guild_point_change(POINT_SP, p->amount, p->save?true:false);
 	}
 }
 
-void CInputDB::GuildWar(const char* c_pData)
+void input_db::guild_war(const char* c_pData)
 {
-	TPacketGuildWar * p = (TPacketGuildWar*) c_pData;
+	packet_guild_war * p = (packet_guild_war*) c_pData;
 
-	metin2::log::info( "InputDB::GuildWar {:d} {:d} state {:d}", p->dwGuildFrom, p->dwGuildTo, p->bWar);
+	metin2::log::info( "InputDB::GuildWar {:d} {:d} state {:d}", p->guild_from, p->guild_to, p->war);
 
-	switch (p->bWar)
+	switch (p->war)
 	{
 		case GUILD_WAR_SEND_DECLARE:
 		case GUILD_WAR_RECV_DECLARE:
-			CGuildManager::instance().DeclareWar(p->dwGuildFrom, p->dwGuildTo, p->bType);
+			guild_manager::instance().declare_war(p->guild_from, p->guild_to, p->type);
 			break;
 
 		case GUILD_WAR_REFUSE:
-			CGuildManager::instance().RefuseWar(p->dwGuildFrom, p->dwGuildTo);
+			guild_manager::instance().refuse_war(p->guild_from, p->guild_to);
 			break;
 
 		case GUILD_WAR_WAIT_START:
-			CGuildManager::instance().WaitStartWar(p->dwGuildFrom, p->dwGuildTo);
+			guild_manager::instance().wait_start_war(p->guild_from, p->guild_to);
 			break;
 
 		case GUILD_WAR_CANCEL:
-			CGuildManager::instance().CancelWar(p->dwGuildFrom, p->dwGuildTo);
+			guild_manager::instance().cancel_war(p->guild_from, p->guild_to);
 			break;
 
 		case GUILD_WAR_ON_WAR:
-			CGuildManager::instance().StartWar(p->dwGuildFrom, p->dwGuildTo);
+			guild_manager::instance().start_war(p->guild_from, p->guild_to);
 			break;
 
 		case GUILD_WAR_END:
-			CGuildManager::instance().EndWar(p->dwGuildFrom, p->dwGuildTo);
+			guild_manager::instance().end_war(p->guild_from, p->guild_to);
 			break;
 
 		case GUILD_WAR_OVER:
-			CGuildManager::instance().WarOver(p->dwGuildFrom, p->dwGuildTo, p->bType);
+			guild_manager::instance().war_over(p->guild_from, p->guild_to, p->type);
 			break;
 
 		case GUILD_WAR_RESERVE:
-			CGuildManager::instance().ReserveWar(p->dwGuildFrom, p->dwGuildTo, p->bType);
+			guild_manager::instance().reserve_war(p->guild_from, p->guild_to, p->type);
 			break;
 
 		default:
@@ -1341,119 +1341,119 @@ void CInputDB::GuildWar(const char* c_pData)
 	}
 }
 
-void CInputDB::GuildWarScore(const char* c_pData)
+void input_db::guild_war_score(const char* c_pData)
 {
-	TPacketGuildWarScore* p = (TPacketGuildWarScore*) c_pData;
-	CGuild * g = CGuildManager::instance().TouchGuild(p->dwGuildGainPoint);
-	g->SetWarScoreAgainstTo(p->dwGuildOpponent, p->lScore);
+	packet_guild_war_score* p = (packet_guild_war_score*) c_pData;
+	guild * g = guild_manager::instance().touch_guild(p->guild_gain_point);
+	g->set_war_score_against_to(p->guild_opponent, p->score);
 }
 
-void CInputDB::GuildSkillRecharge()
+void input_db::guild_skill_recharge()
 {
-	CGuildManager::instance().SkillRecharge();
+	guild_manager::instance().skill_recharge();
 }
 
-void CInputDB::GuildExpUpdate(const char* c_pData)
+void input_db::guild_exp_update(const char* c_pData)
 {
-	TPacketGuildSkillUpdate * p = (TPacketGuildSkillUpdate *) c_pData;
+	packet_guild_skill_update * p = (packet_guild_skill_update *) c_pData;
 	metin2::log::debug( "GuildExpUpdate {:d}", p->amount);
 
-	CGuild * g = CGuildManager::instance().TouchGuild(p->guild_id);
+	guild * g = guild_manager::instance().touch_guild(p->guild_id);
 
 	if (g)
-		g->GuildPointChange(POINT_EXP, p->amount);
+		g->guild_point_change(POINT_EXP, p->amount);
 }
 
-void CInputDB::GuildAddMember(const char* c_pData)
+void input_db::guild_add_member(const char* c_pData)
 {
-	TPacketDGGuildMember * p = (TPacketDGGuildMember *) c_pData;
-	CGuild * g = CGuildManager::instance().TouchGuild(p->dwGuild);
+	packet_dg_guild_member * p = (packet_dg_guild_member *) c_pData;
+	guild * g = guild_manager::instance().touch_guild(p->guild);
 
 	if (g)
-		g->AddMember(p);
+		g->add_member(p);
 }
 
-void CInputDB::GuildRemoveMember(const char* c_pData)
+void input_db::guild_remove_member(const char* c_pData)
 {
-	TPacketGuild* p=(TPacketGuild*)c_pData;
-	CGuild* g = CGuildManager::instance().TouchGuild(p->dwGuild);
+	packet_guild* p=(packet_guild*)c_pData;
+	guild* g = guild_manager::instance().touch_guild(p->guild);
 
 	if (g)
-		g->RemoveMember(p->dwInfo);
+		g->remove_member(p->info);
 }
 
-void CInputDB::GuildChangeGrade(const char* c_pData)
+void input_db::guild_change_grade(const char* c_pData)
 {
-	TPacketGuild* p=(TPacketGuild*)c_pData;
-	CGuild* g = CGuildManager::instance().TouchGuild(p->dwGuild);
+	packet_guild* p=(packet_guild*)c_pData;
+	guild* g = guild_manager::instance().touch_guild(p->guild);
 
 	if (g)
-		g->P2PChangeGrade((uint8_t)p->dwInfo);
+		g->p2_p_change_grade((uint8_t)p->info);
 }
 
-void CInputDB::GuildChangeMemberData(const char* c_pData)
+void input_db::guild_change_member_data(const char* c_pData)
 {
 	metin2::log::info( "Recv GuildChangeMemberData");
-	TPacketGuildChangeMemberData * p = (TPacketGuildChangeMemberData *) c_pData;
-	CGuild * g = CGuildManager::instance().TouchGuild(p->guild_id);
+	packet_guild_change_member_data * p = (packet_guild_change_member_data *) c_pData;
+	guild * g = guild_manager::instance().touch_guild(p->guild_id);
 
 	if (g)
-		g->ChangeMemberData(p->pid, p->offer, p->level, p->grade);
+		g->change_member_data(p->pid, p->offer, p->level, p->grade);
 }
 
-void CInputDB::GuildDisband(const char* c_pData)
+void input_db::guild_disband(const char* c_pData)
 {
-	TPacketGuild * p = (TPacketGuild*) c_pData;
-	CGuildManager::instance().DisbandGuild(p->dwGuild);
+	packet_guild * p = (packet_guild*) c_pData;
+	guild_manager::instance().disband_guild(p->guild);
 }
 
-void CInputDB::GuildLadder(const char* c_pData)
+void input_db::guild_ladder(const char* c_pData)
 {
-	TPacketGuildLadder* p = (TPacketGuildLadder*) c_pData;
-	metin2::log::info( "Recv GuildLadder {:d} {:d} / w {:d} d {:d} l {:d}", p->dwGuild, p->lLadderPoint, p->lWin, p->lDraw, p->lLoss);
-	CGuild * g = CGuildManager::instance().TouchGuild(p->dwGuild);
+	packet_guild_ladder* p = (packet_guild_ladder*) c_pData;
+	metin2::log::info( "Recv GuildLadder {:d} {:d} / w {:d} d {:d} l {:d}", p->guild, p->ladder_point, p->win, p->draw, p->loss);
+	guild * g = guild_manager::instance().touch_guild(p->guild);
 
-	g->SetLadderPoint(p->lLadderPoint);
-	g->SetWarData(p->lWin, p->lDraw, p->lLoss);
+	g->set_ladder_point(p->ladder_point);
+	g->set_war_data(p->win, p->draw, p->loss);
 }
 
-void CInputDB::ItemLoad(DESC * d, const char * c_pData)
+void input_db::item_load(desc * d, const char * c_pData)
 {
-	CHARACTER * ch;
+	character * ch;
 
-	if (!d || !(ch = d->GetCharacter()))
+	if (!d || !(ch = d->get_character()))
 		return;
 
-	if (ch->IsItemLoaded())
+	if (ch->is_item_loaded())
 		return;
 
 	uint32_t dwCount = decode_4bytes(c_pData);
 	c_pData += sizeof(uint32_t);
 
-	metin2::log::info( "ITEM_LOAD: COUNT {} {:d}", ch->GetName(), dwCount);
+	metin2::log::info( "ITEM_LOAD: COUNT {} {:d}", ch->name(), dwCount);
 
-	std::vector<CItem *> v;
+	std::vector<item *> v;
 
-	TPlayerItem * p = (TPlayerItem *) c_pData;
+	player_item * p = (player_item *) c_pData;
 
 	for (uint32_t i = 0; i < dwCount; ++i, ++p)
 	{
-		CItem * item = ITEM_MANAGER::instance().CreateItem(p->vnum, p->count, p->id);
+		item * item = item_manager::instance().create_item(p->vnum, p->count, p->id);
 
 		if (!item)
 		{
-			metin2::log::error("cannot create item by vnum {:d} (name {} id {:d})", p->vnum, ch->GetName(), p->id);
+			metin2::log::error("cannot create item by vnum {:d} (name {} id {:d})", p->vnum, ch->name(), p->id);
 			continue;
 		}
 
-		item->SetSkipSave(true);
-		item->SetSockets(p->alSockets);
-		item->SetAttributes(p->aAttr);
+		item->set_skip_save(true);
+		item->set_sockets(p->sockets);
+		item->set_attributes(p->attr);
 
-		if ((p->window == INVENTORY && ch->GetInventoryItem(p->pos)) ||
-				(p->window == EQUIPMENT && ch->GetWear(p->pos)))
+		if ((p->window == INVENTORY && ch->inventory_item(p->pos)) ||
+				(p->window == EQUIPMENT && ch->wear(p->pos)))
 		{
-			metin2::log::info( "ITEM_RESTORE: {} {}", ch->GetName(), item->GetName());
+			metin2::log::info( "ITEM_RESTORE: {} {}", ch->name(), item->name());
 			v.push_back(item);
 		}
 		else
@@ -1462,13 +1462,13 @@ void CInputDB::ItemLoad(DESC * d, const char * c_pData)
 			{
 				case INVENTORY:
 				case DRAGON_SOUL_INVENTORY:
-					item->AddToCharacter(ch, TItemPos(p->window, p->pos));
+					item->add_to_character(ch, item_pos(p->window, p->pos));
 					break;
 
 				case EQUIPMENT:
-					if (item->CheckItemUseLevel(ch->GetLevel()) == true )
+					if (item->check_item_use_level(ch->level()) == true )
 					{
-						if (item->EquipTo(ch, p->pos) == false )
+						if (item->equip_to(ch, p->pos) == false )
 						{
 							v.push_back(item);
 						}
@@ -1481,49 +1481,49 @@ void CInputDB::ItemLoad(DESC * d, const char * c_pData)
 			}
 		}
 
-		if (false == item->OnAfterCreatedItem())
-			metin2::log::error("Failed to call ITEM::OnAfterCreatedItem (vnum: {:d}, id: {:d})", item->GetVnum(), item->GetID());
+		if (false == item->on_after_created_item())
+			metin2::log::error("Failed to call ITEM::OnAfterCreatedItem (vnum: {:d}, id: {:d})", item->vnum(), item->id());
 
-		item->SetSkipSave(false);
+		item->set_skip_save(false);
 	}
 
 	auto it = v.begin();
 
 	while (it != v.end())
 	{
-		CItem * item = *(it++);
+		game::items::item * item = *(it++);
 
-		int pos = ch->GetEmptyInventory(item->GetSize());
+		int pos = ch->empty_inventory(item->size());
 
 		if (pos < 0)
 		{
-			PIXEL_POSITION coord;
-			coord.x = ch->GetX();
-			coord.y = ch->GetY();
+			pixel_position coord;
+			coord.x = ch->x();
+			coord.y = ch->y();
 
-			item->AddToGround(ch->GetMapIndex(), coord);
-			item->SetOwnership(ch, 180);
-			item->StartDestroyEvent();
+			item->add_to_ground(ch->map_index(), coord);
+			item->set_ownership(ch, 180);
+			item->start_destroy_event();
 		}
 		else
-			item->AddToCharacter(ch, TItemPos(INVENTORY, pos));
+			item->add_to_character(ch, item_pos(INVENTORY, pos));
 	}
 
-	ch->CheckMaximumPoints();
-	ch->PointsPacket();
+	ch->check_maximum_points();
+	ch->points_packet();
 
-	ch->SetItemLoaded();
+	ch->set_item_loaded();
 }
 
-void CInputDB::AffectLoad(DESC * d, const char * c_pData)
+void input_db::affect_load(desc * d, const char * c_pData)
 {
 	if (!d)
 		return;
 
-	if (!d->GetCharacter())
+	if (!d->get_character())
 		return;
 
-	CHARACTER * ch = d->GetCharacter();
+	character * ch = d->get_character();
 
 	uint32_t dwPID = decode_4bytes(c_pData);
 	c_pData += sizeof(uint32_t);
@@ -1531,69 +1531,69 @@ void CInputDB::AffectLoad(DESC * d, const char * c_pData)
 	uint32_t dwCount = decode_4bytes(c_pData);
 	c_pData += sizeof(uint32_t);
 
-	if (ch->GetPlayerID() != dwPID)
+	if (ch->player_id() != dwPID)
 		return;
 
-	ch->LoadAffect(dwCount, (TPacketAffectElement *) c_pData);
+	ch->load_affect(dwCount, (packet_affect_element *) c_pData);
 	
 }
 	
 
 
-void CInputDB::PartyCreate(const char* c_pData)
+void input_db::party_create(const char* c_pData)
 {
-	TPacketPartyCreate* p = (TPacketPartyCreate*) c_pData;
-	CPartyManager::instance().P2PCreateParty(p->dwLeaderPID);
+	packet_party_create* p = (packet_party_create*) c_pData;
+	party_manager::instance().p2_p_create_party(p->leader_pid);
 }
 
-void CInputDB::PartyDelete(const char* c_pData)
+void input_db::party_delete(const char* c_pData)
 {
-	TPacketPartyDelete* p = (TPacketPartyDelete*) c_pData;
-	CPartyManager::instance().P2PDeleteParty(p->dwLeaderPID);
+	packet_party_delete* p = (packet_party_delete*) c_pData;
+	party_manager::instance().p2_p_delete_party(p->leader_pid);
 }
 
-void CInputDB::PartyAdd(const char* c_pData)
+void input_db::party_add(const char* c_pData)
 {
-	TPacketPartyAdd* p = (TPacketPartyAdd*) c_pData;
-	CPartyManager::instance().P2PJoinParty(p->dwLeaderPID, p->dwPID, p->bState);
+	packet_party_add* p = (packet_party_add*) c_pData;
+	party_manager::instance().p2_p_join_party(p->leader_pid, p->pid, p->state);
 }
 
-void CInputDB::PartyRemove(const char* c_pData)
+void input_db::party_remove(const char* c_pData)
 {
-	TPacketPartyRemove* p = (TPacketPartyRemove*) c_pData;
-	CPartyManager::instance().P2PQuitParty(p->dwPID);
+	packet_party_remove* p = (packet_party_remove*) c_pData;
+	party_manager::instance().p2_p_quit_party(p->pid);
 }
 
-void CInputDB::PartyStateChange(const char* c_pData)
+void input_db::party_state_change(const char* c_pData)
 {
-	TPacketPartyStateChange * p = (TPacketPartyStateChange *) c_pData;
-	CParty * pParty = CPartyManager::instance().P2PCreateParty(p->dwLeaderPID);
+	packet_party_state_change * p = (packet_party_state_change *) c_pData;
+	party * pParty = party_manager::instance().p2_p_create_party(p->leader_pid);
 
 	if (!pParty)
 		return;
 
-	pParty->SetRole(p->dwPID, p->bRole, p->bFlag);
+	pParty->set_role(p->pid, p->role, p->flag);
 }
 
-void CInputDB::PartySetMemberLevel(const char* c_pData)
+void input_db::party_set_member_level(const char* c_pData)
 {
-	TPacketPartySetMemberLevel* p = (TPacketPartySetMemberLevel*) c_pData;
-	CParty * pParty = CPartyManager::instance().P2PCreateParty(p->dwLeaderPID);
+	packet_party_set_member_level* p = (packet_party_set_member_level*) c_pData;
+	party * pParty = party_manager::instance().p2_p_create_party(p->leader_pid);
 
 	if (!pParty)
 		return;
 
-	pParty->P2PSetMemberLevel(p->dwPID, p->bLevel);
+	pParty->p2_p_set_member_level(p->pid, p->level);
 }
 
-void CInputDB::Time(const char * c_pData)
+void input_db::time(const char * c_pData)
 {
 	int32_t server_time;
     memcpy(&server_time, c_pData, sizeof(server_time));
     set_global_time(server_time);
 }
 
-void CInputDB::ReloadProto(const char * c_pData)
+void input_db::reload_proto(const char * c_pData)
 {
 	uint16_t wSize;
 
@@ -1602,8 +1602,8 @@ void CInputDB::ReloadProto(const char * c_pData)
 	 */
 	wSize = decode_2bytes(c_pData);
 	c_pData += sizeof(uint16_t);
-	if (wSize) CSkillManager::instance().Initialize((TSkillTable *) c_pData, wSize);
-	c_pData += sizeof(TSkillTable) * wSize;
+	if (wSize) skill_manager::instance().initialize((skill_table *) c_pData, wSize);
+	c_pData += sizeof(skill_table) * wSize;
 
 	/*
 	 * Banwords
@@ -1611,8 +1611,8 @@ void CInputDB::ReloadProto(const char * c_pData)
 
 	wSize = decode_2bytes(c_pData);
 	c_pData += sizeof(uint16_t);
-	CBanwordManager::instance().Initialize((TBanwordTable *) c_pData, wSize);
-	c_pData += sizeof(TBanwordTable) * wSize;
+	banword_manager::instance().initialize((banword_table *) c_pData, wSize);
+	c_pData += sizeof(banword_table) * wSize;
 
 	/*
 	 * ITEM
@@ -1623,8 +1623,8 @@ void CInputDB::ReloadProto(const char * c_pData)
 
 	if (wSize)
 	{
-		ITEM_MANAGER::instance().Initialize((TItemTable *) c_pData, wSize);
-		c_pData += wSize * sizeof(TItemTable);
+		item_manager::instance().initialize((item_table *) c_pData, wSize);
+		c_pData += wSize * sizeof(item_table);
 	}
 
 	/*
@@ -1636,79 +1636,79 @@ void CInputDB::ReloadProto(const char * c_pData)
 
 	if (wSize)
 	{
-		CMobManager::instance().Initialize((TMobTable *) c_pData, wSize);
-		c_pData += wSize * sizeof(TMobTable);
+		mob_manager::instance().initialize((mob_table *) c_pData, wSize);
+		c_pData += wSize * sizeof(mob_table);
 	}
 
-	CMotionManager::instance().Build();
+	motion_manager::instance().build();
 
-	CHARACTER_MANAGER::instance().for_each_pc(std::mem_fn(&CHARACTER::ComputePoints));
+	character_manager::instance().for_each_pc(std::mem_fn(&character::compute_points));
 }
 
-void CInputDB::GuildSkillUsableChange(const char* c_pData)
+void input_db::guild_skill_usable_change(const char* c_pData)
 {
-	TPacketGuildSkillUsableChange* p = (TPacketGuildSkillUsableChange*) c_pData;
+	packet_guild_skill_usable_change* p = (packet_guild_skill_usable_change*) c_pData;
 
-	CGuild* g = CGuildManager::instance().TouchGuild(p->dwGuild);
+	guild* g = guild_manager::instance().touch_guild(p->guild);
 
-	g->SkillUsableChange(p->dwSkillVnum, p->bUsable?true:false);
+	g->skill_usable_change(p->skill_vnum, p->usable?true:false);
 }
 
-void CInputDB::AuthLogin(DESC * d, const char * c_pData)
+void input_db::auth_login(desc * d, const char * c_pData)
 {
 	if (!d)
 		return;
 
 	uint8_t bResult = *(uint8_t *) c_pData;
 
-	TPacketGCAuthSuccess ptoc;
+	packet_gc_auth_success ptoc;
 
-	ptoc.bHeader = HEADER_GC_AUTH_SUCCESS;
+	ptoc.header = HEADER_GC_AUTH_SUCCESS;
 
 	if (bResult)
 	{
-		ptoc.dwLoginKey = d->GetLoginKey();
+		ptoc.login_key = d->get_login_key();
 	}
 	else
 	{
-		ptoc.dwLoginKey = 0;
+		ptoc.login_key = 0;
 	}
 
-	ptoc.bResult = bResult;
+	ptoc.result = bResult;
 
-	d->Packet(&ptoc, sizeof(TPacketGCAuthSuccess));
-	metin2::log::info( "AuthLogin result {:d} key {:d}", bResult, d->GetLoginKey());
+	d->packet(&ptoc, sizeof(packet_gc_auth_success));
+	metin2::log::info( "AuthLogin result {:d} key {:d}", bResult, d->get_login_key());
 }
-void CInputDB::ChangeEmpirePriv(const char* c_pData)
+void input_db::change_empire_priv(const char* c_pData)
 {
-	TPacketDGChangeEmpirePriv* p = (TPacketDGChangeEmpirePriv*) c_pData;
+	packet_dg_change_empire_priv* p = (packet_dg_change_empire_priv*) c_pData;
 
 	// ADD_EMPIRE_PRIV_TIME
-	CPrivManager::instance().GiveEmpirePriv(p->empire, p->type, p->value, p->bLog, p->end_time_sec);
+	priv_manager::instance().give_empire_priv(p->empire, p->type, p->value, p->log, p->end_time_sec);
 	// END_OF_ADD_EMPIRE_PRIV_TIME
 }
 
 /**
  * @version 05/06/08	Bang2ni - added duration
  */
-void CInputDB::ChangeGuildPriv(const char* c_pData)
+void input_db::change_guild_priv(const char* c_pData)
 {
-	TPacketDGChangeGuildPriv* p = (TPacketDGChangeGuildPriv*) c_pData;
+	packet_dg_change_guild_priv* p = (packet_dg_change_guild_priv*) c_pData;
 
 	// ADD_GUILD_PRIV_TIME
-	CPrivManager::instance().GiveGuildPriv(p->guild_id, p->type, p->value, p->bLog, p->end_time_sec);
+	priv_manager::instance().give_guild_priv(p->guild_id, p->type, p->value, p->log, p->end_time_sec);
 	// END_OF_ADD_GUILD_PRIV_TIME
 }
 
-void CInputDB::ChangeCharacterPriv(const char* c_pData)
+void input_db::change_character_priv(const char* c_pData)
 {
-	TPacketDGChangeCharacterPriv* p = (TPacketDGChangeCharacterPriv*) c_pData;
-	CPrivManager::instance().GiveCharacterPriv(p->pid, p->type, p->value, p->bLog);
+	packet_dg_change_character_priv* p = (packet_dg_change_character_priv*) c_pData;
+	priv_manager::instance().give_character_priv(p->pid, p->type, p->value, p->log);
 }
 
-void CInputDB::MoneyLog(const char* c_pData)
+void input_db::money_log(const char* c_pData)
 {
-	TPacketMoneyLog * p = (TPacketMoneyLog *) c_pData;
+	packet_money_log * p = (packet_money_log *) c_pData;
 
 	if (p->type == 4) // QUEST_MONEY_LOG_SKIP
 		return;
@@ -1716,56 +1716,56 @@ void CInputDB::MoneyLog(const char* c_pData)
 	if (metin2::config::is_auth() ==true )
 		return;
 
-	LogManager::instance().MoneyLog(p->type, p->vnum, p->gold);
+	log_manager::instance().money_log(p->type, p->vnum, p->gold);
 }
 
-void CInputDB::GuildMoneyChange(const char* c_pData)
+void input_db::guild_money_change(const char* c_pData)
 {
-	TPacketDGGuildMoneyChange* p = (TPacketDGGuildMoneyChange*) c_pData;
+	packet_dg_guild_money_change* p = (packet_dg_guild_money_change*) c_pData;
 
-	CGuild* g = CGuildManager::instance().TouchGuild(p->dwGuild);
+	guild* g = guild_manager::instance().touch_guild(p->guild);
 	if (g)
 	{
-		g->RecvMoneyChange(p->iTotalGold);
+		g->recv_money_change(p->total_gold);
 	}
 }
 
-void CInputDB::GuildWithdrawMoney(const char* c_pData)
+void input_db::guild_withdraw_money(const char* c_pData)
 {
-	TPacketDGGuildMoneyWithdraw* p = (TPacketDGGuildMoneyWithdraw*) c_pData;
+	packet_dg_guild_money_withdraw* p = (packet_dg_guild_money_withdraw*) c_pData;
 
-	CGuild* g = CGuildManager::instance().TouchGuild(p->dwGuild);
+	guild* g = guild_manager::instance().touch_guild(p->guild);
 	if (g)
 	{
-		g->RecvWithdrawMoneyGive(p->iChangeGold);
+		g->recv_withdraw_money_give(p->change_gold);
 	}
 }
 
-void CInputDB::SetEventFlag(const char* c_pData)
+void input_db::set_event_flag(const char* c_pData)
 {
-	TPacketSetEventFlag* p = (TPacketSetEventFlag*) c_pData;
-	quest::CQuestManager::instance().SetEventFlag(p->szFlagName, p->lValue);
+	packet_set_event_flag* p = (packet_set_event_flag*) c_pData;
+	quest::quest_manager::instance().set_event_flag(p->flag_name, p->value);
 }
 
-void CInputDB::CreateObject(const char * c_pData)
-{
-	using namespace building;
-	CManager::instance().LoadObject((TObject *) c_pData);
-}
-
-void CInputDB::DeleteObject(const char * c_pData)
+void input_db::create_object(const char * c_pData)
 {
 	using namespace building;
-	CManager::instance().DeleteObject(*(uint32_t *) c_pData);
+	manager::instance().load_object((object_table *) c_pData);
 }
 
-void CInputDB::UpdateLand(const char * c_pData)
+void input_db::delete_object(const char * c_pData)
 {
 	using namespace building;
-	CManager::instance().UpdateLand((TLand *) c_pData);
+	manager::instance().delete_object(*(uint32_t *) c_pData);
 }
 
-void CInputDB::Notice(const char * c_pData)
+void input_db::update_land(const char * c_pData)
+{
+	using namespace building;
+	manager::instance().update_land((land_table *) c_pData);
+}
+
+void input_db::notice(const char * c_pData)
 {
 
 	char szBuf[256+1];
@@ -1773,82 +1773,82 @@ void CInputDB::Notice(const char * c_pData)
 
 	metin2::log::info( "InputDB:: Notice: {}", szBuf);
 
-	SendNotice(szBuf);
+	send_notice(szBuf);
 }
 
-void CInputDB::GuildWarReserveAdd(TGuildWarReserve * p)
+void input_db::guild_war_reserve_add(guild_war_reserve * p)
 {
-	CGuildManager::instance().ReserveWarAdd(p);
+	guild_manager::instance().reserve_war_add(p);
 }
 
-void CInputDB::GuildWarReserveDelete(uint32_t dwID)
+void input_db::guild_war_reserve_delete(uint32_t dwID)
 {
-	CGuildManager::instance().ReserveWarDelete(dwID);
+	guild_manager::instance().reserve_war_delete(dwID);
 }
 
-void CInputDB::GuildWarBet(TPacketGDGuildWarBet * p)
+void input_db::guild_war_bet(packet_gd_guild_war_bet * p)
 {
-	CGuildManager::instance().ReserveWarBet(p);
+	guild_manager::instance().reserve_war_bet(p);
 }
 
-void CInputDB::MarriageAdd(TPacketMarriageAdd * p)
+void input_db::marriage_add(packet_marriage_add * p)
 {
-	metin2::log::info( "MarriageAdd {:d} {:d} {:d} {} {}", p->dwPID1, p->dwPID2, (uint32_t)p->tMarryTime, p->szName1, p->szName2);
-	marriage::CManager::instance().Add(p->dwPID1, p->dwPID2, p->tMarryTime, p->szName1, p->szName2);
+	metin2::log::info( "MarriageAdd {:d} {:d} {:d} {} {}", p->pi_d1, p->pi_d2, (uint32_t)p->t_marry_time, p->name1, p->name2);
+	marriage::manager::instance().add(p->pi_d1, p->pi_d2, p->t_marry_time, p->name1, p->name2);
 }
 
-void CInputDB::MarriageUpdate(TPacketMarriageUpdate * p)
+void input_db::marriage_update(packet_marriage_update * p)
 {
-	metin2::log::info( "MarriageUpdate {:d} {:d} {:d} {:d}", p->dwPID1, p->dwPID2, p->iLovePoint, p->byMarried);
-	marriage::CManager::instance().Update(p->dwPID1, p->dwPID2, p->iLovePoint, p->byMarried);
+	metin2::log::info( "MarriageUpdate {:d} {:d} {:d} {:d}", p->pi_d1, p->pi_d2, p->love_point, p->married);
+	marriage::manager::instance().update(p->pi_d1, p->pi_d2, p->love_point, p->married);
 }
 
-void CInputDB::MarriageRemove(TPacketMarriageRemove * p)
+void input_db::marriage_remove(packet_marriage_remove * p)
 {
-	metin2::log::info( "MarriageRemove {:d} {:d}", p->dwPID1, p->dwPID2);
-	marriage::CManager::instance().Remove(p->dwPID1, p->dwPID2);
+	metin2::log::info( "MarriageRemove {:d} {:d}", p->pi_d1, p->pi_d2);
+	marriage::manager::instance().remove(p->pi_d1, p->pi_d2);
 }
 
-void CInputDB::WeddingRequest(TPacketWeddingRequest* p)
+void input_db::wedding_request(packet_wedding_request* p)
 {
-	marriage::WeddingManager::instance().Request(p->dwPID1, p->dwPID2);
+	marriage::wedding_manager::instance().request(p->pi_d1, p->pi_d2);
 }
 
-void CInputDB::WeddingReady(TPacketWeddingReady* p)
+void input_db::wedding_ready(packet_wedding_ready* p)
 {
-	metin2::log::info( "WeddingReady {:d} {:d} {:d}", p->dwPID1, p->dwPID2, p->dwMapIndex);
-	marriage::CManager::instance().WeddingReady(p->dwPID1, p->dwPID2, p->dwMapIndex);
+	metin2::log::info( "WeddingReady {:d} {:d} {:d}", p->pi_d1, p->pi_d2, p->map_index);
+	marriage::manager::instance().wedding_ready(p->pi_d1, p->pi_d2, p->map_index);
 }
 
-void CInputDB::WeddingStart(TPacketWeddingStart* p)
+void input_db::wedding_start(packet_wedding_start* p)
 {
-	metin2::log::info( "WeddingStart {:d} {:d}", p->dwPID1, p->dwPID2);
-	marriage::CManager::instance().WeddingStart(p->dwPID1, p->dwPID2);
+	metin2::log::info( "WeddingStart {:d} {:d}", p->pi_d1, p->pi_d2);
+	marriage::manager::instance().wedding_start(p->pi_d1, p->pi_d2);
 }
 
-void CInputDB::WeddingEnd(TPacketWeddingEnd* p)
+void input_db::wedding_end(packet_wedding_end* p)
 {
-	metin2::log::info( "WeddingEnd {:d} {:d}", p->dwPID1, p->dwPID2);
-	marriage::CManager::instance().WeddingEnd(p->dwPID1, p->dwPID2);
+	metin2::log::info( "WeddingEnd {:d} {:d}", p->pi_d1, p->pi_d2);
+	marriage::manager::instance().wedding_end(p->pi_d1, p->pi_d2);
 }
 
 // MYSHOP_PRICE_LIST
-void CInputDB::MyshopPricelistRes(DESC * d, const TPacketMyshopPricelistHeader* p )
+void input_db::myshop_pricelist_res(desc * d, const packet_myshop_pricelist_header* p )
 {
-	CHARACTER * ch;
+	character * ch;
 
-	if (!d || !(ch = d->GetCharacter()) )
+	if (!d || !(ch = d->get_character()) )
 		return;
 
-	metin2::log::info( "RecvMyshopPricelistRes name[{}]", ch->GetName());
-	ch->UseSilkBotaryReal(p );
+	metin2::log::info( "RecvMyshopPricelistRes name[{}]", ch->name());
+	ch->use_silk_botary_real(p );
 
 }
 // END_OF_MYSHOP_PRICE_LIST
 
 
 //RELOAD_ADMIN
-void CInputDB::ReloadAdmin(const char * c_pData )
+void input_db::reload_admin(const char * c_pData )
 {
 	gm_new_clear();
 	int ChunkSize = decode_2bytes(c_pData );
@@ -1869,16 +1869,16 @@ void CInputDB::ReloadAdmin(const char * c_pData )
 	
 	for (int n = 0; n < size; ++n )
 	{
-		tAdminInfo& rAdminInfo = *(tAdminInfo*)c_pData;
+		t_admin_info& rAdminInfo = *(t_admin_info*)c_pData;
 
 		gm_new_insert(rAdminInfo );
 
-		c_pData += sizeof (tAdminInfo );
+		c_pData += sizeof (t_admin_info );
 	
-		CHARACTER * pChar = CHARACTER_MANAGER::instance().FindPC(rAdminInfo.m_szName );
+		character * pChar = character_manager::instance().find_pc(rAdminInfo.name );
 		if (pChar )
 		{
-			pChar->SetGMLevel();
+			pChar->set_gm_level();
 		}
 	}
 	
@@ -1889,333 +1889,333 @@ void CInputDB::ReloadAdmin(const char * c_pData )
 // Analyze
 // @version	05/06/10 Bang2ni - added handling of the item price list packet (HEADER_DG_MYSHOP_PRICELIST_RES).
 ////////////////////////////////////////////////////////////////////
-int CInputDB::Analyze(DESC * d, uint8_t bHeader, const char * c_pData)
+int input_db::analyze(desc * d, uint8_t bHeader, const char * c_pData)
 {
 	switch (bHeader)
 	{
 	case HEADER_DG_BOOT:
-		Boot(c_pData);
+		boot(c_pData);
 		break;
 
 	case HEADER_DG_LOGIN_SUCCESS:
-		LoginSuccess(m_dwHandle, c_pData);
+		login_success(handle_, c_pData);
 		break;
 
 	case HEADER_DG_LOGIN_NOT_EXIST:
-		LoginFailure(DESC_MANAGER::instance().FindByHandle(m_dwHandle), "NOID");
+		login_failure(desc_manager::instance().find_by_handle(handle_), "NOID");
 		break;
 
 	case HEADER_DG_LOGIN_WRONG_PASSWD:
-		LoginFailure(DESC_MANAGER::instance().FindByHandle(m_dwHandle), "WRONGPWD");
+		login_failure(desc_manager::instance().find_by_handle(handle_), "WRONGPWD");
 		break;
 
 	case HEADER_DG_LOGIN_ALREADY:
-		LoginAlready(DESC_MANAGER::instance().FindByHandle(m_dwHandle), c_pData);
+		login_already(desc_manager::instance().find_by_handle(handle_), c_pData);
 		break;
 
 	case HEADER_DG_PLAYER_LOAD_SUCCESS:
-		PlayerLoad(DESC_MANAGER::instance().FindByHandle(m_dwHandle), c_pData);
+		player_load(desc_manager::instance().find_by_handle(handle_), c_pData);
 		break;
 
 	case HEADER_DG_PLAYER_CREATE_SUCCESS:
-		PlayerCreateSuccess(DESC_MANAGER::instance().FindByHandle(m_dwHandle), c_pData);
+		player_create_success(desc_manager::instance().find_by_handle(handle_), c_pData);
 		break;
 
 	case HEADER_DG_PLAYER_CREATE_FAILED:
-		PlayerCreateFailure(DESC_MANAGER::instance().FindByHandle(m_dwHandle), 0);
+		player_create_failure(desc_manager::instance().find_by_handle(handle_), 0);
 		break;
 
 	case HEADER_DG_PLAYER_CREATE_ALREADY:
-		PlayerCreateFailure(DESC_MANAGER::instance().FindByHandle(m_dwHandle), 1);
+		player_create_failure(desc_manager::instance().find_by_handle(handle_), 1);
 		break;
 
 	case HEADER_DG_PLAYER_DELETE_SUCCESS:
-		PlayerDeleteSuccess(DESC_MANAGER::instance().FindByHandle(m_dwHandle), c_pData);
+		player_delete_success(desc_manager::instance().find_by_handle(handle_), c_pData);
 		break;
 
 	case HEADER_DG_PLAYER_LOAD_FAILED:
 		break;
 
 	case HEADER_DG_PLAYER_DELETE_FAILED:
-		PlayerDeleteFail(DESC_MANAGER::instance().FindByHandle(m_dwHandle));
+		player_delete_fail(desc_manager::instance().find_by_handle(handle_));
 		break;
 
 	case HEADER_DG_ITEM_LOAD:
-		ItemLoad(DESC_MANAGER::instance().FindByHandle(m_dwHandle), c_pData);
+		item_load(desc_manager::instance().find_by_handle(handle_), c_pData);
 		break;
 
 	case HEADER_DG_QUEST_LOAD:
-		QuestLoad(DESC_MANAGER::instance().FindByHandle(m_dwHandle), c_pData);
+		quest_load(desc_manager::instance().find_by_handle(handle_), c_pData);
 		break;
 
 	case HEADER_DG_AFFECT_LOAD:
-		AffectLoad(DESC_MANAGER::instance().FindByHandle(m_dwHandle), c_pData);
+		affect_load(desc_manager::instance().find_by_handle(handle_), c_pData);
 		break;
 
 	case HEADER_DG_SAFEBOX_LOAD:
-		SafeboxLoad(DESC_MANAGER::instance().FindByHandle(m_dwHandle), c_pData);
+		safebox_load(desc_manager::instance().find_by_handle(handle_), c_pData);
 		break;
 
 	case HEADER_DG_SAFEBOX_CHANGE_SIZE:
-		SafeboxChangeSize(DESC_MANAGER::instance().FindByHandle(m_dwHandle), c_pData);
+		safebox_change_size(desc_manager::instance().find_by_handle(handle_), c_pData);
 		break;
 
 	case HEADER_DG_SAFEBOX_WRONG_PASSWORD:
-		SafeboxWrongPassword(DESC_MANAGER::instance().FindByHandle(m_dwHandle));
+		safebox_wrong_password(desc_manager::instance().find_by_handle(handle_));
 		break;
 
 	case HEADER_DG_SAFEBOX_CHANGE_PASSWORD_ANSWER:
-		SafeboxChangePasswordAnswer(DESC_MANAGER::instance().FindByHandle(m_dwHandle), c_pData);
+		safebox_change_password_answer(desc_manager::instance().find_by_handle(handle_), c_pData);
 		break;
 
 	case HEADER_DG_MALL_LOAD:
-		MallLoad(DESC_MANAGER::instance().FindByHandle(m_dwHandle), c_pData);
+		mall_load(desc_manager::instance().find_by_handle(handle_), c_pData);
 		break;
 
 	case HEADER_DG_EMPIRE_SELECT:
-		EmpireSelect(DESC_MANAGER::instance().FindByHandle(m_dwHandle), c_pData);
+		empire_select(desc_manager::instance().find_by_handle(handle_), c_pData);
 		break;
 
 	case HEADER_DG_MAP_LOCATIONS:
-		MapLocations(c_pData);
+		map_locations(c_pData);
 		break;
 
 	case HEADER_DG_P2P:
-		P2P(c_pData);
+		p2_p(c_pData);
 		break;
 
 	case HEADER_DG_GUILD_SKILL_UPDATE:
-		GuildSkillUpdate(c_pData);
+		guild_skill_update(c_pData);
 		break;
 
 	case HEADER_DG_GUILD_LOAD:
-		GuildLoad(c_pData);
+		guild_load(c_pData);
 		break;
 
 	case HEADER_DG_GUILD_SKILL_RECHARGE:
-		GuildSkillRecharge();
+		guild_skill_recharge();
 		break;
 
 	case HEADER_DG_GUILD_EXP_UPDATE:
-		GuildExpUpdate(c_pData);
+		guild_exp_update(c_pData);
 		break;
 
 	case HEADER_DG_PARTY_CREATE:
-		PartyCreate(c_pData);
+		party_create(c_pData);
 		break;
 
 	case HEADER_DG_PARTY_DELETE:
-		PartyDelete(c_pData);
+		party_delete(c_pData);
 		break;
 
 	case HEADER_DG_PARTY_ADD:
-		PartyAdd(c_pData);
+		party_add(c_pData);
 		break;
 
 	case HEADER_DG_PARTY_REMOVE:
-		PartyRemove(c_pData);
+		party_remove(c_pData);
 		break;
 
 	case HEADER_DG_PARTY_STATE_CHANGE:
-		PartyStateChange(c_pData);
+		party_state_change(c_pData);
 		break;
 
 	case HEADER_DG_PARTY_SET_MEMBER_LEVEL:
-		PartySetMemberLevel(c_pData);    
+		party_set_member_level(c_pData);    
 		break;
 
 	case HEADER_DG_TIME:
-		Time(c_pData);
+		time(c_pData);
 		break;
 
 	case HEADER_DG_GUILD_ADD_MEMBER:
-		GuildAddMember(c_pData);
+		guild_add_member(c_pData);
 		break;
 
 	case HEADER_DG_GUILD_REMOVE_MEMBER:
-		GuildRemoveMember(c_pData);
+		guild_remove_member(c_pData);
 		break;
 
 	case HEADER_DG_GUILD_CHANGE_GRADE:
-		GuildChangeGrade(c_pData);
+		guild_change_grade(c_pData);
 		break;
 
 	case HEADER_DG_GUILD_CHANGE_MEMBER_DATA:
-		GuildChangeMemberData(c_pData);
+		guild_change_member_data(c_pData);
 		break;
 
 	case HEADER_DG_GUILD_DISBAND:
-		GuildDisband(c_pData);
+		guild_disband(c_pData);
 		break;
 
 	case HEADER_DG_RELOAD_PROTO:
-		ReloadProto(c_pData);
+		reload_proto(c_pData);
 		break;
 
 	case HEADER_DG_GUILD_WAR:
-		GuildWar(c_pData);
+		guild_war(c_pData);
 		break;
 
 	case HEADER_DG_GUILD_WAR_SCORE:
-		GuildWarScore(c_pData);
+		guild_war_score(c_pData);
 		break;
 
 	case HEADER_DG_GUILD_LADDER:
-		GuildLadder(c_pData);
+		guild_ladder(c_pData);
 		break;
 
 	case HEADER_DG_GUILD_SKILL_USABLE_CHANGE:
-		GuildSkillUsableChange(c_pData);
+		guild_skill_usable_change(c_pData);
 		break;
 
 	case HEADER_DG_CHANGE_NAME:
-		ChangeName(DESC_MANAGER::instance().FindByHandle(m_dwHandle), c_pData);
+		change_name(desc_manager::instance().find_by_handle(handle_), c_pData);
 		break;
 
 	case HEADER_DG_AUTH_LOGIN:
-		AuthLogin(DESC_MANAGER::instance().FindByHandle(m_dwHandle), c_pData);
+		auth_login(desc_manager::instance().find_by_handle(handle_), c_pData);
 		break;
 
 	case HEADER_DG_CHANGE_EMPIRE_PRIV:
-		ChangeEmpirePriv(c_pData);
+		change_empire_priv(c_pData);
 		break;
 
 	case HEADER_DG_CHANGE_GUILD_PRIV:
-		ChangeGuildPriv(c_pData);
+		change_guild_priv(c_pData);
 		break;
 
 	case HEADER_DG_CHANGE_CHARACTER_PRIV:
-		ChangeCharacterPriv(c_pData);
+		change_character_priv(c_pData);
 		break;
 
 	case HEADER_DG_MONEY_LOG:
-		MoneyLog(c_pData);
+		money_log(c_pData);
 		break;
 
 	case HEADER_DG_GUILD_WITHDRAW_MONEY_GIVE:
-		GuildWithdrawMoney(c_pData);
+		guild_withdraw_money(c_pData);
 		break;
 
 	case HEADER_DG_GUILD_MONEY_CHANGE:
-		GuildMoneyChange(c_pData);
+		guild_money_change(c_pData);
 		break;
 
 	case HEADER_DG_SET_EVENT_FLAG:
-		SetEventFlag(c_pData);
+		set_event_flag(c_pData);
 		break;
 
 	case HEADER_DG_CREATE_OBJECT:
-		CreateObject(c_pData);
+		create_object(c_pData);
 		break;
 
 	case HEADER_DG_DELETE_OBJECT:
-		DeleteObject(c_pData);
+		delete_object(c_pData);
 		break;
 
 	case HEADER_DG_UPDATE_LAND:
-		UpdateLand(c_pData);
+		update_land(c_pData);
 		break;
 
 	case HEADER_DG_NOTICE:
-		Notice(c_pData);
+		notice(c_pData);
 		break;
 
 	case HEADER_DG_GUILD_WAR_RESERVE_ADD:
-		GuildWarReserveAdd((TGuildWarReserve *) c_pData);
+		guild_war_reserve_add((guild_war_reserve *) c_pData);
 		break;
 
 	case HEADER_DG_GUILD_WAR_RESERVE_DEL:
-		GuildWarReserveDelete(*(uint32_t *) c_pData);
+		guild_war_reserve_delete(*(uint32_t *) c_pData);
 		break;
 
 	case HEADER_DG_GUILD_WAR_BET:
-		GuildWarBet((TPacketGDGuildWarBet *) c_pData);
+		guild_war_bet((packet_gd_guild_war_bet *) c_pData);
 		break;
 
 	case HEADER_DG_MARRIAGE_ADD:
-		MarriageAdd((TPacketMarriageAdd*) c_pData);
+		marriage_add((packet_marriage_add*) c_pData);
 		break;
 
 	case HEADER_DG_MARRIAGE_UPDATE:
-		MarriageUpdate((TPacketMarriageUpdate*) c_pData);
+		marriage_update((packet_marriage_update*) c_pData);
 		break;
 
 	case HEADER_DG_MARRIAGE_REMOVE:
-		MarriageRemove((TPacketMarriageRemove*) c_pData);
+		marriage_remove((packet_marriage_remove*) c_pData);
 		break;
 
 	case HEADER_DG_WEDDING_REQUEST:
-		WeddingRequest((TPacketWeddingRequest*) c_pData);
+		wedding_request((packet_wedding_request*) c_pData);
 		break;
 
 	case HEADER_DG_WEDDING_READY:
-		WeddingReady((TPacketWeddingReady*) c_pData);
+		wedding_ready((packet_wedding_ready*) c_pData);
 		break;
 
 	case HEADER_DG_WEDDING_START:
-		WeddingStart((TPacketWeddingStart*) c_pData);
+		wedding_start((packet_wedding_start*) c_pData);
 		break;
 
 	case HEADER_DG_WEDDING_END:
-		WeddingEnd((TPacketWeddingEnd*) c_pData);
+		wedding_end((packet_wedding_end*) c_pData);
 		break;
 
 		// MYSHOP_PRICE_LIST
 	case HEADER_DG_MYSHOP_PRICELIST_RES:
-		MyshopPricelistRes(DESC_MANAGER::instance().FindByHandle(m_dwHandle), (TPacketMyshopPricelistHeader*) c_pData );
+		myshop_pricelist_res(desc_manager::instance().find_by_handle(handle_), (packet_myshop_pricelist_header*) c_pData );
 		break;
 		// END_OF_MYSHOP_PRICE_LIST
 		//
 	// RELOAD_ADMIN
 	case HEADER_DG_RELOAD_ADMIN:
-		ReloadAdmin(c_pData );		
+		reload_admin(c_pData );		
 		break;
 	//END_RELOAD_ADMIN
 
 	case HEADER_DG_ADD_MONARCH_MONEY:
-		AddMonarchMoney(DESC_MANAGER::instance().FindByHandle(m_dwHandle), c_pData ); 
+		add_monarch_money(desc_manager::instance().find_by_handle(handle_), c_pData ); 
 		break;
 
 	case HEADER_DG_DEC_MONARCH_MONEY:
-		DecMonarchMoney(DESC_MANAGER::instance().FindByHandle(m_dwHandle), c_pData );
+		dec_monarch_money(desc_manager::instance().find_by_handle(handle_), c_pData );
 		break;
 
 	case HEADER_DG_TAKE_MONARCH_MONEY:
-		TakeMonarchMoney(DESC_MANAGER::instance().FindByHandle(m_dwHandle), c_pData );
+		take_monarch_money(desc_manager::instance().find_by_handle(handle_), c_pData );
 		break;
 
 	case HEADER_DG_CHANGE_MONARCH_LORD_ACK :
-		ChangeMonarchLord((TPacketChangeMonarchLordACK*)c_pData);
+		change_monarch_lord((packet_change_monarch_lord_ack*)c_pData);
 		break;
 
 	case HEADER_DG_UPDATE_MONARCH_INFO :
-		UpdateMonarchInfo((MonarchInfo*)c_pData);
+		update_monarch_info((monarch_info*)c_pData);
 		break;
 
 
 	case HEADER_DG_ACK_CHANGE_GUILD_MASTER :
-		this->GuildChangeMaster((TPacketChangeGuildMaster*) c_pData);
+		this->guild_change_master((packet_change_guild_master*) c_pData);
 		break;	
 	case HEADER_DG_ACK_SPARE_ITEM_ID_RANGE :
-		ITEM_MANAGER::instance().SetMaxSpareItemID(*((TItemIDRangeTable*)c_pData) );
+		item_manager::instance().set_max_spare_item_id(*((item_id_range_table*)c_pData) );
 		break;
 
 	case HEADER_DG_UPDATE_HORSE_NAME :
 	case HEADER_DG_ACK_HORSE_NAME :
-		CHorseNameManager::instance().UpdateHorseName(
-				((TPacketUpdateHorseName*)c_pData)->dwPlayerID, 
-				((TPacketUpdateHorseName*)c_pData)->szHorseName);
+		horse_name_manager::instance().update_horse_name(
+				((packet_update_horse_name*)c_pData)->player_id, 
+				((packet_update_horse_name*)c_pData)->horse_name);
 		break;
 
 	case HEADER_DG_NEED_LOGIN_LOG:
-		DetailLog( (TPacketNeedLoginLogInfo*) c_pData );
+		detail_log( (packet_need_login_log_info*) c_pData );
 		break;
 	// Germany gift feature test
 	case HEADER_DG_ITEMAWARD_INFORMER:
-		ItemAwardInformer((TPacketItemAwardInfromer*) c_pData);
+		item_award_informer((packet_item_award_infromer*) c_pData);
 		break;
 	case HEADER_DG_RESPOND_CHANNELSTATUS:
-		RespondChannelStatus(DESC_MANAGER::instance().FindByHandle(m_dwHandle), c_pData);
+		respond_channel_status(desc_manager::instance().find_by_handle(handle_), c_pData);
 		break;
 	default:
 		return (-1);
@@ -2224,38 +2224,38 @@ int CInputDB::Analyze(DESC * d, uint8_t bHeader, const char * c_pData)
 	return 0;
 }
 
-bool CInputDB::Process(DESC * d, const void * orig, int bytes, int & r_iBytesProceed)
+bool input_db::process(desc * d, const void * orig, int bytes, int & r_iBytesProceed)
 {
 	const char *	c_pData = (const char *) orig;
 	uint8_t		bHeader, bLastHeader = 0;
 	int			iSize;
 	int			iLastPacketLen = 0;
 
-	for (m_iBufferLeft = bytes; m_iBufferLeft > 0;)
+	for (buffer_left_ = bytes; buffer_left_ > 0;)
 	{
-		if (m_iBufferLeft < 9)
+		if (buffer_left_ < 9)
 			return true;
 
 		bHeader		= *((uint8_t *) (c_pData));	// 1
-		m_dwHandle	= *((uint32_t *) (c_pData + 1));	// 4
+		handle_	= *((uint32_t *) (c_pData + 1));	// 4
 		iSize		= *((uint32_t *) (c_pData + 5));	// 4
 
-		metin2::log::debug( "DBCLIENT: header {:d} handle {:d} size {:d} bytes {:d}", bHeader, m_dwHandle, iSize, bytes); 
+		metin2::log::debug( "DBCLIENT: header {:d} handle {:d} size {:d} bytes {:d}", bHeader, handle_, iSize, bytes); 
 
-		if (m_iBufferLeft - 9 < iSize)
+		if (buffer_left_ - 9 < iSize)
 			return true;
 
 		const char * pRealData = (c_pData + 9);
 
-		if (Analyze(d, bHeader, pRealData) < 0)
+		if (analyze(d, bHeader, pRealData) < 0)
 		{
 			metin2::log::error("in InputDB: UNKNOWN HEADER: {:d}, LAST HEADER: {:d}({:d}), REMAIN BYTES: {:d}, host: {}",
-					bHeader, bLastHeader, iLastPacketLen, m_iBufferLeft, d->GetHostName());
+					bHeader, bLastHeader, iLastPacketLen, buffer_left_, d->host_name());
 
 		}
 
 		c_pData		+= 9 + iSize;
-		m_iBufferLeft	-= 9 + iSize;
+		buffer_left_	-= 9 + iSize;
 		r_iBytesProceed	+= 9 + iSize;
 
 		iLastPacketLen	= 9 + iSize;
@@ -2265,7 +2265,7 @@ bool CInputDB::Process(DESC * d, const void * orig, int bytes, int & r_iBytesPro
 	return true;
 }
 
-void CInputDB::AddMonarchMoney(DESC * d, const char * data )
+void input_db::add_monarch_money(desc * d, const char * data )
 {
 	int Empire = *(int *) data;
 	data += sizeof(int);
@@ -2273,20 +2273,20 @@ void CInputDB::AddMonarchMoney(DESC * d, const char * data )
 	int Money = *(int *) data;
 	data += sizeof(int);
 	
-	CMonarch::instance().AddMoney(Money, Empire);
+	monarch::instance().add_money(Money, Empire);
 
-	uint32_t pid = CMonarch::instance().GetMonarchPID(Empire);	
+	uint32_t pid = monarch::instance().monarch_pid(Empire);	
 
-	CHARACTER * ch = CHARACTER_MANAGER::instance().FindByPID(pid);
+	character * ch = character_manager::instance().find_by_pid(pid);
 
 	if (ch)
 	{
 		if (number(1, 100) > 95) 
-			ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("현재 %s 국고에는 %u 의 돈이 있습니다"), EMPIRE_NAME(Empire), CMonarch::instance().GetMoney(Empire));
+			ch->chat_packet(CHAT_TYPE_INFO, lc_text("현재 %s 국고에는 %u 의 돈이 있습니다"), empire_name(Empire), monarch::instance().money(Empire));
 	}
 }
 	
-void CInputDB::DecMonarchMoney(DESC * d, const char * data)
+void input_db::dec_monarch_money(desc * d, const char * data)
 {
 	int Empire = *(int *) data;
 	data += sizeof(int);
@@ -2294,19 +2294,19 @@ void CInputDB::DecMonarchMoney(DESC * d, const char * data)
 	int Money = *(int *) data;
 	data += sizeof(int);
 
-	CMonarch::instance().DecMoney(Money, Empire);
+	monarch::instance().dec_money(Money, Empire);
 	
-	uint32_t pid = CMonarch::instance().GetMonarchPID(Empire);	
+	uint32_t pid = monarch::instance().monarch_pid(Empire);	
 
-	CHARACTER * ch = CHARACTER_MANAGER::instance().FindByPID(pid);
+	character * ch = character_manager::instance().find_by_pid(pid);
 
 	if (ch)
 	{
-		ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("현재 %s 국고에는 %d 의 돈이 있습니다"), EMPIRE_NAME(Empire), CMonarch::instance().GetMoney(Empire));
+		ch->chat_packet(CHAT_TYPE_INFO, lc_text("현재 %s 국고에는 %d 의 돈이 있습니다"), empire_name(Empire), monarch::instance().money(Empire));
 	}
 }
 
-void CInputDB::TakeMonarchMoney(DESC * d, const char * data)
+void input_db::take_monarch_money(desc * d, const char * data)
 {
 	int Empire = *(int *) data;
 	data += sizeof(int);
@@ -2314,71 +2314,71 @@ void CInputDB::TakeMonarchMoney(DESC * d, const char * data)
 	int Money = *(int *) data;
 	data += sizeof(int);
 
-	if (!CMonarch::instance().DecMoney(Money, Empire))
+	if (!monarch::instance().dec_money(Money, Empire))
 	{
 		if (!d)
 			return;
 
-		if (!d->GetCharacter())
+		if (!d->get_character())
 			return;
 
-		CHARACTER * ch = d->GetCharacter();
-		ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("국고에 돈이 부족하거나 돈을 가져올수 없는 상황입니다"));
+		character * ch = d->get_character();
+		ch->chat_packet(CHAT_TYPE_INFO, lc_text("국고에 돈이 부족하거나 돈을 가져올수 없는 상황입니다"));
 	}
 }
 
-void CInputDB::ChangeMonarchLord(TPacketChangeMonarchLordACK* info)
+void input_db::change_monarch_lord(packet_change_monarch_lord_ack* info)
 {
 	char notice[256];
-	snprintf(notice, sizeof(notice), LC_TEXT("%s의 군주가 %s 님으로 교체되었습니다."), EMPIRE_NAME(info->bEmpire), info->szName);
-	SendNotice(notice);
+	snprintf(notice, sizeof(notice), lc_text("%s의 군주가 %s 님으로 교체되었습니다."), empire_name(info->empire), info->name);
+	send_notice(notice);
 }
 
-void CInputDB::UpdateMonarchInfo(MonarchInfo* info)
+void input_db::update_monarch_info(monarch_info* info)
 {
-	CMonarch::instance().SetMonarchInfo(info);
+	monarch::instance().set_monarch_info(info);
 	metin2::log::info( "MONARCH INFO UPDATED");
 }
 
-void CInputDB::GuildChangeMaster(TPacketChangeGuildMaster* p)
+void input_db::guild_change_master(packet_change_guild_master* p)
 {
-	CGuildManager::instance().ChangeMaster(p->dwGuildID);
+	guild_manager::instance().change_master(p->guild_id);
 }
 
-void CInputDB::DetailLog(const TPacketNeedLoginLogInfo* info)
+void input_db::detail_log(const packet_need_login_log_info* info)
 {
-	CHARACTER * pChar = CHARACTER_MANAGER::instance().FindByPID( info->dwPlayerID );
+	character * pChar = character_manager::instance().find_by_pid( info->player_id );
 
 	if (nullptr != pChar)
 	{
-		LogManager::instance().DetailLoginLog(true, pChar);
+		log_manager::instance().detail_login_log(true, pChar);
 
 	}
 }
 
-void CInputDB::ItemAwardInformer(TPacketItemAwardInfromer *data)
+void input_db::item_award_informer(packet_item_award_infromer *data)
 {	
-	DESC * d = DESC_MANAGER::instance().FindByLoginName(data->login);	//login info
+	desc * d = desc_manager::instance().find_by_login_name(data->login);	//login info
 	
 	if(d == nullptr)
 		return;
 	else
 	{
-		if (d->GetCharacter())
+		if (d->get_character())
 		{
-			CHARACTER * ch = d->GetCharacter();	
-			ch->SetItemAward_vnum(data->vnum);	// store temporarily in ch, handled in QuestLoad
-			ch->SetItemAward_cmd(data->command);		
+			character * ch = d->get_character();	
+			ch->set_item_award_vnum(data->vnum);	// store temporarily in ch, handled in QuestLoad
+			ch->set_item_award_cmd(data->command);		
 
-			if(d->IsPhase(PHASE_GAME))			//when in game phase
+			if(d->is_phase(PHASE_GAME))			//when in game phase
 			{
-				quest::CQuestManager::instance().ItemInformer(ch->GetPlayerID(),ch->GetItemAward_vnum());	//call questmanager
+				quest::quest_manager::instance().item_informer(ch->player_id(),ch->item_award_vnum());	//call questmanager
 			}
 		}
 	}
 }
 
-void CInputDB::RespondChannelStatus(DESC * desc, const char* pcData) 
+void input_db::respond_channel_status(desc * desc, const char* pcData) 
 {
 	if (!desc) {
 		return;
@@ -2387,13 +2387,13 @@ void CInputDB::RespondChannelStatus(DESC * desc, const char* pcData)
 	pcData += sizeof(nSize);
 
 	uint8_t bHeader = HEADER_GC_RESPOND_CHANNELSTATUS;
-	desc->BufferedPacket(&bHeader, sizeof(uint8_t));
-	desc->BufferedPacket(&nSize, sizeof(nSize));
+	desc->buffered_packet(&bHeader, sizeof(uint8_t));
+	desc->buffered_packet(&nSize, sizeof(nSize));
 	if (0 < nSize) {
-		desc->BufferedPacket(pcData, sizeof(TChannelStatus)*nSize);
+		desc->buffered_packet(pcData, sizeof(channel_status)*nSize);
 	}
 	uint8_t bSuccess = 1;
-	desc->Packet(&bSuccess, sizeof(bSuccess));
-	desc->SetChannelStatusRequested(false);
+	desc->packet(&bSuccess, sizeof(bSuccess));
+	desc->set_channel_status_requested(false);
 }
 }

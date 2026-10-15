@@ -28,26 +28,26 @@
 #include <vector>
 
 namespace metin2::db::inline caches {
-    class CItemCache;
-    class CItemPriceListTableCache;
-    class CPlayerTableCache;
+    class item_cache;
+    class item_price_list_table_cache;
+    class player_table_cache;
 }
 
 namespace metin2::db::inline clients {
 
 
-std::string CreatePlayerSaveQuery(const TPlayerTable * pkTab);
+std::string create_player_save_query(const player_table * pkTab);
 
-class CClientManager : public singleton<CClientManager>
+class client_manager : public singleton<client_manager>
 {
     public:
-	typedef std::list<CPeer *>			TPeerList;
-	typedef std::unordered_map<uint32_t, CPlayerTableCache *> TPlayerTableCacheMap;
-	typedef std::unordered_map<uint32_t, CItemCache *> TItemCacheMap;
-	typedef std::unordered_set<CItemCache *, std::hash<CItemCache*> > TItemCacheSet;
-	typedef std::unordered_map<uint32_t, std::unique_ptr<TItemCacheSet>> TItemCacheSetPtrMap;
-	typedef std::unordered_map<uint32_t, CItemPriceListTableCache*> TItemPriceListCacheMap;
-	typedef std::unordered_map<short, uint8_t> TChannelStatusMap;
+	typedef std::list<peer *>			peer_list;
+	typedef std::unordered_map<uint32_t, player_table_cache *> player_table_cache_map;
+	typedef std::unordered_map<uint32_t, item_cache *> item_cache_map;
+	typedef std::unordered_set<item_cache *, std::hash<item_cache*> > item_cache_set;
+	typedef std::unordered_map<uint32_t, std::unique_ptr<item_cache_set>> item_cache_set_ptr_map;
+	typedef std::unordered_map<uint32_t, item_price_list_table_cache*> item_price_list_cache_map;
+	typedef std::unordered_map<short, uint8_t> channel_status_map;
 
 	// MYSHOP_PRICE_LIST
 	/// Item price list request info
@@ -55,13 +55,13 @@ class CClientManager : public singleton<CClientManager>
 	 * first: Peer handle
 	 * second: ID of the requesting player
 	 */
-	typedef std::pair< uint32_t, uint32_t >		TItemPricelistReqInfo;
+	typedef std::pair< uint32_t, uint32_t >		item_pricelist_req_info;
 	// END_OF_MYSHOP_PRICE_LIST
 
-	class ClientHandleInfo
+	class client_handle_info
 	{
 	    public:
-		uint32_t	dwHandle;
+		uint32_t	handle;
 		uint32_t	account_id;
 		uint32_t	player_id;
 		uint8_t	account_index;
@@ -69,56 +69,56 @@ class CClientManager : public singleton<CClientManager>
 		char	safebox_password[SAFEBOX_PASSWORD_MAX_LEN + 1];
 		char	ip[MAX_HOST_LENGTH + 1];
 
-		std::unique_ptr<TAccountTable> pAccountTable;
-		std::unique_ptr<TSafeboxTable> pSafebox;
+		std::unique_ptr<proto::account_table> account_table;
+		std::unique_ptr<safebox_table> safebox;
 
-		ClientHandleInfo(uint32_t argHandle, uint32_t dwPID = 0)
+		client_handle_info(uint32_t argHandle, uint32_t dwPID = 0)
 		{
-		    dwHandle = argHandle;
+		    handle = argHandle;
 		    player_id = dwPID;
 		};
 		//Constructor for the German gift feature
-		ClientHandleInfo(uint32_t argHandle, uint32_t dwPID, uint32_t accountId)
+		client_handle_info(uint32_t argHandle, uint32_t dwPID, uint32_t accountId)
 		{
-		    dwHandle = argHandle;
+		    handle = argHandle;
 		    player_id = dwPID;
 			account_id = accountId;
 		};
 	};
 
 	public:
-	CClientManager();
-	~CClientManager() override;
+	client_manager();
+	~client_manager() override;
 
-	bool	Initialize();
-	time_t	GetCurrentTime();
+	bool	initialize();
+	time_t	current_time();
 
 	// Handles the packets a peer has received (CPeer::on_receive).
-	void	ProcessPackets(CPeer * peer);
+	void	process_packets(peer * peer);
 
-	void	MainLoop();
-	void	Quit();
+	void	main_loop();
+	void	quit();
 
-	void	SetTablePostfix(const char* c_pszTablePostfix);
-	void	SetPlayerIDStart(int iIDStart);
+	void	set_table_postfix(const char* c_pszTablePostfix);
+	void	set_player_id_start(int iIDStart);
 
-	uint32_t	GetUserCount();	// Returns the number of connected users.
+	uint32_t	user_count();	// Returns the number of connected users.
 
-	void	SendTime();
+	void	send_time();
 
-	CPlayerTableCache *	GetPlayerCache(uint32_t id);
-	void			PutPlayerCache(TPlayerTable * pNew);
+	player_table_cache *	player_cache(uint32_t id);
+	void			put_player_cache(player_table * pNew);
 
-	void			CreateItemCacheSet(uint32_t dwID);
-	TItemCacheSet *		GetItemCacheSet(uint32_t dwID);
-	void			FlushItemCacheSet(uint32_t dwID);
+	void			create_item_cache_set(uint32_t dwID);
+	item_cache_set *		get_item_cache_set(uint32_t dwID);
+	void			flush_item_cache_set(uint32_t dwID);
 
-	CItemCache *		GetItemCache(uint32_t id);
-	void			PutItemCache(TPlayerItem * pNew, bool bSkipQuery = false);
-	bool			DeleteItemCache(uint32_t id);
+	item_cache *		get_item_cache(uint32_t id);
+	void			put_item_cache(player_item * pNew, bool bSkipQuery = false);
+	bool			delete_item_cache(uint32_t id);
 
-	void			UpdatePlayerCache();
-	void			UpdateItemCache();
+	void			update_player_cache();
+	void			update_item_cache();
 
 	// MYSHOP_PRICE_LIST
 	/// Gets the price list cache.
@@ -126,7 +126,7 @@ class CClientManager : public singleton<CClientManager>
 	 * @param [in]	dwID owner of the price list (player ID)
 	 * @return	pointer to the price list cache
 	 */
-	CItemPriceListTableCache*	GetItemPriceListCache(uint32_t dwID);
+	item_price_list_table_cache*	item_price_list_cache(uint32_t dwID);
 
 	/// Puts a price list cache.
 	/**
@@ -134,105 +134,105 @@ class CClientManager : public singleton<CClientManager>
 	 *
 	 * If the cache already exists it is replaced, not updated.
 	 */
-	void			PutItemPriceListCache(const TItemPriceListTable* pItemPriceList);
+	void			put_item_price_list_cache(const item_price_list_table* pItemPriceList);
 
 	/// Flushes item price list caches whose flush time has expired and removes them from the cache.
-	void			UpdateItemPriceListCache(void);
+	void			update_item_price_list_cache(void);
 	// END_OF_MYSHOP_PRICE_LIST
 
-	void			SendGuildSkillUsable(uint32_t guild_id, uint32_t dwSkillVnum, bool bUsable);
+	void			send_guild_skill_usable(uint32_t guild_id, uint32_t dwSkillVnum, bool bUsable);
 
-	void			SetCacheFlushCountLimit(int iLimit);
+	void			set_cache_flush_count_limit(int iLimit);
 
 	template <class Func>
 	Func		for_each_peer(Func f);
 
-	CPeer *		GetAnyPeer();
+	peer *		any_peer();
 
-	void			ForwardPacket(uint8_t header, const void* data, int size, uint8_t bChannel = 0, CPeer * except = nullptr);
+	void			forward_packet(uint8_t header, const void* data, int size, uint8_t bChannel = 0, peer * except = nullptr);
 
-	void			SendNotice(const char * c_pszFormat, ...);
+	void			send_notice(const char * c_pszFormat, ...);
 
 	// Tells the game about an item award whose why column starts with "[GIFT]" (German gift feature).
-	void			InformGiftAward(const char * login, const char * why, uint32_t vnum);
-	void			ItemAward(CPeer * peer, char* login);	//German gift feature
+	void			inform_gift_award(const char * login, const char * why, uint32_t vnum);
+	void			item_award(peer * peer, char* login);	//German gift feature
 
     protected:
-	void	Destroy();
+	void	destroy();
 
     private:
-	bool		InitializeTables();
-	bool		InitializeShopTable();
-	bool		InitializeMobTable();
-	bool		InitializeItemTable();
-	bool		InitializeSkillTable();
-	bool		InitializeRefineTable();
-	bool		InitializeBanwordTable();
-	bool		InitializeItemAttrTable();
-	bool		InitializeItemRareTable();
-	bool		InitializeLandTable();
-	bool		InitializeObjectProto();
-	bool		InitializeObjectTable();
-	bool		InitializeMonarch();
+	bool		initialize_tables();
+	bool		initialize_shop_table();
+	bool		initialize_mob_table();
+	bool		initialize_item_table();
+	bool		initialize_skill_table();
+	bool		initialize_refine_table();
+	bool		initialize_banword_table();
+	bool		initialize_item_attr_table();
+	bool		initialize_item_rare_table();
+	bool		initialize_land_table();
+	bool		initialize_object_proto();
+	bool		initialize_object_table();
+	bool		initialize_monarch();
 
 	// Applies mob_proto and item_proto read from mob_proto.txt, item_proto.txt to the real db.
 	//	Even without applying item_proto, mob_proto to the db the game runs fine,
 	//	but problems occur because admin tools etc. read item_proto, mob_proto from the db.
-	bool		MirrorMobTableIntoDB();
-	bool		MirrorItemTableIntoDB();
+	bool		mirror_mob_table_into_db();
+	bool		mirror_item_table_into_db();
 
-	void		AddPeer(net::tcp::socket socket);
-	void		RemovePeer(CPeer * pPeer);
-	CPeer *		GetPeer(uint32_t ident);
+	void		add_peer(net::tcp::socket socket);
+	void		remove_peer(peer * pPeer);
+	peer *		get_peer(uint32_t ident);
 
-	int		AnalyzeQueryResult(SQLMsg * msg);
+	int		analyze_query_result(ql_msg * msg);
 
-	int		Process();
+	int		process();
 
-	CLoginData *	GetLoginData(uint32_t dwKey);
-	CLoginData *	GetLoginDataByLogin(const char * c_pszLogin);
-	CLoginData *	GetLoginDataByAID(uint32_t dwAID);
+	login_data *	get_login_data(uint32_t dwKey);
+	login_data *	get_login_data_by_login(const char * c_pszLogin);
+	login_data *	get_login_data_by_aid(uint32_t dwAID);
 
-	void		InsertLoginData(CLoginData * pkLD);
-	void		DeleteLoginData(CLoginData * pkLD);
+	void		insert_login_data(login_data * pkLD);
+	void		delete_login_data(login_data * pkLD);
 
-	bool		InsertLogonAccount(const char * c_pszLogin, uint32_t dwHandle);
-	bool		DeleteLogonAccount(const char * c_pszLogin, uint32_t dwHandle);
-	bool		FindLogonAccount(const char * c_pszLogin);
+	bool		insert_logon_account(const char * c_pszLogin, uint32_t dwHandle);
+	bool		delete_logon_account(const char * c_pszLogin, uint32_t dwHandle);
+	bool		find_logon_account(const char * c_pszLogin);
 
-	void		GuildCreate(CPeer * peer, uint32_t dwGuildID);
-	void		GuildSkillUpdate(CPeer * peer, TPacketGuildSkillUpdate* p);
-	void		GuildExpUpdate(CPeer * peer, TPacketGuildExpUpdate* p);
-	void		GuildAddMember(CPeer * peer, TPacketGDGuildAddMember* p);
-	void		GuildChangeGrade(CPeer * peer, TPacketGuild* p);
-	void		GuildRemoveMember(CPeer * peer, TPacketGuild* p);
-	void		GuildChangeMemberData(CPeer * peer, TPacketGuildChangeMemberData* p);
-	void		GuildDisband(CPeer * peer, TPacketGuild * p);
-	void		GuildWar(CPeer * peer, TPacketGuildWar * p);
-	void		GuildWarScore(CPeer * peer, TPacketGuildWarScore * p);
-	void		GuildChangeLadderPoint(TPacketGuildLadderPoint* p);
-	void		GuildUseSkill(TPacketGuildUseSkill* p);
-	void		GuildDepositMoney(TPacketGDGuildMoney* p);
-	void		GuildWithdrawMoney(CPeer* peer, TPacketGDGuildMoney* p);
-	void		GuildWithdrawMoneyGiveReply(TPacketGDGuildMoneyWithdrawGiveReply* p);
-	void		GuildWarBet(TPacketGDGuildWarBet * p);
-	void		GuildChangeMaster(TPacketChangeGuildMaster* p);
+	void		guild_create(peer * peer, uint32_t dwGuildID);
+	void		guild_skill_update(peer * peer, packet_guild_skill_update* p);
+	void		guild_exp_update(peer * peer, packet_guild_exp_update* p);
+	void		guild_add_member(peer * peer, packet_gd_guild_add_member* p);
+	void		guild_change_grade(peer * peer, packet_guild* p);
+	void		guild_remove_member(peer * peer, packet_guild* p);
+	void		guild_change_member_data(peer * peer, packet_guild_change_member_data* p);
+	void		guild_disband(peer * peer, packet_guild * p);
+	void		guild_war(peer * peer, packet_guild_war * p);
+	void		guild_war_score(peer * peer, packet_guild_war_score * p);
+	void		guild_change_ladder_point(packet_guild_ladder_point* p);
+	void		guild_use_skill(packet_guild_use_skill* p);
+	void		guild_deposit_money(packet_gd_guild_money* p);
+	void		guild_withdraw_money(peer* peer, packet_gd_guild_money* p);
+	void		guild_withdraw_money_give_reply(packet_gd_guild_money_withdraw_give_reply* p);
+	void		guild_war_bet(packet_gd_guild_war_bet * p);
+	void		guild_change_master(packet_change_guild_master* p);
 
-	void		QUERY_BOOT(CPeer * peer, TPacketGDBoot * p);
+	void		query_boot(peer * peer, packet_gd_boot * p);
 
-	void		QUERY_LOGOUT(CPeer * peer, uint32_t dwHandle, const char *);
+	void		query_logout(peer * peer, uint32_t dwHandle, const char *);
 
-	void		RESULT_LOGIN(CPeer * peer, SQLMsg *msg);
+	void		result_login(peer * peer, ql_msg *msg);
 
-	void		QUERY_PLAYER_LOAD(CPeer * peer, uint32_t dwHandle, TPlayerLoadPacket*);
-	void		RESULT_COMPOSITE_PLAYER(CPeer * peer, SQLMsg * pMsg, uint32_t dwQID);
-	void		RESULT_PLAYER_LOAD(CPeer * peer, MYSQL_RES * pRes, ClientHandleInfo * pkInfo);
-	void		RESULT_ITEM_LOAD(CPeer * peer, MYSQL_RES * pRes, uint32_t dwHandle, uint32_t dwPID);
-	void		RESULT_QUEST_LOAD(CPeer * pkPeer, MYSQL_RES * pRes, uint32_t dwHandle, uint32_t dwPID);
-	void		RESULT_AFFECT_LOAD(CPeer * pkPeer, MYSQL_RES * pRes, uint32_t dwHandle);
+	void		query_player_load(peer * peer, uint32_t dwHandle, player_load_packet*);
+	void		result_composite_player(peer * peer, ql_msg * pMsg, uint32_t dwQID);
+	void		result_player_load(peer * peer, MYSQL_RES * pRes, client_handle_info * pkInfo);
+	void		result_item_load(peer * peer, MYSQL_RES * pRes, uint32_t dwHandle, uint32_t dwPID);
+	void		result_quest_load(peer * pkPeer, MYSQL_RES * pRes, uint32_t dwHandle, uint32_t dwPID);
+	void		result_affect_load(peer * pkPeer, MYSQL_RES * pRes, uint32_t dwHandle);
 
 	// PLAYER_INDEX_CREATE_BUG_FIX
-	void		RESULT_PLAYER_INDEX_CREATE(CPeer *pkPeer, SQLMsg *msg);
+	void		result_player_index_create(peer *pkPeer, ql_msg *msg);
 	// END_PLAYER_INDEX_CREATE_BUG_FIX
  
 	// MYSHOP_PRICE_LIST
@@ -243,7 +243,7 @@ class CClientManager : public singleton<CClientManager>
 	 *
 	 * Stores the loaded price list in the cache and sends the list to the peer.
 	 */
-	void		RESULT_PRICELIST_LOAD(CPeer* peer, SQLMsg* pMsg);
+	void		result_pricelist_load(peer* peer, ql_msg* pMsg);
 
 	/// Handles the result of the load query for a price info update
 	/**
@@ -251,83 +251,83 @@ class CClientManager : public singleton<CClientManager>
 	 *
 	 * Builds the price list cache from the loaded info and updates it with the received price info.
 	 */
-	void		RESULT_PRICELIST_LOAD_FOR_UPDATE(SQLMsg* pMsg);
+	void		result_pricelist_load_for_update(ql_msg* pMsg);
 	// END_OF_MYSHOP_PRICE_LIST
 
-	void		QUERY_PLAYER_SAVE(CPeer * peer, uint32_t dwHandle, TPlayerTable*);
+	void		query_player_save(peer * peer, uint32_t dwHandle, player_table*);
 
-	void		__QUERY_PLAYER_CREATE(CPeer * peer, uint32_t dwHandle, TPlayerCreatePacket *);
-	void		__QUERY_PLAYER_DELETE(CPeer * peer, uint32_t dwHandle, TPlayerDeletePacket *);
-	void		__RESULT_PLAYER_DELETE(CPeer * peer, SQLMsg* msg);
+	void		query_player_create(peer * peer, uint32_t dwHandle, player_create_packet *);
+	void		query_player_delete(peer * peer, uint32_t dwHandle, player_delete_packet *);
+	void		result_player_delete(peer * peer, ql_msg* msg);
 
-	void		QUERY_PLAYER_COUNT(CPeer * pkPeer, TPlayerCountPacket *);
+	void		query_player_count(peer * pkPeer, player_count_packet *);
 
-	void		QUERY_ITEM_SAVE(CPeer * pkPeer, const char * c_pData);
-	void		QUERY_ITEM_DESTROY(CPeer * pkPeer, const char * c_pData);
-	void		QUERY_ITEM_FLUSH(CPeer * pkPeer, const char * c_pData);
+	void		query_item_save(peer * pkPeer, const char * c_pData);
+	void		query_item_destroy(peer * pkPeer, const char * c_pData);
+	void		query_item_flush(peer * pkPeer, const char * c_pData);
 
-	void		QUERY_QUEST_SAVE(CPeer * pkPeer, TQuestTable *, uint32_t dwLen);
-	void		QUERY_ADD_AFFECT(CPeer * pkPeer, TPacketGDAddAffect * p);
-	void		QUERY_REMOVE_AFFECT(CPeer * pkPeer, TPacketGDRemoveAffect * p);
+	void		query_quest_save(peer * pkPeer, quest_table *, uint32_t dwLen);
+	void		query_add_affect(peer * pkPeer, packet_gd_add_affect * p);
+	void		query_remove_affect(peer * pkPeer, packet_gd_remove_affect * p);
 
-	void		QUERY_SAFEBOX_LOAD(CPeer * pkPeer, uint32_t dwHandle, TSafeboxLoadPacket *, bool bMall);
-	void		QUERY_SAFEBOX_SAVE(CPeer * pkPeer, TSafeboxTable * pTable);
-	void		QUERY_SAFEBOX_CHANGE_SIZE(CPeer * pkPeer, uint32_t dwHandle, TSafeboxChangeSizePacket * p);
-	void		QUERY_SAFEBOX_CHANGE_PASSWORD(CPeer * pkPeer, uint32_t dwHandle, TSafeboxChangePasswordPacket * p);
+	void		query_safebox_load(peer * pkPeer, uint32_t dwHandle, safebox_load_packet *, bool bMall);
+	void		query_safebox_save(peer * pkPeer, safebox_table * pTable);
+	void		query_safebox_change_size(peer * pkPeer, uint32_t dwHandle, safebox_change_size_packet * p);
+	void		query_safebox_change_password(peer * pkPeer, uint32_t dwHandle, safebox_change_password_packet * p);
 
-	void		RESULT_SAFEBOX_LOAD(CPeer * pkPeer, SQLMsg * msg);
-	void		RESULT_SAFEBOX_CHANGE_SIZE(CPeer * pkPeer, SQLMsg * msg);
-	void		RESULT_SAFEBOX_CHANGE_PASSWORD(CPeer * pkPeer, SQLMsg * msg);
-	void		RESULT_SAFEBOX_CHANGE_PASSWORD_SECOND(CPeer * pkPeer, SQLMsg * msg);
+	void		result_safebox_load(peer * pkPeer, ql_msg * msg);
+	void		result_safebox_change_size(peer * pkPeer, ql_msg * msg);
+	void		result_safebox_change_password(peer * pkPeer, ql_msg * msg);
+	void		result_safebox_change_password_second(peer * pkPeer, ql_msg * msg);
 
-	void		QUERY_EMPIRE_SELECT(CPeer * pkPeer, uint32_t dwHandle, TEmpireSelectPacket * p);
-	void		QUERY_SETUP(CPeer * pkPeer, uint32_t dwHandle, const char * c_pData);
+	void		query_empire_select(peer * pkPeer, uint32_t dwHandle, empire_select_packet * p);
+	void		query_setup(peer * pkPeer, uint32_t dwHandle, const char * c_pData);
 
-	void		SendPartyOnSetup(CPeer * peer);
+	void		send_party_on_setup(peer * peer);
 
-	void		QUERY_HIGHSCORE_REGISTER(CPeer * peer, TPacketGDHighscore* data);
-	void		RESULT_HIGHSCORE_REGISTER(CPeer * pkPeer, SQLMsg * msg);
+	void		query_highscore_register(peer * peer, packet_gd_highscore* data);
+	void		result_highscore_register(peer * pkPeer, ql_msg * msg);
 
-	void		QUERY_FLUSH_CACHE(CPeer * pkPeer, const char * c_pData);
+	void		query_flush_cache(peer * pkPeer, const char * c_pData);
 
-	void		QUERY_PARTY_CREATE(CPeer * peer, TPacketPartyCreate* p);
-	void		QUERY_PARTY_DELETE(CPeer * peer, TPacketPartyDelete* p);
-	void		QUERY_PARTY_ADD(CPeer * peer, TPacketPartyAdd* p);
-	void		QUERY_PARTY_REMOVE(CPeer * peer, TPacketPartyRemove* p);
-	void		QUERY_PARTY_STATE_CHANGE(CPeer * peer, TPacketPartyStateChange* p);
-	void		QUERY_PARTY_SET_MEMBER_LEVEL(CPeer * peer, TPacketPartySetMemberLevel* p);
+	void		query_party_create(peer * peer, packet_party_create* p);
+	void		query_party_delete(peer * peer, packet_party_delete* p);
+	void		query_party_add(peer * peer, packet_party_add* p);
+	void		query_party_remove(peer * peer, packet_party_remove* p);
+	void		query_party_state_change(peer * peer, packet_party_state_change* p);
+	void		query_party_set_member_level(peer * peer, packet_party_set_member_level* p);
 
-	void		QUERY_RELOAD_PROTO();
+	void		query_reload_proto();
 
-	void		QUERY_CHANGE_NAME(CPeer * peer, uint32_t dwHandle, TPacketGDChangeName * p);
+	void		query_change_name(peer * peer, uint32_t dwHandle, packet_gd_change_name * p);
 
-	void		QUERY_SMS(CPeer * pkPeer, TPacketGDSMS * p);
+	void		query_sms(peer * pkPeer, packet_gdsms * p);
 
-	void		AddGuildPriv(TPacketGiveGuildPriv* p);
-	void		AddEmpirePriv(TPacketGiveEmpirePriv* p);
-	void		AddCharacterPriv(TPacketGiveCharacterPriv* p);
+	void		add_guild_priv(packet_give_guild_priv* p);
+	void		add_empire_priv(packet_give_empire_priv* p);
+	void		add_character_priv(packet_give_character_priv* p);
 
-	void		MoneyLog(TPacketMoneyLog* p);
+	void		money_log(packet_money_log* p);
 
-	void		QUERY_AUTH_LOGIN(CPeer * pkPeer, uint32_t dwHandle, TPacketGDAuthLogin * p);
+	void		query_auth_login(peer * pkPeer, uint32_t dwHandle, packet_gd_auth_login * p);
 
-	void		QUERY_LOGIN_BY_KEY(CPeer * pkPeer, uint32_t dwHandle, TPacketGDLoginByKey * p);
-	void		RESULT_LOGIN_BY_KEY(CPeer * peer, SQLMsg * msg);
+	void		query_login_by_key(peer * pkPeer, uint32_t dwHandle, packet_gd_login_by_key * p);
+	void		result_login_by_key(peer * peer, ql_msg * msg);
 
-	void		ChargeCash(const TRequestChargeCash * p);
+	void		charge_cash(const request_charge_cash * p);
 
-	void		LoadEventFlag();
-	void		SetEventFlag(TPacketSetEventFlag* p);
-	void		SendEventFlagsOnSetup(CPeer* peer);
+	void		load_event_flag();
+	void		set_event_flag(packet_set_event_flag* p);
+	void		send_event_flags_on_setup(peer* peer);
 
 	// Marriage
-	void		MarriageAdd(TPacketMarriageAdd * p);
-	void		MarriageUpdate(TPacketMarriageUpdate * p);
-	void		MarriageRemove(TPacketMarriageRemove * p);
+	void		marriage_add(packet_marriage_add * p);
+	void		marriage_update(packet_marriage_update * p);
+	void		marriage_remove(packet_marriage_remove * p);
 
-	void		WeddingRequest(TPacketWeddingRequest * p);
-	void		WeddingReady(TPacketWeddingReady * p);
-	void		WeddingEnd(TPacketWeddingEnd * p);
+	void		wedding_request(packet_wedding_request * p);
+	void		wedding_ready(packet_wedding_ready * p);
+	void		wedding_end(packet_wedding_end * p);
 
 	// MYSHOP_PRICE_LIST
 	// Private shop price info
@@ -336,7 +336,7 @@ class CClientManager : public singleton<CClientManager>
 	/**
 	 * @param [in]	pPacket pointer to the packet data
 	 */
-	void		MyshopPricelistUpdate(const TItemPriceListTable* pPacket);
+	void		myshop_pricelist_update(const item_price_list_table* pPacket);
 
 	/// Handler for the item price list request packet (HEADER_GD_MYSHOP_PRICELIST_REQ)
 	/**
@@ -344,186 +344,186 @@ class CClientManager : public singleton<CClientManager>
 	 * @param [in]	dwHandle handle of the peer that requested the price info
 	 * @param [in]	dwPlayerID ID of the player who requested the price list
 	 */
-	void		MyshopPricelistRequest(CPeer* peer, uint32_t dwHandle, uint32_t dwPlayerID);
+	void		myshop_pricelist_request(peer* peer, uint32_t dwHandle, uint32_t dwPlayerID);
 	// END_OF_MYSHOP_PRICE_LIST
 
 	// Building
-	void		CreateObject(TPacketGDCreateObject * p);
-	void		DeleteObject(uint32_t dwID);
-	void		UpdateLand(uint32_t * pdw);
+	void		create_object(packet_gd_create_object * p);
+	void		delete_object(uint32_t dwID);
+	void		update_land(uint32_t * pdw);
 
 	// BLOCK_CHAT
-	void		BlockChat(TPacketBlockChat * p);
+	void		block_chat(packet_block_chat * p);
 	// END_OF_BLOCK_CHAT
    
     private:
-	std::shared_ptr<net::listener>		m_listener;	// accepts the game and auth servers
-	TPeerList				m_peerList;
+	std::shared_ptr<net::listener>		listener_;	// accepts the game and auth servers
+	peer_list				peer_list_;
 
-	CPeer *					m_pkAuthPeer;
+	peer *					auth_peer_;
 
 	// LoginKey, LoginData pair
-	typedef std::unordered_map<uint32_t, CLoginData *> TLoginDataByLoginKey;
-	TLoginDataByLoginKey			m_map_pkLoginData;
+	typedef std::unordered_map<uint32_t, login_data *> login_data_by_login_key;
+	login_data_by_login_key			map_pk_login_data_;
 
 	// Login LoginData pair
-	typedef std::unordered_map<std::string, CLoginData *> TLoginDataByLogin;
-	TLoginDataByLogin			m_map_pkLoginDataByLogin;
+	typedef std::unordered_map<std::string, login_data *> login_data_by_login;
+	login_data_by_login			map_pk_login_data_by_login_;
 	
 	// AccountID LoginData pair
-	typedef std::unordered_map<uint32_t, CLoginData *> TLoginDataByAID;
-	TLoginDataByAID				m_map_pkLoginDataByAID;
+	typedef std::unordered_map<uint32_t, login_data *> login_data_by_aid;
+	login_data_by_aid				map_pk_login_data_by_aid_;
 
 	// Login LoginData pair (accounts actually logged in)
-	typedef std::unordered_map<std::string, CLoginData *> TLogonAccountMap;
-	TLogonAccountMap			m_map_kLogonAccount;
+	typedef std::unordered_map<std::string, login_data *> logon_account_map;
+	logon_account_map			map_k_logon_account_;
 
-	int					m_iPlayerIDStart;
-	int					m_iPlayerDeleteLevelLimit;
-	int					m_iPlayerDeleteLevelLimitLower;
+	int					player_id_start_;
+	int					player_delete_level_limit_;
+	int					player_delete_level_limit_lower_;
 
-	std::vector<TMobTable>			m_vec_mobTable;
-	std::vector<TItemTable>			m_vec_itemTable;
-	std::map<uint32_t, TItemTable *>		m_map_itemTableByVnum;
+	std::vector<mob_table>			vec_mob_table_;
+	std::vector<item_table>			vec_item_table_;
+	std::map<uint32_t, item_table *>		map_item_table_by_vnum_;
 
-	int					m_iShopTableSize;
-	std::unique_ptr<TShopTable[]>		m_pShopTable;
+	int					shop_table_size_;
+	std::unique_ptr<shop_table[]>		shop_table_;
 
-	int					m_iRefineTableSize;
-	std::unique_ptr<TRefineTable[]>		m_pRefineTable;
+	int					refine_table_size_;
+	std::unique_ptr<refine_table[]>		refine_table_;
 
-	std::vector<TSkillTable>		m_vec_skillTable;
-	std::vector<TBanwordTable>		m_vec_banwordTable;
-	std::vector<TItemAttrTable>		m_vec_itemAttrTable;
-	std::vector<TItemAttrTable>		m_vec_itemRareTable;
+	std::vector<skill_table>		vec_skill_table_;
+	std::vector<banword_table>		vec_banword_table_;
+	std::vector<item_attr_table>		vec_item_attr_table_;
+	std::vector<item_attr_table>		vec_item_rare_table_;
 
-	std::vector<building::TLand>		m_vec_kLandTable;
-	std::vector<building::TObjectProto>	m_vec_kObjectProto;
-	std::map<uint32_t, std::unique_ptr<building::TObject>>	m_map_pkObjectTable;
+	std::vector<building::land_table>		vec_k_land_table_;
+	std::vector<building::object_proto>	vec_k_object_proto_;
+	std::map<uint32_t, std::unique_ptr<building::object_table>>	map_pk_object_table_;
 
-	bool					m_bShutdowned;
+	bool					shutdowned_;
 
-	TPlayerTableCacheMap			m_map_playerCache;  // keyed by player id
+	player_table_cache_map			map_player_cache_;  // keyed by player id
 
-	TItemCacheMap				m_map_itemCache;  // keyed by item id
-	TItemCacheSetPtrMap			m_map_pkItemCacheSetPtr;  // keyed by player id; which item caches does this player have?
+	item_cache_map				map_item_cache_;  // keyed by item id
+	item_cache_set_ptr_map			map_pk_item_cache_set_ptr_;  // keyed by player id; which item caches does this player have?
 
 	// MYSHOP_PRICE_LIST
 	/// Per-player item price list map. key: player ID, value: price list cache
-	TItemPriceListCacheMap m_mapItemPriceListCache;  ///< Per-player item price lists
+	item_price_list_cache_map item_price_list_cache_;  ///< Per-player item price lists
 	// END_OF_MYSHOP_PRICE_LIST
 
-	TChannelStatusMap m_mChannelStatus;
+	channel_status_map m_channel_status_;
 
-	struct TPartyInfo
+	struct party_info
 	{
-	    uint8_t bRole;
-	    uint8_t bLevel;
+	    uint8_t role;
+	    uint8_t level;
 
-		TPartyInfo() :bRole(0), bLevel(0)
+		party_info() :role(0), level(0)
 		{
 		}
 	};
 
-	typedef std::map<uint32_t, TPartyInfo>	TPartyMember;
-	typedef std::map<uint32_t, TPartyMember>	TPartyMap;
-	typedef std::map<uint8_t, TPartyMap>	TPartyChannelMap;
-	TPartyChannelMap m_map_pkChannelParty;
+	typedef std::map<uint32_t, party_info>	party_member;
+	typedef std::map<uint32_t, party_member>	party_map;
+	typedef std::map<uint8_t, party_map>	party_channel_map;
+	party_channel_map map_pk_channel_party_;
 
-	typedef std::map<std::string, int32_t>	TEventFlagMap;
-	TEventFlagMap m_map_lEventFlag;
+	typedef std::map<std::string, int32_t>	event_flag_map;
+	event_flag_map map_l_event_flag_;
 
-	int					m_iCacheFlushCount;
-	int					m_iCacheFlushCountLimit;
+	int					cache_flush_count_;
+	int					cache_flush_count_limit_;
 
     private :
-	TItemIDRangeTable m_itemRange;
+	item_id_range_table item_range_;
 
     public :
-	bool InitializeNowItemID();
-	uint32_t GetItemID();
-	uint32_t GainItemID();
-	TItemIDRangeTable GetItemRange() { return m_itemRange; }
+	bool initialize_now_item_id();
+	uint32_t item_id();
+	uint32_t gain_item_id();
+	item_id_range_table item_range() { return item_range_; }
 
 	//BOOT_LOCALIZATION
     public:
 	/* Initialize local info 
 	 **/
-	bool InitializeLocalization(); 
+	bool initialize_localization(); 
 
     private:
-	std::vector<tLocale> m_vec_Locale;
+	std::vector<t_locale> vec_locale_;
 	//END_BOOT_LOCALIZATION
 	//ADMIN_MANAGER
 
-	bool __GetAdminInfo(const char *szIP, std::vector<tAdminInfo> & rAdminVec);
-	bool __GetHostInfo(std::vector<std::string> & rIPVec);
+	bool admin_info(const char *szIP, std::vector<t_admin_info> & rAdminVec);
+	bool host_info(std::vector<std::string> & rIPVec);
 	//END_ADMIN_MANAGER
 
 		
 	//RELOAD_ADMIN
-	void ReloadAdmin(CPeer * peer, TPacketReloadAdmin * p);
+	void reload_admin(peer * peer, packet_reload_admin * p);
 	//END_RELOAD_ADMIN
-	void BreakMarriage(CPeer * peer, const char * data);
+	void break_marriage(peer * peer, const char * data);
 
-	struct TLogoutPlayer
+	struct logout_player
 	{
 	    uint32_t	pid;
 	    time_t	time;
 
 	};
 
-	typedef std::unordered_map<uint32_t, std::unique_ptr<TLogoutPlayer>> TLogoutPlayerMap;
-	TLogoutPlayerMap m_map_logout;
+	typedef std::unordered_map<uint32_t, std::unique_ptr<logout_player>> logout_player_map;
+	logout_player_map map_logout_;
 	
-	void InsertLogoutPlayer(uint32_t pid);
-	void DeleteLogoutPlayer(uint32_t pid);
-	void UpdateLogoutPlayer();
-	void UpdateItemCacheSet(uint32_t pid);
+	void insert_logout_player(uint32_t pid);
+	void delete_logout_player(uint32_t pid);
+	void update_logout_player();
+	void update_item_cache_set(uint32_t pid);
 
-	void FlushPlayerCacheSet(uint32_t pid);
+	void flush_player_cache_set(uint32_t pid);
 
 	//MONARCH
-	void Election(CPeer * peer, uint32_t dwHandle, const char * p);
-	void Candidacy(CPeer * peer, uint32_t dwHandle, const char * p);
-	void AddMonarchMoney(CPeer * peer, uint32_t dwHandle, const char * p);
-	void TakeMonarchMoney(CPeer * peer, uint32_t dwHandle, const char * p);
-	void ComeToVote(CPeer * peer, uint32_t dwHandle, const char * p);
-	void RMCandidacy(CPeer * peer, uint32_t dwHandle, const char * p);
-	void SetMonarch(CPeer * peer, uint32_t dwHandle, const char * p);
-	void RMMonarch(CPeer * peer, uint32_t dwHandle, const char * p);
+	void election(peer * peer, uint32_t dwHandle, const char * p);
+	void candidacy(peer * peer, uint32_t dwHandle, const char * p);
+	void add_monarch_money(peer * peer, uint32_t dwHandle, const char * p);
+	void take_monarch_money(peer * peer, uint32_t dwHandle, const char * p);
+	void come_to_vote(peer * peer, uint32_t dwHandle, const char * p);
+	void rm_candidacy(peer * peer, uint32_t dwHandle, const char * p);
+	void set_monarch(peer * peer, uint32_t dwHandle, const char * p);
+	void rm_monarch(peer * peer, uint32_t dwHandle, const char * p);
 								
 
-	void DecMonarchMoney(CPeer * peer, uint32_t dwHandle, const char * p);
+	void dec_monarch_money(peer * peer, uint32_t dwHandle, const char * p);
 	//END_MONARCH
 
-	void ChangeMonarchLord(CPeer* peer, uint32_t dwHandle, TPacketChangeMonarchLord* info);
+	void change_monarch_lord(peer* peer, uint32_t dwHandle, packet_change_monarch_lord* info);
 
-	void SendSpareItemIDRange(CPeer* peer);
+	void send_spare_item_id_range(peer* peer);
 
-	void UpdateHorseName(TPacketUpdateHorseName* data, CPeer* peer);
-	void AckHorseName(uint32_t dwPID, CPeer* peer);
-	void DeleteLoginKey(TPacketDC *data);
-	void ResetLastPlayerID(const TPacketNeedLoginLogInfo* data);
+	void update_horse_name(packet_update_horse_name* data, peer* peer);
+	void ack_horse_name(uint32_t dwPID, peer* peer);
+	void delete_login_key(packet_dc *data);
+	void reset_last_player_id(const packet_need_login_log_info* data);
 	//delete gift notify icon
-	void DeleteAwardId(TPacketDeleteAwardID* data);
-	void UpdateChannelStatus(TChannelStatus* pData);
-	void RequestChannelStatus(CPeer* peer, uint32_t dwHandle);
+	void delete_award_id(packet_delete_award_id* data);
+	void update_channel_status(channel_status* pData);
+	void request_channel_status(peer* peer, uint32_t dwHandle);
 };
 
 template<class Func>	
-Func CClientManager::for_each_peer(Func f)
+Func client_manager::for_each_peer(Func f)
 {
-    TPeerList::iterator it;
-    for (it = m_peerList.begin(); it!=m_peerList.end();++it)
+    peer_list::iterator it;
+    for (it = peer_list_.begin(); it!=peer_list_.end();++it)
     {
 	f(*it);
     }
     return f;
 }
 // Packet and query statistics (ClientManager.cpp).
-extern int g_item_count;
-extern int g_query_count[2];
+extern int item_count;
+extern int query_count[2];
 
-bool CreatePlayerTableFromRes(MYSQL_RES * res, TPlayerTable * pkTab);
+bool create_player_table_from_res(MYSQL_RES * res, player_table * pkTab);
 }

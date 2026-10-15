@@ -16,35 +16,35 @@
 namespace metin2::game::inline text {
 
 
-CBanwordManager::CBanwordManager()
+banword_manager::banword_manager()
 {
 }
 
-CBanwordManager::~CBanwordManager()
+banword_manager::~banword_manager()
 {
 }
 
-bool CBanwordManager::Initialize(TBanwordTable * p, uint16_t wSize)
+bool banword_manager::initialize(banword_table * p, uint16_t wSize)
 {
-	m_hashmap_words.clear();
+	hashmap_words_.clear();
 
 	for (uint16_t i = 0; i < wSize; ++i, ++p)
-		m_hashmap_words[p->szWord] = true;
+		hashmap_words_[p->word] = true;
 
 	char szBuf[256];
-	snprintf(szBuf, sizeof(szBuf), "Banword reloaded! (total %zu banwords)", m_hashmap_words.size());
-	SendLog(szBuf);
+	snprintf(szBuf, sizeof(szBuf), "Banword reloaded! (total %zu banwords)", hashmap_words_.size());
+	send_log(szBuf);
 	return true;
 }
 
-bool CBanwordManager::CheckString(const char * c_pszString, size_t _len)
+bool banword_manager::check_string(const char * c_pszString, size_t _len)
 {
-	if (m_hashmap_words.empty())
+	if (hashmap_words_.empty())
 		return false;
 
-	__typeof(m_hashmap_words.begin()) it = m_hashmap_words.begin();
+	__typeof(hashmap_words_.begin()) it = hashmap_words_.begin();
 
-	while (it != m_hashmap_words.end())
+	while (it != hashmap_words_.end())
 	{
 		const std::string & r = it->first;
 		const char * tmp = c_pszString;
@@ -67,11 +67,11 @@ bool CBanwordManager::CheckString(const char * c_pszString, size_t _len)
 	return false;
 }
 
-void CBanwordManager::ConvertString(char * c_pszString, size_t _len)
+void banword_manager::convert_string(char * c_pszString, size_t _len)
 {
-	__typeof(m_hashmap_words.begin()) it = m_hashmap_words.begin();
+	__typeof(hashmap_words_.begin()) it = hashmap_words_.begin();
 
-	while (it != m_hashmap_words.end())
+	while (it != hashmap_words_.end())
 	{
 		const std::string & r = it->first;
 

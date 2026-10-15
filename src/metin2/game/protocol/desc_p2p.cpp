@@ -16,58 +16,58 @@
 namespace metin2::game::inline protocol {
 
 
-DESC_P2P::~DESC_P2P()
+desc_p2_p::~desc_p2_p()
 {
 }
 
-void DESC_P2P::Destroy()
+void desc_p2_p::destroy()
 {
-	if (!m_connection) {
+	if (!connection_) {
 		return;
 	}
 
-	P2P_MANAGER::instance().UnregisterAcceptor(this);
+	p2_p_manager::instance().unregister_acceptor(this);
 
-	metin2::log::info( "SYSTEM: closing p2p connection of {}", m_stHost.c_str());
+	metin2::log::info( "SYSTEM: closing p2p connection of {}", host_.c_str());
 
 	// Chain up to base class Destroy()
-	DESC::Destroy();
+	desc::destroy();
 }
 
-bool DESC_P2P::Setup(std::shared_ptr<net::connection> connection)
+bool desc_p2_p::setup(std::shared_ptr<net::connection> connection)
 {
-	m_connection = std::move(connection);
-	m_stHost = m_connection->remote_address();
-	m_wPort = m_connection->remote_port();
+	connection_ = std::move(connection);
+	host_ = connection_->remote_address();
+	port_ = connection_->remote_port();
 
-	m_connection->start(*this);
+	connection_->start(*this);
 
-	if (!is_allowed_peer(m_stHost.c_str(), metin2::config::server().p2p_allowed_hosts, g_szPublicIP)) // refuse if remote host != public ip (only the same machine must be able to connect in here)
+	if (!is_allowed_peer(host_.c_str(), metin2::config::server().p2p_allowed_hosts, public_ip)) // refuse if remote host != public ip (only the same machine must be able to connect in here)
 	{
-		metin2::log::info( "PORT_SECURITY: new p2p connection from [{}] to [{}] BLOCKED", m_stHost.c_str(), g_szPublicIP);
-		SetPhase(PHASE_CLOSE);
+		metin2::log::info( "PORT_SECURITY: new p2p connection from [{}] to [{}] BLOCKED", host_.c_str(), public_ip);
+		set_phase(PHASE_CLOSE);
 		return true;
 	}
 
-	SetPhase(PHASE_P2P);
+	set_phase(PHASE_P2P);
 
-	metin2::log::info( "SYSTEM: new p2p connection from [{}]", m_stHost.c_str());
+	metin2::log::info( "SYSTEM: new p2p connection from [{}]", host_.c_str());
 	return true;
 }
 
-void DESC_P2P::SetPhase(int iPhase)
+void desc_p2_p::set_phase(int iPhase)
 {
-	static CInputP2P s_inputP2P;
+	static input_p2_p s_inputP2P;
 
 	switch (iPhase)
 	{
 		case PHASE_P2P:
 			metin2::log::debug( "PHASE_P2P");
-			m_pInputProcessor = &s_inputP2P;
+			input_processor_ = &s_inputP2P;
 			break;
 
 		case PHASE_CLOSE:
-			m_pInputProcessor = nullptr;
+			input_processor_ = nullptr;
 			break;
 
 		default:
@@ -75,6 +75,6 @@ void DESC_P2P::SetPhase(int iPhase)
 			break;
 	}
 
-	m_iPhase = iPhase;
+	phase_ = iPhase;
 }
 }

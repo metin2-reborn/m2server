@@ -30,162 +30,162 @@
 
 namespace metin2::game::inline world {
 
-CDungeon::CDungeon(IdType id, int32_t lOriginalMapIndex, int32_t lMapIndex)
-	: m_id(id),
-	m_lMapIndex(lMapIndex),
-	m_map_Area(SECTREE_MANAGER::instance().GetDungeonArea(lOriginalMapIndex))
+dungeon::dungeon(id_type id, int32_t lOriginalMapIndex, int32_t lMapIndex)
+	: id_(id),
+	map_index_(lMapIndex),
+	map_area_(sectree_manager::instance().dungeon_area(lOriginalMapIndex))
 {
-	Initialize();
+	initialize();
 }
 
-CDungeon::~CDungeon()
+dungeon::~dungeon()
 {
-	if (m_pParty != nullptr)
+	if (party_ != nullptr)
 	{
-		m_pParty->SetDungeon_for_Only_party (nullptr);
+		party_->set_dungeon_for_only_party (nullptr);
 	}
-	ClearRegen();
-	event_cancel(&deadEvent);
+	clear_regen();
+	event_cancel(&dead_event_);
 	// <Factor>
 	event_cancel(&exit_all_event_);
 	event_cancel(&jump_to_event_);
 }
 
-void CDungeon::Initialize()
+void dungeon::initialize()
 {
-	deadEvent = nullptr;
+	dead_event_ = nullptr;
 	// <Factor>
 	exit_all_event_ = nullptr;
 	jump_to_event_ = nullptr;
 	regen_id_ = 0;
 
-	m_iMobKill = 0;
-	m_iStoneKill = 0;
-	m_bUsePotion = false;
-	m_bUseRevive = false;
+	mob_kill_ = 0;
+	stone_kill_ = 0;
+	use_potion_ = false;
+	use_revive_ = false;
 
-	m_iMonsterCount = 0;
+	monster_count_ = 0;
 
-	m_bExitAllAtEliminate = false;
-	m_bWarpAtEliminate = false;
+	exit_all_at_eliminate_ = false;
+	warp_at_eliminate_ = false;
 
-	m_iWarpDelay = 0;
-	m_lWarpMapIndex = 0;
-	m_lWarpX = 0;
-	m_lWarpY = 0;
+	warp_delay_ = 0;
+	warp_map_index_ = 0;
+	warp_x_ = 0;
+	warp_y_ = 0;
 
-	m_stRegenFile = "";
+	regen_file_ = "";
 
-	m_pParty = nullptr;
+	party_ = nullptr;
 }
 
-void CDungeon::SetFlag(std::string name, int value)
+void dungeon::set_flag(std::string name, int value)
 {
-	auto it =  m_map_Flag.find(name);
-	if (it != m_map_Flag.end())
+	auto it =  map_flag_.find(name);
+	if (it != map_flag_.end())
 		it->second = value;
 	else
-		m_map_Flag.insert(make_pair(name, value));
+		map_flag_.insert(make_pair(name, value));
 }
 
-int CDungeon::GetFlag(std::string name)
+int dungeon::flag(std::string name)
 {
-	auto it =  m_map_Flag.find(name);
-	if (it != m_map_Flag.end())
+	auto it =  map_flag_.find(name);
+	if (it != map_flag_.end())
 		return it->second;
 	else
 		return 0;
 }
 
-struct FSendDestPosition
+struct f_send_dest_position
 {
-	FSendDestPosition(int32_t x, int32_t y)
+	f_send_dest_position(int32_t x, int32_t y)
 	{
-		p1.bHeader = HEADER_GC_DUNGEON;
+		p1.header = HEADER_GC_DUNGEON;
 		p1.subheader = DUNGEON_SUBHEADER_GC_DESTINATION_POSITION;
 		p2.x = x;
 		p2.y = y;
 		p1.size = sizeof(p1)+sizeof(p2);
 	}
 
-	void operator()(CHARACTER * ch)
+	void operator()(character * ch)
 	{
-		ch->GetDesc()->BufferedPacket(&p1, sizeof(TPacketGCDungeon));
-		ch->GetDesc()->Packet(&p2, sizeof(TPacketGCDungeonDestPosition));
+		ch->get_desc()->buffered_packet(&p1, sizeof(packet_gc_dungeon));
+		ch->get_desc()->packet(&p2, sizeof(packet_gc_dungeon_dest_position));
 	}
 
-	TPacketGCDungeon p1;
-	TPacketGCDungeonDestPosition p2;
+	packet_gc_dungeon p1;
+	packet_gc_dungeon_dest_position p2;
 };
 
-void CDungeon::SendDestPositionToParty(CParty * pParty, int32_t x, int32_t y)
+void dungeon::send_dest_position_to_party(party * pParty, int32_t x, int32_t y)
 {
-	if (m_map_pkParty.find(pParty) == m_map_pkParty.end())
+	if (map_pk_party_.find(pParty) == map_pk_party_.end())
 	{
-		metin2::log::error("PARTY {:d} not in DUNGEON {:d}", pParty->GetLeaderPID(), m_lMapIndex);
+		metin2::log::error("PARTY {:d} not in DUNGEON {:d}", pParty->leader_pid(), map_index_);
 		return;
 	}
 
-	FSendDestPosition f(x, y);
-	pParty->ForEachNearMember(f);
+	f_send_dest_position f(x, y);
+	pParty->for_each_near_member(f);
 }
 
-struct FWarpToDungeon
+struct f_warp_to_dungeon
 {
-	FWarpToDungeon(int32_t lMapIndex, CDungeon * d)
-		: m_lMapIndex(lMapIndex), m_pkDungeon(d)
+	f_warp_to_dungeon(int32_t lMapIndex, game::world::dungeon * d)
+		: map_index(lMapIndex), dungeon(d)
 		{
-			SECTREE_MAP * pkSectreeMap = SECTREE_MANAGER::instance().GetMap(lMapIndex);
-			m_x = pkSectreeMap->m_setting.posSpawn.x;
-			m_y = pkSectreeMap->m_setting.posSpawn.y; 
+			sectree_map * pkSectreeMap = sectree_manager::instance().map(lMapIndex);
+			x = pkSectreeMap->setting.pos_spawn.x;
+			y = pkSectreeMap->setting.pos_spawn.y; 
 		}
 
-	void operator () (CHARACTER * ch)
+	void operator () (character * ch)
 	{
-		ch->SaveExitLocation();
-		ch->WarpSet(m_x, m_y, m_lMapIndex);
+		ch->save_exit_location();
+		ch->warp_set(x, y, map_index);
 	}
 
-	int32_t m_lMapIndex;
-	int32_t m_x;
-	int32_t m_y;
-	CDungeon * m_pkDungeon;
+	int32_t map_index;
+	int32_t x;
+	int32_t y;
+	game::world::dungeon * dungeon;
 };
 
-void CDungeon::Join(CHARACTER * ch)
+void dungeon::join(character * ch)
 {
-	if (SECTREE_MANAGER::instance().GetMap(m_lMapIndex) == nullptr) {
-		metin2::log::error("CDungeon: SECTREE_MAP not found for #{:d}", m_lMapIndex);
+	if (sectree_manager::instance().map(map_index_) == nullptr) {
+		metin2::log::error("CDungeon: SECTREE_MAP not found for #{:d}", map_index_);
 		return;
 	}
-	FWarpToDungeon(m_lMapIndex, this) (ch);
+	f_warp_to_dungeon(map_index_, this) (ch);
 }
 
-void CDungeon::JoinParty(CParty * pParty)
+void dungeon::join_party(party * pParty)
 {
-	pParty->SetDungeon(this);
-	m_map_pkParty.insert(std::make_pair(pParty,0));
+	pParty->set_dungeon(this);
+	map_pk_party_.insert(std::make_pair(pParty,0));
 
-	if (SECTREE_MANAGER::instance().GetMap(m_lMapIndex) == nullptr) {
-		metin2::log::error("CDungeon: SECTREE_MAP not found for #{:d}", m_lMapIndex);
+	if (sectree_manager::instance().map(map_index_) == nullptr) {
+		metin2::log::error("CDungeon: SECTREE_MAP not found for #{:d}", map_index_);
 		return;
 	}
-	FWarpToDungeon f(m_lMapIndex, this);
-	pParty->ForEachOnlineMember(f);
+	f_warp_to_dungeon f(map_index_, this);
+	pParty->for_each_online_member(f);
 }
 
-void CDungeon::QuitParty(CParty * pParty)
+void dungeon::quit_party(party * pParty)
 {
-	pParty->SetDungeon(nullptr);
-	TPartyMap::iterator it = m_map_pkParty.find(pParty);
+	pParty->set_dungeon(nullptr);
+	party_map::iterator it = map_pk_party_.find(pParty);
 
-	if (it != m_map_pkParty.end())
-		m_map_pkParty.erase(it);
+	if (it != map_pk_party_.end())
+		map_pk_party_.erase(it);
 }
 
 EVENTINFO(dungeon_id_info)
 {
-	CDungeon::IdType dungeon_id;
+	dungeon::id_type dungeon_id;
 
 	dungeon_id_info() 
 	: dungeon_id(0)
@@ -203,132 +203,132 @@ EVENTFUNC(dungeon_dead_event)
 		return 0;
 	}
 
-	CDungeon * pDungeon = CDungeonManager::instance().Find(info->dungeon_id);
+	dungeon * pDungeon = dungeon_manager::instance().find(info->dungeon_id);
 	if (pDungeon == nullptr) {
 		return 0;
 	}
 
-	pDungeon->deadEvent = nullptr;
+	pDungeon->dead_event_ = nullptr;
 
-	CDungeonManager::instance().Destroy(info->dungeon_id);
+	dungeon_manager::instance().destroy(info->dungeon_id);
 	return 0;
 }
 
-void CDungeon::IncMember(CHARACTER * ch)
+void dungeon::inc_member(character * ch)
 {
-	if (m_set_pkCharacter.find(ch) == m_set_pkCharacter.end())
-		m_set_pkCharacter.insert(ch);
+	if (set_pk_character_.find(ch) == set_pk_character_.end())
+		set_pk_character_.insert(ch);
 
-	event_cancel(&deadEvent);
+	event_cancel(&dead_event_);
 }
 
-void CDungeon::DecMember(CHARACTER * ch)
+void dungeon::dec_member(character * ch)
 {
-	auto it = m_set_pkCharacter.find(ch);
+	auto it = set_pk_character_.find(ch);
 
-	if (it == m_set_pkCharacter.end()) {
+	if (it == set_pk_character_.end()) {
 		return;
 	}
 
-	m_set_pkCharacter.erase(it);
+	set_pk_character_.erase(it);
 
-	if (m_set_pkCharacter.empty())
+	if (set_pk_character_.empty())
 	{
-		dungeon_id_info* info = AllocEventInfo<dungeon_id_info>();
-		info->dungeon_id = m_id;
+		dungeon_id_info* info = alloc_event_info<dungeon_id_info>();
+		info->dungeon_id = id_;
 
-		event_cancel(&deadEvent);
-		deadEvent = event_create(dungeon_dead_event, info, PASSES_PER_SEC(10));
+		event_cancel(&dead_event_);
+		dead_event_ = event_create(dungeon_dead_event, info, passes_per_sec(10));
 	}
 }
 
-void CDungeon::IncPartyMember(CParty * pParty, CHARACTER * ch)
+void dungeon::inc_party_member(party * pParty, character * ch)
 {
-	TPartyMap::iterator it = m_map_pkParty.find(pParty);
+	party_map::iterator it = map_pk_party_.find(pParty);
 
-	if (it != m_map_pkParty.end())
+	if (it != map_pk_party_.end())
 		it->second++;
 	else
-		m_map_pkParty.insert(std::make_pair(pParty,1));
+		map_pk_party_.insert(std::make_pair(pParty,1));
 
-	IncMember(ch);
+	inc_member(ch);
 }
 
-void CDungeon::DecPartyMember(CParty * pParty, CHARACTER * ch)
+void dungeon::dec_party_member(party * pParty, character * ch)
 {
-	TPartyMap::iterator it = m_map_pkParty.find(pParty);
+	party_map::iterator it = map_pk_party_.find(pParty);
 
-	if (it == m_map_pkParty.end())
+	if (it == map_pk_party_.end())
 		metin2::log::error("cannot find party");
 	else
 	{
 		it->second--;
 
 		if (it->second == 0)
-			QuitParty(pParty);
+			quit_party(pParty);
 	}
 
-	DecMember(ch);
+	dec_member(ch);
 }
 
-struct FWarpToPosition
+struct f_warp_to_position
 {
-	int32_t lMapIndex;
+	int32_t map_index;
 	int32_t x;
 	int32_t y;
-	FWarpToPosition(int32_t lMapIndex, int32_t x, int32_t y)
-		: lMapIndex(lMapIndex), x(x), y(y)
+	f_warp_to_position(int32_t lMapIndex, int32_t x, int32_t y)
+		: map_index(lMapIndex), x(x), y(y)
 		{}
 
-	void operator()(CEntity * ent)
+	void operator()(entity * ent)
 	{
-		if (!ent->IsType(ENTITY_CHARACTER)) {
+		if (!ent->is_type(ENTITY_CHARACTER)) {
 			return;
 		}
-		CHARACTER * ch = (CHARACTER *)ent;
-		if (!ch->IsPC()) {
+		character * ch = (character *)ent;
+		if (!ch->is_pc()) {
 			return;
 		}
-		if (ch->GetMapIndex() == lMapIndex)
+		if (ch->map_index() == map_index)
 		{
-			ch->Show(lMapIndex, x, y, 0);
-			ch->Stop();
+			ch->show(map_index, x, y, 0);
+			ch->stop();
 		}
 		else
 		{
-			ch->WarpSet(x,y,lMapIndex);
+			ch->warp_set(x,y,map_index);
 		}
 	}
 };
 
-struct FWarpToPositionForce
+struct f_warp_to_position_force
 {
-	int32_t lMapIndex;
+	int32_t map_index;
 	int32_t x;
 	int32_t y;
-	FWarpToPositionForce(int32_t lMapIndex, int32_t x, int32_t y)
-		: lMapIndex(lMapIndex), x(x), y(y)
+	f_warp_to_position_force(int32_t lMapIndex, int32_t x, int32_t y)
+		: map_index(lMapIndex), x(x), y(y)
 		{}
 
-	void operator()(CEntity * ent)
+	void operator()(entity * ent)
 	{
-		if (!ent->IsType(ENTITY_CHARACTER)) {
+		if (!ent->is_type(ENTITY_CHARACTER)) {
 			return;
 		}
-		CHARACTER * ch = (CHARACTER *)ent;
-		if (!ch->IsPC()) {
+		character * ch = (character *)ent;
+		if (!ch->is_pc()) {
 			return;
 		}
-		ch->WarpSet(x,y,lMapIndex);
+		ch->warp_set(x,y,map_index);
 	}
 };
 
-void CDungeon::JumpAll(int32_t lFromMapIndex, int x, int y)
+void dungeon::jump_all(int32_t lFromMapIndex, int x, int y)
 {
 	x *= 100;
 	y *= 100;
 
-	SECTREE_MAP * pMap = SECTREE_MANAGER::instance().GetMap(lFromMapIndex);
+	sectree_map * pMap = sectree_manager::instance().map(lFromMapIndex);
 
 	if (!pMap)
 	{
@@ -336,18 +336,18 @@ void CDungeon::JumpAll(int32_t lFromMapIndex, int x, int y)
 		return;
 	}
 
-	FWarpToPosition f(m_lMapIndex, x, y);
+	f_warp_to_position f(map_index_, x, y);
 
 	// <Factor> SECTREE::for_each -> SECTREE::for_each_entity
 	pMap->for_each(f);
 }
 
-void CDungeon::WarpAll(int32_t lFromMapIndex, int x, int y)
+void dungeon::warp_all(int32_t lFromMapIndex, int x, int y)
 {
 	x *= 100;
 	y *= 100;
 
-	SECTREE_MAP * pMap = SECTREE_MANAGER::instance().GetMap(lFromMapIndex);
+	sectree_map * pMap = sectree_manager::instance().map(lFromMapIndex);
 
 	if (!pMap)
 	{
@@ -355,18 +355,18 @@ void CDungeon::WarpAll(int32_t lFromMapIndex, int x, int y)
 		return;
 	}
 
-	FWarpToPositionForce f(m_lMapIndex, x, y);
+	f_warp_to_position_force f(map_index_, x, y);
 
 	// <Factor> SECTREE::for_each -> SECTREE::for_each_entity
 	pMap->for_each(f);
 }
 
-void CDungeon::JumpParty(CParty * pParty, int32_t lFromMapIndex, int x, int y)
+void dungeon::jump_party(party * pParty, int32_t lFromMapIndex, int x, int y)
 {
 	x *= 100;
 	y *= 100;
 
-	SECTREE_MAP * pMap = SECTREE_MANAGER::instance().GetMap(lFromMapIndex);
+	sectree_map * pMap = sectree_manager::instance().map(lFromMapIndex);
 
 	if (!pMap)
 	{
@@ -374,70 +374,70 @@ void CDungeon::JumpParty(CParty * pParty, int32_t lFromMapIndex, int x, int y)
 		return;
 	}
 
-	if (pParty->GetDungeon_for_Only_party() == nullptr)
+	if (pParty->dungeon_for_only_party() == nullptr)
 	{
-		if (m_pParty == nullptr)
+		if (party_ == nullptr)
 		{
-			m_pParty = pParty;
+			party_ = pParty;
 		}
-		else if (m_pParty != pParty)
+		else if (party_ != pParty)
 		{
-			metin2::log::error("Dungeon already has party. Another party cannot jump in dungeon : index {:d}", GetMapIndex());
+			metin2::log::error("Dungeon already has party. Another party cannot jump in dungeon : index {:d}", map_index());
 			return;
 		}
-		pParty->SetDungeon_for_Only_party (this);
+		pParty->set_dungeon_for_only_party (this);
 	}
 
-	FWarpToPosition f(m_lMapIndex, x, y);
+	f_warp_to_position f(map_index_, x, y);
 
-	pParty->ForEachOnMapMember(f, lFromMapIndex);
+	pParty->for_each_on_map_member(f, lFromMapIndex);
 }
 
-void CDungeon::SetPartyNull()
+void dungeon::set_party_null()
 {
-	m_pParty = nullptr;
+	party_ = nullptr;
 }
 
 
-void CDungeonManager::Destroy(CDungeon::IdType dungeon_id)
+void dungeon_manager::destroy(dungeon::id_type dungeon_id)
 {
 	metin2::log::info( "DUNGEON destroy : map index {:d}", dungeon_id);
-	CDungeon * pDungeon = Find(dungeon_id);
+	dungeon * pDungeon = find(dungeon_id);
 	if (pDungeon == nullptr) {
 		return;
 	}
-	m_map_pkDungeon.erase(dungeon_id);
+	map_pk_dungeon_.erase(dungeon_id);
 
-	int32_t lMapIndex = pDungeon->m_lMapIndex;
-	m_map_pkMapDungeon.erase(lMapIndex);
+	int32_t lMapIndex = pDungeon->map_index_;
+	map_pk_map_dungeon_.erase(lMapIndex);
 
 	uint32_t server_timer_arg = lMapIndex;
-	quest::CQuestManager::instance().CancelServerTimers(server_timer_arg);
+	quest::quest_manager::instance().cancel_server_timers(server_timer_arg);
 
-	SECTREE_MANAGER::instance().DestroyPrivateMap(lMapIndex);
+	sectree_manager::instance().destroy_private_map(lMapIndex);
 	delete pDungeon;
 }
 
-CDungeon * CDungeonManager::Find(CDungeon::IdType dungeon_id)
+dungeon * dungeon_manager::find(dungeon::id_type dungeon_id)
 {
-	auto it = m_map_pkDungeon.find(dungeon_id);
-	if (it != m_map_pkDungeon.end())
+	auto it = map_pk_dungeon_.find(dungeon_id);
+	if (it != map_pk_dungeon_.end())
 		return it->second;
 	return nullptr;
 }
 
-CDungeon * CDungeonManager::FindByMapIndex(int32_t lMapIndex)
+dungeon * dungeon_manager::find_by_map_index(int32_t lMapIndex)
 {
-	auto it = m_map_pkMapDungeon.find(lMapIndex);
-	if (it != m_map_pkMapDungeon.end()) {
+	auto it = map_pk_map_dungeon_.find(lMapIndex);
+	if (it != map_pk_map_dungeon_.end()) {
 		return it->second;
 	}
 	return nullptr;
 }
 
-CDungeon * CDungeonManager::Create(int32_t lOriginalMapIndex)
+dungeon * dungeon_manager::create(int32_t lOriginalMapIndex)
 {
-	uint32_t lMapIndex = SECTREE_MANAGER::instance().CreatePrivateMap(lOriginalMapIndex);
+	uint32_t lMapIndex = sectree_manager::instance().create_private_map(lOriginalMapIndex);
 
 	if (!lMapIndex) 
 	{
@@ -446,90 +446,90 @@ CDungeon * CDungeonManager::Create(int32_t lOriginalMapIndex)
 	}
 
 	// <Factor> TODO: Change id assignment, or drop it
-	CDungeon::IdType id = next_id_++;
-	while (Find(id) != nullptr) {
+	dungeon::id_type id = next_id_++;
+	while (find(id) != nullptr) {
 		id = next_id_++;
 	}
 
-	CDungeon * pDungeon = new CDungeon(id, lOriginalMapIndex, lMapIndex);
+	dungeon * pDungeon = new dungeon(id, lOriginalMapIndex, lMapIndex);
 	if (!pDungeon)
 	{
 		metin2::log::error("M2_NEW CDungeon failed");
 		return nullptr;
 	}
-	m_map_pkDungeon.insert(std::make_pair(id, pDungeon));
-	m_map_pkMapDungeon.insert(std::make_pair(lMapIndex, pDungeon));
+	map_pk_dungeon_.insert(std::make_pair(id, pDungeon));
+	map_pk_map_dungeon_.insert(std::make_pair(lMapIndex, pDungeon));
 
 	return pDungeon;
 }
 
-CDungeonManager::CDungeonManager()
+dungeon_manager::dungeon_manager()
 	: next_id_(0)
 {
 }
 
-CDungeonManager::~CDungeonManager()
+dungeon_manager::~dungeon_manager()
 {
 }
 
-void CDungeon::UniqueSetMaxHP(const std::string& key, int iMaxHP)
+void dungeon::unique_set_max_hp(const std::string& key, int iMaxHP)
 {
-	TUniqueMobMap::iterator it = m_map_UniqueMob.find(key);
-	if (it == m_map_UniqueMob.end())
+	unique_mob_map::iterator it = map_unique_mob_.find(key);
+	if (it == map_unique_mob_.end())
 	{
 		metin2::log::error("Unknown Key : {}", key.c_str());
 		return;
 	}
-	it->second->SetMaxHP(iMaxHP);
+	it->second->set_max_hp(iMaxHP);
 }
 
-void CDungeon::UniqueSetHP(const std::string& key, int iHP)
+void dungeon::unique_set_hp(const std::string& key, int iHP)
 {
-	TUniqueMobMap::iterator it = m_map_UniqueMob.find(key);
-	if (it == m_map_UniqueMob.end())
+	unique_mob_map::iterator it = map_unique_mob_.find(key);
+	if (it == map_unique_mob_.end())
 	{
 		metin2::log::error("Unknown Key : {}", key.c_str());
 		return;
 	}
-	it->second->SetHP(iHP);
+	it->second->set_hp(iHP);
 }
 
-void CDungeon::UniqueSetDefGrade(const std::string& key, int iGrade)
+void dungeon::unique_set_def_grade(const std::string& key, int iGrade)
 {
-	TUniqueMobMap::iterator it = m_map_UniqueMob.find(key);
-	if (it == m_map_UniqueMob.end())
+	unique_mob_map::iterator it = map_unique_mob_.find(key);
+	if (it == map_unique_mob_.end())
 	{
 		metin2::log::error("Unknown Key : {}", key.c_str());
 		return;
 	}
-	it->second->PointChange(POINT_DEF_GRADE,iGrade - it->second->GetPoint(POINT_DEF_GRADE));
+	it->second->point_change(POINT_DEF_GRADE,iGrade - it->second->point(POINT_DEF_GRADE));
 }
 
-void CDungeon::SpawnMoveUnique(const char* key, uint32_t vnum, const char* pos_from, const char* pos_to)
+void dungeon::spawn_move_unique(const char* key, uint32_t vnum, const char* pos_from, const char* pos_to)
 {
-	TAreaMap::iterator it_to = m_map_Area.find(pos_to);
-	if (it_to == m_map_Area.end())
+	area_map::iterator it_to = map_area_.find(pos_to);
+	if (it_to == map_area_.end())
 	{
 		metin2::log::error("Wrong position string : {}", pos_to);
 		return;
 	}
 
-	TAreaMap::iterator it_from = m_map_Area.find(pos_from);
-	if (it_from == m_map_Area.end())
+	area_map::iterator it_from = map_area_.find(pos_from);
+	if (it_from == map_area_.end())
 	{
 		metin2::log::error("Wrong position string : {}", pos_from);
 		return;
 	}
 
-	TAreaInfo & ai = it_from->second;
-	TAreaInfo & ai_to = it_to->second;
+	area_info & ai = it_from->second;
+	area_info & ai_to = it_to->second;
 	int dir = ai.dir;
 	if (dir==-1)
 		dir = number(0,359);
 
-	SECTREE_MAP * pkSectreeMap = SECTREE_MANAGER::instance().GetMap(m_lMapIndex);
+	sectree_map * pkSectreeMap = sectree_manager::instance().map(map_index_);
 	if (pkSectreeMap == nullptr) {
-		metin2::log::error("CDungeon: SECTREE_MAP not found for #{:d}", m_lMapIndex);
+		metin2::log::error("CDungeon: SECTREE_MAP not found for #{:d}", map_index_);
 		return;
 	}
 	for (int i=0;i<100;i++)
@@ -539,42 +539,42 @@ void CDungeon::SpawnMoveUnique(const char* key, uint32_t vnum, const char* pos_f
 		int tx = number(ai_to.sx, ai_to.ex);
 		int ty = number(ai_to.sy, ai_to.ey);
 
-		CHARACTER * ch = CHARACTER_MANAGER::instance().SpawnMob(vnum, m_lMapIndex, pkSectreeMap->m_setting.iBaseX+dx, pkSectreeMap->m_setting.iBaseY+dy, 0, false, dir);
+		character * ch = character_manager::instance().spawn_mob(vnum, map_index_, pkSectreeMap->setting.base_x+dx, pkSectreeMap->setting.base_y+dy, 0, false, dir);
 
 		if (ch)
 		{
-			m_map_UniqueMob.insert(make_pair(std::string(key), ch));
-			ch->AddAffect(AFFECT_DUNGEON_UNIQUE, POINT_NONE, 0, AFF_DUNGEON_UNIQUE, 65535, 0, true);
-			ch->SetDungeon(this);
+			map_unique_mob_.insert(make_pair(std::string(key), ch));
+			ch->add_affect(AFFECT_DUNGEON_UNIQUE, POINT_NONE, 0, AFF_DUNGEON_UNIQUE, 65535, 0, true);
+			ch->set_dungeon(this);
 
-			if (ch->Goto(pkSectreeMap->m_setting.iBaseX+tx, pkSectreeMap->m_setting.iBaseY+ty))
-				ch->SendMovePacket(FUNC_WAIT, 0, 0, 0, 0);
+			if (ch->goto_(pkSectreeMap->setting.base_x+tx, pkSectreeMap->setting.base_y+ty))
+				ch->send_move_packet(FUNC_WAIT, 0, 0, 0, 0);
 		}
 		else
 		{
-			metin2::log::error("Cannot spawn at {:d} {:d}", pkSectreeMap->m_setting.iBaseX+((ai.sx+ai.ex)>>1), pkSectreeMap->m_setting.iBaseY+((ai.sy+ai.ey)>>1));
+			metin2::log::error("Cannot spawn at {:d} {:d}", pkSectreeMap->setting.base_x+((ai.sx+ai.ex)>>1), pkSectreeMap->setting.base_y+((ai.sy+ai.ey)>>1));
 		}
 	}
 
 }
 
-void CDungeon::SpawnUnique(const char* key, uint32_t vnum, const char* pos)
+void dungeon::spawn_unique(const char* key, uint32_t vnum, const char* pos)
 {
-	TAreaMap::iterator it = m_map_Area.find(pos);
-	if (it == m_map_Area.end())
+	area_map::iterator it = map_area_.find(pos);
+	if (it == map_area_.end())
 	{
 		metin2::log::error("Wrong position string : {}", pos);
 		return;
 	}
 
-	TAreaInfo & ai = it->second;
+	area_info & ai = it->second;
 	int dir = ai.dir;
 	if (dir==-1)
 		dir = number(0,359);
 
-	SECTREE_MAP * pkSectreeMap = SECTREE_MANAGER::instance().GetMap(m_lMapIndex);
+	sectree_map * pkSectreeMap = sectree_manager::instance().map(map_index_);
 	if (pkSectreeMap == nullptr) {
-		metin2::log::error("CDungeon: SECTREE_MAP not found for #{:d}", m_lMapIndex);
+		metin2::log::error("CDungeon: SECTREE_MAP not found for #{:d}", map_index_);
 		return;
 	}
 	for (int i=0;i<100;i++)
@@ -582,104 +582,104 @@ void CDungeon::SpawnUnique(const char* key, uint32_t vnum, const char* pos)
 		int dx = number(ai.sx, ai.ex);
 		int dy = number(ai.sy, ai.ey);
 
-		CHARACTER * ch = CHARACTER_MANAGER::instance().SpawnMob(vnum, m_lMapIndex, pkSectreeMap->m_setting.iBaseX+dx, pkSectreeMap->m_setting.iBaseY+dy, 0, false, dir);
+		character * ch = character_manager::instance().spawn_mob(vnum, map_index_, pkSectreeMap->setting.base_x+dx, pkSectreeMap->setting.base_y+dy, 0, false, dir);
 
 		if (ch)
 		{
-			m_map_UniqueMob.insert(make_pair(std::string(key), ch));
-			ch->SetDungeon(this);
-			ch->AddAffect(AFFECT_DUNGEON_UNIQUE, POINT_NONE, 0, AFF_DUNGEON_UNIQUE, 65535, 0, true);
+			map_unique_mob_.insert(make_pair(std::string(key), ch));
+			ch->set_dungeon(this);
+			ch->add_affect(AFFECT_DUNGEON_UNIQUE, POINT_NONE, 0, AFF_DUNGEON_UNIQUE, 65535, 0, true);
 			break;
 		}
 		else
 		{
-			metin2::log::error("Cannot spawn at {:d} {:d}", pkSectreeMap->m_setting.iBaseX+((ai.sx+ai.ex)>>1), pkSectreeMap->m_setting.iBaseY+((ai.sy+ai.ey)>>1));
+			metin2::log::error("Cannot spawn at {:d} {:d}", pkSectreeMap->setting.base_x+((ai.sx+ai.ex)>>1), pkSectreeMap->setting.base_y+((ai.sy+ai.ey)>>1));
 		}
 	}
 }
 
-void CDungeon::SetUnique(const char* key, uint32_t vid)
+void dungeon::set_unique(const char* key, uint32_t vid)
 {
-	CHARACTER * ch = CHARACTER_MANAGER::instance().Find(vid);
+	character * ch = character_manager::instance().find(vid);
 	if (ch)
 	{
-		m_map_UniqueMob.insert(make_pair(std::string(key), ch));
-		ch->AddAffect(AFFECT_DUNGEON_UNIQUE, POINT_NONE, 0, AFF_DUNGEON_UNIQUE, 65535, 0, true);
+		map_unique_mob_.insert(make_pair(std::string(key), ch));
+		ch->add_affect(AFFECT_DUNGEON_UNIQUE, POINT_NONE, 0, AFF_DUNGEON_UNIQUE, 65535, 0, true);
 	}
 }
 
-void CDungeon::SpawnStoneDoor(const char* key, const char* pos) 
+void dungeon::spawn_stone_door(const char* key, const char* pos) 
 {
-	SpawnUnique(key, 13001, pos);
+	spawn_unique(key, 13001, pos);
 }
 
-void CDungeon::SpawnWoodenDoor(const char* key, const char* pos)
+void dungeon::spawn_wooden_door(const char* key, const char* pos)
 {
-	SpawnUnique(key, 13000, pos);
-	UniqueSetMaxHP(key, 10000);
-	UniqueSetHP(key, 10000);
-	UniqueSetDefGrade(key, 300);
+	spawn_unique(key, 13000, pos);
+	unique_set_max_hp(key, 10000);
+	unique_set_hp(key, 10000);
+	unique_set_def_grade(key, 300);
 }
 
-void CDungeon::PurgeUnique(const std::string& key)
+void dungeon::purge_unique(const std::string& key)
 {
-	TUniqueMobMap::iterator it = m_map_UniqueMob.find(key);
-	if (it == m_map_UniqueMob.end())
+	unique_mob_map::iterator it = map_unique_mob_.find(key);
+	if (it == map_unique_mob_.end())
 	{
 		metin2::log::error("Unknown Key or Dead: {}", key.c_str());
 		return;
 	}
-	CHARACTER * ch = it->second;
-	m_map_UniqueMob.erase(it);
-	CHARACTER_MANAGER::instance().DestroyCharacter(ch);
+	character * ch = it->second;
+	map_unique_mob_.erase(it);
+	character_manager::instance().destroy_character(ch);
 }
 
-void CDungeon::KillUnique(const std::string& key)
+void dungeon::kill_unique(const std::string& key)
 {
-	TUniqueMobMap::iterator it = m_map_UniqueMob.find(key);
-	if (it == m_map_UniqueMob.end())
+	unique_mob_map::iterator it = map_unique_mob_.find(key);
+	if (it == map_unique_mob_.end())
 	{
 		metin2::log::error("Unknown Key or Dead: {}", key.c_str());
 		return;
 	}
-	CHARACTER * ch = it->second;
-	m_map_UniqueMob.erase(it);
-	ch->Dead();
+	character * ch = it->second;
+	map_unique_mob_.erase(it);
+	ch->dead();
 }
 
-uint32_t CDungeon::GetUniqueVid(const std::string& key)
+uint32_t dungeon::unique_vid(const std::string& key)
 {
-	TUniqueMobMap::iterator it = m_map_UniqueMob.find(key);
-	if (it == m_map_UniqueMob.end())
+	unique_mob_map::iterator it = map_unique_mob_.find(key);
+	if (it == map_unique_mob_.end())
 	{
 		metin2::log::error("Unknown Key or Dead: {}", key.c_str());
 		return 0;
 	}
-	CHARACTER * ch = it->second;
-	return ch->GetVID();
+	character * ch = it->second;
+	return ch->get_vid();
 }
 
-float CDungeon::GetUniqueHpPerc(const std::string& key)
+float dungeon::unique_hp_perc(const std::string& key)
 {
-	TUniqueMobMap::iterator it = m_map_UniqueMob.find(key);
-	if (it == m_map_UniqueMob.end())
+	unique_mob_map::iterator it = map_unique_mob_.find(key);
+	if (it == map_unique_mob_.end())
 	{
 		metin2::log::error("Unknown Key : {}", key.c_str());
 		return false;
 	}
-	return (100.f*it->second->GetHP())/it->second->GetMaxHP();
+	return (100.f*it->second->hp())/it->second->max_hp();
 }
 
-void CDungeon::DeadCharacter(CHARACTER * ch)
+void dungeon::dead_character(character * ch)
 {
-	if (!ch->IsPC())
+	if (!ch->is_pc())
 	{
-		TUniqueMobMap::iterator it = m_map_UniqueMob.begin();
-		while (it!=m_map_UniqueMob.end())
+		unique_mob_map::iterator it = map_unique_mob_.begin();
+		while (it!=map_unique_mob_.end())
 		{
 			if (it->second == ch)
 			{
-				m_map_UniqueMob.erase(it);
+				map_unique_mob_.erase(it);
 				break;
 			}
 			++it;
@@ -687,151 +687,151 @@ void CDungeon::DeadCharacter(CHARACTER * ch)
 	}
 }
 
-bool CDungeon::IsUniqueDead(const std::string& key)
+bool dungeon::is_unique_dead(const std::string& key)
 {
-	TUniqueMobMap::iterator it = m_map_UniqueMob.find(key);
+	unique_mob_map::iterator it = map_unique_mob_.find(key);
 
-	if (it == m_map_UniqueMob.end())
+	if (it == map_unique_mob_.end())
 	{
 		metin2::log::error("Unknown Key or Dead : {}", key.c_str());
 		return true;
 	}
 
-	return it->second->IsDead();
+	return it->second->is_dead();
 }
 
-void CDungeon::Spawn(uint32_t vnum, const char* pos)
+void dungeon::spawn(uint32_t vnum, const char* pos)
 {
-	TAreaMap::iterator it = m_map_Area.find(pos);
+	area_map::iterator it = map_area_.find(pos);
 
-	if (it == m_map_Area.end())
+	if (it == map_area_.end())
 	{
 		metin2::log::error("Wrong position string : {}", pos);
 		return;
 	}
 
-	TAreaInfo & ai = it->second;
+	area_info & ai = it->second;
 	int dir = ai.dir;
 	if (dir==-1)
 		dir = number(0,359);
 
-	SECTREE_MAP * pkSectreeMap = SECTREE_MANAGER::instance().GetMap(m_lMapIndex);
+	sectree_map * pkSectreeMap = sectree_manager::instance().map(map_index_);
 	if (pkSectreeMap == nullptr)
 	{
-		metin2::log::error("cannot find map by index {:d}", m_lMapIndex);
+		metin2::log::error("cannot find map by index {:d}", map_index_);
 		return;
 	}
 	int dx = number(ai.sx, ai.ex);
 	int dy = number(ai.sy, ai.ey);
 
-	CHARACTER * ch = CHARACTER_MANAGER::instance().SpawnMob(vnum, m_lMapIndex, pkSectreeMap->m_setting.iBaseX+dx, pkSectreeMap->m_setting.iBaseY+dy, 0, false, dir);
+	character * ch = character_manager::instance().spawn_mob(vnum, map_index_, pkSectreeMap->setting.base_x+dx, pkSectreeMap->setting.base_y+dy, 0, false, dir);
 	if (ch)
-		ch->SetDungeon(this);
+		ch->set_dungeon(this);
 }
 
-CHARACTER * CDungeon::SpawnMob(uint32_t vnum, int x, int y, int dir)
+character * dungeon::spawn_mob(uint32_t vnum, int x, int y, int dir)
 {
-	SECTREE_MAP * pkSectreeMap = SECTREE_MANAGER::instance().GetMap(m_lMapIndex);
+	sectree_map * pkSectreeMap = sectree_manager::instance().map(map_index_);
 	if (pkSectreeMap == nullptr) {
-		metin2::log::error("CDungeon: SECTREE_MAP not found for #{:d}", m_lMapIndex);
+		metin2::log::error("CDungeon: SECTREE_MAP not found for #{:d}", map_index_);
 		return nullptr;
 	}
 	metin2::log::info( "CDungeon::SpawnMob {:d} {:d} {:d}", vnum, x,  y);
 
-	CHARACTER * ch = CHARACTER_MANAGER::instance().SpawnMob(vnum, m_lMapIndex, pkSectreeMap->m_setting.iBaseX+x*100, pkSectreeMap->m_setting.iBaseY+y*100, 0, false, dir == 0 ? -1 : (dir - 1) * 45);
+	character * ch = character_manager::instance().spawn_mob(vnum, map_index_, pkSectreeMap->setting.base_x+x*100, pkSectreeMap->setting.base_y+y*100, 0, false, dir == 0 ? -1 : (dir - 1) * 45);
 
 	if (ch)
 	{
-		ch->SetDungeon(this);
-		metin2::log::info( "CDungeon::SpawnMob name {}", ch->GetName());
+		ch->set_dungeon(this);
+		metin2::log::info( "CDungeon::SpawnMob name {}", ch->name());
 	}
 
 	return ch;
 }
 
-CHARACTER * CDungeon::SpawnMob_ac_dir(uint32_t vnum, int x, int y, int dir)
+character * dungeon::spawn_mob_ac_dir(uint32_t vnum, int x, int y, int dir)
 {
-	SECTREE_MAP * pkSectreeMap = SECTREE_MANAGER::instance().GetMap(m_lMapIndex);
+	sectree_map * pkSectreeMap = sectree_manager::instance().map(map_index_);
 	if (pkSectreeMap == nullptr) {
-		metin2::log::error("CDungeon: SECTREE_MAP not found for #{:d}", m_lMapIndex);
+		metin2::log::error("CDungeon: SECTREE_MAP not found for #{:d}", map_index_);
 		return nullptr;
 	}
 	metin2::log::info( "CDungeon::SpawnMob {:d} {:d} {:d}", vnum, x,  y);
 
-	CHARACTER * ch = CHARACTER_MANAGER::instance().SpawnMob(vnum, m_lMapIndex, pkSectreeMap->m_setting.iBaseX+x*100, pkSectreeMap->m_setting.iBaseY+y*100, 0, false, dir);
+	character * ch = character_manager::instance().spawn_mob(vnum, map_index_, pkSectreeMap->setting.base_x+x*100, pkSectreeMap->setting.base_y+y*100, 0, false, dir);
 
 	if (ch)
 	{
-		ch->SetDungeon(this);
-		metin2::log::info( "CDungeon::SpawnMob name {}", ch->GetName());
+		ch->set_dungeon(this);
+		metin2::log::info( "CDungeon::SpawnMob name {}", ch->name());
 	}
 
 	return ch;
 }
 
-void CDungeon::SpawnNameMob(uint32_t vnum, int x, int y, const char* name)
+void dungeon::spawn_name_mob(uint32_t vnum, int x, int y, const char* name)
 {
-	SECTREE_MAP * pkSectreeMap = SECTREE_MANAGER::instance().GetMap(m_lMapIndex);
+	sectree_map * pkSectreeMap = sectree_manager::instance().map(map_index_);
 	if (pkSectreeMap == nullptr) {
-		metin2::log::error("CDungeon: SECTREE_MAP not found for #{:d}", m_lMapIndex);
+		metin2::log::error("CDungeon: SECTREE_MAP not found for #{:d}", map_index_);
 		return;
 	}
 
-	CHARACTER * ch = CHARACTER_MANAGER::instance().SpawnMob(vnum, m_lMapIndex, pkSectreeMap->m_setting.iBaseX+x, pkSectreeMap->m_setting.iBaseY+y, 0, false, -1);
+	character * ch = character_manager::instance().spawn_mob(vnum, map_index_, pkSectreeMap->setting.base_x+x, pkSectreeMap->setting.base_y+y, 0, false, -1);
 	if (ch)
 	{
-		ch->SetName(name);
-		ch->SetDungeon(this);
+		ch->set_name(name);
+		ch->set_dungeon(this);
 	}
 }
 
-void CDungeon::SpawnGotoMob(int32_t lFromX, int32_t lFromY, int32_t lToX, int32_t lToY)
+void dungeon::spawn_goto_mob(int32_t lFromX, int32_t lFromY, int32_t lToX, int32_t lToY)
 {
 	const int MOB_GOTO_VNUM = 20039;
 
-	SECTREE_MAP * pkSectreeMap = SECTREE_MANAGER::instance().GetMap(m_lMapIndex);
+	sectree_map * pkSectreeMap = sectree_manager::instance().map(map_index_);
 	if (pkSectreeMap == nullptr) {
-		metin2::log::error("CDungeon: SECTREE_MAP not found for #{:d}", m_lMapIndex);
+		metin2::log::error("CDungeon: SECTREE_MAP not found for #{:d}", map_index_);
 		return;
 	}
 
 	metin2::log::info( "SpawnGotoMob {:d} {:d} to {:d} {:d}", lFromX, lFromY, lToX, lToY);
 
-	lFromX = pkSectreeMap->m_setting.iBaseX+lFromX*100;
-	lFromY = pkSectreeMap->m_setting.iBaseY+lFromY*100;
+	lFromX = pkSectreeMap->setting.base_x+lFromX*100;
+	lFromY = pkSectreeMap->setting.base_y+lFromY*100;
 
-	CHARACTER * ch = CHARACTER_MANAGER::instance().SpawnMob(MOB_GOTO_VNUM, m_lMapIndex, lFromX, lFromY, 0, false, -1);
+	character * ch = character_manager::instance().spawn_mob(MOB_GOTO_VNUM, map_index_, lFromX, lFromY, 0, false, -1);
 
 	if (ch)
 	{
 		char buf[30+1];
 		snprintf(buf, sizeof(buf), ". %d %d", lToX, lToY);
 
-		ch->SetName(buf);
-		ch->SetDungeon(this);
+		ch->set_name(buf);
+		ch->set_dungeon(this);
 	}
 }
 
-CHARACTER * CDungeon::SpawnGroup(uint32_t vnum, int32_t x, int32_t y, float radius, bool bAggressive, int count)
+character * dungeon::spawn_group(uint32_t vnum, int32_t x, int32_t y, float radius, bool bAggressive, int count)
 {
-	SECTREE_MAP * pkSectreeMap = SECTREE_MANAGER::instance().GetMap(m_lMapIndex);
+	sectree_map * pkSectreeMap = sectree_manager::instance().map(map_index_);
 	if (pkSectreeMap == nullptr) {
-		metin2::log::error("CDungeon: SECTREE_MAP not found for #{:d}", m_lMapIndex);
+		metin2::log::error("CDungeon: SECTREE_MAP not found for #{:d}", map_index_);
 		return nullptr;
 	}
 
 	int iRadius = (int) radius;
 
-	int sx = pkSectreeMap->m_setting.iBaseX + x - iRadius;
-	int sy = pkSectreeMap->m_setting.iBaseY + y - iRadius;
+	int sx = pkSectreeMap->setting.base_x + x - iRadius;
+	int sy = pkSectreeMap->setting.base_y + y - iRadius;
 	int ex = sx + iRadius;
 	int ey = sy + iRadius;
 
-	CHARACTER * ch = nullptr;
+	character * ch = nullptr;
 
 	while (count--)
 	{
-		CHARACTER * chLeader = CHARACTER_MANAGER::instance().SpawnGroup(vnum, m_lMapIndex, sx, sy, ex, ey, nullptr, bAggressive, this);
+		character * chLeader = character_manager::instance().spawn_group(vnum, map_index_, sx, sy, ex, ey, nullptr, bAggressive, this);
 		if (chLeader && !ch)
 			ch = chLeader;
 	}
@@ -839,217 +839,217 @@ CHARACTER * CDungeon::SpawnGroup(uint32_t vnum, int32_t x, int32_t y, float radi
 	return ch;
 }
 
-void CDungeon::SpawnRegen(const char* filename, bool bOnce)
+void dungeon::spawn_regen(const char* filename, bool bOnce)
 {
 	if (!filename)
 	{
-		metin2::log::error("CDungeon::SpawnRegen(filename=NULL, bOnce={:d}) - m_lMapIndex[{:d}]", bOnce, m_lMapIndex); 
+		metin2::log::error("CDungeon::SpawnRegen(filename=NULL, bOnce={:d}) - m_lMapIndex[{:d}]", bOnce, map_index_); 
 		return;
 	}
 
-	SECTREE_MAP * pkSectreeMap = SECTREE_MANAGER::instance().GetMap(m_lMapIndex);
+	sectree_map * pkSectreeMap = sectree_manager::instance().map(map_index_);
 	if (!pkSectreeMap)
 	{
-		metin2::log::error("CDungeon::SpawnRegen(filename={}, bOnce={:d}) - m_lMapIndex[{:d}]", filename, bOnce, m_lMapIndex); 
+		metin2::log::error("CDungeon::SpawnRegen(filename={}, bOnce={:d}) - m_lMapIndex[{:d}]", filename, bOnce, map_index_); 
 		return;
 	}
-	regen_do(filename, m_lMapIndex, pkSectreeMap->m_setting.iBaseX, pkSectreeMap->m_setting.iBaseY, this, bOnce);
+	regen_do(filename, map_index_, pkSectreeMap->setting.base_x, pkSectreeMap->setting.base_y, this, bOnce);
 }
 
-void CDungeon::AddRegen(REGEN * regen)
+void dungeon::add_regen(regen * regen)
 {
 	regen->id = regen_id_++;
-	m_regen.push_back(regen);
+	regen_.push_back(regen);
 }
 
-void CDungeon::ClearRegen()
+void dungeon::clear_regen()
 {
-	for (auto it = m_regen.begin(); it != m_regen.end(); ++it)
+	for (auto it = regen_.begin(); it != regen_.end(); ++it)
 	{
-		REGEN * regen = *it;
+		regen * regen = *it;
 
 		event_cancel(&regen->event);
 		delete regen;
 	}
-	m_regen.clear();
+	regen_.clear();
 }
 
-bool CDungeon::IsValidRegen(REGEN * regen, size_t regen_id) {
-	auto it = std::find(m_regen.begin(), m_regen.end(), regen);
-	if (it == m_regen.end()) {
+bool dungeon::is_valid_regen(regen * regen, size_t regen_id) {
+	auto it = std::find(regen_.begin(), regen_.end(), regen);
+	if (it == regen_.end()) {
 		return false;
 	}
 	auto * found = *it;
 	return (found->id == regen_id);
 }
 
-void CDungeon::SpawnMoveGroup(uint32_t vnum, const char* pos_from, const char* pos_to, int count)
+void dungeon::spawn_move_group(uint32_t vnum, const char* pos_from, const char* pos_to, int count)
 {
-	TAreaMap::iterator it_to = m_map_Area.find(pos_to);
+	area_map::iterator it_to = map_area_.find(pos_to);
 
-	if (it_to == m_map_Area.end())
+	if (it_to == map_area_.end())
 	{
 		metin2::log::error("Wrong position string : {}", pos_to);
 		return;
 	}
 
-	TAreaMap::iterator it_from = m_map_Area.find(pos_from);
+	area_map::iterator it_from = map_area_.find(pos_from);
 
-	if (it_from == m_map_Area.end())
+	if (it_from == map_area_.end())
 	{
 		metin2::log::error("Wrong position string : {}", pos_from);
 		return;
 	}
 
-	TAreaInfo & ai = it_from->second;
-	TAreaInfo & ai_to = it_to->second;
+	area_info & ai = it_from->second;
+	area_info & ai_to = it_to->second;
 	int dir = ai.dir;
 
 	if (dir == -1)
 		dir = number(0,359);
 
-	SECTREE_MAP * pkSectreeMap = SECTREE_MANAGER::instance().GetMap(m_lMapIndex);
+	sectree_map * pkSectreeMap = sectree_manager::instance().map(map_index_);
 	if (pkSectreeMap == nullptr) {
-		metin2::log::error("CDungeon: SECTREE_MAP not found for #{:d}", m_lMapIndex);
+		metin2::log::error("CDungeon: SECTREE_MAP not found for #{:d}", map_index_);
 		return;
 	}
 
 	while (count--)
 	{
-		int tx = number(ai_to.sx, ai_to.ex)+pkSectreeMap->m_setting.iBaseX;
-		int ty = number(ai_to.sy, ai_to.ey)+pkSectreeMap->m_setting.iBaseY;
-		CHARACTER_MANAGER::instance().SpawnMoveGroup(vnum, m_lMapIndex, pkSectreeMap->m_setting.iBaseX+ai.sx, pkSectreeMap->m_setting.iBaseY+ai.sy, pkSectreeMap->m_setting.iBaseX+ai.ex, pkSectreeMap->m_setting.iBaseY+ai.ey, tx, ty, nullptr, true);
+		int tx = number(ai_to.sx, ai_to.ex)+pkSectreeMap->setting.base_x;
+		int ty = number(ai_to.sy, ai_to.ey)+pkSectreeMap->setting.base_y;
+		character_manager::instance().spawn_move_group(vnum, map_index_, pkSectreeMap->setting.base_x+ai.sx, pkSectreeMap->setting.base_y+ai.sy, pkSectreeMap->setting.base_x+ai.ex, pkSectreeMap->setting.base_y+ai.ey, tx, ty, nullptr, true);
 	}
 }
 
 namespace
 {
 	// DUNGEON_KILL_ALL_BUG_FIX
-	struct FKillSectree
+	struct f_kill_sectree
 	{
-		void operator () (CEntity * ent)
+		void operator () (entity * ent)
 		{
-			if (ent->IsType(ENTITY_CHARACTER))
+			if (ent->is_type(ENTITY_CHARACTER))
 			{
-				CHARACTER * ch = (CHARACTER *) ent;
+				character * ch = (character *) ent;
 
-				if (!ch->IsPC() && !ch->IsPet())
-					ch->Dead();
+				if (!ch->is_pc() && !ch->is_pet())
+					ch->dead();
 			}
 		}
 	};
 	// END_OF_DUNGEON_KILL_ALL_BUG_FIX
 
-	struct FPurgeSectree
+	struct f_purge_sectree
 	{
-		void operator () (CEntity * ent)
+		void operator () (entity * ent)
 		{
-			if (ent->IsType(ENTITY_CHARACTER))
+			if (ent->is_type(ENTITY_CHARACTER))
 			{
-				CHARACTER * ch = (CHARACTER *) ent;
+				character * ch = (character *) ent;
 
-				if (!ch->IsPC() && !ch->IsPet()) {
-					CHARACTER_MANAGER::instance().DestroyCharacter(ch);
+				if (!ch->is_pc() && !ch->is_pet()) {
+					character_manager::instance().destroy_character(ch);
 				}
 			}
-			else if (ent->IsType(ENTITY_ITEM))
+			else if (ent->is_type(ENTITY_ITEM))
 			{
-				CItem * item = (CItem *) ent;
-				ITEM_MANAGER::instance().DestroyItem(item);
+				item * item = (game::items::item *) ent;
+				item_manager::instance().destroy_item(item);
 			}
 			else
-				metin2::log::error("unknown entity type {:d} is in dungeon", ent->GetType());
+				metin2::log::error("unknown entity type {:d} is in dungeon", ent->type());
 		}
 	};
 }
 
 // DUNGEON_KILL_ALL_BUG_FIX
-void CDungeon::KillAll()
+void dungeon::kill_all()
 {
-	SECTREE_MAP * pkMap = SECTREE_MANAGER::instance().GetMap(m_lMapIndex);
+	sectree_map * pkMap = sectree_manager::instance().map(map_index_);
 	if (pkMap == nullptr) {
-		metin2::log::error("CDungeon: SECTREE_MAP not found for #{:d}", m_lMapIndex);
+		metin2::log::error("CDungeon: SECTREE_MAP not found for #{:d}", map_index_);
 		return;
 	}
-	FKillSectree f;
+	f_kill_sectree f;
 	pkMap->for_each(f);
 }
 // END_OF_DUNGEON_KILL_ALL_BUG_FIX
 
-void CDungeon::Purge()
+void dungeon::purge()
 {
-	SECTREE_MAP * pkMap = SECTREE_MANAGER::instance().GetMap(m_lMapIndex);
+	sectree_map * pkMap = sectree_manager::instance().map(map_index_);
 	if (pkMap == nullptr) {
-		metin2::log::error("CDungeon: SECTREE_MAP not found for #{:d}", m_lMapIndex);
+		metin2::log::error("CDungeon: SECTREE_MAP not found for #{:d}", map_index_);
 		return;
 	}
-	FPurgeSectree f;
+	f_purge_sectree f;
 	pkMap->for_each(f);
 }
 
-void CDungeon::IncKillCount(CHARACTER * pkKiller, CHARACTER * pkVictim)
+void dungeon::inc_kill_count(character * pkKiller, character * pkVictim)
 {
-	if (pkVictim->IsStone())
-		m_iStoneKill ++;
+	if (pkVictim->is_stone())
+		stone_kill_ ++;
 	else
-		m_iMobKill ++;
+		mob_kill_ ++;
 }
 
-void CDungeon::UsePotion(CHARACTER * ch)
+void dungeon::use_potion(character * ch)
 {
-	m_bUsePotion = true;
+	use_potion_ = true;
 }
 
-void CDungeon::UseRevive(CHARACTER * ch)
+void dungeon::use_revive(character * ch)
 {
-	m_bUseRevive = true;
+	use_revive_ = true;
 }
 
-bool CDungeon::IsUsePotion()
+bool dungeon::is_use_potion()
 {
-	return m_bUsePotion;
+	return use_potion_;
 }
 
-bool CDungeon::IsUseRevive()
+bool dungeon::is_use_revive()
 {
-	return m_bUseRevive;
+	return use_revive_;
 }
 
-int CDungeon::GetKillMobCount()
+int dungeon::kill_mob_count()
 {
-	return m_iMobKill;
+	return mob_kill_;
 }
-int CDungeon::GetKillStoneCount()
+int dungeon::kill_stone_count()
 {
-	return m_iStoneKill;
+	return stone_kill_;
 }
 
 
-struct FExitDungeon
+struct f_exit_dungeon
 {
-	void operator()(CEntity * ent)
+	void operator()(entity * ent)
 	{
-		if (ent->IsType(ENTITY_CHARACTER))
+		if (ent->is_type(ENTITY_CHARACTER))
 		{
-			CHARACTER * ch = (CHARACTER *) ent;
+			character * ch = (character *) ent;
 
-			if (ch->IsPC())
-				ch->ExitToSavedLocation();
+			if (ch->is_pc())
+				ch->exit_to_saved_location();
 		}
 	}
 };
 
-void CDungeon::ExitAll()
+void dungeon::exit_all()
 {
-	SECTREE_MAP * pMap = SECTREE_MANAGER::instance().GetMap(m_lMapIndex);
+	sectree_map * pMap = sectree_manager::instance().map(map_index_);
 
 	if (!pMap)
 	{
-		metin2::log::error("cannot find map by index {:d}", m_lMapIndex);
+		metin2::log::error("cannot find map by index {:d}", map_index_);
 		return;
 	}
 
-	FExitDungeon f;
+	f_exit_dungeon f;
 
 	// <Factor> SECTREE::for_each -> SECTREE::for_each_entity
 	pMap->for_each(f);
@@ -1058,74 +1058,74 @@ void CDungeon::ExitAll()
 // DUNGEON_NOTICE
 namespace
 {
-	struct FNotice
+	struct f_notice
 	{
-		FNotice(const char * psz) : m_psz(psz)
+		f_notice(const char * psz_value) : psz(psz_value)
 		{
 		}
 
-		void operator() (CEntity * ent)
+		void operator() (entity * ent)
 		{
-			if (ent->IsType(ENTITY_CHARACTER))
+			if (ent->is_type(ENTITY_CHARACTER))
 			{
-				CHARACTER * ch = (CHARACTER *) ent;
-				ch->ChatPacket(CHAT_TYPE_NOTICE, "%s", m_psz);
+				character * ch = (character *) ent;
+				ch->chat_packet(CHAT_TYPE_NOTICE, "%s", psz);
 			}
 		}
 
-		const char * m_psz;
+		const char * psz;
 	};
 }
 
-void CDungeon::Notice(const char* msg)
+void dungeon::notice(const char* msg)
 {
 	metin2::log::info( "XXX Dungeon Notice {} {}", static_cast<const void *>(this), msg);
-	SECTREE_MAP * pMap = SECTREE_MANAGER::instance().GetMap(m_lMapIndex);
+	sectree_map * pMap = sectree_manager::instance().map(map_index_);
 
 	if (!pMap)
 	{
-		metin2::log::error("cannot find map by index {:d}", m_lMapIndex);
+		metin2::log::error("cannot find map by index {:d}", map_index_);
 		return;
 	}
 
-	FNotice f(msg);
+	f_notice f(msg);
 	pMap->for_each(f);
 }
 // END_OF_DUNGEON_NOTICE
 
-struct FExitDungeonToStartPosition
+struct f_exit_dungeon_to_start_position
 {
-	void operator () (CEntity * ent)
+	void operator () (entity * ent)
 	{
-		if (ent->IsType(ENTITY_CHARACTER))
+		if (ent->is_type(ENTITY_CHARACTER))
 		{
-			CHARACTER * ch = (CHARACTER *) ent;
+			character * ch = (character *) ent;
 
-			if (ch->IsPC())
+			if (ch->is_pc())
 			{
-				PIXEL_POSITION posWarp;
+				pixel_position posWarp;
 
 				// Store the starting map index, not the current map index.
-				if (SECTREE_MANAGER::instance().GetRecallPositionByEmpire(g_start_map[ch->GetEmpire()], ch->GetEmpire(), posWarp))
-					ch->WarpSet(posWarp.x, posWarp.y);
+				if (sectree_manager::instance().recall_position_by_empire(start_map[ch->empire()], ch->empire(), posWarp))
+					ch->warp_set(posWarp.x, posWarp.y);
 				else
-					ch->ExitToSavedLocation();
+					ch->exit_to_saved_location();
 			}
 		}
 	}
 };
 
-void CDungeon::ExitAllToStartPosition()
+void dungeon::exit_all_to_start_position()
 {
-	SECTREE_MAP * pMap = SECTREE_MANAGER::instance().GetMap(m_lMapIndex);
+	sectree_map * pMap = sectree_manager::instance().map(map_index_);
 
 	if (!pMap)
 	{
-		metin2::log::error("cannot find map by index {:d}", m_lMapIndex);
+		metin2::log::error("cannot find map by index {:d}", map_index_);
 		return;
 	}
 
-	FExitDungeonToStartPosition f;
+	f_exit_dungeon_to_start_position f;
 
 	// <Factor> SECTREE::for_each -> SECTREE::for_each_entity
 	pMap->for_each(f);
@@ -1141,11 +1141,11 @@ EVENTFUNC(dungeon_jump_to_event)
 		return 0;
 	}
 
-	CDungeon * pDungeon = CDungeonManager::instance().Find(info->dungeon_id);
+	dungeon * pDungeon = dungeon_manager::instance().find(info->dungeon_id);
 	pDungeon->jump_to_event_ = nullptr;
 
 	if (pDungeon)
-		pDungeon->JumpToEliminateLocation();
+		pDungeon->jump_to_eliminate_location();
 	else
 		metin2::log::error("cannot find dungeon with map index {:d}", info->dungeon_id);
 
@@ -1162,156 +1162,156 @@ EVENTFUNC(dungeon_exit_all_event)
 		return 0;
 	}
 
-	CDungeon * pDungeon = CDungeonManager::instance().Find(info->dungeon_id);
+	dungeon * pDungeon = dungeon_manager::instance().find(info->dungeon_id);
 	pDungeon->exit_all_event_ = nullptr;
 
 	if (pDungeon)
-		pDungeon->ExitAll();
+		pDungeon->exit_all();
 
 	return 0;
 }
 
-void CDungeon::CheckEliminated()
+void dungeon::check_eliminated()
 {
-	if (m_iMonsterCount > 0)
+	if (monster_count_ > 0)
 		return;
 
-	if (m_bExitAllAtEliminate)
+	if (exit_all_at_eliminate_)
 	{
 		metin2::log::info( "CheckEliminated: exit");
-		m_bExitAllAtEliminate = false;
+		exit_all_at_eliminate_ = false;
 
-		if (m_iWarpDelay)
+		if (warp_delay_)
 		{
-			dungeon_id_info* info = AllocEventInfo<dungeon_id_info>();
-			info->dungeon_id = m_id;
+			dungeon_id_info* info = alloc_event_info<dungeon_id_info>();
+			info->dungeon_id = id_;
 
 			event_cancel(&exit_all_event_);
-			exit_all_event_ = event_create(dungeon_exit_all_event, info, PASSES_PER_SEC(m_iWarpDelay));
+			exit_all_event_ = event_create(dungeon_exit_all_event, info, passes_per_sec(warp_delay_));
 		}
 		else
 		{
-			ExitAll();
+			exit_all();
 		}
 	}
-	else if (m_bWarpAtEliminate)
+	else if (warp_at_eliminate_)
 	{
 		metin2::log::info( "CheckEliminated: warp");
-		m_bWarpAtEliminate = false;
+		warp_at_eliminate_ = false;
 
-		if (m_iWarpDelay)
+		if (warp_delay_)
 		{
-			dungeon_id_info* info = AllocEventInfo<dungeon_id_info>();
-			info->dungeon_id = m_id;
+			dungeon_id_info* info = alloc_event_info<dungeon_id_info>();
+			info->dungeon_id = id_;
 
 			event_cancel(&jump_to_event_);
-			jump_to_event_ = event_create(dungeon_jump_to_event, info, PASSES_PER_SEC(m_iWarpDelay));
+			jump_to_event_ = event_create(dungeon_jump_to_event, info, passes_per_sec(warp_delay_));
 		}
 		else
 		{
-			JumpToEliminateLocation();
+			jump_to_eliminate_location();
 		}
 	}
 	else
 		metin2::log::info( "CheckEliminated: none");
 }
 
-void CDungeon::SetExitAllAtEliminate(int32_t time)
+void dungeon::set_exit_all_at_eliminate(int32_t time)
 {
 	metin2::log::info( "SetExitAllAtEliminate: time {:d}", time);
-	m_bExitAllAtEliminate = true;
-	m_iWarpDelay = time;
+	exit_all_at_eliminate_ = true;
+	warp_delay_ = time;
 }
 
-void CDungeon::SetWarpAtEliminate(int32_t time, int32_t lMapIndex, int x, int y, const char* regen_file)
+void dungeon::set_warp_at_eliminate(int32_t time, int32_t lMapIndex, int x, int y, const char* regen_file)
 {
-	m_bWarpAtEliminate = true;
-	m_iWarpDelay = time;
-	m_lWarpMapIndex = lMapIndex;
-	m_lWarpX = x;
-	m_lWarpY = y;
+	warp_at_eliminate_ = true;
+	warp_delay_ = time;
+	warp_map_index_ = lMapIndex;
+	warp_x_ = x;
+	warp_y_ = y;
 
 	if (!regen_file || !*regen_file)
-		m_stRegenFile.clear();
+		regen_file_.clear();
 	else
-		m_stRegenFile = regen_file;
+		regen_file_ = regen_file;
 
-	metin2::log::info( "SetWarpAtEliminate: time {:d} map {:d} {:d}x{:d} regenfile {}", time, lMapIndex, x, y, m_stRegenFile.c_str());
+	metin2::log::info( "SetWarpAtEliminate: time {:d} map {:d} {:d}x{:d} regenfile {}", time, lMapIndex, x, y, regen_file_.c_str());
 }
 
-void CDungeon::JumpToEliminateLocation()
+void dungeon::jump_to_eliminate_location()
 {
-	CDungeon * pDungeon = CDungeonManager::instance().FindByMapIndex(m_lWarpMapIndex);
+	dungeon * pDungeon = dungeon_manager::instance().find_by_map_index(warp_map_index_);
 
 	if (pDungeon)
 	{
-		pDungeon->JumpAll(m_lMapIndex, m_lWarpX, m_lWarpY);
+		pDungeon->jump_all(map_index_, warp_x_, warp_y_);
 
-		if (!m_stRegenFile.empty())
+		if (!regen_file_.empty())
 		{
-			pDungeon->SpawnRegen(m_stRegenFile.c_str());
-			m_stRegenFile.clear();
+			pDungeon->spawn_regen(regen_file_.c_str());
+			regen_file_.clear();
 		}
 	}
 	else
 	{
 		// Warp to a normal map
-		SECTREE_MAP * pMap = SECTREE_MANAGER::instance().GetMap(m_lMapIndex);
+		sectree_map * pMap = sectree_manager::instance().map(map_index_);
 
 		if (!pMap)
 		{
-			metin2::log::error("no map by index {:d}", m_lMapIndex);
+			metin2::log::error("no map by index {:d}", map_index_);
 			return;
 		}
 
-		FWarpToPosition f(m_lWarpMapIndex, m_lWarpX * 100, m_lWarpY * 100);
+		f_warp_to_position f(warp_map_index_, warp_x_ * 100, warp_y_ * 100);
 
 		// <Factor> SECTREE::for_each -> SECTREE::for_each_entity
 		pMap->for_each(f);
 	}
 }
 
-struct FNearPosition
+struct f_near_position
 {
 	int32_t x;
 	int32_t y;
 	int dist;
 	bool ret;
 
-	FNearPosition(int32_t x, int32_t y, int d) :
+	f_near_position(int32_t x, int32_t y, int d) :
 		x(x), y(y), dist(d), ret(true)
 	{
 	}
 
-	void operator()(CEntity * ent)
+	void operator()(entity * ent)
 	{
 		if (ret == false)
 			return;
 
-		if (ent->IsType(ENTITY_CHARACTER))
+		if (ent->is_type(ENTITY_CHARACTER))
 		{
-			CHARACTER * ch = (CHARACTER *) ent;
+			character * ch = (character *) ent;
 
-			if (ch->IsPC())
+			if (ch->is_pc())
 			{
-				if (DISTANCE_APPROX(ch->GetX() - x * 100, ch->GetY() - y * 100) > dist * 100)
+				if (distance_approx(ch->x() - x * 100, ch->y() - y * 100) > dist * 100)
 					ret = false;
 			}
 		}
 	}
 };
 
-bool CDungeon::IsAllPCNearTo(int x, int y, int dist)
+bool dungeon::is_all_pc_near_to(int x, int y, int dist)
 {
-	SECTREE_MAP * pMap = SECTREE_MANAGER::instance().GetMap(m_lMapIndex);
+	sectree_map * pMap = sectree_manager::instance().map(map_index_);
 
 	if (!pMap)
 	{
-		metin2::log::error("cannot find map by index {:d}", m_lMapIndex);
+		metin2::log::error("cannot find map by index {:d}", map_index_);
 		return false;
 	}
 
-	FNearPosition f(x, y, dist);
+	f_near_position f(x, y, dist);
 
 	// <Factor> SECTREE::for_each -> SECTREE::for_each_entity
 	pMap->for_each(f);
@@ -1319,15 +1319,15 @@ bool CDungeon::IsAllPCNearTo(int x, int y, int dist)
 	return f.ret;
 }
 
-void CDungeon::CreateItemGroup (std::string& group_name, ItemGroup& item_group)
+void dungeon::create_item_group (std::string& group_name, item_group& item_group)
 {
-	m_map_ItemGroup.insert (ItemGroupMap::value_type (group_name, item_group));
+	map_item_group_.insert (item_group_map::value_type (group_name, item_group));
 }
 
-const CDungeon::ItemGroup* CDungeon::GetItemGroup (std::string& group_name)
+const dungeon::item_group* dungeon::get_item_group (std::string& group_name)
 {
-	ItemGroupMap::iterator it = m_map_ItemGroup.find (group_name);
-	if (it != m_map_ItemGroup.end())
+	item_group_map::iterator it = map_item_group_.find (group_name);
+	if (it != map_item_group_.end())
 		return &(it->second);
 	else
 		return nullptr;

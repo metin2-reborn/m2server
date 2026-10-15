@@ -27,7 +27,7 @@ namespace metin2::sql {
 namespace {
     // Errors after which the same query is tried again: the connection or the server is in
     // trouble, not the query.
-    auto IsTransientError(unsigned int error) -> bool {
+    auto is_transient_error(unsigned int error) -> bool {
         switch (error) {
         case CR_SOCKET_CREATE_ERROR:
         case CR_CONNECTION_ERROR:
@@ -52,232 +52,232 @@ namespace {
     constexpr auto RETRY_DELAY = std::chrono::seconds(1);
 }
 
-void SQLMsg::Store(MYSQL *sql) {
+void ql_msg::store(MYSQL *sql) {
     do {
-        auto result = std::make_unique<SQLResult>();
+        auto result = std::make_unique<ql_result>();
 
-        result->pSQLResult = mysql_store_result(sql);
-        result->uiInsertID = mysql_insert_id(sql);
-        result->uiAffectedRows = mysql_affected_rows(sql);
-        result->uiNumRows = result->pSQLResult ? mysql_num_rows(result->pSQLResult) : 0;
+        result->sql_result = mysql_store_result(sql);
+        result->insert_id = mysql_insert_id(sql);
+        result->affected_rows = mysql_affected_rows(sql);
+        result->num_rows = result->sql_result ? mysql_num_rows(result->sql_result) : 0;
 
-        vec_pkResult.push_back(std::move(result));
+        vec_pk_result.push_back(std::move(result));
     } while (!mysql_next_result(sql));
 }
 
-CAsyncSQL::~CAsyncSQL() {
-    Quit();
+async_sql::~async_sql() {
+    quit();
 
-    if (m_bInitialized) {
+    if (initialized_) {
         metin2::log::info( "AsyncSQL: closing mysql connection.");
-        mysql_close(&m_hDB);
+        mysql_close(&db_);
     }
 }
 
-auto CAsyncSQL::Setup(const char *c_pszHost, const char *c_pszUser, const char *c_pszPassword, const char *c_pszDB, const char *c_pszLocale, bool bNoThread, int iPort) -> bool {
-    m_stHost = c_pszHost;
-    m_stUser = c_pszUser;
-    m_stPassword = c_pszPassword;
-    m_stDB = c_pszDB;
-    m_iPort = iPort;
+auto async_sql::setup(const char *c_pszHost, const char *c_pszUser, const char *c_pszPassword, const char *c_pszDB, const char *c_pszLocale, bool bNoThread, int iPort) -> bool {
+    host_ = c_pszHost;
+    user_ = c_pszUser;
+    password_ = c_pszPassword;
+    m_st_db_ = c_pszDB;
+    port_ = iPort;
 
     if (c_pszLocale) {
-        m_stLocale = c_pszLocale;
-        metin2::log::info( "AsyncSQL: locale {}", m_stLocale.c_str());
+        locale_ = c_pszLocale;
+        metin2::log::info( "AsyncSQL: locale {}", locale_.c_str());
     }
 
     if (bNoThread) {
-        return Connect();
+        return connect();
     }
 
-    m_thread = std::thread([this]() -> void {
-        if (Connect()) {
-            ChildLoop();
+    thread_ = std::thread([this]() -> void {
+        if (connect()) {
+            child_loop();
         }
     });
     return true;
 }
 
-void CAsyncSQL::Quit() {
+void async_sql::quit() {
     {
-        std::lock_guard lock(m_mtxQuery);
-        m_bEnd = true;
+        std::lock_guard lock(mtx_query_);
+        end_ = true;
     }
-    m_cvQuery.notify_all();
+    cv_query_.notify_all();
 
-    if (m_thread.joinable()) {
-        m_thread.join();
+    if (thread_.joinable()) {
+        thread_.join();
     }
 }
 
-auto CAsyncSQL::Connect() -> bool {
-    if (!mysql_init(&m_hDB)) {
+auto async_sql::connect() -> bool {
+    if (!mysql_init(&db_)) {
         metin2::log::error("mysql_init failed");
         return false;
     }
-    m_bInitialized = true;
+    initialized_ = true;
 
-    if (!m_stLocale.empty() && mysql_options(&m_hDB, MYSQL_SET_CHARSET_NAME, m_stLocale.c_str()) != 0) {
-        metin2::log::error("mysql_options MYSQL_SET_CHARSET_NAME {}: {}", m_stLocale.c_str(), mysql_error(&m_hDB));
+    if (!locale_.empty() && mysql_options(&db_, MYSQL_SET_CHARSET_NAME, locale_.c_str()) != 0) {
+        metin2::log::error("mysql_options MYSQL_SET_CHARSET_NAME {}: {}", locale_.c_str(), mysql_error(&db_));
     }
 
-    if (!mysql_real_connect(&m_hDB, m_stHost.c_str(), m_stUser.c_str(), m_stPassword.c_str(), m_stDB.c_str(), m_iPort, nullptr, CLIENT_MULTI_STATEMENTS)) {
-        metin2::log::error("mysql_real_connect: {}", mysql_error(&m_hDB));
+    if (!mysql_real_connect(&db_, host_.c_str(), user_.c_str(), password_.c_str(), m_st_db_.c_str(), port_, nullptr, CLIENT_MULTI_STATEMENTS)) {
+        metin2::log::error("mysql_real_connect: {}", mysql_error(&db_));
         return false;
     }
 
     my_bool reconnect = true;
-    if (mysql_options(&m_hDB, MYSQL_OPT_RECONNECT, &reconnect) != 0) {
-        metin2::log::error("mysql_options MYSQL_OPT_RECONNECT: {}", mysql_error(&m_hDB));
+    if (mysql_options(&db_, MYSQL_OPT_RECONNECT, &reconnect) != 0) {
+        metin2::log::error("mysql_options MYSQL_OPT_RECONNECT: {}", mysql_error(&db_));
     }
 
-    metin2::log::info( "AsyncSQL: connected to {} (reconnect {:d})", m_stHost.c_str(), reconnect);
+    metin2::log::info( "AsyncSQL: connected to {} (reconnect {:d})", host_.c_str(), reconnect);
 
-    m_ulThreadID = mysql_thread_id(&m_hDB);
+    thread_id_ = mysql_thread_id(&db_);
     return true;
 }
 
-auto CAsyncSQL::QueryLocaleSet() -> bool {
-    if (m_stLocale.empty() || m_stLocale == "ascii") {
-        metin2::log::error("no connection character set to apply (locale \"{}\")", m_stLocale.c_str());
+auto async_sql::query_locale_set() -> bool {
+    if (locale_.empty() || locale_ == "ascii") {
+        metin2::log::error("no connection character set to apply (locale \"{}\")", locale_.c_str());
         return true;
     }
 
-    if (mysql_set_character_set(&m_hDB, m_stLocale.c_str())) {
-        metin2::log::error("cannot set locale {} by 'mysql_set_character_set', errno {:d} {}", m_stLocale.c_str(), mysql_errno(&m_hDB), mysql_error(&m_hDB));
+    if (mysql_set_character_set(&db_, locale_.c_str())) {
+        metin2::log::error("cannot set locale {} by 'mysql_set_character_set', errno {:d} {}", locale_.c_str(), mysql_errno(&db_), mysql_error(&db_));
         return false;
     }
 
-    metin2::log::info( "\t--mysql_set_character_set({})", m_stLocale.c_str());
+    metin2::log::info( "\t--mysql_set_character_set({})", locale_.c_str());
     return true;
 }
 
-void CAsyncSQL::SetLocale(const std::string &stLocale) {
-    m_stLocale = stLocale;
-    QueryLocaleSet();
+void async_sql::set_locale(const std::string &stLocale) {
+    locale_ = stLocale;
+    query_locale_set();
 }
 
 // After an automatic reconnect the session lost its character set.
-void CAsyncSQL::CheckReconnected() {
-    if (m_ulThreadID == mysql_thread_id(&m_hDB)) {
+void async_sql::check_reconnected() {
+    if (thread_id_ == mysql_thread_id(&db_)) {
         return;
     }
 
     metin2::log::error("MySQL connection was reconnected. querying locale set");
-    while (!QueryLocaleSet()) {
+    while (!query_locale_set()) {
         std::this_thread::sleep_for(RETRY_DELAY);
     }
-    m_ulThreadID = mysql_thread_id(&m_hDB);
+    thread_id_ = mysql_thread_id(&db_);
 }
 
-auto CAsyncSQL::NewMessage(const char *c_pszQuery) -> std::unique_ptr<SQLMsg> {
-    auto msg = std::make_unique<SQLMsg>();
-    msg->iID = ++m_iMsgCount;
-    msg->stQuery = c_pszQuery;
+auto async_sql::new_message(const char *c_pszQuery) -> std::unique_ptr<ql_msg> {
+    auto msg = std::make_unique<ql_msg>();
+    msg->id = ++msg_count_;
+    msg->query = c_pszQuery;
     return msg;
 }
 
-auto CAsyncSQL::DirectQuery(const char *c_pszQuery) -> SQLMsg * {
-    CheckReconnected();
+auto async_sql::direct_query(const char *c_pszQuery) -> ql_msg * {
+    check_reconnected();
 
-    auto msg = NewMessage(c_pszQuery);
+    auto msg = new_message(c_pszQuery);
 
-    if (mysql_real_query(&m_hDB, msg->stQuery.c_str(), msg->stQuery.length())) {
-        metin2::log::error("AsyncSQL::DirectQuery : mysql_query error: {}\nquery: {}", mysql_error(&m_hDB), msg->stQuery.c_str());
-        msg->uiSQLErrno = mysql_errno(&m_hDB);
+    if (mysql_real_query(&db_, msg->query.c_str(), msg->query.length())) {
+        metin2::log::error("AsyncSQL::DirectQuery : mysql_query error: {}\nquery: {}", mysql_error(&db_), msg->query.c_str());
+        msg->sql_errno = mysql_errno(&db_);
     }
 
-    msg->Store(&m_hDB);
+    msg->store(&db_);
     return msg.release();
 }
 
-void CAsyncSQL::AsyncQuery(const char *c_pszQuery) {
-    PushQuery(NewMessage(c_pszQuery));
+void async_sql::async_query(const char *c_pszQuery) {
+    push_query(new_message(c_pszQuery));
 }
 
-void CAsyncSQL::ReturnQuery(const char *c_pszQuery, void *pvUserData) {
-    auto msg = NewMessage(c_pszQuery);
-    msg->bReturn = true;
-    msg->pvUserData = pvUserData;
-    PushQuery(std::move(msg));
+void async_sql::return_query(const char *c_pszQuery, void *pvUserData) {
+    auto msg = new_message(c_pszQuery);
+    msg->return_ = true;
+    msg->pv_user_data = pvUserData;
+    push_query(std::move(msg));
 }
 
-void CAsyncSQL::PushQuery(std::unique_ptr<SQLMsg> msg) {
+void async_sql::push_query(std::unique_ptr<ql_msg> msg) {
     {
-        std::lock_guard lock(m_mtxQuery);
-        m_queue_query.push_back(std::move(msg));
+        std::lock_guard lock(mtx_query_);
+        queue_query_.push_back(std::move(msg));
     }
-    m_cvQuery.notify_one();
+    cv_query_.notify_one();
 }
 
-auto CAsyncSQL::PopResult(SQLMsg **pp) -> bool {
-    std::lock_guard lock(m_mtxResult);
+auto async_sql::pop_result(ql_msg **pp) -> bool {
+    std::lock_guard lock(mtx_result_);
 
-    if (m_queue_result.empty()) {
+    if (queue_result_.empty()) {
         return false;
     }
 
-    *pp = m_queue_result.front().release();
-    m_queue_result.pop_front();
+    *pp = queue_result_.front().release();
+    queue_result_.pop_front();
     return true;
 }
 
 // Runs the query; false when it failed with a transient error and should be tried again.
-auto CAsyncSQL::Execute(SQLMsg &msg) -> bool {
-    CheckReconnected();
+auto async_sql::execute(ql_msg &msg) -> bool {
+    check_reconnected();
 
     const auto start = std::chrono::steady_clock::now();
 
-    if (mysql_real_query(&m_hDB, msg.stQuery.c_str(), msg.stQuery.length())) {
-        msg.uiSQLErrno = mysql_errno(&m_hDB);
-        metin2::log::error("AsyncSQL: query failed: {} (query: {} errno: {:d})", mysql_error(&m_hDB), msg.stQuery.c_str(), msg.uiSQLErrno);
+    if (mysql_real_query(&db_, msg.query.c_str(), msg.query.length())) {
+        msg.sql_errno = mysql_errno(&db_);
+        metin2::log::error("AsyncSQL: query failed: {} (query: {} errno: {:d})", mysql_error(&db_), msg.query.c_str(), msg.sql_errno);
 
-        if (IsTransientError(msg.uiSQLErrno)) {
+        if (is_transient_error(msg.sql_errno)) {
             return false;
         }
     }
 
     const auto elapsed = std::chrono::steady_clock::now() - start;
     if (elapsed > LONG_QUERY) {
-        metin2::log::info( "[QUERY : LONG INTERVAL(OverSec {:.3f})] : {}", std::chrono::duration<double>(elapsed).count(), msg.stQuery.c_str());
+        metin2::log::info( "[QUERY : LONG INTERVAL(OverSec {:.3f})] : {}", std::chrono::duration<double>(elapsed).count(), msg.query.c_str());
     }
 
     return true;
 }
 
 // A finished query: results go to the result queue when the caller wants them.
-void CAsyncSQL::Finish(std::unique_ptr<SQLMsg> msg) {
-    if (msg->bReturn) {
-        msg->Store(&m_hDB);
-        std::lock_guard lock(m_mtxResult);
-        m_queue_result.push_back(std::move(msg));
+void async_sql::finish(std::unique_ptr<ql_msg> msg) {
+    if (msg->return_) {
+        msg->store(&db_);
+        std::lock_guard lock(mtx_result_);
+        queue_result_.push_back(std::move(msg));
     }
 
-    ++m_iQueryFinished;
+    ++query_finished_;
 }
 
-void CAsyncSQL::ChildLoop() {
-    std::deque<std::unique_ptr<SQLMsg>> batch;
+void async_sql::child_loop() {
+    std::deque<std::unique_ptr<ql_msg>> batch;
 
     while (true) {
         {
-            std::unique_lock lock(m_mtxQuery);
-            m_cvQuery.wait(lock, [this]() -> bool { return m_bEnd || !m_queue_query.empty(); });
+            std::unique_lock lock(mtx_query_);
+            cv_query_.wait(lock, [this]() -> bool { return end_ || !queue_query_.empty(); });
 
-            if (m_queue_query.empty()) {
+            if (queue_query_.empty()) {
                 break; // m_bEnd and nothing left to run
             }
 
-            m_iCopiedQuery += static_cast<int>(m_queue_query.size());
-            std::ranges::move(m_queue_query, std::back_inserter(batch));
-            m_queue_query.clear();
+            copied_query_ += static_cast<int>(queue_query_.size());
+            std::ranges::move(queue_query_, std::back_inserter(batch));
+            queue_query_.clear();
         }
 
         while (!batch.empty()) {
-            if (!Execute(*batch.front())) {
-                if (m_bEnd) {
+            if (!execute(*batch.front())) {
+                if (end_) {
                     // shutting down: the server is unreachable, give up on this query
-                    metin2::log::error("AsyncSQL: dropping query at shutdown: {}", batch.front()->stQuery.c_str());
+                    metin2::log::error("AsyncSQL: dropping query at shutdown: {}", batch.front()->query.c_str());
                 } else {
                     metin2::log::error("AsyncSQL: retrying");
                     std::this_thread::sleep_for(RETRY_DELAY);
@@ -285,47 +285,47 @@ void CAsyncSQL::ChildLoop() {
                 }
             }
 
-            if (m_bEnd) {
-                metin2::log::info( "QUERY_FLUSH: {}", batch.front()->stQuery.c_str());
+            if (end_) {
+                metin2::log::info( "QUERY_FLUSH: {}", batch.front()->query.c_str());
             }
 
-            Finish(std::move(batch.front()));
+            finish(std::move(batch.front()));
             batch.pop_front();
         }
     }
 }
 
-auto CAsyncSQL::CountQuery() -> uint32_t {
-    std::lock_guard lock(m_mtxQuery);
-    return m_queue_query.size();
+auto async_sql::count_query() -> uint32_t {
+    std::lock_guard lock(mtx_query_);
+    return queue_query_.size();
 }
 
-auto CAsyncSQL::CountResult() -> uint32_t {
-    std::lock_guard lock(m_mtxResult);
-    return m_queue_result.size();
+auto async_sql::count_result() -> uint32_t {
+    std::lock_guard lock(mtx_result_);
+    return queue_result_.size();
 }
 
-auto CAsyncSQL::CountQueryFinished() -> int {
-    return m_iQueryFinished;
+auto async_sql::count_query_finished() -> int {
+    return query_finished_;
 }
 
-void CAsyncSQL::ResetQueryFinished() {
-    m_iQueryFinished = 0;
+void async_sql::reset_query_finished() {
+    query_finished_ = 0;
 }
 
-auto CAsyncSQL::GetCopiedQueryCount() -> int {
-    return m_iCopiedQuery;
+auto async_sql::copied_query_count() -> int {
+    return copied_query_;
 }
 
-void CAsyncSQL::ResetCopiedQueryCount() {
-    m_iCopiedQuery = 0;
+void async_sql::reset_copied_query_count() {
+    copied_query_ = 0;
 }
 
-auto CAsyncSQL::GetSQLHandle() -> MYSQL * {
-    return &m_hDB;
+auto async_sql::sql_handle() -> MYSQL * {
+    return &db_;
 }
 
-auto CAsyncSQL::EscapeString(char *dst, size_t dstSize, const char *src, size_t srcSize) -> size_t {
+auto async_sql::escape_string(char *dst, size_t dstSize, const char *src, size_t srcSize) -> size_t {
     if (srcSize == 0) {
         std::ranges::fill_n(dst, static_cast<std::ptrdiff_t>(dstSize), '\0');
         return 0;
@@ -346,6 +346,6 @@ auto CAsyncSQL::EscapeString(char *dst, size_t dstSize, const char *src, size_t 
         return 0;
     }
 
-    return mysql_real_escape_string(&m_hDB, dst, src, srcSize);
+    return mysql_real_escape_string(&db_, dst, src, srcSize);
 }
 }

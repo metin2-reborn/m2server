@@ -33,14 +33,14 @@ namespace metin2::db::inline tables {
 /// \sa cCsvFile
 ////////////////////////////////////////////////////////////////////////////////
 
-class cCsvRow : public std::vector<std::string>
+class c_csv_row : public std::vector<std::string>
 {
 public:
     /// \brief default constructor
-    cCsvRow() {}
+    c_csv_row() {}
 
     /// \brief destructor
-    ~cCsvRow() {}
+    ~c_csv_row() {}
 
 public:
     /// \brief returns the cell's data as int.
@@ -48,7 +48,7 @@ public:
     /// \brief returns the cell's data as double.
 
     /// \brief returns the cell's data as a string.
-    const char* AsString(size_t index) const { return at(index).c_str(); }
+    const char* as_string(size_t index) const { return at(index).c_str(); }
 
     /// \brief returns the data of the cell with the given name as int.
 
@@ -57,8 +57,8 @@ public:
     /// \brief returns the data of the cell with the given name as a string.
 
 private:
-    cCsvRow(const cCsvRow&) = delete;
-    cCsvRow& operator = (const cCsvRow&) = delete;
+    c_csv_row(const c_csv_row&) = delete;
+    c_csv_row& operator = (const c_csv_row&) = delete;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -91,40 +91,40 @@ private:
 /// that reads from a memory source.
 ////////////////////////////////////////////////////////////////////////////////
 
-class cCsvFile
+class c_csv_file
 {
 private:
-    typedef std::vector<std::unique_ptr<cCsvRow>> ROWS;
+    typedef std::vector<std::unique_ptr<c_csv_row>> rows;
 
-    ROWS m_Rows; ///< row collection
+    rows rows_; ///< row collection
 
 public:
     /// \brief constructor
-    cCsvFile() {}
+    c_csv_file() {}
 
     /// \brief destructor
-    virtual ~cCsvFile() { Destroy(); }
+    virtual ~c_csv_file() { destroy(); }
 
 public:
     /// \brief loads the CSV file with the given name.
-    bool Load(const char* fileName, const char seperator=',', const char quote='"');
+    bool load(const char* fileName, const char seperator=',', const char quote='"');
 
     /// \brief saves the contents to a CSV file.
 
     /// \brief deletes all data from memory.
-    void Destroy();
+    void destroy();
 
     /// \brief returns the row at the given index.
 
     /// \brief returns the row at the given index.
-    const cCsvRow* operator [] (size_t index) const;
+    const c_csv_row* operator [] (size_t index) const;
 
     /// \brief returns the number of rows.
-    size_t GetRowCount() const { return m_Rows.size(); }
+    size_t row_count() const { return rows_.size(); }
 
 private:
-    cCsvFile(const cCsvFile&) = delete;
-    cCsvFile& operator = (const cCsvFile&) = delete;
+    c_csv_file(const c_csv_file&) = delete;
+    c_csv_file& operator = (const c_csv_file&) = delete;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -146,28 +146,28 @@ private:
 /// </pre>
 ////////////////////////////////////////////////////////////////////////////////
 
-class cCsvTable
+class c_csv_table
 {
 public :
-    cCsvFile  m_File;   ///< CSV file object
+    c_csv_file  file;   ///< CSV file object
 private:
-    int       m_CurRow; ///< row number currently being traversed
+    int       cur_row_; ///< row number currently being traversed
 
 public:
     /// \brief constructor
-    cCsvTable();
+    c_csv_table();
 
     /// \brief destructor
-    virtual ~cCsvTable();
+    virtual ~c_csv_table();
 
 public:
     /// \brief loads the CSV file with the given name.
-    bool Load(const char* fileName, const char seperator=',', const char quote='"');
+    bool load(const char* fileName, const char seperator=',', const char quote='"');
 
     /// \brief registers a name to use instead of a number when accessing cells.
 
     /// \brief moves to the next row.
-    bool Next();
+    bool next();
 
     /// \brief returns the number of cells in the current row.
 
@@ -176,7 +176,7 @@ public:
     /// \brief returns the cell value as double by index.
 
     /// \brief returns the cell value as std::string by index.
-    const char* AsStringByIndex(size_t index) const;
+    const char* as_string_by_index(size_t index) const;
 
     /// \brief returns the cell value as int by cell name.
 
@@ -185,13 +185,13 @@ public:
     /// \brief returns the cell value as std::string by cell name.
 
     /// \brief deletes all data, including aliases.
-    void Destroy();
+    void destroy();
 
 private:
     /// \brief returns the current row.
-    const cCsvRow* CurRow() const;
+    const c_csv_row* cur_row() const;
 
-    cCsvTable(const cCsvTable&) = delete;
-    cCsvTable& operator = (const cCsvTable&) = delete;
+    c_csv_table(const c_csv_table&) = delete;
+    c_csv_table& operator = (const c_csv_table&) = delete;
 };
 }

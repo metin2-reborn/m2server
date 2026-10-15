@@ -19,24 +19,24 @@ namespace metin2::game::inline app {
 
 
 
-static CEventQueue cxx_q;
+static event_queue cxx_q;
 
 /* Creates and returns an event */
-LPEVENT event_create(TEVENTFUNC func, event_info_data* info, int32_t when)
+event_ptr event_create(event_func func, event_info_data* info, int32_t when)
 {
-	LPEVENT new_event = nullptr;
+	event_ptr new_event = nullptr;
 
 	/* Must be called only after at least the next pulse has passed. */
 	if (when < 1)
 		when = 1;
 
-	new_event = new event;
+	new_event = new scheduled_event;
 
 	assert(nullptr != new_event);
 
 	new_event->func = func;
 	new_event->info	= info;
-	new_event->q_el	= cxx_q.Enqueue(new_event, when, thecore_heart->pulse);
+	new_event->q_el	= cxx_q.enqueue(new_event, when, thecore_heart->pulse);
 	new_event->is_processing = false;
 	new_event->is_force_to_end = false;
 
@@ -44,9 +44,9 @@ LPEVENT event_create(TEVENTFUNC func, event_info_data* info, int32_t when)
 }
 
 /* Removes an event from the system */
-void event_cancel(LPEVENT * ppevent)
+void event_cancel(event_ptr * ppevent)
 {
-	LPEVENT event;
+	event_ptr event;
 
 	if (!ppevent)
 	{
@@ -62,7 +62,7 @@ void event_cancel(LPEVENT * ppevent)
 		event->is_force_to_end = true;
 
 		if (event->q_el)
-			event->q_el->bCancel = true;
+			event->q_el->cancel = true;
 
 		*ppevent = nullptr;
 		return;
@@ -75,25 +75,25 @@ void event_cancel(LPEVENT * ppevent)
 		return;
 	}
 
-	if (event->q_el->bCancel)
+	if (event->q_el->cancel)
 	{
 		*ppevent = nullptr;
 		return;
 	}
 
-	event->q_el->bCancel = true;
+	event->q_el->cancel = true;
 
 	*ppevent = nullptr;
 }
 
-void event_reset_time(LPEVENT event, int32_t when)
+void event_reset_time(event_ptr event, int32_t when)
 {
 	if (!event->is_processing)
 	{
 		if (event->q_el)
-			event->q_el->bCancel = true;
+			event->q_el->cancel = true;
 
-		event->q_el = cxx_q.Enqueue(event, when, thecore_heart->pulse);
+		event->q_el = cxx_q.enqueue(event, when, thecore_heart->pulse);
 	}
 }
 
@@ -105,21 +105,21 @@ int event_process(int pulse)
 
 	// If the current pulse is less than the time of the head of event_q (the event queue), the loop 
 	// does not run.
-	while (pulse >= cxx_q.GetTopKey())
+	while (pulse >= cxx_q.top_key())
 	{
-		TQueueElement * pElem = cxx_q.Dequeue();
+		queue_element * pElem = cxx_q.dequeue();
 
-		if (pElem->bCancel)
+		if (pElem->cancel)
 		{
-			cxx_q.Delete(pElem);
+			cxx_q.delete_(pElem);
 			continue;
 		}
 
-		new_time = pElem->iKey;
+		new_time = pElem->key;
 
-		LPEVENT the_event = pElem->pvData;
+		event_ptr the_event = pElem->pv_data;
 		int32_t processing_time = event_processing_time(the_event);
-		cxx_q.Delete(pElem);
+		cxx_q.delete_(pElem);
 
 		/*
 		 * The return value is the new time; if it is greater than 0 the event is re-added. 
@@ -131,7 +131,7 @@ int event_process(int pulse)
 		if (!the_event->info)
 		{
 			the_event->q_el = nullptr;
-			ContinueOnFatalError();
+			continue_on_fatal_error();
 		}
 		else
 		{
@@ -143,7 +143,7 @@ int event_process(int pulse)
 			}
 			else
 			{
-				the_event->q_el = cxx_q.Enqueue(the_event, new_time, pulse);
+				the_event->q_el = cxx_q.enqueue(the_event, new_time, pulse);
 				the_event->is_processing = false;
 			}
 		}
@@ -155,57 +155,57 @@ int event_process(int pulse)
 }
 
 /* Returns the event's execution time in pulses */
-int32_t event_processing_time(LPEVENT event)
+int32_t event_processing_time(event_ptr event)
 {
 	int32_t start_time;
 
 	if (!event->q_el)
 		return 0;
 
-	start_time = event->q_el->iStartTime;
+	start_time = event->q_el->start_time;
 	return (thecore_heart->pulse - start_time);
 }
 
 /* Returns the event's remaining time in pulses */
-int32_t event_time(LPEVENT event)
+int32_t event_time(event_ptr event)
 {
 	int32_t when;
 
 	if (!event->q_el)
 		return 0;
 
-	when = event->q_el->iKey;
+	when = event->q_el->key;
 	return (when - thecore_heart->pulse);
 }
 
 /* Removes all events */
 void event_destroy(void)
 {
-	TQueueElement * pElem;
+	queue_element * pElem;
 
-	while ((pElem = cxx_q.Dequeue()))
+	while ((pElem = cxx_q.dequeue()))
 	{
-		LPEVENT the_event = (LPEVENT) pElem->pvData;
+		event_ptr the_event = (event_ptr) pElem->pv_data;
 
-		if (!pElem->bCancel)
+		if (!pElem->cancel)
 		{
 			// no op here
 		}
 
-		cxx_q.Delete(pElem);
+		cxx_q.delete_(pElem);
 	}
 }
 
 int event_count()
 {
-	return cxx_q.Size();
+	return cxx_q.size();
 }
 
-void event_add_ref(EVENT* p) {
+void event_add_ref(scheduled_event* p) {
 	++(p->ref_count);
 }
 
-void event_release(EVENT* p) {
+void event_release(scheduled_event* p) {
 	if ( --(p->ref_count) == 0 ) {
 		delete p;
 	}

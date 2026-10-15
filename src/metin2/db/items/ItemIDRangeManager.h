@@ -9,22 +9,22 @@
 
 namespace metin2::db::inline items {
 
-class CItemIDRangeManager : public singleton<CItemIDRangeManager>
+class item_id_range_manager : public singleton<item_id_range_manager>
 {
 	private :
-		const static uint32_t cs_dwMaxItemID = 4290000000UL;
-		const static uint32_t cs_dwMinimumRange = 10000000UL;
-		static constexpr uint32_t cs_dwMinimumRemainCount = 10000UL;
+		const static uint32_t cs_dw_max_item_id_ = 4290000000UL;
+		const static uint32_t cs_dw_minimum_range_ = 10000000UL;
+		static constexpr uint32_t cs_dw_minimum_remain_count_ = 10000UL;
 
-		std::list<TItemIDRangeTable> m_listData;
+		std::list<item_id_range_table> data_;
 
 	public :
-		CItemIDRangeManager();
+		item_id_range_manager();
 
-		void Build();
-		bool BuildRange(uint32_t dwMin, uint32_t dwMax, TItemIDRangeTable& range);
-		void UpdateRange(uint32_t dwMin, uint32_t dwMax);
+		void build();
+		bool build_range(uint32_t dwMin, uint32_t dwMax, item_id_range_table& range);
+		void update_range(uint32_t dwMin, uint32_t dwMax);
 
-		TItemIDRangeTable GetRange();
+		item_id_range_table range();
 };
 }

@@ -44,48 +44,48 @@
 
 namespace metin2::game::inline world {
 
-uint16_t SECTREE_MANAGER::current_sectree_version = 0x0300; // 3.0: major in the high byte
+uint16_t sectree_manager::current_sectree_version_ = 0x0300; // 3.0: major in the high byte
 
-SECTREE_MAP::SECTREE_MAP()
+sectree_map::sectree_map()
 {
-	memset( &m_setting, 0, sizeof(m_setting) );
+	memset( &setting, 0, sizeof(setting) );
 }
 
-SECTREE_MAP::~SECTREE_MAP()
+sectree_map::~sectree_map()
 {
-	MapType::iterator it = map_.begin();
+	map_type::iterator it = map_.begin();
 
 	while (it != map_.end()) {
-		SECTREE * sectree = (it++)->second;
+		sectree * sectree = (it++)->second;
 		delete sectree;
 	}
 
 	map_.clear();
 }
 
-SECTREE_MAP::SECTREE_MAP(SECTREE_MAP & r)
+sectree_map::sectree_map(sectree_map & r)
 {
-	m_setting = r.m_setting;
+	setting = r.setting;
 
-	MapType::iterator it = r.map_.begin();
+	map_type::iterator it = r.map_.begin();
 
 	while (it != r.map_.end())
 	{
-		SECTREE * tree = new SECTREE;
+		sectree * tree = new sectree;
 
-		tree->m_id.coord = it->second->m_id.coord;
-		tree->CloneAttribute(it->second);
+		tree->id_.coord = it->second->id_.coord;
+		tree->clone_attribute(it->second);
 
-		map_.insert(MapType::value_type(it->first, tree));
+		map_.insert(map_type::value_type(it->first, tree));
 		++it;
 	}
 
-	Build();
+	build();
 }
 
-SECTREE * SECTREE_MAP::Find(uint32_t dwPackage)
+sectree * sectree_map::find(uint32_t dwPackage)
 {
-	MapType::iterator it = map_.find(dwPackage);
+	map_type::iterator it = map_.find(dwPackage);
 
 	if (it == map_.end())
 		return nullptr;
@@ -93,15 +93,15 @@ SECTREE * SECTREE_MAP::Find(uint32_t dwPackage)
 	return it->second;
 }
 
-SECTREE * SECTREE_MAP::Find(uint32_t x, uint32_t y)
+sectree * sectree_map::find(uint32_t x, uint32_t y)
 {
-	SECTREEID id;
+	sectreeid id;
 	id.coord.x = x / SECTREE_SIZE;
 	id.coord.y = y / SECTREE_SIZE;
-	return Find(id.package);
+	return find(id.package);
 }
 
-void SECTREE_MAP::Build()
+void sectree_map::build()
 {
     // To give the client info on characters within a 150m radius
     // Expanded neighboring sectrees from 3x3 to 5x5 cells (Korea)
@@ -123,27 +123,27 @@ void SECTREE_MAP::Build()
 	//
 	// Builds the list of neighboring sectrees for every sectree.
 	//
-	MapType::iterator it = map_.begin();
+	map_type::iterator it = map_.begin();
 
 	while (it != map_.end())
 	{
-		SECTREE * tree = it->second;
+		sectree * tree = it->second;
 
-		tree->m_neighbor_list.push_back(tree); // Add itself.
+		tree->neighbor_list_.push_back(tree); // Add itself.
 
-		metin2::log::debug( "{:d}x{:d}", tree->m_id.coord.x, tree->m_id.coord.y);
+		metin2::log::debug( "{:d}x{:d}", tree->id_.coord.x, tree->id_.coord.y);
 
-		int x = tree->m_id.coord.x * SECTREE_SIZE;
-		int y = tree->m_id.coord.y * SECTREE_SIZE;
+		int x = tree->id_.coord.x * SECTREE_SIZE;
+		int y = tree->id_.coord.y * SECTREE_SIZE;
 
 		for (uint32_t i = 0; i < 8; ++i)
 		{
-			SECTREE * tree2 = Find(x + neighbor_coord[i].x, y + neighbor_coord[i].y);
+			sectree * tree2 = find(x + neighbor_coord[i].x, y + neighbor_coord[i].y);
 
 			if (tree2)
 			{
-				metin2::log::debug( "   {:d} {:d}x{:d}", i, tree2->m_id.coord.x, tree2->m_id.coord.y);
-				tree->m_neighbor_list.push_back(tree2);
+				metin2::log::debug( "   {:d} {:d}x{:d}", i, tree2->id_.coord.x, tree2->id_.coord.y);
+				tree->neighbor_list_.push_back(tree2);
 			}
 		}
 
@@ -151,48 +151,48 @@ void SECTREE_MAP::Build()
 	}
 }
 
-SECTREE_MANAGER::SECTREE_MANAGER()
+sectree_manager::sectree_manager()
 {
 }
 
-SECTREE_MANAGER::~SECTREE_MANAGER()
+sectree_manager::~sectree_manager()
 {
 }
 
-SECTREE_MAP * SECTREE_MANAGER::GetMap(int32_t lMapIndex)
+sectree_map * sectree_manager::map(int32_t lMapIndex)
 {
-	std::map<uint32_t, SECTREE_MAP *>::iterator it = m_map_pkSectree.find(lMapIndex);
+	std::map<uint32_t, sectree_map *>::iterator it = map_pk_sectree_.find(lMapIndex);
 
-	if (it == m_map_pkSectree.end())
+	if (it == map_pk_sectree_.end())
 		return nullptr;
 
 	return it->second;
 }
 
-SECTREE * SECTREE_MANAGER::Get(uint32_t dwIndex, uint32_t package)
+sectree * sectree_manager::get(uint32_t dwIndex, uint32_t package)
 {
-	SECTREE_MAP * pkSectreeMap = GetMap(dwIndex);
+	sectree_map * pkSectreeMap = map(dwIndex);
 
 	if (!pkSectreeMap)
 		return nullptr;
 
-	return pkSectreeMap->Find(package);
+	return pkSectreeMap->find(package);
 }
 
-SECTREE * SECTREE_MANAGER::Get(uint32_t dwIndex, uint32_t x, uint32_t y)
+sectree * sectree_manager::get(uint32_t dwIndex, uint32_t x, uint32_t y)
 {
-	SECTREEID id;
+	sectreeid id;
 	id.coord.x = x / SECTREE_SIZE;
 	id.coord.y = y / SECTREE_SIZE;
-	return Get(dwIndex, id.package);
+	return get(dwIndex, id.package);
 }
 
 // -----------------------------------------------------------------------------
 // Build SECTREEs from Setting.txt
 // -----------------------------------------------------------------------------
-int SECTREE_MANAGER::LoadSettingFile(int32_t lMapIndex, const char * c_pszSettingFileName, TMapSetting & r_setting)
+int sectree_manager::load_setting_file(int32_t lMapIndex, const char * c_pszSettingFileName, map_setting & r_setting)
 {
-	memset(&r_setting, 0, sizeof(TMapSetting));
+	memset(&r_setting, 0, sizeof(map_setting));
 
 	FILE * fp = fopen(c_pszSettingFileName, "r");
 
@@ -215,69 +215,69 @@ int SECTREE_MANAGER::LoadSettingFile(int32_t lMapIndex, const char * c_pszSettin
 		}
 		else if (!strcasecmp(cmd, "BasePosition"))
 		{
-			sscanf(buf, " %s %d %d", cmd, &r_setting.iBaseX, &r_setting.iBaseY);
+			sscanf(buf, " %s %d %d", cmd, &r_setting.base_x, &r_setting.base_y);
 		}
 		else if (!strcasecmp(cmd, "CellScale"))
 		{
-			sscanf(buf, " %s %d ", cmd, &r_setting.iCellScale);
+			sscanf(buf, " %s %d ", cmd, &r_setting.cell_scale);
 		}
 	}
 
 	fclose(fp);
 
-	if ((iWidth == 0 && iHeight == 0) || r_setting.iCellScale == 0)
+	if ((iWidth == 0 && iHeight == 0) || r_setting.cell_scale == 0)
 	{
 		metin2::log::error("Invalid Settings file: {}", c_pszSettingFileName);
 		return 0;
 	}
 
-	r_setting.iIndex = lMapIndex;
-	r_setting.iWidth = (r_setting.iCellScale * 128 * iWidth);
-	r_setting.iHeight = (r_setting.iCellScale * 128 * iHeight);
+	r_setting.index = lMapIndex;
+	r_setting.width = (r_setting.cell_scale * 128 * iWidth);
+	r_setting.height = (r_setting.cell_scale * 128 * iHeight);
 	return 1;
 }
 
-SECTREE_MAP * SECTREE_MANAGER::BuildSectreeFromSetting(TMapSetting & r_setting)
+sectree_map * sectree_manager::build_sectree_from_setting(map_setting & r_setting)
 {
-	SECTREE_MAP * pkMapSectree = new SECTREE_MAP;
+	sectree_map * pkMapSectree = new sectree_map;
 
-	pkMapSectree->m_setting = r_setting;
+	pkMapSectree->setting = r_setting;
 
 	int x, y;
-	SECTREE * tree;
+	sectree * tree;
 
-	for (x = r_setting.iBaseX; x < r_setting.iBaseX + r_setting.iWidth; x += SECTREE_SIZE)
+	for (x = r_setting.base_x; x < r_setting.base_x + r_setting.width; x += SECTREE_SIZE)
 	{
-		for (y = r_setting.iBaseY; y < r_setting.iBaseY + r_setting.iHeight; y += SECTREE_SIZE)
+		for (y = r_setting.base_y; y < r_setting.base_y + r_setting.height; y += SECTREE_SIZE)
 		{
-			tree = new SECTREE;
-			tree->m_id.coord.x = x / SECTREE_SIZE;
-			tree->m_id.coord.y = y / SECTREE_SIZE;
-			pkMapSectree->Add(tree->m_id.package, tree);
-			metin2::log::debug( "new sectree {:d} x {:d}", tree->m_id.coord.x, tree->m_id.coord.y);
+			tree = new sectree;
+			tree->id_.coord.x = x / SECTREE_SIZE;
+			tree->id_.coord.y = y / SECTREE_SIZE;
+			pkMapSectree->add(tree->id_.package, tree);
+			metin2::log::debug( "new sectree {:d} x {:d}", tree->id_.coord.x, tree->id_.coord.y);
 		}
 	}
 
-	if ((r_setting.iBaseX + r_setting.iWidth) % SECTREE_SIZE)
+	if ((r_setting.base_x + r_setting.width) % SECTREE_SIZE)
 	{
-		tree = new SECTREE;
-		tree->m_id.coord.x = ((r_setting.iBaseX + r_setting.iWidth) / SECTREE_SIZE) + 1;
-		tree->m_id.coord.y = ((r_setting.iBaseY + r_setting.iHeight) / SECTREE_SIZE);
-		pkMapSectree->Add(tree->m_id.package, tree);
+		tree = new sectree;
+		tree->id_.coord.x = ((r_setting.base_x + r_setting.width) / SECTREE_SIZE) + 1;
+		tree->id_.coord.y = ((r_setting.base_y + r_setting.height) / SECTREE_SIZE);
+		pkMapSectree->add(tree->id_.package, tree);
 	}
 
-	if ((r_setting.iBaseY + r_setting.iHeight) % SECTREE_SIZE)
+	if ((r_setting.base_y + r_setting.height) % SECTREE_SIZE)
 	{
-		tree = new SECTREE;
-		tree->m_id.coord.x = ((r_setting.iBaseX + r_setting.iWidth) / SECTREE_SIZE);
-		tree->m_id.coord.y = ((r_setting.iBaseY + r_setting.iHeight) / SECTREE_SIZE) + 1;
-		pkMapSectree->Add(tree->m_id.package, tree);
+		tree = new sectree;
+		tree->id_.coord.x = ((r_setting.base_x + r_setting.width) / SECTREE_SIZE);
+		tree->id_.coord.y = ((r_setting.base_y + r_setting.height) / SECTREE_SIZE) + 1;
+		pkMapSectree->add(tree->id_.package, tree);
 	}
 
 	return pkMapSectree;
 }
 
-void SECTREE_MANAGER::LoadDungeon(int iIndex, const char * c_pszFileName)
+void sectree_manager::load_dungeon(int iIndex, const char * c_pszFileName)
 {
 	FILE* fp = fopen(c_pszFileName, "r");
 
@@ -312,7 +312,7 @@ void SECTREE_MANAGER::LoadDungeon(int iIndex, const char * c_pszFileName)
 		sx += x;
 		sy += y;
 
-		m_map_pkArea[iIndex].insert(std::make_pair(position_name, TAreaInfo(x, y, sx, sy, dir)));
+		map_pk_area_[iIndex].insert(std::make_pair(position_name, area_info(x, y, sx, sy, dir)));
 
 		count++;
 	}
@@ -328,7 +328,7 @@ void SECTREE_MANAGER::LoadDungeon(int iIndex, const char * c_pszFileName)
 // If there is a map prefix or some other identifier in front,
 // allow moving to towns on other maps too.
 // by rtsummit
-bool SECTREE_MANAGER::LoadMapRegion(const char * c_pszFileName, TMapSetting & r_setting, const char * c_pszMapName)
+bool sectree_manager::load_map_region(const char * c_pszFileName, map_setting & r_setting, const char * c_pszMapName)
 {
 	FILE * fp = fopen(c_pszFileName, "r");
 
@@ -339,7 +339,7 @@ bool SECTREE_MANAGER::LoadMapRegion(const char * c_pszFileName, TMapSetting & r_
 		return false;
 
 	int iX=0, iY=0;
-	PIXEL_POSITION pos[3] = { {0,0,0}, {0,0,0}, {0,0,0} };
+	pixel_position pos[3] = { {0,0,0}, {0,0,0}, {0,0,0} };
 
 	fscanf(fp, " %d %d ", &iX, &iY);
 
@@ -360,20 +360,20 @@ bool SECTREE_MANAGER::LoadMapRegion(const char * c_pszFileName, TMapSetting & r_
 		metin2::log::info( "LoadMapRegion no empire specific start point" );
 	}
 
-	TMapRegion region;
+	map_region region;
 
-	region.index = r_setting.iIndex;
-	region.sx = r_setting.iBaseX;
-	region.sy = r_setting.iBaseY;
-	region.ex = r_setting.iBaseX + r_setting.iWidth;
-	region.ey = r_setting.iBaseY + r_setting.iHeight;
+	region.index = r_setting.index;
+	region.sx = r_setting.base_x;
+	region.sy = r_setting.base_y;
+	region.ex = r_setting.base_x + r_setting.width;
+	region.ey = r_setting.base_y + r_setting.height;
 
-	region.strMapName = c_pszMapName;
+	region.map_name = c_pszMapName;
 
-	region.posSpawn.x = r_setting.iBaseX + (iX * 100);
-	region.posSpawn.y = r_setting.iBaseY + (iY * 100); 
+	region.pos_spawn.x = r_setting.base_x + (iX * 100);
+	region.pos_spawn.y = r_setting.base_y + (iY * 100); 
 
-	r_setting.posSpawn = region.posSpawn;
+	r_setting.pos_spawn = region.pos_spawn;
 
 	metin2::log::info( "LoadMapRegion {:d} x {:d} ~ {:d} y {:d} ~ {:d}, town {:d} {:d}", 
 			region.index,
@@ -381,31 +381,31 @@ bool SECTREE_MANAGER::LoadMapRegion(const char * c_pszFileName, TMapSetting & r_
 			region.ex,
 			region.sy,
 			region.ey,
-			region.posSpawn.x,
-			region.posSpawn.y);
+			region.pos_spawn.x,
+			region.pos_spawn.y);
 
 	if (iEmpirePositionCount == 6)
 	{
-		region.bEmpireSpawnDifferent = true;
+		region.empire_spawn_different = true;
 
 		for (int i = 0; i < 3; i++)
 		{
-			region.posEmpire[i].x = r_setting.iBaseX + (pos[i].x * 100);
-			region.posEmpire[i].y = r_setting.iBaseY + (pos[i].y * 100);
+			region.pos_empire[i].x = r_setting.base_x + (pos[i].x * 100);
+			region.pos_empire[i].y = r_setting.base_y + (pos[i].y * 100);
 		}
 	}
 	else
 	{
-		region.bEmpireSpawnDifferent = false;
+		region.empire_spawn_different = false;
 	}
 
-	m_vec_mapRegion.push_back(region);
+	vec_map_region_.push_back(region);
 
 	metin2::log::info("LoadMapRegion {:d} End", region.index);
 	return true;
 }
 
-bool SECTREE_MANAGER::LoadAttribute(SECTREE_MAP * pkMapSectree, const char * c_pszFileName, TMapSetting & r_setting)
+bool sectree_manager::load_attribute(sectree_map * pkMapSectree, const char * c_pszFileName, map_setting & r_setting)
 {
 	FILE * fp = fopen(c_pszFileName, "rb");
 
@@ -420,7 +420,7 @@ bool SECTREE_MANAGER::LoadAttribute(SECTREE_MAP * pkMapSectree, const char * c_p
 	fread(&iWidth, sizeof(int), 1, fp);
 	fread(&iHeight, sizeof(int), 1, fp);
 
-	int maxMemSize = LZOManager::instance().GetMaxCompressedSize(sizeof(uint32_t) * (SECTREE_SIZE / CELL_SIZE) * (SECTREE_SIZE / CELL_SIZE));
+	int maxMemSize = lzo_manager::instance().max_compressed_size(sizeof(uint32_t) * (SECTREE_SIZE / CELL_SIZE) * (SECTREE_SIZE / CELL_SIZE));
 
 	unsigned int uiSize;
 	lzo_uint uiDestSize;
@@ -432,31 +432,31 @@ bool SECTREE_MANAGER::LoadAttribute(SECTREE_MAP * pkMapSectree, const char * c_p
 		for (int x = 0; x < iWidth; ++x)
 		{
 			// Uses a uint32_t value made by combining coordinates via a UNION as the ID.
-			SECTREEID id;
-			id.coord.x = (r_setting.iBaseX / SECTREE_SIZE) + x;
-			id.coord.y = (r_setting.iBaseY / SECTREE_SIZE) + y;
+			sectreeid id;
+			id.coord.x = (r_setting.base_x / SECTREE_SIZE) + x;
+			id.coord.y = (r_setting.base_y / SECTREE_SIZE) + y;
 
-			SECTREE * tree = pkMapSectree->Find(id.package);
+			sectree * tree = pkMapSectree->find(id.package);
 
 			// SERVER_ATTR_LOAD_ERROR
 			if (tree == nullptr)
 			{
 				metin2::log::error("FATAL ERROR! LoadAttribute({}) - cannot find sectree(package={:x}, coord=({:d}, {:d}), map_index={:d}, map_base=({:d}, {:d}))", 
-						c_pszFileName, id.package, id.coord.x, id.coord.y, r_setting.iIndex, r_setting.iBaseX, r_setting.iBaseY);
+						c_pszFileName, id.package, id.coord.x, id.coord.y, r_setting.index, r_setting.base_x, r_setting.base_y);
 				metin2::log::error("ERROR_ATTR_POS({:d}, {:d}) attr_size({:d}, {:d})", x, y, iWidth, iHeight);
 				metin2::log::error("CHECK! 'Setting.txt' and 'server_attr' MAP_SIZE!!");
 
-				pkMapSectree->DumpAllToSysErr();
+				pkMapSectree->dump_all_to_sys_err();
 				abort();
 
 				return false;
 			}
 			// END_OF_SERVER_ATTR_LOAD_ERROR
 
-			if (tree->m_id.package != id.package)
+			if (tree->id_.package != id.package)
 			{
 				metin2::log::error("returned tree id mismatch! return {:d}, request {:d}", 
-						tree->m_id.package, id.package);
+						tree->id_.package, id.package);
 				fclose(fp);
 
 				return false;
@@ -472,18 +472,18 @@ bool SECTREE_MANAGER::LoadAttribute(SECTREE_MAP * pkMapSectree, const char * c_p
 			fread(abComp.data(), sizeof(char), uiSize, fp);
 
 			uiDestSize = sizeof(uint32_t) * maxMemSize;
-			LZOManager::instance().Decompress(abComp.data(), uiSize, (uint8_t *) attr.get(), &uiDestSize);
+			lzo_manager::instance().decompress(abComp.data(), uiSize, (uint8_t *) attr.get(), &uiDestSize);
 
 			if (uiDestSize != sizeof(uint32_t) * (SECTREE_SIZE / CELL_SIZE) * (SECTREE_SIZE / CELL_SIZE))
 			{
 				metin2::log::error("SECTREE_MANAGER::LoadAttribte : {} : {:d} {:d} size mismatch! {:d}",
-						c_pszFileName, tree->m_id.coord.x, tree->m_id.coord.y, static_cast<int>(uiDestSize));
+						c_pszFileName, tree->id_.coord.x, tree->id_.coord.y, static_cast<int>(uiDestSize));
 				fclose(fp);
 
 				return false;
 			}
 
-			tree->BindAttribute(new CAttribute(attr.get(), SECTREE_SIZE / CELL_SIZE, SECTREE_SIZE / CELL_SIZE));
+			tree->bind_attribute(new attribute(attr.get(), SECTREE_SIZE / CELL_SIZE, SECTREE_SIZE / CELL_SIZE));
 		}
 
 	fclose(fp);
@@ -491,9 +491,9 @@ bool SECTREE_MANAGER::LoadAttribute(SECTREE_MAP * pkMapSectree, const char * c_p
 	return true;
 }
 
-bool SECTREE_MANAGER::GetRecallPositionByEmpire(int iMapIndex, uint8_t bEmpire, PIXEL_POSITION & r_pos)
+bool sectree_manager::recall_position_by_empire(int iMapIndex, uint8_t bEmpire, pixel_position & r_pos)
 {
-	std::vector<TMapRegion>::iterator it = m_vec_mapRegion.begin();
+	std::vector<map_region>::iterator it = vec_map_region_.begin();
 
 	// Maps above 10000 are limited to instance dungeons.
 	if (iMapIndex >= 10000)
@@ -501,16 +501,16 @@ bool SECTREE_MANAGER::GetRecallPositionByEmpire(int iMapIndex, uint8_t bEmpire, 
 		iMapIndex /= 10000;
 	}
 
-	while (it != m_vec_mapRegion.end())
+	while (it != vec_map_region_.end())
 	{
-		TMapRegion & rRegion = *(it++);
+		map_region & rRegion = *(it++);
 
 		if (rRegion.index == iMapIndex)
 		{
-			if (rRegion.bEmpireSpawnDifferent && bEmpire >= 1 && bEmpire <= 3)
-				r_pos = rRegion.posEmpire[bEmpire - 1];
+			if (rRegion.empire_spawn_different && bEmpire >= 1 && bEmpire <= 3)
+				r_pos = rRegion.pos_empire[bEmpire - 1];
 			else
-				r_pos = rRegion.posSpawn;
+				r_pos = rRegion.pos_spawn;
 
 			return true;
 		}
@@ -519,13 +519,13 @@ bool SECTREE_MANAGER::GetRecallPositionByEmpire(int iMapIndex, uint8_t bEmpire, 
 	return false;
 }
 
-bool SECTREE_MANAGER::GetCenterPositionOfMap(int32_t lMapIndex, PIXEL_POSITION & r_pos)
+bool sectree_manager::center_position_of_map(int32_t lMapIndex, pixel_position & r_pos)
 {
-	std::vector<TMapRegion>::iterator it = m_vec_mapRegion.begin();
+	std::vector<map_region>::iterator it = vec_map_region_.begin();
 
-	while (it != m_vec_mapRegion.end())
+	while (it != vec_map_region_.end())
 	{
-		TMapRegion & rRegion = *(it++);
+		map_region & rRegion = *(it++);
 
 		if (rRegion.index == lMapIndex)
 		{
@@ -539,14 +539,14 @@ bool SECTREE_MANAGER::GetCenterPositionOfMap(int32_t lMapIndex, PIXEL_POSITION &
 	return false;
 }
 
-bool SECTREE_MANAGER::GetMapBasePositionByMapIndex(int32_t lMapIndex, PIXEL_POSITION & r_pos)
+bool sectree_manager::map_base_position_by_map_index(int32_t lMapIndex, pixel_position & r_pos)
 {
 	if (lMapIndex> 10000) lMapIndex /= 10000;
-	std::vector<TMapRegion>::iterator it = m_vec_mapRegion.begin();
+	std::vector<map_region>::iterator it = vec_map_region_.begin();
 
-	while (it != m_vec_mapRegion.end())
+	while (it != vec_map_region_.end())
 	{
-		TMapRegion & rRegion = *(it++);
+		map_region & rRegion = *(it++);
 
 		//if (x >= rRegion.sx && y >= rRegion.sy && x < rRegion.ex && y < rRegion.ey)
 		if (lMapIndex == rRegion.index)
@@ -561,13 +561,13 @@ bool SECTREE_MANAGER::GetMapBasePositionByMapIndex(int32_t lMapIndex, PIXEL_POSI
 	return false;
 }
 
-bool SECTREE_MANAGER::GetMapBasePosition(int32_t x, int32_t y, PIXEL_POSITION & r_pos)
+bool sectree_manager::map_base_position(int32_t x, int32_t y, pixel_position & r_pos)
 {
-	std::vector<TMapRegion>::iterator it = m_vec_mapRegion.begin();
+	std::vector<map_region>::iterator it = vec_map_region_.begin();
 
-	while (it != m_vec_mapRegion.end())
+	while (it != vec_map_region_.end())
 	{
-		TMapRegion & rRegion = *(it++);
+		map_region & rRegion = *(it++);
 
 		if (x >= rRegion.sx && y >= rRegion.sy && x < rRegion.ex && y < rRegion.ey)
 		{
@@ -581,28 +581,28 @@ bool SECTREE_MANAGER::GetMapBasePosition(int32_t x, int32_t y, PIXEL_POSITION & 
 	return false;
 }
 
-const TMapRegion * SECTREE_MANAGER::FindRegionByPartialName(const char* szMapName)
+const map_region * sectree_manager::find_region_by_partial_name(const char* szMapName)
 {
-	std::vector<TMapRegion>::iterator it = m_vec_mapRegion.begin();
+	std::vector<map_region>::iterator it = vec_map_region_.begin();
 
-	while (it != m_vec_mapRegion.end())
+	while (it != vec_map_region_.end())
 	{
-		TMapRegion & rRegion = *(it++);
+		map_region & rRegion = *(it++);
 
-		if (rRegion.strMapName.find(szMapName))
+		if (rRegion.map_name.find(szMapName))
 			return &rRegion; // Cache it to make it fast
 	}
 
 	return nullptr;
 }
 
-const TMapRegion * SECTREE_MANAGER::GetMapRegion(int32_t lMapIndex)
+const map_region * sectree_manager::get_map_region(int32_t lMapIndex)
 {
-	std::vector<TMapRegion>::iterator it = m_vec_mapRegion.begin();
+	std::vector<map_region>::iterator it = vec_map_region_.begin();
 
-	while (it != m_vec_mapRegion.end())
+	while (it != vec_map_region_.end())
 	{
-		TMapRegion & rRegion = *(it++);
+		map_region & rRegion = *(it++);
 
 		if (rRegion.index == lMapIndex)
 			return &rRegion;
@@ -611,13 +611,13 @@ const TMapRegion * SECTREE_MANAGER::GetMapRegion(int32_t lMapIndex)
 	return nullptr;
 }
 
-int SECTREE_MANAGER::GetMapIndex(int32_t x, int32_t y)
+int sectree_manager::map_index(int32_t x, int32_t y)
 {
-	std::vector<TMapRegion>::iterator it = m_vec_mapRegion.begin();
+	std::vector<map_region>::iterator it = vec_map_region_.begin();
 
-	while (it != m_vec_mapRegion.end())
+	while (it != vec_map_region_.end())
 	{
-		TMapRegion & rRegion = *(it++);
+		map_region & rRegion = *(it++);
 
 		if (x >= rRegion.sx && y >= rRegion.sy && x < rRegion.ex && y < rRegion.ey)
 			return rRegion.index;
@@ -625,17 +625,17 @@ int SECTREE_MANAGER::GetMapIndex(int32_t x, int32_t y)
 
 	metin2::log::info( "SECTREE_MANAGER::GetMapIndex({:d}, {:d})", x, y);
 
-	std::vector<TMapRegion>::iterator i;
-	for (i = m_vec_mapRegion.begin(); i !=m_vec_mapRegion.end(); ++i)
+	std::vector<map_region>::iterator i;
+	for (i = vec_map_region_.begin(); i !=vec_map_region_.end(); ++i)
 	{
-		TMapRegion & rRegion = *i;
+		map_region & rRegion = *i;
 		metin2::log::info( "{:d}: ({:d}, {:d}) ~ ({:d}, {:d})", rRegion.index, rRegion.sx, rRegion.sy, rRegion.ex, rRegion.ey);
 	}
 
 	return 0;
 }
 
-int SECTREE_MANAGER::Build(const char * c_pszListFileName, const char* c_pszMapBasePath)
+int sectree_manager::build(const char * c_pszListFileName, const char* c_pszMapBasePath)
 {
 	if (true == metin2::config::test_server())
 	{
@@ -663,10 +663,10 @@ int SECTREE_MANAGER::Build(const char * c_pszListFileName, const char* c_pszMapB
 
 		snprintf(szFilename, sizeof(szFilename), "%s/%s/Setting.txt", c_pszMapBasePath, szMapName);
 
-		TMapSetting setting;
-		setting.iIndex = iIndex;
+		map_setting setting;
+		setting.index = iIndex;
 
-		if (!LoadSettingFile(iIndex, szFilename, setting))
+		if (!load_setting_file(iIndex, szFilename, setting))
 		{
 			metin2::log::error("can't load file {} in LoadSettingFile", szFilename);
 			fclose(fp);
@@ -675,7 +675,7 @@ int SECTREE_MANAGER::Build(const char * c_pszListFileName, const char* c_pszMapB
 
 		snprintf(szFilename, sizeof(szFilename), "%s/%s/Town.txt", c_pszMapBasePath, szMapName);
 
-		if (!LoadMapRegion(szFilename, setting, szMapName))
+		if (!load_map_region(szFilename, setting, szMapName))
 		{
 			metin2::log::error("can't load file {} in LoadMapRegion", szFilename);
 			fclose(fp);
@@ -688,28 +688,28 @@ int SECTREE_MANAGER::Build(const char * c_pszListFileName, const char* c_pszMapB
 		// First check whether this server should spawn monsters for this map.
 		if (map_allow_find(iIndex))
 		{
-			SECTREE_MAP * pkMapSectree = BuildSectreeFromSetting(setting);
-			m_map_pkSectree.insert(std::map<uint32_t, SECTREE_MAP *>::value_type(iIndex, pkMapSectree));
+			sectree_map * pkMapSectree = build_sectree_from_setting(setting);
+			map_pk_sectree_.insert(std::map<uint32_t, sectree_map *>::value_type(iIndex, pkMapSectree));
 
 			snprintf(szFilename, sizeof(szFilename), "%s/%s/server_attr", c_pszMapBasePath, szMapName);
-			LoadAttribute(pkMapSectree, szFilename, setting);
+			load_attribute(pkMapSectree, szFilename, setting);
 
 			snprintf(szFilename, sizeof(szFilename), "%s/%s/regen.txt", c_pszMapBasePath, szMapName);
-			regen_load(szFilename, setting.iIndex, setting.iBaseX, setting.iBaseY);
+			regen_load(szFilename, setting.index, setting.base_x, setting.base_y);
 
 			snprintf(szFilename, sizeof(szFilename), "%s/%s/npc.txt", c_pszMapBasePath, szMapName);
-			regen_load(szFilename, setting.iIndex, setting.iBaseX, setting.iBaseY);
+			regen_load(szFilename, setting.index, setting.base_x, setting.base_y);
 
 			snprintf(szFilename, sizeof(szFilename), "%s/%s/boss.txt", c_pszMapBasePath, szMapName);
-			regen_load(szFilename, setting.iIndex, setting.iBaseX, setting.iBaseY);
+			regen_load(szFilename, setting.index, setting.base_x, setting.base_y);
 
 			snprintf(szFilename, sizeof(szFilename), "%s/%s/stone.txt", c_pszMapBasePath, szMapName);
-			regen_load(szFilename, setting.iIndex, setting.iBaseX, setting.iBaseY);
+			regen_load(szFilename, setting.index, setting.base_x, setting.base_y);
 
 			snprintf(szFilename, sizeof(szFilename), "%s/%s/dungeon.txt", c_pszMapBasePath, szMapName);
-			LoadDungeon(iIndex, szFilename);
+			load_dungeon(iIndex, szFilename);
 
-			pkMapSectree->Build();
+			pkMapSectree->build();
 		}
 	}
 
@@ -718,31 +718,31 @@ int SECTREE_MANAGER::Build(const char * c_pszListFileName, const char* c_pszMapB
 	return 1;
 }
 
-bool SECTREE_MANAGER::IsMovablePosition(int32_t lMapIndex, int32_t x, int32_t y)
+bool sectree_manager::is_movable_position(int32_t lMapIndex, int32_t x, int32_t y)
 {
-	SECTREE * tree = SECTREE_MANAGER::instance().Get(lMapIndex, x, y);
+	sectree * tree = sectree_manager::instance().get(lMapIndex, x, y);
 
 	if (!tree)
 		return false;
 
-	return (!tree->IsAttr(x, y, ATTR_BLOCK | ATTR_OBJECT));
+	return (!tree->is_attr(x, y, ATTR_BLOCK | ATTR_OBJECT));
 }
 
-bool SECTREE_MANAGER::GetMovablePosition(int32_t lMapIndex, int32_t x, int32_t y, PIXEL_POSITION & pos)
+bool sectree_manager::movable_position(int32_t lMapIndex, int32_t x, int32_t y, pixel_position & pos)
 {
 	int i = 0;
 
 	do
 	{
-		int32_t dx = x + aArroundCoords[i].x;
-		int32_t dy = y + aArroundCoords[i].y;
+		int32_t dx = x + arround_coords[i].x;
+		int32_t dy = y + arround_coords[i].y;
 
-		SECTREE * tree = SECTREE_MANAGER::instance().Get(lMapIndex, dx, dy);
+		sectree * tree = sectree_manager::instance().get(lMapIndex, dx, dy);
 
 		if (!tree)
 			continue;
 
-		if (!tree->IsAttr(dx, dy, ATTR_BLOCK | ATTR_OBJECT))
+		if (!tree->is_attr(dx, dy, ATTR_BLOCK | ATTR_OBJECT))
 		{
 			pos.x = dx;
 			pos.y = dy;
@@ -755,15 +755,15 @@ bool SECTREE_MANAGER::GetMovablePosition(int32_t lMapIndex, int32_t x, int32_t y
 	return false;
 }
 
-bool SECTREE_MANAGER::GetValidLocation(int32_t lMapIndex, int32_t x, int32_t y, int32_t & r_lValidMapIndex, PIXEL_POSITION & r_pos, uint8_t empire)
+bool sectree_manager::valid_location(int32_t lMapIndex, int32_t x, int32_t y, int32_t & r_lValidMapIndex, pixel_position & r_pos, uint8_t empire)
 {
-	SECTREE_MAP * pkSectreeMap = GetMap(lMapIndex);
+	sectree_map * pkSectreeMap = map(lMapIndex);
 
 	if (!pkSectreeMap)
 	{
 		if (lMapIndex >= 10000)
 		{
-			return GetValidLocation(lMapIndex / 10000, x, y, r_lValidMapIndex, r_pos);
+			return valid_location(lMapIndex / 10000, x, y, r_lValidMapIndex, r_pos);
 		}
 		else
 		{
@@ -777,15 +777,15 @@ bool SECTREE_MANAGER::GetValidLocation(int32_t lMapIndex, int32_t x, int32_t y, 
 	if (lRealMapIndex >= 10000)
 		lRealMapIndex = lRealMapIndex / 10000;
 
-	std::vector<TMapRegion>::iterator it = m_vec_mapRegion.begin();
+	std::vector<map_region>::iterator it = vec_map_region_.begin();
 
-	while (it != m_vec_mapRegion.end())
+	while (it != vec_map_region_.end())
 	{
-		TMapRegion & rRegion = *(it++);
+		map_region & rRegion = *(it++);
 
 		if (rRegion.index == lRealMapIndex)
 		{
-			SECTREE * tree = pkSectreeMap->Find(x, y);
+			sectree * tree = pkSectreeMap->find(x, y);
 
 			if (!tree)
 			{
@@ -804,20 +804,20 @@ bool SECTREE_MANAGER::GetValidLocation(int32_t lMapIndex, int32_t x, int32_t y, 
 	return false;
 }
 
-bool SECTREE_MANAGER::GetRandomLocation(int32_t lMapIndex, PIXEL_POSITION & r_pos, uint32_t dwCurrentX, uint32_t dwCurrentY, int iMaxDistance)
+bool sectree_manager::random_location(int32_t lMapIndex, pixel_position & r_pos, uint32_t dwCurrentX, uint32_t dwCurrentY, int iMaxDistance)
 {
-	SECTREE_MAP * pkSectreeMap = GetMap(lMapIndex);
+	sectree_map * pkSectreeMap = map(lMapIndex);
 
 	if (!pkSectreeMap)
 		return false;
 
 	uint32_t x, y;
 
-	std::vector<TMapRegion>::iterator it = m_vec_mapRegion.begin();
+	std::vector<map_region>::iterator it = vec_map_region_.begin();
 
-	while (it != m_vec_mapRegion.end())
+	while (it != vec_map_region_.end())
 	{
-		TMapRegion & rRegion = *(it++);
+		map_region & rRegion = *(it++);
 
 		if (rRegion.index != lMapIndex)
 			continue;
@@ -854,12 +854,12 @@ bool SECTREE_MANAGER::GetRandomLocation(int32_t lMapIndex, PIXEL_POSITION & r_po
 				}
 			}
 
-			SECTREE * tree = pkSectreeMap->Find(x, y);
+			sectree * tree = pkSectreeMap->find(x, y);
 
 			if (!tree)
 				continue;
 
-			if (tree->IsAttr(x, y, ATTR_BLOCK | ATTR_OBJECT))
+			if (tree->is_attr(x, y, ATTR_BLOCK | ATTR_OBJECT))
 				continue;
 
 			r_pos.x = x;
@@ -871,12 +871,12 @@ bool SECTREE_MANAGER::GetRandomLocation(int32_t lMapIndex, PIXEL_POSITION & r_po
 	return false;
 }
 
-int32_t SECTREE_MANAGER::CreatePrivateMap(int32_t lMapIndex)
+int32_t sectree_manager::create_private_map(int32_t lMapIndex)
 {
 	if (lMapIndex >= 10000) // There are no maps numbered 10000 or above. (Or it is already private)
 		return 0;
 
-	SECTREE_MAP * pkMapSectree = GetMap(lMapIndex);
+	sectree_map * pkMapSectree = map(lMapIndex);
 
 	if (!pkMapSectree)
 	{
@@ -890,13 +890,13 @@ int32_t SECTREE_MANAGER::CreatePrivateMap(int32_t lMapIndex)
 	if ( lMapIndex == 107 || lMapIndex == 108 || lMapIndex == 109 ) {
 		index_cap = (metin2::config::test_server() ? 1 : 51);
 	}
-	PrivateIndexMapType::iterator it = next_private_index_map_.find(lMapIndex);
+	private_index_map_type::iterator it = next_private_index_map_.find(lMapIndex);
 	if (it == next_private_index_map_.end()) {
-		it = next_private_index_map_.insert(PrivateIndexMapType::value_type(lMapIndex, 0)).first;
+		it = next_private_index_map_.insert(private_index_map_type::value_type(lMapIndex, 0)).first;
 	}
 	int i, next_index = it->second;
 	for (i = 0; i < index_cap; ++i) {
-		if (GetMap(base + next_index) == nullptr) {
+		if (map(base + next_index) == nullptr) {
 			break; // available
 		}
 		if (++next_index >= index_cap) {
@@ -913,45 +913,45 @@ int32_t SECTREE_MANAGER::CreatePrivateMap(int32_t lMapIndex)
 	}
 	it->second = next_index;
 
-	pkMapSectree = new SECTREE_MAP(*pkMapSectree);
-	m_map_pkSectree.insert(std::map<uint32_t, SECTREE_MAP *>::value_type(lNewMapIndex, pkMapSectree));
+	pkMapSectree = new sectree_map(*pkMapSectree);
+	map_pk_sectree_.insert(std::map<uint32_t, sectree_map *>::value_type(lNewMapIndex, pkMapSectree));
 
 	metin2::log::info( "PRIVATE_MAP: {:d} created (original {:d})", lNewMapIndex, lMapIndex);
 	return lNewMapIndex;
 }
 
-struct FDestroyPrivateMapEntity
+struct f_destroy_private_map_entity
 {
-	void operator() (CEntity * ent)
+	void operator() (entity * ent)
 	{
-		if (ent->IsType(ENTITY_CHARACTER))
+		if (ent->is_type(ENTITY_CHARACTER))
 		{
-			CHARACTER * ch = (CHARACTER *) ent;
-			metin2::log::info( "PRIVAE_MAP: removing character {}", ch->GetName());
+			character * ch = (character *) ent;
+			metin2::log::info( "PRIVAE_MAP: removing character {}", ch->name());
 
-			if (ch->GetDesc())
-				DESC_MANAGER::instance().DestroyDesc(ch->GetDesc());
+			if (ch->get_desc())
+				desc_manager::instance().destroy_desc(ch->get_desc());
 			else
-				CHARACTER_MANAGER::instance().DestroyCharacter(ch);
+				character_manager::instance().destroy_character(ch);
 		}
-		else if (ent->IsType(ENTITY_ITEM))
+		else if (ent->is_type(ENTITY_ITEM))
 		{
-			CItem * item = (CItem *) ent;
-			metin2::log::info( "PRIVATE_MAP: removing item {}", item->GetName());
+			item * item = (game::items::item *) ent;
+			metin2::log::info( "PRIVATE_MAP: removing item {}", item->name());
 
-			ITEM_MANAGER::instance().DestroyItem(item);
+			item_manager::instance().destroy_item(item);
 		}
 		else
-			metin2::log::error("PRIVAE_MAP: trying to remove unknown entity {:d}", ent->GetType());
+			metin2::log::error("PRIVAE_MAP: trying to remove unknown entity {:d}", ent->type());
 	}
 };
 
-void SECTREE_MANAGER::DestroyPrivateMap(int32_t lMapIndex)
+void sectree_manager::destroy_private_map(int32_t lMapIndex)
 {
 	if (lMapIndex < 10000) // Private map indices are 10000 or above.
 		return;
 
-	SECTREE_MAP * pkMapSectree = GetMap(lMapIndex);
+	sectree_map * pkMapSectree = map(lMapIndex);
 
 	if (!pkMapSectree)
 		return;
@@ -961,50 +961,50 @@ void SECTREE_MANAGER::DestroyPrivateMap(int32_t lMapIndex)
 	// May be on this map but not present in any Sectree
 	// so it cannot be deleted here, and since pointers might break
 	// it needs separate handling
-	FDestroyPrivateMapEntity f;
+	f_destroy_private_map_entity f;
 	pkMapSectree->for_each(f);
 
-	m_map_pkSectree.erase(lMapIndex);
+	map_pk_sectree_.erase(lMapIndex);
 	delete pkMapSectree;
 
 	metin2::log::info( "PRIVATE_MAP: {:d} destroyed", lMapIndex);
 }
 
-TAreaMap& SECTREE_MANAGER::GetDungeonArea(int32_t lMapIndex)
+area_map& sectree_manager::dungeon_area(int32_t lMapIndex)
 {
-	auto it = m_map_pkArea.find(lMapIndex);
+	auto it = map_pk_area_.find(lMapIndex);
 
-	if (it == m_map_pkArea.end())
+	if (it == map_pk_area_.end())
 	{
-		return m_map_pkArea[-1]; // Temporarily return an empty Area
+		return map_pk_area_[-1]; // Temporarily return an empty Area
 	}
 	return it->second;
 }
 
-void SECTREE_MANAGER::SendNPCPosition(CHARACTER * ch)
+void sectree_manager::send_npc_position(character * ch)
 {
-	DESC * d = ch->GetDesc();
+	desc * d = ch->get_desc();
 	if (!d)
 		return;
 
-	int32_t lMapIndex = ch->GetMapIndex();
+	int32_t lMapIndex = ch->map_index();
 
-	if (m_mapNPCPosition[lMapIndex].empty())
+	if (npc_position_[lMapIndex].empty())
 		return;
 
-	TEMP_BUFFER buf;
-	TPacketGCNPCPosition p;
+	temp_buffer buf;
+	packet_gcnpc_position p;
 	p.header = HEADER_GC_NPC_POSITION;
-	p.count = m_mapNPCPosition[lMapIndex].size();
+	p.count = npc_position_[lMapIndex].size();
 
-	TNPCPosition np;
+	npc_position np;
 
 	// TODO please send m_mapNPCPosition[lMapIndex]
-	decltype((m_mapNPCPosition[lMapIndex]).begin()) it;
+	decltype((npc_position_[lMapIndex]).begin()) it;
 
-	for (it = m_mapNPCPosition[lMapIndex].begin(); it != m_mapNPCPosition[lMapIndex].end(); ++it)
+	for (it = npc_position_[lMapIndex].begin(); it != npc_position_[lMapIndex].end(); ++it)
 	{
-		np.bType = it->bType;
+		np.type = it->type;
 		strlcpy(np.name, it->name, sizeof(np.name));
 		np.x = it->x;
 		np.y = it->y;
@@ -1015,19 +1015,19 @@ void SECTREE_MANAGER::SendNPCPosition(CHARACTER * ch)
 
 	if (buf.size())
 	{
-		d->BufferedPacket(&p, sizeof(TPacketGCNPCPosition));
-		d->Packet(buf.read_peek(), buf.size());
+		d->buffered_packet(&p, sizeof(packet_gcnpc_position));
+		d->packet(buf.read_peek(), buf.size());
 	}
 	else
-		d->Packet(&p, sizeof(TPacketGCNPCPosition));
+		d->packet(&p, sizeof(packet_gcnpc_position));
 }
 
-void SECTREE_MANAGER::InsertNPCPosition(int32_t lMapIndex, uint8_t bType, const char* szName, int32_t x, int32_t y)
+void sectree_manager::insert_npc_position(int32_t lMapIndex, uint8_t bType, const char* szName, int32_t x, int32_t y)
 {
-	m_mapNPCPosition[lMapIndex].push_back(npc_info(bType, szName, x, y));
+	npc_position_[lMapIndex].push_back(npc_info(bType, szName, x, y));
 }
 
-uint8_t SECTREE_MANAGER::GetEmpireFromMapIndex(int32_t lMapIndex)
+uint8_t sectree_manager::empire_from_map_index(int32_t lMapIndex)
 {
 	if (lMapIndex >= 1 && lMapIndex <= 20)
 		return 1;
@@ -1061,9 +1061,9 @@ uint8_t SECTREE_MANAGER::GetEmpireFromMapIndex(int32_t lMapIndex)
 }
 
 
-bool SECTREE_MANAGER::ForAttrRegionCell( int32_t lMapIndex, int32_t lCX, int32_t lCY, uint32_t dwAttr, EAttrRegionMode mode )
+bool sectree_manager::for_attr_region_cell( int32_t lMapIndex, int32_t lCX, int32_t lCY, uint32_t dwAttr, attr_region_mode mode )
 {
-	SECTREEID id;
+	sectreeid id;
 
 	id.coord.x = lCX / (SECTREE_SIZE / CELL_SIZE);
 	id.coord.y = lCY / (SECTREE_SIZE / CELL_SIZE);
@@ -1071,22 +1071,22 @@ bool SECTREE_MANAGER::ForAttrRegionCell( int32_t lMapIndex, int32_t lCX, int32_t
 	int32_t lTreeCX = id.coord.x * (SECTREE_SIZE / CELL_SIZE);
 	int32_t lTreeCY = id.coord.y * (SECTREE_SIZE / CELL_SIZE);
 
-	SECTREE * pSec = Get( lMapIndex, id.package );
+	sectree * pSec = get( lMapIndex, id.package );
 	if ( !pSec )
 		return false;
 
 	switch (mode)
 	{
 		case ATTR_REGION_MODE_SET:
-			pSec->SetAttribute( lCX - lTreeCX, lCY - lTreeCY, dwAttr );
+			pSec->set_attribute( lCX - lTreeCX, lCY - lTreeCY, dwAttr );
 			break;
 
 		case ATTR_REGION_MODE_REMOVE:
-			pSec->RemoveAttribute( lCX - lTreeCX, lCY - lTreeCY, dwAttr );
+			pSec->remove_attribute( lCX - lTreeCX, lCY - lTreeCY, dwAttr );
 			break;
 
 		case ATTR_REGION_MODE_CHECK:
-			if ( pSec->IsAttr( lCX * CELL_SIZE, lCY * CELL_SIZE, ATTR_OBJECT ) )
+			if ( pSec->is_attr( lCX * CELL_SIZE, lCY * CELL_SIZE, ATTR_OBJECT ) )
 				return true;
 			break;
 
@@ -1098,14 +1098,14 @@ bool SECTREE_MANAGER::ForAttrRegionCell( int32_t lMapIndex, int32_t lCX, int32_t
 	return false;
 }
 
-bool SECTREE_MANAGER::ForAttrRegionRightAngle( int32_t lMapIndex, int32_t lCX, int32_t lCY, int32_t lCW, int32_t lCH, int32_t lRotate, uint32_t dwAttr, EAttrRegionMode mode )
+bool sectree_manager::for_attr_region_right_angle( int32_t lMapIndex, int32_t lCX, int32_t lCY, int32_t lCW, int32_t lCH, int32_t lRotate, uint32_t dwAttr, attr_region_mode mode )
 {
 	if (1 == lRotate/90 || 3 == lRotate/90)
 	{
 		for (int x = 0; x < lCH; ++x)
 			for (int y = 0; y < lCW; ++y)
 			{
-				if ( ForAttrRegionCell( lMapIndex, lCX + x, lCY + y, dwAttr, mode ) )
+				if ( for_attr_region_cell( lMapIndex, lCX + x, lCY + y, dwAttr, mode ) )
 					return true;
 			}
 	}
@@ -1114,7 +1114,7 @@ bool SECTREE_MANAGER::ForAttrRegionRightAngle( int32_t lMapIndex, int32_t lCX, i
 		for (int x = 0; x < lCW; ++x)
 			for (int y = 0; y < lCH; ++y)
 			{
-				if ( ForAttrRegionCell( lMapIndex, lCX + x, lCY + y, dwAttr, mode) )
+				if ( for_attr_region_cell( lMapIndex, lCX + x, lCY + y, dwAttr, mode) )
 					return true;
 			}
 	}
@@ -1123,7 +1123,7 @@ bool SECTREE_MANAGER::ForAttrRegionRightAngle( int32_t lMapIndex, int32_t lCX, i
 }
 
 
-bool SECTREE_MANAGER::ForAttrRegionFreeAngle( int32_t lMapIndex, int32_t lCX, int32_t lCY, int32_t lCW, int32_t lCH, int32_t lRotate, uint32_t dwAttr, EAttrRegionMode mode )
+bool sectree_manager::for_attr_region_free_angle( int32_t lMapIndex, int32_t lCX, int32_t lCY, int32_t lCW, int32_t lCH, int32_t lRotate, uint32_t dwAttr, attr_region_mode mode )
 {
 	float fx1 = (-lCW/2) * sinf(float(lRotate)/180.0f*3.14f) + (-lCH/2) * cosf(float(lRotate)/180.0f*3.14f);
 	float fy1 = (-lCW/2) * cosf(float(lRotate)/180.0f*3.14f) - (-lCH/2) * sinf(float(lRotate)/180.0f*3.14f);
@@ -1177,7 +1177,7 @@ bool SECTREE_MANAGER::ForAttrRegionFreeAngle( int32_t lMapIndex, int32_t lCX, in
 			fMinValue = fyValue4;
 
 		for (int j = int(std::min(fMinValue, fMaxValue)); j < int(std::max(fMinValue, fMaxValue)); ++j) {
-			if ( ForAttrRegionCell( lMapIndex, lCX + (lCW / 2) + i, lCY + (lCH / 2) + j, dwAttr, mode ) )
+			if ( for_attr_region_cell( lMapIndex, lCX + (lCW / 2) + i, lCY + (lCH / 2) + j, dwAttr, mode ) )
 				return true;
 		}
 	}
@@ -1185,9 +1185,9 @@ bool SECTREE_MANAGER::ForAttrRegionFreeAngle( int32_t lMapIndex, int32_t lCX, in
 	return mode == ATTR_REGION_MODE_CHECK ? false : true;
 }
 
-bool SECTREE_MANAGER::ForAttrRegion(int32_t lMapIndex, int32_t lStartX, int32_t lStartY, int32_t lEndX, int32_t lEndY, int32_t lRotate, uint32_t dwAttr, EAttrRegionMode mode)
+bool sectree_manager::for_attr_region(int32_t lMapIndex, int32_t lStartX, int32_t lStartY, int32_t lEndX, int32_t lEndY, int32_t lRotate, uint32_t dwAttr, attr_region_mode mode)
 {
-	SECTREE_MAP * pkMapSectree = GetMap(lMapIndex);
+	sectree_map * pkMapSectree = map(lMapIndex);
 
 	if (!pkMapSectree)
 	{
@@ -1218,14 +1218,14 @@ bool SECTREE_MANAGER::ForAttrRegion(int32_t lMapIndex, int32_t lStartX, int32_t 
 	lRotate = lRotate % 360;
 
 	if (0 == lRotate % 90)
-		return ForAttrRegionRightAngle( lMapIndex, lCX, lCY, lCW, lCH, lRotate, dwAttr, mode );
+		return for_attr_region_right_angle( lMapIndex, lCX, lCY, lCW, lCH, lRotate, dwAttr, mode );
 
-	return ForAttrRegionFreeAngle( lMapIndex, lCX, lCY, lCW, lCH, lRotate, dwAttr, mode );
+	return for_attr_region_free_angle( lMapIndex, lCX, lCY, lCW, lCH, lRotate, dwAttr, mode );
 }
 
-bool SECTREE_MANAGER::SaveAttributeToImage(int lMapIndex, const char * c_pszFileName, SECTREE_MAP * pMapSrc)
+bool sectree_manager::save_attribute_to_image(int lMapIndex, const char * c_pszFileName, sectree_map * pMapSrc)
 {
-	SECTREE_MAP * pMap = SECTREE_MANAGER::GetMap(lMapIndex);
+	sectree_map * pMap = sectree_manager::map(lMapIndex);
 
 	if (!pMap)
 	{
@@ -1238,8 +1238,8 @@ bool SECTREE_MANAGER::SaveAttributeToImage(int lMapIndex, const char * c_pszFile
 		}
 	}
 
-	int iMapHeight = pMap->m_setting.iHeight / 128 / 200;
-	int iMapWidth = pMap->m_setting.iWidth / 128 / 200;
+	int iMapHeight = pMap->setting.height / 128 / 200;
+	int iMapWidth = pMap->setting.width / 128 / 200;
 
 	if (iMapHeight < 0 || iMapWidth < 0)
 	{
@@ -1266,20 +1266,20 @@ bool SECTREE_MANAGER::SaveAttributeToImage(int lMapIndex, const char * c_pszFile
 		{
 			for (x = 0; x < 4 * iMapWidth; ++x)
 			{
-				SECTREEID id;
+				sectreeid id;
 
-				id.coord.x = x + pMap->m_setting.iBaseX / SECTREE_SIZE;
-				id.coord.y = y + pMap->m_setting.iBaseY / SECTREE_SIZE;
+				id.coord.x = x + pMap->setting.base_x / SECTREE_SIZE;
+				id.coord.y = y + pMap->setting.base_y / SECTREE_SIZE;
 
-				SECTREE * pSec = pMap->Find(id.package);
+				sectree * pSec = pMap->find(id.package);
 
 				if (!pSec)
 				{
-					metin2::log::error("cannot get sectree for {:d} {:d} {:d} {:d}", id.coord.x, id.coord.y, pMap->m_setting.iBaseX, pMap->m_setting.iBaseY);
+					metin2::log::error("cannot get sectree for {:d} {:d} {:d} {:d}", id.coord.x, id.coord.y, pMap->setting.base_x, pMap->setting.base_y);
 					continue;
 				}
 
-				pSec->m_pkAttribute->CopyRow(y2, pdwLine.get());
+				pSec->attribute_->copy_row(y2, pdwLine.get());
 
 				if (!pdwLine)
 				{
@@ -1291,11 +1291,11 @@ bool SECTREE_MANAGER::SaveAttributeToImage(int lMapIndex, const char * c_pszFile
 				{
 					uint32_t dwColor;
 
-					if (IS_SET(pdwLine[x2], ATTR_WATER))
+					if (is_set(pdwLine[x2], ATTR_WATER))
 						dwColor = 0xff0000ff;
-					else if (IS_SET(pdwLine[x2], ATTR_BANPK))
+					else if (is_set(pdwLine[x2], ATTR_BANPK))
 						dwColor = 0xff00ff00;
-					else if (IS_SET(pdwLine[x2], ATTR_BLOCK))
+					else if (is_set(pdwLine[x2], ATTR_BLOCK))
 						dwColor = 0xffff0000;
 					else
 						dwColor = 0xffffffff;
@@ -1319,128 +1319,128 @@ bool SECTREE_MANAGER::SaveAttributeToImage(int lMapIndex, const char * c_pszFile
 	}
 }
 
-struct FPurgeMonsters
+struct f_purge_monsters
 {
-	void operator() (CEntity * ent)
+	void operator() (entity * ent)
 	{
-		if ( ent->IsType(ENTITY_CHARACTER) == true )
+		if ( ent->is_type(ENTITY_CHARACTER) == true )
 		{
-			CHARACTER * lpChar = (CHARACTER *)ent;
+			character * lpChar = (character *)ent;
 
-			if ( lpChar->IsMonster() == true && !lpChar->IsPet())
+			if ( lpChar->is_monster() == true && !lpChar->is_pet())
 			{
-				CHARACTER_MANAGER::instance().DestroyCharacter(lpChar);
+				character_manager::instance().destroy_character(lpChar);
 			}
 		}
 	}
 };
 
-void SECTREE_MANAGER::PurgeMonstersInMap(int32_t lMapIndex)
+void sectree_manager::purge_monsters_in_map(int32_t lMapIndex)
 {
-	SECTREE_MAP * sectree = SECTREE_MANAGER::instance().GetMap(lMapIndex);
+	sectree_map * sectree = sectree_manager::instance().map(lMapIndex);
 
 	if ( sectree != nullptr )
 	{
-		struct FPurgeMonsters f;
+		struct f_purge_monsters f;
 
 		sectree->for_each( f );
 	}
 }
 
-struct FPurgeStones
+struct f_purge_stones
 {
-	void operator() (CEntity * ent)
+	void operator() (entity * ent)
 	{
-		if ( ent->IsType(ENTITY_CHARACTER) == true )
+		if ( ent->is_type(ENTITY_CHARACTER) == true )
 		{
-			CHARACTER * lpChar = (CHARACTER *)ent;
+			character * lpChar = (character *)ent;
 
-			if ( lpChar->IsStone() == true )
+			if ( lpChar->is_stone() == true )
 			{
-				CHARACTER_MANAGER::instance().DestroyCharacter(lpChar);
+				character_manager::instance().destroy_character(lpChar);
 			}
 		}
 	}
 };
 
-void SECTREE_MANAGER::PurgeStonesInMap(int32_t lMapIndex)
+void sectree_manager::purge_stones_in_map(int32_t lMapIndex)
 {
-	SECTREE_MAP * sectree = SECTREE_MANAGER::instance().GetMap(lMapIndex);
+	sectree_map * sectree = sectree_manager::instance().map(lMapIndex);
 
 	if ( sectree != nullptr )
 	{
-		struct FPurgeStones f;
+		struct f_purge_stones f;
 
 		sectree->for_each( f );
 	}
 }
 
 
-struct FCountMonsters
+struct f_count_monsters
 {
-	std::map<VID, VID> m_map_Monsters;
+	std::map<vid, vid> map_monsters;
 
-	void operator() (CEntity * ent)
+	void operator() (entity * ent)
 	{
-		if ( ent->IsType(ENTITY_CHARACTER) == true )
+		if ( ent->is_type(ENTITY_CHARACTER) == true )
 		{
-			CHARACTER * lpChar = (CHARACTER *)ent;
+			character * lpChar = (character *)ent;
 
-			if ( lpChar->IsMonster() == true )
+			if ( lpChar->is_monster() == true )
 			{
-				m_map_Monsters[lpChar->GetVID()] = lpChar->GetVID();
+				map_monsters[lpChar->get_vid()] = lpChar->get_vid();
 			}
 		}
 	}
 };
 
-size_t SECTREE_MANAGER::GetMonsterCountInMap(int32_t lMapIndex)
+size_t sectree_manager::monster_count_in_map(int32_t lMapIndex)
 {
-	SECTREE_MAP * sectree = SECTREE_MANAGER::instance().GetMap(lMapIndex);
+	sectree_map * sectree = sectree_manager::instance().map(lMapIndex);
 
 	if ( sectree != nullptr )
 	{
-		struct FCountMonsters f;
+		struct f_count_monsters f;
 
 		sectree->for_each( f );
 
-		return f.m_map_Monsters.size();
+		return f.map_monsters.size();
 	}
 
 	return 0;
 }
 
-struct FCountSpecifiedMonster
+struct f_count_specified_monster
 {
-	uint32_t SpecifiedVnum;
+	uint32_t specified_vnum;
 	size_t cnt;
 
-	FCountSpecifiedMonster(uint32_t id)
-		: SpecifiedVnum(id), cnt(0)
+	f_count_specified_monster(uint32_t id)
+		: specified_vnum(id), cnt(0)
 	{}
 
-	void operator() (CEntity * ent)
+	void operator() (entity * ent)
 	{
-		if (true == ent->IsType(ENTITY_CHARACTER))
+		if (true == ent->is_type(ENTITY_CHARACTER))
 		{
-			CHARACTER * pChar = static_cast<CHARACTER *>(ent);
+			character * pChar = static_cast<character *>(ent);
 
-			if (true == pChar->IsStone())
+			if (true == pChar->is_stone())
 			{
-				if (pChar->GetMobTable().dwVnum == SpecifiedVnum)
+				if (pChar->get_mob_table().vnum == specified_vnum)
 					cnt++;
 			}
 		}
 	}
 };
 
-size_t SECTREE_MANAGER::GetMonsterCountInMap(int32_t lMapIndex, uint32_t dwVnum)
+size_t sectree_manager::monster_count_in_map(int32_t lMapIndex, uint32_t dwVnum)
 {
-	SECTREE_MAP * sectree = SECTREE_MANAGER::instance().GetMap(lMapIndex);
+	sectree_map * sectree = sectree_manager::instance().map(lMapIndex);
 
 	if (nullptr != sectree)
 	{
-		struct FCountSpecifiedMonster f(dwVnum);
+		struct f_count_specified_monster f(dwVnum);
 
 		sectree->for_each( f );
 

@@ -40,7 +40,7 @@ namespace metin2::config {
                     read(*node, name(key), out);
             }
 
-            void get_range(std::string_view key, std::uint32_t &low, std::uint32_t &high) {
+            void range(std::string_view key, std::uint32_t &low, std::uint32_t &high) {
                 used_.emplace(key);
                 const toml::node *node = table_ ? table_->get(key) : nullptr;
                 if (!node)
@@ -203,7 +203,7 @@ namespace metin2::config {
                 r.get("heart_fps", s.db.heart_fps);
                 r.get("login_log", s.db.login_log);
                 r.get("player_id_start", s.db.player_id_start);
-                r.get_range("item_id_range", s.db.item_id_min, s.db.item_id_max);
+                r.range("item_id_range", s.db.item_id_min, s.db.item_id_max);
                 r.get("player_delete_level_limit", s.db.player_delete_level_limit);
                 r.get("player_delete_level_limit_lower", s.db.player_delete_level_limit_lower);
                 r.get("name_column", s.db.name_column);
@@ -319,7 +319,7 @@ namespace metin2::config {
             return s;
         }
 
-        std::optional<settings> g_current;
+        std::optional<settings> current_settings;
     }
 
     auto load(std::span<const std::filesystem::path> files) -> std::expected<settings, std::string> {
@@ -346,15 +346,15 @@ namespace metin2::config {
     }
 
     void set_current(settings value) {
-        g_current = std::move(value);
+        current_settings = std::move(value);
     }
 
     auto current() -> const settings & {
-        if (!g_current) {
+        if (!current_settings) {
             static const settings defaults;
             return defaults;
         }
-        return *g_current;
+        return *current_settings;
     }
 
     auto role_name(config::role value) -> std::string_view {

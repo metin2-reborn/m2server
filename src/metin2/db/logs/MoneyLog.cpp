@@ -10,38 +10,38 @@
 
 namespace metin2::db::inline logs {
 
-CMoneyLog::CMoneyLog()
+money_log::money_log()
 {
 }
 
-CMoneyLog::~CMoneyLog()
+money_log::~money_log()
 {
 }
 
-void CMoneyLog::Save()
+void money_log::save()
 {
-	CPeer* peer = CClientManager::instance().GetAnyPeer();
+	peer* peer = client_manager::instance().any_peer();
 	if (!peer)
 		return;
 	for (uint8_t bType = 0; bType < MONEY_LOG_TYPE_MAX_NUM; bType ++)
 	{
-		__typeof(m_MoneyLogContainer[bType].begin()) it;
-		for (it = m_MoneyLogContainer[bType].begin(); it != m_MoneyLogContainer[bType].end(); ++it)
+		__typeof(money_log_container_[bType].begin()) it;
+		for (it = money_log_container_[bType].begin(); it != money_log_container_[bType].end(); ++it)
 		{
 			//bType;
-			TPacketMoneyLog p;
+			packet_money_log p;
 			p.type = bType;
 			p.vnum = it->first;
 			p.gold = it->second;
-			peer->EncodeHeader(HEADER_DG_MONEY_LOG, 0, sizeof(p));
-			peer->Encode(&p, sizeof(p));
+			peer->encode_header(HEADER_DG_MONEY_LOG, 0, sizeof(p));
+			peer->encode(&p, sizeof(p));
 		}
-		m_MoneyLogContainer[bType].clear();
+		money_log_container_[bType].clear();
 	}
 }
 
-void CMoneyLog::AddLog(uint8_t bType, uint32_t dwVnum, int iGold)
+void money_log::add_log(uint8_t bType, uint32_t dwVnum, int iGold)
 {
-	m_MoneyLogContainer[bType][dwVnum] += iGold;
+	money_log_container_[bType][dwVnum] += iGold;
 }
 }

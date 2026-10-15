@@ -21,132 +21,132 @@ namespace metin2::game::inline characters {
 
 // DragonSoul_Initialize must not be called before the character's affects and quests are loaded.
 // Affects are loaded last, so it is called from LoadAffect.
-void CHARACTER::DragonSoul_Initialize()
+void character::dragon_soul_initialize()
 {
 	for (int i = INVENTORY_MAX_NUM + WEAR_MAX_NUM; i < DRAGON_SOUL_EQUIP_SLOT_END; i++)
 	{
-		CItem * pItem = GetItem(TItemPos(INVENTORY, i));
+		item * pItem = get_item(item_pos(INVENTORY, i));
 		if (nullptr != pItem)
-			pItem->SetSocket(ITEM_SOCKET_DRAGON_SOUL_ACTIVE_IDX, 0);
+			pItem->set_socket(ITEM_SOCKET_DRAGON_SOUL_ACTIVE_IDX, 0);
 	}
 	
-	if (FindAffect(AFFECT_DRAGON_SOUL_DECK_0))
+	if (find_affect(AFFECT_DRAGON_SOUL_DECK_0))
 	{
-		DragonSoul_ActivateDeck(DRAGON_SOUL_DECK_0);
+		dragon_soul_activate_deck(DRAGON_SOUL_DECK_0);
 	}
-	else if (FindAffect(AFFECT_DRAGON_SOUL_DECK_1))
+	else if (find_affect(AFFECT_DRAGON_SOUL_DECK_1))
 	{
-		DragonSoul_ActivateDeck(DRAGON_SOUL_DECK_1);
+		dragon_soul_activate_deck(DRAGON_SOUL_DECK_1);
 	}
 }
 
-int CHARACTER::DragonSoul_GetActiveDeck() const
+int character::dragon_soul_get_active_deck() const
 {
-	return m_pointsInstant.iDragonSoulActiveDeck;
+	return points_instant_.dragon_soul_active_deck;
 }
 
-bool CHARACTER::DragonSoul_IsDeckActivated() const
+bool character::dragon_soul_is_deck_activated() const
 {
-	return m_pointsInstant.iDragonSoulActiveDeck >= 0;
+	return points_instant_.dragon_soul_active_deck >= 0;
 }
 
-bool CHARACTER::DragonSoul_IsQualified() const
+bool character::dragon_soul_is_qualified() const
 {
-	return FindAffect(AFFECT_DRAGON_SOUL_QUALIFIED) != nullptr;
+	return find_affect(AFFECT_DRAGON_SOUL_QUALIFIED) != nullptr;
 }
 
-void CHARACTER::DragonSoul_GiveQualification()
+void character::dragon_soul_give_qualification()
 {
-	if(nullptr == FindAffect(AFFECT_DRAGON_SOUL_QUALIFIED))
+	if(nullptr == find_affect(AFFECT_DRAGON_SOUL_QUALIFIED))
 	{
-		LogManager::instance().CharLog(this, 0, "DS_QUALIFIED", "");
+		log_manager::instance().char_log(this, 0, "DS_QUALIFIED", "");
 	}
-	AddAffect(AFFECT_DRAGON_SOUL_QUALIFIED, APPLY_NONE, 0, AFF_NONE, INFINITE_AFFECT_DURATION, 0, false, false);
+	add_affect(AFFECT_DRAGON_SOUL_QUALIFIED, APPLY_NONE, 0, AFF_NONE, INFINITE_AFFECT_DURATION, 0, false, false);
 	//// If eligible, POINT_DRAGON_SOUL_IS_QUALIFIED is always 1
 }
 
-bool CHARACTER::DragonSoul_ActivateDeck(int deck_idx)
+bool character::dragon_soul_activate_deck(int deck_idx)
 {
 	if (deck_idx < DRAGON_SOUL_DECK_0 || deck_idx >= DRAGON_SOUL_DECK_MAX_NUM)
 	{
 		return false;
 	}
 	
-	if (DragonSoul_GetActiveDeck() == deck_idx)
+	if (dragon_soul_get_active_deck() == deck_idx)
 		return true;
 
-	DragonSoul_DeactivateAll();
+	dragon_soul_deactivate_all();
 
-	if (!DragonSoul_IsQualified())
+	if (!dragon_soul_is_qualified())
 	{
-		ChatPacket(CHAT_TYPE_INFO, LC_TEXT("용혼석 상자가 활성화되지 않았습니다."));
+		chat_packet(CHAT_TYPE_INFO, lc_text("용혼석 상자가 활성화되지 않았습니다."));
 		return false;
 	}
 
-	AddAffect(AFFECT_DRAGON_SOUL_DECK_0 + deck_idx, APPLY_NONE, 0, 0, INFINITE_AFFECT_DURATION, 0, false);
+	add_affect(AFFECT_DRAGON_SOUL_DECK_0 + deck_idx, APPLY_NONE, 0, 0, INFINITE_AFFECT_DURATION, 0, false);
 
-	m_pointsInstant.iDragonSoulActiveDeck = deck_idx;
+	points_instant_.dragon_soul_active_deck = deck_idx;
 
 	for (int i = DRAGON_SOUL_EQUIP_SLOT_START + DS_SLOT_MAX * deck_idx; 
 		i < DRAGON_SOUL_EQUIP_SLOT_START + DS_SLOT_MAX * (deck_idx + 1); i++)
 	{
-		CItem * pItem = GetInventoryItem(i);
+		item * pItem = inventory_item(i);
 		if (nullptr != pItem)
-			DSManager::instance().ActivateDragonSoul(pItem);
+			ds_manager::instance().activate_dragon_soul(pItem);
 	}
 	
 	return true; //fix
 }
 
-void CHARACTER::DragonSoul_DeactivateAll()
+void character::dragon_soul_deactivate_all()
 {
 	for (int i = DRAGON_SOUL_EQUIP_SLOT_START; i < DRAGON_SOUL_EQUIP_SLOT_END; i++)
 	{
-		DSManager::instance().DeactivateDragonSoul(GetInventoryItem(i), true);
+		ds_manager::instance().deactivate_dragon_soul(inventory_item(i), true);
 	}
-	m_pointsInstant.iDragonSoulActiveDeck = -1;
-	RemoveAffect(AFFECT_DRAGON_SOUL_DECK_0);
-	RemoveAffect(AFFECT_DRAGON_SOUL_DECK_1);
+	points_instant_.dragon_soul_active_deck = -1;
+	remove_affect(AFFECT_DRAGON_SOUL_DECK_0);
+	remove_affect(AFFECT_DRAGON_SOUL_DECK_1);
 }
 
-void CHARACTER::DragonSoul_CleanUp()
+void character::dragon_soul_clean_up()
 {
 	for (int i = DRAGON_SOUL_EQUIP_SLOT_START; i < DRAGON_SOUL_EQUIP_SLOT_END; i++)
 	{
-		DSManager::instance().DeactivateDragonSoul(GetInventoryItem(i), true);
+		ds_manager::instance().deactivate_dragon_soul(inventory_item(i), true);
 	}
 }
 
-bool CHARACTER::DragonSoul_RefineWindow_Open(CEntity * pEntity)
+bool character::dragon_soul_refine_window_open(entity * pEntity)
 {
-	if (nullptr == m_pointsInstant.m_pDragonSoulRefineWindowOpener)
+	if (nullptr == points_instant_.dragon_soul_refine_window_opener)
 	{
-		m_pointsInstant.m_pDragonSoulRefineWindowOpener = pEntity;
+		points_instant_.dragon_soul_refine_window_opener = pEntity;
 	}
 
-	TPacketGCDragonSoulRefine PDS;
+	packet_gc_dragon_soul_refine PDS;
 	PDS.header = HEADER_GC_DRAGON_SOUL_REFINE;
-	PDS.bSubType = DS_SUB_HEADER_OPEN;
-	DESC * d = GetDesc();
+	PDS.sub_type = DS_SUB_HEADER_OPEN;
+	desc * d = get_desc();
 
 	if (nullptr == d)
 	{
-		metin2::log::error("User({})'s DESC is NULL POINT.", GetName());
+		metin2::log::error("User({})'s DESC is NULL POINT.", name());
 		return false;
 	}
 
-	d->Packet(&PDS, sizeof(PDS));
+	d->packet(&PDS, sizeof(PDS));
 	return true;
 }
 
-bool CHARACTER::DragonSoul_RefineWindow_Close()
+bool character::dragon_soul_refine_window_close()
 {
-	m_pointsInstant.m_pDragonSoulRefineWindowOpener = nullptr;
+	points_instant_.dragon_soul_refine_window_opener = nullptr;
 	return true;
 }
 
-bool CHARACTER::DragonSoul_RefineWindow_CanRefine()
+bool character::dragon_soul_refine_window_can_refine()
 {
-	return nullptr != m_pointsInstant.m_pDragonSoulRefineWindowOpener;
+	return nullptr != points_instant_.dragon_soul_refine_window_opener;
 }
 }

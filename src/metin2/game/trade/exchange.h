@@ -10,50 +10,50 @@
 namespace metin2::game::inline trade {
 
 
-enum EExchangeValues
+enum exchange_values
 {
 	EXCHANGE_ITEM_MAX_NUM 	= 12,
 	EXCHANGE_MAX_DISTANCE	= 1000
 };
 
-class CExchange
+class exchange
 {
 	public:
-		CExchange(CHARACTER * pOwner);
-		~CExchange();
+		exchange(character * pOwner);
+		~exchange();
 
-		bool		Accept(bool bIsAccept = true);
-		void		Cancel();
+		bool		accept(bool bIsAccept = true);
+		void		cancel();
 
-		bool		AddGold(int32_t lGold);
-		bool		AddItem(TItemPos item_pos, uint8_t display_pos);
-		bool		RemoveItem(uint8_t pos);
+		bool		add_gold(int32_t lGold);
+		bool		add_item(item_pos item_pos, uint8_t display_pos);
+		bool		remove_item(uint8_t pos);
 
-		CHARACTER *	GetOwner()	{ return m_pOwner;	}
-		CExchange *	GetCompany()	{ return m_pCompany;	}
+		character *	owner()	{ return owner_;	}
+		exchange *	company()	{ return company_;	}
 
-		bool		GetAcceptStatus() { return m_bAccept; }
+		bool		accept_status() { return accept_; }
 
-		void		SetCompany(CExchange * pExchange)	{ m_pCompany = pExchange; }
-
-	private:
-		bool		Done();
-		bool		Check(int * piItemCount);
-		bool		CheckSpace();
+		void		set_company(exchange * pExchange)	{ company_ = pExchange; }
 
 	private:
-		CExchange *	m_pCompany;	// The other party's CExchange pointer
+		bool		done();
+		bool		check(int * piItemCount);
+		bool		check_space();
 
-		CHARACTER *	m_pOwner;
+	private:
+		exchange *	company_;	// The other party's CExchange pointer
 
-		TItemPos		m_aItemPos[EXCHANGE_ITEM_MAX_NUM];
-		CItem *		m_apItems[EXCHANGE_ITEM_MAX_NUM];
-		uint8_t		m_abItemDisplayPos[EXCHANGE_ITEM_MAX_NUM];
+		character *	owner_;
 
-		bool 		m_bAccept;
-		int32_t		m_lGold;
+		item_pos		item_pos_[EXCHANGE_ITEM_MAX_NUM];
+		item *		ap_items_[EXCHANGE_ITEM_MAX_NUM];
+		uint8_t		item_display_pos_[EXCHANGE_ITEM_MAX_NUM];
 
-		std::unique_ptr<CGrid>	m_pGrid;
+		bool 		accept_;
+		int32_t		gold_;
+
+		std::unique_ptr<grid>	grid_;
 
 };
 }

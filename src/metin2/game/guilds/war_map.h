@@ -14,16 +14,16 @@
 
 namespace metin2::game::inline guilds {
 
-enum EWarMapTypes
+enum war_map_types
 {
 	WAR_MAP_TYPE_NORMAL,
 	WAR_MAP_TYPE_FLAG,
 };
 
-struct TWarMapInfo {
-	uint8_t		bType;
-	int32_t		lMapIndex;
-	PIXEL_POSITION	posStart[3];
+struct war_map_info {
+	uint8_t		type;
+	int32_t		map_index;
+	pixel_position	pos_start[3];
 };
 
 namespace warmap
@@ -39,7 +39,7 @@ namespace warmap
 		WAR_FLAG_BASE_VNUM = 20038
 	};
 
-	inline bool IsWarFlag(uint32_t dwVnum)
+	inline bool is_war_flag(uint32_t dwVnum)
 	{
 		if (dwVnum >= WAR_FLAG_VNUM_START && dwVnum <= WAR_FLAG_VNUM_END)
 			return true;
@@ -47,131 +47,131 @@ namespace warmap
 		return false;
 	}
 
-	inline bool IsWarFlagBase(uint32_t dwVnum)
+	inline bool is_war_flag_base(uint32_t dwVnum)
 	{
 		return dwVnum == WAR_FLAG_BASE_VNUM ? true : false;
 	}
 };
 
-class CWarMap
+class war_map
 {
 	public:
-		friend class CGuild;
+		friend class guild;
 
-		CWarMap(int32_t lMapIndex, const TGuildWarInfo & r_info, TWarMapInfo * pkWarMapInfo, uint32_t dwGuildID1, uint32_t dwGuildID2);
-		~CWarMap();
+		war_map(int32_t lMapIndex, const guild_war_info & r_info, war_map_info * pkWarMapInfo, uint32_t dwGuildID1, uint32_t dwGuildID2);
+		~war_map();
 
-		bool	GetTeamIndex(uint32_t dwGuild, uint8_t & bIdx);
+		bool	team_index(uint32_t dwGuild, uint8_t & bIdx);
 
-		void	IncMember(CHARACTER * ch);
-		void	DecMember(CHARACTER * ch);
+		void	inc_member(character * ch);
+		void	dec_member(character * ch);
 
-		CGuild * GetGuild(uint8_t bIdx);
+		guild * get_guild(uint8_t bIdx);
 
-		uint8_t	GetType();
-		int32_t	GetMapIndex();
-		uint32_t	GetGuildOpponent(CHARACTER * ch);
+		uint8_t	type();
+		int32_t	map_index();
+		uint32_t	guild_opponent(character * ch);
 
-		uint32_t	GetWinnerGuild();
-		void	UsePotion(CHARACTER * ch, CItem * item);
+		uint32_t	winner_guild();
+		void	use_potion(character * ch, item * item);
 
-		void	Draw();	// Force a draw
-		void	Timeout();
-		void	CheckWarEnd();
-		bool	SetEnded();
-		void	ExitAll();
+		void	draw();	// Force a draw
+		void	timeout();
+		void	check_war_end();
+		bool	set_ended();
+		void	exit_all();
 
-		void	SetBeginEvent(LPEVENT pkEv);
-		void	SetTimeoutEvent(LPEVENT pkEv);
-		void	SetEndEvent(LPEVENT pkEv);
-		void	SetResetFlagEvent(LPEVENT pkEv);
+		void	set_begin_event(event_ptr pkEv);
+		void	set_timeout_event(event_ptr pkEv);
+		void	set_end_event(event_ptr pkEv);
+		void	set_reset_flag_event(event_ptr pkEv);
 
-		void	UpdateScore(uint32_t g1, int score1, uint32_t g2, int score2);
-		bool	CheckScore();
+		void	update_score(uint32_t g1, int score1, uint32_t g2, int score2);
+		bool	check_score();
 
-		int	GetRewardGold(uint8_t bWinnerIdx);
+		int	reward_gold(uint8_t bWinnerIdx);
 
-		void	Packet(const void * pv, int size);
-		void	Notice(const char * psz);
-		void	SendWarPacket(DESC * d);
-		void	SendScorePacket(uint8_t bIdx, DESC * d = nullptr);
+		void	packet(const void * pv, int size);
+		void	notice(const char * psz);
+		void	send_war_packet(desc * d);
+		void	send_score_packet(uint8_t bIdx, desc * d = nullptr);
 
-		void	OnKill(CHARACTER * killer, CHARACTER * ch);
+		void	on_kill(character * killer, character * ch);
 
-		void	AddFlag(uint8_t bIdx, uint32_t x=0, uint32_t y=0);
-		void	AddFlagBase(uint8_t bIdx, uint32_t x=0, uint32_t y=0);
-		void	RemoveFlag(uint8_t bIdx);
-		bool	IsFlagOnBase(uint8_t bIdx);
-		void	ResetFlag();
-
-	private:
-		void	UpdateUserCount();
+		void	add_flag(uint8_t bIdx, uint32_t x=0, uint32_t y=0);
+		void	add_flag_base(uint8_t bIdx, uint32_t x=0, uint32_t y=0);
+		void	remove_flag(uint8_t bIdx);
+		bool	is_flag_on_base(uint8_t bIdx);
+		void	reset_flag();
 
 	private:
-		TWarMapInfo	m_kMapInfo;
-		bool		m_bEnded;
+		void	update_user_count();
 
-		LPEVENT m_pkBeginEvent;
-		LPEVENT m_pkTimeoutEvent;
-		LPEVENT m_pkEndEvent;
-		LPEVENT	m_pkResetFlagEvent;
+	private:
+		war_map_info	map_info_;
+		bool		ended_;
 
-		struct TeamData {
-			uint32_t	dwID;
-			CGuild * pkGuild;
-			int		iMemberCount;
-			int		iUsePotionPrice;
-			int		iScore;
-			CHARACTER * pkChrFlag;
-			CHARACTER * pkChrFlagBase;
+		event_ptr begin_event_;
+		event_ptr timeout_event_;
+		event_ptr end_event_;
+		event_ptr	reset_flag_event_;
 
-			std::set<uint32_t> set_pidJoiner;
+		struct team_data {
+			uint32_t	id;
+			game::guilds::guild * guild;
+			int		member_count;
+			int		use_potion_price;
+			int		score;
+			character * chr_flag;
+			character * chr_flag_base;
 
-			void Initialize();
+			std::set<uint32_t> set_pid_joiner;
 
-			int GetAccumulatedJoinerCount(); // Cumulative participant count
-			int GetCurJointerCount(); // Current participant count
+			void initialize();
 
-			void AppendMember(CHARACTER * ch);
-			void RemoveMember(CHARACTER * ch);
+			int accumulated_joiner_count(); // Cumulative participant count
+			int cur_jointer_count(); // Current participant count
+
+			void append_member(character * ch);
+			void remove_member(character * ch);
 		};
 
-		TeamData	m_TeamData[2];
-		int		m_iObserverCount;
-		uint32_t		m_dwStartTime;
-		uint8_t		m_bTimeout;
+		team_data	team_data_[2];
+		int		observer_count_;
+		uint32_t		start_time_;
+		uint8_t		timeout_;
 
-		TGuildWarInfo	m_WarInfo;
+		guild_war_info	war_info_;
 
-		CHARACTER_SET m_set_pkChr;
+		character_set set_pk_chr_;
 };
 
-class CWarMapManager : public singleton<CWarMapManager>
+class war_map_manager : public singleton<war_map_manager>
 {
 	public:
-		CWarMapManager();
-		~CWarMapManager() override;
+		war_map_manager();
+		~war_map_manager() override;
 
-		bool		LoadWarMapInfo(const char * c_pszFileName);
-		bool		IsWarMap(int32_t lMapIndex);
-		TWarMapInfo *	GetWarMapInfo(int32_t lMapIndex);
-		bool		GetStartPosition(int32_t lMapIndex, uint8_t bIdx, PIXEL_POSITION & pos);
+		bool		load_war_map_info(const char * c_pszFileName);
+		bool		is_war_map(int32_t lMapIndex);
+		war_map_info *	get_war_map_info(int32_t lMapIndex);
+		bool		start_position(int32_t lMapIndex, uint8_t bIdx, pixel_position & pos);
 
 		template <typename Func> Func for_each(Func f);
-		int32_t		CreateWarMap(const TGuildWarInfo & r_WarInfo, uint32_t dwGuildID1, uint32_t dwGuildID2);
-		void		DestroyWarMap(CWarMap* pMap);
-		CWarMap *	Find(int32_t lMapIndex);
+		int32_t		create_war_map(const guild_war_info & r_WarInfo, uint32_t dwGuildID1, uint32_t dwGuildID2);
+		void		destroy_war_map(war_map* pMap);
+		war_map *	find(int32_t lMapIndex);
 
-		void		OnShutdown();
+		void		on_shutdown();
 
 	private:
-		std::map<int32_t, std::unique_ptr<TWarMapInfo>> m_map_kWarMapInfo;
-		std::map<int32_t, CWarMap *> m_mapWarMap;
+		std::map<int32_t, std::unique_ptr<war_map_info>> map_k_war_map_info_;
+		std::map<int32_t, war_map *> war_map_;
 };
 
-template <typename Func> Func CWarMapManager::for_each(Func f)
+template <typename Func> Func war_map_manager::for_each(Func f)
 {
-	for (auto it = m_mapWarMap.begin(); it != m_mapWarMap.end(); ++it)
+	for (auto it = war_map_.begin(); it != war_map_.end(); ++it)
 		f(it->second);
 
 	return f;

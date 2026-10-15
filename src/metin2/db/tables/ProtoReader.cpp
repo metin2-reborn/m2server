@@ -34,7 +34,7 @@ inline std::string trim_right(const std::string& str)
 
 std::string trim(const std::string& str){return trim_left(trim_right(str));}
 
-static std::unique_ptr<std::string[]> StringSplit(std::string strOrigin, std::string strTok)
+static std::unique_ptr<std::string[]> string_split(std::string strOrigin, std::string strTok)
 {
     size_t  cutAt;                            //Cut position
     int     index     = 0;                    //String index
@@ -65,7 +65,7 @@ static std::unique_ptr<std::string[]> StringSplit(std::string strOrigin, std::st
 
 
 
-int get_Item_Type_Value(std::string inputString)
+int get_item_type_value(std::string inputString)
 {
 	std::string arType[] = {"ITEM_NONE", "ITEM_WEAPON",
 		"ITEM_ARMOR", "ITEM_USE", 
@@ -106,7 +106,7 @@ int get_Item_Type_Value(std::string inputString)
 
 }
 
-int get_Item_SubType_Value(int type_value, std::string inputString) 
+int get_item_sub_type_value(int type_value, std::string inputString) 
 {
 	static std::string arSub1[] = { "WEAPON_SWORD", "WEAPON_DAGGER", "WEAPON_BOW", "WEAPON_TWO_HANDED",
 				"WEAPON_BELL", "WEAPON_FAN", "WEAPON_ARROW", "WEAPON_MOUNT_SPEAR"};
@@ -242,7 +242,7 @@ int get_Item_SubType_Value(int type_value, std::string inputString)
 
 
 
-int get_Item_AntiFlag_Value(std::string inputString) 
+int get_item_anti_flag_value(std::string inputString) 
 {
 
 	std::string arAntiFlag[] = {"ANTI_FEMALE", "ANTI_MALE", "ANTI_MUSA", "ANTI_ASSASSIN", "ANTI_SURA", "ANTI_MUDANG",
@@ -251,7 +251,7 @@ int get_Item_AntiFlag_Value(std::string inputString)
 
 
 	int retValue = 0;
-	std::unique_ptr<std::string[]> arInputString = StringSplit(inputString, "|");				//Array of the proto info split into words.
+	std::unique_ptr<std::string[]> arInputString = string_split(inputString, "|");				//Array of the proto info split into words.
 	for (size_t i = 0; i < sizeof(arAntiFlag)/sizeof(arAntiFlag[0]);i++) {
 		std::string tempString = arAntiFlag[i];
 		for (int j=0; j<30 ; j++)		//Up to 30 words. (hardcoded)
@@ -269,7 +269,7 @@ int get_Item_AntiFlag_Value(std::string inputString)
 	return retValue;
 }
 
-int get_Item_Flag_Value(std::string inputString) 
+int get_item_flag_value(std::string inputString) 
 {
 
 	std::string arFlag[] = {"ITEM_TUNABLE", "ITEM_SAVE", "ITEM_STACKABLE", "COUNT_PER_1GOLD", "ITEM_SLOW_QUERY", "ITEM_UNIQUE",
@@ -278,7 +278,7 @@ int get_Item_Flag_Value(std::string inputString)
 
 
 	int retValue = 0;
-	std::unique_ptr<std::string[]> arInputString = StringSplit(inputString, "|");				//Array of the proto info split into words.
+	std::unique_ptr<std::string[]> arInputString = string_split(inputString, "|");				//Array of the proto info split into words.
 	for (size_t i = 0; i < sizeof(arFlag)/sizeof(arFlag[0]);i++) {
 		std::string tempString = arFlag[i];
 		for (int j=0; j<30 ; j++)		//Up to 30 words. (hardcoded)
@@ -296,7 +296,7 @@ int get_Item_Flag_Value(std::string inputString)
 	return retValue;
 }
 
-int get_Item_WearFlag_Value(std::string inputString) 
+int get_item_wear_flag_value(std::string inputString) 
 {
 
 	std::string arWearrFlag[] = {"WEAR_BODY", "WEAR_HEAD", "WEAR_FOOTS", "WEAR_WRIST", "WEAR_WEAPON", "WEAR_NECK", "WEAR_EAR", "WEAR_SHIELD", "WEAR_UNIQUE",
@@ -304,7 +304,7 @@ int get_Item_WearFlag_Value(std::string inputString)
 
 
 	int retValue = 0;
-	std::unique_ptr<std::string[]> arInputString = StringSplit(inputString, "|");				//Array of the proto info split into words.
+	std::unique_ptr<std::string[]> arInputString = string_split(inputString, "|");				//Array of the proto info split into words.
 	for (size_t i = 0; i < sizeof(arWearrFlag)/sizeof(arWearrFlag[0]);i++) {
 		std::string tempString = arWearrFlag[i];
 		for (int j=0; j<30 ; j++)		//Up to 30 words. (hardcoded)
@@ -322,13 +322,13 @@ int get_Item_WearFlag_Value(std::string inputString)
 	return retValue;
 }
 
-int get_Item_Immune_Value(std::string inputString) 
+int get_item_immune_value(std::string inputString) 
 {
 
 	std::string arImmune[] = {"PARA","CURSE","STUN","SLEEP","SLOW","POISON","TERROR"};
 
 	int retValue = 0;
-	std::unique_ptr<std::string[]> arInputString = StringSplit(inputString, "|");				//Array of the proto info split into words.
+	std::unique_ptr<std::string[]> arInputString = string_split(inputString, "|");				//Array of the proto info split into words.
 	for (size_t i = 0; i < sizeof(arImmune)/sizeof(arImmune[0]);i++) {
 		std::string tempString = arImmune[i];
 		for (int j=0; j<30 ; j++)		//Up to 30 words. (hardcoded)
@@ -349,7 +349,7 @@ int get_Item_Immune_Value(std::string inputString)
 
 
 
-int get_Item_LimitType_Value(std::string inputString)
+int get_item_limit_type_value(std::string inputString)
 {
 	std::string arLimitType[] = {"LIMIT_NONE", "LEVEL", "STR", "DEX", "INT", "CON", "PC_BANG", "REAL_TIME", "REAL_TIME_FIRST_USE", "TIMER_BASED_ON_WEAR"};
 	
@@ -368,7 +368,7 @@ int get_Item_LimitType_Value(std::string inputString)
 }
 
 
-int get_Item_ApplyType_Value(std::string inputString)
+int get_item_apply_type_value(std::string inputString)
 {
 	std::string arApplyType[] = {"APPLY_NONE", "APPLY_MAX_HP", "APPLY_MAX_SP", "APPLY_CON", "APPLY_INT", "APPLY_STR", "APPLY_DEX", "APPLY_ATT_SPEED",
 			"APPLY_MOV_SPEED", "APPLY_CAST_SPEED", "APPLY_HP_REGEN", "APPLY_SP_REGEN", "APPLY_POISON_PCT", "APPLY_STUN_PCT",
@@ -408,7 +408,7 @@ int get_Item_ApplyType_Value(std::string inputString)
 //Also read the monster proto.
 
 
-int get_Mob_Rank_Value(std::string inputString) 
+int get_mob_rank_value(std::string inputString) 
 {
 	std::string arRank[] = {"PAWN", "S_PAWN", "KNIGHT", "S_KNIGHT", "BOSS", "KING"};
 
@@ -427,7 +427,7 @@ int get_Mob_Rank_Value(std::string inputString)
 }
 
 
-int get_Mob_Type_Value(std::string inputString)
+int get_mob_type_value(std::string inputString)
 {
 	std::string arType[] = { "MONSTER", "NPC", "STONE", "WARP", "DOOR", "BUILDING", "PC", "POLYMORPH_PC", "HORSE", "GOTO"};
 
@@ -445,7 +445,7 @@ int get_Mob_Type_Value(std::string inputString)
 	return retInt;
 }
 
-int get_Mob_BattleType_Value(std::string inputString) 
+int get_mob_battle_type_value(std::string inputString) 
 {
 	std::string arBattleType[] = { "MELEE", "RANGE", "MAGIC", "SPECIAL", "POWER", "TANKER", "SUPER_POWER", "SUPER_TANKER"};
 
@@ -463,7 +463,7 @@ int get_Mob_BattleType_Value(std::string inputString)
 	return retInt;
 }
 
-int get_Mob_Size_Value(std::string inputString)
+int get_mob_size_value(std::string inputString)
 {
 	std::string arSize[] = { "SMALL", "MEDIUM", "BIG"};
 
@@ -481,13 +481,13 @@ int get_Mob_Size_Value(std::string inputString)
 	return retInt;
 }
 
-int get_Mob_AIFlag_Value(std::string inputString)
+int get_mob_ai_flag_value(std::string inputString)
 {
 	std::string arAIFlag[] = {"AGGR","NOMOVE","COWARD","NOATTSHINSU","NOATTCHUNJO","NOATTJINNO","ATTMOB","BERSERK","STONESKIN","GODSPEED","DEATHBLOW","REVIVE"};
 
 
 	int retValue = 0;
-	std::unique_ptr<std::string[]> arInputString = StringSplit(inputString, ",");				//Array of the proto info split into words.
+	std::unique_ptr<std::string[]> arInputString = string_split(inputString, ",");				//Array of the proto info split into words.
 	for (size_t i = 0; i < sizeof(arAIFlag)/sizeof(arAIFlag[0]);i++) {
 		std::string tempString = arAIFlag[i];
 		for (int j=0; j<30 ; j++)		//Up to 30 words. (hardcoded)
@@ -504,13 +504,13 @@ int get_Mob_AIFlag_Value(std::string inputString)
 
 	return retValue;
 }
-int get_Mob_RaceFlag_Value(std::string inputString)
+int get_mob_race_flag_value(std::string inputString)
 {
 	std::string arRaceFlag[] = {"ANIMAL","UNDEAD","DEVIL","HUMAN","ORC","MILGYO","INSECT","FIRE","ICE","DESERT","TREE",
 		"ATT_ELEC","ATT_FIRE","ATT_ICE","ATT_WIND","ATT_EARTH","ATT_DARK"};
 
 	int retValue = 0;
-	std::unique_ptr<std::string[]> arInputString = StringSplit(inputString, ",");				//Array of the proto info split into words.
+	std::unique_ptr<std::string[]> arInputString = string_split(inputString, ",");				//Array of the proto info split into words.
 	for (size_t i = 0; i < sizeof(arRaceFlag)/sizeof(arRaceFlag[0]);i++) {
 		std::string tempString = arRaceFlag[i];
 		for (int j=0; j<30 ; j++)		//Up to 30 words. (hardcoded)
@@ -527,12 +527,12 @@ int get_Mob_RaceFlag_Value(std::string inputString)
 
 	return retValue;
 }
-int get_Mob_ImmuneFlag_Value(std::string inputString)
+int get_mob_immune_flag_value(std::string inputString)
 {
 	std::string arImmuneFlag[] = {"STUN","SLOW","FALL","CURSE","POISON","TERROR", "REFLECT"};
 
 	int retValue = 0;
-	std::unique_ptr<std::string[]> arInputString = StringSplit(inputString, ",");				//Array of the proto info split into words.
+	std::unique_ptr<std::string[]> arInputString = string_split(inputString, ",");				//Array of the proto info split into words.
 	for (size_t i = 0; i < sizeof(arImmuneFlag)/sizeof(arImmuneFlag[0]);i++) {
 		std::string tempString = arImmuneFlag[i];
 		for (int j=0; j<30 ; j++)		//Up to 30 words. (hardcoded)
@@ -555,113 +555,113 @@ int get_Mob_ImmuneFlag_Value(std::string inputString)
 #ifndef __DUMP_PROTO__
 
 //Set up the mob table.
-bool Set_Proto_Mob_Table(TMobTable *mobTable, cCsvTable &csvTable,std::map<int,const char*> &nameMap)
+bool set_proto_mob_table(mob_table *mobTable, c_csv_table &csvTable,std::map<int,const char*> &nameMap)
 {
 	int col = 0;
-	str_to_number(mobTable->dwVnum, csvTable.AsStringByIndex(col++));
-	utf8_strlcpy(mobTable->szName, csvTable.AsStringByIndex(col++), sizeof(mobTable->szName));
+	str_to_number(mobTable->vnum, csvTable.as_string_by_index(col++));
+	utf8_strlcpy(mobTable->name, csvTable.as_string_by_index(col++), sizeof(mobTable->name));
 
 	//3. Fill in the localized names.
 	std::map<int,const char*>::iterator it;
-	it = nameMap.find(mobTable->dwVnum);
+	it = nameMap.find(mobTable->vnum);
 	if (it != nameMap.end()) {
 		const char * localeName = it->second;
-		utf8_strlcpy(mobTable->szLocaleName, localeName, sizeof (mobTable->szLocaleName));
+		utf8_strlcpy(mobTable->locale_name, localeName, sizeof (mobTable->locale_name));
 	} else {
-		utf8_strlcpy(mobTable->szLocaleName, mobTable->szName, sizeof (mobTable->szLocaleName));
+		utf8_strlcpy(mobTable->locale_name, mobTable->name, sizeof (mobTable->locale_name));
 	}
 
 	//RANK
-	int rankValue = get_Mob_Rank_Value(csvTable.AsStringByIndex(col++));
-	mobTable->bRank = rankValue;
+	int rankValue = get_mob_rank_value(csvTable.as_string_by_index(col++));
+	mobTable->rank = rankValue;
 	//TYPE
-	int typeValue = get_Mob_Type_Value(csvTable.AsStringByIndex(col++));
-	mobTable->bType = typeValue;
+	int typeValue = get_mob_type_value(csvTable.as_string_by_index(col++));
+	mobTable->type = typeValue;
 	//BATTLE_TYPE
-	int battleTypeValue = get_Mob_BattleType_Value(csvTable.AsStringByIndex(col++));
-	mobTable->bBattleType = battleTypeValue;
+	int battleTypeValue = get_mob_battle_type_value(csvTable.as_string_by_index(col++));
+	mobTable->battle_type = battleTypeValue;
 
-	str_to_number(mobTable->bLevel, csvTable.AsStringByIndex(col++));
+	str_to_number(mobTable->level, csvTable.as_string_by_index(col++));
 	//SIZE
-	int sizeValue = get_Mob_Size_Value(csvTable.AsStringByIndex(col++));
-	mobTable->bSize = sizeValue;
+	int sizeValue = get_mob_size_value(csvTable.as_string_by_index(col++));
+	mobTable->size = sizeValue;
 	//AI_FLAG
-	int aiFlagValue = get_Mob_AIFlag_Value(csvTable.AsStringByIndex(col++));
-	mobTable->dwAIFlag = aiFlagValue;
+	int aiFlagValue = get_mob_ai_flag_value(csvTable.as_string_by_index(col++));
+	mobTable->ai_flag = aiFlagValue;
 	//mount_capacity;
 	col++;
 	//RACE_FLAG
-	int raceFlagValue = get_Mob_RaceFlag_Value(csvTable.AsStringByIndex(col++));
-	mobTable->dwRaceFlag = raceFlagValue;
+	int raceFlagValue = get_mob_race_flag_value(csvTable.as_string_by_index(col++));
+	mobTable->race_flag = raceFlagValue;
 	//IMMUNE_FLAG
-	int immuneFlagValue = get_Mob_ImmuneFlag_Value(csvTable.AsStringByIndex(col++));
-	mobTable->dwImmuneFlag = immuneFlagValue;
+	int immuneFlagValue = get_mob_immune_flag_value(csvTable.as_string_by_index(col++));
+	mobTable->immune_flag = immuneFlagValue;
 
-	str_to_number(mobTable->bEmpire, csvTable.AsStringByIndex(col++));  //col = 11
+	str_to_number(mobTable->empire, csvTable.as_string_by_index(col++));  //col = 11
 
-	strlcpy(mobTable->szFolder, csvTable.AsStringByIndex(col++), sizeof(mobTable->szFolder));
+	strlcpy(mobTable->folder, csvTable.as_string_by_index(col++), sizeof(mobTable->folder));
 
-	str_to_number(mobTable->bOnClickType, csvTable.AsStringByIndex(col++));	
+	str_to_number(mobTable->on_click_type, csvTable.as_string_by_index(col++));	
 
-	str_to_number(mobTable->bStr, csvTable.AsStringByIndex(col++));
-	str_to_number(mobTable->bDex, csvTable.AsStringByIndex(col++));
-	str_to_number(mobTable->bCon, csvTable.AsStringByIndex(col++));
-	str_to_number(mobTable->bInt, csvTable.AsStringByIndex(col++));
-	str_to_number(mobTable->dwDamageRange[0], csvTable.AsStringByIndex(col++));
-	str_to_number(mobTable->dwDamageRange[1], csvTable.AsStringByIndex(col++));
-	str_to_number(mobTable->dwMaxHP, csvTable.AsStringByIndex(col++));
-	str_to_number(mobTable->bRegenCycle, csvTable.AsStringByIndex(col++));
-	str_to_number(mobTable->bRegenPercent,	csvTable.AsStringByIndex(col++));
-	str_to_number(mobTable->dwGoldMin, csvTable.AsStringByIndex(col++));
-	str_to_number(mobTable->dwGoldMax, csvTable.AsStringByIndex(col++));
-	str_to_number(mobTable->dwExp,	csvTable.AsStringByIndex(col++));
-	str_to_number(mobTable->wDef, csvTable.AsStringByIndex(col++));
-	str_to_number(mobTable->sAttackSpeed, csvTable.AsStringByIndex(col++));
-	str_to_number(mobTable->sMovingSpeed, csvTable.AsStringByIndex(col++));
-	str_to_number(mobTable->bAggresiveHPPct, csvTable.AsStringByIndex(col++));
-	str_to_number(mobTable->wAggressiveSight, csvTable.AsStringByIndex(col++));
-	str_to_number(mobTable->wAttackRange, csvTable.AsStringByIndex(col++));
+	str_to_number(mobTable->str, csvTable.as_string_by_index(col++));
+	str_to_number(mobTable->dex, csvTable.as_string_by_index(col++));
+	str_to_number(mobTable->con, csvTable.as_string_by_index(col++));
+	str_to_number(mobTable->int_, csvTable.as_string_by_index(col++));
+	str_to_number(mobTable->damage_range[0], csvTable.as_string_by_index(col++));
+	str_to_number(mobTable->damage_range[1], csvTable.as_string_by_index(col++));
+	str_to_number(mobTable->max_hp, csvTable.as_string_by_index(col++));
+	str_to_number(mobTable->regen_cycle, csvTable.as_string_by_index(col++));
+	str_to_number(mobTable->regen_percent,	csvTable.as_string_by_index(col++));
+	str_to_number(mobTable->gold_min, csvTable.as_string_by_index(col++));
+	str_to_number(mobTable->gold_max, csvTable.as_string_by_index(col++));
+	str_to_number(mobTable->exp,	csvTable.as_string_by_index(col++));
+	str_to_number(mobTable->def, csvTable.as_string_by_index(col++));
+	str_to_number(mobTable->s_attack_speed, csvTable.as_string_by_index(col++));
+	str_to_number(mobTable->s_moving_speed, csvTable.as_string_by_index(col++));
+	str_to_number(mobTable->aggresive_hp_pct, csvTable.as_string_by_index(col++));
+	str_to_number(mobTable->aggressive_sight, csvTable.as_string_by_index(col++));
+	str_to_number(mobTable->attack_range, csvTable.as_string_by_index(col++));
 
-	str_to_number(mobTable->dwDropItemVnum, csvTable.AsStringByIndex(col++));	//32
-	str_to_number(mobTable->dwResurrectionVnum, csvTable.AsStringByIndex(col++));
+	str_to_number(mobTable->drop_item_vnum, csvTable.as_string_by_index(col++));	//32
+	str_to_number(mobTable->resurrection_vnum, csvTable.as_string_by_index(col++));
 	for (int i = 0; i < MOB_ENCHANTS_MAX_NUM; ++i)
-		str_to_number(mobTable->cEnchants[i], csvTable.AsStringByIndex(col++));
+		str_to_number(mobTable->c_enchants[i], csvTable.as_string_by_index(col++));
 
 	for (int i = 0; i < MOB_RESISTS_MAX_NUM; ++i)
-		str_to_number(mobTable->cResists[i], csvTable.AsStringByIndex(col++));
+		str_to_number(mobTable->c_resists[i], csvTable.as_string_by_index(col++));
 
-	str_to_number(mobTable->fDamMultiply, csvTable.AsStringByIndex(col++));
-	str_to_number(mobTable->dwSummonVnum, csvTable.AsStringByIndex(col++));
-	str_to_number(mobTable->dwDrainSP, csvTable.AsStringByIndex(col++));
+	str_to_number(mobTable->dam_multiply, csvTable.as_string_by_index(col++));
+	str_to_number(mobTable->summon_vnum, csvTable.as_string_by_index(col++));
+	str_to_number(mobTable->drain_sp, csvTable.as_string_by_index(col++));
 
 	//Mob_Color
-	str_to_number(mobTable->dwMobColor, csvTable.AsStringByIndex(col++));
+	str_to_number(mobTable->mob_color, csvTable.as_string_by_index(col++));
 
-	str_to_number(mobTable->dwPolymorphItemVnum, csvTable.AsStringByIndex(col++));
+	str_to_number(mobTable->polymorph_item_vnum, csvTable.as_string_by_index(col++));
 
-	str_to_number(mobTable->Skills[0].bLevel, csvTable.AsStringByIndex(col++));
-	str_to_number(mobTable->Skills[0].dwVnum, csvTable.AsStringByIndex(col++));
-	str_to_number(mobTable->Skills[1].bLevel, csvTable.AsStringByIndex(col++));
-	str_to_number(mobTable->Skills[1].dwVnum, csvTable.AsStringByIndex(col++));
-	str_to_number(mobTable->Skills[2].bLevel, csvTable.AsStringByIndex(col++));
-	str_to_number(mobTable->Skills[2].dwVnum, csvTable.AsStringByIndex(col++));
-	str_to_number(mobTable->Skills[3].bLevel, csvTable.AsStringByIndex(col++));
-	str_to_number(mobTable->Skills[3].dwVnum, csvTable.AsStringByIndex(col++));
-	str_to_number(mobTable->Skills[4].bLevel, csvTable.AsStringByIndex(col++));
-	str_to_number(mobTable->Skills[4].dwVnum, csvTable.AsStringByIndex(col++));
+	str_to_number(mobTable->skills[0].level, csvTable.as_string_by_index(col++));
+	str_to_number(mobTable->skills[0].vnum, csvTable.as_string_by_index(col++));
+	str_to_number(mobTable->skills[1].level, csvTable.as_string_by_index(col++));
+	str_to_number(mobTable->skills[1].vnum, csvTable.as_string_by_index(col++));
+	str_to_number(mobTable->skills[2].level, csvTable.as_string_by_index(col++));
+	str_to_number(mobTable->skills[2].vnum, csvTable.as_string_by_index(col++));
+	str_to_number(mobTable->skills[3].level, csvTable.as_string_by_index(col++));
+	str_to_number(mobTable->skills[3].vnum, csvTable.as_string_by_index(col++));
+	str_to_number(mobTable->skills[4].level, csvTable.as_string_by_index(col++));
+	str_to_number(mobTable->skills[4].vnum, csvTable.as_string_by_index(col++));
 
-	str_to_number(mobTable->bBerserkPoint, csvTable.AsStringByIndex(col++));
-	str_to_number(mobTable->bStoneSkinPoint, csvTable.AsStringByIndex(col++));
-	str_to_number(mobTable->bGodSpeedPoint, csvTable.AsStringByIndex(col++));
-	str_to_number(mobTable->bDeathBlowPoint, csvTable.AsStringByIndex(col++));
-	str_to_number(mobTable->bRevivePoint, csvTable.AsStringByIndex(col++));
+	str_to_number(mobTable->berserk_point, csvTable.as_string_by_index(col++));
+	str_to_number(mobTable->stone_skin_point, csvTable.as_string_by_index(col++));
+	str_to_number(mobTable->god_speed_point, csvTable.as_string_by_index(col++));
+	str_to_number(mobTable->death_blow_point, csvTable.as_string_by_index(col++));
+	str_to_number(mobTable->revive_point, csvTable.as_string_by_index(col++));
 
-	metin2::log::info( "MOB #{:<5d} {:<24} level: {:<3d} rank: {:d} empire: {:d}", mobTable->dwVnum, mobTable->szLocaleName, mobTable->bLevel, mobTable->bRank, mobTable->bEmpire);
+	metin2::log::info( "MOB #{:<5d} {:<24} level: {:<3d} rank: {:d} empire: {:d}", mobTable->vnum, mobTable->locale_name, mobTable->level, mobTable->rank, mobTable->empire);
 
 	return true;
 }
 
-bool Set_Proto_Item_Table(TItemTable *itemTable, cCsvTable &csvTable,std::map<int,const char*> &nameMap)
+bool set_proto_item_table(item_table *itemTable, c_csv_table &csvTable,std::map<int,const char*> &nameMap)
 {
 	int col = 0;
 
@@ -669,40 +669,40 @@ bool Set_Proto_Item_Table(TItemTable *itemTable, cCsvTable &csvTable,std::map<in
 	for (size_t i = 0; i < sizeof(dataArray)/sizeof(dataArray[0]);i++) {
 		int validCheck = 0;
 		if (i==2) {
-			dataArray[i] = get_Item_Type_Value(csvTable.AsStringByIndex(col));
+			dataArray[i] = get_item_type_value(csvTable.as_string_by_index(col));
 			validCheck = dataArray[i];
 		} else if (i==3) {
-			dataArray[i] = get_Item_SubType_Value(dataArray[i-1], csvTable.AsStringByIndex(col));
+			dataArray[i] = get_item_sub_type_value(dataArray[i-1], csvTable.as_string_by_index(col));
 			validCheck = dataArray[i];
 		} else if (i==5) {
-			dataArray[i] = get_Item_AntiFlag_Value(csvTable.AsStringByIndex(col));
+			dataArray[i] = get_item_anti_flag_value(csvTable.as_string_by_index(col));
 			validCheck = dataArray[i];
 		} else if (i==6) {
-			dataArray[i] = get_Item_Flag_Value(csvTable.AsStringByIndex(col));
+			dataArray[i] = get_item_flag_value(csvTable.as_string_by_index(col));
 			validCheck = dataArray[i];
 		} else if (i==7) {
-			dataArray[i] = get_Item_WearFlag_Value(csvTable.AsStringByIndex(col));
+			dataArray[i] = get_item_wear_flag_value(csvTable.as_string_by_index(col));
 			validCheck = dataArray[i];
 		} else if (i==8) {
-			dataArray[i] = get_Item_Immune_Value(csvTable.AsStringByIndex(col));
+			dataArray[i] = get_item_immune_value(csvTable.as_string_by_index(col));
 			validCheck = dataArray[i];
 		} else if (i==14) {
-			dataArray[i] = get_Item_LimitType_Value(csvTable.AsStringByIndex(col));
+			dataArray[i] = get_item_limit_type_value(csvTable.as_string_by_index(col));
 			validCheck = dataArray[i];
 		} else if (i==16) {
-			dataArray[i] = get_Item_LimitType_Value(csvTable.AsStringByIndex(col));
+			dataArray[i] = get_item_limit_type_value(csvTable.as_string_by_index(col));
 			validCheck = dataArray[i];
 		} else if (i==18) {
-			dataArray[i] = get_Item_ApplyType_Value(csvTable.AsStringByIndex(col));
+			dataArray[i] = get_item_apply_type_value(csvTable.as_string_by_index(col));
 			validCheck = dataArray[i];
 		} else if (i==20) {
-			dataArray[i] = get_Item_ApplyType_Value(csvTable.AsStringByIndex(col));
+			dataArray[i] = get_item_apply_type_value(csvTable.as_string_by_index(col));
 			validCheck = dataArray[i];
 		} else if (i==22) {
-			dataArray[i] = get_Item_ApplyType_Value(csvTable.AsStringByIndex(col));
+			dataArray[i] = get_item_apply_type_value(csvTable.as_string_by_index(col));
 			validCheck = dataArray[i];
 		} else {
-			str_to_number(dataArray[i], csvTable.AsStringByIndex(col));
+			str_to_number(dataArray[i], csvTable.as_string_by_index(col));
 		}
 
 		if (validCheck == -1)
@@ -712,7 +712,7 @@ bool Set_Proto_Item_Table(TItemTable *itemTable, cCsvTable &csvTable,std::map<in
 			for (size_t j = 0; j < i; ++j)
 				dataStream << dataArray[j] << ",";
 
-			metin2::log::error("ItemProto Reading Failed : Invalid value. (index: {:d}, col: {:d}, value: {})", i, col, csvTable.AsStringByIndex(col));
+			metin2::log::error("ItemProto Reading Failed : Invalid value. (index: {:d}, col: {:d}, value: {})", i, col, csvTable.as_string_by_index(col));
 			metin2::log::error("\t0 ~ {:d} Values: {}", i, dataStream.str().c_str());
 
 			exit(0);
@@ -723,13 +723,13 @@ bool Set_Proto_Item_Table(TItemTable *itemTable, cCsvTable &csvTable,std::map<in
 
 	// Read vnum and vnum range.
 	{
-		std::string s(csvTable.AsStringByIndex(0));
+		std::string s(csvTable.as_string_by_index(0));
 		size_t pos = s.find("~");
 		// Skip if the vnum field has no '~'
 		if (std::string::npos == pos)
 		{
-			itemTable->dwVnum = dataArray[0];
-			itemTable->dwVnumRange = 0;
+			itemTable->vnum = dataArray[0];
+			itemTable->vnum_range = 0;
 		}
 		else
 		{
@@ -743,68 +743,68 @@ bool Set_Proto_Item_Table(TItemTable *itemTable, cCsvTable &csvTable,std::map<in
 				metin2::log::error("INVALID VNUM {}", s.c_str());
 				return false;
 			}
-			itemTable->dwVnum = start_vnum;
-			itemTable->dwVnumRange = end_vnum - start_vnum;
+			itemTable->vnum = start_vnum;
+			itemTable->vnum_range = end_vnum - start_vnum;
 		}
 	}
 
-	utf8_strlcpy(itemTable->szName, csvTable.AsStringByIndex(1), sizeof(itemTable->szName));
+	utf8_strlcpy(itemTable->name, csvTable.as_string_by_index(1), sizeof(itemTable->name));
 	//Fill in the localized names.
 	std::map<int,const char*>::iterator it;
-	it = nameMap.find(itemTable->dwVnum);
+	it = nameMap.find(itemTable->vnum);
 	if (it != nameMap.end()) {
 		const char * localeName = it->second;
-		utf8_strlcpy(itemTable->szLocaleName, localeName, sizeof (itemTable->szLocaleName));
+		utf8_strlcpy(itemTable->locale_name, localeName, sizeof (itemTable->locale_name));
 	} else {
-		utf8_strlcpy(itemTable->szLocaleName, itemTable->szName, sizeof (itemTable->szLocaleName));
+		utf8_strlcpy(itemTable->locale_name, itemTable->name, sizeof (itemTable->locale_name));
 	}
-	itemTable->bType = dataArray[2];
-	itemTable->bSubType = dataArray[3];
-	itemTable->bSize = dataArray[4];
-	itemTable->dwAntiFlags = dataArray[5];
-	itemTable->dwFlags = dataArray[6];
-	itemTable->dwWearFlags = dataArray[7];
-	itemTable->dwImmuneFlag = dataArray[8];
-	itemTable->dwGold = dataArray[9];
-	itemTable->dwShopBuyPrice = dataArray[10];
-	itemTable->dwRefinedVnum = dataArray[11];
-	itemTable->wRefineSet = dataArray[12];
-	itemTable->bAlterToMagicItemPct = dataArray[13];
-	itemTable->cLimitRealTimeFirstUseIndex = -1;
-	itemTable->cLimitTimerBasedOnWearIndex = -1;
+	itemTable->type = dataArray[2];
+	itemTable->sub_type = dataArray[3];
+	itemTable->size = dataArray[4];
+	itemTable->anti_flags = dataArray[5];
+	itemTable->flags = dataArray[6];
+	itemTable->wear_flags = dataArray[7];
+	itemTable->immune_flag = dataArray[8];
+	itemTable->gold = dataArray[9];
+	itemTable->shop_buy_price = dataArray[10];
+	itemTable->refined_vnum = dataArray[11];
+	itemTable->refine_set = dataArray[12];
+	itemTable->alter_to_magic_item_pct = dataArray[13];
+	itemTable->c_limit_real_time_first_use_index = -1;
+	itemTable->c_limit_timer_based_on_wear_index = -1;
 
 	int i;
 
 	for (i = 0; i < ITEM_LIMIT_MAX_NUM; ++i)
 	{
-		itemTable->aLimits[i].bType = dataArray[14+i*2];
-		itemTable->aLimits[i].lValue = dataArray[15+i*2];
+		itemTable->limits[i].type = dataArray[14+i*2];
+		itemTable->limits[i].value = dataArray[15+i*2];
 
-		if (LIMIT_REAL_TIME_START_FIRST_USE == itemTable->aLimits[i].bType)
-			itemTable->cLimitRealTimeFirstUseIndex = (char)i;
+		if (LIMIT_REAL_TIME_START_FIRST_USE == itemTable->limits[i].type)
+			itemTable->c_limit_real_time_first_use_index = (char)i;
 
-		if (LIMIT_TIMER_BASED_ON_WEAR == itemTable->aLimits[i].bType)
-			itemTable->cLimitTimerBasedOnWearIndex = (char)i;
+		if (LIMIT_TIMER_BASED_ON_WEAR == itemTable->limits[i].type)
+			itemTable->c_limit_timer_based_on_wear_index = (char)i;
 
 	}
 
 	for (i = 0; i < ITEM_APPLY_MAX_NUM; ++i)
 	{
-		itemTable->aApplies[i].bType = dataArray[18+i*2];
-		itemTable->aApplies[i].lValue = dataArray[19+i*2];
+		itemTable->applies[i].type = dataArray[18+i*2];
+		itemTable->applies[i].value = dataArray[19+i*2];
 	}
 
 	for (i = 0; i < ITEM_VALUES_MAX_NUM; ++i)
-		itemTable->alValues[i] = dataArray[24+i];
+		itemTable->values[i] = dataArray[24+i];
 
 	//column for 'Specular'
-	itemTable->bSpecular = dataArray[30];
+	itemTable->specular = dataArray[30];
 
-	itemTable->bGainSocketPct = dataArray[31];
-	itemTable->sAddonType = dataArray[32];
+	itemTable->gain_socket_pct = dataArray[31];
+	itemTable->s_addon_type = dataArray[32];
 
 	//test
-	str_to_number(itemTable->bWeight, "0");
+	str_to_number(itemTable->weight, "0");
 			
 	return true;
 }

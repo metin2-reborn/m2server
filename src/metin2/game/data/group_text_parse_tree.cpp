@@ -16,20 +16,20 @@
 
 namespace metin2::game::inline data {
 
-CGroupTextParseTreeLoader::CGroupTextParseTreeLoader()
-	: m_dwcurLineIndex(0)
+group_text_parse_tree_loader::group_text_parse_tree_loader()
+	: dwcur_line_index_(0)
 {
 }
 
-CGroupTextParseTreeLoader::~CGroupTextParseTreeLoader()
+group_text_parse_tree_loader::~group_text_parse_tree_loader()
 {
 }
 
-bool CGroupTextParseTreeLoader::Load(const char * c_szFileName)
+bool group_text_parse_tree_loader::load(const char * c_szFileName)
 {
-	m_strFileName = c_szFileName;
+	file_name_ = c_szFileName;
 
-	m_dwcurLineIndex = 0;
+	dwcur_line_index_ = 0;
 
 	FILE* fp = fopen(c_szFileName, "rb");
 
@@ -44,24 +44,24 @@ bool CGroupTextParseTreeLoader::Load(const char * c_szFileName)
 	fread(pData.get(), fileSize, 1, fp);
 	fclose(fp);
 
-	m_fileLoader.Bind(fileSize, pData.get());
+	file_loader_.bind(fileSize, pData.get());
 	pData.reset();
 
-	m_pRootGroupNode = std::make_unique<CGroupNode>();
-	if (!LoadGroup(m_pRootGroupNode.get()))
+	root_group_node_ = std::make_unique<group_node>();
+	if (!load_group(root_group_node_.get()))
 	{
-		m_pRootGroupNode.reset();
+		root_group_node_.reset();
 		return false;
 	}
 	return true;
 }
 
-bool CGroupTextParseTreeLoader::LoadGroup(CGroupNode * pGroupNode)
+bool group_text_parse_tree_loader::load_group(group_node * pGroupNode)
 {
-	TTokenVector stTokenVector;
-	for (; m_dwcurLineIndex < m_fileLoader.GetLineCount(); ++m_dwcurLineIndex)
+	token_vector stTokenVector;
+	for (; dwcur_line_index_ < file_loader_.line_count(); ++dwcur_line_index_)
 	{
-		if (!m_fileLoader.SplitLine(m_dwcurLineIndex, &stTokenVector))
+		if (!file_loader_.split_line(dwcur_line_index_, &stTokenVector))
 			continue;
 
 		to_lower(stTokenVector[0]);
@@ -84,16 +84,16 @@ bool CGroupTextParseTreeLoader::LoadGroup(CGroupNode * pGroupNode)
 				continue;
 			}
 
-			CGroupNode * pNewNode = new CGroupNode();
+			group_node * pNewNode = new group_node();
 
-			pNewNode->strGroupName = stTokenVector[1];
-			to_lower(pNewNode->strGroupName);
+			pNewNode->group_name_ = stTokenVector[1];
+			to_lower(pNewNode->group_name_);
 			
-			pGroupNode->SetChildNode(pNewNode->strGroupName.c_str(), pNewNode);
+			pGroupNode->set_child_node(pNewNode->group_name_.c_str(), pNewNode);
 
-			++m_dwcurLineIndex;
+			++dwcur_line_index_;
 
-			LoadGroup(pNewNode);
+			load_group(pNewNode);
 		}
 		// Column Names
 		else if (0 == stTokenVector[0].compare("#--#"))
@@ -101,7 +101,7 @@ bool CGroupTextParseTreeLoader::LoadGroup(CGroupNode * pGroupNode)
 			for (size_t i = 1; i < stTokenVector.size(); i++)
 			{
 				to_lower(stTokenVector[i]);
-				pGroupNode->m_map_columnNameToIndex.insert(TMapNameToIndex::value_type (stTokenVector[i], i - 1));
+				pGroupNode->map_column_name_to_index_.insert(map_name_to_index::value_type (stTokenVector[i], i - 1));
 			}
 		}
 		else
@@ -111,78 +111,78 @@ bool CGroupTextParseTreeLoader::LoadGroup(CGroupNode * pGroupNode)
 			if (1 == stTokenVector.size())
 			{
 				metin2::log::error("CGroupTextParseTreeLoader::LoadGroup : must have a value (filename: {} line: {:d} key: {})",
-						m_strFileName.c_str(),
-						m_dwcurLineIndex,
+						file_name_.c_str(),
+						dwcur_line_index_,
 						key.c_str());
 				break;
 			}
 
 			stTokenVector.erase(stTokenVector.begin());
-			pGroupNode->m_map_rows.insert(std::make_pair(key, CGroupNode::CGroupNodeRow(pGroupNode, stTokenVector)));
+			pGroupNode->map_rows_.insert(std::make_pair(key, group_node::group_node_row(pGroupNode, stTokenVector)));
 		}
 	}
 
 	return true;
 }
 
-CGroupNode* CGroupTextParseTreeLoader::GetGroup(const char * c_szGroupName)
+group_node* group_text_parse_tree_loader::group(const char * c_szGroupName)
 {
-	if (nullptr == m_pRootGroupNode)
+	if (nullptr == root_group_node_)
 		return nullptr;
-	return m_pRootGroupNode->GetChildNode(c_szGroupName);
+	return root_group_node_->child_node(c_szGroupName);
 }
 
-CGroupNode::CGroupNode()
+group_node::group_node()
 {
 }
 
-CGroupNode::~CGroupNode()
+group_node::~group_node()
 {
-	for (TMapGroup::iterator it = m_mapChildNodes.begin(); it != m_mapChildNodes.end(); it++)
+	for (map_group::iterator it = child_nodes_.begin(); it != child_nodes_.end(); it++)
 	{
 		delete it->second;
 	}
 }
 
-bool CGroupNode::SetChildNode(const char * c_szKey, CGroupNode* pChildGroup)
+bool group_node::set_child_node(const char * c_szKey, group_node* pChildGroup)
 {
 	if (nullptr == pChildGroup)
 	{
-		m_mapChildNodes.erase(c_szKey);
+		child_nodes_.erase(c_szKey);
 		return true;
 	}
-	TMapGroup::iterator it = m_mapChildNodes.find(c_szKey);
-	if (it != m_mapChildNodes.end())
+	map_group::iterator it = child_nodes_.find(c_szKey);
+	if (it != child_nodes_.end())
 		return false;
 
-	m_mapChildNodes.insert (TMapGroup::value_type (c_szKey, pChildGroup));
+	child_nodes_.insert (map_group::value_type (c_szKey, pChildGroup));
 	
 	return true;
 }
 
-CGroupNode* CGroupNode::GetChildNode(const std::string & c_rstrKey) const
+group_node* group_node::child_node(const std::string & c_rstrKey) const
 {
-	TMapGroup::const_iterator it = m_mapChildNodes.find(c_rstrKey);
-	if (it != m_mapChildNodes.end())
+	map_group::const_iterator it = child_nodes_.find(c_rstrKey);
+	if (it != child_nodes_.end())
 		return it->second;
 	else
 		return nullptr;
 }
 
-std::string CGroupNode::GetNodeName() const
+std::string group_node::node_name() const
 {
-	return strGroupName;
+	return group_name_;
 }
 
-int CGroupNode::GetRowCount()
+int group_node::row_count()
 {
-	return m_map_rows.size();
+	return map_rows_.size();
 }
 
-bool CGroupNode::GetRow(const std::string & c_rstrRowKey, const CGroupNode::CGroupNodeRow ** ppRow) const
+bool group_node::row(const std::string & c_rstrRowKey, const group_node::group_node_row ** ppRow) const
 {
-	TMapRow::const_iterator row_it = m_map_rows.find(c_rstrRowKey);
-	if (m_map_rows.end() == row_it)
+	map_row::const_iterator row_it = map_rows_.find(c_rstrRowKey);
+	if (map_rows_.end() == row_it)
 	{
 		return false;
 	}
@@ -193,12 +193,12 @@ bool CGroupNode::GetRow(const std::string & c_rstrRowKey, const CGroupNode::CGro
 }
 
 // Note: idx is unrelated to the order written in the txt.
-bool CGroupNode::GetRow(int idx, const CGroupNode::CGroupNodeRow ** ppRow) const
+bool group_node::row(int idx, const group_node::group_node_row ** ppRow) const
 {
-	if (idx < 0 || static_cast<size_t>(idx) >= m_map_rows.size())
+	if (idx < 0 || static_cast<size_t>(idx) >= map_rows_.size())
 		return false;
 
-	TMapRow::const_iterator row_it = m_map_rows.begin();
+	map_row::const_iterator row_it = map_rows_.begin();
 
 	std::advance(row_it, idx);
 
@@ -207,46 +207,46 @@ bool CGroupNode::GetRow(int idx, const CGroupNode::CGroupNodeRow ** ppRow) const
 	return true;
 }
 
-bool CGroupNode::GetGroupRow(const std::string& stGroupName, const std::string& stRow, const CGroupNode::CGroupNodeRow ** ppRow) const
+bool group_node::group_row(const std::string& stGroupName, const std::string& stRow, const group_node::group_node_row ** ppRow) const
 {
-	CGroupNode* pChildGroup = GetChildNode(stGroupName);
+	group_node* pChildGroup = child_node(stGroupName);
 	if (nullptr != pChildGroup)
 	{
-		if (pChildGroup->GetRow(stRow, ppRow))
+		if (pChildGroup->row(stRow, ppRow))
 			return true;
 	}
 	// Look in the default group.
-	pChildGroup = GetChildNode("default");
+	pChildGroup = child_node("default");
 	if (nullptr != pChildGroup)
 	{
-		if (pChildGroup->GetRow(stRow, ppRow))
+		if (pChildGroup->row(stRow, ppRow))
 			return true;
 	}
 	return false;
 }
 
-int	CGroupNode::GetColumnIndexFromName(const std::string& stName) const
+int	group_node::column_index_from_name(const std::string& stName) const
 {
-	TMapNameToIndex::const_iterator it = m_map_columnNameToIndex.find(stName);
-	if (m_map_columnNameToIndex.end() == it)
+	map_name_to_index::const_iterator it = map_column_name_to_index_.find(stName);
+	if (map_column_name_to_index_.end() == it)
 		return -1;
 	else
 		return it->second;
 }
 
-CGroupNode::CGroupNodeRow::CGroupNodeRow(CGroupNode* pGroupNode, TTokenVector& vec_values)
+group_node::group_node_row::group_node_row(group_node* pGroupNode, token_vector& vec_values)
 {
-	m_pOwnerGroupNode = pGroupNode;
-	m_vec_values.clear();
-	std::copy(vec_values.begin(), vec_values.end(), std::back_inserter(m_vec_values));
+	owner_group_node_ = pGroupNode;
+	vec_values_.clear();
+	std::copy(vec_values.begin(), vec_values.end(), std::back_inserter(vec_values_));
 }
 
-CGroupNode::CGroupNodeRow::~CGroupNodeRow()
+group_node::group_node_row::~group_node_row()
 {
 }
 
-int CGroupNode::CGroupNodeRow::GetSize() const
+int group_node::group_node_row::size() const
 {
-	return m_vec_values.size();
+	return vec_values_.size();
 }
 }

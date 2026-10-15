@@ -29,7 +29,7 @@ namespace metin2::game::inline characters {
 
 EVENTINFO(petsystem_event_info)
 {
-	CPetSystem* pPetSystem;
+	game::characters::pet_system* pet_system;
 };
 
 // event that updates the PetSystem.
@@ -48,15 +48,15 @@ EVENTFUNC(petsystem_update_event)
 		return 0;
 	}
 
-	CPetSystem*	pPetSystem = info->pPetSystem;
+	pet_system*	pPetSystem = info->pet_system;
 
 	if (nullptr == pPetSystem)
 		return 0;
 
 	
-	pPetSystem->Update(0);
+	pPetSystem->update(0);
 	// refresh every 0.25 seconds.
-	return PASSES_PER_SEC(1) / 4;
+	return passes_per_sec(1) / 4;
 }
 
 /// NOTE: limit on how many pets one character can have... if it should differ per character, make it a variable... hmm..
@@ -66,70 +66,70 @@ EVENTFUNC(petsystem_update_event)
 //  CPetActor
 ///////////////////////////////////////////////////////////////////////////////////////
 
-CPetActor::CPetActor(CHARACTER * owner, uint32_t vnum, uint32_t options)
+pet_actor::pet_actor(character * owner, uint32_t vnum, uint32_t options)
 {
-	m_dwVnum = vnum;
-	m_dwVID = 0;
-	m_dwOptions = options;
+	vnum_ = vnum;
+	vid_ = 0;
+	options_ = options;
 
-	m_pkChar = nullptr;
-	m_pkOwner = owner;
+	char_ = nullptr;
+	owner_ = owner;
 
-	m_originalMoveSpeed = 0;
+	original_move_speed_ = 0;
 	
-	m_dwSummonItemVID = 0;
-	m_dwSummonItemVnum = 0;
+	summon_item_vid_ = 0;
+	summon_item_vnum_ = 0;
 }
 
-CPetActor::~CPetActor()
+pet_actor::~pet_actor()
 {
-	this->Unsummon();
+	this->unsummon();
 
-	m_pkOwner = nullptr;
+	owner_ = nullptr;
 }
 
-void CPetActor::SetName(const char* name)
+void pet_actor::set_name(const char* name)
 {
-	std::string petName = m_pkOwner->GetName();
+	std::string petName = owner_->name();
 
-	if (nullptr != m_pkOwner && 
+	if (nullptr != owner_ && 
 		nullptr == name && 
-		nullptr != m_pkOwner->GetName())
+		nullptr != owner_->name())
 	{
 		petName += "'s Pet";
 	}
 	else
 		petName += name;
 
-	if (true == IsSummoned())
-		m_pkChar->SetName(petName);
+	if (true == is_summoned())
+		char_->set_name(petName);
 
-	m_name = petName;
+	name_ = petName;
 }
 
-void CPetActor::Unsummon()
+void pet_actor::unsummon()
 {
-	if (true == this->IsSummoned())
+	if (true == this->is_summoned())
 	{
 		// remove buff
-		this->ClearBuff();
-		this->SetSummonItem(nullptr);
-		if (nullptr != m_pkOwner)
-			m_pkOwner->ComputePoints();
+		this->clear_buff();
+		this->set_summon_item(nullptr);
+		if (nullptr != owner_)
+			owner_->compute_points();
 
-		if (nullptr != m_pkChar)
-			CHARACTER_MANAGER::instance().DestroyCharacter(m_pkChar);
+		if (nullptr != char_)
+			character_manager::instance().destroy_character(char_);
 
-		m_pkChar = nullptr;
-		m_dwVID = 0;
+		char_ = nullptr;
+		vid_ = 0;
 	}
 }
 
-uint32_t CPetActor::Summon(const char* petName, CItem * pSummonItem, bool bSpawnFar)
+uint32_t pet_actor::summon(const char* petName, item * pSummonItem, bool bSpawnFar)
 {
-	int32_t x = m_pkOwner->GetX();
-	int32_t y = m_pkOwner->GetY();
-	int32_t z = m_pkOwner->GetZ();
+	int32_t x = owner_->x();
+	int32_t y = owner_->y();
+	int32_t z = owner_->z();
 
 	if (true == bSpawnFar)
 	{
@@ -142,47 +142,47 @@ uint32_t CPetActor::Summon(const char* petName, CItem * pSummonItem, bool bSpawn
 		y += number(-100, 100);
 	}
 
-	if (nullptr != m_pkChar)
+	if (nullptr != char_)
 	{
-		m_pkChar->Show (m_pkOwner->GetMapIndex(), x, y);
-		m_dwVID = m_pkChar->GetVID();
+		char_->show (owner_->map_index(), x, y);
+		vid_ = char_->get_vid();
 
-		return m_dwVID;
+		return vid_;
 	}
 	
-	m_pkChar = CHARACTER_MANAGER::instance().SpawnMob(
-				m_dwVnum, 
-				m_pkOwner->GetMapIndex(), 
+	char_ = character_manager::instance().spawn_mob(
+				vnum_, 
+				owner_->map_index(), 
 				x, y, z,
-				false, (int)(m_pkOwner->GetRotation()+180), false);
+				false, (int)(owner_->rotation()+180), false);
 
-	if (nullptr == m_pkChar)
+	if (nullptr == char_)
 	{
-		metin2::log::error("[CPetSystem::Summon] Failed to summon the pet. (vnum: {:d})", m_dwVnum);
+		metin2::log::error("[CPetSystem::Summon] Failed to summon the pet. (vnum: {:d})", vnum_);
 		return 0;
 	}
 
-	m_pkChar->SetPet();
+	char_->set_pet();
 
 	//set the pet's empire to the owner's empire.
-	m_pkChar->SetEmpire(m_pkOwner->GetEmpire());
+	char_->set_empire(owner_->empire());
 
-	m_dwVID = m_pkChar->GetVID();
+	vid_ = char_->get_vid();
 
-	this->SetName(petName);
+	this->set_name(petName);
 
 	// calling ComputePoints after SetSummonItem(pSummonItem) applies the buff.
-	this->SetSummonItem(pSummonItem);
-	m_pkOwner->ComputePoints();
-	m_pkChar->Show(m_pkOwner->GetMapIndex(), x, y, z);
+	this->set_summon_item(pSummonItem);
+	owner_->compute_points();
+	char_->show(owner_->map_index(), x, y, z);
 
-	return m_dwVID;
+	return vid_;
 }
 
 // just copy-pasted the StateHorse function from char_state.cpp -_-;
-bool CPetActor::_UpdateFollowAI()
+bool pet_actor::update_follow_ai()
 {
-	if (nullptr == m_pkChar->m_pkMobData)
+	if (nullptr == char_->mob_data)
 	{
 		return false;
 	}
@@ -190,12 +190,12 @@ bool CPetActor::_UpdateFollowAI()
 	// NOTE: we need the character's (pet's) original move speed; it could be read directly from m_pkChar->m_pkMobData->m_table.sMovingSpeed, but
 	// m_pkChar->m_pkMobData is often invalid. Due to time constraints the cause will be investigated later; for now m_pkChar->m_pkMobData is not used at all.
 	// the reason for checking every time here is that sometimes the correct value isn't obtained at initial initialization.. -_-;; TTTTTTTTT
-	if (0 == m_originalMoveSpeed)
+	if (0 == original_move_speed_)
 	{
-		const CMob* mobData = CMobManager::instance().Get(m_dwVnum);
+		const mob* mobData = mob_manager::instance().get(vnum_);
 
 		if (nullptr != mobData)
-			m_originalMoveSpeed = mobData->m_table.sMovingSpeed;
+			original_move_speed_ = mobData->table.s_moving_speed;
 	}
 	float	START_FOLLOW_DISTANCE = 300.0f;		// start following when farther than this distance
 	float	START_RUN_DISTANCE = 900.0f;		// run to follow when farther than this distance.
@@ -207,17 +207,17 @@ bool CPetActor::_UpdateFollowAI()
 
 	uint32_t currentTime = get_dword_time();
 
-	int32_t ownerX = m_pkOwner->GetX();		int32_t ownerY = m_pkOwner->GetY();
-	int32_t charX = m_pkChar->GetX();			int32_t charY = m_pkChar->GetY();
+	int32_t ownerX = owner_->x();		int32_t ownerY = owner_->y();
+	int32_t charX = char_->x();			int32_t charY = char_->y();
 
-	float fDist = DISTANCE_APPROX(charX - ownerX, charY - ownerY);
+	float fDist = distance_approx(charX - ownerX, charY - ownerY);
 
 	if (fDist >= RESPAWN_DISTANCE)
 	{
-		float fOwnerRot = m_pkOwner->GetRotation() * 3.141592f / 180.f;
+		float fOwnerRot = owner_->rotation() * 3.141592f / 180.f;
 		float fx = -APPROACH * cos(fOwnerRot);
 		float fy = -APPROACH * sin(fOwnerRot);
-		if (m_pkChar->Show(m_pkOwner->GetMapIndex(), ownerX + fx, ownerY + fy))
+		if (char_->show(owner_->map_index(), ownerX + fx, ownerY + fy))
 		{
 			return true;
 		}
@@ -231,113 +231,113 @@ bool CPetActor::_UpdateFollowAI()
 			bRun = true;
 		}
 
-		m_pkChar->SetNowWalking(!bRun);		// NOTE: from the function name I thought it stopped, but SetNowWalking(false) means running.. -_-;
+		char_->set_now_walking(!bRun);		// NOTE: from the function name I thought it stopped, but SetNowWalking(false) means running.. -_-;
 		
-		Follow(APPROACH);
+		follow(APPROACH);
 
-		m_pkChar->SetLastAttacked(currentTime);
+		char_->set_last_attacked(currentTime);
 	}
 	// following, but stop once within a certain distance of the owner
 	else 
-		m_pkChar->SendMovePacket(FUNC_WAIT, 0, 0, 0, 0);
+		char_->send_move_packet(FUNC_WAIT, 0, 0, 0, 0);
 
 	return true;
 }
 
-bool CPetActor::Update(uint32_t deltaTime)
+bool pet_actor::update(uint32_t deltaTime)
 {
 	bool bResult = true;
 
 	// remove the pet if its owner died or the summoned pet's state is abnormal. (NOTE: occasionally a summoned pet falls into DEAD state for various reasons -_-;)
 	// remove the pet if the item that summoned it is gone or no longer owned by me.
-	if (m_pkOwner->IsDead() || (IsSummoned() && m_pkChar->IsDead()) 
-		|| nullptr == ITEM_MANAGER::instance().FindByVID(this->GetSummonItemVID())
-		|| ITEM_MANAGER::instance().FindByVID(this->GetSummonItemVID())->GetOwner() != this->GetOwner()
+	if (owner_->is_dead() || (is_summoned() && char_->is_dead()) 
+		|| nullptr == item_manager::instance().find_by_vid(this->summon_item_vid())
+		|| item_manager::instance().find_by_vid(this->summon_item_vid())->owner() != this->owner()
 		)
 	{
-		this->Unsummon();
+		this->unsummon();
 		return true;
 	}
 
-	if (this->IsSummoned() && HasOption(EPetOption_Followable))
-		bResult = bResult && this->_UpdateFollowAI();
+	if (this->is_summoned() && has_option(EPetOption_Followable))
+		bResult = bResult && this->update_follow_ai();
 
 	return bResult;
 }
 
 //NOTE : careful!!! if MinDistance is large, it won't follow while the displacement is within that amount,
-bool CPetActor::Follow(float fMinDistance)
+bool pet_actor::follow(float fMinDistance)
 {
 	// must face the position it is moving to.
-	if( !m_pkOwner || !m_pkChar) 
+	if( !owner_ || !char_) 
 		return false;
 
-	float fOwnerX = m_pkOwner->GetX();
-	float fOwnerY = m_pkOwner->GetY();
+	float fOwnerX = owner_->x();
+	float fOwnerY = owner_->y();
 
-	float fPetX = m_pkChar->GetX();
-	float fPetY = m_pkChar->GetY();
+	float fPetX = char_->x();
+	float fPetY = char_->y();
 
-	float fDist = DISTANCE_SQRT(fOwnerX - fPetX, fOwnerY - fPetY);
+	float fDist = distance_sqrt(fOwnerX - fPetX, fOwnerY - fPetY);
 	if (fDist <= fMinDistance)
 		return false;
 
-	m_pkChar->SetRotationToXY(fOwnerX, fOwnerY);
+	char_->set_rotation_to_xy(fOwnerX, fOwnerY);
 
 	float fx, fy;
 
 	float fDistToGo = fDist - fMinDistance;
-	GetDeltaByDegree(m_pkChar->GetRotation(), fDistToGo, &fx, &fy);
+	get_delta_by_degree(char_->rotation(), fDistToGo, &fx, &fy);
 	
-	if (!m_pkChar->Goto((int)(fPetX+fx+0.5f), (int)(fPetY+fy+0.5f)) )
+	if (!char_->goto_((int)(fPetX+fx+0.5f), (int)(fPetY+fy+0.5f)) )
 		return false;
 
-	m_pkChar->SendMovePacket(FUNC_WAIT, 0, 0, 0, 0, 0);
+	char_->send_move_packet(FUNC_WAIT, 0, 0, 0, 0, 0);
 
 	return true;
 }
 
-void CPetActor::SetSummonItem (CItem * pItem)
+void pet_actor::set_summon_item (item * pItem)
 {
 	if (nullptr == pItem)
 	{
-		m_dwSummonItemVID = 0;
-		m_dwSummonItemVnum = 0;
+		summon_item_vid_ = 0;
+		summon_item_vnum_ = 0;
 		return;
 	}
 
-	m_dwSummonItemVID = pItem->GetVID();
-	m_dwSummonItemVnum = pItem->GetVnum();
+	summon_item_vid_ = pItem->get_vid();
+	summon_item_vnum_ = pItem->vnum();
 }
 
-void CPetActor::GiveBuff()
+void pet_actor::give_buff()
 {
 	// Pahwang pet buff only occurs in dungeons.
-	if (34004 == m_dwVnum || 34009 == m_dwVnum)
+	if (34004 == vnum_ || 34009 == vnum_)
 	{
-		if (nullptr == m_pkOwner->GetDungeon())
+		if (nullptr == owner_->get_dungeon())
 		{
 			return;
 		}
 	}
-	CItem * item = ITEM_MANAGER::instance().FindByVID(m_dwSummonItemVID);
+	item * item = item_manager::instance().find_by_vid(summon_item_vid_);
 	if (nullptr != item)
-		item->ModifyPoints(true);
+		item->modify_points(true);
 	return ;
 }
 
-void CPetActor::ClearBuff()
+void pet_actor::clear_buff()
 {
-	if (nullptr == m_pkOwner)
+	if (nullptr == owner_)
 		return ;
-	TItemTable* item_proto = ITEM_MANAGER::instance().GetTable(m_dwSummonItemVnum);
+	item_table* item_proto = item_manager::instance().table(summon_item_vnum_);
 	if (nullptr == item_proto)
 		return;
 	for (int i = 0; i < ITEM_APPLY_MAX_NUM; i++)
 	{
-		if (item_proto->aApplies[i].bType == APPLY_NONE)
+		if (item_proto->applies[i].type == APPLY_NONE)
 			continue;
-		m_pkOwner->ApplyPoint(item_proto->aApplies[i].bType, -item_proto->aApplies[i].lValue);
+		owner_->apply_point(item_proto->applies[i].type, -item_proto->applies[i].value);
 	}
 
 	return ;
@@ -347,37 +347,37 @@ void CPetActor::ClearBuff()
 //  CPetSystem
 ///////////////////////////////////////////////////////////////////////////////////////
 
-CPetSystem::CPetSystem(CHARACTER * owner)
+pet_system::pet_system(character * owner)
 {
 
-	m_pkOwner = owner;
-	m_dwUpdatePeriod = 400;
+	owner_ = owner;
+	update_period_ = 400;
 
-	m_dwLastUpdateTime = 0;
+	last_update_time_ = 0;
 }
 
-CPetSystem::~CPetSystem()
+pet_system::~pet_system()
 {
-	Destroy();
+	destroy();
 }
 
-void CPetSystem::Destroy()
+void pet_system::destroy()
 {
-	for (TPetActorMap::iterator iter = m_petActorMap.begin(); iter != m_petActorMap.end(); ++iter)
+	for (pet_actor_map::iterator iter = pet_actor_map_.begin(); iter != pet_actor_map_.end(); ++iter)
 	{
-		CPetActor* petActor = iter->second;
+		pet_actor* petActor = iter->second;
 
 		if (nullptr != petActor)
 		{
 			delete petActor;
 		}
 	}
-	event_cancel(&m_pkPetSystemUpdateEvent);
-	m_petActorMap.clear();
+	event_cancel(&pet_system_update_event_);
+	pet_actor_map_.clear();
 }
 
 /// pet system update. handles AI etc. of registered pets.
-bool CPetSystem::Update(uint32_t deltaTime)
+bool pet_system::update(uint32_t deltaTime)
 {
 	bool bResult = true;
 
@@ -386,101 +386,101 @@ bool CPetSystem::Update(uint32_t deltaTime)
 	// I thought the value (called Pulse) passed when CHARACTER_MANAGER updates characters was the time delta since the previous frame, but
 	// it's a completely different value -_-; so the deltaTime input here is meaningless TT	
 	
-	if (m_dwUpdatePeriod > currentTime - m_dwLastUpdateTime)
+	if (update_period_ > currentTime - last_update_time_)
 		return true;
 	
-	std::vector <CPetActor*> v_garbageActor;
+	std::vector <pet_actor*> v_garbageActor;
 
-	for (TPetActorMap::iterator iter = m_petActorMap.begin(); iter != m_petActorMap.end(); ++iter)
+	for (pet_actor_map::iterator iter = pet_actor_map_.begin(); iter != pet_actor_map_.end(); ++iter)
 	{
-		CPetActor* petActor = iter->second;
+		pet_actor* petActor = iter->second;
 
-		if (nullptr != petActor && petActor->IsSummoned())
+		if (nullptr != petActor && petActor->is_summoned())
 		{
-			CHARACTER * pPet = petActor->GetCharacter();
+			character * pPet = petActor->get_character();
 			
-			if (nullptr == CHARACTER_MANAGER::instance().Find(pPet->GetVID()))
+			if (nullptr == character_manager::instance().find(pPet->get_vid()))
 			{
 				v_garbageActor.push_back(petActor);
 			}
 			else
 			{
-				bResult = bResult && petActor->Update(deltaTime);
+				bResult = bResult && petActor->update(deltaTime);
 			}
 		}
 	}
-	for (std::vector<CPetActor*>::iterator it = v_garbageActor.begin(); it != v_garbageActor.end(); it++)
-		DeletePet(*it);
+	for (std::vector<pet_actor*>::iterator it = v_garbageActor.begin(); it != v_garbageActor.end(); it++)
+		delete_pet(*it);
 
-	m_dwLastUpdateTime = currentTime;
+	last_update_time_ = currentTime;
 
 	return bResult;
 }
 
 /// remove the pet from the managed list
-void CPetSystem::DeletePet(CPetActor* petActor)
+void pet_system::delete_pet(pet_actor* petActor)
 {
-	for (TPetActorMap::iterator iter = m_petActorMap.begin(); iter != m_petActorMap.end(); ++iter)
+	for (pet_actor_map::iterator iter = pet_actor_map_.begin(); iter != pet_actor_map_.end(); ++iter)
 	{
 		if (iter->second == petActor)
 		{
 			delete petActor;
-			m_petActorMap.erase(iter);
+			pet_actor_map_.erase(iter);
 
 			return;
 		}
 	}
 
-	metin2::log::error("[CPetSystem::DeletePet] Can't find petActor({}) on my list(size: {:d}) ", static_cast<const void *>(static_cast<void*>(petActor)), m_petActorMap.size());
+	metin2::log::error("[CPetSystem::DeletePet] Can't find petActor({}) on my list(size: {:d}) ", static_cast<const void *>(static_cast<void*>(petActor)), pet_actor_map_.size());
 }
 
-void CPetSystem::Unsummon(uint32_t vnum, bool bDeleteFromList)
+void pet_system::unsummon(uint32_t vnum, bool bDeleteFromList)
 {
-	CPetActor* actor = this->GetByVnum(vnum);
+	pet_actor* actor = this->by_vnum(vnum);
 
 	if (nullptr == actor)
 	{
 		metin2::log::error("[CPetSystem::GetByVnum({:d})] Null Pointer (petActor)", vnum);
 		return;
 	}
-	actor->Unsummon();
+	actor->unsummon();
 
 	if (true == bDeleteFromList)
-		this->DeletePet(actor);
+		this->delete_pet(actor);
 
 	bool bActive = false;
-	for (TPetActorMap::iterator it = m_petActorMap.begin(); it != m_petActorMap.end(); it++)
+	for (pet_actor_map::iterator it = pet_actor_map_.begin(); it != pet_actor_map_.end(); it++)
 	{
-		bActive |= it->second->IsSummoned();
+		bActive |= it->second->is_summoned();
 	}
 	if (false == bActive)
 	{
-		event_cancel(&m_pkPetSystemUpdateEvent);
-		m_pkPetSystemUpdateEvent = nullptr;
+		event_cancel(&pet_system_update_event_);
+		pet_system_update_event_ = nullptr;
 	}
 }
 
 
-CPetActor* CPetSystem::Summon(uint32_t mobVnum, CItem * pSummonItem, const char* petName, bool bSpawnFar, uint32_t options)
+pet_actor* pet_system::summon(uint32_t mobVnum, item * pSummonItem, const char* petName, bool bSpawnFar, uint32_t options)
 {
-	CPetActor* petActor = this->GetByVnum(mobVnum);
+	pet_actor* petActor = this->by_vnum(mobVnum);
 
 	// if not a registered pet, create it and register it in the managed list.
 	if (nullptr == petActor)
 	{
-		petActor = new CPetActor(m_pkOwner, mobVnum, options);
-		m_petActorMap.insert(std::make_pair(mobVnum, petActor));
+		petActor = new pet_actor(owner_, mobVnum, options);
+		pet_actor_map_.insert(std::make_pair(mobVnum, petActor));
 	}
 
-	petActor->Summon(petName, pSummonItem, bSpawnFar);
+	petActor->summon(petName, pSummonItem, bSpawnFar);
 
-	if (nullptr == m_pkPetSystemUpdateEvent)
+	if (nullptr == pet_system_update_event_)
 	{
-		petsystem_event_info* info = AllocEventInfo<petsystem_event_info>();
+		petsystem_event_info* info = alloc_event_info<petsystem_event_info>();
 
-		info->pPetSystem = this;
+		info->pet_system = this;
 
-		m_pkPetSystemUpdateEvent = event_create(petsystem_update_event, info, PASSES_PER_SEC(1) / 4);	// 0.25 seconds	
+		pet_system_update_event_ = event_create(petsystem_update_event, info, passes_per_sec(1) / 4);	// 0.25 seconds	
 	}
 
 	return petActor;
@@ -488,29 +488,29 @@ CPetActor* CPetSystem::Summon(uint32_t mobVnum, CItem * pSummonItem, const char*
 
 
 /// returns the actor with the given mob VNUM among registered pets.
-CPetActor* CPetSystem::GetByVnum(uint32_t vnum) const
+pet_actor* pet_system::by_vnum(uint32_t vnum) const
 {
-	CPetActor* petActor = nullptr;
+	pet_actor* petActor = nullptr;
 
-	TPetActorMap::const_iterator iter = m_petActorMap.find(vnum);
+	pet_actor_map::const_iterator iter = pet_actor_map_.find(vnum);
 
-	if (m_petActorMap.end() != iter)
+	if (pet_actor_map_.end() != iter)
 		petActor = iter->second;
 
 	return petActor;
 }
 
-size_t CPetSystem::CountSummoned() const
+size_t pet_system::count_summoned() const
 {
 	size_t count = 0;
 
-	for (TPetActorMap::const_iterator iter = m_petActorMap.begin(); iter != m_petActorMap.end(); ++iter)
+	for (pet_actor_map::const_iterator iter = pet_actor_map_.begin(); iter != pet_actor_map_.end(); ++iter)
 	{
-		CPetActor* petActor = iter->second;
+		pet_actor* petActor = iter->second;
 
 		if (nullptr != petActor)
 		{
-			if (petActor->IsSummoned())
+			if (petActor->is_summoned())
 				++count;
 		}
 	}
@@ -518,17 +518,17 @@ size_t CPetSystem::CountSummoned() const
 	return count;
 }
 
-void CPetSystem::RefreshBuff()
+void pet_system::refresh_buff()
 {
-	for (TPetActorMap::const_iterator iter = m_petActorMap.begin(); iter != m_petActorMap.end(); ++iter)
+	for (pet_actor_map::const_iterator iter = pet_actor_map_.begin(); iter != pet_actor_map_.end(); ++iter)
 	{
-		CPetActor* petActor = iter->second;
+		pet_actor* petActor = iter->second;
 
 		if (nullptr != petActor)
 		{
-			if (petActor->IsSummoned())
+			if (petActor->is_summoned())
 			{
-				petActor->GiveBuff();
+				petActor->give_buff();
 			}
 		}
 	}

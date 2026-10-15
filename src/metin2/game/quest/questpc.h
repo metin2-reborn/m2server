@@ -10,7 +10,7 @@
 #include <vector>
 
 namespace metin2::game::inline characters {
-    class CHARACTER;
+    class character;
 }
 
 namespace metin2::game {
@@ -18,9 +18,9 @@ namespace metin2::game {
 
 namespace quest
 {
-	struct RewardData
+	struct reward_data
 	{
-		enum RewardType
+		enum reward_type
 		{
 			REWARD_TYPE_NONE,
 			REWARD_TYPE_EXP,
@@ -30,7 +30,7 @@ namespace quest
 		uint32_t value1;
 		int value2;	
 
-		RewardData(RewardType t, uint32_t value1, int value2 = 0) : 
+		reward_data(reward_type t, uint32_t value1, int value2 = 0) : 
 			type(t),
 			value1(value1),
 			value2(value2)
@@ -38,7 +38,7 @@ namespace quest
 		}
 	};
 
-	class PC
+	class pc
 	{
 		public:
 			enum 
@@ -52,45 +52,45 @@ namespace quest
 				QUEST_SEND_ICON_FILE		= (1 << 6),  // up to 24 chars
 			};
 
-			typedef std::map<unsigned int, QuestState>	QuestInfo;
-			typedef QuestInfo::iterator				QuestInfoIterator;
+			typedef std::map<unsigned int, quest_state>	quest_info;
+			typedef quest_info::iterator				quest_info_iterator;
 
-			PC();
-			~PC();
+			pc();
+			~pc();
 
-			void		Destroy();
-			void		SetID(uint32_t dwID);
-			uint32_t		GetID() { return m_dwID; }
+			void		destroy();
+			void		set_id(uint32_t dwID);
+			uint32_t		id() { return id_; }
 
-			inline QuestInfoIterator quest_begin();
-			inline QuestInfoIterator quest_end();
-			inline QuestInfoIterator quest_find(uint32_t quest_index);
+			inline quest_info_iterator quest_begin();
+			inline quest_info_iterator quest_end();
+			inline quest_info_iterator quest_find(uint32_t quest_index);
 
-			inline bool IsRunning();
+			inline bool is_running();
 
-			void		EndRunning();
-			void		CancelRunning();
+			void		end_running();
+			void		cancel_running();
 
-			inline QuestState *	GetRunningQuestState();
+			inline quest_state *	running_quest_state();
 
-			void		SetQuest(const std::string& quest_name, QuestState& qs);
-			void		SetCurrentQuestStateName(const std::string& state_name);
-			void		SetQuestState(const std::string& quest_name, const std::string& state_name);
-			void		SetQuestState(const std::string& quest_name, int new_state_index);
+			void		set_quest(const std::string& quest_name, quest_state& qs);
+			void		set_current_quest_state_name(const std::string& state_name);
+			void		set_quest_state(const std::string& quest_name, const std::string& state_name);
+			void		set_quest_state(const std::string& quest_name, int new_state_index);
 
-			void		ClearQuest(const std::string& quest_name);
+			void		clear_quest(const std::string& quest_name);
 
 		private:
-			void		AddQuestStateChange(const std::string& quest_name, int prev_state, int next_state);
-			void		DoQuestStateChange();
+			void		add_quest_state_change(const std::string& quest_name, int prev_state, int next_state);
+			void		do_quest_state_change();
 
-			struct TQuestStateChangeInfo
+			struct quest_state_change_info
 			{
 				uint32_t quest_idx;
 				int prev_state;
 				int next_state;
 
-				TQuestStateChangeInfo(uint32_t _quest_idx, int _prev_state, int _next_state) :
+				quest_state_change_info(uint32_t _quest_idx, int _prev_state, int _next_state) :
 					quest_idx(_quest_idx),
 					prev_state(_prev_state),
 					next_state(_next_state)
@@ -98,120 +98,120 @@ namespace quest
 				}
 			};
 
-			std::vector<TQuestStateChangeInfo> m_QuestStateChange;
+			std::vector<quest_state_change_info> quest_state_change_;
 
 		public:
-			void		SetFlag(const std::string & name, int value, bool bSkipSave = false);
-			int			GetFlag(const std::string & name);
-			bool		DeleteFlag(const std::string & name);
+			void		set_flag(const std::string & name, int value, bool bSkipSave = false);
+			int			flag(const std::string & name);
+			bool		delete_flag(const std::string & name);
 
-			const std::string &	GetCurrentQuestName() const;
-			int			GetCurrentQuestIndex();
+			const std::string &	current_quest_name() const;
+			int			current_quest_index();
 
-			void		RemoveTimer(const std::string& name);
-			void		RemoveTimerNotCancel(const std::string& name);
-			void		AddTimer(const std::string& name, LPEVENT pEvent);
-			void		ClearTimer();
+			void		remove_timer(const std::string& name);
+			void		remove_timer_not_cancel(const std::string& name);
+			void		add_timer(const std::string& name, event_ptr pEvent);
+			void		clear_timer();
 
-			void		SetCurrentQuestStartFlag();
-			void		SetCurrentQuestDoneFlag();
+			void		set_current_quest_start_flag();
+			void		set_current_quest_done_flag();
 
-			void		SetQuestTitle(const std::string& quest,const std::string & title);
+			void		set_quest_title(const std::string& quest,const std::string & title);
 
-			void		SetCurrentQuestTitle(const std::string & title);
-			void		SetCurrentQuestClockName(const std::string & name);
-			void		SetCurrentQuestClockValue(int value);
-			void		SetCurrentQuestCounterName(const std::string & name);
-			void		SetCurrentQuestCounterValue(int value);
-			void		SetCurrentQuestIconFile(const std::string& icon_file);
+			void		set_current_quest_title(const std::string & title);
+			void		set_current_quest_clock_name(const std::string & name);
+			void		set_current_quest_clock_value(int value);
+			void		set_current_quest_counter_name(const std::string & name);
+			void		set_current_quest_counter_value(int value);
+			void		set_current_quest_icon_file(const std::string& icon_file);
 
-			bool		IsLoaded() const	{ return m_bLoaded; }
-			void		SetLoaded()	{ m_bLoaded = true; }
-			void		Build();
+			bool		is_loaded() const	{ return loaded_; }
+			void		set_loaded()	{ loaded_ = true; }
+			void		build();
 			// Save to DB
-			void		Save();
+			void		save();
 
-			bool		HasReward() { return !m_vRewardData.empty() || m_bIsGivenReward; }
-			void		Reward(CHARACTER * ch);
+			bool		has_reward() { return !reward_data_.empty() || is_given_reward_; }
+			void		reward(character * ch);
 
-			void		GiveItem(const std::string& label, uint32_t dwVnum, int count);
-			void		GiveExp(const std::string& label, uint32_t exp);
+			void		give_item(const std::string& label, uint32_t dwVnum, int count);
+			void		give_exp(const std::string& label, uint32_t exp);
 
-			void 		SetSendDoneFlag() { m_bShouldSendDone = true; }
-			bool		GetAndResetDoneFlag() { bool temp = m_bShouldSendDone; m_bShouldSendDone = false; return temp; }
+			void 		set_send_done_flag() { should_send_done_ = true; }
+			bool		and_reset_done_flag() { bool temp = should_send_done_; should_send_done_ = false; return temp; }
 
-			void		SendFlagList(CHARACTER * ch);
+			void		send_flag_list(character * ch);
 
-			void		SetQuestState(const char* szQuestName, const char* szStateName);
+			void		set_quest_state(const char* szQuestName, const char* szStateName);
 
-			void		SetConfirmWait(uint32_t dwPID) { m_bConfirmWait = true; m_dwWaitConfirmFromPID = dwPID; }
-			void		ClearConfirmWait() { m_bConfirmWait = false; }
-			bool		IsConfirmWait() const	{ return m_bConfirmWait; }
-			bool		IsConfirmWait(uint32_t dwPID) const	{ return m_bConfirmWait && dwPID == m_dwWaitConfirmFromPID; }
-
-		private:
-			void		SetSendFlag(int idx);
-			void		SaveFlag(const std::string & name, int value);
-
-			void		ClearCurrentQuestBeginFlag();
-			void		SetCurrentQuestBeginFlag();
-			int			GetCurrentQuestBeginFlag();
-
-			void		SendQuestInfoPakcet();
+			void		set_confirm_wait(uint32_t dwPID) { confirm_wait_ = true; wait_confirm_from_pid_ = dwPID; }
+			void		clear_confirm_wait() { confirm_wait_ = false; }
+			bool		is_confirm_wait() const	{ return confirm_wait_; }
+			bool		is_confirm_wait(uint32_t dwPID) const	{ return confirm_wait_ && dwPID == wait_confirm_from_pid_; }
 
 		private:
-			std::vector<RewardData>	m_vRewardData;
-			bool		m_bIsGivenReward;
+			void		set_send_flag(int idx);
+			void		save_flag(const std::string & name, int value);
 
-			bool		m_bShouldSendDone;
+			void		clear_current_quest_begin_flag();
+			void		set_current_quest_begin_flag();
+			int			current_quest_begin_flag();
 
-			uint32_t		m_dwID;
+			void		send_quest_info_pakcet();
 
-			QuestInfo		m_QuestInfo;
+		private:
+			std::vector<reward_data>	reward_data_;
+			bool		is_given_reward_;
 
-			QuestState *	m_RunningQuestState;
-			std::string		m_stCurQuest;
+			bool		should_send_done_;
 
-			typedef std::map<std::string, int> TFlagMap;
-			TFlagMap		m_FlagMap;
+			uint32_t		id_;
 
-			TFlagMap		m_FlagSaveMap;
+			quest_info		quest_info_;
 
-			typedef std::map<std::string, LPEVENT> TTimerMap;
-			TTimerMap		m_TimerMap;
+			quest_state *	running_quest_state_;
+			std::string		cur_quest_;
 
-			int			m_iSendToClient;
-			bool		m_bLoaded; // Load only once.
+			typedef std::map<std::string, int> flag_map;
+			flag_map		flag_map_;
 
-			int			m_iLastState;
+			flag_map		flag_save_map_;
 
-			uint32_t		m_dwWaitConfirmFromPID;
-			bool		m_bConfirmWait;
+			typedef std::map<std::string, event_ptr> timer_map;
+			timer_map		timer_map_;
+
+			int			send_to_client_;
+			bool		loaded_; // Load only once.
+
+			int			last_state_;
+
+			uint32_t		wait_confirm_from_pid_;
+			bool		confirm_wait_;
 	};
 
-	inline PC::QuestInfoIterator PC::quest_begin()
+	inline pc::quest_info_iterator pc::quest_begin()
 	{
-		return m_QuestInfo.begin();
+		return quest_info_.begin();
 	}
 
-	inline PC::QuestInfoIterator PC::quest_end()
+	inline pc::quest_info_iterator pc::quest_end()
 	{
-		return m_QuestInfo.end();
+		return quest_info_.end();
 	}
 
-	inline PC::QuestInfoIterator PC::quest_find(uint32_t quest_index)
+	inline pc::quest_info_iterator pc::quest_find(uint32_t quest_index)
 	{
-		return m_QuestInfo.find(quest_index);
+		return quest_info_.find(quest_index);
 	}
 
-	inline bool PC::IsRunning()
+	inline bool pc::is_running()
 	{
-		return m_RunningQuestState != nullptr;
+		return running_quest_state_ != nullptr;
 	}
 
-	inline QuestState* PC::GetRunningQuestState()
+	inline quest_state* pc::running_quest_state()
 	{
-		return m_RunningQuestState;
+		return running_quest_state_;
 	}
 }
 }

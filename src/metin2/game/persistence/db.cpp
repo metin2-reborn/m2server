@@ -45,53 +45,36 @@ namespace metin2::game::inline persistence {
 
 
 
-DBManager::DBManager() : m_bIsConnect(false)
+db_manager::db_manager() : is_connect_(false)
 {
 }
 
-DBManager::~DBManager()
+db_manager::~db_manager()
 {
 }
 
-bool DBManager::Connect(const char * host, const int port, const char * user, const char * pwd, const char * db)
+bool db_manager::connect(const char * host, const int port, const char * user, const char * pwd, const char * db)
 {
-	if (m_sql.Setup(host, user, pwd, db, g_stLocale.c_str(), false, port))
-		m_bIsConnect = true;
+	if (sql_.setup(host, user, pwd, db, locale.c_str(), false, port))
+		is_connect_ = true;
 
-	if (!m_sql_direct.Setup(host, user, pwd, db, g_stLocale.c_str(), true, port))
+	if (!sql_direct_.setup(host, user, pwd, db, locale.c_str(), true, port))
 		metin2::log::error("cannot open direct sql connection to host {}", host);
 
-	if (m_bIsConnect && !metin2::config::is_auth())
+	if (is_connect_ && !metin2::config::is_auth())
 	{
-		LoadDBString();
+		load_db_string();
 	}
 
-	return m_bIsConnect;
+	return is_connect_;
 }
 
-void DBManager::Query(const std::string & query)
+void db_manager::query(const std::string & query)
 {
-	m_sql.AsyncQuery(query.c_str());
+	sql_.async_query(query.c_str());
 }
 
-void DBManager::Query(const char * c_pszFormat, ...)
-{
-	char szQuery[4096];
-	va_list args;
-
-	va_start(args, c_pszFormat);
-	vsnprintf(szQuery, sizeof(szQuery), c_pszFormat, args);
-	va_end(args);
-
-	m_sql.AsyncQuery(szQuery);
-}
-
-SQLMsg * DBManager::DirectQuery(const std::string & query)
-{
-	return m_sql_direct.DirectQuery(query.c_str());
-}
-
-SQLMsg * DBManager::DirectQuery(const char * c_pszFormat, ...)
+void db_manager::query(const char * c_pszFormat, ...)
 {
 	char szQuery[4096];
 	va_list args;
@@ -100,15 +83,15 @@ SQLMsg * DBManager::DirectQuery(const char * c_pszFormat, ...)
 	vsnprintf(szQuery, sizeof(szQuery), c_pszFormat, args);
 	va_end(args);
 
-	return m_sql_direct.DirectQuery(szQuery);
+	sql_.async_query(szQuery);
 }
 
-bool DBManager::IsConnected()
+ql_msg * db_manager::direct_query(const std::string & query)
 {
-	return m_bIsConnect;
+	return sql_direct_.direct_query(query.c_str());
 }
 
-void DBManager::ReturnQuery(int iType, uint32_t dwIdent, void * pvData, const char * c_pszFormat, ...)
+ql_msg * db_manager::direct_query(const char * c_pszFormat, ...)
 {
 	char szQuery[4096];
 	va_list args;
@@ -117,53 +100,70 @@ void DBManager::ReturnQuery(int iType, uint32_t dwIdent, void * pvData, const ch
 	vsnprintf(szQuery, sizeof(szQuery), c_pszFormat, args);
 	va_end(args);
 
-	ReturnQuery(iType, dwIdent, pvData, std::string(szQuery));
+	return sql_direct_.direct_query(szQuery);
 }
 
-void DBManager::ReturnQuery(int iType, uint32_t dwIdent, void * pvData, const std::string & query)
+bool db_manager::is_connected()
 {
-	CReturnQueryInfo * p = new CReturnQueryInfo;
-
-	p->iQueryType = QUERY_TYPE_RETURN;
-	p->iType = iType;
-	p->dwIdent = dwIdent;
-	p->pvData = pvData;
-
-	m_sql.ReturnQuery(query.c_str(), p);
+	return is_connect_;
 }
 
-SQLMsg * DBManager::PopResult()
+void db_manager::return_query(int iType, uint32_t dwIdent, void * pvData, const char * c_pszFormat, ...)
 {
-	SQLMsg * p;
+	char szQuery[4096];
+	va_list args;
 
-	if (m_sql.PopResult(&p))
+	va_start(args, c_pszFormat);
+	vsnprintf(szQuery, sizeof(szQuery), c_pszFormat, args);
+	va_end(args);
+
+	return_query(iType, dwIdent, pvData, std::string(szQuery));
+}
+
+void db_manager::return_query(int iType, uint32_t dwIdent, void * pvData, const std::string & query)
+{
+	return_query_info * p = new return_query_info;
+
+	p->query_type = QUERY_TYPE_RETURN;
+	p->type = iType;
+	p->ident = dwIdent;
+	p->pv_data = pvData;
+
+	sql_.return_query(query.c_str(), p);
+}
+
+ql_msg * db_manager::pop_result()
+{
+	ql_msg * p;
+
+	if (sql_.pop_result(&p))
 		return p;
 
 	return nullptr;
 }
 
-void DBManager::Process()
+void db_manager::process()
 {
-	while (std::unique_ptr<SQLMsg> pMsg{PopResult()})
+	while (std::unique_ptr<ql_msg> pMsg{pop_result()})
 	{
-		if( nullptr != pMsg->pvUserData )
+		if( nullptr != pMsg->pv_user_data )
 		{
-			switch( reinterpret_cast<CQueryInfo*>(pMsg->pvUserData)->iQueryType )
+			switch( reinterpret_cast<query_info*>(pMsg->pv_user_data)->query_type )
 			{
 				case QUERY_TYPE_RETURN:
-					AnalyzeReturnQuery(pMsg.get());
+					analyze_return_query(pMsg.get());
 					break;
 
 				case QUERY_TYPE_FUNCTION:
 					{
-						std::unique_ptr<CFuncQueryInfo> qi(reinterpret_cast<CFuncQueryInfo*>( pMsg->pvUserData ));
+						std::unique_ptr<func_query_info> qi(reinterpret_cast<func_query_info*>( pMsg->pv_user_data ));
 						qi->f(pMsg.get());
 					}
 					break;
 
 				case QUERY_TYPE_AFTER_FUNCTION:
 					{
-						std::unique_ptr<CFuncAfterQueryInfo> qi(reinterpret_cast<CFuncAfterQueryInfo*>( pMsg->pvUserData ));
+						std::unique_ptr<func_after_query_info> qi(reinterpret_cast<func_after_query_info*>( pMsg->pv_user_data ));
 						qi->f();
 					}
 					break;
@@ -172,7 +172,7 @@ void DBManager::Process()
 	}
 }
 
-void DBManager::FuncQuery(std::function<void(SQLMsg *)> f, const char * c_pszFormat, ...)
+void db_manager::func_query(std::function<void(ql_msg *)> f, const char * c_pszFormat, ...)
 {
 	char szQuery[4096];
 	va_list args;
@@ -181,19 +181,19 @@ void DBManager::FuncQuery(std::function<void(SQLMsg *)> f, const char * c_pszFor
 	vsnprintf(szQuery, sizeof(szQuery), c_pszFormat, args);
 	va_end(args);
 
-	FuncQuery(std::move(f), std::string(szQuery));
+	func_query(std::move(f), std::string(szQuery));
 }
 
-void DBManager::FuncQuery(std::function<void(SQLMsg *)> f, const std::string & query)
+void db_manager::func_query(std::function<void(ql_msg *)> f, const std::string & query)
 {
-	CFuncQueryInfo * p = new CFuncQueryInfo;
-	p->iQueryType = QUERY_TYPE_FUNCTION;
+	func_query_info * p = new func_query_info;
+	p->query_type = QUERY_TYPE_FUNCTION;
 	p->f = std::move(f);
 
-	m_sql.ReturnQuery(query.c_str(), p);
+	sql_.return_query(query.c_str(), p);
 }
 
-void DBManager::FuncAfterQuery(std::function<void()> f, const char * c_pszFormat, ...)
+void db_manager::func_after_query(std::function<void()> f, const char * c_pszFormat, ...)
 {
 	char szQuery[4096];
 	va_list args;
@@ -202,100 +202,100 @@ void DBManager::FuncAfterQuery(std::function<void()> f, const char * c_pszFormat
 	vsnprintf(szQuery, sizeof(szQuery), c_pszFormat, args);
 	va_end(args);
 
-	FuncAfterQuery(std::move(f), std::string(szQuery));
+	func_after_query(std::move(f), std::string(szQuery));
 }
 
-void DBManager::FuncAfterQuery(std::function<void()> f, const std::string & query)
+void db_manager::func_after_query(std::function<void()> f, const std::string & query)
 {
-	CFuncAfterQueryInfo * p = new CFuncAfterQueryInfo;
-	p->iQueryType = QUERY_TYPE_AFTER_FUNCTION;
+	func_after_query_info * p = new func_after_query_info;
+	p->query_type = QUERY_TYPE_AFTER_FUNCTION;
 	p->f = std::move(f);
 
-	m_sql.ReturnQuery(query.c_str(), p);
+	sql_.return_query(query.c_str(), p);
 }
 
-CLoginData * DBManager::GetLoginData(uint32_t dwKey)
+login_data * db_manager::get_login_data(uint32_t dwKey)
 {
-	auto it = m_map_pkLoginData.find(dwKey);
+	auto it = map_pk_login_data_.find(dwKey);
 
-	if (it == m_map_pkLoginData.end())
+	if (it == map_pk_login_data_.end())
 		return nullptr;
 
 	return it->second.get();
 }
 
-void DBManager::InsertLoginData(std::unique_ptr<CLoginData> pkLD)
+void db_manager::insert_login_data(std::unique_ptr<login_data> pkLD)
 {
-	const uint32_t dwKey = pkLD->GetKey();
-	m_map_pkLoginData.insert(std::make_pair(dwKey, std::move(pkLD)));
+	const uint32_t dwKey = pkLD->key();
+	map_pk_login_data_.insert(std::make_pair(dwKey, std::move(pkLD)));
 }
 
-void DBManager::DeleteLoginData(CLoginData * pkLD)
+void db_manager::delete_login_data(login_data * pkLD)
 {
-	auto it = m_map_pkLoginData.find(pkLD->GetKey());
+	auto it = map_pk_login_data_.find(pkLD->key());
 
-	if (it == m_map_pkLoginData.end())
+	if (it == map_pk_login_data_.end())
 		return;
 
-	metin2::log::info( "DeleteLoginData {} {}", pkLD->GetLogin(), static_cast<const void *>(pkLD));
+	metin2::log::info( "DeleteLoginData {} {}", pkLD->login(), static_cast<const void *>(pkLD));
 
-	m_map_pkLoginData.erase(it);
+	map_pk_login_data_.erase(it);
 }
 
-void DBManager::SendAuthLogin(DESC * d)
+void db_manager::send_auth_login(desc * d)
 {
-	const TAccountTable & r = d->GetAccountTable();
+	const account_table & r = d->get_account_table();
 
-	CLoginData * pkLD = GetLoginData(d->GetLoginKey());
+	login_data * pkLD = get_login_data(d->get_login_key());
 
 	if (!pkLD)
 		return;
 
-	TPacketGDAuthLogin ptod;
-	ptod.dwID = r.id;
+	packet_gd_auth_login ptod;
+	ptod.id = r.id;
 	
-	trim_and_lower(r.login, ptod.szLogin, sizeof(ptod.szLogin));
-	strlcpy(ptod.szSocialID, r.social_id, sizeof(ptod.szSocialID));
-	ptod.dwLoginKey = d->GetLoginKey();
+	trim_and_lower(r.login, ptod.login, sizeof(ptod.login));
+	strlcpy(ptod.social_id, r.social_id, sizeof(ptod.social_id));
+	ptod.login_key = d->get_login_key();
 
-	std::memcpy(ptod.iPremiumTimes, pkLD->GetPremiumPtr(), sizeof(ptod.iPremiumTimes));
-	std::memcpy(&ptod.adwClientKey, pkLD->GetClientKey(), sizeof(uint32_t) * 4);
+	std::memcpy(ptod.premium_times, pkLD->premium_ptr(), sizeof(ptod.premium_times));
+	std::memcpy(&ptod.client_key, pkLD->client_key(), sizeof(uint32_t) * 4);
 
-	db_clientdesc->DBPacket(HEADER_GD_AUTH_LOGIN, d->GetHandle(), &ptod, sizeof(TPacketGDAuthLogin));
-	metin2::log::info( "SendAuthLogin {} key {:d}", ptod.szLogin, ptod.dwID);
+	db_clientdesc->db_packet(HEADER_GD_AUTH_LOGIN, d->handle(), &ptod, sizeof(packet_gd_auth_login));
+	metin2::log::info( "SendAuthLogin {} key {:d}", ptod.login, ptod.id);
 
 	// The db keeps the login from here on.
-	DeleteLoginData(pkLD);
+	delete_login_data(pkLD);
 }
 
-void DBManager::LoginPrepare(DESC * d, uint32_t * pdwClientKey, int * paiPremiumTimes)
+void db_manager::login_prepare(desc * d, uint32_t * pdwClientKey, int * paiPremiumTimes)
 {
-	const TAccountTable & r = d->GetAccountTable();
+	const account_table & r = d->get_account_table();
 
-	auto pkLD = std::make_unique<CLoginData>();
+	auto pkLD = std::make_unique<login_data>();
 
-	pkLD->SetKey(d->GetLoginKey());
-	pkLD->SetLogin(r.login);
-	pkLD->SetClientKey(pdwClientKey);
+	pkLD->set_key(d->get_login_key());
+	pkLD->set_login(r.login);
+	pkLD->set_client_key(pdwClientKey);
 
 	if (paiPremiumTimes)
-		pkLD->SetPremium(paiPremiumTimes);
+		pkLD->set_premium(paiPremiumTimes);
 
-	InsertLoginData(std::move(pkLD));
+	insert_login_data(std::move(pkLD));
 
-	SendAuthLogin(d);
+	send_auth_login(d);
 }
 
-void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
+void db_manager::analyze_return_query(ql_msg * pMsg)
 {
-	CReturnQueryInfo * qi = (CReturnQueryInfo *) pMsg->pvUserData;
+	return_query_info * qi = (return_query_info *) pMsg->pv_user_data;
 
-	switch (qi->iType)
+	switch (qi->type)
 	{
 		case QID_AUTH_LOGIN:
 			{
-				TPacketCGLogin3 * pinfo = (TPacketCGLogin3 *) qi->pvData;
-				DESC * d = DESC_MANAGER::instance().FindByLoginKey(qi->dwIdent);
+				packet_cg_login3 * pinfo = (packet_cg_login3 *) qi->pv_data;
+				desc * d = desc_manager::instance().find_by_login_key(qi->ident);
 
 				if (!d)
 				{
@@ -303,19 +303,19 @@ void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
 					break;
 				}
 				//Moved - By SeMinZ
-				d->SetLogin(pinfo->login);
+				d->set_login(pinfo->login);
 
-				metin2::log::info( "QID_AUTH_LOGIN: START {:d} {}", qi->dwIdent, static_cast<const void *>(d));
+				metin2::log::info( "QID_AUTH_LOGIN: START {:d} {}", qi->ident, static_cast<const void *>(d));
 
-				if (pMsg->Get()->uiNumRows == 0)
+				if (pMsg->get()->num_rows == 0)
 				{
 					metin2::log::info( "   NOID");
-					LoginFailure(d, "NOID");
+					login_failure(d, "NOID");
 					delete pinfo;
 				}
 				else
 				{
-					MYSQL_ROW row = mysql_fetch_row(pMsg->Get()->pSQLResult);
+					MYSQL_ROW row = mysql_fetch_row(pMsg->get()->sql_result);
 					int col = 0;
 
 					// PASSWORD('%s'), password, social_id, id, status
@@ -402,25 +402,25 @@ void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
 
 					if (nPasswordDiff)
 					{
-						LoginFailure(d, "WRONGPWD");
+						login_failure(d, "WRONGPWD");
 						metin2::log::info( "   WRONGPWD");
 						delete pinfo;
 					}
 					else if (bNotAvail)
 					{
-						LoginFailure(d, "NOTAVAIL");
+						login_failure(d, "NOTAVAIL");
 						metin2::log::info( "   NOTAVAIL");
 						delete pinfo;
 					}
-					else if (DESC_MANAGER::instance().FindByLoginName(pinfo->login))
+					else if (desc_manager::instance().find_by_login_name(pinfo->login))
 					{
-						LoginFailure(d, "ALREADY");
+						login_failure(d, "ALREADY");
 						metin2::log::info( "   ALREADY");
 						delete pinfo;
 					}
 					else if (strcmp(szStatus, "OK"))
 					{
-						LoginFailure(d, szStatus);
+						login_failure(d, szStatus);
 						metin2::log::info( "   STATUS: {}", szStatus);
 						delete pinfo;
 					}
@@ -429,24 +429,24 @@ void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
 						//stBlockData >= 0 == date is later than BlockDate 
 						if (strncmp(szCreateDate, metin2::config::auth().block_login_date.c_str(), 8) >= 0)
 						{
-							LoginFailure(d, "BLKLOGIN");
+							login_failure(d, "BLKLOGIN");
 							metin2::log::info( "   BLKLOGIN");
 							delete pinfo;
 							break;
 						}
 
-						std::unique_ptr<SQLMsg> msg( DBManager::instance().DirectQuery(sql::format("UPDATE account SET last_play=NOW() WHERE id={}", dwID)) );
+						std::unique_ptr<ql_msg> msg( db_manager::instance().direct_query(sql::format("UPDATE account SET last_play=NOW() WHERE id={}", dwID)) );
 
-						TAccountTable & r = d->GetAccountTable();
+						account_table & r = d->get_account_table();
 
 						r.id = dwID;
 						trim_and_lower(pinfo->login, r.login, sizeof(r.login));
 						strlcpy(r.passwd, pinfo->passwd, sizeof(r.passwd));
 						strlcpy(r.social_id, szSocialID, sizeof(r.social_id));
-						DESC_MANAGER::instance().ConnectAccount(r.login, d);
+						desc_manager::instance().connect_account(r.login, d);
 
 
-						LoginPrepare(d, pinfo->adwClientKey, aiPremiumTimes);
+						login_prepare(d, pinfo->client_key, aiPremiumTimes);
 						metin2::log::info( "QID_AUTH_LOGIN: SUCCESS {}", pinfo->login);
 						delete pinfo;
 					}
@@ -455,16 +455,16 @@ void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
 			break;
 		case QID_SAFEBOX_SIZE:
 			{
-				CHARACTER * ch = CHARACTER_MANAGER::instance().FindByPID(qi->dwIdent);
+				character * ch = character_manager::instance().find_by_pid(qi->ident);
 
 				if (ch)
 				{
-					if (pMsg->Get()->uiNumRows > 0)
+					if (pMsg->get()->num_rows > 0)
 					{
-						MYSQL_ROW row = mysql_fetch_row(pMsg->Get()->pSQLResult);
+						MYSQL_ROW row = mysql_fetch_row(pMsg->get()->sql_result);
 						int	size = 0;
 						str_to_number(size, row[0]);
-						ch->SetSafeboxSize(SAFEBOX_PAGE_SIZE * size);
+						ch->set_safebox_size(SAFEBOX_PAGE_SIZE * size);
 					}
 				}
 			}
@@ -472,26 +472,26 @@ void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
 
 		case QID_DB_STRING:
 			{
-				m_map_dbstring.clear();
-				m_vec_GreetMessage.clear();
+				map_dbstring_.clear();
+				vec_greet_message_.clear();
 
-				for (uint i = 0; i < pMsg->Get()->uiNumRows; ++i)
+				for (uint i = 0; i < pMsg->get()->num_rows; ++i)
 				{
-					MYSQL_ROW row = mysql_fetch_row(pMsg->Get()->pSQLResult);
+					MYSQL_ROW row = mysql_fetch_row(pMsg->get()->sql_result);
 					if (row[0] && row[1])
 					{
-						m_map_dbstring.insert(make_pair(std::string(row[0]), std::string(row[1])));
+						map_dbstring_.insert(make_pair(std::string(row[0]), std::string(row[1])));
 						metin2::log::info( "DBSTR '{}' '{}'", row[0], row[1]);
 					}
 				}
-				if (m_map_dbstring.find("GREET") != m_map_dbstring.end())
+				if (map_dbstring_.find("GREET") != map_dbstring_.end())
 				{
-					std::istringstream is(m_map_dbstring["GREET"]);
+					std::istringstream is(map_dbstring_["GREET"]);
 					while (!is.eof())
 					{
 						std::string str;
 						getline(is, str);
-						m_vec_GreetMessage.push_back(str);
+						vec_greet_message_.push_back(str);
 					}
 				}
 			}
@@ -499,29 +499,29 @@ void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
 
 		case QID_LOTTO:
 			{
-				CHARACTER * ch = CHARACTER_MANAGER::instance().FindByPID(qi->dwIdent);
-				uint32_t * pdw = (uint32_t *) qi->pvData;
+				character * ch = character_manager::instance().find_by_pid(qi->ident);
+				uint32_t * pdw = (uint32_t *) qi->pv_data;
 
 				if (ch)
 				{
-					if (pMsg->Get()->uiAffectedRows == 0 || pMsg->Get()->uiAffectedRows == (uint32_t)-1)
+					if (pMsg->get()->affected_rows == 0 || pMsg->get()->affected_rows == (uint32_t)-1)
 					{
-						metin2::log::info( "GIVE LOTTO FAIL TO pid {:d}", ch->GetPlayerID());
+						metin2::log::info( "GIVE LOTTO FAIL TO pid {:d}", ch->player_id());
 					}
 					else
 					{
-						CItem * pkItem = ch->AutoGiveItem(pdw[0], pdw[1]);
+						item * pkItem = ch->auto_give_item(pdw[0], pdw[1]);
 
 						if (pkItem)
 						{
-							metin2::log::info( "GIVE LOTTO SUCCESS TO {} (pid {:d})", ch->GetName(), qi->dwIdent);
+							metin2::log::info( "GIVE LOTTO SUCCESS TO {} (pid {:d})", ch->name(), qi->ident);
 							//ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("아이템 획득: %s"), pkItem->GetName());
 
-							pkItem->SetSocket(0, pMsg->Get()->uiInsertID);
-							pkItem->SetSocket(1, pdw[2]);
+							pkItem->set_socket(0, pMsg->get()->insert_id);
+							pkItem->set_socket(1, pdw[2]);
 						}
 						else
-							metin2::log::info( "GIVE LOTTO FAIL2 TO pid {:d}", ch->GetPlayerID());
+							metin2::log::info( "GIVE LOTTO FAIL2 TO pid {:d}", ch->player_id());
 					}
 				}
 
@@ -531,27 +531,27 @@ void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
 
 		case QID_HIGHSCORE_REGISTER:
 			{
-				THighscoreRegisterQueryInfo * info = (THighscoreRegisterQueryInfo *) qi->pvData;
+				highscore_register_query_info * info = (highscore_register_query_info *) qi->pv_data;
 				bool bQuery = true;
 
-				if (pMsg->Get()->uiNumRows)
+				if (pMsg->get()->num_rows)
 				{
-					MYSQL_ROW row = mysql_fetch_row(pMsg->Get()->pSQLResult);
+					MYSQL_ROW row = mysql_fetch_row(pMsg->get()->sql_result);
 
 					if (row && row[0])
 					{
 						int iCur = 0;
 						str_to_number(iCur, row[0]);
 
-						if ((info->bOrder && iCur >= info->iValue) ||
-								(!info->bOrder && iCur <= info->iValue))
+						if ((info->order && iCur >= info->value) ||
+								(!info->order && iCur <= info->value))
 							bQuery = false;
 					}
 				}
 
 				if (bQuery)
-					Query(sql::format("REPLACE INTO highscore{} VALUES({}, {}, {})",
-							sql::raw(get_table_postfix()), info->szBoard, info->dwPID, info->iValue));
+					query(sql::format("REPLACE INTO highscore{} VALUES({}, {}, {})",
+							sql::raw(get_table_postfix()), info->board, info->pid, info->value));
 
 				delete info;
 			}
@@ -565,21 +565,21 @@ void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
 			// BLOCK_CHAT
 		case QID_BLOCK_CHAT_LIST:
 			{
-				CHARACTER * ch = CHARACTER_MANAGER::instance().FindByPID(qi->dwIdent);
+				character * ch = character_manager::instance().find_by_pid(qi->ident);
 				
 				if (ch == nullptr)
 					break;
-				if (pMsg->Get()->uiNumRows)
+				if (pMsg->get()->num_rows)
 				{
 					MYSQL_ROW row;
-					while ((row = mysql_fetch_row(pMsg->Get()->pSQLResult)))
+					while ((row = mysql_fetch_row(pMsg->get()->sql_result)))
 					{
-						ch->ChatPacket(CHAT_TYPE_INFO, "%s %s sec", row[0], row[1]);
+						ch->chat_packet(CHAT_TYPE_INFO, "%s %s sec", row[0], row[1]);
 					}
 				}
 				else
 				{
-					ch->ChatPacket(CHAT_TYPE_INFO, "No one currently blocked.");
+					ch->chat_packet(CHAT_TYPE_INFO, "No one currently blocked.");
 				}
 			}
 			break;
@@ -591,76 +591,76 @@ void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
 	delete qi;
 }
 
-void DBManager::LoadDBString()
+void db_manager::load_db_string()
 {
-	ReturnQuery(QID_DB_STRING, 0, nullptr, sql::format("SELECT name, text FROM string{}", sql::raw(get_table_postfix())));
+	return_query(QID_DB_STRING, 0, nullptr, sql::format("SELECT name, text FROM string{}", sql::raw(get_table_postfix())));
 }
 
-const std::vector<std::string>& DBManager::GetGreetMessage()
+const std::vector<std::string>& db_manager::greet_message()
 {
-	return m_vec_GreetMessage;
+	return vec_greet_message_;
 }
 
-void DBManager::SendMoneyLog(uint8_t type, uint32_t vnum, int gold)
+void db_manager::send_money_log(uint8_t type, uint32_t vnum, int gold)
 {
 	if (!gold)
 		return;
-	TPacketMoneyLog p;
+	packet_money_log p;
 	p.type = type;
 	p.vnum = vnum;
 	p.gold = gold;
-	db_clientdesc->DBPacket(HEADER_GD_MONEY_LOG, 0, &p, sizeof(p));
+	db_clientdesc->db_packet(HEADER_GD_MONEY_LOG, 0, &p, sizeof(p));
 }
 
-size_t DBManager::EscapeString(char* dst, size_t dstSize, const char *src, size_t srcSize)
+size_t db_manager::escape_string(char* dst, size_t dstSize, const char *src, size_t srcSize)
 {
-	return m_sql_direct.EscapeString(dst, dstSize, src, srcSize);
+	return sql_direct_.escape_string(dst, dstSize, src, srcSize);
 }
 
 //
 // Common SQL 
 //
-AccountDB::AccountDB() :
-	m_IsConnect(false)
+account_db::account_db() :
+	is_connect_(false)
 {
 }
 
-bool AccountDB::IsConnected()
+bool account_db::is_connected()
 {
-	return m_IsConnect;
+	return is_connect_;
 }
 
-bool AccountDB::Connect(const char * host, const int port, const char * user, const char * pwd, const char * db)
+bool account_db::connect(const char * host, const int port, const char * user, const char * pwd, const char * db)
 {
-	m_IsConnect = m_sql_direct.Setup(host, user, pwd, db, "", true, port);
+	is_connect_ = sql_direct_.setup(host, user, pwd, db, "", true, port);
 
-	if (false == m_IsConnect)
+	if (false == is_connect_)
 	{
 		fprintf(stderr, "cannot open direct sql connection to host: %s user: %s db: %s\n", host, user, db);
 		return false;
 	}
 
-	return m_IsConnect;
+	return is_connect_;
 }
 
-bool AccountDB::ConnectAsync(const char * host, const int port, const char * user, const char * pwd, const char * db, const char * locale)
+bool account_db::connect_async(const char * host, const int port, const char * user, const char * pwd, const char * db, const char * locale)
 {
-	m_sql.Setup(host, user, pwd, db, locale, false, port);
+	sql_.setup(host, user, pwd, db, locale, false, port);
 	return true;
 }
 
-void AccountDB::SetLocale(const std::string & stLocale)
+void account_db::set_locale(const std::string & stLocale)
 {
-	m_sql_direct.SetLocale(stLocale);
-	m_sql_direct.QueryLocaleSet();
+	sql_direct_.set_locale(stLocale);
+	sql_direct_.query_locale_set();
 }
 
-SQLMsg* AccountDB::DirectQuery(const char * query)
+ql_msg* account_db::direct_query(const char * query)
 {
-	return m_sql_direct.DirectQuery(query);
+	return sql_direct_.direct_query(query);
 }
 
-void AccountDB::ReturnQuery(int iType, uint32_t dwIdent, void * pvData, const char * c_pszFormat, ...)
+void account_db::return_query(int iType, uint32_t dwIdent, void * pvData, const char * c_pszFormat, ...)
 {
 	char szQuery[4096];
 	va_list args;
@@ -669,54 +669,54 @@ void AccountDB::ReturnQuery(int iType, uint32_t dwIdent, void * pvData, const ch
 	vsnprintf(szQuery, sizeof(szQuery), c_pszFormat, args);
 	va_end(args);
 
-	ReturnQuery(iType, dwIdent, pvData, std::string(szQuery));
+	return_query(iType, dwIdent, pvData, std::string(szQuery));
 }
 
-void AccountDB::ReturnQuery(int iType, uint32_t dwIdent, void * pvData, const std::string & query)
+void account_db::return_query(int iType, uint32_t dwIdent, void * pvData, const std::string & query)
 {
-	CReturnQueryInfo * p = new CReturnQueryInfo;
+	return_query_info * p = new return_query_info;
 
-	p->iQueryType = QUERY_TYPE_RETURN;
-	p->iType = iType;
-	p->dwIdent = dwIdent;
-	p->pvData = pvData;
+	p->query_type = QUERY_TYPE_RETURN;
+	p->type = iType;
+	p->ident = dwIdent;
+	p->pv_data = pvData;
 
-	m_sql.ReturnQuery(query.c_str(), p);
+	sql_.return_query(query.c_str(), p);
 }
 
-SQLMsg * AccountDB::PopResult()
+ql_msg * account_db::pop_result()
 {
-	SQLMsg * p;
+	ql_msg * p;
 
-	if (m_sql.PopResult(&p))
+	if (sql_.pop_result(&p))
 		return p;
 
 	return nullptr;
 }
 
-void AccountDB::Process()
+void account_db::process()
 {
-	while (std::unique_ptr<SQLMsg> pMsg{PopResult()})
+	while (std::unique_ptr<ql_msg> pMsg{pop_result()})
 	{
-		CQueryInfo* qi = (CQueryInfo *) pMsg->pvUserData;
+		query_info* qi = (query_info *) pMsg->pv_user_data;
 
-		switch (qi->iQueryType)
+		switch (qi->query_type)
 		{
 			case QUERY_TYPE_RETURN:
-				AnalyzeReturnQuery(pMsg.get());
+				analyze_return_query(pMsg.get());
 				break;
 		}
 	}
 }
 
 
-enum EAccountQID
+enum account_qid
 {
 	QID_SPAM_DB,
 };
 
 // Reload every 10 minutes
-static LPEVENT s_pkReloadSpamEvent = nullptr;
+static event_ptr reload_spam_event_handle = nullptr;
 
 EVENTINFO(reload_spam_event_info)
 {
@@ -726,41 +726,41 @@ EVENTINFO(reload_spam_event_info)
 
 EVENTFUNC(reload_spam_event)
 {
-	AccountDB::instance().ReturnQuery(QID_SPAM_DB, 0, nullptr, "SELECT word, score FROM spam_db WHERE type='SPAM'");
-	return PASSES_PER_SEC(metin2::config::game().spam.reload_cycle);
+	account_db::instance().return_query(QID_SPAM_DB, 0, nullptr, "SELECT word, score FROM spam_db WHERE type='SPAM'");
+	return passes_per_sec(metin2::config::game().spam.reload_cycle);
 }
 
-void LoadSpamDB()
+void load_spam_db()
 {
-	AccountDB::instance().ReturnQuery(QID_SPAM_DB, 0, nullptr, "SELECT word, score FROM spam_db WHERE type='SPAM'");
+	account_db::instance().return_query(QID_SPAM_DB, 0, nullptr, "SELECT word, score FROM spam_db WHERE type='SPAM'");
 
-	if (nullptr == s_pkReloadSpamEvent)
+	if (nullptr == reload_spam_event_handle)
 	{
-		reload_spam_event_info* info = AllocEventInfo<reload_spam_event_info>();
-		s_pkReloadSpamEvent = event_create(reload_spam_event, info, PASSES_PER_SEC(metin2::config::game().spam.reload_cycle));
+		reload_spam_event_info* info = alloc_event_info<reload_spam_event_info>();
+		reload_spam_event_handle = event_create(reload_spam_event, info, passes_per_sec(metin2::config::game().spam.reload_cycle));
 	}
 }
 
-void CancelReloadSpamEvent() {
-	s_pkReloadSpamEvent = nullptr;
+void cancel_reload_spam_event() {
+	reload_spam_event_handle = nullptr;
 }
 
-void AccountDB::AnalyzeReturnQuery(SQLMsg * pMsg)
+void account_db::analyze_return_query(ql_msg * pMsg)
 {
-	CReturnQueryInfo * qi = (CReturnQueryInfo *) pMsg->pvUserData;
+	return_query_info * qi = (return_query_info *) pMsg->pv_user_data;
 
-	switch (qi->iType)
+	switch (qi->type)
 	{
 		case QID_SPAM_DB:
 			{
-				if (pMsg->Get()->uiNumRows > 0)
+				if (pMsg->get()->num_rows > 0)
 				{
 					MYSQL_ROW row;
 
-					SpamManager::instance().Clear();
+					spam_manager::instance().clear();
 
-					while ((row = mysql_fetch_row(pMsg->Get()->pSQLResult)))
-						SpamManager::instance().Insert(row[0], atoi(row[1]));
+					while ((row = mysql_fetch_row(pMsg->get()->sql_result)))
+						spam_manager::instance().insert(row[0], atoi(row[1]));
 				}
 			}
 			break;

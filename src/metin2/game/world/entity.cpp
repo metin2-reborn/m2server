@@ -12,115 +12,115 @@
 
 namespace metin2::game::inline world {
 
-CEntity::CEntity()
+entity::entity()
 {
-	Initialize();
+	initialize();
 }
 
-CEntity::~CEntity()
+entity::~entity()
 {
-	if (!m_bIsDestroyed)
+	if (!is_destroyed_)
 		assert(!"You must call CEntity::destroy() method in your derived class destructor");
 }
 
-void CEntity::Initialize(int type)
+void entity::initialize(int type)
 {
-	m_bIsDestroyed = false;
+	is_destroyed_ = false;
 
-	m_iType = type;
-	m_iViewAge = 0;
-	m_pos.x = m_pos.y = m_pos.z = 0;
-	m_map_view.clear();
+	type_ = type;
+	view_age_ = 0;
+	pos_.x = pos_.y = pos_.z = 0;
+	map_view_.clear();
 
-	m_pSectree = nullptr;
-	m_lpDesc = nullptr;
-	m_lMapIndex = 0;
-	m_bIsObserver = false;
-	m_bObserverModeChange = false;
+	sectree_ = nullptr;
+	desc_ = nullptr;
+	map_index_ = 0;
+	is_observer_ = false;
+	observer_mode_change_ = false;
 }
 
-void CEntity::Destroy()
+void entity::destroy()
 {
-	if (m_bIsDestroyed) {
+	if (is_destroyed_) {
 		return;
 	}
-	ViewCleanup();
-	m_bIsDestroyed = true;
+	view_cleanup();
+	is_destroyed_ = true;
 }
 
-int CEntity::GetType() const
+int entity::type() const
 {
-	return m_iType;
+	return type_;
 }
 
-bool CEntity::IsType(int type) const
+bool entity::is_type(int type) const
 {
-	return (m_iType == type ? true : false);
+	return (type_ == type ? true : false);
 }
 
-struct FuncPacketAround
+struct func_packet_around
 {
-	const void *        m_data;
-	int                 m_bytes;
-	CEntity *            m_except;
+	const void *        data;
+	int                 bytes;
+	entity *            except;
 
-	FuncPacketAround(const void * data, int bytes, CEntity * except = nullptr) :m_data(data), m_bytes(bytes), m_except(except)
+	func_packet_around(const void * data_value, int bytes_value, entity * except_value = nullptr) :data(data_value), bytes(bytes_value), except(except_value)
 	{
 	}
 
-	void operator () (CEntity * ent)
+	void operator () (entity * ent)
 	{
-		if (ent == m_except)
+		if (ent == except)
 			return;
 
-		if (ent->GetDesc())
-			ent->GetDesc()->Packet(m_data, m_bytes);
+		if (ent->get_desc())
+			ent->get_desc()->packet(data, bytes);
 	}
 };
 
-struct FuncPacketView : public FuncPacketAround
+struct func_packet_view : public func_packet_around
 {
-	FuncPacketView(const void * data, int bytes, CEntity * except = nullptr) : FuncPacketAround(data, bytes, except)
+	func_packet_view(const void * data, int bytes, entity * except = nullptr) : func_packet_around(data, bytes, except)
 	{}
 
-	void operator() (const CEntity::ENTITY_MAP::value_type& v)
+	void operator() (const entity::entity_map::value_type& v)
 	{
-		FuncPacketAround::operator() (v.first);
+		func_packet_around::operator() (v.first);
 	}
 };
 
-void CEntity::PacketAround(const void * data, int bytes, CEntity * except)
+void entity::packet_around(const void * data, int bytes, entity * except)
 {
-	PacketView(data, bytes, except);
+	packet_view(data, bytes, except);
 }
 
-void CEntity::PacketView(const void * data, int bytes, CEntity * except)
+void entity::packet_view(const void * data, int bytes, entity * except)
 {
-	if (!GetSectree())
+	if (!get_sectree())
 		return;
 
-	FuncPacketView f(data, bytes, except);
+	func_packet_view f(data, bytes, except);
 
 	// In observer mode, only I receive my packets.
-	if (!m_bIsObserver)
-		for_each(m_map_view.begin(), m_map_view.end(), f);
+	if (!is_observer_)
+		for_each(map_view_.begin(), map_view_.end(), f);
 
 	f(std::make_pair(this, 0));
 }
 
-void CEntity::SetObserverMode(bool bFlag)
+void entity::set_observer_mode(bool bFlag)
 {
-	if (m_bIsObserver == bFlag)
+	if (is_observer_ == bFlag)
 		return;
 
-	m_bIsObserver = bFlag;
-	m_bObserverModeChange = true;
-	UpdateSectree();
+	is_observer_ = bFlag;
+	observer_mode_change_ = true;
+	update_sectree();
 
-	if (IsType(ENTITY_CHARACTER))
+	if (is_type(ENTITY_CHARACTER))
 	{
-		CHARACTER * ch = (CHARACTER *) this;
-		ch->ChatPacket(CHAT_TYPE_COMMAND, "ObserverMode %d", m_bIsObserver ? 1 : 0);
+		character * ch = (character *) this;
+		ch->chat_packet(CHAT_TYPE_COMMAND, "ObserverMode %d", is_observer_ ? 1 : 0);
 	}
 }
 }

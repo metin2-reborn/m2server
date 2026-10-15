@@ -23,20 +23,20 @@ namespace quest
 {
 	int game_set_event_flag(lua_State* L)
 	{
-		CQuestManager & q = CQuestManager::instance();
+		quest_manager & q = quest_manager::instance();
 
 		if (lua_isstring(L,1) && lua_isnumber(L, 2))
-			q.RequestSetEventFlag(lua_tostring(L,1), (int)lua_tonumber(L,2));
+			q.request_set_event_flag(lua_tostring(L,1), (int)lua_tonumber(L,2));
 
 		return 0;
 	}
 
 	int game_get_event_flag(lua_State* L)
 	{
-		CQuestManager& q = CQuestManager::instance();
+		quest_manager& q = quest_manager::instance();
 
 		if (lua_isstring(L,1))
-			lua_pushnumber(L, q.GetEventFlag(lua_tostring(L,1)));
+			lua_pushnumber(L, q.event_flag(lua_tostring(L,1)));
 		else
 			lua_pushnumber(L, 0);
 
@@ -45,9 +45,9 @@ namespace quest
 
 	int game_request_make_guild(lua_State* L)
 	{
-		CQuestManager& q = CQuestManager::instance();
-		CHARACTER * ch = q.GetCurrentCharacterPtr();
-		DESC * d = ch->GetDesc();
+		quest_manager& q = quest_manager::instance();
+		character * ch = q.current_character_ptr();
+		desc * d = ch->get_desc();
 		if (d)
 		{
 			// Never 0, which means "no request".
@@ -55,51 +55,51 @@ namespace quest
 			while (key == 0)
 				key = thecore_random();
 
-			ch->SetGuildCreationKey(key);
+			ch->set_guild_creation_key(key);
 
-			TPacketGCRequestMakeGuild p;
+			packet_gc_request_make_guild p;
 			p.header = HEADER_GC_REQUEST_MAKE_GUILD;
 			p.key = key;
-			d->Packet(&p, sizeof(p));
+			d->packet(&p, sizeof(p));
 		}
 		return 0;
 	}
 
 	int game_get_safebox_level(lua_State* L)
 	{
-		CQuestManager& q = CQuestManager::instance();
-		lua_pushnumber(L, q.GetCurrentCharacterPtr()->GetSafeboxSize()/SAFEBOX_PAGE_SIZE);
+		quest_manager& q = quest_manager::instance();
+		lua_pushnumber(L, q.current_character_ptr()->safebox_size()/SAFEBOX_PAGE_SIZE);
 		return 1;
 	}
 
 	int game_set_safebox_level(lua_State* L)
 	{
-		CQuestManager& q = CQuestManager::instance();
+		quest_manager& q = quest_manager::instance();
 
-		TSafeboxChangeSizePacket p;
-		p.dwID = q.GetCurrentCharacterPtr()->GetDesc()->GetAccountTable().id;
-		p.bSize = (int)lua_tonumber(L,-1);
-		db_clientdesc->DBPacket(HEADER_GD_SAFEBOX_CHANGE_SIZE,  q.GetCurrentCharacterPtr()->GetDesc()->GetHandle(), &p, sizeof(p));
+		safebox_change_size_packet p;
+		p.id = q.current_character_ptr()->get_desc()->get_account_table().id;
+		p.size = (int)lua_tonumber(L,-1);
+		db_clientdesc->db_packet(HEADER_GD_SAFEBOX_CHANGE_SIZE,  q.current_character_ptr()->get_desc()->handle(), &p, sizeof(p));
 
-		q.GetCurrentCharacterPtr()->SetSafeboxSize(SAFEBOX_PAGE_SIZE * (int)lua_tonumber(L,-1));
+		q.current_character_ptr()->set_safebox_size(SAFEBOX_PAGE_SIZE * (int)lua_tonumber(L,-1));
 		return 0;
 	}
 
 	int game_open_safebox(lua_State* /*L*/)
 	{
-		CQuestManager& q = CQuestManager::instance();
-		CHARACTER * ch = q.GetCurrentCharacterPtr();
-		ch->SetSafeboxOpenPosition();
-		ch->ChatPacket(CHAT_TYPE_COMMAND, "ShowMeSafeboxPassword");
+		quest_manager& q = quest_manager::instance();
+		character * ch = q.current_character_ptr();
+		ch->set_safebox_open_position();
+		ch->chat_packet(CHAT_TYPE_COMMAND, "ShowMeSafeboxPassword");
 		return 0;
 	}
 
 	int game_open_mall(lua_State* /*L*/)
 	{
-		CQuestManager& q = CQuestManager::instance();
-		CHARACTER * ch = q.GetCurrentCharacterPtr();
-		ch->SetSafeboxOpenPosition();
-		ch->ChatPacket(CHAT_TYPE_COMMAND, "ShowMeMallPassword");
+		quest_manager& q = quest_manager::instance();
+		character * ch = q.current_character_ptr();
+		ch->set_safebox_open_position();
+		ch->chat_packet(CHAT_TYPE_COMMAND, "ShowMeMallPassword");
 		return 0;
 	}
 
@@ -108,14 +108,14 @@ namespace quest
 		//
 		// Syntax: game.drop_item(50050, 1)
 		//
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
 		uint32_t item_vnum = (uint32_t) lua_tonumber(L, 1);
 		int count = (int) lua_tonumber(L, 2);
-		int32_t x = ch->GetX();
-		int32_t y = ch->GetY();
+		int32_t x = ch->x();
+		int32_t y = ch->y();
 
-		CItem * item = ITEM_MANAGER::instance().CreateItem(item_vnum, count);
+		item * item = item_manager::instance().create_item(item_vnum, count);
 
 		if (!item)
 		{
@@ -123,29 +123,29 @@ namespace quest
 			return 0;
 		}
 
-		PIXEL_POSITION pos;
+		pixel_position pos;
 		pos.x = x + number(-200, 200);
 		pos.y = y + number(-200, 200);
 
-		item->AddToGround(ch->GetMapIndex(), pos);
-		item->StartDestroyEvent();
+		item->add_to_ground(ch->map_index(), pos);
+		item->start_destroy_event();
 
 		return 0;
 	}
 
 	int game_drop_item_with_ownership(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
-		CItem * item = nullptr;
+		item * item = nullptr;
 		switch (lua_gettop(L))
 		{
 		case 1:
-			item = ITEM_MANAGER::instance().CreateItem((uint32_t) lua_tonumber(L, 1));
+			item = item_manager::instance().create_item((uint32_t) lua_tonumber(L, 1));
 			break;
 		case 2:
 		case 3:
-			item = ITEM_MANAGER::instance().CreateItem((uint32_t) lua_tonumber(L, 1), (int) lua_tonumber(L, 2));
+			item = item_manager::instance().create_item((uint32_t) lua_tonumber(L, 1), (int) lua_tonumber(L, 2));
 			break;
 		default:
 			return 0;
@@ -161,29 +161,29 @@ namespace quest
 			int sec = (int) lua_tonumber(L, 3);
 			if (sec <= 0)
 			{
-				item->SetOwnership( ch );
+				item->set_ownership( ch );
 			}
 			else
 			{
-				item->SetOwnership( ch, sec );
+				item->set_ownership( ch, sec );
 			}
 		}
 		else
-			item->SetOwnership( ch );
+			item->set_ownership( ch );
 
-		PIXEL_POSITION pos;
-		pos.x = ch->GetX() + number(-200, 200);
-		pos.y = ch->GetY() + number(-200, 200);
+		pixel_position pos;
+		pos.x = ch->x() + number(-200, 200);
+		pos.y = ch->y() + number(-200, 200);
 
-		item->AddToGround(ch->GetMapIndex(), pos);
-		item->StartDestroyEvent();
+		item->add_to_ground(ch->map_index(), pos);
+		item->start_destroy_event();
 
 		return 0;
 	}
 
 	int game_web_mall(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
 		if ( ch != nullptr )
 		{
@@ -192,7 +192,7 @@ namespace quest
 		return 0;
 	}
 	
-	void RegisterGameFunctionTable()
+	void register_game_function_table()
 	{
 		luaL_reg game_functions[] = 
 		{
@@ -210,7 +210,7 @@ namespace quest
 			{ nullptr,					nullptr				}
 		};
 
-		CQuestManager::instance().AddLuaFunctionTable("game", game_functions);
+		quest_manager::instance().add_lua_function_table("game", game_functions);
 	}
 }
 }

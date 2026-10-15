@@ -43,322 +43,322 @@
 
 namespace metin2::game::inline guilds {
 
-	TGuildMember::TGuildMember(uint32_t pid, uint8_t grade, uint8_t is_general, uint8_t job, uint8_t level, uint32_t offer_exp, char* name)
+	guild_member::guild_member(uint32_t pid, uint8_t grade, uint8_t is_general, uint8_t job, uint8_t level, uint32_t offer_exp, char* name)
 : pid(pid), grade(grade), is_general(is_general), job(job), level(level), offer_exp(offer_exp), name(name)
 {}
 
 namespace 
 {
-	struct FGuildNameSender
+	struct f_guild_name_sender
 	{
-		FGuildNameSender(uint32_t id, const char* guild_name) : id(id), name(guild_name)
+		f_guild_name_sender(uint32_t id, const char* guild_name) : id(id), name(guild_name)
 		{
 			p.header = HEADER_GC_GUILD;
 			p.subheader = GUILD_SUBHEADER_GC_GUILD_NAME;
 			p.size = sizeof(p) + sizeof(uint32_t) + GUILD_NAME_MAX_LEN;
 		}
 
-		void operator() (CHARACTER * ch)
+		void operator() (character * ch)
 		{
-			DESC * d = ch->GetDesc();
+			desc * d = ch->get_desc();
 
 			if (d)
 			{
-				d->BufferedPacket(&p, sizeof(p));
-				d->BufferedPacket(&id, sizeof(id));
-				d->Packet(name, GUILD_NAME_MAX_LEN);
+				d->buffered_packet(&p, sizeof(p));
+				d->buffered_packet(&id, sizeof(id));
+				d->packet(name, GUILD_NAME_MAX_LEN);
 			}
 		}
 
 		uint32_t id;
 		const char * name;
-		TPacketGCGuild p;
+		packet_gc_guild p;
 	};
 }
 
-CGuild::CGuild(TGuildCreateParameter & cp)
+guild::guild(guild_create_parameter & cp)
 {
-	Initialize();
+	initialize();
 
-	m_general_count = 0;
+	general_count_ = 0;
 
-	m_iMemberCountBonus = 0;
+	member_count_bonus_ = 0;
 
-	strlcpy(m_data.name, cp.name, sizeof(m_data.name));
-	m_data.master_pid = cp.master->GetPlayerID();
-	strlcpy(m_data.grade_array[0].grade_name, LC_TEXT("길드장"), sizeof(m_data.grade_array[0].grade_name));
-	m_data.grade_array[0].auth_flag = GUILD_AUTH_ADD_MEMBER | GUILD_AUTH_REMOVE_MEMBER | GUILD_AUTH_NOTICE | GUILD_AUTH_USE_SKILL;
+	strlcpy(data_.name, cp.name, sizeof(data_.name));
+	data_.master_pid = cp.master->player_id();
+	strlcpy(data_.grade_array[0].grade_name, lc_text("길드장"), sizeof(data_.grade_array[0].grade_name));
+	data_.grade_array[0].auth_flag = GUILD_AUTH_ADD_MEMBER | GUILD_AUTH_REMOVE_MEMBER | GUILD_AUTH_NOTICE | GUILD_AUTH_USE_SKILL;
 
 	for (int i = 1; i < GUILD_GRADE_COUNT; ++i)
 	{
-		strlcpy(m_data.grade_array[i].grade_name, LC_TEXT("길드원"), sizeof(m_data.grade_array[i].grade_name));
-		m_data.grade_array[i].auth_flag = 0;
+		strlcpy(data_.grade_array[i].grade_name, lc_text("길드원"), sizeof(data_.grade_array[i].grade_name));
+		data_.grade_array[i].auth_flag = 0;
 	}
 
-	std::unique_ptr<SQLMsg> pmsg (DBManager::instance().DirectQuery(sql::format(
+	std::unique_ptr<ql_msg> pmsg (db_manager::instance().direct_query(sql::format(
 				"INSERT INTO guild{}(name, master, sp, level, exp, skill_point, skill) "
 				"VALUES({}, {}, 1000, 1, 0, 0, '\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0')", 
-				sql::raw(get_table_postfix()), m_data.name, m_data.master_pid)));
+				sql::raw(get_table_postfix()), data_.name, data_.master_pid)));
 
 	// TODO if error occur?
-	m_data.guild_id = pmsg->Get()->uiInsertID;
+	data_.guild_id = pmsg->get()->insert_id;
 
 	for (int i = 0; i < GUILD_GRADE_COUNT; ++i)
 	{
-		DBManager::instance().Query(sql::format("INSERT INTO guild_grade{} VALUES({}, {}, {}, {})", 
+		db_manager::instance().query(sql::format("INSERT INTO guild_grade{} VALUES({}, {}, {}, {})", 
 				sql::raw(get_table_postfix()),
-				m_data.guild_id, 
+				data_.guild_id, 
 				i + 1, 
-				m_data.grade_array[i].grade_name, 
-				m_data.grade_array[i].auth_flag));
+				data_.grade_array[i].grade_name, 
+				data_.grade_array[i].auth_flag));
 	}
 
-	ComputeGuildPoints();
-	m_data.power	= m_data.max_power;
-	m_data.ladder_point	= 0;
-	db_clientdesc->DBPacket(HEADER_GD_GUILD_CREATE, 0, &m_data.guild_id, sizeof(uint32_t));
+	compute_guild_points();
+	data_.power	= data_.max_power;
+	data_.ladder_point	= 0;
+	db_clientdesc->db_packet(HEADER_GD_GUILD_CREATE, 0, &data_.guild_id, sizeof(uint32_t));
 
-	TPacketGuildSkillUpdate guild_skill;
-	guild_skill.guild_id = m_data.guild_id;
+	packet_guild_skill_update guild_skill;
+	guild_skill.guild_id = data_.guild_id;
 	guild_skill.amount = 0;
 	guild_skill.skill_point = 0;
 	memset(guild_skill.skill_levels, 0, GUILD_SKILL_COUNT);
 
-	db_clientdesc->DBPacket(HEADER_GD_GUILD_SKILL_UPDATE, 0, &guild_skill, sizeof(guild_skill));
+	db_clientdesc->db_packet(HEADER_GD_GUILD_SKILL_UPDATE, 0, &guild_skill, sizeof(guild_skill));
 
 	// TODO GUILD_NAME
-	CHARACTER_MANAGER::instance().for_each_pc(FGuildNameSender(GetID(), GetName()));
-	RequestAddMember(cp.master, GUILD_LEADER_GRADE);
+	character_manager::instance().for_each_pc(f_guild_name_sender(id(), name()));
+	request_add_member(cp.master, GUILD_LEADER_GRADE);
 }
 
-void CGuild::Initialize()
+void guild::initialize()
 {
-	memset(&m_data, 0, sizeof(m_data));
-	m_data.level = 1;
+	memset(&data_, 0, sizeof(data_));
+	data_.level = 1;
 
 	for (int i = 0; i < GUILD_SKILL_COUNT; ++i)
-		abSkillUsable[i] = true;
+		skill_usable_[i] = true;
 
-	m_iMemberCountBonus = 0;
+	member_count_bonus_ = 0;
 }
 
-CGuild::~CGuild()
+guild::~guild()
 {
 }
 
-void CGuild::RequestAddMember(CHARACTER * ch, int grade)
+void guild::request_add_member(character * ch, int grade)
 {
-	if (ch->GetGuild())
+	if (ch->get_guild())
 		return;
 
-	TPacketGDGuildAddMember gd;
+	packet_gd_guild_add_member gd;
 
-	if (m_member.find(ch->GetPlayerID()) != m_member.end())
+	if (member_.find(ch->player_id()) != member_.end())
 	{
-		metin2::log::error("Already a member in guild {}[{:d}]", ch->GetName(), ch->GetPlayerID());
+		metin2::log::error("Already a member in guild {}[{:d}]", ch->name(), ch->player_id());
 		return;
 	}
 
-	gd.dwPID = ch->GetPlayerID();
-	gd.dwGuild = GetID();
-	gd.bGrade = grade;
+	gd.pid = ch->player_id();
+	gd.guild = id();
+	gd.grade = grade;
 
-	db_clientdesc->DBPacket(HEADER_GD_GUILD_ADD_MEMBER, 0, &gd, sizeof(TPacketGDGuildAddMember));
+	db_clientdesc->db_packet(HEADER_GD_GUILD_ADD_MEMBER, 0, &gd, sizeof(packet_gd_guild_add_member));
 }
 
-void CGuild::AddMember(TPacketDGGuildMember * p)
+void guild::add_member(packet_dg_guild_member * p)
 {
-	TGuildMemberContainer::iterator it;
+	guild_member_container::iterator it;
 
-	if ((it = m_member.find(p->dwPID)) == m_member.end())
-		m_member.insert(std::make_pair(p->dwPID, TGuildMember(p->dwPID, p->bGrade, p->isGeneral, p->bJob, p->bLevel, p->dwOffer, p->szName)));
+	if ((it = member_.find(p->pid)) == member_.end())
+		member_.insert(std::make_pair(p->pid, guild_member(p->pid, p->grade, p->is_general, p->job, p->level, p->offer, p->name)));
 	else
 	{
-		TGuildMember & r_gm = it->second;
-		r_gm.pid = p->dwPID;
-		r_gm.grade = p->bGrade;
-		r_gm.job = p->bJob;
-		r_gm.offer_exp = p->dwOffer;
-		r_gm.is_general = p->isGeneral;
+		guild_member & r_gm = it->second;
+		r_gm.pid = p->pid;
+		r_gm.grade = p->grade;
+		r_gm.job = p->job;
+		r_gm.offer_exp = p->offer;
+		r_gm.is_general = p->is_general;
 	}
 
-	CGuildManager::instance().Link(p->dwPID, this);
+	guild_manager::instance().link(p->pid, this);
 
-	SendListOneToAll(p->dwPID);
+	send_list_one_to_all(p->pid);
 
-	CHARACTER * ch = CHARACTER_MANAGER::instance().FindByPID(p->dwPID);
+	character * ch = character_manager::instance().find_by_pid(p->pid);
 
 	metin2::log::info( "GUILD: AddMember PID {:d}, grade {:d}, job {:d}, level {:d}, offer {:d}, name {} ptr {}",
-			p->dwPID, p->bGrade, p->bJob, p->bLevel, p->dwOffer, p->szName, static_cast<const void *>(ch));
+			p->pid, p->grade, p->job, p->level, p->offer, p->name, static_cast<const void *>(ch));
 
 	if (ch)
-		LoginMember(ch);
+		login_member(ch);
 	else
-		P2PLoginMember(p->dwPID);
+		p2_p_login_member(p->pid);
 }
 
-bool CGuild::RequestRemoveMember(uint32_t pid)
+bool guild::request_remove_member(uint32_t pid)
 {
-	TGuildMemberContainer::iterator it;
+	guild_member_container::iterator it;
 
-	if ((it = m_member.find(pid)) == m_member.end())
+	if ((it = member_.find(pid)) == member_.end())
 		return false;
 
 	if (it->second.grade == GUILD_LEADER_GRADE)
 		return false;
 
-	TPacketGuild gd_guild;
+	packet_guild gd_guild;
 
-	gd_guild.dwGuild = GetID();
-	gd_guild.dwInfo = pid;
+	gd_guild.guild = id();
+	gd_guild.info = pid;
 
-	db_clientdesc->DBPacket(HEADER_GD_GUILD_REMOVE_MEMBER, 0, &gd_guild, sizeof(TPacketGuild));
+	db_clientdesc->db_packet(HEADER_GD_GUILD_REMOVE_MEMBER, 0, &gd_guild, sizeof(packet_guild));
 	return true;
 }
 
-bool CGuild::RemoveMember(uint32_t pid)
+bool guild::remove_member(uint32_t pid)
 {
 	metin2::log::info( "Receive Guild P2P RemoveMember");
-	TGuildMemberContainer::iterator it;
+	guild_member_container::iterator it;
 
-	if ((it = m_member.find(pid)) == m_member.end())
+	if ((it = member_.find(pid)) == member_.end())
 		return false;
 
 	if (it->second.grade == GUILD_LEADER_GRADE)
 		return false;
 
 	if (it->second.is_general)
-		m_general_count--;
+		general_count_--;
 
-	m_member.erase(it);
-	SendOnlineRemoveOnePacket(pid);
+	member_.erase(it);
+	send_online_remove_one_packet(pid);
 
-	CGuildManager::instance().Unlink(pid);
+	guild_manager::instance().unlink(pid);
 
-	CHARACTER * ch = CHARACTER_MANAGER::instance().FindByPID(pid);
+	character * ch = character_manager::instance().find_by_pid(pid);
 
 	if (ch)
 	{
-		m_memberOnline.erase(ch);
-		ch->SetGuild(nullptr);
+		member_online_.erase(ch);
+		ch->set_guild(nullptr);
 	}
 
 	return true;
 }
 
-void CGuild::P2PLoginMember(uint32_t pid)
+void guild::p2_p_login_member(uint32_t pid)
 {
-	if (m_member.find(pid) == m_member.end())
+	if (member_.find(pid) == member_.end())
 	{
 		metin2::log::error("GUILD [{:d}] is not a memeber of guild.", pid);
 		return;
 	}
 
-	m_memberP2POnline.insert(pid);
+	member_p2_p_online_.insert(pid);
 
 	// Login event occur + Send List
-	TGuildMemberOnlineContainer::iterator it;
+	guild_member_online_container::iterator it;
 
-	for (it = m_memberOnline.begin(); it!=m_memberOnline.end();++it)
-		SendLoginPacket(*it, pid);
+	for (it = member_online_.begin(); it!=member_online_.end();++it)
+		send_login_packet(*it, pid);
 }
 
-void CGuild::LoginMember(CHARACTER * ch)
+void guild::login_member(character * ch)
 {
-	if (m_member.find(ch->GetPlayerID()) == m_member.end())
+	if (member_.find(ch->player_id()) == member_.end())
 	{
-		metin2::log::error("GUILD {}[{:d}] is not a memeber of guild.", ch->GetName(), ch->GetPlayerID());
+		metin2::log::error("GUILD {}[{:d}] is not a memeber of guild.", ch->name(), ch->player_id());
 		return;
 	}
 
-	ch->SetGuild(this);
+	ch->set_guild(this);
 
 	// Login event occur + Send List
-	TGuildMemberOnlineContainer::iterator it;
+	guild_member_online_container::iterator it;
 
-	for (it = m_memberOnline.begin(); it!=m_memberOnline.end();++it)
-		SendLoginPacket(*it, ch);
+	for (it = member_online_.begin(); it!=member_online_.end();++it)
+		send_login_packet(*it, ch);
 
-	m_memberOnline.insert(ch);
+	member_online_.insert(ch);
 
-	SendAllGradePacket(ch);
-	SendGuildInfoPacket(ch);
-	SendListPacket(ch);
-	SendSkillInfoPacket(ch);
-	SendEnemyGuild(ch);
+	send_all_grade_packet(ch);
+	send_guild_info_packet(ch);
+	send_list_packet(ch);
+	send_skill_info_packet(ch);
+	send_enemy_guild(ch);
 
 }
 
-void CGuild::P2PLogoutMember(uint32_t pid)
+void guild::p2_p_logout_member(uint32_t pid)
 {
-	if (m_member.find(pid)==m_member.end())
+	if (member_.find(pid)==member_.end())
 	{
 		metin2::log::error("GUILD [{:d}] is not a memeber of guild.", pid);
 		return;
 	}
 
-	m_memberP2POnline.erase(pid);
+	member_p2_p_online_.erase(pid);
 
 	// Logout event occur
-	TGuildMemberOnlineContainer::iterator it;
-	for (it = m_memberOnline.begin(); it!=m_memberOnline.end();++it)
+	guild_member_online_container::iterator it;
+	for (it = member_online_.begin(); it!=member_online_.end();++it)
 	{
-		SendLogoutPacket(*it, pid);
+		send_logout_packet(*it, pid);
 	}
 }
 
-void CGuild::LogoutMember(CHARACTER * ch)
+void guild::logout_member(character * ch)
 {
-	if (m_member.find(ch->GetPlayerID())==m_member.end())
+	if (member_.find(ch->player_id())==member_.end())
 	{
-		metin2::log::error("GUILD {}[{:d}] is not a memeber of guild.", ch->GetName(), ch->GetPlayerID());
+		metin2::log::error("GUILD {}[{:d}] is not a memeber of guild.", ch->name(), ch->player_id());
 		return;
 	}
 
-	m_memberOnline.erase(ch);
+	member_online_.erase(ch);
 
 	// Logout event occur
-	TGuildMemberOnlineContainer::iterator it;
-	for (it = m_memberOnline.begin(); it!=m_memberOnline.end();++it)
+	guild_member_online_container::iterator it;
+	for (it = member_online_.begin(); it!=member_online_.end();++it)
 	{
-		SendLogoutPacket(*it, ch);
+		send_logout_packet(*it, ch);
 	}
 }
 
-void CGuild::SendOnlineRemoveOnePacket(uint32_t pid)
+void guild::send_online_remove_one_packet(uint32_t pid)
 {
-	TPacketGCGuild pack;
+	packet_gc_guild pack;
 	pack.header = HEADER_GC_GUILD;
 	pack.size = sizeof(pack)+4;
 	pack.subheader = GUILD_SUBHEADER_GC_REMOVE;
 
-	TEMP_BUFFER buf;
+	temp_buffer buf;
 	buf.write(&pack,sizeof(pack));
 	buf.write(&pid, sizeof(pid));
 
-	TGuildMemberOnlineContainer::iterator it;
+	guild_member_online_container::iterator it;
 
-	for (it = m_memberOnline.begin(); it!=m_memberOnline.end();++it)
+	for (it = member_online_.begin(); it!=member_online_.end();++it)
 	{
-		DESC * d = (*it)->GetDesc();
+		desc * d = (*it)->get_desc();
 
 		if (d)
-			d->Packet(buf.read_peek(), buf.size());
+			d->packet(buf.read_peek(), buf.size());
 	}
 }
 
-void CGuild::SendAllGradePacket(CHARACTER * ch)
+void guild::send_all_grade_packet(character * ch)
 {
-	DESC * d = ch->GetDesc();
+	desc * d = ch->get_desc();
 	if (!d)
 		return;
 
-	TPacketGCGuild pack;
+	packet_gc_guild pack;
 	pack.header = HEADER_GC_GUILD;
-	pack.size = sizeof(pack)+1+GUILD_GRADE_COUNT*(sizeof(TGuildGrade)+1);
+	pack.size = sizeof(pack)+1+GUILD_GRADE_COUNT*(sizeof(guild_grade)+1);
 	pack.subheader = GUILD_SUBHEADER_GC_GRADE;
 
-	TEMP_BUFFER buf;
+	temp_buffer buf;
 
 	buf.write(&pack, sizeof(pack));
 	uint8_t n = 15;
@@ -368,49 +368,49 @@ void CGuild::SendAllGradePacket(CHARACTER * ch)
 	{
 		uint8_t j = i+1;
 		buf.write(&j, 1);
-		buf.write(&m_data.grade_array[i], sizeof(TGuildGrade));
+		buf.write(&data_.grade_array[i], sizeof(guild_grade));
 	}
 
-	d->Packet(buf.read_peek(), buf.size());
+	d->packet(buf.read_peek(), buf.size());
 }
 
-void CGuild::SendListOneToAll(uint32_t pid)
+void guild::send_list_one_to_all(uint32_t pid)
 {
 
-	TPacketGCGuild pack;
+	packet_gc_guild pack;
 	pack.header = HEADER_GC_GUILD;
-	pack.size = sizeof(TPacketGCGuild);
+	pack.size = sizeof(packet_gc_guild);
 	pack.subheader = GUILD_SUBHEADER_GC_LIST;
 
-	pack.size += sizeof(TGuildMemberPacketData);
+	pack.size += sizeof(guild_member_packet_data);
 
 	char c[CHARACTER_NAME_MAX_LEN+1];
 	memset(c, 0, sizeof(c));
 
-	TGuildMemberContainer::iterator cit = m_member.find(pid);
-	if (cit == m_member.end())
+	guild_member_container::iterator cit = member_.find(pid);
+	if (cit == member_.end())
 		return;
 
-	for (TGuildMemberOnlineContainer::iterator it = m_memberOnline.begin(); it!= m_memberOnline.end(); ++it)
+	for (guild_member_online_container::iterator it = member_online_.begin(); it!= member_online_.end(); ++it)
 	{
-		DESC * d = (*it)->GetDesc();
+		desc * d = (*it)->get_desc();
 		if (!d) 
 			continue;
 
-		TEMP_BUFFER buf;
+		temp_buffer buf;
 
 		buf.write(&pack, sizeof(pack));
 
-		cit->second._dummy = 1;
+		cit->second.dummy = 1;
 
 		buf.write(&(cit->second), sizeof(uint32_t) * 3 +1);
 		buf.write(cit->second.name.c_str(), cit->second.name.length());
 		buf.write(c, CHARACTER_NAME_MAX_LEN + 1 - cit->second.name.length());
-		d->Packet(buf.read_peek(), buf.size());
+		d->packet(buf.read_peek(), buf.size());
 	}
 }
 
-void CGuild::SendListPacket(CHARACTER * ch)
+void guild::send_list_packet(character * ch)
 {
 	/*
 	   List Packet
@@ -424,26 +424,26 @@ void CGuild::SendListPacket(CHARACTER * ch)
 	   ] * Count
 
 	 */
-	DESC * d;
-	if (!(d=ch->GetDesc()))
+	desc * d;
+	if (!(d=ch->get_desc()))
 		return;
 
-	TPacketGCGuild pack;
+	packet_gc_guild pack;
 	pack.header = HEADER_GC_GUILD;
-	pack.size = sizeof(TPacketGCGuild);
+	pack.size = sizeof(packet_gc_guild);
 	pack.subheader = GUILD_SUBHEADER_GC_LIST;
 
-	pack.size += sizeof(TGuildMemberPacketData) * m_member.size();
+	pack.size += sizeof(guild_member_packet_data) * member_.size();
 
-	TEMP_BUFFER buf;
+	temp_buffer buf;
 
 	buf.write(&pack,sizeof(pack));
 
 	char c[CHARACTER_NAME_MAX_LEN+1];
 
-	for (TGuildMemberContainer::iterator it = m_member.begin(); it != m_member.end(); ++it)
+	for (guild_member_container::iterator it = member_.begin(); it != member_.end(); ++it)
 	{
-		it->second._dummy = 1;
+		it->second.dummy = 1;
 
 		buf.write(&(it->second), sizeof(uint32_t)*3+1);
 
@@ -455,89 +455,89 @@ void CGuild::SendListPacket(CHARACTER * ch)
 			metin2::log::info("name {} job {:d}  ", it->second.name.c_str(), it->second.job );
 	}
 
-	d->Packet(buf.read_peek(), buf.size());
+	d->packet(buf.read_peek(), buf.size());
 
-	for (TGuildMemberOnlineContainer::iterator it = m_memberOnline.begin(); it != m_memberOnline.end(); ++it)
+	for (guild_member_online_container::iterator it = member_online_.begin(); it != member_online_.end(); ++it)
 	{
-		SendLoginPacket(ch, *it);
+		send_login_packet(ch, *it);
 	}
 
-	for (TGuildMemberP2POnlineContainer::iterator it = m_memberP2POnline.begin(); it != m_memberP2POnline.end(); ++it)
+	for (guild_member_p2_p_online_container::iterator it = member_p2_p_online_.begin(); it != member_p2_p_online_.end(); ++it)
 	{
-		SendLoginPacket(ch, *it);
+		send_login_packet(ch, *it);
 	}
 
 }
 
-void CGuild::SendLoginPacket(CHARACTER * ch, CHARACTER * chLogin)
+void guild::send_login_packet(character * ch, character * chLogin)
 {
-	SendLoginPacket(ch, chLogin->GetPlayerID());
+	send_login_packet(ch, chLogin->player_id());
 }
 
-void CGuild::SendLoginPacket(CHARACTER * ch, uint32_t pid)
+void guild::send_login_packet(character * ch, uint32_t pid)
 {
 	/*
 	   Login Packet
 	   header 4
 	   pid 4
 	 */
-	if (!ch->GetDesc())
+	if (!ch->get_desc())
 		return;
 
-	TPacketGCGuild pack;
+	packet_gc_guild pack;
 	pack.header = HEADER_GC_GUILD;
 	pack.size = sizeof(pack)+4;
 	pack.subheader = GUILD_SUBHEADER_GC_LOGIN;
 
-	TEMP_BUFFER buf;
+	temp_buffer buf;
 
 	buf.write(&pack, sizeof(pack));
 
 	buf.write(&pid, 4);
 
-	ch->GetDesc()->Packet(buf.read_peek(), buf.size());
+	ch->get_desc()->packet(buf.read_peek(), buf.size());
 }
 
-void CGuild::SendLogoutPacket(CHARACTER * ch, CHARACTER * chLogout)
+void guild::send_logout_packet(character * ch, character * chLogout)
 {
-	SendLogoutPacket(ch, chLogout->GetPlayerID());
+	send_logout_packet(ch, chLogout->player_id());
 }
 
-void CGuild::SendLogoutPacket(CHARACTER * ch, uint32_t pid)
+void guild::send_logout_packet(character * ch, uint32_t pid)
 {
 	/*
 	   Logout Packet
 	   header 4
 	   pid 4
 	 */
-	if (!ch->GetDesc())
+	if (!ch->get_desc())
 		return;
 
-	TPacketGCGuild pack;
+	packet_gc_guild pack;
 	pack.header = HEADER_GC_GUILD;
 	pack.size = sizeof(pack)+4;
 	pack.subheader = GUILD_SUBHEADER_GC_LOGOUT;
 
-	TEMP_BUFFER buf;
+	temp_buffer buf;
 
 	buf.write(&pack, sizeof(pack));
 	buf.write(&pid, 4);
 
-	ch->GetDesc()->Packet(buf.read_peek(), buf.size());
+	ch->get_desc()->packet(buf.read_peek(), buf.size());
 }
 
-void CGuild::LoadGuildMemberData(SQLMsg* pmsg)
+void guild::load_guild_member_data(ql_msg* pmsg)
 {
-	if (pmsg->Get()->uiNumRows == 0)
+	if (pmsg->get()->num_rows == 0)
 		return;
 
-	m_general_count = 0;
+	general_count_ = 0;
 
-	m_member.clear();
+	member_.clear();
 
-	for (uint i = 0; i < pmsg->Get()->uiNumRows; ++i)
+	for (uint i = 0; i < pmsg->get()->num_rows; ++i)
 	{
-		MYSQL_ROW row = mysql_fetch_row(pmsg->Get()->pSQLResult);
+		MYSQL_ROW row = mysql_fetch_row(pmsg->get()->sql_result);
 
 		uint32_t pid = strtoul(row[0], (char**) nullptr, 10);
 		uint8_t grade = (uint8_t) strtoul(row[1], (char**) nullptr, 10);
@@ -552,18 +552,18 @@ void CGuild::LoadGuildMemberData(SQLMsg* pmsg)
 		char * name = row[6];
 
 		if (is_general)
-			m_general_count++;
+			general_count_++;
 
-		m_member.insert(std::make_pair(pid, TGuildMember(pid, grade, is_general, job, level, offer, name)));
-		CGuildManager::instance().Link(pid, this);
+		member_.insert(std::make_pair(pid, guild_member(pid, grade, is_general, job, level, offer, name)));
+		guild_manager::instance().link(pid, this);
 	}
 }
 
-void CGuild::LoadGuildGradeData(SQLMsg* pmsg)
+void guild::load_guild_grade_data(ql_msg* pmsg)
 {
-	for (uint i = 0; i < pmsg->Get()->uiNumRows; ++i)
+	for (uint i = 0; i < pmsg->get()->num_rows; ++i)
 	{
-		MYSQL_ROW row = mysql_fetch_row(pmsg->Get()->pSQLResult);
+		MYSQL_ROW row = mysql_fetch_row(pmsg->get()->sql_result);
 		uint8_t grade = 0;
 		str_to_number(grade, row[0]);
 		char * name = row[1];
@@ -571,100 +571,100 @@ void CGuild::LoadGuildGradeData(SQLMsg* pmsg)
 
 		if (grade >= 1 && grade <= 15)
 		{
-			strlcpy(m_data.grade_array[grade-1].grade_name, name, sizeof(m_data.grade_array[grade-1].grade_name));
-			m_data.grade_array[grade-1].auth_flag = auth;
+			strlcpy(data_.grade_array[grade-1].grade_name, name, sizeof(data_.grade_array[grade-1].grade_name));
+			data_.grade_array[grade-1].auth_flag = auth;
 		}
 	}
 }
-void CGuild::LoadGuildData(SQLMsg* pmsg)
+void guild::load_guild_data(ql_msg* pmsg)
 {
-	if (pmsg->Get()->uiNumRows == 0)
+	if (pmsg->get()->num_rows == 0)
 	{
-		metin2::log::error("Query failed: getting guild data {}", pmsg->stQuery.c_str());
+		metin2::log::error("Query failed: getting guild data {}", pmsg->query.c_str());
 		return;
 	}
 
-	MYSQL_ROW row = mysql_fetch_row(pmsg->Get()->pSQLResult);
-	m_data.master_pid = strtoul(row[0], (char **)nullptr, 10);
-	m_data.level = (uint8_t)strtoul(row[1], (char **)nullptr, 10);
-	m_data.exp = strtoul(row[2], (char **)nullptr, 10);
-	strlcpy(m_data.name, row[3], sizeof(m_data.name));
+	MYSQL_ROW row = mysql_fetch_row(pmsg->get()->sql_result);
+	data_.master_pid = strtoul(row[0], (char **)nullptr, 10);
+	data_.level = (uint8_t)strtoul(row[1], (char **)nullptr, 10);
+	data_.exp = strtoul(row[2], (char **)nullptr, 10);
+	strlcpy(data_.name, row[3], sizeof(data_.name));
 
-	m_data.skill_point = (uint8_t) strtoul(row[4], (char **) nullptr, 10);
+	data_.skill_point = (uint8_t) strtoul(row[4], (char **) nullptr, 10);
 	if (row[5])
-		std::memcpy(m_data.abySkill, row[5], sizeof(uint8_t) * GUILD_SKILL_COUNT);
+		std::memcpy(data_.aby_skill, row[5], sizeof(uint8_t) * GUILD_SKILL_COUNT);
 	else
-		memset(m_data.abySkill, 0, sizeof(uint8_t) * GUILD_SKILL_COUNT);
+		memset(data_.aby_skill, 0, sizeof(uint8_t) * GUILD_SKILL_COUNT);
 
-	m_data.power = std::max<int>(0, strtoul(row[6], (char **) nullptr, 10));
+	data_.power = std::max<int>(0, strtoul(row[6], (char **) nullptr, 10));
 
-	str_to_number(m_data.ladder_point, row[7]);
+	str_to_number(data_.ladder_point, row[7]);
 
-	if (m_data.ladder_point < 0)
-		m_data.ladder_point = 0;
+	if (data_.ladder_point < 0)
+		data_.ladder_point = 0;
 
-	str_to_number(m_data.win, row[8]);
-	str_to_number(m_data.draw, row[9]);
-	str_to_number(m_data.loss, row[10]);
-	str_to_number(m_data.gold, row[11]);
+	str_to_number(data_.win, row[8]);
+	str_to_number(data_.draw, row[9]);
+	str_to_number(data_.loss, row[10]);
+	str_to_number(data_.gold, row[11]);
 
-	ComputeGuildPoints();
+	compute_guild_points();
 }
 
-void CGuild::Load(uint32_t guild_id)
+void guild::load(uint32_t guild_id)
 {
-	Initialize();
+	initialize();
 
-	m_data.guild_id = guild_id;
+	data_.guild_id = guild_id;
 
-	DBManager::instance().FuncQuery([this](SQLMsg *msg) { LoadGuildData(msg); },
-			"SELECT master, level, exp, name, skill_point, skill, sp, ladder_point, win, draw, loss, gold FROM guild%s WHERE id = %u", get_table_postfix(), m_data.guild_id);
+	db_manager::instance().func_query([this](ql_msg *msg) { load_guild_data(msg); },
+			"SELECT master, level, exp, name, skill_point, skill, sp, ladder_point, win, draw, loss, gold FROM guild%s WHERE id = %u", get_table_postfix(), data_.guild_id);
 
-	metin2::log::info( "GUILD: loading guild id {:>12} {:d}", m_data.name, guild_id);
+	metin2::log::info( "GUILD: loading guild id {:>12} {:d}", data_.name, guild_id);
 
-	DBManager::instance().FuncQuery([this](SQLMsg *msg) { LoadGuildGradeData(msg); }, 
-			"SELECT grade, name, auth+0 FROM guild_grade%s WHERE guild_id = %u", get_table_postfix(), m_data.guild_id);
+	db_manager::instance().func_query([this](ql_msg *msg) { load_guild_grade_data(msg); }, 
+			"SELECT grade, name, auth+0 FROM guild_grade%s WHERE guild_id = %u", get_table_postfix(), data_.guild_id);
 
-	DBManager::instance().FuncQuery([this](SQLMsg *msg) { LoadGuildMemberData(msg); }, 
+	db_manager::instance().func_query([this](ql_msg *msg) { load_guild_member_data(msg); }, 
 			"SELECT pid, grade, is_general, offer, level, job, name FROM guild_member%s, player%s WHERE guild_id = %u and pid = id", get_table_postfix(), get_table_postfix(), guild_id);
 }
 
-void CGuild::SaveLevel()
+void guild::save_level()
 {
-	DBManager::instance().Query("UPDATE guild%s SET level=%d, exp=%u, skill_point=%d WHERE id = %u", get_table_postfix(), m_data.level,m_data.exp, m_data.skill_point,m_data.guild_id);
+	db_manager::instance().query("UPDATE guild%s SET level=%d, exp=%u, skill_point=%d WHERE id = %u", get_table_postfix(), data_.level,data_.exp, data_.skill_point,data_.guild_id);
 }
 
-void CGuild::SendDBSkillUpdate(int amount)
+void guild::send_db_skill_update(int amount)
 {
-	TPacketGuildSkillUpdate guild_skill;
-	guild_skill.guild_id = m_data.guild_id;
+	packet_guild_skill_update guild_skill;
+	guild_skill.guild_id = data_.guild_id;
 	guild_skill.amount = amount;
-	guild_skill.skill_point = m_data.skill_point;
-	std::memcpy(guild_skill.skill_levels, m_data.abySkill, sizeof(uint8_t) * GUILD_SKILL_COUNT);
+	guild_skill.skill_point = data_.skill_point;
+	std::memcpy(guild_skill.skill_levels, data_.aby_skill, sizeof(uint8_t) * GUILD_SKILL_COUNT);
 
-	db_clientdesc->DBPacket(HEADER_GD_GUILD_SKILL_UPDATE, 0, &guild_skill, sizeof(guild_skill));
+	db_clientdesc->db_packet(HEADER_GD_GUILD_SKILL_UPDATE, 0, &guild_skill, sizeof(guild_skill));
 }
 
-void CGuild::SaveSkill()
+void guild::save_skill()
 {
-	const std::string_view skill(reinterpret_cast<const char *>(m_data.abySkill), sizeof(m_data.abySkill));
-	DBManager::instance().Query(sql::format("UPDATE guild{} SET sp = {}, skill_point={}, skill={} WHERE id = {}",
-			sql::raw(get_table_postfix()), m_data.power, m_data.skill_point, skill, m_data.guild_id));
+	const std::string_view skill(reinterpret_cast<const char *>(data_.aby_skill), sizeof(data_.aby_skill));
+	db_manager::instance().query(sql::format("UPDATE guild{} SET sp = {}, skill_point={}, skill={} WHERE id = {}",
+			sql::raw(get_table_postfix()), data_.power, data_.skill_point, skill, data_.guild_id));
 }
 
-TGuildMember* CGuild::GetMember(uint32_t pid)
+guild_member* guild::member(uint32_t pid)
 {
-	TGuildMemberContainer::iterator it = m_member.find(pid);
-	if (it==m_member.end())
+	guild_member_container::iterator it = member_.find(pid);
+	if (it==member_.end())
 		return nullptr;
 
 	return &it->second;
 }
 
-uint32_t CGuild::GetMemberPID(const std::string& strName)
+uint32_t guild::member_pid(const std::string& strName)
 {
-	for ( TGuildMemberContainer::iterator iter = m_member.begin();
-			iter != m_member.end(); iter++ )
+	for ( guild_member_container::iterator iter = member_.begin();
+			iter != member_.end(); iter++ )
 	{
 		if ( iter->second.name == strName ) return iter->first;
 	}
@@ -672,11 +672,11 @@ uint32_t CGuild::GetMemberPID(const std::string& strName)
 	return 0;
 }
 
-void CGuild::__P2PUpdateGrade(SQLMsg* pmsg)
+void guild::p2_p_update_grade(ql_msg* pmsg)
 {
-	if (pmsg->Get()->uiNumRows)
+	if (pmsg->get()->num_rows)
 	{
-		MYSQL_ROW row = mysql_fetch_row(pmsg->Get()->pSQLResult);
+		MYSQL_ROW row = mysql_fetch_row(pmsg->get()->sql_result);
 
 		int grade = 0;
 		const char* name = row[1];
@@ -691,93 +691,93 @@ void CGuild::__P2PUpdateGrade(SQLMsg* pmsg)
 		grade--;
 
 		// Update if the grade name differs from the current one
-		if (0 != strcmp(m_data.grade_array[grade].grade_name, name))
+		if (0 != strcmp(data_.grade_array[grade].grade_name, name))
 		{
-			strlcpy(m_data.grade_array[grade].grade_name, name, sizeof(m_data.grade_array[grade].grade_name));
+			strlcpy(data_.grade_array[grade].grade_name, name, sizeof(data_.grade_array[grade].grade_name));
 
-			TPacketGCGuild pack;
+			packet_gc_guild pack;
 
 			pack.header = HEADER_GC_GUILD;
 			pack.size = sizeof(pack);
 			pack.subheader = GUILD_SUBHEADER_GC_GRADE_NAME;
 
-			TOneGradeNamePacket pack2;
+			one_grade_name_packet pack2;
 
 			pack.size += sizeof(pack2);
 			pack2.grade = grade + 1;
 			strlcpy(pack2.grade_name, name, sizeof(pack2.grade_name));
 
-			TEMP_BUFFER buf;
+			temp_buffer buf;
 
 			buf.write(&pack,sizeof(pack));
 			buf.write(&pack2,sizeof(pack2));
 
-			for (TGuildMemberOnlineContainer::iterator it = m_memberOnline.begin(); it!=m_memberOnline.end(); ++it)
+			for (guild_member_online_container::iterator it = member_online_.begin(); it!=member_online_.end(); ++it)
 			{
-				DESC * d = (*it)->GetDesc();
+				desc * d = (*it)->get_desc();
 
 				if (d)
-					d->Packet(buf.read_peek(), buf.size());
+					d->packet(buf.read_peek(), buf.size());
 			}
 		}
 
-		if (m_data.grade_array[grade].auth_flag != auth)
+		if (data_.grade_array[grade].auth_flag != auth)
 		{
-			m_data.grade_array[grade].auth_flag = auth;
+			data_.grade_array[grade].auth_flag = auth;
 
-			TPacketGCGuild pack;
+			packet_gc_guild pack;
 			pack.header = HEADER_GC_GUILD;
 			pack.size = sizeof(pack);
 			pack.subheader = GUILD_SUBHEADER_GC_GRADE_AUTH;
 
-			TOneGradeAuthPacket pack2;
+			one_grade_auth_packet pack2;
 			pack.size+=sizeof(pack2);
 			pack2.grade = grade+1;
 			pack2.auth = auth;
 
-			TEMP_BUFFER buf;
+			temp_buffer buf;
 			buf.write(&pack,sizeof(pack));
 			buf.write(&pack2,sizeof(pack2));
 
-			for (TGuildMemberOnlineContainer::iterator it = m_memberOnline.begin(); it!=m_memberOnline.end(); ++it)
+			for (guild_member_online_container::iterator it = member_online_.begin(); it!=member_online_.end(); ++it)
 			{
-				DESC * d = (*it)->GetDesc();
+				desc * d = (*it)->get_desc();
 				if (d)
 				{
-					d->Packet(buf.read_peek(), buf.size());
+					d->packet(buf.read_peek(), buf.size());
 				}
 			}
 		}
 	}
 }
 
-void CGuild::P2PChangeGrade(uint8_t grade)
+void guild::p2_p_change_grade(uint8_t grade)
 {
-	DBManager::instance().FuncQuery([this](SQLMsg *msg) { __P2PUpdateGrade(msg); },
-			"SELECT grade, name, auth+0 FROM guild_grade%s WHERE guild_id = %u and grade = %d", get_table_postfix(), m_data.guild_id, grade);
+	db_manager::instance().func_query([this](ql_msg *msg) { p2_p_update_grade(msg); },
+			"SELECT grade, name, auth+0 FROM guild_grade%s WHERE guild_id = %u and grade = %d", get_table_postfix(), data_.guild_id, grade);
 }
 
 namespace 
 {
-	struct FSendChangeGrade
+	struct f_send_change_grade
 	{
 		uint8_t grade;
-		TPacketGuild p;
+		packet_guild p;
 
-		FSendChangeGrade(uint32_t guild_id, uint8_t grade) : grade(grade)
+		f_send_change_grade(uint32_t guild_id, uint8_t grade) : grade(grade)
 		{
-			p.dwGuild = guild_id;
-			p.dwInfo = grade;
+			p.guild = guild_id;
+			p.info = grade;
 		}
 
 		void operator()()
 		{
-			db_clientdesc->DBPacket(HEADER_GD_GUILD_CHANGE_GRADE, 0, &p, sizeof(p));
+			db_clientdesc->db_packet(HEADER_GD_GUILD_CHANGE_GRADE, 0, &p, sizeof(p));
 		}
 	};
 }
 
-void CGuild::ChangeGradeName(uint8_t grade, const char* grade_name)
+void guild::change_grade_name(uint8_t grade, const char* grade_name)
 {
 	if (grade == 1)
 		return;
@@ -794,35 +794,35 @@ void CGuild::ChangeGradeName(uint8_t grade, const char* grade_name)
 	if (!*grade_name)
 		return;
 
-	DBManager::instance().FuncAfterQuery(FSendChangeGrade(GetID(), grade), sql::format("UPDATE guild_grade{} SET name = {} where guild_id = {} and grade = {}", sql::raw(get_table_postfix()), grade_name, m_data.guild_id, grade));
+	db_manager::instance().func_after_query(f_send_change_grade(id(), grade), sql::format("UPDATE guild_grade{} SET name = {} where guild_id = {} and grade = {}", sql::raw(get_table_postfix()), grade_name, data_.guild_id, grade));
 
 	grade--;
-	strlcpy(m_data.grade_array[grade].grade_name, grade_name, sizeof(m_data.grade_array[grade].grade_name));
+	strlcpy(data_.grade_array[grade].grade_name, grade_name, sizeof(data_.grade_array[grade].grade_name));
 
-	TPacketGCGuild pack;
+	packet_gc_guild pack;
 	pack.header = HEADER_GC_GUILD;
 	pack.size = sizeof(pack);
 	pack.subheader = GUILD_SUBHEADER_GC_GRADE_NAME;
 
-	TOneGradeNamePacket pack2;
+	one_grade_name_packet pack2;
 	pack.size+=sizeof(pack2);
 	pack2.grade = grade+1;
 	strlcpy(pack2.grade_name,grade_name, sizeof(pack2.grade_name));
 
-	TEMP_BUFFER buf;
+	temp_buffer buf;
 	buf.write(&pack,sizeof(pack));
 	buf.write(&pack2,sizeof(pack2));
 
-	for (TGuildMemberOnlineContainer::iterator it = m_memberOnline.begin(); it!=m_memberOnline.end(); ++it)
+	for (guild_member_online_container::iterator it = member_online_.begin(); it!=member_online_.end(); ++it)
 	{
-		DESC * d = (*it)->GetDesc();
+		desc * d = (*it)->get_desc();
 
 		if (d)
-			d->Packet(buf.read_peek(), buf.size());
+			d->packet(buf.read_peek(), buf.size());
 	}
 }
 
-void CGuild::ChangeGradeAuth(uint8_t grade, uint8_t auth)
+void guild::change_grade_auth(uint8_t grade, uint8_t auth)
 {
 	if (grade == 1)
 		return;
@@ -833,256 +833,256 @@ void CGuild::ChangeGradeAuth(uint8_t grade, uint8_t auth)
 		return;
 	}
 
-	DBManager::instance().FuncAfterQuery(FSendChangeGrade(GetID(),grade), "UPDATE guild_grade%s SET auth = %d where guild_id = %u and grade = %d", get_table_postfix(), auth, m_data.guild_id, grade);
+	db_manager::instance().func_after_query(f_send_change_grade(id(),grade), "UPDATE guild_grade%s SET auth = %d where guild_id = %u and grade = %d", get_table_postfix(), auth, data_.guild_id, grade);
 
 	grade--;
 
-	m_data.grade_array[grade].auth_flag=auth;
+	data_.grade_array[grade].auth_flag=auth;
 
-	TPacketGCGuild pack;
+	packet_gc_guild pack;
 	pack.header = HEADER_GC_GUILD;
 	pack.size = sizeof(pack);
 	pack.subheader = GUILD_SUBHEADER_GC_GRADE_AUTH;
 
-	TOneGradeAuthPacket pack2;
+	one_grade_auth_packet pack2;
 	pack.size += sizeof(pack2);
 	pack2.grade = grade + 1;
 	pack2.auth = auth;
 
-	TEMP_BUFFER buf;
+	temp_buffer buf;
 	buf.write(&pack, sizeof(pack));
 	buf.write(&pack2, sizeof(pack2));
 
-	for (TGuildMemberOnlineContainer::iterator it = m_memberOnline.begin(); it != m_memberOnline.end(); ++it)
+	for (guild_member_online_container::iterator it = member_online_.begin(); it != member_online_.end(); ++it)
 	{
-		DESC * d = (*it)->GetDesc();
+		desc * d = (*it)->get_desc();
 
 		if (d)
-			d->Packet(buf.read_peek(), buf.size());
+			d->packet(buf.read_peek(), buf.size());
 	}
 }
 
-void CGuild::SendGuildInfoPacket(CHARACTER * ch)
+void guild::send_guild_info_packet(character * ch)
 {
-	DESC * d = ch->GetDesc();
+	desc * d = ch->get_desc();
 
 	if (!d)
 		return;
 
-	TPacketGCGuild pack;
+	packet_gc_guild pack;
 	pack.header = HEADER_GC_GUILD;
-	pack.size = sizeof(TPacketGCGuild) + sizeof(TPacketGCGuildInfo);
+	pack.size = sizeof(packet_gc_guild) + sizeof(packet_gc_guild_info);
 	pack.subheader = GUILD_SUBHEADER_GC_INFO;
 
-	TPacketGCGuildInfo pack_sub;
+	packet_gc_guild_info pack_sub;
 
-	memset(&pack_sub, 0, sizeof(TPacketGCGuildInfo));
-	pack_sub.member_count = GetMemberCount(); 
-	pack_sub.max_member_count = GetMaxMemberCount();
-	pack_sub.guild_id = m_data.guild_id;
-	pack_sub.master_pid = m_data.master_pid;
-	pack_sub.exp	= m_data.exp;
-	pack_sub.level	= m_data.level;
-	strlcpy(pack_sub.name, m_data.name, sizeof(pack_sub.name));
-	pack_sub.gold	= m_data.gold;
-	pack_sub.has_land	= HasLand();
+	memset(&pack_sub, 0, sizeof(packet_gc_guild_info));
+	pack_sub.member_count = member_count(); 
+	pack_sub.max_member_count = max_member_count();
+	pack_sub.guild_id = data_.guild_id;
+	pack_sub.master_pid = data_.master_pid;
+	pack_sub.exp	= data_.exp;
+	pack_sub.level	= data_.level;
+	strlcpy(pack_sub.name, data_.name, sizeof(pack_sub.name));
+	pack_sub.gold	= data_.gold;
+	pack_sub.has_land	= has_land();
 
-	metin2::log::info( "GMC guild_name {}", m_data.name);
-	metin2::log::info( "GMC master {:d}", m_data.master_pid);
+	metin2::log::info( "GMC guild_name {}", data_.name);
+	metin2::log::info( "GMC master {:d}", data_.master_pid);
 
-	d->BufferedPacket(&pack, sizeof(TPacketGCGuild));
-	d->Packet(&pack_sub, sizeof(TPacketGCGuildInfo));
+	d->buffered_packet(&pack, sizeof(packet_gc_guild));
+	d->packet(&pack_sub, sizeof(packet_gc_guild_info));
 }
 
-bool CGuild::OfferExp(CHARACTER * ch, int amount)
+bool guild::offer_exp(character * ch, int amount)
 {
-	TGuildMemberContainer::iterator cit = m_member.find(ch->GetPlayerID());
+	guild_member_container::iterator cit = member_.find(ch->player_id());
 
-	if (cit == m_member.end())
+	if (cit == member_.end())
 		return false;
 
-	if (m_data.exp+amount < m_data.exp)
+	if (data_.exp+amount < data_.exp)
 		return false;
 
 	if (amount < 0)
 		return false;
 
-	if (ch->GetExp() < (uint32_t) amount)
+	if (ch->get_exp() < (uint32_t) amount)
 	{
-		ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("<길드> 제공하고자 하는 경험치가 남은 경험치보다 많습니다."));
+		ch->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> 제공하고자 하는 경험치가 남은 경험치보다 많습니다."));
 		return false;
 	}
 
-	if (ch->GetExp() - (uint32_t) amount > ch->GetExp())
+	if (ch->get_exp() - (uint32_t) amount > ch->get_exp())
 	{
-		metin2::log::error("Wrong guild offer amount {:d} by {}[{:d}]", amount, ch->GetName(), ch->GetPlayerID());
+		metin2::log::error("Wrong guild offer amount {:d} by {}[{:d}]", amount, ch->name(), ch->player_id());
 		return false;
 	}
 
-	ch->PointChange(POINT_EXP, -amount);
+	ch->point_change(POINT_EXP, -amount);
 
-	TPacketGuildExpUpdate guild_exp;
-	guild_exp.guild_id = GetID();
+	packet_guild_exp_update guild_exp;
+	guild_exp.guild_id = id();
 	guild_exp.amount = amount / 100;
-	db_clientdesc->DBPacket(HEADER_GD_GUILD_EXP_UPDATE, 0, &guild_exp, sizeof(guild_exp));
-	GuildPointChange(POINT_EXP, amount / 100, true);
+	db_clientdesc->db_packet(HEADER_GD_GUILD_EXP_UPDATE, 0, &guild_exp, sizeof(guild_exp));
+	guild_point_change(POINT_EXP, amount / 100, true);
 
 	cit->second.offer_exp += amount / 100;
-	cit->second._dummy = 0;
+	cit->second.dummy = 0;
 
-	TPacketGCGuild pack;
+	packet_gc_guild pack;
 	pack.header = HEADER_GC_GUILD;
 
-	for (TGuildMemberOnlineContainer::iterator it = m_memberOnline.begin(); it != m_memberOnline.end(); ++it)
+	for (guild_member_online_container::iterator it = member_online_.begin(); it != member_online_.end(); ++it)
 	{
-		DESC * d = (*it)->GetDesc();
+		desc * d = (*it)->get_desc();
 		if (d)
 		{
 			pack.subheader = GUILD_SUBHEADER_GC_LIST;
 			pack.size = sizeof(pack) + 13;
-			d->BufferedPacket(&pack, sizeof(pack));
-			d->Packet(&(cit->second), sizeof(uint32_t) * 3 + 1);
+			d->buffered_packet(&pack, sizeof(pack));
+			d->packet(&(cit->second), sizeof(uint32_t) * 3 + 1);
 		}
 	}
 
-	SaveMember(ch->GetPlayerID());
+	save_member(ch->player_id());
 
-	TPacketGuildChangeMemberData gd_guild;
+	packet_guild_change_member_data gd_guild;
 
-	gd_guild.guild_id = GetID();
-	gd_guild.pid = ch->GetPlayerID();
+	gd_guild.guild_id = id();
+	gd_guild.pid = ch->player_id();
 	gd_guild.offer = cit->second.offer_exp;
-	gd_guild.level = ch->GetLevel();
+	gd_guild.level = ch->level();
 	gd_guild.grade = cit->second.grade;
 
-	db_clientdesc->DBPacket(HEADER_GD_GUILD_CHANGE_MEMBER_DATA, 0, &gd_guild, sizeof(gd_guild));
+	db_clientdesc->db_packet(HEADER_GD_GUILD_CHANGE_MEMBER_DATA, 0, &gd_guild, sizeof(gd_guild));
 	return true;
 }
 
-void CGuild::Disband()
+void guild::disband()
 {
-	metin2::log::info( "GUILD: Disband {}:{:d}", GetName(), GetID());
+	metin2::log::info( "GUILD: Disband {}:{:d}", name(), id());
 
-	for (TGuildMemberOnlineContainer::iterator it = m_memberOnline.begin(); it != m_memberOnline.end(); ++it)
+	for (guild_member_online_container::iterator it = member_online_.begin(); it != member_online_.end(); ++it)
 	{
-		CHARACTER * ch = *it;
-		ch->SetGuild(nullptr);
-		SendOnlineRemoveOnePacket(ch->GetPlayerID());
-		ch->SetQuestFlag("guild_building.new_withdraw_time", get_global_time());
+		character * ch = *it;
+		ch->set_guild(nullptr);
+		send_online_remove_one_packet(ch->player_id());
+		ch->set_quest_flag("guild_building.new_withdraw_time", get_global_time());
 	}
 
-	for (TGuildMemberContainer::iterator it = m_member.begin(); it != m_member.end(); ++it)
+	for (guild_member_container::iterator it = member_.begin(); it != member_.end(); ++it)
 	{
-		CGuildManager::instance().Unlink(it->first);
+		guild_manager::instance().unlink(it->first);
 	}
 
 }
 
-void CGuild::RequestDisband(uint32_t pid)
+void guild::request_disband(uint32_t pid)
 {
-	if (m_data.master_pid != pid)
+	if (data_.master_pid != pid)
 		return;
 
-	TPacketGuild gd_guild;
-	gd_guild.dwGuild = GetID();
-	gd_guild.dwInfo = 0;
-	db_clientdesc->DBPacket(HEADER_GD_GUILD_DISBAND, 0, &gd_guild, sizeof(TPacketGuild));
+	packet_guild gd_guild;
+	gd_guild.guild = id();
+	gd_guild.info = 0;
+	db_clientdesc->db_packet(HEADER_GD_GUILD_DISBAND, 0, &gd_guild, sizeof(packet_guild));
 
 	// LAND_CLEAR
-	building::CManager::instance().ClearLandByGuildID(GetID());
+	building::manager::instance().clear_land_by_guild_id(id());
 	// END_LAND_CLEAR
 }
 
-void CGuild::AddComment(CHARACTER * ch, const std::string& str)
+void guild::add_comment(character * ch, const std::string& str)
 {
 	if (str.length() > GUILD_COMMENT_MAX_LEN || str.length() == 0)
 		return;
 
-	if (ch->IncreaseChatCounter() >= 2) // Guild Comment Flood Exploit fix
+	if (ch->increase_chat_counter() >= 2) // Guild Comment Flood Exploit fix
 	{
-		ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("퀘스트를 로드하는 중입니다. 잠시만 기다려 주십시오."));
+		ch->chat_packet(CHAT_TYPE_INFO, lc_text("퀘스트를 로드하는 중입니다. 잠시만 기다려 주십시오."));
 		return;
 	}
 
-	DBManager::instance().FuncAfterQuery([this, pid = ch->GetPlayerID()] { RefreshCommentForce(pid); },
+	db_manager::instance().func_after_query([this, pid = ch->player_id()] { refresh_comment_force(pid); },
 			sql::format("INSERT INTO guild_comment{}(guild_id, name, notice, content, time) VALUES({}, {}, {}, {}, NOW())", 
-			sql::raw(get_table_postfix()), m_data.guild_id, ch->GetName(), (str[0] == '!') ? 1 : 0, str));
+			sql::raw(get_table_postfix()), data_.guild_id, ch->name(), (str[0] == '!') ? 1 : 0, str));
 }
 
-void CGuild::DeleteComment(CHARACTER * ch, uint32_t comment_id)
+void guild::delete_comment(character * ch, uint32_t comment_id)
 {
-	std::unique_ptr<SQLMsg> pmsg;
+	std::unique_ptr<ql_msg> pmsg;
 
-	if (GetMember(ch->GetPlayerID())->grade == GUILD_LEADER_GRADE)
-		pmsg.reset(DBManager::instance().DirectQuery(sql::format("DELETE FROM guild_comment{} WHERE id = {} AND guild_id = {}",sql::raw(get_table_postfix()), comment_id, m_data.guild_id)));
+	if (member(ch->player_id())->grade == GUILD_LEADER_GRADE)
+		pmsg.reset(db_manager::instance().direct_query(sql::format("DELETE FROM guild_comment{} WHERE id = {} AND guild_id = {}",sql::raw(get_table_postfix()), comment_id, data_.guild_id)));
 	else
-		pmsg.reset(DBManager::instance().DirectQuery(sql::format("DELETE FROM guild_comment{} WHERE id = {} AND guild_id = {} AND name = {}",sql::raw(get_table_postfix()), comment_id, m_data.guild_id, ch->GetName())));
+		pmsg.reset(db_manager::instance().direct_query(sql::format("DELETE FROM guild_comment{} WHERE id = {} AND guild_id = {} AND name = {}",sql::raw(get_table_postfix()), comment_id, data_.guild_id, ch->name())));
 
-	if (pmsg->Get()->uiAffectedRows == 0 || pmsg->Get()->uiAffectedRows == (uint32_t)-1)
-		ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("<길드> 삭제할 수 없는 글입니다."));
+	if (pmsg->get()->affected_rows == 0 || pmsg->get()->affected_rows == (uint32_t)-1)
+		ch->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> 삭제할 수 없는 글입니다."));
 	else
-		RefreshCommentForce(ch->GetPlayerID());
+		refresh_comment_force(ch->player_id());
 }
 
-void CGuild::RefreshComment(CHARACTER * ch)
+void guild::refresh_comment(character * ch)
 {
-	RefreshCommentForce(ch->GetPlayerID());
+	refresh_comment_force(ch->player_id());
 }
 
-void CGuild::RefreshCommentForce(uint32_t player_id)
+void guild::refresh_comment_force(uint32_t player_id)
 {
-	CHARACTER * ch = CHARACTER_MANAGER::instance().FindByPID(player_id);
+	character * ch = character_manager::instance().find_by_pid(player_id);
 	if (ch == nullptr) {
 		return;
 	}
 
-	std::unique_ptr<SQLMsg> pmsg (DBManager::instance().DirectQuery("SELECT id, name, content FROM guild_comment%s WHERE guild_id = %u ORDER BY notice DESC, id DESC LIMIT %d", get_table_postfix(), m_data.guild_id, GUILD_COMMENT_MAX_COUNT));
+	std::unique_ptr<ql_msg> pmsg (db_manager::instance().direct_query("SELECT id, name, content FROM guild_comment%s WHERE guild_id = %u ORDER BY notice DESC, id DESC LIMIT %d", get_table_postfix(), data_.guild_id, GUILD_COMMENT_MAX_COUNT));
 
-	TPacketGCGuild pack;
+	packet_gc_guild pack;
 	pack.header = HEADER_GC_GUILD;
 	pack.size = sizeof(pack)+1;
 	pack.subheader = GUILD_SUBHEADER_GC_COMMENTS;
 
-	uint8_t count = pmsg->Get()->uiNumRows;
+	uint8_t count = pmsg->get()->num_rows;
 
-	DESC * d = ch->GetDesc();
+	desc * d = ch->get_desc();
 
 	if (!d) 
 		return;
 
 	pack.size += (sizeof(uint32_t)+CHARACTER_NAME_MAX_LEN+1+GUILD_COMMENT_MAX_LEN+1)*(uint16_t)count;
-	d->BufferedPacket(&pack,sizeof(pack));
-	d->BufferedPacket(&count, 1);
+	d->buffered_packet(&pack,sizeof(pack));
+	d->buffered_packet(&count, 1);
 	char szName[CHARACTER_NAME_MAX_LEN + 1];
 	char szContent[GUILD_COMMENT_MAX_LEN + 1];
 	memset(szName, 0, sizeof(szName));
 	memset(szContent, 0, sizeof(szContent));
 
-	for (uint i = 0; i < pmsg->Get()->uiNumRows; i++)
+	for (uint i = 0; i < pmsg->get()->num_rows; i++)
 	{
-		MYSQL_ROW row = mysql_fetch_row(pmsg->Get()->pSQLResult);
+		MYSQL_ROW row = mysql_fetch_row(pmsg->get()->sql_result);
 		uint32_t id = strtoul(row[0], nullptr, 10);
 
 		strlcpy(szName, row[1], sizeof(szName));
 		strlcpy(szContent, row[2], sizeof(szContent));
 
-		d->BufferedPacket(&id, sizeof(id));
-		d->BufferedPacket(szName, sizeof(szName));
+		d->buffered_packet(&id, sizeof(id));
+		d->buffered_packet(szName, sizeof(szName));
 
-		if (i == pmsg->Get()->uiNumRows - 1)
-			d->Packet(szContent, sizeof(szContent)); // Send if it's the last line
+		if (i == pmsg->get()->num_rows - 1)
+			d->packet(szContent, sizeof(szContent)); // Send if it's the last line
 		else
-			d->BufferedPacket(szContent, sizeof(szContent));
+			d->buffered_packet(szContent, sizeof(szContent));
 	}
 }
 
-bool CGuild::ChangeMemberGeneral(uint32_t pid, uint8_t is_general)
+bool guild::change_member_general(uint32_t pid, uint8_t is_general)
 {
-	if (is_general && GetGeneralCount() >= GetMaxGeneralCount())
+	if (is_general && general_count() >= max_general_count())
 		return false;
 
-	TGuildMemberContainer::iterator it = m_member.find(pid);
-	if (it == m_member.end())
+	guild_member_container::iterator it = member_.find(pid);
+	if (it == member_.end())
 	{
 		return true;
 	}
@@ -1093,36 +1093,36 @@ bool CGuild::ChangeMemberGeneral(uint32_t pid, uint8_t is_general)
 		return true;
 
 	if (is_general)
-		++m_general_count;
+		++general_count_;
 	else
-		--m_general_count;
+		--general_count_;
 
 	it->second.is_general = is_general;
 
-	TGuildMemberOnlineContainer::iterator itOnline = m_memberOnline.begin();
+	guild_member_online_container::iterator itOnline = member_online_.begin();
 
-	TPacketGCGuild pack;
+	packet_gc_guild pack;
 	pack.header = HEADER_GC_GUILD;
 	pack.size = sizeof(pack)+5;
 	pack.subheader = GUILD_SUBHEADER_GC_CHANGE_MEMBER_GENERAL;
 
-	while (itOnline != m_memberOnline.end())
+	while (itOnline != member_online_.end())
 	{
-		DESC * d = (*(itOnline++))->GetDesc();
+		desc * d = (*(itOnline++))->get_desc();
 
 		if (!d)
 			continue;
 
-		d->BufferedPacket(&pack, sizeof(pack));
-		d->BufferedPacket(&pid, sizeof(pid));
-		d->Packet(&is_general, sizeof(is_general));
+		d->buffered_packet(&pack, sizeof(pack));
+		d->buffered_packet(&pid, sizeof(pid));
+		d->packet(&is_general, sizeof(is_general));
 	}
 
-	SaveMember(pid);
+	save_member(pid);
 	return true;
 }
 
-void CGuild::ChangeMemberGrade(uint32_t pid, uint8_t grade)
+void guild::change_member_grade(uint32_t pid, uint8_t grade)
 {
 	if (grade == 1)
 		return;
@@ -1134,53 +1134,53 @@ void CGuild::ChangeMemberGrade(uint32_t pid, uint8_t grade)
 		return;
 	}
 
-	TGuildMemberContainer::iterator it = m_member.find(pid);
+	guild_member_container::iterator it = member_.find(pid);
 
-	if (it == m_member.end())
+	if (it == member_.end())
 		return;
 
 	it->second.grade = grade;
 
-	TGuildMemberOnlineContainer::iterator itOnline = m_memberOnline.begin();
+	guild_member_online_container::iterator itOnline = member_online_.begin();
 
-	TPacketGCGuild pack;
+	packet_gc_guild pack;
 	pack.header = HEADER_GC_GUILD;
 	pack.size = sizeof(pack)+5;
 	pack.subheader = GUILD_SUBHEADER_GC_CHANGE_MEMBER_GRADE;
 
-	while (itOnline != m_memberOnline.end())
+	while (itOnline != member_online_.end())
 	{
-		DESC * d = (*(itOnline++))->GetDesc();
+		desc * d = (*(itOnline++))->get_desc();
 
 		if (!d)
 			continue;
 
-		d->BufferedPacket(&pack, sizeof(pack));
-		d->BufferedPacket(&pid, sizeof(pid));
-		d->Packet(&grade, sizeof(grade));
+		d->buffered_packet(&pack, sizeof(pack));
+		d->buffered_packet(&pid, sizeof(pid));
+		d->packet(&grade, sizeof(grade));
 	}
 
-	SaveMember(pid);
+	save_member(pid);
 
-	TPacketGuildChangeMemberData gd_guild;
+	packet_guild_change_member_data gd_guild;
 
-	gd_guild.guild_id = GetID();
+	gd_guild.guild_id = id();
 	gd_guild.pid = pid;
 	gd_guild.offer = it->second.offer_exp;
 	gd_guild.level = it->second.level;
 	gd_guild.grade = grade;
 
-	db_clientdesc->DBPacket(HEADER_GD_GUILD_CHANGE_MEMBER_DATA, 0, &gd_guild, sizeof(gd_guild));
+	db_clientdesc->db_packet(HEADER_GD_GUILD_CHANGE_MEMBER_DATA, 0, &gd_guild, sizeof(gd_guild));
 }
 
-void CGuild::SkillLevelUp(uint32_t dwVnum)
+void guild::skill_level_up(uint32_t dwVnum)
 {
 	uint32_t dwRealVnum = dwVnum - GUILD_SKILL_START;
 
 	if (dwRealVnum >= GUILD_SKILL_COUNT)
 		return;
 
-	CSkillProto* pkSk = CSkillManager::instance().Get(dwVnum);
+	skill_proto* pkSk = skill_manager::instance().get(dwVnum);
 
 	if (!pkSk)
 	{
@@ -1188,42 +1188,42 @@ void CGuild::SkillLevelUp(uint32_t dwVnum)
 		return;
 	}
 
-	if (m_data.abySkill[dwRealVnum] >= pkSk->bMaxLevel)
+	if (data_.aby_skill[dwRealVnum] >= pkSk->max_level)
 		return;
 
-	if (m_data.skill_point <= 0)
+	if (data_.skill_point <= 0)
 		return;
-	m_data.skill_point --;
+	data_.skill_point --;
 
-	m_data.abySkill[dwRealVnum] ++;
+	data_.aby_skill[dwRealVnum] ++;
 
-	ComputeGuildPoints();
-	SaveSkill();
-	SendDBSkillUpdate();
+	compute_guild_points();
+	save_skill();
+	send_db_skill_update();
 
-	std::for_each(m_memberOnline.begin(), m_memberOnline.end(), std::bind(&CGuild::SendSkillInfoPacket, this, std::placeholders::_1));
+	std::for_each(member_online_.begin(), member_online_.end(), std::bind(&guild::send_skill_info_packet, this, std::placeholders::_1));
 
-	metin2::log::info( "Guild SkillUp: {} {:d} level {:d} type {:d}", GetName(), pkSk->dwVnum, m_data.abySkill[dwRealVnum], pkSk->dwType);
+	metin2::log::info( "Guild SkillUp: {} {:d} level {:d} type {:d}", name(), pkSk->vnum, data_.aby_skill[dwRealVnum], pkSk->type);
 }
 
-void CGuild::UseSkill(uint32_t dwVnum, CHARACTER * ch, uint32_t pid)
+void guild::use_skill(uint32_t dwVnum, character * ch, uint32_t pid)
 {
-	CHARACTER * victim = nullptr;
+	character * victim = nullptr;
 
-	if (!GetMember(ch->GetPlayerID()) || !HasGradeAuth(GetMember(ch->GetPlayerID())->grade, GUILD_AUTH_USE_SKILL))
+	if (!member(ch->player_id()) || !has_grade_auth(member(ch->player_id())->grade, GUILD_AUTH_USE_SKILL))
 		return;
 
-	metin2::log::info("GUILD_USE_SKILL : cname({}), skill({:d})", ch ? ch->GetName() : "", dwVnum);
+	metin2::log::info("GUILD_USE_SKILL : cname({}), skill({:d})", ch ? ch->name() : "", dwVnum);
 
 	uint32_t dwRealVnum = dwVnum - GUILD_SKILL_START;
 
-	if (!ch->CanMove())
+	if (!ch->can_move())
 		return;
 
 	if (dwRealVnum >= GUILD_SKILL_COUNT)
 		return;
 
-	CSkillProto* pkSk = CSkillManager::instance().Get(dwVnum);
+	skill_proto* pkSk = skill_manager::instance().get(dwVnum);
 
 	if (!pkSk)
 	{
@@ -1231,389 +1231,389 @@ void CGuild::UseSkill(uint32_t dwVnum, CHARACTER * ch, uint32_t pid)
 		return;
 	}
 
-	if (m_data.abySkill[dwRealVnum] == 0)
+	if (data_.aby_skill[dwRealVnum] == 0)
 		return;
 
-	if ((pkSk->dwFlag & SKILL_FLAG_SELFONLY))
+	if ((pkSk->flag & SKILL_FLAG_SELFONLY))
 	{
 		// Already applied, so not used.
-		if (ch->FindAffect(pkSk->dwVnum))
+		if (ch->find_affect(pkSk->vnum))
 			return;
 
 		victim = ch;
 	}
 
-	if (ch->IsAffectFlag(AFF_REVIVE_INVISIBLE))
-		ch->RemoveAffect(AFFECT_REVIVE_INVISIBLE);
+	if (ch->is_affect_flag(AFF_REVIVE_INVISIBLE))
+		ch->remove_affect(AFFECT_REVIVE_INVISIBLE);
 
-	if (ch->IsAffectFlag(AFF_EUNHYUNG))
-		ch->RemoveAffect(SKILL_EUNHYUNG);
+	if (ch->is_affect_flag(AFF_EUNHYUNG))
+		ch->remove_affect(SKILL_EUNHYUNG);
 
-	double k =1.0*m_data.abySkill[dwRealVnum]/pkSk->bMaxLevel;
-	pkSk->kSPCostPoly.SetVar("k", k);
-	int iNeededSP = (int) pkSk->kSPCostPoly.Eval();
+	double k =1.0*data_.aby_skill[dwRealVnum]/pkSk->max_level;
+	pkSk->sp_cost_poly.set_var("k", k);
+	int iNeededSP = (int) pkSk->sp_cost_poly.eval();
 
-	if (GetSP() < iNeededSP)
+	if (sp() < iNeededSP)
 	{
-		ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("<길드> 용신력이 부족합니다. (%d, %d)"), GetSP(), iNeededSP);
+		ch->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> 용신력이 부족합니다. (%d, %d)"), sp(), iNeededSP);
 		return;
 	}
 
-	pkSk->kCooldownPoly.SetVar("k", k);
-	int iCooltime = (int) pkSk->kCooldownPoly.Eval();
+	pkSk->cooldown_poly.set_var("k", k);
+	int iCooltime = (int) pkSk->cooldown_poly.eval();
 
-	if (!abSkillUsable[dwRealVnum])
+	if (!skill_usable_[dwRealVnum])
 	{
-		ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("<길드> 쿨타임이 끝나지 않아 길드 스킬을 사용할 수 없습니다."));
+		ch->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> 쿨타임이 끝나지 않아 길드 스킬을 사용할 수 없습니다."));
 		return;
 	}
 
 	{
-		TPacketGuildUseSkill p;
-		p.dwGuild = GetID();
-		p.dwSkillVnum = pkSk->dwVnum;
-		p.dwCooltime = iCooltime;
-		db_clientdesc->DBPacket(HEADER_GD_GUILD_USE_SKILL, 0, &p, sizeof(p));
+		packet_guild_use_skill p;
+		p.guild = id();
+		p.skill_vnum = pkSk->vnum;
+		p.cooltime = iCooltime;
+		db_clientdesc->db_packet(HEADER_GD_GUILD_USE_SKILL, 0, &p, sizeof(p));
 	}
-	abSkillUsable[dwRealVnum] = false;
+	skill_usable_[dwRealVnum] = false;
 
 	if (metin2::config::test_server())
-		ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("<길드> %d 스킬을 사용함 (%d, %d) to %u"), dwVnum, GetSP(), iNeededSP, pid);
+		ch->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> %d 스킬을 사용함 (%d, %d) to %u"), dwVnum, sp(), iNeededSP, pid);
 
 	switch (dwVnum)
 	{
 		case GUILD_SKILL_TELEPORT:
 			// Try people on the current server first.
-			SendDBSkillUpdate(-iNeededSP);
-			if ((victim = (CHARACTER_MANAGER::instance().FindByPID(pid))))
-				ch->WarpSet(victim->GetX(), victim->GetY());
+			send_db_skill_update(-iNeededSP);
+			if ((victim = (character_manager::instance().find_by_pid(pid))))
+				ch->warp_set(victim->x(), victim->y());
 			else
 			{
-				if (m_memberP2POnline.find(pid) != m_memberP2POnline.end())
+				if (member_p2_p_online_.find(pid) != member_p2_p_online_.end())
 				{
 					// Someone is logged in on another server -> send a message to get the coordinates
 					// 1. Broadcast A.pid, B.pid
 					// 2. The server with B.pid sends A.pid and the coordinates to the broadcasting server
 					// 3. Warp
-					CCI * pcci = P2P_MANAGER::instance().FindByPID(pid);
+					cci * pcci = p2_p_manager::instance().find_by_pid(pid);
 
-					if (pcci->bChannel != metin2::config::server().channel)
+					if (pcci->channel != metin2::config::server().channel)
 					{
-						ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("<길드> 상대가 %d 채널에 있습니다. (현재 채널 %d)"), pcci->bChannel, metin2::config::server().channel);
+						ch->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> 상대가 %d 채널에 있습니다. (현재 채널 %d)"), pcci->channel, metin2::config::server().channel);
 					}
 					else
 					{
-						TPacketGGFindPosition p;
+						packet_gg_find_position p;
 						p.header = HEADER_GG_FIND_POSITION;
-						p.dwFromPID = ch->GetPlayerID();
-						p.dwTargetPID = pid;
-						pcci->pkDesc->Packet(&p, sizeof(TPacketGGFindPosition));
-						if (metin2::config::test_server()) ch->ChatPacket(CHAT_TYPE_PARTY, "sent find position packet for guild teleport");
+						p.from_pid = ch->player_id();
+						p.target_pid = pid;
+						pcci->desc->packet(&p, sizeof(packet_gg_find_position));
+						if (metin2::config::test_server()) ch->chat_packet(CHAT_TYPE_PARTY, "sent find position packet for guild teleport");
 					}
 				}
 				else
-					ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("<길드> 상대가 온라인 상태가 아닙니다."));
+					ch->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> 상대가 온라인 상태가 아닙니다."));
 			}
 			break;
 
 		default:
 			{
 
-				if (!UnderAnyWar())
+				if (!under_any_war())
 				{
-					ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("<길드> 길드 스킬은 길드전 중에만 사용할 수 있습니다."));
+					ch->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> 길드 스킬은 길드전 중에만 사용할 수 있습니다."));
 					return;
 				}
 
-				SendDBSkillUpdate(-iNeededSP);
+				send_db_skill_update(-iNeededSP);
 
-				for (auto it = m_memberOnline.begin(); it != m_memberOnline.end(); ++it)
+				for (auto it = member_online_.begin(); it != member_online_.end(); ++it)
 				{
-					CHARACTER * victim = *it;
-					victim->RemoveAffect(dwVnum);
-					ch->ComputeSkill(dwVnum, victim, m_data.abySkill[dwRealVnum]);
+					character * victim = *it;
+					victim->remove_affect(dwVnum);
+					ch->compute_skill(dwVnum, victim, data_.aby_skill[dwRealVnum]);
 				}
 			}
 			break;
 	}
 }
 
-void CGuild::SendSkillInfoPacket(CHARACTER * ch) const
+void guild::send_skill_info_packet(character * ch) const
 {
-	DESC * d = ch->GetDesc();
+	desc * d = ch->get_desc();
 
 	if (!d)
 		return;
 
-	TPacketGCGuild pack;
+	packet_gc_guild pack;
 
 	pack.header		= HEADER_GC_GUILD;
 	pack.size		= sizeof(pack) + 6 + GUILD_SKILL_COUNT;
 	pack.subheader	= GUILD_SUBHEADER_GC_SKILL_INFO;
 
-	d->BufferedPacket(&pack, sizeof(pack));
-	d->BufferedPacket(&m_data.skill_point,	1);
-	d->BufferedPacket(&m_data.abySkill,		GUILD_SKILL_COUNT);
-	d->BufferedPacket(&m_data.power,		2);
-	d->Packet(&m_data.max_power,	2);
+	d->buffered_packet(&pack, sizeof(pack));
+	d->buffered_packet(&data_.skill_point,	1);
+	d->buffered_packet(&data_.aby_skill,		GUILD_SKILL_COUNT);
+	d->buffered_packet(&data_.power,		2);
+	d->packet(&data_.max_power,	2);
 }
 
-void CGuild::ComputeGuildPoints()
+void guild::compute_guild_points()
 {
-	m_data.max_power = GUILD_BASE_POWER + (m_data.level-1) * GUILD_POWER_PER_LEVEL;
+	data_.max_power = GUILD_BASE_POWER + (data_.level-1) * GUILD_POWER_PER_LEVEL;
 
-	m_data.power = std::clamp(m_data.power, 0, m_data.max_power);
+	data_.power = std::clamp(data_.power, 0, data_.max_power);
 }
 
-int CGuild::GetSkillLevel(uint32_t vnum)
+int guild::skill_level(uint32_t vnum)
 {
 	uint32_t dwRealVnum = vnum - GUILD_SKILL_START;
 
 	if (dwRealVnum >= GUILD_SKILL_COUNT)
 		return 0;
 
-	return m_data.abySkill[dwRealVnum];
+	return data_.aby_skill[dwRealVnum];
 }
 
-void CGuild::UpdateSkill(uint8_t skill_point, uint8_t* skill_levels)
+void guild::update_skill(uint8_t skill_point, uint8_t* skill_levels)
 {
 
-	m_data.skill_point = skill_point;
+	data_.skill_point = skill_point;
 
-	std::memcpy(m_data.abySkill, skill_levels, sizeof(uint8_t) * GUILD_SKILL_COUNT);
-	ComputeGuildPoints();
+	std::memcpy(data_.aby_skill, skill_levels, sizeof(uint8_t) * GUILD_SKILL_COUNT);
+	compute_guild_points();
 }
 
-static uint32_t __guild_levelup_exp(int level)
+static uint32_t guild_levelup_exp(int level)
 {
 	return guild_exp_table2[level];
 }
 
-void CGuild::GuildPointChange(uint8_t type, int amount, bool save)
+void guild::guild_point_change(uint8_t type, int amount, bool save)
 {
 	switch (type)
 	{
 		case POINT_SP:
-			m_data.power += amount;
+			data_.power += amount;
 
-			m_data.power = std::clamp(m_data.power, 0, m_data.max_power);
+			data_.power = std::clamp(data_.power, 0, data_.max_power);
 
 			if (save)
 			{
-				SaveSkill();
+				save_skill();
 			}
 
-			for_each(m_memberOnline.begin(), m_memberOnline.end(), std::bind(&CGuild::SendSkillInfoPacket, this, std::placeholders::_1));
+			for_each(member_online_.begin(), member_online_.end(), std::bind(&guild::send_skill_info_packet, this, std::placeholders::_1));
 			break;
 
 		case POINT_EXP:
-			if (amount < 0 && m_data.exp < (uint32_t) - amount)
+			if (amount < 0 && data_.exp < (uint32_t) - amount)
 			{
-				m_data.exp = 0;
+				data_.exp = 0;
 			}
 			else
 			{
-				m_data.exp += amount;
+				data_.exp += amount;
 
-				while (m_data.exp >= __guild_levelup_exp(m_data.level))
+				while (data_.exp >= guild_levelup_exp(data_.level))
 				{
 
-					if (m_data.level < GUILD_MAX_LEVEL)
+					if (data_.level < GUILD_MAX_LEVEL)
 					{
-						m_data.exp -= __guild_levelup_exp(m_data.level);
-						++m_data.level;
-						++m_data.skill_point;
+						data_.exp -= guild_levelup_exp(data_.level);
+						++data_.level;
+						++data_.skill_point;
 
-						if (m_data.level > GUILD_MAX_LEVEL)
-							m_data.level = GUILD_MAX_LEVEL;
+						if (data_.level > GUILD_MAX_LEVEL)
+							data_.level = GUILD_MAX_LEVEL;
 
-						ComputeGuildPoints();
-						GuildPointChange(POINT_SP, m_data.max_power-m_data.power);
+						compute_guild_points();
+						guild_point_change(POINT_SP, data_.max_power-data_.power);
 
 						if (save)
-							ChangeLadderPoint(GUILD_LADDER_POINT_PER_LEVEL);
+							change_ladder_point(GUILD_LADDER_POINT_PER_LEVEL);
 
 						// NOTIFY_GUILD_EXP_CHANGE
-						for_each(m_memberOnline.begin(), m_memberOnline.end(), std::bind(&CGuild::SendGuildInfoPacket, this, std::placeholders::_1));
+						for_each(member_online_.begin(), member_online_.end(), std::bind(&guild::send_guild_info_packet, this, std::placeholders::_1));
 						// END_OF_NOTIFY_GUILD_EXP_CHANGE
 					}
 
-					if (m_data.level == GUILD_MAX_LEVEL)
+					if (data_.level == GUILD_MAX_LEVEL)
 					{
-						m_data.exp = 0;
+						data_.exp = 0;
 					}
 				}
 			}
 
-			TPacketGCGuild pack;
+			packet_gc_guild pack;
 			pack.header = HEADER_GC_GUILD;
 			pack.size = sizeof(pack)+5;
 			pack.subheader = GUILD_SUBHEADER_GC_CHANGE_EXP;
 
-			TEMP_BUFFER buf;
+			temp_buffer buf;
 			buf.write(&pack,sizeof(pack));
-			buf.write(&m_data.level,1);
-			buf.write(&m_data.exp,4);
+			buf.write(&data_.level,1);
+			buf.write(&data_.exp,4);
 
-			for (TGuildMemberOnlineContainer::iterator it = m_memberOnline.begin(); it != m_memberOnline.end(); ++it)
+			for (guild_member_online_container::iterator it = member_online_.begin(); it != member_online_.end(); ++it)
 			{
-				DESC * d = (*it)->GetDesc();
+				desc * d = (*it)->get_desc();
 
 				if (d)
-					d->Packet(buf.read_peek(), buf.size());
+					d->packet(buf.read_peek(), buf.size());
 			}
 
 			if (save)
-				SaveLevel();
+				save_level();
 
 			break;
 	}
 }
 
-void CGuild::SkillRecharge()
+void guild::skill_recharge()
 {
 }
 
-void CGuild::SaveMember(uint32_t pid)
+void guild::save_member(uint32_t pid)
 {
-	TGuildMemberContainer::iterator it = m_member.find(pid);
+	guild_member_container::iterator it = member_.find(pid);
 
-	if (it == m_member.end())
+	if (it == member_.end())
 		return;
 
-	DBManager::instance().Query(
+	db_manager::instance().query(
 			"UPDATE guild_member%s SET grade = %d, offer = %u, is_general = %d WHERE pid = %u and guild_id = %u",
-			get_table_postfix(), it->second.grade, it->second.offer_exp, it->second.is_general, pid, m_data.guild_id);
+			get_table_postfix(), it->second.grade, it->second.offer_exp, it->second.is_general, pid, data_.guild_id);
 }
 
-void CGuild::LevelChange(uint32_t pid, uint8_t level)
+void guild::level_change(uint32_t pid, uint8_t level)
 {
-	TGuildMemberContainer::iterator cit = m_member.find(pid);
+	guild_member_container::iterator cit = member_.find(pid);
 
-	if (cit == m_member.end())
+	if (cit == member_.end())
 		return;
 
 	cit->second.level = level;
 
-	TPacketGuildChangeMemberData gd_guild;
+	packet_guild_change_member_data gd_guild;
 
-	gd_guild.guild_id = GetID();
+	gd_guild.guild_id = id();
 	gd_guild.pid = pid;
 	gd_guild.offer = cit->second.offer_exp;
 	gd_guild.grade = cit->second.grade;
 	gd_guild.level = level;
 
-	db_clientdesc->DBPacket(HEADER_GD_GUILD_CHANGE_MEMBER_DATA, 0, &gd_guild, sizeof(gd_guild));
+	db_clientdesc->db_packet(HEADER_GD_GUILD_CHANGE_MEMBER_DATA, 0, &gd_guild, sizeof(gd_guild));
 
-	TPacketGCGuild pack;
+	packet_gc_guild pack;
 	pack.header = HEADER_GC_GUILD;
-	cit->second._dummy = 0;
+	cit->second.dummy = 0;
 
-	for (TGuildMemberOnlineContainer::iterator it = m_memberOnline.begin(); it != m_memberOnline.end(); ++it)
+	for (guild_member_online_container::iterator it = member_online_.begin(); it != member_online_.end(); ++it)
 	{
-		DESC * d = (*it)->GetDesc();
+		desc * d = (*it)->get_desc();
 
 		if (d)
 		{
 			pack.subheader = GUILD_SUBHEADER_GC_LIST;
 			pack.size = sizeof(pack) + 13;
-			d->BufferedPacket(&pack, sizeof(pack));
-			d->Packet(&(cit->second), sizeof(uint32_t) * 3 + 1);
+			d->buffered_packet(&pack, sizeof(pack));
+			d->packet(&(cit->second), sizeof(uint32_t) * 3 + 1);
 		}
 	}
 }
 
-void CGuild::ChangeMemberData(uint32_t pid, uint32_t offer, uint8_t level, uint8_t grade)
+void guild::change_member_data(uint32_t pid, uint32_t offer, uint8_t level, uint8_t grade)
 {
-	TGuildMemberContainer::iterator cit = m_member.find(pid);
+	guild_member_container::iterator cit = member_.find(pid);
 
-	if (cit == m_member.end())
+	if (cit == member_.end())
 		return;
 
 	cit->second.offer_exp = offer;
 	cit->second.level = level;
 	cit->second.grade = grade;
-	cit->second._dummy = 0;
+	cit->second.dummy = 0;
 
-	TPacketGCGuild pack;
+	packet_gc_guild pack;
 	memset(&pack, 0, sizeof(pack));
 	pack.header = HEADER_GC_GUILD;
 
-	for (TGuildMemberOnlineContainer::iterator it = m_memberOnline.begin(); it != m_memberOnline.end(); ++it)
+	for (guild_member_online_container::iterator it = member_online_.begin(); it != member_online_.end(); ++it)
 	{
-		DESC * d = (*it)->GetDesc();
+		desc * d = (*it)->get_desc();
 		if (d)
 		{
 			pack.subheader = GUILD_SUBHEADER_GC_LIST;
 			pack.size = sizeof(pack) + 13;
-			d->BufferedPacket(&pack, sizeof(pack));
-			d->Packet(&(cit->second), sizeof(uint32_t) * 3 + 1);
+			d->buffered_packet(&pack, sizeof(pack));
+			d->packet(&(cit->second), sizeof(uint32_t) * 3 + 1);
 		}
 	}
 }
 
 namespace
 {
-	struct FGuildChat
+	struct f_guild_chat
 	{
-		const char* c_pszText;
+		const char* psz_text;
 
-		FGuildChat(const char* c_pszText)
-			: c_pszText(c_pszText)
+		f_guild_chat(const char* c_pszText)
+			: psz_text(c_pszText)
 			{}
 
-		void operator()(CHARACTER * ch)
+		void operator()(character * ch)
 		{
-			ch->ChatPacket(CHAT_TYPE_GUILD, "%s", c_pszText);
+			ch->chat_packet(CHAT_TYPE_GUILD, "%s", psz_text);
 		}
 	};
 }
 
-void CGuild::P2PChat(const char* c_pszText)
+void guild::p2_p_chat(const char* c_pszText)
 {
-	std::for_each(m_memberOnline.begin(), m_memberOnline.end(), FGuildChat(c_pszText));
+	std::for_each(member_online_.begin(), member_online_.end(), f_guild_chat(c_pszText));
 }
 
-void CGuild::Chat(const char* c_pszText)
+void guild::chat(const char* c_pszText)
 {
-	std::for_each(m_memberOnline.begin(), m_memberOnline.end(), FGuildChat(c_pszText));
+	std::for_each(member_online_.begin(), member_online_.end(), f_guild_chat(c_pszText));
 
-	TPacketGGGuild p1;
-	TPacketGGGuildChat p2;
+	packet_gg_guild p1;
+	packet_gg_guild_chat p2;
 
-	p1.bHeader = HEADER_GG_GUILD;
-	p1.bSubHeader = GUILD_SUBHEADER_GG_CHAT;
-	p1.dwGuild = GetID();
-	strlcpy(p2.szText, c_pszText, sizeof(p2.szText));
+	p1.header = HEADER_GG_GUILD;
+	p1.sub_header = GUILD_SUBHEADER_GG_CHAT;
+	p1.guild = id();
+	strlcpy(p2.text, c_pszText, sizeof(p2.text));
 
-	P2P_MANAGER::instance().Send(&p1, sizeof(TPacketGGGuild));
-	P2P_MANAGER::instance().Send(&p2, sizeof(TPacketGGGuildChat));
+	p2_p_manager::instance().send(&p1, sizeof(packet_gg_guild));
+	p2_p_manager::instance().send(&p2, sizeof(packet_gg_guild_chat));
 }
 
-CHARACTER * CGuild::GetMasterCharacter()
+character * guild::master_character()
 { 
-	return CHARACTER_MANAGER::instance().FindByPID(GetMasterPID()); 
+	return character_manager::instance().find_by_pid(master_pid()); 
 }
 
-void CGuild::Packet(const void* buf, int size)
+void guild::packet(const void* buf, int size)
 {
-	for (auto it = m_memberOnline.begin(); it!=m_memberOnline.end();++it)
+	for (auto it = member_online_.begin(); it!=member_online_.end();++it)
 	{
-		DESC * d = (*it)->GetDesc();
+		desc * d = (*it)->get_desc();
 
 		if (d)
-			d->Packet(buf, size);
+			d->packet(buf, size);
 	}
 }
 
-bool CGuild::ChargeSP(CHARACTER * ch, int iSP)
+bool guild::charge_sp(character * ch, int iSP)
 {
 	int gold = iSP * 100;
 
-	if (gold < iSP || ch->GetGold() < gold)
+	if (gold < iSP || ch->gold() < gold)
 		return false;
 
-	int iRemainSP = m_data.max_power - m_data.power;
+	int iRemainSP = data_.max_power - data_.power;
 
 	if (iSP > iRemainSP)
 	{
@@ -1621,136 +1621,136 @@ bool CGuild::ChargeSP(CHARACTER * ch, int iSP)
 		gold = iSP * 100;
 	}
 
-	ch->PointChange(POINT_GOLD, -gold);
-	DBManager::instance().SendMoneyLog(MONEY_LOG_GUILD, 1, -gold);
+	ch->point_change(POINT_GOLD, -gold);
+	db_manager::instance().send_money_log(MONEY_LOG_GUILD, 1, -gold);
 
-	SendDBSkillUpdate(iSP);
+	send_db_skill_update(iSP);
 	{
-		ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("<길드> %u의 용신력을 회복하였습니다."), iSP);
+		ch->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> %u의 용신력을 회복하였습니다."), iSP);
 	}
 	return true;
 }
 
-void CGuild::SkillUsableChange(uint32_t dwSkillVnum, bool bUsable)
+void guild::skill_usable_change(uint32_t dwSkillVnum, bool bUsable)
 {
 	uint32_t dwRealVnum = dwSkillVnum - GUILD_SKILL_START;
 
 	if (dwRealVnum >= GUILD_SKILL_COUNT)
 		return; 
 
-	abSkillUsable[dwRealVnum] = bUsable;
+	skill_usable_[dwRealVnum] = bUsable;
 
 	// GUILD_SKILL_COOLTIME_BUG_FIX
-	metin2::log::info( "CGuild::SkillUsableChange(guild={}, skill={:d}, usable={:d})", GetName(), dwSkillVnum, bUsable);
+	metin2::log::info( "CGuild::SkillUsableChange(guild={}, skill={:d}, usable={:d})", name(), dwSkillVnum, bUsable);
 	// END_OF_GUILD_SKILL_COOLTIME_BUG_FIX
 }
 
 // GUILD_MEMBER_COUNT_BONUS
-void CGuild::SetMemberCountBonus(int iBonus)
+void guild::set_member_count_bonus(int iBonus)
 {
-	m_iMemberCountBonus = iBonus;
-	metin2::log::info( "GUILD_IS_FULL_BUG : Bonus set to {:d}(val:{:d})", iBonus, m_iMemberCountBonus);
+	member_count_bonus_ = iBonus;
+	metin2::log::info( "GUILD_IS_FULL_BUG : Bonus set to {:d}(val:{:d})", iBonus, member_count_bonus_);
 }
 
-void CGuild::BroadcastMemberCountBonus()
+void guild::broadcast_member_count_bonus()
 {
-	TPacketGGGuild p1;
+	packet_gg_guild p1;
 
-	p1.bHeader = HEADER_GG_GUILD;
-	p1.bSubHeader = GUILD_SUBHEADER_GG_SET_MEMBER_COUNT_BONUS;
-	p1.dwGuild = GetID();
+	p1.header = HEADER_GG_GUILD;
+	p1.sub_header = GUILD_SUBHEADER_GG_SET_MEMBER_COUNT_BONUS;
+	p1.guild = id();
 
-	P2P_MANAGER::instance().Send(&p1, sizeof(TPacketGGGuild));
-	P2P_MANAGER::instance().Send(&m_iMemberCountBonus, sizeof(int));
+	p2_p_manager::instance().send(&p1, sizeof(packet_gg_guild));
+	p2_p_manager::instance().send(&member_count_bonus_, sizeof(int));
 }
 
-int CGuild::GetMaxMemberCount()
+int guild::max_member_count()
 {
 	// GUILD_IS_FULL_BUG_FIX
-	if ( m_iMemberCountBonus < 0 || m_iMemberCountBonus > 18 )
-		m_iMemberCountBonus = 0;
+	if ( member_count_bonus_ < 0 || member_count_bonus_ > 18 )
+		member_count_bonus_ = 0;
 	// END_GUILD_IS_FULL_BUG_FIX
 
-	return 32 + 2 * (m_data.level-1) + m_iMemberCountBonus;
+	return 32 + 2 * (data_.level-1) + member_count_bonus_;
 }
 // END_OF_GUILD_MEMBER_COUNT_BONUS
 
-void CGuild::RequestDepositMoney(CHARACTER * ch, int iGold)
+void guild::request_deposit_money(character * ch, int iGold)
 {
-	if (false==ch->CanDeposit())
+	if (false==ch->can_deposit())
 	{
-		ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("<길드> 잠시후에 이용해주십시오"));
+		ch->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> 잠시후에 이용해주십시오"));
 		return;
 	}
 
-	if (ch->GetGold() < iGold)
+	if (ch->gold() < iGold)
 		return;
 
-	ch->PointChange(POINT_GOLD, -iGold);
+	ch->point_change(POINT_GOLD, -iGold);
 
-	TPacketGDGuildMoney p;
-	p.dwGuild = GetID();
-	p.iGold = iGold;
-	db_clientdesc->DBPacket(HEADER_GD_GUILD_DEPOSIT_MONEY, 0, &p, sizeof(p));
+	packet_gd_guild_money p;
+	p.guild = id();
+	p.gold = iGold;
+	db_clientdesc->db_packet(HEADER_GD_GUILD_DEPOSIT_MONEY, 0, &p, sizeof(p));
 
 	char buf[64+1];
-	snprintf(buf, sizeof(buf), "%u %s", GetID(), GetName());
-	LogManager::instance().CharLog(ch, iGold, "GUILD_DEPOSIT", buf);
+	snprintf(buf, sizeof(buf), "%u %s", id(), name());
+	log_manager::instance().char_log(ch, iGold, "GUILD_DEPOSIT", buf);
 
-	ch->UpdateDepositPulse();
-	metin2::log::info( "GUILD: DEPOSIT {}:{:d} player {}[{:d}] gold {:d}", GetName(), GetID(), ch->GetName(), ch->GetPlayerID(), iGold);
+	ch->update_deposit_pulse();
+	metin2::log::info( "GUILD: DEPOSIT {}:{:d} player {}[{:d}] gold {:d}", name(), id(), ch->name(), ch->player_id(), iGold);
 }
 
-void CGuild::RecvMoneyChange(int iGold)
+void guild::recv_money_change(int iGold)
 {
-	m_data.gold = iGold;
+	data_.gold = iGold;
 
-	TPacketGCGuild p;
+	packet_gc_guild p;
 	p.header = HEADER_GC_GUILD;
 	p.size = sizeof(p) + sizeof(int);
 	p.subheader = GUILD_SUBHEADER_GC_MONEY_CHANGE;
 
-	for (auto it = m_memberOnline.begin(); it != m_memberOnline.end(); ++it)
+	for (auto it = member_online_.begin(); it != member_online_.end(); ++it)
 	{
-		CHARACTER * ch = *it;
-		DESC * d = ch->GetDesc();
-		d->BufferedPacket(&p, sizeof(p));
-		d->Packet(&iGold, sizeof(int));
+		character * ch = *it;
+		desc * d = ch->get_desc();
+		d->buffered_packet(&p, sizeof(p));
+		d->packet(&iGold, sizeof(int));
 	}
 }
 
-void CGuild::RecvWithdrawMoneyGive(int iChangeGold)
+void guild::recv_withdraw_money_give(int iChangeGold)
 {
-	CHARACTER * ch = GetMasterCharacter();
+	character * ch = master_character();
 
 	if (ch)
 	{
-		ch->PointChange(POINT_GOLD, iChangeGold);
-		metin2::log::info( "GUILD: WITHDRAW {}:{:d} player {}[{:d}] gold {:d}", GetName(), GetID(), ch->GetName(), ch->GetPlayerID(), iChangeGold);
+		ch->point_change(POINT_GOLD, iChangeGold);
+		metin2::log::info( "GUILD: WITHDRAW {}:{:d} player {}[{:d}] gold {:d}", name(), id(), ch->name(), ch->player_id(), iChangeGold);
 	}
 
-	TPacketGDGuildMoneyWithdrawGiveReply p;
-	p.dwGuild = GetID();
-	p.iChangeGold = iChangeGold;
-	p.bGiveSuccess = ch ? 1 : 0;
-	db_clientdesc->DBPacket(HEADER_GD_GUILD_WITHDRAW_MONEY_GIVE_REPLY, 0, &p, sizeof(p));
+	packet_gd_guild_money_withdraw_give_reply p;
+	p.guild = id();
+	p.change_gold = iChangeGold;
+	p.give_success = ch ? 1 : 0;
+	db_clientdesc->db_packet(HEADER_GD_GUILD_WITHDRAW_MONEY_GIVE_REPLY, 0, &p, sizeof(p));
 }
 
-bool CGuild::HasLand()
+bool guild::has_land()
 {
-	return building::CManager::instance().FindLandByGuild(GetID()) != nullptr;
+	return building::manager::instance().find_land_by_guild(id()) != nullptr;
 }
 
 // GUILD_JOIN_BUG_FIX
 /// Guild invite event info
-EVENTINFO(TInviteGuildEventInfo)
+EVENTINFO(invite_guild_event_info)
 {
-	uint32_t	dwInviteePID;		///< PID of the invited character
-	uint32_t	dwGuildID;		///< ID of the inviting guild
+	uint32_t	invitee_pid;		///< PID of the invited character
+	uint32_t	guild_id;		///< ID of the inviting guild
 
-	TInviteGuildEventInfo()
-	: dwInviteePID( 0 )
-	, dwGuildID( 0 )
+	invite_guild_event_info()
+	: invitee_pid( 0 )
+	, guild_id( 0 )
 	{
 	}
 };
@@ -1759,9 +1759,9 @@ EVENTINFO(TInviteGuildEventInfo)
  * Guild invite event callback.
  * When the event fires, it is treated as an invite refusal.
  */
-EVENTFUNC( GuildInviteEvent )
+EVENTFUNC( guild_invite_event )
 {
-	TInviteGuildEventInfo *pInfo = dynamic_cast<TInviteGuildEventInfo*>( event->info );
+	invite_guild_event_info *pInfo = dynamic_cast<invite_guild_event_info*>( event->info );
 
 	if ( pInfo == nullptr )
 	{
@@ -1769,164 +1769,164 @@ EVENTFUNC( GuildInviteEvent )
 		return 0;
 	}
 
-	CGuild* pGuild = CGuildManager::instance().FindGuild( pInfo->dwGuildID );
+	guild* pGuild = guild_manager::instance().find_guild( pInfo->guild_id );
 
 	if ( pGuild ) 
 	{
-		metin2::log::info( "GuildInviteEvent {}", pGuild->GetName() );
-		pGuild->InviteDeny( pInfo->dwInviteePID );
+		metin2::log::info( "GuildInviteEvent {}", pGuild->name() );
+		pGuild->invite_deny( pInfo->invitee_pid );
 	}
 
 	return 0;
 }
 
-void CGuild::Invite( CHARACTER * pchInviter, CHARACTER * pchInvitee )
+void guild::invite( character * pchInviter, character * pchInvitee )
 {
-	if (quest::CQuestManager::instance().GetPCForce(pchInviter->GetPlayerID())->IsRunning() == true)
+	if (quest::quest_manager::instance().pc_force(pchInviter->player_id())->is_running() == true)
 	{
-	    pchInviter->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("<길드> 상대방이 초대 신청을 받을 수 없는 상태입니다."));
+	    pchInviter->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> 상대방이 초대 신청을 받을 수 없는 상태입니다."));
 	    return;
 	}
 
-	if (quest::CQuestManager::instance().GetPCForce(pchInvitee->GetPlayerID())->IsRunning() == true)
+	if (quest::quest_manager::instance().pc_force(pchInvitee->player_id())->is_running() == true)
 		return;
 
-	if ( pchInvitee->IsBlockMode( BLOCK_GUILD_INVITE ) ) 
+	if ( pchInvitee->is_block_mode( BLOCK_GUILD_INVITE ) ) 
 	{
-		pchInviter->ChatPacket( CHAT_TYPE_INFO, LC_TEXT("<길드> 상대방이 길드 초대 거부 상태입니다.") );
+		pchInviter->chat_packet( CHAT_TYPE_INFO, lc_text("<길드> 상대방이 길드 초대 거부 상태입니다.") );
 		return;
 	} 
-	else if ( !HasGradeAuth( GetMember( pchInviter->GetPlayerID() )->grade, GUILD_AUTH_ADD_MEMBER ) ) 
+	else if ( !has_grade_auth( member( pchInviter->player_id() )->grade, GUILD_AUTH_ADD_MEMBER ) ) 
 	{
-		pchInviter->ChatPacket( CHAT_TYPE_INFO, LC_TEXT("<길드> 길드원을 초대할 권한이 없습니다.") );
+		pchInviter->chat_packet( CHAT_TYPE_INFO, lc_text("<길드> 길드원을 초대할 권한이 없습니다.") );
 		return;
 	} 
-	else if ( pchInvitee->GetEmpire() != pchInviter->GetEmpire() ) 
+	else if ( pchInvitee->empire() != pchInviter->empire() ) 
 	{
-		pchInviter->ChatPacket( CHAT_TYPE_INFO, LC_TEXT("<길드> 다른 제국 사람을 길드에 초대할 수 없습니다.") );
+		pchInviter->chat_packet( CHAT_TYPE_INFO, lc_text("<길드> 다른 제국 사람을 길드에 초대할 수 없습니다.") );
 		return;
 	}
 
-	GuildJoinErrCode errcode = VerifyGuildJoinableCondition( pchInvitee );
+	guild_join_err_code errcode = verify_guild_joinable_condition( pchInvitee );
 	switch ( errcode ) 
 	{
 		case GERR_NONE: break;
 		case GERR_WITHDRAWPENALTY:
-						pchInviter->ChatPacket( CHAT_TYPE_INFO, 
-								LC_TEXT("<길드> 탈퇴한 후 %d일이 지나지 않은 사람은 길드에 초대할 수 없습니다."), 
-								quest::CQuestManager::instance().GetEventFlag( "guild_withdraw_delay" ) );
+						pchInviter->chat_packet( CHAT_TYPE_INFO, 
+								lc_text("<길드> 탈퇴한 후 %d일이 지나지 않은 사람은 길드에 초대할 수 없습니다."), 
+								quest::quest_manager::instance().event_flag( "guild_withdraw_delay" ) );
 						return;
 		case GERR_COMMISSIONPENALTY:
-						pchInviter->ChatPacket( CHAT_TYPE_INFO, 
-								LC_TEXT("<길드> 길드를 해산한 지 %d일이 지나지 않은 사람은 길드에 초대할 수 없습니다."), 
-								quest::CQuestManager::instance().GetEventFlag( "guild_disband_delay") );
+						pchInviter->chat_packet( CHAT_TYPE_INFO, 
+								lc_text("<길드> 길드를 해산한 지 %d일이 지나지 않은 사람은 길드에 초대할 수 없습니다."), 
+								quest::quest_manager::instance().event_flag( "guild_disband_delay") );
 						return;
-		case GERR_ALREADYJOIN:	pchInviter->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("<길드> 상대방이 이미 다른 길드에 속해있습니다.")); return;
-		case GERR_GUILDISFULL:	pchInviter->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("<길드> 최대 길드원 수를 초과했습니다.")); return;
-		case GERR_GUILD_IS_IN_WAR : pchInviter->ChatPacket( CHAT_TYPE_INFO, LC_TEXT("<길드> 현재 길드가 전쟁 중 입니다.") ); return;
-		case GERR_INVITE_LIMIT : pchInviter->ChatPacket( CHAT_TYPE_INFO, LC_TEXT("<길드> 현재 신규 가입 제한 상태 입니다.") ); return;
+		case GERR_ALREADYJOIN:	pchInviter->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> 상대방이 이미 다른 길드에 속해있습니다.")); return;
+		case GERR_GUILDISFULL:	pchInviter->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> 최대 길드원 수를 초과했습니다.")); return;
+		case GERR_GUILD_IS_IN_WAR : pchInviter->chat_packet( CHAT_TYPE_INFO, lc_text("<길드> 현재 길드가 전쟁 중 입니다.") ); return;
+		case GERR_INVITE_LIMIT : pchInviter->chat_packet( CHAT_TYPE_INFO, lc_text("<길드> 현재 신규 가입 제한 상태 입니다.") ); return;
 
 		default: metin2::log::error( "ignore guild join error({:d})", errcode ); return;
 	}
 
-	if ( m_GuildInviteEventMap.end() != m_GuildInviteEventMap.find( pchInvitee->GetPlayerID() ) )
+	if ( guild_invite_event_map_.end() != guild_invite_event_map_.find( pchInvitee->player_id() ) )
 		return;
 
 	//
 	// Create event
 	// 
-	TInviteGuildEventInfo* pInfo = AllocEventInfo<TInviteGuildEventInfo>();
-	pInfo->dwInviteePID = pchInvitee->GetPlayerID();
-	pInfo->dwGuildID = GetID();
+	invite_guild_event_info* pInfo = alloc_event_info<invite_guild_event_info>();
+	pInfo->invitee_pid = pchInvitee->player_id();
+	pInfo->guild_id = id();
 
-	m_GuildInviteEventMap.insert(EventMap::value_type(pchInvitee->GetPlayerID(), event_create(GuildInviteEvent, pInfo, PASSES_PER_SEC(10))));
+	guild_invite_event_map_.insert(event_map::value_type(pchInvitee->player_id(), event_create(guild_invite_event, pInfo, passes_per_sec(10))));
 
 	//
 	// Send invite packet to the invited character
 	// 
 
-	uint32_t gid = GetID();
+	uint32_t gid = id();
 
-	TPacketGCGuild p;
+	packet_gc_guild p;
 	p.header	= HEADER_GC_GUILD;
 	p.size	= sizeof(p) + sizeof(uint32_t) + GUILD_NAME_MAX_LEN + 1;
 	p.subheader	= GUILD_SUBHEADER_GC_GUILD_INVITE;
 
-	TEMP_BUFFER buf;
+	temp_buffer buf;
 	buf.write( &p, sizeof(p) );
 	buf.write( &gid, sizeof(uint32_t) );
-	buf.write( GetName(), GUILD_NAME_MAX_LEN + 1 );
+	buf.write( name(), GUILD_NAME_MAX_LEN + 1 );
 
-	pchInvitee->GetDesc()->Packet( buf.read_peek(), buf.size() );
+	pchInvitee->get_desc()->packet( buf.read_peek(), buf.size() );
 }
 
-void CGuild::InviteAccept( CHARACTER * pchInvitee )
+void guild::invite_accept( character * pchInvitee )
 {
-	EventMap::iterator itFind = m_GuildInviteEventMap.find( pchInvitee->GetPlayerID() );
-	if ( itFind == m_GuildInviteEventMap.end() ) 
+	event_map::iterator itFind = guild_invite_event_map_.find( pchInvitee->player_id() );
+	if ( itFind == guild_invite_event_map_.end() ) 
 	{
-		metin2::log::info( "GuildInviteAccept from not invited character(invite guild: {}, invitee: {})", GetName(), pchInvitee->GetName() );
+		metin2::log::info( "GuildInviteAccept from not invited character(invite guild: {}, invitee: {})", name(), pchInvitee->name() );
 		return;
 	}
 
 	event_cancel( &itFind->second );
-	m_GuildInviteEventMap.erase( itFind );
+	guild_invite_event_map_.erase( itFind );
 
-	GuildJoinErrCode errcode = VerifyGuildJoinableCondition( pchInvitee );
+	guild_join_err_code errcode = verify_guild_joinable_condition( pchInvitee );
 	switch ( errcode ) 
 	{
 		case GERR_NONE: break;
 		case GERR_WITHDRAWPENALTY:
-						pchInvitee->ChatPacket( CHAT_TYPE_INFO, 
-								LC_TEXT("<길드> 탈퇴한 후 %d일이 지나지 않은 사람은 길드에 초대할 수 없습니다."), 
-								quest::CQuestManager::instance().GetEventFlag( "guild_withdraw_delay" ) );
+						pchInvitee->chat_packet( CHAT_TYPE_INFO, 
+								lc_text("<길드> 탈퇴한 후 %d일이 지나지 않은 사람은 길드에 초대할 수 없습니다."), 
+								quest::quest_manager::instance().event_flag( "guild_withdraw_delay" ) );
 						return;
 		case GERR_COMMISSIONPENALTY:
-						pchInvitee->ChatPacket( CHAT_TYPE_INFO, 
-								LC_TEXT("<길드> 길드를 해산한 지 %d일이 지나지 않은 사람은 길드에 초대할 수 없습니다."), 
-								quest::CQuestManager::instance().GetEventFlag( "guild_disband_delay") );
+						pchInvitee->chat_packet( CHAT_TYPE_INFO, 
+								lc_text("<길드> 길드를 해산한 지 %d일이 지나지 않은 사람은 길드에 초대할 수 없습니다."), 
+								quest::quest_manager::instance().event_flag( "guild_disband_delay") );
 						return;
-		case GERR_ALREADYJOIN:	pchInvitee->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("<길드> 상대방이 이미 다른 길드에 속해있습니다.")); return;
-		case GERR_GUILDISFULL:	pchInvitee->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("<길드> 최대 길드원 수를 초과했습니다.")); return;
-		case GERR_GUILD_IS_IN_WAR : pchInvitee->ChatPacket( CHAT_TYPE_INFO, LC_TEXT("<길드> 현재 길드가 전쟁 중 입니다.") ); return;
-		case GERR_INVITE_LIMIT : pchInvitee->ChatPacket( CHAT_TYPE_INFO, LC_TEXT("<길드> 현재 신규 가입 제한 상태 입니다.") ); return;
+		case GERR_ALREADYJOIN:	pchInvitee->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> 상대방이 이미 다른 길드에 속해있습니다.")); return;
+		case GERR_GUILDISFULL:	pchInvitee->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> 최대 길드원 수를 초과했습니다.")); return;
+		case GERR_GUILD_IS_IN_WAR : pchInvitee->chat_packet( CHAT_TYPE_INFO, lc_text("<길드> 현재 길드가 전쟁 중 입니다.") ); return;
+		case GERR_INVITE_LIMIT : pchInvitee->chat_packet( CHAT_TYPE_INFO, lc_text("<길드> 현재 신규 가입 제한 상태 입니다.") ); return;
 
 		default: metin2::log::error( "ignore guild join error({:d})", errcode ); return;
 	}
 
-	RequestAddMember( pchInvitee, 15 );
+	request_add_member( pchInvitee, 15 );
 }
 
-void CGuild::InviteDeny( uint32_t dwPID )
+void guild::invite_deny( uint32_t dwPID )
 {
-	EventMap::iterator itFind = m_GuildInviteEventMap.find( dwPID );
-	if ( itFind == m_GuildInviteEventMap.end() ) 
+	event_map::iterator itFind = guild_invite_event_map_.find( dwPID );
+	if ( itFind == guild_invite_event_map_.end() ) 
 	{
-		metin2::log::info( "GuildInviteDeny from not invited character(invite guild: {}, invitee PID: {:d})", GetName(), dwPID );
+		metin2::log::info( "GuildInviteDeny from not invited character(invite guild: {}, invitee PID: {:d})", name(), dwPID );
 		return;
 	}
 
 	event_cancel( &itFind->second );
-	m_GuildInviteEventMap.erase( itFind );
+	guild_invite_event_map_.erase( itFind );
 }
 
-CGuild::GuildJoinErrCode CGuild::VerifyGuildJoinableCondition( CHARACTER * const pchInvitee )
+guild::guild_join_err_code guild::verify_guild_joinable_condition( character * const pchInvitee )
 {
-	if ( get_global_time() - pchInvitee->GetQuestFlag( "guild_building.new_withdraw_time" )
-			< CGuildManager::instance().GetWithdrawDelay() )
+	if ( get_global_time() - pchInvitee->quest_flag( "guild_building.new_withdraw_time" )
+			< guild_manager::instance().withdraw_delay() )
 		return GERR_WITHDRAWPENALTY;
-	else if ( get_global_time() - pchInvitee->GetQuestFlag( "guild_building.new_disband_time" )
-			< CGuildManager::instance().GetDisbandDelay() )
+	else if ( get_global_time() - pchInvitee->quest_flag( "guild_building.new_disband_time" )
+			< guild_manager::instance().disband_delay() )
 		return GERR_COMMISSIONPENALTY;
-	else if ( pchInvitee->GetGuild() )
+	else if ( pchInvitee->get_guild() )
 		return GERR_ALREADYJOIN;
-	else if ( GetMemberCount() >= GetMaxMemberCount() )
+	else if ( member_count() >= max_member_count() )
 	{
 		metin2::log::debug( "GuildName = {}, GetMemberCount() = {:d}, GetMaxMemberCount() = {:d} (32 + MAX(level({:d})-10, 0) * 2 + bonus({:d})", 
-				GetName(), GetMemberCount(), GetMaxMemberCount(), m_data.level, m_iMemberCountBonus);
+				name(), member_count(), max_member_count(), data_.level, member_count_bonus_);
 		return GERR_GUILDISFULL;
 	}
-	else if ( UnderAnyWar() != 0 )
+	else if ( under_any_war() != 0 )
 	{
 		return GERR_GUILD_IS_IN_WAR;
 	}
@@ -1935,28 +1935,28 @@ CGuild::GuildJoinErrCode CGuild::VerifyGuildJoinableCondition( CHARACTER * const
 }
 // END_OF_GUILD_JOIN_BUG_FIX
 
-bool CGuild::ChangeMasterTo(uint32_t dwPID)
+bool guild::change_master_to(uint32_t dwPID)
 {
-	if ( GetMember(dwPID) == nullptr ) return false;
+	if ( member(dwPID) == nullptr ) return false;
 
-	TPacketChangeGuildMaster p;
-	p.dwGuildID = GetID();
-	p.idFrom = GetMasterPID();
-	p.idTo = dwPID;
+	packet_change_guild_master p;
+	p.guild_id = id();
+	p.id_from = master_pid();
+	p.id_to = dwPID;
 
-	db_clientdesc->DBPacket(HEADER_GD_REQ_CHANGE_GUILD_MASTER, 0, &p, sizeof(p));
+	db_clientdesc->db_packet(HEADER_GD_REQ_CHANGE_GUILD_MASTER, 0, &p, sizeof(p));
 
 	return true;
 }
 
-void CGuild::SendGuildDataUpdateToAllMember(SQLMsg* pmsg)
+void guild::send_guild_data_update_to_all_member(ql_msg* pmsg)
 {
-	TGuildMemberOnlineContainer::iterator iter = m_memberOnline.begin();
+	guild_member_online_container::iterator iter = member_online_.begin();
 
-	for (; iter != m_memberOnline.end(); iter++ )
+	for (; iter != member_online_.end(); iter++ )
 	{
-		SendGuildInfoPacket(*iter);
-		SendAllGradePacket(*iter);
+		send_guild_info_packet(*iter);
+		send_all_grade_packet(*iter);
 	}
 }
 }

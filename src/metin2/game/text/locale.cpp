@@ -13,27 +13,27 @@
 
 namespace metin2::game::inline text {
 
-typedef std::map< std::string, std::string > LocaleStringMapType;
+typedef std::map< std::string, std::string > locale_string_map_type;
 
-LocaleStringMapType localeString;
+locale_string_map_type locale_string;
 
 
 void locale_add(const char *key, const char *value)
 {
-	LocaleStringMapType::const_iterator iter = localeString.find( key );
+	locale_string_map_type::const_iterator iter = locale_string.find( key );
 
-	if( iter == localeString.end() )
+	if( iter == locale_string.end() )
 	{
-		localeString.insert( std::make_pair( key, value ) );
+		locale_string.insert( std::make_pair( key, value ) );
 	}
 }
 
 const char * locale_find(const char *string)
 {
 
-	LocaleStringMapType::const_iterator iter = localeString.find( string );
+	locale_string_map_type::const_iterator iter = locale_string.find( string );
 
-	if( iter == localeString.end() )
+	if( iter == locale_string.end() )
 	{
 		// untranslated: the (UTF-8) source text itself
 		metin2::log::error("LOCALE_ERROR: \"{}\";", string);

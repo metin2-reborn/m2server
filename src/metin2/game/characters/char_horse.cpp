@@ -22,81 +22,81 @@
 
 namespace metin2::game::inline characters {
 
-bool CHARACTER::StartRiding()
+bool character::start_riding()
 {
-	if (IsDead() == true)
+	if (is_dead() == true)
 	{
-		ChatPacket(CHAT_TYPE_INFO, LC_TEXT("쓰러진 상태에서는 말에 탈 수 없습니다."));
+		chat_packet(CHAT_TYPE_INFO, lc_text("쓰러진 상태에서는 말에 탈 수 없습니다."));
 		return false;
 	}
 	
-	if (IsPolymorphed())
+	if (is_polymorphed())
 	{
-		ChatPacket(CHAT_TYPE_INFO, LC_TEXT("변신 상태에서는 말에 탈 수 없습니다."));
+		chat_packet(CHAT_TYPE_INFO, lc_text("변신 상태에서는 말에 탈 수 없습니다."));
 		return false;
 	}
 
 	// No horse riding while wearing a tuxedo
-	CItem * armor = GetWear(WEAR_BODY);
+	item * armor = wear(WEAR_BODY);
 
-	if (armor && (armor->GetVnum() >= 11901 && armor->GetVnum() <= 11904))
+	if (armor && (armor->vnum() >= 11901 && armor->vnum() <= 11904))
 	{
-		ChatPacket(CHAT_TYPE_INFO, LC_TEXT("예복을 입은 상태에서 말을 탈 수 없습니다."));
+		chat_packet(CHAT_TYPE_INFO, lc_text("예복을 입은 상태에서 말을 탈 수 없습니다."));
 		return false;
 	}
 
 
 
-	uint32_t dwMountVnum = m_chHorse ? m_chHorse->GetRaceNum() : GetMyHorseVnum();
+	uint32_t dwMountVnum = ch_horse_ ? ch_horse_->race_num() : my_horse_vnum();
 
-	if (false == CHorseRider::StartRiding())
+	if (false == horse_rider::start_riding())
 	{
-		if (GetHorseLevel() <= 0)
-			ChatPacket(CHAT_TYPE_INFO, LC_TEXT("말을 소유하고 있지 않습니다."));
-		else if (GetHorseHealth() <= 0)
-			ChatPacket(CHAT_TYPE_INFO, LC_TEXT("말이 죽어있는 상태 입니다."));
-		else if (GetHorseStamina() <= 0)
-			ChatPacket(CHAT_TYPE_INFO, LC_TEXT("말의 스테미너가 부족하여 말을 탈 수 없습니다."));
+		if (horse_level() <= 0)
+			chat_packet(CHAT_TYPE_INFO, lc_text("말을 소유하고 있지 않습니다."));
+		else if (horse_health() <= 0)
+			chat_packet(CHAT_TYPE_INFO, lc_text("말이 죽어있는 상태 입니다."));
+		else if (horse_stamina() <= 0)
+			chat_packet(CHAT_TYPE_INFO, lc_text("말의 스테미너가 부족하여 말을 탈 수 없습니다."));
 
 		return false;
 	}
 
 	// Remove the summoned horse
-	HorseSummon(false);
+	horse_summon(false);
 
-	MountVnum(dwMountVnum);
+	mount_vnum(dwMountVnum);
 
 	if(metin2::config::test_server())
-		metin2::log::info( "Ride Horse : {} ", GetName());
+		metin2::log::info( "Ride Horse : {} ", name());
 
 	return true;
 }
 
-bool CHARACTER::StopRiding()
+bool character::stop_riding()
 {
-	if (CHorseRider::StopRiding())
+	if (horse_rider::stop_riding())
 	{
-		quest::CQuestManager::instance().Unmount(GetPlayerID());
+		quest::quest_manager::instance().unmount(player_id());
 
-		if (!IsDead() && !IsStun())
+		if (!is_dead() && !is_stun())
 		{
-			uint32_t dwOldVnum = GetMountVnum();
-			MountVnum(0);
+			uint32_t dwOldVnum = get_mount_vnum();
+			mount_vnum(0);
 
 			// [NOTE] Changed so that dismounting summons the horse you were riding
-			HorseSummon(true, false, dwOldVnum);
+			horse_summon(true, false, dwOldVnum);
 		}
 		else
 		{
-			m_dwMountVnum = 0;
-			ComputePoints();
-			UpdatePacket();
+			mount_vnum_ = 0;
+			compute_points();
+			update_packet();
 		}
 
-		PointChange(POINT_ST, 0);
-		PointChange(POINT_DX, 0);
-		PointChange(POINT_HT, 0);
-		PointChange(POINT_IQ, 0);
+		point_change(POINT_ST, 0);
+		point_change(POINT_DX, 0);
+		point_change(POINT_HT, 0);
+		point_change(POINT_IQ, 0);
 
 		return true;
 	}
@@ -115,198 +115,198 @@ EVENTFUNC(horse_dead_event)
 	}
 
 	// <Factor>
-	CHARACTER * ch = info->ch;
+	character * ch = info->ch;
 	if (ch == nullptr) {
 		return 0;
 	}
-	ch->HorseSummon(false);
+	ch->horse_summon(false);
 	return 0;
 }
 
-void CHARACTER::SetRider(CHARACTER * ch)
+void character::set_rider(character * ch)
 {
-	if (m_chRider)
-		m_chRider->ClearHorseInfo();
+	if (ch_rider_)
+		ch_rider_->clear_horse_info();
 
-	m_chRider = ch;
+	ch_rider_ = ch;
 
-	if (m_chRider)
-		m_chRider->SendHorseInfo();
+	if (ch_rider_)
+		ch_rider_->send_horse_info();
 }
 
-CHARACTER * CHARACTER::GetRider() const
+character * character::rider() const
 {
-	return m_chRider;
+	return ch_rider_;
 }
 
 
-void CHARACTER::HorseSummon(bool bSummon, bool bFromFar, uint32_t dwVnum, const char* pPetName)
+void character::horse_summon(bool bSummon, bool bFromFar, uint32_t dwVnum, const char* pPetName)
 {
 	if ( bSummon )
 	{
 		//NOTE : On summon, do nothing if a horse already exists.
-		if( m_chHorse != nullptr )
+		if( ch_horse_ != nullptr )
 			return;
 
-		if (GetHorseLevel() <= 0)
+		if (horse_level() <= 0)
 			return;
 
 		// Fail if already riding something
-		if (IsRiding())
+		if (is_riding())
 			return;
 
-		metin2::log::info( "HorseSummon : {} lv:{:d} bSummon:{:d} fromFar:{:d}", GetName(), GetLevel(), bSummon, bFromFar);
+		metin2::log::info( "HorseSummon : {} lv:{:d} bSummon:{:d} fromFar:{:d}", name(), level(), bSummon, bFromFar);
 
-		int32_t x = GetX();
-		int32_t y = GetY();
+		int32_t x_value = x();
+		int32_t y_value = y();
 
-		if (GetHorseHealth() <= 0)
+		if (horse_health() <= 0)
 			bFromFar = false;
 
 		if (bFromFar)
 		{
-			x += (number(0, 1) * 2 - 1) * number(2000, 2500);
-			y += (number(0, 1) * 2 - 1) * number(2000, 2500);
+			x_value += (number(0, 1) * 2 - 1) * number(2000, 2500);
+			y_value += (number(0, 1) * 2 - 1) * number(2000, 2500);
 		}
 		else
 		{
-			x += number(-100, 100);
-			y += number(-100, 100);
+			x_value += number(-100, 100);
+			y_value += number(-100, 100);
 		}
 
-		m_chHorse = CHARACTER_MANAGER::instance().SpawnMob(
-				(0 == dwVnum) ? GetMyHorseVnum() : dwVnum, 
-				GetMapIndex(), 
-				x, y,
-				GetZ(), false, (int)(GetRotation()+180), false);
+		ch_horse_ = character_manager::instance().spawn_mob(
+				(0 == dwVnum) ? my_horse_vnum() : dwVnum, 
+				map_index(), 
+				x_value, y_value,
+				z(), false, (int)(rotation()+180), false);
 
-		if (!m_chHorse)
+		if (!ch_horse_)
 		{
-			ChatPacket(CHAT_TYPE_INFO, LC_TEXT("말 소환에 실패하였습니다."));
+			chat_packet(CHAT_TYPE_INFO, lc_text("말 소환에 실패하였습니다."));
 			return;
 		}
 
-		if (GetHorseHealth() <= 0)
+		if (horse_health() <= 0)
 		{
 			// Make it lie as if dead
-			m_chHorse->SetPosition(POS_DEAD);
+			ch_horse_->set_position(POS_DEAD);
 
 			// Make it disappear after a while.
-			char_event_info* info = AllocEventInfo<char_event_info>();
+			char_event_info* info = alloc_event_info<char_event_info>();
 			info->ch = this;
-			m_chHorse->m_pkDeadEvent = event_create(horse_dead_event, info, PASSES_PER_SEC(60));
+			ch_horse_->dead_event = event_create(horse_dead_event, info, passes_per_sec(60));
 		}
 
-		m_chHorse->SetLevel(GetHorseLevel());
+		ch_horse_->set_level(horse_level());
 
-		const char* pHorseName = CHorseNameManager::instance().GetHorseName(GetPlayerID());
+		const char* pHorseName = horse_name_manager::instance().horse_name(player_id());
 
 		if ( pHorseName != nullptr && strlen(pHorseName) != 0 )
 		{
-			m_chHorse->m_stName = pHorseName;
+			ch_horse_->name_ = pHorseName;
 		}
 		else
 		{
-			m_chHorse->m_stName = GetName();
-			m_chHorse->m_stName += LC_TEXT("님의 말");
+			ch_horse_->name_ = name();
+			ch_horse_->name_ += lc_text("님의 말");
 		}
 
-		if (!m_chHorse->Show(GetMapIndex(), x, y, GetZ()))
+		if (!ch_horse_->show(map_index(), x_value, y_value, z()))
 		{
-			CHARACTER_MANAGER::instance().DestroyCharacter(m_chHorse);
+			character_manager::instance().destroy_character(ch_horse_);
 			metin2::log::error("cannot show monster");
-			m_chHorse = nullptr;
+			ch_horse_ = nullptr;
 			return;
 		}
 
-		if ((GetHorseHealth() <= 0))
+		if ((horse_health() <= 0))
 		{
-			TPacketGCDead pack;
+			packet_gc_dead pack;
 			pack.header	= HEADER_GC_DEAD;
-			pack.vid    = m_chHorse->GetVID();
-			PacketAround(&pack, sizeof(pack));
+			pack.vid    = ch_horse_->get_vid();
+			packet_around(&pack, sizeof(pack));
 		}
 
-		m_chHorse->SetRider(this);
+		ch_horse_->set_rider(this);
 	}
 	else
 	{
-		if (!m_chHorse)
+		if (!ch_horse_)
 			return;
 
-		CHARACTER * chHorse = m_chHorse;
+		character * chHorse = ch_horse_;
 
-		chHorse->SetRider(nullptr); // m_chHorse assign to NULL
+		chHorse->set_rider(nullptr); // m_chHorse assign to NULL
 
 		if (!bFromFar)
 		{
-			CHARACTER_MANAGER::instance().DestroyCharacter(chHorse);
+			character_manager::instance().destroy_character(chHorse);
 		}
 		else
 		{
 			// Make it disappear while moving away
-			chHorse->SetNowWalking(false);
+			chHorse->set_now_walking(false);
 			float fx, fy;
-			chHorse->SetRotation(GetDegreeFromPositionXY(chHorse->GetX(), chHorse->GetY(), GetX(), GetY())+180);
-			GetDeltaByDegree(chHorse->GetRotation(), 3500, &fx, &fy);
-			chHorse->Goto((int32_t)(chHorse->GetX()+fx), (int32_t) (chHorse->GetY()+fy));
-			chHorse->SendMovePacket(FUNC_WAIT, 0, 0, 0, 0);
+			chHorse->set_rotation(get_degree_from_position_xy(chHorse->x(), chHorse->y(), x(), y())+180);
+			get_delta_by_degree(chHorse->rotation(), 3500, &fx, &fy);
+			chHorse->goto_((int32_t)(chHorse->x()+fx), (int32_t) (chHorse->y()+fy));
+			chHorse->send_move_packet(FUNC_WAIT, 0, 0, 0, 0);
 		}
 
-		m_chHorse = nullptr;
+		ch_horse_ = nullptr;
 	}
 }
 
-uint32_t CHARACTER::GetMyHorseVnum() const
+uint32_t character::my_horse_vnum() const
 {
 	int delta = 0;
 
-	if (GetGuild())
+	if (get_guild())
 	{
 		++delta;
 
-		if (GetGuild()->GetMasterPID() == GetPlayerID())
+		if (get_guild()->master_pid() == player_id())
 			++delta;
 	}
 
-	return c_aHorseStat[GetHorseLevel()].iNPCRace + delta;
+	return c_a_horse_stat[horse_level()].npc_race + delta;
 }
 
-void CHARACTER::HorseDie()
+void character::horse_die()
 {
-	CHorseRider::HorseDie();
-	HorseSummon(false);
+	horse_rider::horse_die();
+	horse_summon(false);
 }
 
-bool CHARACTER::ReviveHorse()
+bool character::revive_horse()
 {
-	if (CHorseRider::ReviveHorse())
+	if (horse_rider::revive_horse())
 	{
-		HorseSummon(false);
-		HorseSummon(true);
+		horse_summon(false);
+		horse_summon(true);
 		return true;
 	}
 	return false;
 }
 
-void CHARACTER::ClearHorseInfo()
+void character::clear_horse_info()
 {
-	if (!IsHorseRiding())
+	if (!is_horse_riding())
 	{
-		ChatPacket(CHAT_TYPE_COMMAND, "hide_horse_state");
+		chat_packet(CHAT_TYPE_COMMAND, "hide_horse_state");
 
-		m_bSendHorseLevel = 0;
-		m_bSendHorseHealthGrade = 0;
-		m_bSendHorseStaminaGrade = 0;
+		send_horse_level_ = 0;
+		send_horse_health_grade_ = 0;
+		send_horse_stamina_grade_ = 0;
 	}
 
-	m_chHorse = nullptr;
+	ch_horse_ = nullptr;
 
 }
 
-void CHARACTER::SendHorseInfo()
+void character::send_horse_info()
 {
-	if (m_chHorse || IsHorseRiding())
+	if (ch_horse_ || is_horse_riding())
 	{
 		int iHealthGrade;
 		int iStaminaGrade;
@@ -324,55 +324,55 @@ STM
 1: 10% < ~ <= 30%
 0:	 ~ <= 10%
 		 */
-		if (GetHorseHealth() == 0)
+		if (horse_health() == 0)
 			iHealthGrade = 0;
-		else if (GetHorseHealth() * 10 <= GetHorseMaxHealth() * 3) 
+		else if (horse_health() * 10 <= horse_max_health() * 3) 
 			iHealthGrade = 1;
-		else if (GetHorseHealth() * 10 <= GetHorseMaxHealth() * 7) 
+		else if (horse_health() * 10 <= horse_max_health() * 7) 
 			iHealthGrade = 2;
 		else
 			iHealthGrade = 3;
 
-		if (GetHorseStamina() * 10 <= GetHorseMaxStamina())
+		if (horse_stamina() * 10 <= horse_max_stamina())
 			iStaminaGrade = 0;
-		else if (GetHorseStamina() * 10 <= GetHorseMaxStamina() * 3) 
+		else if (horse_stamina() * 10 <= horse_max_stamina() * 3) 
 			iStaminaGrade = 1;
-		else if (GetHorseStamina() * 10 <= GetHorseMaxStamina() * 7) 
+		else if (horse_stamina() * 10 <= horse_max_stamina() * 7) 
 			iStaminaGrade = 2;
 		else
 			iStaminaGrade = 3;
 
-		if (m_bSendHorseLevel != GetHorseLevel() || 
-				m_bSendHorseHealthGrade != iHealthGrade || 
-				m_bSendHorseStaminaGrade != iStaminaGrade)
+		if (send_horse_level_ != horse_level() || 
+				send_horse_health_grade_ != iHealthGrade || 
+				send_horse_stamina_grade_ != iStaminaGrade)
 		{
-			ChatPacket(CHAT_TYPE_COMMAND, "horse_state %d %d %d", GetHorseLevel(), iHealthGrade, iStaminaGrade);
+			chat_packet(CHAT_TYPE_COMMAND, "horse_state %d %d %d", horse_level(), iHealthGrade, iStaminaGrade);
 
 			// FIX : If you skip the code below by returning at the top of the function to hide the "horse status buff" icon on the client,
 			// a terrible bug appears that summons horses infinitely.. The exact cause hasn't been investigated, so unknown.
-			m_bSendHorseLevel = GetHorseLevel();
-			m_bSendHorseHealthGrade = iHealthGrade;
-			m_bSendHorseStaminaGrade = iStaminaGrade;
+			send_horse_level_ = horse_level();
+			send_horse_health_grade_ = iHealthGrade;
+			send_horse_stamina_grade_ = iStaminaGrade;
 		}
 	}
 }
 		
-bool CHARACTER::CanUseHorseSkill()
+bool character::can_use_horse_skill()
 {
-	if(IsRiding())
+	if(is_riding())
 	{
-		if (GetHorseGrade() == 3)
+		if (horse_grade() == 3)
 			return true;
 		else
 			return false;
 
-		if(GetMountVnum())
+		if(get_mount_vnum())
 		{
-			if (GetMountVnum() >= 20209 && GetMountVnum() <= 20212)
+			if (get_mount_vnum() >= 20209 && get_mount_vnum() <= 20212)
 				return true;
 
 			//Ramadan black horse
-			if (CMobVnumHelper::IsRamadanBlackHorse(GetMountVnum()))
+			if (mob_vnum_helper::is_ramadan_black_horse(get_mount_vnum()))
 				return true;
 		}
 		else
@@ -383,9 +383,9 @@ bool CHARACTER::CanUseHorseSkill()
 	return false;
 }
 
-void CHARACTER::SetHorseLevel(int iLevel)
+void character::set_horse_level(int iLevel)
 {
-	CHorseRider::SetHorseLevel(iLevel);
-	SetSkillLevel(SKILL_HORSE, GetHorseLevel());
+	horse_rider::set_horse_level(iLevel);
+	set_skill_level(SKILL_HORSE, horse_level());
 }
 }

@@ -17,37 +17,37 @@
 
 namespace metin2::db::inline clients {
 
-void CClientManager::UpdateHorseName(TPacketUpdateHorseName* data, CPeer* peer)
+void client_manager::update_horse_name(packet_update_horse_name* data, peer* peer)
 {
-	const std::string query = sql::format("REPLACE INTO horse_name VALUES({}, {})", data->dwPlayerID, data->szHorseName);
+	const std::string query = sql::format("REPLACE INTO horse_name VALUES({}, {})", data->player_id, data->horse_name);
 
-	std::unique_ptr<SQLMsg> pmsg_insert(CDBManager::instance().DirectQuery(query.c_str()));
+	std::unique_ptr<ql_msg> pmsg_insert(db_manager::instance().direct_query(query.c_str()));
 
-	ForwardPacket(HEADER_DG_UPDATE_HORSE_NAME, data, sizeof(TPacketUpdateHorseName), 0, peer);
+	forward_packet(HEADER_DG_UPDATE_HORSE_NAME, data, sizeof(packet_update_horse_name), 0, peer);
 }
 
-void CClientManager::AckHorseName(uint32_t dwPID, CPeer* peer)
+void client_manager::ack_horse_name(uint32_t dwPID, peer* peer)
 {
 	char szQuery[512];
 
 	snprintf(szQuery, sizeof(szQuery), "SELECT name FROM horse_name WHERE id = %u", dwPID);
 
-	std::unique_ptr<SQLMsg> pmsg(CDBManager::instance().DirectQuery(szQuery));
+	std::unique_ptr<ql_msg> pmsg(db_manager::instance().direct_query(szQuery));
 
-	TPacketUpdateHorseName packet;
-	packet.dwPlayerID = dwPID;
+	packet_update_horse_name packet;
+	packet.player_id = dwPID;
 
-	if (pmsg->Get()->uiNumRows == 0)
+	if (pmsg->get()->num_rows == 0)
 	{
-		memset(packet.szHorseName, 0, sizeof (packet.szHorseName));
+		memset(packet.horse_name, 0, sizeof (packet.horse_name));
 	}
 	else
 	{
-		MYSQL_ROW row = mysql_fetch_row(pmsg->Get()->pSQLResult);
-		strlcpy(packet.szHorseName, row[0], sizeof(packet.szHorseName));
+		MYSQL_ROW row = mysql_fetch_row(pmsg->get()->sql_result);
+		strlcpy(packet.horse_name, row[0], sizeof(packet.horse_name));
 	}
 
-	peer->EncodeHeader(HEADER_DG_ACK_HORSE_NAME, 0, sizeof(TPacketUpdateHorseName));
-	peer->Encode(&packet, sizeof(TPacketUpdateHorseName));
+	peer->encode_header(HEADER_DG_ACK_HORSE_NAME, 0, sizeof(packet_update_horse_name));
+	peer->encode(&packet, sizeof(packet_update_horse_name));
 }
 }

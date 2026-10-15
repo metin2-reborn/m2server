@@ -54,22 +54,22 @@ namespace quest
 		SUSPEND_STATE_SELECT_ITEM,
 	};
 
-	enum EQuestConfirmType
+	enum quest_confirm_type
 	{
 		CONFIRM_NO,
 		CONFIRM_YES,
 		CONFIRM_TIMEOUT,
 	};
 
-	struct AStateScriptType
+	struct a_state_script_type
 	{
-		int		GetSize() const { return m_code.size(); }
-		const char*	GetCode() const { return &m_code[0]; }
+		int		size() const { return code.size(); }
+		const char*	get_code() const { return &code[0]; }
 
-		std::vector<char> m_code;
+		std::vector<char> code;
 	};
 
-	struct AArgScript
+	struct a_arg_script
 	{
 		//
 		// script syntax example
@@ -79,37 +79,37 @@ namespace quest
 		//                      |             + 
 		std::string arg;  // <--+             |
 		std::vector<char> when_condition;// <-+
-		AStateScriptType script;
+		a_state_script_type script;
 		unsigned int quest_index;
 		int state_index;
 
-		AArgScript()
+		a_arg_script()
 			: quest_index(0), state_index(0)
 		{}
 	};
 
-	struct QuestState
+	struct quest_state
 	{
 		lua_State *	co;
 		int		ico;
 		short int	args;
 		uint8_t		suspend_state;
-		int		iIndex;
-		bool		bStart;
+		int		index;
+		bool		start;
 		int		st;
 
-		std::string	_title;
-		std::string	_clock_name;
-		std::string	_counter_name;
-		int		_clock_value;
-		int		_counter_value;
-		std::string	_icon_file;
+		std::string	title;
+		std::string	clock_name;
+		std::string	counter_name;
+		int		clock_value;
+		int		counter_value;
+		std::string	icon_file;
 
-		std::vector<AArgScript *> chat_scripts;
+		std::vector<a_arg_script *> chat_scripts;
 
-		QuestState()
-			: co(nullptr), ico(0), args(0), suspend_state(SUSPEND_STATE_NONE), iIndex(0), bStart(false), st(-1),
-			_clock_value(0), _counter_value(0)
+		quest_state()
+			: co(nullptr), ico(0), args(0), suspend_state(SUSPEND_STATE_NONE), index(0), start(false), st(-1),
+			clock_value(0), counter_value(0)
 		{}
 	};
 }

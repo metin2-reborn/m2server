@@ -9,16 +9,16 @@ namespace metin2::game::inline events {
 
 namespace mining
 {
-	LPEVENT CreateMiningEvent(CHARACTER * ch, CHARACTER * load, int count);
-	uint32_t GetRawOreFromLoad(uint32_t dwLoadVnum);
-	bool OreRefine(CHARACTER * ch, CHARACTER * npc, CItem * item, int cost, int pct, CItem * metinstone_item);
-	int GetFractionCount();
+	event_ptr create_mining_event(character * ch, character * load, int count);
+	uint32_t get_raw_ore_from_load(uint32_t dwLoadVnum);
+	bool ore_refine(character * ch, character * npc, item * ore, int cost, int pct, item * metinstone_item);
+	int get_fraction_count();
 
 	// REFINE_PICK
-	int RealRefinePick(CHARACTER * ch, CItem * item);
-	void CHEAT_MAX_PICK(CHARACTER * ch, CItem * item);
+	int real_refine_pick(character * ch, item * item);
+	void cheat_max_pick(character * ch, item * item);
 	// END_OF_REFINE_PICK
 
-	bool IsVeinOfOre (uint32_t vnum);
+	bool is_vein_of_ore (uint32_t vnum);
 }
 }

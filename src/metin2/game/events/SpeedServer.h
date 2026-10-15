@@ -12,19 +12,19 @@ namespace metin2::game::inline events {
 
 // Copy-pasted from castle.cpp
 
-class HME
+class hme
 {
 	public :
 		int hour;
 		int min;
 		int exp;
 
-		HME (int h=0, int m=0, int e=0){
+		hme (int h=0, int m=0, int e=0){
 			hour =  h; min = m; 
 			exp = e;
 		}
 
-		bool operator==(const HME &rhs) const
+		bool operator==(const hme &rhs) const
 		{
 			return hour == rhs.hour
 				&& min == rhs.min
@@ -33,19 +33,19 @@ class HME
 
 };
 
-class Date
+class date
 {
 	public : 
 		int year;
 		int mon;
 		int day;
 
-		Date (int y = 0, int m = 0, int d = 0)
+		date (int y = 0, int m = 0, int d = 0)
 		{
 			year = y; mon = m; day = d;
 		}
 
-		bool operator<(const Date &rhs) const
+		bool operator<(const date &rhs) const
 		{
 			return (year<rhs.year)
 				|| ((year==rhs.year) && (mon<rhs.mon))
@@ -53,58 +53,58 @@ class Date
 		}
 };
 
-class CSpeedServerEmpireExp
+class speed_server_empire_exp
 {
 	public :
-		CSpeedServerEmpireExp();
-		~CSpeedServerEmpireExp();
+		speed_server_empire_exp();
+		~speed_server_empire_exp();
 
-		bool Initialize (uint8_t empire);
+		bool initialize (uint8_t empire);
 		
-		std::list <HME>& GetWdayExpTable(int wday);
-		void SetWdayExpTable(int wday, HME hme);
+		std::list <hme>& wday_exp_table(int wday);
+		void set_wday_exp_table(int wday, hme hme);
 
-		std::list <HME>& GetHolidayExpTable(Date date, bool &is_exist);
-		void SetHolidayExpTable(Date date, HME hme);
+		std::list <hme>& holiday_exp_table(date date, bool &is_exist);
+		void set_holiday_exp_table(date date, hme hme);
 
-		void InitWdayExpTable(int wday);
-		void InitHolidayExpTable(Date date);
-		HME GetCurrentExpPriv (int &duration, bool &is_change);
+		void init_wday_exp_table(int wday);
+		void init_holiday_exp_table(date date);
+		hme current_exp_priv (int &duration, bool &is_change);
 
-		bool WriteExpTable();
+		bool write_exp_table();
 
 	private :
-		bool LoadExpTable ();
-		bool LoadWdayExpTable (int wday, char *str);
+		bool load_exp_table ();
+		bool load_wday_exp_table (int wday, char *str);
 
-		uint8_t empire;
-		std::string file_name;
-		HME current_hme;
-		std::map <Date, std::list <HME> > holiday_map;
-		std::list <HME> wday_exp_table[7];
+		uint8_t empire_;
+		std::string file_name_;
+		hme current_hme_;
+		std::map <date, std::list <hme> > holiday_map_;
+		std::list <hme> wday_exp_table_[7];
 };
 
-class CSpeedServerManager : public singleton<CSpeedServerManager>
+class speed_server_manager : public singleton<speed_server_manager>
 {
 	public:
-		CSpeedServerManager();
-		~CSpeedServerManager() override;
+		speed_server_manager();
+		~speed_server_manager() override;
 
-		bool Initialize ();
+		bool initialize ();
 
-		std::list <HME>& GetWdayExpTableOfEmpire (uint8_t empire, int wday);
-		void SetWdayExpTableOfEmpire (uint8_t empire, int wday, HME hme);
-		void InitWdayExpTableOfEmpire (uint8_t empire, int wday);
+		std::list <hme>& wday_exp_table_of_empire (uint8_t empire, int wday);
+		void set_wday_exp_table_of_empire (uint8_t empire, int wday, hme hme);
+		void init_wday_exp_table_of_empire (uint8_t empire, int wday);
 		
-		std::list <HME>& GetHolidayExpTableOfEmpire (uint8_t empire, Date date, bool &is_exist);
-		void SetHolidayExpTableOfEmpire (uint8_t empire, Date date, HME hme);
-		void InitHolidayExpTableOfEmpire (uint8_t empire, Date date);
+		std::list <hme>& holiday_exp_table_of_empire (uint8_t empire, date date, bool &is_exist);
+		void set_holiday_exp_table_of_empire (uint8_t empire, date date, hme hme);
+		void init_holiday_exp_table_of_empire (uint8_t empire, date date);
 
 		
-		HME GetCurrentExpPrivOfEmpire (uint8_t empire, int &duration, bool &is_change);
+		hme current_exp_priv_of_empire (uint8_t empire, int &duration, bool &is_change);
 
 	private:
-		CSpeedServerEmpireExp Empire[EMPIRE_MAX_NUM];
+		speed_server_empire_exp empire_[EMPIRE_MAX_NUM];
 		
 };
 }

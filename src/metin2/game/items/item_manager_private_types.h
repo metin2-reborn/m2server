@@ -7,32 +7,32 @@
 
 namespace metin2::game::inline items {
 
-class CItemDropInfo
+class item_drop_info
 {
 public:
-	CItemDropInfo(int iLevelStart, int iLevelEnd, int iPercent, uint32_t dwVnum) :
-	  m_iLevelStart(iLevelStart), m_iLevelEnd(iLevelEnd), m_iPercent(iPercent), m_dwVnum(dwVnum)
+	item_drop_info(int iLevelStart, int iLevelEnd, int iPercent, uint32_t dwVnum) :
+	  level_start(iLevelStart), level_end(iLevelEnd), percent(iPercent), vnum(dwVnum)
 	  {
 	  }
 
-	  int	m_iLevelStart;
-	  int	m_iLevelEnd;
-	  int	m_iPercent; // 1 ~ 1000
-	  uint32_t	m_dwVnum;
+	  int	level_start;
+	  int	level_end;
+	  int	percent; // 1 ~ 1000
+	  uint32_t	vnum;
 
-	  friend bool operator < (const CItemDropInfo & l, const CItemDropInfo & r)
+	  friend bool operator < (const item_drop_info & l, const item_drop_info & r)
 	  {
-		  return l.m_iLevelEnd < r.m_iLevelEnd;
+		  return l.level_end < r.level_end;
 	  }
 };
 
-extern std::vector<CItemDropInfo> g_vec_pkCommonDropItem[MOB_RANK_MAX_NUM];
+extern std::vector<item_drop_info> vec_pk_common_drop_item[MOB_RANK_MAX_NUM];
 
-struct TDropItem {
-	int		iLvStart;
-	int		iLvEnd;
-	float	fPercent;
-	char	szItemName[PROTO_NAME_MAX_LEN + 1];
-	int		iCount;
+struct drop_item {
+	int		lv_start;
+	int		lv_end;
+	float	percent;
+	char	item_name[PROTO_NAME_MAX_LEN + 1];
+	int		count;
 };
 }

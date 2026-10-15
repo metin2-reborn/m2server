@@ -8,8 +8,8 @@
 
 namespace metin2::game::inline events {
 
-const static int nBATTLE_ARENA_MAP[] = { 0, 190, 191, 192 };
-const static std::string strRegen[] =
+const static int battle_arena_map[] = { 0, 190, 191, 192 };
+const static std::string str_regen[] =
 {
 	"",
 	"/metin2_map_battlearena01/regen00.txt",
@@ -17,35 +17,35 @@ const static std::string strRegen[] =
 	"/metin2_map_battlearena03/regen00.txt",
 };
 
-enum BATTLEARENA_STATUS
+enum battlearena_status
 {
 	STATUS_CLOSE = 0,
 	STATUS_BATTLE,
 	STATUS_END,
 };
 
-class CBattleArena : public singleton<CBattleArena>
+class battle_arena : public singleton<battle_arena>
 {
 	private :
-		LPEVENT m_pEvent;
-		BATTLEARENA_STATUS m_status;
-		int m_nMapIndex;
-		int m_nEmpire;
-		bool m_bForceEnd;
+		event_ptr event_;
+		battlearena_status status_;
+		int map_index_;
+		int empire_;
+		bool force_end_;
 
 	public :
-		CBattleArena();
+		battle_arena();
 
-		static bool IsBattleArenaMap(int nMapIndex);
+		static bool is_battle_arena_map(int nMapIndex);
 
-		bool IsRunning();
-		void SetStatus(BATTLEARENA_STATUS status);
+		bool is_running();
+		void set_status(battlearena_status status);
 
-		bool Start(int nEmpire);
-		void ForceEnd();
-		void End();
+		bool start(int nEmpire);
+		void force_end();
+		void end();
 
-		void SpawnLastBoss();
-		void SpawnRandomStone();
+		void spawn_last_boss();
+		void spawn_random_stone();
 };
 }

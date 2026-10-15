@@ -24,22 +24,22 @@
 
 namespace metin2::game::inline empire {
 
-static const char * GetEmpireName(int priv)
+static const char * get_empire_name(int priv)
 {
-	return LC_TEXT(c_apszEmpireNames[priv]);
+	return lc_text(apsz_empire_names[priv]);
 }
 
-static const char * GetPrivName(int priv)
+static const char * get_priv_name(int priv)
 {
-	return LC_TEXT(c_apszPrivNames[priv]);
+	return lc_text(apsz_priv_names[priv]);
 }
 
-CPrivManager::CPrivManager()
+priv_manager::priv_manager()
 {
-	memset(m_aakPrivEmpireData, 0, sizeof(m_aakPrivEmpireData));
+	memset(aak_priv_empire_data_, 0, sizeof(aak_priv_empire_data_));
 }
 
-void CPrivManager::RequestGiveGuildPriv(uint32_t guild_id, uint8_t type, int value, time_t duration_sec)
+void priv_manager::request_give_guild_priv(uint32_t guild_id, uint8_t type, int value, time_t duration_sec)
 {
 	if (MAX_PRIV_NUM <= type)
 	{
@@ -50,16 +50,16 @@ void CPrivManager::RequestGiveGuildPriv(uint32_t guild_id, uint8_t type, int val
 	value = std::clamp(value, 0, 1000);
 	duration_sec = std::clamp<int>(duration_sec, 0, 60*60*24*7);
 
-	TPacketGiveGuildPriv p;
+	packet_give_guild_priv p;
 	p.type = type;
 	p.value = value;
 	p.guild_id = guild_id;
 	p.duration_sec = duration_sec;
 
-	db_clientdesc->DBPacket(HEADER_GD_REQUEST_GUILD_PRIV, 0, &p, sizeof(p));
+	db_clientdesc->db_packet(HEADER_GD_REQUEST_GUILD_PRIV, 0, &p, sizeof(p));
 }
 
-void CPrivManager::RequestGiveEmpirePriv(uint8_t empire, uint8_t type, int value, time_t duration_sec)
+void priv_manager::request_give_empire_priv(uint8_t empire, uint8_t type, int value, time_t duration_sec)
 {
 	if (MAX_PRIV_NUM <= type)
 	{
@@ -70,16 +70,16 @@ void CPrivManager::RequestGiveEmpirePriv(uint8_t empire, uint8_t type, int value
 	value = std::clamp(value, 0, 1000);
 	duration_sec = std::clamp<int>(duration_sec, 0, 60*60*24*7);
 
-	TPacketGiveEmpirePriv p;
+	packet_give_empire_priv p;
 	p.type = type;
 	p.value = value;
 	p.empire = empire;
 	p.duration_sec = duration_sec;
 
-	db_clientdesc->DBPacket(HEADER_GD_REQUEST_EMPIRE_PRIV, 0, &p, sizeof(p));
+	db_clientdesc->db_packet(HEADER_GD_REQUEST_EMPIRE_PRIV, 0, &p, sizeof(p));
 }
 
-void CPrivManager::RequestGiveCharacterPriv(uint32_t pid, uint8_t type, int value)
+void priv_manager::request_give_character_priv(uint32_t pid, uint8_t type, int value)
 {
 	if (MAX_PRIV_NUM <= type)
 	{
@@ -89,15 +89,15 @@ void CPrivManager::RequestGiveCharacterPriv(uint32_t pid, uint8_t type, int valu
 
 	value = std::clamp(value, 0, 1000);
 
-	TPacketGiveCharacterPriv p;
+	packet_give_character_priv p;
 	p.type = type;
 	p.value = value;
 	p.pid = pid;
 
-	db_clientdesc->DBPacket(HEADER_GD_REQUEST_CHARACTER_PRIV, 0, &p, sizeof(p));
+	db_clientdesc->db_packet(HEADER_GD_REQUEST_CHARACTER_PRIV, 0, &p, sizeof(p));
 }
 
-void CPrivManager::GiveGuildPriv(uint32_t guild_id, uint8_t type, int value, uint8_t bLog, time_t end_time_sec)
+void priv_manager::give_guild_priv(uint32_t guild_id, uint8_t type, int value, uint8_t bLog, time_t end_time_sec)
 {
 	if (MAX_PRIV_NUM <= type)
 	{
@@ -110,34 +110,34 @@ void CPrivManager::GiveGuildPriv(uint32_t guild_id, uint8_t type, int value, uin
 	value = std::clamp(value, 0, 1000);
 	end_time_sec = std::clamp<int>(end_time_sec, 0, get_global_time()+60*60*24*7);
 
-	m_aPrivGuild[type][guild_id].value = value;
-	m_aPrivGuild[type][guild_id].end_time_sec = end_time_sec;
+	priv_guild_[type][guild_id].value = value;
+	priv_guild_[type][guild_id].end_time_sec = end_time_sec;
 
-	CGuild* g = CGuildManager::instance().FindGuild(guild_id);
+	guild* g = guild_manager::instance().find_guild(guild_id);
 
 	if (g)
 	{
 		if (value)
 		{
 			char buf[100];
-			snprintf(buf, sizeof(buf), LC_TEXT("%s 길드의 %s이 %d%% 증가했습니다!"), g->GetName(), GetPrivName(type), value);
-			SendNotice(buf);
+			snprintf(buf, sizeof(buf), lc_text("%s 길드의 %s이 %d%% 증가했습니다!"), g->name(), get_priv_name(type), value);
+			send_notice(buf);
 		}
 		else
 		{
 			char buf[100];
-			snprintf(buf, sizeof(buf), LC_TEXT("%s 길드의 %s이 정상으로 돌아왔습니다."), g->GetName(), GetPrivName(type));
-			SendNotice(buf);
+			snprintf(buf, sizeof(buf), lc_text("%s 길드의 %s이 정상으로 돌아왔습니다."), g->name(), get_priv_name(type));
+			send_notice(buf);
 		}
 
 		if (bLog)
 		{
-			LogManager::instance().CharLog(0, guild_id, type, value, "GUILD_PRIV", "", "");
+			log_manager::instance().char_log(0, guild_id, type, value, "GUILD_PRIV", "", "");
 		}
 	}
 }
 
-void CPrivManager::GiveCharacterPriv(uint32_t pid, uint8_t type, int value, uint8_t bLog)
+void priv_manager::give_character_priv(uint32_t pid, uint8_t type, int value, uint8_t bLog)
 {
 	if (MAX_PRIV_NUM <= type)
 	{
@@ -149,13 +149,13 @@ void CPrivManager::GiveCharacterPriv(uint32_t pid, uint8_t type, int value, uint
 
 	value = std::clamp(value, 0, 1000);
 
-	m_aPrivChar[type][pid] = value;
+	priv_char_[type][pid] = value;
 
 	if (bLog)
-		LogManager::instance().CharLog(pid, 0, type, value, "CHARACTER_PRIV", "", "");
+		log_manager::instance().char_log(pid, 0, type, value, "CHARACTER_PRIV", "", "");
 }
 
-void CPrivManager::GiveEmpirePriv(uint8_t empire, uint8_t type, int value, uint8_t bLog, time_t end_time_sec)
+void priv_manager::give_empire_priv(uint8_t empire, uint8_t type, int value, uint8_t bLog, time_t end_time_sec)
 {
 	if (MAX_PRIV_NUM <= type)
 	{
@@ -168,70 +168,70 @@ void CPrivManager::GiveEmpirePriv(uint8_t empire, uint8_t type, int value, uint8
 	value = std::clamp(value, 0, 1000);
 	end_time_sec = std::clamp<int>(end_time_sec, 0, get_global_time()+60*60*24*7);
 
-	SPrivEmpireData& rkPrivEmpireData=m_aakPrivEmpireData[type][empire];
-	rkPrivEmpireData.m_value = value;
-	rkPrivEmpireData.m_end_time_sec = end_time_sec;
+	priv_empire_data& rkPrivEmpireData=aak_priv_empire_data_[type][empire];
+	rkPrivEmpireData.value = value;
+	rkPrivEmpireData.end_time_sec = end_time_sec;
 
 	if (value)
 	{
 		char buf[100];
-		snprintf(buf, sizeof(buf), LC_TEXT("%s의 %s이 %d%% 증가했습니다!"), GetEmpireName(empire), GetPrivName(type), value);
+		snprintf(buf, sizeof(buf), lc_text("%s의 %s이 %d%% 증가했습니다!"), get_empire_name(empire), get_priv_name(type), value);
 
 		if (empire)
-			SendNotice(buf);
+			send_notice(buf);
 		else
-			SendLog(buf);
+			send_log(buf);
 	}
 	else
 	{
 		char buf[100];
-		snprintf(buf, sizeof(buf), LC_TEXT("%s의 %s이 정상으로 돌아왔습니다."), GetEmpireName(empire), GetPrivName(type));
+		snprintf(buf, sizeof(buf), lc_text("%s의 %s이 정상으로 돌아왔습니다."), get_empire_name(empire), get_priv_name(type));
 
 		if (empire)
-			SendNotice(buf);
+			send_notice(buf);
 		else
-			SendLog(buf);
+			send_log(buf);
 	}
 
 	if (bLog)
 	{
-		LogManager::instance().CharLog(0, empire, type, value, "EMPIRE_PRIV", "", "");
+		log_manager::instance().char_log(0, empire, type, value, "EMPIRE_PRIV", "", "");
 	}
 }
 
-int CPrivManager::GetPriv(CHARACTER * ch, uint8_t type)
+int priv_manager::priv(character * ch, uint8_t type)
 {
 	// If the character's modifier is negative, always apply only the negative
-	int val_ch = GetPrivByCharacter(ch->GetPlayerID(), type);
+	int val_ch = priv_by_character(ch->player_id(), type);
 
-	if (val_ch < 0 && !ch->IsEquipUniqueItem(UNIQUE_ITEM_NO_BAD_LUCK_EFFECT))
+	if (val_ch < 0 && !ch->is_equip_unique_item(UNIQUE_ITEM_NO_BAD_LUCK_EFFECT))
 		return val_ch;
 	else
 	{
 		int val;
 
 		// Takes the largest of personal, empire, guild and global values.
-		val = std::max(val_ch, GetPrivByEmpire(0, type));
-		val = std::max(val, GetPrivByEmpire(ch->GetEmpire(), type));
+		val = std::max(val_ch, priv_by_empire(0, type));
+		val = std::max(val, priv_by_empire(ch->empire(), type));
 
-		if (ch->GetGuild())
-			val = std::max(val, GetPrivByGuild(ch->GetGuild()->GetID(), type));
+		if (ch->get_guild())
+			val = std::max(val, priv_by_guild(ch->get_guild()->id(), type));
 
 		return val;
 	}
 }
 
-int CPrivManager::GetPrivByEmpire(uint8_t bEmpire, uint8_t type)
+int priv_manager::priv_by_empire(uint8_t bEmpire, uint8_t type)
 {
-	SPrivEmpireData* pkPrivEmpireData = GetPrivByEmpireEx(bEmpire, type);
+	priv_empire_data* pkPrivEmpireData = priv_by_empire_ex(bEmpire, type);
 
 	if (pkPrivEmpireData)
-		return pkPrivEmpireData->m_value;
+		return pkPrivEmpireData->value;
 
 	return 0;
 }
 
-CPrivManager::SPrivEmpireData* CPrivManager::GetPrivByEmpireEx(uint8_t bEmpire, uint8_t type)
+priv_manager::priv_empire_data* priv_manager::priv_by_empire_ex(uint8_t bEmpire, uint8_t type)
 {
 	if (type >= MAX_PRIV_NUM)
 		return nullptr;
@@ -239,43 +239,43 @@ CPrivManager::SPrivEmpireData* CPrivManager::GetPrivByEmpireEx(uint8_t bEmpire, 
 	if (bEmpire >= EMPIRE_MAX_NUM)
 		return nullptr;
 
-	return &m_aakPrivEmpireData[type][bEmpire];
+	return &aak_priv_empire_data_[type][bEmpire];
 }
 
-int CPrivManager::GetPrivByGuild(uint32_t guild_id, uint8_t type)
+int priv_manager::priv_by_guild(uint32_t guild_id, uint8_t type)
 {
 	if (type >= MAX_PRIV_NUM)
 		return 0;
 
-	auto itFind = m_aPrivGuild[ type ].find( guild_id );
+	auto itFind = priv_guild_[ type ].find( guild_id );
 
-	if ( itFind == m_aPrivGuild[ type ].end() )
+	if ( itFind == priv_guild_[ type ].end() )
 		return 0;
 
 	return itFind->second.value;
 }
 
-const CPrivManager::SPrivGuildData* CPrivManager::GetPrivByGuildEx( uint32_t dwGuildID, uint8_t byType ) const
+const priv_manager::priv_guild_data* priv_manager::priv_by_guild_ex( uint32_t dwGuildID, uint8_t byType ) const
 {
 	if ( byType >= MAX_PRIV_NUM )
 		return nullptr;
 
-	auto itFind = m_aPrivGuild[ byType ].find( dwGuildID );
+	auto itFind = priv_guild_[ byType ].find( dwGuildID );
 
-	if ( itFind == m_aPrivGuild[ byType ].end() )
+	if ( itFind == priv_guild_[ byType ].end() )
 		return nullptr;
 
 	return &itFind->second;
 }
 
-int CPrivManager::GetPrivByCharacter(uint32_t pid, uint8_t type)
+int priv_manager::priv_by_character(uint32_t pid, uint8_t type)
 {
 	if (type >= MAX_PRIV_NUM)
 		return 0;
 
-	auto it = m_aPrivChar[type].find(pid);
+	auto it = priv_char_[type].find(pid);
 
-	if (it != m_aPrivChar[type].end())
+	if (it != priv_char_[type].end())
 		return it->second;
 
 	return 0;

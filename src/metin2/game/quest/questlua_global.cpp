@@ -52,13 +52,13 @@ namespace metin2::game {
 
 namespace quest
 {
-	int _get_locale(lua_State* L)
+	int get_locale(lua_State* L)
 	{
-		lua_pushstring(L, g_stLocale.c_str());
+		lua_pushstring(L, locale.c_str());
 		return 1;
 	}
 
-	int _number(lua_State* L)
+	int random_number(lua_State* L)
 	{
 		if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2))
 			lua_pushnumber(L, 0);
@@ -67,79 +67,79 @@ namespace quest
 		return 1;
 	}
 
-	int _time_to_str(lua_State* L)
+	int time_to_str(lua_State* L)
 	{
 		time_t curTime = (time_t)lua_tonumber(L, -1);
 		lua_pushstring(L, asctime(gmtime(&curTime)));
 		return 1;
 	}
 
-	int _say(lua_State* L)
+	int say(lua_State* L)
 	{
 		std::ostringstream s;
 		combine_lua_string(L, s);
-		CQuestManager::instance().AddScript(s.str() + "[ENTER]");
+		quest_manager::instance().add_script(s.str() + "[ENTER]");
 		return 0;
 	}
 
-	int _chat(lua_State* L)
+	int chat(lua_State* L)
 	{
 		std::ostringstream s;
 		combine_lua_string(L, s);
 
-		CQuestManager::instance().GetCurrentCharacterPtr()->ChatPacket(CHAT_TYPE_TALKING, "%s", s.str().c_str());
+		quest_manager::instance().current_character_ptr()->chat_packet(CHAT_TYPE_TALKING, "%s", s.str().c_str());
 		return 0;
 	}
 
-	int _cmdchat(lua_State* L)
+	int cmdchat(lua_State* L)
 	{
 		std::ostringstream s;
 		combine_lua_string(L, s);
-		CQuestManager::instance().GetCurrentCharacterPtr()->ChatPacket(CHAT_TYPE_COMMAND, "%s", s.str().c_str());
+		quest_manager::instance().current_character_ptr()->chat_packet(CHAT_TYPE_COMMAND, "%s", s.str().c_str());
 		return 0;
 	}
 
-	int _syschat(lua_State* L)
+	int syschat(lua_State* L)
 	{
 		std::ostringstream s;
 		combine_lua_string(L, s);
-		CQuestManager::instance().GetCurrentCharacterPtr()->ChatPacket(CHAT_TYPE_INFO, "%s", s.str().c_str());
+		quest_manager::instance().current_character_ptr()->chat_packet(CHAT_TYPE_INFO, "%s", s.str().c_str());
 		return 0;
 	}
 
-	int _notice(lua_State* L)
+	int notice(lua_State* L)
 	{
 		std::ostringstream s;
 		combine_lua_string(L, s);
-		CQuestManager::instance().GetCurrentCharacterPtr()->ChatPacket(CHAT_TYPE_NOTICE, "%s", s.str().c_str());
+		quest_manager::instance().current_character_ptr()->chat_packet(CHAT_TYPE_NOTICE, "%s", s.str().c_str());
 		return 0;
 	}
 
-	int _left_image(lua_State* L)
+	int left_image(lua_State* L)
 	{
 		if (lua_isstring(L, -1))
 		{
 			std::string s = lua_tostring(L,-1);
-			CQuestManager::instance().AddScript("[LEFTIMAGE src;"+s+"]");
+			quest_manager::instance().add_script("[LEFTIMAGE src;"+s+"]");
 		}
 		return 0;
 	}
 
-	int _top_image(lua_State* L)
+	int top_image(lua_State* L)
 	{
 		if (lua_isstring(L, -1))
 		{
 			std::string s = lua_tostring(L,-1);
-			CQuestManager::instance().AddScript("[TOPIMAGE src;"+s+"]");
+			quest_manager::instance().add_script("[TOPIMAGE src;"+s+"]");
 		}
 		return 0;
 	}
 
-	int _set_skin(lua_State* L) // Quest UI style
+	int set_skin(lua_State* L) // Quest UI style
 	{
 		if (lua_isnumber(L, -1))
 		{
-			CQuestManager::instance().SetSkinStyle((int)rint(lua_tonumber(L,-1)));
+			quest_manager::instance().set_skin_style((int)rint(lua_tonumber(L,-1)));
 		}
 		else
 		{
@@ -149,7 +149,7 @@ namespace quest
 		return 0;
 	}
 
-	int _set_server_timer(lua_State* L)
+	int set_server_timer(lua_State* L)
 	{
 		int n = lua_gettop(L);
 		if ((n != 2 || !lua_isnumber(L, 2) || !lua_isstring(L, 1)) &&
@@ -163,19 +163,19 @@ namespace quest
 		double t = lua_tonumber(L, 2);
 		uint32_t arg = 0;
 
-		CQuestManager & q = CQuestManager::instance();
+		quest_manager & q = quest_manager::instance();
 
 		if (lua_isnumber(L, 3))
 			arg = (uint32_t) lua_tonumber(L, 3);
 
-		int timernpc = q.LoadTimerScript(name);
+		int timernpc = q.load_timer_script(name);
 
-		LPEVENT event = quest_create_server_timer_event(name, t, timernpc, false, arg);
-		q.AddServerTimer(name, arg, event);
+		event_ptr event = quest_create_server_timer_event(name, t, timernpc, false, arg);
+		q.add_server_timer(name, arg, event);
 		return 0;
 	}
 
-	int _set_server_loop_timer(lua_State* L)
+	int set_server_loop_timer(lua_State* L)
 	{
 		int n = lua_gettop(L);
 		if ((n != 2 || !lua_isnumber(L, 2) || !lua_isstring(L, 1)) &&
@@ -187,28 +187,28 @@ namespace quest
 		const char * name = lua_tostring(L, 1);
 		double t = lua_tonumber(L, 2);
 		uint32_t arg = 0;
-		CQuestManager & q = CQuestManager::instance();
+		quest_manager & q = quest_manager::instance();
 
 		if (lua_isnumber(L, 3))
 			arg = (uint32_t) lua_tonumber(L, 3);
 
-		int timernpc = q.LoadTimerScript(name);
+		int timernpc = q.load_timer_script(name);
 
-		LPEVENT event = quest_create_server_timer_event(name, t, timernpc, true, arg);
-		q.AddServerTimer(name, arg, event);
+		event_ptr event = quest_create_server_timer_event(name, t, timernpc, true, arg);
+		q.add_server_timer(name, arg, event);
 		return 0;
 	}
 
-	int _clear_server_timer(lua_State* L)
+	int clear_server_timer(lua_State* L)
 	{
-		CQuestManager & q = CQuestManager::instance();
+		quest_manager & q = quest_manager::instance();
 		const char * name = lua_tostring(L, 1);
 		uint32_t arg = (uint32_t) lua_tonumber(L, 2);
-		q.ClearServerTimer(name, arg);
+		q.clear_server_timer(name, arg);
 		return 0;
 	}
 
-	int _set_named_loop_timer(lua_State* L)
+	int set_named_loop_timer(lua_State* L)
 	{
 		int n = lua_gettop(L);
 
@@ -219,21 +219,21 @@ namespace quest
 			const char * name = lua_tostring(L, -2);
 			double t = lua_tonumber(L, -1);
 
-			CQuestManager & q = CQuestManager::instance();
-			int timernpc = q.LoadTimerScript(name);
-			q.GetCurrentPC()->AddTimer(name, quest_create_timer_event(name, q.GetCurrentCharacterPtr()->GetPlayerID(), t, timernpc, true));
+			quest_manager & q = quest_manager::instance();
+			int timernpc = q.load_timer_script(name);
+			q.current_pc()->add_timer(name, quest_create_timer_event(name, q.current_character_ptr()->player_id(), t, timernpc, true));
 		}
 
 		return 0;
 	}
 
-	int _get_server_timer_arg(lua_State* L)
+	int get_server_timer_arg(lua_State* L)
 	{
-		lua_pushnumber(L, CQuestManager::instance().GetServerTimerArg());
+		lua_pushnumber(L, quest_manager::instance().server_timer_arg());
 		return 1;
 	}
 
-	int _set_timer(lua_State* L)
+	int set_timer(lua_State* L)
 	{
 		if (lua_gettop(L) != 1 || !lua_isnumber(L, -1))
 			quest::error("QUEST invalid argument.");
@@ -241,14 +241,14 @@ namespace quest
 		{
 			double t = lua_tonumber(L, -1);
 
-			CQuestManager& q = CQuestManager::instance();
-			quest_create_timer_event("", q.GetCurrentCharacterPtr()->GetPlayerID(), t);
+			quest_manager& q = quest_manager::instance();
+			quest_create_timer_event("", q.current_character_ptr()->player_id(), t);
 		}
 
 		return 0;
 	}
 
-	int _set_named_timer(lua_State* L)
+	int set_named_timer(lua_State* L)
 	{
 		int n = lua_gettop(L);
 
@@ -261,23 +261,23 @@ namespace quest
 			const char * name = lua_tostring(L,-2);
 			double t = lua_tonumber(L, -1);
 
-			CQuestManager & q = CQuestManager::instance();
-			int timernpc = q.LoadTimerScript(name);
-			q.GetCurrentPC()->AddTimer(name, quest_create_timer_event(name, q.GetCurrentCharacterPtr()->GetPlayerID(), t, timernpc));
+			quest_manager & q = quest_manager::instance();
+			int timernpc = q.load_timer_script(name);
+			q.current_pc()->add_timer(name, quest_create_timer_event(name, q.current_character_ptr()->player_id(), t, timernpc));
 		}
 
 		return 0;
 	}
 
-	int _timer(lua_State * L)
+	int timer(lua_State * L)
 	{
 		if (lua_gettop(L) == 1)
-			return _set_timer(L);
+			return set_timer(L);
 		else
-			return _set_named_timer(L);
+			return set_named_timer(L);
 	}
 
-	int _clear_named_timer(lua_State* L)
+	int clear_named_timer(lua_State* L)
 	{
 		int n = lua_gettop(L);
 
@@ -285,49 +285,49 @@ namespace quest
 			quest::error("QUEST set_timer argument count wrong.");
 		else
 		{
-			CQuestManager & q = CQuestManager::instance();
-			q.GetCurrentPC()->RemoveTimer(lua_tostring(L, -1));
+			quest_manager & q = quest_manager::instance();
+			q.current_pc()->remove_timer(lua_tostring(L, -1));
 		}
 
 		return 0;
 	}
 
-	int _getnpcid(lua_State * L)
+	int getnpcid(lua_State * L)
 	{
 		const char * name = lua_tostring(L, -1);
-		CQuestManager & q = CQuestManager::instance();
-		lua_pushnumber(L, q.FindNPCIDByName(name));
+		quest_manager & q = quest_manager::instance();
+		lua_pushnumber(L, q.find_npcid_by_name(name));
 		return 1;
 	}
 
-	int _is_test_server(lua_State * L)
+	int is_test_server(lua_State * L)
 	{
 		lua_pushboolean(L, metin2::config::test_server());
 		return 1;
 	}
 
-	int _is_speed_server(lua_State * L)
+	int is_speed_server(lua_State * L)
 	{
 		lua_pushboolean(L, metin2::config::game().speed_server);
 		return 1;
 	}
 
-	int _raw_script(lua_State* L)
+	int raw_script(lua_State* L)
 	{
 		if ( metin2::config::test_server() )
 			metin2::log::info( "_raw_script : {} ", lua_tostring(L,-1));
 		if (lua_isstring(L, -1))
-			CQuestManager::instance().AddScript(lua_tostring(L,-1));
+			quest_manager::instance().add_script(lua_tostring(L,-1));
 		else
-			quest::error("QUEST wrong argument: questname: {}", CQuestManager::instance().GetCurrentQuestName().c_str());
+			quest::error("QUEST wrong argument: questname: {}", quest_manager::instance().current_quest_name().c_str());
 
 		return 0;
 	}
 
-	int _char_log(lua_State * L)
+	int char_log(lua_State * L)
 	{
-		CQuestManager& q = CQuestManager::instance();
-		CHARACTER * ch = q.GetCurrentCharacterPtr();
+		quest_manager& q = quest_manager::instance();
+		character * ch = q.current_character_ptr();
 
 		uint32_t what = 0;
 		const char* how = "";
@@ -337,14 +337,14 @@ namespace quest
 		if (lua_isstring(L, 2)) how = lua_tostring(L, 2);
 		if (lua_tostring(L, 3)) hint = lua_tostring(L, 3);
 
-		LogManager::instance().CharLog(ch, what, how, hint);
+		log_manager::instance().char_log(ch, what, how, hint);
 		return 0;
 	}
 	
-	int _item_log(lua_State* L)
+	int item_log(lua_State* L)
 	{
-		CQuestManager& q = CQuestManager::instance();
-		CHARACTER * ch = q.GetCurrentCharacterPtr();
+		quest_manager& q = quest_manager::instance();
+		character * ch = q.current_character_ptr();
 
 		uint32_t dwItemID = 0;
 		const char* how = "";
@@ -354,15 +354,15 @@ namespace quest
 		if ( lua_isstring(L, 2) ) how = lua_tostring(L, 2);
 		if ( lua_tostring(L, 3) ) hint = lua_tostring(L, 3);
 
-		CItem * item = ITEM_MANAGER::instance().Find(dwItemID);
+		item * item = item_manager::instance().find(dwItemID);
 
 		if (item)
-			LogManager::instance().ItemLog(ch, item, how, hint);
+			log_manager::instance().item_log(ch, item, how, hint);
 
 		return 0;
 	}
 
-	int _syslog(lua_State* L)
+	int syslog(lua_State* L)
 	{
 		if (!lua_isnumber(L, 1) || !lua_isstring(L, 2))
 			return 0;
@@ -373,55 +373,55 @@ namespace quest
 				return 0;
 		}
 
-		PC* pc = CQuestManager::instance().GetCurrentPC();
+		pc* pc = quest_manager::instance().current_pc();
 
 		if (!pc)
 			return 0;
 
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
 		if (!ch)
 			return 0;
 
-		metin2::log::info( "QUEST: quest: {} player: {} : {}", pc->GetCurrentQuestName().c_str(), ch->GetName(), lua_tostring(L, 2));
+		metin2::log::info( "QUEST: quest: {} player: {} : {}", pc->current_quest_name().c_str(), ch->name(), lua_tostring(L, 2));
 
 		if (true == metin2::config::test_server())
 		{
-			ch->ChatPacket(CHAT_TYPE_INFO, "QUEST_SYSLOG %s", lua_tostring(L, 2));
+			ch->chat_packet(CHAT_TYPE_INFO, "QUEST_SYSLOG %s", lua_tostring(L, 2));
 		}
 
 		return 0;
 	}
 
-	int _syserr(lua_State* L)
+	int syserr(lua_State* L)
 	{
 		if (!lua_isstring(L, 1))
 			return 0;
 
-		PC* pc = CQuestManager::instance().GetCurrentPC();
+		pc* pc = quest_manager::instance().current_pc();
 
 		if (!pc)
 			return 0;
 
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
 		if (!ch)
 			return 0;
 
-		quest::error("QUEST: quest: {} player: {} : {}", pc->GetCurrentQuestName().c_str(), ch->GetName(), lua_tostring(L, 1));
-		ch->ChatPacket(CHAT_TYPE_INFO, "QUEST_SYSERR %s", lua_tostring(L, 1));
+		quest::error("QUEST: quest: {} player: {} : {}", pc->current_quest_name().c_str(), ch->name(), lua_tostring(L, 1));
+		ch->chat_packet(CHAT_TYPE_INFO, "QUEST_SYSERR %s", lua_tostring(L, 1));
 		return 0;
 	}
 	
 	// LUA_ADD_BGM_INFO
-	int _set_bgm_volume_enable(lua_State* L)
+	int set_bgm_volume_enable(lua_State* L)
 	{
-		CHARACTER_SetBGMVolumeEnable();
+		character_set_bgm_volume_enable();
 
 		return 0;
 	}
 
-	int _add_bgm_info(lua_State* L)
+	int add_bgm_info(lua_State* L)
 	{
 		if (!lua_isnumber(L, 1) || !lua_isstring(L, 2))
 			return 0;
@@ -434,14 +434,14 @@ namespace quest
 
 		float bgmVol = lua_isnumber(L, 3) ? lua_tonumber(L, 3) : (1.0f/5.0f)*0.1f;
 
-		CHARACTER_AddBGMInfo(mapIndex, bgmName, bgmVol);
+		character_add_bgm_info(mapIndex, bgmName, bgmVol);
 
 		return 0;
 	}
 	// END_OF_LUA_ADD_BGM_INFO	
 
 	// LUA_ADD_GOTO_INFO
-	int _add_goto_info(lua_State* L)
+	int add_goto_info(lua_State* L)
 	{
 		const char* name = lua_tostring(L, 1);
 
@@ -453,46 +453,46 @@ namespace quest
 		if (!name)
 			return 0;
 
-		CHARACTER_AddGotoInfo(name, empire, mapIndex, x, y);
+		character_add_goto_info(name, empire, mapIndex, x, y);
 		return 0;
 	}
 	// END_OF_LUA_ADD_GOTO_INFO
 
 	// REFINE_PICK
-	int _refine_pick(lua_State* L)
+	int refine_pick(lua_State* L)
 	{
 		uint8_t bCell = (uint8_t) lua_tonumber(L,-1);
 
-		CQuestManager& q = CQuestManager::instance();
+		quest_manager& q = quest_manager::instance();
 
-		CHARACTER * ch = q.GetCurrentCharacterPtr();
+		character * ch = q.current_character_ptr();
 
-		CItem * item = ch->GetInventoryItem(bCell);
+		item * item = ch->inventory_item(bCell);
 
-		int ret = mining::RealRefinePick(ch, item);
+		int ret = mining::real_refine_pick(ch, item);
 		lua_pushnumber(L, ret);
 		return 1;
 	}
 	// END_OF_REFINE_PICK
 
-	int _fish_real_refine_rod(lua_State* L)
+	int fish_real_refine_rod(lua_State* L)
 	{
 		uint8_t bCell = (uint8_t) lua_tonumber(L,-1);
 
-		CQuestManager& q = CQuestManager::instance();
+		quest_manager& q = quest_manager::instance();
 
-		CHARACTER * ch = q.GetCurrentCharacterPtr();
+		character * ch = q.current_character_ptr();
 
-		CItem * item = ch->GetInventoryItem(bCell);
+		item * item = ch->inventory_item(bCell);
 
-		int ret = fishing::RealRefineRod(ch, item);
+		int ret = fishing::real_refine_rod(ch, item);
 		lua_pushnumber(L, ret);
 		return 1;
 	}
 
-	int _give_char_privilege(lua_State* L)
+	int give_char_privilege(lua_State* L)
 	{
-		int pid = CQuestManager::instance().GetCurrentCharacterPtr()->GetPlayerID();
+		int pid = quest_manager::instance().current_character_ptr()->player_id();
 		int type = (int)lua_tonumber(L, 1);
 		int value = (int)lua_tonumber(L, 2);
 
@@ -502,18 +502,18 @@ namespace quest
 			return 0;
 		}
 
-		CPrivManager::instance().RequestGiveCharacterPriv(pid, type, value);
+		priv_manager::instance().request_give_character_priv(pid, type, value);
 
 		return 0;
 	}
 
-	int _give_empire_privilege(lua_State* L)
+	int give_empire_privilege(lua_State* L)
 	{
 		int empire = (int)lua_tonumber(L,1);
 		int type = (int)lua_tonumber(L, 2);
 		int value = (int)lua_tonumber(L, 3);
 		int time = (int) lua_tonumber(L,4);
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
 		if (MAX_PRIV_NUM <= type)
 		{
@@ -523,16 +523,16 @@ namespace quest
 
 		if (ch)
 			metin2::log::info( "_give_empire_privileage(empire={:d}, type={:d}, value={:d}, time={:d}), by quest, {}", 
-					empire, type, value, time, ch->GetName());
+					empire, type, value, time, ch->name());
 		else
 			metin2::log::info( "_give_empire_privileage(empire={:d}, type={:d}, value={:d}, time={:d}), by quest, NULL",
 					empire, type, value, time);
 
-		CPrivManager::instance().RequestGiveEmpirePriv(empire, type, value, time);
+		priv_manager::instance().request_give_empire_priv(empire, type, value, time);
 		return 0;
 	}
 
-	int _give_guild_privilege(lua_State* L)
+	int give_guild_privilege(lua_State* L)
 	{
 		int guild_id = (int)lua_tonumber(L,1);
 		int type = (int)lua_tonumber(L, 2);
@@ -548,12 +548,12 @@ namespace quest
 		metin2::log::info( "_give_guild_privileage(empire={:d}, type={:d}, value={:d}, time={:d})", 
 				guild_id, type, value, time);
 
-		CPrivManager::instance().RequestGiveGuildPriv(guild_id,type,value,time);
+		priv_manager::instance().request_give_guild_priv(guild_id,type,value,time);
 
 		return 0;
 	}
 
-	int _get_empire_privilege_string(lua_State* L)
+	int get_empire_privilege_string(lua_State* L)
 	{
 		int empire = (int) lua_tonumber(L, 1);
 		std::ostringstream os;
@@ -561,16 +561,16 @@ namespace quest
 
 		for (int type = PRIV_NONE + 1; type < MAX_PRIV_NUM; ++type)
 		{
-			CPrivManager::SPrivEmpireData* pkPrivEmpireData = CPrivManager::instance().GetPrivByEmpireEx(empire, type);
+			priv_manager::priv_empire_data* pkPrivEmpireData = priv_manager::instance().priv_by_empire_ex(empire, type);
 
-			if (pkPrivEmpireData && pkPrivEmpireData->m_value)
+			if (pkPrivEmpireData && pkPrivEmpireData->value)
 			{
 				if (found)
 					os << ", ";
 
-				os << LC_TEXT(c_apszPrivNames[type]) << " : " << 
-					pkPrivEmpireData->m_value << "%" << " (" <<
-					((pkPrivEmpireData->m_end_time_sec-get_global_time())/3600.0f) << " hours)" << std::endl;
+				os << lc_text(apsz_priv_names[type]) << " : " << 
+					pkPrivEmpireData->value << "%" << " (" <<
+					((pkPrivEmpireData->end_time_sec-get_global_time())/3600.0f) << " hours)" << std::endl;
 				found = true;
 			}
 		}
@@ -582,7 +582,7 @@ namespace quest
 		return 1;
 	}
 
-	int _get_empire_privilege(lua_State* L)
+	int get_empire_privilege(lua_State* L)
 	{
 		if (!lua_isnumber(L,1) || !lua_isnumber(L,2))
 		{
@@ -591,12 +591,12 @@ namespace quest
 		}
 		int empire = (int)lua_tonumber(L,1);
 		int type = (int)lua_tonumber(L,2);
-		int value = CPrivManager::instance().GetPrivByEmpire(empire,type);
+		int value = priv_manager::instance().priv_by_empire(empire,type);
 		lua_pushnumber(L, value);
 		return 1;
 	}
 
-	int _get_guild_privilege_string(lua_State* L)
+	int get_guild_privilege_string(lua_State* L)
 	{
 		int guild = (int) lua_tonumber(L,1);
 		std::ostringstream os;
@@ -604,14 +604,14 @@ namespace quest
 
 		for (int type = PRIV_NONE+1; type < MAX_PRIV_NUM; ++type)
 		{
-			const CPrivManager::SPrivGuildData* pPrivGuildData = CPrivManager::instance().GetPrivByGuildEx( guild, type );
+			const priv_manager::priv_guild_data* pPrivGuildData = priv_manager::instance().priv_by_guild_ex( guild, type );
 
 			if (pPrivGuildData && pPrivGuildData->value)
 			{
 				if (found)
 					os << ", ";
 
-				os << LC_TEXT(c_apszPrivNames[type]) << " : " << pPrivGuildData->value << "%"
+				os << lc_text(apsz_priv_names[type]) << " : " << pPrivGuildData->value << "%"
 					<< " (" << ((pPrivGuildData->end_time_sec - get_global_time()) / 3600.0f) << " hours)" << std::endl;
 				found = true;
 			}
@@ -624,7 +624,7 @@ namespace quest
 		return 1;
 	}
 
-	int _get_guildid_byname( lua_State* L )
+	int get_guildid_byname( lua_State* L )
 	{
 		if ( !lua_isstring( L, 1 ) ) {
 			quest::error( "_get_guildid_byname() - invalud argument" );
@@ -633,16 +633,16 @@ namespace quest
 		}
 
 		const char* pszGuildName = lua_tostring( L, 1 );
-		CGuild* pFindGuild = CGuildManager::instance().FindGuildByName( pszGuildName );
+		guild* pFindGuild = guild_manager::instance().find_guild_by_name( pszGuildName );
 		if ( pFindGuild )
-			lua_pushnumber( L, pFindGuild->GetID() );
+			lua_pushnumber( L, pFindGuild->id() );
 		else
 			lua_pushnumber( L, 0 );
 
 		return 1;
 	}
 
-	int _get_guild_privilege(lua_State* L)
+	int get_guild_privilege(lua_State* L)
 	{
 		if (!lua_isnumber(L,1) || !lua_isnumber(L,2))
 		{
@@ -651,19 +651,19 @@ namespace quest
 		}
 		int guild = (int)lua_tonumber(L,1);
 		int type = (int)lua_tonumber(L,2);
-		int value = CPrivManager::instance().GetPrivByGuild(guild,type);
+		int value = priv_manager::instance().priv_by_guild(guild,type);
 		lua_pushnumber(L, value);
 		return 1;
 	}
 
-	int _item_name(lua_State* L)
+	int item_name(lua_State* L)
 	{
 		if (lua_isnumber(L,1))
 		{
 			uint32_t dwVnum = (uint32_t)lua_tonumber(L,1);
-			TItemTable* pTable = ITEM_MANAGER::instance().GetTable(dwVnum);
+			item_table* pTable = item_manager::instance().table(dwVnum);
 			if (pTable)
-				lua_pushstring(L,pTable->szLocaleName);
+				lua_pushstring(L,pTable->locale_name);
 			else
 				lua_pushstring(L,"");
 		}
@@ -672,15 +672,15 @@ namespace quest
 		return 1;
 	}
 
-	int _mob_name(lua_State* L)
+	int mob_name(lua_State* L)
 	{
 		if (lua_isnumber(L, 1))
 		{
 			uint32_t dwVnum = (uint32_t) lua_tonumber(L,1);
-			const CMob * pkMob = CMobManager::instance().Get(dwVnum);
+			const mob * pkMob = mob_manager::instance().get(dwVnum);
 
 			if (pkMob)
-				lua_pushstring(L, pkMob->m_table.szLocaleName);
+				lua_pushstring(L, pkMob->table.locale_name);
 			else
 				lua_pushstring(L, "");
 		}
@@ -690,14 +690,14 @@ namespace quest
 		return 1;
 	}
 
-	int _mob_vnum(lua_State* L)
+	int mob_vnum(lua_State* L)
 	{
 		if (lua_isstring(L,1))
 		{
 			const char* str = lua_tostring(L, 1);
-			const CMob* pkMob = CMobManager::instance().Get(str, false);
+			const mob* pkMob = mob_manager::instance().get(str, false);
 			if (pkMob)
-				lua_pushnumber(L,pkMob->m_table.dwVnum);
+				lua_pushnumber(L,pkMob->table.vnum);
 			else
 				lua_pushnumber(L,0);
 		}
@@ -707,21 +707,21 @@ namespace quest
 		return 1;
 	}
 
-	int _get_global_time(lua_State* L)
+	int global_time(lua_State* L)
 	{
 		lua_pushnumber(L, get_global_time());
 		return 1;
 	}
 	
 
-	int _get_channel_id(lua_State* L)
+	int get_channel_id(lua_State* L)
 	{
 		lua_pushnumber(L, metin2::config::server().channel);
 
 		return 1;
 	}
 
-	int _do_command(lua_State* L)
+	int do_command(lua_State* L)
 	{
 		if (!lua_isstring(L, 1))
 			return 0;
@@ -729,12 +729,12 @@ namespace quest
 		const char * str = lua_tostring(L, 1);
 		size_t len = strlen(str);
 
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 		metin2::game::interpret_command(ch, str, len);
 		return 0;
 	}
 
-	int _find_pc(lua_State* L)
+	int find_pc(lua_State* L)
 	{
 		if (!lua_isstring(L, 1))
 		{
@@ -744,12 +744,12 @@ namespace quest
 		}
 
 		const char * name = lua_tostring(L, 1);
-		CHARACTER * tch = CHARACTER_MANAGER::instance().FindPC(name);
-		lua_pushnumber(L, tch ? tch->GetVID() : 0);
+		character * tch = character_manager::instance().find_pc(name);
+		lua_pushnumber(L, tch ? tch->get_vid() : 0);
 		return 1;
 	}
 
-	int _find_pc_cond(lua_State* L)
+	int find_pc_cond(lua_State* L)
 	{
 		if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2) || !lua_isnumber(L, 3))
 		{
@@ -762,28 +762,28 @@ namespace quest
 		int iMaxLev = (int) lua_tonumber(L, 2);
 		unsigned int uiJobFlag = (unsigned int) lua_tonumber(L, 3);
 
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		CHARACTER * tch;
+		character * ch = quest_manager::instance().current_character_ptr();
+		character * tch;
 
 		if (metin2::config::test_server())
 		{
 			metin2::log::info( "find_pc_cond map={:d}, job={:d}, level={:d}~{:d}",
-					ch->GetMapIndex(),
+					ch->map_index(),
 					uiJobFlag,
 					iMinLev, iMaxLev);
 		}
 
-		tch = CHARACTER_MANAGER::instance().FindSpecifyPC(uiJobFlag,
-				ch->GetMapIndex(),
+		tch = character_manager::instance().find_specify_pc(uiJobFlag,
+				ch->map_index(),
 				ch,
 				iMinLev,
 				iMaxLev);
 
-		lua_pushnumber(L, tch ? tch->GetVID() : 0);
+		lua_pushnumber(L, tch ? tch->get_vid() : 0);
 		return 1;
 	}
 
-	int _find_npc_by_vnum(lua_State* L)
+	int find_npc_by_vnum(lua_State* L)
 	{
 		if (!lua_isnumber(L, 1))
 		{
@@ -794,19 +794,19 @@ namespace quest
 
 		uint32_t race = (uint32_t) lua_tonumber(L, 1);
 
-		CharacterVectorInteractor i;
+		character_vector_interactor i;
 
-		if (CHARACTER_MANAGER::instance().GetCharactersByRaceNum(race, i))
+		if (character_manager::instance().characters_by_race_num(race, i))
 		{
-			CharacterVectorInteractor::iterator it = i.begin();
+			character_vector_interactor::iterator it = i.begin();
 
 			while (it != i.end())
 			{
-				CHARACTER * tch = *(it++);
+				character * tch = *(it++);
 
-				if (tch->GetMapIndex() == CQuestManager::instance().GetCurrentCharacterPtr()->GetMapIndex())
+				if (tch->map_index() == quest_manager::instance().current_character_ptr()->map_index())
 				{
-					lua_pushnumber(L, tch->GetVID());
+					lua_pushnumber(L, tch->get_vid());
 					return 1;
 				}
 			}
@@ -817,14 +817,14 @@ namespace quest
 	}
 
 	// Create a new state.
-	int _set_quest_state(lua_State* L)
+	int set_quest_state(lua_State* L)
 	{
 		if (!lua_isstring(L, 1) || !lua_isstring(L, 2))
 			return 0;
 
-		CQuestManager& q = CQuestManager::instance();
-		QuestState * pqs = q.GetCurrentState();
-		PC* pPC = q.GetCurrentPC();
+		quest_manager& q = quest_manager::instance();
+		quest_state * pqs = q.current_state();
+		pc* pPC = q.current_pc();
 		if (L!=pqs->co) 
 		{
 			luaL_error(L, "running thread != current thread???");
@@ -837,33 +837,33 @@ namespace quest
 			const std::string stStateName(lua_tostring(L, 2));
 			if ( metin2::config::test_server() )
 				metin2::log::info("set_state {} {} ", stQuestName.c_str(), stStateName.c_str() );
-			if (pPC->GetCurrentQuestName() == stQuestName)
+			if (pPC->current_quest_name() == stQuestName)
 			{
-				pqs->st = q.GetQuestStateIndex(pPC->GetCurrentQuestName(), lua_tostring(L, -1));
-				pPC->SetCurrentQuestStateName(lua_tostring(L,-1));
+				pqs->st = q.quest_state_index(pPC->current_quest_name(), lua_tostring(L, -1));
+				pPC->set_current_quest_state_name(lua_tostring(L,-1));
 			}
 			else
 			{
-				pPC->SetQuestState(stQuestName, stStateName);
+				pPC->set_quest_state(stQuestName, stStateName);
 			}
 		}
 		return 0;
 	}
 
-	int _get_quest_state(lua_State* L)
+	int get_quest_state(lua_State* L)
 	{
 		if (!lua_isstring(L, 1) )
 			return 0;
 
-		CQuestManager& q = CQuestManager::instance();
-		PC* pPC = q.GetCurrentPC();
+		quest_manager& q = quest_manager::instance();
+		pc* pPC = q.current_pc();
 		
 		if (pPC)
 		{
 			std::string stQuestName	= lua_tostring(L, 1);
 			stQuestName += ".__status";
 
-			int nRet = pPC->GetFlag( stQuestName.c_str() ); 
+			int nRet = pPC->flag( stQuestName.c_str() ); 
 
 			lua_pushnumber(L, nRet );
 
@@ -880,53 +880,53 @@ namespace quest
 		return 1;
 	}
 
-	int _notice_all( lua_State* L )
+	int notice_all( lua_State* L )
 	{
 		std::ostringstream s;
 		combine_lua_string(L, s);
 
-		TPacketGGNotice p;
-		p.bHeader = HEADER_GG_NOTICE;
-		p.lSize = strlen(s.str().c_str()) + 1;
+		packet_gg_notice p;
+		p.header = HEADER_GG_NOTICE;
+		p.size = strlen(s.str().c_str()) + 1;
 
-		TEMP_BUFFER buf;
+		temp_buffer buf;
 		buf.write(&p, sizeof(p));
-		buf.write(s.str().c_str(), p.lSize);
+		buf.write(s.str().c_str(), p.size);
 
-		P2P_MANAGER::instance().Send(buf.read_peek(), buf.size()); // HEADER_GG_NOTICE
+		p2_p_manager::instance().send(buf.read_peek(), buf.size()); // HEADER_GG_NOTICE
 
-		SendNotice(s.str().c_str());
+		send_notice(s.str().c_str());
 		return 1;	
 	}
 
 	EVENTINFO(warp_all_to_village_event_info)
 	{
-		uint32_t dwWarpMapIndex;
+		uint32_t warp_map_index;
 
 		warp_all_to_village_event_info() 
-		: dwWarpMapIndex( 0 )
+		: warp_map_index( 0 )
 		{
 		}
 	};
 
-	struct FWarpAllToVillage
+	struct f_warp_all_to_village
 	{
-		FWarpAllToVillage() {};
-		void operator()(CEntity * ent)
+		f_warp_all_to_village() {};
+		void operator()(entity * ent)
 		{
-			if (ent->IsType(ENTITY_CHARACTER))
+			if (ent->is_type(ENTITY_CHARACTER))
 			{
-				CHARACTER * ch = (CHARACTER *) ent;
-				if (ch->IsPC())
+				character * ch = (character *) ent;
+				if (ch->is_pc())
 				{
-					uint8_t bEmpire =  ch->GetEmpire();
+					uint8_t bEmpire =  ch->empire();
 					if ( bEmpire == 0 )
 					{
-						quest::error( "Unkonwn Empire {} {:d} ", ch->GetName(), ch->GetPlayerID() );
+						quest::error( "Unkonwn Empire {} {:d} ", ch->name(), ch->player_id() );
 						return;
 					}
 
-					ch->WarpSet( g_start_position[bEmpire][0], g_start_position[bEmpire][1] );
+					ch->warp_set( start_position[bEmpire][0], start_position[bEmpire][1] );
 				}
 			}
 		}
@@ -942,47 +942,47 @@ namespace quest
 			return 0;
 		}
 
-		SECTREE_MAP * pSecMap = SECTREE_MANAGER::instance().GetMap( info->dwWarpMapIndex );
+		sectree_map * pSecMap = sectree_manager::instance().map( info->warp_map_index );
 
 		if (nullptr != pSecMap)
 		{
-			FWarpAllToVillage f;
+			f_warp_all_to_village f;
 			pSecMap->for_each( f );
 		}
 
 		return 0;
 	}
 
-	int _warp_all_to_village( lua_State * L )
+	int warp_all_to_village( lua_State * L )
 	{
 		int iMapIndex 	= static_cast<int>(lua_tonumber(L, 1));
 		int iSec		= static_cast<int>(lua_tonumber(L, 2));
 		
-		warp_all_to_village_event_info* info = AllocEventInfo<warp_all_to_village_event_info>();
+		warp_all_to_village_event_info* info = alloc_event_info<warp_all_to_village_event_info>();
 
-		info->dwWarpMapIndex = iMapIndex;
+		info->warp_map_index = iMapIndex;
 
-		event_create(warp_all_to_village_event, info, PASSES_PER_SEC(iSec));
+		event_create(warp_all_to_village_event, info, passes_per_sec(iSec));
 
-		SendNoticeMap(LC_TEXT("잠시후 모두 마을로 이동됩니다."), iMapIndex, false);
+		send_notice_map(lc_text("잠시후 모두 마을로 이동됩니다."), iMapIndex, false);
 
 		return 0;
 	}
 
-	int _warp_to_village( lua_State * L )
+	int warp_to_village( lua_State * L )
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 	
 		if (nullptr != ch)
 		{
-			uint8_t bEmpire = ch->GetEmpire();	
-			ch->WarpSet( g_start_position[bEmpire][0], g_start_position[bEmpire][1] );
+			uint8_t bEmpire = ch->empire();	
+			ch->warp_set( start_position[bEmpire][0], start_position[bEmpire][1] );
 		}
 
 		return 0;
 	}
 
-	int _say_in_map( lua_State * L )
+	int say_in_map( lua_State * L )
 	{
 		int iMapIndex 		= static_cast<int>(lua_tonumber( L, 1 ));
 		std::string Script(lua_tostring( L, 2 ));
@@ -993,15 +993,15 @@ namespace quest
 		struct metin2::game::packet_script packet_script;
 
 		packet_script.header = HEADER_GC_SCRIPT;
-		packet_script.skin = CQuestManager::QUEST_SKIN_NORMAL;
+		packet_script.skin = quest_manager::QUEST_SKIN_NORMAL;
 		packet_script.src_size = Script.size();
 		packet_script.size = packet_script.src_size + sizeof(struct packet_script);
 
-		FSendPacket f;
+		f_send_packet f;
 		f.buf.write(&packet_script, sizeof(struct packet_script));
 		f.buf.write(&Script[0], Script.size());
 
-		SECTREE_MAP * pSecMap = SECTREE_MANAGER::instance().GetMap( iMapIndex );
+		sectree_map * pSecMap = sectree_manager::instance().map( iMapIndex );
 
 		if ( pSecMap )
 		{
@@ -1011,27 +1011,27 @@ namespace quest
 		return 0;
 	}
 
-	struct FKillSectree2
+	struct f_kill_sectree2
 	{
-		void operator () (CEntity * ent)
+		void operator () (entity * ent)
 		{
-			if (ent->IsType(ENTITY_CHARACTER))
+			if (ent->is_type(ENTITY_CHARACTER))
 			{
-				CHARACTER * ch = (CHARACTER *) ent;
+				character * ch = (character *) ent;
 
-				if (!ch->IsPC() && !ch->IsPet())
-					ch->Dead();
+				if (!ch->is_pc() && !ch->is_pet())
+					ch->dead();
 			}
 		}
 	};
 
-	int _kill_all_in_map ( lua_State * L )
+	int kill_all_in_map ( lua_State * L )
 	{
-		SECTREE_MAP * pSecMap = SECTREE_MANAGER::instance().GetMap( lua_tonumber(L,1) );
+		sectree_map * pSecMap = sectree_manager::instance().map( lua_tonumber(L,1) );
 
 		if (nullptr != pSecMap)
 		{
-			FKillSectree2 f;
+			f_kill_sectree2 f;
 			pSecMap->for_each( f );
 		}
 
@@ -1039,41 +1039,41 @@ namespace quest
 	}
 
 	//Caution: only use on maps without mob regen
-	int _regen_in_map( lua_State * L )
+	int regen_in_map( lua_State * L )
 	{
 		int iMapIndex = static_cast<int>(lua_tonumber(L, 1));
 		std::string szFilename(lua_tostring(L, 2));
 
-		SECTREE_MAP * pkMap = SECTREE_MANAGER::instance().GetMap(iMapIndex);
+		sectree_map * pkMap = sectree_manager::instance().map(iMapIndex);
 
 		if (pkMap != nullptr)
 		{
-			regen_load_in_file( szFilename.c_str(), iMapIndex, pkMap->m_setting.iBaseX ,pkMap->m_setting.iBaseY );
+			regen_load_in_file( szFilename.c_str(), iMapIndex, pkMap->setting.base_x ,pkMap->setting.base_y );
 		}
 
 		return 0;
 	}
 
-	int _enable_over9refine( lua_State* L )
+	int enable_over9refine( lua_State* L )
 	{
 		if ( lua_isnumber(L, 1) == true && lua_isnumber(L, 2) == true )
 		{
 			uint32_t dwVnumFrom = (uint32_t)lua_tonumber(L, 1);
 			uint32_t dwVnumTo = (uint32_t)lua_tonumber(L, 2);
 
-			COver9RefineManager::instance().enableOver9Refine(dwVnumFrom, dwVnumTo);
+			over9_refine_manager::instance().enable_over9_refine(dwVnumFrom, dwVnumTo);
 		}
 
 		return 0;
 	}
 
-	int _add_ox_quiz(lua_State* L)
+	int add_ox_quiz(lua_State* L)
 	{
 		int level = (int)lua_tonumber(L, 1);
 		const char* quiz = lua_tostring(L, 2);
 		bool answer = lua_toboolean(L, 3);
 
-		if ( COXEventManager::instance().AddQuiz(level, quiz, answer) == false )
+		if ( ox_event_manager::instance().add_quiz(level, quiz, answer) == false )
 		{
 			metin2::log::info( "OXEVENT : Cannot add quiz. {:d} {} {:d}", level, quiz, answer);
 		}
@@ -1091,16 +1091,16 @@ namespace quest
 			return 0;
 		}
 
-		SECTREE_MAP * pSecMap = SECTREE_MANAGER::instance().GetMap( info->m_lMapIndexFrom );
+		sectree_map * pSecMap = sectree_manager::instance().map( info->map_index_from );
 
 		if (pSecMap)
 		{
-			FWarpEmpire f;
+			f_warp_empire f;
 
-			f.m_lMapIndexTo = info->m_lMapIndexTo;
-			f.m_x			= info->m_x;
-			f.m_y			= info->m_y;
-			f.m_bEmpire		= info->m_bEmpire;
+			f.map_index_to = info->map_index_to;
+			f.x			= info->x;
+			f.y			= info->y;
+			f.empire		= info->empire;
 
 			pSecMap->for_each(f);
 		}
@@ -1108,9 +1108,9 @@ namespace quest
 		return 0;
 	}
 
-	int _block_chat(lua_State* L)
+	int block_chat(lua_State* L)
 	{
-		CHARACTER * pChar = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * pChar = quest_manager::instance().current_character_ptr();
 
 		if (pChar != nullptr)
 		{
@@ -1135,7 +1135,7 @@ namespace quest
 		return 1;
 	}
 
-	int _spawn_mob(lua_State* L)
+	int spawn_mob_at(lua_State* L)
 	{
 		if( false == lua_isnumber(L, 1) || false == lua_isnumber(L, 2) || false == lua_isboolean(L, 3) )
 		{
@@ -1148,22 +1148,22 @@ namespace quest
 		const bool isAggresive = static_cast<bool>(lua_toboolean(L, 3));
 		size_t SpawnCount = 0;
 
-		const CMob* pMonster = CMobManager::instance().Get( dwVnum );
+		const mob* pMonster = mob_manager::instance().get( dwVnum );
 
 		if( nullptr != pMonster )
 		{
-			CHARACTER * const pChar = CQuestManager::instance().GetCurrentCharacterPtr();
+			character * const pChar = quest_manager::instance().current_character_ptr();
 
 			for( size_t i=0 ; i < count ; ++i )
 			{
-				CHARACTER * const pSpawnMonster = CHARACTER_MANAGER::instance().SpawnMobRange( dwVnum,
-						pChar->GetMapIndex(),
-						pChar->GetX() - number(200, 750),
-						pChar->GetY() - number(200, 750),
-						pChar->GetX() + number(200, 750),
-						pChar->GetY() + number(200, 750),
+				character * const pSpawnMonster = character_manager::instance().spawn_mob_range( dwVnum,
+						pChar->map_index(),
+						pChar->x() - number(200, 750),
+						pChar->y() - number(200, 750),
+						pChar->x() + number(200, 750),
+						pChar->y() + number(200, 750),
 						true,
-						pMonster->m_table.bType == CHAR_TYPE_STONE,
+						pMonster->table.type == CHAR_TYPE_STONE,
 						isAggresive );
 
 				if( nullptr != pSpawnMonster )
@@ -1180,63 +1180,63 @@ namespace quest
 		return 1;
 	}
 
-	int _notice_in_map( lua_State* L )
+	int notice_in_map( lua_State* L )
 	{
-		CHARACTER * const pChar = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * const pChar = quest_manager::instance().current_character_ptr();
 
 		if (nullptr != pChar)
 		{
-			SendNoticeMap( lua_tostring(L,1), pChar->GetMapIndex(), lua_toboolean(L,2) );
+			send_notice_map( lua_tostring(L,1), pChar->map_index(), lua_toboolean(L,2) );
 		}
 
 		return 0;
 	}
 
-	int _get_locale_base_path( lua_State* L )
+	int get_locale_base_path( lua_State* L )
 	{
-		lua_pushstring( L, LocaleService_GetBasePath().c_str() );
+		lua_pushstring( L, locale_service_get_base_path().c_str() );
 
 		return 1;
 	}
 
-	struct FPurgeArea
+	struct f_purge_area
 	{
 		int x1, y1, x2, y2;
-		CHARACTER * ExceptChar;
+		character * except_char;
 
-		FPurgeArea(int a, int b, int c, int d, CHARACTER * p)
+		f_purge_area(int a, int b, int c, int d, character * p)
 			: x1(a), y1(b), x2(c), y2(d),
-			ExceptChar(p)
+			except_char(p)
 		{}
 
-		void operator () (CEntity * ent)
+		void operator () (entity * ent)
 		{
-			if (true == ent->IsType(ENTITY_CHARACTER))
+			if (true == ent->is_type(ENTITY_CHARACTER))
 			{
-				CHARACTER * pChar = static_cast<CHARACTER *>(ent);
+				character * pChar = static_cast<character *>(ent);
 
-				if (pChar == ExceptChar)
+				if (pChar == except_char)
 					return;
 					
-				if (!pChar->IsPet() && (true == pChar->IsMonster() || true == pChar->IsStone()))
+				if (!pChar->is_pet() && (true == pChar->is_monster() || true == pChar->is_stone()))
 				{
-					if (x1 <= pChar->GetX() && pChar->GetX() <= x2 && y1 <= pChar->GetY() && pChar->GetY() <= y2)
+					if (x1 <= pChar->x() && pChar->x() <= x2 && y1 <= pChar->y() && pChar->y() <= y2)
 					{
-						CHARACTER_MANAGER::instance().DestroyCharacter(pChar);
+						character_manager::instance().destroy_character(pChar);
 					}
 				}
 			}
 		}
 	};
 
-	int _purge_area( lua_State* L )
+	int purge_area( lua_State* L )
 	{
 		int x1 = lua_tonumber(L, 1);
 		int y1 = lua_tonumber(L, 2);
 		int x2 = lua_tonumber(L, 3);
 		int y2 = lua_tonumber(L, 4);
 
-		const int mapIndex = SECTREE_MANAGER::instance().GetMapIndex( x1, y1 );
+		const int mapIndex = sectree_manager::instance().map_index( x1, y1 );
 
 		if (0 == mapIndex)
 		{
@@ -1244,11 +1244,11 @@ namespace quest
 			return 0;
 		}
 
-		SECTREE_MAP * pSectree = SECTREE_MANAGER::instance().GetMap(mapIndex);
+		sectree_map * pSectree = sectree_manager::instance().map(mapIndex);
 
 		if (nullptr != pSectree)
 		{
-			FPurgeArea func(x1, y1, x2, y2, CQuestManager::instance().GetCurrentNPCCharacterPtr());
+			f_purge_area func(x1, y1, x2, y2, quest_manager::instance().current_npc_character_ptr());
 
 			pSectree->for_each(func);
 		}
@@ -1256,38 +1256,38 @@ namespace quest
 		return 0;
 	}
 
-	struct FWarpAllInAreaToArea
+	struct f_warp_all_in_area_to_area
 	{
 		int from_x1, from_y1, from_x2, from_y2;
 		int to_x1, to_y1, to_x2, to_y2;
-		size_t warpCount;
+		size_t warp_count;
 
-		FWarpAllInAreaToArea(int a, int b, int c, int d, int e, int f, int g, int h)
+		f_warp_all_in_area_to_area(int a, int b, int c, int d, int e, int f, int g, int h)
 			: from_x1(a), from_y1(b), from_x2(c), from_y2(d),
 			to_x1(e), to_y1(f), to_x2(g), to_y2(h),
-			warpCount(0)
+			warp_count(0)
 		{}
 
-		void operator () (CEntity * ent)
+		void operator () (entity * ent)
 		{
-			if (true == ent->IsType(ENTITY_CHARACTER))
+			if (true == ent->is_type(ENTITY_CHARACTER))
 			{
-				CHARACTER * pChar = static_cast<CHARACTER *>(ent);
+				character * pChar = static_cast<character *>(ent);
 
-				if (true == pChar->IsPC())
+				if (true == pChar->is_pc())
 				{
-					if (from_x1 <= pChar->GetX() && pChar->GetX() <= from_x2 && from_y1 <= pChar->GetY() && pChar->GetY() <= from_y2)
+					if (from_x1 <= pChar->x() && pChar->x() <= from_x2 && from_y1 <= pChar->y() && pChar->y() <= from_y2)
 					{
-						++warpCount;
+						++warp_count;
 
-						pChar->WarpSet( number(to_x1, to_x2), number(to_y1, to_y2) );
+						pChar->warp_set( number(to_x1, to_x2), number(to_y1, to_y2) );
 					}
 				}
 			}
 		}
 	};
 
-	int _warp_all_in_area_to_area( lua_State* L )
+	int warp_all_in_area_to_area( lua_State* L )
 	{
 		int from_x1 = lua_tonumber(L, 1);
 		int from_y1 = lua_tonumber(L, 2);
@@ -1299,7 +1299,7 @@ namespace quest
 		int to_x2 = lua_tonumber(L, 7);
 		int to_y2 = lua_tonumber(L, 8);
 
-		const int mapIndex = SECTREE_MANAGER::instance().GetMapIndex( from_x1, from_y1 );
+		const int mapIndex = sectree_manager::instance().map_index( from_x1, from_y1 );
 
 		if (0 == mapIndex)
 		{
@@ -1308,16 +1308,16 @@ namespace quest
 			return 1;
 		}
 
-		SECTREE_MAP * pSectree = SECTREE_MANAGER::instance().GetMap(mapIndex);
+		sectree_map * pSectree = sectree_manager::instance().map(mapIndex);
 
 		if (nullptr != pSectree)
 		{
-			FWarpAllInAreaToArea func(from_x1, from_y1, from_x2, from_y2, to_x1, to_y1, to_x2, to_y2);
+			f_warp_all_in_area_to_area func(from_x1, from_y1, from_x2, from_y2, to_x1, to_y1, to_x2, to_y2);
 
 			pSectree->for_each(func);
 
-			lua_pushnumber(L, func.warpCount);
-			metin2::log::info( "_warp_all_in_area_to_area: {:d} character warp", func.warpCount);
+			lua_pushnumber(L, func.warp_count);
+			metin2::log::info( "_warp_all_in_area_to_area: {:d} character warp", func.warp_count);
 			return 1;
 		}
 		else
@@ -1328,88 +1328,88 @@ namespace quest
 		}
 	}
 
-	void RegisterGlobalFunctionTable(lua_State* L)
+	void register_global_function_table(lua_State* L)
 	{
 
 		luaL_reg global_functions[] =
 		{
-			{	"sys_err",					_syserr					},
-			{	"sys_log",					_syslog					},
-			{	"char_log",					_char_log				},
-			{	"item_log",					_item_log				},
+			{	"sys_err",					syserr					},
+			{	"sys_log",					syslog					},
+			{	"char_log",					char_log				},
+			{	"item_log",					item_log				},
 			{	"set_state",				quest_setstate			},
-			{	"set_skin",					_set_skin				},
-			{	"setskin",					_set_skin				},
-			{	"time_to_str",				_time_to_str			},
-			{	"say",						_say					},
-			{	"chat",						_chat					},
-			{	"cmdchat",					_cmdchat				},
-			{	"syschat",					_syschat				},
-			{	"get_locale",				_get_locale				},
-			{	"setleftimage",				_left_image				},
-			{	"settopimage",				_top_image				},
-			{	"server_timer",				_set_server_timer		},
-			{	"clear_server_timer",		_clear_server_timer		},
-			{	"server_loop_timer",		_set_server_loop_timer	},
-			{	"get_server_timer_arg",		_get_server_timer_arg	},
-			{	"timer",					_timer					},
-			{	"loop_timer",				_set_named_loop_timer	},
-			{	"cleartimer",				_clear_named_timer		},
-			{	"getnpcid",					_getnpcid				},
-			{	"is_test_server",			_is_test_server			},
-			{	"is_speed_server",			_is_speed_server		},
-			{	"raw_script",				_raw_script				},
-			{	"number",					_number	   				},
+			{	"set_skin",					set_skin				},
+			{	"setskin",					set_skin				},
+			{	"time_to_str",				time_to_str			},
+			{	"say",						say					},
+			{	"chat",						chat					},
+			{	"cmdchat",					cmdchat				},
+			{	"syschat",					syschat				},
+			{	"get_locale",				get_locale				},
+			{	"setleftimage",				left_image				},
+			{	"settopimage",				top_image				},
+			{	"server_timer",				set_server_timer		},
+			{	"clear_server_timer",		clear_server_timer		},
+			{	"server_loop_timer",		set_server_loop_timer	},
+			{	"get_server_timer_arg",		get_server_timer_arg	},
+			{	"timer",					timer					},
+			{	"loop_timer",				set_named_loop_timer	},
+			{	"cleartimer",				clear_named_timer		},
+			{	"getnpcid",					getnpcid				},
+			{	"is_test_server",			is_test_server			},
+			{	"is_speed_server",			is_speed_server		},
+			{	"raw_script",				raw_script				},
+			{	"number",					random_number	   				},
 
 			// LUA_ADD_BGM_INFO
-			{	"set_bgm_volume_enable",	_set_bgm_volume_enable	},
-			{	"add_bgm_info",				_add_bgm_info			},
+			{	"set_bgm_volume_enable",	set_bgm_volume_enable	},
+			{	"add_bgm_info",				add_bgm_info			},
 			// END_OF_LUA_ADD_BGM_INFO
 
 			// LUA_ADD_GOTO_INFO
-			{	"add_goto_info",			_add_goto_info			},
+			{	"add_goto_info",			add_goto_info			},
 			// END_OF_LUA_ADD_GOTO_INFO
 
 			// REFINE_PICK
-			{	"__refine_pick",			_refine_pick			},
+			{	"__refine_pick",			refine_pick			},
 			// END_OF_REFINE_PICK
 
-			{	"add_ox_quiz",					_add_ox_quiz					},
-			{	"__fish_real_refine_rod",		_fish_real_refine_rod			}, // XXX
-			{	"__give_char_priv",				_give_char_privilege			},
-			{	"__give_empire_priv",			_give_empire_privilege			},
-			{	"__give_guild_priv",			_give_guild_privilege			},
-			{	"__get_empire_priv_string",		_get_empire_privilege_string	},
-			{	"__get_empire_priv",			_get_empire_privilege			},
-			{	"__get_guild_priv_string",		_get_guild_privilege_string		},
-			{	"__get_guildid_byname",			_get_guildid_byname				},
-			{	"__get_guild_priv",				_get_guild_privilege			},
-			{	"item_name",					_item_name						},
-			{	"mob_name",						_mob_name						},
-			{	"mob_vnum",						_mob_vnum						},
-			{	"get_time",						_get_global_time				},
-			{	"get_global_time",				_get_global_time				},
-			{	"get_channel_id",				_get_channel_id					},
-			{	"command",						_do_command						},
-			{	"find_pc_cond",					_find_pc_cond					},
-			{	"find_pc_by_name",				_find_pc						},
-			{	"find_npc_by_vnum",				_find_npc_by_vnum				},
-			{	"set_quest_state",				_set_quest_state				},
-			{	"get_quest_state",				_get_quest_state				},
-			{	"notice",						_notice							},
-			{	"notice_all",					_notice_all						},
-			{	"notice_in_map",				_notice_in_map					},
-			{	"warp_all_to_village",			_warp_all_to_village			},
-			{	"warp_to_village",				_warp_to_village				},	
-			{	"say_in_map",					_say_in_map						},	
-			{	"kill_all_in_map",				_kill_all_in_map				},
-			{	"regen_in_map",					_regen_in_map					},
-			{	"enable_over9refine",			_enable_over9refine				},
-			{	"block_chat",					_block_chat						},
-			{	"spawn_mob",					_spawn_mob						},
-			{	"get_locale_base_path",			_get_locale_base_path			},
-			{	"purge_area",					_purge_area						},
-			{	"warp_all_in_area_to_area",		_warp_all_in_area_to_area		},
+			{	"add_ox_quiz",					add_ox_quiz					},
+			{	"__fish_real_refine_rod",		fish_real_refine_rod			}, // XXX
+			{	"__give_char_priv",				give_char_privilege			},
+			{	"__give_empire_priv",			give_empire_privilege			},
+			{	"__give_guild_priv",			give_guild_privilege			},
+			{	"__get_empire_priv_string",		get_empire_privilege_string	},
+			{	"__get_empire_priv",			get_empire_privilege			},
+			{	"__get_guild_priv_string",		get_guild_privilege_string		},
+			{	"__get_guildid_byname",			get_guildid_byname				},
+			{	"__get_guild_priv",				get_guild_privilege			},
+			{	"item_name",					item_name						},
+			{	"mob_name",						mob_name						},
+			{	"mob_vnum",						mob_vnum						},
+			{	"get_time",						global_time				},
+			{	"get_global_time",				global_time				},
+			{	"get_channel_id",				get_channel_id					},
+			{	"command",						do_command						},
+			{	"find_pc_cond",					find_pc_cond					},
+			{	"find_pc_by_name",				find_pc						},
+			{	"find_npc_by_vnum",				find_npc_by_vnum				},
+			{	"set_quest_state",				set_quest_state				},
+			{	"get_quest_state",				get_quest_state				},
+			{	"notice",						notice							},
+			{	"notice_all",					notice_all						},
+			{	"notice_in_map",				notice_in_map					},
+			{	"warp_all_to_village",			warp_all_to_village			},
+			{	"warp_to_village",				warp_to_village				},	
+			{	"say_in_map",					say_in_map						},	
+			{	"kill_all_in_map",				kill_all_in_map				},
+			{	"regen_in_map",					regen_in_map					},
+			{	"enable_over9refine",			enable_over9refine				},
+			{	"block_chat",					block_chat						},
+			{	"spawn_mob",					spawn_mob_at						},
+			{	"get_locale_base_path",			get_locale_base_path			},
+			{	"purge_area",					purge_area						},
+			{	"warp_all_in_area_to_area",		warp_all_in_area_to_area		},
 
 			{	nullptr,	nullptr	}
 		};

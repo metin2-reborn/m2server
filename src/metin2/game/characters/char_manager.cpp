@@ -40,201 +40,201 @@
 
 namespace metin2::game::inline characters {
 
-CHARACTER_MANAGER::CHARACTER_MANAGER() :
-	m_iVIDCount(0),
-	m_pkChrSelectedStone(nullptr),
-	m_bUsePendingDestroy(false)
+character_manager::character_manager() :
+	vid_count_(0),
+	chr_selected_stone_(nullptr),
+	use_pending_destroy_(false)
 {
-	RegisterRaceNum(xmas::MOB_XMAS_FIRWORK_SELLER_VNUM);
-	RegisterRaceNum(xmas::MOB_SANTA_VNUM);
-	RegisterRaceNum(xmas::MOB_XMAS_TREE_VNUM);
+	register_race_num(xmas::MOB_XMAS_FIRWORK_SELLER_VNUM);
+	register_race_num(xmas::MOB_SANTA_VNUM);
+	register_race_num(xmas::MOB_XMAS_TREE_VNUM);
 
-	m_iMobItemRate = 100;
-	m_iMobDamageRate = 100;
-	m_iMobGoldAmountRate = 100;
-	m_iMobGoldDropRate = 100;
-	m_iMobExpRate = 100;
+	mob_item_rate_ = 100;
+	mob_damage_rate_ = 100;
+	mob_gold_amount_rate_ = 100;
+	mob_gold_drop_rate_ = 100;
+	mob_exp_rate_ = 100;
 
-	m_iMobItemRatePremium = 100;
-	m_iMobGoldAmountRatePremium = 100;
-	m_iMobGoldDropRatePremium = 100;
-	m_iMobExpRatePremium = 100;
+	mob_item_rate_premium_ = 100;
+	mob_gold_amount_rate_premium_ = 100;
+	mob_gold_drop_rate_premium_ = 100;
+	mob_exp_rate_premium_ = 100;
 	
 }
 
-CHARACTER_MANAGER::~CHARACTER_MANAGER()
+character_manager::~character_manager()
 {
-	Destroy();
+	destroy();
 }
 
-void CHARACTER_MANAGER::Destroy()
+void character_manager::destroy()
 {
-	auto it = m_map_pkChrByVID.begin();
-	while (it != m_map_pkChrByVID.end()) {
-		CHARACTER * ch = it->second;
-		CHARACTER_MANAGER::instance().DestroyCharacter(ch); // m_map_pkChrByVID is changed here
-		it = m_map_pkChrByVID.begin();
+	auto it = map_pk_chr_by_vid_.begin();
+	while (it != map_pk_chr_by_vid_.end()) {
+		character * ch = it->second;
+		character_manager::instance().destroy_character(ch); // m_map_pkChrByVID is changed here
+		it = map_pk_chr_by_vid_.begin();
 	}
 }
 
-void CHARACTER_MANAGER::GracefulShutdown()
+void character_manager::graceful_shutdown()
 {
-	NAME_MAP::iterator it = m_map_pkPCChr.begin();
+	name_map::iterator it = map_pk_pc_chr_.begin();
 
-	while (it != m_map_pkPCChr.end())
-		(it++)->second->Disconnect("GracefulShutdown");
+	while (it != map_pk_pc_chr_.end())
+		(it++)->second->disconnect("GracefulShutdown");
 }
 
-uint32_t CHARACTER_MANAGER::AllocVID()
+uint32_t character_manager::alloc_vid()
 {
-	++m_iVIDCount;
-	return m_iVIDCount;
+	++vid_count_;
+	return vid_count_;
 }
 
-CHARACTER * CHARACTER_MANAGER::CreateCharacter(const char * name, uint32_t dwPID)
+character * character_manager::create_character(const char * name, uint32_t dwPID)
 {
-	uint32_t dwVID = AllocVID();
+	uint32_t dwVID = alloc_vid();
 
-	CHARACTER * ch = new CHARACTER;
-	ch->Create(name, dwVID, dwPID ? true : false);
+	character * ch = new character;
+	ch->create(name, dwVID, dwPID ? true : false);
 
-	m_map_pkChrByVID.insert(std::make_pair(dwVID, ch));
+	map_pk_chr_by_vid_.insert(std::make_pair(dwVID, ch));
 
 	if (dwPID)
 	{
 		char szName[CHARACTER_NAME_MAX_LEN + 1];
 		str_lower(name, szName, sizeof(szName));
 
-		m_map_pkPCChr.insert(NAME_MAP::value_type(szName, ch));
-		m_map_pkChrByPID.insert(std::make_pair(dwPID, ch));
+		map_pk_pc_chr_.insert(name_map::value_type(szName, ch));
+		map_pk_chr_by_pid_.insert(std::make_pair(dwPID, ch));
 	}
 
 	return (ch);
 }
 
-void CHARACTER_MANAGER::DestroyCharacter(CHARACTER * ch)
+void character_manager::destroy_character(character * ch)
 {
 	if (!ch)
 		return;
 
 	// <Factor> Check whether it has been already deleted or not.
-	auto it = m_map_pkChrByVID.find(ch->GetVID());
-	if (it == m_map_pkChrByVID.end()) {
-		metin2::log::error("[CHARACTER_MANAGER::DestroyCharacter] <Factor> {:d} not found", (int32_t)(ch->GetVID()));
+	auto it = map_pk_chr_by_vid_.find(ch->get_vid());
+	if (it == map_pk_chr_by_vid_.end()) {
+		metin2::log::error("[CHARACTER_MANAGER::DestroyCharacter] <Factor> {:d} not found", (int32_t)(ch->get_vid()));
 		return; // prevent duplicated destrunction
 	}
 
 	// monsters belonging to a dungeon are also removed from the dungeon.
-	if (ch->IsNPC() && !ch->IsPet() && ch->GetRider() == nullptr)
+	if (ch->is_npc() && !ch->is_pet() && ch->rider() == nullptr)
 	{
-		if (ch->GetDungeon())
+		if (ch->get_dungeon())
 		{
-			ch->GetDungeon()->DeadCharacter(ch);
+			ch->get_dungeon()->dead_character(ch);
 		}
 	}
 
-	if (m_bUsePendingDestroy)
+	if (use_pending_destroy_)
 	{
-		m_set_pkChrPendingDestroy.insert(ch);
+		set_pk_chr_pending_destroy_.insert(ch);
 		return;
 	}
 
-	m_map_pkChrByVID.erase(it);
+	map_pk_chr_by_vid_.erase(it);
 
-	if (true == ch->IsPC())
+	if (true == ch->is_pc())
 	{
 		char szName[CHARACTER_NAME_MAX_LEN + 1];
 
-		str_lower(ch->GetName(), szName, sizeof(szName));
+		str_lower(ch->name(), szName, sizeof(szName));
 
-		NAME_MAP::iterator it = m_map_pkPCChr.find(szName);
+		name_map::iterator it = map_pk_pc_chr_.find(szName);
 
-		if (m_map_pkPCChr.end() != it)
-			m_map_pkPCChr.erase(it);
+		if (map_pk_pc_chr_.end() != it)
+			map_pk_pc_chr_.erase(it);
 	}
 
-	if (0 != ch->GetPlayerID())
+	if (0 != ch->player_id())
 	{
-		auto it = m_map_pkChrByPID.find(ch->GetPlayerID());
+		auto it = map_pk_chr_by_pid_.find(ch->player_id());
 
-		if (m_map_pkChrByPID.end() != it)
+		if (map_pk_chr_by_pid_.end() != it)
 		{
-			m_map_pkChrByPID.erase(it);
+			map_pk_chr_by_pid_.erase(it);
 		}
 	}
 
-	UnregisterRaceNumMap(ch);
+	unregister_race_num_map(ch);
 
-	RemoveFromStateList(ch);
+	remove_from_state_list(ch);
 
 	delete ch;
 }
 
-CHARACTER * CHARACTER_MANAGER::Find(uint32_t dwVID)
+character * character_manager::find(uint32_t dwVID)
 {
-	auto it = m_map_pkChrByVID.find(dwVID);
+	auto it = map_pk_chr_by_vid_.find(dwVID);
 
-	if (m_map_pkChrByVID.end() == it)
+	if (map_pk_chr_by_vid_.end() == it)
 		return nullptr;
 	
 	// <Factor> Added sanity check
-	CHARACTER * found = it->second;
-	if (found != nullptr && dwVID != (uint32_t)found->GetVID()) {
-		metin2::log::error("[CHARACTER_MANAGER::Find] <Factor> {:d} != {:d}", dwVID, (uint32_t)found->GetVID());
+	character * found = it->second;
+	if (found != nullptr && dwVID != (uint32_t)found->get_vid()) {
+		metin2::log::error("[CHARACTER_MANAGER::Find] <Factor> {:d} != {:d}", dwVID, (uint32_t)found->get_vid());
 		return nullptr;
 	}
 	return found;
 }
 
-CHARACTER * CHARACTER_MANAGER::Find(const VID & vid)
+character * character_manager::find(const vid & vid)
 {
-	CHARACTER * tch = Find((uint32_t) vid);
+	character * tch = find((uint32_t) vid);
 
-	if (!tch || tch->GetVID() != vid)
+	if (!tch || tch->get_vid() != vid)
 		return nullptr;
 
 	return tch;
 }
 
-CHARACTER * CHARACTER_MANAGER::FindByPID(uint32_t dwPID)
+character * character_manager::find_by_pid(uint32_t dwPID)
 {
-	auto it = m_map_pkChrByPID.find(dwPID);
+	auto it = map_pk_chr_by_pid_.find(dwPID);
 
-	if (m_map_pkChrByPID.end() == it)
+	if (map_pk_chr_by_pid_.end() == it)
 		return nullptr;
 
 	// <Factor> Added sanity check
-	CHARACTER * found = it->second;
-	if (found != nullptr && dwPID != found->GetPlayerID()) {
-		metin2::log::error("[CHARACTER_MANAGER::FindByPID] <Factor> {:d} != {:d}", dwPID, found->GetPlayerID());
+	character * found = it->second;
+	if (found != nullptr && dwPID != found->player_id()) {
+		metin2::log::error("[CHARACTER_MANAGER::FindByPID] <Factor> {:d} != {:d}", dwPID, found->player_id());
 		return nullptr;
 	}
 	return found;
 }
 
-CHARACTER * CHARACTER_MANAGER::FindPC(const char * name)
+character * character_manager::find_pc(const char * name)
 {
 	char szName[CHARACTER_NAME_MAX_LEN + 1];
 	str_lower(name, szName, sizeof(szName));
-	NAME_MAP::iterator it = m_map_pkPCChr.find(szName);
+	name_map::iterator it = map_pk_pc_chr_.find(szName);
 
-	if (it == m_map_pkPCChr.end())
+	if (it == map_pk_pc_chr_.end())
 		return nullptr;
 
 	// <Factor> Added sanity check
-	CHARACTER * found = it->second;
-	if (found != nullptr && strncasecmp(szName, found->GetName(), CHARACTER_NAME_MAX_LEN) != 0) {
-		metin2::log::error("[CHARACTER_MANAGER::FindPC] <Factor> {} != {}", name, found->GetName());
+	character * found = it->second;
+	if (found != nullptr && strncasecmp(szName, found->name(), CHARACTER_NAME_MAX_LEN) != 0) {
+		metin2::log::error("[CHARACTER_MANAGER::FindPC] <Factor> {} != {}", name, found->name());
 		return nullptr;
 	}
 	return found;
 }
 
-CHARACTER * CHARACTER_MANAGER::SpawnMobRandomPosition(uint32_t dwVnum, int32_t lMapIndex)
+character * character_manager::spawn_mob_random_position(uint32_t dwVnum, int32_t lMapIndex)
 {
 	// allows deciding whether to spawn Japanese pirates (Waegu)
 	{
-		if (dwVnum == 5001 && !quest::CQuestManager::instance().GetEventFlag("japan_regen"))
+		if (dwVnum == 5001 && !quest::quest_manager::instance().event_flag("japan_regen"))
 		{
 			metin2::log::debug( "WAEGU[5001] regen disabled.");
 			return nullptr;
@@ -243,7 +243,7 @@ CHARACTER * CHARACTER_MANAGER::SpawnMobRandomPosition(uint32_t dwVnum, int32_t l
 
 	// allows deciding whether to spawn Haetae
 	{
-		if (dwVnum == 5002 && !quest::CQuestManager::instance().GetEventFlag("newyear_mob"))
+		if (dwVnum == 5002 && !quest::quest_manager::instance().event_flag("newyear_mob"))
 		{
 			metin2::log::debug( "HAETAE (new-year-mob) [5002] regen disabled.");
 			return nullptr;
@@ -252,14 +252,14 @@ CHARACTER * CHARACTER_MANAGER::SpawnMobRandomPosition(uint32_t dwVnum, int32_t l
 
 	// Liberation Day event 
 	{
-		if (dwVnum == 5004 && !quest::CQuestManager::instance().GetEventFlag("independence_day"))
+		if (dwVnum == 5004 && !quest::quest_manager::instance().event_flag("independence_day"))
 		{
 			metin2::log::debug( "INDEPENDECE DAY [5004] regen disabled.");
 			return nullptr;
 		}
 	}
 
-	const CMob * pkMob = CMobManager::instance().Get(dwVnum);
+	const mob * pkMob = mob_manager::instance().get(dwVnum);
 
 	if (!pkMob)
 	{
@@ -273,7 +273,7 @@ CHARACTER * CHARACTER_MANAGER::SpawnMobRandomPosition(uint32_t dwVnum, int32_t l
 		return nullptr;
 	}
 
-	SECTREE_MAP * pkSectreeMap = SECTREE_MANAGER::instance().GetMap(lMapIndex);
+	sectree_map * pkSectreeMap = sectree_manager::instance().map(lMapIndex);
 	if (pkSectreeMap == nullptr) {
 		return nullptr;
 	}
@@ -282,19 +282,19 @@ CHARACTER * CHARACTER_MANAGER::SpawnMobRandomPosition(uint32_t dwVnum, int32_t l
 	int32_t x, y;
 	for (i=0; i<2000; i++)
 	{
-		x = number(1, (pkSectreeMap->m_setting.iWidth / 100)  - 1) * 100 + pkSectreeMap->m_setting.iBaseX;
-		y = number(1, (pkSectreeMap->m_setting.iHeight / 100) - 1) * 100 + pkSectreeMap->m_setting.iBaseY;
-		SECTREE * tree = pkSectreeMap->Find(x, y);
+		x = number(1, (pkSectreeMap->setting.width / 100)  - 1) * 100 + pkSectreeMap->setting.base_x;
+		y = number(1, (pkSectreeMap->setting.height / 100) - 1) * 100 + pkSectreeMap->setting.base_y;
+		sectree * tree = pkSectreeMap->find(x, y);
 
 		if (!tree)
 			continue;
 
-		uint32_t dwAttr = tree->GetAttribute(x, y);
+		uint32_t dwAttr = tree->get_attribute(x, y);
 
-		if (IS_SET(dwAttr, ATTR_BLOCK | ATTR_OBJECT))
+		if (is_set(dwAttr, ATTR_BLOCK | ATTR_OBJECT))
 			continue;
 
-		if (IS_SET(dwAttr, ATTR_BANPK))
+		if (is_set(dwAttr, ATTR_BANPK))
 			continue;
 
 		break;
@@ -306,7 +306,7 @@ CHARACTER * CHARACTER_MANAGER::SpawnMobRandomPosition(uint32_t dwVnum, int32_t l
 		return nullptr;
 	}
 
-	SECTREE * sectree = SECTREE_MANAGER::instance().Get(lMapIndex, x, y);
+	sectree * sectree = sectree_manager::instance().get(lMapIndex, x, y);
 
 	if (!sectree)
 	{
@@ -314,7 +314,7 @@ CHARACTER * CHARACTER_MANAGER::SpawnMobRandomPosition(uint32_t dwVnum, int32_t l
 		return nullptr;
 	}
 
-	CHARACTER * ch = CHARACTER_MANAGER::instance().CreateCharacter(pkMob->m_table.szLocaleName);
+	character * ch = character_manager::instance().create_character(pkMob->table.locale_name);
 
 	if (!ch)
 	{
@@ -322,46 +322,46 @@ CHARACTER * CHARACTER_MANAGER::SpawnMobRandomPosition(uint32_t dwVnum, int32_t l
 		return nullptr;
 	}
 
-	ch->SetProto(pkMob);
+	ch->set_proto(pkMob);
 
 	// if mob is npc with no empire assigned, assign to empire of map
-	if (pkMob->m_table.bType == CHAR_TYPE_NPC)
-		if (ch->GetEmpire() == 0)
-			ch->SetEmpire(SECTREE_MANAGER::instance().GetEmpireFromMapIndex(lMapIndex));
+	if (pkMob->table.type == CHAR_TYPE_NPC)
+		if (ch->empire() == 0)
+			ch->set_empire(sectree_manager::instance().empire_from_map_index(lMapIndex));
 
-	ch->SetRotation(number(0, 360));
+	ch->set_rotation(number(0, 360));
 
-	if (!ch->Show(lMapIndex, x, y, 0, false))
+	if (!ch->show(lMapIndex, x, y, 0, false))
 	{
-		CHARACTER_MANAGER::instance().DestroyCharacter(ch);
+		character_manager::instance().destroy_character(ch);
 		metin2::log::error("SpawnMobRandomPosition: cannot show monster");
 		return nullptr;
 	}
 
 	char buf[512+1];
-	int32_t local_x = x - pkSectreeMap->m_setting.iBaseX;
-	int32_t local_y = y - pkSectreeMap->m_setting.iBaseY;
-	snprintf(buf, sizeof(buf), "spawn %s[%d] random position at %d %d %d %d (time: %ld)", ch->GetName(), dwVnum, x, y, local_x, local_y, get_global_time());
+	int32_t local_x = x - pkSectreeMap->setting.base_x;
+	int32_t local_y = y - pkSectreeMap->setting.base_y;
+	snprintf(buf, sizeof(buf), "spawn %s[%d] random position at %d %d %d %d (time: %ld)", ch->name(), dwVnum, x, y, local_x, local_y, get_global_time());
 	
 	if (metin2::config::test_server())
-		SendNotice(buf);
+		send_notice(buf);
 
 	metin2::log::info( "{}", buf);
 	return (ch);
 }
 
-CHARACTER * CHARACTER_MANAGER::SpawnMob(uint32_t dwVnum, int32_t lMapIndex, int32_t x, int32_t y, int32_t z, bool bSpawnMotion, int iRot, bool bShow)
+character * character_manager::spawn_mob(uint32_t dwVnum, int32_t lMapIndex, int32_t x, int32_t y, int32_t z, bool bSpawnMotion, int iRot, bool bShow)
 {
-	const CMob * pkMob = CMobManager::instance().Get(dwVnum);
+	const mob * pkMob = mob_manager::instance().get(dwVnum);
 	if (!pkMob)
 	{
 		metin2::log::error("SpawnMob: no mob data for vnum {:d}", dwVnum);
 		return nullptr;
 	}
 
-	if (!(pkMob->m_table.bType == CHAR_TYPE_NPC || pkMob->m_table.bType == CHAR_TYPE_WARP || pkMob->m_table.bType == CHAR_TYPE_GOTO) || mining::IsVeinOfOre (dwVnum))
+	if (!(pkMob->table.type == CHAR_TYPE_NPC || pkMob->table.type == CHAR_TYPE_WARP || pkMob->table.type == CHAR_TYPE_GOTO) || mining::is_vein_of_ore (dwVnum))
 	{
-		SECTREE * tree = SECTREE_MANAGER::instance().Get(lMapIndex, x, y);
+		sectree * tree = sectree_manager::instance().get(lMapIndex, x, y);
 
 		if (!tree)
 		{
@@ -369,17 +369,17 @@ CHARACTER * CHARACTER_MANAGER::SpawnMob(uint32_t dwVnum, int32_t lMapIndex, int3
 			return nullptr;
 		}
 
-		uint32_t dwAttr = tree->GetAttribute(x, y);
+		uint32_t dwAttr = tree->get_attribute(x, y);
 
-		bool is_set = false;
+		bool is_set_value = false;
 
-		if ( mining::IsVeinOfOre (dwVnum) ) is_set = IS_SET(dwAttr, ATTR_BLOCK);
-		else is_set = IS_SET(dwAttr, ATTR_BLOCK | ATTR_OBJECT);
+		if ( mining::is_vein_of_ore (dwVnum) ) is_set_value = is_set(dwAttr, ATTR_BLOCK);
+		else is_set_value = is_set(dwAttr, ATTR_BLOCK | ATTR_OBJECT);
 
-		if ( is_set )
+		if ( is_set_value )
 		{
 			// SPAWN_BLOCK_LOG
-			static bool s_isLog=quest::CQuestManager::instance().GetEventFlag("spawn_block_log");
+			static bool s_isLog=quest::quest_manager::instance().event_flag("spawn_block_log");
 			static uint32_t s_nextTime=get_global_time()+10000;
 
 			uint32_t curTime=get_global_time();
@@ -387,24 +387,24 @@ CHARACTER * CHARACTER_MANAGER::SpawnMob(uint32_t dwVnum, int32_t lMapIndex, int3
 			if (curTime>s_nextTime)
 			{
 				s_nextTime=curTime;
-				s_isLog=quest::CQuestManager::instance().GetEventFlag("spawn_block_log");
+				s_isLog=quest::quest_manager::instance().event_flag("spawn_block_log");
 
 			}
 
 			if (s_isLog)
-				metin2::log::info( "SpawnMob: BLOCKED position for spawn {} {:d} at {:d} {:d} (attr {:d})", pkMob->m_table.szName, dwVnum, x, y, dwAttr);
+				metin2::log::info( "SpawnMob: BLOCKED position for spawn {} {:d} at {:d} {:d} (attr {:d})", pkMob->table.name, dwVnum, x, y, dwAttr);
 			// END_OF_SPAWN_BLOCK_LOG
 			return nullptr;
 		}
 
-		if (IS_SET(dwAttr, ATTR_BANPK))
+		if (is_set(dwAttr, ATTR_BANPK))
 		{
-			metin2::log::info( "SpawnMob: BAN_PK position for mob spawn {} {:d} at {:d} {:d}", pkMob->m_table.szName, dwVnum, x, y);
+			metin2::log::info( "SpawnMob: BAN_PK position for mob spawn {} {:d} at {:d} {:d}", pkMob->table.name, dwVnum, x, y);
 			return nullptr;
 		}
 	}
 
-	SECTREE * sectree = SECTREE_MANAGER::instance().Get(lMapIndex, x, y);
+	sectree * sectree = sectree_manager::instance().get(lMapIndex, x, y);
 
 	if (!sectree)
 	{
@@ -412,7 +412,7 @@ CHARACTER * CHARACTER_MANAGER::SpawnMob(uint32_t dwVnum, int32_t lMapIndex, int3
 		return nullptr;
 	}
 
-	CHARACTER * ch = CHARACTER_MANAGER::instance().CreateCharacter(pkMob->m_table.szLocaleName);
+	character * ch = character_manager::instance().create_character(pkMob->table.locale_name);
 
 	if (!ch)
 	{
@@ -423,18 +423,18 @@ CHARACTER * CHARACTER_MANAGER::SpawnMob(uint32_t dwVnum, int32_t lMapIndex, int3
 	if (iRot == -1)
 		iRot = number(0, 360);
 
-	ch->SetProto(pkMob);
+	ch->set_proto(pkMob);
 
 	// if mob is npc with no empire assigned, assign to empire of map
-	if (pkMob->m_table.bType == CHAR_TYPE_NPC)
-		if (ch->GetEmpire() == 0)
-			ch->SetEmpire(SECTREE_MANAGER::instance().GetEmpireFromMapIndex(lMapIndex));
+	if (pkMob->table.type == CHAR_TYPE_NPC)
+		if (ch->empire() == 0)
+			ch->set_empire(sectree_manager::instance().empire_from_map_index(lMapIndex));
 
-	ch->SetRotation(iRot);
+	ch->set_rotation(iRot);
 
-	if (bShow && !ch->Show(lMapIndex, x, y, z, bSpawnMotion))
+	if (bShow && !ch->show(lMapIndex, x, y, z, bSpawnMotion))
 	{
-		CHARACTER_MANAGER::instance().DestroyCharacter(ch);
+		character_manager::instance().destroy_character(ch);
 		metin2::log::info( "SpawnMob: cannot show monster");
 		return nullptr;
 	}
@@ -442,14 +442,14 @@ CHARACTER * CHARACTER_MANAGER::SpawnMob(uint32_t dwVnum, int32_t lMapIndex, int3
 	return (ch);
 }
 
-CHARACTER * CHARACTER_MANAGER::SpawnMobRange(uint32_t dwVnum, int32_t lMapIndex, int sx, int sy, int ex, int ey, bool bIsException, bool bSpawnMotion, bool bAggressive )
+character * character_manager::spawn_mob_range(uint32_t dwVnum, int32_t lMapIndex, int sx, int sy, int ex, int ey, bool bIsException, bool bSpawnMotion, bool bAggressive )
 {
-	const CMob * pkMob = CMobManager::instance().Get(dwVnum);
+	const mob * pkMob = mob_manager::instance().get(dwVnum);
 
 	if (!pkMob)
 		return nullptr;
 
-	if (pkMob->m_table.bType == CHAR_TYPE_STONE)	// stones always have a SPAWN motion.
+	if (pkMob->table.type == CHAR_TYPE_STONE)	// stones always have a SPAWN motion.
 		bSpawnMotion = true;
 
 	int i = 16;
@@ -458,13 +458,13 @@ CHARACTER * CHARACTER_MANAGER::SpawnMobRange(uint32_t dwVnum, int32_t lMapIndex,
 	{
 		int x = number(sx, ex);
 		int y = number(sy, ey);
-		CHARACTER * ch = SpawnMob(dwVnum, lMapIndex, x, y, 0, bSpawnMotion);
+		character * ch = spawn_mob(dwVnum, lMapIndex, x, y, 0, bSpawnMotion);
 
 		if (ch)
 		{
-			metin2::log::debug( "MOB_SPAWN: {}({:d}) {:d}x{:d}", ch->GetName(), (uint32_t) ch->GetVID(), ch->GetX(), ch->GetY());
+			metin2::log::debug( "MOB_SPAWN: {}({:d}) {:d}x{:d}", ch->name(), (uint32_t) ch->get_vid(), ch->x(), ch->y());
 			if ( bAggressive )
-				ch->SetAggressive();
+				ch->set_aggressive();
 			return (ch);
 		}
 	}
@@ -472,14 +472,14 @@ CHARACTER * CHARACTER_MANAGER::SpawnMobRange(uint32_t dwVnum, int32_t lMapIndex,
 	return nullptr;
 }
 
-void CHARACTER_MANAGER::SelectStone(CHARACTER * pkChr)
+void character_manager::select_stone(character * pkChr)
 {
-	m_pkChrSelectedStone = pkChr;
+	chr_selected_stone_ = pkChr;
 }
 
-bool CHARACTER_MANAGER::SpawnMoveGroup(uint32_t dwVnum, int32_t lMapIndex, int sx, int sy, int ex, int ey, int tx, int ty, REGEN * pkRegen, bool bAggressive_)
+bool character_manager::spawn_move_group(uint32_t dwVnum, int32_t lMapIndex, int sx, int sy, int ex, int ey, int tx, int ty, regen * pkRegen, bool bAggressive_)
 {
-	CMobGroup * pkGroup = CMobManager::instance().GetGroup(dwVnum);
+	mob_group * pkGroup = mob_manager::instance().group(dwVnum);
 
 	if (!pkGroup)
 	{
@@ -487,24 +487,24 @@ bool CHARACTER_MANAGER::SpawnMoveGroup(uint32_t dwVnum, int32_t lMapIndex, int s
 		return false;
 	}
 
-	CHARACTER * pkChrMaster = nullptr;
-	CParty * pkParty = nullptr;
+	character * pkChrMaster = nullptr;
+	party * pkParty = nullptr;
 
-	const std::vector<uint32_t> & c_rdwMembers = pkGroup->GetMemberVector();
+	const std::vector<uint32_t> & c_rdwMembers = pkGroup->member_vector();
 
 	bool bSpawnedByStone = false;
 	bool bAggressive = bAggressive_;
 
-	if (m_pkChrSelectedStone)
+	if (chr_selected_stone_)
 	{
 		bSpawnedByStone = true;
-		if (m_pkChrSelectedStone->GetDungeon())
+		if (chr_selected_stone_->get_dungeon())
 			bAggressive = true;
 	}
 
 	for (uint32_t i = 0; i < c_rdwMembers.size(); ++i)
 	{
-		CHARACTER * tch = SpawnMobRange(c_rdwMembers[i], lMapIndex, sx, sy, ex, ey, true, bSpawnedByStone);
+		character * tch = spawn_mob_range(c_rdwMembers[i], lMapIndex, sx, sy, ex, ey, true, bSpawnedByStone);
 
 		if (!tch)
 		{
@@ -514,42 +514,42 @@ bool CHARACTER_MANAGER::SpawnMoveGroup(uint32_t dwVnum, int32_t lMapIndex, int s
 			continue;
 		}
 
-		sx = tch->GetX() - number(300, 500);
-		sy = tch->GetY() - number(300, 500);
-		ex = tch->GetX() + number(300, 500);
-		ey = tch->GetY() + number(300, 500);
+		sx = tch->x() - number(300, 500);
+		sy = tch->y() - number(300, 500);
+		ex = tch->x() + number(300, 500);
+		ey = tch->y() + number(300, 500);
 
-		if (m_pkChrSelectedStone)
-			tch->SetStone(m_pkChrSelectedStone);
+		if (chr_selected_stone_)
+			tch->set_stone(chr_selected_stone_);
 		else if (pkParty)
 		{
-			pkParty->Join(tch->GetVID());
-			pkParty->Link(tch);
+			pkParty->join(tch->get_vid());
+			pkParty->link(tch);
 		}
 		else if (!pkChrMaster)
 		{
 			pkChrMaster = tch;
-			pkChrMaster->SetRegen(pkRegen);
+			pkChrMaster->set_regen(pkRegen);
 
-			pkParty = CPartyManager::instance().CreateParty(pkChrMaster);
+			pkParty = party_manager::instance().create_party(pkChrMaster);
 		}
 		if (bAggressive)
-			tch->SetAggressive();
+			tch->set_aggressive();
 
-		if (tch->Goto(tx, ty))
-			tch->SendMovePacket(FUNC_WAIT, 0, 0, 0, 0);
+		if (tch->goto_(tx, ty))
+			tch->send_move_packet(FUNC_WAIT, 0, 0, 0, 0);
 	}
 
 	return true;
 }
 
-bool CHARACTER_MANAGER::SpawnGroupGroup(uint32_t dwVnum, int32_t lMapIndex, int sx, int sy, int ex, int ey, REGEN * pkRegen, bool bAggressive_, CDungeon * pDungeon)
+bool character_manager::spawn_group_group(uint32_t dwVnum, int32_t lMapIndex, int sx, int sy, int ex, int ey, regen * pkRegen, bool bAggressive_, dungeon * pDungeon)
 {
-	const uint32_t dwGroupID = CMobManager::instance().GetGroupFromGroupGroup(dwVnum);
+	const uint32_t dwGroupID = mob_manager::instance().group_from_group_group(dwVnum);
 
 	if( dwGroupID != 0 )
 	{
-		return SpawnGroup(dwGroupID, lMapIndex, sx, sy, ex, ey, pkRegen, bAggressive_, pDungeon);
+		return spawn_group(dwGroupID, lMapIndex, sx, sy, ex, ey, pkRegen, bAggressive_, pDungeon);
 	}
 	else
 	{
@@ -558,9 +558,9 @@ bool CHARACTER_MANAGER::SpawnGroupGroup(uint32_t dwVnum, int32_t lMapIndex, int 
 	}
 }
 
-CHARACTER * CHARACTER_MANAGER::SpawnGroup(uint32_t dwVnum, int32_t lMapIndex, int sx, int sy, int ex, int ey, REGEN * pkRegen, bool bAggressive_, CDungeon * pDungeon)
+character * character_manager::spawn_group(uint32_t dwVnum, int32_t lMapIndex, int sx, int sy, int ex, int ey, regen * pkRegen, bool bAggressive_, dungeon * pDungeon)
 {
-	CMobGroup * pkGroup = CMobManager::instance().GetGroup(dwVnum);
+	mob_group * pkGroup = mob_manager::instance().group(dwVnum);
 
 	if (!pkGroup)
 	{
@@ -568,27 +568,27 @@ CHARACTER * CHARACTER_MANAGER::SpawnGroup(uint32_t dwVnum, int32_t lMapIndex, in
 		return nullptr;
 	}
 
-	CHARACTER * pkChrMaster = nullptr;
-	CParty * pkParty = nullptr;
+	character * pkChrMaster = nullptr;
+	party * pkParty = nullptr;
 
-	const std::vector<uint32_t> & c_rdwMembers = pkGroup->GetMemberVector();
+	const std::vector<uint32_t> & c_rdwMembers = pkGroup->member_vector();
 
 	bool bSpawnedByStone = false;
 	bool bAggressive = bAggressive_;
 
-	if (m_pkChrSelectedStone)
+	if (chr_selected_stone_)
 	{
 		bSpawnedByStone = true;
 
-		if (m_pkChrSelectedStone->GetDungeon())
+		if (chr_selected_stone_->get_dungeon())
 			bAggressive = true;
 	}
 
-	CHARACTER * chLeader = nullptr;
+	character * chLeader = nullptr;
 
 	for (uint32_t i = 0; i < c_rdwMembers.size(); ++i)
 	{
-		CHARACTER * tch = SpawnMobRange(c_rdwMembers[i], lMapIndex, sx, sy, ex, ey, true, bSpawnedByStone);
+		character * tch = spawn_mob_range(c_rdwMembers[i], lMapIndex, sx, sy, ex, ey, true, bSpawnedByStone);
 
 		if (!tch)
 		{
@@ -601,242 +601,242 @@ CHARACTER * CHARACTER_MANAGER::SpawnGroup(uint32_t dwVnum, int32_t lMapIndex, in
 		if (i == 0)
 			chLeader = tch;
 
-		tch->SetDungeon(pDungeon);
+		tch->set_dungeon(pDungeon);
 
-		sx = tch->GetX() - number(300, 500);
-		sy = tch->GetY() - number(300, 500);
-		ex = tch->GetX() + number(300, 500);
-		ey = tch->GetY() + number(300, 500);
+		sx = tch->x() - number(300, 500);
+		sy = tch->y() - number(300, 500);
+		ex = tch->x() + number(300, 500);
+		ey = tch->y() + number(300, 500);
 
-		if (m_pkChrSelectedStone)
-			tch->SetStone(m_pkChrSelectedStone);
+		if (chr_selected_stone_)
+			tch->set_stone(chr_selected_stone_);
 		else if (pkParty)
 		{
-			pkParty->Join(tch->GetVID());
-			pkParty->Link(tch);
+			pkParty->join(tch->get_vid());
+			pkParty->link(tch);
 		}
 		else if (!pkChrMaster)
 		{
 			pkChrMaster = tch;
-			pkChrMaster->SetRegen(pkRegen);
+			pkChrMaster->set_regen(pkRegen);
 
-			pkParty = CPartyManager::instance().CreateParty(pkChrMaster);
+			pkParty = party_manager::instance().create_party(pkChrMaster);
 		}
 
 		if (bAggressive)
-			tch->SetAggressive();
+			tch->set_aggressive();
 	}
 
 	return chLeader;
 }
 
-struct FuncUpdateAndResetChatCounter
+struct func_update_and_reset_chat_counter
 {
-	void operator () (CHARACTER * ch)
+	void operator () (character * ch)
 	{
-		ch->ResetChatCounter();
-		ch->CFSM::Update();
+		ch->reset_chat_counter();
+		ch->fsm::update();
 	}
 };
 
-void CHARACTER_MANAGER::Update(int iPulse)
+void character_manager::update(int iPulse)
 {
-	BeginPendingDestroy();
+	begin_pending_destroy();
 
 	// PC character update
 	{
-		if (!m_map_pkPCChr.empty())
+		if (!map_pk_pc_chr_.empty())
 		{
 			// copy container
-			CHARACTER_VECTOR v;
-			v.reserve(m_map_pkPCChr.size());
-			for (const auto & [name, chr] : m_map_pkPCChr)
+			character_vector v;
+			v.reserve(map_pk_pc_chr_.size());
+			for (const auto & [name, chr] : map_pk_pc_chr_)
 				v.push_back(chr);
-			if (0 == (iPulse % PASSES_PER_SEC(5)))
+			if (0 == (iPulse % passes_per_sec(5)))
 			{
-				FuncUpdateAndResetChatCounter f;
+				func_update_and_reset_chat_counter f;
 				for_each(v.begin(), v.end(), f);
 			}
 			else
 			{
-				for_each(v.begin(), v.end(), std::bind(&CHARACTER::UpdateCharacter, std::placeholders::_1, iPulse));
+				for_each(v.begin(), v.end(), std::bind(&character::update_character, std::placeholders::_1, iPulse));
 			}
 		}
 	}
 
 	// monster update
 	{
-		if (!m_set_pkChrState.empty())
+		if (!set_pk_chr_state_.empty())
 		{
-			CHARACTER_VECTOR v;
-			v.reserve(m_set_pkChrState.size());
-			v.insert(v.end(), m_set_pkChrState.begin(), m_set_pkChrState.end());
-			for_each(v.begin(), v.end(), std::bind(&CHARACTER::UpdateStateMachine, std::placeholders::_1, iPulse));
+			character_vector v;
+			v.reserve(set_pk_chr_state_.size());
+			v.insert(v.end(), set_pk_chr_state_.begin(), set_pk_chr_state_.end());
+			for_each(v.begin(), v.end(), std::bind(&character::update_state_machine, std::placeholders::_1, iPulse));
 		}
 	}
 
 	// update Santa separately
 	{
-		CharacterVectorInteractor i;
+		character_vector_interactor i;
 
-		if (CHARACTER_MANAGER::instance().GetCharactersByRaceNum(xmas::MOB_SANTA_VNUM, i))
+		if (character_manager::instance().characters_by_race_num(xmas::MOB_SANTA_VNUM, i))
 		{
-			for_each(i.begin(), i.end(), std::bind(&CHARACTER::UpdateStateMachine, std::placeholders::_1, iPulse));
+			for_each(i.begin(), i.end(), std::bind(&character::update_state_machine, std::placeholders::_1, iPulse));
 		}
 	}
 
 	// record mob kill counts once per hour 
-	if (0 == (iPulse % PASSES_PER_SEC(3600)))
+	if (0 == (iPulse % passes_per_sec(3600)))
 	{
-		for (auto it = m_map_dwMobKillCount.begin(); it != m_map_dwMobKillCount.end(); ++it)
-			DBManager::instance().SendMoneyLog(MONEY_LOG_MONSTER_KILL, it->first, it->second);
+		for (auto it = map_dw_mob_kill_count_.begin(); it != map_dw_mob_kill_count_.end(); ++it)
+			db_manager::instance().send_money_log(MONEY_LOG_MONSTER_KILL, it->first, it->second);
 
 
-		m_map_dwMobKillCount.clear();
+		map_dw_mob_kill_count_.clear();
 	}
 
 	// on the test server, count characters every 60 seconds
-	if (metin2::config::test_server() && 0 == (iPulse % PASSES_PER_SEC(60)))
-		metin2::log::info( "CHARACTER COUNT vid {:d} pid {:d}", m_map_pkChrByVID.size(), m_map_pkChrByPID.size());
+	if (metin2::config::test_server() && 0 == (iPulse % passes_per_sec(60)))
+		metin2::log::info( "CHARACTER COUNT vid {:d} pid {:d}", map_pk_chr_by_vid_.size(), map_pk_chr_by_pid_.size());
 
 	// perform delayed DestroyCharacter
-	FlushPendingDestroy();
+	flush_pending_destroy();
 }
 
-void CHARACTER_MANAGER::ProcessDelayedSave()
+void character_manager::process_delayed_save()
 {
-	CHARACTER_SET::iterator it = m_set_pkChrForDelayedSave.begin();
+	character_set::iterator it = set_pk_chr_for_delayed_save_.begin();
 
-	while (it != m_set_pkChrForDelayedSave.end())
+	while (it != set_pk_chr_for_delayed_save_.end())
 	{
-		CHARACTER * pkChr = *it++;
-		pkChr->SaveReal();
+		character * pkChr = *it++;
+		pkChr->save_real();
 	}
 
-	m_set_pkChrForDelayedSave.clear();
+	set_pk_chr_for_delayed_save_.clear();
 }
 
-bool CHARACTER_MANAGER::AddToStateList(CHARACTER * ch)
+bool character_manager::add_to_state_list(character * ch)
 {
 	assert(ch != nullptr);
 
-	CHARACTER_SET::iterator it = m_set_pkChrState.find(ch);
+	character_set::iterator it = set_pk_chr_state_.find(ch);
 
-	if (it == m_set_pkChrState.end())
+	if (it == set_pk_chr_state_.end())
 	{
-		m_set_pkChrState.insert(ch);
+		set_pk_chr_state_.insert(ch);
 		return true;
 	}
 
 	return false;
 }
 
-void CHARACTER_MANAGER::RemoveFromStateList(CHARACTER * ch)
+void character_manager::remove_from_state_list(character * ch)
 {
-	CHARACTER_SET::iterator it = m_set_pkChrState.find(ch);
+	character_set::iterator it = set_pk_chr_state_.find(ch);
 
-	if (it != m_set_pkChrState.end())
+	if (it != set_pk_chr_state_.end())
 	{
-		m_set_pkChrState.erase(it);
+		set_pk_chr_state_.erase(it);
 	}
 }
 
-void CHARACTER_MANAGER::DelayedSave(CHARACTER * ch)
+void character_manager::delayed_save(character * ch)
 {
-	m_set_pkChrForDelayedSave.insert(ch);
+	set_pk_chr_for_delayed_save_.insert(ch);
 }
 
-bool CHARACTER_MANAGER::FlushDelayedSave(CHARACTER * ch)
+bool character_manager::flush_delayed_save(character * ch)
 {
-	CHARACTER_SET::iterator it = m_set_pkChrForDelayedSave.find(ch);
+	character_set::iterator it = set_pk_chr_for_delayed_save_.find(ch);
 
-	if (it == m_set_pkChrForDelayedSave.end())
+	if (it == set_pk_chr_for_delayed_save_.end())
 		return false;
 
-	m_set_pkChrForDelayedSave.erase(it);
-	ch->SaveReal();
+	set_pk_chr_for_delayed_save_.erase(it);
+	ch->save_real();
 	return true;
 }
 
-void CHARACTER_MANAGER::RegisterForMonsterLog(CHARACTER * ch)
+void character_manager::register_for_monster_log(character * ch)
 {
-	m_set_pkChrMonsterLog.insert(ch);
+	set_pk_chr_monster_log_.insert(ch);
 }
 
-void CHARACTER_MANAGER::UnregisterForMonsterLog(CHARACTER * ch)
+void character_manager::unregister_for_monster_log(character * ch)
 {
-	m_set_pkChrMonsterLog.erase(ch);
+	set_pk_chr_monster_log_.erase(ch);
 }
 
-void CHARACTER_MANAGER::PacketMonsterLog(CHARACTER * ch, const void* buf, int size)
+void character_manager::packet_monster_log(character * ch, const void* buf, int size)
 {
-	decltype(m_set_pkChrMonsterLog.begin()) it;
+	decltype(set_pk_chr_monster_log_.begin()) it;
 
-	for (it = m_set_pkChrMonsterLog.begin(); it!=m_set_pkChrMonsterLog.end();++it)
+	for (it = set_pk_chr_monster_log_.begin(); it!=set_pk_chr_monster_log_.end();++it)
 	{
-		CHARACTER * c = *it;
+		character * c = *it;
 
-		if (ch && DISTANCE_APPROX(c->GetX()-ch->GetX(), c->GetY()-ch->GetY())>6000)
+		if (ch && distance_approx(c->x()-ch->x(), c->y()-ch->y())>6000)
 			continue;
 
-		DESC * d = c->GetDesc();
+		desc * d = c->get_desc();
 
 		if (d)
-			d->Packet(buf, size);
+			d->packet(buf, size);
 	}
 }
 
-void CHARACTER_MANAGER::KillLog(uint32_t dwVnum)
+void character_manager::kill_log(uint32_t dwVnum)
 {
 	const uint32_t SEND_LIMIT = 10000;
 
-	auto it = m_map_dwMobKillCount.find(dwVnum);
+	auto it = map_dw_mob_kill_count_.find(dwVnum);
 
-	if (it == m_map_dwMobKillCount.end())
-		m_map_dwMobKillCount.insert(std::make_pair(dwVnum, 1));
+	if (it == map_dw_mob_kill_count_.end())
+		map_dw_mob_kill_count_.insert(std::make_pair(dwVnum, 1));
 	else
 	{
 		++it->second;
 
 		if (it->second > SEND_LIMIT)
 		{
-			DBManager::instance().SendMoneyLog(MONEY_LOG_MONSTER_KILL, it->first, it->second);
-			m_map_dwMobKillCount.erase(it);
+			db_manager::instance().send_money_log(MONEY_LOG_MONSTER_KILL, it->first, it->second);
+			map_dw_mob_kill_count_.erase(it);
 		}
 	}
 }
 
-void CHARACTER_MANAGER::RegisterRaceNum(uint32_t dwVnum)
+void character_manager::register_race_num(uint32_t dwVnum)
 {
-	m_set_dwRegisteredRaceNum.insert(dwVnum);
+	set_dw_registered_race_num_.insert(dwVnum);
 }
 
-void CHARACTER_MANAGER::RegisterRaceNumMap(CHARACTER * ch)
+void character_manager::register_race_num_map(character * ch)
 {
-	uint32_t dwVnum = ch->GetRaceNum();
+	uint32_t dwVnum = ch->race_num();
 
-	if (m_set_dwRegisteredRaceNum.find(dwVnum) != m_set_dwRegisteredRaceNum.end()) // if it's a registered number
+	if (set_dw_registered_race_num_.find(dwVnum) != set_dw_registered_race_num_.end()) // if it's a registered number
 	{
-		metin2::log::info( "RegisterRaceNumMap {} {:d}", ch->GetName(), dwVnum);
-		m_map_pkChrByRaceNum[dwVnum].insert(ch);
+		metin2::log::info( "RegisterRaceNumMap {} {:d}", ch->name(), dwVnum);
+		map_pk_chr_by_race_num_[dwVnum].insert(ch);
 	}
 }
 
-void CHARACTER_MANAGER::UnregisterRaceNumMap(CHARACTER * ch)
+void character_manager::unregister_race_num_map(character * ch)
 {
-	uint32_t dwVnum = ch->GetRaceNum();
+	uint32_t dwVnum = ch->race_num();
 
-	auto it = m_map_pkChrByRaceNum.find(dwVnum);
+	auto it = map_pk_chr_by_race_num_.find(dwVnum);
 
-	if (it != m_map_pkChrByRaceNum.end())
+	if (it != map_pk_chr_by_race_num_.end())
 		it->second.erase(ch);
 }
 
-bool CHARACTER_MANAGER::GetCharactersByRaceNum(uint32_t dwRaceNum, CharacterVectorInteractor & i)
+bool character_manager::characters_by_race_num(uint32_t dwRaceNum, character_vector_interactor & i)
 {
-	std::map<uint32_t, CHARACTER_SET>::iterator it = m_map_pkChrByRaceNum.find(dwRaceNum);
+	std::map<uint32_t, character_set>::iterator it = map_pk_chr_by_race_num_.find(dwRaceNum);
 
-	if (it == m_map_pkChrByRaceNum.end())
+	if (it == map_pk_chr_by_race_num_.end())
 		return false;
 
 	// copy container
@@ -848,33 +848,33 @@ bool CHARACTER_MANAGER::GetCharactersByRaceNum(uint32_t dwRaceNum, CharacterVect
 //
 // (job+1)*3+(skill_group)
 //
-CHARACTER * CHARACTER_MANAGER::FindSpecifyPC(unsigned int uiJobFlag, int32_t lMapIndex, CHARACTER * except, int iMinLevel, int iMaxLevel)
+character * character_manager::find_specify_pc(unsigned int uiJobFlag, int32_t lMapIndex, character * except, int iMinLevel, int iMaxLevel)
 {
-	CHARACTER * chFind = nullptr;
-	decltype(m_map_pkChrByPID.begin()) it;
+	character * chFind = nullptr;
+	decltype(map_pk_chr_by_pid_.begin()) it;
 	int n = 0;
 
-	for (it = m_map_pkChrByPID.begin(); it != m_map_pkChrByPID.end(); ++it)
+	for (it = map_pk_chr_by_pid_.begin(); it != map_pk_chr_by_pid_.end(); ++it)
 	{
-		CHARACTER * ch = it->second;
+		character * ch = it->second;
 
 		if (ch == except)
 			continue;
 
-		if (ch->GetLevel() < iMinLevel)
+		if (ch->level() < iMinLevel)
 			continue;
 
-		if (ch->GetLevel() > iMaxLevel)
+		if (ch->level() > iMaxLevel)
 			continue;
 
-		if (ch->GetMapIndex() != lMapIndex)
+		if (ch->map_index() != lMapIndex)
 			continue;
 
 		if (uiJobFlag)
 		{
-			unsigned int uiChrJob = (1 << ((ch->GetJob() + 1) * 3 + ch->GetSkillGroup()));
+			unsigned int uiChrJob = (1 << ((ch->job() + 1) * 3 + ch->skill_group()));
 
-			if (!IS_SET(uiJobFlag, uiChrJob))
+			if (!is_set(uiJobFlag, uiChrJob))
 				continue;
 		}
 
@@ -885,58 +885,58 @@ CHARACTER * CHARACTER_MANAGER::FindSpecifyPC(unsigned int uiJobFlag, int32_t lMa
 	return chFind;
 }
 
-int CHARACTER_MANAGER::GetMobItemRate(CHARACTER * ch)	
+int character_manager::mob_item_rate(character * ch)	
 { 
 	//PREVENT_TOXICATION_FOR_CHINA
 	//END_PREVENT_TOXICATION_FOR_CHINA
-	if (ch && ch->GetPremiumRemainSeconds(PREMIUM_ITEM) > 0)
-		return m_iMobItemRatePremium;
-	return m_iMobItemRate; 
+	if (ch && ch->premium_remain_seconds(PREMIUM_ITEM) > 0)
+		return mob_item_rate_premium_;
+	return mob_item_rate_; 
 }
 
-int CHARACTER_MANAGER::GetMobDamageRate(CHARACTER * ch)	
+int character_manager::mob_damage_rate(character * ch)	
 { 
-	return m_iMobDamageRate; 
+	return mob_damage_rate_; 
 }
 
-int CHARACTER_MANAGER::GetMobGoldAmountRate(CHARACTER * ch)
+int character_manager::mob_gold_amount_rate(character * ch)
 { 
 	if ( !ch )
-		return m_iMobGoldAmountRate;
+		return mob_gold_amount_rate_;
 
 	//PREVENT_TOXICATION_FOR_CHINA
 	//END_PREVENT_TOXICATION_FOR_CHINA
-	if (ch && ch->GetPremiumRemainSeconds(PREMIUM_GOLD) > 0)
-		return m_iMobGoldAmountRatePremium;
-	return m_iMobGoldAmountRate; 
+	if (ch && ch->premium_remain_seconds(PREMIUM_GOLD) > 0)
+		return mob_gold_amount_rate_premium_;
+	return mob_gold_amount_rate_; 
 }
 
-int CHARACTER_MANAGER::GetMobGoldDropRate(CHARACTER * ch)
+int character_manager::mob_gold_drop_rate(character * ch)
 {
 	if ( !ch )
-		return m_iMobGoldDropRate;
+		return mob_gold_drop_rate_;
 
 	//PREVENT_TOXICATION_FOR_CHINA
 	//END_PREVENT_TOXICATION_FOR_CHINA
 	
-	if (ch && ch->GetPremiumRemainSeconds(PREMIUM_GOLD) > 0)
-		return m_iMobGoldDropRatePremium;
-	return m_iMobGoldDropRate;
+	if (ch && ch->premium_remain_seconds(PREMIUM_GOLD) > 0)
+		return mob_gold_drop_rate_premium_;
+	return mob_gold_drop_rate_;
 }
 
-int CHARACTER_MANAGER::GetMobExpRate(CHARACTER * ch)
+int character_manager::mob_exp_rate(character * ch)
 { 
 	if ( !ch )
-		return m_iMobExpRate;
+		return mob_exp_rate_;
 
-	if (ch && ch->GetPremiumRemainSeconds(PREMIUM_EXP) > 0)
-		return m_iMobExpRatePremium;
-	return m_iMobExpRate; 
+	if (ch && ch->premium_remain_seconds(PREMIUM_EXP) > 0)
+		return mob_exp_rate_premium_;
+	return mob_exp_rate_; 
 }
 
-void CHARACTER_MANAGER::SendScriptToMap(int32_t lMapIndex, const std::string & s)
+void character_manager::send_script_to_map(int32_t lMapIndex, const std::string & s)
 {
-	SECTREE_MAP * pSecMap = SECTREE_MANAGER::instance().GetMap(lMapIndex);
+	sectree_map * pSecMap = sectree_manager::instance().map(lMapIndex);
 
 	if (nullptr == pSecMap)
 		return;
@@ -947,7 +947,7 @@ void CHARACTER_MANAGER::SendScriptToMap(int32_t lMapIndex, const std::string & s
 	p.skin = 1;
 	p.src_size = s.size();
 
-	quest::FSendPacket f;
+	quest::f_send_packet f;
 	p.size = p.src_size + sizeof(struct packet_script);
 	f.buf.write(&p, sizeof(struct packet_script));
 	f.buf.write(&s[0], s.size());
@@ -955,47 +955,47 @@ void CHARACTER_MANAGER::SendScriptToMap(int32_t lMapIndex, const std::string & s
 	pSecMap->for_each(f);
 }
 
-bool CHARACTER_MANAGER::BeginPendingDestroy()
+bool character_manager::begin_pending_destroy()
 {
 	// to support not flushing when Begin is called again after Begin
 	// return false if already started
-	if (m_bUsePendingDestroy)
+	if (use_pending_destroy_)
 		return false;
 
-	m_bUsePendingDestroy = true;
+	use_pending_destroy_ = true;
 	return true;
 }
 
-void CHARACTER_MANAGER::FlushPendingDestroy()
+void character_manager::flush_pending_destroy()
 {
-	m_bUsePendingDestroy = false; // the flag must be set first for the actual Destroy to happen
+	use_pending_destroy_ = false; // the flag must be set first for the actual Destroy to happen
 
-	if (!m_set_pkChrPendingDestroy.empty())
+	if (!set_pk_chr_pending_destroy_.empty())
 	{
-		metin2::log::info( "FlushPendingDestroy size {:d}", m_set_pkChrPendingDestroy.size());
+		metin2::log::info( "FlushPendingDestroy size {:d}", set_pk_chr_pending_destroy_.size());
 		
-		CHARACTER_SET::iterator it = m_set_pkChrPendingDestroy.begin(),
-			end = m_set_pkChrPendingDestroy.end();
+		character_set::iterator it = set_pk_chr_pending_destroy_.begin(),
+			end = set_pk_chr_pending_destroy_.end();
 		for ( ; it != end; ++it) {
-			CHARACTER_MANAGER::instance().DestroyCharacter(*it);
+			character_manager::instance().destroy_character(*it);
 		}
 
-		m_set_pkChrPendingDestroy.clear();
+		set_pk_chr_pending_destroy_.clear();
 	}
 }
 
-CharacterVectorInteractor::CharacterVectorInteractor(const CHARACTER_SET & r)
+character_vector_interactor::character_vector_interactor(const character_set & r)
 {
 	reserve(r.size());
 	insert(end(), r.begin(), r.end());
 
-	if (CHARACTER_MANAGER::instance().BeginPendingDestroy())
-		m_bMyBegin = true;
+	if (character_manager::instance().begin_pending_destroy())
+		my_begin_ = true;
 }
 
-CharacterVectorInteractor::~CharacterVectorInteractor()
+character_vector_interactor::~character_vector_interactor()
 {
-	if (m_bMyBegin)
-		CHARACTER_MANAGER::instance().FlushPendingDestroy();
+	if (my_begin_)
+		character_manager::instance().flush_pending_destroy();
 }
 }

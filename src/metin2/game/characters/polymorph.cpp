@@ -16,42 +16,42 @@
 
 namespace metin2::game::inline characters {
 
-CPolymorphUtils::CPolymorphUtils()
+polymorph_utils::polymorph_utils()
 {
-	m_mapSPDType.insert(std::make_pair(101, 101));
-	m_mapSPDType.insert(std::make_pair(1901, 1901));
+	spd_type_.insert(std::make_pair(101, 101));
+	spd_type_.insert(std::make_pair(1901, 1901));
 }
 
-POLYMORPH_BONUS_TYPE CPolymorphUtils::GetBonusType(uint32_t dwVnum)
+polymorph_bonus_type polymorph_utils::bonus_type(uint32_t dwVnum)
 {
 	std::unordered_map<uint32_t, uint32_t>::iterator iter;
 
-	iter = m_mapSPDType.find(dwVnum);
+	iter = spd_type_.find(dwVnum);
 
-	if (iter != m_mapSPDType.end())
+	if (iter != spd_type_.end())
 		return POLYMORPH_SPD_BONUS;
 
-	iter = m_mapATKType.find(dwVnum);
+	iter = atk_type_.find(dwVnum);
 
-	if (iter != m_mapATKType.end())
+	if (iter != atk_type_.end())
 		return POLYMORPH_ATK_BONUS;
 
-	iter = m_mapDEFType.find(dwVnum);
+	iter = def_type_.find(dwVnum);
 
-	if (iter != m_mapDEFType.end())
+	if (iter != def_type_.end())
 		return POLYMORPH_DEF_BONUS;
 
 	return POLYMORPH_NO_BONUS;
 }
 
-bool CPolymorphUtils::PolymorphCharacter(CHARACTER * pChar, CItem * pItem, const CMob* pMob)
+bool polymorph_utils::polymorph_character(character * pChar, item * pItem, const mob* pMob)
 {
-	uint8_t bySkillLevel = pChar->GetSkillLevel(POLYMORPH_SKILL_ID);
+	uint8_t bySkillLevel = pChar->skill_level(POLYMORPH_SKILL_ID);
 	uint32_t dwDuration = 0;
 	uint32_t dwBonusPercent = 0;
 	int iPolyPercent = 0;
 
-	switch (pChar->GetSkillMasterType(POLYMORPH_SKILL_ID))
+	switch (pChar->skill_master_type(POLYMORPH_SKILL_ID))
 	{
 		case SKILL_NORMAL:
 			dwDuration = 10;
@@ -74,39 +74,39 @@ bool CPolymorphUtils::PolymorphCharacter(CHARACTER * pChar, CItem * pItem, const
 	}
 
 	// Polymorph chance = character level - mob level + polymorph book level + 29 + polymorph skill level
-	iPolyPercent = pChar->GetLevel() - pMob->m_table.bLevel + pItem->GetSocket(2) + (29 + bySkillLevel);
+	iPolyPercent = pChar->level() - pMob->table.level + pItem->get_socket(2) + (29 + bySkillLevel);
 
 	if (iPolyPercent <= 0)
 	{
-		pChar->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("둔갑에 실패 하였습니다"));
+		pChar->chat_packet(CHAT_TYPE_INFO, lc_text("둔갑에 실패 하였습니다"));
 		return false;
 	}
 	else
 	{
 		if (number(1, 100) > iPolyPercent)
 		{
-			pChar->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("둔갑에 실패 하였습니다"));
+			pChar->chat_packet(CHAT_TYPE_INFO, lc_text("둔갑에 실패 하였습니다"));
 			return false;
 		}
 	}
 
-	pChar->AddAffect(AFFECT_POLYMORPH, POINT_POLYMORPH, pMob->m_table.dwVnum, AFF_POLYMORPH, dwDuration, 0, true);
+	pChar->add_affect(AFFECT_POLYMORPH, POINT_POLYMORPH, pMob->table.vnum, AFF_POLYMORPH, dwDuration, 0, true);
 
 	// Polymorph bonus = polymorph skill level + polymorph book level
-	dwBonusPercent = bySkillLevel + pItem->GetSocket(2);
+	dwBonusPercent = bySkillLevel + pItem->get_socket(2);
 
-	switch (GetBonusType(pMob->m_table.dwVnum))
+	switch (bonus_type(pMob->table.vnum))
 	{
 		case POLYMORPH_ATK_BONUS:
-			pChar->AddAffect(AFFECT_POLYMORPH, POINT_ATT_BONUS, dwBonusPercent, AFF_POLYMORPH, dwDuration - 1, 0, false);
+			pChar->add_affect(AFFECT_POLYMORPH, POINT_ATT_BONUS, dwBonusPercent, AFF_POLYMORPH, dwDuration - 1, 0, false);
 			break;
 
 		case POLYMORPH_DEF_BONUS:
-			pChar->AddAffect(AFFECT_POLYMORPH, POINT_DEF_BONUS, dwBonusPercent, AFF_POLYMORPH, dwDuration - 1, 0, false);
+			pChar->add_affect(AFFECT_POLYMORPH, POINT_DEF_BONUS, dwBonusPercent, AFF_POLYMORPH, dwDuration - 1, 0, false);
 			break;
 
 		case POLYMORPH_SPD_BONUS:
-			pChar->AddAffect(AFFECT_POLYMORPH, POINT_MOV_SPEED, dwBonusPercent, AFF_POLYMORPH, dwDuration - 1, 0, false);
+			pChar->add_affect(AFFECT_POLYMORPH, POINT_MOV_SPEED, dwBonusPercent, AFF_POLYMORPH, dwDuration - 1, 0, false);
 			break;
 
 		default:
@@ -117,51 +117,51 @@ bool CPolymorphUtils::PolymorphCharacter(CHARACTER * pChar, CItem * pItem, const
 	return true;
 }
 
-bool CPolymorphUtils::UpdateBookPracticeGrade(CHARACTER * pChar, CItem * pItem)
+bool polymorph_utils::update_book_practice_grade(character * pChar, item * pItem)
 {
 	if (pChar == nullptr || pItem == nullptr)
 		return false;
 
-	if (pItem->GetSocket(1) > 0)
-		pItem->SetSocket(1, pItem->GetSocket(1) - 1);
+	if (pItem->get_socket(1) > 0)
+		pItem->set_socket(1, pItem->get_socket(1) - 1);
 	else
-		pChar->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("둔갑서 수련을 마첬습니다. 신선에게 찾아가세요."));
+		pChar->chat_packet(CHAT_TYPE_INFO, lc_text("둔갑서 수련을 마첬습니다. 신선에게 찾아가세요."));
 
 	return true;
 }
 
-bool CPolymorphUtils::GiveBook(CHARACTER * pChar, uint32_t dwMobVnum, uint32_t dwPracticeCount, uint8_t BookLevel, uint8_t LevelLimit)
+bool polymorph_utils::give_book(character * pChar, uint32_t dwMobVnum, uint32_t dwPracticeCount, uint8_t BookLevel, uint8_t LevelLimit)
 {
 	// Socket0                Socket1     Socket2
 	// Polymorph mob number   Training    Book level
 	if (pChar == nullptr)
 		return false;
 
-	CItem * pItem = pChar->AutoGiveItem(POLYMORPH_BOOK_ID, 1);
+	item * pItem = pChar->auto_give_item(POLYMORPH_BOOK_ID, 1);
 
 	if (pItem == nullptr)
 		return false;
 
-	if (CMobManager::instance().Get(dwMobVnum) == nullptr)
+	if (mob_manager::instance().get(dwMobVnum) == nullptr)
 	{
 		metin2::log::error("Wrong Polymorph vnum passed: CPolymorphUtils::GiveBook(PID({:d}), {:d} {:d} {:d} {:d})", 
-				pChar->GetPlayerID(), dwMobVnum, dwPracticeCount, BookLevel, LevelLimit);
+				pChar->player_id(), dwMobVnum, dwPracticeCount, BookLevel, LevelLimit);
 		return false;
 	}
 
-	pItem->SetSocket(0, dwMobVnum);			// Monster number to polymorph into
-	pItem->SetSocket(1, dwPracticeCount);		// Number of trainings required
-	pItem->SetSocket(2, BookLevel);			// Training level
+	pItem->set_socket(0, dwMobVnum);			// Monster number to polymorph into
+	pItem->set_socket(1, dwPracticeCount);		// Number of trainings required
+	pItem->set_socket(2, BookLevel);			// Training level
 	return true;
 }
 
-bool CPolymorphUtils::BookUpgrade(CHARACTER * pChar, CItem * pItem)
+bool polymorph_utils::book_upgrade(character * pChar, item * pItem)
 {
 	if (pChar == nullptr || pItem == nullptr)
 		return false;
 
-	pItem->SetSocket(1, pItem->GetSocket(2) * 50);
-	pItem->SetSocket(2, pItem->GetSocket(2)+1);
+	pItem->set_socket(1, pItem->get_socket(2) * 50);
+	pItem->set_socket(2, pItem->get_socket(2)+1);
 	return true;
 }
 }

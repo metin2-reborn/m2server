@@ -25,11 +25,11 @@ namespace quest
 			return 0;
 		}
 
-		CQuestManager & q = CQuestManager::instance();
+		quest_manager & q = quest_manager::instance();
 
 		uint8_t applyOn = (uint8_t) lua_tonumber(L, 1);
 
-		CHARACTER * ch = q.GetCurrentCharacterPtr();
+		character * ch = q.current_character_ptr();
 
 		if (applyOn >= MAX_APPLY_NUM || applyOn < 1)
 		{
@@ -37,20 +37,20 @@ namespace quest
 			return 0;
 		}
 
-		if (ch->FindAffect(AFFECT_QUEST_START_IDX, applyOn)) // skip if an effect from a quest is already applied at the same spot
+		if (ch->find_affect(AFFECT_QUEST_START_IDX, applyOn)) // skip if an effect from a quest is already applied at the same spot
 			return 0;
 
 		int32_t value = (int32_t) lua_tonumber(L, 2);
 		int32_t duration = (int32_t) lua_tonumber(L, 3);
 
-		ch->AddAffect(AFFECT_QUEST_START_IDX, aApplyInfo[applyOn].bPointType, value, 0, duration, 0, false);
+		ch->add_affect(AFFECT_QUEST_START_IDX, a_apply_info[applyOn].point_type, value, 0, duration, 0, false);
 
 		return 0;
 	}
 
 	int affect_remove(lua_State * L)
 	{
-		CQuestManager & q = CQuestManager::instance();
+		quest_manager & q = quest_manager::instance();
 		int iType;
 
 		if (lua_isnumber(L, 1))
@@ -58,27 +58,27 @@ namespace quest
 			iType = (int) lua_tonumber(L, 1);
 
 			if (iType == 0)
-				iType = q.GetCurrentPC()->GetCurrentQuestIndex() + AFFECT_QUEST_START_IDX;
+				iType = q.current_pc()->current_quest_index() + AFFECT_QUEST_START_IDX;
 		}
 		else
-			iType = q.GetCurrentPC()->GetCurrentQuestIndex() + AFFECT_QUEST_START_IDX;
+			iType = q.current_pc()->current_quest_index() + AFFECT_QUEST_START_IDX;
 
-		q.GetCurrentCharacterPtr()->RemoveAffect(iType);
+		q.current_character_ptr()->remove_affect(iType);
 
 		return 0;
 	}
 
 	int affect_remove_bad(lua_State * L) // remove bad effects
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		ch->RemoveBadAffect();
+		character * ch = quest_manager::instance().current_character_ptr();
+		ch->remove_bad_affect();
 		return 0;
 	}
 
 	int affect_remove_good(lua_State * L) // remove good effects
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		ch->RemoveGoodAffect();
+		character * ch = quest_manager::instance().current_character_ptr();
+		ch->remove_good_affect();
 		return 0;
 	}
 
@@ -90,11 +90,11 @@ namespace quest
 			return 0;
 		}
 
-		CQuestManager & q = CQuestManager::instance();
+		quest_manager & q = quest_manager::instance();
 
 		uint8_t applyOn = (uint8_t) lua_tonumber(L, 1);
 
-		CHARACTER * ch = q.GetCurrentCharacterPtr();
+		character * ch = q.current_character_ptr();
 
 		if (applyOn >= MAX_APPLY_NUM || applyOn < 1)
 		{
@@ -105,21 +105,21 @@ namespace quest
 		int32_t value = (int32_t) lua_tonumber(L, 2);
 		int32_t duration = (int32_t) lua_tonumber(L, 3);
 
-		ch->AddAffect(AFFECT_HAIR, aApplyInfo[applyOn].bPointType, value, 0, duration, 0, false);
+		ch->add_affect(AFFECT_HAIR, a_apply_info[applyOn].point_type, value, 0, duration, 0, false);
 
 		return 0;
 	}
 
 	int affect_remove_hair(lua_State * L) // remove hair effects.
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
-		CAffect* pkAff = ch->FindAffect( AFFECT_HAIR );
+		affect* pkAff = ch->find_affect( AFFECT_HAIR );
 
 		if ( pkAff != nullptr )
 		{
-			lua_pushnumber(L, pkAff->lDuration);
-			ch->RemoveAffect( pkAff );
+			lua_pushnumber(L, pkAff->duration);
+			ch->remove_affect( pkAff );
 		}
 		else
 		{
@@ -133,7 +133,7 @@ namespace quest
 	// usage :	applyOn = affect.get_apply(AFFECT_TYPE) 
 	int affect_get_apply_on(lua_State * L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
 		if (!lua_isnumber(L, 1))
 		{
@@ -143,10 +143,10 @@ namespace quest
 
 		uint32_t affectType = lua_tonumber(L, 1);
 
-		CAffect* pkAff = ch->FindAffect(affectType);
+		affect* pkAff = ch->find_affect(affectType);
 
 		if ( pkAff != nullptr )
-			lua_pushnumber(L, pkAff->bApplyOn);
+			lua_pushnumber(L, pkAff->apply_on);
 		else
 			lua_pushnil(L);
 
@@ -162,11 +162,11 @@ namespace quest
 			return 0;
 		}
 
-		CQuestManager & q = CQuestManager::instance();
+		quest_manager & q = quest_manager::instance();
 
 		uint8_t applyOn = (uint8_t) lua_tonumber(L, 1);
 
-		CHARACTER * ch = q.GetCurrentCharacterPtr();
+		character * ch = q.current_character_ptr();
 
 		if (applyOn >= MAX_APPLY_NUM || applyOn < 1)
 		{
@@ -177,7 +177,7 @@ namespace quest
 		int32_t value = (int32_t) lua_tonumber(L, 2);
 		int32_t duration = (int32_t) lua_tonumber(L, 3);
 
-		ch->AddAffect(AFFECT_COLLECT, aApplyInfo[applyOn].bPointType, value, 0, duration, 0, false);
+		ch->add_affect(AFFECT_COLLECT, a_apply_info[applyOn].point_type, value, 0, duration, 0, false);
 
 		return 0;
 	}
@@ -190,11 +190,11 @@ namespace quest
 			return 0;
 		}
 
-		CQuestManager & q = CQuestManager::instance();
+		quest_manager & q = quest_manager::instance();
 
 		uint8_t point_type = (uint8_t) lua_tonumber(L, 1);
 
-		CHARACTER * ch = q.GetCurrentCharacterPtr();
+		character * ch = q.current_character_ptr();
 
 		if (point_type >= POINT_MAX_NUM || point_type < 1)
 		{
@@ -205,14 +205,14 @@ namespace quest
 		int32_t value = (int32_t) lua_tonumber(L, 2);
 		int32_t duration = (int32_t) lua_tonumber(L, 3);
 
-		ch->AddAffect(AFFECT_COLLECT, point_type, value, 0, duration, 0, false);
+		ch->add_affect(AFFECT_COLLECT, point_type, value, 0, duration, 0, false);
 
 		return 0;
 	}
 
 	int affect_remove_collect(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
 		if ( ch != nullptr )
 		{
@@ -220,19 +220,19 @@ namespace quest
 
 			if ( bApply >= MAX_APPLY_NUM ) return 0;
 
-			bApply = aApplyInfo[bApply].bPointType;
+			bApply = a_apply_info[bApply].point_type;
 			int32_t value = (int32_t)lua_tonumber(L, 2);
 
-			const std::list<CAffect*>& rList = ch->GetAffectContainer();
-			const CAffect* pAffect = nullptr;
+			const std::list<affect*>& rList = ch->affect_container();
+			const affect* pAffect = nullptr;
 
-			for ( std::list<CAffect*>::const_iterator iter = rList.begin(); iter != rList.end(); ++iter )
+			for ( std::list<affect*>::const_iterator iter = rList.begin(); iter != rList.end(); ++iter )
 			{
 				pAffect = *iter;
 
-				if ( pAffect->dwType == AFFECT_COLLECT )
+				if ( pAffect->type == AFFECT_COLLECT )
 				{
-					if ( pAffect->bApplyOn == bApply && pAffect->lApplyValue == value )
+					if ( pAffect->apply_on == bApply && pAffect->apply_value == value )
 					{
 						break;
 					}
@@ -243,7 +243,7 @@ namespace quest
 
 			if ( pAffect != nullptr )
 			{
-				ch->RemoveAffect( const_cast<CAffect*>(pAffect) );
+				ch->remove_affect( const_cast<affect*>(pAffect) );
 			}
 		}
 
@@ -252,17 +252,17 @@ namespace quest
 
 	int affect_remove_all_collect( lua_State* L )
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
 		if ( ch != nullptr )
 		{
-			ch->RemoveAffect(AFFECT_COLLECT);
+			ch->remove_affect(AFFECT_COLLECT);
 		}
 
 		return 0;
 	}
 
-	void RegisterAffectFunctionTable()
+	void register_affect_function_table()
 	{
 		luaL_reg affect_functions[] =
 		{
@@ -281,7 +281,7 @@ namespace quest
 			{ nullptr,		nullptr			}
 		};
 
-		CQuestManager::instance().AddLuaFunctionTable("affect", affect_functions);
+		quest_manager::instance().add_lua_function_table("affect", affect_functions);
 	}
 };
 }

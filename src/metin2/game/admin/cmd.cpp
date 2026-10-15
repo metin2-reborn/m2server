@@ -167,7 +167,7 @@ ACMD(do_add_socket);
 
 ACMD(do_inputall)
 {
-	ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("명령어를 모두 입력하세요."));
+	ch->chat_packet(CHAT_TYPE_INFO, lc_text("명령어를 모두 입력하세요."));
 }
 
 ACMD(do_show_arena_list);
@@ -591,7 +591,7 @@ void double_dollar(const char *src, size_t src_len, char *dest, size_t dest_len)
 	*dest = '\0';
 }
 
-void interpret_command(CHARACTER * ch, const char * argument, size_t len)
+void interpret_command(character * ch, const char * argument, size_t len)
 {
 	if (nullptr == ch)
 	{
@@ -623,28 +623,28 @@ void interpret_command(CHARACTER * ch, const char * argument, size_t len)
 			break;
 	}
 
-	if (ch->GetPosition() < cmd_info[icmd].minimum_position)
+	if (ch->get_position() < cmd_info[icmd].minimum_position)
 	{
-		switch (ch->GetPosition())
+		switch (ch->get_position())
 		{
 			case POS_MOUNTING:
-				ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("탄 상태에서는 할 수 없습니다."));
+				ch->chat_packet(CHAT_TYPE_INFO, lc_text("탄 상태에서는 할 수 없습니다."));
 				break;
 
 			case POS_DEAD:
-				ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("쓰러진 상태에서는 할 수 없습니다."));
+				ch->chat_packet(CHAT_TYPE_INFO, lc_text("쓰러진 상태에서는 할 수 없습니다."));
 				break;
 
 			case POS_SLEEPING:
-				ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("꿈속에서 어떻게요?"));
+				ch->chat_packet(CHAT_TYPE_INFO, lc_text("꿈속에서 어떻게요?"));
 				break;
 
 			case POS_RESTING:
 			case POS_SITTING:
-				ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("먼저 일어 나세요."));
+				ch->chat_packet(CHAT_TYPE_INFO, lc_text("먼저 일어 나세요."));
 				break;
 			default:
-				metin2::log::error("unknown position {:d}", ch->GetPosition());
+				metin2::log::error("unknown position {:d}", ch->get_position());
 				break;
 		}
 
@@ -653,29 +653,29 @@ void interpret_command(CHARACTER * ch, const char * argument, size_t len)
 
 	if (*cmd_info[icmd].command == '\n')
 	{   
-		ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("그런 명령어는 없습니다"));
+		ch->chat_packet(CHAT_TYPE_INFO, lc_text("그런 명령어는 없습니다"));
 		return;
 	}
 
-	if (cmd_info[icmd].gm_level && cmd_info[icmd].gm_level > ch->GetGMLevel())
+	if (cmd_info[icmd].gm_level && cmd_info[icmd].gm_level > ch->gm_level())
 	{
-		ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("그런 명령어는 없습니다"));
+		ch->chat_packet(CHAT_TYPE_INFO, lc_text("그런 명령어는 없습니다"));
 		return;
 	}
 
 	if (strncmp("phase", cmd_info[icmd].command, 5) != 0) // Handle hidden commands 
-		metin2::log::info( "COMMAND: {}: {}", ch->GetName(), cmd_info[icmd].command);
+		metin2::log::info( "COMMAND: {}: {}", ch->name(), cmd_info[icmd].command);
 
 	((*cmd_info[icmd].command_pointer) (ch, line, icmd, cmd_info[icmd].subcmd));
 
-	if (ch->GetGMLevel() >= GM_LOW_WIZARD)
+	if (ch->gm_level() >= GM_LOW_WIZARD)
 	{
 		if (cmd_info[icmd].gm_level >= GM_LOW_WIZARD)
 		{
 			char buf[1024];
 			snprintf( buf, sizeof(buf), "%s", argument );
 
-			LogManager::instance().GMCommandLog(ch->GetPlayerID(), ch->GetName(), ch->GetDesc()->GetHostName(), metin2::config::server().channel, buf);
+			log_manager::instance().gm_command_log(ch->player_id(), ch->name(), ch->get_desc()->host_name(), metin2::config::server().channel, buf);
 		}
 	}
 }

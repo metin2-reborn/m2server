@@ -9,38 +9,38 @@
 
 namespace metin2::game::inline trade {
 
-class CShop;
+class shop;
 
-class CShopManager : public singleton<CShopManager>
+class shop_manager : public singleton<shop_manager>
 {
 public:
-	typedef std::map<uint32_t, CShop *> TShopMap;
+	typedef std::map<uint32_t, shop *> shop_map;
 
 public:
-	CShopManager();
-	~CShopManager() override;
+	shop_manager();
+	~shop_manager() override;
 
-	bool	Initialize(TShopTable * table, int size);
-	void	Destroy();
+	bool	initialize(shop_table * table, int size);
+	void	destroy();
 
-	CShop *	Get(uint32_t dwVnum);
-	CShop *	GetByNPCVnum(uint32_t dwVnum);
+	shop *	get(uint32_t dwVnum);
+	shop *	by_npc_vnum(uint32_t dwVnum);
 
-	bool	StartShopping(CHARACTER * pkChr, CHARACTER * pkShopKeeper, int iShopVnum = 0);
-	void	StopShopping(CHARACTER * ch);
+	bool	start_shopping(character * pkChr, character * pkShopKeeper, int iShopVnum = 0);
+	void	stop_shopping(character * ch);
 
-	void	Buy(CHARACTER * ch, uint8_t pos);
-	void	Sell(CHARACTER * ch, uint8_t bCell, uint8_t bCount=0);
+	void	buy(character * ch, uint8_t pos);
+	void	sell(character * ch, uint8_t bCell, uint8_t bCount=0);
 
-	CShop *	CreatePCShop(CHARACTER * ch, TShopItemTable * pTable, uint8_t bItemCount);
-	CShop *	FindPCShop(uint32_t dwVID);
-	void	DestroyPCShop(CHARACTER * ch);
+	shop *	create_pc_shop(character * ch, shop_item_table * pTable, uint8_t bItemCount);
+	shop *	find_pc_shop(uint32_t dwVID);
+	void	destroy_pc_shop(character * ch);
 
 private:
-	TShopMap	m_map_pkShop;
-	TShopMap	m_map_pkShopByNPCVnum;
-	TShopMap	m_map_pkShopByPC;
+	shop_map	map_pk_shop_;
+	shop_map	map_pk_shop_by_npc_vnum_;
+	shop_map	map_pk_shop_by_pc_;
 
-	bool	ReadShopTableEx(const char* stFileName);
+	bool	read_shop_table_ex(const char* stFileName);
 };
 }

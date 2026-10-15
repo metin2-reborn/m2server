@@ -35,10 +35,10 @@ namespace quest
 {
 	EVENTINFO(monarch_powerup_event_info)
 	{
-		int EmpireIndex;
+		int empire_index;
 
 		monarch_powerup_event_info() 
-		: EmpireIndex( 0 )
+		: empire_index( 0 )
 		{
 		}
 	};
@@ -46,14 +46,14 @@ namespace quest
 	// NOTE: Copied from SPacketGGMonarchTransfer for event data 
 	EVENTINFO(monarch_transfer2_event_info)
 	{
-		uint8_t	bHeader;
-		uint32_t	dwTargetPID;
+		uint8_t	header;
+		uint32_t	target_pid;
 		int32_t	x;
 		int32_t	y;
 
 		monarch_transfer2_event_info() 
-		: bHeader( 0 )
-		, dwTargetPID( 0 )
+		: header( 0 )
+		, target_pid( 0 )
 		, x( 0 )
 		, y( 0 )
 		{
@@ -70,16 +70,16 @@ namespace quest
 			return 0;
 		}
 
-		CMonarch::instance().PowerUp(info->EmpireIndex, false);
+		monarch::instance().power_up(info->empire_index, false);
 		return 0;
 	}
 
 	EVENTINFO(monarch_defenseup_event_info)
 	{
-		int EmpireIndex;
+		int empire_index;
 
 		monarch_defenseup_event_info() 
-		: EmpireIndex( 0 )
+		: empire_index( 0 )
 		{
 		}
 	};
@@ -94,7 +94,7 @@ namespace quest
 			return 0;
 		}
 
-		CMonarch::instance().DefenseUp(info->EmpireIndex, false);
+		monarch::instance().defense_up(info->empire_index, false);
 		return 0;
 	}
 
@@ -103,29 +103,29 @@ namespace quest
 	//
 	int takemonarchmoney(lua_State * L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr(); 
+		character * ch = quest_manager::instance().current_character_ptr(); 
 
 		int nMoney = (int)lua_tonumber(L,1);
-		int nPID = ch->GetPlayerID();
-		int nEmpire = ch->GetEmpire();
+		int nPID = ch->player_id();
+		int nEmpire = ch->empire();
 		nMoney = nMoney * 10000;
 
-		metin2::log::info("[MONARCH] Take Money Empire({:d}) pid({:d}) Money({:d})", ch->GetEmpire(), ch->GetPlayerID(), nMoney);
+		metin2::log::info("[MONARCH] Take Money Empire({:d}) pid({:d}) Money({:d})", ch->empire(), ch->player_id(), nMoney);
 
-		db_clientdesc->DBPacketHeader(HEADER_GD_TAKE_MONARCH_MONEY, ch->GetDesc()->GetHandle(), sizeof(int) * 3);
-		db_clientdesc->Packet(&nEmpire, sizeof(int)); 
-		db_clientdesc->Packet(&nPID, sizeof(int));
-		db_clientdesc->Packet(&nMoney, sizeof(int));
+		db_clientdesc->db_packet_header(HEADER_GD_TAKE_MONARCH_MONEY, ch->get_desc()->handle(), sizeof(int) * 3);
+		db_clientdesc->packet(&nEmpire, sizeof(int)); 
+		db_clientdesc->packet(&nPID, sizeof(int));
+		db_clientdesc->packet(&nMoney, sizeof(int));
 		return 1;
 	}
 
 	int	 is_guild_master(lua_State * L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr(); 
+		character * ch = quest_manager::instance().current_character_ptr(); 
 
-		if (ch->GetGuild()	)
+		if (ch->get_guild()	)
 		{
-			TGuildMember * pMember = ch->GetGuild()->GetMember(ch->GetPlayerID());
+			guild_member * pMember = ch->get_guild()->member(ch->player_id());
 
 			if (pMember)
 			{
@@ -144,30 +144,30 @@ namespace quest
 
 	int monarch_bless(lua_State * L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr(); 
+		character * ch = quest_manager::instance().current_character_ptr(); 
 
-		if (false==ch->IsMonarch())
+		if (false==ch->is_monarch())
 		{
-			if (!ch->IsGM())
+			if (!ch->is_gm())
 			{
-				ch->ChatPacket(CHAT_TYPE_INFO ,LC_TEXT("군주의 자격을 가지고 있지 않습니다"));
-				quest::error("No Monarch pid {:d} ", ch->GetPlayerID());
+				ch->chat_packet(CHAT_TYPE_INFO ,lc_text("군주의 자격을 가지고 있지 않습니다"));
+				quest::error("No Monarch pid {:d} ", ch->player_id());
 				return 0;
 			}
 		}
 
-		int HealPrice = quest::CQuestManager::instance().GetEventFlag("MonarchHealGold");
+		int HealPrice = quest::quest_manager::instance().event_flag("MonarchHealGold");
 		if (HealPrice == 0)
 			HealPrice = 2000000;	// 2 million
 
-		if (CMonarch::instance().HealMyEmpire(ch, HealPrice))
+		if (monarch::instance().heal_my_empire(ch, HealPrice))
 		{
 			char szNotice[256];
 			snprintf(szNotice, sizeof(szNotice),
-					LC_TEXT("군주의 축복으로 이지역 %s 유저는 HP,SP가 모두 채워집니다."), EMPIRE_NAME(ch->GetEmpire()));
-			SendNoticeMap(szNotice, ch->GetMapIndex(), false);
+					lc_text("군주의 축복으로 이지역 %s 유저는 HP,SP가 모두 채워집니다."), empire_name(ch->empire()));
+			send_notice_map(szNotice, ch->map_index(), false);
 
-			ch->ChatPacket(CHAT_TYPE_INFO ,LC_TEXT("군주의 축복을 사용하였습니다."));
+			ch->chat_packet(CHAT_TYPE_INFO ,lc_text("군주의 축복을 사용하였습니다."));
 		}
 
 		return 1;
@@ -176,63 +176,63 @@ namespace quest
 	// Monarch's Lion's Roar quest function 
 	int monarch_powerup(lua_State * L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr(); 
+		character * ch = quest_manager::instance().current_character_ptr(); 
 
 		if (!ch)
 			return 0;
 
 		//Monarch check 
-		if (false==ch->IsMonarch())
+		if (false==ch->is_monarch())
 		{
-			if (!ch->IsGM())
+			if (!ch->is_gm())
 			{
-				ch->ChatPacket(CHAT_TYPE_INFO ,LC_TEXT("군주의 자격을 가지고 있지 않습니다"));
-				quest::error("No Monarch pid {:d} ", ch->GetPlayerID());
+				ch->chat_packet(CHAT_TYPE_INFO ,lc_text("군주의 자격을 가지고 있지 않습니다"));
+				quest::error("No Monarch pid {:d} ", ch->player_id());
 				return 0;
 			}
 		}
 
 		//Check monarch treasury
 		int	money_need = 5000000;	// 5 million
-		if (!CMonarch::instance().IsMoneyOk(money_need, ch->GetEmpire()))
+		if (!monarch::instance().is_money_ok(money_need, ch->empire()))
 		{
-			int NationMoney = CMonarch::instance().GetMoney(ch->GetEmpire());
-			ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("국고에 돈이 부족합니다. 현재 : %u 필요금액 : %u"), NationMoney, money_need);
+			int NationMoney = monarch::instance().money(ch->empire());
+			ch->chat_packet(CHAT_TYPE_INFO, lc_text("국고에 돈이 부족합니다. 현재 : %u 필요금액 : %u"), NationMoney, money_need);
 			return 0;
 		}
 
-		if (!CMonarch::instance().CheckPowerUpCT(ch->GetEmpire()))
+		if (!monarch::instance().check_power_up_ct(ch->empire()))
 		{
-			int	next_sec = CMonarch::instance().GetPowerUpCT(ch->GetEmpire()) / metin2::config::server().passes_per_sec;
-			ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("쿨타임 적용중  %d 후 사용가능"), next_sec);
+			int	next_sec = monarch::instance().power_up_ct(ch->empire()) / metin2::config::server().passes_per_sec;
+			ch->chat_packet(CHAT_TYPE_INFO, lc_text("쿨타임 적용중  %d 후 사용가능"), next_sec);
 			return 0;
 		}
 
 		//Apply monarch's Lion's Roar	
-		CMonarch::instance().PowerUp(ch->GetEmpire(), true); 
+		monarch::instance().power_up(ch->empire(), true); 
 
 		//Monarch's Lion's Roar duration 	
 		int g_nMonarchPowerUpCT = 60 * 3;
 
-		monarch_powerup_event_info* info = AllocEventInfo<monarch_powerup_event_info>();
+		monarch_powerup_event_info* info = alloc_event_info<monarch_powerup_event_info>();
 
-		info->EmpireIndex = ch->GetEmpire();
+		info->empire_index = ch->empire();
 
-		event_create(quest::monarch_powerup_event, info, PASSES_PER_SEC(g_nMonarchPowerUpCT));
+		event_create(quest::monarch_powerup_event, info, passes_per_sec(g_nMonarchPowerUpCT));
 
-		CMonarch::instance().SendtoDBDecMoney(5000000, ch->GetEmpire(), ch);
+		monarch::instance().sendto_db_dec_money(5000000, ch->empire(), ch);
 
 		char szNotice[256];
-		snprintf(szNotice, sizeof(szNotice), LC_TEXT("군주의 사자후 영향으로 이지역 %s 유저는 3분간 10 %% 의 공격력이  증가됩니다"), EMPIRE_NAME(ch->GetEmpire()));
+		snprintf(szNotice, sizeof(szNotice), lc_text("군주의 사자후 영향으로 이지역 %s 유저는 3분간 10 %% 의 공격력이  증가됩니다"), empire_name(ch->empire()));
 
-		SendNoticeMap(szNotice, ch->GetMapIndex(), false);
+		send_notice_map(szNotice, ch->map_index(), false);
 
 		return 1;		
 	}
 	// Monarch's Diamond Fist quest function 
 	int monarch_defenseup(lua_State * L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr(); 
+		character * ch = quest_manager::instance().current_character_ptr(); 
 
 		if (!ch)
 			return 0;
@@ -240,59 +240,59 @@ namespace quest
 		
 		//Monarch check	
 
-		if (false==ch->IsMonarch())
+		if (false==ch->is_monarch())
 		{
-			if (!ch->IsGM())
+			if (!ch->is_gm())
 			{
-				ch->ChatPacket(CHAT_TYPE_INFO ,LC_TEXT("군주의 자격을 가지고 있지 않습니다"));
-				quest::error("No Monarch pid {:d} ", ch->GetPlayerID());
+				ch->chat_packet(CHAT_TYPE_INFO ,lc_text("군주의 자격을 가지고 있지 않습니다"));
+				quest::error("No Monarch pid {:d} ", ch->player_id());
 				return 0;
 			}
 		}
 
 		int	money_need = 5000000;	// 5 million
-		if (!CMonarch::instance().IsMoneyOk(money_need, ch->GetEmpire()))
+		if (!monarch::instance().is_money_ok(money_need, ch->empire()))
 		{
-			int NationMoney = CMonarch::instance().GetMoney(ch->GetEmpire());
-			ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("국고에 돈이 부족합니다. 현재 : %u 필요금액 : %u"), NationMoney, money_need);
+			int NationMoney = monarch::instance().money(ch->empire());
+			ch->chat_packet(CHAT_TYPE_INFO, lc_text("국고에 돈이 부족합니다. 현재 : %u 필요금액 : %u"), NationMoney, money_need);
 			return 0;
 		}
 
-		if (!CMonarch::instance().CheckDefenseUpCT(ch->GetEmpire()))
+		if (!monarch::instance().check_defense_up_ct(ch->empire()))
 		{
-			int	next_sec = CMonarch::instance().GetDefenseUpCT(ch->GetEmpire()) / metin2::config::server().passes_per_sec;
-			ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("쿨타임 적용중  %d 후 사용가능"), next_sec);
+			int	next_sec = monarch::instance().defense_up_ct(ch->empire()) / metin2::config::server().passes_per_sec;
+			ch->chat_packet(CHAT_TYPE_INFO, lc_text("쿨타임 적용중  %d 후 사용가능"), next_sec);
 			return 0;
 		}	
 
 		//Apply monarch's Diamond Fist	
-		CMonarch::instance().DefenseUp(ch->GetEmpire(), true); 
+		monarch::instance().defense_up(ch->empire(), true); 
 
 		//Monarch's Diamond Fist duration
 		int g_nMonarchDefenseUpCT = 60 * 3;
 
-		monarch_defenseup_event_info* info = AllocEventInfo<monarch_defenseup_event_info>();
+		monarch_defenseup_event_info* info = alloc_event_info<monarch_defenseup_event_info>();
 
-		info->EmpireIndex = ch->GetEmpire();
+		info->empire_index = ch->empire();
 
-		event_create(quest::monarch_defenseup_event, info, PASSES_PER_SEC(g_nMonarchDefenseUpCT));
+		event_create(quest::monarch_defenseup_event, info, passes_per_sec(g_nMonarchDefenseUpCT));
 
-		CMonarch::instance().SendtoDBDecMoney(5000000, ch->GetEmpire(), ch);
+		monarch::instance().sendto_db_dec_money(5000000, ch->empire(), ch);
 
 		char szNotice[256];
-		snprintf(szNotice, sizeof(szNotice), LC_TEXT("군주의 금강권 영향으로 이지역 %s 유저는 3분간 10 %% 의 방어력이  증가됩니다"), EMPIRE_NAME(ch->GetEmpire()));
+		snprintf(szNotice, sizeof(szNotice), lc_text("군주의 금강권 영향으로 이지역 %s 유저는 3분간 10 %% 의 방어력이  증가됩니다"), empire_name(ch->empire()));
 
-		SendNoticeMap(szNotice, ch->GetMapIndex(), false);
+		send_notice_map(szNotice, ch->map_index(), false);
 
 		return 1;
 	}
 
 	int is_monarch(lua_State * L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr(); 
+		character * ch = quest_manager::instance().current_character_ptr(); 
 		if (!ch)
 			return 0;
-		lua_pushnumber(L, ch->IsMonarch());
+		lua_pushnumber(L, ch->is_monarch());
 		return 1;
 	}
 
@@ -306,51 +306,51 @@ namespace quest
 
 		uint32_t mob_vnum = (uint32_t)lua_tonumber(L, 1);
 
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr(); 
+		character * ch = quest_manager::instance().current_character_ptr(); 
 
 		if (!ch)
 			return 0;
 
-		const CMob * pkMob = nullptr;
+		const mob * pkMob = nullptr;
 
-		if (!(pkMob = CMobManager::instance().Get(mob_vnum)))
+		if (!(pkMob = mob_manager::instance().get(mob_vnum)))
 			if (pkMob == nullptr)
 			{
-				ch->ChatPacket(CHAT_TYPE_INFO, "No such mob by that vnum");
+				ch->chat_packet(CHAT_TYPE_INFO, "No such mob by that vnum");
 				return 0;
 			}
 
-		if (false == ch->IsMonarch())
+		if (false == ch->is_monarch())
 		{
-			if (!ch->IsGM())
+			if (!ch->is_gm())
 			{
-				ch->ChatPacket(CHAT_TYPE_INFO ,LC_TEXT("군주의 자격을 가지고 있지 않습니다"));
-				quest::error("No Monarch pid {:d} ", ch->GetPlayerID());
+				ch->chat_packet(CHAT_TYPE_INFO ,lc_text("군주의 자격을 가지고 있지 않습니다"));
+				quest::error("No Monarch pid {:d} ", ch->player_id());
 				return 0;
 			}
 		}
 
-		uint32_t dwQuestIdx = CQuestManager::instance().GetCurrentPC()->GetCurrentQuestIndex();
+		uint32_t dwQuestIdx = quest_manager::instance().current_pc()->current_quest_index();
 
 		bool ret = false;
-		CHARACTER * mob = nullptr;
+		character * mob = nullptr;
 
 		{
-			int32_t x = ch->GetX();
-			int32_t y = ch->GetY();
+			int32_t x = ch->x();
+			int32_t y = ch->y();
 			{
-				mob = CHARACTER_MANAGER::instance().SpawnMob(mob_vnum, ch->GetMapIndex(), x, y, 0, pkMob->m_table.bType == CHAR_TYPE_STONE, -1);
+				mob = character_manager::instance().spawn_mob(mob_vnum, ch->map_index(), x, y, 0, pkMob->table.type == CHAR_TYPE_STONE, -1);
 			}
 
 			if (mob)
 			{
 
-				mob->SetQuestBy(dwQuestIdx);
+				mob->set_quest_by(dwQuestIdx);
 
 				if (!ret)
 				{
 					ret = true;
-					lua_pushnumber(L, (uint32_t) mob->GetVID());
+					lua_pushnumber(L, (uint32_t) mob->get_vid());
 				}
 			}
 		}
@@ -369,43 +369,43 @@ namespace quest
 
 		uint32_t	group_vnum		= (uint32_t)lua_tonumber(L,1);
 		int		region_index	= (int)lua_tonumber(L, 2);
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr(); 
+		character * ch = quest_manager::instance().current_character_ptr(); 
 		if (!ch)
 			return 0;
 
-		if (false==ch->IsMonarch())
+		if (false==ch->is_monarch())
 		{
-			if (!ch->IsGM())
+			if (!ch->is_gm())
 			{
-				ch->ChatPacket(CHAT_TYPE_INFO ,LC_TEXT("군주의 자격을 가지고 있지 않습니다"));
-				quest::error("No Monarch pid {:d} ", ch->GetPlayerID());
+				ch->chat_packet(CHAT_TYPE_INFO ,lc_text("군주의 자격을 가지고 있지 않습니다"));
+				quest::error("No Monarch pid {:d} ", ch->player_id());
 				return 0;
 			}
 		}
 
-		if (false==castle_is_my_castle(ch->GetEmpire(), ch->GetMapIndex()))
+		if (false==castle_is_my_castle(ch->empire(), ch->map_index()))
 		{
-			ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("성에서만 사용할 수 있는 기능입니다."));
+			ch->chat_packet(CHAT_TYPE_INFO, lc_text("성에서만 사용할 수 있는 기능입니다."));
 			return 0;
 		}
 
-		CHARACTER *		guard_leader = nullptr;
+		character *		guard_leader = nullptr;
 		{
 			int	money_need = castle_cost_of_hiring_guard(group_vnum);
 
 			//Check monarch treasury
-			if (!CMonarch::instance().IsMoneyOk(money_need, ch->GetEmpire()))
+			if (!monarch::instance().is_money_ok(money_need, ch->empire()))
 			{
-				int NationMoney = CMonarch::instance().GetMoney(ch->GetEmpire());
-				ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("국고에 돈이 부족합니다. 현재 : %u 필요금액 : %u"), NationMoney, money_need);
+				int NationMoney = monarch::instance().money(ch->empire());
+				ch->chat_packet(CHAT_TYPE_INFO, lc_text("국고에 돈이 부족합니다. 현재 : %u 필요금액 : %u"), NationMoney, money_need);
 				return 0;
 			}
-			guard_leader = castle_spawn_guard(ch->GetEmpire(), group_vnum, region_index);
+			guard_leader = castle_spawn_guard(ch->empire(), group_vnum, region_index);
 
 			if (guard_leader)
 			{
 				// Reduce treasury
-				CMonarch::instance().SendtoDBDecMoney(money_need, ch->GetEmpire(), ch);
+				monarch::instance().sendto_db_dec_money(money_need, ch->empire(), ch);
 				castle_save();
 			}
 		}
@@ -423,20 +423,20 @@ namespace quest
 
 		std::string name = lua_tostring(L, 1);
 
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr(); 
+		character * ch = quest_manager::instance().current_character_ptr(); 
 		if (!ch)
 			return 0;
 
-		if (!CMonarch::instance().IsMonarch(ch->GetPlayerID(), ch->GetEmpire()))
+		if (!monarch::instance().is_monarch(ch->player_id(), ch->empire()))
 		{
-			ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("군주만이 사용 가능한 기능입니다"));
+			ch->chat_packet(CHAT_TYPE_INFO, lc_text("군주만이 사용 가능한 기능입니다"));
 			return 0;
 		}
 
 		//Check monarch cooldown
-		if (!ch->IsMCOK(CHARACTER::MI_WARP))
+		if (!ch->is_mcok(character::MI_WARP))
 		{
-			ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("%d 초간 쿨타임이 적용중입니다."), ch->GetMCLTime(CHARACTER::MI_WARP));	
+			ch->chat_packet(CHAT_TYPE_INFO, lc_text("%d 초간 쿨타임이 적용중입니다."), ch->mcl_time(character::MI_WARP));	
 			return 0;
 		}
 
@@ -444,122 +444,122 @@ namespace quest
 		const int WarpPrice = 10000;
 
 		//Check monarch treasury 
-		if (!CMonarch::instance().IsMoneyOk(WarpPrice, ch->GetEmpire()))
+		if (!monarch::instance().is_money_ok(WarpPrice, ch->empire()))
 		{
-			int NationMoney = CMonarch::instance().GetMoney(ch->GetEmpire());
-			ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("국고에 돈이 부족합니다. 현재 : %u 필요금액 : %u"), NationMoney, WarpPrice);
+			int NationMoney = monarch::instance().money(ch->empire());
+			ch->chat_packet(CHAT_TYPE_INFO, lc_text("국고에 돈이 부족합니다. 현재 : %u 필요금액 : %u"), NationMoney, WarpPrice);
 			return 0;	
 		}
 
 		int x, y;
 
-		CHARACTER * tch = CHARACTER_MANAGER::instance().FindPC(name.c_str());
+		character * tch = character_manager::instance().find_pc(name.c_str());
 
 		if (!tch)
 		{
-			CCI * pkCCI = P2P_MANAGER::instance().Find(name.c_str());
+			cci * pkCCI = p2_p_manager::instance().find(name.c_str());
 
 			if (pkCCI)
 			{
-				if (pkCCI->bEmpire != ch->GetEmpire())
+				if (pkCCI->empire != ch->empire())
 				{
-					ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("타제국 유저에게는 이동할수 없습니다"));
+					ch->chat_packet(CHAT_TYPE_INFO, lc_text("타제국 유저에게는 이동할수 없습니다"));
 					return 0;
 				}
-				if (pkCCI->bChannel != metin2::config::server().channel)
+				if (pkCCI->channel != metin2::config::server().channel)
 				{
-					ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("해당 유저는 %d 채널에 있습니다. (현재 채널 %d)"), pkCCI->bChannel, metin2::config::server().channel);
-					return 0;
-				}
-
-				if (!IsMonarchWarpZone(pkCCI->lMapIndex))
-				{
-					ch->ChatPacket (CHAT_TYPE_INFO, LC_TEXT("해당 지역으로 이동할 수 없습니다."));	
+					ch->chat_packet(CHAT_TYPE_INFO, lc_text("해당 유저는 %d 채널에 있습니다. (현재 채널 %d)"), pkCCI->channel, metin2::config::server().channel);
 					return 0;
 				}
 
-				PIXEL_POSITION pos;
+				if (!is_monarch_warp_zone(pkCCI->map_index))
+				{
+					ch->chat_packet (CHAT_TYPE_INFO, lc_text("해당 지역으로 이동할 수 없습니다."));	
+					return 0;
+				}
 
-				if (!SECTREE_MANAGER::instance().GetCenterPositionOfMap(pkCCI->lMapIndex, pos))
-					ch->ChatPacket(CHAT_TYPE_INFO, "Cannot find map (index %d)", pkCCI->lMapIndex);
+				pixel_position pos;
+
+				if (!sectree_manager::instance().center_position_of_map(pkCCI->map_index, pos))
+					ch->chat_packet(CHAT_TYPE_INFO, "Cannot find map (index %d)", pkCCI->map_index);
 				else
 				{
-					ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("%s 에게로 이동합니다"), name.c_str());
-					ch->WarpSet(pos.x, pos.y);
+					ch->chat_packet(CHAT_TYPE_INFO, lc_text("%s 에게로 이동합니다"), name.c_str());
+					ch->warp_set(pos.x, pos.y);
 
 					//Deduct monarch money	
-					CMonarch::instance().SendtoDBDecMoney(WarpPrice, ch->GetEmpire(), ch);
+					monarch::instance().sendto_db_dec_money(WarpPrice, ch->empire(), ch);
 
 					//Reset cooldown 
-					ch->SetMC(CHARACTER::MI_WARP);
+					ch->set_mc(character::MI_WARP);
 				}
 
 			}
-			else if (nullptr == CHARACTER_MANAGER::instance().FindPC(name.c_str()))
+			else if (nullptr == character_manager::instance().find_pc(name.c_str()))
 			{
-				ch->ChatPacket(CHAT_TYPE_INFO, "There is no one by that name");
+				ch->chat_packet(CHAT_TYPE_INFO, "There is no one by that name");
 			}
 
 			return 0;
 		}
 		else
 		{
-			if (tch->GetEmpire() != ch->GetEmpire())
+			if (tch->empire() != ch->empire())
 			{
-				ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("타제국 유저에게는 이동할수 없습니다"));
+				ch->chat_packet(CHAT_TYPE_INFO, lc_text("타제국 유저에게는 이동할수 없습니다"));
 				return 0;
 			}
 
-			if (!IsMonarchWarpZone(tch->GetMapIndex()))
+			if (!is_monarch_warp_zone(tch->map_index()))
 			{
-				ch->ChatPacket (CHAT_TYPE_INFO, LC_TEXT("해당 지역으로 이동할 수 없습니다."));
+				ch->chat_packet (CHAT_TYPE_INFO, lc_text("해당 지역으로 이동할 수 없습니다."));
 				return 0;
 			}
 
-			x = tch->GetX();
-			y = tch->GetY();
+			x = tch->x();
+			y = tch->y();
 		}
 
-		ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("%s 에게로 이동합니다"), name.c_str());
-		ch->WarpSet(x,y);
-		ch->Stop();
+		ch->chat_packet(CHAT_TYPE_INFO, lc_text("%s 에게로 이동합니다"), name.c_str());
+		ch->warp_set(x,y);
+		ch->stop();
 
 		//Deduct monarch money	
-		CMonarch::instance().SendtoDBDecMoney(WarpPrice, ch->GetEmpire(), ch);
+		monarch::instance().sendto_db_dec_money(WarpPrice, ch->empire(), ch);
 
 		//Reset cooldown 
-		ch->SetMC(CHARACTER::MI_WARP); 
+		ch->set_mc(character::MI_WARP); 
 
 		return 0;
 	}
 
 	int empire_info(lua_State * L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr(); 
+		character * ch = quest_manager::instance().current_character_ptr(); 
 
 		if (nullptr == ch)
 			return false;
 
-		MonarchInfo * p = CMonarch::instance().GetMonarch();
+		monarch_info * p = monarch::instance().get_monarch();
 
-		if (CMonarch::instance().IsMonarch(ch->GetPlayerID(), ch->GetEmpire()))	
+		if (monarch::instance().is_monarch(ch->player_id(), ch->empire()))	
 		{
-			ch->ChatPacket(CHAT_TYPE_INFO,LC_TEXT("나의 군주 정보"));
+			ch->chat_packet(CHAT_TYPE_INFO,lc_text("나의 군주 정보"));
 
 			for (int n = 1; n < 4; ++n)
 			{
-				if (n == ch->GetEmpire())
-					ch->ChatPacket(CHAT_TYPE_INFO,LC_TEXT("[%s군주] : %s  보유금액 %lld "), EMPIRE_NAME(n), p->name[n], p->money[n]);
+				if (n == ch->empire())
+					ch->chat_packet(CHAT_TYPE_INFO,lc_text("[%s군주] : %s  보유금액 %lld "), empire_name(n), p->name[n], p->money[n]);
 				else
-					ch->ChatPacket(CHAT_TYPE_INFO,LC_TEXT("[%s군주] : %s  "), EMPIRE_NAME(n), p->name[n]);
+					ch->chat_packet(CHAT_TYPE_INFO,lc_text("[%s군주] : %s  "), empire_name(n), p->name[n]);
 			}
 		}
 		else
 		{
-			ch->ChatPacket(CHAT_TYPE_INFO,LC_TEXT("군주 정보"));
+			ch->chat_packet(CHAT_TYPE_INFO,lc_text("군주 정보"));
 
 			for (int n = 1; n < 4; ++n)
-				ch->ChatPacket(CHAT_TYPE_INFO,LC_TEXT("[%s군주] : %s  "), EMPIRE_NAME(n), p->name[n]);
+				ch->chat_packet(CHAT_TYPE_INFO,lc_text("[%s군주] : %s  "), empire_name(n), p->name[n]);
 		}
 
 		return 0;
@@ -575,21 +575,21 @@ namespace quest
 
 		std::string name = lua_tostring(L, 1);
 
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr(); 
+		character * ch = quest_manager::instance().current_character_ptr(); 
 
 		if (!ch)
 			return 0;
 
-		if (!CMonarch::instance().IsMonarch(ch->GetPlayerID(), ch->GetEmpire()))
+		if (!monarch::instance().is_monarch(ch->player_id(), ch->empire()))
 		{
-			ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("군주만이 사용 가능한 기능입니다"));
+			ch->chat_packet(CHAT_TYPE_INFO, lc_text("군주만이 사용 가능한 기능입니다"));
 			return 0;
 		}
 
 		// Check monarch cooldown
-		if (!ch->IsMCOK(CHARACTER::MI_TRANSFER))
+		if (!ch->is_mcok(character::MI_TRANSFER))
 		{
-			ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("%d 초간 쿨타임이 적용중입니다."), ch->GetMCLTime(CHARACTER::MI_TRANSFER));	
+			ch->chat_packet(CHAT_TYPE_INFO, lc_text("%d 초간 쿨타임이 적용중입니다."), ch->mcl_time(character::MI_TRANSFER));	
 			return 0;
 		}
 
@@ -597,63 +597,63 @@ namespace quest
 		const int WarpPrice = 10000;
 
 		// Check monarch treasury 
-		if (!CMonarch::instance().IsMoneyOk(WarpPrice, ch->GetEmpire()))
+		if (!monarch::instance().is_money_ok(WarpPrice, ch->empire()))
 		{
-			int NationMoney = CMonarch::instance().GetMoney(ch->GetEmpire());
-			ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("국고에 돈이 부족합니다. 현재 : %u 필요금액 : %u"), NationMoney, WarpPrice);
+			int NationMoney = monarch::instance().money(ch->empire());
+			ch->chat_packet(CHAT_TYPE_INFO, lc_text("국고에 돈이 부족합니다. 현재 : %u 필요금액 : %u"), NationMoney, WarpPrice);
 			return 0;	
 		}
 
-		CHARACTER * tch = CHARACTER_MANAGER::instance().FindPC(name.c_str());
+		character * tch = character_manager::instance().find_pc(name.c_str());
 
 		if (!tch)
 		{
-			CCI * pkCCI = P2P_MANAGER::instance().Find(name.c_str());
+			cci * pkCCI = p2_p_manager::instance().find(name.c_str());
 
 			if (pkCCI)
 			{
-				if (pkCCI->bEmpire != ch->GetEmpire())
+				if (pkCCI->empire != ch->empire())
 				{
-					ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("다른 제국 유저는 소환할 수 없습니다."));
+					ch->chat_packet(CHAT_TYPE_INFO, lc_text("다른 제국 유저는 소환할 수 없습니다."));
 					return 0;
 				}
 
-				if (pkCCI->bChannel != metin2::config::server().channel)
+				if (pkCCI->channel != metin2::config::server().channel)
 				{
-					ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("%s 님은 %d 채널에 접속 중 입니다. (현재 채널: %d)"), name.c_str(), pkCCI->bChannel, metin2::config::server().channel);
+					ch->chat_packet(CHAT_TYPE_INFO, lc_text("%s 님은 %d 채널에 접속 중 입니다. (현재 채널: %d)"), name.c_str(), pkCCI->channel, metin2::config::server().channel);
 					return 0;
 				}
 
-				if (!IsMonarchWarpZone(pkCCI->lMapIndex))
+				if (!is_monarch_warp_zone(pkCCI->map_index))
 				{
-					ch->ChatPacket (CHAT_TYPE_INFO, LC_TEXT("해당 지역으로 이동할 수 없습니다."));	
+					ch->chat_packet (CHAT_TYPE_INFO, lc_text("해당 지역으로 이동할 수 없습니다."));	
 					return 0;
 				}
-				if (!IsMonarchWarpZone(ch->GetMapIndex()))
+				if (!is_monarch_warp_zone(ch->map_index()))
 				{
-					ch->ChatPacket (CHAT_TYPE_INFO, LC_TEXT("해당 지역으로 소환할 수 없습니다."));
+					ch->chat_packet (CHAT_TYPE_INFO, lc_text("해당 지역으로 소환할 수 없습니다."));
 					return 0;
 				}
 
-				TPacketGGTransfer pgg;
+				packet_gg_transfer pgg;
 
-				pgg.bHeader = HEADER_GG_TRANSFER;
-				strlcpy(pgg.szName, name.c_str(), sizeof(pgg.szName));
-				pgg.lX = ch->GetX();
-				pgg.lY = ch->GetY();
+				pgg.header = HEADER_GG_TRANSFER;
+				strlcpy(pgg.name, name.c_str(), sizeof(pgg.name));
+				pgg.x = ch->x();
+				pgg.y = ch->y();
 
-				P2P_MANAGER::instance().Send(&pgg, sizeof(TPacketGGTransfer));
-				ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("%s 님을 소환하였습니다."), name.c_str());
+				p2_p_manager::instance().send(&pgg, sizeof(packet_gg_transfer));
+				ch->chat_packet(CHAT_TYPE_INFO, lc_text("%s 님을 소환하였습니다."), name.c_str());
 
 				// Deduct monarch money
-				CMonarch::instance().SendtoDBDecMoney(WarpPrice, ch->GetEmpire(), ch);
+				monarch::instance().sendto_db_dec_money(WarpPrice, ch->empire(), ch);
 
 				// Reset cooldown 
-				ch->SetMC(CHARACTER::MI_TRANSFER);
+				ch->set_mc(character::MI_TRANSFER);
 			}
 			else
 			{
-				ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("입력하신 이름을 가진 사용자가 없습니다."));
+				ch->chat_packet(CHAT_TYPE_INFO, lc_text("입력하신 이름을 가진 사용자가 없습니다."));
 			}
 
 			return 0;
@@ -661,32 +661,32 @@ namespace quest
 
 		if (ch == tch)
 		{
-			ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("자신을 소환할 수 없습니다."));
+			ch->chat_packet(CHAT_TYPE_INFO, lc_text("자신을 소환할 수 없습니다."));
 			return 0;
 		}
 
-		if (tch->GetEmpire() != ch->GetEmpire())
+		if (tch->empire() != ch->empire())
 		{
-			ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("다른 제국 유저는 소환할 수 없습니다."));
+			ch->chat_packet(CHAT_TYPE_INFO, lc_text("다른 제국 유저는 소환할 수 없습니다."));
 			return 0;
 		}
 
-		if (!IsMonarchWarpZone(tch->GetMapIndex()))
+		if (!is_monarch_warp_zone(tch->map_index()))
 		{
-			ch->ChatPacket (CHAT_TYPE_INFO, LC_TEXT("해당 지역으로 이동할 수 없습니다."));
+			ch->chat_packet (CHAT_TYPE_INFO, lc_text("해당 지역으로 이동할 수 없습니다."));
 			return 0;
 		}
-		if (!IsMonarchWarpZone(ch->GetMapIndex()))
+		if (!is_monarch_warp_zone(ch->map_index()))
 		{
-			ch->ChatPacket (CHAT_TYPE_INFO, LC_TEXT("해당 지역으로 소환할 수 없습니다."));
+			ch->chat_packet (CHAT_TYPE_INFO, lc_text("해당 지역으로 소환할 수 없습니다."));
 			return 0;
 		}
-		tch->WarpSet(ch->GetX(), ch->GetY(), ch->GetMapIndex());
+		tch->warp_set(ch->x(), ch->y(), ch->map_index());
 
 		// Deduct monarch money	
-		CMonarch::instance().SendtoDBDecMoney(WarpPrice, ch->GetEmpire(), ch);
+		monarch::instance().sendto_db_dec_money(WarpPrice, ch->empire(), ch);
 		// Reset cooldown 
-		ch->SetMC(CHARACTER::MI_TRANSFER);
+		ch->set_mc(character::MI_TRANSFER);
 		return 0;
 	}
 
@@ -695,21 +695,21 @@ namespace quest
 		if (!lua_isstring(L, 1))
 			return 0;
 
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
 		if (ch == nullptr)
 			return 0;
 
-		if (ch->IsMonarch() == false)
+		if (ch->is_monarch() == false)
 		{
-			ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("군주만이 사용 가능한 기능입니다"));
+			ch->chat_packet(CHAT_TYPE_INFO, lc_text("군주만이 사용 가능한 기능입니다"));
 			return 0;
 		}
 
 		std::string strNotice = lua_tostring(L, 1);
 
 		if (strNotice.length() > 0)
-			SendMonarchNotice(ch->GetEmpire(), strNotice.c_str());
+			send_monarch_notice(ch->empire(), strNotice.c_str());
 
 		return 0;
 	}
@@ -719,7 +719,7 @@ namespace quest
 		if (!lua_isstring(L, 1))
 			return 0;
 
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
 		if (ch == nullptr)
 			return 0;
@@ -739,17 +739,17 @@ namespace quest
 			return 0;
 		}
 
-		CHARACTER * pTargetChar = CHARACTER_MANAGER::instance().FindByPID(info->dwTargetPID);
+		character * pTargetChar = character_manager::instance().find_by_pid(info->target_pid);
 
 		if (pTargetChar != nullptr)
 		{
-			unsigned int qIndex = quest::CQuestManager::instance().GetQuestIndexByName("monarch_transfer");
+			unsigned int qIndex = quest::quest_manager::instance().quest_index_by_name("monarch_transfer");
 
 			if (qIndex != 0)
 			{
-				pTargetChar->SetQuestFlag("monarch_transfer.x", info->x);
-				pTargetChar->SetQuestFlag("monarch_transfer.y", info->y);
-				quest::CQuestManager::instance().Letter(pTargetChar->GetPlayerID(), qIndex, 0);
+				pTargetChar->set_quest_flag("monarch_transfer.x", info->x);
+				pTargetChar->set_quest_flag("monarch_transfer.y", info->y);
+				quest::quest_manager::instance().letter(pTargetChar->player_id(), qIndex, 0);
 			}
 		}
 
@@ -760,79 +760,79 @@ namespace quest
 	{
 		if (lua_isstring(L, 1) == false) return 0;
 
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 		if (ch == nullptr) return false;
 
-		if (CMonarch::instance().IsMonarch(ch->GetPlayerID(), ch->GetEmpire()) == false)
+		if (monarch::instance().is_monarch(ch->player_id(), ch->empire()) == false)
 		{
-			ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("군주만이 사용 가능한 기능입니다"));
+			ch->chat_packet(CHAT_TYPE_INFO, lc_text("군주만이 사용 가능한 기능입니다"));
 			return 0;
 		}
 
-		if (ch->IsMCOK(CHARACTER::MI_TRANSFER) == false)
+		if (ch->is_mcok(character::MI_TRANSFER) == false)
 		{
-			ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("%d 초간 쿨타임이 적용중입니다."), ch->GetMCLTime(CHARACTER::MI_TRANSFER));
+			ch->chat_packet(CHAT_TYPE_INFO, lc_text("%d 초간 쿨타임이 적용중입니다."), ch->mcl_time(character::MI_TRANSFER));
 			return 0;
 		}
 
 		const int ciTransferCost = 10000;
 
-		if (CMonarch::instance().IsMoneyOk(ciTransferCost, ch->GetEmpire()) == false)
+		if (monarch::instance().is_money_ok(ciTransferCost, ch->empire()) == false)
 		{
-			int NationMoney = CMonarch::instance().GetMoney(ch->GetEmpire());
-			ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("국고에 돈이 부족합니다. 현재 : %u 필요금액 : %u"), NationMoney, ciTransferCost);
+			int NationMoney = monarch::instance().money(ch->empire());
+			ch->chat_packet(CHAT_TYPE_INFO, lc_text("국고에 돈이 부족합니다. 현재 : %u 필요금액 : %u"), NationMoney, ciTransferCost);
 			return 0;
 		}
 
 		std::string strTargetName = lua_tostring(L, 1);
 
-		CHARACTER * pTargetChar = CHARACTER_MANAGER::instance().FindPC(strTargetName.c_str());
+		character * pTargetChar = character_manager::instance().find_pc(strTargetName.c_str());
 
 		if (pTargetChar == nullptr)
 		{
-			CCI* pCCI = P2P_MANAGER::instance().Find(strTargetName.c_str());
+			cci* pCCI = p2_p_manager::instance().find(strTargetName.c_str());
 
 			if (pCCI != nullptr)
 			{
-				if (pCCI->bEmpire != ch->GetEmpire())
+				if (pCCI->empire != ch->empire())
 				{
-					ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("다른 제국 유저는 소환할 수 없습니다."));
+					ch->chat_packet(CHAT_TYPE_INFO, lc_text("다른 제국 유저는 소환할 수 없습니다."));
 					return 0;
 				}
 
-				if (pCCI->bChannel != metin2::config::server().channel)
+				if (pCCI->channel != metin2::config::server().channel)
 				{
-					ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("%s 님은 %d 채널에 접속중입니다. (현재 채널: %d)"),
-						   strTargetName.c_str(), pCCI->bChannel, metin2::config::server().channel);
+					ch->chat_packet(CHAT_TYPE_INFO, lc_text("%s 님은 %d 채널에 접속중입니다. (현재 채널: %d)"),
+						   strTargetName.c_str(), pCCI->channel, metin2::config::server().channel);
 					return 0;
 				}
 
-				if (!IsMonarchWarpZone(pCCI->lMapIndex))
+				if (!is_monarch_warp_zone(pCCI->map_index))
 				{
-					ch->ChatPacket (CHAT_TYPE_INFO, LC_TEXT("해당 지역으로 이동할 수 없습니다."));
+					ch->chat_packet (CHAT_TYPE_INFO, lc_text("해당 지역으로 이동할 수 없습니다."));
 					return 0;
 				}
-				if (!IsMonarchWarpZone(ch->GetMapIndex()))
+				if (!is_monarch_warp_zone(ch->map_index()))
 				{
-					ch->ChatPacket (CHAT_TYPE_INFO, LC_TEXT("해당 지역으로 소환할 수 없습니다."));
+					ch->chat_packet (CHAT_TYPE_INFO, lc_text("해당 지역으로 소환할 수 없습니다."));
 					return 0;
 				}
 
-				TPacketMonarchGGTransfer packet;
-				packet.bHeader = HEADER_GG_MONARCH_TRANSFER;
-				packet.dwTargetPID = pCCI->dwPID;
-				packet.x = ch->GetX();
-				packet.y = ch->GetY();
+				packet_monarch_gg_transfer packet;
+				packet.header = HEADER_GG_MONARCH_TRANSFER;
+				packet.target_pid = pCCI->pid;
+				packet.x = ch->x();
+				packet.y = ch->y();
 
-				P2P_MANAGER::instance().Send(&packet, sizeof(TPacketMonarchGGTransfer));
-				ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("소환 요청을 보냈습니다"));
+				p2_p_manager::instance().send(&packet, sizeof(packet_monarch_gg_transfer));
+				ch->chat_packet(CHAT_TYPE_INFO, lc_text("소환 요청을 보냈습니다"));
 
-				CMonarch::instance().SendtoDBDecMoney(ciTransferCost, ch->GetEmpire(), ch);
-				ch->SetMC(CHARACTER::MI_TRANSFER);
+				monarch::instance().sendto_db_dec_money(ciTransferCost, ch->empire(), ch);
+				ch->set_mc(character::MI_TRANSFER);
 			}
 			else
 			{
-				ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("입력하신 이름을 가진 사용자가 없습니다."));
+				ch->chat_packet(CHAT_TYPE_INFO, lc_text("입력하신 이름을 가진 사용자가 없습니다."));
 				return 0;
 			}
 		}
@@ -840,53 +840,53 @@ namespace quest
 		{
 			if (pTargetChar == ch)
 			{
-				ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("자신을 소환할 수 없습니다."));
+				ch->chat_packet(CHAT_TYPE_INFO, lc_text("자신을 소환할 수 없습니다."));
 				return 0;
 			}
 
-			if (pTargetChar->GetEmpire() != ch->GetEmpire())
+			if (pTargetChar->empire() != ch->empire())
 			{
-				ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("다른 제국 유저는 소환할 수 없습니다."));
+				ch->chat_packet(CHAT_TYPE_INFO, lc_text("다른 제국 유저는 소환할 수 없습니다."));
 				return 0;
 			}
 
-			if (DISTANCE_APPROX(pTargetChar->GetX() - ch->GetX(), pTargetChar->GetY() - ch->GetY()) <= 5000)
+			if (distance_approx(pTargetChar->x() - ch->x(), pTargetChar->y() - ch->y()) <= 5000)
 			{
-				ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("%s 님은 근처에 있습니다"), pTargetChar->GetName());
+				ch->chat_packet(CHAT_TYPE_INFO, lc_text("%s 님은 근처에 있습니다"), pTargetChar->name());
 				return 0;
 			}
 
-			if (!IsMonarchWarpZone(pTargetChar->GetMapIndex()))
+			if (!is_monarch_warp_zone(pTargetChar->map_index()))
 			{
-				ch->ChatPacket (CHAT_TYPE_INFO, LC_TEXT("해당 지역으로 이동할 수 없습니다."));
+				ch->chat_packet (CHAT_TYPE_INFO, lc_text("해당 지역으로 이동할 수 없습니다."));
 				return 0;
 			}
-			if (!IsMonarchWarpZone(ch->GetMapIndex()))
+			if (!is_monarch_warp_zone(ch->map_index()))
 			{
-				ch->ChatPacket (CHAT_TYPE_INFO, LC_TEXT("해당 지역으로 소환할 수 없습니다."));
+				ch->chat_packet (CHAT_TYPE_INFO, lc_text("해당 지역으로 소환할 수 없습니다."));
 				return 0;
 			}
 
-			monarch_transfer2_event_info* info = AllocEventInfo<monarch_transfer2_event_info>();
+			monarch_transfer2_event_info* info = alloc_event_info<monarch_transfer2_event_info>();
 
-			info->bHeader = HEADER_GG_MONARCH_TRANSFER;
-			info->dwTargetPID = pTargetChar->GetPlayerID();
-			info->x = ch->GetX();
-			info->y = ch->GetY();
+			info->header = HEADER_GG_MONARCH_TRANSFER;
+			info->target_pid = pTargetChar->player_id();
+			info->x = ch->x();
+			info->y = ch->y();
 
 			event_create(monarch_transfer2_event, info, 1);
 
-			ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("소환 요청을 보냈습니다"));
+			ch->chat_packet(CHAT_TYPE_INFO, lc_text("소환 요청을 보냈습니다"));
 
-			CMonarch::instance().SendtoDBDecMoney(ciTransferCost, ch->GetEmpire(), ch);
-			ch->SetMC(CHARACTER::MI_TRANSFER);
+			monarch::instance().sendto_db_dec_money(ciTransferCost, ch->empire(), ch);
+			ch->set_mc(character::MI_TRANSFER);
 			return 0;
 		}
 
 		return 0;
 	}
 
-	void RegisterMonarchFunctionTable()
+	void register_monarch_function_table()
 	{
 		luaL_reg Monarch_functions[] = 
 		{
@@ -909,7 +909,7 @@ namespace quest
 			{ nullptr,						nullptr				}
 		};
 
-		CQuestManager::instance().AddLuaFunctionTable("oh", Monarch_functions);
+		quest_manager::instance().add_lua_function_table("oh", Monarch_functions);
 	}
 
 }

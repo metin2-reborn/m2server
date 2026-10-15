@@ -31,16 +31,16 @@
 #undef __FreeBSD__
 
 namespace metin2::db::inline app {
-void SetPlayerDBName(const char* c_pszPlayerDBName);
-void SetTablePostfix(const char* c_pszTablePostfix);
-int Start();
+void set_player_db_name(const char* c_pszPlayerDBName);
+void set_table_postfix(const char* c_pszTablePostfix);
+int start();
 
-std::string g_stTablePostfix;
-std::string g_stLocaleNameColumn = "name";
-std::string g_stPlayerDBName = "";
+std::string table_postfix;
+std::string locale_name_column = "name";
+std::string player_db_name = "";
 
 //g_iLogoutSeconds must be longer than the player and item cache flush intervals.
-int g_iLogoutSeconds = 60*10;
+int logout_seconds = 60*10;
 
 
 void emergency_sig(int sig)
@@ -60,42 +60,42 @@ int run()
 
 
 	// Removes the pid file and closes the logs once everything below is destroyed.
-	struct CoreCleanup
+	struct core_cleanup
 	{
-		~CoreCleanup() { thecore_destroy(); }
+		~core_cleanup() { thecore_destroy(); }
 	} coreCleanup;
 
-	CDBManager DBManager; 
-	CClientManager ClientManager;
-	CGuildManager GuildManager;
-	CPrivManager PrivManager;
-	CMoneyLog MoneyLog;
-	ItemAwardManager ItemAwardManager;
-	marriage::CManager MarriageManager;
-	CMonarch Monarch;
-	CItemIDRangeManager ItemIDRangeManager;
-	if (!Start())
+	db_manager DBManager; 
+	client_manager ClientManager;
+	guild_manager GuildManager;
+	priv_manager PrivManager;
+	money_log MoneyLog;
+	item_award_manager ItemAwardManager;
+	marriage::manager MarriageManager;
+	monarch Monarch;
+	item_id_range_manager ItemIDRangeManager;
+	if (!start())
 		return 1;
 
-	GuildManager.Initialize();
-	MarriageManager.Initialize();
-	ItemIDRangeManager.Build();
+	GuildManager.initialize();
+	MarriageManager.initialize();
+	ItemIDRangeManager.build();
 	metin2::log::info( "Metin2DBCacheServer Start");
 
 	if (!mark_server_ready()) return 1;
-	CClientManager::instance().MainLoop();
+	client_manager::instance().main_loop();
 
 	signal_timer_disable();
 
-	DBManager.Quit();
+	DBManager.quit();
 	int iCount;
 
 	while (1)
 	{
 		iCount = 0;
 
-		iCount += CDBManager::instance().CountReturnQuery(SQL_PLAYER);
-		iCount += CDBManager::instance().CountAsyncQuery(SQL_PLAYER);
+		iCount += db_manager::instance().count_return_query(SQL_PLAYER);
+		iCount += db_manager::instance().count_async_query(SQL_PLAYER);
 
 		if (iCount == 0)
 			break;
@@ -117,7 +117,7 @@ static bool connect_database(int slot, const std::string & name)
 
 	for (int attempt = 1; attempt <= 6; ++attempt)
 	{
-		if (CDBManager::instance().Connect(slot, database.host.c_str(), database.port, name.c_str(), database.user.c_str(), database.password.c_str()))
+		if (db_manager::instance().connect(slot, database.host.c_str(), database.port, name.c_str(), database.user.c_str(), database.password.c_str()))
 		{
 			metin2::log::info("connected to database {}", name);
 			return true;
@@ -131,7 +131,7 @@ static bool connect_database(int slot, const std::string & name)
 	return false;
 }
 
-int Start()
+int start()
 {
 	const metin2::config::db_settings & db = metin2::config::db();
 
@@ -139,20 +139,20 @@ int Start()
 		return false;
 	signal_timer_enable(60);
 
-	SetTablePostfix(metin2::config::database().table_postfix.c_str());
-	CClientManager::instance().SetCacheFlushCountLimit(db.cache_flush_limit_per_second);
-	CClientManager::instance().SetPlayerIDStart(db.player_id_start);
-	g_stLocaleNameColumn = db.name_column;
+	set_table_postfix(metin2::config::database().table_postfix.c_str());
+	client_manager::instance().set_cache_flush_count_limit(db.cache_flush_limit_per_second);
+	client_manager::instance().set_player_id_start(db.player_id_start);
+	locale_name_column = db.name_column;
 
 	const metin2::config::database_settings & database = metin2::config::database();
 	if (!connect_database(SQL_PLAYER, database.player) || !connect_database(SQL_ACCOUNT, database.account) ||
 		!connect_database(SQL_COMMON, database.common))
 		return false;
-	SetPlayerDBName(database.player.c_str());
+	set_player_db_name(database.player.c_str());
 
 	metin2::log::info( "ClientManager initialization.. ");
 
-	if (!CClientManager::instance().Initialize())
+	if (!client_manager::instance().initialize())
 	{
 		metin2::log::info( "   failed"); 
 		return false;
@@ -165,32 +165,32 @@ int Start()
 	return true;
 }
 
-void SetTablePostfix(const char* c_pszTablePostfix)
+void set_table_postfix(const char* c_pszTablePostfix)
 {
 	if (!c_pszTablePostfix || !*c_pszTablePostfix)
-		g_stTablePostfix = "";
+		table_postfix = "";
 	else
-		g_stTablePostfix = c_pszTablePostfix;
+		table_postfix = c_pszTablePostfix;
 }
 
-const char * GetTablePostfix()
+const char * get_table_postfix()
 {
-	return g_stTablePostfix.c_str();
+	return table_postfix.c_str();
 }
 
-void SetPlayerDBName(const char* c_pszPlayerDBName)
+void set_player_db_name(const char* c_pszPlayerDBName)
 {
 	if (! c_pszPlayerDBName || ! *c_pszPlayerDBName)
-		g_stPlayerDBName = "";
+		player_db_name = "";
 	else
 	{
-		g_stPlayerDBName = c_pszPlayerDBName;
-		g_stPlayerDBName += ".";
+		player_db_name = c_pszPlayerDBName;
+		player_db_name += ".";
 	}
 }
 
-const char * GetPlayerDBName()
+const char * get_player_db_name()
 {
-	return g_stPlayerDBName.c_str();
+	return player_db_name.c_str();
 }
 }

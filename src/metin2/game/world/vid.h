@@ -4,53 +4,53 @@
 
 namespace metin2::game::inline world {
 
-class VID
+class vid
 {
 	public:
-		VID() : m_id(0), m_crc(0)
+		vid() : id_(0), crc_(0)
 		{
 		}
 
-		VID(uint32_t id, uint32_t crc)
+		vid(uint32_t id, uint32_t crc)
 		{
-			m_id = id;
-			m_crc = crc;
+			id_ = id;
+			crc_ = crc;
 		}
 
-		VID(const VID &rvid)
+		vid(const vid &rvid)
 		{
 			*this = rvid;
 		}
 
-		const VID & operator = (const VID & rhs)
+		const vid & operator = (const vid & rhs)
 		{
-			m_id = rhs.m_id;
-			m_crc = rhs.m_crc;
+			id_ = rhs.id_;
+			crc_ = rhs.crc_;
 			return *this;
 		}
 
-		bool operator == (const VID & rhs) const
+		bool operator == (const vid & rhs) const
 		{
-			return (m_id == rhs.m_id) && (m_crc == rhs.m_crc);
+			return (id_ == rhs.id_) && (crc_ == rhs.crc_);
 		}
 
-		bool operator != (const VID & rhs) const
+		bool operator != (const vid & rhs) const
 		{
 			return !(*this == rhs);
 		}
 
 		operator uint32_t() const
 		{
-			return m_id;
+			return id_;
 		}
 
-		void Reset()
+		void reset()
 		{
-			m_id = 0, m_crc = 0;
+			id_ = 0, crc_ = 0;
 		}
 
 	private:
-		uint32_t m_id;
-		uint32_t m_crc;
+		uint32_t id_;
+		uint32_t crc_;
 };
 }

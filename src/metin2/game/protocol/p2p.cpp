@@ -26,255 +26,255 @@
 
 namespace metin2::game::inline protocol {
 
-P2P_MANAGER::P2P_MANAGER()
+p2_p_manager::p2_p_manager()
 {
-	m_iHandleCount = 0;
+	handle_count_ = 0;
 
-	memset(m_aiEmpireUserCount, 0, sizeof(m_aiEmpireUserCount));
+	memset(empire_user_count_, 0, sizeof(empire_user_count_));
 }
 
-P2P_MANAGER::~P2P_MANAGER()
+p2_p_manager::~p2_p_manager()
 {
 }
 
-void P2P_MANAGER::Boot(DESC * d)
+void p2_p_manager::boot(desc * d)
 {
-	CHARACTER_MANAGER::NAME_MAP & map = CHARACTER_MANAGER::instance().GetPCMap();
-	CHARACTER_MANAGER::NAME_MAP::iterator it = map.begin();
+	character_manager::name_map & map = character_manager::instance().pc_map();
+	character_manager::name_map::iterator it = map.begin();
 
-	TPacketGGLogin p;
+	packet_gg_login p;
 
 	while (it != map.end())
 	{
-		CHARACTER * ch = it->second;
+		character * ch = it->second;
 		it++;
 
-		p.bHeader = HEADER_GG_LOGIN;
-		strlcpy(p.szName, ch->GetName(), sizeof(p.szName));
-		p.dwPID = ch->GetPlayerID();
-		p.bEmpire = ch->GetEmpire();
-		p.lMapIndex = SECTREE_MANAGER::instance().GetMapIndex(ch->GetX(), ch->GetY());
-		p.bChannel = metin2::config::server().channel;
+		p.header = HEADER_GG_LOGIN;
+		strlcpy(p.name, ch->name(), sizeof(p.name));
+		p.pid = ch->player_id();
+		p.empire = ch->empire();
+		p.map_index = sectree_manager::instance().map_index(ch->x(), ch->y());
+		p.channel = metin2::config::server().channel;
 
-		d->Packet(&p, sizeof(p));
+		d->packet(&p, sizeof(p));
 	}
 }
 
-void P2P_MANAGER::FlushOutput()
+void p2_p_manager::flush_output()
 {
-	std::unordered_set<DESC *>::iterator it = m_set_pkPeers.begin();
+	std::unordered_set<desc *>::iterator it = set_pk_peers_.begin();
 
-	while (it != m_set_pkPeers.end())
+	while (it != set_pk_peers_.end())
 	{
-		DESC * pkDesc = *it++;
-		pkDesc->FlushOutput();
+		desc * pkDesc = *it++;
+		pkDesc->flush_output();
 	}
 }
 
-void P2P_MANAGER::RegisterAcceptor(DESC * d)
+void p2_p_manager::register_acceptor(desc * d)
 {
-	metin2::log::info( "P2P Acceptor opened (host {})", d->GetHostName());
-	m_set_pkPeers.insert(d);
-	Boot(d);
+	metin2::log::info( "P2P Acceptor opened (host {})", d->host_name());
+	set_pk_peers_.insert(d);
+	boot(d);
 }
 
-void P2P_MANAGER::UnregisterAcceptor(DESC * d)
+void p2_p_manager::unregister_acceptor(desc * d)
 {
-	metin2::log::info( "P2P Acceptor closed (host {})", d->GetHostName());
-	EraseUserByDesc(d);
-	m_set_pkPeers.erase(d);
+	metin2::log::info( "P2P Acceptor closed (host {})", d->host_name());
+	erase_user_by_desc(d);
+	set_pk_peers_.erase(d);
 }
 
-void P2P_MANAGER::RegisterConnector(DESC * d)
+void p2_p_manager::register_connector(desc * d)
 {
-	metin2::log::info( "P2P Connector opened (host {})", d->GetHostName());
-	m_set_pkPeers.insert(d);
-	Boot(d);
+	metin2::log::info( "P2P Connector opened (host {})", d->host_name());
+	set_pk_peers_.insert(d);
+	boot(d);
 
-	TPacketGGSetup p;
-	p.bHeader = HEADER_GG_SETUP;
-	p.wPort = metin2::config::server().p2p_port;
-	p.bChannel = metin2::config::server().channel;
-	d->Packet(&p, sizeof(p));
+	packet_gg_setup p;
+	p.header = HEADER_GG_SETUP;
+	p.port = metin2::config::server().p2p_port;
+	p.channel = metin2::config::server().channel;
+	d->packet(&p, sizeof(p));
 }
 
-void P2P_MANAGER::UnregisterConnector(DESC * d)
+void p2_p_manager::unregister_connector(desc * d)
 {
-	std::unordered_set<DESC *>::iterator it = m_set_pkPeers.find(d);
+	std::unordered_set<desc *>::iterator it = set_pk_peers_.find(d);
 
-	if (it != m_set_pkPeers.end())
+	if (it != set_pk_peers_.end())
 	{
-		metin2::log::info( "P2P Connector closed (host {})", d->GetHostName());
-		EraseUserByDesc(d);
-		m_set_pkPeers.erase(it);
+		metin2::log::info( "P2P Connector closed (host {})", d->host_name());
+		erase_user_by_desc(d);
+		set_pk_peers_.erase(it);
 	}
 }
 
-void P2P_MANAGER::EraseUserByDesc(DESC * d)
+void p2_p_manager::erase_user_by_desc(desc * d)
 {
-	TCCIMap::iterator it = m_map_pkCCI.begin();
+	cci_map::iterator it = map_pk_cci_.begin();
 
-	while (it != m_map_pkCCI.end())
+	while (it != map_pk_cci_.end())
 	{
-		CCI * pkCCI = it->second.get();
+		cci * pkCCI = it->second.get();
 		it++;
 
-		if (pkCCI->pkDesc == d)
-			Logout(pkCCI);
+		if (pkCCI->desc == d)
+			logout(pkCCI);
 	}
 }
 
-void P2P_MANAGER::Send(const void * c_pvData, int iSize, DESC * except)
+void p2_p_manager::send(const void * c_pvData, int iSize, desc * except)
 {
-	std::unordered_set<DESC *>::iterator it = m_set_pkPeers.begin();
+	std::unordered_set<desc *>::iterator it = set_pk_peers_.begin();
 
-	while (it != m_set_pkPeers.end())
+	while (it != set_pk_peers_.end())
 	{
-		DESC * pkDesc = *it++;
+		desc * pkDesc = *it++;
 
 		if (except == pkDesc)
 			continue;
 
-		pkDesc->Packet(c_pvData, iSize);
+		pkDesc->packet(c_pvData, iSize);
 	}
 }
 
-void P2P_MANAGER::Login(DESC * d, const TPacketGGLogin * p)
+void p2_p_manager::login(desc * d, const packet_gg_login * p)
 {
-	CCI* pkCCI = Find(p->szName);
+	cci* pkCCI = find(p->name);
 
 	bool UpdateP2P = false;
 
 	if (nullptr == pkCCI)
 	{
 		UpdateP2P = true;
-		auto pkNewCCI = std::make_unique<CCI>();
+		auto pkNewCCI = std::make_unique<cci>();
 		pkCCI = pkNewCCI.get();
 
-		strlcpy(pkCCI->szName, p->szName, sizeof(pkCCI->szName));
+		strlcpy(pkCCI->name, p->name, sizeof(pkCCI->name));
 
-		pkCCI->dwPID = p->dwPID;
-		pkCCI->bEmpire = p->bEmpire;
+		pkCCI->pid = p->pid;
+		pkCCI->empire = p->empire;
 
-		if (p->bChannel == metin2::config::server().channel)
+		if (p->channel == metin2::config::server().channel)
 		{
-			if (pkCCI->bEmpire < EMPIRE_MAX_NUM)
+			if (pkCCI->empire < EMPIRE_MAX_NUM)
 			{
-				++m_aiEmpireUserCount[pkCCI->bEmpire];
+				++empire_user_count_[pkCCI->empire];
 			}
 			else
 			{
-				metin2::log::error("LOGIN_EMPIRE_ERROR: {:d} >= MAX({:d})", pkCCI->bEmpire, EMPIRE_MAX_NUM);
+				metin2::log::error("LOGIN_EMPIRE_ERROR: {:d} >= MAX({:d})", pkCCI->empire, EMPIRE_MAX_NUM);
 			}
 		}
 
-		m_map_dwPID_pkCCI.insert(std::make_pair(pkCCI->dwPID, pkCCI));
-		m_map_pkCCI.emplace(pkCCI->szName, std::move(pkNewCCI));
+		map_dw_pid_pk_cci_.insert(std::make_pair(pkCCI->pid, pkCCI));
+		map_pk_cci_.emplace(pkCCI->name, std::move(pkNewCCI));
 	}
 
-	pkCCI->lMapIndex = p->lMapIndex;
-	pkCCI->pkDesc = d;
-	pkCCI->bChannel = p->bChannel;
-	metin2::log::info( "P2P: Login {}", pkCCI->szName);
+	pkCCI->map_index = p->map_index;
+	pkCCI->desc = d;
+	pkCCI->channel = p->channel;
+	metin2::log::info( "P2P: Login {}", pkCCI->name);
 
-	CGuildManager::instance().P2PLoginMember(pkCCI->dwPID);
-	CPartyManager::instance().P2PLogin(pkCCI->dwPID, pkCCI->szName);
+	guild_manager::instance().p2_p_login_member(pkCCI->pid);
+	party_manager::instance().p2_p_login(pkCCI->pid, pkCCI->name);
 
 	// The messenger only needs updating when the CCI is created.
 	if (UpdateP2P) {
-		std::string name(pkCCI->szName);
-	    MessengerManager::instance().P2PLogin(name);
+		std::string name(pkCCI->name);
+	    messenger_manager::instance().p2_p_login(name);
 	}
 }
 
-void P2P_MANAGER::Logout(CCI * pkCCI)
+void p2_p_manager::logout(cci * pkCCI)
 {
-	if (pkCCI->bChannel == metin2::config::server().channel)
+	if (pkCCI->channel == metin2::config::server().channel)
 	{
-		if (pkCCI->bEmpire < EMPIRE_MAX_NUM)
+		if (pkCCI->empire < EMPIRE_MAX_NUM)
 		{
-			--m_aiEmpireUserCount[pkCCI->bEmpire];
-			if (m_aiEmpireUserCount[pkCCI->bEmpire] < 0)
+			--empire_user_count_[pkCCI->empire];
+			if (empire_user_count_[pkCCI->empire] < 0)
 			{
-				metin2::log::error("m_aiEmpireUserCount[{:d}] < 0", pkCCI->bEmpire);
+				metin2::log::error("m_aiEmpireUserCount[{:d}] < 0", pkCCI->empire);
 			}
 		}
 		else
 		{
-			metin2::log::error("LOGOUT_EMPIRE_ERROR: {:d} >= MAX({:d})", pkCCI->bEmpire, EMPIRE_MAX_NUM);
+			metin2::log::error("LOGOUT_EMPIRE_ERROR: {:d} >= MAX({:d})", pkCCI->empire, EMPIRE_MAX_NUM);
 		}
 	}
 
-	std::string name(pkCCI->szName);
+	std::string name(pkCCI->name);
 
-	CGuildManager::instance().P2PLogoutMember(pkCCI->dwPID);
-	CPartyManager::instance().P2PLogout(pkCCI->dwPID);
-	MessengerManager::instance().P2PLogout(name);
-	marriage::CManager::instance().Logout(pkCCI->dwPID);
+	guild_manager::instance().p2_p_logout_member(pkCCI->pid);
+	party_manager::instance().p2_p_logout(pkCCI->pid);
+	messenger_manager::instance().p2_p_logout(name);
+	marriage::manager::instance().logout(pkCCI->pid);
 
-	m_map_dwPID_pkCCI.erase(pkCCI->dwPID);
-	m_map_pkCCI.erase(name);
+	map_dw_pid_pk_cci_.erase(pkCCI->pid);
+	map_pk_cci_.erase(name);
 }
 
-void P2P_MANAGER::Logout(const char * c_pszName)
+void p2_p_manager::logout(const char * c_pszName)
 {
-	CCI * pkCCI = Find(c_pszName);
+	cci * pkCCI = find(c_pszName);
 
 	if (!pkCCI)
 		return;
 
 	metin2::log::info( "P2P: Logout {}", c_pszName);
-	Logout(pkCCI);
+	logout(pkCCI);
 }
 
-CCI * P2P_MANAGER::FindByPID(uint32_t pid)
+cci * p2_p_manager::find_by_pid(uint32_t pid)
 {
-	TPIDCCIMap::iterator it = m_map_dwPID_pkCCI.find(pid);
-	if (it == m_map_dwPID_pkCCI.end())
+	pidcci_map::iterator it = map_dw_pid_pk_cci_.find(pid);
+	if (it == map_dw_pid_pk_cci_.end())
 		return nullptr;
 	return it->second;
 }
 
-CCI * P2P_MANAGER::Find(const char * c_pszName)
+cci * p2_p_manager::find(const char * c_pszName)
 {
-	TCCIMap::const_iterator it;
+	cci_map::const_iterator it;
 
-	it = m_map_pkCCI.find(c_pszName);
+	it = map_pk_cci_.find(c_pszName);
 
-	if (it == m_map_pkCCI.end())
+	if (it == map_pk_cci_.end())
 		return nullptr;
 
 	return it->second.get();
 }
 
-int P2P_MANAGER::GetCount()
+int p2_p_manager::count()
 {
-	return m_aiEmpireUserCount[1] + m_aiEmpireUserCount[2] + m_aiEmpireUserCount[3];
+	return empire_user_count_[1] + empire_user_count_[2] + empire_user_count_[3];
 }
 
-int P2P_MANAGER::GetEmpireUserCount(int idx)
+int p2_p_manager::empire_user_count(int idx)
 {
 	assert(idx < EMPIRE_MAX_NUM);
-	return m_aiEmpireUserCount[idx];
+	return empire_user_count_[idx];
 }
 
 
-int P2P_MANAGER::GetDescCount()
+int p2_p_manager::desc_count()
 {
-	return m_set_pkPeers.size();
+	return set_pk_peers_.size();
 }
 
-void P2P_MANAGER::GetP2PHostNames(std::string& hostNames)
+void p2_p_manager::p2_p_host_names(std::string& hostNames)
 {
-	std::unordered_set<DESC *>::iterator it = m_set_pkPeers.begin();
+	std::unordered_set<desc *>::iterator it = set_pk_peers_.begin();
 
 	std::ostringstream oss(std::ostringstream::out);
 
-	while (it != m_set_pkPeers.end())
+	while (it != set_pk_peers_.end())
 	{
-		DESC * pkDesc = *it++;
+		desc * pkDesc = *it++;
 
-		oss << pkDesc->GetP2PHost() << " " << pkDesc->GetP2PPort() << "\n";
+		oss << pkDesc->p2_p_host() << " " << pkDesc->p2_p_port() << "\n";
 
 	}
 	hostNames += oss.str();

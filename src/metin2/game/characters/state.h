@@ -10,18 +10,18 @@
 
 namespace metin2::game::inline characters {
 
-class CState
+class state
 {
 	public:
 		// Destructor
-		virtual ~CState()
+		virtual ~state()
 		{
 		}
 
 		// State Functions
-		virtual void ExecuteBeginState() = 0;
-		virtual void ExecuteState() = 0;
-		virtual void ExecuteEndState() = 0;
+		virtual void execute_begin_state() = 0;
+		virtual void execute_state() = 0;
+		virtual void execute_end_state() = 0;
 };
 
 //==================================================================================================
@@ -29,61 +29,61 @@ class CState
 
 // CStateTemplate Class
 template <class T>
-class CStateTemplate : public CState
+class state_template : public state
 {
 	public:
-		typedef void (T::*PFNSTATE) (void);
+		typedef void (T::*pfnstate) (void);
 
 	protected:
-		T *             m_pInstance;            // Instance Pointer
-		PFNSTATE        m_pfnBeginState;        // State Function Pointer
-		PFNSTATE        m_pfnState;             // State Function Pointer
-		PFNSTATE        m_pfnEndState;          // State Function Pointer
+		T *             instance_;            // Instance Pointer
+		pfnstate        pfn_begin_state_;        // State Function Pointer
+		pfnstate        pfn_state_;             // State Function Pointer
+		pfnstate        pfn_end_state_;          // State Function Pointer
 
 	public:
 		// Constructor
-		CStateTemplate() : m_pInstance(nullptr), m_pfnBeginState(nullptr), m_pfnState(nullptr), m_pfnEndState(nullptr)
+		state_template() : instance_(nullptr), pfn_begin_state_(nullptr), pfn_state_(nullptr), pfn_end_state_(nullptr)
 		{
 		}
 
 		// Initialize Functions
-		void Set(T *pInstance, PFNSTATE pfnBeginState, PFNSTATE pfnState, PFNSTATE pfnEndState)
+		void set(T *pInstance, pfnstate pfnBeginState, pfnstate pfnState, pfnstate pfnEndState)
 		{
 			// Set Instance
 			assert(pInstance);
-			m_pInstance = pInstance;
+			instance_ = pInstance;
 
 			// Set Function Pointers
 			assert(pfnBeginState);
-			m_pfnBeginState = pfnBeginState;
+			pfn_begin_state_ = pfnBeginState;
 
 			assert(pfnState);
-			m_pfnState = pfnState;
+			pfn_state_ = pfnState;
 
 			assert(pfnEndState);
-			m_pfnEndState = pfnEndState;
+			pfn_end_state_ = pfnEndState;
 		}
 
 		// State Functions
-		void ExecuteBeginState() override
+		void execute_begin_state() override
 		{
 			// Begin State
-			assert(m_pInstance && m_pfnBeginState);
-			(m_pInstance->*m_pfnBeginState)();
+			assert(instance_ && pfn_begin_state_);
+			(instance_->*pfn_begin_state_)();
 		}
 
-		void ExecuteState() override
+		void execute_state() override
 		{
 			// State
-			assert(m_pInstance && m_pfnState);
-			(m_pInstance->*m_pfnState)();
+			assert(instance_ && pfn_state_);
+			(instance_->*pfn_state_)();
 		}
 
-		void ExecuteEndState() override
+		void execute_end_state() override
 		{
 			// End State
-			assert(m_pInstance && m_pfnEndState);
-			(m_pInstance->*m_pfnEndState)();
+			assert(instance_ && pfn_end_state_);
+			(instance_->*pfn_end_state_)();
 		}
 };
 }

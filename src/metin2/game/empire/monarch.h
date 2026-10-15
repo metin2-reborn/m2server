@@ -10,58 +10,58 @@
 
 namespace metin2::game::inline empire {
 
-class CMonarch : public singleton<CMonarch>
+class monarch : public singleton<monarch>
 {
 	public:
-		CMonarch();
-		~CMonarch() override;
+		monarch();
+		~monarch() override;
 
-		bool Initialize();
+		bool initialize();
 
-		int HealMyEmpire(CHARACTER * ch, uint32_t price);
-		void SetMonarchInfo(MonarchInfo * pInfo);
+		int heal_my_empire(character * ch, uint32_t price);
+		void set_monarch_info(monarch_info * pInfo);
 
-		bool IsMonarch(uint32_t pid, uint8_t bEmpire);
-		bool IsMoneyOk(int price, uint8_t bEmpire);
-		bool SendtoDBAddMoney(int Money, uint8_t bEmpire, CHARACTER * ch);
-		bool SendtoDBDecMoney(int Money, uint8_t bEmpire, CHARACTER * ch);
+		bool is_monarch(uint32_t pid, uint8_t bEmpire);
+		bool is_money_ok(int price, uint8_t bEmpire);
+		bool sendto_db_add_money(int Money, uint8_t bEmpire, character * ch);
+		bool sendto_db_dec_money(int Money, uint8_t bEmpire, character * ch);
 
-		bool AddMoney(int Money, uint8_t bEmpire);
-		bool DecMoney(int Money, uint8_t bEmpire);
-		int GetMoney(uint8_t bEmpire);
+		bool add_money(int Money, uint8_t bEmpire);
+		bool dec_money(int Money, uint8_t bEmpire);
+		int money(uint8_t bEmpire);
 
-		MonarchInfo* GetMonarch();
+		monarch_info* get_monarch();
 
-		uint32_t GetMonarchPID(uint8_t Empire);
+		uint32_t monarch_pid(uint8_t Empire);
 
-		bool IsPowerUp(uint8_t Empire);
-		bool IsDefenceUp(uint8_t Empire);
+		bool is_power_up(uint8_t Empire);
+		bool is_defence_up(uint8_t Empire);
 
-		int	GetPowerUpCT(uint8_t Empire)
+		int	power_up_ct(uint8_t Empire)
 		{
-			return Empire < std::size(m_PowerUpCT) ? m_PowerUpCT[Empire] : 0;
+			return Empire < std::size(power_up_ct_) ? power_up_ct_[Empire] : 0;
 		}
 
-		bool CheckPowerUpCT(uint8_t Empire);
-		bool CheckDefenseUpCT(uint8_t Empire);
+		bool check_power_up_ct(uint8_t Empire);
+		bool check_defense_up_ct(uint8_t Empire);
 
-		int	GetDefenseUpCT(uint8_t Empire)
+		int	defense_up_ct(uint8_t Empire)
 		{
-			return Empire < std::size(m_DefenseUpCT) ? m_DefenseUpCT[Empire] : 0;
+			return Empire < std::size(defense_up_ct_) ? defense_up_ct_[Empire] : 0;
 		}
 
-		void PowerUp(uint8_t Empire, bool On);
-		void DefenseUp(uint8_t Empire, bool On);
+		void power_up(uint8_t Empire, bool On);
+		void defense_up(uint8_t Empire, bool On);
 
 	private:
-		MonarchInfo m_MonarchInfo;	
+		monarch_info monarch_info_;	
 
-		int m_PowerUp[4]; ///< Monarch's Lion's Roar
-		int m_DefenseUp[4]; ///< Monarch's Diamond Fist
+		int power_up_[4]; ///< Monarch's Lion's Roar
+		int defense_up_[4]; ///< Monarch's Diamond Fist
 
-		int m_PowerUpCT[4]; ///< Monarch's Lion's Roar
-		int m_DefenseUpCT[4]; ///< Monarch's Diamond Fist
+		int power_up_ct_[4]; ///< Monarch's Lion's Roar
+		int defense_up_ct_[4]; ///< Monarch's Diamond Fist
 };
 
-bool IsMonarchWarpZone (int map_idx);
+bool is_monarch_warp_zone (int map_idx);
 }

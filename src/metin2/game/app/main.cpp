@@ -104,7 +104,7 @@ void	destroy();
 
 void 	test();
 
-enum EProfile
+enum profile
 {
 	PROF_EVENT,
 	PROF_CHR_UPDATE,
@@ -113,42 +113,42 @@ enum EProfile
 	PROF_MAX_NUM
 };
 
-static uint32_t s_dwProfiler[PROF_MAX_NUM];
+static uint32_t profiler[PROF_MAX_NUM];
 
-int g_shutdown_disconnect_pulse;
-int g_shutdown_disconnect_force_pulse;
-bool g_bShutdown=false;
+int shutdown_disconnect_pulse;
+int shutdown_disconnect_force_pulse;
+bool shutting_down=false;
 
-void ContinueOnFatalError()
+void continue_on_fatal_error()
 {
 	metin2::log::error("FatalError");
 }
 
 namespace
 {
-	struct SendDisconnectFunc
+	struct send_disconnect_func
 	{
-		void operator () (DESC * d)
+		void operator () (desc * d)
 		{
-			if (d->GetCharacter())
+			if (d->get_character())
 			{
-				if (d->GetCharacter()->GetGMLevel() == GM_PLAYER)
-					d->GetCharacter()->ChatPacket(CHAT_TYPE_COMMAND, "quit Shutdown(SendDisconnectFunc)");
+				if (d->get_character()->gm_level() == GM_PLAYER)
+					d->get_character()->chat_packet(CHAT_TYPE_COMMAND, "quit Shutdown(SendDisconnectFunc)");
 			}
 		}
 	};
 
-	struct DisconnectFunc
+	struct disconnect_func
 	{
-		void operator () (DESC * d)
+		void operator () (desc * d)
 		{
-			if (d->GetType() == DESC_TYPE_CONNECTOR)
+			if (d->type() == DESC_TYPE_CONNECTOR)
 				return;
 
-			if (d->IsPhase(PHASE_P2P))
+			if (d->is_phase(PHASE_P2P))
 				return;
 
-			d->SetPhase(PHASE_CLOSE);
+			d->set_phase(PHASE_CLOSE);
 		}
 	};
 }
@@ -159,7 +159,7 @@ void heartbeat(heart * ht, int pulse)
 
 	t = get_dword_time();
 	num_events_called += event_process(pulse);
-	s_dwProfiler[PROF_EVENT] += (get_dword_time() - t);
+	profiler[PROF_EVENT] += (get_dword_time() - t);
 
 	t = get_dword_time();
 
@@ -169,13 +169,13 @@ void heartbeat(heart * ht, int pulse)
 
 		if (!metin2::config::is_auth())
 		{
-			TPlayerCountPacket pack;
-			pack.dwCount = DESC_MANAGER::instance().GetLocalUserCount();
-			db_clientdesc->DBPacket(HEADER_GD_PLAYER_COUNT, 0, &pack, sizeof(TPlayerCountPacket));
+			player_count_packet pack;
+			pack.count = desc_manager::instance().local_user_count();
+			db_clientdesc->db_packet(HEADER_GD_PLAYER_COUNT, 0, &pack, sizeof(player_count_packet));
 		}
 		else
 		{
-			DESC_MANAGER::instance().ProcessExpiredLoginKey();
+			desc_manager::instance().process_expired_login_key();
 		}
 	}
 
@@ -185,45 +185,45 @@ void heartbeat(heart * ht, int pulse)
 
 	// About every 1.16 seconds
 	if (!(pulse % (metin2::config::server().passes_per_sec + 4)))
-		CHARACTER_MANAGER::instance().ProcessDelayedSave();
+		character_manager::instance().process_delayed_save();
 
 	//Every 4 seconds
 
 	// About every 5.08 seconds
 	if (!(pulse % (metin2::config::server().passes_per_sec * 5 + 2)))
 	{
-		ITEM_MANAGER::instance().Update();
-		DESC_MANAGER::instance().UpdateLocalUserCount();
+		item_manager::instance().update();
+		desc_manager::instance().update_local_user_count();
 	}
 
-	s_dwProfiler[PROF_HEARTBEAT] += (get_dword_time() - t);
+	profiler[PROF_HEARTBEAT] += (get_dword_time() - t);
 
-	DBManager::instance().Process();
-	AccountDB::instance().Process();
-	CPVPManager::instance().Process();
+	db_manager::instance().process();
+	account_db::instance().process();
+	pvp_manager::instance().process();
 
-	if (g_bShutdown)
+	if (shutting_down)
 	{
-		if (thecore_pulse() > g_shutdown_disconnect_pulse)
+		if (thecore_pulse() > shutdown_disconnect_pulse)
 		{
-			const DESC_MANAGER::DESC_SET & c_set_desc = DESC_MANAGER::instance().GetClientSet();
-			std::for_each(c_set_desc.begin(), c_set_desc.end(), metin2::game::SendDisconnectFunc());
-			g_shutdown_disconnect_pulse = INT_MAX;
+			const desc_manager::desc_set & c_set_desc = desc_manager::instance().client_set();
+			std::for_each(c_set_desc.begin(), c_set_desc.end(), metin2::game::send_disconnect_func());
+			shutdown_disconnect_pulse = INT_MAX;
 		}
-		else if (thecore_pulse() > g_shutdown_disconnect_force_pulse)
+		else if (thecore_pulse() > shutdown_disconnect_force_pulse)
 		{
-			const DESC_MANAGER::DESC_SET & c_set_desc = DESC_MANAGER::instance().GetClientSet();
-			std::for_each(c_set_desc.begin(), c_set_desc.end(), metin2::game::DisconnectFunc());
+			const desc_manager::desc_set & c_set_desc = desc_manager::instance().client_set();
+			std::for_each(c_set_desc.begin(), c_set_desc.end(), metin2::game::disconnect_func());
 		}
-		else if (thecore_pulse() > g_shutdown_disconnect_force_pulse + PASSES_PER_SEC(5))
+		else if (thecore_pulse() > shutdown_disconnect_force_pulse + passes_per_sec(5))
 		{
 			thecore_shutdown();
 		}
 	}
 }
 
-static void CleanUpForEarlyExit() {
-	CancelReloadSpamEvent();
+static void clean_up_for_early_exit() {
+	cancel_reload_spam_event();
 }
 
 int run(int argc, char **argv)
@@ -232,73 +232,73 @@ int run(int argc, char **argv)
 	// // <Factor> start unit tests if option is set
 
 
-	SECTREE_MANAGER	sectree_manager;
-	CHARACTER_MANAGER	char_manager;
-	ITEM_MANAGER	item_manager;
-	CShopManager	shop_manager;
-	CMobManager		mob_manager;
-	CMotionManager	motion_manager;
-	CPartyManager	party_manager;
-	CSkillManager	skill_manager;
-	CPVPManager		pvp_manager;
-	LZOManager		lzo_manager;
-	DBManager		db_manager;
-	AccountDB 		account_db;
+	sectree_manager	sectree_manager;
+	character_manager	char_manager;
+	item_manager	item_manager;
+	shop_manager	shop_manager;
+	mob_manager		mob_manager;
+	motion_manager	motion_manager;
+	party_manager	party_manager;
+	skill_manager	skill_manager;
+	pvp_manager		pvp_manager;
+	lzo_manager		lzo_manager;
+	db_manager		db_manager;
+	account_db 		account_db;
 
-	LogManager		log_manager;
-	MessengerManager	messenger_manager;
-	P2P_MANAGER		p2p_manager;
-	CGuildManager	guild_manager;
-	CGuildMarkManager mark_manager;
-	CDungeonManager	dungeon_manager;
-	CRefineManager	refine_manager;
-	CBanwordManager	banword_manager;
-	CPrivManager	priv_manager;
-	CWarMapManager	war_map_manager;
-	building::CManager	building_manager;
-	CTargetManager	target_manager;
-	marriage::CManager	marriage_manager;
-	marriage::WeddingManager wedding_manager;
-	CItemAddonManager	item_addon_manager;
-	CArenaManager arena_manager;
-	COXEventManager OXEvent_manager;
-	CMonarch		Monarch;
-	CHorseNameManager horsename_manager;
+	log_manager		log_manager;
+	messenger_manager	messenger_manager;
+	p2_p_manager		p2p_manager;
+	guild_manager	guild_manager;
+	guild_mark_manager mark_manager;
+	dungeon_manager	dungeon_manager;
+	refine_manager	refine_manager;
+	banword_manager	banword_manager;
+	priv_manager	priv_manager;
+	war_map_manager	war_map_manager;
+	building::manager	building_manager;
+	target_manager	target_manager;
+	marriage::manager	marriage_manager;
+	marriage::wedding_manager wedding_manager;
+	item_addon_manager	item_addon_manager;
+	arena_manager arena_manager;
+	ox_event_manager OXEvent_manager;
+	monarch		Monarch;
+	horse_name_manager horsename_manager;
 
-	DESC_MANAGER	desc_manager;
+	desc_manager	desc_manager;
 
-	CTableBySkill SkillPowerByLevel;
-	CPolymorphUtils polymorph_utils;
-	CBattleArena	ba;
-	COver9RefineManager	o9r;
-	SpamManager		spam_mgr;
-	CThreeWayWar	threeway_war;
-	CDragonLairManager	dl_manager;
+	table_by_skill SkillPowerByLevel;
+	polymorph_utils polymorph_utils;
+	battle_arena	ba;
+	over9_refine_manager	o9r;
+	spam_manager		spam_mgr;
+	three_way_war	threeway_war;
+	dragon_lair_manager	dl_manager;
 
-	CSpeedServerManager SSManager;
-	DSManager dsManager;
+	speed_server_manager SSManager;
+	ds_manager dsManager;
 
 	if (!start(argc, argv)) {
-		CleanUpForEarlyExit();
+		clean_up_for_early_exit();
 		return 1;
 	}
 
-	quest::CQuestManager quest_manager;
+	quest::quest_manager quest_manager;
 
-	if (!quest_manager.Initialize()) {
-		CleanUpForEarlyExit();
+	if (!quest_manager.initialize()) {
+		clean_up_for_early_exit();
 		return 1;
 	}
 
-	MessengerManager::instance().Initialize();
-	CGuildManager::instance().Initialize();
-	fishing::Initialize();
-	OXEvent_manager.Initialize();
+	game::social::messenger_manager::instance().initialize();
+	game::guilds::guild_manager::instance().initialize();
+	fishing::initialize();
+	OXEvent_manager.initialize();
 	if (metin2::config::game().speed_server)
-		CSpeedServerManager::instance().Initialize();
+		speed_server_manager::instance().initialize();
 
-	Cube_init();
-	Blend_Item_init();
+	cube_init();
+	blend_item_init();
 	ani_init();
 
 
@@ -306,17 +306,17 @@ int run(int argc, char **argv)
 	while (idle());
 
 	metin2::log::info( "<shutdown> Starting...");
-	g_bShutdown = true;
-	g_bNoMoreClient = true;
+	shutting_down = true;
+	no_more_client = true;
 
 	if (metin2::config::is_auth())
 	{
-		int iLimit = DBManager::instance().CountQuery() / 50;
+		int iLimit = game::persistence::db_manager::instance().count_query() / 50;
 		int i = 0;
 
 		do
 		{
-			uint32_t dwCount = DBManager::instance().CountQuery();
+			uint32_t dwCount = game::persistence::db_manager::instance().count_query();
 			metin2::log::info( "Queries {:d}", dwCount);
 
 			if (dwCount == 0)
@@ -325,41 +325,41 @@ int run(int argc, char **argv)
 			usleep(500000);
 
 			if (++i >= iLimit)
-				if (dwCount == DBManager::instance().CountQuery())
+				if (dwCount == game::persistence::db_manager::instance().count_query())
 					break;
 		} while (1);
 	}
 
 	metin2::log::info( "<shutdown> Destroying CArenaManager...");
-	arena_manager.Destroy();
+	arena_manager.destroy();
 	metin2::log::info( "<shutdown> Destroying COXEventManager...");
-	OXEvent_manager.Destroy();
+	OXEvent_manager.destroy();
 
 	metin2::log::info( "<shutdown> Disabling signal timer...");
 	signal_timer_disable();
 
 	metin2::log::info( "<shutdown> Shutting down CHARACTER_MANAGER...");
-	char_manager.GracefulShutdown();
+	char_manager.graceful_shutdown();
 	metin2::log::info( "<shutdown> Shutting down ITEM_MANAGER...");
-	item_manager.GracefulShutdown();
+	item_manager.graceful_shutdown();
 
 	metin2::log::info( "<shutdown> Flushing db_clientdesc...");
-	db_clientdesc->FlushOutput();
+	db_clientdesc->flush_output();
 	metin2::log::info( "<shutdown> Flushing p2p_manager...");
-	p2p_manager.FlushOutput();
+	p2p_manager.flush_output();
 
 	metin2::log::info( "<shutdown> Destroying CShopManager...");
-	shop_manager.Destroy();
+	shop_manager.destroy();
 	metin2::log::info( "<shutdown> Destroying CHARACTER_MANAGER...");
-	char_manager.Destroy();
+	char_manager.destroy();
 	metin2::log::info( "<shutdown> Destroying ITEM_MANAGER...");
-	item_manager.Destroy();
+	item_manager.destroy();
 	metin2::log::info( "<shutdown> Destroying DESC_MANAGER...");
-	desc_manager.Destroy();
+	desc_manager.destroy();
 	metin2::log::info( "<shutdown> Destroying quest::CQuestManager...");
-	quest_manager.Destroy();
+	quest_manager.destroy();
 	metin2::log::info( "<shutdown> Destroying building::CManager...");
-	building_manager.Destroy();
+	building_manager.destroy();
 
 	destroy();
 
@@ -413,7 +413,7 @@ int start(int argc, char **argv)
 		exit(0);
 	}
 
-	if (false == CThreeWayWar::instance().LoadSetting("forkedmapindex.txt"))
+	if (false == three_way_war::instance().load_setting("forkedmapindex.txt"))
 	{
 		if (false == metin2::config::is_auth())
 		{
@@ -424,20 +424,20 @@ int start(int argc, char **argv)
 
 	signal_timer_disable();
 
-	client_listener = net::listener::open(g_szPublicIP, metin2::config::server().port, [](net::tcp::socket socket) { DESC_MANAGER::instance().AcceptDesc(std::move(socket)); });
+	client_listener = net::listener::open(public_ip, metin2::config::server().port, [](net::tcp::socket socket) { desc_manager::instance().accept_desc(std::move(socket)); });
 
 	if (!client_listener)
 		return 0;
 
 	// if internal ip exists, p2p socket uses internal ip, if not use public ip
-	p2p_listener = net::listener::open(g_szPublicIP, metin2::config::server().p2p_port, [](net::tcp::socket socket) { DESC_MANAGER::instance().AcceptP2PDesc(std::move(socket)); });
+	p2p_listener = net::listener::open(public_ip, metin2::config::server().p2p_port, [](net::tcp::socket socket) { desc_manager::instance().accept_p2_p_desc(std::move(socket)); });
 
 	if (!p2p_listener)
 		return 0;
 
-	db_clientdesc = DESC_MANAGER::instance().CreateConnectionDesc(metin2::config::server().db_host.c_str(), metin2::config::server().db_port, PHASE_DBCLIENT, true);
+	db_clientdesc = desc_manager::instance().create_connection_desc(metin2::config::server().db_host.c_str(), metin2::config::server().db_port, PHASE_DBCLIENT, true);
 	if (!metin2::config::is_auth()) {
-		db_clientdesc->UpdateChannelStatus(0, true);
+		db_clientdesc->update_channel_status(0, true);
 	}
 
 	if (metin2::config::is_auth())
@@ -445,9 +445,9 @@ int start(int argc, char **argv)
 		if (metin2::config::auth().master_host.length() != 0)
 		{
 			fprintf(stderr, "SlaveAuth");
-			g_pkAuthMasterDesc = DESC_MANAGER::instance().CreateConnectionDesc(metin2::config::auth().master_host.c_str(), metin2::config::auth().master_port, PHASE_P2P, true); 
-			P2P_MANAGER::instance().RegisterConnector(g_pkAuthMasterDesc);
-			g_pkAuthMasterDesc->SetP2P(metin2::config::auth().master_host.c_str(), metin2::config::auth().master_port);
+			auth_master_desc = desc_manager::instance().create_connection_desc(metin2::config::auth().master_host.c_str(), metin2::config::auth().master_port, PHASE_P2P, true); 
+			p2_p_manager::instance().register_connector(auth_master_desc);
+			auth_master_desc->set_p2_p(metin2::config::auth().master_host.c_str(), metin2::config::auth().master_port);
 
 		}
 		else
@@ -461,7 +461,7 @@ int start(int argc, char **argv)
 		metin2::log::info( "SPAM_CONFIG: duration {:d} score {:d} reload cycle {:d}",
 				metin2::config::game().spam.block_duration, metin2::config::game().spam.block_score, metin2::config::game().spam.reload_cycle);
 
-		LoadSpamDB();
+		load_spam_db();
 	}
 
 	signal_timer_enable(30);
@@ -471,7 +471,7 @@ int start(int argc, char **argv)
 void destroy()
 {
 	metin2::log::info( "<shutdown> Canceling ReloadSpamEvent...");
-	CancelReloadSpamEvent();
+	cancel_reload_spam_event();
 
 	metin2::log::info( "<shutdown> regen_free()...");
 	regen_free();
@@ -484,7 +484,7 @@ void destroy()
 	event_destroy();
 
 	metin2::log::info( "<shutdown> CTextFileLoader::DestroySystem()...");
-	CTextFileLoader::DestroySystem();
+	text_file_loader::destroy_system();
 
 	metin2::log::info( "<shutdown> thecore_destroy()...");
 	thecore_destroy();
@@ -516,13 +516,13 @@ int idle()
 	}
 
 	t = get_dword_time();
-	CHARACTER_MANAGER::instance().Update(thecore_heart->pulse);
-	db_clientdesc->Update(t);
-	s_dwProfiler[PROF_CHR_UPDATE] += (get_dword_time() - t);
+	character_manager::instance().update(thecore_heart->pulse);
+	db_clientdesc->update(t);
+	profiler[PROF_CHR_UPDATE] += (get_dword_time() - t);
 
 	t = get_dword_time();
 	if (!io_loop()) return 0;
-	s_dwProfiler[PROF_IO] += (get_dword_time() - t);
+	profiler[PROF_IO] += (get_dword_time() - t);
 
 	metin2::log::rotate();
 
@@ -539,10 +539,10 @@ int idle()
 				num_events_called,
 				event_count(),
 				thecore_idle_time,
-				s_dwProfiler[PROF_EVENT],
-				s_dwProfiler[PROF_HEARTBEAT],
-				s_dwProfiler[PROF_IO],
-				s_dwProfiler[PROF_CHR_UPDATE],
+				profiler[PROF_EVENT],
+				profiler[PROF_HEARTBEAT],
+				profiler[PROF_IO],
+				profiler[PROF_CHR_UPDATE],
 				(unsigned long long) (qwBytesWritten - s_qwBytesWritten),
 				thecore_pulse());
 
@@ -553,7 +553,7 @@ int idle()
 		gettimeofday(&pta, (struct timezone *) nullptr);
 
 		thecore_idle_time = 0;
-		memset(&s_dwProfiler[0], 0, sizeof(s_dwProfiler));
+		memset(&profiler[0], 0, sizeof(profiler));
 	}
 
 	return 1;
@@ -561,8 +561,8 @@ int idle()
 
 int io_loop()
 {
-	DESC_MANAGER::instance().DestroyClosed(); // Close connections in PHASE_CLOSE.
-	DESC_MANAGER::instance().TryConnect();
+	desc_manager::instance().destroy_closed(); // Close connections in PHASE_CLOSE.
+	desc_manager::instance().try_connect();
 
 	// Runs the network handlers that are ready (input, accepts, queued output); never blocks.
 	net::io().poll();

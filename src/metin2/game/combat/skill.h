@@ -11,7 +11,7 @@
 
 namespace metin2::game::inline combat {
 
-enum ESkillFlags
+enum skill_flags
 {
 	SKILL_FLAG_ATTACK			= (1 << 0),	// Attack skill
 	SKILL_FLAG_USE_MELEE_DAMAGE		= (1 << 1),	// Use base melee damage as the b value
@@ -48,7 +48,7 @@ enum
 	SKILL_TYPE_HORSE = 5,
 };
 
-enum ESkillIndexes
+enum skill_indexes
 {
 	SKILL_RESERVED = 0,
 
@@ -180,75 +180,75 @@ enum ESkillIndexes
 
 };
 
-class CSkillProto
+class skill_proto
 {
 	public:
-		char	szName[64];
-		uint32_t	dwVnum;			// Number
+		char	name[64];
+		uint32_t	vnum;			// Number
 
-		uint32_t	dwType;			// 0: all jobs, 1: Warrior, 2: Assassin, 3: Sura, 4: Shaman
-		uint8_t	bMaxLevel;		// Max mastery
-		uint8_t	bLevelLimit;		// Level limit
-		int	iSplashRange;		// Splash range limit
+		uint32_t	type;			// 0: all jobs, 1: Warrior, 2: Assassin, 3: Sura, 4: Shaman
+		uint8_t	max_level;		// Max mastery
+		uint8_t	level_limit;		// Level limit
+		int	splash_range;		// Splash range limit
 
-		uint8_t	bPointOn;		// Where is the result applied? (damage, MAX HP, HP REGEN, etc.)
-		CPoly	kPointPoly;		// Formula for the result value
+		uint8_t	point_on;		// Where is the result applied? (damage, MAX HP, HP REGEN, etc.)
+		expression	point_poly;		// Formula for the result value
 
-		CPoly	kSPCostPoly;		// SP cost formula
-		CPoly	kDurationPoly;		// Duration formula
-		CPoly	kDurationSPCostPoly;	// Duration SP formula
-		CPoly	kCooldownPoly;		// Cooldown formula
-		CPoly	kMasterBonusPoly;	// Bonus formula when mastered
-		CPoly	kSplashAroundDamageAdjustPoly;	// For splash attacks, damage reduction ratio applied to surrounding enemies
+		expression	sp_cost_poly;		// SP cost formula
+		expression	duration_poly;		// Duration formula
+		expression	duration_sp_cost_poly;	// Duration SP formula
+		expression	cooldown_poly;		// Cooldown formula
+		expression	master_bonus_poly;	// Bonus formula when mastered
+		expression	splash_around_damage_adjust_poly;	// For splash attacks, damage reduction ratio applied to surrounding enemies
 
-		uint32_t	dwFlag;			// Skill options
-		uint32_t	dwAffectFlag;		// Affect applied when hit by the skill
+		uint32_t	flag;			// Skill options
+		uint32_t	affect_flag;		// Affect applied when hit by the skill
 
-		uint8_t	bLevelStep;		// Skill points needed per raise
-		uint32_t	preSkillVnum;		// Prerequisite skill that must be learned first
-		uint8_t	preSkillLevel;		// Required level of the prerequisite skill
+		uint8_t	level_step;		// Skill points needed per raise
+		uint32_t	pre_skill_vnum;		// Prerequisite skill that must be learned first
+		uint8_t	pre_skill_level;		// Required level of the prerequisite skill
 
-		int32_t	lMaxHit;
+		int32_t	max_hit;
 
-		uint8_t	bSkillAttrType;
+		uint8_t	skill_attr_type;
 
 		// 2nd application
-		uint8_t	bPointOn2;		
-		CPoly	kPointPoly2;		
-		CPoly	kDurationPoly2;		
-		uint32_t	dwFlag2;			
-		uint32_t	dwAffectFlag2;		
+		uint8_t	point_on2;		
+		expression	point_poly2;		
+		expression	duration_poly2;		
+		uint32_t	flag2;			
+		uint32_t	affect_flag2;		
 
-		uint32_t   dwTargetRange;
+		uint32_t   target_range;
 
-		bool	IsChargeSkill()
+		bool	is_charge_skill()
 		{
-			return dwVnum == SKILL_TANHWAN || dwVnum == SKILL_HORSE_CHARGE; 
+			return vnum == SKILL_TANHWAN || vnum == SKILL_HORSE_CHARGE; 
 		}
 
 		// 3rd application
-		uint8_t bPointOn3;
-		CPoly kPointPoly3;
-		CPoly kDurationPoly3;
+		uint8_t point_on3;
+		expression point_poly3;
+		expression duration_poly3;
 
-		CPoly kGrandMasterAddSPCostPoly;
+		expression grand_master_add_sp_cost_poly;
 
-		void SetPointVar(const std::string& strName, double dVar);
-		void SetDurationVar(const std::string& strName, double dVar);
-		void SetSPCostVar(const std::string& strName, double dVar);
+		void set_point_var(const std::string& strName, double dVar);
+		void set_duration_var(const std::string& strName, double dVar);
+		void set_sp_cost_var(const std::string& strName, double dVar);
 };
 
-class CSkillManager : public singleton<CSkillManager>
+class skill_manager : public singleton<skill_manager>
 {
 	public:
-		CSkillManager();
-		~CSkillManager() override;
+		skill_manager();
+		~skill_manager() override;
 
-		bool Initialize(TSkillTable * pTab, int iSize);
-		CSkillProto * Get(uint32_t dwVnum);
-		CSkillProto * Get(const char * c_pszSkillName);
+		bool initialize(skill_table * pTab, int iSize);
+		skill_proto * get(uint32_t dwVnum);
+		skill_proto * get(const char * c_pszSkillName);
 
 	protected:
-		std::map<uint32_t, std::unique_ptr<CSkillProto>> m_map_pkSkillProto;
+		std::map<uint32_t, std::unique_ptr<skill_proto>> map_pk_skill_proto_;
 };
 }

@@ -33,106 +33,106 @@ namespace metin2::db::inline guilds {
 
 const int GUILD_RANK_MAX_NUM = 20;
 
-uint32_t GetGuildWarWaitStartDuration()
+uint32_t get_guild_war_wait_start_duration()
 {
 	return 5;
 }
 
-uint32_t GetGuildWarReserveSeconds()
+uint32_t get_guild_war_reserve_seconds()
 {
 	return 10;
 }
 
 namespace 
 {
-	struct FSendPeerWar
+	struct f_send_peer_war
 	{
-		FSendPeerWar(uint8_t bType, uint8_t bWar, uint32_t GID1, uint32_t GID2)
+		f_send_peer_war(uint8_t bType, uint8_t bWar, uint32_t GID1, uint32_t GID2)
 		{
 			if (number(0, 1))
 				std::swap(GID1, GID2);
 
-			memset(&p, 0, sizeof(TPacketGuildWar));
+			memset(&p, 0, sizeof(packet_guild_war));
 
-			p.bWar = bWar;
-			p.bType = bType;
-			p.dwGuildFrom = GID1;
-			p.dwGuildTo = GID2;
+			p.war = bWar;
+			p.type = bType;
+			p.guild_from = GID1;
+			p.guild_to = GID2;
 		}
 
-		void operator() (CPeer* peer)
+		void operator() (peer* peer)
 		{
-			if (peer->GetChannel() == 0)
+			if (peer->channel() == 0)
 				return;
 
-			peer->EncodeHeader(HEADER_DG_GUILD_WAR, 0, sizeof(TPacketGuildWar));
-			peer->Encode(&p, sizeof(TPacketGuildWar));
+			peer->encode_header(HEADER_DG_GUILD_WAR, 0, sizeof(packet_guild_war));
+			peer->encode(&p, sizeof(packet_guild_war));
 		}
 
-		TPacketGuildWar p;
+		packet_guild_war p;
 	};
 
-	struct FSendGuildWarScore
+	struct f_send_guild_war_score
 	{
-		FSendGuildWarScore(uint32_t guild_gain, uint32_t dwOppGID, int iScore, int iBetScore)
+		f_send_guild_war_score(uint32_t guild_gain, uint32_t dwOppGID, int iScore, int iBetScore)
 		{
-			pck.dwGuildGainPoint = guild_gain;
-			pck.dwGuildOpponent = dwOppGID;
-			pck.lScore = iScore;
-			pck.lBetScore = iBetScore;
+			pck.guild_gain_point = guild_gain;
+			pck.guild_opponent = dwOppGID;
+			pck.score = iScore;
+			pck.bet_score = iBetScore;
 		}
 
-		void operator() (CPeer* peer)
+		void operator() (peer* peer)
 		{
-			if (peer->GetChannel() == 0)
+			if (peer->channel() == 0)
 				return;
 
-			peer->EncodeHeader(HEADER_DG_GUILD_WAR_SCORE, 0, sizeof(pck));
-			peer->Encode(&pck, sizeof(pck));
+			peer->encode_header(HEADER_DG_GUILD_WAR_SCORE, 0, sizeof(pck));
+			peer->encode(&pck, sizeof(pck));
 		}
 
-		TPacketGuildWarScore pck;
+		packet_guild_war_score pck;
 	};
 }
 
-CGuildManager::CGuildManager()
+guild_manager::guild_manager()
 {
 }
 
-CGuildManager::~CGuildManager()
+guild_manager::~guild_manager()
 {
-	while (!m_pqOnWar.empty())
+	while (!pq_on_war_.empty())
 	{
-		if (!m_pqOnWar.top().second->bEnd)
-			delete m_pqOnWar.top().second;
+		if (!pq_on_war_.top().second->end)
+			delete pq_on_war_.top().second;
 
-		m_pqOnWar.pop();
+		pq_on_war_.pop();
 	}
 }
 
-TGuild & CGuildManager::TouchGuild(uint32_t GID)
+guild & guild_manager::touch_guild(uint32_t GID)
 {
-	auto it = m_map_kGuild.find(GID);
+	auto it = map_k_guild_.find(GID);
 
-	if (it != m_map_kGuild.end())
+	if (it != map_k_guild_.end())
 		return it->second;
 
-	TGuild info;
-	m_map_kGuild.insert(std::map<uint32_t, TGuild>::value_type(GID, info));
-	return m_map_kGuild[GID];
+	guild info;
+	map_k_guild_.insert(std::map<uint32_t, guild>::value_type(GID, info));
+	return map_k_guild_[GID];
 }
 
-void CGuildManager::ParseResult(SQLResult * pRes)
+void guild_manager::parse_result(ql_result * pRes)
 {
 	MYSQL_ROW row;
 
-	while ((row = mysql_fetch_row(pRes->pSQLResult)))
+	while ((row = mysql_fetch_row(pRes->sql_result)))
 	{
 		uint32_t GID = strtoul(row[0], nullptr, 10);
 
-		TGuild & r_info = TouchGuild(GID);
+		guild & r_info = touch_guild(GID);
 
-		r_info.strName = row[1];
+		r_info.name = row[1];
 		str_to_number(r_info.ladder_point, row[2]);
 		str_to_number(r_info.win, row[3]);
 		str_to_number(r_info.draw, row[4]);
@@ -142,7 +142,7 @@ void CGuildManager::ParseResult(SQLResult * pRes)
 
 		metin2::log::info( 
 				"GuildWar: {:<24} ladder {:<5d} win {:<3d} draw {:<3d} loss {:<3d}", 
-				r_info.strName.c_str(),
+				r_info.name.c_str(),
 				r_info.ladder_point,
 				r_info.win,
 				r_info.draw,
@@ -150,19 +150,19 @@ void CGuildManager::ParseResult(SQLResult * pRes)
 	}
 }
 
-void CGuildManager::Initialize()
+void guild_manager::initialize()
 {
 	char szQuery[1024];
-	snprintf(szQuery, sizeof(szQuery), "SELECT id, name, ladder_point, win, draw, loss, gold, level FROM guild%s", GetTablePostfix());
-	std::unique_ptr<SQLMsg> pmsg(CDBManager::instance().DirectQuery(szQuery));
+	snprintf(szQuery, sizeof(szQuery), "SELECT id, name, ladder_point, win, draw, loss, gold, level FROM guild%s", get_table_postfix());
+	std::unique_ptr<ql_msg> pmsg(db_manager::instance().direct_query(szQuery));
 
-	if (pmsg->Get()->uiNumRows)
-		ParseResult(pmsg->Get());
+	if (pmsg->get()->num_rows)
+		parse_result(pmsg->get());
 
 	std::string power = metin2::config::db().guild_war_power;
 	const char * str = power.c_str();
 
-	if (!polyPower.Analyze(str))
+	if (!poly_power_.analyze(str))
 		metin2::log::error("cannot set power poly: {}", str);
 	else
 		metin2::log::info( "POWER_POLY: {}", str);
@@ -170,44 +170,44 @@ void CGuildManager::Initialize()
 	std::string handicap = metin2::config::db().guild_war_handicap;
 	str = handicap.c_str();
 
-	if (!polyHandicap.Analyze(str))
+	if (!poly_handicap_.analyze(str))
 		metin2::log::error("cannot set handicap poly: {}", str);
 	else
 		metin2::log::info( "HANDICAP_POLY: {}", str);
 
-	QueryRanking();
+	query_ranking();
 }
 
-void CGuildManager::Load(uint32_t dwGuildID)
+void guild_manager::load(uint32_t dwGuildID)
 {
 	char szQuery[1024];
 
-	snprintf(szQuery, sizeof(szQuery), "SELECT id, name, ladder_point, win, draw, loss, gold, level FROM guild%s WHERE id=%u", GetTablePostfix(), dwGuildID);
-	std::unique_ptr<SQLMsg> pmsg(CDBManager::instance().DirectQuery(szQuery));
+	snprintf(szQuery, sizeof(szQuery), "SELECT id, name, ladder_point, win, draw, loss, gold, level FROM guild%s WHERE id=%u", get_table_postfix(), dwGuildID);
+	std::unique_ptr<ql_msg> pmsg(db_manager::instance().direct_query(szQuery));
 
-	if (pmsg->Get()->uiNumRows)
-		ParseResult(pmsg->Get());
+	if (pmsg->get()->num_rows)
+		parse_result(pmsg->get());
 }
 
-void CGuildManager::QueryRanking()
+void guild_manager::query_ranking()
 {
 	char szQuery[256];
-	snprintf(szQuery, sizeof(szQuery), "SELECT id,name,ladder_point FROM guild%s ORDER BY ladder_point DESC LIMIT 20", GetTablePostfix());
+	snprintf(szQuery, sizeof(szQuery), "SELECT id,name,ladder_point FROM guild%s ORDER BY ladder_point DESC LIMIT 20", get_table_postfix());
 
-	CDBManager::instance().ReturnQuery(szQuery, QID_GUILD_RANKING, 0, nullptr);
+	db_manager::instance().return_query(szQuery, QID_GUILD_RANKING, 0, nullptr);
 }
 
-int CGuildManager::GetRanking(uint32_t dwGID)
+int guild_manager::ranking(uint32_t dwGID)
 {
-	auto it = map_kLadderPointRankingByGID.find(dwGID);
+	auto it = map_k_ladder_point_ranking_by_gid_.find(dwGID);
 
-	if (it == map_kLadderPointRankingByGID.end())
+	if (it == map_k_ladder_point_ranking_by_gid_.end())
 		return GUILD_RANK_MAX_NUM;
 
 	return std::clamp(it->second, 0, GUILD_RANK_MAX_NUM);
 }
 
-void CGuildManager::ResultRanking(MYSQL_RES * pRes)
+void guild_manager::result_ranking(MYSQL_RES * pRes)
 {
 	if (!pRes)
 		return;
@@ -215,7 +215,7 @@ void CGuildManager::ResultRanking(MYSQL_RES * pRes)
 	int iLastLadderPoint = -1;
 	int iRank = 0;
 
-	map_kLadderPointRankingByGID.clear();
+	map_k_ladder_point_ranking_by_gid_.clear();
 
 	MYSQL_ROW row;
 
@@ -229,17 +229,17 @@ void CGuildManager::ResultRanking(MYSQL_RES * pRes)
 
 		metin2::log::info( "GUILD_RANK: {:<24} {:2d} {:d}", row[1], iRank, iLadderPoint);
 
-		map_kLadderPointRankingByGID.insert(std::make_pair(dwGID, iRank));
+		map_k_ladder_point_ranking_by_gid_.insert(std::make_pair(dwGID, iRank));
 	}
 }
 
-void CGuildManager::Update()
+void guild_manager::update()
 {
-	ProcessReserveWar(); // handle scheduled wars
+	process_reserve_war(); // handle scheduled wars
 
-	time_t now = CClientManager::instance().GetCurrentTime();
+	time_t now = client_manager::instance().current_time();
 
-	if (!m_pqOnWar.empty())
+	if (!pq_on_war_.empty())
 	{
 		// UNKNOWN_GUILD_MANAGE_UPDATE_LOG
 		/*
@@ -254,16 +254,16 @@ void CGuildManager::Update()
 		   */
 		// END_OF_UNKNOWN_GUILD_MANAGE_UPDATE_LOG
 
-		while (!m_pqOnWar.empty() && (m_pqOnWar.top().first <= now || (m_pqOnWar.top().second && m_pqOnWar.top().second->bEnd)))
+		while (!pq_on_war_.empty() && (pq_on_war_.top().first <= now || (pq_on_war_.top().second && pq_on_war_.top().second->end)))
 		{
-			TGuildWarPQElement * e = m_pqOnWar.top().second;
+			guild_war_pq_element * e = pq_on_war_.top().second;
 
-			m_pqOnWar.pop();
+			pq_on_war_.pop();
 
 			if (e)
 			{
-				if (!e->bEnd)
-					WarEnd(e->GID[0], e->GID[1], false); 
+				if (!e->end)
+					war_end(e->gid[0], e->gid[1], false); 
 
 				delete e;
 			}
@@ -271,108 +271,108 @@ void CGuildManager::Update()
 	}
 
 	// GUILD_SKILL_COOLTIME_BUG_FIX
-	while (!m_pqSkill.empty() && m_pqSkill.top().first <= now)
+	while (!pq_skill_.empty() && pq_skill_.top().first <= now)
 	{
-		const TGuildSkillUsed& s = m_pqSkill.top().second;
-		CClientManager::instance().SendGuildSkillUsable(s.GID, s.dwSkillVnum, true);
-		m_pqSkill.pop();
+		const guild_skill_used& s = pq_skill_.top().second;
+		client_manager::instance().send_guild_skill_usable(s.gid, s.skill_vnum, true);
+		pq_skill_.pop();
 	}
 	// END_OF_GUILD_SKILL_COOLTIME_BUG_FIX
 
-	while (!m_pqWaitStart.empty() && m_pqWaitStart.top().first <= now)
+	while (!pq_wait_start_.empty() && pq_wait_start_.top().first <= now)
 	{
-		const TGuildWaitStartInfo & ws = m_pqWaitStart.top().second;
-		m_pqWaitStart.pop();
+		const guild_wait_start_info & ws = pq_wait_start_.top().second;
+		pq_wait_start_.pop();
 
-		StartWar(ws.bType, ws.GID[0], ws.GID[1], ws.pkReserve); // insert new element to m_WarMap and m_pqOnWar
+		start_war(ws.type, ws.gid[0], ws.gid[1], ws.reserve); // insert new element to m_WarMap and m_pqOnWar
 
-		if (ws.lInitialScore)
+		if (ws.initial_score)
 		{
-			UpdateScore(ws.GID[0], ws.GID[1], ws.lInitialScore, 0);
-			UpdateScore(ws.GID[1], ws.GID[0], ws.lInitialScore, 0);
+			update_score(ws.gid[0], ws.gid[1], ws.initial_score, 0);
+			update_score(ws.gid[1], ws.gid[0], ws.initial_score, 0);
 		}
 
-		TPacketGuildWar p;
+		packet_guild_war p;
 
-		p.bType		= ws.bType;
-		p.bWar		= GUILD_WAR_ON_WAR;
-		p.dwGuildFrom	= ws.GID[0];
-		p.dwGuildTo	= ws.GID[1];
+		p.type		= ws.type;
+		p.war		= GUILD_WAR_ON_WAR;
+		p.guild_from	= ws.gid[0];
+		p.guild_to	= ws.gid[1];
 
-		CClientManager::instance().ForwardPacket(HEADER_DG_GUILD_WAR, &p, sizeof(p));
-		metin2::log::info( "GuildWar: GUILD sending start of wait start war {:d} {:d}", ws.GID[0], ws.GID[1]);
+		client_manager::instance().forward_packet(HEADER_DG_GUILD_WAR, &p, sizeof(p));
+		metin2::log::info( "GuildWar: GUILD sending start of wait start war {:d} {:d}", ws.gid[0], ws.gid[1]);
 	}
 }
 
-void CGuildManager::OnSetup(CPeer* peer)
+void guild_manager::on_setup(peer* peer)
 {
-	for (const auto & [g1, wars] : m_WarMap)
+	for (const auto & [g1, wars] : war_map_)
 		for (const auto & [g2, war] : wars)
 		{
-			TGuildWarPQElement* p = war.pElement;
+			guild_war_pq_element* p = war.element;
 
-			if (!p || p->bEnd)
+			if (!p || p->end)
 				continue;
 
-			FSendPeerWar(p->bType, GUILD_WAR_ON_WAR, g1, g2) (peer);
-			FSendGuildWarScore(p->GID[0], p->GID[1], p->iScore[0], p->iBetScore[0]) (peer);
-			FSendGuildWarScore(p->GID[1], p->GID[0], p->iScore[1], p->iBetScore[1]) (peer);
+			f_send_peer_war(p->type, GUILD_WAR_ON_WAR, g1, g2) (peer);
+			f_send_guild_war_score(p->gid[0], p->gid[1], p->score[0], p->bet_score[0]) (peer);
+			f_send_guild_war_score(p->gid[1], p->gid[0], p->score[1], p->bet_score[1]) (peer);
 		}
 
-	for (const auto & declare : m_DeclareMap)
+	for (const auto & declare : declare_map_)
 	{
-		FSendPeerWar(declare.bType, GUILD_WAR_SEND_DECLARE, declare.dwGuildID[0], declare.dwGuildID[1]) (peer);
+		f_send_peer_war(declare.type, GUILD_WAR_SEND_DECLARE, declare.guild_id[0], declare.guild_id[1]) (peer);
 	}
 
-	for (const auto & [id, reserve] : m_map_kWarReserve)
+	for (const auto & [id, reserve] : map_k_war_reserve_)
 	{
-		reserve->OnSetup(peer);
+		reserve->on_setup(peer);
 	}
 }
 
-void CGuildManager::GuildWarWin(uint32_t GID)
+void guild_manager::guild_war_win(uint32_t GID)
 {
-	auto it = m_map_kGuild.find(GID);
+	auto it = map_k_guild_.find(GID);
 
-	if (it == m_map_kGuild.end())
+	if (it == map_k_guild_.end())
 		return;
 
 	++it->second.win;
 
 	char buf[1024];
-	snprintf(buf, sizeof(buf), "UPDATE guild%s SET win=%d WHERE id=%u", GetTablePostfix(), it->second.win, GID);
-	CDBManager::instance().AsyncQuery(buf);
+	snprintf(buf, sizeof(buf), "UPDATE guild%s SET win=%d WHERE id=%u", get_table_postfix(), it->second.win, GID);
+	db_manager::instance().async_query(buf);
 }
 
-void CGuildManager::GuildWarLose(uint32_t GID)
+void guild_manager::guild_war_lose(uint32_t GID)
 {
-	auto it = m_map_kGuild.find(GID);
+	auto it = map_k_guild_.find(GID);
 
-	if (it == m_map_kGuild.end())
+	if (it == map_k_guild_.end())
 		return;
 
 	++it->second.loss;
 
 	char buf[1024];
-	snprintf(buf, sizeof(buf), "UPDATE guild%s SET loss=%d WHERE id=%u", GetTablePostfix(), it->second.loss, GID);
-	CDBManager::instance().AsyncQuery(buf);
+	snprintf(buf, sizeof(buf), "UPDATE guild%s SET loss=%d WHERE id=%u", get_table_postfix(), it->second.loss, GID);
+	db_manager::instance().async_query(buf);
 }
 
-void CGuildManager::GuildWarDraw(uint32_t GID)
+void guild_manager::guild_war_draw(uint32_t GID)
 {
-	auto it = m_map_kGuild.find(GID);
+	auto it = map_k_guild_.find(GID);
 
-	if (it == m_map_kGuild.end())
+	if (it == map_k_guild_.end())
 		return;
 
 	++it->second.draw;
 
 	char buf[1024];
-	snprintf(buf, sizeof(buf), "UPDATE guild%s SET draw=%d WHERE id=%u", GetTablePostfix(), it->second.draw, GID);
-	CDBManager::instance().AsyncQuery(buf);
+	snprintf(buf, sizeof(buf), "UPDATE guild%s SET draw=%d WHERE id=%u", get_table_postfix(), it->second.draw, GID);
+	db_manager::instance().async_query(buf);
 }
 
-bool CGuildManager::IsHalfWinLadderPoint(uint32_t dwGuildWinner, uint32_t dwGuildLoser)
+bool guild_manager::is_half_win_ladder_point(uint32_t dwGuildWinner, uint32_t dwGuildLoser)
 {
 	uint32_t GID1 = dwGuildWinner;
 	uint32_t GID2 = dwGuildLoser;
@@ -380,119 +380,119 @@ bool CGuildManager::IsHalfWinLadderPoint(uint32_t dwGuildWinner, uint32_t dwGuil
 	if (GID1 > GID2)
 		std::swap(GID1, GID2);
 
-	auto it = m_mapGuildWarEndTime[GID1].find(GID2);
+	auto it = guild_war_end_time_[GID1].find(GID2);
 
-	if (it != m_mapGuildWarEndTime[GID1].end() && 
-			it->second + GUILD_WAR_LADDER_HALF_PENALTY_TIME > CClientManager::instance().GetCurrentTime())
+	if (it != guild_war_end_time_[GID1].end() && 
+			it->second + GUILD_WAR_LADDER_HALF_PENALTY_TIME > client_manager::instance().current_time())
 		return true;
 
 	return false;
 }
 
-void CGuildManager::ProcessDraw(uint32_t dwGuildID1, uint32_t dwGuildID2)
+void guild_manager::process_draw(uint32_t dwGuildID1, uint32_t dwGuildID2)
 {
 	metin2::log::info( "GuildWar: \tThe war between {:d} and {:d} is ended in draw", dwGuildID1, dwGuildID2);
 
-	GuildWarDraw(dwGuildID1);
-	GuildWarDraw(dwGuildID2);
-	ChangeLadderPoint(dwGuildID1, 0);
-	ChangeLadderPoint(dwGuildID2, 0);
+	guild_war_draw(dwGuildID1);
+	guild_war_draw(dwGuildID2);
+	change_ladder_point(dwGuildID1, 0);
+	change_ladder_point(dwGuildID2, 0);
 
-	QueryRanking();
+	query_ranking();
 }
 
-void CGuildManager::ProcessWinLose(uint32_t dwGuildWinner, uint32_t dwGuildLoser)
+void guild_manager::process_win_lose(uint32_t dwGuildWinner, uint32_t dwGuildLoser)
 {
-	GuildWarWin(dwGuildWinner);
-	GuildWarLose(dwGuildLoser);
+	guild_war_win(dwGuildWinner);
+	guild_war_lose(dwGuildLoser);
 	metin2::log::info( "GuildWar: \tWinner : {:d} Loser : {:d}", dwGuildWinner, dwGuildLoser);
 
-	int iPoint = GetLadderPoint(dwGuildLoser);
+	int iPoint = ladder_point(dwGuildLoser);
 	int gain = (int)(iPoint * 0.05);
 	int loss = (int)(iPoint * 0.07);
 
-	if (IsHalfWinLadderPoint(dwGuildWinner, dwGuildLoser))
+	if (is_half_win_ladder_point(dwGuildWinner, dwGuildLoser))
 		gain /= 2;
 
 	metin2::log::info( "GuildWar: \tgain : {:d} loss : {:d}", gain, loss);
 
-	ChangeLadderPoint(dwGuildWinner, gain);
-	ChangeLadderPoint(dwGuildLoser, -loss);
+	change_ladder_point(dwGuildWinner, gain);
+	change_ladder_point(dwGuildLoser, -loss);
 
-	QueryRanking();
+	query_ranking();
 }
 
-void CGuildManager::RemoveWar(uint32_t GID1, uint32_t GID2)
+void guild_manager::remove_war(uint32_t GID1, uint32_t GID2)
 {
 	metin2::log::info( "GuildWar: RemoveWar({:d}, {:d})", GID1, GID2);
 
 	if (GID1 > GID2)
 		std::swap(GID2, GID1);
 
-	auto it = m_WarMap[GID1].find(GID2);
+	auto it = war_map_[GID1].find(GID2);
 
-	if (it == m_WarMap[GID1].end())
+	if (it == war_map_[GID1].end())
 	{
-		if (m_WarMap[GID1].empty())
-			m_WarMap.erase(GID1);
+		if (war_map_[GID1].empty())
+			war_map_.erase(GID1);
 
 		return;
 	}
 
-	if (it->second.pElement)
-		it->second.pElement->bEnd = true;
+	if (it->second.element)
+		it->second.element->end = true;
 
-	m_mapGuildWarEndTime[GID1][GID2] = CClientManager::instance().GetCurrentTime();
+	guild_war_end_time_[GID1][GID2] = client_manager::instance().current_time();
 
-	m_WarMap[GID1].erase(it);
+	war_map_[GID1].erase(it);
 
-	if (m_WarMap[GID1].empty())
-		m_WarMap.erase(GID1);
+	if (war_map_[GID1].empty())
+		war_map_.erase(GID1);
 }
 
 //
 // guild war abnormal end and field war end
 //
-void CGuildManager::WarEnd(uint32_t GID1, uint32_t GID2, bool bForceDraw)
+void guild_manager::war_end(uint32_t GID1, uint32_t GID2, bool bForceDraw)
 {
 	if (GID1 > GID2)
 		std::swap(GID2, GID1);
 
 	metin2::log::info( "GuildWar: WarEnd {:d} {:d}", GID1, GID2);
 
-	auto itWarMap = m_WarMap[GID1].find(GID2);
+	auto itWarMap = war_map_[GID1].find(GID2);
 
-	if (itWarMap == m_WarMap[GID1].end())
+	if (itWarMap == war_map_[GID1].end())
 	{
 		metin2::log::error("GuildWar: war not exist or already ended. [1]");
 		return;
 	}
 
-	TGuildWarInfo gwi = itWarMap->second;
-	TGuildWarPQElement * pData = gwi.pElement;
+	guild_war_info gwi = itWarMap->second;
+	guild_war_pq_element * pData = gwi.element;
 
-	if (!pData || pData->bEnd)
+	if (!pData || pData->end)
 	{
 		metin2::log::error("GuildWar: war not exist or already ended. [2]");
 		return;
 	}
 
-	uint32_t win_guild = pData->GID[0];
-	uint32_t lose_guild = pData->GID[1];
+	uint32_t win_guild = pData->gid[0];
+	uint32_t lose_guild = pData->gid[1];
 
 	bool bDraw = false;
 
 	if (!bForceDraw) // check scores unless it's a forced draw.
 	{
-		if (pData->iScore[0] > pData->iScore[1])
+		if (pData->score[0] > pData->score[1])
 		{
-			win_guild = pData->GID[0];
-			lose_guild = pData->GID[1];
+			win_guild = pData->gid[0];
+			lose_guild = pData->gid[1];
 		}
-		else if (pData->iScore[1] > pData->iScore[0])
+		else if (pData->score[1] > pData->score[0])
 		{
-			win_guild = pData->GID[1];
-			lose_guild = pData->GID[0];
+			win_guild = pData->gid[1];
+			lose_guild = pData->gid[0];
 		}
 		else
 			bDraw = true;
@@ -501,20 +501,20 @@ void CGuildManager::WarEnd(uint32_t GID1, uint32_t GID2, bool bForceDraw)
 		bDraw = true;
 
 	if (bDraw)
-		ProcessDraw(win_guild, lose_guild);
+		process_draw(win_guild, lose_guild);
 	else
-		ProcessWinLose(win_guild, lose_guild);
+		process_win_lose(win_guild, lose_guild);
 
 	// the DB server sometimes ends it on its own, so a packet must be sent separately.
-	CClientManager::instance().for_each_peer(FSendPeerWar(0, GUILD_WAR_END, GID1, GID2));
+	client_manager::instance().for_each_peer(f_send_peer_war(0, GUILD_WAR_END, GID1, GID2));
 
-	RemoveWar(GID1, GID2);
+	remove_war(GID1, GID2);
 }
 
 //
 // guild war normal end
 // 
-void CGuildManager::RecvWarOver(uint32_t dwGuildWinner, uint32_t dwGuildLoser, bool bDraw, int32_t lWarPrice)
+void guild_manager::recv_war_over(uint32_t dwGuildWinner, uint32_t dwGuildLoser, bool bDraw, int32_t lWarPrice)
 {
 	metin2::log::info( "GuildWar: RecvWarOver : winner {:d} vs {:d} draw? {:d} war_price {:d}", dwGuildWinner, dwGuildLoser, bDraw ? 1 : 0, lWarPrice);
 
@@ -524,66 +524,66 @@ void CGuildManager::RecvWarOver(uint32_t dwGuildWinner, uint32_t dwGuildLoser, b
 	if (GID1 > GID2)
 		std::swap(GID1, GID2);
 
-	auto it = m_WarMap[GID1].find(GID2);
+	auto it = war_map_[GID1].find(GID2);
 
-	if (it == m_WarMap[GID1].end())
+	if (it == war_map_[GID1].end())
 		return;
 
-	TGuildWarInfo & gw = it->second;
+	guild_war_info & gw = it->second;
 
 	// Award
 	if (bDraw)
 	{
 		// give bet money / 2 to both guild
-		DepositMoney(dwGuildWinner, lWarPrice / 2);
-		DepositMoney(dwGuildLoser, lWarPrice / 2);
-		ProcessDraw(dwGuildWinner, dwGuildLoser);
+		deposit_money(dwGuildWinner, lWarPrice / 2);
+		deposit_money(dwGuildLoser, lWarPrice / 2);
+		process_draw(dwGuildWinner, dwGuildLoser);
 	}
 	else
 	{
 		// give bet money to winner guild
-		DepositMoney(dwGuildWinner, lWarPrice);
-		ProcessWinLose(dwGuildWinner, dwGuildLoser);
+		deposit_money(dwGuildWinner, lWarPrice);
+		process_win_lose(dwGuildWinner, dwGuildLoser);
 	}
 
-	if (gw.pkReserve)
+	if (gw.reserve)
 	{
-		if (bDraw || !gw.pElement)
-			gw.pkReserve->Draw();
-		else if (gw.pElement->bType == GUILD_WAR_TYPE_BATTLE)
-			gw.pkReserve->End(gw.pElement->iBetScore[0], gw.pElement->iBetScore[1]);
+		if (bDraw || !gw.element)
+			gw.reserve->draw();
+		else if (gw.element->type == GUILD_WAR_TYPE_BATTLE)
+			gw.reserve->end(gw.element->bet_score[0], gw.element->bet_score[1]);
 	}
 
-	RemoveWar(GID1, GID2);
+	remove_war(GID1, GID2);
 }
 
-void CGuildManager::RecvWarEnd(uint32_t GID1, uint32_t GID2)
+void guild_manager::recv_war_end(uint32_t GID1, uint32_t GID2)
 {
 	metin2::log::info( "GuildWar: RecvWarEnded : {:d} vs {:d}", GID1, GID2);
-	WarEnd(GID1, GID2, true); // must always end abnormally.
+	war_end(GID1, GID2, true); // must always end abnormally.
 }
 
-void CGuildManager::StartWar(uint8_t bType, uint32_t GID1, uint32_t GID2, CGuildWarReserve * pkReserve)
+void guild_manager::start_war(uint8_t bType, uint32_t GID1, uint32_t GID2, guild_war_reservation * pkReserve)
 {
 	metin2::log::info( "GuildWar: StartWar({:d},{:d},{:d})", bType, GID1, GID2);
 
 	if (GID1 > GID2)
 		std::swap(GID1, GID2);
 
-	TGuildWarInfo & gw = m_WarMap[GID1][GID2]; // map insert
+	guild_war_info & gw = war_map_[GID1][GID2]; // map insert
 
 	if (bType == GUILD_WAR_TYPE_FIELD)
-		gw.tEndTime = CClientManager::instance().GetCurrentTime() + GUILD_WAR_DURATION;
+		gw.t_end_time = client_manager::instance().current_time() + GUILD_WAR_DURATION;
 	else
-		gw.tEndTime = CClientManager::instance().GetCurrentTime() + 172800;
+		gw.t_end_time = client_manager::instance().current_time() + 172800;
 
-	gw.pElement = new TGuildWarPQElement(bType, GID1, GID2);
-	gw.pkReserve = pkReserve;
+	gw.element = new guild_war_pq_element(bType, GID1, GID2);
+	gw.reserve = pkReserve;
 
-	m_pqOnWar.push(std::make_pair(gw.tEndTime, gw.pElement));
+	pq_on_war_.push(std::make_pair(gw.t_end_time, gw.element));
 }
 
-void CGuildManager::UpdateScore(uint32_t dwGainGID, uint32_t dwOppGID, int iScoreDelta, int iBetScoreDelta)
+void guild_manager::update_score(uint32_t dwGainGID, uint32_t dwOppGID, int iScoreDelta, int iBetScoreDelta)
 {
 	uint32_t GID1 = dwGainGID;
 	uint32_t GID2 = dwOppGID;
@@ -591,13 +591,13 @@ void CGuildManager::UpdateScore(uint32_t dwGainGID, uint32_t dwOppGID, int iScor
 	if (GID1 > GID2)
 		std::swap(GID1, GID2);
 
-	auto it = m_WarMap[GID1].find(GID2);
+	auto it = war_map_[GID1].find(GID2);
 
-	if (it != m_WarMap[GID1].end())
+	if (it != war_map_[GID1].end())
 	{
-		TGuildWarPQElement * p = it->second.pElement;
+		guild_war_pq_element * p = it->second.element;
 
-		if (!p || p->bEnd)
+		if (!p || p->end)
 		{
 			metin2::log::error("GuildWar: war not exist or already ended.");
 			return;
@@ -606,61 +606,61 @@ void CGuildManager::UpdateScore(uint32_t dwGainGID, uint32_t dwOppGID, int iScor
 		int iNewScore = 0;
 		int iNewBetScore = 0;
 
-		if (p->GID[0] == dwGainGID)
+		if (p->gid[0] == dwGainGID)
 		{
-			p->iScore[0] += iScoreDelta;
-			p->iBetScore[0] += iBetScoreDelta;
+			p->score[0] += iScoreDelta;
+			p->bet_score[0] += iBetScoreDelta;
 
-			iNewScore = p->iScore[0];
-			iNewBetScore = p->iBetScore[0];
+			iNewScore = p->score[0];
+			iNewBetScore = p->bet_score[0];
 		}
 		else
 		{
-			p->iScore[1] += iScoreDelta;
-			p->iBetScore[1] += iBetScoreDelta;
+			p->score[1] += iScoreDelta;
+			p->bet_score[1] += iBetScoreDelta;
 
-			iNewScore = p->iScore[1];
-			iNewBetScore = p->iBetScore[1];
+			iNewScore = p->score[1];
+			iNewBetScore = p->bet_score[1];
 		}
 
 		metin2::log::info( "GuildWar: SendGuildWarScore guild {:d} wartype {:d} score_delta {:d} betscore_delta {:d} result {:d}, {:d}",
-				dwGainGID, p->bType, iScoreDelta, iBetScoreDelta, iNewScore, iNewBetScore);
+				dwGainGID, p->type, iScoreDelta, iBetScoreDelta, iNewScore, iNewBetScore);
 
-		CClientManager::instance().for_each_peer(FSendGuildWarScore(dwGainGID, dwOppGID, iNewScore, iNewBetScore));
+		client_manager::instance().for_each_peer(f_send_guild_war_score(dwGainGID, dwOppGID, iNewScore, iNewBetScore));
 	}
 }
 
-void CGuildManager::AddDeclare(uint8_t bType, uint32_t guild_from, uint32_t guild_to)
+void guild_manager::add_declare(uint8_t bType, uint32_t guild_from, uint32_t guild_to)
 {
-	TGuildDeclareInfo di(bType, guild_from, guild_to);
+	guild_declare_info di(bType, guild_from, guild_to);
 
-	if (m_DeclareMap.find(di) == m_DeclareMap.end())
-		m_DeclareMap.insert(di);
+	if (declare_map_.find(di) == declare_map_.end())
+		declare_map_.insert(di);
 
 	metin2::log::info( "GuildWar: AddDeclare(Type:{:d},from:{:d},to:{:d})", bType, guild_from, guild_to);
 }
 
-void CGuildManager::RemoveDeclare(uint32_t guild_from, uint32_t guild_to)
+void guild_manager::remove_declare(uint32_t guild_from, uint32_t guild_to)
 {
-	__typeof(m_DeclareMap.begin()) it = m_DeclareMap.find(TGuildDeclareInfo(0, guild_from, guild_to));
+	__typeof(declare_map_.begin()) it = declare_map_.find(guild_declare_info(0, guild_from, guild_to));
 
-	if (it != m_DeclareMap.end())
-		m_DeclareMap.erase(it);
+	if (it != declare_map_.end())
+		declare_map_.erase(it);
 
-	it = m_DeclareMap.find(TGuildDeclareInfo(0,guild_to, guild_from));
+	it = declare_map_.find(guild_declare_info(0,guild_to, guild_from));
 
-	if (it != m_DeclareMap.end())
-		m_DeclareMap.erase(it);
+	if (it != declare_map_.end())
+		declare_map_.erase(it);
 
 	metin2::log::info( "GuildWar: RemoveDeclare(from:{:d},to:{:d})", guild_from, guild_to);
 }
 
-bool CGuildManager::TakeBetPrice(uint32_t dwGuildTo, uint32_t dwGuildFrom, int32_t lWarPrice)
+bool guild_manager::take_bet_price(uint32_t dwGuildTo, uint32_t dwGuildFrom, int32_t lWarPrice)
 {
-	auto it_from = m_map_kGuild.find(dwGuildFrom);
-	auto it_to = m_map_kGuild.find(dwGuildTo);
+	auto it_from = map_k_guild_.find(dwGuildFrom);
+	auto it_to = map_k_guild_.find(dwGuildTo);
 
-	if (it_from == m_map_kGuild.end() || it_to == m_map_kGuild.end())
+	if (it_from == map_k_guild_.end() || it_to == map_k_guild_.end())
 	{
 		metin2::log::info( "TakeBetPrice: guild not exist {:d} {:d}",
 				dwGuildFrom, dwGuildTo);
@@ -677,29 +677,29 @@ bool CGuildManager::TakeBetPrice(uint32_t dwGuildTo, uint32_t dwGuildFrom, int32
 	it_from->second.gold -= lWarPrice;
 	it_to->second.gold -= lWarPrice;
 
-	MoneyChange(dwGuildFrom, it_from->second.gold);
-	MoneyChange(dwGuildTo, it_to->second.gold);
+	money_change(dwGuildFrom, it_from->second.gold);
+	money_change(dwGuildTo, it_to->second.gold);
 	return true;
 }
 
-int CGuildManager::GetLadderPoint(uint32_t GID)
+int guild_manager::ladder_point(uint32_t GID)
 {
-	auto it = m_map_kGuild.find(GID);
+	auto it = map_k_guild_.find(GID);
 
-	if (it == m_map_kGuild.end())
+	if (it == map_k_guild_.end())
 		return 0;
 
 	return it->second.ladder_point;
 }
 
-void CGuildManager::ChangeLadderPoint(uint32_t GID, int change)
+void guild_manager::change_ladder_point(uint32_t GID, int change)
 {
-	auto it = m_map_kGuild.find(GID);
+	auto it = map_k_guild_.find(GID);
 
-	if (it == m_map_kGuild.end())
+	if (it == map_k_guild_.end())
 		return;
 
-	TGuild & r = it->second;
+	guild & r = it->second;
 
 	r.ladder_point += change;
 
@@ -707,54 +707,54 @@ void CGuildManager::ChangeLadderPoint(uint32_t GID, int change)
 		r.ladder_point = 0;
 
 	char buf[1024];
-	snprintf(buf, sizeof(buf), "UPDATE guild%s SET ladder_point=%d WHERE id=%u", GetTablePostfix(), r.ladder_point, GID);
-	CDBManager::instance().AsyncQuery(buf);
+	snprintf(buf, sizeof(buf), "UPDATE guild%s SET ladder_point=%d WHERE id=%u", get_table_postfix(), r.ladder_point, GID);
+	db_manager::instance().async_query(buf);
 
 	metin2::log::info( "GuildManager::ChangeLadderPoint {:d} {:d}", GID, r.ladder_point);
 	metin2::log::info( "{}", buf);
 
 	// send packet
-	TPacketGuildLadder p;
+	packet_guild_ladder p;
 
-	p.dwGuild = GID;
-	p.lLadderPoint = r.ladder_point;
-	p.lWin = r.win;
-	p.lDraw = r.draw;
-	p.lLoss = r.loss;
+	p.guild = GID;
+	p.ladder_point = r.ladder_point;
+	p.win = r.win;
+	p.draw = r.draw;
+	p.loss = r.loss;
 
-	CClientManager::instance().ForwardPacket(HEADER_DG_GUILD_LADDER, &p, sizeof(TPacketGuildLadder));
+	client_manager::instance().forward_packet(HEADER_DG_GUILD_LADDER, &p, sizeof(packet_guild_ladder));
 }
 
-void CGuildManager::UseSkill(uint32_t GID, uint32_t dwSkillVnum, uint32_t dwCooltime)
+void guild_manager::use_skill(uint32_t GID, uint32_t dwSkillVnum, uint32_t dwCooltime)
 {
 	// GUILD_SKILL_COOLTIME_BUG_FIX
-	metin2::log::info( "UseSkill(gid={:d}, skill={:d}) CoolTime({:d}:{:d})", GID, dwSkillVnum, dwCooltime, CClientManager::instance().GetCurrentTime() + dwCooltime);
-	m_pqSkill.push(std::make_pair(CClientManager::instance().GetCurrentTime() + dwCooltime, TGuildSkillUsed(GID, dwSkillVnum)));
+	metin2::log::info( "UseSkill(gid={:d}, skill={:d}) CoolTime({:d}:{:d})", GID, dwSkillVnum, dwCooltime, client_manager::instance().current_time() + dwCooltime);
+	pq_skill_.push(std::make_pair(client_manager::instance().current_time() + dwCooltime, guild_skill_used(GID, dwSkillVnum)));
 	// END_OF_GUILD_SKILL_COOLTIME_BUG_FIX
 }
 
-void CGuildManager::MoneyChange(uint32_t dwGuild, uint32_t dwGold)
+void guild_manager::money_change(uint32_t dwGuild, uint32_t dwGold)
 {
 	metin2::log::info( "GuildManager::MoneyChange {:d} {:d}", dwGuild, dwGold);
 
-	TPacketDGGuildMoneyChange p;
-	p.dwGuild = dwGuild;
-	p.iTotalGold = dwGold;
-	CClientManager::instance().ForwardPacket(HEADER_DG_GUILD_MONEY_CHANGE, &p, sizeof(p));
+	packet_dg_guild_money_change p;
+	p.guild = dwGuild;
+	p.total_gold = dwGold;
+	client_manager::instance().forward_packet(HEADER_DG_GUILD_MONEY_CHANGE, &p, sizeof(p));
 
 	char buf[1024];
-	snprintf(buf, sizeof(buf), "UPDATE guild%s SET gold=%u WHERE id = %u", GetTablePostfix(), dwGold, dwGuild);
-	CDBManager::instance().AsyncQuery(buf);
+	snprintf(buf, sizeof(buf), "UPDATE guild%s SET gold=%u WHERE id = %u", get_table_postfix(), dwGold, dwGuild);
+	db_manager::instance().async_query(buf);
 }
 
-void CGuildManager::DepositMoney(uint32_t dwGuild, int32_t iGold)
+void guild_manager::deposit_money(uint32_t dwGuild, int32_t iGold)
 {
 	if (iGold <= 0)
 		return;
 
-	auto it = m_map_kGuild.find(dwGuild);
+	auto it = map_k_guild_.find(dwGuild);
 
-	if (it == m_map_kGuild.end())
+	if (it == map_k_guild_.end())
 	{
 		metin2::log::error("No guild by id {:d}", dwGuild);
 		return;
@@ -763,14 +763,14 @@ void CGuildManager::DepositMoney(uint32_t dwGuild, int32_t iGold)
 	it->second.gold += iGold;
 	metin2::log::info( "GUILD: {:d} Deposit {:d} Total {:d}", dwGuild, iGold, it->second.gold);
 
-	MoneyChange(dwGuild, it->second.gold);
+	money_change(dwGuild, it->second.gold);
 }
 
-void CGuildManager::WithdrawMoney(CPeer* peer, uint32_t dwGuild, int32_t iGold)
+void guild_manager::withdraw_money(peer* peer, uint32_t dwGuild, int32_t iGold)
 {
-	auto it = m_map_kGuild.find(dwGuild);
+	auto it = map_k_guild_.find(dwGuild);
 
-	if (it == m_map_kGuild.end())
+	if (it == map_k_guild_.end())
 	{
 		metin2::log::error("No guild by id {:d}", dwGuild);
 		return;
@@ -782,20 +782,20 @@ void CGuildManager::WithdrawMoney(CPeer* peer, uint32_t dwGuild, int32_t iGold)
 		it->second.gold -= iGold;
 		metin2::log::info( "GUILD: {:d} Withdraw {:d} Total {:d}", dwGuild, iGold, it->second.gold);
 
-		TPacketDGGuildMoneyWithdraw p;
-		p.dwGuild = dwGuild;
-		p.iChangeGold = iGold;
+		packet_dg_guild_money_withdraw p;
+		p.guild = dwGuild;
+		p.change_gold = iGold;
 
-		peer->EncodeHeader(HEADER_DG_GUILD_WITHDRAW_MONEY_GIVE, 0, sizeof(TPacketDGGuildMoneyWithdraw));
-		peer->Encode(&p, sizeof(TPacketDGGuildMoneyWithdraw));
+		peer->encode_header(HEADER_DG_GUILD_WITHDRAW_MONEY_GIVE, 0, sizeof(packet_dg_guild_money_withdraw));
+		peer->encode(&p, sizeof(packet_dg_guild_money_withdraw));
 	}
 }
 
-void CGuildManager::WithdrawMoneyReply(uint32_t dwGuild, uint8_t bGiveSuccess, int32_t iGold)
+void guild_manager::withdraw_money_reply(uint32_t dwGuild, uint8_t bGiveSuccess, int32_t iGold)
 {
-	auto it = m_map_kGuild.find(dwGuild);
+	auto it = map_k_guild_.find(dwGuild);
 
-	if (it == m_map_kGuild.end())
+	if (it == map_k_guild_.end())
 		return;
 
 	metin2::log::info( "GuildManager::WithdrawMoneyReply : guild {:d} success {:d} gold {:d}", dwGuild, bGiveSuccess, iGold);
@@ -803,13 +803,13 @@ void CGuildManager::WithdrawMoneyReply(uint32_t dwGuild, uint8_t bGiveSuccess, i
 	if (!bGiveSuccess)
 		it->second.gold += iGold;
 	else
-		MoneyChange(dwGuild, it->second.gold);
+		money_change(dwGuild, it->second.gold);
 }
 
 //
 // scheduled guild war (spectators can bet)
 //
-const int c_aiScoreByLevel[GUILD_MAX_LEVEL+1] =
+const int score_by_level[GUILD_MAX_LEVEL+1] =
 {
 	500,	// level 0 = 500 probably error
 	500,	// 1
@@ -834,7 +834,7 @@ const int c_aiScoreByLevel[GUILD_MAX_LEVEL+1] =
 	55000,
 };
 
-const int c_aiScoreByRanking[GUILD_RANK_MAX_NUM+1] =
+const int score_by_ranking[GUILD_RANK_MAX_NUM+1] =
 {
 	0,
 	55000,	// 1st place
@@ -859,7 +859,7 @@ const int c_aiScoreByRanking[GUILD_RANK_MAX_NUM+1] =
 	500		// 20th place
 };
 
-void CGuildManager::BootReserveWar()
+void guild_manager::boot_reserve_war()
 {
 	const char * c_apszQuery[2] = 
 	{
@@ -869,159 +869,159 @@ void CGuildManager::BootReserveWar()
 
 	for (int i = 0; i < 2; ++i)
 	{
-		std::unique_ptr<SQLMsg> pmsg(CDBManager::instance().DirectQuery(c_apszQuery[i]));
+		std::unique_ptr<ql_msg> pmsg(db_manager::instance().direct_query(c_apszQuery[i]));
 
-		if (pmsg->Get()->uiNumRows == 0)
+		if (pmsg->get()->num_rows == 0)
 			continue;
 
 		MYSQL_ROW row;
 
-		while ((row = mysql_fetch_row(pmsg->Get()->pSQLResult)))
+		while ((row = mysql_fetch_row(pmsg->get()->sql_result)))
 		{
 			int col = 0;
 
-			TGuildWarReserve t;
+			guild_war_reserve t;
 
-			str_to_number(t.dwID, row[col++]);
-			str_to_number(t.dwGuildFrom, row[col++]);
-			str_to_number(t.dwGuildTo, row[col++]);
-			str_to_number(t.dwTime, row[col++]);
-			str_to_number(t.bType, row[col++]);
-			str_to_number(t.lWarPrice, row[col++]);
-			str_to_number(t.lInitialScore, row[col++]);
-			str_to_number(t.dwBetFrom, row[col++]);
-			str_to_number(t.dwBetTo, row[col++]);
-			str_to_number(t.lPowerFrom, row[col++]);
-			str_to_number(t.lPowerTo, row[col++]);
-			str_to_number(t.lHandicap, row[col++]);
-			t.bStarted = 0;
+			str_to_number(t.id, row[col++]);
+			str_to_number(t.guild_from, row[col++]);
+			str_to_number(t.guild_to, row[col++]);
+			str_to_number(t.time, row[col++]);
+			str_to_number(t.type, row[col++]);
+			str_to_number(t.war_price, row[col++]);
+			str_to_number(t.initial_score, row[col++]);
+			str_to_number(t.bet_from, row[col++]);
+			str_to_number(t.bet_to, row[col++]);
+			str_to_number(t.power_from, row[col++]);
+			str_to_number(t.power_to, row[col++]);
+			str_to_number(t.handicap, row[col++]);
+			t.started = 0;
 
-			auto pkReserve = std::make_unique<CGuildWarReserve>(t);
+			auto pkReserve = std::make_unique<guild_war_reservation>(t);
 
 			char buf[512];
-			snprintf(buf, sizeof(buf), "GuildWar: BootReserveWar : step %d id %u GID1 %u GID2 %u", i, t.dwID, t.dwGuildFrom, t.dwGuildTo);
+			snprintf(buf, sizeof(buf), "GuildWar: BootReserveWar : step %d id %u GID1 %u GID2 %u", i, t.id, t.guild_from, t.guild_to);
 			// if i == 0 the DB crashed during the guild war, so treat it as a draw.
 			// also, scheduled guild wars with 5 minutes or less left are treated as a draw. (bets are refunded)
-			if (i == 0 || (int) t.dwTime - CClientManager::instance().GetCurrentTime() < 0)
+			if (i == 0 || (int) t.time - client_manager::instance().current_time() < 0)
 			{
 				if (i == 0)
 					metin2::log::info( "{} : DB was shutdowned while war is being.", buf);
 				else
 					metin2::log::info( "{} : left time lower than 5 minutes, will be canceled", buf);
 
-				pkReserve->Draw();
+				pkReserve->draw();
 			}
 			else
 			{
 				metin2::log::info( "{} : OK", buf);
-				m_map_kWarReserve.insert(std::make_pair(t.dwID, std::move(pkReserve)));
+				map_k_war_reserve_.insert(std::make_pair(t.id, std::move(pkReserve)));
 			}
 		}
 	}
 }
 
-int GetAverageGuildMemberLevel(uint32_t dwGID)
+int get_average_guild_member_level(uint32_t dwGID)
 {
 	char szQuery[QUERY_MAX_LEN];
 
 	snprintf(szQuery, sizeof(szQuery), 
 			"SELECT AVG(level) FROM guild_member%s, player%s AS p WHERE guild_id=%u AND guild_member%s.pid=p.id", 
-			GetTablePostfix(), GetTablePostfix(), dwGID, GetTablePostfix());
+			get_table_postfix(), get_table_postfix(), dwGID, get_table_postfix());
 
-	std::unique_ptr<SQLMsg> msg(CDBManager::instance().DirectQuery(szQuery));
+	std::unique_ptr<ql_msg> msg(db_manager::instance().direct_query(szQuery));
 
 	MYSQL_ROW row;
-	row = mysql_fetch_row(msg->Get()->pSQLResult);
+	row = mysql_fetch_row(msg->get()->sql_result);
 
 	int nAverageLevel = 0; str_to_number(nAverageLevel, row[0]);
 	return nAverageLevel;
 }
 
-int GetGuildMemberCount(uint32_t dwGID)
+int get_guild_member_count(uint32_t dwGID)
 {
 	char szQuery[QUERY_MAX_LEN];
 
-	snprintf(szQuery, sizeof(szQuery), "SELECT COUNT(*) FROM guild_member%s WHERE guild_id=%u", GetTablePostfix(), dwGID);
+	snprintf(szQuery, sizeof(szQuery), "SELECT COUNT(*) FROM guild_member%s WHERE guild_id=%u", get_table_postfix(), dwGID);
 
-	std::unique_ptr<SQLMsg> msg(CDBManager::instance().DirectQuery(szQuery));
+	std::unique_ptr<ql_msg> msg(db_manager::instance().direct_query(szQuery));
 
 	MYSQL_ROW row;
-	row = mysql_fetch_row(msg->Get()->pSQLResult);
+	row = mysql_fetch_row(msg->get()->sql_result);
 
 	uint32_t dwCount = 0; str_to_number(dwCount, row[0]);
 	return dwCount;
 }
 
-bool CGuildManager::ReserveWar(TPacketGuildWar * p)
+bool guild_manager::reserve_war(packet_guild_war * p)
 {
-	uint32_t GID1 = p->dwGuildFrom;
-	uint32_t GID2 = p->dwGuildTo;
+	uint32_t GID1 = p->guild_from;
+	uint32_t GID2 = p->guild_to;
 
 	if (GID1 > GID2)
 		std::swap(GID1, GID2);
 
-	if (p->lWarPrice > 0)
-		if (!TakeBetPrice(GID1, GID2, p->lWarPrice))
+	if (p->war_price > 0)
+		if (!take_bet_price(GID1, GID2, p->war_price))
 			return false;
 
-	TGuildWarReserve t;
-	memset(&t, 0, sizeof(TGuildWarReserve));
+	guild_war_reserve t;
+	memset(&t, 0, sizeof(guild_war_reserve));
 
-	t.dwGuildFrom = GID1;
-	t.dwGuildTo = GID2;
-	t.dwTime = CClientManager::instance().GetCurrentTime() + GetGuildWarReserveSeconds();
-	t.bType = p->bType;
-	t.lWarPrice = p->lWarPrice;
-	t.lInitialScore = p->lInitialScore;
+	t.guild_from = GID1;
+	t.guild_to = GID2;
+	t.time = client_manager::instance().current_time() + get_guild_war_reserve_seconds();
+	t.type = p->type;
+	t.war_price = p->war_price;
+	t.initial_score = p->initial_score;
 
 	int lvp, rkp, alv, mc;
 
 	// power calculation
-	TGuild & k1 = TouchGuild(GID1);
+	guild & k1 = touch_guild(GID1);
 
-	lvp = c_aiScoreByLevel[std::min(GUILD_MAX_LEVEL, k1.level)];
-	rkp = c_aiScoreByRanking[GetRanking(GID1)];
-	alv = GetAverageGuildMemberLevel(GID1);
-	mc = GetGuildMemberCount(GID1);
+	lvp = score_by_level[std::min(GUILD_MAX_LEVEL, k1.level)];
+	rkp = score_by_ranking[ranking(GID1)];
+	alv = get_average_guild_member_level(GID1);
+	mc = get_guild_member_count(GID1);
 
-	polyPower.SetVar("lvp", lvp);
-	polyPower.SetVar("rkp", rkp);
-	polyPower.SetVar("alv", alv);
-	polyPower.SetVar("mc", mc);
+	poly_power_.set_var("lvp", lvp);
+	poly_power_.set_var("rkp", rkp);
+	poly_power_.set_var("alv", alv);
+	poly_power_.set_var("mc", mc);
 
-	t.lPowerFrom = (int32_t) polyPower.Eval();
-	metin2::log::info( "GuildWar: {:d} lvp {:d} rkp {:d} alv {:d} mc {:d} power {:d}", GID1, lvp, rkp, alv, mc, t.lPowerFrom);
+	t.power_from = (int32_t) poly_power_.eval();
+	metin2::log::info( "GuildWar: {:d} lvp {:d} rkp {:d} alv {:d} mc {:d} power {:d}", GID1, lvp, rkp, alv, mc, t.power_from);
 
 	// power calculation
-	TGuild & k2 = TouchGuild(GID2);
+	guild & k2 = touch_guild(GID2);
 
-	lvp = c_aiScoreByLevel[std::min(GUILD_MAX_LEVEL, k2.level)];
-	rkp = c_aiScoreByRanking[GetRanking(GID2)];
-	alv = GetAverageGuildMemberLevel(GID2);
-	mc = GetGuildMemberCount(GID2);
+	lvp = score_by_level[std::min(GUILD_MAX_LEVEL, k2.level)];
+	rkp = score_by_ranking[ranking(GID2)];
+	alv = get_average_guild_member_level(GID2);
+	mc = get_guild_member_count(GID2);
 
-	polyPower.SetVar("lvp", lvp);
-	polyPower.SetVar("rkp", rkp);
-	polyPower.SetVar("alv", alv);
-	polyPower.SetVar("mc", mc);
+	poly_power_.set_var("lvp", lvp);
+	poly_power_.set_var("rkp", rkp);
+	poly_power_.set_var("alv", alv);
+	poly_power_.set_var("mc", mc);
 
-	t.lPowerTo = (int32_t) polyPower.Eval();
-	metin2::log::info( "GuildWar: {:d} lvp {:d} rkp {:d} alv {:d} mc {:d} power {:d}", GID2, lvp, rkp, alv, mc, t.lPowerTo);
+	t.power_to = (int32_t) poly_power_.eval();
+	metin2::log::info( "GuildWar: {:d} lvp {:d} rkp {:d} alv {:d} mc {:d} power {:d}", GID2, lvp, rkp, alv, mc, t.power_to);
 
 	// handicap calculation
-	if (t.lPowerTo > t.lPowerFrom)
+	if (t.power_to > t.power_from)
 	{
-		polyHandicap.SetVar("pA", t.lPowerTo);
-		polyHandicap.SetVar("pB", t.lPowerFrom);
+		poly_handicap_.set_var("pA", t.power_to);
+		poly_handicap_.set_var("pB", t.power_from);
 	}
 	else
 	{
-		polyHandicap.SetVar("pA", t.lPowerFrom);
-		polyHandicap.SetVar("pB", t.lPowerTo);
+		poly_handicap_.set_var("pA", t.power_from);
+		poly_handicap_.set_var("pB", t.power_to);
 	}
 
-	t.lHandicap = (int32_t) polyHandicap.Eval();
-	metin2::log::info( "GuildWar: handicap {:d}", t.lHandicap);
+	t.handicap = (int32_t) poly_handicap_.eval();
+	metin2::log::info( "GuildWar: handicap {:d}", t.handicap);
 
 	// query
 	char szQuery[512];
@@ -1029,126 +1029,126 @@ bool CGuildManager::ReserveWar(TPacketGuildWar * p)
 	snprintf(szQuery, sizeof(szQuery),
 			"INSERT INTO guild_war_reservation (guild1, guild2, time, type, warprice, initscore, power1, power2, handicap) "
 			"VALUES(%u, %u, DATE_ADD(NOW(), INTERVAL 180 SECOND), %u, %d, %d, %d, %d, %d)",
-			GID1, GID2, p->bType, p->lWarPrice, p->lInitialScore, t.lPowerFrom, t.lPowerTo, t.lHandicap);
+			GID1, GID2, p->type, p->war_price, p->initial_score, t.power_from, t.power_to, t.handicap);
 
-	std::unique_ptr<SQLMsg> pmsg(CDBManager::instance().DirectQuery(szQuery));
+	std::unique_ptr<ql_msg> pmsg(db_manager::instance().direct_query(szQuery));
 
-	if (pmsg->Get()->uiAffectedRows == 0 || pmsg->Get()->uiInsertID == 0 || pmsg->Get()->uiAffectedRows == (uint32_t)-1)
+	if (pmsg->get()->affected_rows == 0 || pmsg->get()->insert_id == 0 || pmsg->get()->affected_rows == (uint32_t)-1)
 	{
 		metin2::log::error("GuildWar: Cannot insert row");
 		return false;
 	}
 
-	t.dwID = pmsg->Get()->uiInsertID;
+	t.id = pmsg->get()->insert_id;
 
-	m_map_kWarReserve.insert(std::make_pair(t.dwID, std::make_unique<CGuildWarReserve>(t)));
+	map_k_war_reserve_.insert(std::make_pair(t.id, std::make_unique<guild_war_reservation>(t)));
 
-	CClientManager::instance().ForwardPacket(HEADER_DG_GUILD_WAR_RESERVE_ADD, &t, sizeof(TGuildWarReserve));
+	client_manager::instance().forward_packet(HEADER_DG_GUILD_WAR_RESERVE_ADD, &t, sizeof(guild_war_reserve));
 	return true;
 }
 
-void CGuildManager::ProcessReserveWar()
+void guild_manager::process_reserve_war()
 {
-	uint32_t dwCurTime = CClientManager::instance().GetCurrentTime();
+	uint32_t dwCurTime = client_manager::instance().current_time();
 
-	auto it = m_map_kWarReserve.begin();
+	auto it = map_k_war_reserve_.begin();
 
-	while (it != m_map_kWarReserve.end())
+	while (it != map_k_war_reserve_.end())
 	{
 		auto it2 = it++;
 
-		CGuildWarReserve * pk = it2->second.get();
-		TGuildWarReserve & r = pk->GetDataRef();
+		guild_war_reservation * pk = it2->second.get();
+		guild_war_reserve & r = pk->data_ref();
 
-		if (!r.bStarted && r.dwTime - 1800 <= dwCurTime) // announce starting 30 minutes before.
+		if (!r.started && r.time - 1800 <= dwCurTime) // announce starting 30 minutes before.
 		{
-			int iMin = (int) ceil((int)(r.dwTime - dwCurTime) / 60.0);
+			int iMin = (int) ceil((int)(r.time - dwCurTime) / 60.0);
 
-			metin2::log::info( "GuildWar: started GID1 {:d} GID2 {:d} {:d} time {:d} min {:d}", r.dwGuildFrom, r.dwGuildTo, r.bStarted, dwCurTime - r.dwTime, iMin);
+			metin2::log::info( "GuildWar: started GID1 {:d} GID2 {:d} {:d} time {:d} min {:d}", r.guild_from, r.guild_to, r.started, dwCurTime - r.time, iMin);
 
 			if (iMin <= 0)
 			{
 				char szQuery[128];
-				snprintf(szQuery, sizeof(szQuery), "UPDATE guild_war_reservation SET started=1 WHERE id=%u", r.dwID);
-				CDBManager::instance().AsyncQuery(szQuery);
+				snprintf(szQuery, sizeof(szQuery), "UPDATE guild_war_reservation SET started=1 WHERE id=%u", r.id);
+				db_manager::instance().async_query(szQuery);
 
-				CClientManager::instance().ForwardPacket(HEADER_DG_GUILD_WAR_RESERVE_DEL, &r.dwID, sizeof(uint32_t));
+				client_manager::instance().forward_packet(HEADER_DG_GUILD_WAR_RESERVE_DEL, &r.id, sizeof(uint32_t));
 
-				r.bStarted = true;
+				r.started = true;
 
-				TGuildWaitStartInfo info(r.bType, r.dwGuildFrom, r.dwGuildTo, r.lWarPrice, r.lInitialScore, pk);
-				m_pqWaitStart.push(std::make_pair(dwCurTime + GetGuildWarWaitStartDuration(), info));
+				guild_wait_start_info info(r.type, r.guild_from, r.guild_to, r.war_price, r.initial_score, pk);
+				pq_wait_start_.push(std::make_pair(dwCurTime + get_guild_war_wait_start_duration(), info));
 
-				TPacketGuildWar pck;
+				packet_guild_war pck;
 
-				pck.bType = r.bType;
-				pck.bWar = GUILD_WAR_WAIT_START;
-				pck.dwGuildFrom = r.dwGuildFrom;
-				pck.dwGuildTo = r.dwGuildTo;
-				pck.lWarPrice = r.lWarPrice;
-				pck.lInitialScore = r.lInitialScore;
+				pck.type = r.type;
+				pck.war = GUILD_WAR_WAIT_START;
+				pck.guild_from = r.guild_from;
+				pck.guild_to = r.guild_to;
+				pck.war_price = r.war_price;
+				pck.initial_score = r.initial_score;
 
-				CClientManager::instance().ForwardPacket(HEADER_DG_GUILD_WAR, &pck, sizeof(TPacketGuildWar));
+				client_manager::instance().forward_packet(HEADER_DG_GUILD_WAR, &pck, sizeof(packet_guild_war));
 			}
 			else
 			{
-				if (iMin != pk->GetLastNoticeMin())
+				if (iMin != pk->last_notice_min())
 				{
-					pk->SetLastNoticeMin(iMin);
+					pk->set_last_notice_min(iMin);
 				}
 			}
 		}
 	}
 }
 
-bool CGuildManager::Bet(uint32_t dwID, const char * c_pszLogin, uint32_t dwGold, uint32_t dwGuild)
+bool guild_manager::bet(uint32_t dwID, const char * c_pszLogin, uint32_t dwGold, uint32_t dwGuild)
 {
-	auto it = m_map_kWarReserve.find(dwID);
+	auto it = map_k_war_reserve_.find(dwID);
 
-	if (it == m_map_kWarReserve.end())
+	if (it == map_k_war_reserve_.end())
 	{
 		metin2::log::info( "WAR_RESERVE: Bet: cannot find reserve war by id {:d}", dwID);
 		const std::string query = sql::format("INSERT INTO item_award (login, vnum, socket0, given_time) VALUES({}, {}, {}, NOW())",
 				c_pszLogin, ITEM_ELK_VNUM, dwGold);
-		CDBManager::instance().AsyncQuery(query.c_str());
+		db_manager::instance().async_query(query.c_str());
 		return false;
 	}
 
-	if (!it->second->Bet(c_pszLogin, dwGold, dwGuild))
+	if (!it->second->bet(c_pszLogin, dwGold, dwGuild))
 	{
 		metin2::log::info( "WAR_RESERVE: Bet: cannot bet id {:d}, login {}, gold {:d}, guild {:d}", dwID, c_pszLogin, dwGold, dwGuild);
 		const std::string query = sql::format("INSERT INTO item_award (login, vnum, socket0, given_time) VALUES({}, {}, {}, NOW())", 
 				c_pszLogin, ITEM_ELK_VNUM, dwGold);
-		CDBManager::instance().AsyncQuery(query.c_str());
+		db_manager::instance().async_query(query.c_str());
 		return false;
 	}
 
 	return true;
 }
 
-void CGuildManager::CancelWar(uint32_t GID1, uint32_t GID2)
+void guild_manager::cancel_war(uint32_t GID1, uint32_t GID2)
 {
-	RemoveDeclare(GID1, GID2);
-	RemoveWar(GID1, GID2);
+	remove_declare(GID1, GID2);
+	remove_war(GID1, GID2);
 }
 
-bool CGuildManager::ChangeMaster(uint32_t dwGID, uint32_t dwFrom, uint32_t dwTo)
+bool guild_manager::change_master(uint32_t dwGID, uint32_t dwFrom, uint32_t dwTo)
 {
-	auto iter = m_map_kGuild.find(dwGID);
+	auto iter = map_k_guild_.find(dwGID);
 
-	if (iter == m_map_kGuild.end())
+	if (iter == map_k_guild_.end())
 		return false;
 
 	char szQuery[1024];
 
-	snprintf(szQuery, sizeof(szQuery), "UPDATE guild%s SET master=%u WHERE id=%u", GetTablePostfix(), dwTo, dwGID);
-	std::unique_ptr<SQLMsg>(CDBManager::instance().DirectQuery(szQuery));
+	snprintf(szQuery, sizeof(szQuery), "UPDATE guild%s SET master=%u WHERE id=%u", get_table_postfix(), dwTo, dwGID);
+	std::unique_ptr<ql_msg>(db_manager::instance().direct_query(szQuery));
 
-	snprintf(szQuery, sizeof(szQuery), "UPDATE guild_member%s SET grade=1 WHERE pid=%u", GetTablePostfix(), dwTo);
-	std::unique_ptr<SQLMsg>(CDBManager::instance().DirectQuery(szQuery));
+	snprintf(szQuery, sizeof(szQuery), "UPDATE guild_member%s SET grade=1 WHERE pid=%u", get_table_postfix(), dwTo);
+	std::unique_ptr<ql_msg>(db_manager::instance().direct_query(szQuery));
 
-	snprintf(szQuery, sizeof(szQuery), "UPDATE guild_member%s SET grade=15 WHERE pid=%u", GetTablePostfix(), dwFrom);
-	std::unique_ptr<SQLMsg>(CDBManager::instance().DirectQuery(szQuery));
+	snprintf(szQuery, sizeof(szQuery), "UPDATE guild_member%s SET grade=15 WHERE pid=%u", get_table_postfix(), dwFrom);
+	std::unique_ptr<ql_msg>(db_manager::instance().direct_query(szQuery));
 
 	return true;
 }
@@ -1156,24 +1156,24 @@ bool CGuildManager::ChangeMaster(uint32_t dwGID, uint32_t dwFrom, uint32_t dwTo)
 //////////////////////////////////////////////////////////////////////////////////////////
 // Guild War Reserve Class
 //////////////////////////////////////////////////////////////////////////////////////////
-CGuildWarReserve::CGuildWarReserve(const TGuildWarReserve & rTable)
+guild_war_reservation::guild_war_reservation(const guild_war_reserve & rTable)
 {
-	std::memcpy(&m_data, &rTable, sizeof(TGuildWarReserve));
-	m_iLastNoticeMin = -1;
+	std::memcpy(&data_, &rTable, sizeof(guild_war_reserve));
+	last_notice_min_ = -1;
 
-	Initialize();
+	initialize();
 }
 
-void CGuildWarReserve::Initialize()
+void guild_war_reservation::initialize()
 {
 	char szQuery[256];
-	snprintf(szQuery, sizeof(szQuery), "SELECT login, guild, gold FROM guild_war_bet WHERE war_id=%u", m_data.dwID);
+	snprintf(szQuery, sizeof(szQuery), "SELECT login, guild, gold FROM guild_war_bet WHERE war_id=%u", data_.id);
 
-	std::unique_ptr<SQLMsg> msgbet(CDBManager::instance().DirectQuery(szQuery));
+	std::unique_ptr<ql_msg> msgbet(db_manager::instance().direct_query(szQuery));
 
-	if (msgbet->Get()->uiNumRows)
+	if (msgbet->get()->num_rows)
 	{
-		MYSQL_RES * res = msgbet->Get()->pSQLResult;
+		MYSQL_RES * res = msgbet->get()->sql_result;
 		MYSQL_ROW row;
 
 		char szLogin[LOGIN_MAX_LEN+1];
@@ -1187,54 +1187,54 @@ void CGuildWarReserve::Initialize()
 			str_to_number(dwGuild, row[1]);
 			str_to_number(dwGold, row[2]);
 
-			mapBet.insert(std::make_pair(szLogin, std::make_pair(dwGuild, dwGold)));
+			bet_.insert(std::make_pair(szLogin, std::make_pair(dwGuild, dwGold)));
 		}
 	}
 }
 
-void CGuildWarReserve::OnSetup(CPeer * peer)
+void guild_war_reservation::on_setup(peer * peer)
 {
-	if (m_data.bStarted) // don't send ones that already started.
+	if (data_.started) // don't send ones that already started.
 		return;
 
-	FSendPeerWar(m_data.bType, GUILD_WAR_RESERVE, m_data.dwGuildFrom, m_data.dwGuildTo) (peer);
+	f_send_peer_war(data_.type, GUILD_WAR_RESERVE, data_.guild_from, data_.guild_to) (peer);
 
-	peer->EncodeHeader(HEADER_DG_GUILD_WAR_RESERVE_ADD, 0, sizeof(TGuildWarReserve));
-	peer->Encode(&m_data, sizeof(TGuildWarReserve));
+	peer->encode_header(HEADER_DG_GUILD_WAR_RESERVE_ADD, 0, sizeof(guild_war_reserve));
+	peer->encode(&data_, sizeof(guild_war_reserve));
 
-	TPacketGDGuildWarBet pckBet;
-	pckBet.dwWarID = m_data.dwID;
+	packet_gd_guild_war_bet pckBet;
+	pckBet.war_id = data_.id;
 
-	auto it = mapBet.begin();
+	auto it = bet_.begin();
 
-	while (it != mapBet.end())
+	while (it != bet_.end())
 	{
-		strlcpy(pckBet.szLogin, it->first.c_str(), sizeof(pckBet.szLogin));
-		pckBet.dwGuild = it->second.first;
-		pckBet.dwGold = it->second.second;
+		strlcpy(pckBet.login, it->first.c_str(), sizeof(pckBet.login));
+		pckBet.guild = it->second.first;
+		pckBet.gold = it->second.second;
 
-		peer->EncodeHeader(HEADER_DG_GUILD_WAR_BET, 0, sizeof(TPacketGDGuildWarBet));
-		peer->Encode(&pckBet, sizeof(TPacketGDGuildWarBet));
+		peer->encode_header(HEADER_DG_GUILD_WAR_BET, 0, sizeof(packet_gd_guild_war_bet));
+		peer->encode(&pckBet, sizeof(packet_gd_guild_war_bet));
 
 		++it;
 	}
 }
 
-bool CGuildWarReserve::Bet(const char * pszLogin, uint32_t dwGold, uint32_t dwGuild)
+bool guild_war_reservation::bet(const char * pszLogin, uint32_t dwGold, uint32_t dwGuild)
 {
-	if (m_data.dwGuildFrom != dwGuild && m_data.dwGuildTo != dwGuild)
+	if (data_.guild_from != dwGuild && data_.guild_to != dwGuild)
 	{
 		metin2::log::info( "GuildWarReserve::Bet: invalid guild id");
 		return false;
 	}
 
-	if (m_data.bStarted)
+	if (data_.started)
 	{
 		metin2::log::info( "GuildWarReserve::Bet: war is already started");
 		return false;
 	}
 
-	if (mapBet.find(pszLogin) != mapBet.end())
+	if (bet_.find(pszLogin) != bet_.end())
 	{
 		metin2::log::info( "GuildWarReserve::Bet: failed. already bet");
 		return false;
@@ -1242,38 +1242,38 @@ bool CGuildWarReserve::Bet(const char * pszLogin, uint32_t dwGold, uint32_t dwGu
 
 	std::string query = sql::format(
 			"INSERT INTO guild_war_bet (war_id, login, gold, guild) VALUES({}, {}, {}, {})",
-			m_data.dwID, pszLogin, dwGold, dwGuild);
+			data_.id, pszLogin, dwGold, dwGuild);
 
-	std::unique_ptr<SQLMsg> pmsg(CDBManager::instance().DirectQuery(query.c_str()));
+	std::unique_ptr<ql_msg> pmsg(db_manager::instance().direct_query(query.c_str()));
 
-	if (pmsg->Get()->uiAffectedRows == 0 || pmsg->Get()->uiAffectedRows == (uint32_t)-1)
+	if (pmsg->get()->affected_rows == 0 || pmsg->get()->affected_rows == (uint32_t)-1)
 	{
 		metin2::log::info( "GuildWarReserve::Bet: failed. cannot insert row to guild_war_bet table");
 		return false;
 	}
 
-	if (m_data.dwGuildFrom == dwGuild)
-		m_data.dwBetFrom += dwGold;
+	if (data_.guild_from == dwGuild)
+		data_.bet_from += dwGold;
 	else
-		m_data.dwBetTo += dwGold;
+		data_.bet_to += dwGold;
 
-	CClientManager::instance().ForwardPacket(HEADER_DG_GUILD_WAR_RESERVE_ADD, &m_data, sizeof(TGuildWarReserve));
+	client_manager::instance().forward_packet(HEADER_DG_GUILD_WAR_RESERVE_ADD, &data_, sizeof(guild_war_reserve));
 
 	query = sql::format("UPDATE guild_war_reservation SET bet_from={},bet_to={} WHERE id={}", 
-			m_data.dwBetFrom, m_data.dwBetTo, m_data.dwID);
+			data_.bet_from, data_.bet_to, data_.id);
 
-	CDBManager::instance().AsyncQuery(query.c_str());
+	db_manager::instance().async_query(query.c_str());
 
-	metin2::log::info( "GuildWarReserve::Bet: success. {} {:d} war_id {:d} bet {:d} : {:d}", pszLogin, dwGuild, m_data.dwID, m_data.dwBetFrom, m_data.dwBetTo);
-	mapBet.insert(std::make_pair(pszLogin, std::make_pair(dwGuild, dwGold)));
+	metin2::log::info( "GuildWarReserve::Bet: success. {} {:d} war_id {:d} bet {:d} : {:d}", pszLogin, dwGuild, data_.id, data_.bet_from, data_.bet_to);
+	bet_.insert(std::make_pair(pszLogin, std::make_pair(dwGuild, dwGold)));
 
-	TPacketGDGuildWarBet pckBet;
-	pckBet.dwWarID = m_data.dwID;
-	strlcpy(pckBet.szLogin, pszLogin, sizeof(pckBet.szLogin));
-	pckBet.dwGuild = dwGuild;
-	pckBet.dwGold = dwGold;
+	packet_gd_guild_war_bet pckBet;
+	pckBet.war_id = data_.id;
+	strlcpy(pckBet.login, pszLogin, sizeof(pckBet.login));
+	pckBet.guild = dwGuild;
+	pckBet.gold = dwGold;
 
-	CClientManager::instance().ForwardPacket(HEADER_DG_GUILD_WAR_BET, &pckBet, sizeof(TPacketGDGuildWarBet));
+	client_manager::instance().forward_packet(HEADER_DG_GUILD_WAR_BET, &pckBet, sizeof(packet_gd_guild_war_bet));
 	return true;
 }
 
@@ -1281,17 +1281,17 @@ bool CGuildWarReserve::Bet(const char * pszLogin, uint32_t dwGold, uint32_t dwGu
 // draw handling: normally there should be a winner, but in certain situations such as server problems
 //              a draw must be possible.
 //
-void CGuildWarReserve::Draw() 
+void guild_war_reservation::draw() 
 {
-	std::string query = sql::format("UPDATE guild_war_reservation SET started=1,winner=0 WHERE id={}", m_data.dwID);
-	CDBManager::instance().AsyncQuery(query.c_str());
+	std::string query = sql::format("UPDATE guild_war_reservation SET started=1,winner=0 WHERE id={}", data_.id);
+	db_manager::instance().async_query(query.c_str());
 
-	if (mapBet.empty())
+	if (bet_.empty())
 		return;
 
-	metin2::log::info( "WAR_REWARD: Draw. war_id {:d}", m_data.dwID);
+	metin2::log::info( "WAR_REWARD: Draw. war_id {:d}", data_.id);
 
-	auto it = mapBet.begin();
+	auto it = bet_.begin();
 
 	while (1)
 	{
@@ -1299,7 +1299,7 @@ void CGuildWarReserve::Draw()
 
 		query = "INSERT INTO item_award (login, vnum, socket0, given_time) VALUES";
 
-		while (it != mapBet.end())
+		while (it != bet_.end())
 		{
 			if (iRow == 0)
 				query += sql::format("({}, {}, {}, NOW())", 
@@ -1319,61 +1319,61 @@ void CGuildWarReserve::Draw()
 		if (iRow > 0)
 		{
 			metin2::log::info( "WAR_REWARD: QUERY: {}", query.c_str());
-			CDBManager::instance().AsyncQuery(query.c_str());
+			db_manager::instance().async_query(query.c_str());
 		}
 
-		if (it == mapBet.end())
+		if (it == bet_.end())
 			break;
 	}
 }
 
-void CGuildWarReserve::End(int iScoreFrom, int iScoreTo)
+void guild_war_reservation::end(int iScoreFrom, int iScoreTo)
 {
 	uint32_t dwWinner;
 
-	metin2::log::info( "WAR_REWARD: End: From {:d} {:d} To {:d} {:d}", m_data.dwGuildFrom, iScoreFrom, m_data.dwGuildTo, iScoreTo);
+	metin2::log::info( "WAR_REWARD: End: From {:d} {:d} To {:d} {:d}", data_.guild_from, iScoreFrom, data_.guild_to, iScoreTo);
 
-	if (m_data.lPowerFrom > m_data.lPowerTo)
+	if (data_.power_from > data_.power_to)
 	{
-		if (m_data.lHandicap > iScoreFrom - iScoreTo)
+		if (data_.handicap > iScoreFrom - iScoreTo)
 		{
 			metin2::log::info( "WAR_REWARD: End: failed to overcome handicap, From is strong but To won");
-			dwWinner = m_data.dwGuildTo;
+			dwWinner = data_.guild_to;
 		}
 		else
 		{
 			metin2::log::info( "WAR_REWARD: End: success to overcome handicap, From win!");
-			dwWinner = m_data.dwGuildFrom;
+			dwWinner = data_.guild_from;
 		}
 	}
 	else
 	{
-		if (m_data.lHandicap > iScoreTo - iScoreFrom) 
+		if (data_.handicap > iScoreTo - iScoreFrom) 
 		{
 			metin2::log::info( "WAR_REWARD: End: failed to overcome handicap, To is strong but From won");
-			dwWinner = m_data.dwGuildFrom;
+			dwWinner = data_.guild_from;
 		}
 		else
 		{
 			metin2::log::info( "WAR_REWARD: End: success to overcome handicap, To win!");
-			dwWinner = m_data.dwGuildTo;
+			dwWinner = data_.guild_to;
 		}
 	}
 
 	std::string query = sql::format("UPDATE guild_war_reservation SET started=1,winner={},result1={},result2={} WHERE id={}", 
-			dwWinner, iScoreFrom, iScoreTo, m_data.dwID);
-	CDBManager::instance().AsyncQuery(query.c_str());
+			dwWinner, iScoreFrom, iScoreTo, data_.id);
+	db_manager::instance().async_query(query.c_str());
 
-	if (mapBet.empty())
+	if (bet_.empty())
 		return;
 
-	uint32_t dwTotalBet = m_data.dwBetFrom + m_data.dwBetTo;
+	uint32_t dwTotalBet = data_.bet_from + data_.bet_to;
 	uint32_t dwWinnerBet = 0;
 
-	if (dwWinner == m_data.dwGuildFrom)
-		dwWinnerBet = m_data.dwBetFrom;
-	else if (dwWinner == m_data.dwGuildTo)
-		dwWinnerBet = m_data.dwBetTo;
+	if (dwWinner == data_.guild_from)
+		dwWinnerBet = data_.bet_from;
+	else if (dwWinner == data_.guild_to)
+		dwWinnerBet = data_.bet_to;
 	else
 	{
 		metin2::log::error("WAR_REWARD: fatal error, winner does not exist!");
@@ -1388,7 +1388,7 @@ void CGuildWarReserve::End(int iScoreFrom, int iScoreTo)
 
 	metin2::log::info( "WAR_REWARD: End: Total bet: {:d}, Winner bet: {:d}", dwTotalBet, dwWinnerBet);
 
-	auto it = mapBet.begin();
+	auto it = bet_.begin();
 
 	while (1)
 	{
@@ -1396,7 +1396,7 @@ void CGuildWarReserve::End(int iScoreFrom, int iScoreTo)
 
 		query = "INSERT INTO item_award (login, vnum, socket0, given_time) VALUES";
 
-		while (it != mapBet.end())
+		while (it != bet_.end())
 		{
 			if (it->second.first != dwWinner)
 			{
@@ -1429,10 +1429,10 @@ void CGuildWarReserve::End(int iScoreFrom, int iScoreTo)
 		if (iRow > 0)
 		{
 			metin2::log::info( "WAR_REWARD: query: {}", query.c_str());
-			CDBManager::instance().AsyncQuery(query.c_str());
+			db_manager::instance().async_query(query.c_str());
 		}
 
-		if (it == mapBet.end())
+		if (it == bet_.end())
 			break;
 	}
 }

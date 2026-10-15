@@ -10,20 +10,20 @@
 
 namespace metin2::game::inline characters {
 
-class CHorseNameManager : public singleton<CHorseNameManager>
+class horse_name_manager : public singleton<horse_name_manager>
 {
 	private :
-		std::map<uint32_t, std::string> m_mapHorseNames;
+		std::map<uint32_t, std::string> horse_names_;
 
-		void BroadcastHorseName(uint32_t dwPlayerID, const char* szHorseName);
+		void broadcast_horse_name(uint32_t dwPlayerID, const char* szHorseName);
 
 	public :
-		CHorseNameManager();
+		horse_name_manager();
 
-		const char* GetHorseName(uint32_t dwPlayerID);
+		const char* horse_name(uint32_t dwPlayerID);
 
-		void UpdateHorseName(uint32_t dwPlayerID, const char* szHorseName, bool broadcast=false);
+		void update_horse_name(uint32_t dwPlayerID, const char* szHorseName, bool broadcast=false);
 
-		void Validate(CHARACTER * pChar);
+		void validate(character * pChar);
 };
 }

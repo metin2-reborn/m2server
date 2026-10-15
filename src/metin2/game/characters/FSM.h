@@ -6,29 +6,29 @@
 namespace metin2::game::inline characters {
 
 // FSM Class
-class CFSM
+class fsm
 {
 	protected:
-		CState *		m_pCurrentState;	// Current State
-		CState *		m_pNewState;		// New State
-		CStateTemplate<CFSM>	m_stateInitial;		// Initial State
+		state *		current_state_;	// Current State
+		state *		new_state_;		// New State
+		state_template<fsm>	state_initial_;		// Initial State
 
 	public:
 		// Constructor
-		CFSM();
+		fsm();
 
 		// Destructor
-		virtual ~CFSM() {}
+		virtual ~fsm() {}
 
 		// Global Functions
-		virtual void Update();
+		virtual void update();
 
 		// State Functions
-		bool IsState(CState &State) const;
-		bool GotoState(CState &NewState);
+		bool is_state(state &State) const;
+		bool goto_state(state &NewState);
 
-		virtual void BeginStateInitial() {}
-		virtual void StateInitial() {}
-		virtual void EndStateInitial() {}
+		virtual void begin_state_initial() {}
+		virtual void state_initial() {}
+		virtual void end_state_initial() {}
 };
 }

@@ -8,67 +8,67 @@
 
 namespace metin2::db::inline storage {
 
-class CQueryInfo {
+class query_info {
   public:
-    int iType;
-    uint32_t dwIdent;
-    void *pvData;
+    int type;
+    uint32_t ident;
+    void *pv_data;
 };
 
-enum eSQL_SLOT {
+enum e_sql_slot {
     SQL_PLAYER,
     SQL_ACCOUNT,
     SQL_COMMON,
     SQL_MAX_NUM,
 };
 
-class CDBManager : public singleton<CDBManager> {
-    std::unique_ptr<CAsyncSQL> m_mainSQL[SQL_MAX_NUM];
-    std::unique_ptr<CAsyncSQL> m_directSQL[SQL_MAX_NUM];
-    std::unique_ptr<CAsyncSQL> m_asyncSQL[SQL_MAX_NUM];
+class db_manager : public singleton<db_manager> {
+    std::unique_ptr<async_sql> main_sql_[SQL_MAX_NUM];
+    std::unique_ptr<async_sql> direct_sql_[SQL_MAX_NUM];
+    std::unique_ptr<async_sql> async_sql_[SQL_MAX_NUM];
 
   protected:
-    void Initialize();
-    void Destroy();
+    void initialize();
+    void destroy();
 
   public:
-    CDBManager();
+    db_manager();
 
-    ~CDBManager() override;
+    ~db_manager() override;
 
-    void Clear();
-    void Quit();
+    void clear();
+    void quit();
 
-    auto Connect(int iSlot, const char *host, int port, const char *dbname, const char *user, const char *pass) -> int;
+    auto connect(int iSlot, const char *host, int port, const char *dbname, const char *user, const char *pass) -> int;
 
-    void ReturnQuery(const char *c_pszQuery, int iType, uint32_t dwIdent, void *pvData, int iSlot = SQL_PLAYER);
-    void AsyncQuery(const char *c_pszQuery, int iSlot = SQL_PLAYER);
-    auto DirectQuery(const char *c_pszQuery, int iSlot = SQL_PLAYER) -> SQLMsg *;
+    void return_query(const char *c_pszQuery, int iType, uint32_t dwIdent, void *pvData, int iSlot = SQL_PLAYER);
+    void async_query(const char *c_pszQuery, int iSlot = SQL_PLAYER);
+    auto direct_query(const char *c_pszQuery, int iSlot = SQL_PLAYER) -> ql_msg *;
 
-    auto PopResult() -> SQLMsg *;
+    auto pop_result() -> ql_msg *;
 
-    auto EscapeString(void *to, const void *from, uint32_t length, int iSlot = SQL_PLAYER) -> uint32_t;
+    auto escape_string(void *to, const void *from, uint32_t length, int iSlot = SQL_PLAYER) -> uint32_t;
 
-    auto CountReturnQuery(int i) -> uint32_t { return m_mainSQL[i] ? m_mainSQL[i]->CountQuery() : 0; }
-    auto CountReturnResult(int i) -> uint32_t { return m_mainSQL[i] ? m_mainSQL[i]->CountResult() : 0; }
-    auto CountReturnQueryFinished(int i) -> uint32_t { return m_mainSQL[i] ? m_mainSQL[i]->CountQueryFinished() : 0; }
-    auto CountReturnCopiedQuery(int i) -> uint32_t { return m_mainSQL[i] ? m_mainSQL[i]->GetCopiedQueryCount() : 0; }
+    auto count_return_query(int i) -> uint32_t { return main_sql_[i] ? main_sql_[i]->count_query() : 0; }
+    auto count_return_result(int i) -> uint32_t { return main_sql_[i] ? main_sql_[i]->count_result() : 0; }
+    auto count_return_query_finished(int i) -> uint32_t { return main_sql_[i] ? main_sql_[i]->count_query_finished() : 0; }
+    auto count_return_copied_query(int i) -> uint32_t { return main_sql_[i] ? main_sql_[i]->copied_query_count() : 0; }
 
-    auto CountAsyncQuery(int i) -> uint32_t { return m_asyncSQL[i] ? m_asyncSQL[i]->CountQuery() : 0; }
-    auto CountAsyncResult(int i) -> uint32_t { return m_asyncSQL[i] ? m_asyncSQL[i]->CountResult() : 0; }
-    auto CountAsyncQueryFinished(int i) -> uint32_t { return m_asyncSQL[i] ? m_asyncSQL[i]->CountQueryFinished() : 0; }
-    auto CountAsyncCopiedQuery(int i) -> uint32_t { return m_asyncSQL[i] ? m_asyncSQL[i]->GetCopiedQueryCount() : 0; }
+    auto count_async_query(int i) -> uint32_t { return async_sql_[i] ? async_sql_[i]->count_query() : 0; }
+    auto count_async_result(int i) -> uint32_t { return async_sql_[i] ? async_sql_[i]->count_result() : 0; }
+    auto count_async_query_finished(int i) -> uint32_t { return async_sql_[i] ? async_sql_[i]->count_query_finished() : 0; }
+    auto count_async_copied_query(int i) -> uint32_t { return async_sql_[i] ? async_sql_[i]->copied_query_count() : 0; }
 
-    void ResetCounter() {
+    void reset_counter() {
         for (int i = 0; i < SQL_MAX_NUM; ++i) {
-            if (m_mainSQL[i]) {
-                m_mainSQL[i]->ResetQueryFinished();
-                m_mainSQL[i]->ResetCopiedQueryCount();
+            if (main_sql_[i]) {
+                main_sql_[i]->reset_query_finished();
+                main_sql_[i]->reset_copied_query_count();
             }
 
-            if (m_asyncSQL[i]) {
-                m_asyncSQL[i]->ResetQueryFinished();
-                m_asyncSQL[i]->ResetCopiedQueryCount();
+            if (async_sql_[i]) {
+                async_sql_[i]->reset_query_finished();
+                async_sql_[i]->reset_copied_query_count();
             }
         }
     }

@@ -11,14 +11,14 @@
 #include <vector>
 
 namespace metin2::game::inline data {
-    class CGroupNode;
+    class group_node;
 }
 
 namespace metin2::game::inline trade {
 
-struct TShopTableEx : TShopTable {
+struct shop_table_ex : shop_table {
 	std::string name;
-	EShopCoinType coinType;
+	shop_coin_type coin_type;
 };
 
 
@@ -27,20 +27,20 @@ struct TShopTableEx : TShopTable {
 // However, pc shops are not implemented.
 // When communicating with the client, tabs are separated in units of pos 45.
 // The old shop's m_itemVector is not used.
-class CShopEx: public CShop
+class shop_ex: public shop
 {
 public:
-	bool			Create(uint32_t dwVnum, uint32_t dwNPCVnum);
-	bool			AddShopTable(TShopTableEx& shopTable);
+	bool			create(uint32_t dwVnum, uint32_t dwNPCVnum);
+	bool			add_shop_table(shop_table_ex& shopTable);
 
-	bool	AddGuest(CHARACTER * ch,uint32_t owner_vid, bool bOtherEmpire) override;
-	void	SetPCShop(CHARACTER * ch) override { return; }
-	bool	IsPCShop() override { return false; }
-	int		Buy(CHARACTER * ch, uint8_t pos) override;
-	bool	IsSellingItem(uint32_t itemID) override { return false; }
+	bool	add_guest(character * ch,uint32_t owner_vid, bool bOtherEmpire) override;
+	void	set_pc_shop(character * ch) override { return; }
+	bool	is_pc_shop() override { return false; }
+	int		buy(character * ch, uint8_t pos) override;
+	bool	is_selling_item(uint32_t itemID) override { return false; }
 	
-	size_t			GetTabCount() { return m_vec_shopTabs.size(); }
+	size_t			tab_count() { return vec_shop_tabs_.size(); }
 private:
-	std::vector <TShopTableEx> m_vec_shopTabs;
+	std::vector <shop_table_ex> vec_shop_tabs_;
 };
 }

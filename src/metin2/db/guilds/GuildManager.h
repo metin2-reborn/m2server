@@ -29,93 +29,93 @@ enum
     GUILD_WARP_WAR_CHANNEL = 99
 };
 
-class CGuildWarReserve;
+class guild_war_reservation;
 
-struct TGuildDeclareInfo
+struct guild_declare_info
 {
-	uint8_t bType;
-	uint32_t dwGuildID[2];
+	uint8_t type;
+	uint32_t guild_id[2];
 
-	TGuildDeclareInfo(uint8_t _bType, uint32_t _dwGuildID1, uint32_t _dwGuildID2)
-		: bType(_bType)
+	guild_declare_info(uint8_t _bType, uint32_t _dwGuildID1, uint32_t _dwGuildID2)
+		: type(_bType)
 	{
-		dwGuildID[0] = _dwGuildID1;
-		dwGuildID[1] = _dwGuildID2;
+		guild_id[0] = _dwGuildID1;
+		guild_id[1] = _dwGuildID2;
 	}
 
-	bool operator < (const TGuildDeclareInfo& r) const
+	bool operator < (const guild_declare_info& r) const
 	{
-		return dwGuildID[0] < r.dwGuildID[0] || (dwGuildID[0] == r.dwGuildID[0] && dwGuildID[1] < r.dwGuildID[1]);
+		return guild_id[0] < r.guild_id[0] || (guild_id[0] == r.guild_id[0] && guild_id[1] < r.guild_id[1]);
 	}
 };
 
-struct TGuildWaitStartInfo
+struct guild_wait_start_info
 {
-	uint8_t			bType;
-	uint32_t			GID[2];
-	int32_t			lWarPrice;
-	int32_t			lInitialScore;
-	CGuildWarReserve *	pkReserve;
+	uint8_t			type;
+	uint32_t			gid[2];
+	int32_t			war_price;
+	int32_t			initial_score;
+	guild_war_reservation *	reserve;
 
-	TGuildWaitStartInfo(uint8_t _bType,
+	guild_wait_start_info(uint8_t _bType,
 			uint32_t _g1,
 			uint32_t _g2,
 			int32_t _lWarPrice,
 			int32_t _lInitialScore,
-			CGuildWarReserve * _pkReserve)
-		: bType(_bType), lWarPrice(_lWarPrice), lInitialScore(_lInitialScore), pkReserve(_pkReserve)
+			guild_war_reservation * _pkReserve)
+		: type(_bType), war_price(_lWarPrice), initial_score(_lInitialScore), reserve(_pkReserve)
 	{
-		GID[0] = _g1;
-		GID[1] = _g2;
+		gid[0] = _g1;
+		gid[1] = _g2;
 	}
 
-	bool operator < (const TGuildWaitStartInfo& r) const
+	bool operator < (const guild_wait_start_info& r) const
 	{
-		return GID[0] < r.GID[0] || (GID[0] == r.GID[0] && GID[1] < r.GID[1]);
-	}
-};
-
-struct TGuildWarPQElement
-{
-	bool	bEnd;
-	uint8_t	bType;
-	uint32_t	GID[2];
-	uint32_t	iScore[2];
-	uint32_t	iBetScore[2];
-
-	TGuildWarPQElement(uint8_t _bType, uint32_t GID1, uint32_t GID2) : bEnd(false), bType(_bType)
-	{
-		bType = _bType;
-		GID[0] = GID1;
-		GID[1] = GID2;
-		iScore[0] = iScore[1] = 0;
-		iBetScore[0] = iBetScore[1] = 0;
+		return gid[0] < r.gid[0] || (gid[0] == r.gid[0] && gid[1] < r.gid[1]);
 	}
 };
 
-struct TGuildSkillUsed
+struct guild_war_pq_element
 {
-    uint32_t GID;
-    uint32_t dwSkillVnum;
+	bool	end;
+	uint8_t	type;
+	uint32_t	gid[2];
+	uint32_t	score[2];
+	uint32_t	bet_score[2];
+
+	guild_war_pq_element(uint8_t _bType, uint32_t GID1, uint32_t GID2) : end(false), type(_bType)
+	{
+		type = _bType;
+		gid[0] = GID1;
+		gid[1] = GID2;
+		score[0] = score[1] = 0;
+		bet_score[0] = bet_score[1] = 0;
+	}
+};
+
+struct guild_skill_used
+{
+    uint32_t gid;
+    uint32_t skill_vnum;
 
     // GUILD_SKILL_COOLTIME_BUG_FIX
-    TGuildSkillUsed(uint32_t _GID, uint32_t _dwSkillVnum) : GID(_GID), dwSkillVnum(_dwSkillVnum)
+    guild_skill_used(uint32_t _GID, uint32_t _dwSkillVnum) : gid(_GID), skill_vnum(_dwSkillVnum)
     {
     }
     // END_OF_GUILD_SKILL_COOLTIME_BUG_FIX
 };
 
-inline bool operator < (const TGuildSkillUsed& a, const TGuildSkillUsed& b)
+inline bool operator < (const guild_skill_used& a, const guild_skill_used& b)
 {
-    return a.GID < b.GID || (a.GID == b.GID && a.dwSkillVnum < b.dwSkillVnum);
+    return a.gid < b.gid || (a.gid == b.gid && a.skill_vnum < b.skill_vnum);
 }
 
-struct TGuild {
-	TGuild() : ladder_point(0), win(0), draw(0), loss(0), gold(0), level(0)
+struct guild {
+	guild() : ladder_point(0), win(0), draw(0), loss(0), gold(0), level(0)
 	{
 	}
 
-	std::string strName;
+	std::string name;
 	int	ladder_point;
 	int	win;
 	int	draw;
@@ -124,138 +124,138 @@ struct TGuild {
 	int	level;
 };
 
-struct TGuildWarInfo {
-    time_t		tEndTime;
-    TGuildWarPQElement * pElement;
-    CGuildWarReserve * pkReserve;
+struct guild_war_info {
+    time_t		t_end_time;
+    guild_war_pq_element * element;
+    guild_war_reservation * reserve;
 
-    TGuildWarInfo() : pElement(nullptr)
+    guild_war_info() : element(nullptr)
     {
     }
 };
 
-class CGuildWarReserve
+class guild_war_reservation
 {
     public:
-	CGuildWarReserve(const TGuildWarReserve& rTable);
+	guild_war_reservation(const guild_war_reserve& rTable);
 
-	void Initialize();
+	void initialize();
 
-	TGuildWarReserve & GetDataRef()
+	guild_war_reserve & data_ref()
 	{
-	    return m_data;
+	    return data_;
 	}
 
-	void	OnSetup(CPeer * peer);
-	bool	Bet(const char * pszLogin, uint32_t dwGold, uint32_t dwGuild);
-	void	Draw();
-	void	End(int iScoreFrom, int iScoreTo);
+	void	on_setup(peer * peer);
+	bool	bet(const char * pszLogin, uint32_t dwGold, uint32_t dwGuild);
+	void	draw();
+	void	end(int iScoreFrom, int iScoreTo);
 
-	int	GetLastNoticeMin() { return m_iLastNoticeMin; }
-	void	SetLastNoticeMin(int iMin) { m_iLastNoticeMin = iMin; }
+	int	last_notice_min() { return last_notice_min_; }
+	void	set_last_notice_min(int iMin) { last_notice_min_ = iMin; }
 
     private:
-	CGuildWarReserve();  // Intentionally not implemented to prevent use of the default constructor
+	guild_war_reservation();  // Intentionally not implemented to prevent use of the default constructor
 
-	TGuildWarReserve				m_data;
+	guild_war_reserve				data_;
 	// <login, <guild, gold>>
-	std::map<std::string, std::pair<uint32_t, uint32_t> > mapBet;
-	int						m_iLastNoticeMin;
+	std::map<std::string, std::pair<uint32_t, uint32_t> > bet_;
+	int						last_notice_min_;
 };
 
-class CGuildManager : public singleton<CGuildManager>
+class guild_manager : public singleton<guild_manager>
 {
     public:
-	CGuildManager();
-	~CGuildManager() override;
+	guild_manager();
+	~guild_manager() override;
 
-	void	Initialize();
+	void	initialize();
 
-	void	Load(uint32_t dwGuildID);
+	void	load(uint32_t dwGuildID);
 
-	TGuild & TouchGuild(uint32_t GID);
+	guild & touch_guild(uint32_t GID);
 
-	void	Update();
+	void	update();
 
-	void	OnSetup(CPeer * peer);
-	void	StartWar(uint8_t bType, uint32_t GID1, uint32_t GID2, CGuildWarReserve * pkReserve = nullptr);
+	void	on_setup(peer * peer);
+	void	start_war(uint8_t bType, uint32_t GID1, uint32_t GID2, guild_war_reservation * pkReserve = nullptr);
 
-	void	UpdateScore(uint32_t guild_gain_point, uint32_t guild_opponent, int iScore, int iBetScore);
+	void	update_score(uint32_t guild_gain_point, uint32_t guild_opponent, int iScore, int iBetScore);
 
-	void	AddDeclare(uint8_t bType, uint32_t guild_from, uint32_t guild_to);
-	void	RemoveDeclare(uint32_t guild_from, uint32_t guild_to);
+	void	add_declare(uint8_t bType, uint32_t guild_from, uint32_t guild_to);
+	void	remove_declare(uint32_t guild_from, uint32_t guild_to);
 
-	bool	TakeBetPrice(uint32_t dwGuildTo, uint32_t dwGuildFrom, int32_t lWarPrice);
+	bool	take_bet_price(uint32_t dwGuildTo, uint32_t dwGuildFrom, int32_t lWarPrice);
 
-	void	RecvWarEnd(uint32_t GID1, uint32_t GID2);
-	void	RecvWarOver(uint32_t dwGuildWinner, uint32_t dwGuildLoser, bool bDraw, int32_t lWarPrice);
+	void	recv_war_end(uint32_t GID1, uint32_t GID2);
+	void	recv_war_over(uint32_t dwGuildWinner, uint32_t dwGuildLoser, bool bDraw, int32_t lWarPrice);
 
-	void	ChangeLadderPoint(uint32_t GID, int change);
+	void	change_ladder_point(uint32_t GID, int change);
 
-	void	UseSkill(uint32_t dwGuild, uint32_t dwSkillVnum, uint32_t dwCooltime);
+	void	use_skill(uint32_t dwGuild, uint32_t dwSkillVnum, uint32_t dwCooltime);
 
-	void	DepositMoney(uint32_t dwGuild, int32_t lGold);
-	void	WithdrawMoney(CPeer* peer, uint32_t dwGuild, int32_t lGold);
-	void	WithdrawMoneyReply(uint32_t dwGuild, uint8_t bGiveSuccess, int32_t lGold);
+	void	deposit_money(uint32_t dwGuild, int32_t lGold);
+	void	withdraw_money(peer* peer, uint32_t dwGuild, int32_t lGold);
+	void	withdraw_money_reply(uint32_t dwGuild, uint8_t bGiveSuccess, int32_t lGold);
 
-	void	MoneyChange(uint32_t dwGuild, uint32_t dwGold);
+	void	money_change(uint32_t dwGuild, uint32_t dwGold);
 
-	void	QueryRanking();
-	void	ResultRanking(MYSQL_RES * pRes);
-	int	GetRanking(uint32_t dwGID);
+	void	query_ranking();
+	void	result_ranking(MYSQL_RES * pRes);
+	int	ranking(uint32_t dwGID);
 
 	//
 	// Reserve War
 	//
-	void	BootReserveWar();
-	bool	ReserveWar(TPacketGuildWar * p);
-	void	ProcessReserveWar();
-	bool	Bet(uint32_t dwID, const char * c_pszLogin, uint32_t dwGold, uint32_t dwGuild);
+	void	boot_reserve_war();
+	bool	reserve_war(packet_guild_war * p);
+	void	process_reserve_war();
+	bool	bet(uint32_t dwID, const char * c_pszLogin, uint32_t dwGold, uint32_t dwGuild);
 
-	void	CancelWar(uint32_t GID1, uint32_t GID2);
+	void	cancel_war(uint32_t GID1, uint32_t GID2);
 
-	bool	ChangeMaster(uint32_t dwGID, uint32_t dwFrom, uint32_t dwTo);
+	bool	change_master(uint32_t dwGID, uint32_t dwFrom, uint32_t dwTo);
 
     private:
-	void ParseResult(SQLResult * pRes);
+	void parse_result(ql_result * pRes);
 
-	void RemoveWar(uint32_t GID1, uint32_t GID2);	// erase war from m_WarMap and set end on priority queue
+	void remove_war(uint32_t GID1, uint32_t GID2);	// erase war from m_WarMap and set end on priority queue
 
-	void WarEnd(uint32_t GID1, uint32_t GID2, bool bDraw = false);
+	void war_end(uint32_t GID1, uint32_t GID2, bool bDraw = false);
 
-	int GetLadderPoint(uint32_t GID);
+	int ladder_point(uint32_t GID);
 
-	void GuildWarWin(uint32_t GID);
-	void GuildWarDraw(uint32_t GID);
-	void GuildWarLose(uint32_t GID);
+	void guild_war_win(uint32_t GID);
+	void guild_war_draw(uint32_t GID);
+	void guild_war_lose(uint32_t GID);
 
-	void ProcessDraw(uint32_t dwGuildID1, uint32_t dwGuildID2);
-	void ProcessWinLose(uint32_t dwGuildWinner, uint32_t dwGuildLoser);
+	void process_draw(uint32_t dwGuildID1, uint32_t dwGuildID2);
+	void process_win_lose(uint32_t dwGuildWinner, uint32_t dwGuildLoser);
 
-	bool IsHalfWinLadderPoint(uint32_t dwGuildWinner, uint32_t dwGuildLoser);
+	bool is_half_win_ladder_point(uint32_t dwGuildWinner, uint32_t dwGuildLoser);
 
-	std::map<uint32_t, TGuild>					m_map_kGuild;
-	std::map<uint32_t, std::map<uint32_t, time_t> >		m_mapGuildWarEndTime;
+	std::map<uint32_t, guild>					map_k_guild_;
+	std::map<uint32_t, std::map<uint32_t, time_t> >		guild_war_end_time_;
 
-	std::set<TGuildDeclareInfo>				m_DeclareMap; // Stores the declaration-of-war state
-	std::map<uint32_t, std::map<uint32_t, TGuildWarInfo> >	m_WarMap;
+	std::set<guild_declare_info>				declare_map_; // Stores the declaration-of-war state
+	std::map<uint32_t, std::map<uint32_t, guild_war_info> >	war_map_;
 
-	typedef std::pair<time_t, TGuildWarPQElement *>	stPairGuildWar;
-	typedef std::pair<time_t, TGuildSkillUsed>	stPairSkillUsed;
-	typedef std::pair<time_t, TGuildWaitStartInfo>	stPairWaitStart;
+	typedef std::pair<time_t, guild_war_pq_element *>	st_pair_guild_war;
+	typedef std::pair<time_t, guild_skill_used>	st_pair_skill_used;
+	typedef std::pair<time_t, guild_wait_start_info>	st_pair_wait_start;
 
-	std::priority_queue<stPairGuildWar, std::vector<stPairGuildWar>, std::greater<stPairGuildWar> >
-	    m_pqOnWar;
-	std::priority_queue<stPairWaitStart, std::vector<stPairWaitStart>, std::greater<stPairWaitStart> >
-	    m_pqWaitStart;
-	std::priority_queue<stPairSkillUsed, std::vector<stPairSkillUsed>, std::greater<stPairSkillUsed> >
-	    m_pqSkill;
+	std::priority_queue<st_pair_guild_war, std::vector<st_pair_guild_war>, std::greater<st_pair_guild_war> >
+	    pq_on_war_;
+	std::priority_queue<st_pair_wait_start, std::vector<st_pair_wait_start>, std::greater<st_pair_wait_start> >
+	    pq_wait_start_;
+	std::priority_queue<st_pair_skill_used, std::vector<st_pair_skill_used>, std::greater<st_pair_skill_used> >
+	    pq_skill_;
 
-	std::map<uint32_t, std::unique_ptr<CGuildWarReserve>>	m_map_kWarReserve;
-	CPoly							polyPower;
-	CPoly							polyHandicap;
+	std::map<uint32_t, std::unique_ptr<guild_war_reservation>>	map_k_war_reserve_;
+	expression							poly_power_;
+	expression							poly_handicap_;
 
 	// GID Ranking
-	std::map<uint32_t, int>					map_kLadderPointRankingByGID;
+	std::map<uint32_t, int>					map_k_ladder_point_ranking_by_gid_;
 };
 }

@@ -20,69 +20,69 @@
 
 namespace metin2::db::inline clients {
 
-void CClientManager::LoadEventFlag()
+void client_manager::load_event_flag()
 {
 	char szQuery[1024];
-	snprintf(szQuery, sizeof(szQuery), "SELECT szName, lValue FROM quest%s WHERE dwPID = 0", GetTablePostfix());
-	std::unique_ptr<SQLMsg> pmsg(CDBManager::instance().DirectQuery(szQuery));
+	snprintf(szQuery, sizeof(szQuery), "SELECT szName, lValue FROM quest%s WHERE dwPID = 0", get_table_postfix());
+	std::unique_ptr<ql_msg> pmsg(db_manager::instance().direct_query(szQuery));
 
-	SQLResult* pRes = pmsg->Get();
-	if (pRes->uiNumRows)
+	ql_result* pRes = pmsg->get();
+	if (pRes->num_rows)
 	{
 		MYSQL_ROW row;
-		while ((row = mysql_fetch_row(pRes->pSQLResult)))
+		while ((row = mysql_fetch_row(pRes->sql_result)))
 		{
-			TPacketSetEventFlag p;
-			strlcpy(p.szFlagName, row[0], sizeof(p.szFlagName));
-			str_to_number(p.lValue, row[1]);
-			metin2::log::info( "EventFlag Load {} {:d}", p.szFlagName, p.lValue);
-			m_map_lEventFlag.insert(std::make_pair(std::string(p.szFlagName), p.lValue));
-			ForwardPacket(HEADER_DG_SET_EVENT_FLAG, &p, sizeof(TPacketSetEventFlag));
+			packet_set_event_flag p;
+			strlcpy(p.flag_name, row[0], sizeof(p.flag_name));
+			str_to_number(p.value, row[1]);
+			metin2::log::info( "EventFlag Load {} {:d}", p.flag_name, p.value);
+			map_l_event_flag_.insert(std::make_pair(std::string(p.flag_name), p.value));
+			forward_packet(HEADER_DG_SET_EVENT_FLAG, &p, sizeof(packet_set_event_flag));
 		}
 	}
 }
 
-void CClientManager::SetEventFlag(TPacketSetEventFlag* p)
+void client_manager::set_event_flag(packet_set_event_flag* p)
 {
-	ForwardPacket(HEADER_DG_SET_EVENT_FLAG, p, sizeof(TPacketSetEventFlag));
+	forward_packet(HEADER_DG_SET_EVENT_FLAG, p, sizeof(packet_set_event_flag));
 
 	bool bChanged = false;
 
-	__typeof(m_map_lEventFlag.begin()) it = m_map_lEventFlag.find(p->szFlagName);
-	if (it == m_map_lEventFlag.end())
+	__typeof(map_l_event_flag_.begin()) it = map_l_event_flag_.find(p->flag_name);
+	if (it == map_l_event_flag_.end())
 	{
 		bChanged = true;
-		m_map_lEventFlag.insert(std::make_pair(std::string(p->szFlagName), p->lValue));
+		map_l_event_flag_.insert(std::make_pair(std::string(p->flag_name), p->value));
 	}
-	else if (it->second != p->lValue)
+	else if (it->second != p->value)
 	{
 		bChanged = true;
-		it->second = p->lValue;
+		it->second = p->value;
 	}
 
 	if (bChanged)
 	{
 		const std::string query = sql::format(
 				"REPLACE INTO quest{} (dwPID, szName, szState, lValue) VALUES(0, {}, '', {})",
-				sql::raw(GetTablePostfix()), p->szFlagName, p->lValue);
+				sql::raw(get_table_postfix()), p->flag_name, p->value);
 
-		CDBManager::instance().AsyncQuery(query.c_str());
-		metin2::log::info( "HEADER_GD_SET_EVENT_FLAG : Changed CClientmanager::SetEventFlag({} {:d}) ", p->szFlagName, p->lValue);
+		db_manager::instance().async_query(query.c_str());
+		metin2::log::info( "HEADER_GD_SET_EVENT_FLAG : Changed CClientmanager::SetEventFlag({} {:d}) ", p->flag_name, p->value);
 		return;
 	}
-	metin2::log::info( "HEADER_GD_SET_EVENT_FLAG : No Changed CClientmanager::SetEventFlag({} {:d}) ", p->szFlagName, p->lValue);
+	metin2::log::info( "HEADER_GD_SET_EVENT_FLAG : No Changed CClientmanager::SetEventFlag({} {:d}) ", p->flag_name, p->value);
 }
 
-void CClientManager::SendEventFlagsOnSetup(CPeer* peer)
+void client_manager::send_event_flags_on_setup(peer* peer)
 {
-	__typeof(m_map_lEventFlag.begin()) it;
-	for (it = m_map_lEventFlag.begin(); it != m_map_lEventFlag.end(); ++it)
+	__typeof(map_l_event_flag_.begin()) it;
+	for (it = map_l_event_flag_.begin(); it != map_l_event_flag_.end(); ++it)
 	{
-		TPacketSetEventFlag p;
-		strlcpy(p.szFlagName, it->first.c_str(), sizeof(p.szFlagName));
-		p.lValue = it->second;
-		peer->EncodeHeader(HEADER_DG_SET_EVENT_FLAG, 0, sizeof(TPacketSetEventFlag));
-		peer->Encode(&p, sizeof(TPacketSetEventFlag));
+		packet_set_event_flag p;
+		strlcpy(p.flag_name, it->first.c_str(), sizeof(p.flag_name));
+		p.value = it->second;
+		peer->encode_header(HEADER_DG_SET_EVENT_FLAG, 0, sizeof(packet_set_event_flag));
+		peer->encode(&p, sizeof(packet_set_event_flag));
 	}
 }
 }

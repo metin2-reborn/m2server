@@ -59,10 +59,10 @@ namespace quest
 	//
 	int pc_has_master_skill(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 		bool bHasMasterSkill = false;
 		for (int i=0; i< SKILL_MAX_NUM; i++)
-			if (ch->GetSkillMasterType(i) >= SKILL_MASTER && ch->GetSkillLevel(i) >= 21)
+			if (ch->skill_master_type(i) >= SKILL_MASTER && ch->skill_level(i) >= 21)
 			{
 				bHasMasterSkill = true;
 				break;
@@ -74,22 +74,22 @@ namespace quest
 
 	int pc_remove_skill_book_no_delay(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		ch->RemoveAffect(AFFECT_SKILL_NO_BOOK_DELAY);
+		character * ch = quest_manager::instance().current_character_ptr();
+		ch->remove_affect(AFFECT_SKILL_NO_BOOK_DELAY);
 		return 0;
 	}
 
 	int pc_is_skill_book_no_delay(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
-		lua_pushboolean(L, ch->FindAffect(AFFECT_SKILL_NO_BOOK_DELAY) ? true : false);
+		lua_pushboolean(L, ch->find_affect(AFFECT_SKILL_NO_BOOK_DELAY) ? true : false);
 		return 1;
 	}
 
 	int pc_learn_grand_master_skill(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
 		if (!lua_isnumber(L, 1)) 
 		{
@@ -97,13 +97,13 @@ namespace quest
 			return 0;
 		}
 
-		lua_pushboolean(L, ch->LearnGrandMasterSkill((int32_t)lua_tonumber(L, 1)));
+		lua_pushboolean(L, ch->learn_grand_master_skill((int32_t)lua_tonumber(L, 1)));
 		return 1;
 	}
 
 	int pc_set_warp_location(lua_State * L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
 		if (!lua_isnumber(L, 1)) 
 		{
@@ -117,13 +117,13 @@ namespace quest
 			return 0;
 		}
 
-		ch->SetWarpLocation((int32_t)lua_tonumber(L,1), (int32_t)lua_tonumber(L,2), (int32_t)lua_tonumber(L,3));
+		ch->set_warp_location((int32_t)lua_tonumber(L,1), (int32_t)lua_tonumber(L,2), (int32_t)lua_tonumber(L,3));
 		return 0;
 	}
 
 	int pc_set_warp_location_local(lua_State * L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
 		if (!lua_isnumber(L, 1)) 
 		{
@@ -138,7 +138,7 @@ namespace quest
 		}
 
 		int32_t lMapIndex = (int32_t) lua_tonumber(L, 1);
-		const TMapRegion * region = SECTREE_MANAGER::instance().GetMapRegion(lMapIndex);
+		const map_region * region = sectree_manager::instance().get_map_region(lMapIndex);
 
 		if (!region)
 		{
@@ -161,23 +161,23 @@ namespace quest
 			return 0;
 		}
 
-		ch->SetWarpLocation(lMapIndex, x, y);
+		ch->set_warp_location(lMapIndex, x, y);
 		return 0;
 	}
 
 	int pc_get_start_location(lua_State * L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
-		lua_pushnumber(L, g_start_map[ch->GetEmpire()]);
-		lua_pushnumber(L, g_start_position[ch->GetEmpire()][0] / 100);
-		lua_pushnumber(L, g_start_position[ch->GetEmpire()][1] / 100);
+		lua_pushnumber(L, start_map[ch->empire()]);
+		lua_pushnumber(L, start_position[ch->empire()][0] / 100);
+		lua_pushnumber(L, start_position[ch->empire()][1] / 100);
 		return 3;
 	}
 
 	int pc_warp(lua_State * L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
 		if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2))
 		{
@@ -191,7 +191,7 @@ namespace quest
 			map_index = (int) lua_tonumber(L,3);
 
 		//PREVENT_HACK
-		if ( ch->IsHack() )
+		if ( ch->is_hack() )
 		{
 			lua_pushboolean(L, false);
 			return 1;
@@ -199,9 +199,9 @@ namespace quest
 		//END_PREVENT_HACK
 
 		if ( metin2::config::test_server() )
-			ch->ChatPacket( CHAT_TYPE_INFO, "pc_warp %d %d %d",(int)lua_tonumber(L,1),
+			ch->chat_packet( CHAT_TYPE_INFO, "pc_warp %d %d %d",(int)lua_tonumber(L,1),
 					(int)lua_tonumber(L,2),map_index );
-		ch->WarpSet((int)lua_tonumber(L, 1), (int)lua_tonumber(L, 2), map_index);
+		ch->warp_set((int)lua_tonumber(L, 1), (int)lua_tonumber(L, 2), map_index);
 
 		lua_pushboolean(L, true);
 
@@ -223,7 +223,7 @@ namespace quest
 		}
 
 		int32_t lMapIndex = (int32_t) lua_tonumber(L, 1);
-		const TMapRegion * region = SECTREE_MANAGER::instance().GetMapRegion(lMapIndex);
+		const map_region * region = sectree_manager::instance().get_map_region(lMapIndex);
 
 		if (!region)
 		{
@@ -246,44 +246,44 @@ namespace quest
 			return 0;
 		}
 
-		CQuestManager::instance().GetCurrentCharacterPtr()->WarpSet(region->sx + x, region->sy + y);
+		quest_manager::instance().current_character_ptr()->warp_set(region->sx + x, region->sy + y);
 		return 0;
 	}
 
 	int pc_warp_exit(lua_State * L)
 	{
-		CQuestManager::instance().GetCurrentCharacterPtr()->ExitToSavedLocation();
+		quest_manager::instance().current_character_ptr()->exit_to_saved_location();
 		return 0;
 	}
 
 	int pc_in_dungeon(lua_State * L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		lua_pushboolean(L, ch->GetDungeon()?1:0);
+		character * ch = quest_manager::instance().current_character_ptr();
+		lua_pushboolean(L, ch->get_dungeon()?1:0);
 		return 1;
 	}
 
 	int pc_hasguild(lua_State * L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		lua_pushboolean(L, ch->GetGuild() ? 1 : 0);
+		character * ch = quest_manager::instance().current_character_ptr();
+		lua_pushboolean(L, ch->get_guild() ? 1 : 0);
 		return 1;
 	}
 
 	int pc_getguild(lua_State * L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		lua_pushnumber(L, ch->GetGuild() ? ch->GetGuild()->GetID() : 0);
+		character * ch = quest_manager::instance().current_character_ptr();
+		lua_pushnumber(L, ch->get_guild() ? ch->get_guild()->id() : 0);
 		return 1;
 	}
 
 	int pc_isguildmaster(lua_State * L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		CGuild * g = ch->GetGuild();
+		character * ch = quest_manager::instance().current_character_ptr();
+		guild * g = ch->get_guild();
 
 		if (g)
-			lua_pushboolean(L, (ch->GetPlayerID() == g->GetMasterPID()));
+			lua_pushboolean(L, (ch->player_id() == g->master_pid()));
 		else
 			lua_pushboolean(L, 0);
 
@@ -292,29 +292,29 @@ namespace quest
 
 	int pc_destroy_guild(lua_State * L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		CGuild * g = ch->GetGuild();
+		character * ch = quest_manager::instance().current_character_ptr();
+		guild * g = ch->get_guild();
 
 		if (g)
-			g->RequestDisband(ch->GetPlayerID());
+			g->request_disband(ch->player_id());
 
 		return 0;
 	}
 
 	int pc_remove_from_guild(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		CGuild * g = ch->GetGuild();
+		character * ch = quest_manager::instance().current_character_ptr();
+		guild * g = ch->get_guild();
 
 		if (g)
-			g->RequestRemoveMember(ch->GetPlayerID());
+			g->request_remove_member(ch->player_id());
 
 		return 0;
 	}
 
 	int pc_give_gold(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
 		if (!lua_isnumber(L, 1))
 		{
@@ -330,8 +330,8 @@ namespace quest
 			return 0;
 		}
 
-		DBManager::instance().SendMoneyLog(MONEY_LOG_QUEST, ch->GetPlayerID(), iAmount);
-		ch->PointChange(POINT_GOLD, iAmount, true);
+		db_manager::instance().send_money_log(MONEY_LOG_QUEST, ch->player_id(), iAmount);
+		ch->point_change(POINT_GOLD, iAmount, true);
 		return 0;
 	}
 
@@ -343,34 +343,34 @@ namespace quest
 		uint32_t gid1 = (uint32_t)lua_tonumber(L, 1);
 		uint32_t gid2 = (uint32_t)lua_tonumber(L, 2);
 
-		CGuild* g1 = CGuildManager::instance().FindGuild(gid1);
-		CGuild* g2 = CGuildManager::instance().FindGuild(gid2);
+		guild* g1 = guild_manager::instance().find_guild(gid1);
+		guild* g2 = guild_manager::instance().find_guild(gid2);
 
 		if (!g1 || !g2)
 		{
 			luaL_error(L, "no such guild with id %d %d", gid1, gid2);
 		}
 
-		PIXEL_POSITION pos;
+		pixel_position pos;
 
-		uint32_t dwMapIndex = g1->GetGuildWarMapIndex(gid2);
+		uint32_t dwMapIndex = g1->guild_war_map_index(gid2);
 
-		if (!CWarMapManager::instance().GetStartPosition(dwMapIndex, 2, pos))
+		if (!war_map_manager::instance().start_position(dwMapIndex, 2, pos))
 		{
 			luaL_error(L, "not under warp guild war between guild %d %d", gid1, gid2);
 			return 0;
 		}
 
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
 		//PREVENT_HACK
-		if ( ch->IsHack() )
+		if ( ch->is_hack() )
 			return 0;
 		//END_PREVENT_HACK
 
-		ch->SetQuestFlag("war.is_war_member", 0);
-		ch->SaveExitLocation();
-		ch->WarpSet(pos.x, pos.y, dwMapIndex);
+		ch->set_quest_flag("war.is_war_member", 0);
+		ch->save_exit_location();
+		ch->warp_set(pos.x, pos.y, dwMapIndex);
 		return 0;
 	}
 
@@ -378,16 +378,16 @@ namespace quest
 	{
 		luaL_checknumber(L, 1);
 
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
 		uint32_t dwGroupVnum = (uint32_t) lua_tonumber(L,1);
 
 		std::vector <uint32_t> dwVnums;
 		std::vector <uint32_t> dwCounts;
-		std::vector <CItem *> item_gets;
+		std::vector <item *> item_gets;
 		int count = 0;
 
-		ch->GiveItemFromSpecialItemGroup(dwGroupVnum, dwVnums, dwCounts, item_gets, count);
+		ch->give_item_from_special_item_group(dwGroupVnum, dwVnums, dwCounts, item_gets, count);
 
 		for (int i = 0; i < count; i++)
 		{
@@ -395,12 +395,12 @@ namespace quest
 			{
 				if (dwVnums[i] == 1)
 				{
-					ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("돈 %d 냥을 획득했습니다."), dwCounts[i]);
+					ch->chat_packet(CHAT_TYPE_INFO, lc_text("돈 %d 냥을 획득했습니다."), dwCounts[i]);
 				}
 				else if (dwVnums[i] == 2)
 				{
-					ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("나무에서 부터 신비한 빛이 나옵니다."));
-					ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("%d의 경험치를 획득했습니다."), dwCounts[i]);
+					ch->chat_packet(CHAT_TYPE_INFO, lc_text("나무에서 부터 신비한 빛이 나옵니다."));
+					ch->chat_packet(CHAT_TYPE_INFO, lc_text("%d의 경험치를 획득했습니다."), dwCounts[i]);
 				}
 			}
 		}
@@ -409,7 +409,7 @@ namespace quest
 
 	int pc_enough_inventory(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 		if (!lua_isnumber(L, 1))
 		{
 			lua_pushboolean(L, 0);
@@ -417,22 +417,22 @@ namespace quest
 		}
 
 		uint32_t item_vnum = (uint32_t)lua_tonumber(L, 1);
-		TItemTable * pTable = ITEM_MANAGER::instance().GetTable(item_vnum);
+		item_table * pTable = item_manager::instance().table(item_vnum);
 		if (!pTable)
 		{
 			lua_pushboolean(L, 0);
 			return 1;
 		}
 
-		bool bEnoughInventoryForItem = ch->GetEmptyInventory(pTable->bSize) != -1;
+		bool bEnoughInventoryForItem = ch->empty_inventory(pTable->size) != -1;
 		lua_pushboolean(L, bEnoughInventoryForItem);
 		return 1;
 	}
 
 	int pc_give_item(lua_State* L)
 	{
-		PC* pPC = CQuestManager::instance().GetCurrentPC();
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		pc* pPC = quest_manager::instance().current_pc();
+		character * ch = quest_manager::instance().current_character_ptr();
 
 		if (!lua_isstring(L, 1) || !(lua_isstring(L, 2)||lua_isnumber(L, 2)))
 		{
@@ -444,7 +444,7 @@ namespace quest
 
 		if (lua_isnumber(L,2)) // If it's a number, give it as a number.
 			dwVnum = (int) lua_tonumber(L, 2);
-		else if (!ITEM_MANAGER::instance().GetVnum(lua_tostring(L, 2), dwVnum))
+		else if (!item_manager::instance().vnum(lua_tostring(L, 2), dwVnum))
 		{
 			quest::error("QUEST Make item call error : wrong item name : {}", lua_tostring(L,1));
 			return 0;
@@ -463,15 +463,15 @@ namespace quest
 			}
 		}
 
-		pPC->GiveItem(lua_tostring(L, 1), dwVnum, icount);
+		pPC->give_item(lua_tostring(L, 1), dwVnum, icount);
 
-		LogManager::instance().QuestRewardLog(pPC->GetCurrentQuestName().c_str(), ch->GetPlayerID(), ch->GetLevel(), dwVnum, icount);
+		log_manager::instance().quest_reward_log(pPC->current_quest_name().c_str(), ch->player_id(), ch->level(), dwVnum, icount);
 		return 0;
 	}
 
 	int pc_give_or_drop_item(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
 		if (!lua_isstring(L, 1) && !lua_isnumber(L, 1))
 		{
@@ -486,7 +486,7 @@ namespace quest
 		{
 			dwVnum = (int) lua_tonumber(L, 1);
 		}
-		else if (!ITEM_MANAGER::instance().GetVnum(lua_tostring(L, 1), dwVnum))
+		else if (!item_manager::instance().vnum(lua_tostring(L, 1), dwVnum))
 		{
 			quest::error("QUEST Make item call error : wrong item name : {}", lua_tostring(L,1));
 			lua_pushnumber (L, 0);
@@ -506,21 +506,21 @@ namespace quest
 			}
 		}
 
-		metin2::log::info( "QUEST [REWARD] item {} to {}", lua_tostring(L, 1), ch->GetName());
+		metin2::log::info( "QUEST [REWARD] item {} to {}", lua_tostring(L, 1), ch->name());
 
-		PC* pPC = CQuestManager::instance().GetCurrentPC();
+		pc* pPC = quest_manager::instance().current_pc();
 
-		LogManager::instance().QuestRewardLog(pPC->GetCurrentQuestName().c_str(), ch->GetPlayerID(), ch->GetLevel(), dwVnum, icount);
+		log_manager::instance().quest_reward_log(pPC->current_quest_name().c_str(), ch->player_id(), ch->level(), dwVnum, icount);
 
-		CItem * item = ch->AutoGiveItem(dwVnum, icount);
+		item * item = ch->auto_give_item(dwVnum, icount);
 
 		if ( dwVnum >= 80003 && dwVnum <= 80007 )
 		{
-			LogManager::instance().GoldBarLog(ch->GetPlayerID(), item->GetID(), QUEST, "quest: give_item2");
+			log_manager::instance().gold_bar_log(ch->player_id(), item->id(), QUEST, "quest: give_item2");
 		}
 
 		if (nullptr != item)
-			lua_pushnumber (L, item->GetID());
+			lua_pushnumber (L, item->id());
 		else
 			lua_pushnumber (L, 0);
 		return 1;
@@ -528,7 +528,7 @@ namespace quest
 
 	int pc_give_or_drop_item_and_select(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
 		if (!lua_isstring(L, 1) && !lua_isnumber(L, 1))
 		{
@@ -542,7 +542,7 @@ namespace quest
 		{
 			dwVnum = (int) lua_tonumber(L, 1);
 		}
-		else if (!ITEM_MANAGER::instance().GetVnum(lua_tostring(L, 1), dwVnum))
+		else if (!item_manager::instance().vnum(lua_tostring(L, 1), dwVnum))
 		{
 			quest::error("QUEST Make item call error : wrong item name : {}", lua_tostring(L,1));
 			return 0;
@@ -559,20 +559,20 @@ namespace quest
 			}
 		}
 
-		metin2::log::info( "QUEST [REWARD] item {} to {}", lua_tostring(L, 1), ch->GetName());
+		metin2::log::info( "QUEST [REWARD] item {} to {}", lua_tostring(L, 1), ch->name());
 
-		PC* pPC = CQuestManager::instance().GetCurrentPC();
+		pc* pPC = quest_manager::instance().current_pc();
 
-		LogManager::instance().QuestRewardLog(pPC->GetCurrentQuestName().c_str(), ch->GetPlayerID(), ch->GetLevel(), dwVnum, icount);
+		log_manager::instance().quest_reward_log(pPC->current_quest_name().c_str(), ch->player_id(), ch->level(), dwVnum, icount);
 
-		CItem * item = ch->AutoGiveItem(dwVnum, icount);
+		item * item = ch->auto_give_item(dwVnum, icount);
 
 		if (nullptr != item)
-			CQuestManager::instance().SetCurrentItem(item);
+			quest_manager::instance().set_current_item(item);
 
 		if ( dwVnum >= 80003 && dwVnum <= 80007 )
 		{
-			LogManager::instance().GoldBarLog(ch->GetPlayerID(), item->GetID(), QUEST, "quest: give_item2");
+			log_manager::instance().gold_bar_log(ch->player_id(), item->id(), QUEST, "quest: give_item2");
 		}
 
 		return 0;
@@ -580,46 +580,46 @@ namespace quest
 
 	int pc_get_current_map_index(lua_State* L)
 	{
-		lua_pushnumber(L, CQuestManager::instance().GetCurrentCharacterPtr()->GetMapIndex());
+		lua_pushnumber(L, quest_manager::instance().current_character_ptr()->map_index());
 		return 1;
 	}
 
 	int pc_get_x(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		lua_pushnumber(L, ch->GetX()/100);
+		character * ch = quest_manager::instance().current_character_ptr();
+		lua_pushnumber(L, ch->x()/100);
 		return 1;
 	}
 
 	int pc_get_y(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		lua_pushnumber(L, ch->GetY()/100);
+		character * ch = quest_manager::instance().current_character_ptr();
+		lua_pushnumber(L, ch->y()/100);
 		return 1;
 	}
 
 	int pc_get_local_x(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		SECTREE_MAP * pMap = SECTREE_MANAGER::instance().GetMap(ch->GetMapIndex());
+		character * ch = quest_manager::instance().current_character_ptr();
+		sectree_map * pMap = sectree_manager::instance().map(ch->map_index());
 
 		if (pMap)
-			lua_pushnumber(L, (ch->GetX() - pMap->m_setting.iBaseX) / 100);
+			lua_pushnumber(L, (ch->x() - pMap->setting.base_x) / 100);
 		else
-			lua_pushnumber(L, ch->GetX() / 100);
+			lua_pushnumber(L, ch->x() / 100);
 
 		return 1;
 	}
 
 	int pc_get_local_y(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		SECTREE_MAP * pMap = SECTREE_MANAGER::instance().GetMap(ch->GetMapIndex());
+		character * ch = quest_manager::instance().current_character_ptr();
+		sectree_map * pMap = sectree_manager::instance().map(ch->map_index());
 
 		if (pMap)
-			lua_pushnumber(L, (ch->GetY() - pMap->m_setting.iBaseY) / 100);
+			lua_pushnumber(L, (ch->y() - pMap->setting.base_y) / 100);
 		else
-			lua_pushnumber(L, ch->GetY() / 100);
+			lua_pushnumber(L, ch->y() / 100);
 
 		return 1;
 	}
@@ -627,19 +627,19 @@ namespace quest
 	int pc_count_item(lua_State* L)
 	{
 		if (lua_isnumber(L, -1))
-			lua_pushnumber(L,CQuestManager::instance().GetCurrentCharacterPtr()->CountSpecifyItem((uint32_t)lua_tonumber(L, -1)));
+			lua_pushnumber(L,quest_manager::instance().current_character_ptr()->count_specify_item((uint32_t)lua_tonumber(L, -1)));
 		else if (lua_isstring(L, -1))
 		{
 			uint32_t item_vnum;
 
-			if (!ITEM_MANAGER::instance().GetVnum(lua_tostring(L,1), item_vnum))
+			if (!item_manager::instance().vnum(lua_tostring(L,1), item_vnum))
 			{
 				quest::error("QUEST count_item call error : wrong item name : {}", lua_tostring(L,1));
 				lua_pushnumber(L, 0);
 			}
 			else
 			{
-				lua_pushnumber(L, CQuestManager::instance().GetCurrentCharacterPtr()->CountSpecifyItem(item_vnum));
+				lua_pushnumber(L, quest_manager::instance().current_character_ptr()->count_specify_item(item_vnum));
 			}
 		}
 		else
@@ -660,7 +660,7 @@ namespace quest
 			}
 			else if (lua_isstring(L,1))
 			{
-				if (!ITEM_MANAGER::instance().GetVnum(lua_tostring(L,1), item_vnum))
+				if (!item_manager::instance().vnum(lua_tostring(L,1), item_vnum))
 				{
 					quest::error("QUEST remove_item call error : wrong item name : {}", lua_tostring(L,1));
 					return 0;
@@ -672,8 +672,8 @@ namespace quest
 				return 0;
 			}
 
-			metin2::log::info("QUEST remove a item vnum {:d} of {}[{:d}]", item_vnum, CQuestManager::instance().GetCurrentCharacterPtr()->GetName(), CQuestManager::instance().GetCurrentCharacterPtr()->GetPlayerID());
-			CQuestManager::instance().GetCurrentCharacterPtr()->RemoveSpecifyItem(item_vnum);
+			metin2::log::info("QUEST remove a item vnum {:d} of {}[{:d}]", item_vnum, quest_manager::instance().current_character_ptr()->name(), quest_manager::instance().current_character_ptr()->player_id());
+			quest_manager::instance().current_character_ptr()->remove_specify_item(item_vnum);
 		}
 		else if (lua_gettop(L) == 2)
 		{
@@ -685,7 +685,7 @@ namespace quest
 			}
 			else if (lua_isstring(L, 1))
 			{
-				if (!ITEM_MANAGER::instance().GetVnum(lua_tostring(L,1), item_vnum))
+				if (!item_manager::instance().vnum(lua_tostring(L,1), item_vnum))
 				{
 					quest::error("QUEST remove_item call error : wrong item name : {}", lua_tostring(L,1));
 					return 0;
@@ -701,82 +701,82 @@ namespace quest
 			metin2::log::info( "QUEST remove items(vnum {:d}) count {:d} of {}[{:d}]",
 					item_vnum,
 					item_count,
-					CQuestManager::instance().GetCurrentCharacterPtr()->GetName(),
-					CQuestManager::instance().GetCurrentCharacterPtr()->GetPlayerID());
+					quest_manager::instance().current_character_ptr()->name(),
+					quest_manager::instance().current_character_ptr()->player_id());
 
-			CQuestManager::instance().GetCurrentCharacterPtr()->RemoveSpecifyItem(item_vnum, item_count);
+			quest_manager::instance().current_character_ptr()->remove_specify_item(item_vnum, item_count);
 		}
 		return 0;
 	}
 
 	int pc_get_leadership(lua_State * L)
 	{
-		lua_pushnumber(L, CQuestManager::instance().GetCurrentCharacterPtr()->GetLeadershipSkillLevel());
+		lua_pushnumber(L, quest_manager::instance().current_character_ptr()->leadership_skill_level());
 		return 1;
 	}
 
 	int pc_reset_point(lua_State * L)
 	{
-		CQuestManager::instance().GetCurrentCharacterPtr()->ResetPoint(CQuestManager::instance().GetCurrentCharacterPtr()->GetLevel());
+		quest_manager::instance().current_character_ptr()->reset_point(quest_manager::instance().current_character_ptr()->level());
 		return 0;
 	}
 
 	int pc_get_playtime(lua_State* L)
 	{
-		lua_pushnumber(L, CQuestManager::instance().GetCurrentCharacterPtr()->GetRealPoint(POINT_PLAYTIME));
+		lua_pushnumber(L, quest_manager::instance().current_character_ptr()->real_point(POINT_PLAYTIME));
 		return 1;
 	}
 
 	int pc_get_vid(lua_State* L)
 	{
-		lua_pushnumber(L, CQuestManager::instance().GetCurrentCharacterPtr()->GetVID());
+		lua_pushnumber(L, quest_manager::instance().current_character_ptr()->get_vid());
 		return 1;
 	}
 	int pc_get_name(lua_State* L)
 	{
-		lua_pushstring(L, CQuestManager::instance().GetCurrentCharacterPtr()->GetName());
+		lua_pushstring(L, quest_manager::instance().current_character_ptr()->name());
 		return 1;
 	}
 
 	int pc_get_next_exp(lua_State* L)  
 	{
-		lua_pushnumber(L, CQuestManager::instance().GetCurrentCharacterPtr()->GetNextExp());
+		lua_pushnumber(L, quest_manager::instance().current_character_ptr()->next_exp());
 		return 1;
 	}
 
 	int pc_get_exp(lua_State* L)  
 	{
-		lua_pushnumber(L, CQuestManager::instance().GetCurrentCharacterPtr()->GetExp());
+		lua_pushnumber(L, quest_manager::instance().current_character_ptr()->get_exp());
 		return 1;
 	}
 
 	int pc_get_race(lua_State* L)  
 	{
-		lua_pushnumber(L, CQuestManager::instance().GetCurrentCharacterPtr()->GetRaceNum());
+		lua_pushnumber(L, quest_manager::instance().current_character_ptr()->race_num());
 		return 1;
 	}
 
 	int pc_change_sex(lua_State* L)  
 	{
-		lua_pushnumber(L, CQuestManager::instance().GetCurrentCharacterPtr()->ChangeSex());
+		lua_pushnumber(L, quest_manager::instance().current_character_ptr()->change_sex());
 		return 1;
 	}
 
 	int pc_get_job(lua_State* L)  
 	{
-		lua_pushnumber(L, CQuestManager::instance().GetCurrentCharacterPtr()->GetJob());
+		lua_pushnumber(L, quest_manager::instance().current_character_ptr()->job());
 		return 1;
 	}
 
 	int pc_get_max_sp(lua_State* L)  
 	{
-		lua_pushnumber(L, CQuestManager::instance().GetCurrentCharacterPtr()->GetMaxSP());
+		lua_pushnumber(L, quest_manager::instance().current_character_ptr()->max_sp());
 		return 1;
 	}
 
 	int pc_get_sp(lua_State * L)  
 	{
-		lua_pushnumber(L, CQuestManager::instance().GetCurrentCharacterPtr()->GetSP());
+		lua_pushnumber(L, quest_manager::instance().current_character_ptr()->sp());
 		return 1;
 	}
 
@@ -797,19 +797,19 @@ namespace quest
 			return 1;
 		}
 
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
 		if (val > 0) // It's an increment, so always return success
-			ch->PointChange(POINT_SP, val);
+			ch->point_change(POINT_SP, val);
 		else if (val < 0)
 		{
-			if (ch->GetSP() < -val)
+			if (ch->sp() < -val)
 			{
 				lua_pushboolean(L, 0);
 				return 1;
 			}
 
-			ch->PointChange(POINT_SP, val);
+			ch->point_change(POINT_SP, val);
 		}
 
 		lua_pushboolean(L, 1);
@@ -818,19 +818,19 @@ namespace quest
 
 	int pc_get_max_hp(lua_State * L)  
 	{
-		lua_pushnumber(L, CQuestManager::instance().GetCurrentCharacterPtr()->GetMaxHP());
+		lua_pushnumber(L, quest_manager::instance().current_character_ptr()->max_hp());
 		return 1;
 	}
 
 	int pc_get_hp(lua_State * L)  
 	{
-		lua_pushnumber(L, CQuestManager::instance().GetCurrentCharacterPtr()->GetHP());
+		lua_pushnumber(L, quest_manager::instance().current_character_ptr()->hp());
 		return 1;
 	}
 
 	int pc_get_level(lua_State * L)  
 	{
-		lua_pushnumber(L, CQuestManager::instance().GetCurrentCharacterPtr()->GetLevel());
+		lua_pushnumber(L, quest_manager::instance().current_character_ptr()->level());
 		return 1;
 	}
 
@@ -844,30 +844,30 @@ namespace quest
 		else
 		{
 			int newLevel = lua_tonumber(L, 1);
-			CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+			character * ch = quest_manager::instance().current_character_ptr();
 
-			metin2::log::info("QUEST [LEVEL] {} jumpint to level {:d}", ch->GetName(), (int)rint(lua_tonumber(L,1)));
+			metin2::log::info("QUEST [LEVEL] {} jumpint to level {:d}", ch->name(), (int)rint(lua_tonumber(L,1)));
 
-			PC* pPC = CQuestManager::instance().GetCurrentPC();
-			LogManager::instance().QuestRewardLog(pPC->GetCurrentQuestName().c_str(), ch->GetPlayerID(), ch->GetLevel(), newLevel, 0);
+			pc* pPC = quest_manager::instance().current_pc();
+			log_manager::instance().quest_reward_log(pPC->current_quest_name().c_str(), ch->player_id(), ch->level(), newLevel, 0);
 
 			//Points: skill, sub-skill, stat
-			ch->PointChange(POINT_SKILL, newLevel - ch->GetLevel());
-			ch->PointChange(POINT_SUB_SKILL, newLevel < 10 ? 0 : newLevel - std::max(ch->GetLevel(), 9));
-			ch->PointChange(POINT_STAT, ((std::clamp(newLevel, 1, 90) - ch->GetLevel()) * 3) + ch->GetPoint(POINT_LEVEL_STEP));
+			ch->point_change(POINT_SKILL, newLevel - ch->level());
+			ch->point_change(POINT_SUB_SKILL, newLevel < 10 ? 0 : newLevel - std::max(ch->level(), 9));
+			ch->point_change(POINT_STAT, ((std::clamp(newLevel, 1, 90) - ch->level()) * 3) + ch->point(POINT_LEVEL_STEP));
 			//Level
-			ch->PointChange(POINT_LEVEL, newLevel - ch->GetLevel());
+			ch->point_change(POINT_LEVEL, newLevel - ch->level());
 			//HP, SP
-			ch->SetRandomHP((newLevel - 1) * number(JobInitialPoints[ch->GetJob()].hp_per_lv_begin, JobInitialPoints[ch->GetJob()].hp_per_lv_end));
-			ch->SetRandomSP((newLevel - 1) * number(JobInitialPoints[ch->GetJob()].sp_per_lv_begin, JobInitialPoints[ch->GetJob()].sp_per_lv_end));
+			ch->set_random_hp((newLevel - 1) * number(job_initial_points[ch->job()].hp_per_lv_begin, job_initial_points[ch->job()].hp_per_lv_end));
+			ch->set_random_sp((newLevel - 1) * number(job_initial_points[ch->job()].sp_per_lv_begin, job_initial_points[ch->job()].sp_per_lv_end));
 
 			// Recovery
-			ch->PointChange(POINT_HP, ch->GetMaxHP() - ch->GetHP());
-			ch->PointChange(POINT_SP, ch->GetMaxSP() - ch->GetSP());
+			ch->point_change(POINT_HP, ch->max_hp() - ch->hp());
+			ch->point_change(POINT_SP, ch->max_sp() - ch->sp());
 
-			ch->ComputePoints();
-			ch->PointsPacket();
-			ch->SkillLevelPacket();
+			ch->compute_points();
+			ch->points_packet();
+			ch->skill_level_packet();
 
 			return 0;
 		}
@@ -875,24 +875,24 @@ namespace quest
 
 	int pc_get_weapon(lua_State * L)
 	{
-		CItem * item = CQuestManager::instance().GetCurrentCharacterPtr()->GetWear(WEAR_WEAPON);
+		item * item = quest_manager::instance().current_character_ptr()->wear(WEAR_WEAPON);
 
 		if (!item)
 			lua_pushnumber(L, 0);
 		else
-			lua_pushnumber(L, item->GetVnum());
+			lua_pushnumber(L, item->vnum());
 
 		return 1;
 	}
 
 	int pc_get_armor(lua_State * L)
 	{
-		CItem * item = CQuestManager::instance().GetCurrentCharacterPtr()->GetWear(WEAR_BODY);
+		item * item = quest_manager::instance().current_character_ptr()->wear(WEAR_BODY);
 
 		if (!item)
 			lua_pushnumber(L, 0);
 		else
-			lua_pushnumber(L, item->GetVnum());
+			lua_pushnumber(L, item->vnum());
 
 		return 1;
 	}
@@ -907,19 +907,19 @@ namespace quest
 
 		uint8_t bCell = (uint8_t)lua_tonumber(L, 1);
 
-		CItem * item = CQuestManager::instance().GetCurrentCharacterPtr()->GetWear(bCell);
+		item * item = quest_manager::instance().current_character_ptr()->wear(bCell);
 
 		if (!item)
 			lua_pushnil(L);
 		else
-			lua_pushnumber(L, item->GetVnum());
+			lua_pushnumber(L, item->vnum());
 
 		return 1;
 	}
 
 	int pc_get_money(lua_State * L)
 	{ 
-		lua_pushnumber(L, CQuestManager::instance().GetCurrentCharacterPtr()->GetGold());
+		lua_pushnumber(L, quest_manager::instance().current_character_ptr()->gold());
 		return 1;
 	}
 
@@ -927,22 +927,22 @@ namespace quest
 	// so the actual alignment value is used for the calculation.
 	int pc_get_real_alignment(lua_State* L)
 	{
-		lua_pushnumber(L, CQuestManager::instance().GetCurrentCharacterPtr()->GetRealAlignment()/10);
+		lua_pushnumber(L, quest_manager::instance().current_character_ptr()->real_alignment()/10);
 		return 1;
 	}
 
 	int pc_get_alignment(lua_State* L)
 	{
-		lua_pushnumber(L, CQuestManager::instance().GetCurrentCharacterPtr()->GetAlignment()/10);
+		lua_pushnumber(L, quest_manager::instance().current_character_ptr()->alignment()/10);
 		return 1;
 	}
 
 	int pc_change_alignment(lua_State * L)
 	{
 		int alignment = (int)(lua_tonumber(L, 1)*10);
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
-		ch->UpdateAlignment(alignment);
+		ch->update_alignment(alignment);
 		return 0;
 	}
 
@@ -950,14 +950,14 @@ namespace quest
 	{
 		int gold = (int)lua_tonumber(L, -1);
 
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
-		if (gold + ch->GetGold() < 0)
-			quest::error("QUEST wrong ChangeGold {:d} (now {:d})", gold, ch->GetGold());
+		if (gold + ch->gold() < 0)
+			quest::error("QUEST wrong ChangeGold {:d} (now {:d})", gold, ch->gold());
 		else
 		{
-			DBManager::instance().SendMoneyLog(MONEY_LOG_QUEST, ch->GetPlayerID(), gold);
-			ch->PointChange(POINT_GOLD, gold, true);
+			db_manager::instance().send_money_log(MONEY_LOG_QUEST, ch->player_id(), gold);
+			ch->point_change(POINT_GOLD, gold, true);
 		}
 
 		return 0;
@@ -974,9 +974,9 @@ namespace quest
 		{
 			const char * sz = lua_tostring(L, 1);
 			const char * sz2 = lua_tostring(L, 2);
-			CQuestManager & q = CQuestManager::instance();
-			PC * pPC = q.GetCurrentPC();
-			pPC->SetFlag(std::string(sz)+"."+sz2, int(rint(lua_tonumber(L,3))));
+			quest_manager & q = quest_manager::instance();
+			pc * pPC = q.current_pc();
+			pPC->set_flag(std::string(sz)+"."+sz2, int(rint(lua_tonumber(L,3))));
 			return 0;
 		}
 	}
@@ -992,13 +992,13 @@ namespace quest
 		{
 			const char* sz = lua_tostring(L,1);
 			const char* sz2 = lua_tostring(L,2);
-			CQuestManager& q = CQuestManager::instance();
-			PC* pPC = q.GetCurrentPC();
+			quest_manager& q = quest_manager::instance();
+			pc* pPC = q.current_pc();
 			if (!pPC)
 			{
 				return 0;
 			}
-			lua_pushnumber(L,pPC->GetFlag(std::string(sz)+"."+sz2));
+			lua_pushnumber(L,pPC->flag(std::string(sz)+"."+sz2));
 			return 1;
 		}
 	}
@@ -1013,11 +1013,11 @@ namespace quest
 		else
 		{
 			const char* sz = lua_tostring(L,-1);
-			CQuestManager& q = CQuestManager::instance();
-			PC* pPC = q.GetCurrentPC();
-			lua_pushnumber(L,pPC->GetFlag(pPC->GetCurrentQuestName() + "."+sz));
+			quest_manager& q = quest_manager::instance();
+			pc* pPC = q.current_pc();
+			lua_pushnumber(L,pPC->flag(pPC->current_quest_name() + "."+sz));
 			if ( metin2::config::test_server() )
-				metin2::log::info("GetQF ( {} . {} )", pPC->GetCurrentQuestName().c_str(), sz );
+				metin2::log::info("GetQF ( {} . {} )", pPC->current_quest_name().c_str(), sz );
 		}
 		return 1;
 	}
@@ -1031,9 +1031,9 @@ namespace quest
 		else
 		{
 			const char* sz = lua_tostring(L,1);
-			CQuestManager& q = CQuestManager::instance();
-			PC* pPC = q.GetCurrentPC();
-			pPC->SetFlag(pPC->GetCurrentQuestName()+"."+sz, int(rint(lua_tonumber(L,2))));
+			quest_manager& q = quest_manager::instance();
+			pc* pPC = q.current_pc();
+			pPC->set_flag(pPC->current_quest_name()+"."+sz, int(rint(lua_tonumber(L,2))));
 		}
 		return 0;
 	}
@@ -1047,25 +1047,25 @@ namespace quest
 		}
 
 		const char * sz = lua_tostring(L, 1);
-		PC * pPC = CQuestManager::instance().GetCurrentPC();
-		pPC->DeleteFlag(pPC->GetCurrentQuestName()+"."+sz);
+		pc * pPC = quest_manager::instance().current_pc();
+		pPC->delete_flag(pPC->current_quest_name()+"."+sz);
 		return 0;
 	}
 
 	int pc_give_exp2(lua_State* L)
 	{
-		CQuestManager& q = CQuestManager::instance();
-		CHARACTER * ch = q.GetCurrentCharacterPtr();
+		quest_manager& q = quest_manager::instance();
+		character * ch = q.current_character_ptr();
 		if (!lua_isnumber(L,1))
 			return 0;
 
-		metin2::log::info("QUEST [REWARD] {} give exp2 {:d}", ch->GetName(), (int)rint(lua_tonumber(L,1)));
+		metin2::log::info("QUEST [REWARD] {} give exp2 {:d}", ch->name(), (int)rint(lua_tonumber(L,1)));
 
 		uint32_t exp = (uint32_t)rint(lua_tonumber(L,1));
 
-		PC* pPC = CQuestManager::instance().GetCurrentPC();
-		LogManager::instance().QuestRewardLog(pPC->GetCurrentQuestName().c_str(), ch->GetPlayerID(), ch->GetLevel(), exp, 0);
-		ch->PointChange(POINT_EXP, exp);
+		pc* pPC = quest_manager::instance().current_pc();
+		log_manager::instance().quest_reward_log(pPC->current_quest_name().c_str(), ch->player_id(), ch->level(), exp, 0);
+		ch->point_change(POINT_EXP, exp);
 		return 0;
 	}
 
@@ -1074,25 +1074,25 @@ namespace quest
 		if (!lua_isstring(L,1) || !lua_isnumber(L,2))
 			return 0;
 
-		CQuestManager& q = CQuestManager::instance();
-		CHARACTER * ch = q.GetCurrentCharacterPtr();
+		quest_manager& q = quest_manager::instance();
+		character * ch = q.current_character_ptr();
 
-		metin2::log::info("QUEST [REWARD] {} give exp {} {:d}", ch->GetName(), lua_tostring(L,1), (int)rint(lua_tonumber(L,2)));
+		metin2::log::info("QUEST [REWARD] {} give exp {} {:d}", ch->name(), lua_tostring(L,1), (int)rint(lua_tonumber(L,2)));
 
 		uint32_t exp = (uint32_t)rint(lua_tonumber(L,2));
 
-		PC* pPC = CQuestManager::instance().GetCurrentPC();
+		pc* pPC = quest_manager::instance().current_pc();
 
-		LogManager::instance().QuestRewardLog(pPC->GetCurrentQuestName().c_str(), ch->GetPlayerID(), ch->GetLevel(), exp, 0);
+		log_manager::instance().quest_reward_log(pPC->current_quest_name().c_str(), ch->player_id(), ch->level(), exp, 0);
 
-		pPC->GiveExp(lua_tostring(L,1), exp);
+		pPC->give_exp(lua_tostring(L,1), exp);
 		return 0;
 	}
 
 	int pc_give_exp_perc(lua_State* L)
 	{
-		CQuestManager & q = CQuestManager::instance();
-		CHARACTER * ch = q.GetCurrentCharacterPtr();
+		quest_manager & q = quest_manager::instance();
+		character * ch = q.current_character_ptr();
 
 		if (!ch || !lua_isstring(L, 1) || !lua_isnumber(L, 2) || !lua_isnumber(L, 3))
 			return 0;
@@ -1100,55 +1100,55 @@ namespace quest
 		int lev = (int)rint(lua_tonumber(L,2));
 		double proc = (lua_tonumber(L,3));
 
-		metin2::log::info( "QUEST [REWARD] {} give exp {} lev {:d} percent {:g}%", ch->GetName(), lua_tostring(L, 1), lev, proc);
+		metin2::log::info( "QUEST [REWARD] {} give exp {} lev {:d} percent {:g}%", ch->name(), lua_tostring(L, 1), lev, proc);
 
 		uint32_t exp = (uint32_t)((exp_table[std::clamp(lev, 0, PLAYER_EXP_TABLE_MAX)] * proc) / 100);
-		PC * pPC = CQuestManager::instance().GetCurrentPC();
+		pc * pPC = quest_manager::instance().current_pc();
 
-		LogManager::instance().QuestRewardLog(pPC->GetCurrentQuestName().c_str(), ch->GetPlayerID(), ch->GetLevel(), exp, 0);
+		log_manager::instance().quest_reward_log(pPC->current_quest_name().c_str(), ch->player_id(), ch->level(), exp, 0);
 
-		pPC->GiveExp(lua_tostring(L, 1), exp);
+		pPC->give_exp(lua_tostring(L, 1), exp);
 		return 0;
 	}
 
 	int pc_get_empire(lua_State* L)  
 	{
-		lua_pushnumber(L, CQuestManager::instance().GetCurrentCharacterPtr()->GetEmpire());
+		lua_pushnumber(L, quest_manager::instance().current_character_ptr()->empire());
 		return 1;
 	}
 
 	int pc_get_part(lua_State* L)
 	{
-		CQuestManager& q = CQuestManager::instance();
-		CHARACTER * ch = q.GetCurrentCharacterPtr();
+		quest_manager& q = quest_manager::instance();
+		character * ch = q.current_character_ptr();
 		if (!lua_isnumber(L,1))
 		{
 			lua_pushnumber(L, 0);
 			return 1;
 		}
 		int part_idx = (int)lua_tonumber(L, 1);
-		lua_pushnumber(L, ch->GetPart(part_idx));
+		lua_pushnumber(L, ch->part(part_idx));
 		return 1;
 	}
 
 	int pc_set_part(lua_State* L)
 	{
-		CQuestManager& q = CQuestManager::instance();
-		CHARACTER * ch = q.GetCurrentCharacterPtr();
+		quest_manager& q = quest_manager::instance();
+		character * ch = q.current_character_ptr();
 		if (!lua_isnumber(L,1) || !lua_isnumber(L,2))
 		{
 			return 0;
 		}
 		int part_idx = (int)lua_tonumber(L, 1);
 		int part_value = (int)lua_tonumber(L, 2);
-		ch->SetPart(part_idx, part_value);
-		ch->UpdatePacket();
+		ch->set_part(part_idx, part_value);
+		ch->update_packet();
 		return 0;
 	}
 
 	int pc_get_skillgroup(lua_State* L)  
 	{
-		lua_pushnumber(L, CQuestManager::instance().GetCurrentCharacterPtr()->GetSkillGroup());
+		lua_pushnumber(L, quest_manager::instance().current_character_ptr()->skill_group());
 		return 1;
 	}
 
@@ -1158,42 +1158,42 @@ namespace quest
 			quest::error("QUEST wrong skillgroup number");
 		else
 		{
-			CQuestManager & q = CQuestManager::instance();
-			CHARACTER * ch = q.GetCurrentCharacterPtr();
+			quest_manager & q = quest_manager::instance();
+			character * ch = q.current_character_ptr();
 
-			ch->SetSkillGroup((uint8_t) rint(lua_tonumber(L, 1)));
+			ch->set_skill_group((uint8_t) rint(lua_tonumber(L, 1)));
 		}
 		return 0;
 	}
 
 	int pc_is_polymorphed(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		lua_pushboolean(L, ch->IsPolymorphed());
+		character * ch = quest_manager::instance().current_character_ptr();
+		lua_pushboolean(L, ch->is_polymorphed());
 		return 1;
 	}
 
 	int pc_remove_polymorph(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		ch->RemoveAffect(AFFECT_POLYMORPH);
-		ch->SetPolymorph(0);
+		character * ch = quest_manager::instance().current_character_ptr();
+		ch->remove_affect(AFFECT_POLYMORPH);
+		ch->set_polymorph(0);
 		return 0;
 	}
 
 	int pc_polymorph(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 		uint32_t dwVnum = (uint32_t) lua_tonumber(L, 1);
 		int iDuration = (int) lua_tonumber(L, 2);
-		ch->AddAffect(AFFECT_POLYMORPH, POINT_POLYMORPH, dwVnum, AFF_POLYMORPH, iDuration, 0, true);
+		ch->add_affect(AFFECT_POLYMORPH, POINT_POLYMORPH, dwVnum, AFF_POLYMORPH, iDuration, 0, true);
 		return 0;
 	}
 
 	int pc_is_mount(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		lua_pushboolean(L, ch->GetMountVnum());
+		character * ch = quest_manager::instance().current_character_ptr();
+		lua_pushboolean(L, ch->get_mount_vnum());
 		return 1;
 	}
 
@@ -1212,18 +1212,18 @@ namespace quest
 		if (length < 0)
 			length = 60;
 
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
-		ch->RemoveAffect(AFFECT_MOUNT);
-		ch->RemoveAffect(AFFECT_MOUNT_BONUS);
+		ch->remove_affect(AFFECT_MOUNT);
+		ch->remove_affect(AFFECT_MOUNT_BONUS);
 
 		// If a horse is summoned and following, remove the horse first
-		if (ch->GetHorse())
-			ch->HorseSummon(false);
+		if (ch->horse())
+			ch->horse_summon(false);
 
 		if (mount_vnum)
 		{
-			ch->AddAffect(AFFECT_MOUNT, POINT_MOUNT, mount_vnum, AFF_NONE, length, 0, true);
+			ch->add_affect(AFFECT_MOUNT, POINT_MOUNT, mount_vnum, AFF_NONE, length, 0, true);
 			switch (mount_vnum)
 			{
 			case 20201:
@@ -1232,7 +1232,7 @@ namespace quest
 			case 20204:
 			case 20213:
 			case 20216:
-			ch->AddAffect(AFFECT_MOUNT, POINT_MOV_SPEED, 30, AFF_NONE, length, 0, true, true);
+			ch->add_affect(AFFECT_MOUNT, POINT_MOV_SPEED, 30, AFF_NONE, length, 0, true, true);
 			break;
 
 			case 20205:
@@ -1241,7 +1241,7 @@ namespace quest
 			case 20208:
 			case 20214:
 			case 20217:
-			ch->AddAffect(AFFECT_MOUNT, POINT_MOV_SPEED, 40, AFF_NONE, length, 0, true, true);
+			ch->add_affect(AFFECT_MOUNT, POINT_MOV_SPEED, 40, AFF_NONE, length, 0, true, true);
 			break;
 
 			case 20209:
@@ -1250,7 +1250,7 @@ namespace quest
 			case 20212:
 			case 20215:
 			case 20218:
-			ch->AddAffect(AFFECT_MOUNT, POINT_MOV_SPEED, 50, AFF_NONE, length, 0, true, true);
+			ch->add_affect(AFFECT_MOUNT, POINT_MOV_SPEED, 50, AFF_NONE, length, 0, true, true);
 			break;
 
 			}
@@ -1265,12 +1265,12 @@ namespace quest
 		int32_t value = static_cast<int32_t>(lua_tonumber(L, 2));
 		int32_t duration = static_cast<int32_t>(lua_tonumber(L, 3));
 
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
 		if( nullptr != ch )
 		{
-			ch->RemoveAffect(AFFECT_MOUNT_BONUS);
-			ch->AddAffect(AFFECT_MOUNT_BONUS, aApplyInfo[applyOn].bPointType, value, AFF_NONE, duration, 0, false);
+			ch->remove_affect(AFFECT_MOUNT_BONUS);
+			ch->add_affect(AFFECT_MOUNT_BONUS, a_apply_info[applyOn].point_type, value, AFF_NONE, duration, 0, false);
 		}
 
 		return 0;
@@ -1278,32 +1278,32 @@ namespace quest
 
 	int pc_unmount(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		ch->RemoveAffect(AFFECT_MOUNT);
-		ch->RemoveAffect(AFFECT_MOUNT_BONUS);
-		if (ch->IsHorseRiding())
-			ch->StopRiding();
+		character * ch = quest_manager::instance().current_character_ptr();
+		ch->remove_affect(AFFECT_MOUNT);
+		ch->remove_affect(AFFECT_MOUNT_BONUS);
+		if (ch->is_horse_riding())
+			ch->stop_riding();
 		return 0;
 	}
 
 	int pc_get_horse_level(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		lua_pushnumber(L, ch->GetHorseLevel());
+		character * ch = quest_manager::instance().current_character_ptr();
+		lua_pushnumber(L, ch->horse_level());
 		return 1;
 	}
 
 	int pc_is_horse_alive(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		lua_pushboolean(L, ch->GetHorseLevel() > 0 && ch->GetHorseHealth()>0);
+		character * ch = quest_manager::instance().current_character_ptr();
+		lua_pushboolean(L, ch->horse_level() > 0 && ch->horse_health()>0);
 		return 1;
 	}
 
 	int pc_revive_horse(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		ch->ReviveHorse();
+		character * ch = quest_manager::instance().current_character_ptr();
+		ch->revive_horse();
 		return 0;
 	}
 
@@ -1316,7 +1316,7 @@ namespace quest
 		}
 
 		const char * szMapName = lua_tostring(L, 1);
-		const TMapRegion * region = SECTREE_MANAGER::instance().FindRegionByPartialName(szMapName);
+		const map_region * region = sectree_manager::instance().find_region_by_partial_name(szMapName);
 
 		if (!region)
 		{
@@ -1324,21 +1324,21 @@ namespace quest
 			return 1;
 		}
 
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
 		bool bFind = false;
 		for (int iCell = 0; iCell < INVENTORY_MAX_NUM; iCell++)
 		{
-			CItem * item = ch->GetInventoryItem(iCell);
+			item * item = ch->inventory_item(iCell);
 			if (!item)
 				continue;
 
-			if (item->GetType() == ITEM_USE && 
-					item->GetSubType() == USE_TALISMAN && 
-					(item->GetValue(0) == 1 || item->GetValue(0) == 2))
+			if (item->type() == ITEM_USE && 
+					item->sub_type() == USE_TALISMAN && 
+					(item->value(0) == 1 || item->value(0) == 2))
 			{
-				int x = item->GetSocket(0);
-				int y = item->GetSocket(1);
+				int x = item->get_socket(0);
+				int y = item->get_socket(1);
 				//if ((x-item_x)*(x-item_x)+(y-item_y)*(y-item_y)<r*r)
 				if (region->sx <=x && region->sy <= y && x <= region->ex && y <= region->ey)
 				{
@@ -1354,14 +1354,14 @@ namespace quest
 
 	int pc_get_war_map(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		lua_pushnumber(L, ch->GetWarMap() ? ch->GetWarMap()->GetMapIndex() : 0);
+		character * ch = quest_manager::instance().current_character_ptr();
+		lua_pushnumber(L, ch->get_war_map() ? ch->get_war_map()->map_index() : 0);
 		return 1;
 	}
 
 	int pc_have_pos_scroll(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
 		if (!lua_isnumber(L,1) || !lua_isnumber(L,2))
 		{
@@ -1384,16 +1384,16 @@ namespace quest
 		bool bFind = false;
 		for (int iCell = 0; iCell < INVENTORY_MAX_NUM; iCell++)
 		{
-			CItem * item = ch->GetInventoryItem(iCell);
+			item * item = ch->inventory_item(iCell);
 			if (!item)
 				continue;
 
-			if (item->GetType() == ITEM_USE && 
-					item->GetSubType() == USE_TALISMAN && 
-					(item->GetValue(0) == 1 || item->GetValue(0) == 2))
+			if (item->type() == ITEM_USE && 
+					item->sub_type() == USE_TALISMAN && 
+					(item->value(0) == 1 || item->value(0) == 2))
 			{
-				int item_x = item->GetSocket(0);
-				int item_y = item->GetSocket(1);
+				int item_x = item->get_socket(0);
+				int item_y = item->get_socket(1);
 				if ((x-item_x)*(x-item_x)+(y-item_y)*(y-item_y)<r*r)
 				{
 					bFind = true;
@@ -1408,7 +1408,7 @@ namespace quest
 
 	int pc_get_equip_refine_level(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 		int cell = (int) lua_tonumber(L, 1);
 		if (cell < 0 || cell >= WEAR_MAX_NUM)
 		{
@@ -1417,20 +1417,20 @@ namespace quest
 			return 1;
 		}
 
-		CItem * item = ch->GetWear(cell);
+		item * item = ch->wear(cell);
 		if (!item)
 		{
 			lua_pushnumber(L, 0);
 			return 1;
 		}
 
-		lua_pushnumber(L, item->GetRefineLevel());
+		lua_pushnumber(L, item->refine_level());
 		return 1;
 	}
 
 	int pc_refine_equip(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 		if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2))
 		{
 			quest::error("invalid argument");
@@ -1442,20 +1442,20 @@ namespace quest
 		int level_limit = (int) lua_tonumber(L, 2);
 		int pct = lua_isnumber(L, 3) ? (int)lua_tonumber(L, 3) : 100;
 
-		CItem * item = ch->GetWear(cell);
+		item * item = ch->wear(cell);
 		if (!item)
 		{
 			lua_pushboolean(L, 0);
 			return 1;
 		}
 
-		if (item->GetRefinedVnum() == 0)
+		if (item->refined_vnum() == 0)
 		{
 			lua_pushboolean(L, 0);
 			return 1;
 		}
 
-		if (item->GetRefineLevel()>level_limit)
+		if (item->refine_level()>level_limit)
 		{
 			lua_pushboolean(L, 0);
 			return 1;
@@ -1466,36 +1466,36 @@ namespace quest
 			// Upgrade succeeded
 			lua_pushboolean(L, 1);
 
-			CItem * pkNewItem = ITEM_MANAGER::instance().CreateItem(item->GetRefinedVnum(), 1, 0, false);
+			game::items::item * pkNewItem = item_manager::instance().create_item(item->refined_vnum(), 1, 0, false);
 
 			if (pkNewItem)
 			{
 				for (int i = 0; i < ITEM_SOCKET_MAX_NUM; ++i)
-					if (!item->GetSocket(i))
+					if (!item->get_socket(i))
 						break;
 					else
-						pkNewItem->SetSocket(i, 1);
+						pkNewItem->set_socket(i, 1);
 
 				int set = 0;
 				for (int i=0; i<ITEM_SOCKET_MAX_NUM; i++)
 				{
-					int32_t socket = item->GetSocket(i);
+					int32_t socket = item->get_socket(i);
 					if (socket > 2 && socket != 28960)
 					{
-						pkNewItem->SetSocket(set++, socket);
+						pkNewItem->set_socket(set++, socket);
 					}
 				}
 
-				item->CopyAttributeTo(pkNewItem);
+				item->copy_attribute_to(pkNewItem);
 
-				ITEM_MANAGER::instance().RemoveItem(item, "REMOVE (REFINE SUCCESS)");
+				item_manager::instance().remove_item(item, "REMOVE (REFINE SUCCESS)");
 
 				// some tuits need here -_- pkNewItem->AddToCharacter(this, bCell); 
-				pkNewItem->EquipTo(ch, cell);
+				pkNewItem->equip_to(ch, cell);
 
-				ITEM_MANAGER::instance().FlushDelayedSave(pkNewItem);
+				item_manager::instance().flush_delayed_save(pkNewItem);
 
-				LogManager::instance().ItemLog(ch, pkNewItem, "REFINE SUCCESS (QUEST)", pkNewItem->GetName());
+				log_manager::instance().item_log(ch, pkNewItem, "REFINE SUCCESS (QUEST)", pkNewItem->name());
 			}
 		}
 		else
@@ -1516,53 +1516,53 @@ namespace quest
 			return 1;
 		}
 
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
 		uint32_t dwVnum = (uint32_t) lua_tonumber(L, 1);
-		lua_pushnumber(L, ch->GetSkillLevel(dwVnum));
+		lua_pushnumber(L, ch->skill_level(dwVnum));
 
 		return 1;
 	}
 
 	int pc_give_lotto(lua_State* L)
 	{
-		CQuestManager& q = CQuestManager::instance();
-		CHARACTER * ch = q.GetCurrentCharacterPtr();
+		quest_manager& q = quest_manager::instance();
+		character * ch = q.current_character_ptr();
 
-		metin2::log::info( "TRY GIVE LOTTO TO pid {:d}", ch->GetPlayerID());
+		metin2::log::info( "TRY GIVE LOTTO TO pid {:d}", ch->player_id());
 
 		uint32_t * pdw = new uint32_t[3];
 
 		pdw[0] = 50001;
 		pdw[1] = 1;
-		pdw[2] = q.GetEventFlag("lotto_round");
+		pdw[2] = q.event_flag("lotto_round");
 
 		// Lottery tickets set sockets
-		DBManager::instance().ReturnQuery(QID_LOTTO, ch->GetPlayerID(), pdw, sql::format(
+		db_manager::instance().return_query(QID_LOTTO, ch->player_id(), pdw, sql::format(
 				"INSERT INTO lotto_list VALUES(0, 'server{}', {}, NOW())",
-				sql::raw(get_table_postfix()), ch->GetPlayerID()));
+				sql::raw(get_table_postfix()), ch->player_id()));
 
 		return 0;
 	}
 
 	int pc_aggregate_monster(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		ch->AggregateMonster();
+		character * ch = quest_manager::instance().current_character_ptr();
+		ch->aggregate_monster();
 		return 0;
 	}
 
 	int pc_forget_my_attacker(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		ch->ForgetMyAttacker();
+		character * ch = quest_manager::instance().current_character_ptr();
+		ch->forget_my_attacker();
 		return 0;
 	}
 
 	int pc_attract_ranger(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		ch->AttractRanger();
+		character * ch = quest_manager::instance().current_character_ptr();
+		ch->attract_ranger();
 		return 0;
 	}
 
@@ -1570,14 +1570,14 @@ namespace quest
 	{
 		uint32_t vid = (uint32_t) lua_tonumber(L, 1);
 
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		CHARACTER * new_ch = CHARACTER_MANAGER::instance().Find(vid);
+		character * ch = quest_manager::instance().current_character_ptr();
+		character * new_ch = character_manager::instance().find(vid);
 
 		if (new_ch)
 		{
-			CQuestManager::instance().GetPC(new_ch->GetPlayerID());
+			quest_manager::instance().get_pc(new_ch->player_id());
 
-			lua_pushnumber(L, (uint32_t)ch->GetVID());
+			lua_pushnumber(L, (uint32_t)ch->get_vid());
 		}
 		else
 		{
@@ -1589,50 +1589,50 @@ namespace quest
 
 	int pc_get_sex(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		lua_pushnumber(L, GET_SEX(ch)); /* 0==MALE, 1==FEMALE */
+		character * ch = quest_manager::instance().current_character_ptr();
+		lua_pushnumber(L, get_sex(ch)); /* 0==MALE, 1==FEMALE */
 		return 1;
 	}
 
 	int pc_is_engaged(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		lua_pushboolean(L, marriage::CManager::instance().IsEngaged(ch->GetPlayerID()));
+		character * ch = quest_manager::instance().current_character_ptr();
+		lua_pushboolean(L, marriage::manager::instance().is_engaged(ch->player_id()));
 		return 1;
 	}
 
 	int pc_is_married(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		lua_pushboolean(L, marriage::CManager::instance().IsMarried(ch->GetPlayerID()));
+		character * ch = quest_manager::instance().current_character_ptr();
+		lua_pushboolean(L, marriage::manager::instance().is_married(ch->player_id()));
 		return 1;
 	}
 
 	int pc_is_engaged_or_married(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		lua_pushboolean(L, marriage::CManager::instance().IsEngagedOrMarried(ch->GetPlayerID()));
+		character * ch = quest_manager::instance().current_character_ptr();
+		lua_pushboolean(L, marriage::manager::instance().is_engaged_or_married(ch->player_id()));
 		return 1;
 	}
 
 	int pc_is_gm(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		lua_pushboolean(L, ch->GetGMLevel() >= GM_HIGH_WIZARD);
+		character * ch = quest_manager::instance().current_character_ptr();
+		lua_pushboolean(L, ch->gm_level() >= GM_HIGH_WIZARD);
 		return 1;
 	}
 
 	int pc_get_gm_level(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		lua_pushnumber(L, ch->GetGMLevel());
+		character * ch = quest_manager::instance().current_character_ptr();
+		lua_pushnumber(L, ch->gm_level());
 		return 1;
 	}
 
 	int pc_mining(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		CHARACTER * npc = CQuestManager::instance().GetCurrentNPCCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
+		character * npc = quest_manager::instance().current_npc_character_ptr();
 		ch->mining(npc);
 		return 0;
 	}
@@ -1648,12 +1648,12 @@ namespace quest
 		int cost = (int) lua_tonumber(L, 1);
 		int pct = (int)lua_tonumber(L, 2);
 
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		CHARACTER * npc = CQuestManager::instance().GetCurrentNPCCharacterPtr();
-		CItem * item = CQuestManager::instance().GetCurrentItem();
+		character * ch = quest_manager::instance().current_character_ptr();
+		character * npc = quest_manager::instance().current_npc_character_ptr();
+		item * item = quest_manager::instance().current_item();
 
 		if (item)
-			lua_pushboolean(L, mining::OreRefine(ch, npc, item, cost, pct, nullptr));
+			lua_pushboolean(L, mining::ore_refine(ch, npc, item, cost, pct, nullptr));
 		else
 			lua_pushboolean(L, 0);
 
@@ -1672,14 +1672,14 @@ namespace quest
 		int pct = (int)lua_tonumber(L, 2);
 		int metinstone_cell = (int)lua_tonumber(L, 3);
 
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		CHARACTER * npc = CQuestManager::instance().GetCurrentNPCCharacterPtr();
-		CItem * item = CQuestManager::instance().GetCurrentItem();
+		character * ch = quest_manager::instance().current_character_ptr();
+		character * npc = quest_manager::instance().current_npc_character_ptr();
+		item * item = quest_manager::instance().current_item();
 
-		CItem * metinstone_item = ch->GetInventoryItem(metinstone_cell);
+		game::items::item * metinstone_item = ch->inventory_item(metinstone_cell);
 
 		if (item && metinstone_item)
-			lua_pushboolean(L, mining::OreRefine(ch, npc, item, cost, pct, metinstone_item));
+			lua_pushboolean(L, mining::ore_refine(ch, npc, item, cost, pct, metinstone_item));
 		else
 			lua_pushboolean(L, 0);
 
@@ -1688,20 +1688,20 @@ namespace quest
 
 	int pc_clear_skill(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 		if ( ch == nullptr ) return 0;
 
-		ch->ClearSkill();
+		ch->clear_skill();
 
 		return 0;
 	}
 
 	int pc_clear_sub_skill(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 		if ( ch == nullptr ) return 0;
 
-		ch->ClearSubSkill();
+		ch->clear_sub_skill();
 
 		return 0;
 	}
@@ -1713,14 +1713,14 @@ namespace quest
 			return 0;
 		}
 
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 		int newPoint = (int) lua_tonumber(L, 1);
 
-		ch->SetRealPoint(POINT_SKILL, newPoint);
-		ch->SetPoint(POINT_SKILL, ch->GetRealPoint(POINT_SKILL));
-		ch->PointChange(POINT_SKILL, 0);
-		ch->ComputePoints();
-		ch->PointsPacket();
+		ch->set_real_point(POINT_SKILL, newPoint);
+		ch->set_point(POINT_SKILL, ch->real_point(POINT_SKILL));
+		ch->point_change(POINT_SKILL, 0);
+		ch->compute_points();
+		ch->points_packet();
 
 		return 0;
 	}
@@ -1731,7 +1731,7 @@ namespace quest
 		int vnum = (int)lua_tonumber(L, 1);
 		metin2::log::info( "{:d} skill clear", vnum);
 
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 		if ( ch == nullptr )
 		{
 			metin2::log::info( "skill clear fail");
@@ -1741,7 +1741,7 @@ namespace quest
 
 		metin2::log::info( "{:d} skill clear", vnum);
 
-		ch->ResetOneSkill(vnum);
+		ch->reset_one_skill(vnum);
 
 		return 0;
 	}
@@ -1749,18 +1749,18 @@ namespace quest
 
 	int pc_is_clear_skill_group(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
-		lua_pushboolean(L, ch->GetQuestFlag("skill_group_clear.clear") == 1);
+		lua_pushboolean(L, ch->quest_flag("skill_group_clear.clear") == 1);
 
 		return 1;
 	}
 
 	int pc_save_exit_location(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
-		ch->SaveExitLocation();
+		ch->save_exit_location();
 
 		return 0;
 	}
@@ -1768,7 +1768,7 @@ namespace quest
 	//Teleport 
 	int pc_teleport ( lua_State * L )
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 		int x=0,y=0;	
 		if ( lua_isnumber(L, 1) )
 		{
@@ -1803,38 +1803,38 @@ namespace quest
 		{
 			const char * arg1 = lua_tostring(L, 1);
 
-			CHARACTER * tch = CHARACTER_MANAGER::instance().FindPC(arg1);
+			character * tch = character_manager::instance().find_pc(arg1);
 
 			if (!tch)
 			{
-				const CCI* pkCCI = P2P_MANAGER::instance().Find(arg1);
+				const cci* pkCCI = p2_p_manager::instance().find(arg1);
 
 				if (pkCCI)
 				{
-					if (pkCCI->bChannel != metin2::config::server().channel)
+					if (pkCCI->channel != metin2::config::server().channel)
 					{
-						ch->ChatPacket(CHAT_TYPE_INFO, "Target is in %d channel (my channel %d)", pkCCI->bChannel, metin2::config::server().channel);
+						ch->chat_packet(CHAT_TYPE_INFO, "Target is in %d channel (my channel %d)", pkCCI->channel, metin2::config::server().channel);
 					}
 					else
 					{
 
-						PIXEL_POSITION pos;
+						pixel_position pos;
 
-						if (!SECTREE_MANAGER::instance().GetCenterPositionOfMap(pkCCI->lMapIndex, pos))
+						if (!sectree_manager::instance().center_position_of_map(pkCCI->map_index, pos))
 						{
-							ch->ChatPacket(CHAT_TYPE_INFO, "Cannot find map (index %d)", pkCCI->lMapIndex);
+							ch->chat_packet(CHAT_TYPE_INFO, "Cannot find map (index %d)", pkCCI->map_index);
 						}
 						else
 						{
-							ch->ChatPacket(CHAT_TYPE_INFO, "You warp to ( %d, %d )", pos.x, pos.y);
-							ch->WarpSet(pos.x, pos.y);
+							ch->chat_packet(CHAT_TYPE_INFO, "You warp to ( %d, %d )", pos.x, pos.y);
+							ch->warp_set(pos.x, pos.y);
 							lua_pushnumber(L, 1 );
 						}
 					}
 				}
-				else if (nullptr == CHARACTER_MANAGER::instance().FindPC(arg1))
+				else if (nullptr == character_manager::instance().find_pc(arg1))
 				{
-					ch->ChatPacket(CHAT_TYPE_INFO, "There is no one by that name");
+					ch->chat_packet(CHAT_TYPE_INFO, "There is no one by that name");
 				}
 
 				lua_pushnumber(L, 0 );
@@ -1843,8 +1843,8 @@ namespace quest
 			}
 			else
 			{
-				x = tch->GetX() / 100;
-				y = tch->GetY() / 100;
+				x = tch->x() / 100;
+				y = tch->y() / 100;
 			}
 		}
 
@@ -1853,9 +1853,9 @@ teleport_area:
 		x *= 100;
 		y *= 100;
 
-		ch->ChatPacket(CHAT_TYPE_INFO, "You warp to ( %d, %d )", x, y);
-		ch->WarpSet(x,y);
-		ch->Stop();
+		ch->chat_packet(CHAT_TYPE_INFO, "You warp to ( %d, %d )", x, y);
+		ch->warp_set(x,y);
+		ch->stop();
 		lua_pushnumber(L, 1 );
 		return 1;
 	}
@@ -1865,10 +1865,10 @@ teleport_area:
 		uint32_t dwVnum = (uint32_t)lua_tonumber(L, 1);
 		uint8_t byLev = (uint8_t)lua_tonumber(L, 2);
 
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		ch->SetSkillLevel(dwVnum, byLev);
+		character * ch = quest_manager::instance().current_character_ptr();
+		ch->set_skill_level(dwVnum, byLev);
 
-		ch->SkillLevelPacket();
+		ch->skill_level_packet();
 
 		return 0;
 	}
@@ -1881,19 +1881,19 @@ teleport_area:
 			return 0;
 		}
 
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
-		CPolymorphUtils::instance().GiveBook(ch, (uint32_t)lua_tonumber(L, 1), (uint32_t)lua_tonumber(L, 2), (uint8_t)lua_tonumber(L, 3), (uint8_t)lua_tonumber(L, 4));
+		polymorph_utils::instance().give_book(ch, (uint32_t)lua_tonumber(L, 1), (uint32_t)lua_tonumber(L, 2), (uint8_t)lua_tonumber(L, 3), (uint8_t)lua_tonumber(L, 4));
 
 		return 0;
 	}
 
 	int pc_upgrade_polymorph_book(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		CItem * pItem = CQuestManager::instance().GetCurrentItem();
+		character * ch = quest_manager::instance().current_character_ptr();
+		item * pItem = quest_manager::instance().current_item();
 
-		bool ret = CPolymorphUtils::instance().BookUpgrade(ch, pItem);
+		bool ret = polymorph_utils::instance().book_upgrade(ch, pItem);
 
 		lua_pushboolean(L, ret);
 
@@ -1904,7 +1904,7 @@ teleport_area:
 	{
 		int	remain_seconds	= 0;
 		int	premium_type	= 0;
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
 		if (!lua_isnumber(L, 1)) 
 		{
@@ -1929,7 +1929,7 @@ teleport_area:
 				return 0;
 		}
 
-		remain_seconds = ch->GetPremiumRemainSeconds(premium_type);
+		remain_seconds = ch->premium_remain_seconds(premium_type);
 
 		lua_pushnumber(L, remain_seconds);
 		return 1;
@@ -1937,36 +1937,36 @@ teleport_area:
 
 	int pc_send_block_mode(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
-		ch->SetBlockModeForce((uint8_t)lua_tonumber(L, 1));
+		ch->set_block_mode_force((uint8_t)lua_tonumber(L, 1));
 
 		return 0;
 	}
 
 	int pc_change_empire(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
-		lua_pushnumber(L, ch->ChangeEmpire((unsigned char)lua_tonumber(L, 1)));
+		lua_pushnumber(L, ch->change_empire((unsigned char)lua_tonumber(L, 1)));
 
 		return 1;
 	}
 
 	int pc_get_change_empire_count(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
-		lua_pushnumber(L, ch->GetChangeEmpireCount());
+		lua_pushnumber(L, ch->change_empire_count());
 
 		return 1;
 	}
 
 	int pc_set_change_empire_count(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
-		ch->SetChangeEmpireCount();
+		ch->set_change_empire_count();
 
 		return 0;
 	}
@@ -1981,9 +1981,9 @@ teleport_area:
 		//		4: success
 		//		5: feature not supported
 
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
-		if ( ch->GetNewName().size() != 0 )
+		if ( ch->new_name().size() != 0 )
 		{
 			lua_pushnumber(L, 0);
 			return 1;
@@ -2003,11 +2003,11 @@ teleport_area:
 			return 1;
 		}
 
-		std::unique_ptr<SQLMsg> pmsg(DBManager::instance().DirectQuery(sql::format("SELECT COUNT(*) FROM player{} WHERE name={}", sql::raw(get_table_postfix()), szName)));
+		std::unique_ptr<ql_msg> pmsg(db_manager::instance().direct_query(sql::format("SELECT COUNT(*) FROM player{} WHERE name={}", sql::raw(get_table_postfix()), szName)));
 
-		if ( pmsg->Get()->uiNumRows > 0 )
+		if ( pmsg->get()->num_rows > 0 )
 		{
-			MYSQL_ROW row = mysql_fetch_row(pmsg->Get()->pSQLResult);
+			MYSQL_ROW row = mysql_fetch_row(pmsg->get()->sql_result);
 
 			int	count = 0;
 			str_to_number(count, row[0]);
@@ -2020,29 +2020,29 @@ teleport_area:
 			}
 		}
 
-		uint32_t pid = ch->GetPlayerID();
-		ch->Save(); // Fix
+		uint32_t pid = ch->player_id();
+		ch->save(); // Fix
 
 		/* delete messenger list */
-		MessengerManager::instance().RemoveAllList(ch->GetName());
+		messenger_manager::instance().remove_all_list(ch->name());
 
 		/* change_name_log */
-		LogManager::instance().ChangeNameLog(pid, ch->GetName(), szName, ch->GetDesc()->GetHostName());
+		log_manager::instance().change_name_log(pid, ch->name(), szName, ch->get_desc()->host_name());
 
-		std::unique_ptr<SQLMsg> msg(DBManager::instance().DirectQuery(sql::format("UPDATE player{} SET name={} WHERE id={}", sql::raw(get_table_postfix()), szName, pid)));
+		std::unique_ptr<ql_msg> msg(db_manager::instance().direct_query(sql::format("UPDATE player{} SET name={} WHERE id={}", sql::raw(get_table_postfix()), szName, pid)));
 
-		ch->SetNewName(szName);
+		ch->set_new_name(szName);
 		lua_pushnumber(L, 4);
 		return 1;
 	}
 
 	int pc_is_dead(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
 		if ( ch != nullptr )
 		{
-			lua_pushboolean(L, ch->IsDead());
+			lua_pushboolean(L, ch->is_dead());
 			return 1;
 		}
 
@@ -2059,7 +2059,7 @@ teleport_area:
 
 			if ( idx >= 0 && idx < 4 )
 			{
-				CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+				character * ch = quest_manager::instance().current_character_ptr();
 				int point = POINT_NONE;
 				char buf[128];
 
@@ -2072,54 +2072,54 @@ teleport_area:
 					default : lua_pushboolean(L, false); return 1;
 				}
 
-				int old_val = ch->GetRealPoint(point);
-				int old_stat = ch->GetRealPoint(POINT_STAT);
+				int old_val = ch->real_point(point);
+				int old_stat = ch->real_point(POINT_STAT);
 
-				ch->SetRealPoint(point, 1);
-				ch->SetPoint(point, ch->GetRealPoint(point));
+				ch->set_real_point(point, 1);
+				ch->set_point(point, ch->real_point(point));
 
-				ch->PointChange(POINT_STAT, old_val-1);
-
-				if ( point == POINT_HT )
-				{
-					uint8_t job = ch->GetJob();
-					ch->SetRandomHP((ch->GetLevel()-1) * number(JobInitialPoints[job].hp_per_lv_begin, JobInitialPoints[job].hp_per_lv_end));
-				}
-				else if ( point == POINT_IQ )
-				{
-					uint8_t job = ch->GetJob();
-					ch->SetRandomSP((ch->GetLevel()-1) * number(JobInitialPoints[job].sp_per_lv_begin, JobInitialPoints[job].sp_per_lv_end));
-				}
-
-				ch->ComputePoints();
-				ch->PointsPacket();
+				ch->point_change(POINT_STAT, old_val-1);
 
 				if ( point == POINT_HT )
 				{
-					ch->PointChange(POINT_HP, ch->GetMaxHP() - ch->GetHP());
+					uint8_t job = ch->job();
+					ch->set_random_hp((ch->level()-1) * number(job_initial_points[job].hp_per_lv_begin, job_initial_points[job].hp_per_lv_end));
 				}
 				else if ( point == POINT_IQ )
 				{
-					ch->PointChange(POINT_SP, ch->GetMaxSP() - ch->GetSP());
+					uint8_t job = ch->job();
+					ch->set_random_sp((ch->level()-1) * number(job_initial_points[job].sp_per_lv_begin, job_initial_points[job].sp_per_lv_end));
+				}
+
+				ch->compute_points();
+				ch->points_packet();
+
+				if ( point == POINT_HT )
+				{
+					ch->point_change(POINT_HP, ch->max_hp() - ch->hp());
+				}
+				else if ( point == POINT_IQ )
+				{
+					ch->point_change(POINT_SP, ch->max_sp() - ch->sp());
 				}
 
 				switch ( idx )
 				{
 					case 0 :
-						snprintf(buf, sizeof(buf), "reset ht(%d)->1 stat_point(%d)->(%d)", old_val, old_stat, ch->GetRealPoint(POINT_STAT));
+						snprintf(buf, sizeof(buf), "reset ht(%d)->1 stat_point(%d)->(%d)", old_val, old_stat, ch->real_point(POINT_STAT));
 						break;
 					case 1 :
-						snprintf(buf, sizeof(buf), "reset iq(%d)->1 stat_point(%d)->(%d)", old_val, old_stat, ch->GetRealPoint(POINT_STAT));
+						snprintf(buf, sizeof(buf), "reset iq(%d)->1 stat_point(%d)->(%d)", old_val, old_stat, ch->real_point(POINT_STAT));
 						break;
 					case 2 :
-						snprintf(buf, sizeof(buf), "reset st(%d)->1 stat_point(%d)->(%d)", old_val, old_stat, ch->GetRealPoint(POINT_STAT));
+						snprintf(buf, sizeof(buf), "reset st(%d)->1 stat_point(%d)->(%d)", old_val, old_stat, ch->real_point(POINT_STAT));
 						break;
 					case 3 :
-						snprintf(buf, sizeof(buf), "reset dx(%d)->1 stat_point(%d)->(%d)", old_val, old_stat, ch->GetRealPoint(POINT_STAT));
+						snprintf(buf, sizeof(buf), "reset dx(%d)->1 stat_point(%d)->(%d)", old_val, old_stat, ch->real_point(POINT_STAT));
 						break;
 				}
 
-				LogManager::instance().CharLog(ch, 0, "RESET_ONE_STATUS", buf);
+				log_manager::instance().char_log(ch, 0, "RESET_ONE_STATUS", buf);
 
 				lua_pushboolean(L, true);
 				return 1;
@@ -2132,8 +2132,8 @@ teleport_area:
 
 	int pc_get_ht( lua_State* L )
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		lua_pushnumber(L, ch->GetRealPoint(POINT_HT));
+		character * ch = quest_manager::instance().current_character_ptr();
+		lua_pushnumber(L, ch->real_point(POINT_HT));
 		return 1;
 	}
 
@@ -2144,20 +2144,20 @@ teleport_area:
 
 		int newPoint = (int)lua_tonumber(L, 1);
 
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		int usedPoint = newPoint - ch->GetRealPoint(POINT_HT);
-		ch->SetRealPoint(POINT_HT, newPoint);
-		ch->PointChange(POINT_HT, 0);
-		ch->PointChange(POINT_STAT, -usedPoint);
-		ch->ComputePoints();
-		ch->PointsPacket();
+		character * ch = quest_manager::instance().current_character_ptr();
+		int usedPoint = newPoint - ch->real_point(POINT_HT);
+		ch->set_real_point(POINT_HT, newPoint);
+		ch->point_change(POINT_HT, 0);
+		ch->point_change(POINT_STAT, -usedPoint);
+		ch->compute_points();
+		ch->points_packet();
 		return 1;
 	}
 
 	int pc_get_iq( lua_State* L )
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		lua_pushnumber(L, ch->GetRealPoint(POINT_IQ));
+		character * ch = quest_manager::instance().current_character_ptr();
+		lua_pushnumber(L, ch->real_point(POINT_IQ));
 		return 1;
 	}
 
@@ -2168,20 +2168,20 @@ teleport_area:
 
 		int newPoint = (int)lua_tonumber(L, 1);
 
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		int usedPoint = newPoint - ch->GetRealPoint(POINT_IQ);
-		ch->SetRealPoint(POINT_IQ, newPoint);
-		ch->PointChange(POINT_IQ, 0);
-		ch->PointChange(POINT_STAT, -usedPoint);
-		ch->ComputePoints();
-		ch->PointsPacket();
+		character * ch = quest_manager::instance().current_character_ptr();
+		int usedPoint = newPoint - ch->real_point(POINT_IQ);
+		ch->set_real_point(POINT_IQ, newPoint);
+		ch->point_change(POINT_IQ, 0);
+		ch->point_change(POINT_STAT, -usedPoint);
+		ch->compute_points();
+		ch->points_packet();
 		return 1;
 	}
 
 	int pc_get_st( lua_State* L )
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		lua_pushnumber(L, ch->GetRealPoint(POINT_ST));
+		character * ch = quest_manager::instance().current_character_ptr();
+		lua_pushnumber(L, ch->real_point(POINT_ST));
 		return 1;
 	}
 
@@ -2192,20 +2192,20 @@ teleport_area:
 
 		int newPoint = (int)lua_tonumber(L, 1);
 
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		int usedPoint = newPoint - ch->GetRealPoint(POINT_ST);
-		ch->SetRealPoint(POINT_ST, newPoint);
-		ch->PointChange(POINT_ST, 0);
-		ch->PointChange(POINT_STAT, -usedPoint);
-		ch->ComputePoints();
-		ch->PointsPacket();
+		character * ch = quest_manager::instance().current_character_ptr();
+		int usedPoint = newPoint - ch->real_point(POINT_ST);
+		ch->set_real_point(POINT_ST, newPoint);
+		ch->point_change(POINT_ST, 0);
+		ch->point_change(POINT_STAT, -usedPoint);
+		ch->compute_points();
+		ch->points_packet();
 		return 1;
 	}
 
 	int pc_get_dx( lua_State* L )
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		lua_pushnumber(L, ch->GetRealPoint(POINT_DX));
+		character * ch = quest_manager::instance().current_character_ptr();
+		lua_pushnumber(L, ch->real_point(POINT_DX));
 		return 1;
 	}
 
@@ -2216,13 +2216,13 @@ teleport_area:
 
 		int newPoint = (int)lua_tonumber(L, 1);
 
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		int usedPoint = newPoint - ch->GetRealPoint(POINT_DX);
-		ch->SetRealPoint(POINT_DX, newPoint);
-		ch->PointChange(POINT_DX, 0);
-		ch->PointChange(POINT_STAT, -usedPoint);
-		ch->ComputePoints();
-		ch->PointsPacket();
+		character * ch = quest_manager::instance().current_character_ptr();
+		int usedPoint = newPoint - ch->real_point(POINT_DX);
+		ch->set_real_point(POINT_DX, newPoint);
+		ch->point_change(POINT_DX, 0);
+		ch->point_change(POINT_STAT, -usedPoint);
+		ch->compute_points();
+		ch->points_packet();
 		return 1;
 	}
 
@@ -2234,12 +2234,12 @@ teleport_area:
 		}
 		else
 		{
-			CHARACTER * pMe = CQuestManager::instance().GetCurrentCharacterPtr();
-			CHARACTER * pOther = CHARACTER_MANAGER::instance().Find( (uint32_t)lua_tonumber(L, 1) );
+			character * pMe = quest_manager::instance().current_character_ptr();
+			character * pOther = character_manager::instance().find( (uint32_t)lua_tonumber(L, 1) );
 
 			if ( pMe != nullptr && pOther != nullptr )
 			{
-				lua_pushboolean(L, (DISTANCE_APPROX(pMe->GetX() - pOther->GetX(), pMe->GetY() - pOther->GetY()) < (int)lua_tonumber(L, 2)*100));
+				lua_pushboolean(L, (distance_approx(pMe->x() - pOther->x(), pMe->y() - pOther->y()) < (int)lua_tonumber(L, 2)*100));
 			}
 			else
 			{
@@ -2252,7 +2252,7 @@ teleport_area:
 
 	int pc_get_socket_items( lua_State* L )
 	{
-		CHARACTER * pChar = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * pChar = quest_manager::instance().current_character_ptr();
 
 		lua_newtable( L );
 
@@ -2264,23 +2264,23 @@ teleport_area:
 		// This function seems to be for stone-removal scrolls.
 		for ( int i=0; i < INVENTORY_MAX_NUM + WEAR_MAX_NUM; i++ )
 		{
-			CItem * pItem = pChar->GetInventoryItem(i);
+			item * pItem = pChar->inventory_item(i);
 
 			if ( pItem != nullptr )
 			{
-				if ( pItem->IsEquipped() == false )
+				if ( pItem->is_equipped() == false )
 				{
 					int j = 0;
 					for (; j < ITEM_SOCKET_MAX_NUM; j++ )
 					{
-						int32_t socket = pItem->GetSocket(j);
+						int32_t socket = pItem->get_socket(j);
 
 						if ( socket > 2 && socket != ITEM_BROKEN_METIN_VNUM )
 						{
-							TItemTable* pItemInfo = ITEM_MANAGER::instance().GetTable( socket );
+							item_table* pItemInfo = item_manager::instance().table( socket );
 							if ( pItemInfo != nullptr )
 							{
-								if ( pItemInfo->bType == ITEM_METIN ) break;
+								if ( pItemInfo->type == ITEM_METIN ) break;
 							}
 						}
 					}
@@ -2290,7 +2290,7 @@ teleport_area:
 					lua_newtable( L );
 
 					{
-						lua_pushstring( L, pItem->GetName() );
+						lua_pushstring( L, pItem->name() );
 						lua_rawseti( L, -2, 1 );
 
 						lua_pushnumber( L, i );
@@ -2307,11 +2307,11 @@ teleport_area:
 
 	int pc_get_empty_inventory_count( lua_State* L )
 	{
-		CHARACTER * pChar = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * pChar = quest_manager::instance().current_character_ptr();
 
 		if ( pChar != nullptr )
 		{
-			lua_pushnumber(L, pChar->CountEmptyInventory());
+			lua_pushnumber(L, pChar->count_empty_inventory());
 		}
 		else
 		{
@@ -2323,11 +2323,11 @@ teleport_area:
 
 	int pc_get_logoff_interval( lua_State* L )
 	{
-		CHARACTER * pChar = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * pChar = quest_manager::instance().current_character_ptr();
 
 		if ( pChar != nullptr )
 		{
-			lua_pushnumber(L, pChar->GetLogOffInterval());
+			lua_pushnumber(L, pChar->log_off_interval());
 		}
 		else
 		{
@@ -2339,11 +2339,11 @@ teleport_area:
 
 	int pc_get_player_id( lua_State* L )
 	{
-		CHARACTER * pChar = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * pChar = quest_manager::instance().current_character_ptr();
 
 		if ( pChar != nullptr )
 		{
-			lua_pushnumber( L, pChar->GetPlayerID() );
+			lua_pushnumber( L, pChar->player_id() );
 		}
 		else
 		{
@@ -2355,13 +2355,13 @@ teleport_area:
 
 	int pc_get_account_id( lua_State* L )
 	{
-		CHARACTER * pChar = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * pChar = quest_manager::instance().current_character_ptr();
 
 		if ( pChar != nullptr )
 		{
-			if ( pChar->GetDesc() != nullptr )
+			if ( pChar->get_desc() != nullptr )
 			{
-				lua_pushnumber( L, pChar->GetDesc()->GetAccountTable().id );
+				lua_pushnumber( L, pChar->get_desc()->get_account_table().id );
 				return 1;
 			}
 		}
@@ -2372,13 +2372,13 @@ teleport_area:
 
 	int pc_get_account( lua_State* L )
 	{
-		CHARACTER * pChar = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * pChar = quest_manager::instance().current_character_ptr();
 
 		if( nullptr != pChar )
 		{
-			if( nullptr != pChar->GetDesc() )
+			if( nullptr != pChar->get_desc() )
 			{
-				lua_pushstring( L, pChar->GetDesc()->GetAccountTable().login );
+				lua_pushstring( L, pChar->get_desc()->get_account_table().login );
 				return 1;
 			}
 		}
@@ -2389,11 +2389,11 @@ teleport_area:
 
 	int pc_is_riding(lua_State* L)
 	{
-		CHARACTER * pChar = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * pChar = quest_manager::instance().current_character_ptr();
 
 		if( nullptr != pChar )
 		{
-			bool is_riding = pChar->IsRiding();
+			bool is_riding = pChar->is_riding();
 
 			lua_pushboolean(L, is_riding);
 
@@ -2406,29 +2406,29 @@ teleport_area:
 
 	int pc_get_special_ride_vnum(lua_State* L)
 	{
-		CHARACTER * pChar = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * pChar = quest_manager::instance().current_character_ptr();
 
 		if (nullptr != pChar)
 		{
-			CItem * Unique1 = pChar->GetWear(WEAR_UNIQUE1);
-			CItem * Unique2 = pChar->GetWear(WEAR_UNIQUE2);
+			item * Unique1 = pChar->wear(WEAR_UNIQUE1);
+			item * Unique2 = pChar->wear(WEAR_UNIQUE2);
 
 			if (nullptr != Unique1)
 			{
-				if (UNIQUE_GROUP_SPECIAL_RIDE == Unique1->GetSpecialGroup())
+				if (UNIQUE_GROUP_SPECIAL_RIDE == Unique1->special_group())
 				{
-					lua_pushnumber(L, Unique1->GetVnum());
-					lua_pushnumber(L, Unique1->GetSocket(2));
+					lua_pushnumber(L, Unique1->vnum());
+					lua_pushnumber(L, Unique1->get_socket(2));
 					return 2;
 				}
 			}
 
 			if (nullptr != Unique2)
 			{
-				if (UNIQUE_GROUP_SPECIAL_RIDE == Unique2->GetSpecialGroup())
+				if (UNIQUE_GROUP_SPECIAL_RIDE == Unique2->special_group())
 				{
-					lua_pushnumber(L, Unique2->GetVnum());
-					lua_pushnumber(L, Unique2->GetSocket(2));
+					lua_pushnumber(L, Unique2->vnum());
+					lua_pushnumber(L, Unique2->get_socket(2));
 					return 2;
 				}
 			}
@@ -2442,11 +2442,11 @@ teleport_area:
 
 	int pc_can_warp(lua_State* L)
 	{
-		CHARACTER * pChar = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * pChar = quest_manager::instance().current_character_ptr();
 
 		if (nullptr != pChar)
 		{
-			lua_pushboolean(L, pChar->CanWarp());
+			lua_pushboolean(L, pChar->can_warp());
 		}
 		else
 		{
@@ -2458,11 +2458,11 @@ teleport_area:
 
 	int pc_dec_skill_point(lua_State* L)
 	{
-		CHARACTER * pChar = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * pChar = quest_manager::instance().current_character_ptr();
 
 		if (nullptr != pChar)
 		{
-			pChar->PointChange(POINT_SKILL, -1);
+			pChar->point_change(POINT_SKILL, -1);
 		}
 
 		return 0;
@@ -2470,11 +2470,11 @@ teleport_area:
 
 	int pc_get_skill_point(lua_State* L)
 	{
-		CHARACTER * pChar = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * pChar = quest_manager::instance().current_character_ptr();
 
 		if (nullptr != pChar)
 		{
-			lua_pushnumber(L, pChar->GetPoint(POINT_SKILL));
+			lua_pushnumber(L, pChar->point(POINT_SKILL));
 		}
 		else
 		{
@@ -2495,7 +2495,7 @@ teleport_area:
 	{
 		const int dwVnum = lua_tonumber(L, 1);
 
-		const CMob* MobInfo = CMobManager::instance().Get(dwVnum);
+		const mob* MobInfo = mob_manager::instance().get(dwVnum);
 
 		if (nullptr == MobInfo)
 		{
@@ -2503,13 +2503,13 @@ teleport_area:
 			return 1;
 		}
 
-		if (0 == MobInfo->m_table.dwPolymorphItemVnum)
+		if (0 == MobInfo->table.polymorph_item_vnum)
 		{
 			lua_pushboolean(L, false);
 			return 1;
 		}
 
-		CItem * item = ITEM_MANAGER::instance().CreateItem( MobInfo->m_table.dwPolymorphItemVnum );
+		item * item = item_manager::instance().create_item( MobInfo->table.polymorph_item_vnum );
 
 		if (nullptr == item)
 		{
@@ -2517,24 +2517,24 @@ teleport_area:
 			return 1;
 		}
 
-		item->SetSocket(0, dwVnum);
+		item->set_socket(0, dwVnum);
 
-		CHARACTER * const ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * const ch = quest_manager::instance().current_character_ptr();
 
-		int iEmptyCell = ch->GetEmptyInventory(item->GetSize());
+		int iEmptyCell = ch->empty_inventory(item->size());
 
 		if (-1 == iEmptyCell)
 		{
-			ITEM_MANAGER::instance().DestroyItem(item);
+			item_manager::instance().destroy_item(item);
 			lua_pushboolean(L, false);
 			return 1;
 		}
 
-		item->AddToCharacter(ch, TItemPos(INVENTORY, iEmptyCell));
+		item->add_to_character(ch, item_pos(INVENTORY, iEmptyCell));
 
-		const PC* pPC = CQuestManager::instance().GetCurrentPC();
+		const pc* pPC = quest_manager::instance().current_pc();
 
-		LogManager::instance().QuestRewardLog(pPC->GetCurrentQuestName().c_str(), ch->GetPlayerID(), ch->GetLevel(), MobInfo->m_table.dwPolymorphItemVnum, dwVnum);
+		log_manager::instance().quest_reward_log(pPC->current_quest_name().c_str(), ch->player_id(), ch->level(), MobInfo->table.polymorph_item_vnum, dwVnum);
 
 		lua_pushboolean(L, true);
 
@@ -2544,13 +2544,13 @@ teleport_area:
 	int pc_get_sig_items (lua_State* L)
 	{
 		uint32_t group_vnum = (uint32_t)lua_tonumber (L, 1);
-		CHARACTER * const ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * const ch = quest_manager::instance().current_character_ptr();
 		int count = 0;
 		for (int i = 0; i < INVENTORY_MAX_NUM; ++i)
 		{
-			if (ch->GetInventoryItem(i) != nullptr && ch->GetInventoryItem(i)->GetSIGVnum() == group_vnum)
+			if (ch->inventory_item(i) != nullptr && ch->inventory_item(i)->sig_vnum() == group_vnum)
 			{
-				lua_pushnumber(L, ch->GetInventoryItem(i)->GetID());
+				lua_pushnumber(L, ch->inventory_item(i)->id());
 				count++;
 			}
 		}
@@ -2560,31 +2560,31 @@ teleport_area:
 
 	int pc_charge_cash(lua_State * L)
 	{
-		TRequestChargeCash packet;
+		request_charge_cash packet;
 
 		int amount = lua_isnumber(L, 1) ? (int)lua_tonumber(L, 1) : 0;
 		std::string strChargeType = lua_isstring(L, 2) ? lua_tostring(L, 2) : "";
 
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
-		if (nullptr == ch || nullptr == ch->GetDesc() || 1 > amount || 50000 < amount)
+		if (nullptr == ch || nullptr == ch->get_desc() || 1 > amount || 50000 < amount)
 		{
 			lua_pushboolean(L, 0);
 			return 1;
 		}
 
-		packet.dwAID = ch->GetDesc()->GetAccountTable().id;
-		packet.dwAmount = (uint32_t)amount;
-		packet.eChargeType = ERequestCharge_Cash;
+		packet.aid = ch->get_desc()->get_account_table().id;
+		packet.amount = (uint32_t)amount;
+		packet.charge_type = ERequestCharge_Cash;
 
 		if (0 < strChargeType.length())
 			std::transform(strChargeType.begin(), strChargeType.end(), strChargeType.begin(), (int(*)(int))std::tolower);
 
 		if ("mileage" == strChargeType)
-			packet.eChargeType = ERequestCharge_Mileage;
+			packet.charge_type = ERequestCharge_Mileage;
 
-		db_clientdesc->DBPacketHeader(HEADER_GD_REQUEST_CHARGE_CASH, 0, sizeof(TRequestChargeCash));
-		db_clientdesc->Packet(&packet, sizeof(packet));
+		db_clientdesc->db_packet_header(HEADER_GD_REQUEST_CHARGE_CASH, 0, sizeof(request_charge_cash));
+		db_clientdesc->packet(&packet, sizeof(packet));
 
 		lua_pushboolean(L, 1);
 		return 1;
@@ -2592,7 +2592,7 @@ teleport_area:
 
 	int pc_give_award(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
 		if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2) || !lua_isstring(L, 3) )
 		{
@@ -2605,14 +2605,14 @@ teleport_area:
 
 		int icount = (int) lua_tonumber(L, 2);
 
-		metin2::log::info( "QUEST [award] item {:d} to login {}", dwVnum, ch->GetDesc()->GetAccountTable().login);
+		metin2::log::info( "QUEST [award] item {:d} to login {}", dwVnum, ch->get_desc()->get_account_table().login);
 
-		DBManager::instance().Query(sql::format("INSERT INTO item_award (login, vnum, count, given_time, why, mall)select {}, {}, {}, now(), {}, 1 from DUAL where not exists (select login, why from item_award where login = {} and why  = {}) ;", 
-			ch->GetDesc()->GetAccountTable().login,
+		db_manager::instance().query(sql::format("INSERT INTO item_award (login, vnum, count, given_time, why, mall)select {}, {}, {}, now(), {}, 1 from DUAL where not exists (select login, why from item_award where login = {} and why  = {}) ;", 
+			ch->get_desc()->get_account_table().login,
 			dwVnum, 
 			icount, 
 			lua_tostring(L,3),
-			ch->GetDesc()->GetAccountTable().login,
+			ch->get_desc()->get_account_table().login,
 			lua_tostring(L,3)));
 
 		lua_pushnumber (L, 0);
@@ -2620,7 +2620,7 @@ teleport_area:
 	}
 	int pc_give_award_socket(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
 		if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2) || !lua_isstring(L, 3) || !lua_isstring(L, 4) || !lua_isstring(L, 5) || !lua_isstring(L, 6) )
 		{
@@ -2633,22 +2633,22 @@ teleport_area:
 
 		int icount = (int) lua_tonumber(L, 2);
 
-		metin2::log::info( "QUEST [award] item {:d} to login {}", dwVnum, ch->GetDesc()->GetAccountTable().login);
+		metin2::log::info( "QUEST [award] item {:d} to login {}", dwVnum, ch->get_desc()->get_account_table().login);
 
 		// Socket values may come as numbers or numeric strings; anything else reads as 0.
 		int64_t sockets[3] = {};
 		for (int i = 0; i < 3; ++i)
 			str_to_number(sockets[i], lua_tostring(L, 4 + i));
 
-		DBManager::instance().Query(sql::format("INSERT INTO item_award (login, vnum, count, given_time, why, mall, socket0, socket1, socket2)select {}, {}, {}, now(), {}, 1, {}, {}, {} from DUAL where not exists (select login, why from item_award where login = {} and why  = {}) ;", 
-			ch->GetDesc()->GetAccountTable().login,
+		db_manager::instance().query(sql::format("INSERT INTO item_award (login, vnum, count, given_time, why, mall, socket0, socket1, socket2)select {}, {}, {}, now(), {}, 1, {}, {}, {} from DUAL where not exists (select login, why from item_award where login = {} and why  = {}) ;", 
+			ch->get_desc()->get_account_table().login,
 			dwVnum, 
 			icount, 
 			lua_tostring(L,3),
 			sockets[0],
 			sockets[1],
 			sockets[2],
-			ch->GetDesc()->GetAccountTable().login,
+			ch->get_desc()->get_account_table().login,
 			lua_tostring(L,3)));
 
 		lua_pushnumber (L, 0);
@@ -2657,11 +2657,11 @@ teleport_area:
 
 	int pc_get_informer_type(lua_State* L)	//German gift feature
 	{
-		CHARACTER * pChar = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * pChar = quest_manager::instance().current_character_ptr();
 
 		if( pChar != nullptr )
 		{
-			lua_pushstring(L, pChar->GetItemAward_cmd() );
+			lua_pushstring(L, pChar->item_award_cmd() );
 		}
 		else
 			lua_pushstring(L, "" );
@@ -2671,11 +2671,11 @@ teleport_area:
 
 	int pc_get_informer_item(lua_State* L)
 	{
-		CHARACTER * pChar = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * pChar = quest_manager::instance().current_character_ptr();
 
 		if( pChar != nullptr )
 		{
-			lua_pushnumber(L, pChar->GetItemAward_vnum() );
+			lua_pushnumber(L, pChar->item_award_vnum() );
 		}
 		else
 			lua_pushnumber(L,0);
@@ -2685,11 +2685,11 @@ teleport_area:
 
 	int pc_get_killee_drop_pct(lua_State* L)
 	{
-		CHARACTER * pChar = CQuestManager::instance().GetCurrentCharacterPtr();
-		CHARACTER * pKillee = pChar->GetQuestNPC();
+		character * pChar = quest_manager::instance().current_character_ptr();
+		character * pKillee = pChar->quest_npc();
 
 		int iDeltaPercent, iRandRange;
-		if (nullptr == pKillee || !ITEM_MANAGER::instance().GetDropPct(pKillee, pChar, iDeltaPercent, iRandRange))
+		if (nullptr == pKillee || !item_manager::instance().drop_pct(pKillee, pChar, iDeltaPercent, iRandRange))
 		{
 			quest::error("killee is null");
 			lua_pushnumber(L, -1);
@@ -2704,7 +2704,7 @@ teleport_area:
 		return 2;
 	}
 
-	void RegisterPCFunctionTable()
+	void register_pc_function_table()
 	{
 		luaL_reg pc_functions[] = 
 		{
@@ -2913,7 +2913,7 @@ teleport_area:
 			{ nullptr,			nullptr			}
 		};
 
-		CQuestManager::instance().AddLuaFunctionTable("pc", pc_functions);
+		quest_manager::instance().add_lua_function_table("pc", pc_functions);
 	}
 };
 }

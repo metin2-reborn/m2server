@@ -37,12 +37,12 @@
 namespace metin2::game::inline protocol {
 
 
-bool IsEmptyAdminPage()
+bool is_empty_admin_page()
 {
 	return metin2::config::server().admin.ips.empty();
 }
 
-bool IsAdminPage(const char * ip)
+bool is_admin_page(const char * ip)
 {
 	for (size_t n = 0; n < metin2::config::server().admin.ips.size(); ++n)
 	{
@@ -52,18 +52,18 @@ bool IsAdminPage(const char * ip)
 	return 0;
 }
 
-CInputProcessor::CInputProcessor() : m_pPacketInfo(nullptr), m_iBufferLeft(0)
+input_processor::input_processor() : packet_info_(nullptr), buffer_left_(0)
 {
-	if (!m_pPacketInfo)
-		BindPacketInfo(&m_packetInfoCG);
+	if (!packet_info_)
+		bind_packet_info(&packet_info_cg_);
 }
 
-void CInputProcessor::BindPacketInfo(CPacketInfo * pPacketInfo)
+void input_processor::bind_packet_info(packet_info * pPacketInfo)
 {
-	m_pPacketInfo = pPacketInfo;
+	packet_info_ = pPacketInfo;
 }
 
-bool CInputProcessor::Process(DESC * lpDesc, const void * c_pvOrig, int iBytes, int & r_iBytesProceed)
+bool input_processor::process(desc * lpDesc, const void * c_pvOrig, int iBytes, int & r_iBytesProceed)
 {
 	const char * c_pData = (const char *) c_pvOrig;
 
@@ -71,92 +71,92 @@ bool CInputProcessor::Process(DESC * lpDesc, const void * c_pvOrig, int iBytes, 
 	int		iLastPacketLen = 0;
 	int		iPacketLen;
 
-	if (!m_pPacketInfo)
+	if (!packet_info_)
 	{
 		metin2::log::error("No packet info has been binded to");
 		return true;
 	}
 
-	for (m_iBufferLeft = iBytes; m_iBufferLeft > 0;)
+	for (buffer_left_ = iBytes; buffer_left_ > 0;)
 	{
 		uint8_t bHeader = (uint8_t) *(c_pData);
 		const char * c_pszName;
 
 		if (bHeader == 0) // Skip header 0 since encryption handling exists.
 			iPacketLen = 1;
-		else if (!m_pPacketInfo->Get(bHeader, &iPacketLen, &c_pszName))
+		else if (!packet_info_->get(bHeader, &iPacketLen, &c_pszName))
 		{
 			metin2::log::error("UNKNOWN HEADER: {:d}, LAST HEADER: {:d}({:d}), REMAIN BYTES: {:d}, host: {}",
-					bHeader, bLastHeader, iLastPacketLen, m_iBufferLeft, lpDesc->GetHostName());
-			lpDesc->SetPhase(PHASE_CLOSE);
+					bHeader, bLastHeader, iLastPacketLen, buffer_left_, lpDesc->host_name());
+			lpDesc->set_phase(PHASE_CLOSE);
 			return true;
 		}
 
-		if (m_iBufferLeft < iPacketLen)
+		if (buffer_left_ < iPacketLen)
 			return true;
 
 		if (bHeader)
 		{
 			if (metin2::config::test_server() && bHeader != HEADER_CG_MOVE)
-				metin2::log::info( "Packet Analyze [Header {:d}][bufferLeft {:d}] ", bHeader, m_iBufferLeft);
+				metin2::log::info( "Packet Analyze [Header {:d}][bufferLeft {:d}] ", bHeader, buffer_left_);
 
-			m_pPacketInfo->Start();
+			packet_info_->start();
 
 			// Handlers check their variable-size data against m_iBufferLeft. The sequence byte
 			// follows that data, so it is not counted: a packet whose sequence byte has not
 			// arrived yet then waits for it instead of being read past the end of the buffer.
-			const int iBufferLeft = m_iBufferLeft;
+			const int iBufferLeft = buffer_left_;
 
-			if (m_pPacketInfo->IsSequence(bHeader))
-				--m_iBufferLeft;
+			if (packet_info_->is_sequence(bHeader))
+				--buffer_left_;
 
-			int iExtraPacketSize = Analyze(lpDesc, bHeader, c_pData);
-			m_iBufferLeft = iBufferLeft;
+			int iExtraPacketSize = analyze(lpDesc, bHeader, c_pData);
+			buffer_left_ = iBufferLeft;
 
 			if (iExtraPacketSize < 0)
 				return true;
 
 			// A handler that claims more than was received would make us read and consume past
 			// the buffer.
-			if (iExtraPacketSize > m_iBufferLeft - iPacketLen)
+			if (iExtraPacketSize > buffer_left_ - iPacketLen)
 			{
 				metin2::log::error("packet {} (header {:d}) claims {:d} extra bytes, only {:d} left, host: {}",
-						c_pszName, bHeader, iExtraPacketSize, m_iBufferLeft - iPacketLen, lpDesc->GetHostName());
-				lpDesc->SetPhase(PHASE_CLOSE);
+						c_pszName, bHeader, iExtraPacketSize, buffer_left_ - iPacketLen, lpDesc->host_name());
+				lpDesc->set_phase(PHASE_CLOSE);
 				return true;
 			}
 
 			iPacketLen += iExtraPacketSize;
-			m_pPacketInfo->End();
+			packet_info_->end();
 		}
 
 		if (bHeader == HEADER_CG_PONG)
-			metin2::log::info( "PONG! {:d} {:d}", m_pPacketInfo->IsSequence(bHeader), *(uint8_t *) (c_pData + iPacketLen - sizeof(uint8_t)));
+			metin2::log::info( "PONG! {:d} {:d}", packet_info_->is_sequence(bHeader), *(uint8_t *) (c_pData + iPacketLen - sizeof(uint8_t)));
 
-		if (m_pPacketInfo->IsSequence(bHeader))
+		if (packet_info_->is_sequence(bHeader))
 		{
-			uint8_t bSeq = lpDesc->GetSequence();
+			uint8_t bSeq = lpDesc->sequence();
 			uint8_t bSeqReceived = *(uint8_t *) (c_pData + iPacketLen - sizeof(uint8_t));
 
 			if (bSeq != bSeqReceived)
 			{
 				metin2::log::error("SEQUENCE {} mismatch 0x{:x} != 0x{:x} header {:d}", static_cast<const void *>(static_cast<void*>(lpDesc)), bSeq, bSeqReceived, bHeader);
 
-				CHARACTER *	ch = lpDesc->GetCharacter();
+				character *	ch = lpDesc->get_character();
 
 				char buf[1024];
 				int	offset, len;
 
-				offset = snprintf(buf, sizeof(buf), "SEQUENCE_LOG [%s]-------------\n", ch ? ch->GetName() : "UNKNOWN");
+				offset = snprintf(buf, sizeof(buf), "SEQUENCE_LOG [%s]-------------\n", ch ? ch->name() : "UNKNOWN");
 
 				if (offset < 0 || offset >= (int) sizeof(buf))
 					offset = sizeof(buf) - 1;
 
-				for (size_t i = 0; i < lpDesc->m_seq_vector.size(); ++i)
+				for (size_t i = 0; i < lpDesc->seq_vector.size(); ++i)
 				{
 					len = snprintf(buf + offset, sizeof(buf) - offset, "\t[%03d : 0x%x]\n",
-							lpDesc->m_seq_vector[i].hdr,
-							lpDesc->m_seq_vector[i].seq);
+							lpDesc->seq_vector[i].hdr,
+							lpDesc->seq_vector[i].seq);
 
 					if (len < 0 || len >= (int) sizeof(buf) - offset)
 						offset += (sizeof(buf) - offset) - 1;
@@ -167,102 +167,102 @@ bool CInputProcessor::Process(DESC * lpDesc, const void * c_pvOrig, int iBytes, 
 				snprintf(buf + offset, sizeof(buf) - offset, "\t[%03d : 0x%x]\n", bHeader, bSeq);
 				metin2::log::error("{}", buf);
 
-				lpDesc->SetPhase(PHASE_CLOSE);
+				lpDesc->set_phase(PHASE_CLOSE);
 				return true;
 			}
 			else
 			{
 				lpDesc->push_seq(bHeader, bSeq);
-				lpDesc->SetNextSequence();
+				lpDesc->set_next_sequence();
 			}
 		}
 
 		c_pData	+= iPacketLen;
-		m_iBufferLeft -= iPacketLen;
+		buffer_left_ -= iPacketLen;
 		r_iBytesProceed += iPacketLen;
 
 		iLastPacketLen = iPacketLen;
 		bLastHeader	= bHeader;
 
-		if (GetType() != lpDesc->GetInputProcessor()->GetType())
+		if (type() != lpDesc->get_input_processor()->type())
 			return false;
 	}
 
 	return true;
 }
 
-void CInputProcessor::Pong(DESC * d)
+void input_processor::pong(desc * d)
 {
-	d->SetPong(true);
+	d->set_pong(true);
 
 
 }
 
-void CInputProcessor::Handshake(DESC * d, const char * c_pData)
+void input_processor::handshake(desc * d, const char * c_pData)
 {
-	TPacketCGHandshake * p = (TPacketCGHandshake *) c_pData;
+	packet_cg_handshake * p = (packet_cg_handshake *) c_pData;
 
-	if (d->GetHandshake() != p->dwHandshake)
+	if (d->handshake() != p->handshake)
 	{
-		metin2::log::error("Invalid Handshake from {}", d->GetHostName());
-		d->SetPhase(PHASE_CLOSE);
+		metin2::log::error("Invalid Handshake from {}", d->host_name());
+		d->set_phase(PHASE_CLOSE);
 	}
 	else
 	{
-		if (d->IsPhase(PHASE_HANDSHAKE))
+		if (d->is_phase(PHASE_HANDSHAKE))
 		{
-			if (d->HandshakeProcess(p->dwTime, p->lDelta, false))
+			if (d->handshake_process(p->time, p->delta, false))
 			{
-				d->SendKeyAgreement();
+				d->send_key_agreement();
 			}
 		}
 		else
-			d->HandshakeProcess(p->dwTime, p->lDelta, true);
+			d->handshake_process(p->time, p->delta, true);
 	}
 }
 
-void CInputProcessor::Version(CHARACTER * ch, const char* c_pData)
+void input_processor::version(character * ch, const char* c_pData)
 {
 	if (!ch)
 		return;
 
-	if (!ch->GetDesc())
+	if (!ch->get_desc())
 		return;
 
-	TPacketCGClientVersion * p = (TPacketCGClientVersion *) c_pData;
+	packet_cg_client_version * p = (packet_cg_client_version *) c_pData;
 
 	char szTimestamp[sizeof(p->timestamp)];
 	char szFilename[sizeof(p->filename)];
-	CopyPacketString(szTimestamp, p->timestamp);
-	CopyPacketString(szFilename, p->filename);
+	copy_packet_string(szTimestamp, p->timestamp);
+	copy_packet_string(szFilename, p->filename);
 
-	metin2::log::info( "VERSION: {} {} {}", ch->GetName(), szTimestamp, szFilename);
-	ch->GetDesc()->SetClientVersion(szTimestamp);
+	metin2::log::info( "VERSION: {} {} {}", ch->name(), szTimestamp, szFilename);
+	ch->get_desc()->set_client_version(szTimestamp);
 }
 
-void LoginFailure(DESC * d, const char * c_pszStatus)
+void login_failure(desc * d, const char * c_pszStatus)
 {
 	if (!d)
 		return;
 
-	TPacketGCLoginFailure failurePacket;
+	packet_gc_login_failure failurePacket;
 
 	failurePacket.header = HEADER_GC_LOGIN_FAILURE;
-	strlcpy(failurePacket.szStatus, c_pszStatus, sizeof(failurePacket.szStatus));
+	strlcpy(failurePacket.status, c_pszStatus, sizeof(failurePacket.status));
 
-	d->Packet(&failurePacket, sizeof(failurePacket));
+	d->packet(&failurePacket, sizeof(failurePacket));
 }
 
-CInputHandshake::CInputHandshake()
+input_handshake::input_handshake()
 {
-	m_pkHandshakePacketInfo = std::make_unique<CPacketInfoCG>();
-	m_pkHandshakePacketInfo->SetSequence(HEADER_CG_PONG, false);
+	handshake_packet_info_ = std::make_unique<packet_info_cg>();
+	handshake_packet_info_->set_sequence(HEADER_CG_PONG, false);
 
-	m_pMainPacketInfo = m_pPacketInfo;
-	BindPacketInfo(m_pkHandshakePacketInfo.get());
+	main_packet_info_ = packet_info_;
+	bind_packet_info(handshake_packet_info_.get());
 }
 
-CInputHandshake::~CInputHandshake()
+input_handshake::~input_handshake()
 {
 }
 
@@ -271,24 +271,24 @@ CInputHandshake::~CInputHandshake()
 // BLOCK_CHAT
 // END_OF_BLOCK_CHAT
 
-int CInputHandshake::Analyze(DESC * d, uint8_t bHeader, const char * c_pData)
+int input_handshake::analyze(desc * d, uint8_t bHeader, const char * c_pData)
 {
 	if (bHeader == 10) // Ignore enter
 		return 0;
 
 	if (bHeader == HEADER_CG_TEXT)
 	{
-		if (IsEmptyAdminPage() || !IsAdminPage(d->GetHostName())) // block if adminpage is not set or if not admin
+		if (is_empty_admin_page() || !is_admin_page(d->host_name())) // block if adminpage is not set or if not admin
 		{
-			metin2::log::info( "PORT_SECURITY: BLOCK FROM({})", d->GetHostName());
-			d->SetPhase(PHASE_CLOSE);
+			metin2::log::info( "PORT_SECURITY: BLOCK FROM({})", d->host_name());
+			d->set_phase(PHASE_CLOSE);
 			return -1;
 		}
 
 		++c_pData;
 
 		// The line ends at \n within what was received; the data is not NUL-terminated.
-		const char * c_pSep = (const char *) memchr(c_pData, '\n', m_iBufferLeft - 1);
+		const char * c_pSep = (const char *) memchr(c_pData, '\n', buffer_left_ - 1);
 
 		if (!c_pSep)
 			return -1;
@@ -300,11 +300,11 @@ int CInputHandshake::Analyze(DESC * d, uint8_t bHeader, const char * c_pData)
 		std::string stBuf;
 		stBuf.assign(c_pData, c_pSep - c_pData);
 
-		metin2::log::info( "SOCKET_CMD: FROM({}) CMD({})", d->GetHostName(), stBuf.c_str());
+		metin2::log::info( "SOCKET_CMD: FROM({}) CMD({})", d->host_name(), stBuf.c_str());
 
 		if (!stBuf.compare("IS_SERVER_UP"))
 		{
-			if (g_bNoMoreClient)
+			if (no_more_client)
 				stResult = "NO";
 			else
 				stResult = "YES";
@@ -312,23 +312,23 @@ int CInputHandshake::Analyze(DESC * d, uint8_t bHeader, const char * c_pData)
 		//else if (!stBuf.compare("SHOWMETHEMONEY"))
 		else if (!metin2::config::server().admin.password.empty() && stBuf == metin2::config::server().admin.password)
 		{
-			if (!IsEmptyAdminPage())
+			if (!is_empty_admin_page())
 			{
-				if (!IsAdminPage(d->GetHostName()))
+				if (!is_admin_page(d->host_name()))
 				{
 					char szTmp[64];
-					snprintf(szTmp, sizeof(szTmp), "WEBADMIN : Wrong Connector : %s", d->GetHostName());
+					snprintf(szTmp, sizeof(szTmp), "WEBADMIN : Wrong Connector : %s", d->host_name());
 					stResult += szTmp;
 				}
 				else
 				{
-					d->SetAdminMode();
+					d->set_admin_mode();
 					stResult = "UNKNOWN";
 				}
 			}
 			else
 			{
-				d->SetAdminMode();
+				d->set_admin_mode();
 				stResult = "UNKNOWN";
 			}
 		}
@@ -336,18 +336,18 @@ int CInputHandshake::Analyze(DESC * d, uint8_t bHeader, const char * c_pData)
 		{
 			char szTmp[64];
 
-			if (!IsEmptyAdminPage())
+			if (!is_empty_admin_page())
 			{
-				if (!IsAdminPage(d->GetHostName()))
+				if (!is_admin_page(d->host_name()))
 				{
-					snprintf(szTmp, sizeof(szTmp), "WEBADMIN : Wrong Connector : %s", d->GetHostName());
+					snprintf(szTmp, sizeof(szTmp), "WEBADMIN : Wrong Connector : %s", d->host_name());
 				}
 				else
 				{
 					int iTotal;
 					int * paiEmpireUserCount;
 					int iLocal;
-					DESC_MANAGER::instance().GetUserCount(iTotal, &paiEmpireUserCount, iLocal);
+					desc_manager::instance().user_count(iTotal, &paiEmpireUserCount, iLocal);
 					snprintf(szTmp, sizeof(szTmp), "%d %d %d %d %d", iTotal, paiEmpireUserCount[1], paiEmpireUserCount[2], paiEmpireUserCount[3], iLocal);
 				}
 			}
@@ -356,71 +356,71 @@ int CInputHandshake::Analyze(DESC * d, uint8_t bHeader, const char * c_pData)
 				int iTotal;
 				int * paiEmpireUserCount;
 				int iLocal;
-				DESC_MANAGER::instance().GetUserCount(iTotal, &paiEmpireUserCount, iLocal);
+				desc_manager::instance().user_count(iTotal, &paiEmpireUserCount, iLocal);
 				snprintf(szTmp, sizeof(szTmp), "%d %d %d %d %d", iTotal, paiEmpireUserCount[1], paiEmpireUserCount[2], paiEmpireUserCount[3], iLocal);
 			}
 			stResult += szTmp;
 		}
 		// The commands below need the admin password (admin mode), not only an admin IP.
-		else if (d->IsAdminMode() && !stBuf.compare("CHECK_P2P_CONNECTIONS"))
+		else if (d->is_admin_mode() && !stBuf.compare("CHECK_P2P_CONNECTIONS"))
 		{
 			std::ostringstream oss(std::ostringstream::out);
 			
-			oss << "P2P CONNECTION NUMBER : " << P2P_MANAGER::instance().GetDescCount() << "\n";
+			oss << "P2P CONNECTION NUMBER : " << p2_p_manager::instance().desc_count() << "\n";
 			std::string hostNames;
-			P2P_MANAGER::instance().GetP2PHostNames(hostNames);
+			p2_p_manager::instance().p2_p_host_names(hostNames);
 			oss << hostNames;
 			stResult = oss.str();
-			TPacketGGCheckAwakeness packet;
-			packet.bHeader = HEADER_GG_CHECK_AWAKENESS;
+			packet_gg_check_awakeness packet;
+			packet.header = HEADER_GG_CHECK_AWAKENESS;
 
-			P2P_MANAGER::instance().Send(&packet, sizeof(packet));
+			p2_p_manager::instance().send(&packet, sizeof(packet));
 		}
-		else if (d->IsAdminMode() && !stBuf.compare("PACKET_INFO"))
+		else if (d->is_admin_mode() && !stBuf.compare("PACKET_INFO"))
 		{
-			m_pMainPacketInfo->Log("packet_info.txt");
+			main_packet_info_->log("packet_info.txt");
 			stResult = "OK";
 		}
 		//gift notify delete command
-		else if (d->IsAdminMode() && !stBuf.compare(0,15,"DELETE_AWARDID "))
+		else if (d->is_admin_mode() && !stBuf.compare(0,15,"DELETE_AWARDID "))
 			{
 				char szTmp[64];
 				std::string msg = stBuf.substr(15,26);	// item_award id range?
 				
-				TPacketDeleteAwardID p;
-				p.dwID = (uint32_t)(atoi(msg.c_str()));
-				snprintf(szTmp,sizeof(szTmp),"Sent to DB cache to delete ItemAward, id: %d",p.dwID);
-				db_clientdesc->DBPacket(HEADER_GD_DELETE_AWARDID, 0, &p, sizeof(p));
+				packet_delete_award_id p;
+				p.id = (uint32_t)(atoi(msg.c_str()));
+				snprintf(szTmp,sizeof(szTmp),"Sent to DB cache to delete ItemAward, id: %d",p.id);
+				db_clientdesc->db_packet(HEADER_GD_DELETE_AWARDID, 0, &p, sizeof(p));
 				stResult += szTmp;
 			}
 		else
 		{
 			stResult = "UNKNOWN";
 			
-			if (d->IsAdminMode())
+			if (d->is_admin_mode())
 			{
 				// Admin commands
 				if (!stBuf.compare(0, 7, "NOTICE "))
 				{
 					std::string msg = stBuf.substr(7);
 					msg.resize(utf8_truncated_size(msg.c_str(), msg.size(), 50));
-					LogManager::instance().CharLog(0, 0, 0, 1, "NOTICE", msg.c_str(), d->GetHostName());
-					BroadcastNotice(msg.c_str());
+					log_manager::instance().char_log(0, 0, 0, 1, "NOTICE", msg.c_str(), d->host_name());
+					broadcast_notice(msg.c_str());
 				}
 				else if (!stBuf.compare("SHUTDOWN"))
 				{
-					LogManager::instance().CharLog(0, 0, 0, 2, "SHUTDOWN", "", d->GetHostName());
-					TPacketGGShutdown p;
-					p.bHeader = HEADER_GG_SHUTDOWN;
-					P2P_MANAGER::instance().Send(&p, sizeof(TPacketGGShutdown));
-					metin2::log::error("Accept shutdown command from {}.", d->GetHostName());
-					Shutdown(10);
+					log_manager::instance().char_log(0, 0, 0, 2, "SHUTDOWN", "", d->host_name());
+					packet_gg_shutdown p;
+					p.header = HEADER_GG_SHUTDOWN;
+					p2_p_manager::instance().send(&p, sizeof(packet_gg_shutdown));
+					metin2::log::error("Accept shutdown command from {}.", d->host_name());
+					shutdown(10);
 				}
 				else if (!stBuf.compare("SHUTDOWN_ONLY"))
 				{
-					LogManager::instance().CharLog(0, 0, 0, 2, "SHUTDOWN", "", d->GetHostName());
-					metin2::log::error("Accept shutdown only command from {}.", d->GetHostName());
-					Shutdown(10);
+					log_manager::instance().char_log(0, 0, 0, 2, "SHUTDOWN", "", d->host_name());
+					metin2::log::error("Accept shutdown only command from {}.", d->host_name());
+					shutdown(10);
 				}
 				else if (!stBuf.compare(0, 3, "DC "))
 				{
@@ -428,35 +428,35 @@ int CInputHandshake::Analyze(DESC * d, uint8_t bHeader, const char * c_pData)
 
 metin2::log::debug( "DC : '{}'", msg.c_str());
 
-					TPacketGGDisconnect pgg;
+					packet_gg_disconnect pgg;
 
-					pgg.bHeader = HEADER_GG_DISCONNECT;
-					strlcpy(pgg.szLogin, msg.c_str(), sizeof(pgg.szLogin));
+					pgg.header = HEADER_GG_DISCONNECT;
+					strlcpy(pgg.login, msg.c_str(), sizeof(pgg.login));
 
-					P2P_MANAGER::instance().Send(&pgg, sizeof(TPacketGGDisconnect));
+					p2_p_manager::instance().send(&pgg, sizeof(packet_gg_disconnect));
 
 					// delete login key
 					{
-						TPacketDC p;
+						packet_dc p;
 						strlcpy(p.login, msg.c_str(), sizeof(p.login));
-						db_clientdesc->DBPacket(HEADER_GD_DC, 0, &p, sizeof(p));
+						db_clientdesc->db_packet(HEADER_GD_DC, 0, &p, sizeof(p));
 					}
 				}
 				else if (!stBuf.compare(0, 20, "CHECK_CLIENT_VERSION"))
 				{
-					CheckClientVersion();
+					check_client_version();
 
 					uint8_t bHeader = HEADER_GG_CHECK_CLIENT_VERSION;
-					P2P_MANAGER::instance().Send(&bHeader, sizeof(uint8_t));
+					p2_p_manager::instance().send(&bHeader, sizeof(uint8_t));
 					stResult = "OK";
 				}
 				else if (!stBuf.compare(0, 6, "RELOAD"))
 				{
 					if (stBuf.size() == 6)
 					{
-						LoadStateUserCount();
-						db_clientdesc->DBPacket(HEADER_GD_RELOAD_PROTO, 0, nullptr, 0);
-						DBManager::instance().LoadDBString();
+						load_state_user_count();
+						db_clientdesc->db_packet(HEADER_GD_RELOAD_PROTO, 0, nullptr, 0);
+						db_manager::instance().load_db_string();
 					}
 					else
 					{
@@ -465,27 +465,27 @@ metin2::log::debug( "DC : '{}'", msg.c_str());
 						switch (std::tolower(static_cast<unsigned char>(c)))
 						{
 							case 'u':
-								LoadStateUserCount();
+								load_state_user_count();
 								break;
 
 							case 'p':
-								db_clientdesc->DBPacket(HEADER_GD_RELOAD_PROTO, 0, nullptr, 0);
+								db_clientdesc->db_packet(HEADER_GD_RELOAD_PROTO, 0, nullptr, 0);
 								break;
 
 							case 's':
-								DBManager::instance().LoadDBString();
+								db_manager::instance().load_db_string();
 								break;
 
 							case 'q':
-								quest::CQuestManager::instance().Reload();
+								quest::quest_manager::instance().reload();
 								break;
 
 							case 'f':
-								fishing::Initialize();
+								fishing::initialize();
 								break;
 
 							case 'a':
-								db_clientdesc->DBPacket(HEADER_GD_RELOAD_ADMIN, 0, nullptr, 0);
+								db_clientdesc->db_packet(HEADER_GD_RELOAD_ADMIN, 0, nullptr, 0);
 								metin2::log::info( "Reloading admin infomation.");
 								break;
 						}
@@ -501,7 +501,7 @@ metin2::log::debug( "DC : '{}'", msg.c_str());
 					if (!is.fail())
 					{
 						metin2::log::info( "EXTERNAL EVENT FLAG name {} value {:d}", strFlagName.c_str(), lValue);
-						quest::CQuestManager::instance().RequestSetEventFlag(strFlagName, lValue);
+						quest::quest_manager::instance().request_set_event_flag(strFlagName, lValue);
 						stResult = "EVENT FLAG CHANGE ";
 						stResult += strFlagName;
 					}
@@ -560,7 +560,7 @@ metin2::log::debug( "DC : '{}'", msg.c_str());
 
 							metin2::log::info( "_give_empire_privileage(empire={:d}, type={:d}, value={:d}, duration={:d}) by web", 
 									empire, type, value, duration);
-							CPrivManager::instance().RequestGiveEmpirePriv(empire, type, value, duration);
+							priv_manager::instance().request_give_empire_priv(empire, type, value, duration);
 						}
 					}
 				}
@@ -569,7 +569,7 @@ metin2::log::debug( "DC : '{}'", msg.c_str());
 
 		metin2::log::debug( "TEXT {} RESULT {}", stBuf.c_str(), stResult.c_str());
 		stResult += "\n";
-		d->Packet(stResult.c_str(), stResult.length());
+		d->packet(stResult.c_str(), stResult.length());
 		return (c_pSep - c_pData) + 1;
 	}
 	else if (bHeader == HEADER_CG_MARK_LOGIN)
@@ -578,64 +578,64 @@ metin2::log::debug( "DC : '{}'", msg.c_str());
 		{
 			// Disconnect! - requesting a mark when this isn't the mark server?
 			metin2::log::error("Guild Mark login requested but i'm not a mark server!");
-			d->SetPhase(PHASE_CLOSE);
+			d->set_phase(PHASE_CLOSE);
 			return 0;
 		}
 
 		// Marks are public, so anyone may download them. Uploads need the key that the login of
 		// the player's game connection on this core issued (one core serves every map here); the
 		// client's first download starts before it has one, so a missing key means download only.
-		const TPacketCGMarkLogin * p = (const TPacketCGMarkLogin *) c_pData;
-		const bool bAuthenticated = DESC_MANAGER::instance().CheckRandomKey(p->handle, p->random_key);
+		const packet_cg_mark_login * p = (const packet_cg_mark_login *) c_pData;
+		const bool bAuthenticated = desc_manager::instance().check_random_key(p->handle, p->random_key);
 
 		metin2::log::info( "MARK_SERVER: Login{}", bAuthenticated ? "" : " (download only)");
-		d->SetMarkLogin(bAuthenticated ? p->handle : 0);
-		d->SetPhase(PHASE_LOGIN);
+		d->set_mark_login(bAuthenticated ? p->handle : 0);
+		d->set_phase(PHASE_LOGIN);
 		return 0;
 	}
 	else if (bHeader == HEADER_CG_STATE_CHECKER)
 	{
-		if (d->isChannelStatusRequested()) {
+		if (d->is_channel_status_requested()) {
 			return 0;
 		}
-		d->SetChannelStatusRequested(true);
-		db_clientdesc->DBPacket(HEADER_GD_REQUEST_CHANNELSTATUS, d->GetHandle(), nullptr, 0);
+		d->set_channel_status_requested(true);
+		db_clientdesc->db_packet(HEADER_GD_REQUEST_CHANNELSTATUS, d->handle(), nullptr, 0);
 	}
 	else if (bHeader == HEADER_CG_PONG)
-		Pong(d);
+		pong(d);
 	else if (bHeader == HEADER_CG_HANDSHAKE)
-		Handshake(d, c_pData);
+		handshake(d, c_pData);
 	else if (bHeader == HEADER_CG_KEY_AGREEMENT)
 	{
 		// Send out the key agreement completion packet first
 		// to help client to enter encryption mode
-		d->SendKeyAgreementCompleted();
+		d->send_key_agreement_completed();
 		// Write it now, on its own: the client switches decryption on per received chunk, so
 		// the encrypted packets queued next must not arrive in the same segment.
-		d->SendOutputNow();
+		d->send_output_now();
 
-		TPacketKeyAgreement* p = (TPacketKeyAgreement*)c_pData;
-		if (!d->IsCipherPrepared())
+		packet_key_agreement* p = (packet_key_agreement*)c_pData;
+		if (!d->is_cipher_prepared())
 		{
-			metin2::log::error("Cipher isn't prepared. {} maybe a Hacker.", d->GetHostName());
-			d->DelayedDisconnect(5);
+			metin2::log::error("Cipher isn't prepared. {} maybe a Hacker.", d->host_name());
+			d->delayed_disconnect(5);
 			return 0;
 		}
-		if (d->FinishHandshake(p->wAgreedLength, p->data, p->wDataLength)) {
+		if (d->finish_handshake(p->agreed_length, p->data, p->data_length)) {
 			// Handshaking succeeded
 			if (metin2::config::is_auth()) {
-				d->SetPhase(PHASE_AUTH);
+				d->set_phase(PHASE_AUTH);
 			} else {
-				d->SetPhase(PHASE_LOGIN);
+				d->set_phase(PHASE_LOGIN);
 			}
 		} else {
 			metin2::log::info( "[CInputHandshake] Key agreement failed: al={:d} dl={:d}",
-				p->wAgreedLength, p->wDataLength);
-			d->SetPhase(PHASE_CLOSE);
+				p->agreed_length, p->data_length);
+			d->set_phase(PHASE_CLOSE);
 		}
 	}
 	else
-		metin2::log::error("Handshake phase does not handle packet {:d} (host {})", bHeader, d->GetHostName());
+		metin2::log::error("Handshake phase does not handle packet {:d} (host {})", bHeader, d->host_name());
 
 	return 0;
 }

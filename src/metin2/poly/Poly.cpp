@@ -10,7 +10,7 @@ namespace metin2::poly {
 
 namespace {
     // Tokens beside the operator characters lexan returns as themselves.
-    enum Token : int {
+    enum token : int {
         NONE = 0,
         ROOT = 1,
         MUL = 2,
@@ -56,7 +56,7 @@ namespace {
     }
 }
 
-CPoly::CPoly() {
+expression::expression() {
     insert("min", MINF);
     insert("max", MAXF);
     insert("number", IRAND);
@@ -86,7 +86,7 @@ CPoly::CPoly() {
 
 // Any invalid operation (division by zero, a logarithm of a non-positive
 // number, ...) makes the whole formula evaluate to 0.
-auto CPoly::Eval() const -> double {
+auto expression::eval() const -> double {
     if (error_occur_ || token_base_.empty()) {
         return 0;
     }
@@ -228,7 +228,7 @@ auto CPoly::Eval() const -> double {
     return stack.back();
 }
 
-auto CPoly::Analyze(const char *str) -> bool {
+auto expression::analyze(const char *str) -> bool {
     if (str) {
         data_ = str;
     }
@@ -251,7 +251,7 @@ auto CPoly::Analyze(const char *str) -> bool {
     return !token_base_.empty() && !error_occur_;
 }
 
-void CPoly::expr() {
+void expression::expr() {
     // A leading sign reads as 0 followed by that operator.
     if (look_ahead_ == '+' || look_ahead_ == '-') {
         ui_look_pos_--;
@@ -285,11 +285,11 @@ void CPoly::expr() {
     }
 }
 
-void CPoly::error() {
+void expression::error() {
     error_occur_ = true;
 }
 
-auto CPoly::lexan() -> int {
+auto expression::lexan() -> int {
     while (ui_look_pos_ < data_.size()) {
         const auto c = static_cast<unsigned char>(data_[ui_look_pos_]);
 
@@ -339,7 +339,7 @@ auto CPoly::lexan() -> int {
     return EOS;
 }
 
-void CPoly::term() {
+void expression::term() {
     factor();
     while (!error_occur_) {
         switch (look_ahead_) {
@@ -360,7 +360,7 @@ void CPoly::term() {
     }
 }
 
-void CPoly::factor() {
+void expression::factor() {
     expo();
     while (!error_occur_ && look_ahead_ == '^') {
         match('^');
@@ -369,7 +369,7 @@ void CPoly::factor() {
     }
 }
 
-void CPoly::expo() {
+void expression::expo() {
     const int t = look_ahead_;
 
     switch (t) {
@@ -423,7 +423,7 @@ void CPoly::expo() {
     }
 }
 
-void CPoly::match(int t) {
+void expression::match(int t) {
     if (look_ahead_ == t) {
         look_ahead_ = lexan();
     } else {
@@ -431,7 +431,7 @@ void CPoly::match(int t) {
     }
 }
 
-void CPoly::emit(int t, int tval) {
+void expression::emit(int t, int tval) {
     switch (t) {
     case '+': token_base_.push_back(PLU); break;
     case '-': token_base_.push_back(MIN); break;
@@ -456,13 +456,13 @@ void CPoly::emit(int t, int tval) {
     }
 }
 
-auto CPoly::find(const std::string &name) const -> int {
+auto expression::find(const std::string &name) const -> int {
     const auto it = symbol_index_.find(name);
 
     return it == symbol_index_.end() ? -1 : it->second;
 }
 
-auto CPoly::insert(const std::string &name, int token) -> int {
+auto expression::insert(const std::string &name, int token) -> int {
     const int index = static_cast<int>(symbols_.size());
 
     symbols_.push_back({token, 0});
@@ -471,7 +471,7 @@ auto CPoly::insert(const std::string &name, int token) -> int {
     return index;
 }
 
-auto CPoly::SetVar(const std::string &name, double value) -> bool {
+auto expression::set_var(const std::string &name, double value) -> bool {
     const int index = find(name);
     if (error_occur_ || index == -1) {
         return false;
@@ -481,7 +481,7 @@ auto CPoly::SetVar(const std::string &name, double value) -> bool {
     return true;
 }
 
-auto CPoly::GetVar(const std::string &name) const -> double {
+auto expression::var(const std::string &name) const -> double {
     const int index = find(name);
     if (error_occur_ || index == -1) {
         return 0;

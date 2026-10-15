@@ -33,8 +33,8 @@ namespace quest
 			return 1;
 		}
 
-		CLand * pkLand = CManager::instance().FindLand((int) lua_tonumber(L, 1), (int) lua_tonumber(L, 2), (int) lua_tonumber(L, 3));
-		lua_pushnumber(L, pkLand ? pkLand->GetID() : 0);
+		land * pkLand = manager::instance().find_land((int) lua_tonumber(L, 1), (int) lua_tonumber(L, 2), (int) lua_tonumber(L, 3));
+		lua_pushnumber(L, pkLand ? pkLand->id() : 0);
 		return 1;
 	}
 
@@ -48,15 +48,15 @@ namespace quest
 		{
 			using namespace building;
 
-			CLand * pkLand = CManager::instance().FindLand((uint32_t) lua_tonumber(L, 1));
+			land * pkLand = manager::instance().find_land((uint32_t) lua_tonumber(L, 1));
 
 			if (pkLand)
 			{
-				const TLand & t = pkLand->GetData();
+				const land_table & t = pkLand->data();
 
-				price = t.dwPrice;
-				owner = t.dwGuildID;
-				level_limit = t.bGuildLevelLimit;
+				price = t.price;
+				owner = t.guild_id;
+				level_limit = t.guild_level_limit;
 			}
 		}
 		else
@@ -78,12 +78,12 @@ namespace quest
 
 		using namespace building;
 
-		CLand * pkLand = CManager::instance().FindLand((uint32_t) lua_tonumber(L, 1));
+		land * pkLand = manager::instance().find_land((uint32_t) lua_tonumber(L, 1));
 
 		if (pkLand)
 		{
-			if (pkLand->GetData().dwGuildID == 0)
-				pkLand->SetOwner((uint32_t) lua_tonumber(L, 2));
+			if (pkLand->data().guild_id == 0)
+				pkLand->set_owner((uint32_t) lua_tonumber(L, 2));
 		}
 
 		return 0;
@@ -100,11 +100,11 @@ namespace quest
 			return 1;
 		}
 
-		std::unique_ptr<SQLMsg> pmsg(DBManager::instance().DirectQuery("SELECT COUNT(*) FROM land%s WHERE guild_id = %d", get_table_postfix(), (uint32_t)lua_tonumber(L,1)));
+		std::unique_ptr<ql_msg> pmsg(db_manager::instance().direct_query("SELECT COUNT(*) FROM land%s WHERE guild_id = %d", get_table_postfix(), (uint32_t)lua_tonumber(L,1)));
 
-		if ( pmsg->Get()->uiNumRows > 0 )
+		if ( pmsg->get()->num_rows > 0 )
 		{
-			MYSQL_ROW row = mysql_fetch_row(pmsg->Get()->pSQLResult);
+			MYSQL_ROW row = mysql_fetch_row(pmsg->get()->sql_result);
 
 			int	count = 0;
 			str_to_number(count, row[0]);
@@ -132,30 +132,30 @@ namespace quest
 
 		uint32_t dwNewBuilding = (uint32_t)lua_tonumber(L, 1);
 
-		CQuestManager& q = CQuestManager::instance();
+		quest_manager& q = quest_manager::instance();
 
-		CHARACTER * npc = q.GetCurrentNPCCharacterPtr();
+		character * npc = q.current_npc_character_ptr();
 		if (!npc)
 			return 0;
 
-		CGuild* pGuild = npc->GetGuild();
+		guild* pGuild = npc->get_guild();
 		if (!pGuild)
 			return 0;
 
-		CLand* pLand = CManager::instance().FindLandByGuild(pGuild->GetID());
+		land* pLand = manager::instance().find_land_by_guild(pGuild->id());
 		if (!pLand)
 			return 0;
 
-		CObject * pObject = pLand->FindObjectByNPC(npc);
+		object * pObject = pLand->find_object_by_npc(npc);
 		if (!pObject)
 			return 0;
 
-		pObject->Reconstruct(dwNewBuilding);
+		pObject->reconstruct(dwNewBuilding);
 
 		return 0;
 	}
 
-	void RegisterBuildingFunctionTable()
+	void register_building_function_table()
 	{
 		luaL_reg functions[] =
 		{
@@ -167,7 +167,7 @@ namespace quest
 			{ nullptr,		nullptr			}
 		};
 
-		CQuestManager::instance().AddLuaFunctionTable("building", functions);
+		quest_manager::instance().add_lua_function_table("building", functions);
 	}
 };
 }

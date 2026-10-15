@@ -24,18 +24,18 @@ enum
 	BLACKSMITH2_MOB	= 20091,
 };
 
-class CRefineManager : public singleton<CRefineManager>
+class refine_manager : public singleton<refine_manager>
 {
-	typedef std::map<uint32_t, TRefineTable> TRefineRecipeMap;
+	typedef std::map<uint32_t, refine_table> refine_recipe_map;
 	public:
-	CRefineManager();
-	~CRefineManager() override;
+	refine_manager();
+	~refine_manager() override;
 
-	bool	Initialize(TRefineTable * table, int size);
-	const TRefineTable* GetRefineRecipe(uint32_t id);
+	bool	initialize(refine_table * table, int size);
+	const refine_table* refine_recipe(uint32_t id);
 
 	private:
-	TRefineRecipeMap    m_map_RefineRecipe;
+	refine_recipe_map    map_refine_recipe_;
 
 };
 }

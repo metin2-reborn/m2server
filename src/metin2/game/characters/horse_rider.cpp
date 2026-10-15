@@ -17,7 +17,7 @@ const int HORSE_HEALTH_DROP_INTERVAL = 3 * 24 * 60 * 60;
 const int HORSE_STAMINA_CONSUME_INTERVAL = 6 * 60;
 const int HORSE_STAMINA_REGEN_INTERVAL = 12 * 60;
 
-THorseStat c_aHorseStat[HORSE_MAX_LEVEL+1] =
+horse_stat c_a_horse_stat[HORSE_MAX_LEVEL+1] =
 /*
    int iMinLevel;	// minimum level to ride
    int iNPCRace;
@@ -66,155 +66,155 @@ THorseStat c_aHorseStat[HORSE_MAX_LEVEL+1] =
 	{ 50,	20107,	50,	200,	67,	89,	45,	22,	99,	79,	118,	59 }
 };
 
-CHorseRider::CHorseRider()
+horse_rider::horse_rider()
 {
-	Initialize();
+	initialize();
 }
 
-CHorseRider::~CHorseRider()
+horse_rider::~horse_rider()
 {
-	Destroy();
+	destroy();
 }
 
-void CHorseRider::Initialize()
+void horse_rider::initialize()
 {
-	m_eventStaminaRegen = nullptr;
-	m_eventStaminaConsume = nullptr;
-	memset(&m_Horse, 0, sizeof(m_Horse));
+	event_stamina_regen_ = nullptr;
+	event_stamina_consume_ = nullptr;
+	memset(&horse_, 0, sizeof(horse_));
 }
 
-void CHorseRider::Destroy()
+void horse_rider::destroy()
 {
-	event_cancel(&m_eventStaminaRegen);
-	event_cancel(&m_eventStaminaConsume);
+	event_cancel(&event_stamina_regen_);
+	event_cancel(&event_stamina_consume_);
 }
 
-void CHorseRider::EnterHorse()
+void horse_rider::enter_horse()
 {
-	if (GetHorseLevel() <= 0)
+	if (horse_level() <= 0)
 		return;
 
-	if (GetHorseHealth() <= 0)
+	if (horse_health() <= 0)
 		return;
 
-	if (IsHorseRiding())
+	if (is_horse_riding())
 	{
-		m_Horse.bRiding = !m_Horse.bRiding;
-		StartRiding();
+		horse_.riding = !horse_.riding;
+		start_riding();
 	}
 	else
 	{
-		StartStaminaRegenEvent();
+		start_stamina_regen_event();
 	}
-	CheckHorseHealthDropTime(false);
+	check_horse_health_drop_time(false);
 }
 
-bool CHorseRider::ReviveHorse()
+bool horse_rider::revive_horse()
 {
-	if (GetHorseLevel() <= 0)
+	if (horse_level() <= 0)
 		return false;
 
-	if (GetHorseHealth()>0)
+	if (horse_health()>0)
 		return false;
 
-	int level = GetHorseLevel();
+	int level = horse_level();
 
-	m_Horse.sHealth = c_aHorseStat[level].iMaxHealth;
-	m_Horse.sStamina = c_aHorseStat[level].iMaxStamina;
+	horse_.s_health = c_a_horse_stat[level].max_health;
+	horse_.s_stamina = c_a_horse_stat[level].max_stamina;
 
 	// 2005.03.24.ipkn.Fixed horse dying again after being revived
-	ResetHorseHealthDropTime();
+	reset_horse_health_drop_time();
 
-	StartStaminaRegenEvent();
+	start_stamina_regen_event();
 	return true;
 }
 
-short CHorseRider::GetHorseMaxHealth()
+short horse_rider::horse_max_health()
 {
-	int level = GetHorseLevel();
-	return c_aHorseStat[level].iMaxHealth;
+	int level = horse_level();
+	return c_a_horse_stat[level].max_health;
 }
 
-short CHorseRider::GetHorseMaxStamina()
+short horse_rider::horse_max_stamina()
 {
-	int level = GetHorseLevel();
-	return c_aHorseStat[level].iMaxStamina;
+	int level = horse_level();
+	return c_a_horse_stat[level].max_stamina;
 }
 
-void CHorseRider::FeedHorse()
+void horse_rider::feed_horse()
 {
 	// Only when the horse is owned and alive
-	if (GetHorseLevel() > 0 && GetHorseHealth() > 0)
+	if (horse_level() > 0 && horse_health() > 0)
 	{
-		UpdateHorseHealth(+1);
+		update_horse_health(+1);
 		// 20050324. ipkn also increase the health decrease delay when the horse is fed.
-		ResetHorseHealthDropTime();
+		reset_horse_health_drop_time();
 	}
 }
 
-void CHorseRider::SetHorseData(const THorseInfo& crInfo)
+void horse_rider::set_horse_data(const horse_info& crInfo)
 {
-	m_Horse = crInfo;
+	horse_ = crInfo;
 }
 
 // Stamina
-void CHorseRider::UpdateHorseDataByLogoff(uint32_t dwLogoffTime)
+void horse_rider::update_horse_data_by_logoff(uint32_t dwLogoffTime)
 {
-	if (GetHorseLevel() <= 0)
+	if (horse_level() <= 0)
 		return;
 
 	if (dwLogoffTime >= 12 * 60)
-		UpdateHorseStamina(dwLogoffTime / 12 / 60, false); // Recovers 1 per 12 minutes logged off
+		update_horse_stamina(dwLogoffTime / 12 / 60, false); // Recovers 1 per 12 minutes logged off
 }
 
-void CHorseRider::UpdateHorseStamina(int iStamina, bool bSend)
+void horse_rider::update_horse_stamina(int iStamina, bool bSend)
 {
-	int level = GetHorseLevel();
+	int level = horse_level();
 
-	m_Horse.sStamina = std::clamp(m_Horse.sStamina + iStamina, 0, c_aHorseStat[level].iMaxStamina);
+	horse_.s_stamina = std::clamp(horse_.s_stamina + iStamina, 0, c_a_horse_stat[level].max_stamina);
 
-	if (GetHorseStamina() == 0 && IsHorseRiding())
+	if (horse_stamina() == 0 && is_horse_riding())
 	{
-		StopRiding();
+		stop_riding();
 	}
 
 	if (bSend)
-		SendHorseInfo();
+		send_horse_info();
 }
 
-bool CHorseRider::StartRiding()
+bool horse_rider::start_riding()
 {
-	if (m_Horse.bRiding)
+	if (horse_.riding)
 		return false;
 
-	if (GetHorseLevel() <= 0)
+	if (horse_level() <= 0)
 		return false;
 
-	if (GetHorseHealth() <= 0)
+	if (horse_health() <= 0)
 		return false;
 
-	if (GetHorseStamina() <= 0)
+	if (horse_stamina() <= 0)
 		return false;
 
-	m_Horse.bRiding = true;
-	StartStaminaConsumeEvent();
-	SendHorseInfo();
+	horse_.riding = true;
+	start_stamina_consume_event();
+	send_horse_info();
 	return true;
 }
 
-bool CHorseRider::StopRiding()
+bool horse_rider::stop_riding()
 {
-	if (!m_Horse.bRiding)
+	if (!horse_.riding)
 		return false;
 
-	m_Horse.bRiding = false;
-	StartStaminaRegenEvent();
+	horse_.riding = false;
+	start_stamina_regen_event();
 	return true;
 }
 
 EVENTINFO(horserider_info) 
 {
-	CHorseRider* hr;
+	horse_rider* hr;
 
 	horserider_info() 
 	: hr( nullptr )
@@ -232,26 +232,26 @@ EVENTFUNC(horse_stamina_consume_event)
 		return 0;
 	}
 
-	CHorseRider* hr = info->hr;
+	horse_rider* hr = info->hr;
 
-	if (hr->GetHorseHealth() <= 0)
+	if (hr->horse_health() <= 0)
 	{
-		hr->m_eventStaminaConsume = nullptr;
+		hr->event_stamina_consume_ = nullptr;
 		return 0;
 	}
 
-	hr->UpdateHorseStamina(-1);
-	hr->UpdateRideTime(HORSE_STAMINA_CONSUME_INTERVAL);
+	hr->update_horse_stamina(-1);
+	hr->update_ride_time(HORSE_STAMINA_CONSUME_INTERVAL);
 
-	int delta = PASSES_PER_SEC(HORSE_STAMINA_CONSUME_INTERVAL);
+	int delta = passes_per_sec(HORSE_STAMINA_CONSUME_INTERVAL);
 
-	if (hr->GetHorseStamina() == 0)
+	if (hr->horse_stamina() == 0)
 	{
-		hr->m_eventStaminaConsume = nullptr;
+		hr->event_stamina_consume_ = nullptr;
 		delta = 0;
 	}
 
-	hr->CheckHorseHealthDropTime();
+	hr->check_horse_health_drop_time();
 	metin2::log::info( "HORSE STAMINA - {}", static_cast<const void *>(event.get()));
 	return delta;
 }
@@ -266,128 +266,128 @@ EVENTFUNC(horse_stamina_regen_event)
 		return 0;
 	}
 
-	CHorseRider* hr = info->hr;
+	horse_rider* hr = info->hr;
 
-	if (hr->GetHorseHealth()<=0)
+	if (hr->horse_health()<=0)
 	{
-		hr->m_eventStaminaRegen = nullptr;
+		hr->event_stamina_regen_ = nullptr;
 		return 0;
 	}
 
-	hr->UpdateHorseStamina(+1);
-	int delta = PASSES_PER_SEC(HORSE_STAMINA_REGEN_INTERVAL);
-	if (hr->GetHorseStamina() == hr->GetHorseMaxStamina())
+	hr->update_horse_stamina(+1);
+	int delta = passes_per_sec(HORSE_STAMINA_REGEN_INTERVAL);
+	if (hr->horse_stamina() == hr->horse_max_stamina())
 	{
 		delta = 0;
-		hr->m_eventStaminaRegen = nullptr;
+		hr->event_stamina_regen_ = nullptr;
 	}
 
-	hr->CheckHorseHealthDropTime();
+	hr->check_horse_health_drop_time();
 	metin2::log::info( "HORSE STAMINA + {}", static_cast<const void *>(event.get()));
 
 
 	return delta;
 }
 
-void CHorseRider::StartStaminaConsumeEvent()
+void horse_rider::start_stamina_consume_event()
 {
-	if (GetHorseLevel() <= 0)
+	if (horse_level() <= 0)
 		return;
 
-	if (GetHorseHealth() <= 0)
+	if (horse_health() <= 0)
 		return;
 
-	metin2::log::info("HORSE STAMINA REGEN EVENT CANCEL {}", static_cast<const void *>(m_eventStaminaRegen.get()));
-	event_cancel(&m_eventStaminaRegen);
+	metin2::log::info("HORSE STAMINA REGEN EVENT CANCEL {}", static_cast<const void *>(event_stamina_regen_.get()));
+	event_cancel(&event_stamina_regen_);
 
-	if (m_eventStaminaConsume)
+	if (event_stamina_consume_)
 		return;
 
-	horserider_info* info = AllocEventInfo<horserider_info>();
+	horserider_info* info = alloc_event_info<horserider_info>();
 
 	info->hr = this;
-	m_eventStaminaConsume = event_create(horse_stamina_consume_event, info, PASSES_PER_SEC(HORSE_STAMINA_CONSUME_INTERVAL));
-	metin2::log::info("HORSE STAMINA CONSUME EVENT CREATE {}", static_cast<const void *>(m_eventStaminaConsume.get()));
+	event_stamina_consume_ = event_create(horse_stamina_consume_event, info, passes_per_sec(HORSE_STAMINA_CONSUME_INTERVAL));
+	metin2::log::info("HORSE STAMINA CONSUME EVENT CREATE {}", static_cast<const void *>(event_stamina_consume_.get()));
 }
 
-void CHorseRider::StartStaminaRegenEvent()
+void horse_rider::start_stamina_regen_event()
 {
-	if (GetHorseLevel() <= 0)
+	if (horse_level() <= 0)
 		return;
 
-	if (GetHorseHealth() <= 0)
+	if (horse_health() <= 0)
 		return;
 
-	metin2::log::info("HORSE STAMINA CONSUME EVENT CANCEL {}", static_cast<const void *>(m_eventStaminaConsume.get()));
-	event_cancel(&m_eventStaminaConsume);
+	metin2::log::info("HORSE STAMINA CONSUME EVENT CANCEL {}", static_cast<const void *>(event_stamina_consume_.get()));
+	event_cancel(&event_stamina_consume_);
 
-	if (m_eventStaminaRegen)
+	if (event_stamina_regen_)
 		return;
 
-	horserider_info* info = AllocEventInfo<horserider_info>();
+	horserider_info* info = alloc_event_info<horserider_info>();
 
 	info->hr = this;
-	m_eventStaminaRegen = event_create(horse_stamina_regen_event, info, PASSES_PER_SEC(HORSE_STAMINA_REGEN_INTERVAL));
-	metin2::log::info("HORSE STAMINA REGEN EVENT CREATE {}", static_cast<const void *>(m_eventStaminaRegen.get()));
+	event_stamina_regen_ = event_create(horse_stamina_regen_event, info, passes_per_sec(HORSE_STAMINA_REGEN_INTERVAL));
+	metin2::log::info("HORSE STAMINA REGEN EVENT CREATE {}", static_cast<const void *>(event_stamina_regen_.get()));
 }
 
 // Health
-void CHorseRider::ResetHorseHealthDropTime()
+void horse_rider::reset_horse_health_drop_time()
 {
-	m_Horse.dwHorseHealthDropTime = get_global_time() + HORSE_HEALTH_DROP_INTERVAL;
+	horse_.horse_health_drop_time = get_global_time() + HORSE_HEALTH_DROP_INTERVAL;
 }
 
-void CHorseRider::CheckHorseHealthDropTime(bool bSend)
+void horse_rider::check_horse_health_drop_time(bool bSend)
 {
 	uint32_t now = get_global_time();
 
-	while (m_Horse.dwHorseHealthDropTime < now)
+	while (horse_.horse_health_drop_time < now)
 	{
-		m_Horse.dwHorseHealthDropTime += HORSE_HEALTH_DROP_INTERVAL;
-		UpdateHorseHealth(-1, bSend);
+		horse_.horse_health_drop_time += HORSE_HEALTH_DROP_INTERVAL;
+		update_horse_health(-1, bSend);
 	}
 }
 
-void CHorseRider::UpdateHorseHealth(int iHealth, bool bSend)
+void horse_rider::update_horse_health(int iHealth, bool bSend)
 {
-	int level = GetHorseLevel();
+	int level = horse_level();
 
-	m_Horse.sHealth = std::clamp(m_Horse.sHealth + iHealth, 0, c_aHorseStat[level].iMaxHealth);
+	horse_.s_health = std::clamp(horse_.s_health + iHealth, 0, c_a_horse_stat[level].max_health);
 
-	if (level && m_Horse.sHealth == 0)
-		HorseDie();
+	if (level && horse_.s_health == 0)
+		horse_die();
 
 	if (bSend)
-		SendHorseInfo();
+		send_horse_info();
 }
 
-void CHorseRider::HorseDie()
+void horse_rider::horse_die()
 {
-	metin2::log::info( "HORSE DIE {} {}", static_cast<const void *>(m_eventStaminaRegen.get()), static_cast<const void *>(m_eventStaminaConsume.get()));
-	UpdateHorseStamina(-m_Horse.sStamina);
-	event_cancel(&m_eventStaminaRegen);
-	event_cancel(&m_eventStaminaConsume);
+	metin2::log::info( "HORSE DIE {} {}", static_cast<const void *>(event_stamina_regen_.get()), static_cast<const void *>(event_stamina_consume_.get()));
+	update_horse_stamina(-horse_.s_stamina);
+	event_cancel(&event_stamina_regen_);
+	event_cancel(&event_stamina_consume_);
 }
 
-void CHorseRider::SetHorseLevel(int iLevel)
+void horse_rider::set_horse_level(int iLevel)
 {
-	m_Horse.bLevel = iLevel = std::clamp(iLevel, 0, HORSE_MAX_LEVEL);
+	horse_.level = iLevel = std::clamp(iLevel, 0, HORSE_MAX_LEVEL);
 
-	m_Horse.sStamina = c_aHorseStat[iLevel].iMaxStamina;
-	m_Horse.sHealth = c_aHorseStat[iLevel].iMaxHealth;
-	m_Horse.dwHorseHealthDropTime = 0;
+	horse_.s_stamina = c_a_horse_stat[iLevel].max_stamina;
+	horse_.s_health = c_a_horse_stat[iLevel].max_health;
+	horse_.horse_health_drop_time = 0;
 
-	ResetHorseHealthDropTime();
+	reset_horse_health_drop_time();
 
-	SendHorseInfo();
+	send_horse_info();
 }
 
-uint8_t CHorseRider::GetHorseGrade()
+uint8_t horse_rider::horse_grade()
 {
 	uint8_t grade = 0;
 
-	if (GetHorseLevel())
-		grade = (GetHorseLevel() - 1) / 10 + 1;
+	if (horse_level())
+		grade = (horse_level() - 1) / 10 + 1;
 
 	return grade;
 }

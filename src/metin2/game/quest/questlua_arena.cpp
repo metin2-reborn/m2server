@@ -15,8 +15,8 @@ namespace quest
 {
 	int arena_start_duel(lua_State * L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		CHARACTER * ch2 = CHARACTER_MANAGER::instance().FindPC(lua_tostring(L,1));
+		character * ch = quest_manager::instance().current_character_ptr();
+		character * ch2 = character_manager::instance().find_pc(lua_tostring(L,1));
 		int nSetPoint = (int)lua_tonumber(L, 2);
 
 		if ( ch == nullptr || ch2 == nullptr )
@@ -25,25 +25,25 @@ namespace quest
 			return 1;
 		}
 
-		if ( ch->IsHorseRiding() == true )
+		if ( ch->is_horse_riding() == true )
 		{
-			ch->StopRiding();
-			ch->HorseSummon(false);
+			ch->stop_riding();
+			ch->horse_summon(false);
 		}
 
-		if ( ch2->IsHorseRiding() == true )
+		if ( ch2->is_horse_riding() == true )
 		{
-			ch2->StopRiding();
-			ch2->HorseSummon(false);
+			ch2->stop_riding();
+			ch2->horse_summon(false);
 		}
 
-		if ( CArenaManager::instance().IsMember(ch->GetMapIndex(), ch->GetPlayerID()) != MEMBER_NO || 
-				CArenaManager::instance().IsMember(ch2->GetMapIndex(), ch2->GetPlayerID()) != MEMBER_NO	)
+		if ( arena_manager::instance().is_member(ch->map_index(), ch->player_id()) != MEMBER_NO || 
+				arena_manager::instance().is_member(ch2->map_index(), ch2->player_id()) != MEMBER_NO	)
 		{
 			lua_pushnumber(L, 2);
 			return 1;
 		}
-		if ( CArenaManager::instance().StartDuel(ch, ch2, nSetPoint) == false )
+		if ( arena_manager::instance().start_duel(ch, ch2, nSetPoint) == false )
 		{
 			lua_pushnumber(L, 3);
 			return 1;
@@ -62,7 +62,7 @@ namespace quest
 		int startposBX	= (int)lua_tonumber(L, 4);
 		int startposBY	= (int)lua_tonumber(L, 5);
 
-		if ( CArenaManager::instance().AddArena(mapIdx, startposAX, startposAY, startposBX, startposBY) == false )
+		if ( arena_manager::instance().add_arena(mapIdx, startposAX, startposAY, startposBX, startposBY) == false )
 		{
 			metin2::log::info( "Failed to load arena map info(map:{:d} AX:{:d} AY:{:d} BX:{:d} BY:{:d}", mapIdx, startposAX, startposAY, startposBX, startposBY);
 		}
@@ -76,7 +76,7 @@ namespace quest
 
 	int arena_get_duel_list(lua_State* L)
 	{
-		CArenaManager::instance().GetDuelList(L);
+		arena_manager::instance().duel_list(L);
 
 		return 1;
 	}
@@ -86,9 +86,9 @@ namespace quest
 		int mapIdx = (int)lua_tonumber(L, 1);
 		int ObPointX = (int)lua_tonumber(L, 2);
 		int ObPointY = (int)lua_tonumber(L, 3);
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 
-		CArenaManager::instance().AddObserver(ch, mapIdx, ObPointX, ObPointY);
+		arena_manager::instance().add_observer(ch, mapIdx, ObPointX, ObPointY);
 
 		return 1;
 	}
@@ -97,7 +97,7 @@ namespace quest
 	{
 		uint32_t pid = (uint32_t)lua_tonumber(L, 1);
 
-		CHARACTER * ch = CHARACTER_MANAGER::instance().FindByPID(pid);
+		character * ch = character_manager::instance().find_by_pid(pid);
 
 		if ( ch == nullptr )
 		{
@@ -105,9 +105,9 @@ namespace quest
 		}
 		else
 		{
-			if ( ch->GetArena() == nullptr || ch->GetArenaObserverMode() == true )
+			if ( ch->get_arena() == nullptr || ch->arena_observer_mode() == true )
 			{
-				if ( CArenaManager::instance().IsMember(ch->GetMapIndex(), ch->GetPlayerID()) == MEMBER_DUELIST )
+				if ( arena_manager::instance().is_member(ch->map_index(), ch->player_id()) == MEMBER_DUELIST )
 					lua_pushnumber(L, 1);
 				else
 					lua_pushnumber(L, 0);
@@ -120,7 +120,7 @@ namespace quest
 		return 1;
 	}
 
-	void RegisterArenaFunctionTable()
+	void register_arena_function_table()
 	{
 		luaL_reg arena_functions[] =
 		{
@@ -133,7 +133,7 @@ namespace quest
 			{nullptr,	nullptr}
 		};
 
-		CQuestManager::instance().AddLuaFunctionTable("arena", arena_functions);
+		quest_manager::instance().add_lua_function_table("arena", arena_functions);
 	}
 }
 }

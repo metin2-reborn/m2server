@@ -14,7 +14,7 @@ namespace quest
 {
 	int oxevent_get_status(lua_State* L)
 	{
-		OXEventStatus ret = COXEventManager::instance().GetStatus();
+		ox_event_status ret = ox_event_manager::instance().status();
 
 		lua_pushnumber(L, (int)ret);
 
@@ -23,11 +23,11 @@ namespace quest
 
 	int oxevent_open(lua_State* L)
 	{
-		COXEventManager::instance().ClearQuiz();
+		ox_event_manager::instance().clear_quiz();
 
 		char script[256];
-		snprintf(script, sizeof(script), "%s/oxquiz.lua", LocaleService_GetBasePath().c_str());
-		int result = lua_dofile(quest::CQuestManager::instance().GetLuaState(), script);
+		snprintf(script, sizeof(script), "%s/oxquiz.lua", locale_service_get_base_path().c_str());
+		int result = lua_dofile(quest::quest_manager::instance().lua_state(), script);
 
 		if (result != 0)
 		{
@@ -39,14 +39,14 @@ namespace quest
 			lua_pushnumber(L, 1);
 		}
 		
-		COXEventManager::instance().SetStatus(OXEVENT_OPEN);
+		ox_event_manager::instance().set_status(OXEVENT_OPEN);
 
 		return 1;
 	}
 	
 	int oxevent_close(lua_State* L)
 	{
-		COXEventManager::instance().SetStatus(OXEVENT_CLOSE);
+		ox_event_manager::instance().set_status(OXEVENT_CLOSE);
 		
 		return 0;
 	}
@@ -55,7 +55,7 @@ namespace quest
 	{
 		if (lua_isnumber(L, 1) && lua_isnumber(L, 2))
 		{
-			bool ret = COXEventManager::instance().Quiz((int)lua_tonumber(L, 1), (int)lua_tonumber(L, 2));
+			bool ret = ox_event_manager::instance().quiz((int)lua_tonumber(L, 1), (int)lua_tonumber(L, 2));
 
 			if (ret == false)
 			{
@@ -72,7 +72,7 @@ namespace quest
 	
 	int oxevent_get_attender(lua_State* L)
 	{
-		lua_pushnumber(L, (int)COXEventManager::instance().GetAttenderCount());
+		lua_pushnumber(L, (int)ox_event_manager::instance().attender_count());
 		return 1;
 	}
 
@@ -88,24 +88,24 @@ namespace quest
 
 	EVENTFUNC(end_oxevent)
 	{
-		COXEventManager::instance().CloseEvent();
+		ox_event_manager::instance().close_event();
 		return 0;
 	}
 
 	int oxevent_end_event(lua_State* L)
 	{
-		COXEventManager::instance().SetStatus(OXEVENT_FINISH);
+		ox_event_manager::instance().set_status(OXEVENT_FINISH);
 
-		end_oxevent_info* info = AllocEventInfo<end_oxevent_info>();
-		event_create(end_oxevent, info, PASSES_PER_SEC(5));
+		end_oxevent_info* info = alloc_event_info<end_oxevent_info>();
+		event_create(end_oxevent, info, passes_per_sec(5));
 
 		return 0;
 	}
 
 	int oxevent_end_event_force(lua_State* L)
 	{
-		COXEventManager::instance().CloseEvent();
-		COXEventManager::instance().SetStatus(OXEVENT_FINISH);
+		ox_event_manager::instance().close_event();
+		ox_event_manager::instance().set_status(OXEVENT_FINISH);
 
 		return 0;
 	}
@@ -114,13 +114,13 @@ namespace quest
 	{
 		if (lua_isnumber(L, 1) && lua_isnumber(L, 2))
 		{
-			COXEventManager::instance().GiveItemToAttender((int)lua_tonumber(L, 1), (int)lua_tonumber(L, 2));
+			ox_event_manager::instance().give_item_to_attender((int)lua_tonumber(L, 1), (int)lua_tonumber(L, 2));
 		}
 
 		return 0;
 	}
 	
-	void RegisterOXEventFunctionTable()
+	void register_ox_event_function_table()
 	{
 		luaL_reg oxevent_functions[] = 
 		{
@@ -136,7 +136,7 @@ namespace quest
 			{ nullptr, nullptr}
 		};
 
-		CQuestManager::instance().AddLuaFunctionTable("oxevent", oxevent_functions);
+		quest_manager::instance().add_lua_function_table("oxevent", oxevent_functions);
 	}
 }
 }

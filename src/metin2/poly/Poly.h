@@ -11,17 +11,17 @@ namespace metin2::poly {
 // A formula from the skill and guild tables (e.g. "(atk + 2 * k) * min(lv, 90)"): Analyze
 // compiles it to postfix once, SetVar binds its variables and Eval computes it. Supports
 // + - * / % ^, parentheses, pi and e, and the functions registered in the constructor.
-class CPoly {
+class expression {
   public:
-    CPoly();
+    expression();
 
-    auto Analyze(const char *str = nullptr) -> bool;
-    auto Eval() const -> double;
-    auto SetVar(const std::string &name, double value) -> bool;
-    auto GetVar(const std::string &name) const -> double;
+    auto analyze(const char *str = nullptr) -> bool;
+    auto eval() const -> double;
+    auto set_var(const std::string &name, double value) -> bool;
+    auto var(const std::string &name) const -> double;
 
   private:
-    struct Symbol {
+    struct symbol {
         int token;
         double value;
     };
@@ -44,12 +44,12 @@ class CPoly {
     std::size_t ui_look_pos_ = 0;
     std::vector<int> token_base_;  // postfix program; ID is followed by its symbol index
     std::vector<double> num_base_; // the constants NUM tokens push, in order
-    std::vector<Symbol> symbols_;  // functions, constants and variables
+    std::vector<symbol> symbols_;  // functions, constants and variables
     std::map<std::string, int, std::less<>> symbol_index_;
     std::string data_;
 };
 }
 
 namespace metin2 {
-    using poly::CPoly;
+    using poly::expression;
 }

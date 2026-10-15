@@ -37,7 +37,7 @@
 
 
 
-#define RETURN_IF_CUBE_IS_NOT_OPENED(ch) if (!(ch)->IsCubeOpen()) return
+#define RETURN_IF_CUBE_IS_NOT_OPENED(ch) if (!(ch)->is_cube_open()) return
 
 
 /*--------------------------------------------------------*/
@@ -45,46 +45,46 @@
 /*--------------------------------------------------------*/
 
 namespace metin2::game::inline items {
-static std::vector<std::unique_ptr<CUBE_DATA>>	s_cube_proto;
-static bool s_isInitializedCubeMaterialInformation = false;
+static std::vector<std::unique_ptr<cube_data>>	cube_proto;
+static bool is_initialized_cube_material_information = false;
 
 
 
 /*--------------------------------------------------------*/
 /*               Cube Material Information                */ 
 /*--------------------------------------------------------*/
-enum ECubeResultCategory
+enum cube_result_category
 {
 	CUBE_CATEGORY_POTION,				// Herbs, extracts, etc.. (can't be classified as potions, so unused. Herbs and such are all just misc)
 	CUBE_CATEGORY_WEAPON,				// Weapon
 	CUBE_CATEGORY_ARMOR,				// Armor
 };
 
-typedef std::vector<CUBE_VALUE>	TCubeValueVector;
+typedef std::vector<cube_value>	cube_value_vector;
 
-struct SCubeMaterialInfo
+struct cube_material_info
 {
-	SCubeMaterialInfo()
+	cube_material_info()
 	{
-		bHaveComplicateMaterial = false;
+		have_complicate_material = false;
 	};
 
-	CUBE_VALUE			reward;							// What's the reward
-	TCubeValueVector	material;						// What are the materials
+	cube_value			reward;							// What's the reward
+	cube_value_vector	material;						// What are the materials
 	uint32_t				gold;							// How much gold does it cost
-	TCubeValueVector	complicateMaterial;				// Complicated -_- materials
+	cube_value_vector	complicate_material;				// Complicated -_- materials
 
 	// .. format agreed upon for showing materials on the client
 	// 72723,1&72724,2&72730,1
 	// 52001,1|52002,1|52003,1&72723,1&72724,5
 	//	=> ( 52001,1 or 52002,1 or 52003,1 ) and 72723,1 and 72724,5
-	std::string			infoText;		
-	bool				bHaveComplicateMaterial;		//
+	std::string			info_text;		
+	bool				have_complicate_material;		//
 };
 
-struct SItemNameAndLevel
+struct item_name_and_level
 {
-	SItemNameAndLevel() { level = 0; }
+	item_name_and_level() { level = 0; }
 
 	std::string		name;
 	int				level;
@@ -92,19 +92,19 @@ struct SItemNameAndLevel
 
 
 // Please excuse the crappy data structures... made this in a soulless state thanks to someone
-typedef std::vector<SCubeMaterialInfo>								TCubeResultList;
-typedef std::unordered_map<uint32_t, TCubeResultList>				TCubeMapByNPC;				// What each NPC can make and what the materials are...
-typedef std::unordered_map<uint32_t, std::string>					TCubeResultInfoTextByNPC;	// Info listing what each NPC can make, organized in the agreed format
+typedef std::vector<cube_material_info>								cube_result_list;
+typedef std::unordered_map<uint32_t, cube_result_list>				cube_map_by_npc;				// What each NPC can make and what the materials are...
+typedef std::unordered_map<uint32_t, std::string>					cube_result_info_text_by_npc;	// Info listing what each NPC can make, organized in the agreed format
 
-TCubeMapByNPC cube_info_map;
-TCubeResultInfoTextByNPC cube_result_info_map_by_npc;				// The naming is f***ing stupid lol
+cube_map_by_npc cube_info_map;
+cube_result_info_text_by_npc cube_result_info_map_by_npc;				// The naming is f***ing stupid lol
 
 
 /*--------------------------------------------------------*/
 /*                  STATIC FUNCTIONS                      */ 
 /*--------------------------------------------------------*/
  // Does it have the required item count?
-static bool FN_check_item_count (CItem * *items, uint32_t item_vnum, int need_count)
+static bool fn_check_item_count (item * *items, uint32_t item_vnum, int need_count)
 {
 	int	count = 0;
 
@@ -113,9 +113,9 @@ static bool FN_check_item_count (CItem * *items, uint32_t item_vnum, int need_co
 	{
 		if (nullptr==items[i])	continue;
 
-		if (item_vnum==items[i]->GetVnum())
+		if (item_vnum==items[i]->vnum())
 		{
-			count += items[i]->GetCount();
+			count += items[i]->count();
 		}
 	}
 
@@ -123,10 +123,10 @@ static bool FN_check_item_count (CItem * *items, uint32_t item_vnum, int need_co
 }
 
 // Removes the materials in the cube.
-static void FN_remove_material (CItem * *items, uint32_t item_vnum, int need_count)
+static void fn_remove_material (item * *items, uint32_t item_vnum, int need_count)
 {
 	int		count	= 0;
-	CItem *	item	= nullptr;
+	item *	item	= nullptr;
 
 	// for all cube
 	for (int i=0; i<CUBE_MAX_NUM; ++i)
@@ -134,18 +134,18 @@ static void FN_remove_material (CItem * *items, uint32_t item_vnum, int need_cou
 		if (nullptr==items[i])	continue;
 
 		item = items[i];
-		if (item_vnum==item->GetVnum())
+		if (item_vnum==item->vnum())
 		{
-			count += item->GetCount();
+			count += item->count();
 
 			if (count>need_count)
 			{
-				item->SetCount(count-need_count);
+				item->set_count(count-need_count);
 				return;
 			}
 			else
 			{
-				item->SetCount(0);
+				item->set_count(0);
 				items[i] = nullptr;
 			}
 		}
@@ -153,26 +153,26 @@ static void FN_remove_material (CItem * *items, uint32_t item_vnum, int need_cou
 }
 
 
-static CUBE_DATA* FN_find_cube (CItem * *items, uint16_t npc_vnum)
+static cube_data* fn_find_cube (item * *items, uint16_t npc_vnum)
 {
 	uint32_t	i, end_index;
 
 	if (0==npc_vnum)	return nullptr;
 
 	// FOR ALL CUBE_PROTO
-	end_index = s_cube_proto.size();
+	end_index = cube_proto.size();
 	for (i=0; i<end_index; ++i)
 	{
-		if ( s_cube_proto[i]->can_make_item(items, npc_vnum) )
-			return s_cube_proto[i].get();
+		if ( cube_proto[i]->can_make_item(items, npc_vnum) )
+			return cube_proto[i].get();
 	}
 
 	return nullptr;
 }
 
-static bool FN_check_valid_npc( uint16_t vnum )
+static bool fn_check_valid_npc( uint16_t vnum )
 {
-	for ( auto iter = s_cube_proto.begin(); iter != s_cube_proto.end(); iter++ )
+	for ( auto iter = cube_proto.begin(); iter != cube_proto.end(); iter++ )
 	{
 		if ( std::find((*iter)->npc_vnum.begin(), (*iter)->npc_vnum.end(), vnum) != (*iter)->npc_vnum.end() )
 			return true;
@@ -182,7 +182,7 @@ static bool FN_check_valid_npc( uint16_t vnum )
 }
 
 // Checks whether the cube data was initialized correctly.
-static bool FN_check_cube_data (CUBE_DATA *cube_data)
+static bool fn_check_cube_data (cube_data *cube_data)
 {
 	uint32_t	i = 0;
 	uint32_t	end_index = 0;
@@ -209,14 +209,14 @@ static bool FN_check_cube_data (CUBE_DATA *cube_data)
 	return true;
 }
 
-CUBE_DATA::CUBE_DATA()
+cube_data::cube_data()
 {
 	this->percent = 0;
 	this->gold = 0;
 }
 
 // Checks whether the required material quantities are satisfied.
-bool CUBE_DATA::can_make_item (CItem * *items, uint16_t npc_vnum)
+bool cube_data::can_make_item (game::items::item * *items, uint16_t npc_vnum)
 {
 	// Checks whether the required materials and quantities are satisfied.
 	uint32_t	i, end_index;
@@ -239,7 +239,7 @@ bool CUBE_DATA::can_make_item (CItem * *items, uint16_t npc_vnum)
 		need_vnum	= this->item[i].vnum;
 		need_count	= this->item[i].count;
 
-		if ( false==FN_check_item_count(items, need_vnum, need_count) )
+		if ( false==fn_check_item_count(items, need_vnum, need_count) )
 			return false;
 	}
 
@@ -247,7 +247,7 @@ bool CUBE_DATA::can_make_item (CItem * *items, uint16_t npc_vnum)
 }
 
 // Determines the kind of item produced when the cube is run
-CUBE_VALUE* CUBE_DATA::reward_value ()
+cube_value* cube_data::reward_value ()
 {
 	int		end_index		= 0;
 	uint32_t	reward_index	= 0;
@@ -260,12 +260,12 @@ CUBE_VALUE* CUBE_DATA::reward_value ()
 }
 
 // Removes the materials in the cube
-void CUBE_DATA::remove_material (CHARACTER * ch)
+void cube_data::remove_material (character * ch)
 {
 	uint32_t	i, end_index;
 	uint32_t	need_vnum;
 	int		need_count;
-	CItem *	*items = ch->GetCubeItem();
+	game::items::item *	*items = ch->cube_item();
 
 	end_index = this->item.size();
 	for (i=0; i<end_index; ++i)
@@ -273,15 +273,15 @@ void CUBE_DATA::remove_material (CHARACTER * ch)
 		need_vnum	= this->item[i].vnum;
 		need_count	= this->item[i].count;
 
-		FN_remove_material (items, need_vnum, need_count);
+		fn_remove_material (items, need_vnum, need_count);
 	}
 }
 
-void Cube_clean_item (CHARACTER * ch)
+void cube_clean_item (character * ch)
 {
-	CItem *	*cube_item;
+	item *	*cube_item;
 
-	cube_item = ch->GetCubeItem();
+	cube_item = ch->cube_item();
 
 	for (int i=0; i<CUBE_MAX_NUM; ++i)
 	{
@@ -293,18 +293,18 @@ void Cube_clean_item (CHARACTER * ch)
 }
 
 // Open cube window
-void Cube_open (CHARACTER * ch)
+void cube_open (character * ch)
 {
-	if (false == s_isInitializedCubeMaterialInformation)
+	if (false == is_initialized_cube_material_information)
 	{
-		Cube_InformationInitialize();
+		cube_information_initialize();
 	}
 
 	if (nullptr == ch)
 		return;
 
-	CHARACTER *	npc;
-	npc = ch->GetQuestNPC();
+	character *	npc;
+	npc = ch->quest_npc();
 	if (nullptr==npc)
 	{
 		if (metin2::config::test_server())
@@ -312,7 +312,7 @@ void Cube_open (CHARACTER * ch)
 		return;
 	}
 
-	if ( FN_check_valid_npc(npc->GetRaceNum()) == false )
+	if ( fn_check_valid_npc(npc->race_num()) == false )
 	{
 		if ( metin2::config::test_server() == true )
 		{
@@ -321,63 +321,63 @@ void Cube_open (CHARACTER * ch)
 		return;
 	}
 
-	if (ch->IsCubeOpen())
+	if (ch->is_cube_open())
 	{
-		ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("이미 제조창이 열려있습니다."));
+		ch->chat_packet(CHAT_TYPE_INFO, lc_text("이미 제조창이 열려있습니다."));
 		return;
 	}
-	if ( ch->GetExchange() || ch->GetMyShop() || ch->GetShopOwner() || ch->IsOpenSafebox() || ch->IsCubeOpen() )
+	if ( ch->get_exchange() || ch->my_shop() || ch->shop_owner() || ch->is_open_safebox() || ch->is_cube_open() )
 	{
-		ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("다른 거래중(창고,교환,상점)에는 사용할 수 없습니다."));
+		ch->chat_packet(CHAT_TYPE_INFO, lc_text("다른 거래중(창고,교환,상점)에는 사용할 수 없습니다."));
 		return;
 	}
 
-	int32_t distance = DISTANCE_APPROX(ch->GetX() - npc->GetX(), ch->GetY() - npc->GetY());
+	int32_t distance = distance_approx(ch->x() - npc->x(), ch->y() - npc->y());
 
 	if (distance >= CUBE_MAX_DISTANCE)
 	{
-		metin2::log::debug( "CUBE: TOO_FAR: {} distance {:d}", ch->GetName(), distance);
+		metin2::log::debug( "CUBE: TOO_FAR: {} distance {:d}", ch->name(), distance);
 		return;
 	}
 
 
-	Cube_clean_item(ch);
-	ch->SetCubeNpc(npc);
-	ch->ChatPacket(CHAT_TYPE_COMMAND, "cube open %d", npc->GetRaceNum());
+	cube_clean_item(ch);
+	ch->set_cube_npc(npc);
+	ch->chat_packet(CHAT_TYPE_COMMAND, "cube open %d", npc->race_num());
 }
 
 // Cube cancel
-void Cube_close (CHARACTER * ch)
+void cube_close (character * ch)
 {
 	RETURN_IF_CUBE_IS_NOT_OPENED(ch);
-	Cube_clean_item(ch);
-	ch->SetCubeNpc(nullptr);
-	ch->ChatPacket(CHAT_TYPE_COMMAND, "cube close");
-	metin2::log::debug( "<CUBE> close ({})", ch->GetName());
+	cube_clean_item(ch);
+	ch->set_cube_npc(nullptr);
+	ch->chat_packet(CHAT_TYPE_COMMAND, "cube close");
+	metin2::log::debug( "<CUBE> close ({})", ch->name());
 }
 
-void Cube_init()
+void cube_init()
 {
 	char file_name[256+1];
-	snprintf(file_name, sizeof(file_name), "%s/cube.txt", LocaleService_GetBasePath().c_str());
+	snprintf(file_name, sizeof(file_name), "%s/cube.txt", locale_service_get_base_path().c_str());
 
 	metin2::log::info( "Cube_Init {}", file_name);
 
-	s_cube_proto.clear();
+	cube_proto.clear();
 
-	if (false == Cube_load(file_name))
+	if (false == cube_load(file_name))
 		metin2::log::error("Cube_Init failed");
 }
 
-bool Cube_load (const char *file)
+bool cube_load (const char *file)
 {
 	FILE	*fp;
 	char	one_line[256];
 	int		value1, value2;
 	const char	*delim = " \t\r\n";
 	char	*v, *token_string;
-	std::unique_ptr<CUBE_DATA>	cube_data;
-	CUBE_VALUE	cube_value = {0,0};
+	std::unique_ptr<cube_data>	cube_data;
+	cube_value	cube_value = {0,0};
 
 	if (nullptr == file || 0 == file[0])
 		return false;
@@ -406,7 +406,7 @@ bool Cube_load (const char *file)
 
 		TOKEN("section")
 		{
-			cube_data = std::make_unique<CUBE_DATA>();
+			cube_data = std::make_unique<game::items::cube_data>();
 		}
 		else if (!cube_data)
 		{
@@ -442,13 +442,13 @@ bool Cube_load (const char *file)
 		else TOKEN("end")
 		{
 			// TODO : check cube data
-			if (false == FN_check_cube_data(cube_data.get()))
+			if (false == fn_check_cube_data(cube_data.get()))
 			{
 				metin2::log::debug( "something wrong");
 				cube_data.reset();
 				continue;
 			}
-			s_cube_proto.push_back(std::move(cube_data));
+			cube_proto.push_back(std::move(cube_data));
 		}
 	}
 
@@ -460,9 +460,9 @@ bool Cube_load (const char *file)
 // The cube holds raw pointers to inventory items. An item can be consumed while the cube is open
 // (e.g. prisms spent by chat hyperlinks, expiring items), so drop every pointer that is no longer
 // an item in the inventory before it is dereferenced. Only pointer values are compared here.
-static void FN_validate_cube_items(CHARACTER * ch)
+static void fn_validate_cube_items(character * ch)
 {
-	CItem ** cube_item = ch->GetCubeItem();
+	item ** cube_item = ch->cube_item();
 
 	for (int i = 0; i < CUBE_MAX_NUM; ++i)
 	{
@@ -473,7 +473,7 @@ static void FN_validate_cube_items(CHARACTER * ch)
 
 		for (int cell = 0; cell < INVENTORY_MAX_NUM; ++cell)
 		{
-			if (ch->GetInventoryItem(cell) == cube_item[i])
+			if (ch->inventory_item(cell) == cube_item[i])
 			{
 				bFound = true;
 				break;
@@ -485,100 +485,100 @@ static void FN_validate_cube_items(CHARACTER * ch)
 	}
 }
 
-static bool FN_update_cube_status(CHARACTER * ch)
+static bool fn_update_cube_status(character * ch)
 {
 	if (nullptr == ch)
 		return false;
 
-	if (!ch->IsCubeOpen())
+	if (!ch->is_cube_open())
 		return false;
 
-	FN_validate_cube_items(ch);
+	fn_validate_cube_items(ch);
 
-	CHARACTER *	npc = ch->GetQuestNPC();
+	character *	npc = ch->quest_npc();
 	if (nullptr == npc)
 		return false;
 
-	CUBE_DATA* cube = FN_find_cube(ch->GetCubeItem(), npc->GetRaceNum());
+	cube_data* cube = fn_find_cube(ch->cube_item(), npc->race_num());
 
 	if (nullptr == cube)
 	{
-		ch->ChatPacket(CHAT_TYPE_COMMAND, "cube info 0 0 0");
+		ch->chat_packet(CHAT_TYPE_COMMAND, "cube info 0 0 0");
 		return false;
 	}
 
-	ch->ChatPacket(CHAT_TYPE_COMMAND, "cube info %d %d %d", cube->gold, 0, 0);
+	ch->chat_packet(CHAT_TYPE_COMMAND, "cube info %d %d %d", cube->gold, 0, 0);
 	return true;
 }
 
 // return new item
-bool Cube_make (CHARACTER * ch)
+bool cube_make (character * ch)
 {
 	// Finds combinations that require the given item. (referred to as cube data)
 	// If there is cube data, check the item's materials.
 	// Creates the new item.
 	// Give the new item
 
-	CHARACTER *	npc;
+	character *	npc;
 	int			percent_number = 0;
-	CUBE_DATA	*cube_proto;
-	CItem *	*items;
-	CItem *	new_item;
+	cube_data	*cube_proto;
+	item *	*items;
+	item *	new_item;
 
-	if (!(ch)->IsCubeOpen())
+	if (!(ch)->is_cube_open())
 	{
-		(ch)->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("제조창이 열려있지 않습니다"));
+		(ch)->chat_packet(CHAT_TYPE_INFO, lc_text("제조창이 열려있지 않습니다"));
 		return false;
 	}
 
-	npc = ch->GetQuestNPC();
+	npc = ch->quest_npc();
 	if (nullptr == npc)
 	{
 		return false;
 	}
 
-	FN_validate_cube_items(ch);
-	items = ch->GetCubeItem();
-	cube_proto = FN_find_cube(items, npc->GetRaceNum());
+	fn_validate_cube_items(ch);
+	items = ch->cube_item();
+	cube_proto = fn_find_cube(items, npc->race_num());
 
 	if (nullptr == cube_proto)
 	{
-		ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("제조 재료가 부족합니다"));
+		ch->chat_packet(CHAT_TYPE_INFO, lc_text("제조 재료가 부족합니다"));
 		return false;
 	}
 
-	if (static_cast<int64_t>(ch->GetGold()) < static_cast<int64_t>(cube_proto->gold))
+	if (static_cast<int64_t>(ch->gold()) < static_cast<int64_t>(cube_proto->gold))
 	{
-		ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("돈이 부족하거나 아이템이 제자리에 없습니다."));	// This text is already widely used, so no additional translation needed
+		ch->chat_packet(CHAT_TYPE_INFO, lc_text("돈이 부족하거나 아이템이 제자리에 없습니다."));	// This text is already widely used, so no additional translation needed
 		return false;
 	}
 
-	CUBE_VALUE	*reward_value = cube_proto->reward_value();
+	cube_value	*reward_value = cube_proto->reward_value();
 
 	// Delete the used material items
 	cube_proto->remove_material (ch);
 	
 	// Deduct the gold required for crafting
 	if (0 < cube_proto->gold)
-		ch->PointChange(POINT_GOLD, -(cube_proto->gold), false);
+		ch->point_change(POINT_GOLD, -(cube_proto->gold), false);
 
 	percent_number = number(1,100);
 	if ( percent_number<=cube_proto->percent)
 	{
 		// Success
-		ch->ChatPacket(CHAT_TYPE_COMMAND, "cube success %d %d", reward_value->vnum, reward_value->count);
-		new_item = ch->AutoGiveItem(reward_value->vnum, reward_value->count);
+		ch->chat_packet(CHAT_TYPE_COMMAND, "cube success %d %d", reward_value->vnum, reward_value->count);
+		new_item = ch->auto_give_item(reward_value->vnum, reward_value->count);
 
-		LogManager::instance().CubeLog(ch->GetPlayerID(), ch->GetX(), ch->GetY(),
-				reward_value->vnum, new_item ? new_item->GetID() : 0, reward_value->count, 1);
+		log_manager::instance().cube_log(ch->player_id(), ch->x(), ch->y(),
+				reward_value->vnum, new_item ? new_item->id() : 0, reward_value->count, 1);
 		return true;
 	}
 	else
 	{
 		// Failure
-		ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("제조에 실패하였습니다."));	// 2012.11.12 newly added message (must be added to locale_string.txt)
-		ch->ChatPacket(CHAT_TYPE_COMMAND, "cube fail");
-		LogManager::instance().CubeLog(ch->GetPlayerID(), ch->GetX(), ch->GetY(),
+		ch->chat_packet(CHAT_TYPE_INFO, lc_text("제조에 실패하였습니다."));	// 2012.11.12 newly added message (must be added to locale_string.txt)
+		ch->chat_packet(CHAT_TYPE_COMMAND, "cube fail");
+		log_manager::instance().cube_log(ch->player_id(), ch->x(), ch->y(),
 				reward_value->vnum, 0, 0, 0);
 		return false;
 	}
@@ -588,36 +588,36 @@ bool Cube_make (CHARACTER * ch)
 
 
 // Show the items in the cube
-void Cube_show_list (CHARACTER * ch)
+void cube_show_list (character * ch)
 {
-	CItem *	*cube_item;
-	CItem *	item;
+	item *	*cube_item;
+	item *	item;
 
 	RETURN_IF_CUBE_IS_NOT_OPENED(ch);
 
-	FN_validate_cube_items(ch);
-	cube_item = ch->GetCubeItem();
+	fn_validate_cube_items(ch);
+	cube_item = ch->cube_item();
 
 	for (int i=0; i<CUBE_MAX_NUM; ++i)
 	{
 		item = cube_item[i];
 		if (nullptr==item)	continue;
 
-		ch->ChatPacket(CHAT_TYPE_INFO, "cube[%d]: inventory[%d]: %s",
-				i, item->GetCell(), item->GetName());
+		ch->chat_packet(CHAT_TYPE_INFO, "cube[%d]: inventory[%d]: %s",
+				i, item->cell(), item->name());
 	}
 }
 
 
 // Register an inventory item into the cube
-void Cube_add_item (CHARACTER * ch, int cube_index, int inven_index)
+void cube_add_item (character * ch, int cube_index, int inven_index)
 {
 	// Does the item exist?
 	// Find an empty slot in the cube
 	// Cube setup
 	// Send message
-	CItem *	item;
-	CItem *	*cube_item;
+	item *	item;
+	game::items::item *	*cube_item;
 
 	RETURN_IF_CUBE_IS_NOT_OPENED(ch);
 
@@ -626,11 +626,11 @@ void Cube_add_item (CHARACTER * ch, int cube_index, int inven_index)
 	if (cube_index<0 || CUBE_MAX_NUM<=cube_index)
 		return;
 
-	item = ch->GetInventoryItem(inven_index);
+	item = ch->inventory_item(inven_index);
 
 	if (nullptr==item)	return;
 
-	cube_item = ch->GetCubeItem();
+	cube_item = ch->cube_item();
 
 	// If the item was already registered at another position, delete the old index
 	for (int i=0; i<CUBE_MAX_NUM; ++i)
@@ -645,28 +645,28 @@ void Cube_add_item (CHARACTER * ch, int cube_index, int inven_index)
 	cube_item[cube_index] = item;
 
 	if (metin2::config::test_server())
-		ch->ChatPacket(CHAT_TYPE_INFO, "cube[%d]: inventory[%d]: %s added",
-									cube_index, inven_index, item->GetName());
+		ch->chat_packet(CHAT_TYPE_INFO, "cube[%d]: inventory[%d]: %s added",
+									cube_index, inven_index, item->name());
 
 	// Wanted to tell the client what can be made from the items currently in the box
 	// but just send how much gold is required instead
-	FN_update_cube_status(ch);
+	fn_update_cube_status(ch);
 
 	return;
 }
 
 // Remove an item from the cube
-void Cube_delete_item (CHARACTER * ch, int cube_index)
+void cube_delete_item (character * ch, int cube_index)
 {
-	CItem *	item;
-	CItem *	*cube_item;
+	item *	item;
+	game::items::item *	*cube_item;
 
 	RETURN_IF_CUBE_IS_NOT_OPENED(ch);
 
 	if (cube_index<0 || CUBE_MAX_NUM<=cube_index)	return;
 
-	FN_validate_cube_items(ch);
-	cube_item = ch->GetCubeItem();
+	fn_validate_cube_items(ch);
+	cube_item = ch->cube_item();
 
 	if ( nullptr== cube_item[cube_index] )	return;
 
@@ -674,21 +674,21 @@ void Cube_delete_item (CHARACTER * ch, int cube_index)
 	cube_item[cube_index] = nullptr;
 
 	if (metin2::config::test_server())
-		ch->ChatPacket(CHAT_TYPE_INFO, "cube[%d]: cube[%d]: %s deleted",
-				cube_index, item->GetCell(), item->GetName());
+		ch->chat_packet(CHAT_TYPE_INFO, "cube[%d]: cube[%d]: %s deleted",
+				cube_index, item->cell(), item->name());
 
 	// Wanted to tell the client what can be made from the items currently in the box
 	// but just send how much gold is required instead
-	FN_update_cube_status(ch);
+	fn_update_cube_status(ch);
 
 	return;
 }
 
 // Splits an item name into the plain name and refine level (Peerless Sword+5 -> Peerless Sword, 5)
-SItemNameAndLevel SplitItemNameAndLevelFromName(const std::string& name)
+item_name_and_level split_item_name_and_level_from_name(const std::string& name)
 {
 	int level = 0;
-	SItemNameAndLevel info;
+	item_name_and_level info;
 	info.name = name;
 
 	size_t pos = name.find("+");
@@ -706,34 +706,34 @@ SItemNameAndLevel SplitItemNameAndLevelFromName(const std::string& name)
 	return info;
 };
 
-bool FIsLessCubeValue(const CUBE_VALUE& a, const CUBE_VALUE& b)
+bool f_is_less_cube_value(const cube_value& a, const cube_value& b)
 {
 	return a.vnum < b.vnum;
 }
 
-void Cube_MakeCubeInformationText()
+void cube_make_cube_information_text()
 {
 	// Now convert the organized cube results and materials into info to send to the client.
-	for (TCubeMapByNPC::iterator iter = cube_info_map.begin(); cube_info_map.end() != iter; ++iter)
+	for (cube_map_by_npc::iterator iter = cube_info_map.begin(); cube_info_map.end() != iter; ++iter)
 	{
-		TCubeResultList& resultList = iter->second;
+		cube_result_list& resultList = iter->second;
 
-		for (TCubeResultList::iterator resultIter = resultList.begin(); resultList.end() != resultIter; ++resultIter)
+		for (cube_result_list::iterator resultIter = resultList.begin(); resultList.end() != resultIter; ++resultIter)
 		{
-			SCubeMaterialInfo& materialInfo = *resultIter;
-			std::string& infoText = materialInfo.infoText;
+			cube_material_info& materialInfo = *resultIter;
+			std::string& infoText = materialInfo.info_text;
 
 			
 			// This one is the bad guy
-			if (0 < materialInfo.complicateMaterial.size())
+			if (0 < materialInfo.complicate_material.size())
 			{
-				std::sort(materialInfo.complicateMaterial.begin(), materialInfo.complicateMaterial.end(), FIsLessCubeValue);
-				std::sort(materialInfo.material.begin(), materialInfo.material.end(), FIsLessCubeValue);
+				std::sort(materialInfo.complicate_material.begin(), materialInfo.complicate_material.end(), f_is_less_cube_value);
+				std::sort(materialInfo.material.begin(), materialInfo.material.end(), f_is_less_cube_value);
 
 				//// Remove duplicate materials
-				for (TCubeValueVector::iterator iter = materialInfo.complicateMaterial.begin(); materialInfo.complicateMaterial.end() != iter; ++iter)
+				for (cube_value_vector::iterator iter = materialInfo.complicate_material.begin(); materialInfo.complicate_material.end() != iter; ++iter)
 				{
-					for (TCubeValueVector::iterator targetIter = materialInfo.material.begin(); materialInfo.material.end() != targetIter; ++targetIter)
+					for (cube_value_vector::iterator targetIter = materialInfo.material.begin(); materialInfo.material.end() != targetIter; ++targetIter)
 					{
 						if (*targetIter == *iter)
 						{
@@ -743,7 +743,7 @@ void Cube_MakeCubeInformationText()
 				}
 
 				// Build text following the agreed format like 72723,1 or 72725,1 or ...
-				for (TCubeValueVector::iterator iter = materialInfo.complicateMaterial.begin(); materialInfo.complicateMaterial.end() != iter; ++iter)
+				for (cube_value_vector::iterator iter = materialInfo.complicate_material.begin(); materialInfo.complicate_material.end() != iter; ++iter)
 				{
 					char tempBuffer[128];
 					snprintf(tempBuffer, sizeof(tempBuffer), "%d,%d|", iter->vnum, iter->count);
@@ -758,7 +758,7 @@ void Cube_MakeCubeInformationText()
 			}
 
 			// Also build the format for non-duplicate normal materials
-			for (TCubeValueVector::iterator iter = materialInfo.material.begin(); materialInfo.material.end() != iter; ++iter)
+			for (cube_value_vector::iterator iter = materialInfo.material.begin(); materialInfo.material.end() != iter; ++iter)
 			{
 				char tempBuffer[128];
 				snprintf(tempBuffer, sizeof(tempBuffer), "%d,%d&", iter->vnum, iter->count);
@@ -779,13 +779,13 @@ void Cube_MakeCubeInformationText()
 	} // for npc
 }
 
-bool Cube_InformationInitialize()
+bool cube_information_initialize()
 {
-	for (size_t i = 0; i < s_cube_proto.size(); ++i)
+	for (size_t i = 0; i < cube_proto.size(); ++i)
 	{
-		CUBE_DATA* cubeData = s_cube_proto[i].get();
+		cube_data* cubeData = cube_proto[i].get();
 
-		const std::vector<CUBE_VALUE>& rewards = cubeData->reward;
+		const std::vector<cube_value>& rewards = cubeData->reward;
 
 		// Sorry for the hard coding
 		if (1 != rewards.size())
@@ -794,21 +794,21 @@ bool Cube_InformationInitialize()
 			continue;
 		}
 
-		const CUBE_VALUE& reward = rewards.at(0);
+		const cube_value& reward = rewards.at(0);
 		const uint16_t& npcVNUM = cubeData->npc_vnum.at(0);
 		bool bComplicate = false;
 		
-		TCubeMapByNPC& cubeMap = cube_info_map;
-		TCubeResultList& resultList = cubeMap[npcVNUM];
-		SCubeMaterialInfo materialInfo;
+		cube_map_by_npc& cubeMap = cube_info_map;
+		cube_result_list& resultList = cubeMap[npcVNUM];
+		cube_material_info materialInfo;
 
 		materialInfo.reward = reward;
 		materialInfo.gold = cubeData->gold;
 		materialInfo.material = cubeData->item;
 
-		for (TCubeResultList::iterator iter = resultList.begin(); resultList.end() != iter; ++iter)
+		for (cube_result_list::iterator iter = resultList.begin(); resultList.end() != iter; ++iter)
 		{
-			SCubeMaterialInfo& existInfo = *iter;
+			cube_material_info& existInfo = *iter;
 
 			// If a duplicate reward is already registered, distinguish whether it's made from an entirely different combination, 
 			// or an almost identical combination that differs only in one part.
@@ -819,32 +819,32 @@ bool Cube_InformationInitialize()
 			//		Green sword ornament fragment x1
 			if (reward.vnum == existInfo.reward.vnum)
 			{
-				for (TCubeValueVector::iterator existMaterialIter = existInfo.material.begin(); existInfo.material.end() != existMaterialIter; ++existMaterialIter)
+				for (cube_value_vector::iterator existMaterialIter = existInfo.material.begin(); existInfo.material.end() != existMaterialIter; ++existMaterialIter)
 				{
-					TItemTable* existMaterialProto = ITEM_MANAGER::instance().GetTable(existMaterialIter->vnum);
+					item_table* existMaterialProto = item_manager::instance().table(existMaterialIter->vnum);
 					if (nullptr == existMaterialProto)
 					{
 						metin2::log::error("There is no item({:d})", existMaterialIter->vnum);
 						return false;
 					}
-					SItemNameAndLevel existItemInfo = SplitItemNameAndLevelFromName(existMaterialProto->szName);
+					item_name_and_level existItemInfo = split_item_name_and_level_from_name(existMaterialProto->name);
 
 					if (0 < existItemInfo.level)
 					{
 						// Between the materials of the cube result being added now and the materials of already registered cube results, 
 						// search for overlapping parts
-						for (TCubeValueVector::iterator currentMaterialIter = materialInfo.material.begin(); materialInfo.material.end() != currentMaterialIter; ++currentMaterialIter)
+						for (cube_value_vector::iterator currentMaterialIter = materialInfo.material.begin(); materialInfo.material.end() != currentMaterialIter; ++currentMaterialIter)
 						{
-							TItemTable* currentMaterialProto = ITEM_MANAGER::instance().GetTable(currentMaterialIter->vnum);
-							SItemNameAndLevel currentItemInfo = SplitItemNameAndLevelFromName(currentMaterialProto->szName);
+							item_table* currentMaterialProto = item_manager::instance().table(currentMaterialIter->vnum);
+							item_name_and_level currentItemInfo = split_item_name_and_level_from_name(currentMaterialProto->name);
 
 							if (currentItemInfo.name == existItemInfo.name)
 							{
 								bComplicate = true;
-								existInfo.complicateMaterial.push_back(*currentMaterialIter);
+								existInfo.complicate_material.push_back(*currentMaterialIter);
 
-								if (std::find(existInfo.complicateMaterial.begin(), existInfo.complicateMaterial.end(), *existMaterialIter) == existInfo.complicateMaterial.end())
-									existInfo.complicateMaterial.push_back(*existMaterialIter);
+								if (std::find(existInfo.complicate_material.begin(), existInfo.complicate_material.end(), *existMaterialIter) == existInfo.complicate_material.end())
+									existInfo.complicate_material.push_back(*existMaterialIter);
 
 								// TODO: may need to detect two or more duplicate items
 								break;
@@ -860,22 +860,22 @@ bool Cube_InformationInitialize()
 			resultList.push_back(materialInfo);
 	}
 
-	Cube_MakeCubeInformationText();
+	cube_make_cube_information_text();
 
-	s_isInitializedCubeMaterialInformation = true;
+	is_initialized_cube_material_information = true;
 	return true;
 }
 
 // Client to server: request info (list) of items the current NPC can make
-void Cube_request_result_list(CHARACTER * ch)
+void cube_request_result_list(character * ch)
 {
 	RETURN_IF_CUBE_IS_NOT_OPENED(ch);
 
-	CHARACTER *	npc = ch->GetQuestNPC();
+	character *	npc = ch->quest_npc();
 	if (nullptr == npc)
 		return;
 
-	uint32_t npcVNUM = npc->GetRaceNum();
+	uint32_t npcVNUM = npc->race_num();
 	size_t resultCount = 0;
 
 	std::string& resultText = cube_result_info_map_by_npc[npcVNUM];
@@ -885,10 +885,10 @@ void Cube_request_result_list(CHARACTER * ch)
 	{
 		resultText.clear();
 
-		const TCubeResultList& resultList = cube_info_map[npcVNUM];
-		for (TCubeResultList::const_iterator iter = resultList.begin(); resultList.end() != iter; ++iter)
+		const cube_result_list& resultList = cube_info_map[npcVNUM];
+		for (cube_result_list::const_iterator iter = resultList.begin(); resultList.end() != iter; ++iter)
 		{
-			const SCubeMaterialInfo& materialInfo = *iter;
+			const cube_material_info& materialInfo = *iter;
 			char temp[128];
 			snprintf(temp, sizeof(temp), "%d,%d", materialInfo.reward.vnum, materialInfo.reward.count);
 
@@ -917,28 +917,28 @@ void Cube_request_result_list(CHARACTER * ch)
 	// (Server -> Client) /cube r_list npcVNUM resultCount vnum1,count1/vnum2,count2,/vnum3,count3/...
 	// (Server -> Client) /cube r_list 20383 4 123,1/125,1/128,1/130,5
 	
-	ch->ChatPacket(CHAT_TYPE_COMMAND, "cube r_list %d %d %s", npcVNUM, resultCount, resultText.c_str());
+	ch->chat_packet(CHAT_TYPE_COMMAND, "cube r_list %d %d %s", npcVNUM, resultCount, resultText.c_str());
 }
 
 // 
-void Cube_request_material_info(CHARACTER * ch, int requestStartIndex, int requestCount)
+void cube_request_material_info(character * ch, int requestStartIndex, int requestCount)
 {
 	RETURN_IF_CUBE_IS_NOT_OPENED(ch);
 
-	CHARACTER *	npc = ch->GetQuestNPC();
+	character *	npc = ch->quest_npc();
 	if (nullptr == npc)
 		return;
 
-	uint32_t npcVNUM = npc->GetRaceNum();
+	uint32_t npcVNUM = npc->race_num();
 	std::string materialInfoText = "";
 
 	int index = 0;
 	bool bCatchInfo = false;
 
-	const TCubeResultList& resultList = cube_info_map[npcVNUM];
-	for (TCubeResultList::const_iterator iter = resultList.begin(); resultList.end() != iter; ++iter)
+	const cube_result_list& resultList = cube_info_map[npcVNUM];
+	for (cube_result_list::const_iterator iter = resultList.begin(); resultList.end() != iter; ++iter)
 	{
-		const SCubeMaterialInfo& materialInfo = *iter;
+		const cube_material_info& materialInfo = *iter;
 
 		if (index++ == requestStartIndex)
 		{
@@ -947,7 +947,7 @@ void Cube_request_material_info(CHARACTER * ch, int requestStartIndex, int reque
 		
 		if (bCatchInfo)
 		{
-			materialInfoText += materialInfo.infoText + "@";
+			materialInfoText += materialInfo.info_text + "@";
 		}
 
 		if (index >= requestStartIndex + requestCount)
@@ -970,7 +970,7 @@ void Cube_request_material_info(CHARACTER * ch, int requestStartIndex, int reque
 		metin2::log::error("[CubeInfo] Too long material info. (NPC: {:d}, requestStart: {:d}, requestCount: {:d}, length: {:d})", npcVNUM, requestStartIndex, requestCount, materialInfoText.size());
 	}
 
-	ch->ChatPacket(CHAT_TYPE_COMMAND, "cube m_info %d %d %s", requestStartIndex, requestCount, materialInfoText.c_str());
+	ch->chat_packet(CHAT_TYPE_COMMAND, "cube m_info %d %d %s", requestStartIndex, requestCount, materialInfoText.c_str());
 
 	
 }

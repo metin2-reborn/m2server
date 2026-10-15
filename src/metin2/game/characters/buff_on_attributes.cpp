@@ -14,179 +14,179 @@
 
 namespace metin2::game::inline characters {
 
-CBuffOnAttributes::CBuffOnAttributes(CHARACTER * pOwner, uint8_t point_type, std::vector <uint8_t>* p_vec_buff_wear_targets)
-:	m_pBuffOwner(pOwner), m_bPointType(point_type), m_p_vec_buff_wear_targets(p_vec_buff_wear_targets)
+buff_on_attributes::buff_on_attributes(character * pOwner, uint8_t point_type, std::vector <uint8_t>* p_vec_buff_wear_targets)
+:	buff_owner_(pOwner), point_type_(point_type), p_vec_buff_wear_targets_(p_vec_buff_wear_targets)
 {
-	Initialize();
+	initialize();
 }
 
-CBuffOnAttributes::~CBuffOnAttributes()
+buff_on_attributes::~buff_on_attributes()
 {
-	Off();
+	off();
 }
 
-void CBuffOnAttributes::Initialize()
+void buff_on_attributes::initialize()
 {
-	m_bBuffValue = 0;
-	m_map_additional_attrs.clear();
+	buff_value_ = 0;
+	map_additional_attrs_.clear();
 }
 
-void CBuffOnAttributes::RemoveBuffFromItem(CItem * pItem)
+void buff_on_attributes::remove_buff_from_item(item * pItem)
 {
-	if (0 == m_bBuffValue)
+	if (0 == buff_value_)
 		return ;
 	if (nullptr != pItem)
 	{
-		if (pItem->GetCell() < INVENTORY_MAX_NUM)
+		if (pItem->cell() < INVENTORY_MAX_NUM)
 			return;
-		std::vector <uint8_t>::iterator it = find (m_p_vec_buff_wear_targets->begin(), m_p_vec_buff_wear_targets->end(), pItem->GetCell() - INVENTORY_MAX_NUM);
-		if (m_p_vec_buff_wear_targets->end() == it)
+		std::vector <uint8_t>::iterator it = find (p_vec_buff_wear_targets_->begin(), p_vec_buff_wear_targets_->end(), pItem->cell() - INVENTORY_MAX_NUM);
+		if (p_vec_buff_wear_targets_->end() == it)
 			return;
 
-		int m = pItem->GetAttributeCount();
+		int m = pItem->attribute_count();
 		for (int j = 0; j < m; j++)
 		{
-			TPlayerItemAttribute attr = pItem->GetAttribute(j);
-			TMapAttr::iterator it = m_map_additional_attrs.find(attr.bType);
+			player_item_attribute attr = pItem->get_attribute(j);
+			map_attr::iterator it = map_additional_attrs_.find(attr.type);
 			// Remove the value for this attribute type from m_map_additional_attrs,
 			// and reduce the buff effect by (m_bBuffValue)% of the changed value
-			if (it != m_map_additional_attrs.end())
+			if (it != map_additional_attrs_.end())
 			{
 				int& sum_of_attr_value = it->second;
-				int old_value = sum_of_attr_value * m_bBuffValue / 100;
-				int new_value = (sum_of_attr_value - attr.sValue) * m_bBuffValue / 100;
-				m_pBuffOwner->ApplyPoint(attr.bType, new_value - old_value);
-				sum_of_attr_value -= attr.sValue;
+				int old_value = sum_of_attr_value * buff_value_ / 100;
+				int new_value = (sum_of_attr_value - attr.s_value) * buff_value_ / 100;
+				buff_owner_->apply_point(attr.type, new_value - old_value);
+				sum_of_attr_value -= attr.s_value;
 			}
 			else
 			{
-				metin2::log::error("Buff ERROR(type {:d}). This item({:d}) attr_type({:d}) was not in buff pool", m_bPointType, pItem->GetVnum(), attr.bType);
+				metin2::log::error("Buff ERROR(type {:d}). This item({:d}) attr_type({:d}) was not in buff pool", point_type_, pItem->vnum(), attr.type);
 				return;
 			}
 		}
 	}
 }
 
-void CBuffOnAttributes::AddBuffFromItem(CItem * pItem)
+void buff_on_attributes::add_buff_from_item(item * pItem)
 {
-	if (0 == m_bBuffValue)
+	if (0 == buff_value_)
 		return ;
 	if (nullptr != pItem)
 	{
-		if (pItem->GetCell() < INVENTORY_MAX_NUM)
+		if (pItem->cell() < INVENTORY_MAX_NUM)
 			return;
-		std::vector <uint8_t>::iterator it = find (m_p_vec_buff_wear_targets->begin(), m_p_vec_buff_wear_targets->end(), pItem->GetCell() - INVENTORY_MAX_NUM);
-		if (m_p_vec_buff_wear_targets->end() == it)
+		std::vector <uint8_t>::iterator it = find (p_vec_buff_wear_targets_->begin(), p_vec_buff_wear_targets_->end(), pItem->cell() - INVENTORY_MAX_NUM);
+		if (p_vec_buff_wear_targets_->end() == it)
 			return;
 
-		int m = pItem->GetAttributeCount();
+		int m = pItem->attribute_count();
 		for (int j = 0; j < m; j++)
 		{
-			TPlayerItemAttribute attr = pItem->GetAttribute(j);
-			TMapAttr::iterator it = m_map_additional_attrs.find(attr.bType);
+			player_item_attribute attr = pItem->get_attribute(j);
+			map_attr::iterator it = map_additional_attrs_.find(attr.type);
 			
 			// If m_map_additional_attrs has no value for this attribute type, add it.
 			// Add a buff effect of (m_bBuffValue)% of the added value
-			if (it == m_map_additional_attrs.end())
+			if (it == map_additional_attrs_.end())
 			{
-				m_pBuffOwner->ApplyPoint(attr.bType, attr.sValue * m_bBuffValue / 100);
-				m_map_additional_attrs.insert(TMapAttr::value_type(attr.bType, attr.sValue));
+				buff_owner_->apply_point(attr.type, attr.s_value * buff_value_ / 100);
+				map_additional_attrs_.insert(map_attr::value_type(attr.type, attr.s_value));
 			}
 			// If m_map_additional_attrs has a value for this attribute type, increase it,
 			// and add a buff effect of (m_bBuffValue)% of the changed value
 			else
 			{
 				int& sum_of_attr_value = it->second;
-				int old_value = sum_of_attr_value * m_bBuffValue / 100;
-				int new_value = (sum_of_attr_value + attr.sValue) * m_bBuffValue / 100;
-				m_pBuffOwner->ApplyPoint(attr.bType, new_value - old_value);
-				sum_of_attr_value += attr.sValue;
+				int old_value = sum_of_attr_value * buff_value_ / 100;
+				int new_value = (sum_of_attr_value + attr.s_value) * buff_value_ / 100;
+				buff_owner_->apply_point(attr.type, new_value - old_value);
+				sum_of_attr_value += attr.s_value;
 			}
 		}
 	}
 }
 
-void CBuffOnAttributes::ChangeBuffValue(uint8_t bNewValue)
+void buff_on_attributes::change_buff_value(uint8_t bNewValue)
 {
-	if (0 == m_bBuffValue)
-		On(bNewValue);
+	if (0 == buff_value_)
+		on(bNewValue);
 	else if (0 == bNewValue)
-		Off();
+		off();
 	else
 	{
 		// Previously (m_bBuffValue)% of the m_map_additional_attrs values was applied as the buff,
 		// so change it to (bNewValue)%.
-		for (TMapAttr::iterator it = m_map_additional_attrs.begin(); it != m_map_additional_attrs.end(); it++)
+		for (map_attr::iterator it = map_additional_attrs_.begin(); it != map_additional_attrs_.end(); it++)
 		{
 			int& sum_of_attr_value = it->second;
 			
-			m_pBuffOwner->ApplyPoint(it->first, -sum_of_attr_value * m_bBuffValue / 100);
+			buff_owner_->apply_point(it->first, -sum_of_attr_value * buff_value_ / 100);
 		}
-		m_bBuffValue = bNewValue;
+		buff_value_ = bNewValue;
 	}
 }
 
-void CBuffOnAttributes::GiveAllAttributes()
+void buff_on_attributes::give_all_attributes()
 {
-	if (0 == m_bBuffValue)
+	if (0 == buff_value_)
 		return;
-	for (TMapAttr::iterator it = m_map_additional_attrs.begin(); it != m_map_additional_attrs.end(); it++)
+	for (map_attr::iterator it = map_additional_attrs_.begin(); it != map_additional_attrs_.end(); it++)
 	{
 		uint8_t apply_type = it->first;
-		int apply_value = it->second * m_bBuffValue / 100;
+		int apply_value = it->second * buff_value_ / 100;
 		
-		m_pBuffOwner->ApplyPoint(apply_type, apply_value);
+		buff_owner_->apply_point(apply_type, apply_value);
 	}
 }
 
-bool CBuffOnAttributes::On(uint8_t bValue)
+bool buff_on_attributes::on(uint8_t bValue)
 {
-	if (0 != m_bBuffValue || 0 == bValue)
+	if (0 != buff_value_ || 0 == bValue)
 		return false;
 	
-	int n = m_p_vec_buff_wear_targets->size();
-	m_map_additional_attrs.clear();
+	int n = p_vec_buff_wear_targets_->size();
+	map_additional_attrs_.clear();
 	for (int i = 0; i < n; i++)
 	{
-		CItem * pItem = m_pBuffOwner->GetWear(m_p_vec_buff_wear_targets->at(i));
+		item * pItem = buff_owner_->wear(p_vec_buff_wear_targets_->at(i));
 		if (nullptr != pItem)
 		{
-			int m = pItem->GetAttributeCount();
+			int m = pItem->attribute_count();
 			for (int j = 0; j < m; j++)
 			{
-				TPlayerItemAttribute attr = pItem->GetAttribute(j);
-				TMapAttr::iterator it = m_map_additional_attrs.find(attr.bType);
-				if (it != m_map_additional_attrs.end())
+				player_item_attribute attr = pItem->get_attribute(j);
+				map_attr::iterator it = map_additional_attrs_.find(attr.type);
+				if (it != map_additional_attrs_.end())
 				{
-					it->second += attr.sValue;
+					it->second += attr.s_value;
 				}
 				else
 				{
-					m_map_additional_attrs.insert(TMapAttr::value_type(attr.bType, attr.sValue));
+					map_additional_attrs_.insert(map_attr::value_type(attr.type, attr.s_value));
 				}
 			}
 		}
 	}
 
-	for (TMapAttr::iterator it = m_map_additional_attrs.begin(); it != m_map_additional_attrs.end(); it++)
+	for (map_attr::iterator it = map_additional_attrs_.begin(); it != map_additional_attrs_.end(); it++)
 	{
-		m_pBuffOwner->ApplyPoint(it->first, it->second * bValue / 100);
+		buff_owner_->apply_point(it->first, it->second * bValue / 100);
 	}
 	
-	m_bBuffValue = bValue;
+	buff_value_ = bValue;
 
 	return true;
 }
 
-void CBuffOnAttributes::Off()
+void buff_on_attributes::off()
 {
-	if (0 == m_bBuffValue)
+	if (0 == buff_value_)
 		return ;
 
-	for (TMapAttr::iterator it = m_map_additional_attrs.begin(); it != m_map_additional_attrs.end(); it++)
+	for (map_attr::iterator it = map_additional_attrs_.begin(); it != map_additional_attrs_.end(); it++)
 	{
-		m_pBuffOwner->ApplyPoint(it->first, -it->second * m_bBuffValue / 100);
+		buff_owner_->apply_point(it->first, -it->second * buff_value_ / 100);
 	}
-	Initialize();
+	initialize();
 }
 }

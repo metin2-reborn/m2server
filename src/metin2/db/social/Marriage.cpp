@@ -26,43 +26,43 @@ namespace marriage
 {
 	const uint32_t WEDDING_LENGTH = 60 * 60; // sec
 
-	bool operator > (const TWedding& lhs, const TWedding& rhs)
+	bool operator > (const wedding& lhs, const wedding& rhs)
 	{
-		return lhs.dwTime > rhs.dwTime;
+		return lhs.time > rhs.time;
 	}
 
-	bool operator > (const TWeddingInfo &lhs, const TWeddingInfo& rhs)
+	bool operator > (const wedding_info &lhs, const wedding_info& rhs)
 	{
-		return lhs.dwTime > rhs.dwTime;
+		return lhs.time > rhs.time;
 	}
 
-	CManager::CManager()
-	{
-	}
-
-	CManager::~CManager()
+	manager::manager()
 	{
 	}
 
-	bool CManager::Initialize()
+	manager::~manager()
+	{
+	}
+
+	bool manager::initialize()
 	{
 		char szQuery[1024];
 
 		snprintf(szQuery, sizeof(szQuery),
 				"SELECT pid1, pid2, love_point, time, is_married, p1.name, p2.name FROM marriage, player%s as p1, player%s as p2 WHERE p1.id = pid1 AND p2.id = pid2",
-				GetTablePostfix(), GetTablePostfix());
+				get_table_postfix(), get_table_postfix());
 
-		std::unique_ptr<SQLMsg> pmsg_delete(CDBManager::instance().DirectQuery("DELETE FROM marriage WHERE is_married = 0"));
-		std::unique_ptr<SQLMsg> pmsg(CDBManager::instance().DirectQuery(szQuery));
+		std::unique_ptr<ql_msg> pmsg_delete(db_manager::instance().direct_query("DELETE FROM marriage WHERE is_married = 0"));
+		std::unique_ptr<ql_msg> pmsg(db_manager::instance().direct_query(szQuery));
 
-		SQLResult * pRes = pmsg->Get();
-		metin2::log::info( "MarriageList(size={:d})", pRes->uiNumRows);
+		ql_result * pRes = pmsg->get();
+		metin2::log::info( "MarriageList(size={:d})", pRes->num_rows);
 
-		if (pRes->uiNumRows > 0)
+		if (pRes->num_rows > 0)
 		{
-			for (uint uiRow = 0; uiRow != pRes->uiNumRows; ++uiRow)
+			for (uint uiRow = 0; uiRow != pRes->num_rows; ++uiRow)
 			{
-				MYSQL_ROW row = mysql_fetch_row(pRes->pSQLResult);
+				MYSQL_ROW row = mysql_fetch_row(pRes->sql_result);
 
 				uint32_t pid1 = 0; str_to_number(pid1, row[0]);
 				uint32_t pid2 = 0; str_to_number(pid2, row[1]);
@@ -72,10 +72,10 @@ namespace marriage
 				const char* name1 = row[5];
 				const char* name2 = row[6];
 
-				TMarriage* pMarriage = new TMarriage(pid1, pid2, love_point, time, is_married, name1, name2);
-				m_Marriages.insert(pMarriage);
-				m_MarriageByPID.insert(std::make_pair(pid1, pMarriage));
-				m_MarriageByPID.insert(std::make_pair(pid2, pMarriage));
+				marriage* pMarriage = new marriage(pid1, pid2, love_point, time, is_married, name1, name2);
+				marriages_.insert(pMarriage);
+				marriage_by_pid_.insert(std::make_pair(pid1, pMarriage));
+				marriage_by_pid_.insert(std::make_pair(pid2, pMarriage));
 
 				metin2::log::info( "Marriage {:d}: LP:{:d} TM:{:d} ST:{:d} {:10d}:{:>16} {:10d}:{:>16} ", uiRow, love_point, time, is_married, pid1, name1, pid2, name2);
 			}
@@ -83,40 +83,40 @@ namespace marriage
 		return true;
 	}
 
-	TMarriage* CManager::Get(uint32_t dwPlayerID)
+	marriage* manager::get(uint32_t dwPlayerID)
 	{
-		auto it = m_MarriageByPID.find(dwPlayerID);
+		auto it = marriage_by_pid_.find(dwPlayerID);
 
-		if (it != m_MarriageByPID.end())
+		if (it != marriage_by_pid_.end())
 			return it->second;
 
 		return nullptr;
 	}
 
-	void Align(uint32_t& rPID1, uint32_t& rPID2)
+	void align(uint32_t& rPID1, uint32_t& rPID2)
 	{
 		if (rPID1 > rPID2)
 			std::swap(rPID1, rPID2);
 	}
 
-	void CManager::Add(uint32_t dwPID1, uint32_t dwPID2, const char* szName1, const char* szName2)
+	void manager::add(uint32_t dwPID1, uint32_t dwPID2, const char* szName1, const char* szName2)
 	{
-		uint32_t now = CClientManager::instance().GetCurrentTime();
-		if (IsMarried(dwPID1) || IsMarried(dwPID2))
+		uint32_t now = client_manager::instance().current_time();
+		if (is_married(dwPID1) || is_married(dwPID2))
 		{
 			metin2::log::error("cannot marry already married character. {:d} - {:d}", dwPID1, dwPID2);
 			return;
 		}
 
-		Align(dwPID1, dwPID2);
+		align(dwPID1, dwPID2);
 
 		char szQuery[512];
 		snprintf(szQuery, sizeof(szQuery), "INSERT INTO marriage(pid1, pid2, love_point, time) VALUES (%u, %u, 0, %u)", dwPID1, dwPID2, now);
 
-		std::unique_ptr<SQLMsg> pmsg(CDBManager::instance().DirectQuery(szQuery));
+		std::unique_ptr<ql_msg> pmsg(db_manager::instance().direct_query(szQuery));
 
-		SQLResult* res = pmsg->Get();
-		if (res->uiAffectedRows == 0 || res->uiAffectedRows == (uint32_t)-1)
+		ql_result* res = pmsg->get();
+		if (res->affected_rows == 0 || res->affected_rows == (uint32_t)-1)
 		{
 			metin2::log::error("cannot insert marriage");
 			return;
@@ -124,39 +124,39 @@ namespace marriage
 
 		metin2::log::info( "MARRIAGE ADD {:d} {:d}", dwPID1, dwPID2);
 
-		TMarriage* pMarriage = new TMarriage(dwPID1, dwPID2, 0, now, 0, szName1, szName2);
-		m_Marriages.insert(pMarriage);
-		m_MarriageByPID.insert(std::make_pair(dwPID1, pMarriage));
-		m_MarriageByPID.insert(std::make_pair(dwPID2, pMarriage));
+		marriage* pMarriage = new marriage(dwPID1, dwPID2, 0, now, 0, szName1, szName2);
+		marriages_.insert(pMarriage);
+		marriage_by_pid_.insert(std::make_pair(dwPID1, pMarriage));
+		marriage_by_pid_.insert(std::make_pair(dwPID2, pMarriage));
 
-		TPacketMarriageAdd p;
-		p.dwPID1 = dwPID1;
-		p.dwPID2 = dwPID2;
-		p.tMarryTime = now;
-		strlcpy(p.szName1, szName1, sizeof(p.szName1));
-		strlcpy(p.szName2, szName2, sizeof(p.szName2));
-		CClientManager::instance().ForwardPacket(HEADER_DG_MARRIAGE_ADD, &p, sizeof(p));
+		packet_marriage_add p;
+		p.pi_d1 = dwPID1;
+		p.pi_d2 = dwPID2;
+		p.t_marry_time = now;
+		strlcpy(p.name1, szName1, sizeof(p.name1));
+		strlcpy(p.name2, szName2, sizeof(p.name2));
+		client_manager::instance().forward_packet(HEADER_DG_MARRIAGE_ADD, &p, sizeof(p));
 	}
 
-	void CManager::Update(uint32_t dwPID1, uint32_t dwPID2, int32_t iLovePoint, uint8_t byMarried)
+	void manager::update(uint32_t dwPID1, uint32_t dwPID2, int32_t iLovePoint, uint8_t byMarried)
 	{
-		TMarriage* pMarriage = Get(dwPID1);
-		if (!pMarriage || pMarriage->GetOther(dwPID1) != dwPID2)
+		marriage* pMarriage = get(dwPID1);
+		if (!pMarriage || pMarriage->other(dwPID1) != dwPID2)
 		{
 			metin2::log::error("not under marriage : {:d} {:d}", dwPID1, dwPID2);
 			return;
 		}
 
-		Align(dwPID1, dwPID2);
+		align(dwPID1, dwPID2);
 
 		char szQuery[512];
 		snprintf(szQuery, sizeof(szQuery), "UPDATE marriage SET love_point = %d, is_married = %d WHERE pid1 = %u AND pid2 = %u", 
 				iLovePoint, byMarried, pMarriage->pid1, pMarriage->pid2);
 
-		std::unique_ptr<SQLMsg> pmsg(CDBManager::instance().DirectQuery(szQuery));
+		std::unique_ptr<ql_msg> pmsg(db_manager::instance().direct_query(szQuery));
 
-		SQLResult* res = pmsg->Get();
-		if (res->uiAffectedRows == 0 || res->uiAffectedRows == (uint32_t)-1)
+		ql_result* res = pmsg->get();
+		if (res->affected_rows == 0 || res->affected_rows == (uint32_t)-1)
 		{
 			metin2::log::error("cannot update marriage : PID:{:d} {:d}", dwPID1, dwPID2);
 			return;
@@ -166,27 +166,27 @@ namespace marriage
 		pMarriage->love_point = iLovePoint;
 		pMarriage->is_married = byMarried;
 
-		TPacketMarriageUpdate p;
-		p.dwPID1 = dwPID1;
-		p.dwPID2 = dwPID2;
-		p.iLovePoint = pMarriage->love_point;
-		p.byMarried = pMarriage->is_married;
-		CClientManager::instance().ForwardPacket(HEADER_DG_MARRIAGE_UPDATE, &p, sizeof(p));
+		packet_marriage_update p;
+		p.pi_d1 = dwPID1;
+		p.pi_d2 = dwPID2;
+		p.love_point = pMarriage->love_point;
+		p.married = pMarriage->is_married;
+		client_manager::instance().forward_packet(HEADER_DG_MARRIAGE_UPDATE, &p, sizeof(p));
 	}
 
-	void CManager::Remove(uint32_t dwPID1, uint32_t dwPID2)
+	void manager::remove(uint32_t dwPID1, uint32_t dwPID2)
 	{
-		TMarriage* pMarriage = Get(dwPID1);
+		marriage* pMarriage = get(dwPID1);
 
 		if (pMarriage)
 		{
-			metin2::log::info( "Break Marriage pid1 {:d} pid2 {:d} Other {:d}", dwPID1, dwPID2, pMarriage->GetOther(dwPID1));
+			metin2::log::info( "Break Marriage pid1 {:d} pid2 {:d} Other {:d}", dwPID1, dwPID2, pMarriage->other(dwPID1));
 		}
-		if (!pMarriage || pMarriage->GetOther(dwPID1) != dwPID2)
+		if (!pMarriage || pMarriage->other(dwPID1) != dwPID2)
 		{
-			auto it = m_MarriageByPID.begin();
+			auto it = marriage_by_pid_.begin();
 
-			for (; it != m_MarriageByPID.end(); ++it)
+			for (; it != marriage_by_pid_.end(); ++it)
 			{
 				metin2::log::info( "Marriage List pid1 {:d} pid2 {:d}", it->second->pid1, it->second->pid2);
 			}
@@ -194,15 +194,15 @@ namespace marriage
 			return;
 		}
 
-		Align(dwPID1, dwPID2);
+		align(dwPID1, dwPID2);
 
 		char szQuery[512];
 		snprintf(szQuery, sizeof(szQuery), "DELETE FROM marriage WHERE pid1 = %u AND pid2 = %u", dwPID1, dwPID2);
 
-		std::unique_ptr<SQLMsg> pmsg(CDBManager::instance().DirectQuery(szQuery));
+		std::unique_ptr<ql_msg> pmsg(db_manager::instance().direct_query(szQuery));
 
-		SQLResult* res = pmsg->Get();
-		if (res->uiAffectedRows == 0 || res->uiAffectedRows == (uint32_t)-1)
+		ql_result* res = pmsg->get();
+		if (res->affected_rows == 0 || res->affected_rows == (uint32_t)-1)
 		{
 			metin2::log::error("cannot delete marriage : PID:{:d} {:d}", dwPID1, dwPID2);
 			return;
@@ -210,143 +210,143 @@ namespace marriage
 
 		metin2::log::info( "MARRIAGE REMOVE PID:{:d} {:d}", dwPID1, dwPID2);
 
-		m_Marriages.erase(pMarriage);
-		m_MarriageByPID.erase(dwPID1);
-		m_MarriageByPID.erase(dwPID2);
+		marriages_.erase(pMarriage);
+		marriage_by_pid_.erase(dwPID1);
+		marriage_by_pid_.erase(dwPID2);
 
-		TPacketMarriageRemove p;
-		p.dwPID1 = dwPID1;
-		p.dwPID2 = dwPID2;
-		CClientManager::instance().ForwardPacket(HEADER_DG_MARRIAGE_REMOVE, &p, sizeof(p));
+		packet_marriage_remove p;
+		p.pi_d1 = dwPID1;
+		p.pi_d2 = dwPID2;
+		client_manager::instance().forward_packet(HEADER_DG_MARRIAGE_REMOVE, &p, sizeof(p));
 
 		delete pMarriage;
 	}
 
-	void CManager::OnSetup(CPeer* peer)
+	void manager::on_setup(peer* peer)
 	{
 		// Send married couples
-		for (auto it = m_Marriages.begin(); it != m_Marriages.end(); ++it)
+		for (auto it = marriages_.begin(); it != marriages_.end(); ++it)
 		{
-			TMarriage* pMarriage = *it;
+			marriage* pMarriage = *it;
 
 			{
-				TPacketMarriageAdd p;
-				p.dwPID1 = pMarriage->pid1;
-				p.dwPID2 = pMarriage->pid2;
-				p.tMarryTime = pMarriage->time;
-				strlcpy(p.szName1, pMarriage->name1.c_str(), sizeof(p.szName1));
-				strlcpy(p.szName2, pMarriage->name2.c_str(), sizeof(p.szName2));
-				peer->EncodeHeader(HEADER_DG_MARRIAGE_ADD, 0, sizeof(p));
-				peer->Encode(&p, sizeof(p));
+				packet_marriage_add p;
+				p.pi_d1 = pMarriage->pid1;
+				p.pi_d2 = pMarriage->pid2;
+				p.t_marry_time = pMarriage->time;
+				strlcpy(p.name1, pMarriage->name1.c_str(), sizeof(p.name1));
+				strlcpy(p.name2, pMarriage->name2.c_str(), sizeof(p.name2));
+				peer->encode_header(HEADER_DG_MARRIAGE_ADD, 0, sizeof(p));
+				peer->encode(&p, sizeof(p));
 			}
 
 			{
-				TPacketMarriageUpdate p;
-				p.dwPID1 = pMarriage->pid1;
-				p.dwPID2 = pMarriage->pid2;
-				p.iLovePoint = pMarriage->love_point;
-				p.byMarried	= pMarriage->is_married;
-				peer->EncodeHeader(HEADER_DG_MARRIAGE_UPDATE, 0, sizeof(p));
-				peer->Encode(&p, sizeof(p));
+				packet_marriage_update p;
+				p.pi_d1 = pMarriage->pid1;
+				p.pi_d2 = pMarriage->pid2;
+				p.love_point = pMarriage->love_point;
+				p.married	= pMarriage->is_married;
+				peer->encode_header(HEADER_DG_MARRIAGE_UPDATE, 0, sizeof(p));
+				peer->encode(&p, sizeof(p));
 			}
 		}
 
 		// Send weddings
-		for (auto it = m_mapRunningWedding.begin(); it != m_mapRunningWedding.end(); ++it)
+		for (auto it = running_wedding_.begin(); it != running_wedding_.end(); ++it)
 		{
-			const TWedding& t = it->second;
+			const wedding& t = it->second;
 
-			TPacketWeddingReady p;
-			p.dwPID1 = t.dwPID1;
-			p.dwPID2 = t.dwPID2;
-			p.dwMapIndex = t.dwMapIndex;
+			packet_wedding_ready p;
+			p.pi_d1 = t.pi_d1;
+			p.pi_d2 = t.pi_d2;
+			p.map_index = t.map_index;
 
-			peer->EncodeHeader(HEADER_DG_WEDDING_READY, 0, sizeof(p));
-			peer->Encode(&p, sizeof(p));
+			peer->encode_header(HEADER_DG_WEDDING_READY, 0, sizeof(p));
+			peer->encode(&p, sizeof(p));
 
-			TPacketWeddingStart p2;
-			p2.dwPID1 = t.dwPID1;
-			p2.dwPID2 = t.dwPID2;
+			packet_wedding_start p2;
+			p2.pi_d1 = t.pi_d1;
+			p2.pi_d2 = t.pi_d2;
 
-			peer->EncodeHeader(HEADER_DG_WEDDING_START, 0, sizeof(p2));
-			peer->Encode(&p2, sizeof(p2));
+			peer->encode_header(HEADER_DG_WEDDING_START, 0, sizeof(p2));
+			peer->encode(&p2, sizeof(p2));
 		}
 	}
 
-	void CManager::ReadyWedding(uint32_t dwMapIndex, uint32_t dwPID1, uint32_t dwPID2)
+	void manager::ready_wedding(uint32_t dwMapIndex, uint32_t dwPID1, uint32_t dwPID2)
 	{
-		uint32_t dwStartTime = CClientManager::instance().GetCurrentTime();
-		m_pqWeddingStart.push(TWedding(dwStartTime + 5, dwMapIndex, dwPID1, dwPID2));
+		uint32_t dwStartTime = client_manager::instance().current_time();
+		pq_wedding_start_.push(wedding(dwStartTime + 5, dwMapIndex, dwPID1, dwPID2));
 	}
 
-	void CManager::EndWedding(uint32_t dwPID1, uint32_t dwPID2)
+	void manager::end_wedding(uint32_t dwPID1, uint32_t dwPID2)
 	{
-		auto it = m_mapRunningWedding.find(std::make_pair(dwPID1, dwPID2));
-		if (it == m_mapRunningWedding.end())
+		auto it = running_wedding_.find(std::make_pair(dwPID1, dwPID2));
+		if (it == running_wedding_.end())
 		{
 			metin2::log::error("try to end wedding {:d} {:d}", dwPID1, dwPID2);
 			return;
 		}
 
-		TWedding& w = it->second;
+		wedding& w = it->second;
 
-		TPacketWeddingEnd p;
-		p.dwPID1 = w.dwPID1;
-		p.dwPID2 = w.dwPID2;
-		CClientManager::instance().ForwardPacket(HEADER_DG_WEDDING_END, &p, sizeof(p));
-		m_mapRunningWedding.erase(it);
+		packet_wedding_end p;
+		p.pi_d1 = w.pi_d1;
+		p.pi_d2 = w.pi_d2;
+		client_manager::instance().forward_packet(HEADER_DG_WEDDING_END, &p, sizeof(p));
+		running_wedding_.erase(it);
 	}
 
-	void CManager::Update()
+	void manager::update()
 	{
-		uint32_t now = CClientManager::instance().GetCurrentTime();
+		uint32_t now = client_manager::instance().current_time();
 
-		if (!m_pqWeddingEnd.empty())
+		if (!pq_wedding_end_.empty())
 		{
-			while (!m_pqWeddingEnd.empty() && m_pqWeddingEnd.top().dwTime <= now)
+			while (!pq_wedding_end_.empty() && pq_wedding_end_.top().time <= now)
 			{
-				TWeddingInfo wi = m_pqWeddingEnd.top();
-				m_pqWeddingEnd.pop();
+				wedding_info wi = pq_wedding_end_.top();
+				pq_wedding_end_.pop();
 
-				auto it = m_mapRunningWedding.find(std::make_pair(wi.dwPID1, wi.dwPID2));
-				if (it == m_mapRunningWedding.end())
+				auto it = running_wedding_.find(std::make_pair(wi.pi_d1, wi.pi_d2));
+				if (it == running_wedding_.end())
 					continue;
 
-				TWedding& w = it->second;
+				wedding& w = it->second;
 
-				TPacketWeddingEnd p;
-				p.dwPID1 = w.dwPID1;
-				p.dwPID2 = w.dwPID2;
-				CClientManager::instance().ForwardPacket(HEADER_DG_WEDDING_END, &p, sizeof(p));
-				m_mapRunningWedding.erase(it);
+				packet_wedding_end p;
+				p.pi_d1 = w.pi_d1;
+				p.pi_d2 = w.pi_d2;
+				client_manager::instance().forward_packet(HEADER_DG_WEDDING_END, &p, sizeof(p));
+				running_wedding_.erase(it);
 
-				auto it_marriage = m_MarriageByPID.find(w.dwPID1);
+				auto it_marriage = marriage_by_pid_.find(w.pi_d1);
 
-				if (it_marriage != m_MarriageByPID.end())
+				if (it_marriage != marriage_by_pid_.end())
 				{
-					TMarriage* pMarriage = it_marriage->second;
+					marriage* pMarriage = it_marriage->second;
 					if (!pMarriage->is_married)
 					{
-						Remove(pMarriage->pid1, pMarriage->pid2);
+						remove(pMarriage->pid1, pMarriage->pid2);
 					}
 				}
 			}
 		}
-		if (!m_pqWeddingStart.empty())
+		if (!pq_wedding_start_.empty())
 		{
-			while (!m_pqWeddingStart.empty() && m_pqWeddingStart.top().dwTime <= now)
+			while (!pq_wedding_start_.empty() && pq_wedding_start_.top().time <= now)
 			{
-				TWedding w = m_pqWeddingStart.top();
-				m_pqWeddingStart.pop();
+				wedding w = pq_wedding_start_.top();
+				pq_wedding_start_.pop();
 
-				TPacketWeddingStart p;
-				p.dwPID1 = w.dwPID1;
-				p.dwPID2 = w.dwPID2;
-				CClientManager::instance().ForwardPacket(HEADER_DG_WEDDING_START, &p, sizeof(p));
+				packet_wedding_start p;
+				p.pi_d1 = w.pi_d1;
+				p.pi_d2 = w.pi_d2;
+				client_manager::instance().forward_packet(HEADER_DG_WEDDING_START, &p, sizeof(p));
 
-				w.dwTime += WEDDING_LENGTH;
-				m_pqWeddingEnd.push(TWeddingInfo(w.dwTime, w.dwPID1, w.dwPID2));
-				m_mapRunningWedding.insert(make_pair(std::make_pair(w.dwPID1, w.dwPID2), w));
+				w.time += WEDDING_LENGTH;
+				pq_wedding_end_.push(wedding_info(w.time, w.pi_d1, w.pi_d2));
+				running_wedding_.insert(make_pair(std::make_pair(w.pi_d1, w.pi_d2), w));
 			}
 		}
 	}

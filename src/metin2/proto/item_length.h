@@ -32,7 +32,7 @@ inline constexpr int ITEM_SOCKET_CHARGING_AMOUNT_IDX = 2;
 inline constexpr int ITEM_SOCKET_UNIQUE_SAVE_TIME = ITEM_SOCKET_MAX_NUM - 2;
 inline constexpr int ITEM_SOCKET_UNIQUE_REMAIN_TIME = ITEM_SOCKET_MAX_NUM - 1;
 
-enum EItemTypes {
+enum item_types {
     ITEM_NONE,           // 0
     ITEM_WEAPON,         // 1//Weapon
     ITEM_ARMOR,          // 2//Armor
@@ -70,12 +70,12 @@ enum EItemTypes {
     ITEM_BELT,           // 34 Belt
 };
 
-enum EMetinSubTypes {
+enum metin_sub_types {
     METIN_NORMAL,
     METIN_GOLD,
 };
 
-enum EWeaponSubTypes {
+enum weapon_sub_types {
     WEAPON_SWORD,
     WEAPON_DAGGER,
     WEAPON_BOW,
@@ -87,7 +87,7 @@ enum EWeaponSubTypes {
     WEAPON_NUM_TYPES,
 };
 
-enum EArmorSubTypes {
+enum armor_sub_types {
     ARMOR_BODY,
     ARMOR_HEAD,
     ARMOR_SHIELD,
@@ -98,13 +98,13 @@ enum EArmorSubTypes {
     ARMOR_NUM_TYPES
 };
 
-enum ECostumeSubTypes {
+enum costume_sub_types {
     COSTUME_BODY = ARMOR_BODY, // [IMPORTANT!!] ECostumeSubTypes enum values must match the corresponding EArmorSubTypes values.
     COSTUME_HAIR = ARMOR_HEAD, // This is to reuse the existing logic, per the business team's request to add extra attributes to costume items.
     COSTUME_NUM_TYPES,
 };
 
-enum EDragonSoulSubType {
+enum dragon_soul_sub_type {
     DS_SLOT1,
     DS_SLOT2,
     DS_SLOT3,
@@ -114,7 +114,7 @@ enum EDragonSoulSubType {
     DS_SLOT_MAX,
 };
 
-enum EDragonSoulGradeTypes {
+enum dragon_soul_grade_types {
     DRAGON_SOUL_GRADE_NORMAL,
     DRAGON_SOUL_GRADE_BRILLIANT,
     DRAGON_SOUL_GRADE_RARE,
@@ -124,7 +124,7 @@ enum EDragonSoulGradeTypes {
 
 };
 
-enum EDragonSoulStepTypes {
+enum dragon_soul_step_types {
     DRAGON_SOUL_STEP_LOWEST,
     DRAGON_SOUL_STEP_LOW,
     DRAGON_SOUL_STEP_MID,
@@ -136,12 +136,12 @@ inline constexpr int DRAGON_SOUL_STRENGTH_MAX = 7;
 
 inline constexpr int DRAGON_SOUL_INVENTORY_MAX_NUM = static_cast<int>(DS_SLOT_MAX) * static_cast<int>(DRAGON_SOUL_GRADE_MAX) * DRAGON_SOUL_BOX_SIZE;
 
-enum EFishSubTypes {
+enum fish_sub_types {
     FISH_ALIVE,
     FISH_DEAD,
 };
 
-enum EResourceSubTypes {
+enum resource_sub_types {
     RESOURCE_FISHBONE,
     RESOURCE_WATERSTONEPIECE,
     RESOURCE_WATERSTONE,
@@ -156,14 +156,14 @@ enum EResourceSubTypes {
     RESOURCE_ORE,
 };
 
-enum EUniqueSubTypes {
+enum unique_sub_types {
     UNIQUE_NONE,
     UNIQUE_BOOK,
     UNIQUE_SPECIAL_RIDE,
     UNIQUE_SPECIAL_MOUNT_RIDE,
 };
 
-enum EUseSubTypes {
+enum use_sub_types {
     USE_POTION, // 0
     USE_TALISMAN,
     USE_TUNING,
@@ -197,12 +197,12 @@ enum EUseSubTypes {
     USE_PUT_INTO_RING_SOCKET, // 30 Item usable in the ring socket (not unique rings; the newly added ring slot)
 };
 
-enum EExtractSubTypes {
+enum extract_sub_types {
     EXTRACT_DRAGON_SOUL,
     EXTRACT_DRAGON_HEART,
 };
 
-enum EAutoUseSubTypes {
+enum auto_use_sub_types {
     AUTOUSE_POTION,
     AUTOUSE_ABILITY_UP,
     AUTOUSE_BOMB,
@@ -211,7 +211,7 @@ enum EAutoUseSubTypes {
     AUTOUSE_TREASURE_BOX
 };
 
-enum EMaterialSubTypes {
+enum material_sub_types {
     MATERIAL_LEATHER,
     MATERIAL_BLOOD,
     MATERIAL_ROOT,
@@ -222,23 +222,23 @@ enum EMaterialSubTypes {
     MATERIAL_DS_REFINE_HOLLY,
 };
 
-enum ESpecialSubTypes {
+enum special_sub_types {
     SPECIAL_MAP,
     SPECIAL_KEY,
     SPECIAL_DOC,
     SPECIAL_SPIRIT,
 };
 
-enum EToolSubTypes {
+enum tool_sub_types {
     TOOL_FISHING_ROD
 };
 
-enum ELotterySubTypes {
+enum lottery_sub_types {
     LOTTERY_TICKET,
     LOTTERY_INSTANT
 };
 
-enum EItemFlag {
+enum item_flag {
     ITEM_FLAG_REFINEABLE = (1 << 0),
     ITEM_FLAG_SAVE = (1 << 1),
     ITEM_FLAG_STACKABLE = (1 << 2), // Stackable
@@ -256,7 +256,7 @@ enum EItemFlag {
     ITEM_FLAG_APPLICABLE = (1 << 14),
 };
 
-enum EItemAntiFlag {
+enum item_anti_flag {
     ITEM_ANTIFLAG_FEMALE = (1 << 0),    // Not usable by females
     ITEM_ANTIFLAG_MALE = (1 << 1),      // Not usable by males
     ITEM_ANTIFLAG_WARRIOR = (1 << 2),   // Not usable by warriors
@@ -277,7 +277,7 @@ enum EItemAntiFlag {
     ITEM_ANTIFLAG_SAFEBOX = (1 << 17),  // Cannot be put in the safebox
 };
 
-enum EItemWearableFlag {
+enum item_wearable_flag {
     WEARABLE_BODY = (1 << 0),
     WEARABLE_HEAD = (1 << 1),
     WEARABLE_FOOTS = (1 << 2),
@@ -293,7 +293,7 @@ enum EItemWearableFlag {
     WEARABLE_COSTUME_BODY = (1 << 12),
 };
 
-enum ELimitTypes {
+enum limit_types {
     LIMIT_NONE,
 
     LIMIT_LEVEL,
@@ -318,7 +318,7 @@ enum ELimitTypes {
     LIMIT_MAX_NUM
 };
 
-enum ERefineType {
+enum refine_type {
     REFINE_TYPE_NORMAL,
     REFINE_TYPE_NOT_USED1,
     REFINE_TYPE_SCROLL,

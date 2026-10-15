@@ -15,82 +15,82 @@ namespace metin2::db::inline clients {
 
 // A game or auth server connected to the db. Its packets are handed to
 // CClientManager::ProcessPackets as they arrive.
-class CPeer : public net::connection_handler
+class peer : public net::connection_handler
 {
     public:
 #pragma pack(1)
-	struct HEADER {   
-	    uint8_t    bHeader;
-	    uint32_t   dwHandle;
-	    uint32_t   dwSize;
+	struct header_kind {   
+	    uint8_t    header;
+	    uint32_t   handle;
+	    uint32_t   size;
 	};
 #pragma pack()
-	enum EState
+	enum state
 	{
 	    STATE_CLOSE = 0,
 	    STATE_PLAYING = 1
 	};
 
-	explicit CPeer(std::shared_ptr<net::connection> connection);
-	~CPeer() override;
+	explicit peer(std::shared_ptr<net::connection> connection);
+	~peer() override;
 
 	auto	on_receive(std::span<std::uint8_t> input, std::size_t received) -> std::size_t override;
 	void	on_close(const std::error_code & error) override;
 
 	// The connection ended; CClientManager removes the peer on its next pass.
-	bool	IsClosed() const	{ return m_state == STATE_CLOSE; }
-	const char *	GetHost() const	{ return m_connection->remote_address().c_str(); }
+	bool	is_closed() const	{ return state_ == STATE_CLOSE; }
+	const char *	host() const	{ return connection_->remote_address().c_str(); }
 
-	void	EncodeBYTE(uint8_t b)		{ Encode(&b, sizeof(b)); }
-	void	EncodeWORD(uint16_t w)		{ Encode(&w, sizeof(w)); }
-	void	EncodeDWORD(uint32_t dw)	{ Encode(&dw, sizeof(dw)); }
-	void	Encode(const void * data, uint32_t size);
+	void	encode_byte(uint8_t b)		{ encode(&b, sizeof(b)); }
+	void	encode_word(uint16_t w)		{ encode(&w, sizeof(w)); }
+	void	encode_dword(uint32_t dw)	{ encode(&dw, sizeof(dw)); }
+	void	encode(const void * data, uint32_t size);
 
-	void	EncodeHeader(uint8_t header, uint32_t dwHandle, uint32_t dwSize);
-	bool 	PeekPacket(int & iBytesProceed, uint8_t & header, uint32_t & dwHandle, uint32_t & dwLength, const char ** data);
-	void	EncodeReturn(uint8_t header, uint32_t dwHandle);
-	void	RecvEnd(int iBytesProceed)	{ m_inputConsumed = iBytesProceed; }
+	void	encode_header(uint8_t header, uint32_t dwHandle, uint32_t dwSize);
+	bool 	peek_packet(int & iBytesProceed, uint8_t & header, uint32_t & dwHandle, uint32_t & dwLength, const char ** data);
+	void	encode_return(uint8_t header, uint32_t dwHandle);
+	void	recv_end(int iBytesProceed)	{ input_consumed_ = iBytesProceed; }
 
-	uint32_t	GetHandle();
-	void	SetUserCount(uint32_t dwCount);
+	uint32_t	handle();
+	void	set_user_count(uint32_t dwCount);
 
-	void	SetPublicIP(const char * ip)	{ m_stPublicIP = ip; }
-	const char * GetPublicIP()		{ return m_stPublicIP.c_str(); }
+	void	set_public_ip(const char * ip)	{ public_ip_ = ip; }
+	const char * public_ip()		{ return public_ip_.c_str(); }
 
-	void	SetChannel(uint8_t bChannel)	{ m_bChannel = bChannel; }
-	uint8_t	GetChannel()			{ return m_bChannel; }
+	void	set_channel(uint8_t bChannel)	{ channel_ = bChannel; }
+	uint8_t	channel()			{ return channel_; }
 
-	void	SetListenPort(uint16_t wPort) { m_wListenPort = wPort; }
-	uint16_t	GetListenPort() { return m_wListenPort; }
+	void	set_listen_port(uint16_t wPort) { listen_port_ = wPort; }
+	uint16_t	listen_port() { return listen_port_; }
 
-	void	SetP2PPort(uint16_t wPort);
-	uint16_t	GetP2PPort() { return m_wP2PPort; }
+	void	set_p2_p_port(uint16_t wPort);
+	uint16_t	p2_p_port() { return p2_p_port_; }
 
-	void	SetMaps(int32_t* pl);
-	int32_t *	GetMaps() { return &m_alMaps[0]; }
+	void	set_maps(int32_t* pl);
+	int32_t *	maps() { return &maps_[0]; }
 
-	bool	SetItemIDRange(TItemIDRangeTable itemRange);
-	bool	SetSpareItemIDRange(TItemIDRangeTable itemRange);
-	bool	CheckItemIDRangeCollision(TItemIDRangeTable itemRange);
-	void	SendSpareItemIDRange();
-	void	ReturnItemIDRange();	// gives the peer's item ID range back for reuse
+	bool	set_item_id_range(item_id_range_table itemRange);
+	bool	set_spare_item_id_range(item_id_range_table itemRange);
+	bool	check_item_id_range_collision(item_id_range_table itemRange);
+	void	send_spare_item_id_range();
+	void	return_item_id_range();	// gives the peer's item ID range back for reuse
 
     private:
-	std::shared_ptr<net::connection> m_connection;
-	std::span<const std::uint8_t> m_input;	// the input being processed
-	std::size_t	m_inputConsumed;
+	std::shared_ptr<net::connection> connection_;
+	std::span<const std::uint8_t> input_;	// the input being processed
+	std::size_t	input_consumed_;
 
-	int	m_state;
+	int	state_;
 
-	uint8_t	m_bChannel;
-	uint32_t	m_dwHandle;
-	uint16_t	m_wListenPort;	// Port the game server listens on for clients
-	uint16_t	m_wP2PPort;	// Port the game server listens on for game server P2P connections
-	int32_t	m_alMaps[MAX_MAPS_PER_SERVER];	// Which maps does it manage?
+	uint8_t	channel_;
+	uint32_t	handle_;
+	uint16_t	listen_port_;	// Port the game server listens on for clients
+	uint16_t	p2_p_port_;	// Port the game server listens on for game server P2P connections
+	int32_t	maps_[MAX_MAPS_PER_SERVER];	// Which maps does it manage?
 
-	TItemIDRangeTable m_itemRange;
-	TItemIDRangeTable m_itemSpareRange;
+	item_id_range_table item_range_;
+	item_id_range_table item_spare_range_;
 
-	std::string m_stPublicIP;
+	std::string public_ip_;
 };
 }

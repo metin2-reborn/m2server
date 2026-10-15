@@ -9,59 +9,59 @@
 namespace metin2::game::inline characters {
 
 // Constructor
-CFSM::CFSM()
+fsm::fsm()
 {
 	// Initialize States
-	m_stateInitial.Set(this, &CFSM::BeginStateInitial, &CFSM::StateInitial, &CFSM::EndStateInitial);
+	state_initial_.set(this, &fsm::begin_state_initial, &fsm::state_initial, &fsm::end_state_initial);
 
 	// Initialize State Machine
-	m_pCurrentState = static_cast<CState *>(&m_stateInitial);
-	m_pNewState = nullptr;
+	current_state_ = static_cast<state *>(&state_initial_);
+	new_state_ = nullptr;
 }
 
 //======================================================================================================
 // Global Functions
 
 // Update
-void CFSM::Update()
+void fsm::update()
 {
 	// Check New State
-	if (m_pNewState)
+	if (new_state_)
 	{
-		if (nullptr != m_pCurrentState)
+		if (nullptr != current_state_)
 		{
-			m_pCurrentState->ExecuteEndState();
+			current_state_->execute_end_state();
 		}
 
 		// Set New State
-		m_pCurrentState = m_pNewState;
-		m_pNewState = nullptr;
+		current_state_ = new_state_;
+		new_state_ = nullptr;
 
 		// Execute Begin State
-		m_pCurrentState->ExecuteBeginState();
+		current_state_->execute_begin_state();
 	}
 
 	// Execute State
-	m_pCurrentState->ExecuteState();
+	current_state_->execute_state();
 }
 
 //======================================================================================================
 // State Functions
 
 // Is State
-bool CFSM::IsState(CState & State) const
+bool fsm::is_state(state & State) const
 {
-	return (m_pCurrentState == &State);
+	return (current_state_ == &State);
 }
 
 // Goto State
-bool CFSM::GotoState(CState & NewState)
+bool fsm::goto_state(state & NewState)
 {
-	if (IsState(NewState) && m_pNewState == &NewState)
+	if (is_state(NewState) && new_state_ == &NewState)
 		return true;
 
 	// Set New State
-	m_pNewState = &NewState;
+	new_state_ = &NewState;
 	return true;
 }
 }

@@ -9,30 +9,30 @@
 #include <memory>
 
 namespace metin2::game::inline characters {
-    class CHARACTER;
+    class character;
 }
 
 namespace metin2::game::inline items {
 
-class CItem;
+class item;
 
-class DragonSoulTable;
+class dragon_soul_table;
 
-class DSManager : public singleton<DSManager>
+class ds_manager : public singleton<ds_manager>
 {
 public:
-	DSManager();
-	~DSManager() override;
-	bool	ReadDragonSoulTableFile(const char * c_pszFileName);
+	ds_manager();
+	~ds_manager() override;
+	bool	read_dragon_soul_table_file(const char * c_pszFileName);
 
-	void	GetDragonSoulInfo(uint32_t dwVnum, uint8_t& bType, uint8_t& bGrade, uint8_t& bStep, uint8_t& bRefine) const;
+	void	dragon_soul_info(uint32_t dwVnum, uint8_t& bType, uint8_t& bGrade, uint8_t& bStep, uint8_t& bRefine) const;
 	// fixme : use titempos
-	uint16_t	GetBasePosition(CItem * const pItem) const;
-	bool	IsValidCellForThisItem(CItem * const pItem, const TItemPos& Cell) const;
-	int		GetDuration(CItem * const pItem) const;
+	uint16_t	base_position(item * const pItem) const;
+	bool	is_valid_cell_for_this_item(item * const pItem, const item_pos& Cell) const;
+	int		duration(item * const pItem) const;
 	
 	// Takes a dragon soul stone and extracts a specific dragon heart
-	bool	ExtractDragonHeart(CHARACTER * ch, CItem * pItem, CItem * pExtractor = nullptr);
+	bool	extract_dragon_heart(character * ch, item * pItem, item * pExtractor = nullptr);
 
 	// Decides whether removing a specific dragon soul stone (pItem) from the equipment window succeeds, 
 	// and gives by-products on failure. (by-products are defined in dragon_soul_table.txt)
@@ -40,30 +40,30 @@ public:
 	// On failure, the dragon soul stone (pItem) is deleted.
 	// If there is an extractor item, the extraction success rate increases by pExtractor->GetValue(0)%.
 	// By-products are always added automatically.
-	bool	PullOut(CHARACTER * ch, TItemPos DestCell, CItem *& pItem, CItem * pExtractor = nullptr);
+	bool	pull_out(character * ch, item_pos DestCell, item *& pItem, item * pExtractor = nullptr);
 
 	// Dragon soul stone upgrade function
-	bool	DoRefineGrade(CHARACTER * ch, TItemPos (&aItemPoses)[DRAGON_SOUL_REFINE_GRID_SIZE]);
-	bool	DoRefineStep(CHARACTER * ch, TItemPos (&aItemPoses)[DRAGON_SOUL_REFINE_GRID_SIZE]);
-	bool	DoRefineStrength(CHARACTER * ch, TItemPos (&aItemPoses)[DRAGON_SOUL_REFINE_GRID_SIZE]);
+	bool	do_refine_grade(character * ch, item_pos (&aItemPoses)[DRAGON_SOUL_REFINE_GRID_SIZE]);
+	bool	do_refine_step(character * ch, item_pos (&aItemPoses)[DRAGON_SOUL_REFINE_GRID_SIZE]);
+	bool	do_refine_strength(character * ch, item_pos (&aItemPoses)[DRAGON_SOUL_REFINE_GRID_SIZE]);
 	
-	bool	DragonSoulItemInitialize(CItem * pItem);
+	bool	dragon_soul_item_initialize(item * pItem);
 
-	bool	IsTimeLeftDragonSoul(CItem * pItem) const;
-	int		LeftTime(CItem * pItem) const;
-	bool	ActivateDragonSoul(CItem * pItem);
-	bool	DeactivateDragonSoul(CItem * pItem, bool bSkipRefreshOwnerActiveState = false);
-	bool	IsActiveDragonSoul(CItem * pItem) const;
+	bool	is_time_left_dragon_soul(item * pItem) const;
+	int		left_time(item * pItem) const;
+	bool	activate_dragon_soul(item * pItem);
+	bool	deactivate_dragon_soul(item * pItem, bool bSkipRefreshOwnerActiveState = false);
+	bool	is_active_dragon_soul(item * pItem) const;
 private:
-	void	SendRefineResultPacket(CHARACTER * ch, uint8_t bSubHeader, const TItemPos& pos);
+	void	send_refine_result_packet(character * ch, uint8_t bSubHeader, const item_pos& pos);
 
 	// Looks at the character's dragon soul deck and, if no dragon soul stone is active, turns off the character's dragon soul active state.
-	void	RefreshDragonSoulState(CHARACTER * ch);
+	void	refresh_dragon_soul_state(character * ch);
 
-	uint32_t	MakeDragonSoulVnum(uint8_t bType, uint8_t grade, uint8_t step, uint8_t refine);
-	bool	PutAttributes(CItem * pDS);
-	bool	RefreshItemAttributes(CItem * pItem);
+	uint32_t	make_dragon_soul_vnum(uint8_t bType, uint8_t grade, uint8_t step, uint8_t refine);
+	bool	put_attributes(item * pDS);
+	bool	refresh_item_attributes(item * pItem);
 
-	std::unique_ptr<DragonSoulTable>	m_pTable;
+	std::unique_ptr<dragon_soul_table>	table_;
 };
 }

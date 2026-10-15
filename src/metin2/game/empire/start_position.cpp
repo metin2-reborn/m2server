@@ -5,7 +5,7 @@
 namespace metin2::game::inline empire {
 
 
-char g_nation_name[4][32] =
+char nation_name[4][32] =
 {
 	"",
 	"신수국",
@@ -17,7 +17,7 @@ char g_nation_name[4][32] =
 //	LC_TEXT("천조국")
 //	LC_TEXT("진노국")
 
-int32_t g_start_map[4] =
+int32_t start_map[4] =
 {
 	0,	// reserved
 	1,	// Shinsoo
@@ -25,7 +25,7 @@ int32_t g_start_map[4] =
 	41	// Jinno
 };
 
-uint32_t g_start_position[4][2] =
+uint32_t start_position[4][2] =
 {
 	{      0,      0 },	// reserved
 	{ 469300, 964200 },	// Shinsoo
@@ -43,7 +43,7 @@ uint32_t arena_return_position[4][2] =
 };
 
 
-uint32_t g_create_position[4][2] = 
+uint32_t create_position[4][2] = 
 {
 	{		0,		0 },
 	{ 459800, 953900 },

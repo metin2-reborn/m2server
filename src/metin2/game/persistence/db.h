@@ -14,7 +14,7 @@
 #include <vector>
 
 namespace metin2::game::inline protocol {
-    class CLoginData;
+    class login_data;
 }
 
 namespace metin2::game::inline persistence {
@@ -45,131 +45,131 @@ enum
 
 };
 
-class CQueryInfo
+class query_info
 {
 	public:
-		int	iQueryType;
+		int	query_type;
 };
 
-class CReturnQueryInfo : public CQueryInfo
+class return_query_info : public query_info
 {
 	public:
-		int	iType;
-		uint32_t	dwIdent;
-		void			*	pvData;
+		int	type;
+		uint32_t	ident;
+		void			*	pv_data;
 };
 
-class CFuncQueryInfo : public CQueryInfo
+class func_query_info : public query_info
 {
 	public:
-		std::function<void(SQLMsg *)> f;
+		std::function<void(ql_msg *)> f;
 };
 
-class CFuncAfterQueryInfo : public CQueryInfo
+class func_after_query_info : public query_info
 {
 	public:
 		std::function<void()> f;
 };
 
 
-class DBManager : public singleton<DBManager>
+class db_manager : public singleton<db_manager>
 {
 	public:
-		DBManager();
-		~DBManager() override;
+		db_manager();
+		~db_manager() override;
 
-		bool			IsConnected();
+		bool			is_connected();
 
-		bool			Connect(const char * host, const int port, const char * user, const char * pwd, const char * db);
+		bool			connect(const char * host, const int port, const char * user, const char * pwd, const char * db);
 		// The std::string overloads take a finished statement (see sql::format); the others format
 		// it printf-style first.
-		void			Query(const std::string & query);
-		void			Query(const char * c_pszFormat, ...) __attribute__((format(printf, 2, 3)));
+		void			query(const std::string & query);
+		void			query(const char * c_pszFormat, ...) __attribute__((format(printf, 2, 3)));
 
-		SQLMsg *		DirectQuery(const std::string & query);
-		SQLMsg *		DirectQuery(const char * c_pszFormat, ...) __attribute__((format(printf, 2, 3)));
-		void			ReturnQuery(int iType, uint32_t dwIdent, void* pvData, const std::string & query);
-		void			ReturnQuery(int iType, uint32_t dwIdent, void* pvData, const char * c_pszFormat, ...) __attribute__((format(printf, 5, 6)));
+		ql_msg *		direct_query(const std::string & query);
+		ql_msg *		direct_query(const char * c_pszFormat, ...) __attribute__((format(printf, 2, 3)));
+		void			return_query(int iType, uint32_t dwIdent, void* pvData, const std::string & query);
+		void			return_query(int iType, uint32_t dwIdent, void* pvData, const char * c_pszFormat, ...) __attribute__((format(printf, 5, 6)));
 
-		void			Process();
-		void			AnalyzeReturnQuery(SQLMsg * pmsg);
+		void			process();
+		void			analyze_return_query(ql_msg * pmsg);
 
-		void			SendMoneyLog(uint8_t type, uint32_t vnum, int gold);
+		void			send_money_log(uint8_t type, uint32_t vnum, int gold);
 
-		void			LoginPrepare(DESC * d, uint32_t * pdwClientKey, int * paiPremiumTimes);
-		void			SendAuthLogin(DESC * d);
+		void			login_prepare(desc * d, uint32_t * pdwClientKey, int * paiPremiumTimes);
+		void			send_auth_login(desc * d);
 
-		void			InsertLoginData(std::unique_ptr<CLoginData> pkLD);
-		void			DeleteLoginData(CLoginData * pkLD);
-		CLoginData *		GetLoginData(uint32_t dwKey);
+		void			insert_login_data(std::unique_ptr<login_data> pkLD);
+		void			delete_login_data(login_data * pkLD);
+		login_data *		get_login_data(uint32_t dwKey);
 
-		uint32_t			CountQuery()		{ return m_sql.CountQuery(); }
+		uint32_t			count_query()		{ return sql_.count_query(); }
 
 		// BLOCK EXCEPTION
 		// BLOCK EXCEPTION
 
-		void			LoadDBString();
-		const std::vector<std::string> & GetGreetMessage();
+		void			load_db_string();
+		const std::vector<std::string> & greet_message();
 
 		// Runs the query and calls f with its result (freed afterwards) on the main thread.
-		void			FuncQuery(std::function<void(SQLMsg *)> f, const std::string & query);
-		void			FuncQuery(std::function<void(SQLMsg *)> f, const char * c_pszFormat, ...) __attribute__((format(printf, 3, 4)));
+		void			func_query(std::function<void(ql_msg *)> f, const std::string & query);
+		void			func_query(std::function<void(ql_msg *)> f, const char * c_pszFormat, ...) __attribute__((format(printf, 3, 4)));
 		// Runs the query and calls f once it has completed.
-		void			FuncAfterQuery(std::function<void()> f, const std::string & query);
-		void			FuncAfterQuery(std::function<void()> f, const char * c_pszFormat, ...) __attribute__((format(printf, 3, 4)));
+		void			func_after_query(std::function<void()> f, const std::string & query);
+		void			func_after_query(std::function<void()> f, const char * c_pszFormat, ...) __attribute__((format(printf, 3, 4)));
 
-		size_t EscapeString(char* dst, size_t dstSize, const char *src, size_t srcSize);
+		size_t escape_string(char* dst, size_t dstSize, const char *src, size_t srcSize);
 
 	private:
-		SQLMsg *				PopResult();
+		ql_msg *				pop_result();
 
-		CAsyncSQL				m_sql;
-		CAsyncSQL				m_sql_direct;
-		bool					m_bIsConnect;
+		async_sql				sql_;
+		async_sql				sql_direct_;
+		bool					is_connect_;
 
-		std::map<std::string, std::string>	m_map_dbstring;
-		std::vector<std::string>		m_vec_GreetMessage;
-		std::map<uint32_t, std::unique_ptr<CLoginData>>		m_map_pkLoginData;
+		std::map<std::string, std::string>	map_dbstring_;
+		std::vector<std::string>		vec_greet_message_;
+		std::map<uint32_t, std::unique_ptr<login_data>>		map_pk_login_data_;
 };
 
 ////////////////////////////////////////////////////////////////
-struct THighscoreRegisterQueryInfo {
-	char    szBoard[20+1]; 
-	uint32_t   dwPID;
-	int     iValue;
-	bool    bOrder;
+struct highscore_register_query_info {
+	char    board[20+1]; 
+	uint32_t   pid;
+	int     value;
+	bool    order;
 };
 
 // ACCOUNT_DB
-class AccountDB : public singleton<AccountDB>
+class account_db : public singleton<account_db>
 {
 	public:
-		AccountDB();
+		account_db();
 
-		bool IsConnected();
-		bool Connect(const char * host, const int port, const char * user, const char * pwd, const char * db);
-		bool ConnectAsync(const char * host, const int port, const char * user, const char * pwd, const char * db, const char * locale);
+		bool is_connected();
+		bool connect(const char * host, const int port, const char * user, const char * pwd, const char * db);
+		bool connect_async(const char * host, const int port, const char * user, const char * pwd, const char * db, const char * locale);
 
-		SQLMsg* DirectQuery(const char * query);
-		SQLMsg* DirectQuery(const std::string & query) { return DirectQuery(query.c_str()); }
-		void ReturnQuery(int iType, uint32_t dwIdent, void * pvData, const std::string & query);
-		void ReturnQuery(int iType, uint32_t dwIdent, void * pvData, const char * c_pszFormat, ...) __attribute__((format(printf, 5, 6)));
+		ql_msg* direct_query(const char * query);
+		ql_msg* direct_query(const std::string & query) { return direct_query(query.c_str()); }
+		void return_query(int iType, uint32_t dwIdent, void * pvData, const std::string & query);
+		void return_query(int iType, uint32_t dwIdent, void * pvData, const char * c_pszFormat, ...) __attribute__((format(printf, 5, 6)));
 
-		void SetLocale(const std::string & stLocale);
+		void set_locale(const std::string & stLocale);
 
-		void Process();
+		void process();
 
 	private:
-		SQLMsg * PopResult();
-		void AnalyzeReturnQuery(SQLMsg * pMsg);
+		ql_msg * pop_result();
+		void analyze_return_query(ql_msg * pMsg);
 
-		CAsyncSQL	m_sql_direct;
-		CAsyncSQL	m_sql;
-		bool		m_IsConnect;
+		async_sql	sql_direct_;
+		async_sql	sql_;
+		bool		is_connect_;
 
 };
 //END_ACCOUNT_DB
 
-extern void CancelReloadSpamEvent();
-extern void LoadSpamDB();
+extern void cancel_reload_spam_event();
+extern void load_spam_db();
 }

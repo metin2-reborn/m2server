@@ -8,13 +8,13 @@
 
 namespace metin2::game::inline protocol {
 
-class DESC_P2P : public DESC
+class desc_p2_p : public desc
 {
 	public:
-		~DESC_P2P() override;
+		~desc_p2_p() override;
 
-		void	Destroy() override;
-		void	SetPhase(int iPhase) override;
-		bool		Setup(std::shared_ptr<net::connection> connection);
+		void	destroy() override;
+		void	set_phase(int iPhase) override;
+		bool		setup(std::shared_ptr<net::connection> connection);
 };
 }

@@ -18,9 +18,9 @@ namespace quest
 	// syntax in LUA: pet.summon(mob_vnum, pet's name, (bool)run to me from far away)
 	int pet_summon(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		CPetSystem* petSystem = ch->GetPetSystem();
-		CItem * pItem = CQuestManager::instance().GetCurrentItem();
+		character * ch = quest_manager::instance().current_character_ptr();
+		pet_system* petSystem = ch->get_pet_system();
+		item * pItem = quest_manager::instance().current_item();
 		if (!ch || !petSystem || !pItem)
 		{
 			lua_pushnumber (L, 0);
@@ -42,10 +42,10 @@ namespace quest
 		// Whether it runs in from afar when summoned
 		bool bFromFar = lua_isboolean(L, 3) ? lua_toboolean(L, 3) : false;
 
-		CPetActor* pet = petSystem->Summon(mobVnum, pItem, petName, bFromFar);
+		pet_actor* pet = petSystem->summon(mobVnum, pItem, petName, bFromFar);
 
 		if (pet != nullptr)
-			lua_pushnumber (L, pet->GetVID());
+			lua_pushnumber (L, pet->get_vid());
 		else
 			lua_pushnumber (L, 0);
 
@@ -55,8 +55,8 @@ namespace quest
 	// syntax: pet.unsummon(mob_vnum)
 	int pet_unsummon(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		CPetSystem* petSystem = ch->GetPetSystem();
+		character * ch = quest_manager::instance().current_character_ptr();
+		pet_system* petSystem = ch->get_pet_system();
 
 		if (nullptr == petSystem)
 			return 0;
@@ -64,20 +64,20 @@ namespace quest
 		// vnum of the summoned creature
 		uint32_t mobVnum= lua_isnumber(L, 1) ? lua_tonumber(L, 1) : 0;
 
-		petSystem->Unsummon(mobVnum);
+		petSystem->unsummon(mobVnum);
 		return 1;
 	}
 
 	// syntax: pet.unsummon(mob_vnum)
 	int pet_count_summoned(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		CPetSystem* petSystem = ch->GetPetSystem();
+		character * ch = quest_manager::instance().current_character_ptr();
+		pet_system* petSystem = ch->get_pet_system();
 
 		lua_Number count = 0;
 
 		if (nullptr != petSystem)
-			count = (lua_Number)petSystem->CountSummoned();
+			count = (lua_Number)petSystem->count_summoned();
 
 		lua_pushnumber(L, count);
 
@@ -87,8 +87,8 @@ namespace quest
 	// syntax: pet.is_summon(mob_vnum)
 	int pet_is_summon(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		CPetSystem* petSystem = ch->GetPetSystem();
+		character * ch = quest_manager::instance().current_character_ptr();
+		pet_system* petSystem = ch->get_pet_system();
 
 		if (nullptr == petSystem)
 			return 0;
@@ -96,41 +96,41 @@ namespace quest
 		// vnum of the summoned creature
 		uint32_t mobVnum= lua_isnumber(L, 1) ? lua_tonumber(L, 1) : 0;
 
-		CPetActor* petActor = petSystem->GetByVnum(mobVnum);
+		pet_actor* petActor = petSystem->by_vnum(mobVnum);
 
 		if (nullptr == petActor)
 			lua_pushboolean(L, false);
 		else
-			lua_pushboolean(L, petActor->IsSummoned());
+			lua_pushboolean(L, petActor->is_summoned());
 
 		return 1;
 	}
 
 	int pet_spawn_effect(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		CPetSystem* petSystem = ch->GetPetSystem();
+		character * ch = quest_manager::instance().current_character_ptr();
+		pet_system* petSystem = ch->get_pet_system();
 
 		if (nullptr == petSystem)
 			return 0;
 
 		uint32_t mobVnum = lua_isnumber(L, 1) ? lua_tonumber(L, 1) : 0;
 
-		CPetActor* petActor = petSystem->GetByVnum(mobVnum);
+		pet_actor* petActor = petSystem->by_vnum(mobVnum);
 		if (nullptr == petActor)
 			return 0;
-		CHARACTER * pet_ch = petActor->GetCharacter();
+		character * pet_ch = petActor->get_character();
 		if (nullptr == pet_ch)
 			return 0;
 
 		if (lua_isstring(L, 2))
 		{
-			pet_ch->SpecificEffectPacket (lua_tostring(L, 2));
+			pet_ch->specific_effect_packet (lua_tostring(L, 2));
 		}
 		return 0;
 	}
 
-	void RegisterPetFunctionTable()
+	void register_pet_function_table()
 	{
 		luaL_reg pet_functions[] =
 		{
@@ -142,7 +142,7 @@ namespace quest
 			{ nullptr,				nullptr				}
 		};
 
-		CQuestManager::instance().AddLuaFunctionTable("pet", pet_functions);
+		quest_manager::instance().add_lua_function_table("pet", pet_functions);
 	}
 
 }

@@ -17,60 +17,60 @@ namespace metin2::db::inline storage {
 // Character set of every connection; the game server connects with the same one.
 static constexpr const char CONNECTION_CHARSET[] = "latin1";
 
-CDBManager::CDBManager() {
-    Initialize();
+db_manager::db_manager() {
+    initialize();
 }
 
-CDBManager::~CDBManager() {
-    Destroy();
+db_manager::~db_manager() {
+    destroy();
 }
 
-void CDBManager::Initialize() {
+void db_manager::initialize() {
     for (int i = 0; i < SQL_MAX_NUM; ++i) {
-        m_mainSQL[i] = nullptr;
-        m_directSQL[i] = nullptr;
-        m_asyncSQL[i] = nullptr;
+        main_sql_[i] = nullptr;
+        direct_sql_[i] = nullptr;
+        async_sql_[i] = nullptr;
     }
 }
 
-void CDBManager::Destroy() {
-    Clear();
+void db_manager::destroy() {
+    clear();
 }
 
-void CDBManager::Clear() {
+void db_manager::clear() {
     for (int i = 0; i < SQL_MAX_NUM; ++i) {
-        m_mainSQL[i].reset();
-        m_directSQL[i].reset();
-        m_asyncSQL[i].reset();
+        main_sql_[i].reset();
+        direct_sql_[i].reset();
+        async_sql_[i].reset();
     }
 
-    Initialize();
+    initialize();
 }
 
-void CDBManager::Quit() {
+void db_manager::quit() {
     for (int i = 0; i < SQL_MAX_NUM; ++i) {
-        if (m_mainSQL[i])
-            m_mainSQL[i]->Quit();
+        if (main_sql_[i])
+            main_sql_[i]->quit();
 
-        if (m_asyncSQL[i])
-            m_asyncSQL[i]->Quit();
+        if (async_sql_[i])
+            async_sql_[i]->quit();
 
-        if (m_directSQL[i])
-            m_directSQL[i]->Quit();
+        if (direct_sql_[i])
+            direct_sql_[i]->quit();
     }
 }
 
-SQLMsg *CDBManager::PopResult() {
-    SQLMsg *p;
+ql_msg *db_manager::pop_result() {
+    ql_msg *p;
 
     for (int i = 0; i < SQL_MAX_NUM; ++i)
-        if (m_mainSQL[i] && m_mainSQL[i]->PopResult(&p))
+        if (main_sql_[i] && main_sql_[i]->pop_result(&p))
             return p;
 
     return nullptr;
 }
 
-int CDBManager::Connect(int iSlot, const char *db_address, const int db_port, const char *db_name, const char *user, const char *pwd) {
+int db_manager::connect(int iSlot, const char *db_address, const int db_port, const char *db_name, const char *user, const char *pwd) {
     if (db_address == nullptr || db_name == nullptr)
         return false;
 
@@ -78,54 +78,54 @@ int CDBManager::Connect(int iSlot, const char *db_address, const int db_port, co
         return false;
 
     metin2::log::info( "CREATING DIRECT_SQL");
-    m_directSQL[iSlot] = std::make_unique<CAsyncSQL>();
-    if (!m_directSQL[iSlot]->Setup(db_address, user, pwd, db_name, CONNECTION_CHARSET, true, db_port)) {
-        Clear();
+    direct_sql_[iSlot] = std::make_unique<async_sql>();
+    if (!direct_sql_[iSlot]->setup(db_address, user, pwd, db_name, CONNECTION_CHARSET, true, db_port)) {
+        clear();
         return false;
     }
 
     metin2::log::info( "CREATING MAIN_SQL");
-    m_mainSQL[iSlot] = std::make_unique<CAsyncSQL>();
-    if (!m_mainSQL[iSlot]->Setup(db_address, user, pwd, db_name, CONNECTION_CHARSET, false, db_port)) {
-        Clear();
+    main_sql_[iSlot] = std::make_unique<async_sql>();
+    if (!main_sql_[iSlot]->setup(db_address, user, pwd, db_name, CONNECTION_CHARSET, false, db_port)) {
+        clear();
         return false;
     }
 
     metin2::log::info( "CREATING ASYNC_SQL");
-    m_asyncSQL[iSlot] = std::make_unique<CAsyncSQL>();
-    if (!m_asyncSQL[iSlot]->Setup(db_address, user, pwd, db_name, CONNECTION_CHARSET, false, db_port)) {
-        Clear();
+    async_sql_[iSlot] = std::make_unique<async_sql>();
+    if (!async_sql_[iSlot]->setup(db_address, user, pwd, db_name, CONNECTION_CHARSET, false, db_port)) {
+        clear();
         return false;
     }
 
     return true;
 }
 
-SQLMsg *CDBManager::DirectQuery(const char *c_pszQuery, int iSlot) {
-    return m_directSQL[iSlot]->DirectQuery(c_pszQuery);
+ql_msg *db_manager::direct_query(const char *c_pszQuery, int iSlot) {
+    return direct_sql_[iSlot]->direct_query(c_pszQuery);
 }
 
-void CDBManager::ReturnQuery(const char *c_pszQuery, int iType, uint32_t dwIdent, void *udata, int iSlot) {
+void db_manager::return_query(const char *c_pszQuery, int iType, uint32_t dwIdent, void *udata, int iSlot) {
     assert(iSlot < SQL_MAX_NUM);
-    CQueryInfo *p = new CQueryInfo;
+    query_info *p = new query_info;
 
-    p->iType = iType;
-    p->dwIdent = dwIdent;
-    p->pvData = udata;
+    p->type = iType;
+    p->ident = dwIdent;
+    p->pv_data = udata;
 
-    m_mainSQL[iSlot]->ReturnQuery(c_pszQuery, p);
+    main_sql_[iSlot]->return_query(c_pszQuery, p);
 
-    ++g_query_count[0];
+    ++query_count[0];
 }
 
-void CDBManager::AsyncQuery(const char *c_pszQuery, int iSlot) {
+void db_manager::async_query(const char *c_pszQuery, int iSlot) {
     assert(iSlot < SQL_MAX_NUM);
-    m_asyncSQL[iSlot]->AsyncQuery(c_pszQuery);
-    ++g_query_count[1];
+    async_sql_[iSlot]->async_query(c_pszQuery);
+    ++query_count[1];
 }
 
-uint32_t CDBManager::EscapeString(void *to, const void *from, uint32_t length, int iSlot) {
+uint32_t db_manager::escape_string(void *to, const void *from, uint32_t length, int iSlot) {
     assert(iSlot < SQL_MAX_NUM);
-    return mysql_real_escape_string(m_directSQL[iSlot]->GetSQLHandle(), (char *)to, (const char *)from, length);
+    return mysql_real_escape_string(direct_sql_[iSlot]->sql_handle(), (char *)to, (const char *)from, length);
 }
 }

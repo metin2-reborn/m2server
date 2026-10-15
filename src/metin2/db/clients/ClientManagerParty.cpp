@@ -9,132 +9,132 @@
 
 namespace metin2::db::inline clients {
 
-void CClientManager::QUERY_PARTY_CREATE(CPeer* peer, TPacketPartyCreate* p)
+void client_manager::query_party_create(peer* peer, packet_party_create* p)
 {
-	TPartyMap & pm = m_map_pkChannelParty[peer->GetChannel()];
+	party_map & pm = map_pk_channel_party_[peer->channel()];
 
-	if (pm.find(p->dwLeaderPID) == pm.end())
+	if (pm.find(p->leader_pid) == pm.end())
 	{
-		pm.insert(make_pair(p->dwLeaderPID, TPartyMember()));
-		ForwardPacket(HEADER_DG_PARTY_CREATE, p, sizeof(TPacketPartyCreate), peer->GetChannel(), peer);
-		metin2::log::info( "PARTY Create [{:d}]", p->dwLeaderPID);
+		pm.insert(make_pair(p->leader_pid, party_member()));
+		forward_packet(HEADER_DG_PARTY_CREATE, p, sizeof(packet_party_create), peer->channel(), peer);
+		metin2::log::info( "PARTY Create [{:d}]", p->leader_pid);
 	}
 	else
 	{
-		metin2::log::error("PARTY Create - Already exists [{:d}]", p->dwLeaderPID);
+		metin2::log::error("PARTY Create - Already exists [{:d}]", p->leader_pid);
 	}
 }
 
-void CClientManager::QUERY_PARTY_DELETE(CPeer* peer, TPacketPartyDelete* p)
+void client_manager::query_party_delete(peer* peer, packet_party_delete* p)
 {
-	TPartyMap& pm = m_map_pkChannelParty[peer->GetChannel()];
-	auto it = pm.find(p->dwLeaderPID);
+	party_map& pm = map_pk_channel_party_[peer->channel()];
+	auto it = pm.find(p->leader_pid);
 
 	if (it == pm.end())
 	{
-		metin2::log::error("PARTY Delete - Non exists [{:d}]", p->dwLeaderPID);
+		metin2::log::error("PARTY Delete - Non exists [{:d}]", p->leader_pid);
 		return;
 	}
 
 	pm.erase(it);
-	ForwardPacket(HEADER_DG_PARTY_DELETE, p, sizeof(TPacketPartyDelete), peer->GetChannel(), peer);
-	metin2::log::info( "PARTY Delete [{:d}]", p->dwLeaderPID);
+	forward_packet(HEADER_DG_PARTY_DELETE, p, sizeof(packet_party_delete), peer->channel(), peer);
+	metin2::log::info( "PARTY Delete [{:d}]", p->leader_pid);
 }
 
-void CClientManager::QUERY_PARTY_ADD(CPeer* peer, TPacketPartyAdd* p)
+void client_manager::query_party_add(peer* peer, packet_party_add* p)
 {
-	TPartyMap & pm = m_map_pkChannelParty[peer->GetChannel()];
-	auto it = pm.find(p->dwLeaderPID);
+	party_map & pm = map_pk_channel_party_[peer->channel()];
+	auto it = pm.find(p->leader_pid);
 
 	if (it == pm.end())
 	{
-		metin2::log::error("PARTY Add - Non exists [{:d}]", p->dwLeaderPID);
+		metin2::log::error("PARTY Add - Non exists [{:d}]", p->leader_pid);
 		return;
 	}
 
-	if (it->second.find(p->dwPID) == it->second.end())
+	if (it->second.find(p->pid) == it->second.end())
 	{
-		it->second.insert(std::make_pair(p->dwPID, TPartyInfo()));
-		ForwardPacket(HEADER_DG_PARTY_ADD, p, sizeof(TPacketPartyAdd), peer->GetChannel(), peer);
-		metin2::log::info( "PARTY Add [{:d}] to [{:d}]", p->dwPID, p->dwLeaderPID);
+		it->second.insert(std::make_pair(p->pid, party_info()));
+		forward_packet(HEADER_DG_PARTY_ADD, p, sizeof(packet_party_add), peer->channel(), peer);
+		metin2::log::info( "PARTY Add [{:d}] to [{:d}]", p->pid, p->leader_pid);
 	}
 	else
-		metin2::log::error("PARTY Add - Already [{:d}] in party [{:d}]", p->dwPID, p->dwLeaderPID);
+		metin2::log::error("PARTY Add - Already [{:d}] in party [{:d}]", p->pid, p->leader_pid);
 }
 
-void CClientManager::QUERY_PARTY_REMOVE(CPeer* peer, TPacketPartyRemove* p)
+void client_manager::query_party_remove(peer* peer, packet_party_remove* p)
 {
-	TPartyMap & pm = m_map_pkChannelParty[peer->GetChannel()];
-	auto it = pm.find(p->dwLeaderPID);
+	party_map & pm = map_pk_channel_party_[peer->channel()];
+	auto it = pm.find(p->leader_pid);
 
 	if (it == pm.end())
 	{
-		metin2::log::error("PARTY Remove - Non exists [{:d}] cannot remove [{:d}]",p->dwLeaderPID, p->dwPID);
+		metin2::log::error("PARTY Remove - Non exists [{:d}] cannot remove [{:d}]",p->leader_pid, p->pid);
 		return;
 	}
 
-	auto pit = it->second.find(p->dwPID);
+	auto pit = it->second.find(p->pid);
 
 	if (pit != it->second.end())
 	{
 		it->second.erase(pit);
-		ForwardPacket(HEADER_DG_PARTY_REMOVE, p, sizeof(TPacketPartyRemove), peer->GetChannel(), peer);
-		metin2::log::info( "PARTY Remove [{:d}] to [{:d}]", p->dwPID, p->dwLeaderPID);
+		forward_packet(HEADER_DG_PARTY_REMOVE, p, sizeof(packet_party_remove), peer->channel(), peer);
+		metin2::log::info( "PARTY Remove [{:d}] to [{:d}]", p->pid, p->leader_pid);
 	}
 	else
-		metin2::log::error("PARTY Remove - Cannot find [{:d}] in party [{:d}]", p->dwPID, p->dwLeaderPID);
+		metin2::log::error("PARTY Remove - Cannot find [{:d}] in party [{:d}]", p->pid, p->leader_pid);
 }
 
-void CClientManager::QUERY_PARTY_STATE_CHANGE(CPeer* peer, TPacketPartyStateChange* p)
+void client_manager::query_party_state_change(peer* peer, packet_party_state_change* p)
 {
-	TPartyMap & pm = m_map_pkChannelParty[peer->GetChannel()];
-	auto it = pm.find(p->dwLeaderPID);
+	party_map & pm = map_pk_channel_party_[peer->channel()];
+	auto it = pm.find(p->leader_pid);
 
 	if (it == pm.end())
 	{
-		metin2::log::error("PARTY StateChange - Non exists [{:d}] cannot state change [{:d}]",p->dwLeaderPID, p->dwPID);
+		metin2::log::error("PARTY StateChange - Non exists [{:d}] cannot state change [{:d}]",p->leader_pid, p->pid);
 		return;
 	}
 
-	auto pit = it->second.find(p->dwPID);
+	auto pit = it->second.find(p->pid);
 
 	if (pit == it->second.end())
 	{
-		metin2::log::error("PARTY StateChange - Cannot find [{:d}] in party [{:d}]", p->dwPID, p->dwLeaderPID);
+		metin2::log::error("PARTY StateChange - Cannot find [{:d}] in party [{:d}]", p->pid, p->leader_pid);
 		return;
 	}
 
-	if (p->bFlag)
-		pit->second.bRole = p->bRole;
+	if (p->flag)
+		pit->second.role = p->role;
 	else 
-		pit->second.bRole = 0;
+		pit->second.role = 0;
 
-	ForwardPacket(HEADER_DG_PARTY_STATE_CHANGE, p, sizeof(TPacketPartyStateChange), peer->GetChannel(), peer);
-	metin2::log::info( "PARTY StateChange [{:d}] at [{:d}] from {:d} {:d}",p->dwPID, p->dwLeaderPID, p->bRole, p->bFlag);
+	forward_packet(HEADER_DG_PARTY_STATE_CHANGE, p, sizeof(packet_party_state_change), peer->channel(), peer);
+	metin2::log::info( "PARTY StateChange [{:d}] at [{:d}] from {:d} {:d}",p->pid, p->leader_pid, p->role, p->flag);
 }
 
-void CClientManager::QUERY_PARTY_SET_MEMBER_LEVEL(CPeer* peer, TPacketPartySetMemberLevel* p)
+void client_manager::query_party_set_member_level(peer* peer, packet_party_set_member_level* p)
 {
-	TPartyMap & pm = m_map_pkChannelParty[peer->GetChannel()];
-	auto it = pm.find(p->dwLeaderPID);
+	party_map & pm = map_pk_channel_party_[peer->channel()];
+	auto it = pm.find(p->leader_pid);
 
 	if (it == pm.end())
 	{
-		metin2::log::error("PARTY SetMemberLevel - Non exists [{:d}] cannot level change [{:d}]",p->dwLeaderPID, p->dwPID);
+		metin2::log::error("PARTY SetMemberLevel - Non exists [{:d}] cannot level change [{:d}]",p->leader_pid, p->pid);
 		return;
 	}
 
-	auto pit = it->second.find(p->dwPID);
+	auto pit = it->second.find(p->pid);
 
 	if (pit == it->second.end())
 	{
-		metin2::log::error("PARTY SetMemberLevel - Cannot find [{:d}] in party [{:d}]", p->dwPID, p->dwLeaderPID);
+		metin2::log::error("PARTY SetMemberLevel - Cannot find [{:d}] in party [{:d}]", p->pid, p->leader_pid);
 		return;
 	}
 
-	pit->second.bLevel = p->bLevel;
+	pit->second.level = p->level;
 
-	ForwardPacket(HEADER_DG_PARTY_SET_MEMBER_LEVEL, p, sizeof(TPacketPartySetMemberLevel), peer->GetChannel());
-	metin2::log::info( "PARTY SetMemberLevel pid [{:d}] level {:d}",p->dwPID, p->bLevel);
+	forward_packet(HEADER_DG_PARTY_SET_MEMBER_LEVEL, p, sizeof(packet_party_set_member_level), peer->channel());
+	metin2::log::info( "PARTY SetMemberLevel pid [{:d}] level {:d}",p->pid, p->level);
 }
 }

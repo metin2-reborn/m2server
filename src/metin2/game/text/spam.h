@@ -14,10 +14,10 @@
 
 namespace metin2::game::inline text {
 
-class SpamManager : public singleton<SpamManager>
+class spam_manager : public singleton<spam_manager>
 {
 	public:
-		inline const char * GetSpamScore(const char * src, size_t len, unsigned int & score)
+		inline const char * spam_score(const char * src, size_t len, unsigned int & score)
 		{
 			const char * word = nullptr;
 			score = 0;
@@ -25,11 +25,11 @@ class SpamManager : public singleton<SpamManager>
 			std::string strOrig(src);
 			strOrig.erase( remove_if(strOrig.begin(), strOrig.end(), isspace), strOrig.end() );
 
-			for (size_t i = 0; i < m_vec_word.size(); ++i)
+			for (size_t i = 0; i < vec_word_.size(); ++i)
 			{
-				std::pair<std::string, unsigned int> & r = m_vec_word[i];
+				std::pair<std::string, unsigned int> & r = vec_word_[i];
 
-				if (true == WildCaseCmp(r.first.c_str(), strOrig.c_str()))
+				if (true == wild_case_cmp(r.first.c_str(), strOrig.c_str()))
 				{
 					word = r.first.c_str();
 					score += r.second;
@@ -39,18 +39,18 @@ class SpamManager : public singleton<SpamManager>
 			return word;
 		}
 
-		inline void Clear()
+		inline void clear()
 		{
-			m_vec_word.clear();
+			vec_word_.clear();
 		}
 
-		inline void Insert(const char * str, unsigned int score = 10)
+		inline void insert(const char * str, unsigned int score = 10)
 		{
-			m_vec_word.push_back(std::make_pair(str, score));
+			vec_word_.push_back(std::make_pair(str, score));
 			metin2::log::info( "SPAM: {:2d} {}", score, str);
 		}
 
 	private:
-		std::vector< std::pair<std::string, unsigned int> > m_vec_word;
+		std::vector< std::pair<std::string, unsigned int> > vec_word_;
 };
 }

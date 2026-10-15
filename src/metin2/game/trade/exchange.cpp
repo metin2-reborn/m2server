@@ -25,12 +25,12 @@
 
 namespace metin2::game::inline trade {
 
-void exchange_packet(CHARACTER * ch, uint8_t sub_header, bool is_me, uint32_t arg1, TItemPos arg2, uint32_t arg3, void * pvData = nullptr);
+void exchange_packet(character * ch, uint8_t sub_header, bool is_me, uint32_t arg1, item_pos arg2, uint32_t arg3, void * pvData = nullptr);
 
 // Trade packet
-void exchange_packet(CHARACTER * ch, uint8_t sub_header, bool is_me, uint32_t arg1, TItemPos arg2, uint32_t arg3, void * pvData)
+void exchange_packet(character * ch, uint8_t sub_header, bool is_me, uint32_t arg1, item_pos arg2, uint32_t arg3, void * pvData)
 {
-	if (!ch->GetDesc())
+	if (!ch->get_desc())
 		return;
 
 	struct packet_exchange pack_exchg;
@@ -44,16 +44,16 @@ void exchange_packet(CHARACTER * ch, uint8_t sub_header, bool is_me, uint32_t ar
 
 	if (sub_header == EXCHANGE_SUBHEADER_GC_ITEM_ADD && pvData)
 	{
-		std::memcpy(&pack_exchg.alSockets, ((CItem *) pvData)->GetSockets(), sizeof(pack_exchg.alSockets));
-		std::memcpy(&pack_exchg.aAttr, ((CItem *) pvData)->GetAttributes(), sizeof(pack_exchg.aAttr));
+		std::memcpy(&pack_exchg.sockets, ((item *) pvData)->sockets(), sizeof(pack_exchg.sockets));
+		std::memcpy(&pack_exchg.attr, ((item *) pvData)->attributes(), sizeof(pack_exchg.attr));
 	}
 	else
 	{
-		memset(&pack_exchg.alSockets, 0, sizeof(pack_exchg.alSockets));
-		memset(&pack_exchg.aAttr, 0, sizeof(pack_exchg.aAttr));
+		memset(&pack_exchg.sockets, 0, sizeof(pack_exchg.sockets));
+		memset(&pack_exchg.attr, 0, sizeof(pack_exchg.attr));
 	}
 
-	ch->GetDesc()->Packet(&pack_exchg, sizeof(pack_exchg));
+	ch->get_desc()->packet(&pack_exchg, sizeof(pack_exchg));
 }
 
 }
@@ -61,66 +61,66 @@ void exchange_packet(CHARACTER * ch, uint8_t sub_header, bool is_me, uint32_t ar
 namespace metin2::game::inline characters {
 
 // Start trading
-bool CHARACTER::ExchangeStart(CHARACTER * victim)
+bool character::exchange_start(character * victim)
 {
 	if (this == victim)	// Cannot trade with oneself.
 		return false;
 
-	if (IsObserverMode())
+	if (is_observer_mode())
 	{
-		ChatPacket(CHAT_TYPE_INFO, LC_TEXT("관전 상태에서는 교환을 할 수 없습니다."));
+		chat_packet(CHAT_TYPE_INFO, lc_text("관전 상태에서는 교환을 할 수 없습니다."));
 		return false;
 	}
 
-	if (victim->IsNPC())
+	if (victim->is_npc())
 		return false;
 
 	//PREVENT_TRADE_WINDOW
-	if ( IsOpenSafebox() || GetShopOwner() || GetMyShop() || IsCubeOpen())
+	if ( is_open_safebox() || shop_owner() || my_shop() || is_cube_open())
 	{
-		ChatPacket( CHAT_TYPE_INFO, LC_TEXT("다른 거래창이 열려있을경우 거래를 할수 없습니다." ) );
+		chat_packet( CHAT_TYPE_INFO, lc_text("다른 거래창이 열려있을경우 거래를 할수 없습니다." ) );
 		return false;
 	}
 
-	if ( victim->IsOpenSafebox() || victim->GetShopOwner() || victim->GetMyShop() || victim->IsCubeOpen() )
+	if ( victim->is_open_safebox() || victim->shop_owner() || victim->my_shop() || victim->is_cube_open() )
 	{
-		ChatPacket( CHAT_TYPE_INFO, LC_TEXT("상대방이 다른 거래중이라 거래를 할수 없습니다." ) );
+		chat_packet( CHAT_TYPE_INFO, lc_text("상대방이 다른 거래중이라 거래를 할수 없습니다." ) );
 		return false;
 	}
 	//END_PREVENT_TRADE_WINDOW
-	int iDist = DISTANCE_APPROX(GetX() - victim->GetX(), GetY() - victim->GetY());
+	int iDist = distance_approx(x() - victim->x(), y() - victim->y());
 
 	// Distance check
 	if (iDist >= EXCHANGE_MAX_DISTANCE)
 		return false;
 
-	if (GetExchange())
+	if (get_exchange())
 		return false;
 
-	if (victim->GetExchange())
+	if (victim->get_exchange())
 	{
 		exchange_packet(this, EXCHANGE_SUBHEADER_GC_ALREADY, 0, 0, NPOS, 0);
 		return false;
 	}
 
-	if (victim->IsBlockMode(BLOCK_EXCHANGE))
+	if (victim->is_block_mode(BLOCK_EXCHANGE))
 	{
-		ChatPacket(CHAT_TYPE_INFO, LC_TEXT("상대방이 교환 거부 상태입니다."));
+		chat_packet(CHAT_TYPE_INFO, lc_text("상대방이 교환 거부 상태입니다."));
 		return false;
 	}
 
-	SetExchange(new CExchange(this));
-	victim->SetExchange(new CExchange(victim));
+	set_exchange(new exchange(this));
+	victim->set_exchange(new exchange(victim));
 
-	victim->GetExchange()->SetCompany(GetExchange());
-	GetExchange()->SetCompany(victim->GetExchange());
+	victim->get_exchange()->set_company(get_exchange());
+	get_exchange()->set_company(victim->get_exchange());
 
 	//
-	SetExchangeTime();
-	victim->SetExchangeTime();
+	set_exchange_time();
+	victim->set_exchange_time();
 
-	exchange_packet(victim, EXCHANGE_SUBHEADER_GC_START, 0, GetVID(), NPOS, 0);
-	exchange_packet(this, EXCHANGE_SUBHEADER_GC_START, 0, victim->GetVID(), NPOS, 0);
+	exchange_packet(victim, EXCHANGE_SUBHEADER_GC_START, 0, get_vid(), NPOS, 0);
+	exchange_packet(this, EXCHANGE_SUBHEADER_GC_START, 0, victim->get_vid(), NPOS, 0);
 
 	return true;
 }
@@ -129,103 +129,103 @@ bool CHARACTER::ExchangeStart(CHARACTER * victim)
 
 namespace metin2::game::inline trade {
 
-CExchange::CExchange(CHARACTER * pOwner)
+exchange::exchange(character * pOwner)
 {
-	m_pCompany = nullptr;
+	company_ = nullptr;
 
-	m_bAccept = false;
+	accept_ = false;
 
 	for (int i = 0; i < EXCHANGE_ITEM_MAX_NUM; ++i)
 	{
-		m_apItems[i] = nullptr;
-		m_aItemPos[i] = NPOS;
-		m_abItemDisplayPos[i] = 0;
+		ap_items_[i] = nullptr;
+		item_pos_[i] = NPOS;
+		item_display_pos_[i] = 0;
 	}
 
-	m_lGold = 0;
+	gold_ = 0;
 
-	m_pOwner = pOwner;
-	pOwner->SetExchange(this);
+	owner_ = pOwner;
+	pOwner->set_exchange(this);
 
-	m_pGrid = std::make_unique<CGrid>(4,3);
+	grid_ = std::make_unique<grid>(4,3);
 }
 
-CExchange::~CExchange()
+exchange::~exchange()
 {
 }
 
-bool CExchange::AddItem(TItemPos item_pos, uint8_t display_pos)
+bool exchange::add_item(item_pos item_pos, uint8_t display_pos)
 {
-	assert(m_pOwner != nullptr && GetCompany());
+	assert(owner_ != nullptr && company());
 
-	if (!item_pos.IsValidItemPosition())
+	if (!item_pos.is_valid_item_position())
 		return false;
 
 	// Equipment cannot be traded
-	if (item_pos.IsEquipPosition())
+	if (item_pos.is_equip_position())
 		return false;
 
-	CItem * item;
+	item * item;
 
-	if (!(item = m_pOwner->GetItem(item_pos)))
+	if (!(item = owner_->get_item(item_pos)))
 		return false;
 
-	if (IS_SET(item->GetAntiFlag(), ITEM_ANTIFLAG_GIVE))
+	if (is_set(item->anti_flag(), ITEM_ANTIFLAG_GIVE))
 	{
-		m_pOwner->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("아이템을 건네줄 수 없습니다."));
+		owner_->chat_packet(CHAT_TYPE_INFO, lc_text("아이템을 건네줄 수 없습니다."));
 		return false;
 	}
 
-	if (true == item->isLocked())
+	if (true == item->is_locked())
 	{
 		return false;
 	}
 
 	// Item already added to the trade window?
-	if (item->IsExchanging())
+	if (item->is_exchanging())
 	{
 		metin2::log::info( "EXCHANGE under exchanging");
 		return false;
 	}
 
-	if (!m_pGrid->IsEmpty(display_pos, 1, item->GetSize()))
+	if (!grid_->is_empty(display_pos, 1, item->size()))
 	{
-		metin2::log::info( "EXCHANGE not empty item_pos {:d} {:d} {:d}", display_pos, 1, item->GetSize());
+		metin2::log::info( "EXCHANGE not empty item_pos {:d} {:d} {:d}", display_pos, 1, item->size());
 		return false;
 	}
 
-	Accept(false);
-	GetCompany()->Accept(false);
+	accept(false);
+	company()->accept(false);
 
 	for (int i = 0; i < EXCHANGE_ITEM_MAX_NUM; ++i)
 	{
-		if (m_apItems[i])
+		if (ap_items_[i])
 			continue;
 
-		m_apItems[i]		= item;
-		m_aItemPos[i]		= item_pos;
-		m_abItemDisplayPos[i]	= display_pos;
-		m_pGrid->Put(display_pos, 1, item->GetSize());
+		ap_items_[i]		= item;
+		item_pos_[i]		= item_pos;
+		item_display_pos_[i]	= display_pos;
+		grid_->put(display_pos, 1, item->size());
 
-		item->SetExchanging(true);
+		item->set_exchanging(true);
 
-		exchange_packet(m_pOwner, 
+		exchange_packet(owner_, 
 				EXCHANGE_SUBHEADER_GC_ITEM_ADD,
 				true,
-				item->GetVnum(),
-				TItemPos(RESERVED_WINDOW, display_pos),
-				item->GetCount(),
+				item->vnum(),
+				proto::item_pos(RESERVED_WINDOW, display_pos),
+				item->count(),
 				item);
 
-		exchange_packet(GetCompany()->GetOwner(),
+		exchange_packet(company()->owner(),
 				EXCHANGE_SUBHEADER_GC_ITEM_ADD, 
 				false, 
-				item->GetVnum(),
-				TItemPos(RESERVED_WINDOW, display_pos),
-				item->GetCount(),
+				item->vnum(),
+				proto::item_pos(RESERVED_WINDOW, display_pos),
+				item->count(),
 				item);
 
-		metin2::log::info( "EXCHANGE AddItem success {} pos({:d}, {:d}) {:d}", item->GetName(), item_pos.window_type, item_pos.cell, display_pos);
+		metin2::log::info( "EXCHANGE AddItem success {} pos({:d}, {:d}) {:d}", item->name(), item_pos.window_type, item_pos.cell, display_pos);
 
 		return true;
 	}
@@ -234,75 +234,75 @@ bool CExchange::AddItem(TItemPos item_pos, uint8_t display_pos)
 	return false;
 }
 
-bool CExchange::RemoveItem(uint8_t pos)
+bool exchange::remove_item(uint8_t pos)
 {
 	if (pos >= EXCHANGE_ITEM_MAX_NUM)
 		return false;
 
-	if (!m_apItems[pos])
+	if (!ap_items_[pos])
 		return false;
 
-	TItemPos PosOfInventory = m_aItemPos[pos];
-	m_apItems[pos]->SetExchanging(false);
+	item_pos PosOfInventory = item_pos_[pos];
+	ap_items_[pos]->set_exchanging(false);
 
-	m_pGrid->Get(m_abItemDisplayPos[pos], 1, m_apItems[pos]->GetSize());
+	grid_->get(item_display_pos_[pos], 1, ap_items_[pos]->size());
 
-	exchange_packet(GetOwner(),	EXCHANGE_SUBHEADER_GC_ITEM_DEL, true, pos, NPOS, 0);
-	exchange_packet(GetCompany()->GetOwner(), EXCHANGE_SUBHEADER_GC_ITEM_DEL, false, pos, PosOfInventory, 0);
+	exchange_packet(owner(),	EXCHANGE_SUBHEADER_GC_ITEM_DEL, true, pos, NPOS, 0);
+	exchange_packet(company()->owner(), EXCHANGE_SUBHEADER_GC_ITEM_DEL, false, pos, PosOfInventory, 0);
 
-	Accept(false);
-	GetCompany()->Accept(false);
+	accept(false);
+	company()->accept(false);
 
-	m_apItems[pos]	    = nullptr;
-	m_aItemPos[pos]	    = NPOS;
-	m_abItemDisplayPos[pos] = 0;
+	ap_items_[pos]	    = nullptr;
+	item_pos_[pos]	    = NPOS;
+	item_display_pos_[pos] = 0;
 	return true;
 }
 
-bool CExchange::AddGold(int32_t gold)
+bool exchange::add_gold(int32_t gold)
 {
 	if (gold <= 0)
 		return false;
 
-	if (GetOwner()->GetGold() < gold)
+	if (owner()->gold() < gold)
 	{
 		// Not enough gold.
-		exchange_packet(GetOwner(), EXCHANGE_SUBHEADER_GC_LESS_GOLD, 0, 0, NPOS, 0);
+		exchange_packet(owner(), EXCHANGE_SUBHEADER_GC_LESS_GOLD, 0, 0, NPOS, 0);
 		return false;
 	}
 
-	if ( m_lGold > 0 )
+	if ( gold_ > 0 )
 	{
 		return false;
 	}
 
-	Accept(false);
-	GetCompany()->Accept(false);
+	accept(false);
+	company()->accept(false);
 
-	m_lGold = gold;
+	gold_ = gold;
 
-	exchange_packet(GetOwner(), EXCHANGE_SUBHEADER_GC_GOLD_ADD, true, m_lGold, NPOS, 0);
-	exchange_packet(GetCompany()->GetOwner(), EXCHANGE_SUBHEADER_GC_GOLD_ADD, false, m_lGold, NPOS, 0);
+	exchange_packet(owner(), EXCHANGE_SUBHEADER_GC_GOLD_ADD, true, gold_, NPOS, 0);
+	exchange_packet(company()->owner(), EXCHANGE_SUBHEADER_GC_GOLD_ADD, false, gold_, NPOS, 0);
 	return true;
 }
 
 // Checks that there is enough gold and that the items to trade actually exist.
-bool CExchange::Check(int * piItemCount)
+bool exchange::check(int * piItemCount)
 {
-	if (GetOwner()->GetGold() < m_lGold)
+	if (owner()->gold() < gold_)
 		return false;
 
 	int item_count = 0;
 
 	for (int i = 0; i < EXCHANGE_ITEM_MAX_NUM; ++i)
 	{
-		if (!m_apItems[i])
+		if (!ap_items_[i])
 			continue;
 
-		if (!m_aItemPos[i].IsValidItemPosition())
+		if (!item_pos_[i].is_valid_item_position())
 			return false;
 
-		if (m_apItems[i] != GetOwner()->GetItem(m_aItemPos[i]))
+		if (ap_items_[i] != owner()->get_item(item_pos_[i]))
 			return false;
 
 		++item_count;
@@ -312,32 +312,32 @@ bool CExchange::Check(int * piItemCount)
 	return true;
 }
 
-bool CExchange::CheckSpace()
+bool exchange::check_space()
 {
-	static CGrid s_grid1(5, INVENTORY_MAX_NUM/5 / 2); // inven page 1
-	static CGrid s_grid2(5, INVENTORY_MAX_NUM/5 / 2); // inven page 2
+	static grid s_grid1(5, INVENTORY_MAX_NUM/5 / 2); // inven page 1
+	static grid s_grid2(5, INVENTORY_MAX_NUM/5 / 2); // inven page 2
 
-	s_grid1.Clear();
-	s_grid2.Clear();
+	s_grid1.clear();
+	s_grid2.clear();
 
-	CHARACTER *	victim = GetCompany()->GetOwner();
-	CItem * item;
+	character *	victim = company()->owner();
+	item * item;
 
 	int i;
 
 	for (i = 0; i < INVENTORY_MAX_NUM / 2; ++i)
 	{
-		if (!(item = victim->GetInventoryItem(i)))
+		if (!(item = victim->inventory_item(i)))
 			continue;
 
-		s_grid1.Put(i, 1, item->GetSize());
+		s_grid1.put(i, 1, item->size());
 	}
 	for (i = INVENTORY_MAX_NUM / 2; i < INVENTORY_MAX_NUM; ++i)
 	{
-		if (!(item = victim->GetInventoryItem(i)))
+		if (!(item = victim->inventory_item(i)))
 			continue;
 
-		s_grid2.Put(i - INVENTORY_MAX_NUM / 2, 1, item->GetSize());
+		s_grid2.put(i - INVENTORY_MAX_NUM / 2, 1, item->size());
 	}
 
 	// Ah... this looks really stupid... but it's my fault for copying the dragon soul inventory from the normal inventory T_T
@@ -348,12 +348,12 @@ bool CExchange::CheckSpace()
 	
 	for (i = 0; i < EXCHANGE_ITEM_MAX_NUM; ++i)
 	{
-		if (!(item = m_apItems[i]))
+		if (!(item = ap_items_[i]))
 			continue;
 
-		if (item->IsDragonSoul())
+		if (item->is_dragon_soul())
 		{
-			if (!victim->DragonSoul_IsQualified())
+			if (!victim->dragon_soul_is_qualified())
 			{
 				return false;
 			}
@@ -361,11 +361,11 @@ bool CExchange::CheckSpace()
 			if (!bDSInitialized)
 			{
 				bDSInitialized = true;
-				victim->CopyDragonSoulItemGrid(s_vDSGrid);
+				victim->copy_dragon_soul_item_grid(s_vDSGrid);
 			}
 
 			bool bExistEmptySpace = false;
-			uint16_t wBasePos = DSManager::instance().GetBasePosition(item);
+			uint16_t wBasePos = ds_manager::instance().base_position(item);
 			if (wBasePos >= DRAGON_SOUL_INVENTORY_MAX_NUM)
 				return false;
 			
@@ -376,7 +376,7 @@ bool CExchange::CheckSpace()
 				if (0 == s_vDSGrid[wPos]) // Fix
 				{
 					bool bEmpty = true;
-					for (int j = 1; j < item->GetSize(); j++)
+					for (int j = 1; j < item->size(); j++)
 					{
 						if (s_vDSGrid[wPos + j * DRAGON_SOUL_BOX_COLUMN_NUM])
 						{
@@ -386,7 +386,7 @@ bool CExchange::CheckSpace()
 					}
 					if (bEmpty)
 					{
-						for (int j = 0; j < item->GetSize(); j++)
+						for (int j = 0; j < item->size(); j++)
 						{
 							s_vDSGrid[wPos + j * DRAGON_SOUL_BOX_COLUMN_NUM] =  wPos + 1;
 						}
@@ -402,19 +402,19 @@ bool CExchange::CheckSpace()
 		}
 		else
 		{
-			int iPos = s_grid1.FindBlank(1, item->GetSize());
+			int iPos = s_grid1.find_blank(1, item->size());
 
 			if (iPos >= 0)
 			{
-				s_grid1.Put(iPos, 1, item->GetSize());
+				s_grid1.put(iPos, 1, item->size());
 			}
 			else
 			{
-				iPos = s_grid2.FindBlank(1, item->GetSize());
+				iPos = s_grid2.find_blank(1, item->size());
 
 				if (iPos >= 0)
 				{
-					s_grid2.Put(iPos, 1, item->GetSize());
+					s_grid2.put(iPos, 1, item->size());
 				}
 				else
 				{
@@ -428,188 +428,188 @@ bool CExchange::CheckSpace()
 }
 
 // End of trade (actually moves items, gold, etc.)
-bool CExchange::Done()
+bool exchange::done()
 {
 	int		empty_pos, i;
-	CItem *	item;
+	item *	item;
 
-	CHARACTER *	victim = GetCompany()->GetOwner();
+	character *	victim = company()->owner();
 
 	for (i = 0; i < EXCHANGE_ITEM_MAX_NUM; ++i)
 	{
-		if (!(item = m_apItems[i]))
+		if (!(item = ap_items_[i]))
 			continue;
 
-		if (item->IsDragonSoul())
-			empty_pos = victim->GetEmptyDragonSoulInventory(item);
+		if (item->is_dragon_soul())
+			empty_pos = victim->empty_dragon_soul_inventory(item);
 		else
-			empty_pos = victim->GetEmptyInventory(item->GetSize());
+			empty_pos = victim->empty_inventory(item->size());
 
 		if (empty_pos < 0)
 		{
 			metin2::log::error("Exchange::Done : Cannot find blank position in inventory {} <-> {} item {}", 
-					m_pOwner->GetName(), victim->GetName(), item->GetName());
+					owner_->name(), victim->name(), item->name());
 			continue;
 		}
 
 		assert(empty_pos >= 0);
 
-		m_pOwner->SyncQuickslot(QUICKSLOT_TYPE_ITEM, item->GetCell(), 255);
+		owner_->sync_quickslot(QUICKSLOT_TYPE_ITEM, item->cell(), 255);
 
-		item->RemoveFromCharacter();
-		if (item->IsDragonSoul())
-			item->AddToCharacter(victim, TItemPos(DRAGON_SOUL_INVENTORY, empty_pos));
+		item->remove_from_character();
+		if (item->is_dragon_soul())
+			item->add_to_character(victim, item_pos(DRAGON_SOUL_INVENTORY, empty_pos));
 		else
-			item->AddToCharacter(victim, TItemPos(INVENTORY, empty_pos));
-		ITEM_MANAGER::instance().FlushDelayedSave(item);
+			item->add_to_character(victim, item_pos(INVENTORY, empty_pos));
+		item_manager::instance().flush_delayed_save(item);
 
-		item->SetExchanging(false);
+		item->set_exchanging(false);
 		{
 			char exchange_buf[51];
 
-			snprintf(exchange_buf, sizeof(exchange_buf), "%s %u %u", item->GetName(), GetOwner()->GetPlayerID(), item->GetCount());
-			LogManager::instance().ItemLog(victim, item, "EXCHANGE_TAKE", exchange_buf);
+			snprintf(exchange_buf, sizeof(exchange_buf), "%s %u %u", item->name(), owner()->player_id(), item->count());
+			log_manager::instance().item_log(victim, item, "EXCHANGE_TAKE", exchange_buf);
 
-			snprintf(exchange_buf, sizeof(exchange_buf), "%s %u %u", item->GetName(), victim->GetPlayerID(), item->GetCount());
-			LogManager::instance().ItemLog(GetOwner(), item, "EXCHANGE_GIVE", exchange_buf);
+			snprintf(exchange_buf, sizeof(exchange_buf), "%s %u %u", item->name(), victim->player_id(), item->count());
+			log_manager::instance().item_log(owner(), item, "EXCHANGE_GIVE", exchange_buf);
 
-			if (item->GetVnum() >= 80003 && item->GetVnum() <= 80007)
+			if (item->vnum() >= 80003 && item->vnum() <= 80007)
 			{
-				LogManager::instance().GoldBarLog(victim->GetPlayerID(), item->GetID(), EXCHANGE_TAKE, "");
-				LogManager::instance().GoldBarLog(GetOwner()->GetPlayerID(), item->GetID(), EXCHANGE_GIVE, "");
+				log_manager::instance().gold_bar_log(victim->player_id(), item->id(), EXCHANGE_TAKE, "");
+				log_manager::instance().gold_bar_log(owner()->player_id(), item->id(), EXCHANGE_GIVE, "");
 			}
 		}
 
-		m_apItems[i] = nullptr;
+		ap_items_[i] = nullptr;
 	}
 
-	if (m_lGold)
+	if (gold_)
 	{
-		GetOwner()->PointChange(POINT_GOLD, -m_lGold, true);
-		victim->PointChange(POINT_GOLD, m_lGold, true);
+		owner()->point_change(POINT_GOLD, -gold_, true);
+		victim->point_change(POINT_GOLD, gold_, true);
 
-		if (m_lGold > 1000)
+		if (gold_ > 1000)
 		{
 			char exchange_buf[51];
-			snprintf(exchange_buf, sizeof(exchange_buf), "%u %s", GetOwner()->GetPlayerID(), GetOwner()->GetName());
-			LogManager::instance().CharLog(victim, m_lGold, "EXCHANGE_GOLD_TAKE", exchange_buf);
+			snprintf(exchange_buf, sizeof(exchange_buf), "%u %s", owner()->player_id(), owner()->name());
+			log_manager::instance().char_log(victim, gold_, "EXCHANGE_GOLD_TAKE", exchange_buf);
 
-			snprintf(exchange_buf, sizeof(exchange_buf), "%u %s", victim->GetPlayerID(), victim->GetName());
-			LogManager::instance().CharLog(GetOwner(), m_lGold, "EXCHANGE_GOLD_GIVE", exchange_buf);
+			snprintf(exchange_buf, sizeof(exchange_buf), "%u %s", victim->player_id(), victim->name());
+			log_manager::instance().char_log(owner(), gold_, "EXCHANGE_GOLD_GIVE", exchange_buf);
 		}
 	}
 
-	m_pGrid->Clear();
+	grid_->clear();
 	return true;
 }
 
 // Agree to the trade
-bool CExchange::Accept(bool bAccept)
+bool exchange::accept(bool bAccept)
 {
-	if (m_bAccept == bAccept)
+	if (accept_ == bAccept)
 		return true;
 
-	m_bAccept = bAccept;
+	accept_ = bAccept;
 
 	// Both agreed, so the trade goes through
-	if (m_bAccept && GetCompany()->m_bAccept)
+	if (accept_ && company()->accept_)
 	{
 		int	iItemCount;
 
-		CHARACTER * victim = GetCompany()->GetOwner();
+		character * victim = company()->owner();
 
 		//PREVENT_PORTAL_AFTER_EXCHANGE
-		GetOwner()->SetExchangeTime();
-		victim->SetExchangeTime();		
+		owner()->set_exchange_time();
+		victim->set_exchange_time();		
 		//END_PREVENT_PORTAL_AFTER_EXCHANGE
 
 		// exchange_check verifies that the items to trade are in place,
 		// and that there is enough elk; it returns the number of items to trade
 		// via the second argument.
-		if (!Check(&iItemCount))
+		if (!check(&iItemCount))
 		{
-			GetOwner()->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("돈이 부족하거나 아이템이 제자리에 없습니다."));
-			victim->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("상대방의 돈이 부족하거나 아이템이 제자리에 없습니다."));
+			owner()->chat_packet(CHAT_TYPE_INFO, lc_text("돈이 부족하거나 아이템이 제자리에 없습니다."));
+			victim->chat_packet(CHAT_TYPE_INFO, lc_text("상대방의 돈이 부족하거나 아이템이 제자리에 없습니다."));
 			goto EXCHANGE_END;
 		}
 
 		// Uses the returned item count to check whether the other side's inventory has room.
-		if (!CheckSpace())
+		if (!check_space())
 		{
-			GetOwner()->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("상대방의 소지품에 빈 공간이 없습니다."));
-			victim->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("소지품에 빈 공간이 없습니다."));
+			owner()->chat_packet(CHAT_TYPE_INFO, lc_text("상대방의 소지품에 빈 공간이 없습니다."));
+			victim->chat_packet(CHAT_TYPE_INFO, lc_text("소지품에 빈 공간이 없습니다."));
 			goto EXCHANGE_END;
 		}
 
 		// Same for the other side..
-		if (!GetCompany()->Check(&iItemCount))
+		if (!company()->check(&iItemCount))
 		{
-			victim->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("돈이 부족하거나 아이템이 제자리에 없습니다."));
-			GetOwner()->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("상대방의 돈이 부족하거나 아이템이 제자리에 없습니다."));
+			victim->chat_packet(CHAT_TYPE_INFO, lc_text("돈이 부족하거나 아이템이 제자리에 없습니다."));
+			owner()->chat_packet(CHAT_TYPE_INFO, lc_text("상대방의 돈이 부족하거나 아이템이 제자리에 없습니다."));
 			goto EXCHANGE_END;
 		}
 
-		if (!GetCompany()->CheckSpace())
+		if (!company()->check_space())
 		{
-			victim->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("상대방의 소지품에 빈 공간이 없습니다."));
-			GetOwner()->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("소지품에 빈 공간이 없습니다."));
+			victim->chat_packet(CHAT_TYPE_INFO, lc_text("상대방의 소지품에 빈 공간이 없습니다."));
+			owner()->chat_packet(CHAT_TYPE_INFO, lc_text("소지품에 빈 공간이 없습니다."));
 			goto EXCHANGE_END;
 		}
 
-		if (!db_clientdesc->IsConnected())
+		if (!db_clientdesc->is_connected())
 		{
 			metin2::log::error("Cannot use exchange feature while DB cache connection is dead.");
-			victim->ChatPacket(CHAT_TYPE_INFO, "Unknown error");
-			GetOwner()->ChatPacket(CHAT_TYPE_INFO, "Unknown error");
+			victim->chat_packet(CHAT_TYPE_INFO, "Unknown error");
+			owner()->chat_packet(CHAT_TYPE_INFO, "Unknown error");
 			goto EXCHANGE_END;
 		}
 
-		if (Done())
+		if (done())
 		{
-			if (m_lGold) // Save only when there is gold
-				GetOwner()->Save();
+			if (gold_) // Save only when there is gold
+				owner()->save();
 
-			if (GetCompany()->Done())
+			if (company()->done())
 			{
-				if (GetCompany()->m_lGold) // Save only when there is gold
-					victim->Save();
+				if (company()->gold_) // Save only when there is gold
+					victim->save();
 
 				// INTERNATIONAL_VERSION
-				GetOwner()->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("%s 님과의 교환이 성사 되었습니다."), victim->GetName());
-				victim->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("%s 님과의 교환이 성사 되었습니다."), GetOwner()->GetName());
+				owner()->chat_packet(CHAT_TYPE_INFO, lc_text("%s 님과의 교환이 성사 되었습니다."), victim->name());
+				victim->chat_packet(CHAT_TYPE_INFO, lc_text("%s 님과의 교환이 성사 되었습니다."), owner()->name());
 				// END_OF_INTERNATIONAL_VERSION
 			}
 		}
 
 EXCHANGE_END:
-		Cancel();
+		cancel();
 		return false;
 	}
 	else
 	{
 		// Otherwise send a packet for the accept.
-		exchange_packet(GetOwner(), EXCHANGE_SUBHEADER_GC_ACCEPT, true, m_bAccept, NPOS, 0);
-		exchange_packet(GetCompany()->GetOwner(), EXCHANGE_SUBHEADER_GC_ACCEPT, false, m_bAccept, NPOS, 0);
+		exchange_packet(owner(), EXCHANGE_SUBHEADER_GC_ACCEPT, true, accept_, NPOS, 0);
+		exchange_packet(company()->owner(), EXCHANGE_SUBHEADER_GC_ACCEPT, false, accept_, NPOS, 0);
 		return true;
 	}
 }
 
 // Cancel trade
-void CExchange::Cancel()
+void exchange::cancel()
 {
-	exchange_packet(GetOwner(), EXCHANGE_SUBHEADER_GC_END, 0, 0, NPOS, 0);
-	GetOwner()->SetExchange(nullptr);
+	exchange_packet(owner(), EXCHANGE_SUBHEADER_GC_END, 0, 0, NPOS, 0);
+	owner()->set_exchange(nullptr);
 
 	for (int i = 0; i < EXCHANGE_ITEM_MAX_NUM; ++i)
 	{
-		if (m_apItems[i])
-			m_apItems[i]->SetExchanging(false);
+		if (ap_items_[i])
+			ap_items_[i]->set_exchanging(false);
 	}
 
-	if (GetCompany())
+	if (company())
 	{
-		GetCompany()->SetCompany(nullptr);
-		GetCompany()->Cancel();
+		company()->set_company(nullptr);
+		company()->cancel();
 	}
 
 	delete this;

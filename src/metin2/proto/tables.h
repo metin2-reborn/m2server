@@ -266,89 +266,89 @@ enum {
 
 /* game Server -> DB Server */
 #pragma pack(1)
-enum ERequestChargeType {
+enum request_charge_type {
     ERequestCharge_Cash = 0,
     ERequestCharge_Mileage,
 };
 
-struct TRequestChargeCash {
-    uint32_t dwAID; // id(primary key) - Account Table
-    uint32_t dwAmount;
-    ERequestChargeType eChargeType;
+struct request_charge_cash {
+    uint32_t aid; // id(primary key) - Account Table
+    uint32_t amount;
+    request_charge_type charge_type;
 
 };
 
-struct TSimplePlayer {
-    uint32_t dwID;
-    char szName[CHARACTER_NAME_MAX_LEN + 1];
-    uint8_t byJob;
-    uint8_t byLevel;
-    uint32_t dwPlayMinutes;
-    uint8_t byST, byHT, byDX, byIQ;
-    uint16_t wMainPart;
-    uint8_t bChangeName;
-    uint16_t wHairPart;
-    uint8_t bDummy[4];
+struct simple_player {
+    uint32_t id;
+    char name[CHARACTER_NAME_MAX_LEN + 1];
+    uint8_t job;
+    uint8_t level;
+    uint32_t play_minutes;
+    uint8_t st, ht, dx, iq;
+    uint16_t main_part;
+    uint8_t change_name;
+    uint16_t hair_part;
+    uint8_t dummy[4];
     int32_t x, y;
-    int32_t lAddr;
-    uint16_t wPort;
+    int32_t addr;
+    uint16_t port;
     uint8_t skill_group;
 };
 
-struct TAccountTable {
+struct account_table {
     uint32_t id;
     char login[LOGIN_MAX_LEN + 1];
     char passwd[PASSWD_MAX_LEN + 1];
     char social_id[SOCIAL_ID_MAX_LEN + 1];
     char status[ACCOUNT_STATUS_MAX_LEN + 1];
-    uint8_t bEmpire;
-    TSimplePlayer players[PLAYER_PER_ACCOUNT];
+    uint8_t empire;
+    simple_player players[PLAYER_PER_ACCOUNT];
 };
 
-struct TPacketDGCreateSuccess {
-    uint8_t bAccountCharacterIndex;
-    TSimplePlayer player;
+struct packet_dg_create_success {
+    uint8_t account_character_index;
+    simple_player player;
 };
 
-struct TPlayerItemAttribute {
-    uint8_t bType;
-    short sValue;
+struct player_item_attribute {
+    uint8_t type;
+    short s_value;
 };
 
-struct TPlayerItem {
+struct player_item {
     uint32_t id;
     uint8_t window;
     uint16_t pos;
     uint32_t count;
 
     uint32_t vnum;
-    int32_t alSockets[ITEM_SOCKET_MAX_NUM]; // Socket number
+    int32_t sockets[ITEM_SOCKET_MAX_NUM]; // Socket number
 
-    TPlayerItemAttribute aAttr[ITEM_ATTRIBUTE_MAX_NUM];
+    player_item_attribute attr[ITEM_ATTRIBUTE_MAX_NUM];
 
     uint32_t owner;
 };
 
-struct TQuickslot {
+struct quickslot {
     uint8_t type;
     uint8_t pos;
 };
 
-struct TPlayerSkill {
-    uint8_t bMasterType;
-    uint8_t bLevel;
-    int32_t tNextRead;
+struct player_skill {
+    uint8_t master_type;
+    uint8_t level;
+    int32_t t_next_read;
 };
 
-struct THorseInfo {
-    uint8_t bLevel;
-    uint8_t bRiding;
-    short sStamina;
-    short sHealth;
-    uint32_t dwHorseHealthDropTime;
+struct horse_info {
+    uint8_t level;
+    uint8_t riding;
+    short s_stamina;
+    short s_health;
+    uint32_t horse_health_drop_time;
 };
 
-struct TPlayerTable {
+struct player_table {
     uint32_t id;
 
     char name[CHARACTER_NAME_MAX_LEN + 1];
@@ -366,17 +366,17 @@ struct TPlayerTable {
 
     uint8_t dir;
     int32_t x, y, z;
-    int32_t lMapIndex;
+    int32_t map_index;
 
-    int32_t lExitX, lExitY;
-    int32_t lExitMapIndex;
+    int32_t exit_x, exit_y;
+    int32_t exit_map_index;
 
     // Fix
     int hp;
     int sp;
 
-    int sRandomHP;
-    int sRandomSP;
+    int s_random_hp;
+    int s_random_sp;
 
     int playtime;
 
@@ -385,9 +385,9 @@ struct TPlayerTable {
     short sub_skill_point;
     short horse_skill_point;
 
-    TPlayerSkill skills[SKILL_MAX_NUM];
+    player_skill skills[SKILL_MAX_NUM];
 
-    TQuickslot quickslot[QUICKSLOT_MAX_NUM];
+    proto::quickslot quickslot[QUICKSLOT_MAX_NUM];
 
     uint8_t part_base;
     uint16_t parts[PART_MAX_NUM];
@@ -395,306 +395,306 @@ struct TPlayerTable {
     short stamina;
 
     uint8_t skill_group;
-    int32_t lAlignment;
-    char szMobile[MOBILE_MAX_LEN + 1];
+    int32_t alignment;
+    char mobile[MOBILE_MAX_LEN + 1];
 
     short stat_reset_count;
 
-    THorseInfo horse;
+    horse_info horse;
 
     uint32_t logoff_interval;
 
-    int aiPremiumTimes[PREMIUM_MAX_NUM];
+    int premium_times[PREMIUM_MAX_NUM];
 };
 
-struct TMobSkillLevel {
-    uint32_t dwVnum;
-    uint8_t bLevel;
+struct mob_skill_level {
+    uint32_t vnum;
+    uint8_t level;
 };
 
-struct TEntityTable {
-    uint32_t dwVnum;
+struct entity_table {
+    uint32_t vnum;
 };
 
-struct TMobTable : public TEntityTable {
-    char szName[PROTO_NAME_MAX_LEN + 1];
-    char szLocaleName[PROTO_NAME_MAX_LEN + 1];
+struct mob_table : public entity_table {
+    char name[PROTO_NAME_MAX_LEN + 1];
+    char locale_name[PROTO_NAME_MAX_LEN + 1];
 
-    uint8_t bType;       // Monster, NPC
-    uint8_t bRank;       // PAWN, KNIGHT, KING
-    uint8_t bBattleType; // MELEE, etc..
-    uint8_t bLevel;      // Level
-    uint8_t bSize;
+    uint8_t type;       // Monster, NPC
+    uint8_t rank;       // PAWN, KNIGHT, KING
+    uint8_t battle_type; // MELEE, etc..
+    uint8_t level;      // Level
+    uint8_t size;
 
-    uint32_t dwGoldMin;
-    uint32_t dwGoldMax;
-    uint32_t dwExp;
-    uint32_t dwMaxHP;
-    uint8_t bRegenCycle;
-    uint8_t bRegenPercent;
-    uint16_t wDef;
+    uint32_t gold_min;
+    uint32_t gold_max;
+    uint32_t exp;
+    uint32_t max_hp;
+    uint8_t regen_cycle;
+    uint8_t regen_percent;
+    uint16_t def;
 
-    uint32_t dwAIFlag;
-    uint32_t dwRaceFlag;
-    uint32_t dwImmuneFlag;
+    uint32_t ai_flag;
+    uint32_t race_flag;
+    uint32_t immune_flag;
 
-    uint8_t bStr, bDex, bCon, bInt;
-    uint32_t dwDamageRange[2];
+    uint8_t str, dex, con, int_;
+    uint32_t damage_range[2];
 
-    short sAttackSpeed;
-    short sMovingSpeed;
-    uint8_t bAggresiveHPPct;
-    uint16_t wAggressiveSight;
-    uint16_t wAttackRange;
+    short s_attack_speed;
+    short s_moving_speed;
+    uint8_t aggresive_hp_pct;
+    uint16_t aggressive_sight;
+    uint16_t attack_range;
 
-    char cEnchants[MOB_ENCHANTS_MAX_NUM];
-    char cResists[MOB_RESISTS_MAX_NUM];
+    char c_enchants[MOB_ENCHANTS_MAX_NUM];
+    char c_resists[MOB_RESISTS_MAX_NUM];
 
-    uint32_t dwResurrectionVnum;
-    uint32_t dwDropItemVnum;
+    uint32_t resurrection_vnum;
+    uint32_t drop_item_vnum;
 
-    uint8_t bMountCapacity;
-    uint8_t bOnClickType;
+    uint8_t mount_capacity;
+    uint8_t on_click_type;
 
-    uint8_t bEmpire;
-    char szFolder[64 + 1];
+    uint8_t empire;
+    char folder[64 + 1];
 
-    float fDamMultiply;
+    float dam_multiply;
 
-    uint32_t dwSummonVnum;
-    uint32_t dwDrainSP;
-    uint32_t dwMobColor;
-    uint32_t dwPolymorphItemVnum;
+    uint32_t summon_vnum;
+    uint32_t drain_sp;
+    uint32_t mob_color;
+    uint32_t polymorph_item_vnum;
 
-    TMobSkillLevel Skills[MOB_SKILL_MAX_NUM];
+    mob_skill_level skills[MOB_SKILL_MAX_NUM];
 
-    uint8_t bBerserkPoint;
-    uint8_t bStoneSkinPoint;
-    uint8_t bGodSpeedPoint;
-    uint8_t bDeathBlowPoint;
-    uint8_t bRevivePoint;
+    uint8_t berserk_point;
+    uint8_t stone_skin_point;
+    uint8_t god_speed_point;
+    uint8_t death_blow_point;
+    uint8_t revive_point;
 };
 
-struct TSkillTable {
-    uint32_t dwVnum;
-    char szName[32 + 1];
-    uint8_t bType;
-    uint8_t bMaxLevel;
-    uint32_t dwSplashRange;
+struct skill_table {
+    uint32_t vnum;
+    char name[32 + 1];
+    uint8_t type;
+    uint8_t max_level;
+    uint32_t splash_range;
 
-    char szPointOn[64];
-    char szPointPoly[100 + 1];
-    char szSPCostPoly[100 + 1];
-    char szDurationPoly[100 + 1];
-    char szDurationSPCostPoly[100 + 1];
-    char szCooldownPoly[100 + 1];
-    char szMasterBonusPoly[100 + 1];
-    char szGrandMasterAddSPCostPoly[100 + 1];
-    uint32_t dwFlag;
-    uint32_t dwAffectFlag;
+    char point_on[64];
+    char point_poly[100 + 1];
+    char sp_cost_poly[100 + 1];
+    char duration_poly[100 + 1];
+    char duration_sp_cost_poly[100 + 1];
+    char cooldown_poly[100 + 1];
+    char master_bonus_poly[100 + 1];
+    char grand_master_add_sp_cost_poly[100 + 1];
+    uint32_t flag;
+    uint32_t affect_flag;
 
     // Data for secondary skill
-    char szPointOn2[64];
-    char szPointPoly2[100 + 1];
-    char szDurationPoly2[100 + 1];
-    uint32_t dwAffectFlag2;
+    char point_on2[64];
+    char point_poly2[100 + 1];
+    char duration_poly2[100 + 1];
+    uint32_t affect_flag2;
 
     // Data for grand master point
-    char szPointOn3[64];
-    char szPointPoly3[100 + 1];
-    char szDurationPoly3[100 + 1];
+    char point_on3[64];
+    char point_poly3[100 + 1];
+    char duration_poly3[100 + 1];
 
-    uint8_t bLevelStep;
-    uint8_t bLevelLimit;
-    uint32_t preSkillVnum;
-    uint8_t preSkillLevel;
+    uint8_t level_step;
+    uint8_t level_limit;
+    uint32_t pre_skill_vnum;
+    uint8_t pre_skill_level;
 
-    int32_t lMaxHit;
-    char szSplashAroundDamageAdjustPoly[100 + 1];
+    int32_t max_hit;
+    char splash_around_damage_adjust_poly[100 + 1];
 
-    uint8_t bSkillAttrType;
+    uint8_t skill_attr_type;
 
-    uint32_t dwTargetRange;
+    uint32_t target_range;
 };
 
-struct TShopItemTable {
+struct shop_item_table {
     uint32_t vnum;
     uint8_t count;
 
-    TItemPos pos;        // Used only for PC shops
+    item_pos pos;        // Used only for PC shops
     uint32_t price;      // Used only for PC and shop_table_ex.txt shops
     uint8_t display_pos; // Used only for PC and shop_table_ex.txt shops; display position.
 };
 
-struct TShopTable {
-    uint32_t dwVnum;
-    uint32_t dwNPCVnum;
+struct shop_table {
+    uint32_t vnum;
+    uint32_t npc_vnum;
 
-    uint8_t byItemCount;
-    TShopItemTable items[SHOP_HOST_ITEM_MAX_NUM];
+    uint8_t item_count;
+    shop_item_table items[SHOP_HOST_ITEM_MAX_NUM];
 };
 
 inline constexpr int QUEST_NAME_MAX_LEN = 32;
 inline constexpr int QUEST_STATE_MAX_LEN = 64;
 
-struct TQuestTable {
-    uint32_t dwPID;
-    char szName[QUEST_NAME_MAX_LEN + 1];
-    char szState[QUEST_STATE_MAX_LEN + 1];
-    int32_t lValue;
+struct quest_table {
+    uint32_t pid;
+    char name[QUEST_NAME_MAX_LEN + 1];
+    char state[QUEST_STATE_MAX_LEN + 1];
+    int32_t value;
 };
 
-struct TItemLimit {
-    uint8_t bType;
-    int32_t lValue;
+struct item_limit {
+    uint8_t type;
+    int32_t value;
 };
 
-struct TItemApply {
-    uint8_t bType;
-    int32_t lValue;
+struct item_apply {
+    uint8_t type;
+    int32_t value;
 };
 
-struct TItemTable : public TEntityTable {
-    uint32_t dwVnumRange;
-    char szName[PROTO_NAME_MAX_LEN + 1];
-    char szLocaleName[PROTO_NAME_MAX_LEN + 1];
-    uint8_t bType;
-    uint8_t bSubType;
+struct item_table : public entity_table {
+    uint32_t vnum_range;
+    char name[PROTO_NAME_MAX_LEN + 1];
+    char locale_name[PROTO_NAME_MAX_LEN + 1];
+    uint8_t type;
+    uint8_t sub_type;
 
-    uint8_t bWeight;
-    uint8_t bSize;
+    uint8_t weight;
+    uint8_t size;
 
-    uint32_t dwAntiFlags;
-    uint32_t dwFlags;
-    uint32_t dwWearFlags;
-    uint32_t dwImmuneFlag;
+    uint32_t anti_flags;
+    uint32_t flags;
+    uint32_t wear_flags;
+    uint32_t immune_flag;
 
-    uint32_t dwGold;
-    uint32_t dwShopBuyPrice;
+    uint32_t gold;
+    uint32_t shop_buy_price;
 
-    TItemLimit aLimits[ITEM_LIMIT_MAX_NUM];
-    TItemApply aApplies[ITEM_APPLY_MAX_NUM];
-    int32_t alValues[ITEM_VALUES_MAX_NUM];
-    int32_t alSockets[ITEM_SOCKET_MAX_NUM];
-    uint32_t dwRefinedVnum;
-    uint16_t wRefineSet;
-    uint8_t bAlterToMagicItemPct;
-    uint8_t bSpecular;
-    uint8_t bGainSocketPct;
+    item_limit limits[ITEM_LIMIT_MAX_NUM];
+    item_apply applies[ITEM_APPLY_MAX_NUM];
+    int32_t values[ITEM_VALUES_MAX_NUM];
+    int32_t sockets[ITEM_SOCKET_MAX_NUM];
+    uint32_t refined_vnum;
+    uint16_t refine_set;
+    uint8_t alter_to_magic_item_pct;
+    uint8_t specular;
+    uint8_t gain_socket_pct;
 
-    short int sAddonType; // Base attributes
+    short int s_addon_type; // Base attributes
 
     // The limit flags below are checked often in realtime and are fixed per item VNUM,
     // but with the current structure, looping up to LIMIT_MAX_NUM for every item each time is costly, so they are stored in advance.
-    char cLimitRealTimeFirstUseIndex; // Index of the LIMIT_REAL_TIME_FIRST_USE flag among the item limit fields (-1 if none)
-    char cLimitTimerBasedOnWearIndex; // Index of the LIMIT_TIMER_BASED_ON_WEAR flag among the item limit fields (-1 if none)
+    char c_limit_real_time_first_use_index; // Index of the LIMIT_REAL_TIME_FIRST_USE flag among the item limit fields (-1 if none)
+    char c_limit_timer_based_on_wear_index; // Index of the LIMIT_TIMER_BASED_ON_WEAR flag among the item limit fields (-1 if none)
 
 };
 
-struct TItemAttrTable {
-    TItemAttrTable() : szApply{}, dwApplyIndex(0), dwProb(0), lValues{}, bMaxLevelBySet{} {}
+struct item_attr_table {
+    item_attr_table() : apply{}, apply_index(0), prob(0), values{}, max_level_by_set{} {}
 
-    char szApply[APPLY_NAME_MAX_LEN + 1];
-    uint32_t dwApplyIndex;
-    uint32_t dwProb;
-    int32_t lValues[5];
-    uint8_t bMaxLevelBySet[ATTRIBUTE_SET_MAX_NUM];
+    char apply[APPLY_NAME_MAX_LEN + 1];
+    uint32_t apply_index;
+    uint32_t prob;
+    int32_t values[5];
+    uint8_t max_level_by_set[ATTRIBUTE_SET_MAX_NUM];
 };
 
-struct TLoginPacket {
+struct login_packet {
     char login[LOGIN_MAX_LEN + 1];
     char passwd[PASSWD_MAX_LEN + 1];
 };
 
-struct TPlayerLoadPacket {
+struct player_load_packet {
     uint32_t account_id;
     uint32_t player_id;
     uint8_t account_index; /* position in account */
 };
 
-struct TPlayerCreatePacket {
+struct player_create_packet {
     char login[LOGIN_MAX_LEN + 1];
     char passwd[PASSWD_MAX_LEN + 1];
     uint32_t account_id;
     uint8_t account_index;
-    TPlayerTable player_table;
+    proto::player_table player_table;
 };
 
-struct TPlayerDeletePacket {
+struct player_delete_packet {
     char login[LOGIN_MAX_LEN + 1];
     uint32_t player_id;
     uint8_t account_index;
     char private_code[8];
 };
 
-struct TLogoutPacket {
+struct logout_packet {
     char login[LOGIN_MAX_LEN + 1];
     char passwd[PASSWD_MAX_LEN + 1];
 };
 
-struct TPlayerCountPacket {
-    uint32_t dwCount;
+struct player_count_packet {
+    uint32_t count;
 };
 
 inline constexpr int SAFEBOX_MAX_NUM = 135;
 inline constexpr int SAFEBOX_PASSWORD_MAX_LEN = 6;
 
-struct TSafeboxTable {
-    uint32_t dwID;
-    uint8_t bSize;
-    uint32_t dwGold;
-    uint16_t wItemCount;
+struct safebox_table {
+    uint32_t id;
+    uint8_t size;
+    uint32_t gold;
+    uint16_t item_count;
 };
 
-struct TSafeboxChangeSizePacket {
-    uint32_t dwID;
-    uint8_t bSize;
+struct safebox_change_size_packet {
+    uint32_t id;
+    uint8_t size;
 };
 
-struct TSafeboxLoadPacket {
-    uint32_t dwID;
-    char szLogin[LOGIN_MAX_LEN + 1];
-    char szPassword[SAFEBOX_PASSWORD_MAX_LEN + 1];
+struct safebox_load_packet {
+    uint32_t id;
+    char login[LOGIN_MAX_LEN + 1];
+    char password[SAFEBOX_PASSWORD_MAX_LEN + 1];
 };
 
-struct TSafeboxChangePasswordPacket {
-    uint32_t dwID;
-    char szOldPassword[SAFEBOX_PASSWORD_MAX_LEN + 1];
-    char szNewPassword[SAFEBOX_PASSWORD_MAX_LEN + 1];
+struct safebox_change_password_packet {
+    uint32_t id;
+    char old_password[SAFEBOX_PASSWORD_MAX_LEN + 1];
+    char new_password[SAFEBOX_PASSWORD_MAX_LEN + 1];
 };
 
-struct TSafeboxChangePasswordPacketAnswer {
+struct safebox_change_password_packet_answer {
     uint8_t flag;
 };
 
-struct TEmpireSelectPacket {
-    uint32_t dwAccountID;
-    uint8_t bEmpire;
+struct empire_select_packet {
+    uint32_t account_id;
+    uint8_t empire;
 };
 
-struct TPacketGDSetup {
-    char szPublicIP[16];  // Public IP which listen to users
-    uint8_t bChannel;     // Channel
-    uint16_t wListenPort; // Port number clients connect to
-    uint16_t wP2PPort;    // P2P port number for server-to-server connections
-    int32_t alMaps[MAX_MAPS_PER_SERVER];
-    uint32_t dwLoginCount;
-    uint8_t bAuthServer;
+struct packet_gd_setup {
+    char public_ip[16];  // Public IP which listen to users
+    uint8_t channel;     // Channel
+    uint16_t listen_port; // Port number clients connect to
+    uint16_t p2_p_port;    // P2P port number for server-to-server connections
+    int32_t maps[MAX_MAPS_PER_SERVER];
+    uint32_t login_count;
+    uint8_t auth_server;
 };
 
-struct TMapLocation {
-    int32_t alMaps[MAX_MAPS_PER_SERVER];
-    char szHost[MAX_HOST_LENGTH + 1];
-    uint16_t wPort;
+struct map_location {
+    int32_t maps[MAX_MAPS_PER_SERVER];
+    char host[MAX_HOST_LENGTH + 1];
+    uint16_t port;
 };
 
-struct TPacketDGP2P {
-    char szHost[MAX_HOST_LENGTH + 1];
-    uint16_t wPort;
-    uint8_t bChannel;
+struct packet_dg_p2_p {
+    char host[MAX_HOST_LENGTH + 1];
+    uint16_t port;
+    uint8_t channel;
 };
 
-struct TPacketGuildSkillUpdate {
+struct packet_guild_skill_update {
     uint32_t guild_id;
     int amount;
     uint8_t skill_levels[12];
@@ -702,12 +702,12 @@ struct TPacketGuildSkillUpdate {
     uint8_t save;
 };
 
-struct TPacketGuildExpUpdate {
+struct packet_guild_exp_update {
     uint32_t guild_id;
     int amount;
 };
 
-struct TPacketGuildChangeMemberData {
+struct packet_guild_change_member_data {
     uint32_t guild_id;
     uint32_t pid;
     uint32_t offer;
@@ -715,474 +715,474 @@ struct TPacketGuildChangeMemberData {
     uint8_t grade;
 };
 
-struct TPacketDGLoginAlready {
-    char szLogin[LOGIN_MAX_LEN + 1];
+struct packet_dg_login_already {
+    char login[LOGIN_MAX_LEN + 1];
 };
 
-struct TPacketAffectElement {
-    uint32_t dwType;
-    uint8_t bApplyOn;
-    int32_t lApplyValue;
-    uint32_t dwFlag;
-    int32_t lDuration;
-    int32_t lSPCost;
+struct packet_affect_element {
+    uint32_t type;
+    uint8_t apply_on;
+    int32_t apply_value;
+    uint32_t flag;
+    int32_t duration;
+    int32_t sp_cost;
 };
 
-struct TPacketGDAddAffect {
-    uint32_t dwPID;
-    TPacketAffectElement elem;
+struct packet_gd_add_affect {
+    uint32_t pid;
+    packet_affect_element elem;
 };
 
-struct TPacketGDRemoveAffect {
-    uint32_t dwPID;
-    uint32_t dwType;
-    uint8_t bApplyOn;
+struct packet_gd_remove_affect {
+    uint32_t pid;
+    uint32_t type;
+    uint8_t apply_on;
 };
 
-struct TPacketGDHighscore {
-    uint32_t dwPID;
-    int32_t lValue;
-    char cDir;
-    char szBoard[21];
+struct packet_gd_highscore {
+    uint32_t pid;
+    int32_t value;
+    char c_dir;
+    char board[21];
 };
 
-struct TPacketPartyCreate {
-    uint32_t dwLeaderPID;
+struct packet_party_create {
+    uint32_t leader_pid;
 };
 
-struct TPacketPartyDelete {
-    uint32_t dwLeaderPID;
+struct packet_party_delete {
+    uint32_t leader_pid;
 };
 
-struct TPacketPartyAdd {
-    uint32_t dwLeaderPID;
-    uint32_t dwPID;
-    uint8_t bState;
+struct packet_party_add {
+    uint32_t leader_pid;
+    uint32_t pid;
+    uint8_t state;
 };
 
-struct TPacketPartyRemove {
-    uint32_t dwLeaderPID;
-    uint32_t dwPID;
+struct packet_party_remove {
+    uint32_t leader_pid;
+    uint32_t pid;
 };
 
-struct TPacketPartyStateChange {
-    uint32_t dwLeaderPID;
-    uint32_t dwPID;
-    uint8_t bRole;
-    uint8_t bFlag;
+struct packet_party_state_change {
+    uint32_t leader_pid;
+    uint32_t pid;
+    uint8_t role;
+    uint8_t flag;
 };
 
-struct TPacketPartySetMemberLevel {
-    uint32_t dwLeaderPID;
-    uint32_t dwPID;
-    uint8_t bLevel;
+struct packet_party_set_member_level {
+    uint32_t leader_pid;
+    uint32_t pid;
+    uint8_t level;
 };
 
-struct TPacketGDBoot {
-    uint32_t dwItemIDRange[2];
-    char szIP[16];
+struct packet_gd_boot {
+    uint32_t item_id_range[2];
+    char ip[16];
 };
 
-struct TPacketGuild {
-    uint32_t dwGuild;
-    uint32_t dwInfo;
+struct packet_guild {
+    uint32_t guild;
+    uint32_t info;
 };
 
-struct TPacketGDGuildAddMember {
-    uint32_t dwPID;
-    uint32_t dwGuild;
-    uint8_t bGrade;
+struct packet_gd_guild_add_member {
+    uint32_t pid;
+    uint32_t guild;
+    uint8_t grade;
 };
 
-struct TPacketDGGuildMember {
-    uint32_t dwPID;
-    uint32_t dwGuild;
-    uint8_t bGrade;
-    uint8_t isGeneral;
-    uint8_t bJob;
-    uint8_t bLevel;
-    uint32_t dwOffer;
-    char szName[CHARACTER_NAME_MAX_LEN + 1];
+struct packet_dg_guild_member {
+    uint32_t pid;
+    uint32_t guild;
+    uint8_t grade;
+    uint8_t is_general;
+    uint8_t job;
+    uint8_t level;
+    uint32_t offer;
+    char name[CHARACTER_NAME_MAX_LEN + 1];
 };
 
-struct TPacketGuildWar {
-    uint8_t bType;
-    uint8_t bWar;
-    uint32_t dwGuildFrom;
-    uint32_t dwGuildTo;
-    int32_t lWarPrice;
-    int32_t lInitialScore;
+struct packet_guild_war {
+    uint8_t type;
+    uint8_t war;
+    uint32_t guild_from;
+    uint32_t guild_to;
+    int32_t war_price;
+    int32_t initial_score;
 };
 
 // Game -> DB : relative change
 // DB -> Game : final total value
-struct TPacketGuildWarScore {
-    uint32_t dwGuildGainPoint;
-    uint32_t dwGuildOpponent;
-    int32_t lScore;
-    int32_t lBetScore;
+struct packet_guild_war_score {
+    uint32_t guild_gain_point;
+    uint32_t guild_opponent;
+    int32_t score;
+    int32_t bet_score;
 };
 
-struct TRefineMaterial {
+struct refine_material {
     uint32_t vnum;
     int count;
 };
 
-struct TRefineTable {
+struct refine_table {
     uint32_t id;
     uint8_t material_count;
     int cost; // Cost
     int prob; // Probability
-    TRefineMaterial materials[REFINE_MATERIAL_MAX_NUM];
+    refine_material materials[REFINE_MATERIAL_MAX_NUM];
 };
 
-struct TBanwordTable {
-    char szWord[BANWORD_MAX_LEN + 1];
+struct banword_table {
+    char word[BANWORD_MAX_LEN + 1];
 };
 
-struct TPacketGDChangeName {
+struct packet_gd_change_name {
     uint32_t pid;
     char name[CHARACTER_NAME_MAX_LEN + 1];
 };
 
-struct TPacketDGChangeName {
+struct packet_dg_change_name {
     uint32_t pid;
     char name[CHARACTER_NAME_MAX_LEN + 1];
 };
 
-struct TPacketGuildLadder {
-    uint32_t dwGuild;
-    int32_t lLadderPoint;
-    int32_t lWin;
-    int32_t lDraw;
-    int32_t lLoss;
+struct packet_guild_ladder {
+    uint32_t guild;
+    int32_t ladder_point;
+    int32_t win;
+    int32_t draw;
+    int32_t loss;
 };
 
-struct TPacketGuildLadderPoint {
-    uint32_t dwGuild;
-    int32_t lChange;
+struct packet_guild_ladder_point {
+    uint32_t guild;
+    int32_t change;
 };
 
-struct TPacketGDSMS {
-    char szFrom[CHARACTER_NAME_MAX_LEN + 1];
-    char szTo[CHARACTER_NAME_MAX_LEN + 1];
-    char szMobile[MOBILE_MAX_LEN + 1];
-    char szMsg[SMS_MAX_LEN + 1];
+struct packet_gdsms {
+    char from[CHARACTER_NAME_MAX_LEN + 1];
+    char to[CHARACTER_NAME_MAX_LEN + 1];
+    char mobile[MOBILE_MAX_LEN + 1];
+    char msg[SMS_MAX_LEN + 1];
 };
 
-struct TPacketGuildUseSkill {
-    uint32_t dwGuild;
-    uint32_t dwSkillVnum;
-    uint32_t dwCooltime;
+struct packet_guild_use_skill {
+    uint32_t guild;
+    uint32_t skill_vnum;
+    uint32_t cooltime;
 };
 
-struct TPacketGuildSkillUsableChange {
-    uint32_t dwGuild;
-    uint32_t dwSkillVnum;
-    uint8_t bUsable;
+struct packet_guild_skill_usable_change {
+    uint32_t guild;
+    uint32_t skill_vnum;
+    uint8_t usable;
 };
 
-struct TPacketGDAuthLogin {
-    uint32_t dwID;
-    uint32_t dwLoginKey;
-    char szLogin[LOGIN_MAX_LEN + 1];
-    char szSocialID[SOCIAL_ID_MAX_LEN + 1];
-    uint32_t adwClientKey[4];
-    int iPremiumTimes[PREMIUM_MAX_NUM];
+struct packet_gd_auth_login {
+    uint32_t id;
+    uint32_t login_key;
+    char login[LOGIN_MAX_LEN + 1];
+    char social_id[SOCIAL_ID_MAX_LEN + 1];
+    uint32_t client_key[4];
+    int premium_times[PREMIUM_MAX_NUM];
 };
 
-struct TPacketGDLoginByKey {
-    char szLogin[LOGIN_MAX_LEN + 1];
-    uint32_t dwLoginKey;
-    uint32_t adwClientKey[4];
-    char szIP[MAX_HOST_LENGTH + 1];
+struct packet_gd_login_by_key {
+    char login[LOGIN_MAX_LEN + 1];
+    uint32_t login_key;
+    uint32_t client_key[4];
+    char ip[MAX_HOST_LENGTH + 1];
 };
 
 /**
  * @version 05/06/08	Bang2ni - added duration
  */
-struct TPacketGiveGuildPriv {
+struct packet_give_guild_priv {
     uint8_t type;
     int value;
     uint32_t guild_id;
     int32_t duration_sec; ///< Duration
 };
-struct TPacketGiveEmpirePriv {
+struct packet_give_empire_priv {
     uint8_t type;
     int value;
     uint8_t empire;
     int32_t duration_sec;
 };
-struct TPacketGiveCharacterPriv {
+struct packet_give_character_priv {
     uint8_t type;
     int value;
     uint32_t pid;
 };
 
-struct TPacketDGChangeCharacterPriv {
+struct packet_dg_change_character_priv {
     uint8_t type;
     int value;
     uint32_t pid;
-    uint8_t bLog;
+    uint8_t log;
 };
 
 /**
  * @version 05/06/08	Bang2ni - added duration
  */
-struct TPacketDGChangeGuildPriv {
+struct packet_dg_change_guild_priv {
     uint8_t type;
     int value;
     uint32_t guild_id;
-    uint8_t bLog;
+    uint8_t log;
     int32_t end_time_sec; ///< Duration
 };
 
-struct TPacketDGChangeEmpirePriv {
+struct packet_dg_change_empire_priv {
     uint8_t type;
     int value;
     uint8_t empire;
-    uint8_t bLog;
+    uint8_t log;
     int32_t end_time_sec;
 };
 
-struct TPacketMoneyLog {
+struct packet_money_log {
     uint8_t type;
     uint32_t vnum;
     int32_t gold;
 };
 
-struct TPacketGDGuildMoney {
-    uint32_t dwGuild;
-    int32_t iGold;
+struct packet_gd_guild_money {
+    uint32_t guild;
+    int32_t gold;
 };
 
-struct TPacketDGGuildMoneyChange {
-    uint32_t dwGuild;
-    int32_t iTotalGold;
+struct packet_dg_guild_money_change {
+    uint32_t guild;
+    int32_t total_gold;
 };
 
-struct TPacketDGGuildMoneyWithdraw {
-    uint32_t dwGuild;
-    int32_t iChangeGold;
+struct packet_dg_guild_money_withdraw {
+    uint32_t guild;
+    int32_t change_gold;
 };
 
-struct TPacketGDGuildMoneyWithdrawGiveReply {
-    uint32_t dwGuild;
-    int32_t iChangeGold;
-    uint8_t bGiveSuccess;
+struct packet_gd_guild_money_withdraw_give_reply {
+    uint32_t guild;
+    int32_t change_gold;
+    uint8_t give_success;
 };
 
-struct TPacketSetEventFlag {
-    char szFlagName[EVENT_FLAG_NAME_MAX_LEN + 1];
-    int32_t lValue;
+struct packet_set_event_flag {
+    char flag_name[EVENT_FLAG_NAME_MAX_LEN + 1];
+    int32_t value;
 };
 
-struct TPacketLoginOnSetup {
-    uint32_t dwID;
-    char szLogin[LOGIN_MAX_LEN + 1];
-    char szSocialID[SOCIAL_ID_MAX_LEN + 1];
-    char szHost[MAX_HOST_LENGTH + 1];
-    uint32_t dwLoginKey;
-    uint32_t adwClientKey[4];
+struct packet_login_on_setup {
+    uint32_t id;
+    char login[LOGIN_MAX_LEN + 1];
+    char social_id[SOCIAL_ID_MAX_LEN + 1];
+    char host[MAX_HOST_LENGTH + 1];
+    uint32_t login_key;
+    uint32_t client_key[4];
 };
 
-struct TPacketGDCreateObject {
-    uint32_t dwVnum;
-    uint32_t dwLandID;
-    int32_t lMapIndex;
+struct packet_gd_create_object {
+    uint32_t vnum;
+    uint32_t land_id;
+    int32_t map_index;
     int32_t x, y;
-    float xRot;
-    float yRot;
-    float zRot;
+    float x_rot;
+    float y_rot;
+    float z_rot;
 };
 
-struct TGuildWarReserve {
-    uint32_t dwID;
-    uint32_t dwGuildFrom;
-    uint32_t dwGuildTo;
-    uint32_t dwTime;
-    uint8_t bType;
-    int32_t lWarPrice;
-    int32_t lInitialScore;
-    bool bStarted;
-    uint32_t dwBetFrom;
-    uint32_t dwBetTo;
-    int32_t lPowerFrom;
-    int32_t lPowerTo;
-    int32_t lHandicap;
+struct guild_war_reserve {
+    uint32_t id;
+    uint32_t guild_from;
+    uint32_t guild_to;
+    uint32_t time;
+    uint8_t type;
+    int32_t war_price;
+    int32_t initial_score;
+    bool started;
+    uint32_t bet_from;
+    uint32_t bet_to;
+    int32_t power_from;
+    int32_t power_to;
+    int32_t handicap;
 };
 
-struct TPacketGDGuildWarBet {
-    uint32_t dwWarID;
-    char szLogin[LOGIN_MAX_LEN + 1];
-    uint32_t dwGold;
-    uint32_t dwGuild;
+struct packet_gd_guild_war_bet {
+    uint32_t war_id;
+    char login[LOGIN_MAX_LEN + 1];
+    uint32_t gold;
+    uint32_t guild;
 };
 
 // Marriage
 
-struct TPacketMarriageAdd {
-    uint32_t dwPID1;
-    uint32_t dwPID2;
-    int32_t tMarryTime;
-    char szName1[CHARACTER_NAME_MAX_LEN + 1];
-    char szName2[CHARACTER_NAME_MAX_LEN + 1];
+struct packet_marriage_add {
+    uint32_t pi_d1;
+    uint32_t pi_d2;
+    int32_t t_marry_time;
+    char name1[CHARACTER_NAME_MAX_LEN + 1];
+    char name2[CHARACTER_NAME_MAX_LEN + 1];
 };
 
-struct TPacketMarriageUpdate {
-    uint32_t dwPID1;
-    uint32_t dwPID2;
-    int32_t iLovePoint;
-    uint8_t byMarried;
+struct packet_marriage_update {
+    uint32_t pi_d1;
+    uint32_t pi_d2;
+    int32_t love_point;
+    uint8_t married;
 };
 
-struct TPacketMarriageRemove {
-    uint32_t dwPID1;
-    uint32_t dwPID2;
+struct packet_marriage_remove {
+    uint32_t pi_d1;
+    uint32_t pi_d2;
 };
 
-struct TPacketWeddingRequest {
-    uint32_t dwPID1;
-    uint32_t dwPID2;
+struct packet_wedding_request {
+    uint32_t pi_d1;
+    uint32_t pi_d2;
 };
 
-struct TPacketWeddingReady {
-    uint32_t dwPID1;
-    uint32_t dwPID2;
-    uint32_t dwMapIndex;
+struct packet_wedding_ready {
+    uint32_t pi_d1;
+    uint32_t pi_d2;
+    uint32_t map_index;
 };
 
-struct TPacketWeddingStart {
-    uint32_t dwPID1;
-    uint32_t dwPID2;
+struct packet_wedding_start {
+    uint32_t pi_d1;
+    uint32_t pi_d2;
 };
 
-struct TPacketWeddingEnd {
-    uint32_t dwPID1;
-    uint32_t dwPID2;
+struct packet_wedding_end {
+    uint32_t pi_d1;
+    uint32_t pi_d2;
 };
 
 /// Header of private shop price info. Variable-size packet; byCount TItemPriceInfo entries follow.
-struct TPacketMyshopPricelistHeader {
-    uint32_t dwOwnerID; ///< ID of the player owning the price info
-    uint8_t byCount;    ///< Number of price entries
+struct packet_myshop_pricelist_header {
+    uint32_t owner_id; ///< ID of the player owning the price info
+    uint8_t count;    ///< Number of price entries
 };
 
 /// Price info for a single item in a private shop
-struct TItemPriceInfo {
-    uint32_t dwVnum;  ///< Item vnum
-    uint32_t dwPrice; ///< Price
+struct item_price_info {
+    uint32_t vnum;  ///< Item vnum
+    uint32_t price; ///< Price
 };
 
 /// Private shop item price info list table
-struct TItemPriceListTable {
-    uint32_t dwOwnerID; ///< ID of the player owning the price info
-    uint8_t byCount;    ///< Number of entries in the price list
+struct item_price_list_table {
+    uint32_t owner_id; ///< ID of the player owning the price info
+    uint8_t count;    ///< Number of entries in the price list
 
-    TItemPriceInfo aPriceInfo[SHOP_PRICELIST_MAX_NUM]; ///< Price info list
+    item_price_info price_info[SHOP_PRICELIST_MAX_NUM]; ///< Price info list
 };
 
-struct TPacketBlockChat {
-    char szName[CHARACTER_NAME_MAX_LEN + 1];
-    int32_t lDuration;
+struct packet_block_chat {
+    char name[CHARACTER_NAME_MAX_LEN + 1];
+    int32_t duration;
 };
 
 // ADMIN_MANAGER
-struct tAdminInfo {
-    int m_ID;               // Unique ID
-    char m_szAccount[32];   // Account
-    char m_szName[32];      // Character name
-    char m_szContactIP[16]; // Access IP
-    char m_szServerIP[16];  // Server IP
-    int m_Authority;        // Authority
+struct t_admin_info {
+    int id;               // Unique ID
+    char account[32];   // Account
+    char name[32];      // Character name
+    char contact_ip[16]; // Access IP
+    char server_ip[16];  // Server IP
+    int authority;        // Authority
 };
 // END_ADMIN_MANAGER
 
 // BOOT_LOCALIZATION
-struct tLocale {
-    char szValue[32];
-    char szKey[32];
+struct t_locale {
+    char value[32];
+    char key[32];
 };
 // BOOT_LOCALIZATION
 
 // RELOAD_ADMIN
-struct TPacketReloadAdmin {
-    char szIP[16];
+struct packet_reload_admin {
+    char ip[16];
 };
 // END_RELOAD_ADMIN
 
-struct MonarchInfo {
+struct monarch_info {
     uint32_t pid[4];  // Monarch's PID
     int64_t money[4]; // Monarch's separate funds
     char name[4][32]; // Monarch's name
     char date[4][32]; // Monarch registration date
 };
 
-struct MonarchElectionInfo {
+struct monarch_election_info {
     uint32_t pid;         // PID of the voter
     uint32_t selectedpid; // PID voted for ( monarch candidate )
     char date[32];        // Vote date
 };
 
 // Monarch candidate
-struct MonarchCandidacy {
+struct monarch_candidacy {
     uint32_t pid;
     char name[32];
     char date[32];
 };
 
-struct TPacketChangeMonarchLord {
-    uint8_t bEmpire;
-    uint32_t dwPID;
+struct packet_change_monarch_lord {
+    uint8_t empire;
+    uint32_t pid;
 };
 
-struct TPacketChangeMonarchLordACK {
-    uint8_t bEmpire;
-    uint32_t dwPID;
-    char szName[32];
-    char szDate[32];
+struct packet_change_monarch_lord_ack {
+    uint8_t empire;
+    uint32_t pid;
+    char name[32];
+    char date[32];
 };
 
-struct TPacketChangeGuildMaster {
-    uint32_t dwGuildID;
-    uint32_t idFrom;
-    uint32_t idTo;
+struct packet_change_guild_master {
+    uint32_t guild_id;
+    uint32_t id_from;
+    uint32_t id_to;
 };
 
-struct TItemIDRangeTable {
-    uint32_t dwMin;
-    uint32_t dwMax;
-    uint32_t dwUsableItemIDMin;
+struct item_id_range_table {
+    uint32_t min;
+    uint32_t max;
+    uint32_t usable_item_id_min;
 };
 
-struct TPacketUpdateHorseName {
-    uint32_t dwPlayerID;
-    char szHorseName[CHARACTER_NAME_MAX_LEN + 1];
+struct packet_update_horse_name {
+    uint32_t player_id;
+    char horse_name[CHARACTER_NAME_MAX_LEN + 1];
 };
 
-struct TPacketDC {
+struct packet_dc {
     char login[LOGIN_MAX_LEN + 1];
 };
 
-struct TPacketNeedLoginLogInfo {
-    uint32_t dwPlayerID;
+struct packet_need_login_log_info {
+    uint32_t player_id;
 };
 
 // Packet info for testing the German gift notification feature
-struct TPacketItemAwardInfromer {
+struct packet_item_award_infromer {
     char login[LOGIN_MAX_LEN + 1];
     char command[20];  // Command
     unsigned int vnum; // Item
 };
 
 // Packet info for deleting gift notifications
-struct TPacketDeleteAwardID {
-    uint32_t dwID;
+struct packet_delete_award_id {
+    uint32_t id;
 };
 
-struct TChannelStatus {
-    short nPort;
-    uint8_t bStatus;
+struct channel_status {
+    short port;
+    uint8_t status;
 };
 
 #pragma pack()

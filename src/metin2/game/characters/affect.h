@@ -6,18 +6,18 @@
 
 namespace metin2::game::inline characters {
 
-class CAffect
+class affect
 {
 	public:
-		uint32_t	dwType;
-		uint8_t    bApplyOn;
-		int32_t    lApplyValue;
-		uint32_t   dwFlag;
-		int32_t	lDuration;
-		int32_t	lSPCost;
+		uint32_t	type;
+		uint8_t    apply_on;
+		int32_t    apply_value;
+		uint32_t   flag;
+		int32_t	duration;
+		int32_t	sp_cost;
 };
 
-enum EAffectTypes
+enum affect_types
 {
 	AFFECT_NONE,
 
@@ -110,7 +110,7 @@ enum EAffectTypes
 	AFFECT_QUEST_START_IDX = 1000
 };
 
-enum EAffectBits
+enum affect_bits
 {   
 	AFF_NONE,
 
@@ -166,10 +166,10 @@ enum EAffectBits
 	AFF_BITS_MAX
 };
 
-extern void SendAffectAddPacket(DESC * d, CAffect * pkAff);
+extern void send_affect_add_packet(desc * d, affect * pkAff);
 
 // AFFECT_DURATION_BUG_FIX
-enum AffectVariable
+enum affect_variable
 {
 	// Used when an Affect must last indefinitely.
 	// Time keeps decreasing, so infinity is emulated with a very large value.

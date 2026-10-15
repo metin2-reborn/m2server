@@ -10,7 +10,7 @@
 
 namespace metin2::game::inline characters {
 
-enum EMotionMode
+enum motion_mode
 {
 	MOTION_MODE_GENERAL,
 	MOTION_MODE_ONEHAND_SWORD,
@@ -23,7 +23,7 @@ enum EMotionMode
 	MOTION_MODE_MAX_NUM
 };
 
-enum EPublicMotion
+enum public_motion
 {
 	MOTION_NONE,                // 0 none
 	MOTION_WAIT,                // 1 wait          (00.msa)
@@ -67,75 +67,75 @@ enum EPublicMotion
 	MOTION_MAX_NUM = PUBLIC_MOTION_END,
 };
 
-class CMob;
+class mob;
 
-class CMotion
+class motion
 {
 	public:
-		CMotion();
-		~CMotion();
+		motion();
+		~motion();
 
-		bool			LoadFromFile(const char * c_pszFileName);
-		bool			LoadMobSkillFromFile(const char * c_pszFileName, CMob * pMob, int iSkillIndex);
+		bool			load_from_file(const char * c_pszFileName);
+		bool			load_mob_skill_from_file(const char * c_pszFileName, mob * pMob, int iSkillIndex);
 
-		float			GetDuration() const;
-		const VECTOR &	GetAccumVector() const;
+		float			duration() const;
+		const vector &	accum_vector() const;
 
-		bool			IsEmpty();
+		bool			is_empty();
 
 	protected:
-		float			m_fDuration;
-		VECTOR		m_vec3Accumulation;
+		float			duration_;
+		vector		vec3_accumulation_;
 };
 
-constexpr uint32_t MAKE_MOTION_KEY(uint32_t mode, uint32_t index) { return (mode << 24) | (index << 8); }
+constexpr uint32_t make_motion_key(uint32_t mode, uint32_t index) { return (mode << 24) | (index << 8); }
 
-class CMotionSet
+class motion_set
 {
 	public:
-		typedef std::map<uint32_t, std::unique_ptr<CMotion>>	TContainer;
-		typedef TContainer::iterator		iterator;
-		typedef TContainer::const_iterator	const_iterator;
+		typedef std::map<uint32_t, std::unique_ptr<motion>>	container;
+		typedef container::iterator		iterator;
+		typedef container::const_iterator	const_iterator;
 
 	public:
-		CMotionSet();
-		~CMotionSet();
+		motion_set();
+		~motion_set();
 
-		void		Insert(uint32_t dwKey, std::unique_ptr<CMotion> pkMotion);
-		bool		Load(const char * szFileName, int mode, int motion);
+		void		insert(uint32_t dwKey, std::unique_ptr<motion> pkMotion);
+		bool		load(const char * szFileName, int mode, int motion);
 
-		const CMotion *	GetMotion(uint32_t dwKey) const;
+		const motion *	get_motion(uint32_t dwKey) const;
 
 	protected:
 		// uint32_t = MOTION_KEY
-		TContainer			m_map_pkMotion;
+		container			map_pk_motion_;
 };
 
-class CMotionManager : public singleton<CMotionManager>
+class motion_manager : public singleton<motion_manager>
 {
 	public:
-		typedef std::map<uint32_t, std::unique_ptr<CMotionSet>> TContainer;
-		typedef TContainer::iterator iterator;
+		typedef std::map<uint32_t, std::unique_ptr<motion_set>> container;
+		typedef container::iterator iterator;
 
-		CMotionManager();
-		~CMotionManager() override;
+		motion_manager();
+		~motion_manager() override;
 
-		bool			Build();
+		bool			build();
 
-		const CMotionSet *	GetMotionSet(uint32_t dwVnum);
-		const CMotion *		GetMotion(uint32_t dwVnum, uint32_t dwKey);
-		float			    GetMotionDuration(uint32_t dwVnum, uint32_t dwKey);
+		const motion_set *	get_motion_set(uint32_t dwVnum);
+		const motion *		get_motion(uint32_t dwVnum, uint32_t dwKey);
+		float			    motion_duration(uint32_t dwVnum, uint32_t dwKey);
 
 		// POLYMORPH_BUG_FIX
-		float			    GetNormalAttackDuration(uint32_t dwVnum);
+		float			    normal_attack_duration(uint32_t dwVnum);
 		// END_OF_POLYMORPH_BUG_FIX
 
 	protected:
 		// uint32_t = JOB or MONSTER VNUM
-		TContainer		m_map_pkMotionSet;
+		container		map_pk_motion_set_;
 
 		// POLYMORPH_BUG_FIX
-		std::map<uint32_t, float> m_map_normalAttackDuration;
+		std::map<uint32_t, float> map_normal_attack_duration_;
 		// END_OF_POLYMORPH_BUG_FIX
 };
 }

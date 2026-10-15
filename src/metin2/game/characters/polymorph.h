@@ -13,7 +13,7 @@ namespace metin2::game::inline characters {
 
 inline constexpr int POLYMORPH_SKILL_ID = 129;
 inline constexpr int POLYMORPH_BOOK_ID = 50322;
-enum POLYMORPH_BONUS_TYPE
+enum polymorph_bonus_type
 {
 	POLYMORPH_NO_BONUS,
 	POLYMORPH_ATK_BONUS,
@@ -21,21 +21,21 @@ enum POLYMORPH_BONUS_TYPE
 	POLYMORPH_SPD_BONUS,
 };
 
-class CPolymorphUtils : public singleton<CPolymorphUtils>
+class polymorph_utils : public singleton<polymorph_utils>
 {
 	private :
-		std::unordered_map<uint32_t, uint32_t> m_mapSPDType;
-		std::unordered_map<uint32_t, uint32_t> m_mapATKType;
-		std::unordered_map<uint32_t, uint32_t> m_mapDEFType;
+		std::unordered_map<uint32_t, uint32_t> spd_type_;
+		std::unordered_map<uint32_t, uint32_t> atk_type_;
+		std::unordered_map<uint32_t, uint32_t> def_type_;
 
 	public :
-		CPolymorphUtils();
+		polymorph_utils();
 
-		POLYMORPH_BONUS_TYPE GetBonusType(uint32_t dwVnum);
+		polymorph_bonus_type bonus_type(uint32_t dwVnum);
 
-		bool PolymorphCharacter(CHARACTER * pChar, CItem * pItem, const CMob* pMob);
-		bool UpdateBookPracticeGrade(CHARACTER * pChar, CItem * pItem);
-		bool GiveBook(CHARACTER * pChar, uint32_t dwMobVnum, uint32_t dwPracticeCount, uint8_t BookLevel, uint8_t LevelLimit);
-		bool BookUpgrade(CHARACTER * pChar, CItem * pItem);
+		bool polymorph_character(character * pChar, item * pItem, const mob* pMob);
+		bool update_book_practice_grade(character * pChar, item * pItem);
+		bool give_book(character * pChar, uint32_t dwMobVnum, uint32_t dwPracticeCount, uint8_t BookLevel, uint8_t LevelLimit);
+		bool book_upgrade(character * pChar, item * pItem);
 };
 }

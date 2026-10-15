@@ -35,10 +35,10 @@
 
 namespace metin2::game::inline world {
 
-REGEN *	regen_list = nullptr;
-REGEN_EXCEPTION * regen_exception_list = nullptr;
+regen *	regen_list = nullptr;
+regen_exception * regen_exception_list = nullptr;
 
-enum ERegenModes
+enum regen_modes
 {
 	MODE_TYPE = 0,
 	MODE_SX,
@@ -115,7 +115,7 @@ static void next_line(FILE *fp)
 			return;
 }
 
-static bool read_line(FILE *fp, REGEN * regen)
+static bool read_line(FILE *fp, regen * regen)
 {
 	char szTmp[256];
 
@@ -268,7 +268,7 @@ static bool read_line(FILE *fp, REGEN * regen)
 	return false;
 }
 
-static void regen_spawn_dungeon(REGEN * regen, CDungeon * pDungeon, bool bOnce)
+static void regen_spawn_dungeon(regen * regen, dungeon * pDungeon, bool bOnce)
 {
 	uint32_t	num;
 	uint32_t	i;
@@ -280,22 +280,22 @@ static void regen_spawn_dungeon(REGEN * regen, CDungeon * pDungeon, bool bOnce)
 
 	for (i = 0; i < num; ++i)
 	{
-		CHARACTER * ch = nullptr;
+		character * ch = nullptr;
 
 		if (regen->type == REGEN_TYPE_ANYWHERE)
 		{
-			ch = CHARACTER_MANAGER::instance().SpawnMobRandomPosition(regen->vnum, regen->lMapIndex);
+			ch = character_manager::instance().spawn_mob_random_position(regen->vnum, regen->map_index);
 
 			if (ch)
 			{
 				++regen->count;
-				ch->SetDungeon(pDungeon);
+				ch->set_dungeon(pDungeon);
 			}
 		}
 		else if (regen->sx == regen->ex && regen->sy == regen->ey)
 		{
-			ch = CHARACTER_MANAGER::instance().SpawnMob(regen->vnum,
-					regen->lMapIndex,
+			ch = character_manager::instance().spawn_mob(regen->vnum,
+					regen->map_index,
 					regen->sx,
 					regen->sy,
 					regen->z_section,
@@ -305,39 +305,39 @@ static void regen_spawn_dungeon(REGEN * regen, CDungeon * pDungeon, bool bOnce)
 			if (ch)
 			{
 				++regen->count;
-				ch->SetDungeon(pDungeon);
+				ch->set_dungeon(pDungeon);
 			}
 		}
 		else
 		{
 			if (regen->type == REGEN_TYPE_MOB)
 			{
-				ch = CHARACTER_MANAGER::instance().SpawnMobRange(regen->vnum, regen->lMapIndex, regen->sx, regen->sy, regen->ex, regen->ey, true);
+				ch = character_manager::instance().spawn_mob_range(regen->vnum, regen->map_index, regen->sx, regen->sy, regen->ex, regen->ey, true);
 
 				if (ch)
 				{
 					++regen->count;
-					ch->SetDungeon(pDungeon);
+					ch->set_dungeon(pDungeon);
 				}
 			}
 			else if (regen->type == REGEN_TYPE_GROUP)
 			{
-				if (CHARACTER_MANAGER::instance().SpawnGroup(regen->vnum, regen->lMapIndex, regen->sx, regen->sy, regen->ex, regen->ey, bOnce ? nullptr : regen, regen->is_aggressive, pDungeon))
+				if (character_manager::instance().spawn_group(regen->vnum, regen->map_index, regen->sx, regen->sy, regen->ex, regen->ey, bOnce ? nullptr : regen, regen->is_aggressive, pDungeon))
 					++regen->count;
 			}
 			else if (regen->type == REGEN_TYPE_GROUP_GROUP)
 			{
-				if (CHARACTER_MANAGER::instance().SpawnGroupGroup(regen->vnum, regen->lMapIndex, regen->sx, regen->sy, regen->ex, regen->ey, bOnce ? nullptr : regen, regen->is_aggressive, pDungeon))
+				if (character_manager::instance().spawn_group_group(regen->vnum, regen->map_index, regen->sx, regen->sy, regen->ex, regen->ey, bOnce ? nullptr : regen, regen->is_aggressive, pDungeon))
 					++regen->count;
 			}
 		}
 
 		if (ch && !bOnce)
-			ch->SetRegen(regen);
+			ch->set_regen(regen);
 	}
 }
 
-static void regen_spawn(REGEN * regen, bool bOnce)
+static void regen_spawn(regen * regen, bool bOnce)
 {
 	uint32_t	num;
 	uint32_t	i;
@@ -349,19 +349,19 @@ static void regen_spawn(REGEN * regen, bool bOnce)
 
 	for (i = 0; i < num; ++i)
 	{
-		CHARACTER * ch = nullptr;
+		character * ch = nullptr;
 
 		if (regen->type == REGEN_TYPE_ANYWHERE)
 		{
-			ch = CHARACTER_MANAGER::instance().SpawnMobRandomPosition(regen->vnum, regen->lMapIndex);
+			ch = character_manager::instance().spawn_mob_random_position(regen->vnum, regen->map_index);
 
 			if (ch)
 				++regen->count;
 		}
 		else if (regen->sx == regen->ex && regen->sy == regen->ey)
 		{
-			ch = CHARACTER_MANAGER::instance().SpawnMob(regen->vnum,
-					regen->lMapIndex,
+			ch = character_manager::instance().spawn_mob(regen->vnum,
+					regen->map_index,
 					regen->sx,
 					regen->sy,
 					regen->z_section,
@@ -375,25 +375,25 @@ static void regen_spawn(REGEN * regen, bool bOnce)
 		{
 			if (regen->type == REGEN_TYPE_MOB)
 			{
-				ch = CHARACTER_MANAGER::instance().SpawnMobRange(regen->vnum, regen->lMapIndex, regen->sx, regen->sy, regen->ex, regen->ey, true, regen->is_aggressive, regen->is_aggressive );
+				ch = character_manager::instance().spawn_mob_range(regen->vnum, regen->map_index, regen->sx, regen->sy, regen->ex, regen->ey, true, regen->is_aggressive, regen->is_aggressive );
 
 				if (ch)
 					++regen->count;
 			}
 			else if (regen->type == REGEN_TYPE_GROUP)
 			{
-				if (CHARACTER_MANAGER::instance().SpawnGroup(regen->vnum, regen->lMapIndex, regen->sx, regen->sy, regen->ex, regen->ey, bOnce ? nullptr : regen, regen->is_aggressive))
+				if (character_manager::instance().spawn_group(regen->vnum, regen->map_index, regen->sx, regen->sy, regen->ex, regen->ey, bOnce ? nullptr : regen, regen->is_aggressive))
 					++regen->count;
 			}
 			else if (regen->type == REGEN_TYPE_GROUP_GROUP)
 			{
-				if (CHARACTER_MANAGER::instance().SpawnGroupGroup(regen->vnum, regen->lMapIndex, regen->sx, regen->sy, regen->ex, regen->ey, bOnce ? nullptr : regen, regen->is_aggressive))
+				if (character_manager::instance().spawn_group_group(regen->vnum, regen->map_index, regen->sx, regen->sy, regen->ex, regen->ey, bOnce ? nullptr : regen, regen->is_aggressive))
 					++regen->count;
 			}
 		}
 
 		if (ch && !bOnce)
-			ch->SetRegen(regen);
+			ch->set_regen(regen);
 	}
 }
 
@@ -407,22 +407,22 @@ EVENTFUNC(dungeon_regen_event)
 		return 0;
 	}
 
-	CDungeon * pDungeon = CDungeonManager::instance().Find(info->dungeon_id);
+	dungeon * pDungeon = dungeon_manager::instance().find(info->dungeon_id);
 	if (pDungeon == nullptr) {
 		return 0;
 	}
 
-	REGEN *	regen = info->regen;
+	regen *	regen = info->regen;
 	if (regen->time == 0)
 	{
 		regen->event = nullptr;
 	}
 
 	regen_spawn_dungeon(regen, pDungeon, false);
-	return PASSES_PER_SEC(regen->time);
+	return passes_per_sec(regen->time);
 }
 
-bool regen_do(const char* filename, int32_t lMapIndex, int base_x, int base_y, CDungeon * pDungeon, bool bOnce)
+bool regen_do(const char* filename, int32_t lMapIndex, int base_x, int base_y, dungeon * pDungeon, bool bOnce)
 {
 	if (metin2::config::game().no_regen)
 		return true;
@@ -430,7 +430,7 @@ bool regen_do(const char* filename, int32_t lMapIndex, int base_x, int base_y, C
 	if ( lMapIndex >= 114 && lMapIndex <= 117 )
 		return true;
 
-	REGEN * regen = nullptr;
+	regen * regen = nullptr;
 	FILE* fp = fopen(filename, "rt");
 
 	if (nullptr == fp)
@@ -441,7 +441,7 @@ bool regen_do(const char* filename, int32_t lMapIndex, int base_x, int base_y, C
 
 	while (true)
 	{
-		REGEN tmp;
+		game::world::regen tmp;
 
 		if (!read_line(fp, &tmp))
 			break;
@@ -453,7 +453,7 @@ bool regen_do(const char* filename, int32_t lMapIndex, int base_x, int base_y, C
 		{
 			if (!bOnce)
 			{
-				regen = new REGEN(tmp);
+				regen = new game::world::regen(tmp);
 			}
 			else
 				regen = &tmp;
@@ -461,7 +461,7 @@ bool regen_do(const char* filename, int32_t lMapIndex, int base_x, int base_y, C
 			if (pDungeon)
 				regen->is_aggressive = true;
 
-			regen->lMapIndex = lMapIndex;
+			regen->map_index = lMapIndex;
 			regen->count = 0;
 
 			regen->sx += base_x;
@@ -486,7 +486,7 @@ bool regen_do(const char* filename, int32_t lMapIndex, int base_x, int base_y, C
 
 			if (regen->type == REGEN_TYPE_MOB)
 			{
-				const CMob * p = CMobManager::instance().Get(regen->vnum);
+				const mob * p = mob_manager::instance().get(regen->vnum);
 
 				if (!p)
 				{
@@ -500,14 +500,14 @@ bool regen_do(const char* filename, int32_t lMapIndex, int base_x, int base_y, C
 
 			if (!bOnce && pDungeon != nullptr)
 			{
-				dungeon_regen_event_info* info = AllocEventInfo<dungeon_regen_event_info>();
+				dungeon_regen_event_info* info = alloc_event_info<dungeon_regen_event_info>();
 
 				info->regen = regen;
-				info->dungeon_id = pDungeon->GetId();
+				info->dungeon_id = pDungeon->id();
 
-				regen->event = event_create(dungeon_regen_event, info, PASSES_PER_SEC(number(0, 16)) + PASSES_PER_SEC(regen->time));
+				regen->event = event_create(dungeon_regen_event, info, passes_per_sec(number(0, 16)) + passes_per_sec(regen->time));
 
-				pDungeon->AddRegen(regen);
+				pDungeon->add_regen(regen);
 				// regen_id should be determined at this point,
 				// before the call to CHARACTER::SetRegen()
 			}
@@ -527,7 +527,7 @@ bool regen_load_in_file(const char* filename, int32_t lMapIndex, int base_x, int
 	if (metin2::config::game().no_regen)
 		return true;
 
-	REGEN * regen = nullptr;
+	regen * regen = nullptr;
 	FILE * fp = fopen(filename, "rt");
 
 	if (nullptr == fp)
@@ -538,7 +538,7 @@ bool regen_load_in_file(const char* filename, int32_t lMapIndex, int base_x, int
 
 	while (true)
 	{
-		REGEN tmp;
+		game::world::regen tmp;
 
 		if (!read_line(fp, &tmp))
 			break;
@@ -552,7 +552,7 @@ bool regen_load_in_file(const char* filename, int32_t lMapIndex, int base_x, int
 
 			regen->is_aggressive = true;
 
-			regen->lMapIndex = lMapIndex;
+			regen->map_index = lMapIndex;
 			regen->count = 0;
 
 			regen->sx += base_x;
@@ -577,7 +577,7 @@ bool regen_load_in_file(const char* filename, int32_t lMapIndex, int base_x, int
 
 			if (regen->type == REGEN_TYPE_MOB)
 			{
-				const CMob * p = CMobManager::instance().Get(regen->vnum);
+				const mob * p = mob_manager::instance().get(regen->vnum);
 
 				if (!p)
 				{
@@ -605,13 +605,13 @@ EVENTFUNC(regen_event)
 		return 0;
 	}
 
-	REGEN *	regen = info->regen;
+	regen *	regen = info->regen;
 
 	if (regen->time == 0)
 		regen->event = nullptr;
 
 	regen_spawn(regen, false);
-	return PASSES_PER_SEC(regen->time);
+	return passes_per_sec(regen->time);
 }
 
 bool regen_load(const char* filename, int32_t lMapIndex, int base_x, int base_y)
@@ -619,7 +619,7 @@ bool regen_load(const char* filename, int32_t lMapIndex, int base_x, int base_y)
 	if (metin2::config::game().no_regen)
 		return true;
 
-	REGEN * regen = nullptr;
+	regen * regen = nullptr;
 	FILE* fp = fopen(filename, "rt");
 
 	if (nullptr == fp)
@@ -630,7 +630,7 @@ bool regen_load(const char* filename, int32_t lMapIndex, int base_x, int base_y)
 
 	while (true)
 	{
-		REGEN tmp;
+		game::world::regen tmp;
 
 		if (!read_line(fp, &tmp))
 			break;
@@ -642,13 +642,13 @@ bool regen_load(const char* filename, int32_t lMapIndex, int base_x, int base_y)
 		{
 			if (metin2::config::test_server())
 			{
-				CMobManager::instance().IncRegenCount(tmp.type, tmp.vnum, tmp.max_count, tmp.time);
+				mob_manager::instance().inc_regen_count(tmp.type, tmp.vnum, tmp.max_count, tmp.time);
 			}
 
-			regen = new REGEN(tmp);
+			regen = new game::world::regen(tmp);
 			INSERT_TO_TW_LIST(regen, regen_list, prev, next);
 
-			regen->lMapIndex = lMapIndex;
+			regen->map_index = lMapIndex;
 			regen->count = 0;
 
 			regen->sx += base_x;
@@ -673,17 +673,17 @@ bool regen_load(const char* filename, int32_t lMapIndex, int base_x, int base_y)
 
 			if (regen->type == REGEN_TYPE_MOB)
 			{
-				const CMob * p = CMobManager::instance().Get(regen->vnum);
+				const mob * p = mob_manager::instance().get(regen->vnum);
 
 				if (!p)
 				{
 					metin2::log::error("No mob data by vnum {:d}", regen->vnum);
 				}
-				else if (p->m_table.bType == CHAR_TYPE_NPC || p->m_table.bType == CHAR_TYPE_WARP || p->m_table.bType == CHAR_TYPE_GOTO)
+				else if (p->table.type == CHAR_TYPE_NPC || p->table.type == CHAR_TYPE_WARP || p->table.type == CHAR_TYPE_GOTO)
 				{
-					SECTREE_MANAGER::instance().InsertNPCPosition(lMapIndex,
-							p->m_table.bType,
-							p->m_table.szLocaleName,
+					sectree_manager::instance().insert_npc_position(lMapIndex,
+							p->table.type,
+							p->table.locale_name,
 							(regen->sx+regen->ex) / 2 - base_x,
 							(regen->sy+regen->ey) / 2 - base_y);
 				}
@@ -697,19 +697,19 @@ bool regen_load(const char* filename, int32_t lMapIndex, int base_x, int base_y)
 				// Always regen the first time.
 				regen_spawn(regen, false);
 
-				regen_event_info* info = AllocEventInfo<regen_event_info>();
+				regen_event_info* info = alloc_event_info<regen_event_info>();
 
 				info->regen = regen;
 
-				regen->event = event_create(regen_event, info, PASSES_PER_SEC(number(0, 16)) + PASSES_PER_SEC(regen->time)); 
+				regen->event = event_create(regen_event, info, passes_per_sec(number(0, 16)) + passes_per_sec(regen->time)); 
 			}
 			//END_NO_REGEN
 		}
 		else if (tmp.type == REGEN_TYPE_EXCEPTION)
 		{
-			REGEN_EXCEPTION * exc;
+			regen_exception * exc;
 
-			exc = new REGEN_EXCEPTION;
+			exc = new regen_exception;
 
 			exc->sx = tmp.sx;
 			exc->sy = tmp.sy;
@@ -727,10 +727,10 @@ bool regen_load(const char* filename, int32_t lMapIndex, int base_x, int base_y)
 
 void regen_free(void)
 {
-	REGEN * r;
-	REGEN * next_regen;
-	REGEN_EXCEPTION * exc;
-	REGEN_EXCEPTION * next_exc;
+	regen * r;
+	regen * next_regen;
+	regen_exception * exc;
+	regen_exception * next_exc;
 
 	for (r = regen_list; r; r = next_regen)
 	{
@@ -754,7 +754,7 @@ void regen_free(void)
 
 void regen_reset(int x, int y)
 {
-	REGEN * regen;
+	regen * regen;
 
 	for (regen = regen_list; regen; regen = regen->next)
 	{

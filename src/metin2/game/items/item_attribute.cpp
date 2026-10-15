@@ -19,22 +19,22 @@
 
 namespace metin2::game::inline items {
 
-const int MAX_NORM_ATTR_NUM = ITEM_MANAGER::MAX_NORM_ATTR_NUM;
-const int MAX_RARE_ATTR_NUM = ITEM_MANAGER::MAX_RARE_ATTR_NUM;
+const int MAX_NORM_ATTR_NUM = item_manager::max_norm_attr_num;
+const int MAX_RARE_ATTR_NUM = item_manager::max_rare_attr_num;
 
-int CItem::GetAttributeSetIndex()
+int item::attribute_set_index()
 {
-	if (GetType() == ITEM_WEAPON)
+	if (type() == ITEM_WEAPON)
 	{
-		if (GetSubType() == WEAPON_ARROW)
+		if (sub_type() == WEAPON_ARROW)
 			return -1;
 
 		return ATTRIBUTE_SET_WEAPON;
 	}
 
-	if (GetType() == ITEM_ARMOR || GetType() == ITEM_COSTUME)
+	if (type() == ITEM_ARMOR || type() == ITEM_COSTUME)
 	{
-		switch (GetSubType())
+		switch (sub_type())
 		{
 			case ARMOR_BODY:
 //			case COSTUME_BODY: // Costume armor gets random attributes using the same Attribute Set as normal armor (ARMOR_BODY == COSTUME_BODY)
@@ -64,69 +64,69 @@ int CItem::GetAttributeSetIndex()
 	return -1;
 }
 
-bool CItem::HasAttr(uint8_t bApply)
+bool item::has_attr(uint8_t bApply)
 {
 	for (int i = 0; i < ITEM_APPLY_MAX_NUM; ++i)
-		if (m_pProto->aApplies[i].bType == bApply)
+		if (proto_->applies[i].type == bApply)
 			return true;
 
 	for (int i = 0; i < MAX_NORM_ATTR_NUM; ++i)
-		if (GetAttributeType(i) == bApply)
+		if (attribute_type(i) == bApply)
 			return true;
 
 	return false;
 }
 
-bool CItem::HasRareAttr(uint8_t bApply)
+bool item::has_rare_attr(uint8_t bApply)
 {
 	for (int i = 0; i < MAX_RARE_ATTR_NUM; ++i)
-		if (GetAttributeType(i + 5) == bApply)
+		if (attribute_type(i + 5) == bApply)
 			return true;
 
 	return false;
 }
 
-void CItem::AddAttribute(uint8_t bApply, short sValue)
+void item::add_attribute(uint8_t bApply, short sValue)
 {
-	if (HasAttr(bApply))
+	if (has_attr(bApply))
 		return;
 
-	int i = GetAttributeCount();
+	int i = attribute_count();
 
 	if (i >= MAX_NORM_ATTR_NUM)
 		metin2::log::error("item attribute overflow!");
 	else
 	{
 		if (sValue)
-			SetAttribute(i, bApply, sValue);
+			set_attribute(i, bApply, sValue);
 	}
 }
 
-void CItem::AddAttr(uint8_t bApply, uint8_t bLevel)
+void item::add_attr(uint8_t bApply, uint8_t bLevel)
 {
-	if (HasAttr(bApply))
+	if (has_attr(bApply))
 		return;
 
 	if (bLevel <= 0)
 		return;
 
-	int i = GetAttributeCount();
+	int i = attribute_count();
 
 	if (i == MAX_NORM_ATTR_NUM)
 		metin2::log::error("item attribute overflow!");
 	else
 	{
-		const TItemAttrTable & r = g_map_itemAttr[bApply];
-		int32_t lVal = r.lValues[std::min(4, bLevel - 1)];
+		const item_attr_table & r = map_item_attr[bApply];
+		int32_t lVal = r.values[std::min(4, bLevel - 1)];
 
 		if (lVal)
-			SetAttribute(i, bApply, lVal);
+			set_attribute(i, bApply, lVal);
 	}
 }
 
-void CItem::PutAttributeWithLevel(uint8_t bLevel)
+void item::put_attribute_with_level(uint8_t bLevel)
 {
-	int iAttributeSet = GetAttributeSetIndex();
+	int iAttributeSet = attribute_set_index();
 
 	if (iAttributeSet < 0)
 		return;
@@ -141,12 +141,12 @@ void CItem::PutAttributeWithLevel(uint8_t bLevel)
 	// Build the array of attributes that can be added
 	for (int i = 0; i < MAX_APPLY_NUM; ++i)
 	{
-		const TItemAttrTable & r = g_map_itemAttr[i];
+		const item_attr_table & r = map_item_attr[i];
 
-		if (r.bMaxLevelBySet[iAttributeSet] && !HasAttr(i))
+		if (r.max_level_by_set[iAttributeSet] && !has_attr(i))
 		{
 			avail.push_back(i);
-			total += r.dwProb;
+			total += r.prob;
 		}
 	}
 
@@ -156,15 +156,15 @@ void CItem::PutAttributeWithLevel(uint8_t bLevel)
 
 	for (uint32_t i = 0; i < avail.size(); ++i)
 	{
-		const TItemAttrTable & r = g_map_itemAttr[avail[i]];
+		const item_attr_table & r = map_item_attr[avail[i]];
 
-		if (prob <= r.dwProb)
+		if (prob <= r.prob)
 		{
 			attr_idx = avail[i];
 			break;
 		}
 
-		prob -= r.dwProb;
+		prob -= r.prob;
 	}
 
 	if (!attr_idx)
@@ -173,16 +173,16 @@ void CItem::PutAttributeWithLevel(uint8_t bLevel)
 		return;
 	}
 
-	const TItemAttrTable & r = g_map_itemAttr[attr_idx];
+	const item_attr_table & r = map_item_attr[attr_idx];
 
 	// Cap the max attribute level per type
-	if (bLevel > r.bMaxLevelBySet[iAttributeSet])
-		bLevel = r.bMaxLevelBySet[iAttributeSet];
+	if (bLevel > r.max_level_by_set[iAttributeSet])
+		bLevel = r.max_level_by_set[iAttributeSet];
 
-	AddAttr(attr_idx, bLevel);
+	add_attr(attr_idx, bLevel);
 }
 
-void CItem::PutAttribute(const int * aiAttrPercentTable)
+void item::put_attribute(const int * aiAttrPercentTable)
 {
 	int iAttrLevelPercent = number(1, 100);
 	int i;
@@ -195,23 +195,23 @@ void CItem::PutAttribute(const int * aiAttrPercentTable)
 		iAttrLevelPercent -= aiAttrPercentTable[i];
 	}
 
-	PutAttributeWithLevel(i + 1);
+	put_attribute_with_level(i + 1);
 }
 
-void CItem::ChangeAttribute(const int* aiChangeProb)
+void item::change_attribute(const int* aiChangeProb)
 {
-	int iAttributeCount = GetAttributeCount();
+	int iAttributeCount = attribute_count();
 
-	ClearAttribute();
+	clear_attribute();
 
 	if (iAttributeCount == 0)
 		return;
 
-	TItemTable const * pProto = GetProto();
+	item_table const * pProto = proto();
 
-	if (pProto && pProto->sAddonType)
+	if (pProto && pProto->s_addon_type)
 	{
-		ApplyAddon(pProto->sAddonType);
+		apply_addon(pProto->s_addon_type);
 	}
 
 	static const int tmpChangeProb[ITEM_ATTRIBUTE_MAX_LEVEL] =
@@ -219,202 +219,202 @@ void CItem::ChangeAttribute(const int* aiChangeProb)
 		0, 10, 40, 35, 15,
 	};
 
-	for (int i = GetAttributeCount(); i < iAttributeCount; ++i)
+	for (int i = attribute_count(); i < iAttributeCount; ++i)
 	{
 		if (aiChangeProb == nullptr)
 		{
-			PutAttribute(tmpChangeProb);
+			put_attribute(tmpChangeProb);
 		}
 		else
 		{
-			PutAttribute(aiChangeProb);
+			put_attribute(aiChangeProb);
 		}
 	}
 }
 
-void CItem::AddAttribute()
+void item::add_attribute()
 {
 	static const int aiItemAddAttributePercent[ITEM_ATTRIBUTE_MAX_LEVEL] = 
 	{
 		40, 50, 10, 0, 0
 	};
 
-	if (GetAttributeCount() < MAX_NORM_ATTR_NUM)
-		PutAttribute(aiItemAddAttributePercent);
+	if (attribute_count() < MAX_NORM_ATTR_NUM)
+		put_attribute(aiItemAddAttributePercent);
 }
 
-void CItem::ClearAttribute()
+void item::clear_attribute()
 {
 	for (int i = 0; i < MAX_NORM_ATTR_NUM; ++i)
 	{
-		m_aAttr[i].bType = 0;
-		m_aAttr[i].sValue = 0;
+		attr_[i].type = 0;
+		attr_[i].s_value = 0;
 	}
 }
 
-int CItem::GetAttributeCount()
+int item::attribute_count()
 {
 	int i;
 
 	for (i = 0; i < MAX_NORM_ATTR_NUM; ++i)
 	{
-		if (GetAttributeType(i) == 0)
+		if (attribute_type(i) == 0)
 			break;
 	}
 
 	return i;
 }
 
-int CItem::FindAttribute(uint8_t bType)
+int item::find_attribute(uint8_t bType)
 {
 	for (int i = 0; i < MAX_NORM_ATTR_NUM; ++i)
 	{
-		if (GetAttributeType(i) == bType)
+		if (attribute_type(i) == bType)
 			return i;
 	}
 
 	return -1;
 }
 
-bool CItem::RemoveAttributeType(uint8_t bType)
+bool item::remove_attribute_type(uint8_t bType)
 {
-	int index = FindAttribute(bType);
-	return index != -1 && RemoveAttributeType(index);
+	int index = find_attribute(bType);
+	return index != -1 && remove_attribute_type(index);
 }
 
-void CItem::SetAttributes(const TPlayerItemAttribute* c_pAttribute)
+void item::set_attributes(const player_item_attribute* c_pAttribute)
 {
-	std::memcpy(m_aAttr, c_pAttribute, sizeof(m_aAttr));
-	Save();
+	std::memcpy(attr_, c_pAttribute, sizeof(attr_));
+	save();
 }
 
-void CItem::SetAttribute(int i, uint8_t bType, short sValue)
+void item::set_attribute(int i, uint8_t bType, short sValue)
 {
 	assert(i < MAX_NORM_ATTR_NUM);
 
-	m_aAttr[i].bType = bType;
-	m_aAttr[i].sValue = sValue;
-	UpdatePacket();
-	Save();
+	attr_[i].type = bType;
+	attr_[i].s_value = sValue;
+	update_packet();
+	save();
 
 	if (bType)
 	{
 		const char * pszIP = nullptr;
 
-		if (GetOwner() && GetOwner()->GetDesc())
-			pszIP = GetOwner()->GetDesc()->GetHostName();
+		if (owner() && owner()->get_desc())
+			pszIP = owner()->get_desc()->host_name();
 
-		LogManager::instance().ItemLog(i, bType, sValue, GetID(), "SET_ATTR", "", pszIP ? pszIP : "", GetOriginalVnum());
+		log_manager::instance().item_log(i, bType, sValue, id(), "SET_ATTR", "", pszIP ? pszIP : "", original_vnum());
 	}
 }
 
-void CItem::SetForceAttribute(int i, uint8_t bType, short sValue)
+void item::set_force_attribute(int i, uint8_t bType, short sValue)
 {
 	assert(i < ITEM_ATTRIBUTE_MAX_NUM);
 
-	m_aAttr[i].bType = bType;
-	m_aAttr[i].sValue = sValue;
-	UpdatePacket();
-	Save();
+	attr_[i].type = bType;
+	attr_[i].s_value = sValue;
+	update_packet();
+	save();
 
 	if (bType)
 	{
 		const char * pszIP = nullptr;
 
-		if (GetOwner() && GetOwner()->GetDesc())
-			pszIP = GetOwner()->GetDesc()->GetHostName();
+		if (owner() && owner()->get_desc())
+			pszIP = owner()->get_desc()->host_name();
 
-		LogManager::instance().ItemLog(i, bType, sValue, GetID(), "SET_FORCE_ATTR", "", pszIP ? pszIP : "", GetOriginalVnum());
+		log_manager::instance().item_log(i, bType, sValue, id(), "SET_FORCE_ATTR", "", pszIP ? pszIP : "", original_vnum());
 	}
 }
 
 
-void CItem::CopyAttributeTo(CItem * pItem)
+void item::copy_attribute_to(item * pItem)
 {
-	pItem->SetAttributes(m_aAttr);
+	pItem->set_attributes(attr_);
 }
 
-int CItem::GetRareAttrCount()
+int item::rare_attr_count()
 {
 	int ret = 0;
 
-	if (m_aAttr[5].bType != 0)
+	if (attr_[5].type != 0)
 		ret++;
 
-	if (m_aAttr[6].bType != 0)
+	if (attr_[6].type != 0)
 		ret++;
 
 	return ret;
 }
 
-bool CItem::ChangeRareAttribute()
+bool item::change_rare_attribute()
 {
-	if (GetRareAttrCount() == 0)
+	if (rare_attr_count() == 0)
 		return false;
 
-	int cnt = GetRareAttrCount();
+	int cnt = rare_attr_count();
 
 	for (int i = 0; i < cnt; ++i)
 	{
-		m_aAttr[i + 5].bType = 0;
-		m_aAttr[i + 5].sValue = 0;
+		attr_[i + 5].type = 0;
+		attr_[i + 5].s_value = 0;
 	}
 
-	if (GetOwner() && GetOwner()->GetDesc())
-		LogManager::instance().ItemLog(GetOwner(), this, "SET_RARE_CHANGE", "");
+	if (owner() && owner()->get_desc())
+		log_manager::instance().item_log(owner(), this, "SET_RARE_CHANGE", "");
 	else
-		LogManager::instance().ItemLog(0, 0, 0, GetID(), "SET_RARE_CHANGE", "", "", GetOriginalVnum());
+		log_manager::instance().item_log(0, 0, 0, id(), "SET_RARE_CHANGE", "", "", original_vnum());
 
 	for (int i = 0; i < cnt; ++i)
 	{
-		AddRareAttribute();
+		add_rare_attribute();
 	}
 
 	return true;
 }
 
-bool CItem::AddRareAttribute()
+bool item::add_rare_attribute()
 {
-	int count = GetRareAttrCount();
+	int count = rare_attr_count();
 
 	if (count >= 2)
 		return false;
 
 	int pos = count + 5;
-	TPlayerItemAttribute & attr = m_aAttr[pos];
+	player_item_attribute & attr = attr_[pos];
 
-	int nAttrSet = GetAttributeSetIndex();
+	int nAttrSet = attribute_set_index();
 	std::vector<int> avail;
 
 	for (int i = 0; i < MAX_APPLY_NUM; ++i)
 	{
-		const TItemAttrTable & r = g_map_itemRare[i];
+		const item_attr_table & r = map_item_rare[i];
 
-		if (r.dwApplyIndex != 0 && r.bMaxLevelBySet[nAttrSet] > 0 && HasRareAttr(i) != true)
+		if (r.apply_index != 0 && r.max_level_by_set[nAttrSet] > 0 && has_rare_attr(i) != true)
 		{
 			avail.push_back(i);
 		}
 	}
 
-	const TItemAttrTable& r = g_map_itemRare[avail[number(0, avail.size() - 1)]];
+	const item_attr_table& r = map_item_rare[avail[number(0, avail.size() - 1)]];
 	int nAttrLevel = 5;
 
-	if (nAttrLevel > r.bMaxLevelBySet[nAttrSet])
-		nAttrLevel = r.bMaxLevelBySet[nAttrSet];
+	if (nAttrLevel > r.max_level_by_set[nAttrSet])
+		nAttrLevel = r.max_level_by_set[nAttrSet];
 
-	attr.bType = r.dwApplyIndex;
-	attr.sValue = r.lValues[nAttrLevel - 1];
+	attr.type = r.apply_index;
+	attr.s_value = r.values[nAttrLevel - 1];
 
-	UpdatePacket();
+	update_packet();
 
-	Save();
+	save();
 
 	const char * pszIP = nullptr;
 
-	if (GetOwner() && GetOwner()->GetDesc())
-		pszIP = GetOwner()->GetDesc()->GetHostName();
+	if (owner() && owner()->get_desc())
+		pszIP = owner()->get_desc()->host_name();
 
-	LogManager::instance().ItemLog(pos, attr.bType, attr.sValue, GetID(), "SET_RARE", "", pszIP ? pszIP : "", GetOriginalVnum());
+	log_manager::instance().item_log(pos, attr.type, attr.s_value, id(), "SET_RARE", "", pszIP ? pszIP : "", original_vnum());
 	return true;
 }
 }

@@ -23,25 +23,25 @@ namespace metin2::game::inline text {
 
 
 // The server runs the english locale only (common.locale LOCALE = english).
-static const std::string	g_stServiceBasePath = "locale/english";
-static const std::string	g_stServiceMapPath = "locale/english/map";
+static const std::string	service_base_path = "locale/english";
+static const std::string	service_map_path = "locale/english/map";
 
-std::string g_stLocale = "latin1";
-std::string g_stLocaleFilename = "locale/english/locale_string.txt";
+std::string locale = "latin1";
+std::string locale_filename = "locale/english/locale_string.txt";
 
 
 static_assert(PLAYER_PER_ACCOUNT == 4);
 
 static int check_name_independent(const char * str)
 {
-	if (CBanwordManager::instance().CheckString(str, strlen(str)))
+	if (banword_manager::instance().check_string(str, strlen(str)))
 		return 0;
 
 	// Cannot be made with a monster name.
 	char szTmp[256];
 	str_lower(str, szTmp, sizeof(szTmp));
 
-	if (CMobManager::instance().Get(szTmp, false))
+	if (mob_manager::instance().get(szTmp, false))
 		return 0;
 
 	return 1;
@@ -71,33 +71,33 @@ int check_name(const char * str)
 }
 // DISABLE_SPECIAL_CHAR_NAMING
 
-void LocaleService_LoadLocaleStringFile()
+void locale_service_load_locale_string_file()
 {
-	if (g_stLocaleFilename.empty())
+	if (locale_filename.empty())
 		return;
 
 	if (metin2::config::is_auth())
 		return;
 
-	fprintf(stderr, "LocaleService %s\n", g_stLocaleFilename.c_str());
+	fprintf(stderr, "LocaleService %s\n", locale_filename.c_str());
 
-	locale_init(g_stLocaleFilename.c_str());
+	locale_init(locale_filename.c_str());
 }
 
-void LocaleService_LoadEmpireTextConvertTables()
+void locale_service_load_empire_text_convert_tables()
 {
 	char szFileName[256];
 
 	for (int iEmpire = 1; iEmpire <= 3; ++iEmpire)
 	{
-		snprintf(szFileName, sizeof(szFileName), "%s/lang%d.cvt", LocaleService_GetBasePath().c_str(), iEmpire);
+		snprintf(szFileName, sizeof(szFileName), "%s/lang%d.cvt", locale_service_get_base_path().c_str(), iEmpire);
 		metin2::log::info( "Load {}", szFileName);
 
-		LoadEmpireTextConvertTable(iEmpire, szFileName);
+		load_empire_text_convert_table(iEmpire, szFileName);
 	}
 }
 
-bool LocaleService_Init(const std::string& c_rstServiceName)
+bool locale_service_init(const std::string& c_rstServiceName)
 {
 	if (c_rstServiceName != "english")
 	{
@@ -105,34 +105,34 @@ bool LocaleService_Init(const std::string& c_rstServiceName)
 		return false;
 	}
 
-	g_stQuestDir = g_stServiceBasePath + "/quest";
-	g_setQuestObjectDir.clear();
-	g_setQuestObjectDir.insert(g_stQuestDir + "/object");
+	quest_dir = service_base_path + "/quest";
+	quest_object_dir.clear();
+	quest_object_dir.insert(quest_dir + "/object");
 
-	fprintf(stdout, "Setting Locale \"%s\" (Path: %s)\n", c_rstServiceName.c_str(), g_stServiceBasePath.c_str());
+	fprintf(stdout, "Setting Locale \"%s\" (Path: %s)\n", c_rstServiceName.c_str(), service_base_path.c_str());
 	return true;
 }
 
-void LocaleService_TransferDefaultSetting()
+void locale_service_transfer_default_setting()
 {
-	if (!CTableBySkill::instance().Check())
+	if (!table_by_skill::instance().check())
 		exit(1);
 }
 
 
 
-const std::string& LocaleService_GetBasePath()
+const std::string& locale_service_get_base_path()
 {
-	return g_stServiceBasePath;
+	return service_base_path;
 }
 
-const std::string& LocaleService_GetMapPath()
+const std::string& locale_service_get_map_path()
 {
-	return g_stServiceMapPath;
+	return service_map_path;
 }
 
-const std::string& LocaleService_GetQuestPath()
+const std::string& locale_service_get_quest_path()
 {
-	return g_stQuestDir;
+	return quest_dir;
 }
 }

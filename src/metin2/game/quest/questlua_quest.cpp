@@ -21,86 +21,86 @@ namespace quest
 	//
 	int quest_start(lua_State* L)
 	{
-		CQuestManager& q = CQuestManager::instance();
+		quest_manager& q = quest_manager::instance();
 
-		q.GetCurrentPC()->SetCurrentQuestStartFlag();
+		q.current_pc()->set_current_quest_start_flag();
 		return 0;
 	}
 
 	int quest_done(lua_State* L)
 	{
-		CQuestManager& q = CQuestManager::instance();
+		quest_manager& q = quest_manager::instance();
 
-		q.GetCurrentPC()->SetCurrentQuestDoneFlag();
+		q.current_pc()->set_current_quest_done_flag();
 		return 0;
 	}
 
 	int quest_set_title(lua_State* L)
 	{
-		CQuestManager& q = CQuestManager::instance();
+		quest_manager& q = quest_manager::instance();
 
 		if (lua_isstring(L,-1))
-			q.GetCurrentPC()->SetCurrentQuestTitle(lua_tostring(L,-1));
+			q.current_pc()->set_current_quest_title(lua_tostring(L,-1));
 
 		return 0;
 	}
 
 	int quest_set_another_title(lua_State* L)
 	{
-		CQuestManager& q = CQuestManager::instance();
+		quest_manager& q = quest_manager::instance();
 
 		if (lua_isstring(L,1) && lua_isstring(L,2))
-			q.GetCurrentPC()->SetQuestTitle(lua_tostring(L,1),lua_tostring(L,2));
+			q.current_pc()->set_quest_title(lua_tostring(L,1),lua_tostring(L,2));
 
 		return 0;
 	}
 
 	int quest_set_clock_name(lua_State* L)
 	{
-		CQuestManager& q = CQuestManager::instance();
+		quest_manager& q = quest_manager::instance();
 
 		if (lua_isstring(L,-1))
-			q.GetCurrentPC()->SetCurrentQuestClockName(lua_tostring(L,-1));
+			q.current_pc()->set_current_quest_clock_name(lua_tostring(L,-1));
 
 		return 0;
 	}
 
 	int quest_set_clock_value(lua_State* L)
 	{
-		CQuestManager& q = CQuestManager::instance();
+		quest_manager& q = quest_manager::instance();
 
 		if (lua_isnumber(L,-1))
-			q.GetCurrentPC()->SetCurrentQuestClockValue((int)rint(lua_tonumber(L,-1)));
+			q.current_pc()->set_current_quest_clock_value((int)rint(lua_tonumber(L,-1)));
 
 		return 0;
 	}
 
 	int quest_set_counter_name(lua_State* L)
 	{
-		CQuestManager& q = CQuestManager::instance();
+		quest_manager& q = quest_manager::instance();
 
 		if (lua_isstring(L,-1))
-			q.GetCurrentPC()->SetCurrentQuestCounterName(lua_tostring(L,-1));
+			q.current_pc()->set_current_quest_counter_name(lua_tostring(L,-1));
 
 		return 0;
 	}
 
 	int quest_set_counter_value(lua_State* L)
 	{
-		CQuestManager& q = CQuestManager::instance();
+		quest_manager& q = quest_manager::instance();
 
 		if (lua_isnumber(L,-1))
-			q.GetCurrentPC()->SetCurrentQuestCounterValue((int)rint(lua_tonumber(L,-1)));
+			q.current_pc()->set_current_quest_counter_value((int)rint(lua_tonumber(L,-1)));
 
 		return 0;
 	}
 
 	int quest_set_icon_file(lua_State* L)
 	{
-		CQuestManager& q = CQuestManager::instance();
+		quest_manager& q = quest_manager::instance();
 
 		if (lua_isstring(L,-1))
-			q.GetCurrentPC()->SetCurrentQuestIconFile(lua_tostring(L,-1));
+			q.current_pc()->set_current_quest_icon_file(lua_tostring(L,-1));
 
 		return 0;
 	}
@@ -113,9 +113,9 @@ namespace quest
 			return 0;
 		}
 
-		CQuestManager& q = CQuestManager::instance();
-		QuestState * pqs = q.GetCurrentState();
-		PC* pPC = q.GetCurrentPC();
+		quest_manager& q = quest_manager::instance();
+		quest_state * pqs = q.current_state();
+		pc* pPC = q.current_pc();
 
 		if (L!=pqs->co) 
 		{
@@ -131,34 +131,34 @@ namespace quest
 			//
 			std::string stCurrentState = lua_tostring(L,-1);
 			if ( metin2::config::test_server() )
-				metin2::log::info("questlua->setstate( {}, {} )", pPC->GetCurrentQuestName().c_str(), stCurrentState.c_str() );
-			pqs->st = q.GetQuestStateIndex(pPC->GetCurrentQuestName(), stCurrentState);
-			pPC->SetCurrentQuestStateName(stCurrentState );
+				metin2::log::info("questlua->setstate( {}, {} )", pPC->current_quest_name().c_str(), stCurrentState.c_str() );
+			pqs->st = q.quest_state_index(pPC->current_quest_name(), stCurrentState);
+			pPC->set_current_quest_state_name(stCurrentState );
 		}
 		return 0;
 	}
 
 	int quest_coroutine_yield(lua_State * L)
 	{
-		CQuestManager& q = CQuestManager::instance();
+		quest_manager& q = quest_manager::instance();
 		// A yield must never happen inside an other_pc_block. Never.
-		if (q.IsInOtherPCBlock())
+		if (q.is_in_other_pc_block())
 		{
 			quest::error("FATAL ERROR! Yield occur in other_pc_block.");
-			PC* pPC = q.GetOtherPCBlockRootPC();
+			pc* pPC = q.other_pc_block_root_pc();
 			if (nullptr == pPC)
 			{
 				quest::error("	... FFFAAATTTAAALLL Error. RootPC is NULL");
 				return 0;
 			}
-			QuestState* pQS = pPC->GetRunningQuestState();
-			if (nullptr == pQS || nullptr == q.GetQuestStateName(pPC->GetCurrentQuestName(), pQS->st))
+			quest_state* pQS = pPC->running_quest_state();
+			if (nullptr == pQS || nullptr == q.quest_state_name(pPC->current_quest_name(), pQS->st))
 			{
-				quest::error("	... WHO AM I? WHERE AM I? I only know QuestName({})...", pPC->GetCurrentQuestName().c_str());
+				quest::error("	... WHO AM I? WHERE AM I? I only know QuestName({})...", pPC->current_quest_name().c_str());
 			}
 			else
 			{
-				quest::error("	Current Quest({}). State({})", pPC->GetCurrentQuestName().c_str(), q.GetQuestStateName(pPC->GetCurrentQuestName(), pQS->st));
+				quest::error("	Current Quest({}). State({})", pPC->current_quest_name().c_str(), q.quest_state_name(pPC->current_quest_name(), pQS->st));
 			}
 			return 0;
 		}
@@ -167,37 +167,37 @@ namespace quest
 
 	int quest_no_send(lua_State* L)
 	{
-		CQuestManager& q = CQuestManager::instance();
-		q.SetNoSend();
+		quest_manager& q = quest_manager::instance();
+		q.set_no_send();
 		return 0;
 	}
 
 	int quest_get_current_quest_index(lua_State* L)
 	{
-		CQuestManager& q = CQuestManager::instance();
-		PC* pPC = q.GetCurrentPC();
+		quest_manager& q = quest_manager::instance();
+		pc* pPC = q.current_pc();
 
-		int idx = q.GetQuestIndexByName(pPC->GetCurrentQuestName());
+		int idx = q.quest_index_by_name(pPC->current_quest_name());
 		lua_pushnumber(L, idx);
 		return 1;
 	}
 
 	int quest_begin_other_pc_block(lua_State* L)
 	{
-		CQuestManager& q = CQuestManager::instance();
+		quest_manager& q = quest_manager::instance();
 		uint32_t pid = lua_tonumber(L, -1);
-		q.BeginOtherPCBlock(pid);
+		q.begin_other_pc_block(pid);
 		return 0;
 	}
 
 	int quest_end_other_pc_block(lua_State* L)
 	{
-		CQuestManager& q = CQuestManager::instance();
-		q.EndOtherPCBlock();
+		quest_manager& q = quest_manager::instance();
+		q.end_other_pc_block();
 		return 0;
 	}
 
-	void RegisterQuestFunctionTable()
+	void register_quest_function_table()
 	{
 		luaL_reg quest_functions[] = 
 		{
@@ -234,7 +234,7 @@ namespace quest
 			{ nullptr,						nullptr						}
 		};
 
-		CQuestManager::instance().AddLuaFunctionTable("q", quest_functions);
+		quest_manager::instance().add_lua_function_table("q", quest_functions);
 	}
 }
 }

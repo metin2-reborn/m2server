@@ -5,7 +5,7 @@
  */
 
 namespace metin2::db::inline clients {
-enum QID {
+enum qid {
     QID_PLAYER,                         // 0
     QID_ITEM,                           // 1
     QID_QUEST,                          // 2

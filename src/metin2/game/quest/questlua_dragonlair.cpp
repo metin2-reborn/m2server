@@ -12,26 +12,26 @@ namespace metin2::game {
 
 namespace quest
 {
-	int dl_startRaid(lua_State* L)
+	int dl_start_raid(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
+		character * ch = quest_manager::instance().current_character_ptr();
 		int32_t baseMapIndex = lua_tonumber(L, -1);
 
-		CDragonLairManager::instance().Start(ch->GetMapIndex(), baseMapIndex, ch->GetGuild()->GetID());
+		dragon_lair_manager::instance().start(ch->map_index(), baseMapIndex, ch->get_guild()->id());
 
 		return 0;
 	}
 
-	void RegisterDragonLairFunctionTable()
+	void register_dragon_lair_function_table()
 	{
 		luaL_reg dl_functions[] =
 		{
-			{	"startRaid",	dl_startRaid	},
+			{	"startRaid",	dl_start_raid	},
 
 			{	nullptr,			nullptr			}
 		};
 
-		CQuestManager::instance(). AddLuaFunctionTable("DragonLair", dl_functions);
+		quest_manager::instance(). add_lua_function_table("DragonLair", dl_functions);
 	}
 }
 }

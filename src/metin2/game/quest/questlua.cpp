@@ -40,9 +40,9 @@ namespace metin2::game {
 
 namespace quest
 {
-	std::string ScriptToString(const std::string& str)
+	std::string script_to_string(const std::string& str)
 	{
-		lua_State* L = CQuestManager::instance().GetLuaState();
+		lua_State* L = quest_manager::instance().lua_state();
 		int x = lua_gettop(L);
 
 		int errcode = lua_dobuffer(L, ("return "+str).c_str(), str.size()+7, "ScriptToString");
@@ -60,35 +60,35 @@ namespace quest
 		return retstr;
 	}
 
-	void FSetWarpLocation::operator() (CHARACTER * ch)
+	void f_set_warp_location::operator() (character * ch)
 	{
-		if (ch->IsPC())
+		if (ch->is_pc())
 		{
-			ch->SetWarpLocation (map_index, x, y);
+			ch->set_warp_location (map_index, x, y);
 		}
 	}
 
-	void FSetQuestFlag::operator() (CHARACTER * ch)
+	void f_set_quest_flag::operator() (character * ch)
 	{
-		if (!ch->IsPC())
+		if (!ch->is_pc())
 			return;
 
-		PC * pPC = CQuestManager::instance().GetPCForce(ch->GetPlayerID());
+		pc * pPC = quest_manager::instance().pc_force(ch->player_id());
 
 		if (pPC)
-			pPC->SetFlag(flagname, value);
+			pPC->set_flag(flagname, value);
 	}
 
-	bool FPartyCheckFlagLt::operator() (CHARACTER * ch)
+	bool f_party_check_flag_lt::operator() (character * ch)
 	{
-		if (!ch->IsPC())
+		if (!ch->is_pc())
 			return false;
 
-		PC * pPC = CQuestManager::instance().GetPCForce(ch->GetPlayerID());
+		pc * pPC = quest_manager::instance().pc_force(ch->player_id());
 		bool returnBool = false;
 		if (pPC)
 		{
-			int flagValue = pPC->GetFlag(flagname);
+			int flagValue = pPC->flag(flagname);
 			if (value > flagValue)
 				returnBool = true;
 			else
@@ -98,92 +98,92 @@ namespace quest
 		return returnBool;
 	}
 
-	FPartyChat::FPartyChat(int ChatType, const char* str) : iChatType(ChatType), str(str)
+	f_party_chat::f_party_chat(int ChatType, const char* str) : chat_type(ChatType), str(str)
 	{
 	}
 
-	void FPartyChat::operator() (CHARACTER * ch)
+	void f_party_chat::operator() (character * ch)
 	{
-		ch->ChatPacket(iChatType, "%s", str);
+		ch->chat_packet(chat_type, "%s", str);
 	}
 
-	void FPartyClearReady::operator() (CHARACTER * ch)
+	void f_party_clear_ready::operator() (character * ch)
 	{
-		ch->RemoveAffect(AFFECT_DUNGEON_READY);
+		ch->remove_affect(AFFECT_DUNGEON_READY);
 	}
 
-	void FSendPacket::operator() (CEntity * ent)
+	void f_send_packet::operator() (entity * ent)
 	{
-		if (ent->IsType(ENTITY_CHARACTER))
+		if (ent->is_type(ENTITY_CHARACTER))
 		{
-			CHARACTER * ch = (CHARACTER *) ent;
+			character * ch = (character *) ent;
 
-			if (ch->GetDesc())
+			if (ch->get_desc())
 			{
-				ch->GetDesc()->Packet(buf.read_peek(), buf.size());
+				ch->get_desc()->packet(buf.read_peek(), buf.size());
 			}
 		}
 	}
 
-	void FSendPacketToEmpire::operator() (CEntity * ent)
+	void f_send_packet_to_empire::operator() (entity * ent)
 	{
-		if (ent->IsType(ENTITY_CHARACTER))
+		if (ent->is_type(ENTITY_CHARACTER))
 		{
-			CHARACTER * ch = (CHARACTER *) ent;
+			character * ch = (character *) ent;
 
-			if (ch->GetDesc())
+			if (ch->get_desc())
 			{
-				if (ch->GetEmpire() == bEmpire)
-					ch->GetDesc()->Packet(buf.read_peek(), buf.size());
+				if (ch->empire() == empire)
+					ch->get_desc()->packet(buf.read_peek(), buf.size());
 			}
 		}
 	}
 
-	void FWarpEmpire::operator() (CEntity * ent)
+	void f_warp_empire::operator() (entity * ent)
 	{
-		if (ent->IsType(ENTITY_CHARACTER))
+		if (ent->is_type(ENTITY_CHARACTER))
 		{
-			CHARACTER * ch = (CHARACTER *) ent;
+			character * ch = (character *) ent;
 
-			if (ch->IsPC() && ch->GetEmpire() == m_bEmpire)
+			if (ch->is_pc() && ch->empire() == empire)
 			{
-				ch->WarpSet(m_x, m_y, m_lMapIndexTo);
+				ch->warp_set(x, y, map_index_to);
 			}
 		}
 	}
 
-	FBuildLuaGuildWarList::FBuildLuaGuildWarList(lua_State * lua_state) : L(lua_state), m_count(1)
+	f_build_lua_guild_war_list::f_build_lua_guild_war_list(lua_State * lua_state) : l(lua_state), count(1)
 	{
 		lua_newtable(lua_state);
 	}
 
-	void FBuildLuaGuildWarList::operator() (uint32_t g1, uint32_t g2)
+	void f_build_lua_guild_war_list::operator() (uint32_t g1, uint32_t g2)
 	{
-		CGuild* g = CGuildManager::instance().FindGuild(g1);
+		guild* g = guild_manager::instance().find_guild(g1);
 
 		if (!g)
 			return;
 
-		if (g->GetGuildWarType(g2) == GUILD_WAR_TYPE_FIELD)
+		if (g->get_guild_war_type(g2) == GUILD_WAR_TYPE_FIELD)
 			return;
 
-		if (g->GetGuildWarState(g2) != GUILD_WAR_ON_WAR)
+		if (g->get_guild_war_state(g2) != GUILD_WAR_ON_WAR)
 			return;
 
-		lua_newtable(L);
-		lua_pushnumber(L, g1);
-		lua_rawseti(L, -2, 1);
-		lua_pushnumber(L, g2);
-		lua_rawseti(L, -2, 2);
-		lua_rawseti(L, -2, m_count++);
+		lua_newtable(l);
+		lua_pushnumber(l, g1);
+		lua_rawseti(l, -2, 1);
+		lua_pushnumber(l, g2);
+		lua_rawseti(l, -2, 2);
+		lua_rawseti(l, -2, count++);
 	}
 
-	bool IsScriptTrue(const char* code, int size)
+	bool is_script_true(const char* code, int size)
 	{
 		if (size==0)
 			return true;
 
-		lua_State* L = CQuestManager::instance().GetLuaState();
+		lua_State* L = quest_manager::instance().lua_state();
 		int x = lua_gettop(L);
 		int errcode = lua_dobuffer(L, code, size, "IsScriptTrue");
 		int bStart = lua_toboolean(L, -1);
@@ -216,12 +216,12 @@ namespace quest
 
 	int highscore_show(lua_State* L)
 	{
-		CQuestManager & q = CQuestManager::instance();
+		quest_manager & q = quest_manager::instance();
 		const char * pszBoardName = lua_isstring(L, 1) ? lua_tostring(L, 1) : "";
-		uint32_t mypid = q.GetCurrentCharacterPtr()->GetPlayerID();
+		uint32_t mypid = q.current_character_ptr()->player_id();
 		bool bOrder = (int) lua_tonumber(L, 2) != 0 ? true : false;
 
-		DBManager::instance().ReturnQuery(QID_HIGHSCORE_SHOW, mypid, nullptr, sql::format(
+		db_manager::instance().return_query(QID_HIGHSCORE_SHOW, mypid, nullptr, sql::format(
 				"SELECT h.pid, p.name, h.value FROM highscore{} as h, player{} as p WHERE h.board = {} AND h.pid = p.id ORDER BY h.value {} LIMIT 10",
 				sql::raw(get_table_postfix()), sql::raw(get_table_postfix()), pszBoardName, sql::raw(bOrder ? "DESC" : "")));
 		return 0;
@@ -229,17 +229,17 @@ namespace quest
 
 	int highscore_register(lua_State* L)
 	{
-		CQuestManager & q = CQuestManager::instance();
+		quest_manager & q = quest_manager::instance();
 
-		THighscoreRegisterQueryInfo * qi = new THighscoreRegisterQueryInfo;
+		highscore_register_query_info * qi = new highscore_register_query_info;
 
-		strlcpy(qi->szBoard, lua_tostring(L, 1), sizeof(qi->szBoard));
-		qi->dwPID = q.GetCurrentCharacterPtr()->GetPlayerID();
-		qi->iValue = (int) lua_tonumber(L, 2);
-		qi->bOrder = (int) lua_tonumber(L, 3);
+		strlcpy(qi->board, lua_tostring(L, 1), sizeof(qi->board));
+		qi->pid = q.current_character_ptr()->player_id();
+		qi->value = (int) lua_tonumber(L, 2);
+		qi->order = (int) lua_tonumber(L, 3);
 
-		DBManager::instance().ReturnQuery(QID_HIGHSCORE_REGISTER, qi->dwPID, qi, sql::format(
-				"SELECT value FROM highscore{} WHERE board={} AND pid={}", sql::raw(get_table_postfix()), qi->szBoard, qi->dwPID));
+		db_manager::instance().return_query(QID_HIGHSCORE_REGISTER, qi->pid, qi, sql::format(
+				"SELECT value FROM highscore{} WHERE board={} AND pid={}", sql::raw(get_table_postfix()), qi->board, qi->pid));
 		return 1;
 	}
 
@@ -250,21 +250,21 @@ namespace quest
 	{
 		std::ostringstream s;
 		combine_lua_string(L, s);
-		CQuestManager::instance().GetCurrentPartyMember()->ChatPacket(CHAT_TYPE_TALKING, "%s", s.str().c_str());
+		quest_manager::instance().current_party_member()->chat_packet(CHAT_TYPE_TALKING, "%s", s.str().c_str());
 		return 0;
 	}
 
 	int member_clear_ready(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentPartyMember();
-		ch->RemoveAffect(AFFECT_DUNGEON_READY);
+		character * ch = quest_manager::instance().current_party_member();
+		ch->remove_affect(AFFECT_DUNGEON_READY);
 		return 0;
 	}
 
 	int member_set_ready(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentPartyMember();
-		ch->AddAffect(AFFECT_DUNGEON_READY, POINT_NONE, 0, AFF_DUNGEON_READY, 65535, 0, true);
+		character * ch = quest_manager::instance().current_party_member();
+		ch->add_affect(AFFECT_DUNGEON_READY, POINT_NONE, 0, AFF_DUNGEON_READY, 65535, 0, true);
 		return 0;
 	}
 
@@ -291,15 +291,15 @@ namespace quest
 			count = 10;
 		}
 
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		SECTREE_MAP * pMap = SECTREE_MANAGER::instance().GetMap(ch->GetMapIndex());
+		character * ch = quest_manager::instance().current_character_ptr();
+		sectree_map * pMap = sectree_manager::instance().map(ch->map_index());
 		if (pMap == nullptr) {
 			return 0;
 		}
-		uint32_t dwQuestIdx = CQuestManager::instance().GetCurrentPC()->GetCurrentQuestIndex();
+		uint32_t dwQuestIdx = quest_manager::instance().current_pc()->current_quest_index();
 
 		bool ret = false;
-		CHARACTER * mob = nullptr;
+		character * mob = nullptr;
 
 		while (count--)
 		{
@@ -308,10 +308,10 @@ namespace quest
 				float angle = number(0, 999) * std::numbers::pi * 2 / 1000;
 				float r = number(0, 999) * radius / 1000;
 
-				int32_t x = local_x + pMap->m_setting.iBaseX + (int32_t)(r * cos(angle));
-				int32_t y = local_y + pMap->m_setting.iBaseY + (int32_t)(r * sin(angle));
+				int32_t x = local_x + pMap->setting.base_x + (int32_t)(r * cos(angle));
+				int32_t y = local_y + pMap->setting.base_y + (int32_t)(r * sin(angle));
 
-				mob = CHARACTER_MANAGER::instance().SpawnMob(mob_vnum, ch->GetMapIndex(), x, y, 0);
+				mob = character_manager::instance().spawn_mob(mob_vnum, ch->map_index(), x, y, 0);
 
 				if (mob)
 					break;
@@ -320,14 +320,14 @@ namespace quest
 			if (mob)
 			{
 				if (bAggressive)
-					mob->SetAggressive();
+					mob->set_aggressive();
 
-				mob->SetQuestBy(dwQuestIdx);
+				mob->set_quest_by(dwQuestIdx);
 
 				if (!ret)
 				{
 					ret = true;
-					lua_pushnumber(L, (uint32_t) mob->GetVID());
+					lua_pushnumber(L, (uint32_t) mob->get_vid());
 				}
 			}
 		}
@@ -362,16 +362,16 @@ namespace quest
 			count = 10;
 		}
 
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		SECTREE_MAP * pMap = SECTREE_MANAGER::instance().GetMap(ch->GetMapIndex());
+		character * ch = quest_manager::instance().current_character_ptr();
+		sectree_map * pMap = sectree_manager::instance().map(ch->map_index());
 		if (pMap == nullptr) {
 			lua_pushnumber(L, 0);
 			return 1;
 		}
-		uint32_t dwQuestIdx = CQuestManager::instance().GetCurrentPC()->GetCurrentQuestIndex();
+		uint32_t dwQuestIdx = quest_manager::instance().current_pc()->current_quest_index();
 
 		bool ret = false;
-		CHARACTER * mob = nullptr;
+		character * mob = nullptr;
 
 		while (count--)
 		{
@@ -380,10 +380,10 @@ namespace quest
 				float angle = number(0, 999) * std::numbers::pi * 2 / 1000;
 				float r = number(0, 999)*radius/1000;
 
-				int32_t x = local_x + pMap->m_setting.iBaseX + (int32_t)(r * cos(angle));
-				int32_t y = local_y + pMap->m_setting.iBaseY + (int32_t)(r * sin(angle));
+				int32_t x = local_x + pMap->setting.base_x + (int32_t)(r * cos(angle));
+				int32_t y = local_y + pMap->setting.base_y + (int32_t)(r * sin(angle));
 
-				mob = CHARACTER_MANAGER::instance().SpawnGroup(group_vnum, ch->GetMapIndex(), x, y, x, y, nullptr, bAggressive);
+				mob = character_manager::instance().spawn_group(group_vnum, ch->map_index(), x, y, x, y, nullptr, bAggressive);
 
 				if (mob)
 					break;
@@ -391,12 +391,12 @@ namespace quest
 
 			if (mob)
 			{
-				mob->SetQuestBy(dwQuestIdx);
+				mob->set_quest_by(dwQuestIdx);
 
 				if (!ret)
 				{
 					ret = true;
-					lua_pushnumber(L, (uint32_t) mob->GetVID());
+					lua_pushnumber(L, (uint32_t) mob->get_vid());
 				}
 			}
 		}
@@ -413,88 +413,88 @@ namespace quest
 	//
 	// Registers Lua function table
 	//
-	void CQuestManager::AddLuaFunctionTable(const char * c_pszName, luaL_reg * preg)
+	void quest_manager::add_lua_function_table(const char * c_pszName, luaL_reg * preg)
 	{
-		lua_newtable(L);
+		lua_newtable(l_);
 
 		while ((preg->name))
 		{
-			lua_pushstring(L, preg->name);
-			lua_pushcfunction(L, preg->func);
-			lua_rawset(L, -3);
+			lua_pushstring(l_, preg->name);
+			lua_pushcfunction(l_, preg->func);
+			lua_rawset(l_, -3);
 			preg++;
 		}
 
-		lua_setglobal(L, c_pszName);
+		lua_setglobal(l_, c_pszName);
 	}
 
-	void CQuestManager::BuildStateIndexToName(const char* questName)
+	void quest_manager::build_state_index_to_name(const char* questName)
 	{
-		int x = lua_gettop(L);
-		lua_getglobal(L, questName);
+		int x = lua_gettop(l_);
+		lua_getglobal(l_, questName);
 
-		if (lua_isnil(L,-1))
+		if (lua_isnil(l_,-1))
 		{
 			quest::error("QUEST wrong quest state file for quest {}",questName);
-			lua_settop(L,x);
+			lua_settop(l_,x);
 			return;
 		}
 
-		for (lua_pushnil(L); lua_next(L, -2);)
+		for (lua_pushnil(l_); lua_next(l_, -2);)
 		{
-			if (lua_isstring(L, -2) && lua_isnumber(L, -1))
+			if (lua_isstring(l_, -2) && lua_isnumber(l_, -1))
 			{
-				lua_pushvalue(L, -2);
-				lua_rawset(L, -4);
+				lua_pushvalue(l_, -2);
+				lua_rawset(l_, -4);
 			}
 			else
 			{
-				lua_pop(L, 1);
+				lua_pop(l_, 1);
 			}
 		}
 
-		lua_settop(L, x);
+		lua_settop(l_, x);
 	}
 
 	/**
 	 * @version 05/06/08	Bang2ni - registered __get_guildid_byname script function
 	 */
-	bool CQuestManager::InitializeLua()
+	bool quest_manager::initialize_lua()
 	{
-		L = lua_open();
+		l_ = lua_open();
 
-		luaopen_base(L);
-		luaopen_table(L);
-		luaopen_string(L);
-		luaopen_math(L);
+		luaopen_base(l_);
+		luaopen_table(l_);
+		luaopen_string(l_);
+		luaopen_math(l_);
 		//TEMP
-		luaopen_io(L);
-		luaopen_debug(L);
+		luaopen_io(l_);
+		luaopen_debug(l_);
 
-		RegisterAffectFunctionTable();
-		RegisterBuildingFunctionTable();
-		RegisterDungeonFunctionTable();
-		RegisterGameFunctionTable();
-		RegisterGuildFunctionTable();
-		RegisterHorseFunctionTable();
-		RegisterPetFunctionTable();
-		RegisterITEMFunctionTable();
-		RegisterMarriageFunctionTable();
-		RegisterNPCFunctionTable();
-		RegisterPartyFunctionTable();
-		RegisterPCFunctionTable();
-		RegisterQuestFunctionTable();
-		RegisterTargetFunctionTable();
-		RegisterArenaFunctionTable();
-		RegisterForkedFunctionTable();
-		RegisterMonarchFunctionTable(); 
-		RegisterOXEventFunctionTable();
-		RegisterMgmtFunctionTable();
-		RegisterBattleArenaFunctionTable();
-		RegisterDanceEventFunctionTable();
-		RegisterDragonLairFunctionTable();
-		RegisterSpeedServerFunctionTable();
-		RegisterDragonSoulFunctionTable();
+		register_affect_function_table();
+		register_building_function_table();
+		register_dungeon_function_table();
+		register_game_function_table();
+		register_guild_function_table();
+		register_horse_function_table();
+		register_pet_function_table();
+		register_item_function_table();
+		register_marriage_function_table();
+		register_npc_function_table();
+		register_party_function_table();
+		register_pc_function_table();
+		register_quest_function_table();
+		register_target_function_table();
+		register_arena_function_table();
+		register_forked_function_table();
+		register_monarch_function_table(); 
+		register_ox_event_function_table();
+		register_mgmt_function_table();
+		register_battle_arena_function_table();
+		register_dance_event_function_table();
+		register_dragon_lair_function_table();
+		register_speed_server_function_table();
+		register_dragon_soul_function_table();
 
 		{
 			luaL_reg member_functions[] = 
@@ -505,7 +505,7 @@ namespace quest
 				{ nullptr,				nullptr			}
 			};
 
-			AddLuaFunctionTable("member", member_functions);
+			add_lua_function_table("member", member_functions);
 		}
 
 		{
@@ -516,7 +516,7 @@ namespace quest
 				{ nullptr,				nullptr			}
 			};
 
-			AddLuaFunctionTable("highscore", highscore_functions);
+			add_lua_function_table("highscore", highscore_functions);
 		}
 
 		{
@@ -527,20 +527,20 @@ namespace quest
 				{ nullptr,				nullptr			}
 			};
 
-			AddLuaFunctionTable("mob", mob_functions);
+			add_lua_function_table("mob", mob_functions);
 		}
 
 		//
 		// global namespace functions
 		//
-		RegisterGlobalFunctionTable(L);
+		register_global_function_table(l_);
 
 		// LUA_INIT_ERROR_MESSAGE
 		{
 			char settingsFileName[256];
-			snprintf(settingsFileName, sizeof(settingsFileName), "%s/settings.lua", LocaleService_GetBasePath().c_str());
+			snprintf(settingsFileName, sizeof(settingsFileName), "%s/settings.lua", locale_service_get_base_path().c_str());
 
-			int settingsLoadingResult = lua_dofile(L, settingsFileName);
+			int settingsLoadingResult = lua_dofile(l_, settingsFileName);
 			metin2::log::info( "LoadSettings({}), returns {:d}", settingsFileName, settingsLoadingResult);
 			if (settingsLoadingResult != 0)
 			{
@@ -551,9 +551,9 @@ namespace quest
 
 		{
 			char questlibFileName[256];
-			snprintf(questlibFileName, sizeof(questlibFileName), "%s/questlib.lua", LocaleService_GetQuestPath().c_str());
+			snprintf(questlibFileName, sizeof(questlibFileName), "%s/questlib.lua", locale_service_get_quest_path().c_str());
 
-			int questlibLoadingResult = lua_dofile(L, questlibFileName);
+			int questlibLoadingResult = lua_dofile(l_, questlibFileName);
 			metin2::log::info( "LoadQuestlib({}), returns {:d}", questlibFileName, questlibLoadingResult);
 			if (questlibLoadingResult != 0)
 			{
@@ -563,9 +563,9 @@ namespace quest
 		}
 
 		char translateFileName[256];
-		snprintf(translateFileName, sizeof(translateFileName), "%s/translate.lua", LocaleService_GetBasePath().c_str());
+		snprintf(translateFileName, sizeof(translateFileName), "%s/translate.lua", locale_service_get_base_path().c_str());
 
-		int translateLoadingResult = lua_dofile(L, translateFileName);
+		int translateLoadingResult = lua_dofile(l_, translateFileName);
 		metin2::log::info( "LoadTranslate({}), returns {:d}", translateFileName, translateLoadingResult);
 		if (translateLoadingResult != 0)
 		{
@@ -575,9 +575,9 @@ namespace quest
 
 		{
 			char questLocaleFileName[256];
-			snprintf(questLocaleFileName, sizeof(questLocaleFileName), "%s/locale.lua", g_stQuestDir.c_str());
+			snprintf(questLocaleFileName, sizeof(questLocaleFileName), "%s/locale.lua", quest_dir.c_str());
 
-			int questLocaleLoadingResult = lua_dofile(L, questLocaleFileName);
+			int questLocaleLoadingResult = lua_dofile(l_, questLocaleFileName);
 			metin2::log::info( "LoadQuestLocale({}), returns {:d}", questLocaleFileName, questLocaleLoadingResult);
 			if (questLocaleLoadingResult != 0)
 			{
@@ -587,7 +587,7 @@ namespace quest
 		}
 		// END_OF_LUA_INIT_ERROR_MESSAGE
 
-		for (auto it = g_setQuestObjectDir.begin(); it != g_setQuestObjectDir.end(); ++it)
+		for (auto it = quest_object_dir.begin(); it != quest_object_dir.end(); ++it)
 		{
 			const std::string& stQuestObjectDir = *it;
 			char buf[PATH_MAX];
@@ -606,25 +606,25 @@ namespace quest
 
 					snprintf(buf + 11, sizeof(buf) - 11, "%s", pde->d_name);
 
-					RegisterQuest(pde->d_name, ++iQuestIdx);
-					int ret = lua_dofile(L, (stQuestObjectDir + "/state/" + pde->d_name).c_str());
+					register_quest(pde->d_name, ++iQuestIdx);
+					int ret = lua_dofile(l_, (stQuestObjectDir + "/state/" + pde->d_name).c_str());
 					metin2::log::info( "QUEST: loading {}, returns {:d}", (stQuestObjectDir + "/state/" + pde->d_name).c_str(), ret);
 
-					BuildStateIndexToName(pde->d_name);
+					build_state_index_to_name(pde->d_name);
 				}
 
 				closedir(pdir);
 			}
 		}
 
-		lua_setgcthreshold(L, 0);
+		lua_setgcthreshold(l_, 0);
 
-		lua_newtable(L);
-		lua_setglobal(L, "__codecache");
+		lua_newtable(l_);
+		lua_setglobal(l_, "__codecache");
 		return true;
 	}
 
-	void CQuestManager::GotoSelectState(QuestState& qs)
+	void quest_manager::goto_select_state(quest_state& qs)
 	{
 		lua_checkstack(qs.co, 1);
 
@@ -654,21 +654,21 @@ namespace quest
 		os << "]";
 
 
-		AddScript(os.str());
+		add_script(os.str());
 		qs.suspend_state = SUSPEND_STATE_SELECT;
 		if ( metin2::config::test_server() )
-			metin2::log::info( "{}", m_strScript.c_str() );
-		SendScript();
+			metin2::log::info( "{}", script_.c_str() );
+		send_script();
 	}
 
 	EVENTINFO(confirm_timeout_event_info)
 	{
-		uint32_t dwWaitPID;
-		uint32_t dwReplyPID;
+		uint32_t wait_pid;
+		uint32_t reply_pid;
 
 		confirm_timeout_event_info()
-		: dwWaitPID( 0 )
-		, dwReplyPID( 0 )
+		: wait_pid( 0 )
+		, reply_pid( 0 )
 		{
 		}
 	};
@@ -683,8 +683,8 @@ namespace quest
 			return 0;
 		}
 
-		CHARACTER * chWait = CHARACTER_MANAGER::instance().FindByPID(info->dwWaitPID);
-		CHARACTER * chReply = nullptr; //CHARACTER_MANAGER::info().FindByPID(info->dwReplyPID);
+		character * chWait = character_manager::instance().find_by_pid(info->wait_pid);
+		character * chReply = nullptr; //CHARACTER_MANAGER::info().FindByPID(info->dwReplyPID);
 
 		if (chReply)
 		{
@@ -693,13 +693,13 @@ namespace quest
 
 		if (chWait)
 		{
-			CQuestManager::instance().Confirm(info->dwWaitPID, CONFIRM_TIMEOUT);
+			quest_manager::instance().confirm(info->wait_pid, CONFIRM_TIMEOUT);
 		}
 
 		return 0;
 	}
 
-	void CQuestManager::GotoConfirmState(QuestState & qs)
+	void quest_manager::goto_confirm_state(quest_state & qs)
 	{
 		qs.suspend_state = SUSPEND_STATE_CONFIRM;
 		uint32_t dwVID = (uint32_t) lua_tonumber(qs.co, -3);
@@ -714,55 +714,55 @@ namespace quest
 
 		// 1
 		// If the other party is absent, just don't send to them. It proceeds via the timeout
-		CHARACTER * ch = CHARACTER_MANAGER::instance().Find(dwVID);
-		if (ch && ch->IsPC())
+		character * ch = character_manager::instance().find(dwVID);
+		if (ch && ch->is_pc())
 		{
-			ch->ConfirmWithMsg(szMsg, iTimeout, GetCurrentCharacterPtr()->GetPlayerID());
+			ch->confirm_with_msg(szMsg, iTimeout, current_character_ptr()->player_id());
 		}
 
 		// 2
-		GetCurrentPC()->SetConfirmWait((ch && ch->IsPC())?ch->GetPlayerID():0);
+		current_pc()->set_confirm_wait((ch && ch->is_pc())?ch->player_id():0);
 		std::ostringstream os;
 		os << "[CONFIRM_WAIT timeout;" << iTimeout << "]";
-		AddScript(os.str());
-		SendScript();
+		add_script(os.str());
+		send_script();
 
 		// 3
-		confirm_timeout_event_info* info = AllocEventInfo<confirm_timeout_event_info>();
+		confirm_timeout_event_info* info = alloc_event_info<confirm_timeout_event_info>();
 
-		info->dwWaitPID = GetCurrentCharacterPtr()->GetPlayerID();
-		info->dwReplyPID = (ch && ch->IsPC()) ? ch->GetPlayerID() : 0;
+		info->wait_pid = current_character_ptr()->player_id();
+		info->reply_pid = (ch && ch->is_pc()) ? ch->player_id() : 0;
 
-		event_create(confirm_timeout_event, info, PASSES_PER_SEC(iTimeout));
+		event_create(confirm_timeout_event, info, passes_per_sec(iTimeout));
 	}
 
-	void CQuestManager::GotoSelectItemState(QuestState& qs)
+	void quest_manager::goto_select_item_state(quest_state& qs)
 	{
 		qs.suspend_state = SUSPEND_STATE_SELECT_ITEM;
-		AddScript("[SELECT_ITEM]");
-		SendScript();
+		add_script("[SELECT_ITEM]");
+		send_script();
 	}
 
-	void CQuestManager::GotoInputState(QuestState & qs)
+	void quest_manager::goto_input_state(quest_state & qs)
 	{
 		qs.suspend_state = SUSPEND_STATE_INPUT;
-		AddScript("[INPUT]");
-		SendScript();
+		add_script("[INPUT]");
+		send_script();
 
 		// Set the time limit
 	}
 
-	void CQuestManager::GotoPauseState(QuestState & qs)
+	void quest_manager::goto_pause_state(quest_state & qs)
 	{
 		qs.suspend_state = SUSPEND_STATE_PAUSE;
-		AddScript("[NEXT]");
-		SendScript();
+		add_script("[NEXT]");
+		send_script();
 	}
 
-	void CQuestManager::GotoEndState(QuestState & qs)
+	void quest_manager::goto_end_state(quest_state & qs)
 	{
-		AddScript("[DONE]");
-		SendScript();
+		add_script("[DONE]");
+		send_script();
 	}
 
 	//
@@ -771,13 +771,13 @@ namespace quest
 	// The beginning of script
 	// 
 
-	QuestState CQuestManager::OpenState(const std::string& quest_name, int state_index)
+	quest_state quest_manager::open_state(const std::string& quest_name, int state_index)
 	{
-		QuestState qs;
+		quest_state qs;
 		qs.args=0;
 		qs.st = state_index;
-		qs.co = lua_newthread(L);
-		qs.ico = lua_ref(L, 1/*qs.co*/);
+		qs.co = lua_newthread(l_);
+		qs.ico = lua_ref(l_, 1/*qs.co*/);
 		return qs;
 	}
 
@@ -786,11 +786,11 @@ namespace quest
 	// 
 	// decides script to wait for user input, or finish
 	// 
-	bool CQuestManager::RunState(QuestState & qs)
+	bool quest_manager::run_state(quest_state & qs)
 	{
-		ClearError();
+		clear_error();
 
-		m_CurrentRunningState = &qs;
+		current_running_state_ = &qs;
 		int ret = lua_resume(qs.co, qs.args);
 
 		if (ret == 0)
@@ -798,37 +798,37 @@ namespace quest
 			if (lua_gettop(qs.co) == 0)
 			{
 				// end of quest
-				GotoEndState(qs);
+				goto_end_state(qs);
 				return false;
 			}
 
 			if (!strcmp(lua_tostring(qs.co, 1), "select"))
 			{
-				GotoSelectState(qs);
+				goto_select_state(qs);
 				return true;
 			}
 
 			if (!strcmp(lua_tostring(qs.co, 1), "wait"))
 			{
-				GotoPauseState(qs);
+				goto_pause_state(qs);
 				return true;
 			}
 
 			if (!strcmp(lua_tostring(qs.co, 1), "input"))
 			{
-				GotoInputState(qs);
+				goto_input_state(qs);
 				return true;
 			}
 
 			if (!strcmp(lua_tostring(qs.co, 1), "confirm"))
 			{
-				GotoConfirmState(qs);
+				goto_confirm_state(qs);
 				return true;
 			}
 
 			if (!strcmp(lua_tostring(qs.co, 1), "select_item"))
 			{
-				GotoSelectItemState(qs);
+				goto_select_item_state(qs);
 				return true;
 			}
 		}
@@ -837,10 +837,10 @@ namespace quest
 			quest::error("LUA_ERROR: {}", lua_tostring(qs.co, 1));
 		}
 
-		WriteRunningStateToSyserr();
-		SetError();
+		write_running_state_to_syserr();
+		set_error();
 
-		GotoEndState(qs);
+		goto_end_state(qs);
 		return false;
 	}
 
@@ -849,11 +849,11 @@ namespace quest
 	//
 	// makes script end
 	//
-	void CQuestManager::CloseState(QuestState& qs)
+	void quest_manager::close_state(quest_state& qs)
 	{
 		if (qs.co)
 		{
-			lua_unref(L, qs.ico);
+			lua_unref(l_, qs.ico);
 			qs.co = nullptr;
 		}
 	}

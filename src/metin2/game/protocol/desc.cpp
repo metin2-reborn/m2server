@@ -40,125 +40,125 @@
 namespace metin2::game::inline protocol {
 
 
-DESC::DESC()
+desc::desc()
 {
-	Initialize();
+	initialize();
 }
 
-DESC::~DESC()
+desc::~desc()
 {
 }
 
-void DESC::Initialize()
+void desc::initialize()
 {
-	m_bDestroyed = false;
+	destroyed_ = false;
 
-	m_pInputProcessor = nullptr;
-	m_connection.reset();
-	m_iPhase = PHASE_CLOSE;
-	m_dwHandle = 0;
+	input_processor_ = nullptr;
+	connection_.reset();
+	phase_ = PHASE_CLOSE;
+	handle_ = 0;
 
-	m_wPort = 0;
-	m_LastTryToConnectTime = 0;
+	port_ = 0;
+	last_try_to_connect_time_ = 0;
 
-	m_dwHandshake = 0;
-	m_dwHandshakeSentTime = 0;
-	m_iHandshakeRetry = 0;
-	m_dwClientTime = 0;
-	m_bHandshaking = false;
+	handshake_ = 0;
+	handshake_sent_time_ = 0;
+	handshake_retry_ = 0;
+	client_time_ = 0;
+	handshaking_ = false;
 
-	m_bufferedOutput.clear();
+	buffered_output_.clear();
 
-	m_pkPingEvent = nullptr;
-	m_lpCharacter = nullptr;
-	memset( &m_accountTable, 0, sizeof(m_accountTable) );
+	ping_event_ = nullptr;
+	character_ = nullptr;
+	memset( &account_table_, 0, sizeof(account_table_) );
 
-	m_pLogFile = nullptr;
-
-
-	m_wP2PPort = 0;
-
-	m_bAdminMode = false;
-	m_bMarkLogin = false;
-	m_dwMarkOwnerHandle = 0;
-	m_bPong = true;
-	m_bChannelStatusRequested = false;
-
-	m_iCurrentSequence = 0;
+	log_file_ = nullptr;
 
 
-	m_pkLoginKey = nullptr;
-	m_dwLoginKey = 0;
+	p2_p_port_ = 0;
+
+	admin_mode_ = false;
+	mark_login_ = false;
+	mark_owner_handle_ = 0;
+	pong_ = true;
+	channel_status_requested_ = false;
+
+	current_sequence_ = 0;
 
 
-	m_bCRCMagicCubeIdx = 0;
-	m_dwProcCRC = 0;
-	m_dwFileCRC = 0;
+	m_pk_login_key_ = nullptr;
+	login_key_ = 0;
+
+
+	crc_magic_cube_idx_ = 0;
+	proc_crc_ = 0;
+	file_crc_ = 0;
 
 
 
-	m_pkDisconnectEvent = nullptr;
+	disconnect_event = nullptr;
 
-	m_seq_vector.clear();
+	seq_vector.clear();
 }
 
-void DESC::Destroy()
+void desc::destroy()
 {
-	if (m_bDestroyed) {
+	if (destroyed_) {
 		return;
 	}
-	m_bDestroyed = true;
+	destroyed_ = true;
 
-	if (m_pkLoginKey)
-		m_pkLoginKey->Expire();
+	if (m_pk_login_key_)
+		m_pk_login_key_->expire();
 
-	if (GetAccountTable().id)
-		DESC_MANAGER::instance().DisconnectAccount(GetAccountTable().login);
+	if (get_account_table().id)
+		desc_manager::instance().disconnect_account(get_account_table().login);
 
-	if (m_pLogFile)
+	if (log_file_)
 	{
-		fclose(m_pLogFile);
-		m_pLogFile = nullptr;
+		fclose(log_file_);
+		log_file_ = nullptr;
 	}
 
-	if (m_lpCharacter)
+	if (character_)
 	{
-		m_lpCharacter->Disconnect("DESC::~DESC");
-		m_lpCharacter = nullptr;
+		character_->disconnect("DESC::~DESC");
+		character_ = nullptr;
 	}
 
-	event_cancel(&m_pkPingEvent);
-	event_cancel(&m_pkDisconnectEvent);
+	event_cancel(&ping_event_);
+	event_cancel(&disconnect_event);
 
 	if (!metin2::config::is_auth())
 	{
-		if (m_accountTable.login[0] && m_accountTable.passwd[0])
+		if (account_table_.login[0] && account_table_.passwd[0])
 		{
-			TLogoutPacket pack;
+			logout_packet pack;
 
-			strlcpy(pack.login, m_accountTable.login, sizeof(pack.login));
-			strlcpy(pack.passwd, m_accountTable.passwd, sizeof(pack.passwd));
+			strlcpy(pack.login, account_table_.login, sizeof(pack.login));
+			strlcpy(pack.passwd, account_table_.passwd, sizeof(pack.passwd));
 
-			db_clientdesc->DBPacket(HEADER_GD_LOGOUT, m_dwHandle, &pack, sizeof(TLogoutPacket));
+			db_clientdesc->db_packet(HEADER_GD_LOGOUT, handle_, &pack, sizeof(logout_packet));
 		}
 	}
 
-	if (m_connection)
+	if (connection_)
 	{
-		metin2::log::info( "SYSTEM: closing connection of {} (handle {:d})", m_stHost.c_str(), m_dwHandle);
+		metin2::log::info( "SYSTEM: closing connection of {} (handle {:d})", host_.c_str(), handle_);
 
-		cipher_.CleanUp();
+		cipher_.clean_up();
 
-		m_connection->close();
-		m_connection.reset();
+		connection_->close();
+		connection_.reset();
 	}
 
-	m_seq_vector.clear();
+	seq_vector.clear();
 }
 
 EVENTFUNC(ping_event)
 {
-	DESC::desc_event_info* info = dynamic_cast<DESC::desc_event_info*>( event->info );
+	desc::desc_event_info* info = dynamic_cast<desc::desc_event_info*>( event->info );
 
 	if ( info == nullptr )
 	{
@@ -166,84 +166,84 @@ EVENTFUNC(ping_event)
 		return 0;
 	}
 
-	DESC * desc = info->desc;
+	desc * desc = info->desc;
 
-	if (desc->IsAdminMode())
-		return (PASSES_PER_SEC(metin2::config::server().ping_seconds));
+	if (desc->is_admin_mode())
+		return (passes_per_sec(metin2::config::server().ping_seconds));
 
-	if (!desc->IsPong())
+	if (!desc->is_pong())
 	{
-		metin2::log::info( "PING_EVENT: no pong {}", desc->GetHostName());
+		metin2::log::info( "PING_EVENT: no pong {}", desc->host_name());
 
-		desc->SetPhase(PHASE_CLOSE);
+		desc->set_phase(PHASE_CLOSE);
 
-		return (PASSES_PER_SEC(metin2::config::server().ping_seconds));
+		return (passes_per_sec(metin2::config::server().ping_seconds));
 	}
 	else
 	{
-		TPacketGCPing p;
+		packet_gc_ping p;
 		p.header = HEADER_GC_PING;
-		desc->Packet(&p, sizeof(struct TPacketGCPing));
-		desc->SetPong(false);
+		desc->packet(&p, sizeof(struct packet_gc_ping));
+		desc->set_pong(false);
 	}
 
 
-	desc->SendHandshake(get_dword_time(), 0);
+	desc->send_handshake(get_dword_time(), 0);
 
-	return (PASSES_PER_SEC(metin2::config::server().ping_seconds));
+	return (passes_per_sec(metin2::config::server().ping_seconds));
 }
 
-bool DESC::IsPong()
+bool desc::is_pong()
 {
-	return m_bPong;
+	return pong_;
 }
 
-void DESC::SetPong(bool b)
+void desc::set_pong(bool b)
 {
-	m_bPong = b;
+	pong_ = b;
 }
 
-bool DESC::Setup(std::shared_ptr<net::connection> connection, uint32_t _handle, uint32_t _handshake)
+bool desc::setup(std::shared_ptr<net::connection> connection, uint32_t _handle, uint32_t _handshake)
 {
-	m_connection	= std::move(connection);
-	m_stHost		= m_connection->remote_address();
-	m_wPort			= m_connection->remote_port();
-	m_dwHandle		= _handle;
+	connection_	= std::move(connection);
+	host_		= connection_->remote_address();
+	port_			= connection_->remote_port();
+	handle_		= _handle;
 
-	m_connection->start(*this);
+	connection_->start(*this);
 
 	// Ping Event 
-	desc_event_info* info = AllocEventInfo<desc_event_info>();
+	desc_event_info* info = alloc_event_info<desc_event_info>();
 
 	info->desc = this;
-	assert(m_pkPingEvent == nullptr);
+	assert(ping_event_ == nullptr);
 
-	m_pkPingEvent = event_create(ping_event, info, PASSES_PER_SEC(metin2::config::server().ping_seconds));
+	ping_event_ = event_create(ping_event, info, passes_per_sec(metin2::config::server().ping_seconds));
 
 
 	// Set Phase to handshake
-	SetPhase(PHASE_HANDSHAKE);
-	StartHandshake(_handshake);
+	set_phase(PHASE_HANDSHAKE);
+	start_handshake(_handshake);
 
 	metin2::log::info( "SYSTEM: new connection from [{}] handle {:d} handshake {:d} ptr {}",
-			m_stHost.c_str(), m_dwHandle, m_dwHandshake, static_cast<const void *>(this));
+			host_.c_str(), handle_, handshake_, static_cast<const void *>(this));
 
 	return true;
 }
 
-auto DESC::on_receive(std::span<std::uint8_t> input, std::size_t received) -> std::size_t
+auto desc::on_receive(std::span<std::uint8_t> input, std::size_t received) -> std::size_t
 {
 	// Only the new bytes: the rest was decrypted when it arrived.
 	if (cipher_.activated())
-		cipher_.Decrypt(input.data() + input.size() - received, received);
+		cipher_.decrypt(input.data() + input.size() - received, received);
 
 	std::size_t consumed = 0;
 
 	// If false is returned, the phase has changed, so go through processing again!
-	while (m_pInputProcessor)
+	while (input_processor_)
 	{
 		int iBytesProceed = 0;
-		const bool bDone = m_pInputProcessor->Process(this, input.data() + consumed, (int) (input.size() - consumed), iBytesProceed);
+		const bool bDone = input_processor_->process(this, input.data() + consumed, (int) (input.size() - consumed), iBytesProceed);
 		consumed += iBytesProceed;
 
 		if (bDone)
@@ -254,103 +254,103 @@ auto DESC::on_receive(std::span<std::uint8_t> input, std::size_t received) -> st
 	return input.size();
 }
 
-void DESC::on_close(const std::error_code & error)
+void desc::on_close(const std::error_code & error)
 {
 	if (error && error != asio::error::eof)
-		metin2::log::info( "SYSTEM: connection of {} lost: {}", m_stHost.c_str(), error.message().c_str());
+		metin2::log::info( "SYSTEM: connection of {} lost: {}", host_.c_str(), error.message().c_str());
 
-	SetPhase(PHASE_CLOSE);
+	set_phase(PHASE_CLOSE);
 }
 
-void DESC::BufferedPacket(const void * c_pvData, int iSize)
+void desc::buffered_packet(const void * c_pvData, int iSize)
 {
-	if (m_iPhase == PHASE_CLOSE)
+	if (phase_ == PHASE_CLOSE)
 		return;
 
 	const auto * data = static_cast<const uint8_t *>(c_pvData);
-	m_bufferedOutput.insert(m_bufferedOutput.end(), data, data + iSize);
+	buffered_output_.insert(buffered_output_.end(), data, data + iSize);
 }
 
-void DESC::Packet(const void * c_pvData, int iSize)
+void desc::packet(const void * c_pvData, int iSize)
 {
 	assert(iSize > 0);
 
-	if (m_iPhase == PHASE_CLOSE || !m_connection) // Don't send while disconnecting.
+	if (phase_ == PHASE_CLOSE || !connection_) // Don't send while disconnecting.
 		return;
 
-	if (m_stRelayName.length() != 0)
+	if (relay_name_.length() != 0)
 	{
 		// Relay packets are not encrypted.
-		TPacketGGRelay p;
+		packet_gg_relay p;
 
-		p.bHeader = HEADER_GG_RELAY;
-		strlcpy(p.szName, m_stRelayName.c_str(), sizeof(p.szName));
-		p.lSize = iSize;
+		p.header = HEADER_GG_RELAY;
+		strlcpy(p.name, relay_name_.c_str(), sizeof(p.name));
+		p.size = iSize;
 
-		m_stRelayName.clear();
+		relay_name_.clear();
 
-		if (!m_connection->send(&p, sizeof(p)) || !m_connection->send(c_pvData, iSize))
-			m_iPhase = PHASE_CLOSE;
+		if (!connection_->send(&p, sizeof(p)) || !connection_->send(c_pvData, iSize))
+			phase_ = PHASE_CLOSE;
 
 		return;
 	}
 
-	if (!m_bufferedOutput.empty())
+	if (!buffered_output_.empty())
 	{
 		const auto * data = static_cast<const uint8_t *>(c_pvData);
-		m_bufferedOutput.insert(m_bufferedOutput.end(), data, data + iSize);
+		buffered_output_.insert(buffered_output_.end(), data, data + iSize);
 
-		c_pvData = m_bufferedOutput.data();
-		iSize = (int) m_bufferedOutput.size();
+		c_pvData = buffered_output_.data();
+		iSize = (int) buffered_output_.size();
 	}
 
 	// The output limit closes connections that stopped reading.
-	const std::span<uint8_t> out = m_connection->prepare(iSize);
+	const std::span<uint8_t> out = connection_->prepare(iSize);
 
 	if (out.empty())
 	{
-		metin2::log::info( "SYSTEM: output of {} exceeds its limit, closing", m_stHost.c_str());
-		m_iPhase = PHASE_CLOSE;
+		metin2::log::info( "SYSTEM: output of {} exceeds its limit, closing", host_.c_str());
+		phase_ = PHASE_CLOSE;
 	}
 	else
 	{
 		std::memcpy(out.data(), c_pvData, iSize);
 
 		if (cipher_.activated())
-			cipher_.Encrypt(out.data(), out.size());
+			cipher_.encrypt(out.data(), out.size());
 	}
 
-	m_bufferedOutput.clear();
+	buffered_output_.clear();
 }
 
-void DESC::LargePacket(const void * c_pvData, int iSize)
+void desc::large_packet(const void * c_pvData, int iSize)
 {
-	if (m_connection)
-		m_connection->raise_output_limit(iSize);
+	if (connection_)
+		connection_->raise_output_limit(iSize);
 
 	metin2::log::info( "LargePacket Size {:d}", iSize);
 
-	Packet(c_pvData, iSize);
+	packet(c_pvData, iSize);
 }
 
-void DESC::SetPhase(int _phase)
+void desc::set_phase(int _phase)
 {
-	m_iPhase = _phase;
+	phase_ = _phase;
 
-	TPacketGCPhase pack;
+	packet_gc_phase pack;
 	pack.header = HEADER_GC_PHASE;
 	pack.phase = _phase;
-	Packet(&pack, sizeof(TPacketGCPhase));
+	packet(&pack, sizeof(packet_gc_phase));
 
-	switch (m_iPhase)
+	switch (phase_)
 	{
 		case PHASE_CLOSE:
 			// Removed since the messenger became per-character
-			m_pInputProcessor = &m_inputClose;
+			input_processor_ = &input_close_;
 			break;
 
 		case PHASE_HANDSHAKE:
-			m_pInputProcessor = &m_inputHandshake;
+			input_processor_ = &input_handshake_;
 			break;
 
 		case PHASE_SELECT:
@@ -358,66 +358,66 @@ void DESC::SetPhase(int _phase)
 			//MessengerManager::instance().Logout(GetAccountTable().login); // intentionally no break
 		case PHASE_LOGIN:
 		case PHASE_LOADING:
-			m_pInputProcessor = &m_inputLogin;
+			input_processor_ = &input_login_;
 			break;
 
 		case PHASE_GAME:
 		case PHASE_DEAD:
-			m_pInputProcessor = &m_inputMain;
+			input_processor_ = &input_main_;
 			break;
 
 		case PHASE_AUTH:
-			m_pInputProcessor = &m_inputAuth;
+			input_processor_ = &input_auth_;
 			metin2::log::info( "AUTH_PHASE {}", static_cast<const void *>(this));
 			break;
 	}
 }
 
-void DESC::BindAccountTable(TAccountTable * pAccountTable)
+void desc::bind_account_table(account_table * pAccountTable)
 {
 	assert(pAccountTable != nullptr);
 
 	// A second login on this connection (two requests in flight): the login map must not keep
 	// pointing here under the old name once this connection is gone.
-	if (m_accountTable.id && strcmp(m_accountTable.login, pAccountTable->login) != 0)
-		DESC_MANAGER::instance().DisconnectAccount(m_accountTable.login);
+	if (account_table_.id && strcmp(account_table_.login, pAccountTable->login) != 0)
+		desc_manager::instance().disconnect_account(account_table_.login);
 
-	std::memcpy(&m_accountTable, pAccountTable, sizeof(TAccountTable));
-	DESC_MANAGER::instance().ConnectAccount(m_accountTable.login, this);
+	std::memcpy(&account_table_, pAccountTable, sizeof(account_table));
+	desc_manager::instance().connect_account(account_table_.login, this);
 }
 
-void DESC::StartHandshake(uint32_t _handshake)
+void desc::start_handshake(uint32_t _handshake)
 {
 	// Handshake
-	m_dwHandshake = _handshake;
+	handshake_ = _handshake;
 
-	SendHandshake(get_dword_time(), 0);
+	send_handshake(get_dword_time(), 0);
 
-	m_iHandshakeRetry = 0;
+	handshake_retry_ = 0;
 }
 
-void DESC::SendHandshake(uint32_t dwCurTime, int32_t lNewDelta)
+void desc::send_handshake(uint32_t dwCurTime, int32_t lNewDelta)
 {
-	TPacketGCHandshake pack;
+	packet_gc_handshake pack;
 
-	pack.bHeader		= HEADER_GC_HANDSHAKE;
-	pack.dwHandshake	= m_dwHandshake;
-	pack.dwTime			= dwCurTime;
-	pack.lDelta			= lNewDelta;
+	pack.header		= HEADER_GC_HANDSHAKE;
+	pack.handshake	= handshake_;
+	pack.time			= dwCurTime;
+	pack.delta			= lNewDelta;
 
-	Packet(&pack, sizeof(TPacketGCHandshake));
+	packet(&pack, sizeof(packet_gc_handshake));
 
-	m_dwHandshakeSentTime = dwCurTime;
-	m_bHandshaking = true;
+	handshake_sent_time_ = dwCurTime;
+	handshaking_ = true;
 }
 
-bool DESC::HandshakeProcess(uint32_t dwTime, int32_t lDelta, bool bInfiniteRetry)
+bool desc::handshake_process(uint32_t dwTime, int32_t lDelta, bool bInfiniteRetry)
 {
 	uint32_t dwCurTime = get_dword_time();
 
 	if (lDelta < 0)
 	{
-		metin2::log::error("Desc::HandshakeProcess : value error (lDelta {:d}, ip {})", lDelta, m_stHost.c_str());
+		metin2::log::error("Desc::HandshakeProcess : value error (lDelta {:d}, ip {})", lDelta, host_.c_str());
 		return false;
 	}
 
@@ -428,16 +428,16 @@ bool DESC::HandshakeProcess(uint32_t dwTime, int32_t lDelta, bool bInfiniteRetry
 		if (bInfiniteRetry)
 		{
 			uint8_t bHeader = HEADER_GC_TIME_SYNC;
-			Packet(&bHeader, sizeof(uint8_t));
+			packet(&bHeader, sizeof(uint8_t));
 		}
 
-		if (GetCharacter())
-			metin2::log::info( "Handshake: client_time {:d} server_time {:d} name: {}", m_dwClientTime, dwCurTime, GetCharacter()->GetName());
+		if (get_character())
+			metin2::log::info( "Handshake: client_time {:d} server_time {:d} name: {}", client_time_, dwCurTime, get_character()->name());
 		else
-			metin2::log::info( "Handshake: client_time {:d} server_time {:d} delta {:d}", m_dwClientTime, dwCurTime, static_cast<long>(lDelta));
+			metin2::log::info( "Handshake: client_time {:d} server_time {:d} delta {:d}", client_time_, dwCurTime, static_cast<long>(lDelta));
 
-		m_dwClientTime = dwCurTime;
-		m_bHandshaking = false;
+		client_time_ = dwCurTime;
+		handshaking_ = false;
 		return true; 
 	}
 
@@ -446,66 +446,66 @@ bool DESC::HandshakeProcess(uint32_t dwTime, int32_t lDelta, bool bInfiniteRetry
 	if (lNewDelta < 0)
 	{
 		metin2::log::info( "Handshake: lower than zero {:d}", lNewDelta);
-		lNewDelta = (dwCurTime - m_dwHandshakeSentTime) / 2;
+		lNewDelta = (dwCurTime - handshake_sent_time_) / 2;
 	}
 
-	metin2::log::debug( "Handshake: ServerTime {:d} dwTime {:d} lDelta {:d} SentTime {:d} lNewDelta {:d}", dwCurTime, dwTime, lDelta, m_dwHandshakeSentTime, lNewDelta);
+	metin2::log::debug( "Handshake: ServerTime {:d} dwTime {:d} lDelta {:d} SentTime {:d} lNewDelta {:d}", dwCurTime, dwTime, lDelta, handshake_sent_time_, lNewDelta);
 
 	if (!bInfiniteRetry)
-		if (++m_iHandshakeRetry > HANDSHAKE_RETRY_LIMIT)
+		if (++handshake_retry_ > HANDSHAKE_RETRY_LIMIT)
 		{
 			metin2::log::error("handshake retry limit reached! (limit {:d} character {})", 
-					HANDSHAKE_RETRY_LIMIT, GetCharacter() ? GetCharacter()->GetName() : "!NO CHARACTER!");
-			SetPhase(PHASE_CLOSE);
+					HANDSHAKE_RETRY_LIMIT, get_character() ? get_character()->name() : "!NO CHARACTER!");
+			set_phase(PHASE_CLOSE);
 			return false;
 		}
 
-	SendHandshake(dwCurTime, lNewDelta);
+	send_handshake(dwCurTime, lNewDelta);
 	return false;
 }
 
-bool DESC::IsHandshaking()
+bool desc::is_handshaking()
 {
-	return m_bHandshaking;
+	return handshaking_;
 }
 
-uint32_t DESC::GetClientTime()
+uint32_t desc::client_time()
 {
-	return m_dwClientTime;
+	return client_time_;
 }
 
-void DESC::SendKeyAgreement()
+void desc::send_key_agreement()
 {
-	TPacketKeyAgreement packet;
+	packet_key_agreement packet_value;
 
-	size_t data_length = TPacketKeyAgreement::MAX_DATA_LEN;
-	size_t agreed_length = cipher_.Prepare(packet.data, &data_length);
+	size_t data_length = packet_key_agreement::max_data_len;
+	size_t agreed_length = cipher_.prepare(packet_value.data, &data_length);
 	if (agreed_length == 0) {
 		// Initialization failure
-		SetPhase(PHASE_CLOSE);
+		set_phase(PHASE_CLOSE);
 		return;
 	}
-	assert(data_length <= TPacketKeyAgreement::MAX_DATA_LEN);
+	assert(data_length <= packet_key_agreement::max_data_len);
 
-	packet.bHeader = HEADER_GC_KEY_AGREEMENT;
-	packet.wAgreedLength = (uint16_t)agreed_length;
-	packet.wDataLength = (uint16_t)data_length;
+	packet_value.header = HEADER_GC_KEY_AGREEMENT;
+	packet_value.agreed_length = (uint16_t)agreed_length;
+	packet_value.data_length = (uint16_t)data_length;
 
-	Packet(&packet, sizeof(packet));
+	packet(&packet_value, sizeof(packet_value));
 }
 
-void DESC::SendKeyAgreementCompleted()
+void desc::send_key_agreement_completed()
 {
-	TPacketKeyAgreementCompleted packet;
+	packet_key_agreement_completed packet_value;
 
-	packet.bHeader = HEADER_GC_KEY_AGREEMENT_COMPLETED;
+	packet_value.header = HEADER_GC_KEY_AGREEMENT_COMPLETED;
 
-	Packet(&packet, sizeof(packet));
+	packet(&packet_value, sizeof(packet_value));
 }
 
-bool DESC::FinishHandshake(size_t agreed_length, const void* buffer, size_t length)
+bool desc::finish_handshake(size_t agreed_length, const void* buffer, size_t length)
 {
-	if (!cipher_.Activate(false, agreed_length, buffer, length))
+	if (!cipher_.activate(false, agreed_length, buffer, length))
 		return false;
 
 	// The server encrypts from here on (the key agreement completed packet already went out in
@@ -514,35 +514,35 @@ bool DESC::FinishHandshake(size_t agreed_length, const void* buffer, size_t leng
 	return true;
 }
 
-bool DESC::IsCipherPrepared()
+bool desc::is_cipher_prepared()
 {
-	return cipher_.IsKeyPrepared();
+	return cipher_.is_key_prepared();
 }
 
-void DESC::SetRelay(const char * c_pszName)
+void desc::set_relay(const char * c_pszName)
 {
-	m_stRelayName = c_pszName;
+	relay_name_ = c_pszName;
 }
 
-void DESC::BindCharacter(CHARACTER * ch)
+void desc::bind_character(character * ch)
 {
-	m_lpCharacter = ch;
+	character_ = ch;
 }
 
-void DESC::SendOutputNow()
+void desc::send_output_now()
 {
-	if (m_connection)
-		m_connection->write_now();
+	if (connection_)
+		connection_->write_now();
 }
 
-void DESC::FlushOutput()
+void desc::flush_output()
 {
-	if (!m_connection || m_connection->pending_output() == 0)
+	if (!connection_ || connection_->pending_output() == 0)
 		return;
 
-	metin2::log::info( "FLUSH START {:d}", m_connection->pending_output());
+	metin2::log::info( "FLUSH START {:d}", connection_->pending_output());
 
-	if (m_connection->flush(std::chrono::seconds(20)))
+	if (connection_->flush(std::chrono::seconds(20)))
 		metin2::log::info( "FLUSH SUCCESS");
 	else
 		metin2::log::info( "FLUSH FAIL");
@@ -550,7 +550,7 @@ void DESC::FlushOutput()
 
 EVENTFUNC(disconnect_event)
 {
-	DESC::desc_event_info* info = dynamic_cast<DESC::desc_event_info*>( event->info );
+	desc::desc_event_info* info = dynamic_cast<desc::desc_event_info*>( event->info );
 
 	if ( info == nullptr )
 	{
@@ -558,87 +558,87 @@ EVENTFUNC(disconnect_event)
 		return 0;
 	}
 
-	DESC * d = info->desc;
+	desc * d = info->desc;
 
-	d->m_pkDisconnectEvent = nullptr;
-	d->SetPhase(PHASE_CLOSE);
+	d->disconnect_event = nullptr;
+	d->set_phase(PHASE_CLOSE);
 	return 0;
 }
 
-bool DESC::DelayedDisconnect(int iSec)
+bool desc::delayed_disconnect(int iSec)
 {
-	if (m_pkDisconnectEvent != nullptr) {
+	if (disconnect_event != nullptr) {
 		return false;
 	}
 
-	desc_event_info* info = AllocEventInfo<desc_event_info>();
+	desc_event_info* info = alloc_event_info<desc_event_info>();
 	info->desc = this;
 
-	m_pkDisconnectEvent = event_create(disconnect_event, info, PASSES_PER_SEC(iSec));
+	disconnect_event = event_create(game::protocol::disconnect_event, info, passes_per_sec(iSec));
 	return true;
 }
 
-void DESC::DisconnectOfSameLogin()
+void desc::disconnect_of_same_login()
 {
-	if (GetCharacter())
+	if (get_character())
 	{
-		if (m_pkDisconnectEvent)
+		if (disconnect_event)
 			return;
 
-		GetCharacter()->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("다른 컴퓨터에서 로그인 하여 접속을 종료 합니다."));
-		DelayedDisconnect(5);
+		get_character()->chat_packet(CHAT_TYPE_INFO, lc_text("다른 컴퓨터에서 로그인 하여 접속을 종료 합니다."));
+		delayed_disconnect(5);
 	}
 	else
 	{
-		SetPhase(PHASE_CLOSE);
+		set_phase(PHASE_CLOSE);
 	}
 }
 
-void DESC::SetAdminMode()
+void desc::set_admin_mode()
 {
-	m_bAdminMode = true;
+	admin_mode_ = true;
 }
 
-bool DESC::IsAdminMode()
+bool desc::is_admin_mode()
 {
-	return m_bAdminMode;
+	return admin_mode_;
 }
 
-uint8_t DESC::GetSequence()
+uint8_t desc::sequence()
 {
-	return gc_abSequence[m_iCurrentSequence];
+	return gc_ab_sequence[current_sequence_];
 }
 
-void DESC::SetNextSequence()
+void desc::set_next_sequence()
 {
-	if (++m_iCurrentSequence == SEQUENCE_MAX_NUM)
-		m_iCurrentSequence = 0;
+	if (++current_sequence_ == SEQUENCE_MAX_NUM)
+		current_sequence_ = 0;
 }
 
-void DESC::SendLoginSuccessPacket()
+void desc::send_login_success_packet()
 {
-	TAccountTable & rTable = GetAccountTable();
+	account_table & rTable = get_account_table();
 
-	TPacketGCLoginSuccess p;
+	packet_gc_login_success p;
 
-	p.bHeader    = HEADER_GC_LOGIN_SUCCESS_NEWSLOT;
+	p.header    = HEADER_GC_LOGIN_SUCCESS_NEWSLOT;
 
-	p.handle     = GetHandle();
-	p.random_key = DESC_MANAGER::instance().MakeRandomKey(GetHandle()); // FOR MARK
+	p.handle     = handle();
+	p.random_key = desc_manager::instance().make_random_key(handle()); // FOR MARK
 	std::memcpy(p.players, rTable.players, sizeof(rTable.players));
 
 	for (int i = 0; i < PLAYER_PER_ACCOUNT; ++i)
 	{   
 
-		if (!g_stProxyIP.empty())
-			rTable.players[i].lAddr=inet_addr(g_stProxyIP.c_str());
+		if (!proxy_ip.empty())
+			rTable.players[i].addr=inet_addr(proxy_ip.c_str());
 
-		CGuild* g = CGuildManager::instance().GetLinkedGuild(rTable.players[i].dwID);
+		guild* g = guild_manager::instance().linked_guild(rTable.players[i].id);
 
 		if (g)
 		{   
-			p.guild_id[i] = g->GetID();
-			strlcpy(p.guild_name[i], g->GetName(), sizeof(p.guild_name[i]));
+			p.guild_id[i] = g->id();
+			strlcpy(p.guild_name[i], g->name(), sizeof(p.guild_name[i]));
 		}   
 		else
 		{
@@ -647,34 +647,34 @@ void DESC::SendLoginSuccessPacket()
 		}
 	}
 
-	Packet(&p, sizeof(TPacketGCLoginSuccess));
+	packet(&p, sizeof(packet_gc_login_success));
 }
 
-void DESC::SetLoginKey(uint32_t dwKey)
+void desc::set_login_key(uint32_t dwKey)
 {
-	m_dwLoginKey = dwKey;
+	login_key_ = dwKey;
 }
 
-void DESC::SetLoginKey(CLoginKey * pkKey)
+void desc::set_login_key(login_key * pkKey)
 {
 	// The replaced key must not keep pointing at this connection after it is destroyed.
-	if (m_pkLoginKey && m_pkLoginKey != pkKey)
-		m_pkLoginKey->Expire();
+	if (m_pk_login_key_ && m_pk_login_key_ != pkKey)
+		m_pk_login_key_->expire();
 
-	m_pkLoginKey = pkKey;
-	metin2::log::info( "SetLoginKey {:d}", m_pkLoginKey->m_dwKey);
+	m_pk_login_key_ = pkKey;
+	metin2::log::info( "SetLoginKey {:d}", m_pk_login_key_->key);
 }
 
-uint32_t DESC::GetLoginKey()
+uint32_t desc::get_login_key()
 {
-	if (m_pkLoginKey)
-		return m_pkLoginKey->m_dwKey;
+	if (m_pk_login_key_)
+		return m_pk_login_key_->key;
 
-	return m_dwLoginKey;
+	return login_key_;
 }
 
 
-void DESC::AssembleCRCMagicCube(uint8_t bProcPiece, uint8_t bFilePiece)
+void desc::assemble_crc_magic_cube(uint8_t bProcPiece, uint8_t bFilePiece)
 {
 	static uint8_t abXORTable[32] =
 	{
@@ -684,39 +684,39 @@ void DESC::AssembleCRCMagicCube(uint8_t bProcPiece, uint8_t bFilePiece)
 		43,   5, 0, 0, 0, 0, 0, 0,
 	};
 
-	bProcPiece = (bProcPiece ^ abXORTable[m_bCRCMagicCubeIdx]);
-	bFilePiece = (bFilePiece ^ abXORTable[m_bCRCMagicCubeIdx+1]);
+	bProcPiece = (bProcPiece ^ abXORTable[crc_magic_cube_idx_]);
+	bFilePiece = (bFilePiece ^ abXORTable[crc_magic_cube_idx_+1]);
 
-	m_dwProcCRC |= static_cast<uint32_t>(bProcPiece) << m_bCRCMagicCubeIdx;
-	m_dwFileCRC |= static_cast<uint32_t>(bFilePiece) << m_bCRCMagicCubeIdx;
+	proc_crc_ |= static_cast<uint32_t>(bProcPiece) << crc_magic_cube_idx_;
+	file_crc_ |= static_cast<uint32_t>(bFilePiece) << crc_magic_cube_idx_;
 
-	m_bCRCMagicCubeIdx += 8;
+	crc_magic_cube_idx_ += 8;
 
-	if (!(m_bCRCMagicCubeIdx & 31))
+	if (!(crc_magic_cube_idx_ & 31))
 	{
-		m_dwProcCRC = 0;
-		m_dwFileCRC = 0;
-		m_bCRCMagicCubeIdx = 0;
+		proc_crc_ = 0;
+		file_crc_ = 0;
+		crc_magic_cube_idx_ = 0;
 	}
 }
 
-void DESC::push_seq(uint8_t hdr, uint8_t seq)
+void desc::push_seq(uint8_t hdr, uint8_t seq)
 {
-	if (m_seq_vector.size()>=20)
+	if (seq_vector.size()>=20)
 	{
-		m_seq_vector.erase(m_seq_vector.begin());
+		seq_vector.erase(seq_vector.begin());
 	}
 
 	seq_t info = { hdr, seq };
-	m_seq_vector.push_back(info);
+	seq_vector.push_back(info);
 }
 
-uint8_t DESC::GetEmpire()
+uint8_t desc::empire()
 {
-	return m_accountTable.bEmpire;
+	return account_table_.empire;
 }
 
-void DESC::ChatPacket(uint8_t type, const char * format, ...)
+void desc::chat_packet(uint8_t type, const char * format, ...)
 {
 	char chatbuf[CHAT_MAX_LEN + 1];
 	va_list args;
@@ -735,18 +735,18 @@ void DESC::ChatPacket(uint8_t type, const char * format, ...)
 		chatbuf[len] = '\0';
 	}
 
-	struct TPacketGCChat pack_chat;
+	struct packet_gc_chat pack_chat;
 
 	pack_chat.header    = HEADER_GC_CHAT;
-	pack_chat.size      = sizeof(struct TPacketGCChat) + len;
+	pack_chat.size      = sizeof(struct packet_gc_chat) + len;
 	pack_chat.type      = type;
 	pack_chat.id        = 0;
-	pack_chat.bEmpire   = GetEmpire();
+	pack_chat.empire   = empire();
 
-	TEMP_BUFFER buf;
-	buf.write(&pack_chat, sizeof(struct TPacketGCChat));
+	temp_buffer buf;
+	buf.write(&pack_chat, sizeof(struct packet_gc_chat));
 	buf.write(chatbuf, len);
 
-	Packet(buf.read_peek(), buf.size());
+	packet(buf.read_peek(), buf.size());
 }
 }

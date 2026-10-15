@@ -13,150 +13,150 @@
 #include <unordered_map>
 
 namespace metin2::game::inline world {
-    class CDungeon;
+    class dungeon;
 }
 
 namespace metin2::game::inline characters {
 
-class CHARACTER;
-class CharacterVectorInteractor;
+class character;
+class character_vector_interactor;
 
-class CHARACTER_MANAGER : public singleton<CHARACTER_MANAGER>
+class character_manager : public singleton<character_manager>
 {
 	public:
-		typedef std::unordered_map<std::string, CHARACTER *> NAME_MAP;
+		typedef std::unordered_map<std::string, character *> name_map;
 
-		CHARACTER_MANAGER();
-		~CHARACTER_MANAGER() override;
+		character_manager();
+		~character_manager() override;
 
-		void                    Destroy();
+		void                    destroy();
 
-		void			GracefulShutdown();	// Used for a normal shutdown. Saves all PCs and destroys them.
+		void			graceful_shutdown();	// Used for a normal shutdown. Saves all PCs and destroys them.
 
-		uint32_t			AllocVID();
+		uint32_t			alloc_vid();
 
-		CHARACTER *             CreateCharacter(const char * name, uint32_t dwPID = 0);
-		void DestroyCharacter(CHARACTER * ch);
+		character *             create_character(const char * name, uint32_t dwPID = 0);
+		void destroy_character(character * ch);
 
-		void			Update(int iPulse);
+		void			update(int iPulse);
 
-		CHARACTER *		SpawnMob(uint32_t dwVnum, int32_t lMapIndex, int32_t x, int32_t y, int32_t z, bool bSpawnMotion = false, int iRot = -1, bool bShow = true);
-		CHARACTER *		SpawnMobRange(uint32_t dwVnum, int32_t lMapIndex, int sx, int sy, int ex, int ey, bool bIsException=false, bool bSpawnMotion = false , bool bAggressive = false);
-		CHARACTER *		SpawnGroup(uint32_t dwVnum, int32_t lMapIndex, int sx, int sy, int ex, int ey, REGEN * pkRegen = nullptr, bool bAggressive_ = false, CDungeon * pDungeon = nullptr);
-		bool			SpawnGroupGroup(uint32_t dwVnum, int32_t lMapIndex, int sx, int sy, int ex, int ey, REGEN * pkRegen = nullptr, bool bAggressive_ = false, CDungeon * pDungeon = nullptr);
-		bool			SpawnMoveGroup(uint32_t dwVnum, int32_t lMapIndex, int sx, int sy, int ex, int ey, int tx, int ty, REGEN * pkRegen = nullptr, bool bAggressive_ = false);
-		CHARACTER *		SpawnMobRandomPosition(uint32_t dwVnum, int32_t lMapIndex);
+		character *		spawn_mob(uint32_t dwVnum, int32_t lMapIndex, int32_t x, int32_t y, int32_t z, bool bSpawnMotion = false, int iRot = -1, bool bShow = true);
+		character *		spawn_mob_range(uint32_t dwVnum, int32_t lMapIndex, int sx, int sy, int ex, int ey, bool bIsException=false, bool bSpawnMotion = false , bool bAggressive = false);
+		character *		spawn_group(uint32_t dwVnum, int32_t lMapIndex, int sx, int sy, int ex, int ey, regen * pkRegen = nullptr, bool bAggressive_ = false, dungeon * pDungeon = nullptr);
+		bool			spawn_group_group(uint32_t dwVnum, int32_t lMapIndex, int sx, int sy, int ex, int ey, regen * pkRegen = nullptr, bool bAggressive_ = false, dungeon * pDungeon = nullptr);
+		bool			spawn_move_group(uint32_t dwVnum, int32_t lMapIndex, int sx, int sy, int ex, int ey, int tx, int ty, regen * pkRegen = nullptr, bool bAggressive_ = false);
+		character *		spawn_mob_random_position(uint32_t dwVnum, int32_t lMapIndex);
 
-		void			SelectStone(CHARACTER * pkChrStone);
+		void			select_stone(character * pkChrStone);
 
-		NAME_MAP &		GetPCMap() { return m_map_pkPCChr; }
+		name_map &		pc_map() { return map_pk_pc_chr_; }
 
-		CHARACTER *		Find(uint32_t dwVID);
-		CHARACTER *		Find(const VID & vid);
-		CHARACTER *		FindPC(const char * name);
-		CHARACTER *		FindByPID(uint32_t dwPID);
+		character *		find(uint32_t dwVID);
+		character *		find(const vid & vid);
+		character *		find_pc(const char * name);
+		character *		find_by_pid(uint32_t dwPID);
 
-		bool			AddToStateList(CHARACTER * ch);
-		void			RemoveFromStateList(CHARACTER * ch);
+		bool			add_to_state_list(character * ch);
+		void			remove_from_state_list(character * ch);
 
 		// DelayedSave: if a routine does many things that require saving,
 		// there are too many queries, so just mark it "to be saved" and save it
 		// a moment later (e.g. 1 frame).
-		void                    DelayedSave(CHARACTER * ch);
-		bool                    FlushDelayedSave(CHARACTER * ch); // If in the delayed list, remove it and save. Used when handling disconnects.
-		void			ProcessDelayedSave();
+		void                    delayed_save(character * ch);
+		bool                    flush_delayed_save(character * ch); // If in the delayed list, remove it and save. Used when handling disconnects.
+		void			process_delayed_save();
 
 		template<class Func>	Func for_each_pc(Func f);
 
-		void			RegisterForMonsterLog(CHARACTER * ch);
-		void			UnregisterForMonsterLog(CHARACTER * ch);
-		void			PacketMonsterLog(CHARACTER * ch, const void* buf, int size);
+		void			register_for_monster_log(character * ch);
+		void			unregister_for_monster_log(character * ch);
+		void			packet_monster_log(character * ch, const void* buf, int size);
 
-		void			KillLog(uint32_t dwVnum);
+		void			kill_log(uint32_t dwVnum);
 
-		void			RegisterRaceNum(uint32_t dwVnum);
-		void			RegisterRaceNumMap(CHARACTER * ch);
-		void			UnregisterRaceNumMap(CHARACTER * ch);
-		bool			GetCharactersByRaceNum(uint32_t dwRaceNum, CharacterVectorInteractor & i);
+		void			register_race_num(uint32_t dwVnum);
+		void			register_race_num_map(character * ch);
+		void			unregister_race_num_map(character * ch);
+		bool			characters_by_race_num(uint32_t dwRaceNum, character_vector_interactor & i);
 
-		CHARACTER *		FindSpecifyPC(unsigned int uiJobFlag, int32_t lMapIndex, CHARACTER * except=nullptr, int iMinLevel = 1, int iMaxLevel = PLAYER_MAX_LEVEL_CONST);
+		character *		find_specify_pc(unsigned int uiJobFlag, int32_t lMapIndex, character * except=nullptr, int iMinLevel = 1, int iMaxLevel = PLAYER_MAX_LEVEL_CONST);
 
-		void			SetMobItemRate(int value)	{ m_iMobItemRate = value; }
-		void			SetMobDamageRate(int value)	{ m_iMobDamageRate = value; }
-		void			SetMobGoldAmountRate(int value)	{ m_iMobGoldAmountRate = value; }
-		void			SetMobGoldDropRate(int value)	{ m_iMobGoldDropRate = value; }
-		void			SetMobExpRate(int value)	{ m_iMobExpRate = value; }
+		void			set_mob_item_rate(int value)	{ mob_item_rate_ = value; }
+		void			set_mob_damage_rate(int value)	{ mob_damage_rate_ = value; }
+		void			set_mob_gold_amount_rate(int value)	{ mob_gold_amount_rate_ = value; }
+		void			set_mob_gold_drop_rate(int value)	{ mob_gold_drop_rate_ = value; }
+		void			set_mob_exp_rate(int value)	{ mob_exp_rate_ = value; }
 
-		void			SetMobItemRatePremium(int value)	{ m_iMobItemRatePremium = value; }
-		void			SetMobGoldAmountRatePremium(int value)	{ m_iMobGoldAmountRatePremium = value; }
-		void			SetMobGoldDropRatePremium(int value)	{ m_iMobGoldDropRatePremium = value; }
-		void			SetMobExpRatePremium(int value)		{ m_iMobExpRatePremium = value; }
+		void			set_mob_item_rate_premium(int value)	{ mob_item_rate_premium_ = value; }
+		void			set_mob_gold_amount_rate_premium(int value)	{ mob_gold_amount_rate_premium_ = value; }
+		void			set_mob_gold_drop_rate_premium(int value)	{ mob_gold_drop_rate_premium_ = value; }
+		void			set_mob_exp_rate_premium(int value)		{ mob_exp_rate_premium_ = value; }
 
-		int			GetMobItemRate(CHARACTER * ch);
-		int			GetMobDamageRate(CHARACTER * ch);
-		int			GetMobGoldAmountRate(CHARACTER * ch);
-		int			GetMobGoldDropRate(CHARACTER * ch);
-		int			GetMobExpRate(CHARACTER * ch);
+		int			mob_item_rate(character * ch);
+		int			mob_damage_rate(character * ch);
+		int			mob_gold_amount_rate(character * ch);
+		int			mob_gold_drop_rate(character * ch);
+		int			mob_exp_rate(character * ch);
 
-		void		SendScriptToMap(int32_t lMapIndex, const std::string & s);
+		void		send_script_to_map(int32_t lMapIndex, const std::string & s);
 
-		bool			BeginPendingDestroy();
-		void			FlushPendingDestroy();
+		bool			begin_pending_destroy();
+		void			flush_pending_destroy();
 
 	private:
-		int					m_iMobItemRate;
-		int					m_iMobDamageRate;
-		int					m_iMobGoldAmountRate;
-		int					m_iMobGoldDropRate;
-		int					m_iMobExpRate;
+		int					mob_item_rate_;
+		int					mob_damage_rate_;
+		int					mob_gold_amount_rate_;
+		int					mob_gold_drop_rate_;
+		int					mob_exp_rate_;
 
-		int					m_iMobItemRatePremium;
-		int					m_iMobGoldAmountRatePremium;
-		int					m_iMobGoldDropRatePremium;
-		int					m_iMobExpRatePremium;
+		int					mob_item_rate_premium_;
+		int					mob_gold_amount_rate_premium_;
+		int					mob_gold_drop_rate_premium_;
+		int					mob_exp_rate_premium_;
 
-		int					m_iVIDCount;
+		int					vid_count_;
 
-		std::unordered_map<uint32_t, CHARACTER *> m_map_pkChrByVID;
-		std::unordered_map<uint32_t, CHARACTER *> m_map_pkChrByPID;
-		NAME_MAP			m_map_pkPCChr;
+		std::unordered_map<uint32_t, character *> map_pk_chr_by_vid_;
+		std::unordered_map<uint32_t, character *> map_pk_chr_by_pid_;
+		name_map			map_pk_pc_chr_;
 
-		CHARACTER_SET		m_set_pkChrState;	// Those with a running FSM
-		CHARACTER_SET		m_set_pkChrForDelayedSave;
-		CHARACTER_SET		m_set_pkChrMonsterLog;
+		character_set		set_pk_chr_state_;	// Those with a running FSM
+		character_set		set_pk_chr_for_delayed_save_;
+		character_set		set_pk_chr_monster_log_;
 
-		CHARACTER *			m_pkChrSelectedStone;
+		character *			chr_selected_stone_;
 
-		std::map<uint32_t, uint32_t> m_map_dwMobKillCount;
+		std::map<uint32_t, uint32_t> map_dw_mob_kill_count_;
 
-		std::set<uint32_t>		m_set_dwRegisteredRaceNum;
-		std::map<uint32_t, CHARACTER_SET> m_map_pkChrByRaceNum;
+		std::set<uint32_t>		set_dw_registered_race_num_;
+		std::map<uint32_t, character_set> map_pk_chr_by_race_num_;
 
-		bool				m_bUsePendingDestroy;
-		CHARACTER_SET		m_set_pkChrPendingDestroy;
+		bool				use_pending_destroy_;
+		character_set		set_pk_chr_pending_destroy_;
 
 };
 
 	template<class Func>	
-Func CHARACTER_MANAGER::for_each_pc(Func f)
+Func character_manager::for_each_pc(Func f)
 {
-	std::unordered_map<uint32_t, CHARACTER *>::iterator it;
+	std::unordered_map<uint32_t, character *>::iterator it;
 
-	for (it = m_map_pkChrByPID.begin(); it != m_map_pkChrByPID.end(); ++it)
+	for (it = map_pk_chr_by_pid_.begin(); it != map_pk_chr_by_pid_.end(); ++it)
 		f(it->second);
 
 	return f;
 }
 
-class CharacterVectorInteractor : public CHARACTER_VECTOR
+class character_vector_interactor : public character_vector
 {
 	public:
-		CharacterVectorInteractor() : m_bMyBegin(false) { }
+		character_vector_interactor() : my_begin_(false) { }
 
-		CharacterVectorInteractor(const CHARACTER_SET & r);
-		virtual ~CharacterVectorInteractor();
+		character_vector_interactor(const character_set & r);
+		virtual ~character_vector_interactor();
 
 	private:
-		bool m_bMyBegin;
+		bool my_begin_;
 };
 }

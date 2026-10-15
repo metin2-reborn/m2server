@@ -8,9 +8,9 @@
 
 namespace metin2::game::inline guilds {
 
-typedef uint32_t Pixel;
+typedef uint32_t pixel;
 
-struct SGuildMark
+struct guild_mark
 {
 	enum
 	{
@@ -24,32 +24,32 @@ struct SGuildMark
 	///////////////////////////////////////////////////////////////////////////////
 };
 
-struct SGuildMarkBlock
+struct guild_mark_block
 {
 	enum
 	{
 		MARK_PER_BLOCK_WIDTH = 4,
 		MARK_PER_BLOCK_HEIGHT = 4,
 
-		WIDTH = SGuildMark::WIDTH * MARK_PER_BLOCK_WIDTH,
-		HEIGHT = SGuildMark::HEIGHT * MARK_PER_BLOCK_HEIGHT,
+		WIDTH = guild_mark::WIDTH * MARK_PER_BLOCK_WIDTH,
+		HEIGHT = guild_mark::HEIGHT * MARK_PER_BLOCK_HEIGHT,
 
 		SIZE = WIDTH * HEIGHT,
-		MAX_COMP_SIZE = (SIZE * sizeof(Pixel)) + ((SIZE * sizeof(Pixel)) >> 4) + 64 + 3 
+		MAX_COMP_SIZE = (SIZE * sizeof(pixel)) + ((SIZE * sizeof(pixel)) >> 4) + 64 + 3 
 	};
 
 	///////////////////////////////////////////////////////////////////////////////
 
-	uint8_t 	m_abCompBuf[MAX_COMP_SIZE];	// compressed data
-	lzo_uint m_sizeCompBuf;	// compressed size
-	uint32_t	m_crc;			// CRC of the compressed data
+	uint8_t 	comp_buf[MAX_COMP_SIZE];	// compressed data
+	lzo_uint size_comp_buf;	// compressed size
+	uint32_t	crc;			// CRC of the compressed data
 
 	///////////////////////////////////////////////////////////////////////////////
 
-	void	Compress(const Pixel * pxBuf);
+	void	compress(const pixel * pxBuf);
 };
 
-class CGuildMarkImage
+class guild_mark_image
 {
 	public:
 		enum
@@ -57,36 +57,36 @@ class CGuildMarkImage
 			WIDTH = 512,
 			HEIGHT = 512,
 
-			BLOCK_ROW_COUNT = HEIGHT / SGuildMarkBlock::HEIGHT, // 10
-			BLOCK_COL_COUNT = WIDTH / SGuildMarkBlock::WIDTH, // 8
+			BLOCK_ROW_COUNT = HEIGHT / guild_mark_block::HEIGHT, // 10
+			BLOCK_COL_COUNT = WIDTH / guild_mark_block::WIDTH, // 8
 
 			BLOCK_TOTAL_COUNT = BLOCK_ROW_COUNT * BLOCK_COL_COUNT, // 80
 
-			MARK_ROW_COUNT = BLOCK_ROW_COUNT * SGuildMarkBlock::MARK_PER_BLOCK_HEIGHT, // 40
-			MARK_COL_COUNT = BLOCK_COL_COUNT * SGuildMarkBlock::MARK_PER_BLOCK_WIDTH, // 32
+			MARK_ROW_COUNT = BLOCK_ROW_COUNT * guild_mark_block::MARK_PER_BLOCK_HEIGHT, // 40
+			MARK_COL_COUNT = BLOCK_COL_COUNT * guild_mark_block::MARK_PER_BLOCK_WIDTH, // 32
 
 			MARK_TOTAL_COUNT = MARK_ROW_COUNT * MARK_COL_COUNT, // 1280
 
 		};
 
-		CGuildMarkImage();
+		guild_mark_image();
 
-		bool Build(const char * c_szFileName);
-		bool Save(const char* c_szFileName);
-		bool Load(const char* c_szFileName);
+		bool build(const char * c_szFileName);
+		bool save(const char* c_szFileName);
+		bool load(const char* c_szFileName);
 
-		void PutData(uint32_t x, uint32_t y, uint32_t width, uint32_t height, void* data);
-		void GetData(uint32_t x, uint32_t y, uint32_t width, uint32_t height, void* data);
+		void put_data(uint32_t x, uint32_t y, uint32_t width, uint32_t height, void* data);
+		void data(uint32_t x, uint32_t y, uint32_t width, uint32_t height, void* data);
 
-		bool SaveMark(uint32_t posMark, uint8_t * pbMarkImage);
-		bool DeleteMark(uint32_t posMark);
+		bool save_mark(uint32_t posMark, uint8_t * pbMarkImage);
+		bool delete_mark(uint32_t posMark);
 
-		void GetDiffBlocks(const uint32_t * crcList, std::map<uint8_t, const SGuildMarkBlock *> & mapDiffBlocks);
+		void diff_blocks(const uint32_t * crcList, std::map<uint8_t, const guild_mark_block *> & mapDiffBlocks);
 
 	private:
-		void	BuildAllBlocks();
+		void	build_all_blocks();
 
-		SGuildMarkBlock	m_aakBlock[BLOCK_ROW_COUNT][BLOCK_COL_COUNT];
-		std::vector<Pixel> m_pixels;	// WIDTH x HEIGHT, top row first
+		guild_mark_block	aak_block_[BLOCK_ROW_COUNT][BLOCK_COL_COUNT];
+		std::vector<pixel> pixels_;	// WIDTH x HEIGHT, top row first
 };
 }

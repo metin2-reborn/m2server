@@ -11,37 +11,37 @@
 
 namespace metin2::db::inline items {
 
-struct TItemAward {
-    uint32_t	dwID;
-    char	szLogin[LOGIN_MAX_LEN+1];
-    uint32_t	dwVnum;
-    uint32_t	dwCount;
-    uint32_t	dwSocket0;
-    uint32_t	dwSocket1;
-    uint32_t	dwSocket2;
-    char	szWhy[ITEM_AWARD_WHY_MAX_LEN+1];
-    bool	bTaken;
-    bool	bMall;
+struct item_award {
+    uint32_t	id;
+    char	login[LOGIN_MAX_LEN+1];
+    uint32_t	vnum;
+    uint32_t	count;
+    uint32_t	socket0;
+    uint32_t	socket1;
+    uint32_t	socket2;
+    char	why[ITEM_AWARD_WHY_MAX_LEN+1];
+    bool	taken;
+    bool	mall;
 };
 
-class ItemAwardManager : public singleton<ItemAwardManager>
+class item_award_manager : public singleton<item_award_manager>
 {
     public:
-	ItemAwardManager();
-	~ItemAwardManager() override;
+	item_award_manager();
+	~item_award_manager() override;
 
-	void				RequestLoad();
-	void				Load(SQLMsg * pMsg);
-	std::set<TItemAward *> *	GetByLogin(const char * c_pszLogin);
+	void				request_load();
+	void				load(ql_msg * pMsg);
+	std::set<item_award *> *	by_login(const char * c_pszLogin);
 
-	void				Taken(uint32_t dwAwardID, uint32_t dwItemID);
+	void				taken(uint32_t dwAwardID, uint32_t dwItemID);
 	// gift notify
-	std::map<uint32_t, TItemAward *>& GetMapAward();
-	std::map<std::string, std::set<TItemAward *> >& GetMapkSetAwardByLogin();
+	std::map<uint32_t, item_award *>& map_award();
+	std::map<std::string, std::set<item_award *> >& mapk_set_award_by_login();
     private:
 	// ID, ItemAward pair
-	std::map<uint32_t, TItemAward *>			m_map_award;
+	std::map<uint32_t, item_award *>			map_award_;
 	// PID, ItemAward pair
-	std::map<std::string, std::set<TItemAward *> >	m_map_kSetAwardByLogin;
+	std::map<std::string, std::set<item_award *> >	map_k_set_award_by_login_;
 };
 }

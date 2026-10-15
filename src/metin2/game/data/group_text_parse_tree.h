@@ -12,89 +12,89 @@
 
 namespace metin2::game::inline data {
 
-typedef std::map<std::string, TTokenVector>	TTokenVectorMap;
-typedef std::map<std::string, int> TMapNameToIndex;
+typedef std::map<std::string, token_vector>	token_vector_map;
+typedef std::map<std::string, int> map_name_to_index;
 
-class CGroupNode
+class group_node
 {
 public:
-	class CGroupNodeRow
+	class group_node_row
 	{
 	public:
-		CGroupNodeRow(CGroupNode* pGroupNode, TTokenVector& vec_values);
-		virtual ~CGroupNodeRow();
+		group_node_row(group_node* pGroupNode, token_vector& vec_values);
+		virtual ~group_node_row();
 
 		template <typename T>
-		bool GetValue(const std::string & stColKey, T& value) const;
+		bool value(const std::string & stColKey, T& value) const;
 		template <typename T>
-		bool GetValue(int idx, T& value) const;
+		bool value(int idx, T& value) const;
 
-		int GetSize() const;
+		int size() const;
 
 	private:
-		CGroupNode*		m_pOwnerGroupNode;
-		TTokenVector	m_vec_values;
+		group_node*		owner_group_node_;
+		token_vector	vec_values_;
 	};
 public:
-	CGroupNode();
-	virtual ~CGroupNode();
+	group_node();
+	virtual ~group_node();
 
-	bool Load(const char * c_szFileName);
+	bool load(const char * c_szFileName);
 
-	bool SetChildNode(const char * c_szKey, CGroupNode* pChildNode);
-	CGroupNode* GetChildNode(const std::string & c_rstrKey) const;
-	std::string GetNodeName() const;
+	bool set_child_node(const char * c_szKey, group_node* pChildNode);
+	group_node* child_node(const std::string & c_rstrKey) const;
+	std::string node_name() const;
 
-	int GetRowCount();
+	int row_count();
 	
 	template <typename T>
-	bool GetValue(size_t i, const std::string & c_rstrColKey, T& tValue) const;	// Returns the value of a given column in the n-th row (n is just the order in the map, unrelated to the order in the txt). 
+	bool value(size_t i, const std::string & c_rstrColKey, T& tValue) const;	// Returns the value of a given column in the n-th row (n is just the order in the map, unrelated to the order in the txt). 
 																				// Out of place, but a convenience function.
 	template <typename T>
-	bool GetValue(const std::string & c_rstrRowKey, const std::string & c_rstrColKey, T& tValue) const;
+	bool value(const std::string & c_rstrRowKey, const std::string & c_rstrColKey, T& tValue) const;
 	template <typename T>
-	bool GetValue(const std::string & c_rstrRowKey, int index, T& tValue) const;
+	bool value(const std::string & c_rstrRowKey, int index, T& tValue) const;
 
-	bool GetRow(const std::string & c_rstrKey, const CGroupNodeRow ** ppRow) const;
+	bool row(const std::string & c_rstrKey, const group_node_row ** ppRow) const;
 	// Note: idx is unrelated to the order written in the txt.
-	bool GetRow(int idx, const CGroupNodeRow ** ppRow) const;
-	bool GetGroupRow(const std::string& stGroupName, const std::string& stRow, const CGroupNode::CGroupNodeRow ** ppRow) const;
+	bool row(int idx, const group_node_row ** ppRow) const;
+	bool group_row(const std::string& stGroupName, const std::string& stRow, const group_node::group_node_row ** ppRow) const;
 
 	template <typename T>
-	bool GetGroupValue(const std::string& stGroupName, const std::string& stRow, int iCol, T& tValue) const;
+	bool group_value(const std::string& stGroupName, const std::string& stRow, int iCol, T& tValue) const;
 	template <typename T>
-	bool GetGroupValue(const std::string& stGroupName, const std::string& stRow, const std::string& stCol, T& tValue) const;
+	bool group_value(const std::string& stGroupName, const std::string& stRow, const std::string& stCol, T& tValue) const;
 
-	int	GetColumnIndexFromName(const std::string& stName) const;
+	int	column_index_from_name(const std::string& stName) const;
 
 private:
-	typedef std::map <std::string, CGroupNode*> TMapGroup;
-	typedef std::map <std::string, CGroupNode::CGroupNodeRow> TMapRow;
-	TMapGroup				m_mapChildNodes;
-	std::string strGroupName;
+	typedef std::map <std::string, group_node*> map_group;
+	typedef std::map <std::string, group_node::group_node_row> map_row;
+	map_group				child_nodes_;
+	std::string group_name_;
 
-	TMapNameToIndex			m_map_columnNameToIndex;
-	TMapRow					m_map_rows;
-	friend class CGroupTextParseTreeLoader;
+	map_name_to_index			map_column_name_to_index_;
+	map_row					map_rows_;
+	friend class group_text_parse_tree_loader;
 };
 
-class CGroupTextParseTreeLoader
+class group_text_parse_tree_loader
 {
 public:
-	CGroupTextParseTreeLoader();
-	virtual ~CGroupTextParseTreeLoader();
+	group_text_parse_tree_loader();
+	virtual ~group_text_parse_tree_loader();
 
-	bool Load(const char * c_szFileName);
+	bool load(const char * c_szFileName);
 
-	CGroupNode*	GetGroup(const char * c_szGroupName);
+	group_node*	group(const char * c_szGroupName);
 private:
-	bool LoadGroup(CGroupNode * pGroupNode);
+	bool load_group(group_node * pGroupNode);
 
-	std::unique_ptr<CGroupNode>	m_pRootGroupNode;
-	std::string					m_strFileName;
-	uint32_t						m_dwcurLineIndex;
+	std::unique_ptr<group_node>	root_group_node_;
+	std::string					file_name_;
+	uint32_t						dwcur_line_index_;
 
-	CMemoryTextFileLoader		m_fileLoader;
+	memory_text_file_loader		file_loader_;
 };
 
 template <typename T>
@@ -115,120 +115,120 @@ inline bool from_string <uint8_t>(uint8_t& t, const std::string& s)
 }
 
 template <typename T>
-bool CGroupNode::GetValue(size_t i, const std::string & c_rstrColKey, T& tValue) const
+bool group_node::value(size_t i, const std::string & c_rstrColKey, T& tValue) const
 {
-	if (i > m_map_rows.size())
+	if (i > map_rows_.size())
 		return false;
 	
-	TMapRow::const_iterator row_it = m_map_rows.begin();
+	map_row::const_iterator row_it = map_rows_.begin();
 	std::advance(row_it, i);
 	
-	auto col_idx_it = m_map_columnNameToIndex.find(c_rstrColKey);
-	if (m_map_columnNameToIndex.end() == col_idx_it)
+	auto col_idx_it = map_column_name_to_index_.find(c_rstrColKey);
+	if (map_column_name_to_index_.end() == col_idx_it)
 	{
 		return false;
 	}
 
 	int index = col_idx_it->second;
-	if (row_it->second.GetSize() <= index)
+	if (row_it->second.size() <= index)
 	{
 		return false;
 	}
 	
-	return row_it->second.GetValue(index, tValue);
+	return row_it->second.value(index, tValue);
 }
 
 template <typename T>
-bool CGroupNode::GetValue(const std::string & c_rstrRowKey, const std::string & c_rstrColKey, T& tValue) const
+bool group_node::value(const std::string & c_rstrRowKey, const std::string & c_rstrColKey, T& tValue) const
 {
-	TMapRow::const_iterator row_it = m_map_rows.find(c_rstrRowKey);
-	if (m_map_rows.end() == row_it)
+	map_row::const_iterator row_it = map_rows_.find(c_rstrRowKey);
+	if (map_rows_.end() == row_it)
 	{
 		return false;
 	}
-	auto col_idx_it = m_map_columnNameToIndex.find(c_rstrColKey);
-	if (m_map_columnNameToIndex.end() == col_idx_it)
+	auto col_idx_it = map_column_name_to_index_.find(c_rstrColKey);
+	if (map_column_name_to_index_.end() == col_idx_it)
 	{
 		return false;
 	}
 
 	int index = col_idx_it->second;
-	if (row_it->second.GetSize() <= index)
+	if (row_it->second.size() <= index)
 	{
 		return false;
 	}
 	
-	return row_it->second.GetValue(index, tValue);
+	return row_it->second.value(index, tValue);
 }
 
 template <typename T>
-bool CGroupNode::GetValue(const std::string & c_rstrRowKey, int index, T& tValue) const
+bool group_node::value(const std::string & c_rstrRowKey, int index, T& tValue) const
 {
-	TMapRow::const_iterator row_it = m_map_rows.find(c_rstrRowKey);
-	if (m_map_rows.end() == row_it)
+	map_row::const_iterator row_it = map_rows_.find(c_rstrRowKey);
+	if (map_rows_.end() == row_it)
 	{
 		return false;
 	}
 
-	if (row_it->second.GetSize() <= index)
+	if (row_it->second.size() <= index)
 	{
 		return false;
 	}
-	return row_it->second.GetValue(index, tValue);
+	return row_it->second.value(index, tValue);
 }
 
 template <typename T>
-bool CGroupNode::GetGroupValue(const std::string& stGroupName, const std::string& stRow, int iCol, T& tValue) const
+bool group_node::group_value(const std::string& stGroupName, const std::string& stRow, int iCol, T& tValue) const
 {
-	CGroupNode* pChildGroup = GetChildNode(stGroupName);
+	group_node* pChildGroup = child_node(stGroupName);
 	if (nullptr != pChildGroup)
 	{
-		if (pChildGroup->GetValue(stRow, iCol, tValue))
+		if (pChildGroup->value(stRow, iCol, tValue))
 			return true;
 	}
 	// Look in the default group.
-	pChildGroup = GetChildNode("default");
+	pChildGroup = child_node("default");
 	if (nullptr != pChildGroup)
 	{
-		if (pChildGroup->GetValue(stRow, iCol, tValue))
+		if (pChildGroup->value(stRow, iCol, tValue))
 			return true;
 	}
 	return false;
 }
 
 template <typename T>
-bool CGroupNode::GetGroupValue(const std::string& stGroupName, const std::string& stRow, const std::string& stCol, T& tValue) const
+bool group_node::group_value(const std::string& stGroupName, const std::string& stRow, const std::string& stCol, T& tValue) const
 {
-	CGroupNode* pChildGroup = GetChildNode(stGroupName);
+	group_node* pChildGroup = child_node(stGroupName);
 	if (nullptr != pChildGroup)
 	{
-		if (pChildGroup->GetValue(stRow, stCol, tValue))
+		if (pChildGroup->value(stRow, stCol, tValue))
 			return true;
 	}
 	// Look in the default group.
-	pChildGroup = GetChildNode("default");
+	pChildGroup = child_node("default");
 	if (nullptr != pChildGroup)
 	{
-		if (pChildGroup->GetValue(stRow, stCol, tValue))
+		if (pChildGroup->value(stRow, stCol, tValue))
 			return true;
 	}
 	return false;
 }
 
 template <typename T>
-bool CGroupNode::CGroupNodeRow::GetValue(const std::string & stColKey, T& value) const
+bool group_node::group_node_row::value(const std::string & stColKey, T& value) const
 {
-	int idx = m_pOwnerGroupNode->GetColumnIndexFromName(stColKey);
-	if (idx < 0 || static_cast<size_t>(idx) >= m_vec_values.size())
+	int idx = owner_group_node_->column_index_from_name(stColKey);
+	if (idx < 0 || static_cast<size_t>(idx) >= vec_values_.size())
 		return false;
-	return from_string(value, m_vec_values[idx]);
+	return from_string(value, vec_values_[idx]);
 }
 
 template <typename T>
-bool CGroupNode::CGroupNodeRow::GetValue(int idx, T& value) const
+bool group_node::group_node_row::value(int idx, T& value) const
 {
-	if (idx < 0 || static_cast<size_t>(idx) >= m_vec_values.size())
+	if (idx < 0 || static_cast<size_t>(idx) >= vec_values_.size())
 		return false;
-	return from_string(value, m_vec_values[idx]);
+	return from_string(value, vec_values_[idx]);
 }
 }

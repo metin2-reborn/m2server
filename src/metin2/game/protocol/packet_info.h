@@ -6,53 +6,53 @@
 
 namespace metin2::game::inline protocol {
 
-struct TPacketElement {
-	int		iSize;
-	std::string	stName;
-	int		iCalled;
-	uint32_t	dwLoad;
-	bool	bSequencePacket;
+struct packet_element {
+	int		size;
+	std::string	name;
+	int		called;
+	uint32_t	load;
+	bool	sequence_packet;
 };
 
-class CPacketInfo
+class packet_info
 {
 	public:
-		CPacketInfo();
-		virtual ~CPacketInfo();
+		packet_info();
+		virtual ~packet_info();
 
-		void Set(int header, int size, const char * c_pszName, bool bSeq=false);
-		bool Get(int header, int * size, const char ** c_ppszName);
+		void set(int header, int size, const char * c_pszName, bool bSeq=false);
+		bool get(int header, int * size, const char ** c_ppszName);
 
-		void Start();
-		void End();
+		void start();
+		void end();
 
-		void Log(const char * c_pszFileName);
+		void log(const char * c_pszFileName);
 
-		bool IsSequence(int header);
-		void SetSequence(int header, bool bSeq);
+		bool is_sequence(int header);
+		void set_sequence(int header, bool bSeq);
 
 	private:
-		TPacketElement * GetElement(int header);
+		packet_element * element(int header);
 
 	protected:
-		std::map<int, TPacketElement> m_pPacketMap;
-		TPacketElement * m_pCurrentPacket;
-		uint32_t m_dwStartTime;
+		std::map<int, packet_element> packet_map_;
+		packet_element * current_packet_;
+		uint32_t start_time_;
 };
 
-class CPacketInfoCG : public CPacketInfo
+class packet_info_cg : public packet_info
 {
 	public:
-		CPacketInfoCG();
-		~CPacketInfoCG() override;
+		packet_info_cg();
+		~packet_info_cg() override;
 };
 
 // PacketInfo P2P 
-class CPacketInfoGG : public CPacketInfo
+class packet_info_gg : public packet_info
 {
 	public:
-		CPacketInfoGG();
-		~CPacketInfoGG() override;
+		packet_info_gg();
+		~packet_info_gg() override;
 };
 
 /// Implemented in input_udp.cpp

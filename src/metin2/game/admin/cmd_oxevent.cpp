@@ -10,25 +10,25 @@ namespace metin2::game::inline admin {
 
 ACMD(do_oxevent_show_quiz)
 {
-	ch->ChatPacket(CHAT_TYPE_INFO, "===== OX QUIZ LIST =====");
-	COXEventManager::instance().ShowQuizList(ch);
-	ch->ChatPacket(CHAT_TYPE_INFO, "===== OX QUIZ LIST END =====");
+	ch->chat_packet(CHAT_TYPE_INFO, "===== OX QUIZ LIST =====");
+	ox_event_manager::instance().show_quiz_list(ch);
+	ch->chat_packet(CHAT_TYPE_INFO, "===== OX QUIZ LIST END =====");
 }
 
 ACMD(do_oxevent_log)
 {
-	if ( COXEventManager::instance().LogWinner() == false )
+	if ( ox_event_manager::instance().log_winner() == false )
 	{
-		ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("OX이벤트의 나머지 인원을 기록하였습니다."));
+		ch->chat_packet(CHAT_TYPE_INFO, lc_text("OX이벤트의 나머지 인원을 기록하였습니다."));
 	}
 	else
 	{
-		ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("OX이벤트의 나머지 인원 기록을 실패했습니다."));
+		ch->chat_packet(CHAT_TYPE_INFO, lc_text("OX이벤트의 나머지 인원 기록을 실패했습니다."));
 	}
 }
 
 ACMD(do_oxevent_get_attender)
 {
-	ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("현재 남은 참가자수 : %d"), COXEventManager::instance().GetAttenderCount());
+	ch->chat_packet(CHAT_TYPE_INFO, lc_text("현재 남은 참가자수 : %d"), ox_event_manager::instance().attender_count());
 }
 }

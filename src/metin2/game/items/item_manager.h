@@ -21,30 +21,30 @@ namespace metin2::game::inline items {
 // attribute group defined in special_item_group.txt
 // can be declared with type attr.
 // this attribute group can be used by UNIQUE ITEMs belonging to groups defined as Special type in special_item_group.txt.
-class CSpecialAttrGroup
+class special_attr_group
 {
 public:
-	CSpecialAttrGroup(uint32_t vnum)
-		: m_dwVnum(vnum)
+	special_attr_group(uint32_t vnum_value)
+		: vnum(vnum_value)
 	{}
-	struct CSpecialAttrInfo
+	struct special_attr_info
 	{
-		CSpecialAttrInfo (uint32_t _apply_type, uint32_t _apply_value)
+		special_attr_info (uint32_t _apply_type, uint32_t _apply_value)
 			: apply_type(_apply_type), apply_value(_apply_value)
 		{}
 		uint32_t apply_type;
 		uint32_t apply_value;
 
 	};
-	uint32_t m_dwVnum;
-	std::string	m_stEffectFileName;
-	std::vector<CSpecialAttrInfo> m_vecAttrs;
+	uint32_t vnum;
+	std::string	effect_file_name;
+	std::vector<special_attr_info> attrs;
 };
 
-class CSpecialItemGroup
+class special_item_group
 {
 	public:
-		enum EGiveType
+		enum give_type
 		{
 			NONE,
 			GOLD,
@@ -60,51 +60,51 @@ class CSpecialItemGroup
 		//		however, to join this group the ITEM's own TYPE must be QUEST.
 		// SPECIAL type takes idx, item_vnum, attr_vnum. attr_vnum is the Vnum of CSpecialAttrGroup above.
 		//		items in this group cannot be worn together.
-		enum ESIGType { NORMAL, PCT, QUEST, SPECIAL };
+		enum sig_type { NORMAL, PCT, QUEST, SPECIAL };
 
-		struct CSpecialItemInfo
+		struct special_item_info
 		{
 			uint32_t vnum;
 			int count;
 			int rare;
 
-			CSpecialItemInfo(uint32_t _vnum, int _count, int _rare)
+			special_item_info(uint32_t _vnum, int _count, int _rare)
 				: vnum(_vnum), count(_count), rare(_rare)
 				{}
 		};
 
-		CSpecialItemGroup(uint32_t vnum, uint8_t type=0)
-			: m_dwVnum(vnum), m_bType(type)
+		special_item_group(uint32_t vnum_value, uint8_t type_value=0)
+			: vnum(vnum_value), type(type_value)
 			{}
 
-		void AddItem(uint32_t vnum, int count, int prob, int rare)
+		void add_item(uint32_t vnum, int count, int prob, int rare)
 		{
 			if (!prob)
 				return;
-			if (!m_vecProbs.empty())
-				prob += m_vecProbs.back();
-			m_vecProbs.push_back(prob);
-			m_vecItems.push_back(CSpecialItemInfo(vnum, count, rare));
+			if (!probs.empty())
+				prob += probs.back();
+			probs.push_back(prob);
+			items.push_back(special_item_info(vnum, count, rare));
 		}
 
 		// Type Multi, i.e. when m_bType == PCT,
 		// probabilities are not accumulated; each is computed independently to create items.
 		// so multiple items may be created.
 		// by rtsummit
-		int GetMultiIndex(std::vector <int> &idx_vec) const
+		int multi_index(std::vector <int> &idx_vec) const
 		{
 			idx_vec.clear();
-			if (m_bType == PCT)
+			if (type == PCT)
 			{
 				int count = 0;
-				if (number(1,100) <= m_vecProbs[0])
+				if (number(1,100) <= probs[0])
 				{
 					idx_vec.push_back(0);
 					count++;
 				}
-				for (uint i = 1; i < m_vecProbs.size(); i++)
+				for (uint i = 1; i < probs.size(); i++)
 				{
-					if (number(1,100) <= m_vecProbs[i] - m_vecProbs[i-1])
+					if (number(1,100) <= probs[i] - probs[i-1])
 					{
 						idx_vec.push_back(i);
 						count++;
@@ -114,38 +114,38 @@ class CSpecialItemGroup
 			}
 			else
 			{
-				idx_vec.push_back(GetOneIndex());
+				idx_vec.push_back(one_index());
 				return 1;
 			}
 		}
 
-		int GetOneIndex() const
+		int one_index() const
 		{
-			int n = number(1, m_vecProbs.back());
-			auto it = lower_bound(m_vecProbs.begin(), m_vecProbs.end(), n);
-			return std::distance(m_vecProbs.begin(), it);
+			int n = number(1, probs.back());
+			auto it = lower_bound(probs.begin(), probs.end(), n);
+			return std::distance(probs.begin(), it);
 		}
 
-		int GetVnum(int idx) const
+		int get_vnum(int idx) const
 		{
-			return m_vecItems[idx].vnum;
+			return items[idx].vnum;
 		}
 
-		int GetCount(int idx) const
+		int count(int idx) const
 		{
-			return m_vecItems[idx].count;
+			return items[idx].count;
 		}
 
-		int GetRarePct(int idx) const
+		int rare_pct(int idx) const
 		{
-			return m_vecItems[idx].rare;
+			return items[idx].rare;
 		}
 
-		bool Contains(uint32_t dwVnum) const
+		bool contains(uint32_t dwVnum) const
 		{
-			for (uint32_t i = 0; i < m_vecItems.size(); i++)
+			for (uint32_t i = 0; i < items.size(); i++)
 			{
-				if (m_vecItems[i].vnum == dwVnum)
+				if (items[i].vnum == dwVnum)
 					return true;
 			}
 			return false;
@@ -153,11 +153,11 @@ class CSpecialItemGroup
 		
 		// when the Group's Type is Special
 		// returns the AttrVnum matching dwVnum.
-		uint32_t GetAttrVnum(uint32_t dwVnum) const
+		uint32_t attr_vnum(uint32_t dwVnum) const
 		{
-			if (CSpecialItemGroup::SPECIAL != m_bType)
+			if (special_item_group::SPECIAL != type)
 				return 0;
-			for (auto it = m_vecItems.begin(); it != m_vecItems.end(); it++)
+			for (auto it = items.begin(); it != items.end(); it++)
 			{
 				if (it->vnum == dwVnum)
 				{
@@ -167,254 +167,253 @@ class CSpecialItemGroup
 			return 0;
 		}
 
-		uint32_t m_dwVnum;
-		uint8_t	m_bType;
-		std::vector<int> m_vecProbs;
-		std::vector<CSpecialItemInfo> m_vecItems; // vnum, count
+		uint32_t vnum;
+		uint8_t	type;
+		std::vector<int> probs;
+		std::vector<special_item_info> items; // vnum, count
 };
 
-class CMobItemGroup
+class mob_item_group
 {
 	public:
-		struct SMobItemGroupInfo
+		struct mob_item_group_info
 		{
-			uint32_t dwItemVnum;
-			int iCount;
-			int iRarePct;
+			uint32_t item_vnum;
+			int count;
+			int rare_pct;
 
-			SMobItemGroupInfo(uint32_t dwItemVnum, int iCount, int iRarePct)
-				: dwItemVnum(dwItemVnum),
-			iCount(iCount),
-			iRarePct(iRarePct)
+			mob_item_group_info(uint32_t dwItemVnum, int iCount, int iRarePct)
+				: item_vnum(dwItemVnum),
+			count(iCount),
+			rare_pct(iRarePct)
 			{
 			}
 		};
 
-		explicit CMobItemGroup(int iKillDrop) : m_iKillDrop(iKillDrop)
+		explicit mob_item_group(int iKillDrop) : kill_drop_(iKillDrop)
 		{
 		}
 
-		int GetKillPerDrop() const
+		int kill_per_drop() const
 		{
-			return m_iKillDrop;
+			return kill_drop_;
 		}
 
-		void AddItem(uint32_t dwItemVnum, int iCount, int iPartPct, int iRarePct)
+		void add_item(uint32_t dwItemVnum, int iCount, int iPartPct, int iRarePct)
 		{
-			if (!m_vecProbs.empty())
-				iPartPct += m_vecProbs.back();
-			m_vecProbs.push_back(iPartPct);
-			m_vecItems.push_back(SMobItemGroupInfo(dwItemVnum, iCount, iRarePct));
+			if (!probs_.empty())
+				iPartPct += probs_.back();
+			probs_.push_back(iPartPct);
+			items_.push_back(mob_item_group_info(dwItemVnum, iCount, iRarePct));
 		}
 
 		// MOB_DROP_ITEM_BUG_FIX
-		bool IsEmpty() const
+		bool is_empty() const
 		{
-			return m_vecProbs.empty();
+			return probs_.empty();
 		}
 
-		int GetOneIndex() const
+		int one_index() const
 		{
-			int n = number(1, m_vecProbs.back());
-			auto it = lower_bound(m_vecProbs.begin(), m_vecProbs.end(), n);
-			return std::distance(m_vecProbs.begin(), it);
+			int n = number(1, probs_.back());
+			auto it = lower_bound(probs_.begin(), probs_.end(), n);
+			return std::distance(probs_.begin(), it);
 		}
 		// END_OF_MOB_DROP_ITEM_BUG_FIX
 
-		const SMobItemGroupInfo& GetOne() const
+		const mob_item_group_info& one() const
 		{
-			return m_vecItems[GetOneIndex()];
+			return items_[one_index()];
 		}
 
 	private:
-		int m_iKillDrop;
-		std::vector<int> m_vecProbs;
-		std::vector<SMobItemGroupInfo> m_vecItems;
+		int kill_drop_;
+		std::vector<int> probs_;
+		std::vector<mob_item_group_info> items_;
 };
 
-class CDropItemGroup
+class drop_item_group
 {
-	struct SDropItemGroupInfo
+	struct drop_item_group_info
 	{
-		uint32_t	dwVnum;
-		uint32_t	dwPct;
-		int	iCount;
+		uint32_t	vnum;
+		uint32_t	pct;
+		int	count;
 
-		SDropItemGroupInfo(uint32_t dwVnum, uint32_t dwPct, int iCount)
-			: dwVnum(dwVnum), dwPct(dwPct), iCount(iCount)
+		drop_item_group_info(uint32_t dwVnum, uint32_t dwPct, int iCount)
+			: vnum(dwVnum), pct(dwPct), count(iCount)
 			{}
 	};
 
 	public:
-	CDropItemGroup() = default;
+	drop_item_group() = default;
 
-	const std::vector<SDropItemGroupInfo> & GetVector()
+	const std::vector<drop_item_group_info> & get_vector()
 	{
-		return m_vec_items;
+		return vec_items_;
 	}
 
-	void AddItem(uint32_t dwItemVnum, uint32_t dwPct, int iCount)
+	void add_item(uint32_t dwItemVnum, uint32_t dwPct, int iCount)
 	{
-		m_vec_items.push_back(SDropItemGroupInfo(dwItemVnum, dwPct, iCount));
+		vec_items_.push_back(drop_item_group_info(dwItemVnum, dwPct, iCount));
 	}
 
 	private:
-	std::vector<SDropItemGroupInfo> m_vec_items;
+	std::vector<drop_item_group_info> vec_items_;
 };
 
-class CLevelItemGroup
+class level_item_group
 {
-	struct SLevelItemGroupInfo
+	struct level_item_group_info
 	{
-		uint32_t dwVNum;
-		uint32_t dwPct;
-		int iCount;
+		uint32_t v_num;
+		uint32_t pct;
+		int count;
 
-		SLevelItemGroupInfo(uint32_t dwVnum, uint32_t dwPct, int iCount)
-			: dwVNum(dwVnum), dwPct(dwPct), iCount(iCount)
+		level_item_group_info(uint32_t dwVnum, uint32_t dwPct, int iCount)
+			: v_num(dwVnum), pct(dwPct), count(iCount)
 		{ }
 	};
 
 	private :
-		uint32_t m_dwLevelLimit;
-		std::vector<SLevelItemGroupInfo> m_vec_items;
+		uint32_t level_limit_;
+		std::vector<level_item_group_info> vec_items_;
 
 	public :
-		CLevelItemGroup(uint32_t dwLevelLimit)
-			: m_dwLevelLimit(dwLevelLimit)
+		level_item_group(uint32_t dwLevelLimit)
+			: level_limit_(dwLevelLimit)
 		{}
 
-		uint32_t GetLevelLimit() { return m_dwLevelLimit; }
+		uint32_t level_limit() { return level_limit_; }
 
-		void AddItem(uint32_t dwItemVnum, uint32_t dwPct, int iCount)
+		void add_item(uint32_t dwItemVnum, uint32_t dwPct, int iCount)
 		{
-			m_vec_items.push_back(SLevelItemGroupInfo(dwItemVnum, dwPct, iCount));
+			vec_items_.push_back(level_item_group_info(dwItemVnum, dwPct, iCount));
 		}
 
-		const std::vector<SLevelItemGroupInfo> & GetVector()
+		const std::vector<level_item_group_info> & get_vector()
 		{
-			return m_vec_items;
+			return vec_items_;
 		}
 };
 
-class CBuyerThiefGlovesItemGroup
+class buyer_thief_gloves_item_group
 {
-	struct SThiefGroupInfo
+	struct thief_group_info
 	{
-		uint32_t	dwVnum;
-		uint32_t	dwPct;
-		int	iCount;
+		uint32_t	vnum;
+		uint32_t	pct;
+		int	count;
 
-		SThiefGroupInfo(uint32_t dwVnum, uint32_t dwPct, int iCount)
-			: dwVnum(dwVnum), dwPct(dwPct), iCount(iCount)
+		thief_group_info(uint32_t dwVnum, uint32_t dwPct, int iCount)
+			: vnum(dwVnum), pct(dwPct), count(iCount)
 			{}
 	};
 
 	public:
-	CBuyerThiefGlovesItemGroup() = default;
+	buyer_thief_gloves_item_group() = default;
 
-	const std::vector<SThiefGroupInfo> & GetVector()
+	const std::vector<thief_group_info> & get_vector()
 	{
-		return m_vec_items;
+		return vec_items_;
 	}
 
-	void AddItem(uint32_t dwItemVnum, uint32_t dwPct, int iCount)
+	void add_item(uint32_t dwItemVnum, uint32_t dwPct, int iCount)
 	{
-		m_vec_items.push_back(SThiefGroupInfo(dwItemVnum, dwPct, iCount));
+		vec_items_.push_back(thief_group_info(dwItemVnum, dwPct, iCount));
 	}
 
 	private:
-	std::vector<SThiefGroupInfo> m_vec_items;
+	std::vector<thief_group_info> vec_items_;
 };
 
-class ITEM;
 
-class ITEM_MANAGER : public singleton<ITEM_MANAGER>
+class item_manager : public singleton<item_manager>
 {
 	public:
-		ITEM_MANAGER();
-		~ITEM_MANAGER() override;
+		item_manager();
+		~item_manager() override;
 
-		bool                    Initialize(TItemTable * table, int size);
-		void			Destroy();
-		void			Update();	// called every loop.
-		void			GracefulShutdown();
+		bool                    initialize(item_table * table, int size);
+		void			destroy();
+		void			update();	// called every loop.
+		void			graceful_shutdown();
 
-		uint32_t			GetNewID();
-		bool			SetMaxItemID(TItemIDRangeTable range); // set the maximum unique ID
-		bool			SetMaxSpareItemID(TItemIDRangeTable range);
+		uint32_t			new_id();
+		bool			set_max_item_id(item_id_range_table range); // set the maximum unique ID
+		bool			set_max_spare_item_id(item_id_range_table range);
 
 		// DelayedSave: if a routine does many things that require saving,
 		// there are too many queries, so just mark "to be saved" and save
 		// shortly after (e.g. 1 frame).
-		void			DelayedSave(CItem * item);
-		void			FlushDelayedSave(CItem * item); // if in the Delayed list, remove it and save. used on disconnect handling.
-		void			SaveSingleItem(CItem * item);
+		void			delayed_save(item * item);
+		void			flush_delayed_save(item * item); // if in the Delayed list, remove it and save. used on disconnect handling.
+		void			save_single_item(item * item);
 
-		CItem *                  CreateItem(uint32_t vnum, uint32_t count = 1, uint32_t dwID = 0, bool bTryMagic = false, int iRarePct = -1, bool bSkipSave = false);
-		void DestroyItem(CItem * item);
-		void			RemoveItem(CItem * item, const char * c_pszReason=nullptr); // remove the item from the user
+		item *                  create_item(uint32_t vnum, uint32_t count = 1, uint32_t dwID = 0, bool bTryMagic = false, int iRarePct = -1, bool bSkipSave = false);
+		void destroy_item(item * item);
+		void			remove_item(item * item, const char * c_pszReason=nullptr); // remove the item from the user
 
-		CItem *			Find(uint32_t id);
-		CItem *                  FindByVID(uint32_t vid);
-		TItemTable *            GetTable(uint32_t vnum);
-		bool			GetVnum(const char * c_pszName, uint32_t & r_dwVnum);
-		bool			GetVnumByOriginalName(const char * c_pszName, uint32_t & r_dwVnum);
+		item *			find(uint32_t id);
+		item *                  find_by_vid(uint32_t vid);
+		item_table *            table(uint32_t vnum);
+		bool			vnum(const char * c_pszName, uint32_t & r_dwVnum);
+		bool			vnum_by_original_name(const char * c_pszName, uint32_t & r_dwVnum);
 
-		bool			GetDropPct(CHARACTER * pkChr, CHARACTER * pkKiller, int& iDeltaPercent, int& iRandRange);
-		bool			CreateDropItem(CHARACTER * pkChr, CHARACTER * pkKiller, std::vector<CItem *> & vec_item);
+		bool			drop_pct(character * pkChr, character * pkKiller, int& iDeltaPercent, int& iRandRange);
+		bool			create_drop_item(character * pkChr, character * pkKiller, std::vector<item *> & vec_item);
 
-		bool			ReadCommonDropItemFile(const char * c_pszFileName);
-		bool			ReadEtcDropItemFile(const char * c_pszFileName);
-		bool			ReadDropItemGroup(const char * c_pszFileName);
-		bool			ReadMonsterDropItemGroup(const char * c_pszFileName);
-		bool			ReadSpecialDropItemFile(const char * c_pszFileName);
+		bool			read_common_drop_item_file(const char * c_pszFileName);
+		bool			read_etc_drop_item_file(const char * c_pszFileName);
+		bool			read_drop_item_group(const char * c_pszFileName);
+		bool			read_monster_drop_item_group(const char * c_pszFileName);
+		bool			read_special_drop_item_file(const char * c_pszFileName);
 		
 		// convert name -> vnum special_item_group.txt
-		bool			ConvSpecialDropItemFile();
+		bool			conv_special_drop_item_file();
 		// convert name -> vnum special_item_group.txt
 
-		uint32_t			GetRefineFromVnum(uint32_t dwVnum);
+		uint32_t			refine_from_vnum(uint32_t dwVnum);
 
-		static void		CopyAllAttrTo(CItem * pkOldItem, CItem * pkNewItem);		// copies all attributes and socket values to pkNewItem.
+		static void		copy_all_attr_to(item * pkOldItem, item * pkNewItem);		// copies all attributes and socket values to pkNewItem.
 
-		const CSpecialItemGroup* GetSpecialItemGroup(uint32_t dwVnum);
-		const CSpecialAttrGroup* GetSpecialAttrGroup(uint32_t dwVnum);
+		const special_item_group* get_special_item_group(uint32_t dwVnum);
+		const special_attr_group* get_special_attr_group(uint32_t dwVnum);
 
 		// CHECK_UNIQUE_GROUP
-		int			GetSpecialGroupFromItem(uint32_t dwVnum) const { auto it = m_ItemToSpecialGroup.find(dwVnum); return (it == m_ItemToSpecialGroup.end()) ? 0 : it->second; }
+		int			special_group_from_item(uint32_t dwVnum) const { auto it = item_to_special_group_.find(dwVnum); return (it == item_to_special_group_.end()) ? 0 : it->second; }
 		// END_OF_CHECK_UNIQUE_GROUP
 
 	protected:
-		int                     RealNumber(uint32_t vnum);
-		void			CreateQuestDropItem(CHARACTER * pkChr, CHARACTER * pkKiller, std::vector<CItem *> & vec_item, int iDeltaPercent, int iRandRange);
+		int                     real_number(uint32_t vnum);
+		void			create_quest_drop_item(character * pkChr, character * pkKiller, std::vector<item *> & vec_item, int iDeltaPercent, int iRandRange);
 
 	protected:
-		typedef std::map<uint32_t, CItem *> ITEM_VID_MAP;		
+		typedef std::map<uint32_t, item *> item_vid_map;		
 
-		std::vector<TItemTable>		m_vec_prototype;
-		std::vector<TItemTable*> m_vec_item_vnum_range_info;
-		std::map<uint32_t, uint32_t>		m_map_ItemRefineFrom;
+		std::vector<item_table>		vec_prototype_;
+		std::vector<item_table*> vec_item_vnum_range_info_;
+		std::map<uint32_t, uint32_t>		map_item_refine_from_;
 
-		ITEM_VID_MAP			m_VIDMap;			///< saves items in units of m_dwVIDCount.
-		uint32_t				m_dwVIDCount;			///< this is not a VID, just a per-process unique number.
-		uint32_t				m_dwCurrentID;
-		TItemIDRangeTable	m_ItemIDRange;
-		TItemIDRangeTable	m_ItemIDSpareRange;
+		item_vid_map			vid_map_;			///< saves items in units of m_dwVIDCount.
+		uint32_t				vid_count_;			///< this is not a VID, just a per-process unique number.
+		uint32_t				current_id_;
+		item_id_range_table	item_id_range_;
+		item_id_range_table	item_id_spare_range_;
 
-		std::unordered_set<CItem *> m_set_pkItemForDelayedSave;
-		std::map<uint32_t, CItem *>		m_map_pkItemByID;
-		std::map<uint32_t, uint32_t>		m_map_dwEtcItemDropProb;
-		std::map<uint32_t, CDropItemGroup*> m_map_pkDropItemGroup;
-		std::map<uint32_t, CSpecialItemGroup*> m_map_pkSpecialItemGroup;
-		std::map<uint32_t, CSpecialItemGroup*> m_map_pkQuestItemGroup;
-		std::map<uint32_t, CSpecialAttrGroup*> m_map_pkSpecialAttrGroup;
-		std::map<uint32_t, CMobItemGroup*> m_map_pkMobItemGroup;
-		std::map<uint32_t, CLevelItemGroup*> m_map_pkLevelItemGroup;
-		std::map<uint32_t, CBuyerThiefGlovesItemGroup*> m_map_pkGloveItemGroup;
+		std::unordered_set<item *> set_pk_item_for_delayed_save_;
+		std::map<uint32_t, item *>		map_pk_item_by_id_;
+		std::map<uint32_t, uint32_t>		map_dw_etc_item_drop_prob_;
+		std::map<uint32_t, drop_item_group*> map_pk_drop_item_group_;
+		std::map<uint32_t, special_item_group*> map_pk_special_item_group_;
+		std::map<uint32_t, special_item_group*> map_pk_quest_item_group_;
+		std::map<uint32_t, special_attr_group*> map_pk_special_attr_group_;
+		std::map<uint32_t, mob_item_group*> map_pk_mob_item_group_;
+		std::map<uint32_t, level_item_group*> map_pk_level_item_group_;
+		std::map<uint32_t, buyer_thief_gloves_item_group*> map_pk_glove_item_group_;
 
 		// CHECK_UNIQUE_GROUP
-		std::map<uint32_t, int>		m_ItemToSpecialGroup;
+		std::map<uint32_t, int>		item_to_special_group_;
 		// END_OF_CHECK_UNIQUE_GROUP
 	
 	private:
@@ -427,19 +426,19 @@ class ITEM_MANAGER : public singleton<ITEM_MANAGER>
 		// so for an item with a new vnum, it runs on the server as the original item vnum,
 		// and is converted back to its own vnum when saving.
 		// for this, a map linking original vnums to new vnums is created.
-		typedef std::map <uint32_t, uint32_t> TMapDW2DW;
-		TMapDW2DW	m_map_new_to_ori;
+		typedef std::map <uint32_t, uint32_t> map_d_w2_dw;
+		map_d_w2_dw	map_new_to_ori_;
 
 	public:	
-		uint32_t	GetMaskVnum(uint32_t dwVnum);
-		std::map<uint32_t, TItemTable>  m_map_vid;
+		uint32_t	mask_vnum(uint32_t dwVnum);
+		std::map<uint32_t, item_table>  map_vid;
 		
-		const static int MAX_NORM_ATTR_NUM = 5;
-		const static int MAX_RARE_ATTR_NUM = 2;
-		bool ReadItemVnumMaskTable(const char * c_pszFileName);
+		const static int max_norm_attr_num = 5;
+		const static int max_rare_attr_num = 2;
+		bool read_item_vnum_mask_table(const char * c_pszFileName);
 	private:
 };
 
-extern bool DropEvent_RefineBox_SetValue(const std::string& name, int value);
-extern bool DropEvent_CharStone_SetValue(const std::string& name, int value);
+extern bool drop_event_refine_box_set_value(const std::string& name, int value);
+extern bool drop_event_char_stone_set_value(const std::string& name, int value);
 }

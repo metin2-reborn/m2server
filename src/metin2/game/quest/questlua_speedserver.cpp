@@ -39,10 +39,10 @@ namespace quest
 
 		metin2::log::info( "empire {:d} wday {:d}",empire, wday);
 
-		std::list <HME> time_lst = CSpeedServerManager::instance().GetWdayExpTableOfEmpire(empire, wday);
+		std::list <hme> time_lst = speed_server_manager::instance().wday_exp_table_of_empire(empire, wday);
 
 		int i = 0;
-		for (std::list <HME>::iterator it = time_lst.begin();
+		for (std::list <hme>::iterator it = time_lst.begin();
 				it != time_lst.end(); it++)
 		{
 			metin2::log::info( "{:d}",i);
@@ -63,7 +63,7 @@ namespace quest
 		uint8_t end_minite = lua_tonumber(L, 4);
 		int exp_percent = lua_tonumber(L, 5);
 
-		CSpeedServerManager::instance().SetWdayExpTableOfEmpire (empire, wday - 1, HME (end_hour, end_minite, exp_percent));
+		speed_server_manager::instance().set_wday_exp_table_of_empire (empire, wday - 1, hme (end_hour, end_minite, exp_percent));
 
 		return 0;
 	}
@@ -81,7 +81,7 @@ namespace quest
 		
 		metin2::log::info( "init_wday {:d} {:d}",empire, wday);
 
-		CSpeedServerManager::instance().InitWdayExpTableOfEmpire (empire, wday - 1);
+		speed_server_manager::instance().init_wday_exp_table_of_empire (empire, wday - 1);
 		
 		return 0;
 	}
@@ -101,18 +101,18 @@ namespace quest
 			return 0;
 		}
 
-		Date date = Date (lua_tonumber(L,2) - 1900, lua_tonumber(L,3) - 1, lua_tonumber(L,4));
+		date date = game::events::date (lua_tonumber(L,2) - 1900, lua_tonumber(L,3) - 1, lua_tonumber(L,4));
 		
 		metin2::log::info( "empire {:d} date {:d} {:d} {:d}", empire, date.year, date.mon, date.day);
 		
 		bool is_exist;
 
-		std::list <HME> time_lst = CSpeedServerManager::instance().GetHolidayExpTableOfEmpire(empire, date, is_exist);
+		std::list <hme> time_lst = speed_server_manager::instance().holiday_exp_table_of_empire(empire, date, is_exist);
 
 		int i = 0;
 		if (is_exist)
 		{
-			for (std::list <HME>::iterator it = time_lst.begin();
+			for (std::list <hme>::iterator it = time_lst.begin();
 					it != time_lst.end(); it++)
 			{
 				lua_pushnumber (L, it->hour);
@@ -136,14 +136,14 @@ namespace quest
 		}
 
 		uint8_t empire = lua_tonumber (L, 1);
-		Date date = Date (lua_tonumber(L,2) - 1900, lua_tonumber(L,3) - 1, lua_tonumber(L,4));
+		date date = game::events::date (lua_tonumber(L,2) - 1900, lua_tonumber(L,3) - 1, lua_tonumber(L,4));
 		uint8_t end_hour = lua_tonumber(L, 5);
 		uint8_t end_minite = lua_tonumber(L, 6);
 		int exp_percent = lua_tonumber(L, 7);
 
 		metin2::log::info("h {:d} m {:d} e {:d}", end_hour, end_minite, exp_percent);
 
-		CSpeedServerManager::instance().SetHolidayExpTableOfEmpire (empire, date, HME (end_hour, end_minite, exp_percent));
+		speed_server_manager::instance().set_holiday_exp_table_of_empire (empire, date, hme (end_hour, end_minite, exp_percent));
 
 		return 0;
 	}
@@ -156,9 +156,9 @@ namespace quest
 		}
 
 		uint8_t empire = lua_tonumber (L, 1);
-		Date date = Date (lua_tonumber(L,2) - 1900, lua_tonumber(L,3) - 1, lua_tonumber(L,4));
+		date date = game::events::date (lua_tonumber(L,2) - 1900, lua_tonumber(L,3) - 1, lua_tonumber(L,4));
 	
-		CSpeedServerManager::instance().InitHolidayExpTableOfEmpire (empire, date);
+		speed_server_manager::instance().init_holiday_exp_table_of_empire (empire, date);
 		
 		return 0;
 	}
@@ -175,7 +175,7 @@ namespace quest
 		int duration;
 		bool is_change;
 
-		HME hme = CSpeedServerManager::instance().GetCurrentExpPrivOfEmpire (empire, duration, is_change);
+		hme hme = speed_server_manager::instance().current_exp_priv_of_empire (empire, duration, is_change);
 
 		lua_pushnumber (L, hme.hour);
 		lua_pushnumber (L, hme.min);
@@ -188,7 +188,7 @@ namespace quest
 		return 5;
 	}
 
-	void RegisterSpeedServerFunctionTable()
+	void register_speed_server_function_table()
 	{
 		luaL_reg speed_server_functions[] = 
 		{
@@ -203,7 +203,7 @@ namespace quest
 			{ nullptr, nullptr}
 		};
 
-		CQuestManager::instance().AddLuaFunctionTable("speedserver", speed_server_functions);
+		quest_manager::instance().add_lua_function_table("speedserver", speed_server_functions);
 	}
 }
 }

@@ -12,52 +12,52 @@
 
 namespace metin2::db::inline empire {
 
-class CMonarch : public singleton<CMonarch>
+class monarch : public singleton<monarch>
 {
 	public:
-		typedef std::map<uint32_t, std::unique_ptr<MonarchElectionInfo>> MAP_MONARCHELECTION;
-		typedef std::vector<MonarchCandidacy> VEC_MONARCHCANDIDACY;
+		typedef std::map<uint32_t, std::unique_ptr<monarch_election_info>> map_monarchelection;
+		typedef std::vector<monarch_candidacy> vec_monarchcandidacy;
 
-		CMonarch();
-		~CMonarch() override;
+		monarch();
+		~monarch() override;
 
-		bool VoteMonarch(uint32_t pid, uint32_t selectedpid);
-		void ElectMonarch();
+		bool vote_monarch(uint32_t pid, uint32_t selectedpid);
+		void elect_monarch();
 
-		bool IsCandidacy(uint32_t pid);
-		bool AddCandidacy(uint32_t pid, const char * name);
-		bool DelCandidacy(const char * name);
+		bool is_candidacy(uint32_t pid);
+		bool add_candidacy(uint32_t pid, const char * name);
+		bool del_candidacy(const char * name);
 
-		bool LoadMonarch();
-		bool SetMonarch(const char * name);
-		bool DelMonarch(const char * name);
+		bool load_monarch();
+		bool set_monarch(const char * name);
+		bool del_monarch(const char * name);
 
-		bool IsMonarch(int Empire, uint32_t pid);
-		bool AddMoney(int Empire, int64_t Money);
-		bool DecMoney(int Empire, int64_t Money);
-		bool TakeMoney(int Empire, uint32_t pid, int64_t Money);
+		bool is_monarch(int Empire, uint32_t pid);
+		bool add_money(int Empire, int64_t Money);
+		bool dec_money(int Empire, int64_t Money);
+		bool take_money(int Empire, uint32_t pid, int64_t Money);
 
-		MonarchInfo* GetMonarch()
+		monarch_info* get_monarch()
 		{
-			return &m_MonarchInfo;
+			return &monarch_info_;
 		}
 
-		VEC_MONARCHCANDIDACY& GetVecMonarchCandidacy()
+		vec_monarchcandidacy& vec_monarch_candidacy()
 		{
-			return m_vec_MonarchCandidacy;
+			return vec_monarch_candidacy_;
 		}
 
-		size_t MonarchCandidacySize()
+		size_t monarch_candidacy_size()
 		{
-			return m_vec_MonarchCandidacy.size();
+			return vec_monarch_candidacy_.size();
 		}
 
 	private:
-		int GetCandidacyIndex(uint32_t pid);
+		int candidacy_index(uint32_t pid);
 
-		MAP_MONARCHELECTION m_map_MonarchElection;
-		VEC_MONARCHCANDIDACY m_vec_MonarchCandidacy;
-		MonarchInfo m_MonarchInfo;
+		map_monarchelection map_monarch_election_;
+		vec_monarchcandidacy vec_monarch_candidacy_;
+		monarch_info monarch_info_;
 
 };
 }

@@ -26,13 +26,13 @@ int touch(const char *path)
 	return 0;
 }
 
-uint32_t ITEM_MANAGER::GetNewID()
+uint32_t item_manager::new_id()
 {
-	assert(m_dwCurrentID != 0);
+	assert(current_id_ != 0);
 
-	if ( m_dwCurrentID >= m_ItemIDRange.dwMax )
+	if ( current_id_ >= item_id_range_.max )
 	{
-		if ( m_ItemIDSpareRange.dwMin == 0 || m_ItemIDSpareRange.dwMax == 0 || m_ItemIDSpareRange.dwUsableItemIDMin == 0 )
+		if ( item_id_spare_range_.min == 0 || item_id_spare_range_.max == 0 || item_id_spare_range_.usable_item_id_min == 0 )
 		{
 			metin2::log::error("ItemIDRange: FATAL ERROR!!! no more item id");
 			touch(".killscript");
@@ -42,26 +42,26 @@ uint32_t ITEM_MANAGER::GetNewID()
 		else
 		{
 			metin2::log::info( "ItemIDRange: First Range is full. Change to SpareRange {:d} ~ {:d} {:d}",
-					m_ItemIDSpareRange.dwMin, m_ItemIDSpareRange.dwMax, m_ItemIDSpareRange.dwUsableItemIDMin);
+					item_id_spare_range_.min, item_id_spare_range_.max, item_id_spare_range_.usable_item_id_min);
 
-			db_clientdesc->DBPacket(HEADER_GD_REQ_SPARE_ITEM_ID_RANGE, 0, &m_ItemIDRange.dwMax, sizeof(uint32_t));
+			db_clientdesc->db_packet(HEADER_GD_REQ_SPARE_ITEM_ID_RANGE, 0, &item_id_range_.max, sizeof(uint32_t));
 
-			SetMaxItemID(m_ItemIDSpareRange);
+			set_max_item_id(item_id_spare_range_);
 
-			m_ItemIDSpareRange.dwMin = 0;
-			m_ItemIDSpareRange.dwMax = 0;
-			m_ItemIDSpareRange.dwUsableItemIDMin = 0;
+			item_id_spare_range_.min = 0;
+			item_id_spare_range_.max = 0;
+			item_id_spare_range_.usable_item_id_min = 0;
 		}
 	}
 
-	return (m_dwCurrentID++);
+	return (current_id_++);
 }
 
-bool ITEM_MANAGER::SetMaxItemID(TItemIDRangeTable range)
+bool item_manager::set_max_item_id(item_id_range_table range)
 {
-	m_ItemIDRange = range;
+	item_id_range_ = range;
 
-	if ( m_ItemIDRange.dwMin == 0 || m_ItemIDRange.dwMax == 0 || m_ItemIDRange.dwUsableItemIDMin == 0 )
+	if ( item_id_range_.min == 0 || item_id_range_.max == 0 || item_id_range_.usable_item_id_min == 0 )
 	{
 		metin2::log::error("ItemIDRange: FATAL ERROR!!! ITEM ID RANGE is not set.");
 		touch(".killscript");
@@ -69,25 +69,25 @@ bool ITEM_MANAGER::SetMaxItemID(TItemIDRangeTable range)
 		return false;
 	}
 
-	m_dwCurrentID = range.dwUsableItemIDMin;
+	current_id_ = range.usable_item_id_min;
 
-	metin2::log::info( "ItemIDRange: {:d} ~ {:d} {:d}", m_ItemIDRange.dwMin, m_ItemIDRange.dwMax, m_dwCurrentID);
+	metin2::log::info( "ItemIDRange: {:d} ~ {:d} {:d}", item_id_range_.min, item_id_range_.max, current_id_);
 
 	return true;
 }
 
-bool ITEM_MANAGER::SetMaxSpareItemID(TItemIDRangeTable range)
+bool item_manager::set_max_spare_item_id(item_id_range_table range)
 {
-	if ( range.dwMin == 0 || range.dwMax == 0 || range.dwUsableItemIDMin == 0 )
+	if ( range.min == 0 || range.max == 0 || range.usable_item_id_min == 0 )
 	{
 		metin2::log::error("ItemIDRange: FATAL ERROR!!! Spare ITEM ID RANGE is not set");
 		return false;
 	}
 
-	m_ItemIDSpareRange = range;
+	item_id_spare_range_ = range;
 
 	metin2::log::info( "ItemIDRange: New Spare ItemID Range Recv {:d} ~ {:d} {:d}",
-			m_ItemIDSpareRange.dwMin, m_ItemIDSpareRange.dwMax, m_ItemIDSpareRange.dwUsableItemIDMin);
+			item_id_spare_range_.min, item_id_spare_range_.max, item_id_spare_range_.usable_item_id_min);
 
 	return true;
 }

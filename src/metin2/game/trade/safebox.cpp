@@ -21,251 +21,251 @@
 
 namespace metin2::game::inline trade {
 
-CSafebox::CSafebox(CHARACTER * pkChrOwner, int iSize, uint32_t dwGold) : m_pkChrOwner(pkChrOwner), m_iSize(iSize), m_lGold(dwGold)
+safebox::safebox(character * pkChrOwner, int iSize, uint32_t dwGold) : chr_owner_(pkChrOwner), size_(iSize), gold_(dwGold)
 {
-	assert(m_pkChrOwner != nullptr);
-	memset(m_pkItems, 0, sizeof(m_pkItems));
+	assert(chr_owner_ != nullptr);
+	memset(items_, 0, sizeof(items_));
 
-	if (m_iSize)
-		m_pkGrid = std::make_unique<CGrid>(5, m_iSize);
+	if (size_)
+		grid_ = std::make_unique<grid>(5, size_);
 
-	m_bWindowMode = SAFEBOX;
+	window_mode_ = SAFEBOX;
 }
 
-CSafebox::~CSafebox()
+safebox::~safebox()
 {
-	__Destroy();
+	destroy();
 }
 
-void CSafebox::SetWindowMode(uint8_t bMode)
+void safebox::set_window_mode(uint8_t bMode)
 {
-	m_bWindowMode = bMode;
+	window_mode_ = bMode;
 }
 
-void CSafebox::__Destroy()
+void safebox::destroy()
 {
 	for (int i = 0; i < SAFEBOX_MAX_NUM; ++i)
 	{
-		if (m_pkItems[i])
+		if (items_[i])
 		{
-			m_pkItems[i]->SetSkipSave(true);
-			ITEM_MANAGER::instance().FlushDelayedSave(m_pkItems[i]);
+			items_[i]->set_skip_save(true);
+			item_manager::instance().flush_delayed_save(items_[i]);
 
-			ITEM_MANAGER::instance().DestroyItem(m_pkItems[i]->RemoveFromCharacter());
-			m_pkItems[i] = nullptr;
+			item_manager::instance().destroy_item(items_[i]->remove_from_character());
+			items_[i] = nullptr;
 		}
 	}
 
-	m_pkGrid.reset();
+	grid_.reset();
 }
 
-bool CSafebox::Add(uint32_t dwPos, CItem * pkItem)
+bool safebox::add(uint32_t dwPos, item * pkItem)
 {
-	if (!IsValidPosition(dwPos))
+	if (!is_valid_position(dwPos))
 	{
-		metin2::log::error("SAFEBOX: item on wrong position at {:d} (size of grid = {:d})", dwPos, m_pkGrid->GetSize());
+		metin2::log::error("SAFEBOX: item on wrong position at {:d} (size of grid = {:d})", dwPos, grid_->size());
 		return false;
 	}
 
-	pkItem->SetWindow(m_bWindowMode);
-	pkItem->SetCell(m_pkChrOwner, dwPos);
-	pkItem->Save(); // Save must be called forcibly.
-	ITEM_MANAGER::instance().FlushDelayedSave(pkItem);
+	pkItem->set_window(window_mode_);
+	pkItem->set_cell(chr_owner_, dwPos);
+	pkItem->save(); // Save must be called forcibly.
+	item_manager::instance().flush_delayed_save(pkItem);
 
-	m_pkGrid->Put(dwPos, 1, pkItem->GetSize());
-	m_pkItems[dwPos] = pkItem;
+	grid_->put(dwPos, 1, pkItem->size());
+	items_[dwPos] = pkItem;
 
-	SendItemSet(dwPos);
-	metin2::log::debug( "SAFEBOX: ADD {} {} count {:d}", m_pkChrOwner->GetName(), pkItem->GetName(), pkItem->GetCount());
+	send_item_set(dwPos);
+	metin2::log::debug( "SAFEBOX: ADD {} {} count {:d}", chr_owner_->name(), pkItem->name(), pkItem->count());
 	return true;
 }
 
-void CSafebox::SendItemSet(uint32_t dwPos)
+void safebox::send_item_set(uint32_t dwPos)
 {
-	CItem * pkItem = m_pkItems[dwPos];
+	item * pkItem = items_[dwPos];
 
-	if (!pkItem || !m_pkChrOwner->GetDesc())
+	if (!pkItem || !chr_owner_->get_desc())
 		return;
 
-	TPacketGCItemSet pack;
+	packet_gc_item_set pack;
 
-	pack.header	= m_bWindowMode == SAFEBOX ? HEADER_GC_SAFEBOX_SET : HEADER_GC_MALL_SET;
-	pack.Cell	= TItemPos(m_bWindowMode, dwPos);
-	pack.vnum	= pkItem->GetVnum();
-	pack.count	= pkItem->GetCount();
-	pack.flags	= pkItem->GetFlag();
-	pack.anti_flags	= pkItem->GetAntiFlag();
-	std::memcpy(pack.alSockets, pkItem->GetSockets(), sizeof(pack.alSockets));
-	std::memcpy(pack.aAttr, pkItem->GetAttributes(), sizeof(pack.aAttr));
+	pack.header	= window_mode_ == SAFEBOX ? HEADER_GC_SAFEBOX_SET : HEADER_GC_MALL_SET;
+	pack.cell	= item_pos(window_mode_, dwPos);
+	pack.vnum	= pkItem->vnum();
+	pack.count	= pkItem->count();
+	pack.flags	= pkItem->flag();
+	pack.anti_flags	= pkItem->anti_flag();
+	std::memcpy(pack.sockets, pkItem->sockets(), sizeof(pack.sockets));
+	std::memcpy(pack.attr, pkItem->attributes(), sizeof(pack.attr));
 
-	m_pkChrOwner->GetDesc()->Packet(&pack, sizeof(pack));
+	chr_owner_->get_desc()->packet(&pack, sizeof(pack));
 }
 
-CItem * CSafebox::Get(uint32_t dwPos)
+item * safebox::get(uint32_t dwPos)
 {
-	if (!m_pkGrid || dwPos >= m_pkGrid->GetSize())
+	if (!grid_ || dwPos >= grid_->size())
 		return nullptr;
 
-	return m_pkItems[dwPos];
+	return items_[dwPos];
 }
 
-CItem * CSafebox::Remove(uint32_t dwPos)
+item * safebox::remove(uint32_t dwPos)
 {
-	CItem * pkItem = Get(dwPos);
+	item * pkItem = get(dwPos);
 
 	if (!pkItem)
 		return nullptr;
 
-	if (!m_pkGrid)
+	if (!grid_)
 		metin2::log::error("Safebox::Remove : nil grid");
 	else
-		m_pkGrid->Get(dwPos, 1, pkItem->GetSize());
+		grid_->get(dwPos, 1, pkItem->size());
 
-	pkItem->RemoveFromCharacter();
+	pkItem->remove_from_character();
 
-	m_pkItems[dwPos] = nullptr;
+	items_[dwPos] = nullptr;
 
-	TPacketGCItemDel pack;
+	packet_gc_item_del pack;
 
-	pack.header	= m_bWindowMode == SAFEBOX ? HEADER_GC_SAFEBOX_DEL : HEADER_GC_MALL_DEL;
+	pack.header	= window_mode_ == SAFEBOX ? HEADER_GC_SAFEBOX_DEL : HEADER_GC_MALL_DEL;
 	pack.pos	= dwPos;
 
-	m_pkChrOwner->GetDesc()->Packet(&pack, sizeof(pack));
-	metin2::log::debug( "SAFEBOX: REMOVE {} {} count {:d}", m_pkChrOwner->GetName(), pkItem->GetName(), pkItem->GetCount());
+	chr_owner_->get_desc()->packet(&pack, sizeof(pack));
+	metin2::log::debug( "SAFEBOX: REMOVE {} {} count {:d}", chr_owner_->name(), pkItem->name(), pkItem->count());
 	return pkItem;
 }
 
-void CSafebox::Save()
+void safebox::save()
 {
-	TSafeboxTable t;
+	safebox_table t;
 
-	memset(&t, 0, sizeof(TSafeboxTable));
+	memset(&t, 0, sizeof(safebox_table));
 
-	t.dwID = m_pkChrOwner->GetDesc()->GetAccountTable().id;
-	t.dwGold = m_lGold;
+	t.id = chr_owner_->get_desc()->get_account_table().id;
+	t.gold = gold_;
 
-	db_clientdesc->DBPacket(HEADER_GD_SAFEBOX_SAVE, 0, &t, sizeof(TSafeboxTable));
-	metin2::log::debug( "SAFEBOX: SAVE {}", m_pkChrOwner->GetName());
+	db_clientdesc->db_packet(HEADER_GD_SAFEBOX_SAVE, 0, &t, sizeof(safebox_table));
+	metin2::log::debug( "SAFEBOX: SAVE {}", chr_owner_->name());
 }
 
-bool CSafebox::IsEmpty(uint32_t dwPos, uint8_t bSize)
+bool safebox::is_empty(uint32_t dwPos, uint8_t bSize)
 {
-	if (!m_pkGrid)
+	if (!grid_)
 		return false;
 
-	return m_pkGrid->IsEmpty(dwPos, 1, bSize);
+	return grid_->is_empty(dwPos, 1, bSize);
 }
 
-void CSafebox::ChangeSize(int iSize)
+void safebox::change_size(int iSize)
 {
 	// if the current size is larger than the argument, leave the size as is.
-	if (m_iSize >= iSize)
+	if (size_ >= iSize)
 		return;
 
-	m_iSize = iSize;
+	size_ = iSize;
 
-	if (m_pkGrid)
-		m_pkGrid = std::make_unique<CGrid>(*m_pkGrid, 5, m_iSize);
+	if (grid_)
+		grid_ = std::make_unique<grid>(*grid_, 5, size_);
 	else
-		m_pkGrid = std::make_unique<CGrid>(5, m_iSize);
+		grid_ = std::make_unique<grid>(5, size_);
 }
 
-CItem * CSafebox::GetItem(uint8_t bCell)
+item * safebox::get_item(uint8_t bCell)
 {
-	if (bCell >= 5 * m_iSize)
+	if (bCell >= 5 * size_)
 	{
 		metin2::log::error("CHARACTER::GetItem: invalid item cell {:d}", bCell);
 		return nullptr;
 	}
 
-	return m_pkItems[bCell];
+	return items_[bCell];
 }
 
-bool CSafebox::MoveItem(uint8_t bCell, uint8_t bDestCell, uint8_t count)
+bool safebox::move_item(uint8_t bCell, uint8_t bDestCell, uint8_t count)
 {
-	CItem * item;
+	item * item;
 
-	int max_position = 5 * m_iSize;
+	int max_position = 5 * size_;
 
 	if (bCell >= max_position || bDestCell >= max_position)
 		return false;
 
-	if (!(item = GetItem(bCell)))
+	if (!(item = get_item(bCell)))
 		return false;
 
-	if (item->IsExchanging())
+	if (item->is_exchanging())
 		return false;
 
-	if (item->GetCount() < count)
+	if (item->count() < count)
 		return false;
 
 	{
-		CItem * item2;
+		game::items::item * item2;
 
-		if ((item2 = GetItem(bDestCell)) && item != item2 && item2->IsStackable() &&
-				!IS_SET(item2->GetAntiFlag(), ITEM_ANTIFLAG_STACK) &&
-				item2->GetVnum() == item->GetVnum()) // for stackable items
+		if ((item2 = get_item(bDestCell)) && item != item2 && item2->is_stackable() &&
+				!is_set(item2->anti_flag(), ITEM_ANTIFLAG_STACK) &&
+				item2->vnum() == item->vnum()) // for stackable items
 		{
 			for (int i = 0; i < ITEM_SOCKET_MAX_NUM; ++i)
-				if (item2->GetSocket(i) != item->GetSocket(i))
+				if (item2->get_socket(i) != item->get_socket(i))
 					return false;
 
 			if (count == 0)
-				count = item->GetCount();
+				count = item->count();
 
-			count = std::min<int>(ITEM_MAX_COUNT - item2->GetCount(), count);
+			count = std::min<int>(ITEM_MAX_COUNT - item2->count(), count);
 
 			// The destination stack is full: nothing moves.
 			if (count == 0)
 				return false;
 
-			item2->SetCount(item2->GetCount() + count);
-			SendItemSet(bDestCell);
+			item2->set_count(item2->count() + count);
+			send_item_set(bDestCell);
 
 			// The whole source stack merged: it goes away; otherwise the rest stays where it was.
-			if (count == item->GetCount())
-				ITEM_MANAGER::instance().RemoveItem(item, "SAFEBOX_STACK");
+			if (count == item->count())
+				item_manager::instance().remove_item(item, "SAFEBOX_STACK");
 			else
 			{
-				item->SetCount(item->GetCount() - count);
-				SendItemSet(bCell);
+				item->set_count(item->count() - count);
+				send_item_set(bCell);
 			}
 
-			metin2::log::debug( "SAFEBOX: STACK {} {:d} -> {:d} {} count {:d}", m_pkChrOwner->GetName(), bCell, bDestCell, item2->GetName(), item2->GetCount());
+			metin2::log::debug( "SAFEBOX: STACK {} {:d} -> {:d} {} count {:d}", chr_owner_->name(), bCell, bDestCell, item2->name(), item2->count());
 			return true;
 		}
 
-		if (!IsEmpty(bDestCell, item->GetSize()))
+		if (!is_empty(bDestCell, item->size()))
 			return false;
 
-		m_pkGrid->Get(bCell, 1, item->GetSize());
+		grid_->get(bCell, 1, item->size());
 
-		if (!m_pkGrid->Put(bDestCell, 1, item->GetSize()))
+		if (!grid_->put(bDestCell, 1, item->size()))
 		{
-			m_pkGrid->Put(bCell, 1, item->GetSize());
+			grid_->put(bCell, 1, item->size());
 			return false;
 		}
 		else
 		{
-			m_pkGrid->Get(bDestCell, 1, item->GetSize());
-			m_pkGrid->Put(bCell, 1, item->GetSize());
+			grid_->get(bDestCell, 1, item->size());
+			grid_->put(bCell, 1, item->size());
 		}
 
-		metin2::log::debug( "SAFEBOX: MOVE {} {:d} -> {:d} {} count {:d}", m_pkChrOwner->GetName(), bCell, bDestCell, item->GetName(), item->GetCount());
+		metin2::log::debug( "SAFEBOX: MOVE {} {:d} -> {:d} {} count {:d}", chr_owner_->name(), bCell, bDestCell, item->name(), item->count());
 
-		Remove(bCell);
-		Add(bDestCell, item);
+		remove(bCell);
+		add(bDestCell, item);
 	}
 
 	return true;
 }
 
-bool CSafebox::IsValidPosition(uint32_t dwPos)
+bool safebox::is_valid_position(uint32_t dwPos)
 {
-	if (!m_pkGrid)
+	if (!grid_)
 		return false;
 
-	if (dwPos >= m_pkGrid->GetSize())
+	if (dwPos >= grid_->size())
 		return false;
 
 	return true;

@@ -15,40 +15,40 @@ namespace metin2::game::inline characters {
 /////////////////////////////////////////////////////////////////////////////
 // QUICKSLOT HANDLING
 /////////////////////////////////////////////////////////////////////////////
-void CHARACTER::SyncQuickslot(uint8_t bType, uint8_t bOldPos, uint8_t bNewPos) // bNewPos == 255 means DELETE
+void character::sync_quickslot(uint8_t bType, uint8_t bOldPos, uint8_t bNewPos) // bNewPos == 255 means DELETE
 {
 	if (bOldPos == bNewPos)
 		return;
 
 	for (int i = 0; i < QUICKSLOT_MAX_NUM; ++i)
 	{
-		if (m_quickslot[i].type == bType && m_quickslot[i].pos == bOldPos)
+		if (quickslot_[i].type == bType && quickslot_[i].pos == bOldPos)
 		{
 			if (bNewPos == 255)
-				DelQuickslot(i);
+				del_quickslot(i);
 			else
 			{
-				TQuickslot slot;
+				quickslot slot;
 
 				slot.type = bType;
 				slot.pos = bNewPos;
 
-				SetQuickslot(i, slot);
+				set_quickslot(i, slot);
 			}
 		}
 	}
 }
 
-bool CHARACTER::GetQuickslot(uint8_t pos, TQuickslot ** ppSlot)
+bool character::get_quickslot(uint8_t pos, quickslot ** ppSlot)
 {
 	if (pos >= QUICKSLOT_MAX_NUM)
 		return false;
 
-	*ppSlot = &m_quickslot[pos];
+	*ppSlot = &quickslot_[pos];
 	return true;
 }
 
-bool CHARACTER::SetQuickslot(uint8_t pos, TQuickslot & rSlot)
+bool character::set_quickslot(uint8_t pos, quickslot & rSlot)
 {
 	struct packet_quickslot_add pack_quickslot_add;
 
@@ -62,16 +62,16 @@ bool CHARACTER::SetQuickslot(uint8_t pos, TQuickslot & rSlot)
 	{
 		if (rSlot.type == 0)
 			continue;
-		else if (m_quickslot[i].type == rSlot.type && m_quickslot[i].pos == rSlot.pos)
-			DelQuickslot(i);
+		else if (quickslot_[i].type == rSlot.type && quickslot_[i].pos == rSlot.pos)
+			del_quickslot(i);
 	}
 
-	TItemPos srcCell(INVENTORY, rSlot.pos);
+	item_pos srcCell(INVENTORY, rSlot.pos);
 
 	switch (rSlot.type)
 	{
 		case QUICKSLOT_TYPE_ITEM:
-			if (false == srcCell.IsDefaultInventoryPosition() && false == srcCell.IsBeltInventoryPosition())
+			if (false == srcCell.is_default_inventory_position() && false == srcCell.is_belt_inventory_position())
 				return false;
 
 			break;
@@ -89,71 +89,71 @@ bool CHARACTER::SetQuickslot(uint8_t pos, TQuickslot & rSlot)
 			return false;
 	}
 
-	m_quickslot[pos] = rSlot;
+	quickslot_[pos] = rSlot;
 
-	if (GetDesc())
+	if (get_desc())
 	{
 		pack_quickslot_add.header	= HEADER_GC_QUICKSLOT_ADD;
 		pack_quickslot_add.pos		= pos;
-		pack_quickslot_add.slot		= m_quickslot[pos];
+		pack_quickslot_add.slot		= quickslot_[pos];
 
-		GetDesc()->Packet(&pack_quickslot_add, sizeof(pack_quickslot_add));
+		get_desc()->packet(&pack_quickslot_add, sizeof(pack_quickslot_add));
 	}
 
 	return true;
 }
 
-bool CHARACTER::DelQuickslot(uint8_t pos)
+bool character::del_quickslot(uint8_t pos)
 {
 	struct packet_quickslot_del pack_quickslot_del;
 
 	if (pos >= QUICKSLOT_MAX_NUM)
 		return false;
 
-	memset(&m_quickslot[pos], 0, sizeof(TQuickslot));
+	memset(&quickslot_[pos], 0, sizeof(quickslot));
 
 	pack_quickslot_del.header	= HEADER_GC_QUICKSLOT_DEL;
 	pack_quickslot_del.pos	= pos;
 
-	GetDesc()->Packet(&pack_quickslot_del, sizeof(pack_quickslot_del));
+	get_desc()->packet(&pack_quickslot_del, sizeof(pack_quickslot_del));
 	return true;
 }
 
-bool CHARACTER::SwapQuickslot(uint8_t a, uint8_t b)
+bool character::swap_quickslot(uint8_t a, uint8_t b)
 {
 	struct packet_quickslot_swap pack_quickslot_swap;
-	TQuickslot quickslot;
+	quickslot quickslot;
 
 	if (a >= QUICKSLOT_MAX_NUM || b >= QUICKSLOT_MAX_NUM)
 		return false;
 
 	// Swap the quick slot positions.
-	quickslot = m_quickslot[a];
+	quickslot = quickslot_[a];
 
-	m_quickslot[a] = m_quickslot[b];
-	m_quickslot[b] = quickslot;
+	quickslot_[a] = quickslot_[b];
+	quickslot_[b] = quickslot;
 
 	pack_quickslot_swap.header	= HEADER_GC_QUICKSLOT_SWAP;
 	pack_quickslot_swap.pos	= a;
 	pack_quickslot_swap.pos_to	= b;
 
-	GetDesc()->Packet(&pack_quickslot_swap, sizeof(pack_quickslot_swap));
+	get_desc()->packet(&pack_quickslot_swap, sizeof(pack_quickslot_swap));
 	return true;
 }
 
-void CHARACTER::ChainQuickslotItem(CItem * pItem, uint8_t bType, uint8_t bOldPos)
+void character::chain_quickslot_item(item * pItem, uint8_t bType, uint8_t bOldPos)
 {
-	if (pItem->IsDragonSoul())
+	if (pItem->is_dragon_soul())
 		return;
 	for ( int i=0; i < QUICKSLOT_MAX_NUM; ++i )
 	{
-		if ( m_quickslot[i].type == bType && m_quickslot[i].pos == bOldPos )
+		if ( quickslot_[i].type == bType && quickslot_[i].pos == bOldPos )
 		{
-			TQuickslot slot;
+			quickslot slot;
 			slot.type = bType;
-			slot.pos = pItem->GetCell();
+			slot.pos = pItem->cell();
 
-			SetQuickslot(i, slot);
+			set_quickslot(i, slot);
 
 			break;
 		}

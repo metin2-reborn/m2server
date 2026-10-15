@@ -12,10 +12,10 @@
 namespace metin2::game::inline protocol {
 
 namespace {
-    const uint8_t kNonce[8] = {};
-    const char kLabel[] = "metin2 connection keys v1";
+    const uint8_t nonce[8] = {};
+    const char label[] = "metin2 connection keys v1";
 
-    auto FillRandom(uint8_t *buffer, size_t size) -> bool {
+    auto fill_random(uint8_t *buffer, size_t size) -> bool {
         while (size > 0) {
             ssize_t n = getrandom(buffer, size, 0);
             if (n <= 0)
@@ -27,20 +27,20 @@ namespace {
     }
 }
 
-void Cipher::Stream::Reset(const uint8_t *new_key) {
-    memcpy(key, new_key, kKeySize);
+void cipher::stream::reset(const uint8_t *new_key) {
+    memcpy(key, new_key, key_size);
     counter = 0;
     used = sizeof(block);
 }
 
-void Cipher::Stream::Wipe() {
+void cipher::stream::wipe() {
     crypto_wipe(key, sizeof(key));
     crypto_wipe(block, sizeof(block));
     counter = 0;
     used = sizeof(block);
 }
 
-void Cipher::Stream::Process(uint8_t *data, size_t length) {
+void cipher::stream::process(uint8_t *data, size_t length) {
     // the rest of the current keystream block
     while (length > 0 && used < sizeof(block)) {
         *data++ ^= block[used++];
@@ -50,7 +50,7 @@ void Cipher::Stream::Process(uint8_t *data, size_t length) {
     // whole blocks in place
     const size_t whole = length - length % sizeof(block);
     if (whole > 0) {
-        counter = crypto_chacha20_djb(data, data, whole, key, kNonce, counter);
+        counter = crypto_chacha20_djb(data, data, whole, key, nonce, counter);
         data += whole;
         length -= whole;
     }
@@ -58,7 +58,7 @@ void Cipher::Stream::Process(uint8_t *data, size_t length) {
     // start a new block for the tail
     if (length > 0) {
         static const uint8_t zeros[64] = {};
-        counter = crypto_chacha20_djb(block, zeros, sizeof(block), key, kNonce, counter);
+        counter = crypto_chacha20_djb(block, zeros, sizeof(block), key, nonce, counter);
         used = 0;
         while (length > 0) {
             *data++ ^= block[used++];
@@ -67,44 +67,44 @@ void Cipher::Stream::Process(uint8_t *data, size_t length) {
     }
 }
 
-Cipher::Cipher() = default;
+cipher::cipher() = default;
 
-Cipher::~Cipher() {
-    CleanUp();
+cipher::~cipher() {
+    clean_up();
 }
 
-void Cipher::CleanUp() {
+void cipher::clean_up() {
     crypto_wipe(secret_key_, sizeof(secret_key_));
     crypto_wipe(public_key_, sizeof(public_key_));
-    encoder_.Wipe();
-    decoder_.Wipe();
+    encoder_.wipe();
+    decoder_.wipe();
     key_prepared_ = false;
     activated_ = false;
 }
 
-auto Cipher::Prepare(void *buffer, size_t *length) -> size_t {
-    if (*length < kKeySize || !FillRandom(secret_key_, sizeof(secret_key_)))
+auto cipher::prepare(void *buffer, size_t *length) -> size_t {
+    if (*length < key_size || !fill_random(secret_key_, sizeof(secret_key_)))
         return 0;
 
     crypto_x25519_public_key(public_key_, secret_key_);
-    memcpy(buffer, public_key_, kKeySize);
-    *length = kKeySize;
+    memcpy(buffer, public_key_, key_size);
+    *length = key_size;
     key_prepared_ = true;
-    return kKeySize;
+    return key_size;
 }
 
-auto Cipher::Activate(bool polarity, size_t agreed_length, const void *buffer, size_t length) -> bool {
-    if (!key_prepared_ || agreed_length != kKeySize || length != kKeySize)
+auto cipher::activate(bool polarity, size_t agreed_length, const void *buffer, size_t length) -> bool {
+    if (!key_prepared_ || agreed_length != key_size || length != key_size)
         return false;
     key_prepared_ = false;
 
     const auto *peer_key = static_cast<const uint8_t *>(buffer);
-    uint8_t shared[kKeySize];
+    uint8_t shared[key_size];
     crypto_x25519(shared, secret_key_, peer_key);
     crypto_wipe(secret_key_, sizeof(secret_key_));
 
     // a low-order peer key yields an all-zero secret
-    static const uint8_t zeros[kKeySize] = {};
+    static const uint8_t zeros[key_size] = {};
     if (crypto_verify32(shared, zeros) == 0) {
         crypto_wipe(shared, sizeof(shared));
         return false;
@@ -113,19 +113,19 @@ auto Cipher::Activate(bool polarity, size_t agreed_length, const void *buffer, s
     // keys = BLAKE2b-512(key = shared, label || client public key || server public key)
     const uint8_t *client_key = polarity ? public_key_ : peer_key;
     const uint8_t *server_key = polarity ? peer_key : public_key_;
-    uint8_t message[sizeof(kLabel) - 1 + 2 * kKeySize];
-    memcpy(message, kLabel, sizeof(kLabel) - 1);
-    memcpy(message + sizeof(kLabel) - 1, client_key, kKeySize);
-    memcpy(message + sizeof(kLabel) - 1 + kKeySize, server_key, kKeySize);
+    uint8_t message[sizeof(label) - 1 + 2 * key_size];
+    memcpy(message, label, sizeof(label) - 1);
+    memcpy(message + sizeof(label) - 1, client_key, key_size);
+    memcpy(message + sizeof(label) - 1 + key_size, server_key, key_size);
 
-    uint8_t keys[2 * kKeySize];
+    uint8_t keys[2 * key_size];
     crypto_blake2b_keyed(keys, sizeof(keys), shared, sizeof(shared), message, sizeof(message));
     crypto_wipe(shared, sizeof(shared));
 
     const uint8_t *client_to_server = keys;
-    const uint8_t *server_to_client = keys + kKeySize;
-    encoder_.Reset(polarity ? client_to_server : server_to_client);
-    decoder_.Reset(polarity ? server_to_client : client_to_server);
+    const uint8_t *server_to_client = keys + key_size;
+    encoder_.reset(polarity ? client_to_server : server_to_client);
+    decoder_.reset(polarity ? server_to_client : client_to_server);
     crypto_wipe(keys, sizeof(keys));
     return true;
 }

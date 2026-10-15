@@ -19,10 +19,10 @@ enum
 	REGEN_TYPE_MAX_NUM
 };
 
-struct REGEN {
-	REGEN * prev;
-	REGEN * next;
-	int32_t	lMapIndex;
+struct regen {
+	regen * prev;
+	regen * next;
+	int32_t	map_index;
 	int		type;
 	int		sx, sy, ex, ey;
 	uint8_t	z_section;
@@ -37,13 +37,13 @@ struct REGEN {
 
 	bool	is_aggressive;
 
-	LPEVENT	event;
+	event_ptr	event;
 
 	size_t id; // to help dungeon regen identification
 
-	REGEN() :
+	regen() :
 		prev(nullptr), next(nullptr),
-		lMapIndex(0),
+		map_index(0),
 		type(0),
 		sx(0), sy(0), ex(0), ey(0),
 		z_section(0),
@@ -60,7 +60,7 @@ struct REGEN {
 
 EVENTINFO(regen_event_info)
 {
-	REGEN * 	regen;
+	game::world::regen * 	regen;
 
 	regen_event_info() 
 	: regen( nullptr )
@@ -69,20 +69,20 @@ EVENTINFO(regen_event_info)
 };
 
 
-struct REGEN_EXCEPTION {
-	REGEN_EXCEPTION * prev;
-	REGEN_EXCEPTION * next;
+struct regen_exception {
+	regen_exception * prev;
+	regen_exception * next;
 
 	int		sx, sy, ex, ey;
 	uint8_t	z_section;
 };
 
-class CDungeon;
+class dungeon;
 
 EVENTINFO(dungeon_regen_event_info)
 {
-	REGEN * 	regen;
-	CDungeon::IdType dungeon_id;
+	game::world::regen * 	regen;
+	dungeon::id_type dungeon_id;
 
 	dungeon_regen_event_info() 
 	: regen( nullptr )
@@ -92,7 +92,7 @@ EVENTINFO(dungeon_regen_event_info)
 };
 
 extern bool	regen_load(const char *filename, int32_t lMapIndex, int base_x, int base_y);
-extern bool	regen_do(const char* filename, int32_t lMapIndex, int base_x, int base_y, CDungeon * pDungeon, bool bOnce = true );
+extern bool	regen_do(const char* filename, int32_t lMapIndex, int base_x, int base_y, dungeon * pDungeon, bool bOnce = true );
 extern bool	regen_load_in_file(const char* filename, int32_t lMapIndex, int base_x, int base_y );
 extern void	regen_free();
 

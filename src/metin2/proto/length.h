@@ -95,7 +95,7 @@ inline constexpr int BELT_INVENTORY_SLOT_COUNT = BELT_INVENTORY_SLOT_WIDTH * BEL
 */
 
 
-enum EWearPositions {
+enum wear_positions {
     WEAR_BODY,         // 0
     WEAR_HEAD,         // 1
     WEAR_FOOTS,        // 2
@@ -126,7 +126,7 @@ enum EWearPositions {
     WEAR_MAX = 32 //
 };
 
-enum EDragonSoulDeckType {
+enum dragon_soul_deck_type {
     DRAGON_SOUL_DECK_0,
     DRAGON_SOUL_DECK_1,
     DRAGON_SOUL_DECK_MAX_NUM = 2,
@@ -134,12 +134,12 @@ enum EDragonSoulDeckType {
     DRAGON_SOUL_DECK_RESERVED_MAX_NUM = 3, // NOTE: Important! Not used yet, but 3 pages' worth are reserved. If you increase the DS DECK count, you must subtract the same amount from RESERVED!
 };
 
-enum ESex {
+enum sex {
     SEX_MALE,
     SEX_FEMALE
 };
 
-enum EJobs {
+enum jobs {
     JOB_WARRIOR,
     JOB_ASSASSIN,
     JOB_SURA,
@@ -149,7 +149,7 @@ enum EJobs {
 
 inline constexpr int SKILL_GROUP_MAX_NUM = 2;
 
-enum ERaceFlags {
+enum race_flags {
     RACE_FLAG_ANIMAL = (1 << 0),
     RACE_FLAG_UNDEAD = (1 << 1),
     RACE_FLAG_DEVIL = (1 << 2),
@@ -177,7 +177,7 @@ enum {
     QUICKSLOT_TYPE_MAX_NUM,
 };
 
-enum EParts {
+enum parts {
     PART_MAIN,
     PART_WEAPON,
     PART_HEAD,
@@ -187,7 +187,7 @@ enum EParts {
     PART_WEAPON_SUB,
 };
 
-enum EChatType {
+enum chat_type {
     CHAT_TYPE_TALKING, /* Plain chat */
     CHAT_TYPE_INFO,    /* Info (picked up an item, gained experience, etc.) */
     CHAT_TYPE_NOTICE,  /* Notice */
@@ -201,7 +201,7 @@ enum EChatType {
     CHAT_TYPE_MAX_NUM
 };
 
-enum EWhisperType {
+enum whisper_type {
     WHISPER_TYPE_NORMAL = 0,
     WHISPER_TYPE_NOT_EXIST = 1,
     WHISPER_TYPE_TARGET_BLOCKED = 2,
@@ -211,7 +211,7 @@ enum EWhisperType {
     WHISPER_TYPE_SYSTEM = 0xFF
 };
 
-enum ECharacterPosition {
+enum character_position {
     POSITION_GENERAL,
     POSITION_BATTLE,
     POSITION_DYING,
@@ -221,7 +221,7 @@ enum ECharacterPosition {
     POSITION_MAX_NUM
 };
 
-enum EGMLevels {
+enum gm_levels {
     GM_PLAYER,
     GM_LOW_WIZARD,
     GM_WIZARD,
@@ -230,7 +230,7 @@ enum EGMLevels {
     GM_IMPLEMENTOR
 };
 
-enum EMobRank {
+enum mob_rank {
     MOB_RANK_PAWN,
     MOB_RANK_S_PAWN,
     MOB_RANK_KNIGHT,
@@ -240,7 +240,7 @@ enum EMobRank {
     MOB_RANK_MAX_NUM
 };
 
-enum ECharType {
+enum char_type {
     CHAR_TYPE_MONSTER,
     CHAR_TYPE_NPC,
     CHAR_TYPE_STONE,
@@ -253,7 +253,7 @@ enum ECharType {
     CHAR_TYPE_GOTO
 };
 
-enum EBattleType {
+enum battle_type {
     BATTLE_TYPE_MELEE,
     BATTLE_TYPE_RANGE,
     BATTLE_TYPE_MAGIC,
@@ -265,7 +265,7 @@ enum EBattleType {
     BATTLE_TYPE_MAX_NUM
 };
 
-enum EApplyTypes {
+enum apply_types {
     APPLY_NONE,                    // 0
     APPLY_MAX_HP,                  // 1
     APPLY_MAX_SP,                  // 2
@@ -366,14 +366,14 @@ enum EApplyTypes {
     MAX_APPLY_NUM, //
 };
 
-enum EOnClickEvents {
+enum on_click_events {
     ON_CLICK_NONE,
     ON_CLICK_SHOP,
     ON_CLICK_TALK,
     ON_CLICK_MAX_NUM
 };
 
-enum EWindows {
+enum windows {
     RESERVED_WINDOW,
     INVENTORY,
     EQUIPMENT,
@@ -384,14 +384,14 @@ enum EWindows {
     GROUND
 };
 
-enum EMobSizes {
+enum mob_sizes {
     MOBSIZE_RESERVED,
     MOBSIZE_SMALL,
     MOBSIZE_MEDIUM,
     MOBSIZE_BIG
 };
 
-enum EAIFlags {
+enum ai_flags {
     AIFLAG_AGGRESSIVE = (1 << 0),
     AIFLAG_NOMOVE = (1 << 1),
     AIFLAG_COWARD = (1 << 2),
@@ -406,7 +406,7 @@ enum EAIFlags {
     AIFLAG_REVIVE = (1 << 11),
 };
 
-enum EMobStatType {
+enum mob_stat_type {
     MOB_STATTYPE_POWER,
     MOB_STATTYPE_TANKER,
     MOB_STATTYPE_SUPER_POWER,
@@ -416,7 +416,7 @@ enum EMobStatType {
     MOB_STATTYPE_MAX_NUM
 };
 
-enum EImmuneFlags {
+enum immune_flags {
     IMMUNE_STUN = (1 << 0),
     IMMUNE_SLOW = (1 << 1),
     IMMUNE_FALL = (1 << 2),
@@ -426,7 +426,7 @@ enum EImmuneFlags {
     IMMUNE_REFLECT = (1 << 6),
 };
 
-enum EMobEnchants {
+enum mob_enchants {
     MOB_ENCHANT_CURSE,
     MOB_ENCHANT_SLOW,
     MOB_ENCHANT_POISON,
@@ -436,7 +436,7 @@ enum EMobEnchants {
     MOB_ENCHANTS_MAX_NUM
 };
 
-enum EMobResists {
+enum mob_resists {
     MOB_RESIST_SWORD,
     MOB_RESIST_TWOHAND,
     MOB_RESIST_DAGGER,
@@ -471,14 +471,14 @@ enum {
     SKILL_PERFECT_MASTER,
 };
 
-enum EGuildWarType {
+enum guild_war_type {
     GUILD_WAR_TYPE_FIELD,
     GUILD_WAR_TYPE_BATTLE,
     GUILD_WAR_TYPE_FLAG,
     GUILD_WAR_TYPE_MAX_NUM
 };
 
-enum EGuildWarState {
+enum guild_war_state {
     GUILD_WAR_NONE,
     GUILD_WAR_SEND_DECLARE,
     GUILD_WAR_REFUSE,
@@ -495,7 +495,7 @@ enum EGuildWarState {
     GUILD_WAR_LADDER_HALF_PENALTY_TIME = 12 * 60 * 60,
 };
 
-enum EAttributeSet {
+enum attribute_set {
     ATTRIBUTE_SET_WEAPON,
     ATTRIBUTE_SET_BODY,
     ATTRIBUTE_SET_WRIST,
@@ -507,7 +507,7 @@ enum EAttributeSet {
     ATTRIBUTE_SET_MAX_NUM
 };
 
-enum EPrivType {
+enum priv_type {
     PRIV_NONE,
     PRIV_ITEM_DROP,
     PRIV_GOLD_DROP,
@@ -516,7 +516,7 @@ enum EPrivType {
     MAX_PRIV_NUM,
 };
 
-enum EMoneyLogType {
+enum money_log_type {
     MONEY_LOG_RESERVED,
     MONEY_LOG_MONSTER,
     MONEY_LOG_SHOP,
@@ -529,7 +529,7 @@ enum EMoneyLogType {
     MONEY_LOG_TYPE_MAX_NUM,
 };
 
-enum EPremiumTypes {
+enum premium_types {
     PREMIUM_EXP,           // experience x1.2
     PREMIUM_ITEM,          // item drop rate x2
     PREMIUM_SAFEBOX,       // safebox goes from 1 to 3 pages
@@ -540,7 +540,7 @@ enum EPremiumTypes {
     PREMIUM_MAX_NUM = 9
 };
 
-enum SPECIAL_EFFECT {
+enum special_effect {
     SE_NONE,
 
     SE_HPUP_RED,
@@ -593,20 +593,20 @@ inline constexpr int INVENTORY_AND_EQUIP_SLOT_MAX = BELT_INVENTORY_SLOT_END;
 
 #pragma pack(push, 1)
 
-using TItemPos = struct SItemPos {
+using item_pos = struct item_pos {
     uint8_t window_type;
     uint16_t cell;
-    SItemPos() {
+    item_pos() {
         window_type = INVENTORY;
         cell = WORD_MAX;
     }
 
-    SItemPos(uint8_t _window_type, uint16_t _cell) {
+    item_pos(uint8_t _window_type, uint16_t _cell) {
         window_type = _window_type;
         cell = _cell;
     }
 
-    auto IsValidItemPosition() const -> bool {
+    auto is_valid_item_position() const -> bool {
         switch (window_type) {
         case RESERVED_WINDOW:
             return false;
@@ -631,38 +631,38 @@ using TItemPos = struct SItemPos {
         return false;
     }
 
-    auto IsSamePosition(const SItemPos &other) const -> bool { // ItemMove dupe exploit fix
+    auto is_same_position(const item_pos &other) const -> bool { // ItemMove dupe exploit fix
         return *this == other || ((INVENTORY == window_type || EQUIPMENT == window_type) && (INVENTORY == other.window_type || EQUIPMENT == other.window_type) && cell == other.cell);
     }
 
-    auto IsEquipPosition() const -> bool {
-        return ((INVENTORY == window_type || EQUIPMENT == window_type) && cell >= INVENTORY_MAX_NUM && cell < INVENTORY_MAX_NUM + WEAR_MAX_NUM) || IsDragonSoulEquipPosition();
+    auto is_equip_position() const -> bool {
+        return ((INVENTORY == window_type || EQUIPMENT == window_type) && cell >= INVENTORY_MAX_NUM && cell < INVENTORY_MAX_NUM + WEAR_MAX_NUM) || is_dragon_soul_equip_position();
     }
 
-    auto IsDragonSoulEquipPosition() const -> bool {
+    auto is_dragon_soul_equip_position() const -> bool {
         return (DRAGON_SOUL_EQUIP_SLOT_START <= cell) && (DRAGON_SOUL_EQUIP_SLOT_END > cell);
     }
 
-    auto IsBeltInventoryPosition() const -> bool {
+    auto is_belt_inventory_position() const -> bool {
         return (BELT_INVENTORY_SLOT_START <= cell) && (BELT_INVENTORY_SLOT_END > cell);
     }
 
-    auto IsDefaultInventoryPosition() const -> bool {
+    auto is_default_inventory_position() const -> bool {
         return INVENTORY == window_type && cell < INVENTORY_MAX_NUM;
     }
 
-    auto operator==(const struct SItemPos &rhs) const -> bool {
+    auto operator==(const struct item_pos &rhs) const -> bool {
         return (window_type == rhs.window_type) && (cell == rhs.cell);
     }
 
-    auto operator<(const struct SItemPos &rhs) const -> bool {
+    auto operator<(const struct item_pos &rhs) const -> bool {
         return (window_type < rhs.window_type) || ((window_type == rhs.window_type) && (cell < rhs.cell));
     }
 };
 
-const TItemPos NPOS(RESERVED_WINDOW, WORD_MAX);
+const item_pos NPOS(RESERVED_WINDOW, WORD_MAX);
 
-enum EShopCoinType {
+enum shop_coin_type {
     SHOP_COIN_TYPE_GOLD, // DEFAULT VALUE
     SHOP_COIN_TYPE_SECONDARY_COIN,
 };

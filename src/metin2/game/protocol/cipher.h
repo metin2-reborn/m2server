@@ -12,30 +12,30 @@ namespace metin2::game::inline protocol {
 //   - stream: ChaCha20 per direction (nonce 0, the keys are unique per connection), applied in
 //     place, so packets keep their sizes.
 // Like the protocol before it, there is no message authentication and no server authentication.
-class Cipher {
+class cipher {
   public:
-    static constexpr size_t kKeySize = 32;
+    static constexpr size_t key_size = 32;
 
-    Cipher();
-    ~Cipher();
+    cipher();
+    ~cipher();
 
-    void CleanUp();
+    void clean_up();
 
     // Writes our public key into buffer (*length: in capacity, out size); returns the agreed value
     // length, or 0 on failure.
-    auto Prepare(void *buffer, size_t *length) -> size_t;
+    auto prepare(void *buffer, size_t *length) -> size_t;
 
     // Agrees on the keys with the peer's public key. polarity is true on the client.
-    auto Activate(bool polarity, size_t agreed_length, const void *buffer, size_t length) -> bool;
+    auto activate(bool polarity, size_t agreed_length, const void *buffer, size_t length) -> bool;
 
-    void Encrypt(void *buffer, size_t length) {
+    void encrypt(void *buffer, size_t length) {
         if (activated_)
-            encoder_.Process(static_cast<uint8_t *>(buffer), length);
+            encoder_.process(static_cast<uint8_t *>(buffer), length);
     }
 
-    void Decrypt(void *buffer, size_t length) {
+    void decrypt(void *buffer, size_t length) {
         if (activated_)
-            decoder_.Process(static_cast<uint8_t *>(buffer), length);
+            decoder_.process(static_cast<uint8_t *>(buffer), length);
     }
 
     [[nodiscard]] auto activated() const -> bool { return activated_; }
@@ -43,26 +43,26 @@ class Cipher {
     // The protocol switches encryption on at a defined point after Activate.
     void set_activated(bool value) { activated_ = value; }
 
-    [[nodiscard]] auto IsKeyPrepared() const -> bool { return key_prepared_; }
+    [[nodiscard]] auto is_key_prepared() const -> bool { return key_prepared_; }
 
   private:
     // ChaCha20 keystream that continues across calls.
-    struct Stream {
-        uint8_t key[kKeySize] = {};
+    struct stream {
+        uint8_t key[key_size] = {};
         uint64_t counter = 0;
         uint8_t block[64] = {};
         size_t used = 64; // bytes of block already consumed
 
-        void Reset(const uint8_t *new_key);
-        void Wipe();
-        void Process(uint8_t *data, size_t length);
+        void reset(const uint8_t *new_key);
+        void wipe();
+        void process(uint8_t *data, size_t length);
     };
 
     bool activated_ = false;
     bool key_prepared_ = false;
-    uint8_t secret_key_[kKeySize] = {};
-    uint8_t public_key_[kKeySize] = {};
-    Stream encoder_;
-    Stream decoder_;
+    uint8_t secret_key_[key_size] = {};
+    uint8_t public_key_[key_size] = {};
+    stream encoder_;
+    stream decoder_;
 };
 }

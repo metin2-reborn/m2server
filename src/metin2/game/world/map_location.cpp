@@ -13,16 +13,16 @@
 
 namespace metin2::game::inline world {
 
-CMapLocation g_mapLocations;
+map_locations locations;
 
-bool CMapLocation::Get(int32_t x, int32_t y, int32_t & lIndex, int32_t & lAddr, uint16_t & wPort)
+bool map_locations::get(int32_t x, int32_t y, int32_t & lIndex, int32_t & lAddr, uint16_t & wPort)
 {
-	lIndex = SECTREE_MANAGER::instance().GetMapIndex(x, y);
+	lIndex = sectree_manager::instance().map_index(x, y);
 
-	return Get(lIndex, lAddr, wPort);
+	return get(lIndex, lAddr, wPort);
 }
 
-bool CMapLocation::Get(int iIndex, int32_t & lAddr, uint16_t & wPort)
+bool map_locations::get(int iIndex, int32_t & lAddr, uint16_t & wPort)
 {
 	if (iIndex == 0)
 	{
@@ -30,13 +30,13 @@ bool CMapLocation::Get(int iIndex, int32_t & lAddr, uint16_t & wPort)
 		return false;
 	}
 
-	std::map<int32_t, TLocation>::iterator it = m_map_address.find(iIndex);
+	std::map<int32_t, location>::iterator it = map_address_.find(iIndex);
 
-	if (m_map_address.end() == it)
+	if (map_address_.end() == it)
 	{
 		metin2::log::info( "CMapLocation::Get - Error MapIndex[{:d}]", iIndex);
-		std::map<int32_t, TLocation>::iterator i;
-		for ( i	= m_map_address.begin(); i != m_map_address.end(); ++i)
+		std::map<int32_t, location>::iterator i;
+		for ( i	= map_address_.begin(); i != map_address_.end(); ++i)
 		{
 			metin2::log::info( "Map({:d}): Server({:x}:{:d})", i->first, i->second.addr, i->second.port);
 		}
@@ -48,14 +48,14 @@ bool CMapLocation::Get(int iIndex, int32_t & lAddr, uint16_t & wPort)
 	return true;
 }
 
-void CMapLocation::Insert(int32_t lIndex, const char * c_pszHost, uint16_t wPort)
+void map_locations::insert(int32_t lIndex, const char * c_pszHost, uint16_t wPort)
 {
-	TLocation loc;
+	location loc;
 
 	loc.addr = inet_addr(c_pszHost);
 	loc.port = wPort;
 
-	m_map_address.insert(std::make_pair(lIndex, loc));
+	map_address_.insert(std::make_pair(lIndex, loc));
 	metin2::log::info( "MapLocation::Insert : {:d} {} {:d}", lIndex, c_pszHost, wPort);
 }
 }

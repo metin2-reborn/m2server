@@ -19,7 +19,7 @@
 namespace metin2::game::inline protocol {
 
 
-bool FN_IS_VALID_LOGIN_STRING(const char *str)
+bool fn_is_valid_login_string(const char *str)
 {
 	const char*	tmp;
 
@@ -46,96 +46,96 @@ bool FN_IS_VALID_LOGIN_STRING(const char *str)
 	return true;
 }
 
-bool Login_IsInChannelService(const char* c_login)
+bool login_is_in_channel_service(const char* c_login)
 {
 	if (c_login[0] == '[')
 		return true;
 	return false;
 }
 
-CInputAuth::CInputAuth()
+input_auth::input_auth()
 {
 }
 
-void CInputAuth::Login(DESC * d, const char * c_pData)
+void input_auth::login(desc * d, const char * c_pData)
 {
 
-	TPacketCGLogin3 * pinfo = (TPacketCGLogin3 *) c_pData;
+	packet_cg_login3 * pinfo = (packet_cg_login3 *) c_pData;
 
 	if (!metin2::config::is_auth())
 	{
 		metin2::log::error("CInputAuth class is not for game server. IP {} might be a hacker.", 
-			d->GetHostName());
-		d->DelayedDisconnect(5);
+			d->host_name());
+		d->delayed_disconnect(5);
 		return;
 	}
 
 	// One login attempt per connection (the client sends one): another would replace the
 	// login key of a query still in flight, and allow password guessing at line rate.
-	if (d->GetLoginKey() || d->GetAccountTable().id)
+	if (d->get_login_key() || d->get_account_table().id)
 	{
-		metin2::log::info( "InputAuth::Login : second login attempt from {}", d->GetHostName());
-		d->SetPhase(PHASE_CLOSE);
+		metin2::log::info( "InputAuth::Login : second login attempt from {}", d->host_name());
+		d->set_phase(PHASE_CLOSE);
 		return;
 	}
 
 	// Copy for string integrity (the fields may lack their NUL)
 	char szLogin[sizeof(pinfo->login)];
-	CopyPacketString(szLogin, pinfo->login);
+	copy_packet_string(szLogin, pinfo->login);
 
 	char login[LOGIN_MAX_LEN + 1];
 	trim_and_lower(szLogin, login, sizeof(login));
 
 	char passwd[PASSWD_MAX_LEN + 1];
-	CopyPacketString(passwd, pinfo->passwd);
+	copy_packet_string(passwd, pinfo->passwd);
 
 	metin2::log::info( "InputAuth::Login : {}({:d}) desc {}",
 			login, strlen(login), static_cast<const void *>(d));
 
 	// check login string
-	if (false == FN_IS_VALID_LOGIN_STRING(login))
+	if (false == fn_is_valid_login_string(login))
 	{
 		metin2::log::info( "InputAuth::Login : IS_NOT_VALID_LOGIN_STRING({}) desc {}",
 				login, static_cast<const void *>(d));
-		LoginFailure(d, "NOID");
+		login_failure(d, "NOID");
 		return;
 	}
 
-	if (g_bNoMoreClient)
+	if (no_more_client)
 	{
-		TPacketGCLoginFailure failurePacket;
+		packet_gc_login_failure failurePacket;
 
 		failurePacket.header = HEADER_GC_LOGIN_FAILURE;
-		strlcpy(failurePacket.szStatus, "SHUTDOWN", sizeof(failurePacket.szStatus));
+		strlcpy(failurePacket.status, "SHUTDOWN", sizeof(failurePacket.status));
 
-		d->Packet(&failurePacket, sizeof(failurePacket));
+		d->packet(&failurePacket, sizeof(failurePacket));
 		return;
 	}
 
-	if (DESC_MANAGER::instance().FindByLoginName(login))
+	if (desc_manager::instance().find_by_login_name(login))
 	{
-		LoginFailure(d, "ALREADY");
+		login_failure(d, "ALREADY");
 		return;
 	}
 
-	uint32_t dwKey = DESC_MANAGER::instance().CreateLoginKey(d);
+	uint32_t dwKey = desc_manager::instance().create_login_key(d);
 	metin2::log::info( "InputAuth::Login : key {:d} login {}", dwKey, login);
 
 	// BRAZIL_AUTH
 
-	TPacketCGLogin3 * p = new TPacketCGLogin3;
-	std::memcpy(p, pinfo, sizeof(TPacketCGLogin3));
+	packet_cg_login3 * p = new packet_cg_login3;
+	std::memcpy(p, pinfo, sizeof(packet_cg_login3));
 
 	// The query result reads these as strings.
 	p->login[sizeof(p->login) - 1] = '\0';
 	p->passwd[sizeof(p->passwd) - 1] = '\0';
 
 	// CHANNEL_SERVICE_LOGIN
-	if (Login_IsInChannelService(login))
+	if (login_is_in_channel_service(login))
 	{
 		metin2::log::info( "ChannelServiceLogin [{}]", login);
 
-		DBManager::instance().ReturnQuery(QID_AUTH_LOGIN, dwKey, p, sql::format(
+		db_manager::instance().return_query(QID_AUTH_LOGIN, dwKey, p, sql::format(
 				"SELECT {},password,social_id,id,status,availDt - NOW() > 0,"
 				"UNIX_TIMESTAMP(silver_expire),"
 				"UNIX_TIMESTAMP(gold_expire),"
@@ -151,7 +151,7 @@ void CInputAuth::Login(DESC * d, const char * c_pData)
 	// END_OF_CHANNEL_SERVICE_LOGIN
 	else
 	{
-		DBManager::instance().ReturnQuery(QID_AUTH_LOGIN, dwKey, p, sql::format(
+		db_manager::instance().return_query(QID_AUTH_LOGIN, dwKey, p, sql::format(
 				"SELECT PASSWORD({}),password,social_id,id,status,availDt - NOW() > 0,"
 				"UNIX_TIMESTAMP(silver_expire),"
 				"UNIX_TIMESTAMP(gold_expire),"
@@ -166,14 +166,14 @@ void CInputAuth::Login(DESC * d, const char * c_pData)
 	}
 }
 
-int CInputAuth::Analyze(DESC * d, uint8_t bHeader, const char * c_pData)
+int input_auth::analyze(desc * d, uint8_t bHeader, const char * c_pData)
 {
 
 	if (!metin2::config::is_auth())
 	{
 		metin2::log::error("CInputAuth class is not for game server. IP {} might be a hacker.", 
-			d->GetHostName());
-		d->DelayedDisconnect(5);
+			d->host_name());
+		d->delayed_disconnect(5);
 		return 0;
 	}
 
@@ -185,11 +185,11 @@ int CInputAuth::Analyze(DESC * d, uint8_t bHeader, const char * c_pData)
 	switch (bHeader)
 	{
 		case HEADER_CG_PONG:
-			Pong(d);
+			pong(d);
 			break;
 
 		case HEADER_CG_LOGIN3:
-			Login(d, c_pData);
+			login(d, c_pData);
 			break;
 
 		case HEADER_CG_HANDSHAKE:

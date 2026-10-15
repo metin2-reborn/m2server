@@ -7,25 +7,25 @@
 
 namespace metin2::db::inline caches {
 
-class CItemCache : public cache<TPlayerItem> {
+class item_cache : public cache<player_item> {
   public:
-    CItemCache();
+    item_cache();
 
-    ~CItemCache() override;
+    ~item_cache() override;
 
-    void Delete();
-    void OnFlush() override;
+    void delete_();
+    void on_flush() override;
 };
 
-class CPlayerTableCache : public cache<TPlayerTable> {
+class player_table_cache : public cache<player_table> {
   public:
-    CPlayerTableCache();
+    player_table_cache();
 
-    ~CPlayerTableCache() override;
+    ~player_table_cache() override;
 
-    void OnFlush() override;
+    void on_flush() override;
 
-    auto GetLastUpdateTime() -> uint32_t { return m_lastUpdateTime; }
+    auto last_update_time() -> uint32_t { return last_update_time_; }
 };
 
 /**
@@ -33,12 +33,12 @@ class CPlayerTableCache : public cache<TPlayerTable> {
  * @brief	Cache class for private shop item price lists
  * @version	05/06/10 Bang2ni - First release.
  */
-class CItemPriceListTableCache : public cache<TItemPriceListTable> {
+class item_price_list_table_cache : public cache<item_price_list_table> {
   public:
     /**
      * Sets the cache expiration time.
      */
-    CItemPriceListTableCache(void);
+    item_price_list_table_cache(void);
 
     /**
      * @param [in]	pUpdateList list to update with
@@ -46,12 +46,12 @@ class CItemPriceListTableCache : public cache<TItemPriceListTable> {
      * Updates the cached price info.
      * If the price list is full, previously cached entries are removed from the back.
      */
-    void UpdateList(const TItemPriceListTable *pUpdateList);
+    void update_list(const item_price_list_table *pUpdateList);
 
     /// Writes the price info to the DB.
-    void OnFlush(void) override;
+    void on_flush(void) override;
 
   private:
-    static const int s_nMinFlushSec; ///< Minimum cache expire time
+    static const int min_flush_sec_; ///< Minimum cache expire time
 };
 }

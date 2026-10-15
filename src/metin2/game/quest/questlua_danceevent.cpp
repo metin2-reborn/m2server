@@ -10,19 +10,19 @@ namespace metin2::game {
 
 namespace quest
 {
-	struct FWarpToHome
+	struct f_warp_to_home
 	{
-		void operator() ( CEntity * ent )
+		void operator() ( entity * ent )
 		{
-			if ( ent->IsType(ENTITY_CHARACTER) )
+			if ( ent->is_type(ENTITY_CHARACTER) )
 			{
-				CHARACTER * ch = (CHARACTER *) ent;
+				character * ch = (character *) ent;
 
-				if ( ch->IsPC() == true && ch->IsGM() != true )
+				if ( ch->is_pc() == true && ch->is_gm() != true )
 				{
-					if ( ((ch->GetX() >= 764503 && ch->GetX() <= 772362) && (ch->GetY() >= 22807 && ch->GetY() <= 26499)) == false )
+					if ( ((ch->x() >= 764503 && ch->x() <= 772362) && (ch->y() >= 22807 && ch->y() <= 26499)) == false )
 					{
-						ch->GoHome();
+						ch->go_home();
 					}
 				}
 			}
@@ -31,18 +31,18 @@ namespace quest
 
 	int dance_event_go_home( lua_State* L )
 	{
-		SECTREE_MAP * pSecMap = SECTREE_MANAGER::instance().GetMap( 115 );
+		sectree_map * pSecMap = sectree_manager::instance().map( 115 );
 
 		if ( pSecMap != nullptr )
 		{
-			FWarpToHome f;
+			f_warp_to_home f;
 			pSecMap->for_each( f );
 		}
 
 		return 0;
 	}
 
-	void RegisterDanceEventFunctionTable()
+	void register_dance_event_function_table()
 	{
 		luaL_reg dance_event_functions[] =
 		{
@@ -51,7 +51,7 @@ namespace quest
 			{	nullptr,	nullptr}
 		};
 		
-		CQuestManager::instance().AddLuaFunctionTable("dance_event", dance_event_functions);
+		quest_manager::instance().add_lua_function_table("dance_event", dance_event_functions);
 	}
 }
 }

@@ -10,12 +10,12 @@
 
 namespace metin2::game::inline characters {
 
-class CHARACTER;
+class character;
 
-class CPetActor //: public CHARACTER
+class pet_actor //: public CHARACTER
 {
 public:
-	enum EPetOptions
+	enum pet_options
 	{
 		EPetOption_Followable		= 1 << 0,
 		EPetOption_Summonable		= 1 << 2,
@@ -23,39 +23,39 @@ public:
 	};
 
 protected:
-	friend class CPetSystem;
+	friend class pet_system;
 
-	CPetActor(CHARACTER * owner, uint32_t vnum, uint32_t options = EPetOption_Followable | EPetOption_Summonable);
+	pet_actor(character * owner, uint32_t vnum, uint32_t options = EPetOption_Followable | EPetOption_Summonable);
 //	CPetActor(CHARACTER * owner, uint32_t vnum, const SPetAbility& petAbility, uint32_t options = EPetOption_Followable | EPetOption_Summonable);
 
-	virtual ~CPetActor();
+	virtual ~pet_actor();
 
-	virtual bool	Update(uint32_t deltaTime);
+	virtual bool	update(uint32_t deltaTime);
 
 protected:
-	virtual bool	_UpdateFollowAI();				///< AI that follows the owner			///< AI that idles alone near the owner
+	virtual bool	update_follow_ai();				///< AI that follows the owner			///< AI that idles alone near the owner
 
 	/// @TODO
 	//virtual bool	_UpdateCombatAI();
 
 private:
-	bool Follow(float fMinDistance = 50.f);
+	bool follow(float fMinDistance = 50.f);
 
 public:
-	CHARACTER *		GetCharacter()	const					{ return m_pkChar; }
-	CHARACTER *		GetOwner()	const						{ return m_pkOwner; }
-	uint32_t			GetVID() const							{ return m_dwVID; }
+	character *		get_character()	const					{ return char_; }
+	character *		owner()	const						{ return owner_; }
+	uint32_t			get_vid() const							{ return vid_; }
 
-	bool			HasOption(EPetOptions option) const		{ return m_dwOptions & option; }
+	bool			has_option(pet_options option) const		{ return options_ & option; }
 
-	void			SetName(const char* petName);
+	void			set_name(const char* petName);
 
-	uint32_t			Summon(const char* petName, CItem * pSummonItem, bool bSpawnFar = false);
-	void			Unsummon();
+	uint32_t			summon(const char* petName, item * pSummonItem, bool bSpawnFar = false);
+	void			unsummon();
 
-	bool			IsSummoned() const			{ return nullptr != m_pkChar; }
-	void			SetSummonItem (CItem * pItem);
-	uint32_t			GetSummonItemVID () { return m_dwSummonItemVID; }
+	bool			is_summoned() const			{ return nullptr != char_; }
+	void			set_summon_item (item * pItem);
+	uint32_t			summon_item_vid () { return summon_item_vid_; }
 	// Functions to give and remove the buff.
 	// This is a bit bizarre: because the server is dumb, 
 	// changing POINT_MOV_SPEED, POINT_ATT_SPEED, POINT_CAST_SPEED with PointChange() alone is useless,
@@ -63,62 +63,62 @@ public:
 	// and funnier still, if ComputePoints() isn't called, the client's POINT doesn't change at all.
 	// So giving the buff is done by calling petsystem->RefreshBuff() inside ComputePoints(),
 	// and removing the buff is done by calling ClearBuff() and then ComputePoints.
-	void			GiveBuff();
-	void			ClearBuff();
+	void			give_buff();
+	void			clear_buff();
 
 private:
-	uint32_t			m_dwVnum;
-	uint32_t			m_dwVID;
-	uint32_t			m_dwOptions;
-	uint32_t			m_dwSummonItemVID;
-	uint32_t			m_dwSummonItemVnum;
+	uint32_t			vnum_;
+	uint32_t			vid_;
+	uint32_t			options_;
+	uint32_t			summon_item_vid_;
+	uint32_t			summon_item_vnum_;
 
-	short			m_originalMoveSpeed;
+	short			original_move_speed_;
 
-	std::string		m_name;
+	std::string		name_;
 
-	CHARACTER *		m_pkChar;					// Instance of pet(CHARACTER)
-	CHARACTER *		m_pkOwner;
+	character *		char_;					// Instance of pet(CHARACTER)
+	character *		owner_;
 
 //	SPetAbility		m_petAbility;				// stats
 };
 
 /**
 */
-class CPetSystem
+class pet_system
 {
 public:
-	typedef	std::unordered_map<uint32_t,	CPetActor*>		TPetActorMap;		/// <VNUM, PetActor> map. (Would one character ever have several pets with the same vnum..??)
+	typedef	std::unordered_map<uint32_t,	pet_actor*>		pet_actor_map;		/// <VNUM, PetActor> map. (Would one character ever have several pets with the same vnum..??)
 
 public:
-	CPetSystem(CHARACTER * owner);
-	virtual ~CPetSystem();
+	pet_system(character * owner);
+	virtual ~pet_system();
 
-	CPetActor*	GetByVnum(uint32_t vnum) const;
+	pet_actor*	by_vnum(uint32_t vnum) const;
 
-	bool		Update(uint32_t deltaTime);
-	void		Destroy();
+	bool		update(uint32_t deltaTime);
+	void		destroy();
 
-	size_t		CountSummoned() const;			///< Number of currently summoned pets (with a materialized character)
+	size_t		count_summoned() const;			///< Number of currently summoned pets (with a materialized character)
 
 public:
 
-	CPetActor*	Summon(uint32_t mobVnum, CItem * pSummonItem, const char* petName, bool bSpawnFar, uint32_t options = CPetActor::EPetOption_Followable | CPetActor::EPetOption_Summonable);
+	pet_actor*	summon(uint32_t mobVnum, item * pSummonItem, const char* petName, bool bSpawnFar, uint32_t options = pet_actor::EPetOption_Followable | pet_actor::EPetOption_Summonable);
 
-	void		Unsummon(uint32_t mobVnum, bool bDeleteFromList = false);
-	void		Unsummon(CPetActor* petActor, bool bDeleteFromList = false);
+	void		unsummon(uint32_t mobVnum, bool bDeleteFromList = false);
+	void		unsummon(pet_actor* petActor, bool bDeleteFromList = false);
 
 	// TODO: implement when the real pet system goes in. (e.g. when adding info on pets owned by a character...)
 
-	void		DeletePet(CPetActor* petActor);
-	void		RefreshBuff();
+	void		delete_pet(pet_actor* petActor);
+	void		refresh_buff();
 
 private:
-	TPetActorMap	m_petActorMap;
-	CHARACTER *		m_pkOwner;					///< Owner of the pet system
-	uint32_t			m_dwUpdatePeriod;			///< Update interval (ms)
-	uint32_t			m_dwLastUpdateTime;
-	LPEVENT			m_pkPetSystemUpdateEvent;
+	pet_actor_map	pet_actor_map_;
+	character *		owner_;					///< Owner of the pet system
+	uint32_t			update_period_;			///< Update interval (ms)
+	uint32_t			last_update_time_;
+	event_ptr			pet_system_update_event_;
 };
 
 /**

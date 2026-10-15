@@ -15,150 +15,150 @@
 
 namespace metin2::game::inline characters {
 
-struct TMobSplashAttackInfo {
-	uint32_t	dwTiming; // Time to wait after using a skill until damage actually lands (ms)
-	uint32_t	dwHitDistance; // Distance at which the skill is actually computed on use (cm forward)
+struct mob_splash_attack_info {
+	uint32_t	timing; // Time to wait after using a skill until damage actually lands (ms)
+	uint32_t	hit_distance; // Distance at which the skill is actually computed on use (cm forward)
 
-	TMobSplashAttackInfo(uint32_t dwTiming, uint32_t dwHitDistance)
-		: dwTiming(dwTiming)
-		, dwHitDistance(dwHitDistance)
+	mob_splash_attack_info(uint32_t dwTiming, uint32_t dwHitDistance)
+		: timing(dwTiming)
+		, hit_distance(dwHitDistance)
 		{}
 };
 
-struct TMobSkillInfo {
-	uint32_t	dwSkillVnum;
-	uint8_t	bSkillLevel;
-	std::vector<TMobSplashAttackInfo> vecSplashAttack;
+struct mob_skill_info {
+	uint32_t	skill_vnum;
+	uint8_t	skill_level;
+	std::vector<mob_splash_attack_info> splash_attack;
 };
 
-class CMob
+class mob
 {
 	public:
-		CMob();
+		mob();
 
-		~CMob();
+		~mob();
 
-		TMobTable	m_table;
-		TMobSkillInfo	m_mobSkillInfo[MOB_SKILL_MAX_NUM];
+		mob_table	table;
+		game::characters::mob_skill_info	mob_skill_info[MOB_SKILL_MAX_NUM];
 
-		void AddSkillSplash(int iIndex, uint32_t dwTiming, uint32_t dwHitDistance);
+		void add_skill_splash(int iIndex, uint32_t dwTiming, uint32_t dwHitDistance);
 };
 
-class CMobInstance
+class mob_instance
 {
 	public:
-		CMobInstance();
+		mob_instance();
 
-		PIXEL_POSITION	m_posLastAttacked;	// Last hit position
-		uint32_t		m_dwLastAttackedTime;	// Last hit time
-		uint32_t		m_dwLastWarpTime;
+		pixel_position	pos_last_attacked;	// Last hit position
+		uint32_t		last_attacked_time;	// Last hit time
+		uint32_t		last_warp_time;
 
-		bool m_IsBerserk;
-		bool m_IsGodSpeed;
-		bool m_IsRevive;
+		bool is_berserk;
+		bool is_god_speed;
+		bool is_revive;
 };
 
-class CMobGroupGroup
+class mob_group_group
 {
 	public:
-		CMobGroupGroup(uint32_t dwVnum)
+		mob_group_group(uint32_t dwVnum)
 		{
-			m_dwVnum = dwVnum;
+			vnum = dwVnum;
 		}
 
 		// ADD_MOB_GROUP_GROUP_PROB
-		void AddMember(uint32_t dwVnum, int prob = 1)
+		void add_member(uint32_t dwVnum, int prob = 1)
 		{   
 			if (prob == 0)
 				return;
 
-			if (!m_vec_iProbs.empty())
-				prob += m_vec_iProbs.back();
+			if (!vec_i_probs.empty())
+				prob += vec_i_probs.back();
 
-			m_vec_iProbs.push_back(prob);
-			m_vec_dwMemberVnum.push_back(dwVnum);
+			vec_i_probs.push_back(prob);
+			vec_dw_member_vnum.push_back(dwVnum);
 		}
 		// END_OF_ADD_MOB_GROUP_GROUP_PROB
 
-		uint32_t GetMember()
+		uint32_t member()
 		{
-			if (m_vec_dwMemberVnum.empty())
+			if (vec_dw_member_vnum.empty())
 				return 0;
 
 			// ADD_MOB_GROUP_GROUP_PROB
-			int n = number(1, m_vec_iProbs.back());
-			auto it = lower_bound(m_vec_iProbs.begin(), m_vec_iProbs.end(), n);
+			int n = number(1, vec_i_probs.back());
+			auto it = lower_bound(vec_i_probs.begin(), vec_i_probs.end(), n);
 
-			return m_vec_dwMemberVnum[std::distance(m_vec_iProbs.begin(), it)];
+			return vec_dw_member_vnum[std::distance(vec_i_probs.begin(), it)];
 			// END_OF_ADD_MOB_GROUP_GROUP_PROB
 		}
 
-		uint32_t                   m_dwVnum;
-		std::vector<uint32_t>      m_vec_dwMemberVnum;
+		uint32_t                   vnum;
+		std::vector<uint32_t>      vec_dw_member_vnum;
 
 		// ADD_MOB_GROUP_GROUP_PROB
-		std::vector<int>	m_vec_iProbs;
+		std::vector<int>	vec_i_probs;
 		// END_OF_ADD_MOB_GROUP_GROUP_PROB
 };
 
-class CMobGroup
+class mob_group
 {
 	public:
-		void Create(uint32_t dwVnum, std::string & r_stName)
+		void create(uint32_t dwVnum, std::string & r_stName)
 		{
-			m_dwVnum = dwVnum;
-			m_stName = r_stName;
+			vnum_ = dwVnum;
+			name_ = r_stName;
 		}
 
-		const std::vector<uint32_t> & GetMemberVector()
+		const std::vector<uint32_t> & member_vector()
 		{
-			return m_vec_dwMemberVnum;
+			return vec_dw_member_vnum_;
 		}
 
-		void AddMember(uint32_t dwVnum)
+		void add_member(uint32_t dwVnum)
 		{   
-			m_vec_dwMemberVnum.push_back(dwVnum);
+			vec_dw_member_vnum_.push_back(dwVnum);
 		}
 
 	protected:                  
-		uint32_t                   m_dwVnum;
-		std::string             m_stName;
-		std::vector<uint32_t>      m_vec_dwMemberVnum;
+		uint32_t                   vnum_;
+		std::string             name_;
+		std::vector<uint32_t>      vec_dw_member_vnum_;
 };
 
-class CMobManager : public singleton<CMobManager>
+class mob_manager : public singleton<mob_manager>
 {
 	public:
-		typedef std::map<uint32_t, CMob *>::iterator iterator;
+		typedef std::map<uint32_t, mob *>::iterator iterator;
 
-		CMobManager();
-		~CMobManager() override;
+		mob_manager();
+		~mob_manager() override;
 
-		bool		Initialize(TMobTable * table, int size);
-		void		Destroy();
+		bool		initialize(mob_table * table, int size);
+		void		destroy();
 
-		bool		LoadGroup(const char * c_pszFileName);
-		bool		LoadGroupGroup(const char * c_pszFileName);
-		CMobGroup *	GetGroup(uint32_t dwVnum);
-		uint32_t		GetGroupFromGroupGroup(uint32_t dwVnum);
+		bool		load_group(const char * c_pszFileName);
+		bool		load_group_group(const char * c_pszFileName);
+		mob_group *	group(uint32_t dwVnum);
+		uint32_t		group_from_group_group(uint32_t dwVnum);
 
-		const CMob *	Get(uint32_t dwVnum);
-		const CMob *	Get(const char * c_pszName, bool bIsAbbrev);
+		const mob *	get(uint32_t dwVnum);
+		const mob *	get(const char * c_pszName, bool bIsAbbrev);
 
-		const iterator	begin()	{ return m_map_pkMobByVnum.begin();	}
-		const iterator	end()	{ return m_map_pkMobByVnum.end();	}
+		const iterator	begin()	{ return map_pk_mob_by_vnum_.begin();	}
+		const iterator	end()	{ return map_pk_mob_by_vnum_.end();	}
 
-		void RebindMobProto(CHARACTER * ch);
+		void rebind_mob_proto(character * ch);
 
-		void			IncRegenCount(uint8_t bRegenType, uint32_t dwVnum, int iCount, int iTime);
-		void			DumpRegenCount(const char* c_szFilename);
+		void			inc_regen_count(uint8_t bRegenType, uint32_t dwVnum, int iCount, int iTime);
+		void			dump_regen_count(const char* c_szFilename);
 
 	private:
-		std::map<uint32_t, CMob *> m_map_pkMobByVnum;
-		std::map<std::string, CMob *> m_map_pkMobByName;
-		std::map<uint32_t, CMobGroup *> m_map_pkMobGroup;
-		std::map<uint32_t, CMobGroupGroup *> m_map_pkMobGroupGroup;
+		std::map<uint32_t, mob *> map_pk_mob_by_vnum_;
+		std::map<std::string, mob *> map_pk_mob_by_name_;
+		std::map<uint32_t, mob_group *> map_pk_mob_group_;
+		std::map<uint32_t, mob_group_group *> map_pk_mob_group_group_;
 
-		std::map<uint32_t, double> m_mapRegenCount;
+		std::map<uint32_t, double> regen_count_;
 };
 }

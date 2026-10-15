@@ -16,27 +16,27 @@
 namespace metin2::game::inline protocol {
 
 
-class IP
+class ip
 {
 	public:
 
-		IP(const IP & r)
+		ip(const ip & r)
 		{
-			dwStart = r.dwStart;
-			dwEnd = r.dwEnd;
-			dwMask = r.dwMask;
+			start_ = r.start_;
+			end_ = r.end_;
+			mask_ = r.mask_;
 		}
 
-		IP(const char * c_pszStart, const char * c_pszEnd = nullptr)
+		ip(const char * c_pszStart, const char * c_pszEnd = nullptr)
 		{
 			uint8_t start[4];
 			uint8_t end[4];
 			uint8_t mask[4];
 
-			Read(c_pszStart, start);
+			read(c_pszStart, start);
 
 			if (c_pszEnd && *c_pszEnd)
-				Read(c_pszEnd, end);
+				read(c_pszEnd, end);
 			else
 				memcpy(end, start, sizeof(uint8_t) * 4);
 
@@ -45,42 +45,42 @@ class IP
 			mask[2] = 255 - (start[2] ^ end[2]);
 			mask[3] = 255 - (start[3] ^ end[3]);
 
-			dwStart = (start[3] << 24) | (start[2] << 16) | (start[1] << 8) | start[0];
-			dwEnd = (end[3] << 24) | (end[2] << 16) | (end[1] << 8) | end[0];
-			dwMask = (mask[3] << 24) | (mask[2] << 16) | (mask[1] << 8) | mask[0];
+			start_ = (start[3] << 24) | (start[2] << 16) | (start[1] << 8) | start[0];
+			end_ = (end[3] << 24) | (end[2] << 16) | (end[1] << 8) | end[0];
+			mask_ = (mask[3] << 24) | (mask[2] << 16) | (mask[1] << 8) | mask[0];
 
-			Print();
+			print();
 		}
 
-		IP(struct in_addr in)
+		ip(struct in_addr in)
 		{
-			dwStart = in.s_addr;
-			dwEnd = dwStart;
-			dwMask = 4294967295UL;
+			start_ = in.s_addr;
+			end_ = start_;
+			mask_ = 4294967295UL;
 		}
 
-		bool IsChildOf(IP & r)
+		bool is_child_of(ip & r)
 		{
-			if ((r.dwStart & r.dwMask) != (dwStart & r.dwMask))
+			if ((r.start_ & r.mask_) != (start_ & r.mask_))
 				return false;
 
-			uint32_t m = r.dwMask | dwMask;
+			uint32_t m = r.mask_ | mask_;
 
-			return (dwStart & ~m) == (dwStart & ~dwMask) && (dwEnd & ~m) == (dwEnd & ~dwMask);
+			return (start_ & ~m) == (start_ & ~mask_) && (end_ & ~m) == (end_ & ~mask_);
 		}
 
 		int hash()
 		{
-			return (dwStart & 0x000000FF);
+			return (start_ & 0x000000FF);
 		}
 
-		void Print()
+		void print()
 		{
 			struct in_addr in_ip, in_mask, in_end;
 
-			in_ip.s_addr = dwStart;
-			in_mask.s_addr = dwMask;
-			in_end.s_addr = dwEnd;
+			in_ip.s_addr = start_;
+			in_mask.s_addr = mask_;
+			in_end.s_addr = end_;
 
 			fprintf(stderr, "\t%s", inet_ntoa(in_ip));
 			fprintf(stderr, "\t%s", inet_ntoa(in_end));
@@ -88,7 +88,7 @@ class IP
 		}
 
 	protected:
-		bool Read(const char * s, uint8_t * dest)
+		bool read(const char * s, uint8_t * dest)
 		{
 			uint8_t bClass = 0;
 			const char * p = s;
@@ -117,14 +117,14 @@ class IP
 			return true;
 		}
 
-		uint32_t dwStart;
-		uint32_t dwEnd;
-		uint32_t dwMask;
+		uint32_t start_;
+		uint32_t end_;
+		uint32_t mask_;
 };
 
-std::map<int, std::vector<IP> > mapBanIP;
+std::map<int, std::vector<ip> > ban_ip;
 
-bool LoadBanIP(const char * filename)
+bool load_ban_ip(const char * filename)
 {
 	FILE * fp = fopen(filename, "r");
 
@@ -160,15 +160,15 @@ bool LoadBanIP(const char * filename)
 			start = buf;
 		}
 
-		IP ip(start.c_str(), end.c_str());
+		ip ip(start.c_str(), end.c_str());
 
-		auto it = mapBanIP.find(ip.hash());
+		auto it = ban_ip.find(ip.hash());
 
-		if (it == mapBanIP.end())
+		if (it == ban_ip.end())
 		{
-			std::vector<IP> v;
+			std::vector<game::protocol::ip> v;
 			v.push_back(ip);
-			mapBanIP.insert(std::map<uint32_t, std::vector<IP> >::value_type(ip.hash(), v));
+			ban_ip.insert(std::map<uint32_t, std::vector<game::protocol::ip> >::value_type(ip.hash(), v));
 		}
 		else
 			it->second.push_back(ip);
@@ -179,19 +179,19 @@ bool LoadBanIP(const char * filename)
 	return true;
 }
 
-bool IsBanIP(struct in_addr in)
+bool is_ban_ip(struct in_addr in)
 {
-	IP ip(in);
+	ip ip(in);
 
-	auto it = mapBanIP.find(ip.hash());
+	auto it = ban_ip.find(ip.hash());
 
-	if (it == mapBanIP.end())
+	if (it == ban_ip.end())
 		return false;
 
 	auto it2 = it->second.begin();
 
 	while (it2 != it->second.end())
-		if (ip.IsChildOf(*(it2++)))
+		if (ip.is_child_of(*(it2++)))
 			return true;
 
 	return false;

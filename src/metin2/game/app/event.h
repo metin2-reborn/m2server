@@ -22,69 +22,68 @@ struct event_info_data
 
 };
 	
-typedef struct event EVENT;
+struct scheduled_event;
 
-void event_add_ref(EVENT * p);
-void event_release(EVENT * p);
+void event_add_ref(scheduled_event * p);
+void event_release(scheduled_event * p);
 
 // Shared ownership of an event through its intrusive reference count.
 class event_ptr {
   public:
     event_ptr() = default;
     event_ptr(std::nullptr_t) {}
-    event_ptr(EVENT *p) : m_p(p) {
-        if (m_p) {
-            event_add_ref(m_p);
+    event_ptr(scheduled_event *p) : p_(p) {
+        if (p_) {
+            event_add_ref(p_);
         }
     }
-    event_ptr(const event_ptr &other) : event_ptr(other.m_p) {}
-    event_ptr(event_ptr &&other) noexcept : m_p(std::exchange(other.m_p, nullptr)) {}
+    event_ptr(const event_ptr &other) : event_ptr(other.p_) {}
+    event_ptr(event_ptr &&other) noexcept : p_(std::exchange(other.p_, nullptr)) {}
     ~event_ptr() {
-        if (m_p) {
-            event_release(m_p);
+        if (p_) {
+            event_release(p_);
         }
     }
 
     auto operator=(event_ptr other) noexcept -> event_ptr & {
-        std::swap(m_p, other.m_p);
+        std::swap(p_, other.p_);
         return *this;
     }
 
     void reset() { event_ptr().swap(*this); }
-    void swap(event_ptr &other) noexcept { std::swap(m_p, other.m_p); }
+    void swap(event_ptr &other) noexcept { std::swap(p_, other.p_); }
 
-    [[nodiscard]] auto get() const -> EVENT * { return m_p; }
-    auto operator->() const -> EVENT * { return m_p; }
-    auto operator*() const -> EVENT & { return *m_p; }
-    explicit operator bool() const { return m_p != nullptr; }
+    [[nodiscard]] auto get() const -> scheduled_event * { return p_; }
+    auto operator->() const -> scheduled_event * { return p_; }
+    auto operator*() const -> scheduled_event & { return *p_; }
+    explicit operator bool() const { return p_ != nullptr; }
 
-    friend auto operator==(const event_ptr &a, const event_ptr &b) -> bool { return a.m_p == b.m_p; }
-    friend auto operator==(const event_ptr &a, const EVENT *b) -> bool { return a.m_p == b; }
-    friend auto operator==(const event_ptr &a, std::nullptr_t) -> bool { return a.m_p == nullptr; }
+    friend auto operator==(const event_ptr &a, const event_ptr &b) -> bool { return a.p_ == b.p_; }
+    friend auto operator==(const event_ptr &a, const scheduled_event *b) -> bool { return a.p_ == b; }
+    friend auto operator==(const event_ptr &a, std::nullptr_t) -> bool { return a.p_ == nullptr; }
 
   private:
-    EVENT *m_p = nullptr;
+    scheduled_event *p_ = nullptr;
 };
 
-typedef event_ptr LPEVENT;
-typedef int32_t (*TEVENTFUNC) (LPEVENT event, int32_t processing_time);
+typedef int32_t (*event_func) (event_ptr event, int32_t processing_time);
 
-#define EVENTFUNC(name)	int32_t (name) (LPEVENT event, int32_t processing_time)
+#define EVENTFUNC(name)	int32_t (name) (event_ptr event, int32_t processing_time)
 #define EVENTINFO(name) struct name : public event_info_data
 
-struct TQueueElement;
+struct queue_element;
 
-struct event
+struct scheduled_event
 {
-	event() : func(nullptr), info(nullptr), q_el(nullptr), ref_count(0) {}
-	~event() {
+	scheduled_event() : func(nullptr), info(nullptr), q_el(nullptr), ref_count(0) {}
+	~scheduled_event() {
 		if (info != nullptr) {
 			delete info;
 		}
 	}
-	TEVENTFUNC			func;
+	event_func			func;
 	event_info_data* 	info;
-	TQueueElement *		q_el;
+	queue_element *		q_el;
 	char				is_force_to_end;
 	char				is_processing;
 
@@ -92,7 +91,7 @@ struct event
 };
 
 template<class T> // T should be a subclass of event_info_data
-T* AllocEventInfo() {
+T* alloc_event_info() {
 	return new T;
 }
 
@@ -100,9 +99,9 @@ extern void		event_destroy();
 extern int		event_process(int pulse);
 extern int		event_count();
 
-extern LPEVENT	event_create(TEVENTFUNC func, event_info_data* info, int32_t when);
-extern void		event_cancel(LPEVENT * event);			// Cancel event
-extern int32_t		event_processing_time(LPEVENT event);	// Return execution time
-extern int32_t		event_time(LPEVENT event);			// Return remaining time
-extern void		event_reset_time(LPEVENT event, int32_t when);	// Reset execution time
+extern event_ptr	event_create(event_func func, event_info_data* info, int32_t when);
+extern void		event_cancel(event_ptr * event);			// Cancel event
+extern int32_t		event_processing_time(event_ptr event);	// Return execution time
+extern int32_t		event_time(event_ptr event);			// Return remaining time
+extern void		event_reset_time(event_ptr event, int32_t when);	// Reset execution time
 }

@@ -8,16 +8,16 @@
 
 namespace metin2::game::inline app {
 
-template <typename T, typename U> constexpr auto IS_SET(T flag, U bit) { return flag & bit; }
-template <typename T, typename U> constexpr void SET_BIT(T & var, U bit) { var |= bit; }
-template <typename T, typename U> constexpr void REMOVE_BIT(T & var, U bit) { var &= ~bit; }
+template <typename T, typename U> constexpr auto is_set(T flag, U bit) { return flag & bit; }
+template <typename T, typename U> constexpr void set_bit(T & var, U bit) { var |= bit; }
+template <typename T, typename U> constexpr void remove_bit(T & var, U bit) { var &= ~bit; }
 
-inline float DISTANCE_SQRT(int32_t dx, int32_t dy)
+inline float distance_sqrt(int32_t dx, int32_t dy)
 {
     return std::sqrt((float)dx * dx + (float)dy * dy);
 }
 
-inline int DISTANCE_APPROX(int dx, int dy)
+inline int distance_approx(int dx, int dy)
 {
 	int min, max;
 
@@ -54,13 +54,13 @@ extern const char *	one_argument(const char *argument, char *first_arg, size_t f
 extern const char *	two_arguments(const char *argument, char *first_arg, size_t first_size, char *second_arg, size_t second_size);
 extern const char *	first_cmd(const char *argument, char *first_arg, size_t first_arg_size, size_t *first_arg_len_result);
 
-extern int CalculateDuration(int iSpd, int iDur);
+extern int calculate_duration(int iSpd, int iDur);
 
 extern float gauss_random(float avg = 0, float sigma = 1);
 
 extern int parse_time_str(const char* str);
 
-extern bool WildCaseCmp(const char *w, const char *s);
+extern bool wild_case_cmp(const char *w, const char *s);
 
 // Inside a config parser loop: compares the current token_string, ignoring case.
 #define TOKEN(string) if (!strcasecmp(token_string, string))

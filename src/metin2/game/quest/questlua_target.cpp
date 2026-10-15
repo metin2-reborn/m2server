@@ -19,27 +19,27 @@ namespace quest
 	//
 	int target_pos(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		int iQuestIndex = CQuestManager::instance().GetCurrentPC()->GetCurrentQuestIndex();
+		character * ch = quest_manager::instance().current_character_ptr();
+		int iQuestIndex = quest_manager::instance().current_pc()->current_quest_index();
 
 		if (!lua_isstring(L, 1) || !lua_isnumber(L, 2) || !lua_isnumber(L, 3))
 		{
-			metin2::log::error("invalid argument, name: {}, quest_index {:d}", ch->GetName(), iQuestIndex);
+			metin2::log::error("invalid argument, name: {}, quest_index {:d}", ch->name(), iQuestIndex);
 			return 0;
 		}
 
-		PIXEL_POSITION pos;
+		pixel_position pos;
 
-		if (!SECTREE_MANAGER::instance().GetMapBasePositionByMapIndex(ch->GetMapIndex(), pos))
+		if (!sectree_manager::instance().map_base_position_by_map_index(ch->map_index(), pos))
 		{
-			metin2::log::error("cannot find base position in this map {:d}", ch->GetMapIndex());
+			metin2::log::error("cannot find base position in this map {:d}", ch->map_index());
 			return 0;
 		}
 
 		int x = pos.x + (int) lua_tonumber(L, 2) * 100;
 		int y = pos.y + (int) lua_tonumber(L, 3) * 100;
 
-		CTargetManager::instance().CreateTarget(ch->GetPlayerID(),
+		target_manager::instance().create_target(ch->player_id(),
 				iQuestIndex,
 				lua_tostring(L, 1),
 				TARGET_TYPE_POS,
@@ -54,23 +54,23 @@ namespace quest
 
 	int target_vid(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		int iQuestIndex = CQuestManager::instance().GetCurrentPC()->GetCurrentQuestIndex();
+		character * ch = quest_manager::instance().current_character_ptr();
+		int iQuestIndex = quest_manager::instance().current_pc()->current_quest_index();
 
 		if (!lua_isstring(L, 1) || !lua_isnumber(L, 2))
 		{
-			metin2::log::error("invalid argument, name: {}, quest_index {:d}", ch->GetName(), iQuestIndex);
+			metin2::log::error("invalid argument, name: {}, quest_index {:d}", ch->name(), iQuestIndex);
 			return 0;
 		}
 
 
-		CTargetManager::instance().CreateTarget(ch->GetPlayerID(),
+		target_manager::instance().create_target(ch->player_id(),
 				iQuestIndex,
 				lua_tostring(L, 1),
 				TARGET_TYPE_VID,
 				(int) lua_tonumber(L, 2),
 				0,
-				ch->GetMapIndex(),
+				ch->map_index(),
 				lua_isstring(L, 3) ? lua_tostring(L, 3) : nullptr,
 				lua_isnumber(L, 4) ? (int)lua_tonumber(L, 4): 1);
 
@@ -80,16 +80,16 @@ namespace quest
 	// Delete the target registered to the current quest.
 	int target_delete(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		int iQuestIndex = CQuestManager::instance().GetCurrentPC()->GetCurrentQuestIndex();
+		character * ch = quest_manager::instance().current_character_ptr();
+		int iQuestIndex = quest_manager::instance().current_pc()->current_quest_index();
 
 		if (!lua_isstring(L, 1))
 		{
-			metin2::log::error("invalid argument, name: {}, quest_index {:d}", ch->GetName(), iQuestIndex);
+			metin2::log::error("invalid argument, name: {}, quest_index {:d}", ch->name(), iQuestIndex);
 			return 0;
 		}
 
-		CTargetManager::instance().DeleteTarget(ch->GetPlayerID(), iQuestIndex, lua_tostring(L, 1));
+		target_manager::instance().delete_target(ch->player_id(), iQuestIndex, lua_tostring(L, 1));
 
 		return 0;
 	}
@@ -97,31 +97,31 @@ namespace quest
 	// Delete all targets for the current quest index.
 	int target_clear(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		int iQuestIndex = CQuestManager::instance().GetCurrentPC()->GetCurrentQuestIndex();
+		character * ch = quest_manager::instance().current_character_ptr();
+		int iQuestIndex = quest_manager::instance().current_pc()->current_quest_index();
 
-		CTargetManager::instance().DeleteTarget(ch->GetPlayerID(), iQuestIndex, nullptr);
+		target_manager::instance().delete_target(ch->player_id(), iQuestIndex, nullptr);
 
 		return 0;
 	}
 
 	int target_id(lua_State* L)
 	{
-		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
-		uint32_t dwQuestIndex = CQuestManager::instance().GetCurrentPC()->GetCurrentQuestIndex();
+		character * ch = quest_manager::instance().current_character_ptr();
+		uint32_t dwQuestIndex = quest_manager::instance().current_pc()->current_quest_index();
 
 		if (!lua_isstring(L, 1))
 		{
-			metin2::log::error("invalid argument, name: {}, quest_index {:d}", ch->GetName(), dwQuestIndex);
+			metin2::log::error("invalid argument, name: {}, quest_index {:d}", ch->name(), dwQuestIndex);
 			lua_pushnumber(L, 0);
 			return 1;
 		}
 
-		LPEVENT pkEvent = CTargetManager::instance().GetTargetEvent(ch->GetPlayerID(), dwQuestIndex, (const char *) lua_tostring(L, 1));
+		event_ptr pkEvent = target_manager::instance().target_event(ch->player_id(), dwQuestIndex, (const char *) lua_tostring(L, 1));
 
 		if (pkEvent)
 		{
-			TargetInfo * pInfo = dynamic_cast<TargetInfo *>(pkEvent->info);
+			target_info * pInfo = dynamic_cast<target_info *>(pkEvent->info);
 
 			if ( pInfo == nullptr )
 			{
@@ -130,9 +130,9 @@ namespace quest
 				return 1;
 			}
 
-			if (pInfo->iType == TARGET_TYPE_VID)
+			if (pInfo->type == TARGET_TYPE_VID)
 			{
-				lua_pushnumber(L, pInfo->iArg1);
+				lua_pushnumber(L, pInfo->arg1);
 				return 1;
 			}
 		}
@@ -141,7 +141,7 @@ namespace quest
 		return 1;
 	}
 
-	void RegisterTargetFunctionTable()
+	void register_target_function_table()
 	{
 		luaL_reg target_functions[] =
 		{
@@ -155,7 +155,7 @@ namespace quest
 			{ nullptr,			nullptr			},
 		};
 
-		CQuestManager::instance().AddLuaFunctionTable("target", target_functions);
+		quest_manager::instance().add_lua_function_table("target", target_functions);
 	}
 };
 }

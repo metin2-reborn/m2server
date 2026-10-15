@@ -11,68 +11,68 @@
 
 namespace metin2::game {
 
-enum ETargetTypes
+enum target_types
 {
 	TARGET_TYPE_POS	= (1 << 0),
 	TARGET_TYPE_VID	= (1 << 1),
 };
 
-EVENTINFO(TargetInfo)
+EVENTINFO(target_info)
 {
 	// <Factor> Removed unsafe copy of CHARACTER* here
 
-	int         iID;
+	int         id;
 
-	uint32_t       dwPID;
-	uint32_t       dwQuestIndex;
+	uint32_t       pid;
+	uint32_t       quest_index;
 
-	char        szTargetName[32+1]; // Name used in quests
-	char        szTargetDesc[32+1]; // Name actually sent to the client
+	char        target_name[32+1]; // Name used in quests
+	char        target_desc[32+1]; // Name actually sent to the client
 
-	int         iType;
-	int         iArg1;
-	int         iArg2;
+	int         type;
+	int         arg1;
+	int         arg2;
 
-	int		iMapIndex;
-	int         iOldX;
-	int         iOldY;
+	int		map_index;
+	int         old_x;
+	int         old_y;
 
-	bool	bSendToClient;
+	bool	send_to_client;
 
-	TargetInfo() 
-	: iID( 0 )
-	, dwPID( 0 )
-	, dwQuestIndex( 0 )
-	, iType( 0 )
-	, iArg1( 0 )
-	, iArg2( 0 )
-	, iMapIndex( 0 )
-	, iOldX( 0 )
-	, iOldY( 0 )
-	, bSendToClient( false )
+	target_info() 
+	: id( 0 )
+	, pid( 0 )
+	, quest_index( 0 )
+	, type( 0 )
+	, arg1( 0 )
+	, arg2( 0 )
+	, map_index( 0 )
+	, old_x( 0 )
+	, old_y( 0 )
+	, send_to_client( false )
 	{
-		::memset(szTargetName, 0, 32+1);
-		::memset(szTargetDesc, 0, 32+1);
+		::memset(target_name, 0, 32+1);
+		::memset(target_desc, 0, 32+1);
 	}
 };
 
-class CTargetManager : public singleton<CTargetManager>
+class target_manager : public singleton<target_manager>
 {
 	public:
-		CTargetManager();
-		~CTargetManager() override;
+		target_manager();
+		~target_manager() override;
 
-		void CreateTarget(uint32_t dwPID, uint32_t dwQuestIndex, const char * c_pszTargetName, int iType, int iArg1, int iArg2, int iMapIndex, const char * c_pszTargetDesc = nullptr, int iSendFlag = 1);
-		void DeleteTarget(uint32_t dwPID, uint32_t dwQuestIndex, const char * c_pszTargetName);
+		void create_target(uint32_t dwPID, uint32_t dwQuestIndex, const char * c_pszTargetName, int iType, int iArg1, int iArg2, int iMapIndex, const char * c_pszTargetDesc = nullptr, int iSendFlag = 1);
+		void delete_target(uint32_t dwPID, uint32_t dwQuestIndex, const char * c_pszTargetName);
 
-		void Logout(uint32_t dwPID);
-		TargetInfo * GetTargetInfo(uint32_t dwPID, int iType, int iArg1);
+		void logout(uint32_t dwPID);
+		target_info * get_target_info(uint32_t dwPID, int iType, int iArg1);
 
-		LPEVENT GetTargetEvent(uint32_t dwPID, uint32_t dwQuestIndex, const char * c_pszTargetName);
+		event_ptr target_event(uint32_t dwPID, uint32_t dwQuestIndex, const char * c_pszTargetName);
 
 	protected:
 		// first: PID
-		std::map<uint32_t, std::list<LPEVENT> > m_map_kListEvent;
-		int m_iID;
+		std::map<uint32_t, std::list<event_ptr> > map_k_list_event_;
+		int id_;
 };
 }

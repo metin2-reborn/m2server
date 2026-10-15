@@ -18,18 +18,18 @@
 
 namespace metin2::game::inline characters {
 
-CHorseNameManager::CHorseNameManager()
+horse_name_manager::horse_name_manager()
 {
-	m_mapHorseNames.clear();
+	horse_names_.clear();
 }
 
-const char* CHorseNameManager::GetHorseName(uint32_t dwPlayerID)
+const char* horse_name_manager::horse_name(uint32_t dwPlayerID)
 {
 	std::map<uint32_t, std::string>::iterator iter;
 
-	iter = m_mapHorseNames.find(dwPlayerID);
+	iter = horse_names_.find(dwPlayerID);
 
-	if ( iter != m_mapHorseNames.end() )
+	if ( iter != horse_names_.end() )
 	{
 		return iter->second.c_str();
 	}
@@ -39,7 +39,7 @@ const char* CHorseNameManager::GetHorseName(uint32_t dwPlayerID)
 	}
 }
 
-void CHorseNameManager::UpdateHorseName(uint32_t dwPlayerID, const char* szHorseName, bool broadcast)
+void horse_name_manager::update_horse_name(uint32_t dwPlayerID, const char* szHorseName, bool broadcast)
 {
 	if ( szHorseName == nullptr )
 	{
@@ -49,39 +49,39 @@ void CHorseNameManager::UpdateHorseName(uint32_t dwPlayerID, const char* szHorse
 
 	metin2::log::info( "HORSENAME: update {:d} {}", dwPlayerID, szHorseName);
 
-	m_mapHorseNames[dwPlayerID] = szHorseName;
+	horse_names_[dwPlayerID] = szHorseName;
 
 	if ( broadcast == true )
 	{
-		BroadcastHorseName(dwPlayerID, szHorseName);
+		broadcast_horse_name(dwPlayerID, szHorseName);
 	}
 }
 
-void CHorseNameManager::BroadcastHorseName(uint32_t dwPlayerID, const char* szHorseName)
+void horse_name_manager::broadcast_horse_name(uint32_t dwPlayerID, const char* szHorseName)
 {
-	TPacketUpdateHorseName packet;
-	packet.dwPlayerID = dwPlayerID;
-	strlcpy(packet.szHorseName, szHorseName, sizeof(packet.szHorseName));
+	packet_update_horse_name packet;
+	packet.player_id = dwPlayerID;
+	strlcpy(packet.horse_name, szHorseName, sizeof(packet.horse_name));
 
-	db_clientdesc->DBPacket(HEADER_GD_UPDATE_HORSE_NAME, 0, &packet, sizeof(TPacketUpdateHorseName));
+	db_clientdesc->db_packet(HEADER_GD_UPDATE_HORSE_NAME, 0, &packet, sizeof(packet_update_horse_name));
 }
 
-void CHorseNameManager::Validate(CHARACTER * pChar)
+void horse_name_manager::validate(character * pChar)
 {
-	CAffect *pkAff = pChar->FindAffect(AFFECT_HORSE_NAME);
+	affect *pkAff = pChar->find_affect(AFFECT_HORSE_NAME);
 
 	if ( pkAff != nullptr )
 	{
-		if ( pChar->GetQuestFlag("horse_name.valid_till") < get_global_time() )
+		if ( pChar->quest_flag("horse_name.valid_till") < get_global_time() )
 		{
-			pChar->HorseSummon(false, true);
-			pChar->RemoveAffect(pkAff);
-			UpdateHorseName(pChar->GetPlayerID(), "", true);
-			pChar->HorseSummon(true, true);
+			pChar->horse_summon(false, true);
+			pChar->remove_affect(pkAff);
+			update_horse_name(pChar->player_id(), "", true);
+			pChar->horse_summon(true, true);
 		}
 		else
 		{
-			++(pkAff->lDuration);
+			++(pkAff->duration);
 		}
 	}
 }

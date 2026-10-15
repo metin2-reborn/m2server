@@ -19,25 +19,25 @@
 
 namespace metin2::inline proto {
 
-class CItemVnumHelper {
+class item_vnum_helper {
   public:
     /// Ramadan event Crescent Moon Ring (originally a special item for the Ramadan event, but it will reportedly keep being reused in various ways)
-    static constexpr auto IsRamadanMoonRing(uint32_t vnum) -> bool { return 71135 == vnum; }
+    static constexpr auto is_ramadan_moon_ring(uint32_t vnum) -> bool { return 71135 == vnum; }
 
     /// Halloween candy (same spec as the Crescent Moon Ring)
-    static constexpr auto IsHalloweenCandy(uint32_t vnum) -> bool { return 71136 == vnum; }
+    static constexpr auto is_halloween_candy(uint32_t vnum) -> bool { return 71136 == vnum; }
 
     /// Christmas Ring of Happiness
-    static constexpr auto IsHappinessRing(uint32_t vnum) -> bool { return 71143 == vnum; }
+    static constexpr auto is_happiness_ring(uint32_t vnum) -> bool { return 71143 == vnum; }
 
     /// Valentine Pendant of Love
-    static constexpr auto IsLovePendant(uint32_t vnum) -> bool { return 71145 == vnum; }
+    static constexpr auto is_love_pendant(uint32_t vnum) -> bool { return 71145 == vnum; }
 };
 
-class CMobVnumHelper {
+class mob_vnum_helper {
   public:
     /// Black horse for the Ramadan event reward (20119) .. Ramadan black horse clone for the Halloween event (same spec, 20219)
-    static constexpr auto IsRamadanBlackHorse(uint32_t vnum) -> bool {
+    static constexpr auto is_ramadan_black_horse(uint32_t vnum) -> bool {
         return 20119 == vnum ||
                20219 == vnum ||
                22022 == vnum;

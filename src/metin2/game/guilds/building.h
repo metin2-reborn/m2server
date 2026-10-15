@@ -18,146 +18,146 @@ namespace building
 	// The shared land and object tables (proto).
 	using namespace metin2::proto::building;
 
-	class CLand;
+	class land;
 
-	class CObject : public CEntity
+	class object : public entity
 	{
 		public:
-			CObject(TObject * pData, TObjectProto * pProto);
-			~CObject() override;
+			object(object_table * pData, object_proto * pProto);
+			~object() override;
 
-			void	Destroy();
+			void	destroy();
 
-			void EncodeInsertPacket(CEntity * entity) override;
-			void EncodeRemovePacket(CEntity * entity) override;
+			void encode_insert_packet(entity * entity) override;
+			void encode_remove_packet(entity * entity) override;
 
-			uint32_t	GetID() { return m_data.dwID; }
+			uint32_t	id() { return data_.id; }
 
-			void	SetVID(uint32_t dwVID);
-			uint32_t	GetVID() { return m_dwVID; }
+			void	set_vid(uint32_t dwVID);
+			uint32_t	get_vid() { return vid_; }
 
-			bool	Show(int32_t lMapIndex, int32_t x, int32_t y);
+			bool	show(int32_t lMapIndex, int32_t x, int32_t y);
 
-			void	Save();
+			void	save();
 
-			void	SetLand(CLand * pkLand) { m_pkLand = pkLand; }
-			CLand *	GetLand()		{ return m_pkLand; }
+			void	set_land(land * pkLand) { land_ = pkLand; }
+			land *	get_land()		{ return land_; }
 
-			uint32_t	GetVnum()		{ return m_pProto ? m_pProto->dwVnum : 0; }
-			uint32_t	GetGroup()		{ return m_pProto ? m_pProto->dwGroupVnum : 0; }
+			uint32_t	vnum()		{ return proto_ ? proto_->vnum : 0; }
+			uint32_t	group()		{ return proto_ ? proto_->group_vnum : 0; }
 
-			void	RegenNPC();
+			void	regen_npc();
 
 			// BUILDING_NPC
-			void	ApplySpecialEffect();
-			void	RemoveSpecialEffect();
+			void	apply_special_effect();
+			void	remove_special_effect();
 
-			void	Reconstruct(uint32_t dwVnum);
+			void	reconstruct(uint32_t dwVnum);
 
-			CHARACTER * GetNPC() { return m_chNPC; }
+			character * npc() { return ch_npc_; }
 			// END_OF_BUILDING_NPC
 
 		protected:
-			TObjectProto *	m_pProto;
-			TObject		m_data;
-			uint32_t		m_dwVID;
-			CLand *		m_pkLand;
+			object_proto *	proto_;
+			object_table		data_;
+			uint32_t		vid_;
+			land *		land_;
 
-			CHARACTER *		m_chNPC;
+			character *		ch_npc_;
 	};
 
-	class CLand
+	class land
 	{
 		public:
-			CLand(TLand * pData);
-			~CLand();
+			land(land_table * pData);
+			~land();
 
-			void	Destroy();
+			void	destroy();
 
-			const TLand & GetData();
-			void	PutData(const TLand * data);
+			const land_table & data();
+			void	put_data(const land_table * data);
 
-			uint32_t	GetID() const { return m_data.dwID; }
-			void	SetOwner(uint32_t dwGID);
-			uint32_t	GetOwner() const { return m_data.dwGuildID; }
+			uint32_t	id() const { return data_.id; }
+			void	set_owner(uint32_t dwGID);
+			uint32_t	owner() const { return data_.guild_id; }
 
-			void	InsertObject(CObject * pkObj);
-			CObject *	FindObject(uint32_t dwID);
-			CObject *	FindObjectByVID(uint32_t dwVID);
-			CObject *	FindObjectByGroup(uint32_t dwGroupVnum);
-			CObject *	FindObjectByNPC(CHARACTER * npc);
-			void DeleteObject(uint32_t dwID);
+			void	insert_object(object * pkObj);
+			object *	find_object(uint32_t dwID);
+			object *	find_object_by_vid(uint32_t dwVID);
+			object *	find_object_by_group(uint32_t dwGroupVnum);
+			object *	find_object_by_npc(character * npc);
+			void delete_object(uint32_t dwID);
 
-			bool	RequestCreateObject(uint32_t dwVnum, int32_t lMapIndex, int32_t x, int32_t y, float xRot, float yRot, float zRot, bool checkAnother);
-			void	RequestDeleteObject(uint32_t dwID);
-			void	RequestDeleteObjectByVID(uint32_t dwVID);
+			bool	request_create_object(uint32_t dwVnum, int32_t lMapIndex, int32_t x, int32_t y, float xRot, float yRot, float zRot, bool checkAnother);
+			void	request_delete_object(uint32_t dwID);
+			void	request_delete_object_by_vid(uint32_t dwVID);
 
-			void	RequestUpdate(uint32_t dwGuild);
+			void	request_update(uint32_t dwGuild);
 
 			// LAND_CLEAR
-			void	ClearLand();
+			void	clear_land();
 			// END_LAND_CLEAR
 
 			// BUILD_WALL
-			bool RequestCreateWall(int32_t nMapIndex, float rot);
-			void RequestDeleteWall();
+			bool request_create_wall(int32_t nMapIndex, float rot);
+			void request_delete_wall();
 
-			bool RequestCreateWallBlocks(uint32_t dwVnum, int32_t nMapIndex, char wallSize, bool doorEast, bool doorWest, bool doorSouth, bool doorNorth);
-			void RequestDeleteWallBlocks(uint32_t dwVnum);
+			bool request_create_wall_blocks(uint32_t dwVnum, int32_t nMapIndex, char wallSize, bool doorEast, bool doorWest, bool doorSouth, bool doorNorth);
+			void request_delete_wall_blocks(uint32_t dwVnum);
 			// END_BUILD_WALL
 
-			uint32_t GetMapIndex() { return m_data.lMapIndex; }
+			uint32_t map_index() { return data_.map_index; }
 
 		protected:
-			TLand			m_data;
-			std::map<uint32_t, CObject *>	m_map_pkObject;
-			std::map<uint32_t, CObject *>	m_map_pkObjectByVID;
+			land_table			data_;
+			std::map<uint32_t, object *>	map_pk_object_;
+			std::map<uint32_t, object *>	map_pk_object_by_vid_;
 
 			// BUILD_WALL
 		private :
-			void DrawWall(uint32_t dwVnum, int32_t nMapIndex, int32_t& centerX, int32_t& centerY, char length, float zRot);
+			void draw_wall(uint32_t dwVnum, int32_t nMapIndex, int32_t& centerX, int32_t& centerY, char length, float zRot);
 			// END_BUILD_WALL
 	};
 
-	class CManager : public singleton<CManager>
+	class manager : public singleton<manager>
 	{
 		public:
-			CManager();
-			~CManager() override;
+			manager();
+			~manager() override;
 
-			void	Destroy();
+			void	destroy();
 
-			void	FinalizeBoot();
+			void	finalize_boot();
 
-			bool	LoadObjectProto(const TObjectProto * pProto, int size);
-			TObjectProto * GetObjectProto(uint32_t dwVnum);
+			bool	load_object_proto(const proto::building::object_proto * pProto, int size);
+			proto::building::object_proto * object_proto(uint32_t dwVnum);
 
-			bool	LoadLand(TLand * pTable);
-			CLand *	FindLand(uint32_t dwID);
-			CLand *	FindLand(int32_t lMapIndex, int32_t x, int32_t y);
-			CLand *	FindLandByGuild(uint32_t GID);
-			void	UpdateLand(TLand * pTable);
+			bool	load_land(land_table * pTable);
+			land *	find_land(uint32_t dwID);
+			land *	find_land(int32_t lMapIndex, int32_t x, int32_t y);
+			land *	find_land_by_guild(uint32_t GID);
+			void	update_land(land_table * pTable);
 
-			bool	LoadObject(TObject * pTable, bool isBoot=false);
-			void	DeleteObject(uint32_t dwID);
-			void	UnregisterObject(CObject * pkObj);
+			bool	load_object(object_table * pTable, bool isBoot=false);
+			void	delete_object(uint32_t dwID);
+			void	unregister_object(object * pkObj);
 
-			CObject *	FindObjectByVID(uint32_t dwVID);
+			object *	find_object_by_vid(uint32_t dwVID);
 
-			void	SendLandList(DESC * d, int32_t lMapIndex);
+			void	send_land_list(desc * d, int32_t lMapIndex);
 
 			// LAND_CLEAR
-			void	ClearLand(uint32_t dwLandID);
-			void	ClearLandByGuildID(uint32_t dwGuildID);
+			void	clear_land(uint32_t dwLandID);
+			void	clear_land_by_guild_id(uint32_t dwGuildID);
 			// END_LAND_CLEAR
 
 		protected:
-			std::vector<TObjectProto>		m_vec_kObjectProto;
-			std::map<uint32_t, TObjectProto *>	m_map_pkObjectProto;
+			std::vector<proto::building::object_proto>		vec_k_object_proto_;
+			std::map<uint32_t, proto::building::object_proto *>	map_pk_object_proto_;
 
-			std::map<uint32_t, std::unique_ptr<CLand>>	m_map_pkLand;
-			std::map<uint32_t, CObject *>		m_map_pkObjByID;
-			std::map<uint32_t, CObject *>		m_map_pkObjByVID;
+			std::map<uint32_t, std::unique_ptr<land>>	map_pk_land_;
+			std::map<uint32_t, object *>		map_pk_obj_by_id_;
+			std::map<uint32_t, object *>		map_pk_obj_by_vid_;
 	};
 }
 }

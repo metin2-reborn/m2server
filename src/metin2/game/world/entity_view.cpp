@@ -10,227 +10,227 @@
 
 namespace metin2::game::inline world {
 
-void CEntity::ViewCleanup()
+void entity::view_cleanup()
 {
-	ENTITY_MAP::iterator it = m_map_view.begin();
+	entity_map::iterator it = map_view_.begin();
 
-	while (it != m_map_view.end())
+	while (it != map_view_.end())
 	{
-		CEntity * entity = it->first;
+		entity * entity = it->first;
 		++it;
 
-		entity->ViewRemove(this, false);
+		entity->view_remove(this, false);
 	}
 
-	m_map_view.clear();
+	map_view_.clear();
 }
 
-void CEntity::ViewReencode()
+void entity::view_reencode()
 {
-	if (m_bIsObserver)
+	if (is_observer_)
 		return;
 
-	EncodeRemovePacket(this);
-	EncodeInsertPacket(this);
+	encode_remove_packet(this);
+	encode_insert_packet(this);
 
-	ENTITY_MAP::iterator it = m_map_view.begin();
+	entity_map::iterator it = map_view_.begin();
 
-	while (it != m_map_view.end())
+	while (it != map_view_.end())
 	{
-		CEntity * entity = (it++)->first;
+		entity * entity = (it++)->first;
 
-		EncodeRemovePacket(entity);
-		if (!m_bIsObserver)
-			EncodeInsertPacket(entity);
+		encode_remove_packet(entity);
+		if (!is_observer_)
+			encode_insert_packet(entity);
 
-		if (!entity->m_bIsObserver)
-			entity->EncodeInsertPacket(this);
+		if (!entity->is_observer_)
+			entity->encode_insert_packet(this);
 	}
 
 }
 
-void CEntity::ViewInsert(CEntity * entity, bool recursive)
+void entity::view_insert(entity * entity, bool recursive)
 {
 	if (this == entity)
 		return;
 
-	ENTITY_MAP::iterator it = m_map_view.find(entity);
+	entity_map::iterator it = map_view_.find(entity);
 
-	if (m_map_view.end() != it)
+	if (map_view_.end() != it)
 	{
-		it->second = m_iViewAge;
+		it->second = view_age_;
 		return;
 	}
 
-	m_map_view.insert(ENTITY_MAP::value_type(entity, m_iViewAge));
+	map_view_.insert(entity_map::value_type(entity, view_age_));
 
-	if (!entity->m_bIsObserver)
-		entity->EncodeInsertPacket(this);
+	if (!entity->is_observer_)
+		entity->encode_insert_packet(this);
 
 	if (recursive)
-		entity->ViewInsert(this, false);
+		entity->view_insert(this, false);
 }
 
-void CEntity::ViewRemove(CEntity * entity, bool recursive)
+void entity::view_remove(entity * entity, bool recursive)
 {
-	ENTITY_MAP::iterator it = m_map_view.find(entity);
+	entity_map::iterator it = map_view_.find(entity);
 
-	if (it == m_map_view.end())
+	if (it == map_view_.end())
 		return;
 
-	m_map_view.erase(it);
+	map_view_.erase(it);
 
-	if (!entity->m_bIsObserver)
-		entity->EncodeRemovePacket(this);
+	if (!entity->is_observer_)
+		entity->encode_remove_packet(this);
 
 	if (recursive)
-		entity->ViewRemove(this, false);
+		entity->view_remove(this, false);
 }
 
-class CFuncViewInsert
+class func_view_insert
 {
 	private:
-		int dwViewRange;
+		int view_range_;
 
 	public:
-		CEntity * m_me;
+		entity * me;
 
-		CFuncViewInsert(CEntity * ent) :
-			dwViewRange(metin2::config::game().view_range + VIEW_BONUS_RANGE),
-			m_me(ent)
+		func_view_insert(entity * ent) :
+			view_range_(metin2::config::game().view_range + VIEW_BONUS_RANGE),
+			me(ent)
 		{
 		}
 
-		void operator () (CEntity * ent)
+		void operator () (entity * ent)
 		{
 			// Non-objects are not added if they are too far away by computed distance.
-			if (!ent->IsType(ENTITY_OBJECT))
-				if (DISTANCE_APPROX(ent->GetX() - m_me->GetX(), ent->GetY() - m_me->GetY()) > dwViewRange)
+			if (!ent->is_type(ENTITY_OBJECT))
+				if (distance_approx(ent->x() - me->x(), ent->y() - me->y()) > view_range_)
 					return;
 
 			// Add me to the target
-			m_me->ViewInsert(ent);
+			me->view_insert(ent);
 
 			// If both are characters
-			if (ent->IsType(ENTITY_CHARACTER) && m_me->IsType(ENTITY_CHARACTER))
+			if (ent->is_type(ENTITY_CHARACTER) && me->is_type(ENTITY_CHARACTER))
 			{
-				CHARACTER * chMe = (CHARACTER *) m_me;
-				CHARACTER * chEnt = (CHARACTER *) ent;
+				character * chMe = (character *) me;
+				character * chEnt = (character *) ent;
 
 				// If the target is an NPC, turn on its StateMachine.
-				if (chMe->IsPC() && !chEnt->IsPC() && !chEnt->IsWarp() && !chEnt->IsGoto())
-					chEnt->StartStateMachine();
+				if (chMe->is_pc() && !chEnt->is_pc() && !chEnt->is_warp() && !chEnt->is_goto())
+					chEnt->start_state_machine();
 			}
 		}
 };
 
-void CEntity::UpdateSectree()
+void entity::update_sectree()
 {
-	if (!GetSectree())
+	if (!get_sectree())
 	{
-		if (IsType(ENTITY_CHARACTER))
+		if (is_type(ENTITY_CHARACTER))
 		{
-			CHARACTER * tch = (CHARACTER *) this;
-			metin2::log::error("null sectree name: {} {:d} {:d}",  tch->GetName(), GetX(), GetY());
+			character * tch = (character *) this;
+			metin2::log::error("null sectree name: {} {:d} {:d}",  tch->name(), x(), y());
 		}
 
 		return;
 	}
 
-	++m_iViewAge;
+	++view_age_;
 
-	CFuncViewInsert f(this); // Add me to the people in the sectree
-	GetSectree()->ForEachAround(f);
+	func_view_insert f(this); // Add me to the people in the sectree
+	get_sectree()->for_each_around(f);
 
-	ENTITY_MAP::iterator it, this_it;
+	entity_map::iterator it, this_it;
 
 	//
 	// Remove unneeded entries from m_map_view
 	// 
-	if (m_bObserverModeChange)
+	if (observer_mode_change_)
 	{
-		if (m_bIsObserver)
+		if (is_observer_)
 		{
-			it = m_map_view.begin();
+			it = map_view_.begin();
 
-			while (it != m_map_view.end())
+			while (it != map_view_.end())
 			{
 				this_it = it++;
-				if (this_it->second < m_iViewAge)
+				if (this_it->second < view_age_)
 				{
-					CEntity * ent = this_it->first;
+					entity * ent = this_it->first;
 
 					// Remove the other from me.
-					ent->EncodeRemovePacket(this);
-					m_map_view.erase(this_it);
+					ent->encode_remove_packet(this);
+					map_view_.erase(this_it);
 
 					// Remove me from the other.
-					ent->ViewRemove(this, false);
+					ent->view_remove(this, false);
 				}
 				else
 				{
 
-					CEntity * ent = this_it->first;
+					entity * ent = this_it->first;
 
 					// Remove the other from me.
 
 					// Remove me from the other.
-					EncodeRemovePacket(ent);
+					encode_remove_packet(ent);
 				}
 			}
 		}
 		else
 		{
-			it = m_map_view.begin();
+			it = map_view_.begin();
 
-			while (it != m_map_view.end())
+			while (it != map_view_.end())
 			{
 				this_it = it++;
 
-				if (this_it->second < m_iViewAge)
+				if (this_it->second < view_age_)
 				{
-					CEntity * ent = this_it->first;
+					entity * ent = this_it->first;
 
 					// Remove the other from me.
-					ent->EncodeRemovePacket(this);
-					m_map_view.erase(this_it);
+					ent->encode_remove_packet(this);
+					map_view_.erase(this_it);
 
 					// Remove me from the other.
-					ent->ViewRemove(this, false);
+					ent->view_remove(this, false);
 				}
 				else
 				{
-					CEntity * ent = this_it->first;
-					ent->EncodeInsertPacket(this);
-					EncodeInsertPacket(ent);
+					entity * ent = this_it->first;
+					ent->encode_insert_packet(this);
+					encode_insert_packet(ent);
 
-					ent->ViewInsert(this, true);
+					ent->view_insert(this, true);
 				}
 			}
 		}
 
-		m_bObserverModeChange = false;
+		observer_mode_change_ = false;
 	}
 	else
 	{
-		if (!m_bIsObserver)
+		if (!is_observer_)
 		{
-			it = m_map_view.begin();
+			it = map_view_.begin();
 
-			while (it != m_map_view.end())
+			while (it != map_view_.end())
 			{
 				this_it = it++;
 
-				if (this_it->second < m_iViewAge)
+				if (this_it->second < view_age_)
 				{
-					CEntity * ent = this_it->first;
+					entity * ent = this_it->first;
 
 					// Remove the other from me.
-					ent->EncodeRemovePacket(this);
-					m_map_view.erase(this_it);
+					ent->encode_remove_packet(this);
+					map_view_.erase(this_it);
 
 					// Remove me from the other.
-					ent->ViewRemove(this, false);
+					ent->view_remove(this, false);
 				}
 			}
 		}

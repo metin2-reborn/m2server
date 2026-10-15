@@ -39,15 +39,15 @@ constexpr int EMPIRE_YELLOW = 2; // Chunjo
 constexpr int EMPIRE_BLUE = 3; // Jinno
 
 
-#define SIEGE_EVENT_PULSE	PASSES_PER_SEC(60*5)	// 5 minutes
+#define SIEGE_EVENT_PULSE	passes_per_sec(60*5)	// 5 minutes
 
 
-#define GET_CASTLE(empire)								(s_castle+(empire))
+#define GET_CASTLE(empire)								(castle+(empire))
 #define GET_GUARD(empire, region_index, guard_index)	(GET_CASTLE(empire)->guard[region_index][guard_index])
 #define GET_GUARD_REGION(empire, region_index)			(s_guard_region[empire][region_index])
 #define GET_GUARD_GROUP(empire, region_index, guard_index)	(GET_CASTLE(empire)->guard_group[region_index][guard_index])
 #define GET_FROG(empire, index)							(GET_CASTLE(empire)->frog[index])
-#define GET_FROG_POS(empire, index)						(s_frog_pos[empire][index])
+#define GET_FROG_POS(empire, index)						(frog_pos[empire][index])
 #define GET_TOWER(empire, index)							(GET_CASTLE(empire)->tower[index])
 
 #define DO_ALL_EMPIRE(empire)	for (int empire = 1; empire < 4; ++empire)
@@ -55,25 +55,25 @@ constexpr int EMPIRE_BLUE = 3; // Jinno
 #define DO_ALL_FROG(i)			for (int i = 0; i < MAX_CASTLE_FROG; ++i)
 
 
-#define GET_SIEGE_STATE()			s_siege_state
-#define GET_SIEGE_EMPIRE()			s_sige_empire
+#define GET_SIEGE_STATE()			siege_state
+#define GET_SIEGE_EMPIRE()			sige_empire
 #define GET_SIEGE_EVENT(empire)		(GET_CASTLE(empire)->siege_event)
 #define GET_STONE_EVENT(empire)		(GET_CASTLE(empire)->stone_event)
 
-#define GET_TOWER_REGION(empire)	s_tower_region[empire]
+#define GET_TOWER_REGION(empire)	tower_region[empire]
 
 
-static CASTLE_DATA	*s_castle		= nullptr;
-static CASTLE_STATE	s_siege_state	= CASTLE_SIEGE_NONE;
-static int			s_sige_empire	= EMPIRE_NONE;
+static castle_data	*castle		= nullptr;
+static castle_state	siege_state	= CASTLE_SIEGE_NONE;
+static int			sige_empire	= EMPIRE_NONE;
 
 
-struct POSITION
+struct position
 {
 	int	x, y;
 };
 
-static POSITION	s_frog_pos[4][MAX_CASTLE_FROG] = {
+static position	frog_pos[4][MAX_CASTLE_FROG] = {
 	// EMPIRE_NONE
 	{
 		{ 0, 0 },
@@ -182,12 +182,12 @@ static POSITION	s_frog_pos[4][MAX_CASTLE_FROG] = {
 
 
 /* Guard patrol zone */
-struct GUARD_REGION
+struct guard_region
 {
 	int	sx, sy, ex, ey;
 };
 
-static GUARD_REGION s_guard_region[4][4] = {
+static guard_region s_guard_region[4][4] = {
 	// NULL_EMPIRE
 	{
 		{ 0, 0, 0, 0 },
@@ -218,7 +218,7 @@ static GUARD_REGION s_guard_region[4][4] = {
 	}
 };
 
-static GUARD_REGION s_tower_region[4] = {
+static guard_region tower_region[4] = {
 	// NULL_EMPIRE
 	{ 0, 0, 0, 0 },
 	// EMPIRE_RED
@@ -230,7 +230,7 @@ static GUARD_REGION s_tower_region[4] = {
 };
 
 
-static int32_t FN_castle_map_index(int empire);
+static int32_t fn_castle_map_index(int empire);
 
 EVENTINFO(castle_event_info)
 {
@@ -258,11 +258,11 @@ EVENTFUNC(castle_siege_event)
 	info->pulse += SIEGE_EVENT_PULSE;
 
 	// Within 30 minutes of siege start, just show a notice
-	if (info->pulse < PASSES_PER_SEC(30*60))
+	if (info->pulse < passes_per_sec(30*60))
 	{
-		snprintf(buf, sizeof(buf), LC_TEXT("%s에서 봉화를 둘러싸고 전투가 진행중입니다."),
-				EMPIRE_NAME(GET_SIEGE_EMPIRE()));
-		BroadcastNotice(buf);
+		snprintf(buf, sizeof(buf), lc_text("%s에서 봉화를 둘러싸고 전투가 진행중입니다."),
+				empire_name(GET_SIEGE_EMPIRE()));
+		broadcast_notice(buf);
 
 		return SIEGE_EVENT_PULSE;
 	}
@@ -274,19 +274,19 @@ EVENTFUNC(castle_siege_event)
 
 		case CASTLE_SIEGE_STRUGGLE:
 			{
-				snprintf(buf, sizeof(buf), LC_TEXT("%s이 수성에 성공했습니다."), EMPIRE_NAME(GET_SIEGE_EMPIRE()));
-				BroadcastNotice(buf);
+				snprintf(buf, sizeof(buf), lc_text("%s이 수성에 성공했습니다."), empire_name(GET_SIEGE_EMPIRE()));
+				broadcast_notice(buf);
 
-				snprintf(buf, sizeof(buf), LC_TEXT("지금부터 %s은 30분간 봉화를 파괴하여 보상을 획득 할 수 있습니다."), EMPIRE_NAME(GET_SIEGE_EMPIRE()));
-				BroadcastNotice(buf);
+				snprintf(buf, sizeof(buf), lc_text("지금부터 %s은 30분간 봉화를 파괴하여 보상을 획득 할 수 있습니다."), empire_name(GET_SIEGE_EMPIRE()));
+				broadcast_notice(buf);
 
 				GET_SIEGE_STATE() = CASTLE_SIEGE_END;
 
-				return PASSES_PER_SEC(60*30);	// 30 minutes
+				return passes_per_sec(60*30);	// 30 minutes
 			}
 			break;
 		case CASTLE_SIEGE_END:
-			BroadcastNotice(LC_TEXT("30분이 경과했습니다.. 봉화가 사라집니다."));
+			broadcast_notice(lc_text("30분이 경과했습니다.. 봉화가 사라집니다."));
 			castle_end_siege();
 			break;
 	}
@@ -294,7 +294,7 @@ EVENTFUNC(castle_siege_event)
 }
 
 
-static uint32_t FN_random_stone()
+static uint32_t fn_random_stone()
 {
 	uint32_t	vnum[7] = {
 		8012,
@@ -334,9 +334,9 @@ EVENTFUNC(castle_stone_event)
 		return 0;
 	}
 
-	int32_t	map_index	= FN_castle_map_index(GET_SIEGE_EMPIRE());
+	int32_t	map_index	= fn_castle_map_index(GET_SIEGE_EMPIRE());
 
-	SECTREE_MAP	*sectree_map = SECTREE_MANAGER::instance().GetMap(map_index);
+	sectree_map	*sectree_map = sectree_manager::instance().map(map_index);
 
 	if (nullptr == sectree_map)
 		return 0;
@@ -348,20 +348,20 @@ EVENTFUNC(castle_stone_event)
 	{
 		for (int i = 0; i < SPAWN_COUNT; ++i)
 		{
-			uint32_t	sx = sectree_map->m_setting.iBaseX + 100 * GET_TOWER_REGION(info->empire).sx;
-			uint32_t	sy = sectree_map->m_setting.iBaseY + 100 * GET_TOWER_REGION(info->empire).sy;
-			uint32_t	ex = sectree_map->m_setting.iBaseX + 100 * GET_TOWER_REGION(info->empire).ex;
-			uint32_t	ey = sectree_map->m_setting.iBaseY + 100 * GET_TOWER_REGION(info->empire).ey;
+			uint32_t	sx = sectree_map->setting.base_x + 100 * GET_TOWER_REGION(info->empire).sx;
+			uint32_t	sy = sectree_map->setting.base_y + 100 * GET_TOWER_REGION(info->empire).sy;
+			uint32_t	ex = sectree_map->setting.base_x + 100 * GET_TOWER_REGION(info->empire).ex;
+			uint32_t	ey = sectree_map->setting.base_y + 100 * GET_TOWER_REGION(info->empire).ey;
 
-			CHARACTER_MANAGER::instance().SpawnMobRange(FN_random_stone(),
-														FN_castle_map_index(info->empire),
+			character_manager::instance().spawn_mob_range(fn_random_stone(),
+														fn_castle_map_index(info->empire),
 														sx, sy, ex, ey);
 		}
 
 		info->spawn_count += SPAWN_COUNT;
 
 		if (info->spawn_count < (SPAWN_COUNT * 2))
-			return PASSES_PER_SEC(30 * 60);	// 30 minutes
+			return passes_per_sec(30 * 60);	// 30 minutes
 		else
 			return 0;
 	}
@@ -371,9 +371,9 @@ EVENTFUNC(castle_stone_event)
 
 
 
-CHARACTER * castle_spawn_frog_force(int empire, int empty_index);
+character * castle_spawn_frog_force(int empire, int empty_index);
 
-static int32_t FN_castle_map_index(int empire)
+static int32_t fn_castle_map_index(int empire)
 {
 	switch (empire)
 	{
@@ -384,7 +384,7 @@ static int32_t FN_castle_map_index(int empire)
 	return 0;
 }
 
-static int FN_empty_frog_index(int empire)
+static int fn_empty_frog_index(int empire)
 {
 	DO_ALL_FROG(i)
 	{
@@ -394,9 +394,9 @@ static int FN_empty_frog_index(int empire)
 	return (-1);
 }
 
-static POSITION* FN_empty_frog_pos(int empire)
+static position* fn_empty_frog_pos(int empire)
 {
-	int	frog_index = FN_empty_frog_index(empire);
+	int	frog_index = fn_empty_frog_index(empire);
 
 	if (frog_index < 0)
 		return nullptr;
@@ -412,7 +412,7 @@ static POSITION* FN_empty_frog_pos(int empire)
 	return nullptr;
 }
 
-static int FN_empty_guard_pos(int empire, int region_index)
+static int fn_empty_guard_pos(int empire, int region_index)
 {
 	for (int i = 0; i < MAX_CASTLE_GUARD_PER_REGION; ++i)
 	{
@@ -425,7 +425,7 @@ static int FN_empty_guard_pos(int empire, int region_index)
 	return -1;
 }
 
-static bool FN_is_castle_map(int map_index)
+static bool fn_is_castle_map(int map_index)
 {
 	switch (map_index)
 	{
@@ -447,7 +447,7 @@ bool castle_boot()
 	int		empire			= 0;
 	int		guard_region	= 0;
 
-	s_castle = new CASTLE_DATA[4]();
+	castle = new castle_data[4]();
 
 	const char	*castle_file = "castle_data.txt";
 
@@ -526,7 +526,7 @@ bool castle_boot()
 
 void castle_save()
 {
-	if (nullptr == s_castle)
+	if (nullptr == castle)
 		return;
 
 	const char	*castle_file = "castle_data.txt";
@@ -576,9 +576,9 @@ int castle_siege(int empire, int tower_count)
 {
 	// check siege map
 	{
-		if (nullptr == SECTREE_MANAGER::instance().GetMap(181)) return 0;
-		if (nullptr == SECTREE_MANAGER::instance().GetMap(182)) return 0;
-		if (nullptr == SECTREE_MANAGER::instance().GetMap(183)) return 0;
+		if (nullptr == sectree_manager::instance().map(181)) return 0;
+		if (nullptr == sectree_manager::instance().map(182)) return 0;
+		if (nullptr == sectree_manager::instance().map(183)) return 0;
 	}
 
 	switch (GET_SIEGE_STATE())
@@ -610,7 +610,7 @@ void castle_start_siege(int empire, int tower_count)
 
 	/* Start siege timer */
 	{
-		castle_event_info* info = AllocEventInfo<castle_event_info>();
+		castle_event_info* info = alloc_event_info<castle_event_info>();
 
 		info->empire = empire;
 		info->pulse	= 0;
@@ -620,12 +620,12 @@ void castle_start_siege(int empire, int tower_count)
 
 	/* Start metin stone summon timer */
 	{
-		castle_stone_event_info* info = AllocEventInfo<castle_stone_event_info>();
+		castle_stone_event_info* info = alloc_event_info<castle_stone_event_info>();
 
 		info->spawn_count = 0;
 		info->empire = empire;
 
-		GET_STONE_EVENT(empire) = event_create(castle_stone_event, info, /* 1 second */PASSES_PER_SEC(1));
+		GET_STONE_EVENT(empire) = event_create(castle_stone_event, info, /* 1 second */passes_per_sec(1));
 	}
 }
 
@@ -645,8 +645,8 @@ void castle_end_siege()
 		{
 			if (GET_TOWER(empire, i))
 			{
-				CHARACTER *	npc = GET_TOWER(empire, i);
-				CHARACTER_MANAGER::instance().DestroyCharacter(npc);
+				character *	npc = GET_TOWER(empire, i);
+				character_manager::instance().destroy_character(npc);
 				GET_TOWER(empire, i) = nullptr;
 			}
 		}
@@ -654,29 +654,29 @@ void castle_end_siege()
 }
 
 
-CHARACTER * castle_spawn_frog(int empire)
+character * castle_spawn_frog(int empire)
 {
 	int		dir = 1;
-	int32_t	map_index	= FN_castle_map_index(empire);
+	int32_t	map_index	= fn_castle_map_index(empire);
 
 	/* Is there a place to summon the golden toad? */
-	POSITION	*empty_pos = FN_empty_frog_pos(empire);
+	position	*empty_pos = fn_empty_frog_pos(empire);
 	if (nullptr == empty_pos)
 		return nullptr;
 
-	SECTREE_MAP	*sectree_map = SECTREE_MANAGER::instance().GetMap(map_index);
+	sectree_map	*sectree_map = sectree_manager::instance().map(map_index);
 	if (nullptr == sectree_map)
 		return nullptr;
-	uint32_t x = sectree_map->m_setting.iBaseX + 100*empty_pos->x;
-	uint32_t y = sectree_map->m_setting.iBaseY + 100*empty_pos->y;
+	uint32_t x = sectree_map->setting.base_x + 100*empty_pos->x;
+	uint32_t y = sectree_map->setting.base_y + 100*empty_pos->y;
 
-	CHARACTER * frog = CHARACTER_MANAGER::instance().SpawnMob(CASTLE_FROG_VNUM, map_index,
+	character * frog = character_manager::instance().spawn_mob(CASTLE_FROG_VNUM, map_index,
 															x, y, 0 ,
 															false, dir);
 	if (frog)
 	{
-		frog->SetEmpire(empire);
-		int empty_index	= FN_empty_frog_index(empire);
+		frog->set_empire(empire);
+		int empty_index	= fn_empty_frog_index(empire);
 		// Spawn succeeded
 		GET_FROG(empire, empty_index) = frog;
 		return frog;
@@ -684,27 +684,27 @@ CHARACTER * castle_spawn_frog(int empire)
 	return nullptr;
 }
 
-CHARACTER * castle_spawn_frog_force(int empire, int empty_index)
+character * castle_spawn_frog_force(int empire, int empty_index)
 {
 	int		dir = 1;
-	int32_t	map_index	= FN_castle_map_index(empire);
+	int32_t	map_index	= fn_castle_map_index(empire);
 
-	POSITION	*empty_pos = &GET_FROG_POS(empire, empty_index);
+	position	*empty_pos = &GET_FROG_POS(empire, empty_index);
 
-	SECTREE_MAP	*sectree_map = SECTREE_MANAGER::instance().GetMap(map_index);
+	sectree_map	*sectree_map = sectree_manager::instance().map(map_index);
 	if (nullptr == sectree_map)
 	{
 		return nullptr;
 	}
-	uint32_t x = sectree_map->m_setting.iBaseX + 100*empty_pos->x;
-	uint32_t y = sectree_map->m_setting.iBaseY + 100*empty_pos->y;
+	uint32_t x = sectree_map->setting.base_x + 100*empty_pos->x;
+	uint32_t y = sectree_map->setting.base_y + 100*empty_pos->y;
 
-	CHARACTER * frog = CHARACTER_MANAGER::instance().SpawnMob(CASTLE_FROG_VNUM, map_index,
+	character * frog = character_manager::instance().spawn_mob(CASTLE_FROG_VNUM, map_index,
 															x, y, 0 ,
 															false, dir);
 	if (frog)
 	{
-		frog->SetEmpire(empire);
+		frog->set_empire(empire);
 		GET_FROG(empire, empty_index) = frog;
 		return frog;
 	}
@@ -712,31 +712,31 @@ CHARACTER * castle_spawn_frog_force(int empire, int empty_index)
 }
 
 
-CHARACTER * castle_spawn_guard(int empire, uint32_t group_vnum, int region_index)
+character * castle_spawn_guard(int empire, uint32_t group_vnum, int region_index)
 {
-	CHARACTER *	mob;
+	character *	mob;
 	int	sx, sy, ex, ey;
-	int32_t	map_index	= FN_castle_map_index(empire);
+	int32_t	map_index	= fn_castle_map_index(empire);
 
-	SECTREE_MAP	*sectree_map = SECTREE_MANAGER::instance().GetMap(map_index);
+	sectree_map	*sectree_map = sectree_manager::instance().map(map_index);
 	if (nullptr == sectree_map)
 		return nullptr;
 
 	if (castle_guard_count(empire, region_index) >= MAX_CASTLE_GUARD_PER_REGION)
 		return nullptr;
 
-	sx = sectree_map->m_setting.iBaseX + 100*GET_GUARD_REGION(empire, region_index).sx;
-	sy = sectree_map->m_setting.iBaseY + 100*GET_GUARD_REGION(empire, region_index).sy;
-	ex = sectree_map->m_setting.iBaseX + 100*GET_GUARD_REGION(empire, region_index).ex;
-	ey = sectree_map->m_setting.iBaseY + 100*GET_GUARD_REGION(empire, region_index).ey;
+	sx = sectree_map->setting.base_x + 100*GET_GUARD_REGION(empire, region_index).sx;
+	sy = sectree_map->setting.base_y + 100*GET_GUARD_REGION(empire, region_index).sy;
+	ex = sectree_map->setting.base_x + 100*GET_GUARD_REGION(empire, region_index).ex;
+	ey = sectree_map->setting.base_y + 100*GET_GUARD_REGION(empire, region_index).ey;
 
-	mob = CHARACTER_MANAGER::instance().SpawnGroup(group_vnum, map_index,
+	mob = character_manager::instance().spawn_group(group_vnum, map_index,
 													sx, sy, ex, ey);
 	if (mob)
 	{
-		mob->SetEmpire(empire);
+		mob->set_empire(empire);
 
-		int	pos = FN_empty_guard_pos(empire, region_index);
+		int	pos = fn_empty_guard_pos(empire, region_index);
 		GET_GUARD(empire, region_index, pos) = mob;
 		GET_GUARD_GROUP(empire, region_index, pos) = group_vnum;
 	}
@@ -745,7 +745,7 @@ CHARACTER * castle_spawn_guard(int empire, uint32_t group_vnum, int region_index
 }
 
 
-static uint32_t FN_random_tower()
+static uint32_t fn_random_tower()
 {
 	uint32_t vnum[5] =
 	{
@@ -760,31 +760,31 @@ static uint32_t FN_random_tower()
 	return vnum[index];
 }
 
-static void FN_spawn_tower(int empire, SECTREE_MAP * sectree_map)
+static void fn_spawn_tower(int empire, sectree_map * sectree_map)
 {
 	DO_ALL_TOWER(i)
 	{
 		if (GET_TOWER(empire, i))
 			continue;
 
-		uint32_t	sx = sectree_map->m_setting.iBaseX + 100 * GET_TOWER_REGION(empire).sx;
-		uint32_t	sy = sectree_map->m_setting.iBaseY + 100 * GET_TOWER_REGION(empire).sy;
-		uint32_t	ex = sectree_map->m_setting.iBaseX + 100 * GET_TOWER_REGION(empire).ex;
-		uint32_t	ey = sectree_map->m_setting.iBaseY + 100 * GET_TOWER_REGION(empire).ey;
+		uint32_t	sx = sectree_map->setting.base_x + 100 * GET_TOWER_REGION(empire).sx;
+		uint32_t	sy = sectree_map->setting.base_y + 100 * GET_TOWER_REGION(empire).sy;
+		uint32_t	ex = sectree_map->setting.base_x + 100 * GET_TOWER_REGION(empire).ex;
+		uint32_t	ey = sectree_map->setting.base_y + 100 * GET_TOWER_REGION(empire).ey;
 
 		GET_TOWER(empire, i) =
-			CHARACTER_MANAGER::instance().SpawnMobRange(FN_random_tower(),
-														FN_castle_map_index(empire),
+			character_manager::instance().spawn_mob_range(fn_random_tower(),
+														fn_castle_map_index(empire),
 														sx, sy, ex, ey);
-		GET_TOWER(empire, i)->SetEmpire(empire);
+		GET_TOWER(empire, i)->set_empire(empire);
 		return;
 	}
 }
 
 bool castle_spawn_tower(int empire, int tower_count)
 {
-	int	map_index = FN_castle_map_index(empire);
-	SECTREE_MAP	*sectree_map = SECTREE_MANAGER::instance().GetMap(map_index);
+	int	map_index = fn_castle_map_index(empire);
+	sectree_map	*sectree_map = sectree_manager::instance().map(map_index);
 	if (nullptr == sectree_map)
 		return false;
 
@@ -792,7 +792,7 @@ bool castle_spawn_tower(int empire, int tower_count)
 	DO_ALL_TOWER(i)
 	{
 		if (GET_TOWER(empire, i))
-				GET_TOWER(empire, i)->Dead(nullptr, true);
+				GET_TOWER(empire, i)->dead(nullptr, true);
 		GET_TOWER(empire, i) = nullptr;
 	}
 
@@ -800,22 +800,22 @@ bool castle_spawn_tower(int empire, int tower_count)
 
 	for (int j = 0; j < spawn_count; ++j)
 	{
-		FN_spawn_tower(empire, sectree_map);
+		fn_spawn_tower(empire, sectree_map);
 	}
 
 	// broad cast
 	{
 		char buf[1024];
-		snprintf(buf, sizeof(buf), LC_TEXT("%s에 전쟁의 시작을 알리는 봉화가 나타났습니다."), EMPIRE_NAME(empire));
-		BroadcastNotice(buf);
+		snprintf(buf, sizeof(buf), lc_text("%s에 전쟁의 시작을 알리는 봉화가 나타났습니다."), empire_name(empire));
+		broadcast_notice(buf);
 	}
 	return true;
 }
 
 /* When a guard leader dies, simply clear the slot. */
-void castle_guard_die(CHARACTER * ch, CHARACTER * killer)
+void castle_guard_die(character * ch, character * killer)
 {
-	int	empire = ch->GetEmpire();
+	int	empire = ch->empire();
 
 	for (int region_index = 0; region_index < MAX_CASTLE_GUARD_REGION; ++region_index)
 	{
@@ -834,12 +834,12 @@ void castle_guard_die(CHARACTER * ch, CHARACTER * killer)
 
 
 /* When a golden toad dies, the killer gets 10 million yang */
-void castle_frog_die(CHARACTER * ch, CHARACTER * killer)
+void castle_frog_die(character * ch, character * killer)
 {
 	if (nullptr == ch || nullptr == killer)
 		return;
 
-	int	empire = ch->GetEmpire();
+	int	empire = ch->empire();
 
 	DO_ALL_FROG(i)
 	{
@@ -847,7 +847,7 @@ void castle_frog_die(CHARACTER * ch, CHARACTER * killer)
 		{
 			GET_FROG(empire, i) = nullptr;
 
-			killer->PointChange(POINT_GOLD, 10000000 /*10 million*/, true);
+			killer->point_change(POINT_GOLD, 10000000 /*10 million*/, true);
 			//CMonarch::instance().SendtoDBAddMoney(30000000/*30 million*/, killer->GetEmpire(), killer);
 			castle_save();
 			return;
@@ -856,14 +856,14 @@ void castle_frog_die(CHARACTER * ch, CHARACTER * killer)
 }
 
 /* The siege ends when all beacons die(?) */
-void castle_tower_die(CHARACTER * ch, CHARACTER * killer)
+void castle_tower_die(character * ch, character * killer)
 {
 	char	buf[1024] = {0};
 
 	if (nullptr == ch || nullptr == killer)
 		return;
 
-	int	killer_empire = killer->GetEmpire();
+	int	killer_empire = killer->empire();
 
 	switch (GET_SIEGE_STATE())
 	{
@@ -874,10 +874,10 @@ void castle_tower_die(CHARACTER * ch, CHARACTER * killer)
 		case CASTLE_SIEGE_END:
 			{
 				int	siege_end = true;
-				snprintf(buf, sizeof(buf), LC_TEXT("%s이 봉화를 파괴했습니다."), EMPIRE_NAME(killer_empire));
-				BroadcastNotice(buf);
+				snprintf(buf, sizeof(buf), lc_text("%s이 봉화를 파괴했습니다."), empire_name(killer_empire));
+				broadcast_notice(buf);
 
-				LogManager::instance().CharLog(killer, 0, "CASTLE_TORCH_KILL", "");
+				log_manager::instance().char_log(killer, 0, "CASTLE_TORCH_KILL", "");
 
 				DO_ALL_TOWER(i)
 				{
@@ -895,13 +895,13 @@ void castle_tower_die(CHARACTER * ch, CHARACTER * killer)
 				{
 					if (GET_SIEGE_STATE() == CASTLE_SIEGE_STRUGGLE)
 					{
-						snprintf(buf, sizeof(buf), LC_TEXT("%s이 수성에 실패하여 전쟁에 패배하였습니다.."), EMPIRE_NAME(GET_SIEGE_EMPIRE()));
-						BroadcastNotice(buf);
+						snprintf(buf, sizeof(buf), lc_text("%s이 수성에 실패하여 전쟁에 패배하였습니다.."), empire_name(GET_SIEGE_EMPIRE()));
+						broadcast_notice(buf);
 					}
 					else
 					{
-						snprintf(buf, sizeof(buf), LC_TEXT("%s이 모든 봉화를 파괴하였습니다."), EMPIRE_NAME(GET_SIEGE_EMPIRE()));
-						BroadcastNotice(buf);
+						snprintf(buf, sizeof(buf), lc_text("%s이 모든 봉화를 파괴하였습니다."), empire_name(GET_SIEGE_EMPIRE()));
+						broadcast_notice(buf);
 					}
 					castle_end_siege();
 				}
@@ -996,23 +996,23 @@ int castle_cost_of_hiring_guard(uint32_t group_vnum)
 	return 0;
 }
 
-bool castle_can_attack(CHARACTER * ch, CHARACTER * victim)
+bool castle_can_attack(character * ch, character * victim)
 {
 	if (nullptr == ch || nullptr == victim)
 		return false;
 
-	if (false == FN_is_castle_map(ch->GetMapIndex()))
+	if (false == fn_is_castle_map(ch->map_index()))
 		return false;
 
-	if (ch->IsPC() && victim->IsPC())
+	if (ch->is_pc() && victim->is_pc())
 		return true;
 
 	if (CASTLE_SIEGE_END == GET_SIEGE_STATE())
 	{
 		// After a successful defense, only the same empire can hit the beacons
-		if (castle_is_tower_vnum(victim->GetRaceNum()))
+		if (castle_is_tower_vnum(victim->race_num()))
 		{
-			if (ch->GetEmpire() == victim->GetEmpire())
+			if (ch->empire() == victim->empire())
 				return true;
 			else
 				return false;
@@ -1020,7 +1020,7 @@ bool castle_can_attack(CHARACTER * ch, CHARACTER * victim)
 	}
 
 	// Same empire cannot destroy it
-	if (ch->GetEmpire() == victim->GetEmpire())
+	if (ch->empire() == victim->empire())
 		return false;
 
 	return true;

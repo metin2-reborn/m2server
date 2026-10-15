@@ -12,13 +12,13 @@ namespace quest
 	{
 		if ( lua_isnumber(L, 1) )
 		{
-			CBattleArena::instance().Start((int)lua_tonumber(L, 1));
+			battle_arena::instance().start((int)lua_tonumber(L, 1));
 		}
 
 		return 0;
 	}
 
-	void RegisterBattleArenaFunctionTable()
+	void register_battle_arena_function_table()
 	{
 		luaL_reg ba_functions[] =
 		{
@@ -27,7 +27,7 @@ namespace quest
 			{	nullptr,		nullptr		}
 		};
 
-		CQuestManager::instance(). AddLuaFunctionTable("ba", ba_functions);
+		quest_manager::instance(). add_lua_function_table("ba", ba_functions);
 	}
 }
 }
