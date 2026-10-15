@@ -15,7 +15,7 @@
 #include "typedef.h"
 #include "utils.h"
 
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <cstdint>
 #include <cstdio>
@@ -94,7 +94,7 @@ EVENTFUNC( DragonLair_Collapse_Event )
 
 	if ( pInfo == nullptr )
 	{
-		sys_err( "DragonLair_Collapse_Event> <Factor> Null pointer" );
+		metin2::log::error( "DragonLair_Collapse_Event> <Factor> Null pointer" );
 		return 0;
 	}
 
@@ -156,7 +156,7 @@ uint32_t CDragonLair::GetEstimatedTime() const
 
 void CDragonLair::OnDragonDead(CHARACTER * pDragon)
 {
-	sys_log(0, "DragonLair: 도라곤이 죽어써효");
+	metin2::log::info( "DragonLair: 도라곤이 죽어써효");
 
 	LogManager::instance().DragonSlayLog(  GuildID_, pDragon->GetMobTable().dwVnum, StartTime_, get_global_time() );
 }
@@ -184,7 +184,7 @@ bool CDragonLairManager::Start(int32_t MapIndexFrom, int32_t BaseMapIndex, uint3
 {
 	int32_t instanceMapIndex = SECTREE_MANAGER::instance().CreatePrivateMap(BaseMapIndex);
 	if (instanceMapIndex == 0) {
-		sys_err("CDragonLairManager::Start() : no private map index available");
+		metin2::log::error("CDragonLairManager::Start() : no private map index available");
 		return false;
 	}
 
@@ -213,7 +213,7 @@ bool CDragonLairManager::Start(int32_t MapIndexFrom, int32_t BaseMapIndex, uint3
 
 			strMapBasePath += "/" + pRegionInfo->strMapName + "/instance_regen.txt";
 
-			sys_log(0, "%s", strMapBasePath.c_str());
+			metin2::log::info( "{}", strMapBasePath.c_str());
 
 			regen_do(strMapBasePath.c_str(), instanceMapIndex, pTargetMap->m_setting.iBaseX, pTargetMap->m_setting.iBaseY, nullptr, true);
 

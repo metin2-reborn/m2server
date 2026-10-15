@@ -10,7 +10,7 @@
 #include "questmanager.h"
 #include "utils.h"
 
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <algorithm>
 #include <cstdint>
@@ -144,7 +144,7 @@ namespace quest
 		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
 
 		int pct = std::clamp(ch->GetHorseHealth() * 100 / ch->GetHorseMaxHealth(), 0, 100);
-		sys_log(1, "horse.get_health_pct %d", pct);
+		metin2::log::debug( "horse.get_health_pct {:d}", pct);
 
 		if (ch->GetHorseLevel())
 			lua_pushnumber(L, pct);
@@ -170,7 +170,7 @@ namespace quest
 	{
 		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
 		int pct = std::clamp(ch->GetHorseStamina() * 100 / ch->GetHorseMaxStamina(), 0, 100);
-		sys_log(1, "horse.get_stamina_pct %d", pct);
+		metin2::log::debug( "horse.get_stamina_pct {:d}", pct);
 
 		if (ch->GetHorseLevel())
 			lua_pushnumber(L, pct);

@@ -7,5 +7,5 @@ add_library(sql
 
 target_link_libraries(sql
     PUBLIC mariadb
-    PRIVATE thecore
+    PRIVATE metin2_log thecore
 )

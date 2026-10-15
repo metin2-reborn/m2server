@@ -10,7 +10,7 @@
 
 #include <common/length.h>
 #include <common/utils.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/utils.h>
 
 #include <cstdint>
@@ -149,7 +149,7 @@ static bool read_line(FILE *fp, REGEN * regen)
 					regen->type = REGEN_TYPE_ANYWHERE;
 				else
 				{
-					sys_err("read_line: unknown regen type %c", szTmp[0]);
+					metin2::log::error("read_line: unknown regen type {:c}", szTmp[0]);
 					exit(1);
 				}
 
@@ -401,7 +401,7 @@ EVENTFUNC(dungeon_regen_event)
 
 	if ( info == nullptr )
 	{
-		sys_err( "dungeon_regen_event> <Factor> Null pointer" );
+		metin2::log::error( "dungeon_regen_event> <Factor> Null pointer" );
 		return 0;
 	}
 
@@ -433,7 +433,7 @@ bool regen_do(const char* filename, int32_t lMapIndex, int base_x, int base_y, C
 
 	if (nullptr == fp)
 	{
-		sys_err("SYSTEM: regen_do: %s: file not found", filename);
+		metin2::log::error("SYSTEM: regen_do: {}: file not found", filename);
 		return false;
 	}
 
@@ -488,7 +488,7 @@ bool regen_do(const char* filename, int32_t lMapIndex, int base_x, int base_y, C
 
 				if (!p)
 				{
-					sys_err("No mob data by vnum %u", regen->vnum);
+					metin2::log::error("No mob data by vnum {:d}", regen->vnum);
 					if (!bOnce) {
 						delete regen;
 					}
@@ -530,7 +530,7 @@ bool regen_load_in_file(const char* filename, int32_t lMapIndex, int base_x, int
 
 	if (nullptr == fp)
 	{
-		sys_err("SYSTEM: regen_do: %s: file not found", filename);
+		metin2::log::error("SYSTEM: regen_do: {}: file not found", filename);
 		return false;
 	}
 
@@ -579,7 +579,7 @@ bool regen_load_in_file(const char* filename, int32_t lMapIndex, int base_x, int
 
 				if (!p)
 				{
-					sys_err("No mob data by vnum %u", regen->vnum);
+					metin2::log::error("No mob data by vnum {:d}", regen->vnum);
 					continue;
 				}
 			}
@@ -599,7 +599,7 @@ EVENTFUNC(regen_event)
 
 	if ( info == nullptr )
 	{
-		sys_err( "regen_event> <Factor> Null pointer" );
+		metin2::log::error( "regen_event> <Factor> Null pointer" );
 		return 0;
 	}
 
@@ -622,7 +622,7 @@ bool regen_load(const char* filename, int32_t lMapIndex, int base_x, int base_y)
 
 	if (nullptr == fp)
 	{
-		sys_log(0, "SYSTEM: regen_load: %s: file not found", filename);
+		metin2::log::info( "SYSTEM: regen_load: {}: file not found", filename);
 		return false;
 	}
 
@@ -675,7 +675,7 @@ bool regen_load(const char* filename, int32_t lMapIndex, int base_x, int base_y)
 
 				if (!p)
 				{
-					sys_err("No mob data by vnum %u", regen->vnum);
+					metin2::log::error("No mob data by vnum {:d}", regen->vnum);
 				}
 				else if (p->m_table.bType == CHAR_TYPE_NPC || p->m_table.bType == CHAR_TYPE_WARP || p->m_table.bType == CHAR_TYPE_GOTO)
 				{

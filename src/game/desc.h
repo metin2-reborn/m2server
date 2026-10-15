@@ -115,7 +115,6 @@ class DESC : public net::connection_handler
 
 		bool			IsPhase(int phase) const	{ return m_iPhase == phase ? true : false; }
 
-		void			Log(const char * format, ...);
 
 		// Handshake (time synchronization)
 		void			StartHandshake(uint32_t _dw);

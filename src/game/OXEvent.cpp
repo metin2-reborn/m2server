@@ -15,7 +15,7 @@
 #include "typedef.h"
 
 #include <common/length.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/utils.h>
 
 #include <cstddef>
@@ -104,7 +104,7 @@ bool COXEventManager::Enter(CHARACTER * pkChar)
 {
 	if (GetStatus() == OXEVENT_FINISH)
 	{
-		sys_log(0, "OXEVENT : map finished. but char enter. %s", pkChar->GetName());
+		metin2::log::info( "OXEVENT : map finished. but char enter. {}", pkChar->GetName());
 		return false;
 	}
 
@@ -120,7 +120,7 @@ bool COXEventManager::Enter(CHARACTER * pkChar)
 	}
 	else
 	{
-		sys_log(0, "OXEVENT : wrong pos enter %d %d", pos.x, pos.y);
+		metin2::log::info( "OXEVENT : wrong pos enter {:d} {:d}", pos.x, pos.y);
 		return false;
 	}
 
@@ -204,7 +204,7 @@ EVENTFUNC(oxevent_timer)
 
 	if ( info == nullptr )
 	{
-		sys_err( "oxevent_timer> <Factor> Null pointer" );
+		metin2::log::error( "oxevent_timer> <Factor> Null pointer" );
 		return 0;
 	}
 

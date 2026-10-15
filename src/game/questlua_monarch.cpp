@@ -21,7 +21,7 @@
 
 #include <common/length.h>
 #include <common/tables.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <cstdint>
 #include <cstdio>
@@ -65,7 +65,7 @@ namespace quest
 
 		if ( info == nullptr )
 		{
-			quest_err( "monarch_powerup_event> <Factor> Null pointer" );
+			quest::error( "monarch_powerup_event> <Factor> Null pointer" );
 			return 0;
 		}
 
@@ -89,7 +89,7 @@ namespace quest
 
 		if ( info == nullptr )
 		{
-			quest_err( "monarch_defenseup_event> <Factor> Null pointer" );
+			quest::error( "monarch_defenseup_event> <Factor> Null pointer" );
 			return 0;
 		}
 
@@ -109,7 +109,7 @@ namespace quest
 		int nEmpire = ch->GetEmpire();
 		nMoney = nMoney * 10000;
 
-		sys_log(0 ,"[MONARCH] Take Money Empire(%d) pid(%d) Money(%d)", ch->GetEmpire(), ch->GetPlayerID(), nMoney);
+		metin2::log::info("[MONARCH] Take Money Empire({:d}) pid({:d}) Money({:d})", ch->GetEmpire(), ch->GetPlayerID(), nMoney);
 
 		db_clientdesc->DBPacketHeader(HEADER_GD_TAKE_MONARCH_MONEY, ch->GetDesc()->GetHandle(), sizeof(int) * 3);
 		db_clientdesc->Packet(&nEmpire, sizeof(int)); 
@@ -150,7 +150,7 @@ namespace quest
 			if (!ch->IsGM())
 			{
 				ch->ChatPacket(CHAT_TYPE_INFO ,LC_TEXT("군주의 자격을 가지고 있지 않습니다"));
-				quest_err("No Monarch pid %d ", ch->GetPlayerID());
+				quest::error("No Monarch pid {:d} ", ch->GetPlayerID());
 				return 0;
 			}
 		}
@@ -186,7 +186,7 @@ namespace quest
 			if (!ch->IsGM())
 			{
 				ch->ChatPacket(CHAT_TYPE_INFO ,LC_TEXT("군주의 자격을 가지고 있지 않습니다"));
-				quest_err("No Monarch pid %d ", ch->GetPlayerID());
+				quest::error("No Monarch pid {:d} ", ch->GetPlayerID());
 				return 0;
 			}
 		}
@@ -244,7 +244,7 @@ namespace quest
 			if (!ch->IsGM())
 			{
 				ch->ChatPacket(CHAT_TYPE_INFO ,LC_TEXT("군주의 자격을 가지고 있지 않습니다"));
-				quest_err("No Monarch pid %d ", ch->GetPlayerID());
+				quest::error("No Monarch pid {:d} ", ch->GetPlayerID());
 				return 0;
 			}
 		}
@@ -299,7 +299,7 @@ namespace quest
 	{
 		if (!lua_isnumber(L, 1))
 		{
-			quest_err("invalid argument");
+			quest::error("invalid argument");
 			return 0;
 		}
 
@@ -324,7 +324,7 @@ namespace quest
 			if (!ch->IsGM())
 			{
 				ch->ChatPacket(CHAT_TYPE_INFO ,LC_TEXT("군주의 자격을 가지고 있지 않습니다"));
-				quest_err("No Monarch pid %d ", ch->GetPlayerID());
+				quest::error("No Monarch pid {:d} ", ch->GetPlayerID());
 				return 0;
 			}
 		}
@@ -362,7 +362,7 @@ namespace quest
 		// mob_level(0-2), region(0~3)
 		if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2))
 		{
-			quest_err("invalid argument");
+			quest::error("invalid argument");
 			return 0;
 		}
 
@@ -377,7 +377,7 @@ namespace quest
 			if (!ch->IsGM())
 			{
 				ch->ChatPacket(CHAT_TYPE_INFO ,LC_TEXT("군주의 자격을 가지고 있지 않습니다"));
-				quest_err("No Monarch pid %d ", ch->GetPlayerID());
+				quest::error("No Monarch pid {:d} ", ch->GetPlayerID());
 				return 0;
 			}
 		}
@@ -416,7 +416,7 @@ namespace quest
 	{
 		if (!lua_isstring(L, 1))
 		{
-			quest_err("invalid argument");
+			quest::error("invalid argument");
 			return 0;
 		}
 
@@ -568,7 +568,7 @@ namespace quest
 	{
 		if (!lua_isstring(L, 1))
 		{
-			quest_err("invalid argument");
+			quest::error("invalid argument");
 			return 0;
 		}
 
@@ -734,7 +734,7 @@ namespace quest
 
 		if ( info == nullptr )
 		{
-			quest_err( "monarch_transfer2_event> <Factor> Null pointer" );
+			quest::error( "monarch_transfer2_event> <Factor> Null pointer" );
 			return 0;
 		}
 

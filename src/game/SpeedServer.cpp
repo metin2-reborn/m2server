@@ -5,7 +5,7 @@
 
 #include <common/length.h>
 #include <common/utils.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <cstdint>
 #include <cstdio>
@@ -39,10 +39,10 @@ bool CSpeedServerManager::Initialize()
 {
 	for (int i = 1; i < EMPIRE_MAX_NUM; i++)
 	{
-		sys_log (0,"speed manager init");
+		metin2::log::info("speed manager init");
 		if(!Empire[i].Initialize (i))
 		{
-			sys_err ("EMPIRE %d Exp Bonus Manager Init fail",i);
+			metin2::log::error("EMPIRE {:d} Exp Bonus Manager Init fail",i);
 			return false;
 		}
 	}
@@ -52,7 +52,7 @@ bool CSpeedServerManager::Initialize()
 bool CSpeedServerEmpireExp::Initialize (uint8_t e)
 {
 	empire = e;
-	sys_log (0, "empire exp init %d", empire);
+	metin2::log::info( "empire exp init {:d}", empire);
 	file_name = LocaleService_GetBasePath() + "/exp_bonus_table_" + std::to_string(empire) + ".txt";
 
 	for (int i = 1; i < 6; i++)
@@ -79,7 +79,7 @@ bool CSpeedServerEmpireExp::LoadWdayExpTable(int wday, char *str)
 	char *t;
 	char *h, *m, *e;
 	int hour, min, exp;
-	sys_log (0, "str %s", str);
+	metin2::log::info( "str {}", str);
 	strtok (str, delim);
 	p = strtok (nullptr, ";");
 	n = strtok (nullptr, ";");
@@ -91,11 +91,11 @@ bool CSpeedServerEmpireExp::LoadWdayExpTable(int wday, char *str)
 		m = strtok (nullptr, delim);
 		if (!str_to_number (hour, h) || !str_to_number (min, m) || !str_to_number (exp, e))
 		{
-			sys_log (0, "h m e : %s %s %s",h, m, e);
-			sys_err ("Invalid argument. Please insert hh:mm exp");
+			metin2::log::info( "h m e : {} {} {}",h, m, e);
+			metin2::log::error("Invalid argument. Please insert hh:mm exp");
 			return false;
 		}
-			sys_log (0, "h m e : %s %s %s",h, m, e);
+			metin2::log::info( "h m e : {} {} {}",h, m, e);
 		
 		lst.push_back (HME (hour, min, exp));
 		p = strtok (n, ";");
@@ -108,7 +108,7 @@ bool CSpeedServerEmpireExp::WriteExpTable()
 {
 	FILE *fp;
 
-	sys_log (0, "write");
+	metin2::log::info( "write");
 	if (file_name.empty())
 		return false;
 
@@ -148,7 +148,7 @@ bool CSpeedServerEmpireExp::LoadExpTable()
 	char	temp[256];
 	const char	*delim = " \t\r\n";
 
-	sys_log (0, "load");
+	metin2::log::info( "load");
 	if (file_name.empty())
 		return false;
 
@@ -206,7 +206,7 @@ bool CSpeedServerEmpireExp::LoadExpTable()
 
 			v = strtok (temp, delim);
 			v = strtok (nullptr, delim);
-			sys_log (0, "holiday %s", v);
+			metin2::log::info( "holiday {}", v);
 
 			p = strtok (nullptr, ";");
 			n = strtok (nullptr, ";");
@@ -218,11 +218,11 @@ bool CSpeedServerEmpireExp::LoadExpTable()
 				m = strtok (nullptr, delim);
 				if (!str_to_number (hour, h) || !str_to_number (min, m) || !str_to_number (exp, e))
 				{
-					sys_log (0, "h m e : %s %s %s",h, m, e);
-					sys_err ("Invalid argument. Please insert hh:mm exp");
+					metin2::log::info( "h m e : {} {} {}",h, m, e);
+					metin2::log::error("Invalid argument. Please insert hh:mm exp");
 					return false;
 				}
-				sys_log (0, "h m e : %s %s %s",h, m, e);
+				metin2::log::info( "h m e : {} {} {}",h, m, e);
 
 				lst.push_back (HME (hour, min, exp));
 				p = strtok (n, ";");
@@ -233,11 +233,11 @@ bool CSpeedServerEmpireExp::LoadExpTable()
 					|| !str_to_number ( mon, strtok (nullptr, "."))
 					|| !str_to_number ( day, strtok (nullptr, ".")))
 			{
-				sys_err ("Invalid Date");
+				metin2::log::error("Invalid Date");
 				return false;
 			}
 
-			sys_log (0, "y m d %d %d %d",year, mon, day);
+			metin2::log::info( "y m d {:d} {:d} {:d}",year, mon, day);
 
 			holiday_map.insert (std::pair <Date, std::list <HME> > (Date (year - 1900, mon - 1, day), lst));
 		}
@@ -273,7 +273,7 @@ void CSpeedServerManager::InitWdayExpTableOfEmpire (uint8_t empire, int wday)
 {
 	if (empire > EMPIRE_MAX_NUM)
 	{
-		sys_err ("invalid empire");
+		metin2::log::error("invalid empire");
 		return;
 	}
 
@@ -302,7 +302,7 @@ std::list <HME>& CSpeedServerEmpireExp::GetHolidayExpTable(Date date, bool &is_e
 	else
 	{
 		is_exist = false;
-		sys_err ("Cannot find Holiday %d %d %d",date.year, date.mon, date.day);
+		metin2::log::error("Cannot find Holiday {:d} {:d} {:d}",date.year, date.mon, date.day);
 	}
 	return it->second;
 }
@@ -326,7 +326,7 @@ void CSpeedServerManager::InitHolidayExpTableOfEmpire (uint8_t empire, Date date
 {
 	if (empire > EMPIRE_MAX_NUM)
 	{
-		sys_err ("invalid empire");
+		metin2::log::error("invalid empire");
 		return;
 	}
 
@@ -335,7 +335,7 @@ void CSpeedServerManager::InitHolidayExpTableOfEmpire (uint8_t empire, Date date
 
 void CSpeedServerEmpireExp::InitHolidayExpTable(Date date)
 {
-	sys_log (0, "init holiday");
+	metin2::log::info( "init holiday");
 	std::map <Date, std::list <HME> >::iterator it = holiday_map.find(date);
 	if (it == holiday_map.end())
 	{

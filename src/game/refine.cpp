@@ -1,7 +1,7 @@
 #include "refine.h"
 
 #include <common/tables.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <cstdint>
 #include <utility>
@@ -18,11 +18,11 @@ bool CRefineManager::Initialize(TRefineTable * table, int size)
 {
 	for (int i = 0; i < size; ++i, ++table)
 	{
-		sys_log(0, "REFINE %d prob %d cost %d", table->id, table->prob, table->cost);
+		metin2::log::info( "REFINE {:d} prob {:d} cost {:d}", table->id, table->prob, table->cost);
 		m_map_RefineRecipe.insert(std::make_pair(table->id, *table));
 	}
 
-	sys_log(0, "REFINE: COUNT %zu", m_map_RefineRecipe.size());
+	metin2::log::info( "REFINE: COUNT {:d}", m_map_RefineRecipe.size());
 	return true;
 }
 
@@ -32,7 +32,7 @@ const TRefineTable* CRefineManager::GetRefineRecipe(uint32_t vnum)
 		return nullptr;
 
 	auto it = m_map_RefineRecipe.find(vnum);
-	sys_log(0, "REFINE: FIND %u %s", vnum, it == m_map_RefineRecipe.end() ? "FALSE" : "TRUE");
+	metin2::log::info( "REFINE: FIND {:d} {}", vnum, it == m_map_RefineRecipe.end() ? "FALSE" : "TRUE");
 
 	if (it == m_map_RefineRecipe.end())
 	{

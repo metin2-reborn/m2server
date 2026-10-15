@@ -13,7 +13,7 @@
 #include <common/utils.h>
 #include <libsql/AsyncSQL.h>
 #include <libsql/query.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <mysql.h>
 
@@ -242,7 +242,7 @@ void CClientManager::QUERY_PLAYER_LOAD(CPeer * peer, uint32_t dwHandle, TPlayerL
 
 		if (!pkLD || pkLD->IsPlay())
 		{
-			sys_log(0, "PLAYER_LOAD_ERROR: LoginData %p IsPlay %d", pkLD, pkLD ? pkLD->IsPlay() : 0);
+			metin2::log::info( "PLAYER_LOAD_ERROR: LoginData {} IsPlay {:d}", static_cast<const void *>(pkLD), pkLD ? pkLD->IsPlay() : 0);
 			peer->EncodeHeader(HEADER_DG_PLAYER_LOAD_FAILED, dwHandle, 0); 
 			return;
 		}
@@ -270,7 +270,7 @@ void CClientManager::QUERY_PLAYER_LOAD(CPeer * peer, uint32_t dwHandle, TPlayerL
 
 		TItemCacheSet * pSet = GetItemCacheSet(pTab->id);
 
-		sys_log(0, "[PLAYER_LOAD] ID %s pid %d gold %d ", pTab->name, pTab->id, pTab->gold);
+		metin2::log::info( "[PLAYER_LOAD] ID {} pid {:d} gold {:d} ", pTab->name, pTab->id, pTab->gold);
 
 		//--------------------------------------------
 		// Loading items & AFFECT & QUEST: 
@@ -299,7 +299,7 @@ void CClientManager::QUERY_PLAYER_LOAD(CPeer * peer, uint32_t dwHandle, TPlayerL
 			}
 
 			if (g_test_server)
-				sys_log(0, "ITEM_CACHE: HIT! %s count: %u", pTab->name, dwCount);
+				metin2::log::info( "ITEM_CACHE: HIT! {} count: {:d}", pTab->name, dwCount);
 
 			peer->EncodeHeader(HEADER_DG_ITEM_LOAD, dwHandle, sizeof(uint32_t) + sizeof(TPlayerItem) * dwCount);
 			peer->EncodeDWORD(dwCount);
@@ -358,7 +358,7 @@ void CClientManager::QUERY_PLAYER_LOAD(CPeer * peer, uint32_t dwHandle, TPlayerL
 	//----------------------------------
 	else
 	{
-		sys_log(0, "[PLAYER_LOAD] Load from PlayerDB pid[%d]", packet->player_id);
+		metin2::log::info( "[PLAYER_LOAD] Load from PlayerDB pid[{:d}]", packet->player_id);
 
 		char queryStr[QUERY_MAX_LEN];
 
@@ -546,26 +546,26 @@ void CClientManager::RESULT_COMPOSITE_PLAYER(CPeer * peer, SQLMsg * pMsg, uint32
 	MYSQL_RES * pSQLResult = pMsg->Get()->pSQLResult;
 	if (!pSQLResult)
 	{
-		sys_err("null MYSQL_RES QID %u", dwQID);
+		metin2::log::error("null MYSQL_RES QID {:d}", dwQID);
 		return;
 	}
 
 	switch (dwQID)
 	{
 		case QID_PLAYER:
-			sys_log(0, "QID_PLAYER %u %u", info->dwHandle, info->player_id);
+			metin2::log::info( "QID_PLAYER {:d} {:d}", info->dwHandle, info->player_id);
 			RESULT_PLAYER_LOAD(peer, pSQLResult, info.get());
 
 			break;
 
 		case QID_ITEM:
-			sys_log(0, "QID_ITEM %u", info->dwHandle);
+			metin2::log::info( "QID_ITEM {:d}", info->dwHandle);
 			RESULT_ITEM_LOAD(peer, pSQLResult, info->dwHandle, info->player_id);
 			break;
 
 		case QID_QUEST:
 			{
-				sys_log(0, "QID_QUEST %u", info->dwHandle);
+				metin2::log::info( "QID_QUEST {:d}", info->dwHandle);
 				RESULT_QUEST_LOAD(peer, pSQLResult, info->dwHandle, info->player_id);
 				//Get aid
 				ClientHandleInfo*  temp1 = info.get();
@@ -576,13 +576,13 @@ void CClientManager::RESULT_COMPOSITE_PLAYER(CPeer * peer, SQLMsg * pMsg, uint32
 				//German gift feature
 				if (pLoginData1 == nullptr)
 					break;
-				sys_log(0,"info of pLoginData1 before call ItemAwardfunction %p",static_cast<void*>(pLoginData1));
+				metin2::log::info("info of pLoginData1 before call ItemAwardfunction {}",static_cast<const void *>(static_cast<void*>(pLoginData1)));
 				ItemAward(peer,pLoginData1->GetAccountRef().login);
 			}
 			break;
 
 		case QID_AFFECT:
-			sys_log(0, "QID_AFFECT %u", info->dwHandle);
+			metin2::log::info( "QID_AFFECT {:d}", info->dwHandle);
 			RESULT_AFFECT_LOAD(peer, pSQLResult, info->dwHandle);
 			break;
 	}
@@ -603,7 +603,7 @@ void CClientManager::RESULT_PLAYER_LOAD(CPeer * peer, MYSQL_RES * pRes, ClientHa
 	
 	if (!pkLD || pkLD->IsPlay())
 	{
-		sys_log(0, "PLAYER_LOAD_ERROR: LoginData %p IsPlay %d", pkLD, pkLD ? pkLD->IsPlay() : 0);
+		metin2::log::info( "PLAYER_LOAD_ERROR: LoginData {} IsPlay {:d}", static_cast<const void *>(pkLD), pkLD ? pkLD->IsPlay() : 0);
 		peer->EncodeHeader(HEADER_DG_PLAYER_LOAD_FAILED, pkInfo->dwHandle, 0); 
 		return;
 	}
@@ -640,7 +640,7 @@ void CClientManager::RESULT_ITEM_LOAD(CPeer * peer, MYSQL_RES * pRes, uint32_t d
 	CreateItemCacheSet(dwPID);
 
 	// ITEM_LOAD_LOG_ATTACH_PID
-	sys_log(0, "ITEM_LOAD: count %u pid %u", dwCount, dwPID);
+	metin2::log::info( "ITEM_LOAD: count {:d} pid {:d}", dwCount, dwPID);
 	// END_OF_ITEM_LOAD_LOG_ATTACH_PID
 
 	if (dwCount)
@@ -682,7 +682,7 @@ void CClientManager::RESULT_AFFECT_LOAD(CPeer * peer, MYSQL_RES * pRes, uint32_t
 		str_to_number(r.lSPCost, row[6]);
 	}
 
-	sys_log(0, "AFFECT_LOAD: count %zu PID %u", s_elements.size(), dwPID);
+	metin2::log::info( "AFFECT_LOAD: count {:d} PID {:d}", s_elements.size(), dwPID);
 
 	uint32_t dwCount = s_elements.size();
 
@@ -721,7 +721,7 @@ void CClientManager::RESULT_QUEST_LOAD(CPeer * peer, MYSQL_RES * pRes, uint32_t 
 		str_to_number(r.lValue, row[3]);
 	}
 
-	sys_log(0, "QUEST_LOAD: count %zu PID %u", s_table.size(), s_table[0].dwPID);
+	metin2::log::info( "QUEST_LOAD: count {:d} PID {:d}", s_table.size(), s_table[0].dwPID);
 
 	uint32_t dwCount = s_table.size();
 
@@ -736,7 +736,7 @@ void CClientManager::RESULT_QUEST_LOAD(CPeer * peer, MYSQL_RES * pRes, uint32_t 
 void CClientManager::QUERY_PLAYER_SAVE(CPeer * peer, uint32_t dwHandle, TPlayerTable * pkTab)
 {
 	if (g_test_server)
-		sys_log(0, "PLAYER_SAVE: %s", pkTab->name);
+		metin2::log::info( "PLAYER_SAVE: {}", pkTab->name);
 
 	PutPlayerCache(pkTab);
 }
@@ -786,7 +786,7 @@ void CClientManager::__QUERY_PLAYER_CREATE(CPeer *peer, uint32_t dwHandle, TPlay
 		if (row[0] && dwPID > 0)
 		{
 			peer->EncodeHeader(HEADER_DG_PLAYER_CREATE_ALREADY, dwHandle, 0);
-			sys_log(0, "ALREADY EXIST AccountChrIdx %d ID %d", packet->account_index, dwPID);
+			metin2::log::info( "ALREADY EXIST AccountChrIdx {:d} ID {:d}", packet->account_index, dwPID);
 			return;
 		}
 	}
@@ -813,7 +813,7 @@ void CClientManager::__QUERY_PLAYER_CREATE(CPeer *peer, uint32_t dwHandle, TPlay
 
 		if (*row[0] != '0')
 		{
-			sys_log(0, "ALREADY EXIST name %s, row[0] %s query %s", packet->player_table.name, row[0], query.c_str());
+			metin2::log::info( "ALREADY EXIST name {}, row[0] {} query {}", packet->player_table.name, row[0], query.c_str());
 			peer->EncodeHeader(HEADER_DG_PLAYER_CREATE_ALREADY, dwHandle, 0);
 			return;
 		}
@@ -841,7 +841,7 @@ void CClientManager::__QUERY_PLAYER_CREATE(CPeer *peer, uint32_t dwHandle, TPlay
 			std::string_view(reinterpret_cast<const char *>(packet->player_table.skills), sizeof(packet->player_table.skills)),
 			std::string_view(reinterpret_cast<const char *>(packet->player_table.quickslot), sizeof(packet->player_table.quickslot)));
 
-	sys_log(0, "PlayerCreate accountid %d name %s level %d gold %d, st %d ht %d job %d",
+	metin2::log::info( "PlayerCreate accountid {:d} name {} level {:d} gold {:d}, st {:d} ht {:d} job {:d}",
 			packet->account_id, 
 			packet->player_table.name, 
 			packet->player_table.level, 
@@ -852,12 +852,12 @@ void CClientManager::__QUERY_PLAYER_CREATE(CPeer *peer, uint32_t dwHandle, TPlay
 
 	std::unique_ptr<SQLMsg> pMsg2(CDBManager::instance().DirectQuery(query.c_str()));
 	if (g_test_server)
-		sys_log(0, "Create_Player queryLen[%zu]", query.size());
+		metin2::log::info( "Create_Player queryLen[{:d}]", query.size());
 
 	if (pMsg2->Get()->uiAffectedRows <= 0)
 	{
 		peer->EncodeHeader(HEADER_DG_PLAYER_CREATE_ALREADY, dwHandle, 0);
-		sys_log(0, "ALREADY EXIST3 query: %s AffectedRows %u", query.c_str(), pMsg2->Get()->uiAffectedRows);
+		metin2::log::info( "ALREADY EXIST3 query: {} AffectedRows {:d}", query.c_str(), pMsg2->Get()->uiAffectedRows);
 		return;
 	}
 
@@ -869,7 +869,7 @@ void CClientManager::__QUERY_PLAYER_CREATE(CPeer *peer, uint32_t dwHandle, TPlay
 
 	if (pMsg3->Get()->uiAffectedRows <= 0)
 	{
-		sys_err("QUERY_ERROR: %s", query.c_str());
+		metin2::log::error("QUERY_ERROR: {}", query.c_str());
 
 		query = sql::format("DELETE FROM player{} WHERE id={}", postfix, player_id);
 		CDBManager::instance().DirectQuery(query.c_str());
@@ -899,7 +899,7 @@ void CClientManager::__QUERY_PLAYER_CREATE(CPeer *peer, uint32_t dwHandle, TPlay
 	peer->EncodeHeader(HEADER_DG_PLAYER_CREATE_SUCCESS, dwHandle, sizeof(TPacketDGCreateSuccess));
 	peer->Encode(&pack, sizeof(TPacketDGCreateSuccess));
 
-	sys_log(0, "7 name %s job %d", pack.player.szName, pack.player.byJob);
+	metin2::log::info( "7 name {} job {:d}", pack.player.szName, pack.player.byJob);
 
 	s_createTimeByAccountID[packet->account_id] = time(nullptr);
 }
@@ -926,7 +926,7 @@ void CClientManager::__QUERY_PLAYER_DELETE(CPeer* peer, uint32_t dwHandle, TPlay
 	// block for japan 
 	if (strlen(r.social_id) < 7 || strncmp(packet->private_code, r.social_id + strlen(r.social_id) - 7, 7))
 	{
-		sys_log(0, "PLAYER_DELETE FAILED len(%zu)", strlen(r.social_id));
+		metin2::log::info( "PLAYER_DELETE FAILED len({:d})", strlen(r.social_id));
 		peer->EncodeHeader(HEADER_DG_PLAYER_DELETE_FAILED, dwHandle, 1);
 		peer->EncodeBYTE(packet->account_index);
 		return;
@@ -939,7 +939,7 @@ void CClientManager::__QUERY_PLAYER_DELETE(CPeer* peer, uint32_t dwHandle, TPlay
 
 		if (pTab->level >= m_iPlayerDeleteLevelLimit)
 		{
-			sys_log(0, "PLAYER_DELETE FAILED LEVEL %u >= DELETE LIMIT %d", pTab->level, m_iPlayerDeleteLevelLimit);
+			metin2::log::info( "PLAYER_DELETE FAILED LEVEL {:d} >= DELETE LIMIT {:d}", pTab->level, m_iPlayerDeleteLevelLimit);
 			peer->EncodeHeader(HEADER_DG_PLAYER_DELETE_FAILED, dwHandle, 1);
 			peer->EncodeBYTE(packet->account_index);
 			return;
@@ -947,7 +947,7 @@ void CClientManager::__QUERY_PLAYER_DELETE(CPeer* peer, uint32_t dwHandle, TPlay
 
 		if (pTab->level < m_iPlayerDeleteLevelLimitLower)
 		{
-			sys_log(0, "PLAYER_DELETE FAILED LEVEL %u < DELETE LIMIT %d", pTab->level, m_iPlayerDeleteLevelLimitLower);
+			metin2::log::info( "PLAYER_DELETE FAILED LEVEL {:d} < DELETE LIMIT {:d}", pTab->level, m_iPlayerDeleteLevelLimitLower);
 			peer->EncodeHeader(HEADER_DG_PLAYER_DELETE_FAILED, dwHandle, 1);
 			peer->EncodeBYTE(packet->account_index);
 			return;
@@ -961,7 +961,7 @@ void CClientManager::__QUERY_PLAYER_DELETE(CPeer* peer, uint32_t dwHandle, TPlay
 	ClientHandleInfo * pi = new ClientHandleInfo(dwHandle, packet->player_id);
 	pi->account_index = packet->account_index;
 
-	sys_log(0, "PLAYER_DELETE TRY: %s %d pid%d", packet->login, packet->player_id, packet->account_index + 1);
+	metin2::log::info( "PLAYER_DELETE TRY: {} {:d} pid{:d}", packet->login, packet->player_id, packet->account_index + 1);
 	CDBManager::instance().ReturnQuery(szQuery, QID_PLAYER_DELETE, peer->GetHandle(), pi);
 }
 
@@ -987,7 +987,7 @@ void CClientManager::__RESULT_PLAYER_DELETE(CPeer *peer, SQLMsg* msg)
 
 		if (deletedLevelLimit >= m_iPlayerDeleteLevelLimit)
 		{
-			sys_log(0, "PLAYER_DELETE FAILED LEVEL %u >= DELETE LIMIT %d", deletedLevelLimit, m_iPlayerDeleteLevelLimit);
+			metin2::log::info( "PLAYER_DELETE FAILED LEVEL {:d} >= DELETE LIMIT {:d}", deletedLevelLimit, m_iPlayerDeleteLevelLimit);
 			peer->EncodeHeader(HEADER_DG_PLAYER_DELETE_FAILED, pi->dwHandle, 1);
 			peer->EncodeBYTE(pi->account_index);
 			return;
@@ -995,7 +995,7 @@ void CClientManager::__RESULT_PLAYER_DELETE(CPeer *peer, SQLMsg* msg)
 
 		if (deletedLevelLimit < m_iPlayerDeleteLevelLimitLower)
 		{
-			sys_log(0, "PLAYER_DELETE FAILED LEVEL %u < DELETE LIMIT %d", deletedLevelLimit, m_iPlayerDeleteLevelLimitLower);
+			metin2::log::info( "PLAYER_DELETE FAILED LEVEL {:d} < DELETE LIMIT {:d}", deletedLevelLimit, m_iPlayerDeleteLevelLimitLower);
 			peer->EncodeHeader(HEADER_DG_PLAYER_DELETE_FAILED, pi->dwHandle, 1);
 			peer->EncodeBYTE(pi->account_index);
 			return;
@@ -1009,7 +1009,7 @@ void CClientManager::__RESULT_PLAYER_DELETE(CPeer *peer, SQLMsg* msg)
 
 		if (pIns->Get()->uiAffectedRows == 0 || pIns->Get()->uiAffectedRows == (uint32_t)-1)
 		{
-			sys_log(0, "PLAYER_DELETE FAILED %u CANNOT INSERT TO player%s_deleted", dwPID, GetTablePostfix());
+			metin2::log::info( "PLAYER_DELETE FAILED {:d} CANNOT INSERT TO player{}_deleted", dwPID, GetTablePostfix());
 
 			peer->EncodeHeader(HEADER_DG_PLAYER_DELETE_FAILED, pi->dwHandle, 1);
 			peer->EncodeBYTE(pi->account_index);
@@ -1017,7 +1017,7 @@ void CClientManager::__RESULT_PLAYER_DELETE(CPeer *peer, SQLMsg* msg)
 		}
 
 		// Deletion succeeded
-		sys_log(0, "PLAYER_DELETE SUCCESS %u", dwPID);
+		metin2::log::info( "PLAYER_DELETE SUCCESS {:d}", dwPID);
 
 		char account_index_string[16];
 
@@ -1060,7 +1060,7 @@ void CClientManager::__RESULT_PLAYER_DELETE(CPeer *peer, SQLMsg* msg)
 
 		if (pMsg->Get()->uiAffectedRows == 0 || pMsg->Get()->uiAffectedRows == (uint32_t)-1)
 		{
-			sys_log(0, "PLAYER_DELETE FAIL WHEN UPDATE account table");
+			metin2::log::info( "PLAYER_DELETE FAIL WHEN UPDATE account table");
 			peer->EncodeHeader(HEADER_DG_PLAYER_DELETE_FAILED, pi->dwHandle, 1);
 			peer->EncodeBYTE(pi->account_index);
 			return;
@@ -1095,7 +1095,7 @@ void CClientManager::__RESULT_PLAYER_DELETE(CPeer *peer, SQLMsg* msg)
 	else
 	{
 		// Deletion failed
-		sys_log(0, "PLAYER_DELETE FAIL NO ROW");
+		metin2::log::info( "PLAYER_DELETE FAIL NO ROW");
 		peer->EncodeHeader(HEADER_DG_PLAYER_DELETE_FAILED, pi->dwHandle, 1);
 		peer->EncodeBYTE(pi->account_index);
 	}
@@ -1153,7 +1153,7 @@ void CClientManager::QUERY_HIGHSCORE_REGISTER(CPeer* peer, TPacketGDHighscore * 
 {
 	const std::string query = sql::format("SELECT value FROM highscore{} WHERE board={} AND pid = {}", sql::raw(GetTablePostfix()), data->szBoard, data->dwPID);
 
-	sys_log(0, "HEADER_GD_HIGHSCORE_REGISTER: PID %u", data->dwPID);
+	metin2::log::info( "HEADER_GD_HIGHSCORE_REGISTER: PID {:d}", data->dwPID);
 
 	ClientHandleInfo * pi = new ClientHandleInfo(0);
 	strlcpy(pi->login, data->szBoard, sizeof(pi->login));
@@ -1222,7 +1222,7 @@ void CClientManager::InsertLogoutPlayer(uint32_t pid)
 	{
 		// If it exists, only update the time
 		if (g_log)
-			sys_log(0, "LOGOUT: Update player time pid(%d)", pid);
+			metin2::log::info( "LOGOUT: Update player time pid({:d})", pid);
 
 		it->second->time = time(nullptr);
 		return;
@@ -1234,7 +1234,7 @@ void CClientManager::InsertLogoutPlayer(uint32_t pid)
 	m_map_logout.insert(std::make_pair(pid, std::move(pLogout)));
 
 	if (g_log)
-		sys_log(0, "LOGOUT: Insert player pid(%d)", pid);
+		metin2::log::info( "LOGOUT: Insert player pid({:d})", pid);
 }
 
 void CClientManager::DeleteLogoutPlayer(uint32_t pid)

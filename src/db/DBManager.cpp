@@ -4,7 +4,7 @@
 
 #include <common/tables.h>
 #include <libsql/AsyncSQL.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <mysql.h>
 
@@ -75,21 +75,21 @@ int CDBManager::Connect(int iSlot, const char *db_address, const int db_port, co
     if (iSlot < 0 || iSlot >= SQL_MAX_NUM)
         return false;
 
-    sys_log(0, "CREATING DIRECT_SQL");
+    metin2::log::info( "CREATING DIRECT_SQL");
     m_directSQL[iSlot] = std::make_unique<CAsyncSQL>();
     if (!m_directSQL[iSlot]->Setup(db_address, user, pwd, db_name, CONNECTION_CHARSET, true, db_port)) {
         Clear();
         return false;
     }
 
-    sys_log(0, "CREATING MAIN_SQL");
+    metin2::log::info( "CREATING MAIN_SQL");
     m_mainSQL[iSlot] = std::make_unique<CAsyncSQL>();
     if (!m_mainSQL[iSlot]->Setup(db_address, user, pwd, db_name, CONNECTION_CHARSET, false, db_port)) {
         Clear();
         return false;
     }
 
-    sys_log(0, "CREATING ASYNC_SQL");
+    metin2::log::info( "CREATING ASYNC_SQL");
     m_asyncSQL[iSlot] = std::make_unique<CAsyncSQL>();
     if (!m_asyncSQL[iSlot]->Setup(db_address, user, pwd, db_name, CONNECTION_CHARSET, false, db_port)) {
         Clear();

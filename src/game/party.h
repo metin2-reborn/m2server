@@ -4,7 +4,7 @@
 #include "event.h"
 
 #include <common/singleton.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <cstdint>
 #include <map>
@@ -55,8 +55,8 @@ class CPartyManager : public singleton<CPartyManager>
 
 		void		Initialize();
 
-		void		EnablePCParty() { m_bEnablePCParty = true; sys_log(0,"PARTY Enable"); }
-		void		DisablePCParty() { m_bEnablePCParty = false; sys_log(0,"PARTY Disable"); }
+		void		EnablePCParty() { m_bEnablePCParty = true; metin2::log::info("PARTY Enable"); }
+		void		DisablePCParty() { m_bEnablePCParty = false; metin2::log::info("PARTY Disable"); }
 		bool		IsEnablePCParty() { return m_bEnablePCParty; }
 
 		CParty *		CreateParty(CHARACTER * pkLeader);

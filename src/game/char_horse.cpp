@@ -14,7 +14,7 @@
 
 #include <common/length.h>
 #include <common/VnumHelper.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/utils.h>
 
 #include <cstdint>
@@ -65,7 +65,7 @@ bool CHARACTER::StartRiding()
 	MountVnum(dwMountVnum);
 
 	if(test_server)
-		sys_log(0, "Ride Horse : %s ", GetName());
+		metin2::log::info( "Ride Horse : {} ", GetName());
 
 	return true;
 }
@@ -108,7 +108,7 @@ EVENTFUNC(horse_dead_event)
 
 	if ( info == nullptr )
 	{
-		sys_err( "horse_dead_event> <Factor> Null pointer" );
+		metin2::log::error( "horse_dead_event> <Factor> Null pointer" );
 		return 0;
 	}
 
@@ -153,7 +153,7 @@ void CHARACTER::HorseSummon(bool bSummon, bool bFromFar, uint32_t dwVnum, const 
 		if (IsRiding())
 			return;
 
-		sys_log(0, "HorseSummon : %s lv:%d bSummon:%d fromFar:%d", GetName(), GetLevel(), bSummon, bFromFar);
+		metin2::log::info( "HorseSummon : {} lv:{:d} bSummon:{:d} fromFar:{:d}", GetName(), GetLevel(), bSummon, bFromFar);
 
 		int32_t x = GetX();
 		int32_t y = GetY();
@@ -212,7 +212,7 @@ void CHARACTER::HorseSummon(bool bSummon, bool bFromFar, uint32_t dwVnum, const 
 		if (!m_chHorse->Show(GetMapIndex(), x, y, GetZ()))
 		{
 			CHARACTER_MANAGER::instance().DestroyCharacter(m_chHorse);
-			sys_err("cannot show monster");
+			metin2::log::error("cannot show monster");
 			m_chHorse = nullptr;
 			return;
 		}

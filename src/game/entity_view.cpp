@@ -6,7 +6,7 @@
 #include "typedef.h"
 #include "utils.h"
 
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 void CEntity::ViewCleanup()
 {
@@ -129,7 +129,7 @@ void CEntity::UpdateSectree()
 		if (IsType(ENTITY_CHARACTER))
 		{
 			CHARACTER * tch = (CHARACTER *) this;
-			sys_err("null sectree name: %s %d %d",  tch->GetName(), GetX(), GetY());
+			metin2::log::error("null sectree name: {} {:d} {:d}",  tch->GetName(), GetX(), GetY());
 		}
 
 		return;

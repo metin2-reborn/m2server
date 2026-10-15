@@ -5,7 +5,7 @@
 #include "utils.h"
 
 #include <common/length.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/utils.h>
 
 #include <algorithm>
@@ -23,7 +23,7 @@ void CItemAddonManager::ApplyAddonTo(int iAddonType, CItem * pItem)
 {
 	if (!pItem)
 	{
-		sys_err("ITEM pointer null");
+		metin2::log::error("ITEM pointer null");
 		return;
 	}
 

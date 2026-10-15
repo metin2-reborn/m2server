@@ -5,7 +5,7 @@
 #include "typedef.h"
 
 #include <common/singleton.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <cstddef>
 #include <cstdint>
@@ -48,7 +48,7 @@ class CDungeon
 	void	KillAll();
 	// END_OF_DUNGEON_KILL_ALL_BUG_FIX
 
-	void	IncMonster() { m_iMonsterCount++; sys_log(0, "MonsterCount %d", m_iMonsterCount); }
+	void	IncMonster() { m_iMonsterCount++; metin2::log::info("MonsterCount {:d}", m_iMonsterCount); }
 	void	DecMonster() { m_iMonsterCount--; CheckEliminated(); }
 	int	CountMonster() { return m_iMonsterCount; }	// number of monsters regenerated from data
 

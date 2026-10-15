@@ -9,7 +9,7 @@
 #include "event_queue.h"
 #include "main.h"
 
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/main.h>
 
 #include <cassert>
@@ -48,7 +48,7 @@ void event_cancel(LPEVENT * ppevent)
 
 	if (!ppevent)
 	{
-		sys_err("null pointer");
+		metin2::log::error("null pointer");
 		return;
 	}
 

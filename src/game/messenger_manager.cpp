@@ -17,7 +17,7 @@
 #include <common/length.h>
 #include <libsql/AsyncSQL.h>
 #include <libsql/query.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <mysql.h>
 
@@ -77,7 +77,7 @@ void MessengerManager::LoadList(SQLMsg * msg)
 
 	std::string account;
 
-	sys_log(1, "Messenger::LoadList");
+	metin2::log::debug( "Messenger::LoadList");
 
 	for (uint i = 0; i < msg->Get()->uiNumRows; ++i)
 	{
@@ -163,7 +163,7 @@ bool MessengerManager::AuthToAdd(MessengerManager::keyA account, MessengerManage
 
 	if (m_set_requestToAdd.find(dwComplex) == m_set_requestToAdd.end())
 	{
-		sys_log(0, "MessengerManager::AuthToAdd : request not exist %s -> %s", companion.c_str(), account.c_str());
+		metin2::log::info( "MessengerManager::AuthToAdd : request not exist {} -> {}", companion.c_str(), account.c_str());
 		return false;
 	}
 
@@ -207,7 +207,7 @@ void MessengerManager::AddToList(MessengerManager::keyA account, MessengerManage
 	if (m_Relation[account].find(companion) != m_Relation[account].end())
 		return;
 
-	sys_log(0, "Messenger Add %s %s", account.c_str(), companion.c_str());
+	metin2::log::info( "Messenger Add {} {}", account.c_str(), companion.c_str());
 	DBManager::instance().Query(sql::format("INSERT INTO messenger_list{} VALUES ({}, {})", 
 			sql::raw(get_table_postfix()), account, companion));
 
@@ -255,7 +255,7 @@ void MessengerManager::RemoveFromList(MessengerManager::keyA account, MessengerM
 	if (!IsInList(account, companion)) // Fix
 		return;
 	
-	sys_log(1, "Messenger Remove %s %s", account.c_str(), companion.c_str());
+	metin2::log::debug( "Messenger Remove {} {}", account.c_str(), companion.c_str());
 	
 	// Fix
 	DBManager::instance().Query(sql::format("DELETE FROM messenger_list{} WHERE account={} AND companion = {}",

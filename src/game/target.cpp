@@ -9,7 +9,7 @@
 #include "questmanager.h"
 #include "utils.h"
 
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <algorithm>
 #include <cstdint>
@@ -42,7 +42,7 @@ pck.lID = iID;
 pck.lX = x;
 pck.lY = y;
 d->Packet(&pck, sizeof(TPacketGCTargetUpdate));
-sys_log(0, "SendTargetUpdatePacket %d %dx%d", iID, x, y);
+metin2::log::info( "SendTargetUpdatePacket {:d} {:d}x{:d}", iID, x, y);
 }
 
 void SendTargetDeletePacket(DESC * d, int iID)
@@ -67,7 +67,7 @@ EVENTFUNC(target_event)
 
 	if ( info == nullptr )
 	{
-		sys_err( "target_event> <Factor> Null pointer" );
+		metin2::log::error( "target_event> <Factor> Null pointer" );
 		return 0;
 	}
 
@@ -118,7 +118,7 @@ EVENTFUNC(target_event)
 
 	if (event->is_force_to_end)
 	{
-		sys_log(0, "target_event: event canceled");
+		metin2::log::info( "target_event: event canceled");
 		return 0;
 	}
 
@@ -147,14 +147,14 @@ void CTargetManager::CreateTarget(uint32_t dwPID,
 		const char * c_pszTargetDesc, 
 		int iSendFlag)
 {
-	sys_log(0, "CreateTarget : target pid %u quest %u name %s arg %d %d %d",
+	metin2::log::info( "CreateTarget : target pid {:d} quest {:d} name {} arg {:d} {:d} {:d}",
 			dwPID, dwQuestIndex, c_pszTargetName, iType, iArg1, iArg2);
 
 	CHARACTER * pkChr = CHARACTER_MANAGER::instance().FindByPID(dwPID);
 
 	if (!pkChr)
 	{
-		sys_err("Cannot find character ptr by PID %u", dwPID);
+		metin2::log::error("Cannot find character ptr by PID {:d}", dwPID);
 		return;
 	}
 
@@ -174,13 +174,13 @@ void CTargetManager::CreateTarget(uint32_t dwPID,
 
 			if (nullptr == existInfo)
 			{
-				sys_err("CreateTarget : event already exist, but have no info");
+				metin2::log::error("CreateTarget : event already exist, but have no info");
 				return;
 			}
 
 			if (existInfo->dwQuestIndex == dwQuestIndex && !strcmp(existInfo->szTargetName, c_pszTargetName))
 			{
-				sys_log(0, "CreateTarget : same target will be replaced");
+				metin2::log::info( "CreateTarget : same target will be replaced");
 
 				if (existInfo->bSendToClient)
 					SendTargetDeletePacket(pkChr->GetDesc(), existInfo->iID);
@@ -258,7 +258,7 @@ void CTargetManager::DeleteTarget(uint32_t dwPID, uint32_t dwQuestIndex, const c
 
 		if ( info == nullptr )
 		{
-			sys_err( "CTargetManager::DeleteTarget> <Factor> Null pointer" );
+			metin2::log::error( "CTargetManager::DeleteTarget> <Factor> Null pointer" );
 			++it2;
 			continue;
 		}
@@ -301,7 +301,7 @@ LPEVENT CTargetManager::GetTargetEvent(uint32_t dwPID, uint32_t dwQuestIndex, co
 
 		if ( info == nullptr )
 		{
-			sys_err( "CTargetManager::GetTargetEvent> <Factor> Null pointer" );
+			metin2::log::error( "CTargetManager::GetTargetEvent> <Factor> Null pointer" );
 
 			continue;
 		}
@@ -334,7 +334,7 @@ TargetInfo * CTargetManager::GetTargetInfo(uint32_t dwPID, int iType, int iArg1)
 
 		if ( info == nullptr )
 		{
-			sys_err( "CTargetManager::GetTargetInfo> <Factor> Null pointer" );
+			metin2::log::error( "CTargetManager::GetTargetInfo> <Factor> Null pointer" );
 
 			continue;
 		}

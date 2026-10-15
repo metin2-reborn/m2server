@@ -5,7 +5,6 @@
 #include "db.h"
 #include "desc.h"
 #include "desc_manager.h"
-#include "dev_log.h"
 #include "ip_ban.h"
 #include "locale.hpp"
 #include "locale_service.h"
@@ -19,7 +18,7 @@
 #include <common/peer_security.h>
 #include <common/utils.h>
 #include <libsql/AsyncSQL.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/utils.h>
 
 #include <mysql.h>
@@ -166,7 +165,7 @@ void map_allow_log()
 	std::set<int>::iterator i;
 
 	for (i = s_set_map_allows.begin(); i != s_set_map_allows.end(); ++i)
-		sys_log(0, "MAP_ALLOW: %d", *i);
+		metin2::log::info( "MAP_ALLOW: {:d}", *i);
 }
 
 void map_allow_add(int index)
@@ -217,11 +216,11 @@ static void FN_log_adminpage()
 
 	while (iter != g_stAdminPageIP.end())
 	{
-		dev_log(LOG_DEB0, "ADMIN_PAGE_IP = %s", (*iter).c_str());
+		metin2::log::debug( "ADMIN_PAGE_IP = {}", (*iter).c_str());
 		++iter;
 	}
 
-	dev_log(LOG_DEB0, "ADMIN_PAGE_PASSWORD = [redacted]");
+	metin2::log::debug( "ADMIN_PAGE_PASSWORD = [redacted]");
 }
 
 bool GetIPInfo()
@@ -680,7 +679,7 @@ void config_init(const string& st_localeServiceName)
 	// END_SKILL_POWER_BY_LEVEL
 
 	// LOG_KEEP_DAYS_EXTEND
-	log_set_expiration_days(2);
+	metin2::log::set_keep_days(2);
 	// END_OF_LOG_KEEP_DAYS_EXTEND
 
 	while (fgets(buf, 256, fp))
@@ -718,7 +717,7 @@ void config_init(const string& st_localeServiceName)
 		{
 			int i = 0;
 			str_to_number(i, value_string);
-			log_set_expiration_days(std::clamp(i, 1, 90));
+			metin2::log::set_keep_days(std::clamp(i, 1, 90));
 			continue;
 		}
 
@@ -896,14 +895,14 @@ void config_init(const string& st_localeServiceName)
 
 		TOKEN("quest_dir")
 		{
-			sys_log(0, "QUEST_DIR SETTING : %s", value_string);
+			metin2::log::info( "QUEST_DIR SETTING : {}", value_string);
 			g_stQuestDir = value_string;
 		}
 
 		TOKEN("quest_object_dir")
 		{
 			std::istringstream is(value_string);
-			sys_log(0, "QUEST_OBJECT_DIR SETTING : %s", value_string);
+			metin2::log::info( "QUEST_OBJECT_DIR SETTING : {}", value_string);
 			string dir;
 			while (!is.eof())
 			{
@@ -911,7 +910,7 @@ void config_init(const string& st_localeServiceName)
 				if (is.fail())
 					break;
 				g_setQuestObjectDir.insert(dir);
-				sys_log(0, "QUEST_OBJECT_DIR INSERT : %s", dir .c_str());
+				metin2::log::info( "QUEST_OBJECT_DIR INSERT : {}", dir .c_str());
 			}
 		}
 

@@ -28,7 +28,7 @@
 #include <libsql/AsyncSQL.h>
 #include <libsql/query.h>
 #include <libthecore/core_signal.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/main.h>
 #include <libthecore/utils.h>
 
@@ -126,7 +126,7 @@ bool CClientManager::Initialize()
 
 	if (!InitializeTables())
 	{
-		sys_err("Table Initialize FAILED");
+		metin2::log::error("Table Initialize FAILED");
 		return false;
 	}
 
@@ -151,14 +151,14 @@ bool CClientManager::Initialize()
 	if (!m_listener)
 		return false;
 
-	sys_log(0, "LISTEN: %s:%d", szBindIP, tmpValue);
+	metin2::log::info( "LISTEN: {}:{:d}", szBindIP, tmpValue);
 
 	if (!CConfig::instance().GetValue("BACKUP_LIMIT_SEC", &tmpValue))
 		tmpValue = 600;
 
 	if (!CConfig::instance().GetValue("PLAYER_DELETE_LEVEL_LIMIT", &m_iPlayerDeleteLevelLimit))
 	{
-		sys_err("conf.txt: Cannot find PLAYER_DELETE_LEVEL_LIMIT, use default level %d", PLAYER_MAX_LEVEL_CONST + 1);
+		metin2::log::error("conf.txt: Cannot find PLAYER_DELETE_LEVEL_LIMIT, use default level {:d}", PLAYER_MAX_LEVEL_CONST + 1);
 		m_iPlayerDeleteLevelLimit = PLAYER_MAX_LEVEL_CONST + 1;
 	}
 
@@ -167,8 +167,8 @@ bool CClientManager::Initialize()
 		m_iPlayerDeleteLevelLimitLower = 0;
 	}
 
-	sys_log(0, "PLAYER_DELETE_LEVEL_LIMIT set to %d", m_iPlayerDeleteLevelLimit);
-	sys_log(0, "PLAYER_DELETE_LEVEL_LIMIT_LOWER set to %d", m_iPlayerDeleteLevelLimitLower);
+	metin2::log::info( "PLAYER_DELETE_LEVEL_LIMIT set to {:d}", m_iPlayerDeleteLevelLimit);
+	metin2::log::info( "PLAYER_DELETE_LEVEL_LIMIT_LOWER set to {:d}", m_iPlayerDeleteLevelLimitLower);
 
 	LoadEventFlag();
 
@@ -179,7 +179,7 @@ bool CClientManager::Initialize()
 
 void CClientManager::MainLoop()
 {
-	sys_log(0, "ClientManager pointer is %p", this);
+	metin2::log::info( "ClientManager pointer is {}", static_cast<const void *>(this));
 
 	// Main loop
 	while (!m_bShutdowned)
@@ -192,13 +192,13 @@ void CClientManager::MainLoop()
 		if (!Process())
 			break;
 
-		log_rotate();
+		metin2::log::rotate();
 	}
 
 	//
 	// Main loop shutdown handling
 	//
-	sys_log(0, "MainLoop exited, Starting cache flushing");
+	metin2::log::info( "MainLoop exited, Starting cache flushing");
 
 	signal_timer_disable();
 
@@ -250,7 +250,7 @@ void CClientManager::QUERY_BOOT(CPeer* peer, TPacketGDBoot * p)
 	__GetHostInfo(vHost);
 	__GetAdminInfo(p->szIP, vAdmin);	
 
-	sys_log(0, "QUERY_BOOT : AdminInfo (Request ServerIp %s) ", p->szIP);
+	metin2::log::info( "QUERY_BOOT : AdminInfo (Request ServerIp {}) ", p->szIP);
 
 	uint32_t dwPacketSize = 
 		sizeof(uint32_t) +
@@ -280,24 +280,24 @@ void CClientManager::QUERY_BOOT(CPeer* peer, TPacketGDBoot * p)
 	peer->Encode(&dwPacketSize, sizeof(uint32_t));
 	peer->Encode(&bPacketVersion, sizeof(uint8_t));
 
-	sys_log(0, "BOOT: PACKET: %d", dwPacketSize);
-	sys_log(0, "BOOT: VERSION: %d", bPacketVersion);
+	metin2::log::info( "BOOT: PACKET: {:d}", dwPacketSize);
+	metin2::log::info( "BOOT: VERSION: {:d}", bPacketVersion);
 
-	sys_log(0, "sizeof(TMobTable) = %zu", sizeof(TMobTable));
-	sys_log(0, "sizeof(TItemTable) = %zu", sizeof(TItemTable));
-	sys_log(0, "sizeof(TShopTable) = %zu", sizeof(TShopTable));
-	sys_log(0, "sizeof(TSkillTable) = %zu", sizeof(TSkillTable));
-	sys_log(0, "sizeof(TRefineTable) = %zu", sizeof(TRefineTable));
-	sys_log(0, "sizeof(TItemAttrTable) = %zu", sizeof(TItemAttrTable));
-	sys_log(0, "sizeof(TItemRareTable) = %zu", sizeof(TItemAttrTable));
-	sys_log(0, "sizeof(TBanwordTable) = %zu", sizeof(TBanwordTable));
-	sys_log(0, "sizeof(TLand) = %zu", sizeof(building::TLand));
-	sys_log(0, "sizeof(TObjectProto) = %zu", sizeof(building::TObjectProto));
-	sys_log(0, "sizeof(TObject) = %zu", sizeof(building::TObject));
+	metin2::log::info( "sizeof(TMobTable) = {:d}", sizeof(TMobTable));
+	metin2::log::info( "sizeof(TItemTable) = {:d}", sizeof(TItemTable));
+	metin2::log::info( "sizeof(TShopTable) = {:d}", sizeof(TShopTable));
+	metin2::log::info( "sizeof(TSkillTable) = {:d}", sizeof(TSkillTable));
+	metin2::log::info( "sizeof(TRefineTable) = {:d}", sizeof(TRefineTable));
+	metin2::log::info( "sizeof(TItemAttrTable) = {:d}", sizeof(TItemAttrTable));
+	metin2::log::info( "sizeof(TItemRareTable) = {:d}", sizeof(TItemAttrTable));
+	metin2::log::info( "sizeof(TBanwordTable) = {:d}", sizeof(TBanwordTable));
+	metin2::log::info( "sizeof(TLand) = {:d}", sizeof(building::TLand));
+	metin2::log::info( "sizeof(TObjectProto) = {:d}", sizeof(building::TObjectProto));
+	metin2::log::info( "sizeof(TObject) = {:d}", sizeof(building::TObject));
 	//ADMIN_MANAGER
-	sys_log(0, "sizeof(tAdminInfo) total = %zu ", sizeof(tAdminInfo) * vAdmin.size());
+	metin2::log::info( "sizeof(tAdminInfo) total = {:d} ", sizeof(tAdminInfo) * vAdmin.size());
 	//END_ADMIN_MANAGER
-	sys_log(0, "sizeof(TMonarchInfo) = %zu", sizeof(MonarchInfo));
+	metin2::log::info( "sizeof(TMonarchInfo) = {:d}", sizeof(MonarchInfo));
 
 	peer->EncodeWORD(sizeof(TMobTable));
 	peer->EncodeWORD(m_vec_mobTable.size());
@@ -369,7 +369,7 @@ void CClientManager::QUERY_BOOT(CPeer* peer, TPacketGDBoot * p)
 	for (size_t n = 0; n < vHost.size(); ++n)
 	{
 		peer->Encode(vHost[n].c_str(), 16);
-		sys_log(0, "GMHosts %s", vHost[n].c_str());
+		metin2::log::info( "GMHosts {}", vHost[n].c_str());
 	}
 
 	peer->EncodeWORD(sizeof(tAdminInfo));
@@ -378,7 +378,7 @@ void CClientManager::QUERY_BOOT(CPeer* peer, TPacketGDBoot * p)
 	for (size_t n = 0; n < vAdmin.size(); ++n)
 	{
 		peer->Encode(&vAdmin[n], sizeof(tAdminInfo));
-		sys_log(0, "Admin name %s ConntactIP %s", vAdmin[n].m_szName, vAdmin[n].m_szContactIP);
+		metin2::log::info( "Admin name {} ConntactIP {}", vAdmin[n].m_szName, vAdmin[n].m_szContactIP);
 	}
 	//END_ADMIN_MANAGER
 
@@ -398,7 +398,7 @@ void CClientManager::QUERY_BOOT(CPeer* peer, TPacketGDBoot * p)
 	//END_MONARCE
 
 	if (g_test_server)
-		sys_log(0, "MONARCHCandidacy Size %zu", CMonarch::instance().MonarchCandidacySize());
+		metin2::log::info( "MONARCHCandidacy Size {:d}", CMonarch::instance().MonarchCandidacySize());
 
 	peer->EncodeWORD(0xffff);
 }
@@ -409,13 +409,13 @@ void CClientManager::SendPartyOnSetup(CPeer* pkPeer)
 
 	for (auto it_party = pm.begin(); it_party != pm.end(); ++it_party)
 	{
-		sys_log(0, "PARTY SendPartyOnSetup Party [%u]", it_party->first);
+		metin2::log::info( "PARTY SendPartyOnSetup Party [{:d}]", it_party->first);
 		pkPeer->EncodeHeader(HEADER_DG_PARTY_CREATE, 0, sizeof(TPacketPartyCreate));
 		pkPeer->Encode(&it_party->first, sizeof(uint32_t));
 
 		for (auto it_member = it_party->second.begin(); it_member != it_party->second.end(); ++it_member)
 		{
-			sys_log(0, "PARTY SendPartyOnSetup Party [%u] Member [%u]", it_party->first, it_member->first);
+			metin2::log::info( "PARTY SendPartyOnSetup Party [{:d}] Member [{:d}]", it_party->first, it_member->first);
 			pkPeer->EncodeHeader(HEADER_DG_PARTY_ADD, 0, sizeof(TPacketPartyAdd));
 			pkPeer->Encode(&it_party->first, sizeof(uint32_t));
 			pkPeer->Encode(&it_member->first, sizeof(uint32_t));
@@ -438,7 +438,7 @@ void CClientManager::QUERY_QUEST_SAVE(CPeer * pkPeer, TQuestTable * pTable, uint
 {
 	if (0 != (dwLen % sizeof(TQuestTable)))
 	{
-		sys_err("invalid packet size %d, sizeof(TQuestTable) == %zu", dwLen, sizeof(TQuestTable));
+		metin2::log::error("invalid packet size {:d}, sizeof(TQuestTable) == {:d}", dwLen, sizeof(TQuestTable));
 		return;
 	}
 
@@ -480,7 +480,7 @@ void CClientManager::QUERY_SAFEBOX_LOAD(CPeer * pkPeer, uint32_t dwHandle, TSafe
 			GetTablePostfix(), packet->dwID);
 
 	if (g_log)
-		sys_log(0, "HEADER_GD_SAFEBOX_LOAD (handle: %d account.id %u is_mall %d)", dwHandle, packet->dwID, bMall ? 1 : 0);
+		metin2::log::info( "HEADER_GD_SAFEBOX_LOAD (handle: {:d} account.id {:d} is_mall {:d})", dwHandle, packet->dwID, bMall ? 1 : 0);
 
 	CDBManager::instance().ReturnQuery(szQuery, QID_SAFEBOX_LOAD, pkPeer->GetHandle(), pi);
 }
@@ -538,10 +538,10 @@ void CClientManager::RESULT_SAFEBOX_LOAD(CPeer * pkPeer, SQLMsg * msg)
 			if (pi->ip[0] == 1)
 			{
 				pSafebox->bSize = 1;
-				sys_log(0, "MALL id[%d] size[%d]", pSafebox->dwID, pSafebox->bSize);
+				metin2::log::info( "MALL id[{:d}] size[{:d}]", pSafebox->dwID, pSafebox->bSize);
 			}
 			else
-				sys_log(0, "SAFEBOX id[%d] size[%d]", pSafebox->dwID, pSafebox->bSize);
+				metin2::log::info( "SAFEBOX id[{:d}] size[{:d}]", pSafebox->dwID, pSafebox->bSize);
 		}
 
 		if (0 == pSafebox->dwID)
@@ -570,7 +570,7 @@ void CClientManager::RESULT_SAFEBOX_LOAD(CPeer * pkPeer, SQLMsg * msg)
 
 		if (!pi->pSafebox)
 		{
-			sys_err("null safebox pointer!");
+			metin2::log::error("null safebox pointer!");
 			delete pi;
 			return;
 		}
@@ -579,7 +579,7 @@ void CClientManager::RESULT_SAFEBOX_LOAD(CPeer * pkPeer, SQLMsg * msg)
 		// so it's better for the safebox not to open at all
 		if (!msg->Get()->pSQLResult)
 		{
-			sys_err("null safebox result");
+			metin2::log::error("null safebox result");
 			delete pi;
 			return;
 		}
@@ -604,7 +604,7 @@ void CClientManager::RESULT_SAFEBOX_LOAD(CPeer * pkPeer, SQLMsg * msg)
 				if (it == m_map_itemTableByVnum.end())
 				{
 					bEscape = true;
-					sys_err("invalid item vnum %u in safebox: login %s", r.vnum, pi->login);
+					metin2::log::error("invalid item vnum {:d} in safebox: login {}", r.vnum, pi->login);
 					break;
 				}
 
@@ -637,7 +637,7 @@ void CClientManager::RESULT_SAFEBOX_LOAD(CPeer * pkPeer, SQLMsg * msg)
 
 					if (it == m_map_itemTableByVnum.end())
 					{
-						sys_err("invalid item vnum %u in item_award: login %s", pItemAward->dwVnum, pi->login);
+						metin2::log::error("invalid item vnum {:d} in item_award: login {}", pItemAward->dwVnum, pi->login);
 						continue;
 					}
 
@@ -703,7 +703,7 @@ void CClientManager::RESULT_SAFEBOX_LOAD(CPeer * pkPeer, SQLMsg * msg)
 
 					if (GetItemID () > m_itemRange.dwMax)
 					{
-						sys_err("UNIQUE ID OVERFLOW!!");
+						metin2::log::error("UNIQUE ID OVERFLOW!!");
 						break;
 					}
 
@@ -711,13 +711,13 @@ void CClientManager::RESULT_SAFEBOX_LOAD(CPeer * pkPeer, SQLMsg * msg)
 						auto it = m_map_itemTableByVnum.find (dwItemVnum);
 						if (it == m_map_itemTableByVnum.end())
 						{
-							sys_err ("Invalid item(vnum : %d). It is not in m_map_itemTableByVnum.", dwItemVnum);
+							metin2::log::error("Invalid item(vnum : {:d}). It is not in m_map_itemTableByVnum.", dwItemVnum);
 							continue;
 						}
 						TItemTable* item_table = it->second;
 						if (item_table == nullptr)
 						{
-							sys_err ("Invalid item_table (vnum : %d). It's value is NULL in m_map_itemTableByVnum.", dwItemVnum);
+							metin2::log::error("Invalid item_table (vnum : {:d}). It's value is NULL in m_map_itemTableByVnum.", dwItemVnum);
 							continue;
 						}
 						if (0 == pItemAward->dwSocket0)
@@ -758,7 +758,7 @@ void CClientManager::RESULT_SAFEBOX_LOAD(CPeer * pkPeer, SQLMsg * msg)
 
 					std::unique_ptr<SQLMsg> pmsg(CDBManager::instance().DirectQuery(query.c_str()));
 					SQLResult * pRes = pmsg->Get();
-					sys_log(0, "SAFEBOX Query : [%s]", query.c_str());
+					metin2::log::info( "SAFEBOX Query : [{}]", query.c_str());
 
 					if (pRes->uiAffectedRows == 0 || pRes->uiInsertID == 0 || pRes->uiAffectedRows == (uint32_t)-1)
 						break;
@@ -915,7 +915,7 @@ void CClientManager::RESULT_PRICELIST_LOAD(CPeer* peer, SQLMsg* pMsg)
 	peer->Encode(&header, sizeof(header));
 	peer->Encode(table.aPriceInfo, sizePriceListSize);
 
-	sys_log(0, "Load MyShopPricelist handle[%d] pid[%d] count[%d]", pReqInfo->first, pReqInfo->second, header.byCount);
+	metin2::log::info( "Load MyShopPricelist handle[{:d}] pid[{:d}] count[{:d}]", pReqInfo->first, pReqInfo->second, header.byCount);
 
 	delete pReqInfo;
 }
@@ -968,7 +968,7 @@ void CClientManager::QUERY_EMPIRE_SELECT(CPeer * pkPeer, uint32_t dwHandle, TEmp
 	snprintf(szQuery, sizeof(szQuery), "UPDATE player_index%s SET empire=%u WHERE id=%u", GetTablePostfix(), p->bEmpire, p->dwAccountID);
 	std::unique_ptr<SQLMsg>(CDBManager::instance().DirectQuery(szQuery));
 
-	sys_log(0, "EmpireSelect: %s", szQuery);
+	metin2::log::info( "EmpireSelect: {}", szQuery);
 	{
 		snprintf(szQuery, sizeof(szQuery),
 				"SELECT pid1, pid2, pid3, pid4 FROM player_index%s WHERE id=%u", GetTablePostfix(), p->dwAccountID);
@@ -979,7 +979,7 @@ void CClientManager::QUERY_EMPIRE_SELECT(CPeer * pkPeer, uint32_t dwHandle, TEmp
 
 		if (pRes->uiNumRows)
 		{
-			sys_log(0, "EMPIRE %u", pRes->uiNumRows);
+			metin2::log::info( "EMPIRE {:d}", pRes->uiNumRows);
 
 			MYSQL_ROW row = mysql_fetch_row(pRes->pSQLResult);
 			uint32_t pids[3];
@@ -1004,11 +1004,11 @@ void CClientManager::QUERY_EMPIRE_SELECT(CPeer * pkPeer, uint32_t dwHandle, TEmp
 			for (int i = 0; i < 3; ++i)
 			{
 				str_to_number(pids[i], row[i]);
-				sys_log(0, "EMPIRE PIDS[%d]", pids[i]);
+				metin2::log::info( "EMPIRE PIDS[{:d}]", pids[i]);
 
 				if (pids[i])
 				{
-					sys_log(0, "EMPIRE move to pid[%d] to villiage of %u, map_index %d", 
+					metin2::log::info( "EMPIRE move to pid[{:d}] to villiage of {:d}, map_index {:d}", 
 							pids[i], p->bEmpire, g_start_map[p->bEmpire]);
 
 					snprintf(szQuery, sizeof(szQuery), "UPDATE player%s SET map_index=%u,x=%u,y=%u WHERE id=%u", 
@@ -1035,7 +1035,7 @@ void CClientManager::QUERY_SETUP(CPeer * peer, uint32_t dwHandle, const char * c
 
 	if (p->bAuthServer)
 	{
-		sys_log(0, "AUTH_PEER ptr %p", peer);
+		metin2::log::info( "AUTH_PEER ptr {}", static_cast<const void *>(peer));
 
 		m_pkAuthPeer = peer;
 		return;
@@ -1157,7 +1157,7 @@ void CClientManager::QUERY_SETUP(CPeer * peer, uint32_t dwHandle, const char * c
 	//
 	// Setup: make the other peers connect to the connected peer. (create P2P connections)
 	// 
-	sys_log(0, "SETUP: channel %u listen %u p2p %u count %u", peer->GetChannel(), p->wListenPort, p->wP2PPort, bMapCount);
+	metin2::log::info( "SETUP: channel {:d} listen {:d} p2p {:d} count {:d}", peer->GetChannel(), p->wListenPort, p->wP2PPort, bMapCount);
 
 	TPacketDGP2P p2pSetupPacket;
 	p2pSetupPacket.wPort = peer->GetP2PPort();
@@ -1202,11 +1202,11 @@ void CClientManager::QUERY_SETUP(CPeer * peer, uint32_t dwHandle, const char * c
 
 		if (InsertLogonAccount(pck->szLogin, peer->GetHandle()))
 		{
-			sys_log(0, "SETUP: login %u %s login_key %u host %s", pck->dwID, pck->szLogin, pck->dwLoginKey, pck->szHost);
+			metin2::log::info( "SETUP: login {:d} {} login_key {:d} host {}", pck->dwID, pck->szLogin, pck->dwLoginKey, pck->szHost);
 			pkLD->SetPlay(true);
 		}
 		else
-			sys_log(0, "SETUP: login_fail %u %s login_key %u", pck->dwID, pck->szLogin, pck->dwLoginKey);
+			metin2::log::info( "SETUP: login_fail {:d} {} login_key {:d}", pck->dwID, pck->szLogin, pck->dwLoginKey);
 	}
 
 	SendPartyOnSetup(peer);
@@ -1221,7 +1221,7 @@ void CClientManager::QUERY_ITEM_FLUSH(CPeer * pkPeer, const char * c_pData)
 	uint32_t dwID = *(uint32_t *) c_pData;
 
 	if (g_log)
-		sys_log(0, "HEADER_GD_ITEM_FLUSH: %u", dwID);
+		metin2::log::info( "HEADER_GD_ITEM_FLUSH: {:d}", dwID);
 
 	CItemCache * c = GetItemCache(dwID);
 
@@ -1247,7 +1247,7 @@ void CClientManager::QUERY_ITEM_SAVE(CPeer * pkPeer, const char * c_pData)
 			if (it != m_map_pkItemCacheSetPtr.end())
 			{
 				if (g_test_server)
-					sys_log(0, "ITEM_CACHE: safebox owner %u id %u", c->Get()->owner, c->Get()->id);
+					metin2::log::info( "ITEM_CACHE: safebox owner {:d} id {:d}", c->Get()->owner, c->Get()->id);
 
 				it->second->erase(c);
 			}
@@ -1291,7 +1291,7 @@ void CClientManager::QUERY_ITEM_SAVE(CPeer * pkPeer, const char * c_pData)
 	else
 	{
 		if (g_test_server)
-			sys_log(0, "QUERY_ITEM_SAVE => PutItemCache() owner %d id %d vnum %d ", p->owner, p->id, p->vnum);
+			metin2::log::info( "QUERY_ITEM_SAVE => PutItemCache() owner {:d} id {:d} vnum {:d} ", p->owner, p->id, p->vnum);
 
 		PutItemCache(p);
 	}
@@ -1315,7 +1315,7 @@ void CClientManager::CreateItemCacheSet(uint32_t pid)
 	m_map_pkItemCacheSetPtr.insert(TItemCacheSetPtrMap::value_type(pid, std::make_unique<TItemCacheSet>()));
 
 	if (g_log)
-		sys_log(0, "ITEM_CACHE: new cache %u", pid);
+		metin2::log::info( "ITEM_CACHE: new cache {:d}", pid);
 }
 
 void CClientManager::FlushItemCacheSet(uint32_t pid)
@@ -1324,7 +1324,7 @@ void CClientManager::FlushItemCacheSet(uint32_t pid)
 
 	if (it == m_map_pkItemCacheSetPtr.end())
 	{
-		sys_log(0, "FLUSH_ITEMCACHESET : No ItemCacheSet pid(%d)", pid);
+		metin2::log::info( "FLUSH_ITEMCACHESET : No ItemCacheSet pid({:d})", pid);
 		return;
 	}
 
@@ -1345,7 +1345,7 @@ void CClientManager::FlushItemCacheSet(uint32_t pid)
 	m_map_pkItemCacheSetPtr.erase(it);
 
 	if (g_log)
-		sys_log(0, "FLUSH_ITEMCACHESET : Deleted pid(%d)", pid);
+		metin2::log::info( "FLUSH_ITEMCACHESET : Deleted pid({:d})", pid);
 }
 
 CItemCache * CClientManager::GetItemCache(uint32_t id)
@@ -1368,7 +1368,7 @@ void CClientManager::PutItemCache(TPlayerItem * pNew, bool bSkipQuery)
 	if (!c)
 	{
 		if (g_log)
-			sys_log(0, "ITEM_CACHE: PutItemCache ==> New CItemCache id%d vnum%d new owner%d", pNew->id, pNew->vnum, pNew->owner);
+			metin2::log::info( "ITEM_CACHE: PutItemCache ==> New CItemCache id{:d} vnum{:d} new owner{:d}", pNew->id, pNew->vnum, pNew->owner);
 
 		c = new CItemCache;
 		m_map_itemCache.insert(TItemCacheMap::value_type(pNew->id, c));
@@ -1377,7 +1377,7 @@ void CClientManager::PutItemCache(TPlayerItem * pNew, bool bSkipQuery)
 	else
 	{
 		if (g_log)
-			sys_log(0, "ITEM_CACHE: PutItemCache ==> Have Cache");
+			metin2::log::info( "ITEM_CACHE: PutItemCache ==> Have Cache");
 		// If the owner differs
 		if (pNew->owner != c->Get()->owner)
 		{
@@ -1387,7 +1387,7 @@ void CClientManager::PutItemCache(TPlayerItem * pNew, bool bSkipQuery)
 			if (it != m_map_pkItemCacheSetPtr.end())
 			{
 				if (g_log)
-				sys_log(0, "ITEM_CACHE: delete owner %u id %u new owner %u", c->Get()->owner, c->Get()->id, pNew->owner);
+				metin2::log::info( "ITEM_CACHE: delete owner {:d} id {:d} new owner {:d}", c->Get()->owner, c->Get()->id, pNew->owner);
 				it->second->erase(c);
 			}
 		}
@@ -1401,9 +1401,9 @@ void CClientManager::PutItemCache(TPlayerItem * pNew, bool bSkipQuery)
 	if (it != m_map_pkItemCacheSetPtr.end())
 	{
 		if (g_log)
-			sys_log(0, "ITEM_CACHE: save %u id %u", c->Get()->owner, c->Get()->id);
+			metin2::log::info( "ITEM_CACHE: save {:d} id {:d}", c->Get()->owner, c->Get()->id);
 		else
-			sys_log(1, "ITEM_CACHE: save %u id %u", c->Get()->owner, c->Get()->id);
+			metin2::log::debug( "ITEM_CACHE: save {:d} id {:d}", c->Get()->owner, c->Get()->id);
 		it->second->insert(c);
 	}
 	else
@@ -1411,9 +1411,9 @@ void CClientManager::PutItemCache(TPlayerItem * pNew, bool bSkipQuery)
 		// There is no current owner, so save it right away so it can be queried from SQL
 		// on the next login.
 		if (g_log)
-			sys_log(0, "ITEM_CACHE: direct save %u id %u", c->Get()->owner, c->Get()->id);
+			metin2::log::info( "ITEM_CACHE: direct save {:d} id {:d}", c->Get()->owner, c->Get()->id);
 		else
-			sys_log(1, "ITEM_CACHE: direct save %u id %u", c->Get()->owner, c->Get()->id);
+			metin2::log::debug( "ITEM_CACHE: direct save {:d} id {:d}", c->Get()->owner, c->Get()->id);
 
 		c->OnFlush();
 	}
@@ -1465,7 +1465,7 @@ void CClientManager::UpdatePlayerCache()
 		if (c->CheckTimeout())
 		{
 			if (g_log)
-				sys_log(0, "UPDATE : UpdatePlayerCache() ==> FlushPlayerCache %d %s ", c->Get(false)->id, c->Get(false)->name);
+				metin2::log::info( "UPDATE : UpdatePlayerCache() ==> FlushPlayerCache {:d} {} ", c->Get(false)->id, c->Get(false)->name);
 
 			c->Flush();
 
@@ -1481,7 +1481,7 @@ void CClientManager::UpdatePlayerCache()
 void CClientManager::SetCacheFlushCountLimit(int iLimit)
 {
 	m_iCacheFlushCountLimit = std::max(10, iLimit);
-	sys_log(0, "CACHE_FLUSH_LIMIT_PER_SECOND: %d", m_iCacheFlushCountLimit);
+	metin2::log::info( "CACHE_FLUSH_LIMIT_PER_SECOND: {:d}", m_iCacheFlushCountLimit);
 }
 
 void CClientManager::UpdateItemCache()
@@ -1499,7 +1499,7 @@ void CClientManager::UpdateItemCache()
 		if (c->CheckFlushTimeout())
 		{
 			if (g_test_server)
-				sys_log(0, "UpdateItemCache ==> Flush() vnum %d id %d owner %d", c->Get()->vnum, c->Get()->id, c->Get()->owner);
+				metin2::log::info( "UpdateItemCache ==> Flush() vnum {:d} id {:d} owner {:d}", c->Get()->vnum, c->Get()->id, c->Get()->owner);
 
 			c->Flush();
 
@@ -1540,7 +1540,7 @@ void CClientManager::QUERY_ITEM_DESTROY(CPeer * pkPeer, const char * c_pData)
 		snprintf(szQuery, sizeof(szQuery), "DELETE FROM item%s WHERE id=%u", GetTablePostfix(), dwID);
 
 		if (g_log)
-			sys_log(0, "HEADER_GD_ITEM_DESTROY: PID %u ID %u", dwPID, dwID);
+			metin2::log::info( "HEADER_GD_ITEM_DESTROY: PID {:d} ID {:d}", dwPID, dwID);
 
 		if (dwPID == 0) // If nobody had it, async query
 			CDBManager::instance().AsyncQuery(szQuery);
@@ -1558,7 +1558,7 @@ void CClientManager::QUERY_FLUSH_CACHE(CPeer * pkPeer, const char * c_pData)
 	if (!pkCache)
 		return;
 
-	sys_log(0, "FLUSH_CACHE: %u", dwPID);
+	metin2::log::info( "FLUSH_CACHE: {:d}", dwPID);
 
 	pkCache->Flush();
 	FlushItemCacheSet(dwPID);
@@ -1580,7 +1580,7 @@ void CClientManager::QUERY_RELOAD_PROTO()
 {
 	if (!InitializeTables())
 	{
-		sys_err("QUERY_RELOAD_PROTO: cannot load tables");
+		metin2::log::error("QUERY_RELOAD_PROTO: cannot load tables");
 		return;
 	}
 
@@ -1694,7 +1694,7 @@ void CClientManager::DeleteLoginData(CLoginData * pkLD)
 void CClientManager::QUERY_AUTH_LOGIN(CPeer * pkPeer, uint32_t dwHandle, TPacketGDAuthLogin * p)
 {
 	if (g_test_server)
-		sys_log(0, "QUERY_AUTH_LOGIN %d %d %s", p->dwID, p->dwLoginKey, p->szLogin);
+		metin2::log::info( "QUERY_AUTH_LOGIN {:d} {:d} {}", p->dwID, p->dwLoginKey, p->szLogin);
 	CLoginData * pkLD = GetLoginDataByLogin(p->szLogin);
 
 	if (pkLD)
@@ -1706,7 +1706,7 @@ void CClientManager::QUERY_AUTH_LOGIN(CPeer * pkPeer, uint32_t dwHandle, TPacket
 
 	if (GetLoginData(p->dwLoginKey))
 	{
-		sys_err("LoginData already exist key %u login %s", p->dwLoginKey, p->szLogin);
+		metin2::log::error("LoginData already exist key {:d} login {}", p->dwLoginKey, p->szLogin);
 		bResult = 0;
 
 		pkPeer->EncodeHeader(HEADER_DG_AUTH_LOGIN, dwHandle, sizeof(uint8_t));
@@ -1727,7 +1727,7 @@ void CClientManager::QUERY_AUTH_LOGIN(CPeer * pkPeer, uint32_t dwHandle, TPacket
 		strlcpy(r.social_id, p->szSocialID, sizeof(r.social_id));
 		strlcpy(r.passwd, "TEMP", sizeof(r.passwd));
 
-		sys_log(0, "AUTH_LOGIN id(%u) login(%s) social_id(%s) login_key(%u), client_key(%u %u %u %u)",
+		metin2::log::info( "AUTH_LOGIN id({:d}) login({}) social_id({}) login_key({:d}), client_key({:d} {:d} {:d} {:d})",
 				p->dwID, p->szLogin, p->szSocialID, p->dwLoginKey,
 				p->adwClientKey[0], p->adwClientKey[1], p->adwClientKey[2], p->adwClientKey[3]);
 
@@ -1774,7 +1774,7 @@ void CClientManager::CreateObject(TPacketGDCreateObject * p)
 
 	if (pmsg->Get()->uiInsertID == 0)
 	{
-		sys_err("cannot insert object");
+		metin2::log::error("cannot insert object");
 		return;
 	}
 
@@ -1808,7 +1808,7 @@ void CClientManager::DeleteObject(uint32_t dwID)
 
 	if (pmsg->Get()->uiAffectedRows == 0 || pmsg->Get()->uiAffectedRows == (uint32_t)-1)
 	{
-		sys_err("no object by id %u", dwID);
+		metin2::log::error("no object by id {:d}", dwID);
 		return;
 	}
 
@@ -1879,38 +1879,38 @@ void CClientManager::BlockChat(TPacketBlockChat* p)
 
 void CClientManager::MarriageAdd(TPacketMarriageAdd * p)
 {
-	sys_log(0, "MarriageAdd %u %u %s %s", p->dwPID1, p->dwPID2, p->szName1, p->szName2);
+	metin2::log::info( "MarriageAdd {:d} {:d} {} {}", p->dwPID1, p->dwPID2, p->szName1, p->szName2);
 	marriage::CManager::instance().Add(p->dwPID1, p->dwPID2, p->szName1, p->szName2);
 }
 
 void CClientManager::MarriageUpdate(TPacketMarriageUpdate * p)
 {
-	sys_log(0, "MarriageUpdate PID:%u %u LP:%d ST:%d", p->dwPID1, p->dwPID2, p->iLovePoint, p->byMarried);
+	metin2::log::info( "MarriageUpdate PID:{:d} {:d} LP:{:d} ST:{:d}", p->dwPID1, p->dwPID2, p->iLovePoint, p->byMarried);
 	marriage::CManager::instance().Update(p->dwPID1, p->dwPID2, p->iLovePoint, p->byMarried);
 }
 
 void CClientManager::MarriageRemove(TPacketMarriageRemove * p)
 {
-	sys_log(0, "MarriageRemove %u %u", p->dwPID1, p->dwPID2);
+	metin2::log::info( "MarriageRemove {:d} {:d}", p->dwPID1, p->dwPID2);
 	marriage::CManager::instance().Remove(p->dwPID1, p->dwPID2);
 }
 
 void CClientManager::WeddingRequest(TPacketWeddingRequest * p)
 {
-	sys_log(0, "WeddingRequest %u %u", p->dwPID1, p->dwPID2);
+	metin2::log::info( "WeddingRequest {:d} {:d}", p->dwPID1, p->dwPID2);
 	ForwardPacket(HEADER_DG_WEDDING_REQUEST, p, sizeof(TPacketWeddingRequest));
 }
 
 void CClientManager::WeddingReady(TPacketWeddingReady * p)
 {
-	sys_log(0, "WeddingReady %u %u", p->dwPID1, p->dwPID2);
+	metin2::log::info( "WeddingReady {:d} {:d}", p->dwPID1, p->dwPID2);
 	ForwardPacket(HEADER_DG_WEDDING_READY, p, sizeof(TPacketWeddingReady));
 	marriage::CManager::instance().ReadyWedding(p->dwMapIndex, p->dwPID1, p->dwPID2);
 }
 
 void CClientManager::WeddingEnd(TPacketWeddingEnd * p)
 {
-	sys_log(0, "WeddingEnd %u %u", p->dwPID1, p->dwPID2);
+	metin2::log::info( "WeddingEnd {:d} {:d}", p->dwPID1, p->dwPID2);
 	marriage::CManager::instance().EndWedding(p->dwPID1, p->dwPID2);
 }
 
@@ -1926,7 +1926,7 @@ void CClientManager::MyshopPricelistUpdate(const TItemPriceListTable* pPacket)
 {
 	if (pPacket->byCount > SHOP_PRICELIST_MAX_NUM)
 	{
-		sys_err("count overflow!");
+		metin2::log::error("count overflow!");
 		return;
 	}
 
@@ -1965,7 +1965,7 @@ void CClientManager::MyshopPricelistRequest(CPeer* peer, uint32_t dwHandle, uint
 {
 	if (CItemPriceListTableCache* pCache = GetItemPriceListCache(dwPlayerID))
 	{
-		sys_log(0, "Cache MyShopPricelist handle[%d] pid[%d]", dwHandle, dwPlayerID);
+		metin2::log::info( "Cache MyShopPricelist handle[{:d}] pid[{:d}]", dwHandle, dwPlayerID);
 
 		TItemPriceListTable* pTable = pCache->Get(false);
 
@@ -1984,7 +1984,7 @@ void CClientManager::MyshopPricelistRequest(CPeer* peer, uint32_t dwHandle, uint
 	}
 	else
 	{
-		sys_log(0, "Query MyShopPricelist handle[%d] pid[%d]", dwHandle, dwPlayerID);
+		metin2::log::info( "Query MyShopPricelist handle[{:d}] pid[{:d}]", dwHandle, dwPlayerID);
 
 		char szQuery[QUERY_MAX_LEN];
 		snprintf(szQuery, sizeof(szQuery), "SELECT item_vnum, price FROM myshop_pricelist%s WHERE owner_id=%u", GetTablePostfix(), dwPlayerID);
@@ -2011,7 +2011,7 @@ void CClientManager::ProcessPackets(CPeer * peer)
 		if (g_test_server)
 		{
 			if (header != 10)
-				sys_log(0, " ProcessPacket Header [%d] Handle[%d] Length[%d] iCount[%d]", header, dwHandle, dwLength, iCount);
+				metin2::log::info( " ProcessPacket Header [{:d}] Handle[{:d}] Length[{:d}] iCount[{:d}]", header, dwHandle, dwLength, iCount);
 		}
 
 		switch (header)
@@ -2032,23 +2032,23 @@ void CClientManager::ProcessPackets(CPeer * peer)
 				break;
 
 			case HEADER_GD_PLAYER_LOAD:
-				sys_log(1, "HEADER_GD_PLAYER_LOAD (handle: %d length: %d)", dwHandle, dwLength);
+				metin2::log::debug( "HEADER_GD_PLAYER_LOAD (handle: {:d} length: {:d})", dwHandle, dwLength);
 				QUERY_PLAYER_LOAD(peer, dwHandle, (TPlayerLoadPacket *) data);
 				break;
 
 			case HEADER_GD_PLAYER_SAVE:
-				sys_log(1, "HEADER_GD_PLAYER_SAVE (handle: %d length: %d)", dwHandle, dwLength);
+				metin2::log::debug( "HEADER_GD_PLAYER_SAVE (handle: {:d} length: {:d})", dwHandle, dwLength);
 				QUERY_PLAYER_SAVE(peer, dwHandle, (TPlayerTable *) data);
 				break;
 
 			case HEADER_GD_PLAYER_CREATE:
-				sys_log(0, "HEADER_GD_PLAYER_CREATE (handle: %d length: %d)", dwHandle, dwLength);
+				metin2::log::info( "HEADER_GD_PLAYER_CREATE (handle: {:d} length: {:d})", dwHandle, dwLength);
 				__QUERY_PLAYER_CREATE(peer, dwHandle, (TPlayerCreatePacket *) data);
-				sys_log(0, "END");
+				metin2::log::info( "END");
 				break;
 
 			case HEADER_GD_PLAYER_DELETE:
-				sys_log(1, "HEADER_GD_PLAYER_DELETE (handle: %d length: %d)", dwHandle, dwLength);
+				metin2::log::debug( "HEADER_GD_PLAYER_DELETE (handle: {:d} length: {:d})", dwHandle, dwLength);
 				__QUERY_PLAYER_DELETE(peer, dwHandle, (TPlayerDeletePacket *) data);
 				break;
 
@@ -2057,7 +2057,7 @@ void CClientManager::ProcessPackets(CPeer * peer)
 				break;
 
 			case HEADER_GD_QUEST_SAVE:
-				sys_log(1, "HEADER_GD_QUEST_SAVE (handle: %d length: %d)", dwHandle, dwLength);
+				metin2::log::debug( "HEADER_GD_QUEST_SAVE (handle: {:d} length: {:d})", dwHandle, dwLength);
 				QUERY_QUEST_SAVE(peer, (TQuestTable *) data, dwLength);
 				break;
 
@@ -2066,7 +2066,7 @@ void CClientManager::ProcessPackets(CPeer * peer)
 				break;
 
 			case HEADER_GD_SAFEBOX_SAVE:
-				sys_log(1, "HEADER_GD_SAFEBOX_SAVE (handle: %d length: %d)", dwHandle, dwLength);
+				metin2::log::debug( "HEADER_GD_SAFEBOX_SAVE (handle: {:d} length: {:d})", dwHandle, dwLength);
 				QUERY_SAFEBOX_SAVE(peer, (TSafeboxTable *) data);
 				break;
 
@@ -2155,12 +2155,12 @@ void CClientManager::ProcessPackets(CPeer * peer)
 				break;
 
 			case HEADER_GD_ADD_AFFECT:
-				sys_log(1, "HEADER_GD_ADD_AFFECT");
+				metin2::log::debug( "HEADER_GD_ADD_AFFECT");
 				QUERY_ADD_AFFECT(peer, (TPacketGDAddAffect *) data);
 				break;
 
 			case HEADER_GD_REMOVE_AFFECT:
-				sys_log(1, "HEADER_GD_REMOVE_AFFECT");
+				metin2::log::debug( "HEADER_GD_REMOVE_AFFECT");
 				QUERY_REMOVE_AFFECT(peer, (TPacketGDRemoveAffect *) data);
 				break;
 
@@ -2389,7 +2389,7 @@ void CClientManager::ProcessPackets(CPeer * peer)
 				RequestChannelStatus(peer, dwHandle);
 				break;
 			default:					
-				sys_err("Unknown header (header: %d handle: %d length: %d)", header, dwHandle, dwLength);
+				metin2::log::error("Unknown header (header: {:d} handle: {:d} length: {:d})", header, dwHandle, dwLength);
 				break;
 		}
 	}
@@ -2407,7 +2407,7 @@ void CClientManager::AddPeer(net::tcp::socket socket)
 	// only the configured game servers (ALLOWED_PEER_HOSTS), or localhost when none are configured
 	if (!is_allowed_peer(connection->remote_address().c_str(), g_allowedPeerHosts, "127.0.0.1"))
 	{
-		sys_log(0, "PORT_SECURITY: BLOCK CONNECTION FROM %s", connection->remote_address().c_str());
+		metin2::log::info( "PORT_SECURITY: BLOCK CONNECTION FROM {}", connection->remote_address().c_str());
 		connection->close();
 		return;
 	}
@@ -2435,7 +2435,7 @@ void CClientManager::RemovePeer(CPeer * pPeer)
 
 				if (pkLD->IsDeleted())
 				{
-					sys_log(0, "DELETING LoginData");
+					metin2::log::info( "DELETING LoginData");
 					delete pkLD;
 				}
 
@@ -2518,27 +2518,27 @@ int CClientManager::AnalyzeQueryResult(SQLMsg * msg)
 			break;
 
 		case QID_SAFEBOX_LOAD:
-			sys_log(0, "QUERY_RESULT: HEADER_GD_SAFEBOX_LOAD");
+			metin2::log::info( "QUERY_RESULT: HEADER_GD_SAFEBOX_LOAD");
 			RESULT_SAFEBOX_LOAD(peer, msg);
 			break;
 
 		case QID_SAFEBOX_CHANGE_SIZE:
-			sys_log(0, "QUERY_RESULT: HEADER_GD_SAFEBOX_CHANGE_SIZE");
+			metin2::log::info( "QUERY_RESULT: HEADER_GD_SAFEBOX_CHANGE_SIZE");
 			RESULT_SAFEBOX_CHANGE_SIZE(peer, msg);
 			break;
 
 		case QID_SAFEBOX_CHANGE_PASSWORD:
-			sys_log(0, "QUERY_RESULT: HEADER_GD_SAFEBOX_CHANGE_PASSWORD %p", msg);
+			metin2::log::info( "QUERY_RESULT: HEADER_GD_SAFEBOX_CHANGE_PASSWORD {}", static_cast<const void *>(msg));
 			RESULT_SAFEBOX_CHANGE_PASSWORD(peer, msg);
 			break;
 
 		case QID_SAFEBOX_CHANGE_PASSWORD_SECOND:
-			sys_log(0, "QUERY_RESULT: HEADER_GD_SAFEBOX_CHANGE_PASSWORD %p", msg);
+			metin2::log::info( "QUERY_RESULT: HEADER_GD_SAFEBOX_CHANGE_PASSWORD {}", static_cast<const void *>(msg));
 			RESULT_SAFEBOX_CHANGE_PASSWORD_SECOND(peer, msg);
 			break;
 
 		case QID_HIGHSCORE_REGISTER:
-			sys_log(0, "QUERY_RESULT: HEADER_GD_HIGHSCORE_REGISTER %p", msg);
+			metin2::log::info( "QUERY_RESULT: HEADER_GD_HIGHSCORE_REGISTER {}", static_cast<const void *>(msg));
 			RESULT_HIGHSCORE_REGISTER(peer, msg);
 			break;
 
@@ -2571,7 +2571,7 @@ int CClientManager::AnalyzeQueryResult(SQLMsg * msg)
 			// END_OF_MYSHOP_PRICE_LIST
 
 		default:
-			sys_log(0, "CClientManager::AnalyzeQueryResult unknown query result type: %d, str: %s", qi->iType, msg->stQuery.c_str());
+			metin2::log::info( "CClientManager::AnalyzeQueryResult unknown query result type: {:d}, str: {}", qi->iType, msg->stQuery.c_str());
 			break;
 	}
 
@@ -2627,7 +2627,7 @@ int CClientManager::Process()
 				if (!(thecore_heart->pulse % (thecore_heart->passes_per_sec * 10)))	
 
 				{
-					pt_log("[%9d] return %d/%d/%d/%d async %d/%d/%d/%d",
+					metin2::log::debug("[perf] [{:9d}] return {:d}/{:d}/{:d}/{:d} async {:d}/{:d}/{:d}/{:d}",
 							thecore_heart->pulse,
 							CDBManager::instance().CountReturnQuery(SQL_PLAYER),
 							CDBManager::instance().CountReturnResult(SQL_PLAYER),
@@ -2639,7 +2639,7 @@ int CClientManager::Process()
 							CDBManager::instance().CountAsyncCopiedQuery(SQL_PLAYER));
 
 					if ((thecore_heart->pulse % 50) == 0) 
-						sys_log(0, "[%9d] return %d/%d/%d async %d/%d/%d",
+						metin2::log::info( "[{:9d}] return {:d}/{:d}/{:d} async {:d}/{:d}/{:d}",
 								thecore_heart->pulse,
 								CDBManager::instance().CountReturnQuery(SQL_PLAYER),
 								CDBManager::instance().CountReturnResult(SQL_PLAYER),
@@ -2651,7 +2651,7 @@ int CClientManager::Process()
 			}
 			else
 			{
-				pt_log("[%9d] return %d/%d/%d/%d async %d/%d/%d/%d",
+				metin2::log::debug("[perf] [{:9d}] return {:d}/{:d}/{:d}/{:d} async {:d}/{:d}/{:d}/{:d}",
 						thecore_heart->pulse,
 						CDBManager::instance().CountReturnQuery(SQL_PLAYER),
 						CDBManager::instance().CountReturnResult(SQL_PLAYER),
@@ -2663,7 +2663,7 @@ int CClientManager::Process()
 						CDBManager::instance().CountAsyncCopiedQuery(SQL_PLAYER));
 
 						if ((thecore_heart->pulse % 50) == 0) 
-						sys_log(0, "[%9d] return %d/%d/%d async %d/%d/%d",
+						metin2::log::info( "[{:9d}] return {:d}/{:d}/{:d} async {:d}/{:d}/{:d}",
 							thecore_heart->pulse,
 							CDBManager::instance().CountReturnQuery(SQL_PLAYER),
 							CDBManager::instance().CountReturnResult(SQL_PLAYER),
@@ -2710,13 +2710,13 @@ int CClientManager::Process()
 
 		if (!(thecore_heart->pulse % (thecore_heart->passes_per_sec * 10)))
 		{
-			pt_log("QUERY: MAIN[%d] ASYNC[%d]", g_query_count[0], g_query_count[1]);
+			metin2::log::debug("[perf] QUERY: MAIN[{:d}] ASYNC[{:d}]", g_query_count[0], g_query_count[1]);
 			g_query_count[0] = 0;
 			g_query_count[1] = 0;
 			/////////////////////////////////////////////////////////////////
 
 			/////////////////////////////////////////////////////////////////
-			pt_log("ITEM:%d\n", g_item_count);
+			metin2::log::debug("[perf] ITEM:{:d}", g_item_count);
 			g_item_count = 0;
 			/////////////////////////////////////////////////////////////////
 		}
@@ -2794,19 +2794,19 @@ bool CClientManager::InitializeNowItemID()
 	//Initialize item IDs.
 	if (!CConfig::instance().GetTwoValue("ITEM_ID_RANGE", &dwMin, &dwMax))
 	{
-		sys_err("conf.txt: Cannot find ITEM_ID_RANGE [start_item_id] [end_item_id]");
+		metin2::log::error("conf.txt: Cannot find ITEM_ID_RANGE [start_item_id] [end_item_id]");
 		return false;
 	}
 
-	sys_log(0, "ItemRange From File %u ~ %u ", dwMin, dwMax);
+	metin2::log::info( "ItemRange From File {:d} ~ {:d} ", dwMin, dwMax);
 
 	if (CItemIDRangeManager::instance().BuildRange(dwMin, dwMax, m_itemRange) == false)
 	{
-		sys_err("Can not build ITEM_ID_RANGE");
+		metin2::log::error("Can not build ITEM_ID_RANGE");
 		return false;
 	}
 
-	sys_log(0, " Init Success Start %u End %u Now %u\n", m_itemRange.dwMin, m_itemRange.dwMax, m_itemRange.dwUsableItemIDMin);
+	metin2::log::info( " Init Success Start {:d} End {:d} Now {:d}", m_itemRange.dwMin, m_itemRange.dwMax, m_itemRange.dwUsableItemIDMin);
 
 	return true;
 }
@@ -2831,11 +2831,11 @@ bool CClientManager::InitializeLocalization()
 
 	if (pMsg->Get()->uiNumRows == 0)
 	{
-		sys_err("InitializeLocalization() ==> DirectQuery failed(%s)", szQuery);
+		metin2::log::error("InitializeLocalization() ==> DirectQuery failed({})", szQuery);
 		return false;
 	}
 
-	sys_log(0, "InitializeLocalization() - LoadLocaleTable(count:%d)", pMsg->Get()->uiNumRows);
+	metin2::log::info( "InitializeLocalization() - LoadLocaleTable(count:{:d})", pMsg->Get()->uiNumRows);
 
 	m_vec_Locale.clear();
 
@@ -2855,21 +2855,21 @@ bool CClientManager::InitializeLocalization()
 			// The server runs the english locale only.
 			if (strcmp(locale.szValue, "english") != 0)
 			{
-				sys_err("locale[LOCALE] = %s is not supported (only english)", locale.szValue);
+				metin2::log::error("locale[LOCALE] = {} is not supported (only english)", locale.szValue);
 				exit(0);
 			}
 
-			sys_log(0, "locale[LOCALE] = %s", locale.szValue);
+			metin2::log::info( "locale[LOCALE] = {}", locale.szValue);
 			g_stLocaleNameColumn = "locale_name";
 		}
 		else if (strcmp(locale.szKey, "DB_NAME_COLUMN") == 0)
 		{
-			sys_log(0, "locale[DB_NAME_COLUMN] = %s", locale.szValue);
+			metin2::log::info( "locale[DB_NAME_COLUMN] = {}", locale.szValue);
 			g_stLocaleNameColumn = locale.szValue;	
 		}
 		else
 		{
-			sys_log(0, "locale[UNKNOWN_KEY(%s)] = %s", locale.szKey, locale.szValue);
+			metin2::log::info( "locale[UNKNOWN_KEY({})] = {}", locale.szKey, locale.szValue);
 		}
 		m_vec_Locale.push_back(locale);
 	}	
@@ -2890,7 +2890,7 @@ bool CClientManager::__GetAdminInfo(const char *szIP, std::vector<tAdminInfo> & 
 
 	if (pMsg->Get()->uiNumRows == 0)
 	{
-		sys_err("__GetAdminInfo() ==> DirectQuery failed(%s)", query.c_str());
+		metin2::log::error("__GetAdminInfo() ==> DirectQuery failed({})", query.c_str());
 		return false;
 	}
 
@@ -2924,7 +2924,7 @@ bool CClientManager::__GetAdminInfo(const char *szIP, std::vector<tAdminInfo> & 
 
 		rAdminVec.push_back(Info);
 
-		sys_log(0, "GM: PID %u Login %s Character %s ContactIP %s ServerIP %s Authority %d[%s]",
+		metin2::log::info( "GM: PID {:d} Login {} Character {} ContactIP {} ServerIP {} Authority {:d}[{}]",
 			   	Info.m_ID, Info.m_szAccount, Info.m_szName, Info.m_szContactIP, Info.m_szServerIP, Info.m_Authority, stAuth.c_str());
 	}
 
@@ -2939,7 +2939,7 @@ bool CClientManager::__GetHostInfo(std::vector<std::string> & rIPVec)
 
 	if (pMsg->Get()->uiNumRows == 0)
 	{
-		sys_err("__GetHostInfo() ==> DirectQuery failed(%s)", szQuery);
+		metin2::log::error("__GetHostInfo() ==> DirectQuery failed({})", szQuery);
 		return false;
 	}
 
@@ -2952,7 +2952,7 @@ bool CClientManager::__GetHostInfo(std::vector<std::string> & rIPVec)
 		if (row[0] && *row[0])
 		{
 			rIPVec.push_back(row[0]);
-			sys_log(0, "GMHOST: %s", row[0]);
+			metin2::log::info( "GMHOST: {}", row[0]);
 		}
 	}
 
@@ -2993,7 +2993,7 @@ void CClientManager::ReloadAdmin(CPeer*, TPacketReloadAdmin* p)
 			peer->Encode(&vAdmin[n], sizeof(tAdminInfo));
 	}
 
-	sys_log(0, "ReloadAdmin End %s", p->szIP);
+	metin2::log::info( "ReloadAdmin End {}", p->szIP);
 }
 
 //BREAK_MARRIAGE
@@ -3007,7 +3007,7 @@ void CClientManager::BreakMarriage(CPeer * peer, const char * data)
 	pid2 = *(int *) data;
 	data += sizeof(int);
 
-	sys_log(0, "Breaking off a marriage engagement! pid %d and pid %d", pid1, pid2);
+	metin2::log::info( "Breaking off a marriage engagement! pid {:d} and pid {:d}", pid1, pid2);
 	marriage::CManager::instance().Remove(pid1, pid2);
 }
 //END_BREAK_MARIIAGE
@@ -3019,7 +3019,7 @@ void CClientManager::UpdateItemCacheSet(uint32_t pid)
 	if (it == m_map_pkItemCacheSetPtr.end())
 	{
 		if (g_test_server)
-			sys_log(0, "UPDATE_ITEMCACHESET : UpdateItemCacheSet ==> No ItemCacheSet pid(%d)", pid);
+			metin2::log::info( "UPDATE_ITEMCACHESET : UpdateItemCacheSet ==> No ItemCacheSet pid({:d})", pid);
 		return;
 	}
 
@@ -3033,7 +3033,7 @@ void CClientManager::UpdateItemCacheSet(uint32_t pid)
 	}
 
 	if (g_log)
-		sys_log(0, "UPDATE_ITEMCACHESET : UpdateItemCachsSet pid(%d)", pid);
+		metin2::log::info( "UPDATE_ITEMCACHESET : UpdateItemCachsSet pid({:d})", pid);
 }
 
 void CClientManager::Election(CPeer * peer, uint32_t dwHandle, const char* data)
@@ -3052,7 +3052,7 @@ void CClientManager::Election(CPeer * peer, uint32_t dwHandle, const char* data)
 	if (!(Success = CMonarch::instance().VoteMonarch(selectingpid, idx)))
 	{
 		if (g_test_server)
-		sys_log(0, "[MONARCH_VOTE] Failed %d %d", idx, selectingpid);
+		metin2::log::info( "[MONARCH_VOTE] Failed {:d} {:d}", idx, selectingpid);
 		peer->EncodeHeader(HEADER_DG_ELECT_MONARCH, dwHandle, sizeof(int));
 		peer->Encode(&Success, sizeof(int));
 		return;
@@ -3060,7 +3060,7 @@ void CClientManager::Election(CPeer * peer, uint32_t dwHandle, const char* data)
 	else
 	{
 		if (g_test_server)
-		sys_log(0, "[MONARCH_VOTE] Success %d %d", idx, selectingpid);
+		metin2::log::info( "[MONARCH_VOTE] Success {:d} {:d}", idx, selectingpid);
 		peer->EncodeHeader(HEADER_DG_ELECT_MONARCH, dwHandle, sizeof(int));
 		peer->Encode(&Success, sizeof(int));
 		return;
@@ -3077,7 +3077,7 @@ void CClientManager::Candidacy(CPeer *  peer, uint32_t dwHandle, const char* dat
 	if (!CMonarch::instance().AddCandidacy(pid, data))
 	{
 		if (g_test_server)
-			sys_log(0, "[MONARCH_CANDIDACY] Failed %d %s", pid, data);
+			metin2::log::info( "[MONARCH_CANDIDACY] Failed {:d} {}", pid, data);
 
 		peer->EncodeHeader(HEADER_DG_CANDIDACY, dwHandle, sizeof(int) + 32);
 		peer->Encode(nullptr, sizeof(int));
@@ -3087,7 +3087,7 @@ void CClientManager::Candidacy(CPeer *  peer, uint32_t dwHandle, const char* dat
 	else
 	{
 		if (g_test_server)
-			sys_log(0, "[MONARCH_CANDIDACY] Success %d %s", pid, data);
+			metin2::log::info( "[MONARCH_CANDIDACY] Success {:d} {}", pid, data);
 
 		for (auto it = m_peerList.begin(); it != m_peerList.end(); ++it)
 		{
@@ -3121,7 +3121,7 @@ void CClientManager::AddMonarchMoney(CPeer * peer, uint32_t dwHandle, const char
 	data += sizeof(int);
 
 	if (g_test_server)
-		sys_log(0, "[MONARCH] Add money Empire(%d) Money(%d)", Empire, Money);
+		metin2::log::info( "[MONARCH] Add money Empire({:d}) Money({:d})", Empire, Money);
 
 	CMonarch::instance().AddMoney(Empire, Money);
 
@@ -3156,7 +3156,7 @@ void CClientManager::DecMonarchMoney(CPeer * peer, uint32_t dwHandle, const char
 	data += sizeof(int);
 
 	if (g_test_server)
-		sys_log(0, "[MONARCH] Dec money Empire(%d) Money(%d)", Empire, Money);
+		metin2::log::info( "[MONARCH] Dec money Empire({:d}) Money({:d})", Empire, Money);
 
 	CMonarch::instance().DecMoney(Empire, Money);
 
@@ -3194,7 +3194,7 @@ void CClientManager::TakeMonarchMoney(CPeer * peer, uint32_t dwHandle, const cha
 	data += sizeof(int);
 
 	if (g_test_server)
-		sys_log(0, "[MONARCH] Take money Empire(%d) Money(%d)", Empire, Money);
+		metin2::log::info( "[MONARCH] Take money Empire({:d}) Money({:d})", Empire, Money);
 
 	if (CMonarch::instance().TakeMoney(Empire, pid, Money) == true)
 	{
@@ -3221,7 +3221,7 @@ void CClientManager::RMCandidacy(CPeer * peer, uint32_t dwHandle, const char * d
 	char szName[32];
 
 	strlcpy(szName, data, sizeof(szName));
-	sys_log(0, "[MONARCH_GM] Remove candidacy name(%s)", szName); 
+	metin2::log::info( "[MONARCH_GM] Remove candidacy name({})", szName); 
 
 	int iRet = CMonarch::instance().DelCandidacy(szName) ? 1 : 0;
 
@@ -3264,7 +3264,7 @@ void CClientManager::SetMonarch(CPeer * peer, uint32_t dwHandle, const char * da
 	strlcpy(szName, data, sizeof(szName));
 
 	if (g_test_server)
-		sys_log(0, "[MONARCH_GM] Set Monarch name(%s)", szName); 
+		metin2::log::info( "[MONARCH_GM] Set Monarch name({})", szName); 
 
 	int iRet = CMonarch::instance().SetMonarch(szName) ? 1 : 0;
 
@@ -3307,7 +3307,7 @@ void CClientManager::RMMonarch(CPeer * peer, uint32_t dwHandle, const char * dat
 	strlcpy(szName, data, sizeof(szName));
 
 	if (g_test_server)
-		sys_log(0, "[MONARCH_GM] Remove Monarch name(%s)", szName); 
+		metin2::log::info( "[MONARCH_GM] Remove Monarch name({})", szName); 
 
 	int iRet = CMonarch::instance().DelMonarch(szName) ? 1 : 0;
 
@@ -3420,12 +3420,12 @@ void CClientManager::DeleteAwardId(TPacketDeleteAwardID *data)
 	{
 		std::set<TItemAward *> & kSet = ItemAwardManager::instance().GetMapkSetAwardByLogin()[it->second->szLogin];
 		if(kSet.erase(it->second))
-			sys_log(0,"erase ItemAward id: %d from cache", data->dwID);
+			metin2::log::info("erase ItemAward id: {:d} from cache", data->dwID);
 		ItemAwardManager::instance().GetMapAward().erase(data->dwID);
 	}
 	else
 	{
-		sys_log(0,"DELETE_AWARDID : could not find the id: %d", data->dwID);
+		metin2::log::info("DELETE_AWARDID : could not find the id: {:d}", data->dwID);
 	}
 
 }
@@ -3472,11 +3472,11 @@ void CClientManager::ChargeCash(const TRequestChargeCash* packet)
 		snprintf(szQuery, sizeof(szQuery), "update account set `mileage` = `mileage` + %d where id = %d limit 1", packet->dwAmount, packet->dwAID);
 	else
 	{
-		sys_err ("Invalid request charge type (type : %d, amount : %d, aid : %d)", packet->eChargeType, packet->dwAmount, packet->dwAID);
+		metin2::log::error("Invalid request charge type (type : {:d}, amount : {:d}, aid : {:d})", packet->eChargeType, packet->dwAmount, packet->dwAID);
 		return;
 	}
 
-	sys_err ("Request Charge (type : %d, amount : %d, aid : %d)", packet->eChargeType, packet->dwAmount, packet->dwAID);
+	metin2::log::error("Request Charge (type : {:d}, amount : {:d}, aid : {:d})", packet->eChargeType, packet->dwAmount, packet->dwAID);
 
 	CDBManager::instance().AsyncQuery(szQuery, SQL_ACCOUNT);
 }

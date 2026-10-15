@@ -11,7 +11,7 @@
 #include <common/length.h>
 #include <common/tables.h>
 #include <libgame/grid.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <algorithm>
 #include <cassert>
@@ -61,7 +61,7 @@ bool CSafebox::Add(uint32_t dwPos, CItem * pkItem)
 {
 	if (!IsValidPosition(dwPos))
 	{
-		sys_err("SAFEBOX: item on wrong position at %d (size of grid = %d)", dwPos, m_pkGrid->GetSize());
+		metin2::log::error("SAFEBOX: item on wrong position at {:d} (size of grid = {:d})", dwPos, m_pkGrid->GetSize());
 		return false;
 	}
 
@@ -74,7 +74,7 @@ bool CSafebox::Add(uint32_t dwPos, CItem * pkItem)
 	m_pkItems[dwPos] = pkItem;
 
 	SendItemSet(dwPos);
-	sys_log(1, "SAFEBOX: ADD %s %s count %d", m_pkChrOwner->GetName(), pkItem->GetName(), pkItem->GetCount());
+	metin2::log::debug( "SAFEBOX: ADD {} {} count {:d}", m_pkChrOwner->GetName(), pkItem->GetName(), pkItem->GetCount());
 	return true;
 }
 
@@ -115,7 +115,7 @@ CItem * CSafebox::Remove(uint32_t dwPos)
 		return nullptr;
 
 	if (!m_pkGrid)
-		sys_err("Safebox::Remove : nil grid");
+		metin2::log::error("Safebox::Remove : nil grid");
 	else
 		m_pkGrid->Get(dwPos, 1, pkItem->GetSize());
 
@@ -129,7 +129,7 @@ CItem * CSafebox::Remove(uint32_t dwPos)
 	pack.pos	= dwPos;
 
 	m_pkChrOwner->GetDesc()->Packet(&pack, sizeof(pack));
-	sys_log(1, "SAFEBOX: REMOVE %s %s count %d", m_pkChrOwner->GetName(), pkItem->GetName(), pkItem->GetCount());
+	metin2::log::debug( "SAFEBOX: REMOVE {} {} count {:d}", m_pkChrOwner->GetName(), pkItem->GetName(), pkItem->GetCount());
 	return pkItem;
 }
 
@@ -143,7 +143,7 @@ void CSafebox::Save()
 	t.dwGold = m_lGold;
 
 	db_clientdesc->DBPacket(HEADER_GD_SAFEBOX_SAVE, 0, &t, sizeof(TSafeboxTable));
-	sys_log(1, "SAFEBOX: SAVE %s", m_pkChrOwner->GetName());
+	metin2::log::debug( "SAFEBOX: SAVE {}", m_pkChrOwner->GetName());
 }
 
 bool CSafebox::IsEmpty(uint32_t dwPos, uint8_t bSize)
@@ -172,7 +172,7 @@ CItem * CSafebox::GetItem(uint8_t bCell)
 {
 	if (bCell >= 5 * m_iSize)
 	{
-		sys_err("CHARACTER::GetItem: invalid item cell %d", bCell);
+		metin2::log::error("CHARACTER::GetItem: invalid item cell {:d}", bCell);
 		return nullptr;
 	}
 
@@ -229,7 +229,7 @@ bool CSafebox::MoveItem(uint8_t bCell, uint8_t bDestCell, uint8_t count)
 				SendItemSet(bCell);
 			}
 
-			sys_log(1, "SAFEBOX: STACK %s %d -> %d %s count %d", m_pkChrOwner->GetName(), bCell, bDestCell, item2->GetName(), item2->GetCount());
+			metin2::log::debug( "SAFEBOX: STACK {} {:d} -> {:d} {} count {:d}", m_pkChrOwner->GetName(), bCell, bDestCell, item2->GetName(), item2->GetCount());
 			return true;
 		}
 
@@ -249,7 +249,7 @@ bool CSafebox::MoveItem(uint8_t bCell, uint8_t bDestCell, uint8_t count)
 			m_pkGrid->Put(bCell, 1, item->GetSize());
 		}
 
-		sys_log(1, "SAFEBOX: MOVE %s %d -> %d %s count %d", m_pkChrOwner->GetName(), bCell, bDestCell, item->GetName(), item->GetCount());
+		metin2::log::debug( "SAFEBOX: MOVE {} {:d} -> {:d} {} count {:d}", m_pkChrOwner->GetName(), bCell, bDestCell, item->GetName(), item->GetCount());
 
 		Remove(bCell);
 		Add(bDestCell, item);

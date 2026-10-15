@@ -14,7 +14,7 @@
 
 #include <common/length.h>
 #include <common/tables.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <cstddef>
 #include <cstdint>
@@ -116,11 +116,11 @@ int CShopEx::Buy(CHARACTER * ch, uint8_t pos)
 	uint8_t slotPos = pos % SHOP_HOST_ITEM_MAX_NUM;
 	if (tabIdx >= GetTabCount())
 	{
-		sys_log(0, "ShopEx::Buy : invalid position %d : %s", pos, ch->GetName());
+		metin2::log::info( "ShopEx::Buy : invalid position {:d} : {}", pos, ch->GetName());
 		return SHOP_SUBHEADER_GC_INVALID_POS;
 	}
 
-	sys_log(0, "ShopEx::Buy : name %s pos %d", ch->GetName(), pos);
+	metin2::log::info( "ShopEx::Buy : name {} pos {:d}", ch->GetName(), pos);
 
 	GuestMapType::iterator it = m_map_guest.find(ch);
 
@@ -146,7 +146,7 @@ int CShopEx::Buy(CHARACTER * ch, uint8_t pos)
 
 		if (ch->GetGold() < (int) dwPrice)
 		{
-			sys_log(1, "ShopEx::Buy : Not enough money : %s has %d, price %d", ch->GetName(), ch->GetGold(), dwPrice);
+			metin2::log::debug( "ShopEx::Buy : Not enough money : {} has {:d}, price {:d}", ch->GetName(), ch->GetGold(), dwPrice);
 			return SHOP_SUBHEADER_GC_NOT_ENOUGH_MONEY;
 		}
 		break;
@@ -155,7 +155,7 @@ int CShopEx::Buy(CHARACTER * ch, uint8_t pos)
 			int count = ch->CountSpecifyTypeItem(ITEM_SECONDARY_COIN);
 			if (static_cast<uint32_t>(count) < dwPrice)
 			{
-				sys_log(1, "ShopEx::Buy : Not enough myeongdojun : %s has %d, price %d", ch->GetName(), count, dwPrice);
+				metin2::log::debug( "ShopEx::Buy : Not enough myeongdojun : {} has {:d}, price {:d}", ch->GetName(), count, dwPrice);
 				return SHOP_SUBHEADER_GC_NOT_ENOUGH_MONEY_EX;
 			}
 		}
@@ -181,7 +181,7 @@ int CShopEx::Buy(CHARACTER * ch, uint8_t pos)
 
 	if (iEmptyPos < 0)
 	{
-		sys_log(1, "ShopEx::Buy : Inventory full : %s size %d", ch->GetName(), item->GetSize());
+		metin2::log::debug( "ShopEx::Buy : Inventory full : {} size {:d}", ch->GetName(), item->GetSize());
 		ITEM_MANAGER::instance().DestroyItem(item);
 		return SHOP_SUBHEADER_GC_INVENTORY_FULL;
 	}
@@ -213,7 +213,7 @@ int CShopEx::Buy(CHARACTER * ch, uint8_t pos)
 	DBManager::instance().SendMoneyLog(MONEY_LOG_SHOP, item->GetVnum(), -dwPrice);
 
 	if (item)
-		sys_log(0, "ShopEx: BUY: name %s %s(x %d):%u price %u", ch->GetName(), item->GetName(), item->GetCount(), item->GetID(), dwPrice);
+		metin2::log::info( "ShopEx: BUY: name {} {}(x {:d}):{:d} price {:d}", ch->GetName(), item->GetName(), item->GetCount(), item->GetID(), dwPrice);
 
 	ch->Save();
 

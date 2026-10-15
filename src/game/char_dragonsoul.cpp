@@ -9,7 +9,7 @@
 #include "packet.h"
 
 #include <common/length.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 // Dragon soul initialization
 // Dragon soul on/off is stored as an Affect, so
@@ -129,7 +129,7 @@ bool CHARACTER::DragonSoul_RefineWindow_Open(CEntity * pEntity)
 
 	if (nullptr == d)
 	{
-		sys_err ("User(%s)'s DESC is NULL POINT.", GetName());
+		metin2::log::error("User({})'s DESC is NULL POINT.", GetName());
 		return false;
 	}
 

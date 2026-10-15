@@ -8,7 +8,7 @@
 #include "utils.h"
 
 #include <common/length.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <cstddef>
 #include <cstdio>
@@ -551,7 +551,7 @@ void interpreter_set_privilege(const char *cmd, int lvl)
 		if (!strcasecmp(cmd, cmd_info[i].command))
 		{
 			cmd_info[i].gm_level = lvl;
-			sys_log(0, "Setting command privilege: %s -> %d", cmd, lvl);
+			metin2::log::info( "Setting command privilege: {} -> {:d}", cmd, lvl);
 			break;
 		}
 	}
@@ -593,7 +593,7 @@ void interpret_command(CHARACTER * ch, const char * argument, size_t len)
 {
 	if (nullptr == ch)
 	{
-		sys_err ("NULL CHRACTER");
+		metin2::log::error("NULL CHRACTER");
 		return ;
 	}
 
@@ -642,7 +642,7 @@ void interpret_command(CHARACTER * ch, const char * argument, size_t len)
 				ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("먼저 일어 나세요."));
 				break;
 			default:
-				sys_err("unknown position %d", ch->GetPosition());
+				metin2::log::error("unknown position {:d}", ch->GetPosition());
 				break;
 		}
 
@@ -662,7 +662,7 @@ void interpret_command(CHARACTER * ch, const char * argument, size_t len)
 	}
 
 	if (strncmp("phase", cmd_info[icmd].command, 5) != 0) // Handle hidden commands 
-		sys_log(0, "COMMAND: %s: %s", ch->GetName(), cmd_info[icmd].command);
+		metin2::log::info( "COMMAND: {}: {}", ch->GetName(), cmd_info[icmd].command);
 
 	((*cmd_info[icmd].command_pointer) (ch, line, icmd, cmd_info[icmd].subcmd));
 

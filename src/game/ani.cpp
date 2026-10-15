@@ -8,12 +8,11 @@
 #include "ani.h"
 
 #include "char.h"
-#include "dev_log.h"
 #include "item.h"
 #include "typedef.h"
 
 #include <common/length.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <algorithm>
 #include <cstdint>
@@ -135,7 +134,7 @@ bool ANI::load() {
 
     for (int race = 0; race < MAIN_RACE_MAX_NUM; ++race) {
         if (false == load_one_race(race, dir_name[race])) {
-            sys_err("ANI directory = %s", dir_name[race]);
+            metin2::log::error("ANI directory = {}", dir_name[race]);
             return false;
         }
     }
@@ -190,7 +189,7 @@ bool ANI::load_one_race(int race, const char *dir_name) {
         return false;
 
     for (int weapon = WEAPON_SWORD; weapon < WEAPON_NUM_TYPES; ++weapon) {
-        dev_log(LOG_DEB0, "ANI (%s,%s)", FN_race_name(race), FN_weapon_type(weapon));
+        metin2::log::debug( "ANI ({},{})", FN_race_name(race), FN_weapon_type(weapon));
 
         for (uint8_t combo = 1; combo <= 8; ++combo) {
             // when not riding a horse
@@ -201,11 +200,11 @@ bool ANI::load_one_race(int race, const char *dir_name) {
             m_speed[race][1][weapon][combo] = load_one_weapon(dir_name, weapon, combo, true);
             m_speed[race][1][weapon][0] = std::min<int>(m_speed[race][1][weapon][0], m_speed[race][1][weapon][combo]); // minimum
 
-            dev_log(LOG_DEB0, "combo%02d speed=%d horse=%d",
+            metin2::log::debug( "combo{:02d} speed={:d} horse={:d}",
                 combo, m_speed[race][0][weapon][combo], m_speed[race][1][weapon][combo]);
         }
 
-        dev_log(LOG_DEB0, "minspeed=%u", m_speed[race][0][weapon][0]);
+        metin2::log::debug( "minspeed={:d}", m_speed[race][0][weapon][0]);
     }
 
     return true;

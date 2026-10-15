@@ -3,7 +3,7 @@
 #include "utils.h"
 
 #include <common/singleton.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <algorithm>
 #include <cctype>
@@ -45,7 +45,7 @@ class SpamManager : public singleton<SpamManager>
 		inline void Insert(const char * str, unsigned int score = 10)
 		{
 			m_vec_word.push_back(std::make_pair(str, score));
-			sys_log(0, "SPAM: %2d %s", score, str);
+			metin2::log::info( "SPAM: {:2d} {}", score, str);
 		}
 
 	private:

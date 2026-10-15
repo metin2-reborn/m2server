@@ -11,7 +11,7 @@
 
 #include <common/length.h>
 #include <common/tables.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <cstdint>
 #include <cstring>
@@ -87,7 +87,7 @@ namespace quest
 	{
 		if (!lua_isnumber(L, 1))
 		{
-			quest_err("invalid argument");
+			quest::error("invalid argument");
 			return 0;
 		}
 
@@ -105,7 +105,7 @@ namespace quest
 	{
 		if (!lua_isnumber(L, 1))
 		{
-			quest_err("invalid argument");
+			quest::error("invalid argument");
 			return 0;
 		}
 
@@ -137,7 +137,7 @@ namespace quest
 	{
 		if (!lua_isnumber(L, 1))
 		{
-			quest_err("invalid argument");
+			quest::error("invalid argument");
 			return 0;
 		}
 
@@ -184,7 +184,7 @@ namespace quest
 	{
 		if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2) || !lua_isnumber(L, 3))
 		{
-			quest_err("invalid argument");
+			quest::error("invalid argument");
 			return 0;
 		}
 
@@ -197,7 +197,7 @@ namespace quest
 		p.dwGuild = (uint32_t) lua_tonumber(L, 2);
 		p.dwGold = (uint32_t) lua_tonumber(L, 3);
 
-		sys_log(0, "GUILD_WAR_BET: %s login %s war_id %u guild %u gold %u", 
+		metin2::log::info( "GUILD_WAR_BET: {} login {} war_id {:d} guild {:d} gold {:d}", 
 				ch->GetName(), p.szLogin, p.dwWarID, p.dwGuild, p.dwGold);
 
 		db_clientdesc->DBPacket(HEADER_GD_GUILD_WAR_BET, 0, &p, sizeof(p));
@@ -208,7 +208,7 @@ namespace quest
 	{
 		if (!lua_isnumber(L, 1))
 		{
-			quest_err("invalid argument");
+			quest::error("invalid argument");
 			lua_pushboolean(L, true);
 			return 1;
 		}
@@ -234,7 +234,7 @@ namespace quest
 		int i = 0;
 		std::vector<CGuildWarReserveForGame *>::iterator it = con.begin();
 
-		sys_log(0, "con.size(): %zu", con.size());
+		metin2::log::info( "con.size(): {:d}", con.size());
 
 		// stack : table1
 		lua_newtable(L);
@@ -248,7 +248,7 @@ namespace quest
 
 			lua_newtable(L);
 
-			sys_log(0, "con.size(): %u %u %u handi %d", p->dwID, p->dwGuildFrom, p->dwGuildTo, p->lHandicap);
+			metin2::log::info( "con.size(): {:d} {:d} {:d} handi {:d}", p->dwID, p->dwGuildFrom, p->dwGuildTo, p->lHandicap);
 
 			// stack : table1 table2
 			lua_pushnumber(L, p->dwID);

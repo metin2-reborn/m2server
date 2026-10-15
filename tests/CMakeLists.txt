@@ -7,6 +7,7 @@ function(m2_add_test name)
     add_test(NAME ${name} COMMAND ${name})
 endfunction()
 
+m2_add_test(log_tests SOURCES log_tests.cpp LIBRARIES metin2_log)
 m2_add_test(utils_tests SOURCES utils_tests.cpp LIBRARIES thecore)
 m2_add_test(grid_tests SOURCES grid_tests.cpp LIBRARIES game)
 m2_add_test(config_tests SOURCES config_tests.cpp ${PROJECT_SOURCE_DIR}/src/db/Config.cpp LIBRARIES thecore)

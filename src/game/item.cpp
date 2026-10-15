@@ -24,7 +24,7 @@
 #include <common/tables.h>
 #include <common/utils.h>
 #include <common/VnumHelper.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/utils.h>
 
 #include <algorithm>
@@ -97,14 +97,14 @@ EVENTFUNC(item_destroy_event)
 
 	if ( info == nullptr )
 	{
-		sys_err( "item_destroy_event> <Factor> Null pointer" );
+		metin2::log::error( "item_destroy_event> <Factor> Null pointer" );
 		return 0;
 	}
 
 	CItem * pkItem = info->item;
 
 	if (pkItem->GetOwner())
-		sys_err("item_destroy_event: Owner exist. (item %s owner %s)", pkItem->GetName(), pkItem->GetOwner()->GetName());
+		metin2::log::error("item_destroy_event: Owner exist. (item {} owner {})", pkItem->GetName(), pkItem->GetOwner()->GetName());
 
 	pkItem->SetDestroyEvent(nullptr);
 	ITEM_MANAGER::instance().DestroyItem(pkItem);
@@ -153,7 +153,7 @@ void CItem::EncodeInsertPacket(CEntity * ent)
 
 		if ( info == nullptr )
 		{
-			sys_err( "CItem::EncodeInsertPacket> <Factor> Null pointer" );
+			metin2::log::error( "CItem::EncodeInsertPacket> <Factor> Null pointer" );
 			return;
 		}
 
@@ -180,7 +180,7 @@ void CItem::EncodeRemovePacket(CEntity * ent)
 	pack.dwVID		= m_dwVID;
 
 	d->Packet(&pack, sizeof(pack));
-	sys_log(2, "Item::EncodeRemovePacket %s to %s", GetName(), ((CHARACTER *) ent)->GetName());
+	metin2::log::debug( "Item::EncodeRemovePacket {} to {}", GetName(), ((CHARACTER *) ent)->GetName());
 }
 
 void CItem::SetProto(const TItemTable * table)
@@ -206,7 +206,7 @@ void CItem::UpdatePacket()
 
 	std::memcpy(pack.aAttr, GetAttributes(), sizeof(pack.aAttr));
 
-	sys_log(2, "UpdatePacket %s -> %s", GetName(), m_pOwner->GetName());
+	metin2::log::debug( "UpdatePacket {} -> {}", GetName(), m_pOwner->GetName());
 	m_pOwner->GetDesc()->Packet(&pack, sizeof(pack));
 }
 
@@ -277,7 +277,7 @@ CItem * CItem::RemoveFromCharacter()
 {
 	if (!m_pOwner)
 	{
-		sys_err("Item::RemoveFromCharacter owner null");
+		metin2::log::error("Item::RemoveFromCharacter owner null");
 		return (this);
 	}
 
@@ -298,7 +298,7 @@ CItem * CItem::RemoveFromCharacter()
 			if (IsDragonSoul())
 			{
 				if (m_wCell >= DRAGON_SOUL_INVENTORY_MAX_NUM)
-					sys_err("CItem::RemoveFromCharacter: pos >= DRAGON_SOUL_INVENTORY_MAX_NUM");
+					metin2::log::error("CItem::RemoveFromCharacter: pos >= DRAGON_SOUL_INVENTORY_MAX_NUM");
 				else
 					pOwner->SetItem(TItemPos(m_bWindow, m_wCell), nullptr);
 			}
@@ -307,7 +307,7 @@ CItem * CItem::RemoveFromCharacter()
 				TItemPos cell(INVENTORY, m_wCell);
 
 				if (false == cell.IsDefaultInventoryPosition() && false == cell.IsBeltInventoryPosition()) // Or in the inventory?
-					sys_err("CItem::RemoveFromCharacter: Invalid Item Position");
+					metin2::log::error("CItem::RemoveFromCharacter: Invalid Item Position");
 				else
 				{
 					pOwner->SetItem(cell, nullptr);
@@ -335,7 +335,7 @@ bool CItem::AddToCharacter(CHARACTER * ch, TItemPos Cell)
 	{
 		if (m_wCell >= INVENTORY_MAX_NUM && BELT_INVENTORY_SLOT_START > m_wCell)
 		{
-			sys_err("CItem::AddToCharacter: cell overflow: %s to %s cell %d", m_pProto->szName, ch->GetName(), m_wCell);
+			metin2::log::error("CItem::AddToCharacter: cell overflow: {} to {} cell {:d}", m_pProto->szName, ch->GetName(), m_wCell);
 			return false;
 		}
 	}
@@ -343,7 +343,7 @@ bool CItem::AddToCharacter(CHARACTER * ch, TItemPos Cell)
 	{
 		if (m_wCell >= DRAGON_SOUL_INVENTORY_MAX_NUM)
 		{
-			sys_err("CItem::AddToCharacter: cell overflow: %s to %s cell %d", m_pProto->szName, ch->GetName(), m_wCell);
+			metin2::log::error("CItem::AddToCharacter: cell overflow: {} to {} cell {:d}", m_pProto->szName, ch->GetName(), m_wCell);
 			return false;
 		}
 	}
@@ -380,19 +380,19 @@ bool CItem::AddToGround(int32_t lMapIndex, const PIXEL_POSITION & pos, bool skip
 {
 	if (0 == lMapIndex)
 	{
-		sys_err("wrong map index argument: %d", lMapIndex);
+		metin2::log::error("wrong map index argument: {:d}", lMapIndex);
 		return false;
 	}
 
 	if (GetSectree())
 	{
-		sys_err("sectree already assigned");
+		metin2::log::error("sectree already assigned");
 		return false;
 	}
 
 	if (!skipOwnerCheck && m_pOwner)
 	{
-		sys_err("owner pointer not null");
+		metin2::log::error("owner pointer not null");
 		return false;
 	}
 
@@ -400,7 +400,7 @@ bool CItem::AddToGround(int32_t lMapIndex, const PIXEL_POSITION & pos, bool skip
 
 	if (!tree)
 	{
-		sys_err("cannot find sectree by %dx%d", pos.x, pos.y);
+		metin2::log::error("cannot find sectree by {:d}x{:d}", pos.x, pos.y);
 		return false;
 	}
 
@@ -590,7 +590,7 @@ void CItem::ModifyPoints(bool bAdd)
 
 				if (!p)
 				{
-					sys_err("cannot find table by vnum %u", dwVnum);
+					metin2::log::error("cannot find table by vnum {:d}", dwVnum);
 					continue;
 				}
 
@@ -801,7 +801,7 @@ bool CItem::EquipTo(CHARACTER * ch, uint8_t bWearCell)
 {
 	if (!ch)
 	{
-		sys_err("EquipTo: nil character");
+		metin2::log::error("EquipTo: nil character");
 		return false;
 	}
 
@@ -810,7 +810,7 @@ bool CItem::EquipTo(CHARACTER * ch, uint8_t bWearCell)
 	{
 		if (bWearCell < WEAR_MAX_NUM || bWearCell >= WEAR_MAX_NUM + DRAGON_SOUL_DECK_MAX_NUM * static_cast<int>(DS_SLOT_MAX))
 		{
-			sys_err("EquipTo: invalid dragon soul cell (this: #%d %s wearflag: %d cell: %d)", GetOriginalVnum(), GetName(), GetSubType(), bWearCell - WEAR_MAX_NUM);
+			metin2::log::error("EquipTo: invalid dragon soul cell (this: #{:d} {} wearflag: {:d} cell: {:d})", GetOriginalVnum(), GetName(), GetSubType(), bWearCell - WEAR_MAX_NUM);
 			return false;
 		}
 	}
@@ -818,14 +818,14 @@ bool CItem::EquipTo(CHARACTER * ch, uint8_t bWearCell)
 	{
 		if (bWearCell >= WEAR_MAX_NUM)
 		{
-			sys_err("EquipTo: invalid wear cell (this: #%d %s wearflag: %d cell: %d)", GetOriginalVnum(), GetName(), GetWearFlag(), bWearCell);
+			metin2::log::error("EquipTo: invalid wear cell (this: #{:d} {} wearflag: {:d} cell: {:d})", GetOriginalVnum(), GetName(), GetWearFlag(), bWearCell);
 			return false;
 		}
 	}
 
 	if (ch->GetWear(bWearCell))
 	{
-		sys_err("EquipTo: item already exist (this: #%d %s cell: %d %s)", GetOriginalVnum(), GetName(), bWearCell, ch->GetWear(bWearCell)->GetName());
+		metin2::log::error("EquipTo: item already exist (this: #{:d} {} cell: {:d} {})", GetOriginalVnum(), GetName(), bWearCell, ch->GetWear(bWearCell)->GetName());
 		return false;
 	}
 
@@ -897,15 +897,15 @@ bool CItem::Unequip()
 	if (!m_pOwner || GetCell() < INVENTORY_MAX_NUM)
 	{
 		// ITEM_OWNER_INVALID_PTR_BUG
-		sys_err("%s %u m_pOwner %p, GetCell %d", 
-				GetName(), GetID(), m_pOwner, GetCell());
+		metin2::log::error("{} {:d} m_pOwner {}, GetCell {:d}", 
+				GetName(), GetID(), static_cast<const void *>(m_pOwner), GetCell());
 		// END_OF_ITEM_OWNER_INVALID_PTR_BUG
 		return false;
 	}
 
 	if (this != m_pOwner->GetWear(GetCell() - INVENTORY_MAX_NUM))
 	{
-		sys_err("m_pOwner->GetWear() != this");
+		metin2::log::error("m_pOwner->GetWear() != this");
 		return false;
 	}
 
@@ -1028,7 +1028,7 @@ EVENTFUNC(ownership_event)
 
 	if ( info == nullptr )
 	{
-		sys_err( "ownership_event> <Factor> Null pointer" );
+		metin2::log::error( "ownership_event> <Factor> Null pointer" );
 		return 0;
 	}
 
@@ -1117,7 +1117,7 @@ void CItem::AlterToSocketItem(int iSocketCount)
 {
 	if (iSocketCount >= ITEM_SOCKET_MAX_NUM)
 	{
-		sys_log(0, "Invalid Socket Count %d, set to maximum", ITEM_SOCKET_MAX_NUM);
+		metin2::log::info( "Invalid Socket Count {:d}, set to maximum", ITEM_SOCKET_MAX_NUM);
 		iSocketCount = ITEM_SOCKET_MAX_NUM;
 	}
 
@@ -1200,7 +1200,7 @@ int CItem::GetRefineLevel()
 		str_to_number(locale_rtn, p+1);
 		if (locale_rtn != rtn)
 		{
-			sys_err("refine_level_based_on_NAME(%d) is not equal to refine_level_based_on_LOCALE_NAME(%d).", rtn, locale_rtn);
+			metin2::log::error("refine_level_based_on_NAME({:d}) is not equal to refine_level_based_on_LOCALE_NAME({:d}).", rtn, locale_rtn);
 		}
 	}
 
@@ -1213,7 +1213,7 @@ EVENTFUNC(unique_expire_event)
 
 	if ( info == nullptr )
 	{
-		sys_err( "unique_expire_event> <Factor> Null pointer" );
+		metin2::log::error( "unique_expire_event> <Factor> Null pointer" );
 		return 0;
 	}
 
@@ -1223,7 +1223,7 @@ EVENTFUNC(unique_expire_event)
 	{
 		if (pkItem->GetSocket(ITEM_SOCKET_UNIQUE_REMAIN_TIME) <= 1)
 		{
-			sys_log(0, "UNIQUE_ITEM: expire %s %u", pkItem->GetName(), pkItem->GetID());
+			metin2::log::info( "UNIQUE_ITEM: expire {} {:d}", pkItem->GetName(), pkItem->GetID());
 			pkItem->SetUniqueExpireEvent(nullptr);
 			ITEM_MANAGER::instance().RemoveItem(pkItem, "UNIQUE_EXPIRE");
 			return 0;
@@ -1266,7 +1266,7 @@ EVENTFUNC(timer_based_on_wear_expire_event)
 
 	if ( info == nullptr )
 	{
-		sys_err( "expire_event <Factor> Null pointer" );
+		metin2::log::error( "expire_event <Factor> Null pointer" );
 		return 0;
 	}
 
@@ -1274,7 +1274,7 @@ EVENTFUNC(timer_based_on_wear_expire_event)
 	int remain_time = pkItem->GetSocket(ITEM_SOCKET_REMAIN_SEC) - processing_time/passes_per_sec;
 	if (remain_time <= 0)
 	{
-		sys_log(0, "ITEM EXPIRED : expired %s %u", pkItem->GetName(), pkItem->GetID());
+		metin2::log::info( "ITEM EXPIRED : expired {} {:d}", pkItem->GetName(), pkItem->GetID());
 		pkItem->SetTimerBasedOnWearExpireEvent(nullptr);
 		pkItem->SetSocket(ITEM_SOCKET_REMAIN_SEC, 0);
 	
@@ -1340,7 +1340,7 @@ void CItem::StartRealTimeExpireEvent()
 
 			m_pkRealTimeExpireEvent = event_create( real_time_expire_event, info, PASSES_PER_SEC(1));
 
-			sys_log(0, "REAL_TIME_EXPIRE: StartRealTimeExpireEvent");
+			metin2::log::info( "REAL_TIME_EXPIRE: StartRealTimeExpireEvent");
 
 			return;
 		}
@@ -1498,7 +1498,7 @@ EVENTFUNC(accessory_socket_expire_event)
 
 	if ( info == nullptr )
 	{
-		sys_err( "accessory_socket_expire_event> <Factor> Null pointer" );
+		metin2::log::error( "accessory_socket_expire_event> <Factor> Null pointer" );
 		return 0;
 	}
 

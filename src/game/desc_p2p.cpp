@@ -8,7 +8,7 @@
 
 #include <common/peer_security.h>
 #include <libnet/connection.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <memory>
 #include <utility>
@@ -26,7 +26,7 @@ void DESC_P2P::Destroy()
 
 	P2P_MANAGER::instance().UnregisterAcceptor(this);
 
-	sys_log(0, "SYSTEM: closing p2p connection of %s", m_stHost.c_str());
+	metin2::log::info( "SYSTEM: closing p2p connection of {}", m_stHost.c_str());
 
 	// Chain up to base class Destroy()
 	DESC::Destroy();
@@ -42,14 +42,14 @@ bool DESC_P2P::Setup(std::shared_ptr<net::connection> connection)
 
 	if (!is_allowed_peer(m_stHost.c_str(), g_allowedPeerHosts, g_szPublicIP)) // refuse if remote host != public ip (only the same machine must be able to connect in here)
 	{
-		sys_log(0, "PORT_SECURITY: new p2p connection from [%s] to [%s] BLOCKED", m_stHost.c_str(), g_szPublicIP);
+		metin2::log::info( "PORT_SECURITY: new p2p connection from [{}] to [{}] BLOCKED", m_stHost.c_str(), g_szPublicIP);
 		SetPhase(PHASE_CLOSE);
 		return true;
 	}
 
 	SetPhase(PHASE_P2P);
 
-	sys_log(0, "SYSTEM: new p2p connection from [%s]", m_stHost.c_str());
+	metin2::log::info( "SYSTEM: new p2p connection from [{}]", m_stHost.c_str());
 	return true;
 }
 
@@ -60,7 +60,7 @@ void DESC_P2P::SetPhase(int iPhase)
 	switch (iPhase)
 	{
 		case PHASE_P2P:
-			sys_log(1, "PHASE_P2P");
+			metin2::log::debug( "PHASE_P2P");
 			m_pInputProcessor = &s_inputP2P;
 			break;
 
@@ -69,7 +69,7 @@ void DESC_P2P::SetPhase(int iPhase)
 			break;
 
 		default:
-			sys_err("DESC_P2P::SetPhase : Unknown phase");
+			metin2::log::error("DESC_P2P::SetPhase : Unknown phase");
 			break;
 	}
 

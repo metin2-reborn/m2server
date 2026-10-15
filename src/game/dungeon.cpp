@@ -18,7 +18,7 @@
 #include "utils.h"
 
 #include <common/length.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/utils.h>
 
 #include <algorithm>
@@ -120,7 +120,7 @@ void CDungeon::SendDestPositionToParty(CParty * pParty, int32_t x, int32_t y)
 {
 	if (m_map_pkParty.find(pParty) == m_map_pkParty.end())
 	{
-		sys_err("PARTY %u not in DUNGEON %d", pParty->GetLeaderPID(), m_lMapIndex);
+		metin2::log::error("PARTY {:d} not in DUNGEON {:d}", pParty->GetLeaderPID(), m_lMapIndex);
 		return;
 	}
 
@@ -153,7 +153,7 @@ struct FWarpToDungeon
 void CDungeon::Join(CHARACTER * ch)
 {
 	if (SECTREE_MANAGER::instance().GetMap(m_lMapIndex) == nullptr) {
-		sys_err("CDungeon: SECTREE_MAP not found for #%d", m_lMapIndex);
+		metin2::log::error("CDungeon: SECTREE_MAP not found for #{:d}", m_lMapIndex);
 		return;
 	}
 	FWarpToDungeon(m_lMapIndex, this) (ch);
@@ -165,7 +165,7 @@ void CDungeon::JoinParty(CParty * pParty)
 	m_map_pkParty.insert(std::make_pair(pParty,0));
 
 	if (SECTREE_MANAGER::instance().GetMap(m_lMapIndex) == nullptr) {
-		sys_err("CDungeon: SECTREE_MAP not found for #%d", m_lMapIndex);
+		metin2::log::error("CDungeon: SECTREE_MAP not found for #{:d}", m_lMapIndex);
 		return;
 	}
 	FWarpToDungeon f(m_lMapIndex, this);
@@ -197,7 +197,7 @@ EVENTFUNC(dungeon_dead_event)
 	
 	if ( info == nullptr )
 	{
-		sys_err( "dungeon_dead_event> <Factor> Null pointer" );
+		metin2::log::error( "dungeon_dead_event> <Factor> Null pointer" );
 		return 0;
 	}
 
@@ -257,7 +257,7 @@ void CDungeon::DecPartyMember(CParty * pParty, CHARACTER * ch)
 	TPartyMap::iterator it = m_map_pkParty.find(pParty);
 
 	if (it == m_map_pkParty.end())
-		sys_err("cannot find party");
+		metin2::log::error("cannot find party");
 	else
 	{
 		it->second--;
@@ -330,7 +330,7 @@ void CDungeon::JumpAll(int32_t lFromMapIndex, int x, int y)
 
 	if (!pMap)
 	{
-		sys_err("cannot find map by index %d", lFromMapIndex);
+		metin2::log::error("cannot find map by index {:d}", lFromMapIndex);
 		return;
 	}
 
@@ -349,7 +349,7 @@ void CDungeon::WarpAll(int32_t lFromMapIndex, int x, int y)
 
 	if (!pMap)
 	{
-		sys_err("cannot find map by index %d", lFromMapIndex);
+		metin2::log::error("cannot find map by index {:d}", lFromMapIndex);
 		return;
 	}
 
@@ -368,7 +368,7 @@ void CDungeon::JumpParty(CParty * pParty, int32_t lFromMapIndex, int x, int y)
 
 	if (!pMap)
 	{
-		sys_err("cannot find map by index %d", lFromMapIndex);
+		metin2::log::error("cannot find map by index {:d}", lFromMapIndex);
 		return;
 	}
 
@@ -380,7 +380,7 @@ void CDungeon::JumpParty(CParty * pParty, int32_t lFromMapIndex, int x, int y)
 		}
 		else if (m_pParty != pParty)
 		{
-			sys_err ("Dungeon already has party. Another party cannot jump in dungeon : index %d", GetMapIndex());
+			metin2::log::error("Dungeon already has party. Another party cannot jump in dungeon : index {:d}", GetMapIndex());
 			return;
 		}
 		pParty->SetDungeon_for_Only_party (this);
@@ -399,7 +399,7 @@ void CDungeon::SetPartyNull()
 
 void CDungeonManager::Destroy(CDungeon::IdType dungeon_id)
 {
-	sys_log(0, "DUNGEON destroy : map index %u", dungeon_id);
+	metin2::log::info( "DUNGEON destroy : map index {:d}", dungeon_id);
 	CDungeon * pDungeon = Find(dungeon_id);
 	if (pDungeon == nullptr) {
 		return;
@@ -439,7 +439,7 @@ CDungeon * CDungeonManager::Create(int32_t lOriginalMapIndex)
 
 	if (!lMapIndex) 
 	{
-		sys_log( 0, "Fail to Create Dungeon : OrginalMapindex %d NewMapindex %d", lOriginalMapIndex, lMapIndex );
+		metin2::log::info( "Fail to Create Dungeon : OrginalMapindex {:d} NewMapindex {:d}", lOriginalMapIndex, lMapIndex );
 		return nullptr;
 	}
 
@@ -452,7 +452,7 @@ CDungeon * CDungeonManager::Create(int32_t lOriginalMapIndex)
 	CDungeon * pDungeon = new CDungeon(id, lOriginalMapIndex, lMapIndex);
 	if (!pDungeon)
 	{
-		sys_err("M2_NEW CDungeon failed");
+		metin2::log::error("M2_NEW CDungeon failed");
 		return nullptr;
 	}
 	m_map_pkDungeon.insert(std::make_pair(id, pDungeon));
@@ -475,7 +475,7 @@ void CDungeon::UniqueSetMaxHP(const std::string& key, int iMaxHP)
 	TUniqueMobMap::iterator it = m_map_UniqueMob.find(key);
 	if (it == m_map_UniqueMob.end())
 	{
-		sys_err("Unknown Key : %s", key.c_str());
+		metin2::log::error("Unknown Key : {}", key.c_str());
 		return;
 	}
 	it->second->SetMaxHP(iMaxHP);
@@ -486,7 +486,7 @@ void CDungeon::UniqueSetHP(const std::string& key, int iHP)
 	TUniqueMobMap::iterator it = m_map_UniqueMob.find(key);
 	if (it == m_map_UniqueMob.end())
 	{
-		sys_err("Unknown Key : %s", key.c_str());
+		metin2::log::error("Unknown Key : {}", key.c_str());
 		return;
 	}
 	it->second->SetHP(iHP);
@@ -497,7 +497,7 @@ void CDungeon::UniqueSetDefGrade(const std::string& key, int iGrade)
 	TUniqueMobMap::iterator it = m_map_UniqueMob.find(key);
 	if (it == m_map_UniqueMob.end())
 	{
-		sys_err("Unknown Key : %s", key.c_str());
+		metin2::log::error("Unknown Key : {}", key.c_str());
 		return;
 	}
 	it->second->PointChange(POINT_DEF_GRADE,iGrade - it->second->GetPoint(POINT_DEF_GRADE));
@@ -508,14 +508,14 @@ void CDungeon::SpawnMoveUnique(const char* key, uint32_t vnum, const char* pos_f
 	TAreaMap::iterator it_to = m_map_Area.find(pos_to);
 	if (it_to == m_map_Area.end())
 	{
-		sys_err("Wrong position string : %s", pos_to);
+		metin2::log::error("Wrong position string : {}", pos_to);
 		return;
 	}
 
 	TAreaMap::iterator it_from = m_map_Area.find(pos_from);
 	if (it_from == m_map_Area.end())
 	{
-		sys_err("Wrong position string : %s", pos_from);
+		metin2::log::error("Wrong position string : {}", pos_from);
 		return;
 	}
 
@@ -527,7 +527,7 @@ void CDungeon::SpawnMoveUnique(const char* key, uint32_t vnum, const char* pos_f
 
 	SECTREE_MAP * pkSectreeMap = SECTREE_MANAGER::instance().GetMap(m_lMapIndex);
 	if (pkSectreeMap == nullptr) {
-		sys_err("CDungeon: SECTREE_MAP not found for #%d", m_lMapIndex);
+		metin2::log::error("CDungeon: SECTREE_MAP not found for #{:d}", m_lMapIndex);
 		return;
 	}
 	for (int i=0;i<100;i++)
@@ -550,7 +550,7 @@ void CDungeon::SpawnMoveUnique(const char* key, uint32_t vnum, const char* pos_f
 		}
 		else
 		{
-			sys_err("Cannot spawn at %d %d", pkSectreeMap->m_setting.iBaseX+((ai.sx+ai.ex)>>1), pkSectreeMap->m_setting.iBaseY+((ai.sy+ai.ey)>>1));
+			metin2::log::error("Cannot spawn at {:d} {:d}", pkSectreeMap->m_setting.iBaseX+((ai.sx+ai.ex)>>1), pkSectreeMap->m_setting.iBaseY+((ai.sy+ai.ey)>>1));
 		}
 	}
 
@@ -561,7 +561,7 @@ void CDungeon::SpawnUnique(const char* key, uint32_t vnum, const char* pos)
 	TAreaMap::iterator it = m_map_Area.find(pos);
 	if (it == m_map_Area.end())
 	{
-		sys_err("Wrong position string : %s", pos);
+		metin2::log::error("Wrong position string : {}", pos);
 		return;
 	}
 
@@ -572,7 +572,7 @@ void CDungeon::SpawnUnique(const char* key, uint32_t vnum, const char* pos)
 
 	SECTREE_MAP * pkSectreeMap = SECTREE_MANAGER::instance().GetMap(m_lMapIndex);
 	if (pkSectreeMap == nullptr) {
-		sys_err("CDungeon: SECTREE_MAP not found for #%d", m_lMapIndex);
+		metin2::log::error("CDungeon: SECTREE_MAP not found for #{:d}", m_lMapIndex);
 		return;
 	}
 	for (int i=0;i<100;i++)
@@ -591,7 +591,7 @@ void CDungeon::SpawnUnique(const char* key, uint32_t vnum, const char* pos)
 		}
 		else
 		{
-			sys_err("Cannot spawn at %d %d", pkSectreeMap->m_setting.iBaseX+((ai.sx+ai.ex)>>1), pkSectreeMap->m_setting.iBaseY+((ai.sy+ai.ey)>>1));
+			metin2::log::error("Cannot spawn at {:d} {:d}", pkSectreeMap->m_setting.iBaseX+((ai.sx+ai.ex)>>1), pkSectreeMap->m_setting.iBaseY+((ai.sy+ai.ey)>>1));
 		}
 	}
 }
@@ -624,7 +624,7 @@ void CDungeon::PurgeUnique(const std::string& key)
 	TUniqueMobMap::iterator it = m_map_UniqueMob.find(key);
 	if (it == m_map_UniqueMob.end())
 	{
-		sys_err("Unknown Key or Dead: %s", key.c_str());
+		metin2::log::error("Unknown Key or Dead: {}", key.c_str());
 		return;
 	}
 	CHARACTER * ch = it->second;
@@ -637,7 +637,7 @@ void CDungeon::KillUnique(const std::string& key)
 	TUniqueMobMap::iterator it = m_map_UniqueMob.find(key);
 	if (it == m_map_UniqueMob.end())
 	{
-		sys_err("Unknown Key or Dead: %s", key.c_str());
+		metin2::log::error("Unknown Key or Dead: {}", key.c_str());
 		return;
 	}
 	CHARACTER * ch = it->second;
@@ -650,7 +650,7 @@ uint32_t CDungeon::GetUniqueVid(const std::string& key)
 	TUniqueMobMap::iterator it = m_map_UniqueMob.find(key);
 	if (it == m_map_UniqueMob.end())
 	{
-		sys_err("Unknown Key or Dead: %s", key.c_str());
+		metin2::log::error("Unknown Key or Dead: {}", key.c_str());
 		return 0;
 	}
 	CHARACTER * ch = it->second;
@@ -662,7 +662,7 @@ float CDungeon::GetUniqueHpPerc(const std::string& key)
 	TUniqueMobMap::iterator it = m_map_UniqueMob.find(key);
 	if (it == m_map_UniqueMob.end())
 	{
-		sys_err("Unknown Key : %s", key.c_str());
+		metin2::log::error("Unknown Key : {}", key.c_str());
 		return false;
 	}
 	return (100.f*it->second->GetHP())/it->second->GetMaxHP();
@@ -691,7 +691,7 @@ bool CDungeon::IsUniqueDead(const std::string& key)
 
 	if (it == m_map_UniqueMob.end())
 	{
-		sys_err("Unknown Key or Dead : %s", key.c_str());
+		metin2::log::error("Unknown Key or Dead : {}", key.c_str());
 		return true;
 	}
 
@@ -704,7 +704,7 @@ void CDungeon::Spawn(uint32_t vnum, const char* pos)
 
 	if (it == m_map_Area.end())
 	{
-		sys_err("Wrong position string : %s", pos);
+		metin2::log::error("Wrong position string : {}", pos);
 		return;
 	}
 
@@ -716,7 +716,7 @@ void CDungeon::Spawn(uint32_t vnum, const char* pos)
 	SECTREE_MAP * pkSectreeMap = SECTREE_MANAGER::instance().GetMap(m_lMapIndex);
 	if (pkSectreeMap == nullptr)
 	{
-		sys_err("cannot find map by index %d", m_lMapIndex);
+		metin2::log::error("cannot find map by index {:d}", m_lMapIndex);
 		return;
 	}
 	int dx = number(ai.sx, ai.ex);
@@ -731,17 +731,17 @@ CHARACTER * CDungeon::SpawnMob(uint32_t vnum, int x, int y, int dir)
 {
 	SECTREE_MAP * pkSectreeMap = SECTREE_MANAGER::instance().GetMap(m_lMapIndex);
 	if (pkSectreeMap == nullptr) {
-		sys_err("CDungeon: SECTREE_MAP not found for #%d", m_lMapIndex);
+		metin2::log::error("CDungeon: SECTREE_MAP not found for #{:d}", m_lMapIndex);
 		return nullptr;
 	}
-	sys_log(0, "CDungeon::SpawnMob %u %d %d", vnum, x,  y);
+	metin2::log::info( "CDungeon::SpawnMob {:d} {:d} {:d}", vnum, x,  y);
 
 	CHARACTER * ch = CHARACTER_MANAGER::instance().SpawnMob(vnum, m_lMapIndex, pkSectreeMap->m_setting.iBaseX+x*100, pkSectreeMap->m_setting.iBaseY+y*100, 0, false, dir == 0 ? -1 : (dir - 1) * 45);
 
 	if (ch)
 	{
 		ch->SetDungeon(this);
-		sys_log(0, "CDungeon::SpawnMob name %s", ch->GetName());
+		metin2::log::info( "CDungeon::SpawnMob name {}", ch->GetName());
 	}
 
 	return ch;
@@ -751,17 +751,17 @@ CHARACTER * CDungeon::SpawnMob_ac_dir(uint32_t vnum, int x, int y, int dir)
 {
 	SECTREE_MAP * pkSectreeMap = SECTREE_MANAGER::instance().GetMap(m_lMapIndex);
 	if (pkSectreeMap == nullptr) {
-		sys_err("CDungeon: SECTREE_MAP not found for #%d", m_lMapIndex);
+		metin2::log::error("CDungeon: SECTREE_MAP not found for #{:d}", m_lMapIndex);
 		return nullptr;
 	}
-	sys_log(0, "CDungeon::SpawnMob %u %d %d", vnum, x,  y);
+	metin2::log::info( "CDungeon::SpawnMob {:d} {:d} {:d}", vnum, x,  y);
 
 	CHARACTER * ch = CHARACTER_MANAGER::instance().SpawnMob(vnum, m_lMapIndex, pkSectreeMap->m_setting.iBaseX+x*100, pkSectreeMap->m_setting.iBaseY+y*100, 0, false, dir);
 
 	if (ch)
 	{
 		ch->SetDungeon(this);
-		sys_log(0, "CDungeon::SpawnMob name %s", ch->GetName());
+		metin2::log::info( "CDungeon::SpawnMob name {}", ch->GetName());
 	}
 
 	return ch;
@@ -771,7 +771,7 @@ void CDungeon::SpawnNameMob(uint32_t vnum, int x, int y, const char* name)
 {
 	SECTREE_MAP * pkSectreeMap = SECTREE_MANAGER::instance().GetMap(m_lMapIndex);
 	if (pkSectreeMap == nullptr) {
-		sys_err("CDungeon: SECTREE_MAP not found for #%d", m_lMapIndex);
+		metin2::log::error("CDungeon: SECTREE_MAP not found for #{:d}", m_lMapIndex);
 		return;
 	}
 
@@ -789,11 +789,11 @@ void CDungeon::SpawnGotoMob(int32_t lFromX, int32_t lFromY, int32_t lToX, int32_
 
 	SECTREE_MAP * pkSectreeMap = SECTREE_MANAGER::instance().GetMap(m_lMapIndex);
 	if (pkSectreeMap == nullptr) {
-		sys_err("CDungeon: SECTREE_MAP not found for #%d", m_lMapIndex);
+		metin2::log::error("CDungeon: SECTREE_MAP not found for #{:d}", m_lMapIndex);
 		return;
 	}
 
-	sys_log(0, "SpawnGotoMob %d %d to %d %d", lFromX, lFromY, lToX, lToY);
+	metin2::log::info( "SpawnGotoMob {:d} {:d} to {:d} {:d}", lFromX, lFromY, lToX, lToY);
 
 	lFromX = pkSectreeMap->m_setting.iBaseX+lFromX*100;
 	lFromY = pkSectreeMap->m_setting.iBaseY+lFromY*100;
@@ -814,7 +814,7 @@ CHARACTER * CDungeon::SpawnGroup(uint32_t vnum, int32_t x, int32_t y, float radi
 {
 	SECTREE_MAP * pkSectreeMap = SECTREE_MANAGER::instance().GetMap(m_lMapIndex);
 	if (pkSectreeMap == nullptr) {
-		sys_err("CDungeon: SECTREE_MAP not found for #%d", m_lMapIndex);
+		metin2::log::error("CDungeon: SECTREE_MAP not found for #{:d}", m_lMapIndex);
 		return nullptr;
 	}
 
@@ -841,14 +841,14 @@ void CDungeon::SpawnRegen(const char* filename, bool bOnce)
 {
 	if (!filename)
 	{
-		sys_err("CDungeon::SpawnRegen(filename=NULL, bOnce=%d) - m_lMapIndex[%d]", bOnce, m_lMapIndex); 
+		metin2::log::error("CDungeon::SpawnRegen(filename=NULL, bOnce={:d}) - m_lMapIndex[{:d}]", bOnce, m_lMapIndex); 
 		return;
 	}
 
 	SECTREE_MAP * pkSectreeMap = SECTREE_MANAGER::instance().GetMap(m_lMapIndex);
 	if (!pkSectreeMap)
 	{
-		sys_err("CDungeon::SpawnRegen(filename=%s, bOnce=%d) - m_lMapIndex[%d]", filename, bOnce, m_lMapIndex); 
+		metin2::log::error("CDungeon::SpawnRegen(filename={}, bOnce={:d}) - m_lMapIndex[{:d}]", filename, bOnce, m_lMapIndex); 
 		return;
 	}
 	regen_do(filename, m_lMapIndex, pkSectreeMap->m_setting.iBaseX, pkSectreeMap->m_setting.iBaseY, this, bOnce);
@@ -887,7 +887,7 @@ void CDungeon::SpawnMoveGroup(uint32_t vnum, const char* pos_from, const char* p
 
 	if (it_to == m_map_Area.end())
 	{
-		sys_err("Wrong position string : %s", pos_to);
+		metin2::log::error("Wrong position string : {}", pos_to);
 		return;
 	}
 
@@ -895,7 +895,7 @@ void CDungeon::SpawnMoveGroup(uint32_t vnum, const char* pos_from, const char* p
 
 	if (it_from == m_map_Area.end())
 	{
-		sys_err("Wrong position string : %s", pos_from);
+		metin2::log::error("Wrong position string : {}", pos_from);
 		return;
 	}
 
@@ -908,7 +908,7 @@ void CDungeon::SpawnMoveGroup(uint32_t vnum, const char* pos_from, const char* p
 
 	SECTREE_MAP * pkSectreeMap = SECTREE_MANAGER::instance().GetMap(m_lMapIndex);
 	if (pkSectreeMap == nullptr) {
-		sys_err("CDungeon: SECTREE_MAP not found for #%d", m_lMapIndex);
+		metin2::log::error("CDungeon: SECTREE_MAP not found for #{:d}", m_lMapIndex);
 		return;
 	}
 
@@ -956,7 +956,7 @@ namespace
 				ITEM_MANAGER::instance().DestroyItem(item);
 			}
 			else
-				sys_err("unknown entity type %d is in dungeon", ent->GetType());
+				metin2::log::error("unknown entity type {:d} is in dungeon", ent->GetType());
 		}
 	};
 }
@@ -966,7 +966,7 @@ void CDungeon::KillAll()
 {
 	SECTREE_MAP * pkMap = SECTREE_MANAGER::instance().GetMap(m_lMapIndex);
 	if (pkMap == nullptr) {
-		sys_err("CDungeon: SECTREE_MAP not found for #%d", m_lMapIndex);
+		metin2::log::error("CDungeon: SECTREE_MAP not found for #{:d}", m_lMapIndex);
 		return;
 	}
 	FKillSectree f;
@@ -978,7 +978,7 @@ void CDungeon::Purge()
 {
 	SECTREE_MAP * pkMap = SECTREE_MANAGER::instance().GetMap(m_lMapIndex);
 	if (pkMap == nullptr) {
-		sys_err("CDungeon: SECTREE_MAP not found for #%d", m_lMapIndex);
+		metin2::log::error("CDungeon: SECTREE_MAP not found for #{:d}", m_lMapIndex);
 		return;
 	}
 	FPurgeSectree f;
@@ -1043,7 +1043,7 @@ void CDungeon::ExitAll()
 
 	if (!pMap)
 	{
-		sys_err("cannot find map by index %d", m_lMapIndex);
+		metin2::log::error("cannot find map by index {:d}", m_lMapIndex);
 		return;
 	}
 
@@ -1077,12 +1077,12 @@ namespace
 
 void CDungeon::Notice(const char* msg)
 {
-	sys_log(0, "XXX Dungeon Notice %p %s", this, msg);
+	metin2::log::info( "XXX Dungeon Notice {} {}", static_cast<const void *>(this), msg);
 	SECTREE_MAP * pMap = SECTREE_MANAGER::instance().GetMap(m_lMapIndex);
 
 	if (!pMap)
 	{
-		sys_err("cannot find map by index %d", m_lMapIndex);
+		metin2::log::error("cannot find map by index {:d}", m_lMapIndex);
 		return;
 	}
 
@@ -1119,7 +1119,7 @@ void CDungeon::ExitAllToStartPosition()
 
 	if (!pMap)
 	{
-		sys_err("cannot find map by index %d", m_lMapIndex);
+		metin2::log::error("cannot find map by index {:d}", m_lMapIndex);
 		return;
 	}
 
@@ -1135,7 +1135,7 @@ EVENTFUNC(dungeon_jump_to_event)
 
 	if ( info == nullptr )
 	{
-		sys_err( "dungeon_jump_to_event> <Factor> Null pointer" );
+		metin2::log::error( "dungeon_jump_to_event> <Factor> Null pointer" );
 		return 0;
 	}
 
@@ -1145,7 +1145,7 @@ EVENTFUNC(dungeon_jump_to_event)
 	if (pDungeon)
 		pDungeon->JumpToEliminateLocation();
 	else
-		sys_err("cannot find dungeon with map index %u", info->dungeon_id);
+		metin2::log::error("cannot find dungeon with map index {:d}", info->dungeon_id);
 
 	return 0;
 }
@@ -1156,7 +1156,7 @@ EVENTFUNC(dungeon_exit_all_event)
 
 	if ( info == nullptr )
 	{
-		sys_err( "dungeon_exit_all_event> <Factor> Null pointer" );
+		metin2::log::error( "dungeon_exit_all_event> <Factor> Null pointer" );
 		return 0;
 	}
 
@@ -1176,7 +1176,7 @@ void CDungeon::CheckEliminated()
 
 	if (m_bExitAllAtEliminate)
 	{
-		sys_log(0, "CheckEliminated: exit");
+		metin2::log::info( "CheckEliminated: exit");
 		m_bExitAllAtEliminate = false;
 
 		if (m_iWarpDelay)
@@ -1194,7 +1194,7 @@ void CDungeon::CheckEliminated()
 	}
 	else if (m_bWarpAtEliminate)
 	{
-		sys_log(0, "CheckEliminated: warp");
+		metin2::log::info( "CheckEliminated: warp");
 		m_bWarpAtEliminate = false;
 
 		if (m_iWarpDelay)
@@ -1211,12 +1211,12 @@ void CDungeon::CheckEliminated()
 		}
 	}
 	else
-		sys_log(0, "CheckEliminated: none");
+		metin2::log::info( "CheckEliminated: none");
 }
 
 void CDungeon::SetExitAllAtEliminate(int32_t time)
 {
-	sys_log(0, "SetExitAllAtEliminate: time %d", time);
+	metin2::log::info( "SetExitAllAtEliminate: time {:d}", time);
 	m_bExitAllAtEliminate = true;
 	m_iWarpDelay = time;
 }
@@ -1234,7 +1234,7 @@ void CDungeon::SetWarpAtEliminate(int32_t time, int32_t lMapIndex, int x, int y,
 	else
 		m_stRegenFile = regen_file;
 
-	sys_log(0, "SetWarpAtEliminate: time %d map %d %dx%d regenfile %s", time, lMapIndex, x, y, m_stRegenFile.c_str());
+	metin2::log::info( "SetWarpAtEliminate: time {:d} map {:d} {:d}x{:d} regenfile {}", time, lMapIndex, x, y, m_stRegenFile.c_str());
 }
 
 void CDungeon::JumpToEliminateLocation()
@@ -1258,7 +1258,7 @@ void CDungeon::JumpToEliminateLocation()
 
 		if (!pMap)
 		{
-			sys_err("no map by index %d", m_lMapIndex);
+			metin2::log::error("no map by index {:d}", m_lMapIndex);
 			return;
 		}
 
@@ -1305,7 +1305,7 @@ bool CDungeon::IsAllPCNearTo(int x, int y, int dist)
 
 	if (!pMap)
 	{
-		sys_err("cannot find map by index %d", m_lMapIndex);
+		metin2::log::error("cannot find map by index {:d}", m_lMapIndex);
 		return false;
 	}
 

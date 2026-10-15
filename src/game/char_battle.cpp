@@ -44,7 +44,7 @@
 #include "vid.h"
 
 #include <common/length.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/main.h>
 #include <libthecore/utils.h>
 
@@ -196,7 +196,7 @@ void CHARACTER::DistributeSP(CHARACTER * pkKiller, int iMethod)
 bool CHARACTER::Attack(CHARACTER * pkVictim, uint8_t bType)
 {
 	if (test_server)
-		sys_log(0, "[TEST_SERVER] Attack : %s type %d, MobBattleType %d", GetName(), bType, !GetMobBattleType() ? 0 : GetMobAttackRange());
+		metin2::log::info( "[TEST_SERVER] Attack : {} type {:d}, MobBattleType {:d}", GetName(), bType, !GetMobBattleType() ? 0 : GetMobAttackRange());
 	if (!CanMove())
 		return false;
 
@@ -253,7 +253,7 @@ bool CHARACTER::Attack(CHARACTER * pkVictim, uint8_t bType)
 				break;
 
 			default:
-				sys_err("Unhandled battle type %d", GetMobBattleType());
+				metin2::log::error("Unhandled battle type {:d}", GetMobBattleType());
 				iRet = BATTLE_NONE;
 				break;
 		}
@@ -264,13 +264,13 @@ bool CHARACTER::Attack(CHARACTER * pkVictim, uint8_t bType)
 		{
 			if (dwCurrentTime - m_dwLastSkillTime > 1500)
 			{
-				sys_log(1, "HACK: Too long skill using term. Name(%s) PID(%u) delta(%u)",
+				metin2::log::debug( "HACK: Too long skill using term. Name({}) PID({:d}) delta({:d})",
 						GetName(), GetPlayerID(), (dwCurrentTime - m_dwLastSkillTime));
 				return false;
 			}
 		}
 
-		sys_log(1, "Attack call ComputeSkill %d %s", bType, pkVictim?pkVictim->GetName():"");
+		metin2::log::debug( "Attack call ComputeSkill {:d} {}", bType, pkVictim?pkVictim->GetName():"");
 		iRet = ComputeSkill(bType, pkVictim);
 	}
 
@@ -291,7 +291,7 @@ bool CHARACTER::Attack(CHARACTER * pkVictim, uint8_t bType)
 
 void CHARACTER::DeathPenalty(uint8_t bTown)
 {
-	sys_log(1, "DEATH_PERNALY_CHECK(%s) town(%d)", GetName(), bTown);
+	metin2::log::debug( "DEATH_PERNALY_CHECK({}) town({:d})", GetName(), bTown);
 
 	Cube_close(this);
 
@@ -302,14 +302,14 @@ void CHARACTER::DeathPenalty(uint8_t bTown)
 	
 	if (GetLevel() < 10)
 	{
-		sys_log(0, "NO_DEATH_PENALTY_LESS_LV10(%s)", GetName());
+		metin2::log::info( "NO_DEATH_PENALTY_LESS_LV10({})", GetName());
 		ChatPacket(CHAT_TYPE_INFO, LC_TEXT("용신의 가호로 경험치가 떨어지지 않았습니다."));
 		return;
 	}
 
    	if (number(0, 2))
 	{
-		sys_log(0, "NO_DEATH_PENALTY_LUCK(%s)", GetName());
+		metin2::log::info( "NO_DEATH_PENALTY_LUCK({})", GetName());
 		ChatPacket(CHAT_TYPE_INFO, LC_TEXT("용신의 가호로 경험치가 떨어지지 않았습니다."));
 		return;
 	}
@@ -323,7 +323,7 @@ void CHARACTER::DeathPenalty(uint8_t bTown)
 		{
 			if (FindAffect(AFFECT_NO_DEATH_PENALTY))
 			{
-				sys_log(0, "NO_DEATH_PENALTY_AFFECT(%s)", GetName());
+				metin2::log::info( "NO_DEATH_PENALTY_AFFECT({})", GetName());
 				ChatPacket(CHAT_TYPE_INFO, LC_TEXT("용신의 가호로 경험치가 떨어지지 않았습니다."));
 				RemoveAffect(AFFECT_NO_DEATH_PENALTY);
 				return;
@@ -343,7 +343,7 @@ void CHARACTER::DeathPenalty(uint8_t bTown)
 		if (IsEquipUniqueItem(UNIQUE_ITEM_TEARDROP_OF_GODNESS))
 			iLoss /= 2;
 
-		sys_log(0, "DEATH_PENALTY(%s) EXP_LOSS: %d percent %d%%", GetName(), iLoss, aiExpLossPercents[std::min(gPlayerMaxLevel, GetLevel())]);
+		metin2::log::info( "DEATH_PENALTY({}) EXP_LOSS: {:d} percent {:d}%", GetName(), iLoss, aiExpLossPercents[std::min(gPlayerMaxLevel, GetLevel())]);
 
 		PointChange(POINT_EXP, -iLoss, true);
 	}
@@ -363,7 +363,7 @@ EVENTFUNC(StunEvent)
 
 	if ( info == nullptr )
 	{
-		sys_err( "StunEvent> <Factor> Null pointer" );
+		metin2::log::error( "StunEvent> <Factor> Null pointer" );
 		return 0;
 	}
 
@@ -390,7 +390,7 @@ void CHARACTER::Stun()
 		m_pkParty->SendMessage(this, PM_ATTACKED_BY, 0, 0);
 	}
 
-	sys_log(1, "%s: Stun %p", GetName(), this);
+	metin2::log::debug( "{}: Stun {}", GetName(), static_cast<const void *>(this));
 
 	PointChange(POINT_HP_RECOVERY, -GetPoint(POINT_HP_RECOVERY));
 	PointChange(POINT_SP_RECOVERY, -GetPoint(POINT_SP_RECOVERY));
@@ -434,7 +434,7 @@ EVENTFUNC(dead_event)
 
 	if ( info == nullptr )
 	{
-		sys_err( "dead_event> <Factor> Null pointer" );
+		metin2::log::error( "dead_event> <Factor> Null pointer" );
 		return 0;
 	}
 
@@ -451,7 +451,7 @@ EVENTFUNC(dead_event)
 
 	if (nullptr == ch)
 	{
-		sys_err("DEAD_EVENT: cannot find char pointer with %s id(%d)", info->isPC ? "PC" : "MOB", info->dwID );
+		metin2::log::error("DEAD_EVENT: cannot find char pointer with {} id({:d})", info->isPC ? "PC" : "MOB", info->dwID );
 		return 0;
 	}
 
@@ -469,7 +469,7 @@ EVENTFUNC(dead_event)
 			ch->WarpSet(pos.x, pos.y);
 		else
 		{
-			sys_err("cannot find spawn position (name %s)", ch->GetName());
+			metin2::log::error("cannot find spawn position (name {})", ch->GetName());
 			ch->WarpSet(EMPIRE_START_X(ch->GetEmpire()), EMPIRE_START_Y(ch->GetEmpire()));
 		}
 
@@ -601,7 +601,7 @@ void CHARACTER::RewardGold(CHARACTER * pkAttacker)
 		{
 			int iGold = number(GetMobTable().dwGoldMin, GetMobTable().dwGoldMax) / iSplitCount;
 			if (test_server)
-				sys_log(0, "iGold %d", iGold);
+				metin2::log::info( "iGold {:d}", iGold);
 			iGold = iGold * CHARACTER_MANAGER::instance().GetMobGoldAmountRate(pkAttacker) / 100;
 			iGold *= iGoldMultipler;
 
@@ -612,8 +612,8 @@ void CHARACTER::RewardGold(CHARACTER * pkAttacker)
 
 			if (test_server)
 			{
-				sys_log(0, "Drop Moeny MobGoldAmountRate %d %d", CHARACTER_MANAGER::instance().GetMobGoldAmountRate(pkAttacker), iGoldMultipler);
-				sys_log(0, "Drop Money gold %d GoldMin %d GoldMax %d", iGold, GetMobTable().dwGoldMax, GetMobTable().dwGoldMax);
+				metin2::log::info( "Drop Moeny MobGoldAmountRate {:d} {:d}", CHARACTER_MANAGER::instance().GetMobGoldAmountRate(pkAttacker), iGoldMultipler);
+				metin2::log::info( "Drop Money gold {:d} GoldMin {:d} GoldMax {:d}", iGold, GetMobTable().dwGoldMax, GetMobTable().dwGoldMax);
 			}
 
 			// NOTE: gold bombs do not go through Third Hand handling
@@ -722,7 +722,7 @@ void CHARACTER::Reward(bool bItemDrop)
 		iGold *= GetGoldMultipler();
 		int iSplitCount = number(25, 35);
 
-		sys_log(0, "WAEGU Dead gold %d split %d", iGold, iSplitCount);
+		metin2::log::info( "WAEGU Dead gold {:d} split {:d}", iGold, iSplitCount);
 
 		for (int i = 1; i <= iSplitCount; ++i)
 		{
@@ -798,7 +798,7 @@ void CHARACTER::Reward(bool bItemDrop)
 	// Gold drop
 	//
 	if (test_server)
-		sys_log(0, "Drop money : Attacker %s", pkAttacker->GetName());
+		metin2::log::info( "Drop money : Attacker {}", pkAttacker->GetName());
 	RewardGold(pkAttacker);
 
 	//
@@ -829,7 +829,7 @@ void CHARACTER::Reward(bool bItemDrop)
 			pos.x += GetX();
 			pos.y += GetY();
 
-			sys_log(0, "DROP_ITEM: %s %d %d from %s", item->GetName(), pos.x, pos.y, GetName());
+			metin2::log::info( "DROP_ITEM: {} {:d} {:d} from {}", item->GetName(), pos.x, pos.y, GetName());
 		}
 		else
 		{
@@ -871,7 +871,7 @@ void CHARACTER::Reward(bool bItemDrop)
 
 					if (!item)
 					{
-						sys_err("item null in vector idx %d", iItemIdx + 1);
+						metin2::log::error("item null in vector idx {:d}", iItemIdx + 1);
 						continue;
 					}
 
@@ -884,7 +884,7 @@ void CHARACTER::Reward(bool bItemDrop)
 					pos.x += GetX();
 					pos.y += GetY();
 
-					sys_log(0, "DROP_ITEM: %s %d %d by %s", item->GetName(), pos.x, pos.y, GetName());
+					metin2::log::info( "DROP_ITEM: {} {:d} {:d} by {}", item->GetName(), pos.x, pos.y, GetName());
 				}
 			}
 			else
@@ -898,7 +898,7 @@ void CHARACTER::Reward(bool bItemDrop)
 
 					if (!item)
 					{
-						sys_err("item null in vector idx %d", iItemIdx + 1);
+						metin2::log::error("item null in vector idx {:d}", iItemIdx + 1);
 						continue;
 					}
 
@@ -926,7 +926,7 @@ void CHARACTER::Reward(bool bItemDrop)
 					pos.x += GetX();
 					pos.y += GetY();
 
-					sys_log(0, "DROP_ITEM: %s %d %d by %s", item->GetName(), pos.x, pos.y, GetName());
+					metin2::log::info( "DROP_ITEM: {} {:d} {:d} by {}", item->GetName(), pos.x, pos.y, GetName());
 				}
 			}
 		}
@@ -1002,7 +1002,7 @@ void CHARACTER::ItemDropPenalty(CHARACTER * pkKiller)
 	bool isDropAllEquipments = false;
 
 	TItemDropPenalty & r = table[iAlignIndex];
-	sys_log(0, "%s align %d inven_pct %d equip_pct %d", GetName(), iAlignIndex, r.iInventoryPct, r.iEquipmentPct);
+	metin2::log::info( "{} align {:d} inven_pct {:d} equip_pct {:d}", GetName(), iAlignIndex, r.iInventoryPct, r.iEquipmentPct);
 
 	bool bDropInventory = r.iInventoryPct >= number(1, 1000);
 	bool bDropEquipment = r.iEquipmentPct >= number(1, 100);
@@ -1121,7 +1121,7 @@ void CHARACTER::ItemDropPenalty(CHARACTER * pkKiller)
 			item->AddToGround(GetMapIndex(), pos);
 			item->StartDestroyEvent();
 
-			sys_log(0, "DROP_ITEM_PK: %s %d %d from %s", item->GetName(), pos.x, pos.y, GetName());
+			metin2::log::info( "DROP_ITEM_PK: {} {:d} {:d} from {}", item->GetName(), pos.x, pos.y, GetName());
 			LogManager::instance().ItemLog(this, item, "DEAD_DROP", (window == INVENTORY) ? "INVENTORY" : ((window == EQUIPMENT) ? "EQUIPMENT" : ""));
 
 			pos.x = GetX() + number(-7, 7) * 20;
@@ -1271,14 +1271,14 @@ void CHARACTER::Dead(CHARACTER * pkKiller, bool bImmediateDead)
 		{
 			if (!isForked)
 			{
-				sys_log(1, "DEAD: %s %p WITH PENALTY", GetName(), this);
+				metin2::log::debug( "DEAD: {} {} WITH PENALTY", GetName(), static_cast<const void *>(this));
 				SET_BIT(m_pointsInstant.instant_flag, INSTANT_FLAG_DEATH_PENALTY);
 				LogManager::instance().CharLog(this, pkKiller->GetRaceNum(), "DEAD_BY_NPC", pkKiller->GetName());
 			}
 		}
 		else
 		{
-			sys_log(1, "DEAD_BY_PC: %s %p KILLER %s %p", GetName(), this, pkKiller->GetName(), pkKiller);
+			metin2::log::debug( "DEAD_BY_PC: {} {} KILLER {} {}", GetName(), static_cast<const void *>(this), pkKiller->GetName(), static_cast<const void *>(pkKiller));
 			REMOVE_BIT(m_pointsInstant.instant_flag, INSTANT_FLAG_DEATH_PENALTY);
 
 			if (GetEmpire() != pkKiller->GetEmpire())
@@ -1325,7 +1325,7 @@ void CHARACTER::Dead(CHARACTER * pkKiller, bool bImmediateDead)
 								pkKiller->UpdateAlignment(-20000);
 							else
 							{
-								sys_log(0, "ALIGNMENT PARTY count %d amount %d", f.m_iCount, f.m_iAmount);
+								metin2::log::info( "ALIGNMENT PARTY count {:d} amount {:d}", f.m_iCount, f.m_iAmount);
 
 								f.m_iStep = 1;
 								pkKiller->GetParty()->ForEachOnlineMember(f);
@@ -1348,7 +1348,7 @@ void CHARACTER::Dead(CHARACTER * pkKiller, bool bImmediateDead)
 	}
 	else
 	{
-		sys_log(1, "DEAD: %s %p", GetName(), this);
+		metin2::log::debug( "DEAD: {} {}", GetName(), static_cast<const void *>(this));
 		REMOVE_BIT(m_pointsInstant.instant_flag, INSTANT_FLAG_DEATH_PENALTY);
 	}
 
@@ -1442,7 +1442,7 @@ void CHARACTER::Dead(CHARACTER * pkKiller, bool bImmediateDead)
 	{
 		if (m_pkDeadEvent)
 		{
-			sys_log(1, "DEAD_EVENT_CANCEL: %s %p %p", GetName(), this, m_pkDeadEvent.get());
+			metin2::log::debug( "DEAD_EVENT_CANCEL: {} {} {}", GetName(), static_cast<const void *>(this), static_cast<const void *>(m_pkDeadEvent.get()));
 			event_cancel(&m_pkDeadEvent);
 		}
 
@@ -1478,7 +1478,7 @@ void CHARACTER::Dead(CHARACTER * pkKiller, bool bImmediateDead)
 			}
 		}
 
-		sys_log(1, "DEAD_EVENT_CREATE: %s %p %p", GetName(), this, m_pkDeadEvent.get());
+		metin2::log::debug( "DEAD_EVENT_CREATE: {} {} {}", GetName(), static_cast<const void *>(this), static_cast<const void *>(m_pkDeadEvent.get()));
 	}
 
 	if (m_pkExchange != nullptr)
@@ -1503,7 +1503,7 @@ void CHARACTER::Dead(CHARACTER * pkKiller, bool bImmediateDead)
 		}
 		else
 		{
-			sys_err("DragonLair: Dragon killed by nobody");
+			metin2::log::error("DragonLair: Dragon killed by nobody");
 		}
 	}
 }
@@ -1595,7 +1595,7 @@ bool CHARACTER::Damage(CHARACTER * pAttacker, int dam, EDamageType type) // retu
 			uint32_t dwGold = 1000;
 			int iSplitCount = number(10, 13);
 
-			sys_log(0, "WAEGU DropGoldOnHit %d times", GetMaxSP());
+			metin2::log::info( "WAEGU DropGoldOnHit {:d} times", GetMaxSP());
 
 			for (int i = 1; i <= iSplitCount; ++i)
 			{
@@ -2333,7 +2333,7 @@ static void GiveExp(CHARACTER * from, CHARACTER * to, int iExp)
 
 	if (test_server)
 	{
-		sys_log(0, "Bonus Exp : Ramadan Candy: %d MallExp: %d PointExp: %d", 
+		metin2::log::info( "Bonus Exp : Ramadan Candy: {:d} MallExp: {:d} PointExp: {:d}", 
 				to->GetPoint(POINT_RAMADAN_CANDY_BONUS_EXP),
 				to->GetPoint(POINT_MALL_EXPBONUS),
 				to->GetPoint(POINT_EXP)
@@ -2435,7 +2435,7 @@ namespace NPartyExpDistribute
 						break;
 
 					default:
-						sys_err("Unknown party exp distribution mode %d", m_iMode);
+						metin2::log::error("Unknown party exp distribution mode {:d}", m_iMode);
 						return;
 				}
 
@@ -2579,7 +2579,7 @@ CHARACTER * CHARACTER::DistributeExp()
 		iExpToDistribute -= iExp;
 	}
 
-	sys_log(1, "%s total exp: %d, damage_info_table.size() == %zu, TotalDam %d",
+	metin2::log::debug( "{} total exp: {:d}, damage_info_table.size() == {:d}, TotalDam {:d}",
 			GetName(), iExpToDistribute, damage_info_table.size(), iTotalDam);
 
 	if (damage_info_table.empty())
@@ -2608,7 +2608,7 @@ CHARACTER * CHARACTER::DistributeExp()
 
 		if (fPercent > 1.0f)
 		{
-			sys_err("DistributeExp percent over 1.0 (fPercent %f name %s)", fPercent, di->pAttacker->GetName());
+			metin2::log::error("DistributeExp percent over 1.0 (fPercent {:f} name {})", fPercent, di->pAttacker->GetName());
 			fPercent = 1.0f;
 		}
 
@@ -2635,7 +2635,7 @@ CHARACTER * CHARACTER::DistributeExp()
 
 			if (fPercent > 1.0f)
 			{
-				sys_err("DistributeExp percent over 1.0 (fPercent %f name %s)", fPercent, di.pAttacker->GetName());
+				metin2::log::error("DistributeExp percent over 1.0 (fPercent {:f} name {})", fPercent, di.pAttacker->GetName());
 				fPercent = 1.0f;
 			}
 
@@ -2683,7 +2683,7 @@ void CHARACTER::UseArrow(CItem * pkArrow, uint32_t dwArrowCount)
 	{
 		CItem * pkNewArrow = FindSpecifyItem(dwVnum);
 
-		sys_log(0, "UseArrow : FindSpecifyItem %u %p", dwVnum, pkNewArrow);
+		metin2::log::info( "UseArrow : FindSpecifyItem {:d} {}", dwVnum, static_cast<const void *>(pkNewArrow));
 
 		if (pkNewArrow)
 			EquipItem(pkNewArrow);
@@ -2844,7 +2844,7 @@ class CFuncShoot
 							if (pkVictim->CanBeginFight())
 								pkVictim->BeginFight(m_me); 
 
-							sys_log(0, "%s kwankeyok %s", m_me->GetName(), pkVictim->GetName());
+							metin2::log::info( "{} kwankeyok {}", m_me->GetName(), pkVictim->GetName());
 							m_me->ComputeSkill(m_bType, pkVictim);
 							m_me->UseArrow(pkArrow, iUseArrow);
 						}
@@ -2862,7 +2862,7 @@ class CFuncShoot
 							if (pkVictim->CanBeginFight())
 								pkVictim->BeginFight(m_me);
 
-							sys_log(0, "%s gigung %s", m_me->GetName(), pkVictim->GetName());
+							metin2::log::info( "{} gigung {}", m_me->GetName(), pkVictim->GetName());
 							m_me->ComputeSkill(m_bType, pkVictim);
 							m_me->UseArrow(pkArrow, iUseArrow);
 						}
@@ -2880,7 +2880,7 @@ class CFuncShoot
 							if (pkVictim->CanBeginFight())
 								pkVictim->BeginFight(m_me);
 
-							sys_log(0, "%s hwajo %s", m_me->GetName(), pkVictim->GetName());
+							metin2::log::info( "{} hwajo {}", m_me->GetName(), pkVictim->GetName());
 							m_me->ComputeSkill(m_bType, pkVictim);
 							m_me->UseArrow(pkArrow, iUseArrow);
 						}
@@ -2899,7 +2899,7 @@ class CFuncShoot
 							if (pkVictim->CanBeginFight())
 								pkVictim->BeginFight(m_me);
 
-							sys_log(0, "%s horse_wildattack %s", m_me->GetName(), pkVictim->GetName());
+							metin2::log::info( "{} horse_wildattack {}", m_me->GetName(), pkVictim->GetName());
 							m_me->ComputeSkill(m_bType, pkVictim);
 							m_me->UseArrow(pkArrow, iUseArrow);
 						}
@@ -2924,7 +2924,7 @@ class CFuncShoot
 						if (pkVictim->CanBeginFight())
 							pkVictim->BeginFight(m_me);
 
-						sys_log(0, "%s - Skill %d -> %s", m_me->GetName(), m_bType, pkVictim->GetName());
+						metin2::log::info( "{} - Skill {:d} -> {}", m_me->GetName(), m_bType, pkVictim->GetName());
 						m_me->ComputeSkill(m_bType, pkVictim);
 					}
 					break;
@@ -2937,7 +2937,7 @@ class CFuncShoot
 						if (pkVictim->CanBeginFight())
 							pkVictim->BeginFight(m_me); 
 
-						sys_log(0, "%s - Skill %d -> %s", m_me->GetName(), m_bType, pkVictim->GetName());
+						metin2::log::info( "{} - Skill {:d} -> {}", m_me->GetName(), m_bType, pkVictim->GetName());
 						m_me->ComputeSkill(m_bType, pkVictim);
 
 						// TODO hit multiple targets whoosh whoosh whoosh
@@ -2951,7 +2951,7 @@ class CFuncShoot
 					break;
 
 				default:
-					sys_err("CFuncShoot: I don't know this type [%d] of range attack.", (int) m_bType);
+					metin2::log::error("CFuncShoot: I don't know this type [{:d}] of range attack.", (int) m_bType);
 					break;
 			}
 
@@ -2961,7 +2961,7 @@ class CFuncShoot
 
 bool CHARACTER::Shoot(uint8_t bType)
 {
-	sys_log(1, "Shoot %s type %u flyTargets.size %zu", GetName(), bType, m_vec_dwFlyTargets.size());
+	metin2::log::debug( "Shoot {} type {:d} flyTargets.size {:d}", GetName(), bType, m_vec_dwFlyTargets.size());
 
 	if (!CanMove())
 	{
@@ -3008,7 +3008,7 @@ void CHARACTER::FlyTarget(uint32_t dwTargetVID, int32_t x, int32_t y, uint8_t bH
 		pack.y = y;
 	}
 
-	sys_log(1, "FlyTarget %s vid %d x %d y %d", GetName(), pack.dwTargetVID, pack.x, pack.y);
+	metin2::log::debug( "FlyTarget {} vid {:d} x {:d} y {:d}", GetName(), pack.dwTargetVID, pack.x, pack.y);
 	PacketAround(&pack, sizeof(pack), this);
 }
 
@@ -3148,7 +3148,7 @@ void CHARACTER::SetKillerMode(bool isOn)
 
 	m_iKillerModePulse = thecore_pulse();
 	UpdatePacket();
-	sys_log(0, "SetKillerMode Update %s[%d]", GetName(), GetPlayerID());
+	metin2::log::info( "SetKillerMode Update {}[{:d}]", GetName(), GetPlayerID());
 }
 
 bool CHARACTER::IsKillerMode() const
@@ -3181,7 +3181,7 @@ void CHARACTER::SetPKMode(uint8_t bPKMode)
 	m_bPKMode = bPKMode;
 	UpdatePacket();
 
-	sys_log(0, "PK_MODE: %s %d", GetName(), m_bPKMode);
+	metin2::log::info( "PK_MODE: {} {:d}", GetName(), m_bPKMode);
 }
 
 uint8_t CHARACTER::GetPKMode() const

@@ -6,7 +6,6 @@
 #include "desc.h"
 #include "desc_client.h"
 #include "desc_p2p.h"
-#include "dev_log.h"
 #include "ip_ban.h"
 #include "p2p.h"
 #include "packet.h"
@@ -16,7 +15,7 @@
 #include <common/length.h>
 #include <libnet/connection.h>
 #include <libnet/io.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/utils.h>
 
 #include <algorithm>
@@ -132,7 +131,7 @@ DESC * DESC_MANAGER::AcceptDesc(net::tcp::socket socket)
 
 		if (inet_pton(AF_INET, host, &addr) == 1 && IsBanIP(addr))
 		{
-			sys_log(0, "connection from %s was banned.", host);
+			metin2::log::info( "connection from {} was banned.", host);
 			connection->close();
 			return nullptr;
 		}
@@ -140,7 +139,7 @@ DESC * DESC_MANAGER::AcceptDesc(net::tcp::socket socket)
 
 	if (m_iSocketsConnected >= MAX_ALLOW_USER)
 	{
-		sys_err("max connection reached. MAX_ALLOW_USER = %d", MAX_ALLOW_USER);
+		metin2::log::error("max connection reached. MAX_ALLOW_USER = {:d}", MAX_ALLOW_USER);
 		connection->close();
 		return nullptr;
 	}
@@ -169,7 +168,7 @@ DESC * DESC_MANAGER::AcceptP2PDesc(net::tcp::socket socket)
 
 	if (!pkDesc->Setup(net::connection::create(std::move(socket), MAX_SERVER_INPUT, MAX_SERVER_OUTPUT)))
 	{     
-		sys_err("DESC_MANAGER::AcceptP2PDesc : Setup failed");
+		metin2::log::error("DESC_MANAGER::AcceptP2PDesc : Setup failed");
 		pkDesc->Destroy();
 		delete pkDesc;
 		return nullptr;
@@ -178,20 +177,20 @@ DESC * DESC_MANAGER::AcceptP2PDesc(net::tcp::socket socket)
 	m_set_pkDesc.insert(pkDesc);
 	++m_iSocketsConnected;
 
-	sys_log(0, "DESC_MANAGER::AcceptP2PDesc  %s", pkDesc->GetHostName());
+	metin2::log::info( "DESC_MANAGER::AcceptP2PDesc  {}", pkDesc->GetHostName());
 	P2P_MANAGER::instance().RegisterAcceptor(pkDesc);
 	return (pkDesc);
 }
 
 void DESC_MANAGER::ConnectAccount(const std::string& login, DESC * d)
 {
-dev_log(LOG_DEB0, "BBBB ConnectAccount(%s)", login.c_str());
+metin2::log::debug( "BBBB ConnectAccount({})", login.c_str());
 	m_map_loginName.insert(DESC_LOGINNAME_MAP::value_type(login,d));
 }
 
 void DESC_MANAGER::DisconnectAccount(const std::string& login)
 {
-dev_log(LOG_DEB0, "BBBB DisConnectAccount(%s)", login.c_str());
+metin2::log::debug( "BBBB DisConnectAccount({})", login.c_str());
 	m_map_loginName.erase(login);
 }
 
@@ -384,7 +383,7 @@ void DESC_MANAGER::GetUserCount(int & iTotal, int ** paiEmpireUserCount, int & i
 	int iCount = P2P_MANAGER::instance().GetCount();
 	if (iCount < 0)
 	{
-		sys_err("P2P_MANAGER::instance().GetCount() == -1");
+		metin2::log::error("P2P_MANAGER::instance().GetCount() == -1");
 	}
 	iTotal = m_iLocalUserCount + iCount;
 	iLocalCount = m_iLocalUserCount;

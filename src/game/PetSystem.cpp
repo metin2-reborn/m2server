@@ -14,7 +14,7 @@
 
 #include <common/length.h>
 #include <common/tables.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/utils.h>
 
 #include <cmath>
@@ -42,7 +42,7 @@ EVENTFUNC(petsystem_update_event)
 	petsystem_event_info* info = dynamic_cast<petsystem_event_info*>( event->info );
 	if ( info == nullptr )
 	{
-		sys_err( "check_speedhack_event> <Factor> Null pointer" );
+		metin2::log::error( "check_speedhack_event> <Factor> Null pointer" );
 		return 0;
 	}
 
@@ -156,7 +156,7 @@ uint32_t CPetActor::Summon(const char* petName, CItem * pSummonItem, bool bSpawn
 
 	if (nullptr == m_pkChar)
 	{
-		sys_err("[CPetSystem::Summon] Failed to summon the pet. (vnum: %d)", m_dwVnum);
+		metin2::log::error("[CPetSystem::Summon] Failed to summon the pet. (vnum: {:d})", m_dwVnum);
 		return 0;
 	}
 
@@ -429,7 +429,7 @@ void CPetSystem::DeletePet(CPetActor* petActor)
 		}
 	}
 
-	sys_err("[CPetSystem::DeletePet] Can't find petActor(%p) on my list(size: %zu) ", static_cast<void*>(petActor), m_petActorMap.size());
+	metin2::log::error("[CPetSystem::DeletePet] Can't find petActor({}) on my list(size: {:d}) ", static_cast<const void *>(static_cast<void*>(petActor)), m_petActorMap.size());
 }
 
 void CPetSystem::Unsummon(uint32_t vnum, bool bDeleteFromList)
@@ -438,7 +438,7 @@ void CPetSystem::Unsummon(uint32_t vnum, bool bDeleteFromList)
 
 	if (nullptr == actor)
 	{
-		sys_err("[CPetSystem::GetByVnum(%d)] Null Pointer (petActor)", vnum);
+		metin2::log::error("[CPetSystem::GetByVnum({:d})] Null Pointer (petActor)", vnum);
 		return;
 	}
 	actor->Unsummon();

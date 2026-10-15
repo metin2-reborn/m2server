@@ -2,7 +2,7 @@
 
 #include "mariadb_com.h"
 
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <mysql.h>
 
@@ -67,7 +67,7 @@ CAsyncSQL::~CAsyncSQL() {
     Quit();
 
     if (m_bInitialized) {
-        sys_log(0, "AsyncSQL: closing mysql connection.");
+        metin2::log::info( "AsyncSQL: closing mysql connection.");
         mysql_close(&m_hDB);
     }
 }
@@ -81,7 +81,7 @@ auto CAsyncSQL::Setup(const char *c_pszHost, const char *c_pszUser, const char *
 
     if (c_pszLocale) {
         m_stLocale = c_pszLocale;
-        sys_log(0, "AsyncSQL: locale %s", m_stLocale.c_str());
+        metin2::log::info( "AsyncSQL: locale {}", m_stLocale.c_str());
     }
 
     if (bNoThread) {
@@ -110,26 +110,26 @@ void CAsyncSQL::Quit() {
 
 auto CAsyncSQL::Connect() -> bool {
     if (!mysql_init(&m_hDB)) {
-        sys_err("mysql_init failed");
+        metin2::log::error("mysql_init failed");
         return false;
     }
     m_bInitialized = true;
 
     if (!m_stLocale.empty() && mysql_options(&m_hDB, MYSQL_SET_CHARSET_NAME, m_stLocale.c_str()) != 0) {
-        sys_err("mysql_options MYSQL_SET_CHARSET_NAME %s: %s", m_stLocale.c_str(), mysql_error(&m_hDB));
+        metin2::log::error("mysql_options MYSQL_SET_CHARSET_NAME {}: {}", m_stLocale.c_str(), mysql_error(&m_hDB));
     }
 
     if (!mysql_real_connect(&m_hDB, m_stHost.c_str(), m_stUser.c_str(), m_stPassword.c_str(), m_stDB.c_str(), m_iPort, nullptr, CLIENT_MULTI_STATEMENTS)) {
-        sys_err("mysql_real_connect: %s", mysql_error(&m_hDB));
+        metin2::log::error("mysql_real_connect: {}", mysql_error(&m_hDB));
         return false;
     }
 
     my_bool reconnect = true;
     if (mysql_options(&m_hDB, MYSQL_OPT_RECONNECT, &reconnect) != 0) {
-        sys_err("mysql_options MYSQL_OPT_RECONNECT: %s", mysql_error(&m_hDB));
+        metin2::log::error("mysql_options MYSQL_OPT_RECONNECT: {}", mysql_error(&m_hDB));
     }
 
-    sys_log(0, "AsyncSQL: connected to %s (reconnect %d)", m_stHost.c_str(), reconnect);
+    metin2::log::info( "AsyncSQL: connected to {} (reconnect {:d})", m_stHost.c_str(), reconnect);
 
     m_ulThreadID = mysql_thread_id(&m_hDB);
     return true;
@@ -137,16 +137,16 @@ auto CAsyncSQL::Connect() -> bool {
 
 auto CAsyncSQL::QueryLocaleSet() -> bool {
     if (m_stLocale.empty() || m_stLocale == "ascii") {
-        sys_err("no connection character set to apply (locale \"%s\")", m_stLocale.c_str());
+        metin2::log::error("no connection character set to apply (locale \"{}\")", m_stLocale.c_str());
         return true;
     }
 
     if (mysql_set_character_set(&m_hDB, m_stLocale.c_str())) {
-        sys_err("cannot set locale %s by 'mysql_set_character_set', errno %u %s", m_stLocale.c_str(), mysql_errno(&m_hDB), mysql_error(&m_hDB));
+        metin2::log::error("cannot set locale {} by 'mysql_set_character_set', errno {:d} {}", m_stLocale.c_str(), mysql_errno(&m_hDB), mysql_error(&m_hDB));
         return false;
     }
 
-    sys_log(0, "\t--mysql_set_character_set(%s)", m_stLocale.c_str());
+    metin2::log::info( "\t--mysql_set_character_set({})", m_stLocale.c_str());
     return true;
 }
 
@@ -161,7 +161,7 @@ void CAsyncSQL::CheckReconnected() {
         return;
     }
 
-    sys_err("MySQL connection was reconnected. querying locale set");
+    metin2::log::error("MySQL connection was reconnected. querying locale set");
     while (!QueryLocaleSet()) {
         std::this_thread::sleep_for(RETRY_DELAY);
     }
@@ -181,7 +181,7 @@ auto CAsyncSQL::DirectQuery(const char *c_pszQuery) -> SQLMsg * {
     auto msg = NewMessage(c_pszQuery);
 
     if (mysql_real_query(&m_hDB, msg->stQuery.c_str(), msg->stQuery.length())) {
-        sys_err("AsyncSQL::DirectQuery : mysql_query error: %s\nquery: %s", mysql_error(&m_hDB), msg->stQuery.c_str());
+        metin2::log::error("AsyncSQL::DirectQuery : mysql_query error: {}\nquery: {}", mysql_error(&m_hDB), msg->stQuery.c_str());
         msg->uiSQLErrno = mysql_errno(&m_hDB);
     }
 
@@ -228,7 +228,7 @@ auto CAsyncSQL::Execute(SQLMsg &msg) -> bool {
 
     if (mysql_real_query(&m_hDB, msg.stQuery.c_str(), msg.stQuery.length())) {
         msg.uiSQLErrno = mysql_errno(&m_hDB);
-        sys_err("AsyncSQL: query failed: %s (query: %s errno: %u)", mysql_error(&m_hDB), msg.stQuery.c_str(), msg.uiSQLErrno);
+        metin2::log::error("AsyncSQL: query failed: {} (query: {} errno: {:d})", mysql_error(&m_hDB), msg.stQuery.c_str(), msg.uiSQLErrno);
 
         if (IsTransientError(msg.uiSQLErrno)) {
             return false;
@@ -237,7 +237,7 @@ auto CAsyncSQL::Execute(SQLMsg &msg) -> bool {
 
     const auto elapsed = std::chrono::steady_clock::now() - start;
     if (elapsed > LONG_QUERY) {
-        sys_log(0, "[QUERY : LONG INTERVAL(OverSec %.3f)] : %s", std::chrono::duration<double>(elapsed).count(), msg.stQuery.c_str());
+        metin2::log::info( "[QUERY : LONG INTERVAL(OverSec {:.3f})] : {}", std::chrono::duration<double>(elapsed).count(), msg.stQuery.c_str());
     }
 
     return true;
@@ -275,16 +275,16 @@ void CAsyncSQL::ChildLoop() {
             if (!Execute(*batch.front())) {
                 if (m_bEnd) {
                     // shutting down: the server is unreachable, give up on this query
-                    sys_err("AsyncSQL: dropping query at shutdown: %s", batch.front()->stQuery.c_str());
+                    metin2::log::error("AsyncSQL: dropping query at shutdown: {}", batch.front()->stQuery.c_str());
                 } else {
-                    sys_err("AsyncSQL: retrying");
+                    metin2::log::error("AsyncSQL: retrying");
                     std::this_thread::sleep_for(RETRY_DELAY);
                     continue;
                 }
             }
 
             if (m_bEnd) {
-                sys_log(0, "QUERY_FLUSH: %s", batch.front()->stQuery.c_str());
+                metin2::log::info( "QUERY_FLUSH: {}", batch.front()->stQuery.c_str());
             }
 
             Finish(std::move(batch.front()));
@@ -337,8 +337,8 @@ auto CAsyncSQL::EscapeString(char *dst, size_t dstSize, const char *src, size_t 
         // src may not be terminated: log at most 255 bytes of it
         const std::string_view shown(src, std::min<size_t>(srcSize, 255));
 
-        sys_err("FATAL ERROR!! not enough buffer size (dstSize %zu srcSize %zu src%s: %.*s)",
-            dstSize, srcSize, shown.size() != srcSize ? "(trimmed to 255 characters)" : "", static_cast<int>(shown.size()), shown.data());
+        metin2::log::error("FATAL ERROR!! not enough buffer size (dstSize {:d} srcSize {:d} src{}: {})",
+            dstSize, srcSize, shown.size() != srcSize ? "(trimmed to 255 characters)" : "", std::string_view(shown.data(), static_cast<int>(shown.size())));
 
         dst[0] = '\0';
         return 0;

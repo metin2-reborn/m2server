@@ -1,6 +1,6 @@
 #include <libnet/io.h>
 
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <asio/buffer.hpp>
 #include <asio/error.hpp>
@@ -61,7 +61,7 @@ namespace net {
         tcp::resolver resolver(io());
         const auto endpoints = resolver.resolve(tcp::v4(), host, std::to_string(port), error);
         if (error) {
-            sys_err("cannot resolve %s: %s", host.c_str(), error.message().c_str());
+            metin2::log::error("cannot resolve {}: {}", host.c_str(), error.message().c_str());
             return std::nullopt;
         }
 
@@ -89,7 +89,7 @@ namespace net {
             }
         }
 
-        sys_err("cannot connect to %s:%u: %s", host.c_str(), port, error.message().c_str());
+        metin2::log::error("cannot connect to {}:{:d}: {}", host.c_str(), port, error.message().c_str());
         return std::nullopt;
     }
 

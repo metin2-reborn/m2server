@@ -8,7 +8,7 @@
 #include <common/utils.h>
 #include <libsql/AsyncSQL.h>
 #include <libsql/query.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <mysql.h>
 
@@ -33,7 +33,7 @@ void CClientManager::LoadEventFlag()
 			TPacketSetEventFlag p;
 			strlcpy(p.szFlagName, row[0], sizeof(p.szFlagName));
 			str_to_number(p.lValue, row[1]);
-			sys_log(0, "EventFlag Load %s %d", p.szFlagName, p.lValue);
+			metin2::log::info( "EventFlag Load {} {:d}", p.szFlagName, p.lValue);
 			m_map_lEventFlag.insert(std::make_pair(std::string(p.szFlagName), p.lValue));
 			ForwardPacket(HEADER_DG_SET_EVENT_FLAG, &p, sizeof(TPacketSetEventFlag));
 		}
@@ -65,10 +65,10 @@ void CClientManager::SetEventFlag(TPacketSetEventFlag* p)
 				sql::raw(GetTablePostfix()), p->szFlagName, p->lValue);
 
 		CDBManager::instance().AsyncQuery(query.c_str());
-		sys_log(0, "HEADER_GD_SET_EVENT_FLAG : Changed CClientmanager::SetEventFlag(%s %d) ", p->szFlagName, p->lValue);
+		metin2::log::info( "HEADER_GD_SET_EVENT_FLAG : Changed CClientmanager::SetEventFlag({} {:d}) ", p->szFlagName, p->lValue);
 		return;
 	}
-	sys_log(0, "HEADER_GD_SET_EVENT_FLAG : No Changed CClientmanager::SetEventFlag(%s %d) ", p->szFlagName, p->lValue);
+	metin2::log::info( "HEADER_GD_SET_EVENT_FLAG : No Changed CClientmanager::SetEventFlag({} {:d}) ", p->szFlagName, p->lValue);
 }
 
 void CClientManager::SendEventFlagsOnSetup(CPeer* peer)

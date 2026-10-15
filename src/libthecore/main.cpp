@@ -3,7 +3,7 @@
 #include "internal.h"
 
 #include <libthecore/heart.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/utils.h>
 
 #include <cerrno>
@@ -27,33 +27,32 @@ namespace {
     auto pid_init() -> bool {
         std::ofstream pid("pid");
         if (!pid) {
-            std::printf("pid_init(): could not open file for writing. (filename: ./pid)");
-            sys_err("\nError writing pid file\n");
+            metin2::log::error("cannot write the pid file");
             return false;
         }
 
         pid << getpid();
-        sys_err("\nStart of pid: %d\n", getpid());
+        metin2::log::info("start of pid {:d}", getpid());
         return true;
     }
 
     void pid_deinit() {
         std::remove("./pid");
-        sys_err("\nEnd of pid\n");
+        metin2::log::info("end of pid");
     }
 }
 
 auto thecore_init(int fps) -> bool {
     unsigned int seed;
     if (getrandom(&seed, sizeof(seed), 0) != sizeof(seed)) {
-        sys_err("getrandom failed: %s", std::strerror(errno));
+        metin2::log::error("getrandom failed: {}", std::strerror(errno));
         return false;
     }
 
     srandom(seed);
     signal_setup();
 
-    if (!log_init() || !pid_init()) {
+    if (!metin2::log::init(".") || !pid_init()) {
         return false;
     }
 
@@ -82,7 +81,7 @@ auto thecore_idle() -> int {
 
 void thecore_destroy() {
     pid_deinit();
-    log_destroy();
+    metin2::log::shutdown();
 }
 
 auto thecore_pulse() -> int {

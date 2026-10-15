@@ -2,7 +2,7 @@
 
 #include <libnet/io.h>
 
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <asio/ip/address.hpp>
 #include <asio/ip/tcp.hpp>
@@ -19,7 +19,7 @@ namespace net {
         std::error_code error;
         const auto ip = asio::ip::make_address(address, error);
         if (error) {
-            sys_err("invalid listen address %s: %s", address.c_str(), error.message().c_str());
+            metin2::log::error("invalid listen address {}: {}", address.c_str(), error.message().c_str());
             return nullptr;
         }
 
@@ -30,7 +30,7 @@ namespace net {
         if (!error) acceptor.bind(endpoint, error);
         if (!error) acceptor.listen(asio::socket_base::max_listen_connections, error);
         if (error) {
-            sys_err("cannot listen on %s:%u: %s", address.c_str(), port, error.message().c_str());
+            metin2::log::error("cannot listen on {}:{:d}: {}", address.c_str(), port, error.message().c_str());
             return nullptr;
         }
 
@@ -61,7 +61,7 @@ namespace net {
             if (!error) {
                 self->on_accept_(std::move(socket));
             } else {
-                sys_err("accept: %s", error.message().c_str());
+                metin2::log::error("accept: {}", error.message().c_str());
             }
             self->accept();
         });

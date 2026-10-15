@@ -11,7 +11,7 @@
 #include <common/length.h>
 #include <common/tables.h>
 #include <common/utils.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/main.h>
 #include <libthecore/utils.h>
 
@@ -42,7 +42,7 @@ void CMob::AddSkillSplash(int iIndex, uint32_t dwTiming, uint32_t dwHitDistance)
 	if (iIndex >= MOB_SKILL_MAX_NUM || iIndex < 0)
 		return;
 
-	sys_log(0, "MOB_SPLASH %s idx %d timing %u hit_distance %u",
+	metin2::log::info( "MOB_SPLASH {} idx {:d} timing {:d} hit_distance {:d}",
 			m_table.szLocaleName, iIndex, dwTiming, dwHitDistance);
 
 	m_mobSkillInfo[iIndex].vecSplashAttack.push_back(TMobSplashAttackInfo(dwTiming, dwHitDistance));
@@ -88,7 +88,7 @@ bool CMobManager::Initialize(TMobTable * pTable, int iSize)
 			if (pkMob->m_table.Skills[j].dwVnum)
 				++SkillCount;
 
-		sys_log(0, "MOB: #%-5d %-30s LEVEL %u HP %u DEF %u EXP %u DROP_ITEM_VNUM %u SKILL_COUNT %d", 
+		metin2::log::info( "MOB: #{:<5d} {:<30} LEVEL {:d} HP {:d} DEF {:d} EXP {:d} DROP_ITEM_VNUM {:d} SKILL_COUNT {:d}", 
 				t->dwVnum, t->szLocaleName, t->bLevel, t->dwMaxHP, t->wDef, t->dwExp, t->dwDropItemVnum, SkillCount);
 
 		if (t->bType == CHAR_TYPE_NPC || t->bType == CHAR_TYPE_WARP || t->bType == CHAR_TYPE_GOTO)
@@ -110,12 +110,12 @@ bool CMobManager::Initialize(TMobTable * pTable, int iSize)
 	
 	if (!LoadGroup(szGroupFileName))
 	{
-		sys_err("cannot load %s", szGroupFileName);
+		metin2::log::error("cannot load {}", szGroupFileName);
 		thecore_shutdown();
 	}
 	if (!LoadGroupGroup(szGroupGroupFileName))
 	{
-		sys_err("cannot load %s", szGroupGroupFileName);
+		metin2::log::error("cannot load {}", szGroupGroupFileName);
 		thecore_shutdown();
 	}
 	// END_OF_LOCALE_SERVICE
@@ -274,7 +274,7 @@ bool CMobManager::LoadGroupGroup(const char * c_pszFileName)
 
 		if (!loader.GetTokenInteger("vnum", &iVnum))
 		{
-			sys_err("LoadGroupGroup : Syntax error %s : no vnum, node %s", c_pszFileName, stName.c_str());
+			metin2::log::error("LoadGroupGroup : Syntax error {} : no vnum, node {}", c_pszFileName, stName.c_str());
 			loader.SetParentNode();
 			continue;
 		}
@@ -335,7 +335,7 @@ bool CMobManager::LoadGroup(const char * c_pszFileName)
 
 		if (!loader.GetTokenInteger("vnum", &iVnum))
 		{
-			sys_err("LoadGroup : Syntax error %s : no vnum, node %s", c_pszFileName, stName.c_str());
+			metin2::log::error("LoadGroup : Syntax error {} : no vnum, node {}", c_pszFileName, stName.c_str());
 			loader.SetParentNode();
 			continue;
 		}
@@ -344,14 +344,14 @@ bool CMobManager::LoadGroup(const char * c_pszFileName)
 
 		if (!loader.GetTokenVector("leader", &pTok))
 		{
-			sys_err("LoadGroup : Syntax error %s : no leader, node %s", c_pszFileName, stName.c_str());
+			metin2::log::error("LoadGroup : Syntax error {} : no leader, node {}", c_pszFileName, stName.c_str());
 			loader.SetParentNode();
 			continue;
 		}
 
 		if (pTok->size() < 2)
 		{
-			sys_err("LoadGroup : Syntax error %s : no leader vnum, node %s", c_pszFileName, stName.c_str());
+			metin2::log::error("LoadGroup : Syntax error {} : no leader vnum, node {}", c_pszFileName, stName.c_str());
 			loader.SetParentNode();
 			continue;
 		}
@@ -363,8 +363,8 @@ bool CMobManager::LoadGroup(const char * c_pszFileName)
 		str_to_number(vnum, pTok->at(1).c_str());
 		pkGroup->AddMember(vnum);
 
-		sys_log(0, "GROUP: %-5d %s", iVnum, stName.c_str());
-		sys_log(0, "               %s %s", pTok->at(0).c_str(), pTok->at(1).c_str());
+		metin2::log::info( "GROUP: {:<5d} {}", iVnum, stName.c_str());
+		metin2::log::info( "               {} {}", pTok->at(0).c_str(), pTok->at(1).c_str());
 
 		for (int k = 1; k < 256; ++k)
 		{
@@ -373,7 +373,7 @@ bool CMobManager::LoadGroup(const char * c_pszFileName)
 
 			if (loader.GetTokenVector(buf, &pTok))
 			{
-				sys_log(0, "               %s %s", pTok->at(0).c_str(), pTok->at(1).c_str());
+				metin2::log::info( "               {} {}", pTok->at(0).c_str(), pTok->at(1).c_str());
 				uint32_t vnum = 0;
 				str_to_number(vnum, pTok->at(1).c_str());
 				pkGroup->AddMember(vnum);

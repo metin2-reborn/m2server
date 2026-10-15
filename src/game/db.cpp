@@ -18,7 +18,7 @@
 #include <common/utils.h>
 #include <libsql/AsyncSQL.h>
 #include <libsql/query.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/utils.h>
 
 #include <mysql.h>
@@ -56,7 +56,7 @@ bool DBManager::Connect(const char * host, const int port, const char * user, co
 		m_bIsConnect = true;
 
 	if (!m_sql_direct.Setup(host, user, pwd, db, g_stLocale.c_str(), true, port))
-		sys_err("cannot open direct sql connection to host %s", host);
+		metin2::log::error("cannot open direct sql connection to host {}", host);
 
 	if (m_bIsConnect && !g_bAuthServer)
 	{
@@ -234,7 +234,7 @@ void DBManager::DeleteLoginData(CLoginData * pkLD)
 	if (it == m_map_pkLoginData.end())
 		return;
 
-	sys_log(0, "DeleteLoginData %s %p", pkLD->GetLogin(), pkLD);
+	metin2::log::info( "DeleteLoginData {} {}", pkLD->GetLogin(), static_cast<const void *>(pkLD));
 
 	m_map_pkLoginData.erase(it);
 }
@@ -259,7 +259,7 @@ void DBManager::SendAuthLogin(DESC * d)
 	std::memcpy(&ptod.adwClientKey, pkLD->GetClientKey(), sizeof(uint32_t) * 4);
 
 	db_clientdesc->DBPacket(HEADER_GD_AUTH_LOGIN, d->GetHandle(), &ptod, sizeof(TPacketGDAuthLogin));
-	sys_log(0, "SendAuthLogin %s key %u", ptod.szLogin, ptod.dwID);
+	metin2::log::info( "SendAuthLogin {} key {:d}", ptod.szLogin, ptod.dwID);
 
 	// The db keeps the login from here on.
 	DeleteLoginData(pkLD);
@@ -302,11 +302,11 @@ void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
 				//Moved - By SeMinZ
 				d->SetLogin(pinfo->login);
 
-				sys_log(0, "QID_AUTH_LOGIN: START %u %p", qi->dwIdent, d);
+				metin2::log::info( "QID_AUTH_LOGIN: START {:d} {}", qi->dwIdent, static_cast<const void *>(d));
 
 				if (pMsg->Get()->uiNumRows == 0)
 				{
-					sys_log(0, "   NOID");
+					metin2::log::info( "   NOID");
 					LoginFailure(d, "NOID");
 					delete pinfo;
 				}
@@ -324,7 +324,7 @@ void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
 
 					if (!row[col]) 
 					{ 
-						sys_err("error column %d", col);
+						metin2::log::error("error column {:d}", col);
 						delete pinfo;
 					   	break; 
 					}
@@ -333,7 +333,7 @@ void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
 
 					if (!row[col]) 
 					{
-					   	sys_err("error column %d", col);
+					   	metin2::log::error("error column {:d}", col);
 						delete pinfo;
 					   	break;
 				   	}
@@ -342,7 +342,7 @@ void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
 
 					if (!row[col])
 				   	{ 
-						sys_err("error column %d", col); 
+						metin2::log::error("error column {:d}", col); 
 						delete pinfo;
 						break;
 				   	}
@@ -351,7 +351,7 @@ void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
 
 					if (!row[col])
 				   	{
-					   	sys_err("error column %d", col);
+					   	metin2::log::error("error column {:d}", col);
 						delete pinfo;
 					   	break;
 				   	}
@@ -360,7 +360,7 @@ void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
 					
 					if (!row[col]) 
 					{
-					   	sys_err("error column %d", col); 
+					   	metin2::log::error("error column {:d}", col); 
 						delete pinfo;
 						break;
 				   	}
@@ -391,8 +391,8 @@ void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
 					tm1 = localtime(&create_time);
 					strftime(szCreateDate, 255, "%Y%m%d", tm1);
 
-					sys_log(0, "Create_Time %d %s", retValue, szCreateDate);
-					sys_log(0, "Block Time %d ", strncmp(szCreateDate, g_stBlockDate.c_str(), 8));
+					metin2::log::info( "Create_Time {:d} {}", retValue, szCreateDate);
+					metin2::log::info( "Block Time {:d} ", strncmp(szCreateDate, g_stBlockDate.c_str(), 8));
 
 					int nPasswordDiff = strcmp(szEncrytPassword, szPassword);
 
@@ -400,25 +400,25 @@ void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
 					if (nPasswordDiff)
 					{
 						LoginFailure(d, "WRONGPWD");
-						sys_log(0, "   WRONGPWD");
+						metin2::log::info( "   WRONGPWD");
 						delete pinfo;
 					}
 					else if (bNotAvail)
 					{
 						LoginFailure(d, "NOTAVAIL");
-						sys_log(0, "   NOTAVAIL");
+						metin2::log::info( "   NOTAVAIL");
 						delete pinfo;
 					}
 					else if (DESC_MANAGER::instance().FindByLoginName(pinfo->login))
 					{
 						LoginFailure(d, "ALREADY");
-						sys_log(0, "   ALREADY");
+						metin2::log::info( "   ALREADY");
 						delete pinfo;
 					}
 					else if (strcmp(szStatus, "OK"))
 					{
 						LoginFailure(d, szStatus);
-						sys_log(0, "   STATUS: %s", szStatus);
+						metin2::log::info( "   STATUS: {}", szStatus);
 						delete pinfo;
 					}
 					else
@@ -427,7 +427,7 @@ void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
 						if (strncmp(szCreateDate, g_stBlockDate.c_str(), 8) >= 0)
 						{
 							LoginFailure(d, "BLKLOGIN");
-							sys_log(0, "   BLKLOGIN");
+							metin2::log::info( "   BLKLOGIN");
 							delete pinfo;
 							break;
 						}
@@ -444,7 +444,7 @@ void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
 
 
 						LoginPrepare(d, pinfo->adwClientKey, aiPremiumTimes);
-						sys_log(0, "QID_AUTH_LOGIN: SUCCESS %s", pinfo->login);
+						metin2::log::info( "QID_AUTH_LOGIN: SUCCESS {}", pinfo->login);
 						delete pinfo;
 					}
 				}
@@ -463,11 +463,11 @@ void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
 				//Moved - By SeMinZ
 				d->SetLogin(pinfo->login);
 
-				sys_log(0, "QID_AUTH_LOGIN_OPENID: START %u %p", qi->dwIdent, d);
+				metin2::log::info( "QID_AUTH_LOGIN_OPENID: START {:d} {}", qi->dwIdent, static_cast<const void *>(d));
 
 				if (pMsg->Get()->uiNumRows == 0)
 				{
-					sys_log(0, "   NOID");
+					metin2::log::info( "   NOID");
 					LoginFailure(d, "NOID");
 					delete pinfo;
 				}
@@ -485,7 +485,7 @@ void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
 
 					if (!row[col]) 
 					{ 
-						sys_err("error column %d", col);
+						metin2::log::error("error column {:d}", col);
 						delete pinfo;
 					   	break; 
 					}
@@ -494,7 +494,7 @@ void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
 
 					if (!row[col]) 
 					{
-					   	sys_err("error column %d", col);
+					   	metin2::log::error("error column {:d}", col);
 						delete pinfo;
 					   	break;
 				   	}
@@ -503,7 +503,7 @@ void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
 
 					if (!row[col])
 				   	{ 
-						sys_err("error column %d", col); 
+						metin2::log::error("error column {:d}", col); 
 						delete pinfo;
 						break;
 				   	}
@@ -512,7 +512,7 @@ void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
 
 					if (!row[col])
 				   	{
-					   	sys_err("error column %d", col);
+					   	metin2::log::error("error column {:d}", col);
 						delete pinfo;
 					   	break;
 				   	}
@@ -521,7 +521,7 @@ void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
 					
 					if (!row[col]) 
 					{
-					   	sys_err("error column %d", col); 
+					   	metin2::log::error("error column {:d}", col); 
 						delete pinfo;
 						break;
 				   	}
@@ -552,8 +552,8 @@ void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
 					tm1 = localtime(&create_time);
 					strftime(szCreateDate, 255, "%Y%m%d", tm1);
 
-					sys_log(0, "Create_Time %d %s", retValue, szCreateDate);
-					sys_log(0, "Block Time %d ", strncmp(szCreateDate, g_stBlockDate.c_str(), 8));
+					metin2::log::info( "Create_Time {:d} {}", retValue, szCreateDate);
+					metin2::log::info( "Block Time {:d} ", strncmp(szCreateDate, g_stBlockDate.c_str(), 8));
 
 					int nPasswordDiff = strcmp(szEncrytPassword, szPassword);
 
@@ -567,25 +567,25 @@ void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
 					if (nPasswordDiff)
 					{
 						LoginFailure(d, "WRONGPWD");
-						sys_log(0, "   WRONGPWD");
+						metin2::log::info( "   WRONGPWD");
 						delete pinfo;
 					}
 					else if (bNotAvail)
 					{
 						LoginFailure(d, "NOTAVAIL");
-						sys_log(0, "   NOTAVAIL");
+						metin2::log::info( "   NOTAVAIL");
 						delete pinfo;
 					}
 					else if (DESC_MANAGER::instance().FindByLoginName(pinfo->login))
 					{
 						LoginFailure(d, "ALREADY");
-						sys_log(0, "   ALREADY");
+						metin2::log::info( "   ALREADY");
 						delete pinfo;
 					}
 					else if (strcmp(szStatus, "OK"))
 					{
 						LoginFailure(d, szStatus);
-						sys_log(0, "   STATUS: %s", szStatus);
+						metin2::log::info( "   STATUS: {}", szStatus);
 						delete pinfo;
 					}
 					else
@@ -594,7 +594,7 @@ void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
 						if (strncmp(szCreateDate, g_stBlockDate.c_str(), 8) >= 0)
 						{
 							LoginFailure(d, "BLKLOGIN");
-							sys_log(0, "   BLKLOGIN");
+							metin2::log::info( "   BLKLOGIN");
 							delete pinfo;
 							break;
 						}
@@ -611,7 +611,7 @@ void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
 
 
 						LoginPrepare(d, pinfo->adwClientKey, aiPremiumTimes);
-						sys_log(0, "QID_AUTH_LOGIN_OPENID: SUCCESS %s", pinfo->login);
+						metin2::log::info( "QID_AUTH_LOGIN_OPENID: SUCCESS {}", pinfo->login);
 						delete pinfo;
 					}
 				}
@@ -646,7 +646,7 @@ void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
 					if (row[0] && row[1])
 					{
 						m_map_dbstring.insert(make_pair(std::string(row[0]), std::string(row[1])));
-						sys_log(0, "DBSTR '%s' '%s'", row[0], row[1]);
+						metin2::log::info( "DBSTR '{}' '{}'", row[0], row[1]);
 					}
 				}
 				if (m_map_dbstring.find("GREET") != m_map_dbstring.end())
@@ -671,7 +671,7 @@ void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
 				{
 					if (pMsg->Get()->uiAffectedRows == 0 || pMsg->Get()->uiAffectedRows == (uint32_t)-1)
 					{
-						sys_log(0, "GIVE LOTTO FAIL TO pid %u", ch->GetPlayerID());
+						metin2::log::info( "GIVE LOTTO FAIL TO pid {:d}", ch->GetPlayerID());
 					}
 					else
 					{
@@ -679,14 +679,14 @@ void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
 
 						if (pkItem)
 						{
-							sys_log(0, "GIVE LOTTO SUCCESS TO %s (pid %u)", ch->GetName(), qi->dwIdent);
+							metin2::log::info( "GIVE LOTTO SUCCESS TO {} (pid {:d})", ch->GetName(), qi->dwIdent);
 							//ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("아이템 획득: %s"), pkItem->GetName());
 
 							pkItem->SetSocket(0, pMsg->Get()->uiInsertID);
 							pkItem->SetSocket(1, pdw[2]);
 						}
 						else
-							sys_log(0, "GIVE LOTTO FAIL2 TO pid %u", ch->GetPlayerID());
+							metin2::log::info( "GIVE LOTTO FAIL2 TO pid {:d}", ch->GetPlayerID());
 					}
 				}
 
@@ -758,14 +758,14 @@ void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
 				if( pMsg->Get()->uiAffectedRows == 0 || pMsg->Get()->uiAffectedRows == (uint32_t)-1 )
 				{
 					DESC * d = DESC_MANAGER::instance().FindByLoginKey(qi->dwIdent) ;
-					sys_log(0, "[AUTH_BRAZIL]   NOID") ;
-					sys_log(0, "[AUTH_BRAZIL] : Failed to create a new account %s", pinfo->login) ;
+					metin2::log::info( "[AUTH_BRAZIL]   NOID") ;
+					metin2::log::info( "[AUTH_BRAZIL] : Failed to create a new account {}", pinfo->login) ;
 					LoginFailure(d, "NOID") ;
 					delete pinfo;
 				}
 				else
 				{
-					sys_log(0, "[AUTH_BRAZIL] : Succeed to create a new account %s", pinfo->login) ;
+					metin2::log::info( "[AUTH_BRAZIL] : Succeed to create a new account {}", pinfo->login) ;
 
 					ReturnQuery(QID_AUTH_LOGIN, qi->dwIdent, pinfo, sql::format(
 							"SELECT PASSWORD({}),password,social_id,id,status,availDt - NOW() > 0,"
@@ -789,14 +789,14 @@ void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
 				if( pMsg->Get()->uiAffectedRows == 0 || pMsg->Get()->uiAffectedRows == (uint32_t)-1 )
 				{
 					DESC * d = DESC_MANAGER::instance().FindByLoginKey(qi->dwIdent) ;
-					sys_log(0, "[AUTH_JAPAN]   NOID") ;
-					sys_log(0, "[AUTH_JAPAN] : Failed to create a new account %s", pinfo->login) ;
+					metin2::log::info( "[AUTH_JAPAN]   NOID") ;
+					metin2::log::info( "[AUTH_JAPAN] : Failed to create a new account {}", pinfo->login) ;
 					LoginFailure(d, "NOID") ;
 					delete pinfo;
 				}
 				else
 				{
-					sys_log(0, "[AUTH_JAPAN] : Succeed to create a new account %s", pinfo->login) ;
+					metin2::log::info( "[AUTH_JAPAN] : Succeed to create a new account {}", pinfo->login) ;
 
 					ReturnQuery(QID_AUTH_LOGIN_OPENID, qi->dwIdent, pinfo, sql::format(
 							"SELECT PASSWORD({}),password,social_id,id,status,availDt - NOW() > 0,"
@@ -815,7 +815,7 @@ void DBManager::AnalyzeReturnQuery(SQLMsg * pMsg)
 			break;
 
 		default:
-			sys_err("FATAL ERROR!!! Unhandled return query id %d", qi->iType);
+			metin2::log::error("FATAL ERROR!!! Unhandled return query id {:d}", qi->iType);
 			break;
 	}
 

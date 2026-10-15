@@ -7,12 +7,16 @@
 #include "typedef.h"
 
 #include <common/singleton.h>
+#include <metin2/log/log.h>
 
 #include <cstddef>
 #include <cstdint>
+#include <format>
 #include <map>
 #include <set>
+#include <source_location>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -171,7 +175,6 @@ namespace quest
 			void		ClearError() { m_bError = false; }
 			bool		IsError() { return m_bError; }
 			void		WriteRunningStateToSyserr();
-			void		QuestError(const char* func, int line, const char* fmt, ...) __attribute__((format(printf, 4, 5)));
 
 			void		RegisterNPCVnum(uint32_t dwVnum);
 
@@ -258,5 +261,14 @@ namespace quest
 	};
 };
 
-// sys_err for quest functions: the message goes to the quest error log with the running quest's context.
-#define quest_err(fmt, ...) quest::CQuestManager::instance().QuestError(__FUNCTION__, __LINE__, fmt __VA_OPT__(,) __VA_ARGS__)
+namespace quest
+{
+	// Logs an error of a quest function; on test servers the current character sees it too.
+	void report_error(const std::source_location & where, std::string_view message);
+
+	template <typename... Args>
+	void error(metin2::log::format_string<Args...> format, const Args &... args)
+	{
+		report_error(format.location, metin2::log::format(format, args...));
+	}
+}

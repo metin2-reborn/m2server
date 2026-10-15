@@ -6,7 +6,7 @@
 #include "target.h"
 #include "typedef.h"
 
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <cstdint>
 
@@ -22,7 +22,7 @@ namespace quest
 
 		if (!lua_isstring(L, 1) || !lua_isnumber(L, 2) || !lua_isnumber(L, 3))
 		{
-			sys_err("invalid argument, name: %s, quest_index %d", ch->GetName(), iQuestIndex);
+			metin2::log::error("invalid argument, name: {}, quest_index {:d}", ch->GetName(), iQuestIndex);
 			return 0;
 		}
 
@@ -30,7 +30,7 @@ namespace quest
 
 		if (!SECTREE_MANAGER::instance().GetMapBasePositionByMapIndex(ch->GetMapIndex(), pos))
 		{
-			sys_err("cannot find base position in this map %d", ch->GetMapIndex());
+			metin2::log::error("cannot find base position in this map {:d}", ch->GetMapIndex());
 			return 0;
 		}
 
@@ -57,7 +57,7 @@ namespace quest
 
 		if (!lua_isstring(L, 1) || !lua_isnumber(L, 2))
 		{
-			sys_err("invalid argument, name: %s, quest_index %d", ch->GetName(), iQuestIndex);
+			metin2::log::error("invalid argument, name: {}, quest_index {:d}", ch->GetName(), iQuestIndex);
 			return 0;
 		}
 
@@ -83,7 +83,7 @@ namespace quest
 
 		if (!lua_isstring(L, 1))
 		{
-			sys_err("invalid argument, name: %s, quest_index %d", ch->GetName(), iQuestIndex);
+			metin2::log::error("invalid argument, name: {}, quest_index {:d}", ch->GetName(), iQuestIndex);
 			return 0;
 		}
 
@@ -110,7 +110,7 @@ namespace quest
 
 		if (!lua_isstring(L, 1))
 		{
-			sys_err("invalid argument, name: %s, quest_index %u", ch->GetName(), dwQuestIndex);
+			metin2::log::error("invalid argument, name: {}, quest_index {:d}", ch->GetName(), dwQuestIndex);
 			lua_pushnumber(L, 0);
 			return 1;
 		}
@@ -123,7 +123,7 @@ namespace quest
 
 			if ( pInfo == nullptr )
 			{
-				sys_err( "target_id> <Factor> Null pointer" );
+				metin2::log::error( "target_id> <Factor> Null pointer" );
 				lua_pushnumber(L, 0);
 				return 1;
 			}

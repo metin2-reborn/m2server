@@ -7,7 +7,7 @@
 #include "mob_manager.h"
 
 #include <common/length.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/utils.h>
 
 #include <cstdint>
@@ -142,7 +142,7 @@ bool CPolymorphUtils::GiveBook(CHARACTER * pChar, uint32_t dwMobVnum, uint32_t d
 
 	if (CMobManager::instance().Get(dwMobVnum) == nullptr)
 	{
-		sys_err("Wrong Polymorph vnum passed: CPolymorphUtils::GiveBook(PID(%d), %d %d %d %d)", 
+		metin2::log::error("Wrong Polymorph vnum passed: CPolymorphUtils::GiveBook(PID({:d}), {:d} {:d} {:d} {:d})", 
 				pChar->GetPlayerID(), dwMobVnum, dwPracticeCount, BookLevel, LevelLimit);
 		return false;
 	}

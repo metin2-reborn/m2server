@@ -4,7 +4,7 @@
 #include "vector.h"
 
 #include <common/utils.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <cassert>
 #include <cstddef>
@@ -82,9 +82,9 @@ bool CTextFileLoader::LoadGroup(TGroupNode * pGroupNode)
 		{
 			if (2 != stTokenVector.size())
 			{
-				sys_err("Invalid group syntax token size: %zu != 2 (DO NOT SPACE IN NAME)", stTokenVector.size());
+				metin2::log::error("Invalid group syntax token size: {:d} != 2 (DO NOT SPACE IN NAME)", stTokenVector.size());
 				for (unsigned int i = 0; i < stTokenVector.size(); ++i)
-					sys_err("  %u %s", i, stTokenVector[i].c_str());
+					metin2::log::error("  {:d} {}", i, stTokenVector[i].c_str());
 				exit(1);
 				continue;
 			}
@@ -140,7 +140,7 @@ bool CTextFileLoader::LoadGroup(TGroupNode * pGroupNode)
 
 			if (1 == stTokenVector.size())
 			{
-				sys_err("CTextFileLoader::LoadGroup : must have a value (filename: %s line: %d key: %s)",
+				metin2::log::error("CTextFileLoader::LoadGroup : must have a value (filename: {} line: {:d} key: {})",
 						m_strFileName.c_str(),
 						m_dwcurLineIndex,
 						key.c_str());
@@ -260,7 +260,7 @@ bool CTextFileLoader::GetTokenVector(const std::string & c_rstrKey, TTokenVector
 	TTokenVectorMap::iterator it = m_pcurNode->LocalTokenVectorMap.find(c_rstrKey);
 	if (m_pcurNode->LocalTokenVectorMap.end() == it)
 	{
-		sys_log(2, " CTextFileLoader::GetTokenVector - Failed to find the key %s [%s :: %s]", m_strFileName.c_str(), m_pcurNode->strGroupName.c_str(), c_rstrKey.c_str());
+		metin2::log::debug( " CTextFileLoader::GetTokenVector - Failed to find the key {} [{} :: {}]", m_strFileName.c_str(), m_pcurNode->strGroupName.c_str(), c_rstrKey.c_str());
 		return false;
 	}
 
@@ -277,7 +277,7 @@ bool CTextFileLoader::GetTokenInteger(const std::string & c_rstrKey, int * pData
 
 	if (pTokenVector->empty())
 	{
-		sys_log(2, " CTextFileLoader::GetTokenInteger - Failed to find the value %s [%s : %s]", m_strFileName.c_str(), m_pcurNode->strGroupName.c_str(), c_rstrKey.c_str());
+		metin2::log::debug( " CTextFileLoader::GetTokenInteger - Failed to find the value {} [{} : {}]", m_strFileName.c_str(), m_pcurNode->strGroupName.c_str(), c_rstrKey.c_str());
 		return false;
 	}
 
@@ -301,7 +301,7 @@ bool CTextFileLoader::GetTokenFloat(const std::string & c_rstrKey, float * pData
 
 	if (pTokenVector->empty())
 	{
-		sys_log(2, " CTextFileLoader::GetTokenFloat - Failed to find the value %s [%s : %s]", m_strFileName.c_str(), m_pcurNode->strGroupName.c_str(), c_rstrKey.c_str());
+		metin2::log::debug( " CTextFileLoader::GetTokenFloat - Failed to find the value {} [{} : {}]", m_strFileName.c_str(), m_pcurNode->strGroupName.c_str(), c_rstrKey.c_str());
 		return false;
 	}
 
@@ -318,7 +318,7 @@ bool CTextFileLoader::GetTokenVector3(const std::string & c_rstrKey, VECTOR * pV
 
 	if (pTokenVector->size() != 3)
 	{
-		sys_log(2, " CTextFileLoader::GetTokenVector3 - This key should have 3 values %s [%s : %s]", m_strFileName.c_str(), m_pcurNode->strGroupName.c_str(), c_rstrKey.c_str());
+		metin2::log::debug( " CTextFileLoader::GetTokenVector3 - This key should have 3 values {} [{} : {}]", m_strFileName.c_str(), m_pcurNode->strGroupName.c_str(), c_rstrKey.c_str());
 		return false;
 	}
 
@@ -343,7 +343,7 @@ bool CTextFileLoader::GetTokenString(const std::string & c_rstrKey, std::string 
 
 	if (pTokenVector->empty())
 	{
-		sys_log(2, " CTextFileLoader::GetTokenString - Failed to find the value %s [%s : %s]", m_strFileName.c_str(), m_pcurNode->strGroupName.c_str(), c_rstrKey.c_str());
+		metin2::log::debug( " CTextFileLoader::GetTokenString - Failed to find the value {} [{} : {}]", m_strFileName.c_str(), m_pcurNode->strGroupName.c_str(), c_rstrKey.c_str());
 		return false;
 	}
 

@@ -9,7 +9,7 @@
 
 #include <common/length.h>
 #include <common/tables.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/utils.h>
 
 #include <algorithm>
@@ -57,7 +57,7 @@ EVENTFUNC(poison_event)
 	
 	if ( info == nullptr )
 	{
-		sys_err( "poison_event> <Factor> Null pointer" );
+		metin2::log::error( "poison_event> <Factor> Null pointer" );
 		return 0;
 	}
 
@@ -110,7 +110,7 @@ EVENTFUNC(fire_event)
 
 	if ( info == nullptr )
 	{
-		sys_err( "fire_event> <Factor> Null pointer" );
+		metin2::log::error( "fire_event> <Factor> Null pointer" );
 		return 0;
 	}
 

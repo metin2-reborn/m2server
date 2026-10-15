@@ -23,7 +23,7 @@
 #include "utils.h"
 
 #include <common/utils.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/utils.h>
 
 #include <algorithm>
@@ -249,7 +249,7 @@ EVENTFUNC(castle_siege_event)
 
 	if ( info == nullptr )
 	{
-		sys_err( "castle_siege_event> <Factor> Null pointer" );
+		metin2::log::error( "castle_siege_event> <Factor> Null pointer" );
 		return 0;
 	}
 
@@ -328,7 +328,7 @@ EVENTFUNC(castle_stone_event)
 
 	if (info == nullptr)
 	{
-		sys_err( "castle_stone_event> <Factor> Null pointer" );
+		metin2::log::error( "castle_stone_event> <Factor> Null pointer" );
 		return 0;
 	}
 
@@ -478,7 +478,7 @@ bool castle_boot()
 			else
 			{
 				fclose(fp);
-				sys_err("wrong empire number is null");
+				metin2::log::error("wrong empire number is null");
 				return false;
 			}
 		}
@@ -534,7 +534,7 @@ void castle_save()
 
 	if (nullptr == fp)
 	{
-		sys_err("<FAIL> fopen(%s)", castle_file);
+		metin2::log::error("<FAIL> fopen({})", castle_file);
 		return;
 	}
 

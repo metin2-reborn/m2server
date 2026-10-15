@@ -66,7 +66,7 @@
 
 #include <common/length.h>
 #include <common/tables.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/main.h>
 #include <libthecore/utils.h>
 
@@ -587,7 +587,7 @@ void CHARACTER::OpenMyShop(const char * c_pszSign, TShopItemTable * pTable, uint
 
 	if (GOLD_MAX <= nTotalMoney)
 	{
-		sys_err("[OVERFLOW_GOLD] Overflow (GOLD_MAX) id %u name %s", GetPlayerID(), GetName());
+		metin2::log::error("[OVERFLOW_GOLD] Overflow (GOLD_MAX) id {:d} name {}", GetPlayerID(), GetName());
 		ChatPacket(CHAT_TYPE_INFO, LC_TEXT("20억 냥을 초과하여 상점을 열수가 없습니다"));
 		return;
 	}
@@ -615,7 +615,7 @@ void CHARACTER::OpenMyShop(const char * c_pszSign, TShopItemTable * pTable, uint
 	{
 		if (cont.find((pTable + i)->pos) != cont.end())
 		{
-			sys_err("MYSHOP: duplicate shop item detected! (name: %s)", GetName());
+			metin2::log::error("MYSHOP: duplicate shop item detected! (name: {})", GetName());
 			return;
 		}
 
@@ -924,7 +924,7 @@ void CHARACTER::EncodeInsertPacket(CEntity * entity)
 
 	if (entity->IsType(ENTITY_CHARACTER))
 	{
-		sys_log(3, "EntityInsert %s (RaceNum %d) (%d %d) TO %s",
+		metin2::log::debug( "EntityInsert {} (RaceNum {:d}) ({:d} {:d}) TO {}",
 				GetName(), GetRaceNum(), GetX() / SECTREE_SIZE, GetY() / SECTREE_SIZE, ((CHARACTER *)entity)->GetName());
 	}
 }
@@ -947,7 +947,7 @@ void CHARACTER::EncodeRemovePacket(CEntity * entity)
 	d->Packet(&pack, sizeof(TPacketGCCharacterDelete));
 
 	if (entity->IsType(ENTITY_CHARACTER))
-		sys_log(3, "EntityRemove %s(%d) FROM %s", GetName(), (uint32_t) m_vid, ((CHARACTER *) entity)->GetName());
+		metin2::log::debug( "EntityRemove {}({:d}) FROM {}", GetName(), (uint32_t) m_vid, ((CHARACTER *) entity)->GetName());
 }
 
 void CHARACTER::UpdatePacket()
@@ -1121,7 +1121,7 @@ void CHARACTER::CreatePlayerProto(TPlayerTable & tab)
 		tab.lExitY		= m_posExit.y;
 	}
 
-	sys_log(0, "SAVE: %s %dx%d", GetName(), tab.x, tab.y);
+	metin2::log::info( "SAVE: {} {:d}x{:d}", GetName(), tab.x, tab.y);
 
 	tab.st = GetRealPoint(POINT_ST);
 	tab.ht = GetRealPoint(POINT_HT);
@@ -1166,7 +1166,7 @@ void CHARACTER::SaveReal()
 
 	if (!GetDesc())
 	{
-		sys_err("Character::Save : no descriptor when saving (name: %s)", GetName());
+		metin2::log::error("Character::Save : no descriptor when saving (name: {})", GetName());
 		return;
 	}
 
@@ -1178,7 +1178,7 @@ void CHARACTER::SaveReal()
 	quest::PC * pkQuestPC = quest::CQuestManager::instance().GetPCForce(GetPlayerID());
 
 	if (!pkQuestPC)
-		sys_err("CHARACTER::Save : null quest::PC pointer! (name %s)", GetName());
+		metin2::log::error("CHARACTER::Save : null quest::PC pointer! (name {})", GetName());
 	else
 	{
 		pkQuestPC->Save();
@@ -1203,7 +1203,7 @@ void CHARACTER::Disconnect(const char * c_pszReason)
 {
 	assert(GetDesc() != nullptr);
 
-	sys_log(0, "DISCONNECT: %s (%s)", GetName(), c_pszReason ? c_pszReason : "unset" );
+	metin2::log::info( "DISCONNECT: {} ({})", GetName(), c_pszReason ? c_pszReason : "unset" );
 
 	if (GetShop())
 	{
@@ -1297,7 +1297,7 @@ bool CHARACTER::Show(int32_t lMapIndex, int32_t x, int32_t y, int32_t z, bool bS
 
 	if (!sectree)
 	{
-		sys_log(0, "cannot find sectree by %dx%d mapindex %d", x, y, lMapIndex);
+		metin2::log::info( "cannot find sectree by {:d}x{:d} mapindex {:d}", x, y, lMapIndex);
 		return false;
 	}
 
@@ -1318,7 +1318,7 @@ bool CHARACTER::Show(int32_t lMapIndex, int32_t x, int32_t y, int32_t z, bool bS
 
 	if (!IsNPC())
 	{
-		sys_log(0, "SHOW: %s %dx%dx%d", GetName(), x, y, z);
+		metin2::log::info( "SHOW: {} {:d}x{:d}x{:d}", GetName(), x, y, z);
 		if (GetStamina() < GetMaxStamina())
 			StartAffectEvent();
 	}
@@ -1355,7 +1355,7 @@ bool CHARACTER::Show(int32_t lMapIndex, int32_t x, int32_t y, int32_t z, bool bS
 	else
 	{
 		ViewReencode();
-		sys_log(0, "      in same sectree");
+		metin2::log::info( "      in same sectree");
 	}
 
 	REMOVE_BIT(m_bAddChrState, ADD_CHARACTER_STATE_SPAWN);
@@ -1379,7 +1379,7 @@ static bool		gs_bgmVolEnable = false;
 void CHARACTER_SetBGMVolumeEnable()
 {
 	gs_bgmVolEnable = true;	
-	sys_log(0, "bgm_info.set_bgm_volume_enable");
+	metin2::log::info( "bgm_info.set_bgm_volume_enable");
 }
 
 void CHARACTER_AddBGMInfo(unsigned mapIndex, const char* name, float vol)
@@ -1390,7 +1390,7 @@ void CHARACTER_AddBGMInfo(unsigned mapIndex, const char* name, float vol)
 
 	gs_bgmInfoMap[mapIndex] = newInfo;
 
-	sys_log(0, "bgm_info.add_info(%d, '%s', %f)", mapIndex, name, vol);
+	metin2::log::info( "bgm_info.add_info({:d}, '{}', {:f})", mapIndex, name, vol);
 }
 
 const BGMInfo& CHARACTER_GetBGMInfo(unsigned mapIndex)
@@ -1420,7 +1420,7 @@ void CHARACTER::MainCharacterPacket()
 	{
 		if (CHARACTER_IsBGMVolumeEnable())
 		{
-			sys_log(1, "bgm_info.play_bgm_vol(%d, name='%s', vol=%f)", mapIndex, bgmInfo.name.c_str(), bgmInfo.vol);
+			metin2::log::debug( "bgm_info.play_bgm_vol({:d}, name='{}', vol={:f})", mapIndex, bgmInfo.name.c_str(), bgmInfo.vol);
 			TPacketGCMainCharacter4_BGM_VOL mainChrPacket;
 			mainChrPacket.header = HEADER_GC_MAIN_CHARACTER4_BGM_VOL;
 			mainChrPacket.dwVID = m_vid;
@@ -1438,7 +1438,7 @@ void CHARACTER::MainCharacterPacket()
 		}
 		else
 		{
-			sys_log(1, "bgm_info.play(%d, '%s')", mapIndex, bgmInfo.name.c_str());
+			metin2::log::debug( "bgm_info.play({:d}, '{}')", mapIndex, bgmInfo.name.c_str());
 			TPacketGCMainCharacter3_BGM mainChrPacket;
 			mainChrPacket.header = HEADER_GC_MAIN_CHARACTER3_BGM;
 			mainChrPacket.dwVID = m_vid;
@@ -1456,7 +1456,7 @@ void CHARACTER::MainCharacterPacket()
 	// END_OF_SUPPORT_BGM
 	else
 	{
-		sys_log(0, "bgm_info.play(%d, DEFAULT_BGM_NAME)", mapIndex);
+		metin2::log::info( "bgm_info.play({:d}, DEFAULT_BGM_NAME)", mapIndex);
 
 		TPacketGCMainCharacter pack;
 		pack.header = HEADER_GC_MAIN_CHARACTER;
@@ -1540,11 +1540,11 @@ bool CHARACTER::ChangeSex()
 			break;
 
 		default:
-			sys_err("CHANGE_SEX: %s unknown race %d", GetName(), src_race);
+			metin2::log::error("CHANGE_SEX: {} unknown race {:d}", GetName(), src_race);
 			return false;
 	}
 
-	sys_log(0, "CHANGE_SEX: %s (%d -> %d)", GetName(), src_race, m_points.job);
+	metin2::log::info( "CHANGE_SEX: {} ({:d} -> {:d})", GetName(), src_race, m_points.job);
 	return true;
 }
 
@@ -1563,7 +1563,7 @@ void CHARACTER::SetRace(uint8_t race)
 {
 	if (race >= MAIN_RACE_MAX_NUM)
 	{
-		sys_err("CHARACTER::SetRace(name=%s, race=%d).OUT_OF_RACE_RANGE", GetName(), race);
+		metin2::log::error("CHARACTER::SetRace(name={}, race={:d}).OUT_OF_RACE_RANGE", GetName(), race);
 		return;
 	}
 
@@ -1578,7 +1578,7 @@ uint8_t CHARACTER::GetJob() const
 	if (RaceToJob(race, &job))
 		return job;
 
-	sys_err("CHARACTER::GetJob(name=%s, race=%d).OUT_OF_RACE_RANGE", GetName(), race);
+	metin2::log::error("CHARACTER::GetJob(name={}, race={:d}).OUT_OF_RACE_RANGE", GetName(), race);
 	return JOB_WARRIOR;
 }
 
@@ -1605,7 +1605,7 @@ void CHARACTER::SetEmpire(uint8_t bEmpire)
 void CHARACTER::SetPlayerProto(const TPlayerTable * t)
 {
 	if (!GetDesc() || !*GetDesc()->GetHostName())
-		sys_err("cannot get desc or hostname");
+		metin2::log::error("cannot get desc or hostname");
 	else
 		SetGMLevel();
 
@@ -1698,12 +1698,12 @@ void CHARACTER::SetPlayerProto(const TPlayerTable * t)
 
 	m_dwLogOffInterval = t->logoff_interval;
 
-	sys_log(0, "PLAYER_LOAD: %s PREMIUM %d %d, LOGGOFF_INTERVAL %u PTR: %p", t->name, m_aiPremiumTimes[0], m_aiPremiumTimes[1], t->logoff_interval, this);
+	metin2::log::info( "PLAYER_LOAD: {} PREMIUM {:d} {:d}, LOGGOFF_INTERVAL {:d} PTR: {}", t->name, m_aiPremiumTimes[0], m_aiPremiumTimes[1], t->logoff_interval, static_cast<const void *>(this));
 
 	if (GetGMLevel() != GM_PLAYER) 
 	{
 		LogManager::instance().CharLog(this, GetGMLevel(), "GM_LOGIN", "");
-		sys_log(0, "GM_LOGIN(gmlevel=%d, name=%s(%d), pos=(%d, %d)", GetGMLevel(), GetName(), GetPlayerID(), GetX(), GetY());
+		metin2::log::info( "GM_LOGIN(gmlevel={:d}, name={}({:d}), pos=({:d}, {:d})", GetGMLevel(), GetName(), GetPlayerID(), GetX(), GetY());
 	}
 
 	// NOTE: For now only PC characters get a PetSystem. Doing it for NPCs too is a bit much given per-machine memory usage in Europe..
@@ -1720,7 +1720,7 @@ EVENTFUNC(kill_ore_load_event)
 	char_event_info* info = dynamic_cast<char_event_info*>( event->info );
 	if ( info == nullptr )
 	{
-		sys_err( "kill_ore_load_even> <Factor> Null pointer" );
+		metin2::log::error( "kill_ore_load_even> <Factor> Null pointer" );
 		return 0;
 	}
 
@@ -1970,7 +1970,7 @@ void CHARACTER::ComputeBattlePoints()
 				break;
 
 			default:
-				sys_err("invalid job %d", GetJob());
+				metin2::log::error("invalid job {:d}", GetJob());
 				iStatAtk = (2 * GetPoint(POINT_ST));
 				break;
 		}
@@ -2260,7 +2260,7 @@ EVENTFUNC(recovery_event)
 	char_event_info* info = dynamic_cast<char_event_info*>( event->info );
 	if ( info == nullptr )
 	{
-		sys_err( "recovery_event> <Factor> Null pointer" );
+		metin2::log::error( "recovery_event> <Factor> Null pointer" );
 		return 0;
 	}
 
@@ -2363,7 +2363,7 @@ EVENTFUNC(recovery_event)
 		
 		iAmount += (iAmount * ch->GetPoint(POINT_HP_REGEN)) / 100;
 
-		sys_log(1, "RECOVERY_EVENT: %s %d HP_REGEN %d HP +%d", ch->GetName(), iPercent, ch->GetPoint(POINT_HP_REGEN), iAmount);
+		metin2::log::debug( "RECOVERY_EVENT: {} {:d} HP_REGEN {:d} HP +{:d}", ch->GetName(), iPercent, ch->GetPoint(POINT_HP_REGEN), iAmount);
 
 		ch->PointChange(POINT_HP, iAmount, false);
 		return PASSES_PER_SEC(3);
@@ -2398,7 +2398,7 @@ void CHARACTER::Standup()
 
 	SetPosition(POS_STANDING);
 
-	sys_log(1, "STANDUP: %s", GetName());
+	metin2::log::debug( "STANDUP: {}", GetName());
 
 	pack_position.header	= HEADER_GC_CHARACTER_POSITION;
 	pack_position.vid		= GetVID();
@@ -2415,7 +2415,7 @@ void CHARACTER::Sitdown(int is_ground)
 		return;
 
 	SetPosition(POS_SITTING);
-	sys_log(1, "SITDOWN: %s", GetName());
+	metin2::log::debug( "SITDOWN: {}", GetName());
 
 	pack_position.header	= HEADER_GC_CHARACTER_POSITION;
 	pack_position.vid		= GetVID();
@@ -2463,12 +2463,12 @@ bool CHARACTER::Sync(int32_t x, int32_t y)
 	{
 		if (GetDesc())
 		{
-			sys_err("cannot find tree at %d %d (name: %s)", x, y, GetName());
+			metin2::log::error("cannot find tree at {:d} {:d} (name: {})", x, y, GetName());
 			GetDesc()->SetPhase(PHASE_CLOSE);
 		}
 		else
 		{
-			sys_err("no tree: %s %d %d %d", GetName(), x, y, GetMapIndex());
+			metin2::log::error("no tree: {} {:d} {:d} {:d}", GetName(), x, y, GetMapIndex());
 			Dead();
 		}
 
@@ -2506,7 +2506,7 @@ bool CHARACTER::Sync(int32_t x, int32_t y)
 			SECTREEID id = new_tree->GetID();
 			SECTREEID old_id = GetSectree()->GetID();
 
-			sys_log(0, "SECTREE DIFFER: %s %dx%d was %dx%d",
+			metin2::log::info( "SECTREE DIFFER: {} {:d}x{:d} was {:d}x{:d}",
 					GetName(),
 					id.coord.x,
 					id.coord.y,
@@ -2633,7 +2633,7 @@ float CHARACTER::GetMoveMotionSpeed() const
 		return -pkMotion->GetAccumVector().y / pkMotion->GetDuration();
 	else
 	{
-		sys_err("cannot find motion (name %s race %d mode %d)", GetName(), GetRaceNum(), dwMode);
+		metin2::log::error("cannot find motion (name {} race {:d} mode {:d})", GetName(), GetRaceNum(), dwMode);
 		return 300.0f;
 	}
 }
@@ -2656,7 +2656,7 @@ void CHARACTER::CalculateMoveDuration()
 			(int) ((fDist / motionSpeed) * 1000.0f));
 
 	if (IsNPC())
-		sys_log(1, "%s: GOTO: distance %f, spd %u, duration %u, motion speed %f pos %d %d -> %d %d",
+		metin2::log::debug( "{}: GOTO: distance {:f}, spd {:d}, duration {:d}, motion speed {:f} pos {:d} {:d} -> {:d} {:d}",
 				GetName(), fDist, GetLimitPoint(POINT_MOV_SPEED), m_dwMoveDuration, motionSpeed,
 				m_posStart.x, m_posStart.y, m_posDest.x, m_posDest.y);
 
@@ -2676,7 +2676,7 @@ bool CHARACTER::Move(int32_t x, int32_t y)
 
 	if (test_server)
 		if (m_bDetailLog)
-			sys_log(0, "%s position %u %u", GetName(), x, y);
+			metin2::log::info( "{} position {:d} {:d}", GetName(), x, y);
 
 	OnMove();
 	return Sync(x, y);
@@ -2743,7 +2743,7 @@ int CHARACTER::GetPoint(uint8_t type) const
 {
 	if (type >= POINT_MAX_NUM)
 	{
-		sys_err("Point type overflow (type %u)", type);
+		metin2::log::error("Point type overflow (type {:d})", type);
 		return 0;
 	}
 
@@ -2759,7 +2759,7 @@ int CHARACTER::GetPoint(uint8_t type) const
 	}
 
 	if (val > max_val)
-		sys_err("POINT_ERROR: %s type %d val %d (max: %d)", GetName(), type, val, max_val);
+		metin2::log::error("POINT_ERROR: {} type {:d} val {:d} (max: {:d})", GetName(), type, val, max_val);
 
 	return (val);
 }
@@ -2768,7 +2768,7 @@ int CHARACTER::GetLimitPoint(uint8_t type) const
 {
 	if (type >= POINT_MAX_NUM)
 	{
-		sys_err("Point type overflow (type %u)", type);
+		metin2::log::error("Point type overflow (type {:d})", type);
 		return 0;
 	}
 
@@ -2811,7 +2811,7 @@ int CHARACTER::GetLimitPoint(uint8_t type) const
 	}
 
 	if (val > max_val)
-		sys_err("POINT_ERROR: %s type %d val %d (max: %d)", GetName(), type, val, max_val);
+		metin2::log::error("POINT_ERROR: {} type {:d} val {:d} (max: {:d})", GetName(), type, val, max_val);
 
 	if (val > limit)
 		val = limit;
@@ -2826,7 +2826,7 @@ void CHARACTER::SetPoint(uint8_t type, int val)
 {
 	if (type >= POINT_MAX_NUM)
 	{
-		sys_err("Point type overflow (type %u)", type);
+		metin2::log::error("Point type overflow (type {:d})", type);
 		return;
 	}
 
@@ -2864,7 +2864,7 @@ void CHARACTER::PointChange(uint8_t type, int amount, bool bAmount, bool bBroadc
 			SetLevel(GetLevel() + amount);
 			val = GetLevel();
 
-			sys_log(0, "LEVELUP: %s %d NEXT EXP %d", GetName(), GetLevel(), GetNextExp());
+			metin2::log::info( "LEVELUP: {} {:d} NEXT EXP {:d}", GetName(), GetLevel(), GetNextExp());
 
 			PointChange(POINT_NEXT_EXP,	GetNextExp(), false);
 
@@ -2901,7 +2901,7 @@ void CHARACTER::PointChange(uint8_t type, int amount, bool bAmount, bool bBroadc
 				// Keep exp from going below 0
 				if (amount < 0 && exp < static_cast<uint32_t>(-amount))
 				{
-					sys_log(1, "%s AMOUNT < 0 %d, CUR EXP: %d", GetName(), -amount, exp);
+					metin2::log::debug( "{} AMOUNT < 0 {:d}, CUR EXP: {:d}", GetName(), -amount, exp);
 					amount = -exp;
 
 					SetExp(exp + amount);
@@ -2938,7 +2938,7 @@ void CHARACTER::PointChange(uint8_t type, int amount, bool bAmount, bool bBroadc
 					// If iLevStep is 4 or more the level should have gone up, so this value cannot occur here.
 					if (iLevStep >= 4)
 					{
-						sys_err("%s LEVEL_STEP bigger than 4! (%d)", GetName(), iLevStep);
+						metin2::log::error("{} LEVEL_STEP bigger than 4! ({:d})", GetName(), iLevStep);
 						iLevStep = 4;
 					}
 
@@ -3144,7 +3144,7 @@ void CHARACTER::PointChange(uint8_t type, int amount, bool bAmount, bool bBroadc
 
 				if (GOLD_MAX <= nTotalMoney)
 				{
-					sys_err("[OVERFLOW_GOLD] OriGold %d AddedGold %d id %u Name %s ", GetGold(), amount, GetPlayerID(), GetName());
+					metin2::log::error("[OVERFLOW_GOLD] OriGold {:d} AddedGold {:d} id {:d} Name {} ", GetGold(), amount, GetPlayerID(), GetName());
 					LogManager::instance().CharLog(this, GetGold() + amount, "OVERFLOW_GOLD", "");
 					return;
 				}
@@ -3285,7 +3285,7 @@ void CHARACTER::PointChange(uint8_t type, int amount, bool bAmount, bool bBroadc
 		case POINT_MELEE_MAGIC_ATT_BONUS_PER:
 			if (GetPoint(type) + amount > 100)
 			{
-				sys_err("MALL_BONUS exceeded over 100!! point type: %d name: %s amount %d", type, GetName(), amount);
+				metin2::log::error("MALL_BONUS exceeded over 100!! point type: {:d} name: {} amount {:d}", type, GetName(), amount);
 				amount = 100 - GetPoint(type);
 			}
 
@@ -3308,7 +3308,7 @@ void CHARACTER::PointChange(uint8_t type, int amount, bool bAmount, bool bBroadc
 		case POINT_POTION_BONUS:	// 74
 			if (GetPoint(type) + amount > 100)
 			{
-				sys_err("BONUS exceeded over 100!! point type: %d name: %s amount %d", type, GetName(), amount);
+				metin2::log::error("BONUS exceeded over 100!! point type: {:d} name: {} amount {:d}", type, GetName(), amount);
 				amount = 100 - GetPoint(type);
 			}
 
@@ -3407,7 +3407,7 @@ void CHARACTER::PointChange(uint8_t type, int amount, bool bAmount, bool bBroadc
 			break;
 
 		default:
-			sys_err("CHARACTER::PointChange: %s: unknown point change type %d", GetName(), type);
+			metin2::log::error("CHARACTER::PointChange: {}: unknown point change type {:d}", GetName(), type);
 			return;
 	}
 
@@ -3479,7 +3479,7 @@ void CHARACTER::ApplyPoint(uint8_t bApplyType, int iVal)
 				int iAdd = iVal & 0x00800000;
 				int iChange = iVal & 0x007fffff;
 
-				sys_log(1, "APPLY_SKILL skill %d add? %d change %d", bSkillVnum, iAdd ? 1 : 0, iChange);
+				metin2::log::debug( "APPLY_SKILL skill {:d} add? {:d} change {:d}", bSkillVnum, iAdd ? 1 : 0, iChange);
 
 				if (0 == iAdd)
 					iChange = -iChange;
@@ -3590,7 +3590,7 @@ void CHARACTER::ApplyPoint(uint8_t bApplyType, int iVal)
 			break;
 
 		default:
-			sys_err("Unknown apply type %d name %s", bApplyType, GetName());
+			metin2::log::error("Unknown apply type {:d} name {}", bApplyType, GetName());
 			break;
 	}
 }
@@ -3600,7 +3600,7 @@ EVENTFUNC(save_event)
 	char_event_info* info = dynamic_cast<char_event_info*>( event->info );
 	if ( info == nullptr )
 	{
-		sys_err( "save_event> <Factor> Null pointer" );
+		metin2::log::error( "save_event> <Factor> Null pointer" );
 		return 0;
 	}
 
@@ -3609,7 +3609,7 @@ EVENTFUNC(save_event)
 	if (ch == nullptr) { // <Factor>
 		return 0;
 	}	
-	sys_log(1, "SAVE_EVENT: %s", ch->GetName());
+	metin2::log::debug( "SAVE_EVENT: {}", ch->GetName());
 	ch->Save();
 	ch->FlushDelayedSaveItem();
 	return (save_event_second_cycle);
@@ -3710,7 +3710,7 @@ void CHARACTER::ChatPacket(uint8_t type, const char * format, ...)
 	d->Packet(buf.read_peek(), buf.size());
 
 	if (type == CHAT_TYPE_COMMAND && test_server)
-		sys_log(0, "SEND_COMMAND %s %s", GetName(), chatbuf);
+		metin2::log::info( "SEND_COMMAND {} {}", GetName(), chatbuf);
 }
 
 // MINING
@@ -3723,7 +3723,7 @@ void CHARACTER::mining_cancel()
 {
 	if (m_pkMiningEvent)
 	{
-		sys_log(0, "XXX MINING CANCEL");
+		metin2::log::info( "XXX MINING CANCEL");
 		event_cancel(&m_pkMiningEvent);
 		ChatPacket(CHAT_TYPE_INFO, LC_TEXT("채광을 중단하였습니다."));
 	}
@@ -3938,7 +3938,7 @@ bool CHARACTER::SetSyncOwner(CHARACTER * ch, bool bRemoveFromList)
 
 	if (ch == this)
 	{
-		sys_err("SetSyncOwner owner == this (%p)", this);
+		metin2::log::error("SetSyncOwner owner == this ({})", static_cast<const void *>(this));
 		return false;
 	}
 
@@ -3950,7 +3950,7 @@ bool CHARACTER::SetSyncOwner(CHARACTER * ch, bool bRemoveFromList)
 		}
 
 		if (m_pkChrSyncOwner)
-			sys_log(1, "SyncRelease %s %p from %s", GetName(), this, m_pkChrSyncOwner->GetName());
+			metin2::log::debug( "SyncRelease {} {} from {}", GetName(), static_cast<const void *>(this), m_pkChrSyncOwner->GetName());
 
 		// Even if not removed from the list, the pointer must be set to NULL.
 		m_pkChrSyncOwner = nullptr;
@@ -3963,7 +3963,7 @@ bool CHARACTER::SetSyncOwner(CHARACTER * ch, bool bRemoveFromList)
 		// Cannot be SyncOwner if the distance is 200 or more.
 		if (DISTANCE_APPROX(GetX() - ch->GetX(), GetY() - ch->GetY()) > 250)
 		{
-			sys_log(1, "SetSyncOwner distance over than 250 %s %s", GetName(), ch->GetName());
+			metin2::log::debug( "SetSyncOwner distance over than 250 {} {}", GetName(), ch->GetName());
 
 			// Mark as Owner if SyncOwner.
 			if (m_pkChrSyncOwner == ch)
@@ -3976,7 +3976,7 @@ bool CHARACTER::SetSyncOwner(CHARACTER * ch, bool bRemoveFromList)
 		{
 			if (m_pkChrSyncOwner)
 			{
-				sys_log(1, "SyncRelease %s %p from %s", GetName(), this, m_pkChrSyncOwner->GetName());
+				metin2::log::debug( "SyncRelease {} {} from {}", GetName(), static_cast<const void *>(this), m_pkChrSyncOwner->GetName());
 				m_pkChrSyncOwner->m_kLst_pkChrSyncOwned.remove(this);
 			}
 
@@ -3987,7 +3987,7 @@ bool CHARACTER::SetSyncOwner(CHARACTER * ch, bool bRemoveFromList)
 			static const timeval zero_tv = {0, 0};
 			SetLastSyncTime(zero_tv);
 
-			sys_log(1, "SetSyncOwner set %s %p to %s", GetName(), this, ch->GetName());
+			metin2::log::debug( "SetSyncOwner set {} {} to {}", GetName(), static_cast<const void *>(this), ch->GetName());
 		}
 
 		m_fSyncTime = get_float_time();
@@ -4043,9 +4043,9 @@ void CHARACTER::SetParty(CParty * pkParty)
 		return;
 
 	if (pkParty && m_pkParty)
-		sys_err("%s is trying to reassigning party (current %p, new party %p)", GetName(), m_pkParty, pkParty);
+		metin2::log::error("{} is trying to reassigning party (current {}, new party {})", GetName(), static_cast<const void *>(m_pkParty), static_cast<const void *>(pkParty));
 
-	sys_log(1, "PARTY set to %p", pkParty);
+	metin2::log::debug( "PARTY set to {}", static_cast<const void *>(pkParty));
 
 	if (m_pkDungeon && IsPC() && !pkParty) // Fix
 		SetDungeon(nullptr);
@@ -4083,7 +4083,7 @@ EVENTFUNC(party_request_event)
 
 	if ( info == nullptr )
 	{
-		sys_err( "party_request_event> <Factor> Null pointer" );
+		metin2::log::error( "party_request_event> <Factor> Null pointer" );
 		return 0;
 	}
 
@@ -4091,7 +4091,7 @@ EVENTFUNC(party_request_event)
 
 	if (ch)
 	{
-		sys_log(0, "PartyRequestEvent %s", ch->GetName());
+		metin2::log::info( "PartyRequestEvent {}", ch->GetName());
 		ch->ChatPacket(CHAT_TYPE_COMMAND, "PartyRequestDenied");
 		ch->SetPartyRequestEvent(nullptr);
 	}
@@ -4162,7 +4162,7 @@ bool CHARACTER::RequestToParty(CHARACTER * leader)
 			return false;
 
 		default:
-			sys_err("Do not process party join error(%d)", errcode); 
+			metin2::log::error("Do not process party join error({:d})", errcode); 
 			return false;
 	}
 
@@ -4180,7 +4180,7 @@ bool CHARACTER::RequestToParty(CHARACTER * leader)
 
 void CHARACTER::DenyToParty(CHARACTER * member)
 {
-	sys_log(1, "DenyToParty %s member %s %p", GetName(), member->GetName(), member->m_pkPartyRequestEvent.get());
+	metin2::log::debug( "DenyToParty {} member {} {}", GetName(), member->GetName(), static_cast<const void *>(member->m_pkPartyRequestEvent.get()));
 
 	if (!member->m_pkPartyRequestEvent)
 		return;
@@ -4189,7 +4189,7 @@ void CHARACTER::DenyToParty(CHARACTER * member)
 
 	if (!info)
 	{
-		sys_err( "CHARACTER::DenyToParty> <Factor> Null pointer" );
+		metin2::log::error( "CHARACTER::DenyToParty> <Factor> Null pointer" );
 		return;
 	}
 
@@ -4206,7 +4206,7 @@ void CHARACTER::DenyToParty(CHARACTER * member)
 
 void CHARACTER::AcceptToParty(CHARACTER * member)
 {
-	sys_log(1, "AcceptToParty %s member %s %p", GetName(), member->GetName(), member->m_pkPartyRequestEvent.get());
+	metin2::log::debug( "AcceptToParty {} member {} {}", GetName(), member->GetName(), static_cast<const void *>(member->m_pkPartyRequestEvent.get()));
 
 	if (!member->m_pkPartyRequestEvent)
 		return;
@@ -4215,7 +4215,7 @@ void CHARACTER::AcceptToParty(CHARACTER * member)
 
 	if (!info)
 	{
-		sys_err( "CHARACTER::AcceptToParty> <Factor> Null pointer" );
+		metin2::log::error( "CHARACTER::AcceptToParty> <Factor> Null pointer" );
 		return;
 	}
 
@@ -4250,7 +4250,7 @@ void CHARACTER::AcceptToParty(CHARACTER * member)
 									   member->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("<파티> 파티의 인원제한이 초과하여 파티에 참가할 수 없습니다."));
 									   break;
 								   }
-			default: sys_err("Do not process party join error(%d)", errcode);
+			default: metin2::log::error("Do not process party join error({:d})", errcode);
 		}
 	}
 
@@ -4267,7 +4267,7 @@ EVENTFUNC(party_invite_event)
 
 	if ( pInfo == nullptr )
 	{
-		sys_err( "party_invite_event> <Factor> Null pointer" );
+		metin2::log::error( "party_invite_event> <Factor> Null pointer" );
 		return 0;
 	}
 
@@ -4275,7 +4275,7 @@ EVENTFUNC(party_invite_event)
 
 	if (pchInviter)
 	{
-		sys_log(1, "PartyInviteEvent %s", pchInviter->GetName());
+		metin2::log::debug( "PartyInviteEvent {}", pchInviter->GetName());
 		pchInviter->PartyInviteDeny(pInfo->dwGuestPID);
 	}
 
@@ -4339,7 +4339,7 @@ void CHARACTER::PartyInvite(CHARACTER * pchInvitee)
 			return;
 
 		default:
-			sys_err("Do not process party join error(%d)", errcode);
+			metin2::log::error("Do not process party join error({:d})", errcode);
 			return;
 	}
 
@@ -4372,7 +4372,7 @@ void CHARACTER::PartyInviteAccept(CHARACTER * pchInvitee)
 
 	if (itFind == m_PartyInviteEventMap.end())
 	{
-		sys_log(1, "PartyInviteAccept from not invited character(%s)", pchInvitee->GetName());
+		metin2::log::debug( "PartyInviteAccept from not invited character({})", pchInvitee->GetName());
 		return;
 	}
 
@@ -4426,7 +4426,7 @@ void CHARACTER::PartyInviteAccept(CHARACTER * pchInvitee)
 			return;
 
 		default:
-			sys_err("ignore party join error(%d)", errcode);
+			metin2::log::error("ignore party join error({:d})", errcode);
 			return;
 	}
 
@@ -4452,7 +4452,7 @@ void CHARACTER::PartyInviteDeny(uint32_t dwPID)
 
 	if (itFind == m_PartyInviteEventMap.end())
 	{
-		sys_log(1, "PartyInviteDeny to not exist event(inviter PID: %d, invitee PID: %d)", GetPlayerID(), dwPID);
+		metin2::log::debug( "PartyInviteDeny to not exist event(inviter PID: {:d}, invitee PID: {:d})", GetPlayerID(), dwPID);
 		return;
 	}
 
@@ -4515,7 +4515,7 @@ CHARACTER::PartyJoinErrCode CHARACTER::IsPartyJoinableMutableCondition(CHARACTER
 void CHARACTER::SetDungeon(CDungeon * pkDungeon)
 {
 	if (pkDungeon && m_pkDungeon)
-		sys_err("%s is trying to reassigning dungeon (current %p, new party %p)", GetName(), m_pkDungeon, pkDungeon);
+		metin2::log::error("{} is trying to reassigning dungeon (current {}, new party {})", GetName(), static_cast<const void *>(m_pkDungeon), static_cast<const void *>(pkDungeon));
 
 	if (m_pkDungeon == pkDungeon) {
 		return;
@@ -4540,7 +4540,7 @@ void CHARACTER::SetDungeon(CDungeon * pkDungeon)
 
 	if (pkDungeon)
 	{
-		sys_log(0, "%s DUNGEON set to %p, PARTY is %p", GetName(), pkDungeon, m_pkParty);
+		metin2::log::info( "{} DUNGEON set to {}, PARTY is {}", GetName(), static_cast<const void *>(pkDungeon), static_cast<const void *>(m_pkParty));
 
 		if (IsPC())
 		{
@@ -4619,19 +4619,19 @@ void CHARACTER::OnClick(CHARACTER * pkChrCauser)
 {
 	if (!pkChrCauser)
 	{
-		sys_err("OnClick %s by NULL", GetName());
+		metin2::log::error("OnClick {} by NULL", GetName());
 		return;
 	}
 
 	uint32_t vid = GetVID();
-	sys_log(0, "OnClick %s[vnum %d ServerUniqueID %d, pid %d] by %s", GetName(), GetRaceNum(), vid, GetPlayerID(), pkChrCauser->GetName());
+	metin2::log::info( "OnClick {}[vnum {:d} ServerUniqueID {:d}, pid {:d}] by {}", GetName(), GetRaceNum(), vid, GetPlayerID(), pkChrCauser->GetName());
 
 	// Cannot do quests while a shop is open.
 	{
 		// However, you can click your own shop.
 		if (pkChrCauser->GetMyShop() && pkChrCauser != this) 
 		{
-			sys_err("OnClick Fail (%s->%s) - pc has shop", pkChrCauser->GetName(), GetName());
+			metin2::log::error("OnClick Fail ({}->{}) - pc has shop", pkChrCauser->GetName(), GetName());
 			return;
 		}
 	}
@@ -4640,7 +4640,7 @@ void CHARACTER::OnClick(CHARACTER * pkChrCauser)
 	{
 		if (pkChrCauser->GetExchange())
 		{
-			sys_err("OnClick Fail (%s->%s) - pc is exchanging", pkChrCauser->GetName(), GetName());
+			metin2::log::error("OnClick Fail ({}->{}) - pc is exchanging", pkChrCauser->GetName(), GetName());
 			return;
 		}
 	}
@@ -4695,7 +4695,7 @@ void CHARACTER::OnClick(CHARACTER * pkChrCauser)
 			}
 
 			if (test_server)
-				sys_err("%s.OnClickFailure(%s) - target is PC", pkChrCauser->GetName(), GetName());
+				metin2::log::error("{}.OnClickFailure({}) - target is PC", pkChrCauser->GetName(), GetName());
 
 			return;
 		}
@@ -4814,7 +4814,7 @@ void CHARACTER::ClearTarget()
 
 		if (!pkChr->GetDesc())
 		{
-			sys_err("%s %p does not have desc", pkChr->GetName(), pkChr);
+			metin2::log::error("{} {} does not have desc", pkChr->GetName(), static_cast<const void *>(pkChr));
 			abort();
 		}
 
@@ -4914,7 +4914,7 @@ void CHARACTER::BroadcastTargetPacket()
 
 		if (!pkChr->GetDesc())
 		{
-			sys_err("%s %p does not have desc", pkChr->GetName(), pkChr);
+			metin2::log::error("{} {} does not have desc", pkChr->GetName(), static_cast<const void *>(pkChr));
 			abort();
 		}
 
@@ -4946,7 +4946,7 @@ void CHARACTER::SaveExitLocation()
 
 void CHARACTER::ExitToSavedLocation()
 {
-	sys_log (0, "ExitToSavedLocation");
+	metin2::log::info( "ExitToSavedLocation");
 	WarpSet(m_posWarp.x, m_posWarp.y, m_lWarpMapIndex);
 
 	m_posExit.x = m_posExit.y = m_posExit.z = 0;
@@ -4968,7 +4968,7 @@ bool CHARACTER::WarpSet(int32_t x, int32_t y, int32_t lPrivateMapIndex)
 
 	if (!CMapLocation::instance().Get(x, y, lMapIndex, lAddr, wPort))
 	{
-		sys_err("cannot find map location index %d x %d y %d name %s", lMapIndex, x, y, GetName());
+		metin2::log::error("cannot find map location index {:d} x {:d} y {:d} name {}", lMapIndex, x, y, GetName());
 		return false;
 	}
 
@@ -4976,7 +4976,7 @@ bool CHARACTER::WarpSet(int32_t x, int32_t y, int32_t lPrivateMapIndex)
 	{
 		if (lPrivateMapIndex / 10000 != lMapIndex)
 		{
-			sys_err("Invalid map inedx %d, must be child of %d", lPrivateMapIndex, lMapIndex);
+			metin2::log::error("Invalid map inedx {:d}, must be child of {:d}", lPrivateMapIndex, lMapIndex);
 			return false;
 		}
 
@@ -4998,7 +4998,7 @@ bool CHARACTER::WarpSet(int32_t x, int32_t y, int32_t lPrivateMapIndex)
 	m_posWarp.x = x;
 	m_posWarp.y = y;
 
-	sys_log(0, "WarpSet %s %d %d current map %d target map %d", GetName(), x, y, GetMapIndex(), lMapIndex);
+	metin2::log::info( "WarpSet {} {:d} {:d} current map {:d} target map {:d}", GetName(), x, y, GetMapIndex(), lMapIndex);
 
 	TPacketGCWarp p;
 
@@ -5026,7 +5026,7 @@ bool CHARACTER::WarpSet(int32_t x, int32_t y, int32_t lPrivateMapIndex)
 void CHARACTER::WarpEnd()
 {
 	if (test_server)
-		sys_log(0, "WarpEnd %s", GetName());
+		metin2::log::info( "WarpEnd {}", GetName());
 
 	if (m_posWarp.x == 0 && m_posWarp.y == 0)
 		return;
@@ -5039,12 +5039,12 @@ void CHARACTER::WarpEnd()
 	if (!map_allow_find(index))
 	{
 		// Can't warp here, so revert to the coordinates before the warp.
-		sys_err("location %d %d not allowed to login this server", m_posWarp.x, m_posWarp.y);
+		metin2::log::error("location {:d} {:d} not allowed to login this server", m_posWarp.x, m_posWarp.y);
 		GetDesc()->SetPhase(PHASE_CLOSE);
 		return;
 	}
 
-	sys_log(0, "WarpEnd %s %d %u %u", GetName(), m_lWarpMapIndex, m_posWarp.x, m_posWarp.y);
+	metin2::log::info( "WarpEnd {} {:d} {:d} {:d}", GetName(), m_lWarpMapIndex, m_posWarp.x, m_posWarp.y);
 
 	Show(m_lWarpMapIndex, m_posWarp.x, m_posWarp.y, 0);
 	Stop();
@@ -5086,7 +5086,7 @@ bool CHARACTER::Return()
 	SendMovePacket(FUNC_WAIT, 0, 0, 0, 0);
 
 	if (test_server)
-		sys_log(0, "%s %p 포기하고 돌아가자! %d %d", GetName(), this, x, y);
+		metin2::log::info( "{} {} 포기하고 돌아가자! {:d} {:d}", GetName(), static_cast<const void *>(this), x, y);
 
 	if (GetParty())
 		GetParty()->SendMessage(this, PM_RETURN, x, y);
@@ -5098,7 +5098,7 @@ bool CHARACTER::Follow(CHARACTER * pkChr, float fMinDistance)
 {
 	if (IsPC())
 	{
-		sys_err("CHARACTER::Follow : PC cannot use this method (%s)", GetName());
+		metin2::log::error("CHARACTER::Follow : PC cannot use this method ({})", GetName());
 		return false;
 	}
 
@@ -5225,7 +5225,7 @@ bool CHARACTER::Follow(CHARACTER * pkChr, float fMinDistance)
 				break;
 		}
 
-		//sys_log(0, "근처 어딘가로 이동 %s retry %d", GetName(), retry);
+		//metin2::log::info( "근처 어딘가로 이동 {} retry {:d}", GetName(), retry);
 		if (!Goto(dx, dy))
 			return false;
 	}
@@ -5235,7 +5235,7 @@ bool CHARACTER::Follow(CHARACTER * pkChr, float fMinDistance)
 		float fDistToGo = fDist - fMinDistance;
 		GetDeltaByDegree(GetRotation(), fDistToGo, &fx, &fy);
 
-		//sys_log(0, "직선으로 이동 %s", GetName());
+		//metin2::log::info( "직선으로 이동 {}", GetName());
 		if (!Goto(GetX() + (int) fx, GetY() + (int) fy))
 			return false;
 	}
@@ -5287,7 +5287,7 @@ void CHARACTER::ReqSafeboxLoad(const char* pszPassword)
 	}
 	else if (m_bOpeningSafebox)
 	{
-		sys_log(0, "Overlapped safebox load request from %s", GetName());
+		metin2::log::info( "Overlapped safebox load request from {}", GetName());
 		return;
 	}
 
@@ -5338,7 +5338,7 @@ void CHARACTER::LoadSafebox(int iSize, uint32_t dwGold, int iItemCount, TPlayerI
 
 			if (!item)
 			{
-				sys_err("cannot create item vnum %d id %u (name: %s)", pItems->vnum, pItems->id, GetName());
+				metin2::log::error("cannot create item vnum {:d} id {:d} (name: {})", pItems->vnum, pItems->id, GetName());
 				continue;
 			}
 
@@ -5430,7 +5430,7 @@ void CHARACTER::LoadMall(int iItemCount, TPlayerItem * pItems)
 
 			if (!item)
 			{
-				sys_err("cannot create item vnum %d id %u (name: %s)", pItems->vnum, pItems->id, GetName());
+				metin2::log::error("cannot create item vnum {:d} id {:d} (name: {})", pItems->vnum, pItems->id, GetName());
 				continue;
 			}
 
@@ -5470,7 +5470,7 @@ bool CHARACTER::BuildUpdatePartyPacket(TPacketGCPartyUpdate & out)
 	out.percent_hp	= std::clamp(GetHP() * 100 / GetMaxHP(), 0, 100);
 	out.role		= GetParty()->GetRole(GetPlayerID());
 
-	sys_log(1, "PARTY %s role is %d", GetName(), out.role);
+	metin2::log::debug( "PARTY {} role is {:d}", GetName(), out.role);
 
 	CHARACTER * l = GetParty()->GetLeaderCharacter();
 
@@ -5508,7 +5508,7 @@ void CHARACTER::QuerySafeboxSize()
 
 void CHARACTER::SetSafeboxSize(int iSize)
 {
-	sys_log(1, "SetSafeboxSize: %s %d", GetName(), iSize);
+	metin2::log::debug( "SetSafeboxSize: {} {:d}", GetName(), iSize);
 	m_iSafeboxSize = iSize;
 	DBManager::instance().Query("UPDATE safebox%s SET size = %d WHERE account_id = %u", get_table_postfix(), iSize / SAFEBOX_PAGE_SIZE, GetDesc()->GetAccountTable().id);
 }
@@ -5880,7 +5880,7 @@ void CHARACTER::SetPolymorph(uint32_t dwRaceNum, bool bMaintainStat)
 	m_bPolyMaintainStat = bMaintainStat;
 	m_dwPolymorphRace = dwRaceNum;
 
-	sys_log(0, "POLYMORPH: %s race %u ", GetName(), dwRaceNum);
+	metin2::log::info( "POLYMORPH: {} race {:d} ", GetName(), dwRaceNum);
 
 	if (dwRaceNum != 0)
 		StopRiding();
@@ -6060,7 +6060,7 @@ namespace {
 				if (3 != sscanf(pkWarp->GetName(), " %s %d %d ", szTmp, &m_lTargetX, &m_lTargetY))
 				{
 					if (number(1, 100) < 5)
-						sys_err("Warp NPC name wrong : vnum(%d) name(%s)", pkWarp->GetRaceNum(), pkWarp->GetName());
+						metin2::log::error("Warp NPC name wrong : vnum({:d}) name({})", pkWarp->GetRaceNum(), pkWarp->GetName());
 
 					m_bInvalid = true;
 
@@ -6139,7 +6139,7 @@ EVENTFUNC(warp_npc_event)
 	char_event_info* info = dynamic_cast<char_event_info*>( event->info );
 	if ( info == nullptr )
 	{
-		sys_err( "warp_npc_event> <Factor> Null pointer" );
+		metin2::log::error( "warp_npc_event> <Factor> Null pointer" );
 		return 0;
 	}
 
@@ -6488,13 +6488,13 @@ bool CHARACTER::IsMCOK(enum MONARCH_INDEX e) const
 	if ((iPulse -  GetMC(e)) <  GetMCL(e))
 	{
 		if (test_server)
-			sys_log(0, " Pulse %d cooltime %d, limit %d", iPulse, GetMC(e), GetMCL(e));
+			metin2::log::info( " Pulse {:d} cooltime {:d}, limit {:d}", iPulse, GetMC(e), GetMCL(e));
 		
 		return false;
 	}
 	
 	if (test_server)
-		sys_log(0, " Pulse %d cooltime %d, limit %d", iPulse, GetMC(e), GetMCL(e));
+		metin2::log::info( " Pulse {:d} cooltime {:d}, limit {:d}", iPulse, GetMC(e), GetMCL(e));
 
 	return true;
 }
@@ -6509,7 +6509,7 @@ uint32_t CHARACTER::GetMCLTime(enum MONARCH_INDEX e) const
 	int iPulse = thecore_pulse();
 
 	if (test_server)
-		sys_log(0, " Pulse %d cooltime %d, limit %d", iPulse, GetMC(e), GetMCL(e));
+		metin2::log::info( " Pulse {:d} cooltime {:d}, limit {:d}", iPulse, GetMC(e), GetMCL(e));
 
 	return  (GetMCL(e)) / passes_per_sec   -  (iPulse - GetMC(e)) / passes_per_sec;
 }
@@ -6677,7 +6677,7 @@ EVENTFUNC(check_speedhack_event)
 	char_event_info* info = dynamic_cast<char_event_info*>( event->info );
 	if ( info == nullptr )
 	{
-		sys_err( "check_speedhack_event> <Factor> Null pointer" );
+		metin2::log::error( "check_speedhack_event> <Factor> Null pointer" );
 		return 0;
 	}
 
@@ -6749,7 +6749,7 @@ EVENTFUNC(destroy_when_idle_event)
 	char_event_info* info = dynamic_cast<char_event_info*>( event->info );
 	if ( info == nullptr )
 	{
-		sys_err( "destroy_when_idle_event> <Factor> Null pointer" );
+		metin2::log::error( "destroy_when_idle_event> <Factor> Null pointer" );
 		return 0;
 	}
 
@@ -6763,7 +6763,7 @@ EVENTFUNC(destroy_when_idle_event)
 		return PASSES_PER_SEC(300);
 	}
 
-	sys_log(1, "DESTROY_WHEN_IDLE: %s", ch->GetName());
+	metin2::log::debug( "DESTROY_WHEN_IDLE: {}", ch->GetName());
 
 	ch->m_pkDestroyWhenIdleEvent = nullptr;
 	CHARACTER_MANAGER::instance().DestroyCharacter(ch);
@@ -6826,7 +6826,7 @@ void CHARACTER::IncreaseComboHackCount(int k)
 		if (GetDesc())
 			if (GetDesc()->DelayedDisconnect(number(2, 7)))
 			{
-				sys_log(0, "COMBO_HACK_DISCONNECT: %s count: %d", GetName(), m_iComboHackCount);
+				metin2::log::info( "COMBO_HACK_DISCONNECT: {} count: {:d}", GetName(), m_iComboHackCount);
 				LogManager::instance().HackLog("Combo", this);
 			}
 	}

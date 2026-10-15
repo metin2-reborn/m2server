@@ -25,7 +25,7 @@
 #include <common/length.h>
 #include <common/tables.h>
 #include <common/utils.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <algorithm>
 #include <cassert>
@@ -113,9 +113,9 @@ namespace quest
 			int line = 0;
 
 			if (!inf.is_open())
-				sys_err( "QUEST Cannot open 'questnpc.txt'");
+				metin2::log::error( "QUEST Cannot open 'questnpc.txt'");
 			else
-				sys_log(0, "QUEST can open 'questnpc.txt' (%s)", g_stQuestDir.c_str() );
+				metin2::log::info( "QUEST can open 'questnpc.txt' ({})", g_stQuestDir.c_str() );
 
 			while (1)
 			{
@@ -136,7 +136,7 @@ namespace quest
 
 				if (ri < li) 
 				{
-					sys_err("QUEST questnpc.txt:%d:npc name error",line);
+					metin2::log::error("QUEST questnpc.txt:{:d}:npc name error",line);
 					continue;
 				}
 
@@ -148,7 +148,7 @@ namespace quest
 					continue;
 
 				if ( test_server )
-					sys_log(0, "QUEST reading script of %s(%d)", s.c_str(), vnum);
+					metin2::log::info( "QUEST reading script of {}({:d})", s.c_str(), vnum);
 				m_mapNPC[vnum].Set(vnum, s);
 				m_mapNPCNameID[s] = vnum;
 			}
@@ -191,19 +191,19 @@ namespace quest
 
 		if (!pPC || !pPC->IsRunning())
 		{
-			sys_err("no quest running for pc, cannot process input : %u", pc);
+			metin2::log::error("no quest running for pc, cannot process input : {:d}", pc);
 			return;
 		}
 
 		if (pPC->GetRunningQuestState()->suspend_state != SUSPEND_STATE_CONFIRM)
 		{
-			sys_err("not wait for a confirm : %u %d", pc, pPC->GetRunningQuestState()->suspend_state);
+			metin2::log::error("not wait for a confirm : {:d} {:d}", pc, pPC->GetRunningQuestState()->suspend_state);
 			return;
 		}
 
 		if (pc2 && !pPC->IsConfirmWait(pc2))
 		{
-			sys_err("not wait for a confirm : %u %d", pc, pPC->GetRunningQuestState()->suspend_state);
+			metin2::log::error("not wait for a confirm : {:d} {:d}", pc, pPC->GetRunningQuestState()->suspend_state);
 			return;
 		}
 
@@ -231,19 +231,19 @@ namespace quest
 		PC* pPC = GetPC(pc);
 		if (!pPC)
 		{
-			sys_err("no pc! : %u",pc);
+			metin2::log::error("no pc! : {:d}",pc);
 			return;
 		}
 
 		if (!pPC->IsRunning())
 		{
-			sys_err("no quest running for pc, cannot process input : %u", pc);
+			metin2::log::error("no quest running for pc, cannot process input : {:d}", pc);
 			return;
 		}
 
 		if (pPC->GetRunningQuestState()->suspend_state != SUSPEND_STATE_INPUT)
 		{
-			sys_err("not wait for a input : %u %d", pc, pPC->GetRunningQuestState()->suspend_state);
+			metin2::log::error("not wait for a input : {:d} {:d}", pc, pPC->GetRunningQuestState()->suspend_state);
 			return;
 		}
 
@@ -302,7 +302,7 @@ namespace quest
 		}
 		else
 		{
-			sys_err("wrong QUEST_SELECT request! : %d",pc);
+			metin2::log::error("wrong QUEST_SELECT request! : {:d}",pc);
 		}
 	}
 
@@ -323,7 +323,7 @@ namespace quest
 		}
 		else
 		{
-			sys_err("wrong QUEST_WAIT request! : %d",pc);
+			metin2::log::error("wrong QUEST_WAIT request! : {:d}",pc);
 		}
 	}
 
@@ -338,7 +338,7 @@ namespace quest
 			m_mapNPC[QUEST_NO_NPC].OnEnterState(*pPC, quest_index, state);
 		}
 		else
-			sys_err("QUEST no such pc id : %d", pc);
+			metin2::log::error("QUEST no such pc id : {:d}", pc);
 	}
 
 	void CQuestManager::LeaveState(uint32_t pc, uint32_t quest_index, int state)
@@ -352,7 +352,7 @@ namespace quest
 			m_mapNPC[QUEST_NO_NPC].OnLeaveState(*pPC, quest_index, state);
 		}
 		else
-			sys_err("QUEST no such pc id : %d", pc);
+			metin2::log::error("QUEST no such pc id : {:d}", pc);
 	}
 
 	void CQuestManager::Letter(uint32_t pc, uint32_t quest_index, int state)
@@ -366,7 +366,7 @@ namespace quest
 			m_mapNPC[QUEST_NO_NPC].OnLetter(*pPC, quest_index, state);
 		}
 		else
-			sys_err("QUEST no such pc id : %d", pc);
+			metin2::log::error("QUEST no such pc id : {:d}", pc);
 	}
 
 	void CQuestManager::LogoutPC(CHARACTER * ch)
@@ -407,7 +407,7 @@ namespace quest
 		}
 		else
 		{
-			sys_err("QUEST no such pc id : %d", pc);
+			metin2::log::error("QUEST no such pc id : {:d}", pc);
 		}
 	}
 
@@ -423,14 +423,14 @@ namespace quest
 			m_mapNPC[QUEST_NO_NPC].OnLogout(*pPC);
 		}
 		else
-			sys_err("QUEST no such pc id : %d", pc);
+			metin2::log::error("QUEST no such pc id : {:d}", pc);
 	}
 
 	void CQuestManager::Kill(unsigned int pc, unsigned int npc)
 	{
 		PC * pPC;
 
-		sys_log(0, "CQuestManager::Kill QUEST_KILL_EVENT (pc=%d, npc=%d)", pc, npc);
+		metin2::log::info( "CQuestManager::Kill QUEST_KILL_EVENT (pc={:d}, npc={:d})", pc, npc);
 
 		if ((pPC = GetPC(pc)))
 		{
@@ -472,13 +472,13 @@ namespace quest
 			}
 		}
 		else
-			sys_err("QUEST: no such pc id : %d", pc);
+			metin2::log::error("QUEST: no such pc id : {:d}", pc);
 	}
 
 	bool CQuestManager::ServerTimer(unsigned int npc, unsigned int arg)
 	{
 		SetServerTimerArg(arg);
-		sys_log(0, "XXX ServerTimer Call NPC %p", GetPCForce(0));
+		metin2::log::info( "XXX ServerTimer Call NPC {}", static_cast<const void *>(GetPCForce(0)));
 		m_pCurrentPC = GetPCForce(0);
 		m_pCurrentCharacter = nullptr;
 		m_pSelectedDungeon = nullptr;
@@ -500,7 +500,7 @@ namespace quest
 		}
 		else
 		{
-			sys_err("QUEST TIMER_EVENT no such pc id : %d", pc);
+			metin2::log::error("QUEST TIMER_EVENT no such pc id : {:d}", pc);
 			return false;
 		}
 	}
@@ -518,7 +518,7 @@ namespace quest
 		}
 		else
 		{
-			sys_err("QUEST LEVELUP_EVENT no such pc id : %d", pc);
+			metin2::log::error("QUEST LEVELUP_EVENT no such pc id : {:d}", pc);
 		}
 	}
 
@@ -536,7 +536,7 @@ namespace quest
 		}
 		else
 		{
-			sys_err("QUEST no such pc id : %d", pc);
+			metin2::log::error("QUEST no such pc id : {:d}", pc);
 		}
 	}
 
@@ -554,7 +554,7 @@ namespace quest
 		}
 		else
 		{
-			sys_err("QUEST no such pc id : %d", pc);
+			metin2::log::error("QUEST no such pc id : {:d}", pc);
 		}
 	}
 
@@ -595,7 +595,7 @@ namespace quest
 		}
 		else
 		{
-			sys_err("QUEST INFO_EVENT no such pc id : %d", pc);
+			metin2::log::error("QUEST INFO_EVENT no such pc id : {:d}", pc);
 		}
 	}
 
@@ -618,7 +618,7 @@ namespace quest
 		}
 		else
 		{
-			sys_err("QUEST CLICK_EVENT no such pc id : %d", pc);
+			metin2::log::error("QUEST CLICK_EVENT no such pc id : {:d}", pc);
 		}
 	}
 
@@ -643,7 +643,7 @@ namespace quest
 		}
 		else
 		{
-			sys_err("QUEST USE_ITEM_EVENT no such pc id : %d", pc);
+			metin2::log::error("QUEST USE_ITEM_EVENT no such pc id : {:d}", pc);
 			return false;
 		}
 	}
@@ -651,7 +651,7 @@ namespace quest
 	bool CQuestManager::UseItem(unsigned int pc, CItem * item, bool bReceiveAll)
 	{
 		if (test_server)
-			sys_log( 0, "questmanager::UseItem Start : itemVnum : %d PC : %d", item->GetOriginalVnum(), pc);
+			metin2::log::info( "questmanager::UseItem Start : itemVnum : {:d} PC : {:d}", item->GetOriginalVnum(), pc);
 		PC* pPC;
 		if ((pPC = GetPC(pc)))
 		{
@@ -671,7 +671,7 @@ namespace quest
 		}
 		else
 		{
-			sys_err("QUEST USE_ITEM_EVENT no such pc id : %d", pc);
+			metin2::log::error("QUEST USE_ITEM_EVENT no such pc id : {:d}", pc);
 			return false;
 		}
 	}
@@ -680,7 +680,7 @@ namespace quest
 	bool CQuestManager::SIGUse(unsigned int pc, uint32_t sig_vnum, CItem * item, bool bReceiveAll)
 	{
 		if (test_server)
-			sys_log( 0, "questmanager::SIGUse Start : itemVnum : %d PC : %d", item->GetOriginalVnum(), pc);
+			metin2::log::info( "questmanager::SIGUse Start : itemVnum : {:d} PC : {:d}", item->GetOriginalVnum(), pc);
 		PC* pPC;
 		if ((pPC = GetPC(pc)))
 		{
@@ -700,7 +700,7 @@ namespace quest
 		}
 		else
 		{
-			sys_err("QUEST USE_ITEM_EVENT no such pc id : %d", pc);
+			metin2::log::error("QUEST USE_ITEM_EVENT no such pc id : {:d}", pc);
 			return false;
 		}
 	}
@@ -750,7 +750,7 @@ namespace quest
 			TargetInfo * pInfo = CTargetManager::instance().GetTargetInfo(pc, TARGET_TYPE_VID, pkChrTarget->GetVID());
 			if (test_server)
 			{
-				sys_log(0, "CQuestManager::Click(pid=%d, npc_name=%s) - target_info(%p)", pc, pkChrTarget->GetName(), static_cast<void*>(pInfo));
+				metin2::log::info( "CQuestManager::Click(pid={:d}, npc_name={}) - target_info({})", pc, pkChrTarget->GetName(), static_cast<const void *>(static_cast<void*>(pInfo)));
 			}
 
 			if (pInfo)
@@ -768,7 +768,7 @@ namespace quest
 
 				if (it == m_mapNPC.end())
 				{
-					sys_err("CQuestManager::Click(pid=%d, target_npc_name=%s) - NOT EXIST NPC RACE VNUM[%d]",
+					metin2::log::error("CQuestManager::Click(pid={:d}, target_npc_name={}) - NOT EXIST NPC RACE VNUM[{:d}]",
 							pc, 
 							pkChrTarget->GetName(), 
 							dwCurrentNPCRace);
@@ -780,12 +780,12 @@ namespace quest
 				{
 					// if have chat, give chat
 					if (test_server)
-						sys_log(0, "CQuestManager::Click->OnChat");
+						metin2::log::info( "CQuestManager::Click->OnChat");
 
 					if (!it->second.OnChat(*pPC))
 					{
 						if (test_server)
-							sys_log(0, "CQuestManager::Click->OnChat Failed");
+							metin2::log::info( "CQuestManager::Click->OnChat Failed");
 
 						return it->second.OnClick(*pPC);
 					}
@@ -802,7 +802,7 @@ namespace quest
 		}
 		else
 		{
-			sys_err("QUEST CLICK_EVENT no such pc id : %d", pc);
+			metin2::log::error("QUEST CLICK_EVENT no such pc id : {:d}", pc);
 			return false;
 		}
 	}
@@ -819,7 +819,7 @@ namespace quest
 			m_mapNPC[QUEST_NO_NPC].OnUnmount(*pPC);
 		}
 		else
-			sys_err("QUEST no such pc id : %d", pc);
+			metin2::log::error("QUEST no such pc id : {:d}", pc);
 	}
 	//German gift feature test
 	void CQuestManager::ItemInformer(unsigned int pc,unsigned int vnum)
@@ -845,7 +845,7 @@ namespace quest
 
 			if (inf.is_open())
 			{
-				sys_log(0, "QUEST loading begin condition for %s", quest_name.c_str());
+				metin2::log::info( "QUEST loading begin condition for {}", quest_name.c_str());
 
 				std::istreambuf_iterator<char> ib(inf), ie;
 				copy(ib, ie, back_inserter(m_hmQuestStartScript[idx]));
@@ -953,7 +953,7 @@ namespace quest
 		GetCurrentCharacterPtr()->GetDesc()->Packet(buf.read_peek(), buf.size());
 
 		if (test_server)
-			sys_log(0, "m_strScript %s size %d", m_strScript.c_str(), buf.size());
+			metin2::log::info( "m_strScript {} size {:d}", m_strScript.c_str(), buf.size());
 
 		ClearScript();
 	}
@@ -964,7 +964,7 @@ namespace quest
 		lua_getglobal(L, quest_name.c_str());
 		if (lua_isnil(L,-1))
 		{
-			sys_err("QUEST wrong quest state file %s.%d", quest_name.c_str(), state_index);
+			metin2::log::error("QUEST wrong quest state file {}.{:d}", quest_name.c_str(), state_index);
 			lua_settop(L,x);
 			return "";
 		}
@@ -982,7 +982,7 @@ namespace quest
 		lua_getglobal(L, quest_name.c_str());
 		if (lua_isnil(L,-1))
 		{
-			sys_err("QUEST wrong quest state file %s.%s",quest_name.c_str(),state_name.c_str()  );
+			metin2::log::error("QUEST wrong quest state file {}.{}",quest_name.c_str(),state_name.c_str()  );
 			lua_settop(L,x);
 			return 0;
 		}
@@ -992,7 +992,7 @@ namespace quest
 		int v = (int)rint(lua_tonumber(L,-1));
 		lua_settop(L, x);
 		if ( test_server )
-			sys_log( 0,"[QUESTMANAGER] GetQuestStateIndex x(%d) v(%d) %s %s", v,x, quest_name.c_str(), state_name.c_str() );
+			metin2::log::info("[QUESTMANAGER] GetQuestStateIndex x({:d}) v({:d}) {} {}", v,x, quest_name.c_str(), state_name.c_str() );
 		return v;
 	}
 
@@ -1083,7 +1083,7 @@ namespace quest
 		LoadStartQuest(stQuestName, idx);
 		m_mapQuestNameByIndex.insert(make_pair(idx, stQuestName));
 
-		sys_log(0, "QUEST: Register %4u %s", idx, stQuestName.c_str());
+		metin2::log::info( "QUEST: Register {:4d} {}", idx, stQuestName.c_str());
 	}
 
 	unsigned int CQuestManager::GetQuestIndexByName(const std::string& name)
@@ -1102,7 +1102,7 @@ namespace quest
 
 		if ((it = m_mapQuestNameByIndex.find(idx)) == m_mapQuestNameByIndex.end())
 		{
-			sys_err("cannot find quest name by index %u", idx);
+			metin2::log::error("cannot find quest name by index {:d}", idx);
 			assert(!"cannot find quest name by index");
 
 			static std::string st = "";
@@ -1146,7 +1146,7 @@ namespace quest
 
 		int prev_value = m_mapEventFlag[name];
 
-		sys_log(0, "QUEST eventflag %s %d prev_value %d", name.c_str(), value, m_mapEventFlag[name]);
+		metin2::log::info( "QUEST eventflag {} {:d} prev_value {:d}", name.c_str(), value, m_mapEventFlag[name]);
 		m_mapEventFlag[name] = value;
 
 		if (name == "mob_item")
@@ -1274,7 +1274,7 @@ namespace quest
 						PIXEL_POSITION posBase;
 						if (!SECTREE_MANAGER::instance().GetMapBasePositionByMapIndex(p->lMapIndex, posBase))
 						{
-							sys_err("cannot get map base position %d", p->lMapIndex);
+							metin2::log::error("cannot get map base position {:d}", p->lMapIndex);
 							++p;
 							continue;
 						}
@@ -1327,7 +1327,7 @@ namespace quest
 
 						if (!SECTREE_MANAGER::instance().GetMapBasePositionByMapIndex(pPosition->lMapIndex, pos))
 						{
-							sys_err("cannot get map base position %d", pPosition->lMapIndex);
+							metin2::log::error("cannot get map base position {:d}", pPosition->lMapIndex);
 							++pPosition;
 							continue;
 						}
@@ -1586,13 +1586,13 @@ namespace quest
 		{
 			const std::string& stQuestObjectDir = *it;
 			snprintf(buf, sizeof(buf), "%s/%u", stQuestObjectDir.c_str(), dwVnum);
-			sys_log(0, "%s", buf);
+			metin2::log::info( "{}", buf);
 
 			if ((dir = opendir(buf)))
 			{
 				closedir(dir);
 				snprintf(buf, sizeof(buf), "%u", dwVnum);
-				sys_log(0, "%s", buf);
+				metin2::log::info( "{}", buf);
 
 				m_mapNPC[dwVnum].Set(dwVnum, buf);
 			}
@@ -1613,38 +1613,32 @@ namespace quest
 			}
 		}
 
-		sys_err("LUA_ERROR: quest %s.%s %s", GetCurrentQuestName().c_str(), state_name, event_index_name.c_str() );
+		metin2::log::error("LUA_ERROR: quest {}.{} {}", GetCurrentQuestName().c_str(), state_name, event_index_name.c_str() );
 		if (GetCurrentCharacterPtr() && test_server)
 			GetCurrentCharacterPtr()->ChatPacket(CHAT_TYPE_PARTY, "LUA_ERROR: quest %s.%s %s", GetCurrentQuestName().c_str(), state_name, event_index_name.c_str() );
 	}
 
-	void CQuestManager::QuestError(const char* func, int line, const char* fmt, ...)
+	void report_error(const std::source_location & where, std::string_view message)
 	{
-		char szMsg[4096];
-		va_list args;
+		metin2::log::write(metin2::log::level::error, where, message);
 
-		va_start(args, fmt);
-		vsnprintf(szMsg, sizeof(szMsg), fmt, args);
-		va_end(args);
+		if (!test_server)
+			return;
 
-		_sys_err(func, line, "%s", szMsg);
-		if (test_server)
+		if (CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr())
 		{
-			CHARACTER * ch = GetCurrentCharacterPtr();
-			if (ch)
-			{
-				ch->ChatPacket(CHAT_TYPE_PARTY, "error occurred on [%s:%d]", func,line);
-				ch->ChatPacket(CHAT_TYPE_PARTY, "%s", szMsg);
-			}
+			const std::string text(message);
+			ch->ChatPacket(CHAT_TYPE_PARTY, "error occurred on [%s:%u]", where.function_name(), static_cast<unsigned>(where.line()));
+			ch->ChatPacket(CHAT_TYPE_PARTY, "%s", text.c_str());
 		}
 	}
 
 	void CQuestManager::AddServerTimer(const std::string& name, uint32_t arg, LPEVENT event)
 	{
-		sys_log(0, "XXX AddServerTimer %s %d %p", name.c_str(), arg, event.get());
+		metin2::log::info( "XXX AddServerTimer {} {:d} {}", name.c_str(), arg, static_cast<const void *>(event.get()));
 		if (m_mapServerTimer.find(make_pair(name, arg)) != m_mapServerTimer.end())
 		{
-			sys_err("already registered server timer name:%s arg:%u", name.c_str(), arg);
+			metin2::log::error("already registered server timer name:{} arg:{:d}", name.c_str(), arg);
 			return;
 		}
 		m_mapServerTimer.insert(make_pair(make_pair(name, arg), event));
@@ -1707,7 +1701,7 @@ namespace quest
 	bool CQuestManager::PickupItem(unsigned int pc, CItem * item)
 	{
 		if (test_server)
-			sys_log( 0, "questmanager::PickupItem Start : itemVnum : %d PC : %d", item->GetOriginalVnum(), pc);
+			metin2::log::info( "questmanager::PickupItem Start : itemVnum : {:d} PC : {:d}", item->GetOriginalVnum(), pc);
 		PC* pPC;
 		if ((pPC = GetPC(pc)))
 		{
@@ -1727,7 +1721,7 @@ namespace quest
 		}
 		else
 		{
-			sys_err("QUEST PICK_ITEM_EVENT no such pc id : %d", pc);
+			metin2::log::error("QUEST PICK_ITEM_EVENT no such pc id : {:d}", pc);
 			return false;
 		}
 	}
@@ -1736,7 +1730,7 @@ namespace quest
 		CHARACTER * ch = GetCurrentCharacterPtr();
 		if (nullptr == ch)
 		{
-			sys_err("NULL?");
+			metin2::log::error("NULL?");
 			return;
 		}
 		/*
@@ -1761,7 +1755,7 @@ namespace quest
 	{
 		if (m_vecPCStack.size() == 0)
 		{
-			sys_err("m_vecPCStack is alread empty. CurrentQuest{Name(%s), State(%s)}", GetCurrentQuestName().c_str(), GetCurrentState()->_title.c_str());
+			metin2::log::error("m_vecPCStack is alread empty. CurrentQuest{{Name({}), State({})}}", GetCurrentQuestName().c_str(), GetCurrentState()->_title.c_str());
 			return;
 		}
 		uint32_t pc = m_vecPCStack.back();

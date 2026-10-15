@@ -3,7 +3,7 @@
 #include "entity.h"
 #include "typedef.h"
 
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <cstdint>
 #include <vector>
@@ -153,7 +153,7 @@ class SECTREE
 				CEntity * entity = *it;
 				// <Factor> Sanity check
 				if (entity->GetSectree() != this) {
-					sys_err("<Factor> SECTREE-ENTITY relationship mismatch");
+					metin2::log::error("<Factor> SECTREE-ENTITY relationship mismatch");
 					m_set_entity.erase(it);
 					continue;
 				}

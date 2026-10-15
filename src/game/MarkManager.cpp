@@ -3,7 +3,7 @@
 #include "crc32.h"
 #include "MarkImage.h"
 
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <algorithm>
 #include <cstdint>
@@ -79,7 +79,7 @@ bool CGuildMarkManager::SaveMarkIndex()
 
 	if (!fp)
 	{
-		sys_err("MarkManager::SaveMarkIndex: cannot open index file.");
+		metin2::log::error("MarkManager::SaveMarkIndex: cannot open index file.");
 		return false;
 	}
 
@@ -87,7 +87,7 @@ bool CGuildMarkManager::SaveMarkIndex()
 		fprintf(fp, "%u %u\n", it->first, it->second);
 
 	fclose(fp);
-	sys_log(0, "MarkManager::SaveMarkIndex: index count %zu", m_mapGID_MarkID.size());
+	metin2::log::info( "MarkManager::SaveMarkIndex: index count {:d}", m_mapGID_MarkID.size());
 	return true;
 }
 
@@ -115,7 +115,7 @@ void CGuildMarkManager::SaveMarkImage(uint32_t imgIdx)
 
 	if (GetMarkImageFilename(imgIdx, path))
 		if (!__GetImage(imgIdx)->Save(path.c_str()))
-			sys_err("%s Save failed\n", path.c_str());
+			metin2::log::error("{} Save failed", path.c_str());
 }
 
 CGuildMarkImage * CGuildMarkManager::__GetImage(uint32_t imgIdx)
@@ -209,14 +209,14 @@ uint32_t CGuildMarkManager::SaveMark(uint32_t guildID, uint8_t * pbMarkImage)
 	{
 		if ((idMark = __AllocMarkID(guildID)) == INVALID_MARK_ID)
 		{
-			sys_err("CGuildMarkManager: cannot alloc mark id %u", guildID);
+			metin2::log::error("CGuildMarkManager: cannot alloc mark id {:d}", guildID);
 			return false;
 		}
 		else
-			sys_log(0, "SaveMark: mark id alloc %u", idMark);
+			metin2::log::info( "SaveMark: mark id alloc {:d}", idMark);
 	}
 	else
-		sys_log(0, "SaveMark: mark id found %u", idMark);
+		metin2::log::info( "SaveMark: mark id found {:d}", idMark);
 
 	uint32_t imgIdx = (idMark / CGuildMarkImage::MARK_TOTAL_COUNT);
 	CGuildMarkImage * pkImage = __GetImage(imgIdx);
@@ -259,7 +259,7 @@ void CGuildMarkManager::GetDiffBlocks(uint32_t imgIdx, const uint32_t * crcList,
 	// The client cannot request an image the server doesn't have.
 	if (m_mapIdx_Image.end() == m_mapIdx_Image.find(imgIdx))
 	{
-		sys_err("invalid idx %u", imgIdx);
+		metin2::log::error("invalid idx {:d}", imgIdx);
 		return;
 	}
 
@@ -317,7 +317,7 @@ void CGuildMarkManager::SaveSymbol(const char* filename)
 	FILE* fp = fopen(filename, "wb");
 	if (!fp)
 	{
-		sys_err("Cannot open Symbol file (name: %s)", filename);
+		metin2::log::error("Cannot open Symbol file (name: {})", filename);
 		return;
 	}
 
@@ -338,7 +338,7 @@ void CGuildMarkManager::SaveSymbol(const char* filename)
 
 void CGuildMarkManager::UploadSymbol(uint32_t guildID, int iSize, const uint8_t* pbyData)
 {
-	sys_log(0, "GuildSymbolUpload guildID %u Size %d", guildID, iSize);
+	metin2::log::info( "GuildSymbolUpload guildID {:d} Size {:d}", guildID, iSize);
 	
 	if (m_mapSymbol.find(guildID) == m_mapSymbol.end())
 		m_mapSymbol.insert(std::make_pair(guildID, TGuildSymbol()));

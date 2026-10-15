@@ -48,7 +48,7 @@
 #include <common/length.h>
 #include <common/tables.h>
 #include <common/VnumHelper.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/main.h>
 #include <libthecore/utils.h>
 
@@ -237,14 +237,14 @@ CItem * CHARACTER::GetItem(TItemPos Cell) const
 	case EQUIPMENT:
 		if (wCell >= INVENTORY_AND_EQUIP_SLOT_MAX)
 		{
-			sys_err("CHARACTER::GetInventoryItem: invalid item cell %d", wCell);
+			metin2::log::error("CHARACTER::GetInventoryItem: invalid item cell {:d}", wCell);
 			return nullptr;
 		}
 		return m_pointsInstant.pItems[wCell];
 	case DRAGON_SOUL_INVENTORY:
 		if (wCell >= DRAGON_SOUL_INVENTORY_MAX_NUM)
 		{
-			sys_err("CHARACTER::GetInventoryItem: invalid DS item cell %d", wCell);
+			metin2::log::error("CHARACTER::GetInventoryItem: invalid DS item cell {:d}", wCell);
 			return nullptr;
 		}
 		return m_pointsInstant.pDSItems[wCell];
@@ -261,7 +261,7 @@ void CHARACTER::SetItem(TItemPos Cell, CItem * pItem)
 	uint8_t window_type = Cell.window_type;
 	if (reinterpret_cast<uintptr_t>((CItem*)pItem) == 0xff || reinterpret_cast<uintptr_t>((CItem*)pItem) == 0xffffffff || reinterpret_cast<uintptr_t>((CItem*)pItem) == UINTPTR_MAX)
 	{
-		sys_err("!!! FATAL ERROR !!! item == 0xff (char: %s cell: %u)", GetName(), wCell);
+		metin2::log::error("!!! FATAL ERROR !!! item == 0xff (char: {} cell: {:d})", GetName(), wCell);
 		core_dump();
 		return;
 	}
@@ -279,7 +279,7 @@ void CHARACTER::SetItem(TItemPos Cell, CItem * pItem)
 		{
 			if (wCell >= INVENTORY_AND_EQUIP_SLOT_MAX)
 			{
-				sys_err("CHARACTER::SetItem: invalid item cell %d", wCell);
+				metin2::log::error("CHARACTER::SetItem: invalid item cell {:d}", wCell);
 				return;
 			}
 
@@ -334,7 +334,7 @@ void CHARACTER::SetItem(TItemPos Cell, CItem * pItem)
 		{
 			if (wCell >= DRAGON_SOUL_INVENTORY_MAX_NUM)
 			{
-				sys_err("CHARACTER::SetItem: invalid DS item cell %d", wCell);
+				metin2::log::error("CHARACTER::SetItem: invalid DS item cell {:d}", wCell);
 				return;
 			}
 
@@ -365,7 +365,7 @@ void CHARACTER::SetItem(TItemPos Cell, CItem * pItem)
 			{
 				if (wCell >= DRAGON_SOUL_INVENTORY_MAX_NUM)
 				{
-					sys_err("CHARACTER::SetItem: invalid DS item cell %d", wCell);
+					metin2::log::error("CHARACTER::SetItem: invalid DS item cell {:d}", wCell);
 					return;
 				}
 
@@ -391,7 +391,7 @@ void CHARACTER::SetItem(TItemPos Cell, CItem * pItem)
 		}
 		break;
 	default:
-		sys_err ("Invalid Inventory type %d", window_type);
+		metin2::log::error("Invalid Inventory type {:d}", window_type);
 		return;
 	}
 
@@ -453,7 +453,7 @@ CItem * CHARACTER::GetWear(uint8_t bCell) const
 	// > WEAR_MAX_NUM : dragon soul slots.
 	if (bCell >= WEAR_MAX_NUM + DRAGON_SOUL_DECK_MAX_NUM * static_cast<int>(DS_SLOT_MAX))
 	{
-		sys_err("CHARACTER::GetWear: invalid wear cell %d", bCell);
+		metin2::log::error("CHARACTER::GetWear: invalid wear cell {:d}", bCell);
 		return nullptr;
 	}
 
@@ -465,7 +465,7 @@ void CHARACTER::SetWear(uint8_t bCell, CItem * item)
 	// > WEAR_MAX_NUM : dragon soul slots.
 	if (bCell >= WEAR_MAX_NUM + DRAGON_SOUL_DECK_MAX_NUM * static_cast<int>(DS_SLOT_MAX))
 	{
-		sys_err("CHARACTER::SetItem: invalid item cell %d", bCell);
+		metin2::log::error("CHARACTER::SetItem: invalid item cell {:d}", bCell);
 		return;
 	}
 
@@ -775,7 +775,7 @@ bool CHARACTER::DoRefine(CItem * item, bool bMoneyOnly)
 	{
 		if (get_global_time() < quest::CQuestManager::instance().GetEventFlag("update_refine_time") + (60 * 5))
 		{
-			sys_log(0, "can't refine %d %s", GetPlayerID(), GetName());
+			metin2::log::info( "can't refine {:d} {}", GetPlayerID(), GetName());
 			return false;
 		}
 	}
@@ -818,7 +818,7 @@ bool CHARACTER::DoRefine(CItem * item, bool bMoneyOnly)
 
 	if (!pProto)
 	{
-		sys_err("DoRefine NOT GET ITEM PROTO %d", item->GetRefinedVnum());
+		metin2::log::error("DoRefine NOT GET ITEM PROTO {:d}", item->GetRefinedVnum());
 		ChatPacket(CHAT_TYPE_INFO, LC_TEXT("이 아이템은 개량할 수 없습니다."));
 		return false;
 	}
@@ -879,17 +879,17 @@ bool CHARACTER::DoRefine(CItem * item, bool bMoneyOnly)
 			pkNewItem->AddToCharacter(this, TItemPos(INVENTORY, bCell)); 
 			ITEM_MANAGER::instance().FlushDelayedSave(pkNewItem);
 
-			sys_log(0, "Refine Success %d", cost);
+			metin2::log::info( "Refine Success {:d}", cost);
 			pkNewItem->AttrLog();
-			sys_log(0, "PayPee %d", cost);
+			metin2::log::info( "PayPee {:d}", cost);
 			PayRefineFee(cost);
-			sys_log(0, "PayPee End %d", cost);
+			metin2::log::info( "PayPee End {:d}", cost);
 		}
 		else
 		{
 			// DETAIL_REFINE_LOG
 			// Item creation failed -> treat as refine failure
-			sys_err("cannot create item %u", result_vnum);
+			metin2::log::error("cannot create item {:d}", result_vnum);
 			NotifyRefineFail(this, item, IsRefineThroughGuild() ? "GUILD" : "POWER");
 			// END_OF_DETAIL_REFINE_LOG
 		}
@@ -934,7 +934,7 @@ bool CHARACTER::DoRefineWithScroll(CItem * item)
 	{
 		if (get_global_time() < quest::CQuestManager::instance().GetEventFlag("update_refine_time") + (60 * 5))
 		{
-			sys_log(0, "can't refine %d %s", GetPlayerID(), GetName());
+			metin2::log::info( "can't refine {:d} {}", GetPlayerID(), GetName());
 			return false;
 		}
 	}
@@ -1002,7 +1002,7 @@ bool CHARACTER::DoRefineWithScroll(CItem * item)
 
 	if (!pProto)
 	{
-		sys_err("DoRefineWithScroll NOT GET ITEM PROTO %d", item->GetRefinedVnum());
+		metin2::log::error("DoRefineWithScroll NOT GET ITEM PROTO {:d}", item->GetRefinedVnum());
 		ChatPacket(CHAT_TYPE_INFO, LC_TEXT("이 아이템은 개량할 수 없습니다."));
 		return false;
 	}
@@ -1054,7 +1054,7 @@ bool CHARACTER::DoRefineWithScroll(CItem * item)
 		}
 		else
 		{
-			sys_err("REFINE : Unknown refine scroll item. Value0: %d", pkItemScroll->GetValue(0));
+			metin2::log::error("REFINE : Unknown refine scroll item. Value0: {:d}", pkItemScroll->GetValue(0));
 		}
 
 		if (test_server) 
@@ -1125,7 +1125,7 @@ bool CHARACTER::DoRefineWithScroll(CItem * item)
 		else
 		{
 			// Item creation failed -> treat as refine failure
-			sys_err("cannot create item %u", result_vnum);
+			metin2::log::error("cannot create item {:d}", result_vnum);
 			NotifyRefineFail(this, item, szRefineType);
 		}
 	}
@@ -1155,7 +1155,7 @@ bool CHARACTER::DoRefineWithScroll(CItem * item)
 		else
 		{
 			// Item creation failed -> treat as refine failure
-			sys_err("cannot create item %u", result_fail_vnum);
+			metin2::log::error("cannot create item {:d}", result_fail_vnum);
 			NotifyRefineFail(this, item, szRefineType);
 		}
 	}
@@ -1197,7 +1197,7 @@ bool CHARACTER::RefineInformation(uint8_t bCell, uint8_t bType, int iAdditionalC
 
 	if (p.result_vnum == 0)
 	{
-		sys_err("RefineInformation p.result_vnum == 0");
+		metin2::log::error("RefineInformation p.result_vnum == 0");
 		ChatPacket(CHAT_TYPE_INFO, LC_TEXT("이 아이템은 개량할 수 없습니다."));
 		return false;
 	}
@@ -1227,7 +1227,7 @@ bool CHARACTER::RefineInformation(uint8_t bCell, uint8_t bType, int iAdditionalC
 
 	if (!prt)
 	{
-		sys_err("RefineInformation NOT GET REFINE SET %d", item->GetRefineSet());
+		metin2::log::error("RefineInformation NOT GET REFINE SET {:d}", item->GetRefineSet());
 		ChatPacket(CHAT_TYPE_INFO, LC_TEXT("이 아이템은 개량할 수 없습니다."));
 		return false;
 	}
@@ -1341,7 +1341,7 @@ EVENTFUNC(kill_campfire_event)
 
 	if ( info == nullptr )
 	{
-		sys_err( "kill_campfire_event> <Factor> Null pointer" );
+		metin2::log::error( "kill_campfire_event> <Factor> Null pointer" );
 		return 0;
 	}
 
@@ -1458,7 +1458,7 @@ void CHARACTER::ProcessRecallItem(CItem * item)
 	}
 	else
 	{
-		sys_log(1, "Recall: %s %d %d -> %d %d", GetName(), GetX(), GetY(), item->GetSocket(0), item->GetSocket(1));
+		metin2::log::debug( "Recall: {} {:d} {:d} -> {:d} {:d}", GetName(), GetX(), GetY(), item->GetSocket(0), item->GetSocket(1));
 		WarpSet(item->GetSocket(0), item->GetSocket(1));
 		item->SetCount(item->GetCount() - 1);
 	}
@@ -1486,7 +1486,7 @@ void CHARACTER::SendMyShopPriceListCmd(uint32_t dwItemVnum, uint32_t dwItemPrice
 	char szLine[256];
 	snprintf(szLine, sizeof(szLine), "MyShopPriceList %u %u", dwItemVnum, dwItemPrice);
 	ChatPacket(CHAT_TYPE_COMMAND, szLine);
-	sys_log(0, "%s", szLine);
+	metin2::log::info( "{}", szLine);
 }
 
 //
@@ -1602,7 +1602,7 @@ bool CHARACTER::UseItemEx(CItem * item, TItemPos DestCell)
 
 	if (test_server)
 	{
-		sys_log(0, "USE_ITEM %s, Inven %d, Cell %d, ItemType %d, SubType %d", item->GetName(), bDestInven, wDestCell, item->GetType(), item->GetSubType());
+		metin2::log::info( "USE_ITEM {}, Inven {:d}, Cell {:d}, ItemType {:d}, SubType {:d}", item->GetName(), bDestInven, wDestCell, item->GetType(), item->GetSubType());
 	}
 
 	if ( CArenaManager::instance().IsLimitedItem( GetMapIndex(), item->GetVnum() ) == true )
@@ -1758,7 +1758,7 @@ bool CHARACTER::UseItemEx(CItem * item, TItemPos DestCell)
 						{
 							if (item->GetSubType() == USE_SPECIAL)
 							{
-								sys_log(0, "ITEM_UNIQUE: USE_SPECIAL %u", item->GetVnum());
+								metin2::log::info( "ITEM_UNIQUE: USE_SPECIAL {:d}", item->GetVnum());
 
 								switch (item->GetVnum())
 								{
@@ -2046,7 +2046,7 @@ bool CHARACTER::UseItemEx(CItem * item, TItemPos DestCell)
 				if (item->GetVnum() > 50800 && item->GetVnum() <= 50820)
 				{
 					if (test_server)
-						sys_log (0, "ADD addtional effect : vnum(%d) subtype(%d)", item->GetOriginalVnum(), item->GetSubType());
+						metin2::log::info( "ADD addtional effect : vnum({:d}) subtype({:d})", item->GetOriginalVnum(), item->GetSubType());
 
 					int affect_type = AFFECT_EXP_BONUS_EURO_FREE;
 					int apply_type = aApplyInfo[item->GetValue(0)].bPointType;
@@ -2231,7 +2231,7 @@ bool CHARACTER::UseItemEx(CItem * item, TItemPos DestCell)
 
 				if (test_server)
 				{
-					 sys_log (0, "USE_ITEM %s Type %d SubType %d vnum %d", item->GetName(), item->GetType(), item->GetSubType(), item->GetOriginalVnum());
+					 metin2::log::info( "USE_ITEM {} Type {:d} SubType {:d} vnum {:d}", item->GetName(), item->GetType(), item->GetSubType(), item->GetOriginalVnum());
 				}
 
 				switch (item->GetSubType())
@@ -3211,7 +3211,7 @@ bool CHARACTER::UseItemEx(CItem * item, TItemPos DestCell)
 
 									int delta = std::min(-GetAlignment(), item->GetValue(0));
 
-									sys_log(0, "%s ALIGNMENT ITEM %d", GetName(), delta);
+									metin2::log::info( "{} ALIGNMENT ITEM {:d}", GetName(), delta);
 
 									UpdateAlignment(delta);
 									item->SetCount(item->GetCount() - 1);
@@ -4187,7 +4187,7 @@ bool CHARACTER::UseItemEx(CItem * item, TItemPos DestCell)
 									}
 									else
 									{
-										sys_err("CHARACTER::UseItem : cannot find spawn position (name %s, %d x %d)", GetName(), GetX(), GetY());
+										metin2::log::error("CHARACTER::UseItem : cannot find spawn position (name {}, {:d} x {:d})", GetName(), GetX(), GetY());
 									}
 								}
 								else
@@ -4558,7 +4558,7 @@ bool CHARACTER::UseItemEx(CItem * item, TItemPos DestCell)
 									else
 									{
 										// wtf ?!
-										sys_err("ADD_ATTRIBUTE2 : Item has wrong AttributeCount(%d)", item2->GetAttributeCount());
+										metin2::log::error("ADD_ATTRIBUTE2 : Item has wrong AttributeCount({:d})", item2->GetAttributeCount());
 									}
 									break;
 
@@ -4881,13 +4881,13 @@ bool CHARACTER::UseItemEx(CItem * item, TItemPos DestCell)
 
 		case ITEM_BLEND:
 			// New herbs
-			sys_log(0,"ITEM_BLEND!!");
+			metin2::log::info("ITEM_BLEND!!");
 			if (Blend_Item_find(item->GetVnum()))
 			{
 				int		affect_type		= AFFECT_BLEND;
 				if (item->GetSocket(0) >= static_cast<int32_t>(std::size(aApplyInfo)))
 				{
-					sys_err ("INVALID BLEND ITEM(id : %d, vnum : %d). APPLY TYPE IS %d.", item->GetID(), item->GetVnum(), item->GetSocket(0));
+					metin2::log::error("INVALID BLEND ITEM(id : {:d}, vnum : {:d}). APPLY TYPE IS {:d}.", item->GetID(), item->GetVnum(), item->GetSocket(0));
 					return false;
 				}
 				int		apply_type		= aApplyInfo[item->GetSocket(0)].bPointType;
@@ -4940,11 +4940,11 @@ bool CHARACTER::UseItemEx(CItem * item, TItemPos DestCell)
 			break;
 
 		case ITEM_NONE:
-			sys_err("Item type NONE %s", item->GetName());
+			metin2::log::error("Item type NONE {}", item->GetName());
 			break;
 
 		default:
-			sys_log(0, "UseItemEx: Unknown type %s %d", item->GetName(), item->GetType());
+			metin2::log::info( "UseItemEx: Unknown type {} {:d}", item->GetName(), item->GetType());
 			return false;
 	}
 
@@ -4965,7 +4965,7 @@ bool CHARACTER::UseItem(TItemPos Cell, TItemPos DestCell)
 	if (!IsValidItemPosition(Cell) || !(item = GetItem(Cell)))
 			return false;
 
-	sys_log(0, "%s: USE_ITEM %s (inven %d, cell: %d)", GetName(), item->GetName(), window_type, wCell);
+	metin2::log::info( "{}: USE_ITEM {} (inven {:d}, cell: {:d})", GetName(), item->GetName(), window_type, wCell);
 
 	if (item->IsExchanging())
 		return false;
@@ -5188,7 +5188,7 @@ bool CHARACTER::DropItem(TItemPos Cell, uint8_t bCount)
 		if (bCount == 0)
 		{
 			if (test_server)
-				sys_log(0, "[DROP_ITEM] drop item count == 0");
+				metin2::log::info( "[DROP_ITEM] drop item count == 0");
 			return false;
 		}
 
@@ -5218,7 +5218,7 @@ bool CHARACTER::DropItem(TItemPos Cell, uint8_t bCount)
 	{
 		// Set it to 0
 		CountDrops = 0;
-		sys_err("%s[%d] has been disconnected because of drophack using", GetName(), GetPlayerID());
+		metin2::log::error("{}[{:d}] has been disconnected because of drophack using", GetName(), GetPlayerID());
 			// Disconnect the player
 		GetDesc()->SetPhase(PHASE_CLOSE);
 		return false;
@@ -5389,7 +5389,7 @@ bool CHARACTER::MoveItem(TItemPos Cell, TItemPos DestCell, uint8_t count)
 			if (count == 0)
 				count = item->GetCount();
 
-			sys_log(0, "%s: ITEM_STACK %s (window: %d, cell : %d) -> (window:%d, cell %d) count %d", GetName(), item->GetName(), Cell.window_type, Cell.cell, 
+			metin2::log::info( "{}: ITEM_STACK {} (window: {:d}, cell : {:d}) -> (window:{:d}, cell {:d}) count {:d}", GetName(), item->GetName(), Cell.window_type, Cell.cell, 
 				DestCell.window_type, DestCell.cell, count);
 
 			count = std::min<int>(200 - item2->GetCount(), count);
@@ -5404,7 +5404,7 @@ bool CHARACTER::MoveItem(TItemPos Cell, TItemPos DestCell, uint8_t count)
 
 		if (count == 0 || count >= item->GetCount() || !item->IsStackable() || IS_SET(item->GetAntiFlag(), ITEM_ANTIFLAG_STACK))
 		{
-			sys_log(0, "%s: ITEM_MOVE %s (window: %d, cell : %d) -> (window:%d, cell %d) count %d", GetName(), item->GetName(), Cell.window_type, Cell.cell, 
+			metin2::log::info( "{}: ITEM_MOVE {} (window: {:d}, cell : {:d}) -> (window:{:d}, cell {:d}) count {:d}", GetName(), item->GetName(), Cell.window_type, Cell.cell, 
 				DestCell.window_type, DestCell.cell, count);
 
 			item->RemoveFromCharacter();
@@ -5417,7 +5417,7 @@ bool CHARACTER::MoveItem(TItemPos Cell, TItemPos DestCell, uint8_t count)
 		{
 			//check non-split items 
 
-			sys_log(0, "%s: ITEM_SPLIT %s (window: %d, cell : %d) -> (window:%d, cell %d) count %d", GetName(), item->GetName(), Cell.window_type, Cell.cell, 
+			metin2::log::info( "{}: ITEM_SPLIT {} (window: {:d}, cell : {:d}) -> (window:{:d}, cell {:d}) count {:d}", GetName(), item->GetName(), Cell.window_type, Cell.cell, 
 				DestCell.window_type, DestCell.cell, count);
 
 			item->SetCount(item->GetCount() - count);
@@ -5504,7 +5504,7 @@ void CHARACTER::GiveGold(int iAmount)
 	if (iAmount <= 0)
 		return;
 
-	sys_log(0, "GIVE_GOLD: %s %d", GetName(), iAmount);
+	metin2::log::info( "GIVE_GOLD: {} {:d}", GetName(), iAmount);
 
 	if (GetParty())
 	{
@@ -5619,7 +5619,7 @@ bool CHARACTER::PickupItem(uint32_t dwVID)
 				{
 					if ((iEmptyCell = GetEmptyDragonSoulInventory(item)) == -1)
 					{
-						sys_log(0, "No empty ds inventory pid %u size %ud itemid %u", GetPlayerID(), item->GetSize(), item->GetID());
+						metin2::log::info( "No empty ds inventory pid {:d} size {:d}d itemid {:d}", GetPlayerID(), item->GetSize(), item->GetID());
 						ChatPacket(CHAT_TYPE_INFO, LC_TEXT("소지하고 있는 아이템이 너무 많습니다."));
 						return false;
 					}
@@ -5628,7 +5628,7 @@ bool CHARACTER::PickupItem(uint32_t dwVID)
 				{
 					if ((iEmptyCell = GetEmptyInventory(item->GetSize())) == -1)
 					{
-						sys_log(0, "No empty inventory pid %u size %ud itemid %u", GetPlayerID(), item->GetSize(), item->GetID());
+						metin2::log::info( "No empty inventory pid {:d} size {:d}d itemid {:d}", GetPlayerID(), item->GetSize(), item->GetID());
 						ChatPacket(CHAT_TYPE_INFO, LC_TEXT("소지하고 있는 아이템이 너무 많습니다."));
 						return false;
 					}
@@ -5760,7 +5760,7 @@ bool CHARACTER::SwapItem(uint8_t bCell, uint8_t bDestCell)
 
 	if (item1 == item2)
 	{
-	    sys_log(0, "[WARNING][WARNING][HACK USER!] : %s %d %d", m_stName.c_str(), bCell, bDestCell);
+	    metin2::log::info( "[WARNING][WARNING][HACK USER!] : {} {:d} {:d}", m_stName.c_str(), bCell, bDestCell);
 	    return false;
 	}
 
@@ -5786,7 +5786,7 @@ bool CHARACTER::SwapItem(uint8_t bCell, uint8_t bDestCell)
 		if (item1->EquipTo(this, bEquipCell))
 			item2->AddToCharacter(this, TItemPos(INVENTORY, bInvenCell));
 		else
-			sys_err("SwapItem cannot equip %s! item1 %s", item2->GetName(), item1->GetName());
+			metin2::log::error("SwapItem cannot equip {}! item1 {}", item2->GetName(), item1->GetName());
 	}
 	else
 	{
@@ -6182,7 +6182,7 @@ void CHARACTER::RemoveSpecifyItem(uint32_t vnum, uint32_t count)
 
 	// Weak exception handling.
 	if (count)
-		sys_log(0, "CHARACTER::RemoveSpecifyItem cannot remove enough item vnum %u, still remain %d", vnum, count);
+		metin2::log::info( "CHARACTER::RemoveSpecifyItem cannot remove enough item vnum {:d}, still remain {:d}", vnum, count);
 }
 
 int CHARACTER::CountSpecifyTypeItem(uint8_t type) const
@@ -6242,12 +6242,12 @@ void CHARACTER::AutoGiveItem(CItem * item, bool longOwnerShip)
 {
 	if (nullptr == item)
 	{
-		sys_err ("NULL point.");
+		metin2::log::error("NULL point.");
 		return;
 	}
 	if (item->GetOwner())
 	{
-		sys_err ("item %d 's owner exists!",item->GetID());
+		metin2::log::error("item {:d} 's owner exists!",item->GetID());
 		return;
 	}
 
@@ -6342,7 +6342,7 @@ CItem * CHARACTER::AutoGiveItem(uint32_t dwItemVnum, uint8_t bCount, int iRarePc
 
 	if (!item)
 	{
-		sys_err("cannot create item by vnum %u (name: %s)", dwItemVnum, GetName());
+		metin2::log::error("cannot create item by vnum {:d} (name: {})", dwItemVnum, GetName());
 		return nullptr;
 	}
 
@@ -6417,8 +6417,8 @@ CItem * CHARACTER::AutoGiveItem(uint32_t dwItemVnum, uint8_t bCount, int iRarePc
 		LogManager::instance().ItemLog(this, item, "SYSTEM_DROP", item->GetName());
 	}
 
-	sys_log(0, 
-		"7: %d %d", dwItemVnum, bCount);
+	metin2::log::info( 
+		"7: {:d} {:d}", dwItemVnum, bCount);
 	return item;
 }
 
@@ -6691,7 +6691,7 @@ void CHARACTER::ReceiveItem(CHARACTER * from, CItem * item)
 			break;
 
 		default:
-			sys_log(0, "TakeItem %s %d %s", from->GetName(), GetRaceNum(), item->GetName());
+			metin2::log::info( "TakeItem {} {:d} {}", from->GetName(), GetRaceNum(), item->GetName());
 			from->SetQuestNPCID(GetVID());
 			quest::CQuestManager::instance().TakeItem(from->GetPlayerID(), GetRaceNum(), item);
 			break;
@@ -6761,7 +6761,7 @@ bool CHARACTER::GiveItemFromSpecialItemGroup(uint32_t dwGroupNum, std::vector<ui
 
 	if (!pGroup)
 	{
-		sys_err("cannot find special item group %d", dwGroupNum);
+		metin2::log::error("cannot find special item group {:d}", dwGroupNum);
 		return false;
 	}
 
@@ -6797,7 +6797,7 @@ bool CHARACTER::GiveItemFromSpecialItemGroup(uint32_t dwGroupNum, std::vector<ui
 
 			case CSpecialItemGroup::MOB:
 				{
-					sys_log(0, "CSpecialItemGroup::MOB %d", dwCount);
+					metin2::log::info( "CSpecialItemGroup::MOB {:d}", dwCount);
 					int x = GetX() + number(-500, 500);
 					int y = GetY() + number(-500, 500);
 
@@ -6809,7 +6809,7 @@ bool CHARACTER::GiveItemFromSpecialItemGroup(uint32_t dwGroupNum, std::vector<ui
 				break;
 			case CSpecialItemGroup::SLOW:
 				{
-					sys_log(0, "CSpecialItemGroup::SLOW %d", -(int)dwCount);
+					metin2::log::info( "CSpecialItemGroup::SLOW {:d}", -(int)dwCount);
 					AddAffect(AFFECT_SLOW, POINT_MOV_SPEED, -(int)dwCount, AFF_SLOW, 300, 0, true);
 					bSuccess = true;
 				}
@@ -6817,9 +6817,9 @@ bool CHARACTER::GiveItemFromSpecialItemGroup(uint32_t dwGroupNum, std::vector<ui
 			case CSpecialItemGroup::DRAIN_HP:
 				{
 					int iDropHP = GetMaxHP()*dwCount/100;
-					sys_log(0, "CSpecialItemGroup::DRAIN_HP %d", -iDropHP);
+					metin2::log::info( "CSpecialItemGroup::DRAIN_HP {:d}", -iDropHP);
 					iDropHP = std::min(iDropHP, GetHP()-1);
-					sys_log(0, "CSpecialItemGroup::DRAIN_HP %d", -iDropHP);
+					metin2::log::info( "CSpecialItemGroup::DRAIN_HP {:d}", -iDropHP);
 					PointChange(POINT_HP, -iDropHP);
 					bSuccess = true;
 				}
@@ -6961,7 +6961,7 @@ bool CHARACTER::ItemProcess_Polymorph(CItem * item)
 		case 71093 :
 			{
 				// Handle polymorph marble
-				sys_log(0, "USE_POLYMORPH_BALL PID(%d) vnum(%d)", GetPlayerID(), dwVnum);
+				metin2::log::info( "USE_POLYMORPH_BALL PID({:d}) vnum({:d})", GetPlayerID(), dwVnum);
 
 				// Check level restriction
 				int iPolymorphLevelLimit = std::max(0, 20 - GetLevel() * 3 / 10);
@@ -6992,7 +6992,7 @@ bool CHARACTER::ItemProcess_Polymorph(CItem * item)
 				// Handle polymorph book
 				// socket0                socket1           socket2   
 				// mob vnum to transform   training level        polymorph book level
-				sys_log(0, "USE_POLYMORPH_BOOK: %s(%u) vnum(%u)", GetName(), GetPlayerID(), dwVnum);
+				metin2::log::info( "USE_POLYMORPH_BOOK: {}({:d}) vnum({:d})", GetName(), GetPlayerID(), dwVnum);
 
 				if (CPolymorphUtils::instance().PolymorphCharacter(this, item, pMob) == true)
 				{
@@ -7002,7 +7002,7 @@ bool CHARACTER::ItemProcess_Polymorph(CItem * item)
 			break;
 
 		default :
-			sys_err("POLYMORPH invalid item passed PID(%d) vnum(%d)", GetPlayerID(), item->GetOriginalVnum());
+			metin2::log::error("POLYMORPH invalid item passed PID({:d}) vnum({:d})", GetPlayerID(), item->GetOriginalVnum());
 			return false;
 	}
 

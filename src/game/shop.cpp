@@ -18,7 +18,7 @@
 #include <common/length.h>
 #include <common/tables.h>
 #include <libgame/grid.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <algorithm>
 #include <cstdint>
@@ -61,7 +61,7 @@ void CShop::SetPCShop(CHARACTER * ch)
 
 bool CShop::Create(uint32_t dwVnum, uint32_t dwNPCVnum, TShopItemTable * pTable)
 {
-	sys_log(0, "SHOP #%d (Shopkeeper %d)", dwVnum, dwNPCVnum);
+	metin2::log::info( "SHOP #{:d} (Shopkeeper {:d})", dwVnum, dwNPCVnum);
 
 	m_dwVnum = dwVnum;
 
@@ -96,7 +96,7 @@ void CShop::SetShopItems(TShopItemTable * pTable, uint8_t bItemCount)
 
 			if (!pkItem)
 			{
-				sys_err("cannot find item on pos (%d, %d) (name: %s)", pTable->pos.window_type, pTable->pos.cell, m_pkPC->GetName());
+				metin2::log::error("cannot find item on pos ({:d}, {:d}) (name: {})", pTable->pos.window_type, pTable->pos.cell, m_pkPC->GetName());
 				continue;
 			}
 
@@ -112,7 +112,7 @@ void CShop::SetShopItems(TShopItemTable * pTable, uint8_t bItemCount)
 
 		if (!item_table)
 		{
-			sys_err("Shop: no item table by item vnum #%d", pTable->vnum);
+			metin2::log::error("Shop: no item table by item vnum #{:d}", pTable->vnum);
 			continue;
 		}
 
@@ -120,7 +120,7 @@ void CShop::SetShopItems(TShopItemTable * pTable, uint8_t bItemCount)
 
 		if (IsPCShop())
 		{
-			sys_log(0, "MyShop: use position %d", pTable->display_pos);
+			metin2::log::info( "MyShop: use position {:d}", pTable->display_pos);
 			iPos = pTable->display_pos;
 		}
 		else
@@ -128,7 +128,7 @@ void CShop::SetShopItems(TShopItemTable * pTable, uint8_t bItemCount)
 
 		if (iPos < 0)
 		{
-			sys_err("not enough shop window");
+			metin2::log::error("not enough shop window");
 			continue;
 		}
 
@@ -136,11 +136,11 @@ void CShop::SetShopItems(TShopItemTable * pTable, uint8_t bItemCount)
 		{
 			if (IsPCShop())
 			{
-				sys_err("not empty position for pc shop %s[%d]", m_pkPC->GetName(), m_pkPC->GetPlayerID());
+				metin2::log::error("not empty position for pc shop {}[{:d}]", m_pkPC->GetName(), m_pkPC->GetPlayerID());
 			}
 			else
 			{
-				sys_err("not empty position for npc shop");
+				metin2::log::error("not empty position for npc shop");
 			}
 			continue;
 		}
@@ -178,7 +178,7 @@ void CShop::SetShopItems(TShopItemTable * pTable, uint8_t bItemCount)
 		char name[36];
 		snprintf(name, sizeof(name), "%-20s(#%-5d) (x %d)", item_table->szName, (int) item.vnum, item.count);
 
-		sys_log(0, "SHOP_ITEM: %-36s PRICE %-5d", name, item.price);
+		metin2::log::info( "SHOP_ITEM: {:<36} PRICE {:<5d}", name, item.price);
 		++pTable;
 	}
 }
@@ -187,11 +187,11 @@ int CShop::Buy(CHARACTER * ch, uint8_t pos)
 {
 	if (pos >= m_itemVector.size())
 	{
-		sys_log(0, "Shop::Buy : invalid position %d : %s", pos, ch->GetName());
+		metin2::log::info( "Shop::Buy : invalid position {:d} : {}", pos, ch->GetName());
 		return SHOP_SUBHEADER_GC_INVALID_POS;
 	}
 
-	sys_log(0, "Shop::Buy : name %s pos %d", ch->GetName(), pos);
+	metin2::log::info( "Shop::Buy : name {} pos {:d}", ch->GetName(), pos);
 
 	GuestMapType::iterator it = m_map_guest.find(ch);
 
@@ -213,7 +213,7 @@ int CShop::Buy(CHARACTER * ch, uint8_t pos)
 	{
 		if (!pkSelectedItem)
 		{
-			sys_log(0, "Shop::Buy : Critical: This user seems to be a hacker : invalid pcshop item : BuyerPID:%d SellerPID:%d",
+			metin2::log::info( "Shop::Buy : Critical: This user seems to be a hacker : invalid pcshop item : BuyerPID:{:d} SellerPID:{:d}",
 					ch->GetPlayerID(),
 					m_pkPC->GetPlayerID());
 
@@ -222,7 +222,7 @@ int CShop::Buy(CHARACTER * ch, uint8_t pos)
 
 		if ((pkSelectedItem->GetOwner() != m_pkPC))
 		{
-			sys_log(0, "Shop::Buy : Critical: This user seems to be a hacker : invalid pcshop item : BuyerPID:%d SellerPID:%d",
+			metin2::log::info( "Shop::Buy : Critical: This user seems to be a hacker : invalid pcshop item : BuyerPID:{:d} SellerPID:{:d}",
 					ch->GetPlayerID(),
 					m_pkPC->GetPlayerID());
 
@@ -235,7 +235,7 @@ int CShop::Buy(CHARACTER * ch, uint8_t pos)
 
 	if (llPrice > GOLD_MAX)
 	{
-		sys_log(0, "Shop::Buy : price overflow : %s price %lld", ch->GetName(), static_cast<long long>(llPrice));
+		metin2::log::info( "Shop::Buy : price overflow : {} price {:d}", ch->GetName(), static_cast<long long>(llPrice));
 		return SHOP_SUBHEADER_GC_NOT_ENOUGH_MONEY;
 	}
 
@@ -243,7 +243,7 @@ int CShop::Buy(CHARACTER * ch, uint8_t pos)
 
 	if (ch->GetGold() < (int) dwPrice)
 	{
-		sys_log(1, "Shop::Buy : Not enough money : %s has %d, price %d", ch->GetName(), ch->GetGold(), dwPrice);
+		metin2::log::debug( "Shop::Buy : Not enough money : {} has {:d}, price {:d}", ch->GetName(), ch->GetGold(), dwPrice);
 		return SHOP_SUBHEADER_GC_NOT_ENOUGH_MONEY;
 	}
 
@@ -283,12 +283,12 @@ int CShop::Buy(CHARACTER * ch, uint8_t pos)
 	{
 		if (m_pkPC)
 		{
-			sys_log(1, "Shop::Buy at PC Shop : Inventory full : %s size %d", ch->GetName(), item->GetSize());
+			metin2::log::debug( "Shop::Buy at PC Shop : Inventory full : {} size {:d}", ch->GetName(), item->GetSize());
 			return SHOP_SUBHEADER_GC_INVENTORY_FULL;
 		}
 		else
 		{
-			sys_log(1, "Shop::Buy : Inventory full : %s size %d", ch->GetName(), item->GetSize());
+			metin2::log::debug( "Shop::Buy : Inventory full : {} size {:d}", ch->GetName(), item->GetSize());
 			ITEM_MANAGER::instance().DestroyItem(item);
 			return SHOP_SUBHEADER_GC_INVENTORY_FULL;
 		}
@@ -377,7 +377,7 @@ int CShop::Buy(CHARACTER * ch, uint8_t pos)
 	}
 
 	if (item)
-		sys_log(0, "SHOP: BUY: name %s %s(x %d):%u price %u", ch->GetName(), item->GetName(), item->GetCount(), item->GetID(), dwPrice);
+		metin2::log::info( "SHOP: BUY: name {} {}(x {:d}):{:d} price {:d}", ch->GetName(), item->GetName(), item->GetCount(), item->GetID(), dwPrice);
 
     ch->Save();
 
@@ -468,7 +468,7 @@ void CShop::RemoveGuest(CHARACTER * ch)
 
 void CShop::Broadcast(const void * data, int bytes)
 {
-	sys_log(1, "Shop::Broadcast %p %d", data, bytes);
+	metin2::log::debug( "Shop::Broadcast {} {:d}", static_cast<const void *>(data), bytes);
 
 	GuestMapType::iterator it;
 

@@ -14,7 +14,7 @@
 #include <common/startup.h>
 #include <common/utils.h>
 #include <libthecore/core_signal.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/main.h>
 
 #include <algorithm>
@@ -57,9 +57,9 @@ int g_iItemPriceListTableCacheFlushSeconds = 540;
 void emergency_sig(int sig)
 {
 	if (sig == SIGSEGV)
-		sys_log(0, "SIGNAL: SIGSEGV");
+		metin2::log::info( "SIGNAL: SIGSEGV");
 	else if (sig == SIGUSR1)
-		sys_log(0, "SIGNAL: SIGUSR1");
+		metin2::log::info( "SIGNAL: SIGUSR1");
 
 	if (sig == SIGSEGV)
 		abort();
@@ -93,7 +93,7 @@ int main()
 	GuildManager.Initialize();
 	MarriageManager.Initialize();
 	ItemIDRangeManager.Build();
-	sys_log(0, "Metin2DBCacheServer Start\n");
+	metin2::log::info( "Metin2DBCacheServer Start");
 
 	if (!mark_server_ready()) return 1;
 	CClientManager::instance().MainLoop();
@@ -114,7 +114,7 @@ int main()
 			break;
 
 		usleep(1000);
-		sys_log(0, "WAITING_QUERY_COUNT %d", iCount);
+		metin2::log::info( "WAITING_QUERY_COUNT {:d}", iCount);
 	}
 
 	return 0;
@@ -161,12 +161,12 @@ int Start()
 		return false;
 	}
 
-	log_set_expiration_days(3);
+	metin2::log::set_keep_days(3);
 
 	if (CConfig::instance().GetValue("LOG_KEEP_DAYS", &tmpValue))
 	{
 		tmpValue = std::clamp(tmpValue, 3, 30);
-		log_set_expiration_days(tmpValue);
+		metin2::log::set_keep_days(tmpValue);
 		fprintf(stderr, "Setting log keeping days to %d\n", tmpValue);
 	}
 
@@ -177,7 +177,7 @@ int Start()
 
 	if (!CConfig::instance().GetValue("TABLE_POSTFIX", szBuf, 256))
 	{
-		sys_err("TABLE_POSTFIX not configured use default");
+		metin2::log::error("TABLE_POSTFIX not configured use default");
 		szBuf[0] = '\0';
 	}
 
@@ -186,20 +186,20 @@ int Start()
 	if (CConfig::instance().GetValue("PLAYER_CACHE_FLUSH_SECONDS", szBuf, 256))
 	{
 		str_to_number(g_iPlayerCacheFlushSeconds, szBuf);
-		sys_log(0, "PLAYER_CACHE_FLUSH_SECONDS: %d", g_iPlayerCacheFlushSeconds);
+		metin2::log::info( "PLAYER_CACHE_FLUSH_SECONDS: {:d}", g_iPlayerCacheFlushSeconds);
 	}
 
 	if (CConfig::instance().GetValue("ITEM_CACHE_FLUSH_SECONDS", szBuf, 256))
 	{
 		str_to_number(g_iItemCacheFlushSeconds, szBuf);
-		sys_log(0, "ITEM_CACHE_FLUSH_SECONDS: %d", g_iItemCacheFlushSeconds);
+		metin2::log::info( "ITEM_CACHE_FLUSH_SECONDS: {:d}", g_iItemCacheFlushSeconds);
 	}
 
 	// MYSHOP_PRICE_LIST
 	if (CConfig::instance().GetValue("ITEM_PRICELIST_CACHE_FLUSH_SECONDS", szBuf, 256)) 
 	{
 		str_to_number(g_iItemPriceListTableCacheFlushSeconds, szBuf);
-		sys_log(0, "ITEM_PRICELIST_CACHE_FLUSH_SECONDS: %d", g_iItemPriceListTableCacheFlushSeconds);
+		metin2::log::info( "ITEM_PRICELIST_CACHE_FLUSH_SECONDS: {:d}", g_iItemPriceListTableCacheFlushSeconds);
 	}
 	// END_OF_MYSHOP_PRICE_LIST
 	//
@@ -212,7 +212,7 @@ int Start()
 	int iIDStart;
 	if (!CConfig::instance().GetValue("PLAYER_ID_START", &iIDStart))
 	{
-		sys_err("PLAYER_ID_START not configured");
+		metin2::log::error("PLAYER_ID_START not configured");
 		return false;
 	}
 
@@ -231,7 +231,7 @@ int Start()
 	if (CConfig::instance().GetValue("SQL_PLAYER", line, 256))
 	{
 		sscanf(line, " %63s %63s %63s %63s %d ", szAddr, szDB, szUser, szPassword, &iPort);
-		sys_log(0, "connecting to MySQL server (player)");
+		metin2::log::info( "connecting to MySQL server (player)");
 
 		int iRetry = 5;
 
@@ -239,11 +239,11 @@ int Start()
 		{
 			if (CDBManager::instance().Connect(SQL_PLAYER, szAddr, iPort, szDB, szUser, szPassword))
 			{
-				sys_log(0, "   OK");
+				metin2::log::info( "   OK");
 				break;
 			}
 
-			sys_log(0, "   failed, retrying in 5 seconds");
+			metin2::log::info( "   failed, retrying in 5 seconds");
 			fprintf(stderr, "   failed, retrying in 5 seconds");
 			sleep(5);
 		} while (iRetry--);
@@ -252,14 +252,14 @@ int Start()
 	}
 	else
 	{
-		sys_err("SQL_PLAYER not configured");
+		metin2::log::error("SQL_PLAYER not configured");
 		return false;
 	}
 
 	if (CConfig::instance().GetValue("SQL_ACCOUNT", line, 256))
 	{
 		sscanf(line, " %63s %63s %63s %63s %d ", szAddr, szDB, szUser, szPassword, &iPort);
-		sys_log(0, "connecting to MySQL server (account)");
+		metin2::log::info( "connecting to MySQL server (account)");
 
 		int iRetry = 5;
 
@@ -267,11 +267,11 @@ int Start()
 		{
 			if (CDBManager::instance().Connect(SQL_ACCOUNT, szAddr, iPort, szDB, szUser, szPassword))
 			{
-				sys_log(0, "   OK");
+				metin2::log::info( "   OK");
 				break;
 			}
 
-			sys_log(0, "   failed, retrying in 5 seconds");
+			metin2::log::info( "   failed, retrying in 5 seconds");
 			fprintf(stderr, "   failed, retrying in 5 seconds");
 			sleep(5);
 		} while (iRetry--);
@@ -279,14 +279,14 @@ int Start()
 	}
 	else
 	{
-		sys_err("SQL_ACCOUNT not configured");
+		metin2::log::error("SQL_ACCOUNT not configured");
 		return false;
 	}
 
 	if (CConfig::instance().GetValue("SQL_COMMON", line, 256))
 	{
 		sscanf(line, " %63s %63s %63s %63s %d ", szAddr, szDB, szUser, szPassword, &iPort);
-		sys_log(0, "connecting to MySQL server (common)");
+		metin2::log::info( "connecting to MySQL server (common)");
 
 		int iRetry = 5;
 
@@ -294,11 +294,11 @@ int Start()
 		{
 			if (CDBManager::instance().Connect(SQL_COMMON, szAddr, iPort, szDB, szUser, szPassword))
 			{
-				sys_log(0, "   OK");
+				metin2::log::info( "   OK");
 				break;
 			}
 
-			sys_log(0, "   failed, retrying in 5 seconds");
+			metin2::log::info( "   failed, retrying in 5 seconds");
 			fprintf(stderr, "   failed, retrying in 5 seconds");
 			sleep(5);
 		} while (iRetry--);
@@ -306,19 +306,19 @@ int Start()
 	}
 	else
 	{
-		sys_err("SQL_COMMON not configured");
+		metin2::log::error("SQL_COMMON not configured");
 		return false;
 	}
 
-	sys_log(0, "ClientManager initialization.. ");
+	metin2::log::info( "ClientManager initialization.. ");
 
 	if (!CClientManager::instance().Initialize())
 	{
-		sys_log(0, "   failed"); 
+		metin2::log::info( "   failed"); 
 		return false;
 	}
 
-	sys_log(0, "   OK");
+	metin2::log::info( "   OK");
 
 	signal(SIGUSR1, emergency_sig);
 	signal(SIGSEGV, emergency_sig);

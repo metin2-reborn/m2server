@@ -1,7 +1,7 @@
 #include "internal.h"
 
 #include <libthecore/core_signal.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/utils.h>
 
 #include <csignal>
@@ -22,7 +22,7 @@ namespace {
     // main loop is stuck.
     void checkpointing(int) {
         if (!tics) {
-            sys_err("CHECKPOINT shutdown: tics did not updated.");
+            metin2::log::error("CHECKPOINT shutdown: tics did not updated.");
             std::abort();
         }
         tics = 0;

@@ -1,7 +1,7 @@
 #include "Config.h"
 
 #include <common/utils.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <cstddef>
 #include <cstdint>
@@ -159,7 +159,7 @@ bool CConfig::GetParam(const char *key, int index, uint32_t *Param) {
 
     str_to_number(*Param, word.c_str());
 
-    sys_log(0, "GetParam %d", *Param);
+    metin2::log::info( "GetParam {:d}", *Param);
     return true;
 }
 auto CConfig::Get(const char *key) -> const char * {

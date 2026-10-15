@@ -20,7 +20,7 @@
 #include "vid.h"
 
 #include <libgame/attribute.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/utils.h>
 
 #include <lzo/lzo1x.h>
@@ -129,7 +129,7 @@ void SECTREE_MAP::Build()
 
 		tree->m_neighbor_list.push_back(tree); // Add itself.
 
-		sys_log(3, "%dx%d", tree->m_id.coord.x, tree->m_id.coord.y);
+		metin2::log::debug( "{:d}x{:d}", tree->m_id.coord.x, tree->m_id.coord.y);
 
 		int x = tree->m_id.coord.x * SECTREE_SIZE;
 		int y = tree->m_id.coord.y * SECTREE_SIZE;
@@ -140,7 +140,7 @@ void SECTREE_MAP::Build()
 
 			if (tree2)
 			{
-				sys_log(3, "   %d %dx%d", i, tree2->m_id.coord.x, tree2->m_id.coord.y);
+				metin2::log::debug( "   {:d} {:d}x{:d}", i, tree2->m_id.coord.x, tree2->m_id.coord.y);
 				tree->m_neighbor_list.push_back(tree2);
 			}
 		}
@@ -196,7 +196,7 @@ int SECTREE_MANAGER::LoadSettingFile(int32_t lMapIndex, const char * c_pszSettin
 
 	if (!fp)
 	{
-		sys_err("cannot open file: %s", c_pszSettingFileName);
+		metin2::log::error("cannot open file: {}", c_pszSettingFileName);
 		return 0;
 	}
 
@@ -225,7 +225,7 @@ int SECTREE_MANAGER::LoadSettingFile(int32_t lMapIndex, const char * c_pszSettin
 
 	if ((iWidth == 0 && iHeight == 0) || r_setting.iCellScale == 0)
 	{
-		sys_err("Invalid Settings file: %s", c_pszSettingFileName);
+		metin2::log::error("Invalid Settings file: {}", c_pszSettingFileName);
 		return 0;
 	}
 
@@ -252,7 +252,7 @@ SECTREE_MAP * SECTREE_MANAGER::BuildSectreeFromSetting(TMapSetting & r_setting)
 			tree->m_id.coord.x = x / SECTREE_SIZE;
 			tree->m_id.coord.y = y / SECTREE_SIZE;
 			pkMapSectree->Add(tree->m_id.package, tree);
-			sys_log(3, "new sectree %d x %d", tree->m_id.coord.x, tree->m_id.coord.y);
+			metin2::log::debug( "new sectree {:d} x {:d}", tree->m_id.coord.x, tree->m_id.coord.y);
 		}
 	}
 
@@ -317,7 +317,7 @@ void SECTREE_MANAGER::LoadDungeon(int iIndex, const char * c_pszFileName)
 
 	fclose(fp);
 
-	sys_log(0, "Dungeon Position Load [%3d]%s count %d", iIndex, c_pszFileName, count);
+	metin2::log::info( "Dungeon Position Load [{:3d}]{} count {:d}", iIndex, c_pszFileName, count);
 }
 
 // Fix me
@@ -331,7 +331,7 @@ bool SECTREE_MANAGER::LoadMapRegion(const char * c_pszFileName, TMapSetting & r_
 	FILE * fp = fopen(c_pszFileName, "r");
 
 	if ( test_server )
-		sys_log( 0, "[LoadMapRegion] file(%s)", c_pszFileName );
+		metin2::log::info( "[LoadMapRegion] file({})", c_pszFileName );
 
 	if (!fp)
 		return false;
@@ -351,11 +351,11 @@ bool SECTREE_MANAGER::LoadMapRegion(const char * c_pszFileName, TMapSetting & r_
 	if( iEmpirePositionCount == 6 )
 	{
 		for ( int n = 0; n < 3; ++n )
-			sys_log( 0 ,"LoadMapRegion %d %d ", pos[n].x, pos[n].y );
+			metin2::log::info("LoadMapRegion {:d} {:d} ", pos[n].x, pos[n].y );
 	}
 	else
 	{
-		sys_log( 0, "LoadMapRegion no empire specific start point" );
+		metin2::log::info( "LoadMapRegion no empire specific start point" );
 	}
 
 	TMapRegion region;
@@ -373,7 +373,7 @@ bool SECTREE_MANAGER::LoadMapRegion(const char * c_pszFileName, TMapSetting & r_
 
 	r_setting.posSpawn = region.posSpawn;
 
-	sys_log(0, "LoadMapRegion %d x %d ~ %d y %d ~ %d, town %d %d", 
+	metin2::log::info( "LoadMapRegion {:d} x {:d} ~ {:d} y {:d} ~ {:d}, town {:d} {:d}", 
 			region.index,
 			region.sx,
 			region.ex,
@@ -399,7 +399,7 @@ bool SECTREE_MANAGER::LoadMapRegion(const char * c_pszFileName, TMapSetting & r_
 
 	m_vec_mapRegion.push_back(region);
 
-	sys_log(0,"LoadMapRegion %d End", region.index);
+	metin2::log::info("LoadMapRegion {:d} End", region.index);
 	return true;
 }
 
@@ -409,7 +409,7 @@ bool SECTREE_MANAGER::LoadAttribute(SECTREE_MAP * pkMapSectree, const char * c_p
 
 	if (!fp)
 	{
-		sys_err("SECTREE_MANAGER::LoadAttribute : cannot open %s", c_pszFileName);
+		metin2::log::error("SECTREE_MANAGER::LoadAttribute : cannot open {}", c_pszFileName);
 		return false;
 	}
 
@@ -439,10 +439,10 @@ bool SECTREE_MANAGER::LoadAttribute(SECTREE_MAP * pkMapSectree, const char * c_p
 			// SERVER_ATTR_LOAD_ERROR
 			if (tree == nullptr)
 			{
-				sys_err("FATAL ERROR! LoadAttribute(%s) - cannot find sectree(package=%x, coord=(%u, %u), map_index=%u, map_base=(%u, %u))", 
+				metin2::log::error("FATAL ERROR! LoadAttribute({}) - cannot find sectree(package={:x}, coord=({:d}, {:d}), map_index={:d}, map_base=({:d}, {:d}))", 
 						c_pszFileName, id.package, id.coord.x, id.coord.y, r_setting.iIndex, r_setting.iBaseX, r_setting.iBaseY);
-				sys_err("ERROR_ATTR_POS(%d, %d) attr_size(%d, %d)", x, y, iWidth, iHeight);
-				sys_err("CHECK! 'Setting.txt' and 'server_attr' MAP_SIZE!!");
+				metin2::log::error("ERROR_ATTR_POS({:d}, {:d}) attr_size({:d}, {:d})", x, y, iWidth, iHeight);
+				metin2::log::error("CHECK! 'Setting.txt' and 'server_attr' MAP_SIZE!!");
 
 				pkMapSectree->DumpAllToSysErr();
 				abort();
@@ -453,7 +453,7 @@ bool SECTREE_MANAGER::LoadAttribute(SECTREE_MAP * pkMapSectree, const char * c_p
 
 			if (tree->m_id.package != id.package)
 			{
-				sys_err("returned tree id mismatch! return %u, request %u", 
+				metin2::log::error("returned tree id mismatch! return {:d}, request {:d}", 
 						tree->m_id.package, id.package);
 				fclose(fp);
 
@@ -463,7 +463,7 @@ bool SECTREE_MANAGER::LoadAttribute(SECTREE_MAP * pkMapSectree, const char * c_p
 			fread(&uiSize, sizeof(int), 1, fp);
 			if (uiSize > abComp.size())
 			{
-				sys_err("attribute block of %u bytes is larger than %zu", uiSize, abComp.size());
+				metin2::log::error("attribute block of {:d} bytes is larger than {:d}", uiSize, abComp.size());
 				fclose(fp);
 				return false;
 			}
@@ -474,7 +474,7 @@ bool SECTREE_MANAGER::LoadAttribute(SECTREE_MAP * pkMapSectree, const char * c_p
 
 			if (uiDestSize != sizeof(uint32_t) * (SECTREE_SIZE / CELL_SIZE) * (SECTREE_SIZE / CELL_SIZE))
 			{
-				sys_err("SECTREE_MANAGER::LoadAttribte : %s : %d %d size mismatch! %d",
+				metin2::log::error("SECTREE_MANAGER::LoadAttribte : {} : {:d} {:d} size mismatch! {:d}",
 						c_pszFileName, tree->m_id.coord.x, tree->m_id.coord.y, static_cast<int>(uiDestSize));
 				fclose(fp);
 
@@ -621,13 +621,13 @@ int SECTREE_MANAGER::GetMapIndex(int32_t x, int32_t y)
 			return rRegion.index;
 	}
 
-	sys_log(0, "SECTREE_MANAGER::GetMapIndex(%d, %d)", x, y);
+	metin2::log::info( "SECTREE_MANAGER::GetMapIndex({:d}, {:d})", x, y);
 
 	std::vector<TMapRegion>::iterator i;
 	for (i = m_vec_mapRegion.begin(); i !=m_vec_mapRegion.end(); ++i)
 	{
 		TMapRegion & rRegion = *i;
-		sys_log(0, "%d: (%d, %d) ~ (%d, %d)", rRegion.index, rRegion.sx, rRegion.sy, rRegion.ex, rRegion.ey);
+		metin2::log::info( "{:d}: ({:d}, {:d}) ~ ({:d}, {:d})", rRegion.index, rRegion.sx, rRegion.sy, rRegion.ex, rRegion.ey);
 	}
 
 	return 0;
@@ -637,7 +637,7 @@ int SECTREE_MANAGER::Build(const char * c_pszListFileName, const char* c_pszMapB
 {
 	if (true == test_server)
 	{
-		sys_log ( 0, "[BUILD] Build %s %s ", c_pszListFileName, c_pszMapBasePath );
+		metin2::log::info( "[BUILD] Build {} {} ", c_pszListFileName, c_pszMapBasePath );
 	}
 
 	FILE* fp = fopen(c_pszListFileName, "r");
@@ -666,7 +666,7 @@ int SECTREE_MANAGER::Build(const char * c_pszListFileName, const char* c_pszMapB
 
 		if (!LoadSettingFile(iIndex, szFilename, setting))
 		{
-			sys_err("can't load file %s in LoadSettingFile", szFilename);
+			metin2::log::error("can't load file {} in LoadSettingFile", szFilename);
 			fclose(fp);
 			return 0;
 		}
@@ -675,13 +675,13 @@ int SECTREE_MANAGER::Build(const char * c_pszListFileName, const char* c_pszMapB
 
 		if (!LoadMapRegion(szFilename, setting, szMapName))
 		{
-			sys_err("can't load file %s in LoadMapRegion", szFilename);
+			metin2::log::error("can't load file {} in LoadMapRegion", szFilename);
 			fclose(fp);
 			return 0;
 		}
 
 		if (true == test_server)
-			sys_log ( 0,"[BUILD] Build %s %s %d ",c_pszMapBasePath, szMapName, iIndex );
+			metin2::log::info("[BUILD] Build {} {} {:d} ",c_pszMapBasePath, szMapName, iIndex );
 
 		// First check whether this server should spawn monsters for this map.
 		if (map_allow_find(iIndex))
@@ -765,7 +765,7 @@ bool SECTREE_MANAGER::GetValidLocation(int32_t lMapIndex, int32_t x, int32_t y, 
 		}
 		else
 		{
-			sys_err("cannot find sectree_map by map index %d", lMapIndex);
+			metin2::log::error("cannot find sectree_map by map index {:d}", lMapIndex);
 			return false;
 		}
 	}
@@ -787,7 +787,7 @@ bool SECTREE_MANAGER::GetValidLocation(int32_t lMapIndex, int32_t x, int32_t y, 
 
 			if (!tree)
 			{
-				sys_err("cannot find tree by %d %d (map index %d)", x, y, lMapIndex);
+				metin2::log::error("cannot find tree by {:d} {:d} (map index {:d})", x, y, lMapIndex);
 				return false;
 			}
 
@@ -798,7 +798,7 @@ bool SECTREE_MANAGER::GetValidLocation(int32_t lMapIndex, int32_t x, int32_t y, 
 		}
 	}
 
-	sys_err("invalid location (map index %d %d x %d)", lRealMapIndex, x, y);
+	metin2::log::error("invalid location (map index {:d} {:d} x {:d})", lRealMapIndex, x, y);
 	return false;
 }
 
@@ -878,7 +878,7 @@ int32_t SECTREE_MANAGER::CreatePrivateMap(int32_t lMapIndex)
 
 	if (!pkMapSectree)
 	{
-		sys_err("Cannot find map index %d", lMapIndex);
+		metin2::log::error("Cannot find map index {:d}", lMapIndex);
 		return 0;
 	}
 
@@ -914,7 +914,7 @@ int32_t SECTREE_MANAGER::CreatePrivateMap(int32_t lMapIndex)
 	pkMapSectree = new SECTREE_MAP(*pkMapSectree);
 	m_map_pkSectree.insert(std::map<uint32_t, SECTREE_MAP *>::value_type(lNewMapIndex, pkMapSectree));
 
-	sys_log(0, "PRIVATE_MAP: %d created (original %d)", lNewMapIndex, lMapIndex);
+	metin2::log::info( "PRIVATE_MAP: {:d} created (original {:d})", lNewMapIndex, lMapIndex);
 	return lNewMapIndex;
 }
 
@@ -925,7 +925,7 @@ struct FDestroyPrivateMapEntity
 		if (ent->IsType(ENTITY_CHARACTER))
 		{
 			CHARACTER * ch = (CHARACTER *) ent;
-			sys_log(0, "PRIVAE_MAP: removing character %s", ch->GetName());
+			metin2::log::info( "PRIVAE_MAP: removing character {}", ch->GetName());
 
 			if (ch->GetDesc())
 				DESC_MANAGER::instance().DestroyDesc(ch->GetDesc());
@@ -935,12 +935,12 @@ struct FDestroyPrivateMapEntity
 		else if (ent->IsType(ENTITY_ITEM))
 		{
 			CItem * item = (CItem *) ent;
-			sys_log(0, "PRIVATE_MAP: removing item %s", item->GetName());
+			metin2::log::info( "PRIVATE_MAP: removing item {}", item->GetName());
 
 			ITEM_MANAGER::instance().DestroyItem(item);
 		}
 		else
-			sys_err("PRIVAE_MAP: trying to remove unknown entity %d", ent->GetType());
+			metin2::log::error("PRIVAE_MAP: trying to remove unknown entity {:d}", ent->GetType());
 	}
 };
 
@@ -965,7 +965,7 @@ void SECTREE_MANAGER::DestroyPrivateMap(int32_t lMapIndex)
 	m_map_pkSectree.erase(lMapIndex);
 	delete pkMapSectree;
 
-	sys_log(0, "PRIVATE_MAP: %d destroyed", lMapIndex);
+	metin2::log::info( "PRIVATE_MAP: {:d} destroyed", lMapIndex);
 }
 
 TAreaMap& SECTREE_MANAGER::GetDungeonArea(int32_t lMapIndex)
@@ -1089,7 +1089,7 @@ bool SECTREE_MANAGER::ForAttrRegionCell( int32_t lMapIndex, int32_t lCX, int32_t
 			break;
 
 		default:
-			sys_err("Unknown region mode %u", mode);
+			metin2::log::error("Unknown region mode {:d}", mode);
 			break;
 	}
 
@@ -1142,7 +1142,7 @@ bool SECTREE_MANAGER::ForAttrRegionFreeAngle( int32_t lMapIndex, int32_t lCX, in
 
 	if (0 == fdx1 || 0 == fdx2)
 	{
-		sys_err( "SECTREE_MANAGER::ForAttrRegion - Unhandled exception. MapIndex: %d", lMapIndex );
+		metin2::log::error( "SECTREE_MANAGER::ForAttrRegion - Unhandled exception. MapIndex: {:d}", lMapIndex );
 		return false;
 	}
 
@@ -1189,7 +1189,7 @@ bool SECTREE_MANAGER::ForAttrRegion(int32_t lMapIndex, int32_t lStartX, int32_t 
 
 	if (!pkMapSectree)
 	{
-		sys_err("Cannot find SECTREE_MAP by map index %d", lMapIndex);
+		metin2::log::error("Cannot find SECTREE_MAP by map index {:d}", lMapIndex);
 		return mode == ATTR_REGION_MODE_CHECK ? true : false;
 	}
 
@@ -1211,7 +1211,7 @@ bool SECTREE_MANAGER::ForAttrRegion(int32_t lMapIndex, int32_t lStartX, int32_t 
 	int32_t lCW = (lEndX - lStartX) / CELL_SIZE;
 	int32_t lCH = (lEndY - lStartY) / CELL_SIZE;
 
-	sys_log(1, "ForAttrRegion %d %d ~ %d %d", lStartX, lStartY, lEndX, lEndY);
+	metin2::log::debug( "ForAttrRegion {:d} {:d} ~ {:d} {:d}", lStartX, lStartY, lEndX, lEndY);
 
 	lRotate = lRotate % 360;
 
@@ -1231,7 +1231,7 @@ bool SECTREE_MANAGER::SaveAttributeToImage(int lMapIndex, const char * c_pszFile
 			pMap = pMapSrc;
 		else
 		{
-			sys_err("cannot find sectree_map %d", lMapIndex);
+			metin2::log::error("cannot find sectree_map {:d}", lMapIndex);
 			return false;
 		}
 	}
@@ -1241,11 +1241,11 @@ bool SECTREE_MANAGER::SaveAttributeToImage(int lMapIndex, const char * c_pszFile
 
 	if (iMapHeight < 0 || iMapWidth < 0)
 	{
-		sys_err("map size error w %d h %d", iMapWidth, iMapHeight);
+		metin2::log::error("map size error w {:d} h {:d}", iMapWidth, iMapHeight);
 		return false;
 	}
 
-	sys_log(0, "SaveAttributeToImage w %d h %d file %s", iMapWidth, iMapHeight, c_pszFileName);
+	metin2::log::info( "SaveAttributeToImage w {:d} h {:d} file {}", iMapWidth, iMapHeight, c_pszFileName);
 
 	const int iImageWidth = 512 * iMapWidth;
 	const int iImageHeight = 512 * iMapHeight;
@@ -1273,7 +1273,7 @@ bool SECTREE_MANAGER::SaveAttributeToImage(int lMapIndex, const char * c_pszFile
 
 				if (!pSec)
 				{
-					sys_err("cannot get sectree for %d %d %d %d", id.coord.x, id.coord.y, pMap->m_setting.iBaseX, pMap->m_setting.iBaseY);
+					metin2::log::error("cannot get sectree for {:d} {:d} {:d} {:d}", id.coord.x, id.coord.y, pMap->m_setting.iBaseX, pMap->m_setting.iBaseY);
 					continue;
 				}
 
@@ -1281,7 +1281,7 @@ bool SECTREE_MANAGER::SaveAttributeToImage(int lMapIndex, const char * c_pszFile
 
 				if (!pdwLine)
 				{
-					sys_err("cannot get attribute line pointer");
+					metin2::log::error("cannot get attribute line pointer");
 					continue;
 				}
 
@@ -1307,12 +1307,12 @@ bool SECTREE_MANAGER::SaveAttributeToImage(int lMapIndex, const char * c_pszFile
 
 	if (save_tga_bgra(c_pszFileName, image.data(), iImageWidth, iImageHeight))
 	{
-		sys_log(0, "SECTREE: map %d attribute saved to %s (%d bytes)", lMapIndex, c_pszFileName, pixels);
+		metin2::log::info( "SECTREE: map {:d} attribute saved to {} ({:d} bytes)", lMapIndex, c_pszFileName, pixels);
 		return true;
 	}
 	else
 	{
-		sys_err("cannot save file, map_index %d filename %s", lMapIndex, c_pszFileName);
+		metin2::log::error("cannot save file, map_index {:d} filename {}", lMapIndex, c_pszFileName);
 		return false;
 	}
 }

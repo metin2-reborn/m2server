@@ -10,7 +10,7 @@
 #include "threeway_war.h"
 #include "typedef.h"
 
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/utils.h>
 
 
@@ -96,7 +96,7 @@ namespace quest
 		lua_pushnumber( L, GetSungziMapIndex() ); 
 
 		if ( test_server )
-			sys_log ( 0, "forked_sungzi_map_index_by_empire %d", GetSungziMapIndex() );
+			metin2::log::info( "forked_sungzi_map_index_by_empire {:d}", GetSungziMapIndex() );
 		return 1;
 	}
 
@@ -112,7 +112,7 @@ namespace quest
 		int iEmpire 	= (int)lua_tonumber(L, 1);
 
 		lua_pushstring( L, GetPassMapPath(iEmpire) );
-		sys_log (0, "[PASS_PATH] Empire %d Path  %s", iEmpire, GetPassMapPath( iEmpire ) );
+		metin2::log::info( "[PASS_PATH] Empire {:d} Path  {}", iEmpire, GetPassMapPath( iEmpire ) );
 		return 1;
 	}
 
@@ -171,7 +171,7 @@ namespace quest
 
 		if ( info == nullptr )
 		{
-			sys_err( "warp_all_to_map_event> <Factor> Null pointer" );
+			metin2::log::error( "warp_all_to_map_event> <Factor> Null pointer" );
 			return 0;
 		}
 

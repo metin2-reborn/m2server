@@ -5,7 +5,7 @@
 #include "lua_incl.h"
 #include "questmanager.h"
 
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <cstdint>
 
@@ -62,11 +62,11 @@ namespace quest
 
 		if ( CArenaManager::instance().AddArena(mapIdx, startposAX, startposAY, startposBX, startposBY) == false )
 		{
-			sys_log(0, "Failed to load arena map info(map:%d AX:%d AY:%d BX:%d BY:%d", mapIdx, startposAX, startposAY, startposBX, startposBY);
+			metin2::log::info( "Failed to load arena map info(map:{:d} AX:{:d} AY:{:d} BX:{:d} BY:{:d}", mapIdx, startposAX, startposAY, startposBX, startposBY);
 		}
 		else
 		{
-			sys_log(0, "Add Arena Map:%d startA(%d,%d) startB(%d,%d)", mapIdx, startposAX, startposAY, startposBX, startposBY);
+			metin2::log::info( "Add Arena Map:{:d} startA({:d},{:d}) startB({:d},{:d})", mapIdx, startposAX, startposAY, startposBX, startposBY);
 		}
 
 		return 1;

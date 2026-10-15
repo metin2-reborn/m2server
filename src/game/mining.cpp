@@ -13,7 +13,7 @@
 #include "typedef.h"
 
 #include <common/length.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/utils.h>
 
 #include <algorithm>
@@ -134,7 +134,7 @@ namespace mining
 
 		if (iFractionCount == 0)
 		{
-			sys_err("Wrong ore fraction count");
+			metin2::log::error("Wrong ore fraction count");
 			return;
 		}
 
@@ -142,7 +142,7 @@ namespace mining
 
 		if (!item)
 		{
-			sys_err("cannot create item vnum %d", dwRawOreVnum);
+			metin2::log::error("cannot create item vnum {:d}", dwRawOreVnum);
 			return;
 		}
 
@@ -241,7 +241,7 @@ namespace mining
 
 		if (!Pick_Check(*item))
 		{
-			sys_err("REFINE_PICK_HACK pid(%u) item(%s:%d) type(%d)", ch->GetPlayerID(), item->GetName(), item->GetID(), item->GetType());
+			metin2::log::error("REFINE_PICK_HACK pid({:d}) item({}:{:d}) type({:d})", ch->GetPlayerID(), item->GetName(), item->GetID(), item->GetType());
 			rkLogMgr.RefineLog(ch->GetPlayerID(), item->GetName(), item->GetID(), -1, 1, "PICK_HACK");
 			return 2;
 		}
@@ -348,7 +348,7 @@ namespace mining
 
 		if ( info == nullptr )
 		{
-			sys_err( "mining_event_info> <Factor> Null pointer" );
+			metin2::log::error( "mining_event_info> <Factor> Null pointer" );
 			return 0;
 		}
 
@@ -409,13 +409,13 @@ namespace mining
 
 		if (item->GetOwner() != ch)
 		{
-			sys_err("wrong owner");
+			metin2::log::error("wrong owner");
 			return false;
 		}
 
 		if (item->GetCount() < ORE_COUNT_FOR_REFINE)
 		{
-			sys_err("not enough count");
+			metin2::log::error("not enough count");
 			return false;
 		}
 

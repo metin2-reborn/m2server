@@ -4,7 +4,7 @@
 #include "cmd.h"
 
 #include <common/tables.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <cstdint>
 #include <cstdio>
@@ -131,7 +131,7 @@ bool CSkillManager::Initialize(TSkillTable * pTab, int iSize)
 		if (iIdx < 0)
 		{
 			snprintf(buf, sizeof(buf), "SkillManager::Initialize : cannot find point type on skill: %s szPointOn: %s", t->szName, t->szPointOn);
-			sys_err("%s", buf);
+			metin2::log::error("{}", buf);
 			SendLog(buf);
 			bError = true;
 			continue;
@@ -144,7 +144,7 @@ bool CSkillManager::Initialize(TSkillTable * pTab, int iSize)
 		if (iIdx2 < 0)
 		{
 			snprintf(buf, sizeof(buf), "SkillManager::Initialize : cannot find point type on skill: %s szPointOn2: %s", t->szName, t->szPointOn2);
-			sys_err("%s", buf);
+			metin2::log::error("{}", buf);
 			SendLog(buf);
 			bError = true;
 			continue;
@@ -163,7 +163,7 @@ bool CSkillManager::Initialize(TSkillTable * pTab, int iSize)
 			else
 			{
 				snprintf(buf, sizeof(buf), "SkillManager::Initialize : cannot find point type on skill: %s szPointOn3: %s", t->szName, t->szPointOn3);
-				sys_err("%s", buf);
+				metin2::log::error("{}", buf);
 				SendLog(buf);
 				bError = true;
 				continue;
@@ -175,7 +175,7 @@ bool CSkillManager::Initialize(TSkillTable * pTab, int iSize)
 		if (!pkProto->kSplashAroundDamageAdjustPoly.Analyze(t->szSplashAroundDamageAdjustPoly))
 		{
 			snprintf(buf, sizeof(buf), "SkillManager::Initialize : syntax error skill: %s szSplashAroundDamageAdjustPoly: %s", t->szName, t->szSplashAroundDamageAdjustPoly);
-			sys_err("%s", buf);
+			metin2::log::error("{}", buf);
 			SendLog(buf);
 			bError = true;
 			continue;
@@ -184,7 +184,7 @@ bool CSkillManager::Initialize(TSkillTable * pTab, int iSize)
 		if (!pkProto->kPointPoly.Analyze(t->szPointPoly))
 		{
 			snprintf(buf, sizeof(buf), "SkillManager::Initialize : syntax error skill: %s szPointPoly: %s", t->szName, t->szPointPoly);
-			sys_err("%s", buf);
+			metin2::log::error("{}", buf);
 			SendLog(buf);
 			bError = true;
 			continue;
@@ -193,7 +193,7 @@ bool CSkillManager::Initialize(TSkillTable * pTab, int iSize)
 		if (!pkProto->kPointPoly2.Analyze(t->szPointPoly2))
 		{
 			snprintf(buf, sizeof(buf), "SkillManager::Initialize : syntax error skill: %s szPointPoly2: %s", t->szName, t->szPointPoly2);
-			sys_err("%s", buf);
+			metin2::log::error("{}", buf);
 			SendLog(buf);
 			bError = true;
 			continue;
@@ -202,7 +202,7 @@ bool CSkillManager::Initialize(TSkillTable * pTab, int iSize)
 		if (!pkProto->kPointPoly3.Analyze(t->szPointPoly3))
 		{
 			snprintf(buf, sizeof(buf), "SkillManager::Initialize : syntax error skill: %s szPointPoly3: %s", t->szName, t->szPointPoly3);
-			sys_err("%s", buf);
+			metin2::log::error("{}", buf);
 			SendLog(buf);
 			bError = true;
 			continue;
@@ -211,7 +211,7 @@ bool CSkillManager::Initialize(TSkillTable * pTab, int iSize)
 		if (!pkProto->kSPCostPoly.Analyze(t->szSPCostPoly))
 		{
 			snprintf(buf, sizeof(buf), "SkillManager::Initialize : syntax error skill: %s szSPCostPoly: %s", t->szName, t->szSPCostPoly);
-			sys_err("%s", buf);
+			metin2::log::error("{}", buf);
 			SendLog(buf);
 			bError = true;
 			continue;
@@ -220,7 +220,7 @@ bool CSkillManager::Initialize(TSkillTable * pTab, int iSize)
 		if (!pkProto->kGrandMasterAddSPCostPoly.Analyze(t->szGrandMasterAddSPCostPoly))
 		{
 			snprintf(buf, sizeof(buf), "SkillManager::Initialize : syntax error skill: %s szGrandMasterAddSPCostPoly: %s", t->szName, t->szGrandMasterAddSPCostPoly);
-			sys_err("%s", buf);
+			metin2::log::error("{}", buf);
 			SendLog(buf);
 			bError = true;
 			continue;
@@ -229,7 +229,7 @@ bool CSkillManager::Initialize(TSkillTable * pTab, int iSize)
 		if (!pkProto->kDurationPoly.Analyze(t->szDurationPoly))
 		{
 			snprintf(buf, sizeof(buf), "SkillManager::Initialize : syntax error skill: %s szDurationPoly: %s", t->szName, t->szDurationPoly);
-			sys_err("%s", buf);
+			metin2::log::error("{}", buf);
 			SendLog(buf);
 			bError = true;
 			continue;
@@ -238,7 +238,7 @@ bool CSkillManager::Initialize(TSkillTable * pTab, int iSize)
 		if (!pkProto->kDurationPoly2.Analyze(t->szDurationPoly2))
 		{
 			snprintf(buf, sizeof(buf), "SkillManager::Initialize : syntax error skill: %s szDurationPoly2: %s", t->szName, t->szDurationPoly2);
-			sys_err("%s", buf);
+			metin2::log::error("{}", buf);
 			SendLog(buf);
 			bError = true;
 			continue;
@@ -247,7 +247,7 @@ bool CSkillManager::Initialize(TSkillTable * pTab, int iSize)
 		if (!pkProto->kDurationPoly3.Analyze(t->szDurationPoly3))
 		{
 			snprintf(buf, sizeof(buf), "SkillManager::Initialize : syntax error skill: %s szDurationPoly3: %s", t->szName, t->szDurationPoly3);
-			sys_err("%s", buf);
+			metin2::log::error("{}", buf);
 			SendLog(buf);
 			bError = true;
 			continue;
@@ -256,7 +256,7 @@ bool CSkillManager::Initialize(TSkillTable * pTab, int iSize)
 		if (!pkProto->kDurationSPCostPoly.Analyze(t->szDurationSPCostPoly))
 		{
 			snprintf(buf, sizeof(buf), "SkillManager::Initialize : syntax error skill: %s szDurationSPCostPoly: %s", t->szName, t->szDurationSPCostPoly);
-			sys_err("%s", buf);
+			metin2::log::error("{}", buf);
 			SendLog(buf);
 			bError = true;
 			continue;
@@ -265,23 +265,23 @@ bool CSkillManager::Initialize(TSkillTable * pTab, int iSize)
 		if (!pkProto->kCooldownPoly.Analyze(t->szCooldownPoly))
 		{
 			snprintf(buf, sizeof(buf), "SkillManager::Initialize : syntax error skill: %s szCooldownPoly: %s", t->szName, t->szCooldownPoly);
-			sys_err("%s", buf);
+			metin2::log::error("{}", buf);
 			SendLog(buf);
 			bError = true;
 			continue;
 		}
 
-		sys_log(0, "Master %s", t->szMasterBonusPoly);
+		metin2::log::info( "Master {}", t->szMasterBonusPoly);
 		if (!pkProto->kMasterBonusPoly.Analyze(t->szMasterBonusPoly))
 		{
 			snprintf(buf, sizeof(buf), "SkillManager::Initialize : syntax error skill: %s szMasterBonusPoly: %s", t->szName, t->szMasterBonusPoly);
-			sys_err("%s", buf);
+			metin2::log::error("{}", buf);
 			SendLog(buf);
 			bError = true;
 			continue;
 		}
 
-		sys_log(0, "#%-3d %-24s type %u flag %u affect %u point_poly: %s", 
+		metin2::log::info( "#{:<3d} {:<24} type {:d} flag {:d} affect {:d} point_poly: {}", 
 				pkProto->dwVnum, pkProto->szName, pkProto->dwType, pkProto->dwFlag, pkProto->dwAffectFlag, t->szPointPoly);
 
 		map_pkSkillProto.emplace(pkProto->dwVnum, std::move(pkProto));

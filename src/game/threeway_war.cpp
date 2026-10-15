@@ -17,7 +17,7 @@
 #include "typedef.h"
 
 #include <common/length.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/utils.h>
 
 #include <cstddef>
@@ -47,7 +47,7 @@ EVENTFUNC(regen_mob_event)
 
 	if ( info == nullptr )
 	{
-		sys_err( "regen_mob_event> <Factor> Null pointer" );
+		metin2::log::error( "regen_mob_event> <Factor> Null pointer" );
 		return 0;
 	}
 
@@ -105,7 +105,7 @@ int CThreeWayWar::GetKillScore( uint8_t empire ) const
 {
 	if( empire <= 0 || empire >= EMPIRE_MAX_NUM )
 	{
-		sys_err("ThreeWayWar::GetKillScore Wrong Empire variable");
+		metin2::log::error("ThreeWayWar::GetKillScore Wrong Empire variable");
 		return 0;
 	}
 
@@ -116,7 +116,7 @@ void CThreeWayWar::SetKillScore( uint8_t empire, int count )
 {
 	if( empire <= 0 || empire >= EMPIRE_MAX_NUM )
 	{
-		sys_err("ThreeWayWar::SetKillScore Wrong Empire variable");
+		metin2::log::error("ThreeWayWar::SetKillScore Wrong Empire variable");
 		return;
 	}
 
@@ -156,7 +156,7 @@ bool CThreeWayWar::LoadSetting(const char* szFileName)
 
 	if (nullptr == pf)
 	{
-		sys_err("[INIT_FORKED] Do not open file (%s)", szPath );
+		metin2::log::error("[INIT_FORKED] Do not open file ({})", szPath );
 		return false;
 	}
 

@@ -44,7 +44,7 @@
 
 #include <common/length.h>
 #include <common/tables.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/main.h>
 #include <libthecore/utils.h>
 
@@ -113,7 +113,7 @@ EVENTFUNC(block_chat_by_ip_event)
 
 	if ( info == nullptr )
 	{
-		sys_err( "block_chat_by_ip_event> <Factor> Null pointer" );
+		metin2::log::error( "block_chat_by_ip_event> <Factor> Null pointer" );
 		return 0;
 	}
 
@@ -155,7 +155,7 @@ bool SpamBlockCheck(CHARACTER * ch, const char* const buf, const size_t buflen)
 		it->second.first += score;
 
 		if (word)
-			sys_log(0, "SPAM_SCORE: %s text: %s score: %u total: %u word: %s", ch->GetName(), buf, score, it->second.first, word);
+			metin2::log::info( "SPAM_SCORE: {} text: {} score: {:d} total: {:d} word: {}", ch->GetName(), buf, score, it->second.first, word);
 
 		if (it->second.first >= g_uiSpamBlockScore)
 		{
@@ -163,7 +163,7 @@ bool SpamBlockCheck(CHARACTER * ch, const char* const buf, const size_t buflen)
 			strlcpy(info->host, ch->GetDesc()->GetHostName(), sizeof(info->host));
 
 			it->second.second = event_create(block_chat_by_ip_event, info, PASSES_PER_SEC(g_uiSpamBlockDuration));
-			sys_log(0, "SPAM_IP: %s for %u seconds", info->host, g_uiSpamBlockDuration);
+			metin2::log::info( "SPAM_IP: {} for {:d} seconds", info->host, g_uiSpamBlockDuration);
 
 			LogManager::instance().CharLog(ch, 0, "SPAM", word);
 
@@ -300,7 +300,7 @@ int CInputMain::Whisper(CHARACTER * ch, const char * data, size_t uiBytes)
 
 	if (iExtraLen < 0)
 	{
-		sys_err("invalid packet length (len %d size %u buffer %zu)", iExtraLen, pinfo->wSize, uiBytes);
+		metin2::log::error("invalid packet length (len {:d} size {:d} buffer {:d})", iExtraLen, pinfo->wSize, uiBytes);
 		ch->GetDesc()->SetPhase(PHASE_CLOSE);
 		return -1;
 	}
@@ -338,9 +338,9 @@ int CInputMain::Whisper(CHARACTER * ch, const char * data, size_t uiBytes)
 	if (test_server)
 	{
 		if (!pkChr)
-			sys_log(0, "Whisper to %s(%s) from %s", "Null", szNameTo, ch->GetName());
+			metin2::log::info( "Whisper to {}({}) from {}", "Null", szNameTo, ch->GetName());
 		else
-			sys_log(0, "Whisper to %s(%s) from %s", pkChr->GetName(), szNameTo, ch->GetName());
+			metin2::log::info( "Whisper to {}({}) from {}", pkChr->GetName(), szNameTo, ch->GetName());
 	}
 
 	if (ch->IsBlockMode(BLOCK_WHISPER))
@@ -368,7 +368,7 @@ int CInputMain::Whisper(CHARACTER * ch, const char * data, size_t uiBytes)
 			bOpponentEmpire = pkCCI->bEmpire;
 
 			if (test_server)
-				sys_log(0, "Whisper to %s from %s (Channel %d Mapindex %d)", "Null", ch->GetName(), pkCCI->bChannel, pkCCI->lMapIndex);
+				metin2::log::info( "Whisper to {} from {} (Channel {:d} Mapindex {:d})", "Null", ch->GetName(), pkCCI->bChannel, pkCCI->lMapIndex);
 		}
 	}
 	else
@@ -388,7 +388,7 @@ int CInputMain::Whisper(CHARACTER * ch, const char * data, size_t uiBytes)
 			pack.wSize = sizeof(TPacketGCWhisper);
 			strlcpy(pack.szNameFrom, szNameTo, sizeof(pack.szNameFrom));
 			ch->GetDesc()->Packet(&pack, sizeof(TPacketGCWhisper));
-			sys_log(0, "WHISPER: no player");
+			metin2::log::info( "WHISPER: no player");
 		}
 	}
 	else
@@ -490,7 +490,7 @@ int CInputMain::Whisper(CHARACTER * ch, const char * data, size_t uiBytes)
 						ch->GetDesc()->BufferedPacket(&pack, sizeof(pack));
 						ch->GetDesc()->Packet(buf, len);
 
-						sys_log(0, "WHISPER: not enough %s: char: %s", pTable->szLocaleName, ch->GetName());
+						metin2::log::info( "WHISPER: not enough {}: char: {}", pTable->szLocaleName, ch->GetName());
 					}
 				}
 
@@ -604,7 +604,7 @@ int CInputMain::Chat(CHARACTER * ch, const char * data, size_t uiBytes)
 
 	if (iExtraLen < 0)
 	{
-		sys_err("invalid packet length (len %d size %u buffer %zu)", iExtraLen, pinfo->size, uiBytes);
+		metin2::log::error("invalid packet length (len {:d} size {:d} buffer {:d})", iExtraLen, pinfo->size, uiBytes);
 		ch->GetDesc()->SetPhase(PHASE_CLOSE);
 		return -1;
 	}
@@ -623,7 +623,7 @@ int CInputMain::Chat(CHARACTER * ch, const char * data, size_t uiBytes)
 	{
 		if (ch->GetChatCounter() == 10)
 		{
-			sys_log(0, "CHAT_HACK: %s", ch->GetName());
+			metin2::log::info( "CHAT_HACK: {}", ch->GetName());
 			ch->GetDesc()->DelayedDisconnect(5);
 		}
 
@@ -754,7 +754,7 @@ int CInputMain::Chat(CHARACTER * ch, const char * data, size_t uiBytes)
 			break;
 
 		default:
-			sys_err("Unknown chat type %d", pinfo->type);
+			metin2::log::error("Unknown chat type {:d}", pinfo->type);
 			break;
 	}
 
@@ -935,7 +935,7 @@ int CInputMain::Messenger(CHARACTER * ch, const char* c_pData, size_t uiBytes)
 			return CHARACTER_NAME_MAX_LEN;
 
 		default:
-			sys_err("CInputMain::Messenger : Unknown subheader %d : %s", p->subheader, ch->GetName());
+			metin2::log::error("CInputMain::Messenger : Unknown subheader {:d} : {}", p->subheader, ch->GetName());
 			break;
 	}
 
@@ -950,7 +950,7 @@ int CInputMain::Shop(CHARACTER * ch, const char * data, size_t uiBytes)
 		return -1;
 
 	if (test_server)
-		sys_log(0, "CInputMain::Shop() ==> SubHeader %d", p->subheader);
+		metin2::log::info( "CInputMain::Shop() ==> SubHeader {:d}", p->subheader);
 
 	const char * c_pData = data + sizeof(TPacketCGShop);
 	uiBytes -= sizeof(TPacketCGShop);
@@ -958,7 +958,7 @@ int CInputMain::Shop(CHARACTER * ch, const char * data, size_t uiBytes)
 	switch (p->subheader)
 	{
 		case SHOP_SUBHEADER_CG_END:
-			sys_log(1, "INPUT: %s SHOP: END", ch->GetName());
+			metin2::log::debug( "INPUT: {} SHOP: END", ch->GetName());
 			CShopManager::instance().StopShopping(ch);
 			return 0;
 
@@ -968,7 +968,7 @@ int CInputMain::Shop(CHARACTER * ch, const char * data, size_t uiBytes)
 					return -1;
 
 				uint8_t bPos = *(c_pData + 1);
-				sys_log(1, "INPUT: %s SHOP: BUY %d", ch->GetName(), bPos);
+				metin2::log::debug( "INPUT: {} SHOP: BUY {:d}", ch->GetName(), bPos);
 				CShopManager::instance().Buy(ch, bPos);
 				return (sizeof(uint8_t) + sizeof(uint8_t));
 			}
@@ -980,7 +980,7 @@ int CInputMain::Shop(CHARACTER * ch, const char * data, size_t uiBytes)
 
 				uint8_t pos = *c_pData;
 
-				sys_log(0, "INPUT: %s SHOP: SELL", ch->GetName());
+				metin2::log::info( "INPUT: {} SHOP: SELL", ch->GetName());
 				CShopManager::instance().Sell(ch, pos);
 				return sizeof(uint8_t);
 			}
@@ -993,13 +993,13 @@ int CInputMain::Shop(CHARACTER * ch, const char * data, size_t uiBytes)
 				uint8_t pos = *(c_pData++);
 				uint8_t count = *(c_pData);
 
-				sys_log(0, "INPUT: %s SHOP: SELL2", ch->GetName());
+				metin2::log::info( "INPUT: {} SHOP: SELL2", ch->GetName());
 				CShopManager::instance().Sell(ch, pos, count);
 				return sizeof(uint8_t) + sizeof(uint8_t);
 			}
 
 		default:
-			sys_err("CInputMain::Shop : Unknown subheader %d : %s", p->subheader, ch->GetName());
+			metin2::log::error("CInputMain::Shop : Unknown subheader {:d} : {}", p->subheader, ch->GetName());
 			break;
 	}
 
@@ -1015,7 +1015,7 @@ void CInputMain::OnClick(CHARACTER * ch, const char * data)
 		victim->OnClick(ch);
 	else if (test_server)
 	{
-		sys_err("CInputMain::OnClick %s.Click.NOT_EXIST_VID[%d]", ch->GetName(), pinfo->vid);
+		metin2::log::error("CInputMain::OnClick {}.Click.NOT_EXIST_VID[{:d}]", ch->GetName(), pinfo->vid);
 	}
 }
 
@@ -1043,7 +1043,7 @@ void CInputMain::Exchange(CHARACTER * ch, const char * data)
 		}
 	}
 
-	sys_log(0, "CInputMain()::Exchange()  SubHeader %d ", pinfo->sub_header);
+	metin2::log::info( "CInputMain()::Exchange()  SubHeader {:d} ", pinfo->sub_header);
 
 	if (iPulse - ch->GetSafeboxLoadTime() < PASSES_PER_SEC(g_nPortalLimitTime))
 	{
@@ -1081,7 +1081,7 @@ void CInputMain::Exchange(CHARACTER * ch, const char * data)
 					{	
 						ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("액수가 20억 냥을 초과하여 거래를 할수가 없습니다.."));
 
-						sys_err("[OVERFLOG_GOLD] START (%u) id %u name %s ", ch->GetGold(), ch->GetPlayerID(), ch->GetName());
+						metin2::log::error("[OVERFLOG_GOLD] START ({:d}) id {:d} name {} ", ch->GetGold(), ch->GetPlayerID(), ch->GetName());
 						return;
 					}
 
@@ -1089,7 +1089,7 @@ void CInputMain::Exchange(CHARACTER * ch, const char * data)
 					{
 						if (quest::CQuestManager::instance().GiveItemToPC(ch->GetPlayerID(), to_ch))
 						{
-							sys_log(0, "Exchange canceled by quest %s %s", ch->GetName(), to_ch->GetName());
+							metin2::log::info( "Exchange canceled by quest {} {}", ch->GetName(), to_ch->GetName());
 							return;
 						}
 					}
@@ -1130,7 +1130,7 @@ void CInputMain::Exchange(CHARACTER * ch, const char * data)
 				{
 					ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("상대방의 총금액이 20억 냥을 초과하여 거래를 할수가 없습니다.."));
 
-					sys_err("[OVERFLOW_GOLD] ELK_ADD (%u) id %u name %s ",
+					metin2::log::error("[OVERFLOW_GOLD] ELK_ADD ({:d}) id {:d} name {} ",
 							ch->GetExchange()->GetCompany()->GetOwner()->GetGold(),
 							ch->GetExchange()->GetCompany()->GetOwner()->GetPlayerID(),
 						   	ch->GetExchange()->GetCompany()->GetOwner()->GetName());
@@ -1146,7 +1146,7 @@ void CInputMain::Exchange(CHARACTER * ch, const char * data)
 		case EXCHANGE_SUBHEADER_CG_ACCEPT:	// arg1 == not used
 			if (ch->GetExchange())
 			{
-				sys_log(0, "CInputMain()::Exchange() ==> ACCEPT "); 
+				metin2::log::info( "CInputMain()::Exchange() ==> ACCEPT "); 
 				ch->GetExchange()->Accept(true);
 			}
 
@@ -1195,7 +1195,7 @@ uint32_t ClacValidComboInterval( CHARACTER * ch, uint8_t bArg )
 
 	if( !ch )
 	{
-		sys_err( "ClacValidComboInterval() ch is NULL");
+		metin2::log::error( "ClacValidComboInterval() ch is NULL");
 		return nInterval;
 	}	
 
@@ -1214,7 +1214,7 @@ uint32_t ClacValidComboInterval( CHARACTER * ch, uint8_t bArg )
 	}
 	else
 	{
-		sys_err( "ClacValidComboInterval() Invalid bArg(%d) ch(%s)", bArg, ch->GetName() );		
+		metin2::log::error( "ClacValidComboInterval() Invalid bArg({:d}) ch({})", bArg, ch->GetName() );		
 	}	
 
 	return nInterval;
@@ -1234,7 +1234,7 @@ bool CheckComboHack(CHARACTER * ch, uint8_t bArg, uint32_t dwTime, bool CheckSpe
 	int HackScalar = 0; // base scalar unit 1
 
 	// [2013 09 11 CYH] debugging log
-		/*sys_log(0, "COMBO_TEST_LOG: %s arg:%u interval:%d valid:%u atkspd:%u riding:%s",
+		/*metin2::log::info( "COMBO_TEST_LOG: {} arg:{:d} interval:{:d} valid:{:d} atkspd:{:d} riding:{}",
 						ch->GetName(),
 						bArg,
 						ComboInterval,
@@ -1274,7 +1274,7 @@ bool CheckComboHack(CHARACTER * ch, uint8_t bArg, uint32_t dwTime, bool CheckSpe
 		{
 			HackScalar = 1;
 			ch->SetValidComboInterval(300);
-			sys_log(0, "COMBO_HACK: 5 %s combo_seq:%d", ch->GetName(), ch->GetComboSequence());
+			metin2::log::info( "COMBO_HACK: 5 {} combo_seq:{:d}", ch->GetName(), ch->GetComboSequence());
 		}
 		// assassin dual-wield combo exception
 		else if (bArg == 21 &&
@@ -1289,7 +1289,7 @@ bool CheckComboHack(CHARACTER * ch, uint8_t bArg, uint32_t dwTime, bool CheckSpe
 			HackScalar = 1;
 			ch->SetValidComboInterval(300);
 
-			sys_log(0, "COMBO_HACK: 3 %s arg:%u valid:%u combo_idx:%d combo_seq:%d",
+			metin2::log::info( "COMBO_HACK: 3 {} arg:{:d} valid:{:d} combo_idx:{:d} combo_seq:{:d}",
 					ch->GetName(),
 					bArg,
 					ComboSequenceBySkillLevel[idx][ch->GetComboSequence()],
@@ -1302,7 +1302,7 @@ bool CheckComboHack(CHARACTER * ch, uint8_t bArg, uint32_t dwTime, bool CheckSpe
 			{
 				HackScalar = 1 + (ch->GetValidComboInterval() - ComboInterval) / 100;
 
-				sys_log(0, "COMBO_HACK: 2 %s arg:%u interval:%d valid:%u atkspd:%u riding:%s",
+				metin2::log::info( "COMBO_HACK: 2 {} arg:{:d} interval:{:d} valid:{:d} atkspd:{:d} riding:{}",
 						ch->GetName(),
 						bArg,
 						ComboInterval,
@@ -1374,7 +1374,7 @@ bool CheckComboHack(CHARACTER * ch, uint8_t bArg, uint32_t dwTime, bool CheckSpe
 		if (ch->GetDesc()->DelayedDisconnect(number(2, 9)))
 		{
 			LogManager::instance().HackLog("Hacker", ch);
-			sys_log(0, "HACKER: %s arg %u", ch->GetName(), bArg);
+			metin2::log::info( "HACKER: {} arg {:d}", ch->GetName(), bArg);
 		}
 
 		HackScalar = 10;
@@ -1402,7 +1402,7 @@ void CInputMain::Move(CHARACTER * ch, const char * data)
 
 	if (pinfo->bFunc >= FUNC_MAX_NUM && !(pinfo->bFunc & 0x80))
 	{
-		sys_err("invalid move type: %s", ch->GetName());
+		metin2::log::error("invalid move type: {}", ch->GetName());
 		return;
 	}
 
@@ -1424,7 +1424,7 @@ void CInputMain::Move(CHARACTER * ch, const char * data)
 		if (((false == ch->IsRiding() && fDist > 25) || fDist > 40) && OXEVENT_MAP_INDEX != ch->GetMapIndex())
 		{
 
-			sys_log(0, "MOVE: %s trying to move too far (dist: %.1fm) Riding(%d)", ch->GetName(), fDist, ch->IsRiding());
+			metin2::log::info( "MOVE: {} trying to move too far (dist: {:.1f}m) Riding({:d})", ch->GetName(), fDist, ch->IsRiding());
 
 			ch->Show(ch->GetMapIndex(), ch->GetX(), ch->GetY(), ch->GetZ());
 			ch->Stop();
@@ -1448,12 +1448,12 @@ void CInputMain::Move(CHARACTER * ch, const char * data)
 			// time is running slow. just log it for now. need to check whether many people actually do this. TODO
 			if (iDelta >= 30000)
 			{
-				sys_log(0, "SPEEDHACK: slow timer name %s delta %d", ch->GetName(), iDelta);
+				metin2::log::info( "SPEEDHACK: slow timer name {} delta {:d}", ch->GetName(), iDelta);
 			}
 			// running up to 20 msec fast per second is tolerated.
 			else if (iDelta < -(iServerDelta / 50))
 			{
-				sys_log(0, "SPEEDHACK: DETECTED! %s (delta %d %d)", ch->GetName(), iDelta, iServerDelta);
+				metin2::log::info( "SPEEDHACK: DETECTED! {} (delta {:d} {:d})", ch->GetName(), iDelta, iServerDelta);
 			}
 		}
 
@@ -1494,7 +1494,7 @@ void CInputMain::Move(CHARACTER * ch, const char * data)
 				char szBuf[256];
 				snprintf(szBuf, sizeof(szBuf), "SKILL_HACK: name=%s, job=%d, group=%d, motion=%d", name, job, group, motion);
 				LogManager::instance().HackLog(szBuf, ch->GetDesc()->GetAccountTable().login, ch->GetName(), ch->GetDesc()->GetHostName());
-				sys_log(0, "%s", szBuf);
+				metin2::log::info( "{}", szBuf);
 
 				if (test_server)
 				{
@@ -1532,8 +1532,8 @@ void CInputMain::Move(CHARACTER * ch, const char * data)
 
 	ch->PacketAround(&pack, sizeof(TPacketGCMove), ch);
 	/*
-	sys_log(0, 
-			"MOVE: %s Func:%u Arg:%u Pos:%dx%d Time:%u Dist:%.1f",
+	metin2::log::info( 
+			"MOVE: {} Func:{:d} Arg:{:d} Pos:{:d}x{:d} Time:{:d} Dist:{:.1f}",
 			ch->GetName(),
 			pinfo->bFunc,
 			pinfo->bArg,
@@ -1647,14 +1647,14 @@ int CInputMain::SyncPosition(CHARACTER * ch, const char * c_pcData, size_t uiByt
 
 	if (iExtraLen < 0)
 	{
-		sys_err("invalid packet length (len %d size %u buffer %zu)", iExtraLen, pinfo->wSize, uiBytes);
+		metin2::log::error("invalid packet length (len {:d} size {:d} buffer {:d})", iExtraLen, pinfo->wSize, uiBytes);
 		ch->GetDesc()->SetPhase(PHASE_CLOSE);
 		return -1;
 	}
 
 	if (0 != (iExtraLen % sizeof(TPacketCGSyncPositionElement)))
 	{
-		sys_err("invalid packet length %d (name: %s)", pinfo->wSize, ch->GetName());
+		metin2::log::error("invalid packet length {:d} (name: {})", pinfo->wSize, ch->GetName());
 		return iExtraLen;
 	}
 
@@ -1667,7 +1667,7 @@ int CInputMain::SyncPosition(CHARACTER * ch, const char * c_pcData, size_t uiByt
 
 	if( iCount > nCountLimit )
 	{
-		sys_err( "Too many SyncPosition Count(%d) from Name(%s)", iCount, ch->GetName() );
+		metin2::log::error( "Too many SyncPosition Count({:d}) from Name({})", iCount, ch->GetName() );
 		iCount = nCountLimit;
 	}
 
@@ -1718,7 +1718,7 @@ int CInputMain::SyncPosition(CHARACTER * ch, const char * c_pcData, size_t uiByt
 			{
 				LogManager::instance().HackLog( "SYNC_POSITION_HACK", ch );
 
-				sys_err( "Too far SyncPosition DistanceWithSyncOwner(%f)(%s) from Name(%s) CH(%d,%d) VICTIM(%d,%d) SYNC(%d,%d)",
+				metin2::log::error( "Too far SyncPosition DistanceWithSyncOwner({:f})({}) from Name({}) CH({:d},{:d}) VICTIM({:d},{:d}) SYNC({:d},{:d})",
 					fDistWithSyncOwner, victim->GetName(), ch->GetName(), ch->GetX(), ch->GetY(), victim->GetX(), victim->GetY(),
 					e->lX, e->lY );
 
@@ -1747,7 +1747,7 @@ int CInputMain::SyncPosition(CHARACTER * ch, const char * c_pcData, size_t uiByt
 			{
 				LogManager::instance().HackLog( "SYNC_POSITION_HACK", ch );
 
-				sys_err( "Too often SyncPosition Interval(%ldms)(%s) from Name(%s) VICTIM(%d,%d) SYNC(%d,%d)",
+				metin2::log::error( "Too often SyncPosition Interval({:d}ms)({}) from Name({}) VICTIM({:d},{:d}) SYNC({:d},{:d})",
 					static_cast<long>(elapsed_usec / 1000), victim->GetName(), ch->GetName(), victim->GetX(), victim->GetY(),
 					e->lX, e->lY );
 
@@ -1760,7 +1760,7 @@ int CInputMain::SyncPosition(CHARACTER * ch, const char * c_pcData, size_t uiByt
 		{
 			LogManager::instance().HackLog( "SYNC_POSITION_HACK", ch );
 
-			sys_err( "Too far SyncPosition Distance(%f)(%s) from Name(%s) CH(%d,%d) VICTIM(%d,%d) SYNC(%d,%d)",
+			metin2::log::error( "Too far SyncPosition Distance({:f})({}) from Name({}) CH({:d},{:d}) VICTIM({:d},{:d}) SYNC({:d},{:d})",
 				   	fDist, victim->GetName(), ch->GetName(), ch->GetX(), ch->GetY(), victim->GetX(), victim->GetY(),
 				  e->lX, e->lY );
 
@@ -1806,7 +1806,7 @@ void CInputMain::UseSkill(CHARACTER * ch, const char * pcData)
 void CInputMain::ScriptButton(CHARACTER * ch, const void* c_pData)
 {
 	TPacketCGScriptButton * p = (TPacketCGScriptButton *) c_pData;
-	sys_log(0, "QUEST ScriptButton pid %d idx %u", ch->GetPlayerID(), p->idx);
+	metin2::log::info( "QUEST ScriptButton pid {:d} idx {:d}", ch->GetPlayerID(), p->idx);
 
 	quest::PC* pc = quest::CQuestManager::instance().GetPCForce(ch->GetPlayerID());
 	if (pc && pc->IsConfirmWait())
@@ -1826,7 +1826,7 @@ void CInputMain::ScriptButton(CHARACTER * ch, const void* c_pData)
 void CInputMain::ScriptAnswer(CHARACTER * ch, const void* c_pData)
 {
 	TPacketCGScriptAnswer * p = (TPacketCGScriptAnswer *) c_pData;
-	sys_log(0, "QUEST ScriptAnswer pid %d answer %d", ch->GetPlayerID(), p->answer);
+	metin2::log::info( "QUEST ScriptAnswer pid {:d} answer {:d}", ch->GetPlayerID(), p->answer);
 
 	if (p->answer > 250) // packet sent in response to the Next button
 	{
@@ -1842,7 +1842,7 @@ void CInputMain::ScriptAnswer(CHARACTER * ch, const void* c_pData)
 void CInputMain::ScriptSelectItem(CHARACTER * ch, const void* c_pData)
 {
 	TPacketCGScriptSelectItem* p = (TPacketCGScriptSelectItem*) c_pData;
-	sys_log(0, "QUEST ScriptSelectItem pid %d answer %d", ch->GetPlayerID(), p->selection);
+	metin2::log::info( "QUEST ScriptSelectItem pid {:d} answer {:d}", ch->GetPlayerID(), p->selection);
 	quest::CQuestManager::instance().SelectItem(ch->GetPlayerID(), p->selection);
 }
 // END_OF_SCRIPT_SELECT_ITEM
@@ -1852,7 +1852,7 @@ void CInputMain::QuestInputString(CHARACTER * ch, const void* c_pData)
 	TPacketCGQuestInputString * p = (TPacketCGQuestInputString*) c_pData;
 
 	const std::string msg(p->msg, strnlen(p->msg, sizeof(p->msg) - 1));
-	sys_log(0, "QUEST InputString pid %u msg %s", ch->GetPlayerID(), msg.c_str());
+	metin2::log::info( "QUEST InputString pid {:d} msg {}", ch->GetPlayerID(), msg.c_str());
 
 	quest::CQuestManager::instance().Input(ch->GetPlayerID(), msg.c_str());
 }
@@ -1863,7 +1863,7 @@ void CInputMain::QuestConfirm(CHARACTER * ch, const void* c_pData)
 	CHARACTER * ch_wait = CHARACTER_MANAGER::instance().FindByPID(p->requestPID);
 	if (p->answer)
 		p->answer = quest::CONFIRM_YES;
-	sys_log(0, "QuestConfirm from %s pid %u name %s answer %d", ch->GetName(), p->requestPID, (ch_wait)?ch_wait->GetName():"", p->answer);
+	metin2::log::info( "QuestConfirm from {} pid {:d} name {} answer {:d}", ch->GetName(), p->requestPID, (ch_wait)?ch_wait->GetName():"", p->answer);
 	if (ch_wait)
 	{
 		quest::CQuestManager::instance().Confirm(ch_wait->GetPlayerID(), (quest::EQuestConfirmType) p->answer, ch->GetPlayerID());
@@ -2028,7 +2028,7 @@ void CInputMain::SafeboxCheckout(CHARACTER * ch, const char * c_pData, bool bMal
 		{
 			if (nullptr == pkItem->GetProto())
 			{
-				sys_err ("pkItem->GetProto() == NULL (id : %d)",pkItem->GetID());
+				metin2::log::error("pkItem->GetProto() == NULL (id : {:d})",pkItem->GetID());
 				return ;
 			}
 			// if attributes should be attached with 100% probability but aren't, attach them anew. ...............
@@ -2081,7 +2081,7 @@ void CInputMain::PartyInvite(CHARACTER * ch, const char * c_pData)
 
 	if (!pInvitee || !ch->GetDesc() || !pInvitee->GetDesc())
 	{
-		sys_err("PARTY Cannot find invited character");
+		metin2::log::error("PARTY Cannot find invited character");
 		return;
 	}
 
@@ -2137,7 +2137,7 @@ void CInputMain::PartySetState(CHARACTER * ch, const char* c_pData)
 	}
 
 	uint32_t pid = p->pid;
-	sys_log(0, "PARTY SetRole pid %d to role %d state %s", pid, p->byRole, p->flag ? "on" : "off");
+	metin2::log::info( "PARTY SetRole pid {:d} to role {:d} state {}", pid, p->byRole, p->flag ? "on" : "off");
 
 	switch (p->byRole)
 	{
@@ -2164,7 +2164,7 @@ void CInputMain::PartySetState(CHARACTER * ch, const char* c_pData)
 			break;
 
 		default:
-			sys_err("wrong byRole in PartySetState Packet name %s state %d", ch->GetName(), p->byRole);
+			metin2::log::error("wrong byRole in PartySetState Packet name {} state {:d}", ch->GetName(), p->byRole);
 			break;
 	}
 }
@@ -2260,7 +2260,7 @@ void CInputMain::AnswerMakeGuild(CHARACTER * ch, const char* c_pData)
 
 	if (dwKey == 0 || p->key != dwKey)
 	{
-		sys_err("AnswerMakeGuild: %s answered without a matching request", ch->GetName());
+		metin2::log::error("AnswerMakeGuild: {} answered without a matching request", ch->GetName());
 		return;
 	}
 
@@ -2625,7 +2625,7 @@ int CInputMain::Guild(CHARACTER * ch, const char * data, size_t uiBytes)
 				if (length > GUILD_COMMENT_MAX_LEN)
 				{
 					// invalid length.. disconnect.
-					sys_err("POST_COMMENT: %s comment too long (length: %zu)", ch->GetName(), length);
+					metin2::log::error("POST_COMMENT: {} comment too long (length: {:d})", ch->GetName(), length);
 					ch->GetDesc()->SetPhase(PHASE_CLOSE);
 					return -1;
 				}
@@ -2679,7 +2679,7 @@ int CInputMain::Guild(CHARACTER * ch, const char * data, size_t uiBytes)
 				else if (grade == 1)
 					ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("<길드> 길드장으로 직위를 변경할 수 없습니다."));
 				else if (grade < 1 || grade > GUILD_GRADE_COUNT)
-					sys_err("CHANGE_MEMBER_GRADE: %s sent invalid grade %u", ch->GetName(), grade);
+					metin2::log::error("CHANGE_MEMBER_GRADE: {} sent invalid grade {:d}", ch->GetName(), grade);
 				else
 					pGuild->ChangeMemberGrade(pid, grade);
 			}
@@ -2764,7 +2764,7 @@ void CInputMain::Hack(CHARACTER * ch, const char * c_pData)
 	char buf[sizeof(p->szBuf)];
 	CopyPacketString(buf, sizeof(buf), p->szBuf, sizeof(p->szBuf));
 
-	sys_err("HACK_DETECT: %s %s", ch->GetName(), buf);
+	metin2::log::error("HACK_DETECT: {} {}", ch->GetName(), buf);
 
 	// the client currently never sends this packet, so always disconnect
 	ch->GetDesc()->SetPhase(PHASE_CLOSE);
@@ -2781,7 +2781,7 @@ int CInputMain::MyShop(CHARACTER * ch, const char * c_pData, size_t uiBytes)
 	if (ch->GetGold() >= GOLD_MAX)
 	{
 		ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("소유 돈이 20억냥을 넘어 거래를 핼수가 없습니다."));
-		sys_log(0, "MyShop ==> OverFlow Gold id %u name %s ", ch->GetPlayerID(), ch->GetName());
+		metin2::log::info( "MyShop ==> OverFlow Gold id {:d} name {} ", ch->GetPlayerID(), ch->GetName());
 		return (iExtraLen);
 	}
 
@@ -2797,7 +2797,7 @@ int CInputMain::MyShop(CHARACTER * ch, const char * c_pData, size_t uiBytes)
 	char szSign[SHOP_SIGN_MAX_LEN + 1];
 	CopyPacketString(szSign, sizeof(szSign), p->szSign, sizeof(p->szSign));
 
-	sys_log(0, "MyShop count %d", p->bCount);
+	metin2::log::info( "MyShop count {:d}", p->bCount);
 	ch->OpenMyShop(szSign, (TShopItemTable *) (c_pData + sizeof(TPacketCGMyShop)), p->bCount);
 	return (iExtraLen);
 }
@@ -2838,12 +2838,12 @@ void CInputMain::Refine(CHARACTER * ch, const char* c_pData)
 
 	if (p->type == REFINE_TYPE_NORMAL)
 	{
-		sys_log (0, "refine_type_noraml");
+		metin2::log::info( "refine_type_noraml");
 		ch->DoRefine(item);
 	}
 	else if (p->type == REFINE_TYPE_SCROLL || p->type == REFINE_TYPE_HYUNIRON || p->type == REFINE_TYPE_MUSIN || p->type == REFINE_TYPE_BDRAGON)
 	{
-		sys_log (0, "refine_type_scroll, ...");
+		metin2::log::info( "refine_type_scroll, ...");
 		ch->DoRefineWithScroll(item);
 	}
 	else if (p->type == REFINE_TYPE_MONEY_ONLY)
@@ -2880,7 +2880,7 @@ int CInputMain::Analyze(DESC * d, uint8_t bHeader, const char * c_pData)
 
 	if (!(ch = d->GetCharacter()))
 	{
-		sys_err("no character on desc");
+		metin2::log::error("no character on desc");
 		d->SetPhase(PHASE_CLOSE);
 		return (0);
 	}
@@ -2911,7 +2911,7 @@ int CInputMain::Analyze(DESC * d, uint8_t bHeader, const char * c_pData)
 	int iExtraLen = 0;
 
 	if (test_server && bHeader != HEADER_CG_MOVE)
-		sys_log(0, "CInputMain::Analyze() ==> Header [%d] ", bHeader);
+		metin2::log::info( "CInputMain::Analyze() ==> Header [{:d}] ", bHeader);
 
 	switch (bHeader)
 	{
@@ -2927,7 +2927,7 @@ int CInputMain::Analyze(DESC * d, uint8_t bHeader, const char * c_pData)
 			if (test_server)
 			{
 				char* pBuf = (char*)c_pData;
-				sys_log(0, "%s", pBuf + sizeof(TPacketCGChat));
+				metin2::log::info( "{}", pBuf + sizeof(TPacketCGChat));
 			}
 
 			if ((iExtraLen = Chat(ch, c_pData, m_iBufferLeft)) < 0)

@@ -4,7 +4,7 @@
 #include "quest.h"
 #include "questpc.h"
 
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <cstdint>
 #include <map>
@@ -105,7 +105,7 @@ namespace quest
 		void NPC::MatchingQuest(PC& pc, TQuestMapType& QuestMap, FuncMatch& fMatch, FuncMiss& fMiss)
 		{
 			if (test_server)
-				sys_log(0, "Click Quest : MatchingQuest");
+				metin2::log::info( "Click Quest : MatchingQuest");
 
 			PC::QuestInfoIterator itPCQuest = pc.quest_begin();
 			typename TQuestMapType::iterator itQuestMap = QuestMap.begin();

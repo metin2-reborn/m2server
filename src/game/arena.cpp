@@ -14,7 +14,7 @@
 #include "typedef.h"
 
 #include <common/length.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <cstdint>
 #include <memory>
@@ -76,7 +76,7 @@ bool CArenaManager::AddArena(uint32_t mapIdx, uint16_t startA_X, uint16_t startA
 
 	if (pArenaMap->AddArena(mapIdx, startA_X, startA_Y, startB_X, startB_Y) == false)
 	{
-		sys_log(0, "CArenaManager::AddArena - AddMap Error MapID: %d", mapIdx);
+		metin2::log::info( "CArenaManager::AddArena - AddMap Error MapID: {:d}", mapIdx);
 		return false;
 	}
 
@@ -91,7 +91,7 @@ bool CArenaMap::AddArena(uint32_t mapIdx, uint16_t startA_X, uint16_t startA_Y, 
 	{
 		if ((*iter)->CheckArea(startA_X, startA_Y, startB_X, startB_Y) == false)
 		{
-			sys_log(0, "CArenaMap::AddArena - Same Start Position set. stA(%d, %d) stB(%d, %d)", startA_X, startA_Y, startB_X, startB_Y);
+			metin2::log::info( "CArenaMap::AddArena - Same Start Position set. stA({:d}, {:d}) stB({:d}, {:d})", startA_X, startA_Y, startB_X, startB_Y);
 			return false;
 		}
 	}
@@ -119,7 +119,7 @@ void CArenaMap::Destroy()
 {
 	auto iter = m_listArena.begin();
 
-	sys_log(0, "ARENA: ArenaMap will be destroy. mapIndex(%d)", m_dwMapIndex);
+	metin2::log::info( "ARENA: ArenaMap will be destroy. mapIndex({:d})", m_dwMapIndex);
 
 	for (; iter != m_listArena.end(); iter++)
 	{
@@ -220,7 +220,7 @@ EVENTFUNC(ready_to_start_event)
 
 	if ( info == nullptr )
 	{
-		sys_err( "ready_to_start_event> <Factor> Null pointer" );
+		metin2::log::error( "ready_to_start_event> <Factor> Null pointer" );
 		return 0;
 	}
 
@@ -228,7 +228,7 @@ EVENTFUNC(ready_to_start_event)
 
 	if (pArena == nullptr)
 	{
-		sys_err("ARENA: Arena start event info is null.");
+		metin2::log::error("ARENA: Arena start event info is null.");
 		return 0;
 	}
 
@@ -237,18 +237,18 @@ EVENTFUNC(ready_to_start_event)
 
 	if (chA == nullptr || chB == nullptr)
 	{
-		sys_err("ARENA: Player err in event func ready_start_event");
+		metin2::log::error("ARENA: Player err in event func ready_start_event");
 
 		if (chA != nullptr)
 		{
 			chA->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("대련 상대가 사라져 대련을 종료합니다."));
-			sys_log(0, "ARENA: Oppernent is disappered. MyPID(%d) OppPID(%d)", pArena->GetPlayerAPID(), pArena->GetPlayerBPID());
+			metin2::log::info( "ARENA: Oppernent is disappered. MyPID({:d}) OppPID({:d})", pArena->GetPlayerAPID(), pArena->GetPlayerBPID());
 		}
 
 		if (chB != nullptr)
 		{
 			chB->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("대련 상대가 사라져 대련을 종료합니다."));
-			sys_log(0, "ARENA: Oppernent is disappered. MyPID(%d) OppPID(%d)", pArena->GetPlayerBPID(), pArena->GetPlayerAPID());
+			metin2::log::info( "ARENA: Oppernent is disappered. MyPID({:d}) OppPID({:d})", pArena->GetPlayerBPID(), pArena->GetPlayerAPID());
 		}
 
 		pArena->SendChatPacketToObserver(CHAT_TYPE_NOTICE, LC_TEXT("대련 상대가 사라져 대련을 종료합니다."));
@@ -378,7 +378,7 @@ EVENTFUNC(ready_to_start_event)
 				chB->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("대련장 문제로 인하여 대련을 종료합니다."));
 				pArena->SendChatPacketToObserver(CHAT_TYPE_INFO, LC_TEXT("대련장 문제로 인하여 대련을 종료합니다."));
 
-				sys_log(0, "ARENA: Something wrong in event func. info->state(%d)", info->state);
+				metin2::log::info( "ARENA: Something wrong in event func. info->state({:d})", info->state);
 
 				pArena->EndDuel();
 
@@ -396,7 +396,7 @@ EVENTFUNC(duel_time_out)
 
 	if ( info == nullptr )
 	{
-		sys_err( "duel_time_out> <Factor> Null pointer" );
+		metin2::log::error( "duel_time_out> <Factor> Null pointer" );
 		return 0;
 	}
 
@@ -404,7 +404,7 @@ EVENTFUNC(duel_time_out)
 
 	if (pArena == nullptr)
 	{
-		sys_err("ARENA: Time out event error");
+		metin2::log::error("ARENA: Time out event error");
 		return 0;
 	}
 
@@ -416,13 +416,13 @@ EVENTFUNC(duel_time_out)
 		if (chA != nullptr)
 		{
 			chA->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("대련 상대가 사라져 대련을 종료합니다."));
-			sys_log(0, "ARENA: Oppernent is disappered. MyPID(%d) OppPID(%d)", pArena->GetPlayerAPID(), pArena->GetPlayerBPID());
+			metin2::log::info( "ARENA: Oppernent is disappered. MyPID({:d}) OppPID({:d})", pArena->GetPlayerAPID(), pArena->GetPlayerBPID());
 		}
 
 		if (chB != nullptr)
 		{
 			chB->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("대련 상대가 사라져 대련을 종료합니다."));
-			sys_log(0, "ARENA: Oppernent is disappered. MyPID(%d) OppPID(%d)", pArena->GetPlayerBPID(), pArena->GetPlayerAPID());
+			metin2::log::info( "ARENA: Oppernent is disappered. MyPID({:d}) OppPID({:d})", pArena->GetPlayerBPID(), pArena->GetPlayerAPID());
 		}
 
 		pArena->SendChatPacketToObserver(CHAT_TYPE_INFO, LC_TEXT("대련 상대가 사라져 대련을 종료합니다."));
@@ -453,7 +453,7 @@ EVENTFUNC(duel_time_out)
 
 				info->state++;
 
-				sys_log(0, "ARENA: Because of time over, duel is end. PIDA(%d) vs PIDB(%d)", pArena->GetPlayerAPID(), pArena->GetPlayerBPID());
+				metin2::log::info( "ARENA: Because of time over, duel is end. PIDA({:d}) vs PIDB({:d})", pArena->GetPlayerAPID(), pArena->GetPlayerBPID());
 
 				return PASSES_PER_SEC(10);
 				break;
@@ -504,7 +504,7 @@ bool CArena::StartDuel(CHARACTER * pCharFrom, CHARACTER * pCharTo, int nSetPoint
 	pCharTo->PointChange(POINT_HP, pCharTo->GetMaxHP() - pCharTo->GetHP());
 	pCharTo->PointChange(POINT_SP, pCharTo->GetMaxSP() - pCharTo->GetSP());
 
-	sys_log(0, "ARENA: Start Duel with PID_A(%d) vs PID_B(%d)", GetPlayerAPID(), GetPlayerBPID());
+	metin2::log::info( "ARENA: Start Duel with PID_A({:d}) vs PID_B({:d})", GetPlayerAPID(), GetPlayerBPID());
 	return true;
 }
 
@@ -585,7 +585,7 @@ void CArena::EndDuel()
 
 	m_mapObserver.clear();
 
-	sys_log(0, "ARENA: End Duel PID_A(%d) vs PID_B(%d)", GetPlayerAPID(), GetPlayerBPID());
+	metin2::log::info( "ARENA: End Duel PID_A({:d}) vs PID_B({:d})", GetPlayerAPID(), GetPlayerBPID());
 
 	Clear();
 }
@@ -764,7 +764,7 @@ bool CArena::OnDead(uint32_t dwPIDA, uint32_t dwPIDB)
 				pCharB->ChatPacket(CHAT_TYPE_NOTICE, LC_TEXT("%s 님이 대련에서 승리하였습니다."), pCharA->GetName());
 				SendChatPacketToObserver(CHAT_TYPE_NOTICE, LC_TEXT("%s 님이 대련에서 승리하였습니다."), pCharA->GetName());
 
-				sys_log(0, "ARENA: Duel is end. Winner %s(%d) Loser %s(%d)",
+				metin2::log::info( "ARENA: Duel is end. Winner {}({:d}) Loser {}({:d})",
 						pCharA->GetName(), GetPlayerAPID(), pCharB->GetName(), GetPlayerBPID());
 			}
 			else
@@ -778,7 +778,7 @@ bool CArena::OnDead(uint32_t dwPIDA, uint32_t dwPIDB)
 
 				SendChatPacketToObserver(CHAT_TYPE_NOTICE, "%s %d : %d %s", pCharA->GetName(), m_dwSetPointOfA, m_dwSetPointOfB, pCharB->GetName());
 
-				sys_log(0, "ARENA: %s(%d) won a round vs %s(%d)",
+				metin2::log::info( "ARENA: {}({:d}) won a round vs {}({:d})",
 						pCharA->GetName(), GetPlayerAPID(), pCharB->GetName(), GetPlayerBPID());
 			}
 		}
@@ -791,7 +791,7 @@ bool CArena::OnDead(uint32_t dwPIDA, uint32_t dwPIDB)
 				pCharB->ChatPacket(CHAT_TYPE_NOTICE, LC_TEXT("%s 님이 대련에서 승리하였습니다."), pCharB->GetName());
 				SendChatPacketToObserver(CHAT_TYPE_NOTICE, LC_TEXT("%s 님이 대련에서 승리하였습니다."), pCharB->GetName());
 
-				sys_log(0, "ARENA: Duel is end. Winner(%d) Loser(%d)", GetPlayerBPID(), GetPlayerAPID());
+				metin2::log::info( "ARENA: Duel is end. Winner({:d}) Loser({:d})", GetPlayerBPID(), GetPlayerAPID());
 			}
 			else
 			{
@@ -804,13 +804,13 @@ bool CArena::OnDead(uint32_t dwPIDA, uint32_t dwPIDB)
 
 				SendChatPacketToObserver(CHAT_TYPE_NOTICE, "%s %d : %d %s", pCharA->GetName(), m_dwSetPointOfA, m_dwSetPointOfB, pCharB->GetName());
 
-				sys_log(0, "ARENA : PID(%d) won a round. Opp(%d)", GetPlayerBPID(), GetPlayerAPID());
+				metin2::log::info( "ARENA : PID({:d}) won a round. Opp({:d})", GetPlayerBPID(), GetPlayerAPID());
 			}
 		}
 		else
 		{
 			// wtf
-			sys_log(0, "ARENA : OnDead Error (%d, %d) (%d, %d)", m_dwPIDA, m_dwPIDB, dwPIDA, dwPIDB);
+			metin2::log::info( "ARENA : OnDead Error ({:d}, {:d}) ({:d}, {:d})", m_dwPIDA, m_dwPIDB, dwPIDA, dwPIDB);
 		}
 
 		int potion = quest::CQuestManager::instance().GetEventFlag("arena_potion_limit_count");
@@ -959,7 +959,7 @@ void CArena::OnDisconnect(uint32_t pid)
 		if (GetPlayerB() != nullptr)
 			GetPlayerB()->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("상대방 캐릭터가 접속을 종료하여 대련을 중지합니다."));
 
-		sys_log(0, "ARENA : Duel is end because of Opp(%d) is disconnect. MyPID(%d)", GetPlayerAPID(), GetPlayerBPID());
+		metin2::log::info( "ARENA : Duel is end because of Opp({:d}) is disconnect. MyPID({:d})", GetPlayerAPID(), GetPlayerBPID());
 		EndDuel();
 	}
 	else if (m_dwPIDB == pid)
@@ -967,7 +967,7 @@ void CArena::OnDisconnect(uint32_t pid)
 		if (GetPlayerA() != nullptr)
 			GetPlayerA()->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("상대방 캐릭터가 접속을 종료하여 대련을 중지합니다."));
 
-		sys_log(0, "ARENA : Duel is end because of Opp(%d) is disconnect. MyPID(%d)", GetPlayerBPID(), GetPlayerAPID());
+		metin2::log::info( "ARENA : Duel is end because of Opp({:d}) is disconnect. MyPID({:d})", GetPlayerBPID(), GetPlayerAPID());
 		EndDuel();
 	}
 }
@@ -1022,7 +1022,7 @@ bool CArenaManager::RegisterObserverPtr(CHARACTER * pChar, uint32_t mapIdx, uint
 
 	if (iter == m_mapArenaMap.end())
 	{
-		sys_log(0, "ARENA : Cannot find ArenaMap. %d %d %d", mapIdx, ObserverX, ObserverY);
+		metin2::log::info( "ARENA : Cannot find ArenaMap. {:d} {:d} {:d}", mapIdx, ObserverX, ObserverY);
 		return false;
 	}
 
@@ -1054,7 +1054,7 @@ bool CArena::RegisterObserverPtr(CHARACTER * pChar)
 
 	if (iter == m_mapObserver.end())
 	{
-		sys_log(0, "ARENA : not in ob list");
+		metin2::log::info( "ARENA : not in ob list");
 		return false;
 	}
 

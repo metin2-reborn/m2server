@@ -1,7 +1,7 @@
 #include "LoginData.h"
 
 #include <common/tables.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <cstdint>
 #include <cstring>
@@ -55,7 +55,7 @@ uint32_t CLoginData::GetConnectedPeerHandle()
 
 void CLoginData::SetPlay(bool bOn)
 {
-	sys_log(0, "SetPlay %s %u %s", bOn ? "on" : "off", GetKey(), m_data.login);
+	metin2::log::info( "SetPlay {} {:d} {}", bOn ? "on" : "off", GetKey(), m_data.login);
 	m_bPlay = bOn;
 }
 

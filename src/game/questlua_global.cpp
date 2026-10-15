@@ -33,7 +33,7 @@
 
 #include <common/length.h>
 #include <common/tables.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/utils.h>
 
 #include <algorithm>
@@ -141,7 +141,7 @@ namespace quest
 		}
 		else
 		{
-			quest_err("QUEST wrong skin index");
+			quest::error("QUEST wrong skin index");
 		}
 
 		return 0;
@@ -153,7 +153,7 @@ namespace quest
 		if ((n != 2 || !lua_isnumber(L, 2) || !lua_isstring(L, 1)) &&
 				(n != 3 || !lua_isstring(L, 1) || !lua_isnumber(L, 2) || !lua_isnumber(L, 3)))
 		{
-			quest_err("QUEST set_server_timer argument count wrong.");
+			quest::error("QUEST set_server_timer argument count wrong.");
 			return 0;
 		}
 
@@ -179,7 +179,7 @@ namespace quest
 		if ((n != 2 || !lua_isnumber(L, 2) || !lua_isstring(L, 1)) &&
 				(n != 3 || !lua_isstring(L, 1) || !lua_isnumber(L, 2) || !lua_isnumber(L, 3)))
 		{
-			quest_err("QUEST set_server_timer argument count wrong.");
+			quest::error("QUEST set_server_timer argument count wrong.");
 			return 0;
 		}
 		const char * name = lua_tostring(L, 1);
@@ -211,7 +211,7 @@ namespace quest
 		int n = lua_gettop(L);
 
 		if (n != 2 || !lua_isnumber(L, -1) || !lua_isstring(L, -2))
-			quest_err("QUEST set_timer argument count wrong.");
+			quest::error("QUEST set_timer argument count wrong.");
 		else
 		{
 			const char * name = lua_tostring(L, -2);
@@ -234,7 +234,7 @@ namespace quest
 	int _set_timer(lua_State* L)
 	{
 		if (lua_gettop(L) != 1 || !lua_isnumber(L, -1))
-			quest_err("QUEST invalid argument.");
+			quest::error("QUEST invalid argument.");
 		else
 		{
 			double t = lua_tonumber(L, -1);
@@ -252,7 +252,7 @@ namespace quest
 
 		if (n != 2 || !lua_isnumber(L, -1) || !lua_isstring(L, -2))
 		{
-			quest_err("QUEST set_timer argument count wrong.");
+			quest::error("QUEST set_timer argument count wrong.");
 		}
 		else
 		{
@@ -280,7 +280,7 @@ namespace quest
 		int n = lua_gettop(L);
 
 		if (n != 1 || !lua_isstring(L, -1))
-			quest_err("QUEST set_timer argument count wrong.");
+			quest::error("QUEST set_timer argument count wrong.");
 		else
 		{
 			CQuestManager & q = CQuestManager::instance();
@@ -313,11 +313,11 @@ namespace quest
 	int _raw_script(lua_State* L)
 	{
 		if ( test_server )
-			sys_log ( 0, "_raw_script : %s ", lua_tostring(L,-1));
+			metin2::log::info( "_raw_script : {} ", lua_tostring(L,-1));
 		if (lua_isstring(L, -1))
 			CQuestManager::instance().AddScript(lua_tostring(L,-1));
 		else
-			quest_err("QUEST wrong argument: questname: %s", CQuestManager::instance().GetCurrentQuestName().c_str());
+			quest::error("QUEST wrong argument: questname: {}", CQuestManager::instance().GetCurrentQuestName().c_str());
 
 		return 0;
 	}
@@ -381,7 +381,7 @@ namespace quest
 		if (!ch)
 			return 0;
 
-		sys_log(0, "QUEST: quest: %s player: %s : %s", pc->GetCurrentQuestName().c_str(), ch->GetName(), lua_tostring(L, 2));
+		metin2::log::info( "QUEST: quest: {} player: {} : {}", pc->GetCurrentQuestName().c_str(), ch->GetName(), lua_tostring(L, 2));
 
 		if (true == test_server)
 		{
@@ -406,7 +406,7 @@ namespace quest
 		if (!ch)
 			return 0;
 
-		quest_err("QUEST: quest: %s player: %s : %s", pc->GetCurrentQuestName().c_str(), ch->GetName(), lua_tostring(L, 1));
+		quest::error("QUEST: quest: {} player: {} : {}", pc->GetCurrentQuestName().c_str(), ch->GetName(), lua_tostring(L, 1));
 		ch->ChatPacket(CHAT_TYPE_INFO, "QUEST_SYSERR %s", lua_tostring(L, 1));
 		return 0;
 	}
@@ -496,7 +496,7 @@ namespace quest
 
 		if (MAX_PRIV_NUM <= type)
 		{
-			quest_err("PRIV_MANAGER: _give_char_privilege: wrong empire priv type(%u)", type);
+			quest::error("PRIV_MANAGER: _give_char_privilege: wrong empire priv type({:d})", type);
 			return 0;
 		}
 
@@ -515,15 +515,15 @@ namespace quest
 
 		if (MAX_PRIV_NUM <= type)
 		{
-			quest_err("PRIV_MANAGER: _give_empire_privilege: wrong empire priv type(%u)", type);
+			quest::error("PRIV_MANAGER: _give_empire_privilege: wrong empire priv type({:d})", type);
 			return 0;
 		}
 
 		if (ch)
-			sys_log(0, "_give_empire_privileage(empire=%d, type=%d, value=%d, time=%d), by quest, %s", 
+			metin2::log::info( "_give_empire_privileage(empire={:d}, type={:d}, value={:d}, time={:d}), by quest, {}", 
 					empire, type, value, time, ch->GetName());
 		else
-			sys_log(0, "_give_empire_privileage(empire=%d, type=%d, value=%d, time=%d), by quest, NULL",
+			metin2::log::info( "_give_empire_privileage(empire={:d}, type={:d}, value={:d}, time={:d}), by quest, NULL",
 					empire, type, value, time);
 
 		CPrivManager::instance().RequestGiveEmpirePriv(empire, type, value, time);
@@ -539,11 +539,11 @@ namespace quest
 
 		if (MAX_PRIV_NUM <= type)
 		{
-			quest_err("PRIV_MANAGER: _give_guild_privilege: wrong empire priv type(%u)", type);
+			quest::error("PRIV_MANAGER: _give_guild_privilege: wrong empire priv type({:d})", type);
 			return 0;
 		}
 
-		sys_log(0, "_give_guild_privileage(empire=%d, type=%d, value=%d, time=%d)", 
+		metin2::log::info( "_give_guild_privileage(empire={:d}, type={:d}, value={:d}, time={:d})", 
 				guild_id, type, value, time);
 
 		CPrivManager::instance().RequestGiveGuildPriv(guild_id,type,value,time);
@@ -625,7 +625,7 @@ namespace quest
 	int _get_guildid_byname( lua_State* L )
 	{
 		if ( !lua_isstring( L, 1 ) ) {
-			quest_err( "_get_guildid_byname() - invalud argument" );
+			quest::error( "_get_guildid_byname() - invalud argument" );
 			lua_pushnumber( L, 0 );
 			return 1;
 		}
@@ -736,7 +736,7 @@ namespace quest
 	{
 		if (!lua_isstring(L, 1))
 		{
-			quest_err("invalid argument");
+			quest::error("invalid argument");
 			lua_pushnumber(L, 0);
 			return 1;
 		}
@@ -751,7 +751,7 @@ namespace quest
 	{
 		if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2) || !lua_isnumber(L, 3))
 		{
-			quest_err("invalid argument");
+			quest::error("invalid argument");
 			lua_pushnumber(L, 0);
 			return 1;
 		}
@@ -765,7 +765,7 @@ namespace quest
 
 		if (test_server)
 		{
-			sys_log(0, "find_pc_cond map=%d, job=%d, level=%d~%d",
+			metin2::log::info( "find_pc_cond map={:d}, job={:d}, level={:d}~{:d}",
 					ch->GetMapIndex(),
 					uiJobFlag,
 					iMinLev, iMaxLev);
@@ -785,7 +785,7 @@ namespace quest
 	{
 		if (!lua_isnumber(L, 1))
 		{
-			quest_err("invalid argument");
+			quest::error("invalid argument");
 			lua_pushnumber(L, 0);
 			return 1;
 		}
@@ -826,7 +826,7 @@ namespace quest
 		if (L!=pqs->co) 
 		{
 			luaL_error(L, "running thread != current thread???");
-			sys_log(0,"running thread != current thread???");
+			metin2::log::info("running thread != current thread???");
 			return -1;
 		}
 		if (pPC)
@@ -834,7 +834,7 @@ namespace quest
 			const std::string stQuestName(lua_tostring(L, 1));
 			const std::string stStateName(lua_tostring(L, 2));
 			if ( test_server )
-				sys_log(0,"set_state %s %s ", stQuestName.c_str(), stStateName.c_str() );
+				metin2::log::info("set_state {} {} ", stQuestName.c_str(), stStateName.c_str() );
 			if (pPC->GetCurrentQuestName() == stQuestName)
 			{
 				pqs->st = q.GetQuestStateIndex(pPC->GetCurrentQuestName(), lua_tostring(L, -1));
@@ -866,12 +866,12 @@ namespace quest
 			lua_pushnumber(L, nRet );
 
 			if ( test_server )
-				sys_log(0,"Get_quest_state name %s value %d", stQuestName.c_str(), nRet );
+				metin2::log::info("Get_quest_state name {} value {:d}", stQuestName.c_str(), nRet );
 		}
 		else
 		{
 			if ( test_server )
-				sys_log(0,"PC == 0 ");
+				metin2::log::info("PC == 0 ");
 
 			lua_pushnumber(L, 0);
 		}
@@ -920,7 +920,7 @@ namespace quest
 					uint8_t bEmpire =  ch->GetEmpire();
 					if ( bEmpire == 0 )
 					{
-						quest_err( "Unkonwn Empire %s %d ", ch->GetName(), ch->GetPlayerID() );
+						quest::error( "Unkonwn Empire {} {:d} ", ch->GetName(), ch->GetPlayerID() );
 						return;
 					}
 
@@ -936,7 +936,7 @@ namespace quest
 
 		if ( info == nullptr )
 		{
-			quest_err( "warp_all_to_village_event> <Factor> Null pointer" );
+			quest::error( "warp_all_to_village_event> <Factor> Null pointer" );
 			return 0;
 		}
 
@@ -1073,7 +1073,7 @@ namespace quest
 
 		if ( COXEventManager::instance().AddQuiz(level, quiz, answer) == false )
 		{
-			sys_log(0, "OXEVENT : Cannot add quiz. %d %s %d", level, quiz, answer);
+			metin2::log::info( "OXEVENT : Cannot add quiz. {:d} {} {:d}", level, quiz, answer);
 		}
 
 		return 1;
@@ -1085,7 +1085,7 @@ namespace quest
 
 		if ( info == nullptr )
 		{
-			quest_err( "warp_all_to_map_my_empire_event> <Factor> Null pointer" );
+			quest::error( "warp_all_to_map_my_empire_event> <Factor> Null pointer" );
 			return 0;
 		}
 
@@ -1170,7 +1170,7 @@ namespace quest
 				}
 			}
 
-			sys_log(0, "QUEST Spawn Monstster: VNUM(%u) COUNT(%zu) isAggresive(%b)", dwVnum, SpawnCount, isAggresive);
+			metin2::log::info( "QUEST Spawn Monstster: VNUM({:d}) COUNT({:d}) isAggresive({})", dwVnum, SpawnCount, isAggresive);
 		}
 
 		lua_pushnumber(L, SpawnCount);
@@ -1238,7 +1238,7 @@ namespace quest
 
 		if (0 == mapIndex)
 		{
-			quest_err("_purge_area: cannot get a map index with (%u, %u)", x1, y1);
+			quest::error("_purge_area: cannot get a map index with ({:d}, {:d})", x1, y1);
 			return 0;
 		}
 
@@ -1301,7 +1301,7 @@ namespace quest
 
 		if (0 == mapIndex)
 		{
-			quest_err("_warp_all_in_area_to_area: cannot get a map index with (%u, %u)", from_x1, from_y1);
+			quest::error("_warp_all_in_area_to_area: cannot get a map index with ({:d}, {:d})", from_x1, from_y1);
 			lua_pushnumber(L, 0);
 			return 1;
 		}
@@ -1315,13 +1315,13 @@ namespace quest
 			pSectree->for_each(func);
 
 			lua_pushnumber(L, func.warpCount);
-			sys_log(0, "_warp_all_in_area_to_area: %zu character warp", func.warpCount);
+			metin2::log::info( "_warp_all_in_area_to_area: {:d} character warp", func.warpCount);
 			return 1;
 		}
 		else
 		{
 			lua_pushnumber(L, 0);
-			quest_err("_warp_all_in_area_to_area: no sectree");
+			quest::error("_warp_all_in_area_to_area: no sectree");
 			return 1;
 		}
 	}

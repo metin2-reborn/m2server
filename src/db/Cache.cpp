@@ -8,7 +8,7 @@
 
 #include <common/length.h>
 #include <common/tables.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <algorithm>
 #include <cstddef>
@@ -42,7 +42,7 @@ void CItemCache::Delete() {
     }
 
     if (g_test_server) {
-        sys_log(0, "ItemCache::Delete : DELETE %u", m_data.id);
+        metin2::log::info( "ItemCache::Delete : DELETE {:d}", m_data.id);
     }
 
     m_data.vnum = 0;
@@ -61,7 +61,7 @@ void CItemCache::OnFlush() {
         CDBManager::instance().ReturnQuery(szQuery, QID_ITEM_DESTROY, 0, nullptr);
 
         if (g_test_server) {
-            sys_log(0, "ItemCache::Flush : DELETE %u %s", m_data.id, szQuery);
+            metin2::log::info( "ItemCache::Flush : DELETE {:d} {}", m_data.id, szQuery);
         }
     } else {
         int32_t alSockets[ITEM_SOCKET_MAX_NUM];
@@ -134,7 +134,7 @@ void CItemCache::OnFlush() {
         snprintf(szItemQuery, sizeof(szItemQuery), "REPLACE INTO item%s (%s) VALUES(%s)", GetTablePostfix(), szColumns, szValues);
 
         if (g_test_server)
-            sys_log(0, "ItemCache::Flush :REPLACE  (%s)", szItemQuery);
+            metin2::log::info( "ItemCache::Flush :REPLACE  ({})", szItemQuery);
 
         CDBManager::instance().ReturnQuery(szItemQuery, QID_ITEM_SAVE, 0, nullptr);
 
@@ -156,7 +156,7 @@ CPlayerTableCache::~CPlayerTableCache() {
 
 void CPlayerTableCache::OnFlush() {
     if (g_test_server)
-        sys_log(0, "PlayerTableCache::Flush : %s", m_data.name);
+        metin2::log::info( "PlayerTableCache::Flush : {}", m_data.name);
 
     const std::string query = CreatePlayerSaveQuery(&m_data);
     CDBManager::instance().ReturnQuery(query.c_str(), QID_PLAYER_SAVE, 0, nullptr);
@@ -189,7 +189,7 @@ void CItemPriceListTableCache::UpdateList(const TItemPriceListTable *pUpdateList
     //
 
     if (pUpdateList->byCount > SHOP_PRICELIST_MAX_NUM) {
-        sys_err("Count overflow!");
+        metin2::log::error("Count overflow!");
         return;
     }
 
@@ -216,8 +216,8 @@ void CItemPriceListTableCache::UpdateList(const TItemPriceListTable *pUpdateList
 
     m_bNeedQuery = true;
 
-    sys_log(0,
-        "ItemPriceListTableCache::UpdateList : OwnerID[%u] Update [%u] Items, Delete [%u] Items, Total [%u] Items",
+    metin2::log::info(
+        "ItemPriceListTableCache::UpdateList : OwnerID[{:d}] Update [{:d}] Items, Delete [{:d}] Items, Total [{:d}] Items",
         m_data.dwOwnerID, pUpdateList->byCount, nDeletedNum, m_data.byCount);
 }
 
@@ -243,7 +243,7 @@ void CItemPriceListTableCache::OnFlush() {
         CDBManager::instance().ReturnQuery(szQuery, QID_ITEMPRICE_SAVE, 0, nullptr);
     }
 
-    sys_log(0, "ItemPriceListTableCache::Flush : OwnerID[%u] Update [%u]Items", m_data.dwOwnerID, m_data.byCount);
+    metin2::log::info( "ItemPriceListTableCache::Flush : OwnerID[{:d}] Update [{:d}]Items", m_data.dwOwnerID, m_data.byCount);
 
     m_bNeedQuery = false;
 }

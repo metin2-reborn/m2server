@@ -3,7 +3,7 @@
 #include "questmanager.h"
 #include "SpeedServer.h"
 
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <cstdint>
 #include <list>
@@ -16,14 +16,14 @@ namespace quest
 	{
 		if (!lua_isnumber(L,1) || !lua_isnumber(L,2))
 		{
-			sys_err("wrong argument");
+			metin2::log::error("wrong argument");
 		}
 
 		uint8_t empire = lua_tonumber(L,1);
 
 		if (empire > 3)
 		{
-			sys_err("invalid empire");
+			metin2::log::error("invalid empire");
 			return 0;
 		}
 
@@ -31,11 +31,11 @@ namespace quest
 
 		if (wday < 0 || wday > 6)
 		{
-			sys_err ("wrong day");
+			metin2::log::error("wrong day");
 			return 0;
 		}
 
-		sys_log (0, "empire %d wday %d",empire, wday);
+		metin2::log::info( "empire {:d} wday {:d}",empire, wday);
 
 		std::list <HME> time_lst = CSpeedServerManager::instance().GetWdayExpTableOfEmpire(empire, wday);
 
@@ -43,7 +43,7 @@ namespace quest
 		for (std::list <HME>::iterator it = time_lst.begin();
 				it != time_lst.end(); it++)
 		{
-			sys_log (0, "%d",i);
+			metin2::log::info( "{:d}",i);
 			lua_pushnumber (L, it->hour);
 			lua_pushnumber (L, it->min);
 			lua_pushnumber (L, it->exp);
@@ -70,14 +70,14 @@ namespace quest
 	{
 		if (!lua_isnumber (L, 1) || !lua_isnumber (L, 2))
 		{
-			sys_err ("invalid argument.");
+			metin2::log::error("invalid argument.");
 			return 0;
 		}
 
 		uint8_t empire = lua_tonumber (L, 1);
 		int wday = lua_tonumber (L, 2);
 		
-		sys_log (0, "init_wday %d %d",empire, wday);
+		metin2::log::info( "init_wday {:d} {:d}",empire, wday);
 
 		CSpeedServerManager::instance().InitWdayExpTableOfEmpire (empire, wday - 1);
 		
@@ -88,20 +88,20 @@ namespace quest
 	{
 		if (!lua_isnumber(L,1) || !lua_isnumber(L,2) || !lua_isnumber(L,3) || !lua_isnumber(L,4))
 		{
-			sys_err("wrong argument");
+			metin2::log::error("wrong argument");
 		}
 
 		uint8_t empire = lua_tonumber(L,1);
 
 		if (empire > 4)
 		{
-			sys_err("invalid empire");
+			metin2::log::error("invalid empire");
 			return 0;
 		}
 
 		Date date = Date (lua_tonumber(L,2) - 1900, lua_tonumber(L,3) - 1, lua_tonumber(L,4));
 		
-		sys_log (0, "empire %d date %d %d %d", empire, date.year, date.mon, date.day);
+		metin2::log::info( "empire {:d} date {:d} {:d} {:d}", empire, date.year, date.mon, date.day);
 		
 		bool is_exist;
 
@@ -130,7 +130,7 @@ namespace quest
 		if (!lua_isnumber(L,1) || !lua_isnumber(L,2) || !lua_isnumber(L,3) || !lua_isnumber(L,4) 
 				|| !lua_isnumber(L,5) || !lua_isnumber(L,6) || !lua_isnumber(L,7))
 		{
-			sys_err("wrong argument");
+			metin2::log::error("wrong argument");
 		}
 
 		uint8_t empire = lua_tonumber (L, 1);
@@ -139,7 +139,7 @@ namespace quest
 		uint8_t end_minite = lua_tonumber(L, 6);
 		int exp_percent = lua_tonumber(L, 7);
 
-		sys_log (0,"h %d m %d e %d", end_hour, end_minite, exp_percent);
+		metin2::log::info("h {:d} m {:d} e {:d}", end_hour, end_minite, exp_percent);
 
 		CSpeedServerManager::instance().SetHolidayExpTableOfEmpire (empire, date, HME (end_hour, end_minite, exp_percent));
 
@@ -150,7 +150,7 @@ namespace quest
 	{
 		if (!lua_isnumber(L,1) || !lua_isnumber(L,2) || !lua_isnumber(L,3) || !lua_isnumber(L,4))
 		{
-			sys_err("wrong argument");
+			metin2::log::error("wrong argument");
 		}
 
 		uint8_t empire = lua_tonumber (L, 1);
@@ -165,7 +165,7 @@ namespace quest
 	{
 		if (!lua_isnumber (L, 1))
 		{
-			sys_err ("invalid empire");
+			metin2::log::error("invalid empire");
 			return 0;
 		}
 		uint8_t empire = lua_tonumber(L, 1);
@@ -181,7 +181,7 @@ namespace quest
 		lua_pushnumber (L, duration);
 		lua_pushboolean (L, is_change);
 
-		sys_log (0, "empire : %d is_change : %d",empire, is_change);
+		metin2::log::info( "empire : {:d} is_change : {:d}",empire, is_change);
 
 		return 5;
 	}

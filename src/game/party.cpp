@@ -18,7 +18,7 @@
 
 #include <common/length.h>
 #include <common/tables.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/utils.h>
 
 #include <algorithm>
@@ -100,7 +100,7 @@ void CPartyManager::P2PJoinParty(uint32_t leader, uint32_t pid, uint8_t role)
 	}
 	else
 	{
-		sys_err("No such party with leader [%d]", leader);
+		metin2::log::error("No such party with leader [{:d}]", leader);
 	}
 }
 
@@ -114,7 +114,7 @@ void CPartyManager::P2PQuitParty(uint32_t pid)
 	}
 	else
 	{
-		sys_err("No such party with member [%d]", pid);
+		metin2::log::error("No such party with member [{:d}]", pid);
 	}
 }
 
@@ -145,7 +145,7 @@ void CPartyManager::P2PDeleteParty(uint32_t pid)
 		delete it->second;
 	}
 	else
-		sys_err("PARTY P2PDeleteParty Cannot find party [%u]", pid);
+		metin2::log::error("PARTY P2PDeleteParty Cannot find party [{:d}]", pid);
 }
 
 CParty * CPartyManager::CreateParty(CHARACTER * pLeader)
@@ -162,7 +162,7 @@ CParty * CPartyManager::CreateParty(CHARACTER * pLeader)
 
 		db_clientdesc->DBPacket(HEADER_GD_PARTY_CREATE, 0, &p, sizeof(TPacketPartyCreate));
 
-		sys_log(0, "PARTY: Create %s pid %u", pLeader->GetName(), pLeader->GetPlayerID());
+		metin2::log::info( "PARTY: Create {} pid {:d}", pLeader->GetName(), pLeader->GetPlayerID());
 		pParty->SetPCParty(true);
 		pParty->Join(pLeader->GetPlayerID());
 
@@ -234,7 +234,7 @@ EVENTFUNC(party_update_event)
 
 	if ( info == nullptr )
 	{
-		sys_err( "party_update_event> <Factor> Null pointer" );
+		metin2::log::error( "party_update_event> <Factor> Null pointer" );
 		return 0;
 	}
 
@@ -264,7 +264,7 @@ CParty::~CParty()
 
 void CParty::Initialize()
 {
-	sys_log(2, "Party::Initialize");
+	metin2::log::debug( "Party::Initialize");
 
 	m_iExpDistributionMode = PARTY_EXP_DISTRIBUTION_NON_PARITY;
 	m_pkChrExpCentralize = nullptr;
@@ -301,7 +301,7 @@ void CParty::Initialize()
 
 void CParty::Destroy()
 {
-	sys_log(2, "Party::Destroy");
+	metin2::log::debug( "Party::Destroy");
 
 	// If the party was created by a PC, the PID must be removed from the party manager's map.
 	if (m_bPCParty)
@@ -414,7 +414,7 @@ void CParty::P2PJoin(uint32_t dwPID)
 
 			if (ch)
 			{
-				sys_log(0, "PARTY: Join %s pid %u leader %u", ch->GetName(), dwPID, m_dwLeaderPID);
+				metin2::log::info( "PARTY: Join {} pid {:d} leader {:d}", ch->GetName(), dwPID, m_dwLeaderPID);
 				Member.strName = ch->GetName();
 
 				if (Member.bRole == PARTY_ROLE_LEADER)
@@ -428,11 +428,11 @@ void CParty::P2PJoin(uint32_t dwPID)
 				else if (pcci->bChannel == g_bChannel)
 					Member.strName = pcci->szName;
 				else
-					sys_err("member is not in same channel PID: %u channel %d, this channel %d", dwPID, pcci->bChannel, g_bChannel);
+					metin2::log::error("member is not in same channel PID: {:d} channel {:d}, this channel {:d}", dwPID, pcci->bChannel, g_bChannel);
 			}
 		}
 
-		sys_log(2, "PARTY[%d] MemberCountChange %d -> %d", GetLeaderPID(), GetMemberCount(), GetMemberCount()+1);
+		metin2::log::debug( "PARTY[{:d}] MemberCountChange {:d} -> {:d}", GetLeaderPID(), GetMemberCount(), GetMemberCount()+1);
 
 		m_memberMap.insert(TMemberMap::value_type(dwPID, Member));
 
@@ -492,7 +492,7 @@ void CParty::P2PQuit(uint32_t dwPID)
 
 	m_memberMap.erase(it);
 
-	sys_log(2, "PARTY[%d] MemberCountChange %d -> %d", GetLeaderPID(), GetMemberCount(), GetMemberCount() - 1);
+	metin2::log::debug( "PARTY[{:d}] MemberCountChange {:d} -> {:d}", GetLeaderPID(), GetMemberCount(), GetMemberCount() - 1);
 
 	if (bRole < PARTY_ROLE_MAX_NUM)
 	{
@@ -500,7 +500,7 @@ void CParty::P2PQuit(uint32_t dwPID)
 	}
 	else
 	{
-		sys_err("ROLE_COUNT_QUIT_ERROR: INDEX(%d) > MAX(%d)", bRole, PARTY_ROLE_MAX_NUM);
+		metin2::log::error("ROLE_COUNT_QUIT_ERROR: INDEX({:d}) > MAX({:d})", bRole, PARTY_ROLE_MAX_NUM);
 	}
 
 	if (ch)
@@ -544,7 +544,7 @@ void CParty::Link(CHARACTER * pkChr)
 
 	if (it == m_memberMap.end())
 	{
-		sys_err("%s is not member of this party", pkChr->GetName());
+		metin2::log::error("{} is not member of this party", pkChr->GetName());
 		return;
 	}
 
@@ -559,7 +559,7 @@ void CParty::Link(CHARACTER * pkChr)
 	if (it->second.bRole == PARTY_ROLE_LEADER)
 		m_pkChrLeader = pkChr;
 
-	sys_log(2, "PARTY[%d] %s linked to party", GetLeaderPID(), pkChr->GetName());
+	metin2::log::debug( "PARTY[{:d}] {} linked to party", GetLeaderPID(), pkChr->GetName());
 
 	it->second.pCharacter = pkChr;
 	pkChr->SetParty(this);
@@ -607,7 +607,7 @@ void CParty::P2PSetMemberLevel(uint32_t pid, uint8_t level)
 
 	TMemberMap::iterator it;
 
-	sys_log(0, "PARTY P2PSetMemberLevel leader %d pid %d level %d", GetLeaderPID(), pid, level);
+	metin2::log::info( "PARTY P2PSetMemberLevel leader {:d} pid {:d} level {:d}", GetLeaderPID(), pid, level);
 
 	it = m_memberMap.find(pid);
 	if (it != m_memberMap.end())
@@ -638,7 +638,7 @@ void CParty::Unlink(CHARACTER * pkChr)
 
 	if (it == m_memberMap.end())
 	{
-		sys_err("%s is not member of this party", pkChr->GetName());
+		metin2::log::error("{} is not member of this party", pkChr->GetName());
 		return;
 	}
 
@@ -825,7 +825,7 @@ void CParty::SendPartyInfoOneToAll(CHARACTER * ch)
 	{
 		if ((it->second.pCharacter) && (it->second.pCharacter->GetDesc()))
 		{
-			sys_log(2, "PARTY send info %s[%d] to %s[%d]", ch->GetName(), (uint32_t)ch->GetVID(), it->second.pCharacter->GetName(), (uint32_t)it->second.pCharacter->GetVID());
+			metin2::log::debug( "PARTY send info {}[{:d}] to {}[{:d}]", ch->GetName(), (uint32_t)ch->GetVID(), it->second.pCharacter->GetName(), (uint32_t)it->second.pCharacter->GetVID());
 			it->second.pCharacter->GetDesc()->Packet(&p, sizeof(p));
 		}
 	}
@@ -852,7 +852,7 @@ void CParty::SendPartyInfoAllToOne(CHARACTER * ch)
 		}
 
 		it->second.pCharacter->BuildUpdatePartyPacket(p);
-		sys_log(2, "PARTY send info %s[%d] to %s[%d]", it->second.pCharacter->GetName(), (uint32_t)it->second.pCharacter->GetVID(), ch->GetName(), (uint32_t)ch->GetVID());
+		metin2::log::debug( "PARTY send info {}[{:d}] to {}[{:d}]", it->second.pCharacter->GetName(), (uint32_t)it->second.pCharacter->GetVID(), ch->GetName(), (uint32_t)ch->GetVID());
 		ch->GetDesc()->Packet(&p, sizeof(p));
 	}
 }
@@ -861,7 +861,7 @@ void CParty::SendMessage(CHARACTER * ch, uint8_t bMsg, uint32_t dwArg1, uint32_t
 {
 	if (ch->GetParty() != this)
 	{
-		sys_err("%s is not member of this party %p", ch->GetName(), this);
+		metin2::log::error("{} is not member of this party {}", ch->GetName(), static_cast<const void *>(this));
 		return;
 	}
 
@@ -892,7 +892,7 @@ void CParty::SendMessage(CHARACTER * ch, uint8_t bMsg, uint32_t dwArg1, uint32_t
 						if (pkChr->Goto(x, y))
 						{
 							CHARACTER * victim = pkChr->GetVictim();
-							sys_log(0, "%s %p RETURN victim %p", pkChr->GetName(), pkChr, victim);
+							metin2::log::info( "{} {} RETURN victim {}", pkChr->GetName(), static_cast<const void *>(pkChr), static_cast<const void *>(victim));
 							pkChr->SendMovePacket(FUNC_WAIT, 0, 0, 0, 0);
 						}
 					}
@@ -987,7 +987,7 @@ bool CParty::SetRole(uint32_t dwPID, uint8_t bRole, bool bSet)
 		}
 		else
 		{
-			sys_err("ROLE_COUNT_INC_ERROR: INDEX(%d) > MAX(%d)", bRole, PARTY_ROLE_MAX_NUM);
+			metin2::log::error("ROLE_COUNT_INC_ERROR: INDEX({:d}) > MAX({:d})", bRole, PARTY_ROLE_MAX_NUM);
 		}
 	}
 	else
@@ -1009,7 +1009,7 @@ bool CParty::SetRole(uint32_t dwPID, uint8_t bRole, bool bSet)
 		}
 		else
 		{
-			sys_err("ROLE_COUNT_DEC_ERROR: INDEX(%d) > MAX(%d)", bRole, PARTY_ROLE_MAX_NUM);
+			metin2::log::error("ROLE_COUNT_DEC_ERROR: INDEX({:d}) > MAX({:d})", bRole, PARTY_ROLE_MAX_NUM);
 		}
 	}
 
@@ -1286,7 +1286,7 @@ void CParty::ComputeRolePoint(CHARACTER * ch, uint8_t bRole, bool bAdd)
 
 void CParty::Update()
 {
-	sys_log(1, "PARTY::Update");
+	metin2::log::debug( "PARTY::Update");
 
 	CHARACTER * l = GetLeaderCharacter();
 
@@ -1568,7 +1568,7 @@ void CParty::SetParameter(int iMode)
 {
 	if (iMode >= PARTY_EXP_DISTRIBUTION_MAX_NUM)
 	{
-		sys_err("Invalid exp distribution mode %d", iMode);
+		metin2::log::error("Invalid exp distribution mode {:d}", iMode);
 		return;
 	}
 

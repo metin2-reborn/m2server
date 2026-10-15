@@ -21,7 +21,7 @@
 #include <common/length.h>
 #include <common/tables.h>
 #include <libgame/grid.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <algorithm>
 #include <iterator>
@@ -129,7 +129,7 @@ bool CShopManager::StartShopping(CHARACTER * pkChr, CHARACTER * pkChrShopKeeper,
 
 	if (distance >= SHOP_MAX_DISTANCE)
 	{
-		sys_log(1, "SHOP: TOO_FAR: %s distance %d", pkChr->GetName(), distance);
+		metin2::log::debug( "SHOP: TOO_FAR: {} distance {:d}", pkChr->GetName(), distance);
 		return false;
 	}
 
@@ -142,7 +142,7 @@ bool CShopManager::StartShopping(CHARACTER * pkChr, CHARACTER * pkChrShopKeeper,
 
 	if (!pkShop)
 	{
-		sys_log(1, "SHOP: NO SHOP");
+		metin2::log::debug( "SHOP: NO SHOP");
 		return false;
 	}
 
@@ -153,7 +153,7 @@ bool CShopManager::StartShopping(CHARACTER * pkChr, CHARACTER * pkChrShopKeeper,
 
 	pkShop->AddGuest(pkChr, pkChrShopKeeper->GetVID(), bOtherEmpire);
 	pkChr->SetShopOwner(pkChrShopKeeper);
-	sys_log(0, "SHOP: START: %s", pkChr->GetName());
+	metin2::log::info( "SHOP: START: {}", pkChr->GetName());
 	return true;
 }
 
@@ -208,7 +208,7 @@ void CShopManager::StopShopping(CHARACTER * ch)
 	//END_PREVENT_ITEM_COPY
 	
 	shop->RemoveGuest(ch);
-	sys_log(0, "SHOP: END: %s", ch->GetName());
+	metin2::log::info( "SHOP: END: {}", ch->GetName());
 }
 
 // Buy item
@@ -312,19 +312,19 @@ void CShopManager::Sell(CHARACTER * ch, uint8_t bCell, uint8_t bCount)
 	dwPrice -= dwTax;
 
 	if (test_server)
-		sys_log(0, "Sell Item price id %d %s itemid %d", ch->GetPlayerID(), ch->GetName(), item->GetID());
+		metin2::log::info( "Sell Item price id {:d} {} itemid {:d}", ch->GetPlayerID(), ch->GetName(), item->GetID());
 
 	const int64_t nTotalMoney = static_cast<int64_t>(ch->GetGold()) + static_cast<int64_t>(dwPrice);
 
 	if (GOLD_MAX <= nTotalMoney)
 	{
-		sys_err("[OVERFLOW_GOLD] id %u name %s gold %u", ch->GetPlayerID(), ch->GetName(), ch->GetGold());
+		metin2::log::error("[OVERFLOW_GOLD] id {:d} name {} gold {:d}", ch->GetPlayerID(), ch->GetName(), ch->GetGold());
 		ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("20억냥이 초과하여 물품을 팔수 없습니다."));
 		return;
 	}
 
 	// 20050802.myevan.Added item ID to the shop sale log
-	sys_log(0, "SHOP: SELL: %s item name: %s(x%d):%u price: %u", ch->GetName(), item->GetName(), bCount, item->GetID(), dwPrice);
+	metin2::log::info( "SHOP: SELL: {} item name: {}(x{:d}):{:d} price: {:d}", ch->GetName(), item->GetName(), bCount, item->GetID(), dwPrice);
 
 	if (iVal > 0)
 		ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("판매금액의 %d %% 가 세금으로 나가게됩니다"), iVal);
@@ -361,19 +361,19 @@ bool ConvertToShopItemTable(CGroupNode* pNode, TShopTableEx& shopTable)
 {
 	if (!pNode->GetValue("vnum", 0, shopTable.dwVnum))
 	{
-		sys_err("Group %s does not have vnum.", pNode->GetNodeName().c_str());
+		metin2::log::error("Group {} does not have vnum.", pNode->GetNodeName().c_str());
 		return false;
 	}
 
 	if (!pNode->GetValue("name", 0, shopTable.name))
 	{
-		sys_err("Group %s does not have name.", pNode->GetNodeName().c_str());
+		metin2::log::error("Group {} does not have name.", pNode->GetNodeName().c_str());
 		return false;
 	}
 	
 	if (shopTable.name.length() >= SHOP_TAB_NAME_MAX)
 	{
-		sys_err("Shop name length must be less than %d. Error in Group %s, name %s", SHOP_TAB_NAME_MAX, pNode->GetNodeName().c_str(), shopTable.name.c_str());
+		metin2::log::error("Shop name length must be less than {:d}. Error in Group {}, name {}", SHOP_TAB_NAME_MAX, pNode->GetNodeName().c_str(), shopTable.name.c_str());
 		return false;
 	}
 
@@ -393,14 +393,14 @@ bool ConvertToShopItemTable(CGroupNode* pNode, TShopTableEx& shopTable)
 	}
 	else
 	{
-		sys_err("Group %s has undefine cointype(%s).", pNode->GetNodeName().c_str(), stCoinType.c_str());
+		metin2::log::error("Group {} has undefine cointype({}).", pNode->GetNodeName().c_str(), stCoinType.c_str());
 		return false;
 	}
 
 	CGroupNode* pItemGroup = pNode->GetChildNode("items");
 	if (!pItemGroup)
 	{
-		sys_err("Group %s does not have 'group items'.", pNode->GetNodeName().c_str());
+		metin2::log::error("Group {} does not have 'group items'.", pNode->GetNodeName().c_str());
 		return false;
 	}
 
@@ -408,7 +408,7 @@ bool ConvertToShopItemTable(CGroupNode* pNode, TShopTableEx& shopTable)
 	std::vector <TShopItemTable> shopItems(itemGroupSize);
 	if (itemGroupSize >= SHOP_HOST_ITEM_MAX_NUM)
 	{
-		sys_err("count(%d) of rows of group items of group %s must be smaller than %d", itemGroupSize, pNode->GetNodeName().c_str(), SHOP_HOST_ITEM_MAX_NUM);
+		metin2::log::error("count({:d}) of rows of group items of group {} must be smaller than {:d}", itemGroupSize, pNode->GetNodeName().c_str(), SHOP_HOST_ITEM_MAX_NUM);
 		return false;
 	}
 
@@ -416,18 +416,18 @@ bool ConvertToShopItemTable(CGroupNode* pNode, TShopTableEx& shopTable)
 	{
 		if (!pItemGroup->GetValue(i, "vnum", shopItems[i].vnum))
 		{
-			sys_err("row(%d) of group items of group %s does not have vnum column", i, pNode->GetNodeName().c_str());
+			metin2::log::error("row({:d}) of group items of group {} does not have vnum column", i, pNode->GetNodeName().c_str());
 			return false;
 		}
 		
 		if (!pItemGroup->GetValue(i, "count", shopItems[i].count))
 		{
-			sys_err("row(%d) of group items of group %s does not have count column", i, pNode->GetNodeName().c_str());
+			metin2::log::error("row({:d}) of group items of group {} does not have count column", i, pNode->GetNodeName().c_str());
 			return false;
 		}
 		if (!pItemGroup->GetValue(i, "price", shopItems[i].price))
 		{
-			sys_err("row(%d) of group items of group %s does not have price column", i, pNode->GetNodeName().c_str());
+			metin2::log::error("row({:d}) of group items of group {} does not have price column", i, pNode->GetNodeName().c_str());
 			return false;
 		}
 	}
@@ -456,7 +456,7 @@ bool ConvertToShopItemTable(CGroupNode* pNode, TShopTableEx& shopTable)
 		TItemTable * item_table = ITEM_MANAGER::instance().GetTable(shopItems[i].vnum);
 		if (!item_table)
 		{
-			sys_err("vnum(%d) of group items of group %s does not exist", shopItems[i].vnum, pNode->GetNodeName().c_str());
+			metin2::log::error("vnum({:d}) of group items of group {} does not exist", shopItems[i].vnum, pNode->GetNodeName().c_str());
 			return false;
 		}
 
@@ -482,14 +482,14 @@ bool CShopManager::ReadShopTableEx(const char* stFileName)
 	CGroupTextParseTreeLoader loader;
 	if (!loader.Load(stFileName))
 	{
-		sys_err("%s Load fail.", stFileName);
+		metin2::log::error("{} Load fail.", stFileName);
 		return false;
 	}
 
 	CGroupNode* pShopNPCGroup = loader.GetGroup("shopnpc");
 	if (nullptr == pShopNPCGroup)
 	{
-		sys_err("Group ShopNPC is not exist.");
+		metin2::log::error("Group ShopNPC is not exist.");
 		return false;
 	}
 
@@ -501,25 +501,25 @@ bool CShopManager::ReadShopTableEx(const char* stFileName)
 		std::string shopName;
 		if (!pShopNPCGroup->GetValue(i, "npc", npcVnum) || !pShopNPCGroup->GetValue(i, "group", shopName))
 		{
-			sys_err("Invalid row(%d). Group ShopNPC rows must have 'npc', 'group' columns", i);
+			metin2::log::error("Invalid row({:d}). Group ShopNPC rows must have 'npc', 'group' columns", i);
 			return false;
 		}
 		std::transform(shopName.begin(), shopName.end(), shopName.begin(), (int(*)(int))std::tolower);
 		CGroupNode* pShopGroup = loader.GetGroup(shopName.c_str());
 		if (!pShopGroup)
 		{
-			sys_err("Group %s is not exist.", shopName.c_str());
+			metin2::log::error("Group {} is not exist.", shopName.c_str());
 			return false;
 		}
 		TShopTableEx table;
 		if (!ConvertToShopItemTable(pShopGroup, table))
 		{
-			sys_err("Cannot read Group %s.", shopName.c_str());
+			metin2::log::error("Cannot read Group {}.", shopName.c_str());
 			return false;
 		}
 		if (m_map_pkShopByNPCVnum.find(npcVnum) != m_map_pkShopByNPCVnum.end())
 		{
-			sys_err("%d cannot have both original shop and extended shop", npcVnum);
+			metin2::log::error("{:d} cannot have both original shop and extended shop", npcVnum);
 			return false;
 		}
 		
@@ -532,7 +532,7 @@ bool CShopManager::ReadShopTableEx(const char* stFileName)
 		TShopTableEx& table = it->second;
 		if (m_map_pkShop.find(table.dwVnum) != m_map_pkShop.end())
 		{
-			sys_err("Shop vnum(%d) already exists", table.dwVnum);
+			metin2::log::error("Shop vnum({:d}) already exists", table.dwVnum);
 			return false;
 		}
 		TShopMap::iterator shop_it = m_map_pkShopByNPCVnum.find(npcVnum);
@@ -549,20 +549,20 @@ bool CShopManager::ReadShopTableEx(const char* stFileName)
 			pkShopEx = dynamic_cast <CShopEx*> (shop_it->second);
 			if (nullptr == pkShopEx)
 			{
-				sys_err("WTF!!! It can't be happend. NPC(%d) Shop is not extended version.", shop_it->first);
+				metin2::log::error("WTF!!! It can't be happend. NPC({:d}) Shop is not extended version.", shop_it->first);
 				return false;
 			}
 		}
 
 		if (pkShopEx->GetTabCount() >= SHOP_TAB_COUNT_MAX)
 		{
-			sys_err("ShopEx cannot have tab more than %d", SHOP_TAB_COUNT_MAX);
+			metin2::log::error("ShopEx cannot have tab more than {:d}", SHOP_TAB_COUNT_MAX);
 			return false;
 		}
 
 		if (pkShopEx->GetVnum() != 0 && m_map_pkShop.find(pkShopEx->GetVnum()) != m_map_pkShop.end())
 		{
-			sys_err("Shop vnum(%d) already exist.", pkShopEx->GetVnum());
+			metin2::log::error("Shop vnum({:d}) already exist.", pkShopEx->GetVnum());
 			return false;
 		}
 		m_map_pkShop.insert(TShopMap::value_type (pkShopEx->GetVnum(), pkShopEx));

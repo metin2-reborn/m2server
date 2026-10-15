@@ -22,7 +22,7 @@
 #include "xmas_event.h"
 
 #include <common/length.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/main.h>
 #include <libthecore/utils.h>
 
@@ -134,8 +134,8 @@ namespace
 				{
 					CAffect * pkAff = pkChr->FindAffect(AFFECT_WAR_FLAG);
 
-					sys_log(0, "FlagBase %s dist %d aff %p flag gid %d chr gid %u",
-							pkChr->GetName(), iDist, pkAff, m_pkChr->GetPoint(POINT_STAT),
+					metin2::log::info( "FlagBase {} dist {:d} aff {} flag gid {:d} chr gid {:d}",
+							pkChr->GetName(), iDist, static_cast<const void *>(pkAff), m_pkChr->GetPoint(POINT_STAT),
 							pkChr->GetGuild()->GetID());
 
 					if (pkAff)
@@ -312,7 +312,7 @@ void CHARACTER::CowardEscape()
 			if (Goto(iDestX, iDestY))
 				SendMovePacket(FUNC_WAIT, 0, 0, 0, 0);
 
-			sys_log(0, "WAEGU move to %d %d (far)", iDestX, iDestY);
+			metin2::log::info( "WAEGU move to {:d} {:d} (far)", iDestX, iDestY);
 			return;
 		}
 }
@@ -851,7 +851,7 @@ void CHARACTER::StateMove()
 	{
 		if (IsPC())
 		{
-			sys_log(1, "도착 %s %d %d", GetName(), x, y);
+			metin2::log::debug( "도착 {} {:d} {:d}", GetName(), x, y);
 			GotoState(m_stateIdle);
 			StopStaminaConsume();
 		}
@@ -882,7 +882,7 @@ void CHARACTER::StateBattle()
 {
 	if (IsStone())
 	{
-		sys_err("Stone must not use battle state (name %s)", GetName());
+		metin2::log::error("Stone must not use battle state (name {})", GetName());
 		return;
 	}
 
@@ -954,7 +954,7 @@ void CHARACTER::StateBattle()
 
 								if (Goto((int32_t) dx, (int32_t) dy))
 								{
-									sys_log(0, "KILL_AND_GO: %s distance %.1f", GetName(), fDist);
+									metin2::log::info( "KILL_AND_GO: {} distance {:.1f}", GetName(), fDist);
 									SendMovePacket(FUNC_WAIT, 0, 0, 0, 0);
 								}
 							}
@@ -1074,7 +1074,7 @@ void CHARACTER::StateBattle()
 					m_dwStateDuration = (uint32_t) (fDuration == 0.0f ? PASSES_PER_SEC(2) : PASSES_PER_SEC(fDuration));
 
 					if (test_server)
-						sys_log(0, "USE_MOB_SKILL: %s idx %u motion %u duration %.0f", GetName(), iSkillIdx, MOTION_SPECIAL_1 + iSkillIdx, fDuration);
+						metin2::log::info( "USE_MOB_SKILL: {} idx {:d} motion {:d} duration {:.0f}", GetName(), iSkillIdx, MOTION_SPECIAL_1 + iSkillIdx, fDuration);
 
 					return;
 				}

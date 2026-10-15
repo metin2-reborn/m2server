@@ -17,7 +17,7 @@
 #include "typedef.h"
 
 #include <common/length.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/utils.h>
 
 #include <algorithm>
@@ -47,7 +47,7 @@ EVENTFUNC(war_begin_event)
 
 	if ( info == nullptr )
 	{
-		sys_err( "war_begin_event> <Factor> Null pointer" );
+		metin2::log::error( "war_begin_event> <Factor> Null pointer" );
 		return 0;
 	}
 
@@ -62,7 +62,7 @@ EVENTFUNC(war_end_event)
 
 	if ( info == nullptr )
 	{
-		sys_err( "war_end_event> <Factor> Null pointer" );
+		metin2::log::error( "war_end_event> <Factor> Null pointer" );
 		return 0;
 	}
 
@@ -88,7 +88,7 @@ EVENTFUNC(war_timeout_event)
 
 	if ( info == nullptr )
 	{
-		sys_err( "war_timeout_event> <Factor> Null pointer" );
+		metin2::log::error( "war_timeout_event> <Factor> Null pointer" );
 		return 0;
 	}
 
@@ -153,7 +153,7 @@ CWarMap::~CWarMap()
 	event_cancel(&m_pkTimeoutEvent);
 	event_cancel(&m_pkResetFlagEvent);
 
-	sys_log(0, "WarMap::~WarMap : map index %d", GetMapIndex());
+	metin2::log::info( "WarMap::~WarMap : map index {:d}", GetMapIndex());
 
 	auto it = m_set_pkChr.begin();
 
@@ -163,7 +163,7 @@ CWarMap::~CWarMap()
 
 		if (ch->GetDesc())
 		{
-			sys_log(0, "WarMap::~WarMap : disconnecting %s", ch->GetName());
+			metin2::log::info( "WarMap::~WarMap : disconnecting {}", ch->GetName());
 			DESC_MANAGER::instance().DestroyDesc(ch->GetDesc());
 		}
 	}
@@ -353,7 +353,7 @@ void CWarMap::IncMember(CHARACTER * ch)
 	if (!ch->IsPC())
 		return;
 
-	sys_log(0, "WarMap::IncMember");
+	metin2::log::info( "WarMap::IncMember");
 	uint32_t gid = 0;
 
 	if (ch->GetGuild())
@@ -382,14 +382,14 @@ void CWarMap::IncMember(CHARACTER * ch)
 
 		event_cancel(&m_pkTimeoutEvent);
 
-		sys_log(0, "WarMap +m %u(cur:%d, acc:%d) vs %u(cur:%d, acc:%d)",
+		metin2::log::info( "WarMap +m {:d}(cur:{:d}, acc:{:d}) vs {:d}(cur:{:d}, acc:{:d})",
 				m_TeamData[0].dwID, m_TeamData[0].GetCurJointerCount(), m_TeamData[0].GetAccumulatedJoinerCount(),
 				m_TeamData[1].dwID, m_TeamData[1].GetCurJointerCount(), m_TeamData[1].GetAccumulatedJoinerCount());
 	}
 	else
 	{
 		++m_iObserverCount; 
-		sys_log(0, "WarMap +o %d", m_iObserverCount);
+		metin2::log::info( "WarMap +o {:d}", m_iObserverCount);
 		ch->SetObserverMode(true);
 		ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("관전 모드로 길드전에 참가하셨습니다."));
 		ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("자신을 선택하시면 밖으로 나갈 수 있는 <관람 종료> 버튼이 나옵니다."));
@@ -411,7 +411,7 @@ void CWarMap::DecMember(CHARACTER * ch)
 	if (!ch->IsPC())
 		return;
 
-	sys_log(0, "WarMap::DecMember");
+	metin2::log::info( "WarMap::DecMember");
 	uint32_t gid = 0;
 
 	if (ch->GetGuild())
@@ -439,7 +439,7 @@ void CWarMap::DecMember(CHARACTER * ch)
 			}
 		}
 
-		sys_log(0, "WarMap -m %u(cur:%d, acc:%d) vs %u(cur:%d, acc:%d)",
+		metin2::log::info( "WarMap -m {:d}(cur:{:d}, acc:{:d}) vs {:d}(cur:{:d}, acc:{:d})",
 				m_TeamData[0].dwID, m_TeamData[0].GetCurJointerCount(), m_TeamData[0].GetAccumulatedJoinerCount(),
 				m_TeamData[1].dwID, m_TeamData[1].GetCurJointerCount(), m_TeamData[1].GetAccumulatedJoinerCount());
 
@@ -450,7 +450,7 @@ void CWarMap::DecMember(CHARACTER * ch)
 	{
 		--m_iObserverCount;
 
-		sys_log(0, "WarMap -o %d", m_iObserverCount);
+		metin2::log::info( "WarMap -o {:d}", m_iObserverCount);
 		ch->SetObserverMode(false);
 	}
 
@@ -492,7 +492,7 @@ void CWarMap::CheckWarEnd()
 		Notice(LC_TEXT("길드전에 참가한 상대방 길드원이 아무도 없습니다."));
 		Notice(LC_TEXT("1분 이내에 아무도 접속하지 않으면 길드전이 자동 종료됩니다."));
 
-		sys_log(0, "CheckWarEnd: Timeout begin %u vs %u", m_TeamData[0].dwID, m_TeamData[1].dwID);
+		metin2::log::info( "CheckWarEnd: Timeout begin {:d} vs {:d}", m_TeamData[0].dwID, m_TeamData[1].dwID);
 
 		war_map_info* info = AllocEventInfo<war_map_info>();
 		info->pWarMap = this;
@@ -560,7 +560,7 @@ void CWarMap::Timeout()
 				dwLoser = m_TeamData[0].dwID;
 			}
 
-			sys_err("WarMap: member count is not zero, guild1 %u %d guild2 %u %d, winner %u",
+			metin2::log::error("WarMap: member count is not zero, guild1 {:d} {:d} guild2 {:d} {:d}, winner {:d}",
 					m_TeamData[0].dwID, m_TeamData[0].iMemberCount,
 					m_TeamData[1].dwID, m_TeamData[1].iMemberCount,
 					dwWinner);
@@ -574,7 +574,7 @@ void CWarMap::Timeout()
 		}
 	}
 
-	sys_log(0, "WarMap: Timeout %u %u winner %u loser %u reward %d map %d",
+	metin2::log::info( "WarMap: Timeout {:d} {:d} winner {:d} loser {:d} reward {:d} map {:d}",
 			m_TeamData[0].dwID, m_TeamData[1].dwID, dwWinner, dwLoser, iRewardGold, m_kMapInfo.lMapIndex);
 
 	if (dwWinner)
@@ -732,7 +732,7 @@ bool CWarMap::CheckScore()
 	else if (dwWinner == m_TeamData[1].dwID)
 		iRewardGold = GetRewardGold(1);
 
-	sys_log(0, "WarMap::CheckScore end score %d guild1 %u score guild2 %d %u score %d winner %u reward %d", 
+	metin2::log::info( "WarMap::CheckScore end score {:d} guild1 {:d} score guild2 {:d} {:d} score {:d} winner {:d} reward {:d}", 
 			iEndScore,
 			m_TeamData[0].dwID,
 			m_TeamData[0].iScore,
@@ -747,7 +747,7 @@ bool CWarMap::CheckScore()
 
 bool CWarMap::SetEnded()
 {
-	sys_log(0, "WarMap::SetEnded %d", m_kMapInfo.lMapIndex);
+	metin2::log::info( "WarMap::SetEnded {:d}", m_kMapInfo.lMapIndex);
 
 	if (m_pkEndEvent)
 		return false;
@@ -803,7 +803,7 @@ void CWarMap::OnKill(CHARACTER * killer, CHARACTER * ch)
 
 	uint8_t idx;
 
-	sys_log(0, "WarMap::OnKill %u %u", dwKillerGuild, dwDeadGuild);
+	metin2::log::info( "WarMap::OnKill {:d} {:d}", dwKillerGuild, dwDeadGuild);
 
 	if (!GetTeamIndex(dwKillerGuild, idx))
 		return;
@@ -832,7 +832,7 @@ void CWarMap::OnKill(CHARACTER * killer, CHARACTER * ch)
 			break;
 
 		default:
-			sys_err("unknown war map type %u index %d", m_kMapInfo.bType, m_kMapInfo.lMapIndex);
+			metin2::log::error("unknown war map type {:d} index {:d}", m_kMapInfo.bType, m_kMapInfo.lMapIndex);
 			break;
 	}
 }
@@ -856,7 +856,7 @@ void CWarMap::AddFlagBase(uint8_t bIdx, uint32_t x, uint32_t y)
 	}
 
 	r.pkChrFlagBase = CHARACTER_MANAGER::instance().SpawnMob(warmap::WAR_FLAG_BASE_VNUM, m_kMapInfo.lMapIndex, x, y, 0);
-	sys_log(0, "WarMap::AddFlagBase %u %p id %u", bIdx, r.pkChrFlagBase, r.dwID);
+	metin2::log::info( "WarMap::AddFlagBase {:d} {} id {:d}", bIdx, static_cast<const void *>(r.pkChrFlagBase), r.dwID);
 
 	r.pkChrFlagBase->SetPoint(POINT_STAT, r.dwID);
 	r.pkChrFlagBase->SetWarMap(this);
@@ -881,7 +881,7 @@ void CWarMap::AddFlag(uint8_t bIdx, uint32_t x, uint32_t y)
 	}
 
 	r.pkChrFlag = CHARACTER_MANAGER::instance().SpawnMob(bIdx == 0 ? warmap::WAR_FLAG_VNUM0 : warmap::WAR_FLAG_VNUM1, m_kMapInfo.lMapIndex, x, y, 0);
-	sys_log(0, "WarMap::AddFlag %u %p id %u", bIdx, r.pkChrFlag, r.dwID);
+	metin2::log::info( "WarMap::AddFlag {:d} {} id {:d}", bIdx, static_cast<const void *>(r.pkChrFlag), r.dwID);
 
 	r.pkChrFlag->SetPoint(POINT_STAT, r.dwID);
 	r.pkChrFlag->SetWarMap(this);
@@ -896,7 +896,7 @@ void CWarMap::RemoveFlag(uint8_t bIdx)
 	if (!r.pkChrFlag)
 		return;
 
-	sys_log(0, "WarMap::RemoveFlag %u %p", bIdx, r.pkChrFlag);
+	metin2::log::info( "WarMap::RemoveFlag {:d} {}", bIdx, static_cast<const void *>(r.pkChrFlag));
 
 	r.pkChrFlag->Dead(nullptr, true);
 	r.pkChrFlag = nullptr;
@@ -925,7 +925,7 @@ EVENTFUNC(war_reset_flag_event)
 
 	if ( info == nullptr )
 	{
-		sys_err( "war_reset_flag_event> <Factor> Null pointer" );
+		metin2::log::error( "war_reset_flag_event> <Factor> Null pointer" );
 		return 0;
 	}
 
@@ -1025,13 +1025,13 @@ bool CWarMapManager::GetStartPosition(int32_t lMapIndex, uint8_t bIdx, PIXEL_POS
 
 	if (!pi)
 	{
-		sys_log(0, "GetStartPosition FAILED [%d] WarMapInfoSize(%zu)", lMapIndex, m_map_kWarMapInfo.size());
+		metin2::log::info( "GetStartPosition FAILED [{:d}] WarMapInfoSize({:d})", lMapIndex, m_map_kWarMapInfo.size());
 
 		decltype(m_map_kWarMapInfo.begin()) it;
 		for (it	= m_map_kWarMapInfo.begin(); it != m_map_kWarMapInfo.end(); ++it)
 		{
 			PIXEL_POSITION& cur=it->second->posStart[bIdx];
-			sys_log(0, "WarMap[%d]=Pos(%d, %d)", it->first, cur.x, cur.y);
+			metin2::log::info( "WarMap[{:d}]=Pos({:d}, {:d})", it->first, cur.x, cur.y);
 		}
 		return false;
 	}
@@ -1045,7 +1045,7 @@ int32_t CWarMapManager::CreateWarMap(const TGuildWarInfo& guildWarInfo, uint32_t
 	TWarMapInfo * pkInfo = GetWarMapInfo(guildWarInfo.lMapIndex);
 	if (!pkInfo)
 	{
-		sys_err("GuildWar.CreateWarMap.NOT_FOUND_MAPINFO[%d]", guildWarInfo.lMapIndex);
+		metin2::log::error("GuildWar.CreateWarMap.NOT_FOUND_MAPINFO[{:d}]", guildWarInfo.lMapIndex);
 		return 0;
 	}
 
@@ -1076,7 +1076,7 @@ void CWarMapManager::DestroyWarMap(CWarMap* pMap)
 {
 	int32_t mapIdx = pMap->GetMapIndex();
 
-	sys_log(0, "WarMap::DestroyWarMap : %d", mapIdx);
+	metin2::log::info( "WarMap::DestroyWarMap : {:d}", mapIdx);
 
 	m_mapWarMap.erase(pMap->GetMapIndex());
 	delete pMap;

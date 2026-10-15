@@ -8,7 +8,7 @@
 #include <common/tables.h>
 #include <common/utils.h>
 #include <libsql/AsyncSQL.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <mysql.h>
 
@@ -54,7 +54,7 @@ namespace marriage
 		std::unique_ptr<SQLMsg> pmsg(CDBManager::instance().DirectQuery(szQuery));
 
 		SQLResult * pRes = pmsg->Get();
-		sys_log(0, "MarriageList(size=%u)", pRes->uiNumRows);
+		metin2::log::info( "MarriageList(size={:d})", pRes->uiNumRows);
 
 		if (pRes->uiNumRows > 0)
 		{
@@ -75,7 +75,7 @@ namespace marriage
 				m_MarriageByPID.insert(std::make_pair(pid1, pMarriage));
 				m_MarriageByPID.insert(std::make_pair(pid2, pMarriage));
 
-				sys_log(0, "Marriage %u: LP:%d TM:%u ST:%d %10u:%16s %10u:%16s ", uiRow, love_point, time, is_married, pid1, name1, pid2, name2);
+				metin2::log::info( "Marriage {:d}: LP:{:d} TM:{:d} ST:{:d} {:10d}:{:>16} {:10d}:{:>16} ", uiRow, love_point, time, is_married, pid1, name1, pid2, name2);
 			}
 		}
 		return true;
@@ -102,7 +102,7 @@ namespace marriage
 		uint32_t now = CClientManager::instance().GetCurrentTime();
 		if (IsMarried(dwPID1) || IsMarried(dwPID2))
 		{
-			sys_err("cannot marry already married character. %d - %d", dwPID1, dwPID2);
+			metin2::log::error("cannot marry already married character. {:d} - {:d}", dwPID1, dwPID2);
 			return;
 		}
 
@@ -116,11 +116,11 @@ namespace marriage
 		SQLResult* res = pmsg->Get();
 		if (res->uiAffectedRows == 0 || res->uiAffectedRows == (uint32_t)-1)
 		{
-			sys_err("cannot insert marriage");
+			metin2::log::error("cannot insert marriage");
 			return;
 		}
 
-		sys_log(0, "MARRIAGE ADD %u %u", dwPID1, dwPID2);
+		metin2::log::info( "MARRIAGE ADD {:d} {:d}", dwPID1, dwPID2);
 
 		TMarriage* pMarriage = new TMarriage(dwPID1, dwPID2, 0, now, 0, szName1, szName2);
 		m_Marriages.insert(pMarriage);
@@ -141,7 +141,7 @@ namespace marriage
 		TMarriage* pMarriage = Get(dwPID1);
 		if (!pMarriage || pMarriage->GetOther(dwPID1) != dwPID2)
 		{
-			sys_err("not under marriage : %u %u", dwPID1, dwPID2);
+			metin2::log::error("not under marriage : {:d} {:d}", dwPID1, dwPID2);
 			return;
 		}
 
@@ -156,11 +156,11 @@ namespace marriage
 		SQLResult* res = pmsg->Get();
 		if (res->uiAffectedRows == 0 || res->uiAffectedRows == (uint32_t)-1)
 		{
-			sys_err("cannot update marriage : PID:%u %u", dwPID1, dwPID2);
+			metin2::log::error("cannot update marriage : PID:{:d} {:d}", dwPID1, dwPID2);
 			return;
 		}
 
-		sys_log(0, "MARRIAGE UPDATE PID:%u %u LP:%u ST:%d", dwPID1, dwPID2, iLovePoint, byMarried);
+		metin2::log::info( "MARRIAGE UPDATE PID:{:d} {:d} LP:{:d} ST:{:d}", dwPID1, dwPID2, iLovePoint, byMarried);
 		pMarriage->love_point = iLovePoint;
 		pMarriage->is_married = byMarried;
 
@@ -178,7 +178,7 @@ namespace marriage
 
 		if (pMarriage)
 		{
-			sys_log(0, "Break Marriage pid1 %d pid2 %d Other %d", dwPID1, dwPID2, pMarriage->GetOther(dwPID1));
+			metin2::log::info( "Break Marriage pid1 {:d} pid2 {:d} Other {:d}", dwPID1, dwPID2, pMarriage->GetOther(dwPID1));
 		}
 		if (!pMarriage || pMarriage->GetOther(dwPID1) != dwPID2)
 		{
@@ -186,9 +186,9 @@ namespace marriage
 
 			for (; it != m_MarriageByPID.end(); ++it)
 			{
-				sys_log(0, "Marriage List pid1 %d pid2 %d", it->second->pid1, it->second->pid2);
+				metin2::log::info( "Marriage List pid1 {:d} pid2 {:d}", it->second->pid1, it->second->pid2);
 			}
-			sys_err("not under marriage : PID:%u %u", dwPID1, dwPID2);
+			metin2::log::error("not under marriage : PID:{:d} {:d}", dwPID1, dwPID2);
 			return;
 		}
 
@@ -202,11 +202,11 @@ namespace marriage
 		SQLResult* res = pmsg->Get();
 		if (res->uiAffectedRows == 0 || res->uiAffectedRows == (uint32_t)-1)
 		{
-			sys_err("cannot delete marriage : PID:%u %u", dwPID1, dwPID2);
+			metin2::log::error("cannot delete marriage : PID:{:d} {:d}", dwPID1, dwPID2);
 			return;
 		}
 
-		sys_log(0, "MARRIAGE REMOVE PID:%u %u", dwPID1, dwPID2);
+		metin2::log::info( "MARRIAGE REMOVE PID:{:d} {:d}", dwPID1, dwPID2);
 
 		m_Marriages.erase(pMarriage);
 		m_MarriageByPID.erase(dwPID1);
@@ -282,7 +282,7 @@ namespace marriage
 		auto it = m_mapRunningWedding.find(std::make_pair(dwPID1, dwPID2));
 		if (it == m_mapRunningWedding.end())
 		{
-			sys_err("try to end wedding %u %u", dwPID1, dwPID2);
+			metin2::log::error("try to end wedding {:d} {:d}", dwPID1, dwPID2);
 			return;
 		}
 

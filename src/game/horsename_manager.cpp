@@ -9,7 +9,7 @@
 #include "utils.h"
 
 #include <common/tables.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <cstdint>
 #include <cstring>
@@ -41,11 +41,11 @@ void CHorseNameManager::UpdateHorseName(uint32_t dwPlayerID, const char* szHorse
 {
 	if ( szHorseName == nullptr )
 	{
-		sys_err("HORSE_NAME: NULL NAME (%u)", dwPlayerID);
+		metin2::log::error("HORSE_NAME: NULL NAME ({:d})", dwPlayerID);
 		szHorseName = "";
 	}
 
-	sys_log(0, "HORSENAME: update %u %s", dwPlayerID, szHorseName);
+	metin2::log::info( "HORSENAME: update {:d} {}", dwPlayerID, szHorseName);
 
 	m_mapHorseNames[dwPlayerID] = szHorseName;
 

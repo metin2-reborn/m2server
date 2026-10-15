@@ -11,7 +11,7 @@
 #include "typedef.h"
 
 #include <common/length.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <cstdint>
 #include <string>
@@ -126,7 +126,7 @@ namespace xmas
 
 		if ( info == nullptr )
 		{
-			sys_err( "spawn_santa_event> <Factor> Null pointer" );
+			metin2::log::error( "spawn_santa_event> <Factor> Null pointer" );
 			return 0;
 		}
 
@@ -142,7 +142,7 @@ namespace xmas
 
 		if (CHARACTER_MANAGER::instance().SpawnMobRandomPosition(xmas::MOB_SANTA_VNUM, lMapIndex))
 		{
-			sys_log(0, "santa comes to town!");
+			metin2::log::info( "santa comes to town!");
 			return 0;
 		}
 
@@ -156,7 +156,7 @@ namespace xmas
 			iTimeGapSec /= 60;
 		}
 
-		sys_log(0, "santa respawn time = %d", iTimeGapSec);
+		metin2::log::info( "santa respawn time = {:d}", iTimeGapSec);
 		spawn_santa_info* info = AllocEventInfo<spawn_santa_info>();
 
 		info->lMapIndex = lMapIndex;
@@ -192,7 +192,7 @@ namespace xmas
 					PIXEL_POSITION posBase;
 					if (!SECTREE_MANAGER::instance().GetMapBasePositionByMapIndex(p->lMapIndex, posBase))
 					{
-						sys_err("cannot get map base position %d", p->lMapIndex);
+						metin2::log::error("cannot get map base position {:d}", p->lMapIndex);
 						p++;
 						continue;
 					}

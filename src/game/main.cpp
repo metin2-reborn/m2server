@@ -64,7 +64,7 @@
 #include <libnet/listener.h>
 #include <libthecore/core_signal.h>
 #include <libthecore/heart.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/utils.h>
 
 #include <algorithm>
@@ -118,7 +118,7 @@ bool g_bShutdown=false;
 
 void ContinueOnFatalError()
 {
-	sys_err("FatalError");
+	metin2::log::error("FatalError");
 }
 
 namespace
@@ -303,7 +303,7 @@ int main(int argc, char **argv)
 	if (g_bAuthServer && !mark_server_ready()) thecore_shutdown();
 	while (idle());
 
-	sys_log(0, "<shutdown> Starting...");
+	metin2::log::info( "<shutdown> Starting...");
 	g_bShutdown = true;
 	g_bNoMoreClient = true;
 
@@ -315,7 +315,7 @@ int main(int argc, char **argv)
 		do
 		{
 			uint32_t dwCount = DBManager::instance().CountQuery();
-			sys_log(0, "Queries %u", dwCount);
+			metin2::log::info( "Queries {:d}", dwCount);
 
 			if (dwCount == 0)
 				break;
@@ -328,35 +328,35 @@ int main(int argc, char **argv)
 		} while (1);
 	}
 
-	sys_log(0, "<shutdown> Destroying CArenaManager...");
+	metin2::log::info( "<shutdown> Destroying CArenaManager...");
 	arena_manager.Destroy();
-	sys_log(0, "<shutdown> Destroying COXEventManager...");
+	metin2::log::info( "<shutdown> Destroying COXEventManager...");
 	OXEvent_manager.Destroy();
 
-	sys_log(0, "<shutdown> Disabling signal timer...");
+	metin2::log::info( "<shutdown> Disabling signal timer...");
 	signal_timer_disable();
 
-	sys_log(0, "<shutdown> Shutting down CHARACTER_MANAGER...");
+	metin2::log::info( "<shutdown> Shutting down CHARACTER_MANAGER...");
 	char_manager.GracefulShutdown();
-	sys_log(0, "<shutdown> Shutting down ITEM_MANAGER...");
+	metin2::log::info( "<shutdown> Shutting down ITEM_MANAGER...");
 	item_manager.GracefulShutdown();
 
-	sys_log(0, "<shutdown> Flushing db_clientdesc...");
+	metin2::log::info( "<shutdown> Flushing db_clientdesc...");
 	db_clientdesc->FlushOutput();
-	sys_log(0, "<shutdown> Flushing p2p_manager...");
+	metin2::log::info( "<shutdown> Flushing p2p_manager...");
 	p2p_manager.FlushOutput();
 
-	sys_log(0, "<shutdown> Destroying CShopManager...");
+	metin2::log::info( "<shutdown> Destroying CShopManager...");
 	shop_manager.Destroy();
-	sys_log(0, "<shutdown> Destroying CHARACTER_MANAGER...");
+	metin2::log::info( "<shutdown> Destroying CHARACTER_MANAGER...");
 	char_manager.Destroy();
-	sys_log(0, "<shutdown> Destroying ITEM_MANAGER...");
+	metin2::log::info( "<shutdown> Destroying ITEM_MANAGER...");
 	item_manager.Destroy();
-	sys_log(0, "<shutdown> Destroying DESC_MANAGER...");
+	metin2::log::info( "<shutdown> Destroying DESC_MANAGER...");
 	desc_manager.Destroy();
-	sys_log(0, "<shutdown> Destroying quest::CQuestManager...");
+	metin2::log::info( "<shutdown> Destroying quest::CQuestManager...");
 	quest_manager.Destroy();
-	sys_log(0, "<shutdown> Destroying building::CManager...");
+	metin2::log::info( "<shutdown> Destroying building::CManager...");
 	building_manager.Destroy();
 
 	destroy();
@@ -409,9 +409,9 @@ int start(int argc, char **argv)
 
 			case 'l':
 				{
-					int32_t l = strtol(optarg, &ep, 10);
-
-					log_set_level(l);
+					// Any level above 0 turns on debug messages.
+					if (strtol(optarg, &ep, 10) > 0)
+						metin2::log::set_level(metin2::log::level::debug);
 
 				}
 				break;
@@ -497,7 +497,7 @@ int start(int argc, char **argv)
 	else
 	{
 
-		sys_log(0, "SPAM_CONFIG: duration %u score %u reload cycle %u\n",
+		metin2::log::info( "SPAM_CONFIG: duration {:d} score {:d} reload cycle {:d}",
 				g_uiSpamBlockDuration, g_uiSpamBlockScore, g_uiSpamReloadCycle);
 
 		LoadSpamDB();
@@ -509,23 +509,23 @@ int start(int argc, char **argv)
 
 void destroy()
 {
-	sys_log(0, "<shutdown> Canceling ReloadSpamEvent...");
+	metin2::log::info( "<shutdown> Canceling ReloadSpamEvent...");
 	CancelReloadSpamEvent();
 
-	sys_log(0, "<shutdown> regen_free()...");
+	metin2::log::info( "<shutdown> regen_free()...");
 	regen_free();
 
-	sys_log(0, "<shutdown> Closing listeners...");
+	metin2::log::info( "<shutdown> Closing listeners...");
 	client_listener->close();
 	p2p_listener->close();
 
-	sys_log(0, "<shutdown> event_destroy()...");
+	metin2::log::info( "<shutdown> event_destroy()...");
 	event_destroy();
 
-	sys_log(0, "<shutdown> CTextFileLoader::DestroySystem()...");
+	metin2::log::info( "<shutdown> CTextFileLoader::DestroySystem()...");
 	CTextFileLoader::DestroySystem();
 
-	sys_log(0, "<shutdown> thecore_destroy()...");
+	metin2::log::info( "<shutdown> thecore_destroy()...");
 	thecore_destroy();
 }
 
@@ -563,7 +563,7 @@ int idle()
 	if (!io_loop()) return 0;
 	s_dwProfiler[PROF_IO] += (get_dword_time() - t);
 
-	log_rotate();
+	metin2::log::rotate();
 
 	gettimeofday(&now, (struct timezone *) nullptr);
 	++process_time_count;
@@ -573,7 +573,7 @@ int idle()
 		static uint64_t s_qwBytesWritten = 0;
 		const uint64_t qwBytesWritten = net::bytes_written();
 
-		pt_log("[%3d] event %5d/%-5d idle %-4d event %-4d heartbeat %-4d I/O %-4d chrUpate %-4d | WRITE: %-7llu | PULSE: %d",
+		metin2::log::debug("[perf] [{:3d}] event {:5d}/{:<5d} idle {:<4d} event {:<4d} heartbeat {:<4d} I/O {:<4d} chrUpate {:<4d} | WRITE: {:<7d} | PULSE: {:d}",
 				process_time_count,
 				num_events_called,
 				event_count(),

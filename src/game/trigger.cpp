@@ -8,7 +8,7 @@
 
 #include <common/length.h>
 #include <common/tables.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <cstdint>
 #include <cstdlib>
@@ -33,7 +33,7 @@ void CHARACTER::AssignTriggers(const TMobTable * table)
 {
 	if (table->bOnClickType >= ON_CLICK_MAX_NUM)
 	{
-		sys_err("%s has invalid OnClick value %d", GetName(), table->bOnClickType);
+		metin2::log::error("{} has invalid OnClick value {:d}", GetName(), table->bOnClickType);
 		abort();
 	}
 

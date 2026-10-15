@@ -9,7 +9,7 @@
 #include "utils.h"
 
 #include <common/length.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <cctype>
 #include <cstdint>
@@ -90,7 +90,7 @@ void LocaleService_LoadEmpireTextConvertTables()
 	for (int iEmpire = 1; iEmpire <= 3; ++iEmpire)
 	{
 		snprintf(szFileName, sizeof(szFileName), "%s/lang%d.cvt", LocaleService_GetBasePath().c_str(), iEmpire);
-		sys_log(0, "Load %s", szFileName);
+		metin2::log::info( "Load {}", szFileName);
 
 		LoadEmpireTextConvertTable(iEmpire, szFileName);
 	}
@@ -100,7 +100,7 @@ bool LocaleService_Init(const std::string& c_rstServiceName)
 {
 	if (c_rstServiceName != "english")
 	{
-		sys_err("unsupported locale %s (only english)", c_rstServiceName.c_str());
+		metin2::log::error("unsupported locale {} (only english)", c_rstServiceName.c_str());
 		return false;
 	}
 

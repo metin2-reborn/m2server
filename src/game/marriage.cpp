@@ -17,7 +17,7 @@
 
 #include <common/length.h>
 #include <common/tables.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <algorithm>
 #include <cstdint>
@@ -256,7 +256,7 @@ namespace marriage
 			{
 				d1->ChatPacket(CHAT_TYPE_COMMAND, "lover_login");
 				d2->ChatPacket(CHAT_TYPE_COMMAND, "lover_login");
-				sys_log(0, "lover_login %u %u", m_pid1, m_pid2);
+				metin2::log::info( "lover_login {:d} {:d}", m_pid1, m_pid2);
 			}
 		}
 	}
@@ -333,7 +333,7 @@ namespace marriage
 			StopNearCheckEvent();
 			return;
 		}
-		sys_log(0, "NearCheck %u %u %d %d %d %d", m_pid1, m_pid2, IsNear(), isLastNear, byLastLovePoint, GetMarriagePoint());
+		metin2::log::info( "NearCheck {:d} {:d} {:d} {:d} {:d} {:d}", m_pid1, m_pid2, IsNear(), isLastNear, byLastLovePoint, GetMarriagePoint());
 
 		if (IsNear() && !isLastNear)
 		{
@@ -376,7 +376,7 @@ namespace marriage
 
 		if ( info == nullptr )
 		{
-			sys_err( "near_check_event> <Factor> Null pointer" );
+			metin2::log::error( "near_check_event> <Factor> Null pointer" );
 			return 0;
 		}
 
@@ -403,7 +403,7 @@ namespace marriage
 
 	void TMarriage::Save()
 	{
-		sys_log(0, "TMarriage::Save() - RequestUpdate.bSave=%d", bSave);
+		metin2::log::info( "TMarriage::Save() - RequestUpdate.bSave={:d}", bSave);
 		if (bSave)
 		{
 			CManager::instance().RequestUpdate(m_pid1, m_pid2, love_point, is_married);
@@ -463,7 +463,7 @@ namespace marriage
 			PIXEL_POSITION pos;
 			if (!SECTREE_MANAGER::instance().GetRecallPositionByEmpire(pWeddingInfo->dwMapIndex/10000, 0, pos))
 			{
-				sys_err("cannot get warp position");
+				metin2::log::error("cannot get warp position");
 				return;
 			}
 			ch->SaveExitLocation();
@@ -561,7 +561,7 @@ namespace marriage
 	{
 		if (IsEngagedOrMarried(dwPID1) || IsEngagedOrMarried(dwPID2))
 		{
-			sys_err("cannot marry already married character. %d - %d", dwPID1, dwPID2);
+			metin2::log::error("cannot marry already married character. {:d} - {:d}", dwPID1, dwPID2);
 			return;
 		}
 
@@ -608,7 +608,7 @@ namespace marriage
 
 		if (!pMarriage || pMarriage->GetOther(dwPID1) != dwPID2)
 		{
-			sys_err("not under marriage : %u %u", dwPID1, dwPID2);
+			metin2::log::error("not under marriage : {:d} {:d}", dwPID1, dwPID2);
 			return;
 		}
 
@@ -631,7 +631,7 @@ namespace marriage
 		TMarriage* pMarriage = Get(dwPID1);
 		if (!pMarriage || pMarriage->GetOther(dwPID1) != dwPID2)
 		{
-			sys_err("not under marriage : %u %u", dwPID1, dwPID2);
+			metin2::log::error("not under marriage : {:d} {:d}", dwPID1, dwPID2);
 			return;
 		}
 
@@ -673,7 +673,7 @@ namespace marriage
 		TMarriage* pMarriage = Get(dwPID1);
 		if (!pMarriage || pMarriage->GetOther(dwPID1) != dwPID2)
 		{
-			sys_err("wrong marriage %u, %u", dwPID1, dwPID2);
+			metin2::log::error("wrong marriage {:d}, {:d}", dwPID1, dwPID2);
 			return;
 		}
 
@@ -688,7 +688,7 @@ namespace marriage
 		TMarriage* pMarriage = Get(dwPID1);
 		if (!pMarriage || pMarriage->GetOther(dwPID1) != dwPID2)
 		{
-			sys_err("wrong marriage %u, %u", dwPID1, dwPID2);
+			metin2::log::error("wrong marriage {:d}, {:d}", dwPID1, dwPID2);
 			return;
 		}
 
@@ -710,13 +710,13 @@ namespace marriage
 		TMarriage* pMarriage = Get(dwPID1);
 		if (!pMarriage || pMarriage->GetOther(dwPID1) != dwPID2)
 		{
-			sys_err("wrong marriage %u, %u", dwPID1, dwPID2);
+			metin2::log::error("wrong marriage {:d}, {:d}", dwPID1, dwPID2);
 			return;
 		}
 
 		if (!pMarriage->pWeddingInfo)
 		{
-			sys_err("not under wedding %u, %u", dwPID1, dwPID2);
+			metin2::log::error("not under wedding {:d}, {:d}", dwPID1, dwPID2);
 			return;
 		}
 
@@ -724,7 +724,7 @@ namespace marriage
 		if (map_allow_find(WEDDING_MAP_INDEX))
 			if (!WeddingManager::instance().End(pMarriage->pWeddingInfo->dwMapIndex))
 			{
-				sys_err("wedding map error: map_index=%d", pMarriage->pWeddingInfo->dwMapIndex);
+				metin2::log::error("wedding map error: map_index={:d}", pMarriage->pWeddingInfo->dwMapIndex);
 				return;
 			}
 

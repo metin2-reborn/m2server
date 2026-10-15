@@ -8,7 +8,7 @@
 
 #include "internal.h"
 
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <chrono>
 #include <thread>
@@ -46,7 +46,7 @@ auto heart_idle(heart *ht) -> int {
     ++missed_pulse;
 
     if (missed_pulse > (30 * ht->passes_per_sec)) {
-        sys_err("losing %d seconds. (lag occured)", missed_pulse / ht->passes_per_sec);
+        metin2::log::error("losing {:d} seconds. (lag occured)", missed_pulse / ht->passes_per_sec);
         missed_pulse = 30 * ht->passes_per_sec;
     }
 

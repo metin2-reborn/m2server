@@ -9,7 +9,6 @@
 #include "desc.h"
 #include "desc_client.h"
 #include "desc_manager.h"
-#include "dev_log.h"
 #include "dungeon.h"
 #include "event.h"
 #include "guild.h"
@@ -38,7 +37,7 @@
 #include <common/length.h>
 #include <common/tables.h>
 #include <common/utils.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/main.h>
 #include <libthecore/utils.h>
 
@@ -195,7 +194,7 @@ EVENTFUNC(shutdown_event)
 
 	if ( info == nullptr )
 	{
-		sys_err( "shutdown_event> <Factor> Null pointer" );
+		metin2::log::error( "shutdown_event> <Factor> Null pointer" );
 		return 0;
 	}
 
@@ -203,7 +202,7 @@ EVENTFUNC(shutdown_event)
 
 	if (*pSec < 0)
 	{
-		sys_log(0, "shutdown_event sec %d", *pSec);
+		metin2::log::info( "shutdown_event sec {:d}", *pSec);
 
 		if (--*pSec == -10)
 		{
@@ -260,7 +259,7 @@ ACMD(do_shutdown)
 {
 	if (nullptr == ch)
 	{
-		sys_err("Accept shutdown command without a character.");
+		metin2::log::error("Accept shutdown command without a character.");
 	}
 	TPacketGGShutdown p;
 	p.bHeader = HEADER_GG_SHUTDOWN;
@@ -275,7 +274,7 @@ EVENTFUNC(timed_event)
 
 	if ( info == nullptr )
 	{
-		sys_err( "timed_event> <Factor> Null pointer" );
+		metin2::log::error( "timed_event> <Factor> Null pointer" );
 		return 0;
 	}
 
@@ -527,7 +526,7 @@ ACMD(do_restart)
 			switch (subcmd)
 			{
 				case SCMD_RESTART_TOWN:
-					sys_log(0, "do_restart: restart town");
+					metin2::log::info( "do_restart: restart town");
 					PIXEL_POSITION pos;
 
 					if (CWarMapManager::instance().GetStartPosition(ch->GetMapIndex(), ch->GetGuild()->GetID() < dwGuildOpponent ? 0 : 1, pos))
@@ -541,7 +540,7 @@ ACMD(do_restart)
 					break;
 
 				case SCMD_RESTART_HERE:
-					sys_log(0, "do_restart: restart here");
+					metin2::log::info( "do_restart: restart here");
 					ch->RestartAtSamePos();
 					ch->PointChange(POINT_HP, ch->GetMaxHP() - ch->GetHP());
 					ch->PointChange(POINT_SP, ch->GetMaxSP() - ch->GetSP());
@@ -556,7 +555,7 @@ ACMD(do_restart)
 	switch (subcmd)
 	{
 		case SCMD_RESTART_TOWN:
-			sys_log(0, "do_restart: restart town");
+			metin2::log::info( "do_restart: restart town");
 			PIXEL_POSITION pos;
 
 			if (SECTREE_MANAGER::instance().GetRecallPositionByEmpire(ch->GetMapIndex(), ch->GetEmpire(), pos))
@@ -569,7 +568,7 @@ ACMD(do_restart)
 			break;
 
 		case SCMD_RESTART_HERE:
-			sys_log(0, "do_restart: restart here");
+			metin2::log::info( "do_restart: restart here");
 			ch->RestartAtSamePos();
 			ch->PointChange(POINT_HP, 50 - ch->GetHP());
 			ch->DeathPenalty(0);
@@ -1065,16 +1064,16 @@ ACMD(do_war)
 		if (g->GetLadderPoint() == 0)
 		{
 			ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("<길드> 레더 점수가 모자라서 길드전을 할 수 없습니다."));
-			sys_log(0, "GuildWar.StartError.NEED_LADDER_POINT");
+			metin2::log::info( "GuildWar.StartError.NEED_LADDER_POINT");
 		}
 		else if (g->GetMemberCount() < GUILD_WAR_MIN_MEMBER_COUNT)
 		{
 			ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("<길드> 길드전을 하기 위해선 최소한 %d명이 있어야 합니다."), GUILD_WAR_MIN_MEMBER_COUNT);
-			sys_log(0, "GuildWar.StartError.NEED_MINIMUM_MEMBER[%d]", GUILD_WAR_MIN_MEMBER_COUNT);
+			metin2::log::info( "GuildWar.StartError.NEED_MINIMUM_MEMBER[{:d}]", GUILD_WAR_MIN_MEMBER_COUNT);
 		}
 		else
 		{
-			sys_log(0, "GuildWar.StartError.UNKNOWN_ERROR");
+			metin2::log::info( "GuildWar.StartError.UNKNOWN_ERROR");
 		}
 		return;
 	}
@@ -2025,7 +2024,7 @@ ACMD(do_cube)
 	if (!ch->CanDoCube())
 		return;
 
-	dev_log(LOG_DEB0, "CUBE COMMAND <%s>: %s", ch->GetName(), argument);
+	metin2::log::debug( "CUBE COMMAND <{}>: {}", ch->GetName(), argument);
 	int cube_index = 0, inven_index = 0;
 	const char *line;
 
@@ -2118,7 +2117,7 @@ ACMD(do_cube)
 			if (0 != arg2[0])
 			{
 				while (true == Cube_make(ch))
-					dev_log (LOG_DEB0, "cube make success");
+					metin2::log::debug( "cube make success");
 			}
 			else
 				Cube_make(ch);
@@ -2192,7 +2191,7 @@ ACMD(do_click_mall)
 
 ACMD(do_ride)
 {
-    dev_log(LOG_DEB0, "[DO_RIDE] start");
+    metin2::log::debug( "[DO_RIDE] start");
     if (ch->IsDead() || ch->IsStun())
 	return;
 
@@ -2200,14 +2199,14 @@ ACMD(do_ride)
     {
 	if (ch->IsHorseRiding())
 	{
-	    dev_log(LOG_DEB0, "[DO_RIDE] stop riding");
+	    metin2::log::debug( "[DO_RIDE] stop riding");
 	    ch->StopRiding(); 
 	    return;
 	}
 
 	if (ch->GetMountVnum())
 	{
-	    dev_log(LOG_DEB0, "[DO_RIDE] unmount");
+	    metin2::log::debug( "[DO_RIDE] unmount");
 	    do_unmount(ch, nullptr, 0, 0);
 	    return;
 	}
@@ -2217,7 +2216,7 @@ ACMD(do_ride)
     {
 	if (ch->GetHorse() != nullptr)
 	{
-	    dev_log(LOG_DEB0, "[DO_RIDE] start riding");
+	    metin2::log::debug( "[DO_RIDE] start riding");
 	    ch->StartRiding();
 	    return;
 	}
@@ -2233,7 +2232,7 @@ ACMD(do_ride)
 		{
 			if (nullptr==ch->GetWear(WEAR_UNIQUE1) || nullptr==ch->GetWear(WEAR_UNIQUE2))
 			{
-				dev_log(LOG_DEB0, "[DO_RIDE] USE UNIQUE ITEM");
+				metin2::log::debug( "[DO_RIDE] USE UNIQUE ITEM");
 				ch->UseItem(TItemPos (INVENTORY, i));
 				return;
 			}
@@ -2247,14 +2246,14 @@ ACMD(do_ride)
 		case 71116:	// Wild Dog mount ticket
 		case 71118:	// Fighting Tiger mount ticket
 		case 71120:	// Lion King mount ticket
-		    dev_log(LOG_DEB0, "[DO_RIDE] USE QUEST ITEM");
+		    metin2::log::debug( "[DO_RIDE] USE QUEST ITEM");
 		    ch->UseItem(TItemPos (INVENTORY, i));
 		    return;
 	    }
 
 		// GF mantis #113524, mounts 52001~52090
 		if( (item->GetVnum() > 52000) && (item->GetVnum() < 52091) )	{
-			dev_log(LOG_DEB0, "[DO_RIDE] USE QUEST ITEM");
+			metin2::log::debug( "[DO_RIDE] USE QUEST ITEM");
 			ch->UseItem(TItemPos (INVENTORY, i));
 		    return;
 		}

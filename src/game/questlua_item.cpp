@@ -97,7 +97,7 @@ namespace quest
 			if (q.GetCurrentCharacterPtr() == item->GetOwner()) {
 				ITEM_MANAGER::instance().RemoveItem(item);
 			} else {
-				quest_err("Tried to remove invalid item %p", item);
+				quest::error("Tried to remove invalid item {}", static_cast<const void *>(item));
 			}
 			q.ClearCurrentItem();
 		}
@@ -156,7 +156,7 @@ namespace quest
 
 		if (!lua_isnumber(L, 1))
 		{
-			quest_err("flag is not a number.");
+			quest::error("flag is not a number.");
 			lua_pushboolean(L, 0);
 			return 1;
 		}
@@ -186,7 +186,7 @@ namespace quest
 
 		if (!lua_isnumber(L, 1))
 		{
-			quest_err("index is not a number");
+			quest::error("index is not a number");
 			lua_pushnumber(L, 0);
 			return 1;
 		}
@@ -195,7 +195,7 @@ namespace quest
 
 		if (index < 0 || index >= ITEM_VALUES_MAX_NUM)
 		{
-			quest_err("index(%d) is out of range (0..%d)", index, ITEM_VALUES_MAX_NUM);
+			quest::error("index({:d}) is out of range (0..{:d})", index, ITEM_VALUES_MAX_NUM);
 			lua_pushnumber(L, 0);
 		}
 		else
@@ -217,7 +217,7 @@ namespace quest
 
 		if (false == (lua_isnumber(L, 1) && lua_isnumber(L, 2) && lua_isnumber(L, 3)))
 		{
-			quest_err("index is not a number");
+			quest::error("index is not a number");
 			lua_pushnumber(L, 0);
 			return 1;
 		}
@@ -322,7 +322,7 @@ namespace quest
 		}
 		else
 		{
-			quest_err("Cannot find item table of vnum %u", vnum);
+			quest::error("Cannot find item table of vnum {:d}", vnum);
 			lua_pushnumber(L, 0);
 		}
 		return 1;

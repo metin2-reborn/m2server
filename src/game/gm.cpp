@@ -4,7 +4,7 @@
 
 #include <common/length.h>
 #include <common/tables.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <cstdint>
 #include <cstring>
@@ -30,7 +30,7 @@ void gm_new_clear()
 
 void gm_new_insert( const tAdminInfo &rAdminInfo )
 {	
-	sys_log( 0, "InsertGMList(account:%s, player:%s, contact_ip:%s, server_ip:%s, auth:%d)", 
+	metin2::log::info( "InsertGMList(account:{}, player:{}, contact_ip:{}, server_ip:{}, auth:{:d})", 
 			rAdminInfo.m_szAccount,
 			rAdminInfo.m_szName,
 			rAdminInfo.m_szContactIP,
@@ -42,12 +42,12 @@ void gm_new_insert( const tAdminInfo &rAdminInfo )
 	if ( strlen( rAdminInfo.m_szContactIP ) == 0 )
 	{
 		t.pset_Host = &g_set_Host;
-		sys_log(0, "GM Use ContactIP" );
+		metin2::log::info( "GM Use ContactIP" );
 	}
 	else
 	{
 		t.pset_Host = nullptr;
-		sys_log(0, "GM Use Default Host List" );
+		metin2::log::info( "GM Use Default Host List" );
 	}
 
 	memcpy ( &t.Info, &rAdminInfo, sizeof ( rAdminInfo ) );
@@ -59,7 +59,7 @@ void gm_new_insert( const tAdminInfo &rAdminInfo )
 void gm_new_host_inert( const char * host )
 {
 	g_set_Host.insert( host );
-	sys_log( 0, "InsertGMHost(ip:%s)", host );
+	metin2::log::info( "InsertGMHost(ip:{})", host );
 }
 
 uint8_t gm_new_get_level( const char * name, const char * host, const char* account)
@@ -77,11 +77,11 @@ uint8_t gm_new_get_level( const char * name, const char * host, const char* acco
 	{
 	if ( strcmp ( it->second.Info.m_szAccount, account  ) != 0 )
 	{
-	    sys_log(0, "GM_NEW_GET_LEVEL : BAD ACCOUNT [ACCOUNT:%s/%s", it->second.Info.m_szAccount, account);
+	    metin2::log::info( "GM_NEW_GET_LEVEL : BAD ACCOUNT [ACCOUNT:{}/{}", it->second.Info.m_szAccount, account);
 	    return GM_PLAYER;
 	}
 	}
-	sys_log(0, "GM_NEW_GET_LEVEL : FIND ACCOUNT");
+	metin2::log::info( "GM_NEW_GET_LEVEL : FIND ACCOUNT");
 	return it->second.Info.m_Authority;
 	return GM_PLAYER;
 }

@@ -3,14 +3,13 @@
 #include "char.h"
 #include "config.h"
 #include "desc_client.h"
-#include "dev_log.h"
 #include "locale.hpp"
 #include "sectree_manager.h"
 #include "typedef.h"
 
 #include <common/length.h>
 #include <common/tables.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/main.h>
 
 #include <cstdint>
@@ -65,14 +64,14 @@ int CMonarch::HealMyEmpire(CHARACTER * ch ,uint32_t price)
 	uint8_t Empire = ch->GetEmpire();
 	uint32_t pid = ch->GetPlayerID();
 
-	sys_log(0, "HealMyEmpire[%d] pid:%d price %d", pid, Empire, price);
+	metin2::log::info( "HealMyEmpire[{:d}] pid:{:d} price {:d}", pid, Empire, price);
 
 	if (IsMonarch(pid, Empire) == 0)
 	{
 		if (!ch->IsGM())
 		{
 			ch->ChatPacket(CHAT_TYPE_INFO ,LC_TEXT("군주의 자격을 가지고 있지 않습니다"));
-			sys_err("No Monarch pid %d ", pid);
+			metin2::log::error("No Monarch pid {:d} ", pid);
 			return 0;
 		}
 	}
@@ -122,7 +121,7 @@ bool CMonarch::IsMonarch(uint32_t pid, uint8_t bEmpire)
 
 bool CMonarch::IsMoneyOk(int price, uint8_t bEmpire)
 {
-	dev_log(LOG_DEB1, "GetMoney(%d), price = (%d,%d)", bEmpire, GetMoney(bEmpire), price);
+	metin2::log::debug( "GetMoney({:d}), price = ({:d},{:d})", bEmpire, GetMoney(bEmpire), price);
 	return (GetMoney(bEmpire) >= price);
 }
 
@@ -219,7 +218,7 @@ bool CMonarch::CheckPowerUpCT(uint8_t Empire)
 	if (m_PowerUpCT[Empire] > thecore_pulse())
 	{
 		if (test_server)
-			sys_log(0, "[TEST_ONLY] : CheckPowerUpCT CT%d Now%d 60sec %d", m_PowerUpCT[Empire], thecore_pulse(), PASSES_PER_SEC(60 * 10));
+			metin2::log::info( "[TEST_ONLY] : CheckPowerUpCT CT{:d} Now{:d} 60sec {:d}", m_PowerUpCT[Empire], thecore_pulse(), PASSES_PER_SEC(60 * 10));
 		return false;
 	}
 
@@ -234,7 +233,7 @@ bool CMonarch::CheckDefenseUpCT(uint8_t Empire)
 	if (m_DefenseUpCT[Empire] > thecore_pulse())
 	{
 		if (test_server)
-			sys_log(0, "[TEST_ONLY] : CheckPowerUpCT CT%d Now%d 60sec %d", m_PowerUpCT[Empire], thecore_pulse(), PASSES_PER_SEC(60 * 10));
+			metin2::log::info( "[TEST_ONLY] : CheckPowerUpCT CT{:d} Now{:d} 60sec {:d}", m_PowerUpCT[Empire], thecore_pulse(), PASSES_PER_SEC(60 * 10));
 		return false;
 	}
 

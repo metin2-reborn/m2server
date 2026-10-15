@@ -4,7 +4,7 @@
 #include "typedef.h"
 
 #include <common/singleton.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <cstddef>
 #include <cstdint>
@@ -92,7 +92,7 @@ class SECTREE_MAP
 			SECTREE_MAP::MapType::iterator i;
 			for (i = map_.begin(); i != map_.end(); ++i)
 			{
-				sys_err("SECTREE %x(%u, %u)", i->first, i->first & 0xffff, i->first >> 16);
+				metin2::log::error("SECTREE {:x}({:d}, {:d})", i->first, i->first & 0xffff, i->first >> 16);
 			}
 		}
 

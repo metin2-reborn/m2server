@@ -1,6 +1,6 @@
 #include <libthecore/utils.h>
 
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <cctype>
 #include <chrono>
@@ -87,12 +87,12 @@ auto thecore_random() -> uint32_t {
 
 auto number(int from, int to, std::source_location where) -> int {
     if (from > to) {
-        sys_err("number(): first argument is bigger than second argument %d -> %d, %s %u", from, to, where.file_name(), where.line());
+        metin2::log::error("number(): first argument is bigger than second argument {:d} -> {:d}, {} {:d}", from, to, where.file_name(), where.line());
         std::swap(from, to);
     }
 
     if (to - from + 1 == 0) {
-        sys_err("number(): devided by 0");
+        metin2::log::error("number(): devided by 0");
         return 0;
     }
 
@@ -104,7 +104,7 @@ auto fnumber(float from, float to) -> float {
 }
 
 void core_dump(std::source_location where) {
-    sys_err("*** Dumping Core %s:%u ***", where.file_name(), where.line());
+    metin2::log::error("*** Dumping Core {}:{:d} ***", where.file_name(), where.line());
 
     std::fflush(stdout);
     std::fflush(stderr);

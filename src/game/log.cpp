@@ -1,5 +1,5 @@
 #include "log.h"
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include "char.h"
 #include "config.h"
@@ -55,7 +55,7 @@ void LogManager::Query(const char * c_pszFormat, ...)
 void LogManager::Query(const std::string & query)
 {
 	if (test_server)
-		sys_log(0, "LOG: %s", query.c_str());
+		metin2::log::info( "LOG: {}", query.c_str());
 
 	m_sql.AsyncQuery(query.c_str());
 }
@@ -75,7 +75,7 @@ void LogManager::ItemLog(CHARACTER * ch, CItem * item, const char * c_pszText, c
 {
 	if (nullptr == ch || nullptr == item)
 	{
-		sys_err("character or item nil (ch %p item %p text %s)", ch, item, c_pszText);
+		metin2::log::error("character or item nil (ch {} item {} text {})", static_cast<const void *>(ch), static_cast<const void *>(item), c_pszText);
 		return;
 	}
 
@@ -108,7 +108,7 @@ void LogManager::MoneyLog(uint8_t type, uint32_t vnum, int gold)
 {
 	if (type == MONEY_LOG_RESERVED || type >= MONEY_LOG_TYPE_MAX_NUM)
 	{
-		sys_err("TYPE ERROR: type %d vnum %u gold %d", type, vnum, gold);
+		metin2::log::error("TYPE ERROR: type {:d} vnum {:d} gold {:d}", type, vnum, gold);
 		return;
 	}
 

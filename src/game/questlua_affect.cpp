@@ -5,7 +5,7 @@
 #include "questmanager.h"
 
 #include <common/length.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <cstdint>
 #include <list>
@@ -19,7 +19,7 @@ namespace quest
 	{
 		if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2) || !lua_isnumber(L, 3))
 		{
-			sys_err("invalid argument");
+			metin2::log::error("invalid argument");
 			return 0;
 		}
 
@@ -31,7 +31,7 @@ namespace quest
 
 		if (applyOn >= MAX_APPLY_NUM || applyOn < 1)
 		{
-			sys_err("apply is out of range : %d", applyOn);
+			metin2::log::error("apply is out of range : {:d}", applyOn);
 			return 0;
 		}
 
@@ -84,7 +84,7 @@ namespace quest
 	{
 		if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2) || !lua_isnumber(L, 3))
 		{
-			sys_err("invalid argument");
+			metin2::log::error("invalid argument");
 			return 0;
 		}
 
@@ -96,7 +96,7 @@ namespace quest
 
 		if (applyOn >= MAX_APPLY_NUM || applyOn < 1)
 		{
-			sys_err("apply is out of range : %d", applyOn);
+			metin2::log::error("apply is out of range : {:d}", applyOn);
 			return 0;
 		}
 
@@ -135,7 +135,7 @@ namespace quest
 
 		if (!lua_isnumber(L, 1))
 		{
-			sys_err("invalid argument");
+			metin2::log::error("invalid argument");
 			return 0;
 		}
 
@@ -156,7 +156,7 @@ namespace quest
 	{
 		if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2) || !lua_isnumber(L, 3))
 		{
-			sys_err("invalid argument");
+			metin2::log::error("invalid argument");
 			return 0;
 		}
 
@@ -168,7 +168,7 @@ namespace quest
 
 		if (applyOn >= MAX_APPLY_NUM || applyOn < 1)
 		{
-			sys_err("apply is out of range : %d", applyOn);
+			metin2::log::error("apply is out of range : {:d}", applyOn);
 			return 0;
 		}
 
@@ -184,7 +184,7 @@ namespace quest
 	{
 		if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2) || !lua_isnumber(L, 3))
 		{
-			sys_err("invalid argument");
+			metin2::log::error("invalid argument");
 			return 0;
 		}
 
@@ -196,7 +196,7 @@ namespace quest
 
 		if (point_type >= POINT_MAX_NUM || point_type < 1)
 		{
-			sys_err("point is out of range : %d", point_type);
+			metin2::log::error("point is out of range : {:d}", point_type);
 			return 0;
 		}
 

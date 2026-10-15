@@ -12,7 +12,7 @@
 #include <common/utils.h>
 #include <libsql/AsyncSQL.h>
 #include <libsql/query.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/utils.h>
 
 #include <mysql.h>
@@ -34,84 +34,84 @@ bool CClientManager::InitializeTables()
 {
 	if (!InitializeMobTable())
 	{
-		sys_err("InitializeMobTable FAILED");
+		metin2::log::error("InitializeMobTable FAILED");
 		return false;
 	}
 	if (!MirrorMobTableIntoDB())
 	{
-		sys_err("MirrorMobTableIntoDB FAILED");
+		metin2::log::error("MirrorMobTableIntoDB FAILED");
 		return false; 
 	}
 
 	if (!InitializeItemTable())
 	{
-		sys_err("InitializeItemTable FAILED");
+		metin2::log::error("InitializeItemTable FAILED");
 		return false; 
 	}
 
 	if (!MirrorItemTableIntoDB())
 	{
-		sys_err("MirrorItemTableIntoDB FAILED");
+		metin2::log::error("MirrorItemTableIntoDB FAILED");
 		return false; 
 	}
 
 	if (!InitializeShopTable())
 	{
-		sys_err("InitializeShopTable FAILED");
+		metin2::log::error("InitializeShopTable FAILED");
 		return false;
 	}
 
 	if (!InitializeSkillTable())
 	{
-		sys_err("InitializeSkillTable FAILED");
+		metin2::log::error("InitializeSkillTable FAILED");
 		return false;
 	}
 
 	if (!InitializeRefineTable())
 	{
-		sys_err("InitializeRefineTable FAILED");
+		metin2::log::error("InitializeRefineTable FAILED");
 		return false;
 	}
 
 	if (!InitializeItemAttrTable())
 	{
-		sys_err("InitializeItemAttrTable FAILED");
+		metin2::log::error("InitializeItemAttrTable FAILED");
 		return false;
 	}
 
 	if (!InitializeItemRareTable())
 	{
-		sys_err("InitializeItemRareTable FAILED");
+		metin2::log::error("InitializeItemRareTable FAILED");
 		return false;
 	}
 
 	if (!InitializeBanwordTable())
 	{
-		sys_err("InitializeBanwordTable FAILED");
+		metin2::log::error("InitializeBanwordTable FAILED");
 		return false;
 	}
 
 	if (!InitializeLandTable())
 	{
-		sys_err("InitializeLandTable FAILED");
+		metin2::log::error("InitializeLandTable FAILED");
 		return false;
 	}
 
 	if (!InitializeObjectProto())
 	{
-		sys_err("InitializeObjectProto FAILED");
+		metin2::log::error("InitializeObjectProto FAILED");
 		return false;
 	}
 
 	if (!InitializeObjectTable())
 	{
-		sys_err("InitializeObjectTable FAILED");
+		metin2::log::error("InitializeObjectTable FAILED");
 		return false;
 	}
 
 	if (!InitializeMonarch())
 	{
-		sys_err("InitializeMonarch FAILED");
+		metin2::log::error("InitializeMonarch FAILED");
 		return false;
 	}
 
@@ -135,7 +135,7 @@ bool CClientManager::InitializeRefineTable()
 
 	if (m_pRefineTable)
 	{
-		sys_log(0, "RELOAD: refine_proto");
+		metin2::log::info( "RELOAD: refine_proto");
 		m_pRefineTable.reset();
 	}
 
@@ -168,7 +168,7 @@ bool CClientManager::InitializeRefineTable()
 			}
 		}
 
-		sys_log(0, "REFINE: id %d cost %d prob %d mat1 %u cnt1 %d", prt->id, prt->cost, prt->prob, prt->materials[0].vnum, prt->materials[0].count);
+		metin2::log::info( "REFINE: id {:d} cost {:d} prob {:d} mat1 {:d} cnt1 {:d}", prt->id, prt->cost, prt->prob, prt->materials[0].vnum, prt->materials[0].count);
 
 		prt++;
 	}
@@ -305,7 +305,7 @@ bool CClientManager::InitializeMobTable()
 	//2.2 Allocate mob_table to fit
 	if (!m_vec_mobTable.empty())
 	{
-		sys_log(0, "RELOAD: mob_proto");
+		metin2::log::info( "RELOAD: mob_proto");
 		m_vec_mobTable.clear();
 	}
 	m_vec_mobTable.resize(data.m_File.GetRowCount()-1 + addNumber);
@@ -403,7 +403,7 @@ bool CClientManager::InitializeMobTable()
 		vnumSet.insert(mob_table->dwVnum);
 		
 
-		sys_log(1, "MOB #%-5d %-24s %-24s level: %-3u rank: %u empire: %d", mob_table->dwVnum, mob_table->szName, mob_table->szLocaleName, mob_table->bLevel, mob_table->bRank, mob_table->bEmpire);
+		metin2::log::debug( "MOB #{:<5d} {:<24} {:<24} level: {:<3d} rank: {:d} empire: {:d}", mob_table->dwVnum, mob_table->szName, mob_table->szLocaleName, mob_table->bLevel, mob_table->bRank, mob_table->bEmpire);
 		++mob_table;
 
 	}
@@ -436,7 +436,7 @@ bool CClientManager::InitializeMobTable()
 				fprintf(stderr, "몹 프로토 테이블 셋팅 실패.\n");			
 			}
 
-			sys_log(0, "MOB #%-5d %-24s %-24s level: %-3u rank: %u empire: %d", mob_table->dwVnum, mob_table->szName, mob_table->szLocaleName, mob_table->bLevel, mob_table->bRank, mob_table->bEmpire);
+			metin2::log::info( "MOB #{:<5d} {:<24} {:<24} level: {:<3d} rank: {:d} empire: {:d}", mob_table->dwVnum, mob_table->szName, mob_table->szLocaleName, mob_table->bLevel, mob_table->bRank, mob_table->bEmpire);
 			++mob_table;
 
 		}
@@ -467,7 +467,7 @@ bool CClientManager::InitializeShopTable()
 
 	if (!pRes2->uiNumRows)
 	{
-		sys_err("InitializeShopTable : Table count is zero.");
+		metin2::log::error("InitializeShopTable : Table count is zero.");
 		return false;
 	}
 
@@ -522,7 +522,7 @@ bool CClientManager::InitializeShopTable()
 	while (it != map_shop.end())
 	{
 		std::memcpy((m_pShopTable.get() + i), (it++)->second.get(), sizeof(TShopTable));
-		sys_log(0, "SHOP: #%d items: %d", (m_pShopTable.get() + i)->dwVnum, (m_pShopTable.get() + i)->byItemCount);
+		metin2::log::info( "SHOP: #{:d} items: {:d}", (m_pShopTable.get() + i)->dwVnum, (m_pShopTable.get() + i)->byItemCount);
 		++i;
 	}
 
@@ -632,7 +632,7 @@ bool CClientManager::InitializeItemTable()
 
 	if (!m_vec_itemTable.empty())
 	{
-		sys_log(0, "RELOAD: item_proto");
+		metin2::log::info( "RELOAD: item_proto");
 		m_vec_itemTable.clear();
 		m_map_itemTableByVnum.clear();
 	}
@@ -779,7 +779,7 @@ bool CClientManager::InitializeItemTable()
 	{
 		TItemTable * item_table = &(*(it++));
 
-		sys_log(1, "ITEM: #%-5u %-24s %-24s VAL: %d %d %d %d %d %d WEAR %u ANTI %u IMMUNE %u REFINE %u REFINE_SET %u MAGIC_PCT %u",
+		metin2::log::debug( "ITEM: #{:<5d} {:<24} {:<24} VAL: {:d} {:d} {:d} {:d} {:d} {:d} WEAR {:d} ANTI {:d} IMMUNE {:d} REFINE {:d} REFINE_SET {:d} MAGIC_PCT {:d}",
 				item_table->dwVnum,
 				item_table->szName,
 				item_table->szLocaleName,
@@ -821,13 +821,13 @@ bool CClientManager::InitializeSkillTable()
 
 	if (!pRes->uiNumRows)
 	{
-		sys_err("no result from skill_proto");
+		metin2::log::error("no result from skill_proto");
 		return false;
 	}
 
 	if (!m_vec_skillTable.empty())
 	{
-		sys_log(0, "RELOAD: skill_proto");
+		metin2::log::info( "RELOAD: skill_proto");
 		m_vec_skillTable.clear();
 	}
 
@@ -885,7 +885,7 @@ bool CClientManager::InitializeSkillTable()
 		str_to_number(t.bSkillAttrType, data[col++]);
 		str_to_number(t.dwTargetRange, data[col++]);
 
-		sys_log(0, "SKILL: #%d %s flag %u point %s affect %u cooldown %s", t.dwVnum, t.szName, t.dwFlag, t.szPointOn, t.dwAffectFlag, t.szCooldownPoly);
+		metin2::log::info( "SKILL: #{:d} {} flag {:d} point {} affect {:d} cooldown {}", t.dwVnum, t.szName, t.dwFlag, t.szPointOn, t.dwAffectFlag, t.szCooldownPoly);
 
 		m_vec_skillTable.push_back(t);
 	}
@@ -917,7 +917,7 @@ bool CClientManager::InitializeBanwordTable()
 		}
 	}
 
-	sys_log(0, "BANWORD: total %zu", m_vec_banwordTable.size());
+	metin2::log::info( "BANWORD: total {:d}", m_vec_banwordTable.size());
 	return true;
 }
 
@@ -933,13 +933,13 @@ bool CClientManager::InitializeItemAttrTable()
 
 	if (!pRes->uiNumRows)
 	{
-		sys_err("no result from item_attr");
+		metin2::log::error("no result from item_attr");
 		return false;
 	}
 
 	if (!m_vec_itemAttrTable.empty())
 	{
-		sys_log(0, "RELOAD: item_attr");
+		metin2::log::info( "RELOAD: item_attr");
 		m_vec_itemAttrTable.clear();
 	}
 
@@ -972,7 +972,7 @@ bool CClientManager::InitializeItemAttrTable()
 		str_to_number(t.bMaxLevelBySet[ATTRIBUTE_SET_SHIELD], data[col++]);
 		str_to_number(t.bMaxLevelBySet[ATTRIBUTE_SET_EAR], data[col++]);
 
-		sys_log(0, "ITEM_ATTR: %-20s %4u { %3d %3d %3d %3d %3d } { %d %d %d %d %d %d %d %d }",
+		metin2::log::info( "ITEM_ATTR: {:<20} {:4d} {{ {:3d} {:3d} {:3d} {:3d} {:3d} }} {{ {:d} {:d} {:d} {:d} {:d} {:d} {:d} {:d} }}",
 				t.szApply,
 				t.dwProb,
 				t.lValues[0],
@@ -1007,13 +1007,13 @@ bool CClientManager::InitializeItemRareTable()
 
 	if (!pRes->uiNumRows)
 	{
-		sys_err("no result from item_attr_rare");
+		metin2::log::error("no result from item_attr_rare");
 		return false;
 	}
 
 	if (!m_vec_itemRareTable.empty())
 	{
-		sys_log(0, "RELOAD: item_attr_rare");
+		metin2::log::info( "RELOAD: item_attr_rare");
 		m_vec_itemRareTable.clear();
 	}
 
@@ -1046,7 +1046,7 @@ bool CClientManager::InitializeItemRareTable()
 		str_to_number(t.bMaxLevelBySet[ATTRIBUTE_SET_SHIELD], data[col++]);
 		str_to_number(t.bMaxLevelBySet[ATTRIBUTE_SET_EAR], data[col++]);
 
-		sys_log(0, "ITEM_RARE: %-20s %4u { %3d %3d %3d %3d %3d } { %d %d %d %d %d %d %d %d }",
+		metin2::log::info( "ITEM_RARE: {:<20} {:4d} {{ {:3d} {:3d} {:3d} {:3d} {:3d} }} {{ {:d} {:d} {:d} {:d} {:d} {:d} {:d} {:d} }}",
 				t.szApply,
 				t.dwProb,
 				t.lValues[0],
@@ -1085,7 +1085,7 @@ bool CClientManager::InitializeLandTable()
 
 	if (!m_vec_kLandTable.empty())
 	{
-		sys_log(0, "RELOAD: land");
+		metin2::log::info( "RELOAD: land");
 		m_vec_kLandTable.clear();
 	}
 
@@ -1112,7 +1112,7 @@ bool CClientManager::InitializeLandTable()
 			str_to_number(t.bGuildLevelLimit, data[col++]);
 			str_to_number(t.dwPrice, data[col++]);
 
-			sys_log(0, "LAND: %u map %-4d %7dx%-7d w %-4d h %-4d", t.dwID, t.lMapIndex, t.x, t.y, t.width, t.height);
+			metin2::log::info( "LAND: {:d} map {:<4d} {:7d}x{:<7d} w {:<4d} h {:<4d}", t.dwID, t.lMapIndex, t.x, t.y, t.width, t.height);
 
 			m_vec_kLandTable.push_back(t);
 		}
@@ -1188,7 +1188,7 @@ bool CClientManager::InitializeObjectProto()
 
 	if (!m_vec_kObjectProto.empty())
 	{
-		sys_log(0, "RELOAD: object_proto");
+		metin2::log::info( "RELOAD: object_proto");
 		m_vec_kObjectProto.clear();
 	}
 
@@ -1236,7 +1236,7 @@ bool CClientManager::InitializeObjectProto()
 			t.lNPCY = std::max(t.lRegion[1], t.lRegion[3])+300;
 			// END_OF_ADD_BUILDING_NPC
 
-			sys_log(0, "OBJ_PROTO: vnum %u price %u mat %u %u",
+			metin2::log::info( "OBJ_PROTO: vnum {:d} price {:d} mat {:d} {:d}",
 					t.dwVnum, t.dwPrice, t.kMaterials[0].dwItemVnum, t.kMaterials[0].dwCount);
 
 			m_vec_kObjectProto.push_back(t);
@@ -1257,7 +1257,7 @@ bool CClientManager::InitializeObjectTable()
 
 	if (!m_map_pkObjectTable.empty())
 	{
-		sys_log(0, "RELOAD: object");
+		metin2::log::info( "RELOAD: object");
 		m_map_pkObjectTable.clear();
 	}
 
@@ -1283,7 +1283,7 @@ bool CClientManager::InitializeObjectTable()
 			str_to_number(k->zRot, data[col++]);
 			str_to_number(k->lLife, data[col++]);
 
-			sys_log(0, "OBJ: %u vnum %u map %-4d %7dx%-7d life %d",
+			metin2::log::info( "OBJ: {:d} vnum {:d} map {:<4d} {:7d}x{:<7d} life {:d}",
 					k->dwID, k->dwVnum, k->lMapIndex, k->x, k->y, k->lLife);
 
 			m_map_pkObjectTable.insert(std::make_pair(k->dwID, std::move(k)));

@@ -26,7 +26,7 @@
 
 #include <common/length.h>
 #include <common/tables.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/utils.h>
 
 #include <algorithm>
@@ -65,7 +65,7 @@ time_t CHARACTER::GetSkillNextReadTime(uint32_t dwVnum) const
 {
 	if (dwVnum >= SKILL_MAX_NUM)
 	{
-		sys_err("vnum overflow (vnum: %u)", dwVnum);
+		metin2::log::error("vnum overflow (vnum: {:d})", dwVnum);
 		return 0;
 	}
 
@@ -84,24 +84,24 @@ bool TSkillUseInfo::HitOnce(uint32_t dwVnum)
 	if (!bUsed)
 		return false;
 
-	sys_log(1, "__HitOnce NextUse %u current %u count %d scount %d", dwNextSkillUsableTime, get_dword_time(), iHitCount, iSplashCount);
+	metin2::log::debug( "__HitOnce NextUse {:d} current {:d} count {:d} scount {:d}", dwNextSkillUsableTime, get_dword_time(), iHitCount, iSplashCount);
 
 	if (dwNextSkillUsableTime && dwNextSkillUsableTime<get_dword_time() && dwVnum != SKILL_MUYEONG && dwVnum != SKILL_HORSE_WILDATTACK)
 	{
-		sys_log(1, "__HitOnce can't hit");
+		metin2::log::debug( "__HitOnce can't hit");
 
 		return false;
 	}
 
 	if (iHitCount == -1)
 	{
-		sys_log(1, "__HitOnce OK %d %d %d", dwNextSkillUsableTime, get_dword_time(), iHitCount);
+		metin2::log::debug( "__HitOnce OK {:d} {:d} {:d}", dwNextSkillUsableTime, get_dword_time(), iHitCount);
 		return true;
 	}
 
 	if (iHitCount)
 	{
-		sys_log(1, "__HitOnce OK %d %d %d", dwNextSkillUsableTime, get_dword_time(), iHitCount);
+		metin2::log::debug( "__HitOnce OK {:d} {:d} {:d}", dwNextSkillUsableTime, get_dword_time(), iHitCount);
 		iHitCount--;
 		return true;
 	}
@@ -116,7 +116,7 @@ bool TSkillUseInfo::UseSkill(bool isGrandMaster, uint32_t vid, uint32_t dwCoolti
 	// cooldown has not finished yet.
 	if (bUsed && dwNextSkillUsableTime > dwCur)
 	{
-		sys_log(0, "cooltime is not over delta %u", dwNextSkillUsableTime - dwCur);
+		metin2::log::info( "cooltime is not over delta {:d}", dwNextSkillUsableTime - dwCur);
 		iHitCount = 0;
 		return false;
 	}
@@ -132,7 +132,7 @@ bool TSkillUseInfo::UseSkill(bool isGrandMaster, uint32_t vid, uint32_t dwCoolti
 	iMaxHitCount = iHitCount = hitcount;
 
 	if (test_server)
-		sys_log(0, "UseSkill NextUse %u  current %u cooltime %d hitcount %d/%d", dwNextSkillUsableTime, dwCur, dwCooltime, iHitCount, iMaxHitCount);
+		metin2::log::info( "UseSkill NextUse {:d}  current {:d} cooltime {:d} hitcount {:d}/{:d}", dwNextSkillUsableTime, dwCur, dwCooltime, iHitCount, iMaxHitCount);
 
 	dwVID = vid;
 	iSplashCount = splashcount;
@@ -190,7 +190,7 @@ void CHARACTER::SetSkillLevel(uint32_t dwVnum, uint8_t bLev)
 
 	if (dwVnum >= SKILL_MAX_NUM)
 	{
-		sys_err("vnum overflow (vnum %u)", dwVnum);
+		metin2::log::error("vnum overflow (vnum {:d})", dwVnum);
 		return;
 	}
 
@@ -288,7 +288,7 @@ bool CHARACTER::LearnGrandMasterSkill(uint32_t dwSkillVnum)
 		return false;
 	}
 
-	sys_log(0, "learn grand master skill[%d] cur %ld, next %ld", dwSkillVnum, get_global_time(), GetSkillNextReadTime(dwSkillVnum));
+	metin2::log::info( "learn grand master skill[{:d}] cur {:d}, next {:d}", dwSkillVnum, get_global_time(), GetSkillNextReadTime(dwSkillVnum));
 
 	// if bType is 0, can be trained with books from the start
 	if (pkSk->dwType == 0)
@@ -318,7 +318,7 @@ bool CHARACTER::LearnGrandMasterSkill(uint32_t dwSkillVnum)
 
 	int idx = std::min(9, GetSkillLevel(dwSkillVnum) - 30);
 
-	sys_log(0, "LearnGrandMasterSkill %s table idx %d value %d", GetName(), idx, aiGrandMasterSkillBookCountForLevelUp[idx]);
+	metin2::log::info( "LearnGrandMasterSkill {} table idx {:d} value {:d}", GetName(), idx, aiGrandMasterSkillBookCountForLevelUp[idx]);
 
 	int iTotalReadCount = GetQuestFlag(strTrainSkill) + 1;
 	SetQuestFlag(strTrainSkill, iTotalReadCount);
@@ -339,11 +339,11 @@ bool CHARACTER::LearnGrandMasterSkill(uint32_t dwSkillVnum)
 	}
 
 	int n = number(1, iBookCount);
-	sys_log(0, "Number(%d)", n);
+	metin2::log::info( "Number({:d})", n);
 
 	uint32_t nextTime = get_global_time() + number(28800, 43200);
 
-	sys_log(0, "GrandMaster SkillBookCount min %d cur %d max %d (next_time=%d)", iMinReadCount, iTotalReadCount, iMaxReadCount, nextTime);
+	metin2::log::info( "GrandMaster SkillBookCount min {:d} cur {:d} max {:d} (next_time={:d})", iMinReadCount, iTotalReadCount, iMaxReadCount, nextTime);
 
 	bool bSuccess = n == 2;
 
@@ -453,26 +453,26 @@ bool CHARACTER::LearnSkillByBook(uint32_t dwSkillVnum, uint8_t bProb)
 		}
 		// END_OF_SKILL_BOOK_BONUS
 
-		sys_log(0, "LearnSkillByBook Pct %u prob %d", dwSkillVnum, bProb);
+		metin2::log::info( "LearnSkillByBook Pct {:d} prob {:d}", dwSkillVnum, bProb);
 
 		if (number(1, 100) <= bProb)
 		{
 			if (test_server)
-				sys_log(0, "LearnSkillByBook %u SUCC", dwSkillVnum);
+				metin2::log::info( "LearnSkillByBook {:d} SUCC", dwSkillVnum);
 
 			SkillLevelUp(dwSkillVnum, SKILL_UP_BY_BOOK);
 		}
 		else
 		{
 			if (test_server)
-				sys_log(0, "LearnSkillByBook %u FAIL", dwSkillVnum);
+				metin2::log::info( "LearnSkillByBook {:d} FAIL", dwSkillVnum);
 		}
 	}
 	else
 	{
 		int idx = std::min(9, GetSkillLevel(dwSkillVnum) - 20);
 
-		sys_log(0, "LearnSkillByBook %s table idx %d value %d", GetName(), idx, aiSkillBookCountForLevelUp[idx]);
+		metin2::log::info( "LearnSkillByBook {} table idx {:d} value {:d}", GetName(), idx, aiSkillBookCountForLevelUp[idx]);
 
 		int need_bookcount = GetSkillLevel(dwSkillVnum) - 20;
 
@@ -572,7 +572,7 @@ bool CHARACTER::SkillLevelDown(uint32_t dwVnum)
 
 	if (!pkSk)
 	{
-		sys_err("There is no such skill by number %u", dwVnum);
+		metin2::log::error("There is no such skill by number {:d}", dwVnum);
 		return false;
 	}
 
@@ -608,7 +608,7 @@ bool CHARACTER::SkillLevelDown(uint32_t dwVnum)
 			idx = POINT_HORSE_SKILL;
 			break;
 		default:
-			sys_err("Wrong skill type %d skill vnum %d", pkSk->dwType, pkSk->dwVnum);
+			metin2::log::error("Wrong skill type {:d} skill vnum {:d}", pkSk->dwType, pkSk->dwVnum);
 			return false;
 
 	}
@@ -616,7 +616,7 @@ bool CHARACTER::SkillLevelDown(uint32_t dwVnum)
 	PointChange(idx, +1);
 	SetSkillLevel(pkSk->dwVnum, m_pSkillLevels[pkSk->dwVnum].bLevel - 1);
 
-	sys_log(0, "SkillDown: %s %u %u %u type %u", GetName(), pkSk->dwVnum, m_pSkillLevels[pkSk->dwVnum].bMasterType, m_pSkillLevels[pkSk->dwVnum].bLevel, pkSk->dwType);
+	metin2::log::info( "SkillDown: {} {:d} {:d} {:d} type {:d}", GetName(), pkSk->dwVnum, m_pSkillLevels[pkSk->dwVnum].bMasterType, m_pSkillLevels[pkSk->dwVnum].bLevel, pkSk->dwType);
 	Save();
 
 	ComputePoints();
@@ -648,13 +648,13 @@ void CHARACTER::SkillLevelUp(uint32_t dwVnum, uint8_t bMethod)
 
 	if (!pkSk)
 	{
-		sys_err("There is no such skill by number (vnum %u)", dwVnum);
+		metin2::log::error("There is no such skill by number (vnum {:d})", dwVnum);
 		return;
 	}
 
 	if (pkSk->dwVnum >= SKILL_MAX_NUM)
 	{
-		sys_err("Skill Vnum overflow (vnum %u)", dwVnum);
+		metin2::log::error("Skill Vnum overflow (vnum {:d})", dwVnum);
 		return;
 	}
 
@@ -726,7 +726,7 @@ void CHARACTER::SkillLevelUp(uint32_t dwVnum, uint8_t bMethod)
 				break;
 
 			default:
-				sys_err("Wrong skill type %d skill vnum %d", pkSk->dwType, pkSk->dwVnum);
+				metin2::log::error("Wrong skill type {:d} skill vnum {:d}", pkSk->dwType, pkSk->dwVnum);
 				return;
 		}
 
@@ -783,7 +783,7 @@ void CHARACTER::SkillLevelUp(uint32_t dwVnum, uint8_t bMethod)
 	snprintf(szSkillUp, sizeof(szSkillUp), "SkillUp: %s %u %d %d[Before:%d] type %u",
 			GetName(), pkSk->dwVnum, m_pSkillLevels[pkSk->dwVnum].bMasterType, m_pSkillLevels[pkSk->dwVnum].bLevel, SkillPointBefore, pkSk->dwType);
 
-	sys_log(0, "%s", szSkillUp);
+	metin2::log::info( "{}", szSkillUp);
 
 	LogManager::instance().CharLog(this, pkSk->dwVnum, "SKILLUP", szSkillUp);
 	Save();
@@ -912,11 +912,11 @@ EVENTFUNC(ChainLightningEvent)
 
 	if (!pkChr || !pkChrVictim)
 	{
-		sys_log(1, "use chainlighting, but no character");
+		metin2::log::debug( "use chainlighting, but no character");
 		return 0;
 	}
 
-	sys_log(1, "chainlighting event %s", pkChr->GetName());
+	metin2::log::debug( "chainlighting event {}", pkChr->GetName());
 
 	if (pkChrVictim->GetParty()) // party first
 	{
@@ -946,7 +946,7 @@ EVENTFUNC(ChainLightningEvent)
 	}
 	else
 	{
-		sys_log(1, "%s use chainlighting, but find victim failed near %s", pkChr->GetName(), pkChrVictim->GetName());
+		metin2::log::debug( "{} use chainlighting, but find victim failed near {}", pkChr->GetName(), pkChrVictim->GetName());
 	}
 
 	return 0;
@@ -1004,14 +1004,14 @@ struct FuncSplashDamage
 		if (DISTANCE_APPROX(m_x - pkChrVictim->GetX(), m_y - pkChrVictim->GetY()) > m_pkSk->iSplashRange)
 		{
 			if(test_server)
-				sys_log(0, "XXX target too far %s", m_pkChr->GetName());
+				metin2::log::info( "XXX target too far {}", m_pkChr->GetName());
 			return;
 		}
 
 		if (!battle_is_attackable(m_pkChr, pkChrVictim))
 		{
 			if(test_server)
-				sys_log(0, "XXX target not attackable %s", m_pkChr->GetName());
+				metin2::log::info( "XXX target not attackable {}", m_pkChr->GetName());
 			return;
 		}
 
@@ -1021,7 +1021,7 @@ struct FuncSplashDamage
 				if (!m_bDisableCooltime && m_pInfo && !m_pInfo->HitOnce(m_pkSk->dwVnum) && m_pkSk->dwVnum != SKILL_MUYEONG)
 				{
 					if(test_server)
-						sys_log(0, "check guild skill %s", m_pkChr->GetName());
+						metin2::log::info( "check guild skill {}", m_pkChr->GetName());
 					return;
 				}
 
@@ -1219,7 +1219,7 @@ struct FuncSplashDamage
 				break;
 
 			default:
-				sys_err("Unknown skill attr type %u vnum %u", m_pkSk->bSkillAttrType, m_pkSk->dwVnum);
+				metin2::log::error("Unknown skill attr type {:d} vnum {:d}", m_pkSk->bSkillAttrType, m_pkSk->dwVnum);
 				break;
 		}
 
@@ -1256,7 +1256,7 @@ struct FuncSplashDamage
 			pkChrVictim->BeginFight(m_pkChr);
 
 		if (m_pkSk->dwVnum == SKILL_CHAIN)
-			sys_log(0, "%s CHAIN INDEX %d DAM %d DT %d", m_pkChr->GetName(), m_pkChr->GetChainLightningIndex() - 1, iDam, dt);
+			metin2::log::info( "{} CHAIN INDEX {:d} DAM {:d} DT {:d}", m_pkChr->GetName(), m_pkChr->GetChainLightningIndex() - 1, iDam, dt);
 
 		{
 			uint8_t AntiSkillID = 0;
@@ -1282,7 +1282,7 @@ struct FuncSplashDamage
 					CSkillProto* pkSk = CSkillManager::instance().Get(AntiSkillID);
 					if (!pkSk)
 					{
-						sys_err ("There is no anti skill(%d) in skill proto", AntiSkillID);
+						metin2::log::error("There is no anti skill({:d}) in skill proto", AntiSkillID);
 					}
 					else
 					{
@@ -1290,7 +1290,7 @@ struct FuncSplashDamage
 
 						double ResistAmount = pkSk->kPointPoly.Eval();
 
-						sys_log(0, "ANTI_SKILL: Resist(%lf) Orig(%d) Reduce(%d)", ResistAmount, iDam, int(iDam * (ResistAmount/100.0)));
+						metin2::log::info( "ANTI_SKILL: Resist({:f}) Orig({:d}) Reduce({:d})", ResistAmount, iDam, int(iDam * (ResistAmount/100.0)));
 
 						iDam -= iDam * (ResistAmount/100.0);
 					}
@@ -1379,7 +1379,7 @@ struct FuncSplashDamage
 				}
 
 				GetDeltaByDegree(degree, fCrushSlidingLength, &fx, &fy);
-				sys_log(0, "CRUSH! %s -> %s (%d %d) -> (%d %d)", m_pkChr->GetName(), pkChrVictim->GetName(), pkChrVictim->GetX(), pkChrVictim->GetY(), (int32_t)(pkChrVictim->GetX()+fx), (int32_t)(pkChrVictim->GetY()+fy));
+				metin2::log::info( "CRUSH! {} -> {} ({:d} {:d}) -> ({:d} {:d})", m_pkChr->GetName(), pkChrVictim->GetName(), pkChrVictim->GetX(), pkChrVictim->GetY(), (int32_t)(pkChrVictim->GetX()+fx), (int32_t)(pkChrVictim->GetY()+fy));
 				int32_t tx = (int32_t)(pkChrVictim->GetX()+fx);
 				int32_t ty = (int32_t)(pkChrVictim->GetY()+fy);
 
@@ -1420,7 +1420,7 @@ struct FuncSplashDamage
 			event_create(ChainLightningEvent, info, passes_per_sec / 5);
 		}
 		if(test_server)
-			sys_log(0, "FuncSplashDamage End :%s ", m_pkChr->GetName());
+			metin2::log::info( "FuncSplashDamage End :{} ", m_pkChr->GetName());
 	}
 
 	int		m_x;
@@ -1465,11 +1465,11 @@ struct FuncSplashAffect
 			CHARACTER * pkChr = (CHARACTER *) ent;
 
 			if (test_server)
-				sys_log(0, "FuncSplashAffect step 1 : name:%s vnum:%d iDur:%d", pkChr->GetName(), m_dwVnum, m_iDuration);
+				metin2::log::info( "FuncSplashAffect step 1 : name:{} vnum:{:d} iDur:{:d}", pkChr->GetName(), m_dwVnum, m_iDuration);
 			if (DISTANCE_APPROX(m_x - pkChr->GetX(), m_y - pkChr->GetY()) < m_iDist)
 			{
 				if (test_server)
-					sys_log(0, "FuncSplashAffect step 2 : name:%s vnum:%d iDur:%d", pkChr->GetName(), m_dwVnum, m_iDuration);
+					metin2::log::info( "FuncSplashAffect step 2 : name:{} vnum:{:d} iDur:{:d}", pkChr->GetName(), m_dwVnum, m_iDuration);
 				if (m_dwVnum == SKILL_TUSOK)
 					if (pkChr->CanBeginFight())
 						pkChr->BeginFight(m_pkChrAttacker);
@@ -1524,7 +1524,7 @@ int CHARACTER::ComputeSkillAtPosition(uint32_t dwVnum, const PIXEL_POSITION& pos
 
 	if (test_server)
 	{
-		sys_log(0, "ComputeSkillAtPosition %s vnum %d x %d y %d level %d", 
+		metin2::log::info( "ComputeSkillAtPosition {} vnum {:d} x {:d} y {:d} level {:d}", 
 				GetName(), dwVnum, posTarget.x, posTarget.y, bSkillLevel); 
 	}
 
@@ -1677,7 +1677,7 @@ int CHARACTER::ComputeSkillAtPosition(uint32_t dwVnum, const PIXEL_POSITION& pos
 		{
 			int iDur = (int) pkSk->kDurationPoly2.Eval();
 
-			sys_log(1, "try second %u %d %d", pkSk->dwVnum, pkSk->bPointOn2, iDur);
+			metin2::log::debug( "try second {:d} {:d} {:d}", pkSk->dwVnum, pkSk->bPointOn2, iDur);
 
 			if (iDur > 0)
 			{
@@ -1827,7 +1827,7 @@ int CHARACTER::ComputeSkill(uint32_t dwVnum, CHARACTER * pkVictim, uint8_t bSkil
 	if (!pkVictim)
 	{
 		if (test_server)
-			sys_log(0, "ComputeSkill: %s Victim == null, skill %d", GetName(), dwVnum);
+			metin2::log::info( "ComputeSkill: {} Victim == null, skill {:d}", GetName(), dwVnum);
 
 		return BATTLE_NONE;
 	}
@@ -1835,7 +1835,7 @@ int CHARACTER::ComputeSkill(uint32_t dwVnum, CHARACTER * pkVictim, uint8_t bSkil
 	if (pkSk->dwTargetRange && DISTANCE_SQRT(GetX() - pkVictim->GetX(), GetY() - pkVictim->GetY()) >= pkSk->dwTargetRange + 50)
 	{
 		if (test_server)
-			sys_log(0, "ComputeSkill: Victim too far, skill %d : %s to %s (distance %u limit %u)", 
+			metin2::log::info( "ComputeSkill: Victim too far, skill {:d} : {} to {} (distance {:d} limit {:d})", 
 					dwVnum,
 					GetName(),
 					pkVictim->GetName(),
@@ -1850,7 +1850,7 @@ int CHARACTER::ComputeSkill(uint32_t dwVnum, CHARACTER * pkVictim, uint8_t bSkil
 		if ((bSkillLevel = GetSkillLevel(pkSk->dwVnum)) == 0)
 		{
 			if (test_server)
-				sys_log(0, "ComputeSkill : name:%s vnum:%d  skillLevelBySkill : %d ", GetName(), pkSk->dwVnum, bSkillLevel);
+				metin2::log::info( "ComputeSkill : name:{} vnum:{:d}  skillLevelBySkill : {:d} ", GetName(), pkSk->dwVnum, bSkillLevel);
 			return BATTLE_NONE;
 		}
 	}
@@ -1933,7 +1933,7 @@ int CHARACTER::ComputeSkill(uint32_t dwVnum, CHARACTER * pkVictim, uint8_t bSkil
 	int iAmount3 = (int) pkSk->kPointPoly3.Eval();
 
 	if (test_server && IsPC())
-		sys_log(0, "iAmount: %d %d %d , atk:%f skLevel:%f k:%f GetSkillPower(%d) MaxLevel:%d Per:%d",
+		metin2::log::info( "iAmount: {:d} {:d} {:d} , atk:{:f} skLevel:{:f} k:{:f} GetSkillPower({:d}) MaxLevel:{:d} Per:{:d}",
 				iAmount, iAmount2, iAmount3,
 				pkSk->kPointPoly.GetVar("atk"),
 				pkSk->kPointPoly.GetVar("k"),
@@ -2115,7 +2115,7 @@ int CHARACTER::ComputeSkill(uint32_t dwVnum, CHARACTER * pkVictim, uint8_t bSkil
 				if (iDur2 > 0)
 				{
 					if (test_server)
-						sys_log(0, "SKILL_AFFECT: %s %s Dur:%d To:%d Amount:%d", 
+						metin2::log::info( "SKILL_AFFECT: {} {} Dur:{:d} To:{:d} Amount:{:d}", 
 								GetName(),
 								pkSk->szName,
 								iDur2,
@@ -2148,7 +2148,7 @@ int CHARACTER::ComputeSkill(uint32_t dwVnum, CHARACTER * pkVictim, uint8_t bSkil
 			else
 			{
 				if (test_server)
-					sys_log(0, "SKILL_AFFECT: %s %s Dur:%d To:%d Amount:%d", 
+					metin2::log::info( "SKILL_AFFECT: {} {} Dur:{:d} To:{:d} Amount:{:d}", 
 							GetName(),
 							pkSk->szName,
 							iDur,
@@ -2203,7 +2203,7 @@ int CHARACTER::ComputeSkill(uint32_t dwVnum, CHARACTER * pkVictim, uint8_t bSkil
 			pkSk->kDurationPoly3.SetVar("k", k/*bSkillLevel*/);
 			int iDur = (int) pkSk->kDurationPoly3.Eval();
 
-			sys_log(0, "try third %u %d %d %d 1894", pkSk->dwVnum, pkSk->bPointOn3, iDur, iAmount3);
+			metin2::log::info( "try third {:d} {:d} {:d} {:d} 1894", pkSk->dwVnum, pkSk->bPointOn3, iDur, iAmount3);
 
 			if (iDur > 0)
 			{
@@ -2280,7 +2280,7 @@ bool CHARACTER::UseSkill(uint32_t dwVnum, CHARACTER * pkVictim, bool bUseGrandMa
 		return false;
 
 	CSkillProto * pkSk = CSkillManager::instance().Get(dwVnum);
-	sys_log(0, "%s: USE_SKILL: %d pkVictim %p", GetName(), dwVnum, pkVictim);
+	metin2::log::info( "{}: USE_SKILL: {:d} pkVictim {}", GetName(), dwVnum, static_cast<const void *>(pkVictim));
 
 	if (!pkSk)
 		return false;
@@ -2363,7 +2363,7 @@ bool CHARACTER::UseSkill(uint32_t dwVnum, CHARACTER * pkVictim, bool bUseGrandMa
 
 	if (dwVnum == SKILL_TERROR && m_SkillUseInfo[dwVnum].bUsed && m_SkillUseInfo[dwVnum].dwNextSkillUsableTime > dwCur )
 	{
-		sys_log(0, " SKILL_TERROR's Cooltime is not delta over %u", m_SkillUseInfo[dwVnum].dwNextSkillUsableTime  - dwCur );
+		metin2::log::info( " SKILL_TERROR's Cooltime is not delta over {:d}", m_SkillUseInfo[dwVnum].dwNextSkillUsableTime  - dwCur );
 		return false;
 	}
 
@@ -2479,7 +2479,7 @@ int CHARACTER::GetSkillMasterType(uint32_t dwVnum) const
 
 	if (dwVnum >= SKILL_MAX_NUM)
 	{
-		sys_err("%s skill vnum overflow %u", GetName(), dwVnum);
+		metin2::log::error("{} skill vnum overflow {:d}", GetName(), dwVnum);
 		return 0;
 	}
 
@@ -2511,7 +2511,7 @@ int CHARACTER::GetSkillPower(uint32_t dwVnum, uint8_t bLevel) const
 
 	if (dwVnum >= SKILL_MAX_NUM)
 	{
-		sys_err("%s skill vnum overflow %u", GetName(), dwVnum);
+		metin2::log::error("{} skill vnum overflow {:d}", GetName(), dwVnum);
 		return 0;
 	}
 
@@ -2524,8 +2524,8 @@ int CHARACTER::GetSkillLevel(uint32_t dwVnum) const
 {
 	if (dwVnum >= SKILL_MAX_NUM)
 	{
-		sys_err("%s skill vnum overflow %u", GetName(), dwVnum);
-		sys_log(0, "%s skill vnum overflow %u", GetName(), dwVnum);
+		metin2::log::error("{} skill vnum overflow {:d}", GetName(), dwVnum);
+		metin2::log::info( "{} skill vnum overflow {:d}", GetName(), dwVnum);
 		return 0;
 	}
 
@@ -2538,7 +2538,7 @@ EVENTFUNC(skill_muyoung_event)
 
 	if ( info == nullptr )
 	{
-		sys_err( "skill_muyoung_event> <Factor> Null pointer" );
+		metin2::log::error( "skill_muyoung_event> <Factor> Null pointer" );
 		return 0;
 	}
 
@@ -2707,7 +2707,7 @@ EVENTFUNC(mob_skill_hit_event)
 
 	if ( info == nullptr )
 	{
-		sys_err( "mob_skill_event_info> <Factor> Null pointer" );
+		metin2::log::error( "mob_skill_event_info> <Factor> Null pointer" );
 		return 0;
 	}
 
@@ -2746,11 +2746,11 @@ bool CHARACTER::UseMobSkill(unsigned int idx)
 
 	m_adwMobSkillCooltime[idx] = get_dword_time() + iCooltime;
 
-	sys_log(0, "USE_MOB_SKILL: %s idx %d vnum %u cooltime %d", GetName(), idx, dwVnum, iCooltime);
+	metin2::log::info( "USE_MOB_SKILL: {} idx {:d} vnum {:d} cooltime {:d}", GetName(), idx, dwVnum, iCooltime);
 
 	if (m_pkMobData->m_mobSkillInfo[idx].vecSplashAttack.empty())
 	{
-		sys_err("No skill hit data for mob %s index %d", GetName(), idx);
+		metin2::log::error("No skill hit data for mob {} index {:d}", GetName(), idx);
 		return false;
 	}
 
@@ -2770,7 +2770,7 @@ bool CHARACTER::UseMobSkill(unsigned int idx)
 		if (rInfo.dwTiming)
 		{
 			if (test_server)
-				sys_log(0, "               timing %ums", rInfo.dwTiming);
+				metin2::log::info( "               timing {:d}ms", rInfo.dwTiming);
 
 			mob_skill_event_info* info = AllocEventInfo<mob_skill_event_info>();
 
@@ -3161,7 +3161,7 @@ bool CHARACTER::IsUsableSkillMotion(uint32_t dwMotionIndex) const
 
 	if (dwMotionIndex >= MOTION_MAX_NUM)
 	{
-		sys_err("OUT_OF_MOTION_VNUM: name=%s, motion=%d/%d", GetName(), dwMotionIndex, MOTION_MAX_NUM);
+		metin2::log::error("OUT_OF_MOTION_VNUM: name={}, motion={:d}/{:d}", GetName(), dwMotionIndex, MOTION_MAX_NUM);
 		return false;
 	}
 
@@ -3170,7 +3170,7 @@ bool CHARACTER::IsUsableSkillMotion(uint32_t dwMotionIndex) const
 	uint32_t skillCount = *skillVNums++;
 	if (skillCount >= SKILL_LIST_MAX_COUNT)
 	{
-		sys_err("OUT_OF_SKILL_LIST: name=%s, count=%d/%d", GetName(), skillCount, SKILL_LIST_MAX_COUNT);
+		metin2::log::error("OUT_OF_SKILL_LIST: name={}, count={:d}/{:d}", GetName(), skillCount, SKILL_LIST_MAX_COUNT);
 		return false;
 	}
 
@@ -3178,7 +3178,7 @@ bool CHARACTER::IsUsableSkillMotion(uint32_t dwMotionIndex) const
 	{
 		if (skillIndex >= SKILL_MAX_NUM)
 		{
-			sys_err("OUT_OF_SKILL_VNUM: name=%s, skill=%d/%d", GetName(), skillIndex, SKILL_MAX_NUM);
+			metin2::log::error("OUT_OF_SKILL_VNUM: name={}, skill={:d}/{:d}", GetName(), skillIndex, SKILL_MAX_NUM);
 			return false;
 		}
 
@@ -3229,7 +3229,7 @@ void CHARACTER::ClearSubSkill()
 
 	if (m_pSkillLevels == nullptr)
 	{
-		sys_err("m_pSkillLevels nil (name: %s)", GetName());
+		metin2::log::error("m_pSkillLevels nil (name: {})", GetName());
 		return;
 	}
 
@@ -3254,13 +3254,13 @@ bool CHARACTER::ResetOneSkill(uint32_t dwVnum)
 {
 	if (nullptr == m_pSkillLevels)
 	{
-		sys_err("m_pSkillLevels nil (name %s, vnum %u)", GetName(), dwVnum);
+		metin2::log::error("m_pSkillLevels nil (name {}, vnum {:d})", GetName(), dwVnum);
 		return false;
 	}
 
 	if (dwVnum >= SKILL_MAX_NUM)
 	{
-		sys_err("vnum overflow (name %s, vnum %u)", GetName(), dwVnum);
+		metin2::log::error("vnum overflow (name {}, vnum {:d})", GetName(), dwVnum);
 		return false;
 	}
 
@@ -3345,7 +3345,7 @@ bool CHARACTER::CheckSkillHitCount(const uint8_t SkillID, const VID TargetVID)
 
 	if (iter == m_SkillUseInfo.end())
 	{
-		sys_log(0, "SkillHack: Skill(%u) is not in container", SkillID);
+		metin2::log::info( "SkillHack: Skill({:d}) is not in container", SkillID);
 		return false;
 	}
 
@@ -3353,7 +3353,7 @@ bool CHARACTER::CheckSkillHitCount(const uint8_t SkillID, const VID TargetVID)
 
 	if (false == rSkillUseInfo.bUsed)
 	{
-		sys_log(0, "SkillHack: not used skill(%u)", SkillID);
+		metin2::log::info( "SkillHack: not used skill({:d})", SkillID);
 		return false;
 	}
 
@@ -3363,7 +3363,7 @@ bool CHARACTER::CheckSkillHitCount(const uint8_t SkillID, const VID TargetVID)
 		case SKILL_HWAYEOMPOK:
 		case SKILL_DAEJINGAK:
 		case SKILL_PAERYONG:
-			sys_log(0, "SkillHack: cannot use attack packet for skill(%u)", SkillID);
+			metin2::log::info( "SkillHack: cannot use attack packet for skill({:d})", SkillID);
 			return false;
 	}
 
@@ -3395,7 +3395,7 @@ bool CHARACTER::CheckSkillHitCount(const uint8_t SkillID, const VID TargetVID)
 
 		if (iterTargetMap->second >= MaxAttackCountPerTarget)
 		{
-			sys_log(0, "SkillHack: Too Many Hit count from SkillID(%u) count(%zu)", SkillID, iterTargetMap->second);
+			metin2::log::info( "SkillHack: Too Many Hit count from SkillID({:d}) count({:d})", SkillID, iterTargetMap->second);
 			return false;
 		}
 

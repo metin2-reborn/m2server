@@ -9,7 +9,7 @@
 #include "utils.h"
 
 #include <libgame/attribute.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <cassert>
 #include <cstdint>
@@ -36,7 +36,7 @@ void SECTREE::Destroy()
 {
 	if (!m_set_entity.empty())
 	{
-		sys_err("Sectree: entity set not empty!!");
+		metin2::log::error("Sectree: entity set not empty!!");
 
 		ENTITY_SET::iterator it = m_set_entity.begin();
 
@@ -48,7 +48,7 @@ void SECTREE::Destroy()
 			{
 				CHARACTER * ch = (CHARACTER *) ent;
 
-				sys_err("Sectree: destroying character: %s is_pc %d", ch->GetName(), ch->IsPC() ? 1 : 0);
+				metin2::log::error("Sectree: destroying character: {} is_pc {:d}", ch->GetName(), ch->IsPC() ? 1 : 0);
 
 				if (ch->GetDesc())
 					DESC_MANAGER::instance().DestroyDesc(ch->GetDesc());
@@ -59,12 +59,12 @@ void SECTREE::Destroy()
 			{
 				CItem * item = (CItem *) ent;
 
-				sys_err("Sectree: destroying Item: %s", item->GetName());
+				metin2::log::error("Sectree: destroying Item: {}", item->GetName());
 
 				ITEM_MANAGER::instance().DestroyItem(item);
 			}
 			else
-				sys_err("Sectree: unknown type: %d", ent->GetType());
+				metin2::log::error("Sectree: unknown type: {:d}", ent->GetType());
 		}
 	}
 	m_set_entity.clear();
@@ -104,7 +104,7 @@ void SECTREE::DecreasePC()
 		{
 			if (tree->m_iPCCount < 0)
 			{
-				sys_err("tree pc count lower than zero (value %d coord %d %d)", tree->m_iPCCount, tree->m_id.coord.x, tree->m_id.coord.y);
+				metin2::log::error("tree pc count lower than zero (value {:d} coord {:d} {:d})", tree->m_iPCCount, tree->m_id.coord.x, tree->m_id.coord.y);
 				tree->m_iPCCount = 0;
 			}
 
@@ -132,7 +132,7 @@ bool SECTREE::InsertEntity(CEntity * pkEnt)
 		return false;
 
 	if (m_set_entity.find(pkEnt) != m_set_entity.end()) {
-		sys_err("entity %p already exist in this sectree!", pkEnt);
+		metin2::log::error("entity {} already exist in this sectree!", static_cast<const void *>(pkEnt));
 		return false;
 	}
 

@@ -14,7 +14,7 @@
 
 #include <common/length.h>
 #include <common/tables.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <algorithm>
 #include <cstdint>
@@ -41,7 +41,7 @@ void CPrivManager::RequestGiveGuildPriv(uint32_t guild_id, uint8_t type, int val
 {
 	if (MAX_PRIV_NUM <= type)
 	{
-		sys_err("PRIV_MANAGER: RequestGiveGuildPriv: wrong guild priv type(%u)", type);
+		metin2::log::error("PRIV_MANAGER: RequestGiveGuildPriv: wrong guild priv type({:d})", type);
 		return;
 	}
 
@@ -61,7 +61,7 @@ void CPrivManager::RequestGiveEmpirePriv(uint8_t empire, uint8_t type, int value
 {
 	if (MAX_PRIV_NUM <= type)
 	{
-		sys_err("PRIV_MANAGER: RequestGiveEmpirePriv: wrong empire priv type(%u)", type);
+		metin2::log::error("PRIV_MANAGER: RequestGiveEmpirePriv: wrong empire priv type({:d})", type);
 		return;
 	}
 
@@ -81,7 +81,7 @@ void CPrivManager::RequestGiveCharacterPriv(uint32_t pid, uint8_t type, int valu
 {
 	if (MAX_PRIV_NUM <= type)
 	{
-		sys_err("PRIV_MANAGER: RequestGiveCharacterPriv: wrong char priv type(%u)", type);
+		metin2::log::error("PRIV_MANAGER: RequestGiveCharacterPriv: wrong char priv type({:d})", type);
 		return;
 	}
 
@@ -99,11 +99,11 @@ void CPrivManager::GiveGuildPriv(uint32_t guild_id, uint8_t type, int value, uin
 {
 	if (MAX_PRIV_NUM <= type)
 	{
-		sys_err("PRIV_MANAGER: GiveGuildPriv: wrong guild priv type(%u)", type);
+		metin2::log::error("PRIV_MANAGER: GiveGuildPriv: wrong guild priv type({:d})", type);
 		return;
 	}
 
-	sys_log(0,"Set Guild Priv: guild_id(%u) type(%d) value(%d) duration_sec(%ld)", guild_id, type, value, end_time_sec - get_global_time());
+	metin2::log::info("Set Guild Priv: guild_id({:d}) type({:d}) value({:d}) duration_sec({:d})", guild_id, type, value, end_time_sec - get_global_time());
 
 	value = std::clamp(value, 0, 1000);
 	end_time_sec = std::clamp<int>(end_time_sec, 0, get_global_time()+60*60*24*7);
@@ -139,11 +139,11 @@ void CPrivManager::GiveCharacterPriv(uint32_t pid, uint8_t type, int value, uint
 {
 	if (MAX_PRIV_NUM <= type)
 	{
-		sys_err("PRIV_MANAGER: GiveCharacterPriv: wrong char priv type(%u)", type);
+		metin2::log::error("PRIV_MANAGER: GiveCharacterPriv: wrong char priv type({:d})", type);
 		return;
 	}
 
-	sys_log(0,"Set Character Priv %u %d %d", pid, type, value);
+	metin2::log::info("Set Character Priv {:d} {:d} {:d}", pid, type, value);
 
 	value = std::clamp(value, 0, 1000);
 
@@ -157,11 +157,11 @@ void CPrivManager::GiveEmpirePriv(uint8_t empire, uint8_t type, int value, uint8
 {
 	if (MAX_PRIV_NUM <= type)
 	{
-		sys_err("PRIV_MANAGER: GiveEmpirePriv: wrong empire priv type(%u)", type);
+		metin2::log::error("PRIV_MANAGER: GiveEmpirePriv: wrong empire priv type({:d})", type);
 		return;
 	}
 
-	sys_log(0, "Set Empire Priv: empire(%d) type(%d) value(%d) duration_sec(%ld)", empire, type, value, end_time_sec-get_global_time());
+	metin2::log::info( "Set Empire Priv: empire({:d}) type({:d}) value({:d}) duration_sec({:d})", empire, type, value, end_time_sec-get_global_time());
 
 	value = std::clamp(value, 0, 1000);
 	end_time_sec = std::clamp<int>(end_time_sec, 0, get_global_time()+60*60*24*7);

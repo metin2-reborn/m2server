@@ -3,7 +3,7 @@
 
 #include "sectree_manager.h"
 
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <cstdint>
 #include <map>
@@ -24,7 +24,7 @@ bool CMapLocation::Get(int iIndex, int32_t & lAddr, uint16_t & wPort)
 {
 	if (iIndex == 0)
 	{
-		sys_log(0, "CMapLocation::Get - Error MapIndex[%d]", iIndex);
+		metin2::log::info( "CMapLocation::Get - Error MapIndex[{:d}]", iIndex);
 		return false;
 	}
 
@@ -32,11 +32,11 @@ bool CMapLocation::Get(int iIndex, int32_t & lAddr, uint16_t & wPort)
 
 	if (m_map_address.end() == it)
 	{
-		sys_log(0, "CMapLocation::Get - Error MapIndex[%d]", iIndex);
+		metin2::log::info( "CMapLocation::Get - Error MapIndex[{:d}]", iIndex);
 		std::map<int32_t, TLocation>::iterator i;
 		for ( i	= m_map_address.begin(); i != m_map_address.end(); ++i)
 		{
-			sys_log(0, "Map(%d): Server(%x:%d)", i->first, i->second.addr, i->second.port);
+			metin2::log::info( "Map({:d}): Server({:x}:{:d})", i->first, i->second.addr, i->second.port);
 		}
 		return false;
 	}
@@ -54,6 +54,6 @@ void CMapLocation::Insert(int32_t lIndex, const char * c_pszHost, uint16_t wPort
 	loc.port = wPort;
 
 	m_map_address.insert(std::make_pair(lIndex, loc));
-	sys_log(0, "MapLocation::Insert : %d %s %d", lIndex, c_pszHost, wPort);
+	metin2::log::info( "MapLocation::Insert : {:d} {} {:d}", lIndex, c_pszHost, wPort);
 }
 

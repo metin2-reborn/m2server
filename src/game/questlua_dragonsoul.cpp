@@ -11,7 +11,7 @@ namespace quest
 		CHARACTER * const ch = CQuestManager::instance().GetCurrentCharacterPtr();
 		if (nullptr == ch)
 		{
-			quest_err("NULL POINT ERROR");
+			quest::error("NULL POINT ERROR");
 			return 0;
 		}
 		if (ch->DragonSoul_IsQualified())
@@ -25,7 +25,7 @@ namespace quest
 		CHARACTER * const ch = CQuestManager::instance().GetCurrentCharacterPtr();
 		if (nullptr == ch)
 		{
-			quest_err("NULL POINT ERROR");
+			quest::error("NULL POINT ERROR");
 			return 0;
 		}
 		ch->DragonSoul_GiveQualification();
@@ -38,7 +38,7 @@ namespace quest
 		CHARACTER * const ch = CQuestManager::instance().GetCurrentCharacterPtr();
 		if (nullptr == ch)
 		{
-			quest_err("NULL POINT ERROR");
+			quest::error("NULL POINT ERROR");
 			lua_pushnumber(L, 0);
 			return 1;
 		}

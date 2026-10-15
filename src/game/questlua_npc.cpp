@@ -8,7 +8,7 @@
 #include "utils.h"
 #include "xmas_event.h"
 
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <algorithm>
 #include <cstdint>
@@ -195,7 +195,7 @@ namespace quest
 	{
 		if (!lua_isnumber(L, 1))
 		{
-			sys_err("invalid vid");
+			metin2::log::error("invalid vid");
 			lua_pushboolean(L, 0);
 			return 1;
 		}

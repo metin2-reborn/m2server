@@ -7,7 +7,7 @@
 #include <common/utils.h>
 #include <libsql/AsyncSQL.h>
 #include <libsql/query.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <mysql.h>
 
@@ -70,7 +70,7 @@ void CMonarch::ElectMonarch()
 		++s[idx];
 
 		if (g_test_server)
-			sys_log (0, "[MONARCH_VOTE] pid(%d) come to vote candidacy pid(%d)", it->second->pid, m_vec_MonarchCandidacy[idx].pid);
+			metin2::log::info( "[MONARCH_VOTE] pid({:d}) come to vote candidacy pid({:d})", it->second->pid, m_vec_MonarchCandidacy[idx].pid);
 	}
 }
 
@@ -182,7 +182,7 @@ bool CMonarch::TakeMoney(int Empire, uint32_t pid, int64_t Money)
 	CDBManager::instance().AsyncQuery(szQuery);
 
 	if (g_test_server)
-		sys_log(0, "[MONARCH] Take money empire(%d) money(%ld)", Empire, m_MonarchInfo.money[Empire]);
+		metin2::log::info( "[MONARCH] Take money empire({:d}) money({:d})", Empire, m_MonarchInfo.money[Empire]);
 	return true;
 }
 
@@ -211,7 +211,7 @@ bool CMonarch::LoadMonarch()
 		strlcpy(p->date[Empire], row[idx++], sizeof(p->date[Empire]));
 
 		if (g_test_server)
-		sys_log(0, "[LOAD_MONARCH] Empire %d pid %d money %ld windate %s", Empire, p->pid[Empire], p->money[Empire], p->date[Empire]);
+		metin2::log::info( "[LOAD_MONARCH] Empire {:d} pid {:d} money {:d} windate {}", Empire, p->pid[Empire], p->money[Empire], p->date[Empire]);
     }
 
     return true;
@@ -241,7 +241,7 @@ bool CMonarch::SetMonarch(const char * name)
 		strlcpy(p->name[Empire], row[idx++], sizeof(p->name[Empire]));
 
 		if (g_test_server)
-			sys_log(0, "[Set_MONARCH] Empire %d pid %d money %ld windate %s", Empire, p->pid[Empire], p->money[Empire], p->date[Empire]);
+			metin2::log::info( "[Set_MONARCH] Empire {:d} pid {:d} money {:d} windate {}", Empire, p->pid[Empire], p->money[Empire], p->date[Empire]);
     }
 
 	//Insert into db
@@ -266,7 +266,7 @@ bool CMonarch::DelMonarch(const char * name)
 
 			if (pMsg->Get()->uiAffectedRows == 0 || pMsg->Get()->uiAffectedRows == (uint32_t)-1)
 			{
-				sys_err(" DirectQuery failed(%s)", szQuery);
+				metin2::log::error(" DirectQuery failed({})", szQuery);
 				return false;
 			}
 

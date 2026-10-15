@@ -9,7 +9,7 @@
 #include <common/tables.h>
 #include <common/utils.h>
 #include <libsql/AsyncSQL.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <mysql.h>
 
@@ -21,7 +21,7 @@
 
 void CClientManager::GuildCreate(CPeer * peer, uint32_t dwGuildID)
 {
-	sys_log(0, "GuildCreate %u", dwGuildID);
+	metin2::log::info( "GuildCreate {:d}", dwGuildID);
 	ForwardPacket(HEADER_DG_GUILD_LOAD, &dwGuildID, sizeof(uint32_t));
 
 	CGuildManager::instance().Load(dwGuildID);
@@ -29,14 +29,14 @@ void CClientManager::GuildCreate(CPeer * peer, uint32_t dwGuildID)
 
 void CClientManager::GuildChangeGrade(CPeer* peer, TPacketGuild* p)
 {
-	sys_log(0, "GuildChangeGrade %u %u", p->dwGuild, p->dwInfo);
+	metin2::log::info( "GuildChangeGrade {:d} {:d}", p->dwGuild, p->dwInfo);
 	ForwardPacket(HEADER_DG_GUILD_CHANGE_GRADE, p, sizeof(TPacketGuild));
 }
 
 void CClientManager::GuildAddMember(CPeer* peer, TPacketGDGuildAddMember * p)
 {
 	CGuildManager::instance().TouchGuild(p->dwGuild);
-	sys_log(0, "GuildAddMember %u %u", p->dwGuild, p->dwPID);
+	metin2::log::info( "GuildAddMember {:d} {:d}", p->dwGuild, p->dwPID);
 
 	char szQuery[512];
 
@@ -53,7 +53,7 @@ void CClientManager::GuildAddMember(CPeer* peer, TPacketGDGuildAddMember * p)
 
 	if (pmsg->Get()->uiNumRows == 0)
 	{
-		sys_err("Query failed when getting guild member data %s", pmsg->stQuery.c_str());
+		metin2::log::error("Query failed when getting guild member data {}", pmsg->stQuery.c_str());
 		return;
 	}
 
@@ -78,7 +78,7 @@ void CClientManager::GuildAddMember(CPeer* peer, TPacketGDGuildAddMember * p)
 
 void CClientManager::GuildRemoveMember(CPeer* peer, TPacketGuild* p)
 {
-	sys_log(0, "GuildRemoveMember %u %u", p->dwGuild, p->dwInfo);
+	metin2::log::info( "GuildRemoveMember {:d} {:d}", p->dwGuild, p->dwInfo);
 
 	char szQuery[512];
 	snprintf(szQuery, sizeof(szQuery), "DELETE FROM guild_member%s WHERE pid=%u and guild_id=%u", GetTablePostfix(), p->dwInfo, p->dwGuild);
@@ -92,25 +92,25 @@ void CClientManager::GuildRemoveMember(CPeer* peer, TPacketGuild* p)
 
 void CClientManager::GuildSkillUpdate(CPeer* peer, TPacketGuildSkillUpdate* p)
 {
-	sys_log(0, "GuildSkillUpdate %d", p->amount);
+	metin2::log::info( "GuildSkillUpdate {:d}", p->amount);
 	ForwardPacket(HEADER_DG_GUILD_SKILL_UPDATE, p, sizeof(TPacketGuildSkillUpdate));
 }
 
 void CClientManager::GuildExpUpdate(CPeer* peer, TPacketGuildExpUpdate* p)
 {
-	sys_log(0, "GuildExpUpdate %d", p->amount);
+	metin2::log::info( "GuildExpUpdate {:d}", p->amount);
 	ForwardPacket(HEADER_DG_GUILD_EXP_UPDATE, p, sizeof(TPacketGuildExpUpdate), 0, peer);
 }
 
 void CClientManager::GuildChangeMemberData(CPeer* peer, TPacketGuildChangeMemberData* p)
 {
-	sys_log(0, "GuildChangeMemberData %u %u %d %d", p->pid, p->offer, p->level, p->grade);
+	metin2::log::info( "GuildChangeMemberData {:d} {:d} {:d} {:d}", p->pid, p->offer, p->level, p->grade);
 	ForwardPacket(HEADER_DG_GUILD_CHANGE_MEMBER_DATA, p, sizeof(TPacketGuildChangeMemberData), 0, peer);
 }
 
 void CClientManager::GuildDisband(CPeer* peer, TPacketGuild* p)
 {
-	sys_log(0, "GuildDisband %u", p->dwGuild);
+	metin2::log::info( "GuildDisband {:d}", p->dwGuild);
 
 	char szQuery[512];
 
@@ -152,21 +152,21 @@ void CClientManager::GuildWar(CPeer* peer, TPacketGuildWar* p)
 	switch (p->bWar)
 	{
 		case GUILD_WAR_SEND_DECLARE:
-			sys_log(0, "GuildWar: GUILD_WAR_SEND_DECLARE type(%s) guild(%d - %d)",  __GetWarType(p->bType), p->dwGuildFrom, p->dwGuildTo);
+			metin2::log::info( "GuildWar: GUILD_WAR_SEND_DECLARE type({}) guild({:d} - {:d})",  __GetWarType(p->bType), p->dwGuildFrom, p->dwGuildTo);
 			CGuildManager::instance().AddDeclare(p->bType, p->dwGuildFrom, p->dwGuildTo);
 			break;
 
 		case GUILD_WAR_REFUSE:
-			sys_log(0, "GuildWar: GUILD_WAR_REFUSE type(%s) guild(%d - %d)", __GetWarType(p->bType), p->dwGuildFrom, p->dwGuildTo);
+			metin2::log::info( "GuildWar: GUILD_WAR_REFUSE type({}) guild({:d} - {:d})", __GetWarType(p->bType), p->dwGuildFrom, p->dwGuildTo);
 			CGuildManager::instance().RemoveDeclare(p->dwGuildFrom, p->dwGuildTo);
 			break;
 
 		case GUILD_WAR_WAIT_START:
-			sys_log(0, "GuildWar: GUILD_WAR_WAIT_START type(%s) guild(%d - %d)", __GetWarType(p->bType), p->dwGuildFrom, p->dwGuildTo);
+			metin2::log::info( "GuildWar: GUILD_WAR_WAIT_START type({}) guild({:d} - {:d})", __GetWarType(p->bType), p->dwGuildFrom, p->dwGuildTo);
 			[[fallthrough]];
 		case GUILD_WAR_RESERVE:	// Guild war reservation
 			if (p->bWar != GUILD_WAR_WAIT_START)
-				sys_log(0, "GuildWar: GUILD_WAR_RESERVE type(%s) guild(%d - %d)", __GetWarType(p->bType), p->dwGuildFrom, p->dwGuildTo);
+				metin2::log::info( "GuildWar: GUILD_WAR_RESERVE type({}) guild({:d} - {:d})", __GetWarType(p->bType), p->dwGuildFrom, p->dwGuildTo);
 			CGuildManager::instance().RemoveDeclare(p->dwGuildFrom, p->dwGuildTo);
 
 			if (!CGuildManager::instance().ReserveWar(p))
@@ -177,23 +177,23 @@ void CClientManager::GuildWar(CPeer* peer, TPacketGuildWar* p)
 			break;
 
 		case GUILD_WAR_ON_WAR:		// Start the guild war. (Field wars start immediately)
-			sys_log(0, "GuildWar: GUILD_WAR_ON_WAR type(%s) guild(%d - %d)", __GetWarType(p->bType), p->dwGuildFrom, p->dwGuildTo);
+			metin2::log::info( "GuildWar: GUILD_WAR_ON_WAR type({}) guild({:d} - {:d})", __GetWarType(p->bType), p->dwGuildFrom, p->dwGuildTo);
 			CGuildManager::instance().RemoveDeclare(p->dwGuildFrom, p->dwGuildTo);
 			CGuildManager::instance().StartWar(p->bType, p->dwGuildFrom, p->dwGuildTo);
 			break;
 
 		case GUILD_WAR_OVER:		// Guild war ended normally
-			sys_log(0, "GuildWar: GUILD_WAR_OVER type(%s) guild(%d - %d)", __GetWarType(p->bType), p->dwGuildFrom, p->dwGuildTo);
+			metin2::log::info( "GuildWar: GUILD_WAR_OVER type({}) guild({:d} - {:d})", __GetWarType(p->bType), p->dwGuildFrom, p->dwGuildTo);
 			CGuildManager::instance().RecvWarOver(p->dwGuildFrom, p->dwGuildTo, p->bType, p->lWarPrice);
 			break;
 
 		case GUILD_WAR_END:		// Guild war ended abnormally
-			sys_log(0, "GuildWar: GUILD_WAR_END type(%s) guild(%d - %d)", __GetWarType(p->bType), p->dwGuildFrom, p->dwGuildTo);
+			metin2::log::info( "GuildWar: GUILD_WAR_END type({}) guild({:d} - {:d})", __GetWarType(p->bType), p->dwGuildFrom, p->dwGuildTo);
 			CGuildManager::instance().RecvWarEnd(p->dwGuildFrom, p->dwGuildTo);
 			return; // NOTE: RecvWarEnd sends the packet, so no separate broadcast.
 
 		case GUILD_WAR_CANCEL :
-			sys_log(0, "GuildWar: GUILD_WAR_CANCEL type(%s) guild(%d - %d)", __GetWarType(p->bType), p->dwGuildFrom, p->dwGuildTo);
+			metin2::log::info( "GuildWar: GUILD_WAR_CANCEL type({}) guild({:d} - {:d})", __GetWarType(p->bType), p->dwGuildFrom, p->dwGuildTo);
 			CGuildManager::instance().CancelWar(p->dwGuildFrom, p->dwGuildTo);
 			break;
 	}
@@ -208,20 +208,20 @@ void CClientManager::GuildWarScore(CPeer* peer, TPacketGuildWarScore * p)
 
 void CClientManager::GuildChangeLadderPoint(TPacketGuildLadderPoint* p)
 {
-	sys_log(0, "GuildChangeLadderPoint Recv %u %d", p->dwGuild, p->lChange);
+	metin2::log::info( "GuildChangeLadderPoint Recv {:d} {:d}", p->dwGuild, p->lChange);
 	CGuildManager::instance().ChangeLadderPoint(p->dwGuild, p->lChange);
 }
 
 void CClientManager::GuildUseSkill(TPacketGuildUseSkill* p)
 {
-	sys_log(0, "GuildUseSkill Recv %u %d", p->dwGuild, p->dwSkillVnum);
+	metin2::log::info( "GuildUseSkill Recv {:d} {:d}", p->dwGuild, p->dwSkillVnum);
 	CGuildManager::instance().UseSkill(p->dwGuild, p->dwSkillVnum, p->dwCooltime);
 	SendGuildSkillUsable(p->dwGuild, p->dwSkillVnum, false);
 }
 
 void CClientManager::SendGuildSkillUsable(uint32_t guild_id, uint32_t dwSkillVnum, bool bUsable)
 {
-	sys_log(0, "SendGuildSkillUsable Send %u %d %s", guild_id, dwSkillVnum, bUsable?"true":"false");
+	metin2::log::info( "SendGuildSkillUsable Send {:d} {:d} {}", guild_id, dwSkillVnum, bUsable?"true":"false");
 
 	TPacketGuildSkillUsableChange p;
 

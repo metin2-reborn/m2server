@@ -1,6 +1,6 @@
 #include <libthecore/utils.h>
 
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <cctype>
 #include <cfloat>
@@ -25,7 +25,7 @@ void set_global_time(time_t t)
 
 	const std::string time_str_buf(time_str(get_global_time()));
 
-	sys_log(0, "GLOBAL_TIME: %s time_gap %d", time_str_buf.c_str(), global_time_gap);
+	metin2::log::info( "GLOBAL_TIME: {} time_gap {:d}", time_str_buf.c_str(), global_time_gap);
 }
 
 size_t str_lower(const char * src, char * dest, size_t dest_size)
@@ -69,7 +69,7 @@ const char *one_argument(const char *argument, char *first_arg, size_t first_siz
 
 	if (!argument || 0 == first_size)
 	{
-		sys_err("one_argument received a NULL pointer!");               
+		metin2::log::error("one_argument received a NULL pointer!");               
 		*first_arg = '\0';
 		return nullptr;    
 	} 

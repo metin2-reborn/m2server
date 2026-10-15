@@ -2,7 +2,7 @@
 
 #include <libnet/io.h>
 
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <asio/buffer.hpp>
 #include <asio/error.hpp>
@@ -73,7 +73,7 @@ namespace net {
     void connection::read() {
         if (input_.size() - input_size_ < min_read_space) {
             if (input_size_ >= max_input_) {
-                sys_err("%s: input exceeds %zu bytes", address_.c_str(), max_input_);
+                metin2::log::error("{}: input exceeds {:d} bytes", address_.c_str(), max_input_);
                 fail(asio::error::message_size);
                 return;
             }
@@ -100,7 +100,7 @@ namespace net {
         }
         if (consumed > input_size_) {
             // never move or drop more than was received
-            sys_err("%s: handler consumed %zu of %zu bytes", address_.c_str(), consumed, input_size_);
+            metin2::log::error("{}: handler consumed {:d} of {:d} bytes", address_.c_str(), consumed, input_size_);
             fail(asio::error::invalid_argument);
             return;
         }

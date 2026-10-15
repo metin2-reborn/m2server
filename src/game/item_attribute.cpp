@@ -8,7 +8,7 @@
 
 #include <common/length.h>
 #include <common/tables.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/utils.h>
 
 #include <algorithm>
@@ -92,7 +92,7 @@ void CItem::AddAttribute(uint8_t bApply, short sValue)
 	int i = GetAttributeCount();
 
 	if (i >= MAX_NORM_ATTR_NUM)
-		sys_err("item attribute overflow!");
+		metin2::log::error("item attribute overflow!");
 	else
 	{
 		if (sValue)
@@ -111,7 +111,7 @@ void CItem::AddAttr(uint8_t bApply, uint8_t bLevel)
 	int i = GetAttributeCount();
 
 	if (i == MAX_NORM_ATTR_NUM)
-		sys_err("item attribute overflow!");
+		metin2::log::error("item attribute overflow!");
 	else
 	{
 		const TItemAttrTable & r = g_map_itemAttr[bApply];
@@ -167,7 +167,7 @@ void CItem::PutAttributeWithLevel(uint8_t bLevel)
 
 	if (!attr_idx)
 	{
-		sys_err("Cannot put item attribute %d %d", iAttributeSet, bLevel);
+		metin2::log::error("Cannot put item attribute {:d} {:d}", iAttributeSet, bLevel);
 		return;
 	}
 

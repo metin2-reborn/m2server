@@ -20,7 +20,7 @@
 
 #include <common/length.h>
 #include <common/tables.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/utils.h>
 
 #include <algorithm>
@@ -80,7 +80,7 @@ EVENTFUNC(affect_event)
 
 	if ( info == nullptr )
 	{
-		sys_err( "affect_event> <Factor> Null pointer" );
+		metin2::log::error( "affect_event> <Factor> Null pointer" );
 		return 0;
 	}
 
@@ -173,7 +173,7 @@ void CHARACTER::StartAffectEvent()
 	char_event_info* info = AllocEventInfo<char_event_info>();
 	info->ch = this;
 	m_pkAffectEvent = event_create(affect_event, info, passes_per_sec);
-	sys_log(1, "StartAffectEvent %s %p %p", GetName(), this, m_pkAffectEvent.get());
+	metin2::log::debug( "StartAffectEvent {} {} {}", GetName(), static_cast<const void *>(this), static_cast<const void *>(m_pkAffectEvent.get()));
 }
 
 void CHARACTER::ClearAffect(bool bSave)
@@ -356,7 +356,7 @@ void CHARACTER::SaveAffect()
 		if (IS_NO_SAVE_AFFECT(pkAff->dwType))
 			continue;
 
-		sys_log(1, "AFFECT_SAVE: %u %u %d %d", pkAff->dwType, pkAff->bApplyOn, pkAff->lApplyValue, pkAff->lDuration);
+		metin2::log::debug( "AFFECT_SAVE: {:d} {:d} {:d} {:d}", pkAff->dwType, pkAff->bApplyOn, pkAff->lApplyValue, pkAff->lDuration);
 
 		p.dwPID			= GetPlayerID();
 		p.elem.dwType		= pkAff->dwType;
@@ -389,7 +389,7 @@ EVENTFUNC(load_affect_login_event)
 
 	if ( info == nullptr )
 	{
-		sys_err( "load_affect_login_event_info> <Factor> Null pointer" );
+		metin2::log::error( "load_affect_login_event_info> <Factor> Null pointer" );
 		return 0;
 	}
 
@@ -425,14 +425,14 @@ EVENTFUNC(load_affect_login_event)
 	}
 	else if (d->IsPhase(PHASE_GAME))
 	{
-		sys_log(1, "Affect Load by Event");
+		metin2::log::debug( "Affect Load by Event");
 		ch->LoadAffect(info->count, (TPacketAffectElement*)info->data);
 		delete[] info->data;
 		return 0;
 	}
 	else
 	{
-		sys_err("input_db.cpp:quest_login_event INVALID PHASE pid %d", ch->GetPlayerID());
+		metin2::log::error("input_db.cpp:quest_login_event INVALID PHASE pid {:d}", ch->GetPlayerID());
 		delete[] info->data;
 		return 0;
 	}
@@ -444,7 +444,7 @@ void CHARACTER::LoadAffect(uint32_t dwCount, TPacketAffectElement * pElements)
 	if (!GetDesc()->IsPhase(PHASE_GAME))
 	{
 		if (test_server)
-			sys_log(0, "LOAD_AFFECT: Creating Event %s %u", GetName(), dwCount);
+			metin2::log::info( "LOAD_AFFECT: Creating Event {} {:d}", GetName(), dwCount);
 
 		load_affect_login_event_info* info = AllocEventInfo<load_affect_login_event_info>();
 
@@ -461,7 +461,7 @@ void CHARACTER::LoadAffect(uint32_t dwCount, TPacketAffectElement * pElements)
 	ClearAffect(true);
 
 	if (test_server)
-		sys_log(0, "LOAD_AFFECT: %s count %d", GetName(), dwCount);
+		metin2::log::info( "LOAD_AFFECT: {} count {:d}", GetName(), dwCount);
 
 	TAffectFlag afOld = m_afAffectFlag;
 
@@ -486,14 +486,14 @@ void CHARACTER::LoadAffect(uint32_t dwCount, TPacketAffectElement * pElements)
 
 		if (pElements->bApplyOn >= POINT_MAX_NUM)
 		{
-			sys_err("invalid affect data %s ApplyOn %u ApplyValue %d",
+			metin2::log::error("invalid affect data {} ApplyOn {:d} ApplyValue {:d}",
 					GetName(), pElements->bApplyOn, pElements->lApplyValue);
 			continue;
 		}
 
 		if (test_server)
 		{
-			sys_log(0, "Load Affect : Affect %s %d %d", GetName(), pElements->dwType, pElements->bApplyOn );
+			metin2::log::info( "Load Affect : Affect {} {:d} {:d}", GetName(), pElements->dwType, pElements->bApplyOn );
 		}
 
 		CAffect* pkAff = new CAffect{};
@@ -541,7 +541,7 @@ bool CHARACTER::AddAffect(uint32_t dwType, uint8_t bApplyOn, int32_t lApplyValue
 
 	if (lDuration == 0)
 	{
-		sys_err("Character::AddAffect lDuration == 0 type %u", dwType);
+		metin2::log::error("Character::AddAffect lDuration == 0 type {:d}", dwType);
 		lDuration = 1;
 	}
 
@@ -584,8 +584,8 @@ bool CHARACTER::AddAffect(uint32_t dwType, uint8_t bApplyOn, int32_t lApplyValue
 
 	}
 
-	sys_log(1, "AddAffect %s type %d apply %d %d flag %u duration %d", GetName(), dwType, bApplyOn, lApplyValue, dwFlag, lDuration);
-	sys_log(0, "AddAffect %s type %d apply %d %d flag %u duration %d", GetName(), dwType, bApplyOn, lApplyValue, dwFlag, lDuration);
+	metin2::log::debug( "AddAffect {} type {:d} apply {:d} {:d} flag {:d} duration {:d}", GetName(), dwType, bApplyOn, lApplyValue, dwFlag, lDuration);
+	metin2::log::info( "AddAffect {} type {:d} apply {:d} {:d} flag {:d} duration {:d}", GetName(), dwType, bApplyOn, lApplyValue, dwFlag, lDuration);
 
 	pkAff->dwType	= dwType;
 	pkAff->bApplyOn	= bApplyOn;
@@ -701,7 +701,7 @@ bool CHARACTER::RemoveAffect(CAffect * pkAff)
 	CheckMaximumPoints();
 
 	if (test_server)
-		sys_log(0, "AFFECT_REMOVE: %s (flag %u apply: %u)", GetName(), pkAff->dwFlag, pkAff->bApplyOn);
+		metin2::log::info( "AFFECT_REMOVE: {} (flag {:d} apply: {:d})", GetName(), pkAff->dwFlag, pkAff->bApplyOn);
 
 	if (IsPC())
 	{
@@ -798,7 +798,7 @@ bool CHARACTER::IsGoodAffect(uint8_t bAffectType) const
 
 void CHARACTER::RemoveBadAffect()
 {
-	sys_log(0, "RemoveBadAffect %s", GetName());
+	metin2::log::info( "RemoveBadAffect {}", GetName());
 	// Poison
 	RemovePoison();
 	RemoveFire();

@@ -20,7 +20,7 @@
 
 #include <common/length.h>
 #include <common/tables.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/utils.h>
 
 #include <algorithm>
@@ -100,7 +100,7 @@ bool ITEM_MANAGER::Initialize(TItemTable * table, int size)
 
 		m_map_vid.insert( std::map<uint32_t,TItemTable>::value_type( m_vec_prototype[i].dwVnum, m_vec_prototype[i] ) ); 
 		if ( test_server )
-			sys_log( 0, "ITEM_INFO %d %s ", m_vec_prototype[i].dwVnum, m_vec_prototype[i].szName );	
+			metin2::log::info( "ITEM_INFO {:d} {} ", m_vec_prototype[i].dwVnum, m_vec_prototype[i].szName );	
 	}
 
 	int len = 0, len2;
@@ -118,7 +118,7 @@ bool ITEM_MANAGER::Initialize(TItemTable * table, int size)
 		if (!((i + 1) % 4))
 		{
 			if ( !test_server )
-				sys_log(0, "%s", buf);
+				metin2::log::info( "{}", buf);
 			len = 0;
 		}
 		else
@@ -131,12 +131,12 @@ bool ITEM_MANAGER::Initialize(TItemTable * table, int size)
 	if ((i + 1) % 4)
 	{
 		if ( !test_server )
-			sys_log(0, "%s", buf);
+			metin2::log::info( "{}", buf);
 	}
 
 	ITEM_VID_MAP::iterator it = m_VIDMap.begin();
 
-	sys_log (1, "ITEM_VID_MAP %zu", m_VIDMap.size() );
+	metin2::log::debug( "ITEM_VID_MAP {:d}", m_VIDMap.size() );
 
 	while (it != m_VIDMap.end())
 	{
@@ -147,7 +147,7 @@ bool ITEM_MANAGER::Initialize(TItemTable * table, int size)
 
 		if (nullptr == tableInfo)
 		{
-			sys_err("cannot reset item table");
+			metin2::log::error("cannot reset item table");
 			item->SetProto(nullptr);
 		}
 
@@ -181,7 +181,7 @@ CItem * ITEM_MANAGER::CreateItem(uint32_t vnum, uint32_t count, uint32_t id, boo
 	{
 		item = m_map_pkItemByID[id];
 		CHARACTER * owner = item->GetOwner();
-		sys_err("ITEM_ID_DUP: %u %s owner %p", id, item->GetName(), owner);
+		metin2::log::error("ITEM_ID_DUP: {:d} {} owner {}", id, item->GetName(), static_cast<const void *>(owner));
 		return nullptr;
 	}
 
@@ -430,11 +430,11 @@ void ITEM_MANAGER::SaveSingleItem(CItem * item)
 		db_clientdesc->Packet(&dwID, sizeof(uint32_t));
 		db_clientdesc->Packet(&dwOwnerID, sizeof(uint32_t));
 
-		sys_log(1, "ITEM_DELETE %s:%u", item->GetName(), dwID);
+		metin2::log::debug( "ITEM_DELETE {}:{:d}", item->GetName(), dwID);
 		return;
 	}
 
-	sys_log(1, "ITEM_SAVE %s:%d in %s window %d", item->GetName(), item->GetID(), item->GetOwner()->GetName(), item->GetWindow());
+	metin2::log::debug( "ITEM_SAVE {}:{:d} in {} window {:d}", item->GetName(), item->GetID(), item->GetOwner()->GetName(), item->GetWindow());
 
 	TPlayerItem t;
 
@@ -511,12 +511,12 @@ void ITEM_MANAGER::DestroyItem(CItem * item)
 	{
 		if (CHARACTER_MANAGER::instance().Find(item->GetOwner()->GetPlayerID()) != nullptr)
 		{
-			sys_err("DestroyItem: GetOwner %s %s!!", item->GetName(), item->GetOwner()->GetName());
+			metin2::log::error("DestroyItem: GetOwner {} {}!!", item->GetName(), item->GetOwner()->GetName());
 			item->RemoveFromCharacter();
 		}
 		else
 		{
-			sys_err ("WTH! Invalid item owner. owner pointer : %p", item->GetOwner());
+			metin2::log::error("WTH! Invalid item owner. owner pointer : {}", static_cast<const void *>(item->GetOwner()));
 		}
 	}
 
@@ -526,7 +526,7 @@ void ITEM_MANAGER::DestroyItem(CItem * item)
 		m_set_pkItemForDelayedSave.erase(it);
 
 	uint32_t dwID = item->GetID();
-	sys_log(2, "ITEM_DESTROY %s:%u", item->GetName(), dwID);
+	metin2::log::debug( "ITEM_DESTROY {}:{:d}", item->GetName(), dwID);
 
 	if (!item->GetSkipSave() && dwID)
 	{
@@ -538,7 +538,7 @@ void ITEM_MANAGER::DestroyItem(CItem * item)
 	}
 	else
 	{
-		sys_log(2, "ITEM_DESTROY_SKIP %s:%u (skip=%d)", item->GetName(), dwID, item->GetSkipSave());
+		metin2::log::debug( "ITEM_DESTROY_SKIP {}:{:d} (skip={:d})", item->GetName(), dwID, item->GetSkipSave());
 	}
 
 	if (dwID)
@@ -701,7 +701,7 @@ bool ITEM_MANAGER::GetDropPct(CHARACTER * pkChr, CHARACTER * pkKiller, int& iDel
 	else if (1 == number(1, 10000))
 		iDeltaPercent += 500;
 
-	sys_log(3, "CreateDropItem for level: %d rank: %u pct: %d", iLevel, bRank, iDeltaPercent);
+	metin2::log::debug( "CreateDropItem for level: {:d} rank: {:d} pct: {:d}", iLevel, bRank, iDeltaPercent);
 	iDeltaPercent = iDeltaPercent * CHARACTER_MANAGER::instance().GetMobItemRate(pkKiller) / 100;
 
 	// ADD_PREMIUM
@@ -743,7 +743,7 @@ bool ITEM_MANAGER::CreateDropItem(CHARACTER * pkChr, CHARACTER * pkKiller, std::
 			continue;
 
 		int iPercent = (c_rInfo.m_iPercent * iDeltaPercent) / 100;
-		sys_log(3, "CreateDropItem %d ~ %d %u %d(%d)", c_rInfo.m_iLevelStart, c_rInfo.m_iLevelEnd, c_rInfo.m_dwVnum, iPercent, c_rInfo.m_iPercent);
+		metin2::log::debug( "CreateDropItem {:d} ~ {:d} {:d} {:d}({:d})", c_rInfo.m_iLevelStart, c_rInfo.m_iLevelEnd, c_rInfo.m_dwVnum, iPercent, c_rInfo.m_iPercent);
 
 		if (iPercent >= number(1, iRandRange))
 		{
@@ -916,7 +916,7 @@ bool ITEM_MANAGER::CreateDropItem(CHARACTER * pkChr, CHARACTER * pkKiller, std::
 	if (pkKiller->IsHorseRiding() && 
 			GetDropPerKillPct(1000, 1000000, iDeltaPercent, "horse_skill_book_drop") >= number(1, iRandRange))
 	{
-		sys_log(0, "EVENT HORSE_SKILL_BOOK_DROP");
+		metin2::log::info( "EVENT HORSE_SKILL_BOOK_DROP");
 
 		if ((item = CreateItem(ITEM_HORSE_SKILL_TRAIN_BOOK, 1, 0, true)))
 			vec_item.push_back(item);
@@ -1030,14 +1030,13 @@ static void __DropEvent_CharStone_DropItem(CHARACTER & killer, CHARACTER & victi
 
 	if (number(1, MaxRange) <= dropPercent)
 	{
-		int log_level = (test_server || killer.GetGMLevel() >= GM_LOW_WIZARD) ? 0 : 1;
 		int victim_level = victim.GetLevel();
 		int level_diff = victim_level - killer_level;
 
 		if (level_diff >= +gs_dropEvent_charStone.level_range || level_diff <= -gs_dropEvent_charStone.level_range)
 		{
-			sys_log(log_level, 
-					"dropevent.drop_char_stone.level_range_over: killer(%s: lv%d), victim(%s: lv:%d), level_diff(%d)",
+			metin2::log::debug( 
+					"dropevent.drop_char_stone.level_range_over: killer({}: lv{:d}), victim({}: lv:{:d}), level_diff({:d})",
 					killer.GetName(), killer.GetLevel(), victim.GetName(), victim.GetLevel(), level_diff);	
 			return;
 		}
@@ -1051,8 +1050,8 @@ static void __DropEvent_CharStone_DropItem(CHARACTER & killer, CHARACTER & victi
 		{
 			vec_item.push_back(p_item);
 
-			sys_log(log_level, 
-					"dropevent.drop_char_stone.item_drop: killer(%s: lv%d), victim(%s: lv:%d), item_name(%s)",
+			metin2::log::debug( 
+					"dropevent.drop_char_stone.item_drop: killer({}: lv{:d}), victim({}: lv:{:d}), item_name({})",
 					killer.GetName(), killer.GetLevel(), victim.GetName(), victim.GetLevel(), p_item->GetName());	
 		}
 	}
@@ -1065,9 +1064,9 @@ bool DropEvent_CharStone_SetValue(const std::string& name, int value)
 		gs_dropEvent_charStone.alive = value;
 
 		if (value)
-			sys_log(0, "dropevent.drop_char_stone = on");
+			metin2::log::info( "dropevent.drop_char_stone = on");
 		else
-			sys_log(0, "dropevent.drop_char_stone = off");
+			metin2::log::info( "dropevent.drop_char_stone = off");
 
 	}
 	else if (name == "drop_char_stone.percent_lv01_10")
@@ -1081,11 +1080,11 @@ bool DropEvent_CharStone_SetValue(const std::string& name, int value)
 	else
 		return false;
 
-	sys_log(0, "dropevent.drop_char_stone: %d", gs_dropEvent_charStone.alive ? true : false);
-	sys_log(0, "dropevent.drop_char_stone.percent_lv01_10: %f", gs_dropEvent_charStone.percent_lv01_10/100.0f);
-	sys_log(0, "dropevent.drop_char_stone.percent_lv11_30: %f", gs_dropEvent_charStone.percent_lv11_30/100.0f);
-	sys_log(0, "dropevent.drop_char_stone.percent_lv31_MX: %f", gs_dropEvent_charStone.percent_lv31_MX/100.0f);
-	sys_log(0, "dropevent.drop_char_stone.level_range: %d", gs_dropEvent_charStone.level_range);
+	metin2::log::info( "dropevent.drop_char_stone: {:d}", gs_dropEvent_charStone.alive ? true : false);
+	metin2::log::info( "dropevent.drop_char_stone.percent_lv01_10: {:f}", gs_dropEvent_charStone.percent_lv01_10/100.0f);
+	metin2::log::info( "dropevent.drop_char_stone.percent_lv11_30: {:f}", gs_dropEvent_charStone.percent_lv11_30/100.0f);
+	metin2::log::info( "dropevent.drop_char_stone.percent_lv31_MX: {:f}", gs_dropEvent_charStone.percent_lv31_MX/100.0f);
+	metin2::log::info( "dropevent.drop_char_stone.level_range: {:d}", gs_dropEvent_charStone.level_range);
 
 	return true;
 }
@@ -1161,7 +1160,6 @@ static void __DropEvent_RefineBox_DropItem(CHARACTER & killer, CHARACTER & victi
 	if (!gs_dropEvent_refineBox.alive)
 		return;
 
-	int log_level = (test_server || killer.GetGMLevel() >= GM_LOW_WIZARD) ? 0 : 1;
 
 	CItem * p_item = __DropEvent_RefineBox_GetDropItem(killer, victim, itemMgr);
 
@@ -1169,8 +1167,8 @@ static void __DropEvent_RefineBox_DropItem(CHARACTER & killer, CHARACTER & victi
 	{
 		vec_item.push_back(p_item);
 
-		sys_log(log_level, 
-			"dropevent.drop_refine_box.item_drop: killer(%s: lv%d), victim(%s: lv:%d), item_name(%s)",
+		metin2::log::debug( 
+			"dropevent.drop_refine_box.item_drop: killer({}: lv{:d}), victim({}: lv:{:d}), item_name({})",
 			killer.GetName(), killer.GetLevel(), victim.GetName(), victim.GetLevel(), p_item->GetName());	
 	}
 }
@@ -1182,9 +1180,9 @@ bool DropEvent_RefineBox_SetValue(const std::string& name, int value)
 		gs_dropEvent_refineBox.alive = value;
 
 		if (value)
-			sys_log(0, "refine_box_drop = on");
+			metin2::log::info( "refine_box_drop = on");
 		else
-			sys_log(0, "refine_box_drop = off");
+			metin2::log::info( "refine_box_drop = off");
 
 	}
 	else if (name == "refine_box_low")
@@ -1196,10 +1194,10 @@ bool DropEvent_RefineBox_SetValue(const std::string& name, int value)
 	else
 		return false;
 
-	sys_log(0, "refine_box_drop: %d", gs_dropEvent_refineBox.alive ? true : false);
-	sys_log(0, "refine_box_low: %d", gs_dropEvent_refineBox.percent_low);
-	sys_log(0, "refine_box_mid: %d", gs_dropEvent_refineBox.percent_mid);
-	sys_log(0, "refine_box_high: %d", gs_dropEvent_refineBox.percent_high);
+	metin2::log::info( "refine_box_drop: {:d}", gs_dropEvent_refineBox.alive ? true : false);
+	metin2::log::info( "refine_box_low: {:d}", gs_dropEvent_refineBox.percent_low);
+	metin2::log::info( "refine_box_mid: {:d}", gs_dropEvent_refineBox.percent_mid);
+	metin2::log::info( "refine_box_high: {:d}", gs_dropEvent_refineBox.percent_high);
 
 	return true;
 }
@@ -1216,7 +1214,7 @@ void ITEM_MANAGER::CreateQuestDropItem(CHARACTER * pkChr, CHARACTER * pkKiller, 
 	if (!pkKiller)
 		return;
 
-	sys_log(1, "CreateQuestDropItem victim(%s), killer(%s)", pkChr->GetName(), pkKiller->GetName() );
+	metin2::log::debug( "CreateQuestDropItem victim({}), killer({})", pkChr->GetName(), pkKiller->GetName() );
 
 	// DROPEVENT_CHARSTONE
 	__DropEvent_CharStone_DropItem(*pkKiller, *pkChr, *this, vec_item);
@@ -1244,7 +1242,7 @@ void ITEM_MANAGER::CreateQuestDropItem(CHARACTER * pkChr, CHARACTER * pkKiller, 
 			int iPercent = 40000 * iDeltaPercent / iDropPerKill[pkChr->GetMobRank()];
 
 
-			sys_log(0, "SOCK DROP %d %d", iPercent, iRandRange);
+			metin2::log::info( "SOCK DROP {:d} {:d}", iPercent, iRandRange);
 			if (iPercent >= number(1, iRandRange))
 			{
 				if ((item = CreateItem(SOCK_ITEM_VNUM, 1, 0, true)))
@@ -1299,7 +1297,7 @@ void ITEM_MANAGER::CreateQuestDropItem(CHARACTER * pkChr, CHARACTER * pkKiller, 
 	//Hexagonal treasure box
 	if (GetDropPerKillPct(100, 2000, iDeltaPercent, "2006_drop") >= number(1, iRandRange))
 	{
-		sys_log(0, "육각보합 DROP EVENT ");
+		metin2::log::info( "육각보합 DROP EVENT ");
 
 		const static uint32_t dwVnum = 50037;
 
@@ -1311,7 +1309,7 @@ void ITEM_MANAGER::CreateQuestDropItem(CHARACTER * pkChr, CHARACTER * pkKiller, 
 	//Hexagonal treasure box+
 	if (GetDropPerKillPct(100, 2000, iDeltaPercent, "2007_drop") >= number(1, iRandRange))
 	{
-		sys_log(0, "육각보합 DROP EVENT ");
+		metin2::log::info( "육각보합 DROP EVENT ");
 
 		const static uint32_t dwVnum = 50043;
 
@@ -1332,7 +1330,7 @@ void ITEM_MANAGER::CreateQuestDropItem(CHARACTER * pkChr, CHARACTER * pkKiller, 
 	// New Year full-moon festival event
 	if (GetDropPerKillPct(100, 500, iDeltaPercent, "newyear_moon") >= number(1, iRandRange))
 	{
-		sys_log(0, "EVENT NEWYEAR_MOON DROP");
+		metin2::log::info( "EVENT NEWYEAR_MOON DROP");
 
 		const static uint32_t wonso_items[6] = { 50016, 50017, 50018, 50019, 50019, 50019, };
 		uint32_t dwVnum = wonso_items[number(0,5)];
@@ -1344,7 +1342,7 @@ void ITEM_MANAGER::CreateQuestDropItem(CHARACTER * pkChr, CHARACTER * pkKiller, 
 	// Valentine's Day event. Changed event minimum to 1 at OGE's request. (Other events left as they are for now.)
 	if (GetDropPerKillPct(1, 2000, iDeltaPercent, "valentine_drop") >= number(1, iRandRange))
 	{
-		sys_log(0, "EVENT VALENTINE_DROP");
+		metin2::log::info( "EVENT VALENTINE_DROP");
 
 		const static uint32_t valentine_items[2] = { 50024, 50025 };
 		uint32_t dwVnum = valentine_items[number(0, 1)];
@@ -1412,7 +1410,7 @@ void ITEM_MANAGER::CreateQuestDropItem(CHARACTER * pkChr, CHARACTER * pkKiller, 
 	// White Day event
 	if (GetDropPerKillPct(100, 2000, iDeltaPercent, "whiteday_drop") >= number(1, iRandRange))
 	{
-		sys_log(0, "EVENT WHITEDAY_DROP");
+		metin2::log::info( "EVENT WHITEDAY_DROP");
 		const static uint32_t whiteday_items[2] = { ITEM_WHITEDAY_ROSE, ITEM_WHITEDAY_CANDY };
 		uint32_t dwVnum = whiteday_items[number(0,1)];
 

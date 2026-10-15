@@ -8,7 +8,7 @@
 
 #include <common/building.h>
 #include <common/utils.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <mysql.h>
 
@@ -26,7 +26,7 @@ namespace quest
 
 		if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2) || !lua_isnumber(L, 3))
 		{
-			sys_err("invalid argument");
+			metin2::log::error("invalid argument");
 			lua_pushnumber(L, 0);
 			return 1;
 		}
@@ -58,7 +58,7 @@ namespace quest
 			}
 		}
 		else
-			sys_err("invalid argument");
+			metin2::log::error("invalid argument");
 
 		lua_pushnumber(L, price);
 		lua_pushnumber(L, owner);
@@ -70,7 +70,7 @@ namespace quest
 	{
 		if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2))
 		{
-			sys_err("invalid argument");
+			metin2::log::error("invalid argument");
 			return 0;
 		}
 
@@ -93,7 +93,7 @@ namespace quest
 
 		if (!lua_isnumber(L, 1))
 		{
-			sys_err("invalid argument");
+			metin2::log::error("invalid argument");
 			lua_pushboolean(L, true);
 			return 1;
 		}

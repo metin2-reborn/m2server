@@ -13,7 +13,7 @@
 #include "typedef.h"
 
 #include <common/length.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/utils.h>
 
 #include <algorithm>
@@ -68,7 +68,7 @@ void CPVP::Packet(bool bDelete)
 	if (!m_players[0].dwVID || !m_players[1].dwVID)
 	{
 		if (bDelete)
-			sys_err("null vid when removing %u %u", m_players[0].dwVID, m_players[0].dwVID);
+			metin2::log::error("null vid when removing {:d} {:d}", m_players[0].dwVID, m_players[0].dwVID);
 
 		return;
 	}
@@ -274,7 +274,7 @@ bool CPVPManager::Dead(CHARACTER * pkChr, uint32_t dwKillerPID)
 
 	bool found = false;
 
-	sys_log(1, "PVPManager::Dead %d", pkChr->GetPlayerID());
+	metin2::log::debug( "PVPManager::Dead {:d}", pkChr->GetPlayerID());
 	std::unordered_set<CPVP*>::iterator it2 = it->second.begin();
 
 	while (it2 != it->second.end())
@@ -550,7 +550,7 @@ void CPVPManager::SendList(DESC * d)
 		}
 
 		d->Packet(&pack, sizeof(pack));
-		sys_log(1, "PVPManager::SendList %d %d", pack.dwVIDSrc, pack.dwVIDDst);
+		metin2::log::debug( "PVPManager::SendList {:d} {:d}", pack.dwVIDSrc, pack.dwVIDDst);
 
 		if (pkPVP->m_players[0].dwVID == dwVID)
 		{

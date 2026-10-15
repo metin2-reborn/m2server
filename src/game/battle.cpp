@@ -19,7 +19,7 @@
 #include "utils.h"
 
 #include <common/length.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/utils.h>
 
 #include <algorithm>
@@ -86,19 +86,19 @@ bool battle_is_attackable(CHARACTER * ch, CHARACTER * victim)
 int battle_melee_attack(CHARACTER * ch, CHARACTER * victim)
 {
 	if (test_server&&ch->IsPC())
-		sys_log(0, "battle_melee_attack : [%s] attack to [%s]", ch->GetName(), victim->GetName());
+		metin2::log::info( "battle_melee_attack : [{}] attack to [{}]", ch->GetName(), victim->GetName());
 
 	if (!victim || ch == victim)
 		return BATTLE_NONE;
 
 	if (test_server&&ch->IsPC())
-		sys_log(0, "battle_melee_attack : [%s] attack to [%s]", ch->GetName(), victim->GetName());
+		metin2::log::info( "battle_melee_attack : [{}] attack to [{}]", ch->GetName(), victim->GetName());
 
 	if (!battle_is_attackable(ch, victim))
 		return BATTLE_NONE;
 
 	if (test_server&&ch->IsPC())
-		sys_log(0, "battle_melee_attack : [%s] attack to [%s]", ch->GetName(), victim->GetName());
+		metin2::log::info( "battle_melee_attack : [{}] attack to [{}]", ch->GetName(), victim->GetName());
 
 	// Distance check
 	int distance = DISTANCE_APPROX(ch->GetX() - victim->GetX(), ch->GetY() - victim->GetY());
@@ -122,7 +122,7 @@ int battle_melee_attack(CHARACTER * ch, CHARACTER * victim)
 		if (distance > max)
 		{
 			if (test_server)
-				sys_log(0, "VICTIM_FAR: %s distance: %d max: %d", ch->GetName(), distance, max);
+				metin2::log::info( "VICTIM_FAR: {} distance: {:d} max: {:d}", ch->GetName(), distance, max);
 
 			return BATTLE_NONE;
 		}
@@ -341,7 +341,7 @@ void Item_GetDamage(CItem * pkItem, int* pdamMin, int* pdamMax)
 	}
 
 	if (pkItem->GetType() != ITEM_WEAPON)
-		sys_err("Item_GetDamage - !ITEM_WEAPON vnum=%d, type=%d", pkItem->GetOriginalVnum(), pkItem->GetType());
+		metin2::log::error("Item_GetDamage - !ITEM_WEAPON vnum={:d}, type={:d}", pkItem->GetOriginalVnum(), pkItem->GetType());
 
 	*pdamMin = pkItem->GetValue(3);
 	*pdamMax = pkItem->GetValue(4);
@@ -368,7 +368,7 @@ int CalcMeleeDamage(CHARACTER * pkAttacker, CHARACTER * pkVictim, bool bIgnoreDe
 				break;
 
 			case WEAPON_BOW:
-				sys_err("CalcMeleeDamage should not handle bows (name: %s)", pkAttacker->GetName());
+				metin2::log::error("CalcMeleeDamage should not handle bows (name: {})", pkAttacker->GetName());
 				return 0;
 
 			default:
@@ -603,7 +603,7 @@ void NormalAttackAffect(CHARACTER * pkAttacker, CHARACTER * pkVictim)
 int battle_hit(CHARACTER * pkAttacker, CHARACTER * pkVictim, int & iRetDam)
 {
 	if (test_server)
-		sys_log(0, "battle_hit : [%s] attack to [%s] : dam :%d", pkAttacker->GetName(), pkVictim->GetName(), iRetDam);
+		metin2::log::info( "battle_hit : [{}] attack to [{}] : dam :{:d}", pkAttacker->GetName(), pkVictim->GetName(), iRetDam);
 
 	int iDam = CalcMeleeDamage(pkAttacker, pkVictim);
 
@@ -709,7 +709,7 @@ void SET_ATTACKED_TIME(CHARACTER * ch, CHARACTER * victim, uint32_t current_time
 bool IS_SPEED_HACK(CHARACTER * ch, CHARACTER * victim, uint32_t current_time)
 {
 	// 2013 09 11 CYH debugging log
-	/*sys_log(0, "%s attack test log! time (delta, limit)=(%u, %u). ch->m_kAttackLog.dwvID(%u) victim->GetVID(%u)",
+	/*metin2::log::info( "{} attack test log! time (delta, limit)=({:d}, {:d}). ch->m_kAttackLog.dwvID({:d}) victim->GetVID({:d})",
 						ch->GetName(),
 						current_time - ch->m_kAttackLog.dwTime,
 						GET_ATTACK_SPEED(ch),						
@@ -717,7 +717,7 @@ bool IS_SPEED_HACK(CHARACTER * ch, CHARACTER * victim, uint32_t current_time)
 						victim->GetVID()
 						);	
 
-	sys_log(0, "%s attack test log! time (delta, limit)=(%u, %u). victim->m_AttackedLog.dwPID(%u) ch->GetPlayerID(%u)",
+	metin2::log::info( "{} attack test log! time (delta, limit)=({:d}, {:d}). victim->m_AttackedLog.dwPID({:d}) ch->GetPlayerID({:d})",
 						ch->GetName(),
 						current_time - victim->m_AttackedLog.dwAttackedTime,
 						GET_ATTACK_SPEED(ch),						
@@ -733,7 +733,7 @@ bool IS_SPEED_HACK(CHARACTER * ch, CHARACTER * victim, uint32_t current_time)
 
 			if (test_server)
 			{
-				sys_log(0, "%s attack hack! time (delta, limit)=(%u, %u) hack_count %d",
+				metin2::log::info( "{} attack hack! time (delta, limit)=({:d}, {:d}) hack_count {:d}",
 						ch->GetName(),
 						current_time - ch->m_kAttackLog.dwTime,
 						GET_ATTACK_SPEED(ch),
@@ -762,7 +762,7 @@ bool IS_SPEED_HACK(CHARACTER * ch, CHARACTER * victim, uint32_t current_time)
 
 			if (test_server)
 			{
-				sys_log(0, "%s Attack Speed HACK! time (delta, limit)=(%u, %u), hack_count = %d",
+				metin2::log::info( "{} Attack Speed HACK! time (delta, limit)=({:d}, {:d}), hack_count = {:d}",
 						ch->GetName(),
 						current_time - victim->m_AttackedLog.dwAttackedTime,
 						GET_ATTACK_SPEED(ch),

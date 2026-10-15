@@ -8,7 +8,7 @@
 #include <common/tables.h>
 #include <common/utils.h>
 #include <libsql/AsyncSQL.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <mysql.h>
 
@@ -90,7 +90,7 @@ TItemIDRangeTable CItemIDRangeManager::GetRange()
 	}
 
 	for (int i = 0; i < 10; ++i)
-		sys_err("ItemIDRange: NO MORE ITEM ID RANGE");
+		metin2::log::error("ItemIDRange: NO MORE ITEM ID RANGE");
 
 	return ret;
 }
@@ -122,7 +122,7 @@ bool CItemIDRangeManager::BuildRange(uint32_t dwMin, uint32_t dwMax, TItemIDRang
 	
 	if ((dwMax < dwItemMaxID) || (dwMax - dwItemMaxID < cs_dwMinimumRemainCount))
 	{
-		sys_log(0, "ItemIDRange: Build %u ~ %u start: %u\tNOT USE remain count is below %u",
+		metin2::log::info( "ItemIDRange: Build {:d} ~ {:d} start: {:d}\tNOT USE remain count is below {:d}",
 			   	dwMin, dwMax, dwItemMaxID, cs_dwMinimumRemainCount);
 	}
 	else
@@ -146,12 +146,12 @@ bool CItemIDRangeManager::BuildRange(uint32_t dwMin, uint32_t dwMax, TItemIDRang
 
 				if (count > 0)
 				{
-					sys_err("ItemIDRange: Build: %u ~ %u\thave a item", range.dwUsableItemIDMin, range.dwMax);
+					metin2::log::error("ItemIDRange: Build: {:d} ~ {:d}\thave a item", range.dwUsableItemIDMin, range.dwMax);
 					return false;
 				}
 				else
 				{
-					sys_log(0, "ItemIDRange: Build: %u ~ %u start:%u", range.dwMin, range.dwMax, range.dwUsableItemIDMin);
+					metin2::log::info( "ItemIDRange: Build: {:d} ~ {:d} start:{:d}", range.dwMin, range.dwMax, range.dwUsableItemIDMin);
 					return true;
 				}
 			}

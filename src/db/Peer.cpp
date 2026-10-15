@@ -5,7 +5,7 @@
 
 #include <common/tables.h>
 #include <libnet/connection.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <cstddef>
 #include <cstdint>
@@ -31,7 +31,7 @@ CPeer::CPeer(std::shared_ptr<net::connection> connection) : m_connection(std::mo
 	static uint32_t current_handle = 0;
 	m_dwHandle = ++current_handle;
 
-	sys_log(0, "Connection accepted. (host: %s handle: %u)", GetHost(), m_dwHandle);
+	metin2::log::info( "Connection accepted. (host: {} handle: {:d})", GetHost(), m_dwHandle);
 	m_connection->start(*this);
 }
 
@@ -39,12 +39,12 @@ CPeer::~CPeer()
 {
 	m_connection->close();
 
-	sys_log(0, "Connection closed. (host: %s)", GetHost());
+	metin2::log::info( "Connection closed. (host: {})", GetHost());
 }
 
 void CPeer::ReturnItemIDRange()
 {
-	sys_log(0, "ItemIDRange: returned. %u ~ %u", m_itemRange.dwMin, m_itemRange.dwMax);
+	metin2::log::info( "ItemIDRange: returned. {:d} ~ {:d}", m_itemRange.dwMin, m_itemRange.dwMax);
 
 	CItemIDRangeManager::instance().UpdateRange(m_itemRange.dwMin, m_itemRange.dwMax);
 
@@ -65,7 +65,7 @@ auto CPeer::on_receive(std::span<std::uint8_t> input, std::size_t /*received*/) 
 void CPeer::on_close(const std::error_code & error)
 {
 	if (error)
-		sys_log(0, "Connection lost. (host: %s: %s)", GetHost(), error.message().c_str());
+		metin2::log::info( "Connection lost. (host: {}: {})", GetHost(), error.message().c_str());
 
 	m_state = STATE_CLOSE;
 }
@@ -73,7 +73,7 @@ void CPeer::on_close(const std::error_code & error)
 void CPeer::Encode(const void * data, uint32_t size)
 {
 	if (!m_connection->send(data, size))
-		sys_err("cannot send %u bytes to %s", size, GetHost());
+		metin2::log::error("cannot send {:d} bytes to {}", size, GetHost());
 }
 
 uint32_t CPeer::GetHandle()
@@ -105,7 +105,7 @@ bool CPeer::PeekPacket(int & iBytesProceed, uint8_t & header, uint32_t & dwHandl
 
 	if (iBytesProceed + dwLength + 9 > (uint32_t) iLength)
 	{
-		sys_log(0, "PeekPacket: not enough buffer size: len %u, recv %d", 
+		metin2::log::info( "PeekPacket: not enough buffer size: len {:d}, recv {:d}", 
 				9+dwLength, iLength-iBytesProceed);
 		return false;
 	}
@@ -119,7 +119,7 @@ void CPeer::EncodeHeader(uint8_t header, uint32_t dwHandle, uint32_t dwSize)
 {
 	HEADER h;
 
-	sys_log(1, "EncodeHeader %u handle %u size %u", header, dwHandle, dwSize);
+	metin2::log::debug( "EncodeHeader {:d} handle {:d} size {:d}", header, dwHandle, dwSize);
 
 	h.bHeader = header;
 	h.dwHandle = dwHandle;
@@ -156,7 +156,7 @@ void CPeer::SendSpareItemIDRange()
 
 		if (SetSpareItemIDRange(CItemIDRangeManager::instance().GetRange()) == false)
 		{
-			sys_log(0, "ItemIDRange: spare range set error");
+			metin2::log::info( "ItemIDRange: spare range set error");
 			m_itemSpareRange.dwMin = m_itemSpareRange.dwMax = m_itemSpareRange.dwUsableItemIDMin = 0;
 		}
 
@@ -170,7 +170,7 @@ bool CPeer::SetItemIDRange(TItemIDRangeTable itemRange)
 	if (itemRange.dwMin == 0 || itemRange.dwMax == 0 || itemRange.dwUsableItemIDMin == 0) return false;
 
 	m_itemRange = itemRange;
-	sys_log(0, "ItemIDRange: SET %s %u ~ %u start: %u", GetPublicIP(), m_itemRange.dwMin, m_itemRange.dwMax, m_itemRange.dwUsableItemIDMin);
+	metin2::log::info( "ItemIDRange: SET {} {:d} ~ {:d} start: {:d}", GetPublicIP(), m_itemRange.dwMin, m_itemRange.dwMax, m_itemRange.dwUsableItemIDMin);
 
 	return true;
 }
@@ -180,7 +180,7 @@ bool CPeer::SetSpareItemIDRange(TItemIDRangeTable itemRange)
 	if (itemRange.dwMin == 0 || itemRange.dwMax == 0 || itemRange.dwUsableItemIDMin == 0) return false;
 
 	m_itemSpareRange = itemRange;
-	sys_log(0, "ItemIDRange: SPARE SET %s %u ~ %u start: %u", GetPublicIP(), m_itemSpareRange.dwMin, m_itemSpareRange.dwMax,
+	metin2::log::info( "ItemIDRange: SPARE SET {} {:d} ~ {:d} start: {:d}", GetPublicIP(), m_itemSpareRange.dwMin, m_itemSpareRange.dwMax,
 			m_itemSpareRange.dwUsableItemIDMin);
 
 	return true;
@@ -190,14 +190,14 @@ bool CPeer::CheckItemIDRangeCollision(TItemIDRangeTable itemRange)
 {
 	if (m_itemRange.dwMin < itemRange.dwMax && m_itemRange.dwMax > itemRange.dwMin)
 	{
-		sys_err("ItemIDRange: Collision!! this %u ~ %u check %u ~ %u",
+		metin2::log::error("ItemIDRange: Collision!! this {:d} ~ {:d} check {:d} ~ {:d}",
 				m_itemRange.dwMin, m_itemRange.dwMax, itemRange.dwMin, itemRange.dwMax);
 		return false;
 	}
 
 	if (m_itemSpareRange.dwMin < itemRange.dwMax && m_itemSpareRange.dwMax > itemRange.dwMin)
 	{
-		sys_err("ItemIDRange: Collision with spare range this %u ~ %u check %u ~ %u",
+		metin2::log::error("ItemIDRange: Collision with spare range this {:d} ~ {:d} check {:d} ~ {:d}",
 				m_itemSpareRange.dwMin, m_itemSpareRange.dwMax, itemRange.dwMin, itemRange.dwMax);
 		return false;
 	}

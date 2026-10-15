@@ -5,7 +5,7 @@
 #include "questmanager.h"
 #include "questpc.h"
 
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <cmath>
 #include <cstdint>
@@ -107,7 +107,7 @@ namespace quest
 	{
 		if (lua_tostring(L, -1)==nullptr)
 		{
-			quest_err("state name is empty");
+			quest::error("state name is empty");
 			return 0;
 		}
 
@@ -119,7 +119,7 @@ namespace quest
 		{
 			luaL_error(L, "running thread != current thread???");
 			if ( test_server )
-				sys_log(0 ,"running thread != current thread???");
+				metin2::log::info("running thread != current thread???");
 			return 0;
 		}
 
@@ -129,7 +129,7 @@ namespace quest
 			//
 			std::string stCurrentState = lua_tostring(L,-1);
 			if ( test_server )
-				sys_log ( 0 ,"questlua->setstate( %s, %s )", pPC->GetCurrentQuestName().c_str(), stCurrentState.c_str() );
+				metin2::log::info("questlua->setstate( {}, {} )", pPC->GetCurrentQuestName().c_str(), stCurrentState.c_str() );
 			pqs->st = q.GetQuestStateIndex(pPC->GetCurrentQuestName(), stCurrentState);
 			pPC->SetCurrentQuestStateName(stCurrentState );
 		}
@@ -142,21 +142,21 @@ namespace quest
 		// A yield must never happen inside an other_pc_block. Never.
 		if (q.IsInOtherPCBlock())
 		{
-			quest_err("FATAL ERROR! Yield occur in other_pc_block.");
+			quest::error("FATAL ERROR! Yield occur in other_pc_block.");
 			PC* pPC = q.GetOtherPCBlockRootPC();
 			if (nullptr == pPC)
 			{
-				quest_err("	... FFFAAATTTAAALLL Error. RootPC is NULL");
+				quest::error("	... FFFAAATTTAAALLL Error. RootPC is NULL");
 				return 0;
 			}
 			QuestState* pQS = pPC->GetRunningQuestState();
 			if (nullptr == pQS || nullptr == q.GetQuestStateName(pPC->GetCurrentQuestName(), pQS->st))
 			{
-				quest_err("	... WHO AM I? WHERE AM I? I only know QuestName(%s)...", pPC->GetCurrentQuestName().c_str());
+				quest::error("	... WHO AM I? WHERE AM I? I only know QuestName({})...", pPC->GetCurrentQuestName().c_str());
 			}
 			else
 			{
-				quest_err("	Current Quest(%s). State(%s)", pPC->GetCurrentQuestName().c_str(), q.GetQuestStateName(pPC->GetCurrentQuestName(), pQS->st));
+				quest::error("	Current Quest({}). State({})", pPC->GetCurrentQuestName().c_str(), q.GetQuestStateName(pPC->GetCurrentQuestName(), pQS->st));
 			}
 			return 0;
 		}

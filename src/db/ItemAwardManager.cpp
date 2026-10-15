@@ -8,7 +8,7 @@
 #include <common/tables.h>
 #include <common/utils.h>
 #include <libsql/AsyncSQL.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/utils.h>
 
 #include <mysql.h>
@@ -77,7 +77,7 @@ void ItemAwardManager::Load(SQLMsg * pMsg)
 		m_map_award.insert(std::make_pair(dwID, kData));
 
 		printf("ITEM_AWARD load id %u bMall %d \n", kData->dwID, kData->bMall);
-		sys_log(0, "ITEM_AWARD: load id %u login %s vnum %u count %u socket %u", kData->dwID, kData->szLogin, kData->dwVnum, kData->dwCount, kData->dwSocket0);
+		metin2::log::info( "ITEM_AWARD: load id {:d} login {} vnum {:d} count {:d} socket {:d}", kData->dwID, kData->szLogin, kData->dwVnum, kData->dwCount, kData->dwSocket0);
 		std::set<TItemAward *> & kSet = m_map_kSetAwardByLogin[kData->szLogin];
 		kSet.insert(kData);
 
@@ -102,7 +102,7 @@ void ItemAwardManager::Taken(uint32_t dwAwardID, uint32_t dwItemID)
 
 	if (it == m_map_award.end())
 	{
-		sys_log(0, "ITEM_AWARD: Taken ID not exist %u", dwAwardID);
+		metin2::log::info( "ITEM_AWARD: Taken ID not exist {:d}", dwAwardID);
 		return;
 	}
 

@@ -17,7 +17,7 @@
 #include <common/length.h>
 #include <common/tables.h>
 #include <libnet/connection.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/utils.h>
 
 #include <asio/error.hpp>
@@ -143,8 +143,7 @@ void DESC::Destroy()
 
 	if (m_connection)
 	{
-		sys_log(0, "SYSTEM: closing connection of %s (handle %u)", m_stHost.c_str(), m_dwHandle);
-		Log("SYSTEM: closing connection of %s (handle %u)", m_stHost.c_str(), m_dwHandle);
+		metin2::log::info( "SYSTEM: closing connection of {} (handle {:d})", m_stHost.c_str(), m_dwHandle);
 
 		cipher_.CleanUp();
 
@@ -161,7 +160,7 @@ EVENTFUNC(ping_event)
 
 	if ( info == nullptr )
 	{
-		sys_err( "ping_event> <Factor> Null pointer" );
+		metin2::log::error( "ping_event> <Factor> Null pointer" );
 		return 0;
 	}
 
@@ -172,7 +171,7 @@ EVENTFUNC(ping_event)
 
 	if (!desc->IsPong())
 	{
-		sys_log(0, "PING_EVENT: no pong %s", desc->GetHostName());
+		metin2::log::info( "PING_EVENT: no pong {}", desc->GetHostName());
 
 		desc->SetPhase(PHASE_CLOSE);
 
@@ -224,10 +223,9 @@ bool DESC::Setup(std::shared_ptr<net::connection> connection, uint32_t _handle, 
 	SetPhase(PHASE_HANDSHAKE);
 	StartHandshake(_handshake);
 
-	sys_log(0, "SYSTEM: new connection from [%s] handle %u handshake %u ptr %p",
-			m_stHost.c_str(), m_dwHandle, m_dwHandshake, this);
+	metin2::log::info( "SYSTEM: new connection from [{}] handle {:d} handshake {:d} ptr {}",
+			m_stHost.c_str(), m_dwHandle, m_dwHandshake, static_cast<const void *>(this));
 
-	Log("SYSTEM: new connection from [%s] handshake %u ptr %p", m_stHost.c_str(), m_dwHandshake, this);
 	return true;
 }
 
@@ -257,7 +255,7 @@ auto DESC::on_receive(std::span<std::uint8_t> input, std::size_t received) -> st
 void DESC::on_close(const std::error_code & error)
 {
 	if (error && error != asio::error::eof)
-		sys_log(0, "SYSTEM: connection of %s lost: %s", m_stHost.c_str(), error.message().c_str());
+		metin2::log::info( "SYSTEM: connection of {} lost: {}", m_stHost.c_str(), error.message().c_str());
 
 	SetPhase(PHASE_CLOSE);
 }
@@ -309,7 +307,7 @@ void DESC::Packet(const void * c_pvData, int iSize)
 
 	if (out.empty())
 	{
-		sys_log(0, "SYSTEM: output of %s exceeds its limit, closing", m_stHost.c_str());
+		metin2::log::info( "SYSTEM: output of {} exceeds its limit, closing", m_stHost.c_str());
 		m_iPhase = PHASE_CLOSE;
 	}
 	else
@@ -328,7 +326,7 @@ void DESC::LargePacket(const void * c_pvData, int iSize)
 	if (m_connection)
 		m_connection->raise_output_limit(iSize);
 
-	sys_log(0, "LargePacket Size %d", iSize);
+	metin2::log::info( "LargePacket Size {:d}", iSize);
 
 	Packet(c_pvData, iSize);
 }
@@ -368,7 +366,7 @@ void DESC::SetPhase(int _phase)
 
 		case PHASE_AUTH:
 			m_pInputProcessor = &m_inputAuth;
-			sys_log(0, "AUTH_PHASE %p", this);
+			metin2::log::info( "AUTH_PHASE {}", static_cast<const void *>(this));
 			break;
 	}
 }
@@ -384,33 +382,6 @@ void DESC::BindAccountTable(TAccountTable * pAccountTable)
 
 	std::memcpy(&m_accountTable, pAccountTable, sizeof(TAccountTable));
 	DESC_MANAGER::instance().ConnectAccount(m_accountTable.login, this);
-}
-
-void DESC::Log(const char * format, ...)
-{
-	if (!m_pLogFile)
-		return;
-
-	va_list args;
-
-	time_t ct = get_global_time();
-	struct tm tm = *localtime(&ct);
-
-	fprintf(m_pLogFile,
-			"%02d %02d %02d:%02d:%02d | ",
-			tm.tm_mon + 1,
-			tm.tm_mday,
-			tm.tm_hour,
-			tm.tm_min,
-			tm.tm_sec);
-
-	va_start(args, format);
-	vfprintf(m_pLogFile, format, args);
-	va_end(args);
-
-	fputs("\n", m_pLogFile);
-
-	fflush(m_pLogFile);
 }
 
 void DESC::StartHandshake(uint32_t _handshake)
@@ -444,7 +415,7 @@ bool DESC::HandshakeProcess(uint32_t dwTime, int32_t lDelta, bool bInfiniteRetry
 
 	if (lDelta < 0)
 	{
-		sys_err("Desc::HandshakeProcess : value error (lDelta %d, ip %s)", lDelta, m_stHost.c_str());
+		metin2::log::error("Desc::HandshakeProcess : value error (lDelta {:d}, ip {})", lDelta, m_stHost.c_str());
 		return false;
 	}
 
@@ -459,9 +430,9 @@ bool DESC::HandshakeProcess(uint32_t dwTime, int32_t lDelta, bool bInfiniteRetry
 		}
 
 		if (GetCharacter())
-			sys_log(0, "Handshake: client_time %u server_time %u name: %s", m_dwClientTime, dwCurTime, GetCharacter()->GetName());
+			metin2::log::info( "Handshake: client_time {:d} server_time {:d} name: {}", m_dwClientTime, dwCurTime, GetCharacter()->GetName());
 		else
-			sys_log(0, "Handshake: client_time %u server_time %u delta %ld", m_dwClientTime, dwCurTime, static_cast<long>(lDelta));
+			metin2::log::info( "Handshake: client_time {:d} server_time {:d} delta {:d}", m_dwClientTime, dwCurTime, static_cast<long>(lDelta));
 
 		m_dwClientTime = dwCurTime;
 		m_bHandshaking = false;
@@ -472,16 +443,16 @@ bool DESC::HandshakeProcess(uint32_t dwTime, int32_t lDelta, bool bInfiniteRetry
 
 	if (lNewDelta < 0)
 	{
-		sys_log(0, "Handshake: lower than zero %d", lNewDelta);
+		metin2::log::info( "Handshake: lower than zero {:d}", lNewDelta);
 		lNewDelta = (dwCurTime - m_dwHandshakeSentTime) / 2;
 	}
 
-	sys_log(1, "Handshake: ServerTime %u dwTime %u lDelta %d SentTime %u lNewDelta %d", dwCurTime, dwTime, lDelta, m_dwHandshakeSentTime, lNewDelta);
+	metin2::log::debug( "Handshake: ServerTime {:d} dwTime {:d} lDelta {:d} SentTime {:d} lNewDelta {:d}", dwCurTime, dwTime, lDelta, m_dwHandshakeSentTime, lNewDelta);
 
 	if (!bInfiniteRetry)
 		if (++m_iHandshakeRetry > HANDSHAKE_RETRY_LIMIT)
 		{
-			sys_err("handshake retry limit reached! (limit %d character %s)", 
+			metin2::log::error("handshake retry limit reached! (limit {:d} character {})", 
 					HANDSHAKE_RETRY_LIMIT, GetCharacter() ? GetCharacter()->GetName() : "!NO CHARACTER!");
 			SetPhase(PHASE_CLOSE);
 			return false;
@@ -567,12 +538,12 @@ void DESC::FlushOutput()
 	if (!m_connection || m_connection->pending_output() == 0)
 		return;
 
-	sys_log(0, "FLUSH START %zu", m_connection->pending_output());
+	metin2::log::info( "FLUSH START {:d}", m_connection->pending_output());
 
 	if (m_connection->flush(std::chrono::seconds(20)))
-		sys_log(0, "FLUSH SUCCESS");
+		metin2::log::info( "FLUSH SUCCESS");
 	else
-		sys_log(0, "FLUSH FAIL");
+		metin2::log::info( "FLUSH FAIL");
 }
 
 EVENTFUNC(disconnect_event)
@@ -581,7 +552,7 @@ EVENTFUNC(disconnect_event)
 
 	if ( info == nullptr )
 	{
-		sys_err( "disconnect_event> <Factor> Null pointer" );
+		metin2::log::error( "disconnect_event> <Factor> Null pointer" );
 		return 0;
 	}
 
@@ -689,7 +660,7 @@ void DESC::SetLoginKey(CLoginKey * pkKey)
 		m_pkLoginKey->Expire();
 
 	m_pkLoginKey = pkKey;
-	sys_log(0, "SetLoginKey %u", m_pkLoginKey->m_dwKey);
+	metin2::log::info( "SetLoginKey {:d}", m_pkLoginKey->m_dwKey);
 }
 
 uint32_t DESC::GetLoginKey()

@@ -10,7 +10,7 @@
 #include <common/utils.h>
 #include <libnet/io.h>
 #include <libsql/query.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/utils.h>
 
 #include <cctype>
@@ -67,7 +67,7 @@ void CInputAuth::Login(DESC * d, const char * c_pData)
 
 	if (!g_bAuthServer)
 	{
-		sys_err ("CInputAuth class is not for game server. IP %s might be a hacker.", 
+		metin2::log::error("CInputAuth class is not for game server. IP {} might be a hacker.", 
 			d->GetHostName());
 		d->DelayedDisconnect(5);
 		return;
@@ -77,7 +77,7 @@ void CInputAuth::Login(DESC * d, const char * c_pData)
 	// login key of a query still in flight, and allow password guessing at line rate.
 	if (d->GetLoginKey() || d->GetAccountTable().id)
 	{
-		sys_log(0, "InputAuth::Login : second login attempt from %s", d->GetHostName());
+		metin2::log::info( "InputAuth::Login : second login attempt from {}", d->GetHostName());
 		d->SetPhase(PHASE_CLOSE);
 		return;
 	}
@@ -92,14 +92,14 @@ void CInputAuth::Login(DESC * d, const char * c_pData)
 	char passwd[PASSWD_MAX_LEN + 1];
 	CopyPacketString(passwd, pinfo->passwd);
 
-	sys_log(0, "InputAuth::Login : %s(%zu) desc %p",
-			login, strlen(login), d);
+	metin2::log::info( "InputAuth::Login : {}({:d}) desc {}",
+			login, strlen(login), static_cast<const void *>(d));
 
 	// check login string
 	if (false == FN_IS_VALID_LOGIN_STRING(login))
 	{
-		sys_log(0, "InputAuth::Login : IS_NOT_VALID_LOGIN_STRING(%s) desc %p",
-				login, d);
+		metin2::log::info( "InputAuth::Login : IS_NOT_VALID_LOGIN_STRING({}) desc {}",
+				login, static_cast<const void *>(d));
 		LoginFailure(d, "NOID");
 		return;
 	}
@@ -122,7 +122,7 @@ void CInputAuth::Login(DESC * d, const char * c_pData)
 	}
 
 	uint32_t dwKey = DESC_MANAGER::instance().CreateLoginKey(d);
-	sys_log(0, "InputAuth::Login : key %u login %s", dwKey, login);
+	metin2::log::info( "InputAuth::Login : key {:d} login {}", dwKey, login);
 
 	// BRAZIL_AUTH
 
@@ -136,7 +136,7 @@ void CInputAuth::Login(DESC * d, const char * c_pData)
 	// CHANNEL_SERVICE_LOGIN
 	if (Login_IsInChannelService(login))
 	{
-		sys_log(0, "ChannelServiceLogin [%s]", login);
+		metin2::log::info( "ChannelServiceLogin [{}]", login);
 
 		DBManager::instance().ReturnQuery(QID_AUTH_LOGIN, dwKey, p, sql::format(
 				"SELECT {},password,social_id,id,status,availDt - NOW() > 0,"
@@ -177,7 +177,7 @@ void CInputAuth::LoginOpenID(DESC * d, const char * c_pData)
 
 	if (!g_bAuthServer)
 	{
-		sys_err ("CInputAuth class is not for game server. IP %s might be a hacker.", 
+		metin2::log::error("CInputAuth class is not for game server. IP {} might be a hacker.", 
 			d->GetHostName());
 		d->DelayedDisconnect(5);
 		return;
@@ -186,7 +186,7 @@ void CInputAuth::LoginOpenID(DESC * d, const char * c_pData)
 	// One login attempt per connection, as in Login.
 	if (d->GetLoginKey() || d->GetAccountTable().id)
 	{
-		sys_log(0, "InputAuth::LoginOpenID : second login attempt from %s", d->GetHostName());
+		metin2::log::info( "InputAuth::LoginOpenID : second login attempt from {}", d->GetHostName());
 		d->SetPhase(PHASE_CLOSE);
 		return;
 	}
@@ -230,14 +230,14 @@ void CInputAuth::LoginOpenID(DESC * d, const char * c_pData)
 	char passwd[PASSWD_MAX_LEN + 1];
 	strlcpy(passwd, pinfo->passwd, sizeof(passwd));
 
-	sys_log(0, "InputAuth::Login : %s(%zu) desc %p",
-			login, strlen(login), d);
+	metin2::log::info( "InputAuth::Login : {}({:d}) desc {}",
+			login, strlen(login), static_cast<const void *>(d));
 
 	// check login string
 	if (false == FN_IS_VALID_LOGIN_STRING(login))
 	{
-		sys_log(0, "InputAuth::Login : IS_NOT_VALID_LOGIN_STRING(%s) desc %p",
-				login, d);
+		metin2::log::info( "InputAuth::Login : IS_NOT_VALID_LOGIN_STRING({}) desc {}",
+				login, static_cast<const void *>(d));
 		LoginFailure(d, "NOID");
 		return;
 	}
@@ -260,7 +260,7 @@ void CInputAuth::LoginOpenID(DESC * d, const char * c_pData)
 	}
 
 	uint32_t dwKey = DESC_MANAGER::instance().CreateLoginKey(d);
-	sys_log(0, "InputAuth::Login : key %u login %s", dwKey, login);
+	metin2::log::info( "InputAuth::Login : key {:d} login {}", dwKey, login);
 
 	// BRAZIL_AUTH
 
@@ -270,7 +270,7 @@ void CInputAuth::LoginOpenID(DESC * d, const char * c_pData)
 	// CHANNEL_SERVICE_LOGIN
 	if (Login_IsInChannelService(login))
 	{
-		sys_log(0, "ChannelServiceLogin [%s]", login);
+		metin2::log::info( "ChannelServiceLogin [{}]", login);
 
 		DBManager::instance().ReturnQuery(QID_AUTH_LOGIN_OPENID, dwKey, p, sql::format(
 				"SELECT {},password,social_id,id,status,availDt - NOW() > 0,"
@@ -322,7 +322,7 @@ int CInputAuth::auth_OpenID(const char *authKey, const char *ipAddr, char *rID)
     auto socket = net::connect(openid_host, port, timeout);
     if (!socket)
     {
-		sys_err("[auth_OpenID] : could not connect to OpenID server(%s)", openid_host);
+		metin2::log::error("[auth_OpenID] : could not connect to OpenID server({})", openid_host);
 		return 1;
     }
 
@@ -338,7 +338,7 @@ int CInputAuth::auth_OpenID(const char *authKey, const char *ipAddr, char *rID)
 
 		if (len < 0 || len >= (int) sizeof(request) || !net::write(*socket, std::span((const uint8_t *) request, len), timeout))
 		{
-			sys_err("[auth_OpenID] : could not send auth-request (%s)", authKey);
+			metin2::log::error("[auth_OpenID] : could not send auth-request ({})", authKey);
 			return 2;
 		}
     }
@@ -349,7 +349,7 @@ int CInputAuth::auth_OpenID(const char *authKey, const char *ipAddr, char *rID)
 
 	if (len == 0)
 	{
-	    sys_err("[auth_OpenID] : could not recv auth-reply (%s)", authKey);
+	    metin2::log::error("[auth_OpenID] : could not recv auth-reply ({})", authKey);
 	    return 3;
 	}
 
@@ -373,7 +373,7 @@ int CInputAuth::auth_OpenID(const char *authKey, const char *ipAddr, char *rID)
 
 	if (!id || !success || !*id || !*success)
 	{
-	    sys_err("[auth_OpenID] : OpenID AuthServer Reply Error (%s)", reply);
+	    metin2::log::error("[auth_OpenID] : OpenID AuthServer Reply Error ({})", reply);
 		return 4;
 	}
 
@@ -384,22 +384,22 @@ int CInputAuth::auth_OpenID(const char *authKey, const char *ipAddr, char *rID)
 		switch (returnNumber)
 		{
 		case 1:
-			sys_err("[auth_OpenID] : AuthKey incorrect");
+			metin2::log::error("[auth_OpenID] : AuthKey incorrect");
 			break;
 		case 2:
-			sys_err("[auth_OpenID] : ip incorrect");
+			metin2::log::error("[auth_OpenID] : ip incorrect");
 			break;
 		case 3:
-			sys_err("[auth_OpenID] : used AuthKey");
+			metin2::log::error("[auth_OpenID] : used AuthKey");
 			break;
 		case 4:
-			sys_err("[auth_OpenID] : AuthKey not delivered");
+			metin2::log::error("[auth_OpenID] : AuthKey not delivered");
 			break;
 		case 5:
-			sys_err("[auth_OpenID] : ip not delivered");
+			metin2::log::error("[auth_OpenID] : ip not delivered");
 			break;
 		case 6:
-			sys_err("[auth_OpenID] : AuthKey time over");
+			metin2::log::error("[auth_OpenID] : AuthKey time over");
 			break;
 		default:
 			break;
@@ -419,7 +419,7 @@ int CInputAuth::Analyze(DESC * d, uint8_t bHeader, const char * c_pData)
 
 	if (!g_bAuthServer)
 	{
-		sys_err ("CInputAuth class is not for game server. IP %s might be a hacker.", 
+		metin2::log::error("CInputAuth class is not for game server. IP {} might be a hacker.", 
 			d->GetHostName());
 		d->DelayedDisconnect(5);
 		return 0;
@@ -428,7 +428,7 @@ int CInputAuth::Analyze(DESC * d, uint8_t bHeader, const char * c_pData)
 	int iExtraLen = 0;
 
 	if (test_server)
-		sys_log(0, " InputAuth Analyze Header[%d] ", bHeader);
+		metin2::log::info( " InputAuth Analyze Header[{:d}] ", bHeader);
 
 	switch (bHeader)
 	{
@@ -445,14 +445,14 @@ int CInputAuth::Analyze(DESC * d, uint8_t bHeader, const char * c_pData)
 			if (openid_server)
 				LoginOpenID(d, c_pData);
 			else
-				sys_err("HEADER_CG_LOGIN5_OPENID : wrong client access");
+				metin2::log::error("HEADER_CG_LOGIN5_OPENID : wrong client access");
 			break;
 
 		case HEADER_CG_HANDSHAKE:
 			break;
 
 		default:
-			sys_err("This phase does not handle this header %d (0x%x)(phase: AUTH)", bHeader, bHeader);
+			metin2::log::error("This phase does not handle this header {:d} (0x{:x})(phase: AUTH)", bHeader, bHeader);
 			break;
 	}
 

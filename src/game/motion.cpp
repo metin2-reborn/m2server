@@ -6,7 +6,7 @@
 #include "vector.h"
 
 #include <common/tables.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <cassert>
 #include <cstdint>
@@ -109,7 +109,7 @@ static const char* GetMotionFileName(TMobTable* mobTable, EPublicMotion motion)
 
 			default:
 				fclose(fp);
-				sys_err("Motion: no process for this motion(%d) vnum(%d)", motion, mobTable->dwVnum);
+				metin2::log::error("Motion: no process for this motion({:d}) vnum({:d})", motion, mobTable->dwVnum);
 				return nullptr;
 		}
 
@@ -138,7 +138,7 @@ static const char* GetMotionFileName(TMobTable* mobTable, EPublicMotion motion)
 	}
 	else
 	{
-		sys_err("Motion: %s have not motlist.txt vnum(%d) folder(%s)", folder, mobTable->dwVnum, mobTable->szFolder);
+		metin2::log::error("Motion: {} have not motlist.txt vnum({:d}) folder({})", folder, mobTable->dwVnum, mobTable->szFolder);
 	}
 
 	return nullptr;
@@ -159,13 +159,13 @@ static void LoadMotion(CMotionSet* pMotionSet, TMobTable* mob_table, EPublicMoti
 	{
 		if (motion == MOTION_RUN)
 			if (0.0f == pMotion->GetAccumVector().y)
-				sys_err("cannot find accumulation data in file '%s'", cpFileName);
+				metin2::log::error("cannot find accumulation data in file '{}'", cpFileName);
 
 		pMotionSet->Insert(MAKE_MOTION_KEY(MOTION_MODE_GENERAL, motion), std::move(pMotion));
 	}
 	else
 	{
-		sys_err("Motion: Load failed vnum(%d) motion(%d) file(%s)", mob_table->dwVnum, motion, cpFileName);
+		metin2::log::error("Motion: Load failed vnum({:d}) motion({:d}) file({})", mob_table->dwVnum, motion, cpFileName);
 	}
 }
 
@@ -202,7 +202,7 @@ static void LoadSkillMotion(CMotionSet* pMotionSet, CMob* pMob, EPublicMotion mo
 	{
 		if (mob_table->Skills[idx].dwVnum != 0)
 		{
-			sys_err("Motion: Skill exist but no motion data for index %d mob %u skill %u",
+			metin2::log::error("Motion: Skill exist but no motion data for index {:d} mob {:d} skill {:d}",
 				   	idx, mob_table->dwVnum, mob_table->Skills[idx].dwVnum);
 		}
 	}
@@ -357,7 +357,7 @@ bool CMotionManager::Build()
 
 			// POLYMORPH_BUG_FIX
 			float normalAttackDuration = MOB_GetNormalAttackDuration(t);
-			sys_log(0, "mob_normal_attack_duration:%d:%s:%.2f", t->dwVnum, t->szFolder, normalAttackDuration);
+			metin2::log::info( "mob_normal_attack_duration:{:d}:{}:{:.2f}", t->dwVnum, t->szFolder, normalAttackDuration);
 			m_map_normalAttackDuration.insert(std::map<uint32_t, float>::value_type(t->dwVnum, normalAttackDuration));
 			// END_OF_POLYMORPH_BUG_FIX
 		}
@@ -422,7 +422,7 @@ bool CMotion::LoadMobSkillFromFile(const char * c_pszFileName, CMob* pMob, int i
 
 	if (!rkTextFileLoader.GetTokenFloat("motionduration", &m_fDuration))
 	{
-		sys_err("Motion: no motion duration %s", c_pszFileName);
+		metin2::log::error("Motion: no motion duration {}", c_pszFileName);
 		return false;
 	}
 
@@ -444,14 +444,14 @@ bool CMotion::LoadMobSkillFromFile(const char * c_pszFileName, CMob* pMob, int i
 			{
 				if (!rkTextFileLoader.SetChildNode("event", j))
 				{
-					sys_err("Motion: no event data %d %s", j, c_pszFileName);
+					metin2::log::error("Motion: no event data {:d} {}", j, c_pszFileName);
 					return false;
 				}
 
 				int iType;
 				if (!rkTextFileLoader.GetTokenInteger("motioneventtype", &iType))
 				{
-					sys_err("Motion: no motioneventtype data %s", c_pszFileName);
+					metin2::log::error("Motion: no motioneventtype data {}", c_pszFileName);
 					return false;
 				}
 
@@ -474,13 +474,13 @@ bool CMotion::LoadMobSkillFromFile(const char * c_pszFileName, CMob* pMob, int i
 						// Assume old data has only one
 						if (!rkTextFileLoader.SetChildNode("spheredata", 0))
 						{
-							sys_err("Motion: no sphere data %s", c_pszFileName);
+							metin2::log::error("Motion: no sphere data {}", c_pszFileName);
 							return false;
 						}
 
 						if (!rkTextFileLoader.GetTokenPosition("position", &v3Position))
 						{
-							sys_err("Motion: no position data %s", c_pszFileName);
+							metin2::log::error("Motion: no position data {}", c_pszFileName);
 							return false;
 						}
 
@@ -496,7 +496,7 @@ bool CMotion::LoadMobSkillFromFile(const char * c_pszFileName, CMob* pMob, int i
 
 				if (!rkTextFileLoader.GetTokenFloat("startingtime", &fStartingTime))
 				{
-					sys_err("Motion: no startingtime data %s", c_pszFileName);
+					metin2::log::error("Motion: no startingtime data {}", c_pszFileName);
 					return false;
 				}
 
@@ -519,19 +519,19 @@ bool CMotion::LoadFromFile(const char * c_pszFileName)
 
 	if (!loader.Load(c_pszFileName))
 	{
-		sys_log(0, "Motion: LoadFromFile fail: %s", c_pszFileName);
+		metin2::log::info( "Motion: LoadFromFile fail: {}", c_pszFileName);
 		return false;
 	}
 
 	if (!loader.GetTokenFloat("motionduration", &m_fDuration))
 	{
-		sys_err("Motion: %s does not have a duration", c_pszFileName);
+		metin2::log::error("Motion: {} does not have a duration", c_pszFileName);
 		return false;
 	}
 
 	if (loader.GetTokenPosition("accumulation", &m_vec3Accumulation))
 
-	sys_log(1, "%-48s %.3f %f", strchr(c_pszFileName, '/') + 1, GetDuration(), GetAccumVector().y);
+	metin2::log::debug( "{:<48} {:.3f} {:f}", strchr(c_pszFileName, '/') + 1, GetDuration(), GetAccumVector().y);
 
 	return true;
 }

@@ -10,7 +10,6 @@
 
 #include "char.h"
 #include "config.h"
-#include "dev_log.h"
 #include "item.h"
 #include "item_manager.h"
 #include "locale.hpp"
@@ -22,7 +21,7 @@
 #include <common/length.h>
 #include <common/tables.h>
 #include <common/utils.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/utils.h>
 
 #include <algorithm>
@@ -307,7 +306,7 @@ void Cube_open (CHARACTER * ch)
 	if (nullptr==npc)
 	{
 		if (test_server)
-			dev_log(LOG_DEB0, "cube_npc is NULL");
+			metin2::log::debug( "cube_npc is NULL");
 		return;
 	}
 
@@ -315,7 +314,7 @@ void Cube_open (CHARACTER * ch)
 	{
 		if ( test_server == true )
 		{
-			dev_log(LOG_DEB0, "cube not valid NPC");
+			metin2::log::debug( "cube not valid NPC");
 		}
 		return;
 	}
@@ -335,7 +334,7 @@ void Cube_open (CHARACTER * ch)
 
 	if (distance >= CUBE_MAX_DISTANCE)
 	{
-		sys_log(1, "CUBE: TOO_FAR: %s distance %d", ch->GetName(), distance);
+		metin2::log::debug( "CUBE: TOO_FAR: {} distance {:d}", ch->GetName(), distance);
 		return;
 	}
 
@@ -352,7 +351,7 @@ void Cube_close (CHARACTER * ch)
 	Cube_clean_item(ch);
 	ch->SetCubeNpc(nullptr);
 	ch->ChatPacket(CHAT_TYPE_COMMAND, "cube close");
-	dev_log(LOG_DEB0, "<CUBE> close (%s)", ch->GetName());
+	metin2::log::debug( "<CUBE> close ({})", ch->GetName());
 }
 
 void Cube_init()
@@ -360,12 +359,12 @@ void Cube_init()
 	char file_name[256+1];
 	snprintf(file_name, sizeof(file_name), "%s/cube.txt", LocaleService_GetBasePath().c_str());
 
-	sys_log(0, "Cube_Init %s", file_name);
+	metin2::log::info( "Cube_Init {}", file_name);
 
 	s_cube_proto.clear();
 
 	if (false == Cube_load(file_name))
-		sys_err("Cube_Init failed");
+		metin2::log::error("Cube_Init failed");
 }
 
 bool Cube_load (const char *file)
@@ -409,7 +408,7 @@ bool Cube_load (const char *file)
 		}
 		else if (!cube_data)
 		{
-			sys_err("cube: '%s' outside a section", token_string);
+			metin2::log::error("cube: '{}' outside a section", token_string);
 		}
 		else TOKEN("npc")
 		{
@@ -443,7 +442,7 @@ bool Cube_load (const char *file)
 			// TODO : check cube data
 			if (false == FN_check_cube_data(cube_data.get()))
 			{
-				dev_log(LOG_DEB0, "something wrong");
+				metin2::log::debug( "something wrong");
 				cube_data.reset();
 				continue;
 			}
@@ -789,7 +788,7 @@ bool Cube_InformationInitialize()
 		// Sorry for the hard coding
 		if (1 != rewards.size())
 		{
-			sys_err("[CubeInfo] WARNING! Does not support multiple rewards (count: %zu)", rewards.size());
+			metin2::log::error("[CubeInfo] WARNING! Does not support multiple rewards (count: {:d})", rewards.size());
 			continue;
 		}
 
@@ -823,7 +822,7 @@ bool Cube_InformationInitialize()
 					TItemTable* existMaterialProto = ITEM_MANAGER::instance().GetTable(existMaterialIter->vnum);
 					if (nullptr == existMaterialProto)
 					{
-						sys_err("There is no item(%u)", existMaterialIter->vnum);
+						metin2::log::error("There is no item({:d})", existMaterialIter->vnum);
 						return false;
 					}
 					SItemNameAndLevel existItemInfo = SplitItemNameAndLevelFromName(existMaterialProto->szName);
@@ -905,7 +904,7 @@ void Cube_request_result_list(CHARACTER * ch)
 		// Logs an error if it exceeds the chat packet limit... ask the designers to adjust it, or switch to another method later...
 		if (resultText.size() - 20 >= CHAT_MAX_LEN)
 		{
-			sys_err("[CubeInfo] Too long cube result list text. (NPC: %d, length: %zu)", npcVNUM, resultText.size());
+			metin2::log::error("[CubeInfo] Too long cube result list text. (NPC: {:d}, length: {:d})", npcVNUM, resultText.size());
 			resultText.clear();
 			resultCount = 0;
 		}
@@ -956,7 +955,7 @@ void Cube_request_material_info(CHARACTER * ch, int requestStartIndex, int reque
 	// if (false == bCatchInfo)
 	if (!bCatchInfo || materialInfoText.size() == 0) // Fix
 	{
-		sys_err("[CubeInfo] Can't find matched material info (NPC: %d, index: %d, request count: %d)", npcVNUM, requestStartIndex, requestCount);
+		metin2::log::error("[CubeInfo] Can't find matched material info (NPC: {:d}, index: {:d}, request count: {:d})", npcVNUM, requestStartIndex, requestCount);
 		return;
 	}
 
@@ -966,7 +965,7 @@ void Cube_request_material_info(CHARACTER * ch, int requestStartIndex, int reque
 	// (Server -> Client) /cube m_info start_index count 125,1|126,2|127,2|123,5&555,5&555,4/120000
 	if (materialInfoText.size() - 20 >= CHAT_MAX_LEN)
 	{
-		sys_err("[CubeInfo] Too long material info. (NPC: %d, requestStart: %d, requestCount: %d, length: %zu)", npcVNUM, requestStartIndex, requestCount, materialInfoText.size());
+		metin2::log::error("[CubeInfo] Too long material info. (NPC: {:d}, requestStart: {:d}, requestCount: {:d}, length: {:d})", npcVNUM, requestStartIndex, requestCount, materialInfoText.size());
 	}
 
 	ch->ChatPacket(CHAT_TYPE_COMMAND, "cube m_info %d %d %s", requestStartIndex, requestCount, materialInfoText.c_str());

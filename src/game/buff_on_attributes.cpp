@@ -6,7 +6,7 @@
 
 #include <common/length.h>
 #include <common/tables.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <algorithm>
 #include <cstdint>
@@ -58,7 +58,7 @@ void CBuffOnAttributes::RemoveBuffFromItem(CItem * pItem)
 			}
 			else
 			{
-				sys_err ("Buff ERROR(type %d). This item(%d) attr_type(%d) was not in buff pool", m_bPointType, pItem->GetVnum(), attr.bType);
+				metin2::log::error("Buff ERROR(type {:d}). This item({:d}) attr_type({:d}) was not in buff pool", m_bPointType, pItem->GetVnum(), attr.bType);
 				return;
 			}
 		}

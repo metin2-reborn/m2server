@@ -19,7 +19,7 @@
 
 #include <common/length.h>
 #include <common/tables.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <cstdint>
 #include <cstdio>
@@ -183,7 +183,7 @@ void CGuild::SetWarScoreAgainstTo(uint32_t dwOppGID, int iScore)
 {
 	uint32_t dwSelfGID = GetID();
 
-	sys_log(0, "GuildWarScore Set %u from %u %d", dwSelfGID, dwOppGID, iScore);
+	metin2::log::info( "GuildWarScore Set {:d} from {:d} {:d}", dwSelfGID, dwOppGID, iScore);
 	auto it = m_EnemyGuild.find(dwOppGID);
 
 	if (it != m_EnemyGuild.end())
@@ -229,11 +229,11 @@ int CGuild::GetWarScoreAgainstTo(uint32_t dwOppGID)
 
 	if (it != m_EnemyGuild.end())
 	{
-		sys_log(0, "GuildWarScore Get %u from %u %d", GetID(), dwOppGID, it->second.score);
+		metin2::log::info( "GuildWarScore Get {:d} from {:d} {:d}", GetID(), dwOppGID, it->second.score);
 		return it->second.score;
 	}
 
-	sys_log(0, "GuildWarScore Get %u from %u No data", GetID(), dwOppGID);
+	metin2::log::info( "GuildWarScore Get {:d} from {:d} No data", GetID(), dwOppGID);
 	return 0;
 }
 
@@ -296,13 +296,13 @@ void CGuild::RequestDeclareWar(uint32_t dwOppGID, uint8_t type)
 {
 	if (dwOppGID == GetID())
 	{
-		sys_log(0, "GuildWar.DeclareWar.DECLARE_WAR_SELF id(%d -> %d), type(%d)", GetID(), dwOppGID, type);
+		metin2::log::info( "GuildWar.DeclareWar.DECLARE_WAR_SELF id({:d} -> {:d}), type({:d})", GetID(), dwOppGID, type);
 		return;
 	}
 
 	if (type >= GUILD_WAR_TYPE_MAX_NUM)
 	{
-		sys_log(0, "GuildWar.DeclareWar.UNKNOWN_WAR_TYPE id(%d -> %d), type(%d)", GetID(), dwOppGID, type);
+		metin2::log::info( "GuildWar.DeclareWar.UNKNOWN_WAR_TYPE id({:d} -> {:d}), type({:d})", GetID(), dwOppGID, type);
 		return;
 	}
 
@@ -311,7 +311,7 @@ void CGuild::RequestDeclareWar(uint32_t dwOppGID, uint8_t type)
 	{
 		if (!GuildWar_IsWarMap(type))
 		{
-			sys_err("GuildWar.DeclareWar.NOT_EXIST_MAP id(%d -> %d), type(%d), map(%d)", 
+			metin2::log::error("GuildWar.DeclareWar.NOT_EXIST_MAP id({:d} -> {:d}), type({:d}), map({:d})", 
 					GetID(), dwOppGID, type, GuildWar_GetTypeMapIndex(type));
 
 			map_allow_log();
@@ -326,7 +326,7 @@ void CGuild::RequestDeclareWar(uint32_t dwOppGID, uint8_t type)
 		p.dwGuildFrom = GetID();
 		p.dwGuildTo = dwOppGID;
 		db_clientdesc->DBPacket(HEADER_GD_GUILD_WAR, 0, &p, sizeof(p));
-		sys_log(0, "GuildWar.DeclareWar id(%d -> %d), type(%d)", GetID(), dwOppGID, type);
+		metin2::log::info( "GuildWar.DeclareWar id({:d} -> {:d}), type({:d})", GetID(), dwOppGID, type);
 		return;
 	}
 
@@ -345,13 +345,13 @@ void CGuild::RequestDeclareWar(uint32_t dwOppGID, uint8_t type)
 					p.dwGuildFrom = GetID();
 					p.dwGuildTo = dwOppGID;
 					db_clientdesc->DBPacket(HEADER_GD_GUILD_WAR, 0, &p, sizeof(p));
-					sys_log(0, "GuildWar.AcceptWar id(%d -> %d), type(%d)", GetID(), dwOppGID, saved_type);
+					metin2::log::info( "GuildWar.AcceptWar id({:d} -> {:d}), type({:d})", GetID(), dwOppGID, saved_type);
 					return;
 				}
 
 				if (!GuildWar_IsWarMap(saved_type))
 				{
-					sys_err("GuildWar.AcceptWar.NOT_EXIST_MAP id(%d -> %d), type(%d), map(%d)", 
+					metin2::log::error("GuildWar.AcceptWar.NOT_EXIST_MAP id({:d} -> {:d}), type({:d}), map({:d})", 
 							GetID(), dwOppGID, type, GuildWar_GetTypeMapIndex(type));
 
 					map_allow_log();
@@ -374,7 +374,7 @@ void CGuild::RequestDeclareWar(uint32_t dwOppGID, uint8_t type)
 
 				db_clientdesc->DBPacket(HEADER_GD_GUILD_WAR, 0, &p, sizeof(p));
 
-				sys_log(0, "GuildWar.WaitStartSendToDB id(%d vs %d), type(%d), bet(%d), map_index(%d)", 
+				metin2::log::info( "GuildWar.WaitStartSendToDB id({:d} vs {:d}), type({:d}), bet({:d}), map_index({:d})", 
 						GetID(), dwOppGID, saved_type, guildWarInfo.iWarPrice, guildWarInfo.lMapIndex);
 
 			}
@@ -385,7 +385,7 @@ void CGuild::RequestDeclareWar(uint32_t dwOppGID, uint8_t type)
 			}
 			break;
 		default:
-			sys_err("GuildWar.DeclareWar.UNKNOWN_STATE[%d]: id(%d vs %d), type(%d), guild(%s:%u)", 
+			metin2::log::error("GuildWar.DeclareWar.UNKNOWN_STATE[{:d}]: id({:d} vs {:d}), type({:d}), guild({}:{:d})", 
 					it->second.state, GetID(), dwOppGID, type, GetName(), GetID());
 			break;
 	}
@@ -446,7 +446,7 @@ bool CGuild::WaitStartWar(uint32_t dwOppGID)
 	//If it's ourselves 
 	if (dwOppGID == GetID())
 	{
-		sys_log(0 ,"GuildWar.WaitStartWar.DECLARE_WAR_SELF id(%u -> %u)", GetID(), dwOppGID);
+		metin2::log::info("GuildWar.WaitStartWar.DECLARE_WAR_SELF id({:d} -> {:d})", GetID(), dwOppGID);
 		return false;
 	}
 
@@ -454,7 +454,7 @@ bool CGuild::WaitStartWar(uint32_t dwOppGID)
 	auto it = m_EnemyGuild.find(dwOppGID);
 	if (it == m_EnemyGuild.end())
 	{
-		sys_log(0 ,"GuildWar.WaitStartWar.UNKNOWN_ENEMY id(%u -> %u)", GetID(), dwOppGID);
+		metin2::log::info("GuildWar.WaitStartWar.UNKNOWN_ENEMY id({:d} -> {:d})", GetID(), dwOppGID);
 		return false;
 	}
 
@@ -463,7 +463,7 @@ bool CGuild::WaitStartWar(uint32_t dwOppGID)
 
 	if (gw.state == GUILD_WAR_WAIT_START)
 	{
-		sys_log(0 ,"GuildWar.WaitStartWar.UNKNOWN_STATE id(%u -> %u), state(%d)", GetID(), dwOppGID, gw.state);
+		metin2::log::info("GuildWar.WaitStartWar.UNKNOWN_STATE id({:d} -> {:d}), state({:d})", GetID(), dwOppGID, gw.state);
 		return false;
 	}
 
@@ -474,7 +474,7 @@ bool CGuild::WaitStartWar(uint32_t dwOppGID)
 	CGuild* g = CGuildManager::instance().FindGuild(dwOppGID);
 	if (!g)
 	{
-		sys_log(0 ,"GuildWar.WaitStartWar.NOT_EXIST_GUILD id(%u -> %u)", GetID(), dwOppGID);
+		metin2::log::info("GuildWar.WaitStartWar.NOT_EXIST_GUILD id({:d} -> {:d})", GetID(), dwOppGID);
 		return false;
 	}
 
@@ -486,17 +486,17 @@ bool CGuild::WaitStartWar(uint32_t dwOppGID)
 	// Don't create a map for field type
 	if (gw.type == GUILD_WAR_TYPE_FIELD)
 	{
-		sys_log(0 ,"GuildWar.WaitStartWar.FIELD_TYPE id(%u -> %u)", GetID(), dwOppGID);
+		metin2::log::info("GuildWar.WaitStartWar.FIELD_TYPE id({:d} -> {:d})", GetID(), dwOppGID);
 		return true;
 	}		
 
 	// Check whether this is the war server
-	sys_log(0 ,"GuildWar.WaitStartWar.CheckWarServer id(%u -> %u), type(%d), map(%d)", 
+	metin2::log::info("GuildWar.WaitStartWar.CheckWarServer id({:d} -> {:d}), type({:d}), map({:d})", 
 			GetID(), dwOppGID, gw.type, rkGuildWarInfo.lMapIndex);
 
 	if (!map_allow_find(rkGuildWarInfo.lMapIndex))
 	{
-		sys_log(0 ,"GuildWar.WaitStartWar.SKIP_WAR_MAP id(%u -> %u)", GetID(), dwOppGID);
+		metin2::log::info("GuildWar.WaitStartWar.SKIP_WAR_MAP id({:d} -> {:d})", GetID(), dwOppGID);
 		return true;
 	}
 
@@ -511,12 +511,12 @@ bool CGuild::WaitStartWar(uint32_t dwOppGID)
 	uint32_t lMapIndex = CWarMapManager::instance().CreateWarMap(rkGuildWarInfo, id1, id2);
 	if (!lMapIndex) 
 	{
-		sys_err("GuildWar.WaitStartWar.CREATE_WARMAP_ERROR id(%u vs %u), type(%u), map(%d)", id1, id2, gw.type, rkGuildWarInfo.lMapIndex);
+		metin2::log::error("GuildWar.WaitStartWar.CREATE_WARMAP_ERROR id({:d} vs {:d}), type({:d}), map({:d})", id1, id2, gw.type, rkGuildWarInfo.lMapIndex);
 		CGuildManager::instance().RequestEndWar(GetID(), dwOppGID);
 		return false;
 	}
 
-	sys_log(0, "GuildWar.WaitStartWar.CreateMap id(%u vs %u), type(%u), map(%d) -> map_inst(%u)", id1, id2, gw.type, rkGuildWarInfo.lMapIndex, lMapIndex);
+	metin2::log::info( "GuildWar.WaitStartWar.CreateMap id({:d} vs {:d}), type({:d}), map({:d}) -> map_inst({:d})", id1, id2, gw.type, rkGuildWarInfo.lMapIndex, lMapIndex);
 
 	//Set the map index in the guild war info
 	gw.map_index = lMapIndex;
@@ -590,7 +590,7 @@ void CGuild::ReserveWar(uint32_t dwOppGID, uint8_t type)
 	else
 		it->second.state = GUILD_WAR_RESERVE;
 
-	sys_log(0, "Guild::ReserveWar %u", dwOppGID);
+	metin2::log::info( "Guild::ReserveWar {:d}", dwOppGID);
 }
 
 void CGuild::EndWar(uint32_t dwOppGID)
@@ -636,7 +636,7 @@ void CGuild::SetGuildWarMapIndex(uint32_t dwOppGID, int32_t lMapIndex)
 		return;
 
 	it->second.map_index = lMapIndex;
-	sys_log(0, "GuildWar.SetGuildWarMapIndex id(%d -> %d), map(%d)", GetID(), dwOppGID, lMapIndex);
+	metin2::log::info( "GuildWar.SetGuildWarMapIndex id({:d} -> {:d}), map({:d})", GetID(), dwOppGID, lMapIndex);
 }
 
 void CGuild::GuildWarEntryAccept(uint32_t dwOppGID, CHARACTER * ch)
@@ -677,27 +677,27 @@ void CGuild::GuildWarEntryAsk(uint32_t dwOppGID)
 	auto git = m_EnemyGuild.find(dwOppGID);
 	if (git == m_EnemyGuild.end())
 	{
-		sys_err("GuildWar.GuildWarEntryAsk.UNKNOWN_ENEMY(%d)", dwOppGID);
+		metin2::log::error("GuildWar.GuildWarEntryAsk.UNKNOWN_ENEMY({:d})", dwOppGID);
 		return;
 	}
 
 	TGuildWar & gw(git->second);
 
-	sys_log(0, "GuildWar.GuildWarEntryAsk id(%d vs %d), map(%d)", GetID(), dwOppGID, gw.map_index);
+	metin2::log::info( "GuildWar.GuildWarEntryAsk id({:d} vs {:d}), map({:d})", GetID(), dwOppGID, gw.map_index);
 	if (!gw.map_index)
 	{
-		sys_err("GuildWar.GuildWarEntryAsk.NOT_EXIST_MAP id(%d vs %d)", GetID(), dwOppGID);
+		metin2::log::error("GuildWar.GuildWarEntryAsk.NOT_EXIST_MAP id({:d} vs {:d})", GetID(), dwOppGID);
 		return;
 	}
 
 	PIXEL_POSITION pos;
 	if (!CWarMapManager::instance().GetStartPosition(gw.map_index, GetID() < dwOppGID ? 0 : 1, pos))
 	{
-		sys_err("GuildWar.GuildWarEntryAsk.START_POSITION_ERROR id(%d vs %d), pos(%d, %d)", GetID(), dwOppGID, pos.x, pos.y);
+		metin2::log::error("GuildWar.GuildWarEntryAsk.START_POSITION_ERROR id({:d} vs {:d}), pos({:d}, {:d})", GetID(), dwOppGID, pos.x, pos.y);
 		return;
 	}
 
-	sys_log(0, "GuildWar.GuildWarEntryAsk.OnlineMemberCount(%zu)", m_memberOnline.size());
+	metin2::log::info( "GuildWar.GuildWarEntryAsk.OnlineMemberCount({:d})", m_memberOnline.size());
 
 	auto it = m_memberOnline.begin();
 
@@ -709,12 +709,12 @@ void CGuild::GuildWarEntryAsk(uint32_t dwOppGID)
 		unsigned int questIndex=CQuestManager::instance().GetQuestIndexByName("guild_war_join");
 		if (questIndex)
 		{
-			sys_log(0, "GuildWar.GuildWarEntryAsk.SendLetterToMember pid(%d), qid(%d)", ch->GetPlayerID(), questIndex);
+			metin2::log::info( "GuildWar.GuildWarEntryAsk.SendLetterToMember pid({:d}), qid({:d})", ch->GetPlayerID(), questIndex);
 			CQuestManager::instance().Letter(ch->GetPlayerID(), questIndex, 0);
 		}
 		else
 		{
-			sys_err("GuildWar.GuildWarEntryAsk.SendLetterToMember.QUEST_ERROR pid(%u), quest_name('guild_war_join.quest') index(%u)",
+			metin2::log::error("GuildWar.GuildWarEntryAsk.SendLetterToMember.QUEST_ERROR pid({:d}), quest_name('guild_war_join.quest') index({:d})",
 					ch->GetPlayerID(), questIndex);
 			break;
 		}

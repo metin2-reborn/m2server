@@ -9,7 +9,7 @@
 #include "typedef.h"
 
 #include <common/length.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <cmath>
 #include <cstdint>
@@ -67,11 +67,11 @@ namespace quest
 
         void operator()(CHARACTER * ch)
         {
-            sys_log(0, "CINEMASEND_TRY %s", ch->GetName());
+            metin2::log::info( "CINEMASEND_TRY {}", ch->GetName());
 
             if (ch->GetDesc())
             {
-                sys_log(0, "CINEMASEND %s", ch->GetName());
+                metin2::log::info( "CINEMASEND {}", ch->GetName());
                 ch->GetDesc()->BufferedPacket(&pack, sizeof(struct packet_script));
                 ch->GetDesc()->Packet(data.c_str(),data.size());
             }
@@ -83,7 +83,7 @@ namespace quest
 		if (!lua_isstring(L, 1))
 			return 0;
 		
-		sys_log(0, "RUN_CINEMA %s", lua_tostring(L, 1));
+		metin2::log::info( "RUN_CINEMA {}", lua_tostring(L, 1));
 		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
 
 		if (ch->GetParty())
@@ -116,11 +116,11 @@ namespace quest
 
 		void operator()(CHARACTER * ch)
 		{
-			sys_log(0, "CINEMASEND_TRY %s", ch->GetName());
+			metin2::log::info( "CINEMASEND_TRY {}", ch->GetName());
 
 			if (ch->GetDesc())
 			{
-				sys_log(0, "CINEMASEND %s", ch->GetName());
+				metin2::log::info( "CINEMASEND {}", ch->GetName());
 				ch->GetDesc()->BufferedPacket(&packet_script, sizeof(struct packet_script));
 				ch->GetDesc()->Packet(str,len);
 			}
@@ -132,7 +132,7 @@ namespace quest
 		if (!lua_isstring(L, 1))
 			return 0;
 
-		sys_log(0, "CINEMA %s", lua_tostring(L, 1));
+		metin2::log::info( "CINEMA {}", lua_tostring(L, 1));
 		CHARACTER * ch = CQuestManager::instance().GetCurrentCharacterPtr();
 
 		if (ch->GetParty())

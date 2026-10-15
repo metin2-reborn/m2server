@@ -24,7 +24,7 @@
 #include <common/tables.h>
 #include <common/utils.h>
 #include <libsql/query.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <mysql.h>
 
@@ -153,7 +153,7 @@ void CGuild::RequestAddMember(CHARACTER * ch, int grade)
 
 	if (m_member.find(ch->GetPlayerID()) != m_member.end())
 	{
-		sys_err("Already a member in guild %s[%d]", ch->GetName(), ch->GetPlayerID());
+		metin2::log::error("Already a member in guild {}[{:d}]", ch->GetName(), ch->GetPlayerID());
 		return;
 	}
 
@@ -186,8 +186,8 @@ void CGuild::AddMember(TPacketDGGuildMember * p)
 
 	CHARACTER * ch = CHARACTER_MANAGER::instance().FindByPID(p->dwPID);
 
-	sys_log(0, "GUILD: AddMember PID %u, grade %u, job %u, level %u, offer %u, name %s ptr %p",
-			p->dwPID, p->bGrade, p->bJob, p->bLevel, p->dwOffer, p->szName, ch);
+	metin2::log::info( "GUILD: AddMember PID {:d}, grade {:d}, job {:d}, level {:d}, offer {:d}, name {} ptr {}",
+			p->dwPID, p->bGrade, p->bJob, p->bLevel, p->dwOffer, p->szName, static_cast<const void *>(ch));
 
 	if (ch)
 		LoginMember(ch);
@@ -216,7 +216,7 @@ bool CGuild::RequestRemoveMember(uint32_t pid)
 
 bool CGuild::RemoveMember(uint32_t pid)
 {
-	sys_log(0, "Receive Guild P2P RemoveMember");
+	metin2::log::info( "Receive Guild P2P RemoveMember");
 	TGuildMemberContainer::iterator it;
 
 	if ((it = m_member.find(pid)) == m_member.end())
@@ -248,7 +248,7 @@ void CGuild::P2PLoginMember(uint32_t pid)
 {
 	if (m_member.find(pid) == m_member.end())
 	{
-		sys_err("GUILD [%d] is not a memeber of guild.", pid);
+		metin2::log::error("GUILD [{:d}] is not a memeber of guild.", pid);
 		return;
 	}
 
@@ -265,7 +265,7 @@ void CGuild::LoginMember(CHARACTER * ch)
 {
 	if (m_member.find(ch->GetPlayerID()) == m_member.end())
 	{
-		sys_err("GUILD %s[%d] is not a memeber of guild.", ch->GetName(), ch->GetPlayerID());
+		metin2::log::error("GUILD {}[{:d}] is not a memeber of guild.", ch->GetName(), ch->GetPlayerID());
 		return;
 	}
 
@@ -291,7 +291,7 @@ void CGuild::P2PLogoutMember(uint32_t pid)
 {
 	if (m_member.find(pid)==m_member.end())
 	{
-		sys_err("GUILD [%d] is not a memeber of guild.", pid);
+		metin2::log::error("GUILD [{:d}] is not a memeber of guild.", pid);
 		return;
 	}
 
@@ -309,7 +309,7 @@ void CGuild::LogoutMember(CHARACTER * ch)
 {
 	if (m_member.find(ch->GetPlayerID())==m_member.end())
 	{
-		sys_err("GUILD %s[%d] is not a memeber of guild.", ch->GetName(), ch->GetPlayerID());
+		metin2::log::error("GUILD {}[{:d}] is not a memeber of guild.", ch->GetName(), ch->GetPlayerID());
 		return;
 	}
 
@@ -450,7 +450,7 @@ void CGuild::SendListPacket(CHARACTER * ch)
 		buf.write(c, CHARACTER_NAME_MAX_LEN+1 );
 
 		if ( test_server )
-			sys_log(0 ,"name %s job %d  ", it->second.name.c_str(), it->second.job );
+			metin2::log::info("name {} job {:d}  ", it->second.name.c_str(), it->second.job );
 	}
 
 	d->Packet(buf.read_peek(), buf.size());
@@ -578,7 +578,7 @@ void CGuild::LoadGuildData(SQLMsg* pmsg)
 {
 	if (pmsg->Get()->uiNumRows == 0)
 	{
-		sys_err("Query failed: getting guild data %s", pmsg->stQuery.c_str());
+		metin2::log::error("Query failed: getting guild data {}", pmsg->stQuery.c_str());
 		return;
 	}
 
@@ -618,7 +618,7 @@ void CGuild::Load(uint32_t guild_id)
 	DBManager::instance().FuncQuery([this](SQLMsg *msg) { LoadGuildData(msg); },
 			"SELECT master, level, exp, name, skill_point, skill, sp, ladder_point, win, draw, loss, gold FROM guild%s WHERE id = %u", get_table_postfix(), m_data.guild_id);
 
-	sys_log(0, "GUILD: loading guild id %12s %u", m_data.name, guild_id);
+	metin2::log::info( "GUILD: loading guild id {:>12} {:d}", m_data.name, guild_id);
 
 	DBManager::instance().FuncQuery([this](SQLMsg *msg) { LoadGuildGradeData(msg); }, 
 			"SELECT grade, name, auth+0 FROM guild_grade%s WHERE guild_id = %u", get_table_postfix(), m_data.guild_id);
@@ -782,7 +782,7 @@ void CGuild::ChangeGradeName(uint8_t grade, const char* grade_name)
 
 	if (grade < 1 || grade > 15)
 	{
-		sys_err("Wrong guild grade value %d", grade);
+		metin2::log::error("Wrong guild grade value {:d}", grade);
 		return;
 	}
 
@@ -827,7 +827,7 @@ void CGuild::ChangeGradeAuth(uint8_t grade, uint8_t auth)
 
 	if (grade < 1 || grade > 15)
 	{
-		sys_err("Wrong guild grade value %d", grade);
+		metin2::log::error("Wrong guild grade value {:d}", grade);
 		return;
 	}
 
@@ -885,8 +885,8 @@ void CGuild::SendGuildInfoPacket(CHARACTER * ch)
 	pack_sub.gold	= m_data.gold;
 	pack_sub.has_land	= HasLand();
 
-	sys_log(0, "GMC guild_name %s", m_data.name);
-	sys_log(0, "GMC master %d", m_data.master_pid);
+	metin2::log::info( "GMC guild_name {}", m_data.name);
+	metin2::log::info( "GMC master {:d}", m_data.master_pid);
 
 	d->BufferedPacket(&pack, sizeof(TPacketGCGuild));
 	d->Packet(&pack_sub, sizeof(TPacketGCGuildInfo));
@@ -913,7 +913,7 @@ bool CGuild::OfferExp(CHARACTER * ch, int amount)
 
 	if (ch->GetExp() - (uint32_t) amount > ch->GetExp())
 	{
-		sys_err("Wrong guild offer amount %d by %s[%u]", amount, ch->GetName(), ch->GetPlayerID());
+		metin2::log::error("Wrong guild offer amount {:d} by {}[{:d}]", amount, ch->GetName(), ch->GetPlayerID());
 		return false;
 	}
 
@@ -959,7 +959,7 @@ bool CGuild::OfferExp(CHARACTER * ch, int amount)
 
 void CGuild::Disband()
 {
-	sys_log(0, "GUILD: Disband %s:%u", GetName(), GetID());
+	metin2::log::info( "GUILD: Disband {}:{:d}", GetName(), GetID());
 
 	for (TGuildMemberOnlineContainer::iterator it = m_memberOnline.begin(); it != m_memberOnline.end(); ++it)
 	{
@@ -1128,7 +1128,7 @@ void CGuild::ChangeMemberGrade(uint32_t pid, uint8_t grade)
 	// grade indexes grade_array[grade - 1] (HasGradeAuth)
 	if (grade < 1 || grade > GUILD_GRADE_COUNT)
 	{
-		sys_err("Wrong guild grade value %d", grade);
+		metin2::log::error("Wrong guild grade value {:d}", grade);
 		return;
 	}
 
@@ -1182,7 +1182,7 @@ void CGuild::SkillLevelUp(uint32_t dwVnum)
 
 	if (!pkSk)
 	{
-		sys_err("There is no such guild skill by number %u", dwVnum);
+		metin2::log::error("There is no such guild skill by number {:d}", dwVnum);
 		return;
 	}
 
@@ -1201,7 +1201,7 @@ void CGuild::SkillLevelUp(uint32_t dwVnum)
 
 	std::for_each(m_memberOnline.begin(), m_memberOnline.end(), std::bind(&CGuild::SendSkillInfoPacket, this, std::placeholders::_1));
 
-	sys_log(0, "Guild SkillUp: %s %d level %d type %u", GetName(), pkSk->dwVnum, m_data.abySkill[dwRealVnum], pkSk->dwType);
+	metin2::log::info( "Guild SkillUp: {} {:d} level {:d} type {:d}", GetName(), pkSk->dwVnum, m_data.abySkill[dwRealVnum], pkSk->dwType);
 }
 
 void CGuild::UseSkill(uint32_t dwVnum, CHARACTER * ch, uint32_t pid)
@@ -1211,7 +1211,7 @@ void CGuild::UseSkill(uint32_t dwVnum, CHARACTER * ch, uint32_t pid)
 	if (!GetMember(ch->GetPlayerID()) || !HasGradeAuth(GetMember(ch->GetPlayerID())->grade, GUILD_AUTH_USE_SKILL))
 		return;
 
-	sys_log(0,"GUILD_USE_SKILL : cname(%s), skill(%d)", ch ? ch->GetName() : "", dwVnum);
+	metin2::log::info("GUILD_USE_SKILL : cname({}), skill({:d})", ch ? ch->GetName() : "", dwVnum);
 
 	uint32_t dwRealVnum = dwVnum - GUILD_SKILL_START;
 
@@ -1225,7 +1225,7 @@ void CGuild::UseSkill(uint32_t dwVnum, CHARACTER * ch, uint32_t pid)
 
 	if (!pkSk)
 	{
-		sys_err("There is no such guild skill by number %u", dwVnum);
+		metin2::log::error("There is no such guild skill by number {:d}", dwVnum);
 		return;
 	}
 
@@ -1639,7 +1639,7 @@ void CGuild::SkillUsableChange(uint32_t dwSkillVnum, bool bUsable)
 	abSkillUsable[dwRealVnum] = bUsable;
 
 	// GUILD_SKILL_COOLTIME_BUG_FIX
-	sys_log(0, "CGuild::SkillUsableChange(guild=%s, skill=%d, usable=%d)", GetName(), dwSkillVnum, bUsable);
+	metin2::log::info( "CGuild::SkillUsableChange(guild={}, skill={:d}, usable={:d})", GetName(), dwSkillVnum, bUsable);
 	// END_OF_GUILD_SKILL_COOLTIME_BUG_FIX
 }
 
@@ -1647,7 +1647,7 @@ void CGuild::SkillUsableChange(uint32_t dwSkillVnum, bool bUsable)
 void CGuild::SetMemberCountBonus(int iBonus)
 {
 	m_iMemberCountBonus = iBonus;
-	sys_log(0, "GUILD_IS_FULL_BUG : Bonus set to %d(val:%d)", iBonus, m_iMemberCountBonus);
+	metin2::log::info( "GUILD_IS_FULL_BUG : Bonus set to {:d}(val:{:d})", iBonus, m_iMemberCountBonus);
 }
 
 void CGuild::BroadcastMemberCountBonus()
@@ -1696,7 +1696,7 @@ void CGuild::RequestDepositMoney(CHARACTER * ch, int iGold)
 	LogManager::instance().CharLog(ch, iGold, "GUILD_DEPOSIT", buf);
 
 	ch->UpdateDepositPulse();
-	sys_log(0, "GUILD: DEPOSIT %s:%u player %s[%u] gold %d", GetName(), GetID(), ch->GetName(), ch->GetPlayerID(), iGold);
+	metin2::log::info( "GUILD: DEPOSIT {}:{:d} player {}[{:d}] gold {:d}", GetName(), GetID(), ch->GetName(), ch->GetPlayerID(), iGold);
 }
 
 void CGuild::RecvMoneyChange(int iGold)
@@ -1724,7 +1724,7 @@ void CGuild::RecvWithdrawMoneyGive(int iChangeGold)
 	if (ch)
 	{
 		ch->PointChange(POINT_GOLD, iChangeGold);
-		sys_log(0, "GUILD: WITHDRAW %s:%u player %s[%u] gold %d", GetName(), GetID(), ch->GetName(), ch->GetPlayerID(), iChangeGold);
+		metin2::log::info( "GUILD: WITHDRAW {}:{:d} player {}[{:d}] gold {:d}", GetName(), GetID(), ch->GetName(), ch->GetPlayerID(), iChangeGold);
 	}
 
 	TPacketGDGuildMoneyWithdrawGiveReply p;
@@ -1763,7 +1763,7 @@ EVENTFUNC( GuildInviteEvent )
 
 	if ( pInfo == nullptr )
 	{
-		sys_err( "GuildInviteEvent> <Factor> Null pointer" );
+		metin2::log::error( "GuildInviteEvent> <Factor> Null pointer" );
 		return 0;
 	}
 
@@ -1771,7 +1771,7 @@ EVENTFUNC( GuildInviteEvent )
 
 	if ( pGuild ) 
 	{
-		sys_log( 0, "GuildInviteEvent %s", pGuild->GetName() );
+		metin2::log::info( "GuildInviteEvent {}", pGuild->GetName() );
 		pGuild->InviteDeny( pInfo->dwInviteePID );
 	}
 
@@ -1824,7 +1824,7 @@ void CGuild::Invite( CHARACTER * pchInviter, CHARACTER * pchInvitee )
 		case GERR_GUILD_IS_IN_WAR : pchInviter->ChatPacket( CHAT_TYPE_INFO, LC_TEXT("<길드> 현재 길드가 전쟁 중 입니다.") ); return;
 		case GERR_INVITE_LIMIT : pchInviter->ChatPacket( CHAT_TYPE_INFO, LC_TEXT("<길드> 현재 신규 가입 제한 상태 입니다.") ); return;
 
-		default: sys_err( "ignore guild join error(%d)", errcode ); return;
+		default: metin2::log::error( "ignore guild join error({:d})", errcode ); return;
 	}
 
 	if ( m_GuildInviteEventMap.end() != m_GuildInviteEventMap.find( pchInvitee->GetPlayerID() ) )
@@ -1863,7 +1863,7 @@ void CGuild::InviteAccept( CHARACTER * pchInvitee )
 	EventMap::iterator itFind = m_GuildInviteEventMap.find( pchInvitee->GetPlayerID() );
 	if ( itFind == m_GuildInviteEventMap.end() ) 
 	{
-		sys_log( 0, "GuildInviteAccept from not invited character(invite guild: %s, invitee: %s)", GetName(), pchInvitee->GetName() );
+		metin2::log::info( "GuildInviteAccept from not invited character(invite guild: {}, invitee: {})", GetName(), pchInvitee->GetName() );
 		return;
 	}
 
@@ -1889,7 +1889,7 @@ void CGuild::InviteAccept( CHARACTER * pchInvitee )
 		case GERR_GUILD_IS_IN_WAR : pchInvitee->ChatPacket( CHAT_TYPE_INFO, LC_TEXT("<길드> 현재 길드가 전쟁 중 입니다.") ); return;
 		case GERR_INVITE_LIMIT : pchInvitee->ChatPacket( CHAT_TYPE_INFO, LC_TEXT("<길드> 현재 신규 가입 제한 상태 입니다.") ); return;
 
-		default: sys_err( "ignore guild join error(%d)", errcode ); return;
+		default: metin2::log::error( "ignore guild join error({:d})", errcode ); return;
 	}
 
 	RequestAddMember( pchInvitee, 15 );
@@ -1900,7 +1900,7 @@ void CGuild::InviteDeny( uint32_t dwPID )
 	EventMap::iterator itFind = m_GuildInviteEventMap.find( dwPID );
 	if ( itFind == m_GuildInviteEventMap.end() ) 
 	{
-		sys_log( 0, "GuildInviteDeny from not invited character(invite guild: %s, invitee PID: %d)", GetName(), dwPID );
+		metin2::log::info( "GuildInviteDeny from not invited character(invite guild: {}, invitee PID: {:d})", GetName(), dwPID );
 		return;
 	}
 
@@ -1920,7 +1920,7 @@ CGuild::GuildJoinErrCode CGuild::VerifyGuildJoinableCondition( CHARACTER * const
 		return GERR_ALREADYJOIN;
 	else if ( GetMemberCount() >= GetMaxMemberCount() )
 	{
-		sys_log(1, "GuildName = %s, GetMemberCount() = %d, GetMaxMemberCount() = %d (32 + MAX(level(%d)-10, 0) * 2 + bonus(%d)", 
+		metin2::log::debug( "GuildName = {}, GetMemberCount() = {:d}, GetMaxMemberCount() = {:d} (32 + MAX(level({:d})-10, 0) * 2 + bonus({:d})", 
 				GetName(), GetMemberCount(), GetMaxMemberCount(), m_data.level, m_iMemberCountBonus);
 		return GERR_GUILDISFULL;
 	}

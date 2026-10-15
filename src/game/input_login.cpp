@@ -36,7 +36,7 @@
 
 #include <common/length.h>
 #include <common/tables.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/utils.h>
 
 #include <cstdint>
@@ -101,7 +101,7 @@ void CInputLogin::Login(DESC * d, const char * data)
 
 	if (d->GetAccountTable().id)
 	{
-		sys_err("already logged in (login %s)", d->GetAccountTable().login);
+		metin2::log::error("already logged in (login {})", d->GetAccountTable().login);
 		return;
 	}
 
@@ -111,7 +111,7 @@ void CInputLogin::Login(DESC * d, const char * data)
 	char login[LOGIN_MAX_LEN + 1];
 	trim_and_lower(szLogin, login, sizeof(login));
 
-	sys_log(0, "InputLogin::Login : %s", login);
+	metin2::log::info( "InputLogin::Login : {}", login);
 
 	TPacketGCLoginFailure failurePacket;
 
@@ -164,7 +164,7 @@ void CInputLogin::LoginByKey(DESC * d, const char * data)
 
 	if (d->GetAccountTable().id)
 	{
-		sys_err("already logged in (login %s)", d->GetAccountTable().login);
+		metin2::log::error("already logged in (login {})", d->GetAccountTable().login);
 		return;
 	}
 
@@ -204,7 +204,7 @@ void CInputLogin::LoginByKey(DESC * d, const char * data)
 		}
 	}
 
-	sys_log(0, "LOGIN_BY_KEY: %s key %u", login, pinfo->dwLoginKey);
+	metin2::log::info( "LOGIN_BY_KEY: {} key {:d}", login, pinfo->dwLoginKey);
 
 	d->SetLoginKey(pinfo->dwLoginKey);
 
@@ -225,13 +225,13 @@ void CInputLogin::ChangeName(DESC * d, const char * data)
 
 	if (!c_r.id)
 	{
-		sys_err("no account table");
+		metin2::log::error("no account table");
 		return;
 	}
 
 	if (p->index >= PLAYER_PER_ACCOUNT)
 	{
-		sys_err("index overflow %d, login: %s", p->index, c_r.login);
+		metin2::log::error("index overflow {:d}, login: {}", p->index, c_r.login);
 		return;
 	}
 
@@ -262,23 +262,23 @@ void CInputLogin::CharacterSelect(DESC * d, const char * data)
 	struct TPacketCGPlayerSelect * pinfo = (struct TPacketCGPlayerSelect *) data;
 	const TAccountTable & c_r = d->GetAccountTable();
 
-	sys_log(0, "player_select: login: %s index: %d", c_r.login, pinfo->index);
+	metin2::log::info( "player_select: login: {} index: {:d}", c_r.login, pinfo->index);
 
 	if (!c_r.id)
 	{
-		sys_err("no account table");
+		metin2::log::error("no account table");
 		return;
 	}
 
 	if (pinfo->index >= PLAYER_PER_ACCOUNT)
 	{
-		sys_err("index overflow %d, login: %s", pinfo->index, c_r.login);
+		metin2::log::error("index overflow {:d}, login: {}", pinfo->index, c_r.login);
 		return;
 	}
 
 	if (c_r.players[pinfo->index].bChangeName)
 	{
-		sys_err("name must be changed idx %d, login %s, name %s", 
+		metin2::log::error("name must be changed idx {:d}, login {}, name {}", 
 				pinfo->index, c_r.login, c_r.players[pinfo->index].szName);
 		return;
 	}
@@ -345,7 +345,7 @@ bool NewPlayerTable2(TPlayerTable * table, const char * name, uint8_t race, uint
 {
 	if (race >= MAIN_RACE_MAX_NUM)
 	{
-		sys_err("NewPlayerTable2.OUT_OF_RACE_RANGE(%d >= max(%d))\n", race, MAIN_RACE_MAX_NUM);
+		metin2::log::error("NewPlayerTable2.OUT_OF_RACE_RANGE({:d} >= max({:d}))", race, MAIN_RACE_MAX_NUM);
 		return false;
 	}
 
@@ -353,11 +353,11 @@ bool NewPlayerTable2(TPlayerTable * table, const char * name, uint8_t race, uint
 
 	if (!RaceToJob(race, &job))
 	{	
-		sys_err("NewPlayerTable2.RACE_TO_JOB_ERROR(%d)\n", race);
+		metin2::log::error("NewPlayerTable2.RACE_TO_JOB_ERROR({:d})", race);
 		return false;
 	}
 
-	sys_log(0, "NewPlayerTable2(name=%s, race=%d, job=%d)", name, race, job); 
+	metin2::log::info( "NewPlayerTable2(name={}, race={:d}, job={:d})", name, race, job); 
 
 	memset(table, 0, sizeof(TPlayerTable));
 
@@ -397,7 +397,7 @@ void CInputLogin::CharacterCreate(DESC * d, const char * data)
 	char szName[sizeof(pinfo->name)];
 	CopyPacketString(szName, pinfo->name);
 
-	sys_log(0, "PlayerCreate: name %s pos %d job %d shape %d",
+	metin2::log::info( "PlayerCreate: name {} pos {:d} job {:d} shape {:d}",
 			szName, 
 			pinfo->index, 
 			pinfo->job, 
@@ -407,13 +407,13 @@ void CInputLogin::CharacterCreate(DESC * d, const char * data)
 
 	if (!c_rAccountTable.id)
 	{
-		sys_err("PlayerCreate: no login data");
+		metin2::log::error("PlayerCreate: no login data");
 		return;
 	}
 
 	if (pinfo->index >= PLAYER_PER_ACCOUNT)
 	{
-		sys_err("PlayerCreate: index overflow %d, login: %s", pinfo->index, c_rAccountTable.login);
+		metin2::log::error("PlayerCreate: index overflow {:d}, login: {}", pinfo->index, c_rAccountTable.login);
 		return;
 	}
 
@@ -451,7 +451,7 @@ void CInputLogin::CharacterCreate(DESC * d, const char * data)
 	if (pinfo->job >= MAIN_RACE_MAX_NUM ||
 		!NewPlayerTable2(&player_create_packet.player_table, szName, (uint8_t) pinfo->job, pinfo->shape, d->GetEmpire()))
 	{
-		sys_err("player_prototype error: job %d ", pinfo->job);
+		metin2::log::error("player_prototype error: job {:d} ", pinfo->job);
 		d->Packet(&packFailure, sizeof(packFailure));
 		return;
 	}
@@ -462,7 +462,7 @@ void CInputLogin::CharacterCreate(DESC * d, const char * data)
 	player_create_packet.account_id	= c_rAccountTable.id;
 	player_create_packet.account_index	= pinfo->index;
 
-	sys_log(0, "PlayerCreate: name %s account_id %d, TPlayerCreatePacketSize(%zu), Packet->Gold %d",
+	metin2::log::info( "PlayerCreate: name {} account_id {:d}, TPlayerCreatePacketSize({:d}), Packet->Gold {:d}",
 			szName, 
 			pinfo->index, 
 			sizeof(TPlayerCreatePacket),
@@ -478,24 +478,24 @@ void CInputLogin::CharacterDelete(DESC * d, const char * data)
 
 	if (!c_rAccountTable.id)
 	{
-		sys_err("PlayerDelete: no login data");
+		metin2::log::error("PlayerDelete: no login data");
 		return;
 	}
 
 	char szPrivateCode[sizeof(pinfo->private_code)];
 	CopyPacketString(szPrivateCode, pinfo->private_code);
 
-	sys_log(0, "PlayerDelete: login: %s index: %d, social_id %s", c_rAccountTable.login, pinfo->index, szPrivateCode);
+	metin2::log::info( "PlayerDelete: login: {} index: {:d}, social_id {}", c_rAccountTable.login, pinfo->index, szPrivateCode);
 
 	if (pinfo->index >= PLAYER_PER_ACCOUNT)
 	{
-		sys_err("PlayerDelete: index overflow %d, login: %s", pinfo->index, c_rAccountTable.login);
+		metin2::log::error("PlayerDelete: index overflow {:d}, login: {}", pinfo->index, c_rAccountTable.login);
 		return;
 	}
 
 	if (!c_rAccountTable.players[pinfo->index].dwID)
 	{
-		sys_err("PlayerDelete: Wrong Social ID index %d, login: %s", pinfo->index, c_rAccountTable.login);
+		metin2::log::error("PlayerDelete: Wrong Social ID index {:d}, login: {}", pinfo->index, c_rAccountTable.login);
 		d->Packet(encode_byte(HEADER_GC_CHARACTER_DELETE_WRONG_SOCIAL_ID), 1);
 		return;
 	}
@@ -527,7 +527,7 @@ void CInputLogin::Entergame(DESC * d, const char * data)
 		PIXEL_POSITION pos2;
 		SECTREE_MANAGER::instance().GetRecallPositionByEmpire(ch->GetMapIndex(), ch->GetEmpire(), pos2);
 
-		sys_err("!GetMovablePosition (name %s %dx%d map %d changed to %dx%d)", 
+		metin2::log::error("!GetMovablePosition (name {} {:d}x{:d} map {:d} changed to {:d}x{:d})", 
 				ch->GetName(),
 				pos.x, pos.y,
 				ch->GetMapIndex(),
@@ -548,7 +548,7 @@ void CInputLogin::Entergame(DESC * d, const char * data)
 	if(ch->GetItemAward_cmd())																		//When entering the game phase
 		quest::CQuestManager::instance().ItemInformer(ch->GetPlayerID(),ch->GetItemAward_vnum());	//call questmanager
 
-	sys_log(0, "ENTERGAME: %s %dx%dx%d %s map_index %d", 
+	metin2::log::info( "ENTERGAME: {} {:d}x{:d}x{:d} {} map_index {:d}", 
 			ch->GetName(), ch->GetX(), ch->GetY(), ch->GetZ(), d->GetHostName(), ch->GetMapIndex());
 
 	if (ch->GetHorseLevel() > 0)
@@ -598,7 +598,7 @@ void CInputLogin::Entergame(DESC * d, const char * data)
 			continue;
 
 		ch->AddAffect(AFFECT_PREMIUM_START + i, POINT_NONE, 0, 0, remain, 0, true);
-		sys_log(0, "PREMIUM: %s type %d %dmin", ch->GetName(), i, remain);
+		metin2::log::info( "PREMIUM: {} type {:d} {:d}min", ch->GetName(), i, remain);
 	}
 
 	if (g_bCheckClientVersion)
@@ -606,7 +606,7 @@ void CInputLogin::Entergame(DESC * d, const char * data)
 		int version = atoi(g_stClientVersion.c_str());
 		int date = atoi(d->GetClientVersion());
 
-		sys_log(0, "VERSION CHECK %d %d %s %s", version, date, g_stClientVersion.c_str(), d->GetClientVersion());
+		metin2::log::info( "VERSION CHECK {:d} {:d} {} {}", version, date, g_stClientVersion.c_str(), d->GetClientVersion());
 
 		if (!d->GetClientVersion())
 		{
@@ -620,7 +620,7 @@ void CInputLogin::Entergame(DESC * d, const char * data)
 				d->DelayedDisconnect(10);
 				LogManager::instance().HackLog("VERSION_CONFLICT", ch);
 
-				sys_log(0, "VERSION : WRONG VERSION USER : account:%s name:%s hostName:%s server_version:%s client_version:%s",
+				metin2::log::info( "VERSION : WRONG VERSION USER : account:{} name:{} hostName:{} server_version:{} client_version:{}",
 						d->GetAccountTable().login,
 						ch->GetName(),
 						d->GetHostName(),
@@ -631,7 +631,7 @@ void CInputLogin::Entergame(DESC * d, const char * data)
 	}
 	else
 	{
-		sys_log(0, "VERSION : NO CHECK");
+		metin2::log::info( "VERSION : NO CHECK");
 	}
 
 	if (ch->IsGM() == true)
@@ -656,7 +656,7 @@ void CInputLogin::Entergame(DESC * d, const char * data)
 			ch->SetArenaObserverMode(true);
 			if (CArenaManager::instance().RegisterObserverPtr(ch, ch->GetMapIndex(), ch->GetX()/100, ch->GetY()/100))
 			{
-				sys_log(0, "ARENA : Observer add failed");
+				metin2::log::info( "ARENA : Observer add failed");
 			}
 
 			if (ch->IsHorseRiding() == true)
@@ -757,7 +757,7 @@ void CInputLogin::Empire(DESC * d, const char * c_pData)
 
 	if (!r.id)
 	{
-		sys_err("EmpireSelect: no login data");
+		metin2::log::error("EmpireSelect: no login data");
 		return;
 	}
 
@@ -767,7 +767,7 @@ void CInputLogin::Empire(DESC * d, const char * c_pData)
 		{
 			if (0 != r.players[i].dwID)
 			{
-				sys_err("EmpireSelectFailed %d", r.players[i].dwID);
+				metin2::log::error("EmpireSelectFailed {:d}", r.players[i].dwID);
 				return;
 			}
 		}
@@ -795,7 +795,7 @@ int CInputLogin::GuildSymbolUpload(DESC * d, const char* c_pData, size_t uiBytes
 	if (uiBytes < sizeof(TPacketCGGuildSymbolUpload))
 		return -1;
 
-	sys_log(0, "GuildSymbolUpload uiBytes %zu", uiBytes);
+	metin2::log::info( "GuildSymbolUpload uiBytes {:d}", uiBytes);
 
 	TPacketCGGuildSymbolUpload* p = (TPacketCGGuildSymbolUpload*) c_pData;
 
@@ -814,7 +814,7 @@ int CInputLogin::GuildSymbolUpload(DESC * d, const char* c_pData, size_t uiBytes
 
 	if (!IsMarkOwnerGuildMaster(d, p->guild_id))
 	{
-		sys_err("GuildSymbolUpload: guild %u not uploaded by its master, host %s", p->guild_id, d->GetHostName());
+		metin2::log::error("GuildSymbolUpload: guild {:d} not uploaded by its master, host {}", p->guild_id, d->GetHostName());
 		d->SetPhase(PHASE_CLOSE);
 		return 0;
 	}
@@ -827,7 +827,7 @@ int CInputLogin::GuildSymbolUpload(DESC * d, const char* c_pData, size_t uiBytes
 			return 0;
 		}
 
-	sys_log(0, "GuildSymbolUpload Do Upload %02X%02X%02X%02X %zu", c_pData[7], c_pData[8], c_pData[9], c_pData[10], sizeof(*p));
+	metin2::log::info( "GuildSymbolUpload Do Upload {:02X}{:02X}{:02X}{:02X} {:d}", c_pData[7], c_pData[8], c_pData[9], c_pData[10], sizeof(*p));
 
 	CGuildMarkManager::instance().UploadSymbol(p->guild_id, iSymbolSize, (const uint8_t*)(c_pData + sizeof(*p)));
 	CGuildMarkManager::instance().SaveSymbol(GUILD_SYMBOL_FILENAME);
@@ -838,14 +838,14 @@ void CInputLogin::GuildSymbolCRC(DESC * d, const char* c_pData)
 {
 	const TPacketCGSymbolCRC & CGPacket = *((TPacketCGSymbolCRC *) c_pData);
 
-	sys_log(0, "GuildSymbolCRC %u %u %u", CGPacket.guild_id, CGPacket.crc, CGPacket.size);
+	metin2::log::info( "GuildSymbolCRC {:d} {:d} {:d}", CGPacket.guild_id, CGPacket.crc, CGPacket.size);
 
 	const CGuildMarkManager::TGuildSymbol * pkGS = CGuildMarkManager::instance().GetGuildSymbol(CGPacket.guild_id);
 
 	if (!pkGS || pkGS->raw.empty())
 		return;
 
-	sys_log(0, "  Server %u %zu", pkGS->crc, pkGS->raw.size());
+	metin2::log::info( "  Server {:d} {:d}", pkGS->crc, pkGS->raw.size());
 
 	if (pkGS->raw.size() != CGPacket.size || pkGS->crc != CGPacket.crc)
 	{
@@ -859,7 +859,7 @@ void CInputLogin::GuildSymbolCRC(DESC * d, const char* c_pData)
 		d->Packet(&pkGS->raw[0], pkGS->raw.size());
 
 		if (pkGS->raw.size() >= 4)
-			sys_log(0, "SendGuildSymbolHead %02X%02X%02X%02X Size %zu",
+			metin2::log::info( "SendGuildSymbolHead {:02X}{:02X}{:02X}{:02X} Size {:d}",
 					pkGS->raw[0], pkGS->raw[1], pkGS->raw[2], pkGS->raw[3], pkGS->raw.size());
 	}
 }
@@ -872,26 +872,26 @@ void CInputLogin::GuildMarkUpload(DESC * d, const char* c_pData)
 
 	if (!(pkGuild = rkGuildMgr.FindGuild(p->gid)))
 	{
-		sys_err("MARK_SERVER: GuildMarkUpload: no guild. gid %u", p->gid);
+		metin2::log::error("MARK_SERVER: GuildMarkUpload: no guild. gid {:d}", p->gid);
 		return;
 	}
 
 	if (!IsMarkOwnerGuildMaster(d, p->gid))
 	{
-		sys_err("MARK_SERVER: GuildMarkUpload: gid %u not uploaded by its master, host %s", p->gid, d->GetHostName());
+		metin2::log::error("MARK_SERVER: GuildMarkUpload: gid {:d} not uploaded by its master, host {}", p->gid, d->GetHostName());
 		d->SetPhase(PHASE_CLOSE);
 		return;
 	}
 
 	if (pkGuild->GetLevel() < guild_mark_min_level)
 	{
-		sys_log(0, "MARK_SERVER: GuildMarkUpload: level < %u (%u)", guild_mark_min_level, pkGuild->GetLevel());
+		metin2::log::info( "MARK_SERVER: GuildMarkUpload: level < {:d} ({:d})", guild_mark_min_level, pkGuild->GetLevel());
 		return;
 	}
 
 	CGuildMarkManager & rkMarkMgr = CGuildMarkManager::instance();
 
-	sys_log(0, "MARK_SERVER: GuildMarkUpload: gid %u", p->gid);
+	metin2::log::info( "MARK_SERVER: GuildMarkUpload: gid {:d}", p->gid);
 
 	bool isEmpty = true;
 
@@ -932,7 +932,7 @@ void CInputLogin::GuildMarkIDXList(DESC * d, const char* c_pData)
 	else
 		d->Packet(&p, sizeof(p));
 
-	sys_log(0, "MARK_SERVER: GuildMarkIDXList %d bytes sent.", p.bufSize);
+	metin2::log::info( "MARK_SERVER: GuildMarkIDXList {:d} bytes sent.", p.bufSize);
 }
 
 void CInputLogin::GuildMarkCRCList(DESC * d, const char* c_pData)
@@ -965,7 +965,7 @@ void CInputLogin::GuildMarkCRCList(DESC * d, const char* c_pData)
 	pGC.bufSize = buf.size() + sizeof(TPacketGCMarkBlock);
 	pGC.count = blockCount;
 
-	sys_log(0, "MARK_SERVER: Sending blocks. (imgIdx %u diff %zu size %u)", pCG->imgIdx, mapDiffBlocks.size(), pGC.bufSize);
+	metin2::log::info( "MARK_SERVER: Sending blocks. (imgIdx {:d} diff {:d} size {:d})", pCG->imgIdx, mapDiffBlocks.size(), pGC.bufSize);
 
 	if (buf.size() > 0)
 	{
@@ -995,7 +995,7 @@ int CInputLogin::Analyze(DESC * d, uint8_t bHeader, const char * c_pData)
 		case HEADER_CG_SYMBOL_CRC:
 			if (!d->IsMarkLogin())
 			{
-				sys_err("guild mark packet %d without mark login, host %s", bHeader, d->GetHostName());
+				metin2::log::error("guild mark packet {:d} without mark login, host {}", bHeader, d->GetHostName());
 				d->SetPhase(PHASE_CLOSE);
 				return 0;
 			}
@@ -1004,7 +1004,7 @@ int CInputLogin::Analyze(DESC * d, uint8_t bHeader, const char * c_pData)
 		default:
 			if (d->IsMarkLogin())
 			{
-				sys_err("mark connection sent packet %d, host %s", bHeader, d->GetHostName());
+				metin2::log::error("mark connection sent packet {:d}, host {}", bHeader, d->GetHostName());
 				d->SetPhase(PHASE_CLOSE);
 				return 0;
 			}
@@ -1022,7 +1022,7 @@ int CInputLogin::Analyze(DESC * d, uint8_t bHeader, const char * c_pData)
 		case HEADER_CG_EMPIRE:
 			if (!d->IsPhase(PHASE_SELECT) || d->GetCharacter())
 			{
-				sys_err("packet %d outside of character select, host %s", bHeader, d->GetHostName());
+				metin2::log::error("packet {:d} outside of character select, host {}", bHeader, d->GetHostName());
 				return 0;
 			}
 			break;
@@ -1031,7 +1031,7 @@ int CInputLogin::Analyze(DESC * d, uint8_t bHeader, const char * c_pData)
 		case HEADER_CG_LOGIN2:
 			if (!d->IsPhase(PHASE_LOGIN))
 			{
-				sys_err("login packet %d outside of the login phase, host %s", bHeader, d->GetHostName());
+				metin2::log::error("login packet {:d} outside of the login phase, host {}", bHeader, d->GetHostName());
 				return 0;
 			}
 			break;
@@ -1122,7 +1122,7 @@ int CInputLogin::Analyze(DESC * d, uint8_t bHeader, const char * c_pData)
 			break;
 
 		default:
-			sys_err("login phase does not handle this packet! header %d", bHeader);
+			metin2::log::error("login phase does not handle this packet! header {:d}", bHeader);
 			return (0);
 	}
 

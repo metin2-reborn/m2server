@@ -5,7 +5,7 @@
 #include <common/length.h>
 #include <common/tables.h>
 #include <common/utils.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/utils.h>
 
 #include <cassert>
@@ -212,7 +212,7 @@ int get_Item_SubType_Value(int type_value, std::string inputString)
 	// assert doesn't seem to work..
 	if (static_cast<int>(std::size(arSubType)) <= type_value)
 	{
-		sys_err("SubType : Out of range!! (type_value: %d, count of registered subtype: %zu", type_value, std::size(arSubType));
+		metin2::log::error("SubType : Out of range!! (type_value: {:d}, count of registered subtype: {:d}", type_value, std::size(arSubType));
 		return -1;
 	}
 
@@ -654,7 +654,7 @@ bool Set_Proto_Mob_Table(TMobTable *mobTable, cCsvTable &csvTable,std::map<int,c
 	str_to_number(mobTable->bDeathBlowPoint, csvTable.AsStringByIndex(col++));
 	str_to_number(mobTable->bRevivePoint, csvTable.AsStringByIndex(col++));
 
-	sys_log(0, "MOB #%-5d %-24s level: %-3u rank: %u empire: %d", mobTable->dwVnum, mobTable->szLocaleName, mobTable->bLevel, mobTable->bRank, mobTable->bEmpire);
+	metin2::log::info( "MOB #{:<5d} {:<24} level: {:<3d} rank: {:d} empire: {:d}", mobTable->dwVnum, mobTable->szLocaleName, mobTable->bLevel, mobTable->bRank, mobTable->bEmpire);
 
 	return true;
 }
@@ -710,8 +710,8 @@ bool Set_Proto_Item_Table(TItemTable *itemTable, cCsvTable &csvTable,std::map<in
 			for (size_t j = 0; j < i; ++j)
 				dataStream << dataArray[j] << ",";
 
-			sys_err("ItemProto Reading Failed : Invalid value. (index: %zu, col: %d, value: %s)", i, col, csvTable.AsStringByIndex(col));
-			sys_err("\t0 ~ %zu Values: %s", i, dataStream.str().c_str());
+			metin2::log::error("ItemProto Reading Failed : Invalid value. (index: {:d}, col: {:d}, value: {})", i, col, csvTable.AsStringByIndex(col));
+			metin2::log::error("\t0 ~ {:d} Values: {}", i, dataStream.str().c_str());
 
 			exit(0);
 		}
@@ -738,7 +738,7 @@ bool Set_Proto_Item_Table(TItemTable *itemTable, cCsvTable &csvTable,std::map<in
 			int end_vnum = atoi(s_end_vnum.c_str());
 			if (0 == start_vnum || (0 != end_vnum && end_vnum < start_vnum))
 			{
-				sys_err ("INVALID VNUM %s", s.c_str());
+				metin2::log::error("INVALID VNUM {}", s.c_str());
 				return false;
 			}
 			itemTable->dwVnum = start_vnum;

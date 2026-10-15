@@ -14,7 +14,7 @@
 
 #include <common/length.h>
 #include <libgame/grid.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <cassert>
 #include <cstdint>
@@ -174,13 +174,13 @@ bool CExchange::AddItem(TItemPos item_pos, uint8_t display_pos)
 	// Item already added to the trade window?
 	if (item->IsExchanging())
 	{
-		sys_log(0, "EXCHANGE under exchanging");
+		metin2::log::info( "EXCHANGE under exchanging");
 		return false;
 	}
 
 	if (!m_pGrid->IsEmpty(display_pos, 1, item->GetSize()))
 	{
-		sys_log(0, "EXCHANGE not empty item_pos %d %d %d", display_pos, 1, item->GetSize());
+		metin2::log::info( "EXCHANGE not empty item_pos {:d} {:d} {:d}", display_pos, 1, item->GetSize());
 		return false;
 	}
 
@@ -215,7 +215,7 @@ bool CExchange::AddItem(TItemPos item_pos, uint8_t display_pos)
 				item->GetCount(),
 				item);
 
-		sys_log(0, "EXCHANGE AddItem success %s pos(%d, %d) %d", item->GetName(), item_pos.window_type, item_pos.cell, display_pos);
+		metin2::log::info( "EXCHANGE AddItem success {} pos({:d}, {:d}) {:d}", item->GetName(), item_pos.window_type, item_pos.cell, display_pos);
 
 		return true;
 	}
@@ -437,7 +437,7 @@ bool CExchange::Done()
 
 		if (empty_pos < 0)
 		{
-			sys_err("Exchange::Done : Cannot find blank position in inventory %s <-> %s item %s", 
+			metin2::log::error("Exchange::Done : Cannot find blank position in inventory {} <-> {} item {}", 
 					m_pOwner->GetName(), victim->GetName(), item->GetName());
 			continue;
 		}
@@ -548,7 +548,7 @@ bool CExchange::Accept(bool bAccept)
 
 		if (!db_clientdesc->IsConnected())
 		{
-			sys_err("Cannot use exchange feature while DB cache connection is dead.");
+			metin2::log::error("Cannot use exchange feature while DB cache connection is dead.");
 			victim->ChatPacket(CHAT_TYPE_INFO, "Unknown error");
 			GetOwner()->ChatPacket(CHAT_TYPE_INFO, "Unknown error");
 			goto EXCHANGE_END;

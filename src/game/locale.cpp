@@ -1,7 +1,7 @@
 
 #include "locale.hpp"
 
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <cstdio>
 #include <cstdlib>
@@ -34,7 +34,7 @@ const char * locale_find(const char *string)
 	if( iter == localeString.end() )
 	{
 		// untranslated: the (UTF-8) source text itself
-		sys_err("LOCALE_ERROR: \"%s\";", string);
+		metin2::log::error("LOCALE_ERROR: \"{}\";", string);
 		return string;
 	}
 
@@ -152,7 +152,7 @@ void locale_init(const char *filename)
 
 	if (!buf)
 	{
-		sys_err("locale_read: no file %s", filename);
+		metin2::log::error("locale_read: no file {}", filename);
 		exit(1);
 	}
 
@@ -180,7 +180,7 @@ void locale_init(const char *filename)
 
 				if (*tmp != '"')
 				{
-					sys_err("locale_init: invalid format filename %s", filename);
+					metin2::log::error("locale_init: invalid format filename {}", filename);
 					break;
 				}
 			}

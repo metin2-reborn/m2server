@@ -9,7 +9,7 @@
 #include "vector.h"
 
 #include <common/length.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/utils.h>
 
 #include <cstdint>
@@ -47,7 +47,7 @@ struct FSkillBreath
 
 					if ((signed)BlueDragon_GetSkillFactor(2, "Skill0", "damage_area") < DISTANCE_APPROX(pAttacker->GetX()-ch->GetX(), pAttacker->GetY()-ch->GetY()))
 					{
-						sys_log(0, "BlueDragon: Breath too far (%d)", DISTANCE_APPROX(pAttacker->GetX()-ch->GetX(), pAttacker->GetY()-ch->GetY()) );
+						metin2::log::info( "BlueDragon: Breath too far ({:d})", DISTANCE_APPROX(pAttacker->GetX()-ch->GetX(), pAttacker->GetY()-ch->GetY()) );
 						return;
 					}
 
@@ -141,7 +141,7 @@ struct FSkillBreath
 
 					ch->Damage( pAttacker, dam, DAMAGE_TYPE_ICE );
 
-					sys_log(0, "BlueDragon: Breath to %s pct(%d) dam(%d) overlap(%d)", ch->GetName(), pct, dam, overlapDamageCount);
+					metin2::log::info( "BlueDragon: Breath to {} pct({:d}) dam({:d}) overlap({:d})", ch->GetName(), pct, dam, overlapDamageCount);
 				}
 			}
 		}
@@ -172,7 +172,7 @@ struct FSkillWeakBreath
 
 					if ((signed)BlueDragon_GetSkillFactor(2, "Skill1", "damage_area") < DISTANCE_APPROX(pAttacker->GetX()-ch->GetX(), pAttacker->GetY()-ch->GetY()))
 					{
-						sys_log(0, "BlueDragon: Breath too far (%d)", DISTANCE_APPROX(pAttacker->GetX()-ch->GetX(), pAttacker->GetY()-ch->GetY()) );
+						metin2::log::info( "BlueDragon: Breath too far ({:d})", DISTANCE_APPROX(pAttacker->GetX()-ch->GetX(), pAttacker->GetY()-ch->GetY()) );
 						return;
 					}
 
@@ -183,7 +183,7 @@ struct FSkillWeakBreath
 
 					ch->Damage( pAttacker, dam, DAMAGE_TYPE_ICE );
 
-					sys_log(0, "BlueDragon: WeakBreath to %s addPct(%d) dam(%d)", ch->GetName(), addPct, dam);
+					metin2::log::info( "BlueDragon: WeakBreath to {} addPct({:d}) dam({:d})", ch->GetName(), addPct, dam);
 				}
 			}
 		}
@@ -226,7 +226,7 @@ struct FSkillEarthQuake
 
 					if ((signed)BlueDragon_GetSkillFactor(2, "Skill2", "damage_area") < DISTANCE_APPROX(pAttacker->GetX()-ch->GetX(), pAttacker->GetY()-ch->GetY()))
 					{
-						sys_log(0, "BlueDragon: Breath too far (%d)", DISTANCE_APPROX(pAttacker->GetX()-ch->GetX(), pAttacker->GetY()-ch->GetY()) );
+						metin2::log::info( "BlueDragon: Breath too far ({:d})", DISTANCE_APPROX(pAttacker->GetX()-ch->GetX(), pAttacker->GetY()-ch->GetY()) );
 						return;
 					}
 
@@ -291,7 +291,7 @@ struct FSkillEarthQuake
 
 					SkillAttackAffect( ch, 1000, IMMUNE_STUN, AFFECT_STUN, POINT_NONE, 0, AFF_STUN, sec, "BDRAGON_STUN" );
 
-					sys_log(0, "BlueDragon: EarthQuake to %s addPct(%d) dam(%d) sec(%d)", ch->GetName(), addPct, dam, sec);
+					metin2::log::info( "BlueDragon: EarthQuake to {} addPct({:d}) dam({:d}) sec({:d})", ch->GetName(), addPct, dam, sec);
 
 
 					VECTOR vec;

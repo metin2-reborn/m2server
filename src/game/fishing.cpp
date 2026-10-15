@@ -19,7 +19,7 @@
 #include <common/length.h>
 #include <common/tables.h>
 #include <common/utils.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/utils.h>
 
 #include <algorithm>
@@ -294,7 +294,7 @@ void Initialize()
 
 	for (int i = 0; i < MAX_FISH; ++i)
 	{
-		sys_log(0, "FISH: %-24s vnum %5u prob %4d %4d %4d %4d len %d %d %d",
+		metin2::log::info( "FISH: {:<24} vnum {:5d} prob {:4d} {:4d} {:4d} {:4d} len {:d} {:d} {:d}",
 				fish_info[i].name,
 				fish_info[i].vnum,
 				fish_info[i].prob[0],
@@ -315,7 +315,7 @@ void Initialize()
 			g_prob_accumulate[j][i] = fish_info[i].prob[j] + g_prob_accumulate[j][i - 1];
 
 		g_prob_sum[j] = g_prob_accumulate[j][MAX_FISH - 1];
-		sys_log(0, "FISH: prob table %d %d", j, g_prob_sum[j]);
+		metin2::log::info( "FISH: prob table {:d} {:d}", j, g_prob_sum[j]);
 	}
 }
 
@@ -455,7 +455,7 @@ EVENTFUNC(fishing_event)
 
 	if ( info == nullptr )
 	{
-		sys_err( "fishing_event> <Factor> Null pointer" );
+		metin2::log::error( "fishing_event> <Factor> Null pointer" );
 		return 0;
 	}
 
@@ -540,7 +540,7 @@ int Compute(uint32_t fish_id, uint32_t ms, uint32_t* item, int level)
 
 	if (fish_id >= MAX_FISH)
 	{
-		sys_err("Wrong FISH ID : %d", fish_id);
+		metin2::log::error("Wrong FISH ID : {:d}", fish_id);
 		return -2; 
 	}
 
@@ -824,7 +824,7 @@ int RealRefineRod(CHARACTER * ch, CItem * item)
 	// REFINE_ROD_HACK_BUG_FIX
 	if (!RefinableRod(item))
 	{
-		sys_err("REFINE_ROD_HACK pid(%u) item(%s:%d)", ch->GetPlayerID(), item->GetName(), item->GetID());
+		metin2::log::error("REFINE_ROD_HACK pid({:d}) item({}:{:d})", ch->GetPlayerID(), item->GetName(), item->GetID());
 
 		LogManager::instance().RefineLog(ch->GetPlayerID(), item->GetName(), item->GetID(), -1, 1, "ROD_HACK");
 

@@ -9,7 +9,6 @@
 #include "cube.h"
 #include "desc_client.h"
 #include "desc_manager.h"
-#include "dev_log.h"
 #include "DragonSoul.h"
 #include "event.h"
 #include "gm.h"
@@ -49,7 +48,7 @@
 #include <common/startup.h>
 #include <common/tables.h>
 #include <libthecore/core_signal.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/main.h>
 #include <libthecore/utils.h>
 
@@ -84,7 +83,7 @@ bool GetServerLocation(TAccountTable & rTab, uint8_t bEmpire)
 					rTab.players[i].lAddr,
 					rTab.players[i].wPort))
 		{
-			sys_err("location error name %s mapindex %d %d x %d empire %d",
+			metin2::log::error("location error name {} mapindex {:d} {:d} x {:d} empire {:d}",
 					rTab.players[i].szName, lIndex, rTab.players[i].x, rTab.players[i].y, rTab.bEmpire);
 
 			rTab.players[i].x = EMPIRE_START_X(rTab.bEmpire);
@@ -94,7 +93,7 @@ bool GetServerLocation(TAccountTable & rTab, uint8_t bEmpire)
 
 			if (!CMapLocation::instance().Get(rTab.players[i].x, rTab.players[i].y, lIndex, rTab.players[i].lAddr, rTab.players[i].wPort))
 			{
-				sys_err("cannot find server for mapindex %d %d x %d (name %s)", 
+				metin2::log::error("cannot find server for mapindex {:d} {:d} x {:d} (name {})", 
 						lIndex,
 						rTab.players[i].x,
 						rTab.players[i].y,
@@ -113,7 +112,7 @@ bool GetServerLocation(TAccountTable & rTab, uint8_t bEmpire)
 			rTab.players[i].lAddr=inet_addr(g_stProxyIP.c_str());
 
 		in.s_addr = rTab.players[i].lAddr;
-		sys_log(0, "success to %s:%d", inet_ntoa(in), rTab.players[i].wPort);
+		metin2::log::info( "success to {}:{:d}", inet_ntoa(in), rTab.players[i].wPort);
 	}
 
 	return bFound;
@@ -122,7 +121,7 @@ bool GetServerLocation(TAccountTable & rTab, uint8_t bEmpire)
 
 void CInputDB::LoginSuccess(uint32_t dwHandle, const char *data)
 {
-	sys_log(0, "LoginSuccess");
+	metin2::log::info( "LoginSuccess");
 
 	TAccountTable * pTab = (TAccountTable *) data;
 
@@ -130,7 +129,7 @@ void CInputDB::LoginSuccess(uint32_t dwHandle, const char *data)
 
 	if (!d)
 	{
-		sys_log(0, "CInputDB::LoginSuccess - cannot find handle [%s]", pTab->login);
+		metin2::log::info( "CInputDB::LoginSuccess - cannot find handle [{}]", pTab->login);
 
 		TLogoutPacket pack;
 
@@ -141,7 +140,7 @@ void CInputDB::LoginSuccess(uint32_t dwHandle, const char *data)
 
 	if (strcmp(pTab->status, "OK")) // if not OK
 	{
-		sys_log(0, "CInputDB::LoginSuccess - status[%s] is not OK [%s]", pTab->status, pTab->login);
+		metin2::log::info( "CInputDB::LoginSuccess - status[{}] is not OK [{}]", pTab->status, pTab->login);
 
 		TLogoutPacket pack;
 
@@ -155,7 +154,7 @@ void CInputDB::LoginSuccess(uint32_t dwHandle, const char *data)
 	for (int i = 0; i != PLAYER_PER_ACCOUNT; ++i)
 	{
 		TSimplePlayer& player = pTab->players[i];
-		sys_log(0, "\tplayer(%s).job(%d)", player.szName, player.byJob);
+		metin2::log::info( "\tplayer({}).job({:d})", player.szName, player.byJob);
 	}
 
 	bool bFound = GetServerLocation(*pTab, pTab->bEmpire);
@@ -180,7 +179,7 @@ void CInputDB::LoginSuccess(uint32_t dwHandle, const char *data)
 	d->SetPhase(PHASE_SELECT);
 	d->SendLoginSuccessPacket();
 
-	sys_log(0, "InputDB::login_success: %s", pTab->login);
+	metin2::log::info( "InputDB::login_success: {}", pTab->login);
 }
 
 void CInputDB::PlayerCreateFailure(DESC * d, uint8_t bType)
@@ -217,7 +216,7 @@ void CInputDB::PlayerCreateSuccess(DESC * d, const char * data)
 				pPacketDB->player.lAddr,
 				pPacketDB->player.wPort))
 	{
-		sys_err("InputDB::PlayerCreateSuccess: cannot find server for mapindex %d %d x %d (name %s)", 
+		metin2::log::error("InputDB::PlayerCreateSuccess: cannot find server for mapindex {:d} {:d} x {:d} (name {})", 
 				lIndex,
 				pPacketDB->player.x,
 				pPacketDB->player.y,
@@ -328,7 +327,7 @@ void CInputDB::PlayerLoad(DESC * d, const char * data)
 	// by rtsummit
 	if (!SECTREE_MANAGER::instance().GetValidLocation(pTab->lMapIndex, pTab->x, pTab->y, lMapIndex, pos, d->GetEmpire()))
 	{
-		sys_err("InputDB::PlayerLoad : cannot find valid location %d x %d (name: %s)", pTab->x, pTab->y, pTab->name);
+		metin2::log::error("InputDB::PlayerLoad : cannot find valid location {:d} x {:d} (name: {})", pTab->x, pTab->y, pTab->name);
 		d->SetPhase(PHASE_CLOSE);
 		return;
 	}
@@ -340,13 +339,13 @@ void CInputDB::PlayerLoad(DESC * d, const char * data)
 	if (d->GetCharacter() || d->IsPhase(PHASE_GAME))
 	{
 		CHARACTER * p = d->GetCharacter();
-		sys_err("login state already has main state (character %s %p)", p->GetName(), p);
+		metin2::log::error("login state already has main state (character {} {})", p->GetName(), static_cast<const void *>(p));
 		return;
 	}
 
 	if (nullptr != CHARACTER_MANAGER::instance().FindPC(pTab->name))
 	{
-		sys_err("InputDB: PlayerLoad : %s already exist in game", pTab->name);
+		metin2::log::error("InputDB: PlayerLoad : {} already exist in game", pTab->name);
 		return;
 	}
 
@@ -386,7 +385,7 @@ void CInputDB::PlayerLoad(DESC * d, const char * data)
 	//if (!map_allow_find(lMapIndex >= 10000 ? lMapIndex / 10000 : lMapIndex) || !CheckEmpire(ch, lMapIndex))
 	if (!map_allow_find(lPublicMapIndex))
 	{
-		sys_err("InputDB::PlayerLoad : entering %d map is not allowed here (name: %s, empire %u)", 
+		metin2::log::error("InputDB::PlayerLoad : entering {:d} map is not allowed here (name: {}, empire {:d})", 
 				lMapIndex, pTab->name, d->GetEmpire());
 
 		ch->SetWarpLocation(EMPIRE_START_MAP(d->GetEmpire()),
@@ -405,7 +404,7 @@ void CInputDB::PlayerLoad(DESC * d, const char * data)
 	ch->PointsPacket();
 	ch->SkillLevelPacket();
 
-	sys_log(0, "InputDB: player_load %s %dx%dx%d LEVEL %d MOV_SPEED %d JOB %d ATG %d DFG %d GMLv %d",
+	metin2::log::info( "InputDB: player_load {} {:d}x{:d}x{:d} LEVEL {:d} MOV_SPEED {:d} JOB {:d} ATG {:d} DFG {:d} GMLv {:d}",
 			pTab->name, 
 			ch->GetX(), ch->GetY(), ch->GetZ(),
 			ch->GetLevel(),
@@ -431,27 +430,27 @@ void CInputDB::Boot(const char* data)
 	uint8_t bVersion = decode_byte(data);
 	data += 1;
 
-	sys_log(0, "BOOT: PACKET: %d", dwPacketSize);
-	sys_log(0, "BOOT: VERSION: %d", bVersion);
+	metin2::log::info( "BOOT: PACKET: {:d}", dwPacketSize);
+	metin2::log::info( "BOOT: VERSION: {:d}", bVersion);
 	if (bVersion != 6)
 	{
-		sys_err("boot version error");
+		metin2::log::error("boot version error");
 		thecore_shutdown();
 	}
 
-	sys_log(0, "sizeof(TMobTable) = %zu", sizeof(TMobTable));
-	sys_log(0, "sizeof(TItemTable) = %zu", sizeof(TItemTable));
-	sys_log(0, "sizeof(TShopTable) = %zu", sizeof(TShopTable));
-	sys_log(0, "sizeof(TSkillTable) = %zu", sizeof(TSkillTable));
-	sys_log(0, "sizeof(TRefineTable) = %zu", sizeof(TRefineTable));
-	sys_log(0, "sizeof(TItemAttrTable) = %zu", sizeof(TItemAttrTable));
-	sys_log(0, "sizeof(TItemRareTable) = %zu", sizeof(TItemAttrTable));
-	sys_log(0, "sizeof(TBanwordTable) = %zu", sizeof(TBanwordTable));
-	sys_log(0, "sizeof(TLand) = %zu", sizeof(building::TLand));
-	sys_log(0, "sizeof(TObjectProto) = %zu", sizeof(building::TObjectProto));
-	sys_log(0, "sizeof(TObject) = %zu", sizeof(building::TObject));
+	metin2::log::info( "sizeof(TMobTable) = {:d}", sizeof(TMobTable));
+	metin2::log::info( "sizeof(TItemTable) = {:d}", sizeof(TItemTable));
+	metin2::log::info( "sizeof(TShopTable) = {:d}", sizeof(TShopTable));
+	metin2::log::info( "sizeof(TSkillTable) = {:d}", sizeof(TSkillTable));
+	metin2::log::info( "sizeof(TRefineTable) = {:d}", sizeof(TRefineTable));
+	metin2::log::info( "sizeof(TItemAttrTable) = {:d}", sizeof(TItemAttrTable));
+	metin2::log::info( "sizeof(TItemRareTable) = {:d}", sizeof(TItemAttrTable));
+	metin2::log::info( "sizeof(TBanwordTable) = {:d}", sizeof(TBanwordTable));
+	metin2::log::info( "sizeof(TLand) = {:d}", sizeof(building::TLand));
+	metin2::log::info( "sizeof(TObjectProto) = {:d}", sizeof(building::TObjectProto));
+	metin2::log::info( "sizeof(TObject) = {:d}", sizeof(building::TObject));
 	//ADMIN_MANAGER
-	sys_log(0, "sizeof(TAdminManager) = %zu", sizeof (tAdminInfo) );
+	metin2::log::info( "sizeof(TAdminManager) = {:d}", sizeof (tAdminInfo) );
 	//END_ADMIN_MANAGER
 
 	uint16_t size;
@@ -462,7 +461,7 @@ void CInputDB::Boot(const char* data)
 
 	if (decode_2bytes(data)!=sizeof(TMobTable))
 	{
-		sys_err("mob table size error");
+		metin2::log::error("mob table size error");
 		thecore_shutdown();
 		return;
 	}
@@ -470,7 +469,7 @@ void CInputDB::Boot(const char* data)
 
 	size = decode_2bytes(data);
 	data += 2;
-	sys_log(0, "BOOT: MOB: %d", size);
+	metin2::log::info( "BOOT: MOB: {:d}", size);
 
 	if (size)
 	{
@@ -484,7 +483,7 @@ void CInputDB::Boot(const char* data)
 
 	if (decode_2bytes(data) != sizeof(TItemTable))
 	{
-		sys_err("item table size error");
+		metin2::log::error("item table size error");
 		thecore_shutdown();
 		return;
 	}
@@ -492,7 +491,7 @@ void CInputDB::Boot(const char* data)
 
 	size = decode_2bytes(data);
 	data += 2;
-	sys_log(0, "BOOT: ITEM: %d", size);
+	metin2::log::info( "BOOT: ITEM: {:d}", size);
 
 
 	if (size)
@@ -507,7 +506,7 @@ void CInputDB::Boot(const char* data)
 
 	if (decode_2bytes(data) != sizeof(TShopTable))
 	{
-		sys_err("shop table size error");
+		metin2::log::error("shop table size error");
 		thecore_shutdown();
 		return;
 	}
@@ -515,14 +514,14 @@ void CInputDB::Boot(const char* data)
 
 	size = decode_2bytes(data);
 	data += 2;
-	sys_log(0, "BOOT: SHOP: %d", size);
+	metin2::log::info( "BOOT: SHOP: {:d}", size);
 
 
 	if (size)
 	{
 		if (!CShopManager::instance().Initialize((TShopTable *) data, size))
 		{
-			sys_err("shop table Initialize error");
+			metin2::log::error("shop table Initialize error");
 			thecore_shutdown();
 			return;
 		}
@@ -535,7 +534,7 @@ void CInputDB::Boot(const char* data)
 
 	if (decode_2bytes(data) != sizeof(TSkillTable))
 	{
-		sys_err("skill table size error");
+		metin2::log::error("skill table size error");
 		thecore_shutdown();
 		return;
 	}
@@ -543,13 +542,13 @@ void CInputDB::Boot(const char* data)
 
 	size = decode_2bytes(data);
 	data += 2;
-	sys_log(0, "BOOT: SKILL: %d", size);
+	metin2::log::info( "BOOT: SKILL: {:d}", size);
 
 	if (size)
 	{
 		if (!CSkillManager::instance().Initialize((TSkillTable *) data, size))
 		{
-			sys_err("cannot initialize skill table");
+			metin2::log::error("cannot initialize skill table");
 			thecore_shutdown();
 			return;
 		}
@@ -561,7 +560,7 @@ void CInputDB::Boot(const char* data)
 	 */
 	if (decode_2bytes(data) != sizeof(TRefineTable))
 	{
-		sys_err("refine table size error");
+		metin2::log::error("refine table size error");
 		thecore_shutdown();
 		return;
 	}
@@ -569,7 +568,7 @@ void CInputDB::Boot(const char* data)
 
 	size = decode_2bytes(data);
 	data += 2;
-	sys_log(0, "BOOT: REFINE: %d", size);
+	metin2::log::info( "BOOT: REFINE: {:d}", size);
 
 	if (size)
 	{
@@ -582,7 +581,7 @@ void CInputDB::Boot(const char* data)
 	 */
 	if (decode_2bytes(data) != sizeof(TItemAttrTable))
 	{
-		sys_err("item attr table size error");
+		metin2::log::error("item attr table size error");
 		thecore_shutdown();
 		return;
 	}
@@ -590,7 +589,7 @@ void CInputDB::Boot(const char* data)
 
 	size = decode_2bytes(data);
 	data += 2;
-	sys_log(0, "BOOT: ITEM_ATTR: %d", size);
+	metin2::log::info( "BOOT: ITEM_ATTR: {:d}", size);
 
 	if (size)
 	{
@@ -602,7 +601,7 @@ void CInputDB::Boot(const char* data)
 				continue;
 
 			g_map_itemAttr[p->dwApplyIndex] = *p;
-			sys_log(0, "ITEM_ATTR[%d]: %s %u", p->dwApplyIndex, p->szApply, p->dwProb);
+			metin2::log::info( "ITEM_ATTR[{:d}]: {} {:d}", p->dwApplyIndex, p->szApply, p->dwProb);
 		}
 	}
 
@@ -614,7 +613,7 @@ void CInputDB::Boot(const char* data)
      */
 	if (decode_2bytes(data) != sizeof(TItemAttrTable))
 	{
-		sys_err("item rare table size error");
+		metin2::log::error("item rare table size error");
 		thecore_shutdown();
 		return;
 	}
@@ -622,7 +621,7 @@ void CInputDB::Boot(const char* data)
 
 	size = decode_2bytes(data);
 	data += 2;
-	sys_log(0, "BOOT: ITEM_RARE: %d", size);
+	metin2::log::info( "BOOT: ITEM_RARE: {:d}", size);
 
 	if (size)
 	{
@@ -634,7 +633,7 @@ void CInputDB::Boot(const char* data)
 				continue;
 
 			g_map_itemRare[p->dwApplyIndex] = *p;
-			sys_log(0, "ITEM_RARE[%d]: %s %u", p->dwApplyIndex, p->szApply, p->dwProb);
+			metin2::log::info( "ITEM_RARE[{:d}]: {} {:d}", p->dwApplyIndex, p->szApply, p->dwProb);
 		}
 	}
 
@@ -647,7 +646,7 @@ void CInputDB::Boot(const char* data)
 
 	if (decode_2bytes(data) != sizeof(TBanwordTable))
 	{
-		sys_err("ban word table size error");
+		metin2::log::error("ban word table size error");
 		thecore_shutdown();
 		return;
 	}
@@ -668,7 +667,7 @@ void CInputDB::Boot(const char* data)
 
 		if (decode_2bytes(data) != sizeof(TLand))
 		{
-			sys_err("land table size error");
+			metin2::log::error("land table size error");
 			thecore_shutdown();
 			return;
 		}
@@ -689,7 +688,7 @@ void CInputDB::Boot(const char* data)
 
 		if (decode_2bytes(data) != sizeof(TObjectProto))
 		{
-			sys_err("object proto table size error");
+			metin2::log::error("object proto table size error");
 			thecore_shutdown();
 			return;
 		}
@@ -706,7 +705,7 @@ void CInputDB::Boot(const char* data)
 		 */
 		if (decode_2bytes(data) != sizeof(TObject))
 		{
-			sys_err("object table size error");
+			metin2::log::error("object table size error");
 			thecore_shutdown();
 			return;
 		}
@@ -728,7 +727,7 @@ void CInputDB::Boot(const char* data)
 
 	if (decode_2bytes(data) != sizeof(TItemIDRangeTable) )
 	{
-		sys_err("ITEM ID RANGE size error");
+		metin2::log::error("ITEM ID RANGE size error");
 		thecore_shutdown();
 		return;
 	}
@@ -749,11 +748,11 @@ void CInputDB::Boot(const char* data)
 	data += 2;
 	int HostSize = decode_2bytes(data );
 	data += 2;
-	sys_log(0, "GM Value Count %d %d", HostSize, ChunkSize  );
+	metin2::log::info( "GM Value Count {:d} {:d}", HostSize, ChunkSize  );
 	for (int n = 0; n < HostSize; ++n )
 	{
 		gm_new_host_inert(data );
-		sys_log(0, "GM HOST : IP[%s] ", data );		
+		metin2::log::info( "GM HOST : IP[{}] ", data );		
 		data += ChunkSize;
 	}
 	
@@ -785,7 +784,7 @@ void CInputDB::Boot(const char* data)
 	for (int n = 1; n < 4; ++n)
 	{
 		if (*p.name[n])
-			sys_log(0, "[MONARCH] Empire %d Pid %d Money %ld %s", n, p.pid[n], p.money[n], p.name[n]);
+			metin2::log::info( "[MONARCH] Empire {:d} Pid {:d} Money {:d} {}", n, p.pid[n], p.money[n], p.name[n]);
 	}
 	
 	int CandidacySize = decode_2bytes(data);
@@ -795,7 +794,7 @@ void CInputDB::Boot(const char* data)
 	data += 2;
 
 	if (test_server)
-		sys_log (0, "[MONARCH] Size %d Count %d", CandidacySize, CandidacyCount);
+		metin2::log::info( "[MONARCH] Size {:d} Count {:d}", CandidacySize, CandidacyCount);
 
 	data += CandidacySize * CandidacyCount;
 
@@ -805,24 +804,24 @@ void CInputDB::Boot(const char* data)
 	uint16_t endCheck=decode_2bytes(data);
 	if (endCheck != 0xffff)
 	{
-		sys_err("boot packet end check error [%x]!=0xffff", endCheck);
+		metin2::log::error("boot packet end check error [{:x}]!=0xffff", endCheck);
 		thecore_shutdown();
 		return;
 	}
 	else
-		sys_log(0, "boot packet end check ok [%x]==0xffff", endCheck );
+		metin2::log::info( "boot packet end check ok [{:x}]==0xffff", endCheck );
 	data +=2; 
 
 	if (!ITEM_MANAGER::instance().SetMaxItemID(*range))
 	{
-		sys_err("not enough item id contact your administrator!");
+		metin2::log::error("not enough item id contact your administrator!");
 		thecore_shutdown();
 		return;
 	}
 
 	if (!ITEM_MANAGER::instance().SetMaxSpareItemID(*rangespare))
 	{
-		sys_err("not enough item id for spare contact your administrator!");
+		metin2::log::error("not enough item id for spare contact your administrator!");
 		thecore_shutdown();
 		return;
 	}
@@ -857,72 +856,72 @@ void CInputDB::Boot(const char* data)
 	snprintf(szDragonSoulTableFileName, sizeof(szDragonSoulTableFileName),
 			"%s/dragon_soul_table.txt", LocaleService_GetBasePath().c_str());
 
-	sys_log(0, "Initializing Informations of Cube System");
+	metin2::log::info( "Initializing Informations of Cube System");
 	if (!Cube_InformationInitialize())
 	{
-		sys_err("cannot init cube infomation.");
+		metin2::log::error("cannot init cube infomation.");
 		thecore_shutdown();
 		return;
 	}
 
-	sys_log(0, "LoadLocaleFile: CommonDropItem: %s", szCommonDropItemFileName);
+	metin2::log::info( "LoadLocaleFile: CommonDropItem: {}", szCommonDropItemFileName);
 	if (!ITEM_MANAGER::instance().ReadCommonDropItemFile(szCommonDropItemFileName))
 	{
-		sys_err("cannot load CommonDropItem: %s", szCommonDropItemFileName);
+		metin2::log::error("cannot load CommonDropItem: {}", szCommonDropItemFileName);
 		thecore_shutdown();
 		return;
 	}
 
-	sys_log(0, "LoadLocaleFile: ETCDropItem: %s", szETCDropItemFileName);
+	metin2::log::info( "LoadLocaleFile: ETCDropItem: {}", szETCDropItemFileName);
 	if (!ITEM_MANAGER::instance().ReadEtcDropItemFile(szETCDropItemFileName))
 	{
-		sys_err("cannot load ETCDropItem: %s", szETCDropItemFileName);
+		metin2::log::error("cannot load ETCDropItem: {}", szETCDropItemFileName);
 		thecore_shutdown();
 		return;
 	}
 
-	sys_log(0, "LoadLocaleFile: DropItemGroup: %s", szDropItemGroupFileName);
+	metin2::log::info( "LoadLocaleFile: DropItemGroup: {}", szDropItemGroupFileName);
 	if (!ITEM_MANAGER::instance().ReadDropItemGroup(szDropItemGroupFileName))
 	{
-		sys_err("cannot load DropItemGroup: %s", szDropItemGroupFileName);
+		metin2::log::error("cannot load DropItemGroup: {}", szDropItemGroupFileName);
 		thecore_shutdown();
 		return;
 	}
 
-	sys_log(0, "LoadLocaleFile: SpecialItemGroup: %s", szSpecialItemGroupFileName);
+	metin2::log::info( "LoadLocaleFile: SpecialItemGroup: {}", szSpecialItemGroupFileName);
 	if (!ITEM_MANAGER::instance().ReadSpecialDropItemFile(szSpecialItemGroupFileName))
 	{
-		sys_err("cannot load SpecialItemGroup: %s", szSpecialItemGroupFileName);
+		metin2::log::error("cannot load SpecialItemGroup: {}", szSpecialItemGroupFileName);
 		thecore_shutdown();
 		return;
 	}
 
-	sys_log(0, "LoadLocaleFile: ItemVnumMaskTable : %s", szItemVnumMaskTableFileName);
+	metin2::log::info( "LoadLocaleFile: ItemVnumMaskTable : {}", szItemVnumMaskTableFileName);
 	if (!ITEM_MANAGER::instance().ReadItemVnumMaskTable(szItemVnumMaskTableFileName))
 	{
-		sys_log(0, "Could not open MaskItemTable");
+		metin2::log::info( "Could not open MaskItemTable");
 	}
 
-	sys_log(0, "LoadLocaleFile: MOBDropItemFile: %s", szMOBDropItemFileName);
+	metin2::log::info( "LoadLocaleFile: MOBDropItemFile: {}", szMOBDropItemFileName);
 	if (!ITEM_MANAGER::instance().ReadMonsterDropItemGroup(szMOBDropItemFileName))
 	{
-		sys_err("cannot load MOBDropItemFile: %s", szMOBDropItemFileName);
+		metin2::log::error("cannot load MOBDropItemFile: {}", szMOBDropItemFileName);
 		thecore_shutdown();
 		return;
 	}
 
-	sys_log(0, "LoadLocaleFile: MapIndex: %s", szMapIndexFileName);
+	metin2::log::info( "LoadLocaleFile: MapIndex: {}", szMapIndexFileName);
 	if (!SECTREE_MANAGER::instance().Build(szMapIndexFileName, LocaleService_GetMapPath().c_str()))
 	{
-		sys_err("cannot load MapIndex: %s", szMapIndexFileName);
+		metin2::log::error("cannot load MapIndex: {}", szMapIndexFileName);
 		thecore_shutdown();
 		return;
 	}
 
-	sys_log(0, "LoadLocaleFile: DragonSoulTable: %s", szDragonSoulTableFileName);
+	metin2::log::info( "LoadLocaleFile: DragonSoulTable: {}", szDragonSoulTableFileName);
 	if (!DSManager::instance().ReadDragonSoulTableFile(szDragonSoulTableFileName))
 	{
-		sys_err("cannot load DragonSoulTable: %s", szDragonSoulTableFileName);
+		metin2::log::error("cannot load DragonSoulTable: {}", szDragonSoulTableFileName);
 	}
 
 	// END_OF_LOCALE_SERVICE
@@ -944,7 +943,7 @@ void CInputDB::Boot(const char* data)
 	castle_boot();
 
     if (!mark_server_ready()) { thecore_shutdown(); return; }
-    sys_log(0, "BOOT: COMPLETE");
+    metin2::log::info( "BOOT: COMPLETE");
 }
 
 EVENTINFO(quest_login_event_info)
@@ -963,7 +962,7 @@ EVENTFUNC(quest_login_event)
 
 	if ( info == nullptr )
 	{
-		sys_err( "quest_login_event> <Factor> Null pointer" );
+		metin2::log::error( "quest_login_event> <Factor> Null pointer" );
 		return 0;
 	}
 
@@ -993,13 +992,13 @@ EVENTFUNC(quest_login_event)
 	}
 	else if (d->IsPhase(PHASE_GAME))
 	{
-		sys_log(0, "QUEST_LOAD: Login pc %d by event", ch->GetPlayerID());
+		metin2::log::info( "QUEST_LOAD: Login pc {:d} by event", ch->GetPlayerID());
 		quest::CQuestManager::instance().Login(ch->GetPlayerID());
 		return 0;
 	}
 	else
 	{
-		sys_err("input_db.cpp:quest_login_event INVALID PHASE pid %d", ch->GetPlayerID());
+		metin2::log::error("input_db.cpp:quest_login_event INVALID PHASE pid {:d}", ch->GetPlayerID());
 		return 0;
 	}
 }
@@ -1024,18 +1023,18 @@ void CInputDB::QuestLoad(DESC * d, const char * c_pData)
 		{
 			if (ch->GetPlayerID() != pQuestTable[0].dwPID)
 			{
-				sys_err("PID differs %u %u", ch->GetPlayerID(), pQuestTable[0].dwPID);
+				metin2::log::error("PID differs {:d} {:d}", ch->GetPlayerID(), pQuestTable[0].dwPID);
 				return;
 			}
 		}
 
-		sys_log(0, "QUEST_LOAD: count %d", dwCount);
+		metin2::log::info( "QUEST_LOAD: count {:d}", dwCount);
 
 		quest::PC * pkPC = quest::CQuestManager::instance().GetPCForce(ch->GetPlayerID());
 
 		if (!pkPC)
 		{
-			sys_err("null quest::PC with id %u", pQuestTable[0].dwPID);
+			metin2::log::error("null quest::PC with id {:d}", pQuestTable[0].dwPID);
 			return;
 		}
 
@@ -1049,7 +1048,7 @@ void CInputDB::QuestLoad(DESC * d, const char * c_pData)
 			st += ".";
 			st += pQuestTable[i].szState;
 
-			sys_log(0,  "            %s %d", st.c_str(), pQuestTable[i].lValue);
+			metin2::log::info(  "            {} {:d}", st.c_str(), pQuestTable[i].lValue);
 			pkPC->SetFlag(st.c_str(), pQuestTable[i].lValue, false);
 		}
 
@@ -1058,7 +1057,7 @@ void CInputDB::QuestLoad(DESC * d, const char * c_pData)
 
 		if (ch->GetDesc()->IsPhase(PHASE_GAME))
 		{
-			sys_log(0, "QUEST_LOAD: Login pc %d", pQuestTable[0].dwPID);
+			metin2::log::info( "QUEST_LOAD: Login pc {:d}", pQuestTable[0].dwPID);
 			quest::CQuestManager::instance().Login(pQuestTable[0].dwPID);
 		}
 		else
@@ -1080,7 +1079,7 @@ void CInputDB::SafeboxLoad(DESC * d, const char * c_pData)
 
 	if (d->GetAccountTable().id != p->dwID)
 	{
-		sys_err("SafeboxLoad: safebox has different id %u != %u", d->GetAccountTable().id, p->dwID);
+		metin2::log::error("SafeboxLoad: safebox has different id {:d} != {:d}", d->GetAccountTable().id, p->dwID);
 		return;
 	}
 
@@ -1171,7 +1170,7 @@ void CInputDB::MallLoad(DESC * d, const char * c_pData)
 
 	if (d->GetAccountTable().id != p->dwID)
 	{
-		sys_err("safebox has different id %u != %u", d->GetAccountTable().id, p->dwID);
+		metin2::log::error("safebox has different id {:d} != {:d}", d->GetAccountTable().id, p->dwID);
 		return;
 	}
 
@@ -1211,7 +1210,7 @@ void CInputDB::LoginAlready(DESC * d, const char * c_pData)
 
 void CInputDB::EmpireSelect(DESC * d, const char * c_pData)
 {
-	sys_log(0, "EmpireSelect %p", d);
+	metin2::log::info( "EmpireSelect {}", static_cast<const void *>(d));
 
 	if (!d)
 		return;
@@ -1240,7 +1239,7 @@ void CInputDB::MapLocations(const char * c_pData)
 {
 	uint8_t bCount = *(uint8_t *) (c_pData++);
 
-	sys_log(0, "InputDB::MapLocations %d", bCount);
+	metin2::log::info( "InputDB::MapLocations {:d}", bCount);
 
 	TMapLocation * pLoc = (TMapLocation *) c_pData;
 
@@ -1268,7 +1267,7 @@ void CInputDB::P2P(const char * c_pData)
 	if (false == DESC_MANAGER::instance().IsP2PDescExist(p->szHost, p->wPort))
 	{
 	    CLIENT_DESC * pkDesc = nullptr;
-		sys_log(0, "InputDB:P2P %s:%u", p->szHost, p->wPort);
+		metin2::log::info( "InputDB:P2P {}:{:d}", p->szHost, p->wPort);
 	    pkDesc = DESC_MANAGER::instance().CreateConnectionDesc(p->szHost, p->wPort, PHASE_P2P, false);
 		mgr.RegisterConnector(pkDesc);
 		pkDesc->SetP2P(p->szHost, p->wPort);
@@ -1297,7 +1296,7 @@ void CInputDB::GuildWar(const char* c_pData)
 {
 	TPacketGuildWar * p = (TPacketGuildWar*) c_pData;
 
-	sys_log(0, "InputDB::GuildWar %u %u state %d", p->dwGuildFrom, p->dwGuildTo, p->bWar);
+	metin2::log::info( "InputDB::GuildWar {:d} {:d} state {:d}", p->dwGuildFrom, p->dwGuildTo, p->bWar);
 
 	switch (p->bWar)
 	{
@@ -1335,7 +1334,7 @@ void CInputDB::GuildWar(const char* c_pData)
 			break;
 
 		default:
-			sys_err("Unknown guild war state");
+			metin2::log::error("Unknown guild war state");
 			break;
 	}
 }
@@ -1355,7 +1354,7 @@ void CInputDB::GuildSkillRecharge()
 void CInputDB::GuildExpUpdate(const char* c_pData)
 {
 	TPacketGuildSkillUpdate * p = (TPacketGuildSkillUpdate *) c_pData;
-	sys_log(1, "GuildExpUpdate %d", p->amount);
+	metin2::log::debug( "GuildExpUpdate {:d}", p->amount);
 
 	CGuild * g = CGuildManager::instance().TouchGuild(p->guild_id);
 
@@ -1392,7 +1391,7 @@ void CInputDB::GuildChangeGrade(const char* c_pData)
 
 void CInputDB::GuildChangeMemberData(const char* c_pData)
 {
-	sys_log(0, "Recv GuildChangeMemberData");
+	metin2::log::info( "Recv GuildChangeMemberData");
 	TPacketGuildChangeMemberData * p = (TPacketGuildChangeMemberData *) c_pData;
 	CGuild * g = CGuildManager::instance().TouchGuild(p->guild_id);
 
@@ -1409,7 +1408,7 @@ void CInputDB::GuildDisband(const char* c_pData)
 void CInputDB::GuildLadder(const char* c_pData)
 {
 	TPacketGuildLadder* p = (TPacketGuildLadder*) c_pData;
-	sys_log(0, "Recv GuildLadder %u %d / w %d d %d l %d", p->dwGuild, p->lLadderPoint, p->lWin, p->lDraw, p->lLoss);
+	metin2::log::info( "Recv GuildLadder {:d} {:d} / w {:d} d {:d} l {:d}", p->dwGuild, p->lLadderPoint, p->lWin, p->lDraw, p->lLoss);
 	CGuild * g = CGuildManager::instance().TouchGuild(p->dwGuild);
 
 	g->SetLadderPoint(p->lLadderPoint);
@@ -1429,7 +1428,7 @@ void CInputDB::ItemLoad(DESC * d, const char * c_pData)
 	uint32_t dwCount = decode_4bytes(c_pData);
 	c_pData += sizeof(uint32_t);
 
-	sys_log(0, "ITEM_LOAD: COUNT %s %u", ch->GetName(), dwCount);
+	metin2::log::info( "ITEM_LOAD: COUNT {} {:d}", ch->GetName(), dwCount);
 
 	std::vector<CItem *> v;
 
@@ -1441,7 +1440,7 @@ void CInputDB::ItemLoad(DESC * d, const char * c_pData)
 
 		if (!item)
 		{
-			sys_err("cannot create item by vnum %u (name %s id %u)", p->vnum, ch->GetName(), p->id);
+			metin2::log::error("cannot create item by vnum {:d} (name {} id {:d})", p->vnum, ch->GetName(), p->id);
 			continue;
 		}
 
@@ -1452,7 +1451,7 @@ void CInputDB::ItemLoad(DESC * d, const char * c_pData)
 		if ((p->window == INVENTORY && ch->GetInventoryItem(p->pos)) ||
 				(p->window == EQUIPMENT && ch->GetWear(p->pos)))
 		{
-			sys_log(0, "ITEM_RESTORE: %s %s", ch->GetName(), item->GetName());
+			metin2::log::info( "ITEM_RESTORE: {} {}", ch->GetName(), item->GetName());
 			v.push_back(item);
 		}
 		else
@@ -1481,7 +1480,7 @@ void CInputDB::ItemLoad(DESC * d, const char * c_pData)
 		}
 
 		if (false == item->OnAfterCreatedItem())
-			sys_err("Failed to call ITEM::OnAfterCreatedItem (vnum: %d, id: %d)", item->GetVnum(), item->GetID());
+			metin2::log::error("Failed to call ITEM::OnAfterCreatedItem (vnum: {:d}, id: {:d})", item->GetVnum(), item->GetID());
 
 		item->SetSkipSave(false);
 	}
@@ -1618,7 +1617,7 @@ void CInputDB::ReloadProto(const char * c_pData)
 	 */
 	wSize = decode_2bytes(c_pData);
 	c_pData += 2;
-	sys_log(0, "RELOAD: ITEM: %d", wSize);
+	metin2::log::info( "RELOAD: ITEM: {:d}", wSize);
 
 	if (wSize)
 	{
@@ -1631,7 +1630,7 @@ void CInputDB::ReloadProto(const char * c_pData)
 	 */
 	wSize = decode_2bytes(c_pData);
 	c_pData += 2;
-	sys_log(0, "RELOAD: MOB: %d", wSize);
+	metin2::log::info( "RELOAD: MOB: {:d}", wSize);
 
 	if (wSize)
 	{
@@ -1676,7 +1675,7 @@ void CInputDB::AuthLogin(DESC * d, const char * c_pData)
 	ptoc.bResult = bResult;
 
 	d->Packet(&ptoc, sizeof(TPacketGCAuthSuccess));
-	sys_log(0, "AuthLogin result %u key %u", bResult, d->GetLoginKey());
+	metin2::log::info( "AuthLogin result {:d} key {:d}", bResult, d->GetLoginKey());
 }
 void CInputDB::AuthLoginOpenID(DESC * d, const char * c_pData)
 {
@@ -1703,7 +1702,7 @@ void CInputDB::AuthLoginOpenID(DESC * d, const char * c_pData)
 	ptoc.bResult = bResult;
 
 	d->Packet(&ptoc, sizeof(TPacketGCAuthSuccessOpenID));
-	sys_log(0, "AuthLogin result %u key %u", bResult, d->GetLoginKey());
+	metin2::log::info( "AuthLogin result {:d} key {:d}", bResult, d->GetLoginKey());
 }
 
 void CInputDB::ChangeEmpirePriv(const char* c_pData)
@@ -1798,7 +1797,7 @@ void CInputDB::Notice(const char * c_pData)
 	char szBuf[256+1];
 	strlcpy(szBuf, c_pData, sizeof(szBuf));
 
-	sys_log(0, "InputDB:: Notice: %s", szBuf);
+	metin2::log::info( "InputDB:: Notice: {}", szBuf);
 
 	SendNotice(szBuf);
 }
@@ -1820,19 +1819,19 @@ void CInputDB::GuildWarBet(TPacketGDGuildWarBet * p)
 
 void CInputDB::MarriageAdd(TPacketMarriageAdd * p)
 {
-	sys_log(0, "MarriageAdd %u %u %u %s %s", p->dwPID1, p->dwPID2, (uint32_t)p->tMarryTime, p->szName1, p->szName2);
+	metin2::log::info( "MarriageAdd {:d} {:d} {:d} {} {}", p->dwPID1, p->dwPID2, (uint32_t)p->tMarryTime, p->szName1, p->szName2);
 	marriage::CManager::instance().Add(p->dwPID1, p->dwPID2, p->tMarryTime, p->szName1, p->szName2);
 }
 
 void CInputDB::MarriageUpdate(TPacketMarriageUpdate * p)
 {
-	sys_log(0, "MarriageUpdate %u %u %d %d", p->dwPID1, p->dwPID2, p->iLovePoint, p->byMarried);
+	metin2::log::info( "MarriageUpdate {:d} {:d} {:d} {:d}", p->dwPID1, p->dwPID2, p->iLovePoint, p->byMarried);
 	marriage::CManager::instance().Update(p->dwPID1, p->dwPID2, p->iLovePoint, p->byMarried);
 }
 
 void CInputDB::MarriageRemove(TPacketMarriageRemove * p)
 {
-	sys_log(0, "MarriageRemove %u %u", p->dwPID1, p->dwPID2);
+	metin2::log::info( "MarriageRemove {:d} {:d}", p->dwPID1, p->dwPID2);
 	marriage::CManager::instance().Remove(p->dwPID1, p->dwPID2);
 }
 
@@ -1843,19 +1842,19 @@ void CInputDB::WeddingRequest(TPacketWeddingRequest* p)
 
 void CInputDB::WeddingReady(TPacketWeddingReady* p)
 {
-	sys_log(0, "WeddingReady %u %u %u", p->dwPID1, p->dwPID2, p->dwMapIndex);
+	metin2::log::info( "WeddingReady {:d} {:d} {:d}", p->dwPID1, p->dwPID2, p->dwMapIndex);
 	marriage::CManager::instance().WeddingReady(p->dwPID1, p->dwPID2, p->dwMapIndex);
 }
 
 void CInputDB::WeddingStart(TPacketWeddingStart* p)
 {
-	sys_log(0, "WeddingStart %u %u", p->dwPID1, p->dwPID2);
+	metin2::log::info( "WeddingStart {:d} {:d}", p->dwPID1, p->dwPID2);
 	marriage::CManager::instance().WeddingStart(p->dwPID1, p->dwPID2);
 }
 
 void CInputDB::WeddingEnd(TPacketWeddingEnd* p)
 {
-	sys_log(0, "WeddingEnd %u %u", p->dwPID1, p->dwPID2);
+	metin2::log::info( "WeddingEnd {:d} {:d}", p->dwPID1, p->dwPID2);
 	marriage::CManager::instance().WeddingEnd(p->dwPID1, p->dwPID2);
 }
 
@@ -1867,7 +1866,7 @@ void CInputDB::MyshopPricelistRes(DESC * d, const TPacketMyshopPricelistHeader* 
 	if (!d || !(ch = d->GetCharacter()) )
 		return;
 
-	sys_log(0, "RecvMyshopPricelistRes name[%s]", ch->GetName());
+	metin2::log::info( "RecvMyshopPricelistRes name[{}]", ch->GetName());
 	ch->UseSilkBotaryReal(p );
 
 }
@@ -2270,7 +2269,7 @@ bool CInputDB::Process(DESC * d, const void * orig, int bytes, int & r_iBytesPro
 		m_dwHandle	= *((uint32_t *) (c_pData + 1));	// 4
 		iSize		= *((uint32_t *) (c_pData + 5));	// 4
 
-		sys_log(1, "DBCLIENT: header %d handle %d size %d bytes %d", bHeader, m_dwHandle, iSize, bytes); 
+		metin2::log::debug( "DBCLIENT: header {:d} handle {:d} size {:d} bytes {:d}", bHeader, m_dwHandle, iSize, bytes); 
 
 		if (m_iBufferLeft - 9 < iSize)
 			return true;
@@ -2279,7 +2278,7 @@ bool CInputDB::Process(DESC * d, const void * orig, int bytes, int & r_iBytesPro
 
 		if (Analyze(d, bHeader, pRealData) < 0)
 		{
-			sys_err("in InputDB: UNKNOWN HEADER: %d, LAST HEADER: %d(%d), REMAIN BYTES: %d, host: %s",
+			metin2::log::error("in InputDB: UNKNOWN HEADER: {:d}, LAST HEADER: {:d}({:d}), REMAIN BYTES: {:d}, host: {}",
 					bHeader, bLastHeader, iLastPacketLen, m_iBufferLeft, d->GetHostName());
 
 		}
@@ -2367,7 +2366,7 @@ void CInputDB::ChangeMonarchLord(TPacketChangeMonarchLordACK* info)
 void CInputDB::UpdateMonarchInfo(MonarchInfo* info)
 {
 	CMonarch::instance().SetMonarchInfo(info);
-	sys_log(0, "MONARCH INFO UPDATED");
+	metin2::log::info( "MONARCH INFO UPDATED");
 }
 
 void CInputDB::GuildChangeMaster(TPacketChangeGuildMaster* p)

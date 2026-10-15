@@ -12,7 +12,7 @@
 #include "unique_item.h"
 
 #include <common/length.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/utils.h>
 
 #include <algorithm>
@@ -162,7 +162,7 @@ bool DSManager::RefreshItemAttributes(CItem * pDS)
 {
 	if (!pDS->IsDragonSoul())
 	{
-		sys_err ("This item(ID : %d) is not DragonSoul.", pDS->GetID());
+		metin2::log::error("This item(ID : {:d}) is not DragonSoul.", pDS->GetID());
 		return false;
 	}
 
@@ -174,13 +174,13 @@ bool DSManager::RefreshItemAttributes(CItem * pDS)
 
 	if (!m_pTable->GetBasicApplys(ds_type, vec_basic_applys))
 	{
-		sys_err ("There is no BasicApply about %d type dragon soul.", ds_type);
+		metin2::log::error("There is no BasicApply about {:d} type dragon soul.", ds_type);
 		return false;
 	}
 
 	if (!m_pTable->GetAdditionalApplys(ds_type, vec_addtional_applys))
 	{
-		sys_err ("There is no AdditionalApply about %d type dragon soul.", ds_type);
+		metin2::log::error("There is no AdditionalApply about {:d} type dragon soul.", ds_type);
 		return false;
 	}
 
@@ -188,7 +188,7 @@ bool DSManager::RefreshItemAttributes(CItem * pDS)
 	int basic_apply_num, add_min, add_max;
 	if (!m_pTable->GetApplyNumSettings(ds_type, grade_idx, basic_apply_num, add_min, add_max))
 	{
-		sys_err ("In ApplyNumSettings, INVALID VALUES Group type(%d), GRADE idx(%d)", ds_type, grade_idx);
+		metin2::log::error("In ApplyNumSettings, INVALID VALUES Group type({:d}), GRADE idx({:d})", ds_type, grade_idx);
 		return false;
 	}
 
@@ -232,7 +232,7 @@ bool DSManager::PutAttributes(CItem * pDS)
 {
 	if (!pDS->IsDragonSoul())
 	{
-		sys_err ("This item(ID : %d) is not DragonSoul.", pDS->GetID());
+		metin2::log::error("This item(ID : {:d}) is not DragonSoul.", pDS->GetID());
 		return false;
 	}
 
@@ -244,12 +244,12 @@ bool DSManager::PutAttributes(CItem * pDS)
 
 	if (!m_pTable->GetBasicApplys(ds_type, vec_basic_applys))
 	{
-		sys_err ("There is no BasicApply about %d type dragon soul.", ds_type);
+		metin2::log::error("There is no BasicApply about {:d} type dragon soul.", ds_type);
 		return false;
 	}
 	if (!m_pTable->GetAdditionalApplys(ds_type, vec_addtional_applys))
 	{
-		sys_err ("There is no AdditionalApply about %d type dragon soul.", ds_type);
+		metin2::log::error("There is no AdditionalApply about {:d} type dragon soul.", ds_type);
 		return false;
 	}
 
@@ -257,7 +257,7 @@ bool DSManager::PutAttributes(CItem * pDS)
 	int basic_apply_num, add_min, add_max;
 	if (!m_pTable->GetApplyNumSettings(ds_type, grade_idx, basic_apply_num, add_min, add_max))
 	{
-		sys_err ("In ApplyNumSettings, INVALID VALUES Group type(%d), GRADE idx(%d)", ds_type, grade_idx);
+		metin2::log::error("In ApplyNumSettings, INVALID VALUES Group type({:d}), GRADE idx({:d})", ds_type, grade_idx);
 		return false;
 	}
 
@@ -291,7 +291,7 @@ bool DSManager::PutAttributes(CItem * pDS)
 		}
 		if (!MakeDistinctRandomNumberSet(list_probs, random_set))
 		{
-			sys_err ("MakeDistinctRandomNumberSet error.");
+			metin2::log::error("MakeDistinctRandomNumberSet error.");
 			return false;
 		}
 
@@ -368,7 +368,7 @@ bool DSManager::ExtractDragonHeart(CHARACTER * ch, CItem * pItem, CItem * pExtra
 
 	if (-1 == idx)
 	{
-		sys_err ("Gamble is failed. ds_type(%d), grade_idx(%d)", ds_type, grade_idx);
+		metin2::log::error("Gamble is failed. ds_type({:d}), grade_idx({:d})", ds_type, grade_idx);
 		return false;
 	}
 
@@ -394,7 +394,7 @@ bool DSManager::ExtractDragonHeart(CHARACTER * ch, CItem * pItem, CItem * pExtra
 		
 		if (nullptr == pDH)
 		{
-			sys_err ("Cannot create DRAGON_HEART(%d).", DRAGON_HEART_VNUM);
+			metin2::log::error("Cannot create DRAGON_HEART({:d}).", DRAGON_HEART_VNUM);
 			return false;
 		}
 
@@ -423,7 +423,7 @@ bool DSManager::PullOut(CHARACTER * ch, TItemPos DestCell, CItem *& pItem, CItem
 {
 	if (nullptr == ch || nullptr == pItem)
 	{
-		sys_err ("NULL POINTER. ch(%p) or pItem(%p)", ch, pItem);
+		metin2::log::error("NULL POINTER. ch({}) or pItem({})", static_cast<const void *>(ch), static_cast<const void *>(pItem));
 		return false;
 	}
 
@@ -529,7 +529,7 @@ bool DSManager::DoRefineGrade(CHARACTER * ch, TItemPos (&aItemPoses)[DRAGON_SOUL
 
 	if (!ch->DragonSoul_RefineWindow_CanRefine())
 	{
-		sys_err ("%s do not activate DragonSoulRefineWindow. But how can he come here?", ch->GetName());
+		metin2::log::error("{} do not activate DragonSoulRefineWindow. But how can he come here?", ch->GetName());
 		ch->ChatPacket(CHAT_TYPE_INFO, "[SYSTEM ERROR]You cannot upgrade dragon soul without refine window.");
 		return false;
 	}
@@ -613,7 +613,7 @@ bool DSManager::DoRefineGrade(CHARACTER * ch, TItemPos (&aItemPoses)[DRAGON_SOUL
 	// The client checks the count once, so if count != need_count it's very likely an invalid client.
 	if (count != need_count)
 	{
-		sys_err ("Possiblity of invalid client. Name %s", ch->GetName());
+		metin2::log::error("Possiblity of invalid client. Name {}", ch->GetName());
 		uint8_t bSubHeader = count < need_count? DS_SUB_HEADER_REFINE_FAIL_NOT_ENOUGH_MATERIAL : DS_SUB_HEADER_REFINE_FAIL_TOO_MUCH_MATERIAL;
 		SendRefineResultPacket(ch, bSubHeader, NPOS);
 		return false;
@@ -628,7 +628,7 @@ bool DSManager::DoRefineGrade(CHARACTER * ch, TItemPos (&aItemPoses)[DRAGON_SOUL
 	
 	if (-1 == (result_grade = Gamble(vec_probs)))
 	{
-		sys_err ("Gamble failed. See RefineGardeTables' probabilities");
+		metin2::log::error("Gamble failed. See RefineGardeTables' probabilities");
 		return false;
 	}
 
@@ -636,7 +636,7 @@ bool DSManager::DoRefineGrade(CHARACTER * ch, TItemPos (&aItemPoses)[DRAGON_SOUL
 
 	if (nullptr == pResultItem)
 	{
-		sys_err ("INVALID DRAGON SOUL(%d)", MakeDragonSoulVnum(ds_type, (uint8_t)result_grade, 0, 0));
+		metin2::log::error("INVALID DRAGON SOUL({:d})", MakeDragonSoulVnum(ds_type, (uint8_t)result_grade, 0, 0));
 		return false;
 	}
 
@@ -687,7 +687,7 @@ bool DSManager::DoRefineStep(CHARACTER * ch, TItemPos (&aItemPoses)[DRAGON_SOUL_
 		return false;
 	if (!ch->DragonSoul_RefineWindow_CanRefine())
 	{
-		sys_err ("%s do not activate DragonSoulRefineWindow. But how can he come here?", ch->GetName());
+		metin2::log::error("{} do not activate DragonSoulRefineWindow. But how can he come here?", ch->GetName());
 		ch->ChatPacket(CHAT_TYPE_INFO, "[SYSTEM ERROR]You cannot use dragon soul refine window.");
 		return false;
 	}
@@ -764,7 +764,7 @@ bool DSManager::DoRefineStep(CHARACTER * ch, TItemPos (&aItemPoses)[DRAGON_SOUL_
 	// The client checks the count once, so if count != need_count it's very likely an invalid client.
 	if (count != need_count)
 	{
-		sys_err ("Possiblity of invalid client. Name %s", ch->GetName());
+		metin2::log::error("Possiblity of invalid client. Name {}", ch->GetName());
 		uint8_t bSubHeader = count < need_count? DS_SUB_HEADER_REFINE_FAIL_NOT_ENOUGH_MATERIAL : DS_SUB_HEADER_REFINE_FAIL_TOO_MUCH_MATERIAL;
 		SendRefineResultPacket(ch, bSubHeader, NPOS);
 		return false;
@@ -780,7 +780,7 @@ bool DSManager::DoRefineStep(CHARACTER * ch, TItemPos (&aItemPoses)[DRAGON_SOUL_
 
 	if (-1 == (result_step = Gamble(vec_probs)))
 	{
-		sys_err ("Gamble failed. See RefineStepTables' probabilities");
+		metin2::log::error("Gamble failed. See RefineStepTables' probabilities");
 		return false;
 	}
 
@@ -788,7 +788,7 @@ bool DSManager::DoRefineStep(CHARACTER * ch, TItemPos (&aItemPoses)[DRAGON_SOUL_
 
 	if (nullptr == pResultItem)
 	{
-		sys_err ("INVALID DRAGON SOUL(%d)", MakeDragonSoulVnum(ds_type, grade_idx, (uint8_t)result_step, 0));
+		metin2::log::error("INVALID DRAGON SOUL({:d})", MakeDragonSoulVnum(ds_type, grade_idx, (uint8_t)result_step, 0));
 		return false;
 	}
 
@@ -846,7 +846,7 @@ bool DSManager::DoRefineStrength(CHARACTER * ch, TItemPos (&aItemPoses)[DRAGON_S
 		return false;
 	if (!ch->DragonSoul_RefineWindow_CanRefine())
 	{
-		sys_err ("%s do not activate DragonSoulRefineWindow. But how can he come here?", ch->GetName());
+		metin2::log::error("{} do not activate DragonSoulRefineWindow. But how can he come here?", ch->GetName());
 		ch->ChatPacket(CHAT_TYPE_INFO, "[SYSTEM ERROR]You cannot use dragon soul refine window.");
 		return false;
 	}
@@ -968,7 +968,7 @@ bool DSManager::DoRefineStrength(CHARACTER * ch, TItemPos (&aItemPoses)[DRAGON_S
 		pResult = ITEM_MANAGER::instance().CreateItem(MakeDragonSoulVnum(bType, bGrade, bStep, bStrength + 1));
 		if (nullptr == pResult)
 		{
-			sys_err ("INVALID DRAGON SOUL(%d)", MakeDragonSoulVnum(bType, bGrade, bStep, bStrength + 1));
+			metin2::log::error("INVALID DRAGON SOUL({:d})", MakeDragonSoulVnum(bType, bGrade, bStep, bStrength + 1));
 			return false;
 		}
 		pDragonSoul->RemoveFromCharacter();
@@ -993,7 +993,7 @@ bool DSManager::DoRefineStrength(CHARACTER * ch, TItemPos (&aItemPoses)[DRAGON_S
 			pResult = ITEM_MANAGER::instance().CreateItem(MakeDragonSoulVnum(bType, bGrade, bStep, bStrength - 1));
 			if (nullptr == pResult)
 			{
-				sys_err ("INVALID DRAGON SOUL(%d)", MakeDragonSoulVnum(bType, bGrade, bStep, bStrength - 1));
+				metin2::log::error("INVALID DRAGON SOUL({:d})", MakeDragonSoulVnum(bType, bGrade, bStep, bStrength - 1));
 				return false;
 			}
 			pDragonSoul->CopyAttributeTo(pResult);

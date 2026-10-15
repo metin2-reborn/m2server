@@ -15,7 +15,7 @@
 #include <common/tables.h>
 #include <libnet/connection.h>
 #include <libnet/io.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/main.h>
 
 #include <chrono>
@@ -67,7 +67,7 @@ void CLIENT_DESC::Destroy()
 		CGuildManager::instance().StopAllGuildWar();
 	}
 
-	sys_log(0, "SYSTEM: closing connection to %s:%u", m_stHost.c_str(), m_wPort);
+	metin2::log::info( "SYSTEM: closing connection to {}:{:d}", m_stHost.c_str(), m_wPort);
 
 	// Chain up to base class Destroy()
 	DESC::Destroy();
@@ -91,7 +91,7 @@ bool CLIENT_DESC::Connect(int iPhaseWhenSucceed)
 	if (m_connection)
 		return false;
 
-	sys_log(0, "SYSTEM: Trying to connect to %s:%d", m_stHost.c_str(), m_wPort);
+	metin2::log::info( "SYSTEM: Trying to connect to {}:{:d}", m_stHost.c_str(), m_wPort);
 
 	// Blocking (at most 10 seconds) so that packets sent right after the connect go out in order.
 	auto socket = net::connect(m_stHost, m_wPort, std::chrono::seconds(10));
@@ -100,7 +100,7 @@ bool CLIENT_DESC::Connect(int iPhaseWhenSucceed)
 	{
 		m_connection = net::connection::create(std::move(*socket), MAX_SERVER_INPUT, MAX_SERVER_OUTPUT);
 		m_connection->start(*this);
-		sys_log(0, "SYSTEM: connected to server (ptr %p)", this);
+		metin2::log::info( "SYSTEM: connected to server (ptr {})", static_cast<const void *>(this));
 		SetPhase(m_iPhaseWhenSucceed);
 		return true;
 	}
@@ -122,13 +122,13 @@ void CLIENT_DESC::SetPhase(int iPhase)
 	switch (iPhase)
 	{
 		case PHASE_CLIENT_CONNECTING:
-			sys_log(1, "PHASE_CLIENT_DESC::CONNECTING");
+			metin2::log::debug( "PHASE_CLIENT_DESC::CONNECTING");
 			m_pInputProcessor = nullptr;
 			break;
 
 		case PHASE_DBCLIENT:
 			{
-				sys_log(1, "PHASE_DBCLIENT");
+				metin2::log::debug( "PHASE_DBCLIENT");
 
 				if (!g_bAuthServer)
 				{
@@ -196,7 +196,7 @@ void CLIENT_DESC::SetPhase(int iPhase)
 						}
 					}
 
-					sys_log(0, "DB_SETUP current user %d size %d", p.dwLoginCount, buf.size());
+					metin2::log::info( "DB_SETUP current user {:d} size {:d}", p.dwLoginCount, buf.size());
 
 					// Party processing is now possible.
 					CPartyManager::instance().EnablePCParty();
@@ -213,7 +213,7 @@ void CLIENT_DESC::SetPhase(int iPhase)
 			break;
 
 		case PHASE_P2P:
-			sys_log(1, "PHASE_P2P");
+			metin2::log::debug( "PHASE_P2P");
 			m_pInputProcessor = &m_inputP2P;
 			break;
 
@@ -236,11 +236,11 @@ void CLIENT_DESC::DBPacketHeader(uint8_t bHeader, uint32_t dwHandle, uint32_t dw
 void CLIENT_DESC::DBPacket(uint8_t bHeader, uint32_t dwHandle, const void * c_pvData, uint32_t dwSize)
 {
 	if (!m_connection) {
-		sys_log(0, "CLIENT_DESC [%s] trying DBPacket() while not connected",
+		metin2::log::info( "CLIENT_DESC [{}] trying DBPacket() while not connected",
 			GetKnownClientDescName(this));
 		return;
 	}
-	sys_log(1, "DB_PACKET: header %d handle %d size %d pending %zu", bHeader, dwHandle, dwSize, m_connection->pending_output());
+	metin2::log::debug( "DB_PACKET: header {:d} handle {:d} size {:d} pending {:d}", bHeader, dwHandle, dwSize, m_connection->pending_output());
 	DBPacketHeader(bHeader, dwHandle, dwSize);
 
 	if (c_pvData)
@@ -250,7 +250,7 @@ void CLIENT_DESC::DBPacket(uint8_t bHeader, uint32_t dwHandle, const void * c_pv
 void CLIENT_DESC::Packet(const void * c_pvData, int iSize)
 {
 	if (!m_connection) {
-		sys_log(0, "CLIENT_DESC [%s] trying Packet() while not connected",
+		metin2::log::info( "CLIENT_DESC [{}] trying Packet() while not connected",
 			GetKnownClientDescName(this));
 		return;
 	}

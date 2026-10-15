@@ -21,7 +21,7 @@
 
 #include <common/length.h>
 #include <common/tables.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <cmath>
 #include <cstdint>
@@ -107,7 +107,7 @@ void CObject::EncodeInsertPacket(CEntity * entity)
 	if (!(d = entity->GetDesc()))
 		return;
 
-	sys_log(0, "ObjectInsertPacket vid %u vnum %u rot %f %f %f", 
+	metin2::log::info( "ObjectInsertPacket vid {:d} vnum {:d} rot {:f} {:f} {:f}", 
 			m_dwVID, m_data.dwVnum, m_data.xRot, m_data.yRot, m_data.zRot);
 
 	TPacketGCCharacterAdd pack;
@@ -142,7 +142,7 @@ void CObject::EncodeRemovePacket(CEntity * entity)
 	if (!(d = entity->GetDesc()))
 		return;
 
-	sys_log(0, "ObjectRemovePacket vid %u", m_dwVID);
+	metin2::log::info( "ObjectRemovePacket vid {:d}", m_dwVID);
 
 	TPacketGCCharacterDelete pack;
 
@@ -163,7 +163,7 @@ bool CObject::Show(int32_t lMapIndex, int32_t x, int32_t y)
 
 	if (!tree)
 	{
-		sys_err("cannot find sectree by %dx%d mapindex %d", x, y, lMapIndex);
+		metin2::log::error("cannot find sectree by {:d}x{:d} mapindex {:d}", x, y, lMapIndex);
 		return false;
 	}
 
@@ -302,7 +302,7 @@ void CObject::RegenNPC()
 
 	if (!m_chNPC)
 	{
-		sys_err("Cannot create guild npc");
+		metin2::log::error("Cannot create guild npc");
 		return;
 	}
 
@@ -458,7 +458,7 @@ void CLand::DeleteObject(uint32_t dwID)
 	if (!(pkObj = FindObject(dwID)))
 		return;
 
-	sys_log(0, "Land::DeleteObject %u", dwID);
+	metin2::log::info( "Land::DeleteObject {:d}", dwID);
 	CManager::instance().UnregisterObject(pkObj);
 	CHARACTER_MANAGER::instance().DestroyCharacter(pkObj->GetNPC());
 
@@ -503,14 +503,14 @@ bool CLand::RequestCreateObject(uint32_t dwVnum, int32_t lMapIndex, int32_t x, i
 
 	if (!pkProto)
 	{
-		sys_err("Invalid Object vnum %u", dwVnum);
+		metin2::log::error("Invalid Object vnum {:d}", dwVnum);
 		return false;
 	}
 	const TMapRegion * r = rkSecTreeMgr.GetMapRegion(lMapIndex);
 	if (!r)
 		return false;
 
-	sys_log(0, "RequestCreateObject(vnum=%u, map=%d, pos=(%d,%d), rot=(%.1f,%.1f,%.1f) region(%d,%d ~ %d,%d)", 
+	metin2::log::info( "RequestCreateObject(vnum={:d}, map={:d}, pos=({:d},{:d}), rot=({:.1f},{:.1f},{:.1f}) region({:d},{:d} ~ {:d},{:d})", 
 			dwVnum, lMapIndex, x, y, xRot, yRot, zRot, r->sx, r->sy, r->ex, r->ey);
 
 	x += r->sx;
@@ -536,7 +536,7 @@ bool CLand::RequestCreateObject(uint32_t dwVnum, int32_t lMapIndex, int32_t x, i
 
 	if (tsx < sx || tex > ex || tsy < sy || tey > ey)
 	{
-		sys_err("invalid position: object is outside of land region\nLAND: %d %d ~ %d %d\nOBJ: %d %d ~ %d %d", sx, sy, ex, ey, osx, osy, oex, oey);
+		metin2::log::error("invalid position: object is outside of land region\nLAND: {:d} {:d} ~ {:d} {:d}\nOBJ: {:d} {:d} ~ {:d} {:d}", sx, sy, ex, ey, osx, osy, oex, oey);
 		return false;
 	}
 
@@ -545,7 +545,7 @@ bool CLand::RequestCreateObject(uint32_t dwVnum, int32_t lMapIndex, int32_t x, i
 	{
 		if (rkSecTreeMgr.ForAttrRegion(lMapIndex, osx, osy, oex, oey, (int32_t)zRot, ATTR_OBJECT, ATTR_REGION_MODE_CHECK))
 		{
-			sys_err("another object already exist");
+			metin2::log::error("another object already exist");
 			return false;
 		}
 		FIsIn f (osx, osy, oex, oey);
@@ -553,7 +553,7 @@ bool CLand::RequestCreateObject(uint32_t dwVnum, int32_t lMapIndex, int32_t x, i
 		
 		if (f.bIn)
 		{
-			sys_err("another object already exist");
+			metin2::log::error("another object already exist");
 			return false;
 		}
 	}
@@ -578,12 +578,12 @@ void CLand::RequestDeleteObject(uint32_t dwID)
 {
 	if (!FindObject(dwID))
 	{
-		sys_err("no object by id %u", dwID);
+		metin2::log::error("no object by id {:d}", dwID);
 		return;
 	}
 
 	db_clientdesc->DBPacket(HEADER_GD_DELETE_OBJECT, 0, &dwID, sizeof(uint32_t));
-	sys_log(0, "RequestDeleteObject id %u", dwID);
+	metin2::log::info( "RequestDeleteObject id {:d}", dwID);
 }
 
 void CLand::RequestDeleteObjectByVID(uint32_t dwVID)
@@ -592,13 +592,13 @@ void CLand::RequestDeleteObjectByVID(uint32_t dwVID)
 
 	if (!(pkObj = FindObjectByVID(dwVID)))
 	{
-		sys_err("no object by vid %u", dwVID);
+		metin2::log::error("no object by vid {:d}", dwVID);
 		return;
 	}
 
 	uint32_t dwID = pkObj->GetID();
 	db_clientdesc->DBPacket(HEADER_GD_DELETE_OBJECT, 0, &dwID, sizeof(uint32_t));
-	sys_log(0, "RequestDeleteObject vid %u id %u", dwVID, dwID);
+	metin2::log::info( "RequestDeleteObject vid {:d} id {:d}", dwVID, dwID);
 }
 
 void CLand::SetOwner(uint32_t dwGuild)
@@ -618,7 +618,7 @@ void CLand::RequestUpdate(uint32_t dwGuild)
 	a[1] = dwGuild;
 
 	db_clientdesc->DBPacket(HEADER_GD_UPDATE_LAND, 0, &a[0], sizeof(uint32_t) * 2);
-	sys_log(0, "RequestUpdate id %u guild %u", a[0], a[1]);
+	metin2::log::info( "RequestUpdate id {:d} guild {:d}", a[0], a[1]);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -647,7 +647,7 @@ bool CManager::LoadObjectProto(const TObjectProto * pProto, int size) // from DB
 		TObjectProto & r = m_vec_kObjectProto[i];
 
 		// BUILDING_NPC
-		sys_log(0, "ObjectProto %u price %u upgrade %u upg_limit %u life %d NPC %u",
+		metin2::log::info( "ObjectProto {:d} price {:d} upgrade {:d} upg_limit {:d} life {:d} NPC {:d}",
 				r.dwVnum, r.dwPrice, r.dwUpgradeVnum, r.dwUpgradeLimitTime, r.lLife, r.dwNPCVnum);
 		// END_OF_BUILDING_NPC
 
@@ -658,11 +658,11 @@ bool CManager::LoadObjectProto(const TObjectProto * pProto, int size) // from DB
 
 			if (nullptr == ITEM_MANAGER::instance().GetTable(r.kMaterials[j].dwItemVnum))
 			{
-				sys_err("          mat: ERROR!! no item by vnum %u", r.kMaterials[j].dwItemVnum);
+				metin2::log::error("          mat: ERROR!! no item by vnum {:d}", r.kMaterials[j].dwItemVnum);
 				return false;
 			}
 
-			sys_log(0, "          mat: %u %u", r.kMaterials[j].dwItemVnum, r.kMaterials[j].dwCount);
+			metin2::log::info( "          mat: {:d} {:d}", r.kMaterials[j].dwItemVnum, r.kMaterials[j].dwCount);
 		}
 
 		m_map_pkObjectProto.insert(std::make_pair(r.dwVnum, &m_vec_kObjectProto[i]));
@@ -692,7 +692,7 @@ bool CManager::LoadLand(TLand * pTable) // from DB
 	uint32_t dwID = pkLand->GetID();
 	m_map_pkLand.insert(std::make_pair(dwID, std::move(pkLand)));
 
-	sys_log(0, "LAND: %u map %d %dx%d w %u h %u", 
+	metin2::log::info( "LAND: {:d} map {:d} {:d}x{:d} w {:d} h {:d}", 
 			pTable->dwID, pTable->lMapIndex, pTable->x, pTable->y, pTable->width, pTable->height);
 
 	return true;
@@ -704,7 +704,7 @@ void CManager::UpdateLand(TLand * pTable)
 
 	if (!pkLand)
 	{
-		sys_err("cannot find land by id %u", pTable->dwID);
+		metin2::log::error("cannot find land by id {:d}", pTable->dwID);
 		return;
 	}
 
@@ -728,7 +728,7 @@ void CManager::UpdateLand(TLand * pTable)
 	e.height = pTable->height;
 	e.dwGuildID = pTable->dwGuildID;
 
-	sys_log(0, "BUILDING: UpdateLand %u pos %dx%d guild %u", e.dwID, e.x, e.y, e.dwGuildID);
+	metin2::log::info( "BUILDING: UpdateLand {:d} pos {:d}x{:d} guild {:d}", e.dwID, e.x, e.y, e.dwGuildID);
 
 	CGuild *guild = CGuildManager::instance().FindGuild(pTable->dwGuildID);
 	while (it != cont.end())
@@ -758,7 +758,7 @@ CLand * CManager::FindLand(uint32_t dwID)
 
 CLand * CManager::FindLand(int32_t lMapIndex, int32_t x, int32_t y)
 {
-	sys_log(0, "BUILDING: FindLand %d %d %d", lMapIndex, x, y);
+	metin2::log::info( "BUILDING: FindLand {:d} {:d} {:d}", lMapIndex, x, y);
 
 	const TMapRegion * r = SECTREE_MANAGER::instance().GetMapRegion(lMapIndex);
 
@@ -814,7 +814,7 @@ bool CManager::LoadObject(TObject * pTable, bool isBoot) // from DB
 
 	if (!pkLand)
 	{
-		sys_log(0, "Cannot find land by id %u", pTable->dwLandID);
+		metin2::log::info( "Cannot find land by id {:d}", pTable->dwLandID);
 		return false;
 	}
 
@@ -822,11 +822,11 @@ bool CManager::LoadObject(TObject * pTable, bool isBoot) // from DB
 
 	if (!pkProto)
 	{
-		sys_err("Cannot find object %u in prototype (id %u)", pTable->dwVnum, pTable->dwID);
+		metin2::log::error("Cannot find object {:d} in prototype (id {:d})", pTable->dwVnum, pTable->dwID);
 		return false;
 	}
 
-	sys_log(0, "OBJ: id %u vnum %u map %d pos %dx%d", pTable->dwID, pTable->dwVnum, pTable->lMapIndex, pTable->x, pTable->y);
+	metin2::log::info( "OBJ: id {:d} vnum {:d} map {:d} pos {:d}x{:d}", pTable->dwID, pTable->dwVnum, pTable->lMapIndex, pTable->x, pTable->y);
 
 	CObject * pkObj = new CObject(pTable, pkProto);
 
@@ -875,7 +875,7 @@ void CManager::FinalizeBoot()
 	}
 
 	// BUILDING_NPC
-	sys_log(0, "FinalizeBoot");
+	metin2::log::info( "FinalizeBoot");
 	// END_OF_BUILDING_NPC
 
 	auto it2 = m_map_pkLand.begin();
@@ -887,7 +887,7 @@ void CManager::FinalizeBoot()
 		const TLand & r = pkLand->GetData();
 
 		// LAND_MASTER_LOG	
-		sys_log(0, "LandMaster map_index=%d pos=(%d, %d)", r.lMapIndex, r.x, r.y);
+		metin2::log::info( "LandMaster map_index={:d} pos=({:d}, {:d})", r.lMapIndex, r.x, r.y);
 		// END_OF_LAND_MASTER_LOG
 
 		if (r.dwGuildID != 0)
@@ -906,7 +906,7 @@ void CManager::FinalizeBoot()
 
 void CManager::DeleteObject(uint32_t dwID) // from DB
 {
-	sys_log(0, "OBJ_DEL: %u", dwID);
+	metin2::log::info( "OBJ_DEL: {:d}", dwID);
 
 	auto it = m_map_pkObjByID.find(dwID);
 
@@ -970,7 +970,7 @@ void CManager::SendLandList(DESC * d, int32_t lMapIndex)
 		++wCount;
 	}
 
-	sys_log(0, "SendLandList map %d count %u elem_size: %d", lMapIndex, wCount, buf.size());
+	metin2::log::info( "SendLandList map {:d} count {:d} elem_size: {:d}", lMapIndex, wCount, buf.size());
 
 	if (wCount != 0)
 	{
@@ -991,13 +991,13 @@ void CManager::ClearLand(uint32_t dwLandID)
 
 	if ( pLand == nullptr )
 	{
-		sys_log(0, "LAND_CLEAR: there is no LAND id like %d", dwLandID);
+		metin2::log::info( "LAND_CLEAR: there is no LAND id like {:d}", dwLandID);
 		return;
 	}
 
 	pLand->ClearLand();
 
-	sys_log(0, "LAND_CLEAR: request Land Clear. LandID: %d", pLand->GetID());
+	metin2::log::info( "LAND_CLEAR: request Land Clear. LandID: {:d}", pLand->GetID());
 }
 
 void CManager::ClearLandByGuildID(uint32_t dwGuildID)
@@ -1006,13 +1006,13 @@ void CManager::ClearLandByGuildID(uint32_t dwGuildID)
 
 	if ( pLand == nullptr )
 	{
-		sys_log(0, "LAND_CLEAR: there is no GUILD id like %d", dwGuildID);
+		metin2::log::info( "LAND_CLEAR: there is no GUILD id like {:d}", dwGuildID);
 		return;
 	}
 
 	pLand->ClearLand();
 
-	sys_log(0, "LAND_CLEAR: request Land Clear. LandID: %d", pLand->GetID());
+	metin2::log::info( "LAND_CLEAR: request Land Clear. LandID: {:d}", pLand->GetID());
 }
 
 void CLand::ClearLand()

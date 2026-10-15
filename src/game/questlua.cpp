@@ -21,7 +21,7 @@
 
 #include <common/length.h>
 #include <libsql/query.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/utils.h>
 
 #include <climits>
@@ -52,7 +52,7 @@ namespace quest
 		}
 		else
 		{
-			quest_err("LUA ScriptRunError (code:%d src:[%s])", errcode, str.c_str());
+			quest::error("LUA ScriptRunError (code:{:d} src:[{}])", errcode, str.c_str());
 		}
 		lua_settop(L,x);
 		return retstr;
@@ -187,7 +187,7 @@ namespace quest
 		int bStart = lua_toboolean(L, -1);
 		if (errcode)
 		{
-			quest_err("LUA ScriptRunError (code:%d src:[%.*s])", errcode, static_cast<int>(size), code);
+			quest::error("LUA ScriptRunError (code:{:d} src:[{}])", errcode, std::string_view(code, static_cast<int>(size)));
 		}
 		lua_settop(L,x);
 		return bStart != 0;
@@ -270,7 +270,7 @@ namespace quest
 	{
 		if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2) || !lua_isnumber(L, 3) || !lua_isnumber(L, 4))
 		{
-			quest_err("invalid argument");
+			quest::error("invalid argument");
 			return 0;
 		}
 
@@ -285,7 +285,7 @@ namespace quest
 			count = 1;
 		else if (count > 10)
 		{
-			quest_err("count bigger than 10");
+			quest::error("count bigger than 10");
 			count = 10;
 		}
 
@@ -340,7 +340,7 @@ namespace quest
 	{
 		if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2) || !lua_isnumber(L, 3) || !lua_isnumber(L, 4) || !lua_isnumber(L, 6))
 		{
-			quest_err("invalid argument");
+			quest::error("invalid argument");
 			lua_pushnumber(L, 0);
 			return 1;
 		}
@@ -356,7 +356,7 @@ namespace quest
 			count = 1;
 		else if (count > 10)
 		{
-			quest_err("count bigger than 10");
+			quest::error("count bigger than 10");
 			count = 10;
 		}
 
@@ -433,7 +433,7 @@ namespace quest
 
 		if (lua_isnil(L,-1))
 		{
-			quest_err("QUEST wrong quest state file for quest %s",questName);
+			quest::error("QUEST wrong quest state file for quest {}",questName);
 			lua_settop(L,x);
 			return;
 		}
@@ -539,10 +539,10 @@ namespace quest
 			snprintf(settingsFileName, sizeof(settingsFileName), "%s/settings.lua", LocaleService_GetBasePath().c_str());
 
 			int settingsLoadingResult = lua_dofile(L, settingsFileName);
-			sys_log(0, "LoadSettings(%s), returns %d", settingsFileName, settingsLoadingResult);
+			metin2::log::info( "LoadSettings({}), returns {:d}", settingsFileName, settingsLoadingResult);
 			if (settingsLoadingResult != 0)
 			{
-				quest_err("LOAD_SETTINS_FAILURE(%s)", settingsFileName);
+				quest::error("LOAD_SETTINS_FAILURE({})", settingsFileName);
 				return false;
 			}
 		}
@@ -552,10 +552,10 @@ namespace quest
 			snprintf(questlibFileName, sizeof(questlibFileName), "%s/questlib.lua", LocaleService_GetQuestPath().c_str());
 
 			int questlibLoadingResult = lua_dofile(L, questlibFileName);
-			sys_log(0, "LoadQuestlib(%s), returns %d", questlibFileName, questlibLoadingResult);
+			metin2::log::info( "LoadQuestlib({}), returns {:d}", questlibFileName, questlibLoadingResult);
 			if (questlibLoadingResult != 0)
 			{
-				quest_err("LOAD_QUESTLIB_FAILURE(%s)", questlibFileName);
+				quest::error("LOAD_QUESTLIB_FAILURE({})", questlibFileName);
 				return false;
 			}
 		}
@@ -564,10 +564,10 @@ namespace quest
 		snprintf(translateFileName, sizeof(translateFileName), "%s/translate.lua", LocaleService_GetBasePath().c_str());
 
 		int translateLoadingResult = lua_dofile(L, translateFileName);
-		sys_log(0, "LoadTranslate(%s), returns %d", translateFileName, translateLoadingResult);
+		metin2::log::info( "LoadTranslate({}), returns {:d}", translateFileName, translateLoadingResult);
 		if (translateLoadingResult != 0)
 		{
-			quest_err("LOAD_TRANSLATE_ERROR(%s)", translateFileName);
+			quest::error("LOAD_TRANSLATE_ERROR({})", translateFileName);
 			return false;
 		}
 
@@ -576,10 +576,10 @@ namespace quest
 			snprintf(questLocaleFileName, sizeof(questLocaleFileName), "%s/locale.lua", g_stQuestDir.c_str());
 
 			int questLocaleLoadingResult = lua_dofile(L, questLocaleFileName);
-			sys_log(0, "LoadQuestLocale(%s), returns %d", questLocaleFileName, questLocaleLoadingResult);
+			metin2::log::info( "LoadQuestLocale({}), returns {:d}", questLocaleFileName, questLocaleLoadingResult);
 			if (questLocaleLoadingResult != 0)
 			{
-				quest_err("LoadQuestLocale(%s) FAILURE", questLocaleFileName);
+				quest::error("LoadQuestLocale({}) FAILURE", questLocaleFileName);
 				return false;
 			}
 		}
@@ -606,7 +606,7 @@ namespace quest
 
 					RegisterQuest(pde->d_name, ++iQuestIdx);
 					int ret = lua_dofile(L, (stQuestObjectDir + "/state/" + pde->d_name).c_str());
-					sys_log(0, "QUEST: loading %s, returns %d", (stQuestObjectDir + "/state/" + pde->d_name).c_str(), ret);
+					metin2::log::info( "QUEST: loading {}, returns {:d}", (stQuestObjectDir + "/state/" + pde->d_name).c_str(), ret);
 
 					BuildStateIndexToName(pde->d_name);
 				}
@@ -644,8 +644,8 @@ namespace quest
 			}
 			else
 			{
-				quest_err("SELECT wrong data %s", lua_typename(qs.co, -1));
-				quest_err("here");
+				quest::error("SELECT wrong data {}", lua_typename(qs.co, -1));
+				quest::error("here");
 			}
 			lua_pop(qs.co,1);
 		}
@@ -655,7 +655,7 @@ namespace quest
 		AddScript(os.str());
 		qs.suspend_state = SUSPEND_STATE_SELECT;
 		if ( test_server )
-			sys_log( 0, "%s", m_strScript.c_str() );
+			metin2::log::info( "{}", m_strScript.c_str() );
 		SendScript();
 	}
 
@@ -677,7 +677,7 @@ namespace quest
 
 		if ( info == nullptr )
 		{
-			quest_err( "confirm_timeout_event> <Factor> Null pointer" );
+			quest::error( "confirm_timeout_event> <Factor> Null pointer" );
 			return 0;
 		}
 
@@ -704,7 +704,7 @@ namespace quest
 		const char* szMsg = lua_tostring(qs.co, -2);
 		int iTimeout = (int) lua_tonumber(qs.co, -1);
 
-		sys_log(0, "GotoConfirmState vid %u msg '%s', timeout %d", dwVID, szMsg, iTimeout);
+		metin2::log::info( "GotoConfirmState vid {:d} msg '{}', timeout {:d}", dwVID, szMsg, iTimeout);
 
 		// 1. Show a confirmation window to the other party
 		// 2. Show me a window saying we're waiting for confirmation
@@ -832,7 +832,7 @@ namespace quest
 		}
 		else
 		{
-			quest_err("LUA_ERROR: %s", lua_tostring(qs.co, 1));
+			quest::error("LUA_ERROR: {}", lua_tostring(qs.co, 1));
 		}
 
 		WriteRunningStateToSyserr();

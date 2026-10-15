@@ -4,7 +4,7 @@
 #include "image_file.h"
 #include "lzo_manager.h"
 
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <lzo/lzo1x.h>
 
@@ -27,7 +27,7 @@ bool CGuildMarkImage::Save(const char* c_szFileName)
 
 bool CGuildMarkImage::Build(const char * c_szFileName)
 {
-	sys_log(0, "GuildMarkImage: creating new file %s", c_szFileName);
+	metin2::log::info( "GuildMarkImage: creating new file {}", c_szFileName);
 
 	std::ranges::fill(m_pixels, 0);
 	return Save(c_szFileName);
@@ -41,19 +41,19 @@ bool CGuildMarkImage::Load(const char * c_szFileName)
 
 	if (pixels.empty())
 	{
-		sys_err("GuildMarkImage: %s cannot open file.", c_szFileName);
+		metin2::log::error("GuildMarkImage: {} cannot open file.", c_szFileName);
 		return false;
 	}
 
 	if (width != WIDTH)
 	{
-		sys_err("GuildMarkImage: %s width must be %u", c_szFileName, WIDTH);
+		metin2::log::error("GuildMarkImage: {} width must be {:d}", c_szFileName, WIDTH);
 		return false;
 	}
 
 	if (height != HEIGHT)
 	{
-		sys_err("GuildMarkImage: %s height must be %u", c_szFileName, HEIGHT);
+		metin2::log::error("GuildMarkImage: {} height must be {:d}", c_szFileName, HEIGHT);
 		return false;
 	}
 
@@ -87,7 +87,7 @@ bool CGuildMarkImage::SaveMark(uint32_t posMark, uint8_t * pbImage)
 {
 	if (posMark >= MARK_TOTAL_COUNT)
 	{
-		sys_err("GuildMarkImage::CopyMarkFromData: Invalid mark position %u", posMark);
+		metin2::log::error("GuildMarkImage::CopyMarkFromData: Invalid mark position {:d}", posMark);
 		return false;
 	}
 
@@ -118,7 +118,7 @@ bool CGuildMarkImage::DeleteMark(uint32_t posMark)
 void CGuildMarkImage::BuildAllBlocks() // Split the whole image into blocks
 {
 	Pixel apxBuf[SGuildMarkBlock::SIZE];
-	sys_log(0, "GuildMarkImage::BuildAllBlocks");
+	metin2::log::info( "GuildMarkImage::BuildAllBlocks");
 
 	for (uint32_t row = 0; row < BLOCK_ROW_COUNT; ++row)
 		for (uint32_t col = 0; col < BLOCK_COL_COUNT; ++col)
@@ -150,7 +150,7 @@ void SGuildMarkBlock::Compress(const Pixel * pxBuf)
 
 	if (LZO_E_OK != lzo1x_1_compress((const uint8_t *) pxBuf, sizeof(Pixel) * SGuildMarkBlock::SIZE, m_abCompBuf, &m_sizeCompBuf, LZOManager::instance().GetWorkMemory()))
 	{
-		sys_err("SGuildMarkBlock::Compress: Error! %zu > %lu", sizeof(Pixel) * SGuildMarkBlock::SIZE, static_cast<unsigned long>(m_sizeCompBuf));
+		metin2::log::error("SGuildMarkBlock::Compress: Error! {:d} > {:d}", sizeof(Pixel) * SGuildMarkBlock::SIZE, static_cast<unsigned long>(m_sizeCompBuf));
 		return;
 	}
 

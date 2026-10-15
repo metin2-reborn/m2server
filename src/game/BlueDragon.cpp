@@ -10,7 +10,7 @@
 #include "sectree_manager.h"
 #include "typedef.h"
 
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/utils.h>
 
 #include <cstddef>
@@ -30,7 +30,7 @@ time_t UseBlueDragonSkill(CHARACTER * pChar, unsigned int idx)
 	{
 		case 0:
 			{
-				sys_log(0, "BlueDragon: Using Skill Breath");
+				metin2::log::info( "BlueDragon: Using Skill Breath");
 
 				FSkillBreath f(pChar);
 
@@ -42,7 +42,7 @@ time_t UseBlueDragonSkill(CHARACTER * pChar, unsigned int idx)
 
 		case 1:
 			{
-				sys_log(0, "BlueDragon: Using Skill Weak Breath");
+				metin2::log::info( "BlueDragon: Using Skill Weak Breath");
 
 				FSkillWeakBreath f(pChar);
 
@@ -54,7 +54,7 @@ time_t UseBlueDragonSkill(CHARACTER * pChar, unsigned int idx)
 
 		case 2:
 			{
-				sys_log(0, "BlueDragon: Using Skill EarthQuake");
+				metin2::log::info( "BlueDragon: Using Skill EarthQuake");
 
 				FSkillEarthQuake f(pChar);
 
@@ -70,7 +70,7 @@ time_t UseBlueDragonSkill(CHARACTER * pChar, unsigned int idx)
 			break;
 
 		default:
-			sys_err("BlueDragon: Wrong Skill Index: %d", idx);
+			metin2::log::error("BlueDragon: Wrong Skill Index: {:d}", idx);
 			return 0;
 	}
 

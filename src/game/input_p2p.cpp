@@ -20,7 +20,7 @@
 #include "xmas_event.h"
 
 #include <common/length.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <algorithm>
 #include <cstddef>
@@ -56,12 +56,12 @@ int CInputP2P::Relay(DESC * d, const char * c_pData, size_t uiBytes)
 
 	if (p->lSize < 0)
 	{
-		sys_err("invalid packet length %d", p->lSize);
+		metin2::log::error("invalid packet length {:d}", p->lSize);
 		d->SetPhase(PHASE_CLOSE);
 		return -1;
 	}
 
-	sys_log(0, "InputP2P::Relay : %s size %d", p->szName, p->lSize);
+	metin2::log::info( "InputP2P::Relay : {} size {:d}", p->szName, p->lSize);
 
 	CHARACTER * pkChr = CHARACTER_MANAGER::instance().FindPC(p->szName);
 
@@ -117,7 +117,7 @@ int CInputP2P::Notice(DESC * d, const char * c_pData, size_t uiBytes)
 
 	if (p->lSize < 0)
 	{
-		sys_err("invalid packet length %d", p->lSize);
+		metin2::log::error("invalid packet length {:d}", p->lSize);
 		d->SetPhase(PHASE_CLOSE);
 		return -1;
 	}
@@ -137,7 +137,7 @@ int CInputP2P::MonarchNotice(DESC * d, const char * c_pData, size_t uiBytes)
 
 	if (p->lSize < 0)
 	{
-		sys_err("invalid packet length %d", p->lSize);
+		metin2::log::error("invalid packet length {:d}", p->lSize);
 		d->SetPhase(PHASE_CLOSE);
 		return -1;
 	}
@@ -205,7 +205,7 @@ int CInputP2P::Guild(DESC * d, const char* c_pData, size_t uiBytes)
 				return sizeof(int);
 			}
 		default:
-			sys_err ("UNKNOWN GUILD SUB PACKET");
+			metin2::log::error("UNKNOWN GUILD SUB PACKET");
 			break;
 	}
 	return 0;
@@ -262,21 +262,21 @@ void CInputP2P::Disconnect(const char * c_pData)
 void CInputP2P::Setup(DESC * d, const char * c_pData)
 {
 	TPacketGGSetup * p = (TPacketGGSetup *) c_pData;
-	sys_log(0, "P2P: Setup %s:%d", d->GetHostName(), p->wPort);
+	metin2::log::info( "P2P: Setup {}:{:d}", d->GetHostName(), p->wPort);
 	d->SetP2P(d->GetHostName(), p->wPort);
 }
 
 void CInputP2P::MessengerAdd(const char * c_pData)
 {
 	TPacketGGMessenger * p = (TPacketGGMessenger *) c_pData;
-	sys_log(0, "P2P: Messenger Add %s %s", p->szAccount, p->szCompanion);
+	metin2::log::info( "P2P: Messenger Add {} {}", p->szAccount, p->szCompanion);
 	MessengerManager::instance().__AddToList(p->szAccount, p->szCompanion);
 }
 
 void CInputP2P::MessengerRemove(const char * c_pData)
 {
 	TPacketGGMessenger * p = (TPacketGGMessenger *) c_pData;
-	sys_log(0, "P2P: Messenger Remove %s %s", p->szAccount, p->szCompanion);
+	metin2::log::info( "P2P: Messenger Remove {} {}", p->szAccount, p->szCompanion);
 	MessengerManager::instance().__RemoveFromList(p->szAccount, p->szCompanion);
 }
 
@@ -310,7 +310,7 @@ void CInputP2P::GuildWarZoneMapIndex(const char* c_pData)
 	TPacketGGGuildWarMapIndex * p = (TPacketGGGuildWarMapIndex*) c_pData;
 	CGuildManager & gm = CGuildManager::instance();
 
-	sys_log(0, "P2P: GuildWarZoneMapIndex g1(%u) vs g2(%u), mapIndex(%d)", p->dwGuildID1, p->dwGuildID2, p->lMapIndex);
+	metin2::log::info( "P2P: GuildWarZoneMapIndex g1({:d}) vs g2({:d}), mapIndex({:d})", p->dwGuildID1, p->dwGuildID2, p->lMapIndex);
 
 	CGuild * g1 = gm.FindGuild(p->dwGuildID1);
 	CGuild * g2 = gm.FindGuild(p->dwGuildID2);
@@ -379,12 +379,12 @@ void CInputP2P::BlockChat(const char * c_pData)
 
 	if (ch)
 	{
-		sys_log(0, "BLOCK CHAT apply name %s dur %d", p->szName, p->lBlockDuration);
+		metin2::log::info( "BLOCK CHAT apply name {} dur {:d}", p->szName, p->lBlockDuration);
 		ch->AddAffect(AFFECT_BLOCK_CHAT, POINT_NONE, 0, AFF_NONE, p->lBlockDuration, 0, true);
 	}
 	else
 	{
-		sys_log(0, "BLOCK CHAT fail name %s dur %d", p->szName, p->lBlockDuration);
+		metin2::log::info( "BLOCK CHAT fail name {} dur {:d}", p->szName, p->lBlockDuration);
 	}
 }   
 // END_OF_BLOCK_CHAT
@@ -394,13 +394,13 @@ void CInputP2P::IamAwake(DESC * d, const char * c_pData)
 {
 	std::string hostNames;
 	P2P_MANAGER::instance().GetP2PHostNames(hostNames);
-	sys_log(0, "P2P Awakeness check from %s. My P2P connection number is %d. and details...\n%s", d->GetHostName(), P2P_MANAGER::instance().GetDescCount(), hostNames.c_str());
+	metin2::log::info( "P2P Awakeness check from {}. My P2P connection number is {:d}. and details...\n{}", d->GetHostName(), P2P_MANAGER::instance().GetDescCount(), hostNames.c_str());
 }
 
 int CInputP2P::Analyze(DESC * d, uint8_t bHeader, const char * c_pData)
 {
 	if (test_server)
-		sys_log(0, "CInputP2P::Anlayze[Header %d]", bHeader);
+		metin2::log::info( "CInputP2P::Anlayze[Header {:d}]", bHeader);
 
 	int iExtraLen = 0;
 
@@ -429,7 +429,7 @@ int CInputP2P::Analyze(DESC * d, uint8_t bHeader, const char * c_pData)
 			break;
 
 		case HEADER_GG_SHUTDOWN:
-			sys_err("Accept shutdown p2p command from %s.", d->GetHostName());
+			metin2::log::error("Accept shutdown p2p command from {}.", d->GetHostName());
 			Shutdown(10);
 			break;
 

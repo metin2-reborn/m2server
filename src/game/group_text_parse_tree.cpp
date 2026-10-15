@@ -3,7 +3,7 @@
 #include "file_loader.h"
 
 #include <common/utils.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <algorithm>
 #include <cstddef>
@@ -75,9 +75,9 @@ bool CGroupTextParseTreeLoader::LoadGroup(CGroupNode * pGroupNode)
 		{
 			if (2 != stTokenVector.size())
 			{
-				sys_err("Invalid group syntax token size: %zu != 2 (DO NOT SPACE IN NAME)", stTokenVector.size());
+				metin2::log::error("Invalid group syntax token size: {:d} != 2 (DO NOT SPACE IN NAME)", stTokenVector.size());
 				for (unsigned int i = 0; i < stTokenVector.size(); ++i)
-					sys_err("  %u %s", i, stTokenVector[i].c_str());
+					metin2::log::error("  {:d} {}", i, stTokenVector[i].c_str());
 				exit(1);
 				continue;
 			}
@@ -108,7 +108,7 @@ bool CGroupTextParseTreeLoader::LoadGroup(CGroupNode * pGroupNode)
 
 			if (1 == stTokenVector.size())
 			{
-				sys_err("CGroupTextParseTreeLoader::LoadGroup : must have a value (filename: %s line: %d key: %s)",
+				metin2::log::error("CGroupTextParseTreeLoader::LoadGroup : must have a value (filename: {} line: {:d} key: {})",
 						m_strFileName.c_str(),
 						m_dwcurLineIndex,
 						key.c_str());

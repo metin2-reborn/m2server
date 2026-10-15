@@ -22,7 +22,7 @@
 #include "xmas_event.h"
 
 #include <common/length.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 #include <libthecore/utils.h>
 
 #include <algorithm>
@@ -118,7 +118,7 @@ void CHARACTER_MANAGER::DestroyCharacter(CHARACTER * ch)
 	// <Factor> Check whether it has been already deleted or not.
 	auto it = m_map_pkChrByVID.find(ch->GetVID());
 	if (it == m_map_pkChrByVID.end()) {
-		sys_err("[CHARACTER_MANAGER::DestroyCharacter] <Factor> %d not found", (int32_t)(ch->GetVID()));
+		metin2::log::error("[CHARACTER_MANAGER::DestroyCharacter] <Factor> {:d} not found", (int32_t)(ch->GetVID()));
 		return; // prevent duplicated destrunction
 	}
 
@@ -178,7 +178,7 @@ CHARACTER * CHARACTER_MANAGER::Find(uint32_t dwVID)
 	// <Factor> Added sanity check
 	CHARACTER * found = it->second;
 	if (found != nullptr && dwVID != (uint32_t)found->GetVID()) {
-		sys_err("[CHARACTER_MANAGER::Find] <Factor> %u != %u", dwVID, (uint32_t)found->GetVID());
+		metin2::log::error("[CHARACTER_MANAGER::Find] <Factor> {:d} != {:d}", dwVID, (uint32_t)found->GetVID());
 		return nullptr;
 	}
 	return found;
@@ -204,7 +204,7 @@ CHARACTER * CHARACTER_MANAGER::FindByPID(uint32_t dwPID)
 	// <Factor> Added sanity check
 	CHARACTER * found = it->second;
 	if (found != nullptr && dwPID != found->GetPlayerID()) {
-		sys_err("[CHARACTER_MANAGER::FindByPID] <Factor> %u != %u", dwPID, found->GetPlayerID());
+		metin2::log::error("[CHARACTER_MANAGER::FindByPID] <Factor> {:d} != {:d}", dwPID, found->GetPlayerID());
 		return nullptr;
 	}
 	return found;
@@ -222,7 +222,7 @@ CHARACTER * CHARACTER_MANAGER::FindPC(const char * name)
 	// <Factor> Added sanity check
 	CHARACTER * found = it->second;
 	if (found != nullptr && strncasecmp(szName, found->GetName(), CHARACTER_NAME_MAX_LEN) != 0) {
-		sys_err("[CHARACTER_MANAGER::FindPC] <Factor> %s != %s", name, found->GetName());
+		metin2::log::error("[CHARACTER_MANAGER::FindPC] <Factor> {} != {}", name, found->GetName());
 		return nullptr;
 	}
 	return found;
@@ -234,7 +234,7 @@ CHARACTER * CHARACTER_MANAGER::SpawnMobRandomPosition(uint32_t dwVnum, int32_t l
 	{
 		if (dwVnum == 5001 && !quest::CQuestManager::instance().GetEventFlag("japan_regen"))
 		{
-			sys_log(1, "WAEGU[5001] regen disabled.");
+			metin2::log::debug( "WAEGU[5001] regen disabled.");
 			return nullptr;
 		}
 	}
@@ -243,7 +243,7 @@ CHARACTER * CHARACTER_MANAGER::SpawnMobRandomPosition(uint32_t dwVnum, int32_t l
 	{
 		if (dwVnum == 5002 && !quest::CQuestManager::instance().GetEventFlag("newyear_mob"))
 		{
-			sys_log(1, "HAETAE (new-year-mob) [5002] regen disabled.");
+			metin2::log::debug( "HAETAE (new-year-mob) [5002] regen disabled.");
 			return nullptr;
 		}
 	}
@@ -252,7 +252,7 @@ CHARACTER * CHARACTER_MANAGER::SpawnMobRandomPosition(uint32_t dwVnum, int32_t l
 	{
 		if (dwVnum == 5004 && !quest::CQuestManager::instance().GetEventFlag("independence_day"))
 		{
-			sys_log(1, "INDEPENDECE DAY [5004] regen disabled.");
+			metin2::log::debug( "INDEPENDECE DAY [5004] regen disabled.");
 			return nullptr;
 		}
 	}
@@ -261,13 +261,13 @@ CHARACTER * CHARACTER_MANAGER::SpawnMobRandomPosition(uint32_t dwVnum, int32_t l
 
 	if (!pkMob)
 	{
-		sys_err("no mob data for vnum %u", dwVnum);
+		metin2::log::error("no mob data for vnum {:d}", dwVnum);
 		return nullptr;
 	}
 
 	if (!map_allow_find(lMapIndex))
 	{
-		sys_err("not allowed map %u", lMapIndex);
+		metin2::log::error("not allowed map {:d}", lMapIndex);
 		return nullptr;
 	}
 
@@ -300,7 +300,7 @@ CHARACTER * CHARACTER_MANAGER::SpawnMobRandomPosition(uint32_t dwVnum, int32_t l
 
 	if (i == 2000)
 	{
-		sys_err("cannot find valid location");
+		metin2::log::error("cannot find valid location");
 		return nullptr;
 	}
 
@@ -308,7 +308,7 @@ CHARACTER * CHARACTER_MANAGER::SpawnMobRandomPosition(uint32_t dwVnum, int32_t l
 
 	if (!sectree)
 	{
-		sys_log(0, "SpawnMobRandomPosition: cannot create monster at non-exist sectree %d x %d (map %d)", x, y, lMapIndex);
+		metin2::log::info( "SpawnMobRandomPosition: cannot create monster at non-exist sectree {:d} x {:d} (map {:d})", x, y, lMapIndex);
 		return nullptr;
 	}
 
@@ -316,7 +316,7 @@ CHARACTER * CHARACTER_MANAGER::SpawnMobRandomPosition(uint32_t dwVnum, int32_t l
 
 	if (!ch)
 	{
-		sys_log(0, "SpawnMobRandomPosition: cannot create new character");
+		metin2::log::info( "SpawnMobRandomPosition: cannot create new character");
 		return nullptr;
 	}
 
@@ -332,7 +332,7 @@ CHARACTER * CHARACTER_MANAGER::SpawnMobRandomPosition(uint32_t dwVnum, int32_t l
 	if (!ch->Show(lMapIndex, x, y, 0, false))
 	{
 		CHARACTER_MANAGER::instance().DestroyCharacter(ch);
-		sys_err("SpawnMobRandomPosition: cannot show monster");
+		metin2::log::error("SpawnMobRandomPosition: cannot show monster");
 		return nullptr;
 	}
 
@@ -344,7 +344,7 @@ CHARACTER * CHARACTER_MANAGER::SpawnMobRandomPosition(uint32_t dwVnum, int32_t l
 	if (test_server)
 		SendNotice(buf);
 
-	sys_log(0, "%s", buf);
+	metin2::log::info( "{}", buf);
 	return (ch);
 }
 
@@ -353,7 +353,7 @@ CHARACTER * CHARACTER_MANAGER::SpawnMob(uint32_t dwVnum, int32_t lMapIndex, int3
 	const CMob * pkMob = CMobManager::instance().Get(dwVnum);
 	if (!pkMob)
 	{
-		sys_err("SpawnMob: no mob data for vnum %u", dwVnum);
+		metin2::log::error("SpawnMob: no mob data for vnum {:d}", dwVnum);
 		return nullptr;
 	}
 
@@ -363,7 +363,7 @@ CHARACTER * CHARACTER_MANAGER::SpawnMob(uint32_t dwVnum, int32_t lMapIndex, int3
 
 		if (!tree)
 		{
-			sys_log(0, "no sectree for spawn at %d %d mobvnum %d mapindex %d", x, y, dwVnum, lMapIndex);
+			metin2::log::info( "no sectree for spawn at {:d} {:d} mobvnum {:d} mapindex {:d}", x, y, dwVnum, lMapIndex);
 			return nullptr;
 		}
 
@@ -390,14 +390,14 @@ CHARACTER * CHARACTER_MANAGER::SpawnMob(uint32_t dwVnum, int32_t lMapIndex, int3
 			}
 
 			if (s_isLog)
-				sys_log(0, "SpawnMob: BLOCKED position for spawn %s %u at %d %d (attr %u)", pkMob->m_table.szName, dwVnum, x, y, dwAttr);
+				metin2::log::info( "SpawnMob: BLOCKED position for spawn {} {:d} at {:d} {:d} (attr {:d})", pkMob->m_table.szName, dwVnum, x, y, dwAttr);
 			// END_OF_SPAWN_BLOCK_LOG
 			return nullptr;
 		}
 
 		if (IS_SET(dwAttr, ATTR_BANPK))
 		{
-			sys_log(0, "SpawnMob: BAN_PK position for mob spawn %s %u at %d %d", pkMob->m_table.szName, dwVnum, x, y);
+			metin2::log::info( "SpawnMob: BAN_PK position for mob spawn {} {:d} at {:d} {:d}", pkMob->m_table.szName, dwVnum, x, y);
 			return nullptr;
 		}
 	}
@@ -406,7 +406,7 @@ CHARACTER * CHARACTER_MANAGER::SpawnMob(uint32_t dwVnum, int32_t lMapIndex, int3
 
 	if (!sectree)
 	{
-		sys_log(0, "SpawnMob: cannot create monster at non-exist sectree %d x %d (map %d)", x, y, lMapIndex);
+		metin2::log::info( "SpawnMob: cannot create monster at non-exist sectree {:d} x {:d} (map {:d})", x, y, lMapIndex);
 		return nullptr;
 	}
 
@@ -414,7 +414,7 @@ CHARACTER * CHARACTER_MANAGER::SpawnMob(uint32_t dwVnum, int32_t lMapIndex, int3
 
 	if (!ch)
 	{
-		sys_log(0, "SpawnMob: cannot create new character");
+		metin2::log::info( "SpawnMob: cannot create new character");
 		return nullptr;
 	}
 
@@ -433,7 +433,7 @@ CHARACTER * CHARACTER_MANAGER::SpawnMob(uint32_t dwVnum, int32_t lMapIndex, int3
 	if (bShow && !ch->Show(lMapIndex, x, y, z, bSpawnMotion))
 	{
 		CHARACTER_MANAGER::instance().DestroyCharacter(ch);
-		sys_log(0, "SpawnMob: cannot show monster");
+		metin2::log::info( "SpawnMob: cannot show monster");
 		return nullptr;
 	}
 
@@ -460,7 +460,7 @@ CHARACTER * CHARACTER_MANAGER::SpawnMobRange(uint32_t dwVnum, int32_t lMapIndex,
 
 		if (ch)
 		{
-			sys_log(1, "MOB_SPAWN: %s(%d) %dx%d", ch->GetName(), (uint32_t) ch->GetVID(), ch->GetX(), ch->GetY());
+			metin2::log::debug( "MOB_SPAWN: {}({:d}) {:d}x{:d}", ch->GetName(), (uint32_t) ch->GetVID(), ch->GetX(), ch->GetY());
 			if ( bAggressive )
 				ch->SetAggressive();
 			return (ch);
@@ -481,7 +481,7 @@ bool CHARACTER_MANAGER::SpawnMoveGroup(uint32_t dwVnum, int32_t lMapIndex, int s
 
 	if (!pkGroup)
 	{
-		sys_err("NOT_EXIST_GROUP_VNUM(%u) Map(%u) ", dwVnum, lMapIndex);
+		metin2::log::error("NOT_EXIST_GROUP_VNUM({:d}) Map({:d}) ", dwVnum, lMapIndex);
 		return false;
 	}
 
@@ -551,7 +551,7 @@ bool CHARACTER_MANAGER::SpawnGroupGroup(uint32_t dwVnum, int32_t lMapIndex, int 
 	}
 	else
 	{
-		sys_err( "NOT_EXIST_GROUP_GROUP_VNUM(%u) MAP(%d)", dwVnum, lMapIndex );
+		metin2::log::error( "NOT_EXIST_GROUP_GROUP_VNUM({:d}) MAP({:d})", dwVnum, lMapIndex );
 		return false;
 	}
 }
@@ -562,7 +562,7 @@ CHARACTER * CHARACTER_MANAGER::SpawnGroup(uint32_t dwVnum, int32_t lMapIndex, in
 
 	if (!pkGroup)
 	{
-		sys_err("NOT_EXIST_GROUP_VNUM(%u) Map(%u) ", dwVnum, lMapIndex);
+		metin2::log::error("NOT_EXIST_GROUP_VNUM({:d}) Map({:d}) ", dwVnum, lMapIndex);
 		return nullptr;
 	}
 
@@ -695,7 +695,7 @@ void CHARACTER_MANAGER::Update(int iPulse)
 
 	// on the test server, count characters every 60 seconds
 	if (test_server && 0 == (iPulse % PASSES_PER_SEC(60)))
-		sys_log(0, "CHARACTER COUNT vid %zu pid %zu", m_map_pkChrByVID.size(), m_map_pkChrByPID.size());
+		metin2::log::info( "CHARACTER COUNT vid {:d} pid {:d}", m_map_pkChrByVID.size(), m_map_pkChrByPID.size());
 
 	// perform delayed DestroyCharacter
 	FlushPendingDestroy();
@@ -815,7 +815,7 @@ void CHARACTER_MANAGER::RegisterRaceNumMap(CHARACTER * ch)
 
 	if (m_set_dwRegisteredRaceNum.find(dwVnum) != m_set_dwRegisteredRaceNum.end()) // if it's a registered number
 	{
-		sys_log(0, "RegisterRaceNumMap %s %u", ch->GetName(), dwVnum);
+		metin2::log::info( "RegisterRaceNumMap {} {:d}", ch->GetName(), dwVnum);
 		m_map_pkChrByRaceNum[dwVnum].insert(ch);
 	}
 }
@@ -970,7 +970,7 @@ void CHARACTER_MANAGER::FlushPendingDestroy()
 
 	if (!m_set_pkChrPendingDestroy.empty())
 	{
-		sys_log(0, "FlushPendingDestroy size %zu", m_set_pkChrPendingDestroy.size());
+		metin2::log::info( "FlushPendingDestroy size {:d}", m_set_pkChrPendingDestroy.size());
 		
 		CHARACTER_SET::iterator it = m_set_pkChrPendingDestroy.begin(),
 			end = m_set_pkChrPendingDestroy.end();

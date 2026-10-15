@@ -11,7 +11,7 @@
 
 #include <common/length.h>
 #include <common/utils.h>
-#include <libthecore/log.h>
+#include <metin2/log/log.h>
 
 #include <cstdint>
 #include <cstdio>
@@ -154,7 +154,7 @@ ACMD(do_emotion)
 
 	if (*emotion_types[i].command == '\n')
 	{
-		sys_err("cannot find emotion");
+		metin2::log::error("cannot find emotion");
 		return;
 	}
 
@@ -270,8 +270,8 @@ ACMD(do_emotion)
 	ch->PacketAround(buf.read_peek(), buf.size());
 
 	if (victim)
-		sys_log(1, "ACTION: %s TO %s", emotion_types[i].command, victim->GetName());
+		metin2::log::debug( "ACTION: {} TO {}", emotion_types[i].command, victim->GetName());
 	else
-		sys_log(1, "ACTION: %s", emotion_types[i].command);
+		metin2::log::debug( "ACTION: {}", emotion_types[i].command);
 }
 
