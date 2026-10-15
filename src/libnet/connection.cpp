@@ -98,6 +98,12 @@ namespace net {
         if (!handler_) {
             return; // the handler closed the connection
         }
+        if (consumed > input_size_) {
+            // never move or drop more than was received
+            sys_err("%s: handler consumed %zu of %zu bytes", address_.c_str(), consumed, input_size_);
+            fail(asio::error::invalid_argument);
+            return;
+        }
 
         if (consumed > 0) {
             std::memmove(input_.data(), input_.data() + consumed, input_size_ - consumed);

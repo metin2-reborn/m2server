@@ -77,6 +77,7 @@ void DESC::Initialize()
 	m_wP2PPort = 0;
 
 	m_bAdminMode = false;
+	m_bMarkLogin = false;
 	m_bPong = true;
 	m_bChannelStatusRequested = false;
 
@@ -374,6 +375,12 @@ void DESC::SetPhase(int _phase)
 void DESC::BindAccountTable(TAccountTable * pAccountTable)
 {
 	assert(pAccountTable != nullptr);
+
+	// A second login on this connection (two requests in flight): the login map must not keep
+	// pointing here under the old name once this connection is gone.
+	if (m_accountTable.id && strcmp(m_accountTable.login, pAccountTable->login) != 0)
+		DESC_MANAGER::instance().DisconnectAccount(m_accountTable.login);
+
 	std::memcpy(&m_accountTable, pAccountTable, sizeof(TAccountTable));
 	DESC_MANAGER::instance().ConnectAccount(m_accountTable.login, this);
 }
@@ -676,6 +683,10 @@ void DESC::SetLoginKey(uint32_t dwKey)
 
 void DESC::SetLoginKey(CLoginKey * pkKey)
 {
+	// The replaced key must not keep pointing at this connection after it is destroyed.
+	if (m_pkLoginKey && m_pkLoginKey != pkKey)
+		m_pkLoginKey->Expire();
+
 	m_pkLoginKey = pkKey;
 	sys_log(0, "SetLoginKey %u", m_pkLoginKey->m_dwKey);
 }
@@ -702,8 +713,8 @@ void DESC::AssembleCRCMagicCube(uint8_t bProcPiece, uint8_t bFilePiece)
 	bProcPiece = (bProcPiece ^ abXORTable[m_bCRCMagicCubeIdx]);
 	bFilePiece = (bFilePiece ^ abXORTable[m_bCRCMagicCubeIdx+1]);
 
-	m_dwProcCRC |= bProcPiece << m_bCRCMagicCubeIdx;
-	m_dwFileCRC |= bFilePiece << m_bCRCMagicCubeIdx;
+	m_dwProcCRC |= static_cast<uint32_t>(bProcPiece) << m_bCRCMagicCubeIdx;
+	m_dwFileCRC |= static_cast<uint32_t>(bFilePiece) << m_bCRCMagicCubeIdx;
 
 	m_bCRCMagicCubeIdx += 8;
 

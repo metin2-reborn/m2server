@@ -4,9 +4,12 @@
 #include "typedef.h"
 
 #include <common/tables.h>
+#include <libthecore/utils.h>
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <map>
 #include <memory>
 #include <vector>
@@ -23,6 +26,20 @@ enum
 };
 
 void LoginFailure(DESC * d, const char * c_pszStatus);
+
+// Copies a fixed-size string field of a client packet, which may lack its NUL terminator, into
+// dst: at most N - 1 bytes and never past the end of the field. Always NUL-terminates dst.
+template <size_t N, size_t M>
+inline void CopyPacketString(char (&dst)[N], const char (&src)[M])
+{
+	utf8_strnlcpy(dst, N, src, M);
+}
+
+// The same for a field of srcMax bytes reached through a pointer.
+inline void CopyPacketString(char * dst, size_t dstSize, const char * src, size_t srcMax)
+{
+	utf8_strnlcpy(dst, dstSize, src, srcMax);
+}
 
 class CInputProcessor
 {
@@ -52,8 +69,16 @@ class CInputClose : public CInputProcessor
 	public:
 		uint8_t	GetType() override { return INPROC_CLOSE; }
 
+		// A closing connection reads nothing: everything received is dropped unparsed.
+		bool	Process(DESC * d, const void * c_pvOrig, int iBytes, int & r_iBytesProceed) override
+		{
+			r_iBytesProceed += iBytes;
+			m_iBufferLeft = 0;
+			return true;
+		}
+
 	protected:
-		int	Analyze(DESC * d, uint8_t bHeader, const char * c_pData) override { return m_iBufferLeft; }
+		int	Analyze(DESC * d, uint8_t bHeader, const char * c_pData) override { return 0; }
 };
 
 class CInputHandshake : public CInputProcessor

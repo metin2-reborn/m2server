@@ -102,10 +102,29 @@ bool CInputProcessor::Process(DESC * lpDesc, const void * c_pvOrig, int iBytes, 
 
 			m_pPacketInfo->Start();
 
+			// Handlers check their variable-size data against m_iBufferLeft. The sequence byte
+			// follows that data, so it is not counted: a packet whose sequence byte has not
+			// arrived yet then waits for it instead of being read past the end of the buffer.
+			const int iBufferLeft = m_iBufferLeft;
+
+			if (m_pPacketInfo->IsSequence(bHeader))
+				--m_iBufferLeft;
+
 			int iExtraPacketSize = Analyze(lpDesc, bHeader, c_pData);
+			m_iBufferLeft = iBufferLeft;
 
 			if (iExtraPacketSize < 0)
 				return true;
+
+			// A handler that claims more than was received would make us read and consume past
+			// the buffer.
+			if (iExtraPacketSize > m_iBufferLeft - iPacketLen)
+			{
+				sys_err("packet %s (header %d) claims %d extra bytes, only %d left, host: %s",
+						c_pszName, bHeader, iExtraPacketSize, m_iBufferLeft - iPacketLen, lpDesc->GetHostName());
+				lpDesc->SetPhase(PHASE_CLOSE);
+				return true;
+			}
 
 			iPacketLen += iExtraPacketSize;
 			lpDesc->Log("%s %d", c_pszName, iPacketLen);
@@ -208,9 +227,18 @@ void CInputProcessor::Version(CHARACTER * ch, const char* c_pData)
 	if (!ch)
 		return;
 
+	if (!ch->GetDesc())
+		return;
+
 	TPacketCGClientVersion * p = (TPacketCGClientVersion *) c_pData;
-	sys_log(0, "VERSION: %s %s %s", ch->GetName(), p->timestamp, p->filename);
-	ch->GetDesc()->SetClientVersion(p->timestamp);
+
+	char szTimestamp[sizeof(p->timestamp)];
+	char szFilename[sizeof(p->filename)];
+	CopyPacketString(szTimestamp, p->timestamp);
+	CopyPacketString(szFilename, p->filename);
+
+	sys_log(0, "VERSION: %s %s %s", ch->GetName(), szTimestamp, szFilename);
+	ch->GetDesc()->SetClientVersion(szTimestamp);
 }
 
 void LoginFailure(DESC * d, const char * c_pszStatus)
@@ -252,24 +280,27 @@ int CInputHandshake::Analyze(DESC * d, uint8_t bHeader, const char * c_pData)
 
 	if (bHeader == HEADER_CG_TEXT)
 	{
-		++c_pData;
-		const char * c_pSep;
-
-		if (!(c_pSep = strchr(c_pData, '\n')))	// Find \n.
-			return -1;
-
 		if (IsEmptyAdminPage() || !IsAdminPage(d->GetHostName())) // block if adminpage is not set or if not admin
 		{
 			sys_log(0, "PORT_SECURITY: BLOCK FROM(%s)", d->GetHostName());
+			d->SetPhase(PHASE_CLOSE);
 			return -1;
 		}
 
-		if (*(c_pSep - 1) == '\r')
+		++c_pData;
+
+		// The line ends at \n within what was received; the data is not NUL-terminated.
+		const char * c_pSep = (const char *) memchr(c_pData, '\n', m_iBufferLeft - 1);
+
+		if (!c_pSep)
+			return -1;
+
+		if (c_pSep > c_pData && *(c_pSep - 1) == '\r')
 			--c_pSep;
 
 		std::string stResult;
 		std::string stBuf;
-		stBuf.assign(c_pData, 0, c_pSep - c_pData);
+		stBuf.assign(c_pData, c_pSep - c_pData);
 
 		sys_log(0, "SOCKET_CMD: FROM(%s) CMD(%s)", d->GetHostName(), stBuf.c_str());
 
@@ -281,7 +312,7 @@ int CInputHandshake::Analyze(DESC * d, uint8_t bHeader, const char * c_pData)
 				stResult = "YES";
 		}
 		//else if (!stBuf.compare("SHOWMETHEMONEY"))
-		else if (stBuf == g_stAdminPagePassword)
+		else if (!g_stAdminPagePassword.empty() && stBuf == g_stAdminPagePassword)
 		{
 			if (!IsEmptyAdminPage())
 			{
@@ -562,6 +593,7 @@ dev_log(LOG_DEB0, "DC : '%s'", msg.c_str());
 
 		// Always authenticate --;
 		sys_log(0, "MARK_SERVER: Login");
+		d->SetMarkLogin();
 		d->SetPhase(PHASE_LOGIN);
 		return 0;
 	}

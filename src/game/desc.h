@@ -142,6 +142,10 @@ class DESC : public net::connection_handler
 		void			SetAdminMode();
 		bool			IsAdminMode();		// Can admin commands be used during the Handshake?
 
+		// A guild mark connection (HEADER_CG_MARK_LOGIN): unencrypted, mark packets only.
+		void			SetMarkLogin()		{ m_bMarkLogin = true; }
+		bool			IsMarkLogin() const	{ return m_bMarkLogin; }
+
 		void			SetPong(bool b);
 		bool			IsPong();
 
@@ -200,6 +204,7 @@ class DESC : public net::connection_handler
 		uint16_t			m_wP2PPort;
 
 		bool			m_bAdminMode; // Can admin commands be used during the Handshake?
+		bool			m_bMarkLogin;
 		bool			m_bPong;
 
 		int			m_iCurrentSequence;

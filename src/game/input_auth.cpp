@@ -35,7 +35,7 @@ bool FN_IS_VALID_LOGIN_STRING(const char *str)
 	for (tmp = str; *tmp; ++tmp)
 	{
 		// Allow only letters and digits
-		if (isdigit(*tmp) || isalpha(*tmp))
+		if (isdigit((unsigned char) *tmp) || isalpha((unsigned char) *tmp))
 			continue;
 
 		// Canada allows some special characters
@@ -73,12 +73,24 @@ void CInputAuth::Login(DESC * d, const char * c_pData)
 		return;
 	}
 
-	// Copy for string integrity
+	// One login attempt per connection (the client sends one): another would replace the
+	// login key of a query still in flight, and allow password guessing at line rate.
+	if (d->GetLoginKey() || d->GetAccountTable().id)
+	{
+		sys_log(0, "InputAuth::Login : second login attempt from %s", d->GetHostName());
+		d->SetPhase(PHASE_CLOSE);
+		return;
+	}
+
+	// Copy for string integrity (the fields may lack their NUL)
+	char szLogin[sizeof(pinfo->login)];
+	CopyPacketString(szLogin, pinfo->login);
+
 	char login[LOGIN_MAX_LEN + 1];
-	trim_and_lower(pinfo->login, login, sizeof(login));
+	trim_and_lower(szLogin, login, sizeof(login));
 
 	char passwd[PASSWD_MAX_LEN + 1];
-	strlcpy(passwd, pinfo->passwd, sizeof(passwd));
+	CopyPacketString(passwd, pinfo->passwd);
 
 	sys_log(0, "InputAuth::Login : %s(%zu) desc %p",
 			login, strlen(login), d);
@@ -116,6 +128,10 @@ void CInputAuth::Login(DESC * d, const char * c_pData)
 
 	TPacketCGLogin3 * p = new TPacketCGLogin3;
 	std::memcpy(p, pinfo, sizeof(TPacketCGLogin3));
+
+	// The query result reads these as strings.
+	p->login[sizeof(p->login) - 1] = '\0';
+	p->passwd[sizeof(p->passwd) - 1] = '\0';
 
 	// CHANNEL_SERVICE_LOGIN
 	if (Login_IsInChannelService(login))
@@ -159,8 +175,36 @@ void CInputAuth::LoginOpenID(DESC * d, const char * c_pData)
 	//OpenID test code.
 	TPacketCGLogin5 *tempInfo1 = (TPacketCGLogin5 *)c_pData;
 
+	if (!g_bAuthServer)
+	{
+		sys_err ("CInputAuth class is not for game server. IP %s might be a hacker.", 
+			d->GetHostName());
+		d->DelayedDisconnect(5);
+		return;
+	}
+
+	// One login attempt per connection, as in Login.
+	if (d->GetLoginKey() || d->GetAccountTable().id)
+	{
+		sys_log(0, "InputAuth::LoginOpenID : second login attempt from %s", d->GetHostName());
+		d->SetPhase(PHASE_CLOSE);
+		return;
+	}
+
 	//Send an auth key verification request to the Japanese web server.
-	char* authKey = tempInfo1->authKey;
+	// The key goes into an HTTP request line: bounded, and URL-safe characters only.
+	char authKey[sizeof(tempInfo1->authKey)];
+	CopyPacketString(authKey, tempInfo1->authKey);
+
+	for (const char * c = authKey; *c; ++c)
+	{
+		if (!isalnum((unsigned char) *c) && !strchr("-_.~", *c))
+		{
+			LoginFailure(d, "OpenID Fail");
+			return;
+		}
+	}
+
 	char returnID[LOGIN_MAX_LEN + 1] = {0};
 
 	int test_url_get_protocol = auth_OpenID(authKey, d->GetHostName(), returnID);
@@ -172,20 +216,12 @@ void CInputAuth::LoginOpenID(DESC * d, const char * c_pData)
 		return;
 	}
 
-	TPacketCGLogin3 tempInfo2;
-	strncpy(tempInfo2.login, returnID, LOGIN_MAX_LEN);
-	strncpy(tempInfo2.passwd, "0000", PASSWD_MAX_LEN);
+	TPacketCGLogin3 tempInfo2{};
+	strlcpy(tempInfo2.login, returnID, sizeof(tempInfo2.login));
+	strlcpy(tempInfo2.passwd, "0000", sizeof(tempInfo2.passwd));
 	for(int i=0;i<4;i++)
 		tempInfo2.adwClientKey[i] = tempInfo1->adwClientKey[i];
 	TPacketCGLogin3 * pinfo = &tempInfo2;
-
-	if (!g_bAuthServer)
-	{
-		sys_err ("CInputAuth class is not for game server. IP %s might be a hacker.", 
-			d->GetHostName());
-		d->DelayedDisconnect(5);
-		return;
-	}
 
 	// Copy for string integrity
 	char login[LOGIN_MAX_LEN + 1];
@@ -332,10 +368,10 @@ int CInputAuth::auth_OpenID(const char *authKey, const char *ipAddr, char *rID)
 	}
 
 
-	char *id = strtok(result, "%");
-	char *success = strtok(nullptr, "%");
+	char *id = result ? strtok(result, "%") : nullptr;
+	char *success = id ? strtok(nullptr, "%") : nullptr;
 
-	if (!*id || !*success)
+	if (!id || !success || !*id || !*success)
 	{
 	    sys_err("[auth_OpenID] : OpenID AuthServer Reply Error (%s)", reply);
 		return 4;
@@ -367,9 +403,9 @@ int CInputAuth::auth_OpenID(const char *authKey, const char *ipAddr, char *rID)
 			break;
 		default:
 			break;
-
-		return 5;
 		}
+
+		return 5;	// a failed check must not fall through to success
 	}
 
 	strlcpy(rID, id, LOGIN_MAX_LEN + 1);	// rID is the caller's returnID buffer

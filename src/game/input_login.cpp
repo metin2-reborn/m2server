@@ -100,8 +100,17 @@ void CInputLogin::Login(DESC * d, const char * data)
 {
 	TPacketCGLogin * pinfo = (TPacketCGLogin *) data;
 
+	if (d->GetAccountTable().id)
+	{
+		sys_err("already logged in (login %s)", d->GetAccountTable().login);
+		return;
+	}
+
+	char szLogin[sizeof(pinfo->login)];
+	CopyPacketString(szLogin, pinfo->login);
+
 	char login[LOGIN_MAX_LEN + 1];
-	trim_and_lower(pinfo->login, login, sizeof(login));
+	trim_and_lower(szLogin, login, sizeof(login));
 
 	sys_log(0, "InputLogin::Login : %s", login);
 
@@ -143,7 +152,9 @@ void CInputLogin::Login(DESC * d, const char * data)
 	TLoginPacket login_packet;
 
 	strlcpy(login_packet.login, login, sizeof(login_packet.login));
-	strlcpy(login_packet.passwd, pinfo->passwd, sizeof(login_packet.passwd));
+	char szPasswd[sizeof(pinfo->passwd)];
+	CopyPacketString(szPasswd, pinfo->passwd);
+	strlcpy(login_packet.passwd, szPasswd, sizeof(login_packet.passwd));
 
 	db_clientdesc->DBPacket(HEADER_GD_LOGIN, d->GetHandle(), &login_packet, sizeof(TLoginPacket)); 
 }
@@ -152,8 +163,17 @@ void CInputLogin::LoginByKey(DESC * d, const char * data)
 {
 	TPacketCGLogin2 * pinfo = (TPacketCGLogin2 *) data;
 
+	if (d->GetAccountTable().id)
+	{
+		sys_err("already logged in (login %s)", d->GetAccountTable().login);
+		return;
+	}
+
+	char szLogin[sizeof(pinfo->login)];
+	CopyPacketString(szLogin, pinfo->login);
+
 	char login[LOGIN_MAX_LEN + 1];
-	trim_and_lower(pinfo->login, login, sizeof(login));
+	trim_and_lower(szLogin, login, sizeof(login));
 
 	if (g_bNoMoreClient)
 	{
@@ -210,10 +230,19 @@ void CInputLogin::ChangeName(DESC * d, const char * data)
 		return;
 	}
 
+	if (p->index >= PLAYER_PER_ACCOUNT)
+	{
+		sys_err("index overflow %d, login: %s", p->index, c_r.login);
+		return;
+	}
+
 	if (!c_r.players[p->index].bChangeName)
 		return;
 
-	if (!check_name(p->name))
+	char szName[sizeof(p->name)];
+	CopyPacketString(szName, p->name);
+
+	if (!check_name(szName))
 	{
 		TPacketGCCreateFailure pack;
 		pack.header = HEADER_GC_CHARACTER_CREATE_FAILURE;
@@ -225,7 +254,7 @@ void CInputLogin::ChangeName(DESC * d, const char * data)
 	TPacketGDChangeName pdb;
 
 	pdb.pid = c_r.players[p->index].dwID;
-	strlcpy(pdb.name, p->name, sizeof(pdb.name));
+	strlcpy(pdb.name, szName, sizeof(pdb.name));
 	db_clientdesc->DBPacket(HEADER_GD_CHANGE_NAME, d->GetHandle(), &pdb, sizeof(TPacketGDChangeName));
 }
 
@@ -366,11 +395,28 @@ void CInputLogin::CharacterCreate(DESC * d, const char * data)
 	struct TPacketCGPlayerCreate * pinfo = (struct TPacketCGPlayerCreate *) data;
 	TPlayerCreatePacket player_create_packet;
 
+	char szName[sizeof(pinfo->name)];
+	CopyPacketString(szName, pinfo->name);
+
 	sys_log(0, "PlayerCreate: name %s pos %d job %d shape %d",
-			pinfo->name, 
+			szName, 
 			pinfo->index, 
 			pinfo->job, 
 			pinfo->shape);
+
+	const TAccountTable & c_rAccountTable = d->GetAccountTable();
+
+	if (!c_rAccountTable.id)
+	{
+		sys_err("PlayerCreate: no login data");
+		return;
+	}
+
+	if (pinfo->index >= PLAYER_PER_ACCOUNT)
+	{
+		sys_err("PlayerCreate: index overflow %d, login: %s", pinfo->index, c_rAccountTable.login);
+		return;
+	}
 
 	TPacketGCLoginFailure packFailure;
 	memset(&packFailure, 0, sizeof(packFailure));
@@ -383,16 +429,14 @@ void CInputLogin::CharacterCreate(DESC * d, const char * data)
 	}
 
 	// Creation fails if the name is not allowed or the default outfit is invalid
-	if (!check_name(pinfo->name) || pinfo->shape > 1)
+	if (!check_name(szName) || pinfo->shape > 1)
 	{
 
 		d->Packet(&packFailure, sizeof(packFailure));
 		return;
 	}
 
-	const TAccountTable & c_rAccountTable = d->GetAccountTable();
-
-	if (0 == strcmp(c_rAccountTable.login, pinfo->name))
+	if (0 == strcmp(c_rAccountTable.login, szName))
 	{
 		TPacketGCCreateFailure pack;
 		pack.header = HEADER_GC_CHARACTER_CREATE_FAILURE;
@@ -404,7 +448,9 @@ void CInputLogin::CharacterCreate(DESC * d, const char * data)
 
 	memset(&player_create_packet, 0, sizeof(TPlayerCreatePacket));
 
-	if (!NewPlayerTable2(&player_create_packet.player_table, pinfo->name, pinfo->job, pinfo->shape, d->GetEmpire()))
+	// job is 16 bits on the wire; NewPlayerTable2 takes a byte, so range check before narrowing.
+	if (pinfo->job >= MAIN_RACE_MAX_NUM ||
+		!NewPlayerTable2(&player_create_packet.player_table, szName, (uint8_t) pinfo->job, pinfo->shape, d->GetEmpire()))
 	{
 		sys_err("player_prototype error: job %d ", pinfo->job);
 		d->Packet(&packFailure, sizeof(packFailure));
@@ -418,7 +464,7 @@ void CInputLogin::CharacterCreate(DESC * d, const char * data)
 	player_create_packet.account_index	= pinfo->index;
 
 	sys_log(0, "PlayerCreate: name %s account_id %d, TPlayerCreatePacketSize(%zu), Packet->Gold %d",
-			pinfo->name, 
+			szName, 
 			pinfo->index, 
 			sizeof(TPlayerCreatePacket),
 			player_create_packet.player_table.gold);
@@ -437,7 +483,10 @@ void CInputLogin::CharacterDelete(DESC * d, const char * data)
 		return;
 	}
 
-	sys_log(0, "PlayerDelete: login: %s index: %d, social_id %s", c_rAccountTable.login, pinfo->index, pinfo->private_code);
+	char szPrivateCode[sizeof(pinfo->private_code)];
+	CopyPacketString(szPrivateCode, pinfo->private_code);
+
+	sys_log(0, "PlayerDelete: login: %s index: %d, social_id %s", c_rAccountTable.login, pinfo->index, szPrivateCode);
 
 	if (pinfo->index >= PLAYER_PER_ACCOUNT)
 	{
@@ -457,7 +506,7 @@ void CInputLogin::CharacterDelete(DESC * d, const char * data)
 	trim_and_lower(c_rAccountTable.login, player_delete_packet.login, sizeof(player_delete_packet.login));
 	player_delete_packet.player_id	= c_rAccountTable.players[pinfo->index].dwID;
 	player_delete_packet.account_index	= pinfo->index;
-	strlcpy(player_delete_packet.private_code, pinfo->private_code, sizeof(player_delete_packet.private_code));
+	strlcpy(player_delete_packet.private_code, szPrivateCode, sizeof(player_delete_packet.private_code));
 
 	db_clientdesc->DBPacket(HEADER_GD_PLAYER_DELETE, d->GetHandle(), &player_delete_packet, sizeof(TPlayerDeletePacket));
 }
@@ -698,13 +747,20 @@ void CInputLogin::Empire(DESC * d, const char * c_pData)
 {
 	const TPacketCGEmpire* p = reinterpret_cast<const TPacketCGEmpire*>(c_pData);
 
-	if (EMPIRE_MAX_NUM <= p->bEmpire)
+	// Empire 0 is "none": only 1 .. EMPIRE_MAX_NUM - 1 can be chosen.
+	if (p->bEmpire == 0 || EMPIRE_MAX_NUM <= p->bEmpire)
 	{
 		d->SetPhase(PHASE_CLOSE);
 		return;
 	}
 
 	const TAccountTable& r = d->GetAccountTable();
+
+	if (!r.id)
+	{
+		sys_err("EmpireSelect: no login data");
+		return;
+	}
 
 	if (r.bEmpire != 0)
 	{
@@ -771,7 +827,7 @@ void CInputLogin::GuildSymbolCRC(DESC * d, const char* c_pData)
 
 	const CGuildMarkManager::TGuildSymbol * pkGS = CGuildMarkManager::instance().GetGuildSymbol(CGPacket.guild_id);
 
-	if (!pkGS)
+	if (!pkGS || pkGS->raw.empty())
 		return;
 
 	sys_log(0, "  Server %u %zu", pkGS->crc, pkGS->raw.size());
@@ -787,8 +843,9 @@ void CInputLogin::GuildSymbolCRC(DESC * d, const char* c_pData)
 		d->BufferedPacket(&GCPacket, sizeof(GCPacket));
 		d->Packet(&pkGS->raw[0], pkGS->raw.size());
 
-		sys_log(0, "SendGuildSymbolHead %02X%02X%02X%02X Size %zu",
-				pkGS->raw[0], pkGS->raw[1], pkGS->raw[2], pkGS->raw[3], pkGS->raw.size());
+		if (pkGS->raw.size() >= 4)
+			sys_log(0, "SendGuildSymbolHead %02X%02X%02X%02X Size %zu",
+					pkGS->raw[0], pkGS->raw[1], pkGS->raw[2], pkGS->raw[3], pkGS->raw.size());
 	}
 }
 
@@ -900,6 +957,63 @@ void CInputLogin::GuildMarkCRCList(DESC * d, const char* c_pData)
 int CInputLogin::Analyze(DESC * d, uint8_t bHeader, const char * c_pData)
 {
 	int iExtraLen = 0;
+
+	switch (bHeader)
+	{
+		case HEADER_CG_PONG:
+		case HEADER_CG_TIME_SYNC:
+			break;
+
+		// Guild mark packets only come over a mark connection (HEADER_CG_MARK_LOGIN), which
+		// is unencrypted and must not reach anything else.
+		case HEADER_CG_MARK_CRCLIST:
+		case HEADER_CG_MARK_IDXLIST:
+		case HEADER_CG_MARK_UPLOAD:
+		case HEADER_CG_GUILD_SYMBOL_UPLOAD:
+		case HEADER_CG_SYMBOL_CRC:
+			if (!d->IsMarkLogin())
+			{
+				sys_err("guild mark packet %d without mark login, host %s", bHeader, d->GetHostName());
+				d->SetPhase(PHASE_CLOSE);
+				return 0;
+			}
+			break;
+
+		default:
+			if (d->IsMarkLogin())
+			{
+				sys_err("mark connection sent packet %d, host %s", bHeader, d->GetHostName());
+				d->SetPhase(PHASE_CLOSE);
+				return 0;
+			}
+			break;
+	}
+
+	switch (bHeader)
+	{
+		// Character slots are handled while choosing a character, by an account, with no
+		// character loaded yet.
+		case HEADER_CG_CHARACTER_SELECT:
+		case HEADER_CG_CHARACTER_CREATE:
+		case HEADER_CG_CHARACTER_DELETE:
+		case HEADER_CG_CHANGE_NAME:
+		case HEADER_CG_EMPIRE:
+			if (!d->IsPhase(PHASE_SELECT) || d->GetCharacter())
+			{
+				sys_err("packet %d outside of character select, host %s", bHeader, d->GetHostName());
+				return 0;
+			}
+			break;
+
+		case HEADER_CG_LOGIN:
+		case HEADER_CG_LOGIN2:
+			if (!d->IsPhase(PHASE_LOGIN))
+			{
+				sys_err("login packet %d outside of the login phase, host %s", bHeader, d->GetHostName());
+				return 0;
+			}
+			break;
+	}
 
 	switch (bHeader)
 	{
