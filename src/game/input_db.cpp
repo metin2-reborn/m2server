@@ -1677,34 +1677,6 @@ void CInputDB::AuthLogin(DESC * d, const char * c_pData)
 	d->Packet(&ptoc, sizeof(TPacketGCAuthSuccess));
 	metin2::log::info( "AuthLogin result {:d} key {:d}", bResult, d->GetLoginKey());
 }
-void CInputDB::AuthLoginOpenID(DESC * d, const char * c_pData)
-{
-	if (!d)
-		return;
-
-	uint8_t bResult = *(uint8_t *) c_pData;
-
-	TPacketGCAuthSuccessOpenID ptoc;
-
-	ptoc.bHeader = HEADER_GC_AUTH_SUCCESS_OPENID;
-
-	if (bResult)
-	{
-		ptoc.dwLoginKey = d->GetLoginKey();
-	}
-	else
-	{
-		ptoc.dwLoginKey = 0;
-	}
-
-	strlcpy(ptoc.login, d->GetLogin().c_str(), sizeof(ptoc.login));
-
-	ptoc.bResult = bResult;
-
-	d->Packet(&ptoc, sizeof(TPacketGCAuthSuccessOpenID));
-	metin2::log::info( "AuthLogin result {:d} key {:d}", bResult, d->GetLoginKey());
-}
-
 void CInputDB::ChangeEmpirePriv(const char* c_pData)
 {
 	TPacketDGChangeEmpirePriv* p = (TPacketDGChangeEmpirePriv*) c_pData;
@@ -2099,10 +2071,7 @@ int CInputDB::Analyze(DESC * d, uint8_t bHeader, const char * c_pData)
 		break;
 
 	case HEADER_DG_AUTH_LOGIN:
-		if (openid_server)
-			AuthLoginOpenID(DESC_MANAGER::instance().FindByHandle(m_dwHandle), c_pData);
-		else
-			AuthLogin(DESC_MANAGER::instance().FindByHandle(m_dwHandle), c_pData);
+		AuthLogin(DESC_MANAGER::instance().FindByHandle(m_dwHandle), c_pData);
 		break;
 
 	case HEADER_DG_CHANGE_EMPIRE_PRIV:

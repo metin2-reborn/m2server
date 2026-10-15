@@ -252,7 +252,6 @@ protected:
 	void		ChangeName(DESC * d, const char * data);
 
 	void		AuthLogin(DESC * d, const char * c_pData);
-	void		AuthLoginOpenID(DESC * d, const char * c_pData);
 	void		ItemAward(const char * c_pData);
 
 	void		ChangeEmpirePriv(const char* c_pData);
@@ -352,11 +351,9 @@ class CInputAuth : public CInputProcessor
 
 	protected:
 		int	Analyze(DESC * d, uint8_t bHeader, const char * c_pData) override;
-		int auth_OpenID(const char *authKey, const char *ipAddr, char *rID);
 
 	public:
 		void		Login(DESC * d, const char * c_pData);
-		void		LoginOpenID(DESC * d, const char * c_pData);		//2012.07.19 OpenID : Kim Yong-uk
 
 };
 

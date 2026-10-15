@@ -150,7 +150,6 @@ TEST(packet_struct_sizes) {
     CHECK_SIZE(TPacketCGLogin, 49);
     CHECK_SIZE(TPacketCGLogin2, 52);
     CHECK_SIZE(TPacketCGLogin3, 65);
-    CHECK_SIZE(TPacketCGLogin5, 50);
     CHECK_SIZE(TPacketCGPlayerSelect, 2);
     CHECK_SIZE(TPacketCGPlayerDelete, 10);
     CHECK_SIZE(TPacketCGPlayerCreate, 34);
@@ -184,7 +183,6 @@ TEST(packet_struct_sizes) {
     CHECK_SIZE(TPacketGCPhase, 2);
     CHECK_SIZE(TPacketGCLoginSuccess, 329);
     CHECK_SIZE(TPacketGCAuthSuccess, 6);
-    CHECK_SIZE(TPacketGCAuthSuccessOpenID, 37);
     CHECK_SIZE(TPacketGCLoginFailure, 10);
     CHECK_SIZE(TPacketGCCreateFailure, 2);
     CHECK_SIZE(TPacketGCCharacterAdd, 35);

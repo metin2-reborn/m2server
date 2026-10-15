@@ -95,7 +95,6 @@ enum
 	HEADER_CG_SCRIPT_SELECT_ITEM	= 114,
 	// END_OF_SCRIPT_SELECT_ITEM
 
-	HEADER_CG_LOGIN5_OPENID			= 116,	//OpenID : receives the OpenID auth key from the client.
 
 //	HEADER_CG_ROULETTE				= 200,
 
@@ -257,7 +256,6 @@ enum
 	//HYBRID CRYPT
 	//HYBRID CRYPT
 
-	HEADER_GC_AUTH_SUCCESS_OPENID	= 154,
 
 	// ROULETTE
 	// END_ROULETTE			
@@ -467,12 +465,6 @@ struct TPacketCGLogin3 {
 	uint8_t	header;
 	char	login[LOGIN_MAX_LEN + 1];
 	char	passwd[PASSWD_MAX_LEN + 1];
-	uint32_t	adwClientKey[4];
-};
-
-struct TPacketCGLogin5 {
-	uint8_t	header;
-	char	authKey[OPENID_AUTHKEY_LEN + 1];
 	uint32_t	adwClientKey[4];
 };
 
@@ -734,13 +726,6 @@ struct TPacketGCAuthSuccess {
 	uint8_t	bHeader;
 	uint32_t	dwLoginKey;
 	uint8_t	bResult;
-};
-
-struct TPacketGCAuthSuccessOpenID {
-	uint8_t	bHeader;
-	uint32_t	dwLoginKey;
-	uint8_t	bResult;
-	char	login[LOGIN_MAX_LEN + 1];
 };
 
 struct TPacketGCLoginFailure {
