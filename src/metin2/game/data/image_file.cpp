@@ -18,11 +18,10 @@
 namespace metin2::game::inline data {
 
 namespace {
-// Exchanges the red and blue channels: RGBA bytes <-> BGRA bytes.
 auto swap_red_blue(uint32_t pixel) -> uint32_t {
     return (pixel & 0xff00ff00) | ((pixel & 0x00ff0000) >> 16) | ((pixel & 0x000000ff) << 16);
 }
-} // namespace
+}
 
 auto load_image_bgra(const char *filename, int &width, int &height) -> std::vector<uint32_t> {
     int channels = 0;

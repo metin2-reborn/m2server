@@ -38,9 +38,6 @@ template <class Func> Func dungeon::for_each_member(Func f)
 
 namespace quest
 {
-	//
-	// "dungeon" lua functions
-	//
 	int dungeon_notice(lua_State* lua)
 	{
 		if (!lua_isstring(lua, 1))
@@ -950,9 +947,6 @@ namespace quest
 
 	int dungeon_spawn_group(lua_State* lua)
 	{
-		//
-		// argument: vnum,x,y,radius,aggressive,count
-		//
 		if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2) || !lua_isnumber(lua, 3) || !lua_isnumber(lua, 4) || !lua_isnumber(lua, 6))
 		{
 			quest::error("invalid argument");
@@ -1003,7 +997,7 @@ namespace quest
 		return 0;
 	}
 
-	int dungeon_exit(lua_State* lua) // send to the position before entering the dungeon
+	int dungeon_exit(lua_State* lua)
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -1011,7 +1005,7 @@ namespace quest
 		return 0;
 	}
 
-	int dungeon_exit_all(lua_State* lua) // send everyone in the dungeon to their position before entering the dungeon
+	int dungeon_exit_all(lua_State* lua)
 	{
 		quest_manager& q = quest_manager::instance();
 		dungeon * pDungeon = q.current_dungeon();
@@ -1139,7 +1133,7 @@ namespace quest
 		}
 	};
 	
-	int dungeon_exit_all_by_item_group (lua_State* lua) // kick anyone who doesn't have an item from a specific item group
+	int dungeon_exit_all_by_item_group (lua_State* lua)
 	{
 		if (!lua_isstring(lua, 1))
 		{
@@ -1204,7 +1198,7 @@ namespace quest
 		}
 	};
 	
-	int dungeon_delete_item_in_item_group_from_all(lua_State* lua) // remove a specific item from PCs in the dungeon.
+	int dungeon_delete_item_in_item_group_from_all(lua_State* lua)
 	{
 		if (!lua_isstring(lua, 1))
 		{

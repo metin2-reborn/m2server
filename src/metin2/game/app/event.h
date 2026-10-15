@@ -1,18 +1,9 @@
-/*
- *    Filename: event.h
- * Description: Events (timed event)
- *
- *      Author: Kim Han-ju (aka. Biyeop, Cronan), Song Young-jin (aka. myevan, Bitjaru)
- */
 #pragma once
 
 #include <cstddef>
 #include <cstdint>
 #include <utility>
 
-/**
- * Base class for all event info data
- */
 
 namespace metin2::game::inline app {
 struct event_info_data 
@@ -27,7 +18,6 @@ struct scheduled_event;
 void event_add_ref(scheduled_event * p);
 void event_release(scheduled_event * p);
 
-// Shared ownership of an event through its intrusive reference count.
 class event_ptr {
   public:
     event_ptr() = default;
@@ -90,7 +80,7 @@ struct scheduled_event
 	size_t ref_count;
 };
 
-template<class T> // T should be a subclass of event_info_data
+template<class T>
 T* alloc_event_info() {
 	return new T;
 }
@@ -100,8 +90,8 @@ extern int		event_process(int pulse);
 extern int		event_count();
 
 extern event_ptr	event_create(event_func func, event_info_data* info, int32_t when);
-extern void		event_cancel(event_ptr * ppevent);			// Cancel event
-extern int32_t		event_processing_time(event_ptr event);	// Return execution time
-extern int32_t		event_time(event_ptr event);			// Return remaining time
-extern void		event_reset_time(event_ptr event, int32_t when);	// Reset execution time
+extern void		event_cancel(event_ptr * ppevent);
+extern int32_t		event_processing_time(event_ptr event);
+extern int32_t		event_time(event_ptr event);
+extern void		event_reset_time(event_ptr event, int32_t when);
 }

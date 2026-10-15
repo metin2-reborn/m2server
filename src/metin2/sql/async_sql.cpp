@@ -25,8 +25,6 @@
 namespace metin2::sql {
 
 namespace {
-    // Errors after which the same query is tried again: the connection or the server is in
-    // trouble, not the query.
     auto is_transient_error(unsigned int error) -> bool {
         switch (error) {
         case CR_SOCKET_CREATE_ERROR:
@@ -157,7 +155,6 @@ void async_sql::set_locale(const std::string &locale) {
     query_locale_set();
 }
 
-// After an automatic reconnect the session lost its character set.
 void async_sql::check_reconnected() {
     if (thread_id_ == mysql_thread_id(&db_)) {
         return;
@@ -222,7 +219,6 @@ auto async_sql::pop_result(ql_msg **pp) -> bool {
     return true;
 }
 
-// Runs the query; false when it failed with a transient error and should be tried again.
 auto async_sql::execute(ql_msg &msg) -> bool {
     check_reconnected();
 
@@ -245,7 +241,6 @@ auto async_sql::execute(ql_msg &msg) -> bool {
     return true;
 }
 
-// A finished query: results go to the result queue when the caller wants them.
 void async_sql::finish(std::unique_ptr<ql_msg> msg) {
     if (msg->returns_result) {
         msg->store(&db_);
@@ -265,7 +260,7 @@ void async_sql::child_loop() {
             cv_query_.wait(lock, [this]() -> bool { return end_ || !queue_query_.empty(); });
 
             if (queue_query_.empty()) {
-                break; // m_bEnd and nothing left to run
+                break;
             }
 
             copied_query_ += static_cast<int>(queue_query_.size());
@@ -276,7 +271,6 @@ void async_sql::child_loop() {
         while (!batch.empty()) {
             if (!execute(*batch.front())) {
                 if (end_) {
-                    // shutting down: the server is unreachable, give up on this query
                     metin2::log::error("AsyncSQL: dropping query at shutdown: {}", batch.front()->query.c_str());
                 } else {
                     metin2::log::error("AsyncSQL: retrying");
@@ -336,7 +330,6 @@ auto async_sql::escape_string(char *dst, size_t dst_size, const char *src, size_
     }
 
     if (dst_size < src_size * 2 + 1) {
-        // src may not be terminated: log at most 255 bytes of it
         const std::string_view shown(src, std::min<size_t>(src_size, 255));
 
         metin2::log::error("FATAL ERROR!! not enough buffer size (dstSize {:d} srcSize {:d} src{}: {})",

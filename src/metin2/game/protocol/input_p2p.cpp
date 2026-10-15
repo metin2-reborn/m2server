@@ -31,8 +31,6 @@
 namespace metin2::game::inline protocol {
 
 
-////////////////////////////////////////////////////////////////////////////////
-// Input Processor
 input_p2_p::input_p2_p()
 {
 	bind_packet_info(&packet_info_gg_);
@@ -76,7 +74,6 @@ int input_p2_p::relay(desc * d, const char * data, size_t bytes)
 	{
 		if (pkChr->is_block_mode(BLOCK_WHISPER))
 		{
-			// Whisper rejected because whispers are blocked.
 			return p->size;
 		}
 
@@ -84,12 +81,9 @@ int input_p2_p::relay(desc * d, const char * data, size_t bytes)
 		memcpy(buf, c_pbData, std::min<int>(p->size, sizeof(buf)));
 
 		packet_gc_whisper* p2 = (packet_gc_whisper*) buf;
-		// bType upper 4 bits: Empire number
-		// bType lower 4 bits: EWhisperType
 		uint8_t bToEmpire = (p2->type >> 4);
 		p2->type = p2->type & 0x0F;
 		if(p2->type == 0x0F) {
-			// System message whispers use all bits of bType, including the upper ones.
 			p2->type = WHISPER_TYPE_SYSTEM;
 		} else {
 			if (!pkChr->is_equip_unique_group(UNIQUE_GROUP_RING_OF_LANGUAGE))
@@ -344,7 +338,7 @@ void input_p2_p::xmas_warp_santa(const char * data)
 
 		iNextSpawnDelay = 50 * 60;
 
-		xmas::spawn_santa(p->map_index, iNextSpawnDelay); // A new Santa appears after 50 minutes (20 minutes in Korea)
+		xmas::spawn_santa(p->map_index, iNextSpawnDelay);
 
 		packet_gg_xmas_warp_santa_reply pack_reply;
 		pack_reply.header = HEADER_GG_XMAS_WARP_SANTA_REPLY;
@@ -372,7 +366,6 @@ void input_p2_p::xmas_warp_santa_reply(const char* data)
 	}
 }
 
-// BLOCK_CHAT
 void input_p2_p::block_chat(const char * data)
 {
 	packet_gg_block_chat * p = (packet_gg_block_chat *) data;
@@ -389,8 +382,6 @@ void input_p2_p::block_chat(const char * data)
 		metin2::log::info( "BLOCK CHAT fail name {} dur {:d}", p->name, p->block_duration);
 	}
 }   
-// END_OF_BLOCK_CHAT
-//
 
 void input_p2_p::iam_awake(desc * d, const char * data)
 {

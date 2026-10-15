@@ -109,22 +109,18 @@ bool client_manager::initialize()
 {
 
 
-	//BOOT_LOCALIZATION
 	if (!initialize_localization())
 	{
 		fprintf(stderr, "Failed Localization Infomation so exit\n");
 		return false;
 	}
 
-	//END_BOOT_LOCALIZATION
-	//ITEM_UNIQUE_ID
 
 	if (!initialize_now_item_id())
 	{
 		fprintf(stderr, " Item range Initialize Failed. Exit DBCache Server\n");
 		return false;
 	}
-	//END_ITEM_UNIQUE_ID
 
 	if (!initialize_tables())
 	{
@@ -151,7 +147,6 @@ bool client_manager::initialize()
 
 	load_event_flag();
 
-	// Force the database character set
 
 	return true;
 }
@@ -160,7 +155,6 @@ void client_manager::main_loop()
 {
 	metin2::log::info( "ClientManager pointer is {}", static_cast<const void *>(this));
 
-	// Main loop
 	while (!shutdowned_)
 	{
 		while (std::unique_ptr<ql_msg> tmp{db_manager::instance().pop_result()})
@@ -174,16 +168,12 @@ void client_manager::main_loop()
 		metin2::log::rotate();
 	}
 
-	//
-	// Main loop shutdown handling
-	//
 	metin2::log::info( "MainLoop exited, Starting cache flushing");
 
 	signal_timer_disable();
 
 	auto it = map_player_cache_.begin();
 
-	//Flush player table cache	
 	while (it != map_player_cache_.end())
 	{
 		player_table_cache * c = (it++)->second;
@@ -194,7 +184,6 @@ void client_manager::main_loop()
 	map_player_cache_.clear();
 
 	auto it2 = map_item_cache_.begin();
-	//Flush items
 	while (it2 != map_item_cache_.end())
 	{
 		item_cache * c = (it2++)->second;
@@ -204,10 +193,6 @@ void client_manager::main_loop()
 	}
 	map_item_cache_.clear();
 
-	// MYSHOP_PRICE_LIST
-	//
-	// Flush private shop item price list
-	//
 	for (auto itPriceList = item_price_list_cache_.begin(); itPriceList != item_price_list_cache_.end(); ++itPriceList)
 	{
 		item_price_list_table_cache* pCache = itPriceList->second;
@@ -216,12 +201,11 @@ void client_manager::main_loop()
 	}
 
 	item_price_list_cache_.clear();
-	// END_OF_MYSHOP_PRICE_LIST
 }
 
 void client_manager::query_boot(peer* peer, packet_gd_boot * p)
 {
-	const uint8_t bPacketVersion = 6; // Bump the number whenever the BOOT packet changes.
+	const uint8_t bPacketVersion = 6; // Bump whenever the BOOT packet layout changes.
 
 	std::vector<t_admin_info> vAdmin;
 	std::vector<std::string> vHost;
@@ -247,10 +231,8 @@ void client_manager::query_boot(peer* peer, packet_gd_boot * p)
 		sizeof(uint16_t) + sizeof(uint16_t) + sizeof(building::object_table) * map_pk_object_table_.size() +
 		sizeof(int32_t) +
 		sizeof(uint16_t) + sizeof(uint16_t) + sizeof(item_id_range_table)*2 +
-		//ADMIN_MANAGER
 		sizeof(uint16_t) + sizeof(uint16_t) + 16 * vHost.size() +
 		sizeof(uint16_t) + sizeof(uint16_t) +  sizeof(t_admin_info) *  vAdmin.size() +
-		//END_ADMIN_MANAGER
 		sizeof(uint16_t) + sizeof(uint16_t) + sizeof(monarch_info) + 
 		sizeof(uint16_t) + sizeof(uint16_t) + sizeof(monarch_candidacy)* monarch::instance().monarch_candidacy_size() +
 		sizeof(uint16_t); 
@@ -273,9 +255,7 @@ void client_manager::query_boot(peer* peer, packet_gd_boot * p)
 	metin2::log::info( "sizeof(TLand) = {:d}", sizeof(building::land_table));
 	metin2::log::info( "sizeof(TObjectProto) = {:d}", sizeof(building::object_proto));
 	metin2::log::info( "sizeof(TObject) = {:d}", sizeof(building::object_table));
-	//ADMIN_MANAGER
 	metin2::log::info( "sizeof(tAdminInfo) total = {:d} ", sizeof(t_admin_info) * vAdmin.size());
-	//END_ADMIN_MANAGER
 	metin2::log::info( "sizeof(TMonarchInfo) = {:d}", sizeof(monarch_info));
 
 	peer->encode_word(sizeof(mob_table));
@@ -326,7 +306,6 @@ void client_manager::query_boot(peer* peer, packet_gd_boot * p)
 	while (it != map_pk_object_table_.end())
 		peer->encode((it++)->second.get(), sizeof(building::object_table));
 
-	// Auction Boot
 	int32_t now = time(nullptr);
 	peer->encode(&now, sizeof(int32_t));
 
@@ -341,7 +320,6 @@ void client_manager::query_boot(peer* peer, packet_gd_boot * p)
 	peer->set_item_id_range(itemRange);
 	peer->set_spare_item_id_range(itemRangeSpare);
 
-	//ADMIN_MANAGER
 	peer->encode_word(16);
 	peer->encode_word(vHost.size());
 
@@ -359,9 +337,7 @@ void client_manager::query_boot(peer* peer, packet_gd_boot * p)
 		peer->encode(&vAdmin[n], sizeof(t_admin_info));
 		metin2::log::info( "Admin name {} ConntactIP {}", vAdmin[n].name, vAdmin[n].contact_ip);
 	}
-	//END_ADMIN_MANAGER
 
-	//MONARCH
 	peer->encode_word(sizeof(monarch_info));
 	peer->encode_word(1);
 	peer->encode(monarch::instance().get_monarch(), sizeof(monarch_info));
@@ -374,7 +350,6 @@ void client_manager::query_boot(peer* peer, packet_gd_boot * p)
 	if (num_monarch_candidacy != 0) {
 		peer->encode(&rVecMonarchCandidacy[0], sizeof(monarch_candidacy) * num_monarch_candidacy);
 	}
-	//END_MONARCE
 
 	if (metin2::config::test_server())
 		metin2::log::info( "MONARCHCandidacy Size {:d}", monarch::instance().monarch_candidacy_size());
@@ -470,9 +445,7 @@ void client_manager::result_safebox_load(peer * peer_value, ql_msg * msg)
 	client_handle_info * pi = (client_handle_info *) qi->pv_data;
 	uint32_t dwHandle = pi->handle;
 
-	// account_index used here means the query order.
-	// The first query, to find the password, is 0
-	// The second query, to fetch the actual data, is 1
+	// account_index carries the query stage here: 0 checks the password, 1 loads the items.
 
 	if (pi->account_index == 0)
 	{
@@ -496,7 +469,6 @@ void client_manager::result_safebox_load(peer * peer_value, ql_msg * msg)
 		{
 			MYSQL_ROW row = mysql_fetch_row(res->sql_result);
 
-			// If the password is wrong..
 			if (((!row[2] || !*row[2]) && strSafeboxPassword != "000000") ||
 				((row[2] && *row[2]) && strSafeboxPassword != row[2]))
 			{
@@ -554,8 +526,7 @@ void client_manager::result_safebox_load(peer * peer_value, ql_msg * msg)
 			return;
 		}
 
-		// There was a query error; if we respond, the safebox would look empty,
-		// so it's better for the safebox not to open at all
+		// On a query error the safebox stays closed; answering would show it empty.
 		if (!msg->get()->sql_result)
 		{
 			metin2::log::error("null safebox result");
@@ -630,7 +601,7 @@ void client_manager::result_safebox_load(peer * peer_value, ql_msg * msg)
 					player_item item;
 					memset(&item, 0, sizeof(player_item));
 
-					uint32_t dwSocket2 = pItemAward->socket2; //Fix
+					uint32_t dwSocket2 = pItemAward->socket2;
 
 					if (pItemTable->type == ITEM_UNIQUE)
 					{
@@ -664,8 +635,6 @@ void client_manager::result_safebox_load(peer * peer_value, ql_msg * msg)
 						{
 							case 72723: case 72724: case 72725: case 72726:
 							case 72727: case 72728: case 72729: case 72730:
-							// It's horrible, but fixing what was done before is scary...
-							// So just hard-coded. Auto-potion items for gift boxes.
 							case 76004: case 76005: case 76021: case 76022:
 							case 79012: case 79013:
 								if (pItemAward->socket2 == 0)
@@ -777,7 +746,7 @@ void client_manager::result_safebox_load(peer * peer_value, ql_msg * msg)
 void client_manager::query_safebox_change_size(peer * peer_value, uint32_t handle_value, safebox_change_size_packet * p)
 {
 	client_handle_info * pi = new client_handle_info(handle_value);
-	pi->account_index = p->size;	// Temporarily use account_index as the size
+	pi->account_index = p->size; // account_index carries the safebox size here.
 
 	char szQuery[QUERY_MAX_LEN];
 
@@ -839,7 +808,6 @@ void client_manager::result_safebox_change_password(peer * peer_value, ql_msg * 
 
 	delete p;
 
-	// Wrong old password
 	peer_value->encode_header(HEADER_DG_SAFEBOX_CHANGE_PASSWORD_ANSWER, dwHandle, sizeof(uint8_t));
 	peer_value->encode_byte(0);
 }
@@ -855,14 +823,10 @@ void client_manager::result_safebox_change_password_second(peer * peer_value, ql
 	peer_value->encode_byte(1);
 }
 
-// MYSHOP_PRICE_LIST
 void client_manager::result_pricelist_load(peer* peer, ql_msg* msg)
 {
 	item_pricelist_req_info* pReqInfo = (item_pricelist_req_info*)static_cast<query_info*>(msg->pv_user_data)->pv_data;
 
-	//
-	// Store info loaded from DB in the cache
-	//
 
 	item_price_list_table table;
 	table.owner_id = pReqInfo->second;
@@ -879,9 +843,6 @@ void client_manager::result_pricelist_load(peer* peer, ql_msg* msg)
 
 	put_item_price_list_cache(&table);
 
-	//
-	// Send the loaded data to the game server
-	//
 
 	packet_myshop_pricelist_header header;
 
@@ -903,9 +864,6 @@ void client_manager::result_pricelist_load_for_update(ql_msg* msg)
 {
 	item_price_list_table* pUpdateTable = (item_price_list_table*)static_cast<query_info*>(msg->pv_user_data)->pv_data;
 
-	//
-	// Store info loaded from DB in the cache
-	//
 
 	item_price_list_table table;
 	table.owner_id = pUpdateTable->owner_id;
@@ -922,12 +880,10 @@ void client_manager::result_pricelist_load_for_update(ql_msg* msg)
 
 	put_item_price_list_cache(&table);
 
-	// Update cache
 	item_price_list_cache(pUpdateTable->owner_id)->update_list(pUpdateTable);
 
 	delete pUpdateTable;
 }
-// END_OF_MYSHOP_PRICE_LIST
 
 void client_manager::query_safebox_save(peer * peer_value, safebox_table * table)
 {
@@ -965,19 +921,18 @@ void client_manager::query_empire_select(peer * peer_value, uint32_t handle, emp
 
 			uint32_t g_start_map[4] =
 			{
-				0,  // reserved
-				1,  // Shinsoo
-				21, // Chunjo
-				41  // Jinno
+				0,
+				1,
+				21,
+				41
 			};
 
-			// FIXME share with game
 			uint32_t g_start_position[4][2]=
 			{
 				{      0,      0 },
-				{ 469300, 964200 }, // Shinsoo
-				{  55700, 157900 }, // Chunjo
-				{ 969600, 278400 }  // Jinno
+				{ 469300, 964200 },
+				{  55700, 157900 },
+				{ 969600, 278400 }
 			};
 
 			for (int i = 0; i < 3; ++i)
@@ -1026,9 +981,6 @@ void client_manager::query_setup(peer * peer, uint32_t handle_value, const char 
 	peer->set_p2_p_port(p->p2_p_port);
 	peer->set_maps(p->maps);
 
-	//
-	// Send which map is on which server
-	//
 	map_location kMapLocations;
 
 	strlcpy(kMapLocations.host, peer->public_ip(), sizeof(kMapLocations.host));
@@ -1133,9 +1085,6 @@ void client_manager::query_setup(peer * peer, uint32_t handle_value, const char 
 	peer->encode_byte(bMapCount);
 	peer->encode(&vec_kMapLocations[0], sizeof(map_location) * vec_kMapLocations.size());
 
-	//
-	// Setup: make the other peers connect to the connected peer. (create P2P connections)
-	// 
 	metin2::log::info( "SETUP: channel {:d} listen {:d} p2p {:d} count {:d}", peer->channel(), p->listen_port, p->p2_p_port, bMapCount);
 
 	packet_dg_p2_p p2pSetupPacket;
@@ -1150,7 +1099,7 @@ void client_manager::query_setup(peer * peer, uint32_t handle_value, const char 
 		if (tmp == peer)
 			continue;
 
-		// If channel is 0, it can be considered a peer whose SETUP packet hasn't arrived yet, or auth
+		// Channel 0: auth, or a peer whose SETUP has not arrived yet.
 		if (0 == tmp->channel())
 			continue;
 
@@ -1158,9 +1107,6 @@ void client_manager::query_setup(peer * peer, uint32_t handle_value, const char 
 		tmp->encode(&p2pSetupPacket, sizeof(packet_dg_p2_p));
 	}
 
-	//
-	// Restore the accounts that are logged in on this peer
-	//
 	packet_login_on_setup * pck = (packet_login_on_setup *) data;
 
 	for (uint32_t c = 0; c < p->login_count; ++c, ++pck)
@@ -1212,8 +1158,7 @@ void client_manager::query_item_save(peer * peer_value, const char * data)
 {
 	player_item * p = (player_item *) data;
 
-	// Safebox items are not cached, and any already in the cache must be removed.
-	// Auction must not take this route. It must go through EnrollInAuction.
+	// Safebox and mall items are never cached; drop any that are.
 
 	if (p->window == SAFEBOX || p->window == MALL)
 	{
@@ -1343,7 +1288,6 @@ void client_manager::put_item_cache(player_item * updated, bool skip_query)
 
 	c = get_item_cache(updated->id);
 
-	// Create new item
 	if (!c)
 	{
 		if (metin2::config::db().login_log)
@@ -1352,15 +1296,12 @@ void client_manager::put_item_cache(player_item * updated, bool skip_query)
 		c = new item_cache;
 		map_item_cache_.insert(item_cache_map::value_type(updated->id, c));
 	}
-	// If it exists
 	else
 	{
 		if (metin2::config::db().login_log)
 			metin2::log::info( "ITEM_CACHE: PutItemCache ==> Have Cache");
-		// If the owner differs
 		if (updated->owner != c->get()->owner)
 		{
-			// Remove the item from the user who already had it.
 			item_cache_set_ptr_map::iterator it = map_pk_item_cache_set_ptr_.find(c->get()->owner);
 
 			if (it != map_pk_item_cache_set_ptr_.end())
@@ -1372,7 +1313,6 @@ void client_manager::put_item_cache(player_item * updated, bool skip_query)
 		}
 	}
 
-	// Update with new info 
 	c->put(updated, skip_query);
 
 	item_cache_set_ptr_map::iterator it = map_pk_item_cache_set_ptr_.find(c->get()->owner);
@@ -1387,8 +1327,6 @@ void client_manager::put_item_cache(player_item * updated, bool skip_query)
 	}
 	else
 	{
-		// There is no current owner, so save it right away so it can be queried from SQL
-		// on the next login.
 		if (metin2::config::db().login_log)
 			metin2::log::info( "ITEM_CACHE: direct save {:d} id {:d}", c->get()->owner, c->get()->id);
 		else
@@ -1409,7 +1347,6 @@ bool client_manager::delete_item_cache(uint32_t id)
 	return true;
 }
 
-// MYSHOP_PRICE_LIST
 item_price_list_table_cache* client_manager::item_price_list_cache(uint32_t id)
 {
 	item_price_list_cache_map::iterator it = item_price_list_cache_.find(id);
@@ -1448,14 +1385,12 @@ void client_manager::update_player_cache()
 
 			c->flush();
 
-			// Update the Item Cache too
 			update_item_cache_set(c->get()->id);
 		}
 		else if (c->check_flush_timeout())
 			c->flush();
 	}
 }
-// END_OF_MYSHOP_PRICE_LIST
 
 void client_manager::set_cache_flush_count_limit(int limit)
 {
@@ -1474,7 +1409,6 @@ void client_manager::update_item_cache()
 	{
 		item_cache * c = (it++)->second;
 
-		// Items are only flushed.
 		if (c->check_flush_timeout())
 		{
 			if (metin2::config::test_server())
@@ -1521,7 +1455,7 @@ void client_manager::query_item_destroy(peer * peer_value, const char * data)
 		if (metin2::config::db().login_log)
 			metin2::log::info( "HEADER_GD_ITEM_DESTROY: PID {:d} ID {:d}", dwPID, dwID);
 
-		if (dwPID == 0) // If nobody had it, async query
+		if (dwPID == 0)
 			db_manager::instance().async_query(szQuery);
 		else
 			db_manager::instance().return_query(szQuery, QID_ITEM_DESTROY, peer_value->handle(), nullptr);
@@ -1590,10 +1524,6 @@ void client_manager::query_reload_proto()
 	}
 }
 
-// ADD_GUILD_PRIV_TIME
-/**
- * @version	05/06/08 Bang2ni - added duration
- */
 void client_manager::add_guild_priv(packet_give_guild_priv* p)
 {
 	priv_manager::instance().add_guild_priv(p->guild_id, p->type, p->value, p->duration_sec);
@@ -1603,7 +1533,6 @@ void client_manager::add_empire_priv(packet_give_empire_priv* p)
 {
 	priv_manager::instance().add_empire_priv(p->empire, p->type, p->value, p->duration_sec);
 }
-// END_OF_ADD_GUILD_PRIV_TIME
 
 void client_manager::add_character_priv(packet_give_character_priv* p)
 {
@@ -1827,7 +1756,6 @@ void client_manager::update_land(uint32_t * pdw)
 		forward_packet(HEADER_DG_UPDATE_LAND, p, sizeof(building::land_table));
 }
 
-// BLOCK_CHAT
 void client_manager::block_chat(packet_block_chat* p)
 {
 	const std::string query = sql::format("SELECT id FROM player{} WHERE name = {}", sql::raw(get_table_postfix()), p->name);
@@ -1851,10 +1779,8 @@ void client_manager::block_chat(packet_block_chat* p)
 	}
 	else
 	{
-		// cannot find user with that name
 	}
 }
-// END_OF_BLOCK_CHAT
 
 void client_manager::marriage_add(packet_marriage_add * p)
 {
@@ -1893,14 +1819,8 @@ void client_manager::wedding_end(packet_wedding_end * p)
 	marriage::manager::instance().end_wedding(p->pi_d1, p->pi_d2);
 }
 
-//
-// If the cache has the price info, update the cache; if not,
-// first load the existing data, build the cache from it, then apply the newly received price info.
-//
 
-// Old code:
 
-// Fixed code:
 void client_manager::myshop_pricelist_update(const item_price_list_table* packet)
 {
 	if (packet->count > SHOP_PRICELIST_MAX_NUM)
@@ -1937,9 +1857,6 @@ void client_manager::myshop_pricelist_update(const item_price_list_table* packet
 	}
 }
 
-// MYSHOP_PRICE_LIST
-// If price info is cached, read the cache and send it immediately; otherwise query the DB.
-//
 void client_manager::myshop_pricelist_request(peer* peer, uint32_t handle_value, uint32_t player_id)
 {
 	if (item_price_list_table_cache* pCache = item_price_list_cache(player_id))
@@ -1970,7 +1887,6 @@ void client_manager::myshop_pricelist_request(peer* peer, uint32_t handle_value,
 		db_manager::instance().return_query(szQuery, QID_ITEMPRICE_LOAD, peer->handle(), new item_pricelist_req_info(handle_value, player_id));
 	}
 }
-// END_OF_MYSHOP_PRICE_LIST
 
 void client_manager::process_packets(peer * peer)
 {
@@ -1983,8 +1899,6 @@ void client_manager::process_packets(peer * peer)
 
 	while (peer->peek_packet(i, header, dwHandle, dwLength, &data))
 	{
-		// DISABLE_DB_HEADER_LOG
-		// END_OF_DISABLE_DB_HEADER_LOG
 		++iCount;
 
 		if (metin2::config::test_server())
@@ -2259,13 +2173,10 @@ void client_manager::process_packets(peer * peer)
 				wedding_end((packet_wedding_end *) data);
 				break;
 
-				// BLOCK_CHAT
 			case HEADER_GD_BLOCK_CHAT:
 				block_chat((packet_block_chat *) data);
 				break;
-				// END_OF_BLOCK_CHAT
 
-				// MYSHOP_PRICE_LIST
 			case HEADER_GD_MYSHOP_PRICELIST_UPDATE:
 				myshop_pricelist_update((item_price_list_table*)data);
 				break;
@@ -2273,19 +2184,15 @@ void client_manager::process_packets(peer * peer)
 			case HEADER_GD_MYSHOP_PRICELIST_REQ:
 				myshop_pricelist_request(peer, dwHandle, *(uint32_t*)data);
 				break;
-				// END_OF_MYSHOP_PRICE_LIST
 
-				//RELOAD_ADMIN
 			case HEADER_GD_RELOAD_ADMIN:
 				reload_admin(peer, (packet_reload_admin*)data);
 				break;
-				//END_RELOAD_ADMIN
 
 			case HEADER_GD_BREAK_MARRIAGE:
 				break_marriage(peer, data);
 				break;
 
-			//MOANRCH
 			case HEADER_GD_ELECT_MONARCH:
 				election(peer, dwHandle, data);
 				break;
@@ -2310,18 +2217,17 @@ void client_manager::process_packets(peer * peer)
 				come_to_vote(peer, dwHandle, data);
 				break;
 
-			case HEADER_GD_RMCANDIDACY:		//< Remove candidate (GM)
+			case HEADER_GD_RMCANDIDACY:
 				rm_candidacy(peer, dwHandle, data);
 				break;
 
-			case HEADER_GD_SETMONARCH:		///<Set monarch (GM)
+			case HEADER_GD_SETMONARCH:
 				set_monarch(peer, dwHandle, data);
 				break;
 
-			case HEADER_GD_RMMONARCH:		///<Delete monarch
+			case HEADER_GD_RMMONARCH:
 				rm_monarch(peer, dwHandle, data);
 				break;
-			//END_MONARCH
 
 			case HEADER_GD_CHANGE_MONARCH_LORD :
 				change_monarch_lord(peer, dwHandle, (packet_change_monarch_lord*)data);
@@ -2355,7 +2261,6 @@ void client_manager::process_packets(peer * peer)
 				charge_cash((request_charge_cash*)data);
 				break;
 
-			//delete gift notify icon
 
 			case HEADER_GD_DELETE_AWARDID:
 				delete_award_id((packet_delete_award_id*) data);
@@ -2378,12 +2283,10 @@ void client_manager::process_packets(peer * peer)
 
 void client_manager::add_peer(net::tcp::socket socket)
 {
-	// The db's input and output can be large (the boot packet carries every proto table).
 	constexpr std::size_t MAX_PEER_BUFFER = 256 * 1024 * 1024;
 
 	auto connection = net::connection::create(std::move(socket), MAX_PEER_BUFFER, MAX_PEER_BUFFER);
 
-	// only the configured game servers (ALLOWED_PEER_HOSTS), or localhost when none are configured
 	if (!is_allowed_peer(connection->remote_address().c_str(), metin2::config::db().allowed_peers, "127.0.0.1"))
 	{
 		metin2::log::info( "PORT_SECURITY: BLOCK CONNECTION FROM {}", connection->remote_address().c_str());
@@ -2451,9 +2354,6 @@ peer * client_manager::any_peer()
 	return peer_list_.front();
 }
 
-// Process results received from the DB manager.
-//
-// @version	05/06/10 Bang2ni - added price info queries (QID_ITEMPRICE_XXX)
 int client_manager::analyze_query_result(ql_msg * msg)
 {
 	query_info * qi = (query_info *) msg->pv_user_data;
@@ -2470,11 +2370,9 @@ int client_manager::analyze_query_result(ql_msg * msg)
 			guild_manager::instance().result_ranking(msg->get()->sql_result);
 			break;
 
-			// MYSHOP_PRICE_LIST
 		case QID_ITEMPRICE_LOAD_FOR_UPDATE:
 			result_pricelist_load_for_update(msg);
 			break;
-			// END_OF_MYSHOP_PRICE_LIST
 	}
 
 	if (!peer)
@@ -2529,11 +2427,9 @@ int client_manager::analyze_query_result(ql_msg * msg)
 		case QID_ITEM_AWARD_TAKEN:
 			break;
 
-			// PLAYER_INDEX_CREATE_BUG_FIX	
 		case QID_PLAYER_INDEX_CREATE:
 			result_player_index_create(peer, msg);
 			break;
-			// END_PLAYER_INDEX_CREATE_BUG_FIX	
 
 		case QID_PLAYER_DELETE:
 			result_player_delete(peer, msg);
@@ -2543,11 +2439,9 @@ int client_manager::analyze_query_result(ql_msg * msg)
 			result_login_by_key(peer, msg);
 			break;
 
-			// MYSHOP_PRICE_LIST
 		case QID_ITEMPRICE_LOAD:
 			result_pricelist_load(peer, msg);
 			break;
-			// END_OF_MYSHOP_PRICE_LIST
 
 		default:
 			metin2::log::info( "CClientManager::AnalyzeQueryResult unknown query result type: {:d}, str: {}", qi->type, msg->query.c_str());
@@ -2566,7 +2460,7 @@ void usage_log()
 	char        *time_s;
 	struct tm   lt;
 
-	int         avg = usage_avg / 3600; // 60 seconds * 60 minutes
+	int         avg = usage_avg / 3600;
 
 	fp = fopen("usage.txt", "a+");
 
@@ -2666,16 +2560,11 @@ int client_manager::process()
 
 			cache_flush_count_ = 0;
 
-			//Flush players
 			update_player_cache();
-			//Flush items
 			update_item_cache();
-			//Logout handling - flush cache set
 			update_logout_player();
 
-			// MYSHOP_PRICE_LIST
 			update_item_price_list_cache();
-			// END_OF_MYSHOP_PRICE_LIST
 
 			guild_manager::instance().update();
 			priv_manager::instance().update();
@@ -2692,21 +2581,17 @@ int client_manager::process()
 			metin2::log::debug("[perf] QUERY: MAIN[{:d}] ASYNC[{:d}]", query_count[0], query_count[1]);
 			query_count[0] = 0;
 			query_count[1] = 0;
-			/////////////////////////////////////////////////////////////////
 
-			/////////////////////////////////////////////////////////////////
 			metin2::log::debug("[perf] ITEM:{:d}", item_count);
 			item_count = 0;
-			/////////////////////////////////////////////////////////////////
 		}
 
-		if (!(thecore_heart->pulse % (thecore_heart->passes_per_sec * 60)))	// Once every 60 seconds
+		if (!(thecore_heart->pulse % (thecore_heart->passes_per_sec * 60)))
 		{
-			// Send the time for unique items.
 			client_manager::instance().send_time();
 		}
 
-		if (!(thecore_heart->pulse % (thecore_heart->passes_per_sec * 3600)))	// Once an hour
+		if (!(thecore_heart->pulse % (thecore_heart->passes_per_sec * 3600)))
 		{
 			db::logs::money_log::instance().save();
 		}
@@ -2714,7 +2599,7 @@ int client_manager::process()
 
 	net::io().poll();
 
-	// Peers whose connection ended are removed here, outside their connection's handlers.
+	// Closed peers are removed here, never inside their own connection's handlers.
 	for (auto it = peer_list_.begin(); it != peer_list_.end();)
 	{
 		peer * peer = *it++;
@@ -2728,7 +2613,6 @@ int client_manager::process()
 
 uint32_t client_manager::user_count()
 {
-	// Just counts logins.. --;
 	return map_k_logon_account_.size();
 }
 
@@ -2765,7 +2649,6 @@ time_t client_manager::current_time()
 	return time(nullptr);
 }
 
-// ITEM_UNIQUE_ID
 bool client_manager::initialize_now_item_id()
 {
 	const uint32_t dwMin = metin2::config::db().item_id_min;
@@ -2793,8 +2676,6 @@ uint32_t client_manager::item_id()
 {
 	return item_range_.usable_item_id_min;
 }
-// ITEM_UNIQUE_ID_END
-//BOOT_LOCALIZATION
 
 bool client_manager::initialize_localization() 
 {
@@ -2822,10 +2703,8 @@ bool client_manager::initialize_localization()
 		strlcpy(locale.value, row[col++], sizeof(locale.value));
 		strlcpy(locale.key, row[col++], sizeof(locale.key));
 
-		//DB_NAME_COLUMN Setting		
 		if (strcmp(locale.key, "LOCALE") == 0)
 		{
-			// The server runs the english locale only.
 			if (strcmp(locale.value, "english") != 0)
 			{
 				metin2::log::error("locale[LOCALE] = {} is not supported (only english)", locale.value);
@@ -2849,12 +2728,9 @@ bool client_manager::initialize_localization()
 
 	return true;
 }
-//END_BOOT_LOCALIZATION
-//ADMIN_MANAGER
 
 bool client_manager::admin_info(const char *ip, std::vector<t_admin_info> & admin_vec)
 {
-	//If szIP == NULL, has GM privileges on all servers.
 	const std::string query = sql::format(
 			"SELECT mID,mAccount,mName,mContactIP,mServerIP,mAuthority FROM gmlist WHERE mServerIP='ALL' or mServerIP={}",
 		   	ip ? ip : "ALL");
@@ -2931,7 +2807,6 @@ bool client_manager::host_info(std::vector<std::string> & ip_vec)
 
 	return true;
 }
-//END_ADMIN_MANAGER
 
 void client_manager::reload_admin(peer*, packet_reload_admin* p)
 {
@@ -2969,7 +2844,6 @@ void client_manager::reload_admin(peer*, packet_reload_admin* p)
 	metin2::log::info( "ReloadAdmin End {}", p->ip);
 }
 
-//BREAK_MARRIAGE
 void client_manager::break_marriage(peer * peer, const char * data)
 {
 	uint32_t pid1, pid2;
@@ -2983,7 +2857,6 @@ void client_manager::break_marriage(peer * peer, const char * data)
 	metin2::log::info( "Breaking off a marriage engagement! pid {:d} and pid {:d}", pid1, pid2);
 	marriage::manager::instance().remove(pid1, pid2);
 }
-//END_BREAK_MARIIAGE
 
 void client_manager::update_item_cache_set(uint32_t pid)
 {
@@ -3365,9 +3238,6 @@ void client_manager::send_spare_item_id_range(peer* peer)
 	peer->send_spare_item_id_range();
 }
 
-//
-// Remove only the Login Key from the map.
-// 
 void client_manager::delete_login_key(packet_dc *data)
 {
 	char login[LOGIN_MAX_LEN+1] = {0};
@@ -3384,7 +3254,6 @@ void client_manager::delete_login_key(packet_dc *data)
 	}
 }
 
-// delete gift notify icon
 void client_manager::delete_award_id(packet_delete_award_id *data)
 {
 	std::map<uint32_t, db::items::item_award *>::iterator it;

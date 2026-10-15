@@ -8,8 +8,6 @@ namespace metin2::sql {
         std::string result;
         result.reserve(value.size());
 
-        // The characters mysql_real_escape_string escapes; UTF-8 needs no multi-byte care because no
-        // byte of a multi-byte sequence is ASCII.
         for (const char ch : value) {
             switch (ch) {
             case '\0':

@@ -104,7 +104,7 @@ EVENTFUNC(battle_arena_event)
 
 	if ( pInfo == nullptr )
 	{
-		return 0;  // cancel immediately
+		return 0;
 	}
 
 	if (pInfo != nullptr)

@@ -65,7 +65,6 @@ ACMD(do_user_horse_ride)
 
 	if (ch->is_horse_riding() == false)
 	{
-		// Riding a mount other than a horse.
 		if (ch->get_mount_vnum())
 		{
 			ch->chat_packet(CHAT_TYPE_INFO, lc_text("이미 탈것을 이용중입니다."));
@@ -105,7 +104,6 @@ ACMD(do_user_horse_back)
 
 ACMD(do_user_horse_feed)
 {
-	// Cannot feed the horse while a private shop is open.
 	if (ch->my_shop())
 		return;
 
@@ -281,7 +279,7 @@ EVENTFUNC(timed_event)
 	}
 
 	character *	ch = info->ch;
-	if (ch == nullptr) { // <Factor>
+	if (ch == nullptr) {
 		return 0;
 	}
 	desc * d = ch->get_desc();
@@ -428,7 +426,6 @@ ACMD(do_restart)
 		{
 			if (ch->is_hack())
 			{
-				//Do not check on sanctuary maps.
 				if (false == three_way_war::instance().is_sung_zi_map_index(ch->map_index()))
 				{
 					ch->chat_packet(CHAT_TYPE_INFO, lc_text("아직 재시작 할 수 없습니다. (%d초 남음)"), iTimeToDead - (180 - portal_limit_time));
@@ -444,14 +441,10 @@ ACMD(do_restart)
 		}
 	}
 
-	//PREVENT_HACK
-	//DESC : could be exploited by a bug using a portal after the safebox or trade window, so
-	//		added a cooldown 
 	if (subcmd == SCMD_RESTART_TOWN)
 	{
 		if (ch->is_hack())
 		{
-			//Do not check on guild maps and sanctuary maps.
 			if ((!ch->get_war_map() || ch->get_war_map()->type() == GUILD_WAR_TYPE_FLAG) ||
 			   	false == three_way_war::instance().is_sung_zi_map_index(ch->map_index()))
 			{
@@ -466,7 +459,6 @@ ACMD(do_restart)
 			return;
 		}
 	}
-	//END_PREVENT_HACK
 
 	ch->chat_packet(CHAT_TYPE_COMMAND, "CloseRestartWindow");
 
@@ -474,8 +466,6 @@ ACMD(do_restart)
 	ch->set_position(POS_STANDING);
 	ch->start_recovery_event();
 
-	//FORKED_LOAD
-	//DESC: when reviving during the three-way battle, you move to the three-way battle start point instead of the map entrance.
 	if (1 == quest::quest_manager::instance().event_flag("threeway_war"))
 	{
 		if (subcmd == SCMD_RESTART_TOWN || subcmd == SCMD_RESTART_HERE)
@@ -492,7 +482,6 @@ ACMD(do_restart)
 				return;
 			}
 
-			//Sanctuary 
 			if (true == three_way_war::instance().is_sung_zi_map_index(ch->map_index()))
 			{
 				if (three_way_war::instance().revive_token_for_player(ch->player_id()) <= 0)
@@ -513,7 +502,6 @@ ACMD(do_restart)
 			}
 		}
 	}
-	//END_FORKED_LOAD
 
 	if (ch->get_dungeon())
 		ch->get_dungeon()->use_revive(ch);
@@ -803,17 +791,11 @@ ACMD(do_skillup)
 	}
 }
 
-//
-// @version	05/06/20 Bang2ni - command handling Delegate to CHARACTER class
-//
 ACMD(do_safebox_close)
 {
 	ch->close_safebox();
 }
 
-//
-// @version	05/06/20 Bang2ni - command handling Delegate to CHARACTER class
-//
 ACMD(do_safebox_password)
 {
 	char arg1[256];
@@ -868,7 +850,7 @@ ACMD(do_mall_password)
 		return;
 	}
 
-	if (iPulse - ch->mall_load_time() < metin2::config::server().passes_per_sec * 10) // Can only be requested once every 10 seconds
+	if (iPulse - ch->mall_load_time() < metin2::config::server().passes_per_sec * 10)
 	{
 		ch->chat_packet(CHAT_TYPE_INFO, lc_text("<창고> 창고를 닫은지 10초 안에는 열 수 없습니다."));
 		return;
@@ -915,7 +897,6 @@ ACMD(do_ungroup)
 
 	if (pParty->member_count() == 2)
 	{
-		// party disband
 		party_manager::instance().delete_party(pParty);
 	}
 	else
@@ -948,20 +929,17 @@ ACMD(do_set_run_mode)
 
 ACMD(do_war)
 {
-	//get my guild info
 	guild * g = ch->get_guild();
 
 	if (!g)
 		return;
 
-	//check once whether at war!
 	if (g->under_any_war())
 	{
 		ch->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> 이미 다른 전쟁에 참전 중 입니다."));
 		return;
 	}
 
-	//split the parameters in two
 	char arg1[256], arg2[256];
 	int type = GUILD_WAR_TYPE_FIELD;
 	two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
@@ -976,21 +954,18 @@ ACMD(do_war)
 		if (type >= GUILD_WAR_TYPE_MAX_NUM)
 			type = GUILD_WAR_TYPE_FIELD;
 
-		if(type < 0) // Fix
+		if(type < 0)
 			return;
 	}
 
-	//after getting the guild master's id
 	uint32_t gm_pid = g->master_pid();
 
-	//check whether master (only the guild leader can start a guild war)
 	if (gm_pid != ch->player_id())
 	{
 		ch->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> 길드전에 대한 권한이 없습니다."));
 		return;
 	}
 
-	//get the opposing guild
 	guild * opp_g = guild_manager::instance().find_guild_by_name(arg1);
 
 	if (!opp_g)
@@ -999,7 +974,6 @@ ACMD(do_war)
 		return;
 	}
 
-	//check the state with the opposing guild
 	switch (g->get_guild_war_state(opp_g->id()))
 	{
 		case GUILD_WAR_NONE:
@@ -1062,7 +1036,6 @@ ACMD(do_war)
 
 	if (!g->can_start_war(type))
 	{
-		// Conditions for a guild war are not met.
 		if (g->ladder_point() == 0)
 		{
 			ch->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> 레더 점수가 모자라서 길드전을 할 수 없습니다."));
@@ -1080,7 +1053,6 @@ ACMD(do_war)
 		return;
 	}
 
-	// Only check for field war here; detailed checks happen when the other side accepts.
 	if (!opp_g->can_start_war(GUILD_WAR_TYPE_FIELD))
 	{
 		if (opp_g->ladder_point() == 0)
@@ -1213,7 +1185,6 @@ ACMD(do_messenger_auth)
 			tch->chat_packet(CHAT_TYPE_INFO, lc_text("%s 님으로 부터 친구 등록을 거부 당했습니다."), ch->name());
 	}
 
-	//MessengerManager::instance().AuthToAdd(ch->GetName(), arg2, answer == 'y' ? false : true); // DENY
 }
 
 ACMD(do_setblockmode)
@@ -1366,17 +1337,14 @@ ACMD(do_monarch_warpto)
 		return;
 	}
 
-	//monarch cooldown check
 	if (!ch->is_mcok(character::MI_WARP))
 	{
 		ch->chat_packet(CHAT_TYPE_INFO, lc_text("%d 초간 쿨타임이 적용중입니다."), ch->mcl_time(character::MI_WARP));
 		return;
 	}
 
-	//monarch mob summon cost 
 	const int WarpPrice = 10000;
 
-	//monarch treasury check 
 	if (!monarch::instance().is_money_ok(WarpPrice, ch->empire()))
 	{
 		int NationMoney = monarch::instance().money(ch->empire());
@@ -1429,10 +1397,8 @@ ACMD(do_monarch_warpto)
 				ch->chat_packet(CHAT_TYPE_INFO, lc_text("%s 에게로 이동합니다"), arg1);
 				ch->warp_set(pos.x, pos.y);
 
-				//deduct monarch money	
 				monarch::instance().sendto_db_dec_money(WarpPrice, ch->empire(), ch);
 
-				//reset cooldown 
 				ch->set_mc(character::MI_WARP);
 			}
 		}
@@ -1463,10 +1429,8 @@ ACMD(do_monarch_warpto)
 	ch->warp_set(x, y);
 	ch->stop();
 
-	//deduct monarch money	
 	monarch::instance().sendto_db_dec_money(WarpPrice, ch->empire(), ch);
 
-	//reset cooldown 
 	ch->set_mc(character::MI_WARP);
 }
 
@@ -1488,17 +1452,14 @@ ACMD(do_monarch_transfer)
 		return;
 	}
 
-	//monarch cooldown check
 	if (!ch->is_mcok(character::MI_TRANSFER))
 	{
 		ch->chat_packet(CHAT_TYPE_INFO, lc_text("%d 초간 쿨타임이 적용중입니다."), ch->mcl_time(character::MI_TRANSFER));	
 		return;
 	}
 
-	//monarch warp cost 
 	const int WarpPrice = 10000;
 
-	//monarch treasury check 
 	if (!monarch::instance().is_money_ok(WarpPrice, ch->empire()))
 	{
 		int NationMoney = monarch::instance().money(ch->empire());
@@ -1545,9 +1506,7 @@ ACMD(do_monarch_transfer)
 			p2_p_manager::instance().send(&pgg, sizeof(packet_gg_transfer));
 			ch->chat_packet(CHAT_TYPE_INFO, lc_text("%s 님을 소환하였습니다."), arg1);
 
-			//deduct monarch money	
 			monarch::instance().sendto_db_dec_money(WarpPrice, ch->empire(), ch);
-			//reset cooldown 
 			ch->set_mc(character::MI_TRANSFER);
 		}
 		else
@@ -1582,9 +1541,7 @@ ACMD(do_monarch_transfer)
 
 	tch->warp_set(ch->x(), ch->y(), ch->map_index());
 
-	//deduct monarch money	
 	monarch::instance().sendto_db_dec_money(WarpPrice, ch->empire(), ch);
-	//reset cooldown 
 	ch->set_mc(character::MI_TRANSFER);
 }
 
@@ -1621,7 +1578,6 @@ ACMD(do_elect)
 	db_clientdesc->db_packet_header(HEADER_GD_COME_TO_VOTE, ch->get_desc()->handle(), 0);
 }
 
-// LUA_ADD_GOTO_INFO
 struct goto_info
 {
 	std::string 	st_name;
@@ -1653,14 +1609,12 @@ ACMD(do_monarch_tax)
 		return;
 	}
 
-	// monarch check	
 	if (!ch->is_monarch())
 	{
 		ch->chat_packet(CHAT_TYPE_INFO, lc_text("군주만이 사용할수 있는 기능입니다"));
 		return;
 	}
 
-	// Tax setting 
 	int tax = 0;
 	str_to_number(tax,  arg1);
 
@@ -1669,10 +1623,8 @@ ACMD(do_monarch_tax)
 
 	quest::quest_manager::instance().set_event_flag("trade_tax", tax); 
 
-	// A message to the monarch
 	ch->chat_packet(CHAT_TYPE_INFO, lc_text("세금이 %d %로 설정되었습니다"));
 
-	// Notice 
 	char szMsg[1024];	
 
 	snprintf(szMsg, sizeof(szMsg), "군주의 명으로 세금이 %d %% 로 변경되었습니다", tax);
@@ -1681,32 +1633,31 @@ ACMD(do_monarch_tax)
 	snprintf(szMsg, sizeof(szMsg), "앞으로는 거래 금액의 %d %% 가 국고로 들어가게됩니다.", tax);
 	broadcast_notice(szMsg);
 
-	// reset cooldown 
 	ch->set_mc(character::MI_TAX); 
 }
 
 static const uint32_t cs_dw_monarch_mob_vnums[] =
 {
-	191, //	Wild Dog God
-	192, //	Boar God
-	193, //	Bear God
-	194, //	Tiger God
-	391, //	Mi-jeong
-	392, //	Eun-jeong
-	393, //	Se-rang
-	394, //	Jin-hui
-	491, //	Maeng-hwan
-	492, //	Bo-u
-	493, //	Gu-pae
-	494, //	Chu-heun
-	591, //	Biryu gang captain
-	691, //	Orc chief
-	791, //	Esoteric cult leader
-	1304, // Yellow Tiger Ghost
-	1901, // Nine-tailed fox
-	2091, // Queen Spider
-	2191, // Giant Desert Turtle
-	2206, // Flame King i
+	191,
+	192,
+	193,
+	194,
+	391,
+	392,
+	393,
+	394,
+	491,
+	492,
+	493,
+	494,
+	591,
+	691,
+	791,
+	1304,
+	1901,
+	2091,
+	2191,
+	2206,
 	0,
 };
 
@@ -1729,17 +1680,14 @@ ACMD(do_monarch_mob)
 		return;
 	}
 
-	// monarch mob summon cost 
 	const int SummonPrice = 5000000;
 
-	// monarch cooldown check
 	if (!ch->is_mcok(character::MI_SUMMON))
 	{
 		ch->chat_packet(CHAT_TYPE_INFO, lc_text("%d 초간 쿨타임이 적용중입니다."), ch->mcl_time(character::MI_SUMMON));	
 		return;
 	}
 
-	// monarch treasury check 
 	if (!monarch::instance().is_money_ok(SummonPrice, ch->empire()))
 	{
 		int NationMoney = monarch::instance().money(ch->empire());
@@ -1767,7 +1715,6 @@ ACMD(do_monarch_mob)
 
 	uint32_t count;
 
-	// check summonable mob
 	for (count = 0; cs_dw_monarch_mob_vnums[count] != 0; ++count)
 		if (cs_dw_monarch_mob_vnums[count] == vnum)
 			break;
@@ -1790,10 +1737,8 @@ ACMD(do_monarch_mob)
 
 	if (tch)
 	{
-		// deduct monarch money	
 		monarch::instance().sendto_db_dec_money(SummonPrice, ch->empire(), ch);
 
-		// reset cooldown 
 		ch->set_mc(character::MI_SUMMON); 
 	}
 }
@@ -1904,7 +1849,6 @@ static bool fn_hair_affect_string(character * ch, char *buf, size_t bufsiz)
 	if (expire < get_global_time())
 		return false;
 
-	// set apply string
 	offset = snprintf(buf, bufsiz, fn_point_string(aff->apply_on), aff->apply_value);
 
 	if (offset < 0 || offset >= (int) bufsiz)
@@ -2015,7 +1959,6 @@ ACMD(do_inventory)
 	}
 }
 
-//gift notify quest command
 ACMD(do_gift)
 {
 	ch->chat_packet(CHAT_TYPE_COMMAND, "gift");
@@ -2037,7 +1980,6 @@ ACMD(do_cube)
 
 	if (0 == arg1[0])
 	{
-		// print usage
 		ch->chat_packet(CHAT_TYPE_INFO, "Usage: cube open");
 		ch->chat_packet(CHAT_TYPE_INFO, "       cube close");
 		ch->chat_packet(CHAT_TYPE_INFO, "       cube add <inveltory_index>");
@@ -2050,14 +1992,8 @@ ACMD(do_cube)
 
 	const std::string& strArg1 = std::string(arg1);
 
-	// r_info (request information)
-	// /cube r_info     ==> (Client -> Server) request recipes the current NPC can make
-	//					    (Server -> Client) /cube r_list npcVNUM resultCOUNT 123,1/125,1/128,1/130,5
-	//
-	// /cube r_info 3   ==> (Client -> Server) request info needed to make the 3rd item among the recipes the current NPC can make
-	// /cube r_info 3 5 ==> (Client -> Server) request material info needed to make 5 items starting from the 3rd among the recipes the current NPC can make
-	//					   (Server -> Client) /cube m_info startIndex count 125,1|126,2|127,2|123,5&555,5&555,4/120000@125,1|126,2|127,2|123,5&555,5&555,4/120000
-	//
+	// /cube r_info          -> /cube r_list npc_vnum count vnum,count/vnum,count/...
+	// /cube r_info i [n]    -> /cube m_info start count materials (see cube.cpp)
 	if (strArg1 == "r_info")
 	{
 		if (0 == arg2[0])
@@ -2081,19 +2017,19 @@ ACMD(do_cube)
 
 	switch (std::tolower(static_cast<unsigned char>(arg1[0])))
 	{
-		case 'o':	// open
+		case 'o':
 			cube_open(ch);
 			break;
 
-		case 'c':	// close
+		case 'c':
 			cube_close(ch);
 			break;
 
-		case 'l':	// list
+		case 'l':
 			cube_show_list(ch);
 			break;
 
-		case 'a':	// add cue_index inven_index
+		case 'a':
 			{
 				if (0 == arg2[0] || !isdigit(*arg2) ||
 					0 == arg3[0] || !isdigit(*arg3))
@@ -2105,7 +2041,7 @@ ACMD(do_cube)
 			}
 			break;
 
-		case 'd':	// delete
+		case 'd':
 			{
 				if (0 == arg2[0] || !isdigit(*arg2))
 					return;
@@ -2115,7 +2051,7 @@ ACMD(do_cube)
 			}
 			break;
 
-		case 'm':	// make
+		case 'm':
 			if (0 != arg2[0])
 			{
 				while (true == cube_make(ch))
@@ -2156,7 +2092,6 @@ ACMD(do_in_game_mall)
 	ch->chat_packet(CHAT_TYPE_COMMAND, buf);
 }
 
-// Dice
 ACMD(do_dice) 
 {
 	char arg1[256], arg2[256];
@@ -2197,7 +2132,6 @@ ACMD(do_ride)
     if (ch->is_dead() || ch->is_stun())
 	return;
 
-    // Dismount
     {
 	if (ch->is_horse_riding())
 	{
@@ -2214,7 +2148,6 @@ ACMD(do_ride)
 	}
     }
 
-    // Mount
     {
 	if (ch->horse() != nullptr)
 	{
@@ -2229,7 +2162,6 @@ ACMD(do_ride)
 		if (nullptr == item)
 			continue;
 
-		// Unique mount item
 		if (item->is_ride_item())
 		{
 			if (nullptr==ch->wear(WEAR_UNIQUE1) || nullptr==ch->wear(WEAR_UNIQUE2))
@@ -2240,20 +2172,17 @@ ACMD(do_ride)
 			}
 		}
 
-	    // Normal mount item
-	    // TODO : add a SubType for mounts
 	    switch (item->vnum())
 	    {
-		case 71114:	// Wild Boar mount ticket
-		case 71116:	// Wild Dog mount ticket
-		case 71118:	// Fighting Tiger mount ticket
-		case 71120:	// Lion King mount ticket
+		case 71114:
+		case 71116:
+		case 71118:
+		case 71120:
 		    metin2::log::debug( "[DO_RIDE] USE QUEST ITEM");
 		    ch->use_item(item_pos (INVENTORY, i));
 		    return;
 	    }
 
-		// GF mantis #113524, mounts 52001~52090
 		if( (item->vnum() > 52000) && (item->vnum() < 52091) )	{
 			metin2::log::debug( "[DO_RIDE] USE QUEST ITEM");
 			ch->use_item(item_pos (INVENTORY, i));
@@ -2262,7 +2191,6 @@ ACMD(do_ride)
 	}
     }
 
-    // When unable to mount or dismount
     ch->chat_packet(CHAT_TYPE_INFO, lc_text("말을 먼저 소환해주세요."));
 }
 }

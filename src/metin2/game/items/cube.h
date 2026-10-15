@@ -1,9 +1,3 @@
-/*********************************************************************
- * date        : 2006.11.20
- * file        : cube.h
- * author      : mhh
- * description : Cube system
- */
 
 #pragma once
 
@@ -14,7 +8,7 @@
 
 namespace metin2::game::inline items {
 
-inline constexpr int CUBE_MAX_NUM = 24; // OLD:INVENTORY_MAX_NUM
+inline constexpr int CUBE_MAX_NUM = 24;
 inline constexpr int CUBE_MAX_DISTANCE = 1000;
 struct cube_value
 {
@@ -33,7 +27,7 @@ struct cube_data
 	std::vector<cube_value>	item;
 	std::vector<cube_value>	reward;
 	int						percent;
-	unsigned int			gold;		// Cost required for crafting
+	unsigned int			gold;
 
 	cube_data();
 
@@ -58,7 +52,6 @@ void cube_delete_item (character * ch, int cube_index);
 void cube_request_result_list(character * ch);
 void cube_request_material_info(character * ch, int request_start_index, int request_count = 1);
 
-// test print code
 
 bool cube_information_initialize();
 }

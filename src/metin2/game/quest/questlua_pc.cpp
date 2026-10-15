@@ -54,9 +54,6 @@ const int ITEM_BROKEN_METIN_VNUM = 28960;
 
 namespace quest 
 {
-	//
-	// "pc" Lua functions
-	//
 	int pc_has_master_skill(lua_State* lua)
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
@@ -190,13 +187,11 @@ namespace quest
 		if (lua_isnumber(lua, 3))
 			map_index = (int) lua_tonumber(lua,3);
 
-		//PREVENT_HACK
 		if ( ch->is_hack() )
 		{
 			lua_pushboolean(lua, false);
 			return 1;
 		}
-		//END_PREVENT_HACK
 
 		if ( metin2::config::test_server() )
 			ch->chat_packet( CHAT_TYPE_INFO, "pc_warp %d %d %d",(int)lua_tonumber(lua,1),
@@ -363,10 +358,8 @@ namespace quest
 
 		character * ch = quest_manager::instance().current_character_ptr();
 
-		//PREVENT_HACK
 		if ( ch->is_hack() )
 			return 0;
-		//END_PREVENT_HACK
 
 		ch->set_quest_flag("war.is_war_member", 0);
 		ch->save_exit_location();
@@ -442,7 +435,7 @@ namespace quest
 
 		uint32_t dwVnum;
 
-		if (lua_isnumber(lua,2)) // If it's a number, give it as a number.
+		if (lua_isnumber(lua,2))
 			dwVnum = (int) lua_tonumber(lua, 2);
 		else if (!item_manager::instance().vnum(lua_tostring(lua, 2), dwVnum))
 		{
@@ -482,7 +475,7 @@ namespace quest
 
 		uint32_t dwVnum;
 
-		if (lua_isnumber(lua, 1)) // If it's a number, give it as a number.
+		if (lua_isnumber(lua, 1))
 		{
 			dwVnum = (int) lua_tonumber(lua, 1);
 		}
@@ -538,7 +531,7 @@ namespace quest
 
 		uint32_t dwVnum;
 
-		if (lua_isnumber(lua, 1)) // If it's a number, give it as a number.
+		if (lua_isnumber(lua, 1))
 		{
 			dwVnum = (int) lua_tonumber(lua, 1);
 		}
@@ -799,7 +792,7 @@ namespace quest
 
 		character * ch = quest_manager::instance().current_character_ptr();
 
-		if (val > 0) // It's an increment, so always return success
+		if (val > 0)
 			ch->point_change(POINT_SP, val);
 		else if (val < 0)
 		{
@@ -851,17 +844,13 @@ namespace quest
 			pc* pPC = quest_manager::instance().current_pc();
 			log_manager::instance().quest_reward_log(pPC->current_quest_name().c_str(), ch->player_id(), ch->level(), newLevel, 0);
 
-			//Points: skill, sub-skill, stat
 			ch->point_change(POINT_SKILL, newLevel - ch->level());
 			ch->point_change(POINT_SUB_SKILL, newLevel < 10 ? 0 : newLevel - std::max(ch->level(), 9));
 			ch->point_change(POINT_STAT, ((std::clamp(newLevel, 1, 90) - ch->level()) * 3) + ch->point(POINT_LEVEL_STEP));
-			//Level
 			ch->point_change(POINT_LEVEL, newLevel - ch->level());
-			//HP, SP
 			ch->set_random_hp((newLevel - 1) * number(job_initial_points[ch->job()].hp_per_lv_begin, job_initial_points[ch->job()].hp_per_lv_end));
 			ch->set_random_sp((newLevel - 1) * number(job_initial_points[ch->job()].sp_per_lv_begin, job_initial_points[ch->job()].sp_per_lv_end));
 
-			// Recovery
 			ch->point_change(POINT_HP, ch->max_hp() - ch->hp());
 			ch->point_change(POINT_SP, ch->max_sp() - ch->sp());
 
@@ -923,8 +912,6 @@ namespace quest
 		return 1;
 	}
 
-	// 20050725.myevan. A bug where alignment was consumed double when training with a soul stone while using the cloak of hiding
-	// so the actual alignment value is used for the calculation.
 	int pc_get_real_alignment(lua_State* lua)
 	{
 		lua_pushnumber(lua, quest_manager::instance().current_character_ptr()->real_alignment()/10);
@@ -1217,7 +1204,6 @@ namespace quest
 		ch->remove_affect(AFFECT_MOUNT);
 		ch->remove_affect(AFFECT_MOUNT_BONUS);
 
-		// If a horse is summoned and following, remove the horse first
 		if (ch->horse())
 			ch->horse_summon(false);
 
@@ -1339,7 +1325,6 @@ namespace quest
 			{
 				int x = item->get_socket(0);
 				int y = item->get_socket(1);
-				//if ((x-item_x)*(x-item_x)+(y-item_y)*(y-item_y)<r*r)
 				if (region->sx <=x && region->sy <= y && x <= region->ex && y <= region->ey)
 				{
 					bFind = true;
@@ -1463,7 +1448,6 @@ namespace quest
 
 		if (pct == 100 || number(1, 100) <= pct)
 		{
-			// Upgrade succeeded
 			lua_pushboolean(lua, 1);
 
 			game::items::item * pkNewItem = item_manager::instance().create_item(item->refined_vnum(), 1, 0, false);
@@ -1490,7 +1474,6 @@ namespace quest
 
 				item_manager::instance().remove_item(item, "REMOVE (REFINE SUCCESS)");
 
-				// some tuits need here -_- pkNewItem->AddToCharacter(this, bCell); 
 				pkNewItem->equip_to(ch, cell);
 
 				item_manager::instance().flush_delayed_save(pkNewItem);
@@ -1500,7 +1483,6 @@ namespace quest
 		}
 		else
 		{
-			// Upgrade failed
 			lua_pushboolean(lua, 0);
 		}
 
@@ -1537,7 +1519,6 @@ namespace quest
 		pdw[1] = 1;
 		pdw[2] = q.event_flag("lotto_round");
 
-		// Lottery tickets set sockets
 		db_manager::instance().return_query(QID_LOTTO, ch->player_id(), pdw, sql::format(
 				"INSERT INTO lotto_list VALUES(0, 'server{}', {}, NOW())",
 				sql::raw(get_table_postfix()), ch->player_id()));
@@ -1590,7 +1571,7 @@ namespace quest
 	int pc_get_sex(lua_State* lua)
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
-		lua_pushnumber(lua, get_sex(ch)); /* 0==MALE, 1==FEMALE */
+		lua_pushnumber(lua, get_sex(ch));
 		return 1;
 	}
 
@@ -1725,7 +1706,6 @@ namespace quest
 		return 0;
 	}
 
-	// RESET_ONE_SKILL	
 	int pc_clear_one_skill(lua_State* lua)
 	{
 		int vnum = (int)lua_tonumber(lua, 1);
@@ -1745,7 +1725,6 @@ namespace quest
 
 		return 0;
 	}
-	// END_RESET_ONE_SKILL
 
 	int pc_is_clear_skill_group(lua_State* lua)
 	{
@@ -1765,14 +1744,12 @@ namespace quest
 		return 0;
 	}
 
-	//Teleport 
 	int pc_teleport ( lua_State * lua )
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		int x=0,y=0;	
 		if ( lua_isnumber(lua, 1) )
 		{
-			// Warp by region name
 			const int TOWN_NUM = 10;
 			struct warp_by_town_name
 			{
@@ -1973,13 +1950,6 @@ teleport_area:
 
 	int pc_change_name(lua_State* lua)
 	{
-		// Return value
-		//		0: set a new name but haven't logged out
-		//		1: no string passed from the script
-		//		2: failed check_name
-		//		3: same name already in use
-		//		4: success
-		//		5: feature not supported
 
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -2012,7 +1982,6 @@ teleport_area:
 			int	count = 0;
 			str_to_number(count, row[0]);
 
-			// A character with that name already exists
 			if ( count != 0 )
 			{
 				lua_pushnumber(lua, 3);
@@ -2021,12 +1990,10 @@ teleport_area:
 		}
 
 		uint32_t pid = ch->player_id();
-		ch->save(); // Fix
+		ch->save();
 
-		/* delete messenger list */
 		messenger_manager::instance().remove_all_list(ch->name());
 
-		/* change_name_log */
 		log_manager::instance().change_name_log(pid, ch->name(), szName, ch->get_desc()->host_name());
 
 		std::unique_ptr<ql_msg> msg(db_manager::instance().direct_query(sql::format("UPDATE player{} SET name={} WHERE id={}", sql::raw(get_table_postfix()), szName, pid)));
@@ -2260,8 +2227,6 @@ teleport_area:
 
 		int idx = 1;
 
-		// Probably not needed for dragon soul slots.
-		// This function seems to be for stone-removal scrolls.
 		for ( int i=0; i < INVENTORY_MAX_NUM + WEAR_MAX_NUM; i++ )
 		{
 			item * pItem = pChar->inventory_item(i);
@@ -2635,7 +2600,6 @@ teleport_area:
 
 		metin2::log::info( "QUEST [award] item {:d} to login {}", dwVnum, ch->get_desc()->get_account_table().login);
 
-		// Socket values may come as numbers or numeric strings; anything else reads as 0.
 		int64_t sockets[3] = {};
 		for (int i = 0; i < 3; ++i)
 			str_to_number(sockets[i], lua_tostring(lua, 4 + i));
@@ -2655,7 +2619,7 @@ teleport_area:
 		return 1;
 	}
 
-	int pc_get_informer_type(lua_State* lua)	//German gift feature
+	int pc_get_informer_type(lua_State* lua)
 	{
 		character * pChar = quest_manager::instance().current_character_ptr();
 
@@ -2812,9 +2776,9 @@ teleport_area:
 			{ "remove_skill_book_no_delay",	pc_remove_skill_book_no_delay}, 
 
 			{ "enough_inventory",	pc_enough_inventory	},
-			{ "get_horse_level",	pc_get_horse_level	}, // TO BE DELETED XXX
-			{ "is_horse_alive",		pc_is_horse_alive	}, // TO BE DELETED XXX
-			{ "revive_horse",		pc_revive_horse		}, // TO BE DELETED XXX
+			{ "get_horse_level",	pc_get_horse_level	},
+			{ "is_horse_alive",		pc_is_horse_alive	},
+			{ "revive_horse",		pc_revive_horse		},
 			{ "have_pos_scroll",	pc_have_pos_scroll	},
 			{ "have_map_scroll",	pc_have_map_scroll	},
 			{ "get_war_map",		pc_get_war_map		},
@@ -2836,9 +2800,7 @@ teleport_area:
 			{ "ore_refine",		pc_ore_refine		},
 			{ "diamond_refine",		pc_diamond_refine	},
 
-			// RESET_ONE_SKILL
 			{ "clear_one_skill",        pc_clear_one_skill      },
-			// END_RESET_ONE_SKILL
 
 			{ "clear_skill",                pc_clear_skill          },
 			{ "clear_sub_skill",    pc_clear_sub_skill      },
@@ -2897,18 +2859,13 @@ teleport_area:
 
 			{ "charge_cash",		pc_charge_cash		},
 
-			{ "get_informer_type",	pc_get_informer_type	},	//German gift feature
+			{ "get_informer_type",	pc_get_informer_type	},
 			{ "get_informer_item",  pc_get_informer_item	},
 
-			{ "give_award",			pc_give_award			},	//Give a gold bar once per Japanese account
-			{ "give_award_socket",	pc_give_award_socket	},	//Gives an item to the mall inventory. Function for setting sockets.
+			{ "give_award",			pc_give_award			},
+			{ "give_award_socket",	pc_give_award_socket	},
 
-			{ "get_killee_drop_pct",	pc_get_killee_drop_pct	}, /* Item drop chance in the mob_vnum.kill event, considering the level difference between killee and pc, the pc's premium drop rate, etc.
-																    * Returns (numerator, denominator).
-																    * (Complicated to explain; think of it as returning iDeltaPercent, iRandRange from GetDropPct in CreateDropItem.)
-																	* (Maybe that's even harder to follow T_T)
-																	* Caution: use only in the kill event!
-																	*/
+			{ "get_killee_drop_pct",	pc_get_killee_drop_pct	},
 
 			{ nullptr,			nullptr			}
 		};

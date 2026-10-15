@@ -23,10 +23,10 @@ inline constexpr int SOCIAL_ID_MAX_LEN = 18;
 
 inline constexpr int GUILD_NAME_MAX_LEN = 12;
 
-inline constexpr int SHOP_HOST_ITEM_MAX_NUM = 40;  // Max item count for the host
-inline constexpr int SHOP_GUEST_ITEM_MAX_NUM = 18; // Max item count for the guest
+inline constexpr int SHOP_HOST_ITEM_MAX_NUM = 40;
+inline constexpr int SHOP_GUEST_ITEM_MAX_NUM = 18;
 
-inline constexpr int SHOP_PRICELIST_MAX_NUM = 40; ///< Max number of price entries to keep in the private shop price list
+inline constexpr int SHOP_PRICELIST_MAX_NUM = 40;
 
 inline constexpr int CHAT_MAX_LEN = 512;
 
@@ -77,53 +77,37 @@ inline constexpr int BELT_INVENTORY_SLOT_HEIGHT = 4;
 
 inline constexpr int BELT_INVENTORY_SLOT_COUNT = BELT_INVENTORY_SLOT_WIDTH * BELT_INVENTORY_SLOT_HEIGHT;
 
-/**
-**** Item areas allocated so far (Item Position in DB) ****
-+------------------------------------------------------+ 0
-| Character base inventory (45 cells * 2 pages) 90     |
-+------------------------------------------------------+ 90 = INVENTORY_MAX_NUM(90)
-| Character equipment window (worn items) 32           |
-+------------------------------------------------------+ 122 = INVENTORY_MAX_NUM(90) + WEAR_MAX_NUM(32)
-| Dragon soul equipment window (worn DS) 12            |
-+------------------------------------------------------+ 134 = 122 + DS_SLOT_MAX(6) * DRAGON_SOUL_DECK_MAX_NUM(2)
-| Dragon soul equipment reserved (unused yet) 18       |
-+------------------------------------------------------+ 152 = 134 + DS_SLOT_MAX(6) * DRAGON_SOUL_DECK_RESERVED_MAX_NUM(3)
-| Belt inventory (active by belt level if belt worn)   |
-+------------------------------------------------------+ 168 = 152 + BELT_INVENTORY_SLOT_COUNT(16) = INVENTORY_AND_EQUIP_CELL_MAX
-| Unused                                               |
-+------------------------------------------------------+ ??
-*/
 
 
 enum wear_positions {
-    WEAR_BODY,         // 0
-    WEAR_HEAD,         // 1
-    WEAR_FOOTS,        // 2
-    WEAR_WRIST,        // 3
-    WEAR_WEAPON,       // 4
-    WEAR_NECK,         // 5
-    WEAR_EAR,          // 6
-    WEAR_UNIQUE1,      // 7
-    WEAR_UNIQUE2,      // 8
-    WEAR_ARROW,        // 9
-    WEAR_SHIELD,       // 10
-    WEAR_ABILITY1,     // 11
-    WEAR_ABILITY2,     // 12
-    WEAR_ABILITY3,     // 13
-    WEAR_ABILITY4,     // 14
-    WEAR_ABILITY5,     // 15
-    WEAR_ABILITY6,     // 16
-    WEAR_ABILITY7,     // 17
-    WEAR_ABILITY8,     // 18
-    WEAR_COSTUME_BODY, // 19
-    WEAR_COSTUME_HAIR, // 20
+    WEAR_BODY,
+    WEAR_HEAD,
+    WEAR_FOOTS,
+    WEAR_WRIST,
+    WEAR_WEAPON,
+    WEAR_NECK,
+    WEAR_EAR,
+    WEAR_UNIQUE1,
+    WEAR_UNIQUE2,
+    WEAR_ARROW,
+    WEAR_SHIELD,
+    WEAR_ABILITY1,
+    WEAR_ABILITY2,
+    WEAR_ABILITY3,
+    WEAR_ABILITY4,
+    WEAR_ABILITY5,
+    WEAR_ABILITY6,
+    WEAR_ABILITY7,
+    WEAR_ABILITY8,
+    WEAR_COSTUME_BODY,
+    WEAR_COSTUME_HAIR,
 
-    WEAR_RING1, // 21	: new ring slot 1 (left)
-    WEAR_RING2, // 22	: new ring slot 2 (right)
+    WEAR_RING1,
+    WEAR_RING2,
 
-    WEAR_BELT, // 23	: new belt slot
+    WEAR_BELT,
 
-    WEAR_MAX = 32 //
+    WEAR_MAX = 32
 };
 
 enum dragon_soul_deck_type {
@@ -131,7 +115,7 @@ enum dragon_soul_deck_type {
     DRAGON_SOUL_DECK_1,
     DRAGON_SOUL_DECK_MAX_NUM = 2,
 
-    DRAGON_SOUL_DECK_RESERVED_MAX_NUM = 3, // NOTE: Important! Not used yet, but 3 pages' worth are reserved. If you increase the DS DECK count, you must subtract the same amount from RESERVED!
+    DRAGON_SOUL_DECK_RESERVED_MAX_NUM = 3, // Reserved for more decks: adding a deck must take the same amount from RESERVED.
 };
 
 enum sex {
@@ -188,13 +172,13 @@ enum parts {
 };
 
 enum chat_type {
-    CHAT_TYPE_TALKING, /* Plain chat */
-    CHAT_TYPE_INFO,    /* Info (picked up an item, gained experience, etc.) */
-    CHAT_TYPE_NOTICE,  /* Notice */
-    CHAT_TYPE_PARTY,   /* Party chat */
-    CHAT_TYPE_GUILD,   /* Guild chat */
-    CHAT_TYPE_COMMAND, /* Normal command */
-    CHAT_TYPE_SHOUT,   /* Shout */
+    CHAT_TYPE_TALKING,
+    CHAT_TYPE_INFO,
+    CHAT_TYPE_NOTICE,
+    CHAT_TYPE_PARTY,
+    CHAT_TYPE_GUILD,
+    CHAT_TYPE_COMMAND,
+    CHAT_TYPE_SHOUT,
     CHAT_TYPE_WHISPER,
     CHAT_TYPE_BIG_NOTICE,
     CHAT_TYPE_MONARCH_NOTICE,
@@ -266,104 +250,104 @@ enum battle_type {
 };
 
 enum apply_types {
-    APPLY_NONE,                    // 0
-    APPLY_MAX_HP,                  // 1
-    APPLY_MAX_SP,                  // 2
-    APPLY_CON,                     // 3
-    APPLY_INT,                     // 4
-    APPLY_STR,                     // 5
-    APPLY_DEX,                     // 6
-    APPLY_ATT_SPEED,               // 7
-    APPLY_MOV_SPEED,               // 8
-    APPLY_CAST_SPEED,              // 9
-    APPLY_HP_REGEN,                // 10
-    APPLY_SP_REGEN,                // 11
-    APPLY_POISON_PCT,              // 12
-    APPLY_STUN_PCT,                // 13
-    APPLY_SLOW_PCT,                // 14
-    APPLY_CRITICAL_PCT,            // 15
-    APPLY_PENETRATE_PCT,           // 16
-    APPLY_ATTBONUS_HUMAN,          // 17
-    APPLY_ATTBONUS_ANIMAL,         // 18
-    APPLY_ATTBONUS_ORC,            // 19
-    APPLY_ATTBONUS_MILGYO,         // 20
-    APPLY_ATTBONUS_UNDEAD,         // 21
-    APPLY_ATTBONUS_DEVIL,          // 22
-    APPLY_STEAL_HP,                // 23
-    APPLY_STEAL_SP,                // 24
-    APPLY_MANA_BURN_PCT,           // 25
-    APPLY_DAMAGE_SP_RECOVER,       // 26
-    APPLY_BLOCK,                   // 27
-    APPLY_DODGE,                   // 28
-    APPLY_RESIST_SWORD,            // 29
-    APPLY_RESIST_TWOHAND,          // 30
-    APPLY_RESIST_DAGGER,           // 31
-    APPLY_RESIST_BELL,             // 32
-    APPLY_RESIST_FAN,              // 33
-    APPLY_RESIST_BOW,              // 34
-    APPLY_RESIST_FIRE,             // 35
-    APPLY_RESIST_ELEC,             // 36
-    APPLY_RESIST_MAGIC,            // 37
-    APPLY_RESIST_WIND,             // 38
-    APPLY_REFLECT_MELEE,           // 39
-    APPLY_REFLECT_CURSE,           // 40
-    APPLY_POISON_REDUCE,           // 41
-    APPLY_KILL_SP_RECOVER,         // 42
-    APPLY_EXP_DOUBLE_BONUS,        // 43
-    APPLY_GOLD_DOUBLE_BONUS,       // 44
-    APPLY_ITEM_DROP_BONUS,         // 45
-    APPLY_POTION_BONUS,            // 46
-    APPLY_KILL_HP_RECOVER,         // 47
-    APPLY_IMMUNE_STUN,             // 48
-    APPLY_IMMUNE_SLOW,             // 49
-    APPLY_IMMUNE_FALL,             // 50
-    APPLY_SKILL,                   // 51
-    APPLY_BOW_DISTANCE,            // 52
-    APPLY_ATT_GRADE_BONUS,         // 53
-    APPLY_DEF_GRADE_BONUS,         // 54
-    APPLY_MAGIC_ATT_GRADE,         // 55
-    APPLY_MAGIC_DEF_GRADE,         // 56
-    APPLY_CURSE_PCT,               // 57
-    APPLY_MAX_STAMINA,             // 58
-    APPLY_ATTBONUS_WARRIOR,        // 59
-    APPLY_ATTBONUS_ASSASSIN,       // 60
-    APPLY_ATTBONUS_SURA,           // 61
-    APPLY_ATTBONUS_SHAMAN,         // 62
-    APPLY_ATTBONUS_MONSTER,        // 63
-    APPLY_MALL_ATTBONUS,           // 64 attack +x%
-    APPLY_MALL_DEFBONUS,           // 65 defense +x%
-    APPLY_MALL_EXPBONUS,           // 66 experience +x%
-    APPLY_MALL_ITEMBONUS,          // 67 item drop rate x/10 times
-    APPLY_MALL_GOLDBONUS,          // 68 gold drop rate x/10 times
-    APPLY_MAX_HP_PCT,              // 69 max HP +x%
-    APPLY_MAX_SP_PCT,              // 70 max SP +x%
-    APPLY_SKILL_DAMAGE_BONUS,      // 71 skill damage * (100+x)%
-    APPLY_NORMAL_HIT_DAMAGE_BONUS, // 72 normal attack damage * (100+x)%
-    APPLY_SKILL_DEFEND_BONUS,      // 73 skill damage defense * (100-x)%
-    APPLY_NORMAL_HIT_DEFEND_BONUS, // 74 normal attack damage defense * (100-x)%
-    APPLY_PC_BANG_EXP_BONUS,       // 75 PC cafe item EXP bonus
-    APPLY_PC_BANG_DROP_BONUS,      // 76 PC cafe item drop rate bonus
+    APPLY_NONE,
+    APPLY_MAX_HP,
+    APPLY_MAX_SP,
+    APPLY_CON,
+    APPLY_INT,
+    APPLY_STR,
+    APPLY_DEX,
+    APPLY_ATT_SPEED,
+    APPLY_MOV_SPEED,
+    APPLY_CAST_SPEED,
+    APPLY_HP_REGEN,
+    APPLY_SP_REGEN,
+    APPLY_POISON_PCT,
+    APPLY_STUN_PCT,
+    APPLY_SLOW_PCT,
+    APPLY_CRITICAL_PCT,
+    APPLY_PENETRATE_PCT,
+    APPLY_ATTBONUS_HUMAN,
+    APPLY_ATTBONUS_ANIMAL,
+    APPLY_ATTBONUS_ORC,
+    APPLY_ATTBONUS_MILGYO,
+    APPLY_ATTBONUS_UNDEAD,
+    APPLY_ATTBONUS_DEVIL,
+    APPLY_STEAL_HP,
+    APPLY_STEAL_SP,
+    APPLY_MANA_BURN_PCT,
+    APPLY_DAMAGE_SP_RECOVER,
+    APPLY_BLOCK,
+    APPLY_DODGE,
+    APPLY_RESIST_SWORD,
+    APPLY_RESIST_TWOHAND,
+    APPLY_RESIST_DAGGER,
+    APPLY_RESIST_BELL,
+    APPLY_RESIST_FAN,
+    APPLY_RESIST_BOW,
+    APPLY_RESIST_FIRE,
+    APPLY_RESIST_ELEC,
+    APPLY_RESIST_MAGIC,
+    APPLY_RESIST_WIND,
+    APPLY_REFLECT_MELEE,
+    APPLY_REFLECT_CURSE,
+    APPLY_POISON_REDUCE,
+    APPLY_KILL_SP_RECOVER,
+    APPLY_EXP_DOUBLE_BONUS,
+    APPLY_GOLD_DOUBLE_BONUS,
+    APPLY_ITEM_DROP_BONUS,
+    APPLY_POTION_BONUS,
+    APPLY_KILL_HP_RECOVER,
+    APPLY_IMMUNE_STUN,
+    APPLY_IMMUNE_SLOW,
+    APPLY_IMMUNE_FALL,
+    APPLY_SKILL,
+    APPLY_BOW_DISTANCE,
+    APPLY_ATT_GRADE_BONUS,
+    APPLY_DEF_GRADE_BONUS,
+    APPLY_MAGIC_ATT_GRADE,
+    APPLY_MAGIC_DEF_GRADE,
+    APPLY_CURSE_PCT,
+    APPLY_MAX_STAMINA,
+    APPLY_ATTBONUS_WARRIOR,
+    APPLY_ATTBONUS_ASSASSIN,
+    APPLY_ATTBONUS_SURA,
+    APPLY_ATTBONUS_SHAMAN,
+    APPLY_ATTBONUS_MONSTER,
+    APPLY_MALL_ATTBONUS,
+    APPLY_MALL_DEFBONUS,
+    APPLY_MALL_EXPBONUS,
+    APPLY_MALL_ITEMBONUS,
+    APPLY_MALL_GOLDBONUS,
+    APPLY_MAX_HP_PCT,
+    APPLY_MAX_SP_PCT,
+    APPLY_SKILL_DAMAGE_BONUS,
+    APPLY_NORMAL_HIT_DAMAGE_BONUS,
+    APPLY_SKILL_DEFEND_BONUS,
+    APPLY_NORMAL_HIT_DEFEND_BONUS,
+    APPLY_PC_BANG_EXP_BONUS,
+    APPLY_PC_BANG_DROP_BONUS,
 
-    APPLY_EXTRACT_HP_PCT, // 77 consumes HP on use
+    APPLY_EXTRACT_HP_PCT,
 
-    APPLY_RESIST_WARRIOR,           // 78 resistance to warriors
-    APPLY_RESIST_ASSASSIN,          // 79 resistance to assassins
-    APPLY_RESIST_SURA,              // 80 resistance to suras
-    APPLY_RESIST_SHAMAN,            // 81 resistance to shamans
-    APPLY_ENERGY,                   // 82 energy
-    APPLY_DEF_GRADE,                // 83 defense. DEF_GRADE_BONUS has an intended bug(...) where the client shows it doubled.
-    APPLY_COSTUME_ATTR_BONUS,       // 84 attribute bonus attached to costume items
-    APPLY_MAGIC_ATTBONUS_PER,       // 85 magic attack +x%
-    APPLY_MELEE_MAGIC_ATTBONUS_PER, // 86 magic + melee attack +x%
+    APPLY_RESIST_WARRIOR,
+    APPLY_RESIST_ASSASSIN,
+    APPLY_RESIST_SURA,
+    APPLY_RESIST_SHAMAN,
+    APPLY_ENERGY,
+    APPLY_DEF_GRADE, // DEF_GRADE_BONUS: the client shows this doubled; intentional.
+    APPLY_COSTUME_ATTR_BONUS,
+    APPLY_MAGIC_ATTBONUS_PER,
+    APPLY_MELEE_MAGIC_ATTBONUS_PER,
 
-    APPLY_RESIST_ICE,   // 87 ice resistance
-    APPLY_RESIST_EARTH, // 88 earth resistance
-    APPLY_RESIST_DARK,  // 89 dark resistance
+    APPLY_RESIST_ICE,
+    APPLY_RESIST_EARTH,
+    APPLY_RESIST_DARK,
 
-    APPLY_ANTI_CRITICAL_PCT,  // 90 critical resistance
-    APPLY_ANTI_PENETRATE_PCT, // 91 piercing hit resistance
+    APPLY_ANTI_CRITICAL_PCT,
+    APPLY_ANTI_PENETRATE_PCT,
 
-    MAX_APPLY_NUM, //
+    MAX_APPLY_NUM,
 };
 
 enum on_click_events {
@@ -456,12 +440,6 @@ enum {
     SKILL_ATTR_TYPE_MELEE,
     SKILL_ATTR_TYPE_RANGE,
     SKILL_ATTR_TYPE_MAGIC
-    /*
-       SKILL_ATTR_TYPE_FIRE,
-       SKILL_ATTR_TYPE_ICE,
-       SKILL_ATTR_TYPE_ELEC,
-       SKILL_ATTR_TYPE_DARK,
-       */
 };
 
 enum {
@@ -490,7 +468,7 @@ enum guild_war_state {
     GUILD_WAR_OVER,
     GUILD_WAR_RESERVE,
 
-    GUILD_WAR_DURATION = 30 * 60, // 1 hour
+    GUILD_WAR_DURATION = 30 * 60,
     GUILD_WAR_WIN_POINT = 1000,
     GUILD_WAR_LADDER_HALF_PENALTY_TIME = 12 * 60 * 60,
 };
@@ -530,13 +508,13 @@ enum money_log_type {
 };
 
 enum premium_types {
-    PREMIUM_EXP,           // experience x1.2
-    PREMIUM_ITEM,          // item drop rate x2
-    PREMIUM_SAFEBOX,       // safebox goes from 1 to 3 pages
-    PREMIUM_AUTOLOOT,      // auto-pickup gold
-    PREMIUM_FISH_MIND,     // higher chance to catch premium fish
-    PREMIUM_MARRIAGE_FAST, // speeds up marriage love point gain.
-    PREMIUM_GOLD,          // gold drop rate x1.5
+    PREMIUM_EXP,
+    PREMIUM_ITEM,
+    PREMIUM_SAFEBOX,
+    PREMIUM_AUTOLOOT,
+    PREMIUM_FISH_MIND,
+    PREMIUM_MARRIAGE_FAST,
+    PREMIUM_GOLD,
     PREMIUM_MAX_NUM = 9
 };
 
@@ -565,20 +543,16 @@ enum special_effect {
     SE_AUTO_HPUP,
     SE_AUTO_SPUP,
 
-    SE_EQUIP_RAMADAN_RING,    // effect when equipping the Ramadan crescent ring (71135) (trigger effect, not a persistent one)
-    SE_EQUIP_HALLOWEEN_CANDY, // effect triggered the moment Halloween candy is equipped (-_-;)
-    SE_EQUIP_HAPPINESS_RING,  // effect when equipping the Christmas ring of happiness (71143) (trigger effect, not a persistent one)
-    SE_EQUIP_LOVE_PENDANT,    // effect when equipping the Valentine pendant of love (71145) (trigger effect, not a persistent one)
+    SE_EQUIP_RAMADAN_RING,
+    SE_EQUIP_HALLOWEEN_CANDY,
+    SE_EQUIP_HAPPINESS_RING,
+    SE_EQUIP_LOVE_PENDANT,
 };
 
 }
 #include <metin2/proto/item_length.h>
 namespace metin2::inline proto {
 
-// struct representing an inventory position
-// The reason for the implicit conversion to/from int is that,
-// all inventory functions took only a cell, not a window_type (previously there was only one inventory, so no inventory type was needed),
-// and changing every call site of the inventory functions would be a pain.
 
 inline constexpr int DRAGON_SOUL_REFINE_GRID_MAX = 15;
 
@@ -619,7 +593,6 @@ using item_pos = struct item_pos {
         case DRAGON_SOUL_INVENTORY:
             return cell < (DRAGON_SOUL_INVENTORY_MAX_NUM);
 
-        // Windows whose size is determined dynamically cannot be validity-checked.
         case SAFEBOX:
         case MALL:
             return false;
@@ -631,7 +604,7 @@ using item_pos = struct item_pos {
         return false;
     }
 
-    auto is_same_position(const item_pos &other) const -> bool { // ItemMove dupe exploit fix
+    auto is_same_position(const item_pos &other) const -> bool {
         return *this == other || ((INVENTORY == window_type || EQUIPMENT == window_type) && (INVENTORY == other.window_type || EQUIPMENT == other.window_type) && cell == other.cell);
     }
 
@@ -663,7 +636,7 @@ using item_pos = struct item_pos {
 const item_pos NPOS(RESERVED_WINDOW, WORD_MAX);
 
 enum shop_coin_type {
-    SHOP_COIN_TYPE_GOLD, // DEFAULT VALUE
+    SHOP_COIN_TYPE_GOLD,
     SHOP_COIN_TYPE_SECONDARY_COIN,
 };
 

@@ -22,7 +22,6 @@
 
 namespace metin2::game::inline characters {
 
-// POLYMORPH_BUG_FIX
 static float msa_get_normal_attack_duration(const char* msa_path)
 {
 	float duration = 99.0f;
@@ -83,7 +82,6 @@ static float mob_get_normal_attack_duration(mob_table* mob_table_value)
 
 	return minDuration;
 }
-// END_OF_POLYMORPH_BUG_FIX
 
 static const char* get_motion_file_name(mob_table* mob_table_value, public_motion motion)
 {
@@ -244,7 +242,6 @@ float motion_manager::motion_duration(uint32_t vnum, uint32_t key)
 	return pkMotion ? pkMotion->duration() : 0.0f;
 }
 
-// POLYMORPH_BUG_FIX
 float	motion_manager::normal_attack_duration(uint32_t vnum)
 {
 	std::map<uint32_t, float>::iterator f = map_normal_attack_duration_.find(vnum);
@@ -253,22 +250,21 @@ float	motion_manager::normal_attack_duration(uint32_t vnum)
 	else
 		return f->second;
 }
-// END_OF_POLYMORPH_BUG_FIX
 
 enum motion_event_type
 {
-	MOTION_EVENT_TYPE_NONE,					// 0
-	MOTION_EVENT_TYPE_EFFECT,				// 1
-	MOTION_EVENT_TYPE_SCREEN_WAVING,		// 2
-	MOTION_EVENT_TYPE_SCREEN_FLASHING,		// 3
-	MOTION_EVENT_TYPE_SPECIAL_ATTACKING,	// 4
-	MOTION_EVENT_TYPE_SOUND,				// 5
-	MOTION_EVENT_TYPE_FLY,					// 6
-	MOTION_EVENT_TYPE_CHARACTER_SHOW,		// 7
-	MOTION_EVENT_TYPE_CHARACTER_HIDE,		// 8
-	MOTION_EVENT_TYPE_WARP,					// 9
-	MOTION_EVENT_TYPE_EFFECT_TO_TARGET,		// 10
-	MOTION_EVENT_TYPE_MAX_NUM,				// 11
+	MOTION_EVENT_TYPE_NONE,
+	MOTION_EVENT_TYPE_EFFECT,
+	MOTION_EVENT_TYPE_SCREEN_WAVING,
+	MOTION_EVENT_TYPE_SCREEN_FLASHING,
+	MOTION_EVENT_TYPE_SPECIAL_ATTACKING,
+	MOTION_EVENT_TYPE_SOUND,
+	MOTION_EVENT_TYPE_FLY,
+	MOTION_EVENT_TYPE_CHARACTER_SHOW,
+	MOTION_EVENT_TYPE_CHARACTER_HIDE,
+	MOTION_EVENT_TYPE_WARP,
+	MOTION_EVENT_TYPE_EFFECT_TO_TARGET,
+	MOTION_EVENT_TYPE_MAX_NUM,
 };
 
 bool motion_manager::build()
@@ -357,11 +353,9 @@ bool motion_manager::build()
 			load_skill_motion(pkMotionSet, pkMob, MOTION_SPECIAL_4);
 			load_skill_motion(pkMotionSet, pkMob, MOTION_SPECIAL_5);
 
-			// POLYMORPH_BUG_FIX
 			float normalAttackDuration = mob_get_normal_attack_duration(t);
 			metin2::log::info( "mob_normal_attack_duration:{:d}:{}:{:.2f}", t->vnum, t->folder, normalAttackDuration);
 			map_normal_attack_duration_.insert(std::map<uint32_t, float>::value_type(t->vnum, normalAttackDuration));
-			// END_OF_POLYMORPH_BUG_FIX
 		}
 	}
 
@@ -473,7 +467,6 @@ bool motion::load_mob_skill_from_file(const char * file_name, mob* mob_value, in
 						continue;
 
 					case MOTION_EVENT_TYPE_SPECIAL_ATTACKING:
-						// Assume old data has only one
 						if (!rkTextFileLoader.set_child_node("spheredata", 0))
 						{
 							metin2::log::error("Motion: no sphere data {}", file_name);

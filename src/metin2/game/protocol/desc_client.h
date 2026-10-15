@@ -32,7 +32,6 @@ class client_desc : public desc
 		void		update(uint32_t t);
 		void		update_channel_status(uint32_t t, bool force);
 
-		// Non-destructive close for reuse
 		void reset();
 
 	protected:

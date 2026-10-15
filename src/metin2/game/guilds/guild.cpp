@@ -100,7 +100,6 @@ guild::guild(guild_create_parameter & cp)
 				"VALUES({}, {}, 1000, 1, 0, 0, '\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0')", 
 				sql::raw(get_table_postfix()), data_.name, data_.master_pid)));
 
-	// TODO if error occur?
 	data_.guild_id = pmsg->get()->insert_id;
 
 	for (int i = 0; i < GUILD_GRADE_COUNT; ++i)
@@ -126,7 +125,6 @@ guild::guild(guild_create_parameter & cp)
 
 	db_clientdesc->db_packet(HEADER_GD_GUILD_SKILL_UPDATE, 0, &guild_skill, sizeof(guild_skill));
 
-	// TODO GUILD_NAME
 	character_manager::instance().for_each_pc(f_guild_name_sender(id(), name()));
 	request_add_member(cp.master, GUILD_LEADER_GRADE);
 }
@@ -256,7 +254,6 @@ void guild::p2_p_login_member(uint32_t pid)
 
 	member_p2_p_online_.insert(pid);
 
-	// Login event occur + Send List
 	guild_member_online_container::iterator it;
 
 	for (it = member_online_.begin(); it!=member_online_.end();++it)
@@ -273,7 +270,6 @@ void guild::login_member(character * ch)
 
 	ch->set_guild(this);
 
-	// Login event occur + Send List
 	guild_member_online_container::iterator it;
 
 	for (it = member_online_.begin(); it!=member_online_.end();++it)
@@ -299,7 +295,6 @@ void guild::p2_p_logout_member(uint32_t pid)
 
 	member_p2_p_online_.erase(pid);
 
-	// Logout event occur
 	guild_member_online_container::iterator it;
 	for (it = member_online_.begin(); it!=member_online_.end();++it)
 	{
@@ -317,7 +312,6 @@ void guild::logout_member(character * ch)
 
 	member_online_.erase(ch);
 
-	// Logout event occur
 	guild_member_online_container::iterator it;
 	for (it = member_online_.begin(); it!=member_online_.end();++it)
 	{
@@ -412,18 +406,6 @@ void guild::send_list_one_to_all(uint32_t pid)
 
 void guild::send_list_packet(character * ch)
 {
-	/*
-	   List Packet
-
-	   Header
-	   Count (byte)
-	   [
-	   ...
-	   name_flag 1 - whether the name is sent or not
-	   name CHARACTER_NAME_MAX_LEN+1
-	   ] * Count
-
-	 */
 	desc * d;
 	if (!(d=ch->get_desc()))
 		return;
@@ -476,11 +458,6 @@ void guild::send_login_packet(character * ch, character * ch_login)
 
 void guild::send_login_packet(character * ch, uint32_t pid)
 {
-	/*
-	   Login Packet
-	   header 4
-	   pid 4
-	 */
 	if (!ch->get_desc())
 		return;
 
@@ -505,11 +482,6 @@ void guild::send_logout_packet(character * ch, character * ch_logout)
 
 void guild::send_logout_packet(character * ch, uint32_t pid)
 {
-	/*
-	   Logout Packet
-	   header 4
-	   pid 4
-	 */
 	if (!ch->get_desc())
 		return;
 
@@ -690,7 +662,6 @@ void guild::p2_p_update_grade(ql_msg* pmsg)
 
 		grade--;
 
-		// Update if the grade name differs from the current one
 		if (0 != strcmp(data_.grade_array[grade].grade_name, name))
 		{
 			strlcpy(data_.grade_array[grade].grade_name, name, sizeof(data_.grade_array[grade].grade_name));
@@ -988,9 +959,7 @@ void guild::request_disband(uint32_t pid)
 	gd_guild.info = 0;
 	db_clientdesc->db_packet(HEADER_GD_GUILD_DISBAND, 0, &gd_guild, sizeof(packet_guild));
 
-	// LAND_CLEAR
 	building::manager::instance().clear_land_by_guild_id(id());
-	// END_LAND_CLEAR
 }
 
 void guild::add_comment(character * ch, const std::string& str)
@@ -998,7 +967,7 @@ void guild::add_comment(character * ch, const std::string& str)
 	if (str.length() > GUILD_COMMENT_MAX_LEN || str.length() == 0)
 		return;
 
-	if (ch->increase_chat_counter() >= 2) // Guild Comment Flood Exploit fix
+	if (ch->increase_chat_counter() >= 2)
 	{
 		ch->chat_packet(CHAT_TYPE_INFO, lc_text("퀘스트를 로드하는 중입니다. 잠시만 기다려 주십시오."));
 		return;
@@ -1070,7 +1039,7 @@ void guild::refresh_comment_force(uint32_t player_id)
 		d->buffered_packet(szName, sizeof(szName));
 
 		if (i == pmsg->get()->num_rows - 1)
-			d->packet(szContent, sizeof(szContent)); // Send if it's the last line
+			d->packet(szContent, sizeof(szContent));
 		else
 			d->buffered_packet(szContent, sizeof(szContent));
 	}
@@ -1127,7 +1096,6 @@ void guild::change_member_grade(uint32_t pid, uint8_t grade)
 	if (grade == 1)
 		return;
 
-	// grade indexes grade_array[grade - 1] (HasGradeAuth)
 	if (grade < 1 || grade > GUILD_GRADE_COUNT)
 	{
 		metin2::log::error("Wrong guild grade value {:d}", grade);
@@ -1236,7 +1204,6 @@ void guild::use_skill(uint32_t vnum_value, character * ch, uint32_t pid)
 
 	if ((pkSk->flag & SKILL_FLAG_SELFONLY))
 	{
-		// Already applied, so not used.
 		if (ch->find_affect(pkSk->vnum))
 			return;
 
@@ -1283,7 +1250,6 @@ void guild::use_skill(uint32_t vnum_value, character * ch, uint32_t pid)
 	switch (vnum_value)
 	{
 		case GUILD_SKILL_TELEPORT:
-			// Try people on the current server first.
 			send_db_skill_update(-iNeededSP);
 			if ((victim = (character_manager::instance().find_by_pid(pid))))
 				ch->warp_set(victim->x(), victim->y());
@@ -1291,10 +1257,6 @@ void guild::use_skill(uint32_t vnum_value, character * ch, uint32_t pid)
 			{
 				if (member_p2_p_online_.find(pid) != member_p2_p_online_.end())
 				{
-					// Someone is logged in on another server -> send a message to get the coordinates
-					// 1. Broadcast A.pid, B.pid
-					// 2. The server with B.pid sends A.pid and the coordinates to the broadcasting server
-					// 3. Warp
 					cci * pcci = p2_p_manager::instance().find_by_pid(pid);
 
 					if (pcci->channel != metin2::config::server().channel)
@@ -1433,9 +1395,7 @@ void guild::guild_point_change(uint8_t type, int amount, bool save)
 						if (save)
 							change_ladder_point(GUILD_LADDER_POINT_PER_LEVEL);
 
-						// NOTIFY_GUILD_EXP_CHANGE
 						for_each(member_online_.begin(), member_online_.end(), std::bind(&guild::send_guild_info_packet, this, std::placeholders::_1));
-						// END_OF_NOTIFY_GUILD_EXP_CHANGE
 					}
 
 					if (data_.level == GUILD_MAX_LEVEL)
@@ -1640,12 +1600,9 @@ void guild::skill_usable_change(uint32_t skill_vnum, bool usable)
 
 	skill_usable_[dwRealVnum] = usable;
 
-	// GUILD_SKILL_COOLTIME_BUG_FIX
 	metin2::log::info( "CGuild::SkillUsableChange(guild={}, skill={:d}, usable={:d})", name(), skill_vnum, usable);
-	// END_OF_GUILD_SKILL_COOLTIME_BUG_FIX
 }
 
-// GUILD_MEMBER_COUNT_BONUS
 void guild::set_member_count_bonus(int bonus)
 {
 	member_count_bonus_ = bonus;
@@ -1666,14 +1623,11 @@ void guild::broadcast_member_count_bonus()
 
 int guild::max_member_count()
 {
-	// GUILD_IS_FULL_BUG_FIX
 	if ( member_count_bonus_ < 0 || member_count_bonus_ > 18 )
 		member_count_bonus_ = 0;
-	// END_GUILD_IS_FULL_BUG_FIX
 
 	return 32 + 2 * (data_.level-1) + member_count_bonus_;
 }
-// END_OF_GUILD_MEMBER_COUNT_BONUS
 
 void guild::request_deposit_money(character * ch, int gold_value)
 {
@@ -1741,12 +1695,10 @@ bool guild::has_land()
 	return building::manager::instance().find_land_by_guild(id()) != nullptr;
 }
 
-// GUILD_JOIN_BUG_FIX
-/// Guild invite event info
 EVENTINFO(invite_guild_event_info)
 {
-	uint32_t	invitee_pid;		///< PID of the invited character
-	uint32_t	guild_id;		///< ID of the inviting guild
+	uint32_t	invitee_pid;
+	uint32_t	guild_id;
 
 	invite_guild_event_info()
 	: invitee_pid( 0 )
@@ -1755,10 +1707,6 @@ EVENTINFO(invite_guild_event_info)
 	}
 };
 
-/**
- * Guild invite event callback.
- * When the event fires, it is treated as an invite refusal.
- */
 EVENTFUNC( guild_invite_event )
 {
 	invite_guild_event_info *pInfo = dynamic_cast<invite_guild_event_info*>( event->info );
@@ -1832,18 +1780,12 @@ void guild::invite( character * pch_inviter, character * pch_invitee )
 	if ( guild_invite_event_map_.end() != guild_invite_event_map_.find( pch_invitee->player_id() ) )
 		return;
 
-	//
-	// Create event
-	// 
 	invite_guild_event_info* pInfo = alloc_event_info<invite_guild_event_info>();
 	pInfo->invitee_pid = pch_invitee->player_id();
 	pInfo->guild_id = id();
 
 	guild_invite_event_map_.insert(event_map::value_type(pch_invitee->player_id(), event_create(guild_invite_event, pInfo, passes_per_sec(10))));
 
-	//
-	// Send invite packet to the invited character
-	// 
 
 	uint32_t gid = id();
 
@@ -1933,7 +1875,6 @@ guild::guild_join_err_code guild::verify_guild_joinable_condition( character * c
 
 	return GERR_NONE;
 }
-// END_OF_GUILD_JOIN_BUG_FIX
 
 bool guild::change_master_to(uint32_t pid)
 {

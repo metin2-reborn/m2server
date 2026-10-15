@@ -9,7 +9,6 @@ TEST(grid_places_and_frees_items) {
     CHECK_EQ(grid.size(), 15u);
     CHECK_EQ(grid.find_blank(1, 1), 0);
 
-    // A 2x2 item at the top-left covers cells 0, 1, 5 and 6.
     CHECK(grid.put(0, 2, 2));
     CHECK(!grid.is_empty(6, 1, 1));
     CHECK(grid.is_empty(2, 1, 1));
@@ -23,8 +22,8 @@ TEST(grid_places_and_frees_items) {
 TEST(grid_rejects_blocks_outside) {
     grid grid(5, 3);
     CHECK(!grid.is_empty(-1, 1, 1));
-    CHECK(!grid.put(4, 2, 1)); // would wrap into the next row
-    CHECK(!grid.put(10, 1, 2)); // would run past the last row
+    CHECK(!grid.put(4, 2, 1));
+    CHECK(!grid.put(10, 1, 2));
     CHECK_EQ(grid.find_blank(6, 1), -1);
     CHECK_EQ(grid.find_blank(1, 4), -1);
 }
@@ -42,7 +41,6 @@ TEST(grid_resize_keeps_leading_cells) {
     grid grid(5, 1);
     CHECK(grid.put(0, 1, 1));
 
-    // Safebox growth: same width, more rows.
     const metin2::common::grid larger(grid, 5, 3);
     CHECK_EQ(larger.size(), 15u);
     CHECK(!larger.is_empty(0, 1, 1));

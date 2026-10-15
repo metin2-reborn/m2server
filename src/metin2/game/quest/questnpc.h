@@ -26,16 +26,10 @@ namespace quest
 	class npc
 	{
 		public:
-			// scripts without arguments
-			// first: state number
 			typedef std::map<int, a_state_script_type> a_quest_script_type;
-			// first: quest number
 			typedef std::map<unsigned int, a_quest_script_type> quest_map_type;
 
-			// scripts with arguments
-			// first: state number
 			typedef std::map<int, std::vector<a_arg_script> > a_arg_quest_script_type;
-			// first: quest number
 			typedef std::map<unsigned int, a_arg_quest_script_type> arg_quest_map_type;
 
 			npc();
@@ -74,14 +68,12 @@ namespace quest
 			bool	on_chat(pc& pc);
 			bool	has_chat();
 
-			bool	on_item_informer(pc& pc,unsigned int vnum);	// Germany gift feature test
+			bool	on_item_informer(pc& pc,unsigned int vnum);
 
 			bool	on_target(pc& pc, uint32_t quest_index, const char * target_name, const char * verb, bool & ret);
 			bool	on_unmount(pc& pc);
 
-			// ITEM_PICK EVENT
 			bool	on_pickup_item(pc& pc);
-			// Special item group USE EVENT
 			bool	on_sig_use(pc& pc, bool receive_all);
 
 			bool	handle_event(pc& pc, int event_index);
@@ -94,7 +86,6 @@ namespace quest
 			template <typename TQuestMapType, typename FuncMatch, typename FuncMiss>
 				void matching_quest(pc& pc, TQuestMapType& quest_map, FuncMatch& match, FuncMiss& miss);
 
-			// true if quest still running, false if ended
 
 			void load_state_script(int event_index, const char* filename, const char* script_name);
 

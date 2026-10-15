@@ -41,13 +41,11 @@ void cipher::stream::wipe() {
 }
 
 void cipher::stream::process(uint8_t *data, size_t length) {
-    // the rest of the current keystream block
     while (length > 0 && used < sizeof(block)) {
         *data++ ^= block[used++];
         --length;
     }
 
-    // whole blocks in place
     const size_t whole = length - length % sizeof(block);
     if (whole > 0) {
         counter = crypto_chacha20_djb(data, data, whole, key, nonce, counter);
@@ -55,7 +53,6 @@ void cipher::stream::process(uint8_t *data, size_t length) {
         length -= whole;
     }
 
-    // start a new block for the tail
     if (length > 0) {
         static const uint8_t zeros[64] = {};
         counter = crypto_chacha20_djb(block, zeros, sizeof(block), key, nonce, counter);
@@ -103,7 +100,6 @@ auto cipher::activate(bool polarity, size_t agreed_length, const void *buffer, s
     crypto_x25519(shared, secret_key_, peer_key);
     crypto_wipe(secret_key_, sizeof(secret_key_));
 
-    // a low-order peer key yields an all-zero secret
     static const uint8_t zeros[key_size] = {};
     if (crypto_verify32(shared, zeros) == 0) {
         crypto_wipe(shared, sizeof(shared));

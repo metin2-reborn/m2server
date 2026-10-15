@@ -70,7 +70,6 @@ namespace
 						!pkChr->is_affect_flag(AFF_WAR_FLAG2) &&
 						!pkChr->is_affect_flag(AFF_WAR_FLAG3))
 				{
-					// If it's our team's flag
 					if ((uint32_t) chr->point(POINT_STAT) == pkChr->get_guild()->id())
 					{
 						war_map * pMap = pkChr->get_war_map();
@@ -79,8 +78,6 @@ namespace
 						if (!pMap || !pMap->team_index(pkChr->get_guild()->id(), idx))
 							return;
 
-						// Only pick up the flag when there is no flag at our base. Otherwise the flag at the base
-						// could get picked up even when we want to leave it alone..
 						if (!pMap->is_flag_on_base(idx))
 						{
 							chr_find = pkChr;
@@ -89,7 +86,6 @@ namespace
 					}
 					else
 					{
-						// Always pick up the enemy team's flag.
 						chr_find = pkChr;
 						min_distance = iDist;
 					}
@@ -150,7 +146,6 @@ namespace
 							if (!pMap || !pMap->team_index(pkGuild->id(), idx))
 								return;
 
-							//if (pMap->IsFlagOnBase(idx))
 							{
 								uint8_t idx_opp = idx == 0 ? 1 : 0;
 
@@ -189,7 +184,6 @@ namespace
 
 				character * pkChr = (character *) ent;
 
-				// Don't attack PCs for now
 				if (pkChr->is_pc())
 					return;
 
@@ -204,7 +198,6 @@ namespace
 						pkChr->is_affect_flag(AFF_REVIVE_INVISIBLE))
 					return;
 
-				// Skip Japanese pirates (Wae-gu)
 				if (pkChr->race_num() == 5001)
 					return;
 
@@ -285,7 +278,7 @@ void character::coward_escape()
 	for (int iDistIdx = 2; iDistIdx >= 0; --iDistIdx)
 		for (int iTryCount = 0; iTryCount < 8; ++iTryCount)
 		{
-			set_rotation(number(0, 359));        // Pick a random direction
+			set_rotation(number(0, 359));
 
 			float fx, fy;
 			float fDist = number(iDist[iDistIdx], iDist[iDistIdx+1]);
@@ -338,7 +331,6 @@ bool character::is_attack_mob() const
 	return is_set(points_instant_.ai_flag, AIFLAG_ATTACKMOB);
 }
 
-// STATE_IDLE_REFACTORING
 void character::state_idle()
 {
 	if (is_stone())
@@ -348,7 +340,6 @@ void character::state_idle()
 	}
 	else if (is_warp() || is_goto())
 	{
-		// Warp is handled by an event
 		state_duration_ = 60 * metin2::config::server().passes_per_sec;
 		return;
 	}
@@ -356,7 +347,6 @@ void character::state_idle()
 	if (is_pc())
 		return;
 
-	// NPC handling
 	if (!is_monster())
 	{
 		state_idle_npc();
@@ -487,7 +477,6 @@ void character::state_idle_npc()
 	monster_chat(MONSTER_CHAT_WAIT);
 	state_duration_ = passes_per_sec(5);
 
-	// The pet system's Idle is handled in CPetActor::Update, not in the state machine shared by almost all other character types.
 	if (is_pet())
 		return;
 	else if (is_guard_npc())
@@ -512,16 +501,14 @@ void character::state_idle_npc()
 	}
 	else
 	{
-		if (race_num() == xmas::MOB_SANTA_VNUM) // Santa
+		if (race_num() == xmas::MOB_SANTA_VNUM)
 		{
 			if (get_dword_time() > play_start_time_)
 			{
-				int	next_warp_time = 2 * 1000;	// 2 seconds
+				int	next_warp_time = 2 * 1000;
 
 				play_start_time_ = get_dword_time() + next_warp_time;
 
-				// Time's up, let's warp.
-				// Sinseonja Noh Hae-yong
 				const int WARP_MAP_INDEX_NUM = 7;
 				static const int32_t c_lWarpMapIndexs[WARP_MAP_INDEX_NUM] = { 61, 62, 63, 64, 3, 23, 43 };
 				int32_t lNextMapIndex;
@@ -529,7 +516,6 @@ void character::state_idle_npc()
 
 				if (map_allow_find(lNextMapIndex))
 				{
-					// It's here.
 					character_manager::instance().destroy_character(this);
 					int iNextSpawnDelay = 0;
 					iNextSpawnDelay = 50 * 60;
@@ -538,7 +524,6 @@ void character::state_idle_npc()
 				}
 				else
 				{
-					// It's another server.
 					packet_gg_xmas_warp_santa p;
 					p.header   = HEADER_GG_XMAS_WARP_SANTA;
 					p.channel  = metin2::config::server().channel;
@@ -551,9 +536,6 @@ void character::state_idle_npc()
 
 		if (!is_set(points_instant_.ai_flag, AIFLAG_NOMOVE))
 		{
-			//
-			// Move around here and there.
-			// 
 			character * pkChrProtege = protege();
 
 			if (pkChrProtege)
@@ -567,14 +549,13 @@ void character::state_idle_npc()
 
 			if (!number(0, 6))
 			{
-				set_rotation(number(0, 359));        // Pick a random direction
+				set_rotation(number(0, 359));
 
 				float fx, fy;
 				float fDist = number(200, 400);
 
 				get_delta_by_degree(rotation(), fDist, &fx, &fy);
 
-				// Loose blocked-attribute check; don't go if the final or midpoint position is unreachable.
 				if (!(sectree_manager::instance().is_movable_position(map_index(), x() + (int) fx, y() + (int) fy) 
 					&& sectree_manager::instance().is_movable_position(map_index(), x() + (int) fx / 2, y() + (int) fy / 2)))
 					return;
@@ -600,7 +581,6 @@ void character::state_idle_monster()
 
 	if (is_coward())
 	{
-		// Cowardly monsters only run away.
 		if (!is_dead())
 			coward_escape();
 
@@ -626,16 +606,13 @@ void character::state_idle_monster()
 
 	if (!victim_value || victim_value->is_building())
 	{
-		// Stone protection handling
 		if (chr_stone_)
 		{
 			victim_value = chr_stone_->nearest_victim(chr_stone_);
 		}
-		// Aggressive monster handling
 		else if (!metin2::config::game().no_wander && is_aggressive())
 		{
 			if (map_index() == 61 && quest::quest_manager::instance().event_flag("xmas_tree"));
-			// On Seohan Mountain, don't attack first if there is a tree.
 			else
 				victim_value = find_victim(this, mob_data->table.aggressive_sight);
 		}
@@ -656,7 +633,6 @@ void character::state_idle_monster()
 
 	character * pkChrProtege = protege();
 
-	// Follow if far from what we protect (stone, party leader).
 	if (pkChrProtege)
 	{
 		if (distance_approx(x() - pkChrProtege->x(), y() - pkChrProtege->y()) > 1000)
@@ -669,27 +645,21 @@ void character::state_idle_monster()
 		}
 	}
 
-	//
-	// Just wander back and forth.
-	//
 	if (!metin2::config::game().no_wander && !is_set(points_instant_.ai_flag, AIFLAG_NOMOVE))
 	{
 		if (!number(0, 6))
 		{
-			set_rotation(number(0, 359));        // Pick a random direction
+			set_rotation(number(0, 359));
 
 			float fx, fy;
 			float fDist = number(300, 700);
 
 			get_delta_by_degree(rotation(), fDist, &fx, &fy);
 
-			// Loose blocked-attribute check; don't go if the final or midpoint position is unreachable.
 			if (!(sectree_manager::instance().is_movable_position(map_index(), x() + (int) fx, y() + (int) fy) 
 						&& sectree_manager::instance().is_movable_position(map_index(), x() + (int) fx/2, y() + (int) fy/2)))
 				return;
 
-			// NOTE: When a monster wanders around in IDLE state it currently always runs. (Never walks)
-			// The graphics team wanted to see monsters walking too, so temporarily walk or run with some probability. (Only active in test mode for now, since it changes the overall feel of the game)
 			if (metin2::config::test_server())
 			{
 				if (number(0, 100) < 60)
@@ -707,7 +677,6 @@ void character::state_idle_monster()
 
 	monster_chat(MONSTER_CHAT_WAIT);
 }
-// END_OF_STATE_IDLE_REFACTORING
 
 bool character_goto_near_target(character * self, character * victim)
 {
@@ -718,13 +687,11 @@ bool character_goto_near_target(character * self, character * victim)
 	{
 		case BATTLE_TYPE_RANGE:
 		case BATTLE_TYPE_MAGIC:
-			// Mages and archers move to 80% of their attack range before attacking.
 			if (self->follow(victim, self->mob_attack_range() * 8 / 10))
 				return true;
 			break;
 
 		default:
-			// The rest 90%?
 			if (self->follow(victim, self->mob_attack_range() * 9 / 10))
 				return true;
 	}
@@ -754,7 +721,6 @@ void character::state_move()
 			character * victim_value = get_exchange()->company()->owner();
 			int iDist = distance_approx(x() - victim_value->x(), y() - victim_value->y());
 
-			// Distance check
 			if (iDist >= EXCHANGE_MAX_DISTANCE)
 			{
 				get_exchange()->cancel();
@@ -762,17 +728,14 @@ void character::state_move()
 		}
 	}
 
-	// Stamina must be above 0.
 	if (is_pc())
 	{
 		if (is_walking() && stamina() < max_stamina())
 		{
-			// Stamina increases after 5 seconds
 			if (get_dword_time() - walk_start_time() > 5000)
 				point_change(POINT_STAMINA, max_stamina() / 1);
 		}
 
-		// If in combat and running
 		if (!is_walking() && !is_riding())
 		{
 			if ((get_dword_time() - last_attack_time()) < 20000)
@@ -791,7 +754,6 @@ void character::state_move()
 
 				if (stamina() <= 0)
 				{
-					// Not enough stamina, must walk
 					set_stamina(0);
 					set_now_walking(true);
 					stop_stamina_consume();
@@ -805,7 +767,6 @@ void character::state_move()
 	}
 	else
 	{
-		// XXX AGGRO 
 		if (is_monster() && victim())
 		{
 			character * victim_value = victim();
@@ -813,7 +774,6 @@ void character::state_move()
 
 			if (metin2::config::test_server())
 			{
-				// A monster chasing an enemy always runs.
 				set_now_walking(false);
 			}
 		}
@@ -822,10 +782,8 @@ void character::state_move()
 		{
 			character * victim_value = victim();
 
-			// Giant turtle
 			if (race_num() == 2191 && number(1, 20) == 1 && get_dword_time() - mob_inst->last_warp_time > 1000)
 			{
-				// Warp test
 				float fx, fy;
 				get_delta_by_degree(victim_value->rotation(), 400, &fx, &fy);
 				int32_t new_x = victim_value->x() + (int32_t)fx;
@@ -839,7 +797,6 @@ void character::state_move()
 				return;
 			}
 
-			// TODO Turn around to be less dumb!
 			if (number(0, 3) == 0)
 			{
 				if (character_goto_near_target(this, victim_value))
@@ -978,7 +935,6 @@ void character::state_battle()
 	{
 		if (!get_party())
 		{
-			// Create a party to fill with summons.
 			party_manager::instance().create_party(this);
 		}
 
@@ -988,7 +944,6 @@ void character::state_battle()
 		if (bPct && pParty->count_member_by_vnum(summon_vnum()) < SUMMON_MONSTER_COUNT)
 		{
 			monster_log("부하 몬스터 소환!");
-			// Summon the missing ones to fill it up.
 			int sx = x() - 300;
 			int sy = y() - 300;
 			int ex = x() + 300;
@@ -1008,12 +963,11 @@ void character::state_battle()
 
 	float fDist = distance_approx(x() - victim_value->x(), y() - victim_value->y());
 
-	if (fDist >= 4000.0f)   // Give up if more than 40 meters away
+	if (fDist >= 4000.0f)
 	{
 		monster_log("타겟이 멀어서 포기");
 		set_victim(nullptr);
 
-		// Go near what we protect (stone, party leader).
 		if (pkChrProtege)
 			if (distance_approx(x() - pkChrProtege->x(), y() - pkChrProtege->y()) > 1000)
 				follow(pkChrProtege, number(150, 400));
@@ -1032,7 +986,6 @@ void character::state_battle()
 
 	if (2493 == mob_data->table.vnum)
 	{
-		// Special handling for the Water Dragon (2493)
 		state_duration_ = blue_dragon_state_battle(this);
 		return;
 	}
@@ -1040,7 +993,7 @@ void character::state_battle()
 	uint32_t dwCurTime = get_dword_time();
 	uint32_t dwDuration = calculate_duration(limit_point(POINT_ATT_SPEED), 2000);
 
-	if ((dwCurTime - last_attack_time_) < dwDuration) // Must attack every 2 seconds.
+	if ((dwCurTime - last_attack_time_) < dwDuration)
 	{
 		state_duration_ = std::max<int>(1, (metin2::config::server().passes_per_sec * (dwDuration - (dwCurTime - last_attack_time_)) / 1000));
 		return;
@@ -1056,9 +1009,6 @@ void character::state_battle()
 			if (is_god_speed() != true)
 				set_god_speed(true);
 
-	//
-	// Mob skill handling
-	//
 	if (has_mob_skill())
 	{
 		for (unsigned int iSkillIdx = 0; iSkillIdx < MOB_SKILL_MAX_NUM; ++iSkillIdx)
@@ -1083,11 +1033,10 @@ void character::state_battle()
 		}
 	}
 
-	if (!attack(victim_value))    // Attack failed? Why did it fail? TODO
+	if (!attack(victim_value))
 		state_duration_ = metin2::config::server().passes_per_sec / 2;
 	else
 	{
-		// Face the enemy.
 		set_rotation_to_xy(victim_value->x(), victim_value->y());
 
 		send_move_packet(FUNC_ATTACK, 0, x(), y(), 0, dwCurTime);
@@ -1140,15 +1089,15 @@ void character::state_flag_base()
 
 void character::state_horse()
 {
-	float	START_FOLLOW_DISTANCE = 400.0f;		// Start following when farther than this distance
-	float	START_RUN_DISTANCE = 700.0f;		// Run to follow when farther than this distance.
-	int		MIN_APPROACH = 150;					// Minimum approach distance
-	int		MAX_APPROACH = 300;					// Maximum approach distance	
+	float	START_FOLLOW_DISTANCE = 400.0f;
+	float	START_RUN_DISTANCE = 700.0f;
+	int		MIN_APPROACH = 150;
+	int		MAX_APPROACH = 300;
 
-	uint32_t	STATE_DURATION = (uint32_t)passes_per_sec(0.5);	// State duration
+	uint32_t	STATE_DURATION = (uint32_t)passes_per_sec(0.5);
 
-	bool bDoMoveAlone = true;					// Whether to wander around alone when near the character -_-;
-	bool bRun = true;							// Should it run?
+	bool bDoMoveAlone = true;
+	bool bRun = true;
 
 	if (is_dead())
 		return;
@@ -1157,7 +1106,6 @@ void character::state_horse()
 
 	character * victim = rider();
 
-	// not ! // If there is no target, the summoner will clear me directly
 	if (!victim)
 	{
 		character_manager::instance().destroy_character(this);
@@ -1171,7 +1119,7 @@ void character::state_horse()
 	if (fDist >= START_FOLLOW_DISTANCE)
 	{
 		if (fDist > START_RUN_DISTANCE)
-			set_now_walking(!bRun);		// NOTE: From the function name I thought it stops, but SetNowWalking(false) means running.. -_-;
+			set_now_walking(!bRun);
 
 		follow(victim, number(MIN_APPROACH, MAX_APPROACH));
 
@@ -1179,17 +1127,15 @@ void character::state_horse()
 	}
 	else if (bDoMoveAlone && (get_dword_time() > last_attack_time_))
 	{
-		// wondering-.-
 		last_attack_time_ = get_dword_time() + number(5000, 12000);
 
-		set_rotation(number(0, 359));        // Pick a random direction
+		set_rotation(number(0, 359));
 
 		float fx, fy;
 		float fDist = number(200, 400);
 
 		get_delta_by_degree(rotation(), fDist, &fx, &fy);
 
-		// Loose blocked-attribute check; don't go if the final or midpoint position is unreachable.
 		if (!(sectree_manager::instance().is_movable_position(map_index(), x() + (int) fx, y() + (int) fy) 
 					&& sectree_manager::instance().is_movable_position(map_index(), x() + (int) fx/2, y() + (int) fy/2)))
 			return;

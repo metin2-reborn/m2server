@@ -37,7 +37,6 @@ int item::attribute_set_index()
 		switch (sub_type())
 		{
 			case ARMOR_BODY:
-//			case COSTUME_BODY: // Costume armor gets random attributes using the same Attribute Set as normal armor (ARMOR_BODY == COSTUME_BODY)
 				return ATTRIBUTE_SET_BODY;
 
 			case ARMOR_WRIST:
@@ -50,7 +49,6 @@ int item::attribute_set_index()
 				return ATTRIBUTE_SET_NECK;
 
 			case ARMOR_HEAD:
-//			case COSTUME_HAIR: // Costume hair gets random attributes using the same Attribute Set as normal helmets (ARMOR_HEAD == COSTUME_HAIR)
 				return ATTRIBUTE_SET_HEAD;
 
 			case ARMOR_SHIELD:
@@ -138,7 +136,6 @@ void item::put_attribute_with_level(uint8_t level)
 
 	int total = 0;
 
-	// Build the array of attributes that can be added
 	for (int i = 0; i < MAX_APPLY_NUM; ++i)
 	{
 		const item_attr_table & r = map_item_attr[i];
@@ -150,7 +147,6 @@ void item::put_attribute_with_level(uint8_t level)
 		}
 	}
 
-	// Pick the attribute to add by probability over the built array
 	unsigned int prob = number(1, total);
 	int attr_idx = APPLY_NONE;
 
@@ -175,7 +171,6 @@ void item::put_attribute_with_level(uint8_t level)
 
 	const item_attr_table & r = map_item_attr[attr_idx];
 
-	// Cap the max attribute level per type
 	if (level > r.max_level_by_set[iAttributeSet])
 		level = r.max_level_by_set[iAttributeSet];
 

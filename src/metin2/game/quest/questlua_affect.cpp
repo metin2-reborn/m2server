@@ -14,9 +14,6 @@ namespace metin2::game {
 
 namespace quest
 {
-	//
-	// "affect" Lua functions
-	//
 	int affect_add(lua_State * lua)
 	{
 		if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2) || !lua_isnumber(lua, 3))
@@ -37,7 +34,7 @@ namespace quest
 			return 0;
 		}
 
-		if (ch->find_affect(AFFECT_QUEST_START_IDX, applyOn)) // skip if an effect from a quest is already applied at the same spot
+		if (ch->find_affect(AFFECT_QUEST_START_IDX, applyOn))
 			return 0;
 
 		int32_t value = (int32_t) lua_tonumber(lua, 2);
@@ -68,14 +65,14 @@ namespace quest
 		return 0;
 	}
 
-	int affect_remove_bad(lua_State * lua) // remove bad effects
+	int affect_remove_bad(lua_State * lua)
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		ch->remove_bad_affect();
 		return 0;
 	}
 
-	int affect_remove_good(lua_State * lua) // remove good effects
+	int affect_remove_good(lua_State * lua)
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		ch->remove_good_affect();
@@ -110,7 +107,7 @@ namespace quest
 		return 0;
 	}
 
-	int affect_remove_hair(lua_State * lua) // remove hair effects.
+	int affect_remove_hair(lua_State * lua)
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -129,8 +126,6 @@ namespace quest
 		return 1;
 	}
 	
-	// returns bApplyOn if the current character has an AFFECT_TYPE affect, otherwise nil.
-	// usage :	applyOn = affect.get_apply(AFFECT_TYPE) 
 	int affect_get_apply_on(lua_State * lua)
 	{
 		character * ch = quest_manager::instance().current_character_ptr();

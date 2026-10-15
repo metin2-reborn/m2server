@@ -42,14 +42,12 @@ struct emotion_type_s
 	{ "와",		"cheer1",	0,						1.0f },
 	{ "만세",	"cheer2",	0,						1.0f },
 	
-	// DANCE
 	{ "댄스1",	"dance1",	0,						1.0f },
 	{ "댄스2",	"dance2",	0,						1.0f },
 	{ "댄스3",	"dance3",	0,						1.0f },
 	{ "댄스4",	"dance4",	0,						1.0f },
 	{ "댄스5",	"dance5",	0,						1.0f },
 	{ "댄스6",	"dance6",	0,						1.0f },
-	// END_OF_DANCE
 	{ "축하",	"congratulation",	0,				1.0f	},
 	{ "용서",	"forgive",			0,				1.0f	},
 	{ "화남",	"angry",			0,				1.0f	},
@@ -60,41 +58,6 @@ struct emotion_type_s
 	{ "질투",	"banter",			0,				1.0f	},
 	{ "기쁨",	"joy",				0,				1.0f	},
 	{ "\n",	"\n",		0,						0.0f },
-	/*
-	//{ "키스",		NEED_PC | OTHER_SEX_ONLY | BOTH_DISARM,		MOTION_ACTION_FRENCH_KISS,	 1.0f },
-	{ "뽀뽀",		NEED_PC | OTHER_SEX_ONLY | BOTH_DISARM,		MOTION_ACTION_KISS,		 1.0f },
-	{ "껴안기",		NEED_PC | OTHER_SEX_ONLY | BOTH_DISARM,		MOTION_ACTION_SHORT_HUG,	 1.0f },
-	{ "포옹",		NEED_PC | OTHER_SEX_ONLY | BOTH_DISARM,		MOTION_ACTION_LONG_HUG,		 1.0f },
-	{ "어깨동무",	NEED_PC | SELF_DISARM,				MOTION_ACTION_PUT_ARMS_SHOULDER, 0.0f },
-	{ "팔짱",		NEED_PC	| WOMAN_ONLY | SELF_DISARM,		MOTION_ACTION_FOLD_ARM,		 0.0f },
-	{ "따귀",		NEED_PC | SELF_DISARM,				MOTION_ACTION_SLAP,		 1.5f },
-
-	{ "휘파람",		0,						MOTION_ACTION_CHEER_01,		 0.0f },
-	{ "만세",		0,						MOTION_ACTION_CHEER_02,		 0.0f },
-	{ "박수",		0,						MOTION_ACTION_CHEER_03,		 0.0f },
-
-	{ "호호",		0,						MOTION_ACTION_LAUGH_01,		 0.0f },
-	{ "킥킥",		0,						MOTION_ACTION_LAUGH_02,		 0.0f },
-	{ "우하하",		0,						MOTION_ACTION_LAUGH_03,		 0.0f },
-
-	{ "엉엉",		0,						MOTION_ACTION_CRY_01,		 0.0f },
-	{ "흑흑",		0,						MOTION_ACTION_CRY_02,		 0.0f },
-
-	{ "인사",		0,						MOTION_ACTION_GREETING_01,	0.0f },
-	{ "바이",		0,						MOTION_ACTION_GREETING_02,	0.0f },
-	{ "정중인사",	0,						MOTION_ACTION_GREETING_03,	0.0f },
-
-	{ "비난",		0,						MOTION_ACTION_INSULT_01,	0.0f },
-	{ "모욕",		SELF_DISARM,					MOTION_ACTION_INSULT_02,	0.0f },
-	{ "우웩",		0,						MOTION_ACTION_INSULT_03,	0.0f },
-
-	{ "갸우뚱",		0,						MOTION_ACTION_ETC_01,		0.0f },
-	{ "끄덕끄덕",	0,						MOTION_ACTION_ETC_02,		0.0f },
-	{ "도리도리",	0,						MOTION_ACTION_ETC_03,		0.0f },
-	{ "긁적긁적",	0,						MOTION_ACTION_ETC_04,		0.0f },
-	{ "퉤",		0,						MOTION_ACTION_ETC_05,		0.0f },
-	{ "뿡",		0,						MOTION_ACTION_ETC_06,		0.0f },
-	 */
 };
 
 
@@ -120,11 +83,9 @@ ACMD(do_emotion_allow)
 
 bool character_can_emotion(character& rch)
 {
-	// Can be used on the wedding map.
 	if (marriage::wedding_manager::instance().is_wedding_map(rch.map_index()))
 		return true;
 
-	// Can be used while wearing the Mask of Passion.
 	if (rch.is_equip_unique_item(UNIQUE_ITEM_EMOTION_MASK))
 		return true;
 
@@ -258,7 +219,7 @@ ACMD(do_emotion)
 	if (len < 0 || len >= (int) sizeof(chatbuf))
 		len = sizeof(chatbuf) - 1;
 
-	++len;  // including the \0 character
+	++len;
 
 	packet_gc_chat pack_chat;
 	pack_chat.header = HEADER_GC_CHAT;

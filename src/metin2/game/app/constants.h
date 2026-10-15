@@ -18,7 +18,7 @@ enum monster_chat_state
 };
 
 struct mob_rank_stat {
-	int gold_percent;   // Chance of gold dropping
+	int gold_percent;
 };
 
 struct job_initial_point {
@@ -37,7 +37,7 @@ struct coord {
 };
 
 struct apply_info {
-	uint8_t	point_type;                          // APPLY -> POINT
+	uint8_t	point_type;
 };
 
 enum {
@@ -78,7 +78,6 @@ extern const uint32_t		guild_exp_table2[GUILD_MAX_LEVEL + 1];
 inline constexpr int MAX_EXP_DELTA_OF_LEV = 31;
 extern const int		percent_by_delta_lev[MAX_EXP_DELTA_OF_LEV];
 extern const int		percent_by_delta_lev_for_boss[MAX_EXP_DELTA_OF_LEV];
-// Experience/drop percentage by the level difference between killer (me) and victim.
 inline int percent_lvdelta(int me, int victim) { return percent_by_delta_lev[std::clamp((victim + 15) - me, 0, MAX_EXP_DELTA_OF_LEV - 1)]; }
 inline int percent_lvdelta_boss(int me, int victim) { return percent_by_delta_lev_for_boss[std::clamp((victim + 15) - me, 0, MAX_EXP_DELTA_OF_LEV - 1)]; }
 inline int calculate_value_lvdelta(int me, int victim, int val) { return (val * percent_lvdelta(me, victim)) / 100; }
@@ -92,7 +91,7 @@ extern const int		mob_resists_apply_idx[MOB_RESISTS_MAX_NUM];
 
 extern const int		skill_attack_affect_prob_by_rank[MOB_RANK_MAX_NUM];
 
-extern const int item_magic_attribute_percent_high[ITEM_ATTRIBUTE_MAX_LEVEL]; // Up to 1
+extern const int item_magic_attribute_percent_high[ITEM_ATTRIBUTE_MAX_LEVEL];
 extern const int item_magic_attribute_percent_low[ITEM_ATTRIBUTE_MAX_LEVEL];
 
 extern const int item_attribute_add_percent[ITEM_ATTRIBUTE_MAX_NUM];
@@ -131,7 +130,6 @@ struct guild_war_info {
 
 extern guild_war_info kor_a_guild_war_info[GUILD_WAR_TYPE_MAX_NUM];
 
-// ACCESSORY_REFINE
 enum 
 {
 	ITEM_ACCESSORY_SOCKET_MAX_NUM = 3
@@ -142,7 +140,6 @@ extern const int accessory_socket_degrade_time[ITEM_ACCESSORY_SOCKET_MAX_NUM + 1
 extern const int accessory_socket_put_pct[ITEM_ACCESSORY_SOCKET_MAX_NUM + 1];
 int32_t fn_get_apply_type(const char *apply_type_string);
 
-// END_OF_ACCESSORY_REFINE
 
 int32_t fn_get_apply_type(const char *apply_type_string);
 }

@@ -35,13 +35,9 @@ enum
 	QID_HIGHSCORE_REGISTER,
 	QID_HIGHSCORE_SHOW,
 
-	// BLOCK_CHAT
 	QID_BLOCK_CHAT_LIST,
-	// END_OF_BLOCK_CHAT
 
-	// PROTECT_CHILD_FOR_NEWCIBN
 	QID_PROTECT_CHILD,
-	// END_PROTECT_CHILD_FOR_NEWCIBN
 
 };
 
@@ -81,8 +77,6 @@ class db_manager : public singleton<db_manager>
 		bool			is_connected();
 
 		bool			connect(const char * host, const int port, const char * user, const char * pwd, const char * db);
-		// The std::string overloads take a finished statement (see sql::format); the others format
-		// it printf-style first.
 		void			query(const std::string & query);
 		void			query(const char * format, ...) __attribute__((format(printf, 2, 3)));
 
@@ -105,16 +99,12 @@ class db_manager : public singleton<db_manager>
 
 		uint32_t			count_query()		{ return sql_.count_query(); }
 
-		// BLOCK EXCEPTION
-		// BLOCK EXCEPTION
 
 		void			load_db_string();
 		const std::vector<std::string> & greet_message();
 
-		// Runs the query and calls f with its result (freed afterwards) on the main thread.
 		void			func_query(std::function<void(ql_msg *)> f, const std::string & query);
 		void			func_query(std::function<void(ql_msg *)> f, const char * format, ...) __attribute__((format(printf, 3, 4)));
-		// Runs the query and calls f once it has completed.
 		void			func_after_query(std::function<void()> f, const std::string & query);
 		void			func_after_query(std::function<void()> f, const char * format, ...) __attribute__((format(printf, 3, 4)));
 
@@ -132,7 +122,6 @@ class db_manager : public singleton<db_manager>
 		std::map<uint32_t, std::unique_ptr<login_data>>		map_pk_login_data_;
 };
 
-////////////////////////////////////////////////////////////////
 struct highscore_register_query_info {
 	char    board[20+1]; 
 	uint32_t   pid;
@@ -140,7 +129,6 @@ struct highscore_register_query_info {
 	bool    order;
 };
 
-// ACCOUNT_DB
 class account_db : public singleton<account_db>
 {
 	public:
@@ -168,7 +156,6 @@ class account_db : public singleton<account_db>
 		bool		is_connect_;
 
 };
-//END_ACCOUNT_DB
 
 extern void cancel_reload_spam_event();
 extern void load_spam_db();

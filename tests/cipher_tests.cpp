@@ -10,7 +10,6 @@
 using namespace metin2::game;
 
 namespace {
-    // A client and a server cipher after the key agreement.
     struct cipher_pair {
         cipher client;
         cipher server;
@@ -62,8 +61,6 @@ TEST(cipher_stream_continues_across_chunks) {
     cipher_pair pair;
     CHECK(pair.agreed);
 
-    // The sender encrypts in one call, the receiver decrypts in odd-sized pieces, as TCP may
-    // deliver them.
     const std::vector<uint8_t> plain = pattern(1000);
     std::vector<uint8_t> data = plain;
     pair.client.encrypt(data.data(), data.size());
@@ -82,11 +79,9 @@ TEST(cipher_rejects_bad_peer_keys) {
     const size_t agreed = cipher.prepare(key, &length);
     CHECK_EQ(agreed, metin2::game::protocol::cipher::key_size);
 
-    // An all-zero key is a low-order point and gives an all-zero secret.
     const uint8_t zeros[metin2::game::protocol::cipher::key_size] = {};
     CHECK(!cipher.activate(false, agreed, zeros, sizeof(zeros)));
 
-    // Wrong lengths, and activation without a prepared key.
     metin2::game::protocol::cipher other;
     CHECK(!other.activate(false, metin2::game::protocol::cipher::key_size, key, sizeof(key)));
     uint8_t short_buffer[8];

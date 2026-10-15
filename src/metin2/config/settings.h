@@ -6,13 +6,11 @@
 #include <string>
 #include <vector>
 
-// The configuration of one server process, read from server.toml (see config.h). Every value has the
-// default it gets when its key is missing; keys marked required must be present for their role.
 namespace metin2::config {
     enum class role : std::uint8_t {
-        db,   // database cache between the game processes and MariaDB
-        auth, // login server
-        game, // game channel serving the maps in game.map_allow
+        db,
+        auth,
+        game,
     };
 
     struct log_settings {
@@ -20,7 +18,6 @@ namespace metin2::config {
         unsigned int keep_days = 3;
     };
 
-    // MariaDB; every connection uses the same server and account.
     struct database_settings {
         std::string host = "127.0.0.1";
         std::uint16_t port = 3306;
@@ -34,18 +31,17 @@ namespace metin2::config {
         std::string log = "log";
     };
 
-    // role = "db"
     struct db_settings {
         std::string bind_ip = "127.0.0.1";
         std::uint16_t port = 15000;
-        std::vector<std::string> allowed_peers; // host names or addresses of the game processes
+        std::vector<std::string> allowed_peers;
         int heart_fps = 10;
         bool login_log = false;
 
-        int player_id_start = 0;      // required
-        std::uint32_t item_id_min = 0; // required: item_id_range = [min, max]
+        int player_id_start = 0;
+        std::uint32_t item_id_min = 0;
         std::uint32_t item_id_max = 0;
-        int player_delete_level_limit = 0; // 0: no limit
+        int player_delete_level_limit = 0;
         int player_delete_level_limit_lower = 0;
         std::string name_column = "name";
 
@@ -54,21 +50,20 @@ namespace metin2::config {
         int pricelist_cache_flush_seconds = 540;
         unsigned int cache_flush_limit_per_second = 200;
 
-        std::string guild_war_power;    // polynomial of the guild war power
-        std::string guild_war_handicap; // polynomial of the guild war handicap
+        std::string guild_war_power;
+        std::string guild_war_handicap;
     };
 
     struct admin_settings {
-        std::vector<std::string> ips; // empty: any address may use the admin text protocol
-        std::string password;         // empty: admin mode is off
+        std::vector<std::string> ips;
+        std::string password;
     };
 
-    // role = "auth" and role = "game"
     struct server_settings {
-        std::string hostname; // required
-        std::uint8_t channel = 0; // required
-        std::string bind_ip;  // empty: detected
-        std::string proxy_ip; // address the clients are told instead of bind_ip
+        std::string hostname;
+        std::uint8_t channel = 0;
+        std::string bind_ip;
+        std::string proxy_ip;
         std::uint16_t port = 13000;
         std::uint16_t p2p_port = 14000;
         std::vector<std::string> p2p_allowed_hosts;
@@ -80,22 +75,21 @@ namespace metin2::config {
         admin_settings admin;
     };
 
-    // role = "auth"
     struct auth_settings {
-        bool master = true;       // false: a slave of master_host:master_port
+        bool master = true;
         std::string master_host;
         std::uint16_t master_port = 0;
-        std::string block_login_date = "30000705"; // accounts created on or after it may not log in
+        std::string block_login_date = "30000705";
     };
 
     struct mark_settings {
-        bool server = true; // accepts guild mark connections
+        bool server = true;
         std::uint8_t min_level = 3;
     };
 
     struct quest_settings {
-        std::string dir;                      // empty: the locale's quest directory
-        std::vector<std::string> object_dirs; // added to the locale's object directory
+        std::string dir;
+        std::vector<std::string> object_dirs;
     };
 
     struct spam_settings {
@@ -112,7 +106,6 @@ namespace metin2::config {
         bool check_multihack = true;
     };
 
-    // role = "game"
     struct game_settings {
         std::vector<long> map_allow;
         int save_seconds = 120;
@@ -120,7 +113,7 @@ namespace metin2::config {
         int max_level = 99;
         std::uint8_t pk_protect_level = 15;
 
-        bool refuse_clients = false; // was SHUTDOWNED
+        bool refuse_clients = false;
         bool no_regen = false;
         bool no_wander = false;
         bool speed_server = false;

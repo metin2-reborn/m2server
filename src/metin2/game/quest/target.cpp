@@ -18,9 +18,6 @@
 
 namespace metin2::game {
 
-/////////////////////////////////////////////////////////////////////
-// Packet
-/////////////////////////////////////////////////////////////////////
 void send_target_create_packet(desc * d, target_info * info)
 {
 if (!info->send_to_client)
@@ -54,7 +51,6 @@ pck.header = HEADER_GC_TARGET_DELETE;
 pck.id = id_value;
 d->packet(&pck, sizeof(packet_gc_target_delete));
 }
-/////////////////////////////////////////////////////////////////////
 target_manager::target_manager() : id_(0)
 {
 }
@@ -73,10 +69,9 @@ EVENTFUNC(target_event)
 		return 0;
 	}
 
-// <Factor> Raplaced direct pointer reference with key searching.
 	character * pkChr = character_manager::instance().find_by_pid(info->pid);
 	if (pkChr == nullptr) {
-		return 0; // <Factor> need to be confirmed
+		return 0;
 	}
 	character * tch = nullptr;
 	int x = 0, y = 0;
@@ -222,7 +217,6 @@ void target_manager::create_target(uint32_t pid_value,
 	}
 
 	newInfo->id = ++id_;
-	// <Factor> Removed pkChr
 	newInfo->pid = pid_value;
 	newInfo->quest_index = quest_index_value;
 	strlcpy(newInfo->target_name, target_name_value, sizeof(newInfo->target_name));
@@ -270,7 +264,6 @@ void target_manager::delete_target(uint32_t pid_value, uint32_t quest_index_valu
 			if (!target_name_value || !strcmp(info->target_name, target_name_value))
 			{
 				if (info->send_to_client) {
-					// <Factor> Removed pkChr
 					character * pkChr = character_manager::instance().find_by_pid(info->pid);
 					if (pkChr != nullptr) {
 						send_target_delete_packet(pkChr->get_desc(), info->id);

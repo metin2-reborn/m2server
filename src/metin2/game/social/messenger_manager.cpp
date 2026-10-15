@@ -235,7 +235,7 @@ void messenger_manager::apply_remove_from_list(messenger_manager::key_a account,
 		ch->chat_packet(CHAT_TYPE_INFO, lc_text("<메신져> %s 님을 메신저에서 삭제하였습니다."), companion.c_str());
 }
 
-bool messenger_manager::is_in_list(messenger_manager::key_a account, messenger_manager::key_a companion) // Fix
+bool messenger_manager::is_in_list(messenger_manager::key_a account, messenger_manager::key_a companion)
 {
     if (relation_.find(account) == relation_.end())
         return false;
@@ -254,12 +254,11 @@ void messenger_manager::remove_from_list(messenger_manager::key_a account, messe
 	if (companion.size() == 0)
 		return;
 	
-	if (!is_in_list(account, companion)) // Fix
+	if (!is_in_list(account, companion))
 		return;
 	
 	metin2::log::debug( "Messenger Remove {} {}", account.c_str(), companion.c_str());
 	
-	// Fix
 	db_manager::instance().query(sql::format("DELETE FROM messenger_list{} WHERE account={} AND companion = {}",
 			sql::raw(get_table_postfix()), account, companion));
 
@@ -277,11 +276,9 @@ void messenger_manager::remove_all_list(key_a account)
 {
 	std::set<key_t>	company(relation_[account]);
 
-	/* Delete SQL data */
 	db_manager::instance().query(sql::format("DELETE FROM messenger_list{} WHERE account={} OR companion={}",
 			sql::raw(get_table_postfix()), account, account));
 
-	/* Delete my list */
 	for (std::set<key_t>::iterator iter = company.begin();
 			iter != company.end();
 			iter++ )
@@ -289,7 +286,6 @@ void messenger_manager::remove_all_list(key_a account)
 		this->remove_from_list(account, *iter);
 	}
 
-	/* Delete the copied data */
 	for (std::set<key_t>::iterator iter = company.begin();
 			iter != company.end();
 			)
@@ -328,7 +324,7 @@ void messenger_manager::send_list(messenger_manager::key_a account)
 	packet_gc_messenger_list_offline pack_offline;
 	packet_gc_messenger_list_online pack_online;
 
-	temp_buffer buf(128 * 1024); // 128k
+	temp_buffer buf(128 * 1024);
 
 	auto it = relation_[account].begin(), eit = relation_[account].end();
 
@@ -338,7 +334,6 @@ void messenger_manager::send_list(messenger_manager::key_a account)
 		{
 			pack_online.connected = 1;
 
-			// Online
 			pack_online.length = it->size();
 
 			buf.write(&pack_online, sizeof(packet_gc_messenger_list_online));
@@ -348,7 +343,6 @@ void messenger_manager::send_list(messenger_manager::key_a account)
 		{
 			pack_offline.connected = 0;
 
-			// Offline
 			pack_offline.length = it->size();
 
 			buf.write(&pack_offline, sizeof(packet_gc_messenger_list_offline));

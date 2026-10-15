@@ -55,7 +55,7 @@ void peer::return_item_id_range()
 	item_range_.usable_item_id_min = 0;
 }
 
-auto peer::on_receive(std::span<std::uint8_t> input, std::size_t /*received*/) -> std::size_t
+auto peer::on_receive(std::span<std::uint8_t> input, std::size_t ) -> std::size_t
 {
 	input_ = input;
 	input_consumed_ = 0;

@@ -81,29 +81,29 @@ namespace quest
 
 		selected_dungeon_ = nullptr;
 
-		event_name.insert(event_name_map::value_type("click", QUEST_CLICK_EVENT));		// Clicked an NPC
-		event_name.insert(event_name_map::value_type("kill", QUEST_KILL_EVENT));		// Hunted a mob
-		event_name.insert(event_name_map::value_type("timer", QUEST_TIMER_EVENT));		// Preset time has passed
-		event_name.insert(event_name_map::value_type("levelup", QUEST_LEVELUP_EVENT));	// Leveled up
-		event_name.insert(event_name_map::value_type("login", QUEST_LOGIN_EVENT));		// On login
-		event_name.insert(event_name_map::value_type("logout", QUEST_LOGOUT_EVENT));		// On logout
-		event_name.insert(event_name_map::value_type("button", QUEST_BUTTON_EVENT));		// Pressed the quest button
-		event_name.insert(event_name_map::value_type("info", QUEST_INFO_EVENT));		// Opened the quest info window
-		event_name.insert(event_name_map::value_type("chat", QUEST_CHAT_EVENT));		// Talked with a specific keyword
-		event_name.insert(event_name_map::value_type("in", QUEST_ATTR_IN_EVENT));		// Entered a specific map attribute
-		event_name.insert(event_name_map::value_type("out", QUEST_ATTR_OUT_EVENT));		// Left a specific map attribute
-		event_name.insert(event_name_map::value_type("use", QUEST_ITEM_USE_EVENT));		// Used a quest item
-		event_name.insert(event_name_map::value_type("server_timer", QUEST_SERVER_TIMER_EVENT));	// Server timer (not tested yet)
-		event_name.insert(event_name_map::value_type("enter", QUEST_ENTER_STATE_EVENT));	// Became the current state
-		event_name.insert(event_name_map::value_type("leave", QUEST_LEAVE_STATE_EVENT));	// Changed from the current state to another state
-		event_name.insert(event_name_map::value_type("letter", QUEST_LETTER_EVENT));		// Info must be set anew after login or a state change
-		event_name.insert(event_name_map::value_type("take", QUEST_ITEM_TAKE_EVENT));	// Received an item
-		event_name.insert(event_name_map::value_type("target", QUEST_TARGET_EVENT));		// Target
-		event_name.insert(event_name_map::value_type("party_kill", QUEST_PARTY_KILL_EVENT));	// Party member hunted a monster (sent to leader)
+		event_name.insert(event_name_map::value_type("click", QUEST_CLICK_EVENT));
+		event_name.insert(event_name_map::value_type("kill", QUEST_KILL_EVENT));
+		event_name.insert(event_name_map::value_type("timer", QUEST_TIMER_EVENT));
+		event_name.insert(event_name_map::value_type("levelup", QUEST_LEVELUP_EVENT));
+		event_name.insert(event_name_map::value_type("login", QUEST_LOGIN_EVENT));
+		event_name.insert(event_name_map::value_type("logout", QUEST_LOGOUT_EVENT));
+		event_name.insert(event_name_map::value_type("button", QUEST_BUTTON_EVENT));
+		event_name.insert(event_name_map::value_type("info", QUEST_INFO_EVENT));
+		event_name.insert(event_name_map::value_type("chat", QUEST_CHAT_EVENT));
+		event_name.insert(event_name_map::value_type("in", QUEST_ATTR_IN_EVENT));
+		event_name.insert(event_name_map::value_type("out", QUEST_ATTR_OUT_EVENT));
+		event_name.insert(event_name_map::value_type("use", QUEST_ITEM_USE_EVENT));
+		event_name.insert(event_name_map::value_type("server_timer", QUEST_SERVER_TIMER_EVENT));
+		event_name.insert(event_name_map::value_type("enter", QUEST_ENTER_STATE_EVENT));
+		event_name.insert(event_name_map::value_type("leave", QUEST_LEAVE_STATE_EVENT));
+		event_name.insert(event_name_map::value_type("letter", QUEST_LETTER_EVENT));
+		event_name.insert(event_name_map::value_type("take", QUEST_ITEM_TAKE_EVENT));
+		event_name.insert(event_name_map::value_type("target", QUEST_TARGET_EVENT));
+		event_name.insert(event_name_map::value_type("party_kill", QUEST_PARTY_KILL_EVENT));
 		event_name.insert(event_name_map::value_type("unmount", QUEST_UNMOUNT_EVENT));
-		event_name.insert(event_name_map::value_type("pick", QUEST_ITEM_PICK_EVENT));	// Picked up a dropped item.
-		event_name.insert(event_name_map::value_type("sig_use", QUEST_SIG_USE_EVENT));		// Used an item belonging to a Special item group.
-		event_name.insert(event_name_map::value_type("item_informer", QUEST_ITEM_INFORMER_EVENT));	// German gift feature test
+		event_name.insert(event_name_map::value_type("pick", QUEST_ITEM_PICK_EVENT));
+		event_name.insert(event_name_map::value_type("sig_use", QUEST_SIG_USE_EVENT));
+		event_name.insert(event_name_map::value_type("item_informer", QUEST_ITEM_INFORMER_EVENT));
 
 		no_send_ = false;
 
@@ -154,7 +154,6 @@ namespace quest
 				npc_name_id_[s] = vnum;
 			}
 
-			// notarget quest
 			npc_[0].set(0, "notarget");
 		}
 
@@ -270,9 +269,6 @@ namespace quest
 
 			if (!pPC->running_quest_state()->chat_scripts.empty())
 			{
-				// For chat events
-				// The current quest is one that picks which quest to run, so
-				// finish it and run the selected quest.
 				quest_state& old_qs = *pPC->running_quest_state();
 				close_state(old_qs);
 
@@ -290,7 +286,6 @@ namespace quest
 			}
 			else
 			{
-				// on default 
 				pPC->running_quest_state()->args=1;
 				lua_pushnumber(pPC->running_quest_state()->co,selection+1);
 
@@ -380,7 +375,6 @@ namespace quest
 			pPC->cancel_running();
 		}
 
-		// Log out before deleting.
 		logout(ch->player_id());
 
 		if (ch == current_character_)
@@ -390,11 +384,6 @@ namespace quest
 		}
 	}
 
-	///////////////////////////////////////////////////////////////////////////////////////////
-	//
-	// Quest Event related
-	//
-	///////////////////////////////////////////////////////////////////////////////////////////
 	void quest_manager::login(unsigned int pc, const char * quest)
 	{
 		game::quest::pc * pPC;
@@ -438,13 +427,8 @@ namespace quest
 			if (!check_quest_loaded(pPC))
 				return;
 
-			/* [hyo] fix for duplicate counting on mob kill
-			   even if a script was handled due to code like when 171.kill begin ... in the quest script,
-			   changed to not return immediately and also perform other checks. (2011/07/21)
-			*/   
-			// call script
 			
-			if(npc > 0) // Fix
+			if(npc > 0)
 			{
 				npc_[npc].on_kill(*pPC);
 			}
@@ -496,7 +480,6 @@ namespace quest
 			{
 				return false;
 			}
-			// call script
 			return npc_[npc].on_timer(*pPC);
 		}
 		else
@@ -532,7 +515,6 @@ namespace quest
 			if (!check_quest_loaded(pPC))
 				return;
 
-			// call script
 			npc_[attr+QUEST_ATTR_NPC_START].on_attr_in(*pPC);
 		}
 		else
@@ -550,7 +532,6 @@ namespace quest
 			if (!check_quest_loaded(pPC))
 				return;
 
-			// call script
 			npc_[attr+QUEST_ATTR_NPC_START].on_attr_out(*pPC);
 		}
 		else
@@ -581,7 +562,6 @@ namespace quest
 
 		if ((pPC = get_pc(pc)))
 		{
-			// call script
 			if (!check_quest_loaded(pPC))
 			{
 				character * ch = character_manager::instance().find_by_pid(pc);
@@ -605,7 +585,6 @@ namespace quest
 		game::quest::pc* pPC;
 		if ((pPC = get_pc(pc)))
 		{
-			// call script
 			if (!check_quest_loaded(pPC))
 			{
 				character * ch = character_manager::instance().find_by_pid(pc);
@@ -638,7 +617,6 @@ namespace quest
 				}
 				return false;
 			}
-			// call script
 			set_current_item(item);
 			return npc_[npc].on_take_item(*pPC);
 		}
@@ -665,7 +643,6 @@ namespace quest
 				}
 				return false;
 			}
-			// call script
 			set_current_item(item);
 
 			return npc_[item->vnum()].on_use_item(*pPC, receive_all);
@@ -677,7 +654,6 @@ namespace quest
 		}
 	}
 
-	// Group Use defined in Special Item Group
 	bool quest_manager::sig_use(unsigned int pc, uint32_t sig_vnum, item * item, bool receive_all)
 	{
 		if (metin2::config::test_server())
@@ -694,7 +670,6 @@ namespace quest
 				}
 				return false;
 			}
-			// call script
 			set_current_item(item);
 
 			return npc_[sig_vnum].on_sig_use(*pPC, receive_all);
@@ -776,10 +751,8 @@ namespace quest
 					return false;
 				}
 
-				// call script
 				if (it->second.has_chat())
 				{
-					// if have chat, give chat
 					if (metin2::config::test_server())
 						metin2::log::info( "CQuestManager::Click->OnChat");
 
@@ -795,7 +768,6 @@ namespace quest
 				}
 				else
 				{
-					// else click
 					return it->second.on_click(*pPC);
 				}
 			}
@@ -822,7 +794,6 @@ namespace quest
 		else
 			metin2::log::error("QUEST no such pc id : {:d}", pc);
 	}
-	//German gift feature test
 	void quest_manager::item_informer(unsigned int pc,unsigned int vnum)
 	{
 		
@@ -831,11 +802,7 @@ namespace quest
 		
 		npc_[QUEST_NO_NPC].on_item_informer(*pPC,vnum);
 	}
-	///////////////////////////////////////////////////////////////////////////////////////////
-	// END OF quest event handling
-	///////////////////////////////////////////////////////////////////////////////////////////
 
-	///////////////////////////////////////////////////////////////////////////////////////////
 	void quest_manager::load_start_quest(const std::string& quest_name, unsigned int idx)
 	{
 		for (auto it = quest_object_dir.begin(); it != quest_object_dir.end(); ++it)
@@ -939,7 +906,6 @@ namespace quest
 			current_skin_ = QUEST_SKIN_NOWINDOW;
 		}
 
-		//send -_-!
 		struct metin2::game::packet_script packet_script;
 
 		packet_script.header = HEADER_GC_SCRIPT;
@@ -1092,7 +1058,7 @@ namespace quest
 		hash_map_quest_name::iterator it = hm_quest_name_.find(name);
 
 		if (it == hm_quest_name_.end())
-			return 0; // RESERVED
+			return 0;
 
 		return it->second;
 	}
@@ -1239,19 +1205,16 @@ namespace quest
 					continue;
 				if (value)
 				{
-					// Night
 					ch->chat_packet(CHAT_TYPE_COMMAND, "DayMode dark");
 				}
 				else
 				{
-					// Day
 					ch->chat_packet(CHAT_TYPE_COMMAND, "DayMode light");
 				}
 			}
 
 			if (value && !prev_value)
 			{
-				// Create if missing
 				struct npc_sell_firework_position
 				{
 					int32_t map_index;
@@ -1287,7 +1250,6 @@ namespace quest
 			}
 			else if (!value && prev_value)
 			{
-				// Delete if present
 				character_vector_interactor i;
 
 				if (character_manager::instance().characters_by_race_num(xmas::MOB_XMAS_FIRWORK_SELLER_VNUM, i))
@@ -1376,7 +1338,6 @@ namespace quest
 		}
 		else if (name == "new_xmas_event")
 		{
-			// 20126 new Santa.
 			static uint32_t new_santa = 20126;
 			if (value != 0)
 			{
@@ -1515,54 +1476,35 @@ namespace quest
 
 	bool quest_manager::execute_quest_script(pc& pc, const std::string& quest_name, const int state, const char* code, const int code_size, std::vector<a_arg_script*>* chat_scripts_value, bool use_cache)
 	{
-		// Create the execution space
 		quest_state qs = quest_manager::instance().open_state(quest_name, state);
 		if (chat_scripts_value)
 			qs.chat_scripts.swap(*chat_scripts_value);
 
-		// Load the code
 		if (use_cache)
 		{
 			lua_getglobal(qs.co, "__codecache");
-			// stack : __codecache
 			lua_pushlightuserdata(qs.co, const_cast<char*>(code));
-			// stack : __codecache (codeptr)
 			lua_rawget(qs.co, -2);
-			// stack : __codecache (compiled-code)
 			if (lua_isnil(qs.co, -1))
 			{
-				// cache miss
 
-				// load code to lua,
-				// save it to cache
-				// and only function remain in stack
 				lua_pop(qs.co, 1);
-				// stack : __codecache
 				luaL_loadbuffer(qs.co, code, code_size, quest_name.c_str());
-				// stack : __codecache (compiled-code)
 				lua_pushlightuserdata(qs.co, const_cast<char*>(code));
-				// stack : __codecache (compiled-code) (codeptr)
 				lua_pushvalue(qs.co, -2);
-				// stack : __codecache (compiled-code) (codeptr) (compiled_code)
 				lua_rawset(qs.co, -4);
-				// stack : __codecache (compiled-code)
 				lua_remove(qs.co, -2);
-				// stack : (compiled-code)
 			}
 			else
 			{
-				// cache hit
 				lua_remove(qs.co, -2);
-				// stack : (compiled-code)
 			}
 		}
 		else
 			luaL_loadbuffer(qs.co, code, code_size, quest_name.c_str());
 
-		// Attach to the player
 		pc.set_quest(quest_name, qs);
 
-		// Execute
 		quest_state& rqs = *pc.running_quest_state();
 		if (!quest_manager::instance().run_state(rqs))
 		{
@@ -1661,9 +1603,7 @@ namespace quest
 		}
 	}
 
-	// Old
 	
-	// Fix (New)
 	void quest_manager::cancel_server_timers(uint32_t arg)
 	{
 		std::vector<std::pair<std::string, uint32_t>> ServerTimersToDelete;
@@ -1676,11 +1616,9 @@ namespace quest
 			}
 		}
 
-		// Delete all the required server timers
 		for (const auto &timer : ServerTimersToDelete)
 			server_timer_.erase(timer);
 
-		// Clean up
 		ServerTimersToDelete.clear();
 	}
 
@@ -1715,7 +1653,6 @@ namespace quest
 				}
 				return false;
 			}
-			// call script
 			set_current_item(item);
 
 			return npc_[item->vnum()].on_pickup_item(*pPC);
@@ -1734,16 +1671,6 @@ namespace quest
 			metin2::log::error("NULL?");
 			return;
 		}
-		/*
-		# 1. current pid = pid0 <- It will be m_pOtherPCBlockRootPC.
-		begin_other_pc_block(pid1)
-			# 2. current pid = pid1
-			begin_other_pc_block(pid2)
-				# 3. current_pid = pid2
-			end_other_pc_block()
-		end_other_pc_block()
-		*/
-		// when begin_other_pc_block(pid1)
 		if (pc_stack_.empty())
 		{
 			other_pc_block_root_pc_ = current_pc();

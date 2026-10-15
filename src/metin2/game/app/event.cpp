@@ -1,9 +1,3 @@
-/*
- *    Filename: event.c
- * Description: Events (timed event)
- *
- *      Author: Kim Han-ju (aka. Biyeop, Cronan), Song Young-jin (aka. myevan, Bitjaru)
- */
 #include <metin2/game/app/event.h>
 
 #include <metin2/game/app/event_queue.h>
@@ -21,12 +15,10 @@ namespace metin2::game::inline app {
 
 static event_queue cxx_q;
 
-/* Creates and returns an event */
 event_ptr event_create(event_func func, event_info_data* info, int32_t when)
 {
 	event_ptr new_event = nullptr;
 
-	/* Must be called only after at least the next pulse has passed. */
 	if (when < 1)
 		when = 1;
 
@@ -43,7 +35,6 @@ event_ptr event_create(event_func func, event_info_data* info, int32_t when)
 	return (new_event);
 }
 
-/* Removes an event from the system */
 void event_cancel(event_ptr * ppevent)
 {
 	event_ptr event;
@@ -68,7 +59,6 @@ void event_cancel(event_ptr * ppevent)
 		return;
 	}
 
-	// Already cancelled?
 	if (!event->q_el)
 	{
 		*ppevent = nullptr;
@@ -97,14 +87,11 @@ void event_reset_time(event_ptr event, int32_t when)
 	}
 }
 
-/* Runs the events whose execution time has arrived */
 int event_process(int pulse)
 {
 	int32_t	new_time;
 	int		num_events = 0;
 
-	// If the current pulse is less than the time of the head of event_q (the event queue), the loop 
-	// does not run.
 	while (pulse >= cxx_q.top_key())
 	{
 		queue_element * pElem = cxx_q.dequeue();
@@ -121,11 +108,7 @@ int event_process(int pulse)
 		int32_t processing_time = event_processing_time(the_event);
 		cxx_q.remove(pElem);
 
-		/*
-		 * The return value is the new time; if it is greater than 0 the event is re-added. 
-		 * When returning a value above 0, be careful not to free the memory allocated
-		 * to the event.
-		 */
+		// A positive return value re-adds the event; its memory must not be freed then.
 		the_event->is_processing = true;
 
 		if (!the_event->info)
@@ -154,7 +137,6 @@ int event_process(int pulse)
 	return num_events;
 }
 
-/* Returns the event's execution time in pulses */
 int32_t event_processing_time(event_ptr event)
 {
 	int32_t start_time;
@@ -166,7 +148,6 @@ int32_t event_processing_time(event_ptr event)
 	return (thecore_heart->pulse - start_time);
 }
 
-/* Returns the event's remaining time in pulses */
 int32_t event_time(event_ptr event)
 {
 	int32_t when;
@@ -178,7 +159,6 @@ int32_t event_time(event_ptr event)
 	return (when - thecore_heart->pulse);
 }
 
-/* Removes all events */
 void event_destroy(void)
 {
 	queue_element * pElem;
@@ -189,7 +169,6 @@ void event_destroy(void)
 
 		if (!pElem->cancel)
 		{
-			// no op here
 		}
 
 		cxx_q.remove(pElem);

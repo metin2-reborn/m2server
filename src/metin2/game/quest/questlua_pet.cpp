@@ -15,7 +15,6 @@ namespace metin2::game {
 namespace quest
 {
 
-	// syntax in LUA: pet.summon(mob_vnum, pet's name, (bool)run to me from far away)
 	int pet_summon(lua_State* lua)
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
@@ -33,13 +32,10 @@ namespace quest
 			return 1;
 		}
 
-		// vnum of the summoned creature
 		uint32_t mobVnum= lua_isnumber(lua, 1) ? lua_tonumber(lua, 1) : 0;
 
-		// name of the summoned creature
 		const char* petName = lua_isstring(lua, 2) ? lua_tostring(lua, 2) : nullptr;
 
-		// Whether it runs in from afar when summoned
 		bool bFromFar = lua_isboolean(lua, 3) ? lua_toboolean(lua, 3) : false;
 
 		pet_actor* pet = petSystem->summon(mobVnum, pItem, petName, bFromFar);
@@ -52,7 +48,6 @@ namespace quest
 		return 1;
 	}
 
-	// syntax: pet.unsummon(mob_vnum)
 	int pet_unsummon(lua_State* lua)
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
@@ -61,14 +56,12 @@ namespace quest
 		if (nullptr == petSystem)
 			return 0;
 
-		// vnum of the summoned creature
 		uint32_t mobVnum= lua_isnumber(lua, 1) ? lua_tonumber(lua, 1) : 0;
 
 		petSystem->unsummon(mobVnum);
 		return 1;
 	}
 
-	// syntax: pet.unsummon(mob_vnum)
 	int pet_count_summoned(lua_State* lua)
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
@@ -84,7 +77,6 @@ namespace quest
 		return 1;
 	}
 
-	// syntax: pet.is_summon(mob_vnum)
 	int pet_is_summon(lua_State* lua)
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
@@ -93,7 +85,6 @@ namespace quest
 		if (nullptr == petSystem)
 			return 0;
 
-		// vnum of the summoned creature
 		uint32_t mobVnum= lua_isnumber(lua, 1) ? lua_tonumber(lua, 1) : 0;
 
 		pet_actor* petActor = petSystem->by_vnum(mobVnum);

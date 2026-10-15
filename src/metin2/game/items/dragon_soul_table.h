@@ -50,7 +50,6 @@ private:
 	std::unique_ptr<group_text_parse_tree_loader> loader_;
 	std::string file_name_;
 
-	// caching m_pLoader's child nodes.
 	group_node*	apply_num_setting_node_;
 	group_node*	weight_table_node_;
 	group_node*	refine_grade_table_node_;
@@ -72,7 +71,6 @@ private:
 	bool	read_vnum_mapper();
 	bool	read_basic_applys();
 	bool	read_additional_applys();
-	// table check functions.
 	bool	check_apply_num_settings();
 	bool	check_weight_tables();
 	bool	check_refine_grade_tables();

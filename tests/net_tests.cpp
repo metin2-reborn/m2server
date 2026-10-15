@@ -19,7 +19,6 @@ using namespace metin2;
 namespace {
     using namespace std::chrono_literals;
 
-    // Collects input, consuming it in records of `record` bytes, as packet handlers do.
     struct recorder : net::connection_handler {
         std::size_t record;
         std::vector<std::uint8_t> received;
@@ -49,7 +48,6 @@ namespace {
         return true;
     }
 
-    // A connected pair: `client` from net::connect, `server` from the listener.
     struct loopback {
         std::shared_ptr<net::listener> listener;
         std::optional<net::tcp::socket> accepted;
@@ -94,7 +92,6 @@ TEST(connection_delivers_data_in_order) {
     auto client = net::connection::create(std::move(*pair.client), 1 << 16, 1 << 16);
     client->start(client_side);
 
-    // Ten bytes: the handler takes whole 4-byte records and leaves the rest for the next read.
     std::vector<std::uint8_t> data(10);
     for (std::size_t i = 0; i < data.size(); ++i) {
         data[i] = static_cast<std::uint8_t>(i + 1);
@@ -102,7 +99,6 @@ TEST(connection_delivers_data_in_order) {
     CHECK(client->send(data.data(), data.size()));
     CHECK(run_until([&] { return server_side.received.size() == 8; }));
 
-    // Two more bytes complete the third record.
     const std::uint8_t tail[2] = {11, 12};
     CHECK(client->send(tail, sizeof(tail)));
     CHECK(run_until([&] { return server_side.received.size() == 12; }));
@@ -110,7 +106,6 @@ TEST(connection_delivers_data_in_order) {
         CHECK_EQ(server_side.received[i], static_cast<std::uint8_t>(i + 1));
     }
 
-    // And back the other way.
     const std::uint8_t reply[3] = {'a', 'b', 'c'};
     CHECK(server->send(reply, sizeof(reply)));
     CHECK(run_until([&] { return client_side.received.size() == 3; }));
@@ -148,14 +143,13 @@ TEST(connection_enforces_output_limit) {
 
     std::vector<std::uint8_t> data(60);
     CHECK(connection->send(data.data(), data.size()));
-    CHECK(!connection->send(data.data(), data.size())); // 120 bytes would pass the limit
+    CHECK(!connection->send(data.data(), data.size()));
     CHECK(connection->prepare(50).empty());
     connection->close();
     CHECK(!connection->send(data.data(), 1));
 }
 
 TEST(connect_fails_on_closed_port) {
-    // Bind a port and close it again, so nothing listens there.
     std::uint16_t port = 0;
     {
         auto listener = net::listener::open("127.0.0.1", 0, [](net::tcp::socket) {});

@@ -32,12 +32,12 @@ enum
 };
 
 struct guild_member {
-	uint32_t pid; // id in the player table; primary key
-	uint8_t grade; // Player's guild rank, 1 to 15 (1 is the top)
+	uint32_t pid;
+	uint8_t grade;
 	uint8_t is_general;
 	uint8_t job;
 	uint8_t level;
-	uint32_t offer_exp; // Contributed experience
+	uint32_t offer_exp;
 	uint8_t dummy;
 
 	std::string name;
@@ -71,7 +71,7 @@ struct packet_gc_guild_info {
 };
 
 struct guild_grade {
-	char grade_name[GUILD_GRADE_NAME_MAX_LEN+1]; // 8+1 names: guild leader, guild members, etc.
+	char grade_name[GUILD_GRADE_NAME_MAX_LEN+1];
 	uint8_t auth_flag;
 };
 
@@ -212,12 +212,10 @@ class guild
 		int		max_member_count(); 
 		int		member_count() { return member_.size(); }
 
-		// GUILD_MEMBER_COUNT_BONUS
 		void		set_member_count_bonus(int bonus);
 		void		broadcast_member_count_bonus();
-		// END_OF_GUILD_MEMBER_COUNT_BONUS
 
-		int		max_general_count() const	{ return 1 /*+ GetSkillLevel(GUILD_SKILL_DEUNGYONG)/3*/;}
+		int		max_general_count() const	{ return 1 ;}
 		int		general_count() const		{ return general_count_; }
 
 		guild_member*	member(uint32_t pid);
@@ -247,38 +245,33 @@ class guild
 		bool		charge_sp(character * ch, int sp);
 
 		void		chat(const char* text_value); 
-		void		p2_p_chat(const char* text); // Guild chat
+		void		p2_p_chat(const char* text);
 
 		void		skill_usable_change(uint32_t skill_vnum, bool usable);
 
-		// Guild Money
 		void		request_deposit_money(character * ch, int gold_value);
 
 		void		recv_money_change(int gold_value);
-		void		recv_withdraw_money_give(int change_gold_value); // If bGive==1, try to give it to the guild leader and send success/failure to the DB
+		void		recv_withdraw_money_give(int change_gold_value);
 
 		int		guild_money() const	{ return data_.gold; }
 
-		// War general
 		void		guild_war_packet(uint32_t opp_gid, uint8_t war_type, uint8_t war_state_value);
 		void		send_enemy_guild(character * ch);
 
 		int		get_guild_war_state(uint32_t opp_gid);
 		bool		can_start_war(uint8_t guild_war_type);
 		uint32_t		war_start_time(uint32_t opp_gid);
-		bool		under_war(uint32_t opp_gid); // At war?
+		bool		under_war(uint32_t opp_gid);
 		uint32_t		under_any_war(uint8_t type_value = GUILD_WAR_TYPE_MAX_NUM);
 
-		// War map relative
 		void		set_guild_war_map_index(uint32_t opp_gid, int32_t map_index_value);
 		int			get_guild_war_type(uint32_t opp_gid);
 		uint32_t		guild_war_map_index(uint32_t opp_gid);
 
-		// War entry question
 		void		guild_war_entry_ask(uint32_t opp_gid);
 		void		guild_war_entry_accept(uint32_t opp_gid, character * ch);
 
-		// War state relative
 		void		notify_guild_master(const char* msg);
 		void		request_declare_war(uint32_t opp_gid, uint8_t type);
 		void		request_refuse_war(uint32_t opp_gid); 
@@ -286,12 +279,11 @@ class guild
 		bool		declare_war(uint32_t opp_gid, uint8_t type, uint8_t state); 
 		void		refuse_war(uint32_t opp_gid); 
 		bool		wait_start_war(uint32_t opp_gid); 
-		bool		check_start_war(uint32_t opp_gid);	// check if StartWar method fails (call it before StartWar)
+		bool		check_start_war(uint32_t opp_gid);
 		void		start_war(uint32_t opp_gid);
 		void		end_war(uint32_t opp_gid);
 		void		reserve_war(uint32_t opp_gid, uint8_t type);
 
-		// War points relative
 		void		set_war_score_against_to(uint32_t opp_gid, int score_value);
 		int			war_score_against_to(uint32_t opp_gid);
 
@@ -308,30 +300,11 @@ class guild
 
 		bool		has_land();
 
-		// GUILD_JOIN_BUG_FIX
-		/// Invite a character to join the guild.
-		/**
-		 * @param	pchInviter inviting character.
-		 * @param	pchInvitee character to invite.
-		 *
-		 * If unable to invite or be invited, sends the corresponding chat message.
-		 */
 		void		invite( character * pch_inviter, character * pch_invitee );
 
-		/// Handle the other character's acceptance of a guild invite.
-		/**
-		 * @param	pchInvitee invited character
-		 *
-		 * If unable to join the guild, sends the corresponding chat message.
-		 */
 		void		invite_accept( character * pch_invitee );
 
-		/// Handle the other character's refusal of a guild invite.
-		/**
-		 * @param	dwPID PID of the invited character
-		 */
 		void		invite_deny( uint32_t pid );
-		// END_OF_GUILD_JOIN_BUG_FIX
 
 	private:
 		void		initialize();
@@ -339,9 +312,7 @@ class guild
 		guild_data	data_;
 		int		general_count_;
 
-		// GUILD_MEMBER_COUNT_BONUS
 		int		member_count_bonus_;
-		// END_OF_GUILD_MEMBER_COUNT_BONUS
 
 		typedef std::map<uint32_t, guild_member> guild_member_container;
 		guild_member_container member_;
@@ -365,28 +336,20 @@ class guild
 
 		bool	skill_usable_[GUILD_SKILL_COUNT];
 
-		// GUILD_JOIN_BUG_FIX
-		/// Error codes for when joining a guild is not possible.
 		enum guild_join_err_code {
-			GERR_NONE			= 0,	///< Success
-			GERR_WITHDRAWPENALTY,		///< Rejoin cooldown after leaving has not elapsed
-			GERR_COMMISSIONPENALTY,		///< Rejoin cooldown after disbanding has not elapsed
-			GERR_ALREADYJOIN,			///< Target character is already in a guild
-			GERR_GUILDISFULL,			///< Guild member limit exceeded
-			GERR_GUILD_IS_IN_WAR,		///< Guild is currently at war
-			GERR_INVITE_LIMIT,			///< Guild member joining is restricted
-			GERR_MAX				///< Max error code. Add new error codes before this.
+			GERR_NONE			= 0,
+			GERR_WITHDRAWPENALTY,
+			GERR_COMMISSIONPENALTY,
+			GERR_ALREADYJOIN,
+			GERR_GUILDISFULL,
+			GERR_GUILD_IS_IN_WAR,
+			GERR_INVITE_LIMIT,
+			GERR_MAX
 		};
 
-		/// Check whether the conditions for joining the guild are met.
-		/**
-		 * @param [in]	pchInvitee invited character
-		 * @return	GuildJoinErrCode
-		 */
 		guild_join_err_code	verify_guild_joinable_condition( character * const pch_invitee );
 
 		typedef std::map< uint32_t, event_ptr >	event_map;
-		event_map	guild_invite_event_map_;	///< Guild invite event map. key: PID of the invited character
-		// END_OF_GUILD_JOIN_BUG_FIX
+		event_map	guild_invite_event_map_;
 };
 }

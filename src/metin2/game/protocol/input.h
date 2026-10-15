@@ -29,15 +29,12 @@ enum
 
 void login_failure(desc * d, const char * status_value);
 
-// Copies a fixed-size string field of a client packet, which may lack its NUL terminator, into
-// dst: at most N - 1 bytes and never past the end of the field. Always NUL-terminates dst.
 template <size_t N, size_t M>
 inline void copy_packet_string(char (&dst)[N], const char (&src)[M])
 {
 	utf8_strnlcpy(dst, N, src, M);
 }
 
-// The same for a field of srcMax bytes reached through a pointer.
 inline void copy_packet_string(char * dst, size_t dst_size, const char * src, size_t src_max)
 {
 	utf8_strnlcpy(dst, dst_size, src, src_max);
@@ -71,7 +68,6 @@ class input_close : public input_processor
 	public:
 		uint8_t	type() override { return INPROC_CLOSE; }
 
-		// A closing connection reads nothing: everything received is dropped unparsed.
 		bool	process(desc * d, const void * orig, int bytes, int & r_i_bytes_proceed) override
 		{
 			r_i_bytes_proceed += bytes;
@@ -118,9 +114,7 @@ class input_login : public input_processor
 		void		entergame(desc * d, const char * data);
 		void		empire(desc * d, const char * data);
 		void		guild_mark_crc_list(desc * d, const char* data);
-		// MARK_BUG_FIX
 		void		guild_mark_idx_list(desc * d, const char* data);
-		// END_OF_MARK_BUG_FIX
 		void		guild_mark_upload(desc * d, const char* data);
 		int			guild_symbol_upload(desc * d, const char* data, size_t bytes);
 		void		guild_symbol_crc(desc * d, const char* data);
@@ -202,7 +196,7 @@ protected:
 protected:
 	void		map_locations(const char * data);
 	void		login_success(uint32_t handle, const char *data);
-	void		player_create_failure(desc * d, uint8_t type_value);	// 0 = general failure 1 = already exists
+	void		player_create_failure(desc * d, uint8_t type_value);
 	void		player_delete_success(desc * d, const char * data);
 	void		player_delete_fail(desc * d);
 	void		player_load(desc * d, const char* data);
@@ -287,21 +281,10 @@ protected:
 	void		change_monarch_lord(packet_change_monarch_lord_ack* info);
 	void		update_monarch_info(monarch_info* info);
 
-	// MYSHOP_PRICE_LIST
-	/// Handler for the response packet to the item price list request (HEADER_DG_MYSHOP_PRICELIST_RES)
-	/**
-	* @param	d descriptor of the player who requested the item price list
-	* @param	p pointer to the packet data
-	*/
 	void		myshop_pricelist_res( desc * d, const packet_myshop_pricelist_header* p );
-	// END_OF_MYSHOP_PRICE_LIST
-	//
-	//RELOAD_ADMIN
 	void reload_admin( const char * data );
-	//END_RELOAD_ADMIN
 
 	void		detail_log(const packet_need_login_log_info* info);
-	// German gift feature test
 	void		item_award_informer(packet_item_award_infromer* data);
 
 	void		respond_channel_status(desc * desc, const char* pc_data);

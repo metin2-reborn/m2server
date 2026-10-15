@@ -326,11 +326,9 @@ bool ox_event_manager::check_answer(bool answer)
 				int len = snprintf(chatbuf, sizeof(chatbuf), 
 						"%s %u %u", number(0, 1) == 1 ? "cheer1" : "cheer2", (uint32_t)pkChar->get_vid(), 0);
 
-				// A return value >= sizeof(chatbuf) means it was truncated..
 				if (len < 0 || len >= (int) sizeof(chatbuf))
 					len = sizeof(chatbuf) - 1;
 
-				// including the \0 character
 				++len;
 
 				packet_gc_chat pack_chat;

@@ -59,8 +59,6 @@ void send_affect_add_packet(desc * d, affect * aff)
 	ptoc.elem.sp_cost		= aff->sp_cost;
 	d->packet(&ptoc, sizeof(packet_gc_affect_add));
 }
-////////////////////////////////////////////////////////////////////
-// Affect
 affect * character::find_affect(uint32_t type_value, uint8_t apply) const
 {
 	auto it = list_pk_affect_.begin();
@@ -88,20 +86,18 @@ EVENTFUNC(affect_event)
 
 	character * ch = info->ch;
 
-	if (ch == nullptr) { // <Factor>
+	if (ch == nullptr) {
 		return 0;
 	}
 
 	if (!ch->update_affect())
 		return 0;
 	else
-		return metin2::config::server().passes_per_sec; // 1 second
+		return metin2::config::server().passes_per_sec;
 }
 
 bool character::update_affect()
 {
-	// This doesn't really belong in affect_event, but potions are handled here because
-	// this is the only thing processed in a 1-second event.
 	if (point(POINT_HP_RECOVERY) > 0)
 	{
 		if (max_hp() <= hp())
@@ -147,7 +143,6 @@ bool character::update_affect()
 	auto_recovery_item_process( AFFECT_AUTO_HP_RECOVERY );
 	auto_recovery_item_process( AFFECT_AUTO_SP_RECOVERY );
 
-	// Stamina recovery
 	if (max_stamina() > stamina())
 	{
 		int iSec = (get_dword_time() - stop_time()) / 3000;
@@ -156,7 +151,6 @@ bool character::update_affect()
 	}
 
 
-	// ProcessAffect returns true if there are no affects.
 	if (process_affect())
 		if (point(POINT_HP_RECOVERY) == 0 && point(POINT_SP_RECOVERY) == 0 && stamina() == max_stamina())
 		{
@@ -226,9 +220,6 @@ int character::process_affect()
 	bool	bDiff	= false;
 	affect	*pkAff	= nullptr;
 
-	//
-	// Premium handling
-	//
 	for (int i = 0; i <= PREMIUM_MAX_NUM; ++i)
 	{
 		int aff_idx = i + AFFECT_PREMIUM_START;
@@ -249,26 +240,19 @@ int character::process_affect()
 			pkAff->duration = remain + 1;
 	}
 
-	////////// HAIR_AFFECT
 	pkAff = find_affect(AFFECT_HAIR);
 	if (pkAff)
 	{
-		// IF HAIR_LIMIT_TIME() < CURRENT_TIME()
 		if ( this->quest_flag("hair.limit_time") < get_global_time())
 		{
-			// SET HAIR NORMAL
 			this->set_part(PART_HAIR, 0);
-			// REMOVE HAIR AFFECT
 			remove_affect(AFFECT_HAIR);
 		}
 		else
 		{
-			// INCREASE AFFECT DURATION
 			++(pkAff->duration);
 		}
 	}
-	////////// HAIR_AFFECT
-	//
 
 	horse_name_manager::instance().validate(this);
 
@@ -300,14 +284,10 @@ int character::process_affect()
 				point_change(POINT_SP, -pkAff->sp_cost);
 		}
 
-		// AFFECT_DURATION_BUG_FIX
-		// Time is reduced even for infinite-duration items.
-		// The time is set very large, so this shouldn't matter.
 		if ( --pkAff->duration <= 0 )
 		{
 			bEnd = true;
 		}
-		// END_AFFECT_DURATION_BUG_FIX
 
 		if (bEnd)
 		{
@@ -472,7 +452,6 @@ void character::load_affect(uint32_t count_value, packet_affect_element * elemen
 
 	for (uint32_t i = 0; i < count_value; ++i, ++elements)
 	{
-		// Do not load Mu Yeong Jin.
 		if (elements->type == SKILL_MUYEONG)
 			continue;
 
@@ -528,18 +507,15 @@ void character::load_affect(uint32_t count_value, packet_affect_element * elemen
 	start_affect_event();
 
 
-	// Load and initialize dragon soul settings
 	dragon_soul_initialize();
 }
 
 bool character::add_affect(uint32_t type_value, uint8_t apply_on_value, int32_t apply_value_value, uint32_t flag_value, int32_t duration_value, int32_t sp_cost_value, bool override, bool is_cube )
 {
-	// CHAT_BLOCK
 	if (type_value == AFFECT_BLOCK_CHAT && duration_value > 1)
 	{
 		chat_packet(CHAT_TYPE_INFO, lc_text("운영자 제제로 채팅이 금지 되었습니다."));
 	}
-	// END_OF_CHAT_BLOCK
 
 	if (duration_value == 0)
 	{
@@ -566,21 +542,15 @@ bool character::add_affect(uint32_t type_value, uint8_t apply_on_value, int32_t 
 		}
 	}
 
-	// Overwrite an existing effect
 	if (pkAff && override)
 	{
-		compute_affect(pkAff, false); // First remove the effect
+		compute_affect(pkAff, false);
 
 		if (get_desc())
 			send_affect_remove_packet(get_desc(), player_id(), pkAff->type, pkAff->apply_on);
 	}
 	else
 	{
-		//
-		// Add the new effect
-		//
-		// NOTE: So multiple effects can be attached with the same type.
-		// 
 		pkAff = new affect{};
 		list_pk_affect_.push_back(pkAff);
 
@@ -676,26 +646,17 @@ bool character::remove_affect(affect * aff)
 	if (!aff)
 		return false;
 
-	// AFFECT_BUF_FIX
 	list_pk_affect_.remove(aff);
-	// END_OF_AFFECT_BUF_FIX
 
 	compute_affect(aff, false);
 
-	// White flag (Baek-gi) bug fix.
-	// The white flag bug happens when you cast a buff skill -> transform -> use white flag (AFFECT_REVIVE_INVISIBLE) and attack immediately.
-	// The cause: when transforming, buff skill effects are ignored and only the transform effect applies,
-	// but attacking right after using the white flag calls RemoveAffect, and ComputePoints then yields transform effect + buff skill effect.
-	// We could make ComputePoints ignore buff skill effects while transformed,
-	// but ComputePoints is used widely, so we are reluctant to change it much. (Hard to know what side effects would occur.)
-	// So only the case where AFFECT_REVIVE_INVISIBLE is removed via RemoveAffect is fixed.
-	// The bug does not occur when the white flag effect expires, so do the same as that case.
-	//		(See ProcessAffect: when an Affect is removed because it expired, ComputePoints is not called.)
+	// Removing AFFECT_REVIVE_INVISIBLE skips compute_points, as expiry does: recomputing while
+	// polymorphed after a buff would wrongly apply the buffs.
 	if (AFFECT_REVIVE_INVISIBLE != aff->type)
 	{
 		compute_points();
 	}
-	else // Fix
+	else
 	{
 		update_packet();
 	}
@@ -716,12 +677,10 @@ bool character::remove_affect(affect * aff)
 
 bool character::remove_affect(uint32_t type)
 {
-	// CHAT_BLOCK
 	if (type == AFFECT_BLOCK_CHAT)
 	{
 		chat_packet(CHAT_TYPE_INFO, lc_text("채팅 금지가 풀렸습니다."));
 	}
-	// END_OF_CHAT_BLOCK
 
 	bool flag = false;
 
@@ -801,33 +760,21 @@ bool character::is_good_affect(uint8_t affect_type) const
 void character::remove_bad_affect()
 {
 	metin2::log::info( "RemoveBadAffect {}", name());
-	// Poison
 	remove_poison();
 	remove_fire();
 
-	// Stun           : Value% chance to stun the target for 5 seconds (stars over the head). (1/2 chance to break when hit)               AFF_STUN
 	remove_affect(AFFECT_STUN);
 
-	// Slow         : Value% chance to slow the target's attack and move speed. Varies with skill mastery when used as a skill   AFF_SLOW
 	remove_affect(AFFECT_SLOW);
 
-	// Tu Sok Ma Ryeong
 	remove_affect(SKILL_TUSOK);
 
-	// Curse
 
-	// Pa Beop Sul
 
-	// Faint           : Value% chance to make the target faint. 2 seconds                                                       AFF_FAINT
 
-	// Web       : Value% chance to lower the target's move speed. -40 for 5 seconds                                      AFF_WEB
 
-	// Sleep         : Value% chance to put the target to sleep for 10 seconds. (breaks when hit)                                        AFF_SLEEP
 
-	// Curse           : Value% chance to lower the target's attack and defense. Varies with skill mastery when used as a skill AFF_CURSE
 
-	// Paralysis           : Value% chance to paralyze the target for 4 seconds.                                                     AFF_PARA
 
-	// Bu Dong Bak Bu       : Shaman skill
 }
 }

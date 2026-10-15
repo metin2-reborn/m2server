@@ -1,4 +1,3 @@
-// vim: ts=4 sw=4
 #pragma once
 
 #include <metin2/common/singleton.h>

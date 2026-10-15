@@ -27,9 +27,6 @@
 
 namespace metin2::game::inline guilds {
 
-// 
-// Packet
-//
 void guild::guild_war_packet(uint32_t opp_gid, uint8_t war_type, uint8_t war_state_value)
 {
 	packet_gc_guild pack;
@@ -113,9 +110,6 @@ void guild::send_enemy_guild(character * ch)
 	}
 }
 
-//
-// War Login
-//
 int guild::get_guild_war_state(uint32_t opp_gid)
 {
 	if (opp_gid == id())
@@ -145,12 +139,11 @@ uint32_t guild::guild_war_map_index(uint32_t opp_gid)
 	return git->second.map_index;
 }
 
-bool guild::can_start_war(uint8_t guild_war_type) // Different conditions may apply depending on type
+bool guild::can_start_war(uint8_t guild_war_type)
 {
 	if (guild_war_type >= GUILD_WAR_TYPE_MAX_NUM)
 		return false;
 
-	// Don't check member count when testing.
 	if (metin2::config::test_server() || quest::quest_manager::instance().event_flag("guild_war_test") != 0)
 		return ladder_point() > 0;
 
@@ -283,17 +276,6 @@ void guild::notify_guild_master(const char* msg)
 }
 
 
-//
-// War State Relative
-//
-//
-// A Declare -> B Refuse
-//           -> B Declare -> StartWar -> EndWar
-//
-// A Declare -> B Refuse
-//           -> B Declare -> WaitStart -> Fail
-//                                     -> StartWar -> EndWar
-//
 void guild::request_declare_war(uint32_t opp_gid, uint8_t type)
 {
 	if (opp_gid == id())
@@ -321,7 +303,6 @@ void guild::request_declare_war(uint32_t opp_gid, uint8_t type)
 			return;
 		}
 
-		// Send packet to another server
 		packet_guild_war p;
 		p.type = type;
 		p.war = GUILD_WAR_SEND_DECLARE;
@@ -340,7 +321,6 @@ void guild::request_declare_war(uint32_t opp_gid, uint8_t type)
 
 				if (saved_type == GUILD_WAR_TYPE_FIELD)
 				{
-					// The declaration of war was accepted.
 					packet_guild_war p;
 					p.type = saved_type;
 					p.war = GUILD_WAR_ON_WAR;
@@ -445,14 +425,12 @@ void guild::start_war(uint32_t opp_gid)
 
 bool guild::wait_start_war(uint32_t opp_gid)
 {
-	//If it's ourselves 
 	if (opp_gid == id())
 	{
 		metin2::log::info("GuildWar.WaitStartWar.DECLARE_WAR_SELF id({:d} -> {:d})", id(), opp_gid);
 		return false;
 	}
 
-	//Get the opposing guild's TGuildWar.
 	auto it = enemy_guild_.find(opp_gid);
 	if (it == enemy_guild_.end())
 	{
@@ -460,7 +438,6 @@ bool guild::wait_start_war(uint32_t opp_gid)
 		return false;
 	}
 
-	//register in the reference and
 	guild_war & gw(it->second);
 
 	if (gw.state == GUILD_WAR_WAIT_START)
@@ -469,10 +446,8 @@ bool guild::wait_start_war(uint32_t opp_gid)
 		return false;
 	}
 
-	//save the state.
 	gw.state = GUILD_WAR_WAIT_START;
 
-	//get the opposing guild's class pointer and
 	guild* g = guild_manager::instance().find_guild(opp_gid);
 	if (!g)
 	{
@@ -480,19 +455,15 @@ bool guild::wait_start_war(uint32_t opp_gid)
 		return false;
 	}
 
-	// GUILDWAR_INFO
 	const guild_war_info& rkGuildWarInfo = guild_war_get_type_info(gw.type);
-	// END_OF_GUILDWAR_INFO
 
 
-	// Don't create a map for field type
 	if (gw.type == GUILD_WAR_TYPE_FIELD)
 	{
 		metin2::log::info("GuildWar.WaitStartWar.FIELD_TYPE id({:d} -> {:d})", id(), opp_gid);
 		return true;
 	}		
 
-	// Check whether this is the war server
 	metin2::log::info("GuildWar.WaitStartWar.CheckWarServer id({:d} -> {:d}), type({:d}), map({:d})", 
 			id(), opp_gid, gw.type, rkGuildWarInfo.map_index);
 
@@ -509,7 +480,6 @@ bool guild::wait_start_war(uint32_t opp_gid)
 	if (id1 > id2)
 		std::swap(id1, id2);
 
-	//Create the warp map
 	uint32_t lMapIndex = war_map_manager::instance().create_war_map(rkGuildWarInfo, id1, id2);
 	if (!lMapIndex) 
 	{
@@ -520,14 +490,11 @@ bool guild::wait_start_war(uint32_t opp_gid)
 
 	metin2::log::info( "GuildWar.WaitStartWar.CreateMap id({:d} vs {:d}), type({:d}), map({:d}) -> map_inst({:d})", id1, id2, gw.type, rkGuildWarInfo.map_index, lMapIndex);
 
-	//Set the map index in the guild war info
 	gw.map_index = lMapIndex;
 
-	//Register on both sides(?)
 	set_guild_war_map_index(opp_gid, lMapIndex);
 	g->set_guild_war_map_index(id(), lMapIndex);
 
-	///////////////////////////////////////////////////////
 	packet_gg_guild_war_map_index p;
 
 	p.header	= HEADER_GG_GUILD_WAR_ZONE_MAP_INDEX;
@@ -536,7 +503,6 @@ bool guild::wait_start_war(uint32_t opp_gid)
 	p.map_index	= lMapIndex;
 
 	p2_p_manager::instance().send(&p, sizeof(p));
-	///////////////////////////////////////////////////////
 
 	return true;
 }
@@ -550,7 +516,6 @@ void guild::request_refuse_war(uint32_t opp_gid)
 
 	if (it != enemy_guild_.end() && it->second.state == GUILD_WAR_RECV_DECLARE)
 	{
-		// The declaration of war was rejected.
 		packet_guild_war p;
 		p.war = GUILD_WAR_REFUSE;
 		p.guild_from = id();
@@ -723,9 +688,6 @@ void guild::guild_war_entry_ask(uint32_t opp_gid)
 	}
 }
 
-//
-// LADDER POINT
-//
 void guild::set_ladder_point(int point) 
 { 
 	if (data_.ladder_point != point)

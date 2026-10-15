@@ -6,7 +6,6 @@
 
 namespace metin2::game::inline protocol {
 
-// Scratch space for assembling a packet from several pieces before sending it in one call.
 class temp_buffer {
   public:
     explicit temp_buffer(std::size_t reserve = 8192) { data_.reserve(reserve); }

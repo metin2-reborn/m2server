@@ -35,7 +35,6 @@ namespace metin2::game::inline protocol {
 desc_manager::desc_manager() : destroyed_(false)
 {
 	initialize();
-	//NOTE : what on earth is calling Initialize at the end of Destroy..-_-; really 
 
 }
 
@@ -212,7 +211,6 @@ void desc_manager::destroy_desc(desc * d, bool erase_from_set)
 	else
 		set_pk_client_desc_.erase((client_desc *) d);
 
-	// Explicit call to the virtual function Destroy()
 	d->destroy();
 
 	delete d;

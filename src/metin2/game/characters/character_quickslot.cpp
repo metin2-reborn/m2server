@@ -12,10 +12,7 @@
 
 namespace metin2::game::inline characters {
 
-/////////////////////////////////////////////////////////////////////////////
-// QUICKSLOT HANDLING
-/////////////////////////////////////////////////////////////////////////////
-void character::sync_quickslot(uint8_t type_value, uint8_t old_pos, uint8_t new_pos) // bNewPos == 255 means DELETE
+void character::sync_quickslot(uint8_t type_value, uint8_t old_pos, uint8_t new_pos)
 {
 	if (old_pos == new_pos)
 		return;
@@ -127,7 +124,6 @@ bool character::swap_quickslot(uint8_t a, uint8_t b)
 	if (a >= QUICKSLOT_MAX_NUM || b >= QUICKSLOT_MAX_NUM)
 		return false;
 
-	// Swap the quick slot positions.
 	quickslot = quickslot_[a];
 
 	quickslot_[a] = quickslot_[b];

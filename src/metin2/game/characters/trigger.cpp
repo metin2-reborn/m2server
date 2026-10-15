@@ -27,8 +27,8 @@ struct trigger_function {
 
 trigger_function on_click_triggers[ON_CLICK_MAX_NUM] =
 {
-	{ nullptr,          	},	// ON_CLICK_NONE,
-	{ on_click_shop,	},	// ON_CLICK_SHOP,
+	{ nullptr,          	},
+	{ on_click_shop,	},
 };
 
 void character::assign_triggers(const mob_table * table)
@@ -43,18 +43,12 @@ void character::assign_triggers(const mob_table * table)
 	trigger_on_click_.func = on_click_triggers[table->on_click_type].func;
 }
 
-/*
- * ON_CLICK
- */
 int on_click_shop(TRIGGERPARAM)
 {
 	shop_manager::instance().start_shopping(causer, ch);
 	return 1;
 }
 
-/*
- * monster AI functions changed into the BattleAI class
- */
 
 class func_find_mob_victim
 {
@@ -100,7 +94,7 @@ class func_find_mob_victim
 					pkChr->is_affect_flag(AFF_REVIVE_INVISIBLE))
 				return false;
 
-			if (pkChr->is_affect_flag(AFF_TERROR) && chr_->is_immune(IMMUNE_TERROR) == false )	// fear handling
+			if (pkChr->is_affect_flag(AFF_TERROR) && chr_->is_immune(IMMUNE_TERROR) == false )
 			{
 				if ( pkChr->level() >= chr_->level() )
 					return false;
@@ -137,7 +131,6 @@ class func_find_mob_victim
 
 		character * victim()
 		{
-			// if there's a building nearby and HP is high, attack the building. attack it even if there's only a building
 			if ((chr_building_ && chr_->hp() * 2 > chr_->max_hp()) || !chr_victim_)
 			{
 				return chr_building_;

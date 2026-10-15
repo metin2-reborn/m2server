@@ -19,7 +19,6 @@ namespace metin2::game::inline items {
 class item : public entity
 {
 	protected:
-		// override methods from ENTITY class
 		void	encode_insert_packet(entity * ent) override;
 		void	encode_remove_packet(entity * ent) override;
 
@@ -67,11 +66,8 @@ class item : public entity
 		bool		set_count(uint32_t count);
 		uint32_t		count();
 
-		// Comment on GetVnum and GetOriginalVnum
-		// GetVnum is the masked Vnum. With it, an item whose real Vnum is 10 can behave as if its Vnum were 20.
-		// The masking values are defined in ori_to_new.txt.
-		// GetOriginalVnum is the item's own Vnum; use it when logging, when sending item info to the client, and when saving.
-		// 
+		// vnum() can be masked (ori_to_new.txt); original_vnum() is the real one, for the client,
+		// logs and saving.
 		uint32_t		vnum() const		{ return mask_vnum_ ? mask_vnum_ : vnum_;	}
 		uint32_t		original_vnum() const		{ return vnum_;	}
 		uint8_t		type() const		{ return proto_ ? proto_->type : 0;	}
@@ -105,7 +101,7 @@ class item : public entity
 		void		set_exchanging(bool on = true);
 		bool		is_exchanging()		{ return exchanging_;	}
 
-		void		modify_points(bool add);	// Applies the item's effects to the character. Removes them if bAdd is false
+		void		modify_points(bool add);
 
 		const int32_t *	sockets()		{ return &sockets_[0];	}
 		int32_t		get_socket(int i)	{ return sockets_[i];	}
@@ -146,7 +142,7 @@ class item : public entity
 
 		uint32_t		last_owner_pid()	{ return last_owner_pid_; }
 
-		int		attribute_set_index(); // Returns which index of the attribute-assignment array is used.
+		int		attribute_set_index();
 		void		alter_to_magic_item();
 		void		alter_to_socket_item(int socket_count);
 
@@ -165,7 +161,6 @@ class item : public entity
 		void		stop_timer_based_on_wear_expire_event();
 		void		stop_accessory_socket_expire_event();
 
-		//			Currently only works correctly for REAL_TIME and TIMER_BASED_ON_WEAR items.
 		int			duration();
 
 		int		attribute_count();
@@ -179,8 +174,6 @@ class item : public entity
 		int		special_group() const;
 		bool	is_same_special_group(item * const item) const;
 
-		// ACCESSORY_REFINE
-		// Add a socket to an accessory via the mine
 		bool		is_accessory_for_socket();
 
 		int		accessory_socket_grade();
@@ -193,12 +186,10 @@ class item : public entity
 
 		void		accessory_socket_degrade();
 
-		// Timer that runs when an accessory (copper, etc.) is set into an item
 		void		start_accessory_socket_expire_event();
 		void		set_accessory_socket_expire_event(event_ptr event);
 
 		bool		can_put_into(item * item);
-		// END_OF_ACCESSORY_REFINE
 
 		void		copy_attribute_to(item * item_value);
 		void		copy_socket_to(item * item_value);
@@ -226,47 +217,38 @@ class item : public entity
 
 	protected:
 		friend class protocol::input_db;
-		bool		on_after_created_item();			// Called after the item has been fully created (loaded) on the server with all its data.
+		bool		on_after_created_item();
 
 	public:
 		bool		is_ride_item();
 
 		void		clear_mount_attribute_and_affect();
 
-		// Germany wanted cash items identical to the existing ones but tradable,
-		// so new items, the originals with only the no-trade flag removed, were assigned to a new item range.
-		// The problem is that the new items must have the same effects as the originals,
-		// but both server and client are vnum based,
-		// so we faced the sad situation of having to hardcode all the new vnums into the server.
-		// So for an item with a new vnum, the server runs it as the original item vnum,
-		// and changes it back to the real vnum when saving.
 
-		// The mask vnum exists for items that run under a different vnum for some reason (e.g. the situation above).
 		void		set_mask_vnum(uint32_t vnum)	{	mask_vnum_ = vnum; }
 
-		// Dragon soul
 		bool		is_dragon_soul();
 		int		give_more_time_per(float percent);
 		int		give_more_time_fix(uint32_t time);
 
 	private:
-		item_table const * proto_;		// Prototype
+		item_table const * proto_;
 
 		uint32_t		vnum_;
 		character *	owner_;
 
-		uint8_t		window_;		// Window the item is currently in 
-		uint32_t		id_;			// Unique ID
-		bool		equipped_;	// Is it equipped?
-		uint32_t		vid_;		// VID
-		uint16_t		cell_;		// Position
-		uint32_t		count_;		// Count
-		int32_t		flag_;		// Extra flag
-		uint32_t		last_owner_pid_;	// PID of the last owner
+		uint8_t		window_;
+		uint32_t		id_;
+		bool		equipped_;
+		uint32_t		vid_;
+		uint16_t		cell_;
+		uint32_t		count_;
+		int32_t		flag_;
+		uint32_t		last_owner_pid_;
 
-		bool		exchanging_;	///< Currently being traded 
+		bool		exchanging_;
 
-		int32_t		sockets_[ITEM_SOCKET_MAX_NUM];	// Item sockets
+		int32_t		sockets_[ITEM_SOCKET_MAX_NUM];
 		player_item_attribute	attr_[ITEM_ATTRIBUTE_MAX_NUM];
 
 		event_ptr		destroy_event_;

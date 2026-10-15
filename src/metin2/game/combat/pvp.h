@@ -16,8 +16,6 @@ namespace metin2::game::inline characters {
 namespace metin2::game::inline combat {
 
 
-// CPVP takes two uint32_t IDs, builds m_dwCRC from them and keeps it.
-// CPVPManager looks entries up by the CRC built this way.
 class pvp
 {
 	public:
@@ -38,7 +36,7 @@ class pvp
 		pvp(pvp & k);
 		~pvp();
 
-		void	win(uint32_t pid_value); // dwPID won!
+		void	win(uint32_t pid_value);
 		bool	is_fight();
 		bool	agree(uint32_t pid_value);
 
@@ -66,7 +64,7 @@ class pvp_manager : public singleton<pvp_manager>
 
 	void			insert(character * chr, character * victim);
 	bool			can_attack(character * chr, character * victim);
-	bool			dead(character * chr, uint32_t killer_pid);	// Returns whether it was in PVP
+	bool			dead(character * chr, uint32_t killer_pid);
 	void			connect(character * chr);
 	void			disconnect(character * chr);
 

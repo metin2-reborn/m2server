@@ -79,7 +79,6 @@ bool text_file_loader::load_group(group_node * group_node_value)
 		if ('}' == stTokenVector[0][0])
 			break;
 
-		// Group
 		if (0 == stTokenVector[0].compare("group"))
 		{
 			if (2 != stTokenVector.size())
@@ -101,7 +100,6 @@ bool text_file_loader::load_group(group_node * group_node_value)
 
 			load_group(pNewNode);
 		}
-		// List
 		else if (0 == stTokenVector[0].compare("list"))
 		{
 			if (2 != stTokenVector.size())

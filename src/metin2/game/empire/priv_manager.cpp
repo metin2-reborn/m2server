@@ -201,7 +201,6 @@ void priv_manager::give_empire_priv(uint8_t empire, uint8_t type, int value, uin
 
 int priv_manager::priv(character * ch, uint8_t type)
 {
-	// If the character's modifier is negative, always apply only the negative
 	int val_ch = priv_by_character(ch->player_id(), type);
 
 	if (val_ch < 0 && !ch->is_equip_unique_item(UNIQUE_ITEM_NO_BAD_LUCK_EFFECT))
@@ -210,7 +209,6 @@ int priv_manager::priv(character * ch, uint8_t type)
 	{
 		int val;
 
-		// Takes the largest of personal, empire, guild and global values.
 		val = std::max(val_ch, priv_by_empire(0, type));
 		val = std::max(val, priv_by_empire(ch->empire(), type));
 

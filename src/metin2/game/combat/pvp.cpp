@@ -143,7 +143,7 @@ void pvp::win(uint32_t pid_value)
 
 	revenge_ = true;
 
-	players_[iSlot].agree = true; // Agree automatically
+	players_[iSlot].agree = true;
 	players_[!iSlot].can_revenge = true;
 	players_[!iSlot].agree = false;
 
@@ -187,7 +187,6 @@ void pvp_manager::insert(character * chr, character * victim)
 
 	if ((pkPVP = find(kPVP.crc_)))
 	{
-		// If revenge is possible, fight right away!
 		if (pkPVP->agree(chr->player_id()))
 		{
 			victim->chat_packet(CHAT_TYPE_INFO, lc_text("%s님과의 대결 시작!"), chr->name());
@@ -215,7 +214,6 @@ void pvp_manager::insert(character * chr, character * victim)
 	victim->chat_packet(CHAT_TYPE_INFO, msg);
 	chr->chat_packet(CHAT_TYPE_INFO, lc_text("%s에게 대결신청을 했습니다."), victim->name());
 
-	// NOTIFY_PVP_MESSAGE
 	desc * pkVictimDesc = victim->get_desc();
 	if (pkVictimDesc)
 	{
@@ -235,7 +233,6 @@ void pvp_manager::insert(character * chr, character * victim)
 
 		pkVictimDesc->packet(buf.read_peek(), buf.size());
 	}	
-	// END_OF_NOTIFY_PVP_MESSAGE
 }
 
 void pvp_manager::connect_ex(character * chr, bool disconnect)
@@ -265,8 +262,6 @@ void pvp_manager::disconnect(character * chr)
 {
 }
 
-// Return value: 0 = PK, 1 = PVP
-// If PVP is returned, experience or items are dropped; if PK, they are not.
 bool pvp_manager::dead(character * chr, uint32_t killer_pid)
 {
 	pvp_set_map::iterator it = map_pk_pvp_set_by_id_.find(chr->player_id());
@@ -320,7 +315,7 @@ bool pvp_manager::can_attack(character * chr, character * victim)
 			return false;
 	}
 
-	if (chr == victim)  // I'm trying to hit myself -_-
+	if (chr == victim)
 		return false;
 
 	if (victim->is_npc() && chr->is_npc() && !chr->is_guard_npc())
@@ -346,7 +341,6 @@ bool pvp_manager::can_attack(character * chr, character * victim)
 			case 20116:
 			case 20117:
 			case 20118:
-				//New advanced mount
 			case 20205:
 			case 20206:
 			case 20207:
@@ -355,21 +349,21 @@ bool pvp_manager::can_attack(character * chr, character * victim)
 			case 20210:
 			case 20211:
 			case 20212:
-			case 20119:		// Ramadan black horse
-			case 20219:		// Ramadan black horse clone (for Halloween)
-			case 20220:		// Christmas mount
-			case 20221:		// Armored white bear
-			case 20222:		// Armored panda
+			case 20119:
+			case 20219:
+			case 20220:
+			case 20221:
+			case 20222:
 			case 20120:
 			case 20121:
 			case 20122:
 			case 20123:
 			case 20124:
 			case 20125:
-			case 20214:		// Wild armored reindeer (male)	
-			case 20215:		// Brave armored reindeer (male)	
-			case 20217:		// Wild armored reindeer (female)	
-			case 20218:		// Brave armored reindeer (female)	
+			case 20214:
+			case 20215:
+			case 20217:
+			case 20218:
 			case 20224:
 			case 20229:
 			case 20225:
@@ -410,7 +404,6 @@ bool pvp_manager::can_attack(character * chr, character * victim)
 	if (victim->get_party() && victim->get_party() == chr->get_party())
 	{
 		return false;
-		// Cannot attack same party on any pvp model
 	}
 	else
 	{
@@ -423,7 +416,6 @@ bool pvp_manager::can_attack(character * chr, character * victim)
 		{
 		    if (metin2::config::game().protect_normal_player)
 		    {
-			// Outlaws cannot attack good players in peace mode.
 			if (PK_MODE_PEACE == victim->pk_mode())
 			    return false;
 		    }
@@ -434,7 +426,6 @@ bool pvp_manager::can_attack(character * chr, character * victim)
 		{
 			case PK_MODE_PEACE:
 			case PK_MODE_REVENGE:
-				// Cannot attack same guild
 				if (victim->get_guild() && victim->get_guild() == chr->get_guild())
 					break;
 
@@ -451,7 +442,6 @@ bool pvp_manager::can_attack(character * chr, character * victim)
 				break;
 
 			case PK_MODE_GUILD:
-				// Same implementation from PK_MODE_FREE except for attacking same guild
 				if (!chr->get_guild() || (victim->get_guild() != chr->get_guild()))
 				{
 					if (victim->alignment() >= 0)
@@ -528,7 +518,6 @@ void pvp_manager::send_list(desc * d)
 		if (!pkPVP->players_[0].vid || !pkPVP->players_[1].vid)
 			continue;
 
-		// Send only when both VIDs exist.
 		if (pkPVP->is_fight())
 		{
 			pack.mode = PVP_MODE_FIGHT;
@@ -583,7 +572,7 @@ void pvp_manager::process()
 	{
 		pvp * pvp = (it++)->second.get();
 
-		if (get_dword_time() - pvp->last_fight_time() > 600000) // If there has been no fighting for 10 minutes or more
+		if (get_dword_time() - pvp->last_fight_time() > 600000)
 		{
 			pvp->packet(true);
 			remove(pvp);

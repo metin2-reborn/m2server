@@ -75,7 +75,7 @@ class war_map
 		uint32_t	winner_guild();
 		void	use_potion(character * ch, item * item);
 
-		void	draw();	// Force a draw
+		void	draw();
 		void	timeout();
 		void	check_war_end();
 		bool	set_ended();
@@ -129,8 +129,8 @@ class war_map
 
 			void initialize();
 
-			int accumulated_joiner_count(); // Cumulative participant count
-			int cur_jointer_count(); // Current participant count
+			int accumulated_joiner_count();
+			int cur_jointer_count();
 
 			void append_member(character * ch);
 			void remove_member(character * ch);

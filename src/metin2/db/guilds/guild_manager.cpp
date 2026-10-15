@@ -235,24 +235,12 @@ void guild_manager::result_ranking(MYSQL_RES * res)
 
 void guild_manager::update()
 {
-	process_reserve_war(); // handle scheduled wars
+	process_reserve_war();
 
 	time_t now = client_manager::instance().current_time();
 
 	if (!pq_on_war_.empty())
 	{
-		// UNKNOWN_GUILD_MANAGE_UPDATE_LOG
-		/*
-		   metin2::log::info( "GuildManager::Update size {:d} now {:d} top {:d}, {}({:d}) vs {}({:d})", 
-		   m_WarMap.size(),
-		   now,
-		   m_pqOnWar.top().first,
-		   m_map_kGuild[m_pqOnWar.top().second->GID[0]].szName,
-		   m_pqOnWar.top().second->GID[0],
-		   m_map_kGuild[m_pqOnWar.top().second->GID[1]].szName,
-		   m_pqOnWar.top().second->GID[1]);
-		   */
-		// END_OF_UNKNOWN_GUILD_MANAGE_UPDATE_LOG
 
 		while (!pq_on_war_.empty() && (pq_on_war_.top().first <= now || (pq_on_war_.top().second && pq_on_war_.top().second->end)))
 		{
@@ -270,21 +258,19 @@ void guild_manager::update()
 		}
 	}
 
-	// GUILD_SKILL_COOLTIME_BUG_FIX
 	while (!pq_skill_.empty() && pq_skill_.top().first <= now)
 	{
 		const guild_skill_used& s = pq_skill_.top().second;
 		client_manager::instance().send_guild_skill_usable(s.gid, s.skill_vnum, true);
 		pq_skill_.pop();
 	}
-	// END_OF_GUILD_SKILL_COOLTIME_BUG_FIX
 
 	while (!pq_wait_start_.empty() && pq_wait_start_.top().first <= now)
 	{
 		const guild_wait_start_info & ws = pq_wait_start_.top().second;
 		pq_wait_start_.pop();
 
-		start_war(ws.type, ws.gid[0], ws.gid[1], ws.reserve); // insert new element to m_WarMap and m_pqOnWar
+		start_war(ws.type, ws.gid[0], ws.gid[1], ws.reserve);
 
 		if (ws.initial_score)
 		{
@@ -450,9 +436,6 @@ void guild_manager::remove_war(uint32_t gid1, uint32_t gid2)
 		war_map_.erase(gid1);
 }
 
-//
-// guild war abnormal end and field war end
-//
 void guild_manager::war_end(uint32_t gid1, uint32_t gid2, bool force_draw)
 {
 	if (gid1 > gid2)
@@ -482,7 +465,7 @@ void guild_manager::war_end(uint32_t gid1, uint32_t gid2, bool force_draw)
 
 	bool bDraw = false;
 
-	if (!force_draw) // check scores unless it's a forced draw.
+	if (!force_draw)
 	{
 		if (pData->score[0] > pData->score[1])
 		{
@@ -497,7 +480,7 @@ void guild_manager::war_end(uint32_t gid1, uint32_t gid2, bool force_draw)
 		else
 			bDraw = true;
 	}
-	else // a forced draw is always a draw
+	else
 		bDraw = true;
 
 	if (bDraw)
@@ -505,15 +488,12 @@ void guild_manager::war_end(uint32_t gid1, uint32_t gid2, bool force_draw)
 	else
 		process_win_lose(win_guild, lose_guild);
 
-	// the DB server sometimes ends it on its own, so a packet must be sent separately.
+	// The db ends some wars on its own, so the packet must still be sent.
 	client_manager::instance().for_each_peer(f_send_peer_war(0, GUILD_WAR_END, gid1, gid2));
 
 	remove_war(gid1, gid2);
 }
 
-//
-// guild war normal end
-// 
 void guild_manager::recv_war_over(uint32_t guild_winner, uint32_t guild_loser, bool draw_value, int32_t war_price)
 {
 	metin2::log::info( "GuildWar: RecvWarOver : winner {:d} vs {:d} draw? {:d} war_price {:d}", guild_winner, guild_loser, draw_value ? 1 : 0, war_price);
@@ -531,17 +511,14 @@ void guild_manager::recv_war_over(uint32_t guild_winner, uint32_t guild_loser, b
 
 	guild_war_info & gw = it->second;
 
-	// Award
 	if (draw_value)
 	{
-		// give bet money / 2 to both guild
 		deposit_money(guild_winner, war_price / 2);
 		deposit_money(guild_loser, war_price / 2);
 		process_draw(guild_winner, guild_loser);
 	}
 	else
 	{
-		// give bet money to winner guild
 		deposit_money(guild_winner, war_price);
 		process_win_lose(guild_winner, guild_loser);
 	}
@@ -560,7 +537,7 @@ void guild_manager::recv_war_over(uint32_t guild_winner, uint32_t guild_loser, b
 void guild_manager::recv_war_end(uint32_t gid1, uint32_t gid2)
 {
 	metin2::log::info( "GuildWar: RecvWarEnded : {:d} vs {:d}", gid1, gid2);
-	war_end(gid1, gid2, true); // must always end abnormally.
+	war_end(gid1, gid2, true);
 }
 
 void guild_manager::start_war(uint8_t type, uint32_t gid1, uint32_t gid2, guild_war_reservation * reserve_value)
@@ -570,7 +547,7 @@ void guild_manager::start_war(uint8_t type, uint32_t gid1, uint32_t gid2, guild_
 	if (gid1 > gid2)
 		std::swap(gid1, gid2);
 
-	guild_war_info & gw = war_map_[gid1][gid2]; // map insert
+	guild_war_info & gw = war_map_[gid1][gid2];
 
 	if (type == GUILD_WAR_TYPE_FIELD)
 		gw.t_end_time = client_manager::instance().current_time() + GUILD_WAR_DURATION;
@@ -713,7 +690,6 @@ void guild_manager::change_ladder_point(uint32_t gid, int change)
 	metin2::log::info( "GuildManager::ChangeLadderPoint {:d} {:d}", gid, r.ladder_point);
 	metin2::log::info( "{}", buf);
 
-	// send packet
 	packet_guild_ladder p;
 
 	p.guild = gid;
@@ -727,10 +703,8 @@ void guild_manager::change_ladder_point(uint32_t gid, int change)
 
 void guild_manager::use_skill(uint32_t gid, uint32_t skill_vnum, uint32_t cooltime)
 {
-	// GUILD_SKILL_COOLTIME_BUG_FIX
 	metin2::log::info( "UseSkill(gid={:d}, skill={:d}) CoolTime({:d}:{:d})", gid, skill_vnum, cooltime, client_manager::instance().current_time() + cooltime);
 	pq_skill_.push(std::make_pair(client_manager::instance().current_time() + cooltime, guild_skill_used(gid, skill_vnum)));
-	// END_OF_GUILD_SKILL_COOLTIME_BUG_FIX
 }
 
 void guild_manager::money_change(uint32_t guild_value, uint32_t gold)
@@ -776,7 +750,6 @@ void guild_manager::withdraw_money(peer* peer, uint32_t guild_value, int32_t gol
 		return;
 	}
 
-	// has money, so withdraw and raise it
 	if (it->second.gold >= gold_value)
 	{
 		it->second.gold -= gold_value;
@@ -806,13 +779,10 @@ void guild_manager::withdraw_money_reply(uint32_t guild, uint8_t give_success, i
 		money_change(guild, it->second.gold);
 }
 
-//
-// scheduled guild war (spectators can bet)
-//
 const int score_by_level[GUILD_MAX_LEVEL+1] =
 {
-	500,	// level 0 = 500 probably error
-	500,	// 1
+	500,
+	500,
 	1000,
 	2000,
 	3000,
@@ -821,7 +791,7 @@ const int score_by_level[GUILD_MAX_LEVEL+1] =
 	8000,
 	10000,
 	12000,
-	15000,	// 10
+	15000,
 	18000,
 	21000,
 	24000,
@@ -837,7 +807,7 @@ const int score_by_level[GUILD_MAX_LEVEL+1] =
 const int score_by_ranking[GUILD_RANK_MAX_NUM+1] =
 {
 	0,
-	55000,	// 1st place
+	55000,
 	50000,
 	45000,
 	40000,
@@ -846,7 +816,7 @@ const int score_by_ranking[GUILD_RANK_MAX_NUM+1] =
 	28000,
 	24000,
 	21000,
-	18000,	// 10th place
+	18000,
 	15000,
 	12000,
 	10000,
@@ -856,7 +826,7 @@ const int score_by_ranking[GUILD_RANK_MAX_NUM+1] =
 	3000,
 	2000,
 	1000,
-	500		// 20th place
+	500
 };
 
 void guild_manager::boot_reserve_war()
@@ -900,8 +870,6 @@ void guild_manager::boot_reserve_war()
 
 			char buf[512];
 			snprintf(buf, sizeof(buf), "GuildWar: BootReserveWar : step %d id %u GID1 %u GID2 %u", i, t.id, t.guild_from, t.guild_to);
-			// if i == 0 the DB crashed during the guild war, so treat it as a draw.
-			// also, scheduled guild wars with 5 minutes or less left are treated as a draw. (bets are refunded)
 			if (i == 0 || (int) t.time - client_manager::instance().current_time() < 0)
 			{
 				if (i == 0)
@@ -976,7 +944,6 @@ bool guild_manager::reserve_war(packet_guild_war * p)
 
 	int lvp, rkp, alv, mc;
 
-	// power calculation
 	guild & k1 = touch_guild(GID1);
 
 	lvp = score_by_level[std::min(GUILD_MAX_LEVEL, k1.level)];
@@ -992,7 +959,6 @@ bool guild_manager::reserve_war(packet_guild_war * p)
 	t.power_from = (int32_t) poly_power_.eval();
 	metin2::log::info( "GuildWar: {:d} lvp {:d} rkp {:d} alv {:d} mc {:d} power {:d}", GID1, lvp, rkp, alv, mc, t.power_from);
 
-	// power calculation
 	guild & k2 = touch_guild(GID2);
 
 	lvp = score_by_level[std::min(GUILD_MAX_LEVEL, k2.level)];
@@ -1008,7 +974,6 @@ bool guild_manager::reserve_war(packet_guild_war * p)
 	t.power_to = (int32_t) poly_power_.eval();
 	metin2::log::info( "GuildWar: {:d} lvp {:d} rkp {:d} alv {:d} mc {:d} power {:d}", GID2, lvp, rkp, alv, mc, t.power_to);
 
-	// handicap calculation
 	if (t.power_to > t.power_from)
 	{
 		poly_handicap_.set_var("pA", t.power_to);
@@ -1023,7 +988,6 @@ bool guild_manager::reserve_war(packet_guild_war * p)
 	t.handicap = (int32_t) poly_handicap_.eval();
 	metin2::log::info( "GuildWar: handicap {:d}", t.handicap);
 
-	// query
 	char szQuery[512];
 
 	snprintf(szQuery, sizeof(szQuery),
@@ -1060,7 +1024,7 @@ void guild_manager::process_reserve_war()
 		guild_war_reservation * pk = it2->second.get();
 		guild_war_reserve & r = pk->data_ref();
 
-		if (!r.started && r.time - 1800 <= dwCurTime) // announce starting 30 minutes before.
+		if (!r.started && r.time - 1800 <= dwCurTime)
 		{
 			int iMin = (int) ceil((int)(r.time - dwCurTime) / 60.0);
 
@@ -1153,9 +1117,6 @@ bool guild_manager::change_master(uint32_t gid, uint32_t from, uint32_t to)
 	return true;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Guild War Reserve Class
-//////////////////////////////////////////////////////////////////////////////////////////
 guild_war_reservation::guild_war_reservation(const guild_war_reserve & table)
 {
 	std::memcpy(&data_, &table, sizeof(guild_war_reserve));
@@ -1194,7 +1155,7 @@ void guild_war_reservation::initialize()
 
 void guild_war_reservation::on_setup(peer * peer)
 {
-	if (data_.started) // don't send ones that already started.
+	if (data_.started)
 		return;
 
 	f_send_peer_war(data_.type, GUILD_WAR_RESERVE, data_.guild_from, data_.guild_to) (peer);
@@ -1277,10 +1238,6 @@ bool guild_war_reservation::bet(const char * login_value, uint32_t gold_value, u
 	return true;
 }
 
-//
-// draw handling: normally there should be a winner, but in certain situations such as server problems
-//              a draw must be possible.
-//
 void guild_war_reservation::draw() 
 {
 	std::string query = sql::format("UPDATE guild_war_reservation SET started=1,winner=0 WHERE id={}", data_.id);
@@ -1406,7 +1363,6 @@ void guild_war_reservation::end(int score_from, int score_to)
 
 			double ratio = (double) it->second.second / dwWinnerBet;
 
-			// distribute after a 10% tax deduction
 			metin2::log::info( "WAR_REWARD: {} {:d} ratio {:f}", it->first.c_str(), it->second.second, ratio);
 
 			uint32_t dwGold = (uint32_t) (dwTotalBet * ratio * 0.9);

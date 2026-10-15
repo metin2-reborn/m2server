@@ -140,7 +140,7 @@ void input_db::login_success(uint32_t handle, const char *data)
 		return;
 	}
 
-	if (strcmp(pTab->status, "OK")) // if not OK
+	if (strcmp(pTab->status, "OK"))
 	{
 		metin2::log::info( "CInputDB::LoginSuccess - status[{}] is not OK [{}]", pTab->status, pTab->login);
 
@@ -163,7 +163,7 @@ void input_db::login_success(uint32_t handle, const char *data)
 
 	d->bind_account_table(pTab);
 
-	if (!bFound) // if there's no character, send to a random empire.. -_-
+	if (!bFound)
 	{
 		packet_gc_empire pe;
 		pe.header = HEADER_GC_EMPIRE;
@@ -307,7 +307,7 @@ void input_db::player_load(desc * d, const char * data)
 	{
 		lMapIndex = sectree_manager::instance().map_index(pTab->x, pTab->y);
 
-		if (lMapIndex == 0) // coordinates not found.
+		if (lMapIndex == 0)
 		{
 			lMapIndex = empire_start_map(d->get_account_table().empire);
 			pos.x = empire_start_x(d->get_account_table().empire);
@@ -321,12 +321,6 @@ void input_db::player_load(desc * d, const char * data)
 	}
 	pTab->map_index = lMapIndex;
 
-	// if they were on a private map and the private map is gone, they must return to the exit.
-	// ----
-	// but if they must go to the exit... why look up the public map position matching the private map instead of the exit...
-	// I don't know the history... so hardcoding again.
-	// if it's the Demon's Cave, go to the exit...
-	// by rtsummit
 	if (!sectree_manager::instance().valid_location(pTab->map_index, pTab->x, pTab->y, lMapIndex, pos, d->empire()))
 	{
 		metin2::log::error("InputDB::PlayerLoad : cannot find valid location {:d} x {:d} (name: {})", pTab->x, pTab->y, pTab->name);
@@ -360,7 +354,6 @@ void input_db::player_load(desc * d, const char * data)
 	d->bind_character(ch);
 	
 	{
-		// P2P Login
 		packet_gg_login p;
 
 		p.header = HEADER_GG_LOGIN;
@@ -384,7 +377,6 @@ void input_db::player_load(desc * d, const char * data)
 
 	int32_t lPublicMapIndex = lMapIndex >= 10000 ? lMapIndex / 10000 : lMapIndex;
 
-	//if (!map_allow_find(lMapIndex >= 10000 ? lMapIndex / 10000 : lMapIndex) || !CheckEmpire(ch, lMapIndex))
 	if (!map_allow_find(lPublicMapIndex))
 	{
 		metin2::log::error("InputDB::PlayerLoad : entering {:d} map is not allowed here (name: {}, empire {:d})", 
@@ -424,11 +416,9 @@ void input_db::boot(const char* data)
 {
 	signal_timer_disable();
 
-	// packet size check
 	uint32_t dwPacketSize = decode_4bytes(data);
 	data += 4;
 
-	// packet version check
 	uint8_t bVersion = decode_byte(data);
 	data += 1;
 
@@ -451,15 +441,10 @@ void input_db::boot(const char* data)
 	metin2::log::info( "sizeof(TLand) = {:d}", sizeof(building::land_table));
 	metin2::log::info( "sizeof(TObjectProto) = {:d}", sizeof(building::object_proto));
 	metin2::log::info( "sizeof(TObject) = {:d}", sizeof(building::object_table));
-	//ADMIN_MANAGER
 	metin2::log::info( "sizeof(TAdminManager) = {:d}", sizeof (t_admin_info) );
-	//END_ADMIN_MANAGER
 
 	uint16_t size;
 
-	/*
-	 * MOB
-	 */
 
 	if (decode_2bytes(data)!=sizeof(mob_table))
 	{
@@ -479,9 +464,6 @@ void input_db::boot(const char* data)
 		data += size * sizeof(mob_table);
 	}
 
-	/*
-	 * ITEM
-	 */
 
 	if (decode_2bytes(data) != sizeof(item_table))
 	{
@@ -502,9 +484,6 @@ void input_db::boot(const char* data)
 		data += size * sizeof(item_table);
 	}
 
-	/*
-	 * SHOP
-	 */
 
 	if (decode_2bytes(data) != sizeof(shop_table))
 	{
@@ -530,9 +509,6 @@ void input_db::boot(const char* data)
 		data += size * sizeof(shop_table);
 	}
 
-	/*
-	 * SKILL
-	 */
 
 	if (decode_2bytes(data) != sizeof(skill_table))
 	{
@@ -557,9 +533,6 @@ void input_db::boot(const char* data)
 
 		data += size * sizeof(skill_table);
 	}
-	/*
-	 * REFINE RECIPE
-	 */
 	if (decode_2bytes(data) != sizeof(refine_table))
 	{
 		metin2::log::error("refine table size error");
@@ -578,9 +551,6 @@ void input_db::boot(const char* data)
 		data += size * sizeof(refine_table);
 	}
 
-	/*
-	 * ITEM ATTR
-	 */
 	if (decode_2bytes(data) != sizeof(item_attr_table))
 	{
 		metin2::log::error("item attr table size error");
@@ -610,9 +580,6 @@ void input_db::boot(const char* data)
 	data += size * sizeof(item_attr_table);
 
 
-	/*
-     * ITEM RARE
-     */
 	if (decode_2bytes(data) != sizeof(item_attr_table))
 	{
 		metin2::log::error("item rare table size error");
@@ -642,9 +609,6 @@ void input_db::boot(const char* data)
 	data += size * sizeof(item_attr_table);
 
 
-	/*
-	 * BANWORDS
-	 */
 
 	if (decode_2bytes(data) != sizeof(banword_table))
 	{
@@ -663,9 +627,6 @@ void input_db::boot(const char* data)
 	{
 		using namespace building;
 
-		/*
-		 * LANDS
-		 */
 
 		if (decode_2bytes(data) != sizeof(land_table))
 		{
@@ -684,9 +645,6 @@ void input_db::boot(const char* data)
 		for (uint16_t i = 0; i < size; ++i, ++kLand)
 			manager::instance().load_land(kLand);
 
-		/*
-		 * OBJECT PROTO
-		 */
 
 		if (decode_2bytes(data) != sizeof(object_proto))
 		{
@@ -702,9 +660,6 @@ void input_db::boot(const char* data)
 		manager::instance().load_object_proto((object_proto *) data, size);
 		data += size * sizeof(object_proto);
 
-		/*
-		 * OBJECT 
-		 */
 		if (decode_2bytes(data) != sizeof(object_table))
 		{
 			metin2::log::error("object table size error");
@@ -744,8 +699,6 @@ void input_db::boot(const char* data)
 	item_id_range_table* rangespare = (item_id_range_table*) data;
 	data += size * sizeof(item_id_range_table);
 
-	//ADMIN_MANAGER
-	//register admin
 	int ChunkSize = decode_2bytes(data );
 	data += 2;
 	int HostSize = decode_2bytes(data );
@@ -772,9 +725,7 @@ void input_db::boot(const char* data)
 		data += sizeof(rAdminInfo );
 	}
 	
-	//END_ADMIN_MANAGER
 		
-	//MONARCH
 	data += 2;
 	data += 2;
 
@@ -801,7 +752,6 @@ void input_db::boot(const char* data)
 	data += CandidacySize * CandidacyCount;
 
 	
-	//END_MONARCH
 
 	uint16_t endCheck=decode_2bytes(data);
 	if (endCheck != 0xffff)
@@ -830,7 +780,6 @@ void input_db::boot(const char* data)
 
 
 
-	// LOCALE_SERVICE
 	const int FILE_NAME_LEN = 256;
 	char szCommonDropItemFileName[FILE_NAME_LEN];
 	char szETCDropItemFileName[FILE_NAME_LEN];
@@ -926,7 +875,6 @@ void input_db::boot(const char* data)
 		metin2::log::error("cannot load DragonSoulTable: {}", szDragonSoulTableFileName);
 	}
 
-	// END_OF_LOCALE_SERVICE
 
 
 	building::manager::instance().finalize_boot();
@@ -941,7 +889,6 @@ void input_db::boot(const char* data)
 	}
 
 
-	// castle_boot
 	castle_boot();
 
     if (!mark_server_ready()) { thecore_shutdown(); return; }
@@ -1092,23 +1039,17 @@ void input_db::safebox_load(desc * d, const char * data)
 
 	character * ch = d->get_character();
 
-	//PREVENT_TRADE_WINDOW
 	if (ch->shop_owner() || ch->get_exchange() || ch->my_shop() || ch->is_cube_open() )
 	{
 		d->get_character()->chat_packet(CHAT_TYPE_INFO, lc_text("다른거래창이 열린상태에서는 창고를 열수가 없습니다." ) );
 		d->get_character()->cancel_safebox_load();
 		return;
 	}
-	//END_PREVENT_TRADE_WINDOW
 
-	// ADD_PREMIUM
 	if (d->get_character()->premium_remain_seconds(PREMIUM_SAFEBOX) > 0 ||
 			d->get_character()->is_equip_unique_group(UNIQUE_GROUP_LARGE_SAFEBOX))
 		bSize = 3;
-	// END_OF_ADD_PREMIUM
 
-	//if (d->GetCharacter()->IsEquipUniqueItem(UNIQUE_ITEM_SAFEBOX_EXPAND))
-	//bSize = 3; // safebox expansion ticket
 
 	d->get_character()->load_safebox(bSize * SAFEBOX_PAGE_SIZE, p->gold, p->item_count, (player_item *) (data + sizeof(safebox_table)));
 }
@@ -1126,9 +1067,6 @@ void input_db::safebox_change_size(desc * d, const char * data)
 	d->get_character()->change_safebox_size(bSize);
 }
 
-//
-// @version	05/06/20 Bang2ni - cancel ReqSafeboxLoad
-//
 void input_db::safebox_wrong_password(desc * d)
 {
 	if (!d)
@@ -1187,7 +1125,6 @@ void input_db::login_already(desc * d, const char * data)
 	if (!d)
 		return;
 
-	// INTERNATIONAL_VERSION disconnect if already logged in
 	{ 
 		packet_dg_login_already * p = (packet_dg_login_already *) data;
 
@@ -1205,7 +1142,6 @@ void input_db::login_already(desc * d, const char * data)
 			p2_p_manager::instance().send(&pgg, sizeof(packet_gg_disconnect));
 		}
 	}
-	// END_OF_INTERNATIONAL_VERSION
 
 	login_failure(d, "ALREADY");
 }
@@ -1597,26 +1533,17 @@ void input_db::reload_proto(const char * data)
 {
 	uint16_t wSize;
 
-	/*
-	 * Skill
-	 */
 	wSize = decode_2bytes(data);
 	data += sizeof(uint16_t);
 	if (wSize) skill_manager::instance().initialize((skill_table *) data, wSize);
 	data += sizeof(skill_table) * wSize;
 
-	/*
-	 * Banwords
-	 */
 
 	wSize = decode_2bytes(data);
 	data += sizeof(uint16_t);
 	banword_manager::instance().initialize((banword_table *) data, wSize);
 	data += sizeof(banword_table) * wSize;
 
-	/*
-	 * ITEM
-	 */
 	wSize = decode_2bytes(data);
 	data += 2;
 	metin2::log::info( "RELOAD: ITEM: {:d}", wSize);
@@ -1627,9 +1554,6 @@ void input_db::reload_proto(const char * data)
 		data += wSize * sizeof(item_table);
 	}
 
-	/*
-	 * MONSTER
-	 */
 	wSize = decode_2bytes(data);
 	data += 2;
 	metin2::log::info( "RELOAD: MOB: {:d}", wSize);
@@ -1683,21 +1607,14 @@ void input_db::change_empire_priv(const char* data)
 {
 	packet_dg_change_empire_priv* p = (packet_dg_change_empire_priv*) data;
 
-	// ADD_EMPIRE_PRIV_TIME
 	priv_manager::instance().give_empire_priv(p->empire, p->type, p->value, p->log, p->end_time_sec);
-	// END_OF_ADD_EMPIRE_PRIV_TIME
 }
 
-/**
- * @version 05/06/08	Bang2ni - added duration
- */
 void input_db::change_guild_priv(const char* data)
 {
 	packet_dg_change_guild_priv* p = (packet_dg_change_guild_priv*) data;
 
-	// ADD_GUILD_PRIV_TIME
 	priv_manager::instance().give_guild_priv(p->guild_id, p->type, p->value, p->log, p->end_time_sec);
-	// END_OF_ADD_GUILD_PRIV_TIME
 }
 
 void input_db::change_character_priv(const char* data)
@@ -1710,7 +1627,7 @@ void input_db::money_log(const char* data)
 {
 	packet_money_log * p = (packet_money_log *) data;
 
-	if (p->type == 4) // QUEST_MONEY_LOG_SKIP
+	if (p->type == 4)
 		return;
 
 	if (metin2::config::is_auth() ==true )
@@ -1832,7 +1749,6 @@ void input_db::wedding_end(packet_wedding_end* p)
 	marriage::manager::instance().wedding_end(p->pi_d1, p->pi_d2);
 }
 
-// MYSHOP_PRICE_LIST
 void input_db::myshop_pricelist_res(desc * d, const packet_myshop_pricelist_header* p )
 {
 	character * ch;
@@ -1844,10 +1760,8 @@ void input_db::myshop_pricelist_res(desc * d, const packet_myshop_pricelist_head
 	ch->use_silk_botary_real(p );
 
 }
-// END_OF_MYSHOP_PRICE_LIST
 
 
-//RELOAD_ADMIN
 void input_db::reload_admin(const char * data )
 {
 	gm_new_clear();
@@ -1883,12 +1797,7 @@ void input_db::reload_admin(const char * data )
 	}
 	
 }
-//END_RELOAD_ADMIN
 
-////////////////////////////////////////////////////////////////////
-// Analyze
-// @version	05/06/10 Bang2ni - added handling of the item price list packet (HEADER_DG_MYSHOP_PRICELIST_RES).
-////////////////////////////////////////////////////////////////////
 int input_db::analyze(desc * d, uint8_t header, const char * data)
 {
 	switch (header)
@@ -2160,17 +2069,12 @@ int input_db::analyze(desc * d, uint8_t header, const char * data)
 		wedding_end((packet_wedding_end*) data);
 		break;
 
-		// MYSHOP_PRICE_LIST
 	case HEADER_DG_MYSHOP_PRICELIST_RES:
 		myshop_pricelist_res(desc_manager::instance().find_by_handle(handle_), (packet_myshop_pricelist_header*) data );
 		break;
-		// END_OF_MYSHOP_PRICE_LIST
-		//
-	// RELOAD_ADMIN
 	case HEADER_DG_RELOAD_ADMIN:
 		reload_admin(data );		
 		break;
-	//END_RELOAD_ADMIN
 
 	case HEADER_DG_ADD_MONARCH_MONEY:
 		add_monarch_money(desc_manager::instance().find_by_handle(handle_), data ); 
@@ -2210,7 +2114,6 @@ int input_db::analyze(desc * d, uint8_t header, const char * data)
 	case HEADER_DG_NEED_LOGIN_LOG:
 		detail_log( (packet_need_login_log_info*) data );
 		break;
-	// Germany gift feature test
 	case HEADER_DG_ITEMAWARD_INFORMER:
 		item_award_informer((packet_item_award_infromer*) data);
 		break;
@@ -2236,9 +2139,9 @@ bool input_db::process(desc * d, const void * orig, int bytes, int & r_i_bytes_p
 		if (buffer_left_ < 9)
 			return true;
 
-		bHeader		= *((uint8_t *) (c_pData));	// 1
-		handle_	= *((uint32_t *) (c_pData + 1));	// 4
-		iSize		= *((uint32_t *) (c_pData + 5));	// 4
+		bHeader		= *((uint8_t *) (c_pData));
+		handle_	= *((uint32_t *) (c_pData + 1));
+		iSize		= *((uint32_t *) (c_pData + 5));
 
 		metin2::log::debug( "DBCLIENT: header {:d} handle {:d} size {:d} bytes {:d}", bHeader, handle_, iSize, bytes); 
 
@@ -2358,7 +2261,7 @@ void input_db::detail_log(const packet_need_login_log_info* info)
 
 void input_db::item_award_informer(packet_item_award_infromer *data)
 {	
-	desc * d = desc_manager::instance().find_by_login_name(data->login);	//login info
+	desc * d = desc_manager::instance().find_by_login_name(data->login);
 	
 	if(d == nullptr)
 		return;
@@ -2367,12 +2270,12 @@ void input_db::item_award_informer(packet_item_award_infromer *data)
 		if (d->get_character())
 		{
 			character * ch = d->get_character();	
-			ch->set_item_award_vnum(data->vnum);	// store temporarily in ch, handled in QuestLoad
+			ch->set_item_award_vnum(data->vnum);
 			ch->set_item_award_cmd(data->command);		
 
-			if(d->is_phase(PHASE_GAME))			//when in game phase
+			if(d->is_phase(PHASE_GAME))
 			{
-				quest::quest_manager::instance().item_informer(ch->player_id(),ch->item_award_vnum());	//call questmanager
+				quest::quest_manager::instance().item_informer(ch->player_id(),ch->item_award_vnum());
 			}
 		}
 	}

@@ -73,7 +73,6 @@ bool polymorph_utils::polymorph_character(character * ch, item * item_value, con
 			return false;
 	}
 
-	// Polymorph chance = character level - mob level + polymorph book level + 29 + polymorph skill level
 	iPolyPercent = ch->level() - mob_value->table.level + item_value->get_socket(2) + (29 + bySkillLevel);
 
 	if (iPolyPercent <= 0)
@@ -92,7 +91,6 @@ bool polymorph_utils::polymorph_character(character * ch, item * item_value, con
 
 	ch->add_affect(AFFECT_POLYMORPH, POINT_POLYMORPH, mob_value->table.vnum, AFF_POLYMORPH, dwDuration, 0, true);
 
-	// Polymorph bonus = polymorph skill level + polymorph book level
 	dwBonusPercent = bySkillLevel + item_value->get_socket(2);
 
 	switch (bonus_type(mob_value->table.vnum))
@@ -132,8 +130,6 @@ bool polymorph_utils::update_book_practice_grade(character * ch, item * item_val
 
 bool polymorph_utils::give_book(character * ch, uint32_t mob_vnum, uint32_t practice_count, uint8_t book_level, uint8_t level_limit)
 {
-	// Socket0                Socket1     Socket2
-	// Polymorph mob number   Training    Book level
 	if (ch == nullptr)
 		return false;
 
@@ -149,9 +145,9 @@ bool polymorph_utils::give_book(character * ch, uint32_t mob_vnum, uint32_t prac
 		return false;
 	}
 
-	pItem->set_socket(0, mob_vnum);			// Monster number to polymorph into
-	pItem->set_socket(1, practice_count);		// Number of trainings required
-	pItem->set_socket(2, book_level);			// Training level
+	pItem->set_socket(0, mob_vnum);
+	pItem->set_socket(1, practice_count);
+	pItem->set_socket(2, book_level);
 	return true;
 }
 

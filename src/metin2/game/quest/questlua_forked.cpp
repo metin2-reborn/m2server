@@ -18,9 +18,6 @@ namespace metin2::game {
 
 namespace quest
 {
-	//
-	// "forked_" lua functions
-	//
 
 	int forked_set_dead_count( lua_State* lua )
 	{

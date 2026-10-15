@@ -243,9 +243,6 @@ namespace quest
 		return 1;
 	}
 
-	// 
-	// "member" Lua functions
-	//
 	int member_chat(lua_State* lua)
 	{
 		std::ostringstream s;
@@ -407,12 +404,6 @@ namespace quest
 		return 1;
 	}
 
-	//
-	// global Lua functions
-	//
-	//
-	// Registers Lua function table
-	//
 	void quest_manager::add_lua_function_table(const char * name_value, luaL_reg * preg)
 	{
 		lua_newtable(l_);
@@ -456,9 +447,6 @@ namespace quest
 		lua_settop(l_, x);
 	}
 
-	/**
-	 * @version 05/06/08	Bang2ni - registered __get_guildid_byname script function
-	 */
 	bool quest_manager::initialize_lua()
 	{
 		l_ = lua_open();
@@ -467,7 +455,6 @@ namespace quest
 		luaopen_table(l_);
 		luaopen_string(l_);
 		luaopen_math(l_);
-		//TEMP
 		luaopen_io(l_);
 		luaopen_debug(l_);
 
@@ -530,12 +517,8 @@ namespace quest
 			add_lua_function_table("mob", mob_functions);
 		}
 
-		//
-		// global namespace functions
-		//
 		register_global_function_table(l_);
 
-		// LUA_INIT_ERROR_MESSAGE
 		{
 			char settingsFileName[256];
 			snprintf(settingsFileName, sizeof(settingsFileName), "%s/settings.lua", locale_service_get_base_path().c_str());
@@ -585,7 +568,6 @@ namespace quest
 				return false;
 			}
 		}
-		// END_OF_LUA_INIT_ERROR_MESSAGE
 
 		for (auto it = quest_object_dir.begin(); it != quest_object_dir.end(); ++it)
 		{
@@ -630,7 +612,6 @@ namespace quest
 
 		int n = luaL_getn(qs.co, -1);
 		qs.args = n;
-		//
 
 		std::ostringstream os;
 		os << "[QUESTION ";
@@ -684,11 +665,10 @@ namespace quest
 		}
 
 		character * chWait = character_manager::instance().find_by_pid(info->wait_pid);
-		character * chReply = nullptr; //CHARACTER_MANAGER::info().FindByPID(info->dwReplyPID);
+		character * chReply = nullptr;
 
 		if (chReply)
 		{
-			// Closes automatically after the time passes
 		}
 
 		if (chWait)
@@ -708,26 +688,19 @@ namespace quest
 
 		metin2::log::info( "GotoConfirmState vid {:d} msg '{}', timeout {:d}", dwVID, szMsg, iTimeout);
 
-		// 1. Show a confirmation window to the other party
-		// 2. Show me a window saying we're waiting for confirmation
-		// 3. Set timeout (on timeout close the other party's window and tell me to close mine too)
 
-		// 1
-		// If the other party is absent, just don't send to them. It proceeds via the timeout
 		character * ch = character_manager::instance().find(dwVID);
 		if (ch && ch->is_pc())
 		{
 			ch->confirm_with_msg(szMsg, iTimeout, current_character_ptr()->player_id());
 		}
 
-		// 2
 		current_pc()->set_confirm_wait((ch && ch->is_pc())?ch->player_id():0);
 		std::ostringstream os;
 		os << "[CONFIRM_WAIT timeout;" << iTimeout << "]";
 		add_script(os.str());
 		send_script();
 
-		// 3
 		confirm_timeout_event_info* info = alloc_event_info<confirm_timeout_event_info>();
 
 		info->wait_pid = current_character_ptr()->player_id();
@@ -749,7 +722,6 @@ namespace quest
 		add_script("[INPUT]");
 		send_script();
 
-		// Set the time limit
 	}
 
 	void quest_manager::goto_pause_state(quest_state & qs)
@@ -765,11 +737,6 @@ namespace quest
 		send_script();
 	}
 
-	//
-	// * OpenState
-	//
-	// The beginning of script
-	// 
 
 	quest_state quest_manager::open_state(const std::string& quest_name, int state_index)
 	{
@@ -777,15 +744,10 @@ namespace quest
 		qs.args=0;
 		qs.st = state_index;
 		qs.co = lua_newthread(l_);
-		qs.ico = lua_ref(l_, 1/*qs.co*/);
+		qs.ico = lua_ref(l_, 1 );
 		return qs;
 	}
 
-	//
-	// * RunState
-	// 
-	// decides script to wait for user input, or finish
-	// 
 	bool quest_manager::run_state(quest_state & qs)
 	{
 		clear_error();
@@ -797,7 +759,6 @@ namespace quest
 		{
 			if (lua_gettop(qs.co) == 0)
 			{
-				// end of quest
 				goto_end_state(qs);
 				return false;
 			}
@@ -844,11 +805,6 @@ namespace quest
 		return false;
 	}
 
-	//
-	// * CloseState
-	//
-	// makes script end
-	//
 	void quest_manager::close_state(quest_state& qs)
 	{
 		if (qs.co)

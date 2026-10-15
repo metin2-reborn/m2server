@@ -80,7 +80,6 @@ bool item_manager::read_common_drop_item_file(const char * file_name)
 
 			if (!item_manager::instance().vnum_by_original_name(d[i].item_name, dwItemVnum))
 			{
-				// If not found by name, search by number
 				str_to_number(dwItemVnum, d[i].item_name);
 				if (!item_manager::instance().table(dwItemVnum))
 				{
@@ -146,7 +145,6 @@ bool item_manager::read_special_drop_item_file(const char * file_name)
 
 		token_vector * pTok;
 
-		//
 		std::string stType;
 		int type = special_item_group::NORMAL;
 		if (loader.token_string("type", &stType))
@@ -273,12 +271,10 @@ bool item_manager::read_special_drop_item_file(const char * file_name)
 					metin2::log::info("        name {} count {:d} prob {:d} rare {:d}", name.c_str(), iCount, iProb, iRarePct);
 					pkGroup->add_item(dwVnum, iCount, iProb, iRarePct);
 
-					// CHECK_UNIQUE_GROUP
 					if (iVnum < 30000)
 					{
 						item_to_special_group_[dwVnum] = iVnum;
 					}
-					// END_OF_CHECK_UNIQUE_GROUP
 
 					continue;
 				}
@@ -404,7 +400,6 @@ bool item_manager::conv_special_drop_item_file()
 					str_to_number(iRarePct, pTok->at(3).c_str());
 				}
 
-				//    1   "기술 수련서"   1   100
 				if (0 == dwVnum)
 					fprintf(fp, "	%d	%s	%d	%d\n", k, name.c_str(), iCount, iProb);
 				else

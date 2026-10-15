@@ -35,11 +35,9 @@ namespace metin2::game::inline guilds {
 
 enum
 {
-	// ADD_SUPPLY_BUILDING
 	BUILDING_INCREASE_GUILD_MEMBER_COUNT_SMALL = 14061,
 	BUILDING_INCREASE_GUILD_MEMBER_COUNT_MEDIUM = 14062,
 	BUILDING_INCREASE_GUILD_MEMBER_COUNT_LARGE = 14063,
-	// END_OF_ADD_SUPPLY_BUILDING
 
 	FLAG_VNUM = 14200,
 	WALL_DOOR_VNUM	= 14201,
@@ -72,7 +70,7 @@ void object::destroy()
 				y() + proto_->region[1],
 				x() + proto_->region[2],
 				y() + proto_->region[3],
-				(int32_t)data_.z_rot, // ADD_BUILDING_ROTATION
+				(int32_t)data_.z_rot,
 				ATTR_OBJECT,
 				ATTR_REGION_MODE_REMOVE);
 	}
@@ -82,14 +80,10 @@ void object::destroy()
 	if (get_sectree())
 		get_sectree()->remove_entity(this);
 
-	// <Factor> NPC should be destroyed in CHARACTER_MANAGER
-	// BUILDING_NPC
 
 	remove_special_effect();
-	// END_OF_BUILDING_NPC
 }
 
-// BUILDING_NPC
 void object::reconstruct(uint32_t vnum)
 {
 	const map_region * r = sectree_manager::instance().get_map_region(data_.map_index);
@@ -100,7 +94,6 @@ void object::reconstruct(uint32_t vnum)
 	pLand->request_delete_object(id());
 	pLand->request_create_object(vnum, data_.map_index, data_.x - r->sx, data_.y - r->sy, data_.x_rot, data_.y_rot, data_.z_rot, false);
 }
-// END_OF_BUILDING_NPC
 
 void object::encode_insert_packet(entity * entity)
 {
@@ -125,7 +118,6 @@ void object::encode_insert_packet(entity * entity)
 	pack.z              = z();
 	pack.race_num       = data_.vnum;
 
-	// Convert building rotation info (door position for walls)
 	pack.affect_flag[0] = unsigned(data_.x_rot);
 	pack.affect_flag[1] = unsigned(data_.y_rot);
 
@@ -207,7 +199,6 @@ void object::apply_special_effect()
 {
 	if (proto_)
 	{
-		// ADD_SUPPLY_BUILDING
 		if (proto_->vnum == BUILDING_INCREASE_GUILD_MEMBER_COUNT_SMALL ||
 				proto_->vnum == BUILDING_INCREASE_GUILD_MEMBER_COUNT_MEDIUM ||
 				proto_->vnum == BUILDING_INCREASE_GUILD_MEMBER_COUNT_LARGE)
@@ -237,7 +228,6 @@ void object::apply_special_effect()
 				}
 			}
 		}
-		// END_OF_ADD_SUPPLY_BUILDING
 	}
 }
 
@@ -245,7 +235,6 @@ void object::remove_special_effect()
 {
 	if (proto_)
 	{
-		// ADD_SUPPLY_BUILDING
 		if (proto_->vnum == BUILDING_INCREASE_GUILD_MEMBER_COUNT_SMALL ||
 				proto_->vnum == BUILDING_INCREASE_GUILD_MEMBER_COUNT_MEDIUM ||
 				proto_->vnum == BUILDING_INCREASE_GUILD_MEMBER_COUNT_LARGE)
@@ -262,11 +251,9 @@ void object::remove_special_effect()
 					pGuild->broadcast_member_count_bonus();
 			}
 		}
-		// END_OF_ADD_SUPPLY_BUILDING
 	}
 }
 
-// BUILDING_NPC
 void object::regen_npc()
 {
 	if (!proto_)
@@ -310,7 +297,6 @@ void object::regen_npc()
 
 	ch_npc_->set_guild(pGuild);
 
-	// For the Temple of Power, store the guild level on the guild master
 	if ( proto_->vnum == 14061 || proto_->vnum == 14062 || proto_->vnum == 14063 )
 	{
 		quest::pc* pPC = quest::quest_manager::instance().get_pc(pGuild->master_pid());
@@ -321,9 +307,7 @@ void object::regen_npc()
 		}
 	}
 }
-// END_OF_BUILDING_NPC
 
-////////////////////////////////////////////////////////////////////////////////////
 
 land::land(land_table * data)
 {
@@ -425,7 +409,6 @@ object * land::find_object_by_group(uint32_t group_vnum)
 	return nullptr;
 }
 
-// BUILDING_NPC
 object * land::find_object_by_npc(character * npc)
 {
 	if (!npc)
@@ -441,7 +424,6 @@ object * land::find_object_by_npc(character * npc)
 
 	return nullptr;
 }
-// END_OF_BUILDING_NPC
 
 object * land::find_object_by_vid(uint32_t vid)
 {
@@ -542,7 +524,6 @@ bool land::request_create_object(uint32_t vnum_value, int32_t map_index_value, i
 		return false;
 	}
 
-	// ADD_BUILDING_ROTATION
 	if ( check_another )
 	{
 		if (rkSecTreeMgr.for_attr_region(map_index_value, osx, osy, oex, oey, (int32_t)z_rot_value, ATTR_OBJECT, ATTR_REGION_MODE_CHECK))
@@ -559,7 +540,6 @@ bool land::request_create_object(uint32_t vnum_value, int32_t map_index_value, i
 			return false;
 		}
 	}
-	// END_OF_BUILDING_NPC
 
 	packet_gd_create_object p;
 
@@ -623,7 +603,6 @@ void land::request_update(uint32_t guild)
 	metin2::log::info( "RequestUpdate id {:d} guild {:d}", a[0], a[1]);
 }
 
-////////////////////////////////////////////////////////////////////////////////////
 
 manager::manager()
 {
@@ -639,7 +618,7 @@ void manager::destroy()
 	map_pk_land_.clear();
 }
 
-bool manager::load_object_proto(const proto::building::object_proto * proto, int size) // from DB
+bool manager::load_object_proto(const proto::building::object_proto * proto, int size)
 {
 	vec_k_object_proto_.resize(size);
 	std::memcpy(&vec_k_object_proto_[0], proto, sizeof(proto::building::object_proto) * size);
@@ -648,10 +627,8 @@ bool manager::load_object_proto(const proto::building::object_proto * proto, int
 	{
 		proto::building::object_proto & r = vec_k_object_proto_[i];
 
-		// BUILDING_NPC
 		metin2::log::info( "ObjectProto {:d} price {:d} upgrade {:d} upg_limit {:d} life {:d} NPC {:d}",
 				r.vnum, r.price, r.upgrade_vnum, r.upgrade_limit_time, r.life, r.npc_vnum);
-		// END_OF_BUILDING_NPC
 
 		for (int j = 0; j < OBJECT_MATERIAL_MAX_NUM; ++j)
 		{
@@ -683,12 +660,8 @@ proto::building::object_proto * manager::object_proto(uint32_t vnum)
 	return it->second;
 }
 
-bool manager::load_land(land_table * table) // from DB
+bool manager::load_land(land_table * table)
 {
-	// Land must be loaded even if its map is not in MapAllow.
-	//	To know which guild a building (object) belongs to, we must know which guild owns the land it was built on.
-	//	If the land isn't loaded, we can't tell which guild a guild building belongs to,
-	//	so the guild buff from guild buildings is not received.
 
 	auto pkLand = std::make_unique<land>(table);
 	uint32_t dwID = pkLand->id();
@@ -739,7 +712,7 @@ void manager::update_land(land_table * table)
 
 		if (d->get_character() && d->get_character()->map_index() == table->map_index)
 		{
-			// we must send the guild name first
+			// The guild name must be sent first.
 			d->get_character()->send_guild_name(guild);
 
 			d->buffered_packet(&p, sizeof(packet_gc_land_list));
@@ -807,9 +780,9 @@ land * manager::find_land_by_guild(uint32_t gid)
 	return nullptr;
 }
 
-bool manager::load_object(object_table * table, bool is_boot) // from DB
+bool manager::load_object(object_table * table, bool is_boot)
 {
-	if (!map_allow_find(table->map_index)) // Fix
+	if (!map_allow_find(table->map_index))
 		return false;
 
 	land * pkLand = find_land(table->land_id);
@@ -848,7 +821,6 @@ bool manager::load_object(object_table * table, bool is_boot) // from DB
 		pkObj->set_xyz(table->x, table->y, 0);
 	}
 
-	// BUILDING_NPC
 	if (!is_boot)
 	{ 
 		if (pkProto->npc_vnum)
@@ -856,7 +828,6 @@ bool manager::load_object(object_table * table, bool is_boot) // from DB
 
 		pkObj->apply_special_effect();
 	}
-	// END_OF_BUILDING_NPC
 
 	return true;
 }
@@ -870,15 +841,11 @@ void manager::finalize_boot()
 		object * pkObj = (it++)->second;
 
 		pkObj->show(pkObj->map_index(), pkObj->x(), pkObj->y());
-		// BUILDING_NPC
 		pkObj->regen_npc();
 		pkObj->apply_special_effect();
-		// END_OF_BUILDING_NPC
 	}
 
-	// BUILDING_NPC
 	metin2::log::info( "FinalizeBoot");
-	// END_OF_BUILDING_NPC
 
 	auto it2 = map_pk_land_.begin();
 
@@ -888,9 +855,7 @@ void manager::finalize_boot()
 
 		const land_table & r = pkLand->data();
 
-		// LAND_MASTER_LOG	
 		metin2::log::info( "LandMaster map_index={:d} pos=({:d}, {:d})", r.map_index, r.x, r.y);
-		// END_OF_LAND_MASTER_LOG
 
 		if (r.guild_id != 0)
 			continue;
@@ -906,7 +871,7 @@ void manager::finalize_boot()
 	}
 }
 
-void manager::delete_object(uint32_t id) // from DB
+void manager::delete_object(uint32_t id)
 {
 	metin2::log::info( "OBJ_DEL: {:d}", id);
 
@@ -952,14 +917,12 @@ void manager::send_land_list(desc * d, int32_t map_index_value)
 		if (r.map_index != map_index_value)
 			continue;
 
-		//
 		character * ch  = d->get_character();
 		if (ch)
 		{
 			guild *guild = guild_manager::instance().find_guild(r.guild_id);
 			ch->send_guild_name(guild);
 		}
-		//
 
 		e.id = r.id;
 		e.x = r.x;
@@ -986,7 +949,6 @@ void manager::send_land_list(desc * d, int32_t map_index_value)
 	}
 }
 
-// LAND_CLEAR
 void manager::clear_land(uint32_t land_id)
 {
 	land* pLand = find_land(land_id);
@@ -1034,9 +996,7 @@ void land::clear_land()
 
 	character_manager::instance().spawn_mob(20040, r.map_index, region->sx + r.x + (r.width / 2), region->sy + r.y + (r.height / 2), 0);
 }
-// END_LAND_CLEAR
 
-// BUILD_WALL
 void land::draw_wall(uint32_t vnum, int32_t map_index, int32_t& x, int32_t& y, char length, float z_rot)
 {
 	int rot = (int)z_rot;
@@ -1090,7 +1050,7 @@ bool land::request_create_wall(int32_t map_index, float rot)
 	int wall_half_w = 1000;
 	int wall_half_h = 1362;
 
-	if (rot == 0.0f) 		// South gate
+	if (rot == 0.0f)
 	{
 		int door_x = wall_x;
 		int door_y = wall_y + wall_half_h;
@@ -1099,7 +1059,7 @@ bool land::request_create_wall(int32_t map_index, float rot)
 		request_create_object(WALL_LEFT_VNUM,	map_index, wall_x - wall_half_w, wall_y, door_x, door_y,   0.0f, WALL_ANOTHER_CHECKING_ENABLE);
 		request_create_object(WALL_RIGHT_VNUM,	map_index, wall_x + wall_half_w, wall_y, door_x, door_y,   0.0f, WALL_ANOTHER_CHECKING_ENABLE);
 	}	
-	else if (rot == 180.0f)		// North gate
+	else if (rot == 180.0f)
 	{
 		int door_x = wall_x;
 		int door_y = wall_y - wall_half_h;
@@ -1108,7 +1068,7 @@ bool land::request_create_wall(int32_t map_index, float rot)
 		request_create_object(WALL_LEFT_VNUM,	map_index, wall_x - wall_half_w, wall_y, door_x, door_y,   0.0f, WALL_ANOTHER_CHECKING_ENABLE);
 		request_create_object(WALL_RIGHT_VNUM,	map_index, wall_x + wall_half_w, wall_y, door_x, door_y,   0.0f, WALL_ANOTHER_CHECKING_ENABLE);
 	}
-	else if (rot == 90.0f)		// East gate 
+	else if (rot == 90.0f)
 	{
 		int door_x = wall_x + wall_half_h;
 		int door_y = wall_y;
@@ -1117,7 +1077,7 @@ bool land::request_create_wall(int32_t map_index, float rot)
 		request_create_object(WALL_LEFT_VNUM,	map_index, wall_x, wall_y - wall_half_w, door_x, door_y,  90.0f, WALL_ANOTHER_CHECKING_ENABLE);
 		request_create_object(WALL_RIGHT_VNUM,	map_index, wall_x, wall_y + wall_half_w, door_x, door_y,  90.0f, WALL_ANOTHER_CHECKING_ENABLE);
 	}
-	else if (rot == 270.0f)		// West gate 
+	else if (rot == 270.0f)
 	{
 		int door_x = wall_x - wall_half_h;
 		int door_y = wall_y;
@@ -1262,5 +1222,4 @@ void land::request_delete_wall_blocks(uint32_t id_value)
 		iter++;
 	}
 }
-// END_BUILD_WALL
 }

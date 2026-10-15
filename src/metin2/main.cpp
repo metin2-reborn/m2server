@@ -1,5 +1,3 @@
-// The server executable: every role (db, auth, game) is this one program, and server.toml says which
-// one a process runs.
 #include <metin2/config/config.h>
 #include <metin2/log/log.h>
 
@@ -17,7 +15,6 @@ namespace metin2::game::inline app {
 }
 
 namespace {
-    // server.toml with runtime.toml (written by the launcher) merged over it.
     auto load_settings() -> bool {
         std::vector<std::filesystem::path> files = {"server.toml"};
         if (std::filesystem::exists("runtime.toml"))

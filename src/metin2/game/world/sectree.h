@@ -38,7 +38,6 @@ enum
 
 struct f_collect_entity {
 	void operator()(entity * entity) {
-		// Consider removing sanity check after debug pass
 		result.push_back(entity);
 	}
 	template<typename F>
@@ -50,7 +49,7 @@ struct f_collect_entity {
 		}
 	}
 	typedef std::vector<entity *> list_type;
-	list_type result; // list collected
+	list_type result;
 };
 
 
@@ -84,7 +83,6 @@ class sectree
 
 		template <class _Func> void for_each_around(_Func & func)
 		{
-			// <Factor> Using snapshot copy to avoid side-effects
 			f_collect_entity collector;
 			sectree_list::iterator it = neighbor_list_.begin();
 			for ( ; it != neighbor_list_.end(); ++it)
@@ -101,7 +99,6 @@ class sectree
 
 			while (it_tree != neighbor_list_.end())
 			{
-				//Return as soon as the first one is found
 				if ( (*(it_tree++))->for_each_entity_for_find_victim(func) )
 					return;
 			}
@@ -112,7 +109,6 @@ class sectree
 
 			while (it != set_entity_.end())
 			{
-				//Return as soon as it is found
 				if ( func(*it++) )
 					return true;
 			}
@@ -140,9 +136,9 @@ class sectree
 		uint32_t				get_attribute(int32_t x, int32_t y);
 		bool				is_attr(int32_t x, int32_t y, uint32_t flag);
 
-		void				clone_attribute(sectree * tree); // Used when handling private maps
+		void				clone_attribute(sectree * tree);
 
-		int				event_attribute(int32_t x, int32_t y); // As of 20050313, not used
+		int				event_attribute(int32_t x, int32_t y);
 
 		void				set_attribute(uint32_t x, uint32_t y, uint32_t attr);
 		void				remove_attribute(uint32_t x, uint32_t y, uint32_t attr);
@@ -153,7 +149,6 @@ class sectree
 			auto it = set_entity_.begin();
 			for ( ; it != set_entity_.end(); ++it) {
 				entity * entity = *it;
-				// <Factor> Sanity check
 				if (entity->get_sectree() != this) {
 					metin2::log::error("<Factor> SECTREE-ENTITY relationship mismatch");
 					set_entity_.erase(it);

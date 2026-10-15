@@ -17,9 +17,6 @@ namespace metin2::game {
 
 namespace quest
 {
-	//
-	// "item" Lua functions
-	//
 
 	int item_get_cell(lua_State* lua)
 	{
@@ -225,9 +222,9 @@ namespace quest
 		}
 
 		item->set_force_attribute(
-			lua_tonumber(lua, 1),		// index
-			lua_tonumber(lua, 2),		// apply type
-			lua_tonumber(lua, 3)		// apply value
+			lua_tonumber(lua, 1),
+			lua_tonumber(lua, 2),
+			lua_tonumber(lua, 3)
 		);
 
 		return 0;
@@ -446,7 +443,6 @@ namespace quest
 			item_manager::instance().flush_delayed_save(pkNewItem);
 			pkNewItem->attr_log();
 
-			// Success!
 			lua_pushboolean(lua, 1);			
 		}
 

@@ -17,7 +17,7 @@ public:
 
 	  int	level_start;
 	  int	level_end;
-	  int	percent; // 1 ~ 1000
+	  int	percent;
 	  uint32_t	vnum;
 
 	  friend bool operator < (const item_drop_info & l, const item_drop_info & r)

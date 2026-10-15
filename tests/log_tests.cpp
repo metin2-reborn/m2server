@@ -15,7 +15,6 @@
 namespace {
     namespace fs = std::filesystem;
 
-    // A fresh log directory for one test, removed again afterwards.
     struct temp_log {
         fs::path directory;
 

@@ -12,7 +12,6 @@ namespace metin2::game {
 
 namespace quest
 {
-	// "sun", "mon", "tue", "wed", "thu", "fri", "sat", "week", "weekend"
 
 	int speedserver_get_wday (lua_State* lua)
 	{

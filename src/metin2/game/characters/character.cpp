@@ -112,7 +112,6 @@ bool can_enter_zone(character * const& ch, int map_index)
 	return true;
 }
 
-// <Factor> DynamicCharacterPtr member function definitions
 
 character * dynamic_character_ptr::get() const {
 	character * p = nullptr;
@@ -207,9 +206,7 @@ void character::initialize()
 	fishing_event = nullptr;
 	warp_event = nullptr;
 
-	// MINING
 	mining_event = nullptr;
-	// END_OF_MINING
 
 	poison_event = nullptr;
 	fire_event = nullptr;
@@ -302,9 +299,7 @@ void character::initialize()
 
 	under_refine_ = false;
 
-	// REFINE_NPC
 	refine_npcvid_ = 0;
-	// END_OF_REFINE_NPC
 
 	polymorph_race_ = 0;
 
@@ -335,34 +330,19 @@ void character::initialize()
 	pos_safebox_open_.x = -1000;
 	pos_safebox_open_.y = -1000;
 
-	// EQUIP_LAST_SKILL_DELAY
 	last_skill_time_ = get_dword_time();
-	// END_OF_EQUIP_LAST_SKILL_DELAY
 
-	// MOB_SKILL_COOLTIME
 	memset(mob_skill_cooltime_, 0, sizeof(mob_skill_cooltime_));
-	// END_OF_MOB_SKILL_COOLTIME
 
 
-	// ARENA
 	arena_ = nullptr;
 	potion_limit_ = quest::quest_manager::instance().event_flag("arena_potion_limit_count");
-	// END_ARENA
 
-	//PREVENT_TRADE_WINDOW
 	is_open_safebox_ = 0;
-	//END_PREVENT_TRADE_WINDOW
 	
-	//PREVENT_REFINE_HACK
 	refine_time = 0;
-	//END_PREVENT_REFINE_HACK
 	
-	//RESTRICT_USE_SEED_OR_MOONBOTTLE
-	//END_RESTRICT_USE_SEED_OR_MOONBOTTLE
-	//PREVENT_PORTAL_AFTER_EXCHANGE
 	exchange_time = 0;
-	//END_PREVENT_PORTAL_AFTER_EXCHANGE
-	//
 	safebox_load_time_ = 0;
 
 	my_shop_time = 0;
@@ -421,12 +401,10 @@ void character::destroy()
 	if (regen_)
 	{
 		if (dungeon_) {
-			// Dungeon regen may not be valid at this point
 			if (dungeon_->is_valid_regen(regen_, regen_id_)) {
 				--regen_->count;
 			}
 		} else {
-			// Is this really safe?
 			--regen_->count;
 		}
 		regen_ = nullptr;
@@ -474,7 +452,6 @@ void character::destroy()
 		clear_item();
 	}
 
-	// <Factor> m_pkParty becomes NULL after CParty destructor call!
 	party * party = party_;
 	if (party)
 	{
@@ -490,7 +467,7 @@ void character::destroy()
 				party->quit(get_vid());
 		}
 
-		set_party(nullptr); // Not strictly needed, but to be safe.
+		set_party(nullptr);
 	}
 
 	mob_inst.reset();
@@ -513,17 +490,11 @@ void character::destroy()
 	event_cancel(&poison_event);
 	event_cancel(&fire_event);
 	event_cancel(&party_request_event_);
-	//DELAYED_WARP
 	event_cancel(&warp_event);
 	event_cancel(&check_speed_hack_event);
-	//END_DELAYED_WARP
 
-	// RECALL_DELAY
-	// END_OF_RECALL_DELAY
 
-	// MINING
 	event_cancel(&mining_event);
-	// END_OF_MINING
 
 	for (auto it = mob_skill_event.begin(); it != mob_skill_event.end(); ++it)
 	{
@@ -562,16 +533,14 @@ void character::open_my_shop(const char * sign_value, shop_item_table * table, u
 		return;
 	}
 
-	if (my_shop())	// If a shop is already open, close it.
+	if (my_shop())
 	{
 		close_my_shop();
 		return;
 	}
 
-	// Cannot open a shop while a quest is in progress.
 	quest::pc * pPC = quest::quest_manager::instance().pc_force(player_id());
 
-	// GetPCForce cannot be NULL, so no separate check
 	if (pPC->is_running())
 		return;
 
@@ -608,9 +577,7 @@ void character::open_my_shop(const char * sign_value, shop_item_table * table, u
 		return;
 	}
 
-	// MYSHOP_PRICE_LIST
-	std::map<uint32_t, uint32_t> itemkind;  // Price per item type, first: vnum, second: unit price
-	// END_OF_MYSHOP_PRICE_LIST	
+	std::map<uint32_t, uint32_t> itemkind;
 
 	std::set<item_pos> cont;
 	for (uint8_t i = 0; i < item_count; ++i)
@@ -621,7 +588,6 @@ void character::open_my_shop(const char * sign_value, shop_item_table * table, u
 			return;
 		}
 
-		// ANTI_GIVE, ANTI_MYSHOP check
 		item * pkItem = get_item((table + i)->pos);
 
 		if (pkItem)
@@ -646,25 +612,16 @@ void character::open_my_shop(const char * sign_value, shop_item_table * table, u
 				return;
 			}
 
-			// MYSHOP_PRICE_LIST
 			itemkind[pkItem->vnum()] = (table + i)->price / pkItem->count();
-			// END_OF_MYSHOP_PRICE_LIST
 		}
 
 		cont.insert((table + i)->pos);
 	}
 
-	// MYSHOP_PRICE_LIST
-	// Decrease the bundle count. 
-	if (count_specify_item(71049)) { // Silk bundles are not consumed; save the price info.
+	if (count_specify_item(71049)) {
 
-		//
-		// Build an item price info packet and send it to the DB cache to save the item prices.
-		//
 		
-		// Old code:
 		
-		// Fixed code:
 		item_price_list_table header;
 		memset(&header, 0, sizeof(item_price_list_table));
 
@@ -681,11 +638,10 @@ void character::open_my_shop(const char * sign_value, shop_item_table * table, u
 
 		db_clientdesc->db_packet(HEADER_GD_MYSHOP_PRICELIST_UPDATE, get_desc()->handle(), &header, sizeof(item_price_list_table));
 	} 
-	// END_OF_MYSHOP_PRICE_LIST
 	else if (count_specify_item(50200))
 		remove_specify_item(50200, 1);
 	else
-		return; // Abort if there is no bundle.
+		return;
 
 	if (exchange_)
 		exchange_->cancel();
@@ -709,8 +665,6 @@ void character::open_my_shop(const char * sign_value, shop_item_table * table, u
 	{
 		horse_summon( false, true );
 	}
-	// Opening a private shop while using a new mount automatically unmounts
-	// It would be nice if StopRiding handled new mounts too; no idea why it wasn't done that way.
 	else if (get_mount_vnum())
 	{
 		remove_affect(AFFECT_MOUNT);
@@ -791,7 +745,6 @@ void character::restart_at_same_pos()
 }
 
 
-// Send packets to the entity saying I have appeared.
 void character::encode_insert_packet(entity * entity)
 {
 
@@ -800,10 +753,8 @@ void character::encode_insert_packet(entity * entity)
 	if (!(d = entity->get_desc()))
 		return;
 
-	// Guild name bug fix code
 	character * ch = (character *) entity;
 	ch->send_guild_name(get_guild());
-	// Guild name bug fix code
 
 	packet_gc_character_add pack;
 
@@ -1153,9 +1104,7 @@ void character::create_player_proto(player_table & tab)
 
 	std::memcpy(tab.parts, points_instant_.parts, sizeof(tab.parts));
 
-	// REMOVE_REAL_SKILL_LEVLES
 	std::memcpy(tab.skills, skill_levels_.get(), sizeof(player_skill) * SKILL_MAX_NUM);
-	// END_OF_REMOVE_REAL_SKILL_LEVLES
 
 	tab.horse = horse_data();
 }
@@ -1193,7 +1142,6 @@ void character::save_real()
 
 void character::flush_delayed_save_item()
 {
-	// Save all unsaved belongings.
 	item * item;
 
 	for (int i = 0; i < INVENTORY_AND_EQUIP_SLOT_MAX; ++i)
@@ -1225,7 +1173,6 @@ void character::disconnect(const char * reason)
 
 	marriage::manager::instance().logout(this);
 
-	// P2P Logout
 	packet_gg_logout p;
 	p.header = HEADER_GG_LOGOUT;
 	strlcpy(p.name, name(), sizeof(p.name));
@@ -1253,7 +1200,6 @@ void character::disconnect(const char * reason)
 	if (get_party())
 		get_party()->unlink(this);
 
-	// Reduce experience if disconnecting while dead
 	if (is_stun() || is_dead())
 	{
 		death_penalty(0);
@@ -1270,7 +1216,7 @@ void character::disconnect(const char * reason)
 
 	save_affect();
 
-	skip_save_ = true; // Nothing must be saved after this point.
+	skip_save_ = true; // Nothing may be saved after this point.
 
 	quest::quest_manager::instance().disconnect_pc(this);
 
@@ -1293,7 +1239,7 @@ void character::disconnect(const char * reason)
 	character_manager::instance().destroy_character(this);
 }
 
-bool character::show(int32_t map_index, int32_t x, int32_t y, int32_t z, bool show_spawn_motion/* = false */)
+bool character::show(int32_t map_index, int32_t x, int32_t y, int32_t z, bool show_spawn_motion )
 {
 	sectree * sectree = sectree_manager::instance().get(map_index, x, y);
 
@@ -1366,7 +1312,6 @@ bool character::show(int32_t map_index, int32_t x, int32_t y, int32_t z, bool sh
 	return true;
 }
 
-// BGM_INFO
 struct bgm_info
 {
 	std::string	name;
@@ -1410,14 +1355,12 @@ bool character_is_bgm_volume_enable()
 {
 	return bgm_vol_enable;
 }
-// END_OF_BGM_INFO
 
 void character::main_character_packet()
 {
 	const unsigned mapIndex = map_index();
 	const bgm_info& bgmInfo = character_get_bgm_info(mapIndex);
 
-	// SUPPORT_BGM
 	if (!bgmInfo.name.empty())
 	{
 		if (character_is_bgm_volume_enable())
@@ -1455,7 +1398,6 @@ void character::main_character_packet()
 			get_desc()->packet(&mainChrPacket, sizeof(packet_gc_main_character3_bgm));
 		}
 	}
-	// END_OF_SUPPORT_BGM
 	else
 	{
 		metin2::log::info( "bgm_info.play({:d}, DEFAULT_BGM_NAME)", mapIndex);
@@ -1628,10 +1570,8 @@ void character::set_player_proto(const player_table * t)
 	points_.random_hp = t->s_random_hp;
 	points_.random_sp = t->s_random_sp;
 
-	// REMOVE_REAL_SKILL_LEVLES
 	skill_levels_ = std::make_unique<player_skill[]>(SKILL_MAX_NUM);
 	std::memcpy(skill_levels_.get(), t->skills, sizeof(player_skill) * SKILL_MAX_NUM);
-	// END_OF_REMOVE_REAL_SKILL_LEVLES
 
 	if (t->map_index >= 10000)
 	{
@@ -1676,7 +1616,6 @@ void character::set_player_proto(const player_table * t)
 	set_sp(t->sp);
 	set_stamina(t->stamina);
 
-	//Protection mode when GM  
 	if (!metin2::config::test_server())
 	{
 		if (gm_level() > GM_LOW_WIZARD)
@@ -1708,7 +1647,6 @@ void character::set_player_proto(const player_table * t)
 		metin2::log::info( "GM_LOGIN(gmlevel={:d}, name={}({:d}), pos=({:d}, {:d})", gm_level(), name(), player_id(), x(), y());
 	}
 
-	// NOTE: For now only PC characters get a PetSystem. Doing it for NPCs too is a bit much given per-machine memory usage in Europe..
 	if (pet_system_)
 	{
 		pet_system_->destroy();
@@ -1727,7 +1665,7 @@ EVENTFUNC(kill_ore_load_event)
 	}
 
 	character *	ch = info->ch;
-	if (ch == nullptr) { // <Factor>
+	if (ch == nullptr) {
 		return 0;
 	}	
 
@@ -1761,7 +1699,6 @@ void character::set_proto(const mob * mob_value)
 	set_hp(max_hp());
 	set_sp(max_sp());
 
-	////////////////////
 	points_instant_.ai_flag = t->ai_flag;
 	set_immune_flag(t->immune_flag);
 
@@ -1781,20 +1718,16 @@ void character::set_proto(const mob * mob_value)
 
 	character_manager::instance().register_race_num_map(this);
 
-	// XXX X-mas santa hardcoding
 	if (race_num() == xmas::MOB_SANTA_VNUM)
 	{
 		set_point(POINT_ATT_GRADE_BONUS, 10);
 		set_point(POINT_DEF_GRADE_BONUS, 6);
 
-		//For Santa
-		//Sinseonja Nohae 
 		play_start_time_ = get_dword_time() + 30 * 1000;
 		if (metin2::config::test_server())
 			play_start_time_ = get_dword_time() + 30 * 1000;
 	}
 
-	// XXX CTF GuildWar hardcoding
 	if (warmap::is_war_flag(race_num()))
 	{
 		state_idle_.set(this, &character::begin_state_empty, &character::state_flag, &character::end_state_empty);
@@ -1826,7 +1759,6 @@ void character::set_proto(const mob * mob_value)
 		state_battle_.set(this, &character::begin_state_empty, &character::state_horse, &character::end_state_empty);
 	}
 
-	// MINING
 	if (mining::is_vein_of_ore (race_num()))
 	{
 		char_event_info* info = alloc_event_info<char_event_info>();
@@ -1835,7 +1767,6 @@ void character::set_proto(const mob * mob_value)
 
 		mining_event = event_create(kill_ore_load_event, info, passes_per_sec(number(7 * 60, 15 * 60)));
 	}
-	// END_OF_MINING
 }
 
 const mob_table & character::get_mob_table() const
@@ -1863,7 +1794,7 @@ float character::mob_damage_multiply() const
 	float fDamMultiply = get_mob_table().dam_multiply;
 
 	if (is_berserk())
-		fDamMultiply = fDamMultiply * 2.0f; // BALANCE: double when berserk
+		fDamMultiply = fDamMultiply * 2.0f;
 
 	return fDamMultiply;
 }
@@ -1896,7 +1827,7 @@ uint32_t character::monster_drain_sp_point() const
 uint8_t character::get_mob_rank() const
 {
 	if (!mob_data)
-		return MOB_RANK_KNIGHT;	// KNIGHT grade for PCs
+		return MOB_RANK_KNIGHT;
 
 	return mob_data->table.rank;
 }
@@ -1933,7 +1864,6 @@ void character::compute_battle_points()
 		if (pMob)
 		{
 			iAtt = level() * 2 + polymorph_point(POINT_ST) * 2;
-			// lev + con
 			iDef = level() + polymorph_point(POINT_HT) + pMob->table.def;
 		}
 
@@ -1950,9 +1880,6 @@ void character::compute_battle_points()
 		set_point(POINT_MAGIC_ATT_GRADE, point(POINT_ATT_GRADE));
 		set_point(POINT_MAGIC_DEF_GRADE, point(POINT_DEF_GRADE));
 
-		//
-		// Base ATK = 2lev + 2str; the 2str part may differ per job
-		//
 		int iAtk = level() * 2;
 		int iStatAtk = 0;
 
@@ -1977,14 +1904,11 @@ void character::compute_battle_points()
 				break;
 		}
 
-		// If riding a horse and the attack from stats is below ST*2, use ST*2.
-		// This keeps people who misallocated stats from having lower attack.
 		if (get_mount_vnum() && iStatAtk < 2 * point(POINT_ST))
 			iStatAtk = (2 * point(POINT_ST));
 
 		iAtk += iStatAtk;
 
-		// Riding (horse): sword Sura damage reduction  
 		if (get_mount_vnum())
 		{
 			if (job() == JOB_SURA && skill_group() == 1)
@@ -1997,16 +1921,12 @@ void character::compute_battle_points()
 			}
 		}
 		
-		//
-		// ATK Setting
-		//
 		iAtk += point(POINT_ATT_GRADE_BONUS);
 
 		point_change(POINT_ATT_GRADE, iAtk);
 
-		// DEF = LEV + CON + ARMOR
-		int iShowDef = level() + point(POINT_HT); // For Ymir (Cheonma)
-		int iDef = level() + (int) (point(POINT_HT) / 1.25); // For Other
+		int iShowDef = level() + point(POINT_HT);
+		int iDef = level() + (int) (point(POINT_HT) / 1.25);
 		int iArmor = 0;
 
 		item * pkItem;
@@ -2021,7 +1941,6 @@ void character::compute_battle_points()
 				}
 			}
 
-		// While riding, if defense is below the horse's base defense, set it to the base defense
 		if( true == is_horse_riding() )
 		{
 			if (iArmor < horse_armor())
@@ -2038,19 +1957,15 @@ void character::compute_battle_points()
 		iArmor += point(POINT_DEF_GRADE_BONUS);
 		iArmor += point(POINT_PARTY_DEFENDER_BONUS);
 
-		// INTERNATIONAL_VERSION
 		point_change(POINT_DEF_GRADE, iDef + iArmor);
 		point_change(POINT_CLIENT_DEF_GRADE, (iShowDef + iArmor) - point(POINT_DEF_GRADE));
-		// END_OF_INTERNATIONAL_VERSION
 
 		point_change(POINT_MAGIC_ATT_GRADE, level() * 2 + point(POINT_IQ) * 2 + point(POINT_MAGIC_ATT_GRADE_BONUS));
 		point_change(POINT_MAGIC_DEF_GRADE, level() + (point(POINT_IQ) * 3 + point(POINT_HT)) / 3 + iArmor / 2 + point(POINT_MAGIC_DEF_GRADE_BONUS));
 	}
 	else
 	{
-		// 2lev + str * 2
 		int iAtt = level() * 2 + point(POINT_ST) * 2;
-		// lev + con
 		int iDef = level() + point(POINT_HT) + get_mob_table().def;
 
 		set_point(POINT_ATT_GRADE, iAtt);
@@ -2110,17 +2025,14 @@ void character::compute_points()
 	set_point(POINT_HP_RECOVERY, lHPRecovery);
 	set_point(POINT_SP_RECOVERY, lSPRecovery);
 
-	// PC_BANG_ITEM_ADD
 	set_point(POINT_PC_BANG_EXP_BONUS, 0);
 	set_point(POINT_PC_BANG_DROP_BONUS, 0);
-	// END_PC_BANG_ITEM_ADD
 
 	int iMaxHP, iMaxSP;
 	int iMaxStamina;
 
 	if (is_pc())
 	{
-		// Max HP/SP
 		iMaxHP = job_initial_points[job()].max_hp + points_.random_hp + point(POINT_HT) * job_initial_points[job()].hp_per_ht;
 		iMaxSP = job_initial_points[job()].max_sp + points_.random_sp + point(POINT_IQ) * job_initial_points[job()].sp_per_iq;
 		iMaxStamina = job_initial_points[job()].max_stamina + point(POINT_HT) * job_initial_points[job()].stamina_per_con;
@@ -2136,7 +2048,6 @@ void character::compute_points()
 			}
 		}
 
-		// Base values
 		set_point(POINT_MOV_SPEED,	100);
 		set_point(POINT_ATT_SPEED,	100);
 		point_change(POINT_ATT_SPEED, point(POINT_PARTY_HASTE_BONUS));
@@ -2155,9 +2066,6 @@ void character::compute_points()
 
 	if (is_pc())
 	{
-		// While riding, raise base stats that are below the horse's base stats.
-		// Since the horse's base stats are based on the Warrior, for Sura/Shaman the total stat sum
-		// will generally end up higher.
 		if (get_mount_vnum()) 
 		{
 			if (horse_st() > point(POINT_ST))
@@ -2177,17 +2085,16 @@ void character::compute_points()
 
 	compute_battle_points();
 
-	// Set base HP/SP
 	if (iMaxHP != max_hp())
 	{
-		set_real_point(POINT_MAX_HP, iMaxHP); // Store base HP in RealPoint.
+		set_real_point(POINT_MAX_HP, iMaxHP);
 	}
 
 	point_change(POINT_MAX_HP, 0);
 
 	if (iMaxSP != max_sp())
 	{
-		set_real_point(POINT_MAX_SP, iMaxSP); // Store base SP in RealPoint.
+		set_real_point(POINT_MAX_SP, iMaxSP);
 	}
 
 	point_change(POINT_MAX_SP, 0);
@@ -2206,10 +2113,7 @@ void character::compute_points()
 		}
 	}
 
-	// Dragon soul system
-	// ComputePoints resets all of the character's attribute values,
-	// and recalculates all attributes related to items, buffs, etc.,
-	// so the dragon soul system must also reapply the attributes of every dragon soul in the ActiveDeck.
+	// compute_points reset every point, so the active dragon soul deck must be reapplied.
 	if (dragon_soul_is_deck_activated())
 	{
 		for (int i = WEAR_MAX_NUM + DS_SLOT_MAX * dragon_soul_get_active_deck(); 
@@ -2247,9 +2151,6 @@ void character::compute_points()
 	update_packet();
 }
 
-// m_dwPlayStartTime is in milliseconds. The database records minutes,
-// so play time is computed by dividing by 60000; when there is a remainder
-// left over, it must be passed here as dwTimeRemain so it is calculated correctly.
 void character::reset_play_time(uint32_t time_remain)
 {
 	play_start_time_ = get_dword_time() - time_remain;
@@ -2268,15 +2169,12 @@ EVENTFUNC(recovery_event)
 
 	character *	ch = info->ch;
 
-	if (ch == nullptr) { // <Factor>
+	if (ch == nullptr) {
 		return 0;
 	}	
 
 	if (!ch->is_pc())
 	{
-		//
-		// Monster recovery
-		//
 		if (ch->is_affect_flag(AFF_POISON))
 			return passes_per_sec(std::max<int>(1, ch->get_mob_table().regen_cycle));
 
@@ -2332,24 +2230,16 @@ EVENTFUNC(recovery_event)
 	}
 	else
 	{
-		//
-		// PC recovery
-		//
 		ch->check_target();
-		//ch->UpdateSectree(); // Why do this here?
 		ch->update_killer_mode();
 
 		if (ch->is_affect_flag(AFF_POISON) == true)
 		{
-			// No auto-recovery while poisoned
-			// No auto-recovery under Dispel
 			return 3;
 		}
 
 		int iSec = (get_dword_time() - ch->last_move_time()) / 3000;
 
-		// SP recovery routine.
-		// Why was this split out into a function like this?!
 		ch->distribute_sp(ch);
 
 		if (ch->max_hp() <= ch->hp())
@@ -2380,7 +2270,7 @@ void character::start_recovery_event()
 	if (is_dead() || is_stun())
 		return;
 
-	if (is_npc() && hp() >= max_hp()) // Monsters don't start if their HP is full.
+	if (is_npc() && hp() >= max_hp())
 		return;
 
 	char_event_info* info = alloc_event_info<char_event_info>();
@@ -2430,7 +2320,6 @@ void character::set_rotation(float rot_value)
 	points_instant_.rot = rot_value;
 }
 
-// Stand facing direction x, y.
 void character::set_rotation_to_xy(int32_t x_value, int32_t y_value)
 {
 	set_rotation(get_degree_from_position_xy(x(), y(), x_value, y_value));
@@ -2446,14 +2335,12 @@ bool character::can_move() const
 	if (cannot_move_by_affect())
 		return false;
 
-	if (my_shop())	// Cannot move while a shop is open
+	if (my_shop())
 		return false;
 
-	// Cannot move if within 0.2 seconds.
 	return true;
 }
 
-// Unconditionally move to position x, y.
 bool character::sync(int32_t x, int32_t y)
 {
 	if (!get_sectree())
@@ -2482,7 +2369,6 @@ bool character::sync(int32_t x, int32_t y)
 
 	if (get_dungeon())
 	{
-		// Event attribute change for dungeons
 		int iLastEventAttr = event_attr_;
 		event_attr_ = new_tree->event_attribute(x, y);
 
@@ -2535,8 +2421,6 @@ void character::stop()
 
 bool character::go_to(int32_t x_value, int32_t y_value)
 {
-	// TODO distance check needed
-	// Same position, no need to move (automatic success)
 	if (x() == x_value && y() == y_value)
 		return false;
 
@@ -2665,14 +2549,8 @@ void character::calculate_move_duration()
 	move_start_time_ = get_dword_time();
 }
 
-// Move to position x, y. (Checks whether the move is possible, then actually moves with the Sync method)
-// The server changes the char's x, y immediately,
-// but the client interpolates from the previous position to the new x, y.
-// Walking vs. running depends on the char's m_bNowWalking.
-// If a warp is intended, use Show.
 bool character::move(int32_t x_value, int32_t y_value)
 {
-	// Same position, no need to move (automatic success)
 	if (x() == x_value && y() == y_value)
 		return true;
 
@@ -2834,7 +2712,6 @@ void character::set_point(uint8_t type, int val)
 
 	points_instant_.points[type] = val;
 
-	// If the move hasn't finished yet, the move time must be recalculated.
 	if (type == POINT_MOV_SPEED && get_dword_time() < move_start_time_ + move_duration_)
 	{
 		calculate_move_duration();
@@ -2890,7 +2767,7 @@ void character::point_change(uint8_t type, int amount, bool amount_value, bool b
 
 		case POINT_NEXT_EXP:
 			val = next_exp();
-			amount_value = false;	// bAmount must always be false.
+			amount_value = false;
 			break;
 
 		case POINT_EXP:
@@ -2898,9 +2775,7 @@ void character::point_change(uint8_t type, int amount, bool amount_value, bool b
 				uint32_t exp = get_exp();
 				uint32_t next_exp_value = next_exp();
 
-				// Youth protection
 
-				// Keep exp from going below 0
 				if (amount < 0 && exp < static_cast<uint32_t>(-amount))
 				{
 					metin2::log::debug( "{} AMOUNT < 0 {:d}, CUR EXP: {:d}", name(), -amount, exp);
@@ -2919,7 +2794,6 @@ void character::point_change(uint8_t type, int amount, bool amount_value, bool b
 
 					uint32_t iExpBalance = 0;
 
-					// Level up!
 					if (exp + amount >= next_exp_value)
 					{
 						iExpBalance = (exp + amount) - next_exp_value;
@@ -2937,7 +2811,6 @@ void character::point_change(uint8_t type, int amount, bool amount_value, bool b
 					uint32_t q = uint32_t(next_exp_value / 4.0f);
 					int iLevStep = real_point(POINT_LEVEL_STEP);
 
-					// If iLevStep is 4 or more the level should have gone up, so this value cannot occur here.
 					if (iLevStep >= 4)
 					{
 						metin2::log::error("{} LEVEL_STEP bigger than 4! ({:d})", name(), iLevStep);
@@ -3075,16 +2948,14 @@ void character::point_change(uint8_t type, int amount, bool amount_value, bool b
 				
 				if (val == 0)
 				{
-					// No stamina, so walk!
 					set_now_walking(true);
 				}
 				else if (prev_val == 0)
 				{
-					// Stamina is back, so return to the previous mode
 					reset_walking();
 				}
 
-				if (amount < 0 && val != 0) // Decreases are not sent.
+				if (amount < 0 && val != 0)
 					return;
 			}
 			break;
@@ -3093,7 +2964,6 @@ void character::point_change(uint8_t type, int amount, bool amount_value, bool b
 			{
 				set_point(type, point(type) + amount);
 
-				// Max HP = (base max HP + bonus) * max HP%
 				int hp_value = real_point(POINT_MAX_HP);
 				int add_hp = std::min(3500, hp_value * point(POINT_MAX_HP_PCT) / 100);
 				add_hp += point(POINT_MAX_HP);
@@ -3109,7 +2979,6 @@ void character::point_change(uint8_t type, int amount, bool amount_value, bool b
 			{
 				set_point(type, point(type) + amount);
 
-				// Max SP = (base max SP + bonus) * max SP%
 				int sp_value = real_point(POINT_MAX_SP);
 				int add_sp = std::min(800, sp_value * point(POINT_MAX_SP_PCT) / 100);
 				add_sp += point(POINT_MAX_SP);
@@ -3151,7 +3020,6 @@ void character::point_change(uint8_t type, int amount, bool amount_value, bool b
 					return;
 				}
 
-				// Youth protection
 
 				set_gold(gold() + amount);
 				val = gold();
@@ -3197,12 +3065,12 @@ void character::point_change(uint8_t type, int amount, bool amount_value, bool b
 		case POINT_HP_RECOVERY:
 		case POINT_SP_RECOVERY:
 
-		case POINT_ATTBONUS_HUMAN:	// 42 Strong against humans
-		case POINT_ATTBONUS_ANIMAL:	// 43 Damage % increase against animals
-		case POINT_ATTBONUS_ORC:		// 44 Damage % increase against orcs
-		case POINT_ATTBONUS_MILGYO:	// 45 Damage % increase against mystics
-		case POINT_ATTBONUS_UNDEAD:	// 46 Damage % increase against undead
-		case POINT_ATTBONUS_DEVIL:	// 47 Damage % increase against devils (demons)
+		case POINT_ATTBONUS_HUMAN:
+		case POINT_ATTBONUS_ANIMAL:
+		case POINT_ATTBONUS_ORC:
+		case POINT_ATTBONUS_MILGYO:
+		case POINT_ATTBONUS_UNDEAD:
+		case POINT_ATTBONUS_DEVIL:
 
 		case POINT_ATTBONUS_MONSTER:
 		case POINT_ATTBONUS_SURA:
@@ -3223,11 +3091,11 @@ void character::point_change(uint8_t type, int amount, bool amount_value, bool b
 		case POINT_RESIST_PENETRATE:
 		case POINT_CURSE_PCT:
 
-		case POINT_STEAL_HP:		// 48 HP absorb
-		case POINT_STEAL_SP:		// 49 SP absorb
+		case POINT_STEAL_HP:
+		case POINT_STEAL_SP:
 
-		case POINT_MANA_BURN_PCT:	// 50 Mana burn
-		case POINT_DAMAGE_SP_RECOVER:	// 51 Chance to recover SP when attacked
+		case POINT_MANA_BURN_PCT:
+		case POINT_DAMAGE_SP_RECOVER:
 		case POINT_RESIST_NORMAL_DAMAGE:
 		case POINT_RESIST_SWORD:
 		case POINT_RESIST_TWOHAND:
@@ -3242,11 +3110,11 @@ void character::point_change(uint8_t type, int amount, bool amount_value, bool b
 		case POINT_RESIST_ICE:
 		case POINT_RESIST_EARTH:
 		case POINT_RESIST_DARK:
-		case POINT_REFLECT_MELEE:	// 67 Attack reflect
-		case POINT_REFLECT_CURSE:	// 68 Curse reflect
-		case POINT_POISON_REDUCE:	// 69 Poison damage reduction
-		case POINT_KILL_SP_RECOVER:	// 70 Recover MP when an enemy is killed
-		case POINT_KILL_HP_RECOVERY:	// 75  
+		case POINT_REFLECT_MELEE:
+		case POINT_REFLECT_CURSE:
+		case POINT_POISON_REDUCE:
+		case POINT_KILL_SP_RECOVER:
+		case POINT_KILL_HP_RECOVERY:
 		case POINT_HIT_HP_RECOVERY:
 		case POINT_HIT_SP_RECOVERY:
 		case POINT_MANASHIELD:
@@ -3255,13 +3123,11 @@ void character::point_change(uint8_t type, int amount, bool amount_value, bool b
 		case POINT_SKILL_DAMAGE_BONUS:
 		case POINT_NORMAL_HIT_DAMAGE_BONUS:
 
-			// DEPEND_BONUS_ATTRIBUTES 
 		case POINT_SKILL_DEFEND_BONUS:
 		case POINT_NORMAL_HIT_DEFEND_BONUS:
 			set_point(type, point(type) + amount);
 			val = point(type);
 			break;
-			// END_OF_DEPEND_BONUS_ATTRIBUTES
 
 		case POINT_PARTY_ATTACKER_BONUS:
 		case POINT_PARTY_TANKER_BONUS:
@@ -3295,19 +3161,17 @@ void character::point_change(uint8_t type, int amount, bool amount_value, bool b
 			val = point(type);
 			break;
 
-			// PC_BANG_ITEM_ADD		
 		case POINT_PC_BANG_EXP_BONUS :
 		case POINT_PC_BANG_DROP_BONUS :
 		case POINT_RAMADAN_CANDY_BONUS_EXP:
 			set_point(type, amount);
 			val = point(type);
 			break;
-			// END_PC_BANG_ITEM_ADD		
 
-		case POINT_EXP_DOUBLE_BONUS:	// 71  
-		case POINT_GOLD_DOUBLE_BONUS:	// 72  
-		case POINT_ITEM_DROP_BONUS:	// 73  
-		case POINT_POTION_BONUS:	// 74
+		case POINT_EXP_DOUBLE_BONUS:
+		case POINT_GOLD_DOUBLE_BONUS:
+		case POINT_ITEM_DROP_BONUS:
+		case POINT_POTION_BONUS:
 			if (point(type) + amount > 100)
 			{
 				metin2::log::error("BONUS exceeded over 100!! point type: {:d} name: {} amount {:d}", type, name(), amount);
@@ -3318,7 +3182,7 @@ void character::point_change(uint8_t type, int amount, bool amount_value, bool b
 			val = point(type);
 			break;
 
-		case POINT_IMMUNE_STUN:		// 76 
+		case POINT_IMMUNE_STUN:
 			set_point(type, point(type) + amount);
 			val = point(type);
 			if (val)
@@ -3331,7 +3195,7 @@ void character::point_change(uint8_t type, int amount, bool amount_value, bool b
 			}
 			break;
 
-		case POINT_IMMUNE_SLOW:		// 77  
+		case POINT_IMMUNE_SLOW:
 			set_point(type, point(type) + amount);
 			val = point(type);
 			if (val)
@@ -3344,7 +3208,7 @@ void character::point_change(uint8_t type, int amount, bool amount_value, bool b
 			}
 			break;
 
-		case POINT_IMMUNE_FALL:	// 78   
+		case POINT_IMMUNE_FALL:
 			set_point(type, point(type) + amount);
 			val = point(type);
 			if (val)
@@ -3456,7 +3320,7 @@ void character::apply_point(uint8_t apply_type, int val)
 {
 	switch (apply_type)
 	{
-		case APPLY_NONE:			// 0
+		case APPLY_NONE:
 			break;;
 
 		case APPLY_CON:
@@ -3471,12 +3335,7 @@ void character::apply_point(uint8_t apply_type, int val)
 			break;
 
 		case APPLY_SKILL:
-			// SKILL_DAMAGE_BONUS
 			{
-				// From the most significant bit: 8 bits vnum, 9 bits add, 15 bits change
-				// 00000000 00000000 00000000 00000000
-				// ^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^^^^
-				// vnum     ^ add       change
 				uint8_t bSkillVnum = (uint8_t) (((uint32_t)val) >> 24);
 				int iAdd = val & 0x00800000;
 				int iChange = val & 0x007fffff;
@@ -3493,7 +3352,6 @@ void character::apply_point(uint8_t apply_type, int val)
 				else
 					iter->second += iChange;
 			}
-			// END_OF_SKILL_DAMAGE_BONUS
 			break;
 
 		case APPLY_STR:
@@ -3518,11 +3376,11 @@ void character::apply_point(uint8_t apply_type, int val)
 		case APPLY_ATTBONUS_MILGYO:
 		case APPLY_ATTBONUS_UNDEAD:
 		case APPLY_ATTBONUS_DEVIL:
-		case APPLY_ATTBONUS_WARRIOR:	// 59
-		case APPLY_ATTBONUS_ASSASSIN:	// 60
-		case APPLY_ATTBONUS_SURA:	// 61
-		case APPLY_ATTBONUS_SHAMAN:	// 62
-		case APPLY_ATTBONUS_MONSTER:	// 63
+		case APPLY_ATTBONUS_WARRIOR:
+		case APPLY_ATTBONUS_ASSASSIN:
+		case APPLY_ATTBONUS_SURA:
+		case APPLY_ATTBONUS_SHAMAN:
+		case APPLY_ATTBONUS_MONSTER:
 		case APPLY_STEAL_HP:
 		case APPLY_STEAL_SP:
 		case APPLY_MANA_BURN_PCT:
@@ -3571,10 +3429,8 @@ void character::apply_point(uint8_t apply_type, int val)
 		case APPLY_SKILL_DAMAGE_BONUS:
 		case APPLY_NORMAL_HIT_DAMAGE_BONUS:
 
-			// DEPEND_BONUS_ATTRIBUTES
 		case APPLY_SKILL_DEFEND_BONUS:
 		case APPLY_NORMAL_HIT_DEFEND_BONUS:
-			// END_OF_DEPEND_BONUS_ATTRIBUTES
 
 		case APPLY_PC_BANG_EXP_BONUS :
 		case APPLY_PC_BANG_DROP_BONUS :
@@ -3583,11 +3439,11 @@ void character::apply_point(uint8_t apply_type, int val)
 		case APPLY_RESIST_ASSASSIN :
 		case APPLY_RESIST_SURA :
 		case APPLY_RESIST_SHAMAN :	
-		case APPLY_ENERGY:					// 82 Energy
-		case APPLY_DEF_GRADE:				// 83 Defense. DEF_GRADE_BONUS has an intended bug (...) where the client shows it doubled.
-		case APPLY_COSTUME_ATTR_BONUS:		// 84 Attribute bonus on costume items
-		case APPLY_MAGIC_ATTBONUS_PER:		// 85 Magic attack +x%
-		case APPLY_MELEE_MAGIC_ATTBONUS_PER:			// 86 Magic + melee attack +x%
+		case APPLY_ENERGY:
+		case APPLY_DEF_GRADE: // DEF_GRADE_BONUS: the client shows this doubled; intentional.
+		case APPLY_COSTUME_ATTR_BONUS:
+		case APPLY_MAGIC_ATTBONUS_PER:
+		case APPLY_MELEE_MAGIC_ATTBONUS_PER:
 			point_change(a_apply_info[apply_type].point_type, val);
 			break;
 
@@ -3608,7 +3464,7 @@ EVENTFUNC(save_event)
 
 	character * ch = info->ch;
 
-	if (ch == nullptr) { // <Factor>
+	if (ch == nullptr) {
 		return 0;
 	}	
 	metin2::log::debug( "SAVE_EVENT: {}", ch->name());
@@ -3653,7 +3509,6 @@ void character::monster_log(const char* format, ...)
 	else
 		len += len2;
 
-	// including the \0 character
 	++len;
 
 	va_end(args);
@@ -3690,7 +3545,6 @@ void character::chat_packet(uint8_t type, const char * format, ...)
 	if (len < 0)
 		return;
 
-	// vsnprintf returns the untruncated length: send what fits, cut on a character boundary
 	if (len >= (int) sizeof(chatbuf))
 	{
 		len = (int) utf8_truncated_size(chatbuf, sizeof(chatbuf) - 1, sizeof(chatbuf) - 1);
@@ -3715,7 +3569,6 @@ void character::chat_packet(uint8_t type, const char * format, ...)
 		metin2::log::info( "SEND_COMMAND {} {}", name(), chatbuf);
 }
 
-// MINING
 void character::mining_take()
 {
 	mining_event = nullptr;
@@ -3753,9 +3606,8 @@ void character::mining(character * ch_load)
 		return;
 	}
 
-	int count = number(5, 15); // Number of motions, 2 seconds per motion
+	int count = number(5, 15);
 
-	// Show the mining motion
 	packet_gc_dig_motion p;
 	p.header = HEADER_GC_DIG_MOTION;
 	p.vid = get_vid();
@@ -3766,7 +3618,6 @@ void character::mining(character * ch_load)
 
 	mining_event = mining::create_mining_event(this, ch_load, count);
 }
-// END_OF_MINING
 
 void character::fishing()
 {
@@ -3776,7 +3627,6 @@ void character::fishing()
 		return;
 	}
 
-	// Trying to fish on a no-go attribute?
 	{
 		sectree_map * pkSectreeMap = sectree_manager::instance().map(map_index());
 
@@ -3795,7 +3645,6 @@ void character::fishing()
 
 	item * rod = wear(WEAR_WEAPON);
 
-	// Equip fishing rod
 	if (!rod || rod->type() != ITEM_ROD)
 	{
 		chat_packet(CHAT_TYPE_INFO, lc_text("낚시대를 장착 하세요."));
@@ -3874,7 +3723,6 @@ void character::set_next_state_pulse(int next_pulse)
 }
 
 
-// Character instance update function.
 void character::update_character(uint32_t pulse)
 {
 	fsm::update();
@@ -3913,7 +3761,7 @@ uint16_t character::original_part(uint8_t part_pos) const
 	switch (part_pos)
 	{
 		case PART_MAIN:
-			if (!is_pc()) // For non-PCs return the current part as-is
+			if (!is_pc())
 				return part(PART_MAIN);
 			else
 				return points_instant_.base_part;
@@ -3933,10 +3781,8 @@ uint8_t character::get_char_type() const
 
 bool character::set_sync_owner(character * ch, bool remove_from_list)
 {
-	// TRENT_MONSTER
 	if (is_set(points_instant_.ai_flag, AIFLAG_NOMOVE))
 		return false;
-	// END_OF_TRENT_MONSTER
 
 	if (ch == this)
 	{
@@ -3954,7 +3800,6 @@ bool character::set_sync_owner(character * ch, bool remove_from_list)
 		if (chr_sync_owner_)
 			metin2::log::debug( "SyncRelease {} {} from {}", name(), static_cast<const void *>(this), chr_sync_owner_->name());
 
-		// Even if not removed from the list, the pointer must be set to NULL.
 		chr_sync_owner_ = nullptr;
 	}
 	else
@@ -3962,12 +3807,10 @@ bool character::set_sync_owner(character * ch, bool remove_from_list)
 		if (!is_sync_owner(ch))
 			return false;
 
-		// Cannot be SyncOwner if the distance is 200 or more.
 		if (distance_approx(x() - ch->x(), y() - ch->y()) > 250)
 		{
 			metin2::log::debug( "SetSyncOwner distance over than 250 {} {}", name(), ch->name());
 
-			// Mark as Owner if SyncOwner.
 			if (chr_sync_owner_ == ch)
 				return true;
 
@@ -3985,7 +3828,6 @@ bool character::set_sync_owner(character * ch, bool remove_from_list)
 			chr_sync_owner_ = ch;
 			chr_sync_owner_->lst_pk_chr_sync_owned_.push_back(this);
 
-			// Reset LastSyncTime when the SyncOwner changes.
 			static const timeval zero_tv = {0, 0};
 			set_last_sync_time(zero_tv);
 
@@ -3995,9 +3837,6 @@ bool character::set_sync_owner(character * ch, bool remove_from_list)
 		sync_time_ = get_float_time();
 	}
 
-	// TODO: Packets keep being sent even when the Sync Owner is the same,
-	//       so sending a release packet once more than 3 seconds have passed
-	//       since the last sync would reduce packets.
 	packet_gc_ownership pack;
 
 	pack.header	= HEADER_GC_OWNERSHIP;
@@ -4013,7 +3852,7 @@ struct func_clear_sync
 	void operator () (character * ch)
 	{
 		assert(ch != nullptr);
-		ch->set_sync_owner(nullptr, false);	// The flag must be false for for_each to work correctly.
+		ch->set_sync_owner(nullptr, false); // Must be false for the for_each to work.
 	}
 };
 
@@ -4021,7 +3860,6 @@ void character::clear_sync()
 {
 	set_sync_owner(nullptr);
 
-	// In the for_each below, NULL the pointers of everyone who has me as m_pkChrSyncOwner.
 	std::for_each(lst_pk_chr_sync_owned_.begin(), lst_pk_chr_sync_owned_.end(), func_clear_sync());
 	lst_pk_chr_sync_owned_.clear();
 }
@@ -4031,8 +3869,6 @@ bool character::is_sync_owner(character * ch) const
 	if (chr_sync_owner_ == ch)
 		return true;
 
-	// If more than 3 seconds have passed since the last sync, nobody owns it.
-	// So anyone is SyncOwner; return true
 	if (get_float_time() - sync_time_ >= 3.0f)
 		return true;
 
@@ -4049,7 +3885,7 @@ void character::set_party(party * party_value)
 
 	metin2::log::debug( "PARTY set to {}", static_cast<const void *>(party_value));
 
-	if (dungeon_ && is_pc() && !party_value) // Fix
+	if (dungeon_ && is_pc() && !party_value)
 		set_dungeon(nullptr);
 
 	party_ = party_value;
@@ -4065,12 +3901,10 @@ void character::set_party(party * party_value)
 	}
 }
 
-// PARTY_JOIN_BUG_FIX
-/// Party join event info
 EVENTINFO(party_join_event_info)
 {
-	uint32_t	guest_pid;		///< PID of the character joining the party
-	uint32_t	leader_pid;		///< PID of the party leader
+	uint32_t	guest_pid;
+	uint32_t	leader_pid;
 
 	party_join_event_info() 
 	: guest_pid( 0 )
@@ -4259,10 +4093,6 @@ void character::accept_to_party(character * member)
 	member->chat_packet(CHAT_TYPE_COMMAND, "PartyRequestDenied");
 }
 
-/**
- * Party invite event callback.
- * When the event fires, treat it as the invite being declined.
- */
 EVENTFUNC(party_invite_event)
 {
 	party_join_event_info * pInfo = dynamic_cast<party_join_event_info *>(  event->info );
@@ -4348,9 +4178,6 @@ void character::party_invite(character * pch_invitee)
 	if (party_invite_event_map_.end() != party_invite_event_map_.find(pch_invitee->player_id()))
 		return;
 
-	//
-	// Add the event to the EventMap
-	// 
 	party_join_event_info* info = alloc_event_info<party_join_event_info>();
 
 	info->guest_pid = pch_invitee->player_id();
@@ -4358,9 +4185,6 @@ void character::party_invite(character * pch_invitee)
 
 	party_invite_event_map_.insert(event_map::value_type(pch_invitee->player_id(), event_create(party_invite_event, info, passes_per_sec(10))));
 
-	//
-	// Send the invite packet to the invited character
-	// 
 
 	packet_gc_party_invite p;
 	p.header = HEADER_GC_PARTY_INVITE;
@@ -4432,9 +4256,6 @@ void character::party_invite_accept(character * pch_invitee)
 			return;
 	}
 
-	//
-	// Handle party join
-	// 
 
 	if (get_party())
 		pch_invitee->party_join(this);
@@ -4512,7 +4333,6 @@ character::party_join_err_code character::is_party_joinable_mutable_condition(ch
 
 	return PERR_NONE;
 }
-// END_OF_PARTY_JOIN_BUG_FIX
 
 void character::set_dungeon(dungeon * dungeon_value)
 {
@@ -4612,9 +4432,7 @@ void character::on_move(bool is_attack)
 
 	}
 
-	// MINING
 	mining_cancel();
-	// END_OF_MINING
 }
 
 void character::on_click(character * chr_causer)
@@ -4628,9 +4446,7 @@ void character::on_click(character * chr_causer)
 	uint32_t vid = get_vid();
 	metin2::log::info( "OnClick {}[vnum {:d} ServerUniqueID {:d}, pid {:d}] by {}", name(), race_num(), vid, player_id(), chr_causer->name());
 
-	// Cannot do quests while a shop is open.
 	{
-		// However, you can click your own shop.
 		if (chr_causer->my_shop() && chr_causer != this) 
 		{
 			metin2::log::error("OnClick Fail ({}->{}) - pc has shop", chr_causer->name(), name());
@@ -4638,7 +4454,6 @@ void character::on_click(character * chr_causer)
 		}
 	}
 
-	// Cannot do quests while trading.
 	{
 		if (chr_causer->get_exchange())
 		{
@@ -4649,16 +4464,13 @@ void character::on_click(character * chr_causer)
 
 	if (is_pc())
 	{
-		// When set as a target, clicks by a PC are also handled as a quest.
 		if (!target_manager::instance().get_target_info(chr_causer->player_id(), TARGET_TYPE_VID, get_vid()))
 		{
-			// 2005.03.17.myevan.When not a target, run the private shop handling.
 			if (my_shop())
 			{
 				if (chr_causer->is_dead() == true) return;
 
-				//PREVENT_TRADE_WINDOW
-				if (chr_causer == this) // Allowed for self
+				if (chr_causer == this)
 				{
 					if ((get_exchange() || is_open_safebox() || shop_owner()) || is_cube_open())
 					{
@@ -4666,24 +4478,20 @@ void character::on_click(character * chr_causer)
 						return;
 					}
 				}
-				else // When someone else clicks
+				else
 				{
-					// Not allowed if the clicker is using trade/safebox/private shop/shop
 					if ((chr_causer->get_exchange() || chr_causer->is_open_safebox() || chr_causer->my_shop() || chr_causer->shop_owner()) || chr_causer->is_cube_open() )
 					{
 						chr_causer->chat_packet(CHAT_TYPE_INFO, lc_text("다른 거래중(창고,교환,상점)에는 개인상점을 사용할 수 없습니다."));
 						return;
 					}
 
-					// Not allowed if the clicked target is using trade/safebox/shop
-					//if ((GetExchange() || IsOpenSafebox() || GetShopOwner()))
 					if ((get_exchange() || is_open_safebox() || is_cube_open()))
 					{
 						chr_causer->chat_packet(CHAT_TYPE_INFO, lc_text("상대방이 다른 거래를 하고 있는 중입니다."));
 						return;
 					}
 				}
-				//END_PREVENT_TRADE_WINDOW
 
 				if (chr_causer->get_shop())
 				{
@@ -4703,7 +4511,6 @@ void character::on_click(character * chr_causer)
 		}
 	}
 
-	// Youths can't do quests
 
 
 	chr_causer->set_quest_npcid(get_vid());
@@ -4714,12 +4521,10 @@ void character::on_click(character * chr_causer)
 	}
 
 
-	// Perform NPC-specific functions: open shop, etc.
 	if (!is_pc())
 	{
 		if (!trigger_on_click_.func)
 		{
-			// Show NPC trigger system log
 			return;
 		}
 
@@ -4780,7 +4585,6 @@ void character::clear_stone()
 {
 	if (!set_pk_chr_spawned_by_.empty())
 	{
-		// Kill all monsters I spawned.
 		func_dead_spawned_by_stone f;
 		std::for_each(set_pk_chr_spawned_by_.begin(), set_pk_chr_spawned_by_.end(), f);
 		set_pk_chr_spawned_by_.clear();
@@ -4831,10 +4635,8 @@ void character::set_target(character * chr_target)
 	if (chr_target_ == chr_target)
 		return;
 
-	// CASTLE
 	if (is_castle_map(map_index()) && !is_gm())
 		return;
-	// CASTLE
 
 	if (chr_target_)
 		chr_target_->set_pk_chr_targeted_by_.erase(this);
@@ -4955,10 +4757,6 @@ void character::exit_to_saved_location()
 	exit_map_index_ = 0;
 }
 
-// fixme 
-// Until now, checking whether privateMapIndex equals the current map index was done outside,
-// and warpset was called if they differed
-// let's move this into warpset.
 bool character::warp_set(int32_t x, int32_t y, int32_t private_map_index)
 {
 	if (!is_pc())
@@ -5040,7 +4838,6 @@ void character::warp_end()
 
 	if (!map_allow_find(index))
 	{
-		// Can't warp here, so revert to the coordinates before the warp.
 		metin2::log::error("location {:d} {:d} not allowed to login this server", pos_warp_.x, pos_warp_.y);
 		get_desc()->set_phase(PHASE_CLOSE);
 		return;
@@ -5055,7 +4852,6 @@ void character::warp_end()
 	pos_warp_.x = pos_warp_.y = pos_warp_.z = 0;
 
 	{
-		// P2P Login
 		packet_gg_login p;
 
 		p.header = HEADER_GG_LOGIN;
@@ -5104,17 +4900,14 @@ bool character::follow(character * chr, float min_distance)
 		return false;
 	}
 
-	// TRENT_MONSTER
 	if (is_set(points_instant_.ai_flag, AIFLAG_NOMOVE))
 	{
-		if (chr->is_pc()) // When the chased target is a PC
+		if (chr->is_pc())
 		{
-			// If i'm in a party. I must obey party leader's AI.
 			if (!get_party() || !get_party()->leader() || get_party()->leader() == this)
 			{
-				if (get_dword_time() - mob_inst->last_attacked_time >= 15000) // If 15 seconds have passed since last being attacked and
+				if (get_dword_time() - mob_inst->last_attacked_time >= 15000)
 				{
-					// we are more than 50 meters from where we were last hit, give up and go back.
 					if (mob_data->table.attack_range < distance_approx(chr->x() - x(), chr->y() - y()))
 						if (return_home())
 							return true;
@@ -5123,19 +4916,16 @@ bool character::follow(character * chr, float min_distance)
 		}
 		return false;
 	}
-	// END_OF_TRENT_MONSTER
 
 	int32_t x_value = chr->x();
 	int32_t y_value = chr->y();
 
-	if (chr->is_pc()) // When the chased target is a PC
+	if (chr->is_pc())
 	{
-		// If i'm in a party. I must obey party leader's AI.
 		if (!get_party() || !get_party()->leader() || get_party()->leader() == this)
 		{
-			if (get_dword_time() - mob_inst->last_attacked_time >= 15000) // If 15 seconds have passed since last being attacked and
+			if (get_dword_time() - mob_inst->last_attacked_time >= 15000)
 			{
-				// we are more than 50 meters from where we were last hit, give up and go back.
 				if (5000 < distance_approx(mob_inst->pos_last_attacked.x - x(), mob_inst->pos_last_attacked.y - y()))
 					if (return_home())
 						return true;
@@ -5155,9 +4945,6 @@ bool character::follow(character * chr, float min_distance)
 		mob_battle_type() != BATTLE_TYPE_MAGIC &&
 		false == is_pet())
 	{
-		// If the target is moving, do predictive movement
-		// Estimate the meeting time from our speed difference and distance,
-		// assume the target moves in a straight line until then, and move there.
 		float rot = chr->rotation();
 		float rot_delta = get_degree_delta(rot, get_degree_from_position_xy(x(), y(), chr->x(), chr->y()));
 
@@ -5189,7 +4976,6 @@ bool character::follow(character * chr, float min_distance)
 		}
 	}
 
-	// Must face the destination.
 	set_rotation_to_xy(x_value, y_value);
 
 	float fDist = distance_sqrt(x_value - x(), y_value - y());
@@ -5201,7 +4987,6 @@ bool character::follow(character * chr, float min_distance)
 
 	if (is_change_attack_position(chr) && get_mob_rank() < MOB_RANK_BOSS)
 	{
-		// Move to a random spot around the target
 		set_change_attack_position_time();
 
 		int retry = 16;
@@ -5227,23 +5012,19 @@ bool character::follow(character * chr, float min_distance)
 				break;
 		}
 
-		//metin2::log::info( "근처 어딘가로 이동 {} retry {:d}", GetName(), retry);
 		if (!go_to(dx, dy))
 			return false;
 	}
 	else
 	{
-		// Follow in a straight line
 		float fDistToGo = fDist - min_distance;
 		get_delta_by_degree(rotation(), fDistToGo, &fx, &fy);
 
-		//metin2::log::info( "직선으로 이동 {}", GetName());
 		if (!go_to(x() + (int) fx, y() + (int) fy))
 			return false;
 	}
 
 	send_move_packet(FUNC_WAIT, 0, 0, 0, 0);
-	//MonsterLog("쫓아가기; %s", pkChr->GetName());
 	return true;
 }
 
@@ -5308,9 +5089,7 @@ void character::load_safebox(int size_value, uint32_t gold, int item_count, play
 {
 	bool bLoaded = false;
 
-	//PREVENT_TRADE_WINDOW
 	set_open_safebox(true);
-	//END_PREVENT_TRADE_WINDOW
 
 	if (safebox_)
 		bLoaded = true;
@@ -5379,9 +5158,7 @@ void character::close_safebox()
 	if (!safebox_)
 		return;
 
-	//PREVENT_TRADE_WINDOW
 	set_open_safebox(false);
-	//END_PREVENT_TRADE_WINDOW
 
 	safebox_->save();
 
@@ -5522,7 +5299,6 @@ int character::safebox_size() const
 
 void character::set_now_walking(bool walk_flag)
 {
-	//if (m_bNowWalking != bWalkFlag || IsNPC())
 	if (now_walking_ != walk_flag)
 	{
 		if (walk_flag)
@@ -5535,7 +5311,6 @@ void character::set_now_walking(bool walk_flag)
 			now_walking_ = false;
 		}
 
-		//if (m_bNowWalking)
 		{
 			packet_gc_walk_mode p;
 			p.vid = get_vid();
@@ -5625,7 +5400,6 @@ void character::reset_point(int lv)
 
 	compute_points();
 
-	// Recovery
 	point_change(POINT_HP, max_hp() - hp());
 	point_change(POINT_SP, max_sp() - sp());
 
@@ -5902,11 +5676,6 @@ void character::set_polymorph(uint32_t race_num, bool maintain_stat)
 		point_change(POINT_HT, 0);
 	}
 
-	// Dying while polymorphed undoes the polymorph, and
-	// since the valid combo interval differs before and after polymorph,
-	// it can be detected as a combo hack or hacker.
-	// So when undoing or applying a polymorph,
-	// reset the valid combo interval.
 	set_valid_combo_interval(0);
 	set_combo_sequence(0);
 
@@ -5970,7 +5739,7 @@ void character::determine_drop_metin_stone()
 				else
 				{
 					iGradePct -= iLevelGradePortion;
-					drop_metin_stone_ += 100; // Increases by 100 each time a stone goes from +a to +(a+1)
+					drop_metin_stone_ += 100;
 				}
 			}
 		}
@@ -6018,9 +5787,8 @@ void character::mount_vnum(uint32_t vnum)
 	if (is_observer_)
 		return;
 
-	//NOTE : Mounting does not delete the client-side object.
-	//Also, the server side does not move the position when mounting, because the client side can do a Collision Adjust, and
-	//if the object is destroyed and moved to the server position, no collision check is done, so it can get stuck in or pass through the background.
+	// Mounting keeps the position: the client adjusts it for collisions, and moving to the
+	// server position skips that check and can leave the character stuck.
 	pos_dest_.x = pos_start_.x = x();
 	pos_dest_.y = pos_start_.y = y();
 	encode_insert_packet(this);
@@ -6031,7 +5799,6 @@ void character::mount_vnum(uint32_t vnum)
 	{
 		entity * entity = (it++)->first;
 
-		//Mounting does not delete the client-side object.
 		encode_insert_packet(entity);
 
 	}
@@ -6147,7 +5914,7 @@ EVENTFUNC(warp_npc_event)
 
 	character *	ch = info->ch;
 
-	if (ch == nullptr) { // <Factor>
+	if (ch == nullptr) {
 		return 0;
 	}	
 
@@ -6273,10 +6040,6 @@ bool character::warp_to_pid(uint32_t pid)
 	}
 	else
 	{
-		// The person is logged into another server -> send a message to get the coordinates
-		// 1. Broadcast A.pid, B.pid
-		// 2. The server holding B.pid sends A.pid and the coordinates to the broadcasting server
-		// 3. Warp
 		cci * pcci = p2_p_manager::instance().find_by_pid(pid);
 
 		if (!pcci)
@@ -6316,7 +6079,6 @@ bool character::warp_to_pid(uint32_t pid)
 	return true;
 }
 
-// ADD_REFINE_BUILDING
 guild* character::refine_guild() const
 {
 	character * chRefineNPC = character_manager::instance().find(refine_npcvid_);
@@ -6337,7 +6099,6 @@ int character::compute_refine_fee(int cost, int multiply) const
 		if (pGuild == get_guild())
 			return cost * multiply * 9 / 10;
 
-		// 3 times more if attempted by someone from another empire
 		character * chRefineNPC = character_manager::instance().find(refine_npcvid_);
 		if (chRefineNPC && chRefineNPC->empire() != empire())
 			return cost * multiply * 3;
@@ -6357,7 +6118,6 @@ void character::pay_refine_fee(int total_money)
 
 	if (pGuild)
 	{
-		// For one's own guild, 10% is already excluded from iTotalMoney
 		if (pGuild != get_guild())
 		{
 			pGuild->request_deposit_money(this, iFee);
@@ -6367,9 +6127,7 @@ void character::pay_refine_fee(int total_money)
 
 	point_change(POINT_GOLD, -iRemain);
 }
-// END_OF_ADD_REFINE_BUILDING
 
-//Check to prevent hacks.
 bool character::is_hack(bool send_msg, bool check_shop_owner, int limittime)
 {
 	const int iPulse = thecore_pulse();
@@ -6377,7 +6135,6 @@ bool character::is_hack(bool send_msg, bool check_shop_owner, int limittime)
 	if (metin2::config::test_server())
 		send_msg = true;
 
-	//Check after opening safebox
 	if (iPulse - safebox_load_time() < passes_per_sec(limittime))
 	{
 		if (send_msg)
@@ -6388,7 +6145,6 @@ bool character::is_hack(bool send_msg, bool check_shop_owner, int limittime)
 		return true; 
 	}
 
-	//Check trade-related windows
 	if (check_shop_owner)
 	{
 		if (get_exchange() || my_shop() || shop_owner() || is_open_safebox() || is_cube_open())
@@ -6410,17 +6166,13 @@ bool character::is_hack(bool send_msg, bool check_shop_owner, int limittime)
 		}
 	}
 
-	//PREVENT_PORTAL_AFTER_EXCHANGE
-	//Time check after trade
 	if (iPulse - get_exchange_time()  < passes_per_sec(limittime))
 	{
 		if (send_msg)
 			chat_packet(CHAT_TYPE_INFO, lc_text("거래 후 %d초 이내에는 다른지역으로 이동 할 수 없습니다."), limittime );
 		return true;
 	}
-	//END_PREVENT_PORTAL_AFTER_EXCHANGE
 
-	//PREVENT_ITEM_COPY
 	if (iPulse - get_my_shop_time() < passes_per_sec(limittime))
 	{
 		if (send_msg)
@@ -6434,25 +6186,19 @@ bool character::is_hack(bool send_msg, bool check_shop_owner, int limittime)
 			chat_packet(CHAT_TYPE_INFO, lc_text("아이템 개량후 %d초 이내에는 귀환부,귀환기억부를 사용할 수 없습니다."), limittime);
 		return true; 
 	}
-	//END_PREVENT_ITEM_COPY
 
 	return false;
 }
 
 bool character::is_monarch() const
 {
-	//MONARCH_LIMIT
 	if (monarch::instance().is_monarch(player_id(), empire()))
 		return true;
 
 	return false;
 
-	//END_MONARCH_LIMIT
 }
 
-//
-// Monarch
-//
 void character::init_mc()
 {
 	for (int n = 0; n < MI_MAX; ++n)
@@ -6516,17 +6262,15 @@ uint32_t character::mcl_time(enum monarch_index e) const
 	return  (mcl(e)) / metin2::config::server().passes_per_sec   -  (iPulse - mc(e)) / metin2::config::server().passes_per_sec;
 }
 
-//------------------------------------------------
 void character::update_deposit_pulse()
 {
-	deposit_pulse_ = thecore_pulse() + passes_per_sec(60*5);	// 5 minutes
+	deposit_pulse_ = thecore_pulse() + passes_per_sec(60*5);
 }
 
 bool character::can_deposit() const
 {
 	return (deposit_pulse_ == 0 || (deposit_pulse_ < thecore_pulse()));
 }
-//------------------------------------------------
 
 sex get_sex(character * ch)
 {
@@ -6545,7 +6289,6 @@ sex get_sex(character * ch)
 			return SEX_FEMALE;
 	}
 
-	/* default sex = male */
 	return SEX_MALE;
 }
 
@@ -6690,7 +6433,6 @@ EVENTFUNC(check_speedhack_event)
 
 	if (is_speed_hack_player(ch))
 	{
-		// write hack log
 		log_manager::instance().speed_hack_log(ch->player_id(), ch->x(), ch->y(), ch->speed_hack_count);
 
 	}
@@ -6710,7 +6452,7 @@ void character::start_check_speed_hack_event()
 
 	info->ch = this;
 
-	check_speed_hack_event = event_create(check_speedhack_event, info, passes_per_sec(60));	// 1 minute
+	check_speed_hack_event = event_create(check_speedhack_event, info, passes_per_sec(60));
 }
 
 void character::go_home()
@@ -6756,7 +6498,7 @@ EVENTFUNC(destroy_when_idle_event)
 	}
 
 	character * ch = info->ch;
-	if (ch == nullptr) { // <Factor>
+	if (ch == nullptr) {
 		return 0;
 	}	
 
@@ -6864,7 +6606,6 @@ uint8_t character::chat_counter() const
 	return chat_counter_;
 }
 
-// Riding a horse or something else?
 bool character::is_riding() const
 {
 	return is_horse_riding() || get_mount_vnum();

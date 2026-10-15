@@ -121,7 +121,6 @@ enum damage_type
 	DAMAGE_TYPE_NONE,
 	DAMAGE_TYPE_NORMAL,
 	DAMAGE_TYPE_NORMAL_RANGE,
-	//Skill
 	DAMAGE_TYPE_MELEE,
 	DAMAGE_TYPE_RANGE,
 	DAMAGE_TYPE_FIRE,
@@ -134,196 +133,183 @@ enum damage_type
 
 enum point_types
 {
-	POINT_NONE,                 // 0
-	POINT_LEVEL,                // 1
-	POINT_VOICE,                // 2
-	POINT_EXP,                  // 3
-	POINT_NEXT_EXP,             // 4
-	POINT_HP,                   // 5
-	POINT_MAX_HP,               // 6
-	POINT_SP,                   // 7
-	POINT_MAX_SP,               // 8  
-	POINT_STAMINA,              // 9  Stamina
-	POINT_MAX_STAMINA,          // 10 Max stamina
+	POINT_NONE,
+	POINT_LEVEL,
+	POINT_VOICE,
+	POINT_EXP,
+	POINT_NEXT_EXP,
+	POINT_HP,
+	POINT_MAX_HP,
+	POINT_SP,
+	POINT_MAX_SP,
+	POINT_STAMINA,
+	POINT_MAX_STAMINA,
 
-	POINT_GOLD,                 // 11
-	POINT_ST,                   // 12 Strength
-	POINT_HT,                   // 13 Vitality
-	POINT_DX,                   // 14 Dexterity
-	POINT_IQ,                   // 15 Intelligence
-	POINT_DEF_GRADE,		// 16 ...
-	POINT_ATT_SPEED,            // 17 Attack speed
-	POINT_ATT_GRADE,		// 18 Attack power MAX
-	POINT_MOV_SPEED,            // 19 Movement speed
-	POINT_CLIENT_DEF_GRADE,	// 20 Defense grade
-	POINT_CASTING_SPEED,        // 21 Casting speed: (cooldown*100) / (100 + this value) = final cooldown time
-	POINT_MAGIC_ATT_GRADE,      // 22 Magic attack
-	POINT_MAGIC_DEF_GRADE,      // 23 Magic defense
-	POINT_EMPIRE_POINT,         // 24 Empire points
-	POINT_LEVEL_STEP,           // 25 Step within a level.. (reward at 1 2 3, level up at 4)
-	POINT_STAT,                 // 26 Number of stat points available
-	POINT_SUB_SKILL,		// 27 Support skill points
-	POINT_SKILL,		// 28 Active skill points
-	POINT_WEAPON_MIN,		// 29 Weapon min damage
-	POINT_WEAPON_MAX,		// 30 Weapon max damage
-	POINT_PLAYTIME,             // 31 Play time
-	POINT_HP_REGEN,             // 32 HP regen rate
-	POINT_SP_REGEN,             // 33 SP regen rate
+	POINT_GOLD,
+	POINT_ST,
+	POINT_HT,
+	POINT_DX,
+	POINT_IQ,
+	POINT_DEF_GRADE,
+	POINT_ATT_SPEED,
+	POINT_ATT_GRADE,
+	POINT_MOV_SPEED,
+	POINT_CLIENT_DEF_GRADE,
+	POINT_CASTING_SPEED,
+	POINT_MAGIC_ATT_GRADE,
+	POINT_MAGIC_DEF_GRADE,
+	POINT_EMPIRE_POINT,
+	POINT_LEVEL_STEP,
+	POINT_STAT,
+	POINT_SUB_SKILL,
+	POINT_SKILL,
+	POINT_WEAPON_MIN,
+	POINT_WEAPON_MAX,
+	POINT_PLAYTIME,
+	POINT_HP_REGEN,
+	POINT_SP_REGEN,
 
-	POINT_BOW_DISTANCE,         // 34 Bow range bonus (meter)
+	POINT_BOW_DISTANCE,
 
-	POINT_HP_RECOVERY,          // 35 HP recovery bonus
-	POINT_SP_RECOVERY,          // 36 SP recovery bonus
+	POINT_HP_RECOVERY,
+	POINT_SP_RECOVERY,
 
-	POINT_POISON_PCT,           // 37 Poison chance
-	POINT_STUN_PCT,             // 38 Stun chance
-	POINT_SLOW_PCT,             // 39 Slow chance
-	POINT_CRITICAL_PCT,         // 40 Critical chance
-	POINT_PENETRATE_PCT,        // 41 Piercing hit chance
-	POINT_CURSE_PCT,            // 42 Curse chance
+	POINT_POISON_PCT,
+	POINT_STUN_PCT,
+	POINT_SLOW_PCT,
+	POINT_CRITICAL_PCT,
+	POINT_PENETRATE_PCT,
+	POINT_CURSE_PCT,
 
-	POINT_ATTBONUS_HUMAN,       // 43 Strong against humans
-	POINT_ATTBONUS_ANIMAL,      // 44 Damage % bonus against animals
-	POINT_ATTBONUS_ORC,         // 45 Damage % bonus against orcs
-	POINT_ATTBONUS_MILGYO,      // 46 Damage % bonus against esoterics
-	POINT_ATTBONUS_UNDEAD,      // 47 Damage % bonus against undead
-	POINT_ATTBONUS_DEVIL,       // 48 Damage % bonus against devils (demons)
-	POINT_ATTBONUS_INSECT,      // 49 Insect race
-	POINT_ATTBONUS_FIRE,        // 50 Fire race
-	POINT_ATTBONUS_ICE,         // 51 Ice race
-	POINT_ATTBONUS_DESERT,      // 52 Desert race
-	POINT_ATTBONUS_MONSTER,     // 53 Strong against all monsters
-	POINT_ATTBONUS_WARRIOR,     // 54 Strong against Warriors
-	POINT_ATTBONUS_ASSASSIN,	// 55 Strong against Assassins
-	POINT_ATTBONUS_SURA,		// 56 Strong against Suras
-	POINT_ATTBONUS_SHAMAN,		// 57 Strong against Shamans
-	POINT_ATTBONUS_TREE,     	// 58 Strong against trees 20050729.myevan UNUSED5 
+	POINT_ATTBONUS_HUMAN,
+	POINT_ATTBONUS_ANIMAL,
+	POINT_ATTBONUS_ORC,
+	POINT_ATTBONUS_MILGYO,
+	POINT_ATTBONUS_UNDEAD,
+	POINT_ATTBONUS_DEVIL,
+	POINT_ATTBONUS_INSECT,
+	POINT_ATTBONUS_FIRE,
+	POINT_ATTBONUS_ICE,
+	POINT_ATTBONUS_DESERT,
+	POINT_ATTBONUS_MONSTER,
+	POINT_ATTBONUS_WARRIOR,
+	POINT_ATTBONUS_ASSASSIN,
+	POINT_ATTBONUS_SURA,
+	POINT_ATTBONUS_SHAMAN,
+	POINT_ATTBONUS_TREE,
 
-	POINT_RESIST_WARRIOR,		// 59 Resistance to Warriors
-	POINT_RESIST_ASSASSIN,		// 60 Resistance to Assassins
-	POINT_RESIST_SURA,			// 61 Resistance to Suras
-	POINT_RESIST_SHAMAN,		// 62 Resistance to Shamans
+	POINT_RESIST_WARRIOR,
+	POINT_RESIST_ASSASSIN,
+	POINT_RESIST_SURA,
+	POINT_RESIST_SHAMAN,
 
-	POINT_STEAL_HP,             // 63 HP steal
-	POINT_STEAL_SP,             // 64 SP steal
+	POINT_STEAL_HP,
+	POINT_STEAL_SP,
 
-	POINT_MANA_BURN_PCT,        // 65 Mana burn
+	POINT_MANA_BURN_PCT,
 
-	/// Bonuses when damaged ///
 
-	POINT_DAMAGE_SP_RECOVER,    // 66 Chance to recover SP when attacked
+	POINT_DAMAGE_SP_RECOVER,
 
-	POINT_BLOCK,                // 67 Block rate
-	POINT_DODGE,                // 68 Dodge rate
+	POINT_BLOCK,
+	POINT_DODGE,
 
-	POINT_RESIST_SWORD,         // 69
-	POINT_RESIST_TWOHAND,       // 70
-	POINT_RESIST_DAGGER,        // 71
-	POINT_RESIST_BELL,          // 72
-	POINT_RESIST_FAN,           // 73
-	POINT_RESIST_BOW,           // 74  Arrow   resist   : damage reduction
-	POINT_RESIST_FIRE,          // 75  Fire   resist   : damage reduction against fire attacks
-	POINT_RESIST_ELEC,          // 76  Lightning   resist   : damage reduction against lightning attacks
-	POINT_RESIST_MAGIC,         // 77  Magic   resist   : damage reduction against all magic
-	POINT_RESIST_WIND,          // 78  Wind   resist   : damage reduction against wind attacks
+	POINT_RESIST_SWORD,
+	POINT_RESIST_TWOHAND,
+	POINT_RESIST_DAGGER,
+	POINT_RESIST_BELL,
+	POINT_RESIST_FAN,
+	POINT_RESIST_BOW,
+	POINT_RESIST_FIRE,
+	POINT_RESIST_ELEC,
+	POINT_RESIST_MAGIC,
+	POINT_RESIST_WIND,
 
-	POINT_REFLECT_MELEE,        // 79 Reflect attack
+	POINT_REFLECT_MELEE,
 
-	/// When taking special damage ///
-	POINT_REFLECT_CURSE,		// 80 Reflect curse
-	POINT_POISON_REDUCE,		// 81 Poison damage reduction
+	POINT_REFLECT_CURSE,
+	POINT_POISON_REDUCE,
 
-	/// On killing an enemy ///
-	POINT_KILL_SP_RECOVER,		// 82 MP recovery on killing an enemy
-	POINT_EXP_DOUBLE_BONUS,		// 83
-	POINT_GOLD_DOUBLE_BONUS,		// 84
-	POINT_ITEM_DROP_BONUS,		// 85
+	POINT_KILL_SP_RECOVER,
+	POINT_EXP_DOUBLE_BONUS,
+	POINT_GOLD_DOUBLE_BONUS,
+	POINT_ITEM_DROP_BONUS,
 
-	/// Recovery related ///
-	POINT_POTION_BONUS,			// 86
-	POINT_KILL_HP_RECOVERY,		// 87
+	POINT_POTION_BONUS,
+	POINT_KILL_HP_RECOVERY,
 
-	POINT_IMMUNE_STUN,			// 88
-	POINT_IMMUNE_SLOW,			// 89
-	POINT_IMMUNE_FALL,			// 90
-	//////////////////
+	POINT_IMMUNE_STUN,
+	POINT_IMMUNE_SLOW,
+	POINT_IMMUNE_FALL,
 
-	POINT_PARTY_ATTACKER_BONUS,		// 91
-	POINT_PARTY_TANKER_BONUS,		// 92
+	POINT_PARTY_ATTACKER_BONUS,
+	POINT_PARTY_TANKER_BONUS,
 
-	POINT_ATT_BONUS,			// 93
-	POINT_DEF_BONUS,			// 94
+	POINT_ATT_BONUS,
+	POINT_DEF_BONUS,
 
-	POINT_ATT_GRADE_BONUS,		// 95
-	POINT_DEF_GRADE_BONUS,		// 96
-	POINT_MAGIC_ATT_GRADE_BONUS,	// 97
-	POINT_MAGIC_DEF_GRADE_BONUS,	// 98
+	POINT_ATT_GRADE_BONUS,
+	POINT_DEF_GRADE_BONUS,
+	POINT_MAGIC_ATT_GRADE_BONUS,
+	POINT_MAGIC_DEF_GRADE_BONUS,
 
-	POINT_RESIST_NORMAL_DAMAGE,		// 99
+	POINT_RESIST_NORMAL_DAMAGE,
 
-	POINT_HIT_HP_RECOVERY,		// 100
-	POINT_HIT_SP_RECOVERY, 		// 101
-	POINT_MANASHIELD,			// 102 Mana shield strength from the Dark Protection skill
+	POINT_HIT_HP_RECOVERY,
+	POINT_HIT_SP_RECOVERY,
+	POINT_MANASHIELD,
 
-	POINT_PARTY_BUFFER_BONUS,		// 103
-	POINT_PARTY_SKILL_MASTER_BONUS,	// 104
+	POINT_PARTY_BUFFER_BONUS,
+	POINT_PARTY_SKILL_MASTER_BONUS,
 
-	POINT_HP_RECOVER_CONTINUE,		// 105
-	POINT_SP_RECOVER_CONTINUE,		// 106
+	POINT_HP_RECOVER_CONTINUE,
+	POINT_SP_RECOVER_CONTINUE,
 
-	POINT_STEAL_GOLD,			// 107 
-	POINT_POLYMORPH,			// 108 Polymorphed monster number
-	POINT_MOUNT,			// 109 Mounted monster number
+	POINT_STEAL_GOLD,
+	POINT_POLYMORPH,
+	POINT_MOUNT,
 
-	POINT_PARTY_HASTE_BONUS,		// 110
-	POINT_PARTY_DEFENDER_BONUS,		// 111
-	POINT_STAT_RESET_COUNT,		// 112 Stat reset points from using Blood Pills (1 point resets 1 stat point)
+	POINT_PARTY_HASTE_BONUS,
+	POINT_PARTY_DEFENDER_BONUS,
+	POINT_STAT_RESET_COUNT,
 
-	POINT_HORSE_SKILL,			// 113
+	POINT_HORSE_SKILL,
 
-	POINT_MALL_ATTBONUS,		// 114 Attack +x%
-	POINT_MALL_DEFBONUS,		// 115 Defense +x%
-	POINT_MALL_EXPBONUS,		// 116 Experience +x%
-	POINT_MALL_ITEMBONUS,		// 117 Item drop rate x/10 times
-	POINT_MALL_GOLDBONUS,		// 118 Gold drop rate x/10 times
+	POINT_MALL_ATTBONUS,
+	POINT_MALL_DEFBONUS,
+	POINT_MALL_EXPBONUS,
+	POINT_MALL_ITEMBONUS,
+	POINT_MALL_GOLDBONUS,
 
-	POINT_MAX_HP_PCT,			// 119 Max HP +x%
-	POINT_MAX_SP_PCT,			// 120 Max SP +x%
+	POINT_MAX_HP_PCT,
+	POINT_MAX_SP_PCT,
 
-	POINT_SKILL_DAMAGE_BONUS,		// 121 Skill damage *(100+x)%
-	POINT_NORMAL_HIT_DAMAGE_BONUS,	// 122 Normal hit damage *(100+x)%
+	POINT_SKILL_DAMAGE_BONUS,
+	POINT_NORMAL_HIT_DAMAGE_BONUS,
 
-	// DEFEND_BONUS_ATTRIBUTES
-	POINT_SKILL_DEFEND_BONUS,		// 123 Skill damage defense
-	POINT_NORMAL_HIT_DEFEND_BONUS,	// 124 Normal hit damage defense
-	// END_OF_DEFEND_BONUS_ATTRIBUTES
+	POINT_SKILL_DEFEND_BONUS,
+	POINT_NORMAL_HIT_DEFEND_BONUS,
 
-	// PC_BANG_ITEM_ADD 
-	POINT_PC_BANG_EXP_BONUS,		// 125 PC-bang-only experience bonus
-	POINT_PC_BANG_DROP_BONUS,		// 126 PC-bang-only drop rate bonus
-	// END_PC_BANG_ITEM_ADD
-	POINT_RAMADAN_CANDY_BONUS_EXP,			// For the Ramadan candy experience bonus
+	POINT_PC_BANG_EXP_BONUS,
+	POINT_PC_BANG_DROP_BONUS,
+	POINT_RAMADAN_CANDY_BONUS_EXP,
 
-	POINT_ENERGY = 128,					// 128 Energy
+	POINT_ENERGY = 128,
 
-	// For the energy UI.
-	// Not used on the server, but done this way because the client manages the energy end time as a POINT.
-	// How embarrassing
-	POINT_ENERGY_END_TIME = 129,					// 129 Energy end time
+	// Not used by the server; the client keeps the energy end time as a point.
+	POINT_ENERGY_END_TIME = 129,
 
 	POINT_COSTUME_ATTR_BONUS = 130,
 	POINT_MAGIC_ATT_BONUS_PER = 131,
 	POINT_MELEE_MAGIC_ATT_BONUS_PER = 132,
 
-	// Additional attribute resistances
-	POINT_RESIST_ICE = 133,          //   Ice resist   : damage reduction against ice attacks
-	POINT_RESIST_EARTH = 134,        //   Earth resist   : damage reduction against ice attacks
-	POINT_RESIST_DARK = 135,         //   Dark resist   : damage reduction against ice attacks
+	POINT_RESIST_ICE = 133,
+	POINT_RESIST_EARTH = 134,
+	POINT_RESIST_DARK = 135,
 
-	POINT_RESIST_CRITICAL = 136,		// Critical resist	: reduces the opponent's critical chance
-	POINT_RESIST_PENETRATE = 137,		// Piercing resist	: reduces the opponent's piercing hit chance
+	POINT_RESIST_CRITICAL = 136,
+	POINT_RESIST_PENETRATE = 137,
 
-	//POINT_MAX_NUM = 129	common/length.h
 };
 
 enum pk_modes
@@ -358,22 +344,16 @@ enum block_action
 	BLOCK_PARTY_REQUEST		= (1 << 5),
 };
 
-// <Factor> Dynamically evaluated CHARACTER* equivalent.
-// Referring to SCharDeadEventInfo.
 struct dynamic_character_ptr {
 	dynamic_character_ptr() : is_pc(false), id(0) {}
 
-	// Returns the CHARACTER * found in CHARACTER_MANAGER.
 	character * get() const; 
-	// Clears the current settings.
 	void reset() {
 		is_pc = false;
 		id = 0;
 	}
 
-	// Supports assignment with CHARACTER * type.
 	dynamic_character_ptr& operator=(character * character);
-	// Supports type casting to CHARACTER *.
 	operator character *() const {
 		return get();
 	}
@@ -382,7 +362,6 @@ struct dynamic_character_ptr {
 	uint32_t id;
 };
 
-/* Saved data */
 struct character_point {
 	int32_t			points[POINT_MAX_NUM];
 
@@ -404,7 +383,6 @@ struct character_point {
 	uint8_t			skill_group;
 };
 
-/* Character data that is not saved */
 struct character_point_instant {
 	int32_t			points[POINT_MAX_NUM];
 
@@ -425,11 +403,9 @@ struct character_point_instant {
 	item *			items[INVENTORY_AND_EQUIP_SLOT_MAX];
 	uint8_t			item_grid[INVENTORY_AND_EQUIP_SLOT_MAX];
 
-	// Dragon soul inventory.
 	item *			ds_items[DRAGON_SOUL_INVENTORY_MAX_NUM];
 	uint16_t			ds_item_grid[DRAGON_SOUL_INVENTORY_MAX_NUM];
 
-	// by mhh
 	item *			cube_items[CUBE_MAX_NUM];
 	character *		cube_npc;
 
@@ -437,7 +413,7 @@ struct character_point_instant {
 
 	uint8_t			gm_level;
 
-	uint8_t			base_part;	// Casual clothing number
+	uint8_t			base_part;
 
 	int				max_stamina;
 
@@ -497,19 +473,14 @@ class mob;
 class mob_instance;
 struct mob_skill_info;
 
-//SKILL_POWER_BY_LEVEL
 extern int get_skill_power_by_level_from_type(int job, int skillgroup, int skilllevel);
-//END_SKILL_POWER_BY_LEVEL
 
 
 class character : public entity, public fsm, public horse_rider
 {
 	protected:
-		//////////////////////////////////////////////////////////////////////////////////
-		// Entity related
 		void	encode_insert_packet(entity * entity) override;
 		void	encode_remove_packet(entity * entity) override;
-		//////////////////////////////////////////////////////////////////////////////////
 
 	public:
 		character *			find_character_in_view(const char * name_value, bool find_pc_only);
@@ -517,8 +488,6 @@ class character : public entity, public fsm, public horse_rider
 		int				analyze_protect; 
 		int				analyze_protect_count;
 
-		//////////////////////////////////////////////////////////////////////////////////
-		// FSM (Finite State Machine) related
 	protected:
 		state_template<character>	state_move_;
 		state_template<character>	state_battle_;
@@ -533,11 +502,9 @@ class character : public entity, public fsm, public horse_rider
 		void				state_horse();
 
 	protected:
-		// STATE_IDLE_REFACTORING
 		void				state_idle_monster();
 		void				state_idle_stone();
 		void				state_idle_npc();
-		// END_OF_STATE_IDLE_REFACTORING
 
 	public:
 		uint32_t ai_flag() const	{ return points_instant_.ai_flag; }
@@ -564,7 +531,6 @@ class character : public entity, public fsm, public horse_rider
 
 	protected:
 		uint32_t				state_duration_;
-		//////////////////////////////////////////////////////////////////////////////////
 
 	public:
 		character();
@@ -578,19 +544,17 @@ class character : public entity, public fsm, public horse_rider
 	protected:
 		void			initialize();
 
-		//////////////////////////////////////////////////////////////////////////////////
-		// Basic Points
 	public:
 		uint32_t			player_id() const	{ return player_id_; }
 
 		void			set_player_proto(const player_table * t);
-		void			create_player_proto(player_table & tab);	// Used when saving
+		void			create_player_proto(player_table & tab);
 
 		void			set_proto(const mob * mob_value);
 		uint16_t			race_num() const;
 
-		void			save();		// DelayedSave
-		void			save_real();	// Actual save
+		void			save();
+		void			save_real();
 		void			flush_delayed_save_item();
 
 		const char *	name() const;
@@ -617,7 +581,6 @@ class character : public entity, public fsm, public horse_rider
 		bool			is_building() const	{ return char_type_ == CHAR_TYPE_BUILDING;  }
 		bool			is_warp() const		{ return char_type_ == CHAR_TYPE_WARP; }
 		bool			is_goto() const		{ return char_type_ == CHAR_TYPE_GOTO; }
-//		bool			IsPet() const		{ return m_bCharType == CHAR_TYPE_PET; }
 
 		uint32_t			last_shout_pulse() const	{ return points_instant_.last_shout_pulse; }
 		void			set_last_shout_pulse(uint32_t pulse) { points_instant_.last_shout_pulse = pulse; }
@@ -631,7 +594,7 @@ class character : public entity, public fsm, public horse_rider
 		uint32_t			get_exp() const		{ return points_.exp;	}
 		void			set_exp(uint32_t exp)	{ points_.exp = exp;	}
 		uint32_t			next_exp() const;
-		character *		distribute_exp();	// Returns the one who dealt the most hits.
+		character *		distribute_exp();
 		void			distribute_hp(character * killer);
 		void			distribute_sp(character * killer, int method=0);
 
@@ -683,7 +646,6 @@ class character : public entity, public fsm, public horse_rider
 		uint32_t				mob_drop_item_vnum() const;
 		float				mob_damage_multiply() const;
 
-		// NEWAI
 		bool			is_berserker() const;
 		bool			is_berserk() const;
 		void			set_berserk(bool mode);
@@ -701,7 +663,6 @@ class character : public entity, public fsm, public horse_rider
 		bool			has_reviver_in_party() const;
 		bool			is_revive() const;
 		void			set_revive(bool mode);
-		// NEWAI END
 
 		bool			is_race_flag(uint32_t bit) const;
 		bool			is_summon_monster() const;
@@ -710,14 +671,14 @@ class character : public entity, public fsm, public horse_rider
 		uint32_t			polymorph_item_vnum() const;
 		uint32_t			monster_drain_sp_point() const;
 
-		void			main_character_packet();	// Tells it that I am the main character.
+		void			main_character_packet();
 
 		void			compute_points();
 		void			compute_battle_points();
 		void			point_change(uint8_t type, int amount, bool amount_value = false, bool broadcast = false);
 		void			points_packet();
 		void			apply_point(uint8_t apply_type, int val);
-		void			check_maximum_points();	// Checks whether current values like HP and SP exceed their max and lowers them if so.
+		void			check_maximum_points();
 
 		bool			show(int32_t map_index, int32_t x, int32_t y, int32_t z = INT32_MAX, bool show_spawn_motion = false);
 
@@ -739,21 +700,17 @@ class character : public entity, public fsm, public horse_rider
 		bool			is_block_mode(uint8_t flag) const	{ return (points_instant_.block_mode & flag)?true:false; }
 
 		bool			is_polymorphed() const		{ return polymorph_race_>0; }
-		bool			is_poly_maintain_stat() const	{ return poly_maintain_stat_; } // Polymorph that keeps the previous stats.
+		bool			is_poly_maintain_stat() const	{ return poly_maintain_stat_; }
 		void			set_polymorph(uint32_t race_num, bool maintain_stat = false);
 		uint32_t			polymorph_vnum() const	{ return polymorph_race_; }
 		int				polymorph_power() const;
 
-		// FISING	
 		void			fishing();
 		void			fishing_take();
-		// END_OF_FISHING
 
-		// MINING
 		void			mining(character * ch_load);
 		void			mining_cancel();
 		void			mining_take();
-		// END_OF_MINING
 
 		void			reset_play_time(uint32_t time_remain = 0);
 
@@ -781,26 +738,22 @@ class character : public entity, public fsm, public horse_rider
 		std::string		mobile_auth_;
 		uint8_t			chat_counter_;
 
-		// End of Basic Points
 
-		//////////////////////////////////////////////////////////////////////////////////
-		// Move & Synchronize Positions
-		//////////////////////////////////////////////////////////////////////////////////
 	public:
 		bool			is_walking() const			{ return now_walking_ || stamina()<=0; }
 		void			set_walking(bool walk_flag)	{ walking_=walk_flag; }
 		void			set_now_walking(bool walk_flag);	
 		void			reset_walking()			{ set_now_walking(walking_); }
 
-		bool			go_to(int32_t x_value, int32_t y_value);	// Blend to the target position instead of moving immediately.
+		bool			go_to(int32_t x_value, int32_t y_value);
 		void			stop();
 
-		bool			can_move() const;		// Can it move?
+		bool			can_move() const;
 
 		void			sync_packet();
-		bool			sync(int32_t x, int32_t y);	// Actual movement happens through this method (no movement restrictions from conditions)
-		bool			move(int32_t x_value, int32_t y_value);	// Checks conditions and moves via the Sync method.
-		void			on_move(bool is_attack = false);	// Called when moving. May be called from places other than Move().
+		bool			sync(int32_t x, int32_t y);
+		bool			move(int32_t x_value, int32_t y_value);
+		void			on_move(bool is_attack = false);
 		uint32_t			get_motion_mode() const;
 		float			move_motion_speed() const;
 		float			move_speed() const;
@@ -811,7 +764,7 @@ class character : public entity, public fsm, public horse_rider
 		uint32_t			last_move_time() const		{ return last_move_time_; }
 		uint32_t			last_attack_time() const	{ return last_attack_time_; }
 
-		void			set_last_attacked(uint32_t time);	// Stores the time and position of the last attack received
+		void			set_last_attacked(uint32_t time);
 
 		bool			set_sync_owner(character * ch, bool remove_from_list = true);
 		bool			is_sync_owner(character * ch) const;
@@ -837,7 +790,7 @@ class character : public entity, public fsm, public horse_rider
 
 		float			sync_time_;
 		character *		chr_sync_owner_;
-		character_list	lst_pk_chr_sync_owned_;	// Those for whom I am the SyncOwner
+		character_list	lst_pk_chr_sync_owned_;
 
 		pixel_position	pos_dest_;
 		pixel_position	pos_start_;
@@ -858,9 +811,7 @@ class character : public entity, public fsm, public horse_rider
 		bool			walking_;
 		bool			now_walking_;
 		bool			stamina_consume_;
-		// End
 
-		// Quickslot related
 	public:
 		void			sync_quickslot(uint8_t type_value, uint8_t old_pos, uint8_t new_pos);
 		bool			get_quickslot(uint8_t pos, quickslot ** pp_slot);
@@ -872,8 +823,6 @@ class character : public entity, public fsm, public horse_rider
 	protected:
 		quickslot		quickslot_[QUICKSLOT_MAX_NUM];
 
-		////////////////////////////////////////////////////////////////////////////////////////
-		// Affect
 	public:
 		void			start_affect_event();
 		void			clear_affect(bool save=false);
@@ -883,7 +832,7 @@ class character : public entity, public fsm, public horse_rider
 		bool			remove_affect(uint32_t type);
 		bool			is_affect_flag(uint32_t aff) const;
 
-		bool			update_affect();	// called from EVENT
+		bool			update_affect();
 		int				process_affect();
 
 		void			load_affect(uint32_t count_value, packet_affect_element * elements);
@@ -903,7 +852,6 @@ class character : public entity, public fsm, public horse_rider
 		std::list<affect *>	list_pk_affect_;
 
 	public:
-		// PARTY_JOIN_BUG_FIX
 		void			set_party(party * party_value);
 		party *			get_party() const	{ return party_; }
 
@@ -911,26 +859,10 @@ class character : public entity, public fsm, public horse_rider
 		void			deny_to_party(character * member);
 		void			accept_to_party(character * member);
 
-		/// Invites another character to own party.
-		/**
-		 * @param	pchInvitee character to invite. Must be in a state that allows joining a party.
-		 *
-		 * If either character is not in a state to invite or be invited to a party, sends the corresponding chat message to the inviting character.
-		 */
 		void			party_invite(character * pch_invitee);
 
-		/// Handles acceptance by an invited character.
-		/**
-		 * @param	pchInvitee character joining the party. Must be in a state that allows joining a party.
-		 *
-		 * If pchInvitee cannot join the party, sends the corresponding chat message.
-		 */
 		void			party_invite_accept(character * pch_invitee);
 
-		/// Handles refusal by an invited character.
-		/**
-		 * @param [in]	dwPID PID of the invited character
-		 */
 		void			party_invite_deny(uint32_t pid);
 
 		bool			build_update_party_packet(packet_gc_party_update & out);
@@ -942,66 +874,35 @@ class character : public entity, public fsm, public horse_rider
 
 	protected:
 
-		/// Joins a party.
-		/**
-		 * @param	pkLeader leader of the party to join
-		 */
 		void			party_join(character * leader);
 
-		/**
-		 * Error codes for when a party cannot be joined.
-		 * Error codes are split into mutable types and static types depending on whether they are time dependent.
-		 * If the error code value is below PERR_SEPARATOR it is a mutable type; if above, a static type.
-		 */
 		enum party_join_err_code {
-			PERR_NONE		= 0,	///< Success
-			PERR_SERVER,			///< Party operations unavailable due to a server problem
-			PERR_DUNGEON,			///< Character is in a dungeon
-			PERR_OBSERVER,			///< In observer mode
-			PERR_LVBOUNDARY,		///< Level difference with the other character
-			PERR_LOWLEVEL,			///< 30 levels below the other party's highest level
-			PERR_HILEVEL,			///< 30 levels above the other party's lowest level
-			PERR_ALREADYJOIN,		///< Target character is already in a party
-			PERR_PARTYISFULL,		///< Party member limit exceeded
-			PERR_SEPARATOR,			///< Error type separator.
-			PERR_DIFFEMPIRE,		///< Different empire from the other character
-			PERR_MAX				///< Highest error code. Add error codes before this.
+			PERR_NONE		= 0,
+			PERR_SERVER,
+			PERR_DUNGEON,
+			PERR_OBSERVER,
+			PERR_LVBOUNDARY,
+			PERR_LOWLEVEL,
+			PERR_HILEVEL,
+			PERR_ALREADYJOIN,
+			PERR_PARTYISFULL,
+			PERR_SEPARATOR,
+			PERR_DIFFEMPIRE,
+			PERR_MAX
 		};
 
-		/// Checks conditions for joining or forming a party.
-		/**
-		 * @param 	pchLeader party leader or the inviting character
-		 * @param	pchGuest invited character
-		 * @return	any PartyJoinErrCode may be returned.
-		 */
 		static party_join_err_code	is_party_joinable_condition(character * const pch_leader, character * const pch_guest);
 
-		/// Checks dynamic conditions for joining or forming a party.
-		/**
-		 * @param 	pchLeader party leader or the inviting character
-		 * @param	pchGuest invited character
-		 * @return	returns only mutable type codes.
-		 */
 		static party_join_err_code	is_party_joinable_mutable_condition(character * const pch_leader, character * const pch_guest);
 
 		party *			party_;
 		uint32_t			last_dead_time_;
 		event_ptr			party_request_event_;
 
-		/**
-		 * Party invite event map.
-		 * key: PID of the invited character
-		 * value: event pointer
-		 *
-		 * Event map for invited characters.
-		 */
 		typedef std::map< uint32_t, event_ptr >	event_map;
 		event_map		party_invite_event_map_;
 
-		// END_OF_PARTY_JOIN_BUG_FIX
 
-		////////////////////////////////////////////////////////////////////////////////////////
-		// Dungeon
 	public:
 		void			set_dungeon(dungeon * dungeon_value);
 		dungeon *		get_dungeon() const	{ return dungeon_; }
@@ -1010,8 +911,6 @@ class character : public entity, public fsm, public horse_rider
 		dungeon *	dungeon_;
 		int			event_attr_;
 
-		////////////////////////////////////////////////////////////////////////////////////////
-		// Guild
 	public:
 		void			set_guild(guild * guild_value);
 		guild*			get_guild() const	{ return guild_; }
@@ -1024,10 +923,8 @@ class character : public entity, public fsm, public horse_rider
 		uint32_t			under_guild_war_info_message_time_;
 		war_map *		war_map_;
 
-		////////////////////////////////////////////////////////////////////////////////////////
-		// Item related
 	public:
-		bool			can_handle_item(bool skip_check_refine = false, bool skip_observer = false); // Can item-related actions be performed?
+		bool			can_handle_item(bool skip_check_refine = false, bool skip_observer = false);
 
 		bool			is_item_loaded() const	{ return item_loaded_; }
 		void			set_item_loaded()	{ item_loaded_ = true; }
@@ -1041,29 +938,18 @@ class character : public entity, public fsm, public horse_rider
 		void			set_wear(uint8_t cell, item * item);
 		item *			wear(uint8_t cell) const;
 
-		// MYSHOP_PRICE_LIST
-		void			use_silk_botary(void); 		/// Use of the silk bundle item
+		void			use_silk_botary(void);
 
-		/// Sends the price list received from the DB cache to the user and handles use of the bundle item.
-		/**
-		 * @param [in] p	price list packet
-		 *
-		 * On the first use of the silk bundle item after logging in, UseSilkBotary requests the price list from the DB cache,
-		 * and once the response arrives this function performs the actual silk bundle use.
-		 */
 		void			use_silk_botary_real(const packet_myshop_pricelist_header* p);
-		// END_OF_MYSHOP_PRICE_LIST
 
 		bool			use_item_ex(item * item, item_pos dest_cell);
 		bool			use_item(item_pos cell_value, item_pos dest_cell = NPOS);
 
-		// ADD_REFINE_BUILDING
 		bool			is_refine_through_guild() const;
 		guild *		refine_guild() const;
 		int				compute_refine_fee(int cost, int multiply = 5) const;
 		void			pay_refine_fee(int total_money);
 		void			set_refine_npc(character * ch);
-		// END_OF_ADD_REFINE_BUILDING
 
 		bool			refine_item(item * item_value, item * target);
 		bool			drop_item(item_pos cell_value,  uint8_t count_value=0);
@@ -1073,9 +959,7 @@ class character : public entity, public fsm, public horse_rider
 		void			effect_packet(int enum_effect_type);
 		void			specific_effect_packet(const char filename[128]);
 
-		// ADD_MONSTER_REFINE
 		bool			do_refine(item * item, bool money_only = false);
-		// END_OF_ADD_MONSTER_REFINE
 
 		bool			do_refine_with_scroll(item * item);
 		bool			refine_information(uint8_t cell, uint8_t type_value, int additional_cell = -1);
@@ -1094,10 +978,8 @@ class character : public entity, public fsm, public horse_rider
 		bool			equip_item(item * item, int candidate_cell = -1);
 		bool			unequip_item(item * item);
 
-		// Checks whether the item can currently be equipped; if not, tells the character why
 		bool			can_equip_now(item * const item, const item_pos& src_cell = NPOS, const item_pos& dest_cell = NPOS);
 
-		// Checks whether the equipped item can be removed; if not, tells the character why
 		bool			can_unequip_now(item * const item, const item_pos& src_cell = NPOS, const item_pos& dest_cell = NPOS);
 
 		bool			swap_item(uint8_t cell_value, uint8_t dest_cell);
@@ -1120,23 +1002,15 @@ class character : public entity, public fsm, public horse_rider
 
 		bool			is_equip_unique_item(uint32_t item_vnum) const;
 
-		// CHECK_UNIQUE_GROUP
 		bool			is_equip_unique_group(uint32_t group_vnum) const;
-		// END_OF_CHECK_UNIQUE_GROUP
 
 		void			send_equipment(character * ch);
-		// End of Item
 
 	protected:
 
-		/// Sends price information for one item.
-		/**
-		 * @param [in]	dwItemVnum item vnum
-		 * @param [in]	dwItemPrice item price
-		 */
 		void			send_my_shop_price_list_cmd(uint32_t item_vnum, uint32_t item_price);
 
-		bool			no_opened_shop_;	///< Whether a private shop has been opened since this login (true if never opened)
+		bool			no_opened_shop_;
 
 		bool			item_loaded_;
 		int				refine_additional_cell_;
@@ -1144,16 +1018,11 @@ class character : public entity, public fsm, public horse_rider
 		uint32_t			refine_npcvid_;
 
 	public:
-		////////////////////////////////////////////////////////////////////////////////////////
-		// Money related
 		int32_t				gold() const		{ return points_.gold;	}
 		void			set_gold(int32_t gold)	{ points_.gold = gold;	}
 		bool			drop_gold(int32_t gold_value);
-		void			give_gold(int32_t amount);	// If in a party, handle party distribution, logging, etc.
-		// End of Money
+		void			give_gold(int32_t amount);
 
-		////////////////////////////////////////////////////////////////////////////////////////
-		// Shop related
 	public:
 		void			set_shop(shop * shop_value);
 		shop *			get_shop() const { return shop_; }
@@ -1171,10 +1040,7 @@ class character : public entity, public fsm, public horse_rider
 		shop *			my_shop_;
 		std::string		shop_sign_;
 		character *		chr_shop_owner_;
-		// End of shop
 
-		////////////////////////////////////////////////////////////////////////////////////////
-		// Exchange related
 	public:
 		bool			exchange_start(character * victim);
 		void			set_exchange(exchange * exchange_value);
@@ -1182,10 +1048,7 @@ class character : public entity, public fsm, public horse_rider
 
 	protected:
 		exchange *		exchange_;
-		// End of Exchange
 
-		////////////////////////////////////////////////////////////////////////////////////////
-		// Battle
 	public:
 		struct battle_info
 		{
@@ -1210,7 +1073,7 @@ class character : public entity, public fsm, public horse_rider
 		bool				attack(character * victim, uint8_t type = 0);
 
 		bool				can_begin_fight() const;
-		void				begin_fight(character * victim); // Starts fighting pkVictimr. (Forced; use CanBeginFight to check whether it can start)
+		void				begin_fight(character * victim);
 
 		bool				is_stun() const;
 		void				stun();
@@ -1240,7 +1103,6 @@ class character : public entity, public fsm, public horse_rider
 		void				update_alignment(int amount);
 		int					alignment() const;
 
-		//Get alignment 
 		int					real_alignment() const;
 		void				show_alignment(bool show);
 
@@ -1255,9 +1117,6 @@ class character : public entity, public fsm, public horse_rider
 
 		void				update_aggr_point(character * attacker, damage_type type, int dam);
 
-		//
-		// HACK
-		// 
 	public:
 		void set_combo_sequence(uint8_t seq);
 		uint8_t combo_sequence() const;
@@ -1289,20 +1148,17 @@ class character : public entity, public fsm, public horse_rider
 
 		uint32_t				fly_target_id_;
 		std::vector<uint32_t>	vec_dw_fly_targets_;
-		damage_map			map_k_damage_;	// How much damage has each character dealt to me?
+		damage_map			map_k_damage_;
 		uint32_t				killer_pid_;
 
-		int					alignment_;		// Lawful/Chaotic value -200000 ~ 200000
+		int					alignment_;
 		int					real_alignment_;
 		int					killer_mode_pulse_;
 		uint8_t				pk_mode_;
 
-		// Aggro
 		uint32_t				last_victim_set_time_;
 		int					max_aggro_;
-		// End of Battle
 
-		// Stone
 	public:
 		void				set_stone(character * chr_stone);
 		void				clear_stone();
@@ -1311,11 +1167,10 @@ class character : public entity, public fsm, public horse_rider
 		uint8_t				drop_metin_stone_pct() const { return drop_metin_stone_pct_; }
 
 	protected:
-		character *			chr_stone_;		// The stone that spawned me
-		character_set		set_pk_chr_spawned_by_;	// The ones I spawned
+		character *			chr_stone_;
+		character_set		set_pk_chr_spawned_by_;
 		uint32_t				drop_metin_stone_;
 		uint8_t				drop_metin_stone_pct_;
-		// End of Stone
 
 	public:
 		enum
@@ -1324,22 +1179,18 @@ class character : public entity, public fsm, public horse_rider
 			SKILL_UP_BY_BOOK,
 			SKILL_UP_BY_TRAIN,
 
-			// ADD_GRANDMASTER_SKILL
 			SKILL_UP_BY_QUEST,
-			// END_OF_ADD_GRANDMASTER_SKILL
 		};
 
 		void				skill_level_packet();
 		void				skill_level_up(uint32_t vnum_value, uint8_t method = SKILL_UP_BY_POINT);
 		bool				skill_level_down(uint32_t vnum_value);
-		// ADD_GRANDMASTER_SKILL
 		bool				use_skill(uint32_t vnum_value, character * victim, bool use_grand_master = true);
 		void				reset_skill();
 		void				set_skill_level(uint32_t vnum, uint8_t lev);
 		int					used_skill_master_type(uint32_t vnum);
 
 		bool				is_learnable_skill(uint32_t skill_vnum) const;
-		// END_OF_ADD_GRANDMASTER_SKILL
 
 		bool				check_skill_hit_count(const uint8_t skill_id, const vid target_vid);
 		bool				can_use_skill(uint32_t skill_vnum) const;
@@ -1369,10 +1220,8 @@ class character : public entity, public fsm, public horse_rider
 
 	private:
 		bool				disable_cooltime_;
-		uint32_t				last_skill_time_;	///< Last time a skill was used (millisecond).
-		// End of Skill
+		uint32_t				last_skill_time_;
 
-		// MOB_SKILL
 	public:
 		bool				has_mob_skill() const;
 		size_t				count_mob_skill() const;
@@ -1382,9 +1231,7 @@ class character : public entity, public fsm, public horse_rider
 		void				reset_mob_skill_cooltime();
 	protected:
 		uint32_t				mob_skill_cooltime_[MOB_SKILL_MAX_NUM];
-		// END_OF_MOB_SKILL
 
-		// for SKILL_MUYEONG
 	public:
 		void				start_muyeong_event();
 		void				stop_muyeong_event();
@@ -1392,7 +1239,6 @@ class character : public entity, public fsm, public horse_rider
 	private:
 		event_ptr				muyeong_event_;
 
-		// for SKILL_CHAIN lighting
 	public:
 		int					chain_lightning_index() const { return chain_lighting_index_; }
 		void				inc_chain_lightning_index() { ++chain_lighting_index_; }
@@ -1405,7 +1251,6 @@ class character : public entity, public fsm, public horse_rider
 		int					chain_lighting_index_;
 		character_set except_chain_lighting_;
 
-		// for SKILL_EUNHYUNG
 	public:
 		void				set_affected_eunhyung();
 		void				clear_affected_eunhyung() { affected_eunhyung_level_ = 0; }
@@ -1414,22 +1259,17 @@ class character : public entity, public fsm, public horse_rider
 	private:
 		uint32_t				affected_eunhyung_level_;
 
-		//
-		// Skill levels
-		//
 	protected:
 		std::unique_ptr<player_skill[]>	skill_levels_;
 		std::unordered_map<uint8_t, int>		skill_damage_bonus_;
 		std::map<int, skill_use_info>	skill_use_info_;
 
-		////////////////////////////////////////////////////////////////////////////////////////
-		// AI related
 	public:
 		void			assign_triggers(const mob_table * table);
-		character *		victim() const;	// Returns the target to attack
+		character *		victim() const;
 		void			set_victim(character * victim);
 		character *		nearest_victim(character * chr);
-		character *		protege() const;	// Returns the target to protect
+		character *		protege() const;
 
 		bool			follow(character * chr, float min_distance = 150.0f);
 		bool			return_home();
@@ -1445,13 +1285,10 @@ class character : public entity, public fsm, public horse_rider
 	protected:
 		uint32_t			last_change_attack_position_time_;
 		trigger		trigger_on_click_;
-		// End of AI
 
-		////////////////////////////////////////////////////////////////////////////////////////
-		// Target
 	protected:
-		character *				chr_target_;		// My target
-		character_set	set_pk_chr_targeted_by_;	// Those who have me as their target
+		character *				chr_target_;
+		character_set	set_pk_chr_targeted_by_;
 
 	public:
 		void				set_target(character * chr_target);
@@ -1460,8 +1297,6 @@ class character : public entity, public fsm, public horse_rider
 		void				check_target();
 		character *			target() const { return chr_target_; }
 
-		////////////////////////////////////////////////////////////////////////////////////////
-		// Safebox
 	public:
 		int					safebox_size() const;
 		void				query_safebox_size();
@@ -1472,20 +1307,8 @@ class character : public entity, public fsm, public horse_rider
 		void				change_safebox_size(uint8_t size_value);
 		void				close_safebox();
 
-		/// Safebox open request
-		/**
-		 * @param [in]	pszPassword safebox password of 1 to 6 characters
-		 *
-		 * Requests the DB to open the safebox.
-		 * The safebox cannot be opened twice, and cannot be opened within 10 seconds of last closing it.
-		 */
 		void				req_safebox_load(const char* password_value);
 
-		/// Cancels a safebox open request
-		/**
-		 * After calling ReqSafeboxLoad without CloseSafebox, calling this function allows the safebox to be opened.
-		 * If the safebox open request gets a failure response from the DB server, this function allows requesting again.
-		 */
 		void				cancel_safebox_load( void ) { opening_safebox_ = false; }
 
 		void				set_mall_load_time(int t) { mall_load_time_ = t; }
@@ -1502,17 +1325,14 @@ class character : public entity, public fsm, public horse_rider
 		std::unique_ptr<safebox>	safebox_;
 		int					safebox_size_;
 		int					safebox_load_time_;
-		bool				opening_safebox_;	///< Whether the safebox is being requested or open; true means requested or open.
+		bool				opening_safebox_;
 
 		std::unique_ptr<safebox>	mall_;
 		int					mall_load_time_;
 
 		pixel_position		pos_safebox_open_;
 
-		////////////////////////////////////////////////////////////////////////////////////////
 
-		////////////////////////////////////////////////////////////////////////////////////////
-		// Mounting
 	public:
 		void				mount_vnum(uint32_t vnum);
 		uint32_t				get_mount_vnum() const { return mount_vnum_; }
@@ -1520,7 +1340,6 @@ class character : public entity, public fsm, public horse_rider
 
 		bool				can_use_horse_skill();
 
-		// Horse
 		void		set_horse_level(int level) override;
 
 		bool		start_riding() override;
@@ -1536,8 +1355,8 @@ class character : public entity, public fsm, public horse_rider
 
 		void				horse_summon(bool summon, bool from_far = false, uint32_t vnum = 0, const char* pet_name = nullptr);
 
-		character *			horse() const			{ return ch_horse_; }	 // Currently summoned horse
-		character *			rider() const; // rider on horse
+		character *			horse() const			{ return ch_horse_; }
+		character *			rider() const;
 		void				set_rider(character * ch);
 
 		bool				is_riding() const;
@@ -1561,8 +1380,6 @@ class character : public entity, public fsm, public horse_rider
 		uint8_t				send_horse_health_grade_;
 		uint8_t				send_horse_stamina_grade_;
 
-		////////////////////////////////////////////////////////////////////////////////////////
-		// Detailed Log
 	public:
 		void				detail_log() { detail_log_ = !detail_log_; }
 		void				toggle_monster_log();
@@ -1571,8 +1388,6 @@ class character : public entity, public fsm, public horse_rider
 		bool				detail_log_;
 		bool				monster_log_;
 
-		////////////////////////////////////////////////////////////////////////////////////////
-		// Empire
 
 	public:
 		void 				set_empire(uint8_t empire);
@@ -1581,31 +1396,22 @@ class character : public entity, public fsm, public horse_rider
 	protected:
 		uint8_t				empire_;
 
-		////////////////////////////////////////////////////////////////////////////////////////
-		// Regen
 	public:
 		void				set_regen(regen * regen_value);
 
 	protected:
 		pixel_position			pos_regen_;
 		regen *				regen_;
-		size_t				regen_id_; // to help dungeon regen identification
-		// End of Regen
+		size_t				regen_id_;
 
-		////////////////////////////////////////////////////////////////////////////////////////
-		// Resists & Proofs
 	public:
-		bool				cannot_move_by_affect() const;	// Is it unable to move due to a specific effect?
+		bool				cannot_move_by_affect() const;
 		bool				is_immune(uint32_t immune_flag_value);
 		void				set_immune_flag(uint32_t dw) { points_instant_.immune_flag = dw; }
 
 	protected:
 		void				apply_mob_attribute(const mob_table* table);
-		// End of Resists & Proofs
 
-		////////////////////////////////////////////////////////////////////////////////////////
-		// QUEST
-		// 
 	public:
 		void				set_quest_npcid(uint32_t vid);
 		uint32_t				quest_npcid() const { return quest_npcvid_; }
@@ -1628,20 +1434,17 @@ class character : public entity, public fsm, public horse_rider
 		uint32_t				quest_by_vnum_;
 		item *				quest_item_;
 
-		// Events
 	public:
 		bool				start_state_machine(int next_pulse = 1);
 		void				stop_state_machine();
 		void				update_state_machine(uint32_t pulse);
 		void				set_next_state_pulse(int next_pulse);
 
-		// Character instance update function. Previously, through an odd inheritance structure, CFSM::Update or UpdateStateMachine was called; added a separate update function.
 		void				update_character(uint32_t pulse);
 
 	protected:
 		uint32_t				next_state_pulse_;
 
-		// Marriage
 	public:
 		character *			marry_partner() const;
 		void				set_marry_partner(character * ch);
@@ -1653,7 +1456,6 @@ class character : public entity, public fsm, public horse_rider
 		marriage::wedding_map* wedding_map_;
 		character *			chr_married_;
 
-		// Warp Character
 	public:
 		void				start_warp_npc_event();
 
@@ -1673,12 +1475,8 @@ class character : public entity, public fsm, public horse_rider
 		event_ptr				poison_event;
 		event_ptr				fire_event;
 		event_ptr				warp_npc_event;
-		//DELAYED_WARP
-		//END_DELAYED_WARP
 
-		// MINING
 		event_ptr				mining_event;
-		// END_OF_MINING
 		event_ptr				warp_event;
 		event_ptr				check_speed_hack_event;
 		event_ptr				destroy_when_idle_event;
@@ -1703,29 +1501,22 @@ class character : public entity, public fsm, public horse_rider
 	private:
 		int				premium_times_[PREMIUM_MAX_NUM];
 
-		// CHANGE_ITEM_ATTRIBUTES
-		static const uint32_t		default_change_item_attr_cycle_;	///< Default interval for item attribute changes
-		static const char		last_change_item_attr_flag_[];		///< Quest Flag name for the time of the last item attribute change
-		static const char		change_item_attr_cycle_flag_[];		///< Quest Flag name for the item attribute change interval
-		// END_OF_CHANGE_ITEM_ATTRIBUTES
+		static const uint32_t		default_change_item_attr_cycle_;
+		static const char		last_change_item_attr_flag_[];
+		static const char		change_item_attr_cycle_flag_[];
 
-		// NEW_HAIR_STYLE_ADD
 	public :
 		bool item_process_hair(item * item, int dest_cell);
-		// END_NEW_HAIR_STYLE_ADD
 
 	public :
 		void clear_skill();
 		void clear_sub_skill();
 
-		// RESET_ONE_SKILL
 		bool reset_one_skill(uint32_t vnum);
-		// END_RESET_ONE_SKILL
 
 	private :
 		void send_damage_packet(character * attacker, int damage_value, uint8_t damage_flag);
 
-	// ARENA
 	private :
 		arena *arena_;
 		bool arena_observer_;
@@ -1740,46 +1531,35 @@ class character : public entity, public fsm, public horse_rider
 
 		void	set_potion_limit(int count) { potion_limit_ = count; }
 		int		potion_limit() const { return potion_limit_; }
-	// END_ARENA
 
-		//PREVENT_TRADE_WINDOW
 	public:
 		bool	is_open_safebox() const { return is_open_safebox_ ? true : false; }
 		void 	set_open_safebox(bool b) { is_open_safebox_ = b; }
 
 		int		safebox_load_time() const { return safebox_load_time_; }
 		void	set_safebox_load_time() { safebox_load_time_ = thecore_pulse(); }
-		//END_PREVENT_TRADE_WINDOW
 	private:
 		bool	is_open_safebox_;
 
 	public:
 		int		skill_power_by_level(int level, bool mob = false) const;
 		
-		//PREVENT_REFINE_HACK
 		int		get_refine_time() const { return refine_time; }
 		void	set_refine_time() { refine_time = thecore_pulse(); } 
 		int		refine_time;
-		//END_PREVENT_REFINE_HACK
 
-		//END_RESTRICT_USE_SEED_OR_MOONBOTTLE
 		
-		//PREVENT_PORTAL_AFTER_EXCHANGE
 		int		get_exchange_time() const { return exchange_time; }
 		void	set_exchange_time() { exchange_time = thecore_pulse(); }
 		int		exchange_time;
-		//END_PREVENT_PORTAL_AFTER_EXCHANGE
 		
 		int 	my_shop_time;
 		int		get_my_shop_time() const	{ return my_shop_time; }
 		void	set_my_shop_time() { my_shop_time = thecore_pulse(); }
 
-		// Check to prevent hacks.
 		bool	is_hack(bool send_msg = true, bool check_shop_owner = true, int limittime = portal_limit_time);
 
-		// MONARCH
 		bool	is_monarch() const;
-		// END_MONARCH
 
 		enum monarch_cooltime_values
 		{
@@ -1813,7 +1593,6 @@ class character : public entity, public fsm, public horse_rider
 	public:
 		bool item_process_polymorph(item * item);
 
-		// by mhh
 		item **	cube_item() { return points_instant_.cube_items; }
 		bool is_cube_open () const	{ return (points_instant_.cube_npc?true:false); }
 		void set_cube_npc(character * npc)	{ points_instant_.cube_npc = npc; }
@@ -1877,8 +1656,6 @@ class character : public entity, public fsm, public horse_rider
 	private:
 		uint32_t last_gold_drop_time_;
 
-		// bool GetHackShieldCheckMode() const { return m_HackShieldCheckMode; }
-		// void SetHackShieldCheckMode(bool m) { m_HackShieldCheckMode = m; }
 
 	public:
 		void auto_recovery_item_process (const affect_types);
@@ -1893,7 +1670,6 @@ class character : public entity, public fsm, public horse_rider
 
 		typedef std::map <uint8_t, std::unique_ptr<buff_on_attributes>> map_buff_on_attrs;
 		map_buff_on_attrs map_buff_on_attrs_;
-		// Invincible: for smoother testing.
 	public:
 		void set_armada() { cannot_dead_ = true; }
 		void reset_armada() { cannot_dead_ = false; }
@@ -1906,7 +1682,6 @@ class character : public entity, public fsm, public horse_rider
 		void set_pet() { is_pet_ = true; }
 		bool is_pet() { return is_pet_; }
 
-	//Final damage adjustment.
 	private:
 		float att_mul_;
 		float dam_mul_;
@@ -1920,31 +1695,25 @@ class character : public entity, public fsm, public horse_rider
 		bool is_valid_item_position(item_pos pos) const;
 
 	public:
-		// Set when the guild NPC quest asks for a guild name (game.request_make_guild); the
-		// answer must carry it, and it is good for one answer.
+		// Set when the guild NPC quest asks for a name; the answer must echo it, once.
 		void		set_guild_creation_key(uint32_t key) { guild_creation_key_ = key; }
 		uint32_t	guild_creation_key() const { return guild_creation_key_; }
 
 	private:
 		uint32_t	guild_creation_key_;
 
-		//Temporary storage of German gift feature packet
 	private:
 		unsigned int item_award_vnum_;
 		char		 item_award_cmd_[20];
 	public:
 		unsigned int item_award_vnum() { return item_award_vnum_; }
 		char*		 item_award_cmd() { return item_award_cmd_;	  }
-		//bool		 GetItemAward_flag() { return itemAward_flag; }
 		void		 set_item_award_vnum(unsigned int vnum) { item_award_vnum_ = vnum; }
 		void		 set_item_award_cmd(const char* cmd) { strlcpy(item_award_cmd_, cmd, sizeof(item_award_cmd_)); }
-		//void		 SetItemAward_flag(bool flag) { itemAward_flag = flag; }
 
 	public:
-		//Dragon soul
 		
-		// DragonSoul_Initialize must not be called before the character's affects and quests are loaded.
-		// Affects are loaded last, so it is called from LoadAffect.
+		// Needs affects and quests loaded, so load_affect calls it.
 		void	dragon_soul_initialize();
 
 		bool	dragon_soul_is_qualified() const;
@@ -1955,17 +1724,9 @@ class character : public entity, public fsm, public horse_rider
 		bool	dragon_soul_activate_deck(int deck_idx);
 
 		void	dragon_soul_deactivate_all();
-		// Must be called before ClearItem.
-		// Because....
-		// Each time a dragon soul stone is deactivated, it checks whether the deck still has an active one,
-		// and if there are no active dragon soul stones, removes the character's dragon soul affect and active state.
-		// 
-		// But ClearItem unequips every item the character is wearing,
-		// so the dragon soul affect is removed, and in the end the dragon soul is not activated on login.
-		// (When unequipping, there is no way to know whether we are logging out.)
-		// Only deactivates the dragon soul stones and leaves the character's dragon soul deck active state untouched.
+		// Must run before clear_item: unequipping would drop the dragon soul affect and the deck
+		// would not be active after login.
 		void	dragon_soul_clean_up();
-		// Dragon soul refine window
 	public:
 		bool		dragon_soul_refine_window_open(entity * entity_value);
 		bool		dragon_soul_refine_window_close();
@@ -1973,8 +1734,6 @@ class character : public entity, public fsm, public horse_rider
 		bool		dragon_soul_refine_window_can_refine();
 
 	private:
-		// To defend against hacks that abuse SyncPosition to send other users to odd places,
-		// record when SyncPosition happens.
 		timeval		tv_last_sync_time_;
 		int			sync_hack_count_;
 	public:

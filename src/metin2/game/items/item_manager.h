@@ -18,9 +18,6 @@
 
 namespace metin2::game::inline items {
 
-// attribute group defined in special_item_group.txt
-// can be declared with type attr.
-// this attribute group can be used by UNIQUE ITEMs belonging to groups defined as Special type in special_item_group.txt.
 class special_attr_group
 {
 public:
@@ -56,10 +53,6 @@ class special_item_group
 			MOB_GROUP,
 		};
 
-		// QUEST type is a group for which vnum.sig_use can be used in quest scripts.
-		//		however, to join this group the ITEM's own TYPE must be QUEST.
-		// SPECIAL type takes idx, item_vnum, attr_vnum. attr_vnum is the Vnum of CSpecialAttrGroup above.
-		//		items in this group cannot be worn together.
 		enum sig_type { NORMAL, PCT, QUEST, SPECIAL };
 
 		struct special_item_info
@@ -87,10 +80,6 @@ class special_item_group
 			items.push_back(special_item_info(vnum, count, rare));
 		}
 
-		// Type Multi, i.e. when m_bType == PCT,
-		// probabilities are not accumulated; each is computed independently to create items.
-		// so multiple items may be created.
-		// by rtsummit
 		int multi_index(std::vector <int> &idx_vec) const
 		{
 			idx_vec.clear();
@@ -151,8 +140,6 @@ class special_item_group
 			return false;
 		}
 		
-		// when the Group's Type is Special
-		// returns the AttrVnum matching dwVnum.
 		uint32_t attr_vnum(uint32_t vnum_value) const
 		{
 			if (special_item_group::SPECIAL != type)
@@ -170,7 +157,7 @@ class special_item_group
 		uint32_t vnum;
 		uint8_t	type;
 		std::vector<int> probs;
-		std::vector<special_item_info> items; // vnum, count
+		std::vector<special_item_info> items;
 };
 
 class mob_item_group
@@ -207,7 +194,6 @@ class mob_item_group
 			items_.push_back(mob_item_group_info(item_vnum, count, rare_pct));
 		}
 
-		// MOB_DROP_ITEM_BUG_FIX
 		bool is_empty() const
 		{
 			return probs_.empty();
@@ -219,7 +205,6 @@ class mob_item_group
 			auto it = lower_bound(probs_.begin(), probs_.end(), n);
 			return std::distance(probs_.begin(), it);
 		}
-		// END_OF_MOB_DROP_ITEM_BUG_FIX
 
 		const mob_item_group_info& one() const
 		{
@@ -336,23 +321,20 @@ class item_manager : public singleton<item_manager>
 
 		bool                    initialize(item_table * table_value, int size);
 		void			destroy();
-		void			update();	// called every loop.
+		void			update();
 		void			graceful_shutdown();
 
 		uint32_t			new_id();
-		bool			set_max_item_id(item_id_range_table range); // set the maximum unique ID
+		bool			set_max_item_id(item_id_range_table range);
 		bool			set_max_spare_item_id(item_id_range_table range);
 
-		// DelayedSave: if a routine does many things that require saving,
-		// there are too many queries, so just mark "to be saved" and save
-		// shortly after (e.g. 1 frame).
 		void			delayed_save(item * item);
-		void			flush_delayed_save(item * item); // if in the Delayed list, remove it and save. used on disconnect handling.
+		void			flush_delayed_save(item * item);
 		void			save_single_item(item * item);
 
 		item *                  create_item(uint32_t vnum, uint32_t count = 1, uint32_t id = 0, bool try_magic = false, int rare_pct = -1, bool skip_save = false);
 		void destroy_item(item * item);
-		void			remove_item(item * item, const char * reason=nullptr); // remove the item from the user
+		void			remove_item(item * item, const char * reason=nullptr);
 
 		item *			find(uint32_t id);
 		item *                  find_by_vid(uint32_t vid);
@@ -369,20 +351,16 @@ class item_manager : public singleton<item_manager>
 		bool			read_monster_drop_item_group(const char * file_name);
 		bool			read_special_drop_item_file(const char * file_name);
 		
-		// convert name -> vnum special_item_group.txt
 		bool			conv_special_drop_item_file();
-		// convert name -> vnum special_item_group.txt
 
 		uint32_t			refine_from_vnum(uint32_t vnum);
 
-		static void		copy_all_attr_to(item * old_item, item * new_item);		// copies all attributes and socket values to pkNewItem.
+		static void		copy_all_attr_to(item * old_item, item * new_item);
 
 		const special_item_group* get_special_item_group(uint32_t vnum);
 		const special_attr_group* get_special_attr_group(uint32_t vnum);
 
-		// CHECK_UNIQUE_GROUP
 		int			special_group_from_item(uint32_t vnum) const { auto it = item_to_special_group_.find(vnum); return (it == item_to_special_group_.end()) ? 0 : it->second; }
-		// END_OF_CHECK_UNIQUE_GROUP
 
 	protected:
 		int                     real_number(uint32_t vnum);
@@ -395,8 +373,8 @@ class item_manager : public singleton<item_manager>
 		std::vector<item_table*> vec_item_vnum_range_info_;
 		std::map<uint32_t, uint32_t>		map_item_refine_from_;
 
-		item_vid_map			vid_map_;			///< saves items in units of m_dwVIDCount.
-		uint32_t				vid_count_;			///< this is not a VID, just a per-process unique number.
+		item_vid_map			vid_map_;
+		uint32_t				vid_count_;
 		uint32_t				current_id_;
 		item_id_range_table	item_id_range_;
 		item_id_range_table	item_id_spare_range_;
@@ -412,20 +390,9 @@ class item_manager : public singleton<item_manager>
 		std::map<uint32_t, level_item_group*> map_pk_level_item_group_;
 		std::map<uint32_t, buyer_thief_gloves_item_group*> map_pk_glove_item_group_;
 
-		// CHECK_UNIQUE_GROUP
 		std::map<uint32_t, int>		item_to_special_group_;
-		// END_OF_CHECK_UNIQUE_GROUP
 	
 	private:
-		// Germany wanted cash items identical to existing ones but tradeable,
-		// so new items were made from the originals with only the no-trade flag removed,
-		// and a new item range was allocated.
-		// the problem is the new items must have the same effects as the originals,
-		// but both server and client are vnum-based,
-		// so we faced the sad situation of having to hardcode all the new vnums into the server.
-		// so for an item with a new vnum, it runs on the server as the original item vnum,
-		// and is converted back to its own vnum when saving.
-		// for this, a map linking original vnums to new vnums is created.
 		typedef std::map <uint32_t, uint32_t> map_dw2_dw;
 		map_dw2_dw	map_new_to_ori_;
 

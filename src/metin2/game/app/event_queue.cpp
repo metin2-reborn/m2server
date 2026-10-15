@@ -1,9 +1,3 @@
-/*
- *    Filename: queue.c
- * Description: Queue handling
- *
- *      Author: Kim Han-ju (aka. Biyeop, Cronan), Song Young-jin (aka. myevan, Bitjaru)
- */
 #include <metin2/game/app/event_queue.h>
 
 #include <metin2/game/app/event.h>

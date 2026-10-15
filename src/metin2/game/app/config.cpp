@@ -105,14 +105,14 @@ static bool get_ip_info()
 		if (!ifap->ifa_addr || ifap->ifa_addr->sa_family != AF_INET) continue;
 		struct sockaddr_in * sai = (struct sockaddr_in *) ifap->ifa_addr;
 
-		if (!ifap->ifa_netmask ||  // ignore if no netmask
-				sai->sin_addr.s_addr == 0 || // ignore if address is 0.0.0.0
-				sai->sin_addr.s_addr == 16777343) // ignore if address is 127.0.0.1
+		if (!ifap->ifa_netmask ||
+				sai->sin_addr.s_addr == 0 ||
+				sai->sin_addr.s_addr == 16777343)
 			continue;
 
 		char * netip = inet_ntoa(sai->sin_addr);
 
-		if (!strncmp(netip, "192.168", 7)) // ignore if address is starting with 192
+		if (!strncmp(netip, "192.168", 7))
 		{
 			strlcpy(szInternalIP, netip, sizeof(szInternalIP));
 		}
@@ -188,7 +188,6 @@ void config_init()
 		exit(1);
 	}
 
-	// The Common DB holds the locale info, so connect to it first.
 	account_db::instance().connect(db.host.c_str(), db.port, db.user.c_str(), db.password.c_str(), db.common.c_str());
 
 	if (false == account_db::instance().is_connected())
@@ -199,8 +198,7 @@ void config_init()
 
 	metin2::log::info( "CommonSQL connected");
 
-	// Fetch the locale info 
-	// <WARNING> Never add a condition (WHERE) to this query. (It may cause problems in other regions)
+	// Must not get a WHERE clause.
 	{
 		char szQuery[512];
 		snprintf(szQuery, sizeof(szQuery), "SELECT mKey, mValue FROM locale");
@@ -217,7 +215,6 @@ void config_init()
 
 		while (nullptr != (row = mysql_fetch_row(pMsg->get()->sql_result)))
 		{
-			// Locale setup
 			if (strcasecmp(row[0], "LOCALE") == 0)
 			{
 				if (locale_service_init(row[1]) == false)
@@ -229,16 +226,12 @@ void config_init()
 		}
 	}
 
-	// Set the locale info on the COMMON SQL.
-	// Note: g_stLocale is set inside LocaleService_Init().
 	metin2::log::info( "Setting DB to locale {}", locale.c_str());
 
 	account_db::instance().set_locale(locale);
 
 	account_db::instance().connect_async(db.host.c_str(), db.port, db.user.c_str(), db.password.c_str(), db.common.c_str(), locale.c_str());
 
-	// Connect to Player DB
-	// The auth server reads accounts where the game reads players.
 	const std::string & player_db = metin2::config::is_auth() ? db.account : db.player;
 	db_manager::instance().connect(db.host.c_str(), db.port, db.user.c_str(), db.password.c_str(), player_db.c_str());
 
@@ -252,7 +245,6 @@ void config_init()
 
 	if (!metin2::config::is_auth())
 	{
-		// Connect to Log DB
 		log_manager::instance().connect(db.host.c_str(), db.port, db.user.c_str(), db.password.c_str(), db.log.c_str());
 
 		if (!log_manager::instance().is_connected())
@@ -266,9 +258,6 @@ void config_init()
 		log_manager::instance().boot_log(server.hostname.c_str(), server.channel);
 	}
 
-	// SKILL_POWER_BY_LEVEL
-	// Due to string comparison issues, do this after AccountDB::instance().SetLocale(g_stLocale).
-	// Of course this is not much of a problem domestically (overseas is the problem)
 	{
 		char szQuery[256];
 		snprintf(szQuery, sizeof(szQuery), "SELECT mValue FROM locale WHERE mKey='SKILL_POWER_BY_LEVEL'");
@@ -308,13 +297,11 @@ void config_init()
 			}
 		}
 
-		// Per-race skill setup
 		for (int job = 0; job < JOB_MAX_NUM * 2; ++job)
 		{
 			snprintf(szQuery, sizeof(szQuery), "SELECT mValue from locale where mKey='SKILL_POWER_BY_LEVEL_TYPE%d' ORDER BY CAST(mValue AS unsigned)", job);
 			std::unique_ptr<ql_msg> pMsg(account_db::instance().direct_query(szQuery));
 
-			// Use the default table if not set.
 			if (pMsg->get()->num_rows == 0)
 			{
 				table_by_skill::instance().set_skill_power_by_level_from_type(job, aiBaseSkillPowerByLevelTable);
@@ -348,7 +335,6 @@ void config_init()
 			table_by_skill::instance().set_skill_power_by_level_from_type(job, aiSkillTable);
 		}		
 	}
-	// END_SKILL_POWER_BY_LEVEL
 
 
 	if (!metin2::config::game().quest.dir.empty())
@@ -356,11 +342,9 @@ void config_init()
 	for (const std::string & dir : metin2::config::game().quest.object_dirs)
 		quest_object_dir.insert(dir);
 
-	// LOCALE_SERVICE
 	locale_service_load_locale_string_file();
 	locale_service_transfer_default_setting();
 	locale_service_load_empire_text_convert_tables();
-	// END_OF_LOCALE_SERVICE
 
 	if (FILE * fp = fopen("CMD", "r"))
 	{
@@ -429,7 +413,7 @@ void check_client_version()
 		int version = atoi(client_version.c_str());
 		int date	= atoi(d->client_version() );
 
-		if (version != date) // Fix
+		if (version != date)
 		{
 			d->get_character()->chat_packet(CHAT_TYPE_NOTICE, lc_text("클라이언트 버전이 틀려 로그아웃 됩니다. 정상적으로 패치 후 접속하세요."));
 			d->delayed_disconnect(10);

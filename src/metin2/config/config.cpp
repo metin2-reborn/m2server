@@ -23,8 +23,6 @@ namespace metin2::config {
             return std::format("{}:{}", *source.path, source.begin.line);
         }
 
-        // Reads the keys of one table into settings fields, collecting errors and remembering which
-        // keys it used so the rest can be reported as unknown.
         class reader {
           public:
             reader(const toml::table *table, std::string path, std::vector<std::string> &errors)
@@ -54,7 +52,6 @@ namespace metin2::config {
                 read((*array)[1], name(key), high);
             }
 
-            // The sub-table at key; a missing one reads as empty.
             auto table(std::string_view key) -> reader {
                 used_.emplace(key);
                 const toml::node *node = table_ ? table_->get(key) : nullptr;
@@ -65,7 +62,6 @@ namespace metin2::config {
                 return {node ? node->as_table() : nullptr, name(key), errors_};
             }
 
-            // Reports the keys nobody asked for (typos, removed options).
             void finish() const {
                 if (!table_)
                     return;
@@ -153,7 +149,6 @@ namespace metin2::config {
             std::set<std::string, std::less<>> used_;
         };
 
-        // Values of over replace the ones of base; tables present in both merge.
         void merge(toml::table &base, const toml::table &over) {
             for (const auto &[key, node] : over) {
                 toml::node *existing = base.get(key);
@@ -288,7 +283,6 @@ namespace metin2::config {
             }
             top.finish();
 
-            // Required per role, and values the code can't work with.
             if (s.role == role::db) {
                 if (s.db.player_id_start <= 0)
                     errors.emplace_back("db.player_id_start is required");

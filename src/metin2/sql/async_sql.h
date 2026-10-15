@@ -15,7 +15,6 @@
 
 namespace metin2::sql {
 
-// One result set of a query (a multi-statement query has several).
 struct ql_result {
     ql_result() = default;
     ql_result(const ql_result &) = delete;
@@ -33,13 +32,9 @@ struct ql_result {
     uint32_t insert_id{0};
 };
 
-// A query and, once it ran, its results. Returned to callers by DirectQuery and PopResult;
-// they delete it.
 struct ql_msg {
-    // Collects every result set of the last query on sql.
     void store(MYSQL *sql);
 
-    // The first result set, or nullptr when the query produced none.
     auto get() -> ql_result * {
         return vec_pk_result.empty() ? nullptr : vec_pk_result.front().get();
     }
@@ -48,13 +43,10 @@ struct ql_msg {
     std::string query;
     std::vector<std::unique_ptr<ql_result>> vec_pk_result;
     void *pv_user_data{nullptr};
-    bool returns_result{false}; // the caller collects the result with PopResult
+    bool returns_result{false};
     unsigned int sql_errno{0};
 };
 
-// A MySQL connection. With a worker thread (the default) AsyncQuery/ReturnQuery queue queries
-// that run in order on that thread; ReturnQuery results come back through PopResult. Without
-// one (Setup with bNoThread) only DirectQuery is used, on the caller's thread.
 class async_sql {
   public:
     async_sql() = default;
@@ -65,7 +57,6 @@ class async_sql {
     auto setup(const char *host, const char *user, const char *password, const char *db, const char *locale, bool no_thread = false, int port = 0) -> bool;
     void quit();
 
-    // Applies m_stLocale as the connection character set.
     auto query_locale_set() -> bool;
     void set_locale(const std::string &locale);
 
@@ -121,7 +112,6 @@ class async_sql {
 };
 }
 
-// Used unqualified throughout game and db.
 namespace metin2 {
     using sql::async_sql;
     using sql::ql_msg;

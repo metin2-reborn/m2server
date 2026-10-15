@@ -31,19 +31,17 @@ class p2_p_manager : public singleton<p2_p_manager>
 		p2_p_manager();
 		~p2_p_manager() override;
 
-		// The Register* / Unregister* pairs below actually use the same routine internally.
-		// They're just for explicitness
 		void			register_acceptor(desc * d);
 		void			unregister_acceptor(desc * d);
 
 		void			register_connector(desc * d);
 		void			unregister_connector(desc * d);
 
-		void			erase_user_by_desc(desc * d);	// Remove the users on this desc.
+		void			erase_user_by_desc(desc * d);
 
 		void			flush_output();
 
-		void			boot(desc * d);	// Send the info needed for p2p handling. (login info of all characters, etc.)
+		void			boot(desc * d);
 
 		void			send(const void * data, int size, desc * except = nullptr);
 

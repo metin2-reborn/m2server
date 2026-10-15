@@ -247,7 +247,6 @@ bool monarch::set_monarch(const char * name)
 			metin2::log::info( "[Set_MONARCH] Empire {:d} pid {:d} money {:d} windate {}", Empire, p->pid[Empire], p->money[Empire], p->date[Empire]);
     }
 
-	//Insert into db
 	query = sql::format(
 					"REPLACE INTO monarch (empire, pid, windate, money) VALUES({}, {}, NOW(), {})", Empire, p->pid[Empire], p->money[Empire]);
 

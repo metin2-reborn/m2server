@@ -21,9 +21,7 @@
 
 namespace metin2::net {
     namespace {
-        // Input grows in steps of at least this much free space per read.
         constexpr std::size_t min_read_space = 16 * 1024;
-        // Buffers grown beyond this by a burst are released once they are empty again.
         constexpr std::size_t keep_capacity = 1024 * 1024;
 
         void release(std::vector<std::uint8_t> &output, std::size_t &sent) {
@@ -86,7 +84,7 @@ namespace metin2::net {
 
     void connection::on_read(const std::error_code &error, std::size_t size) {
         if (!handler_) {
-            return; // closed
+            return;
         }
         if (error) {
             fail(error);
@@ -96,10 +94,9 @@ namespace metin2::net {
         input_size_ += size;
         const std::size_t consumed = handler_->on_receive(std::span(input_.data(), input_size_), size);
         if (!handler_) {
-            return; // the handler closed the connection
+            return;
         }
         if (consumed > input_size_) {
-            // never move or drop more than was received
             metin2::log::error("{}: handler consumed {:d} of {:d} bytes", address_.c_str(), consumed, input_size_);
             fail(asio::error::invalid_argument);
             return;

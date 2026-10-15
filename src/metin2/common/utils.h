@@ -10,10 +10,6 @@
 
 namespace metin2::inline common {
 
-// Parses a decimal number like strtol/strtoul/strtof: leading whitespace and '+' are skipped,
-// parsing stops at the first character that does not belong to the number, a negative value
-// read into an unsigned type wraps, and anything unparsable reads as 0. Returns false only for
-// a null or empty string.
 template <typename T>
     requires std::is_arithmetic_v<T>
 inline auto str_to_number(T &out, const char *in) -> bool {

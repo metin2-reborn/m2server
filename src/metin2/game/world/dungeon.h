@@ -28,17 +28,13 @@ class dungeon
 	typedef std::map<std::string, character *> unique_mob_map;
 
 	public:
-	// <Factor> Non-persistent identifier type
 	typedef uint32_t id_type;
 
 	~dungeon();
 
-	// <Factor>
 	id_type id() const { return id_; }
 
-	// DUNGEON_NOTICE
 	void	notice(const char* msg);
-	// END_OF_DUNGEON_NOTICE
 
 	void	join_party(party * party_value);
 	void	quit_party(party * party_value);
@@ -48,14 +44,12 @@ class dungeon
 	void	inc_member(character * ch);
 	void	dec_member(character * ch);
 
-	// DUNGEON_KILL_ALL_BUG_FIX
 	void	purge();
 	void	kill_all();
-	// END_OF_DUNGEON_KILL_ALL_BUG_FIX
 
 	void	inc_monster() { monster_count_++; metin2::log::info("MonsterCount {:d}", monster_count_); }
 	void	dec_monster() { monster_count_--; check_eliminated(); }
-	int	count_monster() { return monster_count_; }	// number of monsters regenerated from data
+	int	count_monster() { return monster_count_; }
 
 	void	inc_party_member(party * party_value, character * ch);
 	void	dec_party_member(party * party_value, character * ch);
@@ -119,7 +113,6 @@ class dungeon
 	void	set_flag(std::string name, int value);
 	void	set_warp_location (int32_t map_index, int x, int y);
 
-	// an item group consists of item_vnum and item_count.
 	typedef std::vector <std::pair <uint32_t, int> > item_group;
 	void	create_item_group (std::string& group_name, item_group& item_group);
 	const item_group* get_item_group (std::string& group_name);
@@ -134,7 +127,7 @@ class dungeon
 	void	initialize();
 
 	private:
-	id_type 		id_; // <Factor>
+	id_type 		id_;
 	uint32_t		map_index_;
 
 	character_set	    set_pk_character_;
@@ -155,7 +148,6 @@ class dungeon
 	bool		exit_all_at_eliminate_;
 	bool		warp_at_eliminate_;
 
-	// position to warp to when all enemies are wiped out
 	int		warp_delay_;
 	int32_t		warp_map_index_;
 	int32_t		warp_x_;
@@ -165,20 +157,15 @@ class dungeon
 	std::vector<regen *> regen_;
 
 	event_ptr		dead_event_;
-	// <Factor>
 	event_ptr exit_all_event_;
 	event_ptr jump_to_event_;
 	size_t regen_id_;
 
 	friend class dungeon_manager;
 	friend EVENTFUNC(dungeon_dead_event);
-	// <Factor>
 	friend EVENTFUNC(dungeon_exit_all_event);
 	friend EVENTFUNC(dungeon_jump_to_event);
 
-	// temporary variable for party-based dungeon entry.
-	// m_map_pkParty is poorly managed and judged unusable, so
-	// a variable managing a single party was created temporarily.
 	
 	party * party_;
 	public :
@@ -203,7 +190,6 @@ class dungeon_manager : public singleton<dungeon_manager>
 	dungeon_map	map_pk_dungeon_;
 	map_dungeon map_pk_map_dungeon_;
 
-	// <Factor> Introduced unsigned 32-bit dungeon identifier
 	dungeon::id_type next_id_;
 };
 }

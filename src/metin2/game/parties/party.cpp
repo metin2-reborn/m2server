@@ -56,7 +56,7 @@ void party_manager::delete_all_party()
 	}
 }
 
-bool party_manager::set_party(character * ch)	// Must only be used for PCs!!
+bool party_manager::set_party(character * ch)
 {
 	party_map::iterator it = map_pk_party_.find(ch->player_id());
 
@@ -225,11 +225,6 @@ EVENTINFO(party_update_event_info)
 	}
 };
 
-/////////////////////////////////////////////////////////////////////////////
-//
-// CParty begin!
-//
-/////////////////////////////////////////////////////////////////////////////
 EVENTFUNC(party_update_event)
 {
 	party_update_event_info* info = dynamic_cast<party_update_event_info*>( event->info );
@@ -305,7 +300,6 @@ void party::destroy()
 {
 	metin2::log::debug( "Party::Destroy");
 
-	// If the party was created by a PC, the PID must be removed from the party manager's map.
 	if (pc_party_)
 	{
 		for (member_map::iterator it = member_map_.begin(); it != member_map_.end(); ++it)
@@ -337,7 +331,6 @@ void party::destroy()
 			}
 			else
 			{
-				// For NPCs, start an event that makes it disappear after a while when not in combat.
 				rMember.character->set_last_attacked(dwTime);
 				rMember.character->start_destroy_when_idle_event();
 			}
@@ -468,7 +461,7 @@ void party::join(uint32_t pid_value)
 		packet_party_add p;
 		p.leader_pid = leader_pid();
 		p.pid = pid_value;
-		p.state = PARTY_ROLE_NORMAL; // #0000790: [M2EU] CZ crash increase: initialization matters! 
+		p.state = PARTY_ROLE_NORMAL;
 		db_clientdesc->db_packet(HEADER_GD_PARTY_ADD, 0, &p, sizeof(p));
 	}
 }
@@ -514,16 +507,14 @@ void party::p2_p_quit(uint32_t pid)
 	if (pc_party_)
 		party_manager::instance().set_party_member(pid, nullptr);
 
-	// If the leader leaves, the party must be disbanded.
 	if (bRole == PARTY_ROLE_LEADER)
 		party_manager::instance().delete_party(this);
 
-	// Do not add code below this!!! After DeleteParty above, this no longer exists.
+	// The party is deleted above; nothing may follow.
 }
 
 void party::quit(uint32_t pid_value)
 {
-	// Always PC
 	p2_p_quit(pid_value);
 
 	if (pc_party_ && pid_value != leader_pid())
@@ -550,7 +541,6 @@ void party::link(character * chr)
 		return;
 	}
 
-	// Create an update event for player parties
 	if (pc_party_ && !event_update_)
 	{
 		party_update_event_info* info = alloc_event_info<party_update_event_info>();
@@ -647,7 +637,6 @@ void party::unlink(character * chr)
 	if (chr->is_pc())
 	{
 		send_party_unlink_one_to_all(chr);
-		//SendPartyUnlinkAllToOne(pkChr); // Disconnecting, so no need to send Unlink packets.
 
 		if (it->second.role == PARTY_ROLE_LEADER)
 		{
@@ -655,7 +644,6 @@ void party::unlink(character * chr)
 
 			if (it->second.character->get_dungeon())
 			{
-				// TODO: if in a dungeon, the rest leave too
 				f_exit_dungeon f;
 				for_each_near_member(f);
 			}
@@ -795,7 +783,6 @@ void party::send_party_info_one_to_all(uint32_t pid)
 		return;
 	}
 
-	// Data Building
 	packet_gc_party_update p;
 	memset(&p, 0, sizeof(p));
 	p.header = HEADER_GC_PARTY_UPDATE;
@@ -819,7 +806,6 @@ void party::send_party_info_one_to_all(character * ch)
 
 	member_map::iterator it;
 
-	// Data Building
 	packet_gc_party_update p;
 	ch->build_update_party_packet(p);
 
@@ -902,9 +888,8 @@ void party::send_message(character * ch, uint8_t msg, uint32_t arg1, uint32_t ar
 			}
 			break;
 
-		case PM_ATTACKED_BY:	// Attacked, ask the leader for help
+		case PM_ATTACKED_BY:
 			{
-				// When there is no leader
 				character * pkChrVictim = ch->victim();
 
 				if (!pkChrVictim)
@@ -1061,7 +1046,6 @@ void party::remove_bonus_for_one(uint32_t pid)
 
 void party::heal_party()
 {
-	// XXX DELETEME until the client is done
 	{
 		return;
 	}
@@ -1211,9 +1195,7 @@ void party::compute_role_point(character * ch, uint8_t role, bool add)
 		return;
 	}
 
-	//SKILL_POWER_BY_LEVEL
 	float k = (float) ch->skill_power_by_level( std::min(SKILL_MAX_LEVEL, leadership_ ) )/ 100.0f;
-	//END_SKILL_POWER_BY_LEVEL
 
 	switch (role)
 	{
@@ -1345,7 +1327,6 @@ void party::update()
 
 	bool bLongTimeExpBonusChanged = false;
 
-	// After enough time since the party was formed, an experience bonus is granted.
 	if (!long_time_exp_bonus_ && (get_dword_time() - party_start_time_ > PARTY_ENOUGH_MINUTE_FOR_EXP_BONUS * 60 * 1000))
 	{
 		bLongTimeExpBonusChanged = true;
@@ -1374,7 +1355,6 @@ void party::update()
 		}
 	}
 
-	// PARTY_ROLE_LIMIT_LEVEL_BUG_FIX
 	an_max_role_[PARTY_ROLE_ATTACKER]	 = leadership_ >= 10 ? 1 : 0;
 	an_max_role_[PARTY_ROLE_HASTE]	 = leadership_ >= 20 ? 1 : 0;
 	an_max_role_[PARTY_ROLE_TANKER]	 = leadership_ >= 20 ? 1 : 0;
@@ -1382,17 +1362,14 @@ void party::update()
 	an_max_role_[PARTY_ROLE_SKILL_MASTER] = leadership_ >= 35 ? 1 : 0;
 	an_max_role_[PARTY_ROLE_DEFENDER] 	 = leadership_ >= 40 ? 1 : 0;
 	an_max_role_[PARTY_ROLE_ATTACKER]	+= leadership_ >= 40 ? 1 : 0;
-	// END_OF_PARTY_ROLE_LIMIT_LEVEL_BUG_FIX
 
-	// Party Heal Update
 	if (!party_heal_ready_)
 	{
 		if (!can_use_party_heal_ && leadership_ >= 18)
 			party_heal_time_ = get_dword_time();
 
-		can_use_party_heal_ = leadership_ >= 18; // Leadership 18 or higher can use heal.
+		can_use_party_heal_ = leadership_ >= 18;
 
-		// Leadership 40 or higher has a shorter party heal cooldown.
 		uint32_t PartyHealCoolTime = (leadership_ >= 40) ? PARTY_HEAL_COOLTIME_SHORT * 60 * 1000 : PARTY_HEAL_COOLTIME_LONG * 60 * 1000;
 
 		if (can_use_party_heal_)
@@ -1401,7 +1378,6 @@ void party::update()
 			{
 				party_heal_ready_ = true;
 
-				// send heal ready
 			}
 		}
 	}
@@ -1619,17 +1595,14 @@ int party::compute_party_bonus_exp_percent()
 
 	int iBonusPartyExpFromItem = 0;
 
-	// UPGRADE_PARTY_BONUS
 	int iMemberCount=std::min<int>(8, near_member_count());
 
 	if (leader && (leader->is_equip_unique_item(UNIQUE_ITEM_PARTY_BONUS_EXP) || leader->is_equip_unique_item(UNIQUE_ITEM_PARTY_BONUS_EXP_MALL)
 		|| leader->is_equip_unique_item(UNIQUE_ITEM_PARTY_BONUS_EXP_GIFT) || leader->is_equip_unique_group(10010)))
 	{
-		// Need to verify the Chinese-side Yukdo application.
 		iBonusPartyExpFromItem = 30;
 	}
 
 	return iBonusPartyExpFromItem + chn_ai_party_bonus_exp_percent_by_member_count[iMemberCount];
-	// END_OF_UPGRADE_PARTY_BONUS
 }
 }

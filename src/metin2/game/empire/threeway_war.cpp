@@ -71,7 +71,6 @@ EVENTFUNC(regen_mob_event)
 
 	if (nullptr != pkMap)
 	{
-		// A missing regen00_<choice>.txt falls back to regen00.txt.
 		if (!regen_load_in_file(filename.c_str(), iMapIndex, pkMap->setting.base_x, pkMap->setting.base_y) && 0 != choice)
 		{
 			filename = szFilename + "regen00.txt";
@@ -322,13 +321,12 @@ void three_way_war::on_dead(character * dead, character * killer)
 	if (nullptr == killer || true != killer->is_pc())
 		return;
 
-	// Don't count the same empire
 	if (dead->empire() == killer->empire())
 		return;
 
 	int nKillScore = kill_score(killer->empire());
 
-	// An empire kill score of -1 means an eliminated empire, so its score must not be checked.
+	// A score of -1 means the empire is eliminated.
 	if (nKillScore >= 0)
 	{
 		nKillScore += get_kill_value(dead->level());
@@ -364,9 +362,6 @@ void three_way_war::on_dead(character * dead, character * killer)
 		if (1 != nEliminatedEmpireCount)
 			return;
 
-		//----------------------
-		//Reset count 
-		//----------------------
 		set_kill_score(1, 0);
 		set_kill_score(2, 0);
 		set_kill_score(3, 0);
@@ -374,9 +369,6 @@ void three_way_war::on_dead(character * dead, character * killer)
 
 		quest::warp_all_to_map_my_empire_event_info * info;
 
-		//----------------------
-		//Kick out eliminated empires: from the sanctuary 
-		//----------------------
 		info = alloc_event_info<quest::warp_all_to_map_my_empire_event_info>();
 
 		info->map_index_from	= get_sungzi_map_index();
@@ -387,9 +379,6 @@ void three_way_war::on_dead(character * dead, character * killer)
 
 		event_create(quest::warp_all_to_map_my_empire_event, info, passes_per_sec(10));
 
-		//----------------------
-		//Kick out eliminated empires: from the passage 
-		//----------------------
 		info = alloc_event_info<quest::warp_all_to_map_my_empire_event_info>();
 
 		info->map_index_from	= get_pass_map_index(bLoseEmpire);
@@ -400,9 +389,6 @@ void three_way_war::on_dead(character * dead, character * killer)
 
 		event_create(quest::warp_all_to_map_my_empire_event, info, passes_per_sec(10));
 
-		//----------------------
-		//The demon king announces the empire being kicked from the sanctuary!
-		//----------------------
 		const std::string Nation(empire_name(bLoseEmpire));
 		const std::string Script(
 				lc_text("성지의 마왕: 너희 ") +
@@ -413,9 +399,6 @@ void three_way_war::on_dead(character * dead, character * killer)
 
 		character_manager::instance().send_script_to_map(dead->map_index(), Script);
 
-		//----------------------
-		// Send out a notice.
-		//----------------------
 		char szNotice[512+1];
 		snprintf(szNotice, sizeof(szNotice), lc_text("삼거리 전투에서 %s 국가가 가장먼저 탈락을 하였습니다"), Nation.c_str());
 		broadcast_notice(szNotice);
@@ -423,9 +406,6 @@ void three_way_war::on_dead(character * dead, character * killer)
 		snprintf(szNotice, sizeof(szNotice), "First Step: %s exclusion", Nation.c_str());
 		log_manager::instance().char_log(0, 0, 0, 0, "THREEWAY", szNotice, nullptr);
 
-		//----------------------
-		// Respawn the mobs.
-		//----------------------
 		regen_mob_event_info* regen_info = alloc_event_info<regen_mob_event_info>();
 
 		regen_info->map_index = dead->map_index();
@@ -462,9 +442,6 @@ void three_way_war::on_dead(character * dead, character * killer)
 				uint8_t bLoseEmpire = n;
 				quest::warp_all_to_map_my_empire_event_info * info;
 
-				//----------------------
-				//Kick out eliminated empires: from the sanctuary 
-				//----------------------
 				info = alloc_event_info<quest::warp_all_to_map_my_empire_event_info>();
 
 				info->map_index_from	= get_sungzi_map_index();
@@ -475,9 +452,6 @@ void three_way_war::on_dead(character * dead, character * killer)
 
 				event_create(quest::warp_all_to_map_my_empire_event, info, passes_per_sec(5));
 
-				//----------------------
-				//Kick out eliminated empires: from the passage 
-				//----------------------
 				info = alloc_event_info<quest::warp_all_to_map_my_empire_event_info>();
 
 				info->map_index_from	= get_pass_map_index(bLoseEmpire);
@@ -490,9 +464,6 @@ void three_way_war::on_dead(character * dead, character * killer)
 			}
 		}
 
-		//------------------------------
-		// Show the final score 
-		//------------------------------
 		{
 			char szBuf[64 + 1];
 			snprintf(szBuf, sizeof(szBuf), lc_text("현재 스코어 신수국:%d 천조국:%d 진노국:%d"),
@@ -501,7 +472,6 @@ void three_way_war::on_dead(character * dead, character * killer)
 			send_notice_map(szBuf, get_sungzi_map_index(), false);
 		}
 
-		// Show a message.
 		sectree_map * pSecMap = sectree_manager::instance().map(dead->map_index());
 
 		if (nullptr != pSecMap)
@@ -532,9 +502,6 @@ void three_way_war::on_dead(character * dead, character * killer)
 			log_manager::instance().char_log(0, 0, 0, 0, "THREEWAY", szBuf, nullptr);
 		}
 
-		//------------------------------
-		// Final reward: summon the true nine-tailed fox 
-		//-----------------------------	
 		for (int n = 0; n < quest::quest_manager::instance().event_flag("threeway_war_boss_count");)
 		{
 			int x = dead->x();
@@ -600,9 +567,6 @@ void three_way_war::remove_all_monsters_in_three_way() const
 	}
 }
 
-//
-// C functions
-//
 const char* get_sungzi_map_path()
 {
 	static char s_szMapPath[128];

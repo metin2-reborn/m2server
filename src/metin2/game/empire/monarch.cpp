@@ -97,10 +97,8 @@ int monarch::heal_my_empire(character * ch ,uint32_t price)
 	f.empire = Empire;
 	sectree_manager::instance().for_each(iMapIndex, f);	
 
-	// Send money deduction to DB 
 	sendto_db_dec_money(price, Empire, ch);
 
-	// Set cooldown	
 	ch->set_mc(character::MI_HEAL);
 
 	if (metin2::config::test_server())
@@ -150,7 +148,6 @@ bool monarch::sendto_db_dec_money(int money_value, uint8_t empire, character * c
 	if (money(empire) - money_value < 0)
 		return false;
 
-	// The actual deduction is processed after the round trip to the server
 	int nEmpire = empire;	
 
 	db_clientdesc->db_packet_header(HEADER_GD_DEC_MONARCH_MONEY, ch->get_desc()->handle(), sizeof(int) + sizeof(int));
@@ -164,7 +161,6 @@ bool monarch::add_money(int money_value, uint8_t empire)
 	if (empire >= std::size(monarch_info_.money))
 		return false;
 
-	// Cannot deposit 2 billion or more
 	if (money(empire) + money_value > 2000000000)
 		return false;
 
@@ -249,7 +245,6 @@ void monarch::power_up(uint8_t empire, bool on)
 
 	power_up_[empire] = on;
 
-	// Monarch Lion's Roar cooldown 
 	power_up_ct_[empire] = thecore_pulse() + passes_per_sec(60 * 10);
 }
 
@@ -260,13 +255,11 @@ void monarch::defense_up(uint8_t empire, bool on)
 
 	defense_up_[empire] = on;
 
-	// Monarch Diamond Fist cooldown 
 	defense_up_ct_[empire] = thecore_pulse() + passes_per_sec(60 * 10);
 }
 
 bool is_monarch_warp_zone (int map_idx)
 {
-	// Hungry Ghost Cave, Cave of a Thousand.
 	if (map_idx >= 10000)
 		map_idx /= 10000;
 
@@ -276,9 +269,8 @@ bool is_monarch_warp_zone (int map_idx)
 	case 302:
 	case 303:
 	case 304:
-		//Dungeon
-	case 351: // Red Dragon Fortress
-	case 352: // White Dragon Fortress
+	case 351:
+	case 352:
 		return false;
 	}
 

@@ -60,15 +60,12 @@ bool dragon_soul_table::read_dragon_soul_table_file(const char * file_name)
 		return false;
 	}
 
-	// Group VnumMapper Reading.
 	if (!read_vnum_mapper())
 		return false;
 
-	// Group BasicApplys Reading.
 	if (!read_basic_applys())
 		return false;
 
-	// Group AdditionalApplys Reading.
 	if (!read_additional_applys())
 		return false;
 
@@ -116,7 +113,6 @@ bool dragon_soul_table::read_vnum_mapper()
 {
 	std::string stName;
 
-	// Group VnumMapper Reading.
 	group_node* pGroupNode = loader_->group("vnummapper");
 
 	if (nullptr == pGroupNode)
@@ -187,7 +183,6 @@ bool dragon_soul_table::read_basic_applys()
 		vec_applys vecApplys;
 		int n = pChild->row_count();
 		
-		// BasicApply Group keys start at 1.
 		for (int j = 1; j <= n; j++)
 		{
 			std::stringstream ss;
@@ -287,7 +282,6 @@ bool dragon_soul_table::read_additional_applys()
 
 bool dragon_soul_table::check_apply_num_settings ()
 {
-	// Group ApplyNumSettings Reading.
 	if (nullptr == apply_num_setting_node_)
 	{
 		metin2::log::error("dragon_soul_table.txt need ApplyNumSettings.");
@@ -315,7 +309,6 @@ bool dragon_soul_table::check_apply_num_settings ()
 
 bool dragon_soul_table::check_weight_tables ()
 {
-	// Group WeightTables Reading.
 	if (nullptr == weight_table_node_)
 	{
 		metin2::log::error("dragon_soul_table.txt need WeightTables.");
@@ -347,7 +340,6 @@ bool dragon_soul_table::check_weight_tables ()
 
 bool dragon_soul_table::check_refine_grade_tables()
 {
-	// Group UpgradeTables Reading.
 	if (nullptr == refine_grade_table_node_)
 	{
 		metin2::log::error("dragon_soul_table.txt need RefineGradeTables.");
@@ -401,7 +393,6 @@ bool dragon_soul_table::check_refine_grade_tables()
 
 bool dragon_soul_table::check_refine_step_tables ()
 {
-	// Group ImproveTables Reading.
 	if (nullptr == refine_strength_table_node_)
 	{
 		metin2::log::error("dragon_soul_table.txt need RefineStepTables.");
@@ -459,7 +450,6 @@ bool dragon_soul_table::check_refine_step_tables ()
 bool dragon_soul_table::check_refine_strength_tables()
 {
 	group_node* pGroupNode = refine_strength_table_node_;
-	// Group RefineTables Reading.
 	if (nullptr == pGroupNode)
 	{
 		metin2::log::error("dragon_soul_table.txt need RefineStrengthTables.");
@@ -500,7 +490,6 @@ bool dragon_soul_table::check_refine_strength_tables()
 
 bool dragon_soul_table::check_dragon_heart_ext_tables()
 {
-	// Group DragonHeartExtTables Reading.
 	if (nullptr == dragon_heart_ext_table_node_)
 	{
 		metin2::log::error("dragon_soul_table.txt need DragonHeartExtTables.");
@@ -551,7 +540,6 @@ bool dragon_soul_table::check_dragon_heart_ext_tables()
 
 bool dragon_soul_table::check_dragon_soul_ext_tables()
 {
-	// Group DragonSoulExtTables Reading.
 	if (nullptr == dragon_soul_ext_table_node_)
 	{
 		metin2::log::error("dragon_soul_table.txt need DragonSoulExtTables.");
@@ -669,7 +657,6 @@ bool dragon_soul_table::weight(uint8_t ds_type, uint8_t grade_idx, uint8_t step_
 			return true;
 		}
 	}
-	// Look at the default group.
 	pDragonSoulGroup = weight_table_node_->child_node("default");
 	if (nullptr != pDragonSoulGroup)
 	{

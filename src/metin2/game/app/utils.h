@@ -38,7 +38,6 @@ inline int distance_approx(int dx, int dy)
 		max = dx;
 	}
 
-    // coefficients equivalent to ( 123/128 * max ) and ( 51/128 * min )
     return ((( max << 8 ) + ( max << 3 ) - ( max << 4 ) - ( max << 1 ) +
 		( min << 7 ) - ( min << 5 ) + ( min << 3 ) - ( min << 1 )) >> 8 );
 }
@@ -62,6 +61,5 @@ extern int parse_time_str(const char* str);
 
 extern bool wild_case_cmp(const char *w, const char *s);
 
-// Inside a config parser loop: compares the current token_string, ignoring case.
 #define TOKEN(string) if (!strcasecmp(token_string, string))
 }

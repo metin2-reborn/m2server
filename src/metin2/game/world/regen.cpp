@@ -18,7 +18,6 @@
 #include <cstdlib>
 #include <cstring>
 
-// Push item to the front of a doubly linked list.
 #define INSERT_TO_TW_LIST(item, head, prev, next)	\
 	if (!(head))					\
 	{						\
@@ -53,7 +52,7 @@ enum regen_modes
 	MODE_VNUM
 };
 
-static bool get_word(FILE *fp, char *buf) // Read word by word.
+static bool get_word(FILE *fp, char *buf)
 {
 	int i = 0;
 	int c;
@@ -201,7 +200,6 @@ static bool read_line(FILE *fp, regen * regen)
 			case MODE_Z_SECTION:
 				str_to_number(regen->z_section, szTmp);
 
-				// Bail out on exception.
 				if (regen->type == REGEN_TYPE_EXCEPTION)
 					return true;
 
@@ -508,11 +506,8 @@ bool regen_do(const char* filename, int32_t map_index_value, int base_x, int bas
 				regen->event = event_create(dungeon_regen_event, info, passes_per_sec(number(0, 16)) + passes_per_sec(regen->time));
 
 				dungeon_value->add_regen(regen);
-				// regen_id should be determined at this point,
-				// before the call to CHARACTER::SetRegen()
 			}
 
-			// Always regen the first time.
 			regen_spawn_dungeon(regen, dungeon_value, once);
 
 		}
@@ -586,7 +581,6 @@ bool regen_load_in_file(const char* filename, int32_t map_index_value, int base_
 				}
 			}
 
-			// Always regen the first time.
 			regen_spawn(regen, true);
 		}
 	}
@@ -689,12 +683,8 @@ bool regen_load(const char* filename, int32_t map_index_value, int base_x, int b
 				}
 			}
 
-			//NO_REGEN
-			// Desc: 	When the regen time is set to 0 in regen.txt (and other regen-related text files) 
-			// 			no regen is done.
 			if (regen->time != 0)
 			{
-				// Always regen the first time.
 				regen_spawn(regen, false);
 
 				regen_event_info* info = alloc_event_info<regen_event_info>();
@@ -703,7 +693,6 @@ bool regen_load(const char* filename, int32_t map_index_value, int base_x, int b
 
 				regen->event = event_create(regen_event, info, passes_per_sec(number(0, 16)) + passes_per_sec(regen->time)); 
 			}
-			//END_NO_REGEN
 		}
 		else if (tmp.type == REGEN_TYPE_EXCEPTION)
 		{
@@ -761,14 +750,12 @@ void regen_reset(int x, int y)
 		if (!regen->event)
 			continue;
 
-		// If coordinates are given, regen only the regen list within those coordinates.
 		if (x != 0 || y != 0)
 		{
 			if (x >= regen->sx && x <= regen->ex)
 				if (y >= regen->sy && y <= regen->ey)
 					event_reset_time(regen->event, 1);
 		}
-		// Otherwise regen everything
 		else
 			event_reset_time(regen->event, 1);
 	}

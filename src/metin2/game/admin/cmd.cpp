@@ -22,10 +22,8 @@ ACMD(do_user_horse_ride);
 ACMD(do_user_horse_back);
 ACMD(do_user_horse_feed);
 
-// ADD_COMMAND_SLOW_STUN
 ACMD(do_slow);
 ACMD(do_stun);
-// END_OF_ADD_COMMAND_SLOW_STUN
 
 ACMD(do_warp);
 ACMD(do_goto);
@@ -56,10 +54,8 @@ ACMD(do_greset);
 ACMD(do_mount);
 ACMD(do_refine_rod);
 
-// REFINE_PICK
 ACMD(do_max_pick);
 ACMD(do_refine_pick);
-// END_OF_REFINE_PICK
 
 ACMD(do_fishing_simul);
 ACMD(do_console);
@@ -141,9 +137,7 @@ ACMD(do_view_equip);
 ACMD(do_block_chat);
 ACMD(do_vote_block_chat);
 
-// BLOCK_CHAT
 ACMD(do_block_chat_list);
-// END_OF_BLOCK_CHAT
 
 ACMD(do_party_request);
 ACMD(do_party_request_deny);
@@ -186,8 +180,6 @@ ACMD(do_oxevent_get_attender);
 ACMD(do_effect);
 ACMD(do_threeway_war_info );
 ACMD(do_threeway_war_myinfo );
-//
-//Monarch-only features
 ACMD(do_monarch_warpto);
 ACMD(do_monarch_transfer);
 ACMD(do_monarch_info);
@@ -196,18 +188,14 @@ ACMD(do_monarch_tax);
 ACMD(do_monarch_mob);
 ACMD(do_monarch_notice);
 
-//Monarch management features
 ACMD(do_rmcandidacy);
 ACMD(do_setmonarch);
 ACMD(do_rmmonarch);
 
 ACMD(do_hair);
-//gift notify quest command
 ACMD(do_gift);
-// Cube related
 ACMD(do_inventory);
 ACMD(do_cube);
-// Siege
 ACMD(do_siege);
 ACMD(do_temp);
 ACMD(do_frog);
@@ -234,21 +222,15 @@ ACMD(do_click_mall);
 ACMD(do_ride);
 ACMD(do_get_item_id_list);
 ACMD(do_set_socket);
-// View and remove costume
 ACMD(do_costume);
 ACMD(do_set_stat);
 
-// Invincible
 ACMD (do_can_dead);
 
 ACMD (do_full_set);
-// Best items for job and level
 ACMD (do_item_full_set);
-// Set best-option attributes for the job
 ACMD (do_attr_full_set);
-// Master all skills
 ACMD (do_all_skill_master);
-// Equip item. Made for equipping items that have no icon and can't be checked on the client.
 ACMD (do_use_item);
 ACMD (do_dragon_soul);
 ACMD (do_ds_list);
@@ -256,7 +238,7 @@ ACMD (do_clear_affect);
 
 struct command_info cmd_info[] =
 {
-	{ "!RESERVED!",	nullptr,			0,			POS_DEAD,	GM_IMPLEMENTOR	}, /* This must always be first. */
+	{ "!RESERVED!",	nullptr,			0,			POS_DEAD,	GM_IMPLEMENTOR	}, // Must stay first.
 	{ "who",		do_who,			0,			POS_DEAD,	GM_IMPLEMENTOR	},
 	{ "war",		do_war,			0,			POS_DEAD,	GM_PLAYER	},
 	{ "warp",		do_warp,		0,			POS_DEAD,	GM_LOW_WIZARD	},
@@ -277,7 +259,7 @@ struct command_info cmd_info[] =
 	{ "item",		do_item,		0,			POS_DEAD,	GM_GOD		},
 
 	{ "mob",		do_mob,			0,			POS_DEAD,	GM_HIGH_WIZARD	},
-	{ "mob_ld",		do_mob_ld,			0,			POS_DEAD,	GM_HIGH_WIZARD	}, /* Spawn a mob with position and direction: /mob_ld vnum x y dir */
+	{ "mob_ld",		do_mob_ld,			0,			POS_DEAD,	GM_HIGH_WIZARD	},
 	{ "ma",		do_mob_aggresive,	0,			POS_DEAD,	GM_HIGH_WIZARD	},
 	{ "mc",		do_mob_coward,		0,			POS_DEAD,	GM_HIGH_WIZARD	},
 	{ "mm",		do_mob_map,		0,			POS_DEAD,	GM_HIGH_WIZARD	},
@@ -302,10 +284,8 @@ struct command_info cmd_info[] =
 	{ "stat_reset",	do_stat_reset,		0,			POS_DEAD,	GM_LOW_WIZARD	},
 	{ "state",		do_state,		0,			POS_DEAD,	GM_LOW_WIZARD	},
 
-	// ADD_COMMAND_SLOW_STUN
 	{ "stun",		do_stun,		0,			POS_DEAD,	GM_LOW_WIZARD	},
 	{ "slow",		do_slow,		0,			POS_DEAD,	GM_LOW_WIZARD	},
-	// END_OF_ADD_COMMAND_SLOW_STUN
 
 	{ "respawn",	do_respawn,		0,			POS_DEAD,	GM_WIZARD	},
 
@@ -334,17 +314,12 @@ struct command_info cmd_info[] =
 	{ "mall_password",	do_mall_password,	0,			POS_DEAD,	GM_PLAYER	},
 	{ "mall_close",	do_mall_close,		0,			POS_DEAD,	GM_PLAYER	},
 
-	// Group Command
 	{ "ungroup",	do_ungroup,		0,			POS_DEAD,	GM_PLAYER	},
 
-	// REFINE_ROD_HACK_BUG_FIX
 	{ "refine_rod",	do_refine_rod,		0,			POS_DEAD,	GM_IMPLEMENTOR	},
-	// END_OF_REFINE_ROD_HACK_BUG_FIX
 
-	// REFINE_PICK 
 	{ "refine_pick",	do_refine_pick,		0,			POS_DEAD,	GM_IMPLEMENTOR	},
 	{ "max_pick",	do_max_pick,		0,			POS_DEAD,	GM_IMPLEMENTOR	},
-	// END_OF_REFINE_PICK
 
 	{ "fish_simul",	do_fishing_simul,	0,			POS_DEAD,	GM_IMPLEMENTOR	},
 	{ "invisible",	do_invisibility,	0,			POS_DEAD,	GM_LOW_WIZARD	},
@@ -406,11 +381,9 @@ struct command_info cmd_info[] =
 	{ "view_equip",	do_view_equip,		0,			POS_DEAD,	GM_PLAYER   	},
 	{ "jy",				do_block_chat,		0,			POS_DEAD,	GM_HIGH_WIZARD	},
 
-	// BLOCK_CHAT
 	{ "vote_block_chat", do_vote_block_chat,		0,			POS_DEAD,	GM_PLAYER	},
 	{ "block_chat",		do_block_chat,		0,			POS_DEAD,	GM_PLAYER	},
 	{ "block_chat_list",do_block_chat_list,	0,			POS_DEAD,	GM_PLAYER	},
-	// END_OF_BLOCK_CHAT
 
 	{ "build",		do_build,		0,		POS_DEAD,	GM_PLAYER	},
 	{ "clear_land", do_clear_land,	0,		POS_DEAD,	GM_HIGH_WIZARD	},
@@ -432,14 +405,12 @@ struct command_info cmd_info[] =
 	{ "cheer1",		do_emotion,		0,			POS_FIGHTING,	GM_PLAYER	},
 	{ "cheer2",		do_emotion,		0,			POS_FIGHTING,	GM_PLAYER	},
 
-	// DANCE
 	{ "dance1",		do_emotion,		0,			POS_FIGHTING,	GM_PLAYER	},
 	{ "dance2",		do_emotion,		0,			POS_FIGHTING,	GM_PLAYER	},
 	{ "dance3",		do_emotion,		0,			POS_FIGHTING,	GM_PLAYER	},
 	{ "dance4",		do_emotion,		0,			POS_FIGHTING,	GM_PLAYER	},
 	{ "dance5",		do_emotion,		0,			POS_FIGHTING,	GM_PLAYER	},
 	{ "dance6",		do_emotion,		0,			POS_FIGHTING,	GM_PLAYER	},
-	// END_OF_DANCE
 
 	{ "congratulation",	do_emotion,	0,	POS_FIGHTING,	GM_PLAYER	},
 	{ "forgive",		do_emotion,	0,	POS_FIGHTING,	GM_PLAYER	},
@@ -497,7 +468,7 @@ struct command_info cmd_info[] =
 	{ "check_mmoney",		do_check_monarch_money,	0,	POS_DEAD,	GM_IMPLEMENTOR	},
 	{ "reset_subskill",		do_reset_subskill,		0,	POS_DEAD,	GM_HIGH_WIZARD },
 	{ "flush",				do_flush,				0,	POS_DEAD,	GM_IMPLEMENTOR },
-	{ "gift",				do_gift,				0,  POS_DEAD,   GM_PLAYER	},	//gift
+	{ "gift",				do_gift,				0,  POS_DEAD,   GM_PLAYER	},
 
 	{ "mnotice",			do_monarch_notice,		0,	POS_DEAD,	GM_PLAYER	},
 
@@ -541,7 +512,7 @@ struct command_info cmd_info[] =
 	{ "ds_list",				do_ds_list,				0,	POS_DEAD,	GM_PLAYER	},
 	{ "do_clear_affect", do_clear_affect, 	0, POS_DEAD,		GM_LOW_WIZARD},
 
-	{ "\n",		nullptr,			0,			POS_DEAD,	GM_IMPLEMENTOR	}  /* This must always be last. */
+	{ "\n",		nullptr,			0,			POS_DEAD,	GM_IMPLEMENTOR	} // Must stay last.
 };
 
 void interpreter_set_privilege(const char *cmd, int lvl)
@@ -564,7 +535,6 @@ void double_dollar(const char *src, size_t src_len, char *dest, size_t dest_len)
 	const char * tmp = src;
 	size_t cur_len = 0;
 
-	// Reserve room for \0
 	dest_len -= 1;
 
 	while (src_len-- && *tmp)
@@ -599,7 +569,7 @@ void interpret_command(character * ch, const char * argument, size_t len)
 		return ;
 	}
 
-	char cmd[128 + 1];  // Length deliberately kept short to avoid buffer overflow
+	char cmd[128 + 1];
 	char new_line[256 + 1];
 	const char * line;
 	int icmd;
@@ -616,7 +586,7 @@ void interpret_command(character * ch, const char * argument, size_t len)
 	{
 		if (cmd_info[icmd].command_pointer == do_cmd)
 		{
-			if (!strcmp(cmd_info[icmd].command, cmd)) // do_cmd requires typing the full command.
+			if (!strcmp(cmd_info[icmd].command, cmd))
 				break;
 		}
 		else if (!strncmp(cmd_info[icmd].command, cmd, cmdlen))
@@ -663,7 +633,7 @@ void interpret_command(character * ch, const char * argument, size_t len)
 		return;
 	}
 
-	if (strncmp("phase", cmd_info[icmd].command, 5) != 0) // Handle hidden commands 
+	if (strncmp("phase", cmd_info[icmd].command, 5) != 0)
 		metin2::log::info( "COMMAND: {}: {}", ch->name(), cmd_info[icmd].command);
 
 	((*cmd_info[icmd].command_pointer) (ch, line, icmd, cmd_info[icmd].subcmd));

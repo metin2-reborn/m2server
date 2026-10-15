@@ -264,7 +264,6 @@ void db_manager::send_auth_login(desc * d)
 	db_clientdesc->db_packet(HEADER_GD_AUTH_LOGIN, d->handle(), &ptod, sizeof(packet_gd_auth_login));
 	metin2::log::info( "SendAuthLogin {} key {:d}", ptod.login, ptod.id);
 
-	// The db keeps the login from here on.
 	delete_login_data(pkLD);
 }
 
@@ -302,7 +301,6 @@ void db_manager::analyze_return_query(ql_msg * msg_value)
 					delete pinfo;
 					break;
 				}
-				//Moved - By SeMinZ
 				d->set_login(pinfo->login);
 
 				metin2::log::info( "QID_AUTH_LOGIN: START {:d} {}", qi->ident, static_cast<const void *>(d));
@@ -318,7 +316,6 @@ void db_manager::analyze_return_query(ql_msg * msg_value)
 					MYSQL_ROW row = mysql_fetch_row(msg_value->get()->sql_result);
 					int col = 0;
 
-					// PASSWORD('%s'), password, social_id, id, status
 					char szEncrytPassword[45 + 1];
 					char szPassword[45 + 1];
 					char szSocialID[SOCIAL_ID_MAX_LEN + 1];
@@ -426,7 +423,6 @@ void db_manager::analyze_return_query(ql_msg * msg_value)
 					}
 					else
 					{
-						//stBlockData >= 0 == date is later than BlockDate 
 						if (strncmp(szCreateDate, metin2::config::auth().block_login_date.c_str(), 8) >= 0)
 						{
 							login_failure(d, "BLKLOGIN");
@@ -515,7 +511,6 @@ void db_manager::analyze_return_query(ql_msg * msg_value)
 						if (pkItem)
 						{
 							metin2::log::info( "GIVE LOTTO SUCCESS TO {} (pid {:d})", ch->name(), qi->ident);
-							//ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("아이템 획득: %s"), pkItem->GetName());
 
 							pkItem->set_socket(0, msg_value->get()->insert_id);
 							pkItem->set_socket(1, pdw[2]);
@@ -562,7 +557,6 @@ void db_manager::analyze_return_query(ql_msg * msg_value)
 			}
 			break;
 
-			// BLOCK_CHAT
 		case QID_BLOCK_CHAT_LIST:
 			{
 				character * ch = character_manager::instance().find_by_pid(qi->ident);
@@ -583,7 +577,6 @@ void db_manager::analyze_return_query(ql_msg * msg_value)
 				}
 			}
 			break;
-			// END_OF_BLOCK_CHAT
 
 
 	}
@@ -617,9 +610,6 @@ size_t db_manager::escape_string(char* dst, size_t dst_size, const char *src, si
 	return sql_direct_.escape_string(dst, dst_size, src, src_size);
 }
 
-//
-// Common SQL 
-//
 account_db::account_db() :
 	is_connect_(false)
 {
@@ -715,12 +705,10 @@ enum account_qid
 	QID_SPAM_DB,
 };
 
-// Reload every 10 minutes
 static event_ptr reload_spam_event_handle = nullptr;
 
 EVENTINFO(reload_spam_event_info)
 {
-	// used to send command
 	uint32_t empty;
 };
 

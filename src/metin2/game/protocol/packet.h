@@ -12,7 +12,7 @@ enum
 	HEADER_CG_HANDSHAKE				= 0xff,
 	HEADER_CG_PONG				= 0xfe,
 	HEADER_CG_TIME_SYNC				= 0xfc,
-	HEADER_CG_KEY_AGREEMENT			= 0xfb, // _IMPROVED_PACKET_ENCRYPTION_
+	HEADER_CG_KEY_AGREEMENT			= 0xfb,
 
 	HEADER_CG_LOGIN				= 1,
 	HEADER_CG_ATTACK				= 2,
@@ -52,14 +52,14 @@ enum
 	HEADER_CG_ITEM_USE_TO_ITEM			= 60,
 	HEADER_CG_TARGET			 	= 61,
 
-	HEADER_CG_TEXT				= 64,	// if it starts with @, parse the text.
+	HEADER_CG_TEXT				= 64,
 	HEADER_CG_WARP				= 65,
 	HEADER_CG_SCRIPT_BUTTON			= 66,
 	HEADER_CG_MESSENGER				= 67,
 
 	HEADER_CG_MALL_CHECKOUT			= 69,
-	HEADER_CG_SAFEBOX_CHECKIN			= 70,	// put an item into the safebox.
-	HEADER_CG_SAFEBOX_CHECKOUT			= 71,	// take an item out of the safebox.
+	HEADER_CG_SAFEBOX_CHECKIN			= 70,
+	HEADER_CG_SAFEBOX_CHECKOUT			= 71,
 
 	HEADER_CG_PARTY_INVITE			= 72,
 	HEADER_CG_PARTY_INVITE_ANSWER		= 73,
@@ -93,19 +93,11 @@ enum
 	HEADER_CG_GUILD_SYMBOL_UPLOAD	= 112,
 	HEADER_CG_SYMBOL_CRC			= 113,
 
-	// SCRIPT_SELECT_ITEM
 	HEADER_CG_SCRIPT_SELECT_ITEM	= 114,
-	// END_OF_SCRIPT_SELECT_ITEM
 
 
-//	HEADER_CG_ROULETTE				= 200,
 
-	//
 
-	//NOTE : what the f*** - who designed these packets? how can you code like this and sleep at night.
-	//either keep the enums separate, or separate them with a namespace..
-	//I don't even expect a packet generator. dammit
-	//who's responsible when the numbers collide???
 
 	HEADER_CG_DRAGON_SOUL_REFINE			= 205,
 	HEADER_CG_STATE_CHECKER					= 206,
@@ -113,9 +105,8 @@ enum
 	HEADER_CG_CLIENT_VERSION			= 0xfd,
 	HEADER_CG_CLIENT_VERSION2			= 0xf1,
 
-	/********************************************************/
-	HEADER_GC_KEY_AGREEMENT_COMPLETED = 0xfa, // _IMPROVED_PACKET_ENCRYPTION_
-	HEADER_GC_KEY_AGREEMENT			= 0xfb, // _IMPROVED_PACKET_ENCRYPTION_
+	HEADER_GC_KEY_AGREEMENT_COMPLETED = 0xfa,
+	HEADER_GC_KEY_AGREEMENT			= 0xfb,
 	HEADER_GC_TIME_SYNC				= 0xfc,
 	HEADER_GC_PHASE					= 0xfd,
 	HEADER_GC_HANDSHAKE				= 0xff,
@@ -215,7 +206,6 @@ enum
 	HEADER_GC_SKILL_GROUP			= 112,
 	HEADER_GC_MAIN_CHARACTER			= 113,
 
-	//	HEADER_GC_USE_POTION			= 114,
 	HEADER_GC_SEPCIAL_EFFECT		= 114,
 
 	HEADER_GC_NPC_POSITION			= 115,
@@ -223,7 +213,6 @@ enum
 	HEADER_GC_REFINE_INFORMATION		= 119,
 	HEADER_GC_CHANNEL				= 121,
 
-	// 122 HEADER_GC_MALL_OPEN
 	HEADER_GC_TARGET_UPDATE			= 123,
 	HEADER_GC_TARGET_DELETE			= 124,
 	HEADER_GC_TARGET_CREATE			= 125,
@@ -241,34 +230,24 @@ enum
 
 	HEADER_GC_SYMBOL_DATA			= 133,
 
-	// MINING
 	HEADER_GC_DIG_MOTION			= 134,
-	// END_OF_MINING
 
 	HEADER_GC_DAMAGE_INFO           = 135,
 	HEADER_GC_CHAR_ADDITIONAL_INFO	= 136,
 
-	// SUPPORT_BGM
 	HEADER_GC_MAIN_CHARACTER3_BGM		= 137,
 	HEADER_GC_MAIN_CHARACTER4_BGM_VOL	= 138,
-	// END_OF_SUPPORT_BGM
 
 	HEADER_GC_AUTH_SUCCESS			= 150,
 
-	//HYBRID CRYPT
-	//HYBRID CRYPT
 
 
-	// ROULETTE
-	// END_ROULETTE			
-	//
 
 	HEADER_GC_SPECIFIC_EFFECT				= 208,
 
 	HEADER_GC_DRAGON_SOUL_REFINE			= 209,
 	HEADER_GC_RESPOND_CHANNELSTATUS			= 210,
 
-	/////////////////////////////////////////////////////////////////////////////
 
 	HEADER_GG_LOGIN				= 1,
 	HEADER_GG_LOGOUT				= 2,
@@ -276,7 +255,7 @@ enum
 	HEADER_GG_NOTICE				= 4,
 	HEADER_GG_SHUTDOWN				= 5,
 	HEADER_GG_GUILD				= 6,
-	HEADER_GG_DISCONNECT			= 7,	// when forcibly disconnecting someone
+	HEADER_GG_DISCONNECT			= 7,
 	HEADER_GG_SHOUT				= 8,
 	HEADER_GG_SETUP				= 9,
 	HEADER_GG_MESSENGER_ADD                     = 10,
@@ -336,8 +315,6 @@ struct packet_gg_monarch_notice {
 	int32_t	size;
 };
 
-//FORKED_ROAD
-//END_FORKED_ROAD
 struct packet_gg_shutdown {
 	uint8_t	header;
 };
@@ -403,8 +380,8 @@ struct packet_gg_messenger_mobile {
 
 struct packet_gg_find_position {
 	uint8_t header;
-	uint32_t from_pid; // the person trying to warp to that position
-	uint32_t target_pid; // the person being searched for
+	uint32_t from_pid;
+	uint32_t target_pid;
 };
 
 struct packet_gg_warp_character {
@@ -414,7 +391,6 @@ struct packet_gg_warp_character {
 	int32_t y;
 };
 
-//  HEADER_GG_GUILD_WAR_ZONE_MAP_INDEX	    = 15,
 
 struct packet_gg_guild_war_map_index {
 	uint8_t header;
@@ -435,13 +411,11 @@ struct packet_gg_block_chat {
 	int32_t	block_duration;
 };
 
-/* packets sent from the client side */
 
 struct packet_cg_text {
 	uint8_t	header;
 };
 
-/* login (1) */
 struct packet_cg_handshake {
 	uint8_t	header;
 	uint32_t	handshake;
@@ -498,7 +472,6 @@ struct packet_gc_player_create_success {
 	simple_player	player;
 };
 
-// attack
 struct packet_cg_attack {
 	uint8_t	header;
 	uint8_t	type;
@@ -519,7 +492,6 @@ enum move_func_type
 	FUNC_SKILL = 0x80,
 };
 
-// move
 struct packet_cg_move {
 	uint8_t	header;
 	uint8_t	func;
@@ -536,20 +508,17 @@ struct packet_cg_sync_position_element {
 	int32_t	y;
 };
 
-// position sync
-struct packet_cg_sync_position { // variable-length packet
+struct packet_cg_sync_position {
 	uint8_t	header;
 	uint16_t	size;
 };
 
-/* chat (3) */
-struct packet_cg_chat { // variable-length packet
+struct packet_cg_chat {
 	uint8_t	header;
 	uint16_t	size;
 	uint8_t	type;
 };
 
-/* whisper */
 struct packet_cg_whisper {
 	uint8_t	header;
 	uint16_t	size;
@@ -633,12 +602,12 @@ struct packet_cg_on_click {
 
 enum
 {
-	EXCHANGE_SUBHEADER_CG_START,	/* arg1 == vid of target character */
-	EXCHANGE_SUBHEADER_CG_ITEM_ADD,	/* arg1 == position of item */
-	EXCHANGE_SUBHEADER_CG_ITEM_DEL,	/* arg1 == position of item */
-	EXCHANGE_SUBHEADER_CG_ELK_ADD,	/* arg1 == amount of gold */
-	EXCHANGE_SUBHEADER_CG_ACCEPT,	/* arg1 == not used */
-	EXCHANGE_SUBHEADER_CG_CANCEL,	/* arg1 == not used */
+	EXCHANGE_SUBHEADER_CG_START,
+	EXCHANGE_SUBHEADER_CG_ITEM_ADD,
+	EXCHANGE_SUBHEADER_CG_ITEM_DEL,
+	EXCHANGE_SUBHEADER_CG_ELK_ADD,
+	EXCHANGE_SUBHEADER_CG_ACCEPT,
+	EXCHANGE_SUBHEADER_CG_CANCEL,
 };
 
 struct packet_cg_exchange {
@@ -675,9 +644,6 @@ struct packet_cg_quest_confirm {
 	uint32_t request_pid;
 };
 
-/*
- * packets sent from the server side 
- */
 struct packet_gc_quest_confirm {
 	uint8_t header;
 	char msg[64+1]; 
@@ -771,7 +737,7 @@ struct packet_gc_character_add {
 	uint8_t	attack_speed;
 
 	uint8_t	state_flag;
-	uint32_t	affect_flag[2];	// effect
+	uint32_t	affect_flag[2];
 };
 
 struct packet_gc_character_additional_info {
@@ -809,7 +775,7 @@ struct packet_gc_character_delete {
 	uint32_t	id;
 };
 
-struct packet_gc_chat { // variable-length packet
+struct packet_gc_chat {
 	uint8_t	header;
 	uint16_t	size;
 	uint8_t	type;
@@ -817,7 +783,7 @@ struct packet_gc_chat { // variable-length packet
 	uint8_t	empire;
 };
 
-struct packet_gc_whisper { // variable-length packet
+struct packet_gc_whisper {
 	uint8_t	header;
 	uint16_t	size;
 	uint8_t	type;
@@ -834,7 +800,6 @@ struct packet_gc_main_character {
 	uint8_t	skill_group;
 };
 
-// SUPPORT_BGM
 struct packet_gc_main_character3_bgm {
 	enum
 	{
@@ -867,7 +832,6 @@ struct packet_gc_main_character4_bgm_vol {
 	uint8_t	empire;
 	uint8_t	skill_group;
 };
-// END_OF_SUPPORT_BGM
 
 struct packet_gc_points {
 	uint8_t	header;
@@ -1001,7 +965,7 @@ struct packet_gc_shop_start {
 	struct packet_shop_item	items[SHOP_HOST_ITEM_MAX_NUM];
 };
 
-struct packet_gc_shop_start_ex { // followed by TSubPacketShopTab* shop_tabs.
+struct packet_gc_shop_start_ex {
 	struct sub_packet_shop_tab {
 		char name[SHOP_TAB_NAME_MAX];
 		uint8_t coin_type;
@@ -1016,7 +980,7 @@ struct packet_gc_shop_update_item {
 	struct packet_shop_item	item;
 };
 
-struct packet_gc_shop { // variable-length packet
+struct packet_gc_shop {
 	uint8_t        header;
 	uint16_t	size; 
 	uint8_t        subheader;
@@ -1027,23 +991,23 @@ struct packet_exchange
 	uint8_t	header;
 	uint8_t	sub_header;
 	uint8_t	is_me;
-	uint32_t	arg1;	// vnum
-	item_pos	arg2;	// cell
-	uint32_t	arg3;	// count
+	uint32_t	arg1;
+	item_pos	arg2;
+	uint32_t	arg3;
 	int32_t	sockets[ITEM_SOCKET_MAX_NUM];
 	player_item_attribute attr[ITEM_ATTRIBUTE_MAX_NUM];
 };
 
 enum packet_trade_sub_headers
 {
-	EXCHANGE_SUBHEADER_GC_START,	/* arg1 == vid */
-	EXCHANGE_SUBHEADER_GC_ITEM_ADD,	/* arg1 == vnum  arg2 == pos  arg3 == count */
+	EXCHANGE_SUBHEADER_GC_START,
+	EXCHANGE_SUBHEADER_GC_ITEM_ADD,
 	EXCHANGE_SUBHEADER_GC_ITEM_DEL,
-	EXCHANGE_SUBHEADER_GC_GOLD_ADD,	/* arg1 == gold */
-	EXCHANGE_SUBHEADER_GC_ACCEPT,	/* arg1 == accept */
-	EXCHANGE_SUBHEADER_GC_END,		/* arg1 == not used */
-	EXCHANGE_SUBHEADER_GC_ALREADY,	/* arg1 == not used */
-	EXCHANGE_SUBHEADER_GC_LESS_GOLD,	/* arg1 == not used */
+	EXCHANGE_SUBHEADER_GC_GOLD_ADD,
+	EXCHANGE_SUBHEADER_GC_ACCEPT,
+	EXCHANGE_SUBHEADER_GC_END,
+	EXCHANGE_SUBHEADER_GC_ALREADY,
+	EXCHANGE_SUBHEADER_GC_LESS_GOLD,
 };
 
 struct packet_position
@@ -1077,19 +1041,16 @@ struct packet_gc_move {
 	uint32_t		duration;
 };
 
-// ownership
 struct packet_gc_ownership {
 	uint8_t		header;
 	uint32_t		owner_vid;
 	uint32_t		victim_vid;
 };
 
-// unit appended bCount times to the position sync packet
 
-// position sync
-struct packet_gc_sync_position { // variable-length packet
+struct packet_gc_sync_position {
 	uint8_t	header;
-	uint16_t	size;	// count = (wSize - sizeof(TPacketGCSyncPosition)) / sizeof(TPacketGCSyncPositionElement) 
+	uint16_t	size;
 };
 
 struct packet_gc_create_fly {
@@ -1119,7 +1080,7 @@ struct packet_cg_shoot {
 
 struct packet_gc_duel_start {
 	uint8_t	header;
-	uint16_t	size;	// how many uint32_t? count = (wSize - sizeof(TPacketGCPVPList)) / 4
+	uint16_t	size;
 };
 
 enum pvp_modes
@@ -1134,7 +1095,7 @@ struct packet_gcpvp {
 	uint8_t        header;
 	uint32_t       vid_src;
 	uint32_t       vid_dst;
-	uint8_t        mode;	// 0 = off, 1 = on
+	uint8_t        mode;
 };
 
 struct packet_cg_use_skill {
@@ -1225,8 +1186,6 @@ struct packet_cg_safebox_checkin {
 	proto::item_pos	item_pos;
 };
 
-///////////////////////////////////////////////////////////////////////////////////
-// Party
 
 struct packet_cg_party_parameter {
 	uint8_t	header;
@@ -1322,7 +1281,6 @@ struct packet_gc_empire {
 	uint8_t	empire;
 };
 
-// Guild
 
 enum
 {
@@ -1397,10 +1355,9 @@ struct packet_cg_guild {
 struct packet_cg_answer_make_guild {
 	uint8_t header;
 	char guild_name[GUILD_NAME_MAX_LEN+1];
-	uint32_t key;	// from TPacketGCRequestMakeGuild
+	uint32_t key;
 };
 
-// Asks the client for a guild name; only an answer carrying the key creates a guild.
 struct packet_gc_request_make_guild {
 	uint8_t header;
 	uint32_t key;
@@ -1411,7 +1368,6 @@ struct packet_cg_guild_use_skill {
 	uint32_t	pid;
 };
 
-// Guild Mark
 struct packet_cg_mark_login {
 	uint8_t    header;
 	uint32_t   handle;
@@ -1438,7 +1394,6 @@ struct packet_gc_mark_idx_list {
 	uint8_t    header;
 	uint32_t	buf_size;
 	uint16_t	count;
-	//followed by size * (uint16_t + uint16_t) bytes of data
 };
 
 struct packet_gc_mark_block {
@@ -1446,7 +1401,6 @@ struct packet_gc_mark_block {
 	uint32_t	buf_size;
 	uint8_t	img_idx;
 	uint32_t	count;
-	// followed by 64 x 48 x pixel size (4 bytes) = 12288 bytes of data
 };
 
 struct packet_cg_guild_symbol_upload {
@@ -1468,7 +1422,6 @@ struct packet_gc_guild_symbol_data {
 	uint32_t guild_id;
 };
 
-// Fishing
 
 struct packet_cg_fishing {
 	uint8_t header;
@@ -1504,7 +1457,6 @@ struct packet_cg_hack {
 	char	buf[255 + 1];
 };
 
-// SubHeader - Dungeon
 enum
 {
 	DUNGEON_SUBHEADER_GC_DESTINATION_POSITION = 1,
@@ -1568,8 +1520,8 @@ struct packet_gc_refine_information {
 	uint32_t	src_vnum;
 	uint32_t	result_vnum;
 	uint8_t	material_count;
-	int		cost; // cost
-	int		prob; // probability
+	int		cost;
+	int		prob;
 	refine_material materials[REFINE_MATERIAL_MAX_NUM];
 };
 
@@ -1586,7 +1538,6 @@ struct packet_gcnpc_position {
 	uint16_t size;
 	uint16_t count;
 
-	// array of TNPCPosition
 };
 
 struct packet_gc_special_effect {
@@ -1688,21 +1639,17 @@ struct packet_gc_love_point_update {
 	uint8_t love_point;
 };
 
-// MINING
 struct packet_gc_dig_motion {
 	uint8_t header;
 	uint32_t vid;
 	uint32_t target_vid;
 	uint8_t count;
 };
-// END_OF_MINING
 
-// SCRIPT_SELECT_ITEM
 struct packet_cg_script_select_item {
 	uint8_t header;
 	uint32_t selection;
 };
-// END_OF_SCRIPT_SELECT_ITEM
 
 struct packet_gc_damage_info {
 	uint8_t header;
@@ -1740,7 +1687,7 @@ struct packet_key_agreement
 struct packet_key_agreement_completed
 {
 	uint8_t header;
-	uint8_t data[3]; // dummy (not used)
+	uint8_t data[3];
 };
 
 inline constexpr int MAX_EFFECT_FILE_NAME = 128;
@@ -1750,7 +1697,6 @@ struct packet_gc_specific_effect {
 	char effect_file[MAX_EFFECT_FILE_NAME];
 };
 
-// dragon soul stone
 enum dragon_soul_refine_window_refine_type
 {
 	DragonSoulRefineWindow_UPGRADE,

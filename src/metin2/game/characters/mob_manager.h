@@ -16,8 +16,8 @@
 namespace metin2::game::inline characters {
 
 struct mob_splash_attack_info {
-	uint32_t	timing; // Time to wait after using a skill until damage actually lands (ms)
-	uint32_t	hit_distance; // Distance at which the skill is actually computed on use (cm forward)
+	uint32_t	timing;
+	uint32_t	hit_distance;
 
 	mob_splash_attack_info(uint32_t timing_value, uint32_t hit_distance_value)
 		: timing(timing_value)
@@ -49,8 +49,8 @@ class mob_instance
 	public:
 		mob_instance();
 
-		pixel_position	pos_last_attacked;	// Last hit position
-		uint32_t		last_attacked_time;	// Last hit time
+		pixel_position	pos_last_attacked;
+		uint32_t		last_attacked_time;
 		uint32_t		last_warp_time;
 
 		bool is_berserk;
@@ -66,7 +66,6 @@ class mob_group_group
 			vnum = vnum_value;
 		}
 
-		// ADD_MOB_GROUP_GROUP_PROB
 		void add_member(uint32_t vnum, int prob = 1)
 		{   
 			if (prob == 0)
@@ -78,27 +77,22 @@ class mob_group_group
 			vec_i_probs.push_back(prob);
 			vec_dw_member_vnum.push_back(vnum);
 		}
-		// END_OF_ADD_MOB_GROUP_GROUP_PROB
 
 		uint32_t member()
 		{
 			if (vec_dw_member_vnum.empty())
 				return 0;
 
-			// ADD_MOB_GROUP_GROUP_PROB
 			int n = number(1, vec_i_probs.back());
 			auto it = lower_bound(vec_i_probs.begin(), vec_i_probs.end(), n);
 
 			return vec_dw_member_vnum[std::distance(vec_i_probs.begin(), it)];
-			// END_OF_ADD_MOB_GROUP_GROUP_PROB
 		}
 
 		uint32_t                   vnum;
 		std::vector<uint32_t>      vec_dw_member_vnum;
 
-		// ADD_MOB_GROUP_GROUP_PROB
 		std::vector<int>	vec_i_probs;
-		// END_OF_ADD_MOB_GROUP_GROUP_PROB
 };
 
 class mob_group

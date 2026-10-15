@@ -67,7 +67,6 @@
 
 namespace metin2::game::inline admin {
 
-// ADD_COMMAND_SLOW_STUN
 enum
 {
 	COMMANDAFFECT_STUN,
@@ -108,7 +107,6 @@ void command_apply_affect(character * ch, const char* argument, const char* affe
 
 	ch->chat_packet(CHAT_TYPE_INFO, "%s %s", arg1, affect_name);
 }
-// END_OF_ADD_COMMAND_SLOW_STUN
 
 ACMD(do_stun)
 {
@@ -172,7 +170,6 @@ ACMD(do_transfer)
 	tch->warp_set(ch->x(), ch->y(), ch->map_index());
 }
 
-// LUA_ADD_GOTO_INFO
 struct goto_info
 {
 	std::string 	st_name;
@@ -285,52 +282,7 @@ bool character_go_to_name(character * ch, uint8_t empire, int index_value, const
 	return false;
 }
 
-// END_OF_LUA_ADD_GOTO_INFO
 
-/*
-   = {
-   { "A1|영안읍성",		0, 1,  4693, 9642 },
-   { "A3|자양현",		0, 3,  3608, 8776 },
-
-   { "B1|조안읍성",		0, 21,  557, 1579 },
-   { "B3|복정현",		0, 23, 1385, 2349 },
-
-   { "C1|평무읍성",		0, 41, 9696, 2784 },
-   { "C3|박라현",		0, 43, 8731, 2426 },
-
-// Snow
-{ "Snow|서한산",		1, 61, 4342, 2906 },
-{ "Snow|서한산",		2, 61, 3752, 1749 },
-{ "Snow|서한산",		3, 61, 4918, 1736 },
-
-// Flame
-{ "Flame|도염화지|화염",	1, 62, 5994, 7563 },
-{ "Flame|도염화지|화염",	2, 62, 5978, 6222 },
-{ "Flame|도염화지|화염",	3, 62, 7307, 6898 },
-
-// Desert
-{ "Desert|영비사막|사막",	1, 63, 2178, 6272 },
-{ "Desert|영비사막|사막",	2, 63, 2219, 5027 },
-{ "Desert|영비사막|사막",	3, 63, 3440, 5025 },
-
-// Threeway
-{ "Three|승룡곡",		1, 64, 4021, 6739 },
-{ "Three|승룡곡",		2, 64, 2704, 7399 },
-{ "Three|승룡곡",		3, 64, 3213, 8080 },
-
-// Milgyo temple
-{ "Milgyo|밀교사원",	1, 65, 5536, 1436 },
-{ "Milgyo|밀교사원",	2, 65, 5536, 1436 },
-{ "Milgyo|밀교사원",	3, 65, 5536, 1436 },
-
-// Demon Tower entrance
-{ "사귀타워입구",		1, 65, 5905, 1108 },
-{ "사귀타워입구",		2, 65, 5905, 1108 },
-{ "사귀타워입구",		3, 65, 5905, 1108 },
-
-{ nullptr,			0,  0,    0,    0 },
-};
- */
 
 ACMD(do_goto)
 {
@@ -806,7 +758,6 @@ ACMD(do_mob_ld)
 		return;
 	}
 
-	// Without coordinates the mob appears where the GM stands.
 	int dir = 1;
 	int32_t x = ch->x() / 100;
 	int32_t y = ch->y() / 100;
@@ -845,7 +796,7 @@ struct func_purge
 
 		int iDist = distance_approx(pkChr->x() - gm->x(), pkChr->y() - gm->y());
 
-		if (!all && iDist >= 1000)	// Do not purge things more than 10 meters away.
+		if (!all && iDist >= 1000)
 			return;
 
 		metin2::log::info( "PURGE: {} {:d}", pkChr->name(), iDist);
@@ -868,7 +819,7 @@ ACMD(do_purge)
 		func.all = true;
 
 	sectree * sectree = ch->get_sectree();
-	if (sectree) // #431
+	if (sectree)
 		sectree->for_each_around(func);
 	else
 		metin2::log::error("PURGE_ERROR.NULL_SECTREE(mapIndex={:d}, pos=({:d}, {:d})", ch->map_index(), ch->x(), ch->y());
@@ -1173,7 +1124,7 @@ void broadcast_notice(const char * buf_value)
 	buf.write(&p, sizeof(p));
 	buf.write(buf_value, p.size);
 
-	p2_p_manager::instance().send(buf.read_peek(), buf.size()); // HEADER_GG_NOTICE
+	p2_p_manager::instance().send(buf.read_peek(), buf.size());
 
 	send_notice(buf_value);
 }
@@ -1400,7 +1351,7 @@ ACMD(do_set)
 
 	switch (i)
 	{
-		case 0:	// gold
+		case 0:
 			{
 				int gold = 0;
 				str_to_number(gold, arg3);
@@ -1415,13 +1366,13 @@ ACMD(do_set)
 			}
 			break;
 
-		case 1: // race
+		case 1:
 			break;
 
-		case 2: // sex
+		case 2:
 			break;
 
-		case 3: // exp
+		case 3:
 			{
 				int amount = 0;
 				str_to_number(amount, arg3);
@@ -1429,7 +1380,7 @@ ACMD(do_set)
 			}
 			break;
 
-		case 4: // max_hp
+		case 4:
 			{
 				int amount = 0;
 				str_to_number(amount, arg3);
@@ -1437,7 +1388,7 @@ ACMD(do_set)
 			}
 			break;
 
-		case 5: // max_sp
+		case 5:
 			{
 				int amount = 0;
 				str_to_number(amount, arg3);
@@ -1445,7 +1396,7 @@ ACMD(do_set)
 			}
 			break;
 
-		case 6: // active skill point
+		case 6:
 			{
 				int amount = 0;
 				str_to_number(amount, arg3);
@@ -1453,8 +1404,8 @@ ACMD(do_set)
 			}
 			break;
 
-		case 7: // alignment
-		case 8: // alignment
+		case 7:
+		case 8:
 			{
 				int	amount = 0;
 				str_to_number(amount, arg3);
@@ -1576,7 +1527,6 @@ ACMD(do_greset)
 		ch->get_guild()->reset();
 }
 
-// REFINE_ROD_HACK_BUG_FIX
 ACMD(do_refine_rod)
 {
 	char arg1[256];
@@ -1588,9 +1538,7 @@ ACMD(do_refine_rod)
 	if (item)
 		fishing::real_refine_rod(ch, item);
 }
-// END_OF_REFINE_ROD_HACK_BUG_FIX
 
-// REFINE_PICK
 ACMD(do_refine_pick)
 {
 	char arg1[256];
@@ -1619,7 +1567,6 @@ ACMD(do_max_pick)
 		mining::cheat_max_pick(ch, item);
 	}
 }
-// END_OF_REFINE_PICK
 
 ACMD(do_fishing_simul)
 {
@@ -1931,15 +1878,12 @@ ACMD(do_reload)
 				fishing::initialize();
 				break;
 
-				//RELOAD_ADMIN
 			case 'a':
 				ch->chat_packet(CHAT_TYPE_INFO, "Reloading Admin infomation.");
 				db_clientdesc->db_packet(HEADER_GD_RELOAD_ADMIN, 0, nullptr, 0);
 				metin2::log::info( "Reloading admin infomation.");
 				break;
-				//END_RELOAD_ADMIN
-			case 'c':	// cube
-				// Only update the local process.
+			case 'c':
 				cube_init ();
 				break;
 		}
@@ -2063,7 +2007,7 @@ struct func_weaken
 
 		int iDist = distance_approx(pkChr->x() - gm->x(), pkChr->y() - gm->y());
 
-		if (!all && iDist >= 1000)	// Do not purge things more than 10 meters away.
+		if (!all && iDist >= 1000)
 			return;
 
 		if (pkChr->is_npc())
@@ -2343,7 +2287,6 @@ ACMD(do_priv_empire)
 	if (duration < 0)
 		goto USAGE;
 
-	// Convert to hours
 	duration = duration * (60*60);
 
 	metin2::log::info( "_give_empire_privileage(empire={:d}, type={:d}, value={:d}, duration={:d}) by command", 
@@ -2359,10 +2302,6 @@ USAGE:
 	ch->chat_packet(CHAT_TYPE_INFO, "  <duration>  hour");
 }
 
-/**
- * @version 05/06/08	Bang2ni - Fixed guild bonus quest not progressing.(script was not written.)
- * 			          changed to read the script from quest/priv_guild.quest
- */
 ACMD(do_priv_guild)
 {
 	char arg1[256];
@@ -2383,7 +2322,6 @@ ACMD(do_priv_guild)
 			ch->chat_packet(CHAT_TYPE_INFO, lc_text("그런 이름 또는 번호의 길드가 없습니다."));
 		else
 		{
-			// The guild bonus script was removed, so this runs an empty one.
 			const char buf[] = "";
 
 			using namespace quest;
@@ -2488,10 +2426,8 @@ ACMD(do_xmas)
 	}
 }
 
-// BLOCK_CHAT
 ACMD(do_block_chat_list)
 {
-	// Not usable by non-GMs or those without block_chat_privilege
 	if (!ch || (ch->gm_level() < GM_HIGH_WIZARD && ch->quest_flag("chat_privilege.block") <= 0))
 	{
 		ch->chat_packet(CHAT_TYPE_INFO, lc_text("그런 명령어는 없습니다"));
@@ -2557,7 +2493,6 @@ ACMD(do_vote_block_chat)
 
 ACMD(do_block_chat)
 {
-	// Not usable by non-GMs or those without block_chat_privilege
 	if (ch && (ch->gm_level() < GM_HIGH_WIZARD && ch->quest_flag("chat_privilege.block") <= 0))
 	{
 		ch->chat_packet(CHAT_TYPE_INFO, lc_text("그런 명령어는 없습니다"));
@@ -2623,9 +2558,7 @@ ACMD(do_block_chat)
 	if (tch && ch != tch)
 		tch->add_affect(AFFECT_BLOCK_CHAT, POINT_NONE, 0, AFF_NONE, lBlockDuration, 0, true);
 }
-// END_OF_BLOCK_CHAT
 
-// BUILD_BUILDING
 ACMD(do_build)
 {
 	using namespace building;
@@ -2636,8 +2569,6 @@ ACMD(do_build)
 
 	land * pkLand = manager::instance().find_land(ch->map_index(), ch->x(), ch->y());
 
-	// NOTE: condition checks are done by both client and server, so when there's a problem
-	//       print an error instead of sending a message.
 	if (!pkLand)
 	{
 		metin2::log::error("{} trying to build on not buildable area.", ch->name());
@@ -2650,17 +2581,14 @@ ACMD(do_build)
 		return;
 	}
 
-	// Check build permission
 	if (GMLevel == GM_PLAYER)
 	{
-		// When a player builds a house, check that the land is theirs.
 		if ((!ch->get_guild() || ch->get_guild()->id() != pkLand->owner()))
 		{
 			metin2::log::error("{} trying to build on not owned land.", ch->name());
 			return;
 		}
 
-		// Am I the guild master?
 		if (ch->get_guild()->master_pid() != ch->player_id())
 		{
 			metin2::log::error("{} trying to build while not the guild master.", ch->name());
@@ -2672,10 +2600,9 @@ ACMD(do_build)
 	{
 		case 'c':
 			{
-				// /build c vnum x y x_rot y_rot z_rot
 				char arg5[256], arg6[256];
-				line = one_argument(two_arguments(line, arg1, sizeof(arg1), arg2, sizeof(arg2)), arg3, sizeof(arg3)); // vnum x y
-				one_argument(two_arguments(line, arg4, sizeof(arg4), arg5, sizeof(arg5)), arg6, sizeof(arg6)); // x_rot y_rot z_rot
+				line = one_argument(two_arguments(line, arg1, sizeof(arg1), arg2, sizeof(arg2)), arg3, sizeof(arg3));
+				one_argument(two_arguments(line, arg4, sizeof(arg4), arg5, sizeof(arg5)), arg6, sizeof(arg6));
 
 				if (!*arg1 || !*arg2 || !*arg3 || !*arg4 || !*arg5 || !*arg6)
 				{
@@ -2706,11 +2633,9 @@ ACMD(do_build)
 					}
 				}
 
-				// Check building dependency (this building must be built)
 				if (t->depend_on_group_vnum)
 				{
 					{
-						// Is it built?
 						if (!pkLand->find_object_by_group(t->depend_on_group_vnum))
 						{
 							ch->chat_packet(CHAT_TYPE_INFO, lc_text("건설에 필요한 건물이 지어져 있지 않습니다."));
@@ -2721,8 +2646,6 @@ ACMD(do_build)
 
 				if (metin2::config::test_server() || GMLevel == GM_PLAYER)
 				{
-					// Only for non-GMs (on the test server GMs also consume)
-					// Check build cost
 					if (t->price > BUILDING_MAX_PRICE)
 					{
 						ch->chat_packet(CHAT_TYPE_INFO, lc_text("건물 비용 정보 이상으로 건설 작업에 실패했습니다."));
@@ -2735,7 +2658,6 @@ ACMD(do_build)
 						return;
 					}
 
-					// Check item material count
 
 					int i;
 					for (i = 0; i < OBJECT_MATERIAL_MAX_NUM; ++i)
@@ -2757,7 +2679,6 @@ ACMD(do_build)
 				float x_rot = atof(arg4);
 				float y_rot = atof(arg5);
 				float z_rot = atof(arg6);
-				// 20050811.myevan.Unsealed building rotation feature
 
 				int32_t map_x = 0;
 				str_to_number(map_x, arg2);
@@ -2780,12 +2701,9 @@ ACMD(do_build)
 				}
 
 				if (metin2::config::test_server() || GMLevel == GM_PLAYER)
-					// Consume build materials (on the test server GMs also consume)
 				{
-					// Consume build cost
 					ch->point_change(POINT_GOLD, -t->price);
 
-					// Use item materials 
 					{
 						int i;
 						for (i = 0; i < OBJECT_MATERIAL_MAX_NUM; ++i)
@@ -2805,7 +2723,6 @@ ACMD(do_build)
 			break;
 
 		case 'd' :
-			// build (d)elete ObjectID
 			{
 				one_argument(line, arg1, sizeof(arg1));
 
@@ -2821,9 +2738,7 @@ ACMD(do_build)
 			}
 			break;
 
-			// BUILD_WALL	
 
-			// build w n/e/w/s
 		case 'w' :
 			if (GMLevel > GM_PLAYER) 
 			{
@@ -2864,8 +2779,6 @@ ACMD(do_build)
 			break;
 
 		case 'W' :
-			// Build wall
-			// build (w)all wallNumber wallSize gateEast gateWest gateSouth gateNorth
 
 			if (GMLevel >  GM_PLAYER) 
 			{
@@ -2899,8 +2812,6 @@ ACMD(do_build)
 			break;
 
 		case 'E' :
-			// Erase wall
-			// build (e)rase wallSetID
 			if (GMLevel > GM_PLAYER) 
 			{
 				one_argument(line, arg1, sizeof(arg1));
@@ -2915,7 +2826,6 @@ ACMD(do_build)
 			break;
 	}
 }
-// END_OF_BUILD_BUILDING
 
 ACMD(do_clear_quest)
 {
@@ -3012,7 +2922,7 @@ ACMD(do_horse_set_stat)
 	}
 }
 
-ACMD(do_save_attribute_to_image) // command "/saveati" for alias
+ACMD(do_save_attribute_to_image)
 {
 	char szFileName[256];
 	char szMapIndex[256];
@@ -3162,7 +3072,6 @@ ACMD(do_duel)
 
 	if (!str_to_number(minute, szMinute))
 	{
-		// Canada defaults to 10 minutes.
 		minute = 5;
 	}
 	if (minute < 5)
@@ -3262,28 +3171,28 @@ ACMD(do_stat_plus_amount)
 
 	switch (subcmd)
 	{
-		case POINT_HT : // Vitality
+		case POINT_HT :
 			if (nPoint + ch->point(POINT_HT) > 90)
 			{
 				nPoint = 90 - ch->point(POINT_HT);
 			}
 			break;
 
-		case POINT_IQ : // Intelligence
+		case POINT_IQ :
 			if (nPoint + ch->point(POINT_IQ) > 90)
 			{
 				nPoint = 90 - ch->point(POINT_IQ);
 			}
 			break;
 
-		case POINT_ST : // Strength
+		case POINT_ST :
 			if (nPoint + ch->point(POINT_ST) > 90)
 			{
 				nPoint = 90 - ch->point(POINT_ST);
 			}
 			break;
 
-		case POINT_DX : // Dexterity
+		case POINT_DX :
 			if (nPoint + ch->point(POINT_DX) > 90)
 			{
 				nPoint = 90 - ch->point(POINT_DX);
@@ -4036,8 +3945,6 @@ ACMD (do_attr_full_set)
 	case JOB_SURA:
 	case JOB_SHAMAN:
 		{
-			// Warrior tank setup.
-			// Only this one is available, so for now all classes follow these attributes.
 			item = ch->wear(WEAR_HEAD);
 			if (item != nullptr)
 			{

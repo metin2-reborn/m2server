@@ -54,7 +54,6 @@ bool memory_text_file_loader::split_line(uint32_t line, std::vector<std::string>
 
 		pst_token_vector->push_back(c_rstLine.substr(beginPos, endPos - beginPos));
 
-		// Added code. Checks for a trailing tab. - [levites]
 		if (int(c_rstLine.find_first_not_of(delimeter, basePos)) < 0)
 			break;
 	} while (basePos < c_rstLine.length());

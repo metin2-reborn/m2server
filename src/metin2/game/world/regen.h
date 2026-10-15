@@ -39,7 +39,7 @@ struct regen {
 
 	event_ptr	event;
 
-	size_t id; // to help dungeon regen identification
+	size_t id;
 
 	regen() :
 		prev(nullptr), next(nullptr),

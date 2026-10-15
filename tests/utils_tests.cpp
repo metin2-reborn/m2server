@@ -69,7 +69,7 @@ TEST(parse_token_splits_config_lines) {
 }
 
 TEST(utf8_truncation_keeps_whole_characters) {
-    const char *text = "가나다"; // three 3-byte characters
+    const char *text = "가나다";
     CHECK_EQ(utf8_sequence_length(static_cast<unsigned char>(text[0])), size_t{3});
     CHECK_EQ(utf8_truncated_size(text, std::strlen(text), 7), size_t{6});
     CHECK_EQ(utf8_truncated_size(text, std::strlen(text), 2), size_t{0});
@@ -80,18 +80,15 @@ TEST(utf8_truncation_keeps_whole_characters) {
 }
 
 TEST(utf8_strnlcpy_bounds_unterminated_fields) {
-    // A packet field filled to the brim, with no terminator.
     const char field[4] = {'a', 'b', 'c', 'd'};
     char buffer[16];
     CHECK_EQ(utf8_strnlcpy(buffer, sizeof(buffer), field, sizeof(field)), size_t{4});
     CHECK_EQ(std::string(buffer), std::string("abcd"));
 
-    // Truncation keeps whole UTF-8 characters.
     char small[5];
     CHECK_EQ(utf8_strnlcpy(small, sizeof(small), "가나", 6), size_t{3});
     CHECK_EQ(std::string(small), std::string("가"));
 
-    // A terminator inside the field ends the copy.
     CHECK_EQ(utf8_strnlcpy(buffer, sizeof(buffer), "hi\0junk", 7), size_t{2});
     CHECK_EQ(std::string(buffer), std::string("hi"));
 
@@ -104,7 +101,6 @@ TEST(number_stays_in_range) {
         CHECK(value >= 1 && value <= 6);
     }
 
-    // Swapped bounds are corrected.
     const int swapped = number(10, 5);
     CHECK(swapped >= 5 && swapped <= 10);
     CHECK_EQ(number(3, 3), 3);

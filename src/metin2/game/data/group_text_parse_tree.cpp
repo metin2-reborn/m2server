@@ -72,7 +72,6 @@ bool group_text_parse_tree_loader::load_group(group_node * group_node_value)
 		if ('}' == stTokenVector[0][0])
 			break;
 
-		// Group
 		if (0 == stTokenVector[0].compare("group"))
 		{
 			if (2 != stTokenVector.size())
@@ -95,7 +94,6 @@ bool group_text_parse_tree_loader::load_group(group_node * group_node_value)
 
 			load_group(pNewNode);
 		}
-		// Column Names
 		else if (0 == stTokenVector[0].compare("#--#"))
 		{
 			for (size_t i = 1; i < stTokenVector.size(); i++)
@@ -192,7 +190,6 @@ bool group_node::row(const std::string & rstr_row_key, const group_node::group_n
 	return true;
 }
 
-// Note: idx is unrelated to the order written in the txt.
 bool group_node::row(int idx, const group_node::group_node_row ** pp_row) const
 {
 	if (idx < 0 || static_cast<size_t>(idx) >= map_rows_.size())
@@ -215,7 +212,6 @@ bool group_node::group_row(const std::string& group_name, const std::string& row
 		if (pChildGroup->row(row_value, pp_row))
 			return true;
 	}
-	// Look in the default group.
 	pChildGroup = child_node("default");
 	if (nullptr != pChildGroup)
 	{

@@ -84,13 +84,13 @@ static bool fn_is_battle_zone(character * ch)
 {
 	switch (ch->map_index())
 	{
-		case 1:         // Shinsoo village 1
-		case 2:         // Shinsoo village 2
-		case 21:        // Chunjo village 1
-		case 23:        // Chunjo village 2
-		case 41:        // Jinno village 1
-		case 43:        // Jinno village 2
-		case 113:       // OX map
+		case 1:
+		case 2:
+		case 21:
+		case 23:
+		case 41:
+		case 43:
+		case 113:
 			return false;
 	}
 
@@ -342,7 +342,6 @@ bool race_to_job(unsigned race, unsigned* ret_job)
 	return true;
 }
 
-// New character support
 bool new_player_table2(player_table * table, const char * name, uint8_t race, uint8_t shape, uint8_t empire)
 {
 	if (race >= MAIN_RACE_MAX_NUM)
@@ -366,7 +365,7 @@ bool new_player_table2(player_table * table, const char * name, uint8_t race, ui
 	strlcpy(table->name, name, sizeof(table->name));
 
 	table->level		= 1;
-	table->job			= race;	// Store race instead of job
+	table->job			= race;
 	table->voice		= 0;
 	table->part_base	= shape;
 
@@ -429,7 +428,6 @@ void input_login::character_create(desc * d, const char * data)
 		return;
 	}
 
-	// Creation fails if the name is not allowed or the default outfit is invalid
 	if (!check_name(szName) || pinfo->shape > 1)
 	{
 
@@ -449,7 +447,7 @@ void input_login::character_create(desc * d, const char * data)
 
 	memset(&player_create_packet, 0, sizeof(proto::player_create_packet));
 
-	// job is 16 bits on the wire; NewPlayerTable2 takes a byte, so range check before narrowing.
+	// job is 16 bits on the wire but stored in a byte.
 	if (pinfo->job >= MAIN_RACE_MAX_NUM ||
 		!new_player_table2(&player_create_packet.player_table, szName, (uint8_t) pinfo->job, pinfo->shape, d->empire()))
 	{
@@ -539,7 +537,6 @@ void input_login::entergame(desc * d, const char * data)
 
 	guild_manager::instance().login_member(ch);
 
-	// Add the character to the map 
 	ch->show(ch->map_index(), pos.x, pos.y, pos.z);
 
 	sectree_manager::instance().send_npc_position(ch);
@@ -547,8 +544,8 @@ void input_login::entergame(desc * d, const char * data)
 
 	d->set_phase(PHASE_GAME);
 
-	if(ch->item_award_cmd())																		//When entering the game phase
-		quest::quest_manager::instance().item_informer(ch->player_id(),ch->item_award_vnum());	//call questmanager
+	if(ch->item_award_cmd())
+		quest::quest_manager::instance().item_informer(ch->player_id(),ch->item_award_vnum());
 
 	metin2::log::info( "ENTERGAME: {} {:d}x{:d}x{:d} {} map_index {:d}", 
 			ch->name(), ch->x(), ch->y(), ch->z(), d->host_name(), ch->map_index());
@@ -558,10 +555,8 @@ void input_login::entergame(desc * d, const char * data)
 		ch->enter_horse();
 	}
 
-	// Start recording play time
 	ch->reset_play_time();
 
-	// Add auto-save event
 	ch->start_save_event();
 	ch->start_recovery_event();
 	ch->start_check_speed_hack_event();
@@ -616,7 +611,7 @@ void input_login::entergame(desc * d, const char * data)
 		}
 		else
 		{
-			if (version != date) // Fix
+			if (version != date)
 			{
 				ch->chat_packet(CHAT_TYPE_NOTICE, lc_text("클라이언트 버전이 틀려 로그아웃 됩니다. 정상적으로 패치 후 접속하세요."));
 				d->delayed_disconnect(10);
@@ -701,15 +696,12 @@ void input_login::entergame(desc * d, const char * data)
 		}
 		else
 		{
-			// wtf
 		}
 	}
 	else if (ch->map_index() == 113)
 	{
-		// ox event map
 		if (ox_event_manager::instance().enter(ch) == false)
 		{
-			// Not allowed into the ox map. If it's a player, send them to the village
 			if (ch->gm_level() == GM_PLAYER)
 				ch->warp_set(empire_start_x(ch->empire()), empire_start_y(ch->empire()));
 		}
@@ -732,7 +724,6 @@ void input_login::entergame(desc * d, const char * data)
 			db_clientdesc->db_packet(HEADER_GD_REQ_HORSE_NAME, 0, &pid, sizeof(uint32_t));
 	}
 
-	// Show guidance when entering a neutral map
 	if (metin2::config::game().notice_battle_zone)
 	{
 		if (fn_is_battle_zone(ch))
@@ -748,7 +739,6 @@ void input_login::empire(desc * d, const char * data)
 {
 	const packet_cg_empire* p = reinterpret_cast<const packet_cg_empire*>(data);
 
-	// Empire 0 is "none": only 1 .. EMPIRE_MAX_NUM - 1 can be chosen.
 	if (p->empire == 0 || EMPIRE_MAX_NUM <= p->empire)
 	{
 		d->set_phase(PHASE_CLOSE);
@@ -783,7 +773,6 @@ void input_login::empire(desc * d, const char * data)
 	db_clientdesc->db_packet(HEADER_GD_EMPIRE_SELECT, d->handle(), &pd, sizeof(pd));
 }
 
-// Whether the player behind a mark connection is the master of guild dwGuildID.
 static bool is_mark_owner_guild_master(desc * d, uint32_t guild_id)
 {
 	desc * pkOwner = desc_manager::instance().find_by_handle(d->mark_owner_handle());
@@ -808,8 +797,6 @@ int input_login::guild_symbol_upload(desc * d, const char* data, size_t bytes)
 
 	if (iSymbolSize <= 0 || iSymbolSize > 64 * 1024)
 	{
-		// Guild symbols larger than 64k cannot be uploaded
-		// Disconnect and ignore
 		d->set_phase(PHASE_CLOSE);
 		return 0;
 	}
@@ -821,7 +808,6 @@ int input_login::guild_symbol_upload(desc * d, const char* data, size_t bytes)
 		return 0;
 	}
 
-	// For a guild that owns no land.
 	if (!metin2::config::test_server())
 		if (!building::manager::instance().find_land_by_guild(p->guild_id))
 		{
@@ -945,7 +931,7 @@ void input_login::guild_mark_crc_list(desc * d, const char* data)
 	guild_mark_manager::instance().diff_blocks(pCG->img_idx, pCG->crclist, mapDiffBlocks);
 
 	uint32_t blockCount = 0;
-	temp_buffer buf(1024 * 1024); // 1M buffer
+	temp_buffer buf(1024 * 1024);
 
 	for (auto it = mapDiffBlocks.begin(); it != mapDiffBlocks.end(); ++it)
 	{
@@ -988,8 +974,7 @@ int input_login::analyze(desc * d, uint8_t header, const char * data)
 		case HEADER_CG_TIME_SYNC:
 			break;
 
-		// Guild mark packets only come over a mark connection (HEADER_CG_MARK_LOGIN), which
-		// is unencrypted and must not reach anything else.
+		// Mark packets come only over the unencrypted mark connection and must not reach anything else.
 		case HEADER_CG_MARK_CRCLIST:
 		case HEADER_CG_MARK_IDXLIST:
 		case HEADER_CG_MARK_UPLOAD:
@@ -1015,8 +1000,6 @@ int input_login::analyze(desc * d, uint8_t header, const char * data)
 
 	switch (header)
 	{
-		// Character slots are handled while choosing a character, by an account, with no
-		// character loaded yet.
 		case HEADER_CG_CHARACTER_SELECT:
 		case HEADER_CG_CHARACTER_CREATE:
 		case HEADER_CG_CHARACTER_DELETE:
@@ -1080,9 +1063,6 @@ int input_login::analyze(desc * d, uint8_t header, const char * data)
 		case HEADER_CG_MOVE:
 			break;
 
-			///////////////////////////////////////
-			// Guild Mark
-			/////////////////////////////////////
 		case HEADER_CG_MARK_CRCLIST:
 			guild_mark_crc_list(d, data);
 			break;
@@ -1095,9 +1075,6 @@ int input_login::analyze(desc * d, uint8_t header, const char * data)
 			guild_mark_upload(d, data);
 			break;
 
-			//////////////////////////////////////
-			// Guild Symbol
-			/////////////////////////////////////
 		case HEADER_CG_GUILD_SYMBOL_UPLOAD:
 			if ((iExtraLen = guild_symbol_upload(d, data, buffer_left_)) < 0)
 				return -1;
@@ -1106,7 +1083,6 @@ int input_login::analyze(desc * d, uint8_t header, const char * data)
 		case HEADER_CG_SYMBOL_CRC:
 			guild_symbol_crc(d, data);
 			break;
-			/////////////////////////////////////
 
 		case HEADER_CG_HACK:
 			break;

@@ -24,7 +24,7 @@ namespace metin2::db::inline social {
 
 namespace marriage
 {
-	const uint32_t WEDDING_LENGTH = 60 * 60; // sec
+	const uint32_t WEDDING_LENGTH = 60 * 60;
 
 	bool operator > (const wedding& lhs, const wedding& rhs)
 	{
@@ -224,7 +224,6 @@ namespace marriage
 
 	void manager::on_setup(peer* peer)
 	{
-		// Send married couples
 		for (auto it = marriages_.begin(); it != marriages_.end(); ++it)
 		{
 			marriage* pMarriage = *it;
@@ -251,7 +250,6 @@ namespace marriage
 			}
 		}
 
-		// Send weddings
 		for (auto it = running_wedding_.begin(); it != running_wedding_.end(); ++it)
 		{
 			const wedding& t = it->second;

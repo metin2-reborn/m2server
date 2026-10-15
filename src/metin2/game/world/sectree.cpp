@@ -156,7 +156,7 @@ bool sectree::insert_entity(entity * ent)
 			if (pkCurTree)
 				pkCurTree->decrease_pc();
 		}
-		else if (pc_count_ > 0 && !pkChr->is_warp() && !pkChr->is_goto()) // If it's not a PC and there's a PC here, start the Idle event.
+		else if (pc_count_ > 0 && !pkChr->is_warp() && !pkChr->is_goto())
 		{
 			pkChr->start_state_machine();
 		}

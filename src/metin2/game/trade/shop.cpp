@@ -26,7 +26,6 @@
 #include <cstring>
 #include <memory>
 
-/* ------------------------------------------------------------------------------------ */
 
 namespace metin2::game::inline trade {
 shop::shop()
@@ -157,8 +156,8 @@ void shop::set_shop_items(shop_item_table * table_value, uint8_t item_count)
 		if (item.item)
 		{
 			item.vnum = pkItem->vnum();
-			item.count = pkItem->count(); // For PC shops, the item count must be the real item count.
-			item.price = table_value->price; // The price is also as the user set it..
+			item.count = pkItem->count();
+			item.price = table_value->price;
 			item.itemid	= pkItem->id();
 		}
 		else
@@ -202,8 +201,7 @@ int shop::buy(character * ch, uint8_t pos)
 
 	shop_item& r_item = item_vector_[pos];
 
-	// if (r_item.price <= 0)
-	if (r_item.price < 0) // Fix
+	if (r_item.price < 0)
 	{
 		log_manager::instance().hack_log("SHOP_BUY_GOLD_OVERFLOW", ch);
 		return SHOP_SUBHEADER_GC_NOT_ENOUGH_MONEY;
@@ -232,7 +230,6 @@ int shop::buy(character * ch, uint8_t pos)
 		}
 	}
 
-	// if other empire, price is triple; computed wide so a large PC shop price cannot wrap
 	const int64_t llPrice = static_cast<int64_t>(r_item.price) * (it->second ? 3 : 1);
 
 	if (llPrice > GOLD_MAX)
@@ -251,7 +248,7 @@ int shop::buy(character * ch, uint8_t pos)
 
 	item * item;
 
-	if (pc_) // A shop run by a PC requires the PC to actually own the items.
+	if (pc_)
 		item = r_item.item;
 	else
 		item = item_manager::instance().create_item(r_item.vnum, r_item.count);
@@ -263,7 +260,6 @@ int shop::buy(character * ch, uint8_t pos)
 	{
 		if (quest::quest_manager::instance().event_flag("hivalue_item_sell") == 0)
 		{
-			//Bead of Blessing && Ten-thousand-year iron event 
 			if (item->vnum() == 70024 || item->vnum() == 70035)
 			{
 				return SHOP_SUBHEADER_GC_END;
@@ -298,7 +294,6 @@ int shop::buy(character * ch, uint8_t pos)
 
 	ch->point_change(POINT_GOLD, -dwPrice, false);
 
-	//Tax calculation
 	uint32_t dwTax = 0;
 	int iVal = 0;
 
@@ -318,13 +313,11 @@ int shop::buy(character * ch, uint8_t pos)
 		dwTax = 0;
 	}
 
-	// 5% tax when buying from a shop
 	if (!pc_) 
 	{
 		monarch::instance().sendto_db_add_money(dwTax, ch->empire(), ch);
 	}
 
-	// Monarch system: tax collection
 	if (pc_)
 	{
 		pc_->sync_quickslot(QUICKSLOT_TYPE_ITEM, item->cell(), 255);
@@ -415,22 +408,19 @@ bool shop::add_guest(character * ch, uint32_t owner_vid, bool other_empire)
 	{
 		const shop_item & item = item_vector_[i];
 
-		//HIVALUE_ITEM_EVENT
 		if (quest::quest_manager::instance().event_flag("hivalue_item_sell") == 0)
 		{
-			//Bead of Blessing && Ten-thousand-year iron event 
 			if (item.vnum == 70024 || item.vnum == 70035)
 			{				
 				continue;
 			}
 		}
-		//END_HIVALUE_ITEM_EVENT
 		if (pc_ && !item.item)
 			continue;
 
 		pack2.items[i].vnum = item.vnum;
 
-		if (other_empire) // no empire price penalty for pc shop
+		if (other_empire)
 			pack2.items[i].price = item.price * 3;
 		else
 			pack2.items[i].price = item.price;

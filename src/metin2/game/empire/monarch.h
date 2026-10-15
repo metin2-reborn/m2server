@@ -56,11 +56,11 @@ class monarch : public singleton<monarch>
 	private:
 		monarch_info monarch_info_;	
 
-		int power_up_[4]; ///< Monarch's Lion's Roar
-		int defense_up_[4]; ///< Monarch's Diamond Fist
+		int power_up_[4];
+		int defense_up_[4];
 
-		int power_up_ct_[4]; ///< Monarch's Lion's Roar
-		int defense_up_ct_[4]; ///< Monarch's Diamond Fist
+		int power_up_ct_[4];
+		int defense_up_ct_[4];
 };
 
 bool is_monarch_warp_zone (int map_idx);

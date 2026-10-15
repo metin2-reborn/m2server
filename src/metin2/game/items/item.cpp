@@ -285,7 +285,7 @@ item * item::remove_from_character()
 
 	character * pOwner = owner_;
 
-	if (equipped_)	// Is it equipped?
+	if (equipped_)
 	{
 		unequip();
 
@@ -308,7 +308,7 @@ item * item::remove_from_character()
 			{
 				item_pos cell(INVENTORY, cell_);
 
-				if (false == cell.is_default_inventory_position() && false == cell.is_belt_inventory_position()) // Or in the inventory?
+				if (false == cell.is_default_inventory_position() && false == cell.is_belt_inventory_position())
 					metin2::log::error("CItem::RemoveFromCharacter: Invalid Item Position");
 				else
 				{
@@ -429,7 +429,6 @@ bool item::distance_valid(character * ch)
 
 bool item::can_used_by(character * ch)
 {
-	// Anti flag check
 	switch (ch->job())
 	{
 		case JOB_WARRIOR:
@@ -458,16 +457,9 @@ bool item::can_used_by(character * ch)
 
 int item::find_equip_cell(character * ch, int candidate_cell)
 {
-	// Costume items (ITEM_COSTUME) don't need a WearFlag. (The wear position is determined by sub type. Why bother with another wear flag..)
-	// Dragon soul stones (ITEM_DS, ITEM_SPECIAL_DS) are also distinguished by SUB_TYPE. The new rings and belt are distinguished by ITEM_TYPE -_-
 	if ((0 == wear_flag() || ITEM_TOTEM == type()) && ITEM_COSTUME != type() && ITEM_DS != type() && ITEM_SPECIAL_DS != type() && ITEM_RING != type() && ITEM_BELT != type())
 		return -1;
 
-	// Dragon soul slots can't be handled as WEAR (WEAR supports at most 32, and adding dragon soul slots exceeds 32),
-	// so a specific range of the inventory (from (INVENTORY_MAX_NUM + WEAR_MAX_NUM) to (INVENTORY_MAX_NUM + WEAR_MAX_NUM + DRAGON_SOUL_DECK_MAX_NUM * DS_SLOT_MAX - 1))
-	// is designated as dragon soul slots.
-	// The reason INVENTORY_MAX_NUM is subtracted on return is
-	// that WearCell originally returns with INVENTORY_MAX_NUM subtracted.
 	if (type() == ITEM_DS || type() == ITEM_SPECIAL_DS)
 	{
 		if (candidate_cell < 0)
@@ -528,7 +520,6 @@ int item::find_equip_cell(character * ch, int candidate_cell)
 			return WEAR_UNIQUE1;		
 	}
 
-	// Where items for collection quests are inserted; once inserted they can never be removed.
 	else if (wear_flag() & WEARABLE_ABILITY)
 	{
 		if (!ch->wear(WEAR_ABILITY1))
@@ -575,12 +566,10 @@ void item::modify_points(bool add)
 {
 	int accessoryGrade;
 
-	// Sockets apply only to weapons and armor.
 	if (false == is_accessory_for_socket())
 	{
 		if (proto_->type == ITEM_WEAPON || proto_->type == ITEM_ARMOR)
 		{
-			// Don't apply when the socket is used for attribute enhancement (ARMOR_WRIST ARMOR_NECK ARMOR_EAR)
 			for (int i = 0; i < ITEM_SOCKET_MAX_NUM; ++i)
 			{
 				uint32_t dwVnum;
@@ -638,16 +627,9 @@ void item::modify_points(bool add)
 			owner_->apply_point(proto_->applies[i].type, add ? value : -value);
 		}
 	}
-	// For the crescent ring, Halloween candy, ring of happiness, and pendant of eternal love,
-	// attributes used to be forced via hard coding,
-	// but that was removed and changed so attributes are granted from the special item group table.
-	// However, items created while it was hard-coded may still exist, so they are special-cased.
-	// For these items, attributes are granted by the ITEM_UNIQUE handling below,
-	// so the attributes embedded in the item are skipped.
 	if (true == item_vnum_helper::is_ramadan_moon_ring(vnum()) || true == item_vnum_helper::is_halloween_candy(vnum())
 		|| true == item_vnum_helper::is_happiness_ring(vnum()) || true == item_vnum_helper::is_love_pendant(vnum()))
 	{
-		// Do not anything.
 	}
 	else
 	{
@@ -700,7 +682,6 @@ void item::modify_points(bool add)
 
 		case ITEM_ARMOR:
 			{
-				// If a costume body is worn, the armor must not affect visuals whether it is worn or not.
 				if (nullptr != owner_->wear(WEAR_COSTUME_BODY))
 					break;
 
@@ -720,33 +701,27 @@ void item::modify_points(bool add)
 			}
 			break;
 
-		// Set character parts info when a costume item is worn. Added following the existing style..
 		case ITEM_COSTUME:
 			{
 				uint32_t toSetValue = this->vnum();
 				parts toSetPart = PART_MAX_NUM;
 
-				// Armor costume
 				if (sub_type() == COSTUME_BODY)
 				{
 					toSetPart = PART_MAIN;
 
 					if (false == add)
 					{
-						// When the costume armor is removed, set the look to the original armor if one is worn, otherwise the default look
 						const item* pArmor = owner_->wear(WEAR_BODY);
 						toSetValue = (nullptr != pArmor) ? pArmor->vnum() : owner_->original_part(PART_MAIN);						
 					}
 					
 				}
 
-				// Hair costume
 				else if (sub_type() == COSTUME_HAIR)
 				{
 					toSetPart = PART_HAIR;
 
-					// Costume hair sets its shape value in item proto value3. No special reason; the existing armor (ARMOR_BODY) shape value is in proto value3, so hair uses value3 too.
-					// [NOTE] Why armor sends the item vnum and hair sends the shape (value3)... that's just how the existing system works...
 					toSetValue = (true == add) ? this->value(3) : 0;
 				}
 
@@ -798,7 +773,6 @@ bool item::is_equipable() const
 	return false;
 }
 
-// return false on error state
 bool item::equip_to(character * ch, uint8_t wear_cell)
 {
 	if (!ch)
@@ -807,7 +781,6 @@ bool item::equip_to(character * ch, uint8_t wear_cell)
 		return false;
 	}
 
-	// Dragon soul slot index is greater than WEAR_MAX_NUM.
 	if (is_dragon_soul())
 	{
 		if (wear_cell < WEAR_MAX_NUM || wear_cell >= WEAR_MAX_NUM + DRAGON_SOUL_DECK_MAX_NUM * static_cast<int>(DS_SLOT_MAX))
@@ -834,15 +807,13 @@ bool item::equip_to(character * ch, uint8_t wear_cell)
 	if (owner())
 		remove_from_character();
 
-	ch->set_wear(wear_cell, this); // The packet is sent here
+	ch->set_wear(wear_cell, this);
 
 	owner_ = ch;
 	equipped_ = true;
 	cell_	= INVENTORY_MAX_NUM + wear_cell;
 
-	// Original immun
 
-	//P3NG3R immun bug fix
 	uint32_t dwImmuneFlag = 0;
 	item * item = nullptr;
 	 
@@ -865,7 +836,6 @@ bool item::equip_to(character * ch, uint8_t wear_cell)
 	}
 	 
 	owner_->set_immune_flag(dwImmuneFlag);
-	//P3NG3R immun fix end
 
 	if (is_dragon_soul())
 	{
@@ -878,9 +848,7 @@ bool item::equip_to(character * ch, uint8_t wear_cell)
 		if (-1 != proto()->c_limit_timer_based_on_wear_index)
 			start_timer_based_on_wear_expire_event();
 
-		// ACCESSORY_REFINE
 		start_accessory_socket_expire_event();
-		// END_OF_ACCESSORY_REFINE
 	}
 
 	ch->buff_on_attr_add_buffs_from_item(this);
@@ -898,10 +866,8 @@ bool item::unequip()
 {
 	if (!owner_ || cell() < INVENTORY_MAX_NUM)
 	{
-		// ITEM_OWNER_INVALID_PTR_BUG
 		metin2::log::error("{} {:d} m_pOwner {}, GetCell {:d}", 
 				name(), id(), static_cast<const void *>(owner_), cell());
-		// END_OF_ITEM_OWNER_INVALID_PTR_BUG
 		return false;
 	}
 
@@ -911,7 +877,6 @@ bool item::unequip()
 		return false;
 	}
 
-	//Handling when a new horse item is removed
 	if (is_ride_item())
 		clear_mount_attribute_and_affect();
 
@@ -929,18 +894,14 @@ bool item::unequip()
 	if (-1 != proto()->c_limit_timer_based_on_wear_index)
 		stop_timer_based_on_wear_expire_event();
 
-	// ACCESSORY_REFINE
 	stop_accessory_socket_expire_event();
-	// END_OF_ACCESSORY_REFINE
 
 
 	owner_->buff_on_attr_remove_buffs_from_item(this);
 
 	owner_->set_wear(cell() - INVENTORY_MAX_NUM, nullptr);
 
-	// Original immun
 
-	//P3NG3R immun bug fix
 	uint32_t dwImmuneFlag = 0;
 	item * item = nullptr;
 	 
@@ -963,7 +924,6 @@ bool item::unequip()
 	}
 	 
 	owner_->set_immune_flag(dwImmuneFlag);
-	//P3NG3R immun fix end
 
 	owner_->compute_battle_points();
 
@@ -1134,10 +1094,6 @@ void item::alter_to_magic_item()
 	if (idx < 0)
 		return;
 
-	//      Appeariance Second Third
-	// Weapon 50        20     5
-	// Armor  30        10     2
-	// Acc    20        10     1
 
 	int iSecondPct;
 	int iThirdPct;
@@ -1167,7 +1123,6 @@ void item::alter_to_magic_item()
 			return;
 	}
 
-	// One good attribute with 100% chance
 	put_attribute(item_magic_attribute_percent_high);
 
 	if (number(1, 100) <= iSecondPct)
@@ -1248,9 +1203,6 @@ EVENTFUNC(unique_expire_event)
 		}
 		else
 		{
-			// There was a bug where timed items in the game didn't disappear promptly
-			// fixed
-			// by rtsummit
 			if (pkItem->get_socket(ITEM_SOCKET_UNIQUE_REMAIN_TIME) - cur < 600)
 				return passes_per_sec(pkItem->get_socket(ITEM_SOCKET_UNIQUE_REMAIN_TIME) - cur);
 			else
@@ -1259,9 +1211,6 @@ EVENTFUNC(unique_expire_event)
 	}
 }
 
-// Time charged afterwards
-// Instead of deducting time when the timer starts, 
-// time is deducted by the amount the timer ran when it fires.
 EVENTFUNC(timer_based_on_wear_expire_event)
 {
 	item_event_info* info = dynamic_cast<item_event_info*>( event->info );
@@ -1280,7 +1229,6 @@ EVENTFUNC(timer_based_on_wear_expire_event)
 		pkItem->set_timer_based_on_wear_expire_event(nullptr);
 		pkItem->set_socket(ITEM_SOCKET_REMAIN_SEC, 0);
 	
-		// For now, timer-based-on-wear dragon soul stones are not destroyed when their time runs out.
 		if (pkItem->is_dragon_soul())
 		{
 			ds_manager::instance().deactivate_dragon_soul(pkItem);
@@ -1369,11 +1317,9 @@ void item::start_unique_expire_event()
 	if (unique_expire_event_)
 		return;
 
-	//For limited-period items, the timed-item logic does not run
 	if (is_real_time_item())
 		return;
 
-	// HARD CODING
 	if (vnum() == UNIQUE_ITEM_HIDE_ALIGNMENT_TITLE)
 		owner_->show_alignment(false);
 
@@ -1392,14 +1338,11 @@ void item::start_unique_expire_event()
 	set_unique_expire_event(event_create(unique_expire_event, info, passes_per_sec(iSec)));
 }
 
-// Time charged afterwards
-// See the timer_based_on_wear_expire_event description
 void item::start_timer_based_on_wear_expire_event()
 {
 	if (timer_based_on_wear_expire_event_)
 		return;
 
-	//For limited-period items, the timed-item logic does not run
 	if (is_real_time_item())
 		return;
 
@@ -1408,7 +1351,6 @@ void item::start_timer_based_on_wear_expire_event()
 
 	int iSec = get_socket(0);
 	
-	// To truncate the remaining time to minutes...
 	if (0 != iSec)
 	{
 		iSec %= 60;
@@ -1427,10 +1369,9 @@ void item::stop_unique_expire_event()
 	if (!unique_expire_event_)
 		return;
 
-	if (value(2) != 0) // Items other than game-time items cannot stop UniqueExpireEvent.
+	if (value(2) != 0)
 		return;
 
-	// HARD CODING
 	if (vnum() == UNIQUE_ITEM_HIDE_ALIGNMENT_TITLE)
 		owner_->show_alignment(true);
 
@@ -1463,13 +1404,10 @@ int item::special_group() const
 	return item_manager::instance().special_group_from_item(vnum()); 
 }
 
-//
-// Accessory socket handling.
-//
 bool item::is_accessory_for_socket()
 {
 	return (proto_->type == ITEM_ARMOR && (proto_->sub_type == ARMOR_WRIST || proto_->sub_type == ARMOR_NECK || proto_->sub_type == ARMOR_EAR)) ||
-		(proto_->type == ITEM_BELT);				// For the 'belt' item added in Feb 2013, the design team asked to reuse the accessory socket system as is.
+		(proto_->type == ITEM_BELT);
 }
 
 void item::set_accessory_socket_grade(int grade) 
@@ -1636,7 +1574,6 @@ void item::accessory_socket_degrade()
 	}
 }
 
-// Checks and returns whether an item can be inserted into the ring
 static bool can_put_into_ring(item * ring, item * item)
 {
 	return false;
@@ -1755,7 +1692,6 @@ bool item::can_put_into(item * item)
 	return 50623 + type == vnum();
 }
 
-// PC_BANG_ITEM_ADD
 bool item::is_pc_bang_item()
 {
 	for (int i = 0; i < ITEM_LIMIT_MAX_NUM; ++i)
@@ -1765,7 +1701,6 @@ bool item::is_pc_bang_item()
 	}
 	return false;
 }
-// END_PC_BANG_ITEM_ADD
 
 bool item::check_item_use_level(int level)
 {
@@ -1842,10 +1777,8 @@ int item::level_limit()
 
 bool item::on_after_created_item()
 {
-	// Once the item has been used even once, time is deducted afterwards even when not in use
 	if (-1 != this->proto()->c_limit_real_time_first_use_index)
 	{
-		// Socket1 records the item's use count, so the timer starts for any item used at least once.
 		if (0 != get_socket(1))
 		{
 			start_real_time_expire_event();
@@ -1882,7 +1815,6 @@ int item::give_more_time_per(float percent)
 			return given_time;
 		}
 	}
-	// For now, do this only for dragon soul stones.
 	else
 		return 0;
 }
@@ -1906,7 +1838,6 @@ int item::give_more_time_fix(uint32_t time)
 			return time;
 		}
 	}
-	// For now, do this only for dragon soul stones.
 	else
 		return 0;
 }
@@ -1931,7 +1862,6 @@ int	item::duration()
 
 bool item::is_same_special_group(item * const item) const
 {
-	// Treated as the same group if the VNUMs are equal
 	if (this->vnum() == item->vnum())
 		return true;
 

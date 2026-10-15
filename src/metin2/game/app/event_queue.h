@@ -10,7 +10,7 @@ struct queue_element
 {
 	event_ptr	pv_data;
 	int		start_time;
-	int		key;		// the pulse the event is due
+	int		key;
 	bool	cancel;
 };
 

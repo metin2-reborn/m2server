@@ -87,12 +87,10 @@
 
 namespace metin2::game::inline app {
 
-// Always check the server key when testing on Windows
 
 
 volatile int	num_events_called = 0;
 
-// Accept the game clients and the other servers' P2P connections.
 std::shared_ptr<net::listener>	client_listener;
 std::shared_ptr<net::listener>	p2p_listener;
 
@@ -163,7 +161,6 @@ void heartbeat(heart * ht, int pulse)
 
 	t = get_dword_time();
 
-	// Every second
 	if (!(pulse % ht->passes_per_sec))
 	{
 
@@ -179,17 +176,11 @@ void heartbeat(heart * ht, int pulse)
 		}
 	}
 
-	//
-	// Assuming 25 PPS (pulses per second)
-	//
 
-	// About every 1.16 seconds
 	if (!(pulse % (metin2::config::server().passes_per_sec + 4)))
 		character_manager::instance().process_delayed_save();
 
-	//Every 4 seconds
 
-	// About every 5.08 seconds
 	if (!(pulse % (metin2::config::server().passes_per_sec * 5 + 2)))
 	{
 		item_manager::instance().update();
@@ -229,7 +220,6 @@ static void clean_up_for_early_exit() {
 int run(int argc, char **argv)
 {
 
-	// // <Factor> start unit tests if option is set
 
 
 	sectree_manager	sectree_manager;
@@ -385,12 +375,11 @@ int start(int argc, char **argv)
 		switch (ch)
 		{
 			case 'l':
-				// Any level above 0 turns on debug messages.
 				if (strtol(optarg, &ep, 10) > 0)
 					metin2::log::set_level(metin2::log::level::debug);
 				break;
 
-			case 'v': // verbose
+			case 'v':
 				bVerbose = true;
 				break;
 
@@ -429,7 +418,6 @@ int start(int argc, char **argv)
 	if (!client_listener)
 		return 0;
 
-	// if internal ip exists, p2p socket uses internal ip, if not use public ip
 	p2p_listener = net::listener::open(public_ip, metin2::config::server().p2p_port, [](net::tcp::socket socket) { desc_manager::instance().accept_p2_p_desc(std::move(socket)); });
 
 	if (!p2p_listener)
@@ -511,7 +499,6 @@ int idle()
 	while (passed_pulses--) {
 		heartbeat(thecore_heart, ++thecore_heart->pulse);
 
-		// To reduce the possibility of abort() in checkpointing
 		thecore_tick();
 	}
 
@@ -561,10 +548,9 @@ int idle()
 
 int io_loop()
 {
-	desc_manager::instance().destroy_closed(); // Close connections in PHASE_CLOSE.
+	desc_manager::instance().destroy_closed();
 	desc_manager::instance().try_connect();
 
-	// Runs the network handlers that are ready (input, accepts, queued output); never blocks.
 	net::io().poll();
 	return 1;
 }

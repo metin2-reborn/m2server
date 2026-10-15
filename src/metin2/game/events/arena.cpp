@@ -300,7 +300,7 @@ EVENTFUNC(ready_to_start_event)
 				duelStart.header = HEADER_GC_DUEL_START;
 				duelStart.size = sizeof(packet_gc_duel_start) + 4;
 
-				uint32_t dwOppList[8]; // Since the max party size is 8..
+				uint32_t dwOppList[8];
 
 				dwOppList[0] = (uint32_t)chB->get_vid();
 				temp_buffer buf;
@@ -349,7 +349,7 @@ EVENTFUNC(ready_to_start_event)
 
 				temp_buffer buf;
 				temp_buffer buf2;
-				uint32_t dwOppList[8]; // Since the max party size is 8..
+				uint32_t dwOppList[8];
 				packet_gc_duel_start duelStart;
 				duelStart.header = HEADER_GC_DUEL_START;
 				duelStart.size = sizeof(packet_gc_duel_start) + 4;
@@ -688,7 +688,6 @@ bool arena_map::can_attack(character * char_attacker, character * char_victim)
 
 bool arena::can_attack(uint32_t pida, uint32_t pidb)
 {
-	// 1:1 only; needs changes for many-vs-many
 	if (pida_ == pida && pidb_ == pidb) return true;
 	if (pida_ == pidb && pidb_ == pida) return true;
 
@@ -738,7 +737,6 @@ bool arena::on_dead(uint32_t pida, uint32_t pidb)
 
 	if (pCharA == nullptr && pCharB == nullptr)
 	{
-		// Both disconnected?!
 		send_chat_packet_to_observer(CHAT_TYPE_NOTICE, lc_text("대련자 문제로 인하여 대련을 중단합니다."));
 		restart = false;
 	}
@@ -811,7 +809,6 @@ bool arena::on_dead(uint32_t pida, uint32_t pidb)
 		}
 		else
 		{
-			// wtf
 			metin2::log::info( "ARENA : OnDead Error ({:d}, {:d}) ({:d}, {:d})", pida_, pidb_, pida, pidb);
 		}
 
@@ -821,7 +818,6 @@ bool arena::on_dead(uint32_t pida, uint32_t pidb)
 	}
 	else
 	{
-		// Should never get here?!
 	}
 
 	if (restart == false)

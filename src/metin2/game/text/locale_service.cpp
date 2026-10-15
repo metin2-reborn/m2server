@@ -22,7 +22,6 @@
 namespace metin2::game::inline text {
 
 
-// The server runs the english locale only (common.locale LOCALE = english).
 static const std::string	service_base_path = "locale/english";
 static const std::string	service_map_path = "locale/english/map";
 
@@ -37,7 +36,6 @@ static int check_name_independent(const char * str)
 	if (banword_manager::instance().check_string(str, strlen(str)))
 		return 0;
 
-	// Cannot be made with a monster name.
 	char szTmp[256];
 	str_lower(str, szTmp, sizeof(szTmp));
 
@@ -47,7 +45,6 @@ static int check_name_independent(const char * str)
 	return 1;
 }
 
-// Names: letters and digits only.
 int check_name(const char * str)
 {
 	const char*	tmp;
@@ -60,7 +57,6 @@ int check_name(const char * str)
 
 	for (tmp = str; *tmp; ++tmp)
 	{
-		// Only letters and digits allowed
 		if (isdigit(*tmp) || isalpha(*tmp))
 			continue;
 		else
@@ -69,7 +65,6 @@ int check_name(const char * str)
 
 	return check_name_independent(str);
 }
-// DISABLE_SPECIAL_CHAR_NAMING
 
 void locale_service_load_locale_string_file()
 {

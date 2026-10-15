@@ -17,7 +17,6 @@ namespace metin2::log {
     namespace {
         namespace fs = std::filesystem;
 
-        // One output file that rotates hourly into log/YYYYMMDD/<name>.HH.
         struct sink {
             fs::path path;
             std::ofstream stream;
@@ -55,7 +54,7 @@ namespace metin2::log {
         }
 
         auto day_name(std::tm t, int days_offset) -> std::string {
-            t.tm_mday += days_offset; // mktime normalises across months and years
+            t.tm_mday += days_offset;
             t.tm_isdst = -1;
             std::mktime(&t);
             return std::format("{:04}{:02}{:02}", t.tm_year + 1900, t.tm_mon + 1, t.tm_mday);
@@ -79,7 +78,6 @@ namespace metin2::log {
             return slash == std::string_view::npos ? text : text.substr(slash + 1);
         }
 
-        // Dated folders at least keep_days old go.
         void remove_old(state &s, const std::tm &now) {
             std::error_code error;
             if (!fs::is_directory(s.directory / "log", error))
@@ -98,7 +96,6 @@ namespace metin2::log {
                 return;
 
             if (file.hour >= 0) {
-                // The hour that just ended goes into its day's folder.
                 const fs::path folder = s.directory / "log" / day_name(now, now.tm_hour < file.hour ? -1 : 0);
                 std::error_code error;
                 fs::create_directories(folder, error);

@@ -128,7 +128,6 @@ void packet_info::log(const char * file_name)
 
 	fclose(fp);
 }
-///---------------------------------------------------------
 
 packet_info_cg::packet_info_cg()
 {
@@ -230,7 +229,6 @@ packet_info_cg::~packet_info_cg()
 	log("packet_info.txt");
 }
 
-////////////////////////////////////////////////////////////////////////////////
 packet_info_gg::packet_info_gg()
 {
 	set(HEADER_GG_SETUP,		sizeof(packet_gg_setup),		"Setup", false);
@@ -253,9 +251,7 @@ packet_info_gg::packet_info_gg()
 	set(HEADER_GG_XMAS_WARP_SANTA_REPLY, sizeof(packet_gg_xmas_warp_santa_reply), "XmasWarpSantaReply", false);
 	set(HEADER_GG_CHECK_CLIENT_VERSION, sizeof(uint8_t),			"CheckClientVersion", false);
 
-	// BLOCK_CHAT
 	set(HEADER_GG_BLOCK_CHAT,		sizeof(packet_gg_block_chat),	"BlockChat", false);
-	// END_OF_BLOCK_CHAT
 	set(HEADER_GG_SIEGE,	sizeof(packet_gg_siege),	"Siege", false);
 
 	set(HEADER_GG_MONARCH_NOTICE,		sizeof(packet_gg_monarch_notice),	"MonarchNotice", false);

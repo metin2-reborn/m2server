@@ -58,7 +58,6 @@ class desc_manager : public singleton<desc_manager>
 		const desc_set &	client_set();
 
 		uint32_t			make_random_key(uint32_t handle);
-		// True when dwKey is the mark key issued to the live connection dwHandle.
 		bool			check_random_key(uint32_t handle, uint32_t key);
 
 		uint32_t			create_login_key(desc * d);
@@ -67,7 +66,6 @@ class desc_manager : public singleton<desc_manager>
 
 		bool			is_p2_p_desc_exist(const char * host, uint16_t port);
 
-		// for C/S hybrid crypt
 
 	private:
 

@@ -29,8 +29,6 @@
 
 namespace metin2::game {
 
-// questpc.h: PC::typedef Quest
-// typedef 
 
 
 namespace quest
@@ -100,16 +98,7 @@ namespace quest
 
 		quest_manager & q = quest_manager::instance();
 
-		//
-		// script_name examples:
-		//   christmas_tree.start -> argument not exist
-		//
-		//   guild_manage.start.0.script -> argument exist
-		//   guild_manage.start.0.when
-		//   guild_manage.start.0.arg
 
-		///////////////////////////////////////////////////////////////////////////
-		// Quest name
 		const std::string stQuestName = s.substr(0, i); 
 
 		int quest_index = q.quest_index_by_name(stQuestName);
@@ -121,8 +110,6 @@ namespace quest
 			return;
 		}
 
-		///////////////////////////////////////////////////////////////////////////
-		// State name
 		std::string stStateName;
 
 		size_t j = i;
@@ -134,26 +121,18 @@ namespace quest
 			stStateName = s.substr(j + 1, i - j - 1);
 
 		int state_index = q.quest_state_index(stQuestName, stStateName);
-		///////////////////////////////////////////////////////////////////////////
 
 		metin2::log::info( "QUEST loading {} : {} [STATE] {}", 
 				filename, stQuestName.c_str(), stStateName.c_str());
 
 		if (i == s.npos)
 		{
-			// like in example: christmas_tree.start
 			std::istreambuf_iterator<char> ib(inf), ie;
 			copy(ib, ie, back_inserter(own_quest_[event_index][quest_index][q.quest_state_index(stQuestName, stStateName)].code));
 		}
 		else
 		{
-			//
-			// like in example: guild_manage.start.0.blah
-			// NOTE : currently, only CHAT script uses argument
-			//
 
-			///////////////////////////////////////////////////////////////////////////
-			// Sequence index (exists because there can be several; the actual index value is not used)
 			j = i;
 			i = s.find('.', i + 1);
 
@@ -164,8 +143,6 @@ namespace quest
 			}
 
 			const int index = strtol(s.substr(j + 1, i - j - 1).c_str(), nullptr, 10); 
-			///////////////////////////////////////////////////////////////////////////
-			// Type name
 			j = i;
 			i = s.find('.', i + 1);
 
@@ -176,7 +153,6 @@ namespace quest
 			}
 
 			const std::string type_name = s.substr(j + 1, i - j - 1);
-			///////////////////////////////////////////////////////////////////////////
 
 			std::istreambuf_iterator<char> ib(inf), ie;
 
@@ -390,7 +366,6 @@ namespace quest
 
 		void operator()(pc::quest_info_iterator& pc_quest, npc::quest_map_type::iterator& quest_map)
 		{
-			// None, so start fresh
 			uint32_t dwQuestIndex = quest_map->first;
 
 			if (npc::has_start_state(quest_map->second) && quest_manager::instance().can_start_quest(dwQuestIndex))
@@ -469,8 +444,6 @@ namespace quest
 			for (int i = 0; i < fMatch.size; i++)
 			{
 				if ( i != 0 ) {
-					//2012.05.14 <Kim Yong-uk> : The quest manager's m_pCurrentPC could change,
-					//so when running two or more scripts, set the quest manager's PC again from the second one on.
 					quest_manager::instance().get_pc(pc.id());		
 				}
 				
@@ -756,7 +729,6 @@ namespace quest
 		quest_map_type & rmapEventOwnQuest = own_quest_[EventIndex];
 		quest_map_type::iterator itQuestMap = rmapEventOwnQuest.find(quest_index);
 
-		// No such quest
 		if (itQuestMap == rmapEventOwnQuest.end())
 			return false;
 
@@ -768,7 +740,6 @@ namespace quest
 		}
 		else
 		{
-			// Start a new one?
 			if (quest_manager::instance().can_start_quest(itQuestMap->first, pc) && has_start_state(itQuestMap->second))
 				iState = 0;
 			else
@@ -913,7 +884,6 @@ namespace quest
 		else
 			return handle_event(pc, QUEST_ITEM_PICK_EVENT);
 	}
-	//Germany gift feature test
 	bool npc::on_item_informer(pc& pc, unsigned int vnum)
 	{
 		return handle_event(pc, QUEST_ITEM_INFORMER_EVENT);

@@ -22,10 +22,10 @@ struct tag_quiz
 
 enum ox_event_status
 {
-	OXEVENT_FINISH = 0, // OX event fully finished
-	OXEVENT_OPEN = 1,	// OX event started. Entry possible through Euldoji (20012)
-	OXEVENT_CLOSE = 2,	// OX event registration closed. Entry through Euldoji (20012) is blocked
-	OXEVENT_QUIZ = 3,	// A quiz question has been asked.
+	OXEVENT_FINISH = 0,
+	OXEVENT_OPEN = 1,
+	OXEVENT_CLOSE = 2,
+	OXEVENT_QUIZ = 3,
 
 	OXEVENT_ERR = 0xff
 };

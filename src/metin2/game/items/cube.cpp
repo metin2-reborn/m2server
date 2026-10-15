@@ -1,9 +1,3 @@
-/*********************************************************************
- * date        : 2006.11.20
- * file        : cube.cpp
- * author      : mhh
- * description : 
- */
 
 
 #include <metin2/game/items/cube.h>
@@ -40,9 +34,6 @@
 #define RETURN_IF_CUBE_IS_NOT_OPENED(ch) if (!(ch)->is_cube_open()) return
 
 
-/*--------------------------------------------------------*/
-/*                   GLOBAL VARIABLES                     */
-/*--------------------------------------------------------*/
 
 namespace metin2::game::inline items {
 static std::vector<std::unique_ptr<cube_data>>	cube_proto;
@@ -50,14 +41,11 @@ static bool is_initialized_cube_material_information = false;
 
 
 
-/*--------------------------------------------------------*/
-/*               Cube Material Information                */ 
-/*--------------------------------------------------------*/
 enum cube_result_category
 {
-	CUBE_CATEGORY_POTION,				// Herbs, extracts, etc.. (can't be classified as potions, so unused. Herbs and such are all just misc)
-	CUBE_CATEGORY_WEAPON,				// Weapon
-	CUBE_CATEGORY_ARMOR,				// Armor
+	CUBE_CATEGORY_POTION,
+	CUBE_CATEGORY_WEAPON,
+	CUBE_CATEGORY_ARMOR,
 };
 
 typedef std::vector<cube_value>	cube_value_vector;
@@ -69,17 +57,14 @@ struct cube_material_info
 		have_complicate_material = false;
 	};
 
-	cube_value			reward;							// What's the reward
-	cube_value_vector	material;						// What are the materials
-	uint32_t				gold;							// How much gold does it cost
-	cube_value_vector	complicate_material;				// Complicated -_- materials
+	cube_value			reward;
+	cube_value_vector	material;
+	uint32_t				gold;
+	cube_value_vector	complicate_material;
 
-	// .. format agreed upon for showing materials on the client
-	// 72723,1&72724,2&72730,1
-	// 52001,1|52002,1|52003,1&72723,1&72724,5
-	//	=> ( 52001,1 or 52002,1 or 52003,1 ) and 72723,1 and 72724,5
+	// Material format shown by the client: "a,1|b,1&c,5" means (a or b) and c.
 	std::string			info_text;		
-	bool				have_complicate_material;		//
+	bool				have_complicate_material;
 };
 
 struct item_name_and_level
@@ -91,24 +76,18 @@ struct item_name_and_level
 };
 
 
-// Please excuse the crappy data structures... made this in a soulless state thanks to someone
 typedef std::vector<cube_material_info>								cube_result_list;
-typedef std::unordered_map<uint32_t, cube_result_list>				cube_map_by_npc;				// What each NPC can make and what the materials are...
-typedef std::unordered_map<uint32_t, std::string>					cube_result_info_text_by_npc;	// Info listing what each NPC can make, organized in the agreed format
+typedef std::unordered_map<uint32_t, cube_result_list>				cube_map_by_npc;
+typedef std::unordered_map<uint32_t, std::string>					cube_result_info_text_by_npc;
 
 cube_map_by_npc cube_info_map;
-cube_result_info_text_by_npc cube_result_info_map_by_npc;				// The naming is f***ing stupid lol
+cube_result_info_text_by_npc cube_result_info_map_by_npc;
 
 
-/*--------------------------------------------------------*/
-/*                  STATIC FUNCTIONS                      */ 
-/*--------------------------------------------------------*/
- // Does it have the required item count?
 static bool fn_check_item_count (item * *items, uint32_t item_vnum, int need_count)
 {
 	int	count = 0;
 
-	// for all cube
 	for (int i=0; i<CUBE_MAX_NUM; ++i)
 	{
 		if (nullptr==items[i])	continue;
@@ -122,13 +101,11 @@ static bool fn_check_item_count (item * *items, uint32_t item_vnum, int need_cou
 	return (count>=need_count);
 }
 
-// Removes the materials in the cube.
 static void fn_remove_material (item * *items, uint32_t item_vnum, int need_count)
 {
 	int		count	= 0;
 	item *	item	= nullptr;
 
-	// for all cube
 	for (int i=0; i<CUBE_MAX_NUM; ++i)
 	{
 		if (nullptr==items[i])	continue;
@@ -159,7 +136,6 @@ static cube_data* fn_find_cube (item * *items, uint16_t npc_vnum)
 
 	if (0==npc_vnum)	return nullptr;
 
-	// FOR ALL CUBE_PROTO
 	end_index = cube_proto.size();
 	for (i=0; i<end_index; ++i)
 	{
@@ -181,7 +157,6 @@ static bool fn_check_valid_npc( uint16_t vnum )
 	return false;
 }
 
-// Checks whether the cube data was initialized correctly.
 static bool fn_check_cube_data (cube_data *cube_data)
 {
 	uint32_t	i = 0;
@@ -215,16 +190,13 @@ cube_data::cube_data()
 	this->gold = 0;
 }
 
-// Checks whether the required material quantities are satisfied.
 bool cube_data::can_make_item (game::items::item * *items, uint16_t npc_vnum)
 {
-	// Checks whether the required materials and quantities are satisfied.
 	uint32_t	i, end_index;
 	uint32_t	need_vnum;
 	int		need_count;
 	int		found_npc = false;
 
-	// check npc_vnum
 	end_index = this->npc_vnum.size();
 	for (i=0; i<end_index; ++i)
 	{
@@ -246,7 +218,6 @@ bool cube_data::can_make_item (game::items::item * *items, uint16_t npc_vnum)
 	return true;
 }
 
-// Determines the kind of item produced when the cube is run
 cube_value* cube_data::reward_value ()
 {
 	int		end_index		= 0;
@@ -259,7 +230,6 @@ cube_value* cube_data::reward_value ()
 	return &this->reward[reward_index];
 }
 
-// Removes the materials in the cube
 void cube_data::remove_material (character * ch)
 {
 	uint32_t	i, end_index;
@@ -292,7 +262,6 @@ void cube_clean_item (character * ch)
 	}
 }
 
-// Open cube window
 void cube_open (character * ch)
 {
 	if (false == is_initialized_cube_material_information)
@@ -346,7 +315,6 @@ void cube_open (character * ch)
 	ch->chat_packet(CHAT_TYPE_COMMAND, "cube open %d", npc->race_num());
 }
 
-// Cube cancel
 void cube_close (character * ch)
 {
 	RETURN_IF_CUBE_IS_NOT_OPENED(ch);
@@ -397,7 +365,6 @@ bool cube_load (const char *file)
 		if (nullptr == token_string)
 			continue;
 
-		// set value1, value2
 		if ((v = strtok(nullptr, delim)))
 			str_to_number(value1, v);
 
@@ -436,12 +403,10 @@ bool cube_load (const char *file)
 		}
 		else TOKEN("gold")
 		{
-			// Gold required for crafting
 			cube_data->gold = value1;
 		}
 		else TOKEN("end")
 		{
-			// TODO : check cube data
 			if (false == fn_check_cube_data(cube_data.get()))
 			{
 				metin2::log::debug( "something wrong");
@@ -457,9 +422,6 @@ bool cube_load (const char *file)
 }
 
 
-// The cube holds raw pointers to inventory items. An item can be consumed while the cube is open
-// (e.g. prisms spent by chat hyperlinks, expiring items), so drop every pointer that is no longer
-// an item in the inventory before it is dereferenced. Only pointer values are compared here.
 static void fn_validate_cube_items(character * ch)
 {
 	item ** cube_item = ch->cube_item();
@@ -511,13 +473,8 @@ static bool fn_update_cube_status(character * ch)
 	return true;
 }
 
-// return new item
 bool cube_make (character * ch)
 {
-	// Finds combinations that require the given item. (referred to as cube data)
-	// If there is cube data, check the item's materials.
-	// Creates the new item.
-	// Give the new item
 
 	character *	npc;
 	int			percent_number = 0;
@@ -549,23 +506,20 @@ bool cube_make (character * ch)
 
 	if (static_cast<int64_t>(ch->gold()) < static_cast<int64_t>(cube_proto->gold))
 	{
-		ch->chat_packet(CHAT_TYPE_INFO, lc_text("돈이 부족하거나 아이템이 제자리에 없습니다."));	// This text is already widely used, so no additional translation needed
+		ch->chat_packet(CHAT_TYPE_INFO, lc_text("돈이 부족하거나 아이템이 제자리에 없습니다."));
 		return false;
 	}
 
 	cube_value	*reward_value = cube_proto->reward_value();
 
-	// Delete the used material items
 	cube_proto->remove_material (ch);
 	
-	// Deduct the gold required for crafting
 	if (0 < cube_proto->gold)
 		ch->point_change(POINT_GOLD, -(cube_proto->gold), false);
 
 	percent_number = number(1,100);
 	if ( percent_number<=cube_proto->percent)
 	{
-		// Success
 		ch->chat_packet(CHAT_TYPE_COMMAND, "cube success %d %d", reward_value->vnum, reward_value->count);
 		new_item = ch->auto_give_item(reward_value->vnum, reward_value->count);
 
@@ -575,8 +529,7 @@ bool cube_make (character * ch)
 	}
 	else
 	{
-		// Failure
-		ch->chat_packet(CHAT_TYPE_INFO, lc_text("제조에 실패하였습니다."));	// 2012.11.12 newly added message (must be added to locale_string.txt)
+		ch->chat_packet(CHAT_TYPE_INFO, lc_text("제조에 실패하였습니다."));
 		ch->chat_packet(CHAT_TYPE_COMMAND, "cube fail");
 		log_manager::instance().cube_log(ch->player_id(), ch->x(), ch->y(),
 				reward_value->vnum, 0, 0, 0);
@@ -587,7 +540,6 @@ bool cube_make (character * ch)
 }
 
 
-// Show the items in the cube
 void cube_show_list (character * ch)
 {
 	item *	*cube_item;
@@ -609,13 +561,8 @@ void cube_show_list (character * ch)
 }
 
 
-// Register an inventory item into the cube
 void cube_add_item (character * ch, int cube_index, int inven_index)
 {
-	// Does the item exist?
-	// Find an empty slot in the cube
-	// Cube setup
-	// Send message
 	item *	item;
 	game::items::item *	*cube_item;
 
@@ -632,7 +579,6 @@ void cube_add_item (character * ch, int cube_index, int inven_index)
 
 	cube_item = ch->cube_item();
 
-	// If the item was already registered at another position, delete the old index
 	for (int i=0; i<CUBE_MAX_NUM; ++i)
 	{
 		if (item==cube_item[i])
@@ -648,14 +594,11 @@ void cube_add_item (character * ch, int cube_index, int inven_index)
 		ch->chat_packet(CHAT_TYPE_INFO, "cube[%d]: inventory[%d]: %s added",
 									cube_index, inven_index, item->name());
 
-	// Wanted to tell the client what can be made from the items currently in the box
-	// but just send how much gold is required instead
 	fn_update_cube_status(ch);
 
 	return;
 }
 
-// Remove an item from the cube
 void cube_delete_item (character * ch, int cube_index)
 {
 	item *	item;
@@ -677,14 +620,11 @@ void cube_delete_item (character * ch, int cube_index)
 		ch->chat_packet(CHAT_TYPE_INFO, "cube[%d]: cube[%d]: %s deleted",
 				cube_index, item->cell(), item->name());
 
-	// Wanted to tell the client what can be made from the items currently in the box
-	// but just send how much gold is required instead
 	fn_update_cube_status(ch);
 
 	return;
 }
 
-// Splits an item name into the plain name and refine level (Peerless Sword+5 -> Peerless Sword, 5)
 item_name_and_level split_item_name_and_level_from_name(const std::string& name)
 {
 	int level = 0;
@@ -713,7 +653,6 @@ bool f_is_less_cube_value(const cube_value& a, const cube_value& b)
 
 void cube_make_cube_information_text()
 {
-	// Now convert the organized cube results and materials into info to send to the client.
 	for (cube_map_by_npc::iterator iter = cube_info_map.begin(); cube_info_map.end() != iter; ++iter)
 	{
 		cube_result_list& resultList = iter->second;
@@ -724,13 +663,11 @@ void cube_make_cube_information_text()
 			std::string& infoText = materialInfo.info_text;
 
 			
-			// This one is the bad guy
 			if (0 < materialInfo.complicate_material.size())
 			{
 				std::sort(materialInfo.complicate_material.begin(), materialInfo.complicate_material.end(), f_is_less_cube_value);
 				std::sort(materialInfo.material.begin(), materialInfo.material.end(), f_is_less_cube_value);
 
-				//// Remove duplicate materials
 				for (cube_value_vector::iterator iter = materialInfo.complicate_material.begin(); materialInfo.complicate_material.end() != iter; ++iter)
 				{
 					for (cube_value_vector::iterator targetIter = materialInfo.material.begin(); materialInfo.material.end() != targetIter; ++targetIter)
@@ -742,7 +679,6 @@ void cube_make_cube_information_text()
 					}
 				}
 
-				// Build text following the agreed format like 72723,1 or 72725,1 or ...
 				for (cube_value_vector::iterator iter = materialInfo.complicate_material.begin(); materialInfo.complicate_material.end() != iter; ++iter)
 				{
 					char tempBuffer[128];
@@ -757,7 +693,6 @@ void cube_make_cube_information_text()
 					infoText.push_back('&');
 			}
 
-			// Also build the format for non-duplicate normal materials
 			for (cube_value_vector::iterator iter = materialInfo.material.begin(); materialInfo.material.end() != iter; ++iter)
 			{
 				char tempBuffer[128];
@@ -767,7 +702,6 @@ void cube_make_cube_information_text()
 
 			infoText.erase(infoText.size() - 1);
 
-			// Add gold info if gold is needed to craft
 			if (0 < materialInfo.gold)
 			{
 				char temp[128];
@@ -775,8 +709,8 @@ void cube_make_cube_information_text()
 				infoText += std::string("/") + temp;
 			}
 
-		} // for resultList
-	} // for npc
+		}
+	}
 }
 
 bool cube_information_initialize()
@@ -787,7 +721,6 @@ bool cube_information_initialize()
 
 		const std::vector<cube_value>& rewards = cubeData->reward;
 
-		// Sorry for the hard coding
 		if (1 != rewards.size())
 		{
 			metin2::log::error("[CubeInfo] WARNING! Does not support multiple rewards (count: {:d})", rewards.size());
@@ -810,13 +743,6 @@ bool cube_information_initialize()
 		{
 			cube_material_info& existInfo = *iter;
 
-			// If a duplicate reward is already registered, distinguish whether it's made from an entirely different combination, 
-			// or an almost identical combination that differs only in one part.
-			// e.g. items that differ only in one part are grouped and shown as a single result, like below:
-			// Dragon God Sword:
-			//		Peerless Sword+5 ~ +9 x 1
-			//		Red hilt fragment x1
-			//		Green sword ornament fragment x1
 			if (reward.vnum == existInfo.reward.vnum)
 			{
 				for (cube_value_vector::iterator existMaterialIter = existInfo.material.begin(); existInfo.material.end() != existMaterialIter; ++existMaterialIter)
@@ -831,8 +757,6 @@ bool cube_information_initialize()
 
 					if (0 < existItemInfo.level)
 					{
-						// Between the materials of the cube result being added now and the materials of already registered cube results, 
-						// search for overlapping parts
 						for (cube_value_vector::iterator currentMaterialIter = materialInfo.material.begin(); materialInfo.material.end() != currentMaterialIter; ++currentMaterialIter)
 						{
 							item_table* currentMaterialProto = item_manager::instance().table(currentMaterialIter->vnum);
@@ -846,15 +770,14 @@ bool cube_information_initialize()
 								if (std::find(existInfo.complicate_material.begin(), existInfo.complicate_material.end(), *existMaterialIter) == existInfo.complicate_material.end())
 									existInfo.complicate_material.push_back(*existMaterialIter);
 
-								// TODO: may need to detect two or more duplicate items
 								break;
 							}
-						} // for currentMaterialIter
-					}	// if level
-				}	// for existMaterialInfo
-			}	// if (reward.vnum == existInfo.reward.vnum)
+						}
+					}
+				}
+			}
 
-		}	// for resultList
+		}
 
 		if (false == bComplicate)
 			resultList.push_back(materialInfo);
@@ -866,7 +789,6 @@ bool cube_information_initialize()
 	return true;
 }
 
-// Client to server: request info (list) of items the current NPC can make
 void cube_request_result_list(character * ch)
 {
 	RETURN_IF_CUBE_IS_NOT_OPENED(ch);
@@ -880,7 +802,6 @@ void cube_request_result_list(character * ch)
 
 	std::string& resultText = cube_result_info_map_by_npc[npcVNUM];
 
-	// If there's no organized list of what this NPC can make, build the cache
 	if (resultText.length() == 0)
 	{
 		resultText.clear();
@@ -897,13 +818,12 @@ void cube_request_result_list(character * ch)
 
 		resultCount = resultList.size();
 		
-		if (resultCount == 0) { // Fix
+		if (resultCount == 0) {
 			return;
 		}
 
 		resultText.erase(resultText.size() - 1);
 
-		// Logs an error if it exceeds the chat packet limit... ask the designers to adjust it, or switch to another method later...
 		if (resultText.size() - 20 >= CHAT_MAX_LEN)
 		{
 			metin2::log::error("[CubeInfo] Too long cube result list text. (NPC: {:d}, length: {:d})", npcVNUM, resultText.size());
@@ -913,14 +833,11 @@ void cube_request_result_list(character * ch)
 
 	}
 
-	// Sends the list of items the current NPC can make in the format below.
-	// (Server -> Client) /cube r_list npcVNUM resultCount vnum1,count1/vnum2,count2,/vnum3,count3/...
-	// (Server -> Client) /cube r_list 20383 4 123,1/125,1/128,1/130,5
+	// /cube r_list npc_vnum count vnum,count/vnum,count/...
 	
 	ch->chat_packet(CHAT_TYPE_COMMAND, "cube r_list %d %d %s", npcVNUM, resultCount, resultText.c_str());
 }
 
-// 
 void cube_request_material_info(character * ch, int request_start_index, int request_count)
 {
 	RETURN_IF_CUBE_IS_NOT_OPENED(ch);
@@ -954,8 +871,7 @@ void cube_request_material_info(character * ch, int request_start_index, int req
 			break;
 	}
 
-	// if (false == bCatchInfo)
-	if (!bCatchInfo || materialInfoText.size() == 0) // Fix
+	if (!bCatchInfo || materialInfoText.size() == 0)
 	{
 		metin2::log::error("[CubeInfo] Can't find matched material info (NPC: {:d}, index: {:d}, request count: {:d})", npcVNUM, request_start_index, request_count);
 		return;
@@ -963,8 +879,7 @@ void cube_request_material_info(character * ch, int request_start_index, int req
 
 	materialInfoText.erase(materialInfoText.size() - 1);
 
-	// 
-	// (Server -> Client) /cube m_info start_index count 125,1|126,2|127,2|123,5&555,5&555,4/120000
+	// /cube m_info start count 125,1|126,2&555,5/120000@...
 	if (materialInfoText.size() - 20 >= CHAT_MAX_LEN)
 	{
 		metin2::log::error("[CubeInfo] Too long material info. (NPC: {:d}, requestStart: {:d}, requestCount: {:d}, length: {:d})", npcVNUM, request_start_index, request_count, materialInfoText.size());

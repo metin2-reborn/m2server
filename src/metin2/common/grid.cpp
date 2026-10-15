@@ -56,7 +56,6 @@ auto grid::is_empty(int pos, int w, int h) const -> bool {
         return false;
     }
 
-    // The block must lie inside the grid without wrapping into the next row.
     const int iRow = pos / width_;
     if (iRow + h > height_ || pos % width_ + w > width_) {
         return false;

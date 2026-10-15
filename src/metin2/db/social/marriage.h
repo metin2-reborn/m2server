@@ -1,4 +1,3 @@
-// vim: ts=4 sw=4
 #pragma once
 
 #include <metin2/db/clients/peer.h>
@@ -57,7 +56,7 @@ namespace marriage
 		uint32_t pid2;
 		int   love_point;
 		uint32_t time;
-		uint8_t is_married; // false : engaged, true : married
+		uint8_t is_married;
 		std::string name1;
 		std::string name2;
 

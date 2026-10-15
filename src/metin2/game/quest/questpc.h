@@ -44,12 +44,12 @@ namespace quest
 			enum 
 			{
 				QUEST_SEND_ISBEGIN		= (1 << 0),
-				QUEST_SEND_TITLE		= (1 << 1),  // up to 30 chars 
-				QUEST_SEND_CLOCK_NAME		= (1 << 2),  // up to 16 chars		
+				QUEST_SEND_TITLE		= (1 << 1),
+				QUEST_SEND_CLOCK_NAME		= (1 << 2),
 				QUEST_SEND_CLOCK_VALUE		= (1 << 3),
-				QUEST_SEND_COUNTER_NAME		= (1 << 4),  // up to 16 chars	
+				QUEST_SEND_COUNTER_NAME		= (1 << 4),
 				QUEST_SEND_COUNTER_VALUE	= (1 << 5),
-				QUEST_SEND_ICON_FILE		= (1 << 6),  // up to 24 chars
+				QUEST_SEND_ICON_FILE		= (1 << 6),
 			};
 
 			typedef std::map<unsigned int, quest_state>	quest_info;
@@ -128,7 +128,6 @@ namespace quest
 			bool		is_loaded() const	{ return loaded_; }
 			void		set_loaded()	{ loaded_ = true; }
 			void		build();
-			// Save to DB
 			void		save();
 
 			bool		has_reward() { return !reward_data_.empty() || is_given_reward_; }
@@ -181,7 +180,7 @@ namespace quest
 			timer_map		timer_map_;
 
 			int			send_to_client_;
-			bool		loaded_; // Load only once.
+			bool		loaded_;
 
 			int			last_state_;
 

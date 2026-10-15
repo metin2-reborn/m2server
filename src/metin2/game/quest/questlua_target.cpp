@@ -14,9 +14,6 @@ namespace metin2::game {
 
 namespace quest 
 {
-	//
-	// "target" Lua functions
-	//
 	int target_pos(lua_State* lua)
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
@@ -77,7 +74,6 @@ namespace quest
 		return 0;
 	}
 
-	// Delete the target registered to the current quest.
 	int target_delete(lua_State* lua)
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
@@ -94,7 +90,6 @@ namespace quest
 		return 0;
 	}
 
-	// Delete all targets for the current quest index.
 	int target_clear(lua_State* lua)
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
@@ -147,8 +142,8 @@ namespace quest
 		{
 			{ "pos",			target_pos		},
 			{ "vid",			target_vid		},
-			{ "npc",			target_vid		}, // TODO: delete this
-			{ "pc",			target_vid		}, // TODO: delete this
+			{ "npc",			target_vid		},
+			{ "pc",			target_vid		},
 			{ "delete",			target_delete		},
 			{ "clear",			target_clear		},
 			{ "id",			target_id		},

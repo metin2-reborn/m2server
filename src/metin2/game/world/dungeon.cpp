@@ -46,7 +46,6 @@ dungeon::~dungeon()
 	}
 	clear_regen();
 	event_cancel(&dead_event_);
-	// <Factor>
 	event_cancel(&exit_all_event_);
 	event_cancel(&jump_to_event_);
 }
@@ -54,7 +53,6 @@ dungeon::~dungeon()
 void dungeon::initialize()
 {
 	dead_event_ = nullptr;
-	// <Factor>
 	exit_all_event_ = nullptr;
 	jump_to_event_ = nullptr;
 	regen_id_ = 0;
@@ -338,7 +336,6 @@ void dungeon::jump_all(int32_t from_map_index, int x, int y)
 
 	f_warp_to_position f(map_index_, x, y);
 
-	// <Factor> SECTREE::for_each -> SECTREE::for_each_entity
 	pMap->for_each(f);
 }
 
@@ -357,7 +354,6 @@ void dungeon::warp_all(int32_t from_map_index, int x, int y)
 
 	f_warp_to_position_force f(map_index_, x, y);
 
-	// <Factor> SECTREE::for_each -> SECTREE::for_each_entity
 	pMap->for_each(f);
 }
 
@@ -445,7 +441,6 @@ dungeon * dungeon_manager::create(int32_t original_map_index)
 		return nullptr;
 	}
 
-	// <Factor> TODO: Change id assignment, or drop it
 	dungeon::id_type id = next_id_++;
 	while (find(id) != nullptr) {
 		id = next_id_++;
@@ -924,7 +919,6 @@ void dungeon::spawn_move_group(uint32_t vnum, const char* pos_from, const char* 
 
 namespace
 {
-	// DUNGEON_KILL_ALL_BUG_FIX
 	struct f_kill_sectree
 	{
 		void operator () (entity * ent)
@@ -938,7 +932,6 @@ namespace
 			}
 		}
 	};
-	// END_OF_DUNGEON_KILL_ALL_BUG_FIX
 
 	struct f_purge_sectree
 	{
@@ -963,7 +956,6 @@ namespace
 	};
 }
 
-// DUNGEON_KILL_ALL_BUG_FIX
 void dungeon::kill_all()
 {
 	sectree_map * pkMap = sectree_manager::instance().map(map_index_);
@@ -974,7 +966,6 @@ void dungeon::kill_all()
 	f_kill_sectree f;
 	pkMap->for_each(f);
 }
-// END_OF_DUNGEON_KILL_ALL_BUG_FIX
 
 void dungeon::purge()
 {
@@ -1051,11 +1042,9 @@ void dungeon::exit_all()
 
 	f_exit_dungeon f;
 
-	// <Factor> SECTREE::for_each -> SECTREE::for_each_entity
 	pMap->for_each(f);
 }
 
-// DUNGEON_NOTICE
 namespace
 {
 	struct f_notice
@@ -1091,7 +1080,6 @@ void dungeon::notice(const char* msg)
 	f_notice f(msg);
 	pMap->for_each(f);
 }
-// END_OF_DUNGEON_NOTICE
 
 struct f_exit_dungeon_to_start_position
 {
@@ -1105,7 +1093,6 @@ struct f_exit_dungeon_to_start_position
 			{
 				pixel_position posWarp;
 
-				// Store the starting map index, not the current map index.
 				if (sectree_manager::instance().recall_position_by_empire(start_map[ch->empire()], ch->empire(), posWarp))
 					ch->warp_set(posWarp.x, posWarp.y);
 				else
@@ -1127,7 +1114,6 @@ void dungeon::exit_all_to_start_position()
 
 	f_exit_dungeon_to_start_position f;
 
-	// <Factor> SECTREE::for_each -> SECTREE::for_each_entity
 	pMap->for_each(f);
 }
 
@@ -1255,7 +1241,6 @@ void dungeon::jump_to_eliminate_location()
 	}
 	else
 	{
-		// Warp to a normal map
 		sectree_map * pMap = sectree_manager::instance().map(map_index_);
 
 		if (!pMap)
@@ -1266,7 +1251,6 @@ void dungeon::jump_to_eliminate_location()
 
 		f_warp_to_position f(warp_map_index_, warp_x_ * 100, warp_y_ * 100);
 
-		// <Factor> SECTREE::for_each -> SECTREE::for_each_entity
 		pMap->for_each(f);
 	}
 }
@@ -1313,7 +1297,6 @@ bool dungeon::is_all_pc_near_to(int x, int y, int dist)
 
 	f_near_position f(x, y, dist);
 
-	// <Factor> SECTREE::for_each -> SECTREE::for_each_entity
 	pMap->for_each(f);
 
 	return f.ret;

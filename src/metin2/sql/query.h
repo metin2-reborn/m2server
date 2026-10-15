@@ -7,14 +7,8 @@
 #include <type_traits>
 #include <utility>
 
-// Builds SQL statements with std::format syntax. String arguments are escaped and wrapped in single
-// quotes, so values from players can be passed as they are; numbers are written out. Trusted text
-// that must not be quoted (the table-name suffix, column lists) goes through sql::raw.
-//
-//   sql::format("SELECT id FROM player{} WHERE name={}", sql::raw(postfix), name)
-//
-// Escaping assumes what the server's connections use: a UTF-8 character set and the default
-// sql_mode, in which backslash escapes are active.
+// String arguments are escaped and quoted; sql::raw passes trusted text as is. Escaping
+// assumes UTF-8 connections and the default sql_mode (backslash escapes on).
 namespace metin2::sql {
     struct raw {
         std::string_view text;
@@ -22,7 +16,6 @@ namespace metin2::sql {
         explicit raw(std::string_view value) : text(value) {}
     };
 
-    // The contents of a quoted string literal for `value` (without the quotes).
     auto escape(std::string_view value) -> std::string;
 
     namespace detail {

@@ -1,9 +1,3 @@
-/*********************************************************************
- * date        : 2007.02.24
- * file        : blend_item.cpp
- * author      : mhh
- * description : 
- */
 
 
 #include <metin2/game/items/blend_item.h>
@@ -160,40 +154,35 @@ static int fn_random_index()
 {
 	int	percent = number(1,100);
 
-	if (percent<=10)			// level 1 :10%
+	if (percent<=10)
 		return 0;
-	else if (percent<=30)		// level 2 : 20%
+	else if (percent<=30)
 		return 1;
-	else if (percent<=70)		// level 3 : 40%
+	else if (percent<=70)
 		return 2;
-	else if (percent<=90)		// level 4 : 20%
+	else if (percent<=90)
 		return 3;
 	else
-		return 4;				// level 5 : 10%
+		return 4;
 
 	return 0;
 }
 
-// Probability table for Chunggi pill
-// It would be cleaner to read the probabilities from blend.txt too, but
-// item proto etc. are managed separately per country,
-// which could cause confusion, so it's added like this.
-// by rtsummit
 
 static int fn_ecs_random_index()
 {
 	int	percent = number(1,100);
 
-	if (percent<=5)			// level 1 : 5%
+	if (percent<=5)
 		return 0;
-	else if (percent<=15)		// level 2 : 10%
+	else if (percent<=15)
 		return 1;
-	else if (percent<=60)		// level 3 : 45%
+	else if (percent<=60)
 		return 2;
-	else if (percent<=85)		// level 4 : 25%
+	else if (percent<=85)
 		return 3;
 	else
-		return 4;				// level 5 : 15%
+		return 4;
 
 	return 0;
 }

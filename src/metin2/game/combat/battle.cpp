@@ -43,11 +43,9 @@ bool timed_event_cancel(character * ch)
 
 bool battle_is_attackable(character * ch, character * victim)
 {
-	// Stop if the target is dead.
 	if (victim->is_dead())
 		return false;
 
-	// Stop if in a safe zone
 	{
 		sectree	*sectree = nullptr;
 
@@ -60,7 +58,6 @@ bool battle_is_attackable(character * ch, character * victim)
 			return false;
 	}
 
-	// Stop if I'm dead.
 	if (ch->is_stun() || ch->is_dead())
 		return false;
 
@@ -102,7 +99,6 @@ int battle_melee_attack(character * ch, character * victim)
 	if (metin2::config::test_server()&&ch->is_pc())
 		metin2::log::info( "battle_melee_attack : [{}] attack to [{}]", ch->name(), victim->name());
 
-	// Distance check
 	int distance = distance_approx(ch->x() - victim->x(), ch->y() - victim->y());
 
 	if (!victim->is_building())
@@ -111,12 +107,10 @@ int battle_melee_attack(character * ch, character * victim)
 
 		if (false == ch->is_pc())
 		{
-			// For monsters, use the monster attack range
 			max = (int) (ch->mob_attack_range() * 1.15f);
 		}
 		else
 		{
-			// For a PC, if the opponent is a melee mob, the mob's attack range is the max attack range
 			if (false == victim->is_pc() && BATTLE_TYPE_MELEE == victim->mob_battle_type())
 				max = std::max(300, (int) (victim->mob_attack_range() * 1.15f));
 		}
@@ -147,7 +141,6 @@ int battle_melee_attack(character * ch, character * victim)
 	return (ret);
 }
 
-// Actually set GET_BATTLE_VICTIM to NULL and cancel the event.
 void battle_end_ex(character * ch)
 {
 	if (ch->is_position(POS_FIGHTING))
@@ -159,8 +152,6 @@ void battle_end(character * ch)
 	battle_end_ex(ch);
 }
 
-// AG = Attack Grade
-// AL = Attack Limit
 int calc_battle_damage(int dam, int attacker_lev, int victim_lev)
 {
 	if (dam < 3)
@@ -202,12 +193,11 @@ float calc_attack_rating(character * attacker, character * victim, bool ignore_t
 	iARSrc = std::min(90, (attacker_dx * 4	+ attacker_lv * 2) / 6);
 	iERSrc = std::min(90, (victim_dx	  * 4	+ victim_lv   * 2) / 6);
 
-	float fAR = ((float) iARSrc + 210.0f) / 300.0f; // fAR = 0.7 ~ 1.0
+	float fAR = ((float) iARSrc + 210.0f) / 300.0f;
 
 	if (ignore_target_rating)
 		return fAR;
 
-	// ((Edx * 2 + 20) / (Edx + 110)) * 0.3
 	float fER = ((float) (iERSrc * 2 + 5) / (iERSrc + 95)) * 3.0f / 10.0f;
 
 	return fAR - fER;
@@ -215,11 +205,9 @@ float calc_attack_rating(character * attacker, character * victim, bool ignore_t
 
 int calc_att_bonus(character * attacker, character * victim, int atk)
 {
-	// Not applied in PvP
 	if (!victim->is_pc())
 		atk += attacker->marriage_bonus(UNIQUE_ITEM_MARRIAGE_ATTACK_BONUS);
 
-	// Not applied in PvP
 	if (!attacker->is_pc())
 	{
 		int iReduceDamagePct = victim->marriage_bonus(UNIQUE_ITEM_MARRIAGE_TRANSFER_DAMAGE);
@@ -304,9 +292,6 @@ int calc_att_bonus(character * attacker, character * victim, int atk)
 		}
 	}
 
-	//[ mob -> PC ] apply elemental attribute defense
-	//2013/01/17
-	//Resistance applies only to the portion equal to 30% of the monster's elemental attack damage.
 	if (attacker->is_npc() && victim->is_pc())
 	{
 		if (attacker->is_race_flag(RACE_FLAG_ATT_ELEC))
@@ -382,16 +367,12 @@ int calc_melee_damage(character * attacker, character * victim, bool ignore_defe
 	float fAR = calc_attack_rating(attacker, victim, ignore_target_rating);
 	int iDamMin = 0, iDamMax = 0;
 
-	// TESTSERVER_SHOW_ATTACKINFO
 	int DEBUG_iDamCur = 0;
 	int DEBUG_iDamBonus = 0;
-	// END_OF_TESTSERVER_SHOW_ATTACKINFO
 
 	if (bPolymorphed && !attacker->is_poly_maintain_stat())
 	{
-		// MONKEY_ROD_ATTACK_BUG_FIX
 		item_get_damage(pWeapon, &iDamMin, &iDamMax);
-		// END_OF_MONKEY_ROD_ATTACK_BUG_FIX
 
 		uint32_t dwMobVnum = attacker->polymorph_vnum();
 		const mob * pMob = mob_manager::instance().get(dwMobVnum);
@@ -405,9 +386,7 @@ int calc_melee_damage(character * attacker, character * victim, bool ignore_defe
 	}
 	else if (pWeapon)
 	{
-		// MONKEY_ROD_ATTACK_BUG_FIX
 		item_get_damage(pWeapon, &iDamMin, &iDamMax);
-		// END_OF_MONKEY_ROD_ATTACK_BUG_FIX
 	}
 	else if (attacker->is_npc())
 	{
@@ -417,27 +396,21 @@ int calc_melee_damage(character * attacker, character * victim, bool ignore_defe
 
 	iDam = number(iDamMin, iDamMax) * 2;
 
-	// TESTSERVER_SHOW_ATTACKINFO
 	DEBUG_iDamCur = iDam;
-	// END_OF_TESTSERVER_SHOW_ATTACKINFO
-	//
 	int iAtk = 0;
 
-	// level must be ignored when multiply by fAR, so subtract it before calculation.
 	iAtk = attacker->point(POINT_ATT_GRADE) + iDam - (attacker->level() * 2);
 	iAtk = (int) (iAtk * fAR);
-	iAtk += attacker->level() * 2; // and add again
+	iAtk += attacker->level() * 2;
 
 	if (pWeapon)
 	{
 		iAtk += pWeapon->value(5) * 2;
 
-		// 2004.11.12.myevan.TESTSERVER_SHOW_ATTACKINFO
 		DEBUG_iDamBonus = pWeapon->value(5) * 2;
-		///////////////////////////////////////////////
 	}
 
-	iAtk += attacker->point(POINT_PARTY_ATTACKER_BONUS); // party attacker role bonus
+	iAtk += attacker->point(POINT_PARTY_ATTACKER_BONUS);
 	iAtk = (int) (iAtk * (100 + (attacker->point(POINT_ATT_BONUS) + attacker->point(POINT_MELEE_MAGIC_ATT_BONUS_PER))) / 100);
 
 	iAtk = calc_att_bonus(attacker, victim, iAtk);
@@ -530,7 +503,6 @@ int calc_arrow_damage(character * attacker, character * victim, item * bow, item
 	if (!arrow)
 		return 0;
 
-	// Hit value calculation
 	int iDist = (int) (distance_sqrt(attacker->x() - victim->x(), attacker->y() - victim->y()));
 	int iGap = (iDist / 100) - 5 - attacker->point(POINT_BOW_DISTANCE);
 	int iPercent = 100 - (iGap * 5);
@@ -546,12 +518,10 @@ int calc_arrow_damage(character * attacker, character * victim, item * bow, item
 	iDam = number(bow->value(3), bow->value(4)) * 2 + arrow->value(3);
 	int iAtk;
 
-	// level must be ignored when multiply by fAR, so subtract it before calculation.
 	iAtk = attacker->point(POINT_ATT_GRADE) + iDam - (attacker->level() * 2);
 	iAtk = (int) (iAtk * fAR);
-	iAtk += attacker->level() * 2; // and add again
+	iAtk += attacker->level() * 2;
 
-	// Refine Grade
 	iAtk += bow->value(5) * 2;
 
 	iAtk += attacker->point(POINT_PARTY_ATTACKER_BONUS);
@@ -587,7 +557,6 @@ int calc_arrow_damage(character * attacker, character * victim, item * bow, item
 
 void normal_attack_affect(character * attacker, character * victim)
 {
-	// Poison attack is unusual, so special handling
 	if (attacker->point(POINT_POISON_PCT) && !victim->is_affect_flag(AFF_POISON))
 	{
 		if (number(1, 100) <= attacker->point(POINT_POISON_PCT))
@@ -614,7 +583,6 @@ int battle_hit(character * attacker, character * victim, int & ret_dam)
 
 	normal_attack_affect(attacker, victim);
 
-	// Damage calculation
 	item * pkWeapon = attacker->wear(WEAR_WEAPON);
 
 	if (pkWeapon)
@@ -645,7 +613,6 @@ int battle_hit(character * attacker, character * victim, int & ret_dam)
 				break;
 		}
 
-	//Final damage adjustment. (As of Feb 2011, applies only to the Giant Spider.)
 	float attMul = attacker->att_mul();
 	float tempIDam = iDam;
 	iDam = attMul * tempIDam + 0.5f;
@@ -664,19 +631,17 @@ uint32_t get_attack_speed(character * ch)
 		return 1000;
 
 	item * item = ch->wear(WEAR_WEAPON);	
-	uint32_t default_bonus = metin2::config::game().anti_cheat.speed_hack_bonus * 3;    // Leeway attack speed (default 80) (*3 added to keep normal users from being flagged for speed hack. 2013.09.11 CYH)
+	uint32_t default_bonus = metin2::config::game().anti_cheat.speed_hack_bonus * 3;
 	uint32_t riding_bonus = 0;
 
 	if (ch->is_riding())
 	{
-		// +50 attack speed if riding something
 		riding_bonus = 50;
 	}
 
 	uint32_t ani_speed = ani_attack_speed(ch);
     uint32_t real_speed = (ani_speed * 100) / (default_bonus + ch->point(POINT_ATT_SPEED) + riding_bonus);
 
-	// Double attack speed for daggers
 	if (item && item->sub_type() == WEAPON_DAGGER)
 		real_speed /= 2;
 
@@ -710,22 +675,6 @@ void set_attacked_time(character * ch, character * victim, uint32_t current_time
 
 bool is_speed_hack(character * ch, character * victim, uint32_t current_time)
 {
-	// 2013 09 11 CYH debugging log
-	/*metin2::log::info( "{} attack test log! time (delta, limit)=({:d}, {:d}). ch->m_kAttackLog.dwvID({:d}) victim->GetVID({:d})",
-						ch->GetName(),
-						current_time - ch->m_kAttackLog.dwTime,
-						GET_ATTACK_SPEED(ch),						
-						ch->m_kAttackLog.dwVID,
-						victim->GetVID()
-						);	
-
-	metin2::log::info( "{} attack test log! time (delta, limit)=({:d}, {:d}). victim->m_AttackedLog.dwPID({:d}) ch->GetPlayerID({:d})",
-						ch->GetName(),
-						current_time - victim->m_AttackedLog.dwAttackedTime,
-						GET_ATTACK_SPEED(ch),						
-						victim->m_AttackedLog.dwPID,
-						ch->GetPlayerID()
-						);*/
 
 	if (ch->attack_log.vid == victim->get_vid())
 	{

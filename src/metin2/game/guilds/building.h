@@ -15,7 +15,6 @@ namespace metin2::game::inline guilds {
 
 namespace building
 {
-	// The shared land and object tables (proto).
 	using namespace metin2::proto::building;
 
 	class land;
@@ -48,14 +47,12 @@ namespace building
 
 			void	regen_npc();
 
-			// BUILDING_NPC
 			void	apply_special_effect();
 			void	remove_special_effect();
 
 			void	reconstruct(uint32_t vnum);
 
 			character * npc() { return ch_npc_; }
-			// END_OF_BUILDING_NPC
 
 		protected:
 			object_proto *	proto_;
@@ -94,17 +91,13 @@ namespace building
 
 			void	request_update(uint32_t guild);
 
-			// LAND_CLEAR
 			void	clear_land();
-			// END_LAND_CLEAR
 
-			// BUILD_WALL
 			bool request_create_wall(int32_t map_index, float rot);
 			void request_delete_wall();
 
 			bool request_create_wall_blocks(uint32_t vnum, int32_t map_index, char wall_size, bool door_east, bool door_west, bool door_south, bool door_north);
 			void request_delete_wall_blocks(uint32_t id_value);
-			// END_BUILD_WALL
 
 			uint32_t map_index() { return data_.map_index; }
 
@@ -113,10 +106,8 @@ namespace building
 			std::map<uint32_t, object *>	map_pk_object_;
 			std::map<uint32_t, object *>	map_pk_object_by_vid_;
 
-			// BUILD_WALL
 		private :
 			void draw_wall(uint32_t vnum, int32_t map_index, int32_t& x, int32_t& y, char length, float z_rot);
-			// END_BUILD_WALL
 	};
 
 	class manager : public singleton<manager>
@@ -146,10 +137,8 @@ namespace building
 
 			void	send_land_list(desc * d, int32_t map_index_value);
 
-			// LAND_CLEAR
 			void	clear_land(uint32_t land_id);
 			void	clear_land_by_guild_id(uint32_t guild_id);
-			// END_LAND_CLEAR
 
 		protected:
 			std::vector<proto::building::object_proto>		vec_k_object_proto_;

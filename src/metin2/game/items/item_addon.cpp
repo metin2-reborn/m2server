@@ -29,7 +29,6 @@ void item_addon_manager::apply_addon_to(int addon_type, item * item_value)
 		return;
 	}
 
-	// TODO for now, hardcoded to apply only when the normal-attack skill value changes.
 
 	int iSkillBonus = std::clamp((int) (gauss_random(0, 5) + 0.5f), -30, 30);
 	int iNormalHitBonus = 0;

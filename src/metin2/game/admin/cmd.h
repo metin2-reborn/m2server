@@ -54,18 +54,14 @@ enum scmd_xmas
 };
 
 extern void shutdown(int sec);
-extern void send_notice(const char * buf);		// Notice to this game server only
-extern void send_log(const char * buf);		// Notice to GMs only
-extern void broadcast_notice(const char * buf_value);	// Notice to all servers
-extern void send_notice_map(const char* buf, int map_index, bool big_font); // Notice to the specified map only
-extern void send_monarch_notice(uint8_t empire, const char * buf);		// Notice to the same empire
+extern void send_notice(const char * buf);
+extern void send_log(const char * buf);
+extern void broadcast_notice(const char * buf_value);
+extern void send_notice_map(const char* buf, int map_index, bool big_font);
+extern void send_monarch_notice(uint8_t empire, const char * buf);
 
-// LUA_ADD_BGM_INFO
-// END_OF_LUA_ADD_BGM_INFO
 
-// LUA_ADD_GOTO_INFO
 extern void character_add_goto_info(const std::string& st_name_value, uint8_t empire, int index_value, uint32_t x, uint32_t y);
-// END_OF_LUA_ADD_GOTO_INFO
 
 ACMD(do_block_chat);
 ACMD(do_monarch_mob);

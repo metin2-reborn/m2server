@@ -96,7 +96,6 @@ bool item_manager::initialize(item_table * table_value, int size)
 		if (vec_prototype_[i].refined_vnum)
 			map_item_refine_from_.insert(std::make_pair(vec_prototype_[i].refined_vnum, vec_prototype_[i].vnum));
 
-		// NOTE : the QUEST_GIVE flag is triggered by an npc event.
 		if (vec_prototype_[i].type == ITEM_QUEST || is_set(vec_prototype_[i].flags, ITEM_FLAG_QUEST_USE | ITEM_FLAG_QUEST_USE_MULTIPLE))
 			quest::quest_manager::instance().register_npc_vnum(vec_prototype_[i].vnum);
 
@@ -178,7 +177,6 @@ item * item_manager::create_item(uint32_t vnum, uint32_t count, uint32_t id, boo
 
 	item * item = nullptr;
 
-	//if it exists when checked by id -- return! 
 	if (map_pk_item_by_id_.find(id) != map_pk_item_by_id_.end())
 	{
 		item = map_pk_item_by_id_[id];
@@ -187,20 +185,17 @@ item * item_manager::create_item(uint32_t vnum, uint32_t count, uint32_t id, boo
 		return nullptr;
 	}
 
-	//allocate one item
 	item = new game::items::item(vnum);
 
 	bool bIsNewItem = (0 == id);
 
-	//initialize it. set the table
 	item->initialize();
 	item->set_proto(table_value);
 	item->set_mask_vnum(dwMaskVnum);
 
-	if (item->type() == ITEM_ELK) // Gold needs no ID and no saving.
+	if (item->type() == ITEM_ELK)
 		item->set_skip_save(true);
 
-	// Set the Unique ID
 	else if (!bIsNewItem)
 	{
 		item->set_id(id);
@@ -210,13 +205,13 @@ item * item_manager::create_item(uint32_t vnum, uint32_t count, uint32_t id, boo
 	{
 		item->set_id(new_id());
 
-		if (item->type() == ITEM_UNIQUE) // Unique items record the remaining time in a socket on creation.
+		if (item->type() == ITEM_UNIQUE)
 		{
 			if (item->value(2) == 0)
-				item->set_socket(ITEM_SOCKET_UNIQUE_REMAIN_TIME, item->value(0)); // Game-time unique
+				item->set_socket(ITEM_SOCKET_UNIQUE_REMAIN_TIME, item->value(0));
 			else
 			{
-				item->set_socket(ITEM_SOCKET_UNIQUE_REMAIN_TIME, get_global_time() + item->value(0)); // Real-time unique
+				item->set_socket(ITEM_SOCKET_UNIQUE_REMAIN_TIME, get_global_time() + item->value(0));
 			}
 		}
 	}
@@ -245,9 +240,9 @@ item * item_manager::create_item(uint32_t vnum, uint32_t count, uint32_t id, boo
 			break;
 	}
 
-	if (item->type() == ITEM_ELK) // Gold needs no processing
+	if (item->type() == ITEM_ELK)
 		;
-	else if (item->is_stackable())  // For stackable items
+	else if (item->is_stackable())
 	{
 		count = std::clamp<int>(count, 1, ITEM_MAX_COUNT);
 
@@ -275,7 +270,6 @@ item * item_manager::create_item(uint32_t vnum, uint32_t count, uint32_t id, boo
 
 	for (int i=0 ; i < ITEM_LIMIT_MAX_NUM ; i++)
 	{
-		// Time is deducted from creation even if unused
 		if (LIMIT_REAL_TIME == item->limit_type(i))
 		{
 			if (item->limit_value(i))
@@ -290,11 +284,8 @@ item * item_manager::create_item(uint32_t vnum, uint32_t count, uint32_t id, boo
 			item->start_real_time_expire_event();
 		}
 
-		// Like existing unique items, usable time is deducted only while equipped
 		else if (LIMIT_TIMER_BASED_ON_WEAR == item->limit_type(i))
 		{
-			// If the item is already equipped, start the timer; for newly created items, set the usable time. (
-			// When granted through the item mall, Socket0 must be set before entering this logic.
 			if (true == item->is_equipped())
 			{
 				item->start_timer_based_on_wear_expire_event();
@@ -306,16 +297,15 @@ item * item_manager::create_item(uint32_t vnum, uint32_t count, uint32_t id, boo
 					duration = item->limit_value(i);
 
 				if (0 == duration)
-					duration = 60 * 60 * 10;	// If there is no info, default to 10 hours
+					duration = 60 * 60 * 10;
 
 				item->set_socket(0, duration);
 			}
 		}
 	}
 
-	if (id == 0) // Only for newly created items
+	if (id == 0)
 	{
-		// Newly added herbs get different stats
 		if (ITEM_BLEND==item->type())
 		{
 			if (blend_item_find(item->vnum()))
@@ -342,7 +332,6 @@ item * item_manager::create_item(uint32_t vnum, uint32_t count, uint32_t id, boo
 		if (table_value->gain_socket_pct)
 			item->alter_to_socket_item(table_value->gain_socket_pct);
 
-		// 50300 == skill book
 		if (vnum == 50300 || vnum == ITEM_SKILLFORGET_VNUM)
 		{
 			uint32_t dwSkillVnum;
@@ -394,7 +383,6 @@ item * item_manager::create_item(uint32_t vnum, uint32_t count, uint32_t id, boo
 		}
 	}
 
-	// Handle newly created dragon soul stones.
 	if (item->is_dragon_soul() && 0 == id)
 	{
 		ds_manager::instance().dragon_soul_item_initialize(item);
@@ -463,7 +451,6 @@ void item_manager::update()
 		this_it = it++;
 		item * item = *this_it;
 
-		// Items with the SLOW_QUERY flag are saved only on shutdown.
 		if (item->owner() && is_set(item->flag(), ITEM_FLAG_SLOW_QUERY))
 			continue;
 
@@ -483,17 +470,14 @@ void item_manager::remove_item(item * item, const char * reason)
 		snprintf(szHint, sizeof(szHint), "%s %u ", item->name(), item->count());
 		log_manager::instance().item_log(o, item, reason ? reason : "REMOVE", szHint);
 
-		// SAFEBOX_TIME_LIMIT_ITEM_BUG_FIX
 		if (item->window() == MALL || item->window() == SAFEBOX)
 		{
-			// 20050613.ipkn.If a timed item is in a shop, the server crashes when it expires.
 			safebox* pSafebox = item->window() == MALL ? o->mall() : o->get_safebox();
 			if (pSafebox)
 			{
 				pSafebox->remove(item->cell());
 			}
 		}
-		// END_OF_SAFEBOX_TIME_LIMIT_ITEM_BUG_FIX
 		else
 		{
 			o->sync_quickslot(QUICKSLOT_TYPE_ITEM, item->cell(), 255);
@@ -656,9 +640,6 @@ bool item_manager::vnum_by_original_name(const char * name_value, uint32_t & r_d
 std::set<uint32_t> set_lotto;
 
 
-// 20050503.ipkn.
-// If less than iMinimum, set iDefault (iMinimum must be greater than 0)
-// Exists to support ON/OFF switching as 1, 0
 int get_drop_per_kill_pct(int minimum, int fallback, int delta_percent, const char * flag)
 {
 	int iVal = 0;
@@ -678,8 +659,6 @@ int get_drop_per_kill_pct(int minimum, int fallback, int delta_percent, const ch
 	if (iVal == 0)
 		return 0;
 
-	// Default setting (iDeltaPercent=100) 
-	// Constant meant to give a feel of one per 40000 iVal mobs
 	return (40000 * delta_percent / iVal);
 }
 
@@ -706,11 +685,9 @@ bool item_manager::drop_pct(character * chr, character * killer, int& delta_perc
 	metin2::log::debug( "CreateDropItem for level: {:d} rank: {:d} pct: {:d}", iLevel, bRank, delta_percent);
 	delta_percent = delta_percent * character_manager::instance().mob_item_rate(killer) / 100;
 
-	// ADD_PREMIUM
 	if (killer->premium_remain_seconds(PREMIUM_ITEM) > 0 ||
 			killer->is_equip_unique_group(UNIQUE_GROUP_DOUBLE_ITEM))
 		delta_percent += delta_percent;
-	// END_OF_ADD_PREMIUM
 
 	rand_range = 4000000;
 	rand_range = rand_range * 100 / 
@@ -734,7 +711,6 @@ bool item_manager::create_drop_item(character * chr, character * killer, std::ve
 	uint8_t bRank = chr->get_mob_rank();
 	item * item = nullptr;
 
-	// Common Drop Items
 	std::vector<item_drop_info>::iterator it = vec_pk_common_drop_item[bRank].begin();
 
 	while (it != vec_pk_common_drop_item[bRank].end())
@@ -773,7 +749,6 @@ bool item_manager::create_drop_item(character * chr, character * killer, std::ve
 		}
 	}
 
-	// Drop Item Group
 	{
 		decltype(map_pk_drop_item_group_.begin()) it;
 		it = map_pk_drop_item_group_.find(chr->race_num());
@@ -807,7 +782,6 @@ bool item_manager::create_drop_item(character * chr, character * killer, std::ve
 		}
 	}
 
-	// MobDropItem Group
 	{
 		decltype(map_pk_mob_item_group_.begin()) it;
 		it = map_pk_mob_item_group_.find(chr->race_num());
@@ -816,8 +790,6 @@ bool item_manager::create_drop_item(character * chr, character * killer, std::ve
 		{
 			mob_item_group* pGroup = it->second;
 
-			// MOB_DROP_ITEM_BUG_FIX
-			// 20050805.myevan.Fixed problem accessing CMobItemGroup::GetOne() when MobDropItem has no items
 			if (pGroup && !pGroup->is_empty())
 			{
 				int iPercent = 40000 * iDeltaPercent / pGroup->kill_per_drop();
@@ -829,11 +801,9 @@ bool item_manager::create_drop_item(character * chr, character * killer, std::ve
 					if (item) vec_item.push_back(item);
 				}
 			}
-			// END_OF_MOB_DROP_ITEM_BUG_FIX
 		}
 	}
 
-	// Level Item Group
 	{
 		decltype(map_pk_level_item_group_.begin()) it;
 		it = map_pk_level_item_group_.find(chr->race_num());
@@ -846,7 +816,7 @@ bool item_manager::create_drop_item(character * chr, character * killer, std::ve
 
 				for ( uint32_t i=0; i < v.size(); i++ )
 				{
-					if ( v[i].pct >= (uint32_t)number(1, 1000000/*iRandRange*/) )
+					if ( v[i].pct >= (uint32_t)number(1, 1000000 ) )
 					{
 						uint32_t dwVnum = v[i].v_num;
 						item = create_item(dwVnum, v[i].count, 0, true);
@@ -857,7 +827,6 @@ bool item_manager::create_drop_item(character * chr, character * killer, std::ve
 		}
 	}
 	
-	// BuyerTheitGloves Item Group
 	{
 		if (killer->premium_remain_seconds(PREMIUM_ITEM) > 0 ||
 				killer->is_equip_unique_group(UNIQUE_GROUP_DOUBLE_ITEM))
@@ -884,7 +853,6 @@ bool item_manager::create_drop_item(character * chr, character * killer, std::ve
 		}
 	}
 	
-	// Junk items
 	if (chr->mob_drop_item_vnum())
 	{
 		auto it = map_dw_etc_item_drop_prob_.find(chr->mob_drop_item_vnum());
@@ -933,15 +901,11 @@ bool item_manager::create_drop_item(character * chr, character * killer, std::ve
 		pdw[1] = 1;
 		pdw[2] = quest::quest_manager::instance().event_flag("lotto_round");
 
-		// Set the socket for the Book of Fortune
 		db_manager::instance().return_query(QID_LOTTO, killer->player_id(), pdw,
 				"INSERT INTO lotto_list VALUES(0, 'server%s', %u, NOW())",
 				get_table_postfix(), killer->player_id());
 	}
 
-	//
-	// Special drop items
-	// 
 	create_quest_drop_item(chr, killer, vec_item, iDeltaPercent, iRandRange);
 
 	for (auto it = vec_item.begin(); it != vec_item.end(); ++it)
@@ -950,18 +914,11 @@ bool item_manager::create_drop_item(character * chr, character * killer, std::ve
 		db_manager::instance().send_money_log(MONEY_LOG_DROP, item->vnum(), item->count());
 	}
 
-	//
-	// Water Dragon room entry ticket only on Seungryong Valley, Cave of Heaven floor 2
-	//
 
-	//
-	// Skill books 7, 8 drop only on Seungryong Valley floors 1 and 2
-	//
 
 	return vec_item.size();
 }
 
-// ADD_GRANDMASTER_SKILL
 int get_three_skill_level_adjust(int level)
 {
 	if (level < 40)
@@ -976,14 +933,7 @@ int get_three_skill_level_adjust(int level)
 		return 2;
 	return 1;
 }
-// END_OF_ADD_GRANDMASTER_SKILL
 
-// DROPEVENT_CHARSTONE
-// drop_char_stone 1
-// drop_char_stone.percent_lv01_10 5
-// drop_char_stone.percent_lv11_30 10
-// drop_char_stone.percent_lv31_MX 15
-// drop_char_stone.level_range	   10
 static struct drop_event_char_stone
 {
 	int percent_lv01_10;
@@ -1091,14 +1041,7 @@ bool drop_event_char_stone_set_value(const std::string& name, int value)
 	return true;
 }
 
-// END_OF_DROPEVENT_CHARSTONE
 
-// fixme
-// Let's move these into quests along with the above. 
-// This is way too dirty...
-// �?. I hate hardcoding T_T
-// Improved item reward start.
-// by rtsummit really need to fix this
 static struct drop_event_refine_box
 {
 	int percent_low;
@@ -1203,7 +1146,6 @@ bool drop_event_refine_box_set_value(const std::string& name, int value)
 
 	return true;
 }
-// Improved item reward end.
 
 
 void item_manager::create_quest_drop_item(character * chr, character * killer, std::vector<item *> & vec_item, int delta_percent, int rand_range)
@@ -1218,12 +1160,9 @@ void item_manager::create_quest_drop_item(character * chr, character * killer, s
 
 	metin2::log::debug( "CreateQuestDropItem victim({}), killer({})", chr->name(), killer->name() );
 
-	// DROPEVENT_CHARSTONE
 	drop_event_char_stone_drop_item(*killer, *chr, *this, vec_item);
-	// END_OF_DROPEVENT_CHARSTONE
 	drop_event_refine_box_drop_item(*killer, *chr, *this, vec_item);
 
-	// Christmas sock
 	if (quest::quest_manager::instance().event_flag("xmas_sock"))
 	{
 		uint32_t	SOCK_ITEM_VNUM	= 0;
@@ -1253,7 +1192,6 @@ void item_manager::create_quest_drop_item(character * chr, character * killer, s
 		}
 	}
 
-	// Moonlight treasure box
 	if (quest::quest_manager::instance().event_flag("drop_moon"))
 	{
 		const uint32_t ITEM_VNUM = 50011;
@@ -1296,7 +1234,6 @@ void item_manager::create_quest_drop_item(character * chr, character * killer, s
 		}
 	}
 
-	//Hexagonal treasure box
 	if (get_drop_per_kill_pct(100, 2000, delta_percent, "2006_drop") >= number(1, rand_range))
 	{
 		metin2::log::info( "육각보합 DROP EVENT ");
@@ -1308,7 +1245,6 @@ void item_manager::create_quest_drop_item(character * chr, character * killer, s
 
 	}
 
-	//Hexagonal treasure box+
 	if (get_drop_per_kill_pct(100, 2000, delta_percent, "2007_drop") >= number(1, rand_range))
 	{
 		metin2::log::info( "육각보합 DROP EVENT ");
@@ -1319,17 +1255,14 @@ void item_manager::create_quest_drop_item(character * chr, character * killer, s
 			vec_item.push_back(item);
 	}
 
-	// New Year firecracker event
-	if (get_drop_per_kill_pct(/* minimum */ 100, /* default */ 1000, delta_percent, "newyear_fire") >= number(1, rand_range))
+	if (get_drop_per_kill_pct(  100,  1000, delta_percent, "newyear_fire") >= number(1, rand_range))
 	{
-		// Firecrackers in China, spinning tops in Korea
 		const uint32_t ITEM_VNUM_FIRE = 50107;
 
 		if ((item = create_item(ITEM_VNUM_FIRE, 1, 0, true)))
 			vec_item.push_back(item);
 	}
 
-	// New Year full-moon festival event
 	if (get_drop_per_kill_pct(100, 500, delta_percent, "newyear_moon") >= number(1, rand_range))
 	{
 		metin2::log::info( "EVENT NEWYEAR_MOON DROP");
@@ -1341,7 +1274,6 @@ void item_manager::create_quest_drop_item(character * chr, character * killer, s
 			vec_item.push_back(item);
 	}
 
-	// Valentine's Day event. Changed event minimum to 1 at OGE's request. (Other events left as they are for now.)
 	if (get_drop_per_kill_pct(1, 2000, delta_percent, "valentine_drop") >= number(1, rand_range))
 	{
 		metin2::log::info( "EVENT VALENTINE_DROP");
@@ -1353,7 +1285,6 @@ void item_manager::create_quest_drop_item(character * chr, character * killer, s
 			vec_item.push_back(item);
 	}
 
-	// Ice cream event
 	if (get_drop_per_kill_pct(100, 2000, delta_percent, "icecream_drop") >= number(1, rand_range))
 	{
 		const static uint32_t icecream = 50123;
@@ -1362,8 +1293,6 @@ void item_manager::create_quest_drop_item(character * chr, character * killer, s
 			vec_item.push_back(item);
 	}
 
-	// new Christmas event
-	// 53002 : baby reindeer summon ticket
 	if ((killer->count_specify_item(53002) > 0) && (get_drop_per_kill_pct(50, 100, delta_percent, "new_xmas_event") >= number(1, rand_range)))
 	{
 		const static uint32_t xmas_sock = 50010;
@@ -1400,7 +1329,6 @@ void item_manager::create_quest_drop_item(character * chr, character * killer, s
 			vec_item.push_back(item);
 	}
 
-	// World Cup event
 	if ( get_drop_per_kill_pct(100, 2000, delta_percent, "football_drop") >= number(1, rand_range) )
 	{
 		const static uint32_t football_item = 50096;
@@ -1409,7 +1337,6 @@ void item_manager::create_quest_drop_item(character * chr, character * killer, s
 			vec_item.push_back(item);
 	}
 
-	// White Day event
 	if (get_drop_per_kill_pct(100, 2000, delta_percent, "whiteday_drop") >= number(1, rand_range))
 	{
 		metin2::log::info( "EVENT WHITEDAY_DROP");
@@ -1420,7 +1347,6 @@ void item_manager::create_quest_drop_item(character * chr, character * killer, s
 			vec_item.push_back(item);
 	}
 
-	// Children's Day mystery box event
 	if (killer->level()>=50)
 	{
 		if (get_drop_per_kill_pct(100, 1000, delta_percent, "kids_day_drop_high") >= number(1, rand_range))
@@ -1442,7 +1368,6 @@ void item_manager::create_quest_drop_item(character * chr, character * killer, s
 		}
 	}
 
-	// Olympic drop event
 	if (chr->level() >= 30 && get_drop_per_kill_pct(50, 100, delta_percent, "medal_part_drop") >= number(1, rand_range))
 	{
 		const static uint32_t drop_items[] = { 30265, 30266, 30267, 30268, 30269 };
@@ -1452,20 +1377,14 @@ void item_manager::create_quest_drop_item(character * chr, character * killer, s
 			vec_item.push_back(item);
 	}
 
-	// ADD_GRANDMASTER_SKILL
-	// Soul stone item drop
-	if (chr->level() >= 40 && chr->get_mob_rank() >= MOB_RANK_BOSS && get_drop_per_kill_pct(/* minimum */ 1, /* default */ 1000, delta_percent, "three_skill_item") / get_three_skill_level_adjust(chr->level()) >= number(1, rand_range))
+	if (chr->level() >= 40 && chr->get_mob_rank() >= MOB_RANK_BOSS && get_drop_per_kill_pct(  1,  1000, delta_percent, "three_skill_item") / get_three_skill_level_adjust(chr->level()) >= number(1, rand_range))
 	{
 		const uint32_t ITEM_VNUM = 50513;
 
 		if ((item = create_item(ITEM_VNUM, 1, 0, true)))
 			vec_item.push_back(item);
 	}
-	// END_OF_ADD_GRANDMASTER_SKILL
 
-	//
-	// Seed item drop
-	//
 	if (get_drop_per_kill_pct(100, 1000, delta_percent, "dragon_boat_festival_drop") >= number(1, rand_range))
 	{
 		const uint32_t ITEM_SEED = 50085;
@@ -1474,7 +1393,6 @@ void item_manager::create_quest_drop_item(character * chr, character * killer, s
 			vec_item.push_back(item);
 	}
 
-	// Ten-thousand-year iron drop for the Blessing of the War God
 	if (killer->level() >= 15 && quest::quest_manager::instance().event_flag("mars_drop"))
 	{
 		const uint32_t ITEM_HANIRON = 70035;
@@ -1536,11 +1454,8 @@ uint32_t item_manager::mask_vnum(uint32_t vnum)
 		return 0;
 }
 
-// Copies all attributes and socket values to pkNewItem.
-// Copied as-is from TransformRefineItem, a local function formerly in char_item.cpp
 void item_manager::copy_all_attr_to(item * old_item, item * new_item)
 {
-	// ACCESSORY_REFINE
 	if (old_item->is_accessory_for_socket())
 	{
 		for (int i = 0; i < ITEM_SOCKET_MAX_NUM; ++i)
@@ -1548,10 +1463,8 @@ void item_manager::copy_all_attr_to(item * old_item, item * new_item)
 			new_item->set_socket(i, old_item->get_socket(i));
 		}
 	}
-	// END_OF_ACCESSORY_REFINE
 	else
 	{
-		// Broken stones are cleaned up automatically here
 		for (int i = 0; i < ITEM_SOCKET_MAX_NUM; ++i)
 		{
 			if (!old_item->get_socket(i))
@@ -1560,20 +1473,18 @@ void item_manager::copy_all_attr_to(item * old_item, item * new_item)
 				new_item->set_socket(i, 1);
 		}
 
-		// Set sockets
 		int slot = 0;
 
 		for (int i = 0; i < ITEM_SOCKET_MAX_NUM; ++i)
 		{
 			int32_t socket = old_item->get_socket(i);
-			const int ITEM_BROKEN_METIN_VNUM = 28960; // Why is the same constant in 3 places... just make it one T_T I'm passing, Hong will do it
+			const int ITEM_BROKEN_METIN_VNUM = 28960;
 			if (socket > 2 && socket != ITEM_BROKEN_METIN_VNUM)
 				new_item->set_socket(slot++, socket);
 		}
 
 	}
 
-	// Set magic item
 	old_item->copy_attribute_to(new_item);
 }
 }

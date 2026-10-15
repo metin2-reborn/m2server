@@ -36,7 +36,6 @@ bool character::start_riding()
 		return false;
 	}
 
-	// No horse riding while wearing a tuxedo
 	item * armor = wear(WEAR_BODY);
 
 	if (armor && (armor->vnum() >= 11901 && armor->vnum() <= 11904))
@@ -61,7 +60,6 @@ bool character::start_riding()
 		return false;
 	}
 
-	// Remove the summoned horse
 	horse_summon(false);
 
 	mount_vnum(dwMountVnum);
@@ -83,7 +81,6 @@ bool character::stop_riding()
 			uint32_t dwOldVnum = get_mount_vnum();
 			mount_vnum(0);
 
-			// [NOTE] Changed so that dismounting summons the horse you were riding
 			horse_summon(true, false, dwOldVnum);
 		}
 		else
@@ -114,7 +111,6 @@ EVENTFUNC(horse_dead_event)
 		return 0;
 	}
 
-	// <Factor>
 	character * ch = info->ch;
 	if (ch == nullptr) {
 		return 0;
@@ -144,14 +140,12 @@ void character::horse_summon(bool summon, bool from_far, uint32_t vnum, const ch
 {
 	if ( summon )
 	{
-		//NOTE : On summon, do nothing if a horse already exists.
 		if( ch_horse_ != nullptr )
 			return;
 
 		if (horse_level() <= 0)
 			return;
 
-		// Fail if already riding something
 		if (is_riding())
 			return;
 
@@ -188,10 +182,8 @@ void character::horse_summon(bool summon, bool from_far, uint32_t vnum, const ch
 
 		if (horse_health() <= 0)
 		{
-			// Make it lie as if dead
 			ch_horse_->set_position(POS_DEAD);
 
-			// Make it disappear after a while.
 			char_event_info* info = alloc_event_info<char_event_info>();
 			info->ch = this;
 			ch_horse_->dead_event = event_create(horse_dead_event, info, passes_per_sec(60));
@@ -236,7 +228,7 @@ void character::horse_summon(bool summon, bool from_far, uint32_t vnum, const ch
 
 		character * chHorse = ch_horse_;
 
-		chHorse->set_rider(nullptr); // m_chHorse assign to NULL
+		chHorse->set_rider(nullptr);
 
 		if (!from_far)
 		{
@@ -244,7 +236,6 @@ void character::horse_summon(bool summon, bool from_far, uint32_t vnum, const ch
 		}
 		else
 		{
-			// Make it disappear while moving away
 			chHorse->set_now_walking(false);
 			float fx, fy;
 			chHorse->set_rotation(get_degree_from_position_xy(chHorse->x(), chHorse->y(), x(), y())+180);
@@ -310,20 +301,6 @@ void character::send_horse_info()
 	{
 		int iHealthGrade;
 		int iStaminaGrade;
-		/*
-		   HP	
-3: 70% < ~ <= 100%
-2: 30% < ~ <= 70%
-1:  0% < ~ <= 30%
-0: dead
-
-STM
-
-3: 71% < ~ <= 100%
-2: 31% < ~ <= 70%
-1: 10% < ~ <= 30%
-0:	 ~ <= 10%
-		 */
 		if (horse_health() == 0)
 			iHealthGrade = 0;
 		else if (horse_health() * 10 <= horse_max_health() * 3) 
@@ -348,8 +325,7 @@ STM
 		{
 			chat_packet(CHAT_TYPE_COMMAND, "horse_state %d %d %d", horse_level(), iHealthGrade, iStaminaGrade);
 
-			// FIX : If you skip the code below by returning at the top of the function to hide the "horse status buff" icon on the client,
-			// a terrible bug appears that summons horses infinitely.. The exact cause hasn't been investigated, so unknown.
+			// Returning before this makes horses summon endlessly.
 			send_horse_level_ = horse_level();
 			send_horse_health_grade_ = iHealthGrade;
 			send_horse_stamina_grade_ = iStaminaGrade;
@@ -371,7 +347,6 @@ bool character::can_use_horse_skill()
 			if (get_mount_vnum() >= 20209 && get_mount_vnum() <= 20212)
 				return true;
 
-			//Ramadan black horse
 			if (mob_vnum_helper::is_ramadan_black_horse(get_mount_vnum()))
 				return true;
 		}

@@ -183,10 +183,8 @@ void client_manager::result_login_by_key(peer * peer, ql_msg * msg)
 		{
 			metin2::log::info( "RESULT_LOGIN_BY_KEY FAIL player_index's NULL : ID:{:d}", account_id);
 
-			// PLAYER_INDEX_CREATE_BUG_FIX
 			snprintf(szQuery, sizeof(szQuery), "INSERT INTO player_index%s (id) VALUES(%u)", get_table_postfix(), info->account_table->id);
 			db_manager::instance().return_query(szQuery, QID_PLAYER_INDEX_CREATE, peer->handle(), info);
-			// END_PLAYER_INDEX_CREATE_BUF_FIX
 		}
 		return;
 	}
@@ -208,7 +206,6 @@ void client_manager::result_login_by_key(peer * peer, ql_msg * msg)
 	db_manager::instance().return_query(szQuery, QID_LOGIN, peer->handle(), info);
 }
 
-// PLAYER_INDEX_CREATE_BUG_FIX
 void client_manager::result_player_index_create(peer * peer_value, ql_msg * msg)
 {
 	query_info * qi = (query_info *) msg->pv_user_data;
@@ -219,7 +216,6 @@ void client_manager::result_player_index_create(peer * peer_value, ql_msg * msg)
 			info->account_table->id);
 	db_manager::instance().return_query(szQuery, QID_LOGIN_BY_KEY, peer_value->handle(), info);
 }
-// END_PLAYER_INDEX_CREATE_BUG_FIX
 
 std::unique_ptr<account_table> create_account_table_from_res(MYSQL_RES * res)
 {
@@ -233,7 +229,6 @@ std::unique_ptr<account_table> create_account_table_from_res(MYSQL_RES * res)
 	auto pkTab = std::make_unique<account_table>();
 	memset(pkTab.get(), 0, sizeof(account_table));
 
-	// Only look at the first column (it's for the JOIN QUERY)
 	strlcpy(input_pwd, row[col++], sizeof(input_pwd));
 	str_to_number(pkTab->id, row[col++]);
 	strlcpy(pkTab->login, row[col++], sizeof(pkTab->login));
@@ -338,14 +333,6 @@ void create_account_player_data_from_res(MYSQL_RES * res, account_table * tab)
 				break;
 			}
 		}
-		/*
-		   if (j == PLAYER_PER_ACCOUNT)
-		   metin2::log::error("cannot find player_id on this account (login: {} id {:d} account {:d} {:d} {:d})",
-		   pkTab->login, player_id,
-		   pkTab->players[0].dwID,
-		   pkTab->players[1].dwID,
-		   pkTab->players[2].dwID);
-		   */
 	}
 }
 
@@ -356,7 +343,6 @@ void client_manager::result_login(peer * peer, ql_msg * msg)
 
 	if (info->account_index == 0)
 	{
-		// No account?
 		if (msg->get()->num_rows == 0)
 		{
 			metin2::log::info( "RESULT_LOGIN: no account");
@@ -388,14 +374,13 @@ void client_manager::result_login(peer * peer, ql_msg * msg)
 	}
 	else
 	{
-		if (!info->account_table) // This shouldn't happen, but;;
+		if (!info->account_table)
 		{
 			peer->encode_return(HEADER_DG_LOGIN_WRONG_PASSWD, info->handle);
 			delete info;
 			return;
 		}
 
-		// If another connection has already logged in.. we must reply that it's already connected.
 		if (!insert_logon_account(info->account_table->login, peer->handle()))
 		{
 			metin2::log::info( "RESULT_LOGIN: already logon {}", info->account_table->login);
@@ -413,11 +398,9 @@ void client_manager::result_login(peer * peer, ql_msg * msg)
 			if (msg->get()->num_rows > 0)
 				create_account_player_data_from_res(msg->get()->sql_result, info->account_table.get());
 
-			//PREVENT_COPY_ITEM
 			login_data * p = get_login_data_by_login(info->account_table->login);
 			memcpy(&p->account_ref(), info->account_table.get(), sizeof(account_table));
 
-			//END_PREVENT_COPY_ITEM
 			peer->encode_header(HEADER_DG_LOGIN_SUCCESS, info->handle, sizeof(account_table));
 			peer->encode(info->account_table.get(), sizeof(account_table));
 

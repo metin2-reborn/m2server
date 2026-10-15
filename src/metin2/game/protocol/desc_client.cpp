@@ -71,7 +71,6 @@ void client_desc::destroy()
 
 	metin2::log::info( "SYSTEM: closing connection to {}:{:d}", host_.c_str(), port_);
 
-	// Chain up to base class Destroy()
 	desc::destroy();
 }
 
@@ -85,7 +84,7 @@ bool client_desc::connect(int phase_when_succeed)
 	if (phase_when_succeed != 0)
 		phase_when_succeed_ = phase_when_succeed;
 
-	if (get_global_time() - last_try_to_connect_time_ < 3)	// 3 seconds
+	if (get_global_time() - last_try_to_connect_time_ < 3)
 		return false;
 
 	last_try_to_connect_time_ = get_global_time();
@@ -95,7 +94,7 @@ bool client_desc::connect(int phase_when_succeed)
 
 	metin2::log::info( "SYSTEM: Trying to connect to {}:{:d}", host_.c_str(), port_);
 
-	// Blocking (at most 10 seconds) so that packets sent right after the connect go out in order.
+	// Blocking (up to 10 s) so packets sent right after the connect stay in order.
 	auto socket = net::connect(host_, port_, std::chrono::seconds(10));
 
 	if (socket)
@@ -200,7 +199,6 @@ void client_desc::set_phase(int phase)
 
 					metin2::log::info( "DB_SETUP current user {:d} size {:d}", p.login_count, buf.size());
 
-					// Party processing is now possible.
 					party_manager::instance().enable_pc_party();
 				}
 				else
@@ -274,7 +272,7 @@ void client_desc::update(uint32_t t)
 void client_desc::update_channel_status(uint32_t t, bool force)
 {
 	enum {
-		CHANNELSTATUS_UPDATE_PERIOD = 5*60*1000,	// Every 5 minutes
+		CHANNELSTATUS_UPDATE_PERIOD = 5*60*1000,
 	};
 	if (force || t_last_channel_status_update_time_+CHANNELSTATUS_UPDATE_PERIOD < t) {
 		int iTotal; 
@@ -295,14 +293,12 @@ void client_desc::update_channel_status(uint32_t t, bool force)
 
 void client_desc::reset()
 {
-	// Backup connection target info
 	std::string host = host_;
 	uint16_t port = port_;
 
 	destroy();
 	initialize();
 
-	// Restore connection target info
 	host_ = host;
 	port_ = port;
 }

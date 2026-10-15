@@ -47,7 +47,6 @@ class packet_info_cg : public packet_info
 		~packet_info_cg() override;
 };
 
-// PacketInfo P2P 
 class packet_info_gg : public packet_info
 {
 	public:
@@ -55,5 +54,4 @@ class packet_info_gg : public packet_info
 		~packet_info_gg() override;
 };
 
-/// Implemented in input_udp.cpp
 }

@@ -15,7 +15,6 @@
 namespace metin2::game::inline admin {
 
 
-//ADMIN_MANAGER
 struct t_gm {
 	t_admin_info info;		
 	std::set<std::string> *pset_host;	
@@ -73,8 +72,6 @@ uint8_t gm_new_get_level( const char * name, const char * host, const char* acco
 	if (map_gm.end() == it)
 		return GM_PLAYER;
 
-	// GERMAN_GM_NOT_CHECK_HOST
-	// The German version does not check the host.
 	if (account)
 	{
 	if ( strcmp ( it->second.info.account, account  ) != 0 )
@@ -88,7 +85,6 @@ uint8_t gm_new_get_level( const char * name, const char * host, const char* acco
 	return GM_PLAYER;
 }
 	
-//END_ADMIN_MANAGER
 uint8_t gm_get_level(const char * name, const char * host, const char* account)
 {
 	return gm_new_get_level( name, host, account );

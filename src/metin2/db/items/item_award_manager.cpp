@@ -111,9 +111,6 @@ void item_award_manager::taken(uint32_t award_id, uint32_t item_id)
 	item_award * k = it->second;
 	k->taken = true;
 
-	//
-	// Update taken_time in database to prevent not to give him again.
-	// 
 	char szQuery[QUERY_MAX_LEN];
 
 	snprintf(szQuery, sizeof(szQuery), 

@@ -18,9 +18,6 @@ namespace metin2::game {
 
 namespace quest
 {
-	//
-	// "npc" lua functions
-	//
 	int npc_open_shop(lua_State * lua)
 	{
 		int iShopVnum = 0;
@@ -377,7 +374,6 @@ namespace quest
 			{ "get_vid_damage_mul",		npc_get_vid_damage_mul	},
 			{ "set_vid_damage_mul",		npc_set_vid_damage_mul	},
 
-			// X-mas santa special
 			{ "get_remain_skill_book_count",	npc_get_remain_skill_book_count },
 			{ "dec_remain_skill_book_count",	npc_dec_remain_skill_book_count },
 			{ "get_remain_hairdye_count",	npc_get_remain_hairdye_count	},

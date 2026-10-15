@@ -20,7 +20,6 @@ namespace metin2::game::inline persistence {
 
 namespace
 {
-	// Callers pass nullptr for an unknown text or IP; log those as an empty string.
 	const char * or_empty(const char * text)
 	{
 		return text ? text : "";
@@ -293,10 +292,4 @@ void log_manager::dragon_slay_log(uint32_t guild_id, uint32_t dragon_vnum, uint3
 			guild_id, dragon_vnum, start_time, end_time));
 }
 
-		// Query( "INSERT INTO hackshield_log(time, account_id, login, pid, name, reason, ip) "
-		// Query( "INSERT INTO hackshield_log(time, account_id, login, pid, name, reason, ip) "
-				// "VALUES(NOW(), %u, '%s', %u, '%s', %u, inet_aton('%s'))",
-				// ch->GetDesc()->GetAccountTable().id, ch->GetDesc()->GetAccountTable().login,
-				// ch->GetPlayerID(), ch->GetName(),
-				// ErrorCode,
 }

@@ -35,7 +35,6 @@ const char * locale_find(const char *string)
 
 	if( iter == locale_string.end() )
 	{
-		// untranslated: the (UTF-8) source text itself
 		metin2::log::error("LOCALE_ERROR: \"{}\";", string);
 		return string;
 	}
@@ -52,7 +51,6 @@ const char *quote_find_end(const char *string)
 	{
 		if (quote && *tmp == '\\' && *(tmp + 1))
 		{
-			// skip if the character after \ is "
 			switch (*(tmp + 1))
 			{
 				case '"':

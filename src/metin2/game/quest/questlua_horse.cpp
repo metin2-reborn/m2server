@@ -19,9 +19,6 @@ namespace metin2::game {
 
 namespace quest
 {
-	//
-	// "horse" Lua functions
-	//
 	int horse_is_riding(lua_State* lua)
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
@@ -68,10 +65,8 @@ namespace quest
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 
-		// Whether it runs in from afar when summoned
 		bool bFromFar = lua_isboolean(lua, 1) ? lua_toboolean(lua, 1) : false;
 
-		// vnum of the summoned creature
 		uint32_t horseVnum= lua_isnumber(lua, 2) ? lua_tonumber(lua, 2) : 0;
 
 		const char* name = lua_isstring(lua, 3) ? lua_tostring(lua, 3) : nullptr;
@@ -218,10 +213,6 @@ namespace quest
 
 	int horse_set_name(lua_State* lua)
 	{
-		// Return value
-		// 0 : owns no horse
-		// 1 : invalid name
-		// 2 : rename succeeded
 
 		if ( lua_isstring(lua, -1) != true ) return 0;
 

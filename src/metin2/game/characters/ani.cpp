@@ -1,9 +1,3 @@
-/*********************************************************************
- * date        : 2007.11.16
- * file        : ani.cpp
- * author      : mhh
- * description :
- */
 
 #include <metin2/game/characters/ani.h>
 
@@ -64,7 +58,6 @@ auto fn_weapon_type(int weapon) -> const char * {
 
 class ani {
   protected:
-    // [race][normal0 mounted1][weapon][combo]
     uint32_t speed_[MAIN_RACE_MAX_NUM][2][WEAPON_NUM_TYPES][9];
 
   public:
@@ -111,7 +104,6 @@ uint32_t fn_attack_speed_from_file(const char *file) {
 }
 
 ani::ani() {
-    // set default value
     for (int race = 0; race < MAIN_RACE_MAX_NUM; ++race) {
         for (int weapon = 0; weapon < WEAPON_NUM_TYPES; ++weapon) {
             for (uint8_t combo = 0; combo <= 8; ++combo) {
@@ -124,14 +116,14 @@ ani::ani() {
 
 bool ani::load() {
     const char *dir_name[MAIN_RACE_MAX_NUM] = {
-        "data/pc/warrior",   // warrior (male)
-        "data/pc/assassin",  // assassin (female)
-        "data/pc/sura",      // sura (male)
-        "data/pc/shaman",    // shaman (female)
-        "data/pc2/warrior",  // warrior (female)
-        "data/pc2/assassin", // assassin (male)
-        "data/pc2/sura",     // sura (female)
-        "data/pc2/shaman"    // shaman (male)
+        "data/pc/warrior",
+        "data/pc/assassin",
+        "data/pc/sura",
+        "data/pc/shaman",
+        "data/pc2/warrior",
+        "data/pc2/assassin",
+        "data/pc2/sura",
+        "data/pc2/shaman"
     };
 
     for (int race = 0; race < MAIN_RACE_MAX_NUM; ++race) {
@@ -194,13 +186,11 @@ bool ani::load_one_race(int race, const char *dir_name) {
         metin2::log::debug( "ANI ({},{})", fn_race_name(race), fn_weapon_type(weapon));
 
         for (uint8_t combo = 1; combo <= 8; ++combo) {
-            // when not riding a horse
             speed_[race][0][weapon][combo] = load_one_weapon(dir_name, weapon, combo, false);
-            speed_[race][0][weapon][0] = std::min<int>(speed_[race][0][weapon][0], speed_[race][0][weapon][combo]); // minimum
+            speed_[race][0][weapon][0] = std::min<int>(speed_[race][0][weapon][0], speed_[race][0][weapon][combo]);
 
-            // when riding a horse
             speed_[race][1][weapon][combo] = load_one_weapon(dir_name, weapon, combo, true);
-            speed_[race][1][weapon][0] = std::min<int>(speed_[race][1][weapon][0], speed_[race][1][weapon][combo]); // minimum
+            speed_[race][1][weapon][0] = std::min<int>(speed_[race][1][weapon][0], speed_[race][1][weapon][combo]);
 
             metin2::log::debug( "combo{:02d} speed={:d} horse={:d}",
                 combo, speed_[race][0][weapon][combo], speed_[race][1][weapon][combo]);
@@ -265,8 +255,6 @@ uint32_t ani_attack_speed(character * ch) {
     int race = ch->race_num();
     int weapon = item->sub_type();
 
-    /* for two-handed swords, the triple-slash attack and riding */
-    /* have many errors, so treat as one-handed sword speed */
     if (weapon == WEAPON_TWO_HANDED)
         weapon = WEAPON_SWORD;
 

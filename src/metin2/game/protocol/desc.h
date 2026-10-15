@@ -22,10 +22,8 @@
 namespace metin2::game::inline protocol {
 
 inline constexpr int MAX_ALLOW_USER = 4096;
-// Limits of a game client's connection: unprocessed input and unsent output.
 inline constexpr std::size_t MAX_CLIENT_INPUT = 256 * 1024;
 inline constexpr std::size_t MAX_CLIENT_OUTPUT = 128 * 1024;
-// Limits of the connections between the servers.
 inline constexpr std::size_t MAX_SERVER_INPUT = 256 * 1024 * 1024;
 inline constexpr std::size_t MAX_SERVER_OUTPUT = 256 * 1024 * 1024;
 inline constexpr int HANDSHAKE_RETRY_LIMIT = 32;
@@ -56,14 +54,12 @@ class login_key
 		game::protocol::desc *  desc;
 };
 
-// Data for tracking down the sequence bug
 struct seq_t
 {
 	uint8_t	hdr;
 	uint8_t	seq;
 };
 typedef std::vector<seq_t>	seq_vector_t;
-// Data for tracking down the sequence bug
 
 class desc : public net::connection_handler
 {
@@ -87,7 +83,7 @@ class desc : public net::connection_handler
 		virtual void		set_phase(int phase_value);
 
 		void			flush_output();
-		void			send_output_now();	// writes the queued output without waiting for the event loop
+		void			send_output_now();
 
 		bool			setup(std::shared_ptr<net::connection> connection, uint32_t handle, uint32_t handshake);
 
@@ -118,7 +114,6 @@ class desc : public net::connection_handler
 		bool			is_phase(int phase) const	{ return phase_ == phase ? true : false; }
 
 
-		// Handshake (time synchronization)
 		void			start_handshake(uint32_t handshake);
 		void			send_handshake(uint32_t cur_time, int32_t new_delta);
 		bool			handshake_process(uint32_t time, int32_t delta, bool infinite_retry=false);
@@ -132,19 +127,15 @@ class desc : public net::connection_handler
 		bool finish_handshake(size_t agreed_length, const void* buffer, size_t length);
 		bool is_cipher_prepared();
 
-		// Empire
 		uint8_t			empire();
 
-		// for p2p
 		void			set_relay(const char * name);
 		bool			delayed_disconnect(int sec);
 		void			disconnect_of_same_login();
 
 		void			set_admin_mode();
-		bool			is_admin_mode();		// Can admin commands be used during the Handshake?
+		bool			is_admin_mode();
 
-		// A guild mark connection (HEADER_CG_MARK_LOGIN): unencrypted, mark packets only. It belongs
-		// to the game connection with handle dwOwnerHandle, whose login issued the random key.
 		void			set_mark_login(uint32_t owner_handle)	{ mark_login_ = true; mark_owner_handle_ = owner_handle; }
 		bool			is_mark_login() const	{ return mark_login_; }
 		uint32_t		mark_owner_handle() const	{ return mark_owner_handle_; }
@@ -194,7 +185,7 @@ class desc : public net::connection_handler
 		uint32_t			client_time_;
 		bool			handshaking_;
 
-		std::vector<uint8_t>	buffered_output_;	// BufferedPacket data, sent ahead of the next Packet
+		std::vector<uint8_t>	buffered_output_;
 
 		event_ptr			ping_event_;
 		character *		character_;
@@ -206,7 +197,7 @@ class desc : public net::connection_handler
 		std::string		p2_p_host_;
 		uint16_t			p2_p_port_;
 
-		bool			admin_mode_; // Can admin commands be used during the Handshake?
+		bool			admin_mode_;
 		bool			mark_login_;
 		uint32_t		mark_owner_handle_;
 		bool			pong_;
@@ -241,7 +232,6 @@ class desc : public net::connection_handler
 
 		void chat_packet(uint8_t type, const char * format, ...);
 
-		/* Code for tracking down the sequence bug */
 	public:
 		seq_vector_t	seq_vector;
 		void			push_seq (uint8_t hdr, uint8_t seq);

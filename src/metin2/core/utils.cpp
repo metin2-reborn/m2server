@@ -16,7 +16,6 @@
 
 namespace metin2::inline core {
 
-// "Mon dd hh:mm" of ct.
 auto time_str(time_t ct) -> char * {
     char *time_s = std::asctime(std::localtime(&ct));
     time_s[std::strlen(time_s) - 6] = '\0';
@@ -33,19 +32,16 @@ void trim_and_lower(const char *src, char *dest, size_t dest_size) {
         return;
     }
 
-    // Skip leading whitespace
     while (*src && is_space(*src)) {
         ++src;
     }
 
-    // Reserve \0
     size_t len = 0;
     while (src[len] && len < dest_size - 1) {
         dest[len] = static_cast<char>(std::tolower(static_cast<unsigned char>(src[len])));
         ++len;
     }
 
-    // Trim trailing whitespace
     while (len > 0 && is_space(dest[len - 1])) {
         --len;
     }
@@ -53,8 +49,6 @@ void trim_and_lower(const char *src, char *dest, size_t dest_size) {
     dest[len] = '\0';
 }
 
-// In a string of the form "item : value", like "Name : 비엽",
-// copies the item into token and the value into value, and returns.
 void parse_token(char *src, char *token, char *value) {
     char *tmp = src;
 
@@ -116,7 +110,6 @@ void core_dump(std::source_location where) {
 }
 
 namespace {
-    // Monotonic time since the first call, which happens during startup.
     std::chrono::steady_clock::duration uptime() {
         static const auto boot = std::chrono::steady_clock::now();
         return std::chrono::steady_clock::now() - boot;

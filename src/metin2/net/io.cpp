@@ -23,7 +23,6 @@ namespace metin2::net {
     namespace {
         std::uint64_t total_written = 0;
 
-        // Waits for the socket to become readable or writable; false on timeout or error.
         auto wait(tcp::socket &socket, short events, std::chrono::steady_clock::time_point deadline) -> bool {
             for (;;) {
                 const auto left = std::chrono::duration_cast<std::chrono::milliseconds>(deadline - std::chrono::steady_clock::now());

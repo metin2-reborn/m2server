@@ -166,7 +166,7 @@ void character::distribute_sp(character * killer, int method)
 			else if (bMoving)
 				iAmount = 3 + max_sp() * 2 / 100;
 			else
-				iAmount = 10 + max_sp() * 3 / 100; // Normal state
+				iAmount = 10 + max_sp() * 3 / 100;
 
 			iAmount += (iAmount * killer->point(POINT_SP_REGEN)) / 100;
 			killer->point_change(POINT_SP, iAmount);
@@ -181,11 +181,10 @@ void character::distribute_sp(character * killer, int method)
 				iAmount = 2 + killer->max_sp() / 100;
 			else
 			{
-				// Normal state
 				if (killer->hp() < killer->max_hp())
-					iAmount = 2 + (killer->max_sp() / 100); // When HP is not full
+					iAmount = 2 + (killer->max_sp() / 100);
 				else
-					iAmount = 9 + (killer->max_sp() / 100); // Default
+					iAmount = 9 + (killer->max_sp() / 100);
 			}
 
 			iAmount += (iAmount * killer->point(POINT_SP_REGEN)) / 100;
@@ -202,10 +201,8 @@ bool character::attack(character * victim, uint8_t type)
 	if (!can_move())
 		return false;
 
-	// CASTLE
 	if (is_castle_map(map_index()) && false == castle_can_attack(this, victim))
 		return false;
-	// CASTLE
 
 	uint32_t dwCurrentTime = get_dword_time();
 
@@ -231,9 +228,6 @@ bool character::attack(character * victim, uint8_t type)
 
 	if (type == 0)
 	{
-		//
-		// Normal attack
-		//
 		switch (mob_battle_type())
 		{
 			case BATTLE_TYPE_MELEE:
@@ -281,7 +275,6 @@ bool character::attack(character * victim, uint8_t type)
 		on_move(true);
 		victim->on_move();
 
-		// only pc sets victim null. For npc, state machine will reset this.
 		if (BATTLE_DEAD == iRet && is_pc())
 			set_victim(nullptr);
 
@@ -320,8 +313,7 @@ void character::death_penalty(uint8_t town)
 	{
 		remove_bit(points_instant_.instant_flag, INSTANT_FLAG_DEATH_PENALTY);
 
-		// NO_DEATH_PENALTY_BUG_FIX 
-		if (!town) // In the international version, Dragon God's Protection is used only when reviving in place. (No experience penalty when returning to town)
+		if (!town)
 		{
 			if (find_affect(AFFECT_NO_DEATH_PENALTY))
 			{
@@ -331,7 +323,6 @@ void character::death_penalty(uint8_t town)
 				return;
 			}
 		}
-		// END_OF_NO_DEATH_PENALTY_BUG_FIX
 
 		int iLoss = ((next_exp() * exp_loss_percents[std::clamp(level(), 1, PLAYER_EXP_TABLE_MAX)]) / 100);
 
@@ -371,7 +362,7 @@ EVENTFUNC(stun_event)
 
 	character * ch = info->ch;
 
-	if (ch == nullptr) { // <Factor>
+	if (ch == nullptr) {
 		return 0;
 	}
 	ch->stun_event = nullptr;
@@ -399,7 +390,7 @@ void character::stun()
 
 	close_my_shop();
 
-	event_cancel(&recovery_event); // Kill the recovery event.
+	event_cancel(&recovery_event);
 
 	packet_gc_stun pack;
 	pack.header	= HEADER_GC_STUN;
@@ -519,12 +510,10 @@ static int get_gold_multipler() { return metin2::config::game().distribution_tes
 
 void character::reward_gold(character * attacker)
 {
-	// ADD_PREMIUM
 	bool isAutoLoot = 
 		(attacker->premium_remain_seconds(PREMIUM_AUTOLOOT) > 0 ||
 		 attacker->is_equip_unique_group(UNIQUE_GROUP_AUTOLOOT))
-		? true : false; // Third Hand
-	// END_OF_ADD_PREMIUM
+		? true : false;
 
 	pixel_position pos;
 
@@ -533,9 +522,6 @@ void character::reward_gold(character * attacker)
 			return;
 
 	int iTotalGold = 0;
-	//
-	// --------- Gold drop chance calculation ----------
-	//
 	int iGoldPercent = mob_rank_stats[get_mob_rank()].gold_percent;
 
 	if (attacker->is_pc())
@@ -546,11 +532,9 @@ void character::reward_gold(character * attacker)
 
 	iGoldPercent = iGoldPercent * character_manager::instance().mob_gold_drop_rate(attacker) / 100;
 
-	// ADD_PREMIUM
 	if (attacker->premium_remain_seconds(PREMIUM_GOLD) > 0 ||
 			attacker->is_equip_unique_group(UNIQUE_GROUP_LUCKY_GOLD))
 		iGoldPercent += iGoldPercent;
-	// END_OF_ADD_PREMIUM
 
 	if (iGoldPercent > 100) 
 		iGoldPercent = 100;
@@ -567,35 +551,27 @@ void character::reward_gold(character * attacker)
 
 	int iGoldMultipler = get_gold_multipler();
 
-	if (1 == number(1, 50000)) // 1/50000 chance of 10x gold
+	if (1 == number(1, 50000))
 		iGoldMultipler *= 10;
-	else if (1 == number(1, 10000)) // 1/10000 chance of 5x gold
+	else if (1 == number(1, 10000))
 		iGoldMultipler *= 5;
 
-	// Personal modifier
 	if (attacker->point(POINT_GOLD_DOUBLE_BONUS))
 		if (number(1, 100) <= attacker->point(POINT_GOLD_DOUBLE_BONUS))
 			iGoldMultipler *= 2;
 
-	//
-	// --------- Determine gold drop multiplier ----------
-	//
 	if (metin2::config::test_server())
 		attacker->chat_packet(CHAT_TYPE_PARTY, "gold_mul %d rate %d", iGoldMultipler, character_manager::instance().mob_gold_amount_rate(attacker));
 
-	//
-	// --------- Actual drop handling -------------
-	// 
 	item * item;
 
 	int iGold10DropPct = 100;
 	iGold10DropPct = (iGold10DropPct * 100) / (100 + priv_manager::instance().priv(attacker, PRIV_GOLD10_DROP));
 
-	// If MOB_RANK is higher than BOSS, always a gold bomb
 	if (get_mob_rank() >= MOB_RANK_BOSS && !is_stone() && get_mob_table().gold_max != 0)
 	{
 		if (1 == number(1, iGold10DropPct))
-			iGoldMultipler *= 10; // 1% chance of 10x gold
+			iGoldMultipler *= 10;
 
 		int iSplitCount = number(25, 35);
 
@@ -618,7 +594,6 @@ void character::reward_gold(character * attacker)
 				metin2::log::info( "Drop Money gold {:d} GoldMin {:d} GoldMax {:d}", iGold, get_mob_table().gold_max, get_mob_table().gold_max);
 			}
 
-			// NOTE: gold bombs do not go through Third Hand handling
 			if ((item = item_manager::instance().create_item(1, iGold)))
 			{
 				pos.x = x() + ((number(-14, 14) + number(-14, 14)) * 23);
@@ -627,16 +602,12 @@ void character::reward_gold(character * attacker)
 				item->add_to_ground(map_index(), pos);
 				item->start_destroy_event();
 
-				iTotalGold += iGold; // Total gold
+				iTotalGold += iGold;
 			}
 		}
 	}
-	// 1% chance to drop 10 piles of gold. (10x drop)
 	else if (1 == number(1, iGold10DropPct))
 	{
-		//
-		// Gold-bomb style drop
-		//
 		for (int i = 0; i < 10; ++i)
 		{
 			int iGold = number(get_mob_table().gold_min, get_mob_table().gold_max);
@@ -648,7 +619,6 @@ void character::reward_gold(character * attacker)
 				continue;
 			}
 
-			// NOTE: gold bombs do not go through Third Hand handling
 			if ((item = item_manager::instance().create_item(1, iGold)))
 			{
 				pos.x = x() + (number(-7, 7) * 20);
@@ -657,15 +627,12 @@ void character::reward_gold(character * attacker)
 				item->add_to_ground(map_index(), pos);
 				item->start_destroy_event();
 
-				iTotalGold += iGold; // Total gold
+				iTotalGold += iGold;
 			}
 		}
 	}
 	else
 	{
-		//
-		// Normal gold drop
-		//
 		int iGold = number(get_mob_table().gold_min, get_mob_table().gold_max);
 		iGold = iGold * character_manager::instance().mob_gold_amount_rate(attacker) / 100;
 		iGold *= iGoldMultipler;
@@ -686,7 +653,7 @@ void character::reward_gold(character * attacker)
 
 		if (iGold != 0)
 		{
-			iTotalGold += iGold; // Total gold
+			iTotalGold += iGold;
 
 			for (int i = 0; i < iSplitCount; ++i)
 			{
@@ -711,7 +678,7 @@ void character::reward_gold(character * attacker)
 
 void character::reward(bool item_drop)
 {
-	if (race_num() == 5001) // Pirates (Waegu) always drop gold
+	if (race_num() == 5001)
 	{
 		pixel_position pos;
 
@@ -796,16 +763,10 @@ void character::reward(bool item_drop)
 	if (!sectree_manager::instance().movable_position(map_index(), pos.x, pos.y, pos))
 		return;
 
-	//
-	// Gold drop
-	//
 	if (metin2::config::test_server())
 		metin2::log::info( "Drop money : Attacker {}", pkAttacker->name());
 	reward_gold(pkAttacker);
 
-	//
-	// Item drop
-	//
 	game::items::item * item;
 
 	static std::vector<game::items::item *> s_vec_item;
@@ -866,7 +827,6 @@ void character::reward(bool item_drop)
 
 			if (v.empty())
 			{
-				// Nobody dealt notably more damage, so no ownership
 				while (iItemIdx >= 0)
 				{
 					item = s_vec_item[iItemIdx--];
@@ -878,7 +838,6 @@ void character::reward(bool item_drop)
 					}
 
 					item->add_to_ground(map_index(), pos);
-					// No ownership among those who dealt 10% damage or less
 					item->start_destroy_event();
 
 					pos.x = number(-7, 7) * 20;
@@ -891,7 +850,6 @@ void character::reward(bool item_drop)
 			}
 			else
 			{
-				// Ownership is shared only among those who dealt a lot of damage
 				std::vector<character *>::iterator it = v.begin();
 
 				while (iItemIdx >= 0)
@@ -939,28 +897,27 @@ void character::reward(bool item_drop)
 
 struct item_drop_penalty
 {
-	int inventory_pct;		// Range: 1 ~ 1000
-	int inventory_qty;		// Range: --
-	int equipment_pct;		// Range: 1 ~ 100
-	int equipment_qty;		// Range: --
+	int inventory_pct;
+	int inventory_qty;
+	int equipment_pct;
+	int equipment_qty;
 };
 
 item_drop_penalty item_drop_penalty_kor[9] =
 {
-	{   0,   0,  0,  0 },	// Noble King
-	{   0,   0,  0,  0 },	// Hero
-	{   0,   0,  0,  0 },	// Saint
-	{   0,   0,  0,  0 },	// Wise
-	{   0,   0,  0,  0 },	// Citizen
-	{  25,   1,  5,  1 },	// Ronin
-	{  50,   2, 10,  1 },	// Villain
-	{  75,   4, 15,  1 },	// Demon Lord
-	{ 100,   8, 20,  1 },	// Tyrant
+	{   0,   0,  0,  0 },
+	{   0,   0,  0,  0 },
+	{   0,   0,  0,  0 },
+	{   0,   0,  0,  0 },
+	{   0,   0,  0,  0 },
+	{  25,   1,  5,  1 },
+	{  50,   2, 10,  1 },
+	{  75,   4, 15,  1 },
+	{ 100,   8, 20,  1 },
 };
 
 void character::item_drop_penalty(character * killer)
 {
-	// Do not drop items while a private shop is open.
 	if (my_shop())
 		return;
 
@@ -1017,7 +974,7 @@ void character::item_drop_penalty(character * killer)
 		bDropAntiDropUniqueItem = true;
 	}
 
-	if (bDropInventory) // Drop Inventory
+	if (bDropInventory)
 	{
 		std::vector<uint8_t> vec_bSlots;
 
@@ -1051,7 +1008,7 @@ void character::item_drop_penalty(character * killer)
 			isDropAllEquipments = true;
 	}
 
-	if (bDropEquipment) // Drop Equipment
+	if (bDropEquipment)
 	{
 		std::vector<uint8_t> vec_bSlots;
 
@@ -1192,7 +1149,7 @@ void character::dead(character * killer, bool immediate_dead)
 	if (!killer && killer_pid_)
 		killer = character_manager::instance().find_by_pid(killer_pid_);
 
-	killer_pid_ = 0; // Must be initialized DO NOT DELETE THIS LINE UNLESS YOU ARE 1000000% SURE
+	killer_pid_ = 0; // Must be reset here, or a later death is credited to this killer.
 
 	bool isAgreedPVP = false;
 	bool isUnderGuildWar = false;
@@ -1225,13 +1182,11 @@ void character::dead(character * killer, bool immediate_dead)
 		}
 	}
 
-	//CHECK_FORKEDROAD_WAR
 	if (is_pc())
 	{
 		if (three_way_war::instance().is_three_way_war_map_index(map_index()))
 			isForked = true;
 	}
-	//END_CHECK_FORKEDROAD_WAR
 
 	if (killer &&
 			!isAgreedPVP &&
@@ -1247,7 +1202,6 @@ void character::dead(character * killer, bool immediate_dead)
 		}
 	}
 
-	// CASTLE_SIEGE
 	if (is_castle_map(map_index()))
 	{
 		if (CASTLE_FROG_VNUM == race_num())
@@ -1257,7 +1211,6 @@ void character::dead(character * killer, bool immediate_dead)
 		else if (castle_is_tower_vnum(race_num()))
 			castle_tower_die(this, killer);
 	}
-	// CASTLE_SIEGE
 
 	if (true == isForked)
 	{
@@ -1292,7 +1245,6 @@ void character::dead(character * killer, bool immediate_dead)
 
 				if (point(POINT_EMPIRE_POINT) < 10)
 				{
-					// TODO : need to add code that sends them to the entrance.
 				}
 
 				char buf[256];
@@ -1309,9 +1261,9 @@ void character::dead(character * killer, bool immediate_dead)
 				{
 					int iNoPenaltyProb = 0;
 
-					if (killer->alignment() >= 0)	// 1/3 percent down
+					if (killer->alignment() >= 0)
 						iNoPenaltyProb = 33;
-					else				// 4/5 percent down
+					else
 						iNoPenaltyProb = 20;
 
 					if (number(1, 100) < iNoPenaltyProb)
@@ -1356,7 +1308,7 @@ void character::dead(character * killer, bool immediate_dead)
 
 	clear_sync();
 
-	event_cancel(&stun_event); // Kill the stun event.
+	event_cancel(&stun_event);
 
 	if (is_pc())
 	{
@@ -1366,21 +1318,17 @@ void character::dead(character * killer, bool immediate_dead)
 	}
 	else
 	{
-		// Monsters attacked by guards must give no reward.
 		if (!is_set(points_instant_.instant_flag, INSTANT_FLAG_NO_REWARD))
 		{
 			if (!(killer && killer->is_pc() && killer->get_guild() && killer->get_guild()->under_any_war(GUILD_WAR_TYPE_FIELD)))
 			{
-				// Reviving monsters give no reward.
 				if (get_mob_table().resurrection_vnum)
 				{
-					// DUNGEON_MONSTER_REBIRTH_BUG_FIX
 					character * chResurrect = character_manager::instance().spawn_mob(get_mob_table().resurrection_vnum, map_index(), x(), y(), z(), true, (int) rotation());
 					if (get_dungeon() && chResurrect)
 					{
 						chResurrect->set_dungeon(get_dungeon());
 					}
-					// END_OF_DUNGEON_MONSTER_REBIRTH_BUG_FIX
 
 					reward(false);
 				}
@@ -1390,7 +1338,7 @@ void character::dead(character * killer, bool immediate_dead)
 				}
 				else
 				{
-					reward(true); // Drops gold, item, etc..
+					reward(true);
 				}
 			}
 			else
@@ -1404,7 +1352,6 @@ void character::dead(character * killer, bool immediate_dead)
 		}
 	}
 
-	// BOSS_KILL_LOG
 	if (get_mob_rank() >= MOB_RANK_BOSS && killer && killer->is_pc())
 	{
 		char buf[51];
@@ -1414,7 +1361,6 @@ void character::dead(character * killer, bool immediate_dead)
 		else
 			log_manager::instance().char_log(killer, race_num(), "BOSS_KILL", buf);
 	}
-	// END_OF_BOSS_KILL_LOG
 
 	packet_gc_dead pack;
 	pack.header	= HEADER_GC_DEAD;
@@ -1423,23 +1369,13 @@ void character::dead(character * killer, bool immediate_dead)
 
 	remove_bit(points_instant_.instant_flag, INSTANT_FLAG_STUN);
 
-	// If player character
 	if (get_desc() != nullptr) {
-		//
-		// Resend the effect packet to the client.
-		//
 		auto it = list_pk_affect_.begin();
 
 		while (it != list_pk_affect_.end())
 			send_affect_add_packet(get_desc(), *it++);
 	}
 
-	//
-	// Create the Dead event,
-	//
-	// For monsters, the Dead event destroys them after a few seconds,
-	// for PCs, it makes them come out in town after 3 minutes. Within 3 minutes the user
-	// decides whether to restart in town or here.
 	if (isDuel == false)
 	{
 		if (dead_event)
@@ -1543,19 +1479,7 @@ void character::send_damage_packet(character * attacker, int damage_value, uint8
 	}
 }
 
-//
-// CHARACTER::Damage method makes this take damage.
-//
-// Arguments
-//    pAttacker		: attacker
-//    dam		: damage
-//    EDamageType	: what kind of attack?
-//    
-// Return value
-//    true		: dead
-//    false		: not dead yet
-// 
-bool character::damage(character * attacker, int dam, damage_type type) // returns true if dead
+bool character::damage(character * attacker, int dam, damage_type type)
 {
 	if (DAMAGE_TYPE_MAGIC == type)
 	{
@@ -1622,7 +1546,6 @@ bool character::damage(character * attacker, int dam, damage_type type) // retur
 		}
 	}
 
-	// Handle fear when not a normal attack
 	if (type != DAMAGE_TYPE_NORMAL && type != DAMAGE_TYPE_NORMAL_RANGE)
 	{
 		if (is_affect_flag(AFF_TERROR))
@@ -1651,20 +1574,10 @@ bool character::damage(character * attacker, int dam, damage_type type) // retur
 		DAMAGE_CRITICAL = (1 << 5),
 	};
 
-	//
-	// Magic and ranged skills (archer/assassin) get critical and penetration calculation.
-	// Originally this shouldn't be done, but since a nerf (down-balance) patch wasn't possible, critical and
-	// penetration are applied at /2 or more rather than their original values.
-	// 
-	// Melee skills added too, due to lots of complaints about warriors
-	//
-	// 20091109 : concluded that warriors ended up hugely overpowered; warrior ratio in Germany near 70%
-	//
 	if (type == DAMAGE_TYPE_MELEE || type == DAMAGE_TYPE_RANGE || type == DAMAGE_TYPE_MAGIC)
 	{
 		if (attacker)
 		{
-			// Critical
 			int iCriticalPct = attacker->point(POINT_CRITICAL_PCT);
 
 			if (!is_pc())
@@ -1672,12 +1585,11 @@ bool character::damage(character * attacker, int dam, damage_type type) // retur
 
 			if (iCriticalPct)
 			{
-				if (iCriticalPct >= 10) // Above 10: 5% + (1% per 4), so a value of 50 gives 20%
+				if (iCriticalPct >= 10)
 					iCriticalPct = 5 + (iCriticalPct - 10) / 4;
-				else // Below 10: simply halved, 10 = 5%
+				else
 					iCriticalPct /= 2;
 
-				//Apply critical resistance.
 				iCriticalPct -= point(POINT_RESIST_CRITICAL);
 
 				if (number(1, 100) <= iCriticalPct)
@@ -1693,7 +1605,6 @@ bool character::damage(character * attacker, int dam, damage_type type) // retur
 				}
 			}
 
-			// Penetration
 			int iPenetratePct = attacker->point(POINT_PENETRATE_PCT);
 
 			if (!is_pc())
@@ -1715,16 +1626,13 @@ bool character::damage(character * attacker, int dam, damage_type type) // retur
 
 				if (iPenetratePct >= 10)
 				{
-					// Above 10: 5% + (1% per 4), so a value of 50 gives 20%
 					iPenetratePct = 5 + (iPenetratePct - 10) / 4;
 				}
 				else
 				{
-					// Below 10: simply halved, 10 = 5%
 					iPenetratePct /= 2;
 				}
 
-				//Apply penetration resistance.
 				iPenetratePct -= point(POINT_RESIST_PENETRATE);
 
 				if (number(1, 100) <= iPenetratePct)
@@ -1744,14 +1652,10 @@ bool character::damage(character * attacker, int dam, damage_type type) // retur
 			}
 		}
 	}
-	// 
-	// Attribute values are calculated only for combo and bow attacks, i.e. normal attacks.
-	//
 	else if (type == DAMAGE_TYPE_NORMAL || type == DAMAGE_TYPE_NORMAL_RANGE)
 	{
 		if (type == DAMAGE_TYPE_NORMAL)
 		{
-			// Melee normal attacks can be blocked
 			if (point(POINT_BLOCK) && number(1, 100) <= point(POINT_BLOCK))
 			{
 				if (metin2::config::test_server())
@@ -1766,7 +1670,6 @@ bool character::damage(character * attacker, int dam, damage_type type) // retur
 		}
 		else if (type == DAMAGE_TYPE_NORMAL_RANGE)
 		{
-			// Ranged normal attacks can be dodged
 			if (point(POINT_DODGE) && number(1, 100) <= point(POINT_DODGE))
 			{
 				if (metin2::config::test_server())
@@ -1789,20 +1692,14 @@ bool character::damage(character * attacker, int dam, damage_type type) // retur
 		if (is_affect_flag(AFF_HOSIN))
 			dam = dam * (100 - point(POINT_RESIST_NORMAL_DAMAGE)) / 100;
 
-		//
-		// Apply attacker attributes
-		//
 		if (attacker)
 		{
 			if (type == DAMAGE_TYPE_NORMAL)
 			{
-				// Reflect
 				if (point(POINT_REFLECT_MELEE))
 				{
 					int reflectDamage = dam * point(POINT_REFLECT_MELEE) / 100;
 
-					// NOTE: design requested that if the attacker has IMMUNE_REFLECT, instead of not reflecting 
-					// at all, the damage is fixed at 1/3.
 					if (attacker->is_immune(IMMUNE_REFLECT))
 						reflectDamage = int(reflectDamage / 3.0f + 0.5f);
 
@@ -1810,7 +1707,6 @@ bool character::damage(character * attacker, int dam, damage_type type) // retur
 				}
 			}
 
-			// Critical
 			int iCriticalPct = attacker->point(POINT_CRITICAL_PCT);
 
 			if (!is_pc())
@@ -1818,7 +1714,6 @@ bool character::damage(character * attacker, int dam, damage_type type) // retur
 
 			if (iCriticalPct)
 			{
-				//Apply critical resistance.
 				iCriticalPct -= point(POINT_RESIST_CRITICAL);
 
 				if (number(1, 100) <= iCriticalPct)
@@ -1829,7 +1724,6 @@ bool character::damage(character * attacker, int dam, damage_type type) // retur
 				}
 			}
 
-			// Penetration
 			int iPenetratePct = attacker->point(POINT_PENETRATE_PCT);
 
 			if (!is_pc())
@@ -1850,7 +1744,6 @@ bool character::damage(character * attacker, int dam, damage_type type) // retur
 			if (iPenetratePct)
 			{
 				
-				//Apply penetration resistance.
 				iPenetratePct -= point(POINT_RESIST_PENETRATE);
 
 				if (number(1, 100) <= iPenetratePct)
@@ -1863,7 +1756,6 @@ bool character::damage(character * attacker, int dam, damage_type type) // retur
 				}
 			}
 
-			// HP steal
 			if (attacker->point(POINT_STEAL_HP))
 			{
 				int pct = 1;
@@ -1881,7 +1773,6 @@ bool character::damage(character * attacker, int dam, damage_type type) // retur
 				}
 			}
 
-			// SP steal
 			if (attacker->point(POINT_STEAL_SP))
 			{
 				int pct = 1;
@@ -1908,7 +1799,6 @@ bool character::damage(character * attacker, int dam, damage_type type) // retur
 				}
 			}
 
-			// Gold steal
 			if (attacker->point(POINT_STEAL_GOLD))
 			{
 				if (number(1, 100) <= attacker->point(POINT_STEAL_GOLD))
@@ -1919,10 +1809,9 @@ bool character::damage(character * attacker, int dam, damage_type type) // retur
 				}
 			}
 
-			// HP recovery on every hit
-			if (attacker->point(POINT_HIT_HP_RECOVERY) && number(0, 4) > 0) // 80% chance
+			if (attacker->point(POINT_HIT_HP_RECOVERY) && number(0, 4) > 0)
 			{
-				int i = ((iCurHP>=0)?std::min(dam, iCurHP):dam) * attacker->point(POINT_HIT_HP_RECOVERY) / 100; // Fix
+				int i = ((iCurHP>=0)?std::min(dam, iCurHP):dam) * attacker->point(POINT_HIT_HP_RECOVERY) / 100;
 
 				if (i)
 				{
@@ -1931,10 +1820,9 @@ bool character::damage(character * attacker, int dam, damage_type type) // retur
 				}
 			}
 
-			// SP recovery on every hit
-			if (attacker->point(POINT_HIT_SP_RECOVERY) && number(0, 4) > 0) // 80% chance
+			if (attacker->point(POINT_HIT_SP_RECOVERY) && number(0, 4) > 0)
 			{
-				int i = ((iCurHP>=0)?std::min(dam, iCurHP):dam) * attacker->point(POINT_HIT_SP_RECOVERY) / 100; // Fix
+				int i = ((iCurHP>=0)?std::min(dam, iCurHP):dam) * attacker->point(POINT_HIT_SP_RECOVERY) / 100;
 
 				if (i)
 				{
@@ -1943,7 +1831,6 @@ bool character::damage(character * attacker, int dam, damage_type type) // retur
 				}
 			}
 
-			// Remove the target's mana.
 			if (attacker->point(POINT_MANA_BURN_PCT))
 			{
 				if (number(1, 100) <= attacker->point(POINT_MANA_BURN_PCT))
@@ -1952,9 +1839,6 @@ bool character::damage(character * attacker, int dam, damage_type type) // retur
 		}
 	}
 
-	//
-	// Bonus damage/defense from normal attacks or skills
-	// 
 	switch (type)
 	{
 		case DAMAGE_TYPE_NORMAL:
@@ -1983,17 +1867,12 @@ bool character::damage(character * attacker, int dam, damage_type type) // retur
 			break;
 	}
 
-	//
-	// Mana shield (Dark Protection)
-	//
 	if (is_affect_flag(AFF_MANASHIELD))
 	{
-		// The smaller POINT_MANASHIELD is, the better
 		int iDamageSPPart = dam / 3;
 		int iDamageToSP = iDamageSPPart * point(POINT_MANASHIELD) / 100;
 		int iSP = sp();
 
-		// If there is SP, damage is always halved
 		if (iDamageToSP <= iSP)
 		{
 			point_change(POINT_SP, -iDamageToSP);
@@ -2001,15 +1880,11 @@ bool character::damage(character * attacker, int dam, damage_type type) // retur
 		}
 		else
 		{
-			// When there isn't enough SP and more HP must be taken
 			point_change(POINT_SP, -sp());
 			dam -= iSP * 100 / std::max(point(POINT_MANASHIELD), 1);
 		}
 	}
 
-	//
-	// Overall defense increase (mall item)
-	// 
 	if (point(POINT_MALL_DEFBONUS) > 0)
 	{
 		int dec_dam = std::min(200, dam * point(POINT_MALL_DEFBONUS) / 100);
@@ -2018,18 +1893,12 @@ bool character::damage(character * attacker, int dam, damage_type type) // retur
 
 	if (attacker)
 	{
-		//
-		// Overall attack increase (mall item)
-		//
 		if (attacker->point(POINT_MALL_ATTBONUS) > 0)
 		{
 			int add_dam = std::min(300, dam * attacker->limit_point(POINT_MALL_ATTBONUS) / 100);
 			dam += add_dam;
 		}
 
-		//
-		// Empire bonus (old Korean version only)
-		//
 		int iEmpire = empire();
 		int32_t lMapIndex = map_index();
 		int iMapEmpire = sectree_manager::instance().empire_from_map_index(lMapIndex);
@@ -2041,7 +1910,6 @@ bool character::damage(character * attacker, int dam, damage_type type) // retur
 			lMapIndex = attacker->map_index();
 			iMapEmpire = sectree_manager::instance().empire_from_map_index(lMapIndex);
 
-			// 10% less damage against people of another empire
 			if (iEmpire && iMapEmpire && iEmpire != iMapEmpire)
 			{
 				int percent = 10;
@@ -2079,18 +1947,13 @@ bool character::damage(character * attacker, int dam, damage_type type) // retur
 			return true;
 		}
 
-		//
-		// Monarch's Diamond Fist & Lion's Roar 
-		//
 		if (attacker->is_pc() && monarch::instance().is_power_up(attacker->empire()))
 		{
-			// 10% more damage
 			dam += dam / 10;
 		}
 
 		if (is_pc() && monarch::instance().is_defence_up(empire()))
 		{
-			// 10% less damage
 			dam -= dam / 10;
 		}
 	}
@@ -2105,7 +1968,6 @@ bool character::damage(character * attacker, int dam, damage_type type) // retur
 		else
 			set_last_attacked(get_dword_time());
 
-		// Monster dialogue: when hit
 		monster_chat(MONSTER_CHAT_ATTACKED);
 	}
 
@@ -2118,7 +1980,6 @@ bool character::damage(character * attacker, int dam, damage_type type) // retur
 	if (is_dead())
 		return true;
 
-	// Prevent dying from poison attacks.
 	if (type == DAMAGE_TYPE_POISON)
 	{
 		if (hp() - dam <= 0)
@@ -2127,11 +1988,7 @@ bool character::damage(character * attacker, int dam, damage_type type) // retur
 		}
 	}
 
-	// ------------------------
-	// German premium mode 
-	// -----------------------
 
-	// STONE SKIN : damage halved
 	if (is_monster() && is_stone_skinner())
 	{
 		if (hp_pct() < get_mob_table().stone_skin_point)
@@ -2140,12 +1997,10 @@ bool character::damage(character * attacker, int dam, damage_type type) // retur
 
 	if (attacker)
 	{
-		// DEATH BLOW : chance of 4x damage (!? currently only used by event or siege monsters)
 		if (attacker->is_monster() && attacker->is_death_blower())
 		{
 			if (attacker->is_death_blow())
 			{
-				//if (number(1, 4) == GetJob())
 				if (number(JOB_WARRIOR, JOB_MAX_NUM - 1) == job())
 				{
 					IsDeathBlow = true;
@@ -2170,7 +2025,6 @@ bool character::damage(character * attacker, int dam, damage_type type) // retur
 			damageFlag |= DAMAGE_PENETRATE;
 
 
-		//Final damage adjustment
 		float damMul = this->dam_mul();
 		float tempDam = dam;
 		dam = tempDam * damMul + 0.5f;
@@ -2209,9 +2063,6 @@ bool character::damage(character * attacker, int dam, damage_type type) // retur
 		}
 	}
 
-	//
-	// !!!!!!!!! Part that actually reduces HP !!!!!!!!!
-	//
 	if (!cannot_dead_)
 	{
 		point_change(POINT_HP, -dam, false);
@@ -2231,7 +2082,7 @@ bool character::damage(character * attacker, int dam, damage_type type) // retur
 			it->second.total_damage += dam;
 		}
 
-		start_recovery_event(); // Monsters start recovering when they take damage.
+		start_recovery_event();
 
 		update_aggr_point_ex(attacker, type, dam, it->second);
 	}
@@ -2251,40 +2102,32 @@ bool character::damage(character * attacker, int dam, damage_type type) // retur
 
 void character::distribute_hp(character * killer)
 {
-	if (killer->get_dungeon()) // Dumplings don't appear inside dungeons
+	if (killer->get_dungeon())
 		return;
 }
 
 static void give_exp(character * from, character * to, int exp)
 {
-	// Experience adjustment ratio by level difference
 	exp = calculate_value_lvdelta(to->level(), from->level(), exp);
 
-	// 3x experience bonus on external test server
 	if (metin2::config::game().distribution_test_server)
 		exp *= 3;
 
 	int iBaseExp = exp;
 
-	// Apply fortune-telling and company experience events
 	exp = exp * (100 + priv_manager::instance().priv(to, PRIV_EXP_PCT)) / 100;
 
-	// Default in-game experience bonus
 	{
-		// Labor Day medal
 		if (to->is_equip_unique_item(UNIQUE_ITEM_LARBOR_MEDAL))
 			exp += exp * 20 /100;
 
-		// Demon Tower experience bonus
 		if (to->map_index() >= 660000 && to->map_index() < 670000) 
-			exp += exp * 20 / 100; // 1.2x (20%)
+			exp += exp * 20 / 100;
 
-		// Item double-experience attribute
 		if (to->point(POINT_EXP_DOUBLE_BONUS))
 			if (number(1, 100) <= to->point(POINT_EXP_DOUBLE_BONUS))
-				exp += exp * 30 / 100; // 1.3x (30%)
+				exp += exp * 30 / 100;
 
-		// Ring of Experience (2-hour)
 		if (to->is_equip_unique_item(UNIQUE_ITEM_DOUBLE_EXP))
 			exp += exp * 50 / 100;
 
@@ -2308,14 +2151,11 @@ static void give_exp(character * from, character * to, int exp)
 			case 20123:
 			case 20124:
 			case 20125:
-				// White Lion experience bonus
 				exp += exp * 30 / 100;
 				break;
 		}
 	}
 
-	// Item mall experience bonus
-	// Item mall: experience purchase
 	if (to->premium_remain_seconds(PREMIUM_EXP) > 0)
 	{
 		exp += (exp * 50 / 100);
@@ -2326,7 +2166,6 @@ static void give_exp(character * from, character * to, int exp)
 		exp += (exp * 50 / 100);
 	}
 
-	// Marriage bonus
 	exp += exp * to->marriage_bonus(UNIQUE_ITEM_MARRIAGE_EXP_BONUS) / 100;
 
 	exp += (exp * to->point(POINT_RAMADAN_CANDY_BONUS_EXP)/100);
@@ -2342,10 +2181,8 @@ static void give_exp(character * from, character * to, int exp)
 			   );
 	}
 
-	// Design-side adjustment value, 85% as of 2005.04.21
 	exp = exp * character_manager::instance().mob_exp_rate(to) / 100;
 
-	// Limit on experience gained at once
 	exp = std::min<int>(to->next_exp() / 10, exp);
 
 	if (metin2::config::test_server())
@@ -2361,10 +2198,8 @@ static void give_exp(character * from, character * to, int exp)
 
 	{
 		character * you = to->marry_partner();
-		// Love points rise when a married couple are in a party together
 		if (you)
 		{
-			// 100 million is 100%
 			uint32_t dwUpdatePoint = 2000*exp/to->level()/to->level()/3;
 
 			if (to->premium_remain_seconds(PREMIUM_MARRIAGE_FAST) > 0 || 
@@ -2373,10 +2208,8 @@ static void give_exp(character * from, character * to, int exp)
 
 			marriage::marriage* pMarriage = marriage::manager::instance().get(to->player_id());
 
-			// DIVORCE_NULL_BUG_FIX
 			if (pMarriage && pMarriage->is_near())
 				pMarriage->update(dwUpdatePoint);
-			// END_OF_DIVORCE_NULL_BUG_FIX
 		}
 	}
 }
@@ -2476,7 +2309,6 @@ struct damage_info {
 					party->chat_packet_to_all_member(CHAT_TYPE_INFO, "exp party bonus %d%%", party->exp_bonus_percent());
 			}
 
-			// Experience funneling (5% of party experience is taken and given first)
 			if (party->exp_centralize_character())
 			{
 				character * tch = party->exp_centralize_character();
@@ -2515,7 +2347,6 @@ character * character::distribute_exp()
 
 	damage_map::iterator it = map_k_damage_.begin();
 
-	// First filter out those not nearby. (50m)
 	while (it != map_k_damage_.end())
 	{
 		const vid & c_VID = it->first;
@@ -2525,7 +2356,6 @@ character * character::distribute_exp()
 
 		character * pAttacker = character_manager::instance().find(c_VID);
 
-		// Do NPCs even hit? -.-;
 		if (!pAttacker || pAttacker->is_npc() || distance_approx(x()-pAttacker->x(), y()-pAttacker->y())>5000)
 			continue;
 
@@ -2571,10 +2401,10 @@ character * character::distribute_exp()
 
 	set_exp(0);
 
-	if (iTotalDam == 0)	// Return if damage dealt is 0
+	if (iTotalDam == 0)
 		return nullptr;
 
-	if (chr_stone_)	// If there is a stone, give half of the experience to the stone.
+	if (chr_stone_)
 	{
 		int iExp = iExpToDistribute >> 1;
 		chr_stone_->set_exp(chr_stone_->get_exp() + iExp);
@@ -2587,11 +2417,9 @@ character * character::distribute_exp()
 	if (damage_info_table.empty())
 		return nullptr;
 
-	// The one who dealt the most damage recovers HP.
-	distribute_hp(pkChrMostAttacked);	// Dumpling system
+	distribute_hp(pkChrMostAttacked);
 
 	{
-		// The person or party that dealt the most damage gets 20% of total experience + experience proportional to their damage.
 		damage_info_list::iterator di = damage_info_table.begin();
 		{
 			damage_info_list::iterator it;
@@ -2618,7 +2446,6 @@ character * character::distribute_exp()
 
 		di->distribute(this, iExp);
 
-		// Return if all 100% has been taken.
 		if (fPercent == 1.0f)
 			return pkChrMostAttacked;
 
@@ -2626,7 +2453,6 @@ character * character::distribute_exp()
 	}
 
 	{
-		// Distribute the remaining 80% of experience.
 		damage_info_list::iterator it;
 
 		for (it = damage_info_table.begin(); it != damage_info_table.end(); ++it)
@@ -2648,8 +2474,7 @@ character * character::distribute_exp()
 	return pkChrMostAttacked;
 }
 
-// Returns the arrow count
-int character::arrow_and_bow(item * * ppk_bow, item * * ppk_arrow, int arrow_count/* = 1 */)
+int character::arrow_and_bow(item * * ppk_bow, item * * ppk_arrow, int arrow_count )
 {
 	item * pkBow;
 
@@ -2718,7 +2543,6 @@ class func_shoot
 			if (!pkVictim)
 				return;
 
-			// Cannot attack
 			if (!battle_is_attackable(me, pkVictim))
 				return;
 
@@ -2733,7 +2557,7 @@ class func_shoot
 
 			switch (type)
 			{
-				case 0: // Normal bow
+				case 0:
 					{
 						int iDam = 0;
 
@@ -2757,7 +2581,6 @@ class func_shoot
 							iDam = calc_arrow_damage(me, pkVictim, pkBow, pkArrow);
 							me->use_arrow(pkArrow, 1);
 
-							// check speed hack
 							uint32_t	dwCurrentTime	= get_dword_time();
 							if (is_speed_hack(me, pkVictim, dwCurrentTime))
 								iDam	= 0;
@@ -2767,7 +2590,6 @@ class func_shoot
 
 						normal_attack_affect(me, pkVictim);
 
-						// Damage calculation
 						iDam = iDam * (100 - pkVictim->point(POINT_RESIST_BOW)) / 100;
 
 						me->on_move(true);
@@ -2777,11 +2599,10 @@ class func_shoot
 							pkVictim->begin_fight(me);
 
 						pkVictim->damage(me, iDam, DAMAGE_TYPE_NORMAL_RANGE);
-						// End of hit damage calculation
 					}
 					break;
 
-				case 1: // Normal magic
+				case 1:
 					{
 						int iDam;
 
@@ -2792,7 +2613,6 @@ class func_shoot
 
 						normal_attack_affect(me, pkVictim);
 
-						// Damage calculation
 						iDam = iDam * (100 - pkVictim->point(POINT_RESIST_MAGIC)) / 100;
 
 						me->on_move(true);
@@ -2802,15 +2622,13 @@ class func_shoot
 							pkVictim->begin_fight(me); 
 
 						pkVictim->damage(me, iDam, DAMAGE_TYPE_MAGIC);
-						// End of hit damage calculation
 					}
 					break;
 
-				case SKILL_YEONSA:	// Rapid fire
+				case SKILL_YEONSA:
 					{
 						int iUseArrow = 1;
 
-						// When only computing the total
 						{
 							if (iUseArrow == me->arrow_and_bow(&pkBow, &pkArrow, iUseArrow))
 							{
@@ -2910,7 +2728,6 @@ class func_shoot
 					break;
 
 				case SKILL_MARYUNG:
-					//case SKILL_GUMHWAN:
 				case SKILL_TUSOK:
 				case SKILL_BIPABU:
 				case SKILL_NOEJEON:
@@ -2918,7 +2735,6 @@ class func_shoot
 				case SKILL_SANGONG:
 				case SKILL_MAHWAN:
 				case SKILL_PABEOB:
-					//case SKILL_CURSE:
 					{
 						me->on_move(true);
 						pkVictim->on_move();
@@ -2942,7 +2758,6 @@ class func_shoot
 						metin2::log::info( "{} - Skill {:d} -> {}", me->name(), type, pkVictim->name());
 						me->compute_skill(type, pkVictim);
 
-						// TODO hit multiple targets whoosh whoosh whoosh
 					}
 					break;
 
@@ -3024,7 +2839,6 @@ character * character::nearest_victim(character * chr)
 
 	damage_map::iterator it = map_k_damage_.begin();
 
-	// First filter out those not nearby.
 	while (it != map_k_damage_.end())
 	{
 		const vid & c_VID = it->first;
@@ -3077,7 +2891,7 @@ character * character::victim() const
 	return character_manager::instance().find(vid_victim);
 }
 
-character * character::protege() const // Returns the target to protect
+character * character::protege() const
 {
 	if (chr_stone_)
 		return chr_stone_;
@@ -3230,7 +3044,7 @@ struct func_aggregate_monster
 			if (ch_value->victim())
 				return;
 
-			if (number(1, 100) <= 50) // Temporarily pull enemies with 50% chance
+			if (number(1, 100) <= 50)
 				if (distance_approx(ch_value->x() - ch->x(), ch_value->y() - ch->y()) < 5000)
 					if (ch_value->can_begin_fight())
 						ch_value->begin_fight(ch);
@@ -3259,7 +3073,7 @@ struct func_attract_ranger
 				return;
 			if (ch_value->mob_attack_range() > 150)
 			{
-				int iNewRange = 150;//(int)(ch->GetMobAttackRange() * 0.2);
+				int iNewRange = 150;
 				if (iNewRange < 150)
 					iNewRange = 150;
 
@@ -3356,7 +3170,6 @@ void character::pull_monster()
 
 void character::update_aggr_point_ex(character * attacker, damage_type type, int dam, character::battle_info & info)
 {
-	// Increases further depending on attack type
 	switch (type)
 	{
 		case DAMAGE_TYPE_NORMAL_RANGE:
@@ -3375,7 +3188,6 @@ void character::update_aggr_point_ex(character * attacker, damage_type type, int
 			break;
 	}
 
-	// Give a bonus if the attacker is the current target.
 	if (attacker == victim())
 		dam = (int) (dam * 1.2f);
 
@@ -3388,7 +3200,6 @@ void character::update_aggr_point_ex(character * attacker, damage_type type, int
 	{
 		party * pParty = get_party();
 
-		// Leaders have somewhat stronger influence
 		int iPartyAggroDist = dam;
 
 		if (pParty->leader_pid() == get_vid())
@@ -3420,7 +3231,7 @@ void character::update_aggr_point(character * attacker, damage_type type, int da
 
 void character::change_victim_by_aggro(int new_aggro, character * new_victim)
 {
-	if (get_dword_time() - last_victim_set_time_ < 3000) // Must wait 3 seconds
+	if (get_dword_time() - last_victim_set_time_ < 3000)
 		return;
 
 	if (new_victim == victim())
@@ -3431,7 +3242,6 @@ void character::change_victim_by_aggro(int new_aggro, character * new_victim)
 			return;
 		}
 
-		// When aggro has decreased
 		damage_map::iterator it;
 		damage_map::iterator itFind = map_k_damage_.end();
 

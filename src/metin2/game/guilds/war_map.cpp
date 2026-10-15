@@ -315,7 +315,7 @@ void war_map::team_data::append_member(character * ch)
 
 void war_map::team_data::remove_member(character * ch)
 {
-	// set_pidJoiner counts cumulative members, so don't remove from it
+	// The joiner set is cumulative; never remove from it.
 	--member_count;
 }
 
@@ -699,11 +699,9 @@ bool war_map::check_score()
 	if (ended_)
 		return true;
 
-	// Check only after 30 seconds.
 	if (get_dword_time() - start_time_ < 30000)
 		return false;
 
-	// Don't check if the scores are equal.
 	if (team_data_[0].score == team_data_[1].score)
 		return false;
 
@@ -973,9 +971,6 @@ void war_map::reset_flag()
 	set_reset_flag_event(event_create(war_reset_flag_event, info, passes_per_sec(10)));
 }
 
-/////////////////////////////////////////////////////////////////////////////////
-// WarMapManager
-/////////////////////////////////////////////////////////////////////////////////
 war_map_manager::war_map_manager()
 {
 }

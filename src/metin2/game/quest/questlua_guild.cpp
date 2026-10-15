@@ -22,9 +22,6 @@ namespace metin2::game {
 
 namespace quest
 {
-	//
-	// "guild" Lua functions
-	//
 	int guild_around_ranking_string(lua_State* lua)
 	{
 		quest_manager& q = quest_manager::instance();
@@ -238,7 +235,6 @@ namespace quest
 
 		metin2::log::info( "con.size(): {:d}", con.size());
 
-		// stack : table1
 		lua_newtable(lua);
 
 		while (it != con.end())
@@ -252,31 +248,24 @@ namespace quest
 
 			metin2::log::info( "con.size(): {:d} {:d} {:d} handi {:d}", p->id, p->guild_from, p->guild_to, p->handicap);
 
-			// stack : table1 table2
 			lua_pushnumber(lua, p->id);
-			// stack : table1 table2 dwID
 			lua_rawseti(lua, -2, 1);
 
-			// stack : table1 table2
 			if (p->power_from > p->power_to)
 				lua_pushnumber(lua, p->guild_from);
 			else
 				lua_pushnumber(lua, p->guild_to);
-			// stack : table1 table2 guildfrom
 			lua_rawseti(lua, -2, 2);
 
-			// stack : table1 table2
 			if (p->power_from > p->power_to)
 				lua_pushnumber(lua, p->guild_to);
 			else
 				lua_pushnumber(lua, p->guild_from);
-			// stack : table1 table2 guildto
 			lua_rawseti(lua, -2, 3);
 
 			lua_pushnumber(lua, p->handicap);
 			lua_rawseti(lua, -2, 4);
 
-			// stack : table1 table2
 			lua_rawseti(lua, -2, ++i);
 		}
 
@@ -308,12 +297,6 @@ namespace quest
 
 	int guild_change_master(lua_State* lua)
 	{
-		// Return values
-		//	0 : the given name is invalid ( not a string )
-		//	1 : not the guild leader
-		//	2 : no guild member with the given name
-		//	3 : request succeeded
-		//	4 : no guild
 
 		character * ch = quest_manager::instance().current_character_ptr();
 
@@ -349,23 +332,6 @@ namespace quest
 
 	int guild_change_master_with_limit(lua_State* lua)
 	{
-		// Arguments
-		//  arg0 : new guild leader name
-		//  arg1 : new guild leader level requirement
-		//  arg2 : resign_limit time limit
-		//  arg3 : be_other_leader time limit
-		//  arg4 : be_other_member time limit
-		//  arg5 : whether it is a cash item
-		//
-		// Return values
-		//	0 : the given name is invalid ( not a string )
-		//	1 : not the guild leader
-		//	2 : no guild member with the given name
-		//	3 : request succeeded
-		//	4 : no guild
-		//	5 : the named character is not online
-		//	6 : the named character's level is below the required level
-		//	7 : the new guild leader is blocked by the be_other_leader limit
 
 		character * ch = quest_manager::instance().current_character_ptr();
 

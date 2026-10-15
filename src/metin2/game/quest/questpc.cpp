@@ -129,7 +129,6 @@ namespace quest
 			it->second = value;
 	}
 
-	// only from lua call
 	void pc::set_current_quest_state_name(const std::string& state_name) 
 	{
 		set_flag(cur_quest_ + ".__status", quest_manager::instance().quest_state_index(cur_quest_,state_name));
@@ -318,14 +317,11 @@ namespace quest
 
 	void pc::end_running()
 	{
-		// unlocked locked npc
 		{
 			character * npc = quest_manager::instance().current_npc_character_ptr();
 			character * ch = quest_manager::instance().current_character_ptr();
-			// If there was an npc
 			if (npc && !npc->is_pc())
 			{
-				// If that npc is locked to me
 				if (ch->player_id() == npc->quest_npcid())
 				{
 					npc->set_quest_npcid(0);
@@ -335,7 +331,6 @@ namespace quest
 			}
 		}
 
-		// commit data
 		if (has_reward())
 		{
 			save();
@@ -428,7 +423,6 @@ namespace quest
 
 	void pc::cancel_running()
 	{
-		// cancel data
 		running_quest_state_ = nullptr;
 		send_to_client_ = 0;
 		should_send_done_ = false;

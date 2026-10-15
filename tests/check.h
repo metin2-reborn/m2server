@@ -5,8 +5,6 @@
 #include <string_view>
 #include <vector>
 
-// A minimal test runner: TEST registers a function, CHECK and CHECK_EQ record failures and carry
-// on, and the executable's main runs every test (or the ones named on the command line).
 namespace check {
     struct test_case {
         const char *name;

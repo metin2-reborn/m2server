@@ -19,9 +19,6 @@ namespace metin2::game {
 
 namespace quest
 {
-	//
-	// "building" Lua functions
-	//
 	int building_get_land_id(lua_State * lua)
 	{
 		using namespace building;

@@ -18,8 +18,6 @@
 
 namespace metin2::game::inline events {
 
-// Speed server bonus experience system
-// by rtsummit
 
 speed_server_manager::speed_server_manager()
 {
@@ -371,13 +369,11 @@ hme speed_server_empire_exp::current_exp_priv(int &duration, bool &is_change)
 
 	hme hme;
 
-	// If today is a holiday, apply the holiday bonus.
 	if (holi_it != holiday_map_.end())
 	{
 		for (std::list <game::events::hme>::iterator it = holi_it->second.begin();
 				it != wday_exp_table_[datetime->tm_wday].end(); it++)
 		{
-			// If the current time falls within the time range,
 			if (total_sec < (it->hour * 3600 + it->min * 60 ))
 			{
 				hme = *it;
@@ -390,7 +386,6 @@ hme speed_server_empire_exp::current_exp_priv(int &duration, bool &is_change)
 		for (std::list <game::events::hme>::iterator it =  wday_exp_table_[datetime->tm_wday].begin();
 				it != wday_exp_table_[datetime->tm_wday].end(); it++)
 		{
-			// If the current time falls within the time range,
 			if (total_sec < (it->hour * 3600 + it->min * 60 ))
 			{
 				hme = *it;

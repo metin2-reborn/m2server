@@ -16,9 +16,6 @@ namespace metin2::game {
 
 namespace quest
 {
-	//
-	// "quest" Lua functions
-	//
 	int quest_start(lua_State* lua)
 	{
 		quest_manager& q = quest_manager::instance();
@@ -127,8 +124,6 @@ namespace quest
 
 		if (pPC)
 		{
-			//cerr << "QUEST new state" << pPC->GetCurrentQuestName(); << ":"
-			//
 			std::string stCurrentState = lua_tostring(lua,-1);
 			if ( metin2::config::test_server() )
 				metin2::log::info("questlua->setstate( {}, {} )", pPC->current_quest_name().c_str(), stCurrentState.c_str() );
@@ -141,7 +136,6 @@ namespace quest
 	int quest_coroutine_yield(lua_State * lua)
 	{
 		quest_manager& q = quest_manager::instance();
-		// A yield must never happen inside an other_pc_block. Never.
 		if (q.is_in_other_pc_block())
 		{
 			quest::error("FATAL ERROR! Yield occur in other_pc_block.");
@@ -215,21 +209,8 @@ namespace quest
 			{ "done",					quest_done					},
 			{ "getcurrentquestindex",	quest_get_current_quest_index	},
 			{ "no_send",				quest_no_send				},
-			// Call the region between begin_other_pc_block(pid) and end_other_pc_block an other_pc_block.
-			// Inside an other_pc_block, current_pc is changed to pid.
-			//						When it ends, it returns to the original current_pc.
-			/*		Made for things like this.
-					for i, pid in next, pids, nil do
-						q.begin_other_pc_block(pid)
-						if pc.count_item(PASS_TICKET) < 1 then
-							table.insert(criminalNames, pc.get_name())
-							canPass = false
-						end
-						q.end_other_pc_block()
-					end
-			*/
-			// Caution: a yield must never happen inside an other_pc_block. (ex. wait, select, input, ...)
-			{ "begin_other_pc_block",	quest_begin_other_pc_block	}, 
+			// Between begin_other_pc_block(pid) and end_other_pc_block the current pc is pid. Nothing
+			// in between may yield (wait, select, input, ...).
 			{ "end_other_pc_block",		quest_end_other_pc_block	},
 			{ nullptr,						nullptr						}
 		};

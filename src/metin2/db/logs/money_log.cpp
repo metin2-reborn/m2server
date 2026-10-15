@@ -28,7 +28,6 @@ void money_log::save()
 		__typeof(money_log_container_[bType].begin()) it;
 		for (it = money_log_container_[bType].begin(); it != money_log_container_[bType].end(); ++it)
 		{
-			//bType;
 			packet_money_log p;
 			p.type = bType;
 			p.vnum = it->first;

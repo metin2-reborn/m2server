@@ -8,9 +8,8 @@
 using namespace metin2;
 using namespace metin2::game;
 
-// Sizes of the structs that cross a process boundary: packet.h goes to the client, tables.h to the
-// database cache (and partly to the client). A changed size breaks the other side, so a failure
-// here means the change has to be made there too, and the expected value updated.
+// These sizes are shared with the client (packet.h) and the db cache (tables.h): a change
+// must be made on the other side too.
 #define CHECK_SIZE(type, size) CHECK_EQ(sizeof(type), std::size_t{size})
 
 TEST(table_struct_sizes) {

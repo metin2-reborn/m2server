@@ -31,7 +31,7 @@ class character_manager : public singleton<character_manager>
 
 		void                    destroy();
 
-		void			graceful_shutdown();	// Used for a normal shutdown. Saves all PCs and destroys them.
+		void			graceful_shutdown();
 
 		uint32_t			alloc_vid();
 
@@ -59,11 +59,8 @@ class character_manager : public singleton<character_manager>
 		bool			add_to_state_list(character * ch);
 		void			remove_from_state_list(character * ch);
 
-		// DelayedSave: if a routine does many things that require saving,
-		// there are too many queries, so just mark it "to be saved" and save it
-		// a moment later (e.g. 1 frame).
 		void                    delayed_save(character * ch);
-		bool                    flush_delayed_save(character * ch); // If in the delayed list, remove it and save. Used when handling disconnects.
+		bool                    flush_delayed_save(character * ch);
 		void			process_delayed_save();
 
 		template<class Func>	Func for_each_pc(Func f);
@@ -121,7 +118,7 @@ class character_manager : public singleton<character_manager>
 		std::unordered_map<uint32_t, character *> map_pk_chr_by_pid_;
 		name_map			map_pk_pc_chr_;
 
-		character_set		set_pk_chr_state_;	// Those with a running FSM
+		character_set		set_pk_chr_state_;
 		character_set		set_pk_chr_for_delayed_save_;
 		character_set		set_pk_chr_monster_log_;
 

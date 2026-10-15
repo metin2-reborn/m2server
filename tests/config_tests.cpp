@@ -18,7 +18,6 @@ namespace {
         return text.find(part) != std::string::npos;
     }
 
-    // Files in a temporary directory, removed again at the end of the test.
     struct temp_dir {
         fs::path path = fs::temp_directory_path() / ("m2_config_test_" + std::to_string(::getpid()));
 
@@ -70,7 +69,6 @@ TEST(config_reads_a_game_file) {
     CHECK_EQ(settings->game.map_allow.size(), std::size_t{3});
     CHECK_EQ(settings->game.max_level, 105);
     CHECK_EQ(settings->game.spam.block_score, 50u);
-    // Defaults for what the file leaves out.
     CHECK_EQ(settings->game.spam.block_duration, 900u);
     CHECK_EQ(settings->server.passes_per_sec, 25);
     CHECK(settings->game.empire_whisper);

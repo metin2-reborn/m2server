@@ -9,9 +9,6 @@ namespace metin2::inline proto {
 // Internal game/DB routing capacity; all processes must use the same build.
 constexpr int MAX_MAPS_PER_SERVER = 128;
 
-/**
- * @version 05/06/10	Bang2ni - Added Myshop Pricelist packets HEADER_XX_MYSHOP_PRICELIST_XXX
- */
 enum {
     HEADER_GD_LOGIN = 1,
     HEADER_GD_LOGOUT = 2,
@@ -21,7 +18,6 @@ enum {
     HEADER_GD_PLAYER_CREATE = 5,
     HEADER_GD_PLAYER_DELETE = 6,
 
-    // 8 empty
     HEADER_GD_BOOT = 9,
     HEADER_GD_PLAYER_COUNT = 10,
     HEADER_GD_QUEST_SAVE = 11,
@@ -100,22 +96,22 @@ enum {
     HEADER_GD_LOGIN_BY_KEY = 101,
     HEADER_GD_MALL_LOAD = 107,
 
-    HEADER_GD_MYSHOP_PRICELIST_UPDATE = 108, ///< Price info update request
-    HEADER_GD_MYSHOP_PRICELIST_REQ = 109,    ///< Price info list request
+    HEADER_GD_MYSHOP_PRICELIST_UPDATE = 108,
+    HEADER_GD_MYSHOP_PRICELIST_REQ = 109,
 
     HEADER_GD_BLOCK_CHAT = 110,
 
     HEADER_GD_HAMMER_OF_TOR = 114,
-    HEADER_GD_RELOAD_ADMIN = 115,       ///< GM info request
-    HEADER_GD_BREAK_MARRIAGE = 116,     ///< Divorce
-    HEADER_GD_ELECT_MONARCH = 117,      ///< Monarch vote
-    HEADER_GD_CANDIDACY = 118,          ///< Monarch candidacy
-    HEADER_GD_ADD_MONARCH_MONEY = 119,  ///< Monarch money increase
-    HEADER_GD_TAKE_MONARCH_MONEY = 120, ///< Monarch money decrease
-    HEADER_GD_COME_TO_VOTE = 121,       ///< Vote
-    HEADER_GD_RMCANDIDACY = 122,        ///< Remove candidate (GM)
-    HEADER_GD_SETMONARCH = 123,         ///< Set monarch (GM)
-    HEADER_GD_RMMONARCH = 124,          ///< Delete monarch
+    HEADER_GD_RELOAD_ADMIN = 115,
+    HEADER_GD_BREAK_MARRIAGE = 116,
+    HEADER_GD_ELECT_MONARCH = 117,
+    HEADER_GD_CANDIDACY = 118,
+    HEADER_GD_ADD_MONARCH_MONEY = 119,
+    HEADER_GD_TAKE_MONARCH_MONEY = 120,
+    HEADER_GD_COME_TO_VOTE = 121,
+    HEADER_GD_RMCANDIDACY = 122,
+    HEADER_GD_SETMONARCH = 123,
+    HEADER_GD_RMMONARCH = 124,
     HEADER_GD_DEC_MONARCH_MONEY = 125,
 
     HEADER_GD_CHANGE_MONARCH_LORD = 126,
@@ -127,22 +123,20 @@ enum {
     HEADER_GD_UPDATE_HORSE_NAME = 131,
     HEADER_GD_REQ_HORSE_NAME = 132,
 
-    HEADER_GD_DC = 133, // Delete the login key
+    HEADER_GD_DC = 133,
 
     HEADER_GD_VALID_LOGOUT = 134,
 
-    // AUCTION
 
     HEADER_GD_REQUEST_CHARGE_CASH = 137,
 
-    HEADER_GD_DELETE_AWARDID = 138, // delete gift notify icon
+    HEADER_GD_DELETE_AWARDID = 138,
 
     HEADER_GD_UPDATE_CHANNELSTATUS = 139,
     HEADER_GD_REQUEST_CHANNELSTATUS = 140,
 
     HEADER_GD_SETUP = 0xff,
 
-    ///////////////////////////////////////////////
     HEADER_DG_NOTICE = 1,
 
     HEADER_DG_LOGIN_SUCCESS = 30,
@@ -230,14 +224,14 @@ enum {
     HEADER_DG_WEDDING_START = 155,
     HEADER_DG_WEDDING_END = 156,
 
-    HEADER_DG_MYSHOP_PRICELIST_RES = 157, ///< Price info list response
-    HEADER_DG_RELOAD_ADMIN = 158,         ///< GM info reload
-    HEADER_DG_ELECT_MONARCH = 160,        ///< Monarch vote
-    HEADER_DG_CANDIDACY = 161,            ///< Monarch candidacy
-    HEADER_DG_ADD_MONARCH_MONEY = 162,    ///< Monarch money increase
-    HEADER_DG_TAKE_MONARCH_MONEY = 163,   ///< Monarch money decrease
-    HEADER_DG_RMCANDIDACY = 165,          ///< Remove candidate (GM)
-    HEADER_DG_RMMONARCH = 167,            ///< Delete monarch
+    HEADER_DG_MYSHOP_PRICELIST_RES = 157,
+    HEADER_DG_RELOAD_ADMIN = 158,
+    HEADER_DG_ELECT_MONARCH = 160,
+    HEADER_DG_CANDIDACY = 161,
+    HEADER_DG_ADD_MONARCH_MONEY = 162,
+    HEADER_DG_TAKE_MONARCH_MONEY = 163,
+    HEADER_DG_RMCANDIDACY = 165,
+    HEADER_DG_RMMONARCH = 167,
     HEADER_DG_DEC_MONARCH_MONEY = 168,
 
     HEADER_DG_CHANGE_MONARCH_LORD_ACK = 169,
@@ -251,7 +245,7 @@ enum {
     HEADER_DG_ACK_HORSE_NAME = 176,
 
     HEADER_DG_NEED_LOGIN_LOG = 177,
-    HEADER_DG_ITEMAWARD_INFORMER = 180, // gift notify
+    HEADER_DG_ITEMAWARD_INFORMER = 180,
     HEADER_DG_RESPOND_CHANNELSTATUS = 181,
 
     HEADER_DG_MAP_LOCATIONS = 0xfe,
@@ -259,12 +253,7 @@ enum {
 
 };
 
-/* ----------------------------------------------
- * table
- * ----------------------------------------------
- */
 
-/* game Server -> DB Server */
 #pragma pack(1)
 enum request_charge_type {
     ERequestCharge_Cash = 0,
@@ -272,7 +261,7 @@ enum request_charge_type {
 };
 
 struct request_charge_cash {
-    uint32_t aid; // id(primary key) - Account Table
+    uint32_t aid;
     uint32_t amount;
     request_charge_type charge_type;
 
@@ -322,7 +311,7 @@ struct player_item {
     uint32_t count;
 
     uint32_t vnum;
-    int32_t sockets[ITEM_SOCKET_MAX_NUM]; // Socket number
+    int32_t sockets[ITEM_SOCKET_MAX_NUM];
 
     player_item_attribute attr[ITEM_ATTRIBUTE_MAX_NUM];
 
@@ -371,7 +360,6 @@ struct player_table {
     int32_t exit_x, exit_y;
     int32_t exit_map_index;
 
-    // Fix
     int hp;
     int sp;
 
@@ -420,10 +408,10 @@ struct mob_table : public entity_table {
     char name[PROTO_NAME_MAX_LEN + 1];
     char locale_name[PROTO_NAME_MAX_LEN + 1];
 
-    uint8_t type;       // Monster, NPC
-    uint8_t rank;       // PAWN, KNIGHT, KING
-    uint8_t battle_type; // MELEE, etc..
-    uint8_t level;      // Level
+    uint8_t type;
+    uint8_t rank;
+    uint8_t battle_type;
+    uint8_t level;
     uint8_t size;
 
     uint32_t gold_min;
@@ -493,13 +481,11 @@ struct skill_table {
     uint32_t flag;
     uint32_t affect_flag;
 
-    // Data for secondary skill
     char point_on2[64];
     char point_poly2[100 + 1];
     char duration_poly2[100 + 1];
     uint32_t affect_flag2;
 
-    // Data for grand master point
     char point_on3[64];
     char point_poly3[100 + 1];
     char duration_poly3[100 + 1];
@@ -521,9 +507,9 @@ struct shop_item_table {
     uint32_t vnum;
     uint8_t count;
 
-    item_pos pos;        // Used only for PC shops
-    uint32_t price;      // Used only for PC and shop_table_ex.txt shops
-    uint8_t display_pos; // Used only for PC and shop_table_ex.txt shops; display position.
+    item_pos pos;
+    uint32_t price;
+    uint8_t display_pos;
 };
 
 struct shop_table {
@@ -582,12 +568,10 @@ struct item_table : public entity_table {
     uint8_t specular;
     uint8_t gain_socket_pct;
 
-    short int s_addon_type; // Base attributes
+    short int s_addon_type;
 
-    // The limit flags below are checked often in realtime and are fixed per item VNUM,
-    // but with the current structure, looping up to LIMIT_MAX_NUM for every item each time is costly, so they are stored in advance.
-    char c_limit_real_time_first_use_index; // Index of the LIMIT_REAL_TIME_FIRST_USE flag among the item limit fields (-1 if none)
-    char c_limit_timer_based_on_wear_index; // Index of the LIMIT_TIMER_BASED_ON_WEAR flag among the item limit fields (-1 if none)
+    char c_limit_real_time_first_use_index;
+    char c_limit_timer_based_on_wear_index;
 
 };
 
@@ -609,7 +593,7 @@ struct login_packet {
 struct player_load_packet {
     uint32_t account_id;
     uint32_t player_id;
-    uint8_t account_index; /* position in account */
+    uint8_t account_index;
 };
 
 struct player_create_packet {
@@ -673,10 +657,10 @@ struct empire_select_packet {
 };
 
 struct packet_gd_setup {
-    char public_ip[16];  // Public IP which listen to users
-    uint8_t channel;     // Channel
-    uint16_t listen_port; // Port number clients connect to
-    uint16_t p2_p_port;    // P2P port number for server-to-server connections
+    char public_ip[16];
+    uint8_t channel;
+    uint16_t listen_port;
+    uint16_t p2_p_port;
     int32_t maps[MAX_MAPS_PER_SERVER];
     uint32_t login_count;
     uint8_t auth_server;
@@ -814,8 +798,6 @@ struct packet_guild_war {
     int32_t initial_score;
 };
 
-// Game -> DB : relative change
-// DB -> Game : final total value
 struct packet_guild_war_score {
     uint32_t guild_gain_point;
     uint32_t guild_opponent;
@@ -831,8 +813,8 @@ struct refine_material {
 struct refine_table {
     uint32_t id;
     uint8_t material_count;
-    int cost; // Cost
-    int prob; // Probability
+    int cost;
+    int prob;
     refine_material materials[REFINE_MATERIAL_MAX_NUM];
 };
 
@@ -898,14 +880,11 @@ struct packet_gd_login_by_key {
     char ip[MAX_HOST_LENGTH + 1];
 };
 
-/**
- * @version 05/06/08	Bang2ni - added duration
- */
 struct packet_give_guild_priv {
     uint8_t type;
     int value;
     uint32_t guild_id;
-    int32_t duration_sec; ///< Duration
+    int32_t duration_sec;
 };
 struct packet_give_empire_priv {
     uint8_t type;
@@ -926,15 +905,12 @@ struct packet_dg_change_character_priv {
     uint8_t log;
 };
 
-/**
- * @version 05/06/08	Bang2ni - added duration
- */
 struct packet_dg_change_guild_priv {
     uint8_t type;
     int value;
     uint32_t guild_id;
     uint8_t log;
-    int32_t end_time_sec; ///< Duration
+    int32_t end_time_sec;
 };
 
 struct packet_dg_change_empire_priv {
@@ -1019,7 +995,6 @@ struct packet_gd_guild_war_bet {
     uint32_t guild;
 };
 
-// Marriage
 
 struct packet_marriage_add {
     uint32_t pi_d1;
@@ -1062,24 +1037,21 @@ struct packet_wedding_end {
     uint32_t pi_d2;
 };
 
-/// Header of private shop price info. Variable-size packet; byCount TItemPriceInfo entries follow.
 struct packet_myshop_pricelist_header {
-    uint32_t owner_id; ///< ID of the player owning the price info
-    uint8_t count;    ///< Number of price entries
+    uint32_t owner_id;
+    uint8_t count;
 };
 
-/// Price info for a single item in a private shop
 struct item_price_info {
-    uint32_t vnum;  ///< Item vnum
-    uint32_t price; ///< Price
+    uint32_t vnum;
+    uint32_t price;
 };
 
-/// Private shop item price info list table
 struct item_price_list_table {
-    uint32_t owner_id; ///< ID of the player owning the price info
-    uint8_t count;    ///< Number of entries in the price list
+    uint32_t owner_id;
+    uint8_t count;
 
-    item_price_info price_info[SHOP_PRICELIST_MAX_NUM]; ///< Price info list
+    item_price_info price_info[SHOP_PRICELIST_MAX_NUM];
 };
 
 struct packet_block_chat {
@@ -1087,44 +1059,37 @@ struct packet_block_chat {
     int32_t duration;
 };
 
-// ADMIN_MANAGER
 struct t_admin_info {
-    int id;               // Unique ID
-    char account[32];   // Account
-    char name[32];      // Character name
-    char contact_ip[16]; // Access IP
-    char server_ip[16];  // Server IP
-    int authority;        // Authority
+    int id;
+    char account[32];
+    char name[32];
+    char contact_ip[16];
+    char server_ip[16];
+    int authority;
 };
-// END_ADMIN_MANAGER
 
-// BOOT_LOCALIZATION
 struct t_locale {
     char value[32];
     char key[32];
 };
-// BOOT_LOCALIZATION
 
-// RELOAD_ADMIN
 struct packet_reload_admin {
     char ip[16];
 };
-// END_RELOAD_ADMIN
 
 struct monarch_info {
-    uint32_t pid[4];  // Monarch's PID
-    int64_t money[4]; // Monarch's separate funds
-    char name[4][32]; // Monarch's name
-    char date[4][32]; // Monarch registration date
+    uint32_t pid[4];
+    int64_t money[4];
+    char name[4][32];
+    char date[4][32];
 };
 
 struct monarch_election_info {
-    uint32_t pid;         // PID of the voter
-    uint32_t selectedpid; // PID voted for ( monarch candidate )
-    char date[32];        // Vote date
+    uint32_t pid;
+    uint32_t selectedpid;
+    char date[32];
 };
 
-// Monarch candidate
 struct monarch_candidacy {
     uint32_t pid;
     char name[32];
@@ -1168,14 +1133,12 @@ struct packet_need_login_log_info {
     uint32_t player_id;
 };
 
-// Packet info for testing the German gift notification feature
 struct packet_item_award_infromer {
     char login[LOGIN_MAX_LEN + 1];
-    char command[20];  // Command
-    unsigned int vnum; // Item
+    char command[20];
+    unsigned int vnum;
 };
 
-// Packet info for deleting gift notifications
 struct packet_delete_award_id {
     uint32_t id;
 };

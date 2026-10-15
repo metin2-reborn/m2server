@@ -65,7 +65,7 @@ namespace metin2::game::inline protocol {
 
 static int deposit_limit()
 {
-	return (1000*10000); // 10 million
+	return (1000*10000);
 }
 
 void send_block_chat_info(character * ch, int sec)
@@ -181,10 +181,10 @@ bool spam_block_check(character * ch, const char* const buf, const size_t buflen
 enum
 {
 	TEXT_TAG_PLAIN,
-	TEXT_TAG_TAG, // ||
-	TEXT_TAG_COLOR, // |cffffffff
-	TEXT_TAG_HYPERLINK_START, // |H
-	TEXT_TAG_HYPERLINK_END, // |h ex) |Hitem:1234:1:1:1|h
+	TEXT_TAG_TAG,
+	TEXT_TAG_COLOR,
+	TEXT_TAG_HYPERLINK_START,
+	TEXT_TAG_HYPERLINK_END,
 };
 
 int get_text_tag(const char * src, int max_len, int & tag_len, std::string & extra_info)
@@ -196,22 +196,22 @@ int get_text_tag(const char * src, int max_len, int & tag_len, std::string & ext
 
 	const char * cur = ++src;
 
-	if (*cur == '|') // || is displayed as |.
+	if (*cur == '|')
 	{
 		tag_len = 2;
 		return TEXT_TAG_TAG;
 	}
-	else if (*cur == 'c') // color |cffffffffblahblah|r
+	else if (*cur == 'c')
 	{
 		tag_len = 2;
 		return TEXT_TAG_COLOR;
 	}
-	else if (*cur == 'H') // hyperlink |Hitem:10000:0:0:0:0|h[name]|h
+	else if (*cur == 'H')
 	{
 		tag_len = 2;
 		return TEXT_TAG_HYPERLINK_START;
 	}
-	else if (*cur == 'h') // end of hyperlink
+	else if (*cur == 'h')
 	{
 		tag_len = 2;
 		return TEXT_TAG_HYPERLINK_END;
@@ -244,12 +244,6 @@ void get_text_tag_info(const char * src, int src_len, int & hyperlinks, bool & c
 
 int process_text_tag(character * ch, const char * text, size_t len)
 {
-	//2012.05.17 Kim Yong-uk
-	//0 : used normally
-	//1 : not enough Diamond Sutras
-	//2 : has Diamond Sutra, but it is in use in a private shop
-	//3 : trading
-	//4 : error
 	int hyperlinks;
 	bool colored;
 
@@ -446,18 +440,16 @@ int input_main::whisper(character * ch, const char * data, size_t bytes)
 			if (metin2::config::game().empire_whisper)
 				if (!ch->is_equip_unique_group(UNIQUE_GROUP_RING_OF_LANGUAGE))
 					if (!(pkChr && pkChr->is_equip_unique_group(UNIQUE_GROUP_RING_OF_LANGUAGE)))
-						if (bOpponentEmpire != ch->empire() && ch->empire() && bOpponentEmpire // if the empires differ
-								&& ch->gm_level() == GM_PLAYER && gm_get_level(szNameTo) == GM_PLAYER) // and both are normal players
-							// we only know the name, so use gm_get_level
+						if (bOpponentEmpire != ch->empire() && ch->empire() && bOpponentEmpire
+								&& ch->gm_level() == GM_PLAYER && gm_get_level(szNameTo) == GM_PLAYER)
 						{
 							if (!pkChr)
 							{
-								// They are on another server, so only show the empire. The upper 4 bits of bType hold the empire number.
 								bType = ch->empire() << 4;
 							}
 							else
 							{
-								convert_empire_text(ch->empire(), buf, buflen, 10 + 2 * pkChr->skill_power(SKILL_LANGUAGE1 + ch->empire() - 1)/*conversion probability*/);
+								convert_empire_text(ch->empire(), buf, buflen, 10 + 2 * pkChr->skill_power(SKILL_LANGUAGE1 + ch->empire() - 1) );
 							}
 						}
 
@@ -472,7 +464,7 @@ int input_main::whisper(character * ch, const char * data, size_t bytes)
 					{
 						char buf[128];
 						int len;
-						if (3==processReturn) //trading
+						if (3==processReturn)
 							len = snprintf(buf, sizeof(buf), lc_text("다른 거래중(창고,교환,상점)에는 개인상점을 사용할 수 없습니다."), pTable->locale_name);
 						else
 							len = snprintf(buf, sizeof(buf), lc_text("%s이 필요합니다."), pTable->locale_name);
@@ -480,7 +472,7 @@ int input_main::whisper(character * ch, const char * data, size_t bytes)
 						if (len < 0 || len >= (int) sizeof(buf))
 							len = sizeof(buf) - 1;
 
-						++len;  // includes the \0 character
+						++len;
 
 						packet_gc_whisper pack;
 
@@ -496,7 +488,6 @@ int input_main::whisper(character * ch, const char * data, size_t bytes)
 					}
 				}
 
-				// may be in relay state, so release the relay.
 				pkDesc->set_relay("");
 				return (iExtraLen);
 			}
@@ -513,8 +504,6 @@ int input_main::whisper(character * ch, const char * data, size_t bytes)
 				pack.type = bType;
 				strlcpy(pack.name_from, ch->name(), sizeof(pack.name_from));
 
-				// The reason we write to the buffer instead of desc->BufferedPacket is 
-				// that the packet may be encapsulated by P2P relay.
 				temp_buffer tmpbuf;
 
 				tmpbuf.write(&pack, sizeof(pack));
@@ -585,7 +574,6 @@ struct f_empire_chat_packet
 		}
 		else
 		{
-			// skill levels differ per person, so this must be done every time
 			utf8_strlcpy(converted_msg, orig_msg, sizeof(converted_msg));
 			size_t len = strlen(converted_msg);
 
@@ -632,7 +620,6 @@ int input_main::chat(character * ch, const char * data, size_t bytes)
 		return iExtraLen;
 	}
 
-	// handle the chat-ban affect
 	const affect* pAffect = ch->find_affect(AFFECT_BLOCK_CHAT);
 
 	if (pAffect != nullptr)
@@ -651,10 +638,9 @@ int input_main::chat(character * ch, const char * data, size_t bytes)
 
 	if (CHAT_TYPE_SHOUT == pinfo->type)
 	{
-		log_manager::instance().shout_log(metin2::config::server().channel, ch->empire(), chatbuf); // unfiltered, for moderation
+		log_manager::instance().shout_log(metin2::config::server().channel, ch->empire(), chatbuf);
 	}
 
-	// filter the text and rebuild the line (filtering only buf after formatting had no effect)
 	banword_manager::instance().convert_string(buf, buflen);
 	len = snprintf(chatbuf, sizeof(chatbuf), "%s : %s", ch->name(), buf);
 
@@ -668,7 +654,7 @@ int input_main::chat(character * ch, const char * data, size_t bytes)
 
 		if (nullptr != pTable)
 		{
-			if (3==processReturn) //trading
+			if (3==processReturn)
 				ch->chat_packet(CHAT_TYPE_INFO, lc_text("다른 거래중(창고,교환,상점)에는 개인상점을 사용할 수 없습니다."), pTable->locale_name);
 			else
 				ch->chat_packet(CHAT_TYPE_INFO, lc_text("%s이 필요합니다."), pTable->locale_name);
@@ -779,12 +765,9 @@ void input_main::item_drop(character * ch, const char * data)
 {
 	struct packet_cg_item_drop * pinfo = (struct packet_cg_item_drop *) data;
 
-	//MONARCH_LIMIT
-	//END_MONARCH_LIMIT
 	if (!ch)
 		return;
 
-	// if elk (gold) is greater than 0, the gold is being dropped.
 	if (pinfo->gold > 0)
 		ch->drop_gold(pinfo->gold);
 	else
@@ -793,12 +776,9 @@ void input_main::item_drop(character * ch, const char * data)
 
 void input_main::item_drop2(character * ch, const char * data)
 {
-	//MONARCH_LIMIT
-	//END_MONARCH_LIMIT
 
 	packet_cg_item_drop2 * pinfo = (packet_cg_item_drop2 *) data;
 
-	// if elk (gold) is greater than 0, the gold is being dropped.
 
 	if (!ch)
 		return;
@@ -884,7 +864,7 @@ int input_main::messenger(character * ch, const char* data, size_t bytes)
 					return sizeof(packet_cg_messenger_add_by_vid);
 				}
 
-				if (ch->get_desc() == d) // cannot add yourself.
+				if (ch->get_desc() == d)
 					return sizeof(packet_cg_messenger_add_by_vid);
 
 				messenger_manager::instance().request_to_add(ch, ch_companion);
@@ -910,7 +890,7 @@ int input_main::messenger(character * ch, const char* data, size_t bytes)
 					ch->chat_packet(CHAT_TYPE_INFO, lc_text("%s 님은 접속되 있지 않습니다."), name.c_str());
 				else
 				{
-					if (tch == ch) // cannot add yourself.
+					if (tch == ch)
 						return CHARACTER_NAME_MAX_LEN;
 
 					if (tch->is_block_mode(BLOCK_MESSENGER_INVITE) == true)
@@ -919,7 +899,6 @@ int input_main::messenger(character * ch, const char* data, size_t bytes)
 					}
 					else
 					{
-						// changed since the messenger became per-character
 						messenger_manager::instance().request_to_add(ch, tch);
 					}
 				}
@@ -1055,12 +1034,11 @@ void input_main::exchange(character * ch, const char * data)
 
 	switch (pinfo->sub_header)
 	{
-		case EXCHANGE_SUBHEADER_CG_START:	// arg1 == vid of target character
+		case EXCHANGE_SUBHEADER_CG_START:
 			if (!ch->get_exchange())
 			{
 				if ((to_ch = character_manager::instance().find(pinfo->arg1)))
 				{
-					//MONARCH_LIMIT
 					if (iPulse - ch->safebox_load_time() < passes_per_sec(portal_limit_time))
 					{
 						ch->chat_packet(CHAT_TYPE_INFO, lc_text("창고를 연후 %d초 이내에는 거래를 할수 없습니다."), portal_limit_time);
@@ -1107,7 +1085,7 @@ void input_main::exchange(character * ch, const char * data)
 			}
 			break;
 
-		case EXCHANGE_SUBHEADER_CG_ITEM_ADD:	// arg1 == position of item, arg2 == position in exchange window
+		case EXCHANGE_SUBHEADER_CG_ITEM_ADD:
 			if (ch->get_exchange())
 			{
 				if (ch->get_exchange()->company()->accept_status() != true)
@@ -1115,7 +1093,7 @@ void input_main::exchange(character * ch, const char * data)
 			}
 			break;
 
-		case EXCHANGE_SUBHEADER_CG_ITEM_DEL:	// arg1 == position of item
+		case EXCHANGE_SUBHEADER_CG_ITEM_DEL:
 			if (ch->get_exchange())
 			{
 				if (ch->get_exchange()->company()->accept_status() != true)
@@ -1123,7 +1101,7 @@ void input_main::exchange(character * ch, const char * data)
 			}
 			break;
 
-		case EXCHANGE_SUBHEADER_CG_ELK_ADD:	// arg1 == amount of gold
+		case EXCHANGE_SUBHEADER_CG_ELK_ADD:
 			if (ch->get_exchange())
 			{
 				const int64_t nTotalGold = static_cast<int64_t>(ch->get_exchange()->company()->owner()->gold()) + static_cast<int64_t>(pinfo->arg1);
@@ -1145,7 +1123,7 @@ void input_main::exchange(character * ch, const char * data)
 			}
 			break;
 
-		case EXCHANGE_SUBHEADER_CG_ACCEPT:	// arg1 == not used
+		case EXCHANGE_SUBHEADER_CG_ACCEPT:
 			if (ch->get_exchange())
 			{
 				metin2::log::info( "CInputMain()::Exchange() ==> ACCEPT "); 
@@ -1154,7 +1132,7 @@ void input_main::exchange(character * ch, const char * data)
 
 			break;
 
-		case EXCHANGE_SUBHEADER_CG_CANCEL:	// arg1 == not used
+		case EXCHANGE_SUBHEADER_CG_CANCEL:
 			if (ch->get_exchange())
 				ch->get_exchange()->cancel();
 			break;
@@ -1183,17 +1161,16 @@ void input_main::position(character * ch, const char * data)
 
 static const int combo_sequence_by_skill_level[3][8] = 
 {
-	// 0   1   2   3   4   5   6   7
 	{ 14, 15, 16, 17,  0,  0,  0,  0 },
 	{ 14, 15, 16, 18, 20,  0,  0,  0 },
 	{ 14, 15, 16, 18, 19, 17,  0,  0 },
 };
 
-constexpr int COMBO_HACK_ALLOWABLE_MS = 100; // [2013 09 11 CYH]
+constexpr int COMBO_HACK_ALLOWABLE_MS = 100;
 uint32_t clac_valid_combo_interval( character * ch, uint8_t arg )
 {
 	int nInterval = 300;
-	float fAdjustNum = 1.5f; // to prevent normal users from being caught by the speed hack check. 2013.09.10 CYH
+	float fAdjustNum = 1.5f;
 
 	if( !ch )
 	{
@@ -1224,47 +1201,20 @@ uint32_t clac_valid_combo_interval( character * ch, uint8_t arg )
 
 bool check_combo_hack(character * ch, uint8_t arg, uint32_t time, bool check_speed_hack)
 {
-	//	cannot attack while dead or stunned, so skip.
-	//	instead of this, adding it to CHRACTER::CanMove() 
-	//	seems like the right thing, but
-	//	other code already checks CanMove() independently of IsStun() and IsDead(),
-	//	so to minimize the impact of the change
-	//	this band-aid code is written here.
 	if (ch->is_stun() || ch->is_dead())
 		return false;
 	int ComboInterval = time - ch->last_combo_time();
-	int HackScalar = 0; // base scalar unit 1
+	int HackScalar = 0;
 
-	// [2013 09 11 CYH] debugging log
-		/*metin2::log::info( "COMBO_TEST_LOG: {} arg:{:d} interval:{:d} valid:{:d} atkspd:{:d} riding:{}",
-						ch->GetName(),
-						bArg,
-						ComboInterval,
-						ch->GetValidComboInterval(),
-						ch->GetPoint(POINT_ATT_SPEED),
-						ch->IsRiding() ? "yes" : "no");*/
 
-	// bArg 14 ~ 21, up to 8 combos in total
-	// 1. the first combo (14) can repeat after a certain time
-	// 2. 15 ~ 21 cannot repeat
-	// 3. they increase in order.
 	if (arg == 14)
 	{
 		if (check_speed_hack && ComboInterval > 0 && ComboInterval < ch->valid_combo_interval() - COMBO_HACK_ALLOWABLE_MS)
 		{
-			// FIXME the first combo can oddly arrive early, so divided by 300 -_-;
-			// when attacking while being knocked down by many monsters
-			// the first combo arrives at a very short interval.
-			// this sometimes caused disconnects for combo hack, so the following code is disabled.
 
-			//sys_log(0, "COMBO_HACK: 2 %s arg:%u interval:%d valid:%u atkspd:%u riding:%s",
-			//		ch->GetName(),
-			//		bArg,
-			//		ComboInterval,
 		}
 
 		ch->set_combo_sequence(1);
-		// 2013 09 11 CYH edited
 		ch->set_valid_combo_interval( clac_valid_combo_interval(ch, arg) );
 		ch->set_last_combo_time(time);
 	}
@@ -1272,13 +1222,12 @@ bool check_combo_hack(character * ch, uint8_t arg, uint32_t time, bool check_spe
 	{
 		int idx = std::min<int>(2, ch->combo_index());
 
-		if (ch->combo_sequence() > 5) // currently there are no combos above 6.
+		if (ch->combo_sequence() > 5)
 		{
 			HackScalar = 1;
 			ch->set_valid_combo_interval(300);
 			metin2::log::info( "COMBO_HACK: 5 {} combo_seq:{:d}", ch->name(), ch->combo_sequence());
 		}
-		// assassin dual-wield combo exception
 		else if (arg == 21 &&
 				 idx == 2 &&
 				 ch->combo_sequence() == 5 &&
@@ -1313,66 +1262,38 @@ bool check_combo_hack(character * ch, uint8_t arg, uint32_t time, bool check_spe
 						ch->is_riding() ? "yes" : "no");
 			}
 
-			// when riding a horse, 15 ~ 16 repeat
-			//if (ch->IsHorseRiding())
 			if (ch->is_riding())
 				ch->set_combo_sequence(ch->combo_sequence() == 1 ? 2 : 1);
 			else
 				ch->set_combo_sequence(ch->combo_sequence() + 1);
 
-			// 2013 09 11 CYH edited
 			ch->set_valid_combo_interval( clac_valid_combo_interval(ch, arg) );
 			ch->set_last_combo_time(time);
 		}
 	}
-	else if (arg == 13) // basic attack (sent while polymorphed)
+	else if (arg == 13)
 	{
 		if (check_speed_hack && ComboInterval > 0 && ComboInterval < ch->valid_combo_interval() - COMBO_HACK_ALLOWABLE_MS)
 		{
-			// when attacking while being knocked down by many monsters
-			// the first combo arrives at a very short interval.
-			// this sometimes caused disconnects for combo hack, so the following code is disabled.
 
-			//sys_log(0, "COMBO_HACK: 6 %s arg:%u interval:%d valid:%u atkspd:%u",
-			//		ch->GetName(),
-			//		bArg,
-			//		ComboInterval,
 		}
 
 		if (ch->race_num() >= MAIN_RACE_MAX_NUM)
 		{
-			// POLYMORPH_BUG_FIX
 
-			// DELETEME
 
-			// 2013 09 11 CYH edited
 			ch->set_valid_combo_interval( clac_valid_combo_interval(ch, arg) );
 			ch->set_last_combo_time(time);
-			// END_OF_POLYMORPH_BUG_FIX
 		}
 		else
 		{
-			// a nonsensical combo arrived - possibly a hacker?
 
-			// because of the code above, attacking while polymorph is being removed
-			// is sometimes detected as a hack.
 
-			// in detail,
-			// the server has processed poly 0, but
-			// before the client receives that packet, it attacks a mob. <- i.e. attacks while still in mob form.
-			//
-			// then the client sends the server a command saying it attacked in mob form (arg == 13)
-			//
-			// and the server says "race is human but the attack type is a mob's!" and flags a hack.
 
-			// really, the attack pattern should not be decided by the client and sent,
-			// it should be decided by the server... why was it done like this...
-			// by rtsummit
 		}
 	}
 	else
 	{
-		// a nonsensical combo arrived - possibly a hacker?
 		if (ch->get_desc()->delayed_disconnect(number(2, 9)))
 		{
 			log_manager::instance().hack_log("Hacker", ch);
@@ -1385,7 +1306,6 @@ bool check_combo_hack(character * ch, uint8_t arg, uint32_t time, bool check_spe
 
 	if (HackScalar)
 	{
-		// for 1.5 seconds after mounting or dismounting a horse, attacks are not treated as hacks but deal no damage
 		if (get_dword_time() - ch->last_mount_time() > 1500)
 			ch->increase_combo_hack_count(1 + HackScalar);
 
@@ -1408,18 +1328,8 @@ void input_main::move(character * ch, const char * data)
 		return;
 	}
 
-	//enum EMoveFuncType
-	//	FUNC_WAIT,
-	//	FUNC_MOVE,
-	//	FUNC_ATTACK,
-	//	FUNC_COMBO,
-	//	FUNC_MOB_SKILL,
-	//	_FUNC_SKILL,
-	//	FUNC_MAX_NUM,
 
-	// teleport hack check
 
-//	if (!test_server)	//2012.05.15 Kim Yong-uk : on the test server, attacking while being knocked down by many monsters (while invincible) caused deaths from the combo hack check.
 	{
 		const float fDist = distance_sqrt((ch->x() - pinfo->x) / 100, (ch->y() - pinfo->y) / 100);
 
@@ -1433,11 +1343,7 @@ void input_main::move(character * ch, const char * data)
 			return;
 		}
 
-		//
-		// speed hack (SPEEDHACK) check
-		//
 		uint32_t dwCurTime = get_dword_time();
-		// check starting 7 seconds after time sync. (was 5 seconds before 20090702)
 		bool CheckSpeedHack = (false == ch->get_desc()->is_handshaking() && dwCurTime - ch->get_desc()->client_time() > 7000);
 
 		if (CheckSpeedHack)
@@ -1447,24 +1353,19 @@ void input_main::move(character * ch, const char * data)
 
 			iDelta = (int) (dwCurTime - pinfo->time);
 
-			// time is running slow. just log it for now. need to check whether many people actually do this. TODO
 			if (iDelta >= 30000)
 			{
 				metin2::log::info( "SPEEDHACK: slow timer name {} delta {:d}", ch->name(), iDelta);
 			}
-			// running up to 20 msec fast per second is tolerated.
 			else if (iDelta < -(iServerDelta / 50))
 			{
 				metin2::log::info( "SPEEDHACK: DETECTED! {} (delta {:d} {:d})", ch->name(), iDelta, iServerDelta);
 			}
 		}
 
-		//
-		// combo hack and speed hack check
-		//
 		if (pinfo->func == FUNC_COMBO && metin2::config::game().anti_cheat.check_multihack)
 		{
-			check_combo_hack(ch, pinfo->arg, pinfo->time, CheckSpeedHack); // combo check
+			check_combo_hack(ch, pinfo->arg, pinfo->time, CheckSpeedHack);
 		}
 	}
 
@@ -1473,8 +1374,8 @@ void input_main::move(character * ch, const char * data)
 		if (ch->limit_point(POINT_MOV_SPEED) == 0)
 			return;
 
-		ch->set_rotation(pinfo->rot * 5);	// duplicate code
-		ch->reset_stop_time();				// ""
+		ch->set_rotation(pinfo->rot * 5);
+		ch->reset_stop_time();
 
 		ch->go_to(pinfo->x, pinfo->y);
 	}
@@ -1512,8 +1413,8 @@ void input_main::move(character * ch, const char * data)
 			ch->on_move();
 		}
 
-		ch->set_rotation(pinfo->rot * 5);	// duplicate code
-		ch->reset_stop_time();				// ""
+		ch->set_rotation(pinfo->rot * 5);
+		ch->reset_stop_time();
 
 		ch->move(pinfo->x, pinfo->y);
 		ch->stop();
@@ -1533,17 +1434,6 @@ void input_main::move(character * ch, const char * data)
 	pack.duration   = (pinfo->func == FUNC_MOVE) ? ch->current_move_duration() : 0;
 
 	ch->packet_around(&pack, sizeof(packet_gc_move), ch);
-	/*
-	metin2::log::info( 
-			"MOVE: {} Func:{:d} Arg:{:d} Pos:{:d}x{:d} Time:{:d} Dist:{:.1f}",
-			ch->GetName(),
-			pinfo->bFunc,
-			pinfo->bArg,
-			pinfo->lX / 100,
-			pinfo->lY / 100,
-			pinfo->dwTime,
-			fDist);
-	*/
 }
 
 void input_main::attack(character * ch, const uint8_t header, const char* data)
@@ -1697,20 +1587,13 @@ int input_main::sync_position(character * ch, const char * pc_data, size_t bytes
 				continue;
 		}
 
-		// ownership check
 		if (!victim->set_sync_owner(ch))
 			continue;
 
 		const float fDistWithSyncOwner = distance_sqrt( (victim->x() - ch->x()) / 100, (victim->y() - ch->y()) / 100 );
 		static const float fLimitDistWithSyncOwner = 2500.f + 1000.f;
-		// if the distance to the victim is 2500 + a or more, treat it as a hack.
-		//	distance reference: client functions __GetSkillTargetRange, __GetBowRange
-		//	2500 : range of the longest-range skill in skill proto, or bow range
-		//	a = POINT_BOW_DISTANCE value... not sure if it is actually used. not on any item, potion, skill or quest...
-		//		still, just in case, set to 1000.f to also serve as a buffer...
 		if (fDistWithSyncOwner > fLimitDistWithSyncOwner)
 		{
-			// tolerate up to g_iSyncHackLimitCount times.
 			if (ch->sync_hack_count() < metin2::config::game().anti_cheat.sync_hack_limit)
 			{
 				ch->set_sync_hack_count(ch->sync_hack_count() + 1);
@@ -1731,15 +1614,12 @@ int input_main::sync_position(character * ch, const char * pc_data, size_t bytes
 		}
 
 		const float fDist = distance_sqrt( (victim->x() - e->x) / 100, (victim->y() - e->y) / 100 );
-		static const int32_t g_lValidSyncInterval = 50 * 1000; // 100ms -> 50ms 2013 09 11 CYH
+		static const int32_t g_lValidSyncInterval = 50 * 1000;
 		const timeval &tvLastSyncTime = victim->last_sync_time();
 		const int64_t elapsed_usec = (static_cast<int64_t>(tvCurTime.tv_sec) - tvLastSyncTime.tv_sec) * 1000000 + (tvCurTime.tv_usec - tvLastSyncTime.tv_usec);
 
-		// to defend against hacks that abuse SyncPosition to send other users to strange places,
-		// trying to SyncPosition the same user again within g_lValidSyncInterval ms is treated as a hack.
 		if (elapsed_usec < g_lValidSyncInterval)
 		{
-			// tolerate up to g_iSyncHackLimitCount times.
 			if (ch->sync_hack_count() < metin2::config::game().anti_cheat.sync_hack_limit)
 			{
 				ch->set_sync_hack_count(ch->sync_hack_count() + 1);
@@ -1830,24 +1710,22 @@ void input_main::script_answer(character * ch, const void* data)
 	packet_cg_script_answer * p = (packet_cg_script_answer *) data;
 	metin2::log::info( "QUEST ScriptAnswer pid {:d} answer {:d}", ch->player_id(), p->answer);
 
-	if (p->answer > 250) // packet sent in response to the Next button
+	if (p->answer > 250)
 	{
 		quest::quest_manager::instance().resume(ch->player_id());
 	}
-	else // packet sent after picking a choice button
+	else
 	{
 		quest::quest_manager::instance().select(ch->player_id(),  p->answer);
 	}
 }
 
-// SCRIPT_SELECT_ITEM
 void input_main::script_select_item(character * ch, const void* data)
 {
 	packet_cg_script_select_item* p = (packet_cg_script_select_item*) data;
 	metin2::log::info( "QUEST ScriptSelectItem pid {:d} answer {:d}", ch->player_id(), p->selection);
 	quest::quest_manager::instance().select_item(ch->player_id(), p->selection);
 }
-// END_OF_SCRIPT_SELECT_ITEM
 
 void input_main::quest_input_string(character * ch, const void* data)
 {
@@ -1913,7 +1791,7 @@ void input_main::safebox_checkin(character * ch, const char * data)
 	if (pkItem->is_exchanging())
 		return;
 
-	if (pkItem->type() == ITEM_BELT && pkItem->is_equipped()) // Fix
+	if (pkItem->type() == ITEM_BELT && pkItem->is_equipped())
 		return;
 
 	if (pkItem->cell() >= INVENTORY_MAX_NUM && is_set(pkItem->flag(), ITEM_FLAG_IRREMOVABLE))
@@ -1981,13 +1859,9 @@ void input_main::safebox_checkout(character * ch, const char * data, bool mall_v
 	if (!ch->is_empty_item_grid(p->item_pos, pkItem->size()))
 		return;
 
-	// Same rule as CHARACTER::MoveItem: only some item types may go into the belt inventory.
 	if (INVENTORY == p->item_pos.window_type && p->item_pos.is_belt_inventory_position() && !belt_inventory_helper::can_move_into_belt_inventory(pkItem))
 		return;
 
-	// special handling for dragon soul stones when moving from the item mall to the inventory
-	// (items created in the mall get attributes as defined in item_proto,
-	//  so without this handling dragon soul stones would get no attributes at all.)
 	if (pkItem->is_dragon_soul())
 	{
 		if (mall_value)
@@ -2033,7 +1907,6 @@ void input_main::safebox_checkout(character * ch, const char * data, bool mall_v
 				metin2::log::error("pkItem->GetProto() == NULL (id : {:d})",pkItem->id());
 				return ;
 			}
-			// if attributes should be attached with 100% probability but aren't, attach them anew. ...............
 			if (100 == pkItem->proto()->alter_to_magic_item_pct && 0 == pkItem->attribute_count())
 			{
 				pkItem->alter_to_magic_item();
@@ -2068,7 +1941,6 @@ void input_main::safebox_item_move(character * ch, const char * data)
 	ch->get_safebox()->move_item(pinfo->cell.cell, pinfo->cell_to.cell, pinfo->count);
 }
 
-// PARTY_JOIN_BUG_FIX
 void input_main::party_invite(character * ch, const char * data)
 {
 	if (ch->get_arena())
@@ -2102,7 +1974,6 @@ void input_main::party_invite_answer(character * ch, const char * data)
 
 	character * pInviter = character_manager::instance().find(p->leader_vid);
 
-	// pInviter had sent a party request to ch.
 
 	if (!pInviter)
 		ch->chat_packet(CHAT_TYPE_INFO, lc_text("<파티> 파티요청을 한 캐릭터를 찾을수 없습니다."));
@@ -2111,7 +1982,6 @@ void input_main::party_invite_answer(character * ch, const char * data)
 	else
 		pInviter->party_invite_accept(ch);
 }
-// END_OF_PARTY_JOIN_BUG_FIX
 
 void input_main::party_set_state(character * ch, const char* data)
 {
@@ -2161,8 +2031,6 @@ void input_main::party_set_state(character * ch, const char* data)
 				pack.flag = p->flag;
 				db_clientdesc->db_packet(HEADER_GD_PARTY_STATE_CHANGE, 0, &pack, sizeof(pack));
 			}
-			/* else
-			   ch->ChatPacket(CHAT_TYPE_INFO, LC_TEXT("<파티> 어태커 설정에 실패하였습니다.")); */
 			break;
 
 		default:
@@ -2205,10 +2073,8 @@ void input_main::party_remove(character * ch, const char* data)
 		}
 		else
 		{
-			// leader can remove any member
 			if (p->pid == ch->player_id() || pParty->member_count() == 2)
 			{
-				// party disband
 				party_manager::instance().delete_party(pParty);
 			}
 			else
@@ -2224,7 +2090,6 @@ void input_main::party_remove(character * ch, const char* data)
 	}
 	else
 	{
-		// otherwise, only remove itself
 		if (p->pid == ch->player_id())
 		{
 			if (ch->get_dungeon())
@@ -2235,7 +2100,6 @@ void input_main::party_remove(character * ch, const char* data)
 			{
 				if (pParty->member_count() == 2)
 				{
-					// party disband
 					party_manager::instance().delete_party(pParty);
 				}
 				else
@@ -2256,7 +2120,6 @@ void input_main::answer_make_guild(character * ch, const char* data)
 {
 	packet_cg_answer_make_guild* p = (packet_cg_answer_make_guild*) data;
 
-	// Only an answer to the guild NPC's request counts, and only once.
 	const uint32_t dwKey = ch->guild_creation_key();
 	ch->set_guild_creation_key(0);
 
@@ -2266,7 +2129,6 @@ void input_main::answer_make_guild(character * ch, const char* data)
 		return;
 	}
 
-	// The quest asks for the same.
 	if (ch->level() < 40 || ch->gold() < 200000)
 		return;
 
@@ -2420,7 +2282,6 @@ int input_main::guild(character * ch, const char * data, size_t bytes)
 	{
 		case GUILD_SUBHEADER_CG_DEPOSIT_MONEY:
 			{
-				// by mhh : guild funds cannot be deposited for the time being.
 				return SubPacketLen;
 
 				const int gold = std::min(*reinterpret_cast<const int*>(c_pData), deposit_limit());
@@ -2443,7 +2304,6 @@ int input_main::guild(character * ch, const char * data, size_t bytes)
 
 		case GUILD_SUBHEADER_CG_WITHDRAW_MONEY:
 			{
-				// by mhh : guild funds cannot be withdrawn for the time being.
 				return SubPacketLen;
 
 				const int gold = std::min(*reinterpret_cast<const int*>(c_pData), 500000);
@@ -2462,8 +2322,7 @@ int input_main::guild(character * ch, const char * data, size_t bytes)
 				const uint32_t vid = *reinterpret_cast<const uint32_t*>(c_pData);
 				character * newmember = character_manager::instance().find(vid);
 
-				// if (!newmember)
-				if (!newmember || !newmember->is_pc()) // Fix
+				if (!newmember || !newmember->is_pc())
 				{
 					ch->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> 그러한 사람을 찾을 수 없습니다."));
 					return SubPacketLen;
@@ -2626,7 +2485,6 @@ int input_main::guild(character * ch, const char * data, size_t bytes)
 
 				if (length > GUILD_COMMENT_MAX_LEN)
 				{
-					// invalid length.. disconnect.
 					metin2::log::error("POST_COMMENT: {} comment too long (length: {:d})", ch->name(), length);
 					ch->get_desc()->set_phase(PHASE_CLOSE);
 					return -1;
@@ -2768,7 +2626,6 @@ void input_main::hack(character * ch, const char * data)
 
 	metin2::log::error("HACK_DETECT: {} {}", ch->name(), buf);
 
-	// the client currently never sends this packet, so always disconnect
 	ch->get_desc()->set_phase(PHASE_CLOSE);
 }
 
@@ -2817,7 +2674,6 @@ void input_main::refine(character * ch, const char* data)
 
 	if (p->type == 255)
 	{
-		// DoRefine Cancel
 		ch->clear_refine_mode();
 		return;
 	}
@@ -2949,7 +2805,7 @@ int input_main::analyze(desc * d, uint8_t header, const char * data)
 				int version_value = atoi(client_version.c_str());
 				int date	= atoi(d->client_version());
 
-				if (version_value != date) // Fix
+				if (version_value != date)
 				{
 					ch->chat_packet(CHAT_TYPE_NOTICE, lc_text("클라이언트 버전이 틀려 로그아웃 됩니다. 정상적으로 패치 후 접속하세요."));
 					d->delayed_disconnect(10);
@@ -3057,11 +2913,9 @@ int input_main::analyze(desc * d, uint8_t header, const char * data)
 			script_button(ch, data);
 			break;
 
-			// SCRIPT_SELECT_ITEM
 		case HEADER_CG_SCRIPT_SELECT_ITEM:
 			script_select_item(ch, data);
 			break;
-			// END_OF_SCRIPT_SELECT_ITEM
 
 		case HEADER_CG_SCRIPT_ANSWER:
 			script_answer(ch, data);

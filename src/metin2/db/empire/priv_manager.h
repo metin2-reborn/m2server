@@ -1,4 +1,3 @@
-// vim: ts=8 sw=4
 #pragma once
 
 #include <metin2/db/clients/peer.h>
@@ -22,29 +21,22 @@ struct priv_empire_data {
     bool removed;
     uint8_t empire;
 
-    // ADD_EMPIRE_PRIV_TIME
     time_t end_time_sec;
 
     priv_empire_data(uint8_t type, int value, uint8_t empire, time_t end_time_sec)
         : type(type), value(value), removed(false), empire(empire), end_time_sec(end_time_sec) {}
-    // END_OF_ADD_EMPIRE_PRIV_TIME
 };
 
-/**
- * @version 05/06/08	Bang2ni - added duration
- */
 struct priv_guild_data {
     uint8_t type;
     int value;
     bool removed;
     uint32_t guild_id;
 
-    // ADD_GUILD_PRIV_TIME
-    time_t end_time_sec; ///< Duration
+    time_t end_time_sec;
 
     priv_guild_data(uint8_t type, int value, uint32_t guild_id, time_t end_time_sec_value)
         : type(type), value(value), removed(false), guild_id(guild_id), end_time_sec(end_time_sec_value) {}
-    // END_OF_ADD_GUILD_PRIV_TIME
 };
 
 struct priv_char_data {
@@ -56,21 +48,14 @@ struct priv_char_data {
         : type(type), value(value), removed(false), pid(pid) {}
 };
 
-/**
- * @version 05/06/08	Bang2ni - added duration to Guild privilege functions
- */
 class priv_manager : public singleton<priv_manager> {
   public:
     priv_manager();
     ~priv_manager() override;
 
-    // ADD_GUILD_PRIV_TIME
     void add_guild_priv(uint32_t guild_id, uint8_t type, int value, time_t duration_sec);
-    // END_OF_ADD_GUILD_PRIV_TIME
 
-    // ADD_EMPIRE_PRIV_TIME
     void add_empire_priv(uint8_t empire, uint8_t type, int value, time_t duration_sec);
-    // END_OF_ADD_EMPIRE_PRIV_TIME
 
     void add_char_priv(uint32_t pid, uint8_t type, int value);
 
@@ -79,13 +64,9 @@ class priv_manager : public singleton<priv_manager> {
     void send_priv_on_setup(peer *peer);
 
   private:
-    // ADD_GUILD_PRIV_TIME
     void send_change_guild_priv(uint32_t guild_id, uint8_t type, int value, time_t end_time_sec);
-    // END_OF_ADD_GUILD_PRIV_TIME
 
-    // ADD_EMPIRE_PRIV_TIME
     void send_change_empire_priv(uint8_t empire, uint8_t type, int value, time_t end_time_sec);
-    // END_OF_ADD_EMPIRE_PRIV_TIME
 
     void send_change_char_priv(uint32_t pid, uint8_t type, int value);
 

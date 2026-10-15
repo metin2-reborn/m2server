@@ -32,13 +32,6 @@ EVENTINFO(petsystem_event_info)
 	game::characters::pet_system* pet_system;
 };
 
-// event that updates the PetSystem.
-// Unlike existing characters, which CHRACTER_MANAGER updates through the FSM, the PetSystem
-// is updated by _UpdateFollowAI when the owner's STATE is updated.
-// But since the owner's state is updated by CHRACTER_MANAGER,
-// a problem occurred when a pet was unsummoned while updating the petsystem.
-// (when updated from CHRACTER_MANAGER, character destroy is pending, so CPetSystem ends up holding a dangling pointer.)
-// so an event that updates only the PetSystem is raised.
 EVENTFUNC(petsystem_update_event)
 {
 	petsystem_event_info* info = dynamic_cast<petsystem_event_info*>( event->info );
@@ -55,16 +48,10 @@ EVENTFUNC(petsystem_update_event)
 
 	
 	pPetSystem->update(0);
-	// refresh every 0.25 seconds.
 	return passes_per_sec(1) / 4;
 }
 
-/// NOTE: limit on how many pets one character can have... if it should differ per character, make it a variable... hmm..
-/// the number you can own and the number you can summon at once may differ, but there's no design for that so ignore it for now
 
-///////////////////////////////////////////////////////////////////////////////////////
-//  CPetActor
-///////////////////////////////////////////////////////////////////////////////////////
 
 pet_actor::pet_actor(character * owner, uint32_t vnum, uint32_t options)
 {
@@ -111,7 +98,6 @@ void pet_actor::unsummon()
 {
 	if (true == this->is_summoned())
 	{
-		// remove buff
 		this->clear_buff();
 		this->set_summon_item(nullptr);
 		if (nullptr != owner_)
@@ -164,14 +150,12 @@ uint32_t pet_actor::summon(const char* pet_name, item * summon_item, bool spawn_
 
 	character_->set_pet();
 
-	//set the pet's empire to the owner's empire.
 	character_->set_empire(owner_->empire());
 
 	vid_ = character_->get_vid();
 
 	this->set_name(pet_name);
 
-	// calling ComputePoints after SetSummonItem(pSummonItem) applies the buff.
 	this->set_summon_item(summon_item);
 	owner_->compute_points();
 	character_->show(owner_->map_index(), x, y, z);
@@ -179,7 +163,6 @@ uint32_t pet_actor::summon(const char* pet_name, item * summon_item, bool spawn_
 	return vid_;
 }
 
-// just copy-pasted the StateHorse function from char_state.cpp -_-;
 bool pet_actor::update_follow_ai()
 {
 	if (nullptr == character_->mob_data)
@@ -187,9 +170,6 @@ bool pet_actor::update_follow_ai()
 		return false;
 	}
 	
-	// NOTE: we need the character's (pet's) original move speed; it could be read directly from m_pkChar->m_pkMobData->m_table.sMovingSpeed, but
-	// m_pkChar->m_pkMobData is often invalid. Due to time constraints the cause will be investigated later; for now m_pkChar->m_pkMobData is not used at all.
-	// the reason for checking every time here is that sometimes the correct value isn't obtained at initial initialization.. -_-;; TTTTTTTTT
 	if (0 == original_move_speed_)
 	{
 		const mob* mobData = mob_manager::instance().get(vnum_);
@@ -197,13 +177,13 @@ bool pet_actor::update_follow_ai()
 		if (nullptr != mobData)
 			original_move_speed_ = mobData->table.s_moving_speed;
 	}
-	float	START_FOLLOW_DISTANCE = 300.0f;		// start following when farther than this distance
-	float	START_RUN_DISTANCE = 900.0f;		// run to follow when farther than this distance.
+	float	START_FOLLOW_DISTANCE = 300.0f;
+	float	START_RUN_DISTANCE = 900.0f;
 
-	float	RESPAWN_DISTANCE = 4500.f;			// summon next to the owner when farther than this distance.
-	int		APPROACH = 200;						// approach distance
+	float	RESPAWN_DISTANCE = 4500.f;
+	int		APPROACH = 200;
 
-	bool bRun = false;							// should it run?
+	bool bRun = false;
 
 	uint32_t currentTime = get_dword_time();
 
@@ -231,13 +211,12 @@ bool pet_actor::update_follow_ai()
 			bRun = true;
 		}
 
-		character_->set_now_walking(!bRun);		// NOTE: from the function name I thought it stopped, but SetNowWalking(false) means running.. -_-;
+		character_->set_now_walking(!bRun);
 		
 		follow(APPROACH);
 
 		character_->set_last_attacked(currentTime);
 	}
-	// following, but stop once within a certain distance of the owner
 	else 
 		character_->send_move_packet(FUNC_WAIT, 0, 0, 0, 0);
 
@@ -248,8 +227,6 @@ bool pet_actor::update(uint32_t delta_time)
 {
 	bool bResult = true;
 
-	// remove the pet if its owner died or the summoned pet's state is abnormal. (NOTE: occasionally a summoned pet falls into DEAD state for various reasons -_-;)
-	// remove the pet if the item that summoned it is gone or no longer owned by me.
 	if (owner_->is_dead() || (is_summoned() && character_->is_dead()) 
 		|| nullptr == item_manager::instance().find_by_vid(this->summon_item_vid())
 		|| item_manager::instance().find_by_vid(this->summon_item_vid())->owner() != this->owner()
@@ -265,10 +242,8 @@ bool pet_actor::update(uint32_t delta_time)
 	return bResult;
 }
 
-//NOTE : careful!!! if MinDistance is large, it won't follow while the displacement is within that amount,
 bool pet_actor::follow(float min_distance)
 {
-	// must face the position it is moving to.
 	if( !owner_ || !character_) 
 		return false;
 
@@ -312,7 +287,6 @@ void pet_actor::set_summon_item (item * item_value)
 
 void pet_actor::give_buff()
 {
-	// Pahwang pet buff only occurs in dungeons.
 	if (34004 == vnum_ || 34009 == vnum_)
 	{
 		if (nullptr == owner_->get_dungeon())
@@ -343,9 +317,6 @@ void pet_actor::clear_buff()
 	return ;
 }
 
-///////////////////////////////////////////////////////////////////////////////////////
-//  CPetSystem
-///////////////////////////////////////////////////////////////////////////////////////
 
 pet_system::pet_system(character * owner)
 {
@@ -376,15 +347,12 @@ void pet_system::destroy()
 	pet_actor_map_.clear();
 }
 
-/// pet system update. handles AI etc. of registered pets.
 bool pet_system::update(uint32_t delta_time)
 {
 	bool bResult = true;
 
 	uint32_t currentTime = get_dword_time();
 
-	// I thought the value (called Pulse) passed when CHARACTER_MANAGER updates characters was the time delta since the previous frame, but
-	// it's a completely different value -_-; so the deltaTime input here is meaningless TT	
 	
 	if (update_period_ > currentTime - last_update_time_)
 		return true;
@@ -417,7 +385,6 @@ bool pet_system::update(uint32_t delta_time)
 	return bResult;
 }
 
-/// remove the pet from the managed list
 void pet_system::delete_pet(pet_actor* pet_actor_value)
 {
 	for (pet_actor_map::iterator iter = pet_actor_map_.begin(); iter != pet_actor_map_.end(); ++iter)
@@ -465,7 +432,6 @@ pet_actor* pet_system::summon(uint32_t mob_vnum, item * summon_item, const char*
 {
 	pet_actor* petActor = this->by_vnum(mob_vnum);
 
-	// if not a registered pet, create it and register it in the managed list.
 	if (nullptr == petActor)
 	{
 		petActor = new pet_actor(owner_, mob_vnum, options);
@@ -480,14 +446,13 @@ pet_actor* pet_system::summon(uint32_t mob_vnum, item * summon_item, const char*
 
 		info->pet_system = this;
 
-		pet_system_update_event_ = event_create(petsystem_update_event, info, passes_per_sec(1) / 4);	// 0.25 seconds	
+		pet_system_update_event_ = event_create(petsystem_update_event, info, passes_per_sec(1) / 4);
 	}
 
 	return petActor;
 }
 
 
-/// returns the actor with the given mob VNUM among registered pets.
 pet_actor* pet_system::by_vnum(uint32_t vnum) const
 {
 	pet_actor* petActor = nullptr;

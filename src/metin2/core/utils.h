@@ -8,10 +8,8 @@
 
 namespace metin2::inline core {
 
-// Logs where it was called from, then dumps core from a forked child; the server keeps running.
 void core_dump(std::source_location where = std::source_location::current());
 
-// std::isdigit/std::isspace for one byte of UTF-8 text (bytes of multi-byte characters are neither).
 inline auto is_digit(char ch) -> bool {
     return std::isdigit(static_cast<unsigned char>(ch)) != 0;
 }
@@ -26,15 +24,12 @@ void trim_and_lower(const char *src, char *dest, size_t dest_size);
 auto utf8_sequence_length(unsigned char c) -> size_t;
 auto utf8_truncated_size(const char *s, size_t len, size_t max) -> size_t;
 auto utf8_strlcpy(char *dst, const char *src, size_t size) -> size_t;
-// Copies a string field that may lack its NUL terminator: reads at most src_max bytes of src,
-// truncates on a UTF-8 boundary to fit and always terminates dst. Returns the bytes copied.
 auto utf8_strnlcpy(char *dst, size_t dst_size, const char *src, size_t src_max) -> size_t;
 
-// A random integer in [from, to]; swapped arguments are logged with the caller and corrected.
 auto number(int from, int to, std::source_location where = std::source_location::current()) -> int;
 auto fnumber(float from, float to) -> float;
 
-auto thecore_random() -> uint32_t; // Random functions
+auto thecore_random() -> uint32_t;
 
 auto get_float_time() -> float;
 auto get_dword_time() -> uint32_t;

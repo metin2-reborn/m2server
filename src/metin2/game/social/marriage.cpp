@@ -40,19 +40,13 @@ namespace marriage
 		uint32_t vnum;
 		int value[MAX_LOVE_GRADE];
 	} item_bonus[MAX_MARRIAGE_UNIQUE_ITEM] = {
-		{ 71069,	{ 4,	5,	6,	8,  } }, // Piercing increase
-		{ 71070,	{ 10,	12,	15,	20, } }, // Experience increase
-		{ 71071,	{ 4,	5,	6,	8,  } }, // Critical increase
-		{ 71072,	{ -4,	-5,	-6,	-8, } }, // Reduce opponent's attack power
-		{ 71073,	{ 20,	25,	30,	40, } }, // Attack power increase (absolute value)
-		{ 71074,	{ 12,	16,	20,	30, } }, // Defense increase (absolute value)
+		{ 71069,	{ 4,	5,	6,	8,  } },
+		{ 71070,	{ 10,	12,	15,	20, } },
+		{ 71071,	{ 4,	5,	6,	8,  } },
+		{ 71072,	{ -4,	-5,	-6,	-8, } },
+		{ 71073,	{ 20,	25,	30,	40, } },
+		{ 71074,	{ 12,	16,	20,	30, } },
 
-		//{ 71069,	1,	2,	3,	6,	8,  }, // Piercing increase
-		//{ 71070,	5,	7,	10,	15,	20, }, // Experience increase
-		//{ 71071,	1,	2,	3,	6,	8,  }, // Critical increase
-		//{ 71072,	5,	10,	15,	20,	30, }, // Redirect damage taken by partner to me
-		//{ 71073,	10,	15,	20,	25,	40, }, // Attack power increase (absolute value)
-		//{ 71074,	5,	10,	15,	20,	30, }, // Defense increase (absolute value)
 	};
 
 	const int MARRIAGE_POINT_PER_DAY = 1;
@@ -116,17 +110,8 @@ namespace marriage
 		else
 			days /= 86400;
 
-		// Base 50%
 
-		// While using the mandarin duck feather:
-		// Effect from days 80%, 8% per day
-		// Effect from combat 80%
-		// Total 100%
 
-		// When not in use: 
-		// Effect from days 60%, 6% per day
-		// Effect from combat 60%
-		// Total 100%
 		return std::min(50 + std::min(days * point_per_day, max_limit) + std::min(love_point / 1000000, max_limit), 100);
 	}
 
@@ -139,20 +124,15 @@ namespace marriage
 
 		return ch1->map_index() == ch2->map_index();
 
-		// Party check removed
 
-		// Distance check removed
 	}
 
-	// Love (affection) value
 	int marriage::bonus(uint32_t item_vnum, bool share, character * me)
 	{
 		if (!is_married)
 			return 0;
 
-		// When the partner is not nearby, only one's own effect applies.
 
-		// Find what the item does.
 		int iFindedBonusIndex=0;
 		{
 			for (iFindedBonusIndex = 0; iFindedBonusIndex < MAX_MARRIAGE_UNIQUE_ITEM; ++iFindedBonusIndex)
@@ -167,7 +147,6 @@ namespace marriage
 
 		if (share)
 		{
-			// Sum the bonuses of both.
 			int count = 0;
 			if (nullptr != ch1 && ch1->is_equip_unique_item(item_vnum))
 				count ++;
@@ -182,7 +161,6 @@ namespace marriage
 		}
 		else
 		{
-			// Count only the partner's
 			int count = 0;
 			if (me != ch1 && nullptr!= ch1 && ch1->is_equip_unique_item(item_vnum))
 				count ++;
@@ -212,7 +190,6 @@ namespace marriage
 				send_lover_info(ch2, name1, marriage_point());
 		}
 
-		// If both are logged in on this process, link the pointers and fire the event
 		if (is_online())
 		{
 			ch1->set_marry_partner(ch2);
@@ -221,7 +198,6 @@ namespace marriage
 			start_near_check_event();
 		}
 
-		// If both are logged in, send the packet.
 		if (is_married)
 		{
 			desc * d1;
@@ -583,7 +559,6 @@ namespace marriage
 
 			if (A && B)
 			{
-				// Send the wedding map request
 				packet_wedding_request p;
 				p.pi_d1 = pid1;
 				p.pi_d2 = pid2;
@@ -699,11 +674,9 @@ namespace marriage
 		if (!pwi)
 			return;
 
-		// Must warp the couple
 		pMarriage->warp_to_wedding_map(pid1);
 		pMarriage->warp_to_wedding_map(pid2);
 
-		// Must register so the name shows up in the menu window
 		wedding_.insert(std::make_pair(pid1, pid2));
 	}
 
@@ -722,7 +695,6 @@ namespace marriage
 			return;
 		}
 
-		// Must remove from the map
 		if (map_allow_find(WEDDING_MAP_INDEX))
 			if (!wedding_manager::instance().end(pMarriage->wedding_info->map_index))
 			{

@@ -20,7 +20,6 @@ namespace metin2::game::inline guilds {
 
 guild_mark_manager::guild_mark_manager()
 {
-	// Build the set of remaining mark ids. (server only)
 	for (uint32_t i = 0; i < MAX_IMAGE_COUNT * static_cast<uint32_t>(guild_mark_image::MARK_TOTAL_COUNT); ++i)
 		free_mark_id_.insert(i);
 }
@@ -45,7 +44,6 @@ void guild_mark_manager::set_mark_path_prefix(const char * prefix)
 	path_prefix_ = prefix;
 }
 
-// Load the mark index (used only on the server)
 bool guild_mark_manager::load_mark_index()
 {
 	char buf[64];
@@ -177,7 +175,7 @@ uint32_t guild_mark_manager::alloc_mark_id(uint32_t guild_id)
 	uint32_t markID = *it;
 	
 	uint32_t imgIdx = markID / guild_mark_image::MARK_TOTAL_COUNT;
-	guild_mark_image * pkImage = image(imgIdx); // To create the image if it doesn't exist 
+	guild_mark_image * pkImage = image(imgIdx);
 
 	if (pkImage && add_mark_id_by_guild_id(guild_id, markID))
 		return markID;
@@ -190,19 +188,17 @@ uint32_t guild_mark_manager::mark_count() const
 	return gid_mark_id_.size();
 }
 
-// SERVER
 void guild_mark_manager::copy_mark_idx(char * pc_buf) const
 {
 	uint16_t * pwBuf = (uint16_t *) pc_buf;
 
 	for (std::map<uint32_t, uint32_t>::const_iterator it = gid_mark_id_.begin(); it != gid_mark_id_.end(); ++it)
 	{
-		*(pwBuf++) = it->first; // guild id
-		*(pwBuf++) = it->second; // mark id
+		*(pwBuf++) = it->first;
+		*(pwBuf++) = it->second;
 	}
 }
 
-// SERVER
 uint32_t guild_mark_manager::save_mark(uint32_t guild_id, uint8_t * mark_image)
 {
 	uint32_t idMark;
@@ -234,7 +230,6 @@ uint32_t guild_mark_manager::save_mark(uint32_t guild_id, uint8_t * mark_image)
 	return idMark;
 }
 
-// SERVER
 void guild_mark_manager::delete_mark(uint32_t guild_id)
 {
 	std::map<uint32_t, uint32_t>::iterator it = gid_mark_id_.find(guild_id);
@@ -253,12 +248,10 @@ void guild_mark_manager::delete_mark(uint32_t guild_id)
 	save_mark_index();
 }
 
-// SERVER
 void guild_mark_manager::diff_blocks(uint32_t img_idx, const uint32_t * crc_list, std::map<uint8_t, const guild_mark_block *> & diff_blocks_value)
 {
 	diff_blocks_value.clear();
 
-	// The client cannot request an image the server doesn't have.
 	if (idx_image_.end() == idx_image_.find(img_idx))
 	{
 		metin2::log::error("invalid idx {:d}", img_idx);
@@ -271,9 +264,6 @@ void guild_mark_manager::diff_blocks(uint32_t img_idx, const uint32_t * crc_list
 		p->diff_blocks(crc_list, diff_blocks_value);
 }
 
-///////////////////////////////////////////////////////////////////////////////////////
-// Symbol
-///////////////////////////////////////////////////////////////////////////////////////
 const guild_mark_manager::guild_symbol * guild_mark_manager::get_guild_symbol(uint32_t guild_id)
 {
 	std::map<uint32_t, guild_symbol>::iterator it = symbol_.find(guild_id);

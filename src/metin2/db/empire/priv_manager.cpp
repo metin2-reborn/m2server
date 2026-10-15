@@ -29,9 +29,6 @@ priv_manager::~priv_manager()
 {
 }
 
-//
-// @version 05/06/07	Bang2ni - handling for guilds with duplicate bonuses applied
-//
 void priv_manager::update()
 {
 	time_t now = client_manager::instance().current_time();
@@ -46,13 +43,9 @@ void priv_manager::update()
 
 			__typeof(priv_guild_[p->type].begin()) it = priv_guild_[p->type].find(p->guild_id);
 
-			// ADD_GUILD_PRIV_TIME
-			// If a guild had a bonus set more than once, the map value was updated (modified), so
-			// only actually delete it and cast to the game servers when the TPrivGuildData pointer matches.
 			if (it != priv_guild_[p->type].end() && it->second == p) {
 				priv_guild_[p->type].erase(it);
 				send_change_guild_priv(p->guild_id, p->type, 0, 0);
-				// END_OF_ADD_GUILD_PRIV_TIME
 			}
 		}
 
@@ -80,7 +73,6 @@ void priv_manager::update()
 
 		if (!p->removed)
 		{
-			// TODO send packet
 			send_change_char_priv(p->pid, p->type, 0);
 			__typeof(priv_char_[p->type].begin()) it = priv_char_[p->type].find(p->pid);
 			if (it != priv_char_[p->type].end())
@@ -117,14 +109,10 @@ void priv_manager::add_char_priv(uint32_t pid, uint8_t type, int value)
 	pq_priv_char_.push(std::make_pair(now+iDuration, p));
 	priv_char_[type].insert(std::make_pair(pid, p));
 
-	// TODO send packet
 	metin2::log::info( "AddCharPriv {:d} {:d} {:d}", pid, type, value);
 	send_change_char_priv(pid, type, value);
 }
 
-//
-// @version 05/06/07	Bang2ni - set bonus on a guild that already has one
-//
 void priv_manager::add_guild_priv(uint32_t guild_id, uint8_t type, int value, time_t duration_sec)
 {
 	if (MAX_PRIV_NUM <= type)
@@ -140,16 +128,12 @@ void priv_manager::add_guild_priv(uint32_t guild_id, uint8_t type, int value, ti
 	priv_guild_data * p = new priv_guild_data(type, value, guild_id, end);
 	pq_priv_guild_.push(std::make_pair(end, p));
 
-	// ADD_GUILD_PRIV_TIME
-	// If a bonus is already set, update the map value.
-	// The previous value's pointer is freed when it is removed from the priority queue.
 	if (it != priv_guild_[type].end())
 		it->second = p;
 	else
 		priv_guild_[type].insert(std::make_pair(guild_id, p));
 
 	send_change_guild_priv(guild_id, type, value, end);
-	// END_OF_ADD_GUILD_PRIV_TIME
 
 	metin2::log::info( "Guild Priv guild({:d}) type({:d}) value({:d}) duration_sec({:d})", guild_id, type, value, duration_sec);
 }
@@ -168,8 +152,6 @@ void priv_manager::add_empire_priv(uint8_t empire, uint8_t type, int value, time
 	time_t now = client_manager::instance().current_time();
 	time_t end = now+duration_sec;
 
-	// Invalidate the previous setting
-	// pointer in the priority_queue == m_aaPrivEmpire[type][empire]
 	{
 		if (aa_priv_empire_[type][empire])
 			aa_priv_empire_[type][empire]->removed = true;
@@ -179,16 +161,11 @@ void priv_manager::add_empire_priv(uint8_t empire, uint8_t type, int value, time
 	pq_priv_empire_.push(std::make_pair(end, p));
 	aa_priv_empire_[type][empire] = p;
 
-	// ADD_EMPIRE_PRIV_TIME
 	send_change_empire_priv(empire, type, value, end);
-	// END_OF_ADD_EMPIRE_PRIV_TIME
 
 	metin2::log::info( "Empire Priv empire({:d}) type({:d}) value({:d}) duration_sec({:d})", empire, type, value, duration_sec);
 }
 
-/**
- * @version 05/06/08	Bang2ni - added duration
- */
 struct f_send_change_guild_priv
 {
 	f_send_change_guild_priv(uint32_t guild_id, uint8_t type, int value, time_t end_time_sec)
@@ -197,9 +174,7 @@ struct f_send_change_guild_priv
 		p.type = type;
 		p.value = value;
 		p.log = 1;
-		// ADD_GUILD_PRIV_TIME
 		p.end_time_sec = end_time_sec;
-		// END_OF_ADD_GUILD_PRIV_TIME
 	}
 
 	void operator() (peer* peer)
@@ -220,9 +195,7 @@ struct f_send_change_empire_priv
 		p.type = type;
 		p.value = value;
 		p.log = 1;
-		// ADD_EMPIRE_PRIV_TIME
 		p.end_time_sec = end_time_sec;
-		// END_OF_ADD_EMPIRE_PRIV_TIME
 	}
 
 	void operator ()(peer* peer)
@@ -253,19 +226,15 @@ struct f_send_change_char_priv
 	packet_dg_change_character_priv p;
 };
 
-// ADD_GUILD_PRIV_TIME
 void priv_manager::send_change_guild_priv(uint32_t guild_id, uint8_t type, int value, time_t end_time_sec)
 {
 	client_manager::instance().for_each_peer(f_send_change_guild_priv(guild_id, type, value, end_time_sec));
 }
-// END_OF_ADD_GUILD_PRIV_TIME
 
-// ADD_EMPIRE_PRIV_TIME
 void priv_manager::send_change_empire_priv(uint8_t empire, uint8_t type, int value, time_t end_time_sec)
 {
 	client_manager::instance().for_each_peer(f_send_change_empire_priv(empire, type, value, end_time_sec));
 }
-// END_OF_ADD_EMPIRE_PRIV_TIME
 
 void priv_manager::send_change_char_priv(uint32_t pid, uint8_t type, int value)
 {
@@ -278,20 +247,16 @@ void priv_manager::send_priv_on_setup(peer* peer)
 	{
 		for (int e = 0; e < EMPIRE_MAX_NUM; ++e)
 		{
-			// ADD_EMPIRE_PRIV_TIME
 			priv_empire_data* pPrivEmpireData = aa_priv_empire_[i][e];
 			if (pPrivEmpireData)
 			{
 				f_send_change_empire_priv(e, i, pPrivEmpireData->value, pPrivEmpireData->end_time_sec)(peer);
 			}
-			// END_OF_ADD_EMPIRE_PRIV_TIME
 		}
 
 		for (__typeof(priv_guild_[i].begin()) it = priv_guild_[i].begin(); it != priv_guild_[i].end();++it)
 		{
-			// ADD_GUILD_PRIV_TIME
 			f_send_change_guild_priv(it->first, i, it->second->value, it->second->end_time_sec)(peer);
-			// END_OF_ADD_GUILD_PRIV_TIME
 		}
 		for (__typeof(priv_char_[i].begin()) it = priv_char_[i].begin(); it != priv_char_[i].end(); ++it)
 		{

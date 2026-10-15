@@ -1,4 +1,3 @@
-// vim:ts=8 sw=4
 #pragma once
 
 #include <metin2/db/clients/peer.h>
@@ -98,11 +97,9 @@ struct guild_skill_used
     uint32_t gid;
     uint32_t skill_vnum;
 
-    // GUILD_SKILL_COOLTIME_BUG_FIX
     guild_skill_used(uint32_t gid_value, uint32_t skill_vnum_value) : gid(gid_value), skill_vnum(skill_vnum_value)
     {
     }
-    // END_OF_GUILD_SKILL_COOLTIME_BUG_FIX
 };
 
 inline bool operator < (const guild_skill_used& a, const guild_skill_used& b)
@@ -155,10 +152,9 @@ class guild_war_reservation
 	void	set_last_notice_min(int min) { last_notice_min_ = min; }
 
     private:
-	guild_war_reservation();  // Intentionally not implemented to prevent use of the default constructor
+	guild_war_reservation();
 
 	guild_war_reserve				data_;
-	// <login, <guild, gold>>
 	std::map<std::string, std::pair<uint32_t, uint32_t> > bet_;
 	int						last_notice_min_;
 };
@@ -204,9 +200,6 @@ class guild_manager : public singleton<guild_manager>
 	void	result_ranking(MYSQL_RES * res);
 	int	ranking(uint32_t gid);
 
-	//
-	// Reserve War
-	//
 	void	boot_reserve_war();
 	bool	reserve_war(packet_guild_war * p);
 	void	process_reserve_war();
@@ -219,7 +212,7 @@ class guild_manager : public singleton<guild_manager>
     private:
 	void parse_result(ql_result * res);
 
-	void remove_war(uint32_t gid1, uint32_t gid2);	// erase war from m_WarMap and set end on priority queue
+	void remove_war(uint32_t gid1, uint32_t gid2);
 
 	void war_end(uint32_t gid1, uint32_t gid2, bool force_draw = false);
 
@@ -237,7 +230,7 @@ class guild_manager : public singleton<guild_manager>
 	std::map<uint32_t, guild>					map_k_guild_;
 	std::map<uint32_t, std::map<uint32_t, time_t> >		guild_war_end_time_;
 
-	std::set<guild_declare_info>				declare_map_; // Stores the declaration-of-war state
+	std::set<guild_declare_info>				declare_map_;
 	std::map<uint32_t, std::map<uint32_t, guild_war_info> >	war_map_;
 
 	typedef std::pair<time_t, guild_war_pq_element *>	st_pair_guild_war;
@@ -255,7 +248,6 @@ class guild_manager : public singleton<guild_manager>
 	expression							poly_power_;
 	expression							poly_handicap_;
 
-	// GID Ranking
 	std::map<uint32_t, int>					map_k_ladder_point_ranking_by_gid_;
 };
 }

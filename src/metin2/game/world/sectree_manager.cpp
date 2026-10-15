@@ -44,7 +44,7 @@
 
 namespace metin2::game::inline world {
 
-uint16_t sectree_manager::current_sectree_version_ = 0x0300; // 3.0: major in the high byte
+uint16_t sectree_manager::current_sectree_version_ = 0x0300;
 
 sectree_map::sectree_map()
 {
@@ -103,8 +103,6 @@ sectree * sectree_map::find(uint32_t x, uint32_t y)
 
 void sectree_map::build()
 {
-    // To give the client info on characters within a 150m radius
-    // Expanded neighboring sectrees from 3x3 to 5x5 cells (Korea)
     struct neighbor_coord_s
 	{
 		int x;
@@ -120,16 +118,13 @@ void sectree_map::build()
 		{  SECTREE_SIZE,	 SECTREE_SIZE	},
 	};
 
-	//
-	// Builds the list of neighboring sectrees for every sectree.
-	//
 	map_type::iterator it = map_.begin();
 
 	while (it != map_.end())
 	{
 		sectree * tree = it->second;
 
-		tree->neighbor_list_.push_back(tree); // Add itself.
+		tree->neighbor_list_.push_back(tree);
 
 		metin2::log::debug( "{:d}x{:d}", tree->id_.coord.x, tree->id_.coord.y);
 
@@ -187,9 +182,6 @@ sectree * sectree_manager::get(uint32_t index, uint32_t x, uint32_t y)
 	return get(index, id.package);
 }
 
-// -----------------------------------------------------------------------------
-// Build SECTREEs from Setting.txt
-// -----------------------------------------------------------------------------
 int sectree_manager::load_setting_file(int32_t map_index, const char * setting_file_name, map_setting & r_setting)
 {
 	memset(&r_setting, 0, sizeof(map_setting));
@@ -284,7 +276,7 @@ void sectree_manager::load_dungeon(int index, const char * file_name)
 	if (!fp)
 		return;
 
-	int count = 0; // for debug
+	int count = 0;
 
 	while (!feof(fp))
 	{
@@ -322,12 +314,6 @@ void sectree_manager::load_dungeon(int index, const char * file_name)
 	metin2::log::info( "Dungeon Position Load [{:3d}]{} count {:d}", index, file_name, count);
 }
 
-// Fix me
-// Currently x, y are taken as-is from Town.txt and the base coordinates are added in this code, so
-// it is impossible to move to a town on another map.
-// If there is a map prefix or some other identifier in front,
-// allow moving to towns on other maps too.
-// by rtsummit
 bool sectree_manager::load_map_region(const char * file_name, map_setting & r_setting, const char * map_name_value)
 {
 	FILE * fp = fopen(file_name, "r");
@@ -431,14 +417,12 @@ bool sectree_manager::load_attribute(sectree_map * map_sectree, const char * fil
 	for (int y = 0; y < iHeight; ++y)
 		for (int x = 0; x < iWidth; ++x)
 		{
-			// Uses a uint32_t value made by combining coordinates via a UNION as the ID.
 			sectreeid id;
 			id.coord.x = (r_setting.base_x / SECTREE_SIZE) + x;
 			id.coord.y = (r_setting.base_y / SECTREE_SIZE) + y;
 
 			sectree * tree = map_sectree->find(id.package);
 
-			// SERVER_ATTR_LOAD_ERROR
 			if (tree == nullptr)
 			{
 				metin2::log::error("FATAL ERROR! LoadAttribute({}) - cannot find sectree(package={:x}, coord=({:d}, {:d}), map_index={:d}, map_base=({:d}, {:d}))", 
@@ -451,7 +435,6 @@ bool sectree_manager::load_attribute(sectree_map * map_sectree, const char * fil
 
 				return false;
 			}
-			// END_OF_SERVER_ATTR_LOAD_ERROR
 
 			if (tree->id_.package != id.package)
 			{
@@ -495,7 +478,6 @@ bool sectree_manager::recall_position_by_empire(int map_index, uint8_t empire, p
 {
 	std::vector<map_region>::iterator it = vec_map_region_.begin();
 
-	// Maps above 10000 are limited to instance dungeons.
 	if (map_index >= 10000)
 	{
 		map_index /= 10000;
@@ -548,7 +530,6 @@ bool sectree_manager::map_base_position_by_map_index(int32_t map_index, pixel_po
 	{
 		map_region & rRegion = *(it++);
 
-		//if (x >= rRegion.sx && y >= rRegion.sy && x < rRegion.ex && y < rRegion.ey)
 		if (map_index == rRegion.index)
 		{
 			r_pos.x = rRegion.sx;
@@ -590,7 +571,7 @@ const map_region * sectree_manager::find_region_by_partial_name(const char* map_
 		map_region & rRegion = *(it++);
 
 		if (rRegion.map_name.find(map_name_value))
-			return &rRegion; // Cache it to make it fast
+			return &rRegion;
 	}
 
 	return nullptr;
@@ -685,7 +666,6 @@ int sectree_manager::build(const char * list_file_name, const char* map_base_pat
 		if (true == metin2::config::test_server())
 			metin2::log::info("[BUILD] Build {} {} {:d} ",map_base_path, szMapName, iIndex );
 
-		// First check whether this server should spawn monsters for this map.
 		if (map_allow_find(iIndex))
 		{
 			sectree_map * pkMapSectree = build_sectree_from_setting(setting);
@@ -873,7 +853,7 @@ bool sectree_manager::random_location(int32_t map_index, pixel_position & r_pos,
 
 int32_t sectree_manager::create_private_map(int32_t map_index)
 {
-	if (map_index >= 10000) // There are no maps numbered 10000 or above. (Or it is already private)
+	if (map_index >= 10000)
 		return 0;
 
 	sectree_map * pkMapSectree = map(map_index);
@@ -884,7 +864,6 @@ int32_t sectree_manager::create_private_map(int32_t map_index)
 		return 0;
 	}
 
-	// <Factor> Circular private map indexing
 	int32_t base = map_index * 10000;
 	int index_cap = 10000;
 	if ( map_index == 107 || map_index == 108 || map_index == 109 ) {
@@ -897,14 +876,13 @@ int32_t sectree_manager::create_private_map(int32_t map_index)
 	int i, next_index = it->second;
 	for (i = 0; i < index_cap; ++i) {
 		if (map(base + next_index) == nullptr) {
-			break; // available
+			break;
 		}
 		if (++next_index >= index_cap) {
 			next_index = 0;
 		}
 	}
 	if (i == index_cap) {
-		// No available index
 		return 0;
 	}
 	int32_t lNewMapIndex = base + next_index;
@@ -948,7 +926,7 @@ struct f_destroy_private_map_entity
 
 void sectree_manager::destroy_private_map(int32_t map_index)
 {
-	if (map_index < 10000) // Private map indices are 10000 or above.
+	if (map_index < 10000)
 		return;
 
 	sectree_map * pkMapSectree = map(map_index);
@@ -956,11 +934,7 @@ void sectree_manager::destroy_private_map(int32_t map_index)
 	if (!pkMapSectree)
 		return;
 
-	// Remove everything currently on this map.
-	// WARNING:
-	// May be on this map but not present in any Sectree
-	// so it cannot be deleted here, and since pointers might break
-	// it needs separate handling
+	// Entities on this map but outside every sectree cannot be deleted here.
 	f_destroy_private_map_entity f;
 	pkMapSectree->for_each(f);
 
@@ -976,7 +950,7 @@ area_map& sectree_manager::dungeon_area(int32_t map_index)
 
 	if (it == map_pk_area_.end())
 	{
-		return map_pk_area_[-1]; // Temporarily return an empty Area
+		return map_pk_area_[-1];
 	}
 	return it->second;
 }
@@ -999,7 +973,6 @@ void sectree_manager::send_npc_position(character * ch)
 
 	npc_position np;
 
-	// TODO please send m_mapNPCPosition[lMapIndex]
 	decltype((npc_position_[lMapIndex]).begin()) it;
 
 	for (it = npc_position_[lMapIndex].begin(); it != npc_position_[lMapIndex].end(); ++it)
@@ -1195,18 +1168,12 @@ bool sectree_manager::for_attr_region(int32_t map_index, int32_t start_x, int32_
 		return mode == ATTR_REGION_MODE_CHECK ? true : false;
 	}
 
-	//
-	// Expand the area coordinates to fit the Cell size.
-	//
 
 	start_x	-= start_x % CELL_SIZE;
 	start_y	-= start_y % CELL_SIZE;
 	end_x	+= end_x % CELL_SIZE;
 	end_y	+= end_y % CELL_SIZE;
 
-	//
-	// Compute the Cell coordinates.
-	// 
 
 	int32_t lCX = start_x / CELL_SIZE;
 	int32_t lCY = start_y / CELL_SIZE;

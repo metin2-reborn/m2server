@@ -101,7 +101,6 @@ void entity::packet_view(const void * data, int bytes, entity * except)
 
 	func_packet_view f(data, bytes, except);
 
-	// In observer mode, only I receive my packets.
 	if (!is_observer_)
 		for_each(map_view_.begin(), map_view_.end(), f);
 

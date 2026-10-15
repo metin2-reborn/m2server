@@ -31,11 +31,9 @@ bool fn_is_valid_login_string(const char *str)
 
 	for (tmp = str; *tmp; ++tmp)
 	{
-		// Allow only letters and digits
 		if (isdigit((unsigned char) *tmp) || isalpha((unsigned char) *tmp))
 			continue;
 
-		// Canada allows some special characters
 
 
 
@@ -70,8 +68,8 @@ void input_auth::login(desc * d, const char * data)
 		return;
 	}
 
-	// One login attempt per connection (the client sends one): another would replace the
-	// login key of a query still in flight, and allow password guessing at line rate.
+	// One login per connection: another would replace the key of a query in flight and allow
+	// password guessing at line rate.
 	if (d->get_login_key() || d->get_account_table().id)
 	{
 		metin2::log::info( "InputAuth::Login : second login attempt from {}", d->host_name());
@@ -79,7 +77,6 @@ void input_auth::login(desc * d, const char * data)
 		return;
 	}
 
-	// Copy for string integrity (the fields may lack their NUL)
 	char szLogin[sizeof(pinfo->login)];
 	copy_packet_string(szLogin, pinfo->login);
 
@@ -92,7 +89,6 @@ void input_auth::login(desc * d, const char * data)
 	metin2::log::info( "InputAuth::Login : {}({:d}) desc {}",
 			login, strlen(login), static_cast<const void *>(d));
 
-	// check login string
 	if (false == fn_is_valid_login_string(login))
 	{
 		metin2::log::info( "InputAuth::Login : IS_NOT_VALID_LOGIN_STRING({}) desc {}",
@@ -121,16 +117,13 @@ void input_auth::login(desc * d, const char * data)
 	uint32_t dwKey = desc_manager::instance().create_login_key(d);
 	metin2::log::info( "InputAuth::Login : key {:d} login {}", dwKey, login);
 
-	// BRAZIL_AUTH
 
 	packet_cg_login3 * p = new packet_cg_login3;
 	std::memcpy(p, pinfo, sizeof(packet_cg_login3));
 
-	// The query result reads these as strings.
 	p->login[sizeof(p->login) - 1] = '\0';
 	p->passwd[sizeof(p->passwd) - 1] = '\0';
 
-	// CHANNEL_SERVICE_LOGIN
 	if (login_is_in_channel_service(login))
 	{
 		metin2::log::info( "ChannelServiceLogin [{}]", login);
@@ -148,7 +141,6 @@ void input_auth::login(desc * d, const char * data)
 				" FROM account WHERE login={}",
 				passwd, login));
 	}
-	// END_OF_CHANNEL_SERVICE_LOGIN
 	else
 	{
 		db_manager::instance().return_query(QID_AUTH_LOGIN, dwKey, p, sql::format(

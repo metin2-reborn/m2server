@@ -42,7 +42,7 @@ class exchange
 		bool		check_space();
 
 	private:
-		exchange *	company_;	// The other party's CExchange pointer
+		exchange *	company_;
 
 		character *	owner_;
 

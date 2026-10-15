@@ -26,53 +26,53 @@ enum affect_types
 	AFFECT_ATT_GRADE,
 	AFFECT_INVISIBILITY,
 	AFFECT_STR,
-	AFFECT_DEX,			// 205
+	AFFECT_DEX,
 	AFFECT_CON,	
 	AFFECT_INT,	
 	AFFECT_FISH_MIND_PILL,
 
 	AFFECT_POISON,
-	AFFECT_STUN,		// 210
+	AFFECT_STUN,
 	AFFECT_SLOW,
 	AFFECT_DUNGEON_READY,
 	AFFECT_DUNGEON_UNIQUE,
 
 	AFFECT_BUILDING,
-	AFFECT_REVIVE_INVISIBLE,	// 215
+	AFFECT_REVIVE_INVISIBLE,
 	AFFECT_FIRE,
 	AFFECT_CAST_SPEED,
 	AFFECT_HP_RECOVER_CONTINUE,
 	AFFECT_SP_RECOVER_CONTINUE,
 
-	AFFECT_POLYMORPH,		// 220
+	AFFECT_POLYMORPH,
 	AFFECT_MOUNT,
 
-	AFFECT_WAR_FLAG,		// 222
+	AFFECT_WAR_FLAG,
 
-	AFFECT_BLOCK_CHAT,		// 223
+	AFFECT_BLOCK_CHAT,
 	AFFECT_CHINA_FIREWORK,
 
-	AFFECT_BOW_DISTANCE,	// 225
-	AFFECT_DEF_GRADE,		// 226
+	AFFECT_BOW_DISTANCE,
+	AFFECT_DEF_GRADE,
 
 	AFFECT_PREMIUM_START	= 500,
-	AFFECT_EXP_BONUS		= 500,	// Ring of Experience
-	AFFECT_ITEM_BONUS		= 501,	// Thief's Gloves
-	AFFECT_SAFEBOX		= 502,  // PREMIUM_SAFEBOX,
-	AFFECT_AUTOLOOT		= 503,	// PREMIUM_AUTOLOOT,
-	AFFECT_FISH_MIND		= 504,	// PREMIUM_FISH_MIND,
-	AFFECT_MARRIAGE_FAST	= 505,	// Mandarin Duck Feather
-	AFFECT_GOLD_BONUS		= 506,	// 50% increased gold drop chance
+	AFFECT_EXP_BONUS		= 500,
+	AFFECT_ITEM_BONUS		= 501,
+	AFFECT_SAFEBOX		= 502,
+	AFFECT_AUTOLOOT		= 503,
+	AFFECT_FISH_MIND		= 504,
+	AFFECT_MARRIAGE_FAST	= 505,
+	AFFECT_GOLD_BONUS		= 506,
 	AFFECT_PREMIUM_END		= 509,
 
-	AFFECT_MALL			= 510,	// Mall item effect
-	AFFECT_NO_DEATH_PENALTY	= 511,	// Dragon God's Protection (blocks the experience penalty once)
-	AFFECT_SKILL_BOOK_BONUS	= 512,	// Sage's Lesson (book training success chance +50%)
-	AFFECT_SKILL_NO_BOOK_DELAY	= 513,	// Spell book
+	AFFECT_MALL			= 510,
+	AFFECT_NO_DEATH_PENALTY	= 511,
+	AFFECT_SKILL_BOOK_BONUS	= 512,
+	AFFECT_SKILL_NO_BOOK_DELAY	= 513,
 
-	AFFECT_HAIR	= 514,	// Hair effect
-	AFFECT_COLLECT = 515, //Collection quest 
-	AFFECT_EXP_BONUS_EURO_FREE = 516, // Ring of Experience (default effect at level 14 and below in the European version)
+	AFFECT_HAIR	= 514,
+	AFFECT_COLLECT = 515,
+	AFFECT_EXP_BONUS_EURO_FREE = 516,
 	AFFECT_EXP_BONUS_EURO_FREE_UNDER_15 = 517,
 	AFFECT_UNIQUE_ABILITY = 518,
 
@@ -122,8 +122,8 @@ enum affect_bits
 	AFF_SLOW,
 	AFF_STUN,
 
-	AFF_DUNGEON_READY,		// Ready state in dungeon
-	AFF_DUNGEON_UNIQUE,		// Dungeon unique (not culled on the client)
+	AFF_DUNGEON_READY,
+	AFF_DUNGEON_UNIQUE,
 
 	AFF_BUILDING_CONSTRUCTION_SMALL,
 	AFF_BUILDING_CONSTRUCTION_LARGE,
@@ -134,50 +134,43 @@ enum affect_bits
 
 	AFF_FISH_MIND,
 
-	AFF_JEONGWIHON,		// Spirit Strike
-	AFF_GEOMGYEONG,		// Sword Aura
-	AFF_CHEONGEUN,		// Heavy Weight
-	AFF_GYEONGGONG,		// Light Step
-	AFF_EUNHYUNG,		// Stealth
-	AFF_GWIGUM,			// Enchanted Blade
-	AFF_TERROR,			// Fear
-	AFF_JUMAGAP,		// Enchanted Armor
-	AFF_HOSIN,			// Blessing
-	AFF_BOHO,			// Protection
-	AFF_KWAESOK,		// Swiftness
-	AFF_MANASHIELD,		// Mana shield
-	AFF_MUYEONG,		// Shadowless affect
-	AFF_REVIVE_INVISIBLE,	// Briefly invincible after revival
-	AFF_FIRE,			// Continuous fire damage
-	AFF_GICHEON,		// Strong Body
-	AFF_JEUNGRYEOK,		// Strength boost
-	AFF_TANHWAN_DASH,		// Running affect for Bullet Strike
-	AFF_PABEOP,			// Dispel
-	AFF_CHEONGEUN_WITH_FALL,	// Heavy Weight
+	AFF_JEONGWIHON,
+	AFF_GEOMGYEONG,
+	AFF_CHEONGEUN,
+	AFF_GYEONGGONG,
+	AFF_EUNHYUNG,
+	AFF_GWIGUM,
+	AFF_TERROR,
+	AFF_JUMAGAP,
+	AFF_HOSIN,
+	AFF_BOHO,
+	AFF_KWAESOK,
+	AFF_MANASHIELD,
+	AFF_MUYEONG,
+	AFF_REVIVE_INVISIBLE,
+	AFF_FIRE,
+	AFF_GICHEON,
+	AFF_JEUNGRYEOK,
+	AFF_TANHWAN_DASH,
+	AFF_PABEOP,
+	AFF_CHEONGEUN_WITH_FALL,
 	AFF_POLYMORPH,
 	AFF_WAR_FLAG1,
 	AFF_WAR_FLAG2,
 	AFF_WAR_FLAG3,
 
 	AFF_CHINA_FIREWORK,
-	AFF_HAIR,	// Hair
-	AFF_GERMANY, // Germany 
+	AFF_HAIR,
+	AFF_GERMANY,
 
 	AFF_BITS_MAX
 };
 
 extern void send_affect_add_packet(desc * d, affect * aff);
 
-// AFFECT_DURATION_BUG_FIX
 enum affect_variable
 {
-	// Used when an Affect must last indefinitely.
-	// Time keeps decreasing, so infinity is emulated with a very large value.
-	//// 24 bits is too few, so use 25 bits.
-	// ... what a comment, saying it uses 25 bits while actually using 29 bits...
-	// The collect quest uses 60 years as infinite time, so use 60 years here too.
 
 	INFINITE_AFFECT_DURATION = 60 * 365 * 24 * 60 * 60
 };
-// END_AFFECT_DURATION_BUG_FIX
 }

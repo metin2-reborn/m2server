@@ -37,8 +37,8 @@ namespace building {
         int32_t npcx;
         int32_t npcy;
 
-        uint32_t group_vnum;         // Only one per group can be built
-        uint32_t depend_on_group_vnum; // Group that must already be built
+        uint32_t group_vnum;
+        uint32_t depend_on_group_vnum;
     };
 
     using object_table = struct object_table {

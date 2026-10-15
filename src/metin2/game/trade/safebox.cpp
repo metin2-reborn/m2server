@@ -69,7 +69,7 @@ bool safebox::add(uint32_t pos, item * item_value)
 
 	item_value->set_window(window_mode_);
 	item_value->set_cell(chr_owner_, pos);
-	item_value->save(); // Save must be called forcibly.
+	item_value->save();
 	item_manager::instance().flush_delayed_save(item_value);
 
 	grid_->put(pos, 1, item_value->size());
@@ -158,7 +158,6 @@ bool safebox::is_empty(uint32_t pos, uint8_t size)
 
 void safebox::change_size(int size)
 {
-	// if the current size is larger than the argument, leave the size as is.
 	if (size_ >= size)
 		return;
 
@@ -204,7 +203,7 @@ bool safebox::move_item(uint8_t cell, uint8_t dest_cell, uint8_t count)
 
 		if ((item2 = get_item(dest_cell)) && item != item2 && item2->is_stackable() &&
 				!is_set(item2->anti_flag(), ITEM_ANTIFLAG_STACK) &&
-				item2->vnum() == item->vnum()) // for stackable items
+				item2->vnum() == item->vnum())
 		{
 			for (int i = 0; i < ITEM_SOCKET_MAX_NUM; ++i)
 				if (item2->get_socket(i) != item->get_socket(i))
@@ -215,14 +214,12 @@ bool safebox::move_item(uint8_t cell, uint8_t dest_cell, uint8_t count)
 
 			count = std::min<int>(ITEM_MAX_COUNT - item2->count(), count);
 
-			// The destination stack is full: nothing moves.
 			if (count == 0)
 				return false;
 
 			item2->set_count(item2->count() + count);
 			send_item_set(dest_cell);
 
-			// The whole source stack merged: it goes away; otherwise the rest stays where it was.
 			if (count == item->count())
 				item_manager::instance().remove_item(item, "SAFEBOX_STACK");
 			else

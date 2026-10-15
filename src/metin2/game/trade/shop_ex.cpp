@@ -68,7 +68,7 @@ bool shop_ex::add_guest(character * ch,uint32_t owner_vid, bool other_empire)
 	
 	pack2.owner_vid = owner_vid;
 	pack2.shop_tab_count = vec_shop_tabs_.size();
-	char temp[8096]; // Max 1728 * 3
+	char temp[8096];
 	char* buf = &temp[0];
 	size_t size = 0;
 	for (auto it = vec_shop_tabs_.begin(); it != vec_shop_tabs_.end(); it++)
@@ -85,7 +85,7 @@ bool shop_ex::add_guest(character * ch,uint32_t owner_vid, bool other_empire)
 			switch(shop_tab.coin_type)
 			{
 			case SHOP_COIN_TYPE_GOLD:
-				if (other_empire) // no empire price penalty for pc shop
+				if (other_empire)
 					pack_tab.items[i].price = shop_tab.items[i].price * 3;
 				else
 					pack_tab.items[i].price = shop_tab.items[i].price;
@@ -143,7 +143,7 @@ int shop_ex::buy(character * ch, uint8_t pos)
 	switch (shopTab.coin_type)
 	{
 	case SHOP_COIN_TYPE_GOLD:
-		if (it->second)	// if other empire, price is triple
+		if (it->second)
 			dwPrice *= 3;
 
 		if (ch->gold() < (int) dwPrice)

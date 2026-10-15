@@ -19,9 +19,7 @@ struct guild_mark
 		SIZE = WIDTH * HEIGHT,
 	};
 
-	///////////////////////////////////////////////////////////////////////////////
 
-	///////////////////////////////////////////////////////////////////////////////
 };
 
 struct guild_mark_block
@@ -38,13 +36,11 @@ struct guild_mark_block
 		MAX_COMP_SIZE = (SIZE * sizeof(pixel)) + ((SIZE * sizeof(pixel)) >> 4) + 64 + 3 
 	};
 
-	///////////////////////////////////////////////////////////////////////////////
 
-	uint8_t 	comp_buf[MAX_COMP_SIZE];	// compressed data
-	lzo_uint size_comp_buf;	// compressed size
-	uint32_t	crc;			// CRC of the compressed data
+	uint8_t 	comp_buf[MAX_COMP_SIZE];
+	lzo_uint size_comp_buf;
+	uint32_t	crc;
 
-	///////////////////////////////////////////////////////////////////////////////
 
 	void	compress(const pixel * px_buf);
 };
@@ -57,15 +53,15 @@ class guild_mark_image
 			WIDTH = 512,
 			HEIGHT = 512,
 
-			BLOCK_ROW_COUNT = HEIGHT / guild_mark_block::HEIGHT, // 10
-			BLOCK_COL_COUNT = WIDTH / guild_mark_block::WIDTH, // 8
+			BLOCK_ROW_COUNT = HEIGHT / guild_mark_block::HEIGHT,
+			BLOCK_COL_COUNT = WIDTH / guild_mark_block::WIDTH,
 
-			BLOCK_TOTAL_COUNT = BLOCK_ROW_COUNT * BLOCK_COL_COUNT, // 80
+			BLOCK_TOTAL_COUNT = BLOCK_ROW_COUNT * BLOCK_COL_COUNT,
 
-			MARK_ROW_COUNT = BLOCK_ROW_COUNT * guild_mark_block::MARK_PER_BLOCK_HEIGHT, // 40
-			MARK_COL_COUNT = BLOCK_COL_COUNT * guild_mark_block::MARK_PER_BLOCK_WIDTH, // 32
+			MARK_ROW_COUNT = BLOCK_ROW_COUNT * guild_mark_block::MARK_PER_BLOCK_HEIGHT,
+			MARK_COL_COUNT = BLOCK_COL_COUNT * guild_mark_block::MARK_PER_BLOCK_WIDTH,
 
-			MARK_TOTAL_COUNT = MARK_ROW_COUNT * MARK_COL_COUNT, // 1280
+			MARK_TOTAL_COUNT = MARK_ROW_COUNT * MARK_COL_COUNT,
 
 		};
 
@@ -87,6 +83,6 @@ class guild_mark_image
 		void	build_all_blocks();
 
 		guild_mark_block	aak_block_[BLOCK_ROW_COUNT][BLOCK_COL_COUNT];
-		std::vector<pixel> pixels_;	// WIDTH x HEIGHT, top row first
+		std::vector<pixel> pixels_;
 };
 }

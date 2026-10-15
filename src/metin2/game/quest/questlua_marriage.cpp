@@ -128,10 +128,8 @@ namespace quest
 			quest::error("not married {:d} {:d}", pid1, pid2);
 			return 0;
 		}
-		//PREVENT_HACK
 		if ( ch->is_hack() )
 			return 0;
-		//END_PREVENT_HACK
 
 		pMarriage->warp_to_wedding_map(ch->player_id());
 		return 0;
@@ -148,10 +146,8 @@ namespace quest
 		}
 
 		
-		//PREVENT_HACK
 		if ( ch->is_hack() )
 			return 0;
-		//END_PREVENT_HACK
 		
 		pMarriage->warp_to_wedding_map(ch->player_id());
 		return 0;
@@ -168,7 +164,6 @@ namespace quest
 		}
 		if (pMarriage->wedding_info)
 		{
-			// Request to end the wedding
 			pMarriage->request_end_wedding();
 		}
 		return 0;

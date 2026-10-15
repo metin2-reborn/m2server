@@ -79,7 +79,6 @@ class sectree_map
 		template< typename Func >
 		void for_each( Func & rfunc )
 		{
-			// <Factor> Using snapshot copy to avoid side-effects
 			f_collect_entity collector;
 			std::map<uint32_t, sectree *>::iterator it = map_.begin();
 			for ( ; it != map_.end(); ++it)
@@ -149,7 +148,7 @@ class sectree_manager : public singleton<sectree_manager>
 		bool		center_position_of_map(int32_t map_index, pixel_position & r_pos);
 		bool        random_location(int32_t map_index, pixel_position & r_pos, uint32_t current_x = 0, uint32_t current_y = 0, int max_distance = 0);
 
-		int32_t		create_private_map(int32_t map_index);	// returns new private map index, returns 0 when fail
+		int32_t		create_private_map(int32_t map_index);
 		void		destroy_private_map(int32_t map_index);
 
 		area_map&	dungeon_area(int32_t map_index);
@@ -163,57 +162,16 @@ class sectree_manager : public singleton<sectree_manager>
 		size_t		monster_count_in_map(int32_t map_index);
 		size_t		monster_count_in_map(int32_t map_index, uint32_t vnum);
 
-		/// Performs a specific operation on the Sectree Attribute for an area.
-		/**
-		 * @param [in]	lMapIndex Map index to apply to
-		 * @param [in]	lStartX leftmost coordinate of the rectangle
-		 * @param [in]	lStartY topmost coordinate of the rectangle
-		 * @param [in]	lEndX rightmost coordinate of the rectangle
-		 * @param [in]	lEndY bottommost coordinate of the rectangle
-		 * @param [in]	lRotate rotation angle of the area
-		 * @param [in]	dwAttr Attribute to apply
-		 * @param [in]	mode type of operation on the Attribute
-		 */
 		bool		for_attr_region(int32_t map_index, int32_t start_x, int32_t start_y, int32_t end_x, int32_t end_y, int32_t rotate, uint32_t attr, attr_region_mode mode);
 
 		bool		save_attribute_to_image(int map_index, const char * file_name, sectree_map * map_src = nullptr);
 
 	private:
 
-		/// Performs a specific operation on the Sectree Attribute for a right-angled rectangular area.
-		/**
-		 * @param [in]	lMapIndex Map index to apply to
-		 * @param [in]	lCX coordinate of the leftmost Cell of the rectangle
-		 * @param [in]	lCY coordinate of the topmost Cell of the rectangle
-		 * @param [in]	lCW width of the rectangle in Cells
-		 * @param [in]	lCH height of the rectangle in Cells
-		 * @param [in]	lRotate rotation angle (right angle)
-		 * @param [in]	dwAttr Attribute to apply
-		 * @param [in]	mode type of operation on the Attribute
-		 */
 		bool		for_attr_region_right_angle( int32_t map_index, int32_t cx, int32_t cy, int32_t cw, int32_t ch, int32_t rotate, uint32_t attr, attr_region_mode mode );
 
-		/// Performs a specific operation on the Sectree Attribute for a non-right-angled rectangular area.
-		/**
-		 * @param [in]	lMapIndex Map index to apply to
-		 * @param [in]	lCX coordinate of the leftmost Cell of the rectangle
-		 * @param [in]	lCY coordinate of the topmost Cell of the rectangle
-		 * @param [in]	lCW width of the rectangle in Cells
-		 * @param [in]	lCH height of the rectangle in Cells
-		 * @param [in]	lRotate rotation angle (non-right angle)
-		 * @param [in]	dwAttr Attribute to apply
-		 * @param [in]	mode type of operation on the Attribute
-		 */
 		bool		for_attr_region_free_angle( int32_t map_index, int32_t cx, int32_t cy, int32_t cw, int32_t ch, int32_t rotate, uint32_t attr, attr_region_mode mode );
 
-		/// Performs a specific operation on the Attribute of a single Cell.
-		/**
-		 * @param [in]	lMapIndex Map index to apply to
-		 * @param [in]	lCX X coordinate of the Cell
-		 * @param [in]	lCY Y coordinate of the Cell
-		 * @param [in]	dwAttr Attribute to apply
-		 * @param [in]	mode type of operation on the Attribute
-		 */
 		bool		for_attr_region_cell( int32_t map_index, int32_t cx, int32_t cy, uint32_t attr, attr_region_mode mode );
 
 		static uint16_t			current_sectree_version_;
@@ -222,7 +180,6 @@ class sectree_manager : public singleton<sectree_manager>
 		std::vector<map_region>		vec_map_region_;
 		std::map<uint32_t, std::vector<npc_info> > npc_position_;
 
-		// <Factor> Circular private map indexing
 		typedef std::unordered_map<int32_t, int> private_index_map_type;
 		private_index_map_type next_private_index_map_;
 };

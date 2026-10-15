@@ -1,4 +1,3 @@
-// vim:ts=4 sw=4
 #include <metin2/db/clients/client_manager.h>
 #include <metin2/db/storage/db_manager.h>
 #include <metin2/db/app/main.h>

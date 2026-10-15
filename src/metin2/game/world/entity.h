@@ -32,7 +32,7 @@ class entity
 		void			view_cleanup();
 		void			view_insert(entity * entity, bool recursive = true);
 		void			view_remove(entity * entity, bool recursive = true);
-		void			view_reencode();	// Resend packets to surrounding entities.
+		void			view_reencode();
 
 		int32_t			x() const		{ return pos_.x; }
 		int32_t			y() const		{ return pos_.y; }

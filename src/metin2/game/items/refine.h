@@ -10,8 +10,8 @@ namespace metin2::game::inline items {
 
 enum
 {
-	BLACKSMITH_MOB = 20016, // Probability-based upgrade
-	ALCHEMIST_MOB = 20001, // 100% upgrade success 
+	BLACKSMITH_MOB = 20016,
+	ALCHEMIST_MOB = 20001,
 
 	BLACKSMITH_WEAPON_MOB = 20044,
 	BLACKSMITH_ARMOR_MOB = 20045,

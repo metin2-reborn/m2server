@@ -13,14 +13,8 @@
 
 namespace metin2::game::inline characters {
 
-// Dragon soul initialization
-// Dragon soul on/off is stored as an Affect, so
-// if there is a dragon soul Affect, the dragon souls in the deck must be activated.
-// Also, dragon soul eligibility is stored as a QuestFlag, so 
-// read the dragon soul eligibility from the quest flag.
 
-// DragonSoul_Initialize must not be called before the character's affects and quests are loaded.
-// Affects are loaded last, so it is called from LoadAffect.
+// Needs affects and quests loaded, so load_affect calls it.
 void character::dragon_soul_initialize()
 {
 	for (int i = INVENTORY_MAX_NUM + WEAR_MAX_NUM; i < DRAGON_SOUL_EQUIP_SLOT_END; i++)
@@ -62,7 +56,6 @@ void character::dragon_soul_give_qualification()
 		log_manager::instance().char_log(this, 0, "DS_QUALIFIED", "");
 	}
 	add_affect(AFFECT_DRAGON_SOUL_QUALIFIED, APPLY_NONE, 0, AFF_NONE, INFINITE_AFFECT_DURATION, 0, false, false);
-	//// If eligible, POINT_DRAGON_SOUL_IS_QUALIFIED is always 1
 }
 
 bool character::dragon_soul_activate_deck(int deck_idx)
@@ -95,7 +88,7 @@ bool character::dragon_soul_activate_deck(int deck_idx)
 			ds_manager::instance().activate_dragon_soul(pItem);
 	}
 	
-	return true; //fix
+	return true;
 }
 
 void character::dragon_soul_deactivate_all()

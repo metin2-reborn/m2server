@@ -43,7 +43,6 @@ namespace quest
 			{
 				QUEST_SKIN_NOWINDOW,
 				QUEST_SKIN_NORMAL,
-				//QUEST_SKIN_CINEMATIC,
 				QUEST_SKIN_CINEMATIC=5,
 				QUEST_SKIN_COUNT
 			};
@@ -69,13 +68,12 @@ namespace quest
 			bool		run_state(quest_state& qs);
 
 			pc *		get_pc(unsigned int pc);
-			pc *		pc_force(unsigned int pc);	// Gets the PC pointer without changing the current PC.
+			pc *		pc_force(unsigned int pc);
 
 			unsigned int	current_npc_race();
 			const std::string & 	current_quest_name();
 			unsigned int	find_npcid_by_name(const std::string& name);
 
-			//void		SetCurrentNPCCharacterPtr(CHARACTER * ch) { m_pkCurrentNPC = ch; }
 			character *		current_npc_character_ptr();
 
 			void		set_current_event_index(int index) { running_event_index_ = index; }
@@ -95,7 +93,6 @@ namespace quest
 			void		set_server_timer_arg(uint32_t arg);
 			uint32_t		server_timer_arg();
 
-			// event over state and stae
 			bool		server_timer(unsigned int npc, unsigned int arg);
 
 			void		login(unsigned int pc, const char * quest = nullptr);
@@ -119,13 +116,11 @@ namespace quest
 			void		letter(uint32_t pc);
 			void		letter(uint32_t pc, uint32_t quest_index, int state);
 			
-			void		item_informer(unsigned int pc, unsigned int vnum);	//German gift feature
+			void		item_informer(unsigned int pc, unsigned int vnum);
 
-			//
 
 			bool		check_quest_loaded(pc* pc) { return pc && pc->is_loaded(); }
 
-			// event occurs in one state
 			void		select(unsigned int pc, unsigned int selection);
 			void		resume(unsigned int pc);
 			void		input(unsigned int pc, const char* msg);
@@ -255,7 +250,6 @@ namespace quest
 			static bool execute_quest_script(pc& pc, uint32_t quest_index, const int state, const char* code, const int code_size, std::vector<a_arg_script*>* chat_scripts = nullptr, bool use_cache = true);
 		
 
-		// Objects for begin_other_pc_blcok, end_other_pc_block.
 		public:
 			void		begin_other_pc_block(uint32_t pid);
 			void		end_other_pc_block();
@@ -269,7 +263,6 @@ namespace quest
 
 namespace quest
 {
-	// Logs an error of a quest function; on test servers the current character sees it too.
 	void report_error(const std::source_location & where, std::string_view message);
 
 	template <typename... Args>

@@ -1,4 +1,3 @@
-// vim:ts=4 sw=4
 #include <metin2/db/clients/client_manager.h>
 #include <metin2/db/storage/db_manager.h>
 #include <metin2/db/guilds/guild_manager.h>
@@ -166,7 +165,7 @@ void client_manager::guild_war(peer* peer, packet_guild_war* p)
 		case GUILD_WAR_WAIT_START:
 			metin2::log::info( "GuildWar: GUILD_WAR_WAIT_START type({}) guild({:d} - {:d})", get_war_type(p->type), p->guild_from, p->guild_to);
 			[[fallthrough]];
-		case GUILD_WAR_RESERVE:	// Guild war reservation
+		case GUILD_WAR_RESERVE:
 			if (p->war != GUILD_WAR_WAIT_START)
 				metin2::log::info( "GuildWar: GUILD_WAR_RESERVE type({}) guild({:d} - {:d})", get_war_type(p->type), p->guild_from, p->guild_to);
 			guild_manager::instance().remove_declare(p->guild_from, p->guild_to);
@@ -178,21 +177,21 @@ void client_manager::guild_war(peer* peer, packet_guild_war* p)
 
 			break;
 
-		case GUILD_WAR_ON_WAR:		// Start the guild war. (Field wars start immediately)
+		case GUILD_WAR_ON_WAR:
 			metin2::log::info( "GuildWar: GUILD_WAR_ON_WAR type({}) guild({:d} - {:d})", get_war_type(p->type), p->guild_from, p->guild_to);
 			guild_manager::instance().remove_declare(p->guild_from, p->guild_to);
 			guild_manager::instance().start_war(p->type, p->guild_from, p->guild_to);
 			break;
 
-		case GUILD_WAR_OVER:		// Guild war ended normally
+		case GUILD_WAR_OVER:
 			metin2::log::info( "GuildWar: GUILD_WAR_OVER type({}) guild({:d} - {:d})", get_war_type(p->type), p->guild_from, p->guild_to);
 			guild_manager::instance().recv_war_over(p->guild_from, p->guild_to, p->type, p->war_price);
 			break;
 
-		case GUILD_WAR_END:		// Guild war ended abnormally
+		case GUILD_WAR_END:
 			metin2::log::info( "GuildWar: GUILD_WAR_END type({}) guild({:d} - {:d})", get_war_type(p->type), p->guild_from, p->guild_to);
 			guild_manager::instance().recv_war_end(p->guild_from, p->guild_to);
-			return; // NOTE: RecvWarEnd sends the packet, so no separate broadcast.
+			return; // recv_war_end already broadcasts the packet.
 
 		case GUILD_WAR_CANCEL :
 			metin2::log::info( "GuildWar: GUILD_WAR_CANCEL type({}) guild({:d} - {:d})", get_war_type(p->type), p->guild_from, p->guild_to);

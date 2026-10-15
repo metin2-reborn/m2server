@@ -1,4 +1,3 @@
-// vim:ts=4 sw=4
 #include <metin2/db/clients/client_manager.h>
 #include <metin2/db/tables/csv_reader.h>
 #include <metin2/db/storage/db_manager.h>
@@ -151,8 +150,6 @@ bool client_manager::initialize_refine_table()
 
 	while ((data = mysql_fetch_row(pRes->sql_result)))
 	{
-		//const char* s_szQuery = "SELECT src_vnum, result_vnum, cost, prob, "
-		//"vnum0, count0, vnum1, count1, vnum2, count2,  vnum3, count3, vnum4, count4 "
 
 		int col = 0;
 		str_to_number(prt->id, data[col++]);
@@ -188,53 +185,22 @@ class f_compare_vnum
 
 bool client_manager::initialize_mob_table()
 {
-	//================== Function description ==================//
-	//1. Summary: reads 'mob_proto.txt', 'mob_proto_test.txt' and 'mob_names.txt',
-	//		and builds the (!)[mob_table] table object. (type: TMobTable)
-	//2. Steps
-	//	1) Read 'mob_names.txt' and build the (a)[localMap](vnum:name) map.
-	//	2) From 'mob_proto_test.txt' and the (a)[localMap] map,
-	//		build the (b)[test_map_mobTableByVnum](vnum:TMobTable) map.
-	//	3) From 'mob_proto.txt' and the (a)[localMap] map,
-	//		build the (!)[mob_table] table.
-	//			<Note>
-	//			For rows that exist in both 
-	//			(b)[test_map_mobTableByVnum] and (!)[mob_table],
-	//			the one from (b)[test_map_mobTableByVnum] is used.
-	//	4) Add the rows of (b)[test_map_mobTableByVnum] that are not in (!)[mob_table].
-	//3. Tests
-	//	1) Whether the 'mob_proto.txt' data made it into mob_table correctly. -> done
-	//	2) Whether the 'mob_names.txt' data made it into mob_table correctly.
-	//	3) Whether the [overlapping] data from 'mob_proto_test.txt' made it into mob_table correctly.
-	//	4) Whether the [new] data from 'mob_proto_test.txt' made it into mob_table correctly.
-	//	5) (Final) Whether it works correctly in the game client.
-	//_______________________________________________//
 
 
-	//===============================================//
-	//	1) Read 'mob_names.txt' and build the (a)[localMap] map.
-	//<Build the (a)localMap map>
 	std::map<int,const char*> localMap;
-	//<Read file>
 	c_csv_table nameData;
 	if(!nameData.load("mob_names.txt",'\t'))
 	{
 		fprintf(stderr, "mob_names.txt 파일을 읽어오지 못했습니다\n");
 	} else {
-		nameData.next();	//Skip the description row.
+		nameData.next();
 		while(nameData.next()) {
 			localMap[atoi(nameData.as_string_by_index(0))] = nameData.as_string_by_index(1);
 		}
 	}
-	//________________________________________________//
 
 	
-	//===============================================//
-	//	2) From 'mob_proto_test.txt' and the (a)localMap map,
-	//		build the (b)[test_map_mobTableByVnum](vnum:TMobTable) map.
-	//0. 
-	std::set<int> vnumSet;	//Used to check which of the test file entries are new.
-	//1. Read the file
+	std::set<int> vnumSet;
 	bool isTestFile = true;
 	c_csv_table test_data;
 	if(!test_data.load("mob_proto_test.txt",'\t'))
@@ -242,20 +208,17 @@ bool client_manager::initialize_mob_table()
 		fprintf(stderr, "테스트 파일이 없습니다. 그대로 진행합니다.\n");
 		isTestFile = false;
 	}
-	//2. Build the (c)[test_map_mobTableByVnum](vnum:TMobTable) map.
 	std::map<uint32_t, mob_table *> test_map_mobTableByVnum;
 	std::unique_ptr<mob_table[]> test_mob_tables;
 	if (isTestFile) {
-		test_data.next();	//Skip the description row.
+		test_data.next();
 
-		//a. Create the test monster table.
 		mob_table * test_mob_table = nullptr;
 		int test_MobTableSize = test_data.file.row_count()-1;
 		test_mob_tables = std::make_unique<mob_table[]>(test_MobTableSize);
 		test_mob_table = test_mob_tables.get();
 		memset(test_mob_table, 0, sizeof(mob_table) * test_MobTableSize);
 
-		//b. Fill the test monster table and also insert into the map.
 		while(test_data.next()) {
 
 			if (!set_proto_mob_table(test_mob_table, test_data, localMap))
@@ -271,22 +234,13 @@ bool client_manager::initialize_mob_table()
 
 	}
 
-	//	3) From 'mob_proto.txt' and the (a)[localMap] map,
-	//		build the (!)[mob_table] table.
-	//			<Note>
-	//			For rows that exist in both 
-	//			(b)[test_map_mobTableByVnum] and (!)[mob_table],
-	//			the one from (b)[test_map_mobTableByVnum] is used.
 
-	//1. Read the file.
 	c_csv_table data;
 	if(!data.load("mob_proto.txt",'\t')) {
 		fprintf(stderr, "mob_proto.txt 파일을 읽어오지 못했습니다\n");
 		return false;
 	}
-	data.next();					//Skip the description row
-	//2. Build (!)[mob_table]
-	//2.1 Count the newly added entries
+	data.next();
 	int addNumber = 0;
 	while(data.next()) {
 		int vnum = atoi(data.as_string_by_index(0));
@@ -296,15 +250,13 @@ bool client_manager::initialize_mob_table()
 			addNumber++;
 		}
 	}
-	//Move data back to the first line. (read it again;;)
 	data.destroy();
 	if(!data.load("mob_proto.txt",'\t'))
 	{
 		fprintf(stderr, "mob_proto.txt 파일을 읽어오지 못했습니다\n");
 		return false;
 	}
-	data.next(); //Skip the top line (the item column descriptions)
-	//2.2 Allocate mob_table to fit
+	data.next();
 	if (!vec_mob_table_.empty())
 	{
 		metin2::log::info( "RELOAD: mob_proto");
@@ -313,18 +265,15 @@ bool client_manager::initialize_mob_table()
 	vec_mob_table_.resize(data.file.row_count()-1 + addNumber);
 	memset(&vec_mob_table_[0], 0, sizeof(mob_table) * vec_mob_table_.size());
 	mob_table * mob_table = &vec_mob_table_[0];
-	//2.3 Fill in the data
 	while (data.next())
 	{
 		int col = 0;
-		//Check whether (b)[test_map_mobTableByVnum] has the same row.
 		bool isSameRow = true;
 		std::map<uint32_t, proto::mob_table *>::iterator it_map_mobTable;
 		it_map_mobTable = test_map_mobTableByVnum.find(atoi(data.as_string_by_index(col)));
 		if(it_map_mobTable == test_map_mobTableByVnum.end()) {
 			isSameRow = false;
 		}
-		//If the same row exists, read it from (b).
 		if(isSameRow) {
 			proto::mob_table *tempTable = it_map_mobTable->second;
 
@@ -401,7 +350,6 @@ bool client_manager::initialize_mob_table()
 						
 		}
 
-		//Add the vnum to the set
 		vnumSet.insert(mob_table->vnum);
 		
 
@@ -409,11 +357,8 @@ bool client_manager::initialize_mob_table()
 		++mob_table;
 
 	}
-	//_____________________________________________________//
 
 
-	//	4) Add the rows of (b)[test_map_mobTableByVnum] that are not in (!)[mob_table].
-	//Read the file again.
 	test_data.destroy();
 	isTestFile = true;
 	if(!test_data.load("mob_proto_test.txt",'\t'))
@@ -422,11 +367,10 @@ bool client_manager::initialize_mob_table()
 		isTestFile = false;
 	}
 	if(isTestFile) {
-		test_data.next();	//Skip the description row.
+		test_data.next();
 
-		while (test_data.next())	//Go through each test entry and add the new ones.
+		while (test_data.next())
 		{
-			//Skip duplicates.
 			std::set<int>::iterator itVnum;
 			itVnum=vnumSet.find(atoi(test_data.as_string_by_index(0)));
 			if (itVnum != vnumSet.end()) {
@@ -463,8 +407,6 @@ bool client_manager::initialize_shop_table()
 
 	std::unique_ptr<ql_msg> pkMsg2(db_manager::instance().direct_query(s_szQuery));
 
-	// Careful: if a shop vnum exists but has no shop_item, it is treated as a failure.
-	// Needs fixing
 	ql_result * pRes2 = pkMsg2->get();
 
 	if (!pRes2->num_rows)
@@ -503,7 +445,7 @@ bool client_manager::initialize_shop_table()
 
 		str_to_number(shop_table->npc_vnum, data[col++]);
 
-		if (!data[col])	// Because NULL is returned when there are no items at all..
+		if (!data[col])
 			continue;
 
 		shop_item_table * pItem = &shop_table->items[shop_table->item_count];
@@ -533,33 +475,9 @@ bool client_manager::initialize_shop_table()
 
 bool client_manager::initialize_item_table()
 {
-	//================== Function description ==================//
-	//1. Summary: reads 'item_proto.txt', 'item_proto_test.txt' and 'item_names.txt',
-	//		and builds the <item_table>(TItemTable) and <m_map_itemTableByVnum> objects.
-	//2. Steps
-	//	1) Read 'item_names.txt' and build the (a)[localMap](vnum:name) map.
-	//	2) From 'item_proto_text.txt' and the (a)[localMap] map,
-	//		build the (b)[test_map_itemTableByVnum](vnum:TItemTable) map.
-	//	3) From 'item_proto.txt' and the (a)[localMap] map,
-	//		build (!)[item_table] and <m_map_itemTableByVnum>.
-	//			<Note>
-	//			For rows that exist in both 
-	//			(b)[test_map_itemTableByVnum] and (!)[mob_table],
-	//			the one from (b)[test_map_itemTableByVnum] is used.
-	//	4) Add the rows of (b)[test_map_itemTableByVnum] that are not in (!)[item_table].
-	//3. Tests
-	//	1) Whether the 'item_proto.txt' data made it into item_table correctly. -> done
-	//	2) Whether the 'item_names.txt' data made it into item_table correctly.
-	//	3) Whether the [overlapping] data from 'item_proto_test.txt' made it into item_table correctly.
-	//	4) Whether the [new] data from 'item_proto_test.txt' made it into item_table correctly.
-	//	5) (Final) Whether it works correctly in the game client.
-	//_______________________________________________//
 
 
 
-	//=================================================================================//
-	//	1) Read 'item_names.txt' and build the (a)[localMap](vnum:name) map.
-	//=================================================================================//
 	std::map<int,const char*> localMap;
 	c_csv_table nameData;
 	if(!nameData.load("item_names.txt",'\t'))
@@ -571,30 +489,22 @@ bool client_manager::initialize_item_table()
 			localMap[atoi(nameData.as_string_by_index(0))] = nameData.as_string_by_index(1);
 		}
 	}
-	//_________________________________________________________________//
 
-	//=================================================================//
-	//	2) From 'item_proto_text.txt' and the (a)[localMap] map,
-	//		build the (b)[test_map_itemTableByVnum](vnum:TItemTable) map.
-	//=================================================================//
 	std::map<uint32_t, item_table *> test_map_itemTableByVnum;
 	std::unique_ptr<item_table[]> test_item_tables;
-	//1. Read the file.
 	c_csv_table test_data;
 	if(!test_data.load("item_proto_test.txt",'\t'))
 	{
 		fprintf(stderr, "item_proto_test.txt 파일을 읽어오지 못했습니다\n");
 	} else {
-		test_data.next();	//Skip the description row.
+		test_data.next();
 
-		//2. Create the test item table.
 		item_table * test_item_table = nullptr;
 		int test_itemTableSize = test_data.file.row_count()-1;
 		test_item_tables = std::make_unique<item_table[]>(test_itemTableSize);
 		test_item_table = test_item_tables.get();
 		memset(test_item_table, 0, sizeof(item_table) * test_itemTableSize);
 
-		//3. Fill the test item table and also insert into the map.
 		while(test_data.next()) {
 
 
@@ -608,29 +518,18 @@ bool client_manager::initialize_item_table()
 
 		}
 	}
-	//______________________________________________________________________//
 
 
-	//========================================================================//
-	//	3) From 'item_proto.txt' and the (a)[localMap] map,
-	//		build (!)[item_table] and <m_map_itemTableByVnum>.
-	//			<Note>
-	//			For rows that exist in both 
-	//			(b)[test_map_itemTableByVnum] and (!)[mob_table],
-	//			the one from (b)[test_map_itemTableByVnum] is used.
-	//========================================================================//
 
-	//Set of vnums. Used to identify new test items.
 	std::set<int> vnumSet;
 
-	//Read the file.
 	c_csv_table data;
 	if(!data.load("item_proto.txt",'\t'))
 	{
 		fprintf(stderr, "item_proto.txt 파일을 읽어오지 못했습니다\n");
 		return false;
 	}
-	data.next(); //Skip the top line (the item column descriptions)
+	data.next();
 
 	if (!vec_item_table_.empty())
 	{
@@ -639,8 +538,6 @@ bool client_manager::initialize_item_table()
 		map_item_table_by_vnum_.clear();
 	}
 
-	//===== Build the item table =====//
-	//Count the newly added entries.
 	int addNumber = 0;
 	while(data.next()) {
 		int vnum = atoi(data.as_string_by_index(0));
@@ -650,14 +547,13 @@ bool client_manager::initialize_item_table()
 			addNumber++;
 		}
 	}
-	//Move data back to the first line. (read it again;;)
 	data.destroy();
 	if(!data.load("item_proto.txt",'\t'))
 	{
 		fprintf(stderr, "item_proto.txt 파일을 읽어오지 못했습니다\n");
 		return false;
 	}
-	data.next(); //Skip the top line (the item column descriptions)
+	data.next();
 
 	vec_item_table_.resize(data.file.row_count() - 1 + addNumber);
 	memset(&vec_item_table_[0], 0, sizeof(item_table) * vec_item_table_.size());
@@ -671,7 +567,6 @@ bool client_manager::initialize_item_table()
 		std::map<uint32_t, proto::item_table *>::iterator it_map_itemTable;
 		it_map_itemTable = test_map_itemTableByVnum.find(atoi(data.as_string_by_index(col)));
 		if(it_map_itemTable == test_map_itemTableByVnum.end()) {
-			//Store each column's data
 			
 			if (!set_proto_item_table(item_table, data, localMap))
 			{
@@ -680,7 +575,7 @@ bool client_manager::initialize_item_table()
 
 
 			
-		} else {	//$$$$$$$$$$$$$$$$$$$$$$$ There is test item data!	
+		} else {
 			proto::item_table *tempTable = it_map_itemTable->second;
 
 			item_table->vnum = tempTable->vnum;
@@ -734,21 +629,16 @@ bool client_manager::initialize_item_table()
 		map_item_table_by_vnum_.insert(std::map<uint32_t, proto::item_table *>::value_type(item_table->vnum, item_table));
 		++item_table;
 	}
-	//_______________________________________________________________________//
 
-	//========================================================================//
-	//	4) Add the rows of (b)[test_map_itemTableByVnum] that are not in (!)[item_table].
-	//========================================================================//
 	test_data.destroy();
 	if(!test_data.load("item_proto_test.txt",'\t'))
 	{
 		fprintf(stderr, "item_proto_test.txt 파일을 읽어오지 못했습니다\n");
 	} else {
-		test_data.next();	//Skip the description row.
+		test_data.next();
 
-		while (test_data.next())	//Go through each test entry and add the new ones.
+		while (test_data.next())
 		{
-			//Skip duplicates.
 			std::set<int>::iterator itVnum;
 			itVnum=vnumSet.find(atoi(test_data.as_string_by_index(0)));
 			if (itVnum != vnumSet.end()) {
@@ -770,8 +660,6 @@ bool client_manager::initialize_item_table()
 
 
 
-	// QUEST_ITEM_PROTO_DISABLE
-	// END_OF_QUEST_ITEM_PROTO_DISABLE
 
 	map_item_table_by_vnum_.clear();
 
@@ -867,13 +755,11 @@ bool client_manager::initialize_skill_table()
 		strlcpy(t.duration_poly2, data[col++], sizeof(t.duration_poly2));
 		str_to_number(t.affect_flag2, data[col++]);
 
-		// ADD_GRANDMASTER_SKILL
 		strlcpy(t.point_on3, data[col++], sizeof(t.point_on3));
 		strlcpy(t.point_poly3, data[col++], sizeof(t.point_poly3));
 		strlcpy(t.duration_poly3, data[col++], sizeof(t.duration_poly3));
 
 		strlcpy(t.grand_master_add_sp_cost_poly, data[col++], sizeof(t.grand_master_add_sp_cost_poly));
-		// END_OF_ADD_GRANDMASTER_SKILL
 
 		str_to_number(t.level_step, data[col++]);
 		str_to_number(t.level_limit, data[col++]);
@@ -1124,7 +1010,6 @@ bool client_manager::initialize_land_table()
 
 void parse_pair_number_string(const char * string, std::vector<std::pair<int, int> > & vec)
 {
-	// format: 10,1/20,3/300,50
 	const char * t = string;
 	const char * p = strchr(t, '/');
 	std::pair<int, int> k;
@@ -1229,14 +1114,12 @@ bool client_manager::initialize_object_proto()
 			str_to_number(t.region[2], data[col++]);
 			str_to_number(t.region[3], data[col++]);
 
-			// ADD_BUILDING_NPC
 			str_to_number(t.npc_vnum, data[col++]);
 			str_to_number(t.group_vnum, data[col++]);
 			str_to_number(t.depend_on_group_vnum, data[col++]);
 
 			t.npcx = 0;
 			t.npcy = std::max(t.region[1], t.region[3])+300;
-			// END_OF_ADD_BUILDING_NPC
 
 			metin2::log::info( "OBJ_PROTO: vnum {:d} price {:d} mat {:d} {:d}",
 					t.vnum, t.price, t.materials[0].item_vnum, t.materials[0].count);
@@ -1344,7 +1227,7 @@ bool client_manager::mirror_mob_table_into_db()
 				")",
 				sql::raw(get_table_postfix()),
 
-				t.vnum, t.name, /*t.szLocaleName, */t.type, t.rank, t.battle_type, t.level, t.size, t.ai_flag, t.race_flag, t.immune_flag,
+				t.vnum, t.name, t.type, t.rank, t.battle_type, t.level, t.size, t.ai_flag, t.race_flag, t.immune_flag,
 				t.on_click_type, t.empire, t.drop_item_vnum, t.resurrection_vnum, t.folder,
 				t.str, t.dex, t.con, t.iq, t.damage_range[0], t.damage_range[1], t.max_hp, t.regen_cycle, t.regen_percent, t.exp,
 
@@ -1441,7 +1324,7 @@ bool client_manager::mirror_item_table_into_db()
 				"{}, {}, {}, {}, {}, {} )",
 				sql::raw(get_table_postfix()), sql::raw(locale_name_column), 
 				t.vnum, t.type, t.sub_type, t.name, t.locale_name, static_cast<int32_t>(t.gold), t.shop_buy_price, t.weight, t.size,
-				// signed int columns: keep the bit pattern as the old printf %d did
+				// Signed columns: keep the bit pattern the old printf %d wrote.
 				static_cast<int32_t>(t.flags), static_cast<int32_t>(t.wear_flags), static_cast<int32_t>(t.anti_flags), t.immune_flag, 
 				t.refined_vnum, t.refine_set, t.alter_to_magic_item_pct, t.gain_socket_pct, t.s_addon_type, t.specular,
 				t.limits[0].type, t.limits[0].value, t.limits[1].type, t.limits[1].value,
@@ -1469,7 +1352,7 @@ bool client_manager::mirror_item_table_into_db()
 				"{}, {}, {}, {}, {}, {} )",
 				sql::raw(get_table_postfix()), 
 				t.vnum, t.type, t.sub_type, t.name, static_cast<int32_t>(t.gold), t.shop_buy_price, t.weight, t.size,
-				// signed int columns: keep the bit pattern as the old printf %d did
+				// Signed columns: keep the bit pattern the old printf %d wrote.
 				static_cast<int32_t>(t.flags), static_cast<int32_t>(t.wear_flags), static_cast<int32_t>(t.anti_flags), t.immune_flag, 
 				t.refined_vnum, t.refine_set, t.alter_to_magic_item_pct, t.gain_socket_pct, t.s_addon_type, t.specular,
 				t.limits[0].type, t.limits[0].value, t.limits[1].type, t.limits[1].value,

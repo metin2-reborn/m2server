@@ -17,9 +17,9 @@ namespace metin2::game::inline world {
 
 namespace metin2::game::inline parties {
 
-enum // unit : minute
+enum
 {
-	PARTY_ENOUGH_MINUTE_FOR_EXP_BONUS = 60, // Bonus experience starts 60 minutes after the party is formed
+	PARTY_ENOUGH_MINUTE_FOR_EXP_BONUS = 60,
 	PARTY_HEAL_COOLTIME_LONG = 60,
 	PARTY_HEAL_COOLTIME_SHORT = 30,
 	PARTY_MAX_MEMBER = 8,
@@ -80,19 +80,19 @@ class party_manager : public singleton<party_manager>
 		void		p2_p_quit_party(uint32_t pid);
 
 	private:
-		party_map	map_pk_party_;		// Container for looking up which party a PID is in
+		party_map	map_pk_party_;
 
-		pc_party_set	set_pk_pc_party_;	// The full set of everyone's parties
+		pc_party_set	set_pk_pc_party_;
 
-		bool		enable_pc_party_;	// If the DB is not up, people's party state cannot be changed
+		bool		enable_pc_party_;
 };
 
 enum party_messages
 {
-	PM_ATTACK,		// Attack him
-	PM_RETURN,		// Return back to position
-	PM_ATTACKED_BY,	// I was attacked by someone
-	PM_AGGRO_INCREASE,	// My aggro is increased
+	PM_ATTACK,
+	PM_RETURN,
+	PM_ATTACKED_BY,
+	PM_AGGRO_INCREASE,
 };
 
 class party
@@ -231,11 +231,9 @@ class party
 
 		int		long_time_exp_bonus_;
 
-		// used in Update
 		int		leadership_;
 		int		exp_bonus_;
 
-		// changed only in Update
 		int		count_near_party_member_;
 
 		bool		pc_party_;
@@ -243,9 +241,6 @@ class party
 		flag_map	map_i_flag_;
 
 		dungeon *	dungeon_;
-		// Dungeon member variable for the Hungry Ghost (Agwi) cave.
-		// I really didn't want to go this far, but party management in dungeons is a total mess,
-		// so this is a temporary workaround until that is fixed.
 		dungeon *	dungeon_for_only_party_;
 	public:
 		void set_dungeon_for_only_party(dungeon * dungeon_value);

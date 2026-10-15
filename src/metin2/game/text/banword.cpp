@@ -50,7 +50,6 @@ bool banword_manager::check_string(const char * string_value, size_t len_value)
 		const char * tmp = string_value;
 		ssize_t len = len_value;
 
-		// words start on a character boundary (text is UTF-8)
 		while (len > 0)
 		{
 			if (!strncmp(tmp, r.c_str(), r.size()))
@@ -78,7 +77,6 @@ void banword_manager::convert_string(char * string_value, size_t len_value)
 		char * tmp = string_value;
 		ssize_t len = len_value;
 
-		// words start on a character boundary (text is UTF-8)
 		while (len > 0)
 		{
 			if (*tmp == '*')

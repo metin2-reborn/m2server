@@ -85,7 +85,7 @@ namespace quest
 		return 0;
 	}
 
-	int game_open_safebox(lua_State* /*L*/)
+	int game_open_safebox(lua_State* )
 	{
 		quest_manager& q = quest_manager::instance();
 		character * ch = q.current_character_ptr();
@@ -94,7 +94,7 @@ namespace quest
 		return 0;
 	}
 
-	int game_open_mall(lua_State* /*L*/)
+	int game_open_mall(lua_State* )
 	{
 		quest_manager& q = quest_manager::instance();
 		character * ch = q.current_character_ptr();
@@ -105,9 +105,6 @@ namespace quest
 
 	int game_drop_item(lua_State* lua)
 	{
-		//
-		// Syntax: game.drop_item(50050, 1)
-		//
 		character * ch = quest_manager::instance().current_character_ptr();
 
 		uint32_t item_vnum = (uint32_t) lua_tonumber(lua, 1);

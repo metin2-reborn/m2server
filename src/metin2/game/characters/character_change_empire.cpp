@@ -17,16 +17,6 @@
 #include <memory>
 #include <string>
 
-/*
-
-   Return Value
-		0 : unknown error or query error
-		1 : trying to change to the same empire
-		2 : a character has joined a guild
-		3 : a character is married
-
-		999 : empire change succeeded
-*/
 namespace metin2::game::inline characters {
 
 int character::change_empire(uint8_t empire_value)
@@ -39,7 +29,6 @@ int character::change_empire(uint8_t empire_value)
 	memset(dwPID, 0, sizeof(dwPID));
 
 	{
-		// 1. get all pids of my account
 		const std::string query = sql::format(
 				"SELECT id, pid1, pid2, pid3, pid4 FROM player_index{} WHERE (pid1={} OR pid2={} OR pid3={} OR pid4={}) AND empire={}", 
 				sql::raw(get_table_postfix()), player_id(), player_id(), player_id(), player_id(), empire());
@@ -63,8 +52,6 @@ int character::change_empire(uint8_t empire_value)
 	const int loop = 4;
 
 	{
-		// 2. get guild info for each character.
-		//   if even one character is in a guild, the empire cannot be changed.
 		uint32_t dwGuildID[4];
 		guild * pGuild[4];
 		for (int i = 0; i < loop; ++i)
@@ -98,8 +85,6 @@ int character::change_empire(uint8_t empire_value)
 	}
 
 	{
-		// 3. get marriage info for each character.
-		//   if even one character is married, the empire cannot be changed.
 		for (int i = 0; i < loop; ++i)
 		{
 			if (marriage::manager::instance().is_engaged_or_married(dwPID[i]) == true)
@@ -108,7 +93,6 @@ int character::change_empire(uint8_t empire_value)
 	}
 	
 	{
-		// 4. update the empire info in the db.
 		const std::string query = sql::format("UPDATE player_index{} SET empire={} WHERE (pid1={} OR pid2={} OR pid3={} OR pid4={}) AND empire={}", 
 				sql::raw(get_table_postfix()), empire_value, player_id(), player_id(), player_id(), player_id(), empire());
 
@@ -116,7 +100,6 @@ int character::change_empire(uint8_t empire_value)
 
 		if (msg->get()->affected_rows > 0)
 		{
-			// 5. add an empire change history record.
 			set_change_empire_count();
 
 			return 999;

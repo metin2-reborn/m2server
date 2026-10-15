@@ -82,7 +82,7 @@ bool input_processor::process(desc * desc_value, const void * orig, int bytes, i
 		uint8_t bHeader = (uint8_t) *(c_pData);
 		const char * c_pszName;
 
-		if (bHeader == 0) // Skip header 0 since encryption handling exists.
+		if (bHeader == 0)
 			iPacketLen = 1;
 		else if (!packet_info_->get(bHeader, &iPacketLen, &c_pszName))
 		{
@@ -102,9 +102,6 @@ bool input_processor::process(desc * desc_value, const void * orig, int bytes, i
 
 			packet_info_->start();
 
-			// Handlers check their variable-size data against m_iBufferLeft. The sequence byte
-			// follows that data, so it is not counted: a packet whose sequence byte has not
-			// arrived yet then waits for it instead of being read past the end of the buffer.
 			const int iBufferLeft = buffer_left_;
 
 			if (packet_info_->is_sequence(bHeader))
@@ -116,8 +113,6 @@ bool input_processor::process(desc * desc_value, const void * orig, int bytes, i
 			if (iExtraPacketSize < 0)
 				return true;
 
-			// A handler that claims more than was received would make us read and consume past
-			// the buffer.
 			if (iExtraPacketSize > buffer_left_ - iPacketLen)
 			{
 				metin2::log::error("packet {} (header {:d}) claims {:d} extra bytes, only {:d} left, host: {}",
@@ -268,17 +263,15 @@ input_handshake::~input_handshake()
 
 
 
-// BLOCK_CHAT
-// END_OF_BLOCK_CHAT
 
 int input_handshake::analyze(desc * d, uint8_t header_value, const char * data_value)
 {
-	if (header_value == 10) // Ignore enter
+	if (header_value == 10)
 		return 0;
 
 	if (header_value == HEADER_CG_TEXT)
 	{
-		if (is_empty_admin_page() || !is_admin_page(d->host_name())) // block if adminpage is not set or if not admin
+		if (is_empty_admin_page() || !is_admin_page(d->host_name()))
 		{
 			metin2::log::info( "PORT_SECURITY: BLOCK FROM({})", d->host_name());
 			d->set_phase(PHASE_CLOSE);
@@ -287,7 +280,6 @@ int input_handshake::analyze(desc * d, uint8_t header_value, const char * data_v
 
 		++data_value;
 
-		// The line ends at \n within what was received; the data is not NUL-terminated.
 		const char * c_pSep = (const char *) memchr(data_value, '\n', buffer_left_ - 1);
 
 		if (!c_pSep)
@@ -309,7 +301,6 @@ int input_handshake::analyze(desc * d, uint8_t header_value, const char * data_v
 			else
 				stResult = "YES";
 		}
-		//else if (!stBuf.compare("SHOWMETHEMONEY"))
 		else if (!metin2::config::server().admin.password.empty() && stBuf == metin2::config::server().admin.password)
 		{
 			if (!is_empty_admin_page())
@@ -361,7 +352,6 @@ int input_handshake::analyze(desc * d, uint8_t header_value, const char * data_v
 			}
 			stResult += szTmp;
 		}
-		// The commands below need the admin password (admin mode), not only an admin IP.
 		else if (d->is_admin_mode() && !stBuf.compare("CHECK_P2P_CONNECTIONS"))
 		{
 			std::ostringstream oss(std::ostringstream::out);
@@ -381,11 +371,10 @@ int input_handshake::analyze(desc * d, uint8_t header_value, const char * data_v
 			main_packet_info_->log("packet_info.txt");
 			stResult = "OK";
 		}
-		//gift notify delete command
 		else if (d->is_admin_mode() && !stBuf.compare(0,15,"DELETE_AWARDID "))
 			{
 				char szTmp[64];
-				std::string msg = stBuf.substr(15,26);	// item_award id range?
+				std::string msg = stBuf.substr(15,26);
 				
 				packet_delete_award_id p;
 				p.id = (uint32_t)(atoi(msg.c_str()));
@@ -399,7 +388,6 @@ int input_handshake::analyze(desc * d, uint8_t header_value, const char * data_v
 			
 			if (d->is_admin_mode())
 			{
-				// Admin commands
 				if (!stBuf.compare(0, 7, "NOTICE "))
 				{
 					std::string msg = stBuf.substr(7);
@@ -435,7 +423,6 @@ metin2::log::debug( "DC : '{}'", msg.c_str());
 
 					p2_p_manager::instance().send(&pgg, sizeof(packet_gg_disconnect));
 
-					// delete login key
 					{
 						packet_dc p;
 						strlcpy(p.login, msg.c_str(), sizeof(p.login));
@@ -510,7 +497,6 @@ metin2::log::debug( "DC : '{}'", msg.c_str());
 						stResult = "EVENT FLAG FAIL";
 					}
 				}
-				// BLOCK_CHAT
 				else if (!stBuf.compare(0, 11, "BLOCK_CHAT "))
 				{
 					std::istringstream is(stBuf);
@@ -532,7 +518,6 @@ metin2::log::debug( "DC : '{}'", msg.c_str());
 						stResult = "BLOCK_CHAT FAIL";
 					}
 				}
-				// END_OF_BLOCK_CHAT
 				else if (!stBuf.compare(0, 12, "PRIV_EMPIRE "))
 				{
 					int	empire, type, value, duration;
@@ -540,13 +525,11 @@ metin2::log::debug( "DC : '{}'", msg.c_str());
 					std::string strPrivEmpire;
 					is >> strPrivEmpire >> empire >> type >> value >> duration;
 
-					// Max 10x
 					value = std::clamp(value, 0, 1000);
 					stResult = "PRIV_EMPIRE FAIL";
 
 					if (!is.fail())
 					{
-						// check parameter
 						if (empire < 0 || 3 < empire);
 						else if (type < 1 || 4 < type);
 						else if (value < 0);
@@ -555,7 +538,6 @@ metin2::log::debug( "DC : '{}'", msg.c_str());
 						{
 							stResult = "PRIV_EMPIRE SUCCEED";
 
-							// Convert to hours
 							duration = duration * (60 * 60);
 
 							metin2::log::info( "_give_empire_privileage(empire={:d}, type={:d}, value={:d}, duration={:d}) by web", 
@@ -576,15 +558,13 @@ metin2::log::debug( "DC : '{}'", msg.c_str());
 	{
 		if (!metin2::config::game().mark.server)
 		{
-			// Disconnect! - requesting a mark when this isn't the mark server?
 			metin2::log::error("Guild Mark login requested but i'm not a mark server!");
 			d->set_phase(PHASE_CLOSE);
 			return 0;
 		}
 
-		// Marks are public, so anyone may download them. Uploads need the key that the login of
-		// the player's game connection on this core issued (one core serves every map here); the
-		// client's first download starts before it has one, so a missing key means download only.
+		// Anyone may download marks; uploads need the key from the player's game login, which the
+		// client lacks on its first download, so a missing key means download only.
 		const packet_cg_mark_login * p = (const packet_cg_mark_login *) data_value;
 		const bool bAuthenticated = desc_manager::instance().check_random_key(p->handle, p->random_key);
 
@@ -607,11 +587,9 @@ metin2::log::debug( "DC : '{}'", msg.c_str());
 		handshake(d, data_value);
 	else if (header_value == HEADER_CG_KEY_AGREEMENT)
 	{
-		// Send out the key agreement completion packet first
-		// to help client to enter encryption mode
 		d->send_key_agreement_completed();
-		// Write it now, on its own: the client switches decryption on per received chunk, so
-		// the encrypted packets queued next must not arrive in the same segment.
+		// On its own: the client enables decryption per received chunk, so the encrypted packets that
+		// follow must not share its segment.
 		d->send_output_now();
 
 		packet_key_agreement* p = (packet_key_agreement*)data_value;
@@ -622,7 +600,6 @@ metin2::log::debug( "DC : '{}'", msg.c_str());
 			return 0;
 		}
 		if (d->finish_handshake(p->agreed_length, p->data, p->data_length)) {
-			// Handshaking succeeded
 			if (metin2::config::is_auth()) {
 				d->set_phase(PHASE_AUTH);
 			} else {

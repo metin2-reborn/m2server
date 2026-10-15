@@ -48,7 +48,6 @@ int gamble(std::vector<float>& vec_probs)
 	return -1;
 }
 
-// Takes a weight table (prob_lst), selects random_set.size() indices and returns random_set
 bool make_distinct_random_number_set(std::list <float> prob_lst, std::vector<int>& random_set)
 {
 	int size = prob_lst.size();
@@ -84,12 +83,6 @@ bool make_distinct_random_number_set(std::list <float> prob_lst, std::vector<int
 	return true;
 }
 
-/* Comment on dragon soul stone Vnum	
- * If the ITEM VNUM, from the 100,000s digit down, is FEDCBA
- * FE : dragon soul type.	D : grade
- * C : step			B : strength		
- * A : spare numbers... 	
- */
 
 uint8_t get_type(uint32_t vnum)
 {
@@ -186,7 +179,6 @@ bool ds_manager::refresh_item_attributes(item * ds)
 		return false;
 	}
 
-	// add_min and add_max are read as dummies.
 	int basic_apply_num, add_min, add_max;
 	if (!table_->apply_num_settings(ds_type, grade_idx, basic_apply_num, add_min, add_max))
 	{
@@ -332,7 +324,6 @@ int ds_manager::duration(item * const item_value) const
 	return item_value->duration();
 }
 
-// Function that takes a dragon soul stone and extracts a dragon heart
 bool ds_manager::extract_dragon_heart(character * ch, item * item_value, item * extractor)
 {
 	if (nullptr == ch || nullptr == item_value)
@@ -343,7 +334,6 @@ bool ds_manager::extract_dragon_heart(character * ch, item * item_value, item * 
 		return false;
 	}
 
-	// The stone is consumed; one offered in a trade window would leave the exchange with a dangling pointer.
 	if (item_value->is_exchanging())
 		return false;
 
@@ -379,7 +369,6 @@ bool ds_manager::extract_dragon_heart(character * ch, item * item_value, item * 
 
 	if (fCharge < FLT_EPSILON)
 	{
-		// Log first: SetCount(0) destroys the item.
 		log_manager::instance().item_log(ch, item_value, "DS_HEART_EXTRACT_FAIL", "");
 		item_value->set_count(item_value->count() - 1);
 		if (nullptr != extractor)
@@ -402,7 +391,6 @@ bool ds_manager::extract_dragon_heart(character * ch, item * item_value, item * 
 
 		int iCharge = (int)(fCharge + 0.5f);
 
-		// Log first: SetCount(0) destroys the item.
 		std::string s = std::to_string(iCharge);
 		s += "%s";
 		log_manager::instance().item_log(ch, item_value, "DS_HEART_EXTRACT_SUCCESS", s.c_str());
@@ -420,7 +408,6 @@ bool ds_manager::extract_dragon_heart(character * ch, item * item_value, item * 
 	}
 }
 
-// Function that decides success when removing a specific dragon soul stone from the equipment window, and gives a by-product on failure.
 bool ds_manager::pull_out(character * ch, item_pos dest_cell, item *& item_value, item * extractor)
 {
 	if (nullptr == ch || nullptr == item_value)
@@ -429,7 +416,6 @@ bool ds_manager::pull_out(character * ch, item_pos dest_cell, item *& item_value
 		return false;
 	}
 
-	// Check whether the target position is valid; if not, find an arbitrary empty slot.
 	if (!is_valid_cell_for_this_item(item_value, dest_cell))
 	{
 		int iEmptyCell = ch->empty_dragon_soul_inventory(item_value);
@@ -453,13 +439,11 @@ bool ds_manager::pull_out(character * ch, item_pos dest_cell, item *& item_value
 	int iBonus = 0;
 	float fProb;
 	float fDice;
-	// Decide dragon soul extraction success.
 	{
 
 		uint8_t ds_type, grade_idx, step_idx, strength_idx;
 		dragon_soul_info(item_value->vnum(), ds_type, grade_idx, step_idx, strength_idx);
 
-		// If there is no extraction info, assume it always succeeds for now.
 		if (!table_->dragon_soul_ext_values(ds_type, grade_idx, fProb, dwByProduct))
 		{
 			item_value->add_to_character(ch, dest_cell);
@@ -476,7 +460,6 @@ bool ds_manager::pull_out(character * ch, item_pos dest_cell, item *& item_value
 		bSuccess = fDice <= (fProb * (100 + iBonus) / 100.f);
 	}
 
-	// Extract and add or remove a character's dragon soul stone. Give by-products.
 	{
 		char buf[128];
 
@@ -536,8 +519,6 @@ bool ds_manager::do_refine_grade(character * ch, item_pos (&item_poses)[DRAGON_S
 		return false;
 	}
 
-	// Use a set to remove any possible duplicate item pointers
-	// If a weird packet is sent, there may be duplicate or invalid TItemPos entries.
 	std::set <item *> set_items;
 	for (int i = 0; i < DRAGON_SOUL_REFINE_GRID_SIZE; i++)
 	{
@@ -546,11 +527,9 @@ bool ds_manager::do_refine_grade(character * ch, item_pos (&item_poses)[DRAGON_S
 		item * pItem = ch->get_item(item_poses[i]);
 		if (nullptr != pItem)
 		{
-			// Materials are consumed: never take an equipped item or one offered in a trade window.
 			if (pItem->is_equipped() || pItem->is_exchanging())
 				return false;
 
-			// Non-dragon-soul items cannot be in the refine window.
 			if (!pItem->is_dragon_soul())
 			{
 				ch->chat_packet(CHAT_TYPE_INFO, lc_text("등급 개량에 필요한 재료가 아닙니다."));
@@ -577,7 +556,6 @@ bool ds_manager::do_refine_grade(character * ch, item_pos (&item_poses)[DRAGON_S
 	uint8_t ds_type, grade_idx, step_idx, strength_idx;
 	int result_grade;
 
-	// Use the first one as the basis for the upgrade.
 	std::set <item *>::iterator it = set_items.begin();
 	{
 		item * pItem = *it;
@@ -596,8 +574,6 @@ bool ds_manager::do_refine_grade(character * ch, item_pos (&item_poses)[DRAGON_S
 	{
 		item * pItem = *it;
 
-		// Since the client UI prevents equipped items from being placed in the refine window,
-		// no separate notification is done.
 		if (pItem->is_equipped())
 		{
 			return false;
@@ -612,7 +588,6 @@ bool ds_manager::do_refine_grade(character * ch, item_pos (&item_poses)[DRAGON_S
 		}
 	}
 
-	// The client checks the count once, so if count != need_count it's very likely an invalid client.
 	if (count != need_count)
 	{
 		metin2::log::error("Possiblity of invalid client. Name {}", ch->name());
@@ -694,19 +669,15 @@ bool ds_manager::do_refine_step(character * ch, item_pos (&item_poses)[DRAGON_SO
 		return false;
 	}
 
-	// Use a set to remove any possible duplicate item pointers
-	// If a weird packet is sent, there may be duplicate or invalid TItemPos entries.
 	std::set <item *> set_items;
 	for (int i = 0; i < DRAGON_SOUL_REFINE_GRID_SIZE; i++)
 	{
 		item * pItem = ch->get_item(item_poses[i]);
 		if (nullptr != pItem)
 		{
-			// Materials are consumed: never take an equipped item or one offered in a trade window.
 			if (pItem->is_equipped() || pItem->is_exchanging())
 				return false;
 
-			// Non-dragon-soul items cannot be in the refine window.
 			if (!pItem->is_dragon_soul())
 			{
 				ch->chat_packet(CHAT_TYPE_INFO, lc_text("단계 개량에 필요한 재료가 아닙니다."));
@@ -732,7 +703,6 @@ bool ds_manager::do_refine_step(character * ch, item_pos (&item_poses)[DRAGON_SO
 	uint8_t ds_type, grade_idx, step_idx, strength_idx;
 	int result_step;
 
-	// Use the first one as the basis for the upgrade.
 	std::set <item *>::iterator it = set_items.begin(); 
 	{
 		item * pItem = *it;
@@ -749,8 +719,6 @@ bool ds_manager::do_refine_step(character * ch, item_pos (&item_poses)[DRAGON_SO
 	while(++it != set_items.end())
 	{
 		item * pItem = *it;
-		// Since the client UI prevents equipped items from being placed in the refine window,
-		// no separate notification is done.
 		if (pItem->is_equipped())
 		{
 			return false;
@@ -763,7 +731,6 @@ bool ds_manager::do_refine_step(character * ch, item_pos (&item_poses)[DRAGON_SO
 		}
 	}
 
-	// The client checks the count once, so if count != need_count it's very likely an invalid client.
 	if (count != need_count)
 	{
 		metin2::log::error("Possiblity of invalid client. Name {}", ch->name());
@@ -853,15 +820,12 @@ bool ds_manager::do_refine_strength(character * ch, item_pos (&item_poses)[DRAGO
 		return false;
 	}
 
-	// Use a set to remove any possible duplicate item pointers
-	// If a weird packet is sent, there may be duplicate or invalid TItemPos entries.
 	std::set <item *> set_items;
 	for (int i = 0; i < DRAGON_SOUL_REFINE_GRID_SIZE; i++)
 	{
 		item * pItem = ch->get_item(item_poses[i]);
 		if (pItem)
 		{
-			// Materials are consumed: never take an equipped item or one offered in a trade window.
 			if (pItem->is_equipped() || pItem->is_exchanging())
 				return false;
 
@@ -880,15 +844,11 @@ bool ds_manager::do_refine_strength(character * ch, item_pos (&item_poses)[DRAGO
 	for (std::set <item *>::iterator it = set_items.begin(); it != set_items.end(); it++)
 	{
 		item * pItem = *it;
-		// Since the client UI prevents equipped items from being placed in the refine window,
-		// no separate notification is done.
 		if (pItem->is_equipped())
 		{
 			return false;
 		}
 
-		// Only dragon soul stones and strengthening stones can be in the refine window.
-		// And there must be only one of each.
 		if (pItem->is_dragon_soul())
 		{
 			if (pDragonSoul != nullptr)
@@ -929,14 +889,12 @@ bool ds_manager::do_refine_strength(character * ch, item_pos (&item_poses)[DRAGO
 		dragon_soul_info(pDragonSoul->vnum(), bType, bGrade, bStep, bStrength);
 
 		float fWeight = 0.f;
-		// Dragon soul stones with no weight value cannot be strengthened
 		if (!table_->weight(bType, bGrade, bStep, bStrength + 1, fWeight))
 		{
 			ch->chat_packet(CHAT_TYPE_INFO, lc_text("강화할 수 없는 용혼석입니다."));
 			send_refine_result_packet(ch, DS_SUB_HEADER_REFINE_FAIL_MAX_REFINE, item_pos(pDragonSoul->window(), pDragonSoul->cell()));
 			return false;
 		}
-		// If the weight is 0 after strengthening, it must not be strengthened further.
 		if (fWeight < FLT_EPSILON)
 		{
 			ch->chat_packet(CHAT_TYPE_INFO, lc_text("강화할 수 없는 용혼석입니다."));
@@ -1005,7 +963,6 @@ bool ds_manager::do_refine_strength(character * ch, item_pos (&item_poses)[DRAGO
 
 		char buf[128];
 		snprintf(buf, sizeof(buf), "STRENGTH : %d -> %d", bStrength, bStrength - 1);
-		// Strength upgrades can break the item on failure, so log based on the original item.
 		log_manager::instance().item_log(ch, pDragonSoul, "DS_STRENGTH_REFINE_FAIL", buf);
 
 		ch->chat_packet(CHAT_TYPE_INFO, lc_text("강화에 실패했습니다."));
@@ -1046,12 +1003,10 @@ int ds_manager::left_time(item * item_value) const
 	if (item_value == nullptr)
 		return false;
 
-	// For now, only timer-based-on-wear dragon soul stones don't disappear when their time runs out.
 	if (item_value->proto()->c_limit_timer_based_on_wear_index >= 0)
 	{
 		return item_value->get_socket(ITEM_SOCKET_REMAIN_SEC);
 	}
-	// Dragon soul stones of other limit types all disappear when time runs out, so items reaching here are assumed to have time left.
 	else
 	{
 		return INT_MAX;
@@ -1063,12 +1018,10 @@ bool ds_manager::is_time_left_dragon_soul(item * item_value) const
 	if (item_value == nullptr)
 		return false;
 
-	// For now, only timer-based-on-wear dragon soul stones don't disappear when their time runs out.
 	if (item_value->proto()->c_limit_timer_based_on_wear_index >= 0)
 	{
 		return item_value->get_socket(ITEM_SOCKET_REMAIN_SEC) > 0;
 	}
-	// Dragon soul stones of other limit types all disappear when time runs out, so items reaching here are assumed to have time left.
 	else
 	{
 		return true;

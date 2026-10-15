@@ -66,7 +66,6 @@ class text_file_loader
 		group_node *					pcur_node_;
 
 	private:
-		// every group node of every loaded file; released by DestroySystem
 		static std::deque<group_node>			group_nodes_;
 };
 }

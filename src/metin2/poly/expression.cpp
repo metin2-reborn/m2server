@@ -9,7 +9,6 @@
 namespace metin2::poly {
 
 namespace {
-    // Tokens beside the operator characters lexan returns as themselves.
     enum token : int {
         NONE = 0,
         ROOT = 1,
@@ -44,7 +43,6 @@ namespace {
         return static_cast<double>(random()) / 2147483648.0;
     }
 
-    // An integer in [start, end], both rounded.
     auto irandom(double start, double end) -> int {
         const int is = static_cast<int>(start + 0.5);
         const int ie = static_cast<int>(end - start + 0.5) + 1;
@@ -84,8 +82,6 @@ expression::expression() {
     insert("sign", SIGN);
 }
 
-// Any invalid operation (division by zero, a logarithm of a non-positive
-// number, ...) makes the whole formula evaluate to 0.
 auto expression::eval() const -> double {
     if (error_occur_ || token_base_.empty()) {
         return 0;
@@ -172,7 +168,6 @@ auto expression::eval() const -> double {
             break;
         }
 
-        // Binary operations: the left operand is below the right one.
         const double b = stack.back();
         stack.pop_back();
         double &a = stack.back();
@@ -202,7 +197,7 @@ auto expression::eval() const -> double {
         case POW:
             a = std::pow(a, b);
             break;
-        case LOG: // log(base, x)
+        case LOG:
             if (b <= 0 || a <= 0 || a == 1) {
                 return 0;
             }
@@ -236,7 +231,6 @@ auto expression::analyze(const char *str) -> bool {
     token_base_.clear();
     num_base_.clear();
 
-    // An empty formula is accepted and evaluates to 0.
     if (data_.empty()) {
         error_occur_ = true;
         return true;
@@ -252,7 +246,6 @@ auto expression::analyze(const char *str) -> bool {
 }
 
 void expression::expr() {
-    // A leading sign reads as 0 followed by that operator.
     if (look_ahead_ == '+' || look_ahead_ == '-') {
         ui_look_pos_--;
         look_ahead_ = NUM;
@@ -418,7 +411,7 @@ void expression::expo() {
         match(')');
         emit(t, token_);
         break;
-    default: // includes the end of the formula where an operand is due, e.g. "1+"
+    default:
         error();
     }
 }
@@ -450,7 +443,7 @@ void expression::emit(int t, int tval) {
         token_base_.push_back(tval);
         break;
 
-    default: // a function
+    default:
         token_base_.push_back(t);
         break;
     }

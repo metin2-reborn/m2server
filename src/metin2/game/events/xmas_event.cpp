@@ -24,7 +24,6 @@ namespace xmas
 	{
 		if (name == "xmas_snow" || name == "xmas_boom" || name == "xmas_song" || name == "xmas_tree")
 		{
-			// Spread them
 			const desc_manager::desc_set & c_ref_set = desc_manager::instance().client_set();
 
 			for (auto it = c_ref_set.begin(); it != c_ref_set.end(); ++it)
@@ -54,13 +53,11 @@ namespace xmas
 				{
 					character_vector_interactor i;
 
-					// Create if it doesn't exist
 					if (!character_manager::instance().characters_by_race_num(MOB_XMAS_TREE_VNUM, i))
 						character_manager::instance().spawn_mob(MOB_XMAS_TREE_VNUM, 61, 76500 + 358400, 60900 + 153600, 0, false, -1);
 				}
 				else if (prev_value > 0 && value == 0)
 				{
-					// Remove if it exists
 					character_vector_interactor i;
 
 					if (character_manager::instance().characters_by_race_num(MOB_XMAS_TREE_VNUM, i))
@@ -78,7 +75,6 @@ namespace xmas
 			switch (value)
 			{
 				case 0:
-					// Code that removes it if it exists
 					{
 						character_vector_interactor i;
 
@@ -94,7 +90,6 @@ namespace xmas
 					break;
 
 				case 1:
-					// If I am Mt. Seohan, create Santa if missing and set the state to 2.
 					if (map_allow_find(61))
 					{
 						quest::quest_manager::instance().request_set_event_flag("xmas_santa", 2);
@@ -170,7 +165,6 @@ namespace xmas
 	{
 		if ( spawn == true )
 		{
-			// Create if it doesn't exist
 			struct npc_sell_firework_position
 			{
 				int32_t map_index;
@@ -209,7 +203,6 @@ namespace xmas
 		{
 			character_vector_interactor i;
 
-			// Remove if it exists
 			if (character_manager::instance().characters_by_race_num(MOB_XMAS_FIRWORK_SELLER_VNUM, i))
 			{
 				character_vector_interactor::iterator it = i.begin();

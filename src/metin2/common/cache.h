@@ -4,7 +4,6 @@
 
 namespace metin2::inline common {
 
-// A cached row: Put marks it dirty, Flush writes it back through OnFlush.
 template <typename T>
 class cache {
   public:

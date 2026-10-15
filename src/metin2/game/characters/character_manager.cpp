@@ -72,7 +72,7 @@ void character_manager::destroy()
 	auto it = map_pk_chr_by_vid_.begin();
 	while (it != map_pk_chr_by_vid_.end()) {
 		character * ch = it->second;
-		character_manager::instance().destroy_character(ch); // m_map_pkChrByVID is changed here
+		character_manager::instance().destroy_character(ch);
 		it = map_pk_chr_by_vid_.begin();
 	}
 }
@@ -117,14 +117,12 @@ void character_manager::destroy_character(character * ch)
 	if (!ch)
 		return;
 
-	// <Factor> Check whether it has been already deleted or not.
 	auto it = map_pk_chr_by_vid_.find(ch->get_vid());
 	if (it == map_pk_chr_by_vid_.end()) {
 		metin2::log::error("[CHARACTER_MANAGER::DestroyCharacter] <Factor> {:d} not found", (int32_t)(ch->get_vid()));
-		return; // prevent duplicated destrunction
+		return;
 	}
 
-	// monsters belonging to a dungeon are also removed from the dungeon.
 	if (ch->is_npc() && !ch->is_pet() && ch->rider() == nullptr)
 	{
 		if (ch->get_dungeon())
@@ -177,7 +175,6 @@ character * character_manager::find(uint32_t vid)
 	if (map_pk_chr_by_vid_.end() == it)
 		return nullptr;
 	
-	// <Factor> Added sanity check
 	character * found = it->second;
 	if (found != nullptr && vid != (uint32_t)found->get_vid()) {
 		metin2::log::error("[CHARACTER_MANAGER::Find] <Factor> {:d} != {:d}", vid, (uint32_t)found->get_vid());
@@ -203,7 +200,6 @@ character * character_manager::find_by_pid(uint32_t pid)
 	if (map_pk_chr_by_pid_.end() == it)
 		return nullptr;
 
-	// <Factor> Added sanity check
 	character * found = it->second;
 	if (found != nullptr && pid != found->player_id()) {
 		metin2::log::error("[CHARACTER_MANAGER::FindByPID] <Factor> {:d} != {:d}", pid, found->player_id());
@@ -221,7 +217,6 @@ character * character_manager::find_pc(const char * name)
 	if (it == map_pk_pc_chr_.end())
 		return nullptr;
 
-	// <Factor> Added sanity check
 	character * found = it->second;
 	if (found != nullptr && strncasecmp(szName, found->name(), CHARACTER_NAME_MAX_LEN) != 0) {
 		metin2::log::error("[CHARACTER_MANAGER::FindPC] <Factor> {} != {}", name, found->name());
@@ -232,7 +227,6 @@ character * character_manager::find_pc(const char * name)
 
 character * character_manager::spawn_mob_random_position(uint32_t vnum, int32_t map_index)
 {
-	// allows deciding whether to spawn Japanese pirates (Waegu)
 	{
 		if (vnum == 5001 && !quest::quest_manager::instance().event_flag("japan_regen"))
 		{
@@ -241,7 +235,6 @@ character * character_manager::spawn_mob_random_position(uint32_t vnum, int32_t 
 		}
 	}
 
-	// allows deciding whether to spawn Haetae
 	{
 		if (vnum == 5002 && !quest::quest_manager::instance().event_flag("newyear_mob"))
 		{
@@ -250,7 +243,6 @@ character * character_manager::spawn_mob_random_position(uint32_t vnum, int32_t 
 		}
 	}
 
-	// Liberation Day event 
 	{
 		if (vnum == 5004 && !quest::quest_manager::instance().event_flag("independence_day"))
 		{
@@ -324,7 +316,6 @@ character * character_manager::spawn_mob_random_position(uint32_t vnum, int32_t 
 
 	ch->set_proto(pkMob);
 
-	// if mob is npc with no empire assigned, assign to empire of map
 	if (pkMob->table.type == CHAR_TYPE_NPC)
 		if (ch->empire() == 0)
 			ch->set_empire(sectree_manager::instance().empire_from_map_index(map_index));
@@ -378,7 +369,6 @@ character * character_manager::spawn_mob(uint32_t vnum, int32_t map_index, int32
 
 		if ( is_set_value )
 		{
-			// SPAWN_BLOCK_LOG
 			static bool s_isLog=quest::quest_manager::instance().event_flag("spawn_block_log");
 			static uint32_t s_nextTime=get_global_time()+10000;
 
@@ -393,7 +383,6 @@ character * character_manager::spawn_mob(uint32_t vnum, int32_t map_index, int32
 
 			if (s_isLog)
 				metin2::log::info( "SpawnMob: BLOCKED position for spawn {} {:d} at {:d} {:d} (attr {:d})", pkMob->table.name, vnum, x, y, dwAttr);
-			// END_OF_SPAWN_BLOCK_LOG
 			return nullptr;
 		}
 
@@ -425,7 +414,6 @@ character * character_manager::spawn_mob(uint32_t vnum, int32_t map_index, int32
 
 	ch->set_proto(pkMob);
 
-	// if mob is npc with no empire assigned, assign to empire of map
 	if (pkMob->table.type == CHAR_TYPE_NPC)
 		if (ch->empire() == 0)
 			ch->set_empire(sectree_manager::instance().empire_from_map_index(map_index));
@@ -449,7 +437,7 @@ character * character_manager::spawn_mob_range(uint32_t vnum, int32_t map_index,
 	if (!pkMob)
 		return nullptr;
 
-	if (pkMob->table.type == CHAR_TYPE_STONE)	// stones always have a SPAWN motion.
+	if (pkMob->table.type == CHAR_TYPE_STONE)
 		spawn_motion = true;
 
 	int i = 16;
@@ -508,7 +496,7 @@ bool character_manager::spawn_move_group(uint32_t vnum, int32_t map_index, int s
 
 		if (!tch)
 		{
-			if (i == 0)	// if the monster that failed to be created is the leader, just fail
+			if (i == 0)
 				return false;
 
 			continue;
@@ -592,7 +580,7 @@ character * character_manager::spawn_group(uint32_t vnum, int32_t map_index, int
 
 		if (!tch)
 		{
-			if (i == 0)	// if the monster that failed to be created is the leader, just fail
+			if (i == 0)
 				return nullptr;
 
 			continue;
@@ -643,11 +631,9 @@ void character_manager::update(int pulse)
 {
 	begin_pending_destroy();
 
-	// PC character update
 	{
 		if (!map_pk_pc_chr_.empty())
 		{
-			// copy container
 			character_vector v;
 			v.reserve(map_pk_pc_chr_.size());
 			for (const auto & [name, chr] : map_pk_pc_chr_)
@@ -664,7 +650,6 @@ void character_manager::update(int pulse)
 		}
 	}
 
-	// monster update
 	{
 		if (!set_pk_chr_state_.empty())
 		{
@@ -675,7 +660,6 @@ void character_manager::update(int pulse)
 		}
 	}
 
-	// update Santa separately
 	{
 		character_vector_interactor i;
 
@@ -685,7 +669,6 @@ void character_manager::update(int pulse)
 		}
 	}
 
-	// record mob kill counts once per hour 
 	if (0 == (pulse % passes_per_sec(3600)))
 	{
 		for (auto it = map_dw_mob_kill_count_.begin(); it != map_dw_mob_kill_count_.end(); ++it)
@@ -695,11 +678,9 @@ void character_manager::update(int pulse)
 		map_dw_mob_kill_count_.clear();
 	}
 
-	// on the test server, count characters every 60 seconds
 	if (metin2::config::test_server() && 0 == (pulse % passes_per_sec(60)))
 		metin2::log::info( "CHARACTER COUNT vid {:d} pid {:d}", map_pk_chr_by_vid_.size(), map_pk_chr_by_pid_.size());
 
-	// perform delayed DestroyCharacter
 	flush_pending_destroy();
 }
 
@@ -815,7 +796,7 @@ void character_manager::register_race_num_map(character * ch)
 {
 	uint32_t dwVnum = ch->race_num();
 
-	if (set_dw_registered_race_num_.find(dwVnum) != set_dw_registered_race_num_.end()) // if it's a registered number
+	if (set_dw_registered_race_num_.find(dwVnum) != set_dw_registered_race_num_.end())
 	{
 		metin2::log::info( "RegisterRaceNumMap {} {:d}", ch->name(), dwVnum);
 		map_pk_chr_by_race_num_[dwVnum].insert(ch);
@@ -839,15 +820,11 @@ bool character_manager::characters_by_race_num(uint32_t race_num, character_vect
 	if (it == map_pk_chr_by_race_num_.end())
 		return false;
 
-	// copy container
 	i = it->second;
 	return true;
 }
 
 
-//
-// (job+1)*3+(skill_group)
-//
 character * character_manager::find_specify_pc(unsigned int job_flag, int32_t map_index_value, character * except, int min_level, int max_level)
 {
 	character * chFind = nullptr;
@@ -887,8 +864,6 @@ character * character_manager::find_specify_pc(unsigned int job_flag, int32_t ma
 
 int character_manager::mob_item_rate(character * ch)	
 { 
-	//PREVENT_TOXICATION_FOR_CHINA
-	//END_PREVENT_TOXICATION_FOR_CHINA
 	if (ch && ch->premium_remain_seconds(PREMIUM_ITEM) > 0)
 		return mob_item_rate_premium_;
 	return mob_item_rate_; 
@@ -904,8 +879,6 @@ int character_manager::mob_gold_amount_rate(character * ch)
 	if ( !ch )
 		return mob_gold_amount_rate_;
 
-	//PREVENT_TOXICATION_FOR_CHINA
-	//END_PREVENT_TOXICATION_FOR_CHINA
 	if (ch && ch->premium_remain_seconds(PREMIUM_GOLD) > 0)
 		return mob_gold_amount_rate_premium_;
 	return mob_gold_amount_rate_; 
@@ -916,8 +889,6 @@ int character_manager::mob_gold_drop_rate(character * ch)
 	if ( !ch )
 		return mob_gold_drop_rate_;
 
-	//PREVENT_TOXICATION_FOR_CHINA
-	//END_PREVENT_TOXICATION_FOR_CHINA
 	
 	if (ch && ch->premium_remain_seconds(PREMIUM_GOLD) > 0)
 		return mob_gold_drop_rate_premium_;
@@ -957,8 +928,6 @@ void character_manager::send_script_to_map(int32_t map_index, const std::string 
 
 bool character_manager::begin_pending_destroy()
 {
-	// to support not flushing when Begin is called again after Begin
-	// return false if already started
 	if (use_pending_destroy_)
 		return false;
 
@@ -968,7 +937,7 @@ bool character_manager::begin_pending_destroy()
 
 void character_manager::flush_pending_destroy()
 {
-	use_pending_destroy_ = false; // the flag must be set first for the actual Destroy to happen
+	use_pending_destroy_ = false; // The flag must be set first or nothing is destroyed.
 
 	if (!set_pk_chr_pending_destroy_.empty())
 	{

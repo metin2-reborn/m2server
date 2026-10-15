@@ -39,7 +39,7 @@ std::string table_postfix;
 std::string locale_name_column = "name";
 std::string player_db_name = "";
 
-//g_iLogoutSeconds must be longer than the player and item cache flush intervals.
+// Must be longer than the player and item cache flush intervals.
 int logout_seconds = 60*10;
 
 
@@ -59,7 +59,6 @@ int run()
 
 
 
-	// Removes the pid file and closes the logs once everything below is destroyed.
 	struct core_cleanup
 	{
 		~core_cleanup() { thecore_destroy(); }
@@ -107,10 +106,6 @@ int run()
 	return 0;
 }
 
-//
-// @version	05/06/13 Bang2ni - Added item price info cache flush timeout setting.
-//
-// Connects one database slot, retrying while MariaDB is still starting.
 static bool connect_database(int slot, const std::string & name)
 {
 	const metin2::config::database_settings & database = metin2::config::database();

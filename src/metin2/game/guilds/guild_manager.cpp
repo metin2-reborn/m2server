@@ -121,8 +121,6 @@ uint32_t guild_manager::create_guild(guild_create_parameter& gcp)
 		return 0;
 	}
 
-	// new CGuild(gcp) queries guild tables and tell dbcache to notice other game servers.
-	// other game server calls CGuildManager::LoadGuild to load guild.
 	auto pg = std::make_unique<guild>(gcp);
 	const uint32_t dwGuildID = pg->id();
 	guild_.insert(std::make_pair(dwGuildID, std::move(pg)));
@@ -239,7 +237,7 @@ void guild_manager::initialize()
 	guild_mark_manager & rkMarkMgr = guild_mark_manager::instance();
 
 	rkMarkMgr.set_mark_path_prefix("mark");
-	mkdir("mark", S_IRWXU);	// the container launcher creates it already
+	mkdir("mark", S_IRWXU);
 
 	rkMarkMgr.load_mark_index();
 	rkMarkMgr.load_mark_images();
@@ -294,7 +292,6 @@ int guild_manager::rank(guild* g)
 	return rank;
 }
 
-//struct FGuildCompare : public std::binary_function<CGuild*, CGuild*, bool>
 struct f_guild_compare
 {
 	bool operator () (guild* g1, guild* g2) const
@@ -473,9 +470,6 @@ void guild_manager::around_rank_string(uint32_t my_guild, char * buffer, size_t 
 	}
 }
 
-/////////////////////////////////////////////////////////////////////
-// Guild War
-/////////////////////////////////////////////////////////////////////
 void guild_manager::request_cancel_war(uint32_t guild_id1, uint32_t guild_id2)
 {
 	metin2::log::info( "RequestCancelWar {:d} {:d}", guild_id1, guild_id2);
@@ -513,9 +507,8 @@ void guild_manager::request_war_over(uint32_t guild1, uint32_t guild2, uint32_t 
 	packet_guild_war p;
 
 	p.war = GUILD_WAR_OVER;
-	// No reward even when the guild war ends.
 	p.war_price = 0;
-	p.type = guild_winner == 0 ? 1 : 0; // bType == 1 means draw for this packet.
+	p.type = guild_winner == 0 ? 1 : 0;
 
 	if (guild_winner == 0)
 	{
@@ -763,7 +756,7 @@ void guild_manager::cancel_war(uint32_t guild_id1, uint32_t guild_id2)
 	}
 }
 
-void guild_manager::reserve_war(uint32_t guild1, uint32_t guild2, uint8_t type) // from DB
+void guild_manager::reserve_war(uint32_t guild1, uint32_t guild2, uint8_t type)
 {
 	metin2::log::info( "GuildManager::ReserveWar {:d} {:d}", guild1, guild2);
 
@@ -944,9 +937,6 @@ std::vector<guild_war_reserve_for_game *> & guild_manager::reserve_war_ref()
 	return vec_k_reserve_war_;
 }
 
-//
-// End of Guild War
-//
 
 void guild_manager::change_master(uint32_t gid)
 {
@@ -957,7 +947,6 @@ void guild_manager::change_master(uint32_t gid)
 
 	iter->second->load(gid);
 
-	// Send updated info
 	db_manager::instance().func_query([guild = iter->second.get()](ql_msg *msg) { guild->send_guild_data_update_to_all_member(msg); },
 			"SELECT 1");
 

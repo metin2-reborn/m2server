@@ -13,18 +13,14 @@ class table_by_skill : public singleton<table_by_skill>
 		table_by_skill() = default;
 		~table_by_skill() override = default;
 
-		//Check table setup
 		bool 	check() const;
 
-		//Delete
 		void 	delete_all();
 
-		//Skill power table per skill level
 		int 	skill_power_by_level_from_type( int job, int skillgroup, int skilllevel, bool mob ) const;
 		void 	set_skill_power_by_level_from_type( int idx, const int* table );
 		void	delete_skill_power_by_level_from_type( int idx );
 
-		//Additional skill damage table per level
 		void 	delete_skill_damage_by_level_table();
 
 	private:

@@ -43,7 +43,6 @@ namespace quest
 		}
 	};
 
-	// NOTE: Copied from SPacketGGMonarchTransfer for event data 
 	EVENTINFO(monarch_transfer2_event_info)
 	{
 		uint8_t	header;
@@ -98,9 +97,6 @@ namespace quest
 		return 0;
 	}
 
-	//
-	// "monarch_" lua functions
-	//
 	int takemonarchmoney(lua_State * lua)
 	{
 		character * ch = quest_manager::instance().current_character_ptr(); 
@@ -158,7 +154,7 @@ namespace quest
 
 		int HealPrice = quest::quest_manager::instance().event_flag("MonarchHealGold");
 		if (HealPrice == 0)
-			HealPrice = 2000000;	// 2 million
+			HealPrice = 2000000;
 
 		if (monarch::instance().heal_my_empire(ch, HealPrice))
 		{
@@ -173,7 +169,6 @@ namespace quest
 		return 1;
 	}
 
-	// Monarch's Lion's Roar quest function 
 	int monarch_powerup(lua_State * lua)
 	{
 		character * ch = quest_manager::instance().current_character_ptr(); 
@@ -181,7 +176,6 @@ namespace quest
 		if (!ch)
 			return 0;
 
-		//Monarch check 
 		if (false==ch->is_monarch())
 		{
 			if (!ch->is_gm())
@@ -192,8 +186,7 @@ namespace quest
 			}
 		}
 
-		//Check monarch treasury
-		int	money_need = 5000000;	// 5 million
+		int	money_need = 5000000;
 		if (!monarch::instance().is_money_ok(money_need, ch->empire()))
 		{
 			int NationMoney = monarch::instance().money(ch->empire());
@@ -208,10 +201,8 @@ namespace quest
 			return 0;
 		}
 
-		//Apply monarch's Lion's Roar	
 		monarch::instance().power_up(ch->empire(), true); 
 
-		//Monarch's Lion's Roar duration 	
 		int g_nMonarchPowerUpCT = 60 * 3;
 
 		monarch_powerup_event_info* info = alloc_event_info<monarch_powerup_event_info>();
@@ -229,7 +220,6 @@ namespace quest
 
 		return 1;		
 	}
-	// Monarch's Diamond Fist quest function 
 	int monarch_defenseup(lua_State * lua)
 	{
 		character * ch = quest_manager::instance().current_character_ptr(); 
@@ -238,7 +228,6 @@ namespace quest
 			return 0;
 
 		
-		//Monarch check	
 
 		if (false==ch->is_monarch())
 		{
@@ -250,7 +239,7 @@ namespace quest
 			}
 		}
 
-		int	money_need = 5000000;	// 5 million
+		int	money_need = 5000000;
 		if (!monarch::instance().is_money_ok(money_need, ch->empire()))
 		{
 			int NationMoney = monarch::instance().money(ch->empire());
@@ -265,10 +254,8 @@ namespace quest
 			return 0;
 		}	
 
-		//Apply monarch's Diamond Fist	
 		monarch::instance().defense_up(ch->empire(), true); 
 
-		//Monarch's Diamond Fist duration
 		int g_nMonarchDefenseUpCT = 60 * 3;
 
 		monarch_defenseup_event_info* info = alloc_event_info<monarch_defenseup_event_info>();
@@ -360,7 +347,6 @@ namespace quest
 
 	int spawn_guard(lua_State * lua)
 	{
-		// mob_level(0-2), region(0~3)
 		if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2))
 		{
 			quest::error("invalid argument");
@@ -393,7 +379,6 @@ namespace quest
 		{
 			int	money_need = castle_cost_of_hiring_guard(group_vnum);
 
-			//Check monarch treasury
 			if (!monarch::instance().is_money_ok(money_need, ch->empire()))
 			{
 				int NationMoney = monarch::instance().money(ch->empire());
@@ -404,7 +389,6 @@ namespace quest
 
 			if (guard_leader)
 			{
-				// Reduce treasury
 				monarch::instance().sendto_db_dec_money(money_need, ch->empire(), ch);
 				castle_save();
 			}
@@ -433,17 +417,14 @@ namespace quest
 			return 0;
 		}
 
-		//Check monarch cooldown
 		if (!ch->is_mcok(character::MI_WARP))
 		{
 			ch->chat_packet(CHAT_TYPE_INFO, lc_text("%d 초간 쿨타임이 적용중입니다."), ch->mcl_time(character::MI_WARP));	
 			return 0;
 		}
 
-		//Monarch mob summon cost 
 		const int WarpPrice = 10000;
 
-		//Check monarch treasury 
 		if (!monarch::instance().is_money_ok(WarpPrice, ch->empire()))
 		{
 			int NationMoney = monarch::instance().money(ch->empire());
@@ -487,10 +468,8 @@ namespace quest
 					ch->chat_packet(CHAT_TYPE_INFO, lc_text("%s 에게로 이동합니다"), name.c_str());
 					ch->warp_set(pos.x, pos.y);
 
-					//Deduct monarch money	
 					monarch::instance().sendto_db_dec_money(WarpPrice, ch->empire(), ch);
 
-					//Reset cooldown 
 					ch->set_mc(character::MI_WARP);
 				}
 
@@ -524,10 +503,8 @@ namespace quest
 		ch->warp_set(x,y);
 		ch->stop();
 
-		//Deduct monarch money	
 		monarch::instance().sendto_db_dec_money(WarpPrice, ch->empire(), ch);
 
-		//Reset cooldown 
 		ch->set_mc(character::MI_WARP); 
 
 		return 0;
@@ -586,17 +563,14 @@ namespace quest
 			return 0;
 		}
 
-		// Check monarch cooldown
 		if (!ch->is_mcok(character::MI_TRANSFER))
 		{
 			ch->chat_packet(CHAT_TYPE_INFO, lc_text("%d 초간 쿨타임이 적용중입니다."), ch->mcl_time(character::MI_TRANSFER));	
 			return 0;
 		}
 
-		// Monarch warp cost 
 		const int WarpPrice = 10000;
 
-		// Check monarch treasury 
 		if (!monarch::instance().is_money_ok(WarpPrice, ch->empire()))
 		{
 			int NationMoney = monarch::instance().money(ch->empire());
@@ -645,10 +619,8 @@ namespace quest
 				p2_p_manager::instance().send(&pgg, sizeof(packet_gg_transfer));
 				ch->chat_packet(CHAT_TYPE_INFO, lc_text("%s 님을 소환하였습니다."), name.c_str());
 
-				// Deduct monarch money
 				monarch::instance().sendto_db_dec_money(WarpPrice, ch->empire(), ch);
 
-				// Reset cooldown 
 				ch->set_mc(character::MI_TRANSFER);
 			}
 			else
@@ -683,9 +655,7 @@ namespace quest
 		}
 		tch->warp_set(ch->x(), ch->y(), ch->map_index());
 
-		// Deduct monarch money	
 		monarch::instance().sendto_db_dec_money(WarpPrice, ch->empire(), ch);
-		// Reset cooldown 
 		ch->set_mc(character::MI_TRANSFER);
 		return 0;
 	}
@@ -898,7 +868,6 @@ namespace quest
 			{ "monarchdefenseup",		monarch_defenseup	},
 			{ "spawnmob",				spawn_mob			},
 			{ "spawnguard",				spawn_guard			},
-//			{ "frog_to_empire_money",	frog_to_empire_money		},
 			{ "warp",					monarch_warp 		},
 			{ "transfer",				monarch_transfer	},
 			{ "transfer2",				monarch_transfer2	},

@@ -180,7 +180,6 @@ void p2_p_manager::login(desc * d, const packet_gg_login * p)
 	guild_manager::instance().p2_p_login_member(pkCCI->pid);
 	party_manager::instance().p2_p_login(pkCCI->pid, pkCCI->name);
 
-	// The messenger only needs updating when the CCI is created.
 	if (UpdateP2P) {
 		std::string name(pkCCI->name);
 	    messenger_manager::instance().p2_p_login(name);

@@ -80,17 +80,17 @@ namespace mining
 	int skill_level_add_pct[SKILL_MAX_LEVEL + 1] =
 	{
 		0,
-		1, 1, 1, 1,		//  1 - 4
-		2, 2, 2, 2,		//  5 - 8
-		3, 3, 3, 3,		//  9 - 12
-		4, 4, 4, 4,		// 13 - 16
-		5, 5, 5, 5,		// 17 - 20
-		6, 6, 6, 6,		// 21 - 24
-		7, 7, 7, 7,		// 25 - 28
-		8, 8, 8, 8,		// 29 - 32
-		9, 9, 9, 9,		// 33 - 36
-		10, 10, 10, 	// 37 - 39
-		11,				// 40
+		1, 1, 1, 1,
+		2, 2, 2, 2,
+		3, 3, 3, 3,
+		4, 4, 4, 4,
+		5, 5, 5, 5,
+		6, 6, 6, 6,
+		7, 7, 7, 7,
+		8, 8, 8, 8,
+		9, 9, 9, 9,
+		10, 10, 10,
+		11,
 	};
 
 	uint32_t get_raw_ore_from_load(uint32_t load_vnum_value)
@@ -184,7 +184,6 @@ namespace mining
 		}
 	};
 
-	// REFINE_PICK
 	bool pick_check(item& item)
 	{
 		if (item.type() != ITEM_PICK)    
@@ -342,7 +341,6 @@ namespace mining
 			}
 		}
 	}
-	// END_OF_REFINE_PICK
 
 	EVENTFUNC(mining_event)
 	{
@@ -364,13 +362,11 @@ namespace mining
 
 		item * pick = ch->wear(WEAR_WEAPON);
 
-		// REFINE_PICK
 		if (!pick || !pick_check(*pick))
 		{
 			ch->chat_packet(CHAT_TYPE_INFO, lc_text("곡괭이를 들고 있지 않아서 캘 수 없습니다."));
 			return 0;
 		}
-		// END_OF_REFINE_PICK
 
 		if (!load)
 		{

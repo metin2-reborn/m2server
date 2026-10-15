@@ -71,14 +71,8 @@ namespace quest
 
 	struct a_arg_script
 	{
-		//
-		// script syntax example
-		// 
-		// when namespace.func.arg with when_condition begin ...
-		//                     ---      --------------
-		//                      |             + 
-		std::string arg;  // <--+             |
-		std::vector<char> when_condition;// <-+
+		std::string arg;
+		std::vector<char> when_condition;
 		a_state_script_type script;
 		unsigned int quest_index;
 		int state_index;

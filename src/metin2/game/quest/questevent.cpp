@@ -44,7 +44,7 @@ namespace quest
 		if (!q.server_timer(info->npc_id, info->arg))
 			return metin2::config::server().passes_per_sec / 2 + 1;
 
-		if (0 == info->time_cycle)	// Terminate if not looping.
+		if (0 == info->time_cycle)
 		{
 			q.clear_server_timer_not_cancel(info->name, info->arg);
 			delete[] info->name;
@@ -71,7 +71,7 @@ namespace quest
 			if (!quest_manager::instance().timer(info->player_id, info->npc_id))
 				return (metin2::config::server().passes_per_sec / 2 + 1);
 
-			if (0 == info->time_cycle)	// Terminate if not looping.
+			if (0 == info->time_cycle)
 				goto END_OF_TIMER_EVENT;
 		}
 		else

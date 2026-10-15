@@ -251,7 +251,6 @@ void dragon_lair_manager::on_dragon_dead(character * dragon, uint32_t killer_gui
 
 	iter->second->on_dragon_dead( dragon );
 
-	// Send everyone home and destroy the map
 
 	tag_dragon_lair_collapse_event_info* info;
 	info = alloc_event_info<tag_dragon_lair_collapse_event_info>();

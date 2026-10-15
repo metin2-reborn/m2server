@@ -10,7 +10,6 @@
 
 namespace metin2::game::inline events {
 
-// Copy-pasted from castle.cpp
 
 class hme
 {

@@ -31,14 +31,6 @@ item_cache::item_cache() {
 item_cache::~item_cache() {
 }
 
-// This is weird...
-// If it was deleted, shouldn't the Cache be released too???
-// But there's no part that releases the Cache.
-// Did I just not find it?
-// Like this, it keeps deleting the item every time the timer fires...
-// The item is already gone... a double tap??????
-// fixme
-// by rtsummit
 void item_cache::remove() {
     if (data_.vnum == 0) {
         return;
@@ -53,11 +45,10 @@ void item_cache::remove() {
     last_update_time_ = time(nullptr);
     on_flush();
 
-    // m_lastUpdateTime = time(0) - m_expireTime; // make it time out immediately.
 }
 
 void item_cache::on_flush() {
-    if (data_.vnum == 0) // A vnum of 0 means it is marked for deletion.
+    if (data_.vnum == 0)
     {
         char szQuery[QUERY_MAX_LEN];
         snprintf(szQuery, sizeof(szQuery), "DELETE FROM item%s WHERE id=%u", get_table_postfix(), data_.id);
@@ -147,9 +138,6 @@ void item_cache::on_flush() {
     need_query_ = false;
 }
 
-//
-// CPlayerTableCache
-//
 player_table_cache::player_table_cache() {
     expire_time_ = std::min(1800, metin2::config::db().player_cache_flush_seconds);
 }
@@ -172,9 +160,6 @@ item_price_list_table_cache::item_price_list_table_cache() {
 }
 
 void item_price_list_table_cache::update_list(const item_price_list_table *update_list) {
-    //
-    // Find items duplicating already-cached items and put the non-duplicated old info into tmpvec.
-    //
 
     std::vector<item_price_info> tmpvec;
 
@@ -187,9 +172,6 @@ void item_price_list_table_cache::update_list(const item_price_list_table *updat
             tmpvec.push_back(data_.price_info[idx]);
     }
 
-    //
-    // Copy pUpdateList into m_data and fill the remaining space from the front of tmpvec.
-    //
 
     if (update_list->count > SHOP_PRICELIST_MAX_NUM) {
         metin2::log::error("Count overflow!");
@@ -200,7 +182,7 @@ void item_price_list_table_cache::update_list(const item_price_list_table *updat
 
     std::memcpy(data_.price_info, update_list->price_info, sizeof(item_price_info) * update_list->count);
 
-    int nDeletedNum; // Number of deleted price entries
+    int nDeletedNum;
 
     if (update_list->count < SHOP_PRICELIST_MAX_NUM) {
         size_t sizeAddOldDataSize = SHOP_PRICELIST_MAX_NUM - update_list->count;
@@ -227,20 +209,13 @@ void item_price_list_table_cache::update_list(const item_price_list_table *updat
 void item_price_list_table_cache::on_flush() {
     char szQuery[QUERY_MAX_LEN];
 
-    //
-    // Delete all item price info previously stored in the DB for this cache's owner.
-    //
 
     snprintf(szQuery, sizeof(szQuery), "DELETE FROM myshop_pricelist%s WHERE owner_id = %u", get_table_postfix(), data_.owner_id);
     db_manager::instance().return_query(szQuery, QID_ITEMPRICE_DESTROY, 0, nullptr);
 
-    //
-    // Write the entire cache contents to the DB.
-    //
 
     for (int idx = 0; idx < data_.count; ++idx) {
         snprintf(szQuery, sizeof(szQuery),
-            // "INSERT INTO myshop_pricelist%s(owner_id, item_vnum, price) VALUES(%u, %u, %u)",
             "REPLACE myshop_pricelist%s (owner_id, item_vnum, price) VALUES(%u, %u, %u)",
             get_table_postfix(), data_.owner_id, data_.price_info[idx].vnum, data_.price_info[idx].price);
         db_manager::instance().return_query(szQuery, QID_ITEMPRICE_SAVE, 0, nullptr);

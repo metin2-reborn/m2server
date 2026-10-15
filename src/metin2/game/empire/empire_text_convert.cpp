@@ -52,10 +52,6 @@ bool load_empire_text_convert_table(uint32_t empire_id, const char* file_name)
 	return ok;
 }
 
-// Scrambles chat from another empire (text is UTF-8). With probability 100 - iPct per character:
-// ASCII letters go through the empire's letter table, any other character is replaced in place by
-// a symbol of the same UTF-8 length (as the original did with two-byte symbols). Without the
-// empire's table (lang*.cvt) the text is left as it is.
 void convert_empire_text(uint32_t empire_id, char* text, size_t len, int pct)
 {
 	if (empire_id < 1 || empire_id > 3 || len == 0 || !text_conv_table_loaded[empire_id - 1])

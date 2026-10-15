@@ -212,7 +212,6 @@ bool desc::setup(std::shared_ptr<net::connection> connection, uint32_t handle, u
 
 	connection_->start(*this);
 
-	// Ping Event 
 	desc_event_info* info = alloc_event_info<desc_event_info>();
 
 	info->desc = this;
@@ -221,7 +220,6 @@ bool desc::setup(std::shared_ptr<net::connection> connection, uint32_t handle, u
 	ping_event_ = event_create(ping_event, info, passes_per_sec(metin2::config::server().ping_seconds));
 
 
-	// Set Phase to handshake
 	set_phase(PHASE_HANDSHAKE);
 	start_handshake(handshake);
 
@@ -233,13 +231,11 @@ bool desc::setup(std::shared_ptr<net::connection> connection, uint32_t handle, u
 
 auto desc::on_receive(std::span<std::uint8_t> input, std::size_t received) -> std::size_t
 {
-	// Only the new bytes: the rest was decrypted when it arrived.
 	if (cipher_.activated())
 		cipher_.decrypt(input.data() + input.size() - received, received);
 
 	std::size_t consumed = 0;
 
-	// If false is returned, the phase has changed, so go through processing again!
 	while (input_processor_)
 	{
 		int iBytesProceed = 0;
@@ -250,7 +246,6 @@ auto desc::on_receive(std::span<std::uint8_t> input, std::size_t received) -> st
 			return consumed;
 	}
 
-	// Nobody reads in this phase (closing, or a connector that is not set up yet).
 	return input.size();
 }
 
@@ -275,12 +270,11 @@ void desc::packet(const void * data_value, int size_value)
 {
 	assert(size_value > 0);
 
-	if (phase_ == PHASE_CLOSE || !connection_) // Don't send while disconnecting.
+	if (phase_ == PHASE_CLOSE || !connection_)
 		return;
 
 	if (relay_name_.length() != 0)
 	{
-		// Relay packets are not encrypted.
 		packet_gg_relay p;
 
 		p.header = HEADER_GG_RELAY;
@@ -304,7 +298,6 @@ void desc::packet(const void * data_value, int size_value)
 		size_value = (int) buffered_output_.size();
 	}
 
-	// The output limit closes connections that stopped reading.
 	const std::span<uint8_t> out = connection_->prepare(size_value);
 
 	if (out.empty())
@@ -345,7 +338,6 @@ void desc::set_phase(int phase_value)
 	switch (phase_)
 	{
 		case PHASE_CLOSE:
-			// Removed since the messenger became per-character
 			input_processor_ = &input_close_;
 			break;
 
@@ -354,8 +346,6 @@ void desc::set_phase(int phase_value)
 			break;
 
 		case PHASE_SELECT:
-			// Removed since the messenger became per-character
-			//MessengerManager::instance().Logout(GetAccountTable().login); // intentionally no break
 		case PHASE_LOGIN:
 		case PHASE_LOADING:
 			input_processor_ = &input_login_;
@@ -377,8 +367,7 @@ void desc::bind_account_table(account_table * account_table_value)
 {
 	assert(account_table_value != nullptr);
 
-	// A second login on this connection (two requests in flight): the login map must not keep
-	// pointing here under the old name once this connection is gone.
+	// A second login on this connection must not leave the login map pointing here.
 	if (account_table_.id && strcmp(account_table_.login, account_table_value->login) != 0)
 		desc_manager::instance().disconnect_account(account_table_.login);
 
@@ -388,7 +377,6 @@ void desc::bind_account_table(account_table * account_table_value)
 
 void desc::start_handshake(uint32_t handshake)
 {
-	// Handshake
 	handshake_ = handshake;
 
 	send_handshake(get_dword_time(), 0);
@@ -481,7 +469,6 @@ void desc::send_key_agreement()
 	size_t data_length = packet_key_agreement::max_data_len;
 	size_t agreed_length = cipher_.prepare(packet_value.data, &data_length);
 	if (agreed_length == 0) {
-		// Initialization failure
 		set_phase(PHASE_CLOSE);
 		return;
 	}
@@ -508,8 +495,7 @@ bool desc::finish_handshake(size_t agreed_length, const void* buffer, size_t len
 	if (!cipher_.activate(false, agreed_length, buffer, length))
 		return false;
 
-	// The server encrypts from here on (the key agreement completed packet already went out in
-	// the clear); the client switches on when that packet arrives.
+	// The completion packet already went out in the clear; the client switches on when it arrives.
 	cipher_.set_activated(true);
 	return true;
 }
@@ -624,7 +610,7 @@ void desc::send_login_success_packet()
 	p.header    = HEADER_GC_LOGIN_SUCCESS_NEWSLOT;
 
 	p.handle     = handle();
-	p.random_key = desc_manager::instance().make_random_key(handle()); // FOR MARK
+	p.random_key = desc_manager::instance().make_random_key(handle());
 	std::memcpy(p.players, rTable.players, sizeof(rTable.players));
 
 	for (int i = 0; i < PLAYER_PER_ACCOUNT; ++i)
@@ -657,7 +643,7 @@ void desc::set_login_key(uint32_t key)
 
 void desc::set_login_key(login_key * key_value)
 {
-	// The replaced key must not keep pointing at this connection after it is destroyed.
+	// The replaced key must not keep pointing at this connection.
 	if (m_pk_login_key_ && m_pk_login_key_ != key_value)
 		m_pk_login_key_->expire();
 
@@ -728,7 +714,6 @@ void desc::chat_packet(uint8_t type, const char * format, ...)
 	if (len < 0)
 		return;
 
-	// vsnprintf returns the untruncated length: send what fits, cut on a character boundary
 	if (len >= (int) sizeof(chatbuf))
 	{
 		len = (int) utf8_truncated_size(chatbuf, sizeof(chatbuf) - 1, sizeof(chatbuf) - 1);

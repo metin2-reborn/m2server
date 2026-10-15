@@ -64,7 +64,6 @@ bool guild_mark_image::load(const char * file_name)
 	return true;
 }
 
-// Copies a width x height rectangle at (x, y) in or out; the part outside the image is skipped.
 void guild_mark_image::put_data(uint32_t x, uint32_t y, uint32_t width, uint32_t height, void * data)
 {
 	const auto * src = static_cast<const pixel *>(data);
@@ -79,12 +78,7 @@ void guild_mark_image::data(uint32_t x, uint32_t y, uint32_t width, uint32_t hei
 		std::copy_n(pixels_.begin() + (y + row) * WIDTH + x, std::min<uint32_t>(width, WIDTH - std::min<uint32_t>(x, WIDTH)), dst + row * width);
 }
 
-// image = 512x512
-//   block = 4 x 4 marks
-//   mark = 16 x 12
-// blocks per image = 8 x 10
 
-// SERVER
 bool guild_mark_image::save_mark(uint32_t pos_mark, uint8_t * image)
 {
 	if (pos_mark >= MARK_TOTAL_COUNT)
@@ -93,14 +87,12 @@ bool guild_mark_image::save_mark(uint32_t pos_mark, uint8_t * image)
 		return false;
 	}
 
-	// Draw the mark onto the whole image.
 	uint32_t colMark = pos_mark % MARK_COL_COUNT;
 	uint32_t rowMark = pos_mark / MARK_COL_COUNT;
 
 	printf("PutMark pos %u %ux%u\n", pos_mark, colMark * guild_mark::WIDTH, rowMark * guild_mark::HEIGHT);
 	put_data(colMark * guild_mark::WIDTH, rowMark * guild_mark::HEIGHT, guild_mark::WIDTH, guild_mark::HEIGHT, image);
 
-	// Update the blocks where it was drawn
 	uint32_t rowBlock = rowMark / guild_mark_block::MARK_PER_BLOCK_HEIGHT;
 	uint32_t colBlock = colMark / guild_mark_block::MARK_PER_BLOCK_WIDTH;
 
@@ -117,7 +109,7 @@ bool guild_mark_image::delete_mark(uint32_t pos_mark)
 	return save_mark(pos_mark, (uint8_t *) &image);
 }
 
-void guild_mark_image::build_all_blocks() // Split the whole image into blocks
+void guild_mark_image::build_all_blocks()
 {
 	pixel apxBuf[guild_mark_block::SIZE];
 	metin2::log::info( "GuildMarkImage::BuildAllBlocks");

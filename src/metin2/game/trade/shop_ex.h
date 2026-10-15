@@ -22,11 +22,7 @@ struct shop_table_ex : shop_table {
 };
 
 
-// Extended shop.
-// Can use Myeongdojeon coins as currency, and items can be split across multiple tabs.
-// However, pc shops are not implemented.
-// When communicating with the client, tabs are separated in units of pos 45.
-// The old shop's m_itemVector is not used.
+// Tabs are sent to the client in blocks of 45 positions.
 class shop_ex: public shop
 {
 public:

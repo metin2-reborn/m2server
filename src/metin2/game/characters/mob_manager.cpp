@@ -100,7 +100,6 @@ bool mob_manager::initialize(mob_table * table_value, int size)
 	}
 
 
-	// LOCALE_SERVICE
 	const int FILE_NAME_LEN = 256;
 	char szGroupFileName[FILE_NAME_LEN];
 	char szGroupGroupFileName[FILE_NAME_LEN];
@@ -120,7 +119,6 @@ bool mob_manager::initialize(mob_table * table_value, int size)
 		metin2::log::error("cannot load {}", szGroupGroupFileName);
 		thecore_shutdown();
 	}
-	// END_OF_LOCALE_SERVICE
 
 	character_manager::instance().for_each_pc(std::bind(&mob_manager::rebind_mob_proto, this, std::placeholders::_1));
 	return true;
@@ -295,11 +293,9 @@ bool mob_manager::load_group_group(const char * file_name)
 				uint32_t dwMobVnum = 0;
 				str_to_number(dwMobVnum, pTok->at(0).c_str());
 
-				// ADD_MOB_GROUP_GROUP_PROB
 				int prob = 1;
 				if (pTok->size() > 1)
 					str_to_number(prob, pTok->at(1).c_str());
-				// END_OF_ADD_MOB_GROUP_GROUP_PROB
 
 				if (dwMobVnum)
 					pkGroup->add_member(dwMobVnum);

@@ -36,23 +36,22 @@ std::string trim(const std::string& str){return trim_left(trim_right(str));}
 
 static std::unique_ptr<std::string[]> string_split(std::string origin, std::string tok)
 {
-    size_t  cutAt;                            //Cut position
-    int     index     = 0;                    //String index
-    auto strResult = std::make_unique<std::string[]>(30);		  //Variable to return as result
+    size_t  cutAt;
+    int     index     = 0;
+    auto strResult = std::make_unique<std::string[]>(30);
 
-    //Repeat until strTok is found
     while ((cutAt = origin.find_first_of(tok)) != origin.npos)
     {
-       if (cutAt > 0 && index < 30)  //If the cut position is greater than 0 (on success)
+       if (cutAt > 0 && index < 30)
        {
-            strResult[index++] = origin.substr(0, cutAt);  //Add to the result array
+            strResult[index++] = origin.substr(0, cutAt);
        }
-       origin = origin.substr(cutAt+1);  //The source becomes the remainder after the cut part
+       origin = origin.substr(cutAt+1);
     }
 
-    if(origin.length() > 0 && index < 30)  //If any of the source is left
+    if(origin.length() > 0 && index < 30)
     {
-        strResult[index++] = origin.substr(0, cutAt);  //Add the remainder to the result array
+        strResult[index++] = origin.substr(0, cutAt);
     }
 
 	for( int i=0;i<index;i++)
@@ -60,7 +59,7 @@ static std::unique_ptr<std::string[]> string_split(std::string origin, std::stri
 		strResult[i] = trim(strResult[i]);
 	}
 
-    return strResult;  //Return result
+    return strResult;
 }
 
 
@@ -71,25 +70,25 @@ int get_item_type_value(std::string input_string)
 		"ITEM_ARMOR", "ITEM_USE", 
 		"ITEM_AUTOUSE", "ITEM_MATERIAL",
 		"ITEM_SPECIAL", "ITEM_TOOL", 
-		"ITEM_LOTTERY", "ITEM_ELK",					//10 entries
+		"ITEM_LOTTERY", "ITEM_ELK",
 
 		"ITEM_METIN", "ITEM_CONTAINER", 
 		"ITEM_FISH", "ITEM_ROD", 
 		"ITEM_RESOURCE", "ITEM_CAMPFIRE",
 		"ITEM_UNIQUE", "ITEM_SKILLBOOK", 
-		"ITEM_QUEST", "ITEM_POLYMORPH",				//20 entries
+		"ITEM_QUEST", "ITEM_POLYMORPH",
 
 		"ITEM_TREASURE_BOX", "ITEM_TREASURE_KEY",
 		"ITEM_SKILLFORGET", "ITEM_GIFTBOX", 
 		"ITEM_PICK", "ITEM_HAIR", 
 		"ITEM_TOTEM", "ITEM_BLEND", 
-		"ITEM_COSTUME", "ITEM_DS",					//30 entries
+		"ITEM_COSTUME", "ITEM_DS",
 	
 		"ITEM_SPECIAL_DS",	"ITEM_EXTRACT",
-		"ITEM_SECONDARY_COIN",						//33 entries
+		"ITEM_SECONDARY_COIN",
 
 		"ITEM_RING",
-		"ITEM_BELT",								//35 entries (34 in terms of EItemTypes values)
+		"ITEM_BELT",
 	};
 
 	
@@ -134,41 +133,41 @@ int get_item_sub_type_value(int type_value, std::string input_string)
 	static std::string arSub29[] = { "DS_SLOT1", "DS_SLOT2", "DS_SLOT3", "DS_SLOT4", "DS_SLOT5", "DS_SLOT6" };
 	static std::string arSub31[] = { "EXTRACT_DRAGON_SOUL", "EXTRACT_DRAGON_HEART" };
 	
-	static std::string* arSubType[] = {nullptr,	//0
-		arSub1,		//1
-		arSub2,	//2
-		arSub3,	//3
-		arSub4,	//4
-		arSub5,	//5
-		arSub6,	//6
-		arSub7,	//7
-		arSub8,	//8
-		nullptr,			//9
-		arSub10,	//10
-		nullptr,			//11
-		arSub12,	//12
-		nullptr,			//13
-		arSub14,	//14
-		nullptr,			//15
-		arSub16,	//16
-		nullptr,			//17
-		nullptr,			//18
-		nullptr,			//19
-		nullptr,			//20
-		nullptr,			//21
-		nullptr,			//22
-		nullptr,			//23
-		nullptr,			//24
-		nullptr,			//25
-		nullptr,			//26
-		nullptr,			//27
-		arSub28,	//28
-		arSub29,		//29
-		arSub29,	//30
-		arSub31,	//31
-		nullptr,			//32
-		nullptr,			//33 ring
-		nullptr,			//34 belt
+	static std::string* arSubType[] = {nullptr,
+		arSub1,
+		arSub2,
+		arSub3,
+		arSub4,
+		arSub5,
+		arSub6,
+		arSub7,
+		arSub8,
+		nullptr,
+		arSub10,
+		nullptr,
+		arSub12,
+		nullptr,
+		arSub14,
+		nullptr,
+		arSub16,
+		nullptr,
+		nullptr,
+		nullptr,
+		nullptr,
+		nullptr,
+		nullptr,
+		nullptr,
+		nullptr,
+		nullptr,
+		nullptr,
+		nullptr,
+		arSub28,
+		arSub29,
+		arSub29,
+		arSub31,
+		nullptr,
+		nullptr,
+		nullptr,
 	};
 	static int arNumberOfSubtype[std::size(arSubType)] = {
 		0,
@@ -203,26 +202,23 @@ int get_item_sub_type_value(int type_value, std::string input_string)
 		sizeof(arSub29)/sizeof(arSub29[0]),
 		sizeof(arSub29)/sizeof(arSub29[0]),
 		sizeof(arSub31)/sizeof(arSub31[0]),
-		0, // 32
-		0, // 33 ring
-		0, // 34 belt
+		0,
+		0,
+		0,
 	};
 	
 
 	assert(std::size(arSubType) > static_cast<size_t>(type_value) && "Subtype rule: Out of range!!");
 
-	// assert doesn't seem to work..
 	if (static_cast<int>(std::size(arSubType)) <= type_value)
 	{
 		metin2::log::error("SubType : Out of range!! (type_value: {:d}, count of registered subtype: {:d}", type_value, std::size(arSubType));
 		return -1;
 	}
 
-	//Check whether the item type has a subtype array; return 0 if not
 	if (arSubType[type_value]==nullptr) {
 		return 0;
 	}
-	//
 
 	int retInt = -1;
 	for (int j=0;j<arNumberOfSubtype[type_value];j++) {
@@ -251,13 +247,13 @@ int get_item_anti_flag_value(std::string input_string)
 
 
 	int retValue = 0;
-	std::unique_ptr<std::string[]> arInputString = string_split(input_string, "|");				//Array of the proto info split into words.
+	std::unique_ptr<std::string[]> arInputString = string_split(input_string, "|");
 	for (size_t i = 0; i < sizeof(arAntiFlag)/sizeof(arAntiFlag[0]);i++) {
 		std::string tempString = arAntiFlag[i];
-		for (int j=0; j<30 ; j++)		//Up to 30 words. (hardcoded)
+		for (int j=0; j<30 ; j++)
 		{
 			std::string tempString2 = arInputString[j];
-			if (tempString2.compare(tempString)==0) {				//Check for a match.
+			if (tempString2.compare(tempString)==0) {
 				retValue = retValue + pow((float)2,(float)i);
 			}
 			
@@ -278,13 +274,13 @@ int get_item_flag_value(std::string input_string)
 
 
 	int retValue = 0;
-	std::unique_ptr<std::string[]> arInputString = string_split(input_string, "|");				//Array of the proto info split into words.
+	std::unique_ptr<std::string[]> arInputString = string_split(input_string, "|");
 	for (size_t i = 0; i < sizeof(arFlag)/sizeof(arFlag[0]);i++) {
 		std::string tempString = arFlag[i];
-		for (int j=0; j<30 ; j++)		//Up to 30 words. (hardcoded)
+		for (int j=0; j<30 ; j++)
 		{
 			std::string tempString2 = arInputString[j];
-			if (tempString2.compare(tempString)==0) {				//Check for a match.
+			if (tempString2.compare(tempString)==0) {
 				retValue = retValue + pow((float)2,(float)i);
 			}
 			
@@ -304,13 +300,13 @@ int get_item_wear_flag_value(std::string input_string)
 
 
 	int retValue = 0;
-	std::unique_ptr<std::string[]> arInputString = string_split(input_string, "|");				//Array of the proto info split into words.
+	std::unique_ptr<std::string[]> arInputString = string_split(input_string, "|");
 	for (size_t i = 0; i < sizeof(arWearrFlag)/sizeof(arWearrFlag[0]);i++) {
 		std::string tempString = arWearrFlag[i];
-		for (int j=0; j<30 ; j++)		//Up to 30 words. (hardcoded)
+		for (int j=0; j<30 ; j++)
 		{
 			std::string tempString2 = arInputString[j];
-			if (tempString2.compare(tempString)==0) {				//Check for a match.
+			if (tempString2.compare(tempString)==0) {
 				retValue = retValue + pow((float)2,(float)i);
 			}
 			
@@ -328,13 +324,13 @@ int get_item_immune_value(std::string input_string)
 	std::string arImmune[] = {"PARA","CURSE","STUN","SLEEP","SLOW","POISON","TERROR"};
 
 	int retValue = 0;
-	std::unique_ptr<std::string[]> arInputString = string_split(input_string, "|");				//Array of the proto info split into words.
+	std::unique_ptr<std::string[]> arInputString = string_split(input_string, "|");
 	for (size_t i = 0; i < sizeof(arImmune)/sizeof(arImmune[0]);i++) {
 		std::string tempString = arImmune[i];
-		for (int j=0; j<30 ; j++)		//Up to 30 words. (hardcoded)
+		for (int j=0; j<30 ; j++)
 		{
 			std::string tempString2 = arInputString[j];
-			if (tempString2.compare(tempString)==0) {				//Check for a match.
+			if (tempString2.compare(tempString)==0) {
 				retValue = retValue + pow((float)2,(float)i);
 			}
 			
@@ -405,7 +401,6 @@ int get_item_apply_type_value(std::string input_string)
 }
 
 
-//Also read the monster proto.
 
 
 int get_mob_rank_value(std::string input_string) 
@@ -487,13 +482,13 @@ int get_mob_ai_flag_value(std::string input_string)
 
 
 	int retValue = 0;
-	std::unique_ptr<std::string[]> arInputString = string_split(input_string, ",");				//Array of the proto info split into words.
+	std::unique_ptr<std::string[]> arInputString = string_split(input_string, ",");
 	for (size_t i = 0; i < sizeof(arAIFlag)/sizeof(arAIFlag[0]);i++) {
 		std::string tempString = arAIFlag[i];
-		for (int j=0; j<30 ; j++)		//Up to 30 words. (hardcoded)
+		for (int j=0; j<30 ; j++)
 		{
 			std::string tempString2 = arInputString[j];
-			if (tempString2.compare(tempString)==0) {				//Check for a match.
+			if (tempString2.compare(tempString)==0) {
 				retValue = retValue + pow((float)2,(float)i);
 			}
 			
@@ -510,13 +505,13 @@ int get_mob_race_flag_value(std::string input_string)
 		"ATT_ELEC","ATT_FIRE","ATT_ICE","ATT_WIND","ATT_EARTH","ATT_DARK"};
 
 	int retValue = 0;
-	std::unique_ptr<std::string[]> arInputString = string_split(input_string, ",");				//Array of the proto info split into words.
+	std::unique_ptr<std::string[]> arInputString = string_split(input_string, ",");
 	for (size_t i = 0; i < sizeof(arRaceFlag)/sizeof(arRaceFlag[0]);i++) {
 		std::string tempString = arRaceFlag[i];
-		for (int j=0; j<30 ; j++)		//Up to 30 words. (hardcoded)
+		for (int j=0; j<30 ; j++)
 		{
 			std::string tempString2 = arInputString[j];
-			if (tempString2.compare(tempString)==0) {				//Check for a match.
+			if (tempString2.compare(tempString)==0) {
 				retValue = retValue + pow((float)2,(float)i);
 			}
 			
@@ -532,13 +527,13 @@ int get_mob_immune_flag_value(std::string input_string)
 	std::string arImmuneFlag[] = {"STUN","SLOW","FALL","CURSE","POISON","TERROR", "REFLECT"};
 
 	int retValue = 0;
-	std::unique_ptr<std::string[]> arInputString = string_split(input_string, ",");				//Array of the proto info split into words.
+	std::unique_ptr<std::string[]> arInputString = string_split(input_string, ",");
 	for (size_t i = 0; i < sizeof(arImmuneFlag)/sizeof(arImmuneFlag[0]);i++) {
 		std::string tempString = arImmuneFlag[i];
-		for (int j=0; j<30 ; j++)		//Up to 30 words. (hardcoded)
+		for (int j=0; j<30 ; j++)
 		{
 			std::string tempString2 = arInputString[j];
-			if (tempString2.compare(tempString)==0) {				//Check for a match.
+			if (tempString2.compare(tempString)==0) {
 				retValue = retValue + pow((float)2,(float)i);
 			}
 			
@@ -554,14 +549,12 @@ int get_mob_immune_flag_value(std::string input_string)
 
 #ifndef __DUMP_PROTO__
 
-//Set up the mob table.
 bool set_proto_mob_table(mob_table *mob_table_value, c_csv_table &csv_table,std::map<int,const char*> &name_map)
 {
 	int col = 0;
 	str_to_number(mob_table_value->vnum, csv_table.as_string_by_index(col++));
 	utf8_strlcpy(mob_table_value->name, csv_table.as_string_by_index(col++), sizeof(mob_table_value->name));
 
-	//3. Fill in the localized names.
 	std::map<int,const char*>::iterator it;
 	it = name_map.find(mob_table_value->vnum);
 	if (it != name_map.end()) {
@@ -571,33 +564,25 @@ bool set_proto_mob_table(mob_table *mob_table_value, c_csv_table &csv_table,std:
 		utf8_strlcpy(mob_table_value->locale_name, mob_table_value->name, sizeof (mob_table_value->locale_name));
 	}
 
-	//RANK
 	int rankValue = get_mob_rank_value(csv_table.as_string_by_index(col++));
 	mob_table_value->rank = rankValue;
-	//TYPE
 	int typeValue = get_mob_type_value(csv_table.as_string_by_index(col++));
 	mob_table_value->type = typeValue;
-	//BATTLE_TYPE
 	int battleTypeValue = get_mob_battle_type_value(csv_table.as_string_by_index(col++));
 	mob_table_value->battle_type = battleTypeValue;
 
 	str_to_number(mob_table_value->level, csv_table.as_string_by_index(col++));
-	//SIZE
 	int sizeValue = get_mob_size_value(csv_table.as_string_by_index(col++));
 	mob_table_value->size = sizeValue;
-	//AI_FLAG
 	int aiFlagValue = get_mob_ai_flag_value(csv_table.as_string_by_index(col++));
 	mob_table_value->ai_flag = aiFlagValue;
-	//mount_capacity;
 	col++;
-	//RACE_FLAG
 	int raceFlagValue = get_mob_race_flag_value(csv_table.as_string_by_index(col++));
 	mob_table_value->race_flag = raceFlagValue;
-	//IMMUNE_FLAG
 	int immuneFlagValue = get_mob_immune_flag_value(csv_table.as_string_by_index(col++));
 	mob_table_value->immune_flag = immuneFlagValue;
 
-	str_to_number(mob_table_value->empire, csv_table.as_string_by_index(col++));  //col = 11
+	str_to_number(mob_table_value->empire, csv_table.as_string_by_index(col++));
 
 	strlcpy(mob_table_value->folder, csv_table.as_string_by_index(col++), sizeof(mob_table_value->folder));
 
@@ -622,7 +607,7 @@ bool set_proto_mob_table(mob_table *mob_table_value, c_csv_table &csv_table,std:
 	str_to_number(mob_table_value->aggressive_sight, csv_table.as_string_by_index(col++));
 	str_to_number(mob_table_value->attack_range, csv_table.as_string_by_index(col++));
 
-	str_to_number(mob_table_value->drop_item_vnum, csv_table.as_string_by_index(col++));	//32
+	str_to_number(mob_table_value->drop_item_vnum, csv_table.as_string_by_index(col++));
 	str_to_number(mob_table_value->resurrection_vnum, csv_table.as_string_by_index(col++));
 	for (int i = 0; i < MOB_ENCHANTS_MAX_NUM; ++i)
 		str_to_number(mob_table_value->c_enchants[i], csv_table.as_string_by_index(col++));
@@ -634,7 +619,6 @@ bool set_proto_mob_table(mob_table *mob_table_value, c_csv_table &csv_table,std:
 	str_to_number(mob_table_value->summon_vnum, csv_table.as_string_by_index(col++));
 	str_to_number(mob_table_value->drain_sp, csv_table.as_string_by_index(col++));
 
-	//Mob_Color
 	str_to_number(mob_table_value->mob_color, csv_table.as_string_by_index(col++));
 
 	str_to_number(mob_table_value->polymorph_item_vnum, csv_table.as_string_by_index(col++));
@@ -721,11 +705,9 @@ bool set_proto_item_table(item_table *item_table_value, c_csv_table &csv_table,s
 		col = col + 1;
 	}
 
-	// Read vnum and vnum range.
 	{
 		std::string s(csv_table.as_string_by_index(0));
 		size_t pos = s.find("~");
-		// Skip if the vnum field has no '~'
 		if (std::string::npos == pos)
 		{
 			item_table_value->vnum = dataArray[0];
@@ -749,7 +731,6 @@ bool set_proto_item_table(item_table *item_table_value, c_csv_table &csv_table,s
 	}
 
 	utf8_strlcpy(item_table_value->name, csv_table.as_string_by_index(1), sizeof(item_table_value->name));
-	//Fill in the localized names.
 	std::map<int,const char*>::iterator it;
 	it = name_map.find(item_table_value->vnum);
 	if (it != name_map.end()) {
@@ -797,13 +778,11 @@ bool set_proto_item_table(item_table *item_table_value, c_csv_table &csv_table,s
 	for (i = 0; i < ITEM_VALUES_MAX_NUM; ++i)
 		item_table_value->values[i] = dataArray[24+i];
 
-	//column for 'Specular'
 	item_table_value->specular = dataArray[30];
 
 	item_table_value->gain_socket_pct = dataArray[31];
 	item_table_value->s_addon_type = dataArray[32];
 
-	//test
 	str_to_number(item_table_value->weight, "0");
 			
 	return true;

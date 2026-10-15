@@ -61,7 +61,6 @@ namespace marriage
 		return 0;
 	}
 
-	// Map instance
 	wedding_map::wedding_map(uint32_t map_index, uint32_t pid1, uint32_t pid2) :
 		map_index_(map_index),
 		end_event_(nullptr),
@@ -101,7 +100,7 @@ namespace marriage
 			if (ch->player_id() == pi_d1_ || ch->player_id() == pi_d2_)
 				continue;
 
-			if (ch->level() < 10) // Not given to level 10 and below.
+			if (ch->level() < 10)
 				continue;
 
 			ch->auto_give_item(27002, 5);
@@ -135,9 +134,6 @@ namespace marriage
 		{
 			if (ch->is_pc())
 			{
-				// ExitToSavedLocation calls WarpSet, and in that function
-				// Sectree becomes NULL. Afterwards this character can't be found
-				// via SectreeManager, so it's handled separately in DestroyAll below
 				ch->exit_to_saved_location();
 			}
 		}
@@ -290,7 +286,6 @@ namespace marriage
 		snprintf(command, cmd_len, "PlayMusic %d %s", set, music_file_name);
 		return command;
 	}
-	// Manager
 
 	wedding_manager::wedding_manager()
 	{
@@ -330,7 +325,6 @@ namespace marriage
 		wedding_.insert(std::make_pair(dwMapIndex, new wedding_map(dwMapIndex, pid1, pid2)));
 
 
-		// LOCALE_SERVICE
 		sectree_map * pkSectreeMap = rkSecTreeMgr.map(dwMapIndex);
 		if (pkSectreeMap == nullptr) {
 			return 0;
@@ -348,7 +342,6 @@ namespace marriage
 		{
 			metin2::log::info( "CreateWeddingMap(pid1={:d}, pid2={:d}) / regen_do(fileName={}, mapIndex={:d}, basePos=({:d}, {:d})) ok", pid1, pid2, st_weddingMapRegenFileName.c_str(), dwMapIndex, pkSectreeMap->setting.base_x, pkSectreeMap->setting.base_y);
 		}
-		// END_OF_LOCALE_SERVICE
 
 		return dwMapIndex;
 	}

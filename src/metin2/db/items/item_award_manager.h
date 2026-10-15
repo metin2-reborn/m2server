@@ -1,4 +1,3 @@
-// vim:ts=8 sw=4
 #pragma once
 #include <metin2/proto/length.h>
 #include <metin2/common/singleton.h>
@@ -35,13 +34,10 @@ class item_award_manager : public singleton<item_award_manager>
 	std::set<item_award *> *	by_login(const char * login);
 
 	void				taken(uint32_t award_id, uint32_t item_id);
-	// gift notify
 	std::map<uint32_t, item_award *>& map_award();
 	std::map<std::string, std::set<item_award *> >& mapk_set_award_by_login();
     private:
-	// ID, ItemAward pair
 	std::map<uint32_t, item_award *>			map_award_;
-	// PID, ItemAward pair
 	std::map<std::string, std::set<item_award *> >	map_k_set_award_by_login_;
 };
 }

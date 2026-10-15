@@ -31,10 +31,10 @@ class messenger_manager : public singleton<messenger_manager>
 		void	request_to_add(character * ch, character * target);
 		bool	auth_to_add(key_a account, key_a companion, bool deny);
 
-		void	apply_add_to_list(key_a account, key_a companion);	// Method that actually modifies m_Relation, m_InverseRelation
+		void	apply_add_to_list(key_a account, key_a companion);
 		void	add_to_list(key_a account, key_a companion);
 
-		void	apply_remove_from_list(key_a account, key_a companion); // Method that actually modifies m_Relation, m_InverseRelation
+		void	apply_remove_from_list(key_a account, key_a companion);
 		void	remove_from_list(key_a account, key_a companion);	
 
 		void	remove_all_list(key_a account);

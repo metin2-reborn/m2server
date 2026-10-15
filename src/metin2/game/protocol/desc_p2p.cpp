@@ -30,7 +30,6 @@ void desc_p2_p::destroy()
 
 	metin2::log::info( "SYSTEM: closing p2p connection of {}", host_.c_str());
 
-	// Chain up to base class Destroy()
 	desc::destroy();
 }
 
@@ -42,7 +41,7 @@ bool desc_p2_p::setup(std::shared_ptr<net::connection> connection)
 
 	connection_->start(*this);
 
-	if (!is_allowed_peer(host_.c_str(), metin2::config::server().p2p_allowed_hosts, public_ip)) // refuse if remote host != public ip (only the same machine must be able to connect in here)
+	if (!is_allowed_peer(host_.c_str(), metin2::config::server().p2p_allowed_hosts, public_ip))
 	{
 		metin2::log::info( "PORT_SECURITY: new p2p connection from [{}] to [{}] BLOCKED", host_.c_str(), public_ip);
 		set_phase(PHASE_CLOSE);

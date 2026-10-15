@@ -34,7 +34,6 @@ class safebox
 		void		save();
 
 		bool		is_empty(uint32_t pos, uint8_t size);
-		// Tells the owner's client what is in a slot.
 		void		send_item_set(uint32_t pos);
 		bool		is_valid_position(uint32_t pos);
 

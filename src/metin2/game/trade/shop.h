@@ -17,17 +17,16 @@ enum
 };
 
 
-/* ---------------------------------------------------------------------------------- */
 class shop
 {
 	public:
 		struct shop_item {
-			uint32_t	vnum;		// Item number
-			int32_t	price;		// Price
-			uint8_t	count;		// Item count
+			uint32_t	vnum;
+			int32_t	price;
+			uint8_t	count;
 
 			game::items::item *	item;
-			int		itemid;		// Item unique ID
+			int		itemid;
 
 			shop_item()
 			{
@@ -48,20 +47,15 @@ class shop
 		virtual void	set_pc_shop(character * ch);
 		virtual bool	is_pc_shop()	{ return pc_ ? true : false; }
 
-		// Add/remove guest
 		virtual bool	add_guest(character * ch,uint32_t owner_vid, bool other_empire);
 		void	remove_guest(character * ch);
 
-		// Buy goods
 		virtual int	buy(character * ch, uint8_t pos);
 
-		// Sends a packet to guests
 		void	broadcast_update_item(uint8_t pos);
 
-		// Returns the number of items on sale.
 		int		number_by_vnum(uint32_t vnum_value);
 
-		// Tells whether the item is listed in the shop.
 		virtual bool	is_selling_item(uint32_t item_id);
 
 		uint32_t	vnum() { return vnum_; }
@@ -76,7 +70,7 @@ class shop
 
 		typedef std::unordered_map<character *, bool> guest_map_type;
 		guest_map_type map_guest_;
-		std::vector<shop_item>		item_vector_;	// Goods sold by this shop
+		std::vector<shop_item>		item_vector_;
 
 		character *			pc_;
 };

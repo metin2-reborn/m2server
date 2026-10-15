@@ -8,12 +8,6 @@
 #include <ctime>
 #include <map>
 
-/**
- * @version 05/06/08	Bang2ni - Added duration to guild privilege functions
- * 			          Changed RequestGiveGuildPriv, GiveGuildPriv prototypes
- * 			          Changed m_aPrivGuild type
- * 			          Added struct SPrivGuildData, member function GetPrivByGuildEx
- */
 
 namespace metin2::game::inline empire {
 class priv_manager : public singleton<priv_manager>
@@ -43,19 +37,12 @@ class priv_manager : public singleton<priv_manager>
 
 		priv_empire_data* priv_by_empire_ex(uint8_t empire, uint8_t type);
 
-		/// Guild bonus data
 		struct priv_guild_data
 		{
-			int		value;		///< Bonus value
-			time_t	end_time_sec;	///< Duration
+			int		value;
+			time_t	end_time_sec;
 		};
 
-		/// Get guild bonus data.
-		/**
-		 * @param [in]	dwGuildID ID of the guild to look up
-		 * @param [in]	byType bonus type
-		 * @return	pointer to the target guild's bonus data, or NULL if there is no bonus data for the given bonus type and guild ID
-		 */
 		const priv_guild_data*	priv_by_guild_ex( uint32_t guild_id, uint8_t type ) const;
 
 	private:

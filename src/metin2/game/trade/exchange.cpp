@@ -27,7 +27,6 @@ namespace metin2::game::inline trade {
 
 void exchange_packet(character * ch, uint8_t sub_header, bool is_me, uint32_t arg1, item_pos arg2, uint32_t arg3, void * data = nullptr);
 
-// Trade packet
 void exchange_packet(character * ch, uint8_t sub_header, bool is_me, uint32_t arg1, item_pos arg2, uint32_t arg3, void * data)
 {
 	if (!ch->get_desc())
@@ -60,10 +59,9 @@ void exchange_packet(character * ch, uint8_t sub_header, bool is_me, uint32_t ar
 
 namespace metin2::game::inline characters {
 
-// Start trading
 bool character::exchange_start(character * victim)
 {
-	if (this == victim)	// Cannot trade with oneself.
+	if (this == victim)
 		return false;
 
 	if (is_observer_mode())
@@ -75,7 +73,6 @@ bool character::exchange_start(character * victim)
 	if (victim->is_npc())
 		return false;
 
-	//PREVENT_TRADE_WINDOW
 	if ( is_open_safebox() || shop_owner() || my_shop() || is_cube_open())
 	{
 		chat_packet( CHAT_TYPE_INFO, lc_text("다른 거래창이 열려있을경우 거래를 할수 없습니다." ) );
@@ -87,10 +84,8 @@ bool character::exchange_start(character * victim)
 		chat_packet( CHAT_TYPE_INFO, lc_text("상대방이 다른 거래중이라 거래를 할수 없습니다." ) );
 		return false;
 	}
-	//END_PREVENT_TRADE_WINDOW
 	int iDist = distance_approx(x() - victim->x(), y() - victim->y());
 
-	// Distance check
 	if (iDist >= EXCHANGE_MAX_DISTANCE)
 		return false;
 
@@ -115,7 +110,6 @@ bool character::exchange_start(character * victim)
 	victim->get_exchange()->set_company(get_exchange());
 	get_exchange()->set_company(victim->get_exchange());
 
-	//
 	set_exchange_time();
 	victim->set_exchange_time();
 
@@ -161,7 +155,6 @@ bool exchange::add_item(item_pos item_pos, uint8_t display_pos)
 	if (!item_pos.is_valid_item_position())
 		return false;
 
-	// Equipment cannot be traded
 	if (item_pos.is_equip_position())
 		return false;
 
@@ -181,7 +174,6 @@ bool exchange::add_item(item_pos item_pos, uint8_t display_pos)
 		return false;
 	}
 
-	// Item already added to the trade window?
 	if (item->is_exchanging())
 	{
 		metin2::log::info( "EXCHANGE under exchanging");
@@ -230,7 +222,6 @@ bool exchange::add_item(item_pos item_pos, uint8_t display_pos)
 		return true;
 	}
 
-	// No space to add
 	return false;
 }
 
@@ -266,7 +257,6 @@ bool exchange::add_gold(int32_t gold)
 
 	if (owner()->gold() < gold)
 	{
-		// Not enough gold.
 		exchange_packet(owner(), EXCHANGE_SUBHEADER_GC_LESS_GOLD, 0, 0, NPOS, 0);
 		return false;
 	}
@@ -286,7 +276,6 @@ bool exchange::add_gold(int32_t gold)
 	return true;
 }
 
-// Checks that there is enough gold and that the items to trade actually exist.
 bool exchange::check(int * item_count_value)
 {
 	if (owner()->gold() < gold_)
@@ -314,8 +303,8 @@ bool exchange::check(int * item_count_value)
 
 bool exchange::check_space()
 {
-	static grid s_grid1(5, INVENTORY_MAX_NUM/5 / 2); // inven page 1
-	static grid s_grid2(5, INVENTORY_MAX_NUM/5 / 2); // inven page 2
+	static grid s_grid1(5, INVENTORY_MAX_NUM/5 / 2);
+	static grid s_grid2(5, INVENTORY_MAX_NUM/5 / 2);
 
 	s_grid1.clear();
 	s_grid2.clear();
@@ -340,10 +329,8 @@ bool exchange::check_space()
 		s_grid2.put(i - INVENTORY_MAX_NUM / 2, 1, item->size());
 	}
 
-	// Ah... this looks really stupid... but it's my fault for copying the dragon soul inventory from the normal inventory T_T
 	static std::vector <uint16_t> s_vDSGrid(DRAGON_SOUL_INVENTORY_MAX_NUM);
 	
-	// Dragon soul stones are unlikely to be traded, so copy the dragon soul inventory only when there are some.
 	bool bDSInitialized = false;
 	
 	for (i = 0; i < EXCHANGE_ITEM_MAX_NUM; ++i)
@@ -372,8 +359,7 @@ bool exchange::check_space()
 			for (int i = 0; i < DRAGON_SOUL_BOX_SIZE; i++)
 			{
 				uint16_t wPos = wBasePos + i;
-				// if (0 == s_vDSGrid[wBasePos])
-				if (0 == s_vDSGrid[wPos]) // Fix
+				if (0 == s_vDSGrid[wPos])
 				{
 					bool bEmpty = true;
 					for (int j = 1; j < item->size(); j++)
@@ -427,7 +413,6 @@ bool exchange::check_space()
 	return true;
 }
 
-// End of trade (actually moves items, gold, etc.)
 bool exchange::done()
 {
 	int		empty_pos, i;
@@ -503,7 +488,6 @@ bool exchange::done()
 	return true;
 }
 
-// Agree to the trade
 bool exchange::accept(bool accept)
 {
 	if (accept_ == accept)
@@ -511,21 +495,15 @@ bool exchange::accept(bool accept)
 
 	accept_ = accept;
 
-	// Both agreed, so the trade goes through
 	if (accept_ && company()->accept_)
 	{
 		int	iItemCount;
 
 		character * victim = company()->owner();
 
-		//PREVENT_PORTAL_AFTER_EXCHANGE
 		owner()->set_exchange_time();
 		victim->set_exchange_time();		
-		//END_PREVENT_PORTAL_AFTER_EXCHANGE
 
-		// exchange_check verifies that the items to trade are in place,
-		// and that there is enough elk; it returns the number of items to trade
-		// via the second argument.
 		if (!check(&iItemCount))
 		{
 			owner()->chat_packet(CHAT_TYPE_INFO, lc_text("돈이 부족하거나 아이템이 제자리에 없습니다."));
@@ -533,7 +511,6 @@ bool exchange::accept(bool accept)
 			goto EXCHANGE_END;
 		}
 
-		// Uses the returned item count to check whether the other side's inventory has room.
 		if (!check_space())
 		{
 			owner()->chat_packet(CHAT_TYPE_INFO, lc_text("상대방의 소지품에 빈 공간이 없습니다."));
@@ -541,7 +518,6 @@ bool exchange::accept(bool accept)
 			goto EXCHANGE_END;
 		}
 
-		// Same for the other side..
 		if (!company()->check(&iItemCount))
 		{
 			victim->chat_packet(CHAT_TYPE_INFO, lc_text("돈이 부족하거나 아이템이 제자리에 없습니다."));
@@ -566,18 +542,16 @@ bool exchange::accept(bool accept)
 
 		if (done())
 		{
-			if (gold_) // Save only when there is gold
+			if (gold_)
 				owner()->save();
 
 			if (company()->done())
 			{
-				if (company()->gold_) // Save only when there is gold
+				if (company()->gold_)
 					victim->save();
 
-				// INTERNATIONAL_VERSION
 				owner()->chat_packet(CHAT_TYPE_INFO, lc_text("%s 님과의 교환이 성사 되었습니다."), victim->name());
 				victim->chat_packet(CHAT_TYPE_INFO, lc_text("%s 님과의 교환이 성사 되었습니다."), owner()->name());
-				// END_OF_INTERNATIONAL_VERSION
 			}
 		}
 
@@ -587,14 +561,12 @@ EXCHANGE_END:
 	}
 	else
 	{
-		// Otherwise send a packet for the accept.
 		exchange_packet(owner(), EXCHANGE_SUBHEADER_GC_ACCEPT, true, accept_, NPOS, 0);
 		exchange_packet(company()->owner(), EXCHANGE_SUBHEADER_GC_ACCEPT, false, accept_, NPOS, 0);
 		return true;
 	}
 }
 
-// Cancel trade
 void exchange::cancel()
 {
 	exchange_packet(owner(), EXCHANGE_SUBHEADER_GC_END, 0, 0, NPOS, 0);

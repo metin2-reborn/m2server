@@ -18,7 +18,6 @@
 
 namespace metin2::game::inline characters {
 
-// poison
 const int poison_damage_rate[MOB_RANK_MAX_NUM] = 
 {
 	80, 50, 40, 30, 25, 1
@@ -65,7 +64,7 @@ EVENTFUNC(poison_event)
 
 	character * ch = info->ch;
 
-	if (ch == nullptr) { // <Factor>
+	if (ch == nullptr) {
 		return 0;
 	}
 	character * pkAttacker = character_manager::instance().find_by_pid(info->attacker_pid);
@@ -117,7 +116,7 @@ EVENTFUNC(fire_event)
 	}
 
 	character * ch = info->ch;
-	if (ch == nullptr) { // <Factor>
+	if (ch == nullptr) {
 		return 0;
 	}
 	character * pkAttacker = character_manager::instance().find_by_pid(info->attacker_pid);
@@ -142,29 +141,6 @@ EVENTFUNC(fire_event)
 	}
 }
 
-/*
-
-   By LEVEL..
-
-   +8   0%
-   +7   5%
-   +6  10%
-   +5  30%
-   +4  50%
-   +3  70%
-   +2  80%
-   +1  90%
-   +0 100%
-   -1 100%
-   -2 100%
-   -3 100%
-   -4 100%
-   -5 100%
-   -6 100%
-   -7 100%
-   -8 100%
-
- */
 
 static int poison_level_adjust[9] =
 {
@@ -193,7 +169,7 @@ void character::attacked_by_poison(character * attacker)
 	if (poison_event)
 		return;
 
-	if (has_poisoned && !is_pc()) // monsters can only be poisoned once.
+	if (has_poisoned && !is_pc())
 		return;
 
 	if (attacker && attacker->level() < level())
@@ -207,7 +183,6 @@ void character::attacked_by_poison(character * attacker)
 			return;
 	}
 
-	// poison resist roll failed, poisoned!
 	has_poisoned = true;
 
 	add_affect(AFFECT_POISON, POINT_NONE, 0, AFF_POISON, POISON_LENGTH + 1, 0, true);
@@ -262,7 +237,7 @@ bool character::is_immune(uint32_t immune_flag_value)
 		int immune_pct = 90;
 		int	percent = number(1, 100);
 
-		if (percent <= immune_pct)	// 90% Immune
+		if (percent <= immune_pct)
 		{
 			if (metin2::config::test_server() && is_pc())
 				chat_packet(CHAT_TYPE_PARTY, "<IMMUNE_SUCCESS> (%s)", name()); 

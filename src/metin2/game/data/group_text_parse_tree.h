@@ -48,15 +48,13 @@ public:
 	int row_count();
 	
 	template <typename T>
-	bool value(size_t i, const std::string & rstr_col_key, T& t_value) const;	// Returns the value of a given column in the n-th row (n is just the order in the map, unrelated to the order in the txt). 
-																				// Out of place, but a convenience function.
+	bool value(size_t i, const std::string & rstr_col_key, T& t_value) const;
 	template <typename T>
 	bool value(const std::string & rstr_row_key, const std::string & rstr_col_key, T& t_value) const;
 	template <typename T>
 	bool value(const std::string & rstr_row_key, int index, T& t_value) const;
 
 	bool row(const std::string & rstr_row_key, const group_node_row ** pp_row) const;
-	// Note: idx is unrelated to the order written in the txt.
 	bool row(int idx, const group_node_row ** pp_row) const;
 	bool group_row(const std::string& group_name, const std::string& row_value, const group_node::group_node_row ** pp_row) const;
 
@@ -186,7 +184,6 @@ bool group_node::group_value(const std::string& group_name, const std::string& r
 		if (pChildGroup->value(row, col, t_value))
 			return true;
 	}
-	// Look in the default group.
 	pChildGroup = child_node("default");
 	if (nullptr != pChildGroup)
 	{
@@ -205,7 +202,6 @@ bool group_node::group_value(const std::string& group_name, const std::string& r
 		if (pChildGroup->value(row, col, t_value))
 			return true;
 	}
-	// Look in the default group.
 	pChildGroup = child_node("default");
 	if (nullptr != pChildGroup)
 	{

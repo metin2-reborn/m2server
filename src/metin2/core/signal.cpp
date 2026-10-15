@@ -20,8 +20,6 @@ namespace {
         std::signal(SIGCHLD, reap);
     }
 
-    // The virtual timer fires every 30s of CPU time; no tick since the last one means the
-    // main loop is stuck.
     void checkpointing(int) {
         if (!tics) {
             metin2::log::error("CHECKPOINT shutdown: tics did not updated.");
@@ -61,7 +59,6 @@ void signal_setup() {
 
     std::signal(SIGVTALRM, checkpointing);
 
-    // just to be on the safe side:
     std::signal(SIGHUP, hupsig);
     std::signal(SIGCHLD, reap);
     std::signal(SIGINT, hupsig);

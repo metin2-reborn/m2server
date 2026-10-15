@@ -8,9 +8,6 @@
 
 namespace metin2::poly {
 
-// A formula from the skill and guild tables (e.g. "(atk + 2 * k) * min(lv, 90)"): Analyze
-// compiles it to postfix once, SetVar binds its variables and Eval computes it. Supports
-// + - * / % ^, parentheses, pi and e, and the functions registered in the constructor.
 class expression {
   public:
     expression();
@@ -42,9 +39,9 @@ class expression {
     int look_ahead_ = 0;
     bool error_occur_ = true;
     std::size_t ui_look_pos_ = 0;
-    std::vector<int> token_base_;  // postfix program; ID is followed by its symbol index
-    std::vector<double> num_base_; // the constants NUM tokens push, in order
-    std::vector<symbol> symbols_;  // functions, constants and variables
+    std::vector<int> token_base_;
+    std::vector<double> num_base_;
+    std::vector<symbol> symbols_;
     std::map<std::string, int, std::less<>> symbol_index_;
     std::string data_;
 };

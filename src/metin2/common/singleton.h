@@ -4,8 +4,6 @@
 
 namespace metin2::inline common {
 
-// Base of a class with one instance at a time: the object registers itself on construction and
-// is reachable through instance() until it is destroyed.
 template <typename T>
 class singleton {
   public:

@@ -14,7 +14,6 @@
 
 namespace metin2::db::inline storage {
 
-// Character set of every connection; the game server connects with the same one.
 static constexpr const char CONNECTION_CHARSET[] = "latin1";
 
 db_manager::db_manager() {

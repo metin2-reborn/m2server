@@ -1,4 +1,3 @@
-// vim: ts=8 sw=4
 #pragma once
 
 #include <metin2/proto/length.h>

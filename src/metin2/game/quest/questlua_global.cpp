@@ -135,7 +135,7 @@ namespace quest
 		return 0;
 	}
 
-	int set_skin(lua_State* lua) // Quest UI style
+	int set_skin(lua_State* lua)
 	{
 		if (lua_isnumber(lua, -1))
 		{
@@ -413,7 +413,6 @@ namespace quest
 		return 0;
 	}
 	
-	// LUA_ADD_BGM_INFO
 	int set_bgm_volume_enable(lua_State* lua)
 	{
 		character_set_bgm_volume_enable();
@@ -438,9 +437,7 @@ namespace quest
 
 		return 0;
 	}
-	// END_OF_LUA_ADD_BGM_INFO	
 
-	// LUA_ADD_GOTO_INFO
 	int add_goto_info(lua_State* lua)
 	{
 		const char* name = lua_tostring(lua, 1);
@@ -456,9 +453,7 @@ namespace quest
 		character_add_goto_info(name, empire, mapIndex, x, y);
 		return 0;
 	}
-	// END_OF_LUA_ADD_GOTO_INFO
 
-	// REFINE_PICK
 	int refine_pick(lua_State* lua)
 	{
 		uint8_t bCell = (uint8_t) lua_tonumber(lua,-1);
@@ -473,7 +468,6 @@ namespace quest
 		lua_pushnumber(lua, ret);
 		return 1;
 	}
-	// END_OF_REFINE_PICK
 
 	int fish_real_refine_rod(lua_State* lua)
 	{
@@ -816,7 +810,6 @@ namespace quest
 		return 1;
 	}
 
-	// Create a new state.
 	int set_quest_state(lua_State* lua)
 	{
 		if (!lua_isstring(lua, 1) || !lua_isstring(lua, 2))
@@ -893,7 +886,7 @@ namespace quest
 		buf.write(&p, sizeof(p));
 		buf.write(s.str().c_str(), p.size);
 
-		p2_p_manager::instance().send(buf.read_peek(), buf.size()); // HEADER_GG_NOTICE
+		p2_p_manager::instance().send(buf.read_peek(), buf.size());
 
 		send_notice(s.str().c_str());
 		return 1;	
@@ -1038,7 +1031,6 @@ namespace quest
 		return 0;
 	}
 
-	//Caution: only use on maps without mob regen
 	int regen_in_map( lua_State * lua )
 	{
 		int iMapIndex = static_cast<int>(lua_tonumber(lua, 1));
@@ -1361,21 +1353,15 @@ namespace quest
 			{	"raw_script",				raw_script				},
 			{	"number",					random_number	   				},
 
-			// LUA_ADD_BGM_INFO
 			{	"set_bgm_volume_enable",	set_bgm_volume_enable	},
 			{	"add_bgm_info",				add_bgm_info			},
-			// END_OF_LUA_ADD_BGM_INFO
 
-			// LUA_ADD_GOTO_INFO
 			{	"add_goto_info",			add_goto_info			},
-			// END_OF_LUA_ADD_GOTO_INFO
 
-			// REFINE_PICK
 			{	"__refine_pick",			refine_pick			},
-			// END_OF_REFINE_PICK
 
 			{	"add_ox_quiz",					add_ox_quiz					},
-			{	"__fish_real_refine_rod",		fish_real_refine_rod			}, // XXX
+			{	"__fish_real_refine_rod",		fish_real_refine_rod			},
 			{	"__give_char_priv",				give_char_privilege			},
 			{	"__give_empire_priv",			give_empire_privilege			},
 			{	"__give_guild_priv",			give_guild_privilege			},

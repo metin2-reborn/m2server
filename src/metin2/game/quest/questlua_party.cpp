@@ -23,9 +23,6 @@ namespace metin2::game {
 
 namespace quest
 {
-	//
-	// "party" Lua functions
-	//
 	int party_clear_ready(lua_State* lua)
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
@@ -333,8 +330,6 @@ namespace quest
 		}
 	};
 	
-	// gives a buff to the whole party.
-	// only party members on the same map are affected.
 	int party_give_buff (lua_State* lua)
 	{
 		quest_manager & q = quest_manager::instance();
@@ -415,7 +410,7 @@ namespace quest
 			{ "is_in_dungeon",	party_is_in_dungeon	},
 			{ "give_buff",		party_give_buff		},
 			{ "is_map_member_flag_lt",	party_is_map_member_flag_lt	},
-			{ "get_member_pids",		party_get_member_pids	}, // returns the pids of party members
+			{ "get_member_pids",		party_get_member_pids	},
 			{ nullptr,				nullptr				}
 		};
 

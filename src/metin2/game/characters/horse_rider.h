@@ -20,10 +20,10 @@ const int HORSE_MAX_LEVEL = 30;
 
 struct horse_stat
 {
-	int min_level;      // Minimum level to ride
+	int min_level;
 	int npc_race;
-	int max_health;     // Horse max HP
-	int max_stamina;    // Horse max stamina
+	int max_health;
+	int max_stamina;
 	int st;
 	int dx;
 	int ht;

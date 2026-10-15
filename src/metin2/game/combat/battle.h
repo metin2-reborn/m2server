@@ -11,7 +11,7 @@
 
 namespace metin2::game::inline combat {
 
-enum battle_types       // Relative to the opponent
+enum battle_types
 {
 	BATTLE_NONE,
 	BATTLE_DAMAGE,
@@ -32,7 +32,6 @@ extern void	battle_end(character * ch);
 
 extern void	normal_attack_affect(character * attacker, character * victim);
 
-// Special attack
 inline void attack_affect(character * attacker,
 		character * victim,
 		uint8_t att_point,
@@ -78,17 +77,13 @@ inline void skill_attack_affect(character * victim,
 		{
 			victim->add_affect(affect_idx, affect_point, affect_amount, affect_flag, time, 0, true);
 
-			// SKILL_ATTACK_NO_LOG_TARGET_NAME_FIX
 			if (metin2::config::test_server())
 				victim->chat_packet(CHAT_TYPE_PARTY, 
 						"%s(%d%%) -> %s SUCCESS", name, success_pct, name);
-			// END_OF_SKILL_ATTACK_LOG_NO_TARGET_NAME_FIX
 		}
 		else if (metin2::config::test_server())
 		{
-			// SKILL_ATTACK_NO_LOG_TARGET_NAME_FIX
 			victim->chat_packet(CHAT_TYPE_PARTY, "%s(%d%%) -> %s FAIL", name, success_pct, name);
-			// END_OF_SKILL_ATTACK_LOG_NO_TARGET_NAME_FIX
 		}
 	}
 } 

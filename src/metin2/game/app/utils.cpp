@@ -43,12 +43,11 @@ size_t str_lower(const char * src, char * dest, size_t dest_size)
 		return len;
 	}
 
-	// Reserve room for \0
 	--dest_size;
 
 	while (*src && len < dest_size)
 	{
-		*dest = std::tolower(static_cast<unsigned char>(*src)); // Don't use ++ or -- in the LOWER macro!!
+		*dest = std::tolower(static_cast<unsigned char>(*src));
 
 		++src;
 		++dest;
@@ -76,7 +75,6 @@ const char *one_argument(const char *argument, char *first_arg, size_t first_siz
 		return nullptr;    
 	} 
 
-	// Reserve room for \0
 	--first_size;
 
 	skip_spaces(&argument);
@@ -114,7 +112,6 @@ const char *first_cmd(const char *argument, char *first_arg, size_t first_arg_si
 	size_t cur_len = 0;
 	skip_spaces(&argument);
 
-	// Reserve room for \0
 	first_arg_size -= 1;
 
 	while (*argument && !is_space(*argument) && cur_len < first_arg_size)
@@ -161,8 +158,6 @@ float gauss_random(float avg, float sigma)
 	{
 		double v1, v2, s;
 		do { 
-			//v1 = 2 * nextDouble() - 1;   // between -1.0 and 1.0
-			//v2 = 2 * nextDouble() - 1;   // between -1.0 and 1.0
 			v1 = uniform_random(-1.f, 1.f);
 			v2 = uniform_random(-1.f, 1.f);
 			s = v1 * v1 + v2 * v2;

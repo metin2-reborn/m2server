@@ -69,7 +69,6 @@ struct point_on_type
 	{ "ATT_SPEED",	POINT_ATT_SPEED		},
 	{ "POISON_PCT",	POINT_POISON_PCT	},
 	{ "RESIST_RANGE",   POINT_RESIST_BOW	},
-	//{ "RESIST_MELEE",	POINT_RESIST_MELEE	},
 	{ "CASTING_SPEED",	POINT_CASTING_SPEED	},
 	{ "REFLECT_MELEE",	POINT_REFLECT_MELEE	},
 	{ "ATT_BONUS",	POINT_ATT_BONUS		},
@@ -291,10 +290,8 @@ bool skill_manager::initialize(skill_table * tab, int size)
 
 	if (!bError)
 	{
-		// clear the existing table contents.
 		map_pk_skill_proto_.clear();
 
-		// insert the new contents
 		for (auto & [dwVnum, pkProto] : map_pkSkillProto)
 			map_pk_skill_proto_.emplace(dwVnum, std::move(pkProto));
 

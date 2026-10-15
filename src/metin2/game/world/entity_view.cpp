@@ -103,21 +103,17 @@ class func_view_insert
 
 		void operator () (entity * ent)
 		{
-			// Non-objects are not added if they are too far away by computed distance.
 			if (!ent->is_type(ENTITY_OBJECT))
 				if (distance_approx(ent->x() - me->x(), ent->y() - me->y()) > view_range_)
 					return;
 
-			// Add me to the target
 			me->view_insert(ent);
 
-			// If both are characters
 			if (ent->is_type(ENTITY_CHARACTER) && me->is_type(ENTITY_CHARACTER))
 			{
 				character * chMe = (character *) me;
 				character * chEnt = (character *) ent;
 
-				// If the target is an NPC, turn on its StateMachine.
 				if (chMe->is_pc() && !chEnt->is_pc() && !chEnt->is_warp() && !chEnt->is_goto())
 					chEnt->start_state_machine();
 			}
@@ -139,14 +135,11 @@ void entity::update_sectree()
 
 	++view_age_;
 
-	func_view_insert f(this); // Add me to the people in the sectree
+	func_view_insert f(this);
 	get_sectree()->for_each_around(f);
 
 	entity_map::iterator it, this_it;
 
-	//
-	// Remove unneeded entries from m_map_view
-	// 
 	if (observer_mode_change_)
 	{
 		if (is_observer_)
@@ -160,11 +153,9 @@ void entity::update_sectree()
 				{
 					entity * ent = this_it->first;
 
-					// Remove the other from me.
 					ent->encode_remove_packet(this);
 					map_view_.erase(this_it);
 
-					// Remove me from the other.
 					ent->view_remove(this, false);
 				}
 				else
@@ -172,9 +163,7 @@ void entity::update_sectree()
 
 					entity * ent = this_it->first;
 
-					// Remove the other from me.
 
-					// Remove me from the other.
 					encode_remove_packet(ent);
 				}
 			}
@@ -191,11 +180,9 @@ void entity::update_sectree()
 				{
 					entity * ent = this_it->first;
 
-					// Remove the other from me.
 					ent->encode_remove_packet(this);
 					map_view_.erase(this_it);
 
-					// Remove me from the other.
 					ent->view_remove(this, false);
 				}
 				else
@@ -225,11 +212,9 @@ void entity::update_sectree()
 				{
 					entity * ent = this_it->first;
 
-					// Remove the other from me.
 					ent->encode_remove_packet(this);
 					map_view_.erase(this_it);
 
-					// Remove me from the other.
 					ent->view_remove(this, false);
 				}
 			}

@@ -1,4 +1,3 @@
-// vim: ts=8 sw=4
 #pragma once
 
 #include <metin2/proto/tables.h>
@@ -13,8 +12,6 @@
 
 namespace metin2::db::inline clients {
 
-// A game or auth server connected to the db. Its packets are handed to
-// CClientManager::ProcessPackets as they arrive.
 class peer : public net::connection_handler
 {
     public:
@@ -37,7 +34,6 @@ class peer : public net::connection_handler
 	auto	on_receive(std::span<std::uint8_t> input, std::size_t received) -> std::size_t override;
 	void	on_close(const std::error_code & error) override;
 
-	// The connection ended; CClientManager removes the peer on its next pass.
 	bool	is_closed() const	{ return state_ == STATE_CLOSE; }
 	const char *	host() const	{ return connection_->remote_address().c_str(); }
 
@@ -73,20 +69,20 @@ class peer : public net::connection_handler
 	bool	set_spare_item_id_range(item_id_range_table item_range);
 	bool	check_item_id_range_collision(item_id_range_table item_range);
 	void	send_spare_item_id_range();
-	void	return_item_id_range();	// gives the peer's item ID range back for reuse
+	void	return_item_id_range();
 
     private:
 	std::shared_ptr<net::connection> connection_;
-	std::span<const std::uint8_t> input_;	// the input being processed
+	std::span<const std::uint8_t> input_;
 	std::size_t	input_consumed_;
 
 	int	state_;
 
 	uint8_t	channel_;
 	uint32_t	handle_;
-	uint16_t	listen_port_;	// Port the game server listens on for clients
-	uint16_t	p2_p_port_;	// Port the game server listens on for game server P2P connections
-	int32_t	maps_[MAX_MAPS_PER_SERVER];	// Which maps does it manage?
+	uint16_t	listen_port_;
+	uint16_t	p2_p_port_;
+	int32_t	maps_[MAX_MAPS_PER_SERVER];
 
 	item_id_range_table item_range_;
 	item_id_range_table item_spare_range_;

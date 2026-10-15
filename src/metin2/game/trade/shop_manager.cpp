@@ -106,26 +106,19 @@ shop * shop_manager::by_npc_vnum(uint32_t vnum)
 	return (it->second);
 }
 
-/*
- * Interface functions
- */
 
-// Start shop trading
 bool shop_manager::start_shopping(character * chr, character * chr_shop_keeper, int shop_vnum)
 {
 	if (chr->shop_owner() == chr_shop_keeper)
 		return false;
-	// this method is only for NPC
 	if (chr_shop_keeper->is_pc())
 		return false;
 
-	//PREVENT_TRADE_WINDOW
 	if (chr->is_open_safebox() || chr->get_exchange() || chr->my_shop() || chr->is_cube_open())
 	{
 		chr->chat_packet(CHAT_TYPE_INFO, lc_text("다른 거래창이 열린상태에서는 상점거래를 할수 가 없습니다."));
 		return false;
 	}
-	//END_PREVENT_TRADE_WINDOW
 
 	int32_t distance = distance_approx(chr->x() - chr_shop_keeper->x(), chr->y() - chr_shop_keeper->y());
 
@@ -189,15 +182,12 @@ void shop_manager::destroy_pc_shop(character * ch)
 	if (!pkShop)
 		return;
 
-	//PREVENT_ITEM_COPY;
 	ch->set_my_shop_time();
-	//END_PREVENT_ITEM_COPY
 	
 	map_pk_shop_by_pc_.erase(ch->get_vid());
 	delete pkShop;
 }
 
-// End shop trading
 void shop_manager::stop_shopping(character * ch)
 {
 	shop * shop;
@@ -205,15 +195,12 @@ void shop_manager::stop_shopping(character * ch)
 	if (!(shop = ch->get_shop()))
 		return;
 
-	//PREVENT_ITEM_COPY;
 	ch->set_my_shop_time();
-	//END_PREVENT_ITEM_COPY
 	
 	shop->remove_guest(ch);
 	metin2::log::info( "SHOP: END: {}", ch->name());
 }
 
-// Buy item
 void shop_manager::buy(character * ch, uint8_t pos)
 {
 	if (!ch->get_shop())
@@ -230,13 +217,11 @@ void shop_manager::buy(character * ch, uint8_t pos)
 
 	shop* pkShop = ch->get_shop();
 
-	//PREVENT_ITEM_COPY
 	ch->set_my_shop_time();
-	//END_PREVENT_ITEM_COPY
 
 	int ret = pkShop->buy(ch, pos);
 
-	if (SHOP_SUBHEADER_GC_OK != ret) // Send if there was a problem.
+	if (SHOP_SUBHEADER_GC_OK != ret)
 	{
 		packet_gc_shop pack;
 
@@ -306,7 +291,6 @@ void shop_manager::sell(character * ch, uint8_t cell, uint8_t count_value)
 
 	dwPrice /= 5;
 	
-	//Tax calculation
 	uint32_t dwTax = 0;
 	int iVal = 3;
 	
@@ -325,7 +309,6 @@ void shop_manager::sell(character * ch, uint8_t cell, uint8_t count_value)
 		return;
 	}
 
-	// 20050802.myevan.Added item ID to the shop sale log
 	metin2::log::info( "SHOP: SELL: {} item name: {}(x{:d}):{:d} price: {:d}", ch->name(), item->name(), count_value, item->id(), dwPrice);
 
 	if (iVal > 0)
@@ -335,15 +318,12 @@ void shop_manager::sell(character * ch, uint8_t cell, uint8_t count_value)
 
 	if (count_value == item->count())
 	{
-		// In Korea there are many troublesome users who drop items and ask for them to be restored, so
-		// log attributes on shop sales.
 
 		item_manager::instance().remove_item(item, "SELL");
 	}
 	else
 		item->set_count(item->count() - count_value);
 
-	//Monarch system: tax collection
 	monarch::instance().sendto_db_add_money(dwTax, ch->empire(), ch);
 
 	ch->point_change(POINT_GOLD, dwPrice, false);
@@ -474,8 +454,6 @@ bool convert_to_shop_item_table(group_node* node, shop_table_ex& shop_table)
 
 bool shop_manager::read_shop_table_ex(const char* file_name)
 {
-	// Check whether the file exists.
-	// Absence is not treated as an error.
 	FILE* fp = fopen(file_name, "rb");
 	if (nullptr == fp)
 		return true;

@@ -82,7 +82,6 @@ void character::set_skill_next_read_time(uint32_t vnum, time_t time)
 
 bool skill_use_info::hit_once(uint32_t vnum)
 {
-	// if it wasn't used, it can't hit.
 	if (!used)
 		return false;
 
@@ -115,7 +114,6 @@ bool skill_use_info::use_skill(bool is_grand_master_value, uint32_t vid_value, u
 	this->is_grand_master = is_grand_master_value;
 	uint32_t dwCur = get_dword_time();
 
-	// cooldown has not finished yet.
 	if (used && next_skill_usable_time > dwCur)
 	{
 		metin2::log::info( "cooltime is not over delta {:d}", next_skill_usable_time - dwCur);
@@ -276,7 +274,6 @@ bool character::is_learnable_skill(uint32_t skill_vnum) const
 	return false;
 }
 
-// ADD_GRANDMASTER_SKILL
 bool character::learn_grand_master_skill(uint32_t skill_vnum)
 {
 	skill_proto * pkSk = skill_manager::instance().get(skill_vnum);
@@ -292,7 +289,6 @@ bool character::learn_grand_master_skill(uint32_t skill_vnum)
 
 	metin2::log::info( "learn grand master skill[{:d}] cur {:d}, next {:d}", skill_vnum, get_global_time(), skill_next_read_time(skill_vnum));
 
-	// if bType is 0, can be trained with books from the start
 	if (pkSk->type == 0)
 	{
 		chat_packet(CHAT_TYPE_INFO, lc_text("그랜드 마스터 수련을 할 수 없는 스킬입니다."));
@@ -315,7 +311,6 @@ bool character::learn_grand_master_skill(uint32_t skill_vnum)
 		strTrainSkill = os.str();
 	}
 
-	// probability is calculated here.
 	uint8_t bLastLevel = skill_level(skill_vnum);
 
 	int idx = std::min(9, skill_level(skill_vnum) - 30);
@@ -375,7 +370,6 @@ bool character::learn_grand_master_skill(uint32_t skill_vnum)
 	log_manager::instance().char_log(this, skill_vnum, "GM_READ_SUCCESS", "");
 	return true;
 }
-// END_OF_ADD_GRANDMASTER_SKILL
 
 static bool fn_should_check_exp(character * ch)
 {
@@ -411,7 +405,6 @@ bool character::learn_skill_by_book(uint32_t skill_vnum, uint8_t prob)
 		}
 	}
 
-	// if bType is 0, can be trained with books from the start
 	if (pkSk->type != 0)
 	{
 		if (skill_master_type(skill_vnum) != SKILL_MASTER)
@@ -430,7 +423,6 @@ bool character::learn_skill_by_book(uint32_t skill_vnum, uint8_t prob)
 		{
 			if (find_affect(AFFECT_SKILL_NO_BOOK_DELAY))
 			{
-				// ignore time limit while using an exorcism scroll
 				remove_affect(AFFECT_SKILL_NO_BOOK_DELAY);
 				chat_packet(CHAT_TYPE_INFO, lc_text("주안술서를 통해 주화입마에서 빠져나왔습니다."));
 			}
@@ -442,18 +434,15 @@ bool character::learn_skill_by_book(uint32_t skill_vnum, uint8_t prob)
 		}
 	}
 
-	// probability is calculated here.
 	uint8_t bLastLevel = skill_level(skill_vnum);
 
 	if (prob != 0)
 	{
-		// SKILL_BOOK_BONUS
 		if (find_affect(AFFECT_SKILL_BOOK_BONUS))
 		{
 			prob += prob / 2;
 			remove_affect(AFFECT_SKILL_BOOK_BONUS);
 		}
-		// END_OF_SKILL_BOOK_BONUS
 
 		metin2::log::info( "LearnSkillByBook Pct {:d} prob {:d}", skill_vnum, prob);
 
@@ -500,7 +489,6 @@ bool character::learn_skill_by_book(uint32_t skill_vnum, uint8_t prob)
 
 			if (number(1, 100) > percent)
 			{
-				// book reading succeeded
 				if (read_count >= need_bookcount)
 				{
 					skill_level_up(skill_vnum, SKILL_UP_BY_BOOK);
@@ -537,9 +525,7 @@ bool character::learn_skill_by_book(uint32_t skill_vnum, uint8_t prob)
 		}
 		else
 		{
-			// failed to load the user's quest info
 		}
-		// END_OF_INTERNATIONAL_VERSION
 	}
 
 	if (bLastLevel != skill_level(skill_vnum))
@@ -663,7 +649,6 @@ void character::skill_level_up(uint32_t vnum_value, uint8_t method)
 	if (!is_learnable_skill(vnum_value))
 		return;
 
-	// grand master can only be done through quests
 	if (pkSk->type != 0)
 	{
 		switch (skill_master_type(pkSk->vnum))
@@ -680,7 +665,6 @@ void character::skill_level_up(uint32_t vnum_value, uint8_t method)
 
 	if (method == SKILL_UP_BY_POINT)
 	{
-		// can only train when not master
 		if (skill_master_type(pkSk->vnum) != SKILL_NORMAL)
 			return;
 
@@ -689,7 +673,7 @@ void character::skill_level_up(uint32_t vnum_value, uint8_t method)
 	}
 	else if (method == SKILL_UP_BY_BOOK)
 	{
-		if (pkSk->type != 0) // skills not belonging to a job or that can't be raised with points can be learned with books from the start.
+		if (pkSk->type != 0)
 			if (skill_master_type(pkSk->vnum) != SKILL_MASTER)
 				return;
 	}
@@ -743,11 +727,9 @@ void character::skill_level_up(uint32_t vnum_value, uint8_t method)
 
 	if (pkSk->type != 0)
 	{
-		// code for a sudden grade-up
 		switch (skill_master_type(pkSk->vnum))
 		{
 			case SKILL_NORMAL:
-				// on the Vietnamese server, master training at a random skill level between 17~20
 				if (skill_level(pkSk->vnum) >= 17)
 				{
 					if (quest_flag("reset_scroll.force_to_master_skill") > 0)
@@ -805,7 +787,6 @@ void character::reset_skill()
 	if (nullptr == skill_levels_)
 		return;
 
-	// support skills are not reset
 	std::vector<std::pair<uint32_t, player_skill> > vec;
 	size_t count = sizeof(sub_skill_vnums) / sizeof(sub_skill_vnums[0]);
 
@@ -920,7 +901,7 @@ EVENTFUNC(chain_lightning_event)
 
 	metin2::log::debug( "chainlighting event {}", pkChr->name());
 
-	if (pkChrVictim->get_party()) // party first
+	if (pkChrVictim->get_party())
 	{
 		pkTarget = pkChrVictim->get_party()->next_ownership(nullptr, pkChrVictim->x(), pkChrVictim->y());
 		if (pkTarget == pkChrVictim || !number(0, 2) || pkChr->chain_lighting_except().find(pkTarget) != pkChr->chain_lighting_except().end())
@@ -929,13 +910,11 @@ EVENTFUNC(chain_lightning_event)
 
 	if (!pkTarget)
 	{
-		// 1. Find Next victim
 		f_find_near_victim f(pkChrVictim, pkChr, pkChr->chain_lighting_except());
 
 		if (pkChrVictim->get_sectree())
 		{
 			pkChrVictim->get_sectree()->for_each_around(f);
-			// 2. If exist, compute it again
 			pkTarget = f.victim();
 		}
 	}
@@ -1018,7 +997,6 @@ struct func_splash_damage
 		}
 
 		if (chr->is_pc())
-			// guild skills have no cooldown handling.
 			if (!(sk->vnum >= GUILD_SKILL_START && sk->vnum <= GUILD_SKILL_END))
 				if (!disable_cooltime && info && !info->hit_once(sk->vnum) && sk->vnum != SKILL_MUYEONG)
 				{
@@ -1031,7 +1009,6 @@ struct func_splash_damage
 
 		int iDam;
 
-		////////////////////////////////////////////////////////////////////////////////
 		sk->set_point_var("k", 1.0 * use_skill_power * sk->max_level / 100);
 		sk->set_point_var("lv", chr->level());
 		sk->set_point_var("iq", chr->point(POINT_IQ));
@@ -1086,7 +1063,7 @@ struct func_splash_damage
 		sk->set_point_var("chain", chr->chain_lightning_index());
 		chr->inc_chain_lightning_index();
 
-		bool bUnderEunhyung = chr->affected_eunhyung() > 0; // why is this done here??
+		bool bUnderEunhyung = chr->affected_eunhyung() > 0;
 
 		sk->set_point_var("ek", chr->affected_eunhyung()*1./100);
 		set_poly_var_for_attack(chr, sk, weapon);
@@ -1106,7 +1083,6 @@ struct func_splash_damage
 		{
 			chr->chat_packet(CHAT_TYPE_INFO, "효과가 없습니다. 스킬 공식을 확인하세요");
 		}
-		////////////////////////////////////////////////////////////////////////////////
 		iAmount = -iAmount;
 
 		if (sk->vnum == SKILL_AMSEOP)
@@ -1150,17 +1126,14 @@ struct func_splash_damage
 
 			iAmount = (int) (iAmount * adjust);
 		}
-		////////////////////////////////////////////////////////////////////////////////
 
 		iDam = calc_battle_damage(iAmount, chr->level(), pkChrVictim->level());
 
 		if (chr->is_pc() && chr->skill_use_info_[sk->vnum].main_target_vid() != (uint32_t) pkChrVictim->get_vid())
 		{
-			// damage reduction
 			iDam = (int) (iDam * sk->splash_around_damage_adjust_poly.eval());
 		}
 
-		// TODO need to record the damage type per skill.
 		damage_type dt = DAMAGE_TYPE_NONE;
 
 		switch (sk->skill_attr_type)
@@ -1183,7 +1156,6 @@ struct func_splash_damage
 
 							case WEAPON_TWO_HANDED:
 								iDam = iDam * (100 - pkChrVictim->point(POINT_RESIST_TWOHAND)) / 100;
-								// two-handed sword penalty 10%
 
 								break;
 
@@ -1207,16 +1179,12 @@ struct func_splash_damage
 
 			case SKILL_ATTR_TYPE_RANGE:
 				dt = DAMAGE_TYPE_RANGE;
-				// aaaaargh
-				// there was an old bug where this wasn't applied; recalculating defense now would make users riot
 				iDam = iDam * (100 - pkChrVictim->point(POINT_RESIST_BOW)) / 100;
 				break;
 
 			case SKILL_ATTR_TYPE_MAGIC:
 				dt = DAMAGE_TYPE_MAGIC;
 				iDam = calc_att_bonus(chr, pkChrVictim, iDam);
-				// aaaaargh
-				// there was an old bug where this wasn't applied; recalculating defense now would make users riot
 				iDam = iDam * (100 - pkChrVictim->point(POINT_RESIST_MAGIC)) / 100;
 				break;
 
@@ -1225,14 +1193,6 @@ struct func_splash_damage
 				break;
 		}
 
-		//
-		// 20091109 Germany skill attribute request work
-		// since no skill in the existing skill table had SKILL_FLAG_WIND, SKILL_FLAG_ELEC or SKILL_FLAG_FIRE,
-		// monster RESIST_WIND, RESIST_ELEC and RESIST_FIRE were not used either.
-		//
-		// to separate PvP and PvE balance it intentionally applies only to NPCs, and so that the difference from
-		// the existing balance isn't noticeable, mob_proto's RESIST_MAGIC was copied to RESIST_WIND, RESIST_ELEC, RESIST_FIRE
-		//
 		if (pkChrVictim->is_npc())
 		{
 			if (is_set(sk->flag, SKILL_FLAG_WIND))
@@ -1530,9 +1490,7 @@ int character::compute_skill_at_position(uint32_t vnum_value, const pixel_positi
 				name(), vnum_value, pos_target.x, pos_target.y, skill_level_value); 
 	}
 
-	// skills used on myself use my position.
 
-	// a non-splash skill targeting the surroundings is odd
 	if (!is_set(pkSk->flag, SKILL_FLAG_SPLASH))
 		return BATTLE_NONE;
 
@@ -1596,12 +1554,11 @@ int character::compute_skill_at_position(uint32_t vnum_value, const pixel_positi
 
 	set_poly_var_for_attack(this, pkSk, pkWeapon);
 
-	pkSk->set_duration_var("k", k/*bSkillLevel*/);
+	pkSk->set_duration_var("k", k );
 
 	int iAmount = (int) pkSk->point_poly.eval();
 	int iAmount2 = (int) pkSk->point_poly2.eval();
 
-	// ADD_GRANDMASTER_SKILL
 	int iAmount3 = (int) pkSk->point_poly3.eval();
 
 	if (used_skill_master_type(pkSk->vnum) >= SKILL_GRAND_MASTER)
@@ -1621,13 +1578,9 @@ int character::compute_skill_at_position(uint32_t vnum_value, const pixel_positi
 			remove_bad_affect();
 		}
 	}
-	// END_OF_ADD_GRANDMASTER_SKILL
 
 	if (is_set(pkSk->flag, SKILL_FLAG_ATTACK | SKILL_FLAG_USE_MELEE_DAMAGE | SKILL_FLAG_USE_MAGIC_DAMAGE))
 	{
-		//
-		// for attack skills
-		//
 		bool bAdded = false;
 
 		if (pkSk->point_on == POINT_HP && iAmount < 0)
@@ -1651,7 +1604,7 @@ int character::compute_skill_at_position(uint32_t vnum_value, const pixel_positi
 			int iDur = (int) pkSk->duration_poly.eval();
 
 			if (is_pc())
-				if (!(vnum_value >= GUILD_SKILL_START && vnum_value <= GUILD_SKILL_END)) // guild skills have no cooldown handling.
+				if (!(vnum_value >= GUILD_SKILL_START && vnum_value <= GUILD_SKILL_END))
 					if (!disable_cooltime_ && !skill_use_info_[vnum_value].hit_once(vnum_value) && vnum_value != SKILL_MUYEONG)
 					{
 						return BATTLE_NONE;
@@ -1703,7 +1656,6 @@ int character::compute_skill_at_position(uint32_t vnum_value, const pixel_positi
 			}
 		}
 
-		// ADD_GRANDMASTER_SKILL
 		if (used_skill_master_type(pkSk->vnum) >= SKILL_GRAND_MASTER && pkSk->point_on3 != POINT_NONE)
 		{
 			int iDur = (int) pkSk->duration_poly3.eval();
@@ -1713,12 +1665,12 @@ int character::compute_skill_at_position(uint32_t vnum_value, const pixel_positi
 				iDur += point(POINT_PARTY_BUFFER_BONUS);
 
 				if (!is_set(pkSk->flag, SKILL_FLAG_SPLASH))
-					add_affect(pkSk->vnum, pkSk->point_on3, iAmount3, 0 /*pkSk->dwAffectFlag3*/, iDur, 0, !bAdded);
+					add_affect(pkSk->vnum, pkSk->point_on3, iAmount3, 0 , iDur, 0, !bAdded);
 				else
 				{
 					if (get_sectree())
 					{
-						func_splash_affect f(this, pos_target.x, pos_target.y, pkSk->splash_range, pkSk->vnum, pkSk->point_on3, iAmount3, 0 /*pkSk->dwAffectFlag3*/, iDur, 0, !bAdded, pkSk->max_hit);
+						func_splash_affect f(this, pos_target.x, pos_target.y, pkSk->splash_range, pkSk->vnum, pkSk->point_on3, iAmount3, 0 , iDur, 0, !bAdded, pkSk->max_hit);
 						get_sectree()->for_each_around(f);
 					}
 				}
@@ -1728,7 +1680,6 @@ int character::compute_skill_at_position(uint32_t vnum_value, const pixel_positi
 				point_change(pkSk->point_on3, iAmount3);
 			}
 		}
-		// END_OF_ADD_GRANDMASTER_SKILL
 
 		return BATTLE_DAMAGE;
 	}
@@ -1740,8 +1691,7 @@ int character::compute_skill_at_position(uint32_t vnum_value, const pixel_positi
 		if (iDur > 0)
 		{
 			iDur += point(POINT_PARTY_BUFFER_BONUS);
-			// if there is no AffectFlag, or it's not a toggle..
-			pkSk->duration_sp_cost_poly.set_var("k", k/*bSkillLevel*/);
+			pkSk->duration_sp_cost_poly.set_var("k", k );
 
 			add_affect(pkSk->vnum,
 					  pkSk->point_on,
@@ -1774,7 +1724,6 @@ int character::compute_skill_at_position(uint32_t vnum_value, const pixel_positi
 			}
 		}
 
-		// ADD_GRANDMASTER_SKILL
 		if (used_skill_master_type(pkSk->vnum) >= SKILL_GRAND_MASTER && pkSk->point_on3 != POINT_NONE)
 		{
 			int iDur = (int) pkSk->duration_poly3.eval();
@@ -1782,26 +1731,22 @@ int character::compute_skill_at_position(uint32_t vnum_value, const pixel_positi
 			if (iDur > 0)
 			{
 				iDur += point(POINT_PARTY_BUFFER_BONUS);
-				add_affect(pkSk->vnum, pkSk->point_on3, iAmount3, 0 /*pkSk->dwAffectFlag3*/, iDur, 0, !bAdded);
+				add_affect(pkSk->vnum, pkSk->point_on3, iAmount3, 0 , iDur, 0, !bAdded);
 			}
 			else
 			{
 				point_change(pkSk->point_on3, iAmount3);
 			}
 		}
-		// END_OF_ADD_GRANDMASTER_SKILL
 
 		return BATTLE_NONE;
 	}
 }
 
-// if bSkillLevel is non-zero, m_abSkillLevels is not used and it is forcibly
-// calculated with bSkillLevel.
 int character::compute_skill(uint32_t vnum_value, character * victim, uint8_t skill_level_value)
 {
 	const bool bCanUseHorseSkill = can_use_horse_skill();
 
-	// return if riding a horse but skills can't be used
 	if (false == bCanUseHorseSkill && true == is_riding())
 		return BATTLE_NONE;
 
@@ -1822,7 +1767,6 @@ int character::compute_skill(uint32_t vnum_value, character * victim, uint8_t sk
 	if (!bCanUseHorseSkill && pkSk->type == SKILL_TYPE_HORSE)
 		return BATTLE_NONE;
 
-	// if not used on the target, it must be used on myself.
 	if (is_set(pkSk->flag, SKILL_FLAG_SELFONLY))
 		victim = this;
 
@@ -1927,8 +1871,8 @@ int character::compute_skill(uint32_t vnum_value, character * victim, uint8_t sk
 
 	set_poly_var_for_attack(this, pkSk, pkWeapon);
 
-	pkSk->duration_poly.set_var("k", k/*bSkillLevel*/);
-	pkSk->duration_poly2.set_var("k", k/*bSkillLevel*/);
+	pkSk->duration_poly.set_var("k", k );
+	pkSk->duration_poly2.set_var("k", k );
 
 	int iAmount = (int) pkSk->point_poly.eval();
 	int iAmount2 = (int) pkSk->point_poly2.eval();
@@ -1945,7 +1889,6 @@ int character::compute_skill(uint32_t vnum_value, character * victim, uint8_t sk
 				pkSk->max_level/100
 				);
 
-	// ADD_GRANDMASTER_SKILL
 	if (used_skill_master_type(pkSk->vnum) >= SKILL_GRAND_MASTER)
 	{
 		iAmount = (int) pkSk->master_bonus_poly.eval();
@@ -1955,9 +1898,7 @@ int character::compute_skill(uint32_t vnum_value, character * victim, uint8_t sk
 	{
 		chat_packet(CHAT_TYPE_INFO, "효과가 없습니다. 스킬 공식을 확인하세요");
 	}
-	// END_OF_ADD_GRANDMASTER_SKILL
 
-	// REMOVE_BAD_AFFECT_BUG_FIX
 	if (is_set(pkSk->flag, SKILL_FLAG_REMOVE_BAD_AFFECT))
 	{
 		if (number(1, 100) <= iAmount2)
@@ -1965,7 +1906,6 @@ int character::compute_skill(uint32_t vnum_value, character * victim, uint8_t sk
 			victim->remove_bad_affect();
 		}
 	}
-	// END_OF_REMOVE_BAD_AFFECT_BUG_FIX
 
 	if (is_set(pkSk->flag, SKILL_FLAG_ATTACK | SKILL_FLAG_USE_MELEE_DAMAGE | SKILL_FLAG_USE_MAGIC_DAMAGE) &&
 		!(pkSk->vnum == SKILL_MUYEONG && victim == this) && !(pkSk->is_charge_skill() && victim == this))
@@ -1989,11 +1929,11 @@ int character::compute_skill(uint32_t vnum_value, character * victim, uint8_t sk
 		}
 		else
 		{
-			pkSk->duration_poly.set_var("k", k/*bSkillLevel*/);
+			pkSk->duration_poly.set_var("k", k );
 			int iDur = (int) pkSk->duration_poly.eval();
 
 			if (is_pc())
-				if (!(vnum_value >= GUILD_SKILL_START && vnum_value <= GUILD_SKILL_END)) // guild skills have no cooldown handling.
+				if (!(vnum_value >= GUILD_SKILL_START && vnum_value <= GUILD_SKILL_END))
 					if (!disable_cooltime_ && !skill_use_info_[vnum_value].hit_once(vnum_value) && vnum_value != SKILL_MUYEONG)
 					{
 						return BATTLE_NONE;
@@ -2019,7 +1959,7 @@ int character::compute_skill(uint32_t vnum_value, character * victim, uint8_t sk
 
 		if (pkSk->point_on2 != POINT_NONE && !pkSk->is_charge_skill())
 		{
-			pkSk->duration_poly2.set_var("k", k/*bSkillLevel*/);
+			pkSk->duration_poly2.set_var("k", k );
 			int iDur = (int) pkSk->duration_poly2.eval();
 
 			if (iDur > 0)
@@ -2045,10 +1985,9 @@ int character::compute_skill(uint32_t vnum_value, character * victim, uint8_t sk
 			}
 		}
 
-		// ADD_GRANDMASTER_SKILL
 		if (pkSk->point_on3 != POINT_NONE && !pkSk->is_charge_skill() && used_skill_master_type(pkSk->vnum) >= SKILL_GRAND_MASTER)
 		{
-			pkSk->duration_poly3.set_var("k", k/*bSkillLevel*/);
+			pkSk->duration_poly3.set_var("k", k );
 			int iDur = (int) pkSk->duration_poly3.eval();
 
 			if (iDur > 0)
@@ -2056,12 +1995,12 @@ int character::compute_skill(uint32_t vnum_value, character * victim, uint8_t sk
 				iDur += point(POINT_PARTY_BUFFER_BONUS);
 
 				if (!is_set(pkSk->flag, SKILL_FLAG_SPLASH))
-					victim->add_affect(pkSk->vnum, pkSk->point_on3, iAmount3, /*pkSk->dwAffectFlag3*/ 0, iDur, 0, !bAdded);
+					victim->add_affect(pkSk->vnum, pkSk->point_on3, iAmount3,  0, iDur, 0, !bAdded);
 				else
 				{
 					if (victim->get_sectree())
 					{
-						func_splash_affect f(this, victim->x(), victim->y(), pkSk->splash_range, pkSk->vnum, pkSk->point_on3, iAmount3, /*pkSk->dwAffectFlag3*/ 0, iDur, 0, !bAdded, pkSk->max_hit);
+						func_splash_affect f(this, victim->x(), victim->y(), pkSk->splash_range, pkSk->vnum, pkSk->point_on3, iAmount3,  0, iDur, 0, !bAdded, pkSk->max_hit);
 						victim->get_sectree()->for_each_around(f);
 					}
 				}
@@ -2073,7 +2012,6 @@ int character::compute_skill(uint32_t vnum_value, character * victim, uint8_t sk
 				victim->point_change(pkSk->point_on3, iAmount3);
 			}
 		}
-		// END_OF_ADD_GRANDMASTER_SKILL
 
 		return BATTLE_DAMAGE;
 	}
@@ -2081,8 +2019,8 @@ int character::compute_skill(uint32_t vnum_value, character * victim, uint8_t sk
 	{
 		if (vnum_value == SKILL_MUYEONG)
 		{
-			pkSk->duration_poly.set_var("k", k/*bSkillLevel*/);
-			pkSk->duration_sp_cost_poly.set_var("k", k/*bSkillLevel*/);
+			pkSk->duration_poly.set_var("k", k );
+			pkSk->duration_sp_cost_poly.set_var("k", k );
 
 			int iDur = (int32_t) pkSk->duration_poly.eval();
 			iDur += point(POINT_PARTY_BUFFER_BONUS);
@@ -2099,14 +2037,13 @@ int character::compute_skill(uint32_t vnum_value, character * victim, uint8_t sk
 		}
 
 		bool bAdded = false;
-		pkSk->duration_poly.set_var("k", k/*bSkillLevel*/);
+		pkSk->duration_poly.set_var("k", k );
 		int iDur = (int) pkSk->duration_poly.eval();
 
 		if (iDur > 0)
 		{
 			iDur += point(POINT_PARTY_BUFFER_BONUS);
-			// if there is no AffectFlag, or it's not a toggle..
-			pkSk->duration_sp_cost_poly.set_var("k", k/*bSkillLevel*/);
+			pkSk->duration_sp_cost_poly.set_var("k", k );
 
 			if (pkSk->point_on2 != POINT_NONE)
 			{
@@ -2134,10 +2071,8 @@ int character::compute_skill(uint32_t vnum_value, character * victim, uint8_t sk
 
 				uint32_t affact_flag = pkSk->affect_flag;
 
-				// ADD_GRANDMASTER_SKILL
 				if ((pkSk->vnum == SKILL_CHUNKEON && used_skill_master_type(pkSk->vnum) < SKILL_GRAND_MASTER))
 					affact_flag = AFF_CHEONGEUN_WITH_FALL;
-				// END_OF_ADD_GRANDMASTER_SKILL
 
 				victim->add_affect(pkSk->vnum,
 						pkSk->point_on,
@@ -2163,9 +2098,7 @@ int character::compute_skill(uint32_t vnum_value, character * victim, uint8_t sk
 						pkSk->affect_flag,
 						iDur,
 						(int32_t) pkSk->duration_sp_cost_poly.eval(),
-						// ADD_GRANDMASTER_SKILL
 						!bAdded);
-				// END_OF_ADD_GRANDMASTER_SKILL
 			}
 
 			bAdded = true;
@@ -2198,11 +2131,10 @@ int character::compute_skill(uint32_t vnum_value, character * victim, uint8_t sk
 			}
 		}
 
-		// ADD_GRANDMASTER_SKILL
 		if (pkSk->point_on3 != POINT_NONE && !pkSk->is_charge_skill() && used_skill_master_type(pkSk->vnum) >= SKILL_GRAND_MASTER)
 		{
 
-			pkSk->duration_poly3.set_var("k", k/*bSkillLevel*/);
+			pkSk->duration_poly3.set_var("k", k );
 			int iDur = (int) pkSk->duration_poly3.eval();
 
 			metin2::log::info( "try third {:d} {:d} {:d} {:d} 1894", pkSk->vnum, pkSk->point_on3, iDur, iAmount3);
@@ -2212,12 +2144,12 @@ int character::compute_skill(uint32_t vnum_value, character * victim, uint8_t sk
 				iDur += point(POINT_PARTY_BUFFER_BONUS);
 
 				if (!is_set(pkSk->flag, SKILL_FLAG_SPLASH))
-					victim->add_affect(pkSk->vnum, pkSk->point_on3, iAmount3, /*pkSk->dwAffectFlag3*/ 0, iDur, 0, !bAdded);
+					victim->add_affect(pkSk->vnum, pkSk->point_on3, iAmount3,  0, iDur, 0, !bAdded);
 				else
 				{
 					if (victim->get_sectree())
 					{
-						func_splash_affect f(this, victim->x(), victim->y(), pkSk->splash_range, pkSk->vnum, pkSk->point_on3, iAmount3, /*pkSk->dwAffectFlag3*/ 0, iDur, 0, !bAdded, pkSk->max_hit);
+						func_splash_affect f(this, victim->x(), victim->y(), pkSk->splash_range, pkSk->vnum, pkSk->point_on3, iAmount3,  0, iDur, 0, !bAdded, pkSk->max_hit);
 						victim->get_sectree()->for_each_around(f);
 					}
 				}
@@ -2229,7 +2161,6 @@ int character::compute_skill(uint32_t vnum_value, character * victim, uint8_t sk
 				victim->point_change(pkSk->point_on3, iAmount3);
 			}
 		}
-		// END_OF_ADD_GRANDMASTER_SKILL
 
 		return BATTLE_NONE;
 	}
@@ -2240,7 +2171,6 @@ bool character::use_skill(uint32_t vnum_value, character * victim, bool use_gran
 	if (false == can_use_skill(vnum_value))
 		return false;
 
-	// NO_GRANDMASTER
 	if (metin2::config::test_server())
 	{
 		if (quest::quest_manager::instance().event_flag("no_grand_master"))
@@ -2248,7 +2178,6 @@ bool character::use_skill(uint32_t vnum_value, character * victim, bool use_gran
 			use_grand_master = false;
 		}
 	}
-	// END_OF_NO_GRANDMASTER
 
 	if (metin2::config::game().skill_disable)
 		return false;
@@ -2277,7 +2206,6 @@ bool character::use_skill(uint32_t vnum_value, character * victim, bool use_gran
 		return true;
 	}
 
-	// return false if riding a horse but skills can't be used
 	if (false == bCanUseHorseSkill && true == is_riding())
 		return false;
 
@@ -2296,15 +2224,11 @@ bool character::use_skill(uint32_t vnum_value, character * victim, bool use_gran
 	if (skill_level(vnum_value) == 0)
 		return false;
 
-	// NO_GRANDMASTER
 	if (skill_master_type(vnum_value) < SKILL_GRAND_MASTER)
 		use_grand_master = false;
-	// END_OF_NO_GRANDMASTER
 
-	// MINING
 	if (wear(WEAR_WEAPON) && (wear(WEAR_WEAPON)->type() == ITEM_ROD || wear(WEAR_WEAPON)->type() == ITEM_PICK))
 		return false;
-	// END_OF_MINING
 
 	skill_use_info_[vnum_value].target_vid_map.clear();
 
@@ -2322,7 +2246,6 @@ bool character::use_skill(uint32_t vnum_value, character * victim, bool use_gran
 			}
 
 			skill_use_info_[vnum_value].set_main_target_vid(victim->get_vid());
-			// Tanhwan-gyeok in DASH state is an attack skill
 			compute_skill(vnum_value, victim);
 			remove_affect(vnum_value);
 			return true;
@@ -2340,7 +2263,6 @@ bool character::use_skill(uint32_t vnum_value, character * victim, bool use_gran
 		return true;
 	}
 
-	// no SP used when toggling (distinguished by SelfOnly)
 	if ((0 != pkSk->affect_flag || pkSk->vnum == SKILL_MUYEONG) && (pkSk->flag & SKILL_FLAG_TOGGLE) && remove_affect(pkSk->vnum))
 	{
 		return true;
@@ -2354,7 +2276,6 @@ bool character::use_skill(uint32_t vnum_value, character * victim, bool use_gran
 	pkSk->set_point_var("k", k);
 	pkSk->splash_around_damage_adjust_poly.set_var("k", k);
 
-	// cooldown check
 	pkSk->cooldown_poly.set_var("k", k);
 	int iCooltime = (int) pkSk->cooldown_poly.eval();
 	int lMaxHit = pkSk->max_hit ? pkSk->max_hit : -1;
@@ -2377,12 +2298,10 @@ bool character::use_skill(uint32_t vnum_value, character * victim, bool use_gran
 		pkSk->set_sp_cost_var("v", hp());
 		iNeededSP = (int) pkSk->sp_cost_poly.eval();
 
-		// ADD_GRANDMASTER_SKILL
 		if (skill_master_type(vnum_value) >= SKILL_GRAND_MASTER && use_grand_master)
 		{
 			iNeededSP = (int) pkSk->grand_master_add_sp_cost_poly.eval();
 		}
-		// END_OF_ADD_GRANDMASTER_SKILL	
 
 		if (hp() < iNeededSP)
 			return false;
@@ -2391,7 +2310,6 @@ bool character::use_skill(uint32_t vnum_value, character * victim, bool use_gran
 	}
 	else
 	{
-		// SKILL_FOMULA_REFACTORING
 		pkSk->set_sp_cost_var("maxhp", max_hp());
 		pkSk->set_sp_cost_var("maxv", max_sp());
 		pkSk->set_sp_cost_var("v", sp());
@@ -2402,7 +2320,6 @@ bool character::use_skill(uint32_t vnum_value, character * victim, bool use_gran
 		{
 			iNeededSP = (int) pkSk->grand_master_add_sp_cost_poly.eval();
 		}
-		// END_OF_SKILL_FOMULA_REFACTORING
 
 		if (sp() < iNeededSP)
 			return false;
@@ -2418,7 +2335,6 @@ bool character::use_skill(uint32_t vnum_value, character * victim, bool use_gran
 
 	if (pkSk->vnum == SKILL_MUYEONG || (pkSk->is_charge_skill() && !is_affect_flag(AFF_TANHWAN_DASH) && !victim))
 	{
-		// Muyeongjin on first use attaches an affect to self.
 		victim = this;
 	}
 
@@ -2490,7 +2406,6 @@ int character::skill_master_type(uint32_t vnum) const
 
 int character::skill_power(uint32_t vnum, uint8_t level) const
 {
-	// mermaid ring item
 	if (vnum >= SKILL_LANGUAGE1 && vnum <= SKILL_LANGUAGE3 && is_equip_unique_group(UNIQUE_GROUP_RING_OF_LANGUAGE))
 	{
 		return 100;
@@ -2506,9 +2421,7 @@ int character::skill_power(uint32_t vnum, uint8_t level) const
 
 	if (level)
 	{
-		//SKILL_POWER_BY_LEVEL
 		return skill_power_by_level(level, true);
-		//END_SKILL_POWER_BY_LEVEL;
 	}
 
 	if (vnum >= SKILL_MAX_NUM)
@@ -2517,9 +2430,7 @@ int character::skill_power(uint32_t vnum, uint8_t level) const
 		return 0;
 	}
 
-	//SKILL_POWER_BY_LEVEL
 	return skill_power_by_level(skill_level(vnum));
-	//SKILL_POWER_BY_LEVEL
 }
 
 int character::skill_level(uint32_t vnum) const
@@ -2546,7 +2457,7 @@ EVENTFUNC(skill_muyoung_event)
 
 	character *	ch = info->ch;
 
-	if (ch == nullptr) { // <Factor>
+	if (ch == nullptr) {
 		return 0;
 	}
 
@@ -2556,12 +2467,10 @@ EVENTFUNC(skill_muyoung_event)
 		return 0;
 	}
 
-	// 1. Find Victim
 	f_find_near_victim f(ch, ch);
 	if (ch->get_sectree())
 	{
 		ch->get_sectree()->for_each_around(f);
-		// 2. Shoot!
 		if (f.victim())
 		{
 			ch->create_fly(FLY_SKILL_MUYEONG, f.victim());
@@ -2590,21 +2499,20 @@ void character::stop_muyeong_event()
 
 void character::skill_learn_wait_more_time_message(uint32_t ms)
 {
-	//
 	if (ms < 3 * 60)
 		chat_packet(CHAT_TYPE_TALKING, "%s", lc_text("몸 속이 뜨겁군. 하지만 아주 편안해. 이대로 기를 안정시키자."));
 	else if (ms < 5 * 60)
 		chat_packet(CHAT_TYPE_TALKING, "%s", lc_text("그래, 천천히. 좀더 천천히, 그러나 막힘 없이 빠르게!"));
-	else if (ms < 10 * 60) // 10 minutes
+	else if (ms < 10 * 60)
 		chat_packet(CHAT_TYPE_TALKING, "%s", lc_text("그래, 이 느낌이야. 체내에 기가 아주 충만해."));
-	else if (ms < 30 * 60) // 30 minutes
+	else if (ms < 30 * 60)
 	{
 		chat_packet(CHAT_TYPE_TALKING, "%s", lc_text("다 읽었다! 이제 비급에 적혀있는 대로 전신에 기를 돌리기만 하면,"));
 		chat_packet(CHAT_TYPE_TALKING, "%s", lc_text("그것으로 수련은 끝난 거야!"));
 	}
-	else if (ms < 1 * 3600) // 1 hour
+	else if (ms < 1 * 3600)
 		chat_packet(CHAT_TYPE_TALKING, "%s", lc_text("이제 책의 마지막 장이야! 수련의 끝이 눈에 보이고 있어!"));
-	else if (ms < 2 * 3600) // 2 hours
+	else if (ms < 2 * 3600)
 		chat_packet(CHAT_TYPE_TALKING, "%s", lc_text("얼마 안 남았어! 조금만 더!"));
 	else if (ms < 3 * 3600)
 		chat_packet(CHAT_TYPE_TALKING, "%s", lc_text("좋았어! 조금만 더 읽으면 끝이다!"));
@@ -2623,7 +2531,7 @@ void character::skill_learn_wait_more_time_message(uint32_t ms)
 		chat_packet(CHAT_TYPE_TALKING, "%s", lc_text("아니 어떻게 된 게 종일 읽어도 머리에 안 들어오냐."));
 		chat_packet(CHAT_TYPE_TALKING, "%s", lc_text("공부하기 싫어지네."));
 	}
-	else //if (ms < 2 * 86400)
+	else
 	{
 		chat_packet(CHAT_TYPE_TALKING, "%s", lc_text("생각만큼 읽기가 쉽지가 않군. 이해도 어렵고 내용도 난해해."));
 		chat_packet(CHAT_TYPE_TALKING, "%s", lc_text("이래서야 공부가 안된다구."));
@@ -2713,7 +2621,6 @@ EVENTFUNC(mob_skill_hit_event)
 		return 0;
 	}
 
-	// <Factor>
 	character * ch = info->ch;
 	if (ch == nullptr) {
 		return 0;
@@ -2782,7 +2689,6 @@ bool character::use_mob_skill(unsigned int idx)
 			info->vnum = dwVnum;
 			info->index = i;
 
-			// <Factor> Cancel existing event first
 			auto it = mob_skill_event.find(i);
 			if (it != mob_skill_event.end()) {
 				event_ptr existing = it->second;
@@ -2812,353 +2718,314 @@ bool character::is_usable_skill_motion(uint32_t motion_index) const
 
 	const uint32_t SKILL_NUM = 158;
 	static uint32_t s_anSkill2JobGroup[SKILL_NUM] = {
-		0, // common_skill 0
-		11, // job_skill 1
-		11, // job_skill 2
-		11, // job_skill 3
-		11, // job_skill 4
-		11, // job_skill 5
-		11, // job_skill 6
-		0, // common_skill 7
-		0, // common_skill 8
-		0, // common_skill 9
-		0, // common_skill 10
-		0, // common_skill 11
-		0, // common_skill 12
-		0, // common_skill 13
-		0, // common_skill 14
-		0, // common_skill 15
-		12, // job_skill 16
-		12, // job_skill 17
-		12, // job_skill 18
-		12, // job_skill 19
-		12, // job_skill 20
-		12, // job_skill 21
-		0, // common_skill 22
-		0, // common_skill 23
-		0, // common_skill 24
-		0, // common_skill 25
-		0, // common_skill 26
-		0, // common_skill 27
-		0, // common_skill 28
-		0, // common_skill 29
-		0, // common_skill 30
-		21, // job_skill 31
-		21, // job_skill 32
-		21, // job_skill 33
-		21, // job_skill 34
-		21, // job_skill 35
-		21, // job_skill 36
-		0, // common_skill 37
-		0, // common_skill 38
-		0, // common_skill 39
-		0, // common_skill 40
-		0, // common_skill 41
-		0, // common_skill 42
-		0, // common_skill 43
-		0, // common_skill 44
-		0, // common_skill 45
-		22, // job_skill 46
-		22, // job_skill 47
-		22, // job_skill 48
-		22, // job_skill 49
-		22, // job_skill 50
-		22, // job_skill 51
-		0, // common_skill 52
-		0, // common_skill 53
-		0, // common_skill 54
-		0, // common_skill 55
-		0, // common_skill 56
-		0, // common_skill 57
-		0, // common_skill 58
-		0, // common_skill 59
-		0, // common_skill 60
-		31, // job_skill 61
-		31, // job_skill 62
-		31, // job_skill 63
-		31, // job_skill 64
-		31, // job_skill 65
-		31, // job_skill 66
-		0, // common_skill 67
-		0, // common_skill 68
-		0, // common_skill 69
-		0, // common_skill 70
-		0, // common_skill 71
-		0, // common_skill 72
-		0, // common_skill 73
-		0, // common_skill 74
-		0, // common_skill 75
-		32, // job_skill 76
-		32, // job_skill 77
-		32, // job_skill 78
-		32, // job_skill 79
-		32, // job_skill 80
-		32, // job_skill 81
-		0, // common_skill 82
-		0, // common_skill 83
-		0, // common_skill 84
-		0, // common_skill 85
-		0, // common_skill 86
-		0, // common_skill 87
-		0, // common_skill 88
-		0, // common_skill 89
-		0, // common_skill 90
-		41, // job_skill 91
-		41, // job_skill 92
-		41, // job_skill 93
-		41, // job_skill 94
-		41, // job_skill 95
-		41, // job_skill 96
-		0, // common_skill 97
-		0, // common_skill 98
-		0, // common_skill 99
-		0, // common_skill 100
-		0, // common_skill 101
-		0, // common_skill 102
-		0, // common_skill 103
-		0, // common_skill 104
-		0, // common_skill 105
-		42, // job_skill 106
-		42, // job_skill 107
-		42, // job_skill 108
-		42, // job_skill 109
-		42, // job_skill 110
-		42, // job_skill 111
-		0, // common_skill 112
-		0, // common_skill 113
-		0, // common_skill 114
-		0, // common_skill 115
-		0, // common_skill 116
-		0, // common_skill 117
-		0, // common_skill 118
-		0, // common_skill 119
-		0, // common_skill 120
-		0, // common_skill 121
-		0, // common_skill 122
-		0, // common_skill 123
-		0, // common_skill 124
-		0, // common_skill 125
-		0, // common_skill 126
-		0, // common_skill 127
-		0, // common_skill 128
-		0, // common_skill 129
-		0, // common_skill 130
-		0, // common_skill 131
-		0, // common_skill 132
-		0, // common_skill 133
-		0, // common_skill 134
-		0, // common_skill 135
-		0, // common_skill 136
-		0, // job_skill 137
-		0, // job_skill 138
-		0, // job_skill 139
-		0, // job_skill 140
-		0, // common_skill 141
-		0, // common_skill 142
-		0, // common_skill 143
-		0, // common_skill 144
-		0, // common_skill 145
-		0, // common_skill 146
-		0, // common_skill 147
-		0, // common_skill 148
-		0, // common_skill 149
-		0, // common_skill 150
-		0, // common_skill 151
-		0, // job_skill 152
-		0, // job_skill 153
-		0, // job_skill 154
-		0, // job_skill 155
-		0, // job_skill 156
-		0, // job_skill 157
-	}; // s_anSkill2JobGroup
+		0,
+		11,
+		11,
+		11,
+		11,
+		11,
+		11,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		12,
+		12,
+		12,
+		12,
+		12,
+		12,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		21,
+		21,
+		21,
+		21,
+		21,
+		21,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		22,
+		22,
+		22,
+		22,
+		22,
+		22,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		31,
+		31,
+		31,
+		31,
+		31,
+		31,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		32,
+		32,
+		32,
+		32,
+		32,
+		32,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		41,
+		41,
+		41,
+		41,
+		41,
+		41,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		42,
+		42,
+		42,
+		42,
+		42,
+		42,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+	};
 
 	const uint32_t MOTION_MAX_NUM 	= 124;
 	const uint32_t SKILL_LIST_MAX_COUNT	= 5;
 
 	static uint32_t s_anMotion2SkillVnumList[MOTION_MAX_NUM][SKILL_LIST_MAX_COUNT] =
 	{
-		// count    WarriorID   AssassinID  SuraID      ShamanID
-		{   0,		0,			0,			0,			0		}, //  0
+		{   0,		0,			0,			0,			0		},
 
-		// job group 1 basic skills
-		{   4,		1,			31,			61,			91		}, //  1
-		{   4,		2,			32,			62,			92		}, //  2
-		{   4,		3,			33,			63,			93		}, //  3
-		{   4,		4,			34,			64,			94		}, //  4
-		{   4,		5,			35,			65,			95		}, //  5
-		{   4,		6,			36,			66,			96		}, //  6
-		{   0,		0,			0,			0,			0		}, //  7
-		{   0,		0,			0,			0,			0		}, //  8
-		// job group 1 basic skills end
+		{   4,		1,			31,			61,			91		},
+		{   4,		2,			32,			62,			92		},
+		{   4,		3,			33,			63,			93		},
+		{   4,		4,			34,			64,			94		},
+		{   4,		5,			35,			65,			95		},
+		{   4,		6,			36,			66,			96		},
+		{   0,		0,			0,			0,			0		},
+		{   0,		0,			0,			0,			0		},
 
-		// reserved
-		{   0,		0,			0,			0,			0		}, //  9
-		{   0,		0,			0,			0,			0		}, //  10
-		{   0,		0,			0,			0,			0		}, //  11
-		{   0,		0,			0,			0,			0		}, //  12
-		{   0,		0,			0,			0,			0		}, //  13
-		{   0,		0,			0,			0,			0		}, //  14
-		{   0,		0,			0,			0,			0		}, //  15
-		// reserved end
+		{   0,		0,			0,			0,			0		},
+		{   0,		0,			0,			0,			0		},
+		{   0,		0,			0,			0,			0		},
+		{   0,		0,			0,			0,			0		},
+		{   0,		0,			0,			0,			0		},
+		{   0,		0,			0,			0,			0		},
+		{   0,		0,			0,			0,			0		},
 
-		// job group 2 basic skills
-		{   4,		16,			46,			76,			106		}, //  16
-		{   4,		17,			47,			77,			107		}, //  17
-		{   4,		18,			48,			78,			108		}, //  18
-		{   4,		19,			49,			79,			109		}, //  19
-		{   4,		20,			50,			80,			110		}, //  20
-		{   4,		21,			51,			81,			111		}, //  21
-		{   0,		0,			0,			0,			0		}, //  22
-		{   0,		0,			0,			0,			0		}, //  23
-		// job group 2 basic skills end
+		{   4,		16,			46,			76,			106		},
+		{   4,		17,			47,			77,			107		},
+		{   4,		18,			48,			78,			108		},
+		{   4,		19,			49,			79,			109		},
+		{   4,		20,			50,			80,			110		},
+		{   4,		21,			51,			81,			111		},
+		{   0,		0,			0,			0,			0		},
+		{   0,		0,			0,			0,			0		},
 
-		// reserved
-		{   0,		0,			0,			0,			0		}, //  24
-		{   0,		0,			0,			0,			0		}, //  25
-		// reserved end
+		{   0,		0,			0,			0,			0		},
+		{   0,		0,			0,			0,			0		},
 
-		// job group 1 master skills
-		{   4,		1,			31,			61,			91		}, //  26
-		{   4,		2,			32,			62,			92		}, //  27
-		{   4,		3,			33,			63,			93		}, //  28
-		{   4,		4,			34,			64,			94		}, //  29
-		{   4,		5,			35,			65,			95		}, //  30
-		{   4,		6,			36,			66,			96		}, //  31
-		{   0,		0,			0,			0,			0		}, //  32
-		{   0,		0,			0,			0,			0		}, //  33
-		// job group 1 master skills end
+		{   4,		1,			31,			61,			91		},
+		{   4,		2,			32,			62,			92		},
+		{   4,		3,			33,			63,			93		},
+		{   4,		4,			34,			64,			94		},
+		{   4,		5,			35,			65,			95		},
+		{   4,		6,			36,			66,			96		},
+		{   0,		0,			0,			0,			0		},
+		{   0,		0,			0,			0,			0		},
 
-		// reserved
-		{   0,		0,			0,			0,			0		}, //  34
-		{   0,		0,			0,			0,			0		}, //  35
-		{   0,		0,			0,			0,			0		}, //  36
-		{   0,		0,			0,			0,			0		}, //  37
-		{   0,		0,			0,			0,			0		}, //  38
-		{   0,		0,			0,			0,			0		}, //  39
-		{   0,		0,			0,			0,			0		}, //  40
-		// reserved end
+		{   0,		0,			0,			0,			0		},
+		{   0,		0,			0,			0,			0		},
+		{   0,		0,			0,			0,			0		},
+		{   0,		0,			0,			0,			0		},
+		{   0,		0,			0,			0,			0		},
+		{   0,		0,			0,			0,			0		},
+		{   0,		0,			0,			0,			0		},
 
-		// job group 2 master skills
-		{   4,		16,			46,			76,			106		}, //  41
-		{   4,		17,			47,			77,			107		}, //  42
-		{   4,		18,			48,			78,			108		}, //  43
-		{   4,		19,			49,			79,			109		}, //  44
-		{   4,		20,			50,			80,			110		}, //  45
-		{   4,		21,			51,			81,			111		}, //  46
-		{   0,		0,			0,			0,			0		}, //  47
-		{   0,		0,			0,			0,			0		}, //  48
-		// job group 2 master skills end
+		{   4,		16,			46,			76,			106		},
+		{   4,		17,			47,			77,			107		},
+		{   4,		18,			48,			78,			108		},
+		{   4,		19,			49,			79,			109		},
+		{   4,		20,			50,			80,			110		},
+		{   4,		21,			51,			81,			111		},
+		{   0,		0,			0,			0,			0		},
+		{   0,		0,			0,			0,			0		},
 
-		// reserved
-		{   0,		0,			0,			0,			0		}, //  49
-		{   0,		0,			0,			0,			0		}, //  50
-		// reserved end
+		{   0,		0,			0,			0,			0		},
+		{   0,		0,			0,			0,			0		},
 
-		// job group 1 grand master skills
-		{   4,		1,			31,			61,			91		}, //  51
-		{   4,		2,			32,			62,			92		}, //  52
-		{   4,		3,			33,			63,			93		}, //  53
-		{   4,		4,			34,			64,			94		}, //  54
-		{   4,		5,			35,			65,			95		}, //  55
-		{   4,		6,			36,			66,			96		}, //  56
-		{   0,		0,			0,			0,			0		}, //  57
-		{   0,		0,			0,			0,			0		}, //  58
-		// job group 1 grand master skills end
+		{   4,		1,			31,			61,			91		},
+		{   4,		2,			32,			62,			92		},
+		{   4,		3,			33,			63,			93		},
+		{   4,		4,			34,			64,			94		},
+		{   4,		5,			35,			65,			95		},
+		{   4,		6,			36,			66,			96		},
+		{   0,		0,			0,			0,			0		},
+		{   0,		0,			0,			0,			0		},
 
-		// reserved
-		{   0,		0,			0,			0,			0		}, //  59
-		{   0,		0,			0,			0,			0		}, //  60
-		{   0,		0,			0,			0,			0		}, //  61
-		{   0,		0,			0,			0,			0		}, //  62
-		{   0,		0,			0,			0,			0		}, //  63
-		{   0,		0,			0,			0,			0		}, //  64
-		{   0,		0,			0,			0,			0		}, //  65
-		// reserved end
+		{   0,		0,			0,			0,			0		},
+		{   0,		0,			0,			0,			0		},
+		{   0,		0,			0,			0,			0		},
+		{   0,		0,			0,			0,			0		},
+		{   0,		0,			0,			0,			0		},
+		{   0,		0,			0,			0,			0		},
+		{   0,		0,			0,			0,			0		},
 
-		// job group 2 grand master skills
-		{   4,		16,			46,			76,			106		}, //  66
-		{   4,		17,			47,			77,			107		}, //  67
-		{   4,		18,			48,			78,			108		}, //  68
-		{   4,		19,			49,			79,			109		}, //  69
-		{   4,		20,			50,			80,			110		}, //  70
-		{   4,		21,			51,			81,			111		}, //  71
-		{   0,		0,			0,			0,			0		}, //  72
-		{   0,		0,			0,			0,			0		}, //  73
-		// job group 2 grand master skills end
+		{   4,		16,			46,			76,			106		},
+		{   4,		17,			47,			77,			107		},
+		{   4,		18,			48,			78,			108		},
+		{   4,		19,			49,			79,			109		},
+		{   4,		20,			50,			80,			110		},
+		{   4,		21,			51,			81,			111		},
+		{   0,		0,			0,			0,			0		},
+		{   0,		0,			0,			0,			0		},
 
-		//reserved
-		{   0,		0,			0,			0,			0		}, //  74
-		{   0,		0,			0,			0,			0		}, //  75
-		// reserved end
+		{   0,		0,			0,			0,			0		},
+		{   0,		0,			0,			0,			0		},
 
-		// job group 1 perfect master skills
-		{   4,		1,			31,			61,			91		}, //  76
-		{   4,		2,			32,			62,			92		}, //  77
-		{   4,		3,			33,			63,			93		}, //  78
-		{   4,		4,			34,			64,			94		}, //  79
-		{   4,		5,			35,			65,			95		}, //  80
-		{   4,		6,			36,			66,			96		}, //  81
-		{   0,		0,			0,			0,			0		}, //  82
-		{   0,		0,			0,			0,			0		}, //  83
-		// job group 1 perfect master skills end
+		{   4,		1,			31,			61,			91		},
+		{   4,		2,			32,			62,			92		},
+		{   4,		3,			33,			63,			93		},
+		{   4,		4,			34,			64,			94		},
+		{   4,		5,			35,			65,			95		},
+		{   4,		6,			36,			66,			96		},
+		{   0,		0,			0,			0,			0		},
+		{   0,		0,			0,			0,			0		},
 
-		// reserved
-		{   0,		0,			0,			0,			0		}, //  84
-		{   0,		0,			0,			0,			0		}, //  85
-		{   0,		0,			0,			0,			0		}, //  86
-		{   0,		0,			0,			0,			0		}, //  87
-		{   0,		0,			0,			0,			0		}, //  88
-		{   0,		0,			0,			0,			0		}, //  89
-		{   0,		0,			0,			0,			0		}, //  90
-		// reserved end
+		{   0,		0,			0,			0,			0		},
+		{   0,		0,			0,			0,			0		},
+		{   0,		0,			0,			0,			0		},
+		{   0,		0,			0,			0,			0		},
+		{   0,		0,			0,			0,			0		},
+		{   0,		0,			0,			0,			0		},
+		{   0,		0,			0,			0,			0		},
 
-		// job group 2 perfect master skills
-		{   4,		16,			46,			76,			106		}, //  91
-		{   4,		17,			47,			77,			107		}, //  92
-		{   4,		18,			48,			78,			108		}, //  93
-		{   4,		19,			49,			79,			109		}, //  94
-		{   4,		20,			50,			80,			110		}, //  95
-		{   4,		21,			51,			81,			111		}, //  96
-		{   0,		0,			0,			0,			0		}, //  97
-		{   0,		0,			0,			0,			0		}, //  98
-		// job group 2 perfect master skills end
+		{   4,		16,			46,			76,			106		},
+		{   4,		17,			47,			77,			107		},
+		{   4,		18,			48,			78,			108		},
+		{   4,		19,			49,			79,			109		},
+		{   4,		20,			50,			80,			110		},
+		{   4,		21,			51,			81,			111		},
+		{   0,		0,			0,			0,			0		},
+		{   0,		0,			0,			0,			0		},
 
-		// reserved
-		{   0,		0,			0,			0,			0		}, //  99
-		{   0,		0,			0,			0,			0		}, //  100
-		// reserved end
+		{   0,		0,			0,			0,			0		},
+		{   0,		0,			0,			0,			0		},
 
-		// guild skills
-		{   1,  152,    0,    0,    0}, //  101
-		{   1,  153,    0,    0,    0}, //  102
-		{   1,  154,    0,    0,    0}, //  103
-		{   1,  155,    0,    0,    0}, //  104
-		{   1,  156,    0,    0,    0}, //  105
-		{   1,  157,    0,    0,    0}, //  106
-		// guild skills end
+		{   1,  152,    0,    0,    0},
+		{   1,  153,    0,    0,    0},
+		{   1,  154,    0,    0,    0},
+		{   1,  155,    0,    0,    0},
+		{   1,  156,    0,    0,    0},
+		{   1,  157,    0,    0,    0},
 
-		// reserved
-		{   0,    0,    0,    0,    0}, //  107
-		{   0,    0,    0,    0,    0}, //  108
-		{   0,    0,    0,    0,    0}, //  109
-		{   0,    0,    0,    0,    0}, //  110
-		{   0,    0,    0,    0,    0}, //  111
-		{   0,    0,    0,    0,    0}, //  112
-		{   0,    0,    0,    0,    0}, //  113
-		{   0,    0,    0,    0,    0}, //  114
-		{   0,    0,    0,    0,    0}, //  115
-		{   0,    0,    0,    0,    0}, //  116
-		{   0,    0,    0,    0,    0}, //  117
-		{   0,    0,    0,    0,    0}, //  118
-		{   0,    0,    0,    0,    0}, //  119
-		{   0,    0,    0,    0,    0}, //  120
-		// reserved end
+		{   0,    0,    0,    0,    0},
+		{   0,    0,    0,    0,    0},
+		{   0,    0,    0,    0,    0},
+		{   0,    0,    0,    0,    0},
+		{   0,    0,    0,    0,    0},
+		{   0,    0,    0,    0,    0},
+		{   0,    0,    0,    0,    0},
+		{   0,    0,    0,    0,    0},
+		{   0,    0,    0,    0,    0},
+		{   0,    0,    0,    0,    0},
+		{   0,    0,    0,    0,    0},
+		{   0,    0,    0,    0,    0},
+		{   0,    0,    0,    0,    0},
+		{   0,    0,    0,    0,    0},
 
-		// riding skills
-		{   2,  137,  140,    0,    0}, //  121
-		{   1,  138,    0,    0,    0}, //  122
-		{   1,  139,    0,    0,    0}, //  123
-		// riding skills end
+		{   2,  137,  140,    0,    0},
+		{   1,  138,    0,    0,    0},
+		{   1,  139,    0,    0,    0},
 	};
 
 	if (motion_index >= MOTION_MAX_NUM)
@@ -3191,7 +3058,6 @@ bool character::is_usable_skill_motion(uint32_t motion_index) const
 
 			if (0 == eachJobGroup || eachJobGroup == selfJobGroup)
 			{
-				// GUILDSKILL_BUG_FIX
 				uint32_t eachSkillLevel = 0;
 
 				if (eachSkillVNum >= GUILD_SKILL_START && eachSkillVNum <= GUILD_SKILL_END)
@@ -3210,7 +3076,6 @@ bool character::is_usable_skill_motion(uint32_t motion_index) const
 				{
 					return true;
 				}
-				// END_OF_GUILDSKILL_BUG_FIX
 			}
 		}
 	}
@@ -3308,11 +3173,9 @@ bool character::can_use_skill(uint32_t skill_vnum) const
 		}
 	}
 
-	//if (true == IsHorseRiding())
 
 	if (true == is_riding())
 	{
-		//among mounts, only premium horses can use skills
 		if(get_mount_vnum())
 		{
 			if( get_mount_vnum() < 20209 && get_mount_vnum() > 20212)
