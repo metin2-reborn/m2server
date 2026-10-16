@@ -10,6 +10,8 @@
 #include <cassert>
 #include <cstdint>
 #include <memory>
+#include <string>
+#include <string_view>
 
 namespace metin2::db::inline storage {
 
@@ -98,8 +100,8 @@ namespace metin2::db::inline storage {
         return true;
     }
 
-    auto db_manager::direct_query(const char *query, int slot) -> std::unique_ptr<sql_msg> {
-        return direct_sql_[slot]->direct_query(query);
+    auto db_manager::direct_query(std::string_view query, int slot) -> std::unique_ptr<sql_msg> {
+        return direct_sql_[slot]->direct_query(std::string(query).c_str());
     }
 
     void db_manager::return_query(std::string_view query, sql_callback on_result, int slot) {
@@ -108,9 +110,9 @@ namespace metin2::db::inline storage {
         ++query_count[0];
     }
 
-    void db_manager::async_query(const char *query, int slot) {
+    void db_manager::async_query(std::string_view query, int slot) {
         assert(slot < SQL_MAX_NUM);
-        async_sql_[slot]->async_query(query);
+        async_sql_[slot]->async_query(std::string(query).c_str());
         ++query_count[1];
     }
 }

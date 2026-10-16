@@ -24,6 +24,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <format>
 #include <functional>
 #include <map>
 #include <set>
@@ -126,9 +127,8 @@ namespace metin2::game::inline social {
         uint32_t dw1 = get_cr_c32(ch->name(), strlen(ch->name()));
         uint32_t dw2 = get_cr_c32(target->name(), strlen(target->name()));
 
-        char buf[64];
-        snprintf(buf, sizeof(buf), "%u:%u", dw1, dw2);
-        uint32_t dwComplex = get_cr_c32(buf, strlen(buf));
+        const std::string buf = std::format("{}:{}", dw1, dw2);
+        uint32_t dwComplex = get_cr_c32(buf.c_str(), buf.size());
 
         set_request_to_add_.insert(dwComplex);
 
@@ -139,12 +139,11 @@ namespace metin2::game::inline social {
         uint32_t dw1 = get_cr_c32(companion.c_str(), companion.length());
         uint32_t dw2 = get_cr_c32(account.c_str(), account.length());
 
-        char buf[64];
-        snprintf(buf, sizeof(buf), "%u:%u", dw1, dw2);
-        uint32_t dwComplex = get_cr_c32(buf, strlen(buf));
+        const std::string buf = std::format("{}:{}", dw1, dw2);
+        uint32_t dwComplex = get_cr_c32(buf.c_str(), buf.size());
 
         if (set_request_to_add_.find(dwComplex) == set_request_to_add_.end()) {
-            metin2::log::warn("Messenger: no pending friend request between {} and {}", companion.c_str(), account.c_str());
+            metin2::log::warn("Messenger: no pending friend request between {} and {}", companion, account);
             return false;
         }
 
@@ -184,7 +183,7 @@ namespace metin2::game::inline social {
         if (relation_[account].find(companion) != relation_[account].end())
             return;
 
-        metin2::log::info("Messenger: {} added {} as a friend", account.c_str(), companion.c_str());
+        metin2::log::info("Messenger: {} added {} as a friend", account, companion);
         db_manager::instance().query(sql::format("INSERT INTO messenger_list{} VALUES ({}, {})",
             sql::raw(get_table_postfix()), account, companion));
 
@@ -229,7 +228,7 @@ namespace metin2::game::inline social {
         if (!is_in_list(account, companion))
             return;
 
-        metin2::log::debug("Messenger: {} removed {} as a friend", account.c_str(), companion.c_str());
+        metin2::log::debug("Messenger: {} removed {} as a friend", account, companion);
 
         db_manager::instance().query(sql::format("DELETE FROM messenger_list{} WHERE account={} AND companion = {}",
             sql::raw(get_table_postfix()), account, companion));

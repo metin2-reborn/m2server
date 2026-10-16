@@ -13,7 +13,6 @@
 #include <mysql.h>
 
 #include <cstdint>
-#include <cstdio>
 #include <cstring>
 #include <memory>
 #include <string>
@@ -38,11 +37,10 @@ namespace metin2::db::inline empire {
             p->selectedpid = selectdpid;
             map_monarch_election_.insert(map_monarchelection::value_type(pid, std::move(p)));
 
-            char szQuery[256];
-            snprintf(szQuery, sizeof(szQuery),
-                "INSERT INTO monarch_election(pid, selectedpid, electiondata) VALUES(%d, %d, now())", pid, selectdpid);
+            const std::string query = sql::format(
+                "INSERT INTO monarch_election(pid, selectedpid, electiondata) VALUES({}, {}, now())", pid, selectdpid);
 
-            db_manager::instance().async_query(szQuery);
+            db_manager::instance().async_query(query);
             return 1;
         }
 
@@ -90,11 +88,9 @@ namespace metin2::db::inline empire {
         strlcpy(info.name, name, sizeof(info.name));
         vec_monarch_candidacy_.push_back(info);
 
-        char szQuery[256];
-        snprintf(szQuery, sizeof(szQuery),
-            "INSERT INTO monarch_candidacy(pid, date) VALUES(%d, now())", pid);
+        const std::string query = sql::format("INSERT INTO monarch_candidacy(pid, date) VALUES({}, now())", pid);
 
-        db_manager::instance().async_query(szQuery);
+        db_manager::instance().async_query(query);
         return true;
     }
 
@@ -102,10 +98,8 @@ namespace metin2::db::inline empire {
         auto it = vec_monarch_candidacy_.begin();
         for (; it != vec_monarch_candidacy_.end(); ++it) {
             if (0 == strncmp(it->name, name, sizeof(it->name))) {
-                char szQuery[256];
-                snprintf(szQuery, sizeof(szQuery),
-                    "DELETE FROM monarch_candidacy WHERE pid=%d ", it->pid);
-                db_manager::instance().async_query(szQuery);
+                const std::string query = sql::format("DELETE FROM monarch_candidacy WHERE pid={} ", it->pid);
+                db_manager::instance().async_query(query);
 
                 vec_monarch_candidacy_.erase(it);
                 return true;
@@ -131,10 +125,9 @@ namespace metin2::db::inline empire {
 
         int64_t Money64 = monarch_info_.money[empire];
 
-        char szQuery[1024];
-        snprintf(szQuery, sizeof(szQuery), "UPDATE monarch set money=%ld where empire=%d", Money64, empire);
+        const std::string query = sql::format("UPDATE monarch set money={} where empire={}", Money64, empire);
 
-        db_manager::instance().async_query(szQuery);
+        db_manager::instance().async_query(query);
 
         return true;
     }
@@ -149,10 +142,9 @@ namespace metin2::db::inline empire {
 
         int64_t Money64 = monarch_info_.money[empire];
 
-        char szQuery[1024];
-        snprintf(szQuery, sizeof(szQuery), "UPDATE monarch set money=%ld where empire=%d", Money64, empire);
+        const std::string query = sql::format("UPDATE monarch set money={} where empire={}", Money64, empire);
 
-        db_manager::instance().async_query(szQuery);
+        db_manager::instance().async_query(query);
         return true;
     }
 
@@ -168,11 +160,9 @@ namespace metin2::db::inline empire {
 
         monarch_info_.money[empire] -= money_value;
 
-        char szQuery[1024];
-        snprintf(szQuery, sizeof(szQuery),
-            "UPDATE monarch SET money=%ld WHERE empire=%d", monarch_info_.money[empire], empire);
+        const std::string query = sql::format("UPDATE monarch SET money={} WHERE empire={}", monarch_info_.money[empire], empire);
 
-        db_manager::instance().async_query(szQuery);
+        db_manager::instance().async_query(query);
 
         if (metin2::config::test_server())
             metin2::log::info("Monarch: took money from empire {:d}, treasury now {:d}", empire, monarch_info_.money[empire]);
@@ -181,9 +171,8 @@ namespace metin2::db::inline empire {
 
     auto monarch::load_monarch() -> bool {
         monarch_info *p = &monarch_info_;
-        char szQuery[256];
-        snprintf(szQuery, sizeof(szQuery), "SELECT empire, pid, name, money, windate FROM monarch a, player%s b where a.pid=b.id", get_table_postfix());
-        auto pMsg = db_manager::instance().direct_query(szQuery, SQL_PLAYER);
+        const std::string query = sql::format("SELECT empire, pid, name, money, windate FROM monarch a, player{} b where a.pid=b.id", sql::raw(get_table_postfix()));
+        auto pMsg = db_manager::instance().direct_query(query, SQL_PLAYER);
 
         if (pMsg->get()->num_rows == 0) {
             return false;
@@ -213,7 +202,7 @@ namespace metin2::db::inline empire {
         std::string query = sql::format(
             "SELECT b.empire, a.id, a.name FROM player{} AS a, player_index{} AS b WHERE a.account_id=b.id AND a.name={}",
             sql::raw(get_table_postfix()), sql::raw(get_table_postfix()), std::string_view(name, strnlen(name, CHARACTER_NAME_MAX_LEN)));
-        auto pMsg = db_manager::instance().direct_query(query.c_str(), SQL_PLAYER);
+        auto pMsg = db_manager::instance().direct_query(query, SQL_PLAYER);
 
         if (pMsg->get()->num_rows == 0) {
             return false;
@@ -235,21 +224,19 @@ namespace metin2::db::inline empire {
         query = sql::format(
             "REPLACE INTO monarch (empire, pid, windate, money) VALUES({}, {}, NOW(), {})", Empire, p->pid[Empire], p->money[Empire]);
 
-        db_manager::instance().async_query(query.c_str(), SQL_PLAYER);
+        db_manager::instance().async_query(query, SQL_PLAYER);
         return true;
     }
 
     auto monarch::del_monarch(const char *name) -> bool {
         for (int n = 1; n < 4; ++n) {
             if (0 == strncmp(monarch_info_.name[n], name, sizeof(monarch_info_.name[n]))) {
-                char szQuery[256];
-
                 int Empire = n;
-                snprintf(szQuery, sizeof(szQuery), "DELETE FROM monarch WHERE empire=%d", Empire);
-                auto pMsg = db_manager::instance().direct_query(szQuery, SQL_PLAYER);
+                const std::string query = sql::format("DELETE FROM monarch WHERE empire={}", Empire);
+                auto pMsg = db_manager::instance().direct_query(query, SQL_PLAYER);
 
                 if (pMsg->get()->affected_rows == 0 || pMsg->get()->affected_rows == (uint32_t)-1) {
-                    metin2::log::error("Cannot delete monarch, query affected no rows: {}", szQuery);
+                    metin2::log::error("Cannot delete monarch, query affected no rows: {}", query);
                     return false;
                 }
 

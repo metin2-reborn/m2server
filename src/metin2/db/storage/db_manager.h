@@ -5,6 +5,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <string_view>
 
 namespace metin2::db::inline storage {
 
@@ -35,8 +36,8 @@ namespace metin2::db::inline storage {
         auto connect(int slot, const char *db_address, int db_port, const char *db_name, const char *user, const char *pwd) -> int;
 
         void return_query(std::string_view query, sql_callback on_result, int slot = SQL_PLAYER);
-        void async_query(const char *query, int slot = SQL_PLAYER);
-        auto direct_query(const char *query, int slot = SQL_PLAYER) -> std::unique_ptr<sql_msg>;
+        void async_query(std::string_view query, int slot = SQL_PLAYER);
+        auto direct_query(std::string_view query, int slot = SQL_PLAYER) -> std::unique_ptr<sql_msg>;
 
         auto pop_result() -> std::unique_ptr<sql_msg>;
 

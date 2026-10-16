@@ -54,9 +54,11 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <format>
 #include <map>
 #include <queue>
 #include <random>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -1068,13 +1070,11 @@ namespace metin2::game::inline characters {
                     if (point(POINT_EMPIRE_POINT) < 10) {
                     }
 
-                    char buf[256];
-                    snprintf(buf, sizeof(buf),
-                        "%d %d %d %s %d %d %d %s",
+                    const std::string buf = std::format("{} {} {} {} {} {} {} {}",
                         empire(), alignment(), pk_mode(), name(),
                         killer->empire(), killer->alignment(), killer->pk_mode(), killer->name());
 
-                    log_manager::instance().char_log(this, killer->player_id(), "DEAD_BY_PC", buf);
+                    log_manager::instance().char_log(this, killer->player_id(), "DEAD_BY_PC", buf.c_str());
                 } else {
                     if (!isAgreedPVP && !isUnderGuildWar && !is_killer_mode() && alignment() >= 0 && !isDuel && !isForked) {
                         int iNoPenaltyProb = 0;
@@ -1114,13 +1114,11 @@ namespace metin2::game::inline characters {
                         }
                     }
 
-                    char buf[256];
-                    snprintf(buf, sizeof(buf),
-                        "%d %d %d %s %d %d %d %s",
+                    const std::string buf = std::format("{} {} {} {} {} {} {} {}",
                         empire(), alignment(), pk_mode(), name(),
                         killer->empire(), killer->alignment(), killer->pk_mode(), killer->name());
 
-                    log_manager::instance().char_log(this, killer->player_id(), "DEAD_BY_PC", buf);
+                    log_manager::instance().char_log(this, killer->player_id(), "DEAD_BY_PC", buf.c_str());
                 }
             }
         } else {
@@ -1161,12 +1159,11 @@ namespace metin2::game::inline characters {
         }
 
         if (get_mob_rank() >= MOB_RANK_BOSS && killer && killer->is_pc()) {
-            char buf[51];
-            snprintf(buf, sizeof(buf), "%d %d", metin2::config::server().channel, killer->map_index());
+            const std::string buf = std::format("{} {}", metin2::config::server().channel, killer->map_index());
             if (is_stone())
-                log_manager::instance().char_log(killer, race_num(), "STONE_KILL", buf);
+                log_manager::instance().char_log(killer, race_num(), "STONE_KILL", buf.c_str());
             else
-                log_manager::instance().char_log(killer, race_num(), "BOSS_KILL", buf);
+                log_manager::instance().char_log(killer, race_num(), "BOSS_KILL", buf.c_str());
         }
 
         packet_gc_dead pack;

@@ -111,7 +111,7 @@ namespace metin2::game {
             if (pPC) {
                 std::string stCurrentState = lua_tostring(lua, -1);
                 if (metin2::config::test_server())
-                    metin2::log::debug("Quest: {} set state {}", pPC->current_quest_name().c_str(), stCurrentState.c_str());
+                    metin2::log::debug("Quest: {} set state {}", pPC->current_quest_name(), stCurrentState);
                 pqs->st = q.quest_state_index(pPC->current_quest_name(), stCurrentState);
                 pPC->set_current_quest_state_name(stCurrentState);
             }

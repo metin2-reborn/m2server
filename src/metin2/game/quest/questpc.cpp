@@ -59,9 +59,9 @@ namespace metin2::game {
 
         void pc::set_flag(const std::string &name, int value, bool skip_save) {
             if (metin2::config::test_server())
-                metin2::log::info("Quest: set flag {} = {:d}", name.c_str(), value);
+                metin2::log::info("Quest: set flag {} = {:d}", name, value);
             else
-                metin2::log::debug("Quest: set flag {} = {:d}", name.c_str(), value);
+                metin2::log::debug("Quest: set flag {} = {:d}", name, value);
 
             if (value == 0) {
                 delete_flag(name);
@@ -97,7 +97,7 @@ namespace metin2::game {
             flag_map::iterator it = flag_map_.find(name);
 
             if (it != flag_map_.end()) {
-                metin2::log::debug("Quest: get flag {} = {:d}", name.c_str(), it->second);
+                metin2::log::debug("Quest: get flag {} = {:d}", name, it->second);
                 return it->second;
             }
             return 0;
@@ -129,7 +129,7 @@ namespace metin2::game {
 
         void pc::add_quest_state_change(const std::string &quest_name, int prev_state, int next_state) {
             uint32_t dwQuestIndex = quest_manager::instance().quest_index_by_name(quest_name);
-            metin2::log::debug("Quest: queue state change of quest {} ({:d}) from {:d} to {:d}", quest_name.c_str(), dwQuestIndex, prev_state, next_state);
+            metin2::log::debug("Quest: queue state change of quest {} ({:d}) from {:d} to {:d}", quest_name, dwQuestIndex, prev_state, next_state);
             quest_state_change_.push_back(quest_state_change_info(dwQuestIndex, prev_state, next_state));
         }
 
@@ -232,14 +232,14 @@ namespace metin2::game {
                 buf.write(running_quest_state_->title.c_str(), 30 + 1);
                 qi.size += 30 + 1;
 
-                metin2::log::debug("Quest info: title {}", running_quest_state_->title.c_str());
+                metin2::log::debug("Quest info: title {}", running_quest_state_->title);
             }
             if (send_to_client_ & QUEST_SEND_CLOCK_NAME) {
                 running_quest_state_->clock_name.reserve(16 + 1);
                 buf.write(running_quest_state_->clock_name.c_str(), 16 + 1);
                 qi.size += 16 + 1;
 
-                metin2::log::debug("Quest info: clock name {}", running_quest_state_->clock_name.c_str());
+                metin2::log::debug("Quest info: clock name {}", running_quest_state_->clock_name);
             }
             if (send_to_client_ & QUEST_SEND_CLOCK_VALUE) {
                 buf.write(&running_quest_state_->clock_value, sizeof(int));
@@ -252,7 +252,7 @@ namespace metin2::game {
                 buf.write(running_quest_state_->counter_name.c_str(), 16 + 1);
                 qi.size += 16 + 1;
 
-                metin2::log::debug("Quest info: counter name {}", running_quest_state_->counter_name.c_str());
+                metin2::log::debug("Quest info: counter name {}", running_quest_state_->counter_name);
             }
             if (send_to_client_ & QUEST_SEND_COUNTER_VALUE) {
                 buf.write(&running_quest_state_->counter_value, sizeof(int));
@@ -265,7 +265,7 @@ namespace metin2::game {
                 buf.write(running_quest_state_->icon_file.c_str(), 24 + 1);
                 qi.size += 24 + 1;
 
-                metin2::log::debug("Quest info: icon file {}", running_quest_state_->icon_file.c_str());
+                metin2::log::debug("Quest info: icon file {}", running_quest_state_->icon_file);
             }
 
             quest_manager::instance().current_character_ptr()->get_desc()->packet(buf.read_peek(), buf.size());
@@ -468,7 +468,7 @@ namespace metin2::game {
                 int iPos = stComp.find(".");
 
                 if (iPos < 0) {
-                    metin2::log::error("Quest flag {} has no '.' separator", stComp.c_str());
+                    metin2::log::error("Quest flag {} has no '.' separator", stComp);
                     continue;
                 }
 
@@ -479,19 +479,19 @@ namespace metin2::game {
                 stState.assign(stComp, iPos + 1, stComp.length());
 
                 if (stName.length() == 0 || stState.length() == 0) {
-                    metin2::log::error("Quest flag {} has an empty quest or state name", stComp.c_str());
+                    metin2::log::error("Quest flag {} has an empty quest or state name", stComp);
                     continue;
                 }
 
-                metin2::log::debug("Quest: save flag {}.{} = {:d} ({:d})", stName.c_str(), stState.c_str(), lValue, i);
+                metin2::log::debug("Quest: save flag {}.{} = {:d} ({:d})", stName, stState, lValue, i);
 
                 if (stName.length() >= QUEST_NAME_MAX_LEN) {
-                    metin2::log::error("Quest name {} is too long to save", stName.c_str());
+                    metin2::log::error("Quest name {} is too long to save", stName);
                     continue;
                 }
 
                 if (stState.length() >= QUEST_STATE_MAX_LEN) {
-                    metin2::log::error("Quest state {} is too long to save", stState.c_str());
+                    metin2::log::error("Quest state {} is too long to save", stState);
                     continue;
                 }
 
@@ -513,7 +513,7 @@ namespace metin2::game {
         }
 
         void pc::give_item(const std::string &label, uint32_t vnum, int count) {
-            metin2::log::debug("Quest: give item {} (vnum {:d}, count {:d})", label.c_str(), vnum, count);
+            metin2::log::debug("Quest: give item {} (vnum {:d}, count {:d})", label, vnum, count);
             if (!flag(cur_quest_ + "." + label)) {
                 reward_data_.push_back(reward_data(reward_data::REWARD_TYPE_ITEM, vnum, count));
             } else
@@ -521,7 +521,7 @@ namespace metin2::game {
         }
 
         void pc::give_exp(const std::string &label, uint32_t exp) {
-            metin2::log::debug("Quest: give exp {} ({:d})", label.c_str(), exp);
+            metin2::log::debug("Quest: give exp {} ({:d})", label, exp);
 
             if (!flag(cur_quest_ + "." + label)) {
                 reward_data_.push_back(reward_data(reward_data::REWARD_TYPE_EXP, exp));

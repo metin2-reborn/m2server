@@ -12,6 +12,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <deque>
+#include <format>
 #include <memory>
 #include <string>
 #include <utility>
@@ -75,9 +76,9 @@ namespace metin2::game::inline data {
 
             if (0 == stTokenVector[0].compare("group")) {
                 if (2 != stTokenVector.size()) {
-                    metin2::log::error("{} line {:d}: group line has {:d} tokens instead of 2 (group names must not contain spaces)", file_name_.c_str(), dwcur_line_index_, stTokenVector.size());
+                    metin2::log::error("{} line {:d}: group line has {:d} tokens instead of 2 (group names must not contain spaces)", file_name_, dwcur_line_index_, stTokenVector.size());
                     for (unsigned int i = 0; i < stTokenVector.size(); ++i)
-                        metin2::log::error("Token {:d}: {}", i, stTokenVector[i].c_str());
+                        metin2::log::error("Token {:d}: {}", i, stTokenVector[i]);
                     exit(1);
                     continue;
                 }
@@ -125,9 +126,9 @@ namespace metin2::game::inline data {
 
                 if (1 == stTokenVector.size()) {
                     metin2::log::error("{} line {:d}: key {} has no value",
-                        file_name_.c_str(),
+                        file_name_,
                         dwcur_line_index_,
-                        key.c_str());
+                        key);
                     break;
                 }
 
@@ -170,9 +171,8 @@ namespace metin2::game::inline data {
     }
 
     auto text_file_loader::set_child_node(const std::string &rstr_key_head, uint32_t index) -> bool {
-        char szKey[32];
-        snprintf(szKey, sizeof(szKey), "%s%02u", rstr_key_head.c_str(), (unsigned int)index);
-        return set_child_node(szKey);
+        const std::string key = std::format("{}{:02}", rstr_key_head, (unsigned int)index);
+        return set_child_node(key.c_str());
     }
 
     auto text_file_loader::set_child_node(uint32_t index) -> bool {
@@ -226,7 +226,7 @@ namespace metin2::game::inline data {
 
         token_vector_map::iterator it = pcur_node_->local_token_vector_map.find(rstr_key);
         if (pcur_node_->local_token_vector_map.end() == it) {
-            metin2::log::debug("{}: group {} has no key {}", file_name_.c_str(), pcur_node_->group_name.c_str(), rstr_key.c_str());
+            metin2::log::debug("{}: group {} has no key {}", file_name_, pcur_node_->group_name, rstr_key);
             return false;
         }
 
@@ -241,7 +241,7 @@ namespace metin2::game::inline data {
             return false;
 
         if (pTokenVector->empty()) {
-            metin2::log::debug("{}: group {} has no integer value for {}", file_name_.c_str(), pcur_node_->group_name.c_str(), rstr_key.c_str());
+            metin2::log::debug("{}: group {} has no integer value for {}", file_name_, pcur_node_->group_name, rstr_key);
             return false;
         }
 
@@ -262,7 +262,7 @@ namespace metin2::game::inline data {
             return false;
 
         if (pTokenVector->empty()) {
-            metin2::log::debug("{}: group {} has no float value for {}", file_name_.c_str(), pcur_node_->group_name.c_str(), rstr_key.c_str());
+            metin2::log::debug("{}: group {} has no float value for {}", file_name_, pcur_node_->group_name, rstr_key);
             return false;
         }
 
@@ -277,7 +277,7 @@ namespace metin2::game::inline data {
             return false;
 
         if (pTokenVector->size() != 3) {
-            metin2::log::debug("{}: group {} key {} needs 3 values", file_name_.c_str(), pcur_node_->group_name.c_str(), rstr_key.c_str());
+            metin2::log::debug("{}: group {} key {} needs 3 values", file_name_, pcur_node_->group_name, rstr_key);
             return false;
         }
 
@@ -298,7 +298,7 @@ namespace metin2::game::inline data {
             return false;
 
         if (pTokenVector->empty()) {
-            metin2::log::debug("{}: group {} has no string value for {}", file_name_.c_str(), pcur_node_->group_name.c_str(), rstr_key.c_str());
+            metin2::log::debug("{}: group {} has no string value for {}", file_name_, pcur_node_->group_name, rstr_key);
             return false;
         }
 

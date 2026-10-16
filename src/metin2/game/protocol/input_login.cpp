@@ -556,7 +556,7 @@ namespace metin2::game::inline protocol {
             int version = atoi(client_version.c_str());
             int date = atoi(d->client_version());
 
-            metin2::log::debug("Client version check: server {:d}, client {:d} ({} vs {})", version, date, client_version.c_str(), d->client_version());
+            metin2::log::debug("Client version check: server {:d}, client {:d} ({} vs {})", version, date, client_version, d->client_version());
 
             if (!d->client_version()) {
                 d->delayed_disconnect(10);
@@ -570,7 +570,7 @@ namespace metin2::game::inline protocol {
                         d->get_account_table().login,
                         ch->name(),
                         d->host_name(),
-                        client_version.c_str(),
+                        client_version,
                         d->client_version());
                 }
             }

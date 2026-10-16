@@ -12,9 +12,7 @@
 #include <metin2/proto/length.h>
 #include <metin2/sql/query.h>
 
-#include <cstdarg>
 #include <cstdint>
-#include <cstdio>
 #include <string>
 
 namespace metin2::game::inline persistence {
@@ -38,20 +36,9 @@ namespace metin2::game::inline persistence {
         return is_connect_;
     }
 
-    void log_manager::query(const char *format, ...) {
-        char szQuery[4096];
-        va_list args;
-
-        va_start(args, format);
-        vsnprintf(szQuery, sizeof(szQuery), format, args);
-        va_end(args);
-
-        query(std::string(szQuery));
-    }
-
     void log_manager::query(const std::string &query) {
         if (metin2::config::test_server())
-            metin2::log::debug("Log query: {}", query.c_str());
+            metin2::log::debug("Log query: {}", query);
 
         sql_.async_query(query.c_str());
     }

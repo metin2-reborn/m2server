@@ -20,7 +20,6 @@
 
 #include <algorithm>
 #include <cstdint>
-#include <cstdio>
 #include <cstring>
 #include <ctime>
 #include <map>
@@ -191,7 +190,7 @@ namespace metin2::db::inline clients {
     }
 
     void client_manager::query_player_load(peer *peer, uint32_t handle_value, player_load_packet *packet) {
-        auto return_composite_query = [this, peer_handle = peer->handle()](const char *query, uint32_t qid, std::unique_ptr<client_handle_info> info) {
+        auto return_composite_query = [this, peer_handle = peer->handle()](std::string_view query, uint32_t qid, std::unique_ptr<client_handle_info> info) {
             db_manager::instance().return_query(query, [this, peer_handle, qid, info = std::move(info)](sql_msg &msg) {
                 if (auto *peer_value = get_peer(peer_handle))
                     result_composite_player(peer_value, msg, qid, *info);
@@ -236,9 +235,7 @@ namespace metin2::db::inline clients {
                 peer->encode(&logInfo, sizeof(packet_need_login_log_info));
             }
 
-            char szQuery[1024] = {
-                0,
-            };
+            std::string query;
 
             item_cache_set *pSet = get_item_cache_set(pTab->id);
 
@@ -268,66 +265,55 @@ namespace metin2::db::inline clients {
                 if (dwCount)
                     peer->encode(&s_items[0], sizeof(player_item) * dwCount);
 
-                snprintf(szQuery, sizeof(szQuery),
-                    "SELECT dwPID,szName,szState,lValue FROM quest%s WHERE dwPID=%d AND lValue<>0",
-                    get_table_postfix(), pTab->id);
+                query = sql::format("SELECT dwPID,szName,szState,lValue FROM quest{} WHERE dwPID={} AND lValue<>0",
+                    sql::raw(get_table_postfix()), pTab->id);
 
-                return_composite_query(szQuery, QID_QUEST, std::make_unique<client_handle_info>(handle_value, 0, packet->account_id));
+                return_composite_query(query, QID_QUEST, std::make_unique<client_handle_info>(handle_value, 0, packet->account_id));
 
-                snprintf(szQuery, sizeof(szQuery),
-                    "SELECT dwPID,bType,bApplyOn,lApplyValue,dwFlag,lDuration,lSPCost FROM affect%s WHERE dwPID=%d",
-                    get_table_postfix(), pTab->id);
-                return_composite_query(szQuery, QID_AFFECT, std::make_unique<client_handle_info>(handle_value));
+                query = sql::format("SELECT dwPID,bType,bApplyOn,lApplyValue,dwFlag,lDuration,lSPCost FROM affect{} WHERE dwPID={}",
+                    sql::raw(get_table_postfix()), pTab->id);
+                return_composite_query(query, QID_AFFECT, std::make_unique<client_handle_info>(handle_value));
             } else {
-                snprintf(szQuery, sizeof(szQuery),
-                    "SELECT id,window+0,pos,count,vnum,socket0,socket1,socket2,attrtype0,attrvalue0,attrtype1,attrvalue1,attrtype2,attrvalue2,attrtype3,attrvalue3,attrtype4,attrvalue4,attrtype5,attrvalue5,attrtype6,attrvalue6 "
-                    "FROM item%s WHERE owner_id=%d AND (window < %d or window = %d)",
-                    get_table_postfix(), pTab->id, SAFEBOX, DRAGON_SOUL_INVENTORY);
+                query = sql::format("SELECT id,window+0,pos,count,vnum,socket0,socket1,socket2,attrtype0,attrvalue0,attrtype1,attrvalue1,attrtype2,attrvalue2,attrtype3,attrvalue3,attrtype4,attrvalue4,attrtype5,attrvalue5,attrtype6,attrvalue6 "
+                    "FROM item{} WHERE owner_id={} AND (window < {} or window = {})",
+                    sql::raw(get_table_postfix()), pTab->id, SAFEBOX, DRAGON_SOUL_INVENTORY);
 
-                return_composite_query(szQuery, QID_ITEM, std::make_unique<client_handle_info>(handle_value, pTab->id));
-                snprintf(szQuery, sizeof(szQuery),
-                    "SELECT dwPID, szName, szState, lValue FROM quest%s WHERE dwPID=%d",
-                    get_table_postfix(), pTab->id);
+                return_composite_query(query, QID_ITEM, std::make_unique<client_handle_info>(handle_value, pTab->id));
+                query = sql::format("SELECT dwPID, szName, szState, lValue FROM quest{} WHERE dwPID={}",
+                    sql::raw(get_table_postfix()), pTab->id);
 
-                return_composite_query(szQuery, QID_QUEST, std::make_unique<client_handle_info>(handle_value, pTab->id));
-                snprintf(szQuery, sizeof(szQuery),
-                    "SELECT dwPID, bType, bApplyOn, lApplyValue, dwFlag, lDuration, lSPCost FROM affect%s WHERE dwPID=%d",
-                    get_table_postfix(), pTab->id);
+                return_composite_query(query, QID_QUEST, std::make_unique<client_handle_info>(handle_value, pTab->id));
+                query = sql::format("SELECT dwPID, bType, bApplyOn, lApplyValue, dwFlag, lDuration, lSPCost FROM affect{} WHERE dwPID={}",
+                    sql::raw(get_table_postfix()), pTab->id);
 
-                return_composite_query(szQuery, QID_AFFECT, std::make_unique<client_handle_info>(handle_value, pTab->id));
+                return_composite_query(query, QID_AFFECT, std::make_unique<client_handle_info>(handle_value, pTab->id));
             }
         } else {
             metin2::log::info("Loading player pid {:d} from the database", packet->player_id);
 
-            char queryStr[QUERY_MAX_LEN];
-
-            snprintf(queryStr, sizeof(queryStr),
-                "SELECT "
+            std::string query = sql::format("SELECT "
                 "id,name,job,voice,dir,x,y,z,map_index,exit_x,exit_y,exit_map_index,hp,mp,stamina,random_hp,random_sp,playtime,"
                 "gold,level,level_step,st,ht,dx,iq,exp,"
                 "stat_point,skill_point,sub_skill_point,stat_reset_count,part_base,part_hair,"
                 "skill_level,quickslot,skill_group,alignment,mobile,horse_level,horse_riding,horse_hp,horse_hp_droptime,horse_stamina,"
-                "UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(last_play),horse_skill_point FROM player%s WHERE id=%d",
-                get_table_postfix(), packet->player_id);
+                "UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(last_play),horse_skill_point FROM player{} WHERE id={}",
+                sql::raw(get_table_postfix()), packet->player_id);
 
             auto pkInfo = std::make_unique<client_handle_info>(handle_value, packet->player_id);
             pkInfo->account_id = packet->account_id;
-            return_composite_query(queryStr, QID_PLAYER, std::move(pkInfo));
+            return_composite_query(query, QID_PLAYER, std::move(pkInfo));
 
-            snprintf(queryStr, sizeof(queryStr),
-                "SELECT id,window+0,pos,count,vnum,socket0,socket1,socket2,attrtype0,attrvalue0,attrtype1,attrvalue1,attrtype2,attrvalue2,attrtype3,attrvalue3,attrtype4,attrvalue4,attrtype5,attrvalue5,attrtype6,attrvalue6 "
-                "FROM item%s WHERE owner_id=%d AND (window < %d or window = %d)",
-                get_table_postfix(), packet->player_id, SAFEBOX, DRAGON_SOUL_INVENTORY);
-            return_composite_query(queryStr, QID_ITEM, std::make_unique<client_handle_info>(handle_value, packet->player_id));
+            query = sql::format("SELECT id,window+0,pos,count,vnum,socket0,socket1,socket2,attrtype0,attrvalue0,attrtype1,attrvalue1,attrtype2,attrvalue2,attrtype3,attrvalue3,attrtype4,attrvalue4,attrtype5,attrvalue5,attrtype6,attrvalue6 "
+                "FROM item{} WHERE owner_id={} AND (window < {} or window = {})",
+                sql::raw(get_table_postfix()), packet->player_id, SAFEBOX, DRAGON_SOUL_INVENTORY);
+            return_composite_query(query, QID_ITEM, std::make_unique<client_handle_info>(handle_value, packet->player_id));
 
-            snprintf(queryStr, sizeof(queryStr),
-                "SELECT dwPID,szName,szState,lValue FROM quest%s WHERE dwPID=%d",
-                get_table_postfix(), packet->player_id);
-            return_composite_query(queryStr, QID_QUEST, std::make_unique<client_handle_info>(handle_value, packet->player_id, packet->account_id));
-            snprintf(queryStr, sizeof(queryStr),
-                "SELECT dwPID,bType,bApplyOn,lApplyValue,dwFlag,lDuration,lSPCost FROM affect%s WHERE dwPID=%d",
-                get_table_postfix(), packet->player_id);
-            return_composite_query(queryStr, QID_AFFECT, std::make_unique<client_handle_info>(handle_value, packet->player_id));
+            query = sql::format("SELECT dwPID,szName,szState,lValue FROM quest{} WHERE dwPID={}",
+                sql::raw(get_table_postfix()), packet->player_id);
+            return_composite_query(query, QID_QUEST, std::make_unique<client_handle_info>(handle_value, packet->player_id, packet->account_id));
+            query = sql::format("SELECT dwPID,bType,bApplyOn,lApplyValue,dwFlag,lDuration,lSPCost FROM affect{} WHERE dwPID={}",
+                sql::raw(get_table_postfix()), packet->player_id);
+            return_composite_query(query, QID_AFFECT, std::make_unique<client_handle_info>(handle_value, packet->player_id));
         }
     }
     void client_manager::item_award(peer *peer, char *login) {
@@ -641,7 +627,7 @@ namespace metin2::db::inline clients {
         std::string query = sql::format(
             "SELECT pid{} FROM player_index{} WHERE id={}", packet->account_index + 1, postfix, packet->account_id);
 
-        auto pMsg0 = db_manager::instance().direct_query(query.c_str());
+        auto pMsg0 = db_manager::instance().direct_query(query);
 
         if (pMsg0->get()->num_rows != 0) {
             if (!pMsg0->get()->res) {
@@ -666,7 +652,7 @@ namespace metin2::db::inline clients {
         query = sql::format(
             "SELECT COUNT(*) as count FROM player{} WHERE name={}", postfix, packet->player_table.name);
 
-        auto pMsg1 = db_manager::instance().direct_query(query.c_str());
+        auto pMsg1 = db_manager::instance().direct_query(query);
 
         if (pMsg1->get()->num_rows) {
             if (!pMsg1->get()->res) {
@@ -677,7 +663,7 @@ namespace metin2::db::inline clients {
             MYSQL_ROW row = mysql_fetch_row(pMsg1->get()->res);
 
             if (*row[0] != '0') {
-                metin2::log::info("Player create: name {} is already taken (count {}, query: {})", packet->player_table.name, row[0], query.c_str());
+                metin2::log::info("Player create: name {} is already taken (count {}, query: {})", packet->player_table.name, row[0], query);
                 peer->encode_header(HEADER_DG_PLAYER_CREATE_ALREADY, handle, 0);
                 return;
             }
@@ -712,13 +698,13 @@ namespace metin2::db::inline clients {
             packet->player_table.ht,
             packet->player_table.job);
 
-        auto pMsg2 = db_manager::instance().direct_query(query.c_str());
+        auto pMsg2 = db_manager::instance().direct_query(query);
         if (metin2::config::test_server())
             metin2::log::debug("Player create: query length {:d}", query.size());
 
         if (pMsg2->get()->affected_rows <= 0) {
             peer->encode_header(HEADER_DG_PLAYER_CREATE_ALREADY, handle, 0);
-            metin2::log::warn("Player create: insert affected no rows, treating name as taken (query: {}, affected rows {:d})", query.c_str(), pMsg2->get()->affected_rows);
+            metin2::log::warn("Player create: insert affected no rows, treating name as taken (query: {}, affected rows {:d})", query, pMsg2->get()->affected_rows);
             return;
         }
 
@@ -726,13 +712,13 @@ namespace metin2::db::inline clients {
 
         query = sql::format("UPDATE player_index{} SET pid{}={} WHERE id={}",
             postfix, packet->account_index + 1, player_id, packet->account_id);
-        auto pMsg3 = db_manager::instance().direct_query(query.c_str());
+        auto pMsg3 = db_manager::instance().direct_query(query);
 
         if (pMsg3->get()->affected_rows <= 0) {
-            metin2::log::error("Player create: cannot update player_index, rolling back: {}", query.c_str());
+            metin2::log::error("Player create: cannot update player_index, rolling back: {}", query);
 
             query = sql::format("DELETE FROM player{} WHERE id={}", postfix, player_id);
-            db_manager::instance().direct_query(query.c_str());
+            db_manager::instance().direct_query(query);
 
             peer->encode_header(HEADER_DG_PLAYER_CREATE_FAILED, handle, 0);
             return;
@@ -804,15 +790,14 @@ namespace metin2::db::inline clients {
             }
         }
 
-        char szQuery[128];
-        snprintf(szQuery, sizeof(szQuery), "SELECT p.id, p.level, p.name FROM player_index%s AS i, player%s AS p WHERE pid%u=%u AND pid%u=p.id",
-            get_table_postfix(), get_table_postfix(), packet->account_index + 1, packet->player_id, packet->account_index + 1);
+        const std::string query = sql::format("SELECT p.id, p.level, p.name FROM player_index{0} AS i, player{0} AS p WHERE pid{1}={2} AND pid{1}=p.id",
+            sql::raw(get_table_postfix()), packet->account_index + 1, packet->player_id);
 
         auto pi = std::make_unique<client_handle_info>(handle_value, packet->player_id);
         pi->account_index = packet->account_index;
 
         metin2::log::info("Player delete: account {} requested deletion of pid {:d} (slot {:d})", packet->login, packet->player_id, packet->account_index + 1);
-        db_manager::instance().return_query(szQuery, [this, handle = peer->handle(), pi = std::move(pi)](sql_msg &msg) {
+        db_manager::instance().return_query(query, [this, handle = peer->handle(), pi = std::move(pi)](sql_msg &msg) {
             if (auto *peer_value = get_peer(handle))
                 result_player_delete(peer_value, msg, *pi);
         });
@@ -848,7 +833,7 @@ namespace metin2::db::inline clients {
 
             std::string query = sql::format("INSERT INTO player{}_deleted SELECT * FROM player{} WHERE id={}",
                 postfix, postfix, pi.player_id);
-            auto pIns = db_manager::instance().direct_query(query.c_str());
+            auto pIns = db_manager::instance().direct_query(query);
 
             if (pIns->get()->affected_rows == 0 || pIns->get()->affected_rows == (uint32_t)-1) {
                 metin2::log::error("Player delete: cannot copy pid {:d} into player{}_deleted", dwPID, get_table_postfix());
@@ -859,10 +844,6 @@ namespace metin2::db::inline clients {
             }
 
             metin2::log::info("Player delete: deleted pid {:d}", dwPID);
-
-            char account_index_string[16];
-
-            snprintf(account_index_string, sizeof(account_index_string), "player_id%d", player_id_start_ + pi.account_index);
 
             player_table_cache *pkPlayerCache = player_cache(pi.player_id);
 
@@ -891,7 +872,7 @@ namespace metin2::db::inline clients {
                 pi.account_index + 1,
                 pi.player_id);
 
-            auto pMsg = db_manager::instance().direct_query(query.c_str());
+            auto pMsg = db_manager::instance().direct_query(query);
 
             if (pMsg->get()->affected_rows == 0 || pMsg->get()->affected_rows == (uint32_t)-1) {
                 metin2::log::error("Player delete: cannot clear pid {:d} from player_index", pi.player_id);
@@ -901,25 +882,25 @@ namespace metin2::db::inline clients {
             }
 
             query = sql::format("DELETE FROM player{} WHERE id={}", postfix, pi.player_id);
-            db_manager::instance().direct_query(query.c_str());
+            db_manager::instance().direct_query(query);
 
             query = sql::format("DELETE FROM item{} WHERE owner_id={} AND (window < {} or window = {})", postfix, pi.player_id, SAFEBOX, DRAGON_SOUL_INVENTORY);
-            db_manager::instance().direct_query(query.c_str());
+            db_manager::instance().direct_query(query);
 
             query = sql::format("DELETE FROM quest{} WHERE dwPID={}", postfix, pi.player_id);
-            db_manager::instance().async_query(query.c_str());
+            db_manager::instance().async_query(query);
 
             query = sql::format("DELETE FROM affect{} WHERE dwPID={}", postfix, pi.player_id);
-            db_manager::instance().async_query(query.c_str());
+            db_manager::instance().async_query(query);
 
             query = sql::format("DELETE FROM guild_member{} WHERE pid={}", postfix, pi.player_id);
-            db_manager::instance().async_query(query.c_str());
+            db_manager::instance().async_query(query);
 
             query = sql::format("DELETE FROM myshop_pricelist{} WHERE owner_id={}", postfix, pi.player_id);
-            db_manager::instance().async_query(query.c_str());
+            db_manager::instance().async_query(query);
 
             query = sql::format("DELETE FROM messenger_list{} WHERE account={} OR companion={}", postfix, strName, strName);
-            db_manager::instance().async_query(query.c_str());
+            db_manager::instance().async_query(query);
 
             peer->encode_header(HEADER_DG_PLAYER_DELETE_SUCCESS, pi.handle, 1);
             peer->encode_byte(pi.account_index);
@@ -931,11 +912,10 @@ namespace metin2::db::inline clients {
     }
 
     void client_manager::query_add_affect(peer *peer, packet_gd_add_affect *p) {
-        char queryStr[QUERY_MAX_LEN];
-        snprintf(queryStr, sizeof(queryStr),
-            "REPLACE INTO affect%s (dwPID, bType, bApplyOn, lApplyValue, dwFlag, lDuration, lSPCost) "
-            "VALUES(%u, %u, %u, %d, %u, %d, %d)",
-            get_table_postfix(),
+        const std::string query = sql::format(
+            "REPLACE INTO affect{} (dwPID, bType, bApplyOn, lApplyValue, dwFlag, lDuration, lSPCost) "
+            "VALUES({}, {}, {}, {}, {}, {}, {})",
+            sql::raw(get_table_postfix()),
             p->pid,
             p->elem.type,
             p->elem.apply_on,
@@ -944,17 +924,15 @@ namespace metin2::db::inline clients {
             p->elem.duration,
             p->elem.sp_cost);
 
-        db_manager::instance().async_query(queryStr);
+        db_manager::instance().async_query(query);
     }
 
     void client_manager::query_remove_affect(peer *peer, packet_gd_remove_affect *p) {
-        char queryStr[QUERY_MAX_LEN];
+        const std::string query = sql::format(
+            "DELETE FROM affect{} WHERE dwPID={} AND bType={} AND bApplyOn={}",
+            sql::raw(get_table_postfix()), p->pid, p->type, p->apply_on);
 
-        snprintf(queryStr, sizeof(queryStr),
-            "DELETE FROM affect%s WHERE dwPID=%u AND bType=%u AND bApplyOn=%u",
-            get_table_postfix(), p->pid, p->type, p->apply_on);
-
-        db_manager::instance().async_query(queryStr);
+        db_manager::instance().async_query(query);
     }
 
     void client_manager::query_highscore_register(peer *peer, packet_gd_highscore *data) {
@@ -968,7 +946,7 @@ namespace metin2::db::inline clients {
         pi->player_id = data->pid;
         pi->account_index = (data->c_dir > 0);
 
-        db_manager::instance().return_query(query.c_str(), [this, handle = peer->handle(), pi = std::move(pi)](sql_msg &msg) {
+        db_manager::instance().return_query(query, [this, handle = peer->handle(), pi = std::move(pi)](sql_msg &msg) {
             if (auto *peer_value = get_peer(handle))
                 result_highscore_register(peer_value, msg, *pi);
         });
@@ -985,7 +963,7 @@ namespace metin2::db::inline clients {
 
         if (res->num_rows == 0) {
             const std::string query = sql::format("INSERT INTO highscore{} VALUES({}, {}, {})", sql::raw(get_table_postfix()), szBoard, pi.player_id, value);
-            db_manager::instance().async_query(query.c_str());
+            db_manager::instance().async_query(query);
         } else {
             if (!res->res)
                 return;
@@ -998,11 +976,11 @@ namespace metin2::db::inline clients {
                     value = current_value;
                 } else {
                     const std::string query = sql::format("REPLACE INTO highscore{} VALUES({}, {}, {})", sql::raw(get_table_postfix()), szBoard, pi.player_id, value);
-                    db_manager::instance().async_query(query.c_str());
+                    db_manager::instance().async_query(query);
                 }
             } else {
                 const std::string query = sql::format("INSERT INTO highscore{} VALUES({}, {}, {})", sql::raw(get_table_postfix()), szBoard, pi.player_id, value);
-                db_manager::instance().async_query(query.c_str());
+                db_manager::instance().async_query(query);
             }
         }
     }

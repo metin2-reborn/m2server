@@ -21,6 +21,7 @@
 #include <cmath>
 #include <cstdint>
 #include <cstdio>
+#include <format>
 #include <list>
 #include <memory>
 #include <random>
@@ -388,25 +389,25 @@ namespace metin2::game::inline items {
         }
 
         {
-            char buf[128];
+            std::string buf;
 
             if (bSuccess) {
                 if (extractor) {
-                    snprintf(buf, sizeof(buf), "dice(%d) prob(%d + %d) EXTR(VN:%d)", (int)fDice, (int)fProb, iBonus, extractor->vnum());
+                    buf = std::format("dice({}) prob({} + {}) EXTR(VN:{})", (int)fDice, (int)fProb, iBonus, extractor->vnum());
                 } else {
-                    snprintf(buf, sizeof(buf), "dice(%g) prob(%g)", fDice, fProb);
+                    buf = std::format("dice({:g}) prob({:g})", fDice, fProb);
                 }
-                log_manager::instance().item_log(ch, item_value, "DS_PULL_OUT_SUCCESS", buf);
+                log_manager::instance().item_log(ch, item_value, "DS_PULL_OUT_SUCCESS", buf.c_str());
                 ch->chat_packet(CHAT_TYPE_INFO, lc_text("용혼석 추출에 성공하였습니다."));
                 item_value->add_to_character(ch, dest_cell);
                 return true;
             } else {
                 if (extractor) {
-                    snprintf(buf, sizeof(buf), "dice(%d) prob(%d + %d) EXTR(VN:%d) ByProd(VN:%d)", (int)fDice, (int)fProb, iBonus, extractor->vnum(), dwByProduct);
+                    buf = std::format("dice({}) prob({} + {}) EXTR(VN:{}) ByProd(VN:{})", (int)fDice, (int)fProb, iBonus, extractor->vnum(), dwByProduct);
                 } else {
-                    snprintf(buf, sizeof(buf), "dice(%d) prob(%d) ByProd(VNUM:%d)", (int)fDice, (int)fProb, dwByProduct);
+                    buf = std::format("dice({}) prob({}) ByProd(VNUM:{})", (int)fDice, (int)fProb, dwByProduct);
                 }
-                log_manager::instance().item_log(ch, item_value, "DS_PULL_OUT_FAILED", buf);
+                log_manager::instance().item_log(ch, item_value, "DS_PULL_OUT_FAILED", buf.c_str());
                 item_manager::instance().destroy_item(item_value);
                 item_value = nullptr;
                 if (dwByProduct) {
@@ -537,16 +538,14 @@ namespace metin2::game::inline items {
         ch->auto_give_item(pResultItem, true);
 
         if (result_grade > grade_idx) {
-            char buf[128];
-            snprintf(buf, sizeof(buf), "GRADE : %d -> %d", grade_idx, result_grade);
-            log_manager::instance().item_log(ch, pResultItem, "DS_GRADE_REFINE_SUCCESS", buf);
+            const std::string buf = std::format("GRADE : {} -> {}", grade_idx, result_grade);
+            log_manager::instance().item_log(ch, pResultItem, "DS_GRADE_REFINE_SUCCESS", buf.c_str());
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("등급 개량에 성공했습니다."));
             send_refine_result_packet(ch, DS_SUB_HEADER_REFINE_SUCCEED, item_pos(pResultItem->window(), pResultItem->cell()));
             return true;
         } else {
-            char buf[128];
-            snprintf(buf, sizeof(buf), "GRADE : %d -> %d", grade_idx, result_grade);
-            log_manager::instance().item_log(ch, pResultItem, "DS_GRADE_REFINE_FAIL", buf);
+            const std::string buf = std::format("GRADE : {} -> {}", grade_idx, result_grade);
+            log_manager::instance().item_log(ch, pResultItem, "DS_GRADE_REFINE_FAIL", buf.c_str());
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("등급 개량에 실패했습니다."));
             send_refine_result_packet(ch, DS_SUB_HEADER_REFINE_FAIL, item_pos(pResultItem->window(), pResultItem->cell()));
             return false;
@@ -657,16 +656,14 @@ namespace metin2::game::inline items {
 
         ch->auto_give_item(pResultItem, true);
         if (result_step > step_idx) {
-            char buf[128];
-            snprintf(buf, sizeof(buf), "STEP : %d -> %d", step_idx, result_step);
-            log_manager::instance().item_log(ch, pResultItem, "DS_STEP_REFINE_SUCCESS", buf);
+            const std::string buf = std::format("STEP : {} -> {}", step_idx, result_step);
+            log_manager::instance().item_log(ch, pResultItem, "DS_STEP_REFINE_SUCCESS", buf.c_str());
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("단계 개량에 성공했습니다."));
             send_refine_result_packet(ch, DS_SUB_HEADER_REFINE_SUCCEED, item_pos(pResultItem->window(), pResultItem->cell()));
             return true;
         } else {
-            char buf[128];
-            snprintf(buf, sizeof(buf), "STEP : %d -> %d", step_idx, result_step);
-            log_manager::instance().item_log(ch, pResultItem, "DS_STEP_REFINE_FAIL", buf);
+            const std::string buf = std::format("STEP : {} -> {}", step_idx, result_step);
+            log_manager::instance().item_log(ch, pResultItem, "DS_STEP_REFINE_FAIL", buf.c_str());
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("단계 개량에 실패했습니다."));
             send_refine_result_packet(ch, DS_SUB_HEADER_REFINE_FAIL, item_pos(pResultItem->window(), pResultItem->cell()));
             return false;
@@ -789,9 +786,8 @@ namespace metin2::game::inline items {
             pDragonSoul->set_count(pDragonSoul->count() - 1);
             pRefineStone->set_count(pRefineStone->count() - 1);
 
-            char buf[128];
-            snprintf(buf, sizeof(buf), "STRENGTH : %d -> %d", bStrength, bStrength + 1);
-            log_manager::instance().item_log(ch, pDragonSoul, "DS_STRENGTH_REFINE_SUCCESS", buf);
+            const std::string buf = std::format("STRENGTH : {} -> {}", bStrength, bStrength + 1);
+            log_manager::instance().item_log(ch, pDragonSoul, "DS_STRENGTH_REFINE_SUCCESS", buf.c_str());
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("강화에 성공했습니다."));
             ch->auto_give_item(pResult, true);
             bSubHeader = DS_SUB_HEADER_REFINE_SUCCEED;
@@ -807,9 +803,8 @@ namespace metin2::game::inline items {
             }
             bSubHeader = DS_SUB_HEADER_REFINE_FAIL;
 
-            char buf[128];
-            snprintf(buf, sizeof(buf), "STRENGTH : %d -> %d", bStrength, bStrength - 1);
-            log_manager::instance().item_log(ch, pDragonSoul, "DS_STRENGTH_REFINE_FAIL", buf);
+            const std::string buf = std::format("STRENGTH : {} -> {}", bStrength, bStrength - 1);
+            log_manager::instance().item_log(ch, pDragonSoul, "DS_STRENGTH_REFINE_FAIL", buf.c_str());
 
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("강화에 실패했습니다."));
             pDragonSoul->set_count(pDragonSoul->count() - 1);
@@ -879,9 +874,8 @@ namespace metin2::game::inline items {
         if (INVENTORY_MAX_NUM + WEAR_MAX_NUM + DS_SLOT_MAX * deck_idx <= item_value->cell() &&
             item_value->cell() < INVENTORY_MAX_NUM + WEAR_MAX_NUM + DS_SLOT_MAX * (deck_idx + 1)) {
             if (is_time_left_dragon_soul(item_value) && !is_active_dragon_soul(item_value)) {
-                char buf[128];
-                sprintf(buf, "LEFT TIME(%d)", left_time(item_value));
-                log_manager::instance().item_log(pOwner, item_value, "DS_ACTIVATE", buf);
+                const std::string buf = std::format("LEFT TIME({})", left_time(item_value));
+                log_manager::instance().item_log(pOwner, item_value, "DS_ACTIVATE", buf.c_str());
                 item_value->modify_points(true);
                 item_value->set_socket(ITEM_SOCKET_DRAGON_SOUL_ACTIVE_IDX, 1);
 
@@ -903,13 +897,12 @@ namespace metin2::game::inline items {
         if (!is_active_dragon_soul(item_value))
             return false;
 
-        char buf[128];
         item_value->stop_timer_based_on_wear_expire_event();
         item_value->set_socket(ITEM_SOCKET_DRAGON_SOUL_ACTIVE_IDX, 0);
         item_value->modify_points(false);
 
-        sprintf(buf, "LEFT TIME(%d)", left_time(item_value));
-        log_manager::instance().item_log(pOwner, item_value, "DS_DEACTIVATE", buf);
+        const std::string buf = std::format("LEFT TIME({})", left_time(item_value));
+        log_manager::instance().item_log(pOwner, item_value, "DS_DEACTIVATE", buf.c_str());
 
         if (false == skip_refresh_owner_active_state)
             refresh_dragon_soul_state(pOwner);

@@ -26,8 +26,10 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <format>
 #include <map>
 #include <memory>
+#include <string>
 #include <utility>
 
 namespace metin2::game::inline guilds {
@@ -281,14 +283,12 @@ namespace metin2::game::inline guilds {
     }
 
     void war_map::update_user_count() {
-        char buf1[30];
-        char buf2[128];
-        snprintf(buf1, sizeof(buf1), "ObserverCount %d", observer_count_);
-        snprintf(buf2, sizeof(buf2), "WarUC %u %d %u %d %d", team_data_[0].id, team_data_[0].accumulated_joiner_count(), team_data_[1].id, team_data_[1].accumulated_joiner_count(), observer_count_);
+        const std::string observer_text = std::format("ObserverCount {}", observer_count_);
+        const std::string user_count_text = std::format("WarUC {} {} {} {} {}", team_data_[0].id, team_data_[0].accumulated_joiner_count(), team_data_[1].id, team_data_[1].accumulated_joiner_count(), observer_count_);
 
         for (character *ch : set_chr_) {
-            ch->chat_packet(CHAT_TYPE_COMMAND, buf1);
-            ch->chat_packet(CHAT_TYPE_COMMAND, buf2);
+            ch->chat_packet(CHAT_TYPE_COMMAND, observer_text.c_str());
+            ch->chat_packet(CHAT_TYPE_COMMAND, user_count_text.c_str());
         }
     }
 

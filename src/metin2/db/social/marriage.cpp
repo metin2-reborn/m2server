@@ -9,12 +9,13 @@
 #include <metin2/log/log.h>
 #include <metin2/proto/tables.h>
 #include <metin2/sql/async_sql.h>
+#include <metin2/sql/query.h>
 
 #include <mysql.h>
 
 #include <cstdint>
-#include <cstdio>
 #include <memory>
+#include <string>
 #include <utility>
 
 #include <sys/types.h>
@@ -39,14 +40,12 @@ namespace metin2::db::inline social {
         }
 
         auto manager::initialize() -> bool {
-            char szQuery[1024];
-
-            snprintf(szQuery, sizeof(szQuery),
-                "SELECT pid1, pid2, love_point, time, is_married, p1.name, p2.name FROM marriage, player%s as p1, player%s as p2 WHERE p1.id = pid1 AND p2.id = pid2",
-                get_table_postfix(), get_table_postfix());
+            const std::string query = sql::format(
+                "SELECT pid1, pid2, love_point, time, is_married, p1.name, p2.name FROM marriage, player{0} as p1, player{0} as p2 WHERE p1.id = pid1 AND p2.id = pid2",
+                sql::raw(get_table_postfix()));
 
             auto pmsg_delete = db_manager::instance().direct_query("DELETE FROM marriage WHERE is_married = 0");
-            auto pmsg = db_manager::instance().direct_query(szQuery);
+            auto pmsg = db_manager::instance().direct_query(query);
 
             sql_result *pRes = pmsg->get();
             metin2::log::info("Marriage: loading {:d} marriages", pRes->num_rows);
@@ -101,10 +100,9 @@ namespace metin2::db::inline social {
 
             align(pid1, pid2);
 
-            char szQuery[512];
-            snprintf(szQuery, sizeof(szQuery), "INSERT INTO marriage(pid1, pid2, love_point, time) VALUES (%u, %u, 0, %u)", pid1, pid2, now);
+            const std::string query = sql::format("INSERT INTO marriage(pid1, pid2, love_point, time) VALUES ({}, {}, 0, {})", pid1, pid2, now);
 
-            auto pmsg = db_manager::instance().direct_query(szQuery);
+            auto pmsg = db_manager::instance().direct_query(query);
 
             sql_result *res = pmsg->get();
             if (res->affected_rows == 0 || res->affected_rows == (uint32_t)-1) {
@@ -136,11 +134,10 @@ namespace metin2::db::inline social {
 
             align(pid1_value, pid2_value);
 
-            char szQuery[512];
-            snprintf(szQuery, sizeof(szQuery), "UPDATE marriage SET love_point = %d, is_married = %d WHERE pid1 = %u AND pid2 = %u",
+            const std::string query = sql::format("UPDATE marriage SET love_point = {}, is_married = {} WHERE pid1 = {} AND pid2 = {}",
                 love_point_value, married_value, pMarriage->pid1, pMarriage->pid2);
 
-            auto pmsg = db_manager::instance().direct_query(szQuery);
+            auto pmsg = db_manager::instance().direct_query(query);
 
             sql_result *res = pmsg->get();
             if (res->affected_rows == 0 || res->affected_rows == (uint32_t)-1) {
@@ -178,10 +175,9 @@ namespace metin2::db::inline social {
 
             align(pid1_value, pid2_value);
 
-            char szQuery[512];
-            snprintf(szQuery, sizeof(szQuery), "DELETE FROM marriage WHERE pid1 = %u AND pid2 = %u", pid1_value, pid2_value);
+            const std::string query = sql::format("DELETE FROM marriage WHERE pid1 = {} AND pid2 = {}", pid1_value, pid2_value);
 
-            auto pmsg = db_manager::instance().direct_query(szQuery);
+            auto pmsg = db_manager::instance().direct_query(query);
 
             sql_result *res = pmsg->get();
             if (res->affected_rows == 0 || res->affected_rows == (uint32_t)-1) {

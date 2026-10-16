@@ -18,6 +18,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <format>
 #include <map>
 #include <memory>
 #include <string>
@@ -94,20 +95,14 @@ namespace metin2::game::inline characters {
             quest::quest_manager::instance().register_npc_vnum(t->vnum);
         }
 
-        const int FILE_NAME_LEN = 256;
-        char szGroupFileName[FILE_NAME_LEN];
-        char szGroupGroupFileName[FILE_NAME_LEN];
+        const std::string szGroupFileName = std::format("{}/group.txt", locale_service_get_base_path());
+        const std::string szGroupGroupFileName = std::format("{}/group_group.txt", locale_service_get_base_path());
 
-        snprintf(szGroupFileName, sizeof(szGroupFileName),
-            "%s/group.txt", locale_service_get_base_path().c_str());
-        snprintf(szGroupGroupFileName, sizeof(szGroupGroupFileName),
-            "%s/group_group.txt", locale_service_get_base_path().c_str());
-
-        if (!load_group(szGroupFileName)) {
+        if (!load_group(szGroupFileName.c_str())) {
             metin2::log::error("Cannot load mob group file {}", szGroupFileName);
             thecore_shutdown();
         }
-        if (!load_group_group(szGroupGroupFileName)) {
+        if (!load_group_group(szGroupGroupFileName.c_str())) {
             metin2::log::error("Cannot load mob group group file {}", szGroupGroupFileName);
             thecore_shutdown();
         }
@@ -250,7 +245,7 @@ namespace metin2::game::inline characters {
             int iVnum;
 
             if (!loader.token_integer("vnum", &iVnum)) {
-                metin2::log::error("Syntax error in {}: group group {} has no vnum", file_name, stName.c_str());
+                metin2::log::error("Syntax error in {}: group group {} has no vnum", file_name, stName);
                 loader.set_parent_node();
                 continue;
             }
@@ -260,10 +255,7 @@ namespace metin2::game::inline characters {
             auto pkGroup = std::make_unique<mob_group_group>(iVnum);
 
             for (int k = 1; k < 256; ++k) {
-                char buf[4];
-                snprintf(buf, sizeof(buf), "%d", k);
-
-                if (loader.get_token_vector(buf, &pTok)) {
+                if (loader.get_token_vector(std::to_string(k), &pTok)) {
                     uint32_t dwMobVnum = 0;
                     str_to_number(dwMobVnum, pTok->at(0).c_str());
 
@@ -304,7 +296,7 @@ namespace metin2::game::inline characters {
             int iVnum;
 
             if (!loader.token_integer("vnum", &iVnum)) {
-                metin2::log::error("Syntax error in {}: group {} has no vnum", file_name, stName.c_str());
+                metin2::log::error("Syntax error in {}: group {} has no vnum", file_name, stName);
                 loader.set_parent_node();
                 continue;
             }
@@ -312,13 +304,13 @@ namespace metin2::game::inline characters {
             token_vector *pTok;
 
             if (!loader.get_token_vector("leader", &pTok)) {
-                metin2::log::error("Syntax error in {}: group {} has no leader", file_name, stName.c_str());
+                metin2::log::error("Syntax error in {}: group {} has no leader", file_name, stName);
                 loader.set_parent_node();
                 continue;
             }
 
             if (pTok->size() < 2) {
-                metin2::log::error("Syntax error in {}: group {} has no leader vnum", file_name, stName.c_str());
+                metin2::log::error("Syntax error in {}: group {} has no leader vnum", file_name, stName);
                 loader.set_parent_node();
                 continue;
             }
@@ -330,15 +322,12 @@ namespace metin2::game::inline characters {
             str_to_number(vnum, pTok->at(1).c_str());
             pkGroup->add_member(vnum);
 
-            metin2::log::debug("Mob group {:d}: {}", iVnum, stName.c_str());
-            metin2::log::debug("Mob group {:d}: leader {} (vnum {})", iVnum, pTok->at(0).c_str(), pTok->at(1).c_str());
+            metin2::log::debug("Mob group {:d}: {}", iVnum, stName);
+            metin2::log::debug("Mob group {:d}: leader {} (vnum {})", iVnum, pTok->at(0), pTok->at(1));
 
             for (int k = 1; k < 256; ++k) {
-                char buf[4];
-                snprintf(buf, sizeof(buf), "%d", k);
-
-                if (loader.get_token_vector(buf, &pTok)) {
-                    metin2::log::debug("Mob group {:d}: member {} (vnum {})", iVnum, pTok->at(0).c_str(), pTok->at(1).c_str());
+                if (loader.get_token_vector(std::to_string(k), &pTok)) {
+                    metin2::log::debug("Mob group {:d}: member {} (vnum {})", iVnum, pTok->at(0), pTok->at(1));
                     uint32_t vnum = 0;
                     str_to_number(vnum, pTok->at(1).c_str());
                     pkGroup->add_member(vnum);

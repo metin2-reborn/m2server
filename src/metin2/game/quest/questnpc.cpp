@@ -17,6 +17,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <format>
 #include <fstream>
 #include <iterator>
 #include <map>
@@ -40,8 +41,6 @@ namespace metin2::game {
         void npc::set(unsigned int vnum, const std::string &script_name) {
             vnum_ = vnum;
 
-            char buf[PATH_MAX];
-
             quest_manager::event_name_map::iterator itEventName = quest_manager::instance().event_name.begin();
 
             while (itEventName != quest_manager::instance().event_name.end()) {
@@ -49,14 +48,11 @@ namespace metin2::game {
                 ++itEventName;
 
                 for (auto itObjectDir = quest_object_dir.begin(); itObjectDir != quest_object_dir.end(); ++itObjectDir) {
-                    int is = snprintf(buf, sizeof(buf), "%s/%s/%s/", itObjectDir->c_str(), script_name.c_str(), it->first.c_str());
-
-                    if (is < 0 || is >= (int)sizeof(buf))
-                        is = sizeof(buf) - 1;
+                    const std::string event_dir = std::format("{}/{}/{}/", *itObjectDir, script_name, it->first);
 
                     int event_index = it->second;
 
-                    DIR *pdir = opendir(buf);
+                    DIR *pdir = opendir(event_dir.c_str());
 
                     if (!pdir)
                         continue;
@@ -71,8 +67,7 @@ namespace metin2::game {
                             continue;
 
                         metin2::log::debug("Quest: reading {}", pde->d_name);
-                        strlcpy(buf + is, pde->d_name, sizeof(buf) - is);
-                        load_state_script(event_index, buf, pde->d_name);
+                        load_state_script(event_index, (event_dir + pde->d_name).c_str(), pde->d_name);
                     }
 
                     closedir(pdir);
@@ -111,7 +106,7 @@ namespace metin2::game {
             int state_index = q.quest_state_index(stQuestName, stStateName);
 
             metin2::log::debug("Quest: loading {}: quest {} state {}",
-                filename, stQuestName.c_str(), stStateName.c_str());
+                filename, stQuestName, stStateName);
 
             if (i == s.npos) {
                 std::istreambuf_iterator<char> ib(inf), ie;
@@ -312,7 +307,7 @@ namespace metin2::game {
                     quest_manager &mgr = quest_manager::instance();
 
                     metin2::log::warn("Cannot start a quest while quest {} is suspended for player {}",
-                        pc.current_quest_name().c_str(),
+                        pc.current_quest_name(),
                         mgr.current_character_ptr() ? mgr.current_character_ptr()->name() : "<none>");
                 }
 
@@ -380,7 +375,7 @@ namespace metin2::game {
                     quest_manager &mgr = quest_manager::instance();
 
                     metin2::log::warn("Cannot start a quest while quest {} is suspended for player {}",
-                        pc.current_quest_name().c_str(),
+                        pc.current_quest_name(),
                         mgr.current_character_ptr() ? mgr.current_character_ptr()->name() : "<none>");
                 }
 
@@ -454,7 +449,7 @@ namespace metin2::game {
                                 itQuestScript->second.get_code(),
                                 itQuestScript->second.size())) {
                             metin2::log::error("Quest {} did not finish its login/logout script",
-                                quest_manager::instance().quest_name_by_index(quest_map->first).c_str());
+                                quest_manager::instance().quest_name_by_index(quest_map->first));
 
                             quest_state &rqs = *pPC->running_quest_state();
                             quest_manager::instance().close_state(rqs);
@@ -479,7 +474,7 @@ namespace metin2::game {
                                     it->second.get_code(),
                                     it->second.size())) {
                                 metin2::log::error("Quest {} did not finish its login/logout script",
-                                    quest_manager::instance().quest_name_by_index(quest_map->first).c_str());
+                                    quest_manager::instance().quest_name_by_index(quest_map->first));
 
                                 quest_state &rqs = *pPC->running_quest_state();
                                 quest_manager::instance().close_state(rqs);
@@ -500,7 +495,7 @@ namespace metin2::game {
                     quest_manager &mgr = quest_manager::instance();
 
                     metin2::log::warn("Cannot start a quest while quest {} is suspended for player {}",
-                        pc.current_quest_name().c_str(),
+                        pc.current_quest_name(),
                         mgr.current_character_ptr() ? mgr.current_character_ptr()->name() : "<none>");
                 }
 
@@ -543,7 +538,7 @@ namespace metin2::game {
                     quest_manager &mgr = quest_manager::instance();
 
                     metin2::log::warn("Cannot start a quest while quest {} is suspended for player {}",
-                        pc.current_quest_name().c_str(),
+                        pc.current_quest_name(),
                         mgr.current_character_ptr() ? mgr.current_character_ptr()->name() : "<none>");
                 }
 
@@ -584,7 +579,7 @@ namespace metin2::game {
                     quest_manager &mgr = quest_manager::instance();
 
                     metin2::log::warn("Cannot start a quest while quest {} is suspended for player {}",
-                        pc.current_quest_name().c_str(),
+                        pc.current_quest_name(),
                         mgr.current_character_ptr() ? mgr.current_character_ptr()->name() : "<none>");
                 }
 

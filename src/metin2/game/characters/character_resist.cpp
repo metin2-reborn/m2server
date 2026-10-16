@@ -16,6 +16,8 @@
 #include <algorithm>
 #include <cstdint>
 #include <cstdio>
+#include <format>
+#include <string>
 
 namespace metin2::game::inline characters {
 
@@ -171,9 +173,8 @@ namespace metin2::game::inline characters {
         poison_event = event_create(game::characters::poison_event, info, 1);
 
         if (metin2::config::test_server() && attacker) {
-            char buf[256];
-            snprintf(buf, sizeof(buf), "POISON %s -> %s", attacker->name(), name());
-            attacker->chat_packet(CHAT_TYPE_INFO, "%s", buf);
+            const std::string buf = std::format("POISON {} -> {}", attacker->name(), name());
+            attacker->chat_packet(CHAT_TYPE_INFO, "%s", buf.c_str());
         }
     }
 

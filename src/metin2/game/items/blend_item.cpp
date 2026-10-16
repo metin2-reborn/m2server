@@ -15,6 +15,8 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <format>
+#include <string>
 #include <vector>
 
 #define DO_ALL_BLEND_INFO(iter) for (iter = blend_info.begin(); iter != blend_info.end(); ++iter)
@@ -32,21 +34,20 @@ namespace metin2::game::inline items {
     t_blend_item_info blend_info;
 
     auto blend_item_init() -> bool {
-        char file_name[256];
-        snprintf(file_name, sizeof(file_name), "%s/blend.txt", locale_service_get_base_path().c_str());
+        const std::string file_name = std::format("{}/blend.txt", locale_service_get_base_path());
 
         metin2::log::info("Blend: loading {}", file_name);
 
         blend_info.clear();
 
-        if (false == blend_item_load(file_name)) {
+        if (false == blend_item_load(file_name.c_str())) {
             metin2::log::error("Cannot load blend items from {}", file_name);
             return false;
         }
         return true;
     }
 
-    auto blend_item_load(char *file) -> bool {
+    auto blend_item_load(const char *file) -> bool {
         FILE *fp;
         char one_line[256];
         const char *delim = " \t\r\n";

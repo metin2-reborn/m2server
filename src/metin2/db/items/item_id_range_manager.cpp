@@ -9,12 +9,13 @@
 #include <metin2/log/log.h>
 #include <metin2/proto/tables.h>
 #include <metin2/sql/async_sql.h>
+#include <metin2/sql/query.h>
 
 #include <mysql.h>
 
 #include <cstdint>
-#include <cstdio>
 #include <memory>
+#include <string>
 
 namespace metin2::db::inline items {
 
@@ -72,14 +73,13 @@ namespace metin2::db::inline items {
     }
 
     auto item_id_range_manager::build_range(uint32_t min_value, uint32_t max_value, item_id_range_table &range) -> bool {
-        char szQuery[1024];
         uint32_t dwItemMaxID = 0;
         std::unique_ptr<sql_msg> pMsg;
         MYSQL_ROW row;
 
-        snprintf(szQuery, sizeof(szQuery), "SELECT MAX(id) FROM item%s WHERE id >= %u and id <= %u", get_table_postfix(), min_value, max_value);
+        const std::string max_query = sql::format("SELECT MAX(id) FROM item{} WHERE id >= {} and id <= {}", sql::raw(get_table_postfix()), min_value, max_value);
 
-        pMsg = db_manager::instance().direct_query(szQuery);
+        pMsg = db_manager::instance().direct_query(max_query);
 
         if (pMsg != nullptr) {
             if (pMsg->get()->num_rows > 0) {
@@ -101,10 +101,10 @@ namespace metin2::db::inline items {
             range.max = max_value;
             range.usable_item_id_min = dwItemMaxID;
 
-            snprintf(szQuery, sizeof(szQuery), "SELECT COUNT(*) FROM item%s WHERE id >= %u AND id <= %u",
-                get_table_postfix(), range.usable_item_id_min, range.max);
+            const std::string count_query = sql::format("SELECT COUNT(*) FROM item{} WHERE id >= {} AND id <= {}",
+                sql::raw(get_table_postfix()), range.usable_item_id_min, range.max);
 
-            pMsg = db_manager::instance().direct_query(szQuery);
+            pMsg = db_manager::instance().direct_query(count_query);
 
             if (pMsg != nullptr) {
                 if (pMsg->get()->num_rows > 0) {

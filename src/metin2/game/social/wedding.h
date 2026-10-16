@@ -44,7 +44,7 @@ namespace metin2::game::inline social {
             void shout_in_map(uint8_t type, const char *msg);
 
           private:
-            auto build_command_play_music(char *command, size_t cmd_len, uint8_t set, const char *music_file_name) -> const char *;
+            auto build_command_play_music(uint8_t set, const char *music_file_name) -> std::string;
 
           private:
             uint32_t map_index_;

@@ -26,7 +26,7 @@ namespace metin2::game::inline protocol {
 
         p2p_manager::instance().unregister_acceptor(this);
 
-        metin2::log::info("Closing peer connection to {}", host_.c_str());
+        metin2::log::info("Closing peer connection to {}", host_);
 
         desc::destroy();
     }
@@ -39,14 +39,14 @@ namespace metin2::game::inline protocol {
         connection_->start(*this);
 
         if (!is_allowed_peer(host_.c_str(), metin2::config::server().p2p_allowed_hosts, public_ip)) {
-            metin2::log::warn("Blocked peer connection from {} to {}: host not allowed", host_.c_str(), public_ip);
+            metin2::log::warn("Blocked peer connection from {} to {}: host not allowed", host_, public_ip);
             set_phase(PHASE_CLOSE);
             return true;
         }
 
         set_phase(PHASE_P2P);
 
-        metin2::log::info("New peer connection from {}", host_.c_str());
+        metin2::log::info("New peer connection from {}", host_);
         return true;
     }
 

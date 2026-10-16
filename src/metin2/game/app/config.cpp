@@ -17,6 +17,7 @@
 #include <metin2/log/log.h>
 #include <metin2/proto/length.h>
 #include <metin2/sql/async_sql.h>
+#include <metin2/sql/query.h>
 
 #include <mysql.h>
 
@@ -170,13 +171,12 @@ namespace metin2::game::inline app {
 
         // Must not get a WHERE clause.
         {
-            char szQuery[512];
-            snprintf(szQuery, sizeof(szQuery), "SELECT mKey, mValue FROM locale");
+            const std::string query = sql::format("SELECT mKey, mValue FROM locale");
 
-            auto pMsg = account_db::instance().direct_query(szQuery);
+            auto pMsg = account_db::instance().direct_query(query);
 
             if (pMsg->get()->num_rows == 0) {
-                metin2::log::error("Common database locale table is empty or unreadable: {}", szQuery);
+                metin2::log::error("Common database locale table is empty or unreadable: {}", query);
                 exit(1);
             }
 
@@ -192,7 +192,7 @@ namespace metin2::game::inline app {
             }
         }
 
-        metin2::log::info("Database locale: {}", locale.c_str());
+        metin2::log::info("Database locale: {}", locale);
 
         account_db::instance().set_locale(locale);
 
@@ -222,12 +222,11 @@ namespace metin2::game::inline app {
         }
 
         {
-            char szQuery[256];
-            snprintf(szQuery, sizeof(szQuery), "SELECT mValue FROM locale WHERE mKey='SKILL_POWER_BY_LEVEL'");
-            auto pMsg = account_db::instance().direct_query(szQuery);
+            const std::string query = sql::format("SELECT mValue FROM locale WHERE mKey='SKILL_POWER_BY_LEVEL'");
+            auto pMsg = account_db::instance().direct_query(query);
 
             if (pMsg->get()->num_rows == 0) {
-                metin2::log::error("Locale table has no SKILL_POWER_BY_LEVEL: {}", szQuery);
+                metin2::log::error("Locale table has no SKILL_POWER_BY_LEVEL: {}", query);
                 exit(1);
             }
 
@@ -247,7 +246,7 @@ namespace metin2::game::inline app {
 
                 if (*p == '\0') {
                     if (cnt != (SKILL_MAX_LEVEL + 1)) {
-                        metin2::log::error("Locale table has too few skill power values ({:d}): {}", cnt, szQuery);
+                        metin2::log::error("Locale table has too few skill power values ({:d}): {}", cnt, query);
                         exit(1);
                     }
 
@@ -257,8 +256,8 @@ namespace metin2::game::inline app {
             }
 
             for (int job = 0; job < JOB_MAX_NUM * 2; ++job) {
-                snprintf(szQuery, sizeof(szQuery), "SELECT mValue from locale where mKey='SKILL_POWER_BY_LEVEL_TYPE%d' ORDER BY CAST(mValue AS unsigned)", job);
-                auto pMsg = account_db::instance().direct_query(szQuery);
+                const std::string type_query = sql::format("SELECT mValue from locale where mKey='SKILL_POWER_BY_LEVEL_TYPE{}' ORDER BY CAST(mValue AS unsigned)", job);
+                auto pMsg = account_db::instance().direct_query(type_query);
 
                 if (pMsg->get()->num_rows == 0) {
                     table_by_skill::instance().set_skill_power_by_level_from_type(job, aiBaseSkillPowerByLevelTable);
@@ -277,7 +276,7 @@ namespace metin2::game::inline app {
 
                     if (*p == '\0') {
                         if (cnt != (SKILL_MAX_LEVEL + 1)) {
-                            metin2::log::error("Locale table has too few skill power values ({:d}): {}", cnt, szQuery);
+                            metin2::log::error("Locale table has too few skill power values ({:d}): {}", cnt, type_query);
                             exit(1);
                         }
 

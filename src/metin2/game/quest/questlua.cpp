@@ -32,6 +32,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <format>
 #include <numbers>
 #include <sstream>
 #include <string>
@@ -111,8 +112,6 @@ namespace metin2::game {
         }
 
         void combine_lua_string(lua_State *lua, std::ostringstream &s) {
-            char buf[32];
-
             int n = lua_gettop(lua);
             int i;
 
@@ -120,8 +119,7 @@ namespace metin2::game {
                 if (lua_isstring(lua, i))
                     s << lua_tostring(lua, i);
                 else if (lua_isnumber(lua, i)) {
-                    snprintf(buf, sizeof(buf), "%.14g\n", lua_tonumber(lua, i));
-                    s << buf;
+                    s << std::format("{:.14g}\n", lua_tonumber(lua, i));
                 }
             }
         }
@@ -418,10 +416,9 @@ namespace metin2::game {
             register_global_function_table(l_);
 
             {
-                char settingsFileName[256];
-                snprintf(settingsFileName, sizeof(settingsFileName), "%s/settings.lua", locale_service_get_base_path().c_str());
+                const std::string settingsFileName = std::format("{}/settings.lua", locale_service_get_base_path());
 
-                int settingsLoadingResult = lua_dofile(l_, settingsFileName);
+                int settingsLoadingResult = lua_dofile(l_, settingsFileName.c_str());
                 metin2::log::debug("Quest: loaded {} (result {:d})", settingsFileName, settingsLoadingResult);
                 if (settingsLoadingResult != 0) {
                     quest::error("Cannot load {}", settingsFileName);
@@ -430,10 +427,9 @@ namespace metin2::game {
             }
 
             {
-                char questlibFileName[256];
-                snprintf(questlibFileName, sizeof(questlibFileName), "%s/questlib.lua", locale_service_get_quest_path().c_str());
+                const std::string questlibFileName = std::format("{}/questlib.lua", locale_service_get_quest_path());
 
-                int questlibLoadingResult = lua_dofile(l_, questlibFileName);
+                int questlibLoadingResult = lua_dofile(l_, questlibFileName.c_str());
                 metin2::log::debug("Quest: loaded {} (result {:d})", questlibFileName, questlibLoadingResult);
                 if (questlibLoadingResult != 0) {
                     quest::error("Cannot load {}", questlibFileName);
@@ -441,10 +437,9 @@ namespace metin2::game {
                 }
             }
 
-            char translateFileName[256];
-            snprintf(translateFileName, sizeof(translateFileName), "%s/translate.lua", locale_service_get_base_path().c_str());
+            const std::string translateFileName = std::format("{}/translate.lua", locale_service_get_base_path());
 
-            int translateLoadingResult = lua_dofile(l_, translateFileName);
+            int translateLoadingResult = lua_dofile(l_, translateFileName.c_str());
             metin2::log::debug("Quest: loaded {} (result {:d})", translateFileName, translateLoadingResult);
             if (translateLoadingResult != 0) {
                 quest::error("Cannot load {}", translateFileName);
@@ -452,10 +447,9 @@ namespace metin2::game {
             }
 
             {
-                char questLocaleFileName[256];
-                snprintf(questLocaleFileName, sizeof(questLocaleFileName), "%s/locale.lua", quest_dir.c_str());
+                const std::string questLocaleFileName = std::format("{}/locale.lua", quest_dir);
 
-                int questLocaleLoadingResult = lua_dofile(l_, questLocaleFileName);
+                int questLocaleLoadingResult = lua_dofile(l_, questLocaleFileName.c_str());
                 metin2::log::debug("Quest: loaded {} (result {:d})", questLocaleFileName, questLocaleLoadingResult);
                 if (questLocaleLoadingResult != 0) {
                     quest::error("Cannot load {}", questLocaleFileName);
@@ -465,9 +459,8 @@ namespace metin2::game {
 
             for (auto it = quest_object_dir.begin(); it != quest_object_dir.end(); ++it) {
                 const std::string &stQuestObjectDir = *it;
-                char buf[PATH_MAX];
-                snprintf(buf, sizeof(buf), "%s/state/", stQuestObjectDir.c_str());
-                DIR *pdir = opendir(buf);
+                const std::string state_dir = std::format("{}/state/", stQuestObjectDir);
+                DIR *pdir = opendir(state_dir.c_str());
                 int iQuestIdx = 0;
 
                 if (pdir) {
@@ -477,11 +470,9 @@ namespace metin2::game {
                         if (pde->d_name[0] == '.')
                             continue;
 
-                        snprintf(buf + 11, sizeof(buf) - 11, "%s", pde->d_name);
-
                         register_quest(pde->d_name, ++iQuestIdx);
                         int ret = lua_dofile(l_, (stQuestObjectDir + "/state/" + pde->d_name).c_str());
-                        metin2::log::debug("Quest: loaded {} (result {:d})", (stQuestObjectDir + "/state/" + pde->d_name).c_str(), ret);
+                        metin2::log::debug("Quest: loaded {} (result {:d})", (stQuestObjectDir + "/state/" + pde->d_name), ret);
 
                         build_state_index_to_name(pde->d_name);
                     }
@@ -522,7 +513,7 @@ namespace metin2::game {
             add_script(os.str());
             qs.suspend_state = SUSPEND_STATE_SELECT;
             if (metin2::config::test_server())
-                metin2::log::debug("Quest: select script {}", script_.c_str());
+                metin2::log::debug("Quest: select script {}", script_);
             send_script();
         }
 

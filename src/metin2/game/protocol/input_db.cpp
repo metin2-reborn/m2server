@@ -57,6 +57,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <format>
 #include <map>
 #include <string>
 #include <vector>
@@ -333,10 +334,9 @@ namespace metin2::game::inline protocol {
 
             p2p_manager::instance().send(&p, sizeof(packet_gg_login));
 
-            char buf[51];
-            snprintf(buf, sizeof(buf), "%s %d %d %d %d",
+            const std::string hint = std::format("{} {} {} {} {}",
                 ch->get_desc()->host_name(), ch->gold(), metin2::config::server().channel, ch->map_index(), ch->alignment());
-            log_manager::instance().char_log(ch, 0, "LOGIN", buf);
+            log_manager::instance().char_log(ch, 0, "LOGIN", hint.c_str());
         }
 
         d->set_phase(PHASE_LOADING);
@@ -696,32 +696,14 @@ namespace metin2::game::inline protocol {
             return;
         }
 
-        const int FILE_NAME_LEN = 256;
-        char szCommonDropItemFileName[FILE_NAME_LEN];
-        char szETCDropItemFileName[FILE_NAME_LEN];
-        char szMOBDropItemFileName[FILE_NAME_LEN];
-        char szDropItemGroupFileName[FILE_NAME_LEN];
-        char szSpecialItemGroupFileName[FILE_NAME_LEN];
-        char szMapIndexFileName[FILE_NAME_LEN];
-        char szItemVnumMaskTableFileName[FILE_NAME_LEN];
-        char szDragonSoulTableFileName[FILE_NAME_LEN];
-
-        snprintf(szCommonDropItemFileName, sizeof(szCommonDropItemFileName),
-            "%s/common_drop_item.txt", locale_service_get_base_path().c_str());
-        snprintf(szETCDropItemFileName, sizeof(szETCDropItemFileName),
-            "%s/etc_drop_item.txt", locale_service_get_base_path().c_str());
-        snprintf(szMOBDropItemFileName, sizeof(szMOBDropItemFileName),
-            "%s/mob_drop_item.txt", locale_service_get_base_path().c_str());
-        snprintf(szSpecialItemGroupFileName, sizeof(szSpecialItemGroupFileName),
-            "%s/special_item_group.txt", locale_service_get_base_path().c_str());
-        snprintf(szDropItemGroupFileName, sizeof(szDropItemGroupFileName),
-            "%s/drop_item_group.txt", locale_service_get_base_path().c_str());
-        snprintf(szMapIndexFileName, sizeof(szMapIndexFileName),
-            "%s/index", locale_service_get_map_path().c_str());
-        snprintf(szItemVnumMaskTableFileName, sizeof(szItemVnumMaskTableFileName),
-            "%s/ori_to_new_table.txt", locale_service_get_base_path().c_str());
-        snprintf(szDragonSoulTableFileName, sizeof(szDragonSoulTableFileName),
-            "%s/dragon_soul_table.txt", locale_service_get_base_path().c_str());
+        const std::string szCommonDropItemFileName = std::format("{}/common_drop_item.txt", locale_service_get_base_path());
+        const std::string szETCDropItemFileName = std::format("{}/etc_drop_item.txt", locale_service_get_base_path());
+        const std::string szMOBDropItemFileName = std::format("{}/mob_drop_item.txt", locale_service_get_base_path());
+        const std::string szSpecialItemGroupFileName = std::format("{}/special_item_group.txt", locale_service_get_base_path());
+        const std::string szDropItemGroupFileName = std::format("{}/drop_item_group.txt", locale_service_get_base_path());
+        const std::string szMapIndexFileName = std::format("{}/index", locale_service_get_map_path());
+        const std::string szItemVnumMaskTableFileName = std::format("{}/ori_to_new_table.txt", locale_service_get_base_path());
+        const std::string szDragonSoulTableFileName = std::format("{}/dragon_soul_table.txt", locale_service_get_base_path());
 
         metin2::log::info("Loading cube recipes");
         if (!cube_information_initialize()) {
@@ -731,54 +713,54 @@ namespace metin2::game::inline protocol {
         }
 
         metin2::log::info("Loading common drop items from {}", szCommonDropItemFileName);
-        if (!item_manager::instance().read_common_drop_item_file(szCommonDropItemFileName)) {
+        if (!item_manager::instance().read_common_drop_item_file(szCommonDropItemFileName.c_str())) {
             metin2::log::error("Cannot load common drop items from {}, shutting down", szCommonDropItemFileName);
             thecore_shutdown();
             return;
         }
 
         metin2::log::info("Loading etc drop items from {}", szETCDropItemFileName);
-        if (!item_manager::instance().read_etc_drop_item_file(szETCDropItemFileName)) {
+        if (!item_manager::instance().read_etc_drop_item_file(szETCDropItemFileName.c_str())) {
             metin2::log::error("Cannot load etc drop items from {}, shutting down", szETCDropItemFileName);
             thecore_shutdown();
             return;
         }
 
         metin2::log::info("Loading drop item groups from {}", szDropItemGroupFileName);
-        if (!item_manager::instance().read_drop_item_group(szDropItemGroupFileName)) {
+        if (!item_manager::instance().read_drop_item_group(szDropItemGroupFileName.c_str())) {
             metin2::log::error("Cannot load drop item groups from {}, shutting down", szDropItemGroupFileName);
             thecore_shutdown();
             return;
         }
 
         metin2::log::info("Loading special item groups from {}", szSpecialItemGroupFileName);
-        if (!item_manager::instance().read_special_drop_item_file(szSpecialItemGroupFileName)) {
+        if (!item_manager::instance().read_special_drop_item_file(szSpecialItemGroupFileName.c_str())) {
             metin2::log::error("Cannot load special item groups from {}, shutting down", szSpecialItemGroupFileName);
             thecore_shutdown();
             return;
         }
 
         metin2::log::info("Loading item vnum mask table from {}", szItemVnumMaskTableFileName);
-        if (!item_manager::instance().read_item_vnum_mask_table(szItemVnumMaskTableFileName)) {
+        if (!item_manager::instance().read_item_vnum_mask_table(szItemVnumMaskTableFileName.c_str())) {
             metin2::log::warn("Cannot load item vnum mask table {}, continuing without it", szItemVnumMaskTableFileName);
         }
 
         metin2::log::info("Loading mob drop items from {}", szMOBDropItemFileName);
-        if (!item_manager::instance().read_monster_drop_item_group(szMOBDropItemFileName)) {
+        if (!item_manager::instance().read_monster_drop_item_group(szMOBDropItemFileName.c_str())) {
             metin2::log::error("Cannot load mob drop items from {}, shutting down", szMOBDropItemFileName);
             thecore_shutdown();
             return;
         }
 
         metin2::log::info("Loading map index from {}", szMapIndexFileName);
-        if (!sectree_manager::instance().build(szMapIndexFileName, locale_service_get_map_path().c_str())) {
+        if (!sectree_manager::instance().build(szMapIndexFileName.c_str(), locale_service_get_map_path().c_str())) {
             metin2::log::error("Cannot load map index from {}, shutting down", szMapIndexFileName);
             thecore_shutdown();
             return;
         }
 
         metin2::log::info("Loading dragon soul table from {}", szDragonSoulTableFileName);
-        if (!ds_manager::instance().read_dragon_soul_table_file(szDragonSoulTableFileName)) {
+        if (!ds_manager::instance().read_dragon_soul_table_file(szDragonSoulTableFileName.c_str())) {
             metin2::log::error("Cannot load dragon soul table from {}", szDragonSoulTableFileName);
         }
 
@@ -886,7 +868,7 @@ namespace metin2::game::inline protocol {
                 st += ".";
                 st += pQuestTable[i].state;
 
-                metin2::log::debug("Quest flag {} = {:d}", st.c_str(), pQuestTable[i].value);
+                metin2::log::debug("Quest flag {} = {:d}", st, pQuestTable[i].value);
                 pkPC->set_flag(st.c_str(), pQuestTable[i].value, false);
             }
 

@@ -18,7 +18,7 @@ TEST(str_to_number_parses_like_strtol) {
     CHECK(str_to_number(value, "  +7 apples"));
     CHECK_EQ(value, 7);
 
-    CHECK(str_to_number(value, "abc"));
+    CHECK(!str_to_number(value, "abc"));
     CHECK_EQ(value, 0);
 
     CHECK(!str_to_number(value, ""));
@@ -105,6 +105,13 @@ TEST(number_stays_in_range) {
     const int swapped = number(10, 5);
     CHECK(swapped >= 5 && swapped <= 10);
     CHECK_EQ(number(3, 3), 3);
+}
+
+TEST(parse_handles_wide_unsigned_values) {
+    CHECK_EQ(parse<uint64_t>("18446744073709551615").value_or(0), UINT64_MAX);
+    CHECK_EQ(parse<int>(" -12x").value_or(0), -12);
+    CHECK(!parse<int>("x").has_value());
+    CHECK_EQ(parse<uint8_t>("300").value_or(0), uint8_t{44});
 }
 
 TEST(random_helpers_stay_in_range) {

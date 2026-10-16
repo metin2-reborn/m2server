@@ -25,6 +25,8 @@
 #include <algorithm>
 #include <cstdint>
 #include <cstdio>
+#include <format>
+#include <string>
 
 namespace metin2::game::inline combat {
 
@@ -389,40 +391,37 @@ namespace metin2::game::inline combat {
             int DEBUG_iWP = 0;
             int DEBUG_iPureAtk = 0;
             int DEBUG_iPureDam = 0;
-            char szRB[32] = "";
-            char szGradeAtkBonus[32] = "";
+            std::string szRB;
+            std::string szGradeAtkBonus;
 
             DEBUG_iWP = int(DEBUG_iDamCur * fAR);
             DEBUG_iPureAtk = DEBUG_iLV + DEBUG_iST + DEBUG_iWP + DEBUG_iDamBonus;
             DEBUG_iPureDam = iAtk - iDef;
 
             if (attacker->is_npc()) {
-                snprintf(szGradeAtkBonus, sizeof(szGradeAtkBonus), "=%d*%.1f", DEBUG_iPureAtk, attacker->mob_damage_multiply());
+                szGradeAtkBonus = std::format("={}*{:.1f}", DEBUG_iPureAtk, attacker->mob_damage_multiply());
                 DEBUG_iPureAtk = int(DEBUG_iPureAtk * attacker->mob_damage_multiply());
             }
 
             if (DEBUG_iDamBonus != 0)
-                snprintf(szRB, sizeof(szRB), "+RB(%d)", DEBUG_iDamBonus);
+                szRB = std::format("+RB({})", DEBUG_iDamBonus);
 
-            char szPT[32] = "";
+            std::string szPT;
 
             if (DEBUG_iPT != 0)
-                snprintf(szPT, sizeof(szPT), ", PT=%d", DEBUG_iPT);
+                szPT = std::format(", PT={}", DEBUG_iPT);
 
-            char szUnknownAtk[32] = "";
+            std::string szUnknownAtk;
 
             if (iAtk != DEBUG_iPureAtk)
-                snprintf(szUnknownAtk, sizeof(szUnknownAtk), "+?(%d)", iAtk - DEBUG_iPureAtk);
+                szUnknownAtk = std::format("+?({})", iAtk - DEBUG_iPureAtk);
 
-            char szUnknownDam[32] = "";
+            std::string szUnknownDam;
 
             if (iDam != DEBUG_iPureDam)
-                snprintf(szUnknownDam, sizeof(szUnknownDam), "+?(%d)", iDam - DEBUG_iPureDam);
+                szUnknownDam = std::format("+?({})", iDam - DEBUG_iPureDam);
 
-            char szMeleeAttack[128];
-
-            snprintf(szMeleeAttack, sizeof(szMeleeAttack),
-                "%s(%d)-%s(%d)=%d%s, ATK=LV(%d)+ST(%d)+WP(%d)%s%s%s, AR=%.3g%s",
+            const std::string szMeleeAttack = std::format("{}({})-{}({})={}{}, ATK=LV({})+ST({})+WP({}){}{}{}, AR={:.3g}{}",
                 attacker->name(),
                 iAtk,
                 victim->name(),
@@ -438,8 +437,8 @@ namespace metin2::game::inline combat {
                 fAR,
                 szPT);
 
-            attacker->chat_packet(CHAT_TYPE_TALKING, "%s", szMeleeAttack);
-            victim->chat_packet(CHAT_TYPE_TALKING, "%s", szMeleeAttack);
+            attacker->chat_packet(CHAT_TYPE_TALKING, "%s", szMeleeAttack.c_str());
+            victim->chat_packet(CHAT_TYPE_TALKING, "%s", szMeleeAttack.c_str());
         }
 
         return calc_battle_damage(iDam, attacker->level(), victim->level());

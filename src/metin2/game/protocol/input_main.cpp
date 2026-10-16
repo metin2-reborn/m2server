@@ -55,6 +55,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <format>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -499,20 +500,20 @@ namespace metin2::game::inline protocol {
             return iExtraLen;
         }
 
-        char chatbuf[CHAT_MAX_LEN + 1];
-        int len = snprintf(chatbuf, sizeof(chatbuf), "%s : %s", ch->name(), buf);
+        std::string chat = std::format("{} : {}", ch->name(), buf);
 
         if (CHAT_TYPE_SHOUT == pinfo->type) {
-            log_manager::instance().shout_log(metin2::config::server().channel, ch->empire(), chatbuf);
+            log_manager::instance().shout_log(metin2::config::server().channel, ch->empire(), chat.c_str());
         }
 
-        banword_manager::instance().convert_string(buf, buflen);
-        len = snprintf(chatbuf, sizeof(chatbuf), "%s : %s", ch->name(), buf);
+        banword_manager::instance().convert_string(chat.data() + (chat.size() - buflen), buflen);
 
-        if (len < 0 || len >= (int)sizeof(chatbuf))
-            len = sizeof(chatbuf) - 1;
+        if (chat.size() > CHAT_MAX_LEN)
+            chat.resize(CHAT_MAX_LEN);
 
-        int processReturn = process_text_tag(ch, chatbuf, len);
+        const int len = chat.size();
+
+        int processReturn = process_text_tag(ch, chat.c_str(), len);
         if (0 != processReturn) {
             const item_table *pTable = item_manager::instance().table(ITEM_PRISM);
 
@@ -543,11 +544,11 @@ namespace metin2::game::inline protocol {
 
             p.header = HEADER_GG_SHOUT;
             p.empire = ch->empire();
-            utf8_strlcpy(p.text, chatbuf, sizeof(p.text));
+            utf8_strlcpy(p.text, chat.c_str(), sizeof(p.text));
 
             p2p_manager::instance().send(&p, sizeof(packet_gg_shout));
 
-            send_shout(chatbuf, ch->empire());
+            send_shout(chat.c_str(), ch->empire());
 
             return (iExtraLen);
         }
@@ -585,9 +586,9 @@ namespace metin2::game::inline protocol {
                         empire == 0 ||
                         d->get_character()->gm_level() > GM_PLAYER ||
                         d->get_character()->is_equip_unique_group(UNIQUE_GROUP_RING_OF_LANGUAGE)) {
-                        d->packet(chatbuf, len);
+                        d->packet(chat.data(), len);
                     } else {
-                        utf8_strlcpy(converted_msg, chatbuf, sizeof(converted_msg));
+                        utf8_strlcpy(converted_msg, chat.c_str(), sizeof(converted_msg));
                         size_t converted_len = strlen(converted_msg);
 
                         convert_empire_text(empire, converted_msg + namelen, converted_len - namelen, 10 + 2 * d->get_character()->skill_power(SKILL_LANGUAGE1 + empire - 1));
@@ -605,7 +606,7 @@ namespace metin2::game::inline protocol {
                     temp_buffer tbuf;
 
                     tbuf.write(&pack_chat, sizeof(pack_chat));
-                    tbuf.write(chatbuf, len);
+                    tbuf.write(chat.data(), len);
 
                     const void *buf = tbuf.read_peek();
                     const int buf_len = tbuf.size();
@@ -625,7 +626,7 @@ namespace metin2::game::inline protocol {
                 if (!ch->get_guild())
                     ch->chat_packet(CHAT_TYPE_INFO, lc_text("길드에 가입하지 않았습니다."));
                 else
-                    ch->get_guild()->chat(chatbuf);
+                    ch->get_guild()->chat(chat.c_str());
             }
             break;
 
@@ -1185,14 +1186,13 @@ namespace metin2::game::inline protocol {
                     unsigned int job = ch->job();
                     unsigned int group = ch->skill_group();
 
-                    char szBuf[256];
-                    snprintf(szBuf, sizeof(szBuf), "SKILL_HACK: name=%s, job=%d, group=%d, motion=%d", name, job, group, motion);
-                    log_manager::instance().hack_log(szBuf, ch->get_desc()->get_account_table().login, ch->name(), ch->get_desc()->host_name());
-                    metin2::log::warn("{}", szBuf);
+                    const std::string hack_text = std::format("SKILL_HACK: name={}, job={}, group={}, motion={}", name, job, group, motion);
+                    log_manager::instance().hack_log(hack_text.c_str(), ch->get_desc()->get_account_table().login, ch->name(), ch->get_desc()->host_name());
+                    metin2::log::warn("{}", hack_text);
 
                     if (metin2::config::test_server()) {
                         ch->get_desc()->delayed_disconnect(number(2, 8));
-                        ch->chat_packet(CHAT_TYPE_INFO, szBuf);
+                        ch->chat_packet(CHAT_TYPE_INFO, hack_text.c_str());
                     } else {
                         ch->get_desc()->delayed_disconnect(number(150, 500));
                     }
@@ -1477,7 +1477,7 @@ namespace metin2::game::inline protocol {
         packet_cg_quest_input_string *p = (packet_cg_quest_input_string *)data;
 
         const std::string msg(p->msg, strnlen(p->msg, sizeof(p->msg) - 1));
-        metin2::log::debug("Quest: pid {:d} entered \"{}\"", ch->player_id(), msg.c_str());
+        metin2::log::debug("Quest: pid {:d} entered \"{}\"", ch->player_id(), msg);
 
         quest::quest_manager::instance().input(ch->player_id(), msg.c_str());
     }
@@ -1562,9 +1562,8 @@ namespace metin2::game::inline protocol {
             ch->sync_quickslot(QUICKSLOT_TYPE_ITEM, p->item_pos.cell, 255);
         pkSafebox->add(p->safe_pos, pkItem);
 
-        char szHint[128];
-        snprintf(szHint, sizeof(szHint), "%s %u", pkItem->name(), pkItem->count());
-        log_manager::instance().item_log(ch, pkItem, "SAFEBOX PUT", szHint);
+        const std::string hint = std::format("{} {}", pkItem->name(), pkItem->count());
+        log_manager::instance().item_log(ch, pkItem, "SAFEBOX PUT", hint.c_str());
     }
 
     void input_main::safebox_checkout(character *ch, const char *data, bool mall_value) {
@@ -1641,12 +1640,11 @@ namespace metin2::game::inline protocol {
         db_clientdesc->db_packet_header(HEADER_GD_ITEM_FLUSH, 0, sizeof(uint32_t));
         db_clientdesc->packet(&dwID, sizeof(uint32_t));
 
-        char szHint[128];
-        snprintf(szHint, sizeof(szHint), "%s %u", pkItem->name(), pkItem->count());
+        const std::string hint = std::format("{} {}", pkItem->name(), pkItem->count());
         if (mall_value)
-            log_manager::instance().item_log(ch, pkItem, "MALL GET", szHint);
+            log_manager::instance().item_log(ch, pkItem, "MALL GET", hint.c_str());
         else
-            log_manager::instance().item_log(ch, pkItem, "SAFEBOX GET", szHint);
+            log_manager::instance().item_log(ch, pkItem, "SAFEBOX GET", hint.c_str());
     }
 
     void input_main::safebox_item_move(character *ch, const char *data) {
@@ -1857,9 +1855,8 @@ namespace metin2::game::inline protocol {
             ch->point_change(POINT_GOLD, -GuildCreateFee);
             db_manager::instance().send_money_log(MONEY_LOG_GUILD, ch->player_id(), -GuildCreateFee);
 
-            char Log[128];
-            snprintf(Log, sizeof(Log), "GUILD_NAME %s MASTER %s", cp.name, ch->name());
-            log_manager::instance().char_log(ch, 0, "MAKE_GUILD", Log);
+            const std::string log_text = std::format("GUILD_NAME {} MASTER {}", cp.name, ch->name());
+            log_manager::instance().char_log(ch, 0, "MAKE_GUILD", log_text.c_str());
 
             ch->remove_specify_item(GUILD_CREATE_ITEM_VNUM, 1);
         } else

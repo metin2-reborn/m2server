@@ -28,6 +28,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <format>
 #include <map>
 #include <numbers>
 #include <string>
@@ -101,11 +102,8 @@ namespace metin2::game::inline events {
 
             memset(fish_info, 0, sizeof(fish_info));
 
-            const int FILE_NAME_LEN = 256;
-            char szFishingFileName[FILE_NAME_LEN + 1];
-            snprintf(szFishingFileName, sizeof(szFishingFileName),
-                "%s/fishing.txt", locale_service_get_base_path().c_str());
-            FILE *fp = fopen(szFishingFileName, "r");
+            const std::string szFishingFileName = std::format("{}/fishing.txt", locale_service_get_base_path());
+            FILE *fp = fopen(szFishingFileName.c_str(), "r");
 
             if (*fish_info_bak[0].name)
                 send_log("Reloading fish table.");

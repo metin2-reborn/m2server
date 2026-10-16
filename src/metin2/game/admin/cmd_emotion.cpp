@@ -16,7 +16,9 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <format>
 #include <set>
+#include <string>
 #include <utility>
 
 namespace metin2::game::inline admin {
@@ -187,15 +189,11 @@ namespace metin2::game::inline admin {
             }
         }
 
-        char chatbuf[256 + 1];
-        int len = snprintf(chatbuf, sizeof(chatbuf), "%s %u %u",
+        const std::string text = std::format("{} {} {}",
             emotion_types[i].command_to_client,
             (uint32_t)ch->get_vid(), victim ? (uint32_t)victim->get_vid() : 0);
 
-        if (len < 0 || len >= (int)sizeof(chatbuf))
-            len = sizeof(chatbuf) - 1;
-
-        ++len;
+        const int len = text.size() + 1;
 
         packet_gc_chat pack_chat;
         pack_chat.header = HEADER_GC_CHAT;
@@ -204,7 +202,7 @@ namespace metin2::game::inline admin {
         pack_chat.id = 0;
         temp_buffer buf;
         buf.write(&pack_chat, sizeof(packet_gc_chat));
-        buf.write(chatbuf, len);
+        buf.write(text.c_str(), len);
 
         ch->packet_around(buf.read_peek(), buf.size());
 

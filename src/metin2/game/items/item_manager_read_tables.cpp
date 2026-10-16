@@ -15,6 +15,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <format>
 #include <map>
 #include <memory>
 #include <string>
@@ -122,12 +123,12 @@ namespace metin2::game::inline items {
             int iVnum;
 
             if (!loader.token_integer("vnum", &iVnum)) {
-                metin2::log::error("{}: group {} has no vnum", file_name, stName.c_str());
+                metin2::log::error("{}: group {} has no vnum", file_name, stName);
                 loader.set_parent_node();
                 return false;
             }
 
-            metin2::log::debug("Special item group {} (vnum {:d})", stName.c_str(), iVnum);
+            metin2::log::debug("Special item group {} (vnum {:d})", stName, iVnum);
 
             token_vector *pTok;
 
@@ -148,17 +149,14 @@ namespace metin2::game::inline items {
             if ("attr" == stType) {
                 auto pkGroup = std::make_unique<special_attr_group>(iVnum);
                 for (int k = 1; k < 256; ++k) {
-                    char buf[4];
-                    snprintf(buf, sizeof(buf), "%d", k);
-
-                    if (loader.get_token_vector(buf, &pTok)) {
+                    if (loader.get_token_vector(std::to_string(k), &pTok)) {
                         uint32_t apply_type = 0;
                         int apply_value = 0;
                         str_to_number(apply_type, pTok->at(0).c_str());
                         if (0 == apply_type) {
                             apply_type = fn_get_apply_type(pTok->at(0).c_str());
                             if (0 == apply_type) {
-                                metin2::log::error("Unknown apply type {} in special item group {:d}", pTok->at(0).c_str(), iVnum);
+                                metin2::log::error("Unknown apply type {} in special item group {:d}", pTok->at(0), iVnum);
                                 return false;
                             }
                         }
@@ -180,10 +178,7 @@ namespace metin2::game::inline items {
             } else {
                 auto pkGroup = std::make_unique<special_item_group>(iVnum, type);
                 for (int k = 1; k < 256; ++k) {
-                    char buf[4];
-                    snprintf(buf, sizeof(buf), "%d", k);
-
-                    if (loader.get_token_vector(buf, &pTok)) {
+                    if (loader.get_token_vector(std::to_string(k), &pTok)) {
                         const std::string &name = pTok->at(0);
                         uint32_t dwVnum = 0;
 
@@ -203,7 +198,7 @@ namespace metin2::game::inline items {
                             } else {
                                 str_to_number(dwVnum, name.c_str());
                                 if (!item_manager::instance().table(dwVnum)) {
-                                    metin2::log::error("Unknown item {} in special item group {}", name.c_str(), stName.c_str());
+                                    metin2::log::error("Unknown item {} in special item group {}", name, stName);
                                     return false;
                                 }
                             }
@@ -219,7 +214,7 @@ namespace metin2::game::inline items {
                             str_to_number(iRarePct, pTok->at(3).c_str());
                         }
 
-                        metin2::log::debug("Special item group: item {} count {:d} chance {:d} rare {:d}", name.c_str(), iCount, iProb, iRarePct);
+                        metin2::log::debug("Special item group: item {} count {:d} chance {:d} rare {:d}", name, iCount, iProb, iRarePct);
                         pkGroup->add_item(dwVnum, iCount, iProb, iRarePct);
 
                         if (iVnum < 30000) {
@@ -244,9 +239,7 @@ namespace metin2::game::inline items {
     }
 
     auto item_manager::conv_special_drop_item_file() -> bool {
-        char szSpecialItemGroupFileName[256];
-        snprintf(szSpecialItemGroupFileName, sizeof(szSpecialItemGroupFileName),
-            "%s/special_item_group.txt", locale_service_get_base_path().c_str());
+        const std::string szSpecialItemGroupFileName = std::format("{}/special_item_group.txt", locale_service_get_base_path());
 
         FILE *fp = fopen("special_item_group_vnum.txt", "w");
         if (!fp) {
@@ -256,7 +249,7 @@ namespace metin2::game::inline items {
 
         text_file_loader loader;
 
-        if (!loader.load(szSpecialItemGroupFileName)) {
+        if (!loader.load(szSpecialItemGroupFileName.c_str())) {
             fclose(fp);
             return false;
         }
@@ -271,7 +264,7 @@ namespace metin2::game::inline items {
             int iVnum;
 
             if (!loader.token_integer("vnum", &iVnum)) {
-                metin2::log::error("{}: group {} has no vnum", szSpecialItemGroupFileName, stName.c_str());
+                metin2::log::error("{}: group {} has no vnum", szSpecialItemGroupFileName, stName);
                 loader.set_parent_node();
                 fclose(fp);
                 return false;
@@ -295,10 +288,7 @@ namespace metin2::game::inline items {
                 fprintf(fp, "	Type	Pct");
 
             for (int k = 1; k < 256; ++k) {
-                char buf[4];
-                snprintf(buf, sizeof(buf), "%d", k);
-
-                if (loader.get_token_vector(buf, &pTok)) {
+                if (loader.get_token_vector(std::to_string(k), &pTok)) {
                     const std::string &name = pTok->at(0);
                     uint32_t dwVnum = 0;
 
@@ -313,7 +303,7 @@ namespace metin2::game::inline items {
                         } else {
                             str_to_number(dwVnum, name.c_str());
                             if (!item_manager::instance().table(dwVnum)) {
-                                metin2::log::error("Unknown item {} in special item group {}", name.c_str(), stName.c_str());
+                                metin2::log::error("Unknown item {} in special item group {}", name, stName);
                                 fclose(fp);
 
                                 return false;
@@ -421,20 +411,20 @@ namespace metin2::game::inline items {
             std::string strType("");
 
             if (!loader.token_string("type", &strType)) {
-                metin2::log::error("{}: group {} has no type (kill or drop)", file_name, stName.c_str());
+                metin2::log::error("{}: group {} has no type (kill or drop)", file_name, stName);
                 loader.set_parent_node();
                 return false;
             }
 
             if (!loader.token_integer("mob", &iMobVnum)) {
-                metin2::log::error("{}: group {} has no mob vnum", file_name, stName.c_str());
+                metin2::log::error("{}: group {} has no mob vnum", file_name, stName);
                 loader.set_parent_node();
                 return false;
             }
 
             if (strType == "kill") {
                 if (!loader.token_integer("kill_drop", &iKillDrop)) {
-                    metin2::log::error("{}: group {} has no kill_drop count", file_name, stName.c_str());
+                    metin2::log::error("{}: group {} has no kill_drop count", file_name, stName);
                     loader.set_parent_node();
                     return false;
                 }
@@ -444,7 +434,7 @@ namespace metin2::game::inline items {
 
             if (strType == "limit") {
                 if (!loader.token_integer("level_limit", &iLevelLimit)) {
-                    metin2::log::error("{}: group {} has no level_limit", file_name, stName.c_str());
+                    metin2::log::error("{}: group {} has no level_limit", file_name, stName);
                     loader.set_parent_node();
                     return false;
                 }
@@ -452,7 +442,7 @@ namespace metin2::game::inline items {
                 iLevelLimit = 0;
             }
 
-            metin2::log::debug("Mob drop group {} ({}), mob {:d}, kill drop {:d}", stName.c_str(), strType.c_str(), iMobVnum, iKillDrop);
+            metin2::log::debug("Mob drop group {} ({}), mob {:d}, kill drop {:d}", stName, strType, iMobVnum, iKillDrop);
 
             if (iKillDrop == 0) {
                 loader.set_parent_node();
@@ -465,17 +455,14 @@ namespace metin2::game::inline items {
                 auto pkGroup = std::make_unique<mob_item_group>(iKillDrop);
 
                 for (int k = 1; k < 256; ++k) {
-                    char buf[4];
-                    snprintf(buf, sizeof(buf), "%d", k);
-
-                    if (loader.get_token_vector(buf, &pTok)) {
+                    if (loader.get_token_vector(std::to_string(k), &pTok)) {
                         std::string &name = pTok->at(0);
                         uint32_t dwVnum = 0;
 
                         if (!vnum_by_original_name(name.c_str(), dwVnum)) {
                             str_to_number(dwVnum, name.c_str());
                             if (!item_manager::instance().table(dwVnum)) {
-                                metin2::log::error("Unknown item {} (vnum {:d}) in mob drop group {}", name.c_str(), dwVnum, stName.c_str());
+                                metin2::log::error("Unknown item {} (vnum {:d}) in mob drop group {}", name, dwVnum, stName);
                                 return false;
                             }
                         }
@@ -484,7 +471,7 @@ namespace metin2::game::inline items {
                         str_to_number(iCount, pTok->at(1).c_str());
 
                         if (iCount < 1) {
-                            metin2::log::error("Item {} (vnum {:d}) in mob drop group {} has invalid count {:d}", name.c_str(), dwVnum, stName.c_str(), iCount);
+                            metin2::log::error("Item {} (vnum {:d}) in mob drop group {} has invalid count {:d}", name, dwVnum, stName, iCount);
                             return false;
                         }
 
@@ -492,7 +479,7 @@ namespace metin2::game::inline items {
                         str_to_number(iPartPct, pTok->at(2).c_str());
 
                         if (iPartPct == 0) {
-                            metin2::log::error("Item {} (vnum {:d}, count {:d}) in mob drop group {} has no drop chance ({:d})", name.c_str(), dwVnum, iCount, stName.c_str(), iPartPct);
+                            metin2::log::error("Item {} (vnum {:d}, count {:d}) in mob drop group {} has no drop chance ({:d})", name, dwVnum, iCount, stName, iPartPct);
                             return false;
                         }
 
@@ -500,7 +487,7 @@ namespace metin2::game::inline items {
                         str_to_number(iRarePct, pTok->at(3).c_str());
                         iRarePct = std::clamp(iRarePct, 0, 100);
 
-                        metin2::log::debug("Mob drop group: item {} count {:d} rare {:d}", name.c_str(), iCount, iRarePct);
+                        metin2::log::debug("Mob drop group: item {} count {:d} rare {:d}", name, iCount, iRarePct);
                         pkGroup->add_item(dwVnum, iCount, iPartPct, iRarePct);
                         continue;
                     }
@@ -521,17 +508,14 @@ namespace metin2::game::inline items {
                 }
 
                 for (int k = 1; k < 256; ++k) {
-                    char buf[4];
-                    snprintf(buf, sizeof(buf), "%d", k);
-
-                    if (loader.get_token_vector(buf, &pTok)) {
+                    if (loader.get_token_vector(std::to_string(k), &pTok)) {
                         std::string &name = pTok->at(0);
                         uint32_t dwVnum = 0;
 
                         if (!vnum_by_original_name(name.c_str(), dwVnum)) {
                             str_to_number(dwVnum, name.c_str());
                             if (!item_manager::instance().table(dwVnum)) {
-                                metin2::log::error("Unknown item {} in drop group {}", name.c_str(), stName.c_str());
+                                metin2::log::error("Unknown item {} in drop group {}", name, stName);
                                 return false;
                             }
                         }
@@ -540,7 +524,7 @@ namespace metin2::game::inline items {
                         str_to_number(iCount, pTok->at(1).c_str());
 
                         if (iCount < 1) {
-                            metin2::log::error("Item {} in drop group {} has invalid count", name.c_str(), stName.c_str());
+                            metin2::log::error("Item {} in drop group {} has invalid count", name, stName);
                             return false;
                         }
 
@@ -548,7 +532,7 @@ namespace metin2::game::inline items {
 
                         uint32_t dwPct = (uint32_t)(10000.0f * fPercent);
 
-                        metin2::log::debug("Drop group: item {} chance {:d} count {:d}", name.c_str(), dwPct, iCount);
+                        metin2::log::debug("Drop group: item {} chance {:d} count {:d}", name, dwPct, iCount);
                         pkGroup->add_item(dwVnum, dwPct, iCount);
 
                         continue;
@@ -563,10 +547,7 @@ namespace metin2::game::inline items {
                 auto pkLevelItemGroup = std::make_unique<level_item_group>(iLevelLimit);
 
                 for (int k = 1; k < 256; k++) {
-                    char buf[4];
-                    snprintf(buf, sizeof(buf), "%d", k);
-
-                    if (loader.get_token_vector(buf, &pTok)) {
+                    if (loader.get_token_vector(std::to_string(k), &pTok)) {
                         std::string &name = pTok->at(0);
                         uint32_t dwItemVnum = 0;
 
@@ -600,17 +581,14 @@ namespace metin2::game::inline items {
                 auto pkGroup = std::make_unique<buyer_thief_gloves_item_group>();
 
                 for (int k = 1; k < 256; ++k) {
-                    char buf[4];
-                    snprintf(buf, sizeof(buf), "%d", k);
-
-                    if (loader.get_token_vector(buf, &pTok)) {
+                    if (loader.get_token_vector(std::to_string(k), &pTok)) {
                         std::string &name = pTok->at(0);
                         uint32_t dwVnum = 0;
 
                         if (!vnum_by_original_name(name.c_str(), dwVnum)) {
                             str_to_number(dwVnum, name.c_str());
                             if (!item_manager::instance().table(dwVnum)) {
-                                metin2::log::error("Unknown item {} in drop group {}", name.c_str(), stName.c_str());
+                                metin2::log::error("Unknown item {} in drop group {}", name, stName);
                                 return false;
                             }
                         }
@@ -619,7 +597,7 @@ namespace metin2::game::inline items {
                         str_to_number(iCount, pTok->at(1).c_str());
 
                         if (iCount < 1) {
-                            metin2::log::error("Item {} in drop group {} has invalid count", name.c_str(), stName.c_str());
+                            metin2::log::error("Item {} in drop group {} has invalid count", name, stName);
                             return false;
                         }
 
@@ -627,7 +605,7 @@ namespace metin2::game::inline items {
 
                         uint32_t dwPct = (uint32_t)(10000.0f * fPercent);
 
-                        metin2::log::debug("Drop group: item {} chance {:d} count {:d}", name.c_str(), dwPct, iCount);
+                        metin2::log::debug("Drop group: item {} chance {:d} count {:d}", name, dwPct, iCount);
                         pkGroup->add_item(dwVnum, dwPct, iCount);
 
                         continue;
@@ -638,7 +616,7 @@ namespace metin2::game::inline items {
 
                 map_glove_item_group_.emplace(iMobVnum, std::move(pkGroup));
             } else {
-                metin2::log::error("{}: group {} has invalid type {} (expected kill or drop)", file_name, stName.c_str(), strType.c_str());
+                metin2::log::error("{}: group {} has invalid type {} (expected kill or drop)", file_name, stName, strType);
                 loader.set_parent_node();
                 return false;
             }
@@ -666,18 +644,18 @@ namespace metin2::game::inline items {
             int iMobVnum;
 
             if (!loader.token_integer("vnum", &iVnum)) {
-                metin2::log::error("{}: group {} has no vnum", file_name, stName.c_str());
+                metin2::log::error("{}: group {} has no vnum", file_name, stName);
                 loader.set_parent_node();
                 return false;
             }
 
             if (!loader.token_integer("mob", &iMobVnum)) {
-                metin2::log::error("{}: group {} has no mob vnum", file_name, stName.c_str());
+                metin2::log::error("{}: group {} has no mob vnum", file_name, stName);
                 loader.set_parent_node();
                 return false;
             }
 
-            metin2::log::debug("Drop group {} for mob {:d}", stName.c_str(), iMobVnum);
+            metin2::log::debug("Drop group {} for mob {:d}", stName, iMobVnum);
 
             token_vector *pTok;
 
@@ -693,17 +671,14 @@ namespace metin2::game::inline items {
                 pkGroup = it->second.get();
 
             for (int k = 1; k < 256; ++k) {
-                char buf[4];
-                snprintf(buf, sizeof(buf), "%d", k);
-
-                if (loader.get_token_vector(buf, &pTok)) {
+                if (loader.get_token_vector(std::to_string(k), &pTok)) {
                     std::string &name = pTok->at(0);
                     uint32_t dwVnum = 0;
 
                     if (!vnum_by_original_name(name.c_str(), dwVnum)) {
                         str_to_number(dwVnum, name.c_str());
                         if (!item_manager::instance().table(dwVnum)) {
-                            metin2::log::error("Unknown item {} in drop group {}", name.c_str(), stName.c_str());
+                            metin2::log::error("Unknown item {} in drop group {}", name, stName);
                             return false;
                         }
                     }
@@ -717,11 +692,11 @@ namespace metin2::game::inline items {
                         str_to_number(iCount, pTok->at(2).c_str());
 
                     if (iCount < 1) {
-                        metin2::log::error("Item {} in drop group {} has invalid count", name.c_str(), stName.c_str());
+                        metin2::log::error("Item {} in drop group {} has invalid count", name, stName);
                         return false;
                     }
 
-                    metin2::log::debug("Drop group: item {} chance {:d} count {:d}", name.c_str(), dwPct, iCount);
+                    metin2::log::debug("Drop group: item {} chance {:d} count {:d}", name, dwPct, iCount);
                     pkGroup->add_item(dwVnum, dwPct, iCount);
                     continue;
                 }

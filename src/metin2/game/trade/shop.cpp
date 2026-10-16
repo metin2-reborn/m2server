@@ -24,7 +24,9 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <format>
 #include <memory>
+#include <string>
 
 namespace metin2::game::inline trade {
     shop::shop()
@@ -151,8 +153,7 @@ namespace metin2::game::inline trade {
                     item.price = item_table->gold * item.count;
             }
 
-            char name[36];
-            snprintf(name, sizeof(name), "%-20s(#%-5d) (x %d)", item_table->name, (int)item.vnum, item.count);
+            const std::string name = std::format("{:<20}(#{:<5}) (x {})", item_table->name, (int)item.vnum, item.count);
 
             metin2::log::debug("Shop: item {} price {:d}", name, item.price);
             ++table_value;
@@ -274,12 +275,12 @@ namespace metin2::game::inline trade {
         if (pc_) {
             pc_->sync_quickslot(QUICKSLOT_TYPE_ITEM, item->cell(), 255);
 
-            char buf[512];
+            std::string buf;
 
             if (item->vnum() >= 80003 && item->vnum() <= 80007) {
-                snprintf(buf, sizeof(buf), "%s FROM: %u TO: %u PRICE: %u", item->name(), ch->player_id(), pc_->player_id(), dwPrice);
-                log_manager::instance().gold_bar_log(ch->player_id(), item->id(), SHOP_BUY, buf);
-                log_manager::instance().gold_bar_log(pc_->player_id(), item->id(), SHOP_SELL, buf);
+                buf = std::format("{} FROM: {} TO: {} PRICE: {}", item->name(), ch->player_id(), pc_->player_id(), dwPrice);
+                log_manager::instance().gold_bar_log(ch->player_id(), item->id(), SHOP_BUY, buf.c_str());
+                log_manager::instance().gold_bar_log(pc_->player_id(), item->id(), SHOP_SELL, buf.c_str());
             }
 
             item->remove_from_character();
@@ -289,11 +290,11 @@ namespace metin2::game::inline trade {
                 item->add_to_character(ch, item_pos(INVENTORY, iEmptyPos));
             item_manager::instance().flush_delayed_save(item);
 
-            snprintf(buf, sizeof(buf), "%s %u(%s) %u %u", item->name(), pc_->player_id(), pc_->name(), dwPrice, item->count());
-            log_manager::instance().item_log(ch, item, "SHOP_BUY", buf);
+            buf = std::format("{} {}({}) {} {}", item->name(), pc_->player_id(), pc_->name(), dwPrice, item->count());
+            log_manager::instance().item_log(ch, item, "SHOP_BUY", buf.c_str());
 
-            snprintf(buf, sizeof(buf), "%s %u(%s) %u %u", item->name(), ch->player_id(), ch->name(), dwPrice, item->count());
-            log_manager::instance().item_log(pc_, item, "SHOP_SELL", buf);
+            buf = std::format("{} {}({}) {} {}", item->name(), ch->player_id(), ch->name(), dwPrice, item->count());
+            log_manager::instance().item_log(pc_, item, "SHOP_SELL", buf.c_str());
 
             r_item.item = nullptr;
             broadcast_update_item(pos);

@@ -9,11 +9,11 @@
 #include <metin2/log/log.h>
 #include <metin2/proto/length.h>
 #include <metin2/proto/tables.h>
+#include <metin2/sql/query.h>
 
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
-#include <cstdio>
 #include <cstring>
 #include <ctime>
 #include <string>
@@ -47,12 +47,11 @@ namespace metin2::db::inline caches {
 
     void item_cache::on_flush() {
         if (data_.vnum == 0) {
-            char szQuery[QUERY_MAX_LEN];
-            snprintf(szQuery, sizeof(szQuery), "DELETE FROM item%s WHERE id=%u", get_table_postfix(), data_.id);
-            db_manager::instance().return_query(szQuery, [](sql_msg &) {});
+            const std::string query = sql::format("DELETE FROM item{} WHERE id={}", sql::raw(get_table_postfix()), data_.id);
+            db_manager::instance().return_query(query, [](sql_msg &) {});
 
             if (metin2::config::test_server()) {
-                metin2::log::debug("Item cache: deleting item {:d}: {}", data_.id, szQuery);
+                metin2::log::debug("Item cache: deleting item {:d}: {}", data_.id, query);
             }
         } else {
             int32_t alSockets[ITEM_SOCKET_MAX_NUM];
@@ -72,46 +71,21 @@ namespace metin2::db::inline caches {
                 isAttr = true;
             }
 
-            char szColumns[QUERY_MAX_LEN];
-            char szValues[QUERY_MAX_LEN];
-            char szUpdate[QUERY_MAX_LEN];
-
-            int iLen = snprintf(szColumns, sizeof(szColumns), "id, owner_id, window, pos, count, vnum");
-
-            int iValueLen = snprintf(szValues, sizeof(szValues), "%u, %u, %d, %d, %u, %u", p->id, p->owner, p->window, p->pos, p->count, p->vnum);
-            int iUpdateLen = snprintf(szUpdate, sizeof(szUpdate), "owner_id=%u, window=%d, pos=%d, count=%u, vnum=%u", p->owner, p->window, p->pos, p->count, p->vnum);
+            std::string columns = "id, owner_id, window, pos, count, vnum";
+            std::string values = sql::format("{}, {}, {}, {}, {}, {}", p->id, p->owner, p->window, p->pos, p->count, p->vnum);
 
             if (isSocket) {
-                iLen += snprintf(szColumns + iLen, sizeof(szColumns) - iLen, ", socket0, socket1, socket2");
-                iValueLen += snprintf(szValues + iValueLen, sizeof(szValues) - iValueLen,
-                    ", %u, %u, %u", p->sockets[0], p->sockets[1], p->sockets[2]);
-                iUpdateLen += snprintf(szUpdate + iUpdateLen, sizeof(szUpdate) - iUpdateLen,
-                    ", socket0=%u, socket1=%u, socket2=%u", p->sockets[0], p->sockets[1], p->sockets[2]);
+                columns += ", socket0, socket1, socket2";
+                values += sql::format(", {}, {}, {}",
+                    static_cast<uint32_t>(p->sockets[0]), static_cast<uint32_t>(p->sockets[1]), static_cast<uint32_t>(p->sockets[2]));
             }
 
             if (isAttr) {
-                iLen += snprintf(szColumns + iLen, sizeof(szColumns) - iLen,
+                columns +=
                     ", attrtype0, attrvalue0, attrtype1, attrvalue1, attrtype2, attrvalue2, attrtype3, attrvalue3"
-                    ", attrtype4, attrvalue4, attrtype5, attrvalue5, attrtype6, attrvalue6");
+                    ", attrtype4, attrvalue4, attrtype5, attrvalue5, attrtype6, attrvalue6";
 
-                iValueLen += snprintf(szValues + iValueLen, sizeof(szValues) - iValueLen,
-                    ", %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d",
-                    p->attr[0].type, p->attr[0].s_value,
-                    p->attr[1].type, p->attr[1].s_value,
-                    p->attr[2].type, p->attr[2].s_value,
-                    p->attr[3].type, p->attr[3].s_value,
-                    p->attr[4].type, p->attr[4].s_value,
-                    p->attr[5].type, p->attr[5].s_value,
-                    p->attr[6].type, p->attr[6].s_value);
-
-                iUpdateLen += snprintf(szUpdate + iUpdateLen, sizeof(szUpdate) - iUpdateLen,
-                    ", attrtype0=%d, attrvalue0=%d"
-                    ", attrtype1=%d, attrvalue1=%d"
-                    ", attrtype2=%d, attrvalue2=%d"
-                    ", attrtype3=%d, attrvalue3=%d"
-                    ", attrtype4=%d, attrvalue4=%d"
-                    ", attrtype5=%d, attrvalue5=%d"
-                    ", attrtype6=%d, attrvalue6=%d",
+                values += sql::format(", {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}",
                     p->attr[0].type, p->attr[0].s_value,
                     p->attr[1].type, p->attr[1].s_value,
                     p->attr[2].type, p->attr[2].s_value,
@@ -121,13 +95,12 @@ namespace metin2::db::inline caches {
                     p->attr[6].type, p->attr[6].s_value);
             }
 
-            char szItemQuery[QUERY_MAX_LEN + QUERY_MAX_LEN];
-            snprintf(szItemQuery, sizeof(szItemQuery), "REPLACE INTO item%s (%s) VALUES(%s)", get_table_postfix(), szColumns, szValues);
+            const std::string query = sql::format("REPLACE INTO item{} ({}) VALUES({})", sql::raw(get_table_postfix()), sql::raw(columns), sql::raw(values));
 
             if (metin2::config::test_server())
-                metin2::log::debug("Item cache: saving item: {}", szItemQuery);
+                metin2::log::debug("Item cache: saving item: {}", query);
 
-            db_manager::instance().return_query(szItemQuery, [](sql_msg &) {});
+            db_manager::instance().return_query(query, [](sql_msg &) {});
 
             ++item_count;
         }
@@ -147,7 +120,7 @@ namespace metin2::db::inline caches {
             metin2::log::debug("Player cache: saving player {}", data_.name);
 
         const std::string query = create_player_save_query(&data_);
-        db_manager::instance().return_query(query.c_str(), [](sql_msg &) {});
+        db_manager::instance().return_query(query, [](sql_msg &) {});
     }
 
     const int item_price_list_table_cache::min_flush_sec_ = 1800;
@@ -203,16 +176,14 @@ namespace metin2::db::inline caches {
     }
 
     void item_price_list_table_cache::on_flush() {
-        char szQuery[QUERY_MAX_LEN];
-
-        snprintf(szQuery, sizeof(szQuery), "DELETE FROM myshop_pricelist%s WHERE owner_id = %u", get_table_postfix(), data_.owner_id);
-        db_manager::instance().return_query(szQuery, [](sql_msg &) {});
+        const std::string query = sql::format("DELETE FROM myshop_pricelist{} WHERE owner_id = {}", sql::raw(get_table_postfix()), data_.owner_id);
+        db_manager::instance().return_query(query, [](sql_msg &) {});
 
         for (int idx = 0; idx < data_.count; ++idx) {
-            snprintf(szQuery, sizeof(szQuery),
-                "REPLACE myshop_pricelist%s (owner_id, item_vnum, price) VALUES(%u, %u, %u)",
-                get_table_postfix(), data_.owner_id, data_.price_info[idx].vnum, data_.price_info[idx].price);
-            db_manager::instance().return_query(szQuery, [](sql_msg &) {});
+            const std::string replace_query = sql::format(
+                "REPLACE myshop_pricelist{} (owner_id, item_vnum, price) VALUES({}, {}, {})",
+                sql::raw(get_table_postfix()), data_.owner_id, data_.price_info[idx].vnum, data_.price_info[idx].price);
+            db_manager::instance().return_query(replace_query, [](sql_msg &) {});
         }
 
         metin2::log::debug("Price list: saving {1:d} items for owner pid {0:d}", data_.owner_id, data_.count);

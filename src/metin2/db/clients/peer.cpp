@@ -62,7 +62,7 @@ namespace metin2::db::inline clients {
 
     void peer::on_close(const std::error_code &error) {
         if (error)
-            metin2::log::warn("Lost connection to peer {}: {}", host(), error.message().c_str());
+            metin2::log::warn("Lost connection to peer {}: {}", host(), error.message());
 
         state_ = STATE_CLOSE;
     }

@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <format>
 #include <string>
 
 #include <sys/types.h>
@@ -27,9 +28,7 @@ namespace metin2::game::inline text {
         for (uint16_t i = 0; i < size_value; ++i, ++p)
             hashmap_words_[p->word] = true;
 
-        char szBuf[256];
-        snprintf(szBuf, sizeof(szBuf), "Banword reloaded! (total %zu banwords)", hashmap_words_.size());
-        send_log(szBuf);
+        send_log(std::format("Banword reloaded! (total {} banwords)", hashmap_words_.size()).c_str());
         return true;
     }
 

@@ -65,7 +65,7 @@ namespace metin2::game::inline protocol {
             guild_manager::instance().stop_all_guild_war();
         }
 
-        metin2::log::info("Closing connection to {}:{:d}", host_.c_str(), port_);
+        metin2::log::info("Closing connection to {}:{:d}", host_, port_);
 
         desc::destroy();
     }
@@ -86,7 +86,7 @@ namespace metin2::game::inline protocol {
         if (connection_)
             return false;
 
-        metin2::log::info("Connecting to {}:{:d}", host_.c_str(), port_);
+        metin2::log::info("Connecting to {}:{:d}", host_, port_);
 
         // Blocking (up to 10 s) so packets sent right after the connect stay in order.
         auto socket = net::connect(host_, port_, std::chrono::seconds(10));
@@ -94,7 +94,7 @@ namespace metin2::game::inline protocol {
         if (socket) {
             connection_ = net::connection::create(std::move(*socket), MAX_SERVER_INPUT, MAX_SERVER_OUTPUT);
             connection_->start(*this);
-            metin2::log::info("Connected to {}:{:d} ({})", host_.c_str(), port_, static_cast<const void *>(this));
+            metin2::log::info("Connected to {}:{:d} ({})", host_, port_, static_cast<const void *>(this));
             set_phase(phase_when_succeed_);
             return true;
         } else {
@@ -111,7 +111,7 @@ namespace metin2::game::inline protocol {
     void client_desc::set_phase(int phase) {
         switch (phase) {
         case PHASE_CLIENT_CONNECTING:
-            metin2::log::debug("Connection to {}:{:d} waiting to reconnect", host_.c_str(), port_);
+            metin2::log::debug("Connection to {}:{:d} waiting to reconnect", host_, port_);
             input_processor_ = nullptr;
             break;
 

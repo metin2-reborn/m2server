@@ -81,7 +81,7 @@ namespace metin2::sql {
 
         if (locale) {
             locale_ = locale;
-            metin2::log::info("Sql: connection character set {}", locale_.c_str());
+            metin2::log::info("Sql: connection character set {}", locale_);
         }
 
         if (no_thread) {
@@ -116,7 +116,7 @@ namespace metin2::sql {
         initialized_ = true;
 
         if (!locale_.empty() && mysql_options(&db_, MYSQL_SET_CHARSET_NAME, locale_.c_str()) != 0) {
-            metin2::log::error("Cannot set connection character set {}: {}", locale_.c_str(), mysql_error(&db_));
+            metin2::log::error("Cannot set connection character set {}: {}", locale_, mysql_error(&db_));
         }
 
         if (!mysql_real_connect(&db_, host_.c_str(), user_.c_str(), password_.c_str(), m_st_db_.c_str(), port_, nullptr, CLIENT_MULTI_STATEMENTS)) {
@@ -129,7 +129,7 @@ namespace metin2::sql {
             metin2::log::error("Cannot enable mysql auto-reconnect: {}", mysql_error(&db_));
         }
 
-        metin2::log::info("Sql: connected to {} (auto-reconnect {:d})", host_.c_str(), reconnect);
+        metin2::log::info("Sql: connected to {} (auto-reconnect {:d})", host_, reconnect);
 
         thread_id_ = mysql_thread_id(&db_);
         return true;
@@ -137,16 +137,16 @@ namespace metin2::sql {
 
     auto async_sql::query_locale_set() -> bool {
         if (locale_.empty() || locale_ == "ascii") {
-            metin2::log::warn("No connection character set to apply (locale \"{}\")", locale_.c_str());
+            metin2::log::warn("No connection character set to apply (locale \"{}\")", locale_);
             return true;
         }
 
         if (mysql_set_character_set(&db_, locale_.c_str())) {
-            metin2::log::error("Cannot set connection character set {}: errno {:d} {}", locale_.c_str(), mysql_errno(&db_), mysql_error(&db_));
+            metin2::log::error("Cannot set connection character set {}: errno {:d} {}", locale_, mysql_errno(&db_), mysql_error(&db_));
             return false;
         }
 
-        metin2::log::debug("Sql: character set {} applied", locale_.c_str());
+        metin2::log::debug("Sql: character set {} applied", locale_);
         return true;
     }
 
@@ -180,7 +180,7 @@ namespace metin2::sql {
         auto msg = new_message(query_value);
 
         if (mysql_real_query(&db_, msg->query.c_str(), msg->query.length())) {
-            metin2::log::error("Direct query failed: {} (query: {})", mysql_error(&db_), msg->query.c_str());
+            metin2::log::error("Direct query failed: {} (query: {})", mysql_error(&db_), msg->query);
             msg->sql_errno = mysql_errno(&db_);
         }
 
@@ -225,7 +225,7 @@ namespace metin2::sql {
 
         if (mysql_real_query(&db_, msg.query.c_str(), msg.query.length())) {
             msg.sql_errno = mysql_errno(&db_);
-            metin2::log::error("Query failed: {} (query: {}, errno {:d})", mysql_error(&db_), msg.query.c_str(), msg.sql_errno);
+            metin2::log::error("Query failed: {} (query: {}, errno {:d})", mysql_error(&db_), msg.query, msg.sql_errno);
 
             if (is_transient_error(msg.sql_errno)) {
                 return false;
@@ -234,7 +234,7 @@ namespace metin2::sql {
 
         const auto elapsed = std::chrono::steady_clock::now() - start;
         if (elapsed > LONG_QUERY) {
-            metin2::log::warn("Slow query took {:.3f} s: {}", std::chrono::duration<double>(elapsed).count(), msg.query.c_str());
+            metin2::log::warn("Slow query took {:.3f} s: {}", std::chrono::duration<double>(elapsed).count(), msg.query);
         }
 
         return true;
@@ -270,7 +270,7 @@ namespace metin2::sql {
             while (!batch.empty()) {
                 if (!execute(*batch.front())) {
                     if (end_) {
-                        metin2::log::error("Dropping failed query at shutdown: {}", batch.front()->query.c_str());
+                        metin2::log::error("Dropping failed query at shutdown: {}", batch.front()->query);
                     } else {
                         metin2::log::warn("Query failed, retrying");
                         std::this_thread::sleep_for(RETRY_DELAY);
@@ -279,7 +279,7 @@ namespace metin2::sql {
                 }
 
                 if (end_) {
-                    metin2::log::debug("Sql: flushed query at shutdown: {}", batch.front()->query.c_str());
+                    metin2::log::debug("Sql: flushed query at shutdown: {}", batch.front()->query);
                 }
 
                 finish(std::move(batch.front()));

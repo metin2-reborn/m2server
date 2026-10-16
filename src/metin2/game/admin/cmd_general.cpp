@@ -52,6 +52,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
+#include <format>
 #include <string>
 
 namespace metin2::game::inline admin {
@@ -1391,13 +1392,9 @@ namespace metin2::game::inline admin {
 
         ch->chat_packet(CHAT_TYPE_INFO, lc_text("세금이 %d %로 설정되었습니다"));
 
-        char szMsg[1024];
+        broadcast_notice(std::format("군주의 명으로 세금이 {} % 로 변경되었습니다", tax).c_str());
 
-        snprintf(szMsg, sizeof(szMsg), "군주의 명으로 세금이 %d %% 로 변경되었습니다", tax);
-        broadcast_notice(szMsg);
-
-        snprintf(szMsg, sizeof(szMsg), "앞으로는 거래 금액의 %d %% 가 국고로 들어가게됩니다.", tax);
-        broadcast_notice(szMsg);
+        broadcast_notice(std::format("앞으로는 거래 금액의 {} % 가 국고로 들어가게됩니다.", tax).c_str());
 
         ch->set_mc(character::MI_TAX);
     }
@@ -1803,15 +1800,14 @@ namespace metin2::game::inline admin {
     ACMD(do_in_game_mall) {
         const char country_code[] = "en";
 
-        char buf[512 + 1];
         char sas[33];
         const char sas_key[] = "GF9001";
 
-        snprintf(buf, sizeof(buf), "%u%u%s", ch->player_id(), ch->aid(), sas_key);
+        const std::string key = std::format("{}{}{}", ch->player_id(), ch->aid(), sas_key);
 
         static const char hex[] = "0123456789abcdef";
         unsigned char digest[EVP_MAX_MD_SIZE];
-        EVP_Digest(buf, strlen(buf), digest, nullptr, EVP_md5(), nullptr);
+        EVP_Digest(key.data(), key.size(), digest, nullptr, EVP_md5(), nullptr);
         int i;
         for (i = 0; i < 16; ++i) {
             sas[i + i] = hex[digest[i] >> 4];
@@ -1819,10 +1815,10 @@ namespace metin2::game::inline admin {
         }
         sas[i + i] = '\0';
 
-        snprintf(buf, sizeof(buf), "mall http://%s/ishop?pid=%u&c=%s&sid=%d&sas=%s",
-            metin2::config::game().mall_url.c_str(), ch->player_id(), country_code, metin2::config::game().server_id, sas);
+        const std::string command = std::format("mall http://{}/ishop?pid={}&c={}&sid={}&sas={}",
+            metin2::config::game().mall_url, ch->player_id(), country_code, metin2::config::game().server_id, sas);
 
-        ch->chat_packet(CHAT_TYPE_COMMAND, buf);
+        ch->chat_packet(CHAT_TYPE_COMMAND, command.c_str());
     }
 
     ACMD(do_dice) {

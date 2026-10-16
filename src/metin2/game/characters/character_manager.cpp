@@ -30,6 +30,7 @@
 #include <cassert>
 #include <cstdint>
 #include <cstdio>
+#include <format>
 #include <map>
 #include <string>
 #include <utility>
@@ -297,13 +298,12 @@ namespace metin2::game::inline characters {
             return nullptr;
         }
 
-        char buf[512 + 1];
         int32_t local_x = x - pkSectreeMap->setting.base_x;
         int32_t local_y = y - pkSectreeMap->setting.base_y;
-        snprintf(buf, sizeof(buf), "spawn %s[%d] random position at %d %d %d %d (time: %ld)", ch->name(), vnum, x, y, local_x, local_y, get_global_time());
+        const std::string buf = std::format("spawn {}[{}] random position at {} {} {} {} (time: {})", ch->name(), vnum, x, y, local_x, local_y, get_global_time());
 
         if (metin2::config::test_server())
-            send_notice(buf);
+            send_notice(buf.c_str());
 
         metin2::log::info("{}", buf);
         return (ch);

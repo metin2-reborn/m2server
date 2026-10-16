@@ -9,7 +9,6 @@
 #include <mysql.h>
 
 #include <cstdint>
-#include <cstdio>
 #include <cstring>
 #include <memory>
 #include <string>
@@ -19,17 +18,15 @@ namespace metin2::db::inline clients {
     void client_manager::update_horse_name(packet_update_horse_name *data, peer *peer) {
         const std::string query = sql::format("REPLACE INTO horse_name VALUES({}, {})", data->player_id, data->horse_name);
 
-        auto pmsg_insert = db_manager::instance().direct_query(query.c_str());
+        auto pmsg_insert = db_manager::instance().direct_query(query);
 
         forward_packet(HEADER_DG_UPDATE_HORSE_NAME, data, sizeof(packet_update_horse_name), 0, peer);
     }
 
     void client_manager::ack_horse_name(uint32_t pid, peer *peer) {
-        char szQuery[512];
+        const std::string query = sql::format("SELECT name FROM horse_name WHERE id = {}", pid);
 
-        snprintf(szQuery, sizeof(szQuery), "SELECT name FROM horse_name WHERE id = %u", pid);
-
-        auto pmsg = db_manager::instance().direct_query(szQuery);
+        auto pmsg = db_manager::instance().direct_query(query);
 
         packet_update_horse_name packet;
         packet.player_id = pid;

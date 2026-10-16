@@ -7,6 +7,8 @@
 #include <metin2/game/text/locale_service.h>
 
 #include <cstdio>
+#include <format>
+#include <string>
 
 namespace metin2::game {
 
@@ -22,9 +24,8 @@ namespace metin2::game {
         auto oxevent_open(lua_State *lua) -> int {
             ox_event_manager::instance().clear_quiz();
 
-            char script[256];
-            snprintf(script, sizeof(script), "%s/oxquiz.lua", locale_service_get_base_path().c_str());
-            int result = lua_dofile(quest::quest_manager::instance().lua_state(), script);
+            const std::string script = std::format("{}/oxquiz.lua", locale_service_get_base_path());
+            int result = lua_dofile(quest::quest_manager::instance().lua_state(), script.c_str());
 
             if (result != 0) {
                 lua_pushnumber(lua, 0);

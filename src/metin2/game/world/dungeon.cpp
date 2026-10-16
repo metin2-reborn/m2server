@@ -25,6 +25,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
+#include <format>
 #include <memory>
 #include <string>
 #include <utility>
@@ -369,7 +370,7 @@ namespace metin2::game::inline world {
     void dungeon::unique_set_max_hp(const std::string &key, int max_hp) {
         unique_mob_map::iterator it = map_unique_mob_.find(key);
         if (it == map_unique_mob_.end()) {
-            metin2::log::error("Dungeon has no unique mob with key {}", key.c_str());
+            metin2::log::error("Dungeon has no unique mob with key {}", key);
             return;
         }
         it->second->set_max_hp(max_hp);
@@ -378,7 +379,7 @@ namespace metin2::game::inline world {
     void dungeon::unique_set_hp(const std::string &key, int hp) {
         unique_mob_map::iterator it = map_unique_mob_.find(key);
         if (it == map_unique_mob_.end()) {
-            metin2::log::error("Dungeon has no unique mob with key {}", key.c_str());
+            metin2::log::error("Dungeon has no unique mob with key {}", key);
             return;
         }
         it->second->set_hp(hp);
@@ -387,7 +388,7 @@ namespace metin2::game::inline world {
     void dungeon::unique_set_def_grade(const std::string &key, int grade) {
         unique_mob_map::iterator it = map_unique_mob_.find(key);
         if (it == map_unique_mob_.end()) {
-            metin2::log::error("Dungeon has no unique mob with key {}", key.c_str());
+            metin2::log::error("Dungeon has no unique mob with key {}", key);
             return;
         }
         it->second->point_change(POINT_DEF_GRADE, grade - it->second->point(POINT_DEF_GRADE));
@@ -494,7 +495,7 @@ namespace metin2::game::inline world {
     void dungeon::purge_unique(const std::string &key) {
         unique_mob_map::iterator it = map_unique_mob_.find(key);
         if (it == map_unique_mob_.end()) {
-            metin2::log::error("Dungeon unique mob {} not found or dead", key.c_str());
+            metin2::log::error("Dungeon unique mob {} not found or dead", key);
             return;
         }
         character *ch = it->second;
@@ -505,7 +506,7 @@ namespace metin2::game::inline world {
     void dungeon::kill_unique(const std::string &key) {
         unique_mob_map::iterator it = map_unique_mob_.find(key);
         if (it == map_unique_mob_.end()) {
-            metin2::log::error("Dungeon unique mob {} not found or dead", key.c_str());
+            metin2::log::error("Dungeon unique mob {} not found or dead", key);
             return;
         }
         character *ch = it->second;
@@ -516,7 +517,7 @@ namespace metin2::game::inline world {
     auto dungeon::unique_vid(const std::string &key) -> uint32_t {
         unique_mob_map::iterator it = map_unique_mob_.find(key);
         if (it == map_unique_mob_.end()) {
-            metin2::log::error("Dungeon unique mob {} not found or dead", key.c_str());
+            metin2::log::error("Dungeon unique mob {} not found or dead", key);
             return 0;
         }
         character *ch = it->second;
@@ -526,7 +527,7 @@ namespace metin2::game::inline world {
     auto dungeon::unique_hp_perc(const std::string &key) -> float {
         unique_mob_map::iterator it = map_unique_mob_.find(key);
         if (it == map_unique_mob_.end()) {
-            metin2::log::error("Dungeon has no unique mob with key {}", key.c_str());
+            metin2::log::error("Dungeon has no unique mob with key {}", key);
             return false;
         }
         return (100.f * it->second->hp()) / it->second->max_hp();
@@ -549,7 +550,7 @@ namespace metin2::game::inline world {
         unique_mob_map::iterator it = map_unique_mob_.find(key);
 
         if (it == map_unique_mob_.end()) {
-            metin2::log::error("Dungeon unique mob {} not found or dead", key.c_str());
+            metin2::log::error("Dungeon unique mob {} not found or dead", key);
             return true;
         }
 
@@ -649,10 +650,7 @@ namespace metin2::game::inline world {
         character *ch = character_manager::instance().spawn_mob(MOB_GOTO_VNUM, map_index_, from_x, from_y, 0, false, -1);
 
         if (ch) {
-            char buf[30 + 1];
-            snprintf(buf, sizeof(buf), ". %d %d", to_x, to_y);
-
-            ch->set_name(buf);
+            ch->set_name(std::format(". {} {}", to_x, to_y));
             ch->set_dungeon(this);
         }
     }
@@ -969,7 +967,7 @@ namespace metin2::game::inline world {
         else
             regen_file_ = regen_file;
 
-        metin2::log::debug("Dungeon: warp {:d} seconds after all monsters are eliminated to map {:d} at {:d}x{:d}, regen file {}", time, map_index, x, y, regen_file_.c_str());
+        metin2::log::debug("Dungeon: warp {:d} seconds after all monsters are eliminated to map {:d} at {:d}x{:d}, regen file {}", time, map_index, x, y, regen_file_);
     }
 
     void dungeon::jump_to_eliminate_location() {

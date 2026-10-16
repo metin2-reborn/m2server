@@ -340,7 +340,7 @@ namespace metin2::game {
             if (!ch)
                 return 0;
 
-            metin2::log::info("Quest {}: player {}: {}", pc->current_quest_name().c_str(), ch->name(), lua_tostring(lua, 2));
+            metin2::log::info("Quest {}: player {}: {}", pc->current_quest_name(), ch->name(), lua_tostring(lua, 2));
 
             if (true == metin2::config::test_server()) {
                 ch->chat_packet(CHAT_TYPE_INFO, "QUEST_SYSLOG %s", lua_tostring(lua, 2));
@@ -734,7 +734,7 @@ namespace metin2::game {
                 const std::string stQuestName(lua_tostring(lua, 1));
                 const std::string stStateName(lua_tostring(lua, 2));
                 if (metin2::config::test_server())
-                    metin2::log::debug("Quest: {} set state {}", stQuestName.c_str(), stStateName.c_str());
+                    metin2::log::debug("Quest: {} set state {}", stQuestName, stStateName);
                 if (pPC->current_quest_name() == stQuestName) {
                     pqs->st = q.quest_state_index(pPC->current_quest_name(), lua_tostring(lua, -1));
                     pPC->set_current_quest_state_name(lua_tostring(lua, -1));
@@ -761,7 +761,7 @@ namespace metin2::game {
                 lua_pushnumber(lua, nRet);
 
                 if (metin2::config::test_server())
-                    metin2::log::debug("Quest: {} state is {:d}", stQuestName.c_str(), nRet);
+                    metin2::log::debug("Quest: {} state is {:d}", stQuestName, nRet);
             } else {
                 if (metin2::config::test_server())
                     metin2::log::debug("Quest: no current player for state lookup");

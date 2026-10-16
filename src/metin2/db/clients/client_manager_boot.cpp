@@ -18,7 +18,6 @@
 
 #include <algorithm>
 #include <cstdint>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <map>
@@ -104,11 +103,9 @@ namespace metin2::db::inline clients {
     }
 
     auto client_manager::initialize_refine_table() -> bool {
-        char query[2048];
-
-        snprintf(query, sizeof(query),
-            "SELECT id, cost, prob, vnum0, count0, vnum1, count1, vnum2, count2,  vnum3, count3, vnum4, count4 FROM refine_proto%s",
-            get_table_postfix());
+        const std::string query = sql::format(
+            "SELECT id, cost, prob, vnum0, count0, vnum1, count1, vnum2, count2,  vnum3, count3, vnum4, count4 FROM refine_proto{}",
+            sql::raw(get_table_postfix()));
 
         auto pkMsg = db_manager::instance().direct_query(query);
         sql_result *pRes = pkMsg->get();
@@ -157,7 +154,7 @@ namespace metin2::db::inline clients {
         std::map<int, const char *> localMap;
         c_csv_table nameData;
         if (!nameData.load("mob_names.txt", '\t')) {
-            fprintf(stderr, "mob_names.txt 파일을 읽어오지 못했습니다\n");
+            metin2::log::warn("Cannot read mob_names.txt");
         } else {
             nameData.next();
             while (nameData.next()) {
@@ -169,7 +166,7 @@ namespace metin2::db::inline clients {
         bool isTestFile = true;
         c_csv_table test_data;
         if (!test_data.load("mob_proto_test.txt", '\t')) {
-            fprintf(stderr, "테스트 파일이 없습니다. 그대로 진행합니다.\n");
+            metin2::log::warn("No mob_proto_test.txt, continuing without it");
             isTestFile = false;
         }
         std::map<uint32_t, mob_table *> test_map_mobTableByVnum;
@@ -186,7 +183,7 @@ namespace metin2::db::inline clients {
             while (test_data.next()) {
 
                 if (!set_proto_mob_table(test_mob_table, test_data, localMap)) {
-                    fprintf(stderr, "몹 프로토 테이블 셋팅 실패.\n");
+                    metin2::log::error("Cannot parse a mob_proto row");
                 }
 
                 test_map_mobTableByVnum.insert(std::map<uint32_t, mob_table *>::value_type(test_mob_table->vnum, test_mob_table));
@@ -197,7 +194,7 @@ namespace metin2::db::inline clients {
 
         c_csv_table data;
         if (!data.load("mob_proto.txt", '\t')) {
-            fprintf(stderr, "mob_proto.txt 파일을 읽어오지 못했습니다\n");
+            metin2::log::error("Cannot read mob_proto.txt");
             return false;
         }
         data.next();
@@ -212,7 +209,7 @@ namespace metin2::db::inline clients {
         }
         data.destroy();
         if (!data.load("mob_proto.txt", '\t')) {
-            fprintf(stderr, "mob_proto.txt 파일을 읽어오지 못했습니다\n");
+            metin2::log::error("Cannot read mob_proto.txt");
             return false;
         }
         data.next();
@@ -299,7 +296,7 @@ namespace metin2::db::inline clients {
             } else {
 
                 if (!set_proto_mob_table(mob_table, data, localMap)) {
-                    fprintf(stderr, "몹 프로토 테이블 셋팅 실패.\n");
+                    metin2::log::error("Cannot parse a mob_proto row");
                 }
             }
 
@@ -312,7 +309,7 @@ namespace metin2::db::inline clients {
         test_data.destroy();
         isTestFile = true;
         if (!test_data.load("mob_proto_test.txt", '\t')) {
-            fprintf(stderr, "테스트 파일이 없습니다. 그대로 진행합니다.\n");
+            metin2::log::warn("No mob_proto_test.txt, continuing without it");
             isTestFile = false;
         }
         if (isTestFile) {
@@ -326,7 +323,7 @@ namespace metin2::db::inline clients {
                 }
 
                 if (!set_proto_mob_table(mob_table, test_data, localMap)) {
-                    fprintf(stderr, "몹 프로토 테이블 셋팅 실패.\n");
+                    metin2::log::error("Cannot parse a mob_proto row");
                 }
 
                 ++mob_table;
@@ -421,7 +418,7 @@ namespace metin2::db::inline clients {
         std::map<int, const char *> localMap;
         c_csv_table nameData;
         if (!nameData.load("item_names.txt", '\t')) {
-            fprintf(stderr, "item_names.txt 파일을 읽어오지 못했습니다\n");
+            metin2::log::warn("Cannot read item_names.txt");
         } else {
             nameData.next();
             while (nameData.next()) {
@@ -433,7 +430,7 @@ namespace metin2::db::inline clients {
         std::unique_ptr<item_table[]> test_item_tables;
         c_csv_table test_data;
         if (!test_data.load("item_proto_test.txt", '\t')) {
-            fprintf(stderr, "item_proto_test.txt 파일을 읽어오지 못했습니다\n");
+            metin2::log::warn("Cannot read item_proto_test.txt");
         } else {
             test_data.next();
 
@@ -446,7 +443,7 @@ namespace metin2::db::inline clients {
             while (test_data.next()) {
 
                 if (!set_proto_item_table(test_item_table, test_data, localMap)) {
-                    fprintf(stderr, "아이템 프로토 테이블 셋팅 실패.\n");
+                    metin2::log::error("Cannot parse an item_proto row");
                 }
 
                 test_map_itemTableByVnum.insert(std::map<uint32_t, item_table *>::value_type(test_item_table->vnum, test_item_table));
@@ -458,7 +455,7 @@ namespace metin2::db::inline clients {
 
         c_csv_table data;
         if (!data.load("item_proto.txt", '\t')) {
-            fprintf(stderr, "item_proto.txt 파일을 읽어오지 못했습니다\n");
+            metin2::log::error("Cannot read item_proto.txt");
             return false;
         }
         data.next();
@@ -480,7 +477,7 @@ namespace metin2::db::inline clients {
         }
         data.destroy();
         if (!data.load("item_proto.txt", '\t')) {
-            fprintf(stderr, "item_proto.txt 파일을 읽어오지 못했습니다\n");
+            metin2::log::error("Cannot read item_proto.txt");
             return false;
         }
         data.next();
@@ -498,7 +495,7 @@ namespace metin2::db::inline clients {
             if (it_map_itemTable == test_map_itemTableByVnum.end()) {
 
                 if (!set_proto_item_table(item_table, data, localMap)) {
-                    fprintf(stderr, "아이템 프로토 테이블 셋팅 실패.\n");
+                    metin2::log::error("Cannot parse an item_proto row");
                 }
 
             } else {
@@ -555,7 +552,7 @@ namespace metin2::db::inline clients {
 
         test_data.destroy();
         if (!test_data.load("item_proto_test.txt", '\t')) {
-            fprintf(stderr, "item_proto_test.txt 파일을 읽어오지 못했습니다\n");
+            metin2::log::warn("Cannot read item_proto_test.txt");
         } else {
             test_data.next();
 
@@ -567,7 +564,7 @@ namespace metin2::db::inline clients {
                 }
 
                 if (!set_proto_item_table(item_table, test_data, localMap)) {
-                    fprintf(stderr, "아이템 프로토 테이블 셋팅 실패.\n");
+                    metin2::log::error("Cannot parse an item_proto row");
                 }
 
                 map_item_table_by_vnum_.insert(std::map<uint32_t, proto::item_table *>::value_type(item_table->vnum, item_table));
@@ -607,16 +604,15 @@ namespace metin2::db::inline clients {
     }
 
     auto client_manager::initialize_skill_table() -> bool {
-        char query[4096];
-        snprintf(query, sizeof(query),
+        const std::string query = sql::format(
             "SELECT dwVnum, szName, bType, bMaxLevel, dwSplashRange, "
             "szPointOn, szPointPoly, szSPCostPoly, szDurationPoly, szDurationSPCostPoly, "
             "szCooldownPoly, szMasterBonusPoly, setFlag+0, setAffectFlag+0, "
             "szPointOn2, szPointPoly2, szDurationPoly2, setAffectFlag2+0, "
             "szPointOn3, szPointPoly3, szDurationPoly3, szGrandMasterAddSPCostPoly, "
             "bLevelStep, bLevelLimit, prerequisiteSkillVnum, prerequisiteSkillLevel, iMaxHit, szSplashAroundDamageAdjustPoly, eSkillType+0, dwTargetRange "
-            "FROM skill_proto%s ORDER BY dwVnum",
-            get_table_postfix());
+            "FROM skill_proto{} ORDER BY dwVnum",
+            sql::raw(get_table_postfix()));
 
         auto pkMsg = db_manager::instance().direct_query(query);
         sql_result *pRes = pkMsg->get();
@@ -716,10 +712,9 @@ namespace metin2::db::inline clients {
     }
 
     auto client_manager::initialize_item_attr_table() -> bool {
-        char query[4096];
-        snprintf(query, sizeof(query),
-            "SELECT apply, apply+0, prob, lv1, lv2, lv3, lv4, lv5, weapon, body, wrist, foots, neck, head, shield, ear FROM item_attr%s ORDER BY apply",
-            get_table_postfix());
+        const std::string query = sql::format(
+            "SELECT apply, apply+0, prob, lv1, lv2, lv3, lv4, lv5, weapon, body, wrist, foots, neck, head, shield, ear FROM item_attr{} ORDER BY apply",
+            sql::raw(get_table_postfix()));
 
         auto pkMsg = db_manager::instance().direct_query(query);
         sql_result *pRes = pkMsg->get();
@@ -786,10 +781,9 @@ namespace metin2::db::inline clients {
     }
 
     auto client_manager::initialize_item_rare_table() -> bool {
-        char query[4096];
-        snprintf(query, sizeof(query),
-            "SELECT apply, apply+0, prob, lv1, lv2, lv3, lv4, lv5, weapon, body, wrist, foots, neck, head, shield, ear FROM item_attr_rare%s ORDER BY apply",
-            get_table_postfix());
+        const std::string query = sql::format(
+            "SELECT apply, apply+0, prob, lv1, lv2, lv3, lv4, lv5, weapon, body, wrist, foots, neck, head, shield, ear FROM item_attr_rare{} ORDER BY apply",
+            sql::raw(get_table_postfix()));
 
         auto pkMsg = db_manager::instance().direct_query(query);
         sql_result *pRes = pkMsg->get();
@@ -858,12 +852,10 @@ namespace metin2::db::inline clients {
     auto client_manager::initialize_land_table() -> bool {
         using namespace building;
 
-        char query[4096];
-
-        snprintf(query, sizeof(query),
+        const std::string query = sql::format(
             "SELECT id, map_index, x, y, width, height, guild_id, guild_level_limit, price "
-            "FROM land%s WHERE enable='YES' ORDER BY id",
-            get_table_postfix());
+            "FROM land{} WHERE enable='YES' ORDER BY id",
+            sql::raw(get_table_postfix()));
 
         auto pkMsg = db_manager::instance().direct_query(query);
         sql_result *pRes = pkMsg->get();
@@ -950,11 +942,10 @@ namespace metin2::db::inline clients {
     auto client_manager::initialize_object_proto() -> bool {
         using namespace building;
 
-        char query[4096];
-        snprintf(query, sizeof(query),
+        const std::string query = sql::format(
             "SELECT vnum, price, materials, upgrade_vnum, upgrade_limit_time, life, reg_1, reg_2, reg_3, reg_4, npc, group_vnum, dependent_group "
-            "FROM object_proto%s ORDER BY vnum",
-            get_table_postfix());
+            "FROM object_proto{} ORDER BY vnum",
+            sql::raw(get_table_postfix()));
 
         auto pkMsg = db_manager::instance().direct_query(query);
         sql_result *pRes = pkMsg->get();
@@ -1016,8 +1007,9 @@ namespace metin2::db::inline clients {
     auto client_manager::initialize_object_table() -> bool {
         using namespace building;
 
-        char query[4096];
-        snprintf(query, sizeof(query), "SELECT id, land_id, vnum, map_index, x, y, x_rot, y_rot, z_rot, life FROM object%s ORDER BY id", get_table_postfix());
+        const std::string query = sql::format(
+            "SELECT id, land_id, vnum, map_index, x, y, x_rot, y_rot, z_rot, life FROM object{} ORDER BY id",
+            sql::raw(get_table_postfix()));
 
         auto pkMsg = db_manager::instance().direct_query(query);
         sql_result *pRes = pkMsg->get();
@@ -1167,7 +1159,7 @@ namespace metin2::db::inline clients {
                     t.berserk_point, t.stone_skin_point, t.god_speed_point, t.death_blow_point, t.revive_point);
             }
 
-            db_manager::instance().async_query(query.c_str());
+            db_manager::instance().async_query(query);
         }
         return true;
     }
@@ -1199,7 +1191,7 @@ namespace metin2::db::inline clients {
                     t.limits[0].type, t.limits[0].value, t.limits[1].type, t.limits[1].value,
                     t.applies[0].type, t.applies[0].value, t.applies[1].type, t.applies[1].value, t.applies[2].type, t.applies[2].value,
                     t.values[0], t.values[1], t.values[2], t.values[3], t.values[4], t.values[5]);
-                db_manager::instance().async_query(query.c_str());
+                db_manager::instance().async_query(query);
             } else {
                 const item_table &t = *it;
                 const std::string query = sql::format(
@@ -1225,7 +1217,7 @@ namespace metin2::db::inline clients {
                     t.limits[0].type, t.limits[0].value, t.limits[1].type, t.limits[1].value,
                     t.applies[0].type, t.applies[0].value, t.applies[1].type, t.applies[1].value, t.applies[2].type, t.applies[2].value,
                     t.values[0], t.values[1], t.values[2], t.values[3], t.values[4], t.values[5]);
-                db_manager::instance().async_query(query.c_str());
+                db_manager::instance().async_query(query);
             }
         }
         return true;

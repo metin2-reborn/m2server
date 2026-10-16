@@ -8,6 +8,7 @@
 
 #include <cstdint>
 #include <cstdio>
+#include <format>
 #include <map>
 #include <memory>
 #include <string>
@@ -88,7 +89,7 @@ namespace metin2::game::inline combat {
     }
 
     auto skill_manager::initialize(skill_table *tab, int size) -> bool {
-        char buf[1024];
+        std::string buf;
         std::map<uint32_t, std::unique_ptr<skill_proto>> map_pkSkillProto;
 
         skill_table *t = tab;
@@ -119,9 +120,9 @@ namespace metin2::game::inline combat {
             int iIdx = find_point_type(t->point_on);
 
             if (iIdx < 0) {
-                snprintf(buf, sizeof(buf), "SkillManager::Initialize : cannot find point type on skill: %s szPointOn: %s", t->name, t->point_on);
+                buf = std::format("SkillManager::Initialize : cannot find point type on skill: {} szPointOn: {}", t->name, t->point_on);
                 metin2::log::error("{}", buf);
-                send_log(buf);
+                send_log(buf.c_str());
                 bError = true;
                 continue;
             }
@@ -131,9 +132,9 @@ namespace metin2::game::inline combat {
             int iIdx2 = find_point_type(t->point_on2);
 
             if (iIdx2 < 0) {
-                snprintf(buf, sizeof(buf), "SkillManager::Initialize : cannot find point type on skill: %s szPointOn2: %s", t->name, t->point_on2);
+                buf = std::format("SkillManager::Initialize : cannot find point type on skill: {} szPointOn2: {}", t->name, t->point_on2);
                 metin2::log::error("{}", buf);
-                send_log(buf);
+                send_log(buf.c_str());
                 bError = true;
                 continue;
             }
@@ -146,9 +147,9 @@ namespace metin2::game::inline combat {
                 if (t->point_on3[0] == 0) {
                     iIdx3 = POINT_NONE;
                 } else {
-                    snprintf(buf, sizeof(buf), "SkillManager::Initialize : cannot find point type on skill: %s szPointOn3: %s", t->name, t->point_on3);
+                    buf = std::format("SkillManager::Initialize : cannot find point type on skill: {} szPointOn3: {}", t->name, t->point_on3);
                     metin2::log::error("{}", buf);
-                    send_log(buf);
+                    send_log(buf.c_str());
                     bError = true;
                     continue;
                 }
@@ -157,98 +158,98 @@ namespace metin2::game::inline combat {
             pkProto->point_on3 = iIdx3;
 
             if (!pkProto->splash_around_damage_adjust_poly.analyze(t->splash_around_damage_adjust_poly)) {
-                snprintf(buf, sizeof(buf), "SkillManager::Initialize : syntax error skill: %s szSplashAroundDamageAdjustPoly: %s", t->name, t->splash_around_damage_adjust_poly);
+                buf = std::format("SkillManager::Initialize : syntax error skill: {} szSplashAroundDamageAdjustPoly: {}", t->name, t->splash_around_damage_adjust_poly);
                 metin2::log::error("{}", buf);
-                send_log(buf);
+                send_log(buf.c_str());
                 bError = true;
                 continue;
             }
 
             if (!pkProto->point_poly.analyze(t->point_poly)) {
-                snprintf(buf, sizeof(buf), "SkillManager::Initialize : syntax error skill: %s szPointPoly: %s", t->name, t->point_poly);
+                buf = std::format("SkillManager::Initialize : syntax error skill: {} szPointPoly: {}", t->name, t->point_poly);
                 metin2::log::error("{}", buf);
-                send_log(buf);
+                send_log(buf.c_str());
                 bError = true;
                 continue;
             }
 
             if (!pkProto->point_poly2.analyze(t->point_poly2)) {
-                snprintf(buf, sizeof(buf), "SkillManager::Initialize : syntax error skill: %s szPointPoly2: %s", t->name, t->point_poly2);
+                buf = std::format("SkillManager::Initialize : syntax error skill: {} szPointPoly2: {}", t->name, t->point_poly2);
                 metin2::log::error("{}", buf);
-                send_log(buf);
+                send_log(buf.c_str());
                 bError = true;
                 continue;
             }
 
             if (!pkProto->point_poly3.analyze(t->point_poly3)) {
-                snprintf(buf, sizeof(buf), "SkillManager::Initialize : syntax error skill: %s szPointPoly3: %s", t->name, t->point_poly3);
+                buf = std::format("SkillManager::Initialize : syntax error skill: {} szPointPoly3: {}", t->name, t->point_poly3);
                 metin2::log::error("{}", buf);
-                send_log(buf);
+                send_log(buf.c_str());
                 bError = true;
                 continue;
             }
 
             if (!pkProto->sp_cost_poly.analyze(t->sp_cost_poly)) {
-                snprintf(buf, sizeof(buf), "SkillManager::Initialize : syntax error skill: %s szSPCostPoly: %s", t->name, t->sp_cost_poly);
+                buf = std::format("SkillManager::Initialize : syntax error skill: {} szSPCostPoly: {}", t->name, t->sp_cost_poly);
                 metin2::log::error("{}", buf);
-                send_log(buf);
+                send_log(buf.c_str());
                 bError = true;
                 continue;
             }
 
             if (!pkProto->grand_master_add_sp_cost_poly.analyze(t->grand_master_add_sp_cost_poly)) {
-                snprintf(buf, sizeof(buf), "SkillManager::Initialize : syntax error skill: %s szGrandMasterAddSPCostPoly: %s", t->name, t->grand_master_add_sp_cost_poly);
+                buf = std::format("SkillManager::Initialize : syntax error skill: {} szGrandMasterAddSPCostPoly: {}", t->name, t->grand_master_add_sp_cost_poly);
                 metin2::log::error("{}", buf);
-                send_log(buf);
+                send_log(buf.c_str());
                 bError = true;
                 continue;
             }
 
             if (!pkProto->duration_poly.analyze(t->duration_poly)) {
-                snprintf(buf, sizeof(buf), "SkillManager::Initialize : syntax error skill: %s szDurationPoly: %s", t->name, t->duration_poly);
+                buf = std::format("SkillManager::Initialize : syntax error skill: {} szDurationPoly: {}", t->name, t->duration_poly);
                 metin2::log::error("{}", buf);
-                send_log(buf);
+                send_log(buf.c_str());
                 bError = true;
                 continue;
             }
 
             if (!pkProto->duration_poly2.analyze(t->duration_poly2)) {
-                snprintf(buf, sizeof(buf), "SkillManager::Initialize : syntax error skill: %s szDurationPoly2: %s", t->name, t->duration_poly2);
+                buf = std::format("SkillManager::Initialize : syntax error skill: {} szDurationPoly2: {}", t->name, t->duration_poly2);
                 metin2::log::error("{}", buf);
-                send_log(buf);
+                send_log(buf.c_str());
                 bError = true;
                 continue;
             }
 
             if (!pkProto->duration_poly3.analyze(t->duration_poly3)) {
-                snprintf(buf, sizeof(buf), "SkillManager::Initialize : syntax error skill: %s szDurationPoly3: %s", t->name, t->duration_poly3);
+                buf = std::format("SkillManager::Initialize : syntax error skill: {} szDurationPoly3: {}", t->name, t->duration_poly3);
                 metin2::log::error("{}", buf);
-                send_log(buf);
+                send_log(buf.c_str());
                 bError = true;
                 continue;
             }
 
             if (!pkProto->duration_sp_cost_poly.analyze(t->duration_sp_cost_poly)) {
-                snprintf(buf, sizeof(buf), "SkillManager::Initialize : syntax error skill: %s szDurationSPCostPoly: %s", t->name, t->duration_sp_cost_poly);
+                buf = std::format("SkillManager::Initialize : syntax error skill: {} szDurationSPCostPoly: {}", t->name, t->duration_sp_cost_poly);
                 metin2::log::error("{}", buf);
-                send_log(buf);
+                send_log(buf.c_str());
                 bError = true;
                 continue;
             }
 
             if (!pkProto->cooldown_poly.analyze(t->cooldown_poly)) {
-                snprintf(buf, sizeof(buf), "SkillManager::Initialize : syntax error skill: %s szCooldownPoly: %s", t->name, t->cooldown_poly);
+                buf = std::format("SkillManager::Initialize : syntax error skill: {} szCooldownPoly: {}", t->name, t->cooldown_poly);
                 metin2::log::error("{}", buf);
-                send_log(buf);
+                send_log(buf.c_str());
                 bError = true;
                 continue;
             }
 
             metin2::log::debug("Skill {}: master bonus poly {}", t->name, t->master_bonus_poly);
             if (!pkProto->master_bonus_poly.analyze(t->master_bonus_poly)) {
-                snprintf(buf, sizeof(buf), "SkillManager::Initialize : syntax error skill: %s szMasterBonusPoly: %s", t->name, t->master_bonus_poly);
+                buf = std::format("SkillManager::Initialize : syntax error skill: {} szMasterBonusPoly: {}", t->name, t->master_bonus_poly);
                 metin2::log::error("{}", buf);
-                send_log(buf);
+                send_log(buf.c_str());
                 bError = true;
                 continue;
             }

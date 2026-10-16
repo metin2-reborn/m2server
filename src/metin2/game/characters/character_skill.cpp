@@ -37,6 +37,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
+#include <format>
 #include <map>
 #include <sstream>
 #include <string>
@@ -420,9 +421,7 @@ namespace metin2::game::inline characters {
             quest::pc *pPC = q.get_pc(player_id());
 
             if (pPC) {
-                char flag[128 + 1];
-                memset(flag, 0, sizeof(flag));
-                snprintf(flag, sizeof(flag), "traning_master_skill.%u.read_count", skill_vnum);
+                const std::string flag = std::format("traning_master_skill.{}.read_count", skill_vnum);
 
                 int read_count = pPC->flag(flag);
                 int percent = 65;
@@ -673,14 +672,12 @@ namespace metin2::game::inline characters {
             }
         }
 
-        char szSkillUp[1024];
-
-        snprintf(szSkillUp, sizeof(szSkillUp), "SkillUp: %s %u %d %d[Before:%d] type %u",
+        const std::string szSkillUp = std::format("SkillUp: {} {} {} {}[Before:{}] type {}",
             name(), pkSk->vnum, skill_levels_[pkSk->vnum].master_type, skill_levels_[pkSk->vnum].level, SkillPointBefore, pkSk->type);
 
         metin2::log::info("{}", szSkillUp);
 
-        log_manager::instance().char_log(this, pkSk->vnum, "SKILLUP", szSkillUp);
+        log_manager::instance().char_log(this, pkSk->vnum, "SKILLUP", szSkillUp.c_str());
         save();
 
         compute_points();

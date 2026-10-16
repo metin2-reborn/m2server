@@ -22,6 +22,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <format>
 #include <string>
 #include <utility>
 
@@ -283,14 +284,10 @@ namespace metin2::game::inline events {
                     map_miss_.insert(std::make_pair(pkChar->player_id(), pkChar->player_id()));
                 } else {
                     pkChar->chat_packet(CHAT_TYPE_INFO, lc_text("정답입니다!"));
-                    char chatbuf[256];
-                    int len = snprintf(chatbuf, sizeof(chatbuf),
-                        "%s %u %u", number(0, 1) == 1 ? "cheer1" : "cheer2", (uint32_t)pkChar->get_vid(), 0);
+                    const std::string text = std::format(
+                        "{} {} {}", number(0, 1) == 1 ? "cheer1" : "cheer2", (uint32_t)pkChar->get_vid(), 0);
 
-                    if (len < 0 || len >= (int)sizeof(chatbuf))
-                        len = sizeof(chatbuf) - 1;
-
-                    ++len;
+                    const int len = text.size() + 1;
 
                     packet_gc_chat pack_chat;
                     pack_chat.header = HEADER_GC_CHAT;
@@ -300,7 +297,7 @@ namespace metin2::game::inline events {
 
                     temp_buffer buf;
                     buf.write(&pack_chat, sizeof(packet_gc_chat));
-                    buf.write(chatbuf, len);
+                    buf.write(text.c_str(), len);
 
                     pkChar->packet_around(buf.read_peek(), buf.size());
                     pkChar->effect_packet(SE_SUCCESS);

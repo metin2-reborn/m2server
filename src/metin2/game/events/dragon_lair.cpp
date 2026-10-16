@@ -142,7 +142,7 @@ namespace metin2::game::inline events {
 
                 strMapBasePath += "/" + pRegionInfo->map_name + "/instance_regen.txt";
 
-                metin2::log::info("Dragon lair: spawning regen {}", strMapBasePath.c_str());
+                metin2::log::info("Dragon lair: spawning regen {}", strMapBasePath);
 
                 regen_do(strMapBasePath.c_str(), instanceMapIndex, pTargetMap->setting.base_x, pTargetMap->setting.base_y, nullptr, true);
 

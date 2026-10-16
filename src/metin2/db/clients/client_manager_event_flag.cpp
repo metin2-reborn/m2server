@@ -11,7 +11,6 @@
 
 #include <mysql.h>
 
-#include <cstdio>
 #include <memory>
 #include <string>
 #include <utility>
@@ -19,9 +18,8 @@
 namespace metin2::db::inline clients {
 
     void client_manager::load_event_flag() {
-        char szQuery[1024];
-        snprintf(szQuery, sizeof(szQuery), "SELECT szName, lValue FROM quest%s WHERE dwPID = 0", get_table_postfix());
-        auto pmsg = db_manager::instance().direct_query(szQuery);
+        const std::string query = sql::format("SELECT szName, lValue FROM quest{} WHERE dwPID = 0", sql::raw(get_table_postfix()));
+        auto pmsg = db_manager::instance().direct_query(query);
 
         sql_result *pRes = pmsg->get();
         if (pRes->num_rows) {
@@ -56,7 +54,7 @@ namespace metin2::db::inline clients {
                 "REPLACE INTO quest{} (dwPID, szName, szState, lValue) VALUES(0, {}, '', {})",
                 sql::raw(get_table_postfix()), p->flag_name, p->value);
 
-            db_manager::instance().async_query(query.c_str());
+            db_manager::instance().async_query(query);
             metin2::log::info("Event flag: set {} = {:d}", p->flag_name, p->value);
             return;
         }

@@ -62,6 +62,7 @@
 #include <cstdio>
 #include <cstring>
 #include <ctime>
+#include <format>
 #include <iterator>
 #include <map>
 #include <memory>
@@ -1182,9 +1183,8 @@ namespace metin2::game::inline characters {
     }
 
     void character::send_my_shop_price_list_cmd(uint32_t item_vnum, uint32_t item_price) {
-        char szLine[256];
-        snprintf(szLine, sizeof(szLine), "MyShopPriceList %u %u", item_vnum, item_price);
-        chat_packet(CHAT_TYPE_COMMAND, szLine);
+        const std::string szLine = std::format("MyShopPriceList {} {}", item_vnum, item_price);
+        chat_packet(CHAT_TYPE_COMMAND, "%s", szLine.c_str());
         metin2::log::debug("Shop price list command: {}", szLine);
     }
 
@@ -1832,7 +1832,7 @@ namespace metin2::game::inline characters {
                         }
                         if (pDestItem->is_dragon_soul()) {
                             int ret;
-                            char buf[128];
+                            std::string buf;
                             if (item->vnum() == DRAGON_HEART_VNUM) {
                                 ret = pDestItem->give_more_time_per((float)item->get_socket(ITEM_SOCKET_CHARGING_AMOUNT_IDX));
                             } else {
@@ -1840,24 +1840,24 @@ namespace metin2::game::inline characters {
                             }
                             if (ret > 0) {
                                 if (item->vnum() == DRAGON_HEART_VNUM) {
-                                    snprintf(buf, sizeof(buf), "Inc %ds by item{VN:%d SOC%d:%d}", ret, item->vnum(), ITEM_SOCKET_CHARGING_AMOUNT_IDX, item->get_socket(ITEM_SOCKET_CHARGING_AMOUNT_IDX));
+                                    buf = std::format("Inc {}s by item{{VN:{} SOC{}:{}}}", ret, item->vnum(), ITEM_SOCKET_CHARGING_AMOUNT_IDX, item->get_socket(ITEM_SOCKET_CHARGING_AMOUNT_IDX));
                                 } else {
-                                    snprintf(buf, sizeof(buf), "Inc %ds by item{VN:%d VAL%d:%d}", ret, item->vnum(), ITEM_VALUE_CHARGING_AMOUNT_IDX, item->value(ITEM_VALUE_CHARGING_AMOUNT_IDX));
+                                    buf = std::format("Inc {}s by item{{VN:{} VAL{}:{}}}", ret, item->vnum(), ITEM_VALUE_CHARGING_AMOUNT_IDX, item->value(ITEM_VALUE_CHARGING_AMOUNT_IDX));
                                 }
 
                                 chat_packet(CHAT_TYPE_INFO, lc_text("%d초 만큼 충전되었습니다."), ret);
                                 item->set_count(item->count() - 1);
-                                log_manager::instance().item_log(this, item, "DS_CHARGING_SUCCESS", buf);
+                                log_manager::instance().item_log(this, item, "DS_CHARGING_SUCCESS", buf.c_str());
                                 return true;
                             } else {
                                 if (item->vnum() == DRAGON_HEART_VNUM) {
-                                    snprintf(buf, sizeof(buf), "No change by item{VN:%d SOC%d:%d}", item->vnum(), ITEM_SOCKET_CHARGING_AMOUNT_IDX, item->get_socket(ITEM_SOCKET_CHARGING_AMOUNT_IDX));
+                                    buf = std::format("No change by item{{VN:{} SOC{}:{}}}", item->vnum(), ITEM_SOCKET_CHARGING_AMOUNT_IDX, item->get_socket(ITEM_SOCKET_CHARGING_AMOUNT_IDX));
                                 } else {
-                                    snprintf(buf, sizeof(buf), "No change by item{VN:%d VAL%d:%d}", item->vnum(), ITEM_VALUE_CHARGING_AMOUNT_IDX, item->value(ITEM_VALUE_CHARGING_AMOUNT_IDX));
+                                    buf = std::format("No change by item{{VN:{} VAL{}:{}}}", item->vnum(), ITEM_VALUE_CHARGING_AMOUNT_IDX, item->value(ITEM_VALUE_CHARGING_AMOUNT_IDX));
                                 }
 
                                 chat_packet(CHAT_TYPE_INFO, lc_text("충전할 수 없습니다."));
-                                log_manager::instance().item_log(this, item, "DS_CHARGING_FAILED", buf);
+                                log_manager::instance().item_log(this, item, "DS_CHARGING_FAILED", buf.c_str());
                                 return false;
                             }
                         } else
@@ -1872,17 +1872,17 @@ namespace metin2::game::inline characters {
                         }
                         if (pDestItem->is_dragon_soul()) {
                             int ret = pDestItem->give_more_time_fix(item->value(ITEM_VALUE_CHARGING_AMOUNT_IDX));
-                            char buf[128];
+                            std::string buf;
                             if (ret) {
                                 chat_packet(CHAT_TYPE_INFO, lc_text("%d초 만큼 충전되었습니다."), ret);
-                                snprintf(buf, sizeof(buf), "Increase %ds by item{VN:%d VAL%d:%d}", ret, item->vnum(), ITEM_VALUE_CHARGING_AMOUNT_IDX, item->value(ITEM_VALUE_CHARGING_AMOUNT_IDX));
-                                log_manager::instance().item_log(this, item, "DS_CHARGING_SUCCESS", buf);
+                                buf = std::format("Increase {}s by item{{VN:{} VAL{}:{}}}", ret, item->vnum(), ITEM_VALUE_CHARGING_AMOUNT_IDX, item->value(ITEM_VALUE_CHARGING_AMOUNT_IDX));
+                                log_manager::instance().item_log(this, item, "DS_CHARGING_SUCCESS", buf.c_str());
                                 item->set_count(item->count() - 1);
                                 return true;
                             } else {
                                 chat_packet(CHAT_TYPE_INFO, lc_text("충전할 수 없습니다."));
-                                snprintf(buf, sizeof(buf), "No change by item{VN:%d VAL%d:%d}", item->vnum(), ITEM_VALUE_CHARGING_AMOUNT_IDX, item->value(ITEM_VALUE_CHARGING_AMOUNT_IDX));
-                                log_manager::instance().item_log(this, item, "DS_CHARGING_FAILED", buf);
+                                buf = std::format("No change by item{{VN:{} VAL{}:{}}}", item->vnum(), ITEM_VALUE_CHARGING_AMOUNT_IDX, item->value(ITEM_VALUE_CHARGING_AMOUNT_IDX));
+                                log_manager::instance().item_log(this, item, "DS_CHARGING_FAILED", buf.c_str());
                                 return false;
                             }
                         } else
@@ -2155,13 +2155,8 @@ namespace metin2::game::inline characters {
                                     }
                                 }
 
-                                char chatbuf[CHAT_MAX_LEN + 1];
-                                int len = snprintf(chatbuf, sizeof(chatbuf), "StoneDetect %u 0 0", (uint32_t)get_vid());
-
-                                if (len < 0 || len >= (int)sizeof(chatbuf))
-                                    len = sizeof(chatbuf) - 1;
-
-                                ++len;
+                                const std::string chatbuf = std::format("StoneDetect {} 0 0", (uint32_t)get_vid());
+                                int len = static_cast<int>(chatbuf.size()) + 1;
 
                                 packet_gc_chat pack_chat;
                                 pack_chat.header = HEADER_GC_CHAT;
@@ -2172,7 +2167,7 @@ namespace metin2::game::inline characters {
 
                                 temp_buffer buf;
                                 buf.write(&pack_chat, sizeof(packet_gc_chat));
-                                buf.write(chatbuf, len);
+                                buf.write(chatbuf.c_str(), len);
 
                                 packet_around(buf.read_peek(), buf.size());
 
@@ -2194,15 +2189,9 @@ namespace metin2::game::inline characters {
                             }
 
                             if (dist) {
-                                char chatbuf[CHAT_MAX_LEN + 1];
-                                int len = snprintf(chatbuf, sizeof(chatbuf),
-                                    "StoneDetect %u %d %d",
+                                const std::string chatbuf = std::format("StoneDetect {} {} {}",
                                     (uint32_t)get_vid(), dist, (int)get_degree_from_position_xy(x(), item->get_socket(2), item->get_socket(1), y()));
-
-                                if (len < 0 || len >= (int)sizeof(chatbuf))
-                                    len = sizeof(chatbuf) - 1;
-
-                                ++len;
+                                int len = static_cast<int>(chatbuf.size()) + 1;
 
                                 packet_gc_chat pack_chat;
                                 pack_chat.header = HEADER_GC_CHAT;
@@ -2213,7 +2202,7 @@ namespace metin2::game::inline characters {
 
                                 temp_buffer buf;
                                 buf.write(&pack_chat, sizeof(packet_gc_chat));
-                                buf.write(chatbuf, len);
+                                buf.write(chatbuf.c_str(), len);
 
                                 packet_around(buf.read_peek(), buf.size());
                             }
@@ -2684,9 +2673,8 @@ namespace metin2::game::inline characters {
                             chat_packet(CHAT_TYPE_TALKING, lc_text("마음이 맑아지는군. 가슴을 짓누르던 무언가가 좀 가벼워진 느낌이야."));
                             chat_packet(CHAT_TYPE_INFO, lc_text("선악치가 %d 증가하였습니다."), val);
 
-                            char buf[256 + 1];
-                            snprintf(buf, sizeof(buf), "%d %d", old_alignment, alignment() / 10);
-                            log_manager::instance().char_log(this, val, "MYTHICAL_PEACH", buf);
+                            const std::string buf = std::format("{} {}", old_alignment, alignment() / 10);
+                            log_manager::instance().char_log(this, val, "MYTHICAL_PEACH", buf.c_str());
                         }
                         break;
 
@@ -2746,10 +2734,9 @@ namespace metin2::game::inline characters {
                             if (pItemReward != nullptr) {
                                 item2->set_socket(idx, 1);
 
-                                char buf[256 + 1];
-                                snprintf(buf, sizeof(buf), "%s(%u) %s(%u)",
+                                const std::string buf = std::format("{}({}) {}({})",
                                     item2->name(), item2->id(), pItemReward->name(), pItemReward->id());
-                                log_manager::instance().item_log(this, item, "USE_DETACHMENT_ONE", buf);
+                                log_manager::instance().item_log(this, item, "USE_DETACHMENT_ONE", buf.c_str());
 
                                 item->set_count(item->count() - 1);
                             }
@@ -2861,9 +2848,8 @@ namespace metin2::game::inline characters {
 
                             if (give_item_from_special_item_group(dwBoxVnum, dwVnums, dwCounts, item_gets, count)) {
                                 for (int i = 0; i < count; i++) {
-                                    char buf[50 + 1];
-                                    snprintf(buf, sizeof(buf), "%u %u", dwVnums[i], dwCounts[i]);
-                                    log_manager::instance().item_log(this, item, "MOONLIGHT_GET", buf);
+                                    const std::string buf = std::format("{} {}", dwVnums[i], dwCounts[i]);
+                                    log_manager::instance().item_log(this, item, "MOONLIGHT_GET", buf.c_str());
 
                                     item->set_count(item->count() - 1);
 
@@ -3029,8 +3015,7 @@ namespace metin2::game::inline characters {
                                 chat_packet(CHAT_TYPE_INFO, lc_text("성공적으로 속성이 추가 되었습니다"));
 
                                 int iAddedIdx = item2->rare_attr_count() + 4;
-                                char buf[21];
-                                snprintf(buf, sizeof(buf), "%u", item2->id());
+                                const std::string buf = std::to_string(item2->id());
 
                                 log_manager::instance().item_log(
                                     player_id(),
@@ -3038,7 +3023,7 @@ namespace metin2::game::inline characters {
                                     item2->attribute_value(iAddedIdx),
                                     item->id(),
                                     "ADD_RARE_ATTR",
-                                    buf,
+                                    buf.c_str(),
                                     get_desc()->host_name(),
                                     item->original_vnum());
 
@@ -3072,9 +3057,8 @@ namespace metin2::game::inline characters {
                             }
 
                             if (item2->change_rare_attribute() == true) {
-                                char buf[21];
-                                snprintf(buf, sizeof(buf), "%u", item2->id());
-                                log_manager::instance().item_log(this, item, "CHANGE_RARE_ATTR", buf);
+                                const std::string buf = std::to_string(item2->id());
+                                log_manager::instance().item_log(this, item, "CHANGE_RARE_ATTR", buf.c_str());
 
                                 item->set_count(item->count() - 1);
                             } else {
@@ -3606,9 +3590,8 @@ namespace metin2::game::inline characters {
                                 }
 
                                 {
-                                    char buf[21];
-                                    snprintf(buf, sizeof(buf), "%u", item2->id());
-                                    log_manager::instance().item_log(this, item, "CLEAN_SOCKET", buf);
+                                    const std::string buf = std::to_string(item2->id());
+                                    log_manager::instance().item_log(this, item, "CLEAN_SOCKET", buf.c_str());
                                 }
 
                                 item->set_count(item->count() - 1);
@@ -3679,9 +3662,8 @@ namespace metin2::game::inline characters {
 
                             chat_packet(CHAT_TYPE_INFO, lc_text("속성을 변경하였습니다."));
                             {
-                                char buf[21];
-                                snprintf(buf, sizeof(buf), "%u", item2->id());
-                                log_manager::instance().item_log(this, item, "CHANGE_ATTRIBUTE", buf);
+                                const std::string buf = std::to_string(item2->id());
+                                log_manager::instance().item_log(this, item, "CHANGE_ATTRIBUTE", buf.c_str());
                             }
 
                             item->set_count(item->count() - 1);
@@ -3712,8 +3694,7 @@ namespace metin2::game::inline characters {
                                         break;
                                     }
                                 }
-                                char buf[21];
-                                snprintf(buf, sizeof(buf), "%u", item2->id());
+                                const std::string buf = std::to_string(item2->id());
 
                                 if (prob(item_attribute_add_percent[item2->attribute_count()])) {
                                     item2->add_attribute();
@@ -3726,12 +3707,12 @@ namespace metin2::game::inline characters {
                                         item2->attribute_value(iAddedIdx),
                                         item->id(),
                                         "ADD_ATTRIBUTE_SUCCESS",
-                                        buf,
+                                        buf.c_str(),
                                         get_desc()->host_name(),
                                         item->original_vnum());
                                 } else {
                                     chat_packet(CHAT_TYPE_INFO, lc_text("속성 추가에 실패하였습니다."));
-                                    log_manager::instance().item_log(this, item, "ADD_ATTRIBUTE_FAIL", buf);
+                                    log_manager::instance().item_log(this, item, "ADD_ATTRIBUTE_FAIL", buf.c_str());
                                 }
 
                                 item->set_count(item->count() - 1);
@@ -3747,8 +3728,7 @@ namespace metin2::game::inline characters {
                             }
 
                             if (item2->attribute_count() == 4) {
-                                char buf[21];
-                                snprintf(buf, sizeof(buf), "%u", item2->id());
+                                const std::string buf = std::to_string(item2->id());
 
                                 if (prob(item_attribute_add_percent[item2->attribute_count()])) {
                                     item2->add_attribute();
@@ -3761,12 +3741,12 @@ namespace metin2::game::inline characters {
                                         item2->attribute_value(iAddedIdx),
                                         item->id(),
                                         "ADD_ATTRIBUTE2_SUCCESS",
-                                        buf,
+                                        buf.c_str(),
                                         get_desc()->host_name(),
                                         item->original_vnum());
                                 } else {
                                     chat_packet(CHAT_TYPE_INFO, lc_text("속성 추가에 실패하였습니다."));
-                                    log_manager::instance().item_log(this, item, "ADD_ATTRIBUTE2_FAIL", buf);
+                                    log_manager::instance().item_log(this, item, "ADD_ATTRIBUTE2_FAIL", buf.c_str());
                                 }
 
                                 item->set_count(item->count() - 1);
@@ -3781,18 +3761,17 @@ namespace metin2::game::inline characters {
 
                         case USE_ADD_ACCESSORY_SOCKET:
                             {
-                                char buf[21];
-                                snprintf(buf, sizeof(buf), "%u", item2->id());
+                                const std::string buf = std::to_string(item2->id());
 
                                 if (item2->is_accessory_for_socket()) {
                                     if (item2->accessory_socket_max_grade() < ITEM_ACCESSORY_SOCKET_MAX_NUM) {
                                         if (prob(50)) {
                                             item2->set_accessory_socket_max_grade(item2->accessory_socket_max_grade() + 1);
                                             chat_packet(CHAT_TYPE_INFO, lc_text("소켓이 성공적으로 추가되었습니다."));
-                                            log_manager::instance().item_log(this, item, "ADD_SOCKET_SUCCESS", buf);
+                                            log_manager::instance().item_log(this, item, "ADD_SOCKET_SUCCESS", buf.c_str());
                                         } else {
                                             chat_packet(CHAT_TYPE_INFO, lc_text("소켓 추가에 실패하였습니다."));
-                                            log_manager::instance().item_log(this, item, "ADD_SOCKET_FAIL", buf);
+                                            log_manager::instance().item_log(this, item, "ADD_SOCKET_FAIL", buf.c_str());
                                         }
 
                                         item->set_count(item->count() - 1);
@@ -3808,17 +3787,16 @@ namespace metin2::game::inline characters {
                         case USE_PUT_INTO_BELT_SOCKET:
                         case USE_PUT_INTO_ACCESSORY_SOCKET:
                             if (item2->is_accessory_for_socket() && item->can_put_into(item2)) {
-                                char buf[21];
-                                snprintf(buf, sizeof(buf), "%u", item2->id());
+                                const std::string buf = std::to_string(item2->id());
 
                                 if (item2->accessory_socket_grade() < item2->accessory_socket_max_grade()) {
                                     if (prob(accessory_socket_put_pct[item2->accessory_socket_grade()])) {
                                         item2->set_accessory_socket_grade(item2->accessory_socket_grade() + 1);
                                         chat_packet(CHAT_TYPE_INFO, lc_text("장착에 성공하였습니다."));
-                                        log_manager::instance().item_log(this, item, "PUT_SOCKET_SUCCESS", buf);
+                                        log_manager::instance().item_log(this, item, "PUT_SOCKET_SUCCESS", buf.c_str());
                                     } else {
                                         chat_packet(CHAT_TYPE_INFO, lc_text("장착에 실패하였습니다."));
-                                        log_manager::instance().item_log(this, item, "PUT_SOCKET_FAIL", buf);
+                                        log_manager::instance().item_log(this, item, "PUT_SOCKET_FAIL", buf.c_str());
                                     }
 
                                     item->set_count(item->count() - 1);
@@ -4216,19 +4194,15 @@ namespace metin2::game::inline characters {
             uint32_t oldCount = item->count();
             uint32_t vnum = item->vnum();
 
-            char hint[PROTO_NAME_MAX_LEN + 32 + 1];
-            int len = snprintf(hint, sizeof(hint) - 32, "%s", item->name());
-
-            if (len < 0 || len >= (int)sizeof(hint) - 32)
-                len = (sizeof(hint) - 32) - 1;
+            std::string hint = item->name();
 
             bool ret = use_item_ex(item, dest_cell);
 
             if (nullptr == item_manager::instance().find_by_vid(vid)) {
-                log_manager::instance().item_log(this, vid, vnum, "REMOVE", hint);
+                log_manager::instance().item_log(this, vid, vnum, "REMOVE", hint.c_str());
             } else if (oldCount != item->count()) {
-                snprintf(hint + len, sizeof(hint) - len, " %u", oldCount - 1);
-                log_manager::instance().item_log(this, vid, vnum, "USE_ITEM", hint);
+                hint += std::format(" {}", oldCount - 1);
+                log_manager::instance().item_log(this, vid, vnum, "USE_ITEM", hint.c_str());
             }
             return (ret);
         } else
@@ -4288,9 +4262,8 @@ namespace metin2::game::inline characters {
 
             fn_copy_item_socket(pkItemToDrop, item);
 
-            char szBuf[51 + 1];
-            snprintf(szBuf, sizeof(szBuf), "%u %u", pkItemToDrop->id(), pkItemToDrop->count());
-            log_manager::instance().item_log(this, item, "ITEM_SPLIT", szBuf);
+            const std::string szBuf = std::format("{} {}", pkItemToDrop->id(), pkItemToDrop->count());
+            log_manager::instance().item_log(this, item, "ITEM_SPLIT", szBuf.c_str());
         }
 
         pixel_position pxPos = xyz();
@@ -4312,9 +4285,8 @@ namespace metin2::game::inline characters {
 
             item_manager::instance().flush_delayed_save(pkItemToDrop);
 
-            char szHint[32 + 1];
-            snprintf(szHint, sizeof(szHint), "%s %u %u", pkItemToDrop->name(), pkItemToDrop->count(), pkItemToDrop->original_vnum());
-            log_manager::instance().item_log(this, pkItemToDrop, "DROP", szHint);
+            const std::string szHint = std::format("{} {} {}", pkItemToDrop->name(), pkItemToDrop->count(), pkItemToDrop->original_vnum());
+            log_manager::instance().item_log(this, pkItemToDrop, "DROP", szHint.c_str());
 
             last_drop_time = thecore_pulse();
             count_drops++;
@@ -4472,9 +4444,8 @@ namespace metin2::game::inline characters {
 
                 item2->add_to_character(this, dest_cell);
 
-                char szBuf[51 + 1];
-                snprintf(szBuf, sizeof(szBuf), "%u %u %u %u ", item2->id(), item2->count(), item->count(), item->count() + item2->count());
-                log_manager::instance().item_log(this, item, "ITEM_SPLIT", szBuf);
+                const std::string szBuf = std::format("{} {} {} {} ", item2->id(), item2->count(), item->count(), item->count() + item2->count());
+                log_manager::instance().item_log(this, item, "ITEM_SPLIT", szBuf.c_str());
             }
         }
 
@@ -4609,9 +4580,8 @@ namespace metin2::game::inline characters {
                     else
                         item->add_to_character(this, item_pos(INVENTORY, iEmptyCell));
 
-                    char szHint[32 + 1];
-                    snprintf(szHint, sizeof(szHint), "%s %u %u", item->name(), item->count(), item->original_vnum());
-                    log_manager::instance().item_log(this, item, "GET", szHint);
+                    const std::string szHint = std::format("{} {} {}", item->name(), item->count(), item->original_vnum());
+                    log_manager::instance().item_log(this, item, "GET", szHint.c_str());
                     chat_packet(CHAT_TYPE_INFO, lc_text("아이템 획득: %s"), item->name());
 
                     if (item->type() == ITEM_QUEST)
@@ -4656,9 +4626,8 @@ namespace metin2::game::inline characters {
                 else
                     item->add_to_character(owner, item_pos(INVENTORY, iEmptyCell));
 
-                char szHint[32 + 1];
-                snprintf(szHint, sizeof(szHint), "%s %u %u", item->name(), item->count(), item->original_vnum());
-                log_manager::instance().item_log(owner, item, "GET", szHint);
+                const std::string szHint = std::format("{} {} {}", item->name(), item->count(), item->original_vnum());
+                log_manager::instance().item_log(owner, item, "GET", szHint.c_str());
 
                 if (owner == this)
                     chat_packet(CHAT_TYPE_INFO, lc_text("아이템 획득: %s"), item->name());
@@ -4707,7 +4676,7 @@ namespace metin2::game::inline characters {
             return false;
 
         if (item1 == item2) {
-            metin2::log::warn("Possible hack by {}: swapping an item with itself (cells {:d}, {:d})", name_.c_str(), cell_value, dest_cell);
+            metin2::log::warn("Possible hack by {}: swapping an item with itself (cells {:d}, {:d})", name_, cell_value, dest_cell);
             return false;
         }
 

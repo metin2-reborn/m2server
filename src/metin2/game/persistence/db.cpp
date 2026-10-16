@@ -25,7 +25,6 @@
 
 #include <mysql.h>
 
-#include <cstdarg>
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
@@ -68,30 +67,8 @@ namespace metin2::game::inline persistence {
         sql_.async_query(query.c_str());
     }
 
-    void db_manager::query(const char *format, ...) {
-        char szQuery[4096];
-        va_list args;
-
-        va_start(args, format);
-        vsnprintf(szQuery, sizeof(szQuery), format, args);
-        va_end(args);
-
-        sql_.async_query(szQuery);
-    }
-
     auto db_manager::direct_query(const std::string &query) -> std::unique_ptr<sql_msg> {
         return sql_direct_.direct_query(query.c_str());
-    }
-
-    auto db_manager::direct_query(const char *format, ...) -> std::unique_ptr<sql_msg> {
-        char szQuery[4096];
-        va_list args;
-
-        va_start(args, format);
-        vsnprintf(szQuery, sizeof(szQuery), format, args);
-        va_end(args);
-
-        return sql_direct_.direct_query(szQuery);
     }
 
     auto db_manager::is_connected() -> bool {

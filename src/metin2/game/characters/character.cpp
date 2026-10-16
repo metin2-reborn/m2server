@@ -84,6 +84,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <format>
 #include <map>
 #include <memory>
 #include <numbers>
@@ -376,9 +377,8 @@ namespace metin2::game::inline characters {
     void character::create(const char *name, uint32_t vid, bool is_pc) {
         static int s_crc = 172814;
 
-        char crc_string[128 + 1];
-        snprintf(crc_string, sizeof(crc_string), "%s%p%d", name, this, ++s_crc);
-        vid_ = game::world::vid(vid, get_cr_c32(crc_string, strlen(crc_string)));
+        const std::string crc_string = std::format("{}{}{}", name, static_cast<const void *>(this), ++s_crc);
+        vid_ = game::world::vid(vid, get_cr_c32(crc_string.c_str(), crc_string.size()));
 
         if (is_pc)
             name_ = name;
@@ -1070,11 +1070,10 @@ namespace metin2::game::inline characters {
         p.header = HEADER_GG_LOGOUT;
         strlcpy(p.name, name(), sizeof(p.name));
         p2p_manager::instance().send(&p, sizeof(packet_gg_logout));
-        char buf[51];
-        snprintf(buf, sizeof(buf), "%s %d %d %d %d",
+        const std::string buf = std::format("{} {} {} {} {}",
             get_desc()->host_name(), gold(), metin2::config::server().channel, map_index(), alignment());
 
-        log_manager::instance().char_log(this, 0, "LOGOUT", buf);
+        log_manager::instance().char_log(this, 0, "LOGOUT", buf.c_str());
 
         if (war_map_)
             set_war_map(nullptr);
@@ -1231,7 +1230,7 @@ namespace metin2::game::inline characters {
 
         if (!bgmInfo.name.empty()) {
             if (character_is_bgm_volume_enable()) {
-                metin2::log::debug("Bgm: map {:d} plays {} at volume {:f}", mapIndex, bgmInfo.name.c_str(), bgmInfo.vol);
+                metin2::log::debug("Bgm: map {:d} plays {} at volume {:f}", mapIndex, bgmInfo.name, bgmInfo.vol);
                 packet_gc_main_character4_bgm_vol mainChrPacket;
                 mainChrPacket.header = HEADER_GC_MAIN_CHARACTER4_BGM_VOL;
                 mainChrPacket.vid = vid_;
@@ -1247,7 +1246,7 @@ namespace metin2::game::inline characters {
                 strlcpy(mainChrPacket.bgm_name, bgmInfo.name.c_str(), sizeof(mainChrPacket.bgm_name));
                 get_desc()->packet(&mainChrPacket, sizeof(packet_gc_main_character4_bgm_vol));
             } else {
-                metin2::log::debug("Bgm: map {:d} plays {}", mapIndex, bgmInfo.name.c_str());
+                metin2::log::debug("Bgm: map {:d} plays {}", mapIndex, bgmInfo.name);
                 packet_gc_main_character3_bgm mainChrPacket;
                 mainChrPacket.header = HEADER_GC_MAIN_CHARACTER3_BGM;
                 mainChrPacket.vid = vid_;
@@ -4316,9 +4315,8 @@ namespace metin2::game::inline characters {
         get_desc()->packet(&p, sizeof(packet_gc_warp));
 
         {
-            char buf[256];
-            snprintf(buf, sizeof(buf), "%s MapIdx %d DestMapIdx%d DestX%d DestY%d Empire%d", name(), map_index(), private_map_index, x, y, empire());
-            log_manager::instance().char_log(this, 0, "WARP", buf);
+            const std::string buf = std::format("{} MapIdx {} DestMapIdx{} DestX{} DestY{} Empire{}", name(), map_index(), private_map_index, x, y, empire());
+            log_manager::instance().char_log(this, 0, "WARP", buf.c_str());
         }
 
         return true;
@@ -4744,7 +4742,7 @@ namespace metin2::game::inline characters {
     void character::set_safebox_size(int size) {
         metin2::log::debug("{}: safebox size set to {:d}", name(), size);
         safebox_size_ = size;
-        db_manager::instance().query("UPDATE safebox%s SET size = %d WHERE account_id = %u", get_table_postfix(), size / SAFEBOX_PAGE_SIZE, get_desc()->get_account_table().id);
+        db_manager::instance().query(sql::format("UPDATE safebox{} SET size = {} WHERE account_id = {}", sql::raw(get_table_postfix()), size / SAFEBOX_PAGE_SIZE, get_desc()->get_account_table().id));
     }
 
     auto character::safebox_size() const -> int {
@@ -4946,14 +4944,13 @@ namespace metin2::game::inline characters {
         if (is_pc())
             return;
 
-        char sbuf[256 + 1];
+        std::string sbuf;
 
         if (is_monster()) {
             if (number(0, 60))
                 return;
 
-            snprintf(sbuf, sizeof(sbuf),
-                "(locale.monster_chat[%i] and locale.monster_chat[%i][%d] or '')",
+            sbuf = std::format("(locale.monster_chat[{}] and locale.monster_chat[{}][{}] or '')",
                 race_num(), race_num(), monster_chat_type * 3 + number(1, 3));
         } else {
             if (monster_chat_type != MONSTER_CHAT_WAIT)
@@ -4967,7 +4964,7 @@ namespace metin2::game::inline characters {
                     return;
             }
 
-            snprintf(sbuf, sizeof(sbuf), "(locale.monster_chat[%i] and locale.monster_chat[%i][number(1, table.getn(locale.monster_chat[%i]))] or '')", race_num(), race_num(), race_num());
+            sbuf = std::format("(locale.monster_chat[{}] and locale.monster_chat[{}][number(1, table.getn(locale.monster_chat[{}]))] or '')", race_num(), race_num(), race_num());
         }
 
         std::string text = quest::script_to_string(sbuf);

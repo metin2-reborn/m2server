@@ -20,6 +20,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
+#include <format>
 #include <memory>
 #include <string>
 #include <utility>
@@ -166,11 +167,10 @@ namespace metin2::game::inline social {
                 is_music_ = set;
                 music_file_name_ = music_file_name;
 
-                char szCommand[256];
                 if (is_music_) {
-                    shout_in_map(CHAT_TYPE_COMMAND, build_command_play_music(szCommand, sizeof(szCommand), 1, music_file_name_.c_str()));
+                    shout_in_map(CHAT_TYPE_COMMAND, build_command_play_music(1, music_file_name_.c_str()).c_str());
                 } else {
-                    shout_in_map(CHAT_TYPE_COMMAND, build_command_play_music(szCommand, sizeof(szCommand), 0, "default"));
+                    shout_in_map(CHAT_TYPE_COMMAND, build_command_play_music(0, "default").c_str());
                 }
             }
         }
@@ -202,24 +202,16 @@ namespace metin2::game::inline social {
         }
 
         void wedding_map::send_local_event(character *ch) {
-            char szCommand[256];
-
             if (is_dark_)
                 ch->chat_packet(CHAT_TYPE_COMMAND, "DayMode dark");
             if (is_snow_)
                 ch->chat_packet(CHAT_TYPE_COMMAND, "xmas_snow 1");
             if (is_music_)
-                ch->chat_packet(CHAT_TYPE_COMMAND, build_command_play_music(szCommand, sizeof(szCommand), 1, music_file_name_.c_str()));
+                ch->chat_packet(CHAT_TYPE_COMMAND, "%s", build_command_play_music(1, music_file_name_.c_str()).c_str());
         }
 
-        auto wedding_map::build_command_play_music(char *command, size_t cmd_len, uint8_t set, const char *music_file_name) -> const char * {
-            if (cmd_len < 1) {
-                command[0] = '\0';
-                return "PlayMusic 0 CommandLengthError";
-            }
-
-            snprintf(command, cmd_len, "PlayMusic %d %s", set, music_file_name);
-            return command;
+        auto wedding_map::build_command_play_music(uint8_t set, const char *music_file_name) -> std::string {
+            return std::format("PlayMusic {} {}", set, music_file_name);
         }
 
         wedding_manager::wedding_manager() {
@@ -263,9 +255,9 @@ namespace metin2::game::inline social {
             st_weddingMapRegenFileName += "/metin2_map_wedding_01/npc.txt";
 
             if (!regen_do(st_weddingMapRegenFileName.c_str(), dwMapIndex, pkSectreeMap->setting.base_x, pkSectreeMap->setting.base_y, nullptr, true)) {
-                metin2::log::error("Cannot spawn wedding of {:d} and {:d}: regen {} failed on map {:d} (base {:d}, {:d})", pid1, pid2, st_weddingMapRegenFileName.c_str(), dwMapIndex, pkSectreeMap->setting.base_x, pkSectreeMap->setting.base_y);
+                metin2::log::error("Cannot spawn wedding of {:d} and {:d}: regen {} failed on map {:d} (base {:d}, {:d})", pid1, pid2, st_weddingMapRegenFileName, dwMapIndex, pkSectreeMap->setting.base_x, pkSectreeMap->setting.base_y);
             } else {
-                metin2::log::info("Wedding map created for {:d} and {:d}: regen {} on map {:d} (base {:d}, {:d})", pid1, pid2, st_weddingMapRegenFileName.c_str(), dwMapIndex, pkSectreeMap->setting.base_x, pkSectreeMap->setting.base_y);
+                metin2::log::info("Wedding map created for {:d} and {:d}: regen {} on map {:d} (base {:d}, {:d})", pid1, pid2, st_weddingMapRegenFileName, dwMapIndex, pkSectreeMap->setting.base_x, pkSectreeMap->setting.base_y);
             }
 
             return dwMapIndex;

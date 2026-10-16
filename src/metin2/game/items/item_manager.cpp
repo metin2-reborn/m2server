@@ -31,6 +31,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
+#include <format>
 #include <iterator>
 #include <map>
 #include <set>
@@ -98,24 +99,17 @@ namespace metin2::game::inline items {
                 metin2::log::debug("Item proto: vnum {:d} {}", vec_prototype_[i].vnum, vec_prototype_[i].name);
         }
 
-        int len = 0, len2;
-        char buf[512];
+        std::string buf;
 
         for (i = 0; i < size; ++i) {
-            len2 = snprintf(buf + len, sizeof(buf) - len, "%5u %-16s", vec_prototype_[i].vnum, vec_prototype_[i].locale_name);
-
-            if (len2 < 0 || len2 >= (int)sizeof(buf) - len)
-                len += (sizeof(buf) - len) - 1;
-            else
-                len += len2;
+            buf += std::format("{:5} {:<16}", vec_prototype_[i].vnum, vec_prototype_[i].locale_name);
 
             if (!((i + 1) % 4)) {
                 if (!metin2::config::test_server())
                     metin2::log::debug("Item protos: {}", buf);
-                len = 0;
+                buf.clear();
             } else {
-                buf[len++] = '\t';
-                buf[len] = '\0';
+                buf += '\t';
             }
         }
 
@@ -404,9 +398,8 @@ namespace metin2::game::inline items {
         character *o;
 
         if ((o = item->owner())) {
-            char szHint[64];
-            snprintf(szHint, sizeof(szHint), "%s %u ", item->name(), item->count());
-            log_manager::instance().item_log(o, item, reason ? reason : "REMOVE", szHint);
+            const std::string szHint = std::format("{} {} ", item->name(), item->count());
+            log_manager::instance().item_log(o, item, reason ? reason : "REMOVE", szHint.c_str());
 
             if (item->window() == MALL || item->window() == SAFEBOX) {
                 safebox *pSafebox = item->window() == MALL ? o->mall() : o->get_safebox();

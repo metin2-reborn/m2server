@@ -9,12 +9,13 @@
 #include <metin2/proto/length.h>
 #include <metin2/proto/tables.h>
 #include <metin2/sql/async_sql.h>
+#include <metin2/sql/query.h>
 
 #include <mysql.h>
 
 #include <cstdint>
-#include <cstdio>
 #include <memory>
+#include <string>
 
 namespace metin2::db::inline clients {
 
@@ -34,21 +35,19 @@ namespace metin2::db::inline clients {
         guild_manager::instance().touch_guild(p->guild);
         metin2::log::info("Guild: guild {:d} added member pid {:d}", p->guild, p->pid);
 
-        char szQuery[512];
+        const std::string insert_query = sql::format(
+            "INSERT INTO guild_member{} VALUES({}, {}, {}, 0, 0)",
+            sql::raw(get_table_postfix()), p->pid, p->guild, p->grade);
 
-        snprintf(szQuery, sizeof(szQuery),
-            "INSERT INTO guild_member%s VALUES(%u, %u, %d, 0, 0)",
-            get_table_postfix(), p->pid, p->guild, p->grade);
+        auto pmsg_insert = db_manager::instance().direct_query(insert_query);
 
-        auto pmsg_insert = db_manager::instance().direct_query(szQuery);
+        const std::string query = sql::format(
+            "SELECT pid, grade, is_general, offer, level, job, name FROM guild_member{0}, player{0} WHERE guild_id = {1} and pid = id and pid = {2}", sql::raw(get_table_postfix()), p->guild, p->pid);
 
-        snprintf(szQuery, sizeof(szQuery),
-            "SELECT pid, grade, is_general, offer, level, job, name FROM guild_member%s, player%s WHERE guild_id = %u and pid = id and pid = %u", get_table_postfix(), get_table_postfix(), p->guild, p->pid);
-
-        auto pmsg = db_manager::instance().direct_query(szQuery);
+        auto pmsg = db_manager::instance().direct_query(query);
 
         if (pmsg->get()->num_rows == 0) {
-            metin2::log::error("Guild: cannot load guild member data: {}", pmsg->query.c_str());
+            metin2::log::error("Guild: cannot load guild member data: {}", pmsg->query);
             return;
         }
 
@@ -74,12 +73,9 @@ namespace metin2::db::inline clients {
     void client_manager::guild_remove_member(peer *peer, packet_guild *p) {
         metin2::log::info("Guild: guild {:d} removed member pid {:d}", p->guild, p->info);
 
-        char szQuery[512];
-        snprintf(szQuery, sizeof(szQuery), "DELETE FROM guild_member%s WHERE pid=%u and guild_id=%u", get_table_postfix(), p->info, p->guild);
-        db_manager::instance().async_query(szQuery);
+        db_manager::instance().async_query(sql::format("DELETE FROM guild_member{} WHERE pid={} and guild_id={}", sql::raw(get_table_postfix()), p->info, p->guild));
 
-        snprintf(szQuery, sizeof(szQuery), "REPLACE INTO quest%s (dwPID, szName, szState, lValue) VALUES(%u, 'guild_manage', 'withdraw_time', %u)", get_table_postfix(), p->info, (uint32_t)current_time());
-        db_manager::instance().async_query(szQuery);
+        db_manager::instance().async_query(sql::format("REPLACE INTO quest{} (dwPID, szName, szState, lValue) VALUES({}, 'guild_manage', 'withdraw_time', {})", sql::raw(get_table_postfix()), p->info, (uint32_t)current_time()));
 
         forward_packet(HEADER_DG_GUILD_REMOVE_MEMBER, p, sizeof(packet_guild));
     }
@@ -102,22 +98,15 @@ namespace metin2::db::inline clients {
     void client_manager::guild_disband(peer *peer, packet_guild *p) {
         metin2::log::info("Guild: disbanded guild {:d}", p->guild);
 
-        char szQuery[512];
+        db_manager::instance().async_query(sql::format("DELETE FROM guild{} WHERE id={}", sql::raw(get_table_postfix()), p->guild));
 
-        snprintf(szQuery, sizeof(szQuery), "DELETE FROM guild%s WHERE id=%u", get_table_postfix(), p->guild);
-        db_manager::instance().async_query(szQuery);
+        db_manager::instance().async_query(sql::format("DELETE FROM guild_grade{} WHERE guild_id={}", sql::raw(get_table_postfix()), p->guild));
 
-        snprintf(szQuery, sizeof(szQuery), "DELETE FROM guild_grade%s WHERE guild_id=%u", get_table_postfix(), p->guild);
-        db_manager::instance().async_query(szQuery);
+        db_manager::instance().async_query(sql::format("REPLACE INTO quest{0} (dwPID, szName, szState, lValue) SELECT pid, 'guild_manage', 'withdraw_time', {1} FROM guild_member{0} WHERE guild_id = {2}", sql::raw(get_table_postfix()), (uint32_t)current_time(), p->guild));
 
-        snprintf(szQuery, sizeof(szQuery), "REPLACE INTO quest%s (dwPID, szName, szState, lValue) SELECT pid, 'guild_manage', 'withdraw_time', %u FROM guild_member%s WHERE guild_id = %u", get_table_postfix(), (uint32_t)current_time(), get_table_postfix(), p->guild);
-        db_manager::instance().async_query(szQuery);
+        db_manager::instance().async_query(sql::format("DELETE FROM guild_member{} WHERE guild_id={}", sql::raw(get_table_postfix()), p->guild));
 
-        snprintf(szQuery, sizeof(szQuery), "DELETE FROM guild_member%s WHERE guild_id=%u", get_table_postfix(), p->guild);
-        db_manager::instance().async_query(szQuery);
-
-        snprintf(szQuery, sizeof(szQuery), "DELETE FROM guild_comment%s WHERE guild_id=%u", get_table_postfix(), p->guild);
-        db_manager::instance().async_query(szQuery);
+        db_manager::instance().async_query(sql::format("DELETE FROM guild_comment{} WHERE guild_id={}", sql::raw(get_table_postfix()), p->guild));
 
         forward_packet(HEADER_DG_GUILD_DISBAND, p, sizeof(packet_guild));
     }

@@ -16,6 +16,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <format>
 #include <set>
 #include <string>
 
@@ -74,19 +75,17 @@ namespace metin2::game::inline text {
     }
 
     void locale_service_load_empire_text_convert_tables() {
-        char szFileName[256];
-
         for (int iEmpire = 1; iEmpire <= 3; ++iEmpire) {
-            snprintf(szFileName, sizeof(szFileName), "%s/lang%d.cvt", locale_service_get_base_path().c_str(), iEmpire);
+            const std::string szFileName = std::format("{}/lang{}.cvt", locale_service_get_base_path(), iEmpire);
             metin2::log::info("Loading empire text conversion table {}", szFileName);
 
-            load_empire_text_convert_table(iEmpire, szFileName);
+            load_empire_text_convert_table(iEmpire, szFileName.c_str());
         }
     }
 
     auto locale_service_init(const std::string &rst_service_name) -> bool {
         if (rst_service_name != "english") {
-            metin2::log::error("Unsupported locale {} (only english)", rst_service_name.c_str());
+            metin2::log::error("Unsupported locale {} (only english)", rst_service_name);
             return false;
         }
 

@@ -25,6 +25,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <format>
 #include <set>
 #include <string>
 #include <unordered_map>
@@ -131,10 +132,9 @@ namespace metin2::game::inline empire {
     }
 
     auto three_way_war::load_setting(const char *file_name) -> bool {
-        char szPath[1024];
-        snprintf(szPath, sizeof(szPath), "%s/%s", locale_service_get_base_path().c_str(), file_name);
+        const std::string szPath = std::format("{}/{}", locale_service_get_base_path(), file_name);
 
-        FILE *pf = fopen(szPath, "r");
+        FILE *pf = fopen(szPath.c_str(), "r");
 
         if (nullptr == pf) {
             metin2::log::error("Cannot open three-way war file {}", szPath);
@@ -359,8 +359,8 @@ namespace metin2::game::inline empire {
             snprintf(szNotice, sizeof(szNotice), lc_text("삼거리 전투에서 %s 국가가 가장먼저 탈락을 하였습니다"), Nation.c_str());
             broadcast_notice(szNotice);
 
-            snprintf(szNotice, sizeof(szNotice), "First Step: %s exclusion", Nation.c_str());
-            log_manager::instance().char_log(0, 0, 0, 0, "THREEWAY", szNotice, nullptr);
+            const std::string log_text = std::format("First Step: {} exclusion", Nation);
+            log_manager::instance().char_log(0, 0, 0, 0, "THREEWAY", log_text.c_str(), nullptr);
 
             regen_mob_event_info *regen_info = alloc_event_info<regen_mob_event_info>();
 
@@ -444,9 +444,8 @@ namespace metin2::game::inline empire {
 
                 quest::send_buffer_to_map(pSecMap, buf, nVictoryEmpireIndex);
 
-                char szBuf[512];
-                snprintf(szBuf, sizeof(szBuf), "Second Step: %s remain", empire_name(nVictoryEmpireIndex));
-                log_manager::instance().char_log(0, 0, 0, 0, "THREEWAY", szBuf, nullptr);
+                const std::string log_text = std::format("Second Step: {} remain", empire_name(nVictoryEmpireIndex));
+                log_manager::instance().char_log(0, 0, 0, 0, "THREEWAY", log_text.c_str(), nullptr);
             }
 
             for (int n = 0; n < quest::quest_manager::instance().event_flag("threeway_war_boss_count");) {
@@ -500,24 +499,24 @@ namespace metin2::game::inline empire {
     }
 
     auto get_sungzi_map_path() -> const char * {
-        static char s_szMapPath[128];
+        static std::string s_szMapPath;
 
-        snprintf(s_szMapPath, sizeof(s_szMapPath), "%s/map/%s/",
-            locale_service_get_base_path().c_str(),
-            three_way_war::instance().event_sung_zi_map_info().map_name.c_str());
+        s_szMapPath = std::format("{}/map/{}/",
+            locale_service_get_base_path(),
+            three_way_war::instance().event_sung_zi_map_info().map_name);
 
-        return s_szMapPath;
+        return s_szMapPath.c_str();
     }
 
     auto get_pass_map_path(uint8_t empire) -> const char * {
         if (empire > 0 && empire < EMPIRE_MAX_NUM) {
-            static char s_szMapPath[128];
+            static std::string s_szMapPath;
 
-            snprintf(s_szMapPath, sizeof(s_szMapPath), "%s/map/%s/",
-                locale_service_get_base_path().c_str(),
-                three_way_war::instance().event_pass_map_info().map_name[empire - 1].c_str());
+            s_szMapPath = std::format("{}/map/{}/",
+                locale_service_get_base_path(),
+                three_way_war::instance().event_pass_map_info().map_name[empire - 1]);
 
-            return s_szMapPath;
+            return s_szMapPath.c_str();
         }
 
         return nullptr;

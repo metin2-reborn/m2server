@@ -62,6 +62,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <format>
+#include <iterator>
 #include <list>
 #include <string>
 #include <utility>
@@ -199,7 +201,7 @@ namespace metin2::game::inline admin {
         newGotoInfo.y = y;
         vec_goto_info.push_back(newGotoInfo);
 
-        metin2::log::debug("Goto location {}: empire {:d}, map {:d}, position {:d}x{:d}", st_name_value.c_str(), empire, index_value, x, y);
+        metin2::log::debug("Goto location {}: empire {:d}, map {:d}, position {:d}x{:d}", st_name_value, empire, index_value, x, y);
     }
 
     auto find_in_string(const char *find, const char *in) -> bool {
@@ -744,41 +746,35 @@ namespace metin2::game::inline admin {
         if (!tch)
             return;
 
-        char buf[256];
-
-        snprintf(buf, sizeof(buf), "%s's State: ", tch->name());
+        std::string text = std::format("{}'s State: ", tch->name());
 
         if (tch->is_position(POS_FIGHTING))
-            strlcat(buf, "Battle", sizeof(buf));
+            text += "Battle";
         else if (tch->is_position(POS_DEAD))
-            strlcat(buf, "Dead", sizeof(buf));
+            text += "Dead";
         else
-            strlcat(buf, "Standing", sizeof(buf));
+            text += "Standing";
 
         if (ch->get_shop())
-            strlcat(buf, ", Shop", sizeof(buf));
+            text += ", Shop";
 
         if (ch->get_exchange())
-            strlcat(buf, ", Exchange", sizeof(buf));
+            text += ", Exchange";
 
-        ch->chat_packet(CHAT_TYPE_INFO, "%s", buf);
+        ch->chat_packet(CHAT_TYPE_INFO, "%s", text.c_str());
 
-        int len;
-        len = snprintf(buf, sizeof(buf), "Coordinate %dx%d (%dx%d)",
+        text = std::format("Coordinate {}x{} ({}x{})",
             tch->x(), tch->y(), tch->x() / 100, tch->y() / 100);
-
-        if (len < 0 || len >= (int)sizeof(buf))
-            len = sizeof(buf) - 1;
 
         sectree *pSec = sectree_manager::instance().get(tch->map_index(), tch->x(), tch->y());
 
         if (pSec) {
             map_setting &map_setting = sectree_manager::instance().map(tch->map_index())->setting;
-            snprintf(buf + len, sizeof(buf) - len, " MapIndex %d Attribute %08X Local Position (%d x %d)",
+            std::format_to(std::back_inserter(text), " MapIndex {} Attribute {:08X} Local Position ({} x {})",
                 tch->map_index(), pSec->get_attribute(tch->x(), tch->y()), (tch->x() - map_setting.base_x) / 100, (tch->y() - map_setting.base_y) / 100);
         }
 
-        ch->chat_packet(CHAT_TYPE_INFO, "%s", buf);
+        ch->chat_packet(CHAT_TYPE_INFO, "%s", text.c_str());
 
         ch->chat_packet(CHAT_TYPE_INFO, "LEV %d", tch->level());
         ch->chat_packet(CHAT_TYPE_INFO, "HP %d/%d", tch->hp(), tch->max_hp());
@@ -987,33 +983,24 @@ namespace metin2::game::inline admin {
     ACMD(do_user) {
         const desc_manager::desc_set &c_ref_set = desc_manager::instance().client_set();
         int count = 0;
-        char str[128] = {
-            0,
-        };
-        int str_len = 0;
+        std::string str;
 
         for (desc *d : c_ref_set) {
             if (!d->get_character())
                 continue;
 
-            int len = snprintf(str + str_len, sizeof(str) - str_len, "%-16s ", d->get_character()->name());
-
-            if (len < 0 || len >= (int)sizeof(str) - str_len)
-                len = (sizeof(str) - str_len) - 1;
-
-            str_len += len;
+            std::format_to(std::back_inserter(str), "{:<16} ", d->get_character()->name());
             ++count;
 
             if (!(count % 4)) {
-                ch->chat_packet(CHAT_TYPE_INFO, str);
+                ch->chat_packet(CHAT_TYPE_INFO, str.c_str());
 
-                str[0] = '\0';
-                str_len = 0;
+                str.clear();
             }
         }
 
         if (count % 4)
-            ch->chat_packet(CHAT_TYPE_INFO, str);
+            ch->chat_packet(CHAT_TYPE_INFO, str.c_str());
 
         ch->chat_packet(CHAT_TYPE_INFO, "Total %d", count);
     }

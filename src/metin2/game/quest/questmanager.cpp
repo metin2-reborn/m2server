@@ -36,6 +36,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <format>
 #include <fstream>
 #include <iterator>
 #include <map>
@@ -107,9 +108,9 @@ namespace metin2::game {
                 int line = 0;
 
                 if (!inf.is_open())
-                    metin2::log::error("Cannot open questnpc.txt in {}", quest_dir.c_str());
+                    metin2::log::error("Cannot open questnpc.txt in {}", quest_dir);
                 else
-                    metin2::log::info("Quest: reading questnpc.txt from {}", quest_dir.c_str());
+                    metin2::log::info("Quest: reading questnpc.txt from {}", quest_dir);
 
                 while (1) {
                     unsigned int vnum;
@@ -142,7 +143,7 @@ namespace metin2::game {
                         continue;
 
                     if (metin2::config::test_server())
-                        metin2::log::debug("Quest: reading scripts of npc {} (vnum {:d})", s.c_str(), vnum);
+                        metin2::log::debug("Quest: reading scripts of npc {} (vnum {:d})", s, vnum);
                     npc_[vnum].set(vnum, s);
                     npc_name_id_[s] = vnum;
                 }
@@ -677,7 +678,7 @@ namespace metin2::game {
                 std::ifstream inf(full_name.c_str());
 
                 if (inf.is_open()) {
-                    metin2::log::debug("Quest: loading begin condition for {}", quest_name.c_str());
+                    metin2::log::debug("Quest: loading begin condition for {}", quest_name);
 
                     std::istreambuf_iterator<char> ib(inf), ie;
                     copy(ib, ie, back_inserter(hm_quest_start_script_[idx]));
@@ -771,7 +772,7 @@ namespace metin2::game {
             current_character_ptr()->get_desc()->packet(buf.read_peek(), buf.size());
 
             if (metin2::config::test_server())
-                metin2::log::info("Quest: script {} (size {:d})", script_.c_str(), buf.size());
+                metin2::log::info("Quest: script {} (size {:d})", script_, buf.size());
 
             clear_script();
         }
@@ -780,7 +781,7 @@ namespace metin2::game {
             int x = lua_gettop(l_);
             lua_getglobal(l_, quest_name.c_str());
             if (lua_isnil(l_, -1)) {
-                metin2::log::error("Bad state file for quest {} state {:d}", quest_name.c_str(), state_index);
+                metin2::log::error("Bad state file for quest {} state {:d}", quest_name, state_index);
                 lua_settop(l_, x);
                 return "";
             }
@@ -796,7 +797,7 @@ namespace metin2::game {
             int x = lua_gettop(l_);
             lua_getglobal(l_, quest_name.c_str());
             if (lua_isnil(l_, -1)) {
-                metin2::log::error("Bad state file for quest {} state {}", quest_name.c_str(), state_name.c_str());
+                metin2::log::error("Bad state file for quest {} state {}", quest_name, state_name);
                 lua_settop(l_, x);
                 return 0;
             }
@@ -806,7 +807,7 @@ namespace metin2::game {
             int v = (int)rint(lua_tonumber(l_, -1));
             lua_settop(l_, x);
             if (metin2::config::test_server())
-                metin2::log::info("Quest: state {3} of quest {2} has index {0:d}", v, x, quest_name.c_str(), state_name.c_str());
+                metin2::log::info("Quest: state {3} of quest {2} has index {0:d}", v, x, quest_name, state_name);
             return v;
         }
 
@@ -881,7 +882,7 @@ namespace metin2::game {
             load_start_quest(quest_name, idx);
             quest_name_by_index_.insert(make_pair(idx, quest_name));
 
-            metin2::log::debug("Quest: registered {} as {:d}", quest_name.c_str(), idx);
+            metin2::log::debug("Quest: registered {} as {:d}", quest_name, idx);
         }
 
         auto quest_manager::quest_index_by_name(const std::string &name) -> unsigned int {
@@ -937,7 +938,7 @@ namespace metin2::game {
 
             int prev_value = event_flag_[name];
 
-            metin2::log::info("Event flag {} set to {:d} (was {:d})", name.c_str(), value, event_flag_[name]);
+            metin2::log::info("Event flag {} set to {:d} (was {:d})", name, value, event_flag_[name]);
             event_flag_[name] = value;
 
             if (name == "mob_item") {
@@ -1202,10 +1203,8 @@ namespace metin2::game {
             initialize();
 
             for (auto it = registered_npc_vnum_.begin(); it != registered_npc_vnum_.end(); ++it) {
-                char buf[256];
                 uint32_t dwVnum = *it;
-                snprintf(buf, sizeof(buf), "%u", dwVnum);
-                npc_[dwVnum].set(dwVnum, buf);
+                npc_[dwVnum].set(dwVnum, std::format("{}", dwVnum));
             }
         }
 
@@ -1253,20 +1252,19 @@ namespace metin2::game {
 
             registered_npc_vnum_.insert(vnum);
 
-            char buf[256];
             DIR *dir;
 
             for (auto it = quest_object_dir.begin(); it != quest_object_dir.end(); ++it) {
                 const std::string &stQuestObjectDir = *it;
-                snprintf(buf, sizeof(buf), "%s/%u", stQuestObjectDir.c_str(), vnum);
-                metin2::log::debug("Quest: looking for npc scripts in {}", buf);
+                const std::string npc_dir = std::format("{}/{}", stQuestObjectDir, vnum);
+                metin2::log::debug("Quest: looking for npc scripts in {}", npc_dir);
 
-                if ((dir = opendir(buf))) {
+                if ((dir = opendir(npc_dir.c_str()))) {
                     closedir(dir);
-                    snprintf(buf, sizeof(buf), "%u", vnum);
-                    metin2::log::debug("Quest: found scripts for npc {}", buf);
+                    const std::string script_name = std::format("{}", vnum);
+                    metin2::log::debug("Quest: found scripts for npc {}", script_name);
 
-                    npc_[vnum].set(vnum, buf);
+                    npc_[vnum].set(vnum, script_name);
                 }
             }
         }
@@ -1282,7 +1280,7 @@ namespace metin2::game {
                 }
             }
 
-            metin2::log::error("Lua error in quest {} state {} event {}", current_quest_name().c_str(), state_name, event_index_name.c_str());
+            metin2::log::error("Lua error in quest {} state {} event {}", current_quest_name(), state_name, event_index_name);
             if (current_character_ptr() && metin2::config::test_server())
                 current_character_ptr()->chat_packet(CHAT_TYPE_PARTY, "LUA_ERROR: quest %s.%s %s", current_quest_name().c_str(), state_name, event_index_name.c_str());
         }
@@ -1301,9 +1299,9 @@ namespace metin2::game {
         }
 
         void quest_manager::add_server_timer(const std::string &name, uint32_t arg, event_ptr event) {
-            metin2::log::debug("Quest: add server timer {} arg {:d} ({})", name.c_str(), arg, static_cast<const void *>(event.get()));
+            metin2::log::debug("Quest: add server timer {} arg {:d} ({})", name, arg, static_cast<const void *>(event.get()));
             if (server_timer_.find(make_pair(name, arg)) != server_timer_.end()) {
-                metin2::log::error("Server timer {} arg {:d} is already registered", name.c_str(), arg);
+                metin2::log::error("Server timer {} arg {:d} is already registered", name, arg);
                 return;
             }
             server_timer_.insert(make_pair(make_pair(name, arg), event));
@@ -1386,7 +1384,7 @@ namespace metin2::game {
 
         void quest_manager::end_other_pc_block() {
             if (pc_stack_.size() == 0) {
-                metin2::log::error("Player stack is already empty (quest {}, state {})", current_quest_name().c_str(), current_state()->title.c_str());
+                metin2::log::error("Player stack is already empty (quest {}, state {})", current_quest_name(), current_state()->title);
                 return;
             }
             uint32_t pc = pc_stack_.back();

@@ -625,10 +625,7 @@ namespace metin2::game::inline admin {
 
         if (ch->gm_level() >= GM_LOW_WIZARD) {
             if (cmd_info[icmd].gm_level >= GM_LOW_WIZARD) {
-                char buf[1024];
-                snprintf(buf, sizeof(buf), "%s", argument);
-
-                log_manager::instance().gm_command_log(ch->player_id(), ch->name(), ch->get_desc()->host_name(), metin2::config::server().channel, buf);
+                log_manager::instance().gm_command_log(ch->player_id(), ch->name(), ch->get_desc()->host_name(), metin2::config::server().channel, argument);
             }
         }
     }

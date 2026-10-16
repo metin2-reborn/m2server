@@ -55,7 +55,6 @@ namespace metin2::game::inline persistence {
 
       private:
         void query(const std::string &query);
-        void query(const char *format, ...) __attribute__((format(printf, 2, 3)));
 
         async_sql sql_;
         bool is_connect_;

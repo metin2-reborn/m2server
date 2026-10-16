@@ -727,7 +727,7 @@ namespace metin2::db::inline tables {
                     dataStream << dataArray[j] << ",";
 
                 metin2::log::error("Item proto: invalid value in field {:d} (column {:d}): {}", i, col, csv_table.as_string_by_index(col));
-                metin2::log::error("Item proto: values of fields 0 to {:d}: {}", i, dataStream.str().c_str());
+                metin2::log::error("Item proto: values of fields 0 to {:d}: {}", i, dataStream.str());
 
                 exit(0);
             }
@@ -748,7 +748,7 @@ namespace metin2::db::inline tables {
                 int start_vnum = atoi(s_start_vnum.c_str());
                 int end_vnum = atoi(s_end_vnum.c_str());
                 if (0 == start_vnum || (0 != end_vnum && end_vnum < start_vnum)) {
-                    metin2::log::error("Item proto: invalid vnum range {}", s.c_str());
+                    metin2::log::error("Item proto: invalid vnum range {}", s);
                     return false;
                 }
                 item_table_value->vnum = start_vnum;

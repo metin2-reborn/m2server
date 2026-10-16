@@ -33,6 +33,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <format>
 #include <ios>
 #include <map>
 #include <memory>
@@ -554,7 +555,7 @@ namespace metin2::game::inline world {
             return 0;
 
         char buf[256 + 1];
-        char szFilename[256];
+        std::string szFilename;
         char szMapName[256];
         int iIndex;
 
@@ -566,20 +567,20 @@ namespace metin2::game::inline world {
 
             sscanf(buf, " %d %s ", &iIndex, szMapName);
 
-            snprintf(szFilename, sizeof(szFilename), "%s/%s/Setting.txt", map_base_path, szMapName);
+            szFilename = std::format("{}/{}/Setting.txt", map_base_path, szMapName);
 
             map_setting setting;
             setting.index = iIndex;
 
-            if (!load_setting_file(iIndex, szFilename, setting)) {
+            if (!load_setting_file(iIndex, szFilename.c_str(), setting)) {
                 metin2::log::error("Cannot load map settings file {}", szFilename);
                 fclose(fp);
                 return 0;
             }
 
-            snprintf(szFilename, sizeof(szFilename), "%s/%s/Town.txt", map_base_path, szMapName);
+            szFilename = std::format("{}/{}/Town.txt", map_base_path, szMapName);
 
-            if (!load_map_region(szFilename, setting, szMapName)) {
+            if (!load_map_region(szFilename.c_str(), setting, szMapName)) {
                 metin2::log::error("Cannot load map region file {}", szFilename);
                 fclose(fp);
                 return 0;
@@ -593,23 +594,23 @@ namespace metin2::game::inline world {
                 sectree_map *pkMapSectree = pkNewMapSectree.get();
                 map_sectree_.try_emplace(iIndex, std::move(pkNewMapSectree));
 
-                snprintf(szFilename, sizeof(szFilename), "%s/%s/server_attr", map_base_path, szMapName);
-                load_attribute(pkMapSectree, szFilename, setting);
+                szFilename = std::format("{}/{}/server_attr", map_base_path, szMapName);
+                load_attribute(pkMapSectree, szFilename.c_str(), setting);
 
-                snprintf(szFilename, sizeof(szFilename), "%s/%s/regen.txt", map_base_path, szMapName);
-                regen_load(szFilename, setting.index, setting.base_x, setting.base_y);
+                szFilename = std::format("{}/{}/regen.txt", map_base_path, szMapName);
+                regen_load(szFilename.c_str(), setting.index, setting.base_x, setting.base_y);
 
-                snprintf(szFilename, sizeof(szFilename), "%s/%s/npc.txt", map_base_path, szMapName);
-                regen_load(szFilename, setting.index, setting.base_x, setting.base_y);
+                szFilename = std::format("{}/{}/npc.txt", map_base_path, szMapName);
+                regen_load(szFilename.c_str(), setting.index, setting.base_x, setting.base_y);
 
-                snprintf(szFilename, sizeof(szFilename), "%s/%s/boss.txt", map_base_path, szMapName);
-                regen_load(szFilename, setting.index, setting.base_x, setting.base_y);
+                szFilename = std::format("{}/{}/boss.txt", map_base_path, szMapName);
+                regen_load(szFilename.c_str(), setting.index, setting.base_x, setting.base_y);
 
-                snprintf(szFilename, sizeof(szFilename), "%s/%s/stone.txt", map_base_path, szMapName);
-                regen_load(szFilename, setting.index, setting.base_x, setting.base_y);
+                szFilename = std::format("{}/{}/stone.txt", map_base_path, szMapName);
+                regen_load(szFilename.c_str(), setting.index, setting.base_x, setting.base_y);
 
-                snprintf(szFilename, sizeof(szFilename), "%s/%s/dungeon.txt", map_base_path, szMapName);
-                load_dungeon(iIndex, szFilename);
+                szFilename = std::format("{}/{}/dungeon.txt", map_base_path, szMapName);
+                load_dungeon(iIndex, szFilename.c_str());
 
                 pkMapSectree->build();
             }

@@ -32,7 +32,9 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <format>
 #include <functional>
+#include <iterator>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -170,7 +172,7 @@ namespace metin2::game::inline guilds {
             return;
         }
 
-        auto pmsg = db_manager::instance().direct_query("SELECT id FROM guild%s", get_table_postfix());
+        auto pmsg = db_manager::instance().direct_query(sql::format("SELECT id FROM guild{}", sql::raw(get_table_postfix())));
 
         for (uint i = 0; i < pmsg->get()->num_rows; i++) {
             MYSQL_ROW row = mysql_fetch_row(pmsg->get()->res);
@@ -246,8 +248,7 @@ namespace metin2::game::inline guilds {
 
         std::sort(v.begin(), v.end(), guild_rank_less);
         int n = v.size();
-        int len = 0, len2;
-        *buffer = '\0';
+        std::string text;
 
         for (int i = 0; i < 8; ++i) {
             if (n - i - 1 < 0)
@@ -262,24 +263,14 @@ namespace metin2::game::inline guilds {
                 break;
 
             if (my_guild == g->id()) {
-                len2 = snprintf(buffer + len, buflen - len, "[COLOR r;255|g;255|b;0]");
-
-                if (len2 < 0 || len2 >= (int)buflen - len)
-                    len += (buflen - len) - 1;
-                else
-                    len += len2;
+                text += "[COLOR r;255|g;255|b;0]";
             }
 
             if (i) {
-                len2 = snprintf(buffer + len, buflen - len, "[ENTER]");
-
-                if (len2 < 0 || len2 >= (int)buflen - len)
-                    len += (buflen - len) - 1;
-                else
-                    len += len2;
+                text += "[ENTER]";
             }
 
-            len2 = snprintf(buffer + len, buflen - len, "%3d | %-12s | %-8d | %4d | %4d | %4d",
+            std::format_to(std::back_inserter(text), "{:3} | {:<12} | {:<8} | {:4} | {:4} | {:4}",
                 rank(g),
                 g->name(),
                 g->ladder_point(),
@@ -287,20 +278,12 @@ namespace metin2::game::inline guilds {
                 g->guild_war_draw_count(),
                 g->guild_war_loss_count());
 
-            if (len2 < 0 || len2 >= (int)buflen - len)
-                len += (buflen - len) - 1;
-            else
-                len += len2;
-
             if (g->id() == my_guild) {
-                len2 = snprintf(buffer + len, buflen - len, "[/COLOR]");
-
-                if (len2 < 0 || len2 >= (int)buflen - len)
-                    len += (buflen - len) - 1;
-                else
-                    len += len2;
+                text += "[/COLOR]";
             }
         }
+
+        strlcpy(buffer, text.c_str(), buflen);
     }
 
     void guild_manager::around_rank_string(uint32_t my_guild, char *buffer, size_t buflen) {
@@ -319,9 +302,8 @@ namespace metin2::game::inline guilds {
             if (v[idx]->id() == my_guild)
                 break;
 
-        int len = 0, len2;
+        std::string text;
         int count = 0;
-        *buffer = '\0';
 
         for (int i = -3; i <= 3; ++i) {
             if (idx - i < 0)
@@ -336,24 +318,14 @@ namespace metin2::game::inline guilds {
                 continue;
 
             if (my_guild == g->id()) {
-                len2 = snprintf(buffer + len, buflen - len, "[COLOR r;255|g;255|b;0]");
-
-                if (len2 < 0 || len2 >= (int)buflen - len)
-                    len += (buflen - len) - 1;
-                else
-                    len += len2;
+                text += "[COLOR r;255|g;255|b;0]";
             }
 
             if (count) {
-                len2 = snprintf(buffer + len, buflen - len, "[ENTER]");
-
-                if (len2 < 0 || len2 >= (int)buflen - len)
-                    len += (buflen - len) - 1;
-                else
-                    len += len2;
+                text += "[ENTER]";
             }
 
-            len2 = snprintf(buffer + len, buflen - len, "%3d | %-12s | %-8d | %4d | %4d | %4d",
+            std::format_to(std::back_inserter(text), "{:3} | {:<12} | {:<8} | {:4} | {:4} | {:4}",
                 rank(g),
                 g->name(),
                 g->ladder_point(),
@@ -361,22 +333,14 @@ namespace metin2::game::inline guilds {
                 g->guild_war_draw_count(),
                 g->guild_war_loss_count());
 
-            if (len2 < 0 || len2 >= (int)buflen - len)
-                len += (buflen - len) - 1;
-            else
-                len += len2;
-
             ++count;
 
             if (g->id() == my_guild) {
-                len2 = snprintf(buffer + len, buflen - len, "[/COLOR]");
-
-                if (len2 < 0 || len2 >= (int)buflen - len)
-                    len += (buflen - len) - 1;
-                else
-                    len += len2;
+                text += "[/COLOR]";
             }
         }
+
+        strlcpy(buffer, text.c_str(), buflen);
     }
 
     void guild_manager::request_cancel_war(uint32_t guild_id1, uint32_t guild_id2) {

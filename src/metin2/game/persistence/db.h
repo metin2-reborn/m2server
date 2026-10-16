@@ -28,10 +28,8 @@ namespace metin2::game::inline persistence {
 
         auto connect(const char *host, const int port, const char *user, const char *pwd, const char *db) -> bool;
         void query(const std::string &query);
-        void query(const char *format, ...) __attribute__((format(printf, 2, 3)));
 
         auto direct_query(const std::string &query) -> std::unique_ptr<sql_msg>;
-        __attribute__((format(printf, 2, 3))) auto direct_query(const char *format, ...) -> std::unique_ptr<sql_msg>;
         void process();
 
         void send_money_log(uint8_t type, uint32_t vnum, int gold);

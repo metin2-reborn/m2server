@@ -20,7 +20,9 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <format>
 #include <memory>
+#include <string>
 #include <vector>
 
 namespace metin2::game::inline trade {
@@ -401,13 +403,11 @@ namespace metin2::game::inline trade {
 
             item->set_exchanging(false);
             {
-                char exchange_buf[51];
+                std::string exchange_buf = std::format("{} {} {}", item->name(), owner()->player_id(), item->count());
+                log_manager::instance().item_log(victim, item, "EXCHANGE_TAKE", exchange_buf.c_str());
 
-                snprintf(exchange_buf, sizeof(exchange_buf), "%s %u %u", item->name(), owner()->player_id(), item->count());
-                log_manager::instance().item_log(victim, item, "EXCHANGE_TAKE", exchange_buf);
-
-                snprintf(exchange_buf, sizeof(exchange_buf), "%s %u %u", item->name(), victim->player_id(), item->count());
-                log_manager::instance().item_log(owner(), item, "EXCHANGE_GIVE", exchange_buf);
+                exchange_buf = std::format("{} {} {}", item->name(), victim->player_id(), item->count());
+                log_manager::instance().item_log(owner(), item, "EXCHANGE_GIVE", exchange_buf.c_str());
 
                 if (item->vnum() >= 80003 && item->vnum() <= 80007) {
                     log_manager::instance().gold_bar_log(victim->player_id(), item->id(), EXCHANGE_TAKE, "");
@@ -423,12 +423,11 @@ namespace metin2::game::inline trade {
             victim->point_change(POINT_GOLD, gold_, true);
 
             if (gold_ > 1000) {
-                char exchange_buf[51];
-                snprintf(exchange_buf, sizeof(exchange_buf), "%u %s", owner()->player_id(), owner()->name());
-                log_manager::instance().char_log(victim, gold_, "EXCHANGE_GOLD_TAKE", exchange_buf);
+                std::string exchange_buf = std::format("{} {}", owner()->player_id(), owner()->name());
+                log_manager::instance().char_log(victim, gold_, "EXCHANGE_GOLD_TAKE", exchange_buf.c_str());
 
-                snprintf(exchange_buf, sizeof(exchange_buf), "%u %s", victim->player_id(), victim->name());
-                log_manager::instance().char_log(owner(), gold_, "EXCHANGE_GOLD_GIVE", exchange_buf);
+                exchange_buf = std::format("{} {}", victim->player_id(), victim->name());
+                log_manager::instance().char_log(owner(), gold_, "EXCHANGE_GOLD_GIVE", exchange_buf.c_str());
             }
         }
 

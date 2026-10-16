@@ -23,6 +23,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <format>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -277,14 +278,13 @@ namespace metin2::game::inline items {
     }
 
     void cube_init() {
-        char file_name[256 + 1];
-        snprintf(file_name, sizeof(file_name), "%s/cube.txt", locale_service_get_base_path().c_str());
+        const std::string file_name = std::format("{}/cube.txt", locale_service_get_base_path());
 
         metin2::log::info("Cube: loading {}", file_name);
 
         cube_proto.clear();
 
-        if (false == cube_load(file_name))
+        if (false == cube_load(file_name.c_str()))
             metin2::log::error("Cannot load cube recipes from {}", file_name);
     }
 
@@ -586,10 +586,7 @@ namespace metin2::game::inline items {
                     }
 
                     for (cube_value_vector::iterator iter = materialInfo.complicate_material.begin(); materialInfo.complicate_material.end() != iter; ++iter) {
-                        char tempBuffer[128];
-                        snprintf(tempBuffer, sizeof(tempBuffer), "%d,%d|", iter->vnum, iter->count);
-
-                        infoText += std::string(tempBuffer);
+                        infoText += std::format("{},{}|", iter->vnum, iter->count);
                     }
 
                     infoText.erase(infoText.size() - 1);
@@ -599,17 +596,13 @@ namespace metin2::game::inline items {
                 }
 
                 for (cube_value_vector::iterator iter = materialInfo.material.begin(); materialInfo.material.end() != iter; ++iter) {
-                    char tempBuffer[128];
-                    snprintf(tempBuffer, sizeof(tempBuffer), "%d,%d&", iter->vnum, iter->count);
-                    infoText += std::string(tempBuffer);
+                    infoText += std::format("{},{}&", iter->vnum, iter->count);
                 }
 
                 infoText.erase(infoText.size() - 1);
 
                 if (0 < materialInfo.gold) {
-                    char temp[128];
-                    snprintf(temp, sizeof(temp), "%d", materialInfo.gold);
-                    infoText += std::string("/") + temp;
+                    infoText += std::format("/{}", materialInfo.gold);
                 }
             }
         }
@@ -698,10 +691,7 @@ namespace metin2::game::inline items {
             const cube_result_list &resultList = cube_info_map[npcVNUM];
             for (cube_result_list::const_iterator iter = resultList.begin(); resultList.end() != iter; ++iter) {
                 const cube_material_info &materialInfo = *iter;
-                char temp[128];
-                snprintf(temp, sizeof(temp), "%d,%d", materialInfo.reward.vnum, materialInfo.reward.count);
-
-                resultText += std::string(temp) + "/";
+                resultText += std::format("{},{}/", materialInfo.reward.vnum, materialInfo.reward.count);
             }
 
             resultCount = resultList.size();

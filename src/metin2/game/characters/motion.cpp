@@ -13,6 +13,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <format>
 #include <map>
 #include <memory>
 #include <string>
@@ -49,10 +50,9 @@ namespace metin2::game::inline characters {
 
         const char *folder = mob_table_value->folder;
 
-        char motlistPath[1024];
-        snprintf(motlistPath, sizeof(motlistPath), "data/monster/%s/motlist.txt", folder);
+        const std::string motlistPath = std::format("data/monster/{}/motlist.txt", folder);
 
-        FILE *fp = fopen(motlistPath, "rt");
+        FILE *fp = fopen(motlistPath.c_str(), "rt");
         if (!fp)
             return minDuration;
 
@@ -65,9 +65,8 @@ namespace metin2::game::inline characters {
 
             sscanf(line, "%s %s %s %d", mode, type, msaName, &percent);
             if (strcmp(mode, "GENERAL") == 0 && strncmp(type, "NORMAL_ATTACK", 13) == 0) {
-                char msaPath[1024];
-                snprintf(msaPath, sizeof(msaPath), "data/monster/%s/%s", folder, msaName);
-                float curDuration = msa_get_normal_attack_duration(msaPath);
+                const std::string msaPath = std::format("data/monster/{}/{}", folder, msaName);
+                float curDuration = msa_get_normal_attack_duration(msaPath.c_str());
                 if (curDuration < minDuration)
                     minDuration = curDuration;
             }
@@ -80,9 +79,9 @@ namespace metin2::game::inline characters {
     static auto get_motion_file_name(mob_table *mob_table_value, public_motion motion) -> const char * {
         char buf[1024];
         const char *folder = mob_table_value->folder;
-        snprintf(buf, sizeof(buf), "data/monster/%s/motlist.txt", folder);
+        const std::string motlist_path = std::format("data/monster/{}/motlist.txt", folder);
 
-        FILE *fp = fopen(buf, "rt");
+        FILE *fp = fopen(motlist_path.c_str(), "rt");
         char *v[4];
 
         if (fp != nullptr) {
@@ -253,47 +252,29 @@ namespace metin2::game::inline characters {
             motion_set *pkMotionSet = pkMotionSetOwner.get();
             map_motion_set_.try_emplace(i, std::move(pkMotionSetOwner));
 
-            char sz[256];
+            pkMotionSet->load(std::format("{}/general/run.msa", c_apszFolderName[i]).c_str(), MOTION_MODE_GENERAL, MOTION_RUN);
+            pkMotionSet->load(std::format("{}/general/walk.msa", c_apszFolderName[i]).c_str(), MOTION_MODE_GENERAL, MOTION_WALK);
 
-            snprintf(sz, sizeof(sz), "%s/general/run.msa", c_apszFolderName[i]);
-            pkMotionSet->load(sz, MOTION_MODE_GENERAL, MOTION_RUN);
-            snprintf(sz, sizeof(sz), "%s/general/walk.msa", c_apszFolderName[i]);
-            pkMotionSet->load(sz, MOTION_MODE_GENERAL, MOTION_WALK);
+            pkMotionSet->load(std::format("{}/twohand_sword/run.msa", c_apszFolderName[i]).c_str(), MOTION_MODE_TWOHAND_SWORD, MOTION_RUN);
+            pkMotionSet->load(std::format("{}/twohand_sword/walk.msa", c_apszFolderName[i]).c_str(), MOTION_MODE_TWOHAND_SWORD, MOTION_WALK);
 
-            snprintf(sz, sizeof(sz), "%s/twohand_sword/run.msa", c_apszFolderName[i]);
-            pkMotionSet->load(sz, MOTION_MODE_TWOHAND_SWORD, MOTION_RUN);
-            snprintf(sz, sizeof(sz), "%s/twohand_sword/walk.msa", c_apszFolderName[i]);
-            pkMotionSet->load(sz, MOTION_MODE_TWOHAND_SWORD, MOTION_WALK);
+            pkMotionSet->load(std::format("{}/onehand_sword/run.msa", c_apszFolderName[i]).c_str(), MOTION_MODE_ONEHAND_SWORD, MOTION_RUN);
+            pkMotionSet->load(std::format("{}/onehand_sword/walk.msa", c_apszFolderName[i]).c_str(), MOTION_MODE_ONEHAND_SWORD, MOTION_WALK);
 
-            snprintf(sz, sizeof(sz), "%s/onehand_sword/run.msa", c_apszFolderName[i]);
-            pkMotionSet->load(sz, MOTION_MODE_ONEHAND_SWORD, MOTION_RUN);
-            snprintf(sz, sizeof(sz), "%s/onehand_sword/walk.msa", c_apszFolderName[i]);
-            pkMotionSet->load(sz, MOTION_MODE_ONEHAND_SWORD, MOTION_WALK);
+            pkMotionSet->load(std::format("{}/dualhand_sword/run.msa", c_apszFolderName[i]).c_str(), MOTION_MODE_DUALHAND_SWORD, MOTION_RUN);
+            pkMotionSet->load(std::format("{}/dualhand_sword/walk.msa", c_apszFolderName[i]).c_str(), MOTION_MODE_DUALHAND_SWORD, MOTION_WALK);
 
-            snprintf(sz, sizeof(sz), "%s/dualhand_sword/run.msa", c_apszFolderName[i]);
-            pkMotionSet->load(sz, MOTION_MODE_DUALHAND_SWORD, MOTION_RUN);
-            snprintf(sz, sizeof(sz), "%s/dualhand_sword/walk.msa", c_apszFolderName[i]);
-            pkMotionSet->load(sz, MOTION_MODE_DUALHAND_SWORD, MOTION_WALK);
+            pkMotionSet->load(std::format("{}/bow/run.msa", c_apszFolderName[i]).c_str(), MOTION_MODE_BOW, MOTION_RUN);
+            pkMotionSet->load(std::format("{}/bow/walk.msa", c_apszFolderName[i]).c_str(), MOTION_MODE_BOW, MOTION_WALK);
 
-            snprintf(sz, sizeof(sz), "%s/bow/run.msa", c_apszFolderName[i]);
-            pkMotionSet->load(sz, MOTION_MODE_BOW, MOTION_RUN);
-            snprintf(sz, sizeof(sz), "%s/bow/walk.msa", c_apszFolderName[i]);
-            pkMotionSet->load(sz, MOTION_MODE_BOW, MOTION_WALK);
+            pkMotionSet->load(std::format("{}/bell/run.msa", c_apszFolderName[i]).c_str(), MOTION_MODE_BELL, MOTION_RUN);
+            pkMotionSet->load(std::format("{}/bell/walk.msa", c_apszFolderName[i]).c_str(), MOTION_MODE_BELL, MOTION_WALK);
 
-            snprintf(sz, sizeof(sz), "%s/bell/run.msa", c_apszFolderName[i]);
-            pkMotionSet->load(sz, MOTION_MODE_BELL, MOTION_RUN);
-            snprintf(sz, sizeof(sz), "%s/bell/walk.msa", c_apszFolderName[i]);
-            pkMotionSet->load(sz, MOTION_MODE_BELL, MOTION_WALK);
+            pkMotionSet->load(std::format("{}/fan/run.msa", c_apszFolderName[i]).c_str(), MOTION_MODE_FAN, MOTION_RUN);
+            pkMotionSet->load(std::format("{}/fan/walk.msa", c_apszFolderName[i]).c_str(), MOTION_MODE_FAN, MOTION_WALK);
 
-            snprintf(sz, sizeof(sz), "%s/fan/run.msa", c_apszFolderName[i]);
-            pkMotionSet->load(sz, MOTION_MODE_FAN, MOTION_RUN);
-            snprintf(sz, sizeof(sz), "%s/fan/walk.msa", c_apszFolderName[i]);
-            pkMotionSet->load(sz, MOTION_MODE_FAN, MOTION_WALK);
-
-            snprintf(sz, sizeof(sz), "%s/horse/run.msa", c_apszFolderName[i]);
-            pkMotionSet->load(sz, MOTION_MODE_HORSE, MOTION_RUN);
-            snprintf(sz, sizeof(sz), "%s/horse/walk.msa", c_apszFolderName[i]);
-            pkMotionSet->load(sz, MOTION_MODE_HORSE, MOTION_WALK);
+            pkMotionSet->load(std::format("{}/horse/run.msa", c_apszFolderName[i]).c_str(), MOTION_MODE_HORSE, MOTION_RUN);
+            pkMotionSet->load(std::format("{}/horse/walk.msa", c_apszFolderName[i]).c_str(), MOTION_MODE_HORSE, MOTION_WALK);
         }
 
         mob_manager::iterator it = mob_manager::instance().begin();

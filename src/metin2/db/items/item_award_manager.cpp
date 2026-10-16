@@ -8,11 +8,11 @@
 #include <metin2/log/log.h>
 #include <metin2/proto/length.h>
 #include <metin2/sql/async_sql.h>
+#include <metin2/sql/query.h>
 
 #include <mysql.h>
 
 #include <cstdint>
-#include <cstdio>
 #include <cstring>
 #include <map>
 #include <set>
@@ -31,9 +31,8 @@ namespace metin2::db::inline items {
     }
 
     void item_award_manager::request_load() {
-        char szQuery[QUERY_MAX_LEN];
-        snprintf(szQuery, sizeof(szQuery), "SELECT id,login,vnum,count,socket0,socket1,socket2,mall,why FROM item_award WHERE taken_time IS NULL and id > %d", last_cached_item_award_id);
-        db_manager::instance().return_query(szQuery, [this](sql_msg &msg) { load(msg); });
+        const std::string query = sql::format("SELECT id,login,vnum,count,socket0,socket1,socket2,mall,why FROM item_award WHERE taken_time IS NULL and id > {}", last_cached_item_award_id);
+        db_manager::instance().return_query(query, [this](sql_msg &msg) { load(msg); });
     }
 
     void item_award_manager::load(sql_msg &msg) {
@@ -97,13 +96,11 @@ namespace metin2::db::inline items {
         item_award *k = it->second.get();
         k->taken = true;
 
-        char szQuery[QUERY_MAX_LEN];
-
-        snprintf(szQuery, sizeof(szQuery),
-            "UPDATE item_award SET taken_time=NOW(),item_id=%u WHERE id=%u AND taken_time IS NULL",
+        const std::string query = sql::format(
+            "UPDATE item_award SET taken_time=NOW(),item_id={} WHERE id={} AND taken_time IS NULL",
             item_id, award_id);
 
-        db_manager::instance().return_query(szQuery, [](sql_msg &) {});
+        db_manager::instance().return_query(query, [](sql_msg &) {});
     }
 
     auto item_award_manager::remove(uint32_t award_id) -> bool {

@@ -10,6 +10,8 @@
 
 #include <cstdint>
 #include <cstdio>
+#include <format>
+#include <string>
 #include <utility>
 
 namespace metin2::game::inline items {
@@ -61,9 +63,8 @@ namespace metin2::game::inline items {
 
         over9->add_to_character(ch, item_pos(INVENTORY, iEmptyCell));
 
-        char szBuf[256];
-        snprintf(szBuf, sizeof(szBuf), "SUCCESS %u %s %u", over9->id(), over9->name(), over9->original_vnum());
-        log_manager::instance().item_log(ch, item, "REFINE OVER9", szBuf);
+        const std::string szBuf = std::format("SUCCESS {} {} {}", over9->id(), over9->name(), over9->original_vnum());
+        log_manager::instance().item_log(ch, item, "REFINE OVER9", szBuf.c_str());
         return true;
     }
 
@@ -90,9 +91,8 @@ namespace metin2::game::inline items {
 
         over9->add_to_character(ch, item_pos(INVENTORY, iEmptyCell));
 
-        char szBuf[256];
-        snprintf(szBuf, sizeof(szBuf), "SUCCESS %u %s %u", over9->id(), over9->name(), over9->original_vnum());
-        log_manager::instance().item_log(ch, item, "REFINE OVER9", szBuf);
+        const std::string szBuf = std::format("SUCCESS {} {} {}", over9->id(), over9->name(), over9->original_vnum());
+        log_manager::instance().item_log(ch, item, "REFINE OVER9", szBuf.c_str());
         return true;
     }
 

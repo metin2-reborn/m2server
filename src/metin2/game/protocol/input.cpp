@@ -30,6 +30,8 @@
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
+#include <format>
+#include <iterator>
 #include <memory>
 #include <sstream>
 #include <string>
@@ -126,27 +128,16 @@ namespace metin2::game::inline protocol {
 
                     character *ch = desc_value->get_character();
 
-                    char buf[1024];
-                    int offset, len;
-
-                    offset = snprintf(buf, sizeof(buf), "SEQUENCE_LOG [%s]-------------\n", ch ? ch->name() : "UNKNOWN");
-
-                    if (offset < 0 || offset >= (int)sizeof(buf))
-                        offset = sizeof(buf) - 1;
+                    std::string text = std::format("SEQUENCE_LOG [{}]-------------\n", ch ? ch->name() : "UNKNOWN");
 
                     for (size_t i = 0; i < desc_value->seq_vector.size(); ++i) {
-                        len = snprintf(buf + offset, sizeof(buf) - offset, "\t[%03d : 0x%x]\n",
+                        std::format_to(std::back_inserter(text), "\t[{:03} : 0x{:x}]\n",
                             desc_value->seq_vector[i].hdr,
                             desc_value->seq_vector[i].seq);
-
-                        if (len < 0 || len >= (int)sizeof(buf) - offset)
-                            offset += (sizeof(buf) - offset) - 1;
-                        else
-                            offset += len;
                     }
 
-                    snprintf(buf + offset, sizeof(buf) - offset, "\t[%03d : 0x%x]\n", bHeader, bSeq);
-                    metin2::log::warn("{}", buf);
+                    std::format_to(std::back_inserter(text), "\t[{:03} : 0x{:x}]\n", bHeader, bSeq);
+                    metin2::log::warn("{}", text);
 
                     desc_value->set_phase(PHASE_CLOSE);
                     return true;
@@ -256,7 +247,7 @@ namespace metin2::game::inline protocol {
             std::string stBuf;
             stBuf.assign(data_value, c_pSep - data_value);
 
-            metin2::log::info("Admin command from {}: {}", d->host_name(), stBuf.c_str());
+            metin2::log::info("Admin command from {}: {}", d->host_name(), stBuf);
 
             if (!stBuf.compare("IS_SERVER_UP")) {
                 if (no_more_client)
@@ -266,9 +257,7 @@ namespace metin2::game::inline protocol {
             } else if (!metin2::config::server().admin.password.empty() && stBuf == metin2::config::server().admin.password) {
                 if (!is_empty_admin_page()) {
                     if (!is_admin_page(d->host_name())) {
-                        char szTmp[64];
-                        snprintf(szTmp, sizeof(szTmp), "WEBADMIN : Wrong Connector : %s", d->host_name());
-                        stResult += szTmp;
+                        stResult += std::format("WEBADMIN : Wrong Connector : {}", d->host_name());
                     } else {
                         d->set_admin_mode();
                         stResult = "UNKNOWN";
@@ -278,26 +267,26 @@ namespace metin2::game::inline protocol {
                     stResult = "UNKNOWN";
                 }
             } else if (!stBuf.compare("USER_COUNT")) {
-                char szTmp[64];
+                std::string text;
 
                 if (!is_empty_admin_page()) {
                     if (!is_admin_page(d->host_name())) {
-                        snprintf(szTmp, sizeof(szTmp), "WEBADMIN : Wrong Connector : %s", d->host_name());
+                        text = std::format("WEBADMIN : Wrong Connector : {}", d->host_name());
                     } else {
                         int iTotal;
                         int *paiEmpireUserCount;
                         int iLocal;
                         desc_manager::instance().user_count(iTotal, &paiEmpireUserCount, iLocal);
-                        snprintf(szTmp, sizeof(szTmp), "%d %d %d %d %d", iTotal, paiEmpireUserCount[1], paiEmpireUserCount[2], paiEmpireUserCount[3], iLocal);
+                        text = std::format("{} {} {} {} {}", iTotal, paiEmpireUserCount[1], paiEmpireUserCount[2], paiEmpireUserCount[3], iLocal);
                     }
                 } else {
                     int iTotal;
                     int *paiEmpireUserCount;
                     int iLocal;
                     desc_manager::instance().user_count(iTotal, &paiEmpireUserCount, iLocal);
-                    snprintf(szTmp, sizeof(szTmp), "%d %d %d %d %d", iTotal, paiEmpireUserCount[1], paiEmpireUserCount[2], paiEmpireUserCount[3], iLocal);
+                    text = std::format("{} {} {} {} {}", iTotal, paiEmpireUserCount[1], paiEmpireUserCount[2], paiEmpireUserCount[3], iLocal);
                 }
-                stResult += szTmp;
+                stResult += text;
             } else if (d->is_admin_mode() && !stBuf.compare("CHECK_P2P_CONNECTIONS")) {
                 std::ostringstream oss(std::ostringstream::out);
 
@@ -314,14 +303,13 @@ namespace metin2::game::inline protocol {
                 main_packet_info_->log("packet_info.txt");
                 stResult = "OK";
             } else if (d->is_admin_mode() && !stBuf.compare(0, 15, "DELETE_AWARDID ")) {
-                char szTmp[64];
                 std::string msg = stBuf.substr(15, 26);
 
                 packet_delete_award_id p;
                 p.id = (uint32_t)(atoi(msg.c_str()));
-                snprintf(szTmp, sizeof(szTmp), "Sent to DB cache to delete ItemAward, id: %d", p.id);
+                const std::string text = std::format("Sent to DB cache to delete ItemAward, id: {}", p.id);
                 db_clientdesc->db_packet(HEADER_GD_DELETE_AWARDID, 0, &p, sizeof(p));
-                stResult += szTmp;
+                stResult += text;
             } else {
                 stResult = "UNKNOWN";
 
@@ -345,7 +333,7 @@ namespace metin2::game::inline protocol {
                     } else if (!stBuf.compare(0, 3, "DC ")) {
                         std::string msg = stBuf.substr(3, LOGIN_MAX_LEN);
 
-                        metin2::log::debug("Admin disconnect of account {}", msg.c_str());
+                        metin2::log::debug("Admin disconnect of account {}", msg);
 
                         packet_gg_disconnect pgg;
 
@@ -407,7 +395,7 @@ namespace metin2::game::inline protocol {
                         is >> strEvent >> strFlagName >> lValue;
 
                         if (!is.fail()) {
-                            metin2::log::info("Admin command: event flag {} set to {:d}", strFlagName.c_str(), lValue);
+                            metin2::log::info("Admin command: event flag {} set to {:d}", strFlagName, lValue);
                             quest::quest_manager::instance().request_set_event_flag(strFlagName, lValue);
                             stResult = "EVENT FLAG CHANGE ";
                             stResult += strFlagName;
@@ -421,7 +409,7 @@ namespace metin2::game::inline protocol {
                         is >> strBlockChat >> strCharName >> lDuration;
 
                         if (!is.fail()) {
-                            metin2::log::info("Admin command: chat block for player {} ({:d})", strCharName.c_str(), lDuration);
+                            metin2::log::info("Admin command: chat block for player {} ({:d})", strCharName, lDuration);
 
                             do_block_chat(nullptr, const_cast<char *>(stBuf.c_str() + 11), 0, 0);
 
@@ -462,7 +450,7 @@ namespace metin2::game::inline protocol {
                 }
             }
 
-            metin2::log::debug("Admin command {} result {}", stBuf.c_str(), stResult.c_str());
+            metin2::log::debug("Admin command {} result {}", stBuf, stResult);
             stResult += "\n";
             d->packet(stResult.c_str(), stResult.length());
             return (c_pSep - data_value) + 1;

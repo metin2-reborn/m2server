@@ -329,7 +329,7 @@ namespace metin2::game::inline protocol {
     void input_p2p::iam_awake(desc *d, const char *data) {
         std::string hostNames;
         p2p_manager::instance().p2p_host_names(hostNames);
-        metin2::log::info("Awake check from peer {}: {:d} peer connections: {}", d->host_name(), p2p_manager::instance().desc_count(), hostNames.c_str());
+        metin2::log::info("Awake check from peer {}: {:d} peer connections: {}", d->host_name(), p2p_manager::instance().desc_count(), hostNames);
     }
 
     auto input_p2p::analyze(desc *d, uint8_t header, const char *data) -> int {

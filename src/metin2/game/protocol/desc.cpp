@@ -130,7 +130,7 @@ namespace metin2::game::inline protocol {
         }
 
         if (connection_) {
-            metin2::log::info("Closing connection of {} (handle {:d})", host_.c_str(), handle_);
+            metin2::log::info("Closing connection of {} (handle {:d})", host_, handle_);
 
             cipher_.clean_up();
 
@@ -199,7 +199,7 @@ namespace metin2::game::inline protocol {
         start_handshake(handshake);
 
         metin2::log::info("New connection from {} (handle {:d}, handshake {:d}, {})",
-            host_.c_str(), handle_, handshake_, static_cast<const void *>(this));
+            host_, handle_, handshake_, static_cast<const void *>(this));
 
         return true;
     }
@@ -224,7 +224,7 @@ namespace metin2::game::inline protocol {
 
     void desc::on_close(const std::error_code &error) {
         if (error && error != asio::error::eof)
-            metin2::log::info("Connection of {} lost: {}", host_.c_str(), error.message().c_str());
+            metin2::log::info("Connection of {} lost: {}", host_, error.message());
 
         set_phase(PHASE_CLOSE);
     }
@@ -269,7 +269,7 @@ namespace metin2::game::inline protocol {
         const std::span<uint8_t> out = connection_->prepare(size_value);
 
         if (out.empty()) {
-            metin2::log::warn("Output buffer of {} exceeds its limit, closing connection", host_.c_str());
+            metin2::log::warn("Output buffer of {} exceeds its limit, closing connection", host_);
             phase_ = PHASE_CLOSE;
         } else {
             std::memcpy(out.data(), data_value, size_value);
@@ -362,7 +362,7 @@ namespace metin2::game::inline protocol {
         uint32_t dwCurTime = get_dword_time();
 
         if (delta < 0) {
-            metin2::log::warn("Negative handshake delta {:d} from {}", delta, host_.c_str());
+            metin2::log::warn("Negative handshake delta {:d} from {}", delta, host_);
             return false;
         }
 
@@ -474,7 +474,7 @@ namespace metin2::game::inline protocol {
         if (connection_->flush(std::chrono::seconds(20)))
             metin2::log::debug("Output flushed");
         else
-            metin2::log::warn("Cannot flush output of {} within 20 seconds", host_.c_str());
+            metin2::log::warn("Cannot flush output of {} within 20 seconds", host_);
     }
 
     EVENTFUNC(disconnect_event) {

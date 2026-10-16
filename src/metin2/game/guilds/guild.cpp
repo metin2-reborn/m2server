@@ -34,6 +34,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <format>
 #include <functional>
 #include <memory>
 #include <string>
@@ -390,7 +391,7 @@ namespace metin2::game::inline guilds {
             buf.write(c, CHARACTER_NAME_MAX_LEN + 1);
 
             if (metin2::config::test_server())
-                metin2::log::debug("Guild: sending member {} (job {:d})", it->second.name.c_str(), it->second.job);
+                metin2::log::debug("Guild: sending member {} (job {:d})", it->second.name, it->second.job);
         }
 
         d->packet(buf.read_peek(), buf.size());
@@ -494,7 +495,7 @@ namespace metin2::game::inline guilds {
     }
     void guild::load_guild_data(sql_msg &msg) {
         if (msg.get()->num_rows == 0) {
-            metin2::log::error("Guild data not found, query: {}", msg.query.c_str());
+            metin2::log::error("Guild data not found, query: {}", msg.query);
             return;
         }
 
@@ -552,7 +553,7 @@ namespace metin2::game::inline guilds {
     }
 
     void guild::save_level() {
-        db_manager::instance().query("UPDATE guild%s SET level=%d, exp=%u, skill_point=%d WHERE id = %u", get_table_postfix(), data_.level, data_.exp, data_.skill_point, data_.guild_id);
+        db_manager::instance().query(sql::format("UPDATE guild{} SET level={}, exp={}, skill_point={} WHERE id = {}", sql::raw(get_table_postfix()), data_.level, data_.exp, data_.skill_point, data_.guild_id));
     }
 
     void guild::send_db_skill_update(int amount) {
@@ -914,7 +915,7 @@ namespace metin2::game::inline guilds {
             return;
         }
 
-        auto pmsg = db_manager::instance().direct_query("SELECT id, name, content FROM guild_comment%s WHERE guild_id = %u ORDER BY notice DESC, id DESC LIMIT %d", get_table_postfix(), data_.guild_id, GUILD_COMMENT_MAX_COUNT);
+        auto pmsg = db_manager::instance().direct_query(sql::format("SELECT id, name, content FROM guild_comment{} WHERE guild_id = {} ORDER BY notice DESC, id DESC LIMIT {}", sql::raw(get_table_postfix()), data_.guild_id, GUILD_COMMENT_MAX_COUNT));
 
         packet_gc_guild pack;
         pack.header = HEADER_GC_GUILD;
@@ -1313,9 +1314,9 @@ namespace metin2::game::inline guilds {
         if (it == member_.end())
             return;
 
-        db_manager::instance().query(
-            "UPDATE guild_member%s SET grade = %d, offer = %u, is_general = %d WHERE pid = %u and guild_id = %u",
-            get_table_postfix(), it->second.grade, it->second.offer_exp, it->second.is_general, pid, data_.guild_id);
+        db_manager::instance().query(sql::format(
+            "UPDATE guild_member{} SET grade = {}, offer = {}, is_general = {} WHERE pid = {} and guild_id = {}",
+            sql::raw(get_table_postfix()), it->second.grade, it->second.offer_exp, it->second.is_general, pid, data_.guild_id));
     }
 
     void guild::level_change(uint32_t pid, uint8_t level) {
@@ -1485,9 +1486,8 @@ namespace metin2::game::inline guilds {
         p.gold = gold_value;
         db_clientdesc->db_packet(HEADER_GD_GUILD_DEPOSIT_MONEY, 0, &p, sizeof(p));
 
-        char buf[64 + 1];
-        snprintf(buf, sizeof(buf), "%u %s", id(), name());
-        log_manager::instance().char_log(ch, gold_value, "GUILD_DEPOSIT", buf);
+        const std::string hint = std::format("{} {}", id(), name());
+        log_manager::instance().char_log(ch, gold_value, "GUILD_DEPOSIT", hint.c_str());
 
         ch->update_deposit_pulse();
         metin2::log::info("Guild: deposit to guild {} (id {:d}) by player {} (pid {:d}), {:d} gold", name(), id(), ch->name(), ch->player_id(), gold_value);

@@ -25,7 +25,7 @@ namespace metin2::game::inline app {
 
         const std::string time_str_buf(time_str(get_global_time()));
 
-        metin2::log::info("Global time set to {} (offset {:d} seconds)", time_str_buf.c_str(), global_time_gap);
+        metin2::log::info("Global time set to {} (offset {:d} seconds)", time_str_buf, global_time_gap);
     }
 
     auto str_lower(const char *src, char *dest, size_t dest_size) -> size_t {

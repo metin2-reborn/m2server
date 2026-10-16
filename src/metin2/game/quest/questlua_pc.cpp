@@ -45,6 +45,7 @@
 #include <cmath>
 #include <cstdint>
 #include <cstdio>
+#include <format>
 #include <memory>
 #include <string>
 #include <vector>
@@ -862,7 +863,7 @@ namespace metin2::game {
                 pc *pPC = q.current_pc();
                 lua_pushnumber(lua, pPC->flag(pPC->current_quest_name() + "." + sz));
                 if (metin2::config::test_server())
-                    metin2::log::debug("Quest: get flag {}.{}", pPC->current_quest_name().c_str(), sz);
+                    metin2::log::debug("Quest: get flag {}.{}", pPC->current_quest_name(), sz);
             }
             return 1;
         }
@@ -1752,7 +1753,7 @@ namespace metin2::game {
                 if (idx >= 0 && idx < 4) {
                     character *ch = quest_manager::instance().current_character_ptr();
                     int point = POINT_NONE;
-                    char buf[128];
+                    std::string buf;
 
                     switch (idx) {
                     case 0:  point = POINT_HT; break;
@@ -1789,20 +1790,20 @@ namespace metin2::game {
 
                     switch (idx) {
                     case 0:
-                        snprintf(buf, sizeof(buf), "reset ht(%d)->1 stat_point(%d)->(%d)", old_val, old_stat, ch->real_point(POINT_STAT));
+                        buf = std::format("reset ht({})->1 stat_point({})->({})", old_val, old_stat, ch->real_point(POINT_STAT));
                         break;
                     case 1:
-                        snprintf(buf, sizeof(buf), "reset iq(%d)->1 stat_point(%d)->(%d)", old_val, old_stat, ch->real_point(POINT_STAT));
+                        buf = std::format("reset iq({})->1 stat_point({})->({})", old_val, old_stat, ch->real_point(POINT_STAT));
                         break;
                     case 2:
-                        snprintf(buf, sizeof(buf), "reset st(%d)->1 stat_point(%d)->(%d)", old_val, old_stat, ch->real_point(POINT_STAT));
+                        buf = std::format("reset st({})->1 stat_point({})->({})", old_val, old_stat, ch->real_point(POINT_STAT));
                         break;
                     case 3:
-                        snprintf(buf, sizeof(buf), "reset dx(%d)->1 stat_point(%d)->(%d)", old_val, old_stat, ch->real_point(POINT_STAT));
+                        buf = std::format("reset dx({})->1 stat_point({})->({})", old_val, old_stat, ch->real_point(POINT_STAT));
                         break;
                     }
 
-                    log_manager::instance().char_log(ch, 0, "RESET_ONE_STATUS", buf);
+                    log_manager::instance().char_log(ch, 0, "RESET_ONE_STATUS", buf.c_str());
 
                     lua_pushboolean(lua, true);
                     return 1;

@@ -168,12 +168,12 @@ namespace metin2::game::inline protocol {
     }
 
     void desc_manager::connect_account(const std::string &login, desc *d) {
-        metin2::log::debug("Account {} bound to connection", login.c_str());
+        metin2::log::debug("Account {} bound to connection", login);
         map_login_name_.insert(desc_loginname_map::value_type(login, d));
     }
 
     void desc_manager::disconnect_account(const std::string &login) {
-        metin2::log::debug("Account {} unbound from connection", login.c_str());
+        metin2::log::debug("Account {} unbound from connection", login);
         map_login_name_.erase(login);
     }
 

@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <format>
 #include <iterator>
 #include <map>
 #include <memory>
@@ -30,9 +31,7 @@ namespace metin2::game::inline guilds {
         if (img_idx >= MAX_IMAGE_COUNT)
             return false;
 
-        char buf[64];
-        snprintf(buf, sizeof(buf), "mark/%s_%u.tga", path_prefix_.c_str(), img_idx);
-        path = buf;
+        path = std::format("mark/{}_{}.tga", path_prefix_, img_idx);
         return true;
     }
 
@@ -41,9 +40,8 @@ namespace metin2::game::inline guilds {
     }
 
     auto guild_mark_manager::load_mark_index() -> bool {
-        char buf[64];
-        snprintf(buf, sizeof(buf), "mark/%s_index", path_prefix_.c_str());
-        FILE *fp = fopen(buf, "r");
+        const std::string filename = std::format("mark/{}_index", path_prefix_);
+        FILE *fp = fopen(filename.c_str(), "r");
 
         if (!fp)
             return false;
@@ -66,9 +64,8 @@ namespace metin2::game::inline guilds {
     }
 
     auto guild_mark_manager::save_mark_index() -> bool {
-        char buf[64];
-        snprintf(buf, sizeof(buf), "mark/%s_index", path_prefix_.c_str());
-        FILE *fp = fopen(buf, "w");
+        const std::string filename = std::format("mark/{}_index", path_prefix_);
+        FILE *fp = fopen(filename.c_str(), "w");
 
         if (!fp) {
             metin2::log::error("Cannot open guild mark index file for writing");
@@ -104,7 +101,7 @@ namespace metin2::game::inline guilds {
 
         if (mark_image_filename(img_idx, path))
             if (!image(img_idx)->save(path.c_str()))
-                metin2::log::error("Failed to save guild mark image {}", path.c_str());
+                metin2::log::error("Failed to save guild mark image {}", path);
     }
 
     auto guild_mark_manager::image(uint32_t img_idx) -> guild_mark_image * {

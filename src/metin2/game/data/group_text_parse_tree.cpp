@@ -68,9 +68,9 @@ namespace metin2::game::inline data {
 
             if (0 == stTokenVector[0].compare("group")) {
                 if (2 != stTokenVector.size()) {
-                    metin2::log::error("{} line {:d}: group line has {:d} tokens instead of 2 (group names must not contain spaces)", file_name_.c_str(), dwcur_line_index_, stTokenVector.size());
+                    metin2::log::error("{} line {:d}: group line has {:d} tokens instead of 2 (group names must not contain spaces)", file_name_, dwcur_line_index_, stTokenVector.size());
                     for (unsigned int i = 0; i < stTokenVector.size(); ++i)
-                        metin2::log::error("Token {:d}: {}", i, stTokenVector[i].c_str());
+                        metin2::log::error("Token {:d}: {}", i, stTokenVector[i]);
                     exit(1);
                     continue;
                 }
@@ -96,9 +96,9 @@ namespace metin2::game::inline data {
 
                 if (1 == stTokenVector.size()) {
                     metin2::log::error("{} line {:d}: key {} has no value",
-                        file_name_.c_str(),
+                        file_name_,
                         dwcur_line_index_,
-                        key.c_str());
+                        key);
                     break;
                 }
 
