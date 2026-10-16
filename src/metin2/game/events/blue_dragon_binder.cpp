@@ -87,7 +87,7 @@ namespace metin2::game::inline events {
             return 0;
         }
 
-        const size_t cnt = static_cast<size_t>(luaL_getn(L, -1));
+        const auto cnt = static_cast<size_t>(luaL_getn(L, -1));
 
         for (size_t i = 1; i <= cnt; ++i) {
             lua_rawgeti(L, -1, i);
@@ -195,7 +195,7 @@ namespace metin2::game::inline events {
             return 0;
         }
 
-        const unsigned int ret = static_cast<unsigned int>(lua_tonumber(L, -1));
+        const auto ret = static_cast<unsigned int>(lua_tonumber(L, -1));
 
         lua_settop(L, stack_top);
 

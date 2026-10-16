@@ -188,7 +188,7 @@ namespace metin2::game::inline characters {
     motion_manager::~motion_manager() = default;
 
     auto motion_manager::get_motion_set(uint32_t vnum) -> const motion_set * {
-        iterator it = map_motion_set_.find(vnum);
+        auto it = map_motion_set_.find(vnum);
 
         if (map_motion_set_.end() == it)
             return nullptr;
@@ -211,7 +211,7 @@ namespace metin2::game::inline characters {
     }
 
     auto motion_manager::normal_attack_duration(uint32_t vnum) -> float {
-        std::map<uint32_t, float>::iterator f = map_normal_attack_duration_.find(vnum);
+        auto f = map_normal_attack_duration_.find(vnum);
         if (map_normal_attack_duration_.end() == f)
             return 0.0f;
         else
@@ -275,7 +275,7 @@ namespace metin2::game::inline characters {
             pkMotionSet->load(std::format("{}/horse/walk.msa", c_apszFolderName[i]).c_str(), MOTION_MODE_HORSE, MOTION_WALK);
         }
 
-        mob_manager::iterator it = mob_manager::instance().begin();
+        auto it = mob_manager::instance().begin();
 
         while (it != mob_manager::instance().end()) {
             mob *pkMob = (it++)->second.get();
@@ -310,7 +310,7 @@ namespace metin2::game::inline characters {
     motion_set::~motion_set() = default;
 
     auto motion_set::get_motion(uint32_t key) const -> const motion * {
-        const_iterator it = map_motion_.find(key);
+        auto it = map_motion_.find(key);
 
         if (it == map_motion_.end())
             return nullptr;

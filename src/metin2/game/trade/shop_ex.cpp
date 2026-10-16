@@ -118,7 +118,7 @@ namespace metin2::game::inline trade {
 
         metin2::log::debug("Shop: player {} buys slot {:d}", ch->name(), pos);
 
-        guest_map_type::iterator it = map_guest_.find(ch);
+        auto it = map_guest_.find(ch);
 
         if (it == map_guest_.end())
             return SHOP_SUBHEADER_GC_END;

@@ -179,7 +179,7 @@ namespace metin2::game::inline protocol {
 
     void input_auth::login(desc *d, const char *data) {
 
-        packet_cg_login3 *pinfo = (packet_cg_login3 *)data;
+        auto *pinfo = (packet_cg_login3 *)data;
 
         if (!metin2::config::is_auth()) {
             metin2::log::warn("Auth packet from {} on a game server, disconnecting",

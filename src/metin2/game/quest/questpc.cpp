@@ -68,7 +68,7 @@ namespace metin2::game {
                 return;
             }
 
-            flag_map::iterator it = flag_map_.find(name);
+            auto it = flag_map_.find(name);
 
             if (it == flag_map_.end())
                 flag_map_.insert(make_pair(name, value));
@@ -82,7 +82,7 @@ namespace metin2::game {
         }
 
         auto pc::delete_flag(const std::string &name) -> bool {
-            flag_map::iterator it = flag_map_.find(name);
+            auto it = flag_map_.find(name);
 
             if (it != flag_map_.end()) {
                 flag_map_.erase(it);
@@ -94,7 +94,7 @@ namespace metin2::game {
         }
 
         auto pc::flag(const std::string &name) -> int {
-            flag_map::iterator it = flag_map_.find(name);
+            auto it = flag_map_.find(name);
 
             if (it != flag_map_.end()) {
                 metin2::log::debug("Quest: get flag {} = {:d}", name, it->second);
@@ -104,7 +104,7 @@ namespace metin2::game {
         }
 
         void pc::save_flag(const std::string &name, int value) {
-            flag_map::iterator it = flag_save_map_.find(name);
+            auto it = flag_save_map_.find(name);
 
             if (it == flag_save_map_.end())
                 flag_save_map_.insert(make_pair(name, value));
@@ -135,7 +135,7 @@ namespace metin2::game {
 
         void pc::set_quest(const std::string &quest_name, quest_state &qs) {
             unsigned int qi = quest_manager::instance().quest_index_by_name(quest_name);
-            quest_info::iterator it = quest_info_.find(qi);
+            auto it = quest_info_.find(qi);
 
             if (it == quest_info_.end())
                 quest_info_.insert(std::make_pair(qi, qs));
@@ -160,7 +160,7 @@ namespace metin2::game {
         }
 
         void pc::remove_timer_not_cancel(const std::string &name) {
-            timer_map::iterator it = timer_map_.find(name);
+            auto it = timer_map_.find(name);
 
             if (it != timer_map_.end()) {
                 metin2::log::debug("Quest: remove timer {} without cancelling", static_cast<const void *>(it->second.get()));
@@ -171,7 +171,7 @@ namespace metin2::game {
         }
 
         void pc::remove_timer(const std::string &name) {
-            timer_map::iterator it = timer_map_.find(name);
+            auto it = timer_map_.find(name);
 
             if (it != timer_map_.end()) {
                 metin2::log::debug("Quest: remove timer {}", static_cast<const void *>(it->second.get()));
@@ -184,7 +184,7 @@ namespace metin2::game {
 
         void pc::clear_timer() {
             metin2::log::debug("Quest: clear {:d} timers", timer_map_.size());
-            timer_map::iterator it = timer_map_.begin();
+            auto it = timer_map_.begin();
 
             while (it != timer_map_.end()) {
                 cancel_timer_event(&it->second);
@@ -340,7 +340,7 @@ namespace metin2::game {
                     continue;
 
                 uint32_t dwQuestIdx = rInfo.quest_idx;
-                quest_info_iterator it = quest_find(dwQuestIdx);
+                auto it = quest_find(dwQuestIdx);
                 const std::string stQuestName = quest_manager::instance().quest_name_by_index(dwQuestIdx);
 
                 if (it == quest_end()) {
@@ -402,7 +402,7 @@ namespace metin2::game {
         }
 
         void pc::set_quest_title(const std::string &quest, const std::string &title) {
-            quest_info::iterator it = quest_info_.find(quest_manager::instance().quest_index_by_name(quest));
+            auto it = quest_info_.find(quest_manager::instance().quest_index_by_name(quest));
 
             if (it != quest_info_.end()) {
                 quest_state *old = running_quest_state_;
@@ -457,7 +457,7 @@ namespace metin2::game {
 
             int i = 0;
 
-            flag_map::iterator it = flag_save_map_.begin();
+            auto it = flag_save_map_.begin();
 
             while (it != flag_save_map_.end()) {
                 const std::string &stComp = it->first;
@@ -535,7 +535,7 @@ namespace metin2::game {
                 is_given_reward_ = false;
             }
 
-            for (std::vector<reward_data>::iterator it = reward_data_.begin(); it != reward_data_.end(); ++it) {
+            for (auto it = reward_data_.begin(); it != reward_data_.end(); ++it) {
                 switch (it->type) {
                 case reward_data::REWARD_TYPE_EXP:
                     metin2::log::debug("Quest reward: exp {:d} + {:d}, next level at {:d}", ch->get_exp(), it->value1, ch->next_exp());
@@ -586,7 +586,7 @@ namespace metin2::game {
 
             clear_timer();
 
-            quest::pc::quest_info_iterator it = quest_begin();
+            auto it = quest_begin();
             unsigned int questindex = quest::quest_manager::instance().quest_index_by_name(quest_name);
 
             while (it != quest_end()) {

@@ -476,7 +476,7 @@ namespace metin2::game::inline characters {
         encode_remove_packet(this);
         encode_insert_packet(this);
 
-        entity_map::iterator it = map_view_.begin();
+        auto it = map_view_.begin();
 
         while (it != map_view_.end()) {
             entity *entity = (it++)->first;
@@ -486,7 +486,7 @@ namespace metin2::game::inline characters {
                 encode_insert_packet(entity);
 
             if (entity->is_type(ENTITY_CHARACTER)) {
-                character *lpChar = (character *)entity;
+                auto *lpChar = (character *)entity;
                 if (lpChar->is_pc() || lpChar->is_npc() || lpChar->is_monster()) {
                     if (!entity->is_observer_mode())
                         entity->encode_insert_packet(this);
@@ -506,7 +506,7 @@ namespace metin2::game::inline characters {
         if (!(d = entity->get_desc()))
             return;
 
-        character *ch = (character *)entity;
+        auto *ch = (character *)entity;
         ch->send_guild_name(get_guild());
 
         packet_gc_character_add pack;
@@ -592,7 +592,7 @@ namespace metin2::game::inline characters {
         }
 
         if (entity->is_type(ENTITY_CHARACTER) && get_desc()) {
-            character *ch = (character *)entity;
+            auto *ch = (character *)entity;
             if (ch->is_walking()) {
                 packet_gc_walk_mode p;
                 p.vid = ch->get_vid();
@@ -669,13 +669,13 @@ namespace metin2::game::inline characters {
     }
 
     auto character::find_character_in_view(const char *name_value, bool find_pc_only) -> character * {
-        entity_map::iterator it = map_view_.begin();
+        auto it = map_view_.begin();
 
         for (; it != map_view_.end(); ++it) {
             if (!it->first->is_type(ENTITY_CHARACTER))
                 continue;
 
-            character *tch = (character *)it->first;
+            auto *tch = (character *)it->first;
 
             if (find_pc_only && tch->is_npc())
                 continue;
@@ -1022,7 +1022,7 @@ namespace metin2::game::inline characters {
     }
 
     auto character_get_bgm_info(unsigned index) -> const bgm_info & {
-        bgm_info_map::iterator f = gs_bgm_info_map.find(index);
+        auto f = gs_bgm_info_map.find(index);
         if (gs_bgm_info_map.end() == f) {
             static bgm_info s_empty = {"", 0.0f};
             return s_empty;
@@ -1311,7 +1311,7 @@ namespace metin2::game::inline characters {
     }
 
     EVENTFUNC(kill_ore_load_event) {
-        char_event_info *info = dynamic_cast<char_event_info *>(event->info.get());
+        auto *info = dynamic_cast<char_event_info *>(event->info.get());
         if (info == nullptr) {
             metin2::log::error("Ore kill load event fired without event info");
             return 0;
@@ -1405,7 +1405,7 @@ namespace metin2::game::inline characters {
         }
 
         if (mining::is_vein_of_ore(race_num())) {
-            char_event_info *info = alloc_event_info<char_event_info>();
+            auto *info = alloc_event_info<char_event_info>();
 
             info->ch = this;
 
@@ -1741,7 +1741,7 @@ namespace metin2::game::inline characters {
             pPetSystem->refresh_buff();
         }
 
-        for (map_buff_on_attrs::iterator it = map_buff_on_attrs_.begin(); it != map_buff_on_attrs_.end(); it++) {
+        for (auto it = map_buff_on_attrs_.begin(); it != map_buff_on_attrs_.end(); it++) {
             it->second->give_all_attributes();
         }
 
@@ -1755,7 +1755,7 @@ namespace metin2::game::inline characters {
     const int recovery_percents[10] = {1, 5, 5, 5, 5, 5, 5, 5, 5, 5};
 
     EVENTFUNC(recovery_event) {
-        char_event_info *info = dynamic_cast<char_event_info *>(event->info.get());
+        auto *info = dynamic_cast<char_event_info *>(event->info.get());
         if (info == nullptr) {
             metin2::log::error("Recovery event fired without event info");
             return 0;
@@ -1853,7 +1853,7 @@ namespace metin2::game::inline characters {
         if (is_npc() && hp() >= max_hp())
             return;
 
-        char_event_info *info = alloc_event_info<char_event_info>();
+        auto *info = alloc_event_info<char_event_info>();
 
         info->ch = this;
 
@@ -2338,7 +2338,7 @@ namespace metin2::game::inline characters {
                         exp = get_exp();
                     }
 
-                    uint32_t q = uint32_t(next_exp_value / 4.0f);
+                    auto q = uint32_t(next_exp_value / 4.0f);
                     int iLevStep = real_point(POINT_LEVEL_STEP);
 
                     if (iLevStep >= 4) {
@@ -2788,7 +2788,7 @@ namespace metin2::game::inline characters {
 
         case APPLY_SKILL:
             {
-                uint8_t bSkillVnum = (uint8_t)(((uint32_t)val) >> 24);
+                auto bSkillVnum = (uint8_t)(((uint32_t)val) >> 24);
                 int iAdd = val & 0x00800000;
                 int iChange = val & 0x007fffff;
 
@@ -2797,7 +2797,7 @@ namespace metin2::game::inline characters {
                 if (0 == iAdd)
                     iChange = -iChange;
 
-                std::unordered_map<uint8_t, int>::iterator iter = skill_damage_bonus_.find(bSkillVnum);
+                auto iter = skill_damage_bonus_.find(bSkillVnum);
 
                 if (iter == skill_damage_bonus_.end())
                     skill_damage_bonus_.insert(std::make_pair(bSkillVnum, iChange));
@@ -2817,7 +2817,7 @@ namespace metin2::game::inline characters {
     }
 
     EVENTFUNC(save_event) {
-        char_event_info *info = dynamic_cast<char_event_info *>(event->info.get());
+        auto *info = dynamic_cast<char_event_info *>(event->info.get());
         if (info == nullptr) {
             metin2::log::error("Save event fired without event info");
             return 0;
@@ -2838,7 +2838,7 @@ namespace metin2::game::inline characters {
         if (save_event)
             return;
 
-        char_event_info *info = alloc_event_info<char_event_info>();
+        auto *info = alloc_event_info<char_event_info>();
 
         info->ch = this;
         save_event = event_create(game::characters::save_event, info, passes_per_sec(metin2::config::game().save_seconds));
@@ -3014,7 +3014,7 @@ namespace metin2::game::inline characters {
         if (rod && rod->type() == ITEM_ROD) {
             using fishing::fishing_event_info;
             if (fishing_event) {
-                struct fishing_event_info *info = dynamic_cast<struct fishing_event_info *>(fishing_event->info.get());
+                auto *info = dynamic_cast<struct fishing_event_info *>(fishing_event->info.get());
 
                 if (info)
                     fishing::take(info, this);
@@ -3218,7 +3218,7 @@ namespace metin2::game::inline characters {
     };
 
     EVENTFUNC(party_request_event) {
-        party_join_event_info *info = dynamic_cast<party_join_event_info *>(event->info.get());
+        auto *info = dynamic_cast<party_join_event_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Party request event fired without event info");
@@ -3300,7 +3300,7 @@ namespace metin2::game::inline characters {
             return false;
         }
 
-        party_join_event_info *info = alloc_event_info<party_join_event_info>();
+        auto *info = alloc_event_info<party_join_event_info>();
 
         info->guest_pid = player_id();
         info->leader_pid = leader->player_id();
@@ -3318,7 +3318,7 @@ namespace metin2::game::inline characters {
         if (!member->party_request_event_)
             return;
 
-        party_join_event_info *info = dynamic_cast<party_join_event_info *>(member->party_request_event_->info.get());
+        auto *info = dynamic_cast<party_join_event_info *>(member->party_request_event_->info.get());
 
         if (!info) {
             metin2::log::error("Party request event of member has no info on deny");
@@ -3342,7 +3342,7 @@ namespace metin2::game::inline characters {
         if (!member->party_request_event_)
             return;
 
-        party_join_event_info *info = dynamic_cast<party_join_event_info *>(member->party_request_event_->info.get());
+        auto *info = dynamic_cast<party_join_event_info *>(member->party_request_event_->info.get());
 
         if (!info) {
             metin2::log::error("Party request event of member has no info on accept");
@@ -3387,7 +3387,7 @@ namespace metin2::game::inline characters {
     }
 
     EVENTFUNC(party_invite_event) {
-        party_join_event_info *pInfo = dynamic_cast<party_join_event_info *>(event->info.get());
+        auto *pInfo = dynamic_cast<party_join_event_info *>(event->info.get());
 
         if (pInfo == nullptr) {
             metin2::log::error("Party invite event fired without event info");
@@ -3463,7 +3463,7 @@ namespace metin2::game::inline characters {
         if (party_invite_event_map_.end() != party_invite_event_map_.find(pch_invitee->player_id()))
             return;
 
-        party_join_event_info *info = alloc_event_info<party_join_event_info>();
+        auto *info = alloc_event_info<party_join_event_info>();
 
         info->guest_pid = pch_invitee->player_id();
         info->leader_pid = player_id();
@@ -3477,7 +3477,7 @@ namespace metin2::game::inline characters {
     }
 
     void character::party_invite_accept(character *pch_invitee) {
-        event_map::iterator itFind = party_invite_event_map_.find(pch_invitee->player_id());
+        auto itFind = party_invite_event_map_.find(pch_invitee->player_id());
 
         if (itFind == party_invite_event_map_.end()) {
             metin2::log::debug("Party invite accepted by {} without an invite", pch_invitee->name());
@@ -3548,7 +3548,7 @@ namespace metin2::game::inline characters {
     }
 
     void character::party_invite_deny(uint32_t pid) {
-        event_map::iterator itFind = party_invite_event_map_.find(pid);
+        auto itFind = party_invite_event_map_.find(pid);
 
         if (itFind == party_invite_event_map_.end()) {
             metin2::log::debug("Party invite deny without a pending invite (inviter pid {:d}, invitee pid {:d})", player_id(), pid);
@@ -3824,7 +3824,7 @@ namespace metin2::game::inline characters {
         p.vid = 0;
         p.hp_percent = 0;
 
-        character_set::iterator it = set_chr_targeted_by_.begin();
+        auto it = set_chr_targeted_by_.begin();
 
         while (it != set_chr_targeted_by_.end()) {
             character *pkChr = *(it++);
@@ -3911,7 +3911,7 @@ namespace metin2::game::inline characters {
         else
             p.hp_percent = std::clamp((hp() * 100) / max_hp(), 0, 100);
 
-        character_set::iterator it = set_chr_targeted_by_.begin();
+        auto it = set_chr_targeted_by_.begin();
 
         while (it != set_chr_targeted_by_.end()) {
             character *pkChr = *it++;
@@ -4865,7 +4865,7 @@ namespace metin2::game::inline characters {
         pos_dest_.y = pos_start_.y = y();
         encode_insert_packet(this);
 
-        entity_map::iterator it = map_view_.begin();
+        auto it = map_view_.begin();
 
         while (it != map_view_.end()) {
             entity *entity = (it++)->first;
@@ -4880,7 +4880,7 @@ namespace metin2::game::inline characters {
     }
 
     EVENTFUNC(warp_npc_event) {
-        char_event_info *info = dynamic_cast<char_event_info *>(event->info.get());
+        auto *info = dynamic_cast<char_event_info *>(event->info.get());
         if (info == nullptr) {
             metin2::log::error("Warp NPC event fired without event info");
             return 0;
@@ -4928,7 +4928,7 @@ namespace metin2::game::inline characters {
             if (!ent->is_type(ENTITY_CHARACTER))
                 return;
 
-            character *pkChr = (character *)ent;
+            auto *pkChr = (character *)ent;
 
             if (!pkChr->is_pc())
                 return;
@@ -4965,7 +4965,7 @@ namespace metin2::game::inline characters {
         if (!is_warp() && !is_goto())
             return;
 
-        char_event_info *info = alloc_event_info<char_event_info>();
+        auto *info = alloc_event_info<char_event_info>();
 
         info->ch = this;
 
@@ -5351,7 +5351,7 @@ namespace metin2::game::inline characters {
     static auto is_speed_hack_player(character *ch) -> bool { return ch->speed_hack_count > metin2::config::game().anti_cheat.speed_hack_limit; }
 
     EVENTFUNC(check_speedhack_event) {
-        char_event_info *info = dynamic_cast<char_event_info *>(event->info.get());
+        auto *info = dynamic_cast<char_event_info *>(event->info.get());
         if (info == nullptr) {
             metin2::log::error("Speed hack check event fired without event info");
             return 0;
@@ -5376,7 +5376,7 @@ namespace metin2::game::inline characters {
         if (check_speed_hack_event)
             return;
 
-        char_event_info *info = alloc_event_info<char_event_info>();
+        auto *info = alloc_event_info<char_event_info>();
 
         info->ch = this;
 
@@ -5414,7 +5414,7 @@ namespace metin2::game::inline characters {
     }
 
     EVENTFUNC(destroy_when_idle_event) {
-        char_event_info *info = dynamic_cast<char_event_info *>(event->info.get());
+        auto *info = dynamic_cast<char_event_info *>(event->info.get());
         if (info == nullptr) {
             metin2::log::error("Destroy when idle event fired without event info");
             return 0;
@@ -5440,7 +5440,7 @@ namespace metin2::game::inline characters {
         if (destroy_when_idle_event)
             return;
 
-        char_event_info *info = alloc_event_info<char_event_info>();
+        auto *info = alloc_event_info<char_event_info>();
 
         info->ch = this;
 

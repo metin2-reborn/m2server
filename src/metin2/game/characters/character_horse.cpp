@@ -92,7 +92,7 @@ namespace metin2::game::inline characters {
     }
 
     EVENTFUNC(horse_dead_event) {
-        char_event_info *info = dynamic_cast<char_event_info *>(event->info.get());
+        auto *info = dynamic_cast<char_event_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Horse dead event fired without event info");
@@ -162,7 +162,7 @@ namespace metin2::game::inline characters {
             if (horse_health() <= 0) {
                 ch_horse_->set_position(POS_DEAD);
 
-                char_event_info *info = alloc_event_info<char_event_info>();
+                auto *info = alloc_event_info<char_event_info>();
                 info->ch = this;
                 ch_horse_->dead_event = event_create(horse_dead_event, info, passes_per_sec(60));
             }

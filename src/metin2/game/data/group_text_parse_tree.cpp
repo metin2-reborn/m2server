@@ -124,7 +124,7 @@ namespace metin2::game::inline data {
             child_nodes_.erase(key);
             return true;
         }
-        map_group::iterator it = child_nodes_.find(key);
+        auto it = child_nodes_.find(key);
         if (it != child_nodes_.end())
             return false;
 
@@ -134,7 +134,7 @@ namespace metin2::game::inline data {
     }
 
     auto group_node::child_node(const std::string &rstr_key) const -> group_node * {
-        map_group::const_iterator it = child_nodes_.find(rstr_key);
+        auto it = child_nodes_.find(rstr_key);
         if (it != child_nodes_.end())
             return it->second.get();
         else
@@ -150,7 +150,7 @@ namespace metin2::game::inline data {
     }
 
     auto group_node::row(const std::string &rstr_row_key, const group_node::group_node_row **pp_row) const -> bool {
-        map_row::const_iterator row_it = map_rows_.find(rstr_row_key);
+        auto row_it = map_rows_.find(rstr_row_key);
         if (map_rows_.end() == row_it) {
             return false;
         }
@@ -164,7 +164,7 @@ namespace metin2::game::inline data {
         if (idx < 0 || static_cast<size_t>(idx) >= map_rows_.size())
             return false;
 
-        map_row::const_iterator row_it = map_rows_.begin();
+        auto row_it = map_rows_.begin();
 
         std::advance(row_it, idx);
 
@@ -188,7 +188,7 @@ namespace metin2::game::inline data {
     }
 
     auto group_node::column_index_from_name(const std::string &name) const -> int {
-        map_name_to_index::const_iterator it = map_column_name_to_index_.find(name);
+        auto it = map_column_name_to_index_.find(name);
         if (map_column_name_to_index_.end() == it)
             return -1;
         else

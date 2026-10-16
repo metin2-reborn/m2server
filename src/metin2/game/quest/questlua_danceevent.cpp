@@ -15,7 +15,7 @@ namespace metin2::game {
             if (pSecMap != nullptr) {
                 pSecMap->for_each([](entity *ent) {
                     if (ent->is_type(ENTITY_CHARACTER)) {
-                        character *ch = (character *)ent;
+                        auto *ch = (character *)ent;
 
                         if (ch->is_pc() == true && ch->is_gm() != true) {
                             if (((ch->x() >= 764503 && ch->x() <= 772362) && (ch->y() >= 22807 && ch->y() <= 26499)) == false) {

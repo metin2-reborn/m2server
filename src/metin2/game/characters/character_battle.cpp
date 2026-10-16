@@ -321,7 +321,7 @@ namespace metin2::game::inline characters {
     }
 
     EVENTFUNC(stun_event) {
-        char_event_info *info = dynamic_cast<char_event_info *>(event->info.get());
+        auto *info = dynamic_cast<char_event_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Stun event fired without event info");
@@ -368,7 +368,7 @@ namespace metin2::game::inline characters {
         if (stun_event)
             return;
 
-        char_event_info *info = alloc_event_info<char_event_info>();
+        auto *info = alloc_event_info<char_event_info>();
 
         info->ch = this;
 
@@ -717,7 +717,7 @@ namespace metin2::game::inline characters {
 
                 int total_dam = 0;
 
-                for (damage_map::iterator it = map_damage_.begin(); it != map_damage_.end(); ++it) {
+                for (auto it = map_damage_.begin(); it != map_damage_.end(); ++it) {
                     int iDamage = it->second.total_damage;
                     if (iDamage > 0) {
                         character *ch = character_manager::instance().find(it->first);
@@ -756,7 +756,7 @@ namespace metin2::game::inline characters {
                         metin2::log::debug("Item {} dropped at {:d} {:d} by {}", item->name(), pos.x, pos.y, name());
                     }
                 } else {
-                    std::vector<character *>::iterator it = v.begin();
+                    auto it = v.begin();
 
                     while (iItemIdx >= 0) {
                         item = s_vec_item[iItemIdx--];
@@ -1199,7 +1199,7 @@ namespace metin2::game::inline characters {
                 get_dungeon()->dead_character(this);
             }
 
-            char_dead_event_info *pEventInfo = alloc_event_info<char_dead_event_info>();
+            auto *pEventInfo = alloc_event_info<char_dead_event_info>();
 
             if (is_pc()) {
                 pEventInfo->is_pc = true;
@@ -1759,7 +1759,7 @@ namespace metin2::game::inline characters {
         }
 
         if (attacker && dam > 0 && is_npc()) {
-            damage_map::iterator it = map_damage_.find(attacker->get_vid());
+            auto it = map_damage_.find(attacker->get_vid());
 
             if (it == map_damage_.end()) {
                 map_damage_.insert(damage_map::value_type(attacker->get_vid(), battle_info(dam, 0)));
@@ -1982,7 +1982,7 @@ namespace metin2::game::inline characters {
 
         damage_info_table.reserve(map_damage_.size());
 
-        damage_map::iterator it = map_damage_.begin();
+        auto it = map_damage_.begin();
 
         while (it != map_damage_.end()) {
             const vid &c_VID = it->first;
@@ -2002,7 +2002,7 @@ namespace metin2::game::inline characters {
             }
 
             if (pAttacker->get_party()) {
-                std::map<party *, damage_info>::iterator it = map_party_damage.find(pAttacker->get_party());
+                auto it = map_party_damage.find(pAttacker->get_party());
                 if (it == map_party_damage.end()) {
                     damage_info di;
                     di.dam = iDam;
@@ -2023,7 +2023,7 @@ namespace metin2::game::inline characters {
             }
         }
 
-        for (std::map<party *, damage_info>::iterator it = map_party_damage.begin(); it != map_party_damage.end(); ++it) {
+        for (auto it = map_party_damage.begin(); it != map_party_damage.end(); ++it) {
             damage_info_table.push_back(it->second);
         }
 
@@ -2047,7 +2047,7 @@ namespace metin2::game::inline characters {
         distribute_hp(pkChrMostAttacked);
 
         {
-            damage_info_list::iterator di = damage_info_table.begin();
+            auto di = damage_info_table.begin();
             {
                 damage_info_list::iterator it;
 
@@ -2421,7 +2421,7 @@ namespace metin2::game::inline characters {
         float fMinDist = 99999.0f;
         character *pkVictim = nullptr;
 
-        damage_map::iterator it = map_damage_.begin();
+        auto it = map_damage_.begin();
 
         while (it != map_damage_.end()) {
             const vid &c_VID = it->first;
@@ -2571,7 +2571,7 @@ namespace metin2::game::inline characters {
         if (pSec) {
             pSec->for_each_around([&](entity *ent) {
                 if (ent->is_type(ENTITY_CHARACTER)) {
-                    character *ch_value = (character *)ent;
+                    auto *ch_value = (character *)ent;
                     if (ch_value->is_pc())
                         return;
                     if (ch_value->vid_victim == get_vid())
@@ -2587,7 +2587,7 @@ namespace metin2::game::inline characters {
         if (pSec) {
             pSec->for_each_around([&](entity *ent) {
                 if (ent->is_type(ENTITY_CHARACTER)) {
-                    character *ch_value = (character *)ent;
+                    auto *ch_value = (character *)ent;
                     if (ch_value->is_pc())
                         return;
                     if (!ch_value->is_monster())
@@ -2609,7 +2609,7 @@ namespace metin2::game::inline characters {
         if (pSec) {
             pSec->for_each_around([&](entity *ent) {
                 if (ent->is_type(ENTITY_CHARACTER)) {
-                    character *ch_value = (character *)ent;
+                    auto *ch_value = (character *)ent;
                     if (ch_value->is_pc())
                         return;
                     if (!ch_value->is_monster())
@@ -2634,7 +2634,7 @@ namespace metin2::game::inline characters {
             const int length = 300;
             pSec->for_each_around([&](entity *ent) {
                 if (ent->is_type(ENTITY_CHARACTER)) {
-                    character *ch_value = (character *)ent;
+                    auto *ch_value = (character *)ent;
                     if (ch_value->is_pc())
                         return;
                     if (!ch_value->is_monster())
@@ -2652,8 +2652,8 @@ namespace metin2::game::inline characters {
                     float fy;
 
                     get_delta_by_degree(degree, fDist - fNewDist, &fx, &fy);
-                    int32_t tx = (int32_t)(ch_value->x() + fx);
-                    int32_t ty = (int32_t)(ch_value->y() + fy);
+                    auto tx = (int32_t)(ch_value->x() + fx);
+                    auto ty = (int32_t)(ch_value->y() + fy);
 
                     ch_value->sync(tx, ty);
                     ch_value->go_to(tx, ty);
@@ -2711,7 +2711,7 @@ namespace metin2::game::inline characters {
         if (is_dead() || is_stun())
             return;
 
-        damage_map::iterator it = map_damage_.find(attacker->get_vid());
+        auto it = map_damage_.find(attacker->get_vid());
 
         if (it == map_damage_.end()) {
             map_damage_.insert(damage_map::value_type(attacker->get_vid(), battle_info(0, dam)));
@@ -2732,7 +2732,7 @@ namespace metin2::game::inline characters {
             }
 
             damage_map::iterator it;
-            damage_map::iterator itFind = map_damage_.end();
+            auto itFind = map_damage_.end();
 
             for (it = map_damage_.begin(); it != map_damage_.end(); ++it) {
                 if (it->second.aggro > new_aggro) {

@@ -1007,7 +1007,7 @@ namespace metin2::game::inline characters {
     }
 
     EVENTFUNC(kill_campfire_event) {
-        char_event_info *info = dynamic_cast<char_event_info *>(event->info.get());
+        auto *info = dynamic_cast<char_event_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Campfire kill event fired without event info");
@@ -1137,7 +1137,7 @@ namespace metin2::game::inline characters {
     }
 
     void character::use_silk_botary_real(const packet_myshop_pricelist_header *p) {
-        const item_price_info *pInfo = (const item_price_info *)(p + 1);
+        const auto *pInfo = (const item_price_info *)(p + 1);
 
         if (!p->count)
             send_my_shop_price_list_cmd(1, 0);
@@ -1395,7 +1395,7 @@ namespace metin2::game::inline characters {
 
         character *campfire = character_manager::instance().spawn_mob(fishing::CAMPFIRE_MOB, map_index(), (int32_t)(x() + fx), (int32_t)(y() + fy), 0, false, number(0, 359));
 
-        char_event_info *info = alloc_event_info<char_event_info>();
+        auto *info = alloc_event_info<char_event_info>();
 
         info->ch = campfire;
 
@@ -2866,7 +2866,7 @@ namespace metin2::game::inline characters {
 
             pMap->for_each([&](entity *ent) {
                 if (ent->is_type(ENTITY_CHARACTER) == true) {
-                    character *pChar = (character *)ent;
+                    auto *pChar = (character *)ent;
 
                     if (pChar->is_stone() == true)
                         stones.push_back(pChar);
@@ -2875,7 +2875,7 @@ namespace metin2::game::inline characters {
 
             if (!stones.empty()) {
                 auto stone_key = [&](character *stone) {
-                    uint32_t dist = (uint32_t)distance_sqrt(x() - stone->x(), y() - stone->y());
+                    auto dist = (uint32_t)distance_sqrt(x() - stone->x(), y() - stone->y());
                     return std::pair(dist != 0 ? dist : UINT_MAX, (uint32_t)stone->get_vid());
                 };
 
@@ -4631,7 +4631,7 @@ namespace metin2::game::inline characters {
 
     void character::buff_on_attr_add_buffs_from_item(item *item_value) {
         for (size_t i = 0; i < std::size(buff_on_attr_points); i++) {
-            map_buff_on_attrs::iterator it = map_buff_on_attrs_.find(buff_on_attr_points[i]);
+            auto it = map_buff_on_attrs_.find(buff_on_attr_points[i]);
             if (it != map_buff_on_attrs_.end()) {
                 it->second->add_buff_from_item(item_value);
             }
@@ -4640,7 +4640,7 @@ namespace metin2::game::inline characters {
 
     void character::buff_on_attr_remove_buffs_from_item(item *item_value) {
         for (size_t i = 0; i < std::size(buff_on_attr_points); i++) {
-            map_buff_on_attrs::iterator it = map_buff_on_attrs_.find(buff_on_attr_points[i]);
+            auto it = map_buff_on_attrs_.find(buff_on_attr_points[i]);
             if (it != map_buff_on_attrs_.end()) {
                 it->second->remove_buff_from_item(item_value);
             }
@@ -4648,7 +4648,7 @@ namespace metin2::game::inline characters {
     }
 
     void character::buff_on_attr_clear_all() {
-        for (map_buff_on_attrs::iterator it = map_buff_on_attrs_.begin(); it != map_buff_on_attrs_.end(); it++) {
+        for (auto it = map_buff_on_attrs_.begin(); it != map_buff_on_attrs_.end(); it++) {
             buff_on_attributes *pBuff = it->second.get();
             if (pBuff) {
                 pBuff->initialize();
@@ -4657,7 +4657,7 @@ namespace metin2::game::inline characters {
     }
 
     void character::buff_on_attr_value_change(uint8_t type, uint8_t old_value, uint8_t new_value) {
-        map_buff_on_attrs::iterator it = map_buff_on_attrs_.find(type);
+        auto it = map_buff_on_attrs_.find(type);
 
         if (0 == new_value) {
             if (map_buff_on_attrs_.end() == it)

@@ -67,7 +67,7 @@ namespace metin2::game::inline items {
     }
 
     void item_manager::graceful_shutdown() {
-        std::unordered_set<item *>::iterator it = set_item_for_delayed_save_.begin();
+        auto it = set_item_for_delayed_save_.begin();
 
         while (it != set_item_for_delayed_save_.end())
             save_single_item(*(it++));
@@ -122,7 +122,7 @@ namespace metin2::game::inline items {
                 metin2::log::debug("Item protos: {}", buf);
         }
 
-        item_vid_map::iterator it = vid_map_.begin();
+        auto it = vid_map_.begin();
 
         metin2::log::debug("Item: refreshing {:d} live items", vid_map_.size());
 
@@ -341,7 +341,7 @@ namespace metin2::game::inline items {
     }
 
     void item_manager::flush_delayed_save(item *item) {
-        std::unordered_set<game::items::item *>::iterator it = set_item_for_delayed_save_.find(item);
+        auto it = set_item_for_delayed_save_.find(item);
 
         if (it == set_item_for_delayed_save_.end()) {
             return;
@@ -382,7 +382,7 @@ namespace metin2::game::inline items {
     }
 
     void item_manager::update() {
-        std::unordered_set<item *>::iterator it = set_item_for_delayed_save_.begin();
+        auto it = set_item_for_delayed_save_.begin();
         std::unordered_set<item *>::iterator this_it;
 
         while (it != set_item_for_delayed_save_.end()) {
@@ -432,7 +432,7 @@ namespace metin2::game::inline items {
             }
         }
 
-        std::unordered_set<game::items::item *>::iterator it = set_item_for_delayed_save_.find(item);
+        auto it = set_item_for_delayed_save_.find(item);
 
         if (it != set_item_for_delayed_save_.end())
             set_item_for_delayed_save_.erase(it);
@@ -466,7 +466,7 @@ namespace metin2::game::inline items {
     }
 
     auto item_manager::find_by_vid(uint32_t vid) -> item * {
-        item_vid_map::iterator it = vid_map_.find(vid);
+        auto it = vid_map_.find(vid);
 
         if (it == vid_map_.end())
             return nullptr;
@@ -614,7 +614,7 @@ namespace metin2::game::inline items {
         uint8_t bRank = chr->get_mob_rank();
         item *item = nullptr;
 
-        std::vector<item_drop_info>::iterator it = vec_common_drop_item[bRank].begin();
+        auto it = vec_common_drop_item[bRank].begin();
 
         while (it != vec_common_drop_item[bRank].end()) {
             const item_drop_info &c_rInfo = *(it++);
@@ -1241,7 +1241,7 @@ namespace metin2::game::inline items {
     }
 
     auto item_manager::mask_vnum(uint32_t vnum) -> uint32_t {
-        map_dw2_dw::iterator it = map_new_to_ori_.find(vnum);
+        auto it = map_new_to_ori_.find(vnum);
         if (it != map_new_to_ori_.end()) {
             return it->second;
         } else

@@ -117,7 +117,7 @@ namespace metin2::game {
                 quest::error("Invalid flag arguments");
             }
 
-            uint32_t dwMapIndex = (uint32_t)lua_tonumber(lua, 2);
+            auto dwMapIndex = (uint32_t)lua_tonumber(lua, 2);
             if (dwMapIndex) {
                 dungeon *pDungeon = dungeon_manager::instance().find_by_map_index(dwMapIndex);
                 if (pDungeon) {
@@ -221,7 +221,7 @@ namespace metin2::game {
                 return 0;
             }
 
-            int32_t lMapIndex = (int32_t)lua_tonumber(lua, 1);
+            auto lMapIndex = (int32_t)lua_tonumber(lua, 1);
 
             dungeon *pDungeon = dungeon_manager::instance().create(lMapIndex);
 
@@ -242,7 +242,7 @@ namespace metin2::game {
                 return 0;
             }
 
-            int32_t lMapIndex = (int32_t)lua_tonumber(lua, 1);
+            auto lMapIndex = (int32_t)lua_tonumber(lua, 1);
 
             dungeon *pDungeon = dungeon_manager::instance().create(lMapIndex);
 
@@ -264,7 +264,7 @@ namespace metin2::game {
                 return 0;
             }
 
-            int32_t lMapIndex = (int32_t)lua_tonumber(lua, 1);
+            auto lMapIndex = (int32_t)lua_tonumber(lua, 1);
 
             dungeon *pDungeon = dungeon_manager::instance().create(lMapIndex);
 
@@ -545,7 +545,7 @@ namespace metin2::game {
 
             dungeon *pDungeon = current_dungeon();
 
-            uint32_t vid = (uint32_t)lua_tonumber(lua, 2);
+            auto vid = (uint32_t)lua_tonumber(lua, 2);
 
             if (pDungeon)
                 pDungeon->set_unique(lua_tostring(lua, 1), vid);
@@ -574,9 +574,9 @@ namespace metin2::game {
             uint32_t vid = 0;
 
             if (pDungeon) {
-                uint32_t dwVnum = (uint32_t)lua_tonumber(lua, 1);
-                int32_t x = (int32_t)lua_tonumber(lua, 2);
-                int32_t y = (int32_t)lua_tonumber(lua, 3);
+                auto dwVnum = (uint32_t)lua_tonumber(lua, 1);
+                auto x = (int32_t)lua_tonumber(lua, 2);
+                auto y = (int32_t)lua_tonumber(lua, 3);
                 float radius = lua_isnumber(lua, 4) ? (float)lua_tonumber(lua, 4) : 0;
                 uint32_t count = (lua_isnumber(lua, 5)) ? (uint32_t)lua_tonumber(lua, 5) : 1;
 
@@ -619,9 +619,9 @@ namespace metin2::game {
             uint32_t vid = 0;
 
             if (pDungeon) {
-                uint32_t dwVnum = (uint32_t)lua_tonumber(lua, 1);
-                int32_t x = (int32_t)lua_tonumber(lua, 2);
-                int32_t y = (int32_t)lua_tonumber(lua, 3);
+                auto dwVnum = (uint32_t)lua_tonumber(lua, 1);
+                auto x = (int32_t)lua_tonumber(lua, 2);
+                auto y = (int32_t)lua_tonumber(lua, 3);
                 uint8_t dir = (int)lua_tonumber(lua, 4);
 
                 character *ch = pDungeon->spawn_mob(dwVnum, x, y, dir);
@@ -643,9 +643,9 @@ namespace metin2::game {
             uint32_t vid = 0;
 
             if (pDungeon) {
-                uint32_t dwVnum = (uint32_t)lua_tonumber(lua, 1);
-                int32_t x = (int32_t)lua_tonumber(lua, 2);
-                int32_t y = (int32_t)lua_tonumber(lua, 3);
+                auto dwVnum = (uint32_t)lua_tonumber(lua, 1);
+                auto x = (int32_t)lua_tonumber(lua, 2);
+                auto y = (int32_t)lua_tonumber(lua, 3);
                 uint8_t dir = (int)lua_tonumber(lua, 4);
 
                 character *ch = pDungeon->spawn_mob_ac_dir(dwVnum, x, y, dir);
@@ -660,10 +660,10 @@ namespace metin2::game {
             if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2) || !lua_isnumber(lua, 3) || !lua_isnumber(lua, 4))
                 return 0;
 
-            int32_t lFromX = (int32_t)lua_tonumber(lua, 1);
-            int32_t lFromY = (int32_t)lua_tonumber(lua, 2);
-            int32_t lToX = (int32_t)lua_tonumber(lua, 3);
-            int32_t lToY = (int32_t)lua_tonumber(lua, 4);
+            auto lFromX = (int32_t)lua_tonumber(lua, 1);
+            auto lFromY = (int32_t)lua_tonumber(lua, 2);
+            auto lToX = (int32_t)lua_tonumber(lua, 3);
+            auto lToY = (int32_t)lua_tonumber(lua, 4);
 
             if (dungeon *pDungeon = current_dungeon())
                 pDungeon->spawn_goto_mob(lFromX, lFromY, lToX, lToY);
@@ -678,9 +678,9 @@ namespace metin2::game {
             dungeon *pDungeon = current_dungeon();
 
             if (pDungeon) {
-                uint32_t dwVnum = (uint32_t)lua_tonumber(lua, 1);
-                int32_t x = (int32_t)lua_tonumber(lua, 2);
-                int32_t y = (int32_t)lua_tonumber(lua, 3);
+                auto dwVnum = (uint32_t)lua_tonumber(lua, 1);
+                auto x = (int32_t)lua_tonumber(lua, 2);
+                auto y = (int32_t)lua_tonumber(lua, 3);
                 pDungeon->spawn_name_mob(dwVnum, x, y, lua_tostring(lua, 4));
             }
             return 0;
@@ -697,12 +697,12 @@ namespace metin2::game {
             dungeon *pDungeon = current_dungeon();
 
             if (pDungeon) {
-                uint32_t group_vnum = (uint32_t)lua_tonumber(lua, 1);
+                auto group_vnum = (uint32_t)lua_tonumber(lua, 1);
                 int32_t local_x = (int32_t)lua_tonumber(lua, 2) * 100;
                 int32_t local_y = (int32_t)lua_tonumber(lua, 3) * 100;
                 float radius = (float)lua_tonumber(lua, 4) * 100;
                 bool bAggressive = lua_toboolean(lua, 5);
-                uint32_t count = (uint32_t)lua_tonumber(lua, 6);
+                auto count = (uint32_t)lua_tonumber(lua, 6);
 
                 character *chRet = pDungeon->spawn_group(group_vnum, local_x, local_y, radius, bAggressive, count);
                 if (chRet)
@@ -717,7 +717,7 @@ namespace metin2::game {
             if (lua_gettop(lua) < 1 || !lua_isnumber(lua, 1))
                 return 0;
 
-            int32_t lMapIndex = (int32_t)lua_tonumber(lua, 1);
+            auto lMapIndex = (int32_t)lua_tonumber(lua, 1);
             dungeon *pDungeon = dungeon_manager::instance().create(lMapIndex);
 
             if (!pDungeon)
@@ -765,13 +765,13 @@ namespace metin2::game {
 
             target->pMap->for_each([&](entity *ent) {
                 if (ent->is_type(ENTITY_CHARACTER)) {
-                    character *ch = (character *)ent;
+                    auto *ch = (character *)ent;
 
                     if (ch->is_pc()) {
                         struct metin2::game::packet_script packet_script;
                         temp_buffer buf;
 
-                        for (dungeon::item_group::const_iterator it = item_group->begin(); it != item_group->end(); it++) {
+                        for (auto it = item_group->begin(); it != item_group->end(); it++) {
                             if (ch->count_specify_item(it->first) >= it->second) {
                                 packet_script.header = HEADER_GC_SCRIPT;
                                 packet_script.skin = quest::quest_manager::QUEST_SKIN_NORMAL;
@@ -813,10 +813,10 @@ namespace metin2::game {
 
             target->pMap->for_each([&](entity *ent) {
                 if (ent->is_type(ENTITY_CHARACTER)) {
-                    character *ch = (character *)ent;
+                    auto *ch = (character *)ent;
 
                     if (ch->is_pc()) {
-                        for (dungeon::item_group::const_iterator it = item_group->begin(); it != item_group->end(); it++) {
+                        for (auto it = item_group->begin(); it != item_group->end(); it++) {
                             if (ch->count_specify_item(it->first) >= it->second) {
                                 return;
                             }
@@ -842,10 +842,10 @@ namespace metin2::game {
 
             target->pMap->for_each([&](entity *ent) {
                 if (ent->is_type(ENTITY_CHARACTER)) {
-                    character *ch = (character *)ent;
+                    auto *ch = (character *)ent;
 
                     if (ch->is_pc()) {
-                        for (dungeon::item_group::const_iterator it = item_group->begin(); it != item_group->end(); it++) {
+                        for (auto it = item_group->begin(); it != item_group->end(); it++) {
                             if (ch->count_specify_item(it->first) >= it->second) {
                                 ch->remove_specify_item(it->first, it->second);
                                 return;
@@ -886,7 +886,7 @@ namespace metin2::game {
         }
 
         auto dungeon_select(lua_State *lua) -> int {
-            uint32_t dwMapIndex = (uint32_t)lua_tonumber(lua, 1);
+            auto dwMapIndex = (uint32_t)lua_tonumber(lua, 1);
             if (dwMapIndex) {
                 dungeon *pDungeon = dungeon_manager::instance().find_by_map_index(dwMapIndex);
                 if (pDungeon) {
@@ -904,7 +904,7 @@ namespace metin2::game {
         }
 
         auto dungeon_find(lua_State *lua) -> int {
-            uint32_t dwMapIndex = (uint32_t)lua_tonumber(lua, 1);
+            auto dwMapIndex = (uint32_t)lua_tonumber(lua, 1);
             if (dwMapIndex) {
                 dungeon *pDungeon = dungeon_manager::instance().find_by_map_index(dwMapIndex);
                 if (pDungeon) {
@@ -941,9 +941,9 @@ namespace metin2::game {
                 return 0;
             }
 
-            int32_t map_index = (int)lua_tonumber(lua, 1);
-            int32_t x = (int)lua_tonumber(lua, 2);
-            int32_t y = (int)lua_tonumber(lua, 3);
+            auto map_index = (int)lua_tonumber(lua, 1);
+            auto x = (int)lua_tonumber(lua, 2);
+            auto y = (int)lua_tonumber(lua, 3);
             pDungeon->for_each_member([&](character *ch) {
                 if (ch->is_pc()) {
                     ch->set_warp_location(map_index, x, y);

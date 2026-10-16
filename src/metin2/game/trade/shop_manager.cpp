@@ -77,7 +77,7 @@ namespace metin2::game::inline trade {
     }
 
     auto shop_manager::get(uint32_t vnum) -> shop * {
-        shop_map::const_iterator it = map_shop_.find(vnum);
+        auto it = map_shop_.find(vnum);
 
         if (it == map_shop_.end())
             return nullptr;
@@ -86,7 +86,7 @@ namespace metin2::game::inline trade {
     }
 
     auto shop_manager::by_npc_vnum(uint32_t vnum) -> shop * {
-        shop_map::const_iterator it = map_shop_by_npc_vnum_.find(vnum);
+        auto it = map_shop_by_npc_vnum_.find(vnum);
 
         if (it == map_shop_by_npc_vnum_.end())
             return nullptr;
@@ -442,14 +442,14 @@ namespace metin2::game::inline trade {
             map_npcShop.insert(map_np_cshop::value_type(npcVnum, table));
         }
 
-        for (map_np_cshop::iterator it = map_npcShop.begin(); it != map_npcShop.end(); ++it) {
+        for (auto it = map_npcShop.begin(); it != map_npcShop.end(); ++it) {
             uint32_t npcVnum = it->first;
             shop_table_ex &table = it->second;
             if (map_shop_.find(table.vnum) != map_shop_.end()) {
                 metin2::log::error("Shop vnum {:d} already exists", table.vnum);
                 return false;
             }
-            shop_map::iterator shop_it = map_shop_by_npc_vnum_.find(npcVnum);
+            auto shop_it = map_shop_by_npc_vnum_.find(npcVnum);
 
             shop_ex *pkShopEx = nullptr;
             if (map_shop_by_npc_vnum_.end() == shop_it) {

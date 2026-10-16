@@ -123,7 +123,7 @@ namespace metin2::game::inline protocol {
     }
 
     void input_db::login_success(uint32_t handle, const char *data) {
-        account_table *pTab = (account_table *)data;
+        auto *pTab = (account_table *)data;
 
         desc *d = desc_manager::instance().find_by_handle(handle);
 
@@ -192,7 +192,7 @@ namespace metin2::game::inline protocol {
         if (!d)
             return;
 
-        packet_dg_create_success *pPacketDB = (packet_dg_create_success *)data;
+        auto *pPacketDB = (packet_dg_create_success *)data;
 
         if (pPacketDB->account_character_index >= PLAYER_PER_ACCOUNT) {
             d->packet(encode_byte(HEADER_GC_CHARACTER_CREATE_FAILURE), 1);
@@ -253,7 +253,7 @@ namespace metin2::game::inline protocol {
         if (!d)
             return;
 
-        packet_dg_change_name *p = (packet_dg_change_name *)data;
+        auto *p = (packet_dg_change_name *)data;
 
         account_table &r = d->get_account_table();
 
@@ -277,7 +277,7 @@ namespace metin2::game::inline protocol {
     }
 
     void input_db::player_load(desc *d, const char *data) {
-        player_table *pTab = (player_table *)data;
+        auto *pTab = (player_table *)data;
 
         if (!d)
             return;
@@ -533,7 +533,7 @@ namespace metin2::game::inline protocol {
             return;
         item_id_range_table *range = ranges->data();
 
-        item_id_range_table *rangespare = (item_id_range_table *)data;
+        auto *rangespare = (item_id_range_table *)data;
         data += ranges->size() * sizeof(item_id_range_table);
 
         int ChunkSize = decode_2bytes(data);
@@ -699,7 +699,7 @@ namespace metin2::game::inline protocol {
     };
 
     EVENTFUNC(quest_login_event) {
-        quest_login_event_info *info = dynamic_cast<quest_login_event_info *>(event->info.get());
+        auto *info = dynamic_cast<quest_login_event_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Quest login event has no info");
@@ -747,7 +747,7 @@ namespace metin2::game::inline protocol {
 
         const uint32_t dwCount = decode_4bytes(data);
 
-        const quest_table *pQuestTable = reinterpret_cast<const quest_table *>(data + 4);
+        const auto *pQuestTable = reinterpret_cast<const quest_table *>(data + 4);
 
         if (nullptr != pQuestTable) {
             if (dwCount != 0) {
@@ -786,7 +786,7 @@ namespace metin2::game::inline protocol {
                 metin2::log::debug("Quest: login of pid {:d}", pQuestTable[0].pid);
                 quest::quest_manager::instance().login(pQuestTable[0].pid);
             } else {
-                quest_login_event_info *info = alloc_event_info<quest_login_event_info>();
+                auto *info = alloc_event_info<quest_login_event_info>();
                 info->pid = ch->player_id();
 
                 event_create(quest_login_event, info, passes_per_sec(1));
@@ -798,7 +798,7 @@ namespace metin2::game::inline protocol {
         if (!d)
             return;
 
-        safebox_table *p = (safebox_table *)data;
+        auto *p = (safebox_table *)data;
 
         if (d->get_account_table().id != p->id) {
             metin2::log::error("Safebox account id mismatch: account {:d}, safebox {:d}", d->get_account_table().id, p->id);
@@ -858,7 +858,7 @@ namespace metin2::game::inline protocol {
         if (!d->get_character())
             return;
 
-        safebox_change_password_packet_answer *p = (safebox_change_password_packet_answer *)data;
+        auto *p = (safebox_change_password_packet_answer *)data;
         if (p->flag) {
             d->get_character()->chat_packet(CHAT_TYPE_INFO, lc_text("<창고> 창고 비밀번호가 변경되었습니다."));
         } else {
@@ -870,7 +870,7 @@ namespace metin2::game::inline protocol {
         if (!d)
             return;
 
-        safebox_table *p = (safebox_table *)data;
+        auto *p = (safebox_table *)data;
 
         if (d->get_account_table().id != p->id) {
             metin2::log::error("Mall account id mismatch: account {:d}, mall {:d}", d->get_account_table().id, p->id);
@@ -888,7 +888,7 @@ namespace metin2::game::inline protocol {
             return;
 
         {
-            packet_dg_login_already *p = (packet_dg_login_already *)data;
+            auto *p = (packet_dg_login_already *)data;
 
             desc *d2 = desc_manager::instance().find_by_login_name(p->login);
 
@@ -937,7 +937,7 @@ namespace metin2::game::inline protocol {
 
         metin2::log::debug("Received {:d} map locations", bCount);
 
-        map_location *pLoc = (map_location *)data;
+        auto *pLoc = (map_location *)data;
 
         while (bCount--) {
             for (int i = 0; i < MAX_MAPS_PER_SERVER; ++i) {
@@ -953,7 +953,7 @@ namespace metin2::game::inline protocol {
 
     void input_db::p2p(const char *data) {
 
-        packet_dg_p2p *p = (packet_dg_p2p *)data;
+        auto *p = (packet_dg_p2p *)data;
 
         p2p_manager &mgr = p2p_manager::instance();
 
@@ -971,7 +971,7 @@ namespace metin2::game::inline protocol {
     }
 
     void input_db::guild_skill_update(const char *data) {
-        packet_guild_skill_update *p = (packet_guild_skill_update *)data;
+        auto *p = (packet_guild_skill_update *)data;
 
         guild *g = guild_manager::instance().touch_guild(p->guild_id);
 
@@ -982,7 +982,7 @@ namespace metin2::game::inline protocol {
     }
 
     void input_db::guild_war(const char *data) {
-        packet_guild_war *p = (packet_guild_war *)data;
+        auto *p = (packet_guild_war *)data;
 
         metin2::log::info("Guild war: guild {:d} vs {:d}, state {:d}", p->guild_from, p->guild_to, p->war);
 
@@ -1027,7 +1027,7 @@ namespace metin2::game::inline protocol {
     }
 
     void input_db::guild_war_score(const char *data) {
-        packet_guild_war_score *p = (packet_guild_war_score *)data;
+        auto *p = (packet_guild_war_score *)data;
         guild *g = guild_manager::instance().touch_guild(p->guild_gain_point);
         g->set_war_score_against_to(p->guild_opponent, p->score);
     }
@@ -1037,7 +1037,7 @@ namespace metin2::game::inline protocol {
     }
 
     void input_db::guild_exp_update(const char *data) {
-        packet_guild_skill_update *p = (packet_guild_skill_update *)data;
+        auto *p = (packet_guild_skill_update *)data;
         metin2::log::debug("Guild {:d}: exp update {:d}", p->guild_id, p->amount);
 
         guild *g = guild_manager::instance().touch_guild(p->guild_id);
@@ -1047,7 +1047,7 @@ namespace metin2::game::inline protocol {
     }
 
     void input_db::guild_add_member(const char *data) {
-        packet_dg_guild_member *p = (packet_dg_guild_member *)data;
+        auto *p = (packet_dg_guild_member *)data;
         guild *g = guild_manager::instance().touch_guild(p->guild);
 
         if (g)
@@ -1055,7 +1055,7 @@ namespace metin2::game::inline protocol {
     }
 
     void input_db::guild_remove_member(const char *data) {
-        packet_guild *p = (packet_guild *)data;
+        auto *p = (packet_guild *)data;
         guild *g = guild_manager::instance().touch_guild(p->guild);
 
         if (g)
@@ -1063,7 +1063,7 @@ namespace metin2::game::inline protocol {
     }
 
     void input_db::guild_change_grade(const char *data) {
-        packet_guild *p = (packet_guild *)data;
+        auto *p = (packet_guild *)data;
         guild *g = guild_manager::instance().touch_guild(p->guild);
 
         if (g)
@@ -1071,7 +1071,7 @@ namespace metin2::game::inline protocol {
     }
 
     void input_db::guild_change_member_data(const char *data) {
-        packet_guild_change_member_data *p = (packet_guild_change_member_data *)data;
+        auto *p = (packet_guild_change_member_data *)data;
         guild *g = guild_manager::instance().touch_guild(p->guild_id);
 
         if (g)
@@ -1079,12 +1079,12 @@ namespace metin2::game::inline protocol {
     }
 
     void input_db::guild_disband(const char *data) {
-        packet_guild *p = (packet_guild *)data;
+        auto *p = (packet_guild *)data;
         guild_manager::instance().disband_guild(p->guild);
     }
 
     void input_db::guild_ladder(const char *data) {
-        packet_guild_ladder *p = (packet_guild_ladder *)data;
+        auto *p = (packet_guild_ladder *)data;
         metin2::log::debug("Guild {:d}: ladder points {:d}, wins {:d}, draws {:d}, losses {:d}", p->guild, p->ladder_point, p->win, p->draw, p->loss);
         guild *g = guild_manager::instance().touch_guild(p->guild);
 
@@ -1108,7 +1108,7 @@ namespace metin2::game::inline protocol {
 
         std::vector<item *> v;
 
-        player_item *p = (player_item *)data;
+        auto *p = (player_item *)data;
 
         for (uint32_t i = 0; i < dwCount; ++i, ++p) {
             item *item = item_manager::instance().create_item(p->vnum, p->count, p->id);
@@ -1198,27 +1198,27 @@ namespace metin2::game::inline protocol {
     }
 
     void input_db::party_create(const char *data) {
-        packet_party_create *p = (packet_party_create *)data;
+        auto *p = (packet_party_create *)data;
         party_manager::instance().p2p_create_party(p->leader_pid);
     }
 
     void input_db::party_delete(const char *data) {
-        packet_party_delete *p = (packet_party_delete *)data;
+        auto *p = (packet_party_delete *)data;
         party_manager::instance().p2p_delete_party(p->leader_pid);
     }
 
     void input_db::party_add(const char *data) {
-        packet_party_add *p = (packet_party_add *)data;
+        auto *p = (packet_party_add *)data;
         party_manager::instance().p2p_join_party(p->leader_pid, p->pid, p->state);
     }
 
     void input_db::party_remove(const char *data) {
-        packet_party_remove *p = (packet_party_remove *)data;
+        auto *p = (packet_party_remove *)data;
         party_manager::instance().p2p_quit_party(p->pid);
     }
 
     void input_db::party_state_change(const char *data) {
-        packet_party_state_change *p = (packet_party_state_change *)data;
+        auto *p = (packet_party_state_change *)data;
         party *pParty = party_manager::instance().p2p_create_party(p->leader_pid);
 
         if (!pParty)
@@ -1228,7 +1228,7 @@ namespace metin2::game::inline protocol {
     }
 
     void input_db::party_set_member_level(const char *data) {
-        packet_party_set_member_level *p = (packet_party_set_member_level *)data;
+        auto *p = (packet_party_set_member_level *)data;
         party *pParty = party_manager::instance().p2p_create_party(p->leader_pid);
 
         if (!pParty)
@@ -1280,7 +1280,7 @@ namespace metin2::game::inline protocol {
     }
 
     void input_db::guild_skill_usable_change(const char *data) {
-        packet_guild_skill_usable_change *p = (packet_guild_skill_usable_change *)data;
+        auto *p = (packet_guild_skill_usable_change *)data;
 
         guild *g = guild_manager::instance().touch_guild(p->guild);
 
@@ -1309,24 +1309,24 @@ namespace metin2::game::inline protocol {
         metin2::log::debug("Auth login result {:d}, login key {:d}", bResult, d->get_login_key());
     }
     void input_db::change_empire_priv(const char *data) {
-        packet_dg_change_empire_priv *p = (packet_dg_change_empire_priv *)data;
+        auto *p = (packet_dg_change_empire_priv *)data;
 
         priv_manager::instance().give_empire_priv(p->empire, p->type, p->value, p->log, p->end_time_sec);
     }
 
     void input_db::change_guild_priv(const char *data) {
-        packet_dg_change_guild_priv *p = (packet_dg_change_guild_priv *)data;
+        auto *p = (packet_dg_change_guild_priv *)data;
 
         priv_manager::instance().give_guild_priv(p->guild_id, p->type, p->value, p->log, p->end_time_sec);
     }
 
     void input_db::change_character_priv(const char *data) {
-        packet_dg_change_character_priv *p = (packet_dg_change_character_priv *)data;
+        auto *p = (packet_dg_change_character_priv *)data;
         priv_manager::instance().give_character_priv(p->pid, p->type, p->value, p->log);
     }
 
     void input_db::money_log(const char *data) {
-        packet_money_log *p = (packet_money_log *)data;
+        auto *p = (packet_money_log *)data;
 
         if (p->type == 4)
             return;
@@ -1338,7 +1338,7 @@ namespace metin2::game::inline protocol {
     }
 
     void input_db::guild_money_change(const char *data) {
-        packet_dg_guild_money_change *p = (packet_dg_guild_money_change *)data;
+        auto *p = (packet_dg_guild_money_change *)data;
 
         guild *g = guild_manager::instance().touch_guild(p->guild);
         if (g) {
@@ -1347,7 +1347,7 @@ namespace metin2::game::inline protocol {
     }
 
     void input_db::guild_withdraw_money(const char *data) {
-        packet_dg_guild_money_withdraw *p = (packet_dg_guild_money_withdraw *)data;
+        auto *p = (packet_dg_guild_money_withdraw *)data;
 
         guild *g = guild_manager::instance().touch_guild(p->guild);
         if (g) {
@@ -1356,7 +1356,7 @@ namespace metin2::game::inline protocol {
     }
 
     void input_db::set_event_flag(const char *data) {
-        packet_set_event_flag *p = (packet_set_event_flag *)data;
+        auto *p = (packet_set_event_flag *)data;
         quest::quest_manager::instance().set_event_flag(p->flag_name, p->value);
     }
 

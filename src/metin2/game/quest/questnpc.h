@@ -93,8 +93,8 @@ namespace metin2::game {
             if (metin2::config::test_server())
                 metin2::log::debug("Quest: matching quests for npc click");
 
-            game::quest::pc::quest_info_iterator itPCQuest = pc.quest_begin();
-            typename TQuestMapType::iterator itQuestMap = quest_map.begin();
+            auto itPCQuest = pc.quest_begin();
+            auto itQuestMap = quest_map.begin();
 
             while (itQuestMap != quest_map.end()) {
                 if (itPCQuest == pc.quest_end() || itPCQuest->first > itQuestMap->first) {

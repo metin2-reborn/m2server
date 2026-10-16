@@ -12,7 +12,7 @@
 namespace metin2::game::inline world {
 
     void entity::view_cleanup() {
-        entity_map::iterator it = map_view_.begin();
+        auto it = map_view_.begin();
 
         while (it != map_view_.end()) {
             entity *entity = it->first;
@@ -31,7 +31,7 @@ namespace metin2::game::inline world {
         encode_remove_packet(this);
         encode_insert_packet(this);
 
-        entity_map::iterator it = map_view_.begin();
+        auto it = map_view_.begin();
 
         while (it != map_view_.end()) {
             entity *entity = (it++)->first;
@@ -49,7 +49,7 @@ namespace metin2::game::inline world {
         if (this == entity)
             return;
 
-        entity_map::iterator it = map_view_.find(entity);
+        auto it = map_view_.find(entity);
 
         if (map_view_.end() != it) {
             it->second = view_age_;
@@ -66,7 +66,7 @@ namespace metin2::game::inline world {
     }
 
     void entity::view_remove(entity *entity, bool recursive) {
-        entity_map::iterator it = map_view_.find(entity);
+        auto it = map_view_.find(entity);
 
         if (it == map_view_.end())
             return;
@@ -83,7 +83,7 @@ namespace metin2::game::inline world {
     void entity::update_sectree() {
         if (!get_sectree()) {
             if (is_type(ENTITY_CHARACTER)) {
-                character *tch = (character *)this;
+                auto *tch = (character *)this;
                 metin2::log::error("Character {} at {:d} {:d} has no sectree", tch->name(), x(), y());
             }
 
@@ -100,8 +100,8 @@ namespace metin2::game::inline world {
             me->view_insert(ent);
 
             if (ent->is_type(ENTITY_CHARACTER) && me->is_type(ENTITY_CHARACTER)) {
-                character *chMe = (character *)me;
-                character *chEnt = (character *)ent;
+                auto *chMe = (character *)me;
+                auto *chEnt = (character *)ent;
 
                 if (chMe->is_pc() && !chEnt->is_pc() && !chEnt->is_warp() && !chEnt->is_goto())
                     chEnt->start_state_machine();

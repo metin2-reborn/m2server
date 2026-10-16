@@ -37,7 +37,7 @@ namespace metin2::game::inline events {
     };
 
     EVENTFUNC(dragon_lair_collapse_event) {
-        tag_dragon_lair_collapse_event_info *pInfo = dynamic_cast<tag_dragon_lair_collapse_event_info *>(event->info.get());
+        auto *pInfo = dynamic_cast<tag_dragon_lair_collapse_event_info *>(event->info.get());
 
         if (pInfo == nullptr) {
             metin2::log::error("Dragon lair collapse event has no event info");
@@ -58,7 +58,7 @@ namespace metin2::game::inline events {
             if (nullptr != pMap) {
                 pMap->for_each([](entity *ent) {
                     if (nullptr != ent) {
-                        character *pChar = static_cast<character *>(ent);
+                        auto *pChar = static_cast<character *>(ent);
 
                         if (nullptr != pChar) {
                             if (true == pChar->is_pc()) {
@@ -122,7 +122,7 @@ namespace metin2::game::inline events {
             if (nullptr != pRegionInfo) {
                 pMap->for_each([guild_id, instanceMapIndex](entity *ent) {
                     if (nullptr != ent && true == ent->is_type(ENTITY_CHARACTER)) {
-                        character *pChar = static_cast<character *>(ent);
+                        auto *pChar = static_cast<character *>(ent);
 
                         if (true == pChar->is_pc()) {
                             if (nullptr != pChar->get_guild()) {

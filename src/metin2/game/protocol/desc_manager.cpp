@@ -54,11 +54,11 @@ namespace metin2::game::inline protocol {
         }
         destroyed_ = true;
 
-        desc_set::iterator i = set_desc_.begin();
+        auto i = set_desc_.begin();
 
         while (i != set_desc_.end()) {
             desc *d = *i;
-            desc_set::iterator ci = i;
+            auto ci = i;
             ++i;
 
             if (d->type() == DESC_TYPE_CONNECTOR)
@@ -75,7 +75,7 @@ namespace metin2::game::inline protocol {
 
         while (i != set_desc_.end()) {
             desc *d = *i;
-            desc_set::iterator ci = i;
+            auto ci = i;
             ++i;
 
             destroy_desc(d, false);
@@ -150,7 +150,7 @@ namespace metin2::game::inline protocol {
     }
 
     auto desc_manager::accept_p2p_desc(net::tcp::socket socket) -> desc * {
-        desc_p2p *pkDesc = new desc_p2p;
+        auto *pkDesc = new desc_p2p;
 
         if (!pkDesc->setup(net::connection::create(std::move(socket), MAX_SERVER_INPUT, MAX_SERVER_OUTPUT))) {
             metin2::log::error("Cannot set up accepted peer connection");
@@ -197,16 +197,16 @@ namespace metin2::game::inline protocol {
     }
 
     void desc_manager::destroy_closed() {
-        desc_set::iterator i = set_desc_.begin();
+        auto i = set_desc_.begin();
 
         while (i != set_desc_.end()) {
             desc *d = *i;
-            desc_set::iterator ci = i;
+            auto ci = i;
             ++i;
 
             if (d->is_phase(PHASE_CLOSE)) {
                 if (d->type() == DESC_TYPE_CONNECTOR) {
-                    client_desc *client_desc = (game::protocol::client_desc *)d;
+                    auto *client_desc = (game::protocol::client_desc *)d;
 
                     if (client_desc->is_retry_when_closed()) {
                         client_desc->reset();
@@ -221,7 +221,7 @@ namespace metin2::game::inline protocol {
     }
 
     auto desc_manager::find_by_login_name(const std::string &login) -> desc * {
-        desc_loginname_map::iterator it = map_login_name_.find(login);
+        auto it = map_login_name_.find(login);
 
         if (map_login_name_.end() == it)
             return nullptr;
@@ -230,7 +230,7 @@ namespace metin2::game::inline protocol {
     }
 
     auto desc_manager::find_by_handle(uint32_t handle) -> desc * {
-        desc_handle_map::iterator it = map_handle_.find(handle);
+        auto it = map_handle_.find(handle);
 
         if (map_handle_.end() == it)
             return nullptr;
@@ -243,7 +243,7 @@ namespace metin2::game::inline protocol {
     }
 
     auto desc_manager::find_by_character_name(const char *name) -> desc * {
-        desc_set::iterator it = std::find_if(set_desc_.begin(), set_desc_.end(), [name](desc *d) {
+        auto it = std::find_if(set_desc_.begin(), set_desc_.end(), [name](desc *d) {
             return d->get_character() && !strcmp(d->get_character()->name(), name);
         });
         return (it == set_desc_.end()) ? nullptr : (*it);
@@ -271,7 +271,7 @@ namespace metin2::game::inline protocol {
     }
 
     auto desc_manager::is_p2p_desc_exist(const char *host, uint16_t port) -> bool {
-        client_desc_set::iterator it = set_client_desc_.begin();
+        auto it = set_client_desc_.begin();
 
         while (it != set_client_desc_.end()) {
             client_desc *d = *(it++);

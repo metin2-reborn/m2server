@@ -138,7 +138,7 @@ namespace metin2::game::inline world {
 
     void dungeon::quit_party(party *party_value) {
         party_value->set_dungeon(nullptr);
-        party_map::iterator it = map_party_.find(party_value);
+        auto it = map_party_.find(party_value);
 
         if (it != map_party_.end())
             map_party_.erase(it);
@@ -153,7 +153,7 @@ namespace metin2::game::inline world {
     };
 
     EVENTFUNC(dungeon_dead_event) {
-        dungeon_id_info *info = dynamic_cast<dungeon_id_info *>(event->info.get());
+        auto *info = dynamic_cast<dungeon_id_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Dungeon dead event has no event info");
@@ -188,7 +188,7 @@ namespace metin2::game::inline world {
         set_character_.erase(it);
 
         if (set_character_.empty()) {
-            dungeon_id_info *info = alloc_event_info<dungeon_id_info>();
+            auto *info = alloc_event_info<dungeon_id_info>();
             info->dungeon_id = id_;
 
             event_cancel(&dead_event_);
@@ -197,7 +197,7 @@ namespace metin2::game::inline world {
     }
 
     void dungeon::inc_party_member(party *party_value, character *ch) {
-        party_map::iterator it = map_party_.find(party_value);
+        auto it = map_party_.find(party_value);
 
         if (it != map_party_.end())
             it->second++;
@@ -208,7 +208,7 @@ namespace metin2::game::inline world {
     }
 
     void dungeon::dec_party_member(party *party_value, character *ch) {
-        party_map::iterator it = map_party_.find(party_value);
+        auto it = map_party_.find(party_value);
 
         if (it == map_party_.end())
             metin2::log::error("Cannot remove party, it is not in the dungeon");
@@ -227,7 +227,7 @@ namespace metin2::game::inline world {
             if (!ent->is_type(ENTITY_CHARACTER)) {
                 return;
             }
-            character *ch = (character *)ent;
+            auto *ch = (character *)ent;
             if (!ch->is_pc()) {
                 return;
             }
@@ -269,7 +269,7 @@ namespace metin2::game::inline world {
             if (!ent->is_type(ENTITY_CHARACTER)) {
                 return;
             }
-            character *ch = (character *)ent;
+            auto *ch = (character *)ent;
             if (!ch->is_pc()) {
                 return;
             }
@@ -399,13 +399,13 @@ namespace metin2::game::inline world {
     }
 
     void dungeon::spawn_move_unique(const char *key, uint32_t vnum, const char *pos_from, const char *pos_to) {
-        area_map::iterator it_to = map_area_.find(pos_to);
+        auto it_to = map_area_.find(pos_to);
         if (it_to == map_area_.end()) {
             metin2::log::error("Unknown dungeon position {}", pos_to);
             return;
         }
 
-        area_map::iterator it_from = map_area_.find(pos_from);
+        auto it_from = map_area_.find(pos_from);
         if (it_from == map_area_.end()) {
             metin2::log::error("Unknown dungeon position {}", pos_from);
             return;
@@ -444,7 +444,7 @@ namespace metin2::game::inline world {
     }
 
     void dungeon::spawn_unique(const char *key, uint32_t vnum, const char *pos) {
-        area_map::iterator it = map_area_.find(pos);
+        auto it = map_area_.find(pos);
         if (it == map_area_.end()) {
             metin2::log::error("Unknown dungeon position {}", pos);
             return;
@@ -544,7 +544,7 @@ namespace metin2::game::inline world {
     }
 
     void dungeon::spawn(uint32_t vnum, const char *pos) {
-        area_map::iterator it = map_area_.find(pos);
+        auto it = map_area_.find(pos);
 
         if (it == map_area_.end()) {
             metin2::log::error("Unknown dungeon position {}", pos);
@@ -705,14 +705,14 @@ namespace metin2::game::inline world {
     }
 
     void dungeon::spawn_move_group(uint32_t vnum, const char *pos_from, const char *pos_to, int count) {
-        area_map::iterator it_to = map_area_.find(pos_to);
+        auto it_to = map_area_.find(pos_to);
 
         if (it_to == map_area_.end()) {
             metin2::log::error("Unknown dungeon position {}", pos_to);
             return;
         }
 
-        area_map::iterator it_from = map_area_.find(pos_from);
+        auto it_from = map_area_.find(pos_from);
 
         if (it_from == map_area_.end()) {
             metin2::log::error("Unknown dungeon position {}", pos_from);
@@ -747,7 +747,7 @@ namespace metin2::game::inline world {
         }
         pkMap->for_each([](entity *ent) {
             if (ent->is_type(ENTITY_CHARACTER)) {
-                character *ch = (character *)ent;
+                auto *ch = (character *)ent;
 
                 if (!ch->is_pc() && !ch->is_pet())
                     ch->dead();
@@ -763,7 +763,7 @@ namespace metin2::game::inline world {
         }
         pkMap->for_each([](entity *ent) {
             if (ent->is_type(ENTITY_CHARACTER)) {
-                character *ch = (character *)ent;
+                auto *ch = (character *)ent;
 
                 if (!ch->is_pc() && !ch->is_pet()) {
                     character_manager::instance().destroy_character(ch);
@@ -816,7 +816,7 @@ namespace metin2::game::inline world {
 
         pMap->for_each([](entity *ent) {
             if (ent->is_type(ENTITY_CHARACTER)) {
-                character *ch = (character *)ent;
+                auto *ch = (character *)ent;
 
                 if (ch->is_pc())
                     ch->exit_to_saved_location();
@@ -835,7 +835,7 @@ namespace metin2::game::inline world {
 
         pMap->for_each([msg](entity *ent) {
             if (ent->is_type(ENTITY_CHARACTER)) {
-                character *ch = (character *)ent;
+                auto *ch = (character *)ent;
                 ch->chat_packet(CHAT_TYPE_NOTICE, "%s", msg);
             }
         });
@@ -851,7 +851,7 @@ namespace metin2::game::inline world {
 
         pMap->for_each([](entity *ent) {
             if (ent->is_type(ENTITY_CHARACTER)) {
-                character *ch = (character *)ent;
+                auto *ch = (character *)ent;
 
                 if (ch->is_pc()) {
                     pixel_position posWarp;
@@ -866,7 +866,7 @@ namespace metin2::game::inline world {
     }
 
     EVENTFUNC(dungeon_jump_to_event) {
-        dungeon_id_info *info = dynamic_cast<dungeon_id_info *>(event->info.get());
+        auto *info = dynamic_cast<dungeon_id_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Dungeon jump event has no event info");
@@ -885,7 +885,7 @@ namespace metin2::game::inline world {
     }
 
     EVENTFUNC(dungeon_exit_all_event) {
-        dungeon_id_info *info = dynamic_cast<dungeon_id_info *>(event->info.get());
+        auto *info = dynamic_cast<dungeon_id_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Dungeon exit-all event has no event info");
@@ -910,7 +910,7 @@ namespace metin2::game::inline world {
             exit_all_at_eliminate_ = false;
 
             if (warp_delay_) {
-                dungeon_id_info *info = alloc_event_info<dungeon_id_info>();
+                auto *info = alloc_event_info<dungeon_id_info>();
                 info->dungeon_id = id_;
 
                 event_cancel(&exit_all_event_);
@@ -923,7 +923,7 @@ namespace metin2::game::inline world {
             warp_at_eliminate_ = false;
 
             if (warp_delay_) {
-                dungeon_id_info *info = alloc_event_info<dungeon_id_info>();
+                auto *info = alloc_event_info<dungeon_id_info>();
                 info->dungeon_id = id_;
 
                 event_cancel(&jump_to_event_);
@@ -993,7 +993,7 @@ namespace metin2::game::inline world {
                 return;
 
             if (ent->is_type(ENTITY_CHARACTER)) {
-                character *ch = (character *)ent;
+                auto *ch = (character *)ent;
 
                 if (ch->is_pc()) {
                     if (distance_approx(ch->x() - x * 100, ch->y() - y * 100) > dist * 100)
@@ -1010,7 +1010,7 @@ namespace metin2::game::inline world {
     }
 
     auto dungeon::get_item_group(std::string &group_name) -> const dungeon::item_group * {
-        item_group_map::iterator it = map_item_group_.find(group_name);
+        auto it = map_item_group_.find(group_name);
         if (it != map_item_group_.end())
             return &(it->second);
         else

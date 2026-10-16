@@ -69,7 +69,7 @@ namespace metin2::game {
         void purge_monsters_in_area(sectree_map *map, int x1, int y1, int x2, int y2, character *except_char) {
             map->for_each([&](entity *ent) {
                 if (true == ent->is_type(ENTITY_CHARACTER)) {
-                    character *pChar = static_cast<character *>(ent);
+                    auto *pChar = static_cast<character *>(ent);
 
                     if (pChar == except_char)
                         return;
@@ -88,7 +88,7 @@ namespace metin2::game {
                 if (!ent->is_type(ENTITY_CHARACTER))
                     return;
 
-                character *ch = static_cast<character *>(ent);
+                auto *ch = static_cast<character *>(ent);
                 if (ch->get_desc() && (empire == 0 || ch->empire() == empire))
                     ch->get_desc()->packet(buf.read_peek(), buf.size());
             });
@@ -188,7 +188,7 @@ namespace metin2::game {
                 return 0;
             }
 
-            uint32_t mob_vnum = (uint32_t)lua_tonumber(lua, 1);
+            auto mob_vnum = (uint32_t)lua_tonumber(lua, 1);
             int32_t local_x = (int32_t)lua_tonumber(lua, 2) * 100;
             int32_t local_y = (int32_t)lua_tonumber(lua, 3) * 100;
             float radius = (float)lua_tonumber(lua, 4) * 100;
@@ -252,12 +252,12 @@ namespace metin2::game {
                 return 1;
             }
 
-            uint32_t group_vnum = (uint32_t)lua_tonumber(lua, 1);
+            auto group_vnum = (uint32_t)lua_tonumber(lua, 1);
             int32_t local_x = (int32_t)lua_tonumber(lua, 2) * 100;
             int32_t local_y = (int32_t)lua_tonumber(lua, 3) * 100;
             float radius = (float)lua_tonumber(lua, 4) * 100;
             bool bAggressive = lua_toboolean(lua, 5);
-            uint32_t count = (uint32_t)lua_tonumber(lua, 6);
+            auto count = (uint32_t)lua_tonumber(lua, 6);
 
             if (count == 0)
                 count = 1;
@@ -489,7 +489,7 @@ namespace metin2::game {
         };
 
         EVENTFUNC(confirm_timeout_event) {
-            confirm_timeout_event_info *info = dynamic_cast<confirm_timeout_event_info *>(event->info.get());
+            auto *info = dynamic_cast<confirm_timeout_event_info *>(event->info.get());
 
             if (info == nullptr) {
                 quest::error("Confirm timeout event has no info");
@@ -511,7 +511,7 @@ namespace metin2::game {
 
         void quest_manager::goto_confirm_state(quest_state &qs) {
             qs.suspend_state = SUSPEND_STATE_CONFIRM;
-            uint32_t dwVID = (uint32_t)lua_tonumber(qs.co, -3);
+            auto dwVID = (uint32_t)lua_tonumber(qs.co, -3);
             const char *szMsg = lua_tostring(qs.co, -2);
             int iTimeout = (int)lua_tonumber(qs.co, -1);
 
@@ -528,7 +528,7 @@ namespace metin2::game {
             add_script(os.str());
             send_script();
 
-            confirm_timeout_event_info *info = alloc_event_info<confirm_timeout_event_info>();
+            auto *info = alloc_event_info<confirm_timeout_event_info>();
 
             info->wait_pid = current_character_ptr()->player_id();
             info->reply_pid = (ch && ch->is_pc()) ? ch->player_id() : 0;

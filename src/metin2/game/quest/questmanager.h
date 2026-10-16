@@ -213,7 +213,7 @@ namespace metin2::game {
 
             struct stringhash {
                 auto operator()(const std::string &str) const -> size_t {
-                    const unsigned char *s = (const unsigned char *)str.c_str();
+                    const auto *s = (const unsigned char *)str.c_str();
                     const unsigned char *end = s + str.size();
                     size_t h = 0;
 

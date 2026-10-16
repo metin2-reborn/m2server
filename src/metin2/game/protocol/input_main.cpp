@@ -114,7 +114,7 @@ namespace metin2::game::inline protocol {
     spam_score_of_ip_t spam_score_of_ip;
 
     EVENTFUNC(block_chat_by_ip_event) {
-        spam_event_info *info = dynamic_cast<spam_event_info *>(event->info.get());
+        auto *info = dynamic_cast<spam_event_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Chat block event has no info");
@@ -123,7 +123,7 @@ namespace metin2::game::inline protocol {
 
         const char *host = info->host;
 
-        spam_score_of_ip_t::iterator it = spam_score_of_ip.find(host);
+        auto it = spam_score_of_ip.find(host);
 
         if (it != spam_score_of_ip.end()) {
             it->second.first = 0;
@@ -136,7 +136,7 @@ namespace metin2::game::inline protocol {
     auto spam_block_check(character *ch, const char *const buf, const size_t buflen) -> bool {
 
         if (ch->level() < metin2::config::game().spam.block_max_level) {
-            spam_score_of_ip_t::iterator it = spam_score_of_ip.find(ch->get_desc()->host_name());
+            auto it = spam_score_of_ip.find(ch->get_desc()->host_name());
 
             if (it == spam_score_of_ip.end()) {
                 spam_score_of_ip.insert(std::make_pair(ch->get_desc()->host_name(), std::make_pair(0, (event_ptr) nullptr)));
@@ -157,7 +157,7 @@ namespace metin2::game::inline protocol {
                 metin2::log::info("Spam: player {} said \"{}\", score {:d}, total {:d}, matched word {}", ch->name(), buf, score, it->second.first, word);
 
             if (it->second.first >= metin2::config::game().spam.block_score) {
-                spam_event_info *info = alloc_event_info<spam_event_info>();
+                auto *info = alloc_event_info<spam_event_info>();
                 strlcpy(info->host, ch->get_desc()->host_name(), sizeof(info->host));
 
                 it->second.second = event_create(block_chat_by_ip_event, info, passes_per_sec(metin2::config::game().spam.block_duration));
@@ -265,7 +265,7 @@ namespace metin2::game::inline protocol {
     }
 
     auto input_main::whisper(character *ch, const char *data, size_t bytes) -> int {
-        const packet_cg_whisper *pinfo = reinterpret_cast<const packet_cg_whisper *>(data);
+        const auto *pinfo = reinterpret_cast<const packet_cg_whisper *>(data);
 
         if (bytes < pinfo->size)
             return -1;
@@ -465,7 +465,7 @@ namespace metin2::game::inline protocol {
     }
 
     auto input_main::chat(character *ch, const char *data, size_t bytes) -> int {
-        const packet_cg_chat *pinfo = reinterpret_cast<const packet_cg_chat *>(data);
+        const auto *pinfo = reinterpret_cast<const packet_cg_chat *>(data);
 
         if (bytes < pinfo->size)
             return -1;
@@ -650,13 +650,13 @@ namespace metin2::game::inline protocol {
     }
 
     void input_main::item_to_item(character *ch, const char *pc_data) {
-        packet_cg_item_use_to_item *p = (packet_cg_item_use_to_item *)pc_data;
+        auto *p = (packet_cg_item_use_to_item *)pc_data;
         if (ch)
             ch->use_item(p->cell, p->target_cell);
     }
 
     void input_main::item_drop(character *ch, const char *data) {
-        struct packet_cg_item_drop *pinfo = (struct packet_cg_item_drop *)data;
+        auto *pinfo = (struct packet_cg_item_drop *)data;
 
         if (!ch)
             return;
@@ -669,7 +669,7 @@ namespace metin2::game::inline protocol {
 
     void input_main::item_drop2(character *ch, const char *data) {
 
-        packet_cg_item_drop2 *pinfo = (packet_cg_item_drop2 *)data;
+        auto *pinfo = (packet_cg_item_drop2 *)data;
 
         if (!ch)
             return;
@@ -680,35 +680,35 @@ namespace metin2::game::inline protocol {
     }
 
     void input_main::item_move(character *ch, const char *data) {
-        struct packet_cg_item_move *pinfo = (struct packet_cg_item_move *)data;
+        auto *pinfo = (struct packet_cg_item_move *)data;
 
         if (ch)
             ch->move_item(pinfo->cell, pinfo->cell_to, pinfo->count);
     }
 
     void input_main::item_pickup(character *ch, const char *data) {
-        struct packet_cg_item_pickup *pinfo = (struct packet_cg_item_pickup *)data;
+        auto *pinfo = (struct packet_cg_item_pickup *)data;
         if (ch)
             ch->pickup_item(pinfo->vid);
     }
 
     void input_main::quickslot_add(character *ch, const char *data) {
-        struct packet_cg_quickslot_add *pinfo = (struct packet_cg_quickslot_add *)data;
+        auto *pinfo = (struct packet_cg_quickslot_add *)data;
         ch->set_quickslot(pinfo->pos, pinfo->slot);
     }
 
     void input_main::quickslot_delete(character *ch, const char *data) {
-        struct packet_cg_quickslot_del *pinfo = (struct packet_cg_quickslot_del *)data;
+        auto *pinfo = (struct packet_cg_quickslot_del *)data;
         ch->del_quickslot(pinfo->pos);
     }
 
     void input_main::quickslot_swap(character *ch, const char *data) {
-        struct packet_cg_quickslot_swap *pinfo = (struct packet_cg_quickslot_swap *)data;
+        auto *pinfo = (struct packet_cg_quickslot_swap *)data;
         ch->swap_quickslot(pinfo->pos, pinfo->change_pos);
     }
 
     auto input_main::messenger(character *ch, const char *data, size_t bytes) -> int {
-        packet_cg_messenger *p = (packet_cg_messenger *)data;
+        auto *p = (packet_cg_messenger *)data;
 
         if (bytes < sizeof(packet_cg_messenger))
             return -1;
@@ -722,7 +722,7 @@ namespace metin2::game::inline protocol {
                 if (bytes < sizeof(packet_cg_messenger_add_by_vid))
                     return -1;
 
-                packet_cg_messenger_add_by_vid *p2 = (packet_cg_messenger_add_by_vid *)data;
+                auto *p2 = (packet_cg_messenger_add_by_vid *)data;
                 character *ch_companion = character_manager::instance().find(p2->vid);
 
                 if (!ch_companion)
@@ -801,7 +801,7 @@ namespace metin2::game::inline protocol {
     }
 
     auto input_main::shop(character *ch, const char *data, size_t bytes) -> int {
-        packet_cg_shop *p = (packet_cg_shop *)data;
+        auto *p = (packet_cg_shop *)data;
 
         if (bytes < sizeof(packet_cg_shop))
             return -1;
@@ -863,7 +863,7 @@ namespace metin2::game::inline protocol {
     }
 
     void input_main::on_click(character *ch, const char *data) {
-        struct packet_cg_on_click *pinfo = (struct packet_cg_on_click *)data;
+        auto *pinfo = (struct packet_cg_on_click *)data;
         character *victim;
 
         if ((victim = character_manager::instance().find(pinfo->vid)))
@@ -874,7 +874,7 @@ namespace metin2::game::inline protocol {
     }
 
     void input_main::exchange(character *ch, const char *data) {
-        struct packet_cg_exchange *pinfo = (struct packet_cg_exchange *)data;
+        auto *pinfo = (struct packet_cg_exchange *)data;
         character *to_ch = nullptr;
 
         if (!ch->can_handle_item())
@@ -993,7 +993,7 @@ namespace metin2::game::inline protocol {
     }
 
     void input_main::position(character *ch, const char *data) {
-        struct packet_cg_position *pinfo = (struct packet_cg_position *)data;
+        auto *pinfo = (struct packet_cg_position *)data;
 
         switch (pinfo->position) {
         case POSITION_GENERAL:
@@ -1133,7 +1133,7 @@ namespace metin2::game::inline protocol {
         if (!ch->can_move())
             return;
 
-        struct packet_cg_move *pinfo = (struct packet_cg_move *)data;
+        auto *pinfo = (struct packet_cg_move *)data;
 
         if (pinfo->func >= FUNC_MAX_NUM && !(pinfo->func & 0x80)) {
             metin2::log::warn("Invalid move type {:d} from player {}", pinfo->func, ch->name());
@@ -1240,7 +1240,7 @@ namespace metin2::game::inline protocol {
             uint8_t type;
         };
 
-        const struct type_identifier *const type = reinterpret_cast<const struct type_identifier *>(data);
+        const auto *const type = reinterpret_cast<const struct type_identifier *>(data);
 
         if (type->type > 0) {
             if (false == ch->can_use_skill(type->type)) {
@@ -1277,7 +1277,7 @@ namespace metin2::game::inline protocol {
                 if (nullptr == ch->get_desc())
                     return;
 
-                const packet_cg_attack *const packMelee = reinterpret_cast<const packet_cg_attack *>(data);
+                const auto *const packMelee = reinterpret_cast<const packet_cg_attack *>(data);
 
                 character *victim = character_manager::instance().find(packMelee->vid);
 
@@ -1303,7 +1303,7 @@ namespace metin2::game::inline protocol {
 
         case HEADER_CG_SHOOT:
             {
-                const packet_cg_shoot *const packShoot = reinterpret_cast<const packet_cg_shoot *>(data);
+                const auto *const packShoot = reinterpret_cast<const packet_cg_shoot *>(data);
 
                 ch->shoot(packShoot->type);
             }
@@ -1312,7 +1312,7 @@ namespace metin2::game::inline protocol {
     }
 
     auto input_main::sync_position(character *ch, const char *pc_data, size_t bytes) -> int {
-        const packet_cg_sync_position *pinfo = reinterpret_cast<const packet_cg_sync_position *>(pc_data);
+        const auto *pinfo = reinterpret_cast<const packet_cg_sync_position *>(pc_data);
 
         if (bytes < pinfo->size)
             return -1;
@@ -1345,7 +1345,7 @@ namespace metin2::game::inline protocol {
         std::vector<packet_cg_sync_position_element> synced;
         synced.reserve(iCount);
 
-        const packet_cg_sync_position_element *e =
+        const auto *e =
             reinterpret_cast<const packet_cg_sync_position_element *>(pc_data + sizeof(packet_cg_sync_position));
 
         timeval tvCurTime;
@@ -1438,17 +1438,17 @@ namespace metin2::game::inline protocol {
     }
 
     void input_main::fly_target(character *ch, const char *pc_data, uint8_t header) {
-        packet_cg_fly_targeting *p = (packet_cg_fly_targeting *)pc_data;
+        auto *p = (packet_cg_fly_targeting *)pc_data;
         ch->fly_target(p->target_vid, p->x, p->y, header);
     }
 
     void input_main::use_skill(character *ch, const char *pc_data) {
-        packet_cg_use_skill *p = (packet_cg_use_skill *)pc_data;
+        auto *p = (packet_cg_use_skill *)pc_data;
         ch->use_skill(p->vnum, character_manager::instance().find(p->vid));
     }
 
     void input_main::script_button(character *ch, const void *data) {
-        packet_cg_script_button *p = (packet_cg_script_button *)data;
+        auto *p = (packet_cg_script_button *)data;
         metin2::log::debug("Quest: pid {:d} pressed button {:d}", ch->player_id(), p->idx);
 
         quest::pc *pc = quest::quest_manager::instance().pc_force(ch->player_id());
@@ -1462,7 +1462,7 @@ namespace metin2::game::inline protocol {
     }
 
     void input_main::script_answer(character *ch, const void *data) {
-        packet_cg_script_answer *p = (packet_cg_script_answer *)data;
+        auto *p = (packet_cg_script_answer *)data;
         metin2::log::debug("Quest: pid {:d} answered {:d}", ch->player_id(), p->answer);
 
         if (p->answer > 250) {
@@ -1473,13 +1473,13 @@ namespace metin2::game::inline protocol {
     }
 
     void input_main::script_select_item(character *ch, const void *data) {
-        packet_cg_script_select_item *p = (packet_cg_script_select_item *)data;
+        auto *p = (packet_cg_script_select_item *)data;
         metin2::log::debug("Quest: pid {:d} selected item {:d}", ch->player_id(), p->selection);
         quest::quest_manager::instance().select_item(ch->player_id(), p->selection);
     }
 
     void input_main::quest_input_string(character *ch, const void *data) {
-        packet_cg_quest_input_string *p = (packet_cg_quest_input_string *)data;
+        auto *p = (packet_cg_quest_input_string *)data;
 
         const std::string msg(p->msg, strnlen(p->msg, sizeof(p->msg) - 1));
         metin2::log::debug("Quest: pid {:d} entered \"{}\"", ch->player_id(), msg);
@@ -1488,7 +1488,7 @@ namespace metin2::game::inline protocol {
     }
 
     void input_main::quest_confirm(character *ch, const void *data) {
-        packet_cg_quest_confirm *p = (packet_cg_quest_confirm *)data;
+        auto *p = (packet_cg_quest_confirm *)data;
         character *ch_wait = character_manager::instance().find_by_pid(p->request_pid);
         if (p->answer)
             p->answer = quest::CONFIRM_YES;
@@ -1499,7 +1499,7 @@ namespace metin2::game::inline protocol {
     }
 
     void input_main::target(character *ch, const char *pc_data) {
-        packet_cg_target *p = (packet_cg_target *)pc_data;
+        auto *p = (packet_cg_target *)pc_data;
 
         building::object *pkObj = building::manager::instance().find_object_by_vid(p->vid);
 
@@ -1520,7 +1520,7 @@ namespace metin2::game::inline protocol {
         if (quest::quest_manager::instance().pc_force(ch->player_id())->is_running() == true)
             return;
 
-        packet_cg_safebox_checkin *p = (packet_cg_safebox_checkin *)data;
+        auto *p = (packet_cg_safebox_checkin *)data;
 
         if (!ch->can_handle_item())
             return;
@@ -1572,7 +1572,7 @@ namespace metin2::game::inline protocol {
     }
 
     void input_main::safebox_checkout(character *ch, const char *data, bool mall_value) {
-        packet_cg_safebox_checkout *p = (packet_cg_safebox_checkout *)data;
+        auto *p = (packet_cg_safebox_checkout *)data;
 
         if (!ch->can_handle_item())
             return;
@@ -1653,7 +1653,7 @@ namespace metin2::game::inline protocol {
     }
 
     void input_main::safebox_item_move(character *ch, const char *data) {
-        struct packet_cg_item_move *pinfo = (struct packet_cg_item_move *)data;
+        auto *pinfo = (struct packet_cg_item_move *)data;
 
         if (!ch->can_handle_item())
             return;
@@ -1670,7 +1670,7 @@ namespace metin2::game::inline protocol {
             return;
         }
 
-        packet_cg_party_invite *p = (packet_cg_party_invite *)data;
+        auto *p = (packet_cg_party_invite *)data;
 
         character *pInvitee = character_manager::instance().find(p->vid);
 
@@ -1688,7 +1688,7 @@ namespace metin2::game::inline protocol {
             return;
         }
 
-        packet_cg_party_invite_answer *p = (packet_cg_party_invite_answer *)data;
+        auto *p = (packet_cg_party_invite_answer *)data;
 
         character *pInviter = character_manager::instance().find(p->leader_vid);
 
@@ -1706,7 +1706,7 @@ namespace metin2::game::inline protocol {
             return;
         }
 
-        packet_cg_party_set_state *p = (packet_cg_party_set_state *)data;
+        auto *p = (packet_cg_party_set_state *)data;
 
         if (!ch->get_party())
             return;
@@ -1766,7 +1766,7 @@ namespace metin2::game::inline protocol {
             return;
         }
 
-        packet_cg_party_remove *p = (packet_cg_party_remove *)data;
+        auto *p = (packet_cg_party_remove *)data;
 
         if (!ch->get_party())
             return;
@@ -1805,7 +1805,7 @@ namespace metin2::game::inline protocol {
     }
 
     void input_main::answer_make_guild(character *ch, const char *data) {
-        packet_cg_answer_make_guild *p = (packet_cg_answer_make_guild *)data;
+        auto *p = (packet_cg_answer_make_guild *)data;
 
         const uint32_t dwKey = ch->guild_creation_key();
         ch->set_guild_creation_key(0);
@@ -1869,7 +1869,7 @@ namespace metin2::game::inline protocol {
     }
 
     void input_main::party_use_skill(character *ch, const char *data) {
-        packet_cg_party_use_skill *p = (packet_cg_party_use_skill *)data;
+        auto *p = (packet_cg_party_use_skill *)data;
         if (!ch->get_party())
             return;
 
@@ -1895,7 +1895,7 @@ namespace metin2::game::inline protocol {
     }
 
     void input_main::party_parameter(character *ch, const char *data) {
-        packet_cg_party_parameter *p = (packet_cg_party_parameter *)data;
+        auto *p = (packet_cg_party_parameter *)data;
 
         if (ch->get_party() && ch->get_party()->leader_pid() == ch->player_id())
             ch->get_party()->set_parameter(p->distribute_mode);
@@ -1927,12 +1927,12 @@ namespace metin2::game::inline protocol {
         if (bytes < sizeof(packet_cg_guild))
             return -1;
 
-        const packet_cg_guild *p = reinterpret_cast<const packet_cg_guild *>(data);
+        const auto *p = reinterpret_cast<const packet_cg_guild *>(data);
         const char *c_pData = data + sizeof(packet_cg_guild);
 
         bytes -= sizeof(packet_cg_guild);
 
-        const guild_subheader_cg SubHeader = static_cast<guild_subheader_cg>(p->subheader);
+        const auto SubHeader = static_cast<guild_subheader_cg>(p->subheader);
         const size_t SubPacketLen = get_sub_packet_size(SubHeader);
 
         if (bytes < SubPacketLen) {
@@ -2180,7 +2180,7 @@ namespace metin2::game::inline protocol {
 
         case GUILD_SUBHEADER_CG_USE_SKILL:
             {
-                const packet_cg_guild_use_skill *p = reinterpret_cast<const packet_cg_guild_use_skill *>(c_pData);
+                const auto *p = reinterpret_cast<const packet_cg_guild_use_skill *>(c_pData);
 
                 pGuild->use_skill(p->vnum, ch, p->pid);
             }
@@ -2226,14 +2226,14 @@ namespace metin2::game::inline protocol {
     }
 
     void input_main::fishing(character *ch, const char *data) {
-        packet_cg_fishing *p = (packet_cg_fishing *)data;
+        auto *p = (packet_cg_fishing *)data;
         ch->set_rotation(p->dir * 5);
         ch->fishing();
         return;
     }
 
     void input_main::item_give(character *ch, const char *data) {
-        packet_cg_give_item *p = (packet_cg_give_item *)data;
+        auto *p = (packet_cg_give_item *)data;
         character *to_ch = character_manager::instance().find(p->target_vid);
 
         if (to_ch)
@@ -2243,7 +2243,7 @@ namespace metin2::game::inline protocol {
     }
 
     void input_main::hack(character *ch, const char *data) {
-        packet_cg_hack *p = (packet_cg_hack *)data;
+        auto *p = (packet_cg_hack *)data;
 
         char buf[sizeof(p->buf)];
         copy_packet_string(buf, sizeof(buf), p->buf, sizeof(p->buf));
@@ -2254,7 +2254,7 @@ namespace metin2::game::inline protocol {
     }
 
     auto input_main::my_shop(character *ch, const char *data, size_t bytes) -> int {
-        packet_cg_my_shop *p = (packet_cg_my_shop *)data;
+        auto *p = (packet_cg_my_shop *)data;
         int iExtraLen = p->count * sizeof(shop_item_table);
 
         if (bytes < sizeof(packet_cg_my_shop) + iExtraLen)
@@ -2283,7 +2283,7 @@ namespace metin2::game::inline protocol {
     }
 
     void input_main::refine(character *ch, const char *data) {
-        const packet_cg_refine *p = reinterpret_cast<const packet_cg_refine *>(data);
+        const auto *p = reinterpret_cast<const packet_cg_refine *>(data);
 
         if (ch->get_exchange() || ch->is_open_safebox() || ch->shop_owner() || ch->my_shop() || ch->is_cube_open()) {
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("창고,거래창등이 열린 상태에서는 개량을 할수가 없습니다"));
@@ -2612,7 +2612,7 @@ namespace metin2::game::inline protocol {
 
         case HEADER_CG_DRAGON_SOUL_REFINE:
             {
-                packet_cg_dragon_soul_refine *p = reinterpret_cast<packet_cg_dragon_soul_refine *>((void *)data);
+                auto *p = reinterpret_cast<packet_cg_dragon_soul_refine *>((void *)data);
                 switch (p->sub_type) {
                 case DS_SUB_HEADER_CLOSE:
                     ch->dragon_soul_refine_window_close();

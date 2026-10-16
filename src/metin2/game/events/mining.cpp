@@ -334,7 +334,7 @@ namespace metin2::game::inline events {
         }
 
         EVENTFUNC(mining_event) {
-            mining_event_info *info = dynamic_cast<mining_event_info *>(event->info.get());
+            auto *info = dynamic_cast<mining_event_info *>(event->info.get());
 
             if (info == nullptr) {
                 metin2::log::error("Mining event has no event info");
@@ -376,7 +376,7 @@ namespace metin2::game::inline events {
         }
 
         auto create_mining_event(character *ch, character *load, int count) -> event_ptr {
-            mining_event_info *info = alloc_event_info<mining_event_info>();
+            auto *info = alloc_event_info<mining_event_info>();
             info->pid = ch->player_id();
             info->vid_load = load->get_vid();
 

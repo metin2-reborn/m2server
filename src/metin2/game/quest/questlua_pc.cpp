@@ -122,7 +122,7 @@ namespace metin2::game {
                 return 0;
             }
 
-            int32_t lMapIndex = (int32_t)lua_tonumber(lua, 1);
+            auto lMapIndex = (int32_t)lua_tonumber(lua, 1);
             const map_region *region = sectree_manager::instance().get_map_region(lMapIndex);
 
             if (!region) {
@@ -193,7 +193,7 @@ namespace metin2::game {
                 return 0;
             }
 
-            int32_t lMapIndex = (int32_t)lua_tonumber(lua, 1);
+            auto lMapIndex = (int32_t)lua_tonumber(lua, 1);
             const map_region *region = sectree_manager::instance().get_map_region(lMapIndex);
 
             if (!region) {
@@ -295,8 +295,8 @@ namespace metin2::game {
             luaL_checknumber(lua, 1);
             luaL_checknumber(lua, 2);
 
-            uint32_t gid1 = (uint32_t)lua_tonumber(lua, 1);
-            uint32_t gid2 = (uint32_t)lua_tonumber(lua, 2);
+            auto gid1 = (uint32_t)lua_tonumber(lua, 1);
+            auto gid2 = (uint32_t)lua_tonumber(lua, 2);
 
             guild *g1 = guild_manager::instance().find_guild(gid1);
             guild *g2 = guild_manager::instance().find_guild(gid2);
@@ -330,7 +330,7 @@ namespace metin2::game {
 
             character *ch = quest_manager::instance().current_character_ptr();
 
-            uint32_t dwGroupVnum = (uint32_t)lua_tonumber(lua, 1);
+            auto dwGroupVnum = (uint32_t)lua_tonumber(lua, 1);
 
             std::vector<uint32_t> dwVnums;
             std::vector<uint32_t> dwCounts;
@@ -359,7 +359,7 @@ namespace metin2::game {
                 return 1;
             }
 
-            uint32_t item_vnum = (uint32_t)lua_tonumber(lua, 1);
+            auto item_vnum = (uint32_t)lua_tonumber(lua, 1);
             item_table *pTable = item_manager::instance().table(item_vnum);
             if (!pTable) {
                 lua_pushboolean(lua, 0);
@@ -591,7 +591,7 @@ namespace metin2::game {
                     return 0;
                 }
 
-                uint32_t item_count = (uint32_t)lua_tonumber(lua, 2);
+                auto item_count = (uint32_t)lua_tonumber(lua, 2);
                 metin2::log::info("Quest: remove items (vnum {:d}, count {:d}) from player {} (pid {:d})",
                     item_vnum,
                     item_count,
@@ -668,7 +668,7 @@ namespace metin2::game {
                 return 1;
             }
 
-            int32_t val = (int32_t)lua_tonumber(lua, 1);
+            auto val = (int32_t)lua_tonumber(lua, 1);
 
             if (val == 0) {
                 lua_pushboolean(lua, 0);
@@ -764,7 +764,7 @@ namespace metin2::game {
             if (!require_number(lua, 1, "Invalid wear position argument"))
                 return 0;
 
-            uint8_t bCell = (uint8_t)lua_tonumber(lua, 1);
+            auto bCell = (uint8_t)lua_tonumber(lua, 1);
 
             item *item = quest_manager::instance().current_character_ptr()->wear(bCell);
 
@@ -890,7 +890,7 @@ namespace metin2::game {
 
             metin2::log::info("Quest reward: player {} gets {:d} exp", ch->name(), (int)rint(lua_tonumber(lua, 1)));
 
-            uint32_t exp = (uint32_t)rint(lua_tonumber(lua, 1));
+            auto exp = (uint32_t)rint(lua_tonumber(lua, 1));
 
             pc *pPC = quest_manager::instance().current_pc();
             log_manager::instance().quest_reward_log(pPC->current_quest_name().c_str(), ch->player_id(), ch->level(), exp, 0);
@@ -907,7 +907,7 @@ namespace metin2::game {
 
             metin2::log::info("Quest reward: player {} gets exp ({}) {:d}", ch->name(), lua_tostring(lua, 1), (int)rint(lua_tonumber(lua, 2)));
 
-            uint32_t exp = (uint32_t)rint(lua_tonumber(lua, 2));
+            auto exp = (uint32_t)rint(lua_tonumber(lua, 2));
 
             pc *pPC = quest_manager::instance().current_pc();
 
@@ -1000,7 +1000,7 @@ namespace metin2::game {
 
         auto pc_polymorph(lua_State *lua) -> int {
             character *ch = quest_manager::instance().current_character_ptr();
-            uint32_t dwVnum = (uint32_t)lua_tonumber(lua, 1);
+            auto dwVnum = (uint32_t)lua_tonumber(lua, 1);
             int iDuration = (int)lua_tonumber(lua, 2);
             ch->add_affect(AFFECT_POLYMORPH, POINT_POLYMORPH, dwVnum, AFF_POLYMORPH, iDuration, 0, true);
             return 0;
@@ -1021,7 +1021,7 @@ namespace metin2::game {
             if (lua_isnumber(lua, 2))
                 length = (int)lua_tonumber(lua, 2);
 
-            uint32_t mount_vnum = (uint32_t)lua_tonumber(lua, 1);
+            auto mount_vnum = (uint32_t)lua_tonumber(lua, 1);
 
             if (length < 0)
                 length = 60;
@@ -1070,9 +1070,9 @@ namespace metin2::game {
         }
 
         auto pc_mount_bonus(lua_State *lua) -> int {
-            uint8_t applyOn = static_cast<uint8_t>(lua_tonumber(lua, 1));
-            int32_t value = static_cast<int32_t>(lua_tonumber(lua, 2));
-            int32_t duration = static_cast<int32_t>(lua_tonumber(lua, 3));
+            auto applyOn = static_cast<uint8_t>(lua_tonumber(lua, 1));
+            auto value = static_cast<int32_t>(lua_tonumber(lua, 2));
+            auto duration = static_cast<int32_t>(lua_tonumber(lua, 3));
 
             character *ch = quest_manager::instance().current_character_ptr();
 
@@ -1171,7 +1171,7 @@ namespace metin2::game {
 
             int x = (int)lua_tonumber(lua, 1);
             int y = (int)lua_tonumber(lua, 2);
-            float r = (float)lua_tonumber(lua, 3);
+            auto r = (float)lua_tonumber(lua, 3);
 
             bool bFind = false;
             for (int iCell = 0; iCell < INVENTORY_MAX_NUM; iCell++) {
@@ -1287,7 +1287,7 @@ namespace metin2::game {
 
             character *ch = quest_manager::instance().current_character_ptr();
 
-            uint32_t dwVnum = (uint32_t)lua_tonumber(lua, 1);
+            auto dwVnum = (uint32_t)lua_tonumber(lua, 1);
             lua_pushnumber(lua, ch->skill_level(dwVnum));
 
             return 1;
@@ -1324,7 +1324,7 @@ namespace metin2::game {
         }
 
         auto pc_select_vid(lua_State *lua) -> int {
-            uint32_t vid = (uint32_t)lua_tonumber(lua, 1);
+            auto vid = (uint32_t)lua_tonumber(lua, 1);
 
             character *ch = quest_manager::instance().current_character_ptr();
             character *new_ch = character_manager::instance().find(vid);
@@ -1573,8 +1573,8 @@ namespace metin2::game {
         }
 
         auto pc_set_skill_level(lua_State *lua) -> int {
-            uint32_t dwVnum = (uint32_t)lua_tonumber(lua, 1);
-            uint8_t byLev = (uint8_t)lua_tonumber(lua, 2);
+            auto dwVnum = (uint32_t)lua_tonumber(lua, 1);
+            auto byLev = (uint8_t)lua_tonumber(lua, 2);
 
             character *ch = quest_manager::instance().current_character_ptr();
             ch->set_skill_level(dwVnum, byLev);
@@ -2146,7 +2146,7 @@ namespace metin2::game {
         }
 
         auto pc_get_sig_items(lua_State *lua) -> int {
-            uint32_t group_vnum = (uint32_t)lua_tonumber(lua, 1);
+            auto group_vnum = (uint32_t)lua_tonumber(lua, 1);
             character *const ch = quest_manager::instance().current_character_ptr();
             int count = 0;
             for (int i = 0; i < INVENTORY_MAX_NUM; ++i) {

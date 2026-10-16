@@ -313,7 +313,7 @@ namespace metin2::game::inline guilds {
                 character_vector_interactor i;
 
                 if (character_manager::instance().characters_by_race_num(20040, i)) {
-                    character_vector_interactor::iterator it = i.begin();
+                    auto it = i.begin();
 
                     while (it != i.end()) {
                         character *ch = *(it++);
@@ -378,7 +378,7 @@ namespace metin2::game::inline guilds {
     }
 
     auto land::find_object_by_vid(uint32_t vid) -> object * {
-        std::map<uint32_t, object *>::iterator it = map_object_by_vid_.find(vid);
+        auto it = map_object_by_vid_.find(vid);
 
         if (it == map_object_by_vid_.end())
             return nullptr;
@@ -450,7 +450,7 @@ namespace metin2::game::inline guilds {
             bool in = false;
             rkSecTreeMgr.map(map_index_value)->for_each([osx, osy, oex, oey, &in](entity *ent) {
                 if (ent->is_type(ENTITY_CHARACTER)) {
-                    character *ch = (character *)ent;
+                    auto *ch = (character *)ent;
                     if (ch->is_monster()) {
                         return;
                     }

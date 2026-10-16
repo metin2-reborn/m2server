@@ -55,7 +55,7 @@ namespace metin2::game {
     target_manager::~target_manager() = default;
 
     EVENTFUNC(target_event) {
-        target_info *info = dynamic_cast<target_info *>(event->info.get());
+        auto *info = dynamic_cast<target_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Target event has no info");
@@ -147,11 +147,11 @@ namespace metin2::game {
         auto it = map_list_event_.find(pid_value);
 
         if (it != map_list_event_.end()) {
-            std::list<event_ptr>::const_iterator it2 = it->second.begin();
+            auto it2 = it->second.begin();
 
             while (it2 != it->second.end()) {
                 event_ptr pkEvent = *(it2++);
-                target_info *existInfo = dynamic_cast<target_info *>(pkEvent->info.get());
+                auto *existInfo = dynamic_cast<target_info *>(pkEvent->info.get());
 
                 if (nullptr == existInfo) {
                     metin2::log::error("Existing target event has no info");
@@ -184,7 +184,7 @@ namespace metin2::game {
             }
         }
 
-        target_info *newInfo = alloc_event_info<target_info>();
+        auto *newInfo = alloc_event_info<target_info>();
 
         if (target_desc_value) {
             strlcpy(newInfo->target_desc, target_desc_value, sizeof(newInfo->target_desc));
@@ -219,11 +219,11 @@ namespace metin2::game {
         if (it == map_list_event_.end())
             return;
 
-        std::list<event_ptr>::iterator it2 = it->second.begin();
+        auto it2 = it->second.begin();
 
         while (it2 != it->second.end()) {
             event_ptr pkEvent = *it2;
-            target_info *info = dynamic_cast<target_info *>(pkEvent->info.get());
+            auto *info = dynamic_cast<target_info *>(pkEvent->info.get());
 
             if (info == nullptr) {
                 metin2::log::error("Target event has no info");
@@ -256,11 +256,11 @@ namespace metin2::game {
         if (it == map_list_event_.end())
             return nullptr;
 
-        std::list<event_ptr>::iterator it2 = it->second.begin();
+        auto it2 = it->second.begin();
 
         while (it2 != it->second.end()) {
             event_ptr pkEvent = *(it2++);
-            target_info *info = dynamic_cast<target_info *>(pkEvent->info.get());
+            auto *info = dynamic_cast<target_info *>(pkEvent->info.get());
 
             if (info == nullptr) {
                 metin2::log::error("Target event has no info");
@@ -286,11 +286,11 @@ namespace metin2::game {
         if (it == map_list_event_.end())
             return nullptr;
 
-        std::list<event_ptr>::iterator it2 = it->second.begin();
+        auto it2 = it->second.begin();
 
         while (it2 != it->second.end()) {
             event_ptr pkEvent = *(it2++);
-            target_info *info = dynamic_cast<target_info *>(pkEvent->info.get());
+            auto *info = dynamic_cast<target_info *>(pkEvent->info.get());
 
             if (info == nullptr) {
                 metin2::log::error("Target event has no info");
@@ -316,7 +316,7 @@ namespace metin2::game {
         if (it == map_list_event_.end())
             return;
 
-        std::list<event_ptr>::iterator it2 = it->second.begin();
+        auto it2 = it->second.begin();
 
         while (it2 != it->second.end())
             event_cancel(&(*(it2++)));

@@ -567,10 +567,10 @@ namespace metin2::game::inline items {
     }
 
     void cube_make_cube_information_text() {
-        for (cube_map_by_npc::iterator iter = cube_info_map.begin(); cube_info_map.end() != iter; ++iter) {
+        for (auto iter = cube_info_map.begin(); cube_info_map.end() != iter; ++iter) {
             cube_result_list &resultList = iter->second;
 
-            for (cube_result_list::iterator resultIter = resultList.begin(); resultList.end() != resultIter; ++resultIter) {
+            for (auto resultIter = resultList.begin(); resultList.end() != resultIter; ++resultIter) {
                 cube_material_info &materialInfo = *resultIter;
                 std::string &infoText = materialInfo.info_text;
 
@@ -578,15 +578,15 @@ namespace metin2::game::inline items {
                     std::sort(materialInfo.complicate_material.begin(), materialInfo.complicate_material.end(), f_is_less_cube_value);
                     std::sort(materialInfo.material.begin(), materialInfo.material.end(), f_is_less_cube_value);
 
-                    for (cube_value_vector::iterator iter = materialInfo.complicate_material.begin(); materialInfo.complicate_material.end() != iter; ++iter) {
-                        for (cube_value_vector::iterator targetIter = materialInfo.material.begin(); materialInfo.material.end() != targetIter; ++targetIter) {
+                    for (auto iter = materialInfo.complicate_material.begin(); materialInfo.complicate_material.end() != iter; ++iter) {
+                        for (auto targetIter = materialInfo.material.begin(); materialInfo.material.end() != targetIter; ++targetIter) {
                             if (*targetIter == *iter) {
                                 targetIter = materialInfo.material.erase(targetIter);
                             }
                         }
                     }
 
-                    for (cube_value_vector::iterator iter = materialInfo.complicate_material.begin(); materialInfo.complicate_material.end() != iter; ++iter) {
+                    for (auto iter = materialInfo.complicate_material.begin(); materialInfo.complicate_material.end() != iter; ++iter) {
                         infoText += std::format("{},{}|", iter->vnum, iter->count);
                     }
 
@@ -596,7 +596,7 @@ namespace metin2::game::inline items {
                         infoText.push_back('&');
                 }
 
-                for (cube_value_vector::iterator iter = materialInfo.material.begin(); materialInfo.material.end() != iter; ++iter) {
+                for (auto iter = materialInfo.material.begin(); materialInfo.material.end() != iter; ++iter) {
                     infoText += std::format("{},{}&", iter->vnum, iter->count);
                 }
 
@@ -632,11 +632,11 @@ namespace metin2::game::inline items {
             materialInfo.gold = cubeData->gold;
             materialInfo.material = cubeData->item;
 
-            for (cube_result_list::iterator iter = resultList.begin(); resultList.end() != iter; ++iter) {
+            for (auto iter = resultList.begin(); resultList.end() != iter; ++iter) {
                 cube_material_info &existInfo = *iter;
 
                 if (reward.vnum == existInfo.reward.vnum) {
-                    for (cube_value_vector::iterator existMaterialIter = existInfo.material.begin(); existInfo.material.end() != existMaterialIter; ++existMaterialIter) {
+                    for (auto existMaterialIter = existInfo.material.begin(); existInfo.material.end() != existMaterialIter; ++existMaterialIter) {
                         item_table *existMaterialProto = item_manager::instance().table(existMaterialIter->vnum);
                         if (nullptr == existMaterialProto) {
                             metin2::log::error("No item proto for cube material vnum {:d}", existMaterialIter->vnum);
@@ -645,7 +645,7 @@ namespace metin2::game::inline items {
                         item_name_and_level existItemInfo = split_item_name_and_level_from_name(existMaterialProto->name);
 
                         if (0 < existItemInfo.level) {
-                            for (cube_value_vector::iterator currentMaterialIter = materialInfo.material.begin(); materialInfo.material.end() != currentMaterialIter; ++currentMaterialIter) {
+                            for (auto currentMaterialIter = materialInfo.material.begin(); materialInfo.material.end() != currentMaterialIter; ++currentMaterialIter) {
                                 item_table *currentMaterialProto = item_manager::instance().table(currentMaterialIter->vnum);
                                 item_name_and_level currentItemInfo = split_item_name_and_level_from_name(currentMaterialProto->name);
 
@@ -690,7 +690,7 @@ namespace metin2::game::inline items {
             resultText.clear();
 
             const cube_result_list &resultList = cube_info_map[npcVNUM];
-            for (cube_result_list::const_iterator iter = resultList.begin(); resultList.end() != iter; ++iter) {
+            for (auto iter = resultList.begin(); resultList.end() != iter; ++iter) {
                 const cube_material_info &materialInfo = *iter;
                 resultText += std::format("{},{}/", materialInfo.reward.vnum, materialInfo.reward.count);
             }
@@ -729,7 +729,7 @@ namespace metin2::game::inline items {
         bool bCatchInfo = false;
 
         const cube_result_list &resultList = cube_info_map[npcVNUM];
-        for (cube_result_list::const_iterator iter = resultList.begin(); resultList.end() != iter; ++iter) {
+        for (auto iter = resultList.begin(); resultList.end() != iter; ++iter) {
             const cube_material_info &materialInfo = *iter;
 
             if (index++ == request_start_index) {

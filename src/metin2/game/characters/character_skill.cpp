@@ -709,7 +709,7 @@ namespace metin2::game::inline characters {
 
         memset(skill_levels_.get(), 0, sizeof(player_skill) * SKILL_MAX_NUM);
 
-        std::vector<std::pair<uint32_t, player_skill>>::const_iterator iter = vec.begin();
+        auto iter = vec.begin();
 
         while (iter != vec.end()) {
             const std::pair<uint32_t, player_skill> &pair = *(iter++);
@@ -728,7 +728,7 @@ namespace metin2::game::inline characters {
             if (!ent->is_type(ENTITY_CHARACTER))
                 return;
 
-            character *pkChr = (character *)ent;
+            auto *pkChr = (character *)ent;
 
             if (!excepts_set.empty()) {
                 if (excepts_set.find(pkChr) != excepts_set.end())
@@ -768,7 +768,7 @@ namespace metin2::game::inline characters {
     };
 
     EVENTFUNC(chain_lightning_event) {
-        chain_lightning_event_info *info = dynamic_cast<chain_lightning_event_info *>(event->info.get());
+        auto *info = dynamic_cast<chain_lightning_event_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Chain lightning event without event info");
@@ -838,7 +838,7 @@ namespace metin2::game::inline characters {
             return;
         }
 
-        character *pkChrVictim = (character *)ent;
+        auto *pkChrVictim = (character *)ent;
 
         if (distance_approx(x - pkChrVictim->x(), y - pkChrVictim->y()) > sk->splash_range) {
             if (metin2::config::test_server())
@@ -1152,8 +1152,8 @@ namespace metin2::game::inline characters {
 
                 get_delta_by_degree(degree, fCrushSlidingLength, &fx, &fy);
                 metin2::log::debug("{} pushes {} from {:d} {:d} to {:d} {:d}", chr->name(), pkChrVictim->name(), pkChrVictim->x(), pkChrVictim->y(), (int32_t)(pkChrVictim->x() + fx), (int32_t)(pkChrVictim->y() + fy));
-                int32_t tx = (int32_t)(pkChrVictim->x() + fx);
-                int32_t ty = (int32_t)(pkChrVictim->y() + fy);
+                auto tx = (int32_t)(pkChrVictim->x() + fx);
+                auto ty = (int32_t)(pkChrVictim->y() + fy);
 
                 pkChrVictim->sync(tx, ty);
                 pkChrVictim->go_to(tx, ty);
@@ -1178,7 +1178,7 @@ namespace metin2::game::inline characters {
         }
 
         if (sk->vnum == SKILL_CHAIN && chr->chain_lightning_index() < chr->chain_lightning_max_count()) {
-            chain_lightning_event_info *info_value = alloc_event_info<chain_lightning_event_info>();
+            auto *info_value = alloc_event_info<chain_lightning_event_info>();
 
             info_value->victim = pkChrVictim->get_vid();
             info_value->chr = chr->get_vid();
@@ -1197,7 +1197,7 @@ namespace metin2::game::inline characters {
                 return;
 
             if (ent->is_type(ENTITY_CHARACTER)) {
-                character *pkChr = (character *)ent;
+                auto *pkChr = (character *)ent;
 
                 if (metin2::config::test_server())
                     metin2::log::debug("Splash affect candidate {}: skill {:d}, duration {:d}", pkChr->name(), vnum, duration);
@@ -1976,7 +1976,7 @@ namespace metin2::game::inline characters {
     }
 
     EVENTFUNC(skill_muyoung_event) {
-        char_event_info *info = dynamic_cast<char_event_info *>(event->info.get());
+        auto *info = dynamic_cast<char_event_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Muyoung skill event fired without event info");
@@ -2008,7 +2008,7 @@ namespace metin2::game::inline characters {
         if (muyeong_event_)
             return;
 
-        char_event_info *info = alloc_event_info<char_event_info>();
+        auto *info = alloc_event_info<char_event_info>();
 
         info->ch = this;
         muyeong_event_ = event_create(skill_muyoung_event, info, passes_per_sec(1));
@@ -2111,7 +2111,7 @@ namespace metin2::game::inline characters {
     };
 
     EVENTFUNC(mob_skill_hit_event) {
-        mob_skill_event_info *info = dynamic_cast<mob_skill_event_info *>(event->info.get());
+        auto *info = dynamic_cast<mob_skill_event_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Mob skill event fired without event info");
@@ -2173,7 +2173,7 @@ namespace metin2::game::inline characters {
                 if (metin2::config::test_server())
                     metin2::log::debug("Mob skill hit timing {:d} ms", rInfo.timing);
 
-                mob_skill_event_info *info = alloc_event_info<mob_skill_event_info>();
+                auto *info = alloc_event_info<mob_skill_event_info>();
 
                 info->ch = this;
                 info->pos = pos;
@@ -2683,7 +2683,7 @@ namespace metin2::game::inline characters {
     }
 
     auto character::check_skill_hit_count(const uint8_t skill_id, const vid target_vid) -> bool {
-        std::map<int, skill_use_info>::iterator iter = skill_use_info_.find(skill_id);
+        auto iter = skill_use_info_.find(skill_id);
 
         if (iter == skill_use_info_.end()) {
             metin2::log::warn("Possible skill hack by {}: skill {:d} was never used", name(), skill_id);

@@ -213,7 +213,7 @@ namespace metin2::game {
             std::vector<guild_war_reserve_for_game *> &con = guild_manager::instance().reserve_war_ref();
 
             int i = 0;
-            std::vector<guild_war_reserve_for_game *>::iterator it = con.begin();
+            auto it = con.begin();
 
             metin2::log::debug("Guild war: {:d} reserved wars", con.size());
 

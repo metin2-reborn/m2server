@@ -52,7 +52,7 @@ namespace metin2::game {
         };
 
         EVENTFUNC(monarch_powerup_event) {
-            monarch_powerup_event_info *info = dynamic_cast<monarch_powerup_event_info *>(event->info.get());
+            auto *info = dynamic_cast<monarch_powerup_event_info *>(event->info.get());
 
             if (info == nullptr) {
                 quest::error("Monarch power-up event has no info");
@@ -72,7 +72,7 @@ namespace metin2::game {
         };
 
         EVENTFUNC(monarch_defenseup_event) {
-            monarch_powerup_event_info *info = dynamic_cast<monarch_powerup_event_info *>(event->info.get());
+            auto *info = dynamic_cast<monarch_powerup_event_info *>(event->info.get());
 
             if (info == nullptr) {
                 quest::error("Monarch defense-up event has no info");
@@ -176,7 +176,7 @@ namespace metin2::game {
 
             int g_nMonarchPowerUpCT = 60 * 3;
 
-            monarch_powerup_event_info *info = alloc_event_info<monarch_powerup_event_info>();
+            auto *info = alloc_event_info<monarch_powerup_event_info>();
 
             info->empire_index = ch->empire();
 
@@ -222,7 +222,7 @@ namespace metin2::game {
 
             int g_nMonarchDefenseUpCT = 60 * 3;
 
-            monarch_defenseup_event_info *info = alloc_event_info<monarch_defenseup_event_info>();
+            auto *info = alloc_event_info<monarch_defenseup_event_info>();
 
             info->empire_index = ch->empire();
 
@@ -250,7 +250,7 @@ namespace metin2::game {
             if (!require_number(lua, 1))
                 return 0;
 
-            uint32_t mob_vnum = (uint32_t)lua_tonumber(lua, 1);
+            auto mob_vnum = (uint32_t)lua_tonumber(lua, 1);
 
             character *ch = quest_manager::instance().current_character_ptr();
 
@@ -305,7 +305,7 @@ namespace metin2::game {
                 return 0;
             }
 
-            uint32_t group_vnum = (uint32_t)lua_tonumber(lua, 1);
+            auto group_vnum = (uint32_t)lua_tonumber(lua, 1);
             int region_index = (int)lua_tonumber(lua, 2);
             character *ch = quest_manager::instance().current_character_ptr();
             if (!ch)
@@ -601,7 +601,7 @@ namespace metin2::game {
         }
 
         EVENTFUNC(monarch_transfer2_event) {
-            monarch_transfer2_event_info *info = dynamic_cast<monarch_transfer2_event_info *>(event->info.get());
+            auto *info = dynamic_cast<monarch_transfer2_event_info *>(event->info.get());
 
             if (info == nullptr) {
                 quest::error("Monarch transfer event has no info");
@@ -715,7 +715,7 @@ namespace metin2::game {
                     return 0;
                 }
 
-                monarch_transfer2_event_info *info = alloc_event_info<monarch_transfer2_event_info>();
+                auto *info = alloc_event_info<monarch_transfer2_event_info>();
 
                 info->header = HEADER_GG_MONARCH_TRANSFER;
                 info->target_pid = pTargetChar->player_id();

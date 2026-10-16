@@ -84,7 +84,7 @@ namespace metin2::game::inline items {
     }
 
     auto dragon_soul_table::dragon_soul_group_name(uint8_t type, std::string &group_name) const -> bool {
-        dragon_soul_table::map_type_to_name::const_iterator it = map_type_to_name_.find(type);
+        auto it = map_type_to_name_.find(type);
         if (it != map_type_to_name_.end()) {
             group_name = it->second;
             return true;
@@ -469,7 +469,7 @@ namespace metin2::game::inline items {
     }
 
     auto dragon_soul_table::basic_applys(uint8_t ds_type, vec_applys &vec_basic_applys) -> bool {
-        map_apply_group::iterator it = map_basic_applys_group_.find(ds_type);
+        auto it = map_basic_applys_group_.find(ds_type);
         if (map_basic_applys_group_.end() == it) {
             return false;
         }
@@ -478,7 +478,7 @@ namespace metin2::game::inline items {
     }
 
     auto dragon_soul_table::additional_applys(uint8_t ds_type, vec_applys &vec_additional_applys) -> bool {
-        map_apply_group::iterator it = map_additional_applys_group_.find(ds_type);
+        auto it = map_additional_applys_group_.find(ds_type);
         if (map_additional_applys_group_.end() == it) {
             return false;
         }

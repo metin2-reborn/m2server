@@ -74,7 +74,7 @@ namespace metin2::game::inline characters {
     }
 
     EVENTFUNC(affect_event) {
-        char_event_info *info = dynamic_cast<char_event_info *>(event->info.get());
+        auto *info = dynamic_cast<char_event_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Affect event fired without event info");
@@ -150,7 +150,7 @@ namespace metin2::game::inline characters {
         if (affect_event)
             return;
 
-        char_event_info *info = alloc_event_info<char_event_info>();
+        auto *info = alloc_event_info<char_event_info>();
         info->ch = this;
         affect_event = event_create(game::characters::affect_event, info, metin2::config::server().passes_per_sec);
         metin2::log::debug("{} ({}): affect event started ({})", name(), static_cast<const void *>(this), static_cast<const void *>(affect_event.get()));
@@ -323,7 +323,7 @@ namespace metin2::game::inline characters {
     };
 
     EVENTFUNC(load_affect_login_event) {
-        load_affect_login_event_info *info = dynamic_cast<load_affect_login_event_info *>(event->info.get());
+        auto *info = dynamic_cast<load_affect_login_event_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Affect login load event fired without event info");
@@ -367,7 +367,7 @@ namespace metin2::game::inline characters {
             if (metin2::config::test_server())
                 metin2::log::debug("{}: deferring load of {:d} affects to an event", name(), count_value);
 
-            load_affect_login_event_info *info = alloc_event_info<load_affect_login_event_info>();
+            auto *info = alloc_event_info<load_affect_login_event_info>();
 
             info->pid = player_id();
             info->count = count_value;
@@ -411,7 +411,7 @@ namespace metin2::game::inline characters {
                 metin2::log::debug("{}: loaded affect type {:d}, apply {:d}", name(), elements->type, elements->apply_on);
             }
 
-            affect *pkAff = new affect{};
+            auto *pkAff = new affect{};
             list_affect_.push_back(pkAff);
 
             pkAff->type = elements->type;

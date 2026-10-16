@@ -44,7 +44,7 @@ namespace metin2::game::inline empire {
     };
 
     EVENTFUNC(regen_mob_event) {
-        regen_mob_event_info *info = dynamic_cast<regen_mob_event_info *>(event->info.get());
+        auto *info = dynamic_cast<regen_mob_event_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Three-way war regen event has no info");
@@ -207,7 +207,7 @@ namespace metin2::game::inline empire {
     }
 
     auto three_way_war::is_sung_zi_map_index(int map_index) const -> bool {
-        std::vector<forked_sungzi_map_info>::const_iterator it = sung_zi_info_map_.begin();
+        auto it = sung_zi_info_map_.begin();
 
         for (; it != sung_zi_info_map_.end(); ++it) {
             if (map_index == it->forked_sung) {
@@ -227,7 +227,7 @@ namespace metin2::game::inline empire {
     }
 
     auto three_way_war::is_registered_user(uint32_t player_id) const -> bool {
-        std::unordered_map<uint32_t, uint32_t>::const_iterator iter = register_user_map_.find(player_id);
+        auto iter = register_user_map_.find(player_id);
 
         if (iter == register_user_map_.end()) {
             return false;
@@ -363,7 +363,7 @@ namespace metin2::game::inline empire {
             const std::string log_text = std::format("First Step: {} exclusion", Nation);
             log_manager::instance().char_log(0, 0, 0, 0, "THREEWAY", log_text.c_str(), nullptr);
 
-            regen_mob_event_info *regen_info = alloc_event_info<regen_mob_event_info>();
+            auto *regen_info = alloc_event_info<regen_mob_event_info>();
 
             regen_info->map_index = dead->map_index();
 
@@ -478,7 +478,7 @@ namespace metin2::game::inline empire {
     }
 
     void three_way_war::remove_all_monsters_in_three_way() const {
-        std::set<int>::const_iterator iter = map_index_set_.begin();
+        auto iter = map_index_set_.begin();
 
         while (iter != map_index_set_.end()) {
             sectree_map *pSecMap = sectree_manager::instance().map(*iter);
@@ -486,7 +486,7 @@ namespace metin2::game::inline empire {
             if (nullptr != pSecMap) {
                 pSecMap->for_each([](entity *ent) {
                     if (true == ent->is_type(ENTITY_CHARACTER)) {
-                        character *ch = static_cast<character *>(ent);
+                        auto *ch = static_cast<character *>(ent);
 
                         if (false == ch->is_pc()) {
                             ch->dead();

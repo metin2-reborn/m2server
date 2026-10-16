@@ -40,7 +40,7 @@ namespace metin2::db::inline clients {
 
         bool bChanged = false;
 
-        __typeof(map_event_flag_.begin()) it = map_event_flag_.find(p->flag_name);
+        auto it = map_event_flag_.find(p->flag_name);
         if (it == map_event_flag_.end()) {
             bChanged = true;
             map_event_flag_.insert(std::make_pair(std::string(p->flag_name), p->value));

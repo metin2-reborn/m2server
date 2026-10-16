@@ -109,7 +109,7 @@ namespace metin2::game {
         auto building_reconstruct(lua_State *lua) -> int {
             using namespace building;
 
-            uint32_t dwNewBuilding = (uint32_t)lua_tonumber(lua, 1);
+            auto dwNewBuilding = (uint32_t)lua_tonumber(lua, 1);
 
             quest_manager &q = quest_manager::instance();
 

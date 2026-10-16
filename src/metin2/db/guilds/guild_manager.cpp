@@ -478,7 +478,7 @@ namespace metin2::db::inline guilds {
     }
 
     void guild_manager::remove_declare(uint32_t guild_from, uint32_t guild_to) {
-        __typeof(declare_map_.begin()) it = declare_map_.find(guild_declare_info(0, guild_from, guild_to));
+        auto it = declare_map_.find(guild_declare_info(0, guild_from, guild_to));
 
         if (it != declare_map_.end())
             declare_map_.erase(it);

@@ -44,7 +44,7 @@ namespace metin2::game::inline world {
             auto it_tree = neighbor_list_.begin();
 
             while (it_tree != neighbor_list_.end()) {
-                entity_set::iterator it_entity = (*it_tree)->set_entity_.begin();
+                auto it_entity = (*it_tree)->set_entity_.begin();
 
                 while (it_entity != (*it_tree)->set_entity_.end()) {
                     if (func(*it_entity))
@@ -70,7 +70,7 @@ namespace metin2::game::inline world {
 
         template <class Func>
         void for_each_for_find_victim(Func &&func) {
-            sectree_list::iterator it_tree = neighbor_list_.begin();
+            auto it_tree = neighbor_list_.begin();
 
             while (it_tree != neighbor_list_.end()) {
                 if ((*(it_tree++))->for_each_entity_for_find_victim(func))

@@ -61,7 +61,7 @@ namespace metin2::game::inline events {
     };
 
     EVENTFUNC(battle_arena_event) {
-        battle_arena_info *pInfo = dynamic_cast<battle_arena_info *>(event->info.get());
+        auto *pInfo = dynamic_cast<battle_arena_info *>(event->info.get());
 
         if (pInfo == nullptr) {
             return 0;
@@ -139,7 +139,7 @@ namespace metin2::game::inline events {
                     if (sectree != nullptr) {
                         sectree->for_each([](entity *ent) {
                             if (ent->is_type(ENTITY_CHARACTER) == true) {
-                                character *lpChar = (character *)ent;
+                                auto *lpChar = (character *)ent;
 
                                 if (lpChar->is_pc() == true) {
                                     if (!metin2::config::test_server()) {
@@ -225,7 +225,7 @@ namespace metin2::game::inline events {
             event_cancel(&event_);
         }
 
-        battle_arena_info *info = alloc_event_info<battle_arena_info>();
+        auto *info = alloc_event_info<battle_arena_info>();
 
         info->map_index = map_index_;
         info->empire = empire_;
@@ -262,7 +262,7 @@ namespace metin2::game::inline events {
             event_cancel(&event_);
         }
 
-        battle_arena_info *info = alloc_event_info<battle_arena_info>();
+        auto *info = alloc_event_info<battle_arena_info>();
 
         info->map_index = map_index_;
         info->empire = empire_;

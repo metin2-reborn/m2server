@@ -95,7 +95,7 @@ namespace metin2::game {
         auto game_drop_item(lua_State *lua) -> int {
             character *ch = quest_manager::instance().current_character_ptr();
 
-            uint32_t item_vnum = (uint32_t)lua_tonumber(lua, 1);
+            auto item_vnum = (uint32_t)lua_tonumber(lua, 1);
             int count = (int)lua_tonumber(lua, 2);
             int32_t x = ch->x();
             int32_t y = ch->y();

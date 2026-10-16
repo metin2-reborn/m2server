@@ -22,7 +22,7 @@ namespace metin2::game {
 
             quest_manager &q = quest_manager::instance();
 
-            uint8_t applyOn = (uint8_t)lua_tonumber(lua, 1);
+            auto applyOn = (uint8_t)lua_tonumber(lua, 1);
 
             character *ch = q.current_character_ptr();
 
@@ -34,8 +34,8 @@ namespace metin2::game {
             if (ch->find_affect(AFFECT_QUEST_START_IDX, applyOn))
                 return 0;
 
-            int32_t value = (int32_t)lua_tonumber(lua, 2);
-            int32_t duration = (int32_t)lua_tonumber(lua, 3);
+            auto value = (int32_t)lua_tonumber(lua, 2);
+            auto duration = (int32_t)lua_tonumber(lua, 3);
 
             ch->add_affect(AFFECT_QUEST_START_IDX, a_apply_info[applyOn].point_type, value, 0, duration, 0, false);
 
@@ -79,7 +79,7 @@ namespace metin2::game {
 
             quest_manager &q = quest_manager::instance();
 
-            uint8_t applyOn = (uint8_t)lua_tonumber(lua, 1);
+            auto applyOn = (uint8_t)lua_tonumber(lua, 1);
 
             character *ch = q.current_character_ptr();
 
@@ -88,8 +88,8 @@ namespace metin2::game {
                 return 0;
             }
 
-            int32_t value = (int32_t)lua_tonumber(lua, 2);
-            int32_t duration = (int32_t)lua_tonumber(lua, 3);
+            auto value = (int32_t)lua_tonumber(lua, 2);
+            auto duration = (int32_t)lua_tonumber(lua, 3);
 
             ch->add_affect(AFFECT_HAIR, a_apply_info[applyOn].point_type, value, 0, duration, 0, false);
 
@@ -139,7 +139,7 @@ namespace metin2::game {
 
             quest_manager &q = quest_manager::instance();
 
-            uint8_t applyOn = (uint8_t)lua_tonumber(lua, 1);
+            auto applyOn = (uint8_t)lua_tonumber(lua, 1);
 
             character *ch = q.current_character_ptr();
 
@@ -148,8 +148,8 @@ namespace metin2::game {
                 return 0;
             }
 
-            int32_t value = (int32_t)lua_tonumber(lua, 2);
-            int32_t duration = (int32_t)lua_tonumber(lua, 3);
+            auto value = (int32_t)lua_tonumber(lua, 2);
+            auto duration = (int32_t)lua_tonumber(lua, 3);
 
             ch->add_affect(AFFECT_COLLECT, a_apply_info[applyOn].point_type, value, 0, duration, 0, false);
 
@@ -164,7 +164,7 @@ namespace metin2::game {
 
             quest_manager &q = quest_manager::instance();
 
-            uint8_t point_type = (uint8_t)lua_tonumber(lua, 1);
+            auto point_type = (uint8_t)lua_tonumber(lua, 1);
 
             character *ch = q.current_character_ptr();
 
@@ -173,8 +173,8 @@ namespace metin2::game {
                 return 0;
             }
 
-            int32_t value = (int32_t)lua_tonumber(lua, 2);
-            int32_t duration = (int32_t)lua_tonumber(lua, 3);
+            auto value = (int32_t)lua_tonumber(lua, 2);
+            auto duration = (int32_t)lua_tonumber(lua, 3);
 
             ch->add_affect(AFFECT_COLLECT, point_type, value, 0, duration, 0, false);
 
@@ -185,17 +185,17 @@ namespace metin2::game {
             character *ch = quest_manager::instance().current_character_ptr();
 
             if (ch != nullptr) {
-                uint8_t bApply = (uint8_t)lua_tonumber(lua, 1);
+                auto bApply = (uint8_t)lua_tonumber(lua, 1);
 
                 if (bApply >= MAX_APPLY_NUM) return 0;
 
                 bApply = a_apply_info[bApply].point_type;
-                int32_t value = (int32_t)lua_tonumber(lua, 2);
+                auto value = (int32_t)lua_tonumber(lua, 2);
 
                 const std::list<affect *> &rList = ch->affect_container();
                 const affect *pAffect = nullptr;
 
-                for (std::list<affect *>::const_iterator iter = rList.begin(); iter != rList.end(); ++iter) {
+                for (auto iter = rList.begin(); iter != rList.end(); ++iter) {
                     pAffect = *iter;
 
                     if (pAffect->type == AFFECT_COLLECT) {

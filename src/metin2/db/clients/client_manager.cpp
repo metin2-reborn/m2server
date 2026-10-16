@@ -511,7 +511,7 @@ namespace metin2::db::inline clients {
                 if (!bEscape) {
                     std::vector<std::pair<uint32_t, uint32_t>> vec_dwFinishedAwardID;
 
-                    __typeof(pSet->begin()) it = pSet->begin();
+                    auto it = pSet->begin();
 
                     std::string query;
 
@@ -862,7 +862,7 @@ namespace metin2::db::inline clients {
     }
 
     void client_manager::query_setup(peer *peer, uint32_t handle_value, const char *data) {
-        packet_gd_setup *p = (packet_gd_setup *)data;
+        auto *p = (packet_gd_setup *)data;
         data += sizeof(packet_gd_setup);
 
         if (p->auth_server) {
@@ -942,10 +942,10 @@ namespace metin2::db::inline clients {
             tmp->encode(&p2pSetupPacket, sizeof(packet_dg_p2p));
         }
 
-        packet_login_on_setup *pck = (packet_login_on_setup *)data;
+        auto *pck = (packet_login_on_setup *)data;
 
         for (uint32_t c = 0; c < p->login_count; ++c, ++pck) {
-            login_data *pkLD = new login_data;
+            auto *pkLD = new login_data;
 
             pkLD->set_key(pck->login_key);
             pkLD->set_client_key(pck->client_key);
@@ -986,7 +986,7 @@ namespace metin2::db::inline clients {
     }
 
     void client_manager::query_item_save(peer *peer_value, const char *data) {
-        player_item *p = (player_item *)data;
+        auto *p = (player_item *)data;
 
         // Safebox and mall items are never cached; drop any that are.
 
@@ -994,7 +994,7 @@ namespace metin2::db::inline clients {
             item_cache *c = get_item_cache(p->id);
 
             if (c) {
-                item_cache_set_ptr_map::iterator it = map_item_cache_set_ptr_.find(c->get()->owner);
+                auto it = map_item_cache_set_ptr_.find(c->get()->owner);
 
                 if (it != map_item_cache_set_ptr_.end()) {
                     if (metin2::config::test_server())
@@ -1017,7 +1017,7 @@ namespace metin2::db::inline clients {
     }
 
     auto client_manager::get_item_cache_set(uint32_t pid) -> client_manager::item_cache_set * {
-        item_cache_set_ptr_map::iterator it = map_item_cache_set_ptr_.find(pid);
+        auto it = map_item_cache_set_ptr_.find(pid);
 
         if (it == map_item_cache_set_ptr_.end())
             return nullptr;
@@ -1036,7 +1036,7 @@ namespace metin2::db::inline clients {
     }
 
     void client_manager::flush_item_cache_set(uint32_t pid) {
-        item_cache_set_ptr_map::iterator it = map_item_cache_set_ptr_.find(pid);
+        auto it = map_item_cache_set_ptr_.find(pid);
 
         if (it == map_item_cache_set_ptr_.end()) {
             metin2::log::debug("Item cache: no cache to flush for pid {:d}", pid);
@@ -1044,7 +1044,7 @@ namespace metin2::db::inline clients {
         }
 
         item_cache_set *pSet = it->second.get();
-        item_cache_set::iterator it_set = pSet->begin();
+        auto it_set = pSet->begin();
 
         while (it_set != pSet->end()) {
             item_cache *c = *it_set++;
@@ -1062,7 +1062,7 @@ namespace metin2::db::inline clients {
     }
 
     auto client_manager::get_item_cache(uint32_t id) -> item_cache * {
-        item_cache_map::iterator it = map_item_cache_.find(id);
+        auto it = map_item_cache_.find(id);
 
         if (it == map_item_cache_.end())
             return nullptr;
@@ -1084,7 +1084,7 @@ namespace metin2::db::inline clients {
             if (metin2::config::db().login_log)
                 metin2::log::info("Item cache: updating item {:d}", updated->id);
             if (updated->owner != c->get()->owner) {
-                item_cache_set_ptr_map::iterator it = map_item_cache_set_ptr_.find(c->get()->owner);
+                auto it = map_item_cache_set_ptr_.find(c->get()->owner);
 
                 if (it != map_item_cache_set_ptr_.end()) {
                     if (metin2::config::db().login_log)
@@ -1096,7 +1096,7 @@ namespace metin2::db::inline clients {
 
         c->put(updated, skip_query);
 
-        item_cache_set_ptr_map::iterator it = map_item_cache_set_ptr_.find(c->get()->owner);
+        auto it = map_item_cache_set_ptr_.find(c->get()->owner);
 
         if (it != map_item_cache_set_ptr_.end()) {
             if (metin2::config::db().login_log)
@@ -1125,7 +1125,7 @@ namespace metin2::db::inline clients {
     }
 
     auto client_manager::item_price_list_cache(uint32_t id) -> item_price_list_table_cache * {
-        item_price_list_cache_map::iterator it = item_price_list_cache_.find(id);
+        auto it = item_price_list_cache_.find(id);
 
         if (it == item_price_list_cache_.end())
             return nullptr;
@@ -1144,7 +1144,7 @@ namespace metin2::db::inline clients {
     }
 
     void client_manager::update_player_cache() {
-        player_table_cache_map::iterator it = map_player_cache_.begin();
+        auto it = map_player_cache_.begin();
 
         while (it != map_player_cache_.end()) {
             player_table_cache *c = (it++)->second.get();
@@ -1170,7 +1170,7 @@ namespace metin2::db::inline clients {
         if (cache_flush_count_ >= cache_flush_count_limit_)
             return;
 
-        item_cache_map::iterator it = map_item_cache_.begin();
+        auto it = map_item_cache_.begin();
 
         while (it != map_item_cache_.end()) {
             item_cache *c = (it++)->second.get();
@@ -1188,7 +1188,7 @@ namespace metin2::db::inline clients {
     }
 
     void client_manager::update_item_price_list_cache() {
-        item_price_list_cache_map::iterator it = item_price_list_cache_.begin();
+        auto it = item_price_list_cache_.begin();
 
         while (it != item_price_list_cache_.end()) {
             item_price_list_table_cache *pCache = it->second.get();
@@ -1250,7 +1250,7 @@ namespace metin2::db::inline clients {
             return;
         }
 
-        for (peer_list::iterator i = peer_list_.begin(); i != peer_list_.end(); ++i) {
+        for (auto i = peer_list_.begin(); i != peer_list_.end(); ++i) {
             peer *tmp = *i;
 
             if (!tmp->channel())
@@ -1293,7 +1293,7 @@ namespace metin2::db::inline clients {
     }
 
     auto client_manager::get_login_data(uint32_t key) -> login_data * {
-        login_data_by_login_key::iterator it = map_login_data_.find(key);
+        auto it = map_login_data_.find(key);
 
         if (it == map_login_data_.end())
             return nullptr;
@@ -1305,7 +1305,7 @@ namespace metin2::db::inline clients {
         char szLogin[LOGIN_MAX_LEN + 1];
         trim_and_lower(login, szLogin);
 
-        login_data_by_login::iterator it = map_login_data_by_login_.find(szLogin);
+        auto it = map_login_data_by_login_.find(szLogin);
 
         if (it == map_login_data_by_login_.end())
             return nullptr;
@@ -1314,7 +1314,7 @@ namespace metin2::db::inline clients {
     }
 
     auto client_manager::get_login_data_by_aid(uint32_t aid) -> login_data * {
-        login_data_by_aid::iterator it = map_login_data_by_aid_.find(aid);
+        auto it = map_login_data_by_aid_.find(aid);
 
         if (it == map_login_data_by_aid_.end())
             return nullptr;
@@ -1360,7 +1360,7 @@ namespace metin2::db::inline clients {
             peer_value->encode_header(HEADER_DG_AUTH_LOGIN, handle, sizeof(uint8_t));
             peer_value->encode_byte(bResult);
         } else {
-            login_data *pkLD = new login_data;
+            auto *pkLD = new login_data;
 
             pkLD->set_key(p->login_key);
             pkLD->set_client_key(p->client_key);
@@ -1983,7 +1983,7 @@ namespace metin2::db::inline clients {
         if (auth_peer_ == peer_value) {
             auth_peer_ = nullptr;
         } else {
-            logon_account_map::iterator it = map_logon_account_.begin();
+            auto it = map_logon_account_.begin();
 
             while (it != map_logon_account_.end()) {
                 login_data *pkLD = it->second;
@@ -2374,7 +2374,7 @@ namespace metin2::db::inline clients {
         }
 
         item_cache_set *pSet = it->second.get();
-        item_cache_set::iterator it_set = pSet->begin();
+        auto it_set = pSet->begin();
 
         while (it_set != pSet->end()) {
             item_cache *c = *it_set++;
@@ -2598,7 +2598,7 @@ namespace metin2::db::inline clients {
         login_data *pkLD = get_login_data_by_login(login);
 
         if (pkLD) {
-            login_data_by_login_key::iterator it = map_login_data_.find(pkLD->key());
+            auto it = map_login_data_.find(pkLD->key());
 
             if (it != map_login_data_.end())
                 map_login_data_.erase(it);
@@ -2613,7 +2613,7 @@ namespace metin2::db::inline clients {
     }
 
     void client_manager::update_channel_status(channel_status *data) {
-        channel_status_map::iterator it = m_channel_status_.find(data->port);
+        auto it = m_channel_status_.find(data->port);
         if (it != m_channel_status_.end()) {
             it->second = data->status;
         } else {
@@ -2625,7 +2625,7 @@ namespace metin2::db::inline clients {
         const int nSize = m_channel_status_.size();
         peer->encode_header(HEADER_DG_RESPOND_CHANNELSTATUS, handle, sizeof(channel_status) * nSize + sizeof(int));
         peer->encode(&nSize, sizeof(int));
-        for (channel_status_map::iterator it = m_channel_status_.begin(); it != m_channel_status_.end(); it++) {
+        for (auto it = m_channel_status_.begin(); it != m_channel_status_.end(); it++) {
             peer->encode(&it->first, sizeof(short));
             peer->encode(&it->second, sizeof(uint8_t));
         }

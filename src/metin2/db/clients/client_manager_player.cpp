@@ -187,7 +187,7 @@ namespace metin2::db::inline clients {
     }
 
     auto client_manager::player_cache(uint32_t id) -> player_table_cache * {
-        player_table_cache_map::iterator it = map_player_cache_.find(id);
+        auto it = map_player_cache_.find(id);
 
         if (it == map_player_cache_.end())
             return nullptr;
@@ -265,7 +265,7 @@ namespace metin2::db::inline clients {
                 std::vector<player_item> s_items(pSet->size());
 
                 uint32_t dwCount = 0;
-                item_cache_set::iterator it = pSet->begin();
+                auto it = pSet->begin();
 
                 while (it != pSet->end()) {
                     item_cache *c = *it++;
@@ -623,7 +623,7 @@ namespace metin2::db::inline clients {
     void client_manager::query_player_create(peer *peer, uint32_t handle, player_create_packet *packet) {
         int player_id;
 
-        time_by_id_map_t::iterator it = create_time_by_account_id.find(packet->account_id);
+        auto it = create_time_by_account_id.find(packet->account_id);
 
         if (it != create_time_by_account_id.end()) {
             time_t curtime = time(nullptr);
@@ -866,7 +866,7 @@ namespace metin2::db::inline clients {
             item_cache_set *pSet = get_item_cache_set(pi.player_id);
 
             if (pSet) {
-                item_cache_set::iterator it = pSet->begin();
+                auto it = pSet->begin();
 
                 while (it != pSet->end()) {
                     item_cache *pkItemCache = *it++;
@@ -998,7 +998,7 @@ namespace metin2::db::inline clients {
     }
 
     void client_manager::insert_logout_player(uint32_t pid) {
-        logout_player_map::iterator it = map_logout_.find(pid);
+        auto it = map_logout_.find(pid);
 
         if (it != map_logout_.end()) {
             if (metin2::config::db().login_log)
@@ -1018,7 +1018,7 @@ namespace metin2::db::inline clients {
     }
 
     void client_manager::delete_logout_player(uint32_t pid) {
-        logout_player_map::iterator it = map_logout_.find(pid);
+        auto it = map_logout_.find(pid);
 
         if (it != map_logout_.end()) {
             map_logout_.erase(it);
@@ -1028,7 +1028,7 @@ namespace metin2::db::inline clients {
     void client_manager::update_logout_player() {
         time_t now = time(nullptr);
 
-        logout_player_map::iterator it = map_logout_.begin();
+        auto it = map_logout_.begin();
 
         while (it != map_logout_.end()) {
             logout_player *pLogout = it->second.get();
@@ -1044,7 +1044,7 @@ namespace metin2::db::inline clients {
     }
 
     void client_manager::flush_player_cache_set(uint32_t pid) {
-        player_table_cache_map::iterator it = map_player_cache_.find(pid);
+        auto it = map_player_cache_.find(pid);
 
         if (it != map_player_cache_.end()) {
             it->second->flush();

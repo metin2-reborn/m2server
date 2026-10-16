@@ -70,7 +70,7 @@ namespace metin2::game::inline items {
                     }
                 }
 
-                uint32_t dwPct = (uint32_t)(d[i].percent * 10000.0f);
+                auto dwPct = (uint32_t)(d[i].percent * 10000.0f);
                 uint32_t dwItemVnum = 0;
 
                 if (!item_manager::instance().vnum_by_original_name(d[i].item_name, dwItemVnum)) {
@@ -95,7 +95,7 @@ namespace metin2::game::inline items {
             std::vector<item_drop_info> &v = vec_common_drop_item[i];
             std::sort(v.begin(), v.end());
 
-            std::vector<item_drop_info>::iterator it = v.begin();
+            auto it = v.begin();
 
             metin2::log::debug("Common drop: rank {:d}", i);
 
@@ -531,7 +531,7 @@ namespace metin2::game::inline items {
 
                         float fPercent = atof(pTok->at(2).c_str());
 
-                        uint32_t dwPct = (uint32_t)(10000.0f * fPercent);
+                        auto dwPct = (uint32_t)(10000.0f * fPercent);
 
                         metin2::log::debug("Drop group: item {} chance {:d} count {:d}", name, dwPct, iCount);
                         pkGroup->add_item(dwVnum, dwPct, iCount);
@@ -567,7 +567,7 @@ namespace metin2::game::inline items {
                         }
 
                         float fPct = atof(pTok->at(2).c_str());
-                        uint32_t dwPct = (uint32_t)(10000.0f * fPct);
+                        auto dwPct = (uint32_t)(10000.0f * fPct);
 
                         pkLevelItemGroup->add_item(dwItemVnum, dwPct, iCount);
 
@@ -604,7 +604,7 @@ namespace metin2::game::inline items {
 
                         float fPercent = atof(pTok->at(2).c_str());
 
-                        uint32_t dwPct = (uint32_t)(10000.0f * fPercent);
+                        auto dwPct = (uint32_t)(10000.0f * fPercent);
 
                         metin2::log::debug("Drop group: item {} chance {:d} count {:d}", name, dwPct, iCount);
                         pkGroup->add_item(dwVnum, dwPct, iCount);
@@ -686,7 +686,7 @@ namespace metin2::game::inline items {
 
                     float fPercent = atof(pTok->at(1).c_str());
 
-                    uint32_t dwPct = (uint32_t)(10000.0f * fPercent);
+                    auto dwPct = (uint32_t)(10000.0f * fPercent);
 
                     int iCount = 1;
                     if (pTok->size() > 2)

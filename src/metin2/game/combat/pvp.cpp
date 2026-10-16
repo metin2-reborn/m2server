@@ -92,7 +92,7 @@ namespace metin2::game::inline combat {
         }
 
         const desc_manager::desc_set &c_rSet = desc_manager::instance().client_set();
-        desc_manager::desc_set::const_iterator it = c_rSet.begin();
+        auto it = c_rSet.begin();
 
         while (it != c_rSet.end()) {
             desc *d = *it++;
@@ -204,14 +204,14 @@ namespace metin2::game::inline combat {
     }
 
     void pvp_manager::connect_ex(character *chr, bool disconnect) {
-        pvp_set_map::iterator it = map_pvp_set_by_id_.find(chr->player_id());
+        auto it = map_pvp_set_by_id_.find(chr->player_id());
 
         if (it == map_pvp_set_by_id_.end())
             return;
 
         uint32_t dwVID = disconnect ? 0 : chr->get_vid();
 
-        std::unordered_set<pvp *>::iterator it2 = it->second.begin();
+        auto it2 = it->second.begin();
 
         while (it2 != it->second.end()) {
             pvp *pkPVP = *it2++;
@@ -227,7 +227,7 @@ namespace metin2::game::inline combat {
     }
 
     auto pvp_manager::dead(character *chr, uint32_t killer_pid) -> bool {
-        pvp_set_map::iterator it = map_pvp_set_by_id_.find(chr->player_id());
+        auto it = map_pvp_set_by_id_.find(chr->player_id());
 
         if (it == map_pvp_set_by_id_.end())
             return false;
@@ -235,7 +235,7 @@ namespace metin2::game::inline combat {
         bool found = false;
 
         metin2::log::debug("Pvp: player {:d} died", chr->player_id());
-        std::unordered_set<pvp *>::iterator it2 = it->second.begin();
+        auto it2 = it->second.begin();
 
         while (it2 != it->second.end()) {
             pvp *pkPVP = *it2++;

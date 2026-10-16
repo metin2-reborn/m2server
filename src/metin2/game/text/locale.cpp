@@ -18,7 +18,7 @@ namespace metin2::game::inline text {
     locale_string_map_type locale_string;
 
     void locale_add(const char *key, const char *value) {
-        locale_string_map_type::const_iterator iter = locale_string.find(key);
+        auto iter = locale_string.find(key);
 
         if (iter == locale_string.end()) {
             locale_string.insert(std::make_pair(key, value));
@@ -27,7 +27,7 @@ namespace metin2::game::inline text {
 
     auto locale_find(const char *string) -> const char * {
 
-        locale_string_map_type::const_iterator iter = locale_string.find(string);
+        auto iter = locale_string.find(string);
 
         if (iter == locale_string.end()) {
             metin2::log::warn("No translation for \"{}\"", string);

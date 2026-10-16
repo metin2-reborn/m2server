@@ -343,11 +343,11 @@ namespace metin2::game::inline guilds {
         char c[CHARACTER_NAME_MAX_LEN + 1];
         memset(c, 0, sizeof(c));
 
-        guild_member_container::iterator cit = member_.find(pid);
+        auto cit = member_.find(pid);
         if (cit == member_.end())
             return;
 
-        for (guild_member_online_container::iterator it = member_online_.begin(); it != member_online_.end(); ++it) {
+        for (auto it = member_online_.begin(); it != member_online_.end(); ++it) {
             desc *d = (*it)->get_desc();
             if (!d)
                 continue;
@@ -383,7 +383,7 @@ namespace metin2::game::inline guilds {
 
         char c[CHARACTER_NAME_MAX_LEN + 1];
 
-        for (guild_member_container::iterator it = member_.begin(); it != member_.end(); ++it) {
+        for (auto it = member_.begin(); it != member_.end(); ++it) {
             it->second.dummy = 1;
 
             buf.write(&(it->second), sizeof(uint32_t) * 3 + 1);
@@ -398,11 +398,11 @@ namespace metin2::game::inline guilds {
 
         d->packet(buf.read_peek(), buf.size());
 
-        for (guild_member_online_container::iterator it = member_online_.begin(); it != member_online_.end(); ++it) {
+        for (auto it = member_online_.begin(); it != member_online_.end(); ++it) {
             send_login_packet(ch, *it);
         }
 
-        for (guild_member_p2p_online_container::iterator it = member_p2p_online_.begin(); it != member_p2p_online_.end(); ++it) {
+        for (auto it = member_p2p_online_.begin(); it != member_p2p_online_.end(); ++it) {
             send_login_packet(ch, *it);
         }
     }
@@ -462,15 +462,15 @@ namespace metin2::game::inline guilds {
             MYSQL_ROW row = mysql_fetch_row(msg.get()->res.get());
 
             uint32_t pid = strtoul(row[0], (char **)nullptr, 10);
-            uint8_t grade = (uint8_t)strtoul(row[1], (char **)nullptr, 10);
+            auto grade = (uint8_t)strtoul(row[1], (char **)nullptr, 10);
             uint8_t is_general = 0;
 
             if (row[2] && *row[2] == '1')
                 is_general = 1;
 
             uint32_t offer = strtoul(row[3], (char **)nullptr, 10);
-            uint8_t level = (uint8_t)strtoul(row[4], (char **)nullptr, 10);
-            uint8_t job = (uint8_t)strtoul(row[5], (char **)nullptr, 10);
+            auto level = (uint8_t)strtoul(row[4], (char **)nullptr, 10);
+            auto job = (uint8_t)strtoul(row[5], (char **)nullptr, 10);
             char *name = row[6];
 
             if (is_general)
@@ -575,7 +575,7 @@ namespace metin2::game::inline guilds {
     }
 
     auto guild::member(uint32_t pid) -> guild_member * {
-        guild_member_container::iterator it = member_.find(pid);
+        auto it = member_.find(pid);
         if (it == member_.end())
             return nullptr;
 
@@ -583,7 +583,7 @@ namespace metin2::game::inline guilds {
     }
 
     auto guild::member_pid(const std::string &name_value) -> uint32_t {
-        for (guild_member_container::iterator iter = member_.begin();
+        for (auto iter = member_.begin();
             iter != member_.end(); iter++) {
             if (iter->second.name == name_value) return iter->first;
         }
@@ -627,7 +627,7 @@ namespace metin2::game::inline guilds {
                 buf.write(&pack, sizeof(pack));
                 buf.write(&pack2, sizeof(pack2));
 
-                for (guild_member_online_container::iterator it = member_online_.begin(); it != member_online_.end(); ++it) {
+                for (auto it = member_online_.begin(); it != member_online_.end(); ++it) {
                     desc *d = (*it)->get_desc();
 
                     if (d)
@@ -652,7 +652,7 @@ namespace metin2::game::inline guilds {
                 buf.write(&pack, sizeof(pack));
                 buf.write(&pack2, sizeof(pack2));
 
-                for (guild_member_online_container::iterator it = member_online_.begin(); it != member_online_.end(); ++it) {
+                for (auto it = member_online_.begin(); it != member_online_.end(); ++it) {
                     desc *d = (*it)->get_desc();
                     if (d) {
                         d->packet(buf.read_peek(), buf.size());
@@ -713,7 +713,7 @@ namespace metin2::game::inline guilds {
         buf.write(&pack, sizeof(pack));
         buf.write(&pack2, sizeof(pack2));
 
-        for (guild_member_online_container::iterator it = member_online_.begin(); it != member_online_.end(); ++it) {
+        for (auto it = member_online_.begin(); it != member_online_.end(); ++it) {
             desc *d = (*it)->get_desc();
 
             if (d)
@@ -750,7 +750,7 @@ namespace metin2::game::inline guilds {
         buf.write(&pack, sizeof(pack));
         buf.write(&pack2, sizeof(pack2));
 
-        for (guild_member_online_container::iterator it = member_online_.begin(); it != member_online_.end(); ++it) {
+        for (auto it = member_online_.begin(); it != member_online_.end(); ++it) {
             desc *d = (*it)->get_desc();
 
             if (d)
@@ -790,7 +790,7 @@ namespace metin2::game::inline guilds {
     }
 
     auto guild::offer_exp(character *ch, int amount) -> bool {
-        guild_member_container::iterator cit = member_.find(ch->player_id());
+        auto cit = member_.find(ch->player_id());
 
         if (cit == member_.end())
             return false;
@@ -825,7 +825,7 @@ namespace metin2::game::inline guilds {
         packet_gc_guild pack;
         pack.header = HEADER_GC_GUILD;
 
-        for (guild_member_online_container::iterator it = member_online_.begin(); it != member_online_.end(); ++it) {
+        for (auto it = member_online_.begin(); it != member_online_.end(); ++it) {
             desc *d = (*it)->get_desc();
             if (d) {
                 pack.subheader = GUILD_SUBHEADER_GC_LIST;
@@ -852,14 +852,14 @@ namespace metin2::game::inline guilds {
     void guild::disband() {
         metin2::log::info("Guild: disbanding guild {} (id {:d})", name(), id());
 
-        for (guild_member_online_container::iterator it = member_online_.begin(); it != member_online_.end(); ++it) {
+        for (auto it = member_online_.begin(); it != member_online_.end(); ++it) {
             character *ch = *it;
             ch->set_guild(nullptr);
             send_online_remove_one_packet(ch->player_id());
             ch->set_quest_flag("guild_building.new_withdraw_time", get_global_time());
         }
 
-        for (guild_member_container::iterator it = member_.begin(); it != member_.end(); ++it) {
+        for (auto it = member_.begin(); it != member_.end(); ++it) {
             guild_manager::instance().unlink(it->first);
         }
     }
@@ -959,7 +959,7 @@ namespace metin2::game::inline guilds {
         if (is_general && general_count() >= max_general_count())
             return false;
 
-        guild_member_container::iterator it = member_.find(pid);
+        auto it = member_.find(pid);
         if (it == member_.end()) {
             return true;
         }
@@ -976,7 +976,7 @@ namespace metin2::game::inline guilds {
 
         it->second.is_general = is_general;
 
-        guild_member_online_container::iterator itOnline = member_online_.begin();
+        auto itOnline = member_online_.begin();
 
         packet_gc_guild pack;
         pack.header = HEADER_GC_GUILD;
@@ -1007,14 +1007,14 @@ namespace metin2::game::inline guilds {
             return;
         }
 
-        guild_member_container::iterator it = member_.find(pid);
+        auto it = member_.find(pid);
 
         if (it == member_.end())
             return;
 
         it->second.grade = grade;
 
-        guild_member_online_container::iterator itOnline = member_online_.begin();
+        auto itOnline = member_online_.begin();
 
         packet_gc_guild pack;
         pack.header = HEADER_GC_GUILD;
@@ -1292,7 +1292,7 @@ namespace metin2::game::inline guilds {
             buf.write(&data_.level, 1);
             buf.write(&data_.exp, 4);
 
-            for (guild_member_online_container::iterator it = member_online_.begin(); it != member_online_.end(); ++it) {
+            for (auto it = member_online_.begin(); it != member_online_.end(); ++it) {
                 desc *d = (*it)->get_desc();
 
                 if (d)
@@ -1310,7 +1310,7 @@ namespace metin2::game::inline guilds {
     }
 
     void guild::save_member(uint32_t pid) {
-        guild_member_container::iterator it = member_.find(pid);
+        auto it = member_.find(pid);
 
         if (it == member_.end())
             return;
@@ -1321,7 +1321,7 @@ namespace metin2::game::inline guilds {
     }
 
     void guild::level_change(uint32_t pid, uint8_t level) {
-        guild_member_container::iterator cit = member_.find(pid);
+        auto cit = member_.find(pid);
 
         if (cit == member_.end())
             return;
@@ -1342,7 +1342,7 @@ namespace metin2::game::inline guilds {
         pack.header = HEADER_GC_GUILD;
         cit->second.dummy = 0;
 
-        for (guild_member_online_container::iterator it = member_online_.begin(); it != member_online_.end(); ++it) {
+        for (auto it = member_online_.begin(); it != member_online_.end(); ++it) {
             desc *d = (*it)->get_desc();
 
             if (d) {
@@ -1355,7 +1355,7 @@ namespace metin2::game::inline guilds {
     }
 
     void guild::change_member_data(uint32_t pid, uint32_t offer, uint8_t level, uint8_t grade) {
-        guild_member_container::iterator cit = member_.find(pid);
+        auto cit = member_.find(pid);
 
         if (cit == member_.end())
             return;
@@ -1369,7 +1369,7 @@ namespace metin2::game::inline guilds {
         memset(&pack, 0, sizeof(pack));
         pack.header = HEADER_GC_GUILD;
 
-        for (guild_member_online_container::iterator it = member_online_.begin(); it != member_online_.end(); ++it) {
+        for (auto it = member_online_.begin(); it != member_online_.end(); ++it) {
             desc *d = (*it)->get_desc();
             if (d) {
                 pack.subheader = GUILD_SUBHEADER_GC_LIST;
@@ -1539,7 +1539,7 @@ namespace metin2::game::inline guilds {
     };
 
     EVENTFUNC(guild_invite_event) {
-        invite_guild_event_info *pInfo = dynamic_cast<invite_guild_event_info *>(event->info.get());
+        auto *pInfo = dynamic_cast<invite_guild_event_info *>(event->info.get());
 
         if (pInfo == nullptr) {
             metin2::log::error("Guild invite event has no event info");
@@ -1600,7 +1600,7 @@ namespace metin2::game::inline guilds {
         if (guild_invite_event_map_.end() != guild_invite_event_map_.find(pch_invitee->player_id()))
             return;
 
-        invite_guild_event_info *pInfo = alloc_event_info<invite_guild_event_info>();
+        auto *pInfo = alloc_event_info<invite_guild_event_info>();
         pInfo->invitee_pid = pch_invitee->player_id();
         pInfo->guild_id = id();
 
@@ -1622,7 +1622,7 @@ namespace metin2::game::inline guilds {
     }
 
     void guild::invite_accept(character *pch_invitee) {
-        event_map::iterator itFind = guild_invite_event_map_.find(pch_invitee->player_id());
+        auto itFind = guild_invite_event_map_.find(pch_invitee->player_id());
         if (itFind == guild_invite_event_map_.end()) {
             metin2::log::warn("Player {} accepted an invite to guild {} without being invited", pch_invitee->name(), name());
             return;
@@ -1656,7 +1656,7 @@ namespace metin2::game::inline guilds {
     }
 
     void guild::invite_deny(uint32_t pid) {
-        event_map::iterator itFind = guild_invite_event_map_.find(pid);
+        auto itFind = guild_invite_event_map_.find(pid);
         if (itFind == guild_invite_event_map_.end()) {
             metin2::log::warn("Pid {:d} denied an invite to guild {} without being invited", pid, name());
             return;
@@ -1698,7 +1698,7 @@ namespace metin2::game::inline guilds {
     }
 
     void guild::send_guild_data_update_to_all_member(sql_msg &msg) {
-        guild_member_online_container::iterator iter = member_online_.begin();
+        auto iter = member_online_.begin();
 
         for (; iter != member_online_.end(); iter++) {
             send_guild_info_packet(*iter);

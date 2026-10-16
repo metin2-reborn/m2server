@@ -80,7 +80,7 @@ namespace metin2::game {
         auto oxevent_end_event(lua_State *lua) -> int {
             ox_event_manager::instance().set_status(OXEVENT_FINISH);
 
-            end_oxevent_info *info = alloc_event_info<end_oxevent_info>();
+            auto *info = alloc_event_info<end_oxevent_info>();
             event_create(end_oxevent, info, passes_per_sec(5));
 
             return 0;

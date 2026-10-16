@@ -303,7 +303,7 @@ namespace metin2::db::inline clients {
     }
 
     void client_manager::query_logout(peer *peer, uint32_t handle_value, const char *data) {
-        logout_packet *packet = (logout_packet *)data;
+        auto *packet = (logout_packet *)data;
 
         if (!*packet->login)
             return;

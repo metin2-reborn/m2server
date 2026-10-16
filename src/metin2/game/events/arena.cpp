@@ -187,7 +187,7 @@ namespace metin2::game::inline events {
         if (event->info == nullptr)
             return 0;
 
-        arena_event_info *info = dynamic_cast<arena_event_info *>(event->info.get());
+        auto *info = dynamic_cast<arena_event_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Arena start event has no event info");
@@ -352,7 +352,7 @@ namespace metin2::game::inline events {
         if (event == nullptr) return 0;
         if (event->info == nullptr) return 0;
 
-        arena_event_info *info = dynamic_cast<arena_event_info *>(event->info.get());
+        auto *info = dynamic_cast<arena_event_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Arena timeout event has no event info");
@@ -431,7 +431,7 @@ namespace metin2::game::inline events {
             event_cancel(&event_);
         }
 
-        arena_event_info *info = alloc_event_info<arena_event_info>();
+        auto *info = alloc_event_info<arena_event_info>();
 
         info->arena = this;
         info->state = 0;
@@ -737,7 +737,7 @@ namespace metin2::game::inline events {
                 event_cancel(&event_);
             }
 
-            arena_event_info *info = alloc_event_info<arena_event_info>();
+            auto *info = alloc_event_info<arena_event_info>();
 
             info->arena = this;
             info->state = 2;
@@ -756,7 +756,7 @@ namespace metin2::game::inline events {
                 event_cancel(&event_);
             }
 
-            arena_event_info *info = alloc_event_info<arena_event_info>();
+            auto *info = alloc_event_info<arena_event_info>();
 
             info->arena = this;
             info->state = 3;

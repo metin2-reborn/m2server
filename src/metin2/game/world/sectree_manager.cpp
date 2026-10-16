@@ -57,7 +57,7 @@ namespace metin2::game::inline world {
     sectree_map::sectree_map(sectree_map &r) {
         setting = r.setting;
 
-        map_type::iterator it = r.map_.begin();
+        auto it = r.map_.begin();
 
         while (it != r.map_.end()) {
             auto tree = std::make_unique<sectree>();
@@ -73,7 +73,7 @@ namespace metin2::game::inline world {
     }
 
     auto sectree_map::find(uint32_t package) -> sectree * {
-        map_type::iterator it = map_.find(package);
+        auto it = map_.find(package);
 
         if (it == map_.end())
             return nullptr;
@@ -103,7 +103,7 @@ namespace metin2::game::inline world {
             {SECTREE_SIZE,  SECTREE_SIZE },
         };
 
-        map_type::iterator it = map_.begin();
+        auto it = map_.begin();
 
         while (it != map_.end()) {
             sectree *tree = it->second.get();
@@ -714,7 +714,7 @@ namespace metin2::game::inline world {
         if (map_index == 107 || map_index == 108 || map_index == 109) {
             index_cap = (metin2::config::test_server() ? 1 : 51);
         }
-        private_index_map_type::iterator it = next_private_index_map_.find(map_index);
+        auto it = next_private_index_map_.find(map_index);
         if (it == next_private_index_map_.end()) {
             it = next_private_index_map_.insert(private_index_map_type::value_type(map_index, 0)).first;
         }
@@ -754,7 +754,7 @@ namespace metin2::game::inline world {
         // Entities on this map but outside every sectree cannot be deleted here.
         pkMapSectree->for_each([](entity *ent) {
             if (ent->is_type(ENTITY_CHARACTER)) {
-                character *ch = (character *)ent;
+                auto *ch = (character *)ent;
                 metin2::log::info("Private map: removing character {}", ch->name());
 
                 if (ch->get_desc())
@@ -1085,7 +1085,7 @@ namespace metin2::game::inline world {
         if (sectree != nullptr) {
             sectree->for_each([](entity *ent) {
                 if (ent->is_type(ENTITY_CHARACTER) == true) {
-                    character *lpChar = (character *)ent;
+                    auto *lpChar = (character *)ent;
 
                     if (lpChar->is_monster() == true && !lpChar->is_pet()) {
                         character_manager::instance().destroy_character(lpChar);
@@ -1101,7 +1101,7 @@ namespace metin2::game::inline world {
         if (sectree != nullptr) {
             sectree->for_each([](entity *ent) {
                 if (ent->is_type(ENTITY_CHARACTER) == true) {
-                    character *lpChar = (character *)ent;
+                    auto *lpChar = (character *)ent;
 
                     if (lpChar->is_stone() == true) {
                         character_manager::instance().destroy_character(lpChar);
@@ -1136,7 +1136,7 @@ namespace metin2::game::inline world {
 
             sectree->for_each([vnum, &count](entity *ent) {
                 if (true == ent->is_type(ENTITY_CHARACTER)) {
-                    character *pChar = static_cast<character *>(ent);
+                    auto *pChar = static_cast<character *>(ent);
 
                     if (true == pChar->is_stone() && pChar->get_mob_table().vnum == vnum)
                         count++;

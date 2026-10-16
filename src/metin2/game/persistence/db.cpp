@@ -292,7 +292,7 @@ namespace metin2::game::inline persistence {
         query_spam_db();
 
         if (nullptr == reload_spam_event_handle) {
-            reload_spam_event_info *info = alloc_event_info<reload_spam_event_info>();
+            auto *info = alloc_event_info<reload_spam_event_info>();
             reload_spam_event_handle = event_create(reload_spam_event, info, passes_per_sec(metin2::config::game().spam.reload_cycle));
         }
     }

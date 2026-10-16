@@ -41,12 +41,12 @@ namespace metin2::game::inline protocol {
     }
 
     void input_p2p::logout(desc *d, const char *data) {
-        packet_gg_logout *p = (packet_gg_logout *)data;
+        auto *p = (packet_gg_logout *)data;
         p2p_manager::instance().logout(p->name);
     }
 
     auto input_p2p::relay(desc *d, const char *data, size_t bytes) -> int {
-        packet_gg_relay *p = (packet_gg_relay *)data;
+        auto *p = (packet_gg_relay *)data;
 
         if (bytes < sizeof(packet_gg_relay) + p->size)
             return -1;
@@ -61,7 +61,7 @@ namespace metin2::game::inline protocol {
 
         character *pkChr = character_manager::instance().find_pc(p->name);
 
-        const uint8_t *c_pbData = (const uint8_t *)(data + sizeof(packet_gg_relay));
+        const auto *c_pbData = (const uint8_t *)(data + sizeof(packet_gg_relay));
 
         if (!pkChr)
             return p->size;
@@ -74,7 +74,7 @@ namespace metin2::game::inline protocol {
             char buf[1024];
             memcpy(buf, c_pbData, std::min<int>(p->size, sizeof(buf)));
 
-            packet_gc_whisper *p2 = (packet_gc_whisper *)buf;
+            auto *p2 = (packet_gc_whisper *)buf;
             uint8_t bToEmpire = (p2->type >> 4);
             p2->type = p2->type & 0x0F;
             if (p2->type == 0x0F) {
@@ -97,7 +97,7 @@ namespace metin2::game::inline protocol {
     }
 
     auto input_p2p::notice(desc *d, const char *data, size_t bytes) -> int {
-        packet_gg_notice *p = (packet_gg_notice *)data;
+        auto *p = (packet_gg_notice *)data;
 
         if (bytes < sizeof(packet_gg_notice) + p->size)
             return -1;
@@ -115,7 +115,7 @@ namespace metin2::game::inline protocol {
     }
 
     auto input_p2p::monarch_notice(desc *d, const char *data, size_t bytes) -> int {
-        packet_gg_monarch_notice *p = (packet_gg_monarch_notice *)data;
+        auto *p = (packet_gg_monarch_notice *)data;
 
         if (bytes < p->size + sizeof(packet_gg_monarch_notice))
             return -1;
@@ -133,7 +133,7 @@ namespace metin2::game::inline protocol {
     }
 
     auto input_p2p::monarch_transfer(desc *d, const char *data) -> int {
-        packet_monarch_gg_transfer *p = (packet_monarch_gg_transfer *)data;
+        auto *p = (packet_monarch_gg_transfer *)data;
         character *pTargetChar = character_manager::instance().find_by_pid(p->target_pid);
 
         if (pTargetChar != nullptr) {
@@ -150,7 +150,7 @@ namespace metin2::game::inline protocol {
     }
 
     auto input_p2p::guild(desc *d, const char *data, size_t bytes) -> int {
-        packet_gg_guild *p = (packet_gg_guild *)data;
+        auto *p = (packet_gg_guild *)data;
         bytes -= sizeof(packet_gg_guild);
         data += sizeof(packet_gg_guild);
 
@@ -162,7 +162,7 @@ namespace metin2::game::inline protocol {
                 if (bytes < sizeof(packet_gg_guild_chat))
                     return -1;
 
-                packet_gg_guild_chat *p = (packet_gg_guild_chat *)data;
+                auto *p = (packet_gg_guild_chat *)data;
 
                 if (g)
                     g->p2p_chat(p->text);
@@ -200,12 +200,12 @@ namespace metin2::game::inline protocol {
     }
 
     void input_p2p::shout(const char *data) {
-        packet_gg_shout *p = (packet_gg_shout *)data;
+        auto *p = (packet_gg_shout *)data;
         send_shout(p->text, p->empire);
     }
 
     void input_p2p::disconnect(const char *data) {
-        packet_gg_disconnect *p = (packet_gg_disconnect *)data;
+        auto *p = (packet_gg_disconnect *)data;
 
         desc *d = desc_manager::instance().find_by_login_name(p->login);
 
@@ -219,25 +219,25 @@ namespace metin2::game::inline protocol {
     }
 
     void input_p2p::setup(desc *d, const char *data) {
-        packet_gg_setup *p = (packet_gg_setup *)data;
+        auto *p = (packet_gg_setup *)data;
         metin2::log::info("Peer setup: {}:{:d}", d->host_name(), p->port);
         d->set_p2p(d->host_name(), p->port);
     }
 
     void input_p2p::messenger_add(const char *data) {
-        packet_gg_messenger *p = (packet_gg_messenger *)data;
+        auto *p = (packet_gg_messenger *)data;
         metin2::log::debug("Peer messenger: {} added {}", p->account, p->companion);
         messenger_manager::instance().apply_add_to_list(p->account, p->companion);
     }
 
     void input_p2p::messenger_remove(const char *data) {
-        packet_gg_messenger *p = (packet_gg_messenger *)data;
+        auto *p = (packet_gg_messenger *)data;
         metin2::log::debug("Peer messenger: {} removed {}", p->account, p->companion);
         messenger_manager::instance().apply_remove_from_list(p->account, p->companion);
     }
 
     void input_p2p::find_position(desc *d, const char *data) {
-        packet_gg_find_position *p = (packet_gg_find_position *)data;
+        auto *p = (packet_gg_find_position *)data;
         character *ch = character_manager::instance().find_by_pid(p->target_pid);
         if (ch && ch->map_index() < 10000) {
             packet_gg_warp_character pw;
@@ -250,7 +250,7 @@ namespace metin2::game::inline protocol {
     }
 
     void input_p2p::warp_character(const char *data) {
-        packet_gg_warp_character *p = (packet_gg_warp_character *)data;
+        auto *p = (packet_gg_warp_character *)data;
         character *ch = character_manager::instance().find_by_pid(p->pid);
         if (ch) {
             ch->warp_set(p->x, p->y);
@@ -258,7 +258,7 @@ namespace metin2::game::inline protocol {
     }
 
     void input_p2p::guild_war_zone_map_index(const char *data) {
-        packet_gg_guild_war_map_index *p = (packet_gg_guild_war_map_index *)data;
+        auto *p = (packet_gg_guild_war_map_index *)data;
         guild_manager &gm = guild_manager::instance();
 
         metin2::log::info("Guild war: guild {:d} vs {:d} on map {:d}", p->guild_id1, p->guild_id2, p->map_index);
@@ -273,7 +273,7 @@ namespace metin2::game::inline protocol {
     }
 
     void input_p2p::transfer(const char *data) {
-        packet_gg_transfer *p = (packet_gg_transfer *)data;
+        auto *p = (packet_gg_transfer *)data;
 
         character *ch = character_manager::instance().find_pc(p->name);
 
@@ -282,7 +282,7 @@ namespace metin2::game::inline protocol {
     }
 
     void input_p2p::xmas_warp_santa(const char *data) {
-        packet_gg_xmas_warp_santa *p = (packet_gg_xmas_warp_santa *)data;
+        auto *p = (packet_gg_xmas_warp_santa *)data;
 
         if (p->channel == metin2::config::server().channel && map_allow_find(p->map_index)) {
             int iNextSpawnDelay = 60;
@@ -299,13 +299,13 @@ namespace metin2::game::inline protocol {
     }
 
     void input_p2p::xmas_warp_santa_reply(const char *data) {
-        packet_gg_xmas_warp_santa_reply *p = (packet_gg_xmas_warp_santa_reply *)data;
+        auto *p = (packet_gg_xmas_warp_santa_reply *)data;
 
         if (p->channel == metin2::config::server().channel) {
             character_vector_interactor i;
 
             if (character_manager::instance().characters_by_race_num(xmas::MOB_SANTA_VNUM, i)) {
-                character_vector_interactor::iterator it = i.begin();
+                auto it = i.begin();
 
                 while (it != i.end()) {
                     character_manager::instance().destroy_character(*it++);
@@ -315,7 +315,7 @@ namespace metin2::game::inline protocol {
     }
 
     void input_p2p::block_chat(const char *data) {
-        packet_gg_block_chat *p = (packet_gg_block_chat *)data;
+        auto *p = (packet_gg_block_chat *)data;
 
         character *ch = character_manager::instance().find_pc(p->name);
 
@@ -422,7 +422,7 @@ namespace metin2::game::inline protocol {
 
         case HEADER_GG_SIEGE:
             {
-                packet_gg_siege *pSiege = (packet_gg_siege *)data;
+                auto *pSiege = (packet_gg_siege *)data;
                 castle_siege(pSiege->empire, pSiege->tower_count);
             }
             break;

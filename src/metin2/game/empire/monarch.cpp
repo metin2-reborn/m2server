@@ -66,7 +66,7 @@ namespace metin2::game::inline empire {
 
         sectree_manager::instance().for_each(iMapIndex, [Empire](entity *ent) {
             if (ent->is_type(ENTITY_CHARACTER)) {
-                character *ch = (character *)ent;
+                auto *ch = (character *)ent;
 
                 if (ch->is_pc() && Empire == ch->empire()) {
                     ch->chat_packet(CHAT_TYPE_INFO, lc_text("군주가 내린 축복으로 모든 에너지가 가득 채워집니다"));

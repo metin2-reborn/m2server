@@ -142,7 +142,7 @@ namespace metin2::game::inline admin {
     };
 
     EVENTFUNC(shutdown_event) {
-        shutdown_event_data *info = dynamic_cast<shutdown_event_data *>(event->info.get());
+        auto *info = dynamic_cast<shutdown_event_data *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Shutdown event has no info");
@@ -207,7 +207,7 @@ namespace metin2::game::inline admin {
 
         send_notice(buf);
 
-        shutdown_event_data *info = alloc_event_info<shutdown_event_data>();
+        auto *info = alloc_event_info<shutdown_event_data>();
         info->seconds = sec;
 
         event_create(shutdown_event, info, 1);
@@ -225,7 +225,7 @@ namespace metin2::game::inline admin {
     }
 
     EVENTFUNC(timed_event) {
-        timed_event_info *info = dynamic_cast<timed_event_info *>(event->info.get());
+        auto *info = dynamic_cast<timed_event_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Timed event has no info");
@@ -321,7 +321,7 @@ namespace metin2::game::inline admin {
         case SCMD_QUIT:
         case SCMD_PHASE_SELECT:
             {
-                timed_event_info *info = alloc_event_info<timed_event_info>();
+                auto *info = alloc_event_info<timed_event_info>();
 
                 {
                     if (ch->is_position(POS_FIGHTING))

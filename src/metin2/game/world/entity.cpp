@@ -84,7 +84,7 @@ namespace metin2::game::inline world {
         update_sectree();
 
         if (is_type(ENTITY_CHARACTER)) {
-            character *ch = (character *)this;
+            auto *ch = (character *)this;
             ch->chat_packet(CHAT_TYPE_COMMAND, "ObserverMode %d", is_observer_ ? 1 : 0);
         }
     }

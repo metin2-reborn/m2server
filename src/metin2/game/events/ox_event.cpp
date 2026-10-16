@@ -180,7 +180,7 @@ namespace metin2::game::inline events {
 
     EVENTFUNC(oxevent_timer) {
         static uint8_t flag = 0;
-        ox_event_info_data *info = dynamic_cast<ox_event_info_data *>(event->info.get());
+        auto *info = dynamic_cast<ox_event_info_data *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Ox event timer has no event info");
@@ -236,7 +236,7 @@ namespace metin2::game::inline events {
             event_cancel(&timed_event_);
         }
 
-        ox_event_info_data *answer = alloc_event_info<ox_event_info_data>();
+        auto *answer = alloc_event_info<ox_event_info_data>();
 
         answer->answer = vec_quiz_[level][idx].answer;
 

@@ -27,7 +27,7 @@ namespace metin2::game::inline world {
             return false;
         }
 
-        std::map<int32_t, location>::iterator it = map_address_.find(index);
+        auto it = map_address_.find(index);
 
         if (map_address_.end() == it) {
             metin2::log::warn("No server known for map {:d}", index);

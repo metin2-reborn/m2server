@@ -125,7 +125,7 @@ namespace metin2::game {
         };
 
         EVENTFUNC(warp_all_to_map_event) {
-            warp_all_to_map_event_info *info = dynamic_cast<warp_all_to_map_event_info *>(event->info.get());
+            auto *info = dynamic_cast<warp_all_to_map_event_info *>(event->info.get());
 
             if (info == nullptr) {
                 metin2::log::error("Warp-all event has no info");
@@ -136,7 +136,7 @@ namespace metin2::game {
             if (pSecMap) {
                 pSecMap->for_each([info](entity *ent) {
                     if (ent->is_type(ENTITY_CHARACTER)) {
-                        character *ch = (character *)ent;
+                        auto *ch = (character *)ent;
                         if (ch->is_pc()) {
                             ch->warp_set(info->x + (number(0, 5) * 100), info->y + (number(0, 5) * 100), info->map_index_to);
                         }
@@ -154,7 +154,7 @@ namespace metin2::game {
             int iy = (int)lua_tonumber(lua, 4);
             int iTime = (int)lua_tonumber(lua, 5);
 
-            warp_all_to_map_event_info *info = alloc_event_info<warp_all_to_map_event_info>();
+            auto *info = alloc_event_info<warp_all_to_map_event_info>();
 
             info->map_index_from = iMapIndexFrom;
             info->map_index_to = iMapIndexTo;

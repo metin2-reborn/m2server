@@ -33,7 +33,7 @@ namespace metin2::game {
             if (!lua_isnumber(lua, 1)) {
                 return 1;
             }
-            uint32_t cell = (uint32_t)lua_tonumber(lua, 1);
+            auto cell = (uint32_t)lua_tonumber(lua, 1);
 
             character *ch = quest_manager::instance().current_character_ptr();
             item *item = ch ? ch->inventory_item(cell) : nullptr;
@@ -53,7 +53,7 @@ namespace metin2::game {
             if (!lua_isnumber(lua, 1)) {
                 return 1;
             }
-            uint32_t id = (uint32_t)lua_tonumber(lua, 1);
+            auto id = (uint32_t)lua_tonumber(lua, 1);
             item *item = item_manager::instance().find(id);
 
             if (!item) {
@@ -142,7 +142,7 @@ namespace metin2::game {
                 return 1;
             }
 
-            int32_t lCheckFlag = (int32_t)lua_tonumber(lua, 1);
+            auto lCheckFlag = (int32_t)lua_tonumber(lua, 1);
             lua_pushboolean(lua, is_set(item->flag(), lCheckFlag));
 
             return 1;
@@ -366,7 +366,7 @@ namespace metin2::game {
             if (!lua_isnumber(lua, 1))
                 return 1;
 
-            uint32_t vnum = (uint32_t)lua_tonumber(lua, 1);
+            auto vnum = (uint32_t)lua_tonumber(lua, 1);
 
             quest_manager &q = quest_manager::instance();
             item *pItem = q.current_item();

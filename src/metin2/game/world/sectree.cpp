@@ -36,13 +36,13 @@ namespace metin2::game::inline world {
         if (!set_entity_.empty()) {
             metin2::log::error("Sectree destroyed with entities still in it");
 
-            entity_set::iterator it = set_entity_.begin();
+            auto it = set_entity_.begin();
 
             for (; it != set_entity_.end(); ++it) {
                 entity *ent = *it;
 
                 if (ent->is_type(ENTITY_CHARACTER)) {
-                    character *ch = (character *)ent;
+                    auto *ch = (character *)ent;
 
                     metin2::log::error("Sectree destroyed with character {} still in it (is_pc {:d})", ch->name(), ch->is_pc() ? 1 : 0);
 
@@ -70,7 +70,7 @@ namespace metin2::game::inline world {
     }
 
     void sectree::increase_pc() {
-        sectree_list::iterator it_tree = neighbor_list_.begin();
+        auto it_tree = neighbor_list_.begin();
 
         while (it_tree != neighbor_list_.end()) {
             ++(*it_tree)->pc_count_;
@@ -79,7 +79,7 @@ namespace metin2::game::inline world {
     }
 
     void sectree::decrease_pc() {
-        sectree_list::iterator it_tree = neighbor_list_.begin();
+        auto it_tree = neighbor_list_.begin();
 
         while (it_tree != neighbor_list_.end()) {
             sectree *tree = *it_tree++;
@@ -90,13 +90,13 @@ namespace metin2::game::inline world {
                     tree->pc_count_ = 0;
                 }
 
-                entity_set::iterator it_entity = tree->set_entity_.begin();
+                auto it_entity = tree->set_entity_.begin();
 
                 while (it_entity != tree->set_entity_.end()) {
                     entity *pkEnt = *(it_entity++);
 
                     if (pkEnt->is_type(ENTITY_CHARACTER)) {
-                        character *ch = (character *)pkEnt;
+                        auto *ch = (character *)pkEnt;
                         ch->stop_state_machine();
                     }
                 }
@@ -123,7 +123,7 @@ namespace metin2::game::inline world {
         set_entity_.insert(ent);
 
         if (ent->is_type(ENTITY_CHARACTER)) {
-            character *pkChr = (character *)ent;
+            auto *pkChr = (character *)ent;
 
             if (pkChr->is_pc()) {
                 increase_pc();
@@ -139,7 +139,7 @@ namespace metin2::game::inline world {
     }
 
     void sectree::remove_entity(entity *ent) {
-        entity_set::iterator it = set_entity_.find(ent);
+        auto it = set_entity_.find(ent);
 
         if (it == set_entity_.end()) {
             return;

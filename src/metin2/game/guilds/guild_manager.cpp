@@ -97,7 +97,7 @@ namespace metin2::game::inline guilds {
     }
 
     auto guild_manager::linked_guild(uint32_t pid) -> guild * {
-        guild_map::iterator it = map_guild_by_pid_.find(pid);
+        auto it = map_guild_by_pid_.find(pid);
 
         if (it == map_guild_by_pid_.end())
             return nullptr;
@@ -111,7 +111,7 @@ namespace metin2::game::inline guilds {
     }
 
     void guild_manager::p2p_logout_member(uint32_t pid) {
-        guild_map::iterator it = map_guild_by_pid_.find(pid);
+        auto it = map_guild_by_pid_.find(pid);
 
         if (it != map_guild_by_pid_.end()) {
             it->second->p2p_logout_member(pid);
@@ -119,7 +119,7 @@ namespace metin2::game::inline guilds {
     }
 
     void guild_manager::p2p_login_member(uint32_t pid) {
-        guild_map::iterator it = map_guild_by_pid_.find(pid);
+        auto it = map_guild_by_pid_.find(pid);
 
         if (it != map_guild_by_pid_.end()) {
             it->second->p2p_login_member(pid);
@@ -127,7 +127,7 @@ namespace metin2::game::inline guilds {
     }
 
     void guild_manager::login_member(character *ch) {
-        guild_map::iterator it = map_guild_by_pid_.find(ch->player_id());
+        auto it = map_guild_by_pid_.find(ch->player_id());
 
         if (it != map_guild_by_pid_.end()) {
             it->second->login_member(ch);
@@ -491,7 +491,7 @@ namespace metin2::game::inline guilds {
 
         std::pair<uint32_t, uint32_t> k = std::make_pair(guild_id1, guild_id2);
 
-        guild_war_container::iterator it = guild_war_.find(k);
+        auto it = guild_war_.find(k);
 
         if (guild_war_.end() == it) {
             metin2::log::warn("Cannot end war between guild {:d} and {:d}, no such war", guild_id1, guild_id2);
@@ -528,7 +528,7 @@ namespace metin2::game::inline guilds {
 
         std::pair<uint32_t, uint32_t> k = std::make_pair(guild_id1, guild_id2);
 
-        guild_war_container::iterator it = guild_war_.find(k);
+        auto it = guild_war_.find(k);
 
         if (guild_war_.end() == it)
             return;

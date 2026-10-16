@@ -36,7 +36,7 @@ namespace metin2::game {
             std::list<hme> time_lst = speed_server_manager::instance().wday_exp_table_of_empire(empire, wday);
 
             int i = 0;
-            for (std::list<hme>::iterator it = time_lst.begin();
+            for (auto it = time_lst.begin();
                 it != time_lst.end(); it++) {
                 lua_pushnumber(lua, it->hour);
                 lua_pushnumber(lua, it->min);
@@ -97,7 +97,7 @@ namespace metin2::game {
 
             int i = 0;
             if (is_exist) {
-                for (std::list<hme>::iterator it = time_lst.begin();
+                for (auto it = time_lst.begin();
                     it != time_lst.end(); it++) {
                     lua_pushnumber(lua, it->hour);
                     lua_pushnumber(lua, it->min);

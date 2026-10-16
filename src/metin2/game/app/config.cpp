@@ -74,7 +74,7 @@ namespace metin2::game::inline app {
 
     void map_allow_copy(int32_t *pl, int size) {
         int iCount = 0;
-        std::set<int>::iterator it = set_map_allows.begin();
+        auto it = set_map_allows.begin();
 
         if (set_map_allows.size() > static_cast<size_t>(size)) {
             metin2::log::error("Too many allowed maps (at most {:d})", size);
@@ -95,7 +95,7 @@ namespace metin2::game::inline app {
 
         for (struct ifaddrs *ifap = ifaddrp; nullptr != ifap; ifap = ifap->ifa_next) {
             if (!ifap->ifa_addr || ifap->ifa_addr->sa_family != AF_INET) continue;
-            struct sockaddr_in *sai = (struct sockaddr_in *)ifap->ifa_addr;
+            auto *sai = (struct sockaddr_in *)ifap->ifa_addr;
 
             if (!ifap->ifa_netmask ||
                 sai->sin_addr.s_addr == 0 ||
@@ -346,7 +346,7 @@ namespace metin2::game::inline app {
         check_client_version_enabled = true;
 
         const desc_manager::desc_set &set = desc_manager::instance().client_set();
-        desc_manager::desc_set::const_iterator it = set.begin();
+        auto it = set.begin();
 
         while (it != set.end()) {
             desc *d = *(it++);

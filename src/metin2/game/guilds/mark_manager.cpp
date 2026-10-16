@@ -71,7 +71,7 @@ namespace metin2::game::inline guilds {
             return false;
         }
 
-        for (std::map<uint32_t, uint32_t>::iterator it = gid_mark_id_.begin(); it != gid_mark_id_.end(); ++it)
+        for (auto it = gid_mark_id_.begin(); it != gid_mark_id_.end(); ++it)
             fprintf(fp, "%u %u\n", it->first, it->second);
 
         fclose(fp);
@@ -83,7 +83,7 @@ namespace metin2::game::inline guilds {
         bool isMarkExists[MAX_IMAGE_COUNT];
         memset(isMarkExists, 0, sizeof(isMarkExists));
 
-        for (std::map<uint32_t, uint32_t>::iterator it = gid_mark_id_.begin(); it != gid_mark_id_.end(); ++it) {
+        for (auto it = gid_mark_id_.begin(); it != gid_mark_id_.end(); ++it) {
             uint32_t markID = it->second;
 
             if (markID < MAX_IMAGE_COUNT * static_cast<uint32_t>(guild_mark_image::MARK_TOTAL_COUNT))
@@ -134,7 +134,7 @@ namespace metin2::game::inline guilds {
     }
 
     auto guild_mark_manager::mark_id(uint32_t guild_id) -> uint32_t {
-        std::map<uint32_t, uint32_t>::iterator it = gid_mark_id_.find(guild_id);
+        auto it = gid_mark_id_.find(guild_id);
 
         if (it == gid_mark_id_.end())
             return INVALID_MARK_ID;
@@ -143,7 +143,7 @@ namespace metin2::game::inline guilds {
     }
 
     auto guild_mark_manager::alloc_mark_id(uint32_t guild_id) -> uint32_t {
-        std::set<uint32_t>::iterator it = free_mark_id_.lower_bound(0);
+        auto it = free_mark_id_.lower_bound(0);
 
         if (it == free_mark_id_.end())
             return INVALID_MARK_ID;
@@ -164,9 +164,9 @@ namespace metin2::game::inline guilds {
     }
 
     void guild_mark_manager::copy_mark_idx(char *pc_buf) const {
-        uint16_t *pwBuf = (uint16_t *)pc_buf;
+        auto *pwBuf = (uint16_t *)pc_buf;
 
-        for (std::map<uint32_t, uint32_t>::const_iterator it = gid_mark_id_.begin(); it != gid_mark_id_.end(); ++it) {
+        for (auto it = gid_mark_id_.begin(); it != gid_mark_id_.end(); ++it) {
             *(pwBuf++) = it->first;
             *(pwBuf++) = it->second;
         }
@@ -198,7 +198,7 @@ namespace metin2::game::inline guilds {
     }
 
     void guild_mark_manager::delete_mark(uint32_t guild_id) {
-        std::map<uint32_t, uint32_t>::iterator it = gid_mark_id_.find(guild_id);
+        auto it = gid_mark_id_.find(guild_id);
 
         if (it == gid_mark_id_.end())
             return;
@@ -229,7 +229,7 @@ namespace metin2::game::inline guilds {
     }
 
     auto guild_mark_manager::get_guild_symbol(uint32_t guild_id) -> const guild_mark_manager::guild_symbol * {
-        std::map<uint32_t, guild_symbol>::iterator it = symbol_.find(guild_id);
+        auto it = symbol_.find(guild_id);
 
         if (it == symbol_.end())
             return nullptr;
@@ -274,7 +274,7 @@ namespace metin2::game::inline guilds {
         uint32_t symbolCount = symbol_.size();
         fwrite(&symbolCount, 4, 1, fp);
 
-        for (std::map<uint32_t, guild_symbol>::iterator it = symbol_.begin(); it != symbol_.end(); ++it) {
+        for (auto it = symbol_.begin(); it != symbol_.end(); ++it) {
             uint32_t guildID = it->first;
             uint32_t dwSize = it->second.raw.size();
             fwrite(&guildID, 4, 1, fp);

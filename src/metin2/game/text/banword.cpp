@@ -34,7 +34,7 @@ namespace metin2::game::inline text {
         if (hashmap_words_.empty())
             return false;
 
-        __typeof(hashmap_words_.begin()) it = hashmap_words_.begin();
+        auto it = hashmap_words_.begin();
 
         while (it != hashmap_words_.end()) {
             const std::string &r = it->first;
@@ -57,7 +57,7 @@ namespace metin2::game::inline text {
     }
 
     void banword_manager::convert_string(char *string_value, size_t len_value) {
-        __typeof(hashmap_words_.begin()) it = hashmap_words_.begin();
+        auto it = hashmap_words_.begin();
 
         while (it != hashmap_words_.end()) {
             const std::string &r = it->first;

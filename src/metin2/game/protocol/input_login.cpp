@@ -95,7 +95,7 @@ namespace metin2::game::inline protocol {
     }
 
     void input_login::login(desc *d, const char *data) {
-        packet_cg_login *pinfo = (packet_cg_login *)data;
+        auto *pinfo = (packet_cg_login *)data;
 
         if (d->get_account_table().id) {
             metin2::log::warn("Login packet on a connection already logged in as {}", d->get_account_table().login);
@@ -152,7 +152,7 @@ namespace metin2::game::inline protocol {
     }
 
     void input_login::login_by_key(desc *d, const char *data) {
-        packet_cg_login2 *pinfo = (packet_cg_login2 *)data;
+        auto *pinfo = (packet_cg_login2 *)data;
 
         if (d->get_account_table().id) {
             metin2::log::warn("Login packet on a connection already logged in as {}", d->get_account_table().login);
@@ -207,7 +207,7 @@ namespace metin2::game::inline protocol {
     }
 
     void input_login::change_name(desc *d, const char *data) {
-        packet_cg_change_name *p = (packet_cg_change_name *)data;
+        auto *p = (packet_cg_change_name *)data;
         const account_table &c_r = d->get_account_table();
 
         if (!c_r.id) {
@@ -242,7 +242,7 @@ namespace metin2::game::inline protocol {
     }
 
     void input_login::character_select(desc *d, const char *data) {
-        struct packet_cg_player_select *pinfo = (struct packet_cg_player_select *)data;
+        auto *pinfo = (struct packet_cg_player_select *)data;
         const account_table &c_r = d->get_account_table();
 
         metin2::log::info("Character select: account {}, slot {:d}", c_r.login, pinfo->index);
@@ -364,7 +364,7 @@ namespace metin2::game::inline protocol {
     }
 
     void input_login::character_create(desc *d, const char *data) {
-        struct packet_cg_player_create *pinfo = (struct packet_cg_player_create *)data;
+        auto *pinfo = (struct packet_cg_player_create *)data;
         player_create_packet player_create_packet;
 
         char szName[sizeof(pinfo->name)];
@@ -438,7 +438,7 @@ namespace metin2::game::inline protocol {
     }
 
     void input_login::character_delete(desc *d, const char *data) {
-        struct packet_cg_player_delete *pinfo = (struct packet_cg_player_delete *)data;
+        auto *pinfo = (struct packet_cg_player_delete *)data;
         const account_table &c_rAccountTable = d->get_account_table();
 
         if (!c_rAccountTable.id) {
@@ -660,7 +660,7 @@ namespace metin2::game::inline protocol {
     }
 
     void input_login::empire(desc *d, const char *data) {
-        const packet_cg_empire *p = reinterpret_cast<const packet_cg_empire *>(data);
+        const auto *p = reinterpret_cast<const packet_cg_empire *>(data);
 
         if (p->empire == 0 || EMPIRE_MAX_NUM <= p->empire) {
             d->set_phase(PHASE_CLOSE);
@@ -704,7 +704,7 @@ namespace metin2::game::inline protocol {
 
         metin2::log::debug("Guild symbol upload: {:d} bytes", bytes);
 
-        packet_cg_guild_symbol_upload *p = (packet_cg_guild_symbol_upload *)data;
+        auto *p = (packet_cg_guild_symbol_upload *)data;
 
         if (bytes < p->size)
             return -1;
@@ -764,7 +764,7 @@ namespace metin2::game::inline protocol {
     }
 
     void input_login::guild_mark_upload(desc *d, const char *data) {
-        packet_cg_mark_upload *p = (packet_cg_mark_upload *)data;
+        auto *p = (packet_cg_mark_upload *)data;
         guild_manager &rkGuildMgr = guild_manager::instance();
         guild *pkGuild;
 
@@ -827,7 +827,7 @@ namespace metin2::game::inline protocol {
     }
 
     void input_login::guild_mark_crc_list(desc *d, const char *data) {
-        packet_cg_mark_crc_list *pCG = (packet_cg_mark_crc_list *)data;
+        auto *pCG = (packet_cg_mark_crc_list *)data;
 
         std::map<uint8_t, const guild_mark_block *> mapDiffBlocks;
         guild_mark_manager::instance().diff_blocks(pCG->img_idx, pCG->crclist, mapDiffBlocks);
@@ -840,7 +840,7 @@ namespace metin2::game::inline protocol {
             const guild_mark_block &rkBlock = *it->second;
 
             buf.write(&posBlock, sizeof(uint8_t));
-            const uint32_t dwCompSize = static_cast<uint32_t>(rkBlock.size_comp_buf);
+            const auto dwCompSize = static_cast<uint32_t>(rkBlock.size_comp_buf);
             buf.write(&dwCompSize, sizeof(uint32_t));
             buf.write(rkBlock.comp_buf, rkBlock.size_comp_buf);
 

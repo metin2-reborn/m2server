@@ -81,7 +81,7 @@ namespace metin2::game {
         }
 
         auto arena_is_in_arena(lua_State *lua) -> int {
-            uint32_t pid = (uint32_t)lua_tonumber(lua, 1);
+            auto pid = (uint32_t)lua_tonumber(lua, 1);
 
             character *ch = character_manager::instance().find_by_pid(pid);
 

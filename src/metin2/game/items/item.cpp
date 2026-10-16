@@ -96,7 +96,7 @@ namespace metin2::game::inline items {
     }
 
     EVENTFUNC(item_destroy_event) {
-        item_event_info *info = dynamic_cast<item_event_info *>(event->info.get());
+        auto *info = dynamic_cast<item_event_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Item destroy event has no info");
@@ -121,7 +121,7 @@ namespace metin2::game::inline items {
         if (destroy_event_)
             return;
 
-        item_event_info *info = alloc_event_info<item_event_info>();
+        auto *info = alloc_event_info<item_event_info>();
         info->item = this;
 
         set_destroy_event(event_create(item_destroy_event, info, passes_per_sec(sec)));
@@ -147,7 +147,7 @@ namespace metin2::game::inline items {
         d->packet(&pack, sizeof(pack));
 
         if (ownership_event_ != nullptr) {
-            item_event_info *info = dynamic_cast<item_event_info *>(ownership_event_->info.get());
+            auto *info = dynamic_cast<item_event_info *>(ownership_event_->info.get());
 
             if (info == nullptr) {
                 metin2::log::error("Item ownership event has no info");
@@ -835,7 +835,7 @@ namespace metin2::game::inline items {
     }
 
     EVENTFUNC(ownership_event) {
-        item_event_info *info = dynamic_cast<item_event_info *>(event->info.get());
+        auto *info = dynamic_cast<item_event_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Item ownership event has no info");
@@ -885,7 +885,7 @@ namespace metin2::game::inline items {
 
         ownership_pid_ = ch->player_id();
 
-        item_event_info *info = alloc_event_info<item_event_info>();
+        auto *info = alloc_event_info<item_event_info>();
         strlcpy(info->owner_name, ch->name(), sizeof(info->owner_name));
         info->item = this;
 
@@ -994,7 +994,7 @@ namespace metin2::game::inline items {
     }
 
     EVENTFUNC(unique_expire_event) {
-        item_event_info *info = dynamic_cast<item_event_info *>(event->info.get());
+        auto *info = dynamic_cast<item_event_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Unique item expire event has no info");
@@ -1030,7 +1030,7 @@ namespace metin2::game::inline items {
     }
 
     EVENTFUNC(timer_based_on_wear_expire_event) {
-        item_event_info *info = dynamic_cast<item_event_info *>(event->info.get());
+        auto *info = dynamic_cast<item_event_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Item expire event has no info");
@@ -1064,7 +1064,7 @@ namespace metin2::game::inline items {
     }
 
     EVENTFUNC(real_time_expire_event) {
-        const item_vid_event_info *info = dynamic_cast<const item_vid_event_info *>(event->info.get());
+        const auto *info = dynamic_cast<const item_vid_event_info *>(event->info.get());
 
         if (nullptr == info)
             return 0;
@@ -1090,7 +1090,7 @@ namespace metin2::game::inline items {
             return;
         for (int i = 0; i < ITEM_LIMIT_MAX_NUM; i++) {
             if (LIMIT_REAL_TIME == proto()->limits[i].type || LIMIT_REAL_TIME_START_FIRST_USE == proto()->limits[i].type) {
-                item_vid_event_info *info = alloc_event_info<item_vid_event_info>();
+                auto *info = alloc_event_info<item_vid_event_info>();
                 info->item_vid = get_vid();
 
                 real_time_expire_event_ = event_create(real_time_expire_event, info, passes_per_sec(1));
@@ -1134,7 +1134,7 @@ namespace metin2::game::inline items {
 
         set_socket(ITEM_SOCKET_UNIQUE_SAVE_TIME, 0);
 
-        item_event_info *info = alloc_event_info<item_event_info>();
+        auto *info = alloc_event_info<item_event_info>();
         info->item = this;
 
         set_unique_expire_event(event_create(unique_expire_event, info, passes_per_sec(iSec)));
@@ -1158,7 +1158,7 @@ namespace metin2::game::inline items {
                 iSec = 60;
         }
 
-        item_event_info *info = alloc_event_info<item_event_info>();
+        auto *info = alloc_event_info<item_event_info>();
         info->item = this;
 
         set_timer_based_on_wear_expire_event(event_create(timer_based_on_wear_expire_event, info, passes_per_sec(iSec)));
@@ -1225,7 +1225,7 @@ namespace metin2::game::inline items {
     }
 
     EVENTFUNC(accessory_socket_expire_event) {
-        item_vid_event_info *info = dynamic_cast<item_vid_event_info *>(event->info.get());
+        auto *info = dynamic_cast<item_vid_event_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Accessory socket expire event has no info");
@@ -1275,7 +1275,7 @@ namespace metin2::game::inline items {
         else
             iSec = std::min(iSec, 60);
 
-        item_vid_event_info *info = alloc_event_info<item_vid_event_info>();
+        auto *info = alloc_event_info<item_vid_event_info>();
         info->item_vid = get_vid();
 
         set_accessory_socket_expire_event(event_create(accessory_socket_expire_event, info, passes_per_sec(iSec)));

@@ -52,13 +52,13 @@ namespace metin2::game::inline items {
         std::vector<int> select_bit(size, 0);
         for (int i = 0; i < n; i++) {
             float range = 0.f;
-            for (std::list<float>::iterator it = prob_lst.begin(); it != prob_lst.end(); it++) {
+            for (auto it = prob_lst.begin(); it != prob_lst.end(); it++) {
                 range += *it;
             }
             float r = fnumber(0.f, range);
             float sum = 0.f;
             int idx = 0;
-            for (std::list<float>::iterator it = prob_lst.begin(); it != prob_lst.end(); it++) {
+            for (auto it = prob_lst.begin(); it != prob_lst.end(); it++) {
                 while (select_bit[idx++])
                     ;
 
@@ -169,7 +169,7 @@ namespace metin2::game::inline items {
         for (int i = 0; i < n; i++) {
             const apply &basic_apply = vec_basic_applys[i];
             uint8_t bType = basic_apply.apply_type;
-            short sValue = (short)(ceil((float)basic_apply.apply_value * fWeight - 0.01f));
+            auto sValue = (short)(ceil((float)basic_apply.apply_value * fWeight - 0.01f));
 
             ds->set_force_attribute(i, bType, sValue);
         }
@@ -227,7 +227,7 @@ namespace metin2::game::inline items {
         for (int i = 0; i < n; i++) {
             const apply &basic_apply = vec_basic_applys[i];
             uint8_t bType = basic_apply.apply_type;
-            short sValue = (short)(ceil((float)basic_apply.apply_value * fWeight - 0.01f));
+            auto sValue = (short)(ceil((float)basic_apply.apply_value * fWeight - 0.01f));
 
             ds->set_force_attribute(i, bType, sValue);
         }
@@ -250,7 +250,7 @@ namespace metin2::game::inline items {
                 int r = random_set[i];
                 const apply &additional_attr = vec_addtional_applys[r];
                 uint8_t bType = additional_attr.apply_type;
-                short sValue = (short)(ceil((float)additional_attr.apply_value * fWeight - 0.01f));
+                auto sValue = (short)(ceil((float)additional_attr.apply_value * fWeight - 0.01f));
 
                 ds->set_force_attribute(DRAGON_SOUL_ADDITIONAL_ATTR_START_IDX + i, bType, sValue);
             }

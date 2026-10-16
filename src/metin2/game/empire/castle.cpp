@@ -183,7 +183,7 @@ namespace metin2::game::inline empire {
 
     EVENTFUNC(castle_siege_event) {
         char buf[1024] = {0};
-        struct castle_event_info *info = dynamic_cast<castle_event_info *>(event->info.get());
+        auto *info = dynamic_cast<castle_event_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Castle siege event has no info");
@@ -250,7 +250,7 @@ namespace metin2::game::inline empire {
     };
 
     EVENTFUNC(castle_stone_event) {
-        struct castle_stone_event_info *info = dynamic_cast<castle_stone_event_info *>(event->info.get());
+        auto *info = dynamic_cast<castle_stone_event_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Castle stone event has no info");
@@ -487,7 +487,7 @@ namespace metin2::game::inline empire {
         castle_spawn_tower(empire, tower_count);
 
         {
-            castle_event_info *info = alloc_event_info<castle_event_info>();
+            auto *info = alloc_event_info<castle_event_info>();
 
             info->empire = empire;
             info->pulse = 0;
@@ -496,7 +496,7 @@ namespace metin2::game::inline empire {
         }
 
         {
-            castle_stone_event_info *info = alloc_event_info<castle_stone_event_info>();
+            auto *info = alloc_event_info<castle_stone_event_info>();
 
             info->spawn_count = 0;
             info->empire = empire;

@@ -21,7 +21,7 @@ namespace metin2::game {
         }
 
         EVENTFUNC(quest_server_timer_event) {
-            quest_server_event_info *info = dynamic_cast<quest_server_event_info *>(event->info.get());
+            auto *info = dynamic_cast<quest_server_event_info *>(event->info.get());
 
             if (info == nullptr) {
                 metin2::log::error("Quest server timer event has no info");
@@ -41,7 +41,7 @@ namespace metin2::game {
         }
 
         EVENTFUNC(quest_timer_event) {
-            quest_event_info *info = dynamic_cast<quest_event_info *>(event->info.get());
+            auto *info = dynamic_cast<quest_event_info *>(event->info.get());
 
             if (info == nullptr) {
                 metin2::log::error("Quest timer event has no info");
@@ -72,9 +72,9 @@ namespace metin2::game {
         }
 
         auto quest_create_server_timer_event(const char *name, double when, unsigned int timernpc, bool loop, unsigned int arg) -> event_ptr {
-            int32_t ltime_cycle = (int32_t)(rint(passes_per_sec(when)));
+            auto ltime_cycle = (int32_t)(rint(passes_per_sec(when)));
 
-            quest_server_event_info *info = alloc_event_info<quest_server_event_info>();
+            auto *info = alloc_event_info<quest_server_event_info>();
 
             info->npc_id = timernpc;
             info->time_cycle = loop ? ltime_cycle : 0;
@@ -85,9 +85,9 @@ namespace metin2::game {
         }
 
         auto quest_create_timer_event(const char *name, unsigned int player_id, double when, unsigned int npc_id, bool loop) -> event_ptr {
-            int32_t ltime_cycle = (int)(rint(passes_per_sec(when)));
+            auto ltime_cycle = (int)(rint(passes_per_sec(when)));
 
-            quest_event_info *info = alloc_event_info<quest_event_info>();
+            auto *info = alloc_event_info<quest_event_info>();
 
             info->player_id = player_id;
             info->npc_id = npc_id;

@@ -223,7 +223,7 @@ namespace metin2::game::inline data {
             return false;
         }
 
-        token_vector_map::iterator it = pcur_node_->local_token_vector_map.find(rstr_key);
+        auto it = pcur_node_->local_token_vector_map.find(rstr_key);
         if (pcur_node_->local_token_vector_map.end() == it) {
             metin2::log::debug("{}: group {} has no key {}", file_name_, pcur_node_->group_name, rstr_key);
             return false;

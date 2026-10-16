@@ -64,7 +64,7 @@ namespace metin2::game::inline parties {
     }
 
     void party_manager::delete_all_party() {
-        pc_party_set::iterator it = set_pc_party_.begin();
+        auto it = set_pc_party_.begin();
 
         while (it != set_pc_party_.end()) {
             delete_party(*it);
@@ -73,7 +73,7 @@ namespace metin2::game::inline parties {
     }
 
     auto party_manager::set_party(character *ch) -> bool {
-        party_map::iterator it = map_party_.find(ch->player_id());
+        auto it = map_party_.find(ch->player_id());
 
         if (it == map_party_.end())
             return false;
@@ -84,7 +84,7 @@ namespace metin2::game::inline parties {
     }
 
     void party_manager::p2p_login(uint32_t pid, const char *name) {
-        party_map::iterator it = map_party_.find(pid);
+        auto it = map_party_.find(pid);
 
         if (it == map_party_.end())
             return;
@@ -92,7 +92,7 @@ namespace metin2::game::inline parties {
         it->second->update_online_state(pid, name);
     }
     void party_manager::p2p_logout(uint32_t pid) {
-        party_map::iterator it = map_party_.find(pid);
+        auto it = map_party_.find(pid);
 
         if (it == map_party_.end())
             return;
@@ -101,7 +101,7 @@ namespace metin2::game::inline parties {
     }
 
     void party_manager::p2p_join_party(uint32_t leader, uint32_t pid, uint8_t role) {
-        party_map::iterator it = map_party_.find(leader);
+        auto it = map_party_.find(leader);
 
         if (it != map_party_.end()) {
             it->second->p2p_join(pid);
@@ -116,7 +116,7 @@ namespace metin2::game::inline parties {
     }
 
     void party_manager::p2p_quit_party(uint32_t pid) {
-        party_map::iterator it = map_party_.find(pid);
+        auto it = map_party_.find(pid);
 
         if (it != map_party_.end()) {
             it->second->p2p_quit(pid);
@@ -126,11 +126,11 @@ namespace metin2::game::inline parties {
     }
 
     auto party_manager::p2p_create_party(uint32_t pid) -> party * {
-        party_map::iterator it = map_party_.find(pid);
+        auto it = map_party_.find(pid);
         if (it != map_party_.end())
             return it->second;
 
-        party *pParty = new party;
+        auto *pParty = new party;
 
         set_pc_party_.insert(pParty);
 
@@ -142,7 +142,7 @@ namespace metin2::game::inline parties {
     }
 
     void party_manager::p2p_delete_party(uint32_t pid) {
-        party_map::iterator it = map_party_.find(pid);
+        auto it = map_party_.find(pid);
 
         if (it != map_party_.end()) {
             set_pc_party_.erase(it->second);
@@ -155,7 +155,7 @@ namespace metin2::game::inline parties {
         if (leader->get_party())
             return leader->get_party();
 
-        party *pParty = new party;
+        auto *pParty = new party;
 
         if (leader->is_pc()) {
             packet_party_create p;
@@ -188,7 +188,7 @@ namespace metin2::game::inline parties {
     }
 
     void party_manager::set_party_member(uint32_t pid, party *party_value) {
-        party_map::iterator it = map_party_.find(pid);
+        auto it = map_party_.find(pid);
 
         if (party_value == nullptr) {
             if (it != map_party_.end())
@@ -213,7 +213,7 @@ namespace metin2::game::inline parties {
     };
 
     EVENTFUNC(party_update_event) {
-        party_update_event_info *info = dynamic_cast<party_update_event_info *>(event->info.get());
+        auto *info = dynamic_cast<party_update_event_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Party update event fired without event info");
@@ -278,7 +278,7 @@ namespace metin2::game::inline parties {
     void party::destroy() {
 
         if (pc_party_) {
-            for (member_map::iterator it = member_map_.begin(); it != member_map_.end(); ++it)
+            for (auto it = member_map_.begin(); it != member_map_.end(); ++it)
                 party_manager::instance().set_party_member(it->first, nullptr);
         }
 
@@ -286,7 +286,7 @@ namespace metin2::game::inline parties {
 
         remove_bonus();
 
-        member_map::iterator it = member_map_.begin();
+        auto it = member_map_.begin();
 
         uint32_t dwTime = get_dword_time();
 
@@ -349,7 +349,7 @@ namespace metin2::game::inline parties {
     }
 
     void party::p2p_join(uint32_t pid) {
-        member_map::iterator it = member_map_.find(pid);
+        auto it = member_map_.find(pid);
 
         if (it == member_map_.end()) {
             member Member;
@@ -420,7 +420,7 @@ namespace metin2::game::inline parties {
     }
 
     void party::p2p_quit(uint32_t pid) {
-        member_map::iterator it = member_map_.find(pid);
+        auto it = member_map_.find(pid);
 
         if (it == member_map_.end())
             return;
@@ -486,7 +486,7 @@ namespace metin2::game::inline parties {
         }
 
         if (pc_party_ && !event_update_) {
-            party_update_event_info *info = alloc_event_info<party_update_event_info>();
+            auto *info = alloc_event_info<party_update_event_info>();
             info->pid = leader_pid_;
             event_update_ = event_create(party_update_event, info, passes_per_sec(3));
         }
@@ -608,7 +608,7 @@ namespace metin2::game::inline parties {
         p.header = HEADER_GC_PARTY_ADD;
         p.name[CHARACTER_NAME_MAX_LEN] = '\0';
 
-        for (member_map::iterator it = member_map_.begin(); it != member_map_.end(); ++it) {
+        for (auto it = member_map_.begin(); it != member_map_.end(); ++it) {
             p.pid = it->first;
             strlcpy(p.name, it->second.name.c_str(), sizeof(p.name));
             ch->get_desc()->packet(&p, sizeof(p));
@@ -658,7 +658,7 @@ namespace metin2::game::inline parties {
     }
 
     void party::send_party_info_one_to_all(uint32_t pid) {
-        member_map::iterator it = member_map_.find(pid);
+        auto it = member_map_.find(pid);
 
         if (it == member_map_.end())
             return;
@@ -716,7 +716,7 @@ namespace metin2::game::inline parties {
         }
 
         auto for_each_other_member = [&](auto &&f) {
-            member_map::iterator it = member_map_.begin();
+            auto it = member_map_.begin();
 
             while (it != member_map_.end()) {
                 character *pkChr = it->second.character;
@@ -780,7 +780,7 @@ namespace metin2::game::inline parties {
     }
 
     auto party::set_role(uint32_t pid, uint8_t role_value, bool set) -> bool {
-        member_map::iterator it = member_map_.find(pid);
+        auto it = member_map_.find(pid);
 
         if (it == member_map_.end()) {
             return false;
@@ -829,7 +829,7 @@ namespace metin2::game::inline parties {
     }
 
     auto party::role(uint32_t pid) -> uint8_t {
-        member_map::iterator it = member_map_.find(pid);
+        auto it = member_map_.find(pid);
 
         if (it == member_map_.end())
             return PARTY_ROLE_NORMAL;
@@ -852,7 +852,7 @@ namespace metin2::game::inline parties {
     }
 
     void party::remove_bonus_for_one(uint32_t pid) {
-        member_map::iterator it = member_map_.find(pid);
+        auto it = member_map_.find(pid);
 
         if (it == member_map_.end())
             return;
@@ -1164,7 +1164,7 @@ namespace metin2::game::inline parties {
         }
 
         if (bResendAll) {
-            for (member_map::iterator it = member_map_.begin(); it != member_map_.end(); ++it)
+            for (auto it = member_map_.begin(); it != member_map_.end(); ++it)
                 if (it->second.character)
                     send_party_info_one_to_all(it->second.character);
         }
@@ -1196,7 +1196,7 @@ namespace metin2::game::inline parties {
     }
 
     auto party::flag(const std::string &name) -> int {
-        flag_map::iterator it = flags_.find(name);
+        auto it = flags_.find(name);
 
         if (it != flags_.end()) {
             return it->second;
@@ -1206,7 +1206,7 @@ namespace metin2::game::inline parties {
     }
 
     void party::set_flag(const std::string &name, int value) {
-        flag_map::iterator it = flags_.find(name);
+        auto it = flags_.find(name);
 
         if (it == flags_.end()) {
             flags_.insert(make_pair(name, value));

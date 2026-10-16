@@ -49,7 +49,7 @@ namespace metin2::game::inline empire {
 
         const text_convert_table &rkTextConvTable = text_conv_table[empire_id - 1];
 
-        uint8_t *pbText = reinterpret_cast<uint8_t *>(text);
+        auto *pbText = reinterpret_cast<uint8_t *>(text);
         size_t pos = 0;
         while (pos < len && pbText[pos] != '\0') {
             size_t seq = utf8_sequence_length(pbText[pos]);

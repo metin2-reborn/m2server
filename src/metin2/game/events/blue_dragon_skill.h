@@ -28,7 +28,7 @@ namespace metin2::game::inline events {
         map->for_each([attacker, set1, set2, gender](entity *ent) {
             if (nullptr != ent) {
                 if (true == ent->is_type(ENTITY_CHARACTER)) {
-                    character *ch = static_cast<character *>(ent);
+                    auto *ch = static_cast<character *>(ent);
 
                     if (true == ch->is_pc() && false == ch->is_dead()) {
                         if (nullptr != ch->find_affect(AFFECT_REVIVE_INVISIBLE, APPLY_NONE))
@@ -132,7 +132,7 @@ namespace metin2::game::inline events {
         map->for_each([attacker](entity *ent) {
             if (nullptr != ent) {
                 if (true == ent->is_type(ENTITY_CHARACTER)) {
-                    character *ch = static_cast<character *>(ent);
+                    auto *ch = static_cast<character *>(ent);
 
                     if (true == ch->is_pc() && false == ch->is_dead()) {
                         if (nullptr != ch->find_affect(AFFECT_REVIVE_INVISIBLE, APPLY_NONE))
@@ -167,7 +167,7 @@ namespace metin2::game::inline events {
         map->for_each([attacker, set1, set2, gender, &max_distance, &farthest_char](entity *ent) {
             if (nullptr != ent) {
                 if (true == ent->is_type(ENTITY_CHARACTER)) {
-                    character *ch = static_cast<character *>(ent);
+                    auto *ch = static_cast<character *>(ent);
 
                     if (true == ch->is_pc() && false == ch->is_dead()) {
                         if (nullptr != ch->find_affect(AFFECT_REVIVE_INVISIBLE, APPLY_NONE))

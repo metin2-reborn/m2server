@@ -33,7 +33,7 @@ namespace metin2::game::inline characters {
     };
 
     EVENTFUNC(petsystem_update_event) {
-        petsystem_event_info *info = dynamic_cast<petsystem_event_info *>(event->info.get());
+        auto *info = dynamic_cast<petsystem_event_info *>(event->info.get());
         if (info == nullptr) {
             metin2::log::error("Pet speed hack check event fired without event info");
             return 0;
@@ -308,7 +308,7 @@ namespace metin2::game::inline characters {
 
         std::vector<pet_actor *> v_garbageActor;
 
-        for (pet_actor_map::iterator iter = pet_actor_map_.begin(); iter != pet_actor_map_.end(); ++iter) {
+        for (auto iter = pet_actor_map_.begin(); iter != pet_actor_map_.end(); ++iter) {
             pet_actor *petActor = iter->second.get();
 
             if (nullptr != petActor && petActor->is_summoned()) {
@@ -321,7 +321,7 @@ namespace metin2::game::inline characters {
                 }
             }
         }
-        for (std::vector<pet_actor *>::iterator it = v_garbageActor.begin(); it != v_garbageActor.end(); it++)
+        for (auto it = v_garbageActor.begin(); it != v_garbageActor.end(); it++)
             delete_pet(*it);
 
         last_update_time_ = currentTime;
@@ -349,7 +349,7 @@ namespace metin2::game::inline characters {
             this->delete_pet(actor);
 
         bool bActive = false;
-        for (pet_actor_map::iterator it = pet_actor_map_.begin(); it != pet_actor_map_.end(); it++) {
+        for (auto it = pet_actor_map_.begin(); it != pet_actor_map_.end(); it++) {
             bActive |= it->second->is_summoned();
         }
         if (false == bActive) {
@@ -370,7 +370,7 @@ namespace metin2::game::inline characters {
         petActor->summon(pet_name, summon_item, spawn_far);
 
         if (nullptr == pet_system_update_event_) {
-            petsystem_event_info *info = alloc_event_info<petsystem_event_info>();
+            auto *info = alloc_event_info<petsystem_event_info>();
 
             info->pet_system = this;
 
@@ -383,7 +383,7 @@ namespace metin2::game::inline characters {
     auto pet_system::by_vnum(uint32_t vnum) const -> pet_actor * {
         pet_actor *petActor = nullptr;
 
-        pet_actor_map::const_iterator iter = pet_actor_map_.find(vnum);
+        auto iter = pet_actor_map_.find(vnum);
 
         if (pet_actor_map_.end() != iter)
             petActor = iter->second.get();
@@ -394,7 +394,7 @@ namespace metin2::game::inline characters {
     auto pet_system::count_summoned() const -> size_t {
         size_t count = 0;
 
-        for (pet_actor_map::const_iterator iter = pet_actor_map_.begin(); iter != pet_actor_map_.end(); ++iter) {
+        for (auto iter = pet_actor_map_.begin(); iter != pet_actor_map_.end(); ++iter) {
             pet_actor *petActor = iter->second.get();
 
             if (nullptr != petActor) {
@@ -407,7 +407,7 @@ namespace metin2::game::inline characters {
     }
 
     void pet_system::refresh_buff() {
-        for (pet_actor_map::const_iterator iter = pet_actor_map_.begin(); iter != pet_actor_map_.end(); ++iter) {
+        for (auto iter = pet_actor_map_.begin(); iter != pet_actor_map_.end(); ++iter) {
             pet_actor *petActor = iter->second.get();
 
             if (nullptr != petActor) {

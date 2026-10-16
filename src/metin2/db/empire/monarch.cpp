@@ -26,7 +26,7 @@ namespace metin2::db::inline empire {
     }
 
     auto monarch::vote_monarch(uint32_t pid, uint32_t selectdpid) -> bool {
-        map_monarchelection::iterator it = map_monarch_election_.find(pid);
+        auto it = map_monarch_election_.find(pid);
 
         if (it == map_monarch_election_.end()) {
             auto p = std::make_unique<monarch_election_info>();
@@ -65,7 +65,7 @@ namespace metin2::db::inline empire {
     }
 
     auto monarch::is_candidacy(uint32_t pid) -> bool {
-        vec_monarchcandidacy::iterator it = vec_monarch_candidacy_.begin();
+        auto it = vec_monarch_candidacy_.begin();
 
         for (; it != vec_monarch_candidacy_.end(); ++it) {
             if (it->pid == pid)

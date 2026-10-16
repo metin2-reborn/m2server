@@ -75,7 +75,7 @@ namespace metin2::game::inline characters {
     }
 
     void character_manager::graceful_shutdown() {
-        name_map::iterator it = map_pc_chr_.begin();
+        auto it = map_pc_chr_.begin();
 
         while (it != map_pc_chr_.end())
             (it++)->second->disconnect("server shutdown");
@@ -89,7 +89,7 @@ namespace metin2::game::inline characters {
     auto character_manager::create_character(const char *name, uint32_t pid) -> character * {
         uint32_t dwVID = alloc_vid();
 
-        character *ch = new character;
+        auto *ch = new character;
         ch->create(name, dwVID, pid ? true : false);
 
         map_chr_by_vid_.insert(std::make_pair(dwVID, ch));
@@ -133,7 +133,7 @@ namespace metin2::game::inline characters {
 
             str_lower(ch->name(), szName, sizeof(szName));
 
-            name_map::iterator it = map_pc_chr_.find(szName);
+            auto it = map_pc_chr_.find(szName);
 
             if (map_pc_chr_.end() != it)
                 map_pc_chr_.erase(it);
@@ -194,7 +194,7 @@ namespace metin2::game::inline characters {
     auto character_manager::find_pc(const char *name) -> character * {
         char szName[CHARACTER_NAME_MAX_LEN + 1];
         str_lower(name, szName, sizeof(szName));
-        name_map::iterator it = map_pc_chr_.find(szName);
+        auto it = map_pc_chr_.find(szName);
 
         if (it == map_pc_chr_.end())
             return nullptr;
@@ -609,7 +609,7 @@ namespace metin2::game::inline characters {
     }
 
     void character_manager::process_delayed_save() {
-        character_set::iterator it = set_chr_for_delayed_save_.begin();
+        auto it = set_chr_for_delayed_save_.begin();
 
         while (it != set_chr_for_delayed_save_.end()) {
             character *pkChr = *it++;
@@ -622,7 +622,7 @@ namespace metin2::game::inline characters {
     auto character_manager::add_to_state_list(character *ch) -> bool {
         assert(ch != nullptr);
 
-        character_set::iterator it = set_chr_state_.find(ch);
+        auto it = set_chr_state_.find(ch);
 
         if (it == set_chr_state_.end()) {
             set_chr_state_.insert(ch);
@@ -633,7 +633,7 @@ namespace metin2::game::inline characters {
     }
 
     void character_manager::remove_from_state_list(character *ch) {
-        character_set::iterator it = set_chr_state_.find(ch);
+        auto it = set_chr_state_.find(ch);
 
         if (it != set_chr_state_.end()) {
             set_chr_state_.erase(it);
@@ -645,7 +645,7 @@ namespace metin2::game::inline characters {
     }
 
     auto character_manager::flush_delayed_save(character *ch) -> bool {
-        character_set::iterator it = set_chr_for_delayed_save_.find(ch);
+        auto it = set_chr_for_delayed_save_.find(ch);
 
         if (it == set_chr_for_delayed_save_.end())
             return false;
@@ -719,7 +719,7 @@ namespace metin2::game::inline characters {
     }
 
     auto character_manager::characters_by_race_num(uint32_t race_num, character_vector_interactor &i) -> bool {
-        std::map<uint32_t, character_set>::iterator it = map_chr_by_race_num_.find(race_num);
+        auto it = map_chr_by_race_num_.find(race_num);
 
         if (it == map_chr_by_race_num_.end())
             return false;
@@ -833,8 +833,8 @@ namespace metin2::game::inline characters {
         if (!set_chr_pending_destroy_.empty()) {
             metin2::log::debug("Destroying {:d} pending characters", set_chr_pending_destroy_.size());
 
-            character_set::iterator it = set_chr_pending_destroy_.begin(),
-                                    end = set_chr_pending_destroy_.end();
+            auto it = set_chr_pending_destroy_.begin(),
+                 end = set_chr_pending_destroy_.end();
             for (; it != end; ++it) {
                 character_manager::instance().destroy_character(*it);
             }

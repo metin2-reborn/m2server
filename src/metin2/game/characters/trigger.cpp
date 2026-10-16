@@ -61,7 +61,7 @@ namespace metin2::game::inline characters {
                 if (!ent->is_type(ENTITY_CHARACTER))
                     return;
 
-                character *pkChr = (character *)ent;
+                auto *pkChr = (character *)ent;
 
                 if (pkChr->is_building() &&
                     (pkChr->is_affect_flag(AFF_BUILDING_CONSTRUCTION_SMALL) ||

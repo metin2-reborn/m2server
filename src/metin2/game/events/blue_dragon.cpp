@@ -96,7 +96,7 @@ namespace metin2::game::inline events {
             SkillPriority[2] = 1;
         }
 
-        time_t timeNow = static_cast<time_t>(get_dword_time());
+        auto timeNow = static_cast<time_t>(get_dword_time());
 
         for (int i = 0; i < SkillCount; ++i) {
             const int SkillIndex = SkillPriority[i];

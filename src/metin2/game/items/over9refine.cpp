@@ -21,7 +21,7 @@ namespace metin2::game::inline items {
     }
 
     auto over9_refine_manager::can_over9_refine(uint32_t vnum) -> int {
-        over9_item_map::iterator iter = item_.find(vnum);
+        auto iter = item_.find(vnum);
 
         if (iter != item_.end())
             return 1;
@@ -39,7 +39,7 @@ namespace metin2::game::inline items {
     }
 
     auto over9_refine_manager::change9_to_over9(character *ch, item *item) -> bool {
-        over9_item_map::iterator iter = item_.find(item->vnum());
+        auto iter = item_.find(item->vnum());
 
         if (iter == item_.end())
             return false;
@@ -97,7 +97,7 @@ namespace metin2::game::inline items {
     }
 
     auto over9_refine_manager::material_vnum(uint32_t base_vnum) -> uint32_t {
-        over9_item_map::iterator iter = item_.find(base_vnum);
+        auto iter = item_.find(base_vnum);
 
         if (iter != item_.end())
             return (base_vnum - (base_vnum % 10));

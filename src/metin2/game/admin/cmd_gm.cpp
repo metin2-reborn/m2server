@@ -642,7 +642,7 @@ namespace metin2::game::inline admin {
                 if (!ent->is_type(ENTITY_CHARACTER))
                     return;
 
-                character *pkChr = (character *)ent;
+                auto *pkChr = (character *)ent;
 
                 int iDist = distance_approx(pkChr->x() - ch->x(), pkChr->y() - ch->y());
 
@@ -1352,7 +1352,7 @@ namespace metin2::game::inline admin {
             pPC->set_flag(questname + ".__status", value);
             pPC->clear_timer();
 
-            quest::pc::quest_info_iterator it = pPC->quest_begin();
+            auto it = pPC->quest_begin();
             unsigned int questindex = quest::quest_manager::instance().quest_index_by_name(questname);
 
             while (it != pPC->quest_end()) {
@@ -1626,7 +1626,7 @@ namespace metin2::game::inline admin {
             if (!ent->is_type(ENTITY_CHARACTER))
                 return;
 
-            character *pkChr = (character *)ent;
+            auto *pkChr = (character *)ent;
 
             int iDist = distance_approx(pkChr->x() - ch->x(), pkChr->y() - ch->y());
 
@@ -1673,7 +1673,7 @@ namespace metin2::game::inline admin {
             pPC->set_flag(questname + ".__status", value);
             pPC->clear_timer();
 
-            quest::pc::quest_info_iterator it = pPC->quest_begin();
+            auto it = pPC->quest_begin();
             unsigned int questindex = quest::quest_manager::instance().quest_index_by_name(questname);
 
             while (it != pPC->quest_end()) {
@@ -2699,7 +2699,7 @@ namespace metin2::game::inline admin {
             if (pSecMap) {
                 pSecMap->for_each([&](entity *ent) {
                     if (ent->is_type(ENTITY_CHARACTER)) {
-                        character *pChar = (character *)ent;
+                        auto *pChar = (character *)ent;
                         if (pChar && pChar->is_pc())
                             ++count[pChar->empire()];
                     }
@@ -2896,7 +2896,7 @@ namespace metin2::game::inline admin {
             return;
         }
 
-        uint32_t pid = (uint32_t)strtoul(arg1, nullptr, 10);
+        auto pid = (uint32_t)strtoul(arg1, nullptr, 10);
 
         db_clientdesc->db_packet_header(HEADER_GD_FLUSH_CACHE, 0, sizeof(uint32_t));
         db_clientdesc->packet(&pid, sizeof(uint32_t));
@@ -2960,7 +2960,7 @@ namespace metin2::game::inline admin {
 
         pSectree->for_each([&](entity *ent) {
             if (ent->is_type(ENTITY_CHARACTER)) {
-                character *pChar = static_cast<character *>(ent);
+                auto *pChar = static_cast<character *>(ent);
 
                 if (pChar->is_monster() == true || pChar->is_stone()) {
                     count++;

@@ -49,7 +49,7 @@ namespace metin2::game::inline characters {
     };
 
     EVENTFUNC(poison_event) {
-        poison_event_info *info = dynamic_cast<poison_event_info *>(event->info.get());
+        auto *info = dynamic_cast<poison_event_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Poison event fired without event info");
@@ -93,7 +93,7 @@ namespace metin2::game::inline characters {
     };
 
     EVENTFUNC(fire_event) {
-        fire_event_info *info = dynamic_cast<fire_event_info *>(event->info.get());
+        auto *info = dynamic_cast<fire_event_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Fire event fired without event info");
@@ -134,7 +134,7 @@ namespace metin2::game::inline characters {
 
         add_affect(AFFECT_FIRE, POINT_NONE, 0, AFF_FIRE, count * 3 + 1, 0, true);
 
-        fire_event_info *info = alloc_event_info<fire_event_info>();
+        auto *info = alloc_event_info<fire_event_info>();
 
         info->ch = this;
         info->count = count;
@@ -165,7 +165,7 @@ namespace metin2::game::inline characters {
 
         add_affect(AFFECT_POISON, POINT_NONE, 0, AFF_POISON, POISON_LENGTH + 1, 0, true);
 
-        poison_event_info *info = alloc_event_info<poison_event_info>();
+        auto *info = alloc_event_info<poison_event_info>();
 
         info->ch = this;
         info->count = 10;

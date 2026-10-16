@@ -49,7 +49,7 @@ namespace metin2::game::inline events {
                         character_vector_interactor i;
 
                         if (character_manager::instance().characters_by_race_num(MOB_XMAS_TREE_VNUM, i)) {
-                            character_vector_interactor::iterator it = i.begin();
+                            auto it = i.begin();
 
                             while (it != i.end())
                                 character_manager::instance().destroy_character(*it++);
@@ -63,7 +63,7 @@ namespace metin2::game::inline events {
                         character_vector_interactor i;
 
                         if (character_manager::instance().characters_by_race_num(MOB_SANTA_VNUM, i)) {
-                            character_vector_interactor::iterator it = i.begin();
+                            auto it = i.begin();
 
                             while (it != i.end())
                                 character_manager::instance().destroy_character(*it++);
@@ -98,7 +98,7 @@ namespace metin2::game::inline events {
         };
 
         EVENTFUNC(spawn_santa_event) {
-            spawn_santa_info *info = dynamic_cast<spawn_santa_info *>(event->info.get());
+            auto *info = dynamic_cast<spawn_santa_info *>(event->info.get());
 
             if (info == nullptr) {
                 metin2::log::error("Santa spawn event has no event info");
@@ -129,7 +129,7 @@ namespace metin2::game::inline events {
             }
 
             metin2::log::info("Xmas: santa respawns in {:d} seconds", time_gap_sec);
-            spawn_santa_info *info = alloc_event_info<spawn_santa_info>();
+            auto *info = alloc_event_info<spawn_santa_info>();
 
             info->map_index = map_index_value;
 
@@ -171,7 +171,7 @@ namespace metin2::game::inline events {
                 character_vector_interactor i;
 
                 if (character_manager::instance().characters_by_race_num(MOB_XMAS_FIRWORK_SELLER_VNUM, i)) {
-                    character_vector_interactor::iterator it = i.begin();
+                    auto it = i.begin();
 
                     while (it != i.end())
                         character_manager::instance().destroy_character(*it++);

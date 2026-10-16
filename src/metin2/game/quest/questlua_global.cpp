@@ -66,7 +66,7 @@ namespace metin2::game {
         }
 
         auto time_to_str(lua_State *lua) -> int {
-            time_t curTime = (time_t)lua_tonumber(lua, -1);
+            auto curTime = (time_t)lua_tonumber(lua, -1);
             lua_pushstring(lua, asctime(gmtime(&curTime)));
             return 1;
         }
@@ -182,7 +182,7 @@ namespace metin2::game {
         auto clear_server_timer(lua_State *lua) -> int {
             quest_manager &q = quest_manager::instance();
             const char *name = lua_tostring(lua, 1);
-            uint32_t arg = (uint32_t)lua_tonumber(lua, 2);
+            auto arg = (uint32_t)lua_tonumber(lua, 2);
             q.clear_server_timer(name, arg);
             return 0;
         }
@@ -409,7 +409,7 @@ namespace metin2::game {
         }
 
         auto refine_pick(lua_State *lua) -> int {
-            uint8_t bCell = (uint8_t)lua_tonumber(lua, -1);
+            auto bCell = (uint8_t)lua_tonumber(lua, -1);
 
             quest_manager &q = quest_manager::instance();
 
@@ -423,7 +423,7 @@ namespace metin2::game {
         }
 
         auto fish_real_refine_rod(lua_State *lua) -> int {
-            uint8_t bCell = (uint8_t)lua_tonumber(lua, -1);
+            auto bCell = (uint8_t)lua_tonumber(lua, -1);
 
             quest_manager &q = quest_manager::instance();
 
@@ -584,7 +584,7 @@ namespace metin2::game {
 
         auto item_name(lua_State *lua) -> int {
             if (lua_isnumber(lua, 1)) {
-                uint32_t dwVnum = (uint32_t)lua_tonumber(lua, 1);
+                auto dwVnum = (uint32_t)lua_tonumber(lua, 1);
                 item_table *pTable = item_manager::instance().table(dwVnum);
                 if (pTable)
                     lua_pushstring(lua, pTable->locale_name);
@@ -597,7 +597,7 @@ namespace metin2::game {
 
         auto mob_name(lua_State *lua) -> int {
             if (lua_isnumber(lua, 1)) {
-                uint32_t dwVnum = (uint32_t)lua_tonumber(lua, 1);
+                auto dwVnum = (uint32_t)lua_tonumber(lua, 1);
                 const mob *pkMob = mob_manager::instance().get(dwVnum);
 
                 if (pkMob)
@@ -668,7 +668,7 @@ namespace metin2::game {
 
             int iMinLev = (int)lua_tonumber(lua, 1);
             int iMaxLev = (int)lua_tonumber(lua, 2);
-            unsigned int uiJobFlag = (unsigned int)lua_tonumber(lua, 3);
+            auto uiJobFlag = (unsigned int)lua_tonumber(lua, 3);
 
             character *ch = quest_manager::instance().current_character_ptr();
             character *tch;
@@ -696,12 +696,12 @@ namespace metin2::game {
                 return 1;
             }
 
-            uint32_t race = (uint32_t)lua_tonumber(lua, 1);
+            auto race = (uint32_t)lua_tonumber(lua, 1);
 
             character_vector_interactor i;
 
             if (character_manager::instance().characters_by_race_num(race, i)) {
-                character_vector_interactor::iterator it = i.begin();
+                auto it = i.begin();
 
                 while (it != i.end()) {
                     character *tch = *(it++);
@@ -797,7 +797,7 @@ namespace metin2::game {
         };
 
         EVENTFUNC(warp_all_to_village_event) {
-            warp_all_to_village_event_info *info = dynamic_cast<warp_all_to_village_event_info *>(event->info.get());
+            auto *info = dynamic_cast<warp_all_to_village_event_info *>(event->info.get());
 
             if (info == nullptr) {
                 quest::error("Warp-all-to-village event has no info");
@@ -809,7 +809,7 @@ namespace metin2::game {
             if (nullptr != pSecMap) {
                 pSecMap->for_each([](entity *ent) {
                     if (ent->is_type(ENTITY_CHARACTER)) {
-                        character *ch = (character *)ent;
+                        auto *ch = (character *)ent;
                         if (ch->is_pc()) {
                             uint8_t bEmpire = ch->empire();
                             if (bEmpire == 0) {
@@ -830,7 +830,7 @@ namespace metin2::game {
             int iMapIndex = static_cast<int>(lua_tonumber(lua, 1));
             int iSec = static_cast<int>(lua_tonumber(lua, 2));
 
-            warp_all_to_village_event_info *info = alloc_event_info<warp_all_to_village_event_info>();
+            auto *info = alloc_event_info<warp_all_to_village_event_info>();
 
             info->warp_map_index = iMapIndex;
 
@@ -885,7 +885,7 @@ namespace metin2::game {
             if (nullptr != pSecMap) {
                 pSecMap->for_each([](entity *ent) {
                     if (ent->is_type(ENTITY_CHARACTER)) {
-                        character *ch = (character *)ent;
+                        auto *ch = (character *)ent;
 
                         if (!ch->is_pc() && !ch->is_pet())
                             ch->dead();
@@ -911,8 +911,8 @@ namespace metin2::game {
 
         auto enable_over9refine(lua_State *lua) -> int {
             if (lua_isnumber(lua, 1) == true && lua_isnumber(lua, 2) == true) {
-                uint32_t dwVnumFrom = (uint32_t)lua_tonumber(lua, 1);
-                uint32_t dwVnumTo = (uint32_t)lua_tonumber(lua, 2);
+                auto dwVnumFrom = (uint32_t)lua_tonumber(lua, 1);
+                auto dwVnumTo = (uint32_t)lua_tonumber(lua, 2);
 
                 over9_refine_manager::instance().enable_over9_refine(dwVnumFrom, dwVnumTo);
             }
@@ -933,7 +933,7 @@ namespace metin2::game {
         }
 
         EVENTFUNC(warp_all_to_map_my_empire_event) {
-            warp_all_to_map_my_empire_event_info *info = dynamic_cast<warp_all_to_map_my_empire_event_info *>(event->info.get());
+            auto *info = dynamic_cast<warp_all_to_map_my_empire_event_info *>(event->info.get());
 
             if (info == nullptr) {
                 quest::error("Warp-all-to-map event has no info");
@@ -945,7 +945,7 @@ namespace metin2::game {
             if (pSecMap) {
                 pSecMap->for_each([info](entity *ent) {
                     if (ent->is_type(ENTITY_CHARACTER)) {
-                        character *ch = (character *)ent;
+                        auto *ch = (character *)ent;
 
                         if (ch->is_pc() && ch->empire() == info->empire) {
                             ch->warp_set(info->x, info->y, info->map_index_to);
@@ -987,7 +987,7 @@ namespace metin2::game {
                 return 1;
             }
 
-            const uint32_t dwVnum = static_cast<uint32_t>(lua_tonumber(lua, 1));
+            const auto dwVnum = static_cast<uint32_t>(lua_tonumber(lua, 1));
             const size_t count = std::clamp<int>(static_cast<size_t>(lua_tonumber(lua, 2)), 1, 10);
             const bool isAggresive = static_cast<bool>(lua_toboolean(lua, 3));
             size_t SpawnCount = 0;
@@ -1085,7 +1085,7 @@ namespace metin2::game {
 
                 pSectree->for_each([&](entity *ent) {
                     if (true == ent->is_type(ENTITY_CHARACTER)) {
-                        character *pChar = static_cast<character *>(ent);
+                        auto *pChar = static_cast<character *>(ent);
 
                         if (true == pChar->is_pc()) {
                             if (from_x1 <= pChar->x() && pChar->x() <= from_x2 && from_y1 <= pChar->y() && pChar->y() <= from_y2) {

@@ -15,7 +15,7 @@ namespace metin2::game {
 
     namespace quest {
         auto marriage_engage_to(lua_State *lua) -> int {
-            uint32_t vid = (uint32_t)lua_tonumber(lua, 1);
+            auto vid = (uint32_t)lua_tonumber(lua, 1);
             character *ch = quest_manager::instance().current_character_ptr();
             character *ch_you = character_manager::instance().find(vid);
             if (ch_you) {
@@ -88,8 +88,8 @@ namespace metin2::game {
                 return 0;
             }
 
-            uint32_t pid1 = (uint32_t)lua_tonumber(lua, 1);
-            uint32_t pid2 = (uint32_t)lua_tonumber(lua, 2);
+            auto pid1 = (uint32_t)lua_tonumber(lua, 1);
+            auto pid2 = (uint32_t)lua_tonumber(lua, 2);
 
             character *ch = quest_manager::instance().current_character_ptr();
 

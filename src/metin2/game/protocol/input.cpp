@@ -61,7 +61,7 @@ namespace metin2::game::inline protocol {
         int iPacketLen;
 
         for (buffer_left_ = bytes; buffer_left_ > 0;) {
-            uint8_t bHeader = (uint8_t)*(c_pData);
+            auto bHeader = (uint8_t)*(c_pData);
             const packet_spec *spec = nullptr;
 
             if (bHeader == 0)
@@ -154,7 +154,7 @@ namespace metin2::game::inline protocol {
     }
 
     void input_processor::handshake(desc *d, const char *data) {
-        packet_cg_handshake *p = (packet_cg_handshake *)data;
+        auto *p = (packet_cg_handshake *)data;
 
         if (d->handshake() != p->handshake) {
             metin2::log::warn("Invalid handshake from {}, closing", d->host_name());
@@ -176,7 +176,7 @@ namespace metin2::game::inline protocol {
         if (!ch->get_desc())
             return;
 
-        packet_cg_client_version *p = (packet_cg_client_version *)data;
+        auto *p = (packet_cg_client_version *)data;
 
         char szTimestamp[sizeof(p->timestamp)];
         char szFilename[sizeof(p->filename)];
@@ -415,7 +415,7 @@ namespace metin2::game::inline protocol {
 
             // Anyone may download marks; uploads need the key from the player's game login, which the
             // client lacks on its first download, so a missing key means download only.
-            const packet_cg_mark_login *p = (const packet_cg_mark_login *)data_value;
+            const auto *p = (const packet_cg_mark_login *)data_value;
             const bool bAuthenticated = desc_manager::instance().check_random_key(p->handle, p->random_key);
 
             metin2::log::debug("Guild mark login{}", bAuthenticated ? "" : " (download only)");
@@ -438,7 +438,7 @@ namespace metin2::game::inline protocol {
             // follow must not share its segment.
             d->send_output_now();
 
-            packet_key_agreement *p = (packet_key_agreement *)data_value;
+            auto *p = (packet_key_agreement *)data_value;
             if (!d->is_cipher_prepared()) {
                 metin2::log::warn("Key agreement from {} before the cipher was prepared, disconnecting", d->host_name());
                 d->delayed_disconnect(5);

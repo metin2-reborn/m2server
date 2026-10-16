@@ -114,7 +114,7 @@ namespace metin2::game::inline data {
         if (i >= map_rows_.size())
             return false;
 
-        map_row::const_iterator row_it = map_rows_.begin();
+        auto row_it = map_rows_.begin();
         std::advance(row_it, i);
 
         auto col_idx_it = map_column_name_to_index_.find(rstr_col_key);
@@ -132,7 +132,7 @@ namespace metin2::game::inline data {
 
     template <typename T>
     auto group_node::value(const std::string &rstr_row_key, const std::string &rstr_col_key, T &t_value) const -> bool {
-        map_row::const_iterator row_it = map_rows_.find(rstr_row_key);
+        auto row_it = map_rows_.find(rstr_row_key);
         if (map_rows_.end() == row_it) {
             return false;
         }
@@ -151,7 +151,7 @@ namespace metin2::game::inline data {
 
     template <typename T>
     auto group_node::value(const std::string &rstr_row_key, int index, T &t_value) const -> bool {
-        map_row::const_iterator row_it = map_rows_.find(rstr_row_key);
+        auto row_it = map_rows_.find(rstr_row_key);
         if (map_rows_.end() == row_it) {
             return false;
         }

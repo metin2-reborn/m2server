@@ -330,7 +330,7 @@ namespace metin2::game::inline events {
         }
 
         EVENTFUNC(fishing_event) {
-            fishing_event_info *info = dynamic_cast<fishing_event_info *>(event->info.get());
+            auto *info = dynamic_cast<fishing_event_info *>(event->info.get());
 
             if (info == nullptr) {
                 metin2::log::error("Fishing event has no event info");
@@ -380,7 +380,7 @@ namespace metin2::game::inline events {
         }
 
         auto create_fishing_event(character *ch) -> event_ptr {
-            fishing_event_info *info = alloc_event_info<fishing_event_info>();
+            auto *info = alloc_event_info<fishing_event_info>();
             info->pid = ch->player_id();
             info->step = 0;
             info->hang_time = 0;
@@ -443,7 +443,7 @@ namespace metin2::game::inline events {
 
         void take(fishing_event_info *info, character *ch) {
             if (info->step == 1) {
-                int32_t ms = (int32_t)((get_dword_time() - info->hang_time));
+                auto ms = (int32_t)((get_dword_time() - info->hang_time));
                 uint32_t item_vnum = 0;
                 int ret = compute(info->fish_id, ms, &item_vnum, get_fishing_level(ch));
 
@@ -563,7 +563,7 @@ namespace metin2::game::inline events {
                 }
             }
 
-            for (std::map<std::string, int>::iterator it = fished.begin(); it != fished.end(); ++it)
+            for (auto it = fished.begin(); it != fished.end(); ++it)
                 ch->chat_packet(CHAT_TYPE_INFO, lc_text("%s : %d 마리"), it->first.c_str(), it->second);
 
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("%d 종류 %d 마리 낚음"), fished.size(), total_count);

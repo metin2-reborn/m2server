@@ -139,15 +139,15 @@ namespace metin2::game::inline events {
 
         for (int i = 0; i < 7; i++) {
             fprintf(fp, "%s", wday_names[i].data());
-            for (std::list<hme>::iterator it = wday_exp_table_[i].begin(); it != wday_exp_table_[i].end(); it++) {
+            for (auto it = wday_exp_table_[i].begin(); it != wday_exp_table_[i].end(); it++) {
                 fprintf(fp, " %d:%d %d;", it->hour, it->min, it->exp);
             }
             fprintf(fp, "\n");
         }
 
-        for (std::map<date, std::list<hme>>::iterator holi_it = holiday_map_.begin(); holi_it != holiday_map_.end(); holi_it++) {
+        for (auto holi_it = holiday_map_.begin(); holi_it != holiday_map_.end(); holi_it++) {
             fprintf(fp, "HOLIDAY %d.%d.%d", holi_it->first.year + 1900, holi_it->first.mon + 1, holi_it->first.day);
-            for (std::list<hme>::iterator it = holi_it->second.begin(); it != holi_it->second.end(); it++) {
+            for (auto it = holi_it->second.begin(); it != holi_it->second.end(); it++) {
                 fprintf(fp, " %d:%d %d;", it->hour, it->min, it->exp);
             }
             fprintf(fp, "\n");
@@ -252,7 +252,7 @@ namespace metin2::game::inline events {
     }
 
     void speed_server_empire_exp::set_holiday_exp_table(date date, hme hme) {
-        std::map<game::events::date, std::list<game::events::hme>>::iterator it = holiday_map_.find(date);
+        auto it = holiday_map_.find(date);
         if (it != holiday_map_.end()) {
             it->second.push_back(hme);
         }
@@ -270,7 +270,7 @@ namespace metin2::game::inline events {
 
     void speed_server_empire_exp::init_holiday_exp_table(date date) {
         metin2::log::debug("Speed server: initializing holiday exp table");
-        std::map<game::events::date, std::list<hme>>::iterator it = holiday_map_.find(date);
+        auto it = holiday_map_.find(date);
         if (it == holiday_map_.end()) {
             std::list<hme> lst;
             holiday_map_.insert(std::pair<game::events::date, std::list<hme>>(date, lst));
@@ -292,14 +292,14 @@ namespace metin2::game::inline events {
         date date(datetime->tm_year, datetime->tm_mon,
             datetime->tm_mday);
 
-        std::map<game::events::date, std::list<hme>>::iterator holi_it = holiday_map_.find(date);
+        auto holi_it = holiday_map_.find(date);
 
         int total_sec = datetime->tm_hour * 3600 + datetime->tm_min * 60 + datetime->tm_sec;
 
         hme hme;
 
         if (holi_it != holiday_map_.end()) {
-            for (std::list<game::events::hme>::iterator it = holi_it->second.begin();
+            for (auto it = holi_it->second.begin();
                 it != holi_it->second.end(); it++) {
                 if (total_sec < (it->hour * 3600 + it->min * 60)) {
                     hme = *it;
@@ -307,7 +307,7 @@ namespace metin2::game::inline events {
                 }
             }
         } else {
-            for (std::list<game::events::hme>::iterator it = wday_exp_table_[datetime->tm_wday].begin();
+            for (auto it = wday_exp_table_[datetime->tm_wday].begin();
                 it != wday_exp_table_[datetime->tm_wday].end(); it++) {
                 if (total_sec < (it->hour * 3600 + it->min * 60)) {
                     hme = *it;

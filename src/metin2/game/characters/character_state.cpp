@@ -257,7 +257,7 @@ namespace metin2::game::inline characters {
                         if (!ent->is_type(ENTITY_CHARACTER))
                             return;
 
-                        character *pkChr = (character *)ent;
+                        auto *pkChr = (character *)ent;
 
                         if (pkChr->is_pc())
                             return;
@@ -779,7 +779,7 @@ namespace metin2::game::inline characters {
             if (ent->is_observer_mode())
                 return;
 
-            character *pkChr = (character *)ent;
+            auto *pkChr = (character *)ent;
 
             if (!pkChr->is_pc())
                 return;
@@ -845,7 +845,7 @@ namespace metin2::game::inline characters {
             if (ent->is_observer_mode())
                 return;
 
-            character *pkChr = (character *)ent;
+            auto *pkChr = (character *)ent;
 
             if (!pkChr->is_pc())
                 return;
@@ -899,7 +899,7 @@ namespace metin2::game::inline characters {
         int MIN_APPROACH = 150;
         int MAX_APPROACH = 300;
 
-        uint32_t STATE_DURATION = (uint32_t)passes_per_sec(0.5);
+        auto STATE_DURATION = (uint32_t)passes_per_sec(0.5);
 
         bool bDoMoveAlone = true;
         bool bRun = true;

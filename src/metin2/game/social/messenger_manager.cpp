@@ -101,7 +101,7 @@ namespace metin2::game::inline social {
             send_logout(*it, account);
         }
 
-        std::map<key_t, std::set<key_t>>::iterator it2 = relation_.begin();
+        auto it2 = relation_.begin();
 
         while (it2 != relation_.end()) {
             it2->second.erase(account);

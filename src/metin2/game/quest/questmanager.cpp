@@ -156,7 +156,7 @@ namespace metin2::game {
         }
 
         auto quest_manager::find_npcid_by_name(const std::string &name) -> unsigned int {
-            std::map<std::string, unsigned int>::iterator it = npc_name_id_.find(name);
+            auto it = npc_name_id_.find(name);
             return it != npc_name_id_.end() ? it->second : 0;
         }
 
@@ -618,7 +618,7 @@ namespace metin2::game {
                 uint32_t dwCurrentNPCRace = chr_target->race_num();
 
                 if (chr_target->is_npc()) {
-                    std::map<unsigned int, npc>::iterator it = npc_.find(dwCurrentNPCRace);
+                    auto it = npc_.find(dwCurrentNPCRace);
 
                     if (it == npc_.end()) {
                         metin2::log::error("Player (pid {:d}) clicked {} but npc race {:d} has no quests",
@@ -885,7 +885,7 @@ namespace metin2::game {
         }
 
         auto quest_manager::quest_index_by_name(const std::string &name) -> unsigned int {
-            hash_map_quest_name::iterator it = hm_quest_name_.find(name);
+            auto it = hm_quest_name_.find(name);
 
             if (it == hm_quest_name_.end())
                 return 0;
@@ -1036,7 +1036,7 @@ namespace metin2::game {
                     character_vector_interactor i;
 
                     if (character_manager::instance().characters_by_race_num(xmas::MOB_XMAS_FIRWORK_SELLER_VNUM, i)) {
-                        character_vector_interactor::iterator it = i.begin();
+                        auto it = i.begin();
 
                         while (it != i.end()) {
                             character_manager::instance().destroy_character(*it++);
@@ -1078,7 +1078,7 @@ namespace metin2::game {
                     character_vector_interactor i;
 
                     if (character_manager::instance().characters_by_race_num(EventNPC, i)) {
-                        character_vector_interactor::iterator it = i.begin();
+                        auto it = i.begin();
 
                         while (it != i.end()) {
                             character *ch = *it++;
@@ -1108,7 +1108,7 @@ namespace metin2::game {
                     bool map41_santa_exist = false;
 
                     if (character_manager::instance().characters_by_race_num(new_santa, i)) {
-                        character_vector_interactor::iterator it = i.begin();
+                        auto it = i.begin();
 
                         while (it != i.end()) {
                             character *tch = *(it++);
@@ -1139,7 +1139,7 @@ namespace metin2::game {
                     character_vector_interactor i;
                     character_manager::instance().characters_by_race_num(new_santa, i);
 
-                    for (character_vector_interactor::iterator it = i.begin(); it != i.end(); it++) {
+                    for (auto it = i.begin(); it != i.end(); it++) {
                         character_manager::instance().destroy_character(*it);
                     }
                 }
@@ -1147,7 +1147,7 @@ namespace metin2::game {
         }
 
         auto quest_manager::event_flag(const std::string &name) -> int {
-            std::map<std::string, int>::iterator it = event_flag_.find(name);
+            auto it = event_flag_.find(name);
 
             if (it == event_flag_.end())
                 return 0;

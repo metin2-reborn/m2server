@@ -177,7 +177,7 @@ namespace metin2::game {
 
             ret = false;
 
-            game::quest::pc::quest_info_iterator itPCQuest = pc.quest_find(quest_index);
+            auto itPCQuest = pc.quest_find(quest_index);
 
             if (itPCQuest == pc.quest_end()) {
                 metin2::log::debug("Quest target: player has no such quest");
@@ -187,14 +187,14 @@ namespace metin2::game {
             int iState = itPCQuest->second.st;
 
             a_arg_quest_script_type &r = own_arg_quest_[QUEST_TARGET_EVENT][quest_index];
-            a_arg_quest_script_type::iterator it = r.find(iState);
+            auto it = r.find(iState);
 
             if (it == r.end()) {
                 metin2::log::debug("Quest target: no target event in state {:d}", iState);
                 return false;
             }
 
-            std::vector<a_arg_script>::iterator it_vec = it->second.begin();
+            auto it_vec = it->second.begin();
 
             int iTargetLen = strlen(target_name);
 
@@ -448,7 +448,7 @@ namespace metin2::game {
             if (!can_start_quest(pc))
                 return false;
 
-            game::quest::pc::quest_info_iterator itPCQuest = pc.quest_find(quest_index);
+            auto itPCQuest = pc.quest_find(quest_index);
 
             if (pc.quest_end() == itPCQuest) {
                 metin2::log::error("Player has no state for quest {:d}", quest_index);
@@ -456,7 +456,7 @@ namespace metin2::game {
             }
 
             quest_map_type &rmapEventOwnQuest = own_quest_[EventIndex];
-            quest_map_type::iterator itQuestMap = rmapEventOwnQuest.find(quest_index);
+            auto itQuestMap = rmapEventOwnQuest.find(quest_index);
 
             const char *questName = quest_manager::instance().quest_name_by_index(quest_index).c_str();
 
@@ -465,7 +465,7 @@ namespace metin2::game {
                 return false;
             }
 
-            a_quest_script_type::iterator itQuestScript = itQuestMap->second.find(itPCQuest->second.st);
+            auto itQuestScript = itQuestMap->second.find(itPCQuest->second.st);
 
             if (itQuestScript == itQuestMap->second.end()) {
                 metin2::log::error("Quest {1} has no info script for state {0:d}", itPCQuest->second.st, questName);
@@ -482,10 +482,10 @@ namespace metin2::game {
             if (!can_start_quest(pc))
                 return false;
 
-            game::quest::pc::quest_info_iterator itPCQuest = pc.quest_find(quest_index);
+            auto itPCQuest = pc.quest_find(quest_index);
 
             quest_map_type &rmapEventOwnQuest = own_quest_[EventIndex];
-            quest_map_type::iterator itQuestMap = rmapEventOwnQuest.find(quest_index);
+            auto itQuestMap = rmapEventOwnQuest.find(quest_index);
 
             if (itQuestMap == rmapEventOwnQuest.end())
                 return false;
@@ -501,7 +501,7 @@ namespace metin2::game {
                     return false;
             }
 
-            a_quest_script_type::iterator itQuestScript = itQuestMap->second.find(iState);
+            auto itQuestScript = itQuestMap->second.find(iState);
 
             if (itQuestScript == itQuestMap->second.end())
                 return false;

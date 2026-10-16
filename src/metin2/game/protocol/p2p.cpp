@@ -36,7 +36,7 @@ namespace metin2::game::inline protocol {
 
     void p2p_manager::boot(desc *d) {
         character_manager::name_map &map = character_manager::instance().pc_map();
-        character_manager::name_map::iterator it = map.begin();
+        auto it = map.begin();
 
         packet_gg_login p;
 
@@ -56,7 +56,7 @@ namespace metin2::game::inline protocol {
     }
 
     void p2p_manager::flush_output() {
-        std::unordered_set<desc *>::iterator it = set_peers_.begin();
+        auto it = set_peers_.begin();
 
         while (it != set_peers_.end()) {
             desc *pkDesc = *it++;
@@ -89,7 +89,7 @@ namespace metin2::game::inline protocol {
     }
 
     void p2p_manager::unregister_connector(desc *d) {
-        std::unordered_set<desc *>::iterator it = set_peers_.find(d);
+        auto it = set_peers_.find(d);
 
         if (it != set_peers_.end()) {
             metin2::log::info("Peer connector closed (host {})", d->host_name());
@@ -99,7 +99,7 @@ namespace metin2::game::inline protocol {
     }
 
     void p2p_manager::erase_user_by_desc(desc *d) {
-        cci_map::iterator it = map_cci_.begin();
+        auto it = map_cci_.begin();
 
         while (it != map_cci_.end()) {
             cci *pkCCI = it->second.get();
@@ -111,7 +111,7 @@ namespace metin2::game::inline protocol {
     }
 
     void p2p_manager::send(const void *data, int size, desc *except) {
-        std::unordered_set<desc *>::iterator it = set_peers_.begin();
+        auto it = set_peers_.begin();
 
         while (it != set_peers_.end()) {
             desc *pkDesc = *it++;
@@ -198,7 +198,7 @@ namespace metin2::game::inline protocol {
     }
 
     auto p2p_manager::find_by_pid(uint32_t pid) -> cci * {
-        pidcci_map::iterator it = map_pid_pk_cci_.find(pid);
+        auto it = map_pid_pk_cci_.find(pid);
         if (it == map_pid_pk_cci_.end())
             return nullptr;
         return it->second;
@@ -229,7 +229,7 @@ namespace metin2::game::inline protocol {
     }
 
     void p2p_manager::p2p_host_names(std::string &host_names) {
-        std::unordered_set<desc *>::iterator it = set_peers_.begin();
+        auto it = set_peers_.begin();
 
         std::ostringstream oss(std::ostringstream::out);
 
