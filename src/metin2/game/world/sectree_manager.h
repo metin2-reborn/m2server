@@ -1,7 +1,7 @@
 #pragma once
 
-#include <metin2/game/world/sectree.h>
 #include <metin2/game/app/typedef.h>
+#include <metin2/game/world/sectree.h>
 
 #include <metin2/common/singleton.h>
 #include <metin2/log/log.h>
@@ -15,172 +15,159 @@
 
 namespace metin2::game::inline world {
 
-struct map_region {
-	int			index;
-	int			sx, sy, ex, ey;
-	pixel_position	pos_spawn;
+    struct map_region {
+        int index;
+        int sx, sy, ex, ey;
+        pixel_position pos_spawn;
 
-	bool		empire_spawn_different;
-	pixel_position	pos_empire[3];
+        bool empire_spawn_different;
+        pixel_position pos_empire[3];
 
-	std::string		map_name;
-};
+        std::string map_name;
+    };
 
-struct area_info
-{
-	int sx, sy, ex, ey, dir;
-	area_info(int sx, int sy, int ex, int ey, int dir)
-		: sx(sx), sy(sy), ex(ex), ey(ey), dir(dir)
-		{}
-};
+    struct area_info {
+        int sx, sy, ex, ey, dir;
+        area_info(int sx, int sy, int ex, int ey, int dir)
+            : sx(sx), sy(sy), ex(ex), ey(ey), dir(dir) {}
+    };
 
-struct npc_info
-{
-	uint8_t type;
-	const char* name;
-	int32_t x, y;
-	npc_info(uint8_t type_value, const char* name, int32_t x, int32_t y)
-		: type(type_value), name(name), x(x), y(y)
-		{}
-};
+    struct npc_info {
+        uint8_t type;
+        const char *name;
+        int32_t x, y;
+        npc_info(uint8_t type_value, const char *name, int32_t x, int32_t y)
+            : type(type_value), name(name), x(x), y(y) {}
+    };
 
-typedef std::map<std::string, area_info> area_map;
+    typedef std::map<std::string, area_info> area_map;
 
-struct map_setting {
-	int			index;
-	int			cell_scale;
-	int			base_x;
-	int			base_y;
-	int			width;
-	int			height;
+    struct map_setting {
+        int index;
+        int cell_scale;
+        int base_x;
+        int base_y;
+        int width;
+        int height;
 
-	pixel_position	pos_spawn;
-};
+        pixel_position pos_spawn;
+    };
 
-class sectree_map
-{
-	public:
-		typedef std::map<uint32_t, sectree *> map_type;
+    class sectree_map {
+      public:
+        typedef std::map<uint32_t, sectree *> map_type;
 
-		sectree_map();
-		sectree_map(sectree_map & r);
-		virtual ~sectree_map();
+        sectree_map();
+        sectree_map(sectree_map &r);
+        virtual ~sectree_map();
 
-		auto add(uint32_t key, sectree * sectree) -> bool {
-			return map_.insert(map_type::value_type(key, sectree)).second;
-		}
+        auto add(uint32_t key, sectree *sectree) -> bool {
+            return map_.insert(map_type::value_type(key, sectree)).second;
+        }
 
-		auto	find(uint32_t package) -> sectree *;
-		auto	find(uint32_t x, uint32_t y) -> sectree *;
-		void		build();
+        auto find(uint32_t package) -> sectree *;
+        auto find(uint32_t x, uint32_t y) -> sectree *;
+        void build();
 
-		map_setting	setting;
+        map_setting setting;
 
-		template< typename Func >
-		void for_each( Func & rfunc )
-		{
-			f_collect_entity collector;
-			std::map<uint32_t, sectree *>::iterator it = map_.begin();
-			for ( ; it != map_.end(); ++it)
-			{
-				sectree * sectree = it->second;
-				sectree->for_each_entity(collector);
-			}
-			collector.for_each(rfunc);
-		}
+        template <typename Func>
+        void for_each(Func &rfunc) {
+            f_collect_entity collector;
+            std::map<uint32_t, sectree *>::iterator it = map_.begin();
+            for (; it != map_.end(); ++it) {
+                sectree *sectree = it->second;
+                sectree->for_each_entity(collector);
+            }
+            collector.for_each(rfunc);
+        }
 
-		void dump_all_to_sys_err() {
-			sectree_map::map_type::iterator i;
-			for (i = map_.begin(); i != map_.end(); ++i)
-			{
-				metin2::log::error("Sectree {:x} ({:d}, {:d})", i->first, i->first & 0xffff, i->first >> 16);
-			}
-		}
+        void dump_all_to_sys_err() {
+            sectree_map::map_type::iterator i;
+            for (i = map_.begin(); i != map_.end(); ++i) {
+                metin2::log::error("Sectree {:x} ({:d}, {:d})", i->first, i->first & 0xffff, i->first >> 16);
+            }
+        }
 
-	private:
-		map_type map_;
-};
+      private:
+        map_type map_;
+    };
 
-enum attr_region_mode
-{
-	ATTR_REGION_MODE_SET,
-	ATTR_REGION_MODE_REMOVE,
-	ATTR_REGION_MODE_CHECK,
-};
+    enum attr_region_mode {
+        ATTR_REGION_MODE_SET,
+        ATTR_REGION_MODE_REMOVE,
+        ATTR_REGION_MODE_CHECK,
+    };
 
-class sectree_manager : public singleton<sectree_manager>
-{
-	public:
-		sectree_manager();
-		~sectree_manager() override;
+    class sectree_manager : public singleton<sectree_manager> {
+      public:
+        sectree_manager();
+        ~sectree_manager() override;
 
-		auto map(int32_t map_index) -> sectree_map *;
-		auto 	get(uint32_t index, uint32_t package) -> sectree *;
-		auto 	get(uint32_t index, uint32_t x, uint32_t y) -> sectree *;
+        auto map(int32_t map_index) -> sectree_map *;
+        auto get(uint32_t index, uint32_t package) -> sectree *;
+        auto get(uint32_t index, uint32_t x, uint32_t y) -> sectree *;
 
-		template< typename Func >
-		void for_each( int map_index, Func & rfunc )
-		{
-			sectree_map * pSecMap = sectree_manager::instance().map( map_index );
-			if ( pSecMap )
-			{
-				pSecMap->for_each( rfunc );
-			}
-		}
-		
-		auto		load_setting_file(int32_t map_index, const char * setting_file_name, map_setting & r_setting) -> int;
-		auto		load_map_region(const char * file_name, map_setting & r_setting, const char * map_name_value) -> bool;
-		auto		build(const char * list_file_name, const char* map_base_path) -> int;
-		auto build_sectree_from_setting(map_setting & r_setting) -> sectree_map *;
-		auto		load_attribute(sectree_map * map_sectree, const char * file_name, map_setting & r_setting) -> bool;
-		void		load_dungeon(int index, const char * file_name);
-		auto		valid_location(int32_t map_index, int32_t x, int32_t y, int32_t & r_l_valid_map_index, pixel_position & r_pos, uint8_t empire = 0) -> bool;
-		auto		recall_position_by_empire(int map_index, uint8_t empire, pixel_position & r_pos) -> bool;
+        template <typename Func>
+        void for_each(int map_index, Func &rfunc) {
+            sectree_map *pSecMap = sectree_manager::instance().map(map_index);
+            if (pSecMap) {
+                pSecMap->for_each(rfunc);
+            }
+        }
 
-		auto	get_map_region(int32_t map_index) -> const map_region *;
-		auto			map_index(int32_t x, int32_t y) -> int;
-		auto	find_region_by_partial_name(const char* map_name_value) -> const map_region *;
+        auto load_setting_file(int32_t map_index, const char *setting_file_name, map_setting &r_setting) -> int;
+        auto load_map_region(const char *file_name, map_setting &r_setting, const char *map_name_value) -> bool;
+        auto build(const char *list_file_name, const char *map_base_path) -> int;
+        auto build_sectree_from_setting(map_setting &r_setting) -> sectree_map *;
+        auto load_attribute(sectree_map *map_sectree, const char *file_name, map_setting &r_setting) -> bool;
+        void load_dungeon(int index, const char *file_name);
+        auto valid_location(int32_t map_index, int32_t x, int32_t y, int32_t &r_l_valid_map_index, pixel_position &r_pos, uint8_t empire = 0) -> bool;
+        auto recall_position_by_empire(int map_index, uint8_t empire, pixel_position &r_pos) -> bool;
 
-		auto		map_base_position(int32_t x, int32_t y, pixel_position & r_pos) -> bool;
-		auto		map_base_position_by_map_index(int32_t map_index, pixel_position & r_pos) -> bool;
-		auto		movable_position(int32_t map_index, int32_t x, int32_t y, pixel_position & pos) -> bool;
-		auto		is_movable_position(int32_t map_index, int32_t x, int32_t y) -> bool;
-		auto		center_position_of_map(int32_t map_index, pixel_position & r_pos) -> bool;
-		auto        random_location(int32_t map_index, pixel_position & r_pos, uint32_t current_x = 0, uint32_t current_y = 0, int max_distance = 0) -> bool;
+        auto get_map_region(int32_t map_index) -> const map_region *;
+        auto map_index(int32_t x, int32_t y) -> int;
+        auto find_region_by_partial_name(const char *map_name_value) -> const map_region *;
 
-		auto		create_private_map(int32_t map_index) -> int32_t;
-		void		destroy_private_map(int32_t map_index);
+        auto map_base_position(int32_t x, int32_t y, pixel_position &r_pos) -> bool;
+        auto map_base_position_by_map_index(int32_t map_index, pixel_position &r_pos) -> bool;
+        auto movable_position(int32_t map_index, int32_t x, int32_t y, pixel_position &pos) -> bool;
+        auto is_movable_position(int32_t map_index, int32_t x, int32_t y) -> bool;
+        auto center_position_of_map(int32_t map_index, pixel_position &r_pos) -> bool;
+        auto random_location(int32_t map_index, pixel_position &r_pos, uint32_t current_x = 0, uint32_t current_y = 0, int max_distance = 0) -> bool;
 
-		auto	dungeon_area(int32_t map_index) -> area_map&;
-		void		send_npc_position(character * ch);
-		void		insert_npc_position(int32_t map_index, uint8_t type, const char* name, int32_t x, int32_t y);
+        auto create_private_map(int32_t map_index) -> int32_t;
+        void destroy_private_map(int32_t map_index);
 
-		auto		empire_from_map_index(int32_t map_index) -> uint8_t;
+        auto dungeon_area(int32_t map_index) -> area_map &;
+        void send_npc_position(character *ch);
+        void insert_npc_position(int32_t map_index, uint8_t type, const char *name, int32_t x, int32_t y);
 
-		void		purge_monsters_in_map(int32_t map_index);
-		void		purge_stones_in_map(int32_t map_index);
-		auto		monster_count_in_map(int32_t map_index) -> size_t;
-		auto		monster_count_in_map(int32_t map_index, uint32_t vnum) -> size_t;
+        auto empire_from_map_index(int32_t map_index) -> uint8_t;
 
-		auto		for_attr_region(int32_t map_index, int32_t start_x, int32_t start_y, int32_t end_x, int32_t end_y, int32_t rotate, uint32_t attr, attr_region_mode mode) -> bool;
+        void purge_monsters_in_map(int32_t map_index);
+        void purge_stones_in_map(int32_t map_index);
+        auto monster_count_in_map(int32_t map_index) -> size_t;
+        auto monster_count_in_map(int32_t map_index, uint32_t vnum) -> size_t;
 
-		auto		save_attribute_to_image(int map_index, const char * file_name, sectree_map * map_src = nullptr) -> bool;
+        auto for_attr_region(int32_t map_index, int32_t start_x, int32_t start_y, int32_t end_x, int32_t end_y, int32_t rotate, uint32_t attr, attr_region_mode mode) -> bool;
 
-	private:
+        auto save_attribute_to_image(int map_index, const char *file_name, sectree_map *map_src = nullptr) -> bool;
 
-		auto		for_attr_region_right_angle( int32_t map_index, int32_t cx, int32_t cy, int32_t cw, int32_t ch, int32_t rotate, uint32_t attr, attr_region_mode mode ) -> bool;
+      private:
+        auto for_attr_region_right_angle(int32_t map_index, int32_t cx, int32_t cy, int32_t cw, int32_t ch, int32_t rotate, uint32_t attr, attr_region_mode mode) -> bool;
 
-		auto		for_attr_region_free_angle( int32_t map_index, int32_t cx, int32_t cy, int32_t cw, int32_t ch, int32_t rotate, uint32_t attr, attr_region_mode mode ) -> bool;
+        auto for_attr_region_free_angle(int32_t map_index, int32_t cx, int32_t cy, int32_t cw, int32_t ch, int32_t rotate, uint32_t attr, attr_region_mode mode) -> bool;
 
-		auto		for_attr_region_cell( int32_t map_index, int32_t cx, int32_t cy, uint32_t attr, attr_region_mode mode ) -> bool;
+        auto for_attr_region_cell(int32_t map_index, int32_t cx, int32_t cy, uint32_t attr, attr_region_mode mode) -> bool;
 
-		static uint16_t			current_sectree_version_;
-		std::map<uint32_t, sectree_map *>	map_pk_sectree_;
-		std::map<int, area_map>	map_pk_area_;
-		std::vector<map_region>		vec_map_region_;
-		std::map<uint32_t, std::vector<npc_info> > npc_position_;
+        static uint16_t current_sectree_version_;
+        std::map<uint32_t, sectree_map *> map_pk_sectree_;
+        std::map<int, area_map> map_pk_area_;
+        std::vector<map_region> vec_map_region_;
+        std::map<uint32_t, std::vector<npc_info>> npc_position_;
 
-		typedef std::unordered_map<int32_t, int> private_index_map_type;
-		private_index_map_type next_private_index_map_;
-};
+        typedef std::unordered_map<int32_t, int> private_index_map_type;
+        private_index_map_type next_private_index_map_;
+    };
 }

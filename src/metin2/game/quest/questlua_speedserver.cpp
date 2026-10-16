@@ -1,7 +1,7 @@
+#include <metin2/game/events/speed_server.h>
 #include <metin2/game/quest/lua_incl.h>
 #include <metin2/game/quest/questlua.h>
 #include <metin2/game/quest/questmanager.h>
-#include <metin2/game/events/speed_server.h>
 
 #include <metin2/log/log.h>
 
@@ -10,198 +10,174 @@
 
 namespace metin2::game {
 
-namespace quest
-{
+    namespace quest {
 
-	auto speedserver_get_wday (lua_State* lua) -> int
-	{
-		if (!lua_isnumber(lua,1) || !lua_isnumber(lua,2))
-		{
-			metin2::log::error("Invalid arguments");
-		}
+        auto speedserver_get_wday(lua_State *lua) -> int {
+            if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2)) {
+                metin2::log::error("Invalid arguments");
+            }
 
-		uint8_t empire = lua_tonumber(lua,1);
+            uint8_t empire = lua_tonumber(lua, 1);
 
-		if (empire > 3)
-		{
-			metin2::log::error("Invalid empire argument");
-			return 0;
-		}
+            if (empire > 3) {
+                metin2::log::error("Invalid empire argument");
+                return 0;
+            }
 
-		int wday = lua_tonumber(lua,2) - 1;
+            int wday = lua_tonumber(lua, 2) - 1;
 
-		if (wday < 0 || wday > 6)
-		{
-			metin2::log::error("Weekday {:d} is out of range", wday);
-			return 0;
-		}
+            if (wday < 0 || wday > 6) {
+                metin2::log::error("Weekday {:d} is out of range", wday);
+                return 0;
+            }
 
-		metin2::log::debug("Speed server: exp table for empire {:d} weekday {:d}", empire, wday);
+            metin2::log::debug("Speed server: exp table for empire {:d} weekday {:d}", empire, wday);
 
-		std::list <hme> time_lst = speed_server_manager::instance().wday_exp_table_of_empire(empire, wday);
+            std::list<hme> time_lst = speed_server_manager::instance().wday_exp_table_of_empire(empire, wday);
 
-		int i = 0;
-		for (std::list <hme>::iterator it = time_lst.begin();
-				it != time_lst.end(); it++)
-		{
-			lua_pushnumber (lua, it->hour);
-			lua_pushnumber (lua, it->min);
-			lua_pushnumber (lua, it->exp);
-			i++;
-		}
+            int i = 0;
+            for (std::list<hme>::iterator it = time_lst.begin();
+                it != time_lst.end(); it++) {
+                lua_pushnumber(lua, it->hour);
+                lua_pushnumber(lua, it->min);
+                lua_pushnumber(lua, it->exp);
+                i++;
+            }
 
-		return i * 3;
-	}
+            return i * 3;
+        }
 
-	auto speedserver_set_wday (lua_State* lua) -> int
-	{
-		uint8_t empire = lua_tonumber (lua, 1);
-		int wday = lua_tonumber (lua, 2);
-		uint8_t end_hour = lua_tonumber(lua, 3);
-		uint8_t end_minite = lua_tonumber(lua, 4);
-		int exp_percent = lua_tonumber(lua, 5);
+        auto speedserver_set_wday(lua_State *lua) -> int {
+            uint8_t empire = lua_tonumber(lua, 1);
+            int wday = lua_tonumber(lua, 2);
+            uint8_t end_hour = lua_tonumber(lua, 3);
+            uint8_t end_minite = lua_tonumber(lua, 4);
+            int exp_percent = lua_tonumber(lua, 5);
 
-		speed_server_manager::instance().set_wday_exp_table_of_empire (empire, wday - 1, hme (end_hour, end_minite, exp_percent));
+            speed_server_manager::instance().set_wday_exp_table_of_empire(empire, wday - 1, hme(end_hour, end_minite, exp_percent));
 
-		return 0;
-	}
+            return 0;
+        }
 
-	auto speedserver_init_wday (lua_State* lua) -> int
-	{
-		if (!lua_isnumber (lua, 1) || !lua_isnumber (lua, 2))
-		{
-			metin2::log::error("Invalid arguments");
-			return 0;
-		}
+        auto speedserver_init_wday(lua_State *lua) -> int {
+            if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2)) {
+                metin2::log::error("Invalid arguments");
+                return 0;
+            }
 
-		uint8_t empire = lua_tonumber (lua, 1);
-		int wday = lua_tonumber (lua, 2);
-		
-		metin2::log::debug("Speed server: reset weekday {1:d} for empire {0:d}", empire, wday);
+            uint8_t empire = lua_tonumber(lua, 1);
+            int wday = lua_tonumber(lua, 2);
 
-		speed_server_manager::instance().init_wday_exp_table_of_empire (empire, wday - 1);
-		
-		return 0;
-	}
+            metin2::log::debug("Speed server: reset weekday {1:d} for empire {0:d}", empire, wday);
 
-	auto speedserver_get_holiday (lua_State* lua) -> int
-	{
-		if (!lua_isnumber(lua,1) || !lua_isnumber(lua,2) || !lua_isnumber(lua,3) || !lua_isnumber(lua,4))
-		{
-			metin2::log::error("Invalid arguments");
-		}
+            speed_server_manager::instance().init_wday_exp_table_of_empire(empire, wday - 1);
 
-		uint8_t empire = lua_tonumber(lua,1);
+            return 0;
+        }
 
-		if (empire > 4)
-		{
-			metin2::log::error("Invalid empire argument");
-			return 0;
-		}
+        auto speedserver_get_holiday(lua_State *lua) -> int {
+            if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2) || !lua_isnumber(lua, 3) || !lua_isnumber(lua, 4)) {
+                metin2::log::error("Invalid arguments");
+            }
 
-		date date = game::events::date (lua_tonumber(lua,2) - 1900, lua_tonumber(lua,3) - 1, lua_tonumber(lua,4));
-		
-		metin2::log::debug("Speed server: holiday table for empire {:d}, date {:d} {:d} {:d}", empire, date.year, date.mon, date.day);
-		
-		bool is_exist;
+            uint8_t empire = lua_tonumber(lua, 1);
 
-		std::list <hme> time_lst = speed_server_manager::instance().holiday_exp_table_of_empire(empire, date, is_exist);
+            if (empire > 4) {
+                metin2::log::error("Invalid empire argument");
+                return 0;
+            }
 
-		int i = 0;
-		if (is_exist)
-		{
-			for (std::list <hme>::iterator it = time_lst.begin();
-					it != time_lst.end(); it++)
-			{
-				lua_pushnumber (lua, it->hour);
-				lua_pushnumber (lua, it->min);
-				lua_pushnumber (lua, it->exp);
-				i++;
-			}
-			return i * 3;
-		}
-		else
-			return 0;
+            date date = game::events::date(lua_tonumber(lua, 2) - 1900, lua_tonumber(lua, 3) - 1, lua_tonumber(lua, 4));
 
-	}
+            metin2::log::debug("Speed server: holiday table for empire {:d}, date {:d} {:d} {:d}", empire, date.year, date.mon, date.day);
 
-	auto speedserver_set_holiday (lua_State* lua) -> int
-	{
-		if (!lua_isnumber(lua,1) || !lua_isnumber(lua,2) || !lua_isnumber(lua,3) || !lua_isnumber(lua,4) 
-				|| !lua_isnumber(lua,5) || !lua_isnumber(lua,6) || !lua_isnumber(lua,7))
-		{
-			metin2::log::error("Invalid arguments");
-		}
+            bool is_exist;
 
-		uint8_t empire = lua_tonumber (lua, 1);
-		date date = game::events::date (lua_tonumber(lua,2) - 1900, lua_tonumber(lua,3) - 1, lua_tonumber(lua,4));
-		uint8_t end_hour = lua_tonumber(lua, 5);
-		uint8_t end_minite = lua_tonumber(lua, 6);
-		int exp_percent = lua_tonumber(lua, 7);
+            std::list<hme> time_lst = speed_server_manager::instance().holiday_exp_table_of_empire(empire, date, is_exist);
 
-		metin2::log::debug("Speed server: until {:d}:{:02d}, exp {:d}%", end_hour, end_minite, exp_percent);
+            int i = 0;
+            if (is_exist) {
+                for (std::list<hme>::iterator it = time_lst.begin();
+                    it != time_lst.end(); it++) {
+                    lua_pushnumber(lua, it->hour);
+                    lua_pushnumber(lua, it->min);
+                    lua_pushnumber(lua, it->exp);
+                    i++;
+                }
+                return i * 3;
+            } else
+                return 0;
+        }
 
-		speed_server_manager::instance().set_holiday_exp_table_of_empire (empire, date, hme (end_hour, end_minite, exp_percent));
+        auto speedserver_set_holiday(lua_State *lua) -> int {
+            if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2) || !lua_isnumber(lua, 3) || !lua_isnumber(lua, 4) || !lua_isnumber(lua, 5) || !lua_isnumber(lua, 6) || !lua_isnumber(lua, 7)) {
+                metin2::log::error("Invalid arguments");
+            }
 
-		return 0;
-	}
+            uint8_t empire = lua_tonumber(lua, 1);
+            date date = game::events::date(lua_tonumber(lua, 2) - 1900, lua_tonumber(lua, 3) - 1, lua_tonumber(lua, 4));
+            uint8_t end_hour = lua_tonumber(lua, 5);
+            uint8_t end_minite = lua_tonumber(lua, 6);
+            int exp_percent = lua_tonumber(lua, 7);
 
-	auto speedserver_init_holiday (lua_State* lua) -> int
-	{
-		if (!lua_isnumber(lua,1) || !lua_isnumber(lua,2) || !lua_isnumber(lua,3) || !lua_isnumber(lua,4))
-		{
-			metin2::log::error("Invalid arguments");
-		}
+            metin2::log::debug("Speed server: until {:d}:{:02d}, exp {:d}%", end_hour, end_minite, exp_percent);
 
-		uint8_t empire = lua_tonumber (lua, 1);
-		date date = game::events::date (lua_tonumber(lua,2) - 1900, lua_tonumber(lua,3) - 1, lua_tonumber(lua,4));
-	
-		speed_server_manager::instance().init_holiday_exp_table_of_empire (empire, date);
-		
-		return 0;
-	}
+            speed_server_manager::instance().set_holiday_exp_table_of_empire(empire, date, hme(end_hour, end_minite, exp_percent));
 
-	auto speedserver_get_current_exp_priv (lua_State* lua) -> int
-	{
-		if (!lua_isnumber (lua, 1))
-		{
-			metin2::log::error("Invalid empire argument");
-			return 0;
-		}
-		uint8_t empire = lua_tonumber(lua, 1);
+            return 0;
+        }
 
-		int duration;
-		bool is_change;
+        auto speedserver_init_holiday(lua_State *lua) -> int {
+            if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2) || !lua_isnumber(lua, 3) || !lua_isnumber(lua, 4)) {
+                metin2::log::error("Invalid arguments");
+            }
 
-		hme hme = speed_server_manager::instance().current_exp_priv_of_empire (empire, duration, is_change);
+            uint8_t empire = lua_tonumber(lua, 1);
+            date date = game::events::date(lua_tonumber(lua, 2) - 1900, lua_tonumber(lua, 3) - 1, lua_tonumber(lua, 4));
 
-		lua_pushnumber (lua, hme.hour);
-		lua_pushnumber (lua, hme.min);
-		lua_pushnumber (lua, hme.exp);
-		lua_pushnumber (lua, duration);
-		lua_pushboolean (lua, is_change);
+            speed_server_manager::instance().init_holiday_exp_table_of_empire(empire, date);
 
-		metin2::log::debug("Speed server: empire {:d} exp bonus changed {:d}", empire, is_change);
+            return 0;
+        }
 
-		return 5;
-	}
+        auto speedserver_get_current_exp_priv(lua_State *lua) -> int {
+            if (!lua_isnumber(lua, 1)) {
+                metin2::log::error("Invalid empire argument");
+                return 0;
+            }
+            uint8_t empire = lua_tonumber(lua, 1);
 
-	void register_speed_server_function_table()
-	{
-		luaL_reg speed_server_functions[] = 
-		{
-			{	"get_holiday",	speedserver_get_holiday	},
-			{	"set_holiday",	speedserver_set_holiday	},
-			{	"get_wday",	speedserver_get_wday	},
-			{	"set_wday",	speedserver_set_wday	},
-			{	"init_holiday", speedserver_init_holiday	},
-			{	"init_wday", speedserver_init_wday	},
-			{	"get_current_exp_priv", speedserver_get_current_exp_priv	},
+            int duration;
+            bool is_change;
 
-			{ nullptr, nullptr}
-		};
+            hme hme = speed_server_manager::instance().current_exp_priv_of_empire(empire, duration, is_change);
 
-		quest_manager::instance().add_lua_function_table("speedserver", speed_server_functions);
-	}
-}
+            lua_pushnumber(lua, hme.hour);
+            lua_pushnumber(lua, hme.min);
+            lua_pushnumber(lua, hme.exp);
+            lua_pushnumber(lua, duration);
+            lua_pushboolean(lua, is_change);
+
+            metin2::log::debug("Speed server: empire {:d} exp bonus changed {:d}", empire, is_change);
+
+            return 5;
+        }
+
+        void register_speed_server_function_table() {
+            luaL_reg speed_server_functions[] =
+                {
+                    {"get_holiday",          speedserver_get_holiday         },
+                    {"set_holiday",          speedserver_set_holiday         },
+                    {"get_wday",             speedserver_get_wday            },
+                    {"set_wday",             speedserver_set_wday            },
+                    {"init_holiday",         speedserver_init_holiday        },
+                    {"init_wday",            speedserver_init_wday           },
+                    {"get_current_exp_priv", speedserver_get_current_exp_priv},
+
+                    {nullptr,                nullptr                         }
+            };
+
+            quest_manager::instance().add_lua_function_table("speedserver", speed_server_functions);
+        }
+    }
 }

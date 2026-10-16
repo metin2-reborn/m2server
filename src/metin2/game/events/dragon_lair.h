@@ -9,31 +9,29 @@
 
 namespace metin2::game::inline events {
 
-class dragon_lair
-{
-	public:
-		explicit dragon_lair (uint32_t guild_id);
-		virtual ~dragon_lair ();
+    class dragon_lair {
+      public:
+        explicit dragon_lair(uint32_t guild_id);
+        virtual ~dragon_lair();
 
-		auto estimated_time () const -> uint32_t;
+        auto estimated_time() const -> uint32_t;
 
-		void on_dragon_dead (character * dragon);
+        void on_dragon_dead(character *dragon);
 
-	private:
-		uint32_t start_time_;
-		uint32_t guild_id_;
-};
+      private:
+        uint32_t start_time_;
+        uint32_t guild_id_;
+    };
 
-class dragon_lair_manager : public singleton<dragon_lair_manager>
-{
-	public:
-		dragon_lair_manager ();
-		~dragon_lair_manager () override;
+    class dragon_lair_manager : public singleton<dragon_lair_manager> {
+      public:
+        dragon_lair_manager();
+        ~dragon_lair_manager() override;
 
-		auto start (int32_t map_index_from, int32_t base_map_index, uint32_t guild_id) -> bool;
-		void on_dragon_dead (character * dragon, uint32_t killer_guild_id);
+        auto start(int32_t map_index_from, int32_t base_map_index, uint32_t guild_id) -> bool;
+        void on_dragon_dead(character *dragon, uint32_t killer_guild_id);
 
-	private:
-		std::unordered_map<uint32_t, dragon_lair*> lair_map_;
-};
+      private:
+        std::unordered_map<uint32_t, dragon_lair *> lair_map_;
+    };
 }

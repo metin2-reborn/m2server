@@ -10,46 +10,40 @@
 
 namespace metin2::game::inline protocol {
 
-lzo_manager::lzo_manager()
-{
-	if (lzo_init() != LZO_E_OK)
-	{
-		fprintf(stderr, "lzo_init() failed\n");
-		abort();
-	}
+    lzo_manager::lzo_manager() {
+        if (lzo_init() != LZO_E_OK) {
+            fprintf(stderr, "lzo_init() failed\n");
+            abort();
+        }
 
-	workmem_ = (uint8_t *) malloc(LZO1X_MEM_COMPRESS);
-	memset( workmem_, 0, LZO1X_MEM_COMPRESS );
-}
+        workmem_ = (uint8_t *)malloc(LZO1X_MEM_COMPRESS);
+        memset(workmem_, 0, LZO1X_MEM_COMPRESS);
+    }
 
-lzo_manager::~lzo_manager()
-{
-	free(workmem_);
-	workmem_ = nullptr;
-}
+    lzo_manager::~lzo_manager() {
+        free(workmem_);
+        workmem_ = nullptr;
+    }
 
-auto lzo_manager::compress(const uint8_t* src, size_t srcsize, uint8_t* dest, lzo_uint * pui_dest_size) -> bool
-{
-	int ret = lzo1x_1_compress(src, srcsize, dest, pui_dest_size, work_memory());
+    auto lzo_manager::compress(const uint8_t *src, size_t srcsize, uint8_t *dest, lzo_uint *pui_dest_size) -> bool {
+        int ret = lzo1x_1_compress(src, srcsize, dest, pui_dest_size, work_memory());
 
-	if (ret != LZO_E_OK)
-		return false;
+        if (ret != LZO_E_OK)
+            return false;
 
-	return true;
-}
+        return true;
+    }
 
-auto lzo_manager::decompress(const uint8_t * src, size_t srcsize, uint8_t * dest, lzo_uint * pui_dest_size) -> bool
-{
-	int ret = lzo1x_decompress_safe(src, srcsize, dest, pui_dest_size, work_memory());
+    auto lzo_manager::decompress(const uint8_t *src, size_t srcsize, uint8_t *dest, lzo_uint *pui_dest_size) -> bool {
+        int ret = lzo1x_decompress_safe(src, srcsize, dest, pui_dest_size, work_memory());
 
-	if (ret != LZO_E_OK)
-		return false;
+        if (ret != LZO_E_OK)
+            return false;
 
-	return true;
-}
+        return true;
+    }
 
-auto lzo_manager::max_compressed_size(size_t original) -> size_t
-{
-	return (original + (original >> 4) + 64 + 3);
-}
+    auto lzo_manager::max_compressed_size(size_t original) -> size_t {
+        return (original + (original >> 4) + 64 + 3);
+    }
 }

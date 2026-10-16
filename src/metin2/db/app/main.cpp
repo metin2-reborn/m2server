@@ -1,20 +1,20 @@
 #include <metin2/db/app/main.h>
 
 #include <metin2/db/clients/client_manager.h>
-#include <metin2/db/storage/db_manager.h>
+#include <metin2/db/empire/monarch.h>
+#include <metin2/db/empire/priv_manager.h>
 #include <metin2/db/guilds/guild_manager.h>
 #include <metin2/db/items/item_award_manager.h>
 #include <metin2/db/items/item_id_range_manager.h>
-#include <metin2/db/social/marriage.h>
-#include <metin2/db/empire/monarch.h>
 #include <metin2/db/logs/money_log.h>
-#include <metin2/db/empire/priv_manager.h>
+#include <metin2/db/social/marriage.h>
+#include <metin2/db/storage/db_manager.h>
 
 #include <metin2/common/startup.h>
-#include <metin2/core/core_signal.h>
 #include <metin2/config/config.h>
-#include <metin2/log/log.h>
+#include <metin2/core/core_signal.h>
 #include <metin2/core/main.h>
+#include <metin2/log/log.h>
 
 #include <csignal>
 #include <string>
@@ -24,161 +24,144 @@
 #undef __FreeBSD__
 
 namespace metin2::db::inline app {
-void set_player_db_name(const char* name);
-void set_table_postfix(const char* postfix);
-auto start() -> int;
+    void set_player_db_name(const char *name);
+    void set_table_postfix(const char *postfix);
+    auto start() -> int;
 
-std::string table_postfix;
-std::string locale_name_column = "name";
-std::string player_db_name = "";
+    std::string table_postfix;
+    std::string locale_name_column = "name";
+    std::string player_db_name = "";
 
-// Must be longer than the player and item cache flush intervals.
-int logout_seconds = 60*10;
+    // Must be longer than the player and item cache flush intervals.
+    int logout_seconds = 60 * 10;
 
+    void emergency_sig(int sig) {
+        if (sig == SIGSEGV)
+            metin2::log::error("Received SIGSEGV");
+        else if (sig == SIGUSR1)
+            metin2::log::info("Received SIGUSR1");
 
-void emergency_sig(int sig)
-{
-	if (sig == SIGSEGV)
-		metin2::log::error("Received SIGSEGV");
-	else if (sig == SIGUSR1)
-		metin2::log::info("Received SIGUSR1");
+        if (sig == SIGSEGV)
+            abort();
+    }
 
-	if (sig == SIGSEGV)
-		abort();
-}
+    auto run() -> int {
 
-auto run() -> int
-{
+        struct core_cleanup {
+            ~core_cleanup() { thecore_destroy(); }
+        } coreCleanup;
 
+        db_manager DBManager;
+        client_manager ClientManager;
+        guild_manager GuildManager;
+        priv_manager PrivManager;
+        money_log MoneyLog;
+        item_award_manager ItemAwardManager;
+        marriage::manager MarriageManager;
+        monarch Monarch;
+        item_id_range_manager ItemIDRangeManager;
+        if (!start())
+            return 1;
 
+        GuildManager.initialize();
+        MarriageManager.initialize();
+        ItemIDRangeManager.build();
+        metin2::log::info("Db cache server starting");
 
-	struct core_cleanup
-	{
-		~core_cleanup() { thecore_destroy(); }
-	} coreCleanup;
+        if (!mark_server_ready()) return 1;
+        client_manager::instance().main_loop();
 
-	db_manager DBManager; 
-	client_manager ClientManager;
-	guild_manager GuildManager;
-	priv_manager PrivManager;
-	money_log MoneyLog;
-	item_award_manager ItemAwardManager;
-	marriage::manager MarriageManager;
-	monarch Monarch;
-	item_id_range_manager ItemIDRangeManager;
-	if (!start())
-		return 1;
+        signal_timer_disable();
 
-	GuildManager.initialize();
-	MarriageManager.initialize();
-	ItemIDRangeManager.build();
-	metin2::log::info("Db cache server starting");
+        DBManager.quit();
+        int iCount;
 
-	if (!mark_server_ready()) return 1;
-	client_manager::instance().main_loop();
+        while (1) {
+            iCount = 0;
 
-	signal_timer_disable();
+            iCount += db_manager::instance().count_return_query(SQL_PLAYER);
+            iCount += db_manager::instance().count_async_query(SQL_PLAYER);
 
-	DBManager.quit();
-	int iCount;
+            if (iCount == 0)
+                break;
 
-	while (1)
-	{
-		iCount = 0;
+            usleep(1000);
+            metin2::log::info("Waiting for {:d} pending queries to finish", iCount);
+        }
 
-		iCount += db_manager::instance().count_return_query(SQL_PLAYER);
-		iCount += db_manager::instance().count_async_query(SQL_PLAYER);
+        return 0;
+    }
 
-		if (iCount == 0)
-			break;
+    static auto connect_database(int slot, const std::string &name) -> bool {
+        const metin2::config::database_settings &database = metin2::config::database();
 
-		usleep(1000);
-		metin2::log::info("Waiting for {:d} pending queries to finish", iCount);
-	}
+        for (int attempt = 1; attempt <= 6; ++attempt) {
+            if (db_manager::instance().connect(slot, database.host.c_str(), database.port, name.c_str(), database.user.c_str(), database.password.c_str())) {
+                metin2::log::info("Connected to database {}", name);
+                return true;
+            }
 
-	return 0;
-}
+            metin2::log::warn("Cannot connect to database {} (attempt {:d}), retrying in 5 seconds", name, attempt);
+            sleep(5);
+        }
 
-static auto connect_database(int slot, const std::string & name) -> bool
-{
-	const metin2::config::database_settings & database = metin2::config::database();
+        metin2::log::error("Cannot connect to database {}", name);
+        return false;
+    }
 
-	for (int attempt = 1; attempt <= 6; ++attempt)
-	{
-		if (db_manager::instance().connect(slot, database.host.c_str(), database.port, name.c_str(), database.user.c_str(), database.password.c_str()))
-		{
-			metin2::log::info("Connected to database {}", name);
-			return true;
-		}
+    auto start() -> int {
+        const metin2::config::db_settings &db = metin2::config::db();
 
-		metin2::log::warn("Cannot connect to database {} (attempt {:d}), retrying in 5 seconds", name, attempt);
-		sleep(5);
-	}
+        if (!thecore_init(db.heart_fps))
+            return false;
+        signal_timer_enable(60);
 
-	metin2::log::error("Cannot connect to database {}", name);
-	return false;
-}
+        set_table_postfix(metin2::config::database().table_postfix.c_str());
+        client_manager::instance().set_cache_flush_count_limit(db.cache_flush_limit_per_second);
+        client_manager::instance().set_player_id_start(db.player_id_start);
+        locale_name_column = db.name_column;
 
-auto start() -> int
-{
-	const metin2::config::db_settings & db = metin2::config::db();
+        const metin2::config::database_settings &database = metin2::config::database();
+        if (!connect_database(SQL_PLAYER, database.player) || !connect_database(SQL_ACCOUNT, database.account) ||
+            !connect_database(SQL_COMMON, database.common))
+            return false;
+        set_player_db_name(database.player.c_str());
 
-	if (!thecore_init(db.heart_fps))
-		return false;
-	signal_timer_enable(60);
+        metin2::log::info("Initialising client manager");
 
-	set_table_postfix(metin2::config::database().table_postfix.c_str());
-	client_manager::instance().set_cache_flush_count_limit(db.cache_flush_limit_per_second);
-	client_manager::instance().set_player_id_start(db.player_id_start);
-	locale_name_column = db.name_column;
+        if (!client_manager::instance().initialize()) {
+            metin2::log::error("Client manager initialisation failed");
+            return false;
+        }
 
-	const metin2::config::database_settings & database = metin2::config::database();
-	if (!connect_database(SQL_PLAYER, database.player) || !connect_database(SQL_ACCOUNT, database.account) ||
-		!connect_database(SQL_COMMON, database.common))
-		return false;
-	set_player_db_name(database.player.c_str());
+        metin2::log::info("Client manager initialised");
 
-	metin2::log::info("Initialising client manager");
+        signal(SIGUSR1, emergency_sig);
+        signal(SIGSEGV, emergency_sig);
+        return true;
+    }
 
-	if (!client_manager::instance().initialize())
-	{
-		metin2::log::error("Client manager initialisation failed"); 
-		return false;
-	}
+    void set_table_postfix(const char *postfix) {
+        if (!postfix || !*postfix)
+            table_postfix = "";
+        else
+            table_postfix = postfix;
+    }
 
-	metin2::log::info("Client manager initialised");
+    auto get_table_postfix() -> const char * {
+        return table_postfix.c_str();
+    }
 
-	signal(SIGUSR1, emergency_sig);
-	signal(SIGSEGV, emergency_sig);
-	return true;
-}
+    void set_player_db_name(const char *name) {
+        if (!name || !*name)
+            player_db_name = "";
+        else {
+            player_db_name = name;
+            player_db_name += ".";
+        }
+    }
 
-void set_table_postfix(const char* postfix)
-{
-	if (!postfix || !*postfix)
-		table_postfix = "";
-	else
-		table_postfix = postfix;
-}
-
-auto get_table_postfix() -> const char *
-{
-	return table_postfix.c_str();
-}
-
-void set_player_db_name(const char* name)
-{
-	if (! name || ! *name)
-		player_db_name = "";
-	else
-	{
-		player_db_name = name;
-		player_db_name += ".";
-	}
-}
-
-auto get_player_db_name() -> const char *
-{
-	return player_db_name.c_str();
-}
+    auto get_player_db_name() -> const char * {
+        return player_db_name.c_str();
+    }
 }

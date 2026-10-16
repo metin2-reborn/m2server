@@ -44,7 +44,8 @@ namespace {
         return lines;
     }
 
-    enum class colour : std::uint8_t { red = 1, green = 2 };
+    enum class colour : std::uint8_t { red = 1,
+        green = 2 };
 }
 
 TEST(log_writes_formatted_messages) {

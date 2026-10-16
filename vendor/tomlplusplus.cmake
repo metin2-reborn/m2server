@@ -13,5 +13,4 @@ target_include_directories(tomlplusplus
     SYSTEM INTERFACE "${tomlplusplus_SOURCE_DIR}/include"
 )
 
-# Exceptions off keeps parse errors in toml::parse_result instead of throwing.
 target_compile_definitions(tomlplusplus INTERFACE TOML_EXCEPTIONS=0)

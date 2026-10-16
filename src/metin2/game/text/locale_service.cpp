@@ -1,16 +1,16 @@
 #include <metin2/config/config.h>
 #include <metin2/game/text/locale_service.h>
 
-#include <metin2/game/text/banword.h>
 #include <metin2/game/app/config.h>
-#include <metin2/game/empire/empire_text_convert.h>
-#include <metin2/game/text/locale.hpp>
+#include <metin2/game/app/utils.h>
 #include <metin2/game/characters/mob_manager.h>
 #include <metin2/game/combat/skill_power.h>
-#include <metin2/game/app/utils.h>
+#include <metin2/game/empire/empire_text_convert.h>
+#include <metin2/game/text/banword.h>
+#include <metin2/game/text/locale.hpp>
 
-#include <metin2/proto/length.h>
 #include <metin2/log/log.h>
+#include <metin2/proto/length.h>
 
 #include <cctype>
 #include <cstdio>
@@ -21,113 +21,97 @@
 
 namespace metin2::game::inline text {
 
+    static const std::string service_base_path = "locale/english";
+    static const std::string service_map_path = "locale/english/map";
 
-static const std::string	service_base_path = "locale/english";
-static const std::string	service_map_path = "locale/english/map";
+    std::string locale = "latin1";
+    std::string locale_filename = "locale/english/locale_string.txt";
 
-std::string locale = "latin1";
-std::string locale_filename = "locale/english/locale_string.txt";
+    static_assert(PLAYER_PER_ACCOUNT == 4);
 
+    static auto check_name_independent(const char *str) -> int {
+        if (banword_manager::instance().check_string(str, strlen(str)))
+            return 0;
 
-static_assert(PLAYER_PER_ACCOUNT == 4);
+        char szTmp[256];
+        str_lower(str, szTmp, sizeof(szTmp));
 
-static auto check_name_independent(const char * str) -> int
-{
-	if (banword_manager::instance().check_string(str, strlen(str)))
-		return 0;
+        if (mob_manager::instance().get(szTmp, false))
+            return 0;
 
-	char szTmp[256];
-	str_lower(str, szTmp, sizeof(szTmp));
+        return 1;
+    }
 
-	if (mob_manager::instance().get(szTmp, false))
-		return 0;
+    auto check_name(const char *str) -> int {
+        const char *tmp;
 
-	return 1;
-}
+        if (!str || !*str)
+            return 0;
 
-auto check_name(const char * str) -> int
-{
-	const char*	tmp;
+        if (strlen(str) < 2)
+            return 0;
 
-	if (!str || !*str)
-		return 0;
+        for (tmp = str; *tmp; ++tmp) {
+            if (isdigit(*tmp) || isalpha(*tmp))
+                continue;
+            else
+                return 0;
+        }
 
-	if (strlen(str) < 2)
-		return 0;
+        return check_name_independent(str);
+    }
 
-	for (tmp = str; *tmp; ++tmp)
-	{
-		if (isdigit(*tmp) || isalpha(*tmp))
-			continue;
-		else
-			return 0;
-	}
+    void locale_service_load_locale_string_file() {
+        if (locale_filename.empty())
+            return;
 
-	return check_name_independent(str);
-}
+        if (metin2::config::is_auth())
+            return;
 
-void locale_service_load_locale_string_file()
-{
-	if (locale_filename.empty())
-		return;
+        fprintf(stderr, "LocaleService %s\n", locale_filename.c_str());
 
-	if (metin2::config::is_auth())
-		return;
+        locale_init(locale_filename.c_str());
+    }
 
-	fprintf(stderr, "LocaleService %s\n", locale_filename.c_str());
+    void locale_service_load_empire_text_convert_tables() {
+        char szFileName[256];
 
-	locale_init(locale_filename.c_str());
-}
+        for (int iEmpire = 1; iEmpire <= 3; ++iEmpire) {
+            snprintf(szFileName, sizeof(szFileName), "%s/lang%d.cvt", locale_service_get_base_path().c_str(), iEmpire);
+            metin2::log::info("Loading empire text conversion table {}", szFileName);
 
-void locale_service_load_empire_text_convert_tables()
-{
-	char szFileName[256];
+            load_empire_text_convert_table(iEmpire, szFileName);
+        }
+    }
 
-	for (int iEmpire = 1; iEmpire <= 3; ++iEmpire)
-	{
-		snprintf(szFileName, sizeof(szFileName), "%s/lang%d.cvt", locale_service_get_base_path().c_str(), iEmpire);
-		metin2::log::info( "Loading empire text conversion table {}", szFileName);
+    auto locale_service_init(const std::string &rst_service_name) -> bool {
+        if (rst_service_name != "english") {
+            metin2::log::error("Unsupported locale {} (only english)", rst_service_name.c_str());
+            return false;
+        }
 
-		load_empire_text_convert_table(iEmpire, szFileName);
-	}
-}
+        quest_dir = service_base_path + "/quest";
+        quest_object_dir.clear();
+        quest_object_dir.insert(quest_dir + "/object");
 
-auto locale_service_init(const std::string& rst_service_name) -> bool
-{
-	if (rst_service_name != "english")
-	{
-		metin2::log::error("Unsupported locale {} (only english)", rst_service_name.c_str());
-		return false;
-	}
+        fprintf(stdout, "Setting Locale \"%s\" (Path: %s)\n", rst_service_name.c_str(), service_base_path.c_str());
+        return true;
+    }
 
-	quest_dir = service_base_path + "/quest";
-	quest_object_dir.clear();
-	quest_object_dir.insert(quest_dir + "/object");
+    void locale_service_transfer_default_setting() {
+        if (!table_by_skill::instance().check())
+            exit(1);
+    }
 
-	fprintf(stdout, "Setting Locale \"%s\" (Path: %s)\n", rst_service_name.c_str(), service_base_path.c_str());
-	return true;
-}
+    auto locale_service_get_base_path() -> const std::string & {
+        return service_base_path;
+    }
 
-void locale_service_transfer_default_setting()
-{
-	if (!table_by_skill::instance().check())
-		exit(1);
-}
+    auto locale_service_get_map_path() -> const std::string & {
+        return service_map_path;
+    }
 
-
-
-auto locale_service_get_base_path() -> const std::string&
-{
-	return service_base_path;
-}
-
-auto locale_service_get_map_path() -> const std::string&
-{
-	return service_map_path;
-}
-
-auto locale_service_get_quest_path() -> const std::string&
-{
-	return quest_dir;
-}
+    auto locale_service_get_quest_path() -> const std::string & {
+        return quest_dir;
+    }
 }

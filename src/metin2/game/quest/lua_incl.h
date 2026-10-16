@@ -5,8 +5,8 @@ extern "C" {
 #endif
 
 // IWYU pragma: begin_exports
-#include <lua.h>
 #include <lauxlib.h>
+#include <lua.h>
 #include <lualib.h>
 // IWYU pragma: end_exports
 

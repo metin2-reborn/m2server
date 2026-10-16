@@ -13,191 +13,161 @@
 
 namespace metin2::game::inline text {
 
-typedef std::map< std::string, std::string > locale_string_map_type;
+    typedef std::map<std::string, std::string> locale_string_map_type;
 
-locale_string_map_type locale_string;
+    locale_string_map_type locale_string;
 
+    void locale_add(const char *key, const char *value) {
+        locale_string_map_type::const_iterator iter = locale_string.find(key);
 
-void locale_add(const char *key, const char *value)
-{
-	locale_string_map_type::const_iterator iter = locale_string.find( key );
+        if (iter == locale_string.end()) {
+            locale_string.insert(std::make_pair(key, value));
+        }
+    }
 
-	if( iter == locale_string.end() )
-	{
-		locale_string.insert( std::make_pair( key, value ) );
-	}
-}
+    auto locale_find(const char *string) -> const char * {
 
-auto locale_find(const char *string) -> const char *
-{
+        locale_string_map_type::const_iterator iter = locale_string.find(string);
 
-	locale_string_map_type::const_iterator iter = locale_string.find( string );
+        if (iter == locale_string.end()) {
+            metin2::log::warn("No translation for \"{}\"", string);
+            return string;
+        }
 
-	if( iter == locale_string.end() )
-	{
-		metin2::log::warn("No translation for \"{}\"", string);
-		return string;
-	}
+        return iter->second.c_str();
+    }
 
-	return iter->second.c_str();
-}
+    auto quote_find_end(const char *string) -> const char * {
+        const char *tmp = string;
+        int quote = 0;
 
-auto quote_find_end(const char *string) -> const char *
-{
-	const char  *tmp = string;
-	int         quote = 0;
+        while (*tmp) {
+            if (quote && *tmp == '\\' && *(tmp + 1)) {
+                switch (*(tmp + 1)) {
+                case '"':
+                    tmp += 2;
+                    continue;
+                }
+            } else if (*tmp == '"') {
+                quote = !quote;
+            } else if (!quote && *tmp == ';')
+                return (tmp);
 
-	while (*tmp)
-	{
-		if (quote && *tmp == '\\' && *(tmp + 1))
-		{
-			switch (*(tmp + 1))
-			{
-				case '"':
-					tmp += 2;
-					continue;
-			}
-		}
-		else if (*tmp == '"')
-		{
-			quote = !quote;
-		}
-		else if (!quote && *tmp == ';')
-			return (tmp);
+            tmp++;
+        }
 
-		tmp++;
-	}
+        return (nullptr);
+    }
 
-	return (nullptr);
-}
+    auto locale_convert(const char *src, int len) -> std::unique_ptr<char[]> {
+        const char *tmp;
+        int i, j;
+        char *dest;
+        int start = 0;
+        char last_char = 0;
 
-auto locale_convert(const char *src, int len) -> std::unique_ptr<char[]>
-{
-	const char	*tmp;
-	int		i, j;
-	char	*dest;
-	int		start = 0;
-	char	last_char = 0;
+        if (!len)
+            return nullptr;
 
-	if (!len)
-		return nullptr;
+        auto buf = std::make_unique<char[]>(len + 1);
 
-	auto buf = std::make_unique<char[]>(len + 1);
+        for (j = i = 0, tmp = src, dest = buf.get(); i < len; i++, tmp++) {
+            if (*tmp == '"') {
+                if (last_char != '\\')
+                    start = !start;
+                else
+                    goto ENCODE;
+            } else if (*tmp == ';') {
+                if (last_char != '\\' && !start)
+                    break;
+                else
+                    goto ENCODE;
+            } else if (start) {
+            ENCODE:
+                if (*tmp == '\\' && *(tmp + 1) == 'n') {
+                    *(dest++) = '\n';
+                    tmp++;
+                    last_char = '\n';
+                } else {
+                    *(dest++) = *tmp;
+                    last_char = *tmp;
+                }
 
-	for (j = i = 0, tmp = src, dest = buf.get(); i < len; i++, tmp++)
-	{
-		if (*tmp == '"')
-		{
-			if (last_char != '\\')
-				start = !start;
-			else
-				goto ENCODE;
-		}
-		else if (*tmp == ';')
-		{
-			if (last_char != '\\' && !start)
-				break;
-			else
-				goto ENCODE;
-		}
-		else if (start)
-		{
-ENCODE:
-			if (*tmp == '\\' && *(tmp + 1) == 'n')
-			{
-				*(dest++) = '\n';
-				tmp++;
-				last_char = '\n';
-			}
-			else
-			{
-				*(dest++) = *tmp;
-				last_char = *tmp;
-			}
+                j++;
+            }
+        }
 
-			j++;
-		}
-	}
+        if (!j)
+            return nullptr;
 
-	if (!j)
-		return nullptr;
+        *dest = '\0';
+        return (buf);
+    }
 
-	*dest = '\0';
-	return (buf);
-}
+    constexpr int NUM_LOCALES = 2;
+    void locale_init(const char *filename) {
+        FILE *fp = fopen(filename, "rb");
 
-constexpr int NUM_LOCALES = 2;
-void locale_init(const char *filename)
-{
-	FILE        *fp = fopen(filename, "rb");
+        if (!fp) return;
 
-	if (!fp) return;
+        fseek(fp, 0L, SEEK_END);
+        int i = ftell(fp);
+        fseek(fp, 0L, SEEK_SET);
 
-	fseek(fp, 0L, SEEK_END);
-	int i = ftell(fp); 
-	fseek(fp, 0L, SEEK_SET);
+        i++;
 
-	i++;
+        auto buf = std::make_unique<char[]>(i);
 
-	auto buf = std::make_unique<char[]>(i);
+        fread(buf.get(), i - 1, sizeof(char), fp);
 
-	fread(buf.get(), i - 1, sizeof(char), fp);
+        fclose(fp);
 
-	fclose(fp);
+        const char *tmp;
+        const char *end;
 
-	const char * tmp;
-	const char * end;
+        std::unique_ptr<char[]> strings[NUM_LOCALES];
 
-	std::unique_ptr<char[]>	strings[NUM_LOCALES];
+        if (!buf) {
+            metin2::log::error("Cannot read locale file {}", filename);
+            exit(1);
+        }
 
-	if (!buf)
-	{
-		metin2::log::error("Cannot read locale file {}", filename);
-		exit(1);
-	}
+        tmp = buf.get();
 
-	tmp = buf.get();
+        do {
+            for (i = 0; i < NUM_LOCALES; i++)
+                strings[i].reset();
 
-	do
-	{
-		for (i = 0; i < NUM_LOCALES; i++)
-			strings[i].reset();
+            if (*tmp == '"') {
+                for (i = 0; i < NUM_LOCALES; i++) {
+                    if (!(end = quote_find_end(tmp)))
+                        break;
 
-		if (*tmp == '"')
-		{
-			for (i = 0; i < NUM_LOCALES; i++)
-			{
-				if (!(end = quote_find_end(tmp)))
-					break;
+                    strings[i] = locale_convert(tmp, end - tmp);
+                    tmp = ++end;
 
-				strings[i] = locale_convert(tmp, end - tmp);
-				tmp = ++end;
+                    while (*tmp == '\n' || *tmp == '\r' || *tmp == ' ')
+                        tmp++;
 
-				while (*tmp == '\n' || *tmp == '\r' || *tmp == ' ') tmp++;
+                    if (i + 1 == NUM_LOCALES)
+                        break;
 
-				if (i + 1 == NUM_LOCALES)
-					break;
+                    if (*tmp != '"') {
+                        metin2::log::error("Invalid format in locale file {}", filename);
+                        break;
+                    }
+                }
 
-				if (*tmp != '"')
-				{
-					metin2::log::error("Invalid format in locale file {}", filename);
-					break;
-				}
-			}
+                if (strings[0] == nullptr || strings[1] == nullptr)
+                    break;
 
-			if (strings[0] == nullptr || strings[1] == nullptr)
-				break;
+                locale_add(strings[0].get(), strings[1].get());
+            } else {
+                tmp = strchr(tmp, '\n');
 
-			locale_add(strings[0].get(), strings[1].get());
-		}
-		else
-		{
-			tmp = strchr(tmp, '\n');
-
-			if (tmp)
-				tmp++;
-		}
-	}
-	while (tmp && *tmp);
-}
+                if (tmp)
+                    tmp++;
+            }
+        } while (tmp && *tmp);
+    }
 }

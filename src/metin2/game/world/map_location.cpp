@@ -13,49 +13,43 @@
 
 namespace metin2::game::inline world {
 
-map_locations locations;
+    map_locations locations;
 
-auto map_locations::get(int32_t x, int32_t y, int32_t & index, int32_t & addr, uint16_t & port) -> bool
-{
-	index = sectree_manager::instance().map_index(x, y);
+    auto map_locations::get(int32_t x, int32_t y, int32_t &index, int32_t &addr, uint16_t &port) -> bool {
+        index = sectree_manager::instance().map_index(x, y);
 
-	return get(index, addr, port);
-}
+        return get(index, addr, port);
+    }
 
-auto map_locations::get(int index, int32_t & addr_value, uint16_t & port_value) -> bool
-{
-	if (index == 0)
-	{
-		metin2::log::warn( "Cannot look up server for invalid map index {:d}", index);
-		return false;
-	}
+    auto map_locations::get(int index, int32_t &addr_value, uint16_t &port_value) -> bool {
+        if (index == 0) {
+            metin2::log::warn("Cannot look up server for invalid map index {:d}", index);
+            return false;
+        }
 
-	std::map<int32_t, location>::iterator it = map_address_.find(index);
+        std::map<int32_t, location>::iterator it = map_address_.find(index);
 
-	if (map_address_.end() == it)
-	{
-		metin2::log::warn( "No server known for map {:d}", index);
-		std::map<int32_t, location>::iterator i;
-		for ( i	= map_address_.begin(); i != map_address_.end(); ++i)
-		{
-			metin2::log::debug( "Known map {:d} on server {:x}:{:d}", i->first, i->second.addr, i->second.port);
-		}
-		return false;
-	}
+        if (map_address_.end() == it) {
+            metin2::log::warn("No server known for map {:d}", index);
+            std::map<int32_t, location>::iterator i;
+            for (i = map_address_.begin(); i != map_address_.end(); ++i) {
+                metin2::log::debug("Known map {:d} on server {:x}:{:d}", i->first, i->second.addr, i->second.port);
+            }
+            return false;
+        }
 
-	addr_value = it->second.addr;
-	port_value = it->second.port;
-	return true;
-}
+        addr_value = it->second.addr;
+        port_value = it->second.port;
+        return true;
+    }
 
-void map_locations::insert(int32_t index, const char * host, uint16_t port_value)
-{
-	location loc;
+    void map_locations::insert(int32_t index, const char *host, uint16_t port_value) {
+        location loc;
 
-	loc.addr = inet_addr(host);
-	loc.port = port_value;
+        loc.addr = inet_addr(host);
+        loc.port = port_value;
 
-	map_address_.insert(std::make_pair(index, loc));
-	metin2::log::info( "Map {:d} is on server {}:{:d}", index, host, port_value);
-}
+        map_address_.insert(std::make_pair(index, loc));
+        metin2::log::info("Map {:d} is on server {}:{:d}", index, host, port_value);
+    }
 }

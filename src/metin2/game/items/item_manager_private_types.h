@@ -7,32 +7,28 @@
 
 namespace metin2::game::inline items {
 
-class item_drop_info
-{
-public:
-	item_drop_info(int level_start_value, int level_end_value, int percent_value, uint32_t vnum_value) :
-	  level_start(level_start_value), level_end(level_end_value), percent(percent_value), vnum(vnum_value)
-	  {
-	  }
+    class item_drop_info {
+      public:
+        item_drop_info(int level_start_value, int level_end_value, int percent_value, uint32_t vnum_value) : level_start(level_start_value), level_end(level_end_value), percent(percent_value), vnum(vnum_value) {
+        }
 
-	  int	level_start;
-	  int	level_end;
-	  int	percent;
-	  uint32_t	vnum;
+        int level_start;
+        int level_end;
+        int percent;
+        uint32_t vnum;
 
-	  friend auto operator < (const item_drop_info & l, const item_drop_info & r) -> bool
-	  {
-		  return l.level_end < r.level_end;
-	  }
-};
+        friend auto operator<(const item_drop_info &l, const item_drop_info &r) -> bool {
+            return l.level_end < r.level_end;
+        }
+    };
 
-extern std::vector<item_drop_info> vec_pk_common_drop_item[MOB_RANK_MAX_NUM];
+    extern std::vector<item_drop_info> vec_pk_common_drop_item[MOB_RANK_MAX_NUM];
 
-struct drop_item {
-	int		lv_start;
-	int		lv_end;
-	float	percent;
-	char	item_name[PROTO_NAME_MAX_LEN + 1];
-	int		count;
-};
+    struct drop_item {
+        int lv_start;
+        int lv_end;
+        float percent;
+        char item_name[PROTO_NAME_MAX_LEN + 1];
+        int count;
+    };
 }

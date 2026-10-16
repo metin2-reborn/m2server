@@ -1,12 +1,12 @@
 #include <metin2/game/world/sectree.h>
 
-#include <metin2/game/characters/character.h>
-#include <metin2/game/characters/character_manager.h>
-#include <metin2/game/protocol/desc_manager.h>
-#include <metin2/game/items/item.h>
-#include <metin2/game/items/item_manager.h>
 #include <metin2/game/app/typedef.h>
 #include <metin2/game/app/utils.h>
+#include <metin2/game/characters/character.h>
+#include <metin2/game/characters/character_manager.h>
+#include <metin2/game/items/item.h>
+#include <metin2/game/items/item_manager.h>
+#include <metin2/game/protocol/desc_manager.h>
 
 #include <metin2/common/attribute.h>
 #include <metin2/log/log.h>
@@ -16,212 +16,178 @@
 
 namespace metin2::game::inline world {
 
-sectree::sectree()
-{
-	initialize();
-}
+    sectree::sectree() {
+        initialize();
+    }
 
-sectree::~sectree()
-{
-	destroy();
-}
+    sectree::~sectree() {
+        destroy();
+    }
 
-void sectree::initialize()
-{
-	id_.package = 0;
-	attribute_ = nullptr;
-	pc_count_ = 0;
-	is_clone_ = false;
-}
+    void sectree::initialize() {
+        id_.package = 0;
+        attribute_ = nullptr;
+        pc_count_ = 0;
+        is_clone_ = false;
+    }
 
-void sectree::destroy()
-{
-	if (!set_entity_.empty())
-	{
-		metin2::log::error("Sectree destroyed with entities still in it");
+    void sectree::destroy() {
+        if (!set_entity_.empty()) {
+            metin2::log::error("Sectree destroyed with entities still in it");
 
-		entity_set::iterator it = set_entity_.begin();
+            entity_set::iterator it = set_entity_.begin();
 
-		for ( ; it != set_entity_.end(); ++it)
-		{
-			entity * ent = *it;
+            for (; it != set_entity_.end(); ++it) {
+                entity *ent = *it;
 
-			if (ent->is_type(ENTITY_CHARACTER))
-			{
-				character * ch = (character *) ent;
+                if (ent->is_type(ENTITY_CHARACTER)) {
+                    character *ch = (character *)ent;
 
-				metin2::log::error("Sectree destroyed with character {} still in it (is_pc {:d})", ch->name(), ch->is_pc() ? 1 : 0);
+                    metin2::log::error("Sectree destroyed with character {} still in it (is_pc {:d})", ch->name(), ch->is_pc() ? 1 : 0);
 
-				if (ch->get_desc())
-					desc_manager::instance().destroy_desc(ch->get_desc());
-				else
-					character_manager::instance().destroy_character(ch);
-			}
-			else if (ent->is_type(ENTITY_ITEM))
-			{
-				item * item = (game::items::item *) ent;
+                    if (ch->get_desc())
+                        desc_manager::instance().destroy_desc(ch->get_desc());
+                    else
+                        character_manager::instance().destroy_character(ch);
+                } else if (ent->is_type(ENTITY_ITEM)) {
+                    item *item = (game::items::item *)ent;
 
-				metin2::log::error("Sectree destroyed with item {} still in it", item->name());
+                    metin2::log::error("Sectree destroyed with item {} still in it", item->name());
 
-				item_manager::instance().destroy_item(item);
-			}
-			else
-				metin2::log::error("Sectree destroyed with entity of unknown type {:d} still in it", ent->type());
-		}
-	}
-	set_entity_.clear();
+                    item_manager::instance().destroy_item(item);
+                } else
+                    metin2::log::error("Sectree destroyed with entity of unknown type {:d} still in it", ent->type());
+            }
+        }
+        set_entity_.clear();
 
-	if (!is_clone_ && attribute_)
-	{
-		delete attribute_;
-		attribute_ = nullptr;
-	}
-}
+        if (!is_clone_ && attribute_) {
+            delete attribute_;
+            attribute_ = nullptr;
+        }
+    }
 
-auto sectree::id() -> sectreeid
-{
-	return id_;
-}
+    auto sectree::id() -> sectreeid {
+        return id_;
+    }
 
-void sectree::increase_pc()
-{
-	sectree_list::iterator it_tree = neighbor_list_.begin();
+    void sectree::increase_pc() {
+        sectree_list::iterator it_tree = neighbor_list_.begin();
 
-	while (it_tree != neighbor_list_.end())
-	{
-		++(*it_tree)->pc_count_;
-		++it_tree;
-	}
-}
+        while (it_tree != neighbor_list_.end()) {
+            ++(*it_tree)->pc_count_;
+            ++it_tree;
+        }
+    }
 
-void sectree::decrease_pc()
-{
-	sectree_list::iterator it_tree = neighbor_list_.begin();
+    void sectree::decrease_pc() {
+        sectree_list::iterator it_tree = neighbor_list_.begin();
 
-	while (it_tree != neighbor_list_.end())
-	{
-		sectree * tree = *it_tree++;
+        while (it_tree != neighbor_list_.end()) {
+            sectree *tree = *it_tree++;
 
-		if (--tree->pc_count_ <= 0)
-		{
-			if (tree->pc_count_ < 0)
-			{
-				metin2::log::error("Sectree player count dropped below zero ({:d}) at {:d}x{:d}", tree->pc_count_, tree->id_.coord.x, tree->id_.coord.y);
-				tree->pc_count_ = 0;
-			}
+            if (--tree->pc_count_ <= 0) {
+                if (tree->pc_count_ < 0) {
+                    metin2::log::error("Sectree player count dropped below zero ({:d}) at {:d}x{:d}", tree->pc_count_, tree->id_.coord.x, tree->id_.coord.y);
+                    tree->pc_count_ = 0;
+                }
 
-			entity_set::iterator it_entity = tree->set_entity_.begin();
+                entity_set::iterator it_entity = tree->set_entity_.begin();
 
-			while (it_entity != tree->set_entity_.end())
-			{
-				entity * pkEnt = *(it_entity++);
+                while (it_entity != tree->set_entity_.end()) {
+                    entity *pkEnt = *(it_entity++);
 
-				if (pkEnt->is_type(ENTITY_CHARACTER))
-				{
-					character * ch = (character *) pkEnt;
-					ch->stop_state_machine();
-				}
-			}
-		}
-	}
-}
+                    if (pkEnt->is_type(ENTITY_CHARACTER)) {
+                        character *ch = (character *)pkEnt;
+                        ch->stop_state_machine();
+                    }
+                }
+            }
+        }
+    }
 
-auto sectree::insert_entity(entity * ent) -> bool
-{
-	sectree * pkCurTree;
+    auto sectree::insert_entity(entity *ent) -> bool {
+        sectree *pkCurTree;
 
-	if ((pkCurTree = ent->get_sectree()) == this)
-		return false;
+        if ((pkCurTree = ent->get_sectree()) == this)
+            return false;
 
-	if (set_entity_.find(ent) != set_entity_.end()) {
-		metin2::log::error("Entity {} is already in this sectree", static_cast<const void *>(ent));
-		return false;
-	}
+        if (set_entity_.find(ent) != set_entity_.end()) {
+            metin2::log::error("Entity {} is already in this sectree", static_cast<const void *>(ent));
+            return false;
+        }
 
-	if (pkCurTree)
-		pkCurTree->set_entity_.erase(ent);
+        if (pkCurTree)
+            pkCurTree->set_entity_.erase(ent);
 
-	ent->set_sectree(this);
+        ent->set_sectree(this);
 
-	set_entity_.insert(ent);
+        set_entity_.insert(ent);
 
-	if (ent->is_type(ENTITY_CHARACTER))
-	{
-		character * pkChr = (character *) ent;
+        if (ent->is_type(ENTITY_CHARACTER)) {
+            character *pkChr = (character *)ent;
 
-		if (pkChr->is_pc())
-		{
-			increase_pc();
+            if (pkChr->is_pc()) {
+                increase_pc();
 
-			if (pkCurTree)
-				pkCurTree->decrease_pc();
-		}
-		else if (pc_count_ > 0 && !pkChr->is_warp() && !pkChr->is_goto())
-		{
-			pkChr->start_state_machine();
-		}
-	}
+                if (pkCurTree)
+                    pkCurTree->decrease_pc();
+            } else if (pc_count_ > 0 && !pkChr->is_warp() && !pkChr->is_goto()) {
+                pkChr->start_state_machine();
+            }
+        }
 
-	return true;
-}
+        return true;
+    }
 
-void sectree::remove_entity(entity * ent)
-{
-	entity_set::iterator it = set_entity_.find(ent);
+    void sectree::remove_entity(entity *ent) {
+        entity_set::iterator it = set_entity_.find(ent);
 
-	if (it == set_entity_.end()) {
-		return;
-	}
-	set_entity_.erase(it);
+        if (it == set_entity_.end()) {
+            return;
+        }
+        set_entity_.erase(it);
 
-	ent->set_sectree(nullptr);
+        ent->set_sectree(nullptr);
 
-	if (ent->is_type(ENTITY_CHARACTER))
-	{
-		if (((character *) ent)->is_pc())
-			decrease_pc();
-	}
-}
+        if (ent->is_type(ENTITY_CHARACTER)) {
+            if (((character *)ent)->is_pc())
+                decrease_pc();
+        }
+    }
 
-void sectree::bind_attribute(attribute * attribute_value)
-{
-	attribute_ = attribute_value;
-}
+    void sectree::bind_attribute(attribute *attribute_value) {
+        attribute_ = attribute_value;
+    }
 
-void sectree::clone_attribute(sectree * tree)
-{
-	attribute_ = tree->attribute_;
-	is_clone_ = true;
-}
+    void sectree::clone_attribute(sectree *tree) {
+        attribute_ = tree->attribute_;
+        is_clone_ = true;
+    }
 
-void sectree::set_attribute(uint32_t x, uint32_t y, uint32_t attr)
-{
-	assert(attribute_ != nullptr);
-	attribute_->set(x, y, attr);
-}
+    void sectree::set_attribute(uint32_t x, uint32_t y, uint32_t attr) {
+        assert(attribute_ != nullptr);
+        attribute_->set(x, y, attr);
+    }
 
-void sectree::remove_attribute(uint32_t x, uint32_t y, uint32_t attr)
-{
-	assert(attribute_ != nullptr);
-	attribute_->remove(x, y, attr);
-}
+    void sectree::remove_attribute(uint32_t x, uint32_t y, uint32_t attr) {
+        assert(attribute_ != nullptr);
+        attribute_->remove(x, y, attr);
+    }
 
-auto sectree::get_attribute(int32_t x, int32_t y) -> uint32_t
-{
-	assert(attribute_ != nullptr);
-	return attribute_->get((x % SECTREE_SIZE) / CELL_SIZE, (y % SECTREE_SIZE) / CELL_SIZE);
-}
+    auto sectree::get_attribute(int32_t x, int32_t y) -> uint32_t {
+        assert(attribute_ != nullptr);
+        return attribute_->get((x % SECTREE_SIZE) / CELL_SIZE, (y % SECTREE_SIZE) / CELL_SIZE);
+    }
 
-auto sectree::is_attr(int32_t x, int32_t y, uint32_t flag) -> bool
-{
-	if (is_set(get_attribute(x, y), flag))
-		return true;
+    auto sectree::is_attr(int32_t x, int32_t y, uint32_t flag) -> bool {
+        if (is_set(get_attribute(x, y), flag))
+            return true;
 
-	return false;
-}
+        return false;
+    }
 
-auto sectree::event_attribute(int32_t x, int32_t y) -> int
-{
-	return get_attribute(x, y) >> 8;
-}
+    auto sectree::event_attribute(int32_t x, int32_t y) -> int {
+        return get_attribute(x, y) >> 8;
+    }
 }

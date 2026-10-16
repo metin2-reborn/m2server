@@ -11,62 +11,52 @@
 
 namespace metin2::game::inline combat {
 
-auto table_by_skill::check() const -> bool
-{
-	for (int job = 0; job < (JOB_MAX_NUM * 2); ++job)
-	{
-		if (!skill_power_by_level_from_type_[job])
-		{
-			fprintf( stderr, "[NO SETTING SKILL] aiSkillPowerByLevelFromType[%d]", job);
-			return false;
-		}
-	}
+    auto table_by_skill::check() const -> bool {
+        for (int job = 0; job < (JOB_MAX_NUM * 2); ++job) {
+            if (!skill_power_by_level_from_type_[job]) {
+                fprintf(stderr, "[NO SETTING SKILL] aiSkillPowerByLevelFromType[%d]", job);
+                return false;
+            }
+        }
 
-	return true;
-}
+        return true;
+    }
 
-void table_by_skill::delete_all()
-{
-	for ( int job = 0; job < JOB_MAX_NUM * 2; ++job )
-	{
-		delete_skill_power_by_level_from_type( job );
-	}
+    void table_by_skill::delete_all() {
+        for (int job = 0; job < JOB_MAX_NUM * 2; ++job) {
+            delete_skill_power_by_level_from_type(job);
+        }
 
-	delete_skill_damage_by_level_table();
-}
+        delete_skill_damage_by_level_table();
+    }
 
-auto table_by_skill::skill_power_by_level_from_type(int job, int skillgroup, int skilllevel, bool mob) const -> int
-{
-	if (mob)
-	{
-		return skill_power_by_level_from_type_[0][skilllevel];
-	}
+    auto table_by_skill::skill_power_by_level_from_type(int job, int skillgroup, int skilllevel, bool mob) const -> int {
+        if (mob) {
+            return skill_power_by_level_from_type_[0][skilllevel];
+        }
 
-	if (job >= JOB_MAX_NUM || skillgroup == 0)
-		return 0;
+        if (job >= JOB_MAX_NUM || skillgroup == 0)
+            return 0;
 
-	int idx = (job * 2) + (skillgroup - 1);
+        int idx = (job * 2) + (skillgroup - 1);
 
-	return skill_power_by_level_from_type_[idx][skilllevel];
-}
+        return skill_power_by_level_from_type_[idx][skilllevel];
+    }
 
-void table_by_skill::set_skill_power_by_level_from_type(int idx, const int* table)
-{
-	delete_skill_power_by_level_from_type(idx);
+    void table_by_skill::set_skill_power_by_level_from_type(int idx, const int *table) {
+        delete_skill_power_by_level_from_type(idx);
 
-	auto aiSkillTable = std::make_unique_for_overwrite<int[]>(SKILL_MAX_LEVEL+1);
+        auto aiSkillTable = std::make_unique_for_overwrite<int[]>(SKILL_MAX_LEVEL + 1);
 
-	memcpy (aiSkillTable.get(), table, sizeof(int) * (SKILL_MAX_LEVEL + 1));
-	skill_power_by_level_from_type_[idx] = std::move(aiSkillTable);
-}
+        memcpy(aiSkillTable.get(), table, sizeof(int) * (SKILL_MAX_LEVEL + 1));
+        skill_power_by_level_from_type_[idx] = std::move(aiSkillTable);
+    }
 
-void table_by_skill::delete_skill_power_by_level_from_type(int idx)
-{
-	skill_power_by_level_from_type_[idx].reset();
-}
+    void table_by_skill::delete_skill_power_by_level_from_type(int idx) {
+        skill_power_by_level_from_type_[idx].reset();
+    }
 
-void table_by_skill::delete_skill_damage_by_level_table()
-{
-	skill_damage_by_level_.reset();
-}
+    void table_by_skill::delete_skill_damage_by_level_table() {
+        skill_damage_by_level_.reset();
+    }
 }

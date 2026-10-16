@@ -21,7 +21,7 @@ TEST(escape_handles_special_characters) {
 TEST(format_quotes_strings) {
     const std::string name = "x' OR '1'='1";
     CHECK_EQ(sql::format("SELECT id FROM player WHERE name={}", name),
-             std::string("SELECT id FROM player WHERE name='x\\' OR \\'1\\'=\\'1'"));
+        std::string("SELECT id FROM player WHERE name='x\\' OR \\'1\\'=\\'1'"));
 
     const char login[16] = "admin";
     CHECK_EQ(sql::format("{}", login), std::string("'admin'"));
@@ -43,6 +43,6 @@ TEST(format_writes_numbers) {
 TEST(format_keeps_raw_text) {
     const std::string postfix = "_test";
     CHECK_EQ(sql::format("SELECT * FROM item{} WHERE owner_id={}", sql::raw(postfix), 7u),
-             std::string("SELECT * FROM item_test WHERE owner_id=7"));
+        std::string("SELECT * FROM item_test WHERE owner_id=7"));
     CHECK_EQ(sql::format("{}", sql::raw("")), std::string(""));
 }

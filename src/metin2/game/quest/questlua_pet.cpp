@@ -1,140 +1,128 @@
 
+#include <metin2/game/app/typedef.h>
 #include <metin2/game/characters/character.h>
-#include <metin2/game/quest/lua_incl.h>
 #include <metin2/game/characters/pet_system.h>
+#include <metin2/game/quest/lua_incl.h>
 #include <metin2/game/quest/questlua.h>
 #include <metin2/game/quest/questmanager.h>
-#include <metin2/game/app/typedef.h>
 
 #include <cstdint>
 
 namespace metin2::game {
 
+    namespace quest {
 
+        auto pet_summon(lua_State *lua) -> int {
+            character *ch = quest_manager::instance().current_character_ptr();
+            pet_system *petSystem = ch->get_pet_system();
+            item *pItem = quest_manager::instance().current_item();
+            if (!ch || !petSystem || !pItem) {
+                lua_pushnumber(lua, 0);
+                return 1;
+            }
 
-namespace quest
-{
+            if (nullptr == petSystem) {
+                lua_pushnumber(lua, 0);
+                return 1;
+            }
 
-	auto pet_summon(lua_State* lua) -> int
-	{
-		character * ch = quest_manager::instance().current_character_ptr();
-		pet_system* petSystem = ch->get_pet_system();
-		item * pItem = quest_manager::instance().current_item();
-		if (!ch || !petSystem || !pItem)
-		{
-			lua_pushnumber (lua, 0);
-			return 1;
-		}
+            uint32_t mobVnum = lua_isnumber(lua, 1) ? lua_tonumber(lua, 1) : 0;
 
-		if (nullptr == petSystem)
-		{
-			lua_pushnumber (lua, 0);
-			return 1;
-		}
+            const char *petName = lua_isstring(lua, 2) ? lua_tostring(lua, 2) : nullptr;
 
-		uint32_t mobVnum= lua_isnumber(lua, 1) ? lua_tonumber(lua, 1) : 0;
+            bool bFromFar = lua_isboolean(lua, 3) ? lua_toboolean(lua, 3) : false;
 
-		const char* petName = lua_isstring(lua, 2) ? lua_tostring(lua, 2) : nullptr;
+            pet_actor *pet = petSystem->summon(mobVnum, pItem, petName, bFromFar);
 
-		bool bFromFar = lua_isboolean(lua, 3) ? lua_toboolean(lua, 3) : false;
+            if (pet != nullptr)
+                lua_pushnumber(lua, pet->get_vid());
+            else
+                lua_pushnumber(lua, 0);
 
-		pet_actor* pet = petSystem->summon(mobVnum, pItem, petName, bFromFar);
+            return 1;
+        }
 
-		if (pet != nullptr)
-			lua_pushnumber (lua, pet->get_vid());
-		else
-			lua_pushnumber (lua, 0);
+        auto pet_unsummon(lua_State *lua) -> int {
+            character *ch = quest_manager::instance().current_character_ptr();
+            pet_system *petSystem = ch->get_pet_system();
 
-		return 1;
-	}
+            if (nullptr == petSystem)
+                return 0;
 
-	auto pet_unsummon(lua_State* lua) -> int
-	{
-		character * ch = quest_manager::instance().current_character_ptr();
-		pet_system* petSystem = ch->get_pet_system();
+            uint32_t mobVnum = lua_isnumber(lua, 1) ? lua_tonumber(lua, 1) : 0;
 
-		if (nullptr == petSystem)
-			return 0;
+            petSystem->unsummon(mobVnum);
+            return 1;
+        }
 
-		uint32_t mobVnum= lua_isnumber(lua, 1) ? lua_tonumber(lua, 1) : 0;
+        auto pet_count_summoned(lua_State *lua) -> int {
+            character *ch = quest_manager::instance().current_character_ptr();
+            pet_system *petSystem = ch->get_pet_system();
 
-		petSystem->unsummon(mobVnum);
-		return 1;
-	}
+            lua_Number count = 0;
 
-	auto pet_count_summoned(lua_State* lua) -> int
-	{
-		character * ch = quest_manager::instance().current_character_ptr();
-		pet_system* petSystem = ch->get_pet_system();
+            if (nullptr != petSystem)
+                count = (lua_Number)petSystem->count_summoned();
 
-		lua_Number count = 0;
+            lua_pushnumber(lua, count);
 
-		if (nullptr != petSystem)
-			count = (lua_Number)petSystem->count_summoned();
+            return 1;
+        }
 
-		lua_pushnumber(lua, count);
+        auto pet_is_summon(lua_State *lua) -> int {
+            character *ch = quest_manager::instance().current_character_ptr();
+            pet_system *petSystem = ch->get_pet_system();
 
-		return 1;
-	}
+            if (nullptr == petSystem)
+                return 0;
 
-	auto pet_is_summon(lua_State* lua) -> int
-	{
-		character * ch = quest_manager::instance().current_character_ptr();
-		pet_system* petSystem = ch->get_pet_system();
+            uint32_t mobVnum = lua_isnumber(lua, 1) ? lua_tonumber(lua, 1) : 0;
 
-		if (nullptr == petSystem)
-			return 0;
+            pet_actor *petActor = petSystem->by_vnum(mobVnum);
 
-		uint32_t mobVnum= lua_isnumber(lua, 1) ? lua_tonumber(lua, 1) : 0;
+            if (nullptr == petActor)
+                lua_pushboolean(lua, false);
+            else
+                lua_pushboolean(lua, petActor->is_summoned());
 
-		pet_actor* petActor = petSystem->by_vnum(mobVnum);
+            return 1;
+        }
 
-		if (nullptr == petActor)
-			lua_pushboolean(lua, false);
-		else
-			lua_pushboolean(lua, petActor->is_summoned());
+        auto pet_spawn_effect(lua_State *lua) -> int {
+            character *ch = quest_manager::instance().current_character_ptr();
+            pet_system *petSystem = ch->get_pet_system();
 
-		return 1;
-	}
+            if (nullptr == petSystem)
+                return 0;
 
-	auto pet_spawn_effect(lua_State* lua) -> int
-	{
-		character * ch = quest_manager::instance().current_character_ptr();
-		pet_system* petSystem = ch->get_pet_system();
+            uint32_t mobVnum = lua_isnumber(lua, 1) ? lua_tonumber(lua, 1) : 0;
 
-		if (nullptr == petSystem)
-			return 0;
+            pet_actor *petActor = petSystem->by_vnum(mobVnum);
+            if (nullptr == petActor)
+                return 0;
+            character *pet_ch = petActor->get_character();
+            if (nullptr == pet_ch)
+                return 0;
 
-		uint32_t mobVnum = lua_isnumber(lua, 1) ? lua_tonumber(lua, 1) : 0;
+            if (lua_isstring(lua, 2)) {
+                pet_ch->specific_effect_packet(lua_tostring(lua, 2));
+            }
+            return 0;
+        }
 
-		pet_actor* petActor = petSystem->by_vnum(mobVnum);
-		if (nullptr == petActor)
-			return 0;
-		character * pet_ch = petActor->get_character();
-		if (nullptr == pet_ch)
-			return 0;
+        void register_pet_function_table() {
+            luaL_reg pet_functions[] =
+                {
+                    {"summon",         pet_summon        },
+                    {"unsummon",       pet_unsummon      },
+                    {"is_summon",      pet_is_summon     },
+                    {"count_summoned", pet_count_summoned},
+                    {"spawn_effect",   pet_spawn_effect  },
+                    {nullptr,          nullptr           }
+            };
 
-		if (lua_isstring(lua, 2))
-		{
-			pet_ch->specific_effect_packet (lua_tostring(lua, 2));
-		}
-		return 0;
-	}
+            quest_manager::instance().add_lua_function_table("pet", pet_functions);
+        }
 
-	void register_pet_function_table()
-	{
-		luaL_reg pet_functions[] =
-		{
-			{ "summon",			pet_summon			},
-			{ "unsummon",		pet_unsummon		},
-			{ "is_summon",		pet_is_summon		},
-			{ "count_summoned",	pet_count_summoned	},
-			{ "spawn_effect",	pet_spawn_effect	},
-			{ nullptr,				nullptr				}
-		};
-
-		quest_manager::instance().add_lua_function_table("pet", pet_functions);
-	}
-
-}
+    }
 }

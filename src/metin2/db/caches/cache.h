@@ -7,36 +7,36 @@
 
 namespace metin2::db::inline caches {
 
-class item_cache : public cache<player_item> {
-  public:
-    item_cache();
+    class item_cache : public cache<player_item> {
+      public:
+        item_cache();
 
-    ~item_cache() override;
+        ~item_cache() override;
 
-    void remove();
-    void on_flush() override;
-};
+        void remove();
+        void on_flush() override;
+    };
 
-class player_table_cache : public cache<player_table> {
-  public:
-    player_table_cache();
+    class player_table_cache : public cache<player_table> {
+      public:
+        player_table_cache();
 
-    ~player_table_cache() override;
+        ~player_table_cache() override;
 
-    void on_flush() override;
+        void on_flush() override;
 
-    auto last_update_time() -> uint32_t { return last_update_time_; }
-};
+        auto last_update_time() -> uint32_t { return last_update_time_; }
+    };
 
-class item_price_list_table_cache : public cache<item_price_list_table> {
-  public:
-    item_price_list_table_cache(void);
+    class item_price_list_table_cache : public cache<item_price_list_table> {
+      public:
+        item_price_list_table_cache(void);
 
-    void update_list(const item_price_list_table *update_list);
+        void update_list(const item_price_list_table *update_list);
 
-    void on_flush(void) override;
+        void on_flush(void) override;
 
-  private:
-    static const int min_flush_sec_;
-};
+      private:
+        static const int min_flush_sec_;
+    };
 }

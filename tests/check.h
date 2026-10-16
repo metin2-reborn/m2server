@@ -37,23 +37,23 @@ namespace check {
     }
 }
 
-#define TEST(name)                                                                                                     \
-    static void name();                                                                                                \
-    static const check::registrar name##_registrar(#name, name);                                                       \
+#define TEST(name)                                               \
+    static void name();                                          \
+    static const check::registrar name##_registrar(#name, name); \
     static void name()
 
-#define CHECK(expr)                                                                                                    \
-    do {                                                                                                               \
-        if (!(expr))                                                                                                   \
-            check::fail(__FILE__, __LINE__, "CHECK(" #expr ") failed");                                                \
+#define CHECK(expr)                                                     \
+    do {                                                                \
+        if (!(expr))                                                    \
+            check::fail(__FILE__, __LINE__, "CHECK(" #expr ") failed"); \
     } while (0)
 
-#define CHECK_EQ(actual, expected)                                                                                     \
-    do {                                                                                                               \
-        const auto &check_actual = (actual);                                                                           \
-        const auto &check_expected = (expected);                                                                       \
-        if (!(check_actual == check_expected))                                                                         \
-            check::fail(__FILE__, __LINE__,                                                                            \
-                        "CHECK_EQ(" #actual ", " #expected ") failed: " + check::describe(check_actual) +             \
-                            " != " + check::describe(check_expected));                                                 \
+#define CHECK_EQ(actual, expected)                                                                \
+    do {                                                                                          \
+        const auto &check_actual = (actual);                                                      \
+        const auto &check_expected = (expected);                                                  \
+        if (!(check_actual == check_expected))                                                    \
+            check::fail(__FILE__, __LINE__,                                                       \
+                "CHECK_EQ(" #actual ", " #expected ") failed: " + check::describe(check_actual) + \
+                    " != " + check::describe(check_expected));                                    \
     } while (0)

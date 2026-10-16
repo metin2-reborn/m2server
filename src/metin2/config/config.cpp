@@ -122,7 +122,11 @@ namespace metin2::config {
 
             void read(const toml::node &node, const std::string &key, log::level &out) {
                 static constexpr std::pair<std::string_view, log::level> levels[] = {
-                    {"debug", log::level::debug}, {"info", log::level::info}, {"warn", log::level::warn}, {"error", log::level::error}};
+                    {"debug", log::level::debug},
+                    {"info",  log::level::info },
+                    {"warn",  log::level::warn },
+                    {"error", log::level::error}
+                };
                 const auto value = node.value_exact<std::string>();
                 const auto *match = value ? std::ranges::find(levels, *value, &std::pair<std::string_view, log::level>::first) : std::end(levels);
                 if (match == std::end(levels))
@@ -323,7 +327,7 @@ namespace metin2::config {
             if (!result) {
                 const toml::parse_error &error = result.error();
                 return std::unexpected(std::format("{}:{}:{}: {}\n", file.string(), error.source().begin.line,
-                                                   error.source().begin.column, error.description()));
+                    error.source().begin.column, error.description()));
             }
             merge(root, result.table());
         }
@@ -353,7 +357,7 @@ namespace metin2::config {
 
     auto role_name(config::role value) -> std::string_view {
         switch (value) {
-        case role::db: return "db";
+        case role::db:   return "db";
         case role::auth: return "auth";
         case role::game: return "game";
         }

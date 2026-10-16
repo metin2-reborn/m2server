@@ -4,32 +4,32 @@
 
 namespace metin2::inline common {
 
-template <typename T>
-class singleton {
-  public:
-    singleton() {
-        assert(instance_ == nullptr);
+    template <typename T>
+    class singleton {
+      public:
+        singleton() {
+            assert(instance_ == nullptr);
 
-        instance_ = static_cast<T *>(this);
-    }
+            instance_ = static_cast<T *>(this);
+        }
 
-    singleton(const singleton &) = delete;
+        singleton(const singleton &) = delete;
 
-    auto operator=(const singleton &) -> singleton & = delete;
+        auto operator=(const singleton &) -> singleton & = delete;
 
-    virtual ~singleton() {
-        assert(instance_ != nullptr);
+        virtual ~singleton() {
+            assert(instance_ != nullptr);
 
-        instance_ = nullptr;
-    }
+            instance_ = nullptr;
+        }
 
-    static auto instance() -> T & {
-        assert(instance_ != nullptr);
+        static auto instance() -> T & {
+            assert(instance_ != nullptr);
 
-        return *instance_;
-    }
+            return *instance_;
+        }
 
-  private:
-    inline static T *instance_ = nullptr;
-};
+      private:
+        inline static T *instance_ = nullptr;
+    };
 }

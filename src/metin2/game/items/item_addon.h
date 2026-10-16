@@ -6,12 +6,11 @@
 
 namespace metin2::game::inline items {
 
-class item_addon_manager : public singleton<item_addon_manager>
-{
-	public:
-		item_addon_manager();
-		~item_addon_manager() override;
+    class item_addon_manager : public singleton<item_addon_manager> {
+      public:
+        item_addon_manager();
+        ~item_addon_manager() override;
 
-		void apply_addon_to(int addon_type, item * item_value);
-};
+        void apply_addon_to(int addon_type, item *item_value);
+    };
 }

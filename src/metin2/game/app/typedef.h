@@ -34,31 +34,21 @@ namespace metin2::game::inline world {
 
 namespace metin2::game::inline app {
 
+    typedef std::vector<character *> character_vector;
+    typedef std::list<character *> character_list;
+    typedef std::unordered_set<character *> character_set;
 
+    typedef std::unordered_set<entity *> entity_set;
 
+    using sectree_list = std::list<sectree *>;
 
-typedef std::vector<character *> character_vector;
-typedef std::list<character *> character_list;
-typedef std::unordered_set<character *> character_set;
+    struct pixel_position {
+        int32_t x, y, z;
+    };
 
-
-
-typedef std::unordered_set<entity *> entity_set;
-
-using sectree_list = std::list<sectree *>;
-
-
-
-
-
-struct pixel_position {
-	int32_t x, y, z;
-};
-
-enum entity_types
-{
-	ENTITY_CHARACTER,
-	ENTITY_ITEM,
-	ENTITY_OBJECT,
-};
+    enum entity_types {
+        ENTITY_CHARACTER,
+        ENTITY_ITEM,
+        ENTITY_OBJECT,
+    };
 }

@@ -2,8 +2,8 @@
 
 #include <metin2/game/admin/cmd.h>
 
-#include <metin2/proto/tables.h>
 #include <metin2/core/utils.h>
+#include <metin2/proto/tables.h>
 
 #include <cstddef>
 #include <cstdint>
@@ -15,92 +15,78 @@
 
 namespace metin2::game::inline text {
 
+    banword_manager::banword_manager() {
+    }
 
-banword_manager::banword_manager()
-{
-}
+    banword_manager::~banword_manager() {
+    }
 
-banword_manager::~banword_manager()
-{
-}
+    auto banword_manager::initialize(banword_table *p, uint16_t size_value) -> bool {
+        hashmap_words_.clear();
 
-auto banword_manager::initialize(banword_table * p, uint16_t size_value) -> bool
-{
-	hashmap_words_.clear();
+        for (uint16_t i = 0; i < size_value; ++i, ++p)
+            hashmap_words_[p->word] = true;
 
-	for (uint16_t i = 0; i < size_value; ++i, ++p)
-		hashmap_words_[p->word] = true;
+        char szBuf[256];
+        snprintf(szBuf, sizeof(szBuf), "Banword reloaded! (total %zu banwords)", hashmap_words_.size());
+        send_log(szBuf);
+        return true;
+    }
 
-	char szBuf[256];
-	snprintf(szBuf, sizeof(szBuf), "Banword reloaded! (total %zu banwords)", hashmap_words_.size());
-	send_log(szBuf);
-	return true;
-}
+    auto banword_manager::check_string(const char *string_value, size_t len_value) -> bool {
+        if (hashmap_words_.empty())
+            return false;
 
-auto banword_manager::check_string(const char * string_value, size_t len_value) -> bool
-{
-	if (hashmap_words_.empty())
-		return false;
+        __typeof(hashmap_words_.begin()) it = hashmap_words_.begin();
 
-	__typeof(hashmap_words_.begin()) it = hashmap_words_.begin();
+        while (it != hashmap_words_.end()) {
+            const std::string &r = it->first;
+            const char *tmp = string_value;
+            ssize_t len = len_value;
 
-	while (it != hashmap_words_.end())
-	{
-		const std::string & r = it->first;
-		const char * tmp = string_value;
-		ssize_t len = len_value;
+            while (len > 0) {
+                if (!strncmp(tmp, r.c_str(), r.size()))
+                    return true;
 
-		while (len > 0)
-		{
-			if (!strncmp(tmp, r.c_str(), r.size()))
-				return true;
+                size_t step = utf8_sequence_length((unsigned char)*tmp);
+                tmp += step;
+                len -= step;
+            }
 
-			size_t step = utf8_sequence_length((unsigned char) *tmp);
-			tmp += step;
-			len -= step;
-		}
+            it++;
+        }
 
-		it++;
-	}
+        return false;
+    }
 
-	return false;
-}
+    void banword_manager::convert_string(char *string_value, size_t len_value) {
+        __typeof(hashmap_words_.begin()) it = hashmap_words_.begin();
 
-void banword_manager::convert_string(char * string_value, size_t len_value)
-{
-	__typeof(hashmap_words_.begin()) it = hashmap_words_.begin();
+        while (it != hashmap_words_.end()) {
+            const std::string &r = it->first;
 
-	while (it != hashmap_words_.end())
-	{
-		const std::string & r = it->first;
+            char *tmp = string_value;
+            ssize_t len = len_value;
 
-		char * tmp = string_value;
-		ssize_t len = len_value;
+            while (len > 0) {
+                if (*tmp == '*') {
+                    ++tmp;
+                    --len;
+                    continue;
+                }
 
-		while (len > 0)
-		{
-			if (*tmp == '*')
-			{
-				++tmp;
-				--len;
-				continue;
-			}
+                if (!strncmp(tmp, r.c_str(), r.size())) {
+                    memset(tmp, '*', r.size());
+                    tmp += r.size();
+                    len -= r.size();
+                } else {
+                    size_t step = utf8_sequence_length((unsigned char)*tmp);
+                    tmp += step;
+                    len -= step;
+                }
+            }
 
-			if (!strncmp(tmp, r.c_str(), r.size()))
-			{
-				memset(tmp, '*', r.size());
-				tmp += r.size();
-				len -= r.size();
-			}
-			else
-			{
-				size_t step = utf8_sequence_length((unsigned char) *tmp);
-				tmp += step;
-				len -= step;
-			}
-		}
-
-		it++;
-	}
-}
+            it++;
+        }
+    }
 }

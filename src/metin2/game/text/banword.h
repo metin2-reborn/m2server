@@ -11,18 +11,17 @@
 
 namespace metin2::game::inline text {
 
-class banword_manager : public singleton<banword_manager>
-{
-	public:
-		banword_manager();
-		~banword_manager() override;
+    class banword_manager : public singleton<banword_manager> {
+      public:
+        banword_manager();
+        ~banword_manager() override;
 
-		auto initialize(banword_table * p, uint16_t size_value) -> bool;
-		auto check_string(const char * string_value, size_t len_value) -> bool;
-		void convert_string(char * string_value, size_t len_value);
+        auto initialize(banword_table *p, uint16_t size_value) -> bool;
+        auto check_string(const char *string_value, size_t len_value) -> bool;
+        void convert_string(char *string_value, size_t len_value);
 
-	protected:
-		typedef std::unordered_map<std::string, bool> banword_hashmap;
-		banword_hashmap hashmap_words_;
-};
+      protected:
+        typedef std::unordered_map<std::string, bool> banword_hashmap;
+        banword_hashmap hashmap_words_;
+    };
 }

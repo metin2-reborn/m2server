@@ -62,7 +62,7 @@ namespace metin2::log {
         auto timestamp() -> std::string {
             const std::tm t = local_now();
             return std::format("{:04}-{:02}-{:02} {:02}:{:02}:{:02}", t.tm_year + 1900, t.tm_mon + 1, t.tm_mday, t.tm_hour,
-                               t.tm_min, t.tm_sec);
+                t.tm_min, t.tm_sec);
         }
 
         constexpr std::array<std::string_view, 4> names{"debug", "info", "warn", "error"};
@@ -179,7 +179,7 @@ namespace metin2::log {
 
         if (severity >= level::warn) {
             const std::string line = std::format("{} [{}] {} ({}:{}): {}\n", stamp, name_of(severity), where.function_name(),
-                                                 file_name(where.file_name()), where.line(), message);
+                file_name(where.file_name()), where.line(), message);
             s.errors->stream << line << std::flush;
             s.all->stream << line << std::flush;
         } else {

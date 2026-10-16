@@ -12,65 +12,61 @@
 
 namespace metin2::game::inline events {
 
-inline constexpr int OXEVENT_MAP_INDEX = 113;
-struct tag_quiz
-{
-	char level;
-	std::string quiz;
-	bool answer;
-};
+    inline constexpr int OXEVENT_MAP_INDEX = 113;
+    struct tag_quiz {
+        char level;
+        std::string quiz;
+        bool answer;
+    };
 
-enum ox_event_status
-{
-	OXEVENT_FINISH = 0,
-	OXEVENT_OPEN = 1,
-	OXEVENT_CLOSE = 2,
-	OXEVENT_QUIZ = 3,
+    enum ox_event_status {
+        OXEVENT_FINISH = 0,
+        OXEVENT_OPEN = 1,
+        OXEVENT_CLOSE = 2,
+        OXEVENT_QUIZ = 3,
 
-	OXEVENT_ERR = 0xff
-};
+        OXEVENT_ERR = 0xff
+    };
 
-class ox_event_manager : public singleton<ox_event_manager>
-{
-	private :
-		std::map<uint32_t, uint32_t> map_char_;
-		std::map<uint32_t, uint32_t> map_attender_;
-		std::map<uint32_t, uint32_t> map_miss_;
+    class ox_event_manager : public singleton<ox_event_manager> {
+      private:
+        std::map<uint32_t, uint32_t> map_char_;
+        std::map<uint32_t, uint32_t> map_attender_;
+        std::map<uint32_t, uint32_t> map_miss_;
 
-		std::vector<std::vector<tag_quiz> > vec_quiz_;
+        std::vector<std::vector<tag_quiz>> vec_quiz_;
 
-		event_ptr timed_event_;
+        event_ptr timed_event_;
 
-	protected :
-		auto check_answer() -> bool;
+      protected:
+        auto check_answer() -> bool;
 
-		auto enter_audience(character * ch) -> bool;
-		auto enter_attender(character * ch) -> bool;
+        auto enter_audience(character *ch) -> bool;
+        auto enter_attender(character *ch) -> bool;
 
-	public :
-		auto initialize() -> bool;
-		void destroy();
+      public:
+        auto initialize() -> bool;
+        void destroy();
 
-		auto status() -> ox_event_status;
-		void set_status(ox_event_status status);
+        auto status() -> ox_event_status;
+        void set_status(ox_event_status status);
 
+        auto enter(character *ch) -> bool;
 
-		auto enter(character * ch) -> bool;
-		
-		auto close_event() -> bool;
+        auto close_event() -> bool;
 
-		void clear_quiz();
-		auto add_quiz(unsigned char level, const char* question, bool answer) -> bool;
-		auto show_quiz_list(character * ch) -> bool;
+        void clear_quiz();
+        auto add_quiz(unsigned char level, const char *question, bool answer) -> bool;
+        auto show_quiz_list(character *ch) -> bool;
 
-		auto quiz(unsigned char level, int timelimit) -> bool;
-		auto give_item_to_attender(uint32_t item_vnum, uint8_t count) -> bool;
+        auto quiz(unsigned char level, int timelimit) -> bool;
+        auto give_item_to_attender(uint32_t item_vnum, uint8_t count) -> bool;
 
-		auto check_answer(bool answer) -> bool;
-		void warp_to_audience();
+        auto check_answer(bool answer) -> bool;
+        void warp_to_audience();
 
-		auto log_winner() -> bool;
+        auto log_winner() -> bool;
 
-		auto attender_count() -> uint32_t { return map_attender_.size(); }
-};
+        auto attender_count() -> uint32_t { return map_attender_.size(); }
+    };
 }

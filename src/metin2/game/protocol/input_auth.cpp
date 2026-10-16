@@ -1,16 +1,16 @@
 #include <metin2/config/config.h>
 #include <metin2/game/app/config.h>
+#include <metin2/game/app/typedef.h>
 #include <metin2/game/persistence/db.h>
 #include <metin2/game/protocol/desc.h>
 #include <metin2/game/protocol/desc_manager.h>
 #include <metin2/game/protocol/input.h>
 #include <metin2/game/protocol/packet.h>
-#include <metin2/game/app/typedef.h>
 
+#include <metin2/core/utils.h>
+#include <metin2/log/log.h>
 #include <metin2/proto/length.h>
 #include <metin2/sql/query.h>
-#include <metin2/log/log.h>
-#include <metin2/core/utils.h>
 
 #include <cctype>
 #include <cstdint>
@@ -19,180 +19,156 @@
 
 namespace metin2::game::inline protocol {
 
+    auto fn_is_valid_login_string(const char *str) -> bool {
+        const char *tmp;
 
-auto fn_is_valid_login_string(const char *str) -> bool
-{
-	const char*	tmp;
+        if (!str || !*str)
+            return false;
 
-	if (!str || !*str)
-		return false;
+        if (strlen(str) < 2)
+            return false;
 
-	if (strlen(str) < 2)
-		return false;
+        for (tmp = str; *tmp; ++tmp) {
+            if (isdigit((unsigned char)*tmp) || isalpha((unsigned char)*tmp))
+                continue;
 
-	for (tmp = str; *tmp; ++tmp)
-	{
-		if (isdigit((unsigned char) *tmp) || isalpha((unsigned char) *tmp))
-			continue;
+            return false;
+        }
 
+        return true;
+    }
 
+    auto login_is_in_channel_service(const char *login) -> bool {
+        if (login[0] == '[')
+            return true;
+        return false;
+    }
 
+    input_auth::input_auth() {
+    }
 
+    void input_auth::login(desc *d, const char *data) {
 
-		return false;
-	}
+        packet_cg_login3 *pinfo = (packet_cg_login3 *)data;
 
-	return true;
-}
+        if (!metin2::config::is_auth()) {
+            metin2::log::warn("Auth packet from {} on a game server, disconnecting",
+                d->host_name());
+            d->delayed_disconnect(5);
+            return;
+        }
 
-auto login_is_in_channel_service(const char* login) -> bool
-{
-	if (login[0] == '[')
-		return true;
-	return false;
-}
+        // One login per connection: another would replace the key of a query in flight and allow
+        // password guessing at line rate.
+        if (d->get_login_key() || d->get_account_table().id) {
+            metin2::log::warn("Second login attempt on one connection from {}, closing", d->host_name());
+            d->set_phase(PHASE_CLOSE);
+            return;
+        }
 
-input_auth::input_auth()
-{
-}
+        char szLogin[sizeof(pinfo->login)];
+        copy_packet_string(szLogin, pinfo->login);
 
-void input_auth::login(desc * d, const char * data)
-{
+        char login[LOGIN_MAX_LEN + 1];
+        trim_and_lower(szLogin, login, sizeof(login));
 
-	packet_cg_login3 * pinfo = (packet_cg_login3 *) data;
+        char passwd[PASSWD_MAX_LEN + 1];
+        copy_packet_string(passwd, pinfo->passwd);
 
-	if (!metin2::config::is_auth())
-	{
-		metin2::log::warn("Auth packet from {} on a game server, disconnecting",
-			d->host_name());
-		d->delayed_disconnect(5);
-		return;
-	}
+        metin2::log::debug("Auth login: account {} (length {:d}), connection {}",
+            login, strlen(login), static_cast<const void *>(d));
 
-	// One login per connection: another would replace the key of a query in flight and allow
-	// password guessing at line rate.
-	if (d->get_login_key() || d->get_account_table().id)
-	{
-		metin2::log::warn( "Second login attempt on one connection from {}, closing", d->host_name());
-		d->set_phase(PHASE_CLOSE);
-		return;
-	}
+        if (false == fn_is_valid_login_string(login)) {
+            metin2::log::info("Auth login refused: invalid account name {} (connection {})",
+                login, static_cast<const void *>(d));
+            login_failure(d, "NOID");
+            return;
+        }
 
-	char szLogin[sizeof(pinfo->login)];
-	copy_packet_string(szLogin, pinfo->login);
+        if (no_more_client) {
+            packet_gc_login_failure failurePacket;
 
-	char login[LOGIN_MAX_LEN + 1];
-	trim_and_lower(szLogin, login, sizeof(login));
+            failurePacket.header = HEADER_GC_LOGIN_FAILURE;
+            strlcpy(failurePacket.status, "SHUTDOWN", sizeof(failurePacket.status));
 
-	char passwd[PASSWD_MAX_LEN + 1];
-	copy_packet_string(passwd, pinfo->passwd);
+            d->packet(&failurePacket, sizeof(failurePacket));
+            return;
+        }
 
-	metin2::log::debug( "Auth login: account {} (length {:d}), connection {}",
-			login, strlen(login), static_cast<const void *>(d));
+        if (desc_manager::instance().find_by_login_name(login)) {
+            login_failure(d, "ALREADY");
+            return;
+        }
 
-	if (false == fn_is_valid_login_string(login))
-	{
-		metin2::log::info( "Auth login refused: invalid account name {} (connection {})",
-				login, static_cast<const void *>(d));
-		login_failure(d, "NOID");
-		return;
-	}
+        uint32_t dwKey = desc_manager::instance().create_login_key(d);
+        metin2::log::info("Auth login: key {:d} for account {}", dwKey, login);
 
-	if (no_more_client)
-	{
-		packet_gc_login_failure failurePacket;
+        packet_cg_login3 *p = new packet_cg_login3;
+        std::memcpy(p, pinfo, sizeof(packet_cg_login3));
 
-		failurePacket.header = HEADER_GC_LOGIN_FAILURE;
-		strlcpy(failurePacket.status, "SHUTDOWN", sizeof(failurePacket.status));
+        p->login[sizeof(p->login) - 1] = '\0';
+        p->passwd[sizeof(p->passwd) - 1] = '\0';
 
-		d->packet(&failurePacket, sizeof(failurePacket));
-		return;
-	}
+        if (login_is_in_channel_service(login)) {
+            metin2::log::debug("Auth login: account {} uses channel service", login);
 
-	if (desc_manager::instance().find_by_login_name(login))
-	{
-		login_failure(d, "ALREADY");
-		return;
-	}
+            db_manager::instance().return_query(QID_AUTH_LOGIN, dwKey, p, sql::format("SELECT {},password,social_id,id,status,availDt - NOW() > 0,"
+                                                                                      "UNIX_TIMESTAMP(silver_expire),"
+                                                                                      "UNIX_TIMESTAMP(gold_expire),"
+                                                                                      "UNIX_TIMESTAMP(safebox_expire),"
+                                                                                      "UNIX_TIMESTAMP(autoloot_expire),"
+                                                                                      "UNIX_TIMESTAMP(fish_mind_expire),"
+                                                                                      "UNIX_TIMESTAMP(marriage_fast_expire),"
+                                                                                      "UNIX_TIMESTAMP(money_drop_rate_expire),"
+                                                                                      "UNIX_TIMESTAMP(create_time)"
+                                                                                      " FROM account WHERE login={}",
+                                                                              passwd, login));
+        } else {
+            db_manager::instance().return_query(QID_AUTH_LOGIN, dwKey, p, sql::format("SELECT PASSWORD({}),password,social_id,id,status,availDt - NOW() > 0,"
+                                                                                      "UNIX_TIMESTAMP(silver_expire),"
+                                                                                      "UNIX_TIMESTAMP(gold_expire),"
+                                                                                      "UNIX_TIMESTAMP(safebox_expire),"
+                                                                                      "UNIX_TIMESTAMP(autoloot_expire),"
+                                                                                      "UNIX_TIMESTAMP(fish_mind_expire),"
+                                                                                      "UNIX_TIMESTAMP(marriage_fast_expire),"
+                                                                                      "UNIX_TIMESTAMP(money_drop_rate_expire),"
+                                                                                      "UNIX_TIMESTAMP(create_time)"
+                                                                                      " FROM account WHERE login={}",
+                                                                              passwd, login));
+        }
+    }
 
-	uint32_t dwKey = desc_manager::instance().create_login_key(d);
-	metin2::log::info( "Auth login: key {:d} for account {}", dwKey, login);
+    auto input_auth::analyze(desc *d, uint8_t header, const char *data) -> int {
 
+        if (!metin2::config::is_auth()) {
+            metin2::log::warn("Auth packet from {} on a game server, disconnecting",
+                d->host_name());
+            d->delayed_disconnect(5);
+            return 0;
+        }
 
-	packet_cg_login3 * p = new packet_cg_login3;
-	std::memcpy(p, pinfo, sizeof(packet_cg_login3));
+        int iExtraLen = 0;
 
-	p->login[sizeof(p->login) - 1] = '\0';
-	p->passwd[sizeof(p->passwd) - 1] = '\0';
+        if (metin2::config::test_server())
+            metin2::log::debug("Auth packet header {:d}", header);
 
-	if (login_is_in_channel_service(login))
-	{
-		metin2::log::debug( "Auth login: account {} uses channel service", login);
+        switch (header) {
+        case HEADER_CG_PONG:
+            pong(d);
+            break;
 
-		db_manager::instance().return_query(QID_AUTH_LOGIN, dwKey, p, sql::format(
-				"SELECT {},password,social_id,id,status,availDt - NOW() > 0,"
-				"UNIX_TIMESTAMP(silver_expire),"
-				"UNIX_TIMESTAMP(gold_expire),"
-				"UNIX_TIMESTAMP(safebox_expire),"
-				"UNIX_TIMESTAMP(autoloot_expire),"
-				"UNIX_TIMESTAMP(fish_mind_expire),"
-				"UNIX_TIMESTAMP(marriage_fast_expire),"
-				"UNIX_TIMESTAMP(money_drop_rate_expire),"
-				"UNIX_TIMESTAMP(create_time)"
-				" FROM account WHERE login={}",
-				passwd, login));
-	}
-	else
-	{
-		db_manager::instance().return_query(QID_AUTH_LOGIN, dwKey, p, sql::format(
-				"SELECT PASSWORD({}),password,social_id,id,status,availDt - NOW() > 0,"
-				"UNIX_TIMESTAMP(silver_expire),"
-				"UNIX_TIMESTAMP(gold_expire),"
-				"UNIX_TIMESTAMP(safebox_expire),"
-				"UNIX_TIMESTAMP(autoloot_expire),"
-				"UNIX_TIMESTAMP(fish_mind_expire),"
-				"UNIX_TIMESTAMP(marriage_fast_expire),"
-				"UNIX_TIMESTAMP(money_drop_rate_expire),"
-				"UNIX_TIMESTAMP(create_time)"
-				" FROM account WHERE login={}",
-				passwd, login));
-	}
-}
+        case HEADER_CG_LOGIN3:
+            login(d, data);
+            break;
 
-auto input_auth::analyze(desc * d, uint8_t header, const char * data) -> int
-{
+        case HEADER_CG_HANDSHAKE:
+            break;
 
-	if (!metin2::config::is_auth())
-	{
-		metin2::log::warn("Auth packet from {} on a game server, disconnecting",
-			d->host_name());
-		d->delayed_disconnect(5);
-		return 0;
-	}
+        default:
+            metin2::log::warn("Unhandled packet {:d} ({:#x}) in auth phase", header, header);
+            break;
+        }
 
-	int iExtraLen = 0;
-
-	if (metin2::config::test_server())
-		metin2::log::debug( "Auth packet header {:d}", header);
-
-	switch (header)
-	{
-		case HEADER_CG_PONG:
-			pong(d);
-			break;
-
-		case HEADER_CG_LOGIN3:
-			login(d, data);
-			break;
-
-		case HEADER_CG_HANDSHAKE:
-			break;
-
-		default:
-			metin2::log::warn("Unhandled packet {:d} ({:#x}) in auth phase", header, header);
-			break;
-	}
-
-	return iExtraLen;
-}
+        return iExtraLen;
+    }
 }
