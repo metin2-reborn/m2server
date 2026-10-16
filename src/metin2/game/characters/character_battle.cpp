@@ -315,7 +315,7 @@ namespace metin2::game::inline characters {
     }
 
     EVENTFUNC(stun_event) {
-        char_event_info *info = dynamic_cast<char_event_info *>(event->info);
+        char_event_info *info = dynamic_cast<char_event_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Stun event fired without event info");
@@ -379,7 +379,7 @@ namespace metin2::game::inline characters {
     };
 
     EVENTFUNC(dead_event) {
-        const char_dead_event_info *info = dynamic_cast<char_dead_event_info *>(event->info);
+        const char_dead_event_info *info = dynamic_cast<char_dead_event_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Dead event fired without event info");

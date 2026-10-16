@@ -38,7 +38,7 @@ namespace metin2::game::inline social {
         };
 
         EVENTFUNC(wedding_end_event) {
-            wedding_map_info *info = dynamic_cast<wedding_map_info *>(event->info);
+            wedding_map_info *info = dynamic_cast<wedding_map_info *>(event->info.get());
 
             if (info == nullptr) {
                 metin2::log::error("Wedding end event fired without event info");

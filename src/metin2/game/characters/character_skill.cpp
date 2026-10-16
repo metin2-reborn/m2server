@@ -764,7 +764,7 @@ namespace metin2::game::inline characters {
     };
 
     EVENTFUNC(chain_lightning_event) {
-        chain_lightning_event_info *info = dynamic_cast<chain_lightning_event_info *>(event->info);
+        chain_lightning_event_info *info = dynamic_cast<chain_lightning_event_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Chain lightning event without event info");
@@ -1972,7 +1972,7 @@ namespace metin2::game::inline characters {
     }
 
     EVENTFUNC(skill_muyoung_event) {
-        char_event_info *info = dynamic_cast<char_event_info *>(event->info);
+        char_event_info *info = dynamic_cast<char_event_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Muyoung skill event fired without event info");
@@ -2107,7 +2107,7 @@ namespace metin2::game::inline characters {
     };
 
     EVENTFUNC(mob_skill_hit_event) {
-        mob_skill_event_info *info = dynamic_cast<mob_skill_event_info *>(event->info);
+        mob_skill_event_info *info = dynamic_cast<mob_skill_event_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Mob skill event fired without event info");

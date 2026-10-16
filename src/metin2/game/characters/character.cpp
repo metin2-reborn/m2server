@@ -1303,7 +1303,7 @@ namespace metin2::game::inline characters {
     }
 
     EVENTFUNC(kill_ore_load_event) {
-        char_event_info *info = dynamic_cast<char_event_info *>(event->info);
+        char_event_info *info = dynamic_cast<char_event_info *>(event->info.get());
         if (info == nullptr) {
             metin2::log::error("Ore kill load event fired without event info");
             return 0;
@@ -1747,7 +1747,7 @@ namespace metin2::game::inline characters {
     const int recovery_percents[10] = {1, 5, 5, 5, 5, 5, 5, 5, 5, 5};
 
     EVENTFUNC(recovery_event) {
-        char_event_info *info = dynamic_cast<char_event_info *>(event->info);
+        char_event_info *info = dynamic_cast<char_event_info *>(event->info.get());
         if (info == nullptr) {
             metin2::log::error("Recovery event fired without event info");
             return 0;
@@ -2809,7 +2809,7 @@ namespace metin2::game::inline characters {
     }
 
     EVENTFUNC(save_event) {
-        char_event_info *info = dynamic_cast<char_event_info *>(event->info);
+        char_event_info *info = dynamic_cast<char_event_info *>(event->info.get());
         if (info == nullptr) {
             metin2::log::error("Save event fired without event info");
             return 0;
@@ -3006,7 +3006,7 @@ namespace metin2::game::inline characters {
         if (rod && rod->type() == ITEM_ROD) {
             using fishing::fishing_event_info;
             if (fishing_event) {
-                struct fishing_event_info *info = dynamic_cast<struct fishing_event_info *>(fishing_event->info);
+                struct fishing_event_info *info = dynamic_cast<struct fishing_event_info *>(fishing_event->info.get());
 
                 if (info)
                     fishing::take(info, this);
@@ -3210,7 +3210,7 @@ namespace metin2::game::inline characters {
     };
 
     EVENTFUNC(party_request_event) {
-        party_join_event_info *info = dynamic_cast<party_join_event_info *>(event->info);
+        party_join_event_info *info = dynamic_cast<party_join_event_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Party request event fired without event info");
@@ -3310,7 +3310,7 @@ namespace metin2::game::inline characters {
         if (!member->party_request_event_)
             return;
 
-        party_join_event_info *info = dynamic_cast<party_join_event_info *>(member->party_request_event_->info);
+        party_join_event_info *info = dynamic_cast<party_join_event_info *>(member->party_request_event_->info.get());
 
         if (!info) {
             metin2::log::error("Party request event of member has no info on deny");
@@ -3334,7 +3334,7 @@ namespace metin2::game::inline characters {
         if (!member->party_request_event_)
             return;
 
-        party_join_event_info *info = dynamic_cast<party_join_event_info *>(member->party_request_event_->info);
+        party_join_event_info *info = dynamic_cast<party_join_event_info *>(member->party_request_event_->info.get());
 
         if (!info) {
             metin2::log::error("Party request event of member has no info on accept");
@@ -3379,7 +3379,7 @@ namespace metin2::game::inline characters {
     }
 
     EVENTFUNC(party_invite_event) {
-        party_join_event_info *pInfo = dynamic_cast<party_join_event_info *>(event->info);
+        party_join_event_info *pInfo = dynamic_cast<party_join_event_info *>(event->info.get());
 
         if (pInfo == nullptr) {
             metin2::log::error("Party invite event fired without event info");
@@ -4872,7 +4872,7 @@ namespace metin2::game::inline characters {
     }
 
     EVENTFUNC(warp_npc_event) {
-        char_event_info *info = dynamic_cast<char_event_info *>(event->info);
+        char_event_info *info = dynamic_cast<char_event_info *>(event->info.get());
         if (info == nullptr) {
             metin2::log::error("Warp NPC event fired without event info");
             return 0;
@@ -5343,7 +5343,7 @@ namespace metin2::game::inline characters {
     static auto is_speed_hack_player(character *ch) -> bool { return ch->speed_hack_count > metin2::config::game().anti_cheat.speed_hack_limit; }
 
     EVENTFUNC(check_speedhack_event) {
-        char_event_info *info = dynamic_cast<char_event_info *>(event->info);
+        char_event_info *info = dynamic_cast<char_event_info *>(event->info.get());
         if (info == nullptr) {
             metin2::log::error("Speed hack check event fired without event info");
             return 0;
@@ -5406,7 +5406,7 @@ namespace metin2::game::inline characters {
     }
 
     EVENTFUNC(destroy_when_idle_event) {
-        char_event_info *info = dynamic_cast<char_event_info *>(event->info);
+        char_event_info *info = dynamic_cast<char_event_info *>(event->info.get());
         if (info == nullptr) {
             metin2::log::error("Destroy when idle event fired without event info");
             return 0;

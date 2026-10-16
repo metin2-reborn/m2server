@@ -14,17 +14,12 @@ namespace metin2::game::inline app {
     static event_queue cxx_q;
 
     auto event_create(event_func func, event_info_data *info, int32_t when) -> event_ptr {
-        event_ptr new_event = nullptr;
-
         if (when < 1)
             when = 1;
 
-        new_event = new scheduled_event;
-
-        assert(nullptr != new_event);
-
+        auto new_event = std::make_shared<scheduled_event>();
         new_event->func = func;
-        new_event->info = info;
+        new_event->info.reset(info);
         new_event->q_el = cxx_q.enqueue(new_event, when, thecore_pulse());
         new_event->is_processing = false;
         new_event->is_force_to_end = false;
@@ -149,15 +144,5 @@ namespace metin2::game::inline app {
 
     auto event_count() -> int {
         return cxx_q.size();
-    }
-
-    void event_add_ref(scheduled_event *p) {
-        ++(p->ref_count);
-    }
-
-    void event_release(scheduled_event *p) {
-        if (--(p->ref_count) == 0) {
-            delete p;
-        }
     }
 }

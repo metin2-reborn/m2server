@@ -489,7 +489,7 @@ namespace metin2::game {
         };
 
         EVENTFUNC(confirm_timeout_event) {
-            confirm_timeout_event_info *info = dynamic_cast<confirm_timeout_event_info *>(event->info);
+            confirm_timeout_event_info *info = dynamic_cast<confirm_timeout_event_info *>(event->info.get());
 
             if (info == nullptr) {
                 quest::error("Confirm timeout event has no info");

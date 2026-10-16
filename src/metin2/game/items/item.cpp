@@ -91,7 +91,7 @@ namespace metin2::game::inline items {
     }
 
     EVENTFUNC(item_destroy_event) {
-        item_event_info *info = dynamic_cast<item_event_info *>(event->info);
+        item_event_info *info = dynamic_cast<item_event_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Item destroy event has no info");
@@ -142,7 +142,7 @@ namespace metin2::game::inline items {
         d->packet(&pack, sizeof(pack));
 
         if (ownership_event_ != nullptr) {
-            item_event_info *info = dynamic_cast<item_event_info *>(ownership_event_->info);
+            item_event_info *info = dynamic_cast<item_event_info *>(ownership_event_->info.get());
 
             if (info == nullptr) {
                 metin2::log::error("Item ownership event has no info");
@@ -830,7 +830,7 @@ namespace metin2::game::inline items {
     }
 
     EVENTFUNC(ownership_event) {
-        item_event_info *info = dynamic_cast<item_event_info *>(event->info);
+        item_event_info *info = dynamic_cast<item_event_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Item ownership event has no info");
@@ -989,7 +989,7 @@ namespace metin2::game::inline items {
     }
 
     EVENTFUNC(unique_expire_event) {
-        item_event_info *info = dynamic_cast<item_event_info *>(event->info);
+        item_event_info *info = dynamic_cast<item_event_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Unique item expire event has no info");
@@ -1025,7 +1025,7 @@ namespace metin2::game::inline items {
     }
 
     EVENTFUNC(timer_based_on_wear_expire_event) {
-        item_event_info *info = dynamic_cast<item_event_info *>(event->info);
+        item_event_info *info = dynamic_cast<item_event_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Item expire event has no info");
@@ -1059,7 +1059,7 @@ namespace metin2::game::inline items {
     }
 
     EVENTFUNC(real_time_expire_event) {
-        const item_vid_event_info *info = reinterpret_cast<const item_vid_event_info *>(event->info);
+        const item_vid_event_info *info = dynamic_cast<const item_vid_event_info *>(event->info.get());
 
         if (nullptr == info)
             return 0;
@@ -1220,7 +1220,7 @@ namespace metin2::game::inline items {
     }
 
     EVENTFUNC(accessory_socket_expire_event) {
-        item_vid_event_info *info = dynamic_cast<item_vid_event_info *>(event->info);
+        item_vid_event_info *info = dynamic_cast<item_vid_event_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Accessory socket expire event has no info");

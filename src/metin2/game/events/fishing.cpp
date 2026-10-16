@@ -327,7 +327,7 @@ namespace metin2::game::inline events {
         }
 
         EVENTFUNC(fishing_event) {
-            fishing_event_info *info = dynamic_cast<fishing_event_info *>(event->info);
+            fishing_event_info *info = dynamic_cast<fishing_event_info *>(event->info.get());
 
             if (info == nullptr) {
                 metin2::log::error("Fishing event has no event info");

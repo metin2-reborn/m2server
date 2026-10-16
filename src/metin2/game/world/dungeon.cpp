@@ -153,7 +153,7 @@ namespace metin2::game::inline world {
     };
 
     EVENTFUNC(dungeon_dead_event) {
-        dungeon_id_info *info = dynamic_cast<dungeon_id_info *>(event->info);
+        dungeon_id_info *info = dynamic_cast<dungeon_id_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Dungeon dead event has no event info");
@@ -867,7 +867,7 @@ namespace metin2::game::inline world {
     }
 
     EVENTFUNC(dungeon_jump_to_event) {
-        dungeon_id_info *info = dynamic_cast<dungeon_id_info *>(event->info);
+        dungeon_id_info *info = dynamic_cast<dungeon_id_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Dungeon jump event has no event info");
@@ -886,7 +886,7 @@ namespace metin2::game::inline world {
     }
 
     EVENTFUNC(dungeon_exit_all_event) {
-        dungeon_id_info *info = dynamic_cast<dungeon_id_info *>(event->info);
+        dungeon_id_info *info = dynamic_cast<dungeon_id_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Dungeon exit-all event has no event info");

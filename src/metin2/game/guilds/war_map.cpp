@@ -44,7 +44,7 @@ namespace metin2::game::inline guilds {
     };
 
     EVENTFUNC(war_begin_event) {
-        war_map_event_info *info = dynamic_cast<war_map_event_info *>(event->info);
+        war_map_event_info *info = dynamic_cast<war_map_event_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Guild war begin event has no event info");
@@ -57,7 +57,7 @@ namespace metin2::game::inline guilds {
     }
 
     EVENTFUNC(war_end_event) {
-        war_map_event_info *info = dynamic_cast<war_map_event_info *>(event->info);
+        war_map_event_info *info = dynamic_cast<war_map_event_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Guild war end event has no event info");
@@ -78,7 +78,7 @@ namespace metin2::game::inline guilds {
     }
 
     EVENTFUNC(war_timeout_event) {
-        war_map_event_info *info = dynamic_cast<war_map_event_info *>(event->info);
+        war_map_event_info *info = dynamic_cast<war_map_event_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Guild war timeout event has no event info");
@@ -752,7 +752,7 @@ namespace metin2::game::inline guilds {
     }
 
     EVENTFUNC(war_reset_flag_event) {
-        war_map_event_info *info = dynamic_cast<war_map_event_info *>(event->info);
+        war_map_event_info *info = dynamic_cast<war_map_event_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Guild war flag reset event has no event info");

@@ -184,7 +184,7 @@ namespace metin2::game::inline characters {
     };
 
     EVENTFUNC(horse_stamina_consume_event) {
-        horserider_info *info = dynamic_cast<horserider_info *>(event->info);
+        horserider_info *info = dynamic_cast<horserider_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Horse stamina consume event fired without event info");
@@ -214,7 +214,7 @@ namespace metin2::game::inline characters {
     }
 
     EVENTFUNC(horse_stamina_regen_event) {
-        horserider_info *info = dynamic_cast<horserider_info *>(event->info);
+        horserider_info *info = dynamic_cast<horserider_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Horse stamina regen event fired without event info");

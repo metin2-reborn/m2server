@@ -61,7 +61,7 @@ namespace metin2::game::inline events {
     };
 
     EVENTFUNC(battle_arena_event) {
-        battle_arena_info *pInfo = dynamic_cast<battle_arena_info *>(event->info);
+        battle_arena_info *pInfo = dynamic_cast<battle_arena_info *>(event->info.get());
 
         if (pInfo == nullptr) {
             return 0;

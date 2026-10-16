@@ -9,9 +9,6 @@ Checks: >
   readability-identifier-naming
 WarningsAsErrors: ''
 HeaderFilterRegex: '.*/src/.*'
-# snake_case like the standard library: types, functions, parameters, members and globals; private and protected
-# data members end in `_`. Locals, static members, enumerators, constants and macros are
-# not checked.
 CheckOptions:
   readability-identifier-naming.NamespaceCase: lower_case
   readability-identifier-naming.ClassCase: lower_case

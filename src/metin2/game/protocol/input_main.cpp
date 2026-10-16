@@ -107,7 +107,7 @@ namespace metin2::game::inline protocol {
     spam_score_of_ip_t spam_score_of_ip;
 
     EVENTFUNC(block_chat_by_ip_event) {
-        spam_event_info *info = dynamic_cast<spam_event_info *>(event->info);
+        spam_event_info *info = dynamic_cast<spam_event_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Chat block event has no info");

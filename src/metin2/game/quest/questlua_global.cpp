@@ -795,7 +795,7 @@ namespace metin2::game {
         };
 
         EVENTFUNC(warp_all_to_village_event) {
-            warp_all_to_village_event_info *info = dynamic_cast<warp_all_to_village_event_info *>(event->info);
+            warp_all_to_village_event_info *info = dynamic_cast<warp_all_to_village_event_info *>(event->info.get());
 
             if (info == nullptr) {
                 quest::error("Warp-all-to-village event has no info");
@@ -931,7 +931,7 @@ namespace metin2::game {
         }
 
         EVENTFUNC(warp_all_to_map_my_empire_event) {
-            warp_all_to_map_my_empire_event_info *info = dynamic_cast<warp_all_to_map_my_empire_event_info *>(event->info);
+            warp_all_to_map_my_empire_event_info *info = dynamic_cast<warp_all_to_map_my_empire_event_info *>(event->info.get());
 
             if (info == nullptr) {
                 quest::error("Warp-all-to-map event has no info");

@@ -103,7 +103,7 @@ namespace metin2::game {
             event_ptr pkEvent = target_manager::instance().target_event(ch->player_id(), dwQuestIndex, (const char *)lua_tostring(lua, 1));
 
             if (pkEvent) {
-                target_info *pInfo = dynamic_cast<target_info *>(pkEvent->info);
+                target_info *pInfo = dynamic_cast<target_info *>(pkEvent->info.get());
 
                 if (pInfo == nullptr) {
                     metin2::log::error("Target event has no info");

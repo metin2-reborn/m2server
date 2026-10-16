@@ -56,7 +56,7 @@ namespace metin2::game {
     }
 
     EVENTFUNC(target_event) {
-        target_info *info = dynamic_cast<target_info *>(event->info);
+        target_info *info = dynamic_cast<target_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Target event has no info");
@@ -152,7 +152,7 @@ namespace metin2::game {
 
             while (it2 != it->second.end()) {
                 event_ptr pkEvent = *(it2++);
-                target_info *existInfo = dynamic_cast<target_info *>(pkEvent->info);
+                target_info *existInfo = dynamic_cast<target_info *>(pkEvent->info.get());
 
                 if (nullptr == existInfo) {
                     metin2::log::error("Existing target event has no info");
@@ -224,7 +224,7 @@ namespace metin2::game {
 
         while (it2 != it->second.end()) {
             event_ptr pkEvent = *it2;
-            target_info *info = dynamic_cast<target_info *>(pkEvent->info);
+            target_info *info = dynamic_cast<target_info *>(pkEvent->info.get());
 
             if (info == nullptr) {
                 metin2::log::error("Target event has no info");
@@ -261,7 +261,7 @@ namespace metin2::game {
 
         while (it2 != it->second.end()) {
             event_ptr pkEvent = *(it2++);
-            target_info *info = dynamic_cast<target_info *>(pkEvent->info);
+            target_info *info = dynamic_cast<target_info *>(pkEvent->info.get());
 
             if (info == nullptr) {
                 metin2::log::error("Target event has no info");
@@ -291,7 +291,7 @@ namespace metin2::game {
 
         while (it2 != it->second.end()) {
             event_ptr pkEvent = *(it2++);
-            target_info *info = dynamic_cast<target_info *>(pkEvent->info);
+            target_info *info = dynamic_cast<target_info *>(pkEvent->info.get());
 
             if (info == nullptr) {
                 metin2::log::error("Target event has no info");

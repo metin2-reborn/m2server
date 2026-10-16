@@ -330,7 +330,7 @@ namespace metin2::game::inline events {
         }
 
         EVENTFUNC(mining_event) {
-            mining_event_info *info = dynamic_cast<mining_event_info *>(event->info);
+            mining_event_info *info = dynamic_cast<mining_event_info *>(event->info.get());
 
             if (info == nullptr) {
                 metin2::log::error("Mining event has no event info");

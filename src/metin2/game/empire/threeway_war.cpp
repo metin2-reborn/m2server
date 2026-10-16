@@ -43,7 +43,7 @@ namespace metin2::game::inline empire {
     };
 
     EVENTFUNC(regen_mob_event) {
-        regen_mob_event_info *info = dynamic_cast<regen_mob_event_info *>(event->info);
+        regen_mob_event_info *info = dynamic_cast<regen_mob_event_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Three-way war regen event has no info");

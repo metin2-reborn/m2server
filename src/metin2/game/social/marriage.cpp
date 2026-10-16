@@ -330,7 +330,7 @@ namespace metin2::game::inline social {
         };
 
         EVENTFUNC(near_check_event) {
-            near_check_event_info *info = dynamic_cast<near_check_event_info *>(event->info);
+            near_check_event_info *info = dynamic_cast<near_check_event_info *>(event->info.get());
 
             if (info == nullptr) {
                 metin2::log::error("Marriage near check event fired without event info");

@@ -51,7 +51,7 @@ namespace metin2::game {
         };
 
         EVENTFUNC(monarch_powerup_event) {
-            monarch_powerup_event_info *info = dynamic_cast<monarch_powerup_event_info *>(event->info);
+            monarch_powerup_event_info *info = dynamic_cast<monarch_powerup_event_info *>(event->info.get());
 
             if (info == nullptr) {
                 quest::error("Monarch power-up event has no info");
@@ -71,7 +71,7 @@ namespace metin2::game {
         };
 
         EVENTFUNC(monarch_defenseup_event) {
-            monarch_powerup_event_info *info = dynamic_cast<monarch_powerup_event_info *>(event->info);
+            monarch_powerup_event_info *info = dynamic_cast<monarch_powerup_event_info *>(event->info.get());
 
             if (info == nullptr) {
                 quest::error("Monarch defense-up event has no info");
@@ -600,7 +600,7 @@ namespace metin2::game {
         }
 
         EVENTFUNC(monarch_transfer2_event) {
-            monarch_transfer2_event_info *info = dynamic_cast<monarch_transfer2_event_info *>(event->info);
+            monarch_transfer2_event_info *info = dynamic_cast<monarch_transfer2_event_info *>(event->info.get());
 
             if (info == nullptr) {
                 quest::error("Monarch transfer event has no info");

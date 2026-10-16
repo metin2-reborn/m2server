@@ -1537,7 +1537,7 @@ namespace metin2::game::inline guilds {
     };
 
     EVENTFUNC(guild_invite_event) {
-        invite_guild_event_info *pInfo = dynamic_cast<invite_guild_event_info *>(event->info);
+        invite_guild_event_info *pInfo = dynamic_cast<invite_guild_event_info *>(event->info.get());
 
         if (pInfo == nullptr) {
             metin2::log::error("Guild invite event has no event info");

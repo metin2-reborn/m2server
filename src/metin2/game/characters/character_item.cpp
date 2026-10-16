@@ -1001,7 +1001,7 @@ namespace metin2::game::inline characters {
     }
 
     EVENTFUNC(kill_campfire_event) {
-        char_event_info *info = dynamic_cast<char_event_info *>(event->info);
+        char_event_info *info = dynamic_cast<char_event_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Campfire kill event fired without event info");

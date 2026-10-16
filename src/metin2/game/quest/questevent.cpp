@@ -21,7 +21,7 @@ namespace metin2::game {
         }
 
         EVENTFUNC(quest_server_timer_event) {
-            quest_server_event_info *info = dynamic_cast<quest_server_event_info *>(event->info);
+            quest_server_event_info *info = dynamic_cast<quest_server_event_info *>(event->info.get());
 
             if (info == nullptr) {
                 metin2::log::error("Quest server timer event has no info");
@@ -41,7 +41,7 @@ namespace metin2::game {
         }
 
         EVENTFUNC(quest_timer_event) {
-            quest_event_info *info = dynamic_cast<quest_event_info *>(event->info);
+            quest_event_info *info = dynamic_cast<quest_event_info *>(event->info.get());
 
             if (info == nullptr) {
                 metin2::log::error("Quest timer event has no info");

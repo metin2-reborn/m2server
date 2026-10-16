@@ -125,7 +125,7 @@ namespace metin2::game {
         };
 
         EVENTFUNC(warp_all_to_map_event) {
-            warp_all_to_map_event_info *info = dynamic_cast<warp_all_to_map_event_info *>(event->info);
+            warp_all_to_map_event_info *info = dynamic_cast<warp_all_to_map_event_info *>(event->info.get());
 
             if (info == nullptr) {
                 metin2::log::error("Warp-all event has no info");

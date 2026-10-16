@@ -98,7 +98,7 @@ namespace metin2::game::inline events {
         };
 
         EVENTFUNC(spawn_santa_event) {
-            spawn_santa_info *info = dynamic_cast<spawn_santa_info *>(event->info);
+            spawn_santa_info *info = dynamic_cast<spawn_santa_info *>(event->info.get());
 
             if (info == nullptr) {
                 metin2::log::error("Santa spawn event has no event info");

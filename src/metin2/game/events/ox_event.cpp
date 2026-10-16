@@ -179,7 +179,7 @@ namespace metin2::game::inline events {
 
     EVENTFUNC(oxevent_timer) {
         static uint8_t flag = 0;
-        ox_event_info_data *info = dynamic_cast<ox_event_info_data *>(event->info);
+        ox_event_info_data *info = dynamic_cast<ox_event_info_data *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Ox event timer has no event info");

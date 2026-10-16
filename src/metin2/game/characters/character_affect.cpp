@@ -72,7 +72,7 @@ namespace metin2::game::inline characters {
     }
 
     EVENTFUNC(affect_event) {
-        char_event_info *info = dynamic_cast<char_event_info *>(event->info);
+        char_event_info *info = dynamic_cast<char_event_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Affect event fired without event info");
@@ -321,7 +321,7 @@ namespace metin2::game::inline characters {
     };
 
     EVENTFUNC(load_affect_login_event) {
-        load_affect_login_event_info *info = dynamic_cast<load_affect_login_event_info *>(event->info);
+        load_affect_login_event_info *info = dynamic_cast<load_affect_login_event_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Affect login load event fired without event info");

@@ -131,7 +131,7 @@ namespace metin2::game::inline protocol {
     }
 
     EVENTFUNC(ping_event) {
-        desc::desc_event_info *info = dynamic_cast<desc::desc_event_info *>(event->info);
+        desc::desc_event_info *info = dynamic_cast<desc::desc_event_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Ping event has no info");
@@ -467,7 +467,7 @@ namespace metin2::game::inline protocol {
     }
 
     EVENTFUNC(disconnect_event) {
-        desc::desc_event_info *info = dynamic_cast<desc::desc_event_info *>(event->info);
+        desc::desc_event_info *info = dynamic_cast<desc::desc_event_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Disconnect event has no info");

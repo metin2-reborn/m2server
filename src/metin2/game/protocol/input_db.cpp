@@ -694,7 +694,7 @@ namespace metin2::game::inline protocol {
     };
 
     EVENTFUNC(quest_login_event) {
-        quest_login_event_info *info = dynamic_cast<quest_login_event_info *>(event->info);
+        quest_login_event_info *info = dynamic_cast<quest_login_event_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Quest login event has no info");

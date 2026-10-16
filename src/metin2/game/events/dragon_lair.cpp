@@ -37,7 +37,7 @@ namespace metin2::game::inline events {
     };
 
     EVENTFUNC(dragon_lair_collapse_event) {
-        tag_dragon_lair_collapse_event_info *pInfo = dynamic_cast<tag_dragon_lair_collapse_event_info *>(event->info);
+        tag_dragon_lair_collapse_event_info *pInfo = dynamic_cast<tag_dragon_lair_collapse_event_info *>(event->info.get());
 
         if (pInfo == nullptr) {
             metin2::log::error("Dragon lair collapse event has no event info");

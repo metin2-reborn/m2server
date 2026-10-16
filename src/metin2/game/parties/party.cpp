@@ -212,7 +212,7 @@ namespace metin2::game::inline parties {
     };
 
     EVENTFUNC(party_update_event) {
-        party_update_event_info *info = dynamic_cast<party_update_event_info *>(event->info);
+        party_update_event_info *info = dynamic_cast<party_update_event_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Party update event fired without event info");

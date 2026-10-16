@@ -32,7 +32,7 @@ namespace metin2::game::inline characters {
     };
 
     EVENTFUNC(petsystem_update_event) {
-        petsystem_event_info *info = dynamic_cast<petsystem_event_info *>(event->info);
+        petsystem_event_info *info = dynamic_cast<petsystem_event_info *>(event->info.get());
         if (info == nullptr) {
             metin2::log::error("Pet speed hack check event fired without event info");
             return 0;

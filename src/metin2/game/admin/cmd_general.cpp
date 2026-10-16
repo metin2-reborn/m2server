@@ -139,7 +139,7 @@ namespace metin2::game::inline admin {
     };
 
     EVENTFUNC(shutdown_event) {
-        shutdown_event_data *info = dynamic_cast<shutdown_event_data *>(event->info);
+        shutdown_event_data *info = dynamic_cast<shutdown_event_data *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Shutdown event has no info");
@@ -222,7 +222,7 @@ namespace metin2::game::inline admin {
     }
 
     EVENTFUNC(timed_event) {
-        timed_event_info *info = dynamic_cast<timed_event_info *>(event->info);
+        timed_event_info *info = dynamic_cast<timed_event_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Timed event has no info");

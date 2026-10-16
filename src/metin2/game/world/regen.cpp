@@ -306,7 +306,7 @@ namespace metin2::game::inline world {
     }
 
     EVENTFUNC(dungeon_regen_event) {
-        dungeon_regen_event_info *info = dynamic_cast<dungeon_regen_event_info *>(event->info);
+        dungeon_regen_event_info *info = dynamic_cast<dungeon_regen_event_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Dungeon regen event has no event info");
@@ -373,7 +373,7 @@ namespace metin2::game::inline world {
     }
 
     EVENTFUNC(regen_event) {
-        regen_event_info *info = dynamic_cast<regen_event_info *>(event->info);
+        regen_event_info *info = dynamic_cast<regen_event_info *>(event->info.get());
 
         if (info == nullptr) {
             metin2::log::error("Regen event has no event info");
