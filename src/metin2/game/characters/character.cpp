@@ -3757,11 +3757,11 @@ namespace metin2::game::inline characters {
         }
 
         if (!is_pc()) {
-            if (!trigger_on_click_.func) {
+            if (!on_click_trigger_) {
                 return;
             }
 
-            trigger_on_click_.func(this, chr_causer);
+            on_click_trigger_(this, chr_causer);
         }
     }
 

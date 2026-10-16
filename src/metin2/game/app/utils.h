@@ -56,5 +56,4 @@ namespace metin2::game::inline app {
 
     extern auto wild_case_cmp(const char *w, const char *s) -> bool;
 
-#define TOKEN(string) if (!strcasecmp(token_string, string))
 }

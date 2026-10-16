@@ -331,7 +331,7 @@ namespace metin2::db::inline clients {
         peer->encode_word(1);
         peer->encode(get_monarch().info(), sizeof(monarch_info));
 
-        monarch::vec_monarchcandidacy &monarch_candidacies = get_monarch().vec_monarch_candidacy();
+        monarch::candidacy_list &monarch_candidacies = get_monarch().candidacies();
 
         size_t num_monarch_candidacy = get_monarch().monarch_candidacy_size();
         peer->encode_word(sizeof(monarch_candidacy));

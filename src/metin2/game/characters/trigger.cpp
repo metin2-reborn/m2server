@@ -15,24 +15,9 @@
 
 namespace metin2::game::inline characters {
 
-    auto on_click_shop(TRIGGERPARAM) -> int;
-    auto on_click_talk(TRIGGERPARAM) -> int;
+    auto on_click_shop(character *ch, character *causer) -> int;
 
-    auto on_attack_default(TRIGGERPARAM) -> int;
-
-    struct trigger_function {
-        int (*func)(TRIGGERPARAM);
-    };
-
-    trigger_function on_click_triggers[ON_CLICK_MAX_NUM] =
-        {
-            {
-             nullptr,
-             },
-            {
-             on_click_shop,
-             },
-    };
+    const trigger_func on_click_triggers[ON_CLICK_MAX_NUM] = {nullptr, on_click_shop};
 
     void character::assign_triggers(const mob_table *table) {
         if (table->on_click_type >= ON_CLICK_MAX_NUM) {
@@ -40,11 +25,10 @@ namespace metin2::game::inline characters {
             abort();
         }
 
-        trigger_on_click_.type = table->on_click_type;
-        trigger_on_click_.func = on_click_triggers[table->on_click_type].func;
+        on_click_trigger_ = on_click_triggers[table->on_click_type];
     }
 
-    auto on_click_shop(TRIGGERPARAM) -> int {
+    auto on_click_shop(character *ch, character *causer) -> int {
         get_shop_manager().start_shopping(causer, ch);
         return 1;
     }

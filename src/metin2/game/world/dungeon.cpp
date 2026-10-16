@@ -315,7 +315,7 @@ namespace metin2::game::inline world {
         dungeons_.erase(owner_it);
 
         int32_t map_index = dungeon->map_index_;
-        map_dungeons_.erase(map_index);
+        dungeons_by_map_.erase(map_index);
 
         uint32_t server_timer_arg = map_index;
         quest::get_quest_manager().cancel_server_timers(server_timer_arg);
@@ -332,8 +332,8 @@ namespace metin2::game::inline world {
     }
 
     auto dungeon_manager::find_by_map_index(int32_t map_index) -> dungeon * {
-        auto it = map_dungeons_.find(map_index);
-        if (it != map_dungeons_.end()) {
+        auto it = dungeons_by_map_.find(map_index);
+        if (it != dungeons_by_map_.end()) {
             return it->second;
         }
         return nullptr;
@@ -355,7 +355,7 @@ namespace metin2::game::inline world {
         std::unique_ptr<dungeon> new_dungeon(new dungeon(id, original_map_index, map_index));
         dungeon *dungeon = new_dungeon.get();
         dungeons_.emplace(id, std::move(new_dungeon));
-        map_dungeons_.insert(std::make_pair(map_index, dungeon));
+        dungeons_by_map_.insert(std::make_pair(map_index, dungeon));
 
         return dungeon;
     }

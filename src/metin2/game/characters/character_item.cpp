@@ -4687,7 +4687,7 @@ namespace metin2::game::inline characters {
                     break;
                 }
                 buff = new_buff.get();
-                buff_on_attrs_.insert(map_buff_on_attrs::value_type(type, std::move(new_buff)));
+                buff_on_attrs_.insert(buff_on_attrs_map::value_type(type, std::move(new_buff)));
 
             } else
                 buff = it->second.get();
@@ -5604,12 +5604,6 @@ namespace metin2::game::inline characters {
         }
     }
 
-#define VERIFY_MSG(exp, msg)                       \
-    if (true == (exp)) {                           \
-        chat_packet(CHAT_TYPE_INFO, lc_text(msg)); \
-        return false;                              \
-    }
-
     auto character::can_equip_now(item *const item, const item_pos &src_cell, const item_pos &dest_cell) -> bool {
         const item_table *item_table = item->proto();
 
@@ -5695,7 +5689,10 @@ namespace metin2::game::inline characters {
     auto character::can_unequip_now(item *const item, const item_pos &src_cell, const item_pos &dest_cell) -> bool {
 
         if (ITEM_BELT == item->type())
-            VERIFY_MSG(belt_inventory_helper::is_exist_item_in_belt_inventory(this), "벨트 인벤토리에 아이템이 존재하면 해제할 수 없습니다.");
+            if (belt_inventory_helper::is_exist_item_in_belt_inventory(this)) {
+                chat_packet(CHAT_TYPE_INFO, lc_text("벨트 인벤토리에 아이템이 존재하면 해제할 수 없습니다."));
+                return false;
+            }
 
         if (is_set(item->flag(), ITEM_FLAG_IRREMOVABLE))
             return false;
@@ -5708,7 +5705,10 @@ namespace metin2::game::inline characters {
             else
                 pos = empty_inventory(item->size());
 
-            VERIFY_MSG(-1 == pos, "소지품에 빈 공간이 없습니다.");
+            if (-1 == pos) {
+                chat_packet(CHAT_TYPE_INFO, lc_text("소지품에 빈 공간이 없습니다."));
+                return false;
+            }
         }
 
         return true;

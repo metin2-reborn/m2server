@@ -95,7 +95,6 @@ namespace metin2::game::inline social {
             manager();
             ~manager();
 
-            auto initialize() -> bool;
             void destroy();
 
             auto get(uint32_t player_id) -> marriage *;

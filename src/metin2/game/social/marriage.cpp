@@ -455,10 +455,6 @@ namespace metin2::game::inline social {
             return get(player_id) != nullptr;
         }
 
-        auto manager::initialize() -> bool {
-            return true;
-        }
-
         void align(uint32_t &pid1, uint32_t &pid2) {
             if (pid1 > pid2)
                 std::swap(pid1, pid2);

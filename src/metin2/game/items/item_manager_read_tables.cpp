@@ -722,7 +722,7 @@ namespace metin2::game::inline items {
 
         int ori_vnum, new_vnum;
         while (fscanf(fp, "%u %u", &ori_vnum, &new_vnum) != EOF) {
-            new_to_ori_.insert(map_dw2_dw::value_type(new_vnum, ori_vnum));
+            new_to_ori_.insert(new_vnum_map::value_type(new_vnum, ori_vnum));
         }
         fclose(fp);
         return true;

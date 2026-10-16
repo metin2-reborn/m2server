@@ -41,6 +41,7 @@
 #include <metin2/game/protocol/desc.h>
 #include <metin2/game/protocol/desc_client.h>
 #include <metin2/game/protocol/desc_manager.h>
+#include <metin2/game/protocol/ip_ban.h>
 #include <metin2/game/protocol/lzo_manager.h>
 #include <metin2/game/protocol/p2p.h>
 #include <metin2/game/protocol/packet.h>
@@ -70,8 +71,6 @@
 #include <cassert>
 #include <climits>
 #include <cstdint>
-#include <cstdio>
-#include <cstdlib>
 #include <cstring>
 #include <memory>
 #include <string>
@@ -352,6 +351,8 @@ namespace metin2::game::inline app {
         }
 
         if (metin2::config::is_auth()) {
+            load_ban_ip("BANIP");
+
             if (metin2::config::auth().master_host.length() != 0) {
                 metin2::log::info("Auth: slave of {}:{:d}", metin2::config::auth().master_host, metin2::config::auth().master_port);
                 auth_master_desc = get_desc_manager().create_connection_desc(metin2::config::auth().master_host.c_str(), metin2::config::auth().master_port, PHASE_P2P, true);

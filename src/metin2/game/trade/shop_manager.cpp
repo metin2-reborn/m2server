@@ -34,7 +34,6 @@
 #include <cstdio>
 #include <cstring>
 #include <format>
-#include <iterator>
 #include <map>
 #include <memory>
 #include <ranges>
@@ -416,8 +415,8 @@ namespace metin2::game::inline trade {
             return false;
         }
 
-        using map_np_cshop = std::multimap<uint32_t, shop_table_ex>;
-        map_np_cshop npc_shops;
+        using npc_shop_map = std::multimap<uint32_t, shop_table_ex>;
+        npc_shop_map npc_shops;
         for (int i = 0; i < shop_npc_group->row_count(); i++) {
             uint32_t npc_vnum;
             std::string shop_name;
@@ -441,7 +440,7 @@ namespace metin2::game::inline trade {
                 return false;
             }
 
-            npc_shops.insert(map_np_cshop::value_type(npc_vnum, table));
+            npc_shops.insert(npc_shop_map::value_type(npc_vnum, table));
         }
 
         for (auto it = npc_shops.begin(); it != npc_shops.end(); ++it) {

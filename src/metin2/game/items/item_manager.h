@@ -345,8 +345,8 @@ namespace metin2::game::inline items {
         std::map<uint32_t, int> item_to_special_group_;
 
       private:
-        using map_dw2_dw = std::map<uint32_t, uint32_t>;
-        map_dw2_dw new_to_ori_;
+        using new_vnum_map = std::map<uint32_t, uint32_t>;
+        new_vnum_map new_to_ori_;
 
       public:
         auto mask_vnum(uint32_t vnum) -> uint32_t;

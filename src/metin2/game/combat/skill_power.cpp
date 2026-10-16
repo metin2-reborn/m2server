@@ -2,9 +2,9 @@
 
 #include <metin2/game/combat/skill_power.h>
 
+#include <metin2/log/log.h>
 #include <metin2/proto/character_types.h>
 
-#include <cstdio>
 #include <cstring>
 #include <memory>
 #include <utility>
@@ -14,20 +14,12 @@ namespace metin2::game::inline combat {
     auto table_by_skill::check() const -> bool {
         for (int job = 0; job < (JOB_MAX_NUM * 2); ++job) {
             if (!skill_power_by_level_from_type_[job]) {
-                fprintf(stderr, "[NO SETTING SKILL] aiSkillPowerByLevelFromType[%d]", job);
+                metin2::log::error("No skill power table for job group {:d}", job);
                 return false;
             }
         }
 
         return true;
-    }
-
-    void table_by_skill::delete_all() {
-        for (int job = 0; job < JOB_MAX_NUM * 2; ++job) {
-            delete_skill_power_by_level_from_type(job);
-        }
-
-        delete_skill_damage_by_level_table();
     }
 
     auto table_by_skill::skill_power_by_level_from_type(int job, int skillgroup, int skilllevel, bool mob) const -> int {
@@ -54,9 +46,5 @@ namespace metin2::game::inline combat {
 
     void table_by_skill::delete_skill_power_by_level_from_type(int idx) {
         skill_power_by_level_from_type_[idx].reset();
-    }
-
-    void table_by_skill::delete_skill_damage_by_level_table() {
-        skill_damage_by_level_.reset();
     }
 }

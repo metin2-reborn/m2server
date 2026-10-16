@@ -20,15 +20,6 @@ namespace metin2::game::inline protocol {
 
     lzo_manager::~lzo_manager() = default;
 
-    auto lzo_manager::compress(const uint8_t *src, size_t srcsize, uint8_t *dest, lzo_uint *pui_dest_size) -> bool {
-        int ret = lzo1x_1_compress(src, srcsize, dest, pui_dest_size, work_memory());
-
-        if (ret != LZO_E_OK)
-            return false;
-
-        return true;
-    }
-
     auto lzo_manager::decompress(const uint8_t *src, size_t srcsize, uint8_t *dest, lzo_uint *pui_dest_size) -> bool {
         int ret = lzo1x_decompress_safe(src, srcsize, dest, pui_dest_size, work_memory());
 

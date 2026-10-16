@@ -1,10 +1,10 @@
 
 
+#include <algorithm>
 #include <metin2/game/items/blend_item.h>
 
 #include <metin2/game/app/constants.h>
 #include <metin2/game/app/typedef.h>
-#include <metin2/game/app/utils.h>
 #include <metin2/game/items/item.h>
 #include <metin2/game/text/locale_service.h>
 
@@ -19,8 +19,6 @@
 #include <string>
 #include <vector>
 
-#define DO_ALL_BLEND_INFO(iter) for (iter = blend_info.begin(); iter != blend_info.end(); ++iter)
-
 namespace metin2::game::inline items {
 
     struct blend_item_info {
@@ -30,8 +28,7 @@ namespace metin2::game::inline items {
         int apply_duration[MAX_BLEND_ITEM_VALUE];
     };
 
-    using t_blend_item_info = std::vector<blend_item_info>;
-    t_blend_item_info blend_info;
+    std::vector<blend_item_info> blend_info;
 
     auto blend_item_init() -> bool {
         const std::string file_name = std::format("{}/blend.txt", locale_service_get_base_path());
@@ -70,10 +67,9 @@ namespace metin2::game::inline items {
             if (nullptr == token_string)
                 continue;
 
-            TOKEN("section") {
+            if (!strcasecmp(token_string, "section")) {
                 blend_item_info = {};
-            }
-            else TOKEN("item_vnum") {
+            } else if (!strcasecmp(token_string, "item_vnum")) {
                 v = strtok(nullptr, delim);
 
                 if (nullptr == v) {
@@ -82,8 +78,7 @@ namespace metin2::game::inline items {
                 }
 
                 str_to_number(blend_item_info.item_vnum, v);
-            }
-            else TOKEN("apply_type") {
+            } else if (!strcasecmp(token_string, "apply_type")) {
                 v = strtok(nullptr, delim);
 
                 if (nullptr == v) {
@@ -96,8 +91,7 @@ namespace metin2::game::inline items {
                     fclose(fp);
                     return false;
                 }
-            }
-            else TOKEN("apply_value") {
+            } else if (!strcasecmp(token_string, "apply_value")) {
                 for (int i = 0; i < MAX_BLEND_ITEM_VALUE; ++i) {
                     v = strtok(nullptr, delim);
 
@@ -108,8 +102,7 @@ namespace metin2::game::inline items {
 
                     str_to_number(blend_item_info.apply_value[i], v);
                 }
-            }
-            else TOKEN("apply_duration") {
+            } else if (!strcasecmp(token_string, "apply_duration")) {
                 for (int i = 0; i < MAX_BLEND_ITEM_VALUE; ++i) {
                     v = strtok(nullptr, delim);
 
@@ -120,8 +113,7 @@ namespace metin2::game::inline items {
 
                     str_to_number(blend_item_info.apply_duration[i], v);
                 }
-            }
-            else TOKEN("end") {
+            } else if (!strcasecmp(token_string, "end")) {
                 blend_info.push_back(blend_item_info);
             }
         }
@@ -166,24 +158,20 @@ namespace metin2::game::inline items {
     }
 
     auto blend_item_set_value(item *item) -> bool {
-        blend_item_info *blend_info_value;
-        t_blend_item_info::iterator iter;
-
-        DO_ALL_BLEND_INFO(iter) {
-            blend_info_value = &*iter;
-            if (blend_info_value->item_vnum == item->vnum()) {
+        for (blend_item_info &info : blend_info) {
+            if (info.item_vnum == item->vnum()) {
                 int apply_type;
                 int apply_value;
                 int apply_duration;
 
                 if (item->vnum() == 51002) {
-                    apply_type = blend_info_value->apply_type;
-                    apply_value = blend_info_value->apply_value[fn_ecs_random_index()];
-                    apply_duration = blend_info_value->apply_duration[fn_ecs_random_index()];
+                    apply_type = info.apply_type;
+                    apply_value = info.apply_value[fn_ecs_random_index()];
+                    apply_duration = info.apply_duration[fn_ecs_random_index()];
                 } else {
-                    apply_type = blend_info_value->apply_type;
-                    apply_value = blend_info_value->apply_value[fn_random_index()];
-                    apply_duration = blend_info_value->apply_duration[fn_random_index()];
+                    apply_type = info.apply_type;
+                    apply_value = info.apply_value[fn_random_index()];
+                    apply_duration = info.apply_duration[fn_random_index()];
                 }
                 metin2::log::debug("Blend: apply type {:d}, value {:d}, duration {:d}", apply_type, apply_value, apply_duration);
                 item->set_socket(0, apply_type);
@@ -196,14 +184,6 @@ namespace metin2::game::inline items {
     }
 
     auto blend_item_find(uint32_t item_vnum) -> bool {
-        blend_item_info *blend_info_value;
-        t_blend_item_info::iterator iter;
-
-        DO_ALL_BLEND_INFO(iter) {
-            blend_info_value = &*iter;
-            if (blend_info_value->item_vnum == item_vnum)
-                return true;
-        }
-        return false;
+        return std::ranges::any_of(blend_info, [item_vnum](const blend_item_info &info) -> bool { return info.item_vnum == item_vnum; });
     }
 }

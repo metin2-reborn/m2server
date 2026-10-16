@@ -13,7 +13,6 @@ namespace metin2::game::inline protocol {
         lzo_manager();
         ~lzo_manager();
 
-        auto compress(const uint8_t *src, size_t srcsize, uint8_t *dest, lzo_uint *pui_dest_size) -> bool;
         auto decompress(const uint8_t *src, size_t srcsize, uint8_t *dest, lzo_uint *pui_dest_size) -> bool;
         auto max_compressed_size(size_t original) -> size_t;
 

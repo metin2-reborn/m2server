@@ -31,7 +31,7 @@ namespace metin2::db::inline empire {
             auto p = std::make_unique<monarch_election_info>();
             p->pid = pid;
             p->selectedpid = selectdpid;
-            monarch_elections_.insert(map_monarchelection::value_type(pid, std::move(p)));
+            monarch_elections_.insert(election_map::value_type(pid, std::move(p)));
 
             const std::string query = sql::format(
                 "INSERT INTO monarch_election(pid, selectedpid, electiondata) VALUES({}, {}, now())", pid, selectdpid);
@@ -44,7 +44,7 @@ namespace metin2::db::inline empire {
     }
 
     void monarch::elect_monarch() {
-        int size = vec_monarch_candidacy().size();
+        int size = candidacies().size();
 
         auto s = std::make_unique<int[]>(size);
 

@@ -13,7 +13,7 @@
 namespace metin2::game::inline data {
 
     using token_vector_map = std::map<std::string, token_vector>;
-    using map_name_to_index = std::map<std::string, int>;
+    using name_to_index_map = std::map<std::string, int>;
 
     class group_node {
       public:
@@ -65,13 +65,13 @@ namespace metin2::game::inline data {
         auto column_index_from_name(const std::string &name) const -> int;
 
       private:
-        using map_group = std::map<std::string, std::unique_ptr<group_node>>;
-        using map_row = std::map<std::string, group_node::group_node_row>;
-        map_group child_nodes_;
+        using group_map = std::map<std::string, std::unique_ptr<group_node>>;
+        using row_map = std::map<std::string, group_node::group_node_row>;
+        group_map child_nodes_;
         std::string group_name_;
 
-        map_name_to_index column_name_to_index_;
-        map_row rows_;
+        name_to_index_map column_name_to_index_;
+        row_map rows_;
         friend class group_text_parse_tree_loader;
     };
 

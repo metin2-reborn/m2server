@@ -135,7 +135,7 @@ namespace metin2::db::inline clients {
             set_item_id_range(item_spare_range_);
 
             if (set_spare_item_id_range(get_item_id_range_manager().range()) == false) {
-                metin2::log::error("Item id range: cannot assign spare range to peer {}", public_ip());
+                metin2::log::error("Item id range: cannot assign spare range to peer {}", host());
                 item_spare_range_.min = item_spare_range_.max = item_spare_range_.usable_item_id_min = 0;
             }
 
@@ -148,7 +148,7 @@ namespace metin2::db::inline clients {
         if (item_range.min == 0 || item_range.max == 0 || item_range.usable_item_id_min == 0) return false;
 
         item_range_ = item_range;
-        metin2::log::info("Item id range: assigned {1:d} to {2:d} to peer {0} (next free id {3:d})", public_ip(), item_range_.min, item_range_.max, item_range_.usable_item_id_min);
+        metin2::log::info("Item id range: assigned {1:d} to {2:d} to peer {0} (next free id {3:d})", host(), item_range_.min, item_range_.max, item_range_.usable_item_id_min);
 
         return true;
     }
@@ -157,7 +157,7 @@ namespace metin2::db::inline clients {
         if (item_range.min == 0 || item_range.max == 0 || item_range.usable_item_id_min == 0) return false;
 
         item_spare_range_ = item_range;
-        metin2::log::info("Item id range: assigned spare {1:d} to {2:d} to peer {0} (next free id {3:d})", public_ip(), item_spare_range_.min, item_spare_range_.max,
+        metin2::log::info("Item id range: assigned spare {1:d} to {2:d} to peer {0} (next free id {3:d})", host(), item_spare_range_.min, item_spare_range_.max,
             item_spare_range_.usable_item_id_min);
 
         return true;

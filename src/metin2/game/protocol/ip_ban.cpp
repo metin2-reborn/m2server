@@ -2,10 +2,12 @@
 #include <metin2/game/protocol/ip_ban.h>
 
 #include <metin2/common/utils.h>
+#include <metin2/log/log.h>
 
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <fstream>
 #include <map>
 #include <string>
 #include <vector>
@@ -113,50 +115,25 @@ namespace metin2::game::inline protocol {
     std::map<int, std::vector<ip>> ban_ip;
 
     auto load_ban_ip(const char *filename) -> bool {
-        FILE *fp = fopen(filename, "r");
-
-        if (!fp)
+        std::ifstream file(filename);
+        if (!file)
             return false;
 
-        char buf[256];
-        std::string start;
-        std::string end;
+        std::size_t count = 0;
+        for (std::string line; std::getline(file, line);) {
+            if (line.empty())
+                continue;
 
-        fprintf(stderr, "LOADING BANNED IP LIST\n");
+            const auto tab = line.find('\t');
+            const std::string start = line.substr(0, tab);
+            const std::string end = tab == std::string::npos ? std::string() : line.substr(tab + 1, line.find('\t', tab + 1) - tab - 1);
 
-        while (fgets(buf, 256, fp)) {
-            *strchr(buf, '\n') = '\0';
-            char *p = strchr(buf, '\t');
-
-            if (!p) {
-                start = buf;
-                end.clear();
-            } else {
-                char *p2 = strchr(p + 1, '\t');
-
-                if (p2)
-                    *p2 = '\0';
-
-                end = p + 1;
-
-                *p = '\0';
-                start = buf;
-            }
-
-            ip ip(start.c_str(), end.c_str());
-
-            auto it = ban_ip.find(ip.hash());
-
-            if (it == ban_ip.end()) {
-                std::vector<game::protocol::ip> v;
-                v.push_back(ip);
-                ban_ip.insert(std::map<uint32_t, std::vector<game::protocol::ip>>::value_type(ip.hash(), v));
-            } else
-                it->second.push_back(ip);
+            ip range(start.c_str(), end.c_str());
+            ban_ip[range.hash()].push_back(range);
+            ++count;
         }
 
-        fclose(fp);
-
+        metin2::log::info("Loaded {:d} banned address ranges from {}", count, filename);
         return true;
     }
 

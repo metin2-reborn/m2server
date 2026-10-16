@@ -32,9 +32,6 @@
 #include <utility>
 #include <vector>
 
-#define RETURN_IF_CUBE_IS_NOT_OPENED(ch) \
-    if (!(ch)->is_cube_open()) return
-
 namespace metin2::game::inline items {
     static std::vector<std::unique_ptr<cube_data>> cube_proto;
     static bool is_initialized_cube_material_information = false;
@@ -272,7 +269,8 @@ namespace metin2::game::inline items {
     }
 
     void cube_close(character *ch) {
-        RETURN_IF_CUBE_IS_NOT_OPENED(ch);
+        if (!ch->is_cube_open())
+            return;
         cube_clean_item(ch);
         ch->set_cube_npc(nullptr);
         ch->chat_packet(CHAT_TYPE_COMMAND, "cube close");
@@ -322,34 +320,27 @@ namespace metin2::game::inline items {
             if ((v = strtok(nullptr, delim)))
                 str_to_number(value2, v);
 
-            TOKEN("section") {
+            if (!strcasecmp(token_string, "section")) {
                 cube_data = std::make_unique<game::items::cube_data>();
-            }
-            else if (!cube_data) {
+            } else if (!cube_data) {
                 metin2::log::error("Cube token '{}' is outside a recipe section", token_string);
-            }
-            else TOKEN("npc") {
+            } else if (!strcasecmp(token_string, "npc")) {
                 cube_data->npc_vnum.push_back((uint16_t)value1);
-            }
-            else TOKEN("item") {
+            } else if (!strcasecmp(token_string, "item")) {
                 cube_value.vnum = value1;
                 cube_value.count = value2;
 
                 cube_data->item.push_back(cube_value);
-            }
-            else TOKEN("reward") {
+            } else if (!strcasecmp(token_string, "reward")) {
                 cube_value.vnum = value1;
                 cube_value.count = value2;
 
                 cube_data->reward.push_back(cube_value);
-            }
-            else TOKEN("percent") {
+            } else if (!strcasecmp(token_string, "percent")) {
                 cube_data->percent = value1;
-            }
-            else TOKEN("gold") {
+            } else if (!strcasecmp(token_string, "gold")) {
                 cube_data->gold = value1;
-            }
-            else TOKEN("end") {
+            } else if (!strcasecmp(token_string, "end")) {
                 if (false == fn_check_cube_data(cube_data.get())) {
                     metin2::log::error("Skipping invalid cube recipe in {}", file);
                     cube_data.reset();
@@ -470,7 +461,8 @@ namespace metin2::game::inline items {
         item **cube_item;
         item *item;
 
-        RETURN_IF_CUBE_IS_NOT_OPENED(ch);
+        if (!ch->is_cube_open())
+            return;
 
         fn_validate_cube_items(ch);
         cube_item = ch->cube_item();
@@ -488,7 +480,8 @@ namespace metin2::game::inline items {
         item *item;
         game::items::item **cube_item;
 
-        RETURN_IF_CUBE_IS_NOT_OPENED(ch);
+        if (!ch->is_cube_open())
+            return;
 
         if (inven_index < 0 || INVENTORY_MAX_NUM <= inven_index)
             return;
@@ -523,7 +516,8 @@ namespace metin2::game::inline items {
         item *item;
         game::items::item **cube_item;
 
-        RETURN_IF_CUBE_IS_NOT_OPENED(ch);
+        if (!ch->is_cube_open())
+            return;
 
         if (cube_index < 0 || CUBE_MAX_NUM <= cube_index) return;
 
@@ -676,7 +670,8 @@ namespace metin2::game::inline items {
     }
 
     void cube_request_result_list(character *ch) {
-        RETURN_IF_CUBE_IS_NOT_OPENED(ch);
+        if (!ch->is_cube_open())
+            return;
 
         character *npc = ch->quest_npc();
         if (nullptr == npc)
@@ -717,7 +712,8 @@ namespace metin2::game::inline items {
     }
 
     void cube_request_material_info(character *ch, int request_start_index, int request_count) {
-        RETURN_IF_CUBE_IS_NOT_OPENED(ch);
+        if (!ch->is_cube_open())
+            return;
 
         character *npc = ch->quest_npc();
         if (nullptr == npc)

@@ -12,8 +12,8 @@ namespace metin2::db::inline empire {
 
     class monarch {
       public:
-        using map_monarchelection = std::map<uint32_t, std::unique_ptr<monarch_election_info>>;
-        using vec_monarchcandidacy = std::vector<monarch_candidacy>;
+        using election_map = std::map<uint32_t, std::unique_ptr<monarch_election_info>>;
+        using candidacy_list = std::vector<monarch_candidacy>;
 
         monarch();
 
@@ -37,7 +37,7 @@ namespace metin2::db::inline empire {
             return &monarch_info_;
         }
 
-        auto vec_monarch_candidacy() -> vec_monarchcandidacy & {
+        auto candidacies() -> candidacy_list & {
             return monarch_candidacies_;
         }
 
@@ -48,8 +48,8 @@ namespace metin2::db::inline empire {
       private:
         auto candidacy_index(uint32_t pid) -> int;
 
-        map_monarchelection monarch_elections_;
-        vec_monarchcandidacy monarch_candidacies_;
+        election_map monarch_elections_;
+        candidacy_list monarch_candidacies_;
         monarch_info monarch_info_;
     };
 

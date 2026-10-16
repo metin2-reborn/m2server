@@ -26,14 +26,14 @@ namespace metin2::game::inline items {
       public:
         dragon_soul_table();
         ~dragon_soul_table();
-        using vec_applys = std::vector<apply>;
-        using map_apply_group = std::map<uint8_t, vec_applys>;
+        using apply_list = std::vector<apply>;
+        using apply_group_map = std::map<uint8_t, apply_list>;
 
         auto read_dragon_soul_table_file(const char *file_name) -> bool;
         auto dragon_soul_group_name(uint8_t type, std::string &group_name) const -> bool;
 
-        auto basic_applys(uint8_t ds_type, vec_applys &basic_applys) -> bool;
-        auto additional_applys(uint8_t ds_type, vec_applys &additional_applys) -> bool;
+        auto basic_applys(uint8_t ds_type, apply_list &basic_applys) -> bool;
+        auto additional_applys(uint8_t ds_type, apply_list &additional_applys) -> bool;
 
         auto apply_num_settings(uint8_t ds_type, uint8_t grade_idx, int &basis, int &add_min, int &add_max) -> bool;
         auto weight(uint8_t ds_type, uint8_t grade_idx, uint8_t step_index, uint8_t strength_idx, float &weight) -> bool;
@@ -55,15 +55,15 @@ namespace metin2::game::inline items {
         group_node *dragon_heart_ext_table_node_;
         group_node *dragon_soul_ext_table_node_;
 
-        using map_name_to_type = std::map<std::string, uint8_t>;
-        using map_type_to_name = std::map<uint8_t, std::string>;
+        using name_to_type_map = std::map<std::string, uint8_t>;
+        using type_to_name_map = std::map<uint8_t, std::string>;
         std::vector<std::string> dragon_soul_names_;
         std::vector<uint8_t> dragon_soul_types_;
 
-        map_name_to_type name_to_type_;
-        map_type_to_name type_to_name_;
-        map_apply_group basic_applys_groups_;
-        map_apply_group additional_applys_groups_;
+        name_to_type_map name_to_type_;
+        type_to_name_map type_to_name_;
+        apply_group_map basic_applys_groups_;
+        apply_group_map additional_applys_groups_;
 
         auto read_vnum_mapper() -> bool;
         auto read_basic_applys() -> bool;

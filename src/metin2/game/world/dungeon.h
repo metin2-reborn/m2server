@@ -181,7 +181,7 @@ namespace metin2::game::inline world {
 
     class dungeon_manager {
         using dungeon_map = std::map<dungeon::id_type, std::unique_ptr<dungeon>>;
-        using map_dungeon = std::map<int32_t, dungeon *>;
+        using dungeon_by_map = std::map<int32_t, dungeon *>;
 
       public:
         dungeon_manager();
@@ -194,7 +194,7 @@ namespace metin2::game::inline world {
 
       private:
         dungeon_map dungeons_;
-        map_dungeon map_dungeons_;
+        dungeon_by_map dungeons_by_map_;
 
         dungeon::id_type next_id_;
     };

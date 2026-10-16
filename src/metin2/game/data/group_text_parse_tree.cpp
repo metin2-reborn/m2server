@@ -88,7 +88,7 @@ namespace metin2::game::inline data {
             } else if (0 == token_vector[0].compare("#--#")) {
                 for (size_t i = 1; i < token_vector.size(); i++) {
                     to_lower(token_vector[i]);
-                    group_node_value->column_name_to_index_.insert(map_name_to_index::value_type(token_vector[i], i - 1));
+                    group_node_value->column_name_to_index_.insert(name_to_index_map::value_type(token_vector[i], i - 1));
                 }
             } else {
                 std::string key = token_vector[0];

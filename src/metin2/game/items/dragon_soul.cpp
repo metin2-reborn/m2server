@@ -140,8 +140,8 @@ namespace metin2::game::inline items {
         uint8_t ds_type, grade_idx, step_idx, strength_idx;
         dragon_soul_info(ds->vnum(), ds_type, grade_idx, step_idx, strength_idx);
 
-        dragon_soul_table::vec_applys basic_apply_list;
-        dragon_soul_table::vec_applys additional_apply_list;
+        dragon_soul_table::apply_list basic_apply_list;
+        dragon_soul_table::apply_list additional_apply_list;
 
         if (!table_->basic_applys(ds_type, basic_apply_list)) {
             metin2::log::error("No basic applies for dragon soul type {:d}", ds_type);
@@ -199,8 +199,8 @@ namespace metin2::game::inline items {
         uint8_t ds_type, grade_idx, step_idx, strength_idx;
         dragon_soul_info(ds->vnum(), ds_type, grade_idx, step_idx, strength_idx);
 
-        dragon_soul_table::vec_applys basic_apply_list;
-        dragon_soul_table::vec_applys additional_apply_list;
+        dragon_soul_table::apply_list basic_apply_list;
+        dragon_soul_table::apply_list additional_apply_list;
 
         if (!table_->basic_applys(ds_type, basic_apply_list)) {
             metin2::log::error("No basic applies for dragon soul type {:d}", ds_type);

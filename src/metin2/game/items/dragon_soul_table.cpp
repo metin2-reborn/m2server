@@ -131,8 +131,8 @@ namespace metin2::game::inline items {
                     metin2::log::error("VnumMapper has duplicate vnums");
                     return false;
                 }
-                name_to_type_.insert(map_name_to_type::value_type(dragon_soul_name, type_value));
-                type_to_name_.insert(map_type_to_name::value_type(type_value, dragon_soul_name));
+                name_to_type_.insert(name_to_type_map::value_type(dragon_soul_name, type_value));
+                type_to_name_.insert(type_to_name_map::value_type(type_value, dragon_soul_name));
                 dragon_soul_types_.push_back(type_value);
                 dragon_soul_names_.push_back(dragon_soul_name);
             }
@@ -154,7 +154,7 @@ namespace metin2::game::inline items {
                 metin2::log::error("BasicApplys: group {} is not defined", dragon_soul_names_[i]);
                 return false;
             }
-            vec_applys applys;
+            apply_list applys;
             int n = child->row_count();
 
             for (int j = 1; j <= n; j++) {
@@ -184,7 +184,7 @@ namespace metin2::game::inline items {
                 }
                 applys.push_back(apply(at, av));
             }
-            basic_applys_groups_.insert(map_apply_group::value_type(name_to_type_[dragon_soul_names_[i]], applys));
+            basic_applys_groups_.insert(apply_group_map::value_type(name_to_type_[dragon_soul_names_[i]], applys));
         }
 
         return true;
@@ -203,7 +203,7 @@ namespace metin2::game::inline items {
                 metin2::log::error("AdditionalApplys: group {} is not defined", dragon_soul_names_[i]);
                 return false;
             }
-            vec_applys applys;
+            apply_list applys;
 
             int n = child->row_count();
 
@@ -234,7 +234,7 @@ namespace metin2::game::inline items {
                 }
                 applys.push_back(apply(at, av, prob));
             }
-            additional_applys_groups_.insert(map_apply_group::value_type(name_to_type_[dragon_soul_names_[i]], applys));
+            additional_applys_groups_.insert(apply_group_map::value_type(name_to_type_[dragon_soul_names_[i]], applys));
         }
 
         return true;
@@ -468,7 +468,7 @@ namespace metin2::game::inline items {
         return true;
     }
 
-    auto dragon_soul_table::basic_applys(uint8_t ds_type, vec_applys &basic_applys) -> bool {
+    auto dragon_soul_table::basic_applys(uint8_t ds_type, apply_list &basic_applys) -> bool {
         auto it = basic_applys_groups_.find(ds_type);
         if (basic_applys_groups_.end() == it) {
             return false;
@@ -477,7 +477,7 @@ namespace metin2::game::inline items {
         return true;
     }
 
-    auto dragon_soul_table::additional_applys(uint8_t ds_type, vec_applys &additional_applys) -> bool {
+    auto dragon_soul_table::additional_applys(uint8_t ds_type, apply_list &additional_applys) -> bool {
         auto it = additional_applys_groups_.find(ds_type);
         if (additional_applys_groups_.end() == it) {
             return false;

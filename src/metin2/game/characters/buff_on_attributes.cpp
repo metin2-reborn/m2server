@@ -73,7 +73,7 @@ namespace metin2::game::inline characters {
 
                 if (it == additional_attrs_.end()) {
                     buff_owner_->apply_point(attr.type, attr.s_value * buff_value_ / 100);
-                    additional_attrs_.insert(map_attr::value_type(attr.type, attr.s_value));
+                    additional_attrs_.insert(attr_map::value_type(attr.type, attr.s_value));
                 } else {
                     int &sum_of_attr_value = it->second;
                     int old_value = sum_of_attr_value * buff_value_ / 100;
@@ -127,7 +127,7 @@ namespace metin2::game::inline characters {
                     if (it != additional_attrs_.end()) {
                         it->second += attr.s_value;
                     } else {
-                        additional_attrs_.insert(map_attr::value_type(attr.type, attr.s_value));
+                        additional_attrs_.insert(attr_map::value_type(attr.type, attr.s_value));
                     }
                 }
             }

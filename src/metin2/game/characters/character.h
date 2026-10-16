@@ -415,16 +415,7 @@ namespace metin2::game::inline characters {
         entity *dragon_soul_refine_window_opener;
     };
 
-#define TRIGGERPARAM character *ch, character *causer
-
-    class trigger {
-      public:
-        trigger() : type(0), func(nullptr) {
-        }
-
-        uint8_t type;
-        int (*func)(TRIGGERPARAM);
-    };
+    using trigger_func = auto (*)(character *ch, character *causer) -> int;
 
     EVENTINFO(char_event_info) {
         dynamic_character_ptr ch;
@@ -1299,7 +1290,7 @@ namespace metin2::game::inline characters {
 
       protected:
         uint32_t last_change_attack_position_time_;
-        trigger trigger_on_click_;
+        trigger_func on_click_trigger_ = nullptr;
 
       protected:
         character *chr_target_ = nullptr;
@@ -1673,8 +1664,8 @@ namespace metin2::game::inline characters {
         void buff_on_attr_value_change(uint8_t type, uint8_t old_value, uint8_t new_value);
         void buff_on_attr_clear_all();
 
-        using map_buff_on_attrs = std::map<uint8_t, std::unique_ptr<buff_on_attributes>>;
-        map_buff_on_attrs buff_on_attrs_;
+        using buff_on_attrs_map = std::map<uint8_t, std::unique_ptr<buff_on_attributes>>;
+        buff_on_attrs_map buff_on_attrs_;
 
       public:
         void set_armada() { cannot_dead_ = true; }

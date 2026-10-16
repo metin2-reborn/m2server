@@ -6,7 +6,6 @@
 #include <metin2/game/app/config.h>
 #include <metin2/game/app/event.h>
 #include <metin2/game/app/typedef.h>
-#include <metin2/game/app/utils.h>
 #include <metin2/game/characters/character.h>
 #include <metin2/game/characters/character_manager.h>
 #include <metin2/game/empire/start_position.h>
@@ -370,10 +369,9 @@ namespace metin2::game::inline empire {
             if (nullptr == token_string)
                 continue;
 
-            TOKEN("section") {
+            if (!strcasecmp(token_string, "section")) {
                 continue;
-            }
-            else TOKEN("empire") {
+            } else if (!strcasecmp(token_string, "empire")) {
                 v = strtok(nullptr, delim);
                 if (v) {
                     str_to_number(empire, v);
@@ -382,8 +380,7 @@ namespace metin2::game::inline empire {
                     metin2::log::error("Castle file {} has a line without an empire", castle_file);
                     return false;
                 }
-            }
-            else TOKEN("frog") {
+            } else if (!strcasecmp(token_string, "frog")) {
                 int pos = 0;
 
                 while ((v = strtok(nullptr, delim))) {
@@ -393,8 +390,7 @@ namespace metin2::game::inline empire {
                     }
                     ++pos;
                 }
-            }
-            else TOKEN("guard") {
+            } else if (!strcasecmp(token_string, "guard")) {
                 int group_vnum = 0;
 
                 while ((v = strtok(nullptr, delim))) {
@@ -405,8 +401,7 @@ namespace metin2::game::inline empire {
                 }
 
                 ++guard_region;
-            }
-            else TOKEN("end") {
+            } else if (!strcasecmp(token_string, "end")) {
                 guard_region = 0;
             }
         }
