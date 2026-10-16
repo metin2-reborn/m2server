@@ -154,7 +154,8 @@ mounts what each one needs there:
 | `dist/mariadb`                         | MariaDB container                  | mariadb           |
 
 A server writes `ready` into its working directory once it accepts connections; the health checks test
-for that file. Logs go to `log/syslog` and `log/syserr` and are rotated hourly into `log/YYYYMMDD/`.
+for that file. The auth server also reads an optional `BANIP` file there (one address, or a tab-separated
+`start end` range, per line); mount one into the `auth` service to block addresses. Logs go to `log/syslog` and `log/syserr` and are rotated hourly into `log/YYYYMMDD/`.
 Files under `dist/share` and `dist/config` must be world-readable, since rootless containers access them
 as an unprivileged user (`just deploy` takes care of this).
 

@@ -17,7 +17,8 @@ RUN cmake --install build --prefix /opt/metin2
 
 FROM docker.io/library/debian:13-slim
 
-RUN apt-get update && apt-get install -y --no-install-recommends libssl3t64 zlib1g liblzo2-2 libmariadb3 ca-certificates \
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libssl3t64 zlib1g liblzo2-2 libmariadb3 ca-certificates \
     && rm -rf /var/lib/apt/lists/* \
     && groupadd --gid 10001 metin2 \
     && useradd --uid 10001 --gid metin2 --no-create-home --home-dir /var/lib/metin2 metin2 \
