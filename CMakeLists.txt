@@ -33,4 +33,3 @@ if(BUILD_TESTING)
 endif()
 
 install(TARGETS server RUNTIME DESTINATION bin)
-install(PROGRAMS dist/metin2-runtime DESTINATION bin)

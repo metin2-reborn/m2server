@@ -1,5 +1,4 @@
-# Login server. The launcher adds runtime.toml with the MariaDB credentials, the bind and proxy
-# addresses, the peer list and the admin password.
+# Login server. ${NAME} values come from the environment (.env).
 role = "auth"
 test_server = false
 
@@ -7,17 +6,25 @@ test_server = false
 level = "info"
 keep_days = 2
 
+[database]
+host = "mariadb"
+user = "${DB_USER}"
+password = "${DB_PASSWORD}"
+
 [server]
 hostname = "Auth01"
 channel = 1
 port = 11000
 p2p_port = 12000
-db_host = "127.0.0.1"
+db_host = "db"
+proxy_ip = "${PUBLIC_IP}"
+p2p_allowed_hosts = ["auth", "channel1-first"]
 db_port = 15000
 ping_seconds = 180
 
 [server.admin]
 ips = ["127.0.0.1"]
+password = "${ADMIN_PASSWORD}"
 
 [auth]
 master = true

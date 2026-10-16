@@ -81,11 +81,11 @@ namespace metin2::log {
 
         void remove_old(state &s, chrono::local_seconds now) {
             std::error_code error;
-            if (!fs::is_directory(s.directory / "log", error))
+            if (!fs::is_directory(s.directory, error))
                 return;
 
             const std::string oldest_kept = day_name(day_of(now) - chrono::days(s.keep_days));
-            for (const auto &entry : fs::directory_iterator(s.directory / "log", error)) {
+            for (const auto &entry : fs::directory_iterator(s.directory, error)) {
                 const std::string name = entry.path().filename().string();
                 if (name.size() == 8 && name.find_first_not_of("0123456789") == std::string::npos && name <= oldest_kept)
                     fs::remove_all(entry.path(), error);
@@ -98,7 +98,7 @@ namespace metin2::log {
                 return;
 
             if (file.hour >= 0) {
-                const fs::path folder = s.directory / "log" / day_name(day_of(now) - chrono::days(hour < file.hour ? 1 : 0));
+                const fs::path folder = s.directory / day_name(day_of(now) - chrono::days(hour < file.hour ? 1 : 0));
                 std::error_code error;
                 fs::create_directories(folder, error);
                 file.stream.close();
@@ -118,6 +118,9 @@ namespace metin2::log {
     auto init(const fs::path &directory) -> bool {
         state &s = shared();
         const std::scoped_lock lock(s.mutex);
+
+        std::error_code error;
+        fs::create_directories(directory, error);
 
         s.directory = directory;
         s.all.emplace();

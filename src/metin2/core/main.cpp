@@ -39,7 +39,7 @@ namespace metin2::inline core {
     auto thecore_init(int fps) -> bool {
         signal_setup();
 
-        if (!metin2::log::init(".") || !pid_init()) {
+        if (!metin2::log::init("log") || !pid_init()) {
             return false;
         }
 

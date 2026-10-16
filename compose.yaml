@@ -4,9 +4,13 @@ x-server: &server
   restart: unless-stopped
   stop_grace_period: 120s
   networks: [ metin2 ]
-  environment: &server-environment
-    DB_HOST: mariadb
-    DB_PORT: "3306"
+  healthcheck:
+    test: [ CMD, test, -f, /var/lib/metin2/ready ]
+    interval: 10s
+    timeout: 3s
+    retries: 12
+    start_period: 30s
+  environment:
     DB_USER: ${DB_USER:?Set DB_USER in .env}
     DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
     PUBLIC_IP: ${PUBLIC_IP:?Set PUBLIC_IP in .env}
@@ -37,50 +41,43 @@ services:
   db:
     <<: *server
     hostname: db
-    command: [ db ]
     volumes:
-      - db-data:/var/lib/metin2
-      - ./dist/share:/srv/metin2/share:ro,z
-      - ./dist/config/db:/srv/metin2/config:ro,Z
+      - ./dist/config/db/server.toml:/var/lib/metin2/server.toml:ro,z
+      - ./dist/share/conf/item_proto.txt:/var/lib/metin2/item_proto.txt:ro,z
+      - ./dist/share/conf/item_names.txt:/var/lib/metin2/item_names.txt:ro,z
+      - ./dist/share/conf/mob_proto.txt:/var/lib/metin2/mob_proto.txt:ro,z
+      - ./dist/share/conf/mob_names.txt:/var/lib/metin2/mob_names.txt:ro,z
+      - db-log:/var/lib/metin2/log
     depends_on:
       mariadb:
         condition: service_healthy
-    healthcheck:
-      test: [ CMD, /opt/metin2/bin/metin2-runtime, health, "15000" ]
-      interval: 10s
-      timeout: 3s
-      retries: 12
-      start_period: 30s
 
   auth:
     <<: *server
     hostname: auth
-    command: [ auth ]
     volumes:
-      - auth-data:/var/lib/metin2
-      - ./dist/share:/srv/metin2/share:ro,z
-      - ./dist/config/auth:/srv/metin2/config:ro,Z
+      - ./dist/config/auth/server.toml:/var/lib/metin2/server.toml:ro,z
+      - ./dist/share/data:/var/lib/metin2/data:ro,z
+      - ./dist/share/locale:/var/lib/metin2/locale:ro,z
+      - ./dist/share/conf/CMD:/var/lib/metin2/CMD:ro,z
+      - auth-log:/var/lib/metin2/log
     depends_on:
       db:
         condition: service_healthy
     ports:
       - "11000:11000/tcp"
-    healthcheck:
-      test: [ CMD, /opt/metin2/bin/metin2-runtime, health, "11000" ]
-      interval: 10s
-      timeout: 3s
-      retries: 12
-      start_period: 30s
 
   # One game process serving every map of the original channel 1 cores (first, game1, game2, game99).
   channel1-first:
     <<: *server
     hostname: channel1-first
-    command: [ channel1-first ]
     volumes:
-      - channel1-first-data:/var/lib/metin2
-      - ./dist/share:/srv/metin2/share:ro,z
-      - ./dist/config/channel1-first:/srv/metin2/config:ro,Z
+      - ./dist/config/channel1-first/server.toml:/var/lib/metin2/server.toml:ro,z
+      - ./dist/share/data:/var/lib/metin2/data:ro,z
+      - ./dist/share/locale:/var/lib/metin2/locale:ro,z
+      - ./dist/share/conf/CMD:/var/lib/metin2/CMD:ro,z
+      - channel1-first-log:/var/lib/metin2/log
+      - channel1-first-mark:/var/lib/metin2/mark
     depends_on:
       db:
         condition: service_healthy
@@ -88,12 +85,6 @@ services:
         condition: service_healthy
     ports:
       - "13000:13000/tcp"
-    healthcheck:
-      test: [ CMD, /opt/metin2/bin/metin2-runtime, health, "13000" ]
-      interval: 10s
-      timeout: 3s
-      retries: 12
-      start_period: 30s
 
 networks:
   metin2:
@@ -101,6 +92,7 @@ networks:
 
 volumes:
   mariadb-data:
-  db-data:
-  auth-data:
-  channel1-first-data:
+  db-log:
+  auth-log:
+  channel1-first-log:
+  channel1-first-mark:

@@ -40,14 +40,14 @@ src/metin2/
   net/         networking on top of Asio
   sql/         asynchronous MariaDB access
   poly/        expression evaluator
-  common/      shared helpers (grids, caches, singletons)
+  common/      shared helpers (grids, caches)
   proto/       tables and packets shared between processes
   db/          database cache (metin2::db): clients, caches, login, guilds, ...
   game/        game and login server (metin2::game): characters, items, quests, protocol, ...
 tests/         unit tests (CTest)
 tools/         quest compiler (unbuilt)
 vendor/        third-party dependencies (fetched by CMake)
-dist/          runtime: launcher, configuration, game data, database dumps
+dist/          runtime: configuration, game data, database dumps
 ```
 
 ## Requirements
@@ -140,21 +140,29 @@ root for editors and `clang-tidy`.
 
 ## Runtime layout
 
-| Path on the host           | Mounted at                | Contents                               |
-|----------------------------|---------------------------|----------------------------------------|
-| `dist/share`               | `/srv/metin2/share`       | Game data, locale and quests           |
-| `dist/config/<service>`    | `/srv/metin2/config`      | Per-service `server.toml`              |
-| `dist/mariadb`             | MariaDB container         | Server settings, init script and dumps |
+Every service runs `/opt/metin2/bin/server` with `/var/lib/metin2` as its working directory. Compose
+mounts what each one needs there:
 
-`dist/metin2-runtime` is the container entrypoint: it writes a `runtime.toml` with the values that come
-from the environment (database credentials, addresses, admin password), waits for its dependencies and
-starts `server`, which reads `server.toml` and then `runtime.toml` on top of it. Files under `dist/share` and `dist/config` must be
-world-readable, since rootless containers access them as an unprivileged user (`just deploy` takes care
-of this).
+| Host path                              | Mounted at (in `/var/lib/metin2`)  | Services          |
+|----------------------------------------|------------------------------------|-------------------|
+| `dist/config/<service>/server.toml`    | `server.toml`                      | all               |
+| `dist/share/conf/{item,mob}_*.txt`     | `item_proto.txt`, `mob_names.txt`… | db                |
+| `dist/share/data`, `dist/share/locale` | `data`, `locale`                   | auth, game        |
+| `dist/share/conf/CMD`                  | `CMD`                              | auth, game        |
+| volume `<service>-log`                 | `log`                              | all               |
+| volume `channel1-first-mark`           | `mark` (guild marks)               | channel1-first    |
+| `dist/mariadb`                         | MariaDB container                  | mariadb           |
+
+A server writes `ready` into its working directory once it accepts connections; the health checks test
+for that file. Logs go to `log/syslog` and `log/syserr` and are rotated hourly into `log/YYYYMMDD/`.
+Files under `dist/share` and `dist/config` must be world-readable, since rootless containers access them
+as an unprivileged user (`just deploy` takes care of this).
 
 ## Configuration
 
-Each process reads `server.toml` from its working directory. A minimal game channel:
+Each process reads `server.toml` from its working directory. Strings may contain `${NAME}`, which is
+replaced by the environment variable `NAME`; the shipped files take the database credentials, the public
+address and the admin password from `.env` that way. A minimal game channel:
 
 ```toml
 role = "game"            # "db", "auth" or "game"

@@ -6,6 +6,7 @@
 #include <array>
 #include <concepts>
 #include <cstdint>
+#include <cstdlib>
 #include <format>
 #include <limits>
 #include <optional>
@@ -133,11 +134,31 @@ namespace metin2::config {
             }
 
             void read(const toml::node &node, const std::string &key, std::string &out) {
-                if (const auto value = node.value_exact<std::string>()) {
-                    out = *value;
-                } else {
+                const auto value = node.value_exact<std::string>();
+                if (!value) {
                     fail(node, key, "a string");
+                    return;
                 }
+
+                out.clear();
+                std::string_view rest = *value;
+                for (auto start = rest.find("${"); start != std::string_view::npos; start = rest.find("${")) {
+                    const auto end = rest.find('}', start);
+                    if (end == std::string_view::npos) {
+                        break;
+                    }
+
+                    const std::string variable(rest.substr(start + 2, end - start - 2));
+                    const char *replacement = std::getenv(variable.c_str());
+                    if (!replacement) {
+                        errors_.push_back(std::format("{}: {} uses ${{{}}}, which is not set in the environment", where(node), key, variable));
+                        return;
+                    }
+
+                    out.append(rest.substr(0, start)).append(replacement);
+                    rest.remove_prefix(end + 1);
+                }
+                out.append(rest);
             }
 
             template <std::integral T>
@@ -191,17 +212,6 @@ namespace metin2::config {
             std::vector<std::string> &errors_;
             std::set<std::string, std::less<>> used_;
         };
-
-        void merge(toml::table &base, const toml::table &over) {
-            for (const auto &[key, node] : over) {
-                toml::node *existing = base.get(key);
-                if (existing && existing->is_table() && node.is_table()) {
-                    merge(*existing->as_table(), *node.as_table());
-                } else {
-                    base.insert_or_assign(key, node);
-                }
-            }
-        }
 
         void read_log(reader r, log_settings &log) {
             r.get("level", log.level);
@@ -388,23 +398,13 @@ namespace metin2::config {
         std::optional<settings> current_settings;
     }
 
-    auto load(std::span<const std::filesystem::path> files) -> std::expected<settings, std::string> {
-        toml::table root;
-        for (const std::filesystem::path &file : files) {
-            toml::parse_result result = toml::parse_file(file.string());
-            if (!result) {
-                const toml::parse_error &error = result.error();
-
-                return std::unexpected(std::format("{}:{}:{}: {}\n",
-                    file.string(),
-                    error.source().begin.line,
-                    error.source().begin.column,
-                    error.description()));
-            }
-
-            merge(root, result.table());
+    auto load(const std::filesystem::path &file) -> std::expected<settings, std::string> {
+        toml::parse_result result = toml::parse_file(file.string());
+        if (!result) {
+            const toml::parse_error &error = result.error();
+            return std::unexpected(std::format("{}:{}:{}: {}\n", file.string(), error.source().begin.line, error.source().begin.column, error.description()));
         }
-        return read_settings(root);
+        return read_settings(result.table());
     }
 
     auto parse(std::string_view text) -> std::expected<settings, std::string> {

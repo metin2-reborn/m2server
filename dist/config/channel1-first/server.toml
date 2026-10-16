@@ -1,5 +1,4 @@
-# Channel 1: one game process serving every map. The launcher adds runtime.toml with the MariaDB
-# credentials, the bind and proxy addresses, the peer list and the admin password.
+# Channel 1: one game process serving every map. ${NAME} values come from the environment (.env).
 role = "game"
 test_server = false
 
@@ -7,17 +6,25 @@ test_server = false
 level = "info"
 keep_days = 2
 
+[database]
+host = "mariadb"
+user = "${DB_USER}"
+password = "${DB_PASSWORD}"
+
 [server]
 hostname = "first"
 channel = 1
 port = 13000
 p2p_port = 14000
-db_host = "127.0.0.1"
+db_host = "db"
+proxy_ip = "${PUBLIC_IP}"
+p2p_allowed_hosts = ["auth", "channel1-first"]
 db_port = 15000
 ping_seconds = 180
 
 [server.admin]
 ips = ["127.0.0.1"]
+password = "${ADMIN_PASSWORD}"
 
 [game]
 map_allow = [

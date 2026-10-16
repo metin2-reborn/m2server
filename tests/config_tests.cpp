@@ -128,44 +128,36 @@ prot = 1
     CHECK(contains(settings.error(), "line "));
 }
 
-TEST(config_merges_files_in_order) {
+TEST(config_substitutes_environment_variables) {
     temp_dir dir;
-    const std::vector<fs::path> files = {
-        dir.write("server.toml", game_config),
-        dir.write("runtime.toml", "[database]\nhost = \"mariadb\"\npassword = \"from-env\"\n[server]\nbind_ip = \"10.0.0.5\"\n"),
-    };
+    ::setenv("M2_TEST_PASSWORD", "from-env", 1);
+    ::unsetenv("M2_TEST_UNSET");
 
-    const auto settings = metin2::config::load(files);
+    const auto settings = metin2::config::load(dir.write("server.toml", "role = \"db\"\n[database]\nuser = \"metin2\"\npassword = \"pre-${M2_TEST_PASSWORD}-post\"\n[db]\nplayer_id_start = 1\nitem_id_range = [1, 2]\n"));
     CHECK(settings.has_value());
-    if (!settings)
-        return;
-    CHECK_EQ(settings->database.host, std::string("mariadb"));
-    CHECK_EQ(settings->database.password, std::string("from-env"));
-    CHECK_EQ(settings->database.user, std::string("metin2"));
-    CHECK_EQ(settings->server.bind_ip, std::string("10.0.0.5"));
-    CHECK_EQ(settings->server.hostname, std::string("first"));
+    if (settings)
+        CHECK_EQ(settings->database.password, std::string("pre-from-env-post"));
+
+    const auto missing = metin2::config::load(dir.write("server.toml", "role = \"db\"\n[database]\nuser = \"metin2\"\npassword = \"${M2_TEST_UNSET}\"\n[db]\nplayer_id_start = 1\nitem_id_range = [1, 2]\n"));
+    CHECK(!missing.has_value());
+    if (!missing)
+        CHECK(contains(missing.error(), "database.password uses ${M2_TEST_UNSET}, which is not set"));
 }
 
 TEST(config_reports_syntax_errors_with_position) {
     temp_dir dir;
-    const std::vector<fs::path> files = {dir.write("server.toml", "role = \"game\"\n[server\nhostname = 1\n")};
-    const auto settings = metin2::config::load(files);
+    const auto settings = metin2::config::load(dir.write("server.toml", "role = \"game\"\n[server\nhostname = 1\n"));
     CHECK(!settings.has_value());
     if (!settings)
         CHECK(contains(settings.error(), "server.toml:2:"));
 }
 
 TEST(config_accepts_the_shipped_files) {
-    temp_dir dir;
-    const fs::path runtime = dir.write("runtime.toml", R"(
-[database]
-host = "mariadb"
-user = "metin2"
-password = "secret"
-)");
+    for (const char *variable : {"DB_USER", "DB_PASSWORD", "PUBLIC_IP", "ADMIN_PASSWORD"})
+        ::setenv(variable, "value", 0);
+
     for (const char *role_dir : {"db", "auth", "channel1-first"}) {
-        const std::vector<fs::path> files = {fs::path(M2_SOURCE_DIR) / "dist/config" / role_dir / "server.toml", runtime};
-        const auto settings = metin2::config::load(files);
+        const auto settings = metin2::config::load(fs::path(M2_SOURCE_DIR) / "dist/config" / role_dir / "server.toml");
         CHECK(settings.has_value());
         if (!settings)
             std::fprintf(stderr, "%s: %s", role_dir, settings.error().c_str());

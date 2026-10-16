@@ -4,7 +4,6 @@
 #include <filesystem>
 #include <fstream>
 #include <utility>
-#include <vector>
 
 namespace metin2::db::inline app {
     auto run() -> int;
@@ -16,12 +15,7 @@ namespace metin2::game::inline app {
 
 namespace {
     auto load_settings() -> bool {
-        std::vector<std::filesystem::path> files = {"server.toml"};
-        if (std::filesystem::exists("runtime.toml")) {
-            files.emplace_back("runtime.toml");
-        }
-
-        auto settings = metin2::config::load(files);
+        auto settings = metin2::config::load("server.toml");
         if (!settings) {
             metin2::log::error("Invalid configuration:\n{}", settings.error());
             return false;
@@ -35,6 +29,8 @@ namespace {
 }
 
 auto main(int argc, char **argv) -> int {
+    std::filesystem::remove("ready");
+
     if (!load_settings()) {
         return 1;
     }

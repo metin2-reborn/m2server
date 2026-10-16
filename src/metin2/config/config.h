@@ -4,12 +4,11 @@
 
 #include <expected>
 #include <filesystem>
-#include <span>
 #include <string>
 #include <string_view>
 
 namespace metin2::config {
-    auto load(std::span<const std::filesystem::path> files) -> std::expected<settings, std::string>;
+    auto load(const std::filesystem::path &file) -> std::expected<settings, std::string>;
     auto parse(std::string_view text) -> std::expected<settings, std::string>;
 
     void set_current(settings value);
