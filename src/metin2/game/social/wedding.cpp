@@ -45,7 +45,7 @@ namespace marriage
 
 		if ( info == nullptr )
 		{
-			metin2::log::error( "wedding_end_event> <Factor> Null pointer" );
+			metin2::log::error("Wedding end event fired without event info");
 			return 0;
 		}
 		
@@ -81,7 +81,7 @@ namespace marriage
 	{
 		if (end_event_)
 		{
-			metin2::log::error("WeddingMap::SetEnded - ALREADY EndEvent(m_pEndEvent={})", static_cast<const void *>(static_cast<void*>(end_event_.get())));
+			metin2::log::error("Wedding map already has an end event ({})", static_cast<const void *>(static_cast<void*>(end_event_.get())));
 			return;
 		}
 
@@ -149,7 +149,7 @@ namespace marriage
 	{
 		void operator() (character * ch)
 		{
-			metin2::log::info( "WeddingMap::DestroyAll: {}", ch->name());
+			metin2::log::debug("Wedding map: removing {}", ch->name());
 
 			if (ch->get_desc())
 				desc_manager::instance().destroy_desc(ch->get_desc());
@@ -160,7 +160,7 @@ namespace marriage
 
 	void wedding_map::destroy_all()
 	{
-		metin2::log::info( "WeddingMap::DestroyAll: m_set_pkChr size {:d}", set_pk_chr_.size());
+		metin2::log::info("Wedding map: removing {:d} characters", set_pk_chr_.size());
 		
 		f_destroy_everyone f;
 
@@ -318,7 +318,7 @@ namespace marriage
 
 		if (!dwMapIndex)
 		{
-			metin2::log::error("CreateWeddingMap(pid1={:d}, pid2={:d}) / CreatePrivateMap({:d}) FAILED", pid1, pid2, WEDDING_MAP_INDEX);
+			metin2::log::error("Cannot create private copy of map {:d} for the wedding of {:d} and {:d}", WEDDING_MAP_INDEX, pid1, pid2);
 			return 0;
 		}
 
@@ -336,11 +336,11 @@ namespace marriage
 
 		if (!regen_do(st_weddingMapRegenFileName.c_str(), dwMapIndex, pkSectreeMap->setting.base_x, pkSectreeMap->setting.base_y, nullptr, true))
 		{
-			metin2::log::error("CreateWeddingMap(pid1={:d}, pid2={:d}) / regen_do(fileName={}, mapIndex={:d}, basePos=({:d}, {:d})) FAILED", pid1, pid2, st_weddingMapRegenFileName.c_str(), dwMapIndex, pkSectreeMap->setting.base_x, pkSectreeMap->setting.base_y);
+			metin2::log::error("Cannot spawn wedding of {:d} and {:d}: regen {} failed on map {:d} (base {:d}, {:d})", pid1, pid2, st_weddingMapRegenFileName.c_str(), dwMapIndex, pkSectreeMap->setting.base_x, pkSectreeMap->setting.base_y);
 		}
 		else
 		{
-			metin2::log::info( "CreateWeddingMap(pid1={:d}, pid2={:d}) / regen_do(fileName={}, mapIndex={:d}, basePos=({:d}, {:d})) ok", pid1, pid2, st_weddingMapRegenFileName.c_str(), dwMapIndex, pkSectreeMap->setting.base_x, pkSectreeMap->setting.base_y);
+			metin2::log::info("Wedding map created for {:d} and {:d}: regen {} on map {:d} (base {:d}, {:d})", pid1, pid2, st_weddingMapRegenFileName.c_str(), dwMapIndex, pkSectreeMap->setting.base_x, pkSectreeMap->setting.base_y);
 		}
 
 		return dwMapIndex;
@@ -348,7 +348,7 @@ namespace marriage
 	
 	void wedding_manager::destroy_wedding_map(wedding_map* map)
 	{
-		metin2::log::info( "DestroyWeddingMap(index={:d})", map->map_index());
+		metin2::log::info("Wedding map {:d} destroyed", map->map_index());
 		map->destroy_all();
 		wedding_.erase(map->map_index());
 		sectree_manager::instance().destroy_private_map(map->map_index());
@@ -374,7 +374,7 @@ namespace marriage
 
 			if (!dwMapIndex)
 			{
-				metin2::log::error("cannot create wedding map for {:d}, {:d}", pid1, pid2);
+				metin2::log::error("Cannot create wedding map for {:d} and {:d}", pid1, pid2);
 				return;
 			}
 

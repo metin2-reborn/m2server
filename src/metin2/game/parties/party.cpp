@@ -103,7 +103,7 @@ void party_manager::p2_p_join_party(uint32_t leader, uint32_t pid, uint8_t role)
 	}
 	else
 	{
-		metin2::log::error("No such party with leader [{:d}]", leader);
+		metin2::log::error("No party with leader pid {:d}", leader);
 	}
 }
 
@@ -117,7 +117,7 @@ void party_manager::p2_p_quit_party(uint32_t pid)
 	}
 	else
 	{
-		metin2::log::error("No such party with member [{:d}]", pid);
+		metin2::log::error("No party with member pid {:d}", pid);
 	}
 }
 
@@ -148,7 +148,7 @@ void party_manager::p2_p_delete_party(uint32_t pid)
 		delete it->second;
 	}
 	else
-		metin2::log::error("PARTY P2PDeleteParty Cannot find party [{:d}]", pid);
+		metin2::log::error("Cannot delete party of leader pid {:d}: not found", pid);
 }
 
 auto party_manager::create_party(character * leader) -> party *
@@ -165,7 +165,7 @@ auto party_manager::create_party(character * leader) -> party *
 
 		db_clientdesc->db_packet(HEADER_GD_PARTY_CREATE, 0, &p, sizeof(packet_party_create));
 
-		metin2::log::info( "PARTY: Create {} pid {:d}", leader->name(), leader->player_id());
+		metin2::log::info("Party: created by {} (pid {:d})", leader->name(), leader->player_id());
 		pParty->set_pc_party(true);
 		pParty->join(leader->player_id());
 
@@ -232,7 +232,7 @@ EVENTFUNC(party_update_event)
 
 	if ( info == nullptr )
 	{
-		metin2::log::error( "party_update_event> <Factor> Null pointer" );
+		metin2::log::error("Party update event fired without event info");
 		return 0;
 	}
 
@@ -262,7 +262,6 @@ party::~party()
 
 void party::initialize()
 {
-	metin2::log::debug( "Party::Initialize");
 
 	exp_distribution_mode_ = PARTY_EXP_DISTRIBUTION_NON_PARITY;
 	chr_exp_centralize_ = nullptr;
@@ -299,7 +298,6 @@ void party::initialize()
 
 void party::destroy()
 {
-	metin2::log::debug( "Party::Destroy");
 
 	if (pc_party_)
 	{
@@ -410,7 +408,7 @@ void party::p2_p_join(uint32_t pid)
 
 			if (ch)
 			{
-				metin2::log::info( "PARTY: Join {} pid {:d} leader {:d}", ch->name(), pid, leader_pid_);
+				metin2::log::info("Party: {} (pid {:d}) joined the party of leader pid {:d}", ch->name(), pid, leader_pid_);
 				Member.name = ch->name();
 
 				if (Member.role == PARTY_ROLE_LEADER)
@@ -424,11 +422,11 @@ void party::p2_p_join(uint32_t pid)
 				else if (pcci->channel == metin2::config::server().channel)
 					Member.name = pcci->name;
 				else
-					metin2::log::error("member is not in same channel PID: {:d} channel {:d}, this channel {:d}", pid, pcci->channel, metin2::config::server().channel);
+					metin2::log::error("Party member pid {:d} is on channel {:d}, not this channel {:d}", pid, pcci->channel, metin2::config::server().channel);
 			}
 		}
 
-		metin2::log::debug( "PARTY[{:d}] MemberCountChange {:d} -> {:d}", leader_pid(), member_count(), member_count()+1);
+		metin2::log::debug("Party of leader pid {:d}: member count {:d} -> {:d}", leader_pid(), member_count(), member_count()+1);
 
 		member_map_.insert(member_map::value_type(pid, Member));
 
@@ -488,7 +486,7 @@ void party::p2_p_quit(uint32_t pid)
 
 	member_map_.erase(it);
 
-	metin2::log::debug( "PARTY[{:d}] MemberCountChange {:d} -> {:d}", leader_pid(), member_count(), member_count() - 1);
+	metin2::log::debug("Party of leader pid {:d}: member count {:d} -> {:d}", leader_pid(), member_count(), member_count() - 1);
 
 	if (bRole < PARTY_ROLE_MAX_NUM)
 	{
@@ -496,7 +494,7 @@ void party::p2_p_quit(uint32_t pid)
 	}
 	else
 	{
-		metin2::log::error("ROLE_COUNT_QUIT_ERROR: INDEX({:d}) > MAX({:d})", bRole, PARTY_ROLE_MAX_NUM);
+		metin2::log::error("Party role {:d} out of range (max {:d}) on member quit", bRole, PARTY_ROLE_MAX_NUM);
 	}
 
 	if (ch)
@@ -538,7 +536,7 @@ void party::link(character * chr)
 
 	if (it == member_map_.end())
 	{
-		metin2::log::error("{} is not member of this party", chr->name());
+		metin2::log::error("{} is not a member of this party", chr->name());
 		return;
 	}
 
@@ -552,7 +550,7 @@ void party::link(character * chr)
 	if (it->second.role == PARTY_ROLE_LEADER)
 		chr_leader_ = chr;
 
-	metin2::log::debug( "PARTY[{:d}] {} linked to party", leader_pid(), chr->name());
+	metin2::log::debug("Party of leader pid {:d}: {} linked", leader_pid(), chr->name());
 
 	it->second.character = chr;
 	chr->set_party(this);
@@ -600,7 +598,7 @@ void party::p2_p_set_member_level(uint32_t pid, uint8_t level)
 
 	member_map::iterator it;
 
-	metin2::log::info( "PARTY P2PSetMemberLevel leader {:d} pid {:d} level {:d}", leader_pid(), pid, level);
+	metin2::log::debug("Party of leader pid {:d}: member pid {:d} level set to {:d}", leader_pid(), pid, level);
 
 	it = member_map_.find(pid);
 	if (it != member_map_.end())
@@ -631,7 +629,7 @@ void party::unlink(character * chr)
 
 	if (it == member_map_.end())
 	{
-		metin2::log::error("{} is not member of this party", chr->name());
+		metin2::log::error("{} is not a member of this party", chr->name());
 		return;
 	}
 
@@ -814,7 +812,7 @@ void party::send_party_info_one_to_all(character * ch)
 	{
 		if ((it->second.character) && (it->second.character->get_desc()))
 		{
-			metin2::log::debug( "PARTY send info {}[{:d}] to {}[{:d}]", ch->name(), (uint32_t)ch->get_vid(), it->second.character->name(), (uint32_t)it->second.character->get_vid());
+			metin2::log::debug("Party: sending info of {} (vid {:d}) to {} (vid {:d})", ch->name(), (uint32_t)ch->get_vid(), it->second.character->name(), (uint32_t)it->second.character->get_vid());
 			it->second.character->get_desc()->packet(&p, sizeof(p));
 		}
 	}
@@ -841,7 +839,7 @@ void party::send_party_info_all_to_one(character * ch)
 		}
 
 		it->second.character->build_update_party_packet(p);
-		metin2::log::debug( "PARTY send info {}[{:d}] to {}[{:d}]", it->second.character->name(), (uint32_t)it->second.character->get_vid(), ch->name(), (uint32_t)ch->get_vid());
+		metin2::log::debug("Party: sending info of {} (vid {:d}) to {} (vid {:d})", it->second.character->name(), (uint32_t)it->second.character->get_vid(), ch->name(), (uint32_t)ch->get_vid());
 		ch->get_desc()->packet(&p, sizeof(p));
 	}
 }
@@ -850,7 +848,7 @@ void party::send_message(character * ch, uint8_t msg, uint32_t arg1, uint32_t ar
 {
 	if (ch->get_party() != this)
 	{
-		metin2::log::error("{} is not member of this party {}", ch->name(), static_cast<const void *>(this));
+		metin2::log::error("{} is not a member of party {}", ch->name(), static_cast<const void *>(this));
 		return;
 	}
 
@@ -881,7 +879,7 @@ void party::send_message(character * ch, uint8_t msg, uint32_t arg1, uint32_t ar
 						if (pkChr->go_to(x, y))
 						{
 							character * victim = pkChr->victim();
-							metin2::log::info( "{} {} RETURN victim {}", pkChr->name(), static_cast<const void *>(pkChr), static_cast<const void *>(victim));
+							metin2::log::debug("Party: member {} ({}) returns to the leader, victim {}", pkChr->name(), static_cast<const void *>(pkChr), static_cast<const void *>(victim));
 							pkChr->send_move_packet(FUNC_WAIT, 0, 0, 0, 0);
 						}
 					}
@@ -975,7 +973,7 @@ auto party::set_role(uint32_t pid, uint8_t role_value, bool set) -> bool
 		}
 		else
 		{
-			metin2::log::error("ROLE_COUNT_INC_ERROR: INDEX({:d}) > MAX({:d})", role_value, PARTY_ROLE_MAX_NUM);
+			metin2::log::error("Party role {:d} out of range (max {:d}) on role count increment", role_value, PARTY_ROLE_MAX_NUM);
 		}
 	}
 	else
@@ -997,7 +995,7 @@ auto party::set_role(uint32_t pid, uint8_t role_value, bool set) -> bool
 		}
 		else
 		{
-			metin2::log::error("ROLE_COUNT_DEC_ERROR: INDEX({:d}) > MAX({:d})", role_value, PARTY_ROLE_MAX_NUM);
+			metin2::log::error("Party role {:d} out of range (max {:d}) on role count decrement", role_value, PARTY_ROLE_MAX_NUM);
 		}
 	}
 
@@ -1271,7 +1269,6 @@ void party::compute_role_point(character * ch, uint8_t role, bool add)
 
 void party::update()
 {
-	metin2::log::debug( "PARTY::Update");
 
 	character * l = leader_character();
 
@@ -1547,7 +1544,7 @@ void party::set_parameter(int mode)
 {
 	if (mode >= PARTY_EXP_DISTRIBUTION_MAX_NUM)
 	{
-		metin2::log::error("Invalid exp distribution mode {:d}", mode);
+		metin2::log::error("Invalid party exp distribution mode {:d}", mode);
 		return;
 	}
 

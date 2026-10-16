@@ -230,7 +230,7 @@ EVENTFUNC(castle_siege_event)
 
 	if ( info == nullptr )
 	{
-		metin2::log::error( "castle_siege_event> <Factor> Null pointer" );
+		metin2::log::error( "Castle siege event has no info" );
 		return 0;
 	}
 
@@ -308,7 +308,7 @@ EVENTFUNC(castle_stone_event)
 
 	if (info == nullptr)
 	{
-		metin2::log::error( "castle_stone_event> <Factor> Null pointer" );
+		metin2::log::error( "Castle stone event has no info" );
 		return 0;
 	}
 
@@ -457,7 +457,7 @@ auto castle_boot() -> bool
 			else
 			{
 				fclose(fp);
-				metin2::log::error("wrong empire number is null");
+				metin2::log::error("Castle file {} has a line without an empire", castle_file);
 				return false;
 			}
 		}
@@ -513,7 +513,7 @@ void castle_save()
 
 	if (nullptr == fp)
 	{
-		metin2::log::error("<FAIL> fopen({})", castle_file);
+		metin2::log::error("Cannot open castle file {} for writing", castle_file);
 		return;
 	}
 

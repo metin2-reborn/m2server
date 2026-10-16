@@ -26,7 +26,7 @@ auto map_locations::get(int index, int32_t & addr_value, uint16_t & port_value) 
 {
 	if (index == 0)
 	{
-		metin2::log::info( "CMapLocation::Get - Error MapIndex[{:d}]", index);
+		metin2::log::warn( "Cannot look up server for invalid map index {:d}", index);
 		return false;
 	}
 
@@ -34,11 +34,11 @@ auto map_locations::get(int index, int32_t & addr_value, uint16_t & port_value) 
 
 	if (map_address_.end() == it)
 	{
-		metin2::log::info( "CMapLocation::Get - Error MapIndex[{:d}]", index);
+		metin2::log::warn( "No server known for map {:d}", index);
 		std::map<int32_t, location>::iterator i;
 		for ( i	= map_address_.begin(); i != map_address_.end(); ++i)
 		{
-			metin2::log::info( "Map({:d}): Server({:x}:{:d})", i->first, i->second.addr, i->second.port);
+			metin2::log::debug( "Known map {:d} on server {:x}:{:d}", i->first, i->second.addr, i->second.port);
 		}
 		return false;
 	}
@@ -56,6 +56,6 @@ void map_locations::insert(int32_t index, const char * host, uint16_t port_value
 	loc.port = port_value;
 
 	map_address_.insert(std::make_pair(index, loc));
-	metin2::log::info( "MapLocation::Insert : {:d} {} {:d}", index, host, port_value);
+	metin2::log::info( "Map {:d} is on server {}:{:d}", index, host, port_value);
 }
 }

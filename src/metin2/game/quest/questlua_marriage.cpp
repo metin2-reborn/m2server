@@ -34,7 +34,7 @@ namespace quest
 		marriage::marriage* pMarriage = marriage::manager::instance().get(ch->player_id());
 		if (!pMarriage)
 		{
-			quest::error("pid[{:d}:{}] is not exist couple", ch->player_id(), ch->name());
+			quest::error("Player {1} (pid {0:d}) is not married", ch->player_id(), ch->name());
 			return 0;
 		}
 		marriage::manager::instance().request_remove(ch->player_id(), pMarriage->other(ch->player_id()));
@@ -47,7 +47,7 @@ namespace quest
 		marriage::marriage* pMarriage = marriage::manager::instance().get(ch->player_id());
 		if (!pMarriage)
 		{
-			quest::error("pid[{:d}:{}] is not exist couple", ch->player_id(), ch->name());
+			quest::error("Player {1} (pid {0:d}) is not married", ch->player_id(), ch->name());
 			return 0;
 		}
 		pMarriage->set_married();
@@ -108,7 +108,7 @@ namespace quest
 	{
 		if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2))
 		{
-			quest::error("invalid player id for wedding map");
+			quest::error("Invalid player id arguments");
 			return 0;
 		}
 
@@ -120,12 +120,12 @@ namespace quest
 		marriage::marriage* pMarriage = marriage::manager::instance().get(pid1);
 		if (!pMarriage)
 		{
-			quest::error("pid[{:d}:{}] is not exist couple", ch->player_id(), ch->name());
+			quest::error("Player {1} (pid {0:d}) is not married", ch->player_id(), ch->name());
 			return 0;
 		}
 		if (pMarriage->other(pid1) != pid2)
 		{
-			quest::error("not married {:d} {:d}", pid1, pid2);
+			quest::error("Players (pid {:d}, pid {:d}) are not married to each other", pid1, pid2);
 			return 0;
 		}
 		if ( ch->is_hack() )
@@ -141,7 +141,7 @@ namespace quest
 		marriage::marriage* pMarriage = marriage::manager::instance().get(ch->player_id());
 		if (!pMarriage)
 		{
-			quest::error("pid[{:d}:{}] is not exist couple", ch->player_id(), ch->name());
+			quest::error("Player {1} (pid {0:d}) is not married", ch->player_id(), ch->name());
 			return 0;
 		}
 
@@ -159,7 +159,7 @@ namespace quest
 		marriage::marriage* pMarriage = marriage::manager::instance().get(ch->player_id());
 		if (!pMarriage)
 		{
-			quest::error("pid[{:d}:{}] is not exist couple", ch->player_id(), ch->name());
+			quest::error("Player {1} (pid {0:d}) is not married", ch->player_id(), ch->name());
 			return 0;
 		}
 		if (pMarriage->wedding_info)
@@ -173,7 +173,7 @@ namespace quest
 	{
 		if (!lua_isboolean(lua, 1))
 		{
-			quest::error("invalid argument 1 : must be boolean");
+			quest::error("Argument 1 must be a boolean");
 			return 0;
 		}
 		character * ch = quest_manager::instance().current_character_ptr();
@@ -181,7 +181,7 @@ namespace quest
 
 		if (!pMarriage)
 		{
-			quest::error("pid[{:d}:{}] is not exist couple", ch->player_id(), ch->name());
+			quest::error("Player {1} (pid {0:d}) is not married", ch->player_id(), ch->name());
 			return 0;
 		}
 		if (pMarriage->wedding_info)
@@ -197,7 +197,7 @@ namespace quest
 	{
 		if (!lua_isstring(lua, 1))
 		{
-			quest::error("invalid argument 1 : must be string");
+			quest::error("Argument 1 must be a string");
 			return 0;
 		}
 
@@ -205,7 +205,7 @@ namespace quest
 		marriage::marriage* pMarriage = marriage::manager::instance().get(ch->player_id());
 		if (!pMarriage)
 		{
-			quest::error("pid[{:d}:{}] is not exist couple", ch->player_id(), ch->name());
+			quest::error("Player {1} (pid {0:d}) is not married", ch->player_id(), ch->name());
 			return 0;
 		}
 		if (pMarriage->wedding_info)
@@ -223,7 +223,7 @@ namespace quest
 		marriage::marriage* pMarriage = marriage::manager::instance().get(ch->player_id());
 		if (!pMarriage)
 		{
-			quest::error("pid[{:d}:{}] is not exist couple", ch->player_id(), ch->name());
+			quest::error("Player {1} (pid {0:d}) is not married", ch->player_id(), ch->name());
 			return 0;
 		}
 		if (pMarriage->wedding_info)
@@ -242,12 +242,12 @@ namespace quest
 	{
 		if (!lua_isboolean(lua, 1))
 		{
-			quest::error("invalid argument 1 : must be boolean");
+			quest::error("Argument 1 must be a boolean");
 			return 0;
 		}
 		if (!lua_isstring(lua, 2))
 		{
-			quest::error("invalid argument 2 : must be string");
+			quest::error("Argument 2 must be a string");
 			return 0;
 		}
 
@@ -255,7 +255,7 @@ namespace quest
 		marriage::marriage* pMarriage = marriage::manager::instance().get(ch->player_id());
 		if (!pMarriage)
 		{
-			quest::error("pid[{:d}:{}] is not exist couple", ch->player_id(), ch->name());
+			quest::error("Player {1} (pid {0:d}) is not married", ch->player_id(), ch->name());
 			return 0;
 		}
 		if (pMarriage->wedding_info)
@@ -272,14 +272,14 @@ namespace quest
 	{
 		if (!lua_isboolean(lua, 1))
 		{
-			quest::error("invalid argument 1 : must be boolean");
+			quest::error("Argument 1 must be a boolean");
 			return 0;
 		}
 		character * ch = quest_manager::instance().current_character_ptr();
 		marriage::marriage* pMarriage = marriage::manager::instance().get(ch->player_id());
 		if (!pMarriage)
 		{
-			quest::error("pid[{:d}:{}] is not exist couple", ch->player_id(), ch->name());
+			quest::error("Player {1} (pid {0:d}) is not married", ch->player_id(), ch->name());
 			return 0;
 		}
 		if (pMarriage->wedding_info)
@@ -312,7 +312,7 @@ namespace quest
 
 		if (!pMarriage)
 		{
-			quest::error("trying to get time for not married character");
+			quest::error("Player {} is not married", ch->name());
 			lua_pushnumber(lua, 0);
 			return 1;
 		}

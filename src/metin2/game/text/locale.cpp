@@ -35,7 +35,7 @@ auto locale_find(const char *string) -> const char *
 
 	if( iter == locale_string.end() )
 	{
-		metin2::log::error("LOCALE_ERROR: \"{}\";", string);
+		metin2::log::warn("No translation for \"{}\"", string);
 		return string;
 	}
 
@@ -152,7 +152,7 @@ void locale_init(const char *filename)
 
 	if (!buf)
 	{
-		metin2::log::error("locale_read: no file {}", filename);
+		metin2::log::error("Cannot read locale file {}", filename);
 		exit(1);
 	}
 
@@ -180,7 +180,7 @@ void locale_init(const char *filename)
 
 				if (*tmp != '"')
 				{
-					metin2::log::error("locale_init: invalid format filename {}", filename);
+					metin2::log::error("Invalid format in locale file {}", filename);
 					break;
 				}
 			}

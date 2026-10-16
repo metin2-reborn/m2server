@@ -37,7 +37,7 @@ EVENTFUNC(petsystem_update_event)
 	petsystem_event_info* info = dynamic_cast<petsystem_event_info*>( event->info );
 	if ( info == nullptr )
 	{
-		metin2::log::error( "check_speedhack_event> <Factor> Null pointer" );
+		metin2::log::error("Pet speed hack check event fired without event info");
 		return 0;
 	}
 
@@ -144,7 +144,7 @@ auto pet_actor::summon(const char* pet_name, item * summon_item, bool spawn_far)
 
 	if (nullptr == character_)
 	{
-		metin2::log::error("[CPetSystem::Summon] Failed to summon the pet. (vnum: {:d})", vnum_);
+		metin2::log::error("Cannot summon pet (vnum {:d})", vnum_);
 		return 0;
 	}
 
@@ -398,7 +398,7 @@ void pet_system::delete_pet(pet_actor* pet_actor_value)
 		}
 	}
 
-	metin2::log::error("[CPetSystem::DeletePet] Can't find petActor({}) on my list(size: {:d}) ", static_cast<const void *>(static_cast<void*>(pet_actor_value)), pet_actor_map_.size());
+	metin2::log::error("Pet actor {} not found in pet list (size {:d})", static_cast<const void *>(static_cast<void*>(pet_actor_value)), pet_actor_map_.size());
 }
 
 void pet_system::unsummon(uint32_t vnum, bool delete_from_list)
@@ -407,7 +407,7 @@ void pet_system::unsummon(uint32_t vnum, bool delete_from_list)
 
 	if (nullptr == actor)
 	{
-		metin2::log::error("[CPetSystem::GetByVnum({:d})] Null Pointer (petActor)", vnum);
+		metin2::log::error("Pet actor for vnum {:d} is null", vnum);
 		return;
 	}
 	actor->unsummon();

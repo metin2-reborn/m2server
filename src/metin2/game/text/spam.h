@@ -47,7 +47,7 @@ class spam_manager : public singleton<spam_manager>
 		inline void insert(const char * str, unsigned int score = 10)
 		{
 			vec_word_.push_back(std::make_pair(str, score));
-			metin2::log::info( "SPAM: {:2d} {}", score, str);
+			metin2::log::debug( "Spam word \"{}\" (score {:d})", str, score);
 		}
 
 	private:

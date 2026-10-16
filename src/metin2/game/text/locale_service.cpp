@@ -86,7 +86,7 @@ void locale_service_load_empire_text_convert_tables()
 	for (int iEmpire = 1; iEmpire <= 3; ++iEmpire)
 	{
 		snprintf(szFileName, sizeof(szFileName), "%s/lang%d.cvt", locale_service_get_base_path().c_str(), iEmpire);
-		metin2::log::info( "Load {}", szFileName);
+		metin2::log::info( "Loading empire text conversion table {}", szFileName);
 
 		load_empire_text_convert_table(iEmpire, szFileName);
 	}
@@ -96,7 +96,7 @@ auto locale_service_init(const std::string& rst_service_name) -> bool
 {
 	if (rst_service_name != "english")
 	{
-		metin2::log::error("unsupported locale {} (only english)", rst_service_name.c_str());
+		metin2::log::error("Unsupported locale {} (only english)", rst_service_name.c_str());
 		return false;
 	}
 

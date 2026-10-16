@@ -70,7 +70,7 @@ void pvp::packet(bool removing)
 	if (!players_[0].vid || !players_[1].vid)
 	{
 		if (removing)
-			metin2::log::error("null vid when removing {:d} {:d}", players_[0].vid, players_[0].vid);
+			metin2::log::error("PvP pair has a null vid on removal (vids {:d}, {:d})", players_[0].vid, players_[1].vid);
 
 		return;
 	}
@@ -271,7 +271,7 @@ auto pvp_manager::dead(character * chr, uint32_t killer_pid) -> bool
 
 	bool found = false;
 
-	metin2::log::debug( "PVPManager::Dead {:d}", chr->player_id());
+	metin2::log::debug("Pvp: player {:d} died", chr->player_id());
 	std::unordered_set<pvp*>::iterator it2 = it->second.begin();
 
 	while (it2 != it->second.end())
@@ -541,7 +541,7 @@ void pvp_manager::send_list(desc * d)
 		}
 
 		d->packet(&pack, sizeof(pack));
-		metin2::log::debug( "PVPManager::SendList {:d} {:d}", pack.vid_src, pack.vid_dst);
+		metin2::log::debug("Pvp: sending pair vid {:d} vs {:d}", pack.vid_src, pack.vid_dst);
 
 		if (pkPVP->players_[0].vid == dwVID)
 		{

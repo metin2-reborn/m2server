@@ -33,7 +33,7 @@ void client_manager::load_event_flag()
 			packet_set_event_flag p;
 			strlcpy(p.flag_name, row[0], sizeof(p.flag_name));
 			str_to_number(p.value, row[1]);
-			metin2::log::info( "EventFlag Load {} {:d}", p.flag_name, p.value);
+			metin2::log::info("Event flag: loaded {} = {:d}", p.flag_name, p.value);
 			map_l_event_flag_.insert(std::make_pair(std::string(p.flag_name), p.value));
 			forward_packet(HEADER_DG_SET_EVENT_FLAG, &p, sizeof(packet_set_event_flag));
 		}
@@ -65,10 +65,10 @@ void client_manager::set_event_flag(packet_set_event_flag* p)
 				sql::raw(get_table_postfix()), p->flag_name, p->value);
 
 		db_manager::instance().async_query(query.c_str());
-		metin2::log::info( "HEADER_GD_SET_EVENT_FLAG : Changed CClientmanager::SetEventFlag({} {:d}) ", p->flag_name, p->value);
+		metin2::log::info("Event flag: set {} = {:d}", p->flag_name, p->value);
 		return;
 	}
-	metin2::log::info( "HEADER_GD_SET_EVENT_FLAG : No Changed CClientmanager::SetEventFlag({} {:d}) ", p->flag_name, p->value);
+	metin2::log::debug("Event flag: {} already {:d}, unchanged", p->flag_name, p->value);
 }
 
 void client_manager::send_event_flags_on_setup(peer* peer)

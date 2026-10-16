@@ -124,7 +124,7 @@ namespace xmas
 
 		if ( info == nullptr )
 		{
-			metin2::log::error( "spawn_santa_event> <Factor> Null pointer" );
+			metin2::log::error( "Santa spawn event has no event info" );
 			return 0;
 		}
 
@@ -140,7 +140,7 @@ namespace xmas
 
 		if (character_manager::instance().spawn_mob_random_position(xmas::MOB_SANTA_VNUM, lMapIndex))
 		{
-			metin2::log::info( "santa comes to town!");
+			metin2::log::info( "Xmas: santa spawned");
 			return 0;
 		}
 
@@ -154,7 +154,7 @@ namespace xmas
 			time_gap_sec /= 60;
 		}
 
-		metin2::log::info( "santa respawn time = {:d}", time_gap_sec);
+		metin2::log::info( "Xmas: santa respawns in {:d} seconds", time_gap_sec);
 		spawn_santa_info* info = alloc_event_info<spawn_santa_info>();
 
 		info->map_index = map_index_value;
@@ -189,7 +189,7 @@ namespace xmas
 					pixel_position posBase;
 					if (!sectree_manager::instance().map_base_position_by_map_index(p->map_index, posBase))
 					{
-						metin2::log::error("cannot get map base position {:d}", p->map_index);
+						metin2::log::error("Cannot get base position of map {:d}", p->map_index);
 						p++;
 						continue;
 					}

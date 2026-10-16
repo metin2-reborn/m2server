@@ -47,7 +47,7 @@ class dungeon
 	void	purge();
 	void	kill_all();
 
-	void	inc_monster() { monster_count_++; metin2::log::info("MonsterCount {:d}", monster_count_); }
+	void	inc_monster() { monster_count_++; metin2::log::debug("Dungeon: monster count {:d}", monster_count_); }
 	void	dec_monster() { monster_count_--; check_eliminated(); }
 	auto	count_monster() -> int { return monster_count_; }
 

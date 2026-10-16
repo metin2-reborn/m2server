@@ -32,7 +32,7 @@ auto use_blue_dragon_skill(character * ch, unsigned int idx) -> time_t
 	{
 		case 0:
 			{
-				metin2::log::info( "BlueDragon: Using Skill Breath");
+				metin2::log::debug( "Blue dragon: using breath");
 
 				f_skill_breath f(ch);
 
@@ -44,7 +44,7 @@ auto use_blue_dragon_skill(character * ch, unsigned int idx) -> time_t
 
 		case 1:
 			{
-				metin2::log::info( "BlueDragon: Using Skill Weak Breath");
+				metin2::log::debug( "Blue dragon: using weak breath");
 
 				f_skill_weak_breath f(ch);
 
@@ -56,7 +56,7 @@ auto use_blue_dragon_skill(character * ch, unsigned int idx) -> time_t
 
 		case 2:
 			{
-				metin2::log::info( "BlueDragon: Using Skill EarthQuake");
+				metin2::log::debug( "Blue dragon: using earthquake");
 
 				f_skill_earth_quake f(ch);
 
@@ -72,7 +72,7 @@ auto use_blue_dragon_skill(character * ch, unsigned int idx) -> time_t
 			break;
 
 		default:
-			metin2::log::error("BlueDragon: Wrong Skill Index: {:d}", idx);
+			metin2::log::error("Blue dragon: unknown skill index {:d}", idx);
 			return 0;
 	}
 

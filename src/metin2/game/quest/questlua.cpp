@@ -54,7 +54,7 @@ namespace quest
 		}
 		else
 		{
-			quest::error("LUA ScriptRunError (code:{:d} src:[{}])", errcode, str.c_str());
+			quest::error("Lua script failed (code {:d}): {}", errcode, str.c_str());
 		}
 		lua_settop(L,x);
 		return retstr;
@@ -189,7 +189,7 @@ namespace quest
 		int bStart = lua_toboolean(L, -1);
 		if (errcode)
 		{
-			quest::error("LUA ScriptRunError (code:{:d} src:[{}])", errcode, std::string_view(code, static_cast<int>(size)));
+			quest::error("Lua script failed (code {:d}): {}", errcode, std::string_view(code, static_cast<int>(size)));
 		}
 		lua_settop(L,x);
 		return bStart != 0;
@@ -269,7 +269,7 @@ namespace quest
 	{
 		if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2) || !lua_isnumber(lua, 3) || !lua_isnumber(lua, 4))
 		{
-			quest::error("invalid argument");
+			quest::error("Invalid arguments");
 			return 0;
 		}
 
@@ -284,7 +284,7 @@ namespace quest
 			count = 1;
 		else if (count > 10)
 		{
-			quest::error("count bigger than 10");
+			quest::error("Count {:d} capped at 10", count);
 			count = 10;
 		}
 
@@ -339,7 +339,7 @@ namespace quest
 	{
 		if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2) || !lua_isnumber(lua, 3) || !lua_isnumber(lua, 4) || !lua_isnumber(lua, 6))
 		{
-			quest::error("invalid argument");
+			quest::error("Invalid arguments");
 			lua_pushnumber(lua, 0);
 			return 1;
 		}
@@ -355,7 +355,7 @@ namespace quest
 			count = 1;
 		else if (count > 10)
 		{
-			quest::error("count bigger than 10");
+			quest::error("Count {:d} capped at 10", count);
 			count = 10;
 		}
 
@@ -426,7 +426,7 @@ namespace quest
 
 		if (lua_isnil(l_,-1))
 		{
-			quest::error("QUEST wrong quest state file for quest {}",quest_name);
+			quest::error("Bad state file for quest {}", quest_name);
 			lua_settop(l_,x);
 			return;
 		}
@@ -524,10 +524,10 @@ namespace quest
 			snprintf(settingsFileName, sizeof(settingsFileName), "%s/settings.lua", locale_service_get_base_path().c_str());
 
 			int settingsLoadingResult = lua_dofile(l_, settingsFileName);
-			metin2::log::info( "LoadSettings({}), returns {:d}", settingsFileName, settingsLoadingResult);
+			metin2::log::debug("Quest: loaded {} (result {:d})", settingsFileName, settingsLoadingResult);
 			if (settingsLoadingResult != 0)
 			{
-				quest::error("LOAD_SETTINS_FAILURE({})", settingsFileName);
+				quest::error("Cannot load {}", settingsFileName);
 				return false;
 			}
 		}
@@ -537,10 +537,10 @@ namespace quest
 			snprintf(questlibFileName, sizeof(questlibFileName), "%s/questlib.lua", locale_service_get_quest_path().c_str());
 
 			int questlibLoadingResult = lua_dofile(l_, questlibFileName);
-			metin2::log::info( "LoadQuestlib({}), returns {:d}", questlibFileName, questlibLoadingResult);
+			metin2::log::debug("Quest: loaded {} (result {:d})", questlibFileName, questlibLoadingResult);
 			if (questlibLoadingResult != 0)
 			{
-				quest::error("LOAD_QUESTLIB_FAILURE({})", questlibFileName);
+				quest::error("Cannot load {}", questlibFileName);
 				return false;
 			}
 		}
@@ -549,10 +549,10 @@ namespace quest
 		snprintf(translateFileName, sizeof(translateFileName), "%s/translate.lua", locale_service_get_base_path().c_str());
 
 		int translateLoadingResult = lua_dofile(l_, translateFileName);
-		metin2::log::info( "LoadTranslate({}), returns {:d}", translateFileName, translateLoadingResult);
+		metin2::log::debug("Quest: loaded {} (result {:d})", translateFileName, translateLoadingResult);
 		if (translateLoadingResult != 0)
 		{
-			quest::error("LOAD_TRANSLATE_ERROR({})", translateFileName);
+			quest::error("Cannot load {}", translateFileName);
 			return false;
 		}
 
@@ -561,10 +561,10 @@ namespace quest
 			snprintf(questLocaleFileName, sizeof(questLocaleFileName), "%s/locale.lua", quest_dir.c_str());
 
 			int questLocaleLoadingResult = lua_dofile(l_, questLocaleFileName);
-			metin2::log::info( "LoadQuestLocale({}), returns {:d}", questLocaleFileName, questLocaleLoadingResult);
+			metin2::log::debug("Quest: loaded {} (result {:d})", questLocaleFileName, questLocaleLoadingResult);
 			if (questLocaleLoadingResult != 0)
 			{
-				quest::error("LoadQuestLocale({}) FAILURE", questLocaleFileName);
+				quest::error("Cannot load {}", questLocaleFileName);
 				return false;
 			}
 		}
@@ -590,7 +590,7 @@ namespace quest
 
 					register_quest(pde->d_name, ++iQuestIdx);
 					int ret = lua_dofile(l_, (stQuestObjectDir + "/state/" + pde->d_name).c_str());
-					metin2::log::info( "QUEST: loading {}, returns {:d}", (stQuestObjectDir + "/state/" + pde->d_name).c_str(), ret);
+					metin2::log::debug("Quest: loaded {} (result {:d})", (stQuestObjectDir + "/state/" + pde->d_name).c_str(), ret);
 
 					build_state_index_to_name(pde->d_name);
 				}
@@ -627,8 +627,7 @@ namespace quest
 			}
 			else
 			{
-				quest::error("SELECT wrong data {}", lua_typename(qs.co, -1));
-				quest::error("here");
+				quest::error("Select option has wrong type {}", lua_typename(qs.co, -1));
 			}
 			lua_pop(qs.co,1);
 		}
@@ -638,7 +637,7 @@ namespace quest
 		add_script(os.str());
 		qs.suspend_state = SUSPEND_STATE_SELECT;
 		if ( metin2::config::test_server() )
-			metin2::log::info( "{}", script_.c_str() );
+			metin2::log::debug("Quest: select script {}", script_.c_str());
 		send_script();
 	}
 
@@ -660,7 +659,7 @@ namespace quest
 
 		if ( info == nullptr )
 		{
-			quest::error( "confirm_timeout_event> <Factor> Null pointer" );
+			quest::error("Confirm timeout event has no info");
 			return 0;
 		}
 
@@ -686,7 +685,7 @@ namespace quest
 		const char* szMsg = lua_tostring(qs.co, -2);
 		int iTimeout = (int) lua_tonumber(qs.co, -1);
 
-		metin2::log::info( "GotoConfirmState vid {:d} msg '{}', timeout {:d}", dwVID, szMsg, iTimeout);
+		metin2::log::debug("Quest: confirm request to vid {:d}, message '{}', timeout {:d}", dwVID, szMsg, iTimeout);
 
 
 		character * ch = character_manager::instance().find(dwVID);
@@ -795,7 +794,7 @@ namespace quest
 		}
 		else
 		{
-			quest::error("LUA_ERROR: {}", lua_tostring(qs.co, 1));
+			quest::error("Lua error: {}", lua_tostring(qs.co, 1));
 		}
 
 		write_running_state_to_syserr();

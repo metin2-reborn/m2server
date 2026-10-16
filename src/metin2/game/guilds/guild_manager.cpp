@@ -218,11 +218,11 @@ auto	guild_manager::find_guild_by_name(const std::string guild_name) -> guild*
 
 void guild_manager::initialize()
 {
-	metin2::log::info( "Initializing Guild");
+	metin2::log::info( "Loading guilds");
 
 	if (metin2::config::is_auth())
 	{
-		metin2::log::info( "	No need for auth server");
+		metin2::log::info( "Guilds are not loaded on the auth server");
 		return;
 	}
 
@@ -473,7 +473,7 @@ void guild_manager::around_rank_string(uint32_t my_guild, char * buffer, size_t 
 
 void guild_manager::request_cancel_war(uint32_t guild_id1, uint32_t guild_id2)
 {
-	metin2::log::info( "RequestCancelWar {:d} {:d}", guild_id1, guild_id2);
+	metin2::log::info( "Guild war: requesting cancel of war between guild {:d} and {:d}", guild_id1, guild_id2);
 
 	packet_guild_war p;
 	p.war = GUILD_WAR_CANCEL;
@@ -484,7 +484,7 @@ void guild_manager::request_cancel_war(uint32_t guild_id1, uint32_t guild_id2)
 
 void guild_manager::request_end_war(uint32_t guild_id1, uint32_t guild_id2)
 {
-	metin2::log::info( "RequestEndWar {:d} {:d}", guild_id1, guild_id2);
+	metin2::log::info( "Guild war: requesting end of war between guild {:d} and {:d}", guild_id1, guild_id2);
 
 	packet_guild_war p;
 	p.war = GUILD_WAR_END;
@@ -500,7 +500,7 @@ void guild_manager::request_war_over(uint32_t guild1, uint32_t guild2, uint32_t 
 
 	if (g1->get_guild_war_state(g2->id()) != GUILD_WAR_ON_WAR)
 	{
-		metin2::log::info( "RequestWarOver : both guild was not in war {:d} {:d}", guild1, guild2);
+		metin2::log::info( "Guild war: war over requested but guild {:d} and {:d} are not at war", guild1, guild2);
 		request_end_war(guild1, guild2);
 		return;
 	}
@@ -523,7 +523,7 @@ void guild_manager::request_war_over(uint32_t guild1, uint32_t guild2, uint32_t 
 	}
 
 	db_clientdesc->db_packet(HEADER_GD_GUILD_WAR, 0, &p, sizeof(p));
-	metin2::log::info( "RequestWarOver : winner {:d} loser {:d} draw {:d} betprice {:d}", p.guild_from, p.guild_to, p.type, p.war_price);
+	metin2::log::info( "Guild war: war over, winner {:d}, loser {:d}, draw {:d}, bet {:d}", p.guild_from, p.guild_to, p.type, p.war_price);
 }
 
 void guild_manager::declare_war(uint32_t guild_id1, uint32_t guild_id2, uint8_t type)
@@ -571,7 +571,7 @@ void guild_manager::wait_start_war(uint32_t guild_id1, uint32_t guild_id2)
 
 	if (!g1 || !g2)
 	{
-		metin2::log::info( "GuildWar: CGuildManager::WaitStartWar({:d},{:d}) - something wrong in arg. there is no guild like that.", guild_id1, guild_id2);
+		metin2::log::warn( "Cannot prepare war between guild {:d} and {:d}, guild not found", guild_id1, guild_id2);
 		return;
 	}
 
@@ -676,7 +676,7 @@ auto guild_manager::end_war(uint32_t guild_id1, uint32_t guild_id2) -> bool
 
 	if (guild_war_.end() == it)
 	{
-		metin2::log::info( "EndWar({:d},{:d}) - EndWar request but guild is not in list", guild_id1, guild_id2);
+		metin2::log::warn( "Cannot end war between guild {:d} and {:d}, no such war", guild_id1, guild_id2);
 		return false;
 	}
 
@@ -759,7 +759,7 @@ void guild_manager::cancel_war(uint32_t guild_id1, uint32_t guild_id2)
 
 void guild_manager::reserve_war(uint32_t guild1, uint32_t guild2, uint8_t type)
 {
-	metin2::log::info( "GuildManager::ReserveWar {:d} {:d}", guild1, guild2);
+	metin2::log::info( "Guild war: reserving war between guild {:d} and {:d}", guild1, guild2);
 
 	guild * g1 = find_guild(guild1);
 	guild * g2 = find_guild(guild2);
@@ -821,7 +821,7 @@ void send_guild_war_score(uint32_t guild, uint32_t guild_opp, int delta, int bet
 	p.bet_score = bet_score_delta;
 
 	db_clientdesc->db_packet(HEADER_GD_GUILD_WAR_SCORE, 0, &p, sizeof(packet_guild_war_score));
-	metin2::log::info( "SendGuildWarScore {:d} {:d} {:d}", guild, guild_opp, delta);
+	metin2::log::debug( "Guild war: score change for guild {:d} against guild {:d}: {:d}", guild, guild_opp, delta);
 }
 
 void guild_manager::kill(character * killer, character * victim)
@@ -885,7 +885,7 @@ void guild_manager::reserve_war_add(guild_war_reserve * p)
 
 	std::memcpy(&pkReserve->data, p, sizeof(guild_war_reserve));
 
-	metin2::log::info( "ReserveWarAdd {:d} gid1 {:d} power {:d} gid2 {:d} power {:d} handicap {:d}",
+	metin2::log::info( "Guild war: added reserved war {:d}, guild {:d} (power {:d}) vs guild {:d} (power {:d}), handicap {:d}",
 			pkReserve->data.id, p->guild_from, p->power_from, p->guild_to, p->power_to, p->handicap);
 }
 
@@ -911,7 +911,7 @@ auto guild_manager::is_bet(uint32_t id, const char * login) -> bool
 
 void guild_manager::reserve_war_delete(uint32_t id)
 {
-	metin2::log::info( "ReserveWarDelete {:d}", id);
+	metin2::log::info( "Guild war: deleted reserved war {:d}", id);
 	auto it = map_k_reserve_war_.find(id);
 
 	if (it == map_k_reserve_war_.end())

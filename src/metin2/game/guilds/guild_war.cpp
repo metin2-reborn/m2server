@@ -179,7 +179,7 @@ void guild::set_war_score_against_to(uint32_t opp_gid, int score_value)
 {
 	uint32_t dwSelfGID = id();
 
-	metin2::log::info( "GuildWarScore Set {:d} from {:d} {:d}", dwSelfGID, opp_gid, score_value);
+	metin2::log::debug( "Guild war: guild {:d} score against guild {:d} set to {:d}", dwSelfGID, opp_gid, score_value);
 	auto it = enemy_guild_.find(opp_gid);
 
 	if (it != enemy_guild_.end())
@@ -225,11 +225,11 @@ auto guild::war_score_against_to(uint32_t opp_gid) -> int
 
 	if (it != enemy_guild_.end())
 	{
-		metin2::log::info( "GuildWarScore Get {:d} from {:d} {:d}", id(), opp_gid, it->second.score);
+		metin2::log::debug( "Guild war: guild {:d} score against guild {:d} is {:d}", id(), opp_gid, it->second.score);
 		return it->second.score;
 	}
 
-	metin2::log::info( "GuildWarScore Get {:d} from {:d} No data", id(), opp_gid);
+	metin2::log::debug( "Guild war: guild {:d} has no score against guild {:d}", id(), opp_gid);
 	return 0;
 }
 
@@ -281,13 +281,13 @@ void guild::request_declare_war(uint32_t opp_gid, uint8_t type)
 {
 	if (opp_gid == id())
 	{
-		metin2::log::info( "GuildWar.DeclareWar.DECLARE_WAR_SELF id({:d} -> {:d}), type({:d})", id(), opp_gid, type);
+		metin2::log::warn( "Guild {:d} tried to declare war on itself ({:d}), type {:d}", id(), opp_gid, type);
 		return;
 	}
 
 	if (type >= GUILD_WAR_TYPE_MAX_NUM)
 	{
-		metin2::log::info( "GuildWar.DeclareWar.UNKNOWN_WAR_TYPE id({:d} -> {:d}), type({:d})", id(), opp_gid, type);
+		metin2::log::warn( "Guild {:d} declared war on guild {:d} with unknown war type {:d}", id(), opp_gid, type);
 		return;
 	}
 
@@ -296,7 +296,7 @@ void guild::request_declare_war(uint32_t opp_gid, uint8_t type)
 	{
 		if (!guild_war_is_war_map(type))
 		{
-			metin2::log::error("GuildWar.DeclareWar.NOT_EXIST_MAP id({:d} -> {:d}), type({:d}), map({:d})", 
+			metin2::log::error("Cannot declare war from guild {:d} on guild {:d}, war type {:d} has no war map {:d}", 
 					id(), opp_gid, type, guild_war_get_type_map_index(type));
 
 			map_allow_log();
@@ -310,7 +310,7 @@ void guild::request_declare_war(uint32_t opp_gid, uint8_t type)
 		p.guild_from = id();
 		p.guild_to = opp_gid;
 		db_clientdesc->db_packet(HEADER_GD_GUILD_WAR, 0, &p, sizeof(p));
-		metin2::log::info( "GuildWar.DeclareWar id({:d} -> {:d}), type({:d})", id(), opp_gid, type);
+		metin2::log::info( "Guild war: guild {:d} declared war on guild {:d}, type {:d}", id(), opp_gid, type);
 		return;
 	}
 
@@ -328,13 +328,13 @@ void guild::request_declare_war(uint32_t opp_gid, uint8_t type)
 					p.guild_from = id();
 					p.guild_to = opp_gid;
 					db_clientdesc->db_packet(HEADER_GD_GUILD_WAR, 0, &p, sizeof(p));
-					metin2::log::info( "GuildWar.AcceptWar id({:d} -> {:d}), type({:d})", id(), opp_gid, saved_type);
+					metin2::log::info( "Guild war: guild {:d} accepted war from guild {:d}, type {:d}", id(), opp_gid, saved_type);
 					return;
 				}
 
 				if (!guild_war_is_war_map(saved_type))
 				{
-					metin2::log::error("GuildWar.AcceptWar.NOT_EXIST_MAP id({:d} -> {:d}), type({:d}), map({:d})", 
+					metin2::log::error("Cannot accept war for guild {:d} against guild {:d}, war type {:d} has no war map {:d}", 
 							id(), opp_gid, type, guild_war_get_type_map_index(type));
 
 					map_allow_log();
@@ -357,7 +357,7 @@ void guild::request_declare_war(uint32_t opp_gid, uint8_t type)
 
 				db_clientdesc->db_packet(HEADER_GD_GUILD_WAR, 0, &p, sizeof(p));
 
-				metin2::log::info( "GuildWar.WaitStartSendToDB id({:d} vs {:d}), type({:d}), bet({:d}), map_index({:d})", 
+				metin2::log::info( "Guild war: guild {:d} vs {:d} waiting to start, type {:d}, bet {:d}, map {:d}", 
 						id(), opp_gid, saved_type, guildWarInfo.war_price, guildWarInfo.map_index);
 
 			}
@@ -368,7 +368,7 @@ void guild::request_declare_war(uint32_t opp_gid, uint8_t type)
 			}
 			break;
 		default:
-			metin2::log::error("GuildWar.DeclareWar.UNKNOWN_STATE[{:d}]: id({:d} vs {:d}), type({:d}), guild({}:{:d})", 
+			metin2::log::error("Unknown guild war state {:d} for guild {:d} vs {:d}, type {:d}, guild {} ({:d})", 
 					it->second.state, id(), opp_gid, type, name(), id());
 			break;
 	}
@@ -428,14 +428,14 @@ auto guild::wait_start_war(uint32_t opp_gid) -> bool
 {
 	if (opp_gid == id())
 	{
-		metin2::log::info("GuildWar.WaitStartWar.DECLARE_WAR_SELF id({:d} -> {:d})", id(), opp_gid);
+		metin2::log::warn("Cannot start war, guild {:d} is at war with itself ({:d})", id(), opp_gid);
 		return false;
 	}
 
 	auto it = enemy_guild_.find(opp_gid);
 	if (it == enemy_guild_.end())
 	{
-		metin2::log::info("GuildWar.WaitStartWar.UNKNOWN_ENEMY id({:d} -> {:d})", id(), opp_gid);
+		metin2::log::warn("Cannot start war, guild {:d} has no war entry for guild {:d}", id(), opp_gid);
 		return false;
 	}
 
@@ -443,7 +443,7 @@ auto guild::wait_start_war(uint32_t opp_gid) -> bool
 
 	if (gw.state == GUILD_WAR_WAIT_START)
 	{
-		metin2::log::info("GuildWar.WaitStartWar.UNKNOWN_STATE id({:d} -> {:d}), state({:d})", id(), opp_gid, gw.state);
+		metin2::log::warn("Cannot start war, guild {:d} vs {:d} is already waiting to start (state {:d})", id(), opp_gid, gw.state);
 		return false;
 	}
 
@@ -452,7 +452,7 @@ auto guild::wait_start_war(uint32_t opp_gid) -> bool
 	guild* g = guild_manager::instance().find_guild(opp_gid);
 	if (!g)
 	{
-		metin2::log::info("GuildWar.WaitStartWar.NOT_EXIST_GUILD id({:d} -> {:d})", id(), opp_gid);
+		metin2::log::warn("Cannot start war for guild {:d}, enemy guild {:d} not found", id(), opp_gid);
 		return false;
 	}
 
@@ -461,16 +461,16 @@ auto guild::wait_start_war(uint32_t opp_gid) -> bool
 
 	if (gw.type == GUILD_WAR_TYPE_FIELD)
 	{
-		metin2::log::info("GuildWar.WaitStartWar.FIELD_TYPE id({:d} -> {:d})", id(), opp_gid);
+		metin2::log::info("Guild war: guild {:d} vs {:d} is a field war, no war map needed", id(), opp_gid);
 		return true;
 	}		
 
-	metin2::log::info("GuildWar.WaitStartWar.CheckWarServer id({:d} -> {:d}), type({:d}), map({:d})", 
+	metin2::log::debug("Guild war: checking whether this server hosts the war map for guild {:d} vs {:d}, type {:d}, map {:d}", 
 			id(), opp_gid, gw.type, rkGuildWarInfo.map_index);
 
 	if (!map_allow_find(rkGuildWarInfo.map_index))
 	{
-		metin2::log::info("GuildWar.WaitStartWar.SKIP_WAR_MAP id({:d} -> {:d})", id(), opp_gid);
+		metin2::log::debug("Guild war: war map for guild {:d} vs {:d} is hosted on another server", id(), opp_gid);
 		return true;
 	}
 
@@ -484,12 +484,12 @@ auto guild::wait_start_war(uint32_t opp_gid) -> bool
 	uint32_t lMapIndex = war_map_manager::instance().create_war_map(rkGuildWarInfo, id1, id2);
 	if (!lMapIndex) 
 	{
-		metin2::log::error("GuildWar.WaitStartWar.CREATE_WARMAP_ERROR id({:d} vs {:d}), type({:d}), map({:d})", id1, id2, gw.type, rkGuildWarInfo.map_index);
+		metin2::log::error("Failed to create war map for guild {:d} vs {:d}, type {:d}, map {:d}, ending the war", id1, id2, gw.type, rkGuildWarInfo.map_index);
 		guild_manager::instance().request_end_war(id(), opp_gid);
 		return false;
 	}
 
-	metin2::log::info( "GuildWar.WaitStartWar.CreateMap id({:d} vs {:d}), type({:d}), map({:d}) -> map_inst({:d})", id1, id2, gw.type, rkGuildWarInfo.map_index, lMapIndex);
+	metin2::log::info( "Guild war: created war map for guild {:d} vs {:d}, type {:d}, map {:d}, instance {:d}", id1, id2, gw.type, rkGuildWarInfo.map_index, lMapIndex);
 
 	gw.map_index = lMapIndex;
 
@@ -558,7 +558,7 @@ void guild::reserve_war(uint32_t opp_gid, uint8_t type)
 	else
 		it->second.state = GUILD_WAR_RESERVE;
 
-	metin2::log::info( "Guild::ReserveWar {:d}", opp_gid);
+	metin2::log::info( "Guild war: guild {:d} reserved war against guild {:d}", id(), opp_gid);
 }
 
 void guild::end_war(uint32_t opp_gid)
@@ -604,7 +604,7 @@ void guild::set_guild_war_map_index(uint32_t opp_gid, int32_t map_index_value)
 		return;
 
 	it->second.map_index = map_index_value;
-	metin2::log::info( "GuildWar.SetGuildWarMapIndex id({:d} -> {:d}), map({:d})", id(), opp_gid, map_index_value);
+	metin2::log::info( "Guild war: guild {:d} vs {:d} war map set to {:d}", id(), opp_gid, map_index_value);
 }
 
 void guild::guild_war_entry_accept(uint32_t opp_gid, character * ch)
@@ -645,27 +645,27 @@ void guild::guild_war_entry_ask(uint32_t opp_gid)
 	auto git = enemy_guild_.find(opp_gid);
 	if (git == enemy_guild_.end())
 	{
-		metin2::log::error("GuildWar.GuildWarEntryAsk.UNKNOWN_ENEMY({:d})", opp_gid);
+		metin2::log::error("Cannot send war entry request, guild {:d} has no war entry for guild {:d}", id(), opp_gid);
 		return;
 	}
 
 	guild_war & gw(git->second);
 
-	metin2::log::info( "GuildWar.GuildWarEntryAsk id({:d} vs {:d}), map({:d})", id(), opp_gid, gw.map_index);
+	metin2::log::info( "Guild war: asking members of guild {:d} to join the war against guild {:d}, map {:d}", id(), opp_gid, gw.map_index);
 	if (!gw.map_index)
 	{
-		metin2::log::error("GuildWar.GuildWarEntryAsk.NOT_EXIST_MAP id({:d} vs {:d})", id(), opp_gid);
+		metin2::log::error("Cannot send war entry request for guild {:d} vs {:d}, no war map", id(), opp_gid);
 		return;
 	}
 
 	pixel_position pos;
 	if (!war_map_manager::instance().start_position(gw.map_index, id() < opp_gid ? 0 : 1, pos))
 	{
-		metin2::log::error("GuildWar.GuildWarEntryAsk.START_POSITION_ERROR id({:d} vs {:d}), pos({:d}, {:d})", id(), opp_gid, pos.x, pos.y);
+		metin2::log::error("Cannot send war entry request for guild {:d} vs {:d}, no start position ({:d}, {:d})", id(), opp_gid, pos.x, pos.y);
 		return;
 	}
 
-	metin2::log::info( "GuildWar.GuildWarEntryAsk.OnlineMemberCount({:d})", member_online_.size());
+	metin2::log::debug( "Guild war: {:d} members online to ask", member_online_.size());
 
 	auto it = member_online_.begin();
 
@@ -677,12 +677,12 @@ void guild::guild_war_entry_ask(uint32_t opp_gid)
 		unsigned int questIndex=quest_manager::instance().quest_index_by_name("guild_war_join");
 		if (questIndex)
 		{
-			metin2::log::info( "GuildWar.GuildWarEntryAsk.SendLetterToMember pid({:d}), qid({:d})", ch->player_id(), questIndex);
+			metin2::log::debug( "Guild war: sent join letter to pid {:d} (quest {:d})", ch->player_id(), questIndex);
 			quest_manager::instance().letter(ch->player_id(), questIndex, 0);
 		}
 		else
 		{
-			metin2::log::error("GuildWar.GuildWarEntryAsk.SendLetterToMember.QUEST_ERROR pid({:d}), quest_name('guild_war_join.quest') index({:d})",
+			metin2::log::error("Cannot send war join letter to pid {:d}, quest guild_war_join.quest not found (index {:d})",
 					ch->player_id(), questIndex);
 			break;
 		}

@@ -60,7 +60,7 @@ auto db_manager::connect(const char * host, const int port, const char * user, c
 		is_connect_ = true;
 
 	if (!sql_direct_.setup(host, user, pwd, db, locale.c_str(), true, port))
-		metin2::log::error("cannot open direct sql connection to host {}", host);
+		metin2::log::error("Cannot open direct sql connection to {}", host);
 
 	if (is_connect_ && !metin2::config::is_auth())
 	{
@@ -238,7 +238,7 @@ void db_manager::delete_login_data(login_data * ld)
 	if (it == map_pk_login_data_.end())
 		return;
 
-	metin2::log::info( "DeleteLoginData {} {}", ld->login(), static_cast<const void *>(ld));
+	metin2::log::debug( "Login data of account {} released ({})", ld->login(), static_cast<const void *>(ld));
 
 	map_pk_login_data_.erase(it);
 }
@@ -263,7 +263,7 @@ void db_manager::send_auth_login(desc * d)
 	std::memcpy(&ptod.client_key, pkLD->client_key(), sizeof(uint32_t) * 4);
 
 	db_clientdesc->db_packet(HEADER_GD_AUTH_LOGIN, d->handle(), &ptod, sizeof(packet_gd_auth_login));
-	metin2::log::info( "SendAuthLogin {} key {:d}", ptod.login, ptod.id);
+	metin2::log::debug( "Auth login sent to db: account {} (id {:d})", ptod.login, ptod.id);
 
 	delete_login_data(pkLD);
 }
@@ -304,11 +304,11 @@ void db_manager::analyze_return_query(sql_msg * msg_value)
 				}
 				d->set_login(pinfo->login);
 
-				metin2::log::info( "QID_AUTH_LOGIN: START {:d} {}", qi->ident, static_cast<const void *>(d));
+				metin2::log::debug( "Auth login query result: key {:d}, connection {}", qi->ident, static_cast<const void *>(d));
 
 				if (msg_value->get()->num_rows == 0)
 				{
-					metin2::log::info( "   NOID");
+					metin2::log::info( "Auth login refused: account {} not found", pinfo->login);
 					login_failure(d, "NOID");
 					delete pinfo;
 				}
@@ -325,7 +325,7 @@ void db_manager::analyze_return_query(sql_msg * msg_value)
 
 					if (!row[col]) 
 					{ 
-						metin2::log::error("error column {:d}", col);
+						metin2::log::error("Auth login: column {:d} is null for account {}", col, pinfo->login);
 						delete pinfo;
 					   	break; 
 					}
@@ -334,7 +334,7 @@ void db_manager::analyze_return_query(sql_msg * msg_value)
 
 					if (!row[col]) 
 					{
-					   	metin2::log::error("error column {:d}", col);
+					   	metin2::log::error("Auth login: column {:d} is null for account {}", col, pinfo->login);
 						delete pinfo;
 					   	break;
 				   	}
@@ -343,7 +343,7 @@ void db_manager::analyze_return_query(sql_msg * msg_value)
 
 					if (!row[col])
 				   	{ 
-						metin2::log::error("error column {:d}", col); 
+						metin2::log::error("Auth login: column {:d} is null for account {}", col, pinfo->login); 
 						delete pinfo;
 						break;
 				   	}
@@ -352,7 +352,7 @@ void db_manager::analyze_return_query(sql_msg * msg_value)
 
 					if (!row[col])
 				   	{
-					   	metin2::log::error("error column {:d}", col);
+					   	metin2::log::error("Auth login: column {:d} is null for account {}", col, pinfo->login);
 						delete pinfo;
 					   	break;
 				   	}
@@ -361,7 +361,7 @@ void db_manager::analyze_return_query(sql_msg * msg_value)
 					
 					if (!row[col]) 
 					{
-					   	metin2::log::error("error column {:d}", col); 
+					   	metin2::log::error("Auth login: column {:d} is null for account {}", col, pinfo->login); 
 						delete pinfo;
 						break;
 				   	}
@@ -392,8 +392,8 @@ void db_manager::analyze_return_query(sql_msg * msg_value)
 					tm1 = localtime(&create_time);
 					strftime(szCreateDate, 255, "%Y%m%d", tm1);
 
-					metin2::log::info( "Create_Time {:d} {}", retValue, szCreateDate);
-					metin2::log::info( "Block Time {:d} ", strncmp(szCreateDate, metin2::config::auth().block_login_date.c_str(), 8));
+					metin2::log::debug( "Auth login: account created at {:d} ({})", retValue, szCreateDate);
+					metin2::log::debug( "Auth login: creation date vs block date: {:d}", strncmp(szCreateDate, metin2::config::auth().block_login_date.c_str(), 8));
 
 					int nPasswordDiff = strcmp(szEncrytPassword, szPassword);
 
@@ -401,25 +401,25 @@ void db_manager::analyze_return_query(sql_msg * msg_value)
 					if (nPasswordDiff)
 					{
 						login_failure(d, "WRONGPWD");
-						metin2::log::info( "   WRONGPWD");
+						metin2::log::info( "Auth login refused: wrong password for account {}", pinfo->login);
 						delete pinfo;
 					}
 					else if (bNotAvail)
 					{
 						login_failure(d, "NOTAVAIL");
-						metin2::log::info( "   NOTAVAIL");
+						metin2::log::info( "Auth login refused: account {} not available", pinfo->login);
 						delete pinfo;
 					}
 					else if (desc_manager::instance().find_by_login_name(pinfo->login))
 					{
 						login_failure(d, "ALREADY");
-						metin2::log::info( "   ALREADY");
+						metin2::log::info( "Auth login refused: account {} already logged in", pinfo->login);
 						delete pinfo;
 					}
 					else if (strcmp(szStatus, "OK"))
 					{
 						login_failure(d, szStatus);
-						metin2::log::info( "   STATUS: {}", szStatus);
+						metin2::log::info( "Auth login refused: account {} has status {}", pinfo->login, szStatus);
 						delete pinfo;
 					}
 					else
@@ -427,7 +427,7 @@ void db_manager::analyze_return_query(sql_msg * msg_value)
 						if (strncmp(szCreateDate, metin2::config::auth().block_login_date.c_str(), 8) >= 0)
 						{
 							login_failure(d, "BLKLOGIN");
-							metin2::log::info( "   BLKLOGIN");
+							metin2::log::info( "Auth login refused: account {} created after the login block date", pinfo->login);
 							delete pinfo;
 							break;
 						}
@@ -444,7 +444,7 @@ void db_manager::analyze_return_query(sql_msg * msg_value)
 
 
 						login_prepare(d, pinfo->client_key, aiPremiumTimes);
-						metin2::log::info( "QID_AUTH_LOGIN: SUCCESS {}", pinfo->login);
+						metin2::log::info( "Auth login: account {} accepted", pinfo->login);
 						delete pinfo;
 					}
 				}
@@ -478,7 +478,7 @@ void db_manager::analyze_return_query(sql_msg * msg_value)
 					if (row[0] && row[1])
 					{
 						map_dbstring_.insert(make_pair(std::string(row[0]), std::string(row[1])));
-						metin2::log::info( "DBSTR '{}' '{}'", row[0], row[1]);
+						metin2::log::debug( "Db string {} = \"{}\"", row[0], row[1]);
 					}
 				}
 				if (map_dbstring_.find("GREET") != map_dbstring_.end())
@@ -503,7 +503,7 @@ void db_manager::analyze_return_query(sql_msg * msg_value)
 				{
 					if (msg_value->get()->affected_rows == 0 || msg_value->get()->affected_rows == (uint32_t)-1)
 					{
-						metin2::log::info( "GIVE LOTTO FAIL TO pid {:d}", ch->player_id());
+						metin2::log::warn( "Lotto: cannot record ticket for pid {:d}", ch->player_id());
 					}
 					else
 					{
@@ -511,13 +511,13 @@ void db_manager::analyze_return_query(sql_msg * msg_value)
 
 						if (pkItem)
 						{
-							metin2::log::info( "GIVE LOTTO SUCCESS TO {} (pid {:d})", ch->name(), qi->ident);
+							metin2::log::info( "Lotto: ticket given to player {} (pid {:d})", ch->name(), qi->ident);
 
 							pkItem->set_socket(0, msg_value->get()->insert_id);
 							pkItem->set_socket(1, pdw[2]);
 						}
 						else
-							metin2::log::info( "GIVE LOTTO FAIL2 TO pid {:d}", ch->player_id());
+							metin2::log::warn( "Lotto: cannot give ticket item to pid {:d}", ch->player_id());
 					}
 				}
 

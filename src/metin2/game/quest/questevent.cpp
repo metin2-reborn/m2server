@@ -36,7 +36,7 @@ namespace quest
 
 		if ( info == nullptr )
 		{
-			metin2::log::error( "quest_server_timer_event> <Factor> Null pointer" );
+			metin2::log::error("Quest server timer event has no info");
 			return 0;
 		}
 
@@ -61,7 +61,7 @@ namespace quest
 
 		if ( info == nullptr )
 		{
-			metin2::log::error( "quest_timer_event> <Factor> Null pointer" );
+			metin2::log::error("Quest timer event has no info");
 			return 0;
 		}
 
@@ -83,7 +83,7 @@ END_OF_TIMER_EVENT:
 			if (pPC)
 				pPC->remove_timer_not_cancel(info->name);
 			else
-				metin2::log::error("quest::PC pointer null. player_id: {:d}", info->player_id);
+				metin2::log::error("Quest state for player (pid {:d}) not found", info->player_id);
 
 			delete[] info->name;
 			info->name = nullptr;
@@ -127,7 +127,7 @@ END_OF_TIMER_EVENT:
 		if (info->name)
 			strlcpy(info->name, name, nameCapacity);
 
-		metin2::log::info( "QUEST timer name {} cycle {:d} pc {:d} npc {:d} loop? {:d}", name ? name : "<noname>", ltime_cycle, player_id, npc_id, loop ? 1 : 0);
+		metin2::log::debug("Quest: timer {} cycle {:d} pid {:d} npc {:d} loop {:d}", name ? name : "<noname>", ltime_cycle, player_id, npc_id, loop ? 1 : 0);
 
 		info->time_cycle	= loop ? ltime_cycle : 0;
 		return event_create(quest_timer_event, info, ltime_cycle);

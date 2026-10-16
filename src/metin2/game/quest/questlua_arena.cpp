@@ -64,11 +64,11 @@ namespace quest
 
 		if ( arena_manager::instance().add_arena(mapIdx, startposAX, startposAY, startposBX, startposBY) == false )
 		{
-			metin2::log::info( "Failed to load arena map info(map:{:d} AX:{:d} AY:{:d} BX:{:d} BY:{:d}", mapIdx, startposAX, startposAY, startposBX, startposBY);
+			metin2::log::error("Cannot add arena on map {:d} (start A {:d},{:d}, start B {:d},{:d})", mapIdx, startposAX, startposAY, startposBX, startposBY);
 		}
 		else
 		{
-			metin2::log::info( "Add Arena Map:{:d} startA({:d},{:d}) startB({:d},{:d})", mapIdx, startposAX, startposAY, startposBX, startposBY);
+			metin2::log::info("Arena: added map {:d} (start A {:d},{:d}, start B {:d},{:d})", mapIdx, startposAX, startposAY, startposBX, startposBY);
 		}
 
 		return 1;

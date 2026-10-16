@@ -210,7 +210,7 @@ EVENTFUNC(horse_stamina_consume_event)
 
 	if ( info == nullptr )
 	{
-		metin2::log::error( "horse_stamina_consume_event> <Factor> Null pointer" );
+		metin2::log::error("Horse stamina consume event fired without event info");
 		return 0;
 	}
 
@@ -234,7 +234,7 @@ EVENTFUNC(horse_stamina_consume_event)
 	}
 
 	hr->check_horse_health_drop_time();
-	metin2::log::info( "HORSE STAMINA - {}", static_cast<const void *>(event.get()));
+	metin2::log::debug("Horse stamina consumed (event {})", static_cast<const void *>(event.get()));
 	return delta;
 }
 
@@ -244,7 +244,7 @@ EVENTFUNC(horse_stamina_regen_event)
 
 	if ( info == nullptr )
 	{
-		metin2::log::error( "horse_stamina_regen_event> <Factor> Null pointer" );
+		metin2::log::error("Horse stamina regen event fired without event info");
 		return 0;
 	}
 
@@ -265,7 +265,7 @@ EVENTFUNC(horse_stamina_regen_event)
 	}
 
 	hr->check_horse_health_drop_time();
-	metin2::log::info( "HORSE STAMINA + {}", static_cast<const void *>(event.get()));
+	metin2::log::debug("Horse stamina regenerated (event {})", static_cast<const void *>(event.get()));
 
 
 	return delta;
@@ -279,7 +279,7 @@ void horse_rider::start_stamina_consume_event()
 	if (horse_health() <= 0)
 		return;
 
-	metin2::log::info("HORSE STAMINA REGEN EVENT CANCEL {}", static_cast<const void *>(event_stamina_regen_.get()));
+	metin2::log::debug("Horse stamina regen event cancelled ({})", static_cast<const void *>(event_stamina_regen_.get()));
 	event_cancel(&event_stamina_regen_);
 
 	if (event_stamina_consume_)
@@ -289,7 +289,7 @@ void horse_rider::start_stamina_consume_event()
 
 	info->hr = this;
 	event_stamina_consume_ = event_create(horse_stamina_consume_event, info, passes_per_sec(HORSE_STAMINA_CONSUME_INTERVAL));
-	metin2::log::info("HORSE STAMINA CONSUME EVENT CREATE {}", static_cast<const void *>(event_stamina_consume_.get()));
+	metin2::log::debug("Horse stamina consume event created ({})", static_cast<const void *>(event_stamina_consume_.get()));
 }
 
 void horse_rider::start_stamina_regen_event()
@@ -300,7 +300,7 @@ void horse_rider::start_stamina_regen_event()
 	if (horse_health() <= 0)
 		return;
 
-	metin2::log::info("HORSE STAMINA CONSUME EVENT CANCEL {}", static_cast<const void *>(event_stamina_consume_.get()));
+	metin2::log::debug("Horse stamina consume event cancelled ({})", static_cast<const void *>(event_stamina_consume_.get()));
 	event_cancel(&event_stamina_consume_);
 
 	if (event_stamina_regen_)
@@ -310,7 +310,7 @@ void horse_rider::start_stamina_regen_event()
 
 	info->hr = this;
 	event_stamina_regen_ = event_create(horse_stamina_regen_event, info, passes_per_sec(HORSE_STAMINA_REGEN_INTERVAL));
-	metin2::log::info("HORSE STAMINA REGEN EVENT CREATE {}", static_cast<const void *>(event_stamina_regen_.get()));
+	metin2::log::debug("Horse stamina regen event created ({})", static_cast<const void *>(event_stamina_regen_.get()));
 }
 
 void horse_rider::reset_horse_health_drop_time()
@@ -344,7 +344,7 @@ void horse_rider::update_horse_health(int health, bool send)
 
 void horse_rider::horse_die()
 {
-	metin2::log::info( "HORSE DIE {} {}", static_cast<const void *>(event_stamina_regen_.get()), static_cast<const void *>(event_stamina_consume_.get()));
+	metin2::log::debug("Horse died (regen event {}, consume event {})", static_cast<const void *>(event_stamina_regen_.get()), static_cast<const void *>(event_stamina_consume_.get()));
 	update_horse_stamina(-horse_.s_stamina);
 	event_cancel(&event_stamina_regen_);
 	event_cancel(&event_stamina_consume_);

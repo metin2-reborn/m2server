@@ -124,7 +124,7 @@ auto character::dragon_soul_refine_window_open(entity * entity_value) -> bool
 
 	if (nullptr == d)
 	{
-		metin2::log::error("User({})'s DESC is NULL POINT.", name());
+		metin2::log::error("Player {} has no descriptor", name());
 		return false;
 	}
 

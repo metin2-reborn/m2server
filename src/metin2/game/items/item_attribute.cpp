@@ -92,7 +92,7 @@ void item::add_attribute(uint8_t apply, short s_value)
 	int i = attribute_count();
 
 	if (i >= MAX_NORM_ATTR_NUM)
-		metin2::log::error("item attribute overflow!");
+		metin2::log::error("Item {} (id {:d}) has no free attribute slot", name(), id());
 	else
 	{
 		if (s_value)
@@ -111,7 +111,7 @@ void item::add_attr(uint8_t apply, uint8_t level)
 	int i = attribute_count();
 
 	if (i == MAX_NORM_ATTR_NUM)
-		metin2::log::error("item attribute overflow!");
+		metin2::log::error("Item {} (id {:d}) has no free attribute slot", name(), id());
 	else
 	{
 		const item_attr_table & r = map_item_attr[apply];
@@ -165,7 +165,7 @@ void item::put_attribute_with_level(uint8_t level)
 
 	if (!attr_idx)
 	{
-		metin2::log::error("Cannot put item attribute {:d} {:d}", iAttributeSet, level);
+		metin2::log::error("No attribute to put on item {} (id {:d}), attribute set {:d}, level {:d}", name(), id(), iAttributeSet, level);
 		return;
 	}
 

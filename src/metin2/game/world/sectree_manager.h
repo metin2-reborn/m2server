@@ -93,7 +93,7 @@ class sectree_map
 			sectree_map::map_type::iterator i;
 			for (i = map_.begin(); i != map_.end(); ++i)
 			{
-				metin2::log::error("SECTREE {:x}({:d}, {:d})", i->first, i->first & 0xffff, i->first >> 16);
+				metin2::log::error("Sectree {:x} ({:d}, {:d})", i->first, i->first & 0xffff, i->first >> 16);
 			}
 		}
 

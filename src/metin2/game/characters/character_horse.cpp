@@ -66,7 +66,7 @@ auto character::start_riding() -> bool
 	mount_vnum(dwMountVnum);
 
 	if(metin2::config::test_server())
-		metin2::log::info( "Ride Horse : {} ", name());
+		metin2::log::debug("{} mounts a horse", name());
 
 	return true;
 }
@@ -108,7 +108,7 @@ EVENTFUNC(horse_dead_event)
 
 	if ( info == nullptr )
 	{
-		metin2::log::error( "horse_dead_event> <Factor> Null pointer" );
+		metin2::log::error("Horse dead event fired without event info");
 		return 0;
 	}
 
@@ -150,7 +150,7 @@ void character::horse_summon(bool summon, bool from_far, uint32_t vnum, const ch
 		if (is_riding())
 			return;
 
-		metin2::log::info( "HorseSummon : {} lv:{:d} bSummon:{:d} fromFar:{:d}", name(), level(), summon, from_far);
+		metin2::log::debug("Horse summon: {} level {:d}, summon {:d}, from far {:d}", name(), level(), summon, from_far);
 
 		int32_t x_value = x();
 		int32_t y_value = y();
@@ -207,7 +207,7 @@ void character::horse_summon(bool summon, bool from_far, uint32_t vnum, const ch
 		if (!ch_horse_->show(map_index(), x_value, y_value, z()))
 		{
 			character_manager::instance().destroy_character(ch_horse_);
-			metin2::log::error("cannot show monster");
+			metin2::log::error("Cannot show summoned horse");
 			ch_horse_ = nullptr;
 			return;
 		}

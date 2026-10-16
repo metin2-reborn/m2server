@@ -124,7 +124,7 @@ auto client_manager::initialize() -> bool
 
 	if (!initialize_tables())
 	{
-		metin2::log::error("Table Initialize FAILED");
+		metin2::log::error("Cannot load game tables");
 		return false;
 	}
 
@@ -137,13 +137,13 @@ auto client_manager::initialize() -> bool
 	if (!listener_)
 		return false;
 
-	metin2::log::info("LISTEN: {}:{:d}", db.bind_ip, db.port);
+	metin2::log::info("Listening for game peers on {}:{:d}", db.bind_ip, db.port);
 
 	player_delete_level_limit_ = db.player_delete_level_limit > 0 ? db.player_delete_level_limit : PLAYER_MAX_LEVEL_CONST + 1;
 	player_delete_level_limit_lower_ = db.player_delete_level_limit_lower;
 
-	metin2::log::info("PLAYER_DELETE_LEVEL_LIMIT set to {:d}", player_delete_level_limit_);
-	metin2::log::info("PLAYER_DELETE_LEVEL_LIMIT_LOWER set to {:d}", player_delete_level_limit_lower_);
+	metin2::log::info("Player deletion level limit {:d}", player_delete_level_limit_);
+	metin2::log::info("Player deletion minimum level {:d}", player_delete_level_limit_lower_);
 
 	load_event_flag();
 
@@ -153,8 +153,6 @@ auto client_manager::initialize() -> bool
 
 void client_manager::main_loop()
 {
-	metin2::log::info( "ClientManager pointer is {}", static_cast<const void *>(this));
-
 	while (!shutdowned_)
 	{
 		while (std::unique_ptr<sql_msg> tmp{db_manager::instance().pop_result()})
@@ -168,7 +166,7 @@ void client_manager::main_loop()
 		metin2::log::rotate();
 	}
 
-	metin2::log::info( "MainLoop exited, Starting cache flushing");
+	metin2::log::info("Main loop exited, flushing caches");
 
 	signal_timer_disable();
 
@@ -213,7 +211,7 @@ void client_manager::query_boot(peer* peer, packet_gd_boot * p)
 	host_info(vHost);
 	admin_info(p->ip, vAdmin);	
 
-	metin2::log::info( "QUERY_BOOT : AdminInfo (Request ServerIp {}) ", p->ip);
+	metin2::log::info("Boot: sending gm list to game server {}", p->ip);
 
 	uint32_t dwPacketSize = 
 		sizeof(uint32_t) +
@@ -241,22 +239,22 @@ void client_manager::query_boot(peer* peer, packet_gd_boot * p)
 	peer->encode(&dwPacketSize, sizeof(uint32_t));
 	peer->encode(&bPacketVersion, sizeof(uint8_t));
 
-	metin2::log::info( "BOOT: PACKET: {:d}", dwPacketSize);
-	metin2::log::info( "BOOT: VERSION: {:d}", bPacketVersion);
+	metin2::log::debug("Boot: packet size {:d}", dwPacketSize);
+	metin2::log::debug("Boot: packet version {:d}", bPacketVersion);
 
-	metin2::log::info( "sizeof(TMobTable) = {:d}", sizeof(mob_table));
-	metin2::log::info( "sizeof(TItemTable) = {:d}", sizeof(item_table));
-	metin2::log::info( "sizeof(TShopTable) = {:d}", sizeof(shop_table));
-	metin2::log::info( "sizeof(TSkillTable) = {:d}", sizeof(skill_table));
-	metin2::log::info( "sizeof(TRefineTable) = {:d}", sizeof(refine_table));
-	metin2::log::info( "sizeof(TItemAttrTable) = {:d}", sizeof(item_attr_table));
-	metin2::log::info( "sizeof(TItemRareTable) = {:d}", sizeof(item_attr_table));
-	metin2::log::info( "sizeof(TBanwordTable) = {:d}", sizeof(banword_table));
-	metin2::log::info( "sizeof(TLand) = {:d}", sizeof(building::land_table));
-	metin2::log::info( "sizeof(TObjectProto) = {:d}", sizeof(building::object_proto));
-	metin2::log::info( "sizeof(TObject) = {:d}", sizeof(building::object_table));
-	metin2::log::info( "sizeof(tAdminInfo) total = {:d} ", sizeof(t_admin_info) * vAdmin.size());
-	metin2::log::info( "sizeof(TMonarchInfo) = {:d}", sizeof(monarch_info));
+	metin2::log::debug("Boot: mob table entry size {:d}", sizeof(mob_table));
+	metin2::log::debug("Boot: item table entry size {:d}", sizeof(item_table));
+	metin2::log::debug("Boot: shop table entry size {:d}", sizeof(shop_table));
+	metin2::log::debug("Boot: skill table entry size {:d}", sizeof(skill_table));
+	metin2::log::debug("Boot: refine table entry size {:d}", sizeof(refine_table));
+	metin2::log::debug("Boot: item attribute table entry size {:d}", sizeof(item_attr_table));
+	metin2::log::debug("Boot: rare item attribute table entry size {:d}", sizeof(item_attr_table));
+	metin2::log::debug("Boot: banword table entry size {:d}", sizeof(banword_table));
+	metin2::log::debug("Boot: land entry size {:d}", sizeof(building::land_table));
+	metin2::log::debug("Boot: object proto entry size {:d}", sizeof(building::object_proto));
+	metin2::log::debug("Boot: object entry size {:d}", sizeof(building::object_table));
+	metin2::log::debug("Boot: gm list size {:d}", sizeof(t_admin_info) * vAdmin.size());
+	metin2::log::debug("Boot: monarch info size {:d}", sizeof(monarch_info));
 
 	peer->encode_word(sizeof(mob_table));
 	peer->encode_word(vec_mob_table_.size());
@@ -326,7 +324,7 @@ void client_manager::query_boot(peer* peer, packet_gd_boot * p)
 	for (size_t n = 0; n < vHost.size(); ++n)
 	{
 		peer->encode(vHost[n].c_str(), 16);
-		metin2::log::info( "GMHosts {}", vHost[n].c_str());
+		metin2::log::debug("Boot: gm host {}", vHost[n].c_str());
 	}
 
 	peer->encode_word(sizeof(t_admin_info));
@@ -335,7 +333,7 @@ void client_manager::query_boot(peer* peer, packet_gd_boot * p)
 	for (size_t n = 0; n < vAdmin.size(); ++n)
 	{
 		peer->encode(&vAdmin[n], sizeof(t_admin_info));
-		metin2::log::info( "Admin name {} ConntactIP {}", vAdmin[n].name, vAdmin[n].contact_ip);
+		metin2::log::debug("Boot: gm {} (contact ip {})", vAdmin[n].name, vAdmin[n].contact_ip);
 	}
 
 	peer->encode_word(sizeof(monarch_info));
@@ -352,7 +350,7 @@ void client_manager::query_boot(peer* peer, packet_gd_boot * p)
 	}
 
 	if (metin2::config::test_server())
-		metin2::log::info( "MONARCHCandidacy Size {:d}", monarch::instance().monarch_candidacy_size());
+		metin2::log::debug("Boot: {:d} monarch candidates", monarch::instance().monarch_candidacy_size());
 
 	peer->encode_word(0xffff);
 }
@@ -363,13 +361,13 @@ void client_manager::send_party_on_setup(peer* peer_value)
 
 	for (auto it_party = pm.begin(); it_party != pm.end(); ++it_party)
 	{
-		metin2::log::info( "PARTY SendPartyOnSetup Party [{:d}]", it_party->first);
+		metin2::log::debug("Party: sending party of leader pid {:d} to new peer", it_party->first);
 		peer_value->encode_header(HEADER_DG_PARTY_CREATE, 0, sizeof(packet_party_create));
 		peer_value->encode(&it_party->first, sizeof(uint32_t));
 
 		for (auto it_member = it_party->second.begin(); it_member != it_party->second.end(); ++it_member)
 		{
-			metin2::log::info( "PARTY SendPartyOnSetup Party [{:d}] Member [{:d}]", it_party->first, it_member->first);
+			metin2::log::debug("Party: sending party of leader pid {:d}, member pid {:d}", it_party->first, it_member->first);
 			peer_value->encode_header(HEADER_DG_PARTY_ADD, 0, sizeof(packet_party_add));
 			peer_value->encode(&it_party->first, sizeof(uint32_t));
 			peer_value->encode(&it_member->first, sizeof(uint32_t));
@@ -392,7 +390,7 @@ void client_manager::query_quest_save(peer * peer_value, quest_table * table, ui
 {
 	if (0 != (len % sizeof(quest_table)))
 	{
-		metin2::log::error("invalid packet size {:d}, sizeof(TQuestTable) == {:d}", len, sizeof(quest_table));
+		metin2::log::error("Quest save packet size {:d} is not a multiple of the quest entry size {:d}", len, sizeof(quest_table));
 		return;
 	}
 
@@ -434,7 +432,7 @@ void client_manager::query_safebox_load(peer * peer_value, uint32_t handle_value
 			get_table_postfix(), packet->id);
 
 	if (metin2::config::db().login_log)
-		metin2::log::info( "HEADER_GD_SAFEBOX_LOAD (handle: {:d} account.id {:d} is_mall {:d})", handle_value, packet->id, mall ? 1 : 0);
+		metin2::log::debug("Safebox: load request, handle {:d}, account {:d}, mall {:d}", handle_value, packet->id, mall ? 1 : 0);
 
 	db_manager::instance().return_query(szQuery, QID_SAFEBOX_LOAD, peer_value->handle(), pi);
 }
@@ -489,10 +487,10 @@ void client_manager::result_safebox_load(peer * peer_value, sql_msg * msg)
 			if (pi->ip[0] == 1)
 			{
 				pSafebox->size = 1;
-				metin2::log::info( "MALL id[{:d}] size[{:d}]", pSafebox->id, pSafebox->size);
+				metin2::log::debug("Safebox: loaded mall of account {:d}, size {:d}", pSafebox->id, pSafebox->size);
 			}
 			else
-				metin2::log::info( "SAFEBOX id[{:d}] size[{:d}]", pSafebox->id, pSafebox->size);
+				metin2::log::debug("Safebox: loaded safebox of account {:d}, size {:d}", pSafebox->id, pSafebox->size);
 		}
 
 		if (0 == pSafebox->id)
@@ -521,7 +519,7 @@ void client_manager::result_safebox_load(peer * peer_value, sql_msg * msg)
 
 		if (!pi->safebox)
 		{
-			metin2::log::error("null safebox pointer!");
+			metin2::log::error("Safebox: load result has no safebox");
 			delete pi;
 			return;
 		}
@@ -529,7 +527,7 @@ void client_manager::result_safebox_load(peer * peer_value, sql_msg * msg)
 		// On a query error the safebox stays closed; answering would show it empty.
 		if (!msg->get()->res)
 		{
-			metin2::log::error("null safebox result");
+			metin2::log::error("Safebox: item query failed, safebox not opened");
 			delete pi;
 			return;
 		}
@@ -554,7 +552,7 @@ void client_manager::result_safebox_load(peer * peer_value, sql_msg * msg)
 				if (it == map_item_table_by_vnum_.end())
 				{
 					bEscape = true;
-					metin2::log::error("invalid item vnum {:d} in safebox: login {}", r.vnum, pi->login);
+					metin2::log::error("Safebox: unknown item vnum {:d} for account {}", r.vnum, pi->login);
 					break;
 				}
 
@@ -587,7 +585,7 @@ void client_manager::result_safebox_load(peer * peer_value, sql_msg * msg)
 
 					if (it == map_item_table_by_vnum_.end())
 					{
-						metin2::log::error("invalid item vnum {:d} in item_award: login {}", pItemAward->vnum, pi->login);
+						metin2::log::error("Item award: unknown item vnum {:d} for account {}", pItemAward->vnum, pi->login);
 						continue;
 					}
 
@@ -651,7 +649,7 @@ void client_manager::result_safebox_load(peer * peer_value, sql_msg * msg)
 
 					if (item_id () > item_range_.max)
 					{
-						metin2::log::error("UNIQUE ID OVERFLOW!!");
+						metin2::log::error("Item award: item id range exhausted");
 						break;
 					}
 
@@ -659,13 +657,13 @@ void client_manager::result_safebox_load(peer * peer_value, sql_msg * msg)
 						auto it = map_item_table_by_vnum_.find (dwItemVnum);
 						if (it == map_item_table_by_vnum_.end())
 						{
-							metin2::log::error("Invalid item(vnum : {:d}). It is not in m_map_itemTableByVnum.", dwItemVnum);
+							metin2::log::error("Item award: unknown item vnum {:d}", dwItemVnum);
 							continue;
 						}
 						item_table* item_table = it->second;
 						if (item_table == nullptr)
 						{
-							metin2::log::error("Invalid item_table (vnum : {:d}). It's value is NULL in m_map_itemTableByVnum.", dwItemVnum);
+							metin2::log::error("Item award: item vnum {:d} has no item table entry", dwItemVnum);
 							continue;
 						}
 						if (0 == pItemAward->socket0)
@@ -706,7 +704,7 @@ void client_manager::result_safebox_load(peer * peer_value, sql_msg * msg)
 
 					std::unique_ptr<sql_msg> pmsg(db_manager::instance().direct_query(query.c_str()));
 					sql_result * pRes = pmsg->get();
-					metin2::log::info( "SAFEBOX Query : [{}]", query.c_str());
+					metin2::log::debug("Item award: {}", query.c_str());
 
 					if (pRes->affected_rows == 0 || pRes->insert_id == 0 || pRes->affected_rows == (uint32_t)-1)
 						break;
@@ -855,7 +853,7 @@ void client_manager::result_pricelist_load(peer* peer, sql_msg* msg)
 	peer->encode(&header, sizeof(header));
 	peer->encode(table.price_info, sizePriceListSize);
 
-	metin2::log::info( "Load MyShopPricelist handle[{:d}] pid[{:d}] count[{:d}]", pReqInfo->first, pReqInfo->second, header.count);
+	metin2::log::debug("Price list: loaded for handle {:d}, pid {:d}, {:d} items", pReqInfo->first, pReqInfo->second, header.count);
 
 	delete pReqInfo;
 }
@@ -903,7 +901,7 @@ void client_manager::query_empire_select(peer * peer_value, uint32_t handle, emp
 	snprintf(szQuery, sizeof(szQuery), "UPDATE player_index%s SET empire=%u WHERE id=%u", get_table_postfix(), p->empire, p->account_id);
 	std::unique_ptr<sql_msg>(db_manager::instance().direct_query(szQuery));
 
-	metin2::log::info( "EmpireSelect: {}", szQuery);
+	metin2::log::debug("Empire select: {}", szQuery);
 	{
 		snprintf(szQuery, sizeof(szQuery),
 				"SELECT pid1, pid2, pid3, pid4 FROM player_index%s WHERE id=%u", get_table_postfix(), p->account_id);
@@ -914,7 +912,7 @@ void client_manager::query_empire_select(peer * peer_value, uint32_t handle, emp
 
 		if (pRes->num_rows)
 		{
-			metin2::log::info( "EMPIRE {:d}", pRes->num_rows);
+			metin2::log::debug("Empire select: {:d} player_index rows", pRes->num_rows);
 
 			MYSQL_ROW row = mysql_fetch_row(pRes->res);
 			uint32_t pids[3];
@@ -938,11 +936,11 @@ void client_manager::query_empire_select(peer * peer_value, uint32_t handle, emp
 			for (int i = 0; i < 3; ++i)
 			{
 				str_to_number(pids[i], row[i]);
-				metin2::log::info( "EMPIRE PIDS[{:d}]", pids[i]);
+				metin2::log::debug("Empire select: slot pid {:d}", pids[i]);
 
 				if (pids[i])
 				{
-					metin2::log::info( "EMPIRE move to pid[{:d}] to villiage of {:d}, map_index {:d}", 
+					metin2::log::info("Empire select: moving pid {:d} to the village of empire {:d} (map {:d})", 
 							pids[i], p->empire, g_start_map[p->empire]);
 
 					snprintf(szQuery, sizeof(szQuery), "UPDATE player%s SET map_index=%u,x=%u,y=%u WHERE id=%u", 
@@ -969,7 +967,7 @@ void client_manager::query_setup(peer * peer, uint32_t handle_value, const char 
 
 	if (p->auth_server)
 	{
-		metin2::log::info( "AUTH_PEER ptr {}", static_cast<const void *>(peer));
+		metin2::log::info("Auth server peer connected ({})", static_cast<const void *>(peer));
 
 		auth_peer_ = peer;
 		return;
@@ -1085,7 +1083,7 @@ void client_manager::query_setup(peer * peer, uint32_t handle_value, const char 
 	peer->encode_byte(bMapCount);
 	peer->encode(&vec_kMapLocations[0], sizeof(map_location) * vec_kMapLocations.size());
 
-	metin2::log::info( "SETUP: channel {:d} listen {:d} p2p {:d} count {:d}", peer->channel(), p->listen_port, p->p2_p_port, bMapCount);
+	metin2::log::info("Game server setup: channel {:d}, listen port {:d}, p2p port {:d}, {:d} maps", peer->channel(), p->listen_port, p->p2_p_port, bMapCount);
 
 	packet_dg_p2_p p2pSetupPacket;
 	p2pSetupPacket.port = peer->p2_p_port();
@@ -1127,11 +1125,11 @@ void client_manager::query_setup(peer * peer, uint32_t handle_value, const char 
 
 		if (insert_logon_account(pck->login, peer->handle()))
 		{
-			metin2::log::info( "SETUP: login {:d} {} login_key {:d} host {}", pck->id, pck->login, pck->login_key, pck->host);
+			metin2::log::info("Game server setup: restored login of account {:d} ({}), key {:d}, host {}", pck->id, pck->login, pck->login_key, pck->host);
 			pkLD->set_play(true);
 		}
 		else
-			metin2::log::info( "SETUP: login_fail {:d} {} login_key {:d}", pck->id, pck->login, pck->login_key);
+			metin2::log::warn("Game server setup: cannot restore login of account {:d} ({}), key {:d}, already logged in", pck->id, pck->login, pck->login_key);
 	}
 
 	send_party_on_setup(peer);
@@ -1146,7 +1144,7 @@ void client_manager::query_item_flush(peer * peer_value, const char * data)
 	uint32_t dwID = *(uint32_t *) data;
 
 	if (metin2::config::db().login_log)
-		metin2::log::info( "HEADER_GD_ITEM_FLUSH: {:d}", dwID);
+		metin2::log::info("Item cache: flush request for item {:d}", dwID);
 
 	item_cache * c = get_item_cache(dwID);
 
@@ -1171,7 +1169,7 @@ void client_manager::query_item_save(peer * peer_value, const char * data)
 			if (it != map_pk_item_cache_set_ptr_.end())
 			{
 				if (metin2::config::test_server())
-					metin2::log::info( "ITEM_CACHE: safebox owner {:d} id {:d}", c->get()->owner, c->get()->id);
+					metin2::log::debug("Item cache: removing item {1:d} from owner {0:d}", c->get()->owner, c->get()->id);
 
 				it->second->erase(c);
 			}
@@ -1215,7 +1213,7 @@ void client_manager::query_item_save(peer * peer_value, const char * data)
 	else
 	{
 		if (metin2::config::test_server())
-			metin2::log::info( "QUERY_ITEM_SAVE => PutItemCache() owner {:d} id {:d} vnum {:d} ", p->owner, p->id, p->vnum);
+			metin2::log::debug("Item cache: caching item {1:d} (vnum {2:d}) of owner {0:d}", p->owner, p->id, p->vnum);
 
 		put_item_cache(p);
 	}
@@ -1239,7 +1237,7 @@ void client_manager::create_item_cache_set(uint32_t pid)
 	map_pk_item_cache_set_ptr_.insert(item_cache_set_ptr_map::value_type(pid, std::make_unique<item_cache_set>()));
 
 	if (metin2::config::db().login_log)
-		metin2::log::info( "ITEM_CACHE: new cache {:d}", pid);
+		metin2::log::info("Item cache: created cache for pid {:d}", pid);
 }
 
 void client_manager::flush_item_cache_set(uint32_t pid)
@@ -1248,7 +1246,7 @@ void client_manager::flush_item_cache_set(uint32_t pid)
 
 	if (it == map_pk_item_cache_set_ptr_.end())
 	{
-		metin2::log::info( "FLUSH_ITEMCACHESET : No ItemCacheSet pid({:d})", pid);
+		metin2::log::debug("Item cache: no cache to flush for pid {:d}", pid);
 		return;
 	}
 
@@ -1269,7 +1267,7 @@ void client_manager::flush_item_cache_set(uint32_t pid)
 	map_pk_item_cache_set_ptr_.erase(it);
 
 	if (metin2::config::db().login_log)
-		metin2::log::info( "FLUSH_ITEMCACHESET : Deleted pid({:d})", pid);
+		metin2::log::info("Item cache: flushed and removed cache of pid {:d}", pid);
 }
 
 auto client_manager::get_item_cache(uint32_t id) -> item_cache *
@@ -1291,7 +1289,7 @@ void client_manager::put_item_cache(player_item * updated, bool skip_query)
 	if (!c)
 	{
 		if (metin2::config::db().login_log)
-			metin2::log::info( "ITEM_CACHE: PutItemCache ==> New CItemCache id{:d} vnum{:d} new owner{:d}", updated->id, updated->vnum, updated->owner);
+			metin2::log::info("Item cache: new entry for item {:d} (vnum {:d}), owner {:d}", updated->id, updated->vnum, updated->owner);
 
 		c = new item_cache;
 		map_item_cache_.insert(item_cache_map::value_type(updated->id, c));
@@ -1299,7 +1297,7 @@ void client_manager::put_item_cache(player_item * updated, bool skip_query)
 	else
 	{
 		if (metin2::config::db().login_log)
-			metin2::log::info( "ITEM_CACHE: PutItemCache ==> Have Cache");
+			metin2::log::info("Item cache: updating item {:d}", updated->id);
 		if (updated->owner != c->get()->owner)
 		{
 			item_cache_set_ptr_map::iterator it = map_pk_item_cache_set_ptr_.find(c->get()->owner);
@@ -1307,7 +1305,7 @@ void client_manager::put_item_cache(player_item * updated, bool skip_query)
 			if (it != map_pk_item_cache_set_ptr_.end())
 			{
 				if (metin2::config::db().login_log)
-				metin2::log::info( "ITEM_CACHE: delete owner {:d} id {:d} new owner {:d}", c->get()->owner, c->get()->id, updated->owner);
+				metin2::log::info("Item cache: item {1:d} moved from owner {0:d} to {2:d}", c->get()->owner, c->get()->id, updated->owner);
 				it->second->erase(c);
 			}
 		}
@@ -1320,17 +1318,17 @@ void client_manager::put_item_cache(player_item * updated, bool skip_query)
 	if (it != map_pk_item_cache_set_ptr_.end())
 	{
 		if (metin2::config::db().login_log)
-			metin2::log::info( "ITEM_CACHE: save {:d} id {:d}", c->get()->owner, c->get()->id);
+			metin2::log::info("Item cache: cached item {1:d} of owner {0:d}", c->get()->owner, c->get()->id);
 		else
-			metin2::log::debug( "ITEM_CACHE: save {:d} id {:d}", c->get()->owner, c->get()->id);
+			metin2::log::debug("Item cache: cached item {1:d} of owner {0:d}", c->get()->owner, c->get()->id);
 		it->second->insert(c);
 	}
 	else
 	{
 		if (metin2::config::db().login_log)
-			metin2::log::info( "ITEM_CACHE: direct save {:d} id {:d}", c->get()->owner, c->get()->id);
+			metin2::log::info("Item cache: saving item {1:d} of owner {0:d} directly", c->get()->owner, c->get()->id);
 		else
-			metin2::log::debug( "ITEM_CACHE: direct save {:d} id {:d}", c->get()->owner, c->get()->id);
+			metin2::log::debug("Item cache: saving item {1:d} of owner {0:d} directly", c->get()->owner, c->get()->id);
 
 		c->on_flush();
 	}
@@ -1381,7 +1379,7 @@ void client_manager::update_player_cache()
 		if (c->check_timeout())
 		{
 			if (metin2::config::db().login_log)
-				metin2::log::info( "UPDATE : UpdatePlayerCache() ==> FlushPlayerCache {:d} {} ", c->get(false)->id, c->get(false)->name);
+				metin2::log::info("Player cache: flushing timed-out player {1} (pid {0:d})", c->get(false)->id, c->get(false)->name);
 
 			c->flush();
 
@@ -1395,7 +1393,7 @@ void client_manager::update_player_cache()
 void client_manager::set_cache_flush_count_limit(int limit)
 {
 	cache_flush_count_limit_ = std::max(10, limit);
-	metin2::log::info( "CACHE_FLUSH_LIMIT_PER_SECOND: {:d}", cache_flush_count_limit_);
+	metin2::log::info("Cache flush limit {:d} per second", cache_flush_count_limit_);
 }
 
 void client_manager::update_item_cache()
@@ -1412,7 +1410,7 @@ void client_manager::update_item_cache()
 		if (c->check_flush_timeout())
 		{
 			if (metin2::config::test_server())
-				metin2::log::info( "UpdateItemCache ==> Flush() vnum {:d} id {:d} owner {:d}", c->get()->vnum, c->get()->id, c->get()->owner);
+				metin2::log::debug("Item cache: flushing item {1:d} (vnum {0:d}) of owner {2:d}", c->get()->vnum, c->get()->id, c->get()->owner);
 
 			c->flush();
 
@@ -1453,7 +1451,7 @@ void client_manager::query_item_destroy(peer * peer_value, const char * data)
 		snprintf(szQuery, sizeof(szQuery), "DELETE FROM item%s WHERE id=%u", get_table_postfix(), dwID);
 
 		if (metin2::config::db().login_log)
-			metin2::log::info( "HEADER_GD_ITEM_DESTROY: PID {:d} ID {:d}", dwPID, dwID);
+			metin2::log::info("Item cache: deleting item {1:d} of pid {0:d}", dwPID, dwID);
 
 		if (dwPID == 0)
 			db_manager::instance().async_query(szQuery);
@@ -1471,7 +1469,7 @@ void client_manager::query_flush_cache(peer * peer_value, const char * data)
 	if (!pkCache)
 		return;
 
-	metin2::log::info( "FLUSH_CACHE: {:d}", dwPID);
+	metin2::log::info("Player cache: flushing pid {:d}", dwPID);
 
 	pkCache->flush();
 	flush_item_cache_set(dwPID);
@@ -1493,7 +1491,7 @@ void client_manager::query_reload_proto()
 {
 	if (!initialize_tables())
 	{
-		metin2::log::error("QUERY_RELOAD_PROTO: cannot load tables");
+		metin2::log::error("Proto reload: cannot load tables");
 		return;
 	}
 
@@ -1602,7 +1600,7 @@ void client_manager::delete_login_data(login_data * ld)
 void client_manager::query_auth_login(peer * peer_value, uint32_t handle, packet_gd_auth_login * p)
 {
 	if (metin2::config::test_server())
-		metin2::log::info( "QUERY_AUTH_LOGIN {:d} {:d} {}", p->id, p->login_key, p->login);
+		metin2::log::debug("Auth login: account {:d}, key {:d}, login {}", p->id, p->login_key, p->login);
 	login_data * pkLD = get_login_data_by_login(p->login);
 
 	if (pkLD)
@@ -1614,7 +1612,7 @@ void client_manager::query_auth_login(peer * peer_value, uint32_t handle, packet
 
 	if (get_login_data(p->login_key))
 	{
-		metin2::log::error("LoginData already exist key {:d} login {}", p->login_key, p->login);
+		metin2::log::warn("Auth login: login key {:d} already in use (account {})", p->login_key, p->login);
 		bResult = 0;
 
 		peer_value->encode_header(HEADER_DG_AUTH_LOGIN, handle, sizeof(uint8_t));
@@ -1635,7 +1633,7 @@ void client_manager::query_auth_login(peer * peer_value, uint32_t handle, packet
 		strlcpy(r.social_id, p->social_id, sizeof(r.social_id));
 		strlcpy(r.passwd, "TEMP", sizeof(r.passwd));
 
-		metin2::log::info( "AUTH_LOGIN id({:d}) login({}) social_id({}) login_key({:d}), client_key({:d} {:d} {:d} {:d})",
+		metin2::log::info("Auth login: account {:d} ({}), social id {}, key {:d}, client key {:d} {:d} {:d} {:d}",
 				p->id, p->login, p->social_id, p->login_key,
 				p->client_key[0], p->client_key[1], p->client_key[2], p->client_key[3]);
 
@@ -1682,7 +1680,7 @@ void client_manager::create_object(packet_gd_create_object * p)
 
 	if (pmsg->get()->insert_id == 0)
 	{
-		metin2::log::error("cannot insert object");
+		metin2::log::error("Cannot insert building object (vnum {:d}, land {:d})", p->vnum, p->land_id);
 		return;
 	}
 
@@ -1716,7 +1714,7 @@ void client_manager::delete_object(uint32_t id)
 
 	if (pmsg->get()->affected_rows == 0 || pmsg->get()->affected_rows == (uint32_t)-1)
 	{
-		metin2::log::error("no object by id {:d}", id);
+		metin2::log::warn("Cannot delete building object {:d}, not found", id);
 		return;
 	}
 
@@ -1784,38 +1782,38 @@ void client_manager::block_chat(packet_block_chat* p)
 
 void client_manager::marriage_add(packet_marriage_add * p)
 {
-	metin2::log::info( "MarriageAdd {:d} {:d} {} {}", p->pi_d1, p->pi_d2, p->name1, p->name2);
+	metin2::log::info("Marriage: add pid {:d} and pid {:d} ({} and {})", p->pi_d1, p->pi_d2, p->name1, p->name2);
 	marriage::manager::instance().add(p->pi_d1, p->pi_d2, p->name1, p->name2);
 }
 
 void client_manager::marriage_update(packet_marriage_update * p)
 {
-	metin2::log::info( "MarriageUpdate PID:{:d} {:d} LP:{:d} ST:{:d}", p->pi_d1, p->pi_d2, p->love_point, p->married);
+	metin2::log::info("Marriage: update pid {:d} and pid {:d}, love points {:d}, married {:d}", p->pi_d1, p->pi_d2, p->love_point, p->married);
 	marriage::manager::instance().update(p->pi_d1, p->pi_d2, p->love_point, p->married);
 }
 
 void client_manager::marriage_remove(packet_marriage_remove * p)
 {
-	metin2::log::info( "MarriageRemove {:d} {:d}", p->pi_d1, p->pi_d2);
+	metin2::log::info("Marriage: remove pid {:d} and pid {:d}", p->pi_d1, p->pi_d2);
 	marriage::manager::instance().remove(p->pi_d1, p->pi_d2);
 }
 
 void client_manager::wedding_request(packet_wedding_request * p)
 {
-	metin2::log::info( "WeddingRequest {:d} {:d}", p->pi_d1, p->pi_d2);
+	metin2::log::info("Marriage: wedding requested by pid {:d} and pid {:d}", p->pi_d1, p->pi_d2);
 	forward_packet(HEADER_DG_WEDDING_REQUEST, p, sizeof(packet_wedding_request));
 }
 
 void client_manager::wedding_ready(packet_wedding_ready * p)
 {
-	metin2::log::info( "WeddingReady {:d} {:d}", p->pi_d1, p->pi_d2);
+	metin2::log::info("Marriage: wedding of pid {:d} and pid {:d} is ready", p->pi_d1, p->pi_d2);
 	forward_packet(HEADER_DG_WEDDING_READY, p, sizeof(packet_wedding_ready));
 	marriage::manager::instance().ready_wedding(p->map_index, p->pi_d1, p->pi_d2);
 }
 
 void client_manager::wedding_end(packet_wedding_end * p)
 {
-	metin2::log::info( "WeddingEnd {:d} {:d}", p->pi_d1, p->pi_d2);
+	metin2::log::info("Marriage: wedding of pid {:d} and pid {:d} ended", p->pi_d1, p->pi_d2);
 	marriage::manager::instance().end_wedding(p->pi_d1, p->pi_d2);
 }
 
@@ -1825,7 +1823,7 @@ void client_manager::myshop_pricelist_update(const item_price_list_table* packet
 {
 	if (packet->count > SHOP_PRICELIST_MAX_NUM)
 	{
-		metin2::log::error("count overflow!");
+		metin2::log::warn("Price list update for owner pid {:d} has too many entries ({:d}), ignored", packet->owner_id, packet->count);
 		return;
 	}
 
@@ -1861,7 +1859,7 @@ void client_manager::myshop_pricelist_request(peer* peer, uint32_t handle_value,
 {
 	if (item_price_list_table_cache* pCache = item_price_list_cache(player_id))
 	{
-		metin2::log::info( "Cache MyShopPricelist handle[{:d}] pid[{:d}]", handle_value, player_id);
+		metin2::log::debug("Price list: sending cached list for handle {:d}, pid {:d}", handle_value, player_id);
 
 		item_price_list_table* pTable = pCache->get(false);
 
@@ -1880,7 +1878,7 @@ void client_manager::myshop_pricelist_request(peer* peer, uint32_t handle_value,
 	}
 	else
 	{
-		metin2::log::info( "Query MyShopPricelist handle[{:d}] pid[{:d}]", handle_value, player_id);
+		metin2::log::debug("Price list: loading list for handle {:d}, pid {:d}", handle_value, player_id);
 
 		char szQuery[QUERY_MAX_LEN];
 		snprintf(szQuery, sizeof(szQuery), "SELECT item_vnum, price FROM myshop_pricelist%s WHERE owner_id=%u", get_table_postfix(), player_id);
@@ -1904,7 +1902,7 @@ void client_manager::process_packets(peer * peer)
 		if (metin2::config::test_server())
 		{
 			if (header != 10)
-				metin2::log::info( " ProcessPacket Header [{:d}] Handle[{:d}] Length[{:d}] iCount[{:d}]", header, dwHandle, dwLength, iCount);
+				metin2::log::debug("Packet header {:d}, handle {:d}, length {:d}, #{:d} in batch", header, dwHandle, dwLength, iCount);
 		}
 
 		switch (header)
@@ -1925,23 +1923,22 @@ void client_manager::process_packets(peer * peer)
 				break;
 
 			case HEADER_GD_PLAYER_LOAD:
-				metin2::log::debug( "HEADER_GD_PLAYER_LOAD (handle: {:d} length: {:d})", dwHandle, dwLength);
+				metin2::log::debug("Player load request (handle {:d}, length {:d})", dwHandle, dwLength);
 				query_player_load(peer, dwHandle, (player_load_packet *) data);
 				break;
 
 			case HEADER_GD_PLAYER_SAVE:
-				metin2::log::debug( "HEADER_GD_PLAYER_SAVE (handle: {:d} length: {:d})", dwHandle, dwLength);
+				metin2::log::debug("Player save request (handle {:d}, length {:d})", dwHandle, dwLength);
 				query_player_save(peer, dwHandle, (player_table *) data);
 				break;
 
 			case HEADER_GD_PLAYER_CREATE:
-				metin2::log::info( "HEADER_GD_PLAYER_CREATE (handle: {:d} length: {:d})", dwHandle, dwLength);
+				metin2::log::debug("Player create request (handle {:d}, length {:d})", dwHandle, dwLength);
 				query_player_create(peer, dwHandle, (player_create_packet *) data);
-				metin2::log::info( "END");
 				break;
 
 			case HEADER_GD_PLAYER_DELETE:
-				metin2::log::debug( "HEADER_GD_PLAYER_DELETE (handle: {:d} length: {:d})", dwHandle, dwLength);
+				metin2::log::debug("Player delete request (handle {:d}, length {:d})", dwHandle, dwLength);
 				query_player_delete(peer, dwHandle, (player_delete_packet *) data);
 				break;
 
@@ -1950,7 +1947,7 @@ void client_manager::process_packets(peer * peer)
 				break;
 
 			case HEADER_GD_QUEST_SAVE:
-				metin2::log::debug( "HEADER_GD_QUEST_SAVE (handle: {:d} length: {:d})", dwHandle, dwLength);
+				metin2::log::debug("Quest save request (handle {:d}, length {:d})", dwHandle, dwLength);
 				query_quest_save(peer, (quest_table *) data, dwLength);
 				break;
 
@@ -1959,7 +1956,7 @@ void client_manager::process_packets(peer * peer)
 				break;
 
 			case HEADER_GD_SAFEBOX_SAVE:
-				metin2::log::debug( "HEADER_GD_SAFEBOX_SAVE (handle: {:d} length: {:d})", dwHandle, dwLength);
+				metin2::log::debug("Safebox save request (handle {:d}, length {:d})", dwHandle, dwLength);
 				query_safebox_save(peer, (safebox_table *) data);
 				break;
 
@@ -2048,12 +2045,12 @@ void client_manager::process_packets(peer * peer)
 				break;
 
 			case HEADER_GD_ADD_AFFECT:
-				metin2::log::debug( "HEADER_GD_ADD_AFFECT");
+				metin2::log::debug("Add affect request");
 				query_add_affect(peer, (packet_gd_add_affect *) data);
 				break;
 
 			case HEADER_GD_REMOVE_AFFECT:
-				metin2::log::debug( "HEADER_GD_REMOVE_AFFECT");
+				metin2::log::debug("Remove affect request");
 				query_remove_affect(peer, (packet_gd_remove_affect *) data);
 				break;
 
@@ -2273,7 +2270,7 @@ void client_manager::process_packets(peer * peer)
 				request_channel_status(peer, dwHandle);
 				break;
 			default:					
-				metin2::log::error("Unknown header (header: {:d} handle: {:d} length: {:d})", header, dwHandle, dwLength);
+				metin2::log::error("Unknown packet header {:d} (handle {:d}, length {:d})", header, dwHandle, dwLength);
 				break;
 		}
 	}
@@ -2289,7 +2286,7 @@ void client_manager::add_peer(net::tcp::socket socket)
 
 	if (!is_allowed_peer(connection->remote_address().c_str(), metin2::config::db().allowed_peers, "127.0.0.1"))
 	{
-		metin2::log::info( "PORT_SECURITY: BLOCK CONNECTION FROM {}", connection->remote_address().c_str());
+		metin2::log::info("Rejected connection from {}, not an allowed peer", connection->remote_address().c_str());
 		connection->close();
 		return;
 	}
@@ -2317,7 +2314,7 @@ void client_manager::remove_peer(peer * peer_value)
 
 				if (pkLD->is_deleted())
 				{
-					metin2::log::info( "DELETING LoginData");
+					metin2::log::debug("Deleting login data of account {}", pkLD->account_ref().login);
 					delete pkLD;
 				}
 
@@ -2395,27 +2392,27 @@ auto client_manager::analyze_query_result(sql_msg * msg) -> int
 			break;
 
 		case QID_SAFEBOX_LOAD:
-			metin2::log::info( "QUERY_RESULT: HEADER_GD_SAFEBOX_LOAD");
+			metin2::log::debug("Safebox load query finished");
 			result_safebox_load(peer, msg);
 			break;
 
 		case QID_SAFEBOX_CHANGE_SIZE:
-			metin2::log::info( "QUERY_RESULT: HEADER_GD_SAFEBOX_CHANGE_SIZE");
+			metin2::log::debug("Safebox resize query finished");
 			result_safebox_change_size(peer, msg);
 			break;
 
 		case QID_SAFEBOX_CHANGE_PASSWORD:
-			metin2::log::info( "QUERY_RESULT: HEADER_GD_SAFEBOX_CHANGE_PASSWORD {}", static_cast<const void *>(msg));
+			metin2::log::debug("Safebox password change query finished");
 			result_safebox_change_password(peer, msg);
 			break;
 
 		case QID_SAFEBOX_CHANGE_PASSWORD_SECOND:
-			metin2::log::info( "QUERY_RESULT: HEADER_GD_SAFEBOX_CHANGE_PASSWORD {}", static_cast<const void *>(msg));
+			metin2::log::debug("Safebox password change query (second step) finished");
 			result_safebox_change_password_second(peer, msg);
 			break;
 
 		case QID_HIGHSCORE_REGISTER:
-			metin2::log::info( "QUERY_RESULT: HEADER_GD_HIGHSCORE_REGISTER {}", static_cast<const void *>(msg));
+			metin2::log::debug("Highscore register query finished");
 			result_highscore_register(peer, msg);
 			break;
 
@@ -2444,7 +2441,7 @@ auto client_manager::analyze_query_result(sql_msg * msg) -> int
 			break;
 
 		default:
-			metin2::log::info( "CClientManager::AnalyzeQueryResult unknown query result type: {:d}, str: {}", qi->type, msg->query.c_str());
+			metin2::log::error("Unknown query result type {:d}: {}", qi->type, msg->query.c_str());
 			break;
 	}
 
@@ -2500,7 +2497,7 @@ auto client_manager::process() -> int
 				if (!(thecore_heart->pulse % (thecore_heart->passes_per_sec * 10)))	
 
 				{
-					metin2::log::debug("[perf] [{:9d}] return {:d}/{:d}/{:d}/{:d} async {:d}/{:d}/{:d}/{:d}",
+					metin2::log::debug("Perf: pulse {:d}, return queries {:d}/{:d}/{:d}/{:d}, async queries {:d}/{:d}/{:d}/{:d}",
 							thecore_heart->pulse,
 							db_manager::instance().count_return_query(SQL_PLAYER),
 							db_manager::instance().count_return_result(SQL_PLAYER),
@@ -2512,7 +2509,7 @@ auto client_manager::process() -> int
 							db_manager::instance().count_async_copied_query(SQL_PLAYER));
 
 					if ((thecore_heart->pulse % 50) == 0) 
-						metin2::log::info( "[{:9d}] return {:d}/{:d}/{:d} async {:d}/{:d}/{:d}",
+						metin2::log::debug("Perf: pulse {:d}, return queries {:d}/{:d}/{:d}, async queries {:d}/{:d}/{:d}",
 								thecore_heart->pulse,
 								db_manager::instance().count_return_query(SQL_PLAYER),
 								db_manager::instance().count_return_result(SQL_PLAYER),
@@ -2524,7 +2521,7 @@ auto client_manager::process() -> int
 			}
 			else
 			{
-				metin2::log::debug("[perf] [{:9d}] return {:d}/{:d}/{:d}/{:d} async {:d}/{:d}/{:d}/{:d}",
+				metin2::log::debug("Perf: pulse {:d}, return queries {:d}/{:d}/{:d}/{:d}, async queries {:d}/{:d}/{:d}/{:d}",
 						thecore_heart->pulse,
 						db_manager::instance().count_return_query(SQL_PLAYER),
 						db_manager::instance().count_return_result(SQL_PLAYER),
@@ -2536,7 +2533,7 @@ auto client_manager::process() -> int
 						db_manager::instance().count_async_copied_query(SQL_PLAYER));
 
 						if ((thecore_heart->pulse % 50) == 0) 
-						metin2::log::info( "[{:9d}] return {:d}/{:d}/{:d} async {:d}/{:d}/{:d}",
+						metin2::log::debug("Perf: pulse {:d}, return queries {:d}/{:d}/{:d}, async queries {:d}/{:d}/{:d}",
 							thecore_heart->pulse,
 							db_manager::instance().count_return_query(SQL_PLAYER),
 							db_manager::instance().count_return_result(SQL_PLAYER),
@@ -2578,11 +2575,11 @@ auto client_manager::process() -> int
 
 		if (!(thecore_heart->pulse % (thecore_heart->passes_per_sec * 10)))
 		{
-			metin2::log::debug("[perf] QUERY: MAIN[{:d}] ASYNC[{:d}]", query_count[0], query_count[1]);
+			metin2::log::debug("Perf: {:d} main queries, {:d} async queries in the last 10 s", query_count[0], query_count[1]);
 			query_count[0] = 0;
 			query_count[1] = 0;
 
-			metin2::log::debug("[perf] ITEM:{:d}", item_count);
+			metin2::log::debug("Perf: {:d} item saves in the last 10 s", item_count);
 			item_count = 0;
 		}
 
@@ -2654,15 +2651,15 @@ auto client_manager::initialize_now_item_id() -> bool
 	const uint32_t dwMin = metin2::config::db().item_id_min;
 	const uint32_t dwMax = metin2::config::db().item_id_max;
 
-	metin2::log::info( "ItemRange From File {:d} ~ {:d} ", dwMin, dwMax);
+	metin2::log::info("Item id range from config: {:d} to {:d}", dwMin, dwMax);
 
 	if (item_id_range_manager::instance().build_range(dwMin, dwMax, item_range_) == false)
 	{
-		metin2::log::error("Can not build ITEM_ID_RANGE");
+		metin2::log::error("Cannot build item id range");
 		return false;
 	}
 
-	metin2::log::info( " Init Success Start {:d} End {:d} Now {:d}", item_range_.min, item_range_.max, item_range_.usable_item_id_min);
+	metin2::log::info("Item id range {:d} to {:d}, next free id {:d}", item_range_.min, item_range_.max, item_range_.usable_item_id_min);
 
 	return true;
 }
@@ -2685,11 +2682,11 @@ auto client_manager::initialize_localization() -> bool
 
 	if (pMsg->get()->num_rows == 0)
 	{
-		metin2::log::error("InitializeLocalization() ==> DirectQuery failed({})", szQuery);
+		metin2::log::error("Locale table is empty or cannot be read ({})", szQuery);
 		return false;
 	}
 
-	metin2::log::info( "InitializeLocalization() - LoadLocaleTable(count:{:d})", pMsg->get()->num_rows);
+	metin2::log::info("Loaded {:d} locale settings", pMsg->get()->num_rows);
 
 	vec_locale_.clear();
 
@@ -2707,21 +2704,21 @@ auto client_manager::initialize_localization() -> bool
 		{
 			if (strcmp(locale.value, "english") != 0)
 			{
-				metin2::log::error("locale[LOCALE] = {} is not supported (only english)", locale.value);
+				metin2::log::error("Locale {} is not supported, only english is", locale.value);
 				exit(0);
 			}
 
-			metin2::log::info( "locale[LOCALE] = {}", locale.value);
+			metin2::log::info("Locale: {}", locale.value);
 			locale_name_column = "locale_name";
 		}
 		else if (strcmp(locale.key, "DB_NAME_COLUMN") == 0)
 		{
-			metin2::log::info( "locale[DB_NAME_COLUMN] = {}", locale.value);
+			metin2::log::info("Locale: name column {}", locale.value);
 			locale_name_column = locale.value;	
 		}
 		else
 		{
-			metin2::log::info( "locale[UNKNOWN_KEY({})] = {}", locale.key, locale.value);
+			metin2::log::warn("Locale: unknown key {} = {}", locale.key, locale.value);
 		}
 		vec_locale_.push_back(locale);
 	}	
@@ -2739,7 +2736,7 @@ auto client_manager::admin_info(const char *ip, std::vector<t_admin_info> & admi
 
 	if (pMsg->get()->num_rows == 0)
 	{
-		metin2::log::error("__GetAdminInfo() ==> DirectQuery failed({})", query.c_str());
+		metin2::log::info("No gm accounts found ({})", query.c_str());
 		return false;
 	}
 
@@ -2773,7 +2770,7 @@ auto client_manager::admin_info(const char *ip, std::vector<t_admin_info> & admi
 
 		admin_vec.push_back(Info);
 
-		metin2::log::info( "GM: PID {:d} Login {} Character {} ContactIP {} ServerIP {} Authority {:d}[{}]",
+		metin2::log::info("Gm: pid {:d}, account {}, character {}, contact ip {}, server ip {}, authority {:d} ({})",
 			   	Info.id, Info.account, Info.name, Info.contact_ip, Info.server_ip, Info.authority, stAuth.c_str());
 	}
 
@@ -2788,7 +2785,7 @@ auto client_manager::host_info(std::vector<std::string> & ip_vec) -> bool
 
 	if (pMsg->get()->num_rows == 0)
 	{
-		metin2::log::error("__GetHostInfo() ==> DirectQuery failed({})", szQuery);
+		metin2::log::info("No gm hosts configured ({})", szQuery);
 		return false;
 	}
 
@@ -2801,7 +2798,7 @@ auto client_manager::host_info(std::vector<std::string> & ip_vec) -> bool
 		if (row[0] && *row[0])
 		{
 			ip_vec.push_back(row[0]);
-			metin2::log::info( "GMHOST: {}", row[0]);
+			metin2::log::info("Gm host: {}", row[0]);
 		}
 	}
 
@@ -2841,7 +2838,7 @@ void client_manager::reload_admin(peer*, packet_reload_admin* p)
 			peer->encode(&vAdmin[n], sizeof(t_admin_info));
 	}
 
-	metin2::log::info( "ReloadAdmin End {}", p->ip);
+	metin2::log::info("Reloaded gm list for game server {}", p->ip);
 }
 
 void client_manager::break_marriage(peer * peer, const char * data)
@@ -2854,7 +2851,7 @@ void client_manager::break_marriage(peer * peer, const char * data)
 	pid2 = *(int *) data;
 	data += sizeof(int);
 
-	metin2::log::info( "Breaking off a marriage engagement! pid {:d} and pid {:d}", pid1, pid2);
+	metin2::log::info("Marriage: breaking off engagement of pid {:d} and pid {:d}", pid1, pid2);
 	marriage::manager::instance().remove(pid1, pid2);
 }
 
@@ -2865,7 +2862,7 @@ void client_manager::update_item_cache_set(uint32_t pid)
 	if (it == map_pk_item_cache_set_ptr_.end())
 	{
 		if (metin2::config::test_server())
-			metin2::log::info( "UPDATE_ITEMCACHESET : UpdateItemCacheSet ==> No ItemCacheSet pid({:d})", pid);
+			metin2::log::debug("Item cache: no cache to update for pid {:d}", pid);
 		return;
 	}
 
@@ -2879,7 +2876,7 @@ void client_manager::update_item_cache_set(uint32_t pid)
 	}
 
 	if (metin2::config::db().login_log)
-		metin2::log::info( "UPDATE_ITEMCACHESET : UpdateItemCachsSet pid({:d})", pid);
+		metin2::log::info("Item cache: flushed items of pid {:d}", pid);
 }
 
 void client_manager::election(peer * peer, uint32_t handle, const char* data)
@@ -2898,7 +2895,7 @@ void client_manager::election(peer * peer, uint32_t handle, const char* data)
 	if (!(Success = monarch::instance().vote_monarch(selectingpid, idx)))
 	{
 		if (metin2::config::test_server())
-		metin2::log::info( "[MONARCH_VOTE] Failed {:d} {:d}", idx, selectingpid);
+		metin2::log::debug("Monarch election: vote {:d} for pid {:d} failed", idx, selectingpid);
 		peer->encode_header(HEADER_DG_ELECT_MONARCH, handle, sizeof(int));
 		peer->encode(&Success, sizeof(int));
 		return;
@@ -2906,7 +2903,7 @@ void client_manager::election(peer * peer, uint32_t handle, const char* data)
 	else
 	{
 		if (metin2::config::test_server())
-		metin2::log::info( "[MONARCH_VOTE] Success {:d} {:d}", idx, selectingpid);
+		metin2::log::debug("Monarch election: vote {:d} for pid {:d} recorded", idx, selectingpid);
 		peer->encode_header(HEADER_DG_ELECT_MONARCH, handle, sizeof(int));
 		peer->encode(&Success, sizeof(int));
 		return;
@@ -2923,7 +2920,7 @@ void client_manager::candidacy(peer *  peer, uint32_t handle, const char* data)
 	if (!monarch::instance().add_candidacy(pid, data))
 	{
 		if (metin2::config::test_server())
-			metin2::log::info( "[MONARCH_CANDIDACY] Failed {:d} {}", pid, data);
+			metin2::log::debug("Monarch election: candidacy of pid {:d} ({}) rejected", pid, data);
 
 		peer->encode_header(HEADER_DG_CANDIDACY, handle, sizeof(int) + 32);
 		peer->encode(nullptr, sizeof(int));
@@ -2933,7 +2930,7 @@ void client_manager::candidacy(peer *  peer, uint32_t handle, const char* data)
 	else
 	{
 		if (metin2::config::test_server())
-			metin2::log::info( "[MONARCH_CANDIDACY] Success {:d} {}", pid, data);
+			metin2::log::debug("Monarch election: pid {:d} ({}) is now a candidate", pid, data);
 
 		for (auto it = peer_list_.begin(); it != peer_list_.end(); ++it)
 		{
@@ -2967,7 +2964,7 @@ void client_manager::add_monarch_money(peer * peer, uint32_t handle, const char 
 	data += sizeof(int);
 
 	if (metin2::config::test_server())
-		metin2::log::info( "[MONARCH] Add money Empire({:d}) Money({:d})", Empire, Money);
+		metin2::log::debug("Monarch: add {1:d} money to empire {0:d}", Empire, Money);
 
 	monarch::instance().add_money(Empire, Money);
 
@@ -3002,7 +2999,7 @@ void client_manager::dec_monarch_money(peer * peer, uint32_t handle, const char 
 	data += sizeof(int);
 
 	if (metin2::config::test_server())
-		metin2::log::info( "[MONARCH] Dec money Empire({:d}) Money({:d})", Empire, Money);
+		metin2::log::debug("Monarch: remove {1:d} money from empire {0:d}", Empire, Money);
 
 	monarch::instance().dec_money(Empire, Money);
 
@@ -3040,7 +3037,7 @@ void client_manager::take_monarch_money(peer * peer, uint32_t handle, const char
 	data += sizeof(int);
 
 	if (metin2::config::test_server())
-		metin2::log::info( "[MONARCH] Take money Empire({:d}) Money({:d})", Empire, Money);
+		metin2::log::debug("Monarch: take {1:d} money from empire {0:d}", Empire, Money);
 
 	if (monarch::instance().take_money(Empire, pid, Money) == true)
 	{
@@ -3067,7 +3064,7 @@ void client_manager::rm_candidacy(peer * peer, uint32_t handle, const char * dat
 	char szName[32];
 
 	strlcpy(szName, data, sizeof(szName));
-	metin2::log::info( "[MONARCH_GM] Remove candidacy name({})", szName); 
+	metin2::log::info("Monarch: gm removed candidacy of {}", szName); 
 
 	int iRet = monarch::instance().del_candidacy(szName) ? 1 : 0;
 
@@ -3110,7 +3107,7 @@ void client_manager::set_monarch(peer * peer, uint32_t handle, const char * data
 	strlcpy(szName, data, sizeof(szName));
 
 	if (metin2::config::test_server())
-		metin2::log::info( "[MONARCH_GM] Set Monarch name({})", szName); 
+		metin2::log::debug("Monarch: gm set {} as monarch", szName); 
 
 	int iRet = monarch::instance().set_monarch(szName) ? 1 : 0;
 
@@ -3153,7 +3150,7 @@ void client_manager::rm_monarch(peer * peer, uint32_t handle, const char * data)
 	strlcpy(szName, data, sizeof(szName));
 
 	if (metin2::config::test_server())
-		metin2::log::info( "[MONARCH_GM] Remove Monarch name({})", szName); 
+		metin2::log::debug("Monarch: gm removed monarch {}", szName); 
 
 	int iRet = monarch::instance().del_monarch(szName) ? 1 : 0;
 
@@ -3262,12 +3259,12 @@ void client_manager::delete_award_id(packet_delete_award_id *data)
 	{
 		std::set<db::items::item_award *> & kSet = item_award_manager::instance().mapk_set_award_by_login()[it->second->login];
 		if(kSet.erase(it->second))
-			metin2::log::info("erase ItemAward id: {:d} from cache", data->id);
+			metin2::log::debug("Item award: removed award {:d} from cache", data->id);
 		item_award_manager::instance().map_award().erase(data->id);
 	}
 	else
 	{
-		metin2::log::info("DELETE_AWARDID : could not find the id: {:d}", data->id);
+		metin2::log::warn("Item award: cannot delete award {:d}, not found", data->id);
 	}
 
 }
@@ -3314,11 +3311,11 @@ void client_manager::charge_cash(const request_charge_cash* packet)
 		snprintf(szQuery, sizeof(szQuery), "update account set `mileage` = `mileage` + %d where id = %d limit 1", packet->amount, packet->aid);
 	else
 	{
-		metin2::log::error("Invalid request charge type (type : {:d}, amount : {:d}, aid : {:d})", packet->charge_type, packet->amount, packet->aid);
+		metin2::log::warn("Invalid charge type {:d} (amount {:d}, account {:d})", packet->charge_type, packet->amount, packet->aid);
 		return;
 	}
 
-	metin2::log::error("Request Charge (type : {:d}, amount : {:d}, aid : {:d})", packet->charge_type, packet->amount, packet->aid);
+	metin2::log::info("Charging account: type {:d}, amount {:d}, account {:d}", packet->charge_type, packet->amount, packet->aid);
 
 	db_manager::instance().async_query(szQuery, SQL_ACCOUNT);
 }

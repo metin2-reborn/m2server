@@ -33,7 +33,7 @@ peer::peer(std::shared_ptr<net::connection> connection) : connection_(std::move(
 	static uint32_t current_handle = 0;
 	handle_ = ++current_handle;
 
-	metin2::log::info( "Connection accepted. (host: {} handle: {:d})", host(), handle_);
+	metin2::log::info("Peer {} connected (handle {:d})", host(), handle_);
 	connection_->start(*this);
 }
 
@@ -41,12 +41,12 @@ peer::~peer()
 {
 	connection_->close();
 
-	metin2::log::info( "Connection closed. (host: {})", host());
+	metin2::log::info("Peer {} disconnected", host());
 }
 
 void peer::return_item_id_range()
 {
-	metin2::log::info( "ItemIDRange: returned. {:d} ~ {:d}", item_range_.min, item_range_.max);
+	metin2::log::info("Item id range: {:d} to {:d} returned to the pool", item_range_.min, item_range_.max);
 
 	item_id_range_manager::instance().update_range(item_range_.min, item_range_.max);
 
@@ -67,7 +67,7 @@ auto peer::on_receive(std::span<std::uint8_t> input, std::size_t ) -> std::size_
 void peer::on_close(const std::error_code & error)
 {
 	if (error)
-		metin2::log::info( "Connection lost. (host: {}: {})", host(), error.message().c_str());
+		metin2::log::warn("Lost connection to peer {}: {}", host(), error.message().c_str());
 
 	state_ = STATE_CLOSE;
 }
@@ -75,7 +75,7 @@ void peer::on_close(const std::error_code & error)
 void peer::encode(const void * data, uint32_t size)
 {
 	if (!connection_->send(data, size))
-		metin2::log::error("cannot send {:d} bytes to {}", size, host());
+		metin2::log::error("Cannot send {:d} bytes to {}", size, host());
 }
 
 auto peer::handle() -> uint32_t
@@ -107,7 +107,7 @@ auto peer::peek_packet(int & bytes_proceed, uint8_t & header, uint32_t & handle,
 
 	if (bytes_proceed + length + 9 > (uint32_t) iLength)
 	{
-		metin2::log::info( "PeekPacket: not enough buffer size: len {:d}, recv {:d}", 
+		metin2::log::debug("Incomplete packet: need {:d} bytes, have {:d}", 
 				9+length, iLength-bytes_proceed);
 		return false;
 	}
@@ -121,7 +121,7 @@ void peer::encode_header(uint8_t header, uint32_t handle_value, uint32_t size_va
 {
 	header_kind h;
 
-	metin2::log::debug( "EncodeHeader {:d} handle {:d} size {:d}", header, handle_value, size_value);
+	metin2::log::debug("Sending packet header {:d}, handle {:d}, size {:d}", header, handle_value, size_value);
 
 	h.header = header;
 	h.handle = handle_value;
@@ -158,7 +158,7 @@ void peer::send_spare_item_id_range()
 
 		if (set_spare_item_id_range(item_id_range_manager::instance().range()) == false)
 		{
-			metin2::log::info( "ItemIDRange: spare range set error");
+			metin2::log::error("Item id range: cannot assign spare range to peer {}", public_ip());
 			item_spare_range_.min = item_spare_range_.max = item_spare_range_.usable_item_id_min = 0;
 		}
 
@@ -172,7 +172,7 @@ auto peer::set_item_id_range(item_id_range_table item_range) -> bool
 	if (item_range.min == 0 || item_range.max == 0 || item_range.usable_item_id_min == 0) return false;
 
 	item_range_ = item_range;
-	metin2::log::info( "ItemIDRange: SET {} {:d} ~ {:d} start: {:d}", public_ip(), item_range_.min, item_range_.max, item_range_.usable_item_id_min);
+	metin2::log::info("Item id range: assigned {1:d} to {2:d} to peer {0} (next free id {3:d})", public_ip(), item_range_.min, item_range_.max, item_range_.usable_item_id_min);
 
 	return true;
 }
@@ -182,7 +182,7 @@ auto peer::set_spare_item_id_range(item_id_range_table item_range) -> bool
 	if (item_range.min == 0 || item_range.max == 0 || item_range.usable_item_id_min == 0) return false;
 
 	item_spare_range_ = item_range;
-	metin2::log::info( "ItemIDRange: SPARE SET {} {:d} ~ {:d} start: {:d}", public_ip(), item_spare_range_.min, item_spare_range_.max,
+	metin2::log::info("Item id range: assigned spare {1:d} to {2:d} to peer {0} (next free id {3:d})", public_ip(), item_spare_range_.min, item_spare_range_.max,
 			item_spare_range_.usable_item_id_min);
 
 	return true;
@@ -192,14 +192,14 @@ auto peer::check_item_id_range_collision(item_id_range_table item_range) -> bool
 {
 	if (item_range_.min < item_range.max && item_range_.max > item_range.min)
 	{
-		metin2::log::error("ItemIDRange: Collision!! this {:d} ~ {:d} check {:d} ~ {:d}",
+		metin2::log::error("Item id range: peer range {:d} to {:d} collides with {:d} to {:d}",
 				item_range_.min, item_range_.max, item_range.min, item_range.max);
 		return false;
 	}
 
 	if (item_spare_range_.min < item_range.max && item_spare_range_.max > item_range.min)
 	{
-		metin2::log::error("ItemIDRange: Collision with spare range this {:d} ~ {:d} check {:d} ~ {:d}",
+		metin2::log::error("Item id range: peer spare range {:d} to {:d} collides with {:d} to {:d}",
 				item_spare_range_.min, item_spare_range_.max, item_range.min, item_range.max);
 		return false;
 	}

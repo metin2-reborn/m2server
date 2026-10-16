@@ -39,9 +39,9 @@ int logout_seconds = 60*10;
 void emergency_sig(int sig)
 {
 	if (sig == SIGSEGV)
-		metin2::log::info( "SIGNAL: SIGSEGV");
+		metin2::log::error("Received SIGSEGV");
 	else if (sig == SIGUSR1)
-		metin2::log::info( "SIGNAL: SIGUSR1");
+		metin2::log::info("Received SIGUSR1");
 
 	if (sig == SIGSEGV)
 		abort();
@@ -72,7 +72,7 @@ auto run() -> int
 	GuildManager.initialize();
 	MarriageManager.initialize();
 	ItemIDRangeManager.build();
-	metin2::log::info( "Metin2DBCacheServer Start");
+	metin2::log::info("Db cache server starting");
 
 	if (!mark_server_ready()) return 1;
 	client_manager::instance().main_loop();
@@ -93,7 +93,7 @@ auto run() -> int
 			break;
 
 		usleep(1000);
-		metin2::log::info( "WAITING_QUERY_COUNT {:d}", iCount);
+		metin2::log::info("Waiting for {:d} pending queries to finish", iCount);
 	}
 
 	return 0;
@@ -107,15 +107,15 @@ static auto connect_database(int slot, const std::string & name) -> bool
 	{
 		if (db_manager::instance().connect(slot, database.host.c_str(), database.port, name.c_str(), database.user.c_str(), database.password.c_str()))
 		{
-			metin2::log::info("connected to database {}", name);
+			metin2::log::info("Connected to database {}", name);
 			return true;
 		}
 
-		metin2::log::warn("cannot connect to database {} (attempt {:d}), retrying in 5 seconds", name, attempt);
+		metin2::log::warn("Cannot connect to database {} (attempt {:d}), retrying in 5 seconds", name, attempt);
 		sleep(5);
 	}
 
-	metin2::log::error("cannot connect to database {}", name);
+	metin2::log::error("Cannot connect to database {}", name);
 	return false;
 }
 
@@ -138,15 +138,15 @@ auto start() -> int
 		return false;
 	set_player_db_name(database.player.c_str());
 
-	metin2::log::info( "ClientManager initialization.. ");
+	metin2::log::info("Initialising client manager");
 
 	if (!client_manager::instance().initialize())
 	{
-		metin2::log::info( "   failed"); 
+		metin2::log::error("Client manager initialisation failed"); 
 		return false;
 	}
 
-	metin2::log::info( "   OK");
+	metin2::log::info("Client manager initialised");
 
 	signal(SIGUSR1, emergency_sig);
 	signal(SIGSEGV, emergency_sig);

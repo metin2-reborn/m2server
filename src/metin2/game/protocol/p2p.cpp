@@ -73,21 +73,21 @@ void p2_p_manager::flush_output()
 
 void p2_p_manager::register_acceptor(desc * d)
 {
-	metin2::log::info( "P2P Acceptor opened (host {})", d->host_name());
+	metin2::log::info( "Peer acceptor opened (host {})", d->host_name());
 	set_pk_peers_.insert(d);
 	boot(d);
 }
 
 void p2_p_manager::unregister_acceptor(desc * d)
 {
-	metin2::log::info( "P2P Acceptor closed (host {})", d->host_name());
+	metin2::log::info( "Peer acceptor closed (host {})", d->host_name());
 	erase_user_by_desc(d);
 	set_pk_peers_.erase(d);
 }
 
 void p2_p_manager::register_connector(desc * d)
 {
-	metin2::log::info( "P2P Connector opened (host {})", d->host_name());
+	metin2::log::info( "Peer connector opened (host {})", d->host_name());
 	set_pk_peers_.insert(d);
 	boot(d);
 
@@ -104,7 +104,7 @@ void p2_p_manager::unregister_connector(desc * d)
 
 	if (it != set_pk_peers_.end())
 	{
-		metin2::log::info( "P2P Connector closed (host {})", d->host_name());
+		metin2::log::info( "Peer connector closed (host {})", d->host_name());
 		erase_user_by_desc(d);
 		set_pk_peers_.erase(it);
 	}
@@ -164,7 +164,7 @@ void p2_p_manager::login(desc * d, const packet_gg_login * p)
 			}
 			else
 			{
-				metin2::log::error("LOGIN_EMPIRE_ERROR: {:d} >= MAX({:d})", pkCCI->empire, EMPIRE_MAX_NUM);
+				metin2::log::error("Peer login with invalid empire {:d} (max {:d})", pkCCI->empire, EMPIRE_MAX_NUM);
 			}
 		}
 
@@ -175,7 +175,7 @@ void p2_p_manager::login(desc * d, const packet_gg_login * p)
 	pkCCI->map_index = p->map_index;
 	pkCCI->desc = d;
 	pkCCI->channel = p->channel;
-	metin2::log::info( "P2P: Login {}", pkCCI->name);
+	metin2::log::debug( "Peer login: player {}", pkCCI->name);
 
 	guild_manager::instance().p2_p_login_member(pkCCI->pid);
 	party_manager::instance().p2_p_login(pkCCI->pid, pkCCI->name);
@@ -195,12 +195,12 @@ void p2_p_manager::logout(cci * cci_value)
 			--empire_user_count_[cci_value->empire];
 			if (empire_user_count_[cci_value->empire] < 0)
 			{
-				metin2::log::error("m_aiEmpireUserCount[{:d}] < 0", cci_value->empire);
+				metin2::log::error("User count of empire {:d} dropped below zero", cci_value->empire);
 			}
 		}
 		else
 		{
-			metin2::log::error("LOGOUT_EMPIRE_ERROR: {:d} >= MAX({:d})", cci_value->empire, EMPIRE_MAX_NUM);
+			metin2::log::error("Peer logout with invalid empire {:d} (max {:d})", cci_value->empire, EMPIRE_MAX_NUM);
 		}
 	}
 
@@ -222,7 +222,7 @@ void p2_p_manager::logout(const char * name)
 	if (!pkCCI)
 		return;
 
-	metin2::log::info( "P2P: Logout {}", name);
+	metin2::log::debug( "Peer logout: player {}", name);
 	logout(pkCCI);
 }
 

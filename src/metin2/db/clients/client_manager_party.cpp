@@ -16,11 +16,11 @@ void client_manager::query_party_create(peer* peer, packet_party_create* p)
 	{
 		pm.insert(make_pair(p->leader_pid, party_member()));
 		forward_packet(HEADER_DG_PARTY_CREATE, p, sizeof(packet_party_create), peer->channel(), peer);
-		metin2::log::info( "PARTY Create [{:d}]", p->leader_pid);
+		metin2::log::info("Party: created with leader pid {:d}", p->leader_pid);
 	}
 	else
 	{
-		metin2::log::error("PARTY Create - Already exists [{:d}]", p->leader_pid);
+		metin2::log::warn("Party: cannot create, party of leader pid {:d} already exists", p->leader_pid);
 	}
 }
 
@@ -31,13 +31,13 @@ void client_manager::query_party_delete(peer* peer, packet_party_delete* p)
 
 	if (it == pm.end())
 	{
-		metin2::log::error("PARTY Delete - Non exists [{:d}]", p->leader_pid);
+		metin2::log::warn("Party: cannot delete, no party with leader pid {:d}", p->leader_pid);
 		return;
 	}
 
 	pm.erase(it);
 	forward_packet(HEADER_DG_PARTY_DELETE, p, sizeof(packet_party_delete), peer->channel(), peer);
-	metin2::log::info( "PARTY Delete [{:d}]", p->leader_pid);
+	metin2::log::info("Party: deleted party of leader pid {:d}", p->leader_pid);
 }
 
 void client_manager::query_party_add(peer* peer, packet_party_add* p)
@@ -47,7 +47,7 @@ void client_manager::query_party_add(peer* peer, packet_party_add* p)
 
 	if (it == pm.end())
 	{
-		metin2::log::error("PARTY Add - Non exists [{:d}]", p->leader_pid);
+		metin2::log::warn("Party: cannot add member, no party with leader pid {:d}", p->leader_pid);
 		return;
 	}
 
@@ -55,10 +55,10 @@ void client_manager::query_party_add(peer* peer, packet_party_add* p)
 	{
 		it->second.insert(std::make_pair(p->pid, party_info()));
 		forward_packet(HEADER_DG_PARTY_ADD, p, sizeof(packet_party_add), peer->channel(), peer);
-		metin2::log::info( "PARTY Add [{:d}] to [{:d}]", p->pid, p->leader_pid);
+		metin2::log::info("Party: added pid {:d} to party of leader pid {:d}", p->pid, p->leader_pid);
 	}
 	else
-		metin2::log::error("PARTY Add - Already [{:d}] in party [{:d}]", p->pid, p->leader_pid);
+		metin2::log::warn("Party: pid {:d} is already in party of leader pid {:d}", p->pid, p->leader_pid);
 }
 
 void client_manager::query_party_remove(peer* peer, packet_party_remove* p)
@@ -68,7 +68,7 @@ void client_manager::query_party_remove(peer* peer, packet_party_remove* p)
 
 	if (it == pm.end())
 	{
-		metin2::log::error("PARTY Remove - Non exists [{:d}] cannot remove [{:d}]",p->leader_pid, p->pid);
+		metin2::log::warn("Party: cannot remove member, no party with leader pid {:d} (member pid {:d})",p->leader_pid, p->pid);
 		return;
 	}
 
@@ -78,10 +78,10 @@ void client_manager::query_party_remove(peer* peer, packet_party_remove* p)
 	{
 		it->second.erase(pit);
 		forward_packet(HEADER_DG_PARTY_REMOVE, p, sizeof(packet_party_remove), peer->channel(), peer);
-		metin2::log::info( "PARTY Remove [{:d}] to [{:d}]", p->pid, p->leader_pid);
+		metin2::log::info("Party: removed pid {:d} from party of leader pid {:d}", p->pid, p->leader_pid);
 	}
 	else
-		metin2::log::error("PARTY Remove - Cannot find [{:d}] in party [{:d}]", p->pid, p->leader_pid);
+		metin2::log::warn("Party: cannot remove pid {:d}, not in party of leader pid {:d}", p->pid, p->leader_pid);
 }
 
 void client_manager::query_party_state_change(peer* peer, packet_party_state_change* p)
@@ -91,7 +91,7 @@ void client_manager::query_party_state_change(peer* peer, packet_party_state_cha
 
 	if (it == pm.end())
 	{
-		metin2::log::error("PARTY StateChange - Non exists [{:d}] cannot state change [{:d}]",p->leader_pid, p->pid);
+		metin2::log::warn("Party: cannot change role, no party with leader pid {:d} (member pid {:d})",p->leader_pid, p->pid);
 		return;
 	}
 
@@ -99,7 +99,7 @@ void client_manager::query_party_state_change(peer* peer, packet_party_state_cha
 
 	if (pit == it->second.end())
 	{
-		metin2::log::error("PARTY StateChange - Cannot find [{:d}] in party [{:d}]", p->pid, p->leader_pid);
+		metin2::log::warn("Party: cannot change role of pid {:d}, not in party of leader pid {:d}", p->pid, p->leader_pid);
 		return;
 	}
 
@@ -109,7 +109,7 @@ void client_manager::query_party_state_change(peer* peer, packet_party_state_cha
 		pit->second.role = 0;
 
 	forward_packet(HEADER_DG_PARTY_STATE_CHANGE, p, sizeof(packet_party_state_change), peer->channel(), peer);
-	metin2::log::info( "PARTY StateChange [{:d}] at [{:d}] from {:d} {:d}",p->pid, p->leader_pid, p->role, p->flag);
+	metin2::log::info("Party: pid {:d} in party of leader pid {:d} role {:d} flag {:d}",p->pid, p->leader_pid, p->role, p->flag);
 }
 
 void client_manager::query_party_set_member_level(peer* peer, packet_party_set_member_level* p)
@@ -119,7 +119,7 @@ void client_manager::query_party_set_member_level(peer* peer, packet_party_set_m
 
 	if (it == pm.end())
 	{
-		metin2::log::error("PARTY SetMemberLevel - Non exists [{:d}] cannot level change [{:d}]",p->leader_pid, p->pid);
+		metin2::log::warn("Party: cannot set level, no party with leader pid {:d} (member pid {:d})",p->leader_pid, p->pid);
 		return;
 	}
 
@@ -127,13 +127,13 @@ void client_manager::query_party_set_member_level(peer* peer, packet_party_set_m
 
 	if (pit == it->second.end())
 	{
-		metin2::log::error("PARTY SetMemberLevel - Cannot find [{:d}] in party [{:d}]", p->pid, p->leader_pid);
+		metin2::log::warn("Party: cannot set level of pid {:d}, not in party of leader pid {:d}", p->pid, p->leader_pid);
 		return;
 	}
 
 	pit->second.level = p->level;
 
 	forward_packet(HEADER_DG_PARTY_SET_MEMBER_LEVEL, p, sizeof(packet_party_set_member_level), peer->channel());
-	metin2::log::info( "PARTY SetMemberLevel pid [{:d}] level {:d}",p->pid, p->level);
+	metin2::log::debug("Party: member pid {:d} is now level {:d}",p->pid, p->level);
 }
 }

@@ -136,7 +136,7 @@ namespace mining
 
 		if (iFractionCount == 0)
 		{
-			metin2::log::error("Wrong ore fraction count");
+			metin2::log::error("Ore has a fraction count of zero");
 			return;
 		}
 
@@ -144,7 +144,7 @@ namespace mining
 
 		if (!item)
 		{
-			metin2::log::error("cannot create item vnum {:d}", dwRawOreVnum);
+			metin2::log::error("Cannot create raw ore item (vnum {:d})", dwRawOreVnum);
 			return;
 		}
 
@@ -242,7 +242,7 @@ namespace mining
 
 		if (!pick_check(*item))
 		{
-			metin2::log::error("REFINE_PICK_HACK pid({:d}) item({}:{:d}) type({:d})", ch->player_id(), item->name(), item->id(), item->type());
+			metin2::log::warn("Possible hack: pid {:d} tried to refine invalid pick {} (id {:d}, type {:d})", ch->player_id(), item->name(), item->id(), item->type());
 			rkLogMgr.refine_log(ch->player_id(), item->name(), item->id(), -1, 1, "PICK_HACK");
 			return 2;
 		}
@@ -348,7 +348,7 @@ namespace mining
 
 		if ( info == nullptr )
 		{
-			metin2::log::error( "mining_event_info> <Factor> Null pointer" );
+			metin2::log::error( "Mining event has no event info" );
 			return 0;
 		}
 
@@ -407,13 +407,13 @@ namespace mining
 
 		if (ore->owner() != ch)
 		{
-			metin2::log::error("wrong owner");
+			metin2::log::warn("Player {} tried to refine ore they do not own", ch->name());
 			return false;
 		}
 
 		if (ore->count() < ORE_COUNT_FOR_REFINE)
 		{
-			metin2::log::error("not enough count");
+			metin2::log::warn("Player {} tried to refine without enough ore", ch->name());
 			return false;
 		}
 

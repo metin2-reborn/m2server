@@ -27,7 +27,7 @@ void set_global_time(time_t t)
 
 	const std::string time_str_buf(time_str(get_global_time()));
 
-	metin2::log::info( "GLOBAL_TIME: {} time_gap {:d}", time_str_buf.c_str(), global_time_gap);
+	metin2::log::info( "Global time set to {} (offset {:d} seconds)", time_str_buf.c_str(), global_time_gap);
 }
 
 auto str_lower(const char * src, char * dest, size_t dest_size) -> size_t
@@ -70,7 +70,7 @@ auto one_argument(const char *argument, char *first_arg, size_t first_size) -> c
 
 	if (!argument || 0 == first_size)
 	{
-		metin2::log::error("one_argument received a NULL pointer!");               
+		metin2::log::error("Argument parser called without input");               
 		*first_arg = '\0';
 		return nullptr;    
 	} 

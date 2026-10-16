@@ -194,7 +194,7 @@ namespace quest
 	{
 		if (!lua_isnumber(lua, 1))
 		{
-			metin2::log::error("invalid vid");
+			metin2::log::error("Invalid vid argument");
 			lua_pushboolean(lua, 0);
 			return 1;
 		}

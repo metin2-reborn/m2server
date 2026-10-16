@@ -50,7 +50,7 @@ EVENTFUNC(war_begin_event)
 
 	if ( info == nullptr )
 	{
-		metin2::log::error( "war_begin_event> <Factor> Null pointer" );
+		metin2::log::error( "Guild war begin event has no event info" );
 		return 0;
 	}
 
@@ -65,7 +65,7 @@ EVENTFUNC(war_end_event)
 
 	if ( info == nullptr )
 	{
-		metin2::log::error( "war_end_event> <Factor> Null pointer" );
+		metin2::log::error( "Guild war end event has no event info" );
 		return 0;
 	}
 
@@ -91,7 +91,7 @@ EVENTFUNC(war_timeout_event)
 
 	if ( info == nullptr )
 	{
-		metin2::log::error( "war_timeout_event> <Factor> Null pointer" );
+		metin2::log::error( "Guild war timeout event has no event info" );
 		return 0;
 	}
 
@@ -156,7 +156,7 @@ war_map::~war_map()
 	event_cancel(&timeout_event_);
 	event_cancel(&reset_flag_event_);
 
-	metin2::log::info( "WarMap::~WarMap : map index {:d}", map_index());
+	metin2::log::info( "Guild war: closing war map {:d}", map_index());
 
 	auto it = set_pk_chr_.begin();
 
@@ -166,7 +166,7 @@ war_map::~war_map()
 
 		if (ch->get_desc())
 		{
-			metin2::log::info( "WarMap::~WarMap : disconnecting {}", ch->name());
+			metin2::log::info( "Guild war: disconnecting player {} from closing war map", ch->name());
 			desc_manager::instance().destroy_desc(ch->get_desc());
 		}
 	}
@@ -356,7 +356,6 @@ void war_map::inc_member(character * ch)
 	if (!ch->is_pc())
 		return;
 
-	metin2::log::info( "WarMap::IncMember");
 	uint32_t gid = 0;
 
 	if (ch->get_guild())
@@ -385,14 +384,14 @@ void war_map::inc_member(character * ch)
 
 		event_cancel(&timeout_event_);
 
-		metin2::log::info( "WarMap +m {:d}(cur:{:d}, acc:{:d}) vs {:d}(cur:{:d}, acc:{:d})",
+		metin2::log::debug( "Guild war: member joined, guild {:d} ({:d} present, {:d} total) vs guild {:d} ({:d} present, {:d} total)",
 				team_data_[0].id, team_data_[0].cur_jointer_count(), team_data_[0].accumulated_joiner_count(),
 				team_data_[1].id, team_data_[1].cur_jointer_count(), team_data_[1].accumulated_joiner_count());
 	}
 	else
 	{
 		++observer_count_; 
-		metin2::log::info( "WarMap +o {:d}", observer_count_);
+		metin2::log::debug( "Guild war: observer joined, {:d} observers", observer_count_);
 		ch->set_observer_mode(true);
 		ch->chat_packet(CHAT_TYPE_INFO, lc_text("관전 모드로 길드전에 참가하셨습니다."));
 		ch->chat_packet(CHAT_TYPE_INFO, lc_text("자신을 선택하시면 밖으로 나갈 수 있는 <관람 종료> 버튼이 나옵니다."));
@@ -414,7 +413,6 @@ void war_map::dec_member(character * ch)
 	if (!ch->is_pc())
 		return;
 
-	metin2::log::info( "WarMap::DecMember");
 	uint32_t gid = 0;
 
 	if (ch->get_guild())
@@ -442,7 +440,7 @@ void war_map::dec_member(character * ch)
 			}
 		}
 
-		metin2::log::info( "WarMap -m {:d}(cur:{:d}, acc:{:d}) vs {:d}(cur:{:d}, acc:{:d})",
+		metin2::log::debug( "Guild war: member left, guild {:d} ({:d} present, {:d} total) vs guild {:d} ({:d} present, {:d} total)",
 				team_data_[0].id, team_data_[0].cur_jointer_count(), team_data_[0].accumulated_joiner_count(),
 				team_data_[1].id, team_data_[1].cur_jointer_count(), team_data_[1].accumulated_joiner_count());
 
@@ -453,7 +451,7 @@ void war_map::dec_member(character * ch)
 	{
 		--observer_count_;
 
-		metin2::log::info( "WarMap -o {:d}", observer_count_);
+		metin2::log::debug( "Guild war: observer left, {:d} observers", observer_count_);
 		ch->set_observer_mode(false);
 	}
 
@@ -495,7 +493,7 @@ void war_map::check_war_end()
 		notice(lc_text("길드전에 참가한 상대방 길드원이 아무도 없습니다."));
 		notice(lc_text("1분 이내에 아무도 접속하지 않으면 길드전이 자동 종료됩니다."));
 
-		metin2::log::info( "CheckWarEnd: Timeout begin {:d} vs {:d}", team_data_[0].id, team_data_[1].id);
+		metin2::log::info( "Guild war: guild {:d} vs {:d} has an empty side, ending in one minute unless someone joins", team_data_[0].id, team_data_[1].id);
 
 		war_map_event_info* info = alloc_event_info<war_map_event_info>();
 		info->war_map = this;
@@ -563,7 +561,7 @@ void war_map::timeout()
 				dwLoser = team_data_[0].id;
 			}
 
-			metin2::log::error("WarMap: member count is not zero, guild1 {:d} {:d} guild2 {:d} {:d}, winner {:d}",
+			metin2::log::info("Guild war: timed out with both sides present, guild {:d} ({:d} members) vs guild {:d} ({:d} members), winner by score {:d}",
 					team_data_[0].id, team_data_[0].member_count,
 					team_data_[1].id, team_data_[1].member_count,
 					dwWinner);
@@ -577,7 +575,7 @@ void war_map::timeout()
 		}
 	}
 
-	metin2::log::info( "WarMap: Timeout {:d} {:d} winner {:d} loser {:d} reward {:d} map {:d}",
+	metin2::log::info( "Guild war: guild {:d} vs {:d} timed out, winner {:d}, loser {:d}, reward {:d} gold, map {:d}",
 			team_data_[0].id, team_data_[1].id, dwWinner, dwLoser, iRewardGold, map_info_.map_index);
 
 	if (dwWinner)
@@ -733,7 +731,7 @@ auto war_map::check_score() -> bool
 	else if (dwWinner == team_data_[1].id)
 		iRewardGold = reward_gold(1);
 
-	metin2::log::info( "WarMap::CheckScore end score {:d} guild1 {:d} score guild2 {:d} {:d} score {:d} winner {:d} reward {:d}", 
+	metin2::log::info( "Guild war: end score {:d} reached, guild {:d} score {:d} vs guild {:d} score {:d}, winner {:d}, reward {:d} gold", 
 			iEndScore,
 			team_data_[0].id,
 			team_data_[0].score,
@@ -748,7 +746,7 @@ auto war_map::check_score() -> bool
 
 auto war_map::set_ended() -> bool
 {
-	metin2::log::info( "WarMap::SetEnded {:d}", map_info_.map_index);
+	metin2::log::info( "Guild war: war on map {:d} ended", map_info_.map_index);
 
 	if (end_event_)
 		return false;
@@ -804,7 +802,7 @@ void war_map::on_kill(character * killer, character * ch)
 
 	uint8_t idx;
 
-	metin2::log::info( "WarMap::OnKill {:d} {:d}", dwKillerGuild, dwDeadGuild);
+	metin2::log::debug( "Guild war: kill, killer guild {:d}, dead guild {:d}", dwKillerGuild, dwDeadGuild);
 
 	if (!team_index(dwKillerGuild, idx))
 		return;
@@ -833,7 +831,7 @@ void war_map::on_kill(character * killer, character * ch)
 			break;
 
 		default:
-			metin2::log::error("unknown war map type {:d} index {:d}", map_info_.type, map_info_.map_index);
+			metin2::log::error("Unknown war map type {:d} on map {:d}", map_info_.type, map_info_.map_index);
 			break;
 	}
 }
@@ -857,7 +855,7 @@ void war_map::add_flag_base(uint8_t idx, uint32_t x, uint32_t y)
 	}
 
 	r.chr_flag_base = character_manager::instance().spawn_mob(warmap::WAR_FLAG_BASE_VNUM, map_info_.map_index, x, y, 0);
-	metin2::log::info( "WarMap::AddFlagBase {:d} {} id {:d}", idx, static_cast<const void *>(r.chr_flag_base), r.id);
+	metin2::log::debug( "Guild war: spawned flag base for team {:d} ({}), guild {:d}", idx, static_cast<const void *>(r.chr_flag_base), r.id);
 
 	r.chr_flag_base->set_point(POINT_STAT, r.id);
 	r.chr_flag_base->set_war_map(this);
@@ -882,7 +880,7 @@ void war_map::add_flag(uint8_t idx, uint32_t x, uint32_t y)
 	}
 
 	r.chr_flag = character_manager::instance().spawn_mob(idx == 0 ? warmap::WAR_FLAG_VNUM0 : warmap::WAR_FLAG_VNUM1, map_info_.map_index, x, y, 0);
-	metin2::log::info( "WarMap::AddFlag {:d} {} id {:d}", idx, static_cast<const void *>(r.chr_flag), r.id);
+	metin2::log::debug( "Guild war: spawned flag for team {:d} ({}), guild {:d}", idx, static_cast<const void *>(r.chr_flag), r.id);
 
 	r.chr_flag->set_point(POINT_STAT, r.id);
 	r.chr_flag->set_war_map(this);
@@ -897,7 +895,7 @@ void war_map::remove_flag(uint8_t idx)
 	if (!r.chr_flag)
 		return;
 
-	metin2::log::info( "WarMap::RemoveFlag {:d} {}", idx, static_cast<const void *>(r.chr_flag));
+	metin2::log::debug( "Guild war: removing flag of team {:d} ({})", idx, static_cast<const void *>(r.chr_flag));
 
 	r.chr_flag->dead(nullptr, true);
 	r.chr_flag = nullptr;
@@ -926,7 +924,7 @@ EVENTFUNC(war_reset_flag_event)
 
 	if ( info == nullptr )
 	{
-		metin2::log::error( "war_reset_flag_event> <Factor> Null pointer" );
+		metin2::log::error( "Guild war flag reset event has no event info" );
 		return 0;
 	}
 
@@ -1023,13 +1021,13 @@ auto war_map_manager::start_position(int32_t map_index, uint8_t idx, pixel_posit
 
 	if (!pi)
 	{
-		metin2::log::info( "GetStartPosition FAILED [{:d}] WarMapInfoSize({:d})", map_index, map_k_war_map_info_.size());
+		metin2::log::warn( "No war map info for map {:d}, cannot get start position ({:d} war maps registered)", map_index, map_k_war_map_info_.size());
 
 		decltype(map_k_war_map_info_.begin()) it;
 		for (it	= map_k_war_map_info_.begin(); it != map_k_war_map_info_.end(); ++it)
 		{
 			pixel_position& cur=it->second->pos_start[idx];
-			metin2::log::info( "WarMap[{:d}]=Pos({:d}, {:d})", it->first, cur.x, cur.y);
+			metin2::log::warn( "War map {:d} start position ({:d}, {:d})", it->first, cur.x, cur.y);
 		}
 		return false;
 	}
@@ -1043,7 +1041,7 @@ auto war_map_manager::create_war_map(const guild_war_info& guild_war_info_value,
 	war_map_info * pkInfo = get_war_map_info(guild_war_info_value.map_index);
 	if (!pkInfo)
 	{
-		metin2::log::error("GuildWar.CreateWarMap.NOT_FOUND_MAPINFO[{:d}]", guild_war_info_value.map_index);
+		metin2::log::error("No war map info for map {:d}, cannot create guild war map", guild_war_info_value.map_index);
 		return 0;
 	}
 
@@ -1074,7 +1072,7 @@ void war_map_manager::destroy_war_map(war_map* map)
 {
 	int32_t mapIdx = map->map_index();
 
-	metin2::log::info( "WarMap::DestroyWarMap : {:d}", mapIdx);
+	metin2::log::info( "Guild war: destroying war map {:d}", mapIdx);
 
 	war_map_.erase(map->map_index());
 	delete map;

@@ -59,7 +59,7 @@ EVENTFUNC(poison_event)
 	
 	if ( info == nullptr )
 	{
-		metin2::log::error( "poison_event> <Factor> Null pointer" );
+		metin2::log::error("Poison event fired without event info");
 		return 0;
 	}
 
@@ -112,7 +112,7 @@ EVENTFUNC(fire_event)
 
 	if ( info == nullptr )
 	{
-		metin2::log::error( "fire_event> <Factor> Null pointer" );
+		metin2::log::error("Fire event fired without event info");
 		return 0;
 	}
 

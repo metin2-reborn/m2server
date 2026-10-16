@@ -63,7 +63,7 @@ auto safebox::add(uint32_t pos, item * item_value) -> bool
 {
 	if (!is_valid_position(pos))
 	{
-		metin2::log::error("SAFEBOX: item on wrong position at {:d} (size of grid = {:d})", pos, grid_->size());
+		metin2::log::error("Safebox cell {:d} is out of range (grid size {:d})", pos, grid_->size());
 		return false;
 	}
 
@@ -76,7 +76,7 @@ auto safebox::add(uint32_t pos, item * item_value) -> bool
 	items_[pos] = item_value;
 
 	send_item_set(pos);
-	metin2::log::debug( "SAFEBOX: ADD {} {} count {:d}", chr_owner_->name(), item_value->name(), item_value->count());
+	metin2::log::debug("Safebox: {} added {} (count {:d})", chr_owner_->name(), item_value->name(), item_value->count());
 	return true;
 }
 
@@ -117,7 +117,7 @@ auto safebox::remove(uint32_t pos_value) -> item *
 		return nullptr;
 
 	if (!grid_)
-		metin2::log::error("Safebox::Remove : nil grid");
+		metin2::log::error("Safebox has no grid");
 	else
 		grid_->get(pos_value, 1, pkItem->size());
 
@@ -131,7 +131,7 @@ auto safebox::remove(uint32_t pos_value) -> item *
 	pack.pos	= pos_value;
 
 	chr_owner_->get_desc()->packet(&pack, sizeof(pack));
-	metin2::log::debug( "SAFEBOX: REMOVE {} {} count {:d}", chr_owner_->name(), pkItem->name(), pkItem->count());
+	metin2::log::debug("Safebox: {} removed {} (count {:d})", chr_owner_->name(), pkItem->name(), pkItem->count());
 	return pkItem;
 }
 
@@ -145,7 +145,7 @@ void safebox::save()
 	t.gold = gold_;
 
 	db_clientdesc->db_packet(HEADER_GD_SAFEBOX_SAVE, 0, &t, sizeof(safebox_table));
-	metin2::log::debug( "SAFEBOX: SAVE {}", chr_owner_->name());
+	metin2::log::debug("Safebox: saving for {}", chr_owner_->name());
 }
 
 auto safebox::is_empty(uint32_t pos, uint8_t size) -> bool
@@ -173,7 +173,7 @@ auto safebox::get_item(uint8_t cell) -> item *
 {
 	if (cell >= 5 * size_)
 	{
-		metin2::log::error("CHARACTER::GetItem: invalid item cell {:d}", cell);
+		metin2::log::warn("Safebox cell {:d} is out of range", cell);
 		return nullptr;
 	}
 
@@ -228,7 +228,7 @@ auto safebox::move_item(uint8_t cell, uint8_t dest_cell, uint8_t count) -> bool
 				send_item_set(cell);
 			}
 
-			metin2::log::debug( "SAFEBOX: STACK {} {:d} -> {:d} {} count {:d}", chr_owner_->name(), cell, dest_cell, item2->name(), item2->count());
+			metin2::log::debug("Safebox: {} stacked cell {:d} onto {:d}, {} count {:d}", chr_owner_->name(), cell, dest_cell, item2->name(), item2->count());
 			return true;
 		}
 
@@ -248,7 +248,7 @@ auto safebox::move_item(uint8_t cell, uint8_t dest_cell, uint8_t count) -> bool
 			grid_->put(cell, 1, item->size());
 		}
 
-		metin2::log::debug( "SAFEBOX: MOVE {} {:d} -> {:d} {} count {:d}", chr_owner_->name(), cell, dest_cell, item->name(), item->count());
+		metin2::log::debug("Safebox: {} moved cell {:d} to {:d}, {} count {:d}", chr_owner_->name(), cell, dest_cell, item->name(), item->count());
 
 		remove(cell);
 		add(dest_cell, item);

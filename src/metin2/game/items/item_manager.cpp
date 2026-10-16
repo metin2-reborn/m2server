@@ -102,7 +102,7 @@ auto item_manager::initialize(item_table * table_value, int size) -> bool
 
 		map_vid.insert( std::map<uint32_t,item_table>::value_type( vec_prototype_[i].vnum, vec_prototype_[i] ) ); 
 		if ( metin2::config::test_server() )
-			metin2::log::info( "ITEM_INFO {:d} {} ", vec_prototype_[i].vnum, vec_prototype_[i].name );	
+			metin2::log::debug("Item proto: vnum {:d} {}", vec_prototype_[i].vnum, vec_prototype_[i].name);
 	}
 
 	int len = 0, len2;
@@ -120,7 +120,7 @@ auto item_manager::initialize(item_table * table_value, int size) -> bool
 		if (!((i + 1) % 4))
 		{
 			if ( !metin2::config::test_server() )
-				metin2::log::info( "{}", buf);
+				metin2::log::debug("Item protos: {}", buf);
 			len = 0;
 		}
 		else
@@ -133,12 +133,12 @@ auto item_manager::initialize(item_table * table_value, int size) -> bool
 	if ((i + 1) % 4)
 	{
 		if ( !metin2::config::test_server() )
-			metin2::log::info( "{}", buf);
+			metin2::log::debug("Item protos: {}", buf);
 	}
 
 	item_vid_map::iterator it = vid_map_.begin();
 
-	metin2::log::debug( "ITEM_VID_MAP {:d}", vid_map_.size() );
+	metin2::log::debug("Item: refreshing {:d} live items", vid_map_.size());
 
 	while (it != vid_map_.end())
 	{
@@ -149,7 +149,7 @@ auto item_manager::initialize(item_table * table_value, int size) -> bool
 
 		if (nullptr == tableInfo)
 		{
-			metin2::log::error("cannot reset item table");
+			metin2::log::error("No item proto for item (id {:d}, vnum {:d})", item->id(), item->original_vnum());
 			item->set_proto(nullptr);
 		}
 
@@ -182,7 +182,7 @@ auto item_manager::create_item(uint32_t vnum, uint32_t count, uint32_t id, bool 
 	{
 		item = map_pk_item_by_id_[id];
 		character * owner = item->owner();
-		metin2::log::error("ITEM_ID_DUP: {:d} {} owner {}", id, item->name(), static_cast<const void *>(owner));
+		metin2::log::error("Duplicate item id {:d} ({}, owner {})", id, item->name(), static_cast<const void *>(owner));
 		return nullptr;
 	}
 
@@ -421,11 +421,11 @@ void item_manager::save_single_item(item * item)
 		db_clientdesc->packet(&dwID, sizeof(uint32_t));
 		db_clientdesc->packet(&dwOwnerID, sizeof(uint32_t));
 
-		metin2::log::debug( "ITEM_DELETE {}:{:d}", item->name(), dwID);
+		metin2::log::debug("Item: delete {} (id {:d})", item->name(), dwID);
 		return;
 	}
 
-	metin2::log::debug( "ITEM_SAVE {}:{:d} in {} window {:d}", item->name(), item->id(), item->owner()->name(), item->window());
+	metin2::log::debug("Item: save {} (id {:d}) of {} in window {:d}", item->name(), item->id(), item->owner()->name(), item->window());
 
 	player_item t;
 
@@ -498,12 +498,12 @@ void item_manager::destroy_item(item * item)
 	{
 		if (character_manager::instance().find(item->owner()->player_id()) != nullptr)
 		{
-			metin2::log::error("DestroyItem: GetOwner {} {}!!", item->name(), item->owner()->name());
+			metin2::log::error("Destroying item {} still owned by player {}", item->name(), item->owner()->name());
 			item->remove_from_character();
 		}
 		else
 		{
-			metin2::log::error("WTH! Invalid item owner. owner pointer : {}", static_cast<const void *>(item->owner()));
+			metin2::log::error("Destroying item {} with a stale owner {}", item->name(), static_cast<const void *>(item->owner()));
 		}
 	}
 
@@ -513,7 +513,7 @@ void item_manager::destroy_item(item * item)
 		set_pk_item_for_delayed_save_.erase(it);
 
 	uint32_t dwID = item->id();
-	metin2::log::debug( "ITEM_DESTROY {}:{:d}", item->name(), dwID);
+	metin2::log::debug("Item: destroy {} (id {:d})", item->name(), dwID);
 
 	if (!item->skip_save() && dwID)
 	{
@@ -525,7 +525,7 @@ void item_manager::destroy_item(item * item)
 	}
 	else
 	{
-		metin2::log::debug( "ITEM_DESTROY_SKIP {}:{:d} (skip={:d})", item->name(), dwID, item->skip_save());
+		metin2::log::debug("Item: destroy {} (id {:d}) without saving (skip {:d})", item->name(), dwID, item->skip_save());
 	}
 
 	if (dwID)
@@ -683,7 +683,7 @@ auto item_manager::drop_pct(character * chr, character * killer, int& delta_perc
 	else if (1 == number(1, 10000))
 		delta_percent += 500;
 
-	metin2::log::debug( "CreateDropItem for level: {:d} rank: {:d} pct: {:d}", iLevel, bRank, delta_percent);
+	metin2::log::debug("Drop: level {:d}, rank {:d}, chance {:d}", iLevel, bRank, delta_percent);
 	delta_percent = delta_percent * character_manager::instance().mob_item_rate(killer) / 100;
 
 	if (killer->premium_remain_seconds(PREMIUM_ITEM) > 0 ||
@@ -722,7 +722,7 @@ auto item_manager::create_drop_item(character * chr, character * killer, std::ve
 			continue;
 
 		int iPercent = (c_rInfo.percent * iDeltaPercent) / 100;
-		metin2::log::debug( "CreateDropItem {:d} ~ {:d} {:d} {:d}({:d})", c_rInfo.level_start, c_rInfo.level_end, c_rInfo.vnum, iPercent, c_rInfo.percent);
+		metin2::log::debug("Drop: levels {:d}-{:d}, vnum {:d}, chance {:d} (base {:d})", c_rInfo.level_start, c_rInfo.level_end, c_rInfo.vnum, iPercent, c_rInfo.percent);
 
 		if (iPercent >= number(1, iRandRange))
 		{
@@ -887,7 +887,7 @@ auto item_manager::create_drop_item(character * chr, character * killer, std::ve
 	if (killer->is_horse_riding() && 
 			get_drop_per_kill_pct(1000, 1000000, iDeltaPercent, "horse_skill_book_drop") >= number(1, iRandRange))
 	{
-		metin2::log::info( "EVENT HORSE_SKILL_BOOK_DROP");
+		metin2::log::debug("Drop event: horse skill book");
 
 		if ((item = create_item(ITEM_HORSE_SKILL_TRAIN_BOOK, 1, 0, true)))
 			vec_item.push_back(item);
@@ -989,7 +989,7 @@ static void drop_event_char_stone_drop_item(character & killer, character & vict
 		if (level_diff >= +gs_drop_event_char_stone.level_range || level_diff <= -gs_drop_event_char_stone.level_range)
 		{
 			metin2::log::debug( 
-					"dropevent.drop_char_stone.level_range_over: killer({}: lv{:d}), victim({}: lv:{:d}), level_diff({:d})",
+					"Drop event: no char stone, level gap too large (killer {} lv {:d}, victim {} lv {:d}, diff {:d})",
 					killer.name(), killer.level(), victim.name(), victim.level(), level_diff);	
 			return;
 		}
@@ -1004,7 +1004,7 @@ static void drop_event_char_stone_drop_item(character & killer, character & vict
 			vec_item.push_back(p_item);
 
 			metin2::log::debug( 
-					"dropevent.drop_char_stone.item_drop: killer({}: lv{:d}), victim({}: lv:{:d}), item_name({})",
+					"Drop event: char stone (killer {} lv {:d}, victim {} lv {:d}, item {})",
 					killer.name(), killer.level(), victim.name(), victim.level(), p_item->name());	
 		}
 	}
@@ -1017,9 +1017,9 @@ auto drop_event_char_stone_set_value(const std::string& name, int value) -> bool
 		gs_drop_event_char_stone.alive = value;
 
 		if (value)
-			metin2::log::info( "dropevent.drop_char_stone = on");
+			metin2::log::info("Drop event: char stone on");
 		else
-			metin2::log::info( "dropevent.drop_char_stone = off");
+			metin2::log::info("Drop event: char stone off");
 
 	}
 	else if (name == "drop_char_stone.percent_lv01_10")
@@ -1033,11 +1033,11 @@ auto drop_event_char_stone_set_value(const std::string& name, int value) -> bool
 	else
 		return false;
 
-	metin2::log::info( "dropevent.drop_char_stone: {:d}", gs_drop_event_char_stone.alive ? true : false);
-	metin2::log::info( "dropevent.drop_char_stone.percent_lv01_10: {:f}", gs_drop_event_char_stone.percent_lv01_10/100.0f);
-	metin2::log::info( "dropevent.drop_char_stone.percent_lv11_30: {:f}", gs_drop_event_char_stone.percent_lv11_30/100.0f);
-	metin2::log::info( "dropevent.drop_char_stone.percent_lv31_MX: {:f}", gs_drop_event_char_stone.percent_lv31_mx/100.0f);
-	metin2::log::info( "dropevent.drop_char_stone.level_range: {:d}", gs_drop_event_char_stone.level_range);
+	metin2::log::info("Drop event: char stone active {:d}", gs_drop_event_char_stone.alive ? true : false);
+	metin2::log::info("Drop event: char stone chance lv 1-10 {:f}%", gs_drop_event_char_stone.percent_lv01_10/100.0f);
+	metin2::log::info("Drop event: char stone chance lv 11-30 {:f}%", gs_drop_event_char_stone.percent_lv11_30/100.0f);
+	metin2::log::info("Drop event: char stone chance lv 31+ {:f}%", gs_drop_event_char_stone.percent_lv31_mx/100.0f);
+	metin2::log::info("Drop event: char stone level range {:d}", gs_drop_event_char_stone.level_range);
 
 	return true;
 }
@@ -1114,7 +1114,7 @@ static void drop_event_refine_box_drop_item(character & killer, character & vict
 		vec_item.push_back(p_item);
 
 		metin2::log::debug( 
-			"dropevent.drop_refine_box.item_drop: killer({}: lv{:d}), victim({}: lv:{:d}), item_name({})",
+			"Drop event: refine box (killer {} lv {:d}, victim {} lv {:d}, item {})",
 			killer.name(), killer.level(), victim.name(), victim.level(), p_item->name());	
 	}
 }
@@ -1126,9 +1126,9 @@ auto drop_event_refine_box_set_value(const std::string& name, int value) -> bool
 		gs_drop_event_refine_box.alive = value;
 
 		if (value)
-			metin2::log::info( "refine_box_drop = on");
+			metin2::log::info("Drop event: refine box on");
 		else
-			metin2::log::info( "refine_box_drop = off");
+			metin2::log::info("Drop event: refine box off");
 
 	}
 	else if (name == "refine_box_low")
@@ -1140,10 +1140,10 @@ auto drop_event_refine_box_set_value(const std::string& name, int value) -> bool
 	else
 		return false;
 
-	metin2::log::info( "refine_box_drop: {:d}", gs_drop_event_refine_box.alive ? true : false);
-	metin2::log::info( "refine_box_low: {:d}", gs_drop_event_refine_box.percent_low);
-	metin2::log::info( "refine_box_mid: {:d}", gs_drop_event_refine_box.percent_mid);
-	metin2::log::info( "refine_box_high: {:d}", gs_drop_event_refine_box.percent_high);
+	metin2::log::info("Drop event: refine box active {:d}", gs_drop_event_refine_box.alive ? true : false);
+	metin2::log::info("Drop event: refine box low chance {:d}", gs_drop_event_refine_box.percent_low);
+	metin2::log::info("Drop event: refine box mid chance {:d}", gs_drop_event_refine_box.percent_mid);
+	metin2::log::info("Drop event: refine box high chance {:d}", gs_drop_event_refine_box.percent_high);
 
 	return true;
 }
@@ -1159,7 +1159,7 @@ void item_manager::create_quest_drop_item(character * chr, character * killer, s
 	if (!killer)
 		return;
 
-	metin2::log::debug( "CreateQuestDropItem victim({}), killer({})", chr->name(), killer->name() );
+	metin2::log::debug("Drop: quest drops for {} killed by {}", chr->name(), killer->name());
 
 	drop_event_char_stone_drop_item(*killer, *chr, *this, vec_item);
 	drop_event_refine_box_drop_item(*killer, *chr, *this, vec_item);
@@ -1184,7 +1184,7 @@ void item_manager::create_quest_drop_item(character * chr, character * killer, s
 			int iPercent = 40000 * delta_percent / iDropPerKill[chr->get_mob_rank()];
 
 
-			metin2::log::info( "SOCK DROP {:d} {:d}", iPercent, rand_range);
+			metin2::log::debug("Drop event: sock chance {:d} of {:d}", iPercent, rand_range);
 			if (iPercent >= number(1, rand_range))
 			{
 				if ((item = create_item(SOCK_ITEM_VNUM, 1, 0, true)))
@@ -1237,7 +1237,7 @@ void item_manager::create_quest_drop_item(character * chr, character * killer, s
 
 	if (get_drop_per_kill_pct(100, 2000, delta_percent, "2006_drop") >= number(1, rand_range))
 	{
-		metin2::log::info( "육각보합 DROP EVENT ");
+		metin2::log::debug("Drop event: hexagonal box");
 
 		const static uint32_t dwVnum = 50037;
 
@@ -1248,7 +1248,7 @@ void item_manager::create_quest_drop_item(character * chr, character * killer, s
 
 	if (get_drop_per_kill_pct(100, 2000, delta_percent, "2007_drop") >= number(1, rand_range))
 	{
-		metin2::log::info( "육각보합 DROP EVENT ");
+		metin2::log::debug("Drop event: hexagonal box");
 
 		const static uint32_t dwVnum = 50043;
 
@@ -1266,7 +1266,7 @@ void item_manager::create_quest_drop_item(character * chr, character * killer, s
 
 	if (get_drop_per_kill_pct(100, 500, delta_percent, "newyear_moon") >= number(1, rand_range))
 	{
-		metin2::log::info( "EVENT NEWYEAR_MOON DROP");
+		metin2::log::debug("Drop event: new year moon");
 
 		const static uint32_t wonso_items[6] = { 50016, 50017, 50018, 50019, 50019, 50019, };
 		uint32_t dwVnum = wonso_items[number(0,5)];
@@ -1277,7 +1277,7 @@ void item_manager::create_quest_drop_item(character * chr, character * killer, s
 
 	if (get_drop_per_kill_pct(1, 2000, delta_percent, "valentine_drop") >= number(1, rand_range))
 	{
-		metin2::log::info( "EVENT VALENTINE_DROP");
+		metin2::log::debug("Drop event: valentine");
 
 		const static uint32_t valentine_items[2] = { 50024, 50025 };
 		uint32_t dwVnum = valentine_items[number(0, 1)];
@@ -1340,7 +1340,7 @@ void item_manager::create_quest_drop_item(character * chr, character * killer, s
 
 	if (get_drop_per_kill_pct(100, 2000, delta_percent, "whiteday_drop") >= number(1, rand_range))
 	{
-		metin2::log::info( "EVENT WHITEDAY_DROP");
+		metin2::log::debug("Drop event: white day");
 		const static uint32_t whiteday_items[2] = { ITEM_WHITEDAY_ROSE, ITEM_WHITEDAY_CANDY };
 		uint32_t dwVnum = whiteday_items[number(0,1)];
 

@@ -225,14 +225,14 @@ auto character::get_item(item_pos cell_value) const -> item *
 	case EQUIPMENT:
 		if (wCell >= INVENTORY_AND_EQUIP_SLOT_MAX)
 		{
-			metin2::log::error("CHARACTER::GetInventoryItem: invalid item cell {:d}", wCell);
+			metin2::log::error("Invalid inventory cell {:d}", wCell);
 			return nullptr;
 		}
 		return points_instant_.items[wCell];
 	case DRAGON_SOUL_INVENTORY:
 		if (wCell >= DRAGON_SOUL_INVENTORY_MAX_NUM)
 		{
-			metin2::log::error("CHARACTER::GetInventoryItem: invalid DS item cell {:d}", wCell);
+			metin2::log::error("Invalid dragon soul inventory cell {:d}", wCell);
 			return nullptr;
 		}
 		return points_instant_.ds_items[wCell];
@@ -249,7 +249,7 @@ void character::set_item(item_pos cell_value, item * item_value)
 	uint8_t window_type = cell_value.window_type;
 	if (reinterpret_cast<uintptr_t>((item*)item_value) == 0xff || reinterpret_cast<uintptr_t>((item*)item_value) == 0xffffffff || reinterpret_cast<uintptr_t>((item*)item_value) == UINTPTR_MAX)
 	{
-		metin2::log::error("!!! FATAL ERROR !!! item == 0xff (char: {} cell: {:d})", name(), wCell);
+		metin2::log::error("Invalid item pointer 0xff for {} at cell {:d}", name(), wCell);
 		core_dump();
 		return;
 	}
@@ -266,7 +266,7 @@ void character::set_item(item_pos cell_value, item * item_value)
 		{
 			if (wCell >= INVENTORY_AND_EQUIP_SLOT_MAX)
 			{
-				metin2::log::error("CHARACTER::SetItem: invalid item cell {:d}", wCell);
+				metin2::log::error("Invalid inventory cell {:d}", wCell);
 				return;
 			}
 
@@ -318,7 +318,7 @@ void character::set_item(item_pos cell_value, item * item_value)
 		{
 			if (wCell >= DRAGON_SOUL_INVENTORY_MAX_NUM)
 			{
-				metin2::log::error("CHARACTER::SetItem: invalid DS item cell {:d}", wCell);
+				metin2::log::error("Invalid dragon soul inventory cell {:d}", wCell);
 				return;
 			}
 
@@ -349,7 +349,7 @@ void character::set_item(item_pos cell_value, item * item_value)
 			{
 				if (wCell >= DRAGON_SOUL_INVENTORY_MAX_NUM)
 				{
-					metin2::log::error("CHARACTER::SetItem: invalid DS item cell {:d}", wCell);
+					metin2::log::error("Invalid dragon soul inventory cell {:d}", wCell);
 					return;
 				}
 
@@ -373,7 +373,7 @@ void character::set_item(item_pos cell_value, item * item_value)
 		}
 		break;
 	default:
-		metin2::log::error("Invalid Inventory type {:d}", window_type);
+		metin2::log::error("Invalid window type {:d}", window_type);
 		return;
 	}
 
@@ -433,7 +433,7 @@ auto character::wear(uint8_t cell) const -> item *
 {
 	if (cell >= WEAR_MAX_NUM + DRAGON_SOUL_DECK_MAX_NUM * static_cast<int>(DS_SLOT_MAX))
 	{
-		metin2::log::error("CHARACTER::GetWear: invalid wear cell {:d}", cell);
+		metin2::log::error("Invalid wear cell {:d}", cell);
 		return nullptr;
 	}
 
@@ -444,7 +444,7 @@ void character::set_wear(uint8_t cell, item * item)
 {
 	if (cell >= WEAR_MAX_NUM + DRAGON_SOUL_DECK_MAX_NUM * static_cast<int>(DS_SLOT_MAX))
 	{
-		metin2::log::error("CHARACTER::SetItem: invalid item cell {:d}", cell);
+		metin2::log::error("Invalid wear cell {:d}", cell);
 		return;
 	}
 
@@ -743,7 +743,7 @@ auto character::do_refine(item * item, bool money_only) -> bool
 	{
 		if (get_global_time() < quest::quest_manager::instance().event_flag("update_refine_time") + (60 * 5))
 		{
-			metin2::log::info( "can't refine {:d} {}", player_id(), name());
+			metin2::log::info("{} (pid {:d}) cannot refine: refining is paused after an update", name(), player_id());
 			return false;
 		}
 	}
@@ -784,7 +784,7 @@ auto character::do_refine(item * item, bool money_only) -> bool
 
 	if (!pProto)
 	{
-		metin2::log::error("DoRefine NOT GET ITEM PROTO {:d}", item->refined_vnum());
+		metin2::log::error("No proto for refined item vnum {:d}", item->refined_vnum());
 		chat_packet(CHAT_TYPE_INFO, lc_text("이 아이템은 개량할 수 없습니다."));
 		return false;
 	}
@@ -839,15 +839,13 @@ auto character::do_refine(item * item, bool money_only) -> bool
 			pkNewItem->add_to_character(this, item_pos(INVENTORY, bCell)); 
 			item_manager::instance().flush_delayed_save(pkNewItem);
 
-			metin2::log::info( "Refine Success {:d}", cost);
+			metin2::log::debug("Refine succeeded, fee {:d}", cost);
 			pkNewItem->attr_log();
-			metin2::log::info( "PayPee {:d}", cost);
 			pay_refine_fee(cost);
-			metin2::log::info( "PayPee End {:d}", cost);
 		}
 		else
 		{
-			metin2::log::error("cannot create item {:d}", result_vnum);
+			metin2::log::error("Cannot create refined item {:d}", result_vnum);
 			notify_refine_fail(this, item, is_refine_through_guild() ? "GUILD" : "POWER");
 		}
 	}
@@ -888,7 +886,7 @@ auto character::do_refine_with_scroll(item * item) -> bool
 	{
 		if (get_global_time() < quest::quest_manager::instance().event_flag("update_refine_time") + (60 * 5))
 		{
-			metin2::log::info( "can't refine {:d} {}", player_id(), name());
+			metin2::log::info("{} (pid {:d}) cannot refine: refining is paused after an update", name(), player_id());
 			return false;
 		}
 	}
@@ -953,7 +951,7 @@ auto character::do_refine_with_scroll(item * item) -> bool
 
 	if (!pProto)
 	{
-		metin2::log::error("DoRefineWithScroll NOT GET ITEM PROTO {:d}", item->refined_vnum());
+		metin2::log::error("No proto for refined item vnum {:d}", item->refined_vnum());
 		chat_packet(CHAT_TYPE_INFO, lc_text("이 아이템은 개량할 수 없습니다."));
 		return false;
 	}
@@ -1004,7 +1002,7 @@ auto character::do_refine_with_scroll(item * item) -> bool
 		}
 		else
 		{
-			metin2::log::error("REFINE : Unknown refine scroll item. Value0: {:d}", pkItemScroll->value(0));
+			metin2::log::error("Unknown refine scroll type {:d}", pkItemScroll->value(0));
 		}
 
 		if (metin2::config::test_server()) 
@@ -1069,7 +1067,7 @@ auto character::do_refine_with_scroll(item * item) -> bool
 		}
 		else
 		{
-			metin2::log::error("cannot create item {:d}", result_vnum);
+			metin2::log::error("Cannot create refined item {:d}", result_vnum);
 			notify_refine_fail(this, item, szRefineType);
 		}
 	}
@@ -1097,7 +1095,7 @@ auto character::do_refine_with_scroll(item * item) -> bool
 		}
 		else
 		{
-			metin2::log::error("cannot create item {:d}", result_fail_vnum);
+			metin2::log::error("Cannot create refined item {:d}", result_fail_vnum);
 			notify_refine_fail(this, item, szRefineType);
 		}
 	}
@@ -1137,7 +1135,7 @@ auto character::refine_information(uint8_t cell, uint8_t type_value, int additio
 
 	if (p.result_vnum == 0)
 	{
-		metin2::log::error("RefineInformation p.result_vnum == 0");
+		metin2::log::error("Refine information: item has no refine result");
 		chat_packet(CHAT_TYPE_INFO, lc_text("이 아이템은 개량할 수 없습니다."));
 		return false;
 	}
@@ -1167,7 +1165,7 @@ auto character::refine_information(uint8_t cell, uint8_t type_value, int additio
 
 	if (!prt)
 	{
-		metin2::log::error("RefineInformation NOT GET REFINE SET {:d}", item->refine_set());
+		metin2::log::error("Refine set {:d} not found", item->refine_set());
 		chat_packet(CHAT_TYPE_INFO, lc_text("이 아이템은 개량할 수 없습니다."));
 		return false;
 	}
@@ -1271,7 +1269,7 @@ EVENTFUNC(kill_campfire_event)
 
 	if ( info == nullptr )
 	{
-		metin2::log::error( "kill_campfire_event> <Factor> Null pointer" );
+		metin2::log::error("Campfire kill event fired without event info");
 		return 0;
 	}
 
@@ -1387,7 +1385,7 @@ void character::process_recall_item(item * item)
 	}
 	else
 	{
-		metin2::log::debug( "Recall: {} {:d} {:d} -> {:d} {:d}", name(), x(), y(), item->get_socket(0), item->get_socket(1));
+		metin2::log::debug("{} recalls from {:d} {:d} to {:d} {:d}", name(), x(), y(), item->get_socket(0), item->get_socket(1));
 		warp_set(item->get_socket(0), item->get_socket(1));
 		item->set_count(item->count() - 1);
 	}
@@ -1414,7 +1412,7 @@ void character::send_my_shop_price_list_cmd(uint32_t item_vnum, uint32_t item_pr
 	char szLine[256];
 	snprintf(szLine, sizeof(szLine), "MyShopPriceList %u %u", item_vnum, item_price);
 	chat_packet(CHAT_TYPE_COMMAND, szLine);
-	metin2::log::info( "{}", szLine);
+	metin2::log::debug("Shop price list command: {}", szLine);
 }
 
 void character::use_silk_botary_real(const packet_myshop_pricelist_header* p)
@@ -1517,7 +1515,7 @@ auto character::use_item_ex(item * item, item_pos dest_cell) -> bool
 
 	if (metin2::config::test_server())
 	{
-		metin2::log::info( "USE_ITEM {}, Inven {:d}, Cell {:d}, ItemType {:d}, SubType {:d}", item->name(), bDestInven, wDestCell, item->type(), item->sub_type());
+		metin2::log::debug("Use item {}: window {:d}, cell {:d}, type {:d}, subtype {:d}", item->name(), bDestInven, wDestCell, item->type(), item->sub_type());
 	}
 
 	if ( arena_manager::instance().is_limited_item( map_index(), item->vnum() ) == true )
@@ -1670,7 +1668,7 @@ auto character::use_item_ex(item * item, item_pos dest_cell) -> bool
 						{
 							if (item->sub_type() == USE_SPECIAL)
 							{
-								metin2::log::info( "ITEM_UNIQUE: USE_SPECIAL {:d}", item->vnum());
+								metin2::log::debug("Unique item {:d}: special use", item->vnum());
 
 								switch (item->vnum())
 								{
@@ -1948,7 +1946,7 @@ auto character::use_item_ex(item * item, item_pos dest_cell) -> bool
 				if (item->vnum() > 50800 && item->vnum() <= 50820)
 				{
 					if (metin2::config::test_server())
-						metin2::log::info( "ADD addtional effect : vnum({:d}) subtype({:d})", item->original_vnum(), item->sub_type());
+						metin2::log::debug("Additional effect item {:d} (subtype {:d})", item->original_vnum(), item->sub_type());
 
 					int affect_type = AFFECT_EXP_BONUS_EURO_FREE;
 					int apply_type = a_apply_info[item->value(0)].point_type;
@@ -2127,7 +2125,7 @@ auto character::use_item_ex(item * item, item_pos dest_cell) -> bool
 
 				if (metin2::config::test_server())
 				{
-					 metin2::log::info( "USE_ITEM {} Type {:d} SubType {:d} vnum {:d}", item->name(), item->type(), item->sub_type(), item->original_vnum());
+					 metin2::log::debug("Use item {}: type {:d}, subtype {:d}, vnum {:d}", item->name(), item->type(), item->sub_type(), item->original_vnum());
 				}
 
 				switch (item->sub_type())
@@ -3069,7 +3067,7 @@ auto character::use_item_ex(item * item, item_pos dest_cell) -> bool
 
 									int delta = std::min(-alignment(), item->value(0));
 
-									metin2::log::info( "{} ALIGNMENT ITEM {:d}", name(), delta);
+									metin2::log::info("{}: alignment item, delta {:d}", name(), delta);
 
 									update_alignment(delta);
 									item->set_count(item->count() - 1);
@@ -4027,7 +4025,7 @@ auto character::use_item_ex(item * item, item_pos dest_cell) -> bool
 									}
 									else
 									{
-										metin2::log::error("CHARACTER::UseItem : cannot find spawn position (name {}, {:d} x {:d})", name(), x(), y());
+										metin2::log::error("Cannot find spawn position for {} near {:d} x {:d}", name(), x(), y());
 									}
 								}
 								else
@@ -4379,7 +4377,7 @@ auto character::use_item_ex(item * item, item_pos dest_cell) -> bool
 									}
 									else
 									{
-										metin2::log::error("ADD_ATTRIBUTE2 : Item has wrong AttributeCount({:d})", item2->attribute_count());
+										metin2::log::error("Item has invalid attribute count {:d}", item2->attribute_count());
 									}
 									break;
 
@@ -4694,13 +4692,12 @@ auto character::use_item_ex(item * item, item_pos dest_cell) -> bool
 			break;
 
 		case ITEM_BLEND:
-			metin2::log::info("ITEM_BLEND!!");
 			if (blend_item_find(item->vnum()))
 			{
 				int		affect_type		= AFFECT_BLEND;
 				if (item->get_socket(0) >= static_cast<int32_t>(std::size(a_apply_info)))
 				{
-					metin2::log::error("INVALID BLEND ITEM(id : {:d}, vnum : {:d}). APPLY TYPE IS {:d}.", item->id(), item->vnum(), item->get_socket(0));
+					metin2::log::error("Invalid blend item (id {:d}, vnum {:d}): apply type {:d}", item->id(), item->vnum(), item->get_socket(0));
 					return false;
 				}
 				int		apply_type		= a_apply_info[item->get_socket(0)].point_type;
@@ -4753,11 +4750,11 @@ auto character::use_item_ex(item * item, item_pos dest_cell) -> bool
 			break;
 
 		case ITEM_NONE:
-			metin2::log::error("Item type NONE {}", item->name());
+			metin2::log::error("Item {} has type none", item->name());
 			break;
 
 		default:
-			metin2::log::info( "UseItemEx: Unknown type {} {:d}", item->name(), item->type());
+			metin2::log::warn("Item {} has unknown type {:d}", item->name(), item->type());
 			return false;
 	}
 
@@ -4778,7 +4775,7 @@ auto character::use_item(item_pos cell_value, item_pos dest_cell) -> bool
 	if (!is_valid_item_position(cell_value) || !(item = get_item(cell_value)))
 			return false;
 
-	metin2::log::info( "{}: USE_ITEM {} (inven {:d}, cell: {:d})", name(), item->name(), window_type, wCell);
+	metin2::log::info("{} uses item {} (window {:d}, cell {:d})", name(), item->name(), window_type, wCell);
 
 	if (item->is_exchanging())
 		return false;
@@ -4983,7 +4980,7 @@ auto character::drop_item(item_pos cell_value, uint8_t count_value) -> bool
 		if (count_value == 0)
 		{
 			if (metin2::config::test_server())
-				metin2::log::info( "[DROP_ITEM] drop item count == 0");
+				metin2::log::debug("Drop item: count is 0");
 			return false;
 		}
 
@@ -5008,7 +5005,7 @@ auto character::drop_item(item_pos cell_value, uint8_t count_value) -> bool
 	if (thecore_pulse() < last_drop_time + 25 && count_drops >= 4)
 	{
 		count_drops = 0;
-		metin2::log::error("{}[{:d}] has been disconnected because of drophack using", name(), player_id());
+		metin2::log::warn("{} (pid {:d}) disconnected for drop hacking", name(), player_id());
 		get_desc()->set_phase(PHASE_CLOSE);
 		return false;
 	}
@@ -5168,7 +5165,7 @@ auto character::move_item(item_pos cell_value, item_pos dest_cell, uint8_t count
 			if (count == 0)
 				count = item->count();
 
-			metin2::log::info( "{}: ITEM_STACK {} (window: {:d}, cell : {:d}) -> (window:{:d}, cell {:d}) count {:d}", name(), item->name(), cell_value.window_type, cell_value.cell, 
+			metin2::log::debug("{}: stack {} from window {:d} cell {:d} to window {:d} cell {:d}, count {:d}", name(), item->name(), cell_value.window_type, cell_value.cell, 
 				dest_cell.window_type, dest_cell.cell, count);
 
 			count = std::min<int>(200 - item2->count(), count);
@@ -5183,7 +5180,7 @@ auto character::move_item(item_pos cell_value, item_pos dest_cell, uint8_t count
 
 		if (count == 0 || count >= item->count() || !item->is_stackable() || is_set(item->anti_flag(), ITEM_ANTIFLAG_STACK))
 		{
-			metin2::log::info( "{}: ITEM_MOVE {} (window: {:d}, cell : {:d}) -> (window:{:d}, cell {:d}) count {:d}", name(), item->name(), cell_value.window_type, cell_value.cell, 
+			metin2::log::debug("{}: move {} from window {:d} cell {:d} to window {:d} cell {:d}, count {:d}", name(), item->name(), cell_value.window_type, cell_value.cell, 
 				dest_cell.window_type, dest_cell.cell, count);
 
 			item->remove_from_character();
@@ -5195,7 +5192,7 @@ auto character::move_item(item_pos cell_value, item_pos dest_cell, uint8_t count
 		else if (count < item->count())
 		{
 
-			metin2::log::info( "{}: ITEM_SPLIT {} (window: {:d}, cell : {:d}) -> (window:{:d}, cell {:d}) count {:d}", name(), item->name(), cell_value.window_type, cell_value.cell, 
+			metin2::log::debug("{}: split {} from window {:d} cell {:d} to window {:d} cell {:d}, count {:d}", name(), item->name(), cell_value.window_type, cell_value.cell, 
 				dest_cell.window_type, dest_cell.cell, count);
 
 			item->set_count(item->count() - count);
@@ -5281,7 +5278,7 @@ void character::give_gold(int amount)
 	if (amount <= 0)
 		return;
 
-	metin2::log::info( "GIVE_GOLD: {} {:d}", name(), amount);
+	metin2::log::info("{} receives {:d} gold", name(), amount);
 
 	if (get_party())
 	{
@@ -5388,7 +5385,7 @@ auto character::pickup_item(uint32_t vid) -> bool
 				{
 					if ((iEmptyCell = empty_dragon_soul_inventory(item)) == -1)
 					{
-						metin2::log::info( "No empty ds inventory pid {:d} size {:d}d itemid {:d}", player_id(), item->size(), item->id());
+						metin2::log::debug("No free dragon soul inventory slot for pid {:d} (item size {:d}, id {:d})", player_id(), item->size(), item->id());
 						chat_packet(CHAT_TYPE_INFO, lc_text("소지하고 있는 아이템이 너무 많습니다."));
 						return false;
 					}
@@ -5397,7 +5394,7 @@ auto character::pickup_item(uint32_t vid) -> bool
 				{
 					if ((iEmptyCell = empty_inventory(item->size())) == -1)
 					{
-						metin2::log::info( "No empty inventory pid {:d} size {:d}d itemid {:d}", player_id(), item->size(), item->id());
+						metin2::log::debug("No free inventory slot for pid {:d} (item size {:d}, id {:d})", player_id(), item->size(), item->id());
 						chat_packet(CHAT_TYPE_INFO, lc_text("소지하고 있는 아이템이 너무 많습니다."));
 						return false;
 					}
@@ -5522,7 +5519,7 @@ auto character::swap_item(uint8_t cell_value, uint8_t dest_cell) -> bool
 
 	if (item1 == item2)
 	{
-	    metin2::log::info( "[WARNING][WARNING][HACK USER!] : {} {:d} {:d}", name_.c_str(), cell_value, dest_cell);
+	    metin2::log::warn("Possible hack by {}: swapping an item with itself (cells {:d}, {:d})", name_.c_str(), cell_value, dest_cell);
 	    return false;
 	}
 
@@ -5545,7 +5542,7 @@ auto character::swap_item(uint8_t cell_value, uint8_t dest_cell) -> bool
 		if (item1->equip_to(this, bEquipCell))
 			item2->add_to_character(this, item_pos(INVENTORY, bInvenCell));
 		else
-			metin2::log::error("SwapItem cannot equip {}! item1 {}", item2->name(), item1->name());
+			metin2::log::error("Cannot equip {} when swapping with {}", item2->name(), item1->name());
 	}
 	else
 	{
@@ -5916,7 +5913,7 @@ void character::remove_specify_item(uint32_t vnum, uint32_t count)
 	}
 
 	if (count)
-		metin2::log::info( "CHARACTER::RemoveSpecifyItem cannot remove enough item vnum {:d}, still remain {:d}", vnum, count);
+		metin2::log::warn("Cannot remove enough of item {:d}: {:d} still remaining", vnum, count);
 }
 
 auto character::count_specify_type_item(uint8_t type) const -> int
@@ -5975,12 +5972,12 @@ void character::auto_give_item(item * item, bool long_owner_ship)
 {
 	if (nullptr == item)
 	{
-		metin2::log::error("NULL point.");
+		metin2::log::error("Cannot auto-give a null item");
 		return;
 	}
 	if (item->owner())
 	{
-		metin2::log::error("item {:d} 's owner exists!",item->id());
+		metin2::log::error("Cannot auto-give item {:d}: it already has an owner", item->id());
 		return;
 	}
 
@@ -6075,7 +6072,7 @@ auto character::auto_give_item(uint32_t item_vnum, uint8_t count_value, int rare
 
 	if (!item)
 	{
-		metin2::log::error("cannot create item by vnum {:d} (name: {})", item_vnum, name());
+		metin2::log::error("Cannot create item vnum {:d} for {}", item_vnum, name());
 		return nullptr;
 	}
 
@@ -6147,8 +6144,7 @@ auto character::auto_give_item(uint32_t item_vnum, uint8_t count_value, int rare
 		log_manager::instance().item_log(this, item, "SYSTEM_DROP", item->name());
 	}
 
-	metin2::log::info( 
-		"7: {:d} {:d}", item_vnum, count_value);
+	metin2::log::debug("Auto-give item vnum {:d}, count {:d}", item_vnum, count_value);
 	return item;
 }
 
@@ -6409,7 +6405,7 @@ void character::receive_item(character * from, item * item)
 			break;
 
 		default:
-			metin2::log::info( "TakeItem {} {:d} {}", from->name(), race_num(), item->name());
+			metin2::log::debug("{} gives npc {:d} item {}", from->name(), race_num(), item->name());
 			from->set_quest_npcid(get_vid());
 			quest::quest_manager::instance().take_item(from->player_id(), race_num(), item);
 			break;
@@ -6476,7 +6472,7 @@ auto character::give_item_from_special_item_group(uint32_t group_num, std::vecto
 
 	if (!pGroup)
 	{
-		metin2::log::error("cannot find special item group {:d}", group_num);
+		metin2::log::error("Special item group {:d} not found", group_num);
 		return false;
 	}
 
@@ -6512,7 +6508,7 @@ auto character::give_item_from_special_item_group(uint32_t group_num, std::vecto
 
 			case special_item_group::MOB:
 				{
-					metin2::log::info( "CSpecialItemGroup::MOB {:d}", dwCount);
+					metin2::log::debug("Special item group: spawn {:d} mobs", dwCount);
 					int x_value = x() + number(-500, 500);
 					int y_value = y() + number(-500, 500);
 
@@ -6524,7 +6520,7 @@ auto character::give_item_from_special_item_group(uint32_t group_num, std::vecto
 				break;
 			case special_item_group::SLOW:
 				{
-					metin2::log::info( "CSpecialItemGroup::SLOW {:d}", -(int)dwCount);
+					metin2::log::debug("Special item group: slow {:d}", -(int)dwCount);
 					add_affect(AFFECT_SLOW, POINT_MOV_SPEED, -(int)dwCount, AFF_SLOW, 300, 0, true);
 					bSuccess = true;
 				}
@@ -6532,9 +6528,8 @@ auto character::give_item_from_special_item_group(uint32_t group_num, std::vecto
 			case special_item_group::DRAIN_HP:
 				{
 					int iDropHP = max_hp()*dwCount/100;
-					metin2::log::info( "CSpecialItemGroup::DRAIN_HP {:d}", -iDropHP);
 					iDropHP = std::min(iDropHP, hp()-1);
-					metin2::log::info( "CSpecialItemGroup::DRAIN_HP {:d}", -iDropHP);
+					metin2::log::debug("Special item group: drain hp {:d}", -iDropHP);
 					point_change(POINT_HP, -iDropHP);
 					bSuccess = true;
 				}
@@ -6672,7 +6667,7 @@ auto character::item_process_polymorph(item * item) -> bool
 		case 70107 :
 		case 71093 :
 			{
-				metin2::log::info( "USE_POLYMORPH_BALL PID({:d}) vnum({:d})", player_id(), dwVnum);
+				metin2::log::info("Pid {:d} uses polymorph ball (vnum {:d})", player_id(), dwVnum);
 
 				int iPolymorphLevelLimit = std::max(0, 20 - level() * 3 / 10);
 				if (pMob->table.level >= level() + iPolymorphLevelLimit)
@@ -6698,7 +6693,7 @@ auto character::item_process_polymorph(item * item) -> bool
 		case 50322:
 			{
 
-				metin2::log::info( "USE_POLYMORPH_BOOK: {}({:d}) vnum({:d})", name(), player_id(), dwVnum);
+				metin2::log::info("{} (pid {:d}) uses polymorph book (vnum {:d})", name(), player_id(), dwVnum);
 
 				if (polymorph_utils::instance().polymorph_character(this, item, pMob) == true)
 				{
@@ -6708,7 +6703,7 @@ auto character::item_process_polymorph(item * item) -> bool
 			break;
 
 		default :
-			metin2::log::error("POLYMORPH invalid item passed PID({:d}) vnum({:d})", player_id(), item->original_vnum());
+			metin2::log::error("Invalid polymorph item vnum {:d} used by pid {:d}", item->original_vnum(), player_id());
 			return false;
 	}
 

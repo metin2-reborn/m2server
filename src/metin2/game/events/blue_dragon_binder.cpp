@@ -38,7 +38,7 @@ auto blue_dragon_get_skill_factor(const size_t cnt, ...) -> unsigned int
 		{
 			va_end(vl);
 			lua_settop( L, stack_top );
-			metin2::log::error("BlueDragon: wrong key list");
+			metin2::log::error("Blue dragon: invalid key list in skill config");
 			return 0;
 		}
 
@@ -49,7 +49,7 @@ auto blue_dragon_get_skill_factor(const size_t cnt, ...) -> unsigned int
 		{
 			va_end(vl);
 			lua_settop( L, stack_top );
-			metin2::log::error("BlueDragon: wrong key table {}", key);
+			metin2::log::error("Blue dragon: key {} is not a table in skill config", key);
 			return 0;
 		}
 	}
@@ -59,7 +59,7 @@ auto blue_dragon_get_skill_factor(const size_t cnt, ...) -> unsigned int
 	if (false == lua_isnumber(L, -1))
 	{
 		lua_settop( L, stack_top );
-		metin2::log::error("BlueDragon: Last key is not a number");
+		metin2::log::error("Blue dragon: last key in skill config is not a number");
 		return 0;
 	}
 
@@ -92,7 +92,7 @@ auto blue_dragon_get_range_factor(const char* key, const int val) -> unsigned in
 	{
 		lua_settop( L, stack_top );
 
-		metin2::log::error("BlueDragon: no required table {}", key);
+		metin2::log::error("Blue dragon: required table {} missing from skill config", key);
 		return 0;
 	}
 
@@ -106,7 +106,7 @@ auto blue_dragon_get_range_factor(const char* key, const int val) -> unsigned in
 		{
 			lua_settop( L, stack_top );
 
-			metin2::log::error("BlueDragon: wrong table index {} {:d}", key, i);
+			metin2::log::error("Blue dragon: invalid index {1:d} in skill config table {0}", key, i);
 			return 0;
 		}
 
@@ -117,7 +117,7 @@ auto blue_dragon_get_range_factor(const char* key, const int val) -> unsigned in
 		{
 			lua_settop( L, stack_top );
 
-			metin2::log::error("BlueDragon: no min value set {}", key);
+			metin2::log::error("Blue dragon: no min value in skill config table {}", key);
 			return 0;
 		}
 
@@ -132,7 +132,7 @@ auto blue_dragon_get_range_factor(const char* key, const int val) -> unsigned in
 		{
 			lua_settop( L, stack_top );
 
-			metin2::log::error("BlueDragon: no max value set {}", key);
+			metin2::log::error("Blue dragon: no max value in skill config table {}", key);
 			return 0;
 		}
 
@@ -149,7 +149,7 @@ auto blue_dragon_get_range_factor(const char* key, const int val) -> unsigned in
 			{
 				lua_settop( L, stack_top );
 
-				metin2::log::error("BlueDragon: no pct value set {}", key);
+				metin2::log::error("Blue dragon: no pct value in skill config table {}", key);
 				return 0;
 			}
 
@@ -190,7 +190,7 @@ auto blue_dragon_get_index_factor(const char* container, const size_t idx, const
 	{
 		lua_settop( L, stack_top );
 
-		metin2::log::error("BlueDragon: no required table {}", key);
+		metin2::log::error("Blue dragon: required table {} missing from skill config", key);
 		return 0;
 	}
 
@@ -200,7 +200,7 @@ auto blue_dragon_get_index_factor(const char* container, const size_t idx, const
 	{
 		lua_settop( L, stack_top );
 
-		metin2::log::error("BlueDragon: wrong table index {} {:d}", key, idx);
+		metin2::log::error("Blue dragon: invalid index {1:d} in skill config table {0}", key, idx);
 		return 0;
 	}
 
@@ -211,7 +211,7 @@ auto blue_dragon_get_index_factor(const char* container, const size_t idx, const
 	{
 		lua_settop( L, stack_top );
 
-		metin2::log::error("BlueDragon: no min value set {}", key);
+		metin2::log::error("Blue dragon: no min value in skill config table {}", key);
 		return 0;
 	}
 

@@ -21,7 +21,7 @@ namespace metin2::db::inline clients {
 
 void client_manager::guild_create(peer * peer, uint32_t guild_id)
 {
-	metin2::log::info( "GuildCreate {:d}", guild_id);
+	metin2::log::info("Guild: created guild {:d}", guild_id);
 	forward_packet(HEADER_DG_GUILD_LOAD, &guild_id, sizeof(uint32_t));
 
 	guild_manager::instance().load(guild_id);
@@ -29,14 +29,14 @@ void client_manager::guild_create(peer * peer, uint32_t guild_id)
 
 void client_manager::guild_change_grade(peer* peer, packet_guild* p)
 {
-	metin2::log::info( "GuildChangeGrade {:d} {:d}", p->guild, p->info);
+	metin2::log::info("Guild: guild {:d} changed grade {:d}", p->guild, p->info);
 	forward_packet(HEADER_DG_GUILD_CHANGE_GRADE, p, sizeof(packet_guild));
 }
 
 void client_manager::guild_add_member(peer* peer, packet_gd_guild_add_member * p)
 {
 	guild_manager::instance().touch_guild(p->guild);
-	metin2::log::info( "GuildAddMember {:d} {:d}", p->guild, p->pid);
+	metin2::log::info("Guild: guild {:d} added member pid {:d}", p->guild, p->pid);
 
 	char szQuery[512];
 
@@ -53,7 +53,7 @@ void client_manager::guild_add_member(peer* peer, packet_gd_guild_add_member * p
 
 	if (pmsg->get()->num_rows == 0)
 	{
-		metin2::log::error("Query failed when getting guild member data {}", pmsg->query.c_str());
+		metin2::log::error("Guild: cannot load guild member data: {}", pmsg->query.c_str());
 		return;
 	}
 
@@ -78,7 +78,7 @@ void client_manager::guild_add_member(peer* peer, packet_gd_guild_add_member * p
 
 void client_manager::guild_remove_member(peer* peer, packet_guild* p)
 {
-	metin2::log::info( "GuildRemoveMember {:d} {:d}", p->guild, p->info);
+	metin2::log::info("Guild: guild {:d} removed member pid {:d}", p->guild, p->info);
 
 	char szQuery[512];
 	snprintf(szQuery, sizeof(szQuery), "DELETE FROM guild_member%s WHERE pid=%u and guild_id=%u", get_table_postfix(), p->info, p->guild);
@@ -92,25 +92,25 @@ void client_manager::guild_remove_member(peer* peer, packet_guild* p)
 
 void client_manager::guild_skill_update(peer* peer, packet_guild_skill_update* p)
 {
-	metin2::log::info( "GuildSkillUpdate {:d}", p->amount);
+	metin2::log::debug("Guild: skill update, amount {:d}", p->amount);
 	forward_packet(HEADER_DG_GUILD_SKILL_UPDATE, p, sizeof(packet_guild_skill_update));
 }
 
 void client_manager::guild_exp_update(peer* peer, packet_guild_exp_update* p)
 {
-	metin2::log::info( "GuildExpUpdate {:d}", p->amount);
+	metin2::log::debug("Guild: exp update, amount {:d}", p->amount);
 	forward_packet(HEADER_DG_GUILD_EXP_UPDATE, p, sizeof(packet_guild_exp_update), 0, peer);
 }
 
 void client_manager::guild_change_member_data(peer* peer, packet_guild_change_member_data* p)
 {
-	metin2::log::info( "GuildChangeMemberData {:d} {:d} {:d} {:d}", p->pid, p->offer, p->level, p->grade);
+	metin2::log::debug("Guild: member pid {:d} offer {:d} level {:d} grade {:d}", p->pid, p->offer, p->level, p->grade);
 	forward_packet(HEADER_DG_GUILD_CHANGE_MEMBER_DATA, p, sizeof(packet_guild_change_member_data), 0, peer);
 }
 
 void client_manager::guild_disband(peer* peer, packet_guild* p)
 {
-	metin2::log::info( "GuildDisband {:d}", p->guild);
+	metin2::log::info("Guild: disbanded guild {:d}", p->guild);
 
 	char szQuery[512];
 
@@ -152,21 +152,21 @@ void client_manager::guild_war(peer* peer, packet_guild_war* p)
 	switch (p->war)
 	{
 		case GUILD_WAR_SEND_DECLARE:
-			metin2::log::info( "GuildWar: GUILD_WAR_SEND_DECLARE type({}) guild({:d} - {:d})",  get_war_type(p->type), p->guild_from, p->guild_to);
+			metin2::log::info("Guild war (type {}): declared by guild {:d} on guild {:d}",  get_war_type(p->type), p->guild_from, p->guild_to);
 			guild_manager::instance().add_declare(p->type, p->guild_from, p->guild_to);
 			break;
 
 		case GUILD_WAR_REFUSE:
-			metin2::log::info( "GuildWar: GUILD_WAR_REFUSE type({}) guild({:d} - {:d})", get_war_type(p->type), p->guild_from, p->guild_to);
+			metin2::log::info("Guild war (type {}): between guild {:d} and guild {:d} refused", get_war_type(p->type), p->guild_from, p->guild_to);
 			guild_manager::instance().remove_declare(p->guild_from, p->guild_to);
 			break;
 
 		case GUILD_WAR_WAIT_START:
-			metin2::log::info( "GuildWar: GUILD_WAR_WAIT_START type({}) guild({:d} - {:d})", get_war_type(p->type), p->guild_from, p->guild_to);
+			metin2::log::info("Guild war (type {}): between guild {:d} and guild {:d} waiting to start", get_war_type(p->type), p->guild_from, p->guild_to);
 			[[fallthrough]];
 		case GUILD_WAR_RESERVE:
 			if (p->war != GUILD_WAR_WAIT_START)
-				metin2::log::info( "GuildWar: GUILD_WAR_RESERVE type({}) guild({:d} - {:d})", get_war_type(p->type), p->guild_from, p->guild_to);
+				metin2::log::info("Guild war (type {}): between guild {:d} and guild {:d} reserved", get_war_type(p->type), p->guild_from, p->guild_to);
 			guild_manager::instance().remove_declare(p->guild_from, p->guild_to);
 
 			if (!guild_manager::instance().reserve_war(p))
@@ -177,23 +177,23 @@ void client_manager::guild_war(peer* peer, packet_guild_war* p)
 			break;
 
 		case GUILD_WAR_ON_WAR:
-			metin2::log::info( "GuildWar: GUILD_WAR_ON_WAR type({}) guild({:d} - {:d})", get_war_type(p->type), p->guild_from, p->guild_to);
+			metin2::log::info("Guild war (type {}): between guild {:d} and guild {:d} started", get_war_type(p->type), p->guild_from, p->guild_to);
 			guild_manager::instance().remove_declare(p->guild_from, p->guild_to);
 			guild_manager::instance().start_war(p->type, p->guild_from, p->guild_to);
 			break;
 
 		case GUILD_WAR_OVER:
-			metin2::log::info( "GuildWar: GUILD_WAR_OVER type({}) guild({:d} - {:d})", get_war_type(p->type), p->guild_from, p->guild_to);
+			metin2::log::info("Guild war (type {}): between guild {:d} and guild {:d} is over", get_war_type(p->type), p->guild_from, p->guild_to);
 			guild_manager::instance().recv_war_over(p->guild_from, p->guild_to, p->type, p->war_price);
 			break;
 
 		case GUILD_WAR_END:
-			metin2::log::info( "GuildWar: GUILD_WAR_END type({}) guild({:d} - {:d})", get_war_type(p->type), p->guild_from, p->guild_to);
+			metin2::log::info("Guild war (type {}): between guild {:d} and guild {:d} ended", get_war_type(p->type), p->guild_from, p->guild_to);
 			guild_manager::instance().recv_war_end(p->guild_from, p->guild_to);
 			return; // recv_war_end already broadcasts the packet.
 
 		case GUILD_WAR_CANCEL :
-			metin2::log::info( "GuildWar: GUILD_WAR_CANCEL type({}) guild({:d} - {:d})", get_war_type(p->type), p->guild_from, p->guild_to);
+			metin2::log::info("Guild war (type {}): between guild {:d} and guild {:d} cancelled", get_war_type(p->type), p->guild_from, p->guild_to);
 			guild_manager::instance().cancel_war(p->guild_from, p->guild_to);
 			break;
 	}
@@ -208,20 +208,20 @@ void client_manager::guild_war_score(peer* peer, packet_guild_war_score * p)
 
 void client_manager::guild_change_ladder_point(packet_guild_ladder_point* p)
 {
-	metin2::log::info( "GuildChangeLadderPoint Recv {:d} {:d}", p->guild, p->change);
+	metin2::log::debug("Guild: guild {:d} ladder points changed by {:d}", p->guild, p->change);
 	guild_manager::instance().change_ladder_point(p->guild, p->change);
 }
 
 void client_manager::guild_use_skill(packet_guild_use_skill* p)
 {
-	metin2::log::info( "GuildUseSkill Recv {:d} {:d}", p->guild, p->skill_vnum);
+	metin2::log::debug("Guild: guild {:d} used skill {:d}", p->guild, p->skill_vnum);
 	guild_manager::instance().use_skill(p->guild, p->skill_vnum, p->cooltime);
 	send_guild_skill_usable(p->guild, p->skill_vnum, false);
 }
 
 void client_manager::send_guild_skill_usable(uint32_t guild_id, uint32_t skill_vnum_value, bool usable_value)
 {
-	metin2::log::info( "SendGuildSkillUsable Send {:d} {:d} {}", guild_id, skill_vnum_value, usable_value?"true":"false");
+	metin2::log::debug("Guild: guild {:d} skill {:d} usable: {}", guild_id, skill_vnum_value, usable_value?"true":"false");
 
 	packet_guild_skill_usable_change p;
 

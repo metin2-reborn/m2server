@@ -69,9 +69,9 @@ namespace quest
 	void pc::set_flag(const std::string& name, int value, bool skip_save)
 	{
 		if ( metin2::config::test_server() )
-			metin2::log::info( "QUEST Setting flag {} {:d}", name.c_str(),value);
+			metin2::log::info("Quest: set flag {} = {:d}", name.c_str(), value);
 		else
-			metin2::log::debug( "QUEST Setting flag {} {:d}", name.c_str(),value);
+			metin2::log::debug("Quest: set flag {} = {:d}", name.c_str(), value);
 
 		if (value == 0)
 		{
@@ -112,7 +112,7 @@ namespace quest
 
 		if (it != flag_map_.end())
 		{
-			metin2::log::debug( "QUEST getting flag {} {:d}", name.c_str(),it->second);
+			metin2::log::debug("Quest: get flag {} = {:d}", name.c_str(), it->second);
 			return it->second;
 		}
 		return 0;
@@ -149,7 +149,7 @@ namespace quest
 	void pc::add_quest_state_change(const std::string& quest_name, int prev_state, int next_state)
 	{
 		uint32_t dwQuestIndex = quest_manager::instance().quest_index_by_name(quest_name);
-		metin2::log::info( "QUEST reserve Quest State Change quest {}[{:d}] from {:d} to {:d}", quest_name.c_str(), dwQuestIndex, prev_state, next_state);
+		metin2::log::debug("Quest: queue state change of quest {} ({:d}) from {:d} to {:d}", quest_name.c_str(), dwQuestIndex, prev_state, next_state);
 		quest_state_change_.push_back(quest_state_change_info(dwQuestIndex, prev_state, next_state));
 	}
 
@@ -178,7 +178,7 @@ namespace quest
 	{
 		remove_timer(name);
 		timer_map_.insert(make_pair(name, event));
-		metin2::log::info( "QUEST add timer {} {:d}", static_cast<const void *>(event.get()), timer_map_.size());
+		metin2::log::debug("Quest: add timer {}, {:d} timers", static_cast<const void *>(event.get()), timer_map_.size());
 	}
 
 	void pc::remove_timer_not_cancel(const std::string & name)
@@ -187,11 +187,11 @@ namespace quest
 
 		if (it != timer_map_.end())
 		{
-			metin2::log::info( "QUEST remove with no cancel {}", static_cast<const void *>(it->second.get()));
+			metin2::log::debug("Quest: remove timer {} without cancelling", static_cast<const void *>(it->second.get()));
 			timer_map_.erase(it);
 		}
 
-		metin2::log::debug( "QUEST timer map size {:d} by RemoveTimerNotCancel", timer_map_.size());
+		metin2::log::debug("Quest: {:d} timers left", timer_map_.size());
 	}
 
 	void pc::remove_timer(const std::string & name)
@@ -200,17 +200,17 @@ namespace quest
 
 		if (it != timer_map_.end())
 		{
-			metin2::log::info( "QUEST remove timer {}", static_cast<const void *>(it->second.get()));
+			metin2::log::debug("Quest: remove timer {}", static_cast<const void *>(it->second.get()));
 			cancel_timer_event(&it->second);
 			timer_map_.erase(it);
 		}
 
-		metin2::log::debug( "QUEST timer map size {:d} by RemoveTimer", timer_map_.size());
+		metin2::log::debug("Quest: {:d} timers left", timer_map_.size());
 	}
 
 	void pc::clear_timer()
 	{
-		metin2::log::info( "QUEST clear timer {:d}", timer_map_.size());
+		metin2::log::debug("Quest: clear {:d} timers", timer_map_.size());
 		timer_map::iterator it = timer_map_.begin();
 
 		while (it != timer_map_.end())
@@ -259,7 +259,7 @@ namespace quest
 			buf.write(&temp,1);		
 			qi.size+=1;
 
-			metin2::log::debug( "QUEST BeginFlag {:d}", (int)temp);
+			metin2::log::debug("Quest info: begin flag {:d}", (int)temp);
 		}
 		if (send_to_client_ & QUEST_SEND_TITLE)
 		{
@@ -267,7 +267,7 @@ namespace quest
 			buf.write(running_quest_state_->title.c_str(), 30+1);
 			qi.size+=30+1;
 
-			metin2::log::debug( "QUEST Title {}", running_quest_state_->title.c_str());
+			metin2::log::debug("Quest info: title {}", running_quest_state_->title.c_str());
 		}
 		if (send_to_client_ & QUEST_SEND_CLOCK_NAME)
 		{
@@ -275,14 +275,14 @@ namespace quest
 			buf.write(running_quest_state_->clock_name.c_str(), 16+1);
 			qi.size+=16+1;
 
-			metin2::log::debug( "QUEST Clock Name {}", running_quest_state_->clock_name.c_str());
+			metin2::log::debug("Quest info: clock name {}", running_quest_state_->clock_name.c_str());
 		}
 		if (send_to_client_ & QUEST_SEND_CLOCK_VALUE)
 		{
 			buf.write(&running_quest_state_->clock_value, sizeof(int));
 			qi.size+=4;
 
-			metin2::log::debug( "QUEST Clock Value {:d}", running_quest_state_->clock_value);
+			metin2::log::debug("Quest info: clock value {:d}", running_quest_state_->clock_value);
 		}
 		if (send_to_client_ & QUEST_SEND_COUNTER_NAME)
 		{
@@ -290,14 +290,14 @@ namespace quest
 			buf.write(running_quest_state_->counter_name.c_str(), 16+1);
 			qi.size+=16+1;
 
-			metin2::log::debug( "QUEST Counter Name {}", running_quest_state_->counter_name.c_str());
+			metin2::log::debug("Quest info: counter name {}", running_quest_state_->counter_name.c_str());
 		}
 		if (send_to_client_ & QUEST_SEND_COUNTER_VALUE)
 		{
 			buf.write(&running_quest_state_->counter_value, sizeof(int));
 			qi.size+=4;
 
-			metin2::log::debug( "QUEST Counter Value {:d}", running_quest_state_->counter_value);
+			metin2::log::debug("Quest info: counter value {:d}", running_quest_state_->counter_value);
 		}
 		if (send_to_client_ & QUEST_SEND_ICON_FILE)
 		{
@@ -305,7 +305,7 @@ namespace quest
 			buf.write(running_quest_state_->icon_file.c_str(), 24+1);
 			qi.size+=24+1;
 
-			metin2::log::debug( "QUEST Icon File {}", running_quest_state_->icon_file.c_str());
+			metin2::log::debug("Quest info: icon file {}", running_quest_state_->icon_file.c_str());
 		}
 
 		quest_manager::instance().current_character_ptr()->get_desc()->packet(buf.read_peek(),buf.size());
@@ -324,7 +324,7 @@ namespace quest
 				if (ch->player_id() == npc->quest_npcid())
 				{
 					npc->set_quest_npcid(0);
-					metin2::log::info( "QUEST NPC lock isn't unlocked : pid {:d}", ch->player_id());
+					metin2::log::warn("Quest npc was still locked by player (pid {:d}), unlocking", ch->player_id());
 					quest_manager::instance().write_running_state_to_syserr();
 				}
 			}
@@ -344,12 +344,12 @@ namespace quest
 
 		if (send_to_client_)
 		{
-			metin2::log::debug( "QUEST end running {:d}", send_to_client_);
+			metin2::log::debug("Quest: end running, send info {:d}", send_to_client_);
 			send_quest_info_pakcet();
 		}
 
 		if (running_quest_state_ == nullptr) {
-			metin2::log::info( "Entered PC::EndRunning() with invalid running quest state");
+			metin2::log::error("No running quest state at end of quest run");
 			return;
 		}
 		quest_state * pOldState = running_quest_state_;
@@ -405,7 +405,7 @@ namespace quest
 				it = quest_find(dwQuestIdx);
 			}
 
-			metin2::log::info( "QUEST change reserved Quest State Change quest {:d} from {:d} to {:d} ({:d} {:d})", dwQuestIdx, rInfo.prev_state, rInfo.next_state, it->second.st, rInfo.prev_state );
+			metin2::log::debug("Quest: apply queued state change of quest {:d} from {:d} to {:d} (current {:d}, expected {:d})", dwQuestIdx, rInfo.prev_state, rInfo.next_state, it->second.st, rInfo.prev_state );
 
 			assert(it->second.st == rInfo.prev_state);
 
@@ -536,7 +536,7 @@ namespace quest
 
 			if (iPos < 0)
 			{
-				metin2::log::error("quest::PC::Save : cannot find . in FlagMap");
+				metin2::log::error("Quest flag {} has no '.' separator", stComp.c_str());
 				continue;
 			}
 
@@ -548,21 +548,21 @@ namespace quest
 
 			if (stName.length() == 0 || stState.length() == 0)
 			{
-				metin2::log::error("quest::PC::Save : invalid quest data: {}", stComp.c_str());
+				metin2::log::error("Quest flag {} has an empty quest or state name", stComp.c_str());
 				continue;
 			}
 
-			metin2::log::debug( "QUEST Save Flag {}, {} {:d} ({:d})", stName.c_str(), stState.c_str(), lValue, i);
+			metin2::log::debug("Quest: save flag {}.{} = {:d} ({:d})", stName.c_str(), stState.c_str(), lValue, i);
 
 			if (stName.length() >= QUEST_NAME_MAX_LEN)
 			{
-				metin2::log::error("quest::PC::Save : quest name overflow");
+				metin2::log::error("Quest name {} is too long to save", stName.c_str());
 				continue;
 			}
 
 			if (stState.length() >= QUEST_STATE_MAX_LEN)
 			{
-				metin2::log::error("quest::PC::Save : quest state overflow");
+				metin2::log::error("Quest state {} is too long to save", stState.c_str());
 				continue;
 			}
 
@@ -576,7 +576,7 @@ namespace quest
 
 		if (i > 0)
 		{
-			metin2::log::debug( "QuestPC::Save {:d}", i);
+			metin2::log::debug("Quest: saving {:d} flags", i);
 			db_clientdesc->db_packet_header(HEADER_GD_QUEST_SAVE, 0, sizeof(quest_table) * i);
 			db_clientdesc->packet(&s_table[0], sizeof(quest_table) * i);
 		}
@@ -586,7 +586,7 @@ namespace quest
 
 	void pc::give_item(const std::string& label, uint32_t vnum, int count)
 	{
-		metin2::log::debug( "QUEST GiveItem {} {:d} {:d}", label.c_str(),vnum,count);
+		metin2::log::debug("Quest: give item {} (vnum {:d}, count {:d})", label.c_str(), vnum, count);
 		if (!flag(cur_quest_+"."+label))
 		{
 			reward_data_.push_back(reward_data(reward_data::REWARD_TYPE_ITEM, vnum, count));
@@ -597,7 +597,7 @@ namespace quest
 
 	void pc::give_exp(const std::string& label, uint32_t exp)
 	{
-		metin2::log::debug( "QUEST GiveExp {} {:d}", label.c_str(),exp);
+		metin2::log::debug("Quest: give exp {} ({:d})", label.c_str(), exp);
 
 		if (!flag(cur_quest_+"."+label))
 		{
@@ -620,7 +620,7 @@ namespace quest
 			switch (it->type)
 			{
 				case reward_data::REWARD_TYPE_EXP:
-					metin2::log::info( "EXP cur {:d} add {:d} next {:d}",ch->get_exp(), it->value1, ch->next_exp());
+					metin2::log::debug("Quest reward: exp {:d} + {:d}, next level at {:d}", ch->get_exp(), it->value1, ch->next_exp());
 
 					if (ch->get_exp() + it->value1 > ch->next_exp())
 						ch->point_change(POINT_EXP, ch->next_exp() - 1 - ch->get_exp());
@@ -635,7 +635,7 @@ namespace quest
 
 				case reward_data::REWARD_TYPE_NONE:
 				default:
-					metin2::log::error("Invalid RewardData type");
+					metin2::log::error("Unknown quest reward type {:d}", static_cast<int>(it->type));
 					break;
 			}
 		}

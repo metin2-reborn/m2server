@@ -96,7 +96,7 @@ EVENTFUNC( dragon_lair_collapse_event )
 
 	if ( pInfo == nullptr )
 	{
-		metin2::log::error( "DragonLair_Collapse_Event> <Factor> Null pointer" );
+		metin2::log::error( "Dragon lair collapse event has no event info" );
 		return 0;
 	}
 
@@ -158,7 +158,7 @@ auto dragon_lair::estimated_time() const -> uint32_t
 
 void dragon_lair::on_dragon_dead(character * dragon)
 {
-	metin2::log::info( "DragonLair: 도라곤이 죽어써효");
+	metin2::log::info( "Dragon lair: dragon of guild {:d} killed", guild_id_);
 
 	log_manager::instance().dragon_slay_log(  guild_id_, dragon->get_mob_table().vnum, start_time_, get_global_time() );
 }
@@ -186,7 +186,7 @@ auto dragon_lair_manager::start(int32_t map_index_from, int32_t base_map_index, 
 {
 	int32_t instanceMapIndex = sectree_manager::instance().create_private_map(base_map_index);
 	if (instanceMapIndex == 0) {
-		metin2::log::error("CDragonLairManager::Start() : no private map index available");
+		metin2::log::error("Cannot start dragon lair, no private map index available");
 		return false;
 	}
 
@@ -215,7 +215,7 @@ auto dragon_lair_manager::start(int32_t map_index_from, int32_t base_map_index, 
 
 			strMapBasePath += "/" + pRegionInfo->map_name + "/instance_regen.txt";
 
-			metin2::log::info( "{}", strMapBasePath.c_str());
+			metin2::log::info( "Dragon lair: spawning regen {}", strMapBasePath.c_str());
 
 			regen_do(strMapBasePath.c_str(), instanceMapIndex, pTargetMap->setting.base_x, pTargetMap->setting.base_y, nullptr, true);
 

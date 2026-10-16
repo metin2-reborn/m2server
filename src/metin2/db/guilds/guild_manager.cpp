@@ -140,8 +140,8 @@ void guild_manager::parse_result(sql_result * res)
 		str_to_number(r_info.gold, row[6]);
 		str_to_number(r_info.level, row[7]);
 
-		metin2::log::info( 
-				"GuildWar: {:<24} ladder {:<5d} win {:<3d} draw {:<3d} loss {:<3d}", 
+		metin2::log::debug(
+				"Guild {}: ladder {:d}, wins {:d}, draws {:d}, losses {:d}",
 				r_info.name.c_str(),
 				r_info.ladder_point,
 				r_info.win,
@@ -163,17 +163,17 @@ void guild_manager::initialize()
 	const char * str = power.c_str();
 
 	if (!poly_power_.analyze(str))
-		metin2::log::error("cannot set power poly: {}", str);
+		metin2::log::error("Guild war: invalid power formula: {}", str);
 	else
-		metin2::log::info( "POWER_POLY: {}", str);
+		metin2::log::info("Guild war: power formula {}", str);
 
 	std::string handicap = metin2::config::db().guild_war_handicap;
 	str = handicap.c_str();
 
 	if (!poly_handicap_.analyze(str))
-		metin2::log::error("cannot set handicap poly: {}", str);
+		metin2::log::error("Guild war: invalid handicap formula: {}", str);
 	else
-		metin2::log::info( "HANDICAP_POLY: {}", str);
+		metin2::log::info("Guild war: handicap formula {}", str);
 
 	query_ranking();
 }
@@ -227,7 +227,7 @@ void guild_manager::result_ranking(MYSQL_RES * res)
 		if (iLadderPoint != iLastLadderPoint)
 			++iRank;
 
-		metin2::log::info( "GUILD_RANK: {:<24} {:2d} {:d}", row[1], iRank, iLadderPoint);
+		metin2::log::debug("Guild rank: {} rank {:d}, ladder {:d}", row[1], iRank, iLadderPoint);
 
 		map_k_ladder_point_ranking_by_gid_.insert(std::make_pair(dwGID, iRank));
 	}
@@ -286,7 +286,7 @@ void guild_manager::update()
 		p.guild_to	= ws.gid[1];
 
 		client_manager::instance().forward_packet(HEADER_DG_GUILD_WAR, &p, sizeof(p));
-		metin2::log::info( "GuildWar: GUILD sending start of wait start war {:d} {:d}", ws.gid[0], ws.gid[1]);
+		metin2::log::info("Guild war: starting waiting war between guild {:d} and guild {:d}", ws.gid[0], ws.gid[1]);
 	}
 }
 
@@ -377,7 +377,7 @@ auto guild_manager::is_half_win_ladder_point(uint32_t guild_winner, uint32_t gui
 
 void guild_manager::process_draw(uint32_t guild_id1, uint32_t guild_id2)
 {
-	metin2::log::info( "GuildWar: \tThe war between {:d} and {:d} is ended in draw", guild_id1, guild_id2);
+	metin2::log::info("Guild war: war between guild {:d} and guild {:d} ended in a draw", guild_id1, guild_id2);
 
 	guild_war_draw(guild_id1);
 	guild_war_draw(guild_id2);
@@ -391,7 +391,7 @@ void guild_manager::process_win_lose(uint32_t guild_winner, uint32_t guild_loser
 {
 	guild_war_win(guild_winner);
 	guild_war_lose(guild_loser);
-	metin2::log::info( "GuildWar: \tWinner : {:d} Loser : {:d}", guild_winner, guild_loser);
+	metin2::log::info("Guild war: guild {:d} won against guild {:d}", guild_winner, guild_loser);
 
 	int iPoint = ladder_point(guild_loser);
 	int gain = (int)(iPoint * 0.05);
@@ -400,7 +400,7 @@ void guild_manager::process_win_lose(uint32_t guild_winner, uint32_t guild_loser
 	if (is_half_win_ladder_point(guild_winner, guild_loser))
 		gain /= 2;
 
-	metin2::log::info( "GuildWar: \tgain : {:d} loss : {:d}", gain, loss);
+	metin2::log::info("Guild war: ladder gain {:d}, loss {:d}", gain, loss);
 
 	change_ladder_point(guild_winner, gain);
 	change_ladder_point(guild_loser, -loss);
@@ -410,7 +410,7 @@ void guild_manager::process_win_lose(uint32_t guild_winner, uint32_t guild_loser
 
 void guild_manager::remove_war(uint32_t gid1, uint32_t gid2)
 {
-	metin2::log::info( "GuildWar: RemoveWar({:d}, {:d})", gid1, gid2);
+	metin2::log::debug("Guild war: removing war between guild {:d} and guild {:d}", gid1, gid2);
 
 	if (gid1 > gid2)
 		std::swap(gid2, gid1);
@@ -441,13 +441,13 @@ void guild_manager::war_end(uint32_t gid1, uint32_t gid2, bool force_draw)
 	if (gid1 > gid2)
 		std::swap(gid2, gid1);
 
-	metin2::log::info( "GuildWar: WarEnd {:d} {:d}", gid1, gid2);
+	metin2::log::info("Guild war: ending war between guild {:d} and guild {:d}", gid1, gid2);
 
 	auto itWarMap = war_map_[gid1].find(gid2);
 
 	if (itWarMap == war_map_[gid1].end())
 	{
-		metin2::log::error("GuildWar: war not exist or already ended. [1]");
+		metin2::log::warn("Guild war: cannot end war between guild {:d} and guild {:d}, no such war", gid1, gid2);
 		return;
 	}
 
@@ -456,7 +456,7 @@ void guild_manager::war_end(uint32_t gid1, uint32_t gid2, bool force_draw)
 
 	if (!pData || pData->end)
 	{
-		metin2::log::error("GuildWar: war not exist or already ended. [2]");
+		metin2::log::warn("Guild war: cannot end war between guild {:d} and guild {:d}, already ended", gid1, gid2);
 		return;
 	}
 
@@ -496,7 +496,7 @@ void guild_manager::war_end(uint32_t gid1, uint32_t gid2, bool force_draw)
 
 void guild_manager::recv_war_over(uint32_t guild_winner, uint32_t guild_loser, bool draw_value, int32_t war_price)
 {
-	metin2::log::info( "GuildWar: RecvWarOver : winner {:d} vs {:d} draw? {:d} war_price {:d}", guild_winner, guild_loser, draw_value ? 1 : 0, war_price);
+	metin2::log::info("Guild war: war over, winner guild {:d}, loser guild {:d}, draw {:d}, war price {:d}", guild_winner, guild_loser, draw_value ? 1 : 0, war_price);
 
 	uint32_t GID1 = guild_winner;
 	uint32_t GID2 = guild_loser;
@@ -536,13 +536,13 @@ void guild_manager::recv_war_over(uint32_t guild_winner, uint32_t guild_loser, b
 
 void guild_manager::recv_war_end(uint32_t gid1, uint32_t gid2)
 {
-	metin2::log::info( "GuildWar: RecvWarEnded : {:d} vs {:d}", gid1, gid2);
+	metin2::log::info("Guild war: war between guild {:d} and guild {:d} ended", gid1, gid2);
 	war_end(gid1, gid2, true);
 }
 
 void guild_manager::start_war(uint8_t type, uint32_t gid1, uint32_t gid2, guild_war_reservation * reserve_value)
 {
-	metin2::log::info( "GuildWar: StartWar({:d},{:d},{:d})", type, gid1, gid2);
+	metin2::log::info("Guild war: starting war type {:d} between guild {:d} and guild {:d}", type, gid1, gid2);
 
 	if (gid1 > gid2)
 		std::swap(gid1, gid2);
@@ -576,7 +576,7 @@ void guild_manager::update_score(uint32_t gain_gid, uint32_t opp_gid, int score_
 
 		if (!p || p->end)
 		{
-			metin2::log::error("GuildWar: war not exist or already ended.");
+			metin2::log::warn("Guild war: score update for guild {:d}, but its war against guild {:d} has already ended", gain_gid, opp_gid);
 			return;
 		}
 
@@ -600,7 +600,7 @@ void guild_manager::update_score(uint32_t gain_gid, uint32_t opp_gid, int score_
 			iNewBetScore = p->bet_score[1];
 		}
 
-		metin2::log::info( "GuildWar: SendGuildWarScore guild {:d} wartype {:d} score_delta {:d} betscore_delta {:d} result {:d}, {:d}",
+		metin2::log::debug("Guild war: guild {:d} war type {:d} score {:+d}, bet score {:+d}, now {:d} and {:d}",
 				gain_gid, p->type, score_delta, bet_score_delta, iNewScore, iNewBetScore);
 
 		client_manager::instance().for_each_peer(f_send_guild_war_score(gain_gid, opp_gid, iNewScore, iNewBetScore));
@@ -614,7 +614,7 @@ void guild_manager::add_declare(uint8_t type, uint32_t guild_from, uint32_t guil
 	if (declare_map_.find(di) == declare_map_.end())
 		declare_map_.insert(di);
 
-	metin2::log::info( "GuildWar: AddDeclare(Type:{:d},from:{:d},to:{:d})", type, guild_from, guild_to);
+	metin2::log::info("Guild war: war type {:d} declared by guild {:d} on guild {:d}", type, guild_from, guild_to);
 }
 
 void guild_manager::remove_declare(uint32_t guild_from, uint32_t guild_to)
@@ -629,7 +629,7 @@ void guild_manager::remove_declare(uint32_t guild_from, uint32_t guild_to)
 	if (it != declare_map_.end())
 		declare_map_.erase(it);
 
-	metin2::log::info( "GuildWar: RemoveDeclare(from:{:d},to:{:d})", guild_from, guild_to);
+	metin2::log::info("Guild war: declaration by guild {:d} on guild {:d} removed", guild_from, guild_to);
 }
 
 auto guild_manager::take_bet_price(uint32_t guild_to, uint32_t guild_from, int32_t war_price) -> bool
@@ -639,14 +639,14 @@ auto guild_manager::take_bet_price(uint32_t guild_to, uint32_t guild_from, int32
 
 	if (it_from == map_k_guild_.end() || it_to == map_k_guild_.end())
 	{
-		metin2::log::info( "TakeBetPrice: guild not exist {:d} {:d}",
+		metin2::log::warn("Guild war: cannot take war price, guild {:d} or guild {:d} not found",
 				guild_from, guild_to);
 		return false;
 	}
 
 	if (it_from->second.gold < war_price || it_to->second.gold < war_price)
 	{
-		metin2::log::info( "TakeBetPrice: not enough gold {:d} {:d} to {:d} {:d}", 
+		metin2::log::info("Guild war: cannot take war price, guild {:d} has {:d} gold, guild {:d} has {:d} gold", 
 				guild_from, it_from->second.gold, guild_to, it_to->second.gold);
 		return false;
 	}
@@ -687,9 +687,7 @@ void guild_manager::change_ladder_point(uint32_t gid, int change)
 	snprintf(buf, sizeof(buf), "UPDATE guild%s SET ladder_point=%d WHERE id=%u", get_table_postfix(), r.ladder_point, gid);
 	db_manager::instance().async_query(buf);
 
-	metin2::log::info( "GuildManager::ChangeLadderPoint {:d} {:d}", gid, r.ladder_point);
-	metin2::log::info( "{}", buf);
-
+	metin2::log::info("Guild {:d}: ladder points now {:d}", gid, r.ladder_point);
 	packet_guild_ladder p;
 
 	p.guild = gid;
@@ -703,13 +701,13 @@ void guild_manager::change_ladder_point(uint32_t gid, int change)
 
 void guild_manager::use_skill(uint32_t gid, uint32_t skill_vnum, uint32_t cooltime)
 {
-	metin2::log::info( "UseSkill(gid={:d}, skill={:d}) CoolTime({:d}:{:d})", gid, skill_vnum, cooltime, client_manager::instance().current_time() + cooltime);
+	metin2::log::debug("Guild {:d}: used skill {:d}, cooldown {:d} s (until {:d})", gid, skill_vnum, cooltime, client_manager::instance().current_time() + cooltime);
 	pq_skill_.push(std::make_pair(client_manager::instance().current_time() + cooltime, guild_skill_used(gid, skill_vnum)));
 }
 
 void guild_manager::money_change(uint32_t guild_value, uint32_t gold)
 {
-	metin2::log::info( "GuildManager::MoneyChange {:d} {:d}", guild_value, gold);
+	metin2::log::info("Guild {:d}: gold changed to {:d}", guild_value, gold);
 
 	packet_dg_guild_money_change p;
 	p.guild = guild_value;
@@ -730,12 +728,12 @@ void guild_manager::deposit_money(uint32_t guild, int32_t gold_value)
 
 	if (it == map_k_guild_.end())
 	{
-		metin2::log::error("No guild by id {:d}", guild);
+		metin2::log::warn("Guild {:d} not found, cannot deposit gold", guild);
 		return;
 	}
 
 	it->second.gold += gold_value;
-	metin2::log::info( "GUILD: {:d} Deposit {:d} Total {:d}", guild, gold_value, it->second.gold);
+	metin2::log::info("Guild {:d}: deposited {:d} gold, total {:d}", guild, gold_value, it->second.gold);
 
 	money_change(guild, it->second.gold);
 }
@@ -746,14 +744,14 @@ void guild_manager::withdraw_money(peer* peer, uint32_t guild_value, int32_t gol
 
 	if (it == map_k_guild_.end())
 	{
-		metin2::log::error("No guild by id {:d}", guild_value);
+		metin2::log::warn("Guild {:d} not found, cannot withdraw gold", guild_value);
 		return;
 	}
 
 	if (it->second.gold >= gold_value)
 	{
 		it->second.gold -= gold_value;
-		metin2::log::info( "GUILD: {:d} Withdraw {:d} Total {:d}", guild_value, gold_value, it->second.gold);
+		metin2::log::info("Guild {:d}: withdrawing {:d} gold, total {:d}", guild_value, gold_value, it->second.gold);
 
 		packet_dg_guild_money_withdraw p;
 		p.guild = guild_value;
@@ -771,7 +769,7 @@ void guild_manager::withdraw_money_reply(uint32_t guild, uint8_t give_success, i
 	if (it == map_k_guild_.end())
 		return;
 
-	metin2::log::info( "GuildManager::WithdrawMoneyReply : guild {:d} success {:d} gold {:d}", guild, give_success, gold_value);
+	metin2::log::info("Guild {:d}: withdrawal reply, success {:d}, gold {:d}", guild, give_success, gold_value);
 
 	if (!give_success)
 		it->second.gold += gold_value;
@@ -873,15 +871,15 @@ void guild_manager::boot_reserve_war()
 			if (i == 0 || (int) t.time - client_manager::instance().current_time() < 0)
 			{
 				if (i == 0)
-					metin2::log::info( "{} : DB was shutdowned while war is being.", buf);
+					metin2::log::info("{}: server was shut down during this war, cancelling it", buf);
 				else
-					metin2::log::info( "{} : left time lower than 5 minutes, will be canceled", buf);
+					metin2::log::info("{}: start time already passed, cancelling it", buf);
 
 				pkReserve->draw();
 			}
 			else
 			{
-				metin2::log::info( "{} : OK", buf);
+				metin2::log::info("{}: restored", buf);
 				map_k_war_reserve_.insert(std::make_pair(t.id, std::move(pkReserve)));
 			}
 		}
@@ -957,7 +955,7 @@ auto guild_manager::reserve_war(packet_guild_war * p) -> bool
 	poly_power_.set_var("mc", mc);
 
 	t.power_from = (int32_t) poly_power_.eval();
-	metin2::log::info( "GuildWar: {:d} lvp {:d} rkp {:d} alv {:d} mc {:d} power {:d}", GID1, lvp, rkp, alv, mc, t.power_from);
+	metin2::log::debug("Guild war: guild {:d} level points {:d}, rank points {:d}, average level {:d}, members {:d}, power {:d}", GID1, lvp, rkp, alv, mc, t.power_from);
 
 	guild & k2 = touch_guild(GID2);
 
@@ -972,7 +970,7 @@ auto guild_manager::reserve_war(packet_guild_war * p) -> bool
 	poly_power_.set_var("mc", mc);
 
 	t.power_to = (int32_t) poly_power_.eval();
-	metin2::log::info( "GuildWar: {:d} lvp {:d} rkp {:d} alv {:d} mc {:d} power {:d}", GID2, lvp, rkp, alv, mc, t.power_to);
+	metin2::log::debug("Guild war: guild {:d} level points {:d}, rank points {:d}, average level {:d}, members {:d}, power {:d}", GID2, lvp, rkp, alv, mc, t.power_to);
 
 	if (t.power_to > t.power_from)
 	{
@@ -986,7 +984,7 @@ auto guild_manager::reserve_war(packet_guild_war * p) -> bool
 	}
 
 	t.handicap = (int32_t) poly_handicap_.eval();
-	metin2::log::info( "GuildWar: handicap {:d}", t.handicap);
+	metin2::log::debug("Guild war: handicap {:d}", t.handicap);
 
 	char szQuery[512];
 
@@ -999,7 +997,7 @@ auto guild_manager::reserve_war(packet_guild_war * p) -> bool
 
 	if (pmsg->get()->affected_rows == 0 || pmsg->get()->insert_id == 0 || pmsg->get()->affected_rows == (uint32_t)-1)
 	{
-		metin2::log::error("GuildWar: Cannot insert row");
+		metin2::log::error("Guild war: cannot reserve war between guild {:d} and guild {:d}", GID1, GID2);
 		return false;
 	}
 
@@ -1028,7 +1026,7 @@ void guild_manager::process_reserve_war()
 		{
 			int iMin = (int) ceil((int)(r.time - dwCurTime) / 60.0);
 
-			metin2::log::info( "GuildWar: started GID1 {:d} GID2 {:d} {:d} time {:d} min {:d}", r.guild_from, r.guild_to, r.started, dwCurTime - r.time, iMin);
+			metin2::log::info("Guild war: reserved war between guild {:d} and guild {:d} is starting (started {:d}, {:d} s overdue, {:d} min left)", r.guild_from, r.guild_to, r.started, dwCurTime - r.time, iMin);
 
 			if (iMin <= 0)
 			{
@@ -1071,7 +1069,7 @@ auto guild_manager::bet(uint32_t id, const char * login, uint32_t gold, uint32_t
 
 	if (it == map_k_war_reserve_.end())
 	{
-		metin2::log::info( "WAR_RESERVE: Bet: cannot find reserve war by id {:d}", id);
+		metin2::log::warn("Guild war bet: reserved war {:d} not found, refunding", id);
 		const std::string query = sql::format("INSERT INTO item_award (login, vnum, socket0, given_time) VALUES({}, {}, {}, NOW())",
 				login, ITEM_ELK_VNUM, gold);
 		db_manager::instance().async_query(query.c_str());
@@ -1080,7 +1078,7 @@ auto guild_manager::bet(uint32_t id, const char * login, uint32_t gold, uint32_t
 
 	if (!it->second->bet(login, gold, guild))
 	{
-		metin2::log::info( "WAR_RESERVE: Bet: cannot bet id {:d}, login {}, gold {:d}, guild {:d}", id, login, gold, guild);
+		metin2::log::info("Guild war bet: bet on war {:d} by account {} ({:d} gold on guild {:d}) rejected, refunding", id, login, gold, guild);
 		const std::string query = sql::format("INSERT INTO item_award (login, vnum, socket0, given_time) VALUES({}, {}, {}, NOW())", 
 				login, ITEM_ELK_VNUM, gold);
 		db_manager::instance().async_query(query.c_str());
@@ -1185,19 +1183,19 @@ auto guild_war_reservation::bet(const char * login_value, uint32_t gold_value, u
 {
 	if (data_.guild_from != guild_value && data_.guild_to != guild_value)
 	{
-		metin2::log::info( "GuildWarReserve::Bet: invalid guild id");
+		metin2::log::warn("Guild war bet: guild {:d} is not part of war {:d}", guild_value, data_.id);
 		return false;
 	}
 
 	if (data_.started)
 	{
-		metin2::log::info( "GuildWarReserve::Bet: war is already started");
+		metin2::log::info("Guild war bet: war {:d} has already started", data_.id);
 		return false;
 	}
 
 	if (bet_.find(login_value) != bet_.end())
 	{
-		metin2::log::info( "GuildWarReserve::Bet: failed. already bet");
+		metin2::log::info("Guild war bet: account {} already bet on war {:d}", login_value, data_.id);
 		return false;
 	}
 
@@ -1209,7 +1207,7 @@ auto guild_war_reservation::bet(const char * login_value, uint32_t gold_value, u
 
 	if (pmsg->get()->affected_rows == 0 || pmsg->get()->affected_rows == (uint32_t)-1)
 	{
-		metin2::log::info( "GuildWarReserve::Bet: failed. cannot insert row to guild_war_bet table");
+		metin2::log::error("Guild war bet: cannot record bet of account {} on war {:d}", login_value, data_.id);
 		return false;
 	}
 
@@ -1225,7 +1223,7 @@ auto guild_war_reservation::bet(const char * login_value, uint32_t gold_value, u
 
 	db_manager::instance().async_query(query.c_str());
 
-	metin2::log::info( "GuildWarReserve::Bet: success. {} {:d} war_id {:d} bet {:d} : {:d}", login_value, guild_value, data_.id, data_.bet_from, data_.bet_to);
+	metin2::log::info("Guild war bet: account {} bet on guild {:d} in war {:d}, totals {:d} : {:d}", login_value, guild_value, data_.id, data_.bet_from, data_.bet_to);
 	bet_.insert(std::make_pair(login_value, std::make_pair(guild_value, gold_value)));
 
 	packet_gd_guild_war_bet pckBet;
@@ -1246,7 +1244,7 @@ void guild_war_reservation::draw()
 	if (bet_.empty())
 		return;
 
-	metin2::log::info( "WAR_REWARD: Draw. war_id {:d}", data_.id);
+	metin2::log::info("Guild war reward: war {:d} ended in a draw, refunding bets", data_.id);
 
 	auto it = bet_.begin();
 
@@ -1275,7 +1273,7 @@ void guild_war_reservation::draw()
 
 		if (iRow > 0)
 		{
-			metin2::log::info( "WAR_REWARD: QUERY: {}", query.c_str());
+			metin2::log::debug("Guild war reward: {}", query.c_str());
 			db_manager::instance().async_query(query.c_str());
 		}
 
@@ -1288,18 +1286,18 @@ void guild_war_reservation::end(int score_from, int score_to)
 {
 	uint32_t dwWinner;
 
-	metin2::log::info( "WAR_REWARD: End: From {:d} {:d} To {:d} {:d}", data_.guild_from, score_from, data_.guild_to, score_to);
+	metin2::log::info("Guild war reward: war ended, guild {:d} scored {:d}, guild {:d} scored {:d}", data_.guild_from, score_from, data_.guild_to, score_to);
 
 	if (data_.power_from > data_.power_to)
 	{
 		if (data_.handicap > score_from - score_to)
 		{
-			metin2::log::info( "WAR_REWARD: End: failed to overcome handicap, From is strong but To won");
+			metin2::log::info("Guild war reward: stronger guild {:d} did not overcome the handicap, guild {:d} wins", data_.guild_from, data_.guild_to);
 			dwWinner = data_.guild_to;
 		}
 		else
 		{
-			metin2::log::info( "WAR_REWARD: End: success to overcome handicap, From win!");
+			metin2::log::info("Guild war reward: stronger guild {:d} overcame the handicap and wins", data_.guild_from);
 			dwWinner = data_.guild_from;
 		}
 	}
@@ -1307,12 +1305,12 @@ void guild_war_reservation::end(int score_from, int score_to)
 	{
 		if (data_.handicap > score_to - score_from) 
 		{
-			metin2::log::info( "WAR_REWARD: End: failed to overcome handicap, To is strong but From won");
+			metin2::log::info("Guild war reward: stronger guild {:d} did not overcome the handicap, guild {:d} wins", data_.guild_to, data_.guild_from);
 			dwWinner = data_.guild_from;
 		}
 		else
 		{
-			metin2::log::info( "WAR_REWARD: End: success to overcome handicap, To win!");
+			metin2::log::info("Guild war reward: stronger guild {:d} overcame the handicap and wins", data_.guild_to);
 			dwWinner = data_.guild_to;
 		}
 	}
@@ -1333,17 +1331,17 @@ void guild_war_reservation::end(int score_from, int score_to)
 		dwWinnerBet = data_.bet_to;
 	else
 	{
-		metin2::log::error("WAR_REWARD: fatal error, winner does not exist!");
+		metin2::log::error("Guild war reward: winner guild {:d} is not part of war {:d}", dwWinner, data_.id);
 		return;
 	}
 
 	if (dwWinnerBet == 0)
 	{
-		metin2::log::error("WAR_REWARD: total bet money on winner is zero");
+		metin2::log::info("Guild war reward: nobody bet on winner guild {:d} in war {:d}", dwWinner, data_.id);
 		return;
 	}
 
-	metin2::log::info( "WAR_REWARD: End: Total bet: {:d}, Winner bet: {:d}", dwTotalBet, dwWinnerBet);
+	metin2::log::info("Guild war reward: total bet {:d}, bet on winner {:d}", dwTotalBet, dwWinnerBet);
 
 	auto it = bet_.begin();
 
@@ -1363,7 +1361,7 @@ void guild_war_reservation::end(int score_from, int score_to)
 
 			double ratio = (double) it->second.second / dwWinnerBet;
 
-			metin2::log::info( "WAR_REWARD: {} {:d} ratio {:f}", it->first.c_str(), it->second.second, ratio);
+			metin2::log::info("Guild war reward: account {} bet {:d}, share {:f}", it->first.c_str(), it->second.second, ratio);
 
 			uint32_t dwGold = (uint32_t) (dwTotalBet * ratio * 0.9);
 
@@ -1384,7 +1382,7 @@ void guild_war_reservation::end(int score_from, int score_to)
 
 		if (iRow > 0)
 		{
-			metin2::log::info( "WAR_REWARD: query: {}", query.c_str());
+			metin2::log::debug("Guild war reward: {}", query.c_str());
 			db_manager::instance().async_query(query.c_str());
 		}
 

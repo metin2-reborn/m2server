@@ -79,7 +79,7 @@ namespace quest
 					if (!strncasecmp(pde->d_name, "CVS", 3))
 						continue;
 
-					metin2::log::debug( "QUEST reading {}", pde->d_name);
+					metin2::log::debug("Quest: reading {}", pde->d_name);
 					strlcpy(buf + is, pde->d_name, sizeof(buf) - is);
 					load_state_script(event_index, buf, pde->d_name);
 				}
@@ -122,7 +122,7 @@ namespace quest
 
 		int state_index = q.quest_state_index(stQuestName, stStateName);
 
-		metin2::log::info( "QUEST loading {} : {} [STATE] {}", 
+		metin2::log::debug("Quest: loading {}: quest {} state {}",
 				filename, stQuestName.c_str(), stStateName.c_str());
 
 		if (i == s.npos)
@@ -138,7 +138,7 @@ namespace quest
 
 			if (i == s.npos)
 			{
-				metin2::log::error("invalid QUEST STATE index [{}] [{}]",filename, script_name);
+				metin2::log::error("Bad quest state index in {} (script {})", filename, script_name);
 				return;
 			}
 
@@ -148,7 +148,7 @@ namespace quest
 
 			if (i != s.npos)
 			{
-				metin2::log::error("invalid QUEST STATE name [{}] [{}]",filename, script_name);
+				metin2::log::error("Bad quest state name in {} (script {})", filename, script_name);
 				return;
 			}
 
@@ -199,7 +199,7 @@ namespace quest
 
 	auto npc::on_target(pc & pc, uint32_t quest_index, const char * target_name, const char * verb, bool & ret) -> bool
 	{
-		metin2::log::debug( "OnTarget begin {} verb {} qi {:d}", target_name, verb, quest_index);
+		metin2::log::debug("Quest target: {} verb {} quest {:d}", target_name, verb, quest_index);
 
 		ret = false;
 
@@ -207,7 +207,7 @@ namespace quest
 
 		if (itPCQuest == pc.quest_end())
 		{
-			metin2::log::debug( "no quest");
+			metin2::log::debug("Quest target: player has no such quest");
 			return false;
 		}
 
@@ -218,7 +218,7 @@ namespace quest
 
 		if (it == r.end())
 		{
-			metin2::log::debug( "no target event, state {:d}", iState);
+			metin2::log::debug("Quest target: no target event in state {:d}", iState);
 			return false;
 		}
 
@@ -231,7 +231,7 @@ namespace quest
 			a_arg_script & argScript = *(it_vec++);
 			const char * c_pszArg = argScript.arg.c_str();
 
-			metin2::log::debug( "OnTarget compare {} {:d}", c_pszArg, argScript.arg.length());
+			metin2::log::debug("Quest target: compare with {} (length {:d})", c_pszArg, argScript.arg.length());
 
 			if (strncmp(c_pszArg, target_name, iTargetLen))
 				continue;
@@ -245,12 +245,12 @@ namespace quest
 				continue;
 
 			if (argScript.when_condition.size() > 0)
-				metin2::log::debug( "OnTarget when {} size {:d}", &argScript.when_condition[0], argScript.when_condition.size());
+				metin2::log::debug("Quest target: when {} (size {:d})", &argScript.when_condition[0], argScript.when_condition.size());
 	
 			if (argScript.when_condition.size() != 0 && !is_script_true(&argScript.when_condition[0], argScript.when_condition.size()))
 				continue;
 
-			metin2::log::debug( "OnTarget execute qi {:d} st {:d} code {}", quest_index, iState, (const char *) argScript.script.get_code());
+			metin2::log::debug("Quest target: run quest {:d} state {:d} code {}", quest_index, iState, (const char *) argScript.script.get_code());
 			ret = quest_manager::execute_quest_script(pc, quest_index, iState, argScript.script.get_code(), argScript.script.size());
 			ret = true;
 			return true;
@@ -416,7 +416,7 @@ namespace quest
 	{
 		if (event_index < 0 || event_index >= QUEST_EVENT_COUNT)
 		{
-			metin2::log::error("QUEST invalid EventIndex : {:d}", event_index);
+			metin2::log::error("Quest event index {:d} is out of range", event_index);
 			return false;
 		}
 
@@ -426,7 +426,7 @@ namespace quest
 			{
 				quest_manager & mgr = quest_manager::instance();
 
-				metin2::log::error("QUEST There's suspended quest state, can't run new quest state (quest: {} pc: {})",
+				metin2::log::warn("Cannot start a quest while quest {} is suspended for player {}",
 						pc.current_quest_name().c_str(),
 						mgr.current_character_ptr() ? mgr.current_character_ptr()->name() : "<none>");
 			}
@@ -535,7 +535,7 @@ namespace quest
 	{
 		if (event_index < 0 || event_index >= QUEST_EVENT_COUNT)
 		{
-			metin2::log::error("QUEST invalid EventIndex : {:d}", event_index);
+			metin2::log::error("Quest event index {:d} is out of range", event_index);
 			return false;
 		}
 
@@ -545,7 +545,7 @@ namespace quest
 			{
 				quest_manager & mgr = quest_manager::instance();
 
-				metin2::log::error("QUEST There's suspended quest state, can't run new quest state (quest: {} pc: {})",
+				metin2::log::warn("Cannot start a quest while quest {} is suspended for player {}",
 						pc.current_quest_name().c_str(),
 						mgr.current_character_ptr() ? mgr.current_character_ptr()->name() : "<none>");
 			}
@@ -590,7 +590,7 @@ namespace quest
 								it->second.get_code(), 
 								it->second.size()))
 					{
-						metin2::log::error("QUEST NOT END RUNNING on Login/Logout - {}", 
+						metin2::log::error("Quest {} did not finish its login/logout script",
 								quest_manager::instance().quest_name_by_index(quest_map->first).c_str());
 
 						quest_state& rqs = *pPC->running_quest_state();
@@ -628,7 +628,7 @@ namespace quest
 							itQuestScript->second.get_code(), 
 							itQuestScript->second.size()))
 				{
-					metin2::log::error("QUEST NOT END RUNNING on Login/Logout - {}", 
+					metin2::log::error("Quest {} did not finish its login/logout script",
 							quest_manager::instance().quest_name_by_index(quest_map->first).c_str());
 
 					quest_state& rqs = *pPC->running_quest_state();
@@ -644,7 +644,7 @@ namespace quest
 	{
 		if (event_index<0 || event_index>=QUEST_EVENT_COUNT)
 		{
-			metin2::log::error("QUEST invalid EventIndex : {:d}", event_index);
+			metin2::log::error("Quest event index {:d} is out of range", event_index);
 			return false;
 		}
 
@@ -667,7 +667,7 @@ namespace quest
 			{
 				quest_manager & mgr = quest_manager::instance();
 
-				metin2::log::error("QUEST There's suspended quest state, can't run new quest state (quest: {} pc: {})",
+				metin2::log::warn("Cannot start a quest while quest {} is suspended for player {}",
 						pc.current_quest_name().c_str(),
 						mgr.current_character_ptr() ? mgr.current_character_ptr()->name() : "<none>");
 			}
@@ -679,7 +679,7 @@ namespace quest
 
 		if (pc.quest_end() == itPCQuest)
 		{
-			metin2::log::error("QUEST no quest by (quest {:d})", quest_index);
+			metin2::log::error("Player has no state for quest {:d}", quest_index);
 			return false;
 		}
 
@@ -690,7 +690,7 @@ namespace quest
 
 		if (itQuestMap == rmapEventOwnQuest.end())
 		{
-			metin2::log::error("QUEST no info event (quest {})", questName);
+			metin2::log::error("Quest {} has no info event", questName);
 			return false;
 		}
 
@@ -698,7 +698,7 @@ namespace quest
 
 		if (itQuestScript == itQuestMap->second.end())
 		{
-			metin2::log::error("QUEST no info script by state {:d} (quest {})", itPCQuest->second.st, questName);
+			metin2::log::error("Quest {1} has no info script for state {0:d}", itPCQuest->second.st, questName);
 			return false;
 		}
 
@@ -716,7 +716,7 @@ namespace quest
 			{
 				quest_manager & mgr = quest_manager::instance();
 
-				metin2::log::error("QUEST There's suspended quest state, can't run new quest state (quest: {} pc: {})",
+				metin2::log::warn("Cannot start a quest while quest {} is suspended for player {}",
 						pc.current_quest_name().c_str(),
 						mgr.current_character_ptr() ? mgr.current_character_ptr()->name() : "<none>");
 			}
@@ -811,7 +811,7 @@ namespace quest
 			{
 				quest_manager & mgr = quest_manager::instance();
 
-				metin2::log::error("QUEST There's suspended quest state, can't run new quest state (quest: {} pc: {})",
+				metin2::log::warn("Cannot start a quest while quest {} is suspended for player {}",
 						pc.current_quest_name().c_str(),
 						mgr.current_character_ptr() ? mgr.current_character_ptr()->name() : "<none>");
 			}
@@ -860,7 +860,7 @@ namespace quest
 		auto itQuest = rQuest.find(quest_index);
 		if (itQuest == rQuest.end())
 		{
-			metin2::log::info( "ExecuteEventScript ei {:d} qi {:d} is {:d} - NO QUEST", event_index, quest_index, state);
+			metin2::log::debug("Quest: no quest for event {:d}, quest {:d}, state {:d}", event_index, quest_index, state);
 			return false;
 		}
 
@@ -868,11 +868,11 @@ namespace quest
 		auto itState = rScript.find(state);
 		if (itState == rScript.end())
 		{
-			metin2::log::info( "ExecuteEventScript ei {:d} qi {:d} is {:d} - NO STATE", event_index, quest_index, state);
+			metin2::log::debug("Quest: no script for event {:d}, quest {:d}, state {:d}", event_index, quest_index, state);
 			return false;
 		}
 
-		metin2::log::info( "ExecuteEventScript ei {:d} qi {:d} is {:d}", event_index, quest_index, state);
+		metin2::log::debug("Quest: run event {:d}, quest {:d}, state {:d}", event_index, quest_index, state);
 		quest_manager::instance().set_current_event_index(event_index);
 		return quest_manager::execute_quest_script(pc, quest_index, state, itState->second.get_code(), itState->second.size());
 	}

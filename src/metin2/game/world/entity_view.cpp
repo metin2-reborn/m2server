@@ -128,7 +128,7 @@ void entity::update_sectree()
 		if (is_type(ENTITY_CHARACTER))
 		{
 			character * tch = (character *) this;
-			metin2::log::error("null sectree name: {} {:d} {:d}",  tch->name(), x(), y());
+			metin2::log::error("Character {} at {:d} {:d} has no sectree",  tch->name(), x(), y());
 		}
 
 		return;

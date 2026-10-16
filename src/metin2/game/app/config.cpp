@@ -69,7 +69,7 @@ void map_allow_log()
 	std::set<int>::iterator i;
 
 	for (i = set_map_allows.begin(); i != set_map_allows.end(); ++i)
-		metin2::log::info( "MAP_ALLOW: {:d}", *i);
+		metin2::log::info( "Hosting map {:d}", *i);
 }
 
 
@@ -80,7 +80,7 @@ void map_allow_copy(int32_t * pl, int size)
 
 	if (set_map_allows.size() > static_cast<size_t>(size))
 	{
-		metin2::log::error("too many maps for the internal routing capacity ({:d})", size);
+		metin2::log::error("Too many allowed maps (at most {:d})", size);
 		exit(1);
 	}
 	while (it != set_map_allows.end() && iCount < size)
@@ -154,7 +154,7 @@ void config_init()
 		strlcpy(public_ip, server.bind_ip.c_str(), sizeof(public_ip));
 	else if (!get_ip_info())
 	{
-		metin2::log::error("cannot detect the address to bind to; set server.bind_ip");
+		metin2::log::error("Cannot detect the address to bind to; set server.bind_ip");
 		exit(1);
 	}
 
@@ -170,7 +170,7 @@ void config_init()
 		}
 		else
 		{
-			metin2::log::error("cannot resolve server.proxy_ip {}", server.proxy_ip);
+			metin2::log::error("Cannot resolve server.proxy_ip {}", server.proxy_ip);
 			exit(1);
 		}
 	}
@@ -190,11 +190,11 @@ void config_init()
 
 	if (false == account_db::instance().is_connected())
 	{
-		metin2::log::error( "cannot start server while no common sql connected");
+		metin2::log::error( "Cannot connect to the common database");
 		exit(1);
 	}
 
-	metin2::log::info( "CommonSQL connected");
+	metin2::log::info( "Common database connected");
 
 	// Must not get a WHERE clause.
 	{
@@ -205,7 +205,7 @@ void config_init()
 
 		if (pMsg->get()->num_rows == 0)
 		{
-			metin2::log::error( "COMMON_SQL: DirectQuery failed : {}", szQuery);
+			metin2::log::error( "Common database locale table is empty or unreadable: {}", szQuery);
 			exit(1);
 		}
 
@@ -217,14 +217,14 @@ void config_init()
 			{
 				if (locale_service_init(row[1]) == false)
 				{
-					metin2::log::error( "COMMON_SQL: invalid locale key {}", row[1]);
+					metin2::log::error( "Invalid locale {} in common database", row[1]);
 					exit(1);
 				}
 			}
 		}
 	}
 
-	metin2::log::info( "Setting DB to locale {}", locale.c_str());
+	metin2::log::info( "Database locale: {}", locale.c_str());
 
 	account_db::instance().set_locale(locale);
 
@@ -235,11 +235,11 @@ void config_init()
 
 	if (!db_manager::instance().is_connected())
 	{
-		metin2::log::error( "PlayerSQL.ConnectError");
+		metin2::log::error( "Cannot connect to the player database {}", player_db);
 		exit(1);
 	}
 
-	metin2::log::info( "PlayerSQL connected");
+	metin2::log::info( "Player database connected");
 
 	if (!metin2::config::is_auth())
 	{
@@ -247,11 +247,11 @@ void config_init()
 
 		if (!log_manager::instance().is_connected())
 		{
-			metin2::log::error( "LogSQL.ConnectError");
+			metin2::log::error( "Cannot connect to the log database {}", db.log);
 			exit(1);
 		}
 
-		metin2::log::info( "LogSQL connected");
+		metin2::log::info( "Log database connected");
 
 		log_manager::instance().boot_log(server.hostname.c_str(), server.channel);
 	}
@@ -263,7 +263,7 @@ void config_init()
 
 		if (pMsg->get()->num_rows == 0)
 		{
-			metin2::log::error( "[SKILL_PERCENT] Query failed: {}", szQuery);
+			metin2::log::error( "Locale table has no SKILL_POWER_BY_LEVEL: {}", szQuery);
 			exit(1);
 		}
 
@@ -276,7 +276,7 @@ void config_init()
 		char num[128];
 		int aiBaseSkillPowerByLevelTable[SKILL_MAX_LEVEL+1];
 
-		metin2::log::info( "SKILL_POWER_BY_LEVEL {}", p);
+		metin2::log::debug( "Skill power by level: {}", p);
 		while (*p != '\0' && cnt < (SKILL_MAX_LEVEL + 1))
 		{
 			p = one_argument(p, num, sizeof(num));
@@ -286,11 +286,11 @@ void config_init()
 			{
 				if (cnt != (SKILL_MAX_LEVEL + 1))
 				{
-					metin2::log::error( "[SKILL_PERCENT] locale table has not enough skill information! (count: {:d} query: {})", cnt, szQuery);
+					metin2::log::error( "Locale table has too few skill power values ({:d}): {}", cnt, szQuery);
 					exit(1);
 				}
 
-				metin2::log::info( "SKILL_POWER_BY_LEVEL: Done! (count {:d})", cnt);
+				metin2::log::info( "Loaded {:d} skill power levels", cnt);
 				break;
 			}
 		}
@@ -311,7 +311,7 @@ void config_init()
 			p = row[0];
 			int aiSkillTable[SKILL_MAX_LEVEL + 1];
 
-			metin2::log::info( "SKILL_POWER_BY_JOB {:d} {}", job, p);
+			metin2::log::debug( "Skill power of type {:d}: {}", job, p);
 			while (*p != '\0' && cnt < (SKILL_MAX_LEVEL + 1))
 			{			
 				p = one_argument(p, num, sizeof(num));
@@ -321,11 +321,11 @@ void config_init()
 				{
 					if (cnt != (SKILL_MAX_LEVEL + 1))
 					{
-						metin2::log::error( "[SKILL_PERCENT] locale table has not enough skill information! (count: {:d} query: {})", cnt, szQuery);
+						metin2::log::error( "Locale table has too few skill power values ({:d}): {}", cnt, szQuery);
 						exit(1);
 					}
 
-					metin2::log::info( "SKILL_POWER_BY_JOB: Done! (job: {:d} count: {:d})", job, cnt);
+					metin2::log::debug( "Loaded skill power of type {:d} ({:d} levels)", job, cnt);
 					break;
 				}
 			}
@@ -356,7 +356,7 @@ void config_init()
 
 			if (!*cmd || !*levelname)
 			{
-				metin2::log::error( "CMD syntax error: <cmd> <DISABLE | LOW_WIZARD | WIZARD | HIGH_WIZARD | GOD>");
+				metin2::log::error( "CMD file: each line must be <command> <DISABLE | LOW_WIZARD | WIZARD | HIGH_WIZARD | GOD | IMPLEMENTOR>");
 				exit(1);
 			}
 
@@ -374,7 +374,7 @@ void config_init()
 				level = GM_IMPLEMENTOR + 1;
 			else
 			{
-				metin2::log::error( "CMD syntax error: <cmd> <DISABLE | LOW_WIZARD | WIZARD | HIGH_WIZARD | GOD>");
+				metin2::log::error( "CMD file: unknown level {} for command {}", levelname, cmd);
 				exit(1);
 			}
 

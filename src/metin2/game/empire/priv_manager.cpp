@@ -43,7 +43,7 @@ void priv_manager::request_give_guild_priv(uint32_t guild_id, uint8_t type, int 
 {
 	if (MAX_PRIV_NUM <= type)
 	{
-		metin2::log::error("PRIV_MANAGER: RequestGiveGuildPriv: wrong guild priv type({:d})", type);
+		metin2::log::error("Invalid guild privilege type {:d} requested", type);
 		return;
 	}
 
@@ -63,7 +63,7 @@ void priv_manager::request_give_empire_priv(uint8_t empire, uint8_t type, int va
 {
 	if (MAX_PRIV_NUM <= type)
 	{
-		metin2::log::error("PRIV_MANAGER: RequestGiveEmpirePriv: wrong empire priv type({:d})", type);
+		metin2::log::error("Invalid empire privilege type {:d} requested", type);
 		return;
 	}
 
@@ -83,7 +83,7 @@ void priv_manager::request_give_character_priv(uint32_t pid, uint8_t type, int v
 {
 	if (MAX_PRIV_NUM <= type)
 	{
-		metin2::log::error("PRIV_MANAGER: RequestGiveCharacterPriv: wrong char priv type({:d})", type);
+		metin2::log::error("Invalid character privilege type {:d} requested", type);
 		return;
 	}
 
@@ -101,11 +101,11 @@ void priv_manager::give_guild_priv(uint32_t guild_id, uint8_t type, int value, u
 {
 	if (MAX_PRIV_NUM <= type)
 	{
-		metin2::log::error("PRIV_MANAGER: GiveGuildPriv: wrong guild priv type({:d})", type);
+		metin2::log::error("Invalid guild privilege type {:d}", type);
 		return;
 	}
 
-	metin2::log::info("Set Guild Priv: guild_id({:d}) type({:d}) value({:d}) duration_sec({:d})", guild_id, type, value, end_time_sec - get_global_time());
+	metin2::log::info("Guild {:d} privilege type {:d} set to {:d} for {:d} seconds", guild_id, type, value, end_time_sec - get_global_time());
 
 	value = std::clamp(value, 0, 1000);
 	end_time_sec = std::clamp<int>(end_time_sec, 0, get_global_time()+60*60*24*7);
@@ -141,11 +141,11 @@ void priv_manager::give_character_priv(uint32_t pid, uint8_t type, int value, ui
 {
 	if (MAX_PRIV_NUM <= type)
 	{
-		metin2::log::error("PRIV_MANAGER: GiveCharacterPriv: wrong char priv type({:d})", type);
+		metin2::log::error("Invalid character privilege type {:d}", type);
 		return;
 	}
 
-	metin2::log::info("Set Character Priv {:d} {:d} {:d}", pid, type, value);
+	metin2::log::info("Pid {:d} privilege type {:d} set to {:d}", pid, type, value);
 
 	value = std::clamp(value, 0, 1000);
 
@@ -159,11 +159,11 @@ void priv_manager::give_empire_priv(uint8_t empire, uint8_t type, int value, uin
 {
 	if (MAX_PRIV_NUM <= type)
 	{
-		metin2::log::error("PRIV_MANAGER: GiveEmpirePriv: wrong empire priv type({:d})", type);
+		metin2::log::error("Invalid empire privilege type {:d}", type);
 		return;
 	}
 
-	metin2::log::info( "Set Empire Priv: empire({:d}) type({:d}) value({:d}) duration_sec({:d})", empire, type, value, end_time_sec-get_global_time());
+	metin2::log::info( "Empire {:d} privilege type {:d} set to {:d} for {:d} seconds", empire, type, value, end_time_sec-get_global_time());
 
 	value = std::clamp(value, 0, 1000);
 	end_time_sec = std::clamp<int>(end_time_sec, 0, get_global_time()+60*60*24*7);

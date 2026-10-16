@@ -142,7 +142,7 @@ namespace quest
 		character * ch = quest_manager::instance().current_character_ptr();
 
 		int pct = std::clamp(ch->horse_health() * 100 / ch->horse_max_health(), 0, 100);
-		metin2::log::debug( "horse.get_health_pct {:d}", pct);
+		metin2::log::debug("Horse: health {:d}%", pct);
 
 		if (ch->horse_level())
 			lua_pushnumber(lua, pct);
@@ -168,7 +168,7 @@ namespace quest
 	{
 		character * ch = quest_manager::instance().current_character_ptr();
 		int pct = std::clamp(ch->horse_stamina() * 100 / ch->horse_max_stamina(), 0, 100);
-		metin2::log::debug( "horse.get_stamina_pct {:d}", pct);
+		metin2::log::debug("Horse: stamina {:d}%", pct);
 
 		if (ch->horse_level())
 			lua_pushnumber(lua, pct);

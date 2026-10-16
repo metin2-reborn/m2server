@@ -29,7 +29,7 @@ auto guild_mark_image::save(const char* file_name) -> bool
 
 auto guild_mark_image::build(const char * file_name) -> bool
 {
-	metin2::log::info( "GuildMarkImage: creating new file {}", file_name);
+	metin2::log::info( "Guild marks: creating new mark image {}", file_name);
 
 	std::ranges::fill(pixels_, 0);
 	return save(file_name);
@@ -43,19 +43,19 @@ auto guild_mark_image::load(const char * file_name) -> bool
 
 	if (pixels.empty())
 	{
-		metin2::log::error("GuildMarkImage: {} cannot open file.", file_name);
+		metin2::log::error("Cannot open guild mark image {}", file_name);
 		return false;
 	}
 
 	if (width != WIDTH)
 	{
-		metin2::log::error("GuildMarkImage: {} width must be {:d}", file_name, WIDTH);
+		metin2::log::error("Guild mark image {} has the wrong width, expected {:d}", file_name, WIDTH);
 		return false;
 	}
 
 	if (height != HEIGHT)
 	{
-		metin2::log::error("GuildMarkImage: {} height must be {:d}", file_name, HEIGHT);
+		metin2::log::error("Guild mark image {} has the wrong height, expected {:d}", file_name, HEIGHT);
 		return false;
 	}
 
@@ -83,7 +83,7 @@ auto guild_mark_image::save_mark(uint32_t pos_mark, uint8_t * image) -> bool
 {
 	if (pos_mark >= MARK_TOTAL_COUNT)
 	{
-		metin2::log::error("GuildMarkImage::CopyMarkFromData: Invalid mark position {:d}", pos_mark);
+		metin2::log::error("Invalid guild mark position {:d}", pos_mark);
 		return false;
 	}
 
@@ -112,7 +112,7 @@ auto guild_mark_image::delete_mark(uint32_t pos_mark) -> bool
 void guild_mark_image::build_all_blocks()
 {
 	pixel apxBuf[guild_mark_block::SIZE];
-	metin2::log::info( "GuildMarkImage::BuildAllBlocks");
+	metin2::log::debug( "Guild marks: building all mark blocks");
 
 	for (uint32_t row = 0; row < BLOCK_ROW_COUNT; ++row)
 		for (uint32_t col = 0; col < BLOCK_COL_COUNT; ++col)
@@ -144,7 +144,7 @@ void guild_mark_block::compress(const pixel * px_buf)
 
 	if (LZO_E_OK != lzo1x_1_compress((const uint8_t *) px_buf, sizeof(pixel) * guild_mark_block::SIZE, comp_buf, &size_comp_buf, lzo_manager::instance().work_memory()))
 	{
-		metin2::log::error("SGuildMarkBlock::Compress: Error! {:d} > {:d}", sizeof(pixel) * guild_mark_block::SIZE, static_cast<unsigned long>(size_comp_buf));
+		metin2::log::error("Guild mark block compression failed ({:d} bytes in, {:d} bytes out)", sizeof(pixel) * guild_mark_block::SIZE, static_cast<unsigned long>(size_comp_buf));
 		return;
 	}
 

@@ -157,7 +157,7 @@ auto ds_manager::refresh_item_attributes(item * ds) -> bool
 {
 	if (!ds->is_dragon_soul())
 	{
-		metin2::log::error("This item(ID : {:d}) is not DragonSoul.", ds->id());
+		metin2::log::error("Item (id {:d}) is not a dragon soul", ds->id());
 		return false;
 	}
 
@@ -169,20 +169,20 @@ auto ds_manager::refresh_item_attributes(item * ds) -> bool
 
 	if (!table_->basic_applys(ds_type, vec_basic_applys))
 	{
-		metin2::log::error("There is no BasicApply about {:d} type dragon soul.", ds_type);
+		metin2::log::error("No basic applies for dragon soul type {:d}", ds_type);
 		return false;
 	}
 
 	if (!table_->additional_applys(ds_type, vec_addtional_applys))
 	{
-		metin2::log::error("There is no AdditionalApply about {:d} type dragon soul.", ds_type);
+		metin2::log::error("No additional applies for dragon soul type {:d}", ds_type);
 		return false;
 	}
 
 	int basic_apply_num, add_min, add_max;
 	if (!table_->apply_num_settings(ds_type, grade_idx, basic_apply_num, add_min, add_max))
 	{
-		metin2::log::error("In ApplyNumSettings, INVALID VALUES Group type({:d}), GRADE idx({:d})", ds_type, grade_idx);
+		metin2::log::error("No apply count settings for dragon soul type {:d}, grade {:d}", ds_type, grade_idx);
 		return false;
 	}
 
@@ -226,7 +226,7 @@ auto ds_manager::put_attributes(item * ds) -> bool
 {
 	if (!ds->is_dragon_soul())
 	{
-		metin2::log::error("This item(ID : {:d}) is not DragonSoul.", ds->id());
+		metin2::log::error("Item (id {:d}) is not a dragon soul", ds->id());
 		return false;
 	}
 
@@ -238,12 +238,12 @@ auto ds_manager::put_attributes(item * ds) -> bool
 
 	if (!table_->basic_applys(ds_type, vec_basic_applys))
 	{
-		metin2::log::error("There is no BasicApply about {:d} type dragon soul.", ds_type);
+		metin2::log::error("No basic applies for dragon soul type {:d}", ds_type);
 		return false;
 	}
 	if (!table_->additional_applys(ds_type, vec_addtional_applys))
 	{
-		metin2::log::error("There is no AdditionalApply about {:d} type dragon soul.", ds_type);
+		metin2::log::error("No additional applies for dragon soul type {:d}", ds_type);
 		return false;
 	}
 
@@ -251,7 +251,7 @@ auto ds_manager::put_attributes(item * ds) -> bool
 	int basic_apply_num, add_min, add_max;
 	if (!table_->apply_num_settings(ds_type, grade_idx, basic_apply_num, add_min, add_max))
 	{
-		metin2::log::error("In ApplyNumSettings, INVALID VALUES Group type({:d}), GRADE idx({:d})", ds_type, grade_idx);
+		metin2::log::error("No apply count settings for dragon soul type {:d}, grade {:d}", ds_type, grade_idx);
 		return false;
 	}
 
@@ -285,7 +285,7 @@ auto ds_manager::put_attributes(item * ds) -> bool
 		}
 		if (!make_distinct_random_number_set(list_probs, random_set))
 		{
-			metin2::log::error("MakeDistinctRandomNumberSet error.");
+			metin2::log::error("Cannot pick distinct additional applies for dragon soul (id {:d})", ds->id());
 			return false;
 		}
 
@@ -360,7 +360,7 @@ auto ds_manager::extract_dragon_heart(character * ch, item * item_value, item * 
 
 	if (-1 == idx)
 	{
-		metin2::log::error("Gamble is failed. ds_type({:d}), grade_idx({:d})", ds_type, grade_idx);
+		metin2::log::error("Dragon heart extraction roll failed for type {:d}, grade {:d}", ds_type, grade_idx);
 		return false;
 	}
 
@@ -385,7 +385,7 @@ auto ds_manager::extract_dragon_heart(character * ch, item * item_value, item * 
 		
 		if (nullptr == pDH)
 		{
-			metin2::log::error("Cannot create DRAGON_HEART({:d}).", DRAGON_HEART_VNUM);
+			metin2::log::error("Cannot create dragon heart (vnum {:d})", DRAGON_HEART_VNUM);
 			return false;
 		}
 
@@ -412,7 +412,7 @@ auto ds_manager::pull_out(character * ch, item_pos dest_cell, item *& item_value
 {
 	if (nullptr == ch || nullptr == item_value)
 	{
-		metin2::log::error("NULL POINTER. ch({}) or pItem({})", static_cast<const void *>(ch), static_cast<const void *>(item_value));
+		metin2::log::error("Missing character ({}) or item ({})", static_cast<const void *>(ch), static_cast<const void *>(item_value));
 		return false;
 	}
 
@@ -514,7 +514,7 @@ auto ds_manager::do_refine_grade(character * ch, item_pos (&item_poses)[DRAGON_S
 
 	if (!ch->dragon_soul_refine_window_can_refine())
 	{
-		metin2::log::error("{} do not activate DragonSoulRefineWindow. But how can he come here?", ch->name());
+		metin2::log::warn("Player {} sent a dragon soul refine without the refine window open", ch->name());
 		ch->chat_packet(CHAT_TYPE_INFO, "[SYSTEM ERROR]You cannot upgrade dragon soul without refine window.");
 		return false;
 	}
@@ -590,7 +590,7 @@ auto ds_manager::do_refine_grade(character * ch, item_pos (&item_poses)[DRAGON_S
 
 	if (count != need_count)
 	{
-		metin2::log::error("Possiblity of invalid client. Name {}", ch->name());
+		metin2::log::warn("Player {} sent a dragon soul refine with the wrong material count (possible modified client)", ch->name());
 		uint8_t bSubHeader = count < need_count? DS_SUB_HEADER_REFINE_FAIL_NOT_ENOUGH_MATERIAL : DS_SUB_HEADER_REFINE_FAIL_TOO_MUCH_MATERIAL;
 		send_refine_result_packet(ch, bSubHeader, NPOS);
 		return false;
@@ -605,7 +605,7 @@ auto ds_manager::do_refine_grade(character * ch, item_pos (&item_poses)[DRAGON_S
 	
 	if (-1 == (result_grade = gamble(vec_probs)))
 	{
-		metin2::log::error("Gamble failed. See RefineGardeTables' probabilities");
+		metin2::log::error("Dragon soul grade refine roll failed; check RefineGradeTables probabilities");
 		return false;
 	}
 
@@ -613,7 +613,7 @@ auto ds_manager::do_refine_grade(character * ch, item_pos (&item_poses)[DRAGON_S
 
 	if (nullptr == pResultItem)
 	{
-		metin2::log::error("INVALID DRAGON SOUL({:d})", make_dragon_soul_vnum(ds_type, (uint8_t)result_grade, 0, 0));
+		metin2::log::error("Cannot create dragon soul (vnum {:d})", make_dragon_soul_vnum(ds_type, (uint8_t)result_grade, 0, 0));
 		return false;
 	}
 
@@ -664,7 +664,7 @@ auto ds_manager::do_refine_step(character * ch, item_pos (&item_poses)[DRAGON_SO
 		return false;
 	if (!ch->dragon_soul_refine_window_can_refine())
 	{
-		metin2::log::error("{} do not activate DragonSoulRefineWindow. But how can he come here?", ch->name());
+		metin2::log::warn("Player {} sent a dragon soul refine without the refine window open", ch->name());
 		ch->chat_packet(CHAT_TYPE_INFO, "[SYSTEM ERROR]You cannot use dragon soul refine window.");
 		return false;
 	}
@@ -733,7 +733,7 @@ auto ds_manager::do_refine_step(character * ch, item_pos (&item_poses)[DRAGON_SO
 
 	if (count != need_count)
 	{
-		metin2::log::error("Possiblity of invalid client. Name {}", ch->name());
+		metin2::log::warn("Player {} sent a dragon soul refine with the wrong material count (possible modified client)", ch->name());
 		uint8_t bSubHeader = count < need_count? DS_SUB_HEADER_REFINE_FAIL_NOT_ENOUGH_MATERIAL : DS_SUB_HEADER_REFINE_FAIL_TOO_MUCH_MATERIAL;
 		send_refine_result_packet(ch, bSubHeader, NPOS);
 		return false;
@@ -749,7 +749,7 @@ auto ds_manager::do_refine_step(character * ch, item_pos (&item_poses)[DRAGON_SO
 
 	if (-1 == (result_step = gamble(vec_probs)))
 	{
-		metin2::log::error("Gamble failed. See RefineStepTables' probabilities");
+		metin2::log::error("Dragon soul step refine roll failed; check RefineStepTables probabilities");
 		return false;
 	}
 
@@ -757,7 +757,7 @@ auto ds_manager::do_refine_step(character * ch, item_pos (&item_poses)[DRAGON_SO
 
 	if (nullptr == pResultItem)
 	{
-		metin2::log::error("INVALID DRAGON SOUL({:d})", make_dragon_soul_vnum(ds_type, grade_idx, (uint8_t)result_step, 0));
+		metin2::log::error("Cannot create dragon soul (vnum {:d})", make_dragon_soul_vnum(ds_type, grade_idx, (uint8_t)result_step, 0));
 		return false;
 	}
 
@@ -815,7 +815,7 @@ auto ds_manager::do_refine_strength(character * ch, item_pos (&item_poses)[DRAGO
 		return false;
 	if (!ch->dragon_soul_refine_window_can_refine())
 	{
-		metin2::log::error("{} do not activate DragonSoulRefineWindow. But how can he come here?", ch->name());
+		metin2::log::warn("Player {} sent a dragon soul refine without the refine window open", ch->name());
 		ch->chat_packet(CHAT_TYPE_INFO, "[SYSTEM ERROR]You cannot use dragon soul refine window.");
 		return false;
 	}
@@ -928,7 +928,7 @@ auto ds_manager::do_refine_strength(character * ch, item_pos (&item_poses)[DRAGO
 		pResult = item_manager::instance().create_item(make_dragon_soul_vnum(bType, bGrade, bStep, bStrength + 1));
 		if (nullptr == pResult)
 		{
-			metin2::log::error("INVALID DRAGON SOUL({:d})", make_dragon_soul_vnum(bType, bGrade, bStep, bStrength + 1));
+			metin2::log::error("Cannot create dragon soul (vnum {:d})", make_dragon_soul_vnum(bType, bGrade, bStep, bStrength + 1));
 			return false;
 		}
 		pDragonSoul->remove_from_character();
@@ -953,7 +953,7 @@ auto ds_manager::do_refine_strength(character * ch, item_pos (&item_poses)[DRAGO
 			pResult = item_manager::instance().create_item(make_dragon_soul_vnum(bType, bGrade, bStep, bStrength - 1));
 			if (nullptr == pResult)
 			{
-				metin2::log::error("INVALID DRAGON SOUL({:d})", make_dragon_soul_vnum(bType, bGrade, bStep, bStrength - 1));
+				metin2::log::error("Cannot create dragon soul (vnum {:d})", make_dragon_soul_vnum(bType, bGrade, bStep, bStrength - 1));
 				return false;
 			}
 			pDragonSoul->copy_attribute_to(pResult);

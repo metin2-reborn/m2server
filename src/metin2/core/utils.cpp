@@ -83,12 +83,12 @@ auto thecore_random() -> uint32_t {
 
 auto number(int from, int to, std::source_location where) -> int {
     if (from > to) {
-        metin2::log::error("number(): first argument is bigger than second argument {:d} -> {:d}, {} {:d}", from, to, where.file_name(), where.line());
+        metin2::log::error("Random range is reversed ({:d} > {:d}), called from {}:{:d}", from, to, where.file_name(), where.line());
         std::swap(from, to);
     }
 
     if (to - from + 1 == 0) {
-        metin2::log::error("number(): devided by 0");
+        metin2::log::error("Random range covers the whole int domain, returning 0");
         return 0;
     }
 
@@ -100,7 +100,7 @@ auto fnumber(float from, float to) -> float {
 }
 
 void core_dump(std::source_location where) {
-    metin2::log::error("*** Dumping Core {}:{:d} ***", where.file_name(), where.line());
+    metin2::log::error("Dumping core at {}:{:d}", where.file_name(), where.line());
 
     std::fflush(stdout);
     std::fflush(stderr);

@@ -176,13 +176,13 @@ auto exchange::add_item(item_pos item_pos, uint8_t display_pos) -> bool
 
 	if (item->is_exchanging())
 	{
-		metin2::log::info( "EXCHANGE under exchanging");
+		metin2::log::warn("Item {} (id {:d}) is already in an exchange", item->name(), item->id());
 		return false;
 	}
 
 	if (!grid_->is_empty(display_pos, 1, item->size()))
 	{
-		metin2::log::info( "EXCHANGE not empty item_pos {:d} {:d} {:d}", display_pos, 1, item->size());
+		metin2::log::debug("Exchange: slot {0:d} is not free for item size {2:d}", display_pos, 1, item->size());
 		return false;
 	}
 
@@ -217,7 +217,7 @@ auto exchange::add_item(item_pos item_pos, uint8_t display_pos) -> bool
 				item->count(),
 				item);
 
-		metin2::log::info( "EXCHANGE AddItem success {} pos({:d}, {:d}) {:d}", item->name(), item_pos.window_type, item_pos.cell, display_pos);
+		metin2::log::debug("Exchange: added {} from window {:d} cell {:d} to slot {:d}", item->name(), item_pos.window_type, item_pos.cell, display_pos);
 
 		return true;
 	}
@@ -432,7 +432,7 @@ auto exchange::done() -> bool
 
 		if (empty_pos < 0)
 		{
-			metin2::log::error("Exchange::Done : Cannot find blank position in inventory {} <-> {} item {}", 
+			metin2::log::error("Exchange {} <-> {}: no free inventory slot for item {}",
 					owner_->name(), victim->name(), item->name());
 			continue;
 		}
@@ -534,7 +534,7 @@ auto exchange::accept(bool accept) -> bool
 
 		if (!db_clientdesc->is_connected())
 		{
-			metin2::log::error("Cannot use exchange feature while DB cache connection is dead.");
+			metin2::log::warn("Exchange refused: db cache connection is down");
 			victim->chat_packet(CHAT_TYPE_INFO, "Unknown error");
 			owner()->chat_packet(CHAT_TYPE_INFO, "Unknown error");
 			goto EXCHANGE_END;

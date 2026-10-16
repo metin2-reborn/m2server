@@ -132,7 +132,7 @@ auto desc_manager::accept_desc(net::tcp::socket socket) -> desc *
 
 		if (inet_pton(AF_INET, host, &addr) == 1 && is_ban_ip(addr))
 		{
-			metin2::log::info( "connection from {} was banned.", host);
+			metin2::log::info( "Refused connection from banned address {}", host);
 			connection->close();
 			return nullptr;
 		}
@@ -140,7 +140,7 @@ auto desc_manager::accept_desc(net::tcp::socket socket) -> desc *
 
 	if (sockets_connected_ >= MAX_ALLOW_USER)
 	{
-		metin2::log::error("max connection reached. MAX_ALLOW_USER = {:d}", MAX_ALLOW_USER);
+		metin2::log::warn("Connection refused: limit of {:d} connections reached", MAX_ALLOW_USER);
 		connection->close();
 		return nullptr;
 	}
@@ -169,7 +169,7 @@ auto desc_manager::accept_p2_p_desc(net::tcp::socket socket) -> desc *
 
 	if (!pkDesc->setup(net::connection::create(std::move(socket), MAX_SERVER_INPUT, MAX_SERVER_OUTPUT)))
 	{     
-		metin2::log::error("DESC_MANAGER::AcceptP2PDesc : Setup failed");
+		metin2::log::error("Cannot set up accepted peer connection");
 		pkDesc->destroy();
 		delete pkDesc;
 		return nullptr;
@@ -178,20 +178,20 @@ auto desc_manager::accept_p2_p_desc(net::tcp::socket socket) -> desc *
 	set_pk_desc_.insert(pkDesc);
 	++sockets_connected_;
 
-	metin2::log::info( "DESC_MANAGER::AcceptP2PDesc  {}", pkDesc->host_name());
+	metin2::log::info( "Accepted peer connection from {}", pkDesc->host_name());
 	p2_p_manager::instance().register_acceptor(pkDesc);
 	return (pkDesc);
 }
 
 void desc_manager::connect_account(const std::string& login, desc * d)
 {
-metin2::log::debug( "BBBB ConnectAccount({})", login.c_str());
+metin2::log::debug( "Account {} bound to connection", login.c_str());
 	map_login_name_.insert(desc_loginname_map::value_type(login,d));
 }
 
 void desc_manager::disconnect_account(const std::string& login)
 {
-metin2::log::debug( "BBBB DisConnectAccount({})", login.c_str());
+metin2::log::debug( "Account {} unbound from connection", login.c_str());
 	map_login_name_.erase(login);
 }
 
@@ -383,7 +383,7 @@ void desc_manager::user_count(int & total, int ** pai_empire_user_count, int & l
 	int iCount = p2_p_manager::instance().count();
 	if (iCount < 0)
 	{
-		metin2::log::error("P2P_MANAGER::instance().GetCount() == -1");
+		metin2::log::error("Peer user count is negative ({:d})", iCount);
 	}
 	total = local_user_count_ + iCount;
 	local_count = local_user_count_;

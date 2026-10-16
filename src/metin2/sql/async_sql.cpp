@@ -67,7 +67,7 @@ async_sql::~async_sql() {
     quit();
 
     if (initialized_) {
-        metin2::log::info( "AsyncSQL: closing mysql connection.");
+        metin2::log::info("Sql: closing connection");
         mysql_close(&db_);
     }
 }
@@ -81,7 +81,7 @@ auto async_sql::setup(const char *host, const char *user, const char *password, 
 
     if (locale) {
         locale_ = locale;
-        metin2::log::info( "AsyncSQL: locale {}", locale_.c_str());
+        metin2::log::info("Sql: connection character set {}", locale_.c_str());
     }
 
     if (no_thread) {
@@ -110,26 +110,26 @@ void async_sql::quit() {
 
 auto async_sql::connect() -> bool {
     if (!mysql_init(&db_)) {
-        metin2::log::error("mysql_init failed");
+        metin2::log::error("Cannot initialise mysql client handle");
         return false;
     }
     initialized_ = true;
 
     if (!locale_.empty() && mysql_options(&db_, MYSQL_SET_CHARSET_NAME, locale_.c_str()) != 0) {
-        metin2::log::error("mysql_options MYSQL_SET_CHARSET_NAME {}: {}", locale_.c_str(), mysql_error(&db_));
+        metin2::log::error("Cannot set connection character set {}: {}", locale_.c_str(), mysql_error(&db_));
     }
 
     if (!mysql_real_connect(&db_, host_.c_str(), user_.c_str(), password_.c_str(), m_st_db_.c_str(), port_, nullptr, CLIENT_MULTI_STATEMENTS)) {
-        metin2::log::error("mysql_real_connect: {}", mysql_error(&db_));
+        metin2::log::error("Cannot connect to mysql: {}", mysql_error(&db_));
         return false;
     }
 
     my_bool reconnect = true;
     if (mysql_options(&db_, MYSQL_OPT_RECONNECT, &reconnect) != 0) {
-        metin2::log::error("mysql_options MYSQL_OPT_RECONNECT: {}", mysql_error(&db_));
+        metin2::log::error("Cannot enable mysql auto-reconnect: {}", mysql_error(&db_));
     }
 
-    metin2::log::info( "AsyncSQL: connected to {} (reconnect {:d})", host_.c_str(), reconnect);
+    metin2::log::info("Sql: connected to {} (auto-reconnect {:d})", host_.c_str(), reconnect);
 
     thread_id_ = mysql_thread_id(&db_);
     return true;
@@ -137,16 +137,16 @@ auto async_sql::connect() -> bool {
 
 auto async_sql::query_locale_set() -> bool {
     if (locale_.empty() || locale_ == "ascii") {
-        metin2::log::error("no connection character set to apply (locale \"{}\")", locale_.c_str());
+        metin2::log::warn("No connection character set to apply (locale \"{}\")", locale_.c_str());
         return true;
     }
 
     if (mysql_set_character_set(&db_, locale_.c_str())) {
-        metin2::log::error("cannot set locale {} by 'mysql_set_character_set', errno {:d} {}", locale_.c_str(), mysql_errno(&db_), mysql_error(&db_));
+        metin2::log::error("Cannot set connection character set {}: errno {:d} {}", locale_.c_str(), mysql_errno(&db_), mysql_error(&db_));
         return false;
     }
 
-    metin2::log::info( "\t--mysql_set_character_set({})", locale_.c_str());
+    metin2::log::debug("Sql: character set {} applied", locale_.c_str());
     return true;
 }
 
@@ -160,7 +160,7 @@ void async_sql::check_reconnected() {
         return;
     }
 
-    metin2::log::error("MySQL connection was reconnected. querying locale set");
+    metin2::log::warn("Mysql connection was re-established, re-applying character set");
     while (!query_locale_set()) {
         std::this_thread::sleep_for(RETRY_DELAY);
     }
@@ -180,7 +180,7 @@ auto async_sql::direct_query(const char *query_value) -> sql_msg * {
     auto msg = new_message(query_value);
 
     if (mysql_real_query(&db_, msg->query.c_str(), msg->query.length())) {
-        metin2::log::error("AsyncSQL::DirectQuery : mysql_query error: {}\nquery: {}", mysql_error(&db_), msg->query.c_str());
+        metin2::log::error("Direct query failed: {} (query: {})", mysql_error(&db_), msg->query.c_str());
         msg->sql_errno = mysql_errno(&db_);
     }
 
@@ -226,7 +226,7 @@ auto async_sql::execute(sql_msg &msg) -> bool {
 
     if (mysql_real_query(&db_, msg.query.c_str(), msg.query.length())) {
         msg.sql_errno = mysql_errno(&db_);
-        metin2::log::error("AsyncSQL: query failed: {} (query: {} errno: {:d})", mysql_error(&db_), msg.query.c_str(), msg.sql_errno);
+        metin2::log::error("Query failed: {} (query: {}, errno {:d})", mysql_error(&db_), msg.query.c_str(), msg.sql_errno);
 
         if (is_transient_error(msg.sql_errno)) {
             return false;
@@ -235,7 +235,7 @@ auto async_sql::execute(sql_msg &msg) -> bool {
 
     const auto elapsed = std::chrono::steady_clock::now() - start;
     if (elapsed > LONG_QUERY) {
-        metin2::log::info( "[QUERY : LONG INTERVAL(OverSec {:.3f})] : {}", std::chrono::duration<double>(elapsed).count(), msg.query.c_str());
+        metin2::log::warn("Slow query took {:.3f} s: {}", std::chrono::duration<double>(elapsed).count(), msg.query.c_str());
     }
 
     return true;
@@ -271,16 +271,16 @@ void async_sql::child_loop() {
         while (!batch.empty()) {
             if (!execute(*batch.front())) {
                 if (end_) {
-                    metin2::log::error("AsyncSQL: dropping query at shutdown: {}", batch.front()->query.c_str());
+                    metin2::log::error("Dropping failed query at shutdown: {}", batch.front()->query.c_str());
                 } else {
-                    metin2::log::error("AsyncSQL: retrying");
+                    metin2::log::warn("Query failed, retrying");
                     std::this_thread::sleep_for(RETRY_DELAY);
                     continue;
                 }
             }
 
             if (end_) {
-                metin2::log::info( "QUERY_FLUSH: {}", batch.front()->query.c_str());
+                metin2::log::debug("Sql: flushed query at shutdown: {}", batch.front()->query.c_str());
             }
 
             finish(std::move(batch.front()));
@@ -332,7 +332,7 @@ auto async_sql::escape_string(char *dst, size_t dst_size, const char *src, size_
     if (dst_size < src_size * 2 + 1) {
         const std::string_view shown(src, std::min<size_t>(src_size, 255));
 
-        metin2::log::error("FATAL ERROR!! not enough buffer size (dstSize {:d} srcSize {:d} src{}: {})",
+        metin2::log::error("Escape buffer too small (dst size {:d}, src size {:d}), source{}: {}",
             dst_size, src_size, shown.size() != src_size ? "(trimmed to 255 characters)" : "", std::string_view(shown.data(), static_cast<int>(shown.size())));
 
         dst[0] = '\0';

@@ -117,7 +117,7 @@ ACMD(do_emotion)
 
 	if (*emotion_types[i].command == '\n')
 	{
-		metin2::log::error("cannot find emotion");
+		metin2::log::error("No emotion for command {}", cmd_info[cmd].command);
 		return;
 	}
 
@@ -233,8 +233,8 @@ ACMD(do_emotion)
 	ch->packet_around(buf.read_peek(), buf.size());
 
 	if (victim)
-		metin2::log::debug( "ACTION: {} TO {}", emotion_types[i].command, victim->name());
+		metin2::log::debug( "Emotion {} to {}", emotion_types[i].command, victim->name());
 	else
-		metin2::log::debug( "ACTION: {}", emotion_types[i].command);
+		metin2::log::debug( "Emotion {}", emotion_types[i].command);
 }
 }

@@ -79,7 +79,7 @@ auto guild_mark_manager::save_mark_index() -> bool
 
 	if (!fp)
 	{
-		metin2::log::error("MarkManager::SaveMarkIndex: cannot open index file.");
+		metin2::log::error("Cannot open guild mark index file for writing");
 		return false;
 	}
 
@@ -87,7 +87,7 @@ auto guild_mark_manager::save_mark_index() -> bool
 		fprintf(fp, "%u %u\n", it->first, it->second);
 
 	fclose(fp);
-	metin2::log::info( "MarkManager::SaveMarkIndex: index count {:d}", gid_mark_id_.size());
+	metin2::log::info( "Guild marks: saved mark index with {:d} entries", gid_mark_id_.size());
 	return true;
 }
 
@@ -115,7 +115,7 @@ void guild_mark_manager::save_mark_image(uint32_t img_idx)
 
 	if (mark_image_filename(img_idx, path))
 		if (!image(img_idx)->save(path.c_str()))
-			metin2::log::error("{} Save failed", path.c_str());
+			metin2::log::error("Failed to save guild mark image {}", path.c_str());
 }
 
 auto guild_mark_manager::image(uint32_t img_idx) -> guild_mark_image *
@@ -207,14 +207,14 @@ auto guild_mark_manager::save_mark(uint32_t guild_id, uint8_t * mark_image) -> u
 	{
 		if ((idMark = alloc_mark_id(guild_id)) == INVALID_MARK_ID)
 		{
-			metin2::log::error("CGuildMarkManager: cannot alloc mark id {:d}", guild_id);
+			metin2::log::error("Cannot allocate a mark id for guild {:d}, no free slots", guild_id);
 			return false;
 		}
 		else
-			metin2::log::info( "SaveMark: mark id alloc {:d}", idMark);
+			metin2::log::info( "Guild marks: allocated mark id {:d}", idMark);
 	}
 	else
-		metin2::log::info( "SaveMark: mark id found {:d}", idMark);
+		metin2::log::debug( "Guild marks: reusing mark id {:d}", idMark);
 
 	uint32_t imgIdx = (idMark / guild_mark_image::MARK_TOTAL_COUNT);
 	guild_mark_image * pkImage = image(imgIdx);
@@ -254,7 +254,7 @@ void guild_mark_manager::diff_blocks(uint32_t img_idx, const uint32_t * crc_list
 
 	if (idx_image_.end() == idx_image_.find(img_idx))
 	{
-		metin2::log::error("invalid idx {:d}", img_idx);
+		metin2::log::error("Invalid guild mark image index {:d}", img_idx);
 		return;
 	}
 
@@ -309,7 +309,7 @@ void guild_mark_manager::save_symbol(const char* filename)
 	FILE* fp = fopen(filename, "wb");
 	if (!fp)
 	{
-		metin2::log::error("Cannot open Symbol file (name: {})", filename);
+		metin2::log::error("Cannot open guild symbol file {}", filename);
 		return;
 	}
 
@@ -330,7 +330,7 @@ void guild_mark_manager::save_symbol(const char* filename)
 
 void guild_mark_manager::upload_symbol(uint32_t guild_id, int size, const uint8_t* pby_data)
 {
-	metin2::log::info( "GuildSymbolUpload guildID {:d} Size {:d}", guild_id, size);
+	metin2::log::info( "Guild marks: guild {:d} uploaded a symbol ({:d} bytes)", guild_id, size);
 	
 	if (symbol_.find(guild_id) == symbol_.end())
 		symbol_.insert(std::make_pair(guild_id, guild_symbol()));

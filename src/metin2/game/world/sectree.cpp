@@ -38,7 +38,7 @@ void sectree::destroy()
 {
 	if (!set_entity_.empty())
 	{
-		metin2::log::error("Sectree: entity set not empty!!");
+		metin2::log::error("Sectree destroyed with entities still in it");
 
 		entity_set::iterator it = set_entity_.begin();
 
@@ -50,7 +50,7 @@ void sectree::destroy()
 			{
 				character * ch = (character *) ent;
 
-				metin2::log::error("Sectree: destroying character: {} is_pc {:d}", ch->name(), ch->is_pc() ? 1 : 0);
+				metin2::log::error("Sectree destroyed with character {} still in it (is_pc {:d})", ch->name(), ch->is_pc() ? 1 : 0);
 
 				if (ch->get_desc())
 					desc_manager::instance().destroy_desc(ch->get_desc());
@@ -61,12 +61,12 @@ void sectree::destroy()
 			{
 				item * item = (game::items::item *) ent;
 
-				metin2::log::error("Sectree: destroying Item: {}", item->name());
+				metin2::log::error("Sectree destroyed with item {} still in it", item->name());
 
 				item_manager::instance().destroy_item(item);
 			}
 			else
-				metin2::log::error("Sectree: unknown type: {:d}", ent->type());
+				metin2::log::error("Sectree destroyed with entity of unknown type {:d} still in it", ent->type());
 		}
 	}
 	set_entity_.clear();
@@ -106,7 +106,7 @@ void sectree::decrease_pc()
 		{
 			if (tree->pc_count_ < 0)
 			{
-				metin2::log::error("tree pc count lower than zero (value {:d} coord {:d} {:d})", tree->pc_count_, tree->id_.coord.x, tree->id_.coord.y);
+				metin2::log::error("Sectree player count dropped below zero ({:d}) at {:d}x{:d}", tree->pc_count_, tree->id_.coord.x, tree->id_.coord.y);
 				tree->pc_count_ = 0;
 			}
 
@@ -134,7 +134,7 @@ auto sectree::insert_entity(entity * ent) -> bool
 		return false;
 
 	if (set_entity_.find(ent) != set_entity_.end()) {
-		metin2::log::error("entity {} already exist in this sectree!", static_cast<const void *>(ent));
+		metin2::log::error("Entity {} is already in this sectree", static_cast<const void *>(ent));
 		return false;
 	}
 

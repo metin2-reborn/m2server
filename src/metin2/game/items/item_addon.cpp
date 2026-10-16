@@ -25,7 +25,7 @@ void item_addon_manager::apply_addon_to(int addon_type, item * item_value)
 {
 	if (!item_value)
 	{
-		metin2::log::error("ITEM pointer null");
+		metin2::log::error("Cannot apply addon {:d}: no item", addon_type);
 		return;
 	}
 

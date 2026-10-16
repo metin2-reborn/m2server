@@ -85,7 +85,7 @@ namespace quest
 	{
 		if (!lua_isnumber(lua, 1))
 		{
-			quest::error("invalid argument");
+			quest::error("Invalid arguments");
 			return 0;
 		}
 
@@ -103,7 +103,7 @@ namespace quest
 	{
 		if (!lua_isnumber(lua, 1))
 		{
-			quest::error("invalid argument");
+			quest::error("Invalid arguments");
 			return 0;
 		}
 
@@ -135,7 +135,7 @@ namespace quest
 	{
 		if (!lua_isnumber(lua, 1))
 		{
-			quest::error("invalid argument");
+			quest::error("Invalid arguments");
 			return 0;
 		}
 
@@ -182,7 +182,7 @@ namespace quest
 	{
 		if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2) || !lua_isnumber(lua, 3))
 		{
-			quest::error("invalid argument");
+			quest::error("Invalid arguments");
 			return 0;
 		}
 
@@ -195,7 +195,7 @@ namespace quest
 		p.guild = (uint32_t) lua_tonumber(lua, 2);
 		p.gold = (uint32_t) lua_tonumber(lua, 3);
 
-		metin2::log::info( "GUILD_WAR_BET: {} login {} war_id {:d} guild {:d} gold {:d}", 
+		metin2::log::info("Guild war bet: player {} (login {}) war {:d} guild {:d} gold {:d}",
 				ch->name(), p.login, p.war_id, p.guild, p.gold);
 
 		db_clientdesc->db_packet(HEADER_GD_GUILD_WAR_BET, 0, &p, sizeof(p));
@@ -206,7 +206,7 @@ namespace quest
 	{
 		if (!lua_isnumber(lua, 1))
 		{
-			quest::error("invalid argument");
+			quest::error("Invalid arguments");
 			lua_pushboolean(lua, true);
 			return 1;
 		}
@@ -232,7 +232,7 @@ namespace quest
 		int i = 0;
 		std::vector<guild_war_reserve_for_game *>::iterator it = con.begin();
 
-		metin2::log::info( "con.size(): {:d}", con.size());
+		metin2::log::debug("Guild war: {:d} reserved wars", con.size());
 
 		lua_newtable(lua);
 
@@ -245,7 +245,7 @@ namespace quest
 
 			lua_newtable(lua);
 
-			metin2::log::info( "con.size(): {:d} {:d} {:d} handi {:d}", p->id, p->guild_from, p->guild_to, p->handicap);
+			metin2::log::debug("Guild war: reserve {:d}, guild {:d} vs {:d}, handicap {:d}", p->id, p->guild_from, p->guild_to, p->handicap);
 
 			lua_pushnumber(lua, p->id);
 			lua_rawseti(lua, -2, 1);

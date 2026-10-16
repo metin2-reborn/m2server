@@ -31,7 +31,7 @@ void gm_new_clear()
 
 void gm_new_insert( const t_admin_info &admin_info )
 {	
-	metin2::log::info( "InsertGMList(account:{}, player:{}, contact_ip:{}, server_ip:{}, auth:{:d})", 
+	metin2::log::info( "Gm registered: account {}, player {}, contact ip {}, server ip {}, authority {:d}",
 			admin_info.account,
 			admin_info.name,
 			admin_info.contact_ip,
@@ -43,12 +43,12 @@ void gm_new_insert( const t_admin_info &admin_info )
 	if ( strlen( admin_info.contact_ip ) == 0 )
 	{
 		t.pset_host = &set_host;
-		metin2::log::info( "GM Use ContactIP" );
+		metin2::log::debug( "Gm {} uses the gm host list", admin_info.name );
 	}
 	else
 	{
 		t.pset_host = nullptr;
-		metin2::log::info( "GM Use Default Host List" );
+		metin2::log::debug( "Gm {} uses its own contact ip", admin_info.name );
 	}
 
 	memcpy ( &t.info, &admin_info, sizeof ( admin_info ) );
@@ -60,7 +60,7 @@ void gm_new_insert( const t_admin_info &admin_info )
 void gm_new_host_inert( const char * host )
 {
 	set_host.insert( host );
-	metin2::log::info( "InsertGMHost(ip:{})", host );
+	metin2::log::debug( "Gm host added: {}", host );
 }
 
 auto gm_new_get_level( const char * name, const char * host, const char* account) -> uint8_t
@@ -76,11 +76,11 @@ auto gm_new_get_level( const char * name, const char * host, const char* account
 	{
 	if ( strcmp ( it->second.info.account, account  ) != 0 )
 	{
-	    metin2::log::info( "GM_NEW_GET_LEVEL : BAD ACCOUNT [ACCOUNT:{}/{}", it->second.info.account, account);
+	    metin2::log::warn( "Gm {} logged in from account {} instead of {}", name, account, it->second.info.account);
 	    return GM_PLAYER;
 	}
 	}
-	metin2::log::info( "GM_NEW_GET_LEVEL : FIND ACCOUNT");
+	metin2::log::debug( "Gm {} has authority {:d}", name, it->second.info.authority);
 	return it->second.info.authority;
 	return GM_PLAYER;
 }

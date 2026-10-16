@@ -98,7 +98,7 @@ namespace quest
 		void npc::matching_quest(pc& pc, TQuestMapType& quest_map, FuncMatch& match, FuncMiss& miss)
 		{
 			if (metin2::config::test_server())
-				metin2::log::info( "Click Quest : MatchingQuest");
+				metin2::log::debug("Quest: matching quests for npc click");
 
 			game::quest::pc::quest_info_iterator itPCQuest = pc.quest_begin();
 			typename TQuestMapType::iterator itQuestMap = quest_map.begin();

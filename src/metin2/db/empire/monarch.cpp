@@ -72,7 +72,7 @@ void monarch::elect_monarch()
 		++s[idx];
 
 		if (metin2::config::test_server())
-			metin2::log::info( "[MONARCH_VOTE] pid({:d}) come to vote candidacy pid({:d})", it->second->pid, vec_monarch_candidacy_[idx].pid);
+			metin2::log::debug("Monarch election: pid {:d} voted for candidate pid {:d}", it->second->pid, vec_monarch_candidacy_[idx].pid);
 	}
 }
 
@@ -184,7 +184,7 @@ auto monarch::take_money(int empire, uint32_t pid, int64_t money_value) -> bool
 	db_manager::instance().async_query(szQuery);
 
 	if (metin2::config::test_server())
-		metin2::log::info( "[MONARCH] Take money empire({:d}) money({:d})", empire, monarch_info_.money[empire]);
+		metin2::log::info("Monarch: took money from empire {:d}, treasury now {:d}", empire, monarch_info_.money[empire]);
 	return true;
 }
 
@@ -213,7 +213,7 @@ auto monarch::load_monarch() -> bool
 		strlcpy(p->date[Empire], row[idx++], sizeof(p->date[Empire]));
 
 		if (metin2::config::test_server())
-		metin2::log::info( "[LOAD_MONARCH] Empire {:d} pid {:d} money {:d} windate {}", Empire, p->pid[Empire], p->money[Empire], p->date[Empire]);
+		metin2::log::info("Monarch: loaded empire {:d} monarch pid {:d}, money {:d}, elected {}", Empire, p->pid[Empire], p->money[Empire], p->date[Empire]);
     }
 
     return true;
@@ -243,7 +243,7 @@ auto monarch::set_monarch(const char * name) -> bool
 		strlcpy(p->name[Empire], row[idx++], sizeof(p->name[Empire]));
 
 		if (metin2::config::test_server())
-			metin2::log::info( "[Set_MONARCH] Empire {:d} pid {:d} money {:d} windate {}", Empire, p->pid[Empire], p->money[Empire], p->date[Empire]);
+			metin2::log::info("Monarch: set empire {:d} monarch pid {:d}, money {:d}, elected {}", Empire, p->pid[Empire], p->money[Empire], p->date[Empire]);
     }
 
 	query = sql::format(
@@ -267,7 +267,7 @@ auto monarch::del_monarch(const char * name) -> bool
 
 			if (pMsg->get()->affected_rows == 0 || pMsg->get()->affected_rows == (uint32_t)-1)
 			{
-				metin2::log::error(" DirectQuery failed({})", szQuery);
+				metin2::log::error("Cannot delete monarch, query affected no rows: {}", szQuery);
 				return false;
 			}
 

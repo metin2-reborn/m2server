@@ -22,7 +22,7 @@ namespace {
 
         auto settings = metin2::config::load(files);
         if (!settings) {
-            metin2::log::error("invalid configuration:\n{}", settings.error());
+            metin2::log::error("Invalid configuration:\n{}", settings.error());
             return false;
         }
 

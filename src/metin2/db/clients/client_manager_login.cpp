@@ -65,7 +65,7 @@ auto client_manager::delete_logon_account(const char * login, uint32_t handle) -
 
 	if (pkLD->connected_peer_handle() != handle)
 	{
-		metin2::log::error("{} tried to logout in other peer handle {:d}, current handle {:d}", szLogin, handle, pkLD->connected_peer_handle());
+		metin2::log::warn("Account {} logout from peer handle {:d}, but it is logged in on handle {:d}", szLogin, handle, pkLD->connected_peer_handle());
 		return false;
 	}
 
@@ -100,7 +100,7 @@ void client_manager::query_login_by_key(peer * peer_value, uint32_t handle_value
 
 	if (!pkLoginData)
 	{
-		metin2::log::info( "LOGIN_BY_KEY key not exist {} {:d}", szLogin, p->login_key);
+		metin2::log::info("Login: account {} used unknown login key {:d}", szLogin, p->login_key);
 		peer_value->encode_return(HEADER_DG_LOGIN_NOT_EXIST, handle_value);
 		return;
 	}
@@ -109,7 +109,7 @@ void client_manager::query_login_by_key(peer * peer_value, uint32_t handle_value
 
 	if (find_logon_account(r.login))
 	{
-		metin2::log::info( "LOGIN_BY_KEY already login {} {:d}", r.login, p->login_key);
+		metin2::log::info("Login: account {} (key {:d}) is already logged in", r.login, p->login_key);
 		packet_dg_login_already ptog;
 		strlcpy(ptog.login, szLogin, sizeof(ptog.login));
 		peer_value->encode_header(HEADER_DG_LOGIN_ALREADY, handle_value, sizeof(packet_dg_login_already));
@@ -119,7 +119,7 @@ void client_manager::query_login_by_key(peer * peer_value, uint32_t handle_value
 
 	if (strcasecmp(r.login, szLogin))
 	{
-		metin2::log::info( "LOGIN_BY_KEY login differ {} {:d} input {}", r.login, p->login_key, szLogin);
+		metin2::log::warn("Login: key {1:d} belongs to account {0}, but {2} tried to use it", r.login, p->login_key, szLogin);
 		peer_value->encode_return(HEADER_DG_LOGIN_NOT_EXIST, handle_value);
 		return;
 	}
@@ -128,7 +128,7 @@ void client_manager::query_login_by_key(peer * peer_value, uint32_t handle_value
 	{
 		const uint32_t * pdwClientKey = pkLoginData->client_key();
 
-		metin2::log::info( "LOGIN_BY_KEY client key differ {} {:d} {:d} {:d} {:d}, {:d} {:d} {:d} {:d}",
+		metin2::log::warn("Login: client key mismatch for account {}: expected {:d} {:d} {:d} {:d}, got {:d} {:d} {:d} {:d}",
 				r.login,
 				p->client_key[0], p->client_key[1], p->client_key[2], p->client_key[3],
 				pdwClientKey[0], pdwClientKey[1], pdwClientKey[2], pdwClientKey[3]);
@@ -150,7 +150,7 @@ void client_manager::query_login_by_key(peer * peer_value, uint32_t handle_value
 	info->account_table = std::move(pkTab);
 	strlcpy(info->ip, p->ip, sizeof(info->ip));
 
-	metin2::log::info( "LOGIN_BY_KEY success {} {:d} {}", r.login, p->login_key, info->ip);
+	metin2::log::info("Login: account {} logged in with key {:d} from {}", r.login, p->login_key, info->ip);
 	char szQuery[QUERY_MAX_LEN];
 	snprintf(szQuery, sizeof(szQuery), "SELECT pid1, pid2, pid3, pid4, empire FROM player_index%s WHERE id=%u", get_table_postfix(), r.id);
 	db_manager::instance().return_query(szQuery, QID_LOGIN_BY_KEY, peer_value->handle(), info);
@@ -177,11 +177,11 @@ void client_manager::result_login_by_key(peer * peer, sql_msg * msg)
 		snprintf(szQuery, sizeof(szQuery), "SELECT pid1, pid2, pid3, pid4, empire FROM player_index%s WHERE id=%u", get_table_postfix(), account_id);
 		std::unique_ptr<sql_msg> pMsg(db_manager::instance().direct_query(szQuery, SQL_PLAYER));
 		
-		metin2::log::info( "RESULT_LOGIN_BY_KEY FAIL player_index's NULL : ID:{:d}", account_id);
+		metin2::log::debug("Login: account {:d} has no players loaded, checking player_index", account_id);
 
 		if (pMsg->get()->num_rows == 0)
 		{
-			metin2::log::info( "RESULT_LOGIN_BY_KEY FAIL player_index's NULL : ID:{:d}", account_id);
+			metin2::log::info("Login: no player_index row for account {:d}, creating one", account_id);
 
 			snprintf(szQuery, sizeof(szQuery), "INSERT INTO player_index%s (id) VALUES(%u)", get_table_postfix(), info->account_table->id);
 			db_manager::instance().return_query(szQuery, QID_PLAYER_INDEX_CREATE, peer->handle(), info);
@@ -328,7 +328,7 @@ void create_account_player_data_from_res(MYSQL_RES * res, account_table * tab)
 					str_to_number(tab->players[j].change_name, row[col++]);
 				}
 
-				metin2::log::info( "{} {:d} {:d} hair {:d}",
+				metin2::log::debug("Login: player {} at ({:d}, {:d}), hair {:d}",
 						tab->players[j].name, tab->players[j].x, tab->players[j].y, tab->players[j].hair_part);
 				break;
 			}
@@ -345,7 +345,7 @@ void client_manager::result_login(peer * peer, sql_msg * msg)
 	{
 		if (msg->get()->num_rows == 0)
 		{
-			metin2::log::info( "RESULT_LOGIN: no account");
+			metin2::log::info("Login: account not found");
 			peer->encode_header(HEADER_DG_LOGIN_NOT_EXIST, info->handle, 0);
 			delete info;
 			return;
@@ -355,7 +355,7 @@ void client_manager::result_login(peer * peer, sql_msg * msg)
 
 		if (!info->account_table)
 		{
-			metin2::log::info( "RESULT_LOGIN: no account : WRONG_PASSWD");
+			metin2::log::info("Login: wrong password");
 			peer->encode_return(HEADER_DG_LOGIN_WRONG_PASSWD, info->handle);
 			delete info;
 		}
@@ -383,7 +383,7 @@ void client_manager::result_login(peer * peer, sql_msg * msg)
 
 		if (!insert_logon_account(info->account_table->login, peer->handle()))
 		{
-			metin2::log::info( "RESULT_LOGIN: already logon {}", info->account_table->login);
+			metin2::log::info("Login: account {} is already logged in", info->account_table->login);
 
 			packet_dg_login_already p;
 			strlcpy(p.login, info->account_table->login, sizeof(p.login));
@@ -393,7 +393,7 @@ void client_manager::result_login(peer * peer, sql_msg * msg)
 		}
 		else
 		{
-			metin2::log::info( "RESULT_LOGIN: login success {} rows: {:d}", info->account_table->login, msg->get()->num_rows);
+			metin2::log::info("Login: account {} logged in ({:d} players)", info->account_table->login, msg->get()->num_rows);
 
 			if (msg->get()->num_rows > 0)
 				create_account_player_data_from_res(msg->get()->res, info->account_table.get());
@@ -429,14 +429,14 @@ void client_manager::query_logout(peer * peer, uint32_t handle_value,const char 
 		if (pLoginData->account_ref().players[n].id == 0)
 		{
 			if (metin2::config::test_server())
-				metin2::log::info( "LOGOUT {} {:d}", packet->login, pLoginData->account_ref().players[n].id);
+				metin2::log::debug("Logout: account {} has empty slot (pid {:d})", packet->login, pLoginData->account_ref().players[n].id);
 			continue;
 		}
 		
 		pid[n] = pLoginData->account_ref().players[n].id;
 
 		if (metin2::config::db().login_log)
-			metin2::log::info( "LOGOUT InsertLogoutPlayer {} {:d}", packet->login, pid[n]);
+			metin2::log::info("Logout: account {}, player pid {:d}", packet->login, pid[n]);
 
 		insert_logout_player(pid[n]);
 	}
@@ -444,7 +444,7 @@ void client_manager::query_logout(peer * peer, uint32_t handle_value,const char 
 	if (delete_logon_account(packet->login, peer->handle()))
 	{
 		if (metin2::config::db().login_log)
-			metin2::log::info( "LOGOUT {} ", packet->login);
+			metin2::log::info("Logout: account {}", packet->login);
 	}
 }
 

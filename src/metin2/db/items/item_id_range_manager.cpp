@@ -92,7 +92,7 @@ auto item_id_range_manager::range() -> item_id_range_table
 	}
 
 	for (int i = 0; i < 10; ++i)
-		metin2::log::error("ItemIDRange: NO MORE ITEM ID RANGE");
+		metin2::log::error("Item id range: no free item id range left");
 
 	return ret;
 }
@@ -124,7 +124,7 @@ auto item_id_range_manager::build_range(uint32_t min_value, uint32_t max_value, 
 	
 	if ((max_value < dwItemMaxID) || (max_value - dwItemMaxID < minimum_remain_count_))
 	{
-		metin2::log::info( "ItemIDRange: Build {:d} ~ {:d} start: {:d}\tNOT USE remain count is below {:d}",
+		metin2::log::info("Item id range: skipping {:d} to {:d} (next free id {:d}), fewer than {:d} ids left",
 			   	min_value, max_value, dwItemMaxID, minimum_remain_count_);
 	}
 	else
@@ -148,12 +148,12 @@ auto item_id_range_manager::build_range(uint32_t min_value, uint32_t max_value, 
 
 				if (count > 0)
 				{
-					metin2::log::error("ItemIDRange: Build: {:d} ~ {:d}\thave a item", range.usable_item_id_min, range.max);
+					metin2::log::error("Item id range: {:d} to {:d} already contains items", range.usable_item_id_min, range.max);
 					return false;
 				}
 				else
 				{
-					metin2::log::info( "ItemIDRange: Build: {:d} ~ {:d} start:{:d}", range.min, range.max, range.usable_item_id_min);
+					metin2::log::info("Item id range: built {:d} to {:d}, next free id {:d}", range.min, range.max, range.usable_item_id_min);
 					return true;
 				}
 			}

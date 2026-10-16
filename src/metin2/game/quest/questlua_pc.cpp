@@ -91,7 +91,7 @@ namespace quest
 
 		if (!lua_isnumber(lua, 1)) 
 		{
-			quest::error("wrong skill index");
+			quest::error("Invalid skill index argument");
 			return 0;
 		}
 
@@ -105,13 +105,13 @@ namespace quest
 
 		if (!lua_isnumber(lua, 1)) 
 		{
-			quest::error("wrong map index");
+			quest::error("Invalid map index argument");
 			return 0;
 		}
 
 		if (!lua_isnumber(lua, 2) || !lua_isnumber(lua, 3))
 		{
-			quest::error("wrong coodinate");
+			quest::error("Invalid coordinate arguments");
 			return 0;
 		}
 
@@ -125,13 +125,13 @@ namespace quest
 
 		if (!lua_isnumber(lua, 1)) 
 		{
-			quest::error("wrong map index");
+			quest::error("Invalid map index argument");
 			return 0;
 		}
 
 		if (!lua_isnumber(lua, 2) || !lua_isnumber(lua, 3))
 		{
-			quest::error("wrong coodinate");
+			quest::error("Invalid coordinate arguments");
 			return 0;
 		}
 
@@ -140,7 +140,7 @@ namespace quest
 
 		if (!region)
 		{
-			quest::error("invalid map index {:d}", lMapIndex);
+			quest::error("No map with index {:d}", lMapIndex);
 			return 0;
 		}
 
@@ -149,13 +149,13 @@ namespace quest
 
 		if (x > region->ex - region->sx)
 		{
-			quest::error("x coordinate overflow max: {:d} input: {:d}", region->ex - region->sx, x);
+			quest::error("X coordinate {1:d} exceeds map width {0:d}", region->ex - region->sx, x);
 			return 0;
 		}
 
 		if (y > region->ey - region->sy)
 		{
-			quest::error("y coordinate overflow max: {:d} input: {:d}", region->ey - region->sy, y);
+			quest::error("Y coordinate {1:d} exceeds map height {0:d}", region->ey - region->sy, y);
 			return 0;
 		}
 
@@ -208,13 +208,13 @@ namespace quest
 	{
 		if (!lua_isnumber(lua, 1)) 
 		{
-			quest::error("no map index argument");
+			quest::error("Missing map index argument");
 			return 0;
 		}
 
 		if (!lua_isnumber(lua, 2) || !lua_isnumber(lua, 3))
 		{
-			quest::error("no coodinate argument");
+			quest::error("Missing coordinate arguments");
 			return 0;
 		}
 
@@ -223,7 +223,7 @@ namespace quest
 
 		if (!region)
 		{
-			quest::error("invalid map index {:d}", lMapIndex);
+			quest::error("No map with index {:d}", lMapIndex);
 			return 0;
 		}
 
@@ -232,13 +232,13 @@ namespace quest
 
 		if (x > region->ex - region->sx)
 		{
-			quest::error("x coordinate overflow max: {:d} input: {:d}", region->ex - region->sx, x);
+			quest::error("X coordinate {1:d} exceeds map width {0:d}", region->ex - region->sx, x);
 			return 0;
 		}
 
 		if (y > region->ey - region->sy)
 		{
-			quest::error("y coordinate overflow max: {:d} input: {:d}", region->ey - region->sy, y);
+			quest::error("Y coordinate {1:d} exceeds map height {0:d}", region->ey - region->sy, y);
 			return 0;
 		}
 
@@ -314,7 +314,7 @@ namespace quest
 
 		if (!lua_isnumber(lua, 1))
 		{
-			quest::error("QUEST : wrong argument");
+			quest::error("Invalid arguments");
 			return 0;
 		}
 
@@ -322,7 +322,7 @@ namespace quest
 
 		if (iAmount <= 0)
 		{
-			quest::error("QUEST : gold amount less then zero");
+			quest::error("Gold amount {:d} is not positive", iAmount);
 			return 0;
 		}
 
@@ -430,7 +430,7 @@ namespace quest
 
 		if (!lua_isstring(lua, 1) || !(lua_isstring(lua, 2)||lua_isnumber(lua, 2)))
 		{
-			quest::error("QUEST : wrong argument");
+			quest::error("Invalid arguments");
 			return 0;
 		}
 
@@ -440,7 +440,7 @@ namespace quest
 			dwVnum = (int) lua_tonumber(lua, 2);
 		else if (!item_manager::instance().vnum(lua_tostring(lua, 2), dwVnum))
 		{
-			quest::error("QUEST Make item call error : wrong item name : {}", lua_tostring(lua,1));
+			quest::error("Unknown item name {}", lua_tostring(lua,1));
 			return 0;
 		}
 
@@ -452,7 +452,7 @@ namespace quest
 
 			if (icount <= 0) 
 			{
-				quest::error("QUEST Make item call error : wrong item count : {:g}", lua_tonumber(lua, 2));
+				quest::error("Invalid item count {:g}", lua_tonumber(lua, 2));
 				return 0;
 			}
 		}
@@ -469,7 +469,7 @@ namespace quest
 
 		if (!lua_isstring(lua, 1) && !lua_isnumber(lua, 1))
 		{
-			quest::error("QUEST Make item call error : wrong argument");
+			quest::error("Invalid item argument");
 			lua_pushnumber (lua, 0);
 			return 1;
 		}
@@ -482,7 +482,7 @@ namespace quest
 		}
 		else if (!item_manager::instance().vnum(lua_tostring(lua, 1), dwVnum))
 		{
-			quest::error("QUEST Make item call error : wrong item name : {}", lua_tostring(lua,1));
+			quest::error("Unknown item name {}", lua_tostring(lua,1));
 			lua_pushnumber (lua, 0);
 
 			return 1;
@@ -494,13 +494,13 @@ namespace quest
 			icount = (int)rint(lua_tonumber(lua,2));
 			if (icount<=0) 
 			{
-				quest::error("QUEST Make item call error : wrong item count : {:g}", lua_tonumber(lua,2));
+				quest::error("Invalid item count {:g}", lua_tonumber(lua, 2));
 				lua_pushnumber (lua, 0);
 				return 1;
 			}
 		}
 
-		metin2::log::info( "QUEST [REWARD] item {} to {}", lua_tostring(lua, 1), ch->name());
+		metin2::log::info("Quest reward: item {} to player {}", lua_tostring(lua, 1), ch->name());
 
 		pc* pPC = quest_manager::instance().current_pc();
 
@@ -526,7 +526,7 @@ namespace quest
 
 		if (!lua_isstring(lua, 1) && !lua_isnumber(lua, 1))
 		{
-			quest::error("QUEST Make item call error : wrong argument");
+			quest::error("Invalid item argument");
 			return 0;
 		}
 
@@ -538,7 +538,7 @@ namespace quest
 		}
 		else if (!item_manager::instance().vnum(lua_tostring(lua, 1), dwVnum))
 		{
-			quest::error("QUEST Make item call error : wrong item name : {}", lua_tostring(lua,1));
+			quest::error("Unknown item name {}", lua_tostring(lua,1));
 			return 0;
 		}
 
@@ -548,12 +548,12 @@ namespace quest
 			icount = (int)rint(lua_tonumber(lua,2));
 			if (icount<=0) 
 			{
-				quest::error("QUEST Make item call error : wrong item count : {:g}", lua_tonumber(lua,2));
+				quest::error("Invalid item count {:g}", lua_tonumber(lua, 2));
 				return 0;
 			}
 		}
 
-		metin2::log::info( "QUEST [REWARD] item {} to {}", lua_tostring(lua, 1), ch->name());
+		metin2::log::info("Quest reward: item {} to player {}", lua_tostring(lua, 1), ch->name());
 
 		pc* pPC = quest_manager::instance().current_pc();
 
@@ -628,7 +628,7 @@ namespace quest
 
 			if (!item_manager::instance().vnum(lua_tostring(lua,1), item_vnum))
 			{
-				quest::error("QUEST count_item call error : wrong item name : {}", lua_tostring(lua,1));
+				quest::error("Unknown item name {}", lua_tostring(lua,1));
 				lua_pushnumber(lua, 0);
 			}
 			else
@@ -656,17 +656,17 @@ namespace quest
 			{
 				if (!item_manager::instance().vnum(lua_tostring(lua,1), item_vnum))
 				{
-					quest::error("QUEST remove_item call error : wrong item name : {}", lua_tostring(lua,1));
+					quest::error("Unknown item name {}", lua_tostring(lua,1));
 					return 0;
 				}
 			}
 			else
 			{
-				quest::error("QUEST remove_item wrong argument");
+				quest::error("Invalid item argument");
 				return 0;
 			}
 
-			metin2::log::info("QUEST remove a item vnum {:d} of {}[{:d}]", item_vnum, quest_manager::instance().current_character_ptr()->name(), quest_manager::instance().current_character_ptr()->player_id());
+			metin2::log::info("Quest: remove item (vnum {:d}) from player {} (pid {:d})", item_vnum, quest_manager::instance().current_character_ptr()->name(), quest_manager::instance().current_character_ptr()->player_id());
 			quest_manager::instance().current_character_ptr()->remove_specify_item(item_vnum);
 		}
 		else if (lua_gettop(lua) == 2)
@@ -681,18 +681,18 @@ namespace quest
 			{
 				if (!item_manager::instance().vnum(lua_tostring(lua,1), item_vnum))
 				{
-					quest::error("QUEST remove_item call error : wrong item name : {}", lua_tostring(lua,1));
+					quest::error("Unknown item name {}", lua_tostring(lua,1));
 					return 0;
 				}
 			}
 			else
 			{
-				quest::error("QUEST remove_item wrong argument");
+				quest::error("Invalid item argument");
 				return 0;
 			}
 
 			uint32_t item_count = (uint32_t) lua_tonumber(lua, 2);
-			metin2::log::info( "QUEST remove items(vnum {:d}) count {:d} of {}[{:d}]",
+			metin2::log::info("Quest: remove items (vnum {:d}, count {:d}) from player {} (pid {:d})",
 					item_vnum,
 					item_count,
 					quest_manager::instance().current_character_ptr()->name(),
@@ -778,7 +778,7 @@ namespace quest
 	{
 		if (!lua_isnumber(lua, 1))
 		{
-			quest::error("invalid argument");
+			quest::error("Invalid arguments");
 			lua_pushboolean(lua, 0);
 			return 1;
 		}
@@ -832,7 +832,7 @@ namespace quest
 	{
 		if (!lua_isnumber(lua, 1))
 		{
-			quest::error("invalid argument");
+			quest::error("Invalid arguments");
 			return 0;
 		}
 		else
@@ -840,7 +840,7 @@ namespace quest
 			int newLevel = lua_tonumber(lua, 1);
 			character * ch = quest_manager::instance().current_character_ptr();
 
-			metin2::log::info("QUEST [LEVEL] {} jumpint to level {:d}", ch->name(), (int)rint(lua_tonumber(lua,1)));
+			metin2::log::info("Quest: player {} jumps to level {:d}", ch->name(), (int)rint(lua_tonumber(lua,1)));
 
 			pc* pPC = quest_manager::instance().current_pc();
 			log_manager::instance().quest_reward_log(pPC->current_quest_name().c_str(), ch->player_id(), ch->level(), newLevel, 0);
@@ -891,7 +891,7 @@ namespace quest
 	{		
 		if (!lua_isnumber(lua, 1))
 		{
-			quest::error("QUEST wrong set flag");
+			quest::error("Invalid wear position argument");
 			return 0;
 		}
 
@@ -941,7 +941,7 @@ namespace quest
 		character * ch = quest_manager::instance().current_character_ptr();
 
 		if (gold + ch->gold() < 0)
-			quest::error("QUEST wrong ChangeGold {:d} (now {:d})", gold, ch->gold());
+			quest::error("Gold change {:d} would make gold negative (now {:d})", gold, ch->gold());
 		else
 		{
 			db_manager::instance().send_money_log(MONEY_LOG_QUEST, ch->player_id(), gold);
@@ -955,7 +955,7 @@ namespace quest
 	{
 		if (!lua_isstring(lua, 1) || !lua_isstring(lua, 2) || !lua_isnumber(lua, 3))
 		{
-			quest::error("QUEST wrong set flag");
+			quest::error("Invalid flag arguments");
 			return 0;
 		}
 		else
@@ -973,7 +973,7 @@ namespace quest
 	{
 		if (!lua_isstring(lua,1) || !lua_isstring(lua,2))
 		{
-			quest::error("QUEST wrong get flag");
+			quest::error("Invalid flag arguments");
 			return 0;
 		}
 		else
@@ -995,7 +995,7 @@ namespace quest
 	{
 		if (!lua_isstring(lua,-1))
 		{
-			quest::error("QUEST wrong get flag");
+			quest::error("Invalid flag arguments");
 			return 0;
 		}
 		else
@@ -1005,7 +1005,7 @@ namespace quest
 			pc* pPC = q.current_pc();
 			lua_pushnumber(lua,pPC->flag(pPC->current_quest_name() + "."+sz));
 			if ( metin2::config::test_server() )
-				metin2::log::info("GetQF ( {} . {} )", pPC->current_quest_name().c_str(), sz );
+				metin2::log::debug("Quest: get flag {}.{}", pPC->current_quest_name().c_str(), sz);
 		}
 		return 1;
 	}
@@ -1014,7 +1014,7 @@ namespace quest
 	{
 		if (!lua_isstring(lua,1) || !lua_isnumber(lua,2))
 		{
-			quest::error("QUEST wrong set flag");
+			quest::error("Invalid flag arguments");
 		}
 		else
 		{
@@ -1030,7 +1030,7 @@ namespace quest
 	{
 		if (!lua_isstring(lua, 1))
 		{
-			quest::error("argument error");
+			quest::error("Invalid flag argument");
 			return 0;
 		}
 
@@ -1047,7 +1047,7 @@ namespace quest
 		if (!lua_isnumber(lua,1))
 			return 0;
 
-		metin2::log::info("QUEST [REWARD] {} give exp2 {:d}", ch->name(), (int)rint(lua_tonumber(lua,1)));
+		metin2::log::info("Quest reward: player {} gets {:d} exp", ch->name(), (int)rint(lua_tonumber(lua,1)));
 
 		uint32_t exp = (uint32_t)rint(lua_tonumber(lua,1));
 
@@ -1065,7 +1065,7 @@ namespace quest
 		quest_manager& q = quest_manager::instance();
 		character * ch = q.current_character_ptr();
 
-		metin2::log::info("QUEST [REWARD] {} give exp {} {:d}", ch->name(), lua_tostring(lua,1), (int)rint(lua_tonumber(lua,2)));
+		metin2::log::info("Quest reward: player {} gets exp ({}) {:d}", ch->name(), lua_tostring(lua,1), (int)rint(lua_tonumber(lua,2)));
 
 		uint32_t exp = (uint32_t)rint(lua_tonumber(lua,2));
 
@@ -1088,7 +1088,7 @@ namespace quest
 		int lev = (int)rint(lua_tonumber(lua,2));
 		double proc = (lua_tonumber(lua,3));
 
-		metin2::log::info( "QUEST [REWARD] {} give exp {} lev {:d} percent {:g}%", ch->name(), lua_tostring(lua, 1), lev, proc);
+		metin2::log::info("Quest reward: player {} gets exp ({}) level {:d}, {:g}%", ch->name(), lua_tostring(lua, 1), lev, proc);
 
 		uint32_t exp = (uint32_t)((exp_table[std::clamp(lev, 0, PLAYER_EXP_TABLE_MAX)] * proc) / 100);
 		pc * pPC = quest_manager::instance().current_pc();
@@ -1143,7 +1143,7 @@ namespace quest
 	auto pc_set_skillgroup(lua_State* lua) -> int
 	{
 		if (!lua_isnumber(lua, 1))
-			quest::error("QUEST wrong skillgroup number");
+			quest::error("Invalid skill group argument");
 		else
 		{
 			quest_manager & q = quest_manager::instance();
@@ -1351,14 +1351,14 @@ namespace quest
 
 		if (!lua_isnumber(lua,1) || !lua_isnumber(lua,2))
 		{
-			quest::error("invalid x y position");
+			quest::error("Invalid x, y arguments");
 			lua_pushboolean(lua, 0);
 			return 1;
 		}
 
 		if (!lua_isnumber(lua,2))
 		{
-			quest::error("invalid radius");
+			quest::error("Invalid radius argument");
 			lua_pushboolean(lua, 0);
 			return 1;
 		}
@@ -1398,7 +1398,7 @@ namespace quest
 		int cell = (int) lua_tonumber(lua, 1);
 		if (cell < 0 || cell >= WEAR_MAX_NUM)
 		{
-			quest::error("invalid wear position {:d}", cell);
+			quest::error("Wear position {:d} is out of range", cell);
 			lua_pushnumber(lua, 0);
 			return 1;
 		}
@@ -1419,7 +1419,7 @@ namespace quest
 		character * ch = quest_manager::instance().current_character_ptr();
 		if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2))
 		{
-			quest::error("invalid argument");
+			quest::error("Invalid arguments");
 			lua_pushboolean(lua, 0);
 			return 1;
 		}
@@ -1494,7 +1494,7 @@ namespace quest
 	{
 		if (!lua_isnumber(lua, 1))
 		{
-			quest::error("invalid argument");
+			quest::error("Invalid arguments");
 			lua_pushnumber(lua, 0);
 			return 1;
 		}
@@ -1512,7 +1512,7 @@ namespace quest
 		quest_manager& q = quest_manager::instance();
 		character * ch = q.current_character_ptr();
 
-		metin2::log::info( "TRY GIVE LOTTO TO pid {:d}", ch->player_id());
+		metin2::log::debug("Quest: giving lotto ticket to pid {:d}", ch->player_id());
 
 		uint32_t * pdw = new uint32_t[3];
 
@@ -1710,17 +1710,15 @@ namespace quest
 	auto pc_clear_one_skill(lua_State* lua) -> int
 	{
 		int vnum = (int)lua_tonumber(lua, 1);
-		metin2::log::info( "{:d} skill clear", vnum);
+		metin2::log::debug("Quest: clearing skill {:d}", vnum);
 
 		character * ch = quest_manager::instance().current_character_ptr();
 		if ( ch == nullptr )
 		{
-			metin2::log::info( "skill clear fail");
+			metin2::log::error("Cannot clear skill {:d}: no current player", vnum);
 			lua_pushnumber(lua, 0);
 			return 1;
 		}
-
-		metin2::log::info( "{:d} skill clear", vnum);
 
 		ch->reset_one_skill(vnum);
 
@@ -1855,7 +1853,7 @@ teleport_area:
 	{
 		if ( lua_isnumber(lua, 1) != true && lua_isnumber(lua, 2) != true && lua_isnumber(lua, 3) != true && lua_isnumber(lua, 4) != true )
 		{
-			quest::error("Wrong Quest Function Arguments: pc_give_polymorph_book");
+			quest::error("Invalid arguments");
 			return 0;
 		}
 
@@ -1886,7 +1884,7 @@ teleport_area:
 
 		if (!lua_isnumber(lua, 1)) 
 		{
-			quest::error("wrong premium index (is not number)");
+			quest::error("Premium index is not a number");
 			return 0;
 		}
 
@@ -1903,7 +1901,7 @@ teleport_area:
 				break;
 
 			default:
-				quest::error("wrong premium index {:d}", premium_type);
+				quest::error("Unknown premium index {:d}", premium_type);
 				return 0;
 		}
 
@@ -2562,7 +2560,7 @@ teleport_area:
 
 		if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2) || !lua_isstring(lua, 3) )
 		{
-			quest::error("QUEST give award call error : wrong argument");
+			quest::error("Invalid award arguments");
 			lua_pushnumber (lua, 0);
 			return 1;
 		}
@@ -2571,7 +2569,7 @@ teleport_area:
 
 		int icount = (int) lua_tonumber(lua, 2);
 
-		metin2::log::info( "QUEST [award] item {:d} to login {}", dwVnum, ch->get_desc()->get_account_table().login);
+		metin2::log::info("Quest award: item (vnum {:d}) to account {}", dwVnum, ch->get_desc()->get_account_table().login);
 
 		db_manager::instance().query(sql::format("INSERT INTO item_award (login, vnum, count, given_time, why, mall)select {}, {}, {}, now(), {}, 1 from DUAL where not exists (select login, why from item_award where login = {} and why  = {}) ;", 
 			ch->get_desc()->get_account_table().login,
@@ -2590,7 +2588,7 @@ teleport_area:
 
 		if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2) || !lua_isstring(lua, 3) || !lua_isstring(lua, 4) || !lua_isstring(lua, 5) || !lua_isstring(lua, 6) )
 		{
-			quest::error("QUEST give award call error : wrong argument");
+			quest::error("Invalid award arguments");
 			lua_pushnumber (lua, 0);
 			return 1;
 		}
@@ -2599,7 +2597,7 @@ teleport_area:
 
 		int icount = (int) lua_tonumber(lua, 2);
 
-		metin2::log::info( "QUEST [award] item {:d} to login {}", dwVnum, ch->get_desc()->get_account_table().login);
+		metin2::log::info("Quest award: item (vnum {:d}) to account {}", dwVnum, ch->get_desc()->get_account_table().login);
 
 		int64_t sockets[3] = {};
 		for (int i = 0; i < 3; ++i)
@@ -2656,7 +2654,7 @@ teleport_area:
 		int iDeltaPercent, iRandRange;
 		if (nullptr == pKillee || !item_manager::instance().drop_pct(pKillee, pChar, iDeltaPercent, iRandRange))
 		{
-			quest::error("killee is null");
+			quest::error("No killed mob or no drop chance for player {}", pChar->name());
 			lua_pushnumber(lua, -1);
 			lua_pushnumber(lua, -1);
 

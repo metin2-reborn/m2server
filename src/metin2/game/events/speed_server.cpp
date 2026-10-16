@@ -39,10 +39,9 @@ auto speed_server_manager::initialize() -> bool
 {
 	for (int i = 1; i < EMPIRE_MAX_NUM; i++)
 	{
-		metin2::log::info("speed manager init");
 		if(!empire_[i].initialize (i))
 		{
-			metin2::log::error("EMPIRE {:d} Exp Bonus Manager Init fail",i);
+			metin2::log::error("Failed to initialize exp bonus table for empire {:d}",i);
 			return false;
 		}
 	}
@@ -52,7 +51,7 @@ auto speed_server_manager::initialize() -> bool
 auto speed_server_empire_exp::initialize (uint8_t e) -> bool
 {
 	empire_ = e;
-	metin2::log::info( "empire exp init {:d}", empire_);
+	metin2::log::info( "Speed server: loading exp bonus table for empire {:d}", empire_);
 	file_name_ = locale_service_get_base_path() + "/exp_bonus_table_" + std::to_string(empire_) + ".txt";
 
 	for (int i = 1; i < 6; i++)
@@ -79,7 +78,7 @@ auto speed_server_empire_exp::load_wday_exp_table(int wday, char *str) -> bool
 	char *t;
 	char *h, *m, *e;
 	int hour, min, exp;
-	metin2::log::info( "str {}", str);
+	metin2::log::debug( "Speed server: parsing exp bonus entry {}", str);
 	strtok (str, delim);
 	p = strtok (nullptr, ";");
 	n = strtok (nullptr, ";");
@@ -91,11 +90,10 @@ auto speed_server_empire_exp::load_wday_exp_table(int wday, char *str) -> bool
 		m = strtok (nullptr, delim);
 		if (!str_to_number (hour, h) || !str_to_number (min, m) || !str_to_number (exp, e))
 		{
-			metin2::log::info( "h m e : {} {} {}",h, m, e);
-			metin2::log::error("Invalid argument. Please insert hh:mm exp");
+			metin2::log::error("Invalid exp bonus entry '{}:{} {}', expected hh:mm exp",h, m, e);
 			return false;
 		}
-			metin2::log::info( "h m e : {} {} {}",h, m, e);
+			metin2::log::debug( "Speed server: exp bonus {} at {}:{}",e, h, m);
 		
 		lst.push_back (hme (hour, min, exp));
 		p = strtok (n, ";");
@@ -108,7 +106,7 @@ auto speed_server_empire_exp::write_exp_table() -> bool
 {
 	FILE *fp;
 
-	metin2::log::info( "write");
+	metin2::log::debug( "Speed server: writing exp bonus table");
 	if (file_name_.empty())
 		return false;
 
@@ -148,7 +146,7 @@ auto speed_server_empire_exp::load_exp_table() -> bool
 	char	temp[256];
 	const char	*delim = " \t\r\n";
 
-	metin2::log::info( "load");
+	metin2::log::debug( "Speed server: loading exp bonus table");
 	if (file_name_.empty())
 		return false;
 
@@ -206,7 +204,7 @@ auto speed_server_empire_exp::load_exp_table() -> bool
 
 			v = strtok (temp, delim);
 			v = strtok (nullptr, delim);
-			metin2::log::info( "holiday {}", v);
+			metin2::log::debug( "Speed server: holiday {}", v);
 
 			p = strtok (nullptr, ";");
 			n = strtok (nullptr, ";");
@@ -218,11 +216,10 @@ auto speed_server_empire_exp::load_exp_table() -> bool
 				m = strtok (nullptr, delim);
 				if (!str_to_number (hour, h) || !str_to_number (min, m) || !str_to_number (exp, e))
 				{
-					metin2::log::info( "h m e : {} {} {}",h, m, e);
-					metin2::log::error("Invalid argument. Please insert hh:mm exp");
+					metin2::log::error("Invalid exp bonus entry '{}:{} {}', expected hh:mm exp",h, m, e);
 					return false;
 				}
-				metin2::log::info( "h m e : {} {} {}",h, m, e);
+				metin2::log::debug( "Speed server: exp bonus {} at {}:{}",e, h, m);
 
 				lst.push_back (hme (hour, min, exp));
 				p = strtok (n, ";");
@@ -233,11 +230,11 @@ auto speed_server_empire_exp::load_exp_table() -> bool
 					|| !str_to_number ( mon, strtok (nullptr, "."))
 					|| !str_to_number ( day, strtok (nullptr, ".")))
 			{
-				metin2::log::error("Invalid Date");
+				metin2::log::error("Invalid holiday date in exp bonus table");
 				return false;
 			}
 
-			metin2::log::info( "y m d {:d} {:d} {:d}",year, mon, day);
+			metin2::log::debug( "Speed server: holiday date {:d}-{:d}-{:d}",year, mon, day);
 
 			holiday_map_.insert (std::pair <date, std::list <hme> > (date (year - 1900, mon - 1, day), lst));
 		}
@@ -273,7 +270,7 @@ void speed_server_manager::init_wday_exp_table_of_empire (uint8_t empire, int wd
 {
 	if (empire > EMPIRE_MAX_NUM)
 	{
-		metin2::log::error("invalid empire");
+		metin2::log::error("Invalid empire {:d}", empire);
 		return;
 	}
 
@@ -302,7 +299,7 @@ auto speed_server_empire_exp::holiday_exp_table(date date, bool &is_exist) -> st
 	else
 	{
 		is_exist = false;
-		metin2::log::error("Cannot find Holiday {:d} {:d} {:d}",date.year, date.mon, date.day);
+		metin2::log::debug("Speed server: no holiday entry for {:d}-{:d}-{:d}",date.year, date.mon, date.day);
 	}
 	return it->second;
 }
@@ -326,7 +323,7 @@ void speed_server_manager::init_holiday_exp_table_of_empire (uint8_t empire, dat
 {
 	if (empire > EMPIRE_MAX_NUM)
 	{
-		metin2::log::error("invalid empire");
+		metin2::log::error("Invalid empire {:d}", empire);
 		return;
 	}
 
@@ -335,7 +332,7 @@ void speed_server_manager::init_holiday_exp_table_of_empire (uint8_t empire, dat
 
 void speed_server_empire_exp::init_holiday_exp_table(date date)
 {
-	metin2::log::info( "init holiday");
+	metin2::log::debug( "Speed server: initializing holiday exp table");
 	std::map <game::events::date, std::list <hme> >::iterator it = holiday_map_.find(date);
 	if (it == holiday_map_.end())
 	{

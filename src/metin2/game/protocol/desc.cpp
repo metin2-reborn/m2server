@@ -123,7 +123,7 @@ void desc::destroy()
 
 	if (character_)
 	{
-		character_->disconnect("DESC::~DESC");
+		character_->disconnect("connection closed");
 		character_ = nullptr;
 	}
 
@@ -145,7 +145,7 @@ void desc::destroy()
 
 	if (connection_)
 	{
-		metin2::log::info( "SYSTEM: closing connection of {} (handle {:d})", host_.c_str(), handle_);
+		metin2::log::info( "Closing connection of {} (handle {:d})", host_.c_str(), handle_);
 
 		cipher_.clean_up();
 
@@ -162,7 +162,7 @@ EVENTFUNC(ping_event)
 
 	if ( info == nullptr )
 	{
-		metin2::log::error( "ping_event> <Factor> Null pointer" );
+		metin2::log::error( "Ping event has no info" );
 		return 0;
 	}
 
@@ -173,7 +173,7 @@ EVENTFUNC(ping_event)
 
 	if (!desc->is_pong())
 	{
-		metin2::log::info( "PING_EVENT: no pong {}", desc->host_name());
+		metin2::log::info( "No ping reply from {}, closing connection", desc->host_name());
 
 		desc->set_phase(PHASE_CLOSE);
 
@@ -223,7 +223,7 @@ auto desc::setup(std::shared_ptr<net::connection> connection, uint32_t handle, u
 	set_phase(PHASE_HANDSHAKE);
 	start_handshake(handshake);
 
-	metin2::log::info( "SYSTEM: new connection from [{}] handle {:d} handshake {:d} ptr {}",
+	metin2::log::info( "New connection from {} (handle {:d}, handshake {:d}, {})",
 			host_.c_str(), handle_, handshake_, static_cast<const void *>(this));
 
 	return true;
@@ -252,7 +252,7 @@ auto desc::on_receive(std::span<std::uint8_t> input, std::size_t received) -> st
 void desc::on_close(const std::error_code & error)
 {
 	if (error && error != asio::error::eof)
-		metin2::log::info( "SYSTEM: connection of {} lost: {}", host_.c_str(), error.message().c_str());
+		metin2::log::info( "Connection of {} lost: {}", host_.c_str(), error.message().c_str());
 
 	set_phase(PHASE_CLOSE);
 }
@@ -302,7 +302,7 @@ void desc::packet(const void * data_value, int size_value)
 
 	if (out.empty())
 	{
-		metin2::log::info( "SYSTEM: output of {} exceeds its limit, closing", host_.c_str());
+		metin2::log::warn( "Output buffer of {} exceeds its limit, closing connection", host_.c_str());
 		phase_ = PHASE_CLOSE;
 	}
 	else
@@ -321,7 +321,7 @@ void desc::large_packet(const void * data, int size)
 	if (connection_)
 		connection_->raise_output_limit(size);
 
-	metin2::log::info( "LargePacket Size {:d}", size);
+	metin2::log::debug( "Sending large packet ({:d} bytes)", size);
 
 	packet(data, size);
 }
@@ -358,7 +358,7 @@ void desc::set_phase(int phase_value)
 
 		case PHASE_AUTH:
 			input_processor_ = &input_auth_;
-			metin2::log::info( "AUTH_PHASE {}", static_cast<const void *>(this));
+			metin2::log::debug( "Connection {} entered auth phase", static_cast<const void *>(this));
 			break;
 	}
 }
@@ -405,7 +405,7 @@ auto desc::handshake_process(uint32_t time, int32_t delta, bool infinite_retry) 
 
 	if (delta < 0)
 	{
-		metin2::log::error("Desc::HandshakeProcess : value error (lDelta {:d}, ip {})", delta, host_.c_str());
+		metin2::log::warn("Negative handshake delta {:d} from {}", delta, host_.c_str());
 		return false;
 	}
 
@@ -420,9 +420,9 @@ auto desc::handshake_process(uint32_t time, int32_t delta, bool infinite_retry) 
 		}
 
 		if (get_character())
-			metin2::log::info( "Handshake: client_time {:d} server_time {:d} name: {}", client_time_, dwCurTime, get_character()->name());
+			metin2::log::debug( "Handshake done: client time {:d}, server time {:d}, player {}", client_time_, dwCurTime, get_character()->name());
 		else
-			metin2::log::info( "Handshake: client_time {:d} server_time {:d} delta {:d}", client_time_, dwCurTime, static_cast<long>(delta));
+			metin2::log::debug( "Handshake done: client time {:d}, server time {:d}, delta {:d}", client_time_, dwCurTime, static_cast<long>(delta));
 
 		client_time_ = dwCurTime;
 		handshaking_ = false;
@@ -433,17 +433,17 @@ auto desc::handshake_process(uint32_t time, int32_t delta, bool infinite_retry) 
 
 	if (lNewDelta < 0)
 	{
-		metin2::log::info( "Handshake: lower than zero {:d}", lNewDelta);
+		metin2::log::debug( "Handshake: negative delta {:d}, using send time instead", lNewDelta);
 		lNewDelta = (dwCurTime - handshake_sent_time_) / 2;
 	}
 
-	metin2::log::debug( "Handshake: ServerTime {:d} dwTime {:d} lDelta {:d} SentTime {:d} lNewDelta {:d}", dwCurTime, time, delta, handshake_sent_time_, lNewDelta);
+	metin2::log::debug( "Handshake retry: server time {:d}, client time {:d}, delta {:d}, sent at {:d}, new delta {:d}", dwCurTime, time, delta, handshake_sent_time_, lNewDelta);
 
 	if (!infinite_retry)
 		if (++handshake_retry_ > HANDSHAKE_RETRY_LIMIT)
 		{
-			metin2::log::error("handshake retry limit reached! (limit {:d} character {})", 
-					HANDSHAKE_RETRY_LIMIT, get_character() ? get_character()->name() : "!NO CHARACTER!");
+			metin2::log::warn("Handshake retry limit {:d} reached (player {}), closing connection",
+					HANDSHAKE_RETRY_LIMIT, get_character() ? get_character()->name() : "none");
 			set_phase(PHASE_CLOSE);
 			return false;
 		}
@@ -526,12 +526,12 @@ void desc::flush_output()
 	if (!connection_ || connection_->pending_output() == 0)
 		return;
 
-	metin2::log::info( "FLUSH START {:d}", connection_->pending_output());
+	metin2::log::debug( "Flushing {:d} bytes of output", connection_->pending_output());
 
 	if (connection_->flush(std::chrono::seconds(20)))
-		metin2::log::info( "FLUSH SUCCESS");
+		metin2::log::debug( "Output flushed");
 	else
-		metin2::log::info( "FLUSH FAIL");
+		metin2::log::warn( "Cannot flush output of {} within 20 seconds", host_.c_str());
 }
 
 EVENTFUNC(disconnect_event)
@@ -540,7 +540,7 @@ EVENTFUNC(disconnect_event)
 
 	if ( info == nullptr )
 	{
-		metin2::log::error( "disconnect_event> <Factor> Null pointer" );
+		metin2::log::error( "Disconnect event has no info" );
 		return 0;
 	}
 
@@ -648,7 +648,7 @@ void desc::set_login_key(login_key * key_value)
 		m_pk_login_key_->expire();
 
 	m_pk_login_key_ = key_value;
-	metin2::log::info( "SetLoginKey {:d}", m_pk_login_key_->key);
+	metin2::log::debug( "Login key {:d} bound to connection", m_pk_login_key_->key);
 }
 
 auto desc::get_login_key() -> uint32_t

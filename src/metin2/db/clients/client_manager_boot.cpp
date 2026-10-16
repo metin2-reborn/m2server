@@ -35,84 +35,84 @@ auto client_manager::initialize_tables() -> bool
 {
 	if (!initialize_mob_table())
 	{
-		metin2::log::error("InitializeMobTable FAILED");
+		metin2::log::error("Cannot load mob table");
 		return false;
 	}
 	if (!mirror_mob_table_into_db())
 	{
-		metin2::log::error("MirrorMobTableIntoDB FAILED");
+		metin2::log::error("Cannot mirror mob table into the database");
 		return false; 
 	}
 
 	if (!initialize_item_table())
 	{
-		metin2::log::error("InitializeItemTable FAILED");
+		metin2::log::error("Cannot load item table");
 		return false; 
 	}
 
 	if (!mirror_item_table_into_db())
 	{
-		metin2::log::error("MirrorItemTableIntoDB FAILED");
+		metin2::log::error("Cannot mirror item table into the database");
 		return false; 
 	}
 
 	if (!initialize_shop_table())
 	{
-		metin2::log::error("InitializeShopTable FAILED");
+		metin2::log::error("Cannot load shop table");
 		return false;
 	}
 
 	if (!initialize_skill_table())
 	{
-		metin2::log::error("InitializeSkillTable FAILED");
+		metin2::log::error("Cannot load skill table");
 		return false;
 	}
 
 	if (!initialize_refine_table())
 	{
-		metin2::log::error("InitializeRefineTable FAILED");
+		metin2::log::error("Cannot load refine table");
 		return false;
 	}
 
 	if (!initialize_item_attr_table())
 	{
-		metin2::log::error("InitializeItemAttrTable FAILED");
+		metin2::log::error("Cannot load item attribute table");
 		return false;
 	}
 
 	if (!initialize_item_rare_table())
 	{
-		metin2::log::error("InitializeItemRareTable FAILED");
+		metin2::log::error("Cannot load rare item attribute table");
 		return false;
 	}
 
 	if (!initialize_banword_table())
 	{
-		metin2::log::error("InitializeBanwordTable FAILED");
+		metin2::log::error("Cannot load banword table");
 		return false;
 	}
 
 	if (!initialize_land_table())
 	{
-		metin2::log::error("InitializeLandTable FAILED");
+		metin2::log::error("Cannot load land table");
 		return false;
 	}
 
 	if (!initialize_object_proto())
 	{
-		metin2::log::error("InitializeObjectProto FAILED");
+		metin2::log::error("Cannot load object proto");
 		return false;
 	}
 
 	if (!initialize_object_table())
 	{
-		metin2::log::error("InitializeObjectTable FAILED");
+		metin2::log::error("Cannot load object table");
 		return false;
 	}
 
 	if (!initialize_monarch())
 	{
-		metin2::log::error("InitializeMonarch FAILED");
+		metin2::log::error("Cannot load monarch data");
 		return false;
 	}
 
@@ -136,7 +136,7 @@ auto client_manager::initialize_refine_table() -> bool
 
 	if (refine_table_)
 	{
-		metin2::log::info( "RELOAD: refine_proto");
+		metin2::log::info("Reloading refine_proto");
 		refine_table_.reset();
 	}
 
@@ -167,7 +167,7 @@ auto client_manager::initialize_refine_table() -> bool
 			}
 		}
 
-		metin2::log::info( "REFINE: id {:d} cost {:d} prob {:d} mat1 {:d} cnt1 {:d}", prt->id, prt->cost, prt->prob, prt->materials[0].vnum, prt->materials[0].count);
+		metin2::log::debug("Refine {:d}: cost {:d}, probability {:d}, first material vnum {:d} x{:d}", prt->id, prt->cost, prt->prob, prt->materials[0].vnum, prt->materials[0].count);
 
 		prt++;
 	}
@@ -259,7 +259,7 @@ auto client_manager::initialize_mob_table() -> bool
 	data.next();
 	if (!vec_mob_table_.empty())
 	{
-		metin2::log::info( "RELOAD: mob_proto");
+		metin2::log::info("Reloading mob_proto");
 		vec_mob_table_.clear();
 	}
 	vec_mob_table_.resize(data.file.row_count()-1 + addNumber);
@@ -353,7 +353,7 @@ auto client_manager::initialize_mob_table() -> bool
 		vnumSet.insert(mob_table->vnum);
 		
 
-		metin2::log::debug( "MOB #{:<5d} {:<24} {:<24} level: {:<3d} rank: {:d} empire: {:d}", mob_table->vnum, mob_table->name, mob_table->locale_name, mob_table->level, mob_table->rank, mob_table->empire);
+		metin2::log::debug("Mob {1} / {2} (vnum {0:d}) level {3:d} rank {4:d} empire {5:d}", mob_table->vnum, mob_table->name, mob_table->locale_name, mob_table->level, mob_table->rank, mob_table->empire);
 		++mob_table;
 
 	}
@@ -382,7 +382,6 @@ auto client_manager::initialize_mob_table() -> bool
 				fprintf(stderr, "몹 프로토 테이블 셋팅 실패.\n");			
 			}
 
-			metin2::log::info( "MOB #{:<5d} {:<24} {:<24} level: {:<3d} rank: {:d} empire: {:d}", mob_table->vnum, mob_table->name, mob_table->locale_name, mob_table->level, mob_table->rank, mob_table->empire);
 			++mob_table;
 
 		}
@@ -411,7 +410,7 @@ auto client_manager::initialize_shop_table() -> bool
 
 	if (!pRes2->num_rows)
 	{
-		metin2::log::error("InitializeShopTable : Table count is zero.");
+		metin2::log::error("Shop table is empty");
 		return false;
 	}
 
@@ -466,7 +465,7 @@ auto client_manager::initialize_shop_table() -> bool
 	while (it != map_shop.end())
 	{
 		std::memcpy((shop_table_.get() + i), (it++)->second.get(), sizeof(proto::shop_table));
-		metin2::log::info( "SHOP: #{:d} items: {:d}", (shop_table_.get() + i)->vnum, (shop_table_.get() + i)->item_count);
+		metin2::log::debug("Shop {:d}: {:d} items", (shop_table_.get() + i)->vnum, (shop_table_.get() + i)->item_count);
 		++i;
 	}
 
@@ -533,7 +532,7 @@ auto client_manager::initialize_item_table() -> bool
 
 	if (!vec_item_table_.empty())
 	{
-		metin2::log::info( "RELOAD: item_proto");
+		metin2::log::info("Reloading item_proto");
 		vec_item_table_.clear();
 		map_item_table_by_vnum_.clear();
 	}
@@ -669,7 +668,7 @@ auto client_manager::initialize_item_table() -> bool
 	{
 		proto::item_table * item_table = &(*(it++));
 
-		metin2::log::debug( "ITEM: #{:<5d} {:<24} {:<24} VAL: {:d} {:d} {:d} {:d} {:d} {:d} WEAR {:d} ANTI {:d} IMMUNE {:d} REFINE {:d} REFINE_SET {:d} MAGIC_PCT {:d}",
+		metin2::log::debug("Item {1} / {2} (vnum {0:d}) values {3:d} {4:d} {5:d} {6:d} {7:d} {8:d}, wear flags {9:d}, anti flags {10:d}, immune {11:d}, refined vnum {12:d}, refine set {13:d}, magic pct {14:d}",
 				item_table->vnum,
 				item_table->name,
 				item_table->locale_name,
@@ -711,13 +710,13 @@ auto client_manager::initialize_skill_table() -> bool
 
 	if (!pRes->num_rows)
 	{
-		metin2::log::error("no result from skill_proto");
+		metin2::log::error("skill_proto is empty");
 		return false;
 	}
 
 	if (!vec_skill_table_.empty())
 	{
-		metin2::log::info( "RELOAD: skill_proto");
+		metin2::log::info("Reloading skill_proto");
 		vec_skill_table_.clear();
 	}
 
@@ -773,7 +772,7 @@ auto client_manager::initialize_skill_table() -> bool
 		str_to_number(t.skill_attr_type, data[col++]);
 		str_to_number(t.target_range, data[col++]);
 
-		metin2::log::info( "SKILL: #{:d} {} flag {:d} point {} affect {:d} cooldown {}", t.vnum, t.name, t.flag, t.point_on, t.affect_flag, t.cooldown_poly);
+		metin2::log::debug("Skill {1} (vnum {0:d}) flag {2:d}, point {3}, affect {4:d}, cooldown {5}", t.vnum, t.name, t.flag, t.point_on, t.affect_flag, t.cooldown_poly);
 
 		vec_skill_table_.push_back(t);
 	}
@@ -805,7 +804,7 @@ auto client_manager::initialize_banword_table() -> bool
 		}
 	}
 
-	metin2::log::info( "BANWORD: total {:d}", vec_banword_table_.size());
+	metin2::log::info("Loaded {:d} banwords", vec_banword_table_.size());
 	return true;
 }
 
@@ -821,13 +820,13 @@ auto client_manager::initialize_item_attr_table() -> bool
 
 	if (!pRes->num_rows)
 	{
-		metin2::log::error("no result from item_attr");
+		metin2::log::error("item_attr is empty");
 		return false;
 	}
 
 	if (!vec_item_attr_table_.empty())
 	{
-		metin2::log::info( "RELOAD: item_attr");
+		metin2::log::info("Reloading item_attr");
 		vec_item_attr_table_.clear();
 	}
 
@@ -860,7 +859,7 @@ auto client_manager::initialize_item_attr_table() -> bool
 		str_to_number(t.max_level_by_set[ATTRIBUTE_SET_SHIELD], data[col++]);
 		str_to_number(t.max_level_by_set[ATTRIBUTE_SET_EAR], data[col++]);
 
-		metin2::log::info( "ITEM_ATTR: {:<20} {:4d} {{ {:3d} {:3d} {:3d} {:3d} {:3d} }} {{ {:d} {:d} {:d} {:d} {:d} {:d} {:d} {:d} }}",
+		metin2::log::debug("Item attr: apply {} prob {:d}, values {:d} {:d} {:d} {:d} {:d}, max level weapon {:d} body {:d} wrist {:d} foots {:d} neck {:d} head {:d} shield {:d} ear {:d}",
 				t.apply,
 				t.prob,
 				t.values[0],
@@ -895,13 +894,13 @@ auto client_manager::initialize_item_rare_table() -> bool
 
 	if (!pRes->num_rows)
 	{
-		metin2::log::error("no result from item_attr_rare");
+		metin2::log::error("item_attr_rare is empty");
 		return false;
 	}
 
 	if (!vec_item_rare_table_.empty())
 	{
-		metin2::log::info( "RELOAD: item_attr_rare");
+		metin2::log::info("Reloading item_attr_rare");
 		vec_item_rare_table_.clear();
 	}
 
@@ -934,7 +933,7 @@ auto client_manager::initialize_item_rare_table() -> bool
 		str_to_number(t.max_level_by_set[ATTRIBUTE_SET_SHIELD], data[col++]);
 		str_to_number(t.max_level_by_set[ATTRIBUTE_SET_EAR], data[col++]);
 
-		metin2::log::info( "ITEM_RARE: {:<20} {:4d} {{ {:3d} {:3d} {:3d} {:3d} {:3d} }} {{ {:d} {:d} {:d} {:d} {:d} {:d} {:d} {:d} }}",
+		metin2::log::debug("Rare item attr: apply {} prob {:d}, values {:d} {:d} {:d} {:d} {:d}, max level weapon {:d} body {:d} wrist {:d} foots {:d} neck {:d} head {:d} shield {:d} ear {:d}",
 				t.apply,
 				t.prob,
 				t.values[0],
@@ -973,7 +972,7 @@ auto client_manager::initialize_land_table() -> bool
 
 	if (!vec_k_land_table_.empty())
 	{
-		metin2::log::info( "RELOAD: land");
+		metin2::log::info("Reloading land");
 		vec_k_land_table_.clear();
 	}
 
@@ -1000,7 +999,7 @@ auto client_manager::initialize_land_table() -> bool
 			str_to_number(t.guild_level_limit, data[col++]);
 			str_to_number(t.price, data[col++]);
 
-			metin2::log::info( "LAND: {:d} map {:<4d} {:7d}x{:<7d} w {:<4d} h {:<4d}", t.id, t.map_index, t.x, t.y, t.width, t.height);
+			metin2::log::debug("Land {:d}: map {:d} at ({:d}, {:d}), {:d} x {:d}", t.id, t.map_index, t.x, t.y, t.width, t.height);
 
 			vec_k_land_table_.push_back(t);
 		}
@@ -1075,7 +1074,7 @@ auto client_manager::initialize_object_proto() -> bool
 
 	if (!vec_k_object_proto_.empty())
 	{
-		metin2::log::info( "RELOAD: object_proto");
+		metin2::log::info("Reloading object_proto");
 		vec_k_object_proto_.clear();
 	}
 
@@ -1121,7 +1120,7 @@ auto client_manager::initialize_object_proto() -> bool
 			t.npcx = 0;
 			t.npcy = std::max(t.region[1], t.region[3])+300;
 
-			metin2::log::info( "OBJ_PROTO: vnum {:d} price {:d} mat {:d} {:d}",
+			metin2::log::debug("Object proto {:d}: price {:d}, first material vnum {:d} x{:d}",
 					t.vnum, t.price, t.materials[0].item_vnum, t.materials[0].count);
 
 			vec_k_object_proto_.push_back(t);
@@ -1142,7 +1141,7 @@ auto client_manager::initialize_object_table() -> bool
 
 	if (!map_pk_object_table_.empty())
 	{
-		metin2::log::info( "RELOAD: object");
+		metin2::log::info("Reloading object");
 		map_pk_object_table_.clear();
 	}
 
@@ -1168,7 +1167,7 @@ auto client_manager::initialize_object_table() -> bool
 			str_to_number(k->z_rot, data[col++]);
 			str_to_number(k->life, data[col++]);
 
-			metin2::log::info( "OBJ: {:d} vnum {:d} map {:<4d} {:7d}x{:<7d} life {:d}",
+			metin2::log::debug("Object {:d} (vnum {:d}) on map {:d} at ({:d}, {:d}), life {:d}",
 					k->id, k->vnum, k->map_index, k->x, k->y, k->life);
 
 			map_pk_object_table_.insert(std::make_pair(k->id, std::move(k)));

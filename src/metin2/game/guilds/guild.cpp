@@ -154,7 +154,7 @@ void guild::request_add_member(character * ch, int grade)
 
 	if (member_.find(ch->player_id()) != member_.end())
 	{
-		metin2::log::error("Already a member in guild {}[{:d}]", ch->name(), ch->player_id());
+		metin2::log::error("Player {} (pid {:d}) is already a guild member", ch->name(), ch->player_id());
 		return;
 	}
 
@@ -187,7 +187,7 @@ void guild::add_member(packet_dg_guild_member * p)
 
 	character * ch = character_manager::instance().find_by_pid(p->pid);
 
-	metin2::log::info( "GUILD: AddMember PID {:d}, grade {:d}, job {:d}, level {:d}, offer {:d}, name {} ptr {}",
+	metin2::log::info( "Guild: added member pid {:d}, grade {:d}, job {:d}, level {:d}, offer {:d}, name {} ({})",
 			p->pid, p->grade, p->job, p->level, p->offer, p->name, static_cast<const void *>(ch));
 
 	if (ch)
@@ -217,7 +217,6 @@ auto guild::request_remove_member(uint32_t pid) -> bool
 
 auto guild::remove_member(uint32_t pid) -> bool
 {
-	metin2::log::info( "Receive Guild P2P RemoveMember");
 	guild_member_container::iterator it;
 
 	if ((it = member_.find(pid)) == member_.end())
@@ -249,7 +248,7 @@ void guild::p2_p_login_member(uint32_t pid)
 {
 	if (member_.find(pid) == member_.end())
 	{
-		metin2::log::error("GUILD [{:d}] is not a memeber of guild.", pid);
+		metin2::log::warn("Member login for pid {:d}, who is not in the guild", pid);
 		return;
 	}
 
@@ -265,7 +264,7 @@ void guild::login_member(character * ch)
 {
 	if (member_.find(ch->player_id()) == member_.end())
 	{
-		metin2::log::error("GUILD {}[{:d}] is not a memeber of guild.", ch->name(), ch->player_id());
+		metin2::log::warn("Player {} (pid {:d}) logged in but is not in the guild", ch->name(), ch->player_id());
 		return;
 	}
 
@@ -290,7 +289,7 @@ void guild::p2_p_logout_member(uint32_t pid)
 {
 	if (member_.find(pid)==member_.end())
 	{
-		metin2::log::error("GUILD [{:d}] is not a memeber of guild.", pid);
+		metin2::log::warn("Member logout for pid {:d}, who is not in the guild", pid);
 		return;
 	}
 
@@ -307,7 +306,7 @@ void guild::logout_member(character * ch)
 {
 	if (member_.find(ch->player_id())==member_.end())
 	{
-		metin2::log::error("GUILD {}[{:d}] is not a memeber of guild.", ch->name(), ch->player_id());
+		metin2::log::warn("Player {} (pid {:d}) logged out but is not in the guild", ch->name(), ch->player_id());
 		return;
 	}
 
@@ -435,7 +434,7 @@ void guild::send_list_packet(character * ch)
 		buf.write(c, CHARACTER_NAME_MAX_LEN+1 );
 
 		if ( metin2::config::test_server() )
-			metin2::log::info("name {} job {:d}  ", it->second.name.c_str(), it->second.job );
+			metin2::log::debug("Guild: sending member {} (job {:d})", it->second.name.c_str(), it->second.job );
 	}
 
 	d->packet(buf.read_peek(), buf.size());
@@ -553,7 +552,7 @@ void guild::load_guild_data(sql_msg* pmsg)
 {
 	if (pmsg->get()->num_rows == 0)
 	{
-		metin2::log::error("Query failed: getting guild data {}", pmsg->query.c_str());
+		metin2::log::error("Guild data not found, query: {}", pmsg->query.c_str());
 		return;
 	}
 
@@ -593,7 +592,7 @@ void guild::load(uint32_t guild_id)
 	db_manager::instance().func_query([this](sql_msg *msg) { load_guild_data(msg); },
 			"SELECT master, level, exp, name, skill_point, skill, sp, ladder_point, win, draw, loss, gold FROM guild%s WHERE id = %u", get_table_postfix(), data_.guild_id);
 
-	metin2::log::info( "GUILD: loading guild id {:>12} {:d}", data_.name, guild_id);
+	metin2::log::info( "Guild: loading guild {} (id {:d})", data_.name, guild_id);
 
 	db_manager::instance().func_query([this](sql_msg *msg) { load_guild_grade_data(msg); }, 
 			"SELECT grade, name, auth+0 FROM guild_grade%s WHERE guild_id = %u", get_table_postfix(), data_.guild_id);
@@ -756,7 +755,7 @@ void guild::change_grade_name(uint8_t grade, const char* grade_name)
 
 	if (grade < 1 || grade > 15)
 	{
-		metin2::log::error("Wrong guild grade value {:d}", grade);
+		metin2::log::warn("Invalid guild grade {:d}", grade);
 		return;
 	}
 
@@ -801,7 +800,7 @@ void guild::change_grade_auth(uint8_t grade, uint8_t auth)
 
 	if (grade < 1 || grade > 15)
 	{
-		metin2::log::error("Wrong guild grade value {:d}", grade);
+		metin2::log::warn("Invalid guild grade {:d}", grade);
 		return;
 	}
 
@@ -859,8 +858,8 @@ void guild::send_guild_info_packet(character * ch)
 	pack_sub.gold	= data_.gold;
 	pack_sub.has_land	= has_land();
 
-	metin2::log::info( "GMC guild_name {}", data_.name);
-	metin2::log::info( "GMC master {:d}", data_.master_pid);
+	metin2::log::debug( "Guild: sending guild info for {}", data_.name);
+	metin2::log::debug( "Guild: master pid {:d}", data_.master_pid);
 
 	d->buffered_packet(&pack, sizeof(packet_gc_guild));
 	d->packet(&pack_sub, sizeof(packet_gc_guild_info));
@@ -887,7 +886,7 @@ auto guild::offer_exp(character * ch, int amount) -> bool
 
 	if (ch->get_exp() - (uint32_t) amount > ch->get_exp())
 	{
-		metin2::log::error("Wrong guild offer amount {:d} by {}[{:d}]", amount, ch->name(), ch->player_id());
+		metin2::log::warn("Invalid guild exp offer {:d} by player {} (pid {:d})", amount, ch->name(), ch->player_id());
 		return false;
 	}
 
@@ -933,7 +932,7 @@ auto guild::offer_exp(character * ch, int amount) -> bool
 
 void guild::disband()
 {
-	metin2::log::info( "GUILD: Disband {}:{:d}", name(), id());
+	metin2::log::info( "Guild: disbanding guild {} (id {:d})", name(), id());
 
 	for (guild_member_online_container::iterator it = member_online_.begin(); it != member_online_.end(); ++it)
 	{
@@ -1099,7 +1098,7 @@ void guild::change_member_grade(uint32_t pid, uint8_t grade)
 
 	if (grade < 1 || grade > GUILD_GRADE_COUNT)
 	{
-		metin2::log::error("Wrong guild grade value {:d}", grade);
+		metin2::log::warn("Invalid guild grade {:d}", grade);
 		return;
 	}
 
@@ -1153,7 +1152,7 @@ void guild::skill_level_up(uint32_t vnum_value)
 
 	if (!pkSk)
 	{
-		metin2::log::error("There is no such guild skill by number {:d}", vnum_value);
+		metin2::log::error("Unknown guild skill {:d}", vnum_value);
 		return;
 	}
 
@@ -1172,7 +1171,7 @@ void guild::skill_level_up(uint32_t vnum_value)
 
 	std::for_each(member_online_.begin(), member_online_.end(), std::bind(&guild::send_skill_info_packet, this, std::placeholders::_1));
 
-	metin2::log::info( "Guild SkillUp: {} {:d} level {:d} type {:d}", name(), pkSk->vnum, data_.aby_skill[dwRealVnum], pkSk->type);
+	metin2::log::info( "Guild: guild {} raised skill {:d} to level {:d} (type {:d})", name(), pkSk->vnum, data_.aby_skill[dwRealVnum], pkSk->type);
 }
 
 void guild::use_skill(uint32_t vnum_value, character * ch, uint32_t pid)
@@ -1182,7 +1181,7 @@ void guild::use_skill(uint32_t vnum_value, character * ch, uint32_t pid)
 	if (!member(ch->player_id()) || !has_grade_auth(member(ch->player_id())->grade, GUILD_AUTH_USE_SKILL))
 		return;
 
-	metin2::log::info("GUILD_USE_SKILL : cname({}), skill({:d})", ch ? ch->name() : "", vnum_value);
+	metin2::log::info("Guild: player {} used guild skill {:d}", ch ? ch->name() : "", vnum_value);
 
 	uint32_t dwRealVnum = vnum_value - GUILD_SKILL_START;
 
@@ -1196,7 +1195,7 @@ void guild::use_skill(uint32_t vnum_value, character * ch, uint32_t pid)
 
 	if (!pkSk)
 	{
-		metin2::log::error("There is no such guild skill by number {:d}", vnum_value);
+		metin2::log::error("Unknown guild skill {:d}", vnum_value);
 		return;
 	}
 
@@ -1601,13 +1600,13 @@ void guild::skill_usable_change(uint32_t skill_vnum, bool usable)
 
 	skill_usable_[dwRealVnum] = usable;
 
-	metin2::log::info( "CGuild::SkillUsableChange(guild={}, skill={:d}, usable={:d})", name(), skill_vnum, usable);
+	metin2::log::debug( "Guild: guild {} skill {:d} usable set to {:d}", name(), skill_vnum, usable);
 }
 
 void guild::set_member_count_bonus(int bonus)
 {
 	member_count_bonus_ = bonus;
-	metin2::log::info( "GUILD_IS_FULL_BUG : Bonus set to {:d}(val:{:d})", bonus, member_count_bonus_);
+	metin2::log::info( "Guild: member count bonus set to {:d}", bonus);
 }
 
 void guild::broadcast_member_count_bonus()
@@ -1653,7 +1652,7 @@ void guild::request_deposit_money(character * ch, int gold_value)
 	log_manager::instance().char_log(ch, gold_value, "GUILD_DEPOSIT", buf);
 
 	ch->update_deposit_pulse();
-	metin2::log::info( "GUILD: DEPOSIT {}:{:d} player {}[{:d}] gold {:d}", name(), id(), ch->name(), ch->player_id(), gold_value);
+	metin2::log::info( "Guild: deposit to guild {} (id {:d}) by player {} (pid {:d}), {:d} gold", name(), id(), ch->name(), ch->player_id(), gold_value);
 }
 
 void guild::recv_money_change(int gold_value)
@@ -1681,7 +1680,7 @@ void guild::recv_withdraw_money_give(int change_gold_value)
 	if (ch)
 	{
 		ch->point_change(POINT_GOLD, change_gold_value);
-		metin2::log::info( "GUILD: WITHDRAW {}:{:d} player {}[{:d}] gold {:d}", name(), id(), ch->name(), ch->player_id(), change_gold_value);
+		metin2::log::info( "Guild: withdrawal from guild {} (id {:d}) by player {} (pid {:d}), {:d} gold", name(), id(), ch->name(), ch->player_id(), change_gold_value);
 	}
 
 	packet_gd_guild_money_withdraw_give_reply p;
@@ -1714,7 +1713,7 @@ EVENTFUNC( guild_invite_event )
 
 	if ( pInfo == nullptr )
 	{
-		metin2::log::error( "GuildInviteEvent> <Factor> Null pointer" );
+		metin2::log::error( "Guild invite event has no event info" );
 		return 0;
 	}
 
@@ -1722,7 +1721,7 @@ EVENTFUNC( guild_invite_event )
 
 	if ( pGuild ) 
 	{
-		metin2::log::info( "GuildInviteEvent {}", pGuild->name() );
+		metin2::log::debug( "Guild: invite to guild {} expired", pGuild->name() );
 		pGuild->invite_deny( pInfo->invitee_pid );
 	}
 
@@ -1775,7 +1774,7 @@ void guild::invite( character * pch_inviter, character * pch_invitee )
 		case GERR_GUILD_IS_IN_WAR : pch_inviter->chat_packet( CHAT_TYPE_INFO, lc_text("<길드> 현재 길드가 전쟁 중 입니다.") ); return;
 		case GERR_INVITE_LIMIT : pch_inviter->chat_packet( CHAT_TYPE_INFO, lc_text("<길드> 현재 신규 가입 제한 상태 입니다.") ); return;
 
-		default: metin2::log::error( "ignore guild join error({:d})", errcode ); return;
+		default: metin2::log::error( "Unhandled guild join error {:d}", errcode ); return;
 	}
 
 	if ( guild_invite_event_map_.end() != guild_invite_event_map_.find( pch_invitee->player_id() ) )
@@ -1808,7 +1807,7 @@ void guild::invite_accept( character * pch_invitee )
 	event_map::iterator itFind = guild_invite_event_map_.find( pch_invitee->player_id() );
 	if ( itFind == guild_invite_event_map_.end() ) 
 	{
-		metin2::log::info( "GuildInviteAccept from not invited character(invite guild: {}, invitee: {})", name(), pch_invitee->name() );
+		metin2::log::warn( "Player {} accepted an invite to guild {} without being invited", pch_invitee->name(), name() );
 		return;
 	}
 
@@ -1834,7 +1833,7 @@ void guild::invite_accept( character * pch_invitee )
 		case GERR_GUILD_IS_IN_WAR : pch_invitee->chat_packet( CHAT_TYPE_INFO, lc_text("<길드> 현재 길드가 전쟁 중 입니다.") ); return;
 		case GERR_INVITE_LIMIT : pch_invitee->chat_packet( CHAT_TYPE_INFO, lc_text("<길드> 현재 신규 가입 제한 상태 입니다.") ); return;
 
-		default: metin2::log::error( "ignore guild join error({:d})", errcode ); return;
+		default: metin2::log::error( "Unhandled guild join error {:d}", errcode ); return;
 	}
 
 	request_add_member( pch_invitee, 15 );
@@ -1845,7 +1844,7 @@ void guild::invite_deny( uint32_t pid )
 	event_map::iterator itFind = guild_invite_event_map_.find( pid );
 	if ( itFind == guild_invite_event_map_.end() ) 
 	{
-		metin2::log::info( "GuildInviteDeny from not invited character(invite guild: {}, invitee PID: {:d})", name(), pid );
+		metin2::log::warn( "Pid {:d} denied an invite to guild {} without being invited", pid, name() );
 		return;
 	}
 
@@ -1865,7 +1864,7 @@ auto guild::verify_guild_joinable_condition( character * const pch_invitee ) -> 
 		return GERR_ALREADYJOIN;
 	else if ( member_count() >= max_member_count() )
 	{
-		metin2::log::debug( "GuildName = {}, GetMemberCount() = {:d}, GetMaxMemberCount() = {:d} (32 + MAX(level({:d})-10, 0) * 2 + bonus({:d})", 
+		metin2::log::debug( "Guild: guild {} is full, {:d} of {:d} members (level {:d}, bonus {:d})", 
 				name(), member_count(), max_member_count(), data_.level, member_count_bonus_);
 		return GERR_GUILDISFULL;
 	}

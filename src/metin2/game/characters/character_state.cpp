@@ -132,7 +132,7 @@ namespace
 				{
 					affect * pkAff = pkChr->find_affect(AFFECT_WAR_FLAG);
 
-					metin2::log::info( "FlagBase {} dist {:d} aff {} flag gid {:d} chr gid {:d}",
+					metin2::log::debug("War flag base: {} at distance {:d}, affect {}, flag guild {:d}, player guild {:d}",
 							pkChr->name(), iDist, static_cast<const void *>(pkAff), chr->point(POINT_STAT),
 							pkChr->get_guild()->id());
 
@@ -307,7 +307,7 @@ void character::coward_escape()
 			if (go_to(iDestX, iDestY))
 				send_move_packet(FUNC_WAIT, 0, 0, 0, 0);
 
-			metin2::log::info( "WAEGU move to {:d} {:d} (far)", iDestX, iDestY);
+			metin2::log::debug("Waegu moves to {:d} {:d} (far)", iDestX, iDestY);
 			return;
 		}
 }
@@ -810,7 +810,7 @@ void character::state_move()
 	{
 		if (is_pc())
 		{
-			metin2::log::debug( "도착 {} {:d} {:d}", name(), x_value, y_value);
+			metin2::log::debug("{} arrived at {:d} {:d}", name(), x_value, y_value);
 			goto_state(state_idle_);
 			stop_stamina_consume();
 		}
@@ -841,7 +841,7 @@ void character::state_battle()
 {
 	if (is_stone())
 	{
-		metin2::log::error("Stone must not use battle state (name {})", name());
+		metin2::log::error("Stone {} must not enter battle state", name());
 		return;
 	}
 
@@ -913,7 +913,7 @@ void character::state_battle()
 
 								if (go_to((int32_t) dx, (int32_t) dy))
 								{
-									metin2::log::info( "KILL_AND_GO: {} distance {:.1f}", name(), fDist);
+									metin2::log::debug("{}: kill and go, distance {:.1f}", name(), fDist);
 									send_move_packet(FUNC_WAIT, 0, 0, 0, 0);
 								}
 							}
@@ -1026,7 +1026,7 @@ void character::state_battle()
 					state_duration_ = (uint32_t) (fDuration == 0.0f ? passes_per_sec(2) : passes_per_sec(fDuration));
 
 					if (metin2::config::test_server())
-						metin2::log::info( "USE_MOB_SKILL: {} idx {:d} motion {:d} duration {:.0f}", name(), iSkillIdx, MOTION_SPECIAL_1 + iSkillIdx, fDuration);
+						metin2::log::debug("Mob {} uses skill index {:d} (motion {:d}, duration {:.0f})", name(), iSkillIdx, MOTION_SPECIAL_1 + iSkillIdx, fDuration);
 
 					return;
 				}

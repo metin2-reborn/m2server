@@ -55,7 +55,7 @@ namespace marriage
 		std::unique_ptr<sql_msg> pmsg(db_manager::instance().direct_query(szQuery));
 
 		sql_result * pRes = pmsg->get();
-		metin2::log::info( "MarriageList(size={:d})", pRes->num_rows);
+		metin2::log::info("Marriage: loading {:d} marriages", pRes->num_rows);
 
 		if (pRes->num_rows > 0)
 		{
@@ -76,7 +76,7 @@ namespace marriage
 				marriage_by_pid_.insert(std::make_pair(pid1, pMarriage));
 				marriage_by_pid_.insert(std::make_pair(pid2, pMarriage));
 
-				metin2::log::info( "Marriage {:d}: LP:{:d} TM:{:d} ST:{:d} {:10d}:{:>16} {:10d}:{:>16} ", uiRow, love_point, time, is_married, pid1, name1, pid2, name2);
+				metin2::log::debug("Marriage: row {:d}, love points {:d}, time {:d}, married {:d}, {:d}:{} and {:d}:{}", uiRow, love_point, time, is_married, pid1, name1, pid2, name2);
 			}
 		}
 		return true;
@@ -103,7 +103,7 @@ namespace marriage
 		uint32_t now = client_manager::instance().current_time();
 		if (is_married(pid1) || is_married(pid2))
 		{
-			metin2::log::error("cannot marry already married character. {:d} - {:d}", pid1, pid2);
+			metin2::log::warn("Marriage: pid {:d} or pid {:d} is already married", pid1, pid2);
 			return;
 		}
 
@@ -117,11 +117,11 @@ namespace marriage
 		sql_result* res = pmsg->get();
 		if (res->affected_rows == 0 || res->affected_rows == (uint32_t)-1)
 		{
-			metin2::log::error("cannot insert marriage");
+			metin2::log::error("Marriage: cannot insert marriage of pid {:d} and pid {:d}", pid1, pid2);
 			return;
 		}
 
-		metin2::log::info( "MARRIAGE ADD {:d} {:d}", pid1, pid2);
+		metin2::log::info("Marriage: added marriage of pid {:d} and pid {:d}", pid1, pid2);
 
 		marriage* pMarriage = new marriage(pid1, pid2, 0, now, 0, name1_value, name2_value);
 		marriages_.insert(pMarriage);
@@ -142,7 +142,7 @@ namespace marriage
 		marriage* pMarriage = get(pid1_value);
 		if (!pMarriage || pMarriage->other(pid1_value) != pid2_value)
 		{
-			metin2::log::error("not under marriage : {:d} {:d}", pid1_value, pid2_value);
+			metin2::log::warn("Marriage: update for pid {:d} and pid {:d}, who are not married to each other", pid1_value, pid2_value);
 			return;
 		}
 
@@ -157,11 +157,11 @@ namespace marriage
 		sql_result* res = pmsg->get();
 		if (res->affected_rows == 0 || res->affected_rows == (uint32_t)-1)
 		{
-			metin2::log::error("cannot update marriage : PID:{:d} {:d}", pid1_value, pid2_value);
+			metin2::log::error("Marriage: cannot update marriage of pid {:d} and pid {:d}", pid1_value, pid2_value);
 			return;
 		}
 
-		metin2::log::info( "MARRIAGE UPDATE PID:{:d} {:d} LP:{:d} ST:{:d}", pid1_value, pid2_value, love_point_value, married_value);
+		metin2::log::info("Marriage: updated pid {:d} and pid {:d}, love points {:d}, married {:d}", pid1_value, pid2_value, love_point_value, married_value);
 		pMarriage->love_point = love_point_value;
 		pMarriage->is_married = married_value;
 
@@ -179,7 +179,7 @@ namespace marriage
 
 		if (pMarriage)
 		{
-			metin2::log::info( "Break Marriage pid1 {:d} pid2 {:d} Other {:d}", pid1_value, pid2_value, pMarriage->other(pid1_value));
+			metin2::log::debug("Marriage: removing pid {:d} and pid {:d} (recorded partner {:d})", pid1_value, pid2_value, pMarriage->other(pid1_value));
 		}
 		if (!pMarriage || pMarriage->other(pid1_value) != pid2_value)
 		{
@@ -187,9 +187,9 @@ namespace marriage
 
 			for (; it != marriage_by_pid_.end(); ++it)
 			{
-				metin2::log::info( "Marriage List pid1 {:d} pid2 {:d}", it->second->pid1, it->second->pid2);
+				metin2::log::debug("Marriage: existing marriage pid {:d} and pid {:d}", it->second->pid1, it->second->pid2);
 			}
-			metin2::log::error("not under marriage : PID:{:d} {:d}", pid1_value, pid2_value);
+			metin2::log::warn("Marriage: removal for pid {:d} and pid {:d}, who are not married to each other", pid1_value, pid2_value);
 			return;
 		}
 
@@ -203,11 +203,11 @@ namespace marriage
 		sql_result* res = pmsg->get();
 		if (res->affected_rows == 0 || res->affected_rows == (uint32_t)-1)
 		{
-			metin2::log::error("cannot delete marriage : PID:{:d} {:d}", pid1_value, pid2_value);
+			metin2::log::error("Marriage: cannot delete marriage of pid {:d} and pid {:d}", pid1_value, pid2_value);
 			return;
 		}
 
-		metin2::log::info( "MARRIAGE REMOVE PID:{:d} {:d}", pid1_value, pid2_value);
+		metin2::log::info("Marriage: pid {:d} and pid {:d} divorced", pid1_value, pid2_value);
 
 		marriages_.erase(pMarriage);
 		marriage_by_pid_.erase(pid1_value);
@@ -281,7 +281,7 @@ namespace marriage
 		auto it = running_wedding_.find(std::make_pair(pid1, pid2));
 		if (it == running_wedding_.end())
 		{
-			metin2::log::error("try to end wedding {:d} {:d}", pid1, pid2);
+			metin2::log::warn("Marriage: cannot end wedding of pid {:d} and pid {:d}, no wedding running", pid1, pid2);
 			return;
 		}
 

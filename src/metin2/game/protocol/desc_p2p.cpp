@@ -29,7 +29,7 @@ void desc_p2_p::destroy()
 
 	p2_p_manager::instance().unregister_acceptor(this);
 
-	metin2::log::info( "SYSTEM: closing p2p connection of {}", host_.c_str());
+	metin2::log::info( "Closing peer connection to {}", host_.c_str());
 
 	desc::destroy();
 }
@@ -44,14 +44,14 @@ auto desc_p2_p::setup(std::shared_ptr<net::connection> connection) -> bool
 
 	if (!is_allowed_peer(host_.c_str(), metin2::config::server().p2p_allowed_hosts, public_ip))
 	{
-		metin2::log::info( "PORT_SECURITY: new p2p connection from [{}] to [{}] BLOCKED", host_.c_str(), public_ip);
+		metin2::log::warn( "Blocked peer connection from {} to {}: host not allowed", host_.c_str(), public_ip);
 		set_phase(PHASE_CLOSE);
 		return true;
 	}
 
 	set_phase(PHASE_P2P);
 
-	metin2::log::info( "SYSTEM: new p2p connection from [{}]", host_.c_str());
+	metin2::log::info( "New peer connection from {}", host_.c_str());
 	return true;
 }
 
@@ -62,7 +62,7 @@ void desc_p2_p::set_phase(int phase)
 	switch (phase)
 	{
 		case PHASE_P2P:
-			metin2::log::debug( "PHASE_P2P");
+			metin2::log::debug( "Peer connection entered p2p phase");
 			input_processor_ = &s_inputP2P;
 			break;
 
@@ -71,7 +71,7 @@ void desc_p2_p::set_phase(int phase)
 			break;
 
 		default:
-			metin2::log::error("DESC_P2P::SetPhase : Unknown phase");
+			metin2::log::error("Unknown phase {:d} for peer connection", phase);
 			break;
 	}
 

@@ -78,7 +78,7 @@ void item_award_manager::load(sql_msg * msg)
 		map_award_.insert(std::make_pair(dwID, kData));
 
 		printf("ITEM_AWARD load id %u bMall %d \n", kData->id, kData->mall);
-		metin2::log::info( "ITEM_AWARD: load id {:d} login {} vnum {:d} count {:d} socket {:d}", kData->id, kData->login, kData->vnum, kData->count, kData->socket0);
+		metin2::log::debug("Item award: loaded award {:d} for account {}, vnum {:d}, count {:d}, socket {:d}", kData->id, kData->login, kData->vnum, kData->count, kData->socket0);
 		std::set<item_award *> & kSet = map_k_set_award_by_login_[kData->login];
 		kSet.insert(kData);
 
@@ -103,7 +103,7 @@ void item_award_manager::taken(uint32_t award_id, uint32_t item_id)
 
 	if (it == map_award_.end())
 	{
-		metin2::log::info( "ITEM_AWARD: Taken ID not exist {:d}", award_id);
+		metin2::log::warn("Item award: award {:d} taken but not found", award_id);
 		return;
 	}
 

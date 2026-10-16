@@ -79,8 +79,6 @@ void command_apply_affect(character * ch, const char* argument, const char* affe
 	char arg1[256];
 	one_argument(argument, arg1, sizeof(arg1));
 
-	metin2::log::info( "{}", arg1);
-
 	if (!*arg1)
 	{
 		ch->chat_packet(CHAT_TYPE_INFO, "Usage: %s <name>", affect_name);
@@ -104,7 +102,7 @@ void command_apply_affect(character * ch, const char* argument, const char* affe
 			break;
 	}
 
-	metin2::log::info( "{} {}", arg1, affect_name);
+	metin2::log::info( "Gm {} applied {} to player {}", ch->name(), affect_name, arg1);
 
 	ch->chat_packet(CHAT_TYPE_INFO, "%s %s", arg1, affect_name);
 }
@@ -156,7 +154,7 @@ ACMD(do_transfer)
 		else
 		{
 			ch->chat_packet(CHAT_TYPE_INFO, "There is no character(%s) by that name", arg1);
-			metin2::log::info( "There is no character({}) by that name", arg1);
+			metin2::log::debug( "Transfer: no player named {}", arg1);
 		}
 
 		return;
@@ -219,7 +217,7 @@ void character_add_goto_info(const std::string& st_name_value, uint8_t empire, i
 	newGotoInfo.y = y;
 	vec_goto_info.push_back(newGotoInfo);
 
-	metin2::log::info( "AddGotoInfo(name={}, empire={:d}, mapIndex={:d}, pos=({:d}, {:d}))", st_name_value.c_str(), empire, index_value, x, y);
+	metin2::log::debug( "Goto location {}: empire {:d}, map {:d}, position {:d}x{:d}", st_name_value.c_str(), empire, index_value, x, y);
 }
 
 auto find_in_string(const char * find, const char * in) -> bool
@@ -514,7 +512,7 @@ ACMD(do_group)
 	str_to_number(dwVnum, arg1);
 
 	if (metin2::config::test_server())
-		metin2::log::info( "COMMAND GROUP SPAWN {:d} at {:d} {:d} {:d}", dwVnum, ch->map_index(), ch->x(), ch->y());
+		metin2::log::debug( "Gm spawns group {:d} on map {:d} at {:d}x{:d}", dwVnum, ch->map_index(), ch->x(), ch->y());
 
 	character_manager::instance().spawn_group(dwVnum, ch->map_index(), ch->x() - 500, ch->y() - 500, ch->x() + 500, ch->y() + 500);
 }
@@ -800,7 +798,7 @@ struct func_purge
 		if (!all && iDist >= 1000)
 			return;
 
-		metin2::log::info( "PURGE: {} {:d}", pkChr->name(), iDist);
+		metin2::log::debug( "Purge: {} at distance {:d}", pkChr->name(), iDist);
 
 		if (pkChr->is_npc() && !pkChr->is_pet() && pkChr->rider() == nullptr)
 		{
@@ -823,7 +821,7 @@ ACMD(do_purge)
 	if (sectree)
 		sectree->for_each_around(func);
 	else
-		metin2::log::error("PURGE_ERROR.NULL_SECTREE(mapIndex={:d}, pos=({:d}, {:d})", ch->map_index(), ch->x(), ch->y());
+		metin2::log::error("Purge: gm has no sectree (map {:d}, position {:d}x{:d})", ch->map_index(), ch->x(), ch->y());
 }
 
 ACMD(do_item_purge)
@@ -1634,7 +1632,7 @@ ACMD(do_event_flag)
 
 	quest::quest_manager::instance().request_set_event_flag(arg1, value);
 	ch->chat_packet(CHAT_TYPE_INFO, "RequestSetEventFlag %s %d", arg1, value);
-	metin2::log::info( "RequestSetEventFlag {} {:d}", arg1, value);
+	metin2::log::info( "Gm {} set event flag {} to {:d}", ch->name(), arg1, value);
 }
 
 ACMD(do_get_event_flag)
@@ -1882,7 +1880,7 @@ ACMD(do_reload)
 			case 'a':
 				ch->chat_packet(CHAT_TYPE_INFO, "Reloading Admin infomation.");
 				db_clientdesc->db_packet(HEADER_GD_RELOAD_ADMIN, 0, nullptr, 0);
-				metin2::log::info( "Reloading admin infomation.");
+				metin2::log::info( "Gm {} reloads the gm list", ch->name());
 				break;
 			case 'c':
 				cube_init ();
@@ -2290,7 +2288,7 @@ ACMD(do_priv_empire)
 
 	duration = duration * (60*60);
 
-	metin2::log::info( "_give_empire_privileage(empire={:d}, type={:d}, value={:d}, duration={:d}) by command", 
+	metin2::log::info( "Gm {} grants empire {:d} privilege type {:d}, value {:d}, for {:d} seconds", ch->name(),
 			empire, type, value, duration);
 	priv_manager::instance().request_give_empire_priv(empire, type, value, duration);
 	return;
@@ -2455,7 +2453,7 @@ ACMD(do_vote_block_chat)
 
 	const char* name = arg1;
 	int32_t lBlockDuration = 10;
-	metin2::log::info( "vote_block_chat {} {:d}", name, lBlockDuration);
+	metin2::log::info( "Vote chat block of player {} for {:d} seconds", name, lBlockDuration);
 
 	character * tch = character_manager::instance().find_pc(name);
 
@@ -2524,7 +2522,7 @@ ACMD(do_block_chat)
 		return;
 	}
 
-	metin2::log::info( "BLOCK CHAT {} {:d}", name, lBlockDuration);
+	metin2::log::info( "Chat block of player {} for {:d} seconds", name, lBlockDuration);
 
 	character * tch = character_manager::instance().find_pc(name);
 
@@ -2572,7 +2570,7 @@ ACMD(do_build)
 
 	if (!pkLand)
 	{
-		metin2::log::error("{} trying to build on not buildable area.", ch->name());
+		metin2::log::warn("Player {} tried to build outside a building area", ch->name());
 		return;
 	}
 
@@ -2586,13 +2584,13 @@ ACMD(do_build)
 	{
 		if ((!ch->get_guild() || ch->get_guild()->id() != pkLand->owner()))
 		{
-			metin2::log::error("{} trying to build on not owned land.", ch->name());
+			metin2::log::warn("Player {} tried to build on land not owned by their guild", ch->name());
 			return;
 		}
 
 		if (ch->get_guild()->master_pid() != ch->player_id())
 		{
-			metin2::log::error("{} trying to build while not the guild master.", ch->name());
+			metin2::log::warn("Player {} tried to build without being guild master", ch->name());
 			return;
 		}
 	}
@@ -2715,7 +2713,7 @@ ACMD(do_build)
 							if (dwItemVnum == 0)
 								break;
 
-							metin2::log::info( "BUILD: material {:d} {:d} {:d}", i, dwItemVnum, dwItemCount);
+							metin2::log::debug( "Build: material {:d} is item {:d} x {:d}", i, dwItemVnum, dwItemCount);
 							ch->remove_specify_item(dwItemVnum, dwItemCount);
 						}
 					}
@@ -2747,7 +2745,7 @@ ACMD(do_build)
 
 				one_argument(line, arg1, sizeof(arg1));
 
-				metin2::log::info( "guild.wall.build map[{:d}] direction[{}]", mapIndex, arg1);
+				metin2::log::info( "Guild wall build on map {:d}, direction {}", mapIndex, arg1);
 
 				switch (arg1[0])
 				{
@@ -2765,7 +2763,7 @@ ACMD(do_build)
 						break;
 					default:
 						ch->chat_packet(CHAT_TYPE_INFO, "guild.wall.build unknown_direction[%s]", arg1);
-						metin2::log::error("guild.wall.build unknown_direction[{}]", arg1);
+						metin2::log::warn("Guild wall build with unknown direction {}", arg1);
 						break;
 				}
 
@@ -2794,7 +2792,7 @@ ACMD(do_build)
 
 				if (setID != 14105 && setID != 14115 && setID != 14125)
 				{
-					metin2::log::info( "BUILD_WALL: wrong wall set id {:d}", setID);
+					metin2::log::warn( "Wall build with invalid wall set id {:d}", setID);
 					break;
 				}
 				else 

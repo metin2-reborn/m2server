@@ -127,7 +127,7 @@ void sectree_map::build()
 
 		tree->neighbor_list_.push_back(tree);
 
-		metin2::log::debug( "{:d}x{:d}", tree->id_.coord.x, tree->id_.coord.y);
+		metin2::log::debug( "Sectree {:d}x{:d} neighbors:", tree->id_.coord.x, tree->id_.coord.y);
 
 		int x = tree->id_.coord.x * SECTREE_SIZE;
 		int y = tree->id_.coord.y * SECTREE_SIZE;
@@ -138,7 +138,7 @@ void sectree_map::build()
 
 			if (tree2)
 			{
-				metin2::log::debug( "   {:d} {:d}x{:d}", i, tree2->id_.coord.x, tree2->id_.coord.y);
+				metin2::log::debug( "Sectree neighbor {:d}: {:d}x{:d}", i, tree2->id_.coord.x, tree2->id_.coord.y);
 				tree->neighbor_list_.push_back(tree2);
 			}
 		}
@@ -191,7 +191,7 @@ auto sectree_manager::load_setting_file(int32_t map_index, const char * setting_
 
 	if (!fp)
 	{
-		metin2::log::error("cannot open file: {}", setting_file_name);
+		metin2::log::error("Cannot open map settings file {}", setting_file_name);
 		return 0;
 	}
 
@@ -220,7 +220,7 @@ auto sectree_manager::load_setting_file(int32_t map_index, const char * setting_
 
 	if ((iWidth == 0 && iHeight == 0) || r_setting.cell_scale == 0)
 	{
-		metin2::log::error("Invalid Settings file: {}", setting_file_name);
+		metin2::log::error("Invalid map settings file {}, size or cell scale is zero", setting_file_name);
 		return 0;
 	}
 
@@ -247,7 +247,7 @@ auto sectree_manager::build_sectree_from_setting(map_setting & r_setting) -> sec
 			tree->id_.coord.x = x / SECTREE_SIZE;
 			tree->id_.coord.y = y / SECTREE_SIZE;
 			pkMapSectree->add(tree->id_.package, tree);
-			metin2::log::debug( "new sectree {:d} x {:d}", tree->id_.coord.x, tree->id_.coord.y);
+			metin2::log::debug( "New sectree {:d}x{:d}", tree->id_.coord.x, tree->id_.coord.y);
 		}
 	}
 
@@ -312,7 +312,7 @@ void sectree_manager::load_dungeon(int index, const char * file_name)
 
 	fclose(fp);
 
-	metin2::log::info( "Dungeon Position Load [{:3d}]{} count {:d}", index, file_name, count);
+	metin2::log::info( "Loaded {2:d} dungeon positions for map {0:d} from {1}", index, file_name, count);
 }
 
 auto sectree_manager::load_map_region(const char * file_name, map_setting & r_setting, const char * map_name_value) -> bool
@@ -320,7 +320,7 @@ auto sectree_manager::load_map_region(const char * file_name, map_setting & r_se
 	FILE * fp = fopen(file_name, "r");
 
 	if ( metin2::config::test_server() )
-		metin2::log::info( "[LoadMapRegion] file({})", file_name );
+		metin2::log::debug( "Loading map region from {}", file_name );
 
 	if (!fp)
 		return false;
@@ -340,11 +340,11 @@ auto sectree_manager::load_map_region(const char * file_name, map_setting & r_se
 	if( iEmpirePositionCount == 6 )
 	{
 		for ( int n = 0; n < 3; ++n )
-			metin2::log::info("LoadMapRegion {:d} {:d} ", pos[n].x, pos[n].y );
+			metin2::log::debug("Map region: empire start position {:d} {:d}", pos[n].x, pos[n].y );
 	}
 	else
 	{
-		metin2::log::info( "LoadMapRegion no empire specific start point" );
+		metin2::log::debug( "Map region: no empire specific start position" );
 	}
 
 	map_region region;
@@ -362,7 +362,7 @@ auto sectree_manager::load_map_region(const char * file_name, map_setting & r_se
 
 	r_setting.pos_spawn = region.pos_spawn;
 
-	metin2::log::info( "LoadMapRegion {:d} x {:d} ~ {:d} y {:d} ~ {:d}, town {:d} {:d}", 
+	metin2::log::info( "Loaded map region {:d}, x {:d} - {:d}, y {:d} - {:d}, town at {:d} {:d}", 
 			region.index,
 			region.sx,
 			region.ex,
@@ -388,7 +388,6 @@ auto sectree_manager::load_map_region(const char * file_name, map_setting & r_se
 
 	vec_map_region_.push_back(region);
 
-	metin2::log::info("LoadMapRegion {:d} End", region.index);
 	return true;
 }
 
@@ -398,7 +397,7 @@ auto sectree_manager::load_attribute(sectree_map * map_sectree, const char * fil
 
 	if (!fp)
 	{
-		metin2::log::error("SECTREE_MANAGER::LoadAttribute : cannot open {}", file_name);
+		metin2::log::error("Cannot open map attribute file {}", file_name);
 		return false;
 	}
 
@@ -426,10 +425,10 @@ auto sectree_manager::load_attribute(sectree_map * map_sectree, const char * fil
 
 			if (tree == nullptr)
 			{
-				metin2::log::error("FATAL ERROR! LoadAttribute({}) - cannot find sectree(package={:x}, coord=({:d}, {:d}), map_index={:d}, map_base=({:d}, {:d}))", 
+				metin2::log::error("Map attribute file {} refers to a missing sectree (package {:x}, coord ({:d}, {:d}), map {:d}, base ({:d}, {:d}))", 
 						file_name, id.package, id.coord.x, id.coord.y, r_setting.index, r_setting.base_x, r_setting.base_y);
-				metin2::log::error("ERROR_ATTR_POS({:d}, {:d}) attr_size({:d}, {:d})", x, y, iWidth, iHeight);
-				metin2::log::error("CHECK! 'Setting.txt' and 'server_attr' MAP_SIZE!!");
+				metin2::log::error("Attribute position ({:d}, {:d}), attribute size ({:d}, {:d})", x, y, iWidth, iHeight);
+				metin2::log::error("Check that the map size in Setting.txt matches server_attr");
 
 				map_sectree->dump_all_to_sys_err();
 				abort();
@@ -439,7 +438,7 @@ auto sectree_manager::load_attribute(sectree_map * map_sectree, const char * fil
 
 			if (tree->id_.package != id.package)
 			{
-				metin2::log::error("returned tree id mismatch! return {:d}, request {:d}", 
+				metin2::log::error("Sectree id mismatch, got {:d}, requested {:d}", 
 						tree->id_.package, id.package);
 				fclose(fp);
 
@@ -449,7 +448,7 @@ auto sectree_manager::load_attribute(sectree_map * map_sectree, const char * fil
 			fread(&uiSize, sizeof(int), 1, fp);
 			if (uiSize > abComp.size())
 			{
-				metin2::log::error("attribute block of {:d} bytes is larger than {:d}", uiSize, abComp.size());
+				metin2::log::error("Attribute block of {:d} bytes is larger than {:d}", uiSize, abComp.size());
 				fclose(fp);
 				return false;
 			}
@@ -460,7 +459,7 @@ auto sectree_manager::load_attribute(sectree_map * map_sectree, const char * fil
 
 			if (uiDestSize != sizeof(uint32_t) * (SECTREE_SIZE / CELL_SIZE) * (SECTREE_SIZE / CELL_SIZE))
 			{
-				metin2::log::error("SECTREE_MANAGER::LoadAttribte : {} : {:d} {:d} size mismatch! {:d}",
+				metin2::log::error("Map attribute file {}: sectree {:d}x{:d} decompressed to wrong size {:d}",
 						file_name, tree->id_.coord.x, tree->id_.coord.y, static_cast<int>(uiDestSize));
 				fclose(fp);
 
@@ -605,13 +604,13 @@ auto sectree_manager::map_index(int32_t x, int32_t y) -> int
 			return rRegion.index;
 	}
 
-	metin2::log::info( "SECTREE_MANAGER::GetMapIndex({:d}, {:d})", x, y);
+	metin2::log::warn( "No map region contains position ({:d}, {:d})", x, y);
 
 	std::vector<map_region>::iterator i;
 	for (i = vec_map_region_.begin(); i !=vec_map_region_.end(); ++i)
 	{
 		map_region & rRegion = *i;
-		metin2::log::info( "{:d}: ({:d}, {:d}) ~ ({:d}, {:d})", rRegion.index, rRegion.sx, rRegion.sy, rRegion.ex, rRegion.ey);
+		metin2::log::debug( "Map region {:d}: ({:d}, {:d}) - ({:d}, {:d})", rRegion.index, rRegion.sx, rRegion.sy, rRegion.ex, rRegion.ey);
 	}
 
 	return 0;
@@ -621,7 +620,7 @@ auto sectree_manager::build(const char * list_file_name, const char* map_base_pa
 {
 	if (true == metin2::config::test_server())
 	{
-		metin2::log::info( "[BUILD] Build {} {} ", list_file_name, map_base_path );
+		metin2::log::debug( "Building maps from list {} in {}", list_file_name, map_base_path );
 	}
 
 	FILE* fp = fopen(list_file_name, "r");
@@ -650,7 +649,7 @@ auto sectree_manager::build(const char * list_file_name, const char* map_base_pa
 
 		if (!load_setting_file(iIndex, szFilename, setting))
 		{
-			metin2::log::error("can't load file {} in LoadSettingFile", szFilename);
+			metin2::log::error("Cannot load map settings file {}", szFilename);
 			fclose(fp);
 			return 0;
 		}
@@ -659,13 +658,13 @@ auto sectree_manager::build(const char * list_file_name, const char* map_base_pa
 
 		if (!load_map_region(szFilename, setting, szMapName))
 		{
-			metin2::log::error("can't load file {} in LoadMapRegion", szFilename);
+			metin2::log::error("Cannot load map region file {}", szFilename);
 			fclose(fp);
 			return 0;
 		}
 
 		if (true == metin2::config::test_server())
-			metin2::log::info("[BUILD] Build {} {} {:d} ",map_base_path, szMapName, iIndex );
+			metin2::log::debug("Building map {}{} (index {:d})",map_base_path, szMapName, iIndex );
 
 		if (map_allow_find(iIndex))
 		{
@@ -748,7 +747,7 @@ auto sectree_manager::valid_location(int32_t map_index, int32_t x, int32_t y, in
 		}
 		else
 		{
-			metin2::log::error("cannot find sectree_map by map index {:d}", map_index);
+			metin2::log::error("No sectree map for map {:d}", map_index);
 			return false;
 		}
 	}
@@ -770,7 +769,7 @@ auto sectree_manager::valid_location(int32_t map_index, int32_t x, int32_t y, in
 
 			if (!tree)
 			{
-				metin2::log::error("cannot find tree by {:d} {:d} (map index {:d})", x, y, map_index);
+				metin2::log::error("No sectree at {:d} {:d} on map {:d}", x, y, map_index);
 				return false;
 			}
 
@@ -781,7 +780,7 @@ auto sectree_manager::valid_location(int32_t map_index, int32_t x, int32_t y, in
 		}
 	}
 
-	metin2::log::error("invalid location (map index {:d} {:d} x {:d})", lRealMapIndex, x, y);
+	metin2::log::error("Invalid location {1:d}x{2:d} on map {0:d}", lRealMapIndex, x, y);
 	return false;
 }
 
@@ -861,7 +860,7 @@ auto sectree_manager::create_private_map(int32_t map_index) -> int32_t
 
 	if (!pkMapSectree)
 	{
-		metin2::log::error("Cannot find map index {:d}", map_index);
+		metin2::log::error("Cannot create private map, map {:d} not found", map_index);
 		return 0;
 	}
 
@@ -895,7 +894,7 @@ auto sectree_manager::create_private_map(int32_t map_index) -> int32_t
 	pkMapSectree = new sectree_map(*pkMapSectree);
 	map_pk_sectree_.insert(std::map<uint32_t, sectree_map *>::value_type(lNewMapIndex, pkMapSectree));
 
-	metin2::log::info( "PRIVATE_MAP: {:d} created (original {:d})", lNewMapIndex, map_index);
+	metin2::log::info( "Private map {:d} created from map {:d}", lNewMapIndex, map_index);
 	return lNewMapIndex;
 }
 
@@ -906,7 +905,7 @@ struct f_destroy_private_map_entity
 		if (ent->is_type(ENTITY_CHARACTER))
 		{
 			character * ch = (character *) ent;
-			metin2::log::info( "PRIVAE_MAP: removing character {}", ch->name());
+			metin2::log::info( "Private map: removing character {}", ch->name());
 
 			if (ch->get_desc())
 				desc_manager::instance().destroy_desc(ch->get_desc());
@@ -916,12 +915,12 @@ struct f_destroy_private_map_entity
 		else if (ent->is_type(ENTITY_ITEM))
 		{
 			item * item = (game::items::item *) ent;
-			metin2::log::info( "PRIVATE_MAP: removing item {}", item->name());
+			metin2::log::info( "Private map: removing item {}", item->name());
 
 			item_manager::instance().destroy_item(item);
 		}
 		else
-			metin2::log::error("PRIVAE_MAP: trying to remove unknown entity {:d}", ent->type());
+			metin2::log::error("Private map: cannot remove entity of unknown type {:d}", ent->type());
 	}
 };
 
@@ -942,7 +941,7 @@ void sectree_manager::destroy_private_map(int32_t map_index)
 	map_pk_sectree_.erase(map_index);
 	delete pkMapSectree;
 
-	metin2::log::info( "PRIVATE_MAP: {:d} destroyed", map_index);
+	metin2::log::info( "Private map {:d} destroyed", map_index);
 }
 
 auto sectree_manager::dungeon_area(int32_t map_index) -> area_map&
@@ -1065,7 +1064,7 @@ auto sectree_manager::for_attr_region_cell( int32_t map_index, int32_t cx, int32
 			break;
 
 		default:
-			metin2::log::error("Unknown region mode {:d}", mode);
+			metin2::log::error("Unknown attribute region mode {:d}", mode);
 			break;
 	}
 
@@ -1118,7 +1117,7 @@ auto sectree_manager::for_attr_region_free_angle( int32_t map_index, int32_t cx,
 
 	if (0 == fdx1 || 0 == fdx2)
 	{
-		metin2::log::error( "SECTREE_MANAGER::ForAttrRegion - Unhandled exception. MapIndex: {:d}", map_index );
+		metin2::log::error( "Attribute region on map {:d} has a zero-width edge", map_index );
 		return false;
 	}
 
@@ -1165,7 +1164,7 @@ auto sectree_manager::for_attr_region(int32_t map_index, int32_t start_x, int32_
 
 	if (!pkMapSectree)
 	{
-		metin2::log::error("Cannot find SECTREE_MAP by map index {:d}", map_index);
+		metin2::log::error("No sectree map for map {:d}", map_index);
 		return mode == ATTR_REGION_MODE_CHECK ? true : false;
 	}
 
@@ -1181,7 +1180,7 @@ auto sectree_manager::for_attr_region(int32_t map_index, int32_t start_x, int32_
 	int32_t lCW = (end_x - start_x) / CELL_SIZE;
 	int32_t lCH = (end_y - start_y) / CELL_SIZE;
 
-	metin2::log::debug( "ForAttrRegion {:d} {:d} ~ {:d} {:d}", start_x, start_y, end_x, end_y);
+	metin2::log::debug( "Attribute region ({:d}, {:d}) - ({:d}, {:d})", start_x, start_y, end_x, end_y);
 
 	rotate = rotate % 360;
 
@@ -1201,7 +1200,7 @@ auto sectree_manager::save_attribute_to_image(int map_index, const char * file_n
 			pMap = map_src;
 		else
 		{
-			metin2::log::error("cannot find sectree_map {:d}", map_index);
+			metin2::log::error("No sectree map for map {:d}", map_index);
 			return false;
 		}
 	}
@@ -1211,11 +1210,11 @@ auto sectree_manager::save_attribute_to_image(int map_index, const char * file_n
 
 	if (iMapHeight < 0 || iMapWidth < 0)
 	{
-		metin2::log::error("map size error w {:d} h {:d}", iMapWidth, iMapHeight);
+		metin2::log::error("Invalid map size {:d}x{:d}", iMapWidth, iMapHeight);
 		return false;
 	}
 
-	metin2::log::info( "SaveAttributeToImage w {:d} h {:d} file {}", iMapWidth, iMapHeight, file_name);
+	metin2::log::info( "Saving map attributes ({:d}x{:d}) to {}", iMapWidth, iMapHeight, file_name);
 
 	const int iImageWidth = 512 * iMapWidth;
 	const int iImageHeight = 512 * iMapHeight;
@@ -1243,7 +1242,7 @@ auto sectree_manager::save_attribute_to_image(int map_index, const char * file_n
 
 				if (!pSec)
 				{
-					metin2::log::error("cannot get sectree for {:d} {:d} {:d} {:d}", id.coord.x, id.coord.y, pMap->setting.base_x, pMap->setting.base_y);
+					metin2::log::error("No sectree at {:d}x{:d} (map base {:d}, {:d})", id.coord.x, id.coord.y, pMap->setting.base_x, pMap->setting.base_y);
 					continue;
 				}
 
@@ -1251,7 +1250,7 @@ auto sectree_manager::save_attribute_to_image(int map_index, const char * file_n
 
 				if (!pdwLine)
 				{
-					metin2::log::error("cannot get attribute line pointer");
+					metin2::log::error("Sectree has no attribute data");
 					continue;
 				}
 
@@ -1277,12 +1276,12 @@ auto sectree_manager::save_attribute_to_image(int map_index, const char * file_n
 
 	if (save_tga_bgra(file_name, image.data(), iImageWidth, iImageHeight))
 	{
-		metin2::log::info( "SECTREE: map {:d} attribute saved to {} ({:d} bytes)", map_index, file_name, pixels);
+		metin2::log::info( "Map {:d} attributes saved to {} ({:d} bytes)", map_index, file_name, pixels);
 		return true;
 	}
 	else
 	{
-		metin2::log::error("cannot save file, map_index {:d} filename {}", map_index, file_name);
+		metin2::log::error("Cannot save map {:d} attributes to {}", map_index, file_name);
 		return false;
 	}
 }

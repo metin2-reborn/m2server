@@ -63,7 +63,7 @@ void input_auth::login(desc * d, const char * data)
 
 	if (!metin2::config::is_auth())
 	{
-		metin2::log::error("CInputAuth class is not for game server. IP {} might be a hacker.", 
+		metin2::log::warn("Auth packet from {} on a game server, disconnecting",
 			d->host_name());
 		d->delayed_disconnect(5);
 		return;
@@ -73,7 +73,7 @@ void input_auth::login(desc * d, const char * data)
 	// password guessing at line rate.
 	if (d->get_login_key() || d->get_account_table().id)
 	{
-		metin2::log::info( "InputAuth::Login : second login attempt from {}", d->host_name());
+		metin2::log::warn( "Second login attempt on one connection from {}, closing", d->host_name());
 		d->set_phase(PHASE_CLOSE);
 		return;
 	}
@@ -87,12 +87,12 @@ void input_auth::login(desc * d, const char * data)
 	char passwd[PASSWD_MAX_LEN + 1];
 	copy_packet_string(passwd, pinfo->passwd);
 
-	metin2::log::info( "InputAuth::Login : {}({:d}) desc {}",
+	metin2::log::debug( "Auth login: account {} (length {:d}), connection {}",
 			login, strlen(login), static_cast<const void *>(d));
 
 	if (false == fn_is_valid_login_string(login))
 	{
-		metin2::log::info( "InputAuth::Login : IS_NOT_VALID_LOGIN_STRING({}) desc {}",
+		metin2::log::info( "Auth login refused: invalid account name {} (connection {})",
 				login, static_cast<const void *>(d));
 		login_failure(d, "NOID");
 		return;
@@ -116,7 +116,7 @@ void input_auth::login(desc * d, const char * data)
 	}
 
 	uint32_t dwKey = desc_manager::instance().create_login_key(d);
-	metin2::log::info( "InputAuth::Login : key {:d} login {}", dwKey, login);
+	metin2::log::info( "Auth login: key {:d} for account {}", dwKey, login);
 
 
 	packet_cg_login3 * p = new packet_cg_login3;
@@ -127,7 +127,7 @@ void input_auth::login(desc * d, const char * data)
 
 	if (login_is_in_channel_service(login))
 	{
-		metin2::log::info( "ChannelServiceLogin [{}]", login);
+		metin2::log::debug( "Auth login: account {} uses channel service", login);
 
 		db_manager::instance().return_query(QID_AUTH_LOGIN, dwKey, p, sql::format(
 				"SELECT {},password,social_id,id,status,availDt - NOW() > 0,"
@@ -164,7 +164,7 @@ auto input_auth::analyze(desc * d, uint8_t header, const char * data) -> int
 
 	if (!metin2::config::is_auth())
 	{
-		metin2::log::error("CInputAuth class is not for game server. IP {} might be a hacker.", 
+		metin2::log::warn("Auth packet from {} on a game server, disconnecting",
 			d->host_name());
 		d->delayed_disconnect(5);
 		return 0;
@@ -173,7 +173,7 @@ auto input_auth::analyze(desc * d, uint8_t header, const char * data) -> int
 	int iExtraLen = 0;
 
 	if (metin2::config::test_server())
-		metin2::log::info( " InputAuth Analyze Header[{:d}] ", header);
+		metin2::log::debug( "Auth packet header {:d}", header);
 
 	switch (header)
 	{
@@ -189,7 +189,7 @@ auto input_auth::analyze(desc * d, uint8_t header, const char * data) -> int
 			break;
 
 		default:
-			metin2::log::error("This phase does not handle this header {:d} (0x{:x})(phase: AUTH)", header, header);
+			metin2::log::warn("Unhandled packet {:d} ({:#x}) in auth phase", header, header);
 			break;
 	}
 

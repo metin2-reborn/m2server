@@ -103,7 +103,7 @@ void object::encode_insert_packet(entity * entity)
 	if (!(d = entity->get_desc()))
 		return;
 
-	metin2::log::info( "ObjectInsertPacket vid {:d} vnum {:d} rot {:f} {:f} {:f}", 
+	metin2::log::debug( "Building: sending object vid {:d} (vnum {:d}), rotation {:f} {:f} {:f}", 
 			vid_, data_.vnum, data_.x_rot, data_.y_rot, data_.z_rot);
 
 	packet_gc_character_add pack;
@@ -137,7 +137,7 @@ void object::encode_remove_packet(entity * entity)
 	if (!(d = entity->get_desc()))
 		return;
 
-	metin2::log::info( "ObjectRemovePacket vid {:d}", vid_);
+	metin2::log::debug( "Building: sending removal of object vid {:d}", vid_);
 
 	packet_gc_character_delete pack;
 
@@ -158,7 +158,7 @@ auto object::show(int32_t map_index_value, int32_t x, int32_t y) -> bool
 
 	if (!tree)
 	{
-		metin2::log::error("cannot find sectree by {:d}x{:d} mapindex {:d}", x, y, map_index_value);
+		metin2::log::error("No sectree at {:d}x{:d} on map {:d}", x, y, map_index_value);
 		return false;
 	}
 
@@ -292,7 +292,7 @@ void object::regen_npc()
 
 	if (!ch_npc_)
 	{
-		metin2::log::error("Cannot create guild npc");
+		metin2::log::error("Failed to spawn guild building npc");
 		return;
 	}
 
@@ -443,7 +443,7 @@ void land::delete_object(uint32_t id)
 	if (!(pkObj = find_object(id)))
 		return;
 
-	metin2::log::info( "Land::DeleteObject {:d}", id);
+	metin2::log::info( "Building: deleting object {:d} from land", id);
 	manager::instance().unregister_object(pkObj);
 	character_manager::instance().destroy_character(pkObj->npc());
 
@@ -488,14 +488,14 @@ auto land::request_create_object(uint32_t vnum_value, int32_t map_index_value, i
 
 	if (!pkProto)
 	{
-		metin2::log::error("Invalid Object vnum {:d}", vnum_value);
+		metin2::log::warn("Cannot create building object, unknown vnum {:d}", vnum_value);
 		return false;
 	}
 	const map_region * r = rkSecTreeMgr.get_map_region(map_index_value);
 	if (!r)
 		return false;
 
-	metin2::log::info( "RequestCreateObject(vnum={:d}, map={:d}, pos=({:d},{:d}), rot=({:.1f},{:.1f},{:.1f}) region({:d},{:d} ~ {:d},{:d})", 
+	metin2::log::info( "Building: create object vnum {:d} on map {:d} at ({:d}, {:d}), rotation ({:.1f}, {:.1f}, {:.1f}), region ({:d}, {:d}) - ({:d}, {:d})", 
 			vnum_value, map_index_value, x, y, x_rot_value, y_rot_value, z_rot_value, r->sx, r->sy, r->ex, r->ey);
 
 	x += r->sx;
@@ -521,7 +521,7 @@ auto land::request_create_object(uint32_t vnum_value, int32_t map_index_value, i
 
 	if (tsx < sx || tex > ex || tsy < sy || tey > ey)
 	{
-		metin2::log::error("invalid position: object is outside of land region\nLAND: {:d} {:d} ~ {:d} {:d}\nOBJ: {:d} {:d} ~ {:d} {:d}", sx, sy, ex, ey, osx, osy, oex, oey);
+		metin2::log::warn("Cannot create building object outside its land, land ({:d}, {:d}) - ({:d}, {:d}), object ({:d}, {:d}) - ({:d}, {:d})", sx, sy, ex, ey, osx, osy, oex, oey);
 		return false;
 	}
 
@@ -529,7 +529,7 @@ auto land::request_create_object(uint32_t vnum_value, int32_t map_index_value, i
 	{
 		if (rkSecTreeMgr.for_attr_region(map_index_value, osx, osy, oex, oey, (int32_t)z_rot_value, ATTR_OBJECT, ATTR_REGION_MODE_CHECK))
 		{
-			metin2::log::error("another object already exist");
+			metin2::log::warn("Cannot create building object, another object is in the way");
 			return false;
 		}
 		f_is_in f (osx, osy, oex, oey);
@@ -537,7 +537,7 @@ auto land::request_create_object(uint32_t vnum_value, int32_t map_index_value, i
 		
 		if (f.in)
 		{
-			metin2::log::error("another object already exist");
+			metin2::log::warn("Cannot create building object, another object is in the way");
 			return false;
 		}
 	}
@@ -561,12 +561,12 @@ void land::request_delete_object(uint32_t id)
 {
 	if (!find_object(id))
 	{
-		metin2::log::error("no object by id {:d}", id);
+		metin2::log::warn("Cannot delete building object, no object with id {:d}", id);
 		return;
 	}
 
 	db_clientdesc->db_packet(HEADER_GD_DELETE_OBJECT, 0, &id, sizeof(uint32_t));
-	metin2::log::info( "RequestDeleteObject id {:d}", id);
+	metin2::log::info( "Building: requested deletion of object {:d}", id);
 }
 
 void land::request_delete_object_by_vid(uint32_t vid)
@@ -575,13 +575,13 @@ void land::request_delete_object_by_vid(uint32_t vid)
 
 	if (!(pkObj = find_object_by_vid(vid)))
 	{
-		metin2::log::error("no object by vid {:d}", vid);
+		metin2::log::warn("Cannot delete building object, no object with vid {:d}", vid);
 		return;
 	}
 
 	uint32_t dwID = pkObj->id();
 	db_clientdesc->db_packet(HEADER_GD_DELETE_OBJECT, 0, &dwID, sizeof(uint32_t));
-	metin2::log::info( "RequestDeleteObject vid {:d} id {:d}", vid, dwID);
+	metin2::log::info( "Building: requested deletion of object {1:d} (vid {0:d})", vid, dwID);
 }
 
 void land::set_owner(uint32_t guild)
@@ -601,7 +601,7 @@ void land::request_update(uint32_t guild)
 	a[1] = guild;
 
 	db_clientdesc->db_packet(HEADER_GD_UPDATE_LAND, 0, &a[0], sizeof(uint32_t) * 2);
-	metin2::log::info( "RequestUpdate id {:d} guild {:d}", a[0], a[1]);
+	metin2::log::info( "Building: requested update of land {:d}, guild {:d}", a[0], a[1]);
 }
 
 
@@ -628,7 +628,7 @@ auto manager::load_object_proto(const proto::building::object_proto * proto, int
 	{
 		proto::building::object_proto & r = vec_k_object_proto_[i];
 
-		metin2::log::info( "ObjectProto {:d} price {:d} upgrade {:d} upg_limit {:d} life {:d} NPC {:d}",
+		metin2::log::debug( "Building: object proto {:d}, price {:d}, upgrade {:d}, upgrade limit {:d}, life {:d}, npc {:d}",
 				r.vnum, r.price, r.upgrade_vnum, r.upgrade_limit_time, r.life, r.npc_vnum);
 
 		for (int j = 0; j < OBJECT_MATERIAL_MAX_NUM; ++j)
@@ -638,11 +638,11 @@ auto manager::load_object_proto(const proto::building::object_proto * proto, int
 
 			if (nullptr == item_manager::instance().table(r.materials[j].item_vnum))
 			{
-				metin2::log::error("          mat: ERROR!! no item by vnum {:d}", r.materials[j].item_vnum);
+				metin2::log::error("Building object proto {:d} needs unknown material item vnum {:d}", r.vnum, r.materials[j].item_vnum);
 				return false;
 			}
 
-			metin2::log::info( "          mat: {:d} {:d}", r.materials[j].item_vnum, r.materials[j].count);
+			metin2::log::debug( "Building: material item vnum {:d}, count {:d}", r.materials[j].item_vnum, r.materials[j].count);
 		}
 
 		map_pk_object_proto_.insert(std::make_pair(r.vnum, &vec_k_object_proto_[i]));
@@ -668,7 +668,7 @@ auto manager::load_land(land_table * table) -> bool
 	uint32_t dwID = pkLand->id();
 	map_pk_land_.insert(std::make_pair(dwID, std::move(pkLand)));
 
-	metin2::log::info( "LAND: {:d} map {:d} {:d}x{:d} w {:d} h {:d}", 
+	metin2::log::debug( "Building: land {:d} on map {:d} at {:d}x{:d}, size {:d}x{:d}", 
 			table->id, table->map_index, table->x, table->y, table->width, table->height);
 
 	return true;
@@ -680,7 +680,7 @@ void manager::update_land(land_table * table)
 
 	if (!pkLand)
 	{
-		metin2::log::error("cannot find land by id {:d}", table->id);
+		metin2::log::error("Cannot update land {:d}, land not found", table->id);
 		return;
 	}
 
@@ -704,7 +704,7 @@ void manager::update_land(land_table * table)
 	e.height = table->height;
 	e.guild_id = table->guild_id;
 
-	metin2::log::info( "BUILDING: UpdateLand {:d} pos {:d}x{:d} guild {:d}", e.id, e.x, e.y, e.guild_id);
+	metin2::log::info( "Building: land {:d} at {:d}x{:d} updated, guild {:d}", e.id, e.x, e.y, e.guild_id);
 
 	guild *guild = guild_manager::instance().find_guild(table->guild_id);
 	while (it != cont.end())
@@ -734,7 +734,7 @@ auto manager::find_land(uint32_t id) -> land *
 
 auto manager::find_land(int32_t map_index_value, int32_t x, int32_t y) -> land *
 {
-	metin2::log::info( "BUILDING: FindLand {:d} {:d} {:d}", map_index_value, x, y);
+	metin2::log::debug( "Building: looking up land on map {:d} at {:d}x{:d}", map_index_value, x, y);
 
 	const map_region * r = sectree_manager::instance().get_map_region(map_index_value);
 
@@ -790,7 +790,7 @@ auto manager::load_object(object_table * table, bool is_boot) -> bool
 
 	if (!pkLand)
 	{
-		metin2::log::info( "Cannot find land by id {:d}", table->land_id);
+		metin2::log::warn( "Building object refers to unknown land {:d}", table->land_id);
 		return false;
 	}
 
@@ -798,11 +798,11 @@ auto manager::load_object(object_table * table, bool is_boot) -> bool
 
 	if (!pkProto)
 	{
-		metin2::log::error("Cannot find object {:d} in prototype (id {:d})", table->vnum, table->id);
+		metin2::log::error("Building object {:d} has unknown proto vnum {:d}", table->id, table->vnum);
 		return false;
 	}
 
-	metin2::log::info( "OBJ: id {:d} vnum {:d} map {:d} pos {:d}x{:d}", table->id, table->vnum, table->map_index, table->x, table->y);
+	metin2::log::debug( "Building: object {:d} (vnum {:d}) on map {:d} at {:d}x{:d}", table->id, table->vnum, table->map_index, table->x, table->y);
 
 	object * pkObj = new object(table, pkProto);
 
@@ -846,7 +846,7 @@ void manager::finalize_boot()
 		pkObj->apply_special_effect();
 	}
 
-	metin2::log::info( "FinalizeBoot");
+	metin2::log::info( "Building: finalizing boot");
 
 	auto it2 = map_pk_land_.begin();
 
@@ -856,7 +856,7 @@ void manager::finalize_boot()
 
 		const land_table & r = pkLand->data();
 
-		metin2::log::info( "LandMaster map_index={:d} pos=({:d}, {:d})", r.map_index, r.x, r.y);
+		metin2::log::debug( "Building: land master on map {:d} at ({:d}, {:d})", r.map_index, r.x, r.y);
 
 		if (r.guild_id != 0)
 			continue;
@@ -874,7 +874,7 @@ void manager::finalize_boot()
 
 void manager::delete_object(uint32_t id)
 {
-	metin2::log::info( "OBJ_DEL: {:d}", id);
+	metin2::log::info( "Building: deleting object {:d}", id);
 
 	auto it = map_pk_obj_by_id_.find(id);
 
@@ -936,7 +936,7 @@ void manager::send_land_list(desc * d, int32_t map_index_value)
 		++wCount;
 	}
 
-	metin2::log::info( "SendLandList map {:d} count {:d} elem_size: {:d}", map_index_value, wCount, buf.size());
+	metin2::log::debug( "Building: sending {1:d} lands on map {0:d} ({2:d} bytes)", map_index_value, wCount, buf.size());
 
 	if (wCount != 0)
 	{
@@ -956,13 +956,13 @@ void manager::clear_land(uint32_t land_id)
 
 	if ( pLand == nullptr )
 	{
-		metin2::log::info( "LAND_CLEAR: there is no LAND id like {:d}", land_id);
+		metin2::log::warn( "Cannot clear land {:d}, land not found", land_id);
 		return;
 	}
 
 	pLand->clear_land();
 
-	metin2::log::info( "LAND_CLEAR: request Land Clear. LandID: {:d}", pLand->id());
+	metin2::log::info( "Building: cleared land {:d}", pLand->id());
 }
 
 void manager::clear_land_by_guild_id(uint32_t guild_id)
@@ -971,13 +971,13 @@ void manager::clear_land_by_guild_id(uint32_t guild_id)
 
 	if ( pLand == nullptr )
 	{
-		metin2::log::info( "LAND_CLEAR: there is no GUILD id like {:d}", guild_id);
+		metin2::log::warn( "Cannot clear land of guild {:d}, guild has no land", guild_id);
 		return;
 	}
 
 	pLand->clear_land();
 
-	metin2::log::info( "LAND_CLEAR: request Land Clear. LandID: {:d}", pLand->id());
+	metin2::log::info( "Building: cleared land {:d}", pLand->id());
 }
 
 void land::clear_land()

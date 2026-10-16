@@ -18,7 +18,7 @@ namespace quest
 	{
 		if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2) || !lua_isnumber(lua, 3))
 		{
-			metin2::log::error("invalid argument");
+			metin2::log::error("Invalid arguments");
 			return 0;
 		}
 
@@ -30,7 +30,7 @@ namespace quest
 
 		if (applyOn >= MAX_APPLY_NUM || applyOn < 1)
 		{
-			metin2::log::error("apply is out of range : {:d}", applyOn);
+			metin2::log::error("Apply type {:d} is out of range", applyOn);
 			return 0;
 		}
 
@@ -83,7 +83,7 @@ namespace quest
 	{
 		if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2) || !lua_isnumber(lua, 3))
 		{
-			metin2::log::error("invalid argument");
+			metin2::log::error("Invalid arguments");
 			return 0;
 		}
 
@@ -95,7 +95,7 @@ namespace quest
 
 		if (applyOn >= MAX_APPLY_NUM || applyOn < 1)
 		{
-			metin2::log::error("apply is out of range : {:d}", applyOn);
+			metin2::log::error("Apply type {:d} is out of range", applyOn);
 			return 0;
 		}
 
@@ -132,7 +132,7 @@ namespace quest
 
 		if (!lua_isnumber(lua, 1))
 		{
-			metin2::log::error("invalid argument");
+			metin2::log::error("Invalid arguments");
 			return 0;
 		}
 
@@ -153,7 +153,7 @@ namespace quest
 	{
 		if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2) || !lua_isnumber(lua, 3))
 		{
-			metin2::log::error("invalid argument");
+			metin2::log::error("Invalid arguments");
 			return 0;
 		}
 
@@ -165,7 +165,7 @@ namespace quest
 
 		if (applyOn >= MAX_APPLY_NUM || applyOn < 1)
 		{
-			metin2::log::error("apply is out of range : {:d}", applyOn);
+			metin2::log::error("Apply type {:d} is out of range", applyOn);
 			return 0;
 		}
 
@@ -181,7 +181,7 @@ namespace quest
 	{
 		if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2) || !lua_isnumber(lua, 3))
 		{
-			metin2::log::error("invalid argument");
+			metin2::log::error("Invalid arguments");
 			return 0;
 		}
 
@@ -193,7 +193,7 @@ namespace quest
 
 		if (point_type >= POINT_MAX_NUM || point_type < 1)
 		{
-			metin2::log::error("point is out of range : {:d}", point_type);
+			metin2::log::error("Point type {:d} is out of range", point_type);
 			return 0;
 		}
 

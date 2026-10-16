@@ -44,7 +44,7 @@ void mob::add_skill_splash(int index, uint32_t timing, uint32_t hit_distance)
 	if (index >= MOB_SKILL_MAX_NUM || index < 0)
 		return;
 
-	metin2::log::info( "MOB_SPLASH {} idx {:d} timing {:d} hit_distance {:d}",
+	metin2::log::debug("Mob {} skill {:d}: splash timing {:d}, hit distance {:d}",
 			table.locale_name, index, timing, hit_distance);
 
 	mob_skill_info[index].splash_attack.push_back(mob_splash_attack_info(timing, hit_distance));
@@ -90,7 +90,7 @@ auto mob_manager::initialize(mob_table * table_value, int size) -> bool
 			if (pkMob->table.skills[j].vnum)
 				++SkillCount;
 
-		metin2::log::info( "MOB: #{:<5d} {:<30} LEVEL {:d} HP {:d} DEF {:d} EXP {:d} DROP_ITEM_VNUM {:d} SKILL_COUNT {:d}", 
+		metin2::log::debug("Mob {:d} {}: level {:d}, hp {:d}, def {:d}, exp {:d}, drop item {:d}, {:d} skills", 
 				t->vnum, t->locale_name, t->level, t->max_hp, t->def, t->exp, t->drop_item_vnum, SkillCount);
 
 		if (t->type == CHAR_TYPE_NPC || t->type == CHAR_TYPE_WARP || t->type == CHAR_TYPE_GOTO)
@@ -111,12 +111,12 @@ auto mob_manager::initialize(mob_table * table_value, int size) -> bool
 	
 	if (!load_group(szGroupFileName))
 	{
-		metin2::log::error("cannot load {}", szGroupFileName);
+		metin2::log::error("Cannot load mob group file {}", szGroupFileName);
 		thecore_shutdown();
 	}
 	if (!load_group_group(szGroupGroupFileName))
 	{
-		metin2::log::error("cannot load {}", szGroupGroupFileName);
+		metin2::log::error("Cannot load mob group group file {}", szGroupGroupFileName);
 		thecore_shutdown();
 	}
 
@@ -274,7 +274,7 @@ auto mob_manager::load_group_group(const char * file_name) -> bool
 
 		if (!loader.token_integer("vnum", &iVnum))
 		{
-			metin2::log::error("LoadGroupGroup : Syntax error {} : no vnum, node {}", file_name, stName.c_str());
+			metin2::log::error("Syntax error in {}: group group {} has no vnum", file_name, stName.c_str());
 			loader.set_parent_node();
 			continue;
 		}
@@ -333,7 +333,7 @@ auto mob_manager::load_group(const char * file_name) -> bool
 
 		if (!loader.token_integer("vnum", &iVnum))
 		{
-			metin2::log::error("LoadGroup : Syntax error {} : no vnum, node {}", file_name, stName.c_str());
+			metin2::log::error("Syntax error in {}: group {} has no vnum", file_name, stName.c_str());
 			loader.set_parent_node();
 			continue;
 		}
@@ -342,14 +342,14 @@ auto mob_manager::load_group(const char * file_name) -> bool
 
 		if (!loader.get_token_vector("leader", &pTok))
 		{
-			metin2::log::error("LoadGroup : Syntax error {} : no leader, node {}", file_name, stName.c_str());
+			metin2::log::error("Syntax error in {}: group {} has no leader", file_name, stName.c_str());
 			loader.set_parent_node();
 			continue;
 		}
 
 		if (pTok->size() < 2)
 		{
-			metin2::log::error("LoadGroup : Syntax error {} : no leader vnum, node {}", file_name, stName.c_str());
+			metin2::log::error("Syntax error in {}: group {} has no leader vnum", file_name, stName.c_str());
 			loader.set_parent_node();
 			continue;
 		}
@@ -361,8 +361,8 @@ auto mob_manager::load_group(const char * file_name) -> bool
 		str_to_number(vnum, pTok->at(1).c_str());
 		pkGroup->add_member(vnum);
 
-		metin2::log::info( "GROUP: {:<5d} {}", iVnum, stName.c_str());
-		metin2::log::info( "               {} {}", pTok->at(0).c_str(), pTok->at(1).c_str());
+		metin2::log::debug("Mob group {:d}: {}", iVnum, stName.c_str());
+		metin2::log::debug("Mob group {:d}: leader {} (vnum {})", iVnum, pTok->at(0).c_str(), pTok->at(1).c_str());
 
 		for (int k = 1; k < 256; ++k)
 		{
@@ -371,7 +371,7 @@ auto mob_manager::load_group(const char * file_name) -> bool
 
 			if (loader.get_token_vector(buf, &pTok))
 			{
-				metin2::log::info( "               {} {}", pTok->at(0).c_str(), pTok->at(1).c_str());
+				metin2::log::debug("Mob group {:d}: member {} (vnum {})", iVnum, pTok->at(0).c_str(), pTok->at(1).c_str());
 				uint32_t vnum = 0;
 				str_to_number(vnum, pTok->at(1).c_str());
 				pkGroup->add_member(vnum);

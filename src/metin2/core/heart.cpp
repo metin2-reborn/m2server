@@ -38,7 +38,7 @@ auto heart_idle(heart *ht) -> int {
     ++missed_pulse;
 
     if (missed_pulse > (30 * ht->passes_per_sec)) {
-        metin2::log::error("losing {:d} seconds. (lag occured)", missed_pulse / ht->passes_per_sec);
+        metin2::log::warn("Main loop is lagging, skipped {:d} seconds of pulses", missed_pulse / ht->passes_per_sec);
         missed_pulse = 30 * ht->passes_per_sec;
     }
 

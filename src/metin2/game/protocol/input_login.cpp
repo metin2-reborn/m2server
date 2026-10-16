@@ -104,7 +104,7 @@ void input_login::login(desc * d, const char * data)
 
 	if (d->get_account_table().id)
 	{
-		metin2::log::error("already logged in (login {})", d->get_account_table().login);
+		metin2::log::warn("Login packet on a connection already logged in as {}", d->get_account_table().login);
 		return;
 	}
 
@@ -114,7 +114,7 @@ void input_login::login(desc * d, const char * data)
 	char login[LOGIN_MAX_LEN + 1];
 	trim_and_lower(szLogin, login, sizeof(login));
 
-	metin2::log::info( "InputLogin::Login : {}", login);
+	metin2::log::info( "Login attempt: account {}", login);
 
 	packet_gc_login_failure failurePacket;
 
@@ -167,7 +167,7 @@ void input_login::login_by_key(desc * d, const char * data)
 
 	if (d->get_account_table().id)
 	{
-		metin2::log::error("already logged in (login {})", d->get_account_table().login);
+		metin2::log::warn("Login packet on a connection already logged in as {}", d->get_account_table().login);
 		return;
 	}
 
@@ -207,7 +207,7 @@ void input_login::login_by_key(desc * d, const char * data)
 		}
 	}
 
-	metin2::log::info( "LOGIN_BY_KEY: {} key {:d}", login, pinfo->login_key);
+	metin2::log::info( "Login by key: account {}, key {:d}", login, pinfo->login_key);
 
 	d->set_login_key(pinfo->login_key);
 
@@ -228,13 +228,13 @@ void input_login::change_name(desc * d, const char * data)
 
 	if (!c_r.id)
 	{
-		metin2::log::error("no account table");
+		metin2::log::warn("Name change without a logged-in account");
 		return;
 	}
 
 	if (p->index >= PLAYER_PER_ACCOUNT)
 	{
-		metin2::log::error("index overflow {:d}, login: {}", p->index, c_r.login);
+		metin2::log::warn("Name change: character slot {:d} out of range (account {})", p->index, c_r.login);
 		return;
 	}
 
@@ -265,23 +265,23 @@ void input_login::character_select(desc * d, const char * data)
 	struct packet_cg_player_select * pinfo = (struct packet_cg_player_select *) data;
 	const account_table & c_r = d->get_account_table();
 
-	metin2::log::info( "player_select: login: {} index: {:d}", c_r.login, pinfo->index);
+	metin2::log::info( "Character select: account {}, slot {:d}", c_r.login, pinfo->index);
 
 	if (!c_r.id)
 	{
-		metin2::log::error("no account table");
+		metin2::log::warn("Character select without a logged-in account");
 		return;
 	}
 
 	if (pinfo->index >= PLAYER_PER_ACCOUNT)
 	{
-		metin2::log::error("index overflow {:d}, login: {}", pinfo->index, c_r.login);
+		metin2::log::warn("Character select: slot {:d} out of range (account {})", pinfo->index, c_r.login);
 		return;
 	}
 
 	if (c_r.players[pinfo->index].change_name)
 	{
-		metin2::log::error("name must be changed idx {:d}, login {}, name {}", 
+		metin2::log::warn("Character select: slot {:d} of account {} needs a name change first (name {})",
 				pinfo->index, c_r.login, c_r.players[pinfo->index].name);
 		return;
 	}
@@ -347,7 +347,7 @@ auto new_player_table2(player_table * table, const char * name, uint8_t race, ui
 {
 	if (race >= MAIN_RACE_MAX_NUM)
 	{
-		metin2::log::error("NewPlayerTable2.OUT_OF_RACE_RANGE({:d} >= max({:d}))", race, MAIN_RACE_MAX_NUM);
+		metin2::log::error("New player: race {:d} out of range (max {:d})", race, MAIN_RACE_MAX_NUM);
 		return false;
 	}
 
@@ -355,11 +355,11 @@ auto new_player_table2(player_table * table, const char * name, uint8_t race, ui
 
 	if (!race_to_job(race, &job))
 	{	
-		metin2::log::error("NewPlayerTable2.RACE_TO_JOB_ERROR({:d})", race);
+		metin2::log::error("New player: no job for race {:d}", race);
 		return false;
 	}
 
-	metin2::log::info( "NewPlayerTable2(name={}, race={:d}, job={:d})", name, race, job); 
+	metin2::log::debug( "New player table: name {}, race {:d}, job {:d}", name, race, job); 
 
 	memset(table, 0, sizeof(player_table));
 
@@ -399,7 +399,7 @@ void input_login::character_create(desc * d, const char * data)
 	char szName[sizeof(pinfo->name)];
 	copy_packet_string(szName, pinfo->name);
 
-	metin2::log::info( "PlayerCreate: name {} pos {:d} job {:d} shape {:d}",
+	metin2::log::info( "Character create: name {}, slot {:d}, job {:d}, shape {:d}",
 			szName, 
 			pinfo->index, 
 			pinfo->job, 
@@ -409,13 +409,13 @@ void input_login::character_create(desc * d, const char * data)
 
 	if (!c_rAccountTable.id)
 	{
-		metin2::log::error("PlayerCreate: no login data");
+		metin2::log::warn("Character create without a logged-in account");
 		return;
 	}
 
 	if (pinfo->index >= PLAYER_PER_ACCOUNT)
 	{
-		metin2::log::error("PlayerCreate: index overflow {:d}, login: {}", pinfo->index, c_rAccountTable.login);
+		metin2::log::warn("Character create: slot {:d} out of range (account {})", pinfo->index, c_rAccountTable.login);
 		return;
 	}
 
@@ -452,7 +452,7 @@ void input_login::character_create(desc * d, const char * data)
 	if (pinfo->job >= MAIN_RACE_MAX_NUM ||
 		!new_player_table2(&player_create_packet.player_table, szName, (uint8_t) pinfo->job, pinfo->shape, d->empire()))
 	{
-		metin2::log::error("player_prototype error: job {:d} ", pinfo->job);
+		metin2::log::warn("Character create: invalid job {:d}", pinfo->job);
 		d->packet(&packFailure, sizeof(packFailure));
 		return;
 	}
@@ -463,7 +463,7 @@ void input_login::character_create(desc * d, const char * data)
 	player_create_packet.account_id	= c_rAccountTable.id;
 	player_create_packet.account_index	= pinfo->index;
 
-	metin2::log::info( "PlayerCreate: name {} account_id {:d}, TPlayerCreatePacketSize({:d}), Packet->Gold {:d}",
+	metin2::log::debug( "Character create request: name {}, slot {:d}, packet size {:d}, gold {:d}",
 			szName, 
 			pinfo->index, 
 			sizeof(proto::player_create_packet),
@@ -479,24 +479,24 @@ void input_login::character_delete(desc * d, const char * data)
 
 	if (!c_rAccountTable.id)
 	{
-		metin2::log::error("PlayerDelete: no login data");
+		metin2::log::warn("Character delete without a logged-in account");
 		return;
 	}
 
 	char szPrivateCode[sizeof(pinfo->private_code)];
 	copy_packet_string(szPrivateCode, pinfo->private_code);
 
-	metin2::log::info( "PlayerDelete: login: {} index: {:d}, social_id {}", c_rAccountTable.login, pinfo->index, szPrivateCode);
+	metin2::log::info( "Character delete: account {}, slot {:d}, social id {}", c_rAccountTable.login, pinfo->index, szPrivateCode);
 
 	if (pinfo->index >= PLAYER_PER_ACCOUNT)
 	{
-		metin2::log::error("PlayerDelete: index overflow {:d}, login: {}", pinfo->index, c_rAccountTable.login);
+		metin2::log::warn("Character delete: slot {:d} out of range (account {})", pinfo->index, c_rAccountTable.login);
 		return;
 	}
 
 	if (!c_rAccountTable.players[pinfo->index].id)
 	{
-		metin2::log::error("PlayerDelete: Wrong Social ID index {:d}, login: {}", pinfo->index, c_rAccountTable.login);
+		metin2::log::warn("Character delete: empty slot {:d} (account {})", pinfo->index, c_rAccountTable.login);
 		d->packet(encode_byte(HEADER_GC_CHARACTER_DELETE_WRONG_SOCIAL_ID), 1);
 		return;
 	}
@@ -528,7 +528,7 @@ void input_login::entergame(desc * d, const char * data)
 		pixel_position pos2;
 		sectree_manager::instance().recall_position_by_empire(ch->map_index(), ch->empire(), pos2);
 
-		metin2::log::error("!GetMovablePosition (name {} {:d}x{:d} map {:d} changed to {:d}x{:d})", 
+		metin2::log::warn("Player {} at unwalkable position {:d}x{:d} on map {:d}, moved to {:d}x{:d}",
 				ch->name(),
 				pos.x, pos.y,
 				ch->map_index(),
@@ -548,7 +548,7 @@ void input_login::entergame(desc * d, const char * data)
 	if(ch->item_award_cmd())
 		quest::quest_manager::instance().item_informer(ch->player_id(),ch->item_award_vnum());
 
-	metin2::log::info( "ENTERGAME: {} {:d}x{:d}x{:d} {} map_index {:d}", 
+	metin2::log::info( "Enter game: player {} at {:d}x{:d}x{:d}, host {}, map {:d}", 
 			ch->name(), ch->x(), ch->y(), ch->z(), d->host_name(), ch->map_index());
 
 	if (ch->horse_level() > 0)
@@ -596,7 +596,7 @@ void input_login::entergame(desc * d, const char * data)
 			continue;
 
 		ch->add_affect(AFFECT_PREMIUM_START + i, POINT_NONE, 0, 0, remain, 0, true);
-		metin2::log::info( "PREMIUM: {} type {:d} {:d}min", ch->name(), i, remain);
+		metin2::log::debug( "Player {}: premium type {:d}, {:d} seconds left", ch->name(), i, remain);
 	}
 
 	if (check_client_version_enabled)
@@ -604,7 +604,7 @@ void input_login::entergame(desc * d, const char * data)
 		int version = atoi(client_version.c_str());
 		int date = atoi(d->client_version());
 
-		metin2::log::info( "VERSION CHECK {:d} {:d} {} {}", version, date, client_version.c_str(), d->client_version());
+		metin2::log::debug( "Client version check: server {:d}, client {:d} ({} vs {})", version, date, client_version.c_str(), d->client_version());
 
 		if (!d->client_version())
 		{
@@ -618,7 +618,7 @@ void input_login::entergame(desc * d, const char * data)
 				d->delayed_disconnect(10);
 				log_manager::instance().hack_log("VERSION_CONFLICT", ch);
 
-				metin2::log::info( "VERSION : WRONG VERSION USER : account:{} name:{} hostName:{} server_version:{} client_version:{}",
+				metin2::log::warn( "Wrong client version: account {}, player {}, host {}, server version {}, client version {}",
 						d->get_account_table().login,
 						ch->name(),
 						d->host_name(),
@@ -629,7 +629,7 @@ void input_login::entergame(desc * d, const char * data)
 	}
 	else
 	{
-		metin2::log::info( "VERSION : NO CHECK");
+		metin2::log::debug( "Client version check disabled");
 	}
 
 	if (ch->is_gm() == true)
@@ -654,7 +654,7 @@ void input_login::entergame(desc * d, const char * data)
 			ch->set_arena_observer_mode(true);
 			if (arena_manager::instance().register_observer_ptr(ch, ch->map_index(), ch->x()/100, ch->y()/100))
 			{
-				metin2::log::info( "ARENA : Observer add failed");
+				metin2::log::info( "Arena: cannot add observer {}", ch->name());
 			}
 
 			if (ch->is_horse_riding() == true)
@@ -750,7 +750,7 @@ void input_login::empire(desc * d, const char * data)
 
 	if (!r.id)
 	{
-		metin2::log::error("EmpireSelect: no login data");
+		metin2::log::warn("Empire select without a logged-in account");
 		return;
 	}
 
@@ -760,7 +760,7 @@ void input_login::empire(desc * d, const char * data)
 		{
 			if (0 != r.players[i].id)
 			{
-				metin2::log::error("EmpireSelectFailed {:d}", r.players[i].id);
+				metin2::log::warn("Empire select refused: account already has empire and character pid {:d}", r.players[i].id);
 				return;
 			}
 		}
@@ -787,7 +787,7 @@ auto input_login::guild_symbol_upload(desc * d, const char* data, size_t bytes) 
 	if (bytes < sizeof(packet_cg_guild_symbol_upload))
 		return -1;
 
-	metin2::log::info( "GuildSymbolUpload uiBytes {:d}", bytes);
+	metin2::log::debug( "Guild symbol upload: {:d} bytes", bytes);
 
 	packet_cg_guild_symbol_upload* p = (packet_cg_guild_symbol_upload*) data;
 
@@ -804,7 +804,7 @@ auto input_login::guild_symbol_upload(desc * d, const char* data, size_t bytes) 
 
 	if (!is_mark_owner_guild_master(d, p->guild_id))
 	{
-		metin2::log::error("GuildSymbolUpload: guild {:d} not uploaded by its master, host {}", p->guild_id, d->host_name());
+		metin2::log::warn("Guild {:d} symbol upload not from its master, host {}", p->guild_id, d->host_name());
 		d->set_phase(PHASE_CLOSE);
 		return 0;
 	}
@@ -816,7 +816,7 @@ auto input_login::guild_symbol_upload(desc * d, const char* data, size_t bytes) 
 			return 0;
 		}
 
-	metin2::log::info( "GuildSymbolUpload Do Upload {:02X}{:02X}{:02X}{:02X} {:d}", data[7], data[8], data[9], data[10], sizeof(*p));
+	metin2::log::debug( "Guild symbol upload: header {:02X}{:02X}{:02X}{:02X}, packet size {:d}", data[7], data[8], data[9], data[10], sizeof(*p));
 
 	guild_mark_manager::instance().upload_symbol(p->guild_id, iSymbolSize, (const uint8_t*)(data + sizeof(*p)));
 	guild_mark_manager::instance().save_symbol(GUILD_SYMBOL_FILENAME);
@@ -827,14 +827,14 @@ void input_login::guild_symbol_crc(desc * d, const char* data)
 {
 	const packet_cg_symbol_crc & CGPacket = *((packet_cg_symbol_crc *) data);
 
-	metin2::log::info( "GuildSymbolCRC {:d} {:d} {:d}", CGPacket.guild_id, CGPacket.crc, CGPacket.size);
+	metin2::log::debug( "Guild {:d} symbol crc check: client crc {:d}, size {:d}", CGPacket.guild_id, CGPacket.crc, CGPacket.size);
 
 	const guild_mark_manager::guild_symbol * pkGS = guild_mark_manager::instance().get_guild_symbol(CGPacket.guild_id);
 
 	if (!pkGS || pkGS->raw.empty())
 		return;
 
-	metin2::log::info( "  Server {:d} {:d}", pkGS->crc, pkGS->raw.size());
+	metin2::log::debug( "Guild symbol on server: crc {:d}, size {:d}", pkGS->crc, pkGS->raw.size());
 
 	if (pkGS->raw.size() != CGPacket.size || pkGS->crc != CGPacket.crc)
 	{
@@ -848,7 +848,7 @@ void input_login::guild_symbol_crc(desc * d, const char* data)
 		d->packet(&pkGS->raw[0], pkGS->raw.size());
 
 		if (pkGS->raw.size() >= 4)
-			metin2::log::info( "SendGuildSymbolHead {:02X}{:02X}{:02X}{:02X} Size {:d}",
+			metin2::log::debug( "Sending guild symbol: header {:02X}{:02X}{:02X}{:02X}, size {:d}",
 					pkGS->raw[0], pkGS->raw[1], pkGS->raw[2], pkGS->raw[3], pkGS->raw.size());
 	}
 }
@@ -861,26 +861,26 @@ void input_login::guild_mark_upload(desc * d, const char* data)
 
 	if (!(pkGuild = rkGuildMgr.find_guild(p->gid)))
 	{
-		metin2::log::error("MARK_SERVER: GuildMarkUpload: no guild. gid {:d}", p->gid);
+		metin2::log::warn("Guild mark upload for unknown guild {:d}", p->gid);
 		return;
 	}
 
 	if (!is_mark_owner_guild_master(d, p->gid))
 	{
-		metin2::log::error("MARK_SERVER: GuildMarkUpload: gid {:d} not uploaded by its master, host {}", p->gid, d->host_name());
+		metin2::log::warn("Guild {:d} mark upload not from its master, host {}", p->gid, d->host_name());
 		d->set_phase(PHASE_CLOSE);
 		return;
 	}
 
 	if (pkGuild->level() < metin2::config::game().mark.min_level)
 	{
-		metin2::log::info( "MARK_SERVER: GuildMarkUpload: level < {:d} ({:d})", metin2::config::game().mark.min_level, pkGuild->level());
+		metin2::log::info( "Guild mark upload refused: guild level below {:d} ({:d})", metin2::config::game().mark.min_level, pkGuild->level());
 		return;
 	}
 
 	guild_mark_manager & rkMarkMgr = guild_mark_manager::instance();
 
-	metin2::log::info( "MARK_SERVER: GuildMarkUpload: gid {:d}", p->gid);
+	metin2::log::info( "Guild {:d} uploaded a mark", p->gid);
 
 	bool isEmpty = true;
 
@@ -921,7 +921,7 @@ void input_login::guild_mark_idx_list(desc * d, const char* data)
 	else
 		d->packet(&p, sizeof(p));
 
-	metin2::log::info( "MARK_SERVER: GuildMarkIDXList {:d} bytes sent.", p.buf_size);
+	metin2::log::debug( "Guild mark index list sent ({:d} bytes)", p.buf_size);
 }
 
 void input_login::guild_mark_crc_list(desc * d, const char* data)
@@ -954,7 +954,7 @@ void input_login::guild_mark_crc_list(desc * d, const char* data)
 	pGC.buf_size = buf.size() + sizeof(packet_gc_mark_block);
 	pGC.count = blockCount;
 
-	metin2::log::info( "MARK_SERVER: Sending blocks. (imgIdx {:d} diff {:d} size {:d})", pCG->img_idx, mapDiffBlocks.size(), pGC.buf_size);
+	metin2::log::debug( "Sending guild mark blocks: image {:d}, {:d} changed blocks, {:d} bytes", pCG->img_idx, mapDiffBlocks.size(), pGC.buf_size);
 
 	if (buf.size() > 0)
 	{
@@ -983,7 +983,7 @@ auto input_login::analyze(desc * d, uint8_t header, const char * data) -> int
 		case HEADER_CG_SYMBOL_CRC:
 			if (!d->is_mark_login())
 			{
-				metin2::log::error("guild mark packet {:d} without mark login, host {}", header, d->host_name());
+				metin2::log::warn("Guild mark packet {:d} without mark login, host {}", header, d->host_name());
 				d->set_phase(PHASE_CLOSE);
 				return 0;
 			}
@@ -992,7 +992,7 @@ auto input_login::analyze(desc * d, uint8_t header, const char * data) -> int
 		default:
 			if (d->is_mark_login())
 			{
-				metin2::log::error("mark connection sent packet {:d}, host {}", header, d->host_name());
+				metin2::log::warn("Mark connection sent non-mark packet {:d}, host {}", header, d->host_name());
 				d->set_phase(PHASE_CLOSE);
 				return 0;
 			}
@@ -1008,7 +1008,7 @@ auto input_login::analyze(desc * d, uint8_t header, const char * data) -> int
 		case HEADER_CG_EMPIRE:
 			if (!d->is_phase(PHASE_SELECT) || d->get_character())
 			{
-				metin2::log::error("packet {:d} outside of character select, host {}", header, d->host_name());
+				metin2::log::warn("Packet {:d} outside of character select, host {}", header, d->host_name());
 				return 0;
 			}
 			break;
@@ -1017,7 +1017,7 @@ auto input_login::analyze(desc * d, uint8_t header, const char * data) -> int
 		case HEADER_CG_LOGIN2:
 			if (!d->is_phase(PHASE_LOGIN))
 			{
-				metin2::log::error("login packet {:d} outside of the login phase, host {}", header, d->host_name());
+				metin2::log::warn("Login packet {:d} outside of the login phase, host {}", header, d->host_name());
 				return 0;
 			}
 			break;
@@ -1101,7 +1101,7 @@ auto input_login::analyze(desc * d, uint8_t header, const char * data) -> int
 			break;
 
 		default:
-			metin2::log::error("login phase does not handle this packet! header {:d}", header);
+			metin2::log::warn("Unhandled packet {:d} in login phase", header);
 			return (0);
 	}
 

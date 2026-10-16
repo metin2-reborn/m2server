@@ -42,7 +42,7 @@ pck.id = id_value;
 pck.x = x;
 pck.y = y;
 d->packet(&pck, sizeof(packet_gc_target_update));
-metin2::log::info( "SendTargetUpdatePacket {:d} {:d}x{:d}", id_value, x, y);
+metin2::log::debug("Target: update {:d} at ({:d}, {:d})", id_value, x, y);
 }
 
 void send_target_delete_packet(desc * d, int id_value)
@@ -66,7 +66,7 @@ EVENTFUNC(target_event)
 
 	if ( info == nullptr )
 	{
-		metin2::log::error( "target_event> <Factor> Null pointer" );
+		metin2::log::error("Target event has no info");
 		return 0;
 	}
 
@@ -116,7 +116,7 @@ EVENTFUNC(target_event)
 
 	if (event->is_force_to_end)
 	{
-		metin2::log::info( "target_event: event canceled");
+		metin2::log::debug("Target: event cancelled");
 		return 0;
 	}
 
@@ -145,14 +145,14 @@ void target_manager::create_target(uint32_t pid_value,
 		const char * target_desc_value, 
 		int send_flag)
 {
-	metin2::log::info( "CreateTarget : target pid {:d} quest {:d} name {} arg {:d} {:d} {:d}",
+	metin2::log::debug("Target: create for pid {:d}, quest {:d}, name {}, type {:d}, args {:d} {:d}",
 			pid_value, quest_index_value, target_name_value, type_value, arg1_value, arg2_value);
 
 	character * pkChr = character_manager::instance().find_by_pid(pid_value);
 
 	if (!pkChr)
 	{
-		metin2::log::error("Cannot find character ptr by PID {:d}", pid_value);
+		metin2::log::error("Player (pid {:d}) not found", pid_value);
 		return;
 	}
 
@@ -172,13 +172,13 @@ void target_manager::create_target(uint32_t pid_value,
 
 			if (nullptr == existInfo)
 			{
-				metin2::log::error("CreateTarget : event already exist, but have no info");
+				metin2::log::error("Existing target event has no info");
 				return;
 			}
 
 			if (existInfo->quest_index == quest_index_value && !strcmp(existInfo->target_name, target_name_value))
 			{
-				metin2::log::info( "CreateTarget : same target will be replaced");
+				metin2::log::debug("Target: replacing existing target");
 
 				if (existInfo->send_to_client)
 					send_target_delete_packet(pkChr->get_desc(), existInfo->id);
@@ -255,7 +255,7 @@ void target_manager::delete_target(uint32_t pid_value, uint32_t quest_index_valu
 
 		if ( info == nullptr )
 		{
-			metin2::log::error( "CTargetManager::DeleteTarget> <Factor> Null pointer" );
+			metin2::log::error("Target event has no info");
 			++it2;
 			continue;
 		}
@@ -297,7 +297,7 @@ auto target_manager::target_event(uint32_t pid, uint32_t quest_index_value, cons
 
 		if ( info == nullptr )
 		{
-			metin2::log::error( "CTargetManager::GetTargetEvent> <Factor> Null pointer" );
+			metin2::log::error("Target event has no info");
 
 			continue;
 		}
@@ -330,7 +330,7 @@ auto target_manager::get_target_info(uint32_t pid, int type_value, int arg1_valu
 
 		if ( info == nullptr )
 		{
-			metin2::log::error( "CTargetManager::GetTargetInfo> <Factor> Null pointer" );
+			metin2::log::error("Target event has no info");
 
 			continue;
 		}

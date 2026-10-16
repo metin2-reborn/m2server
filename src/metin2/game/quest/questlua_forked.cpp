@@ -96,7 +96,7 @@ namespace quest
 		lua_pushnumber( lua, get_sungzi_map_index() ); 
 
 		if ( metin2::config::test_server() )
-			metin2::log::info( "forked_sungzi_map_index_by_empire {:d}", get_sungzi_map_index() );
+			metin2::log::debug("Forked: sungzi map index {:d}", get_sungzi_map_index());
 		return 1;
 	}
 
@@ -112,7 +112,7 @@ namespace quest
 		int iEmpire 	= (int)lua_tonumber(lua, 1);
 
 		lua_pushstring( lua, get_pass_map_path(iEmpire) );
-		metin2::log::info( "[PASS_PATH] Empire {:d} Path  {}", iEmpire, get_pass_map_path( iEmpire ) );
+		metin2::log::debug("Forked: pass map path for empire {:d} is {}", iEmpire, get_pass_map_path( iEmpire ));
 		return 1;
 	}
 
@@ -171,7 +171,7 @@ namespace quest
 
 		if ( info == nullptr )
 		{
-			metin2::log::error( "warp_all_to_map_event> <Factor> Null pointer" );
+			metin2::log::error("Warp-all event has no info");
 			return 0;
 		}
 

@@ -234,7 +234,7 @@ namespace marriage
 			{
 				d1->chat_packet(CHAT_TYPE_COMMAND, "lover_login");
 				d2->chat_packet(CHAT_TYPE_COMMAND, "lover_login");
-				metin2::log::info( "lover_login {:d} {:d}", pid1, pid2);
+				metin2::log::debug("Marriage: partners {:d} and {:d} are both online", pid1, pid2);
 			}
 		}
 	}
@@ -311,7 +311,7 @@ namespace marriage
 			stop_near_check_event();
 			return;
 		}
-		metin2::log::info( "NearCheck {:d} {:d} {:d} {:d} {:d} {:d}", pid1, pid2, is_near(), is_last_near, last_love_point, marriage_point());
+		metin2::log::debug("Marriage {:d}-{:d}: near {:d}, was near {:d}, last love point {:d}, marriage point {:d}", pid1, pid2, is_near(), is_last_near, last_love_point, marriage_point());
 
 		if (is_near() && !is_last_near)
 		{
@@ -354,7 +354,7 @@ namespace marriage
 
 		if ( info == nullptr )
 		{
-			metin2::log::error( "near_check_event> <Factor> Null pointer" );
+			metin2::log::error("Marriage near check event fired without event info");
 			return 0;
 		}
 
@@ -381,7 +381,7 @@ namespace marriage
 
 	void marriage::save()
 	{
-		metin2::log::info( "TMarriage::Save() - RequestUpdate.bSave={:d}", needs_save);
+		metin2::log::debug("Marriage: save requested (needs save {:d})", needs_save);
 		if (needs_save)
 		{
 			manager::instance().request_update(pid1, pid2, love_point, is_married);
@@ -441,7 +441,7 @@ namespace marriage
 			pixel_position pos;
 			if (!sectree_manager::instance().recall_position_by_empire(wedding_info->map_index/10000, 0, pos))
 			{
-				metin2::log::error("cannot get warp position");
+				metin2::log::error("Cannot get wedding warp position");
 				return;
 			}
 			ch->save_exit_location();
@@ -539,7 +539,7 @@ namespace marriage
 	{
 		if (is_engaged_or_married(pid1) || is_engaged_or_married(pid2))
 		{
-			metin2::log::error("cannot marry already married character. {:d} - {:d}", pid1, pid2);
+			metin2::log::error("Cannot marry {:d} and {:d}: already married", pid1, pid2);
 			return;
 		}
 
@@ -585,7 +585,7 @@ namespace marriage
 
 		if (!pMarriage || pMarriage->other(pid1) != pid2)
 		{
-			metin2::log::error("not under marriage : {:d} {:d}", pid1, pid2);
+			metin2::log::error("{:d} and {:d} are not married to each other", pid1, pid2);
 			return;
 		}
 
@@ -608,7 +608,7 @@ namespace marriage
 		marriage* pMarriage = get(pid1);
 		if (!pMarriage || pMarriage->other(pid1) != pid2)
 		{
-			metin2::log::error("not under marriage : {:d} {:d}", pid1, pid2);
+			metin2::log::error("{:d} and {:d} are not married to each other", pid1, pid2);
 			return;
 		}
 
@@ -650,7 +650,7 @@ namespace marriage
 		marriage* pMarriage = get(pid1);
 		if (!pMarriage || pMarriage->other(pid1) != pid2)
 		{
-			metin2::log::error("wrong marriage {:d}, {:d}", pid1, pid2);
+			metin2::log::error("{:d} and {:d} are not married to each other", pid1, pid2);
 			return;
 		}
 
@@ -665,7 +665,7 @@ namespace marriage
 		marriage* pMarriage = get(pid1);
 		if (!pMarriage || pMarriage->other(pid1) != pid2)
 		{
-			metin2::log::error("wrong marriage {:d}, {:d}", pid1, pid2);
+			metin2::log::error("{:d} and {:d} are not married to each other", pid1, pid2);
 			return;
 		}
 
@@ -685,20 +685,20 @@ namespace marriage
 		marriage* pMarriage = get(pid1);
 		if (!pMarriage || pMarriage->other(pid1) != pid2)
 		{
-			metin2::log::error("wrong marriage {:d}, {:d}", pid1, pid2);
+			metin2::log::error("{:d} and {:d} are not married to each other", pid1, pid2);
 			return;
 		}
 
 		if (!pMarriage->wedding_info)
 		{
-			metin2::log::error("not under wedding {:d}, {:d}", pid1, pid2);
+			metin2::log::error("Marriage of {:d} and {:d} has no wedding in progress", pid1, pid2);
 			return;
 		}
 
 		if (map_allow_find(WEDDING_MAP_INDEX))
 			if (!wedding_manager::instance().end(pMarriage->wedding_info->map_index))
 			{
-				metin2::log::error("wedding map error: map_index={:d}", pMarriage->wedding_info->map_index);
+				metin2::log::error("Cannot end wedding on map {:d}", pMarriage->wedding_info->map_index);
 				return;
 			}
 

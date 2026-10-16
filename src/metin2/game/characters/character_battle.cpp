@@ -197,7 +197,7 @@ void character::distribute_sp(character * killer, int method)
 auto character::attack(character * victim, uint8_t type) -> bool
 {
 	if (metin2::config::test_server())
-		metin2::log::info( "[TEST_SERVER] Attack : {} type {:d}, MobBattleType {:d}", name(), type, !mob_battle_type() ? 0 : mob_attack_range());
+		metin2::log::debug("{}: attack type {:d}, mob attack range {:d}", name(), type, !mob_battle_type() ? 0 : mob_attack_range());
 	if (!can_move())
 		return false;
 
@@ -249,7 +249,7 @@ auto character::attack(character * victim, uint8_t type) -> bool
 				break;
 
 			default:
-				metin2::log::error("Unhandled battle type {:d}", mob_battle_type());
+				metin2::log::error("Unhandled mob battle type {:d}", mob_battle_type());
 				iRet = BATTLE_NONE;
 				break;
 		}
@@ -260,13 +260,13 @@ auto character::attack(character * victim, uint8_t type) -> bool
 		{
 			if (dwCurrentTime - last_skill_time_ > 1500)
 			{
-				metin2::log::debug( "HACK: Too long skill using term. Name({}) PID({:d}) delta({:d})",
+				metin2::log::warn("Possible skill hack by {} (pid {:d}): skill attack {:d} ms after skill use",
 						name(), player_id(), (dwCurrentTime - last_skill_time_));
 				return false;
 			}
 		}
 
-		metin2::log::debug( "Attack call ComputeSkill {:d} {}", type, victim?victim->name():"");
+		metin2::log::debug("Attack computes skill {:d} on {}", type, victim?victim->name():"");
 		iRet = compute_skill(type, victim);
 	}
 
@@ -286,7 +286,7 @@ auto character::attack(character * victim, uint8_t type) -> bool
 
 void character::death_penalty(uint8_t town)
 {
-	metin2::log::debug( "DEATH_PERNALY_CHECK({}) town({:d})", name(), town);
+	metin2::log::debug("{}: death penalty check (town {:d})", name(), town);
 
 	cube_close(this);
 
@@ -297,14 +297,14 @@ void character::death_penalty(uint8_t town)
 	
 	if (level() < 10)
 	{
-		metin2::log::info( "NO_DEATH_PENALTY_LESS_LV10({})", name());
+		metin2::log::info("{}: no death penalty (below level 10)", name());
 		chat_packet(CHAT_TYPE_INFO, lc_text("용신의 가호로 경험치가 떨어지지 않았습니다."));
 		return;
 	}
 
    	if (number(0, 2))
 	{
-		metin2::log::info( "NO_DEATH_PENALTY_LUCK({})", name());
+		metin2::log::info("{}: no death penalty (luck)", name());
 		chat_packet(CHAT_TYPE_INFO, lc_text("용신의 가호로 경험치가 떨어지지 않았습니다."));
 		return;
 	}
@@ -317,7 +317,7 @@ void character::death_penalty(uint8_t town)
 		{
 			if (find_affect(AFFECT_NO_DEATH_PENALTY))
 			{
-				metin2::log::info( "NO_DEATH_PENALTY_AFFECT({})", name());
+				metin2::log::info("{}: no death penalty (protection affect)", name());
 				chat_packet(CHAT_TYPE_INFO, lc_text("용신의 가호로 경험치가 떨어지지 않았습니다."));
 				remove_affect(AFFECT_NO_DEATH_PENALTY);
 				return;
@@ -336,7 +336,7 @@ void character::death_penalty(uint8_t town)
 		if (is_equip_unique_item(UNIQUE_ITEM_TEARDROP_OF_GODNESS))
 			iLoss /= 2;
 
-		metin2::log::info( "DEATH_PENALTY({}) EXP_LOSS: {:d} percent {:d}%", name(), iLoss, exp_loss_percents[std::min(metin2::config::game().max_level, level())]);
+		metin2::log::info("{}: death penalty, lost {:d} exp ({:d}%)", name(), iLoss, exp_loss_percents[std::min(metin2::config::game().max_level, level())]);
 
 		point_change(POINT_EXP, -iLoss, true);
 	}
@@ -356,7 +356,7 @@ EVENTFUNC(stun_event)
 
 	if ( info == nullptr )
 	{
-		metin2::log::error( "StunEvent> <Factor> Null pointer" );
+		metin2::log::error("Stun event fired without event info");
 		return 0;
 	}
 
@@ -383,7 +383,7 @@ void character::stun()
 		party_->send_message(this, PM_ATTACKED_BY, 0, 0);
 	}
 
-	metin2::log::debug( "{}: Stun {}", name(), static_cast<const void *>(this));
+	metin2::log::debug("{} ({}) stunned", name(), static_cast<const void *>(this));
 
 	point_change(POINT_HP_RECOVERY, -point(POINT_HP_RECOVERY));
 	point_change(POINT_SP_RECOVERY, -point(POINT_SP_RECOVERY));
@@ -427,7 +427,7 @@ EVENTFUNC(dead_event)
 
 	if ( info == nullptr )
 	{
-		metin2::log::error( "dead_event> <Factor> Null pointer" );
+		metin2::log::error("Dead event fired without event info");
 		return 0;
 	}
 
@@ -444,7 +444,7 @@ EVENTFUNC(dead_event)
 
 	if (nullptr == ch)
 	{
-		metin2::log::error("DEAD_EVENT: cannot find char pointer with {} id({:d})", info->is_pc ? "PC" : "MOB", info->id );
+		metin2::log::error("Dead event: cannot find {} with id {:d}", info->is_pc ? "player" : "mob", info->id);
 		return 0;
 	}
 
@@ -462,7 +462,7 @@ EVENTFUNC(dead_event)
 			ch->warp_set(pos.x, pos.y);
 		else
 		{
-			metin2::log::error("cannot find spawn position (name {})", ch->name());
+			metin2::log::error("Cannot find spawn position for {}", ch->name());
 			ch->warp_set(empire_start_x(ch->empire()), empire_start_y(ch->empire()));
 		}
 
@@ -579,7 +579,7 @@ void character::reward_gold(character * attacker)
 		{
 			int iGold = number(get_mob_table().gold_min, get_mob_table().gold_max) / iSplitCount;
 			if (metin2::config::test_server())
-				metin2::log::info( "iGold {:d}", iGold);
+				metin2::log::debug("Gold drop: base amount {:d}", iGold);
 			iGold = iGold * character_manager::instance().mob_gold_amount_rate(attacker) / 100;
 			iGold *= iGoldMultipler;
 
@@ -590,8 +590,8 @@ void character::reward_gold(character * attacker)
 
 			if (metin2::config::test_server())
 			{
-				metin2::log::info( "Drop Moeny MobGoldAmountRate {:d} {:d}", character_manager::instance().mob_gold_amount_rate(attacker), iGoldMultipler);
-				metin2::log::info( "Drop Money gold {:d} GoldMin {:d} GoldMax {:d}", iGold, get_mob_table().gold_max, get_mob_table().gold_max);
+				metin2::log::debug("Gold drop: rate {:d}%, multiplier {:d}", character_manager::instance().mob_gold_amount_rate(attacker), iGoldMultipler);
+				metin2::log::debug("Gold drop: {:d} (min {:d}, max {:d})", iGold, get_mob_table().gold_min, get_mob_table().gold_max);
 			}
 
 			if ((item = item_manager::instance().create_item(1, iGold)))
@@ -691,7 +691,7 @@ void character::reward(bool item_drop)
 		iGold *= get_gold_multipler();
 		int iSplitCount = number(25, 35);
 
-		metin2::log::info( "WAEGU Dead gold {:d} split {:d}", iGold, iSplitCount);
+		metin2::log::debug("Waegu died: gold {:d} split into {:d}", iGold, iSplitCount);
 
 		for (int i = 1; i <= iSplitCount; ++i)
 		{
@@ -764,7 +764,7 @@ void character::reward(bool item_drop)
 		return;
 
 	if (metin2::config::test_server())
-		metin2::log::info( "Drop money : Attacker {}", pkAttacker->name());
+		metin2::log::debug("Gold reward for {}", pkAttacker->name());
 	reward_gold(pkAttacker);
 
 	game::items::item * item;
@@ -792,7 +792,7 @@ void character::reward(bool item_drop)
 			pos.x += x();
 			pos.y += y();
 
-			metin2::log::info( "DROP_ITEM: {} {:d} {:d} from {}", item->name(), pos.x, pos.y, name());
+			metin2::log::debug("Item {} dropped at {:d} {:d} from {}", item->name(), pos.x, pos.y, name());
 		}
 		else
 		{
@@ -833,7 +833,7 @@ void character::reward(bool item_drop)
 
 					if (!item)
 					{
-						metin2::log::error("item null in vector idx {:d}", iItemIdx + 1);
+						metin2::log::error("Null item at drop list index {:d}", iItemIdx + 1);
 						continue;
 					}
 
@@ -845,7 +845,7 @@ void character::reward(bool item_drop)
 					pos.x += x();
 					pos.y += y();
 
-					metin2::log::info( "DROP_ITEM: {} {:d} {:d} by {}", item->name(), pos.x, pos.y, name());
+					metin2::log::debug("Item {} dropped at {:d} {:d} by {}", item->name(), pos.x, pos.y, name());
 				}
 			}
 			else
@@ -858,7 +858,7 @@ void character::reward(bool item_drop)
 
 					if (!item)
 					{
-						metin2::log::error("item null in vector idx {:d}", iItemIdx + 1);
+						metin2::log::error("Null item at drop list index {:d}", iItemIdx + 1);
 						continue;
 					}
 
@@ -886,7 +886,7 @@ void character::reward(bool item_drop)
 					pos.x += x();
 					pos.y += y();
 
-					metin2::log::info( "DROP_ITEM: {} {:d} {:d} by {}", item->name(), pos.x, pos.y, name());
+					metin2::log::debug("Item {} dropped at {:d} {:d} by {}", item->name(), pos.x, pos.y, name());
 				}
 			}
 		}
@@ -961,7 +961,7 @@ void character::item_drop_penalty(character * killer)
 	bool isDropAllEquipments = false;
 
 	game::characters::item_drop_penalty & r = table[iAlignIndex];
-	metin2::log::info( "{} align {:d} inven_pct {:d} equip_pct {:d}", name(), iAlignIndex, r.inventory_pct, r.equipment_pct);
+	metin2::log::debug("{}: PK drop penalty for alignment index {:d}, inventory {:d}%, equipment {:d}%", name(), iAlignIndex, r.inventory_pct, r.equipment_pct);
 
 	bool bDropInventory = r.inventory_pct >= number(1, 1000);
 	bool bDropEquipment = r.equipment_pct >= number(1, 100);
@@ -1080,7 +1080,7 @@ void character::item_drop_penalty(character * killer)
 			item->add_to_ground(map_index(), pos);
 			item->start_destroy_event();
 
-			metin2::log::info( "DROP_ITEM_PK: {} {:d} {:d} from {}", item->name(), pos.x, pos.y, name());
+			metin2::log::info("Item {} dropped at {:d} {:d} on death of {}", item->name(), pos.x, pos.y, name());
 			log_manager::instance().item_log(this, item, "DEAD_DROP", (window == INVENTORY) ? "INVENTORY" : ((window == EQUIPMENT) ? "EQUIPMENT" : ""));
 
 			pos.x = x() + number(-7, 7) * 20;
@@ -1226,14 +1226,14 @@ void character::dead(character * killer, bool immediate_dead)
 		{
 			if (!isForked)
 			{
-				metin2::log::debug( "DEAD: {} {} WITH PENALTY", name(), static_cast<const void *>(this));
+				metin2::log::debug("{} ({}) died with penalty", name(), static_cast<const void *>(this));
 				set_bit(points_instant_.instant_flag, INSTANT_FLAG_DEATH_PENALTY);
 				log_manager::instance().char_log(this, killer->race_num(), "DEAD_BY_NPC", killer->name());
 			}
 		}
 		else
 		{
-			metin2::log::debug( "DEAD_BY_PC: {} {} KILLER {} {}", name(), static_cast<const void *>(this), killer->name(), static_cast<const void *>(killer));
+			metin2::log::debug("{} ({}) killed by player {} ({})", name(), static_cast<const void *>(this), killer->name(), static_cast<const void *>(killer));
 			remove_bit(points_instant_.instant_flag, INSTANT_FLAG_DEATH_PENALTY);
 
 			if (empire() != killer->empire())
@@ -1279,7 +1279,7 @@ void character::dead(character * killer, bool immediate_dead)
 								killer->update_alignment(-20000);
 							else
 							{
-								metin2::log::info( "ALIGNMENT PARTY count {:d} amount {:d}", f.count, f.amount);
+								metin2::log::debug("Alignment shared in party: count {:d}, amount {:d}", f.count, f.amount);
 
 								f.step = 1;
 								killer->get_party()->for_each_online_member(f);
@@ -1302,7 +1302,7 @@ void character::dead(character * killer, bool immediate_dead)
 	}
 	else
 	{
-		metin2::log::debug( "DEAD: {} {}", name(), static_cast<const void *>(this));
+		metin2::log::debug("{} ({}) died", name(), static_cast<const void *>(this));
 		remove_bit(points_instant_.instant_flag, INSTANT_FLAG_DEATH_PENALTY);
 	}
 
@@ -1380,7 +1380,7 @@ void character::dead(character * killer, bool immediate_dead)
 	{
 		if (dead_event)
 		{
-			metin2::log::debug( "DEAD_EVENT_CANCEL: {} {} {}", name(), static_cast<const void *>(this), static_cast<const void *>(dead_event.get()));
+			metin2::log::debug("{} ({}): dead event cancelled ({})", name(), static_cast<const void *>(this), static_cast<const void *>(dead_event.get()));
 			event_cancel(&dead_event);
 		}
 
@@ -1416,7 +1416,7 @@ void character::dead(character * killer, bool immediate_dead)
 			}
 		}
 
-		metin2::log::debug( "DEAD_EVENT_CREATE: {} {} {}", name(), static_cast<const void *>(this), static_cast<const void *>(dead_event.get()));
+		metin2::log::debug("{} ({}): dead event created ({})", name(), static_cast<const void *>(this), static_cast<const void *>(dead_event.get()));
 	}
 
 	if (exchange_ != nullptr)
@@ -1441,7 +1441,7 @@ void character::dead(character * killer, bool immediate_dead)
 		}
 		else
 		{
-			metin2::log::error("DragonLair: Dragon killed by nobody");
+			metin2::log::error("Dragon lair: dragon died without a killer");
 		}
 	}
 }
@@ -1521,7 +1521,7 @@ auto character::damage(character * attacker, int dam, damage_type type) -> bool
 			uint32_t dwGold = 1000;
 			int iSplitCount = number(10, 13);
 
-			metin2::log::info( "WAEGU DropGoldOnHit {:d} times", max_sp());
+			metin2::log::debug("Waegu drops gold on hit {:d} times", max_sp());
 
 			for (int i = 1; i <= iSplitCount; ++i)
 			{
@@ -2174,7 +2174,7 @@ static void give_exp(character * from, character * to, int exp)
 
 	if (metin2::config::test_server())
 	{
-		metin2::log::info( "Bonus Exp : Ramadan Candy: {:d} MallExp: {:d} PointExp: {:d}", 
+		metin2::log::debug("Bonus exp: ramadan candy {:d}, mall {:d}, point {:d}", 
 				to->point(POINT_RAMADAN_CANDY_BONUS_EXP),
 				to->point(POINT_MALL_EXPBONUS),
 				to->point(POINT_EXP)
@@ -2411,7 +2411,7 @@ auto character::distribute_exp() -> character *
 		iExpToDistribute -= iExp;
 	}
 
-	metin2::log::debug( "{} total exp: {:d}, damage_info_table.size() == {:d}, TotalDam {:d}",
+	metin2::log::debug("{}: distributing {:d} exp among {:d} attackers (total damage {:d})",
 			name(), iExpToDistribute, damage_info_table.size(), iTotalDam);
 
 	if (damage_info_table.empty())
@@ -2438,7 +2438,7 @@ auto character::distribute_exp() -> character *
 
 		if (fPercent > 1.0f)
 		{
-			metin2::log::error("DistributeExp percent over 1.0 (fPercent {:f} name {})", fPercent, di->attacker->name());
+			metin2::log::error("Exp share {:f} over 1.0 for {}", fPercent, di->attacker->name());
 			fPercent = 1.0f;
 		}
 
@@ -2463,7 +2463,7 @@ auto character::distribute_exp() -> character *
 
 			if (fPercent > 1.0f)
 			{
-				metin2::log::error("DistributeExp percent over 1.0 (fPercent {:f} name {})", fPercent, di.attacker->name());
+				metin2::log::error("Exp share {:f} over 1.0 for {}", fPercent, di.attacker->name());
 				fPercent = 1.0f;
 			}
 
@@ -2510,7 +2510,7 @@ void character::use_arrow(item * arrow, uint32_t arrow_count)
 	{
 		item * pkNewArrow = find_specify_item(dwVnum);
 
-		metin2::log::info( "UseArrow : FindSpecifyItem {:d} {}", dwVnum, static_cast<const void *>(pkNewArrow));
+		metin2::log::debug("Arrow stack {:d} used up, next stack {}", dwVnum, static_cast<const void *>(pkNewArrow));
 
 		if (pkNewArrow)
 			equip_item(pkNewArrow);
@@ -2664,7 +2664,7 @@ class func_shoot
 							if (pkVictim->can_begin_fight())
 								pkVictim->begin_fight(me); 
 
-							metin2::log::info( "{} kwankeyok {}", me->name(), pkVictim->name());
+							metin2::log::debug("{} hits {} with kwankeyok", me->name(), pkVictim->name());
 							me->compute_skill(type, pkVictim);
 							me->use_arrow(pkArrow, iUseArrow);
 						}
@@ -2682,7 +2682,7 @@ class func_shoot
 							if (pkVictim->can_begin_fight())
 								pkVictim->begin_fight(me);
 
-							metin2::log::info( "{} gigung {}", me->name(), pkVictim->name());
+							metin2::log::debug("{} hits {} with gigung", me->name(), pkVictim->name());
 							me->compute_skill(type, pkVictim);
 							me->use_arrow(pkArrow, iUseArrow);
 						}
@@ -2700,7 +2700,7 @@ class func_shoot
 							if (pkVictim->can_begin_fight())
 								pkVictim->begin_fight(me);
 
-							metin2::log::info( "{} hwajo {}", me->name(), pkVictim->name());
+							metin2::log::debug("{} hits {} with hwajo", me->name(), pkVictim->name());
 							me->compute_skill(type, pkVictim);
 							me->use_arrow(pkArrow, iUseArrow);
 						}
@@ -2719,7 +2719,7 @@ class func_shoot
 							if (pkVictim->can_begin_fight())
 								pkVictim->begin_fight(me);
 
-							metin2::log::info( "{} horse_wildattack {}", me->name(), pkVictim->name());
+							metin2::log::debug("{} hits {} with horse wild attack", me->name(), pkVictim->name());
 							me->compute_skill(type, pkVictim);
 							me->use_arrow(pkArrow, iUseArrow);
 						}
@@ -2742,7 +2742,7 @@ class func_shoot
 						if (pkVictim->can_begin_fight())
 							pkVictim->begin_fight(me);
 
-						metin2::log::info( "{} - Skill {:d} -> {}", me->name(), type, pkVictim->name());
+						metin2::log::debug("{}: skill {:d} hits {}", me->name(), type, pkVictim->name());
 						me->compute_skill(type, pkVictim);
 					}
 					break;
@@ -2755,7 +2755,7 @@ class func_shoot
 						if (pkVictim->can_begin_fight())
 							pkVictim->begin_fight(me); 
 
-						metin2::log::info( "{} - Skill {:d} -> {}", me->name(), type, pkVictim->name());
+						metin2::log::debug("{}: skill {:d} hits {}", me->name(), type, pkVictim->name());
 						me->compute_skill(type, pkVictim);
 
 					}
@@ -2768,7 +2768,7 @@ class func_shoot
 					break;
 
 				default:
-					metin2::log::error("CFuncShoot: I don't know this type [{:d}] of range attack.", (int) type);
+					metin2::log::error("Unknown range attack type {:d}", (int) type);
 					break;
 			}
 
@@ -2778,7 +2778,7 @@ class func_shoot
 
 auto character::shoot(uint8_t type) -> bool
 {
-	metin2::log::debug( "Shoot {} type {:d} flyTargets.size {:d}", name(), type, vec_dw_fly_targets_.size());
+	metin2::log::debug("{}: shoot type {:d}, {:d} fly targets", name(), type, vec_dw_fly_targets_.size());
 
 	if (!can_move())
 	{
@@ -2825,7 +2825,7 @@ void character::fly_target(uint32_t target_vid_value, int32_t x, int32_t y, uint
 		pack.y = y;
 	}
 
-	metin2::log::debug( "FlyTarget {} vid {:d} x {:d} y {:d}", name(), pack.target_vid, pack.x, pack.y);
+	metin2::log::debug("{}: fly target vid {:d} at {:d} {:d}", name(), pack.target_vid, pack.x, pack.y);
 	packet_around(&pack, sizeof(pack), this);
 }
 
@@ -2964,7 +2964,7 @@ void character::set_killer_mode(bool is_on)
 
 	killer_mode_pulse_ = thecore_pulse();
 	update_packet();
-	metin2::log::info( "SetKillerMode Update {}[{:d}]", name(), player_id());
+	metin2::log::debug("{} (pid {:d}): killer mode updated", name(), player_id());
 }
 
 auto character::is_killer_mode() const -> bool
@@ -2997,7 +2997,7 @@ void character::set_pk_mode(uint8_t pk_mode)
 	pk_mode_ = pk_mode;
 	update_packet();
 
-	metin2::log::info( "PK_MODE: {} {:d}", name(), pk_mode_);
+	metin2::log::info("{}: PK mode set to {:d}", name(), pk_mode_);
 }
 
 auto character::pk_mode() const -> uint8_t

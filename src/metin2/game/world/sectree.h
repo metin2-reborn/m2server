@@ -150,7 +150,7 @@ class sectree
 			for ( ; it != set_entity_.end(); ++it) {
 				entity * entity = *it;
 				if (entity->get_sectree() != this) {
-					metin2::log::error("<Factor> SECTREE-ENTITY relationship mismatch");
+					metin2::log::error("Entity in sectree points to a different sectree");
 					set_entity_.erase(it);
 					continue;
 				}

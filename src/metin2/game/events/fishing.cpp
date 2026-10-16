@@ -216,7 +216,7 @@ void initialize()
 
 	for (int i = 0; i < MAX_FISH; ++i)
 	{
-		metin2::log::info( "FISH: {:<24} vnum {:5d} prob {:4d} {:4d} {:4d} {:4d} len {:d} {:d} {:d}",
+		metin2::log::debug( "Fishing: fish {}, vnum {:d}, prob {:d} {:d} {:d} {:d}, length {:d} {:d} {:d}",
 				fish_info[i].name,
 				fish_info[i].vnum,
 				fish_info[i].prob[0],
@@ -236,7 +236,7 @@ void initialize()
 			prob_accumulate[j][i] = fish_info[i].prob[j] + prob_accumulate[j][i - 1];
 
 		prob_sum[j] = prob_accumulate[j][MAX_FISH - 1];
-		metin2::log::info( "FISH: prob table {:d} {:d}", j, prob_sum[j]);
+		metin2::log::debug( "Fishing: probability table {:d} sums to {:d}", j, prob_sum[j]);
 	}
 }
 
@@ -369,7 +369,7 @@ EVENTFUNC(fishing_event)
 
 	if ( info == nullptr )
 	{
-		metin2::log::error( "fishing_event> <Factor> Null pointer" );
+		metin2::log::error( "Fishing event has no event info" );
 		return 0;
 	}
 
@@ -454,7 +454,7 @@ auto compute(uint32_t fish_id, uint32_t ms, uint32_t* item, int level) -> int
 
 	if (fish_id >= MAX_FISH)
 	{
-		metin2::log::error("Wrong FISH ID : {:d}", fish_id);
+		metin2::log::error("Invalid fish id {:d}", fish_id);
 		return -2; 
 	}
 
@@ -727,7 +727,7 @@ auto real_refine_rod(character * ch, item * item) -> int
 
 	if (!refinable_rod(item))
 	{
-		metin2::log::error("REFINE_ROD_HACK pid({:d}) item({}:{:d})", ch->player_id(), item->name(), item->id());
+		metin2::log::warn("Possible hack: pid {:d} tried to refine non-refinable rod {} (id {:d})", ch->player_id(), item->name(), item->id());
 
 		log_manager::instance().refine_log(ch->player_id(), item->name(), item->id(), -1, 1, "ROD_HACK");
 

@@ -524,7 +524,7 @@ void interpreter_set_privilege(const char *cmd, int lvl)
 		if (!strcasecmp(cmd, cmd_info[i].command))
 		{
 			cmd_info[i].gm_level = lvl;
-			metin2::log::info( "Setting command privilege: {} -> {:d}", cmd, lvl);
+			metin2::log::info( "Command {} now requires gm level {:d}", cmd, lvl);
 			break;
 		}
 	}
@@ -565,7 +565,7 @@ void interpret_command(character * ch, const char * argument, size_t len)
 {
 	if (nullptr == ch)
 	{
-		metin2::log::error("NULL CHRACTER");
+		metin2::log::error("Command without a character");
 		return ;
 	}
 
@@ -614,7 +614,7 @@ void interpret_command(character * ch, const char * argument, size_t len)
 				ch->chat_packet(CHAT_TYPE_INFO, lc_text("먼저 일어 나세요."));
 				break;
 			default:
-				metin2::log::error("unknown position {:d}", ch->get_position());
+				metin2::log::error("Command {} from player {} in unknown position {:d}", cmd_info[icmd].command, ch->name(), ch->get_position());
 				break;
 		}
 
@@ -634,7 +634,7 @@ void interpret_command(character * ch, const char * argument, size_t len)
 	}
 
 	if (strncmp("phase", cmd_info[icmd].command, 5) != 0)
-		metin2::log::info( "COMMAND: {}: {}", ch->name(), cmd_info[icmd].command);
+		metin2::log::info( "Command from player {}: {}", ch->name(), cmd_info[icmd].command);
 
 	((*cmd_info[icmd].command_pointer) (ch, line, icmd, cmd_info[icmd].subcmd));
 

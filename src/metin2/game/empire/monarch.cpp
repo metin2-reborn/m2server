@@ -67,14 +67,14 @@ auto monarch::heal_my_empire(character * ch ,uint32_t price) -> int
 	uint8_t Empire = ch->empire();
 	uint32_t pid = ch->player_id();
 
-	metin2::log::info( "HealMyEmpire[{:d}] pid:{:d} price {:d}", pid, Empire, price);
+	metin2::log::info( "Monarch heal: pid {:d}, empire {:d}, price {:d}", pid, Empire, price);
 
 	if (is_monarch(pid, Empire) == 0)
 	{
 		if (!ch->is_gm())
 		{
 			ch->chat_packet(CHAT_TYPE_INFO ,lc_text("군주의 자격을 가지고 있지 않습니다"));
-			metin2::log::error("No Monarch pid {:d} ", pid);
+			metin2::log::warn("Monarch heal refused: pid {:d} is not the monarch", pid);
 			return 0;
 		}
 	}
@@ -122,7 +122,7 @@ auto monarch::is_monarch(uint32_t pid, uint8_t empire) -> bool
 
 auto monarch::is_money_ok(int price, uint8_t empire) -> bool
 {
-	metin2::log::debug( "GetMoney({:d}), price = ({:d},{:d})", empire, money(empire), price);
+	metin2::log::debug( "Monarch funds of empire {:d}: {:d}, price {:d}", empire, money(empire), price);
 	return (money(empire) >= price);
 }
 
@@ -217,7 +217,7 @@ auto monarch::check_power_up_ct(uint8_t empire) -> bool
 	if (power_up_ct_[empire] > thecore_pulse())
 	{
 		if (metin2::config::test_server())
-			metin2::log::info( "[TEST_ONLY] : CheckPowerUpCT CT{:d} Now{:d} 60sec {:d}", power_up_ct_[empire], thecore_pulse(), passes_per_sec(60 * 10));
+			metin2::log::debug( "Monarch power up on cooldown until pulse {:d} (now {:d}, cooldown {:d} pulses)", power_up_ct_[empire], thecore_pulse(), passes_per_sec(60 * 10));
 		return false;
 	}
 
@@ -232,7 +232,7 @@ auto monarch::check_defense_up_ct(uint8_t empire) -> bool
 	if (defense_up_ct_[empire] > thecore_pulse())
 	{
 		if (metin2::config::test_server())
-			metin2::log::info( "[TEST_ONLY] : CheckPowerUpCT CT{:d} Now{:d} 60sec {:d}", power_up_ct_[empire], thecore_pulse(), passes_per_sec(60 * 10));
+			metin2::log::debug( "Monarch defence up on cooldown until pulse {:d} (now {:d}, cooldown {:d} pulses)", defense_up_ct_[empire], thecore_pulse(), passes_per_sec(60 * 10));
 		return false;
 	}
 

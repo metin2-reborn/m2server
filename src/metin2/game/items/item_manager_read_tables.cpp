@@ -83,7 +83,7 @@ auto item_manager::read_common_drop_item_file(const char * file_name) -> bool
 				str_to_number(dwItemVnum, d[i].item_name);
 				if (!item_manager::instance().table(dwItemVnum))
 				{
-					metin2::log::error("No such an item (name: {})", d[i].item_name);
+					metin2::log::error("Unknown item name {}", d[i].item_name);
 					fclose(fp);
 					return false;
 				}
@@ -105,12 +105,12 @@ auto item_manager::read_common_drop_item_file(const char * file_name) -> bool
 
 		std::vector<item_drop_info>::iterator it = v.begin();
 
-		metin2::log::debug( "CommonItemDrop rank {:d}", i);
+		metin2::log::debug("Common drop: rank {:d}", i);
 
 		while (it != v.end())
 		{
 			const item_drop_info & c = *(it++);
-			metin2::log::debug( "CommonItemDrop {:d} {:d} {:d} {:d}", c.level_start, c.level_end, c.percent, c.vnum);
+			metin2::log::debug("Common drop: levels {:d}-{:d}, chance {:d}, vnum {:d}", c.level_start, c.level_end, c.percent, c.vnum);
 		}
 	}
 
@@ -136,12 +136,12 @@ auto item_manager::read_special_drop_item_file(const char * file_name) -> bool
 
 		if (!loader.token_integer("vnum", &iVnum))
 		{
-			metin2::log::error("ReadSpecialDropItemFile : Syntax error {} : no vnum, node {}", file_name, stName.c_str());
+			metin2::log::error("{}: group {} has no vnum", file_name, stName.c_str());
 			loader.set_parent_node();
 			return false;
 		}
 
-		metin2::log::info("DROP_ITEM_GROUP {} {:d}", stName.c_str(), iVnum);
+		metin2::log::debug("Special item group {} (vnum {:d})", stName.c_str(), iVnum);
 
 		token_vector * pTok;
 
@@ -183,14 +183,14 @@ auto item_manager::read_special_drop_item_file(const char * file_name) -> bool
 						apply_type = fn_get_apply_type(pTok->at(0).c_str());
 						if (0 == apply_type)
 						{
-							metin2::log::error("Invalid APPLY_TYPE {} in Special Item Group Vnum {:d}", pTok->at(0).c_str(), iVnum);
+							metin2::log::error("Unknown apply type {} in special item group {:d}", pTok->at(0).c_str(), iVnum);
 							return false;
 						}
 					}
 					str_to_number(apply_value, pTok->at(1).c_str());
 					if (apply_type > MAX_APPLY_NUM)
 					{
-						metin2::log::error("Invalid APPLY_TYPE {:d} in Special Item Group Vnum {:d}", apply_type, iVnum);
+						metin2::log::error("Apply type {:d} is out of range in special item group {:d}", apply_type, iVnum);
 						return false;
 					}
 					pkGroup->attrs.push_back(special_attr_group::special_attr_info(apply_type, apply_value));
@@ -251,7 +251,7 @@ auto item_manager::read_special_drop_item_file(const char * file_name) -> bool
 							str_to_number(dwVnum, name.c_str());
 							if (!item_manager::instance().table(dwVnum))
 							{
-								metin2::log::error("ReadSpecialDropItemFile : there is no item {} : node {}", name.c_str(), stName.c_str());
+								metin2::log::error("Unknown item {} in special item group {}", name.c_str(), stName.c_str());
 								return false;
 							}
 						}
@@ -268,7 +268,7 @@ auto item_manager::read_special_drop_item_file(const char * file_name) -> bool
 						str_to_number(iRarePct, pTok->at(3).c_str());
 					}
 
-					metin2::log::info("        name {} count {:d} prob {:d} rare {:d}", name.c_str(), iCount, iProb, iRarePct);
+					metin2::log::debug("Special item group: item {} count {:d} chance {:d} rare {:d}", name.c_str(), iCount, iProb, iRarePct);
 					pkGroup->add_item(dwVnum, iCount, iProb, iRarePct);
 
 					if (iVnum < 30000)
@@ -306,7 +306,7 @@ auto item_manager::conv_special_drop_item_file() -> bool
 	FILE *fp = fopen("special_item_group_vnum.txt", "w");
 	if (!fp)
 	{
-		metin2::log::error("could not open file ({})", "special_item_group_vnum.txt");
+		metin2::log::error("Cannot open {}", "special_item_group_vnum.txt");
 		return false;
 	}
 
@@ -330,7 +330,7 @@ auto item_manager::conv_special_drop_item_file() -> bool
 
 		if (!loader.token_integer("vnum", &iVnum))
 		{
-			metin2::log::error("ConvSpecialDropItemFile : Syntax error {} : no vnum, node {}", szSpecialItemGroupFileName, stName.c_str());
+			metin2::log::error("{}: group {} has no vnum", szSpecialItemGroupFileName, stName.c_str());
 			loader.set_parent_node();
 			fclose(fp);
 			return false;
@@ -381,7 +381,7 @@ auto item_manager::conv_special_drop_item_file() -> bool
 						str_to_number(dwVnum, name.c_str());
 						if (!item_manager::instance().table(dwVnum))
 						{
-							metin2::log::error("ReadSpecialDropItemFile : there is no item {} : node {}", name.c_str(), stName.c_str());
+							metin2::log::error("Unknown item {} in special item group {}", name.c_str(), stName.c_str());
 							fclose(fp);
 
 							return false;
@@ -458,13 +458,13 @@ auto item_manager::read_etc_drop_item_file(const char * file_name) -> bool
 
 		if (!item_manager::instance().vnum_by_original_name(szItemName, dwItemVnum))
 		{
-			metin2::log::error("No such an item (name: {})", szItemName);
+			metin2::log::error("Unknown item name {}", szItemName);
 			fclose(fp);
 			return false;
 		}
 
 		map_dw_etc_item_drop_prob_[dwItemVnum] = (uint32_t) (fProb * 10000.0f);
-		metin2::log::info( "ETC_DROP_ITEM: {} prob {:f}", szItemName, fProb);
+		metin2::log::debug("Etc drop: item {} chance {:f}", szItemName, fProb);
 	}
 
 	fclose(fp);
@@ -499,14 +499,14 @@ auto item_manager::read_monster_drop_item_group(const char * file_name) -> bool
 
 		if (!loader.token_string("type", &strType))
 		{
-			metin2::log::error("ReadMonsterDropItemGroup : Syntax error {} : no type (kill|drop), node {}", file_name, stName.c_str());
+			metin2::log::error("{}: group {} has no type (kill or drop)", file_name, stName.c_str());
 			loader.set_parent_node();
 			return false;
 		}
 
 		if (!loader.token_integer("mob", &iMobVnum))
 		{
-			metin2::log::error("ReadMonsterDropItemGroup : Syntax error {} : no mob vnum, node {}", file_name, stName.c_str());
+			metin2::log::error("{}: group {} has no mob vnum", file_name, stName.c_str());
 			loader.set_parent_node();
 			return false;
 		}
@@ -515,7 +515,7 @@ auto item_manager::read_monster_drop_item_group(const char * file_name) -> bool
 		{
 			if (!loader.token_integer("kill_drop", &iKillDrop))
 			{
-				metin2::log::error("ReadMonsterDropItemGroup : Syntax error {} : no kill drop count, node {}", file_name, stName.c_str());
+				metin2::log::error("{}: group {} has no kill_drop count", file_name, stName.c_str());
 				loader.set_parent_node();
 				return false;
 			}
@@ -529,7 +529,7 @@ auto item_manager::read_monster_drop_item_group(const char * file_name) -> bool
 		{
 			if ( !loader.token_integer("level_limit", &iLevelLimit) )
 			{
-				metin2::log::error("ReadmonsterDropItemGroup : Syntax error {} : no level_limit, node {}", file_name, stName.c_str());
+				metin2::log::error("{}: group {} has no level_limit", file_name, stName.c_str());
 				loader.set_parent_node();
 				return false;
 			}
@@ -539,7 +539,7 @@ auto item_manager::read_monster_drop_item_group(const char * file_name) -> bool
 			iLevelLimit = 0;
 		}
 
-		metin2::log::info("MOB_ITEM_GROUP {} [{}] {:d} {:d}", stName.c_str(), strType.c_str(), iMobVnum, iKillDrop);
+		metin2::log::debug("Mob drop group {} ({}), mob {:d}, kill drop {:d}", stName.c_str(), strType.c_str(), iMobVnum, iKillDrop);
 
 		if (iKillDrop == 0)
 		{
@@ -568,7 +568,7 @@ auto item_manager::read_monster_drop_item_group(const char * file_name) -> bool
 						str_to_number(dwVnum, name.c_str());
 						if (!item_manager::instance().table(dwVnum))
 						{
-							metin2::log::error("ReadMonsterDropItemGroup : there is no item {} : node {} : vnum {:d}", name.c_str(), stName.c_str(), dwVnum);
+							metin2::log::error("Unknown item {} (vnum {:d}) in mob drop group {}", name.c_str(), dwVnum, stName.c_str());
 							return false;
 						}
 					}
@@ -578,7 +578,7 @@ auto item_manager::read_monster_drop_item_group(const char * file_name) -> bool
 
 					if (iCount<1)
 					{
-						metin2::log::error("ReadMonsterDropItemGroup : there is no count for item {} : node {} : vnum {:d}, count {:d}", name.c_str(), stName.c_str(), dwVnum, iCount);
+						metin2::log::error("Item {} (vnum {:d}) in mob drop group {} has invalid count {:d}", name.c_str(), dwVnum, stName.c_str(), iCount);
 						return false;
 					}
 
@@ -587,7 +587,7 @@ auto item_manager::read_monster_drop_item_group(const char * file_name) -> bool
 
 					if (iPartPct == 0)
 					{
-						metin2::log::error("ReadMonsterDropItemGroup : there is no drop percent for item {} : node {} : vnum {:d}, count {:d}, pct {:d}", name.c_str(), stName.c_str(), dwVnum, iCount, iPartPct);
+						metin2::log::error("Item {} (vnum {:d}, count {:d}) in mob drop group {} has no drop chance ({:d})", name.c_str(), dwVnum, iCount, stName.c_str(), iPartPct);
 						return false;
 					}
 
@@ -595,7 +595,7 @@ auto item_manager::read_monster_drop_item_group(const char * file_name) -> bool
 					str_to_number(iRarePct, pTok->at(3).c_str());
 					iRarePct = std::clamp(iRarePct, 0, 100);
 
-					metin2::log::info("        {} count {:d} rare {:d}", name.c_str(), iCount, iRarePct);
+					metin2::log::debug("Mob drop group: item {} count {:d} rare {:d}", name.c_str(), iCount, iRarePct);
 					pkGroup->add_item(dwVnum, iCount, iPartPct, iRarePct);
 					continue;
 				}
@@ -635,7 +635,7 @@ auto item_manager::read_monster_drop_item_group(const char * file_name) -> bool
 						str_to_number(dwVnum, name.c_str());
 						if (!item_manager::instance().table(dwVnum))
 						{
-							metin2::log::error("ReadDropItemGroup : there is no item {} : node {}", name.c_str(), stName.c_str());
+							metin2::log::error("Unknown item {} in drop group {}", name.c_str(), stName.c_str());
 							if (bNew)
 								delete pkGroup;
 
@@ -648,7 +648,7 @@ auto item_manager::read_monster_drop_item_group(const char * file_name) -> bool
 
 					if (iCount < 1)
 					{
-						metin2::log::error("ReadMonsterDropItemGroup : there is no count for item {} : node {}", name.c_str(), stName.c_str());
+						metin2::log::error("Item {} in drop group {} has invalid count", name.c_str(), stName.c_str());
 						if (bNew)
 							delete pkGroup;
 
@@ -659,7 +659,7 @@ auto item_manager::read_monster_drop_item_group(const char * file_name) -> bool
 
 					uint32_t dwPct = (uint32_t)(10000.0f * fPercent);
 
-					metin2::log::info("        name {} pct {:d} count {:d}", name.c_str(), dwPct, iCount);
+					metin2::log::debug("Drop group: item {} chance {:d} count {:d}", name.c_str(), dwPct, iCount);
 					pkGroup->add_item(dwVnum, dwPct, iCount);
 
 					continue;
@@ -734,7 +734,7 @@ auto item_manager::read_monster_drop_item_group(const char * file_name) -> bool
 						str_to_number(dwVnum, name.c_str());
 						if (!item_manager::instance().table(dwVnum))
 						{
-							metin2::log::error("ReadDropItemGroup : there is no item {} : node {}", name.c_str(), stName.c_str());
+							metin2::log::error("Unknown item {} in drop group {}", name.c_str(), stName.c_str());
 							return false;
 						}
 					}
@@ -744,7 +744,7 @@ auto item_manager::read_monster_drop_item_group(const char * file_name) -> bool
 
 					if (iCount < 1)
 					{
-						metin2::log::error("ReadMonsterDropItemGroup : there is no count for item {} : node {}", name.c_str(), stName.c_str());
+						metin2::log::error("Item {} in drop group {} has invalid count", name.c_str(), stName.c_str());
 						return false;
 					}
 
@@ -752,7 +752,7 @@ auto item_manager::read_monster_drop_item_group(const char * file_name) -> bool
 
 					uint32_t dwPct = (uint32_t)(10000.0f * fPercent);
 
-					metin2::log::info("        name {} pct {:d} count {:d}", name.c_str(), dwPct, iCount);
+					metin2::log::debug("Drop group: item {} chance {:d} count {:d}", name.c_str(), dwPct, iCount);
 					pkGroup->add_item(dwVnum, dwPct, iCount);
 
 					continue;
@@ -765,7 +765,7 @@ auto item_manager::read_monster_drop_item_group(const char * file_name) -> bool
 		}
 		else
 		{
-			metin2::log::error("ReadMonsterDropItemGroup : Syntax error {} : invalid type {} (kill|drop), node {}", file_name, strType.c_str(), stName.c_str());
+			metin2::log::error("{}: group {} has invalid type {} (expected kill or drop)", file_name, stName.c_str(), strType.c_str());
 			loader.set_parent_node();
 			return false;
 		}
@@ -796,19 +796,19 @@ auto item_manager::read_drop_item_group(const char * file_name) -> bool
 
 		if (!loader.token_integer("vnum", &iVnum))
 		{
-			metin2::log::error("ReadDropItemGroup : Syntax error {} : no vnum, node {}", file_name, stName.c_str());
+			metin2::log::error("{}: group {} has no vnum", file_name, stName.c_str());
 			loader.set_parent_node();
 			return false;
 		}
 
 		if (!loader.token_integer("mob", &iMobVnum))
 		{
-			metin2::log::error("ReadDropItemGroup : Syntax error {} : no mob vnum, node {}", file_name, stName.c_str());
+			metin2::log::error("{}: group {} has no mob vnum", file_name, stName.c_str());
 			loader.set_parent_node();
 			return false;
 		}
 
-		metin2::log::info("DROP_ITEM_GROUP {} {:d}", stName.c_str(), iMobVnum);
+		metin2::log::debug("Drop group {} for mob {:d}", stName.c_str(), iMobVnum);
 
 		token_vector * pTok;
 
@@ -840,7 +840,7 @@ auto item_manager::read_drop_item_group(const char * file_name) -> bool
 					str_to_number(dwVnum, name.c_str());
 					if (!item_manager::instance().table(dwVnum))
 					{
-						metin2::log::error("ReadDropItemGroup : there is no item {} : node {}", name.c_str(), stName.c_str());
+						metin2::log::error("Unknown item {} in drop group {}", name.c_str(), stName.c_str());
 						return false;
 					}
 				}
@@ -855,11 +855,11 @@ auto item_manager::read_drop_item_group(const char * file_name) -> bool
 
 				if (iCount < 1)
 				{
-					metin2::log::error("ReadDropItemGroup : there is no count for item {} : node {}", name.c_str(), stName.c_str());
+					metin2::log::error("Item {} in drop group {} has invalid count", name.c_str(), stName.c_str());
 					return false;
 				}
 
-				metin2::log::info("        {} {:d} {:d}", name.c_str(), dwPct, iCount);
+				metin2::log::debug("Drop group: item {} chance {:d} count {:d}", name.c_str(), dwPct, iCount);
 				pkGroup->add_item(dwVnum, dwPct, iCount);
 				continue;
 			}

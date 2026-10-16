@@ -50,7 +50,7 @@ EVENTFUNC(regen_mob_event)
 
 	if ( info == nullptr )
 	{
-		metin2::log::error( "regen_mob_event> <Factor> Null pointer" );
+		metin2::log::error( "Three-way war regen event has no info" );
 		return 0;
 	}
 
@@ -107,7 +107,7 @@ auto three_way_war::kill_score( uint8_t empire ) const -> int
 {
 	if( empire <= 0 || empire >= EMPIRE_MAX_NUM )
 	{
-		metin2::log::error("ThreeWayWar::GetKillScore Wrong Empire variable");
+		metin2::log::error("Three-way war kill score requested for invalid empire {:d}", empire);
 		return 0;
 	}
 
@@ -118,7 +118,7 @@ void three_way_war::set_kill_score( uint8_t empire, int count )
 {
 	if( empire <= 0 || empire >= EMPIRE_MAX_NUM )
 	{
-		metin2::log::error("ThreeWayWar::SetKillScore Wrong Empire variable");
+		metin2::log::error("Three-way war kill score set for invalid empire {:d}", empire);
 		return;
 	}
 
@@ -158,7 +158,7 @@ auto three_way_war::load_setting(const char* file_name) -> bool
 
 	if (nullptr == pf)
 	{
-		metin2::log::error("[INIT_FORKED] Do not open file ({})", szPath );
+		metin2::log::error("Cannot open three-way war file {}", szPath );
 		return false;
 	}
 

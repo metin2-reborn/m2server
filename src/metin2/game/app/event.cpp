@@ -41,7 +41,7 @@ void event_cancel(event_ptr * ppevent)
 
 	if (!ppevent)
 	{
-		metin2::log::error("null pointer");
+		metin2::log::error("Cannot cancel event: null event pointer");
 		return;
 	}
 

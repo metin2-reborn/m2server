@@ -82,7 +82,7 @@ void character_manager::graceful_shutdown()
 	name_map::iterator it = map_pk_pc_chr_.begin();
 
 	while (it != map_pk_pc_chr_.end())
-		(it++)->second->disconnect("GracefulShutdown");
+		(it++)->second->disconnect("server shutdown");
 }
 
 auto character_manager::alloc_vid() -> uint32_t
@@ -119,7 +119,7 @@ void character_manager::destroy_character(character * ch)
 
 	auto it = map_pk_chr_by_vid_.find(ch->get_vid());
 	if (it == map_pk_chr_by_vid_.end()) {
-		metin2::log::error("[CHARACTER_MANAGER::DestroyCharacter] <Factor> {:d} not found", (int32_t)(ch->get_vid()));
+		metin2::log::error("Cannot destroy character vid {:d}: not found", (int32_t)(ch->get_vid()));
 		return;
 	}
 
@@ -177,7 +177,7 @@ auto character_manager::find(uint32_t vid) -> character *
 	
 	character * found = it->second;
 	if (found != nullptr && vid != (uint32_t)found->get_vid()) {
-		metin2::log::error("[CHARACTER_MANAGER::Find] <Factor> {:d} != {:d}", vid, (uint32_t)found->get_vid());
+		metin2::log::error("Character lookup by vid {:d} returned vid {:d}", vid, (uint32_t)found->get_vid());
 		return nullptr;
 	}
 	return found;
@@ -202,7 +202,7 @@ auto character_manager::find_by_pid(uint32_t pid) -> character *
 
 	character * found = it->second;
 	if (found != nullptr && pid != found->player_id()) {
-		metin2::log::error("[CHARACTER_MANAGER::FindByPID] <Factor> {:d} != {:d}", pid, found->player_id());
+		metin2::log::error("Character lookup by pid {:d} returned pid {:d}", pid, found->player_id());
 		return nullptr;
 	}
 	return found;
@@ -219,7 +219,7 @@ auto character_manager::find_pc(const char * name) -> character *
 
 	character * found = it->second;
 	if (found != nullptr && strncasecmp(szName, found->name(), CHARACTER_NAME_MAX_LEN) != 0) {
-		metin2::log::error("[CHARACTER_MANAGER::FindPC] <Factor> {} != {}", name, found->name());
+		metin2::log::error("Character lookup by name {} returned {}", name, found->name());
 		return nullptr;
 	}
 	return found;
@@ -230,7 +230,7 @@ auto character_manager::spawn_mob_random_position(uint32_t vnum, int32_t map_ind
 	{
 		if (vnum == 5001 && !quest::quest_manager::instance().event_flag("japan_regen"))
 		{
-			metin2::log::debug( "WAEGU[5001] regen disabled.");
+			metin2::log::debug("Waegu (5001) regen disabled");
 			return nullptr;
 		}
 	}
@@ -238,7 +238,7 @@ auto character_manager::spawn_mob_random_position(uint32_t vnum, int32_t map_ind
 	{
 		if (vnum == 5002 && !quest::quest_manager::instance().event_flag("newyear_mob"))
 		{
-			metin2::log::debug( "HAETAE (new-year-mob) [5002] regen disabled.");
+			metin2::log::debug("Haetae new year mob (5002) regen disabled");
 			return nullptr;
 		}
 	}
@@ -246,7 +246,7 @@ auto character_manager::spawn_mob_random_position(uint32_t vnum, int32_t map_ind
 	{
 		if (vnum == 5004 && !quest::quest_manager::instance().event_flag("independence_day"))
 		{
-			metin2::log::debug( "INDEPENDECE DAY [5004] regen disabled.");
+			metin2::log::debug("Independence day mob (5004) regen disabled");
 			return nullptr;
 		}
 	}
@@ -255,13 +255,13 @@ auto character_manager::spawn_mob_random_position(uint32_t vnum, int32_t map_ind
 
 	if (!pkMob)
 	{
-		metin2::log::error("no mob data for vnum {:d}", vnum);
+		metin2::log::error("No mob data for vnum {:d}", vnum);
 		return nullptr;
 	}
 
 	if (!map_allow_find(map_index))
 	{
-		metin2::log::error("not allowed map {:d}", map_index);
+		metin2::log::error("Cannot spawn mob: map {:d} is not served here", map_index);
 		return nullptr;
 	}
 
@@ -294,7 +294,7 @@ auto character_manager::spawn_mob_random_position(uint32_t vnum, int32_t map_ind
 
 	if (i == 2000)
 	{
-		metin2::log::error("cannot find valid location");
+		metin2::log::error("Cannot find a valid random spawn location");
 		return nullptr;
 	}
 
@@ -302,7 +302,7 @@ auto character_manager::spawn_mob_random_position(uint32_t vnum, int32_t map_ind
 
 	if (!sectree)
 	{
-		metin2::log::info( "SpawnMobRandomPosition: cannot create monster at non-exist sectree {:d} x {:d} (map {:d})", x, y, map_index);
+		metin2::log::warn("Cannot spawn mob: no sectree at {:d} x {:d} (map {:d})", x, y, map_index);
 		return nullptr;
 	}
 
@@ -310,7 +310,7 @@ auto character_manager::spawn_mob_random_position(uint32_t vnum, int32_t map_ind
 
 	if (!ch)
 	{
-		metin2::log::info( "SpawnMobRandomPosition: cannot create new character");
+		metin2::log::error("Cannot create character for random mob spawn");
 		return nullptr;
 	}
 
@@ -325,7 +325,7 @@ auto character_manager::spawn_mob_random_position(uint32_t vnum, int32_t map_ind
 	if (!ch->show(map_index, x, y, 0, false))
 	{
 		character_manager::instance().destroy_character(ch);
-		metin2::log::error("SpawnMobRandomPosition: cannot show monster");
+		metin2::log::error("Cannot show randomly spawned mob");
 		return nullptr;
 	}
 
@@ -346,7 +346,7 @@ auto character_manager::spawn_mob(uint32_t vnum, int32_t map_index, int32_t x, i
 	const mob * pkMob = mob_manager::instance().get(vnum);
 	if (!pkMob)
 	{
-		metin2::log::error("SpawnMob: no mob data for vnum {:d}", vnum);
+		metin2::log::error("No mob data for vnum {:d}", vnum);
 		return nullptr;
 	}
 
@@ -356,7 +356,7 @@ auto character_manager::spawn_mob(uint32_t vnum, int32_t map_index, int32_t x, i
 
 		if (!tree)
 		{
-			metin2::log::info( "no sectree for spawn at {:d} {:d} mobvnum {:d} mapindex {:d}", x, y, vnum, map_index);
+			metin2::log::warn("Cannot spawn mob: no sectree at {:d} {:d} for mob {:d} (map {:d})", x, y, vnum, map_index);
 			return nullptr;
 		}
 
@@ -382,13 +382,13 @@ auto character_manager::spawn_mob(uint32_t vnum, int32_t map_index, int32_t x, i
 			}
 
 			if (s_isLog)
-				metin2::log::info( "SpawnMob: BLOCKED position for spawn {} {:d} at {:d} {:d} (attr {:d})", pkMob->table.name, vnum, x, y, dwAttr);
+				metin2::log::info("Mob spawn: blocked position for {} ({:d}) at {:d} {:d} (attr {:d})", pkMob->table.name, vnum, x, y, dwAttr);
 			return nullptr;
 		}
 
 		if (is_set(dwAttr, ATTR_BANPK))
 		{
-			metin2::log::info( "SpawnMob: BAN_PK position for mob spawn {} {:d} at {:d} {:d}", pkMob->table.name, vnum, x, y);
+			metin2::log::warn("Cannot spawn mob {} ({:d}) in a no-PK zone at {:d} {:d}", pkMob->table.name, vnum, x, y);
 			return nullptr;
 		}
 	}
@@ -397,7 +397,7 @@ auto character_manager::spawn_mob(uint32_t vnum, int32_t map_index, int32_t x, i
 
 	if (!sectree)
 	{
-		metin2::log::info( "SpawnMob: cannot create monster at non-exist sectree {:d} x {:d} (map {:d})", x, y, map_index);
+		metin2::log::warn("Cannot spawn mob: no sectree at {:d} x {:d} (map {:d})", x, y, map_index);
 		return nullptr;
 	}
 
@@ -405,7 +405,7 @@ auto character_manager::spawn_mob(uint32_t vnum, int32_t map_index, int32_t x, i
 
 	if (!ch)
 	{
-		metin2::log::info( "SpawnMob: cannot create new character");
+		metin2::log::error("Cannot create character for mob spawn");
 		return nullptr;
 	}
 
@@ -423,7 +423,7 @@ auto character_manager::spawn_mob(uint32_t vnum, int32_t map_index, int32_t x, i
 	if (show_value && !ch->show(map_index, x, y, z, spawn_motion))
 	{
 		character_manager::instance().destroy_character(ch);
-		metin2::log::info( "SpawnMob: cannot show monster");
+		metin2::log::error("Cannot show spawned mob");
 		return nullptr;
 	}
 
@@ -450,7 +450,7 @@ auto character_manager::spawn_mob_range(uint32_t vnum, int32_t map_index, int sx
 
 		if (ch)
 		{
-			metin2::log::debug( "MOB_SPAWN: {}({:d}) {:d}x{:d}", ch->name(), (uint32_t) ch->get_vid(), ch->x(), ch->y());
+			metin2::log::debug("Mob spawned: {} (vid {:d}) at {:d}x{:d}", ch->name(), (uint32_t) ch->get_vid(), ch->x(), ch->y());
 			if ( aggressive )
 				ch->set_aggressive();
 			return (ch);
@@ -471,7 +471,7 @@ auto character_manager::spawn_move_group(uint32_t vnum, int32_t map_index, int s
 
 	if (!pkGroup)
 	{
-		metin2::log::error("NOT_EXIST_GROUP_VNUM({:d}) Map({:d}) ", vnum, map_index);
+		metin2::log::error("Mob group {:d} does not exist (map {:d})", vnum, map_index);
 		return false;
 	}
 
@@ -541,7 +541,7 @@ auto character_manager::spawn_group_group(uint32_t vnum, int32_t map_index, int 
 	}
 	else
 	{
-		metin2::log::error( "NOT_EXIST_GROUP_GROUP_VNUM({:d}) MAP({:d})", vnum, map_index );
+		metin2::log::error("Mob group group {:d} does not exist (map {:d})", vnum, map_index);
 		return false;
 	}
 }
@@ -552,7 +552,7 @@ auto character_manager::spawn_group(uint32_t vnum, int32_t map_index, int sx, in
 
 	if (!pkGroup)
 	{
-		metin2::log::error("NOT_EXIST_GROUP_VNUM({:d}) Map({:d}) ", vnum, map_index);
+		metin2::log::error("Mob group {:d} does not exist (map {:d})", vnum, map_index);
 		return nullptr;
 	}
 
@@ -679,7 +679,7 @@ void character_manager::update(int pulse)
 	}
 
 	if (metin2::config::test_server() && 0 == (pulse % passes_per_sec(60)))
-		metin2::log::info( "CHARACTER COUNT vid {:d} pid {:d}", map_pk_chr_by_vid_.size(), map_pk_chr_by_pid_.size());
+		metin2::log::debug("Characters: {:d} by vid, {:d} by pid", map_pk_chr_by_vid_.size(), map_pk_chr_by_pid_.size());
 
 	flush_pending_destroy();
 }
@@ -798,7 +798,7 @@ void character_manager::register_race_num_map(character * ch)
 
 	if (set_dw_registered_race_num_.find(dwVnum) != set_dw_registered_race_num_.end())
 	{
-		metin2::log::info( "RegisterRaceNumMap {} {:d}", ch->name(), dwVnum);
+		metin2::log::debug("Registered {} in race map for vnum {:d}", ch->name(), dwVnum);
 		map_pk_chr_by_race_num_[dwVnum].insert(ch);
 	}
 }
@@ -941,7 +941,7 @@ void character_manager::flush_pending_destroy()
 
 	if (!set_pk_chr_pending_destroy_.empty())
 	{
-		metin2::log::info( "FlushPendingDestroy size {:d}", set_pk_chr_pending_destroy_.size());
+		metin2::log::debug("Destroying {:d} pending characters", set_pk_chr_pending_destroy_.size());
 		
 		character_set::iterator it = set_pk_chr_pending_destroy_.begin(),
 			end = set_pk_chr_pending_destroy_.end();

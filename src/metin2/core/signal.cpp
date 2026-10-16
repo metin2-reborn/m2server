@@ -22,7 +22,7 @@ namespace {
 
     void checkpointing(int) {
         if (!tics) {
-            metin2::log::error("CHECKPOINT shutdown: tics did not updated.");
+            metin2::log::error("Checkpoint: main loop has not ticked since the last check, aborting");
             std::abort();
         }
         tics = 0;

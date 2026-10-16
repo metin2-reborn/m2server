@@ -144,7 +144,7 @@ namespace quest
 		}
 		else
 		{
-			quest::error("QUEST wrong skin index");
+			quest::error("Invalid skin index");
 		}
 
 		return 0;
@@ -156,7 +156,7 @@ namespace quest
 		if ((n != 2 || !lua_isnumber(lua, 2) || !lua_isstring(lua, 1)) &&
 				(n != 3 || !lua_isstring(lua, 1) || !lua_isnumber(lua, 2) || !lua_isnumber(lua, 3)))
 		{
-			quest::error("QUEST set_server_timer argument count wrong.");
+			quest::error("Invalid server timer arguments");
 			return 0;
 		}
 
@@ -182,7 +182,7 @@ namespace quest
 		if ((n != 2 || !lua_isnumber(lua, 2) || !lua_isstring(lua, 1)) &&
 				(n != 3 || !lua_isstring(lua, 1) || !lua_isnumber(lua, 2) || !lua_isnumber(lua, 3)))
 		{
-			quest::error("QUEST set_server_timer argument count wrong.");
+			quest::error("Invalid server timer arguments");
 			return 0;
 		}
 		const char * name = lua_tostring(lua, 1);
@@ -214,7 +214,7 @@ namespace quest
 		int n = lua_gettop(lua);
 
 		if (n != 2 || !lua_isnumber(lua, -1) || !lua_isstring(lua, -2))
-			quest::error("QUEST set_timer argument count wrong.");
+			quest::error("Invalid timer arguments");
 		else
 		{
 			const char * name = lua_tostring(lua, -2);
@@ -237,7 +237,7 @@ namespace quest
 	auto set_timer(lua_State* lua) -> int
 	{
 		if (lua_gettop(lua) != 1 || !lua_isnumber(lua, -1))
-			quest::error("QUEST invalid argument.");
+			quest::error("Invalid arguments");
 		else
 		{
 			double t = lua_tonumber(lua, -1);
@@ -255,7 +255,7 @@ namespace quest
 
 		if (n != 2 || !lua_isnumber(lua, -1) || !lua_isstring(lua, -2))
 		{
-			quest::error("QUEST set_timer argument count wrong.");
+			quest::error("Invalid timer arguments");
 		}
 		else
 		{
@@ -283,7 +283,7 @@ namespace quest
 		int n = lua_gettop(lua);
 
 		if (n != 1 || !lua_isstring(lua, -1))
-			quest::error("QUEST set_timer argument count wrong.");
+			quest::error("Invalid timer arguments");
 		else
 		{
 			quest_manager & q = quest_manager::instance();
@@ -316,11 +316,11 @@ namespace quest
 	auto raw_script(lua_State* lua) -> int
 	{
 		if ( metin2::config::test_server() )
-			metin2::log::info( "_raw_script : {} ", lua_tostring(lua,-1));
+			metin2::log::debug("Quest: raw script {}", lua_tostring(lua,-1));
 		if (lua_isstring(lua, -1))
 			quest_manager::instance().add_script(lua_tostring(lua,-1));
 		else
-			quest::error("QUEST wrong argument: questname: {}", quest_manager::instance().current_quest_name().c_str());
+			quest::error("Invalid raw script argument in quest {}", quest_manager::instance().current_quest_name().c_str());
 
 		return 0;
 	}
@@ -384,7 +384,7 @@ namespace quest
 		if (!ch)
 			return 0;
 
-		metin2::log::info( "QUEST: quest: {} player: {} : {}", pc->current_quest_name().c_str(), ch->name(), lua_tostring(lua, 2));
+		metin2::log::info("Quest {}: player {}: {}", pc->current_quest_name().c_str(), ch->name(), lua_tostring(lua, 2));
 
 		if (true == metin2::config::test_server())
 		{
@@ -409,7 +409,7 @@ namespace quest
 		if (!ch)
 			return 0;
 
-		quest::error("QUEST: quest: {} player: {} : {}", pc->current_quest_name().c_str(), ch->name(), lua_tostring(lua, 1));
+		quest::error("Quest {}: player {}: {}", pc->current_quest_name().c_str(), ch->name(), lua_tostring(lua, 1));
 		ch->chat_packet(CHAT_TYPE_INFO, "QUEST_SYSERR %s", lua_tostring(lua, 1));
 		return 0;
 	}
@@ -493,7 +493,7 @@ namespace quest
 
 		if (MAX_PRIV_NUM <= type)
 		{
-			quest::error("PRIV_MANAGER: _give_char_privilege: wrong empire priv type({:d})", type);
+			quest::error("Invalid privilege type {:d}", type);
 			return 0;
 		}
 
@@ -512,15 +512,15 @@ namespace quest
 
 		if (MAX_PRIV_NUM <= type)
 		{
-			quest::error("PRIV_MANAGER: _give_empire_privilege: wrong empire priv type({:d})", type);
+			quest::error("Invalid privilege type {:d}", type);
 			return 0;
 		}
 
 		if (ch)
-			metin2::log::info( "_give_empire_privileage(empire={:d}, type={:d}, value={:d}, time={:d}), by quest, {}", 
+			metin2::log::info("Priv: quest grants empire {:d} privilege type {:d} value {:d} for {:d}s, player {}",
 					empire, type, value, time, ch->name());
 		else
-			metin2::log::info( "_give_empire_privileage(empire={:d}, type={:d}, value={:d}, time={:d}), by quest, NULL",
+			metin2::log::info("Priv: quest grants empire {:d} privilege type {:d} value {:d} for {:d}s",
 					empire, type, value, time);
 
 		priv_manager::instance().request_give_empire_priv(empire, type, value, time);
@@ -536,11 +536,11 @@ namespace quest
 
 		if (MAX_PRIV_NUM <= type)
 		{
-			quest::error("PRIV_MANAGER: _give_guild_privilege: wrong empire priv type({:d})", type);
+			quest::error("Invalid privilege type {:d}", type);
 			return 0;
 		}
 
-		metin2::log::info( "_give_guild_privileage(empire={:d}, type={:d}, value={:d}, time={:d})", 
+		metin2::log::info("Priv: quest grants guild {:d} privilege type {:d} value {:d} for {:d}s",
 				guild_id, type, value, time);
 
 		priv_manager::instance().request_give_guild_priv(guild_id,type,value,time);
@@ -622,7 +622,7 @@ namespace quest
 	auto get_guildid_byname( lua_State* lua ) -> int
 	{
 		if ( !lua_isstring( lua, 1 ) ) {
-			quest::error( "_get_guildid_byname() - invalud argument" );
+			quest::error("Invalid guild name argument");
 			lua_pushnumber( lua, 0 );
 			return 1;
 		}
@@ -733,7 +733,7 @@ namespace quest
 	{
 		if (!lua_isstring(lua, 1))
 		{
-			quest::error("invalid argument");
+			quest::error("Invalid arguments");
 			lua_pushnumber(lua, 0);
 			return 1;
 		}
@@ -748,7 +748,7 @@ namespace quest
 	{
 		if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2) || !lua_isnumber(lua, 3))
 		{
-			quest::error("invalid argument");
+			quest::error("Invalid arguments");
 			lua_pushnumber(lua, 0);
 			return 1;
 		}
@@ -762,7 +762,7 @@ namespace quest
 
 		if (metin2::config::test_server())
 		{
-			metin2::log::info( "find_pc_cond map={:d}, job={:d}, level={:d}~{:d}",
+			metin2::log::debug("Quest: find player on map {:d}, job flags {:d}, level {:d}-{:d}",
 					ch->map_index(),
 					uiJobFlag,
 					iMinLev, iMaxLev);
@@ -782,7 +782,7 @@ namespace quest
 	{
 		if (!lua_isnumber(lua, 1))
 		{
-			quest::error("invalid argument");
+			quest::error("Invalid arguments");
 			lua_pushnumber(lua, 0);
 			return 1;
 		}
@@ -822,7 +822,7 @@ namespace quest
 		if (lua!=pqs->co) 
 		{
 			luaL_error(lua, "running thread != current thread???");
-			metin2::log::info("running thread != current thread???");
+			metin2::log::error("Running Lua thread is not the current quest thread");
 			return -1;
 		}
 		if (pPC)
@@ -830,7 +830,7 @@ namespace quest
 			const std::string stQuestName(lua_tostring(lua, 1));
 			const std::string stStateName(lua_tostring(lua, 2));
 			if ( metin2::config::test_server() )
-				metin2::log::info("set_state {} {} ", stQuestName.c_str(), stStateName.c_str() );
+				metin2::log::debug("Quest: {} set state {}", stQuestName.c_str(), stStateName.c_str());
 			if (pPC->current_quest_name() == stQuestName)
 			{
 				pqs->st = q.quest_state_index(pPC->current_quest_name(), lua_tostring(lua, -1));
@@ -862,12 +862,12 @@ namespace quest
 			lua_pushnumber(lua, nRet );
 
 			if ( metin2::config::test_server() )
-				metin2::log::info("Get_quest_state name {} value {:d}", stQuestName.c_str(), nRet );
+				metin2::log::debug("Quest: {} state is {:d}", stQuestName.c_str(), nRet);
 		}
 		else
 		{
 			if ( metin2::config::test_server() )
-				metin2::log::info("PC == 0 ");
+				metin2::log::debug("Quest: no current player for state lookup");
 
 			lua_pushnumber(lua, 0);
 		}
@@ -916,7 +916,7 @@ namespace quest
 					uint8_t bEmpire =  ch->empire();
 					if ( bEmpire == 0 )
 					{
-						quest::error( "Unkonwn Empire {} {:d} ", ch->name(), ch->player_id() );
+						quest::error("Player {} (pid {:d}) has no empire", ch->name(), ch->player_id());
 						return;
 					}
 
@@ -932,7 +932,7 @@ namespace quest
 
 		if ( info == nullptr )
 		{
-			quest::error( "warp_all_to_village_event> <Factor> Null pointer" );
+			quest::error("Warp-all-to-village event has no info");
 			return 0;
 		}
 
@@ -1068,7 +1068,7 @@ namespace quest
 
 		if ( ox_event_manager::instance().add_quiz(level, quiz, answer) == false )
 		{
-			metin2::log::info( "OXEVENT : Cannot add quiz. {:d} {} {:d}", level, quiz, answer);
+			metin2::log::error("Cannot add OX quiz (level {:d}, question {}, answer {:d})", level, quiz, answer);
 		}
 
 		return 1;
@@ -1080,7 +1080,7 @@ namespace quest
 
 		if ( info == nullptr )
 		{
-			quest::error( "warp_all_to_map_my_empire_event> <Factor> Null pointer" );
+			quest::error("Warp-all-to-map event has no info");
 			return 0;
 		}
 
@@ -1165,7 +1165,7 @@ namespace quest
 				}
 			}
 
-			metin2::log::info( "QUEST Spawn Monstster: VNUM({:d}) COUNT({:d}) isAggresive({})", dwVnum, SpawnCount, isAggresive);
+			metin2::log::debug("Quest: spawned {1:d} mobs (vnum {0:d}, aggressive {2})", dwVnum, SpawnCount, isAggresive);
 		}
 
 		lua_pushnumber(lua, SpawnCount);
@@ -1233,7 +1233,7 @@ namespace quest
 
 		if (0 == mapIndex)
 		{
-			quest::error("_purge_area: cannot get a map index with ({:d}, {:d})", x1, y1);
+			quest::error("No map at ({:d}, {:d})", x1, y1);
 			return 0;
 		}
 
@@ -1296,7 +1296,7 @@ namespace quest
 
 		if (0 == mapIndex)
 		{
-			quest::error("_warp_all_in_area_to_area: cannot get a map index with ({:d}, {:d})", from_x1, from_y1);
+			quest::error("No map at ({:d}, {:d})", from_x1, from_y1);
 			lua_pushnumber(lua, 0);
 			return 1;
 		}
@@ -1310,13 +1310,13 @@ namespace quest
 			pSectree->for_each(func);
 
 			lua_pushnumber(lua, func.warp_count);
-			metin2::log::info( "_warp_all_in_area_to_area: {:d} character warp", func.warp_count);
+			metin2::log::info("Quest: warped {:d} players between areas", func.warp_count);
 			return 1;
 		}
 		else
 		{
 			lua_pushnumber(lua, 0);
-			quest::error("_warp_all_in_area_to_area: no sectree");
+			quest::error("No sectree for the source area");
 			return 1;
 		}
 	}

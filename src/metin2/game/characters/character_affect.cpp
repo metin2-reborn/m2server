@@ -81,7 +81,7 @@ EVENTFUNC(affect_event)
 
 	if ( info == nullptr )
 	{
-		metin2::log::error( "affect_event> <Factor> Null pointer" );
+		metin2::log::error("Affect event fired without event info");
 		return 0;
 	}
 
@@ -170,7 +170,7 @@ void character::start_affect_event()
 	char_event_info* info = alloc_event_info<char_event_info>();
 	info->ch = this;
 	affect_event = event_create(game::characters::affect_event, info, metin2::config::server().passes_per_sec);
-	metin2::log::debug( "StartAffectEvent {} {} {}", name(), static_cast<const void *>(this), static_cast<const void *>(affect_event.get()));
+	metin2::log::debug("{} ({}): affect event started ({})", name(), static_cast<const void *>(this), static_cast<const void *>(affect_event.get()));
 }
 
 void character::clear_affect(bool save)
@@ -339,7 +339,7 @@ void character::save_affect()
 		if (is_no_save_affect(pkAff->type))
 			continue;
 
-		metin2::log::debug( "AFFECT_SAVE: {:d} {:d} {:d} {:d}", pkAff->type, pkAff->apply_on, pkAff->apply_value, pkAff->duration);
+		metin2::log::debug("Saving affect type {:d}, apply {:d}, value {:d}, duration {:d}", pkAff->type, pkAff->apply_on, pkAff->apply_value, pkAff->duration);
 
 		p.pid			= player_id();
 		p.elem.type		= pkAff->type;
@@ -372,7 +372,7 @@ EVENTFUNC(load_affect_login_event)
 
 	if ( info == nullptr )
 	{
-		metin2::log::error( "load_affect_login_event_info> <Factor> Null pointer" );
+		metin2::log::error("Affect login load event fired without event info");
 		return 0;
 	}
 
@@ -408,14 +408,14 @@ EVENTFUNC(load_affect_login_event)
 	}
 	else if (d->is_phase(PHASE_GAME))
 	{
-		metin2::log::debug( "Affect Load by Event");
+		metin2::log::debug("{}: loading affects from event", ch->name());
 		ch->load_affect(info->count, (packet_affect_element*)info->data);
 		delete[] info->data;
 		return 0;
 	}
 	else
 	{
-		metin2::log::error("input_db.cpp:quest_login_event INVALID PHASE pid {:d}", ch->player_id());
+		metin2::log::error("Cannot load affects for pid {:d}: player is in an invalid phase", ch->player_id());
 		delete[] info->data;
 		return 0;
 	}
@@ -427,7 +427,7 @@ void character::load_affect(uint32_t count_value, packet_affect_element * elemen
 	if (!get_desc()->is_phase(PHASE_GAME))
 	{
 		if (metin2::config::test_server())
-			metin2::log::info( "LOAD_AFFECT: Creating Event {} {:d}", name(), count_value);
+			metin2::log::debug("{}: deferring load of {:d} affects to an event", name(), count_value);
 
 		load_affect_login_event_info* info = alloc_event_info<load_affect_login_event_info>();
 
@@ -444,7 +444,7 @@ void character::load_affect(uint32_t count_value, packet_affect_element * elemen
 	clear_affect(true);
 
 	if (metin2::config::test_server())
-		metin2::log::info( "LOAD_AFFECT: {} count {:d}", name(), count_value);
+		metin2::log::debug("{}: loading {:d} affects", name(), count_value);
 
 	affect_flag afOld = af_affect_flag_;
 
@@ -468,14 +468,14 @@ void character::load_affect(uint32_t count_value, packet_affect_element * elemen
 
 		if (elements->apply_on >= POINT_MAX_NUM)
 		{
-			metin2::log::error("invalid affect data {} ApplyOn {:d} ApplyValue {:d}",
+			metin2::log::error("Invalid affect data for {} (apply {:d}, value {:d})",
 					name(), elements->apply_on, elements->apply_value);
 			continue;
 		}
 
 		if (metin2::config::test_server())
 		{
-			metin2::log::info( "Load Affect : Affect {} {:d} {:d}", name(), elements->type, elements->apply_on );
+			metin2::log::debug("{}: loaded affect type {:d}, apply {:d}", name(), elements->type, elements->apply_on);
 		}
 
 		affect* pkAff = new affect{};
@@ -520,7 +520,7 @@ auto character::add_affect(uint32_t type_value, uint8_t apply_on_value, int32_t 
 
 	if (duration_value == 0)
 	{
-		metin2::log::error("Character::AddAffect lDuration == 0 type {:d}", type_value);
+		metin2::log::error("Affect type {:d} added with zero duration; using 1", type_value);
 		duration_value = 1;
 	}
 
@@ -557,8 +557,7 @@ auto character::add_affect(uint32_t type_value, uint8_t apply_on_value, int32_t 
 
 	}
 
-	metin2::log::debug( "AddAffect {} type {:d} apply {:d} {:d} flag {:d} duration {:d}", name(), type_value, apply_on_value, apply_value_value, flag_value, duration_value);
-	metin2::log::info( "AddAffect {} type {:d} apply {:d} {:d} flag {:d} duration {:d}", name(), type_value, apply_on_value, apply_value_value, flag_value, duration_value);
+	metin2::log::debug("{}: add affect type {:d}, apply {:d}, value {:d}, flag {:d}, duration {:d}", name(), type_value, apply_on_value, apply_value_value, flag_value, duration_value);
 
 	pkAff->type	= type_value;
 	pkAff->apply_on	= apply_on_value;
@@ -665,7 +664,7 @@ auto character::remove_affect(affect * aff) -> bool
 	check_maximum_points();
 
 	if (metin2::config::test_server())
-		metin2::log::info( "AFFECT_REMOVE: {} (flag {:d} apply: {:d})", name(), aff->flag, aff->apply_on);
+		metin2::log::debug("{}: remove affect (flag {:d}, apply {:d})", name(), aff->flag, aff->apply_on);
 
 	if (is_pc())
 	{
@@ -760,7 +759,7 @@ auto character::is_good_affect(uint8_t affect_type) const -> bool
 
 void character::remove_bad_affect()
 {
-	metin2::log::info( "RemoveBadAffect {}", name());
+	metin2::log::debug("{}: removing bad affects", name());
 	remove_poison();
 	remove_fire();
 

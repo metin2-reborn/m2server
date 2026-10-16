@@ -25,7 +25,7 @@ namespace quest
 
 		if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2) || !lua_isnumber(lua, 3))
 		{
-			metin2::log::error("invalid argument");
+			metin2::log::error("Invalid arguments");
 			lua_pushnumber(lua, 0);
 			return 1;
 		}
@@ -57,7 +57,7 @@ namespace quest
 			}
 		}
 		else
-			metin2::log::error("invalid argument");
+			metin2::log::error("Invalid land id argument");
 
 		lua_pushnumber(lua, price);
 		lua_pushnumber(lua, owner);
@@ -69,7 +69,7 @@ namespace quest
 	{
 		if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2))
 		{
-			metin2::log::error("invalid argument");
+			metin2::log::error("Invalid arguments");
 			return 0;
 		}
 
@@ -92,7 +92,7 @@ namespace quest
 
 		if (!lua_isnumber(lua, 1))
 		{
-			metin2::log::error("invalid argument");
+			metin2::log::error("Invalid guild id argument");
 			lua_pushboolean(lua, true);
 			return 1;
 		}

@@ -57,7 +57,7 @@ auto login_data::connected_peer_handle() -> uint32_t
 
 void login_data::set_play(bool on)
 {
-	metin2::log::info( "SetPlay {} {:d} {}", on ? "on" : "off", key(), data_.login);
+	metin2::log::debug("Login: playing flag {} for key {:d}, account {}", on ? "on" : "off", key(), data_.login);
 	play_ = on;
 }
 

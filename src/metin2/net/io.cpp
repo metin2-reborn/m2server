@@ -60,7 +60,7 @@ namespace metin2::net {
         tcp::resolver resolver(io());
         const auto endpoints = resolver.resolve(tcp::v4(), host, std::to_string(port), error);
         if (error) {
-            metin2::log::error("cannot resolve {}: {}", host.c_str(), error.message().c_str());
+            metin2::log::error("Cannot resolve {}: {}", host.c_str(), error.message().c_str());
             return std::nullopt;
         }
 
@@ -88,7 +88,7 @@ namespace metin2::net {
             }
         }
 
-        metin2::log::error("cannot connect to {}:{:d}: {}", host.c_str(), port, error.message().c_str());
+        metin2::log::error("Cannot connect to {}:{:d}: {}", host.c_str(), port, error.message().c_str());
         return std::nullopt;
     }
 

@@ -116,7 +116,7 @@ EVENTFUNC(block_chat_by_ip_event)
 
 	if ( info == nullptr )
 	{
-		metin2::log::error( "block_chat_by_ip_event> <Factor> Null pointer" );
+		metin2::log::error( "Chat block event has no info" );
 		return 0;
 	}
 
@@ -158,7 +158,7 @@ auto spam_block_check(character * ch, const char* const buf, const size_t buflen
 		it->second.first += score;
 
 		if (word)
-			metin2::log::info( "SPAM_SCORE: {} text: {} score: {:d} total: {:d} word: {}", ch->name(), buf, score, it->second.first, word);
+			metin2::log::info( "Spam: player {} said \"{}\", score {:d}, total {:d}, matched word {}", ch->name(), buf, score, it->second.first, word);
 
 		if (it->second.first >= metin2::config::game().spam.block_score)
 		{
@@ -166,7 +166,7 @@ auto spam_block_check(character * ch, const char* const buf, const size_t buflen
 			strlcpy(info->host, ch->get_desc()->host_name(), sizeof(info->host));
 
 			it->second.second = event_create(block_chat_by_ip_event, info, passes_per_sec(metin2::config::game().spam.block_duration));
-			metin2::log::info( "SPAM_IP: {} for {:d} seconds", info->host, metin2::config::game().spam.block_duration);
+			metin2::log::info( "Spam: chat blocked for host {} for {:d} seconds", info->host, metin2::config::game().spam.block_duration);
 
 			log_manager::instance().char_log(ch, 0, "SPAM", word);
 
@@ -297,7 +297,7 @@ auto input_main::whisper(character * ch, const char * data, size_t bytes) -> int
 
 	if (iExtraLen < 0)
 	{
-		metin2::log::error("invalid packet length (len {:d} size {:d} buffer {:d})", iExtraLen, pinfo->size, bytes);
+		metin2::log::warn("Invalid packet length (extra {:d}, size {:d}, buffer {:d})", iExtraLen, pinfo->size, bytes);
 		ch->get_desc()->set_phase(PHASE_CLOSE);
 		return -1;
 	}
@@ -335,9 +335,9 @@ auto input_main::whisper(character * ch, const char * data, size_t bytes) -> int
 	if (metin2::config::test_server())
 	{
 		if (!pkChr)
-			metin2::log::info( "Whisper to {}({}) from {}", "Null", szNameTo, ch->name());
+			metin2::log::debug( "Whisper to {} ({}) from {}", "nobody", szNameTo, ch->name());
 		else
-			metin2::log::info( "Whisper to {}({}) from {}", pkChr->name(), szNameTo, ch->name());
+			metin2::log::debug( "Whisper to {} ({}) from {}", pkChr->name(), szNameTo, ch->name());
 	}
 
 	if (ch->is_block_mode(BLOCK_WHISPER))
@@ -365,7 +365,7 @@ auto input_main::whisper(character * ch, const char * data, size_t bytes) -> int
 			bOpponentEmpire = pkCCI->empire;
 
 			if (metin2::config::test_server())
-				metin2::log::info( "Whisper to {} from {} (Channel {:d} Mapindex {:d})", "Null", ch->name(), pkCCI->channel, pkCCI->map_index);
+				metin2::log::debug( "Whisper to {} from {} relayed to channel {:d}, map {:d}", "remote player", ch->name(), pkCCI->channel, pkCCI->map_index);
 		}
 	}
 	else
@@ -385,7 +385,7 @@ auto input_main::whisper(character * ch, const char * data, size_t bytes) -> int
 			pack.size = sizeof(packet_gc_whisper);
 			strlcpy(pack.name_from, szNameTo, sizeof(pack.name_from));
 			ch->get_desc()->packet(&pack, sizeof(packet_gc_whisper));
-			metin2::log::info( "WHISPER: no player");
+			metin2::log::debug( "Whisper: target {} not online", szNameTo);
 		}
 	}
 	else
@@ -485,7 +485,7 @@ auto input_main::whisper(character * ch, const char * data, size_t bytes) -> int
 						ch->get_desc()->buffered_packet(&pack, sizeof(pack));
 						ch->get_desc()->packet(buf, len);
 
-						metin2::log::info( "WHISPER: not enough {}: char: {}", pTable->locale_name, ch->name());
+						metin2::log::debug( "Whisper: not enough {} for player {}", pTable->locale_name, ch->name());
 					}
 				}
 
@@ -595,7 +595,7 @@ auto input_main::chat(character * ch, const char * data, size_t bytes) -> int
 
 	if (iExtraLen < 0)
 	{
-		metin2::log::error("invalid packet length (len {:d} size {:d} buffer {:d})", iExtraLen, pinfo->size, bytes);
+		metin2::log::warn("Invalid packet length (extra {:d}, size {:d}, buffer {:d})", iExtraLen, pinfo->size, bytes);
 		ch->get_desc()->set_phase(PHASE_CLOSE);
 		return -1;
 	}
@@ -614,7 +614,7 @@ auto input_main::chat(character * ch, const char * data, size_t bytes) -> int
 	{
 		if (ch->chat_counter() == 10)
 		{
-			metin2::log::info( "CHAT_HACK: {}", ch->name());
+			metin2::log::warn( "Chat flood from player {}, disconnecting", ch->name());
 			ch->get_desc()->delayed_disconnect(5);
 		}
 
@@ -743,7 +743,7 @@ auto input_main::chat(character * ch, const char * data, size_t bytes) -> int
 			break;
 
 		default:
-			metin2::log::error("Unknown chat type {:d}", pinfo->type);
+			metin2::log::warn("Unknown chat type {:d}", pinfo->type);
 			break;
 	}
 
@@ -917,7 +917,7 @@ auto input_main::messenger(character * ch, const char* data, size_t bytes) -> in
 			return CHARACTER_NAME_MAX_LEN;
 
 		default:
-			metin2::log::error("CInputMain::Messenger : Unknown subheader {:d} : {}", p->subheader, ch->name());
+			metin2::log::warn("Unknown messenger subheader {:d} from player {}", p->subheader, ch->name());
 			break;
 	}
 
@@ -932,7 +932,7 @@ auto input_main::shop(character * ch, const char * data, size_t bytes) -> int
 		return -1;
 
 	if (metin2::config::test_server())
-		metin2::log::info( "CInputMain::Shop() ==> SubHeader {:d}", p->subheader);
+		metin2::log::debug( "Shop packet subheader {:d}", p->subheader);
 
 	const char * c_pData = data + sizeof(packet_cg_shop);
 	bytes -= sizeof(packet_cg_shop);
@@ -940,7 +940,7 @@ auto input_main::shop(character * ch, const char * data, size_t bytes) -> int
 	switch (p->subheader)
 	{
 		case SHOP_SUBHEADER_CG_END:
-			metin2::log::debug( "INPUT: {} SHOP: END", ch->name());
+			metin2::log::debug( "Shop: player {} stopped shopping", ch->name());
 			shop_manager::instance().stop_shopping(ch);
 			return 0;
 
@@ -950,7 +950,7 @@ auto input_main::shop(character * ch, const char * data, size_t bytes) -> int
 					return -1;
 
 				uint8_t bPos = *(c_pData + 1);
-				metin2::log::debug( "INPUT: {} SHOP: BUY {:d}", ch->name(), bPos);
+				metin2::log::debug( "Shop: player {} buys slot {:d}", ch->name(), bPos);
 				shop_manager::instance().buy(ch, bPos);
 				return (sizeof(uint8_t) + sizeof(uint8_t));
 			}
@@ -962,7 +962,7 @@ auto input_main::shop(character * ch, const char * data, size_t bytes) -> int
 
 				uint8_t pos = *c_pData;
 
-				metin2::log::info( "INPUT: {} SHOP: SELL", ch->name());
+				metin2::log::debug( "Shop: player {} sells inventory slot {:d}", ch->name(), pos);
 				shop_manager::instance().sell(ch, pos);
 				return sizeof(uint8_t);
 			}
@@ -975,13 +975,13 @@ auto input_main::shop(character * ch, const char * data, size_t bytes) -> int
 				uint8_t pos = *(c_pData++);
 				uint8_t count = *(c_pData);
 
-				metin2::log::info( "INPUT: {} SHOP: SELL2", ch->name());
+				metin2::log::debug( "Shop: player {} sells {:d} from inventory slot {:d}", ch->name(), count, pos);
 				shop_manager::instance().sell(ch, pos, count);
 				return sizeof(uint8_t) + sizeof(uint8_t);
 			}
 
 		default:
-			metin2::log::error("CInputMain::Shop : Unknown subheader {:d} : {}", p->subheader, ch->name());
+			metin2::log::warn("Unknown shop subheader {:d} from player {}", p->subheader, ch->name());
 			break;
 	}
 
@@ -997,7 +997,7 @@ void input_main::on_click(character * ch, const char * data)
 		victim->on_click(ch);
 	else if (metin2::config::test_server())
 	{
-		metin2::log::error("CInputMain::OnClick {}.Click.NOT_EXIST_VID[{:d}]", ch->name(), pinfo->vid);
+		metin2::log::debug("Player {} clicked unknown vid {:d}", ch->name(), pinfo->vid);
 	}
 }
 
@@ -1025,7 +1025,7 @@ void input_main::exchange(character * ch, const char * data)
 		}
 	}
 
-	metin2::log::info( "CInputMain()::Exchange()  SubHeader {:d} ", pinfo->sub_header);
+	metin2::log::debug( "Exchange packet subheader {:d}", pinfo->sub_header);
 
 	if (iPulse - ch->safebox_load_time() < passes_per_sec(portal_limit_time))
 	{
@@ -1062,7 +1062,7 @@ void input_main::exchange(character * ch, const char * data)
 					{	
 						ch->chat_packet(CHAT_TYPE_INFO, lc_text("액수가 20억 냥을 초과하여 거래를 할수가 없습니다.."));
 
-						metin2::log::error("[OVERFLOG_GOLD] START ({:d}) id {:d} name {} ", ch->gold(), ch->player_id(), ch->name());
+						metin2::log::warn("Exchange refused: gold {:d} at maximum for player (pid {:d}, name {})", ch->gold(), ch->player_id(), ch->name());
 						return;
 					}
 
@@ -1070,7 +1070,7 @@ void input_main::exchange(character * ch, const char * data)
 					{
 						if (quest::quest_manager::instance().give_item_to_pc(ch->player_id(), to_ch))
 						{
-							metin2::log::info( "Exchange canceled by quest {} {}", ch->name(), to_ch->name());
+							metin2::log::debug( "Exchange between {} and {} handled by a quest", ch->name(), to_ch->name());
 							return;
 						}
 					}
@@ -1111,7 +1111,7 @@ void input_main::exchange(character * ch, const char * data)
 				{
 					ch->chat_packet(CHAT_TYPE_INFO, lc_text("상대방의 총금액이 20억 냥을 초과하여 거래를 할수가 없습니다.."));
 
-					metin2::log::error("[OVERFLOW_GOLD] ELK_ADD ({:d}) id {:d} name {} ",
+					metin2::log::warn("Exchange gold refused: partner would exceed maximum gold ({:d}, pid {:d}, name {})",
 							ch->get_exchange()->company()->owner()->gold(),
 							ch->get_exchange()->company()->owner()->player_id(),
 						   	ch->get_exchange()->company()->owner()->name());
@@ -1127,7 +1127,6 @@ void input_main::exchange(character * ch, const char * data)
 		case EXCHANGE_SUBHEADER_CG_ACCEPT:
 			if (ch->get_exchange())
 			{
-				metin2::log::info( "CInputMain()::Exchange() ==> ACCEPT "); 
 				ch->get_exchange()->accept(true);
 			}
 
@@ -1175,7 +1174,7 @@ auto clac_valid_combo_interval( character * ch, uint8_t arg ) -> uint32_t
 
 	if( !ch )
 	{
-		metin2::log::error( "ClacValidComboInterval() ch is NULL");
+		metin2::log::error( "Combo interval check without a character");
 		return nInterval;
 	}	
 
@@ -1194,7 +1193,7 @@ auto clac_valid_combo_interval( character * ch, uint8_t arg ) -> uint32_t
 	}
 	else
 	{
-		metin2::log::error( "ClacValidComboInterval() Invalid bArg({:d}) ch({})", arg, ch->name() );		
+		metin2::log::warn( "Invalid combo argument {:d} from player {}", arg, ch->name() );		
 	}	
 
 	return nInterval;
@@ -1227,7 +1226,7 @@ auto check_combo_hack(character * ch, uint8_t arg, uint32_t time, bool check_spe
 		{
 			HackScalar = 1;
 			ch->set_valid_combo_interval(300);
-			metin2::log::info( "COMBO_HACK: 5 {} combo_seq:{:d}", ch->name(), ch->combo_sequence());
+			metin2::log::warn( "Possible combo hack: player {} combo sequence {:d} too long", ch->name(), ch->combo_sequence());
 		}
 		else if (arg == 21 &&
 				 idx == 2 &&
@@ -1241,7 +1240,7 @@ auto check_combo_hack(character * ch, uint8_t arg, uint32_t time, bool check_spe
 			HackScalar = 1;
 			ch->set_valid_combo_interval(300);
 
-			metin2::log::info( "COMBO_HACK: 3 {} arg:{:d} valid:{:d} combo_idx:{:d} combo_seq:{:d}",
+			metin2::log::warn( "Possible combo hack: player {} sent combo {:d}, expected {:d} (combo index {:d}, sequence {:d})",
 					ch->name(),
 					arg,
 					combo_sequence_by_skill_level[idx][ch->combo_sequence()],
@@ -1254,7 +1253,7 @@ auto check_combo_hack(character * ch, uint8_t arg, uint32_t time, bool check_spe
 			{
 				HackScalar = 1 + (ch->valid_combo_interval() - ComboInterval) / 100;
 
-				metin2::log::info( "COMBO_HACK: 2 {} arg:{:d} interval:{:d} valid:{:d} atkspd:{:d} riding:{}",
+				metin2::log::warn( "Possible combo hack: player {} combo {:d} interval {:d} ms, minimum {:d} ms (attack speed {:d}, riding {})",
 						ch->name(),
 						arg,
 						ComboInterval,
@@ -1298,7 +1297,7 @@ auto check_combo_hack(character * ch, uint8_t arg, uint32_t time, bool check_spe
 		if (ch->get_desc()->delayed_disconnect(number(2, 9)))
 		{
 			log_manager::instance().hack_log("Hacker", ch);
-			metin2::log::info( "HACKER: {} arg {:d}", ch->name(), arg);
+			metin2::log::warn( "Attack hack: player {} (combo argument {:d}), disconnecting", ch->name(), arg);
 		}
 
 		HackScalar = 10;
@@ -1325,7 +1324,7 @@ void input_main::move(character * ch, const char * data)
 
 	if (pinfo->func >= FUNC_MAX_NUM && !(pinfo->func & 0x80))
 	{
-		metin2::log::error("invalid move type: {}", ch->name());
+		metin2::log::warn("Invalid move type {:d} from player {}", pinfo->func, ch->name());
 		return;
 	}
 
@@ -1337,7 +1336,7 @@ void input_main::move(character * ch, const char * data)
 		if (((false == ch->is_riding() && fDist > 25) || fDist > 40) && OXEVENT_MAP_INDEX != ch->map_index())
 		{
 
-			metin2::log::info( "MOVE: {} trying to move too far (dist: {:.1f}m) Riding({:d})", ch->name(), fDist, ch->is_riding());
+			metin2::log::warn( "Player {} tried to move too far ({:.1f} m, riding {:d})", ch->name(), fDist, ch->is_riding());
 
 			ch->show(ch->map_index(), ch->x(), ch->y(), ch->z());
 			ch->stop();
@@ -1356,11 +1355,11 @@ void input_main::move(character * ch, const char * data)
 
 			if (iDelta >= 30000)
 			{
-				metin2::log::info( "SPEEDHACK: slow timer name {} delta {:d}", ch->name(), iDelta);
+				metin2::log::warn( "Possible speed hack: player {} client timer lags by {:d} ms", ch->name(), iDelta);
 			}
 			else if (iDelta < -(iServerDelta / 50))
 			{
-				metin2::log::info( "SPEEDHACK: DETECTED! {} (delta {:d} {:d})", ch->name(), iDelta, iServerDelta);
+				metin2::log::warn( "Possible speed hack: player {} client timer ahead (delta {:d}, server delta {:d})", ch->name(), iDelta, iServerDelta);
 			}
 		}
 
@@ -1398,7 +1397,7 @@ void input_main::move(character * ch, const char * data)
 				char szBuf[256];
 				snprintf(szBuf, sizeof(szBuf), "SKILL_HACK: name=%s, job=%d, group=%d, motion=%d", name, job, group, motion);
 				log_manager::instance().hack_log(szBuf, ch->get_desc()->get_account_table().login, ch->name(), ch->get_desc()->host_name());
-				metin2::log::info( "{}", szBuf);
+				metin2::log::warn( "{}", szBuf);
 
 				if (metin2::config::test_server())
 				{
@@ -1540,14 +1539,14 @@ auto input_main::sync_position(character * ch, const char * pc_data, size_t byte
 
 	if (iExtraLen < 0)
 	{
-		metin2::log::error("invalid packet length (len {:d} size {:d} buffer {:d})", iExtraLen, pinfo->size, bytes);
+		metin2::log::warn("Invalid packet length (extra {:d}, size {:d}, buffer {:d})", iExtraLen, pinfo->size, bytes);
 		ch->get_desc()->set_phase(PHASE_CLOSE);
 		return -1;
 	}
 
 	if (0 != (iExtraLen % sizeof(packet_cg_sync_position_element)))
 	{
-		metin2::log::error("invalid packet length {:d} (name: {})", pinfo->size, ch->name());
+		metin2::log::warn("Sync position packet size {:d} is not a multiple of the element size (player {})", pinfo->size, ch->name());
 		return iExtraLen;
 	}
 
@@ -1560,7 +1559,7 @@ auto input_main::sync_position(character * ch, const char * pc_data, size_t byte
 
 	if( iCount > nCountLimit )
 	{
-		metin2::log::error( "Too many SyncPosition Count({:d}) from Name({})", iCount, ch->name() );
+		metin2::log::warn( "Too many sync positions ({:d}) from player {}", iCount, ch->name() );
 		iCount = nCountLimit;
 	}
 
@@ -1604,7 +1603,7 @@ auto input_main::sync_position(character * ch, const char * pc_data, size_t byte
 			{
 				log_manager::instance().hack_log( "SYNC_POSITION_HACK", ch );
 
-				metin2::log::error( "Too far SyncPosition DistanceWithSyncOwner({:f})({}) from Name({}) CH({:d},{:d}) VICTIM({:d},{:d}) SYNC({:d},{:d})",
+				metin2::log::warn( "Sync position hack: {:.1f} m from sync owner to {} by player {} (player {:d}x{:d}, target {:d}x{:d}, sync {:d}x{:d}), disconnecting",
 					fDistWithSyncOwner, victim->name(), ch->name(), ch->x(), ch->y(), victim->x(), victim->y(),
 					e->x, e->y );
 
@@ -1630,7 +1629,7 @@ auto input_main::sync_position(character * ch, const char * pc_data, size_t byte
 			{
 				log_manager::instance().hack_log( "SYNC_POSITION_HACK", ch );
 
-				metin2::log::error( "Too often SyncPosition Interval({:d}ms)({}) from Name({}) VICTIM({:d},{:d}) SYNC({:d},{:d})",
+				metin2::log::warn( "Sync position hack: interval {:d} ms too short for {} by player {} (target {:d}x{:d}, sync {:d}x{:d}), disconnecting",
 					static_cast<long>(elapsed_usec / 1000), victim->name(), ch->name(), victim->x(), victim->y(),
 					e->x, e->y );
 
@@ -1643,7 +1642,7 @@ auto input_main::sync_position(character * ch, const char * pc_data, size_t byte
 		{
 			log_manager::instance().hack_log( "SYNC_POSITION_HACK", ch );
 
-			metin2::log::error( "Too far SyncPosition Distance({:f})({}) from Name({}) CH({:d},{:d}) VICTIM({:d},{:d}) SYNC({:d},{:d})",
+			metin2::log::warn( "Sync position hack: moved {:.1f} m for {} by player {} (player {:d}x{:d}, target {:d}x{:d}, sync {:d}x{:d}), disconnecting",
 				   	fDist, victim->name(), ch->name(), ch->x(), ch->y(), victim->x(), victim->y(),
 				  e->x, e->y );
 
@@ -1689,7 +1688,7 @@ void input_main::use_skill(character * ch, const char * pc_data)
 void input_main::script_button(character * ch, const void* data)
 {
 	packet_cg_script_button * p = (packet_cg_script_button *) data;
-	metin2::log::info( "QUEST ScriptButton pid {:d} idx {:d}", ch->player_id(), p->idx);
+	metin2::log::debug( "Quest: pid {:d} pressed button {:d}", ch->player_id(), p->idx);
 
 	quest::pc* pc = quest::quest_manager::instance().pc_force(ch->player_id());
 	if (pc && pc->is_confirm_wait())
@@ -1709,7 +1708,7 @@ void input_main::script_button(character * ch, const void* data)
 void input_main::script_answer(character * ch, const void* data)
 {
 	packet_cg_script_answer * p = (packet_cg_script_answer *) data;
-	metin2::log::info( "QUEST ScriptAnswer pid {:d} answer {:d}", ch->player_id(), p->answer);
+	metin2::log::debug( "Quest: pid {:d} answered {:d}", ch->player_id(), p->answer);
 
 	if (p->answer > 250)
 	{
@@ -1724,7 +1723,7 @@ void input_main::script_answer(character * ch, const void* data)
 void input_main::script_select_item(character * ch, const void* data)
 {
 	packet_cg_script_select_item* p = (packet_cg_script_select_item*) data;
-	metin2::log::info( "QUEST ScriptSelectItem pid {:d} answer {:d}", ch->player_id(), p->selection);
+	metin2::log::debug( "Quest: pid {:d} selected item {:d}", ch->player_id(), p->selection);
 	quest::quest_manager::instance().select_item(ch->player_id(), p->selection);
 }
 
@@ -1733,7 +1732,7 @@ void input_main::quest_input_string(character * ch, const void* data)
 	packet_cg_quest_input_string * p = (packet_cg_quest_input_string*) data;
 
 	const std::string msg(p->msg, strnlen(p->msg, sizeof(p->msg) - 1));
-	metin2::log::info( "QUEST InputString pid {:d} msg {}", ch->player_id(), msg.c_str());
+	metin2::log::debug( "Quest: pid {:d} entered \"{}\"", ch->player_id(), msg.c_str());
 
 	quest::quest_manager::instance().input(ch->player_id(), msg.c_str());
 }
@@ -1744,7 +1743,7 @@ void input_main::quest_confirm(character * ch, const void* data)
 	character * ch_wait = character_manager::instance().find_by_pid(p->request_pid);
 	if (p->answer)
 		p->answer = quest::CONFIRM_YES;
-	metin2::log::info( "QuestConfirm from {} pid {:d} name {} answer {:d}", ch->name(), p->request_pid, (ch_wait)?ch_wait->name():"", p->answer);
+	metin2::log::debug( "Quest: confirm from {} to pid {:d} ({}), answer {:d}", ch->name(), p->request_pid, (ch_wait)?ch_wait->name():"", p->answer);
 	if (ch_wait)
 	{
 		quest::quest_manager::instance().confirm(ch_wait->player_id(), (quest::quest_confirm_type) p->answer, ch->player_id());
@@ -1905,7 +1904,7 @@ void input_main::safebox_checkout(character * ch, const char * data, bool mall_v
 		{
 			if (nullptr == pkItem->proto())
 			{
-				metin2::log::error("pkItem->GetProto() == NULL (id : {:d})",pkItem->id());
+				metin2::log::error("Item {:d} has no proto",pkItem->id());
 				return ;
 			}
 			if (100 == pkItem->proto()->alter_to_magic_item_pct && 0 == pkItem->attribute_count())
@@ -1956,7 +1955,7 @@ void input_main::party_invite(character * ch, const char * data)
 
 	if (!pInvitee || !ch->get_desc() || !pInvitee->get_desc())
 	{
-		metin2::log::error("PARTY Cannot find invited character");
+		metin2::log::debug("Party invite: target vid {:d} not found or offline", p->vid);
 		return;
 	}
 
@@ -2010,7 +2009,7 @@ void input_main::party_set_state(character * ch, const char* data)
 	}
 
 	uint32_t pid = p->pid;
-	metin2::log::info( "PARTY SetRole pid {:d} to role {:d} state {}", pid, p->role, p->flag ? "on" : "off");
+	metin2::log::debug( "Party: set role of pid {:d} to {:d} {}", pid, p->role, p->flag ? "on" : "off");
 
 	switch (p->role)
 	{
@@ -2035,7 +2034,7 @@ void input_main::party_set_state(character * ch, const char* data)
 			break;
 
 		default:
-			metin2::log::error("wrong byRole in PartySetState Packet name {} state {:d}", ch->name(), p->role);
+			metin2::log::warn("Invalid party role from player {}: {:d}", ch->name(), p->role);
 			break;
 	}
 }
@@ -2126,7 +2125,7 @@ void input_main::answer_make_guild(character * ch, const char* data)
 
 	if (dwKey == 0 || p->key != dwKey)
 	{
-		metin2::log::error("AnswerMakeGuild: {} answered without a matching request", ch->name());
+		metin2::log::warn("Guild name answer from player {} without a matching request", ch->name());
 		return;
 	}
 
@@ -2486,7 +2485,7 @@ auto input_main::guild(character * ch, const char * data, size_t bytes) -> int
 
 				if (length > GUILD_COMMENT_MAX_LEN)
 				{
-					metin2::log::error("POST_COMMENT: {} comment too long (length: {:d})", ch->name(), length);
+					metin2::log::warn("Guild comment from player {} too long ({:d} bytes), disconnecting", ch->name(), length);
 					ch->get_desc()->set_phase(PHASE_CLOSE);
 					return -1;
 				}
@@ -2540,7 +2539,7 @@ auto input_main::guild(character * ch, const char * data, size_t bytes) -> int
 				else if (grade == 1)
 					ch->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> 길드장으로 직위를 변경할 수 없습니다."));
 				else if (grade < 1 || grade > GUILD_GRADE_COUNT)
-					metin2::log::error("CHANGE_MEMBER_GRADE: {} sent invalid grade {:d}", ch->name(), grade);
+					metin2::log::warn("Player {} sent invalid guild grade {:d}", ch->name(), grade);
 				else
 					pGuild->change_member_grade(pid, grade);
 			}
@@ -2625,7 +2624,7 @@ void input_main::hack(character * ch, const char * data)
 	char buf[sizeof(p->buf)];
 	copy_packet_string(buf, sizeof(buf), p->buf, sizeof(p->buf));
 
-	metin2::log::error("HACK_DETECT: {} {}", ch->name(), buf);
+	metin2::log::warn("Client reported hack for player {}: {}", ch->name(), buf);
 
 	ch->get_desc()->set_phase(PHASE_CLOSE);
 }
@@ -2641,7 +2640,7 @@ auto input_main::my_shop(character * ch, const char * data, size_t bytes) -> int
 	if (ch->gold() >= GOLD_MAX)
 	{
 		ch->chat_packet(CHAT_TYPE_INFO, lc_text("소유 돈이 20억냥을 넘어 거래를 핼수가 없습니다."));
-		metin2::log::info( "MyShop ==> OverFlow Gold id {:d} name {} ", ch->player_id(), ch->name());
+		metin2::log::debug( "Private shop refused: gold at maximum (pid {:d}, name {})", ch->player_id(), ch->name());
 		return (iExtraLen);
 	}
 
@@ -2657,7 +2656,7 @@ auto input_main::my_shop(character * ch, const char * data, size_t bytes) -> int
 	char szSign[SHOP_SIGN_MAX_LEN + 1];
 	copy_packet_string(szSign, sizeof(szSign), p->sign, sizeof(p->sign));
 
-	metin2::log::info( "MyShop count {:d}", p->count);
+	metin2::log::debug( "Player {} opens a private shop with {:d} items", ch->name(), p->count);
 	ch->open_my_shop(szSign, (shop_item_table *) (data + sizeof(packet_cg_my_shop)), p->count);
 	return (iExtraLen);
 }
@@ -2697,12 +2696,10 @@ void input_main::refine(character * ch, const char* data)
 
 	if (p->type == REFINE_TYPE_NORMAL)
 	{
-		metin2::log::info( "refine_type_noraml");
 		ch->do_refine(item);
 	}
 	else if (p->type == REFINE_TYPE_SCROLL || p->type == REFINE_TYPE_HYUNIRON || p->type == REFINE_TYPE_MUSIN || p->type == REFINE_TYPE_BDRAGON)
 	{
-		metin2::log::info( "refine_type_scroll, ...");
 		ch->do_refine_with_scroll(item);
 	}
 	else if (p->type == REFINE_TYPE_MONEY_ONLY)
@@ -2739,7 +2736,7 @@ auto input_main::analyze(desc * d, uint8_t header, const char * data) -> int
 
 	if (!(ch = d->get_character()))
 	{
-		metin2::log::error("no character on desc");
+		metin2::log::warn("Game packet on a connection without a character, host {}", d->host_name());
 		d->set_phase(PHASE_CLOSE);
 		return (0);
 	}
@@ -2770,7 +2767,7 @@ auto input_main::analyze(desc * d, uint8_t header, const char * data) -> int
 	int iExtraLen = 0;
 
 	if (metin2::config::test_server() && header != HEADER_CG_MOVE)
-		metin2::log::info( "CInputMain::Analyze() ==> Header [{:d}] ", header);
+		metin2::log::debug( "Game packet header {:d}", header);
 
 	switch (header)
 	{
@@ -2786,7 +2783,7 @@ auto input_main::analyze(desc * d, uint8_t header, const char * data) -> int
 			if (metin2::config::test_server())
 			{
 				char* pBuf = (char*)data;
-				metin2::log::info( "{}", pBuf + sizeof(packet_cg_chat));
+				metin2::log::debug( "Chat: {}", pBuf + sizeof(packet_cg_chat));
 			}
 
 			if ((iExtraLen = chat(ch, data, buffer_left_)) < 0)

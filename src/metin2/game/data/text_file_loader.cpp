@@ -83,9 +83,9 @@ auto text_file_loader::load_group(group_node * group_node_value) -> bool
 		{
 			if (2 != stTokenVector.size())
 			{
-				metin2::log::error("Invalid group syntax token size: {:d} != 2 (DO NOT SPACE IN NAME)", stTokenVector.size());
+				metin2::log::error("{} line {:d}: group line has {:d} tokens instead of 2 (group names must not contain spaces)", file_name_.c_str(), dwcur_line_index_, stTokenVector.size());
 				for (unsigned int i = 0; i < stTokenVector.size(); ++i)
-					metin2::log::error("  {:d} {}", i, stTokenVector[i].c_str());
+					metin2::log::error("Token {:d}: {}", i, stTokenVector[i].c_str());
 				exit(1);
 				continue;
 			}
@@ -140,7 +140,7 @@ auto text_file_loader::load_group(group_node * group_node_value) -> bool
 
 			if (1 == stTokenVector.size())
 			{
-				metin2::log::error("CTextFileLoader::LoadGroup : must have a value (filename: {} line: {:d} key: {})",
+				metin2::log::error("{} line {:d}: key {} has no value",
 						file_name_.c_str(),
 						dwcur_line_index_,
 						key.c_str());
@@ -260,7 +260,7 @@ auto text_file_loader::get_token_vector(const std::string & rstr_key, token_vect
 	token_vector_map::iterator it = pcur_node_->local_token_vector_map.find(rstr_key);
 	if (pcur_node_->local_token_vector_map.end() == it)
 	{
-		metin2::log::debug( " CTextFileLoader::GetTokenVector - Failed to find the key {} [{} :: {}]", file_name_.c_str(), pcur_node_->group_name.c_str(), rstr_key.c_str());
+		metin2::log::debug( "{}: group {} has no key {}", file_name_.c_str(), pcur_node_->group_name.c_str(), rstr_key.c_str());
 		return false;
 	}
 
@@ -277,7 +277,7 @@ auto text_file_loader::token_integer(const std::string & rstr_key, int * data) -
 
 	if (pTokenVector->empty())
 	{
-		metin2::log::debug( " CTextFileLoader::GetTokenInteger - Failed to find the value {} [{} : {}]", file_name_.c_str(), pcur_node_->group_name.c_str(), rstr_key.c_str());
+		metin2::log::debug( "{}: group {} has no integer value for {}", file_name_.c_str(), pcur_node_->group_name.c_str(), rstr_key.c_str());
 		return false;
 	}
 
@@ -301,7 +301,7 @@ auto text_file_loader::token_float(const std::string & rstr_key, float * data) -
 
 	if (pTokenVector->empty())
 	{
-		metin2::log::debug( " CTextFileLoader::GetTokenFloat - Failed to find the value {} [{} : {}]", file_name_.c_str(), pcur_node_->group_name.c_str(), rstr_key.c_str());
+		metin2::log::debug( "{}: group {} has no float value for {}", file_name_.c_str(), pcur_node_->group_name.c_str(), rstr_key.c_str());
 		return false;
 	}
 
@@ -318,7 +318,7 @@ auto text_file_loader::token_vector3(const std::string & rstr_key, vector * vect
 
 	if (pTokenVector->size() != 3)
 	{
-		metin2::log::debug( " CTextFileLoader::GetTokenVector3 - This key should have 3 values {} [{} : {}]", file_name_.c_str(), pcur_node_->group_name.c_str(), rstr_key.c_str());
+		metin2::log::debug( "{}: group {} key {} needs 3 values", file_name_.c_str(), pcur_node_->group_name.c_str(), rstr_key.c_str());
 		return false;
 	}
 
@@ -343,7 +343,7 @@ auto text_file_loader::token_string(const std::string & rstr_key, std::string * 
 
 	if (pTokenVector->empty())
 	{
-		metin2::log::debug( " CTextFileLoader::GetTokenString - Failed to find the value {} [{} : {}]", file_name_.c_str(), pcur_node_->group_name.c_str(), rstr_key.c_str());
+		metin2::log::debug( "{}: group {} has no string value for {}", file_name_.c_str(), pcur_node_->group_name.c_str(), rstr_key.c_str());
 		return false;
 	}
 

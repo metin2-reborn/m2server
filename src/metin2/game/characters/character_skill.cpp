@@ -68,7 +68,7 @@ auto character::skill_next_read_time(uint32_t vnum) const -> time_t
 {
 	if (vnum >= SKILL_MAX_NUM)
 	{
-		metin2::log::error("vnum overflow (vnum: {:d})", vnum);
+		metin2::log::error("Skill vnum {:d} out of range", vnum);
 		return 0;
 	}
 
@@ -86,24 +86,24 @@ auto skill_use_info::hit_once(uint32_t vnum) -> bool
 	if (!used)
 		return false;
 
-	metin2::log::debug( "__HitOnce NextUse {:d} current {:d} count {:d} scount {:d}", next_skill_usable_time, get_dword_time(), hit_count, splash_count);
+	metin2::log::debug("Hit once: next use {:d}, now {:d}, hit count {:d}, splash count {:d}", next_skill_usable_time, get_dword_time(), hit_count, splash_count);
 
 	if (next_skill_usable_time && next_skill_usable_time<get_dword_time() && vnum != SKILL_MUYEONG && vnum != SKILL_HORSE_WILDATTACK)
 	{
-		metin2::log::debug( "__HitOnce can't hit");
+		metin2::log::debug("Hit once: cannot hit");
 
 		return false;
 	}
 
 	if (hit_count == -1)
 	{
-		metin2::log::debug( "__HitOnce OK {:d} {:d} {:d}", next_skill_usable_time, get_dword_time(), hit_count);
+		metin2::log::debug("Hit once: ok, next use {:d}, now {:d}, hit count {:d}", next_skill_usable_time, get_dword_time(), hit_count);
 		return true;
 	}
 
 	if (hit_count)
 	{
-		metin2::log::debug( "__HitOnce OK {:d} {:d} {:d}", next_skill_usable_time, get_dword_time(), hit_count);
+		metin2::log::debug("Hit once: ok, next use {:d}, now {:d}, hit count {:d}", next_skill_usable_time, get_dword_time(), hit_count);
 		hit_count--;
 		return true;
 	}
@@ -117,7 +117,7 @@ auto skill_use_info::use_skill(bool is_grand_master_value, uint32_t vid_value, u
 
 	if (used && next_skill_usable_time > dwCur)
 	{
-		metin2::log::info( "cooltime is not over delta {:d}", next_skill_usable_time - dwCur);
+		metin2::log::debug("Skill used during cooldown ({:d} ms left)", next_skill_usable_time - dwCur);
 		hit_count = 0;
 		return false;
 	}
@@ -133,7 +133,7 @@ auto skill_use_info::use_skill(bool is_grand_master_value, uint32_t vid_value, u
 	max_hit_count = hit_count = hitcount;
 
 	if (metin2::config::test_server())
-		metin2::log::info( "UseSkill NextUse {:d}  current {:d} cooltime {:d} hitcount {:d}/{:d}", next_skill_usable_time, dwCur, cooltime, hit_count, max_hit_count);
+		metin2::log::debug("Use skill: next use {:d}, now {:d}, cooldown {:d}, hit count {:d}/{:d}", next_skill_usable_time, dwCur, cooltime, hit_count, max_hit_count);
 
 	vid = vid_value;
 	splash_count = splashcount;
@@ -191,7 +191,7 @@ void character::set_skill_level(uint32_t vnum, uint8_t lev)
 
 	if (vnum >= SKILL_MAX_NUM)
 	{
-		metin2::log::error("vnum overflow (vnum {:d})", vnum);
+		metin2::log::error("Skill vnum {:d} out of range", vnum);
 		return;
 	}
 
@@ -288,7 +288,7 @@ auto character::learn_grand_master_skill(uint32_t skill_vnum) -> bool
 		return false;
 	}
 
-	metin2::log::info( "learn grand master skill[{:d}] cur {:d}, next {:d}", skill_vnum, get_global_time(), skill_next_read_time(skill_vnum));
+	metin2::log::debug("Grand master training of skill {:d}: now {:d}, next read {:d}", skill_vnum, get_global_time(), skill_next_read_time(skill_vnum));
 
 	if (pkSk->type == 0)
 	{
@@ -316,7 +316,7 @@ auto character::learn_grand_master_skill(uint32_t skill_vnum) -> bool
 
 	int idx = std::min(9, skill_level(skill_vnum) - 30);
 
-	metin2::log::info( "LearnGrandMasterSkill {} table idx {:d} value {:d}", name(), idx, grand_master_skill_book_count_for_level_up[idx]);
+	metin2::log::debug("{}: grand master book table index {:d}, books needed {:d}", name(), idx, grand_master_skill_book_count_for_level_up[idx]);
 
 	int iTotalReadCount = quest_flag(strTrainSkill) + 1;
 	set_quest_flag(strTrainSkill, iTotalReadCount);
@@ -337,11 +337,11 @@ auto character::learn_grand_master_skill(uint32_t skill_vnum) -> bool
 	}
 
 	int n = number(1, iBookCount);
-	metin2::log::info( "Number({:d})", n);
+	metin2::log::debug("Grand master book roll {:d}", n);
 
 	uint32_t nextTime = get_global_time() + number(28800, 43200);
 
-	metin2::log::info( "GrandMaster SkillBookCount min {:d} cur {:d} max {:d} (next_time={:d})", iMinReadCount, iTotalReadCount, iMaxReadCount, nextTime);
+	metin2::log::debug("Grand master books: min {:d}, read {:d}, max {:d} (next read {:d})", iMinReadCount, iTotalReadCount, iMaxReadCount, nextTime);
 
 	bool bSuccess = n == 2;
 
@@ -445,26 +445,26 @@ auto character::learn_skill_by_book(uint32_t skill_vnum, uint8_t prob) -> bool
 			remove_affect(AFFECT_SKILL_BOOK_BONUS);
 		}
 
-		metin2::log::info( "LearnSkillByBook Pct {:d} prob {:d}", skill_vnum, prob);
+		metin2::log::debug("Skill book for skill {:d}: chance {:d}%", skill_vnum, prob);
 
 		if (number(1, 100) <= prob)
 		{
 			if (metin2::config::test_server())
-				metin2::log::info( "LearnSkillByBook {:d} SUCC", skill_vnum);
+				metin2::log::debug("Skill book for skill {:d} succeeded", skill_vnum);
 
 			skill_level_up(skill_vnum, SKILL_UP_BY_BOOK);
 		}
 		else
 		{
 			if (metin2::config::test_server())
-				metin2::log::info( "LearnSkillByBook {:d} FAIL", skill_vnum);
+				metin2::log::debug("Skill book for skill {:d} failed", skill_vnum);
 		}
 	}
 	else
 	{
 		int idx = std::min(9, skill_level(skill_vnum) - 20);
 
-		metin2::log::info( "LearnSkillByBook {} table idx {:d} value {:d}", name(), idx, skill_book_count_for_level_up[idx]);
+		metin2::log::debug("{}: skill book table index {:d}, books needed {:d}", name(), idx, skill_book_count_for_level_up[idx]);
 
 		int need_bookcount = skill_level(skill_vnum) - 20;
 
@@ -561,7 +561,7 @@ auto character::skill_level_down(uint32_t vnum_value) -> bool
 
 	if (!pkSk)
 	{
-		metin2::log::error("There is no such skill by number {:d}", vnum_value);
+		metin2::log::error("No skill with vnum {:d}", vnum_value);
 		return false;
 	}
 
@@ -597,7 +597,7 @@ auto character::skill_level_down(uint32_t vnum_value) -> bool
 			idx = POINT_HORSE_SKILL;
 			break;
 		default:
-			metin2::log::error("Wrong skill type {:d} skill vnum {:d}", pkSk->type, pkSk->vnum);
+			metin2::log::error("Wrong skill type {:d} for skill {:d}", pkSk->type, pkSk->vnum);
 			return false;
 
 	}
@@ -605,7 +605,7 @@ auto character::skill_level_down(uint32_t vnum_value) -> bool
 	point_change(idx, +1);
 	set_skill_level(pkSk->vnum, skill_levels_[pkSk->vnum].level - 1);
 
-	metin2::log::info( "SkillDown: {} {:d} {:d} {:d} type {:d}", name(), pkSk->vnum, skill_levels_[pkSk->vnum].master_type, skill_levels_[pkSk->vnum].level, pkSk->type);
+	metin2::log::info("{}: skill {:d} lowered (master type {:d}, level {:d}, type {:d})", name(), pkSk->vnum, skill_levels_[pkSk->vnum].master_type, skill_levels_[pkSk->vnum].level, pkSk->type);
 	save();
 
 	compute_points();
@@ -637,13 +637,13 @@ void character::skill_level_up(uint32_t vnum_value, uint8_t method)
 
 	if (!pkSk)
 	{
-		metin2::log::error("There is no such skill by number (vnum {:d})", vnum_value);
+		metin2::log::error("No skill with vnum {:d}", vnum_value);
 		return;
 	}
 
 	if (pkSk->vnum >= SKILL_MAX_NUM)
 	{
-		metin2::log::error("Skill Vnum overflow (vnum {:d})", vnum_value);
+		metin2::log::error("Skill vnum {:d} out of range", vnum_value);
 		return;
 	}
 
@@ -713,7 +713,7 @@ void character::skill_level_up(uint32_t vnum_value, uint8_t method)
 				break;
 
 			default:
-				metin2::log::error("Wrong skill type {:d} skill vnum {:d}", pkSk->type, pkSk->vnum);
+				metin2::log::error("Wrong skill type {:d} for skill {:d}", pkSk->type, pkSk->vnum);
 				return;
 		}
 
@@ -896,11 +896,11 @@ EVENTFUNC(chain_lightning_event)
 
 	if (!pkChr || !pkChrVictim)
 	{
-		metin2::log::debug( "use chainlighting, but no character");
+		metin2::log::debug("Chain lightning: caster not found");
 		return 0;
 	}
 
-	metin2::log::debug( "chainlighting event {}", pkChr->name());
+	metin2::log::debug("Chain lightning from {}", pkChr->name());
 
 	if (pkChrVictim->get_party())
 	{
@@ -928,7 +928,7 @@ EVENTFUNC(chain_lightning_event)
 	}
 	else
 	{
-		metin2::log::debug( "{} use chainlighting, but find victim failed near {}", pkChr->name(), pkChrVictim->name());
+		metin2::log::debug("{}: chain lightning found no victim near {}", pkChr->name(), pkChrVictim->name());
 	}
 
 	return 0;
@@ -986,14 +986,14 @@ struct func_splash_damage
 		if (distance_approx(x - pkChrVictim->x(), y - pkChrVictim->y()) > sk->splash_range)
 		{
 			if(metin2::config::test_server())
-				metin2::log::info( "XXX target too far {}", chr->name());
+				metin2::log::debug("Splash skill of {}: target too far", chr->name());
 			return;
 		}
 
 		if (!battle_is_attackable(chr, pkChrVictim))
 		{
 			if(metin2::config::test_server())
-				metin2::log::info( "XXX target not attackable {}", chr->name());
+				metin2::log::debug("Splash skill of {}: target not attackable", chr->name());
 			return;
 		}
 
@@ -1002,7 +1002,7 @@ struct func_splash_damage
 				if (!disable_cooltime && info && !info->hit_once(sk->vnum) && sk->vnum != SKILL_MUYEONG)
 				{
 					if(metin2::config::test_server())
-						metin2::log::info( "check guild skill {}", chr->name());
+						metin2::log::debug("Splash skill of {}: cannot hit again yet", chr->name());
 					return;
 				}
 
@@ -1190,7 +1190,7 @@ struct func_splash_damage
 				break;
 
 			default:
-				metin2::log::error("Unknown skill attr type {:d} vnum {:d}", sk->skill_attr_type, sk->vnum);
+				metin2::log::error("Unknown skill attr type {:d} (skill {:d})", sk->skill_attr_type, sk->vnum);
 				break;
 		}
 
@@ -1219,7 +1219,7 @@ struct func_splash_damage
 			pkChrVictim->begin_fight(chr);
 
 		if (sk->vnum == SKILL_CHAIN)
-			metin2::log::info( "{} CHAIN INDEX {:d} DAM {:d} DT {:d}", chr->name(), chr->chain_lightning_index() - 1, iDam, dt);
+			metin2::log::debug("{}: chain lightning index {:d}, damage {:d}, damage type {:d}", chr->name(), chr->chain_lightning_index() - 1, iDam, dt);
 
 		{
 			uint8_t AntiSkillID = 0;
@@ -1245,7 +1245,7 @@ struct func_splash_damage
 					skill_proto* pkSk = skill_manager::instance().get(AntiSkillID);
 					if (!pkSk)
 					{
-						metin2::log::error("There is no anti skill({:d}) in skill proto", AntiSkillID);
+						metin2::log::error("Anti skill {:d} is not in the skill proto", AntiSkillID);
 					}
 					else
 					{
@@ -1253,7 +1253,7 @@ struct func_splash_damage
 
 						double ResistAmount = pkSk->point_poly.eval();
 
-						metin2::log::info( "ANTI_SKILL: Resist({:f}) Orig({:d}) Reduce({:d})", ResistAmount, iDam, int(iDam * (ResistAmount/100.0)));
+						metin2::log::debug("Anti skill: resist {:f}%, damage {:d} reduced by {:d}", ResistAmount, iDam, int(iDam * (ResistAmount/100.0)));
 
 						iDam -= iDam * (ResistAmount/100.0);
 					}
@@ -1342,7 +1342,7 @@ struct func_splash_damage
 				}
 
 				get_delta_by_degree(degree, fCrushSlidingLength, &fx, &fy);
-				metin2::log::info( "CRUSH! {} -> {} ({:d} {:d}) -> ({:d} {:d})", chr->name(), pkChrVictim->name(), pkChrVictim->x(), pkChrVictim->y(), (int32_t)(pkChrVictim->x()+fx), (int32_t)(pkChrVictim->y()+fy));
+				metin2::log::debug("{} pushes {} from {:d} {:d} to {:d} {:d}", chr->name(), pkChrVictim->name(), pkChrVictim->x(), pkChrVictim->y(), (int32_t)(pkChrVictim->x()+fx), (int32_t)(pkChrVictim->y()+fy));
 				int32_t tx = (int32_t)(pkChrVictim->x()+fx);
 				int32_t ty = (int32_t)(pkChrVictim->y()+fy);
 
@@ -1383,7 +1383,7 @@ struct func_splash_damage
 			event_create(chain_lightning_event, info_value, metin2::config::server().passes_per_sec / 5);
 		}
 		if(metin2::config::test_server())
-			metin2::log::info( "FuncSplashDamage End :{} ", chr->name());
+			metin2::log::debug("Splash damage done for {}", chr->name());
 	}
 
 	int		x;
@@ -1428,11 +1428,11 @@ struct func_splash_affect
 			character * pkChr = (character *) ent;
 
 			if (metin2::config::test_server())
-				metin2::log::info( "FuncSplashAffect step 1 : name:{} vnum:{:d} iDur:{:d}", pkChr->name(), vnum, duration);
+				metin2::log::debug("Splash affect candidate {}: skill {:d}, duration {:d}", pkChr->name(), vnum, duration);
 			if (distance_approx(x - pkChr->x(), y - pkChr->y()) < dist)
 			{
 				if (metin2::config::test_server())
-					metin2::log::info( "FuncSplashAffect step 2 : name:{} vnum:{:d} iDur:{:d}", pkChr->name(), vnum, duration);
+					metin2::log::debug("Splash affect in range {}: skill {:d}, duration {:d}", pkChr->name(), vnum, duration);
 				if (vnum == SKILL_TUSOK)
 					if (pkChr->can_begin_fight())
 						pkChr->begin_fight(chr_attacker);
@@ -1487,7 +1487,7 @@ auto character::compute_skill_at_position(uint32_t vnum_value, const pixel_posit
 
 	if (metin2::config::test_server())
 	{
-		metin2::log::info( "ComputeSkillAtPosition {} vnum {:d} x {:d} y {:d} level {:d}", 
+		metin2::log::debug("{}: skill {:d} at position {:d} {:d} (level {:d})", 
 				name(), vnum_value, pos_target.x, pos_target.y, skill_level_value); 
 	}
 
@@ -1633,7 +1633,7 @@ auto character::compute_skill_at_position(uint32_t vnum_value, const pixel_posit
 		{
 			int iDur = (int) pkSk->duration_poly2.eval();
 
-			metin2::log::debug( "try second {:d} {:d} {:d}", pkSk->vnum, pkSk->point_on2, iDur);
+			metin2::log::debug("Skill {:d}: second effect on point {:d}, duration {:d}", pkSk->vnum, pkSk->point_on2, iDur);
 
 			if (iDur > 0)
 			{
@@ -1774,7 +1774,7 @@ auto character::compute_skill(uint32_t vnum_value, character * victim, uint8_t s
 	if (!victim)
 	{
 		if (metin2::config::test_server())
-			metin2::log::info( "ComputeSkill: {} Victim == null, skill {:d}", name(), vnum_value);
+			metin2::log::debug("{}: skill {:d} has no victim", name(), vnum_value);
 
 		return BATTLE_NONE;
 	}
@@ -1782,7 +1782,7 @@ auto character::compute_skill(uint32_t vnum_value, character * victim, uint8_t s
 	if (pkSk->target_range && distance_sqrt(x() - victim->x(), y() - victim->y()) >= pkSk->target_range + 50)
 	{
 		if (metin2::config::test_server())
-			metin2::log::info( "ComputeSkill: Victim too far, skill {:d} : {} to {} (distance {:d} limit {:d})", 
+			metin2::log::debug("Skill {:d}: {} to {} out of range (distance {:d}, limit {:d})", 
 					vnum_value,
 					name(),
 					victim->name(),
@@ -1797,7 +1797,7 @@ auto character::compute_skill(uint32_t vnum_value, character * victim, uint8_t s
 		if ((skill_level_value = skill_level(pkSk->vnum)) == 0)
 		{
 			if (metin2::config::test_server())
-				metin2::log::info( "ComputeSkill : name:{} vnum:{:d}  skillLevelBySkill : {:d} ", name(), pkSk->vnum, skill_level_value);
+				metin2::log::debug("{}: skill {:d} not learned (level {:d})", name(), pkSk->vnum, skill_level_value);
 			return BATTLE_NONE;
 		}
 	}
@@ -1880,7 +1880,7 @@ auto character::compute_skill(uint32_t vnum_value, character * victim, uint8_t s
 	int iAmount3 = (int) pkSk->point_poly3.eval();
 
 	if (metin2::config::test_server() && is_pc())
-		metin2::log::info( "iAmount: {:d} {:d} {:d} , atk:{:f} skLevel:{:f} k:{:f} GetSkillPower({:d}) MaxLevel:{:d} Per:{:d}",
+		metin2::log::debug("Skill amounts {:d} {:d} {:d}: atk {:f}, skill level {:f}, k {:f}, power {:d}, max level {:d}, per {:d}",
 				iAmount, iAmount2, iAmount3,
 				pkSk->point_poly.var("atk"),
 				pkSk->point_poly.var("k"),
@@ -2055,7 +2055,7 @@ auto character::compute_skill(uint32_t vnum_value, character * victim, uint8_t s
 				if (iDur2 > 0)
 				{
 					if (metin2::config::test_server())
-						metin2::log::info( "SKILL_AFFECT: {} {} Dur:{:d} To:{:d} Amount:{:d}", 
+						metin2::log::debug("{}: skill affect {} for {:d}, point {:d}, amount {:d}", 
 								name(),
 								pkSk->name,
 								iDur2,
@@ -2086,7 +2086,7 @@ auto character::compute_skill(uint32_t vnum_value, character * victim, uint8_t s
 			else
 			{
 				if (metin2::config::test_server())
-					metin2::log::info( "SKILL_AFFECT: {} {} Dur:{:d} To:{:d} Amount:{:d}", 
+					metin2::log::debug("{}: skill affect {} for {:d}, point {:d}, amount {:d}", 
 							name(),
 							pkSk->name,
 							iDur,
@@ -2138,7 +2138,7 @@ auto character::compute_skill(uint32_t vnum_value, character * victim, uint8_t s
 			pkSk->duration_poly3.set_var("k", k );
 			int iDur = (int) pkSk->duration_poly3.eval();
 
-			metin2::log::info( "try third {:d} {:d} {:d} {:d} 1894", pkSk->vnum, pkSk->point_on3, iDur, iAmount3);
+			metin2::log::debug("Skill {:d}: third effect on point {:d}, duration {:d}, amount {:d}", pkSk->vnum, pkSk->point_on3, iDur, iAmount3);
 
 			if (iDur > 0)
 			{
@@ -2211,7 +2211,7 @@ auto character::use_skill(uint32_t vnum_value, character * victim, bool use_gran
 		return false;
 
 	skill_proto * pkSk = skill_manager::instance().get(vnum_value);
-	metin2::log::info( "{}: USE_SKILL: {:d} pkVictim {}", name(), vnum_value, static_cast<const void *>(victim));
+	metin2::log::debug("{} uses skill {:d} on {}", name(), vnum_value, static_cast<const void *>(victim));
 
 	if (!pkSk)
 		return false;
@@ -2287,7 +2287,7 @@ auto character::use_skill(uint32_t vnum_value, character * victim, bool use_gran
 
 	if (vnum_value == SKILL_TERROR && skill_use_info_[vnum_value].used && skill_use_info_[vnum_value].next_skill_usable_time > dwCur )
 	{
-		metin2::log::info( " SKILL_TERROR's Cooltime is not delta over {:d}", skill_use_info_[vnum_value].next_skill_usable_time  - dwCur );
+		metin2::log::debug("Terror skill used during cooldown ({:d} ms left)", skill_use_info_[vnum_value].next_skill_usable_time  - dwCur );
 		return false;
 	}
 
@@ -2398,7 +2398,7 @@ auto character::skill_master_type(uint32_t vnum) const -> int
 
 	if (vnum >= SKILL_MAX_NUM)
 	{
-		metin2::log::error("{} skill vnum overflow {:d}", name(), vnum);
+		metin2::log::error("{}: skill vnum {:d} out of range", name(), vnum);
 		return 0;
 	}
 
@@ -2427,7 +2427,7 @@ auto character::skill_power(uint32_t vnum, uint8_t level) const -> int
 
 	if (vnum >= SKILL_MAX_NUM)
 	{
-		metin2::log::error("{} skill vnum overflow {:d}", name(), vnum);
+		metin2::log::error("{}: skill vnum {:d} out of range", name(), vnum);
 		return 0;
 	}
 
@@ -2438,8 +2438,7 @@ auto character::skill_level(uint32_t vnum) const -> int
 {
 	if (vnum >= SKILL_MAX_NUM)
 	{
-		metin2::log::error("{} skill vnum overflow {:d}", name(), vnum);
-		metin2::log::info( "{} skill vnum overflow {:d}", name(), vnum);
+		metin2::log::error("{}: skill vnum {:d} out of range", name(), vnum);
 		return 0;
 	}
 
@@ -2452,7 +2451,7 @@ EVENTFUNC(skill_muyoung_event)
 
 	if ( info == nullptr )
 	{
-		metin2::log::error( "skill_muyoung_event> <Factor> Null pointer" );
+		metin2::log::error("Muyoung skill event fired without event info");
 		return 0;
 	}
 
@@ -2618,7 +2617,7 @@ EVENTFUNC(mob_skill_hit_event)
 
 	if ( info == nullptr )
 	{
-		metin2::log::error( "mob_skill_event_info> <Factor> Null pointer" );
+		metin2::log::error("Mob skill event fired without event info");
 		return 0;
 	}
 
@@ -2656,11 +2655,11 @@ auto character::use_mob_skill(unsigned int idx) -> bool
 
 	mob_skill_cooltime_[idx] = get_dword_time() + iCooltime;
 
-	metin2::log::info( "USE_MOB_SKILL: {} idx {:d} vnum {:d} cooltime {:d}", name(), idx, dwVnum, iCooltime);
+	metin2::log::debug("Mob {} uses skill index {:d} (vnum {:d}, cooldown {:d})", name(), idx, dwVnum, iCooltime);
 
 	if (mob_data->mob_skill_info[idx].splash_attack.empty())
 	{
-		metin2::log::error("No skill hit data for mob {} index {:d}", name(), idx);
+		metin2::log::error("Mob {} has no hit data for skill index {:d}", name(), idx);
 		return false;
 	}
 
@@ -2680,7 +2679,7 @@ auto character::use_mob_skill(unsigned int idx) -> bool
 		if (rInfo.timing)
 		{
 			if (metin2::config::test_server())
-				metin2::log::info( "               timing {:d}ms", rInfo.timing);
+				metin2::log::debug("Mob skill hit timing {:d} ms", rInfo.timing);
 
 			mob_skill_event_info* info = alloc_event_info<mob_skill_event_info>();
 
@@ -3031,7 +3030,7 @@ auto character::is_usable_skill_motion(uint32_t motion_index) const -> bool
 
 	if (motion_index >= MOTION_MAX_NUM)
 	{
-		metin2::log::error("OUT_OF_MOTION_VNUM: name={}, motion={:d}/{:d}", name(), motion_index, MOTION_MAX_NUM);
+		metin2::log::error("{}: motion {:d} out of range (max {:d})", name(), motion_index, MOTION_MAX_NUM);
 		return false;
 	}
 
@@ -3040,7 +3039,7 @@ auto character::is_usable_skill_motion(uint32_t motion_index) const -> bool
 	uint32_t skillCount = *skillVNums++;
 	if (skillCount >= SKILL_LIST_MAX_COUNT)
 	{
-		metin2::log::error("OUT_OF_SKILL_LIST: name={}, count={:d}/{:d}", name(), skillCount, SKILL_LIST_MAX_COUNT);
+		metin2::log::error("{}: skill count {:d} out of range (max {:d})", name(), skillCount, SKILL_LIST_MAX_COUNT);
 		return false;
 	}
 
@@ -3048,7 +3047,7 @@ auto character::is_usable_skill_motion(uint32_t motion_index) const -> bool
 	{
 		if (skillIndex >= SKILL_MAX_NUM)
 		{
-			metin2::log::error("OUT_OF_SKILL_VNUM: name={}, skill={:d}/{:d}", name(), skillIndex, SKILL_MAX_NUM);
+			metin2::log::error("{}: skill {:d} out of range (max {:d})", name(), skillIndex, SKILL_MAX_NUM);
 			return false;
 		}
 
@@ -3097,7 +3096,7 @@ void character::clear_sub_skill()
 
 	if (skill_levels_ == nullptr)
 	{
-		metin2::log::error("m_pSkillLevels nil (name: {})", name());
+		metin2::log::error("Skill levels not loaded for {}", name());
 		return;
 	}
 
@@ -3122,13 +3121,13 @@ auto character::reset_one_skill(uint32_t vnum) -> bool
 {
 	if (nullptr == skill_levels_)
 	{
-		metin2::log::error("m_pSkillLevels nil (name {}, vnum {:d})", name(), vnum);
+		metin2::log::error("Skill levels not loaded for {} (skill {:d})", name(), vnum);
 		return false;
 	}
 
 	if (vnum >= SKILL_MAX_NUM)
 	{
-		metin2::log::error("vnum overflow (name {}, vnum {:d})", name(), vnum);
+		metin2::log::error("{}: skill vnum {:d} out of range", name(), vnum);
 		return false;
 	}
 
@@ -3211,7 +3210,7 @@ auto character::check_skill_hit_count(const uint8_t skill_id, const vid target_v
 
 	if (iter == skill_use_info_.end())
 	{
-		metin2::log::info( "SkillHack: Skill({:d}) is not in container", skill_id);
+		metin2::log::warn("Possible skill hack by {}: skill {:d} was never used", name(), skill_id);
 		return false;
 	}
 
@@ -3219,7 +3218,7 @@ auto character::check_skill_hit_count(const uint8_t skill_id, const vid target_v
 
 	if (false == rSkillUseInfo.used)
 	{
-		metin2::log::info( "SkillHack: not used skill({:d})", skill_id);
+		metin2::log::warn("Possible skill hack by {}: skill {:d} is not in use", name(), skill_id);
 		return false;
 	}
 
@@ -3229,7 +3228,7 @@ auto character::check_skill_hit_count(const uint8_t skill_id, const vid target_v
 		case SKILL_HWAYEOMPOK:
 		case SKILL_DAEJINGAK:
 		case SKILL_PAERYONG:
-			metin2::log::info( "SkillHack: cannot use attack packet for skill({:d})", skill_id);
+			metin2::log::warn("Possible skill hack by {}: attack packet for skill {:d}", name(), skill_id);
 			return false;
 	}
 
@@ -3261,7 +3260,7 @@ auto character::check_skill_hit_count(const uint8_t skill_id, const vid target_v
 
 		if (iterTargetMap->second >= MaxAttackCountPerTarget)
 		{
-			metin2::log::info( "SkillHack: Too Many Hit count from SkillID({:d}) count({:d})", skill_id, iterTargetMap->second);
+			metin2::log::warn("Possible skill hack by {}: too many hits with skill {:d} ({:d})", name(), skill_id, iterTargetMap->second);
 			return false;
 		}
 

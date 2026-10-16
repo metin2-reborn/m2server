@@ -57,12 +57,12 @@ auto input_p2_p::relay(desc * d, const char * data, size_t bytes) -> int
 
 	if (p->size < 0)
 	{
-		metin2::log::error("invalid packet length {:d}", p->size);
+		metin2::log::warn("Peer packet with negative length {:d}, closing", p->size);
 		d->set_phase(PHASE_CLOSE);
 		return -1;
 	}
 
-	metin2::log::info( "InputP2P::Relay : {} size {:d}", p->name, p->size);
+	metin2::log::debug( "Peer relay to player {} ({:d} bytes)", p->name, p->size);
 
 	character * pkChr = character_manager::instance().find_pc(p->name);
 
@@ -114,7 +114,7 @@ auto input_p2_p::notice(desc * d, const char * data, size_t bytes) -> int
 
 	if (p->size < 0)
 	{
-		metin2::log::error("invalid packet length {:d}", p->size);
+		metin2::log::warn("Peer packet with negative length {:d}, closing", p->size);
 		d->set_phase(PHASE_CLOSE);
 		return -1;
 	}
@@ -134,7 +134,7 @@ auto input_p2_p::monarch_notice(desc * d, const char * data, size_t bytes) -> in
 
 	if (p->size < 0)
 	{
-		metin2::log::error("invalid packet length {:d}", p->size);
+		metin2::log::warn("Peer packet with negative length {:d}, closing", p->size);
 		d->set_phase(PHASE_CLOSE);
 		return -1;
 	}
@@ -202,7 +202,7 @@ auto input_p2_p::guild(desc * d, const char* data, size_t bytes) -> int
 				return sizeof(int);
 			}
 		default:
-			metin2::log::error("UNKNOWN GUILD SUB PACKET");
+			metin2::log::error("Unknown guild subheader {:d} from peer", p->sub_header);
 			break;
 	}
 	return 0;
@@ -259,21 +259,21 @@ void input_p2_p::disconnect(const char * data)
 void input_p2_p::setup(desc * d, const char * data)
 {
 	packet_gg_setup * p = (packet_gg_setup *) data;
-	metin2::log::info( "P2P: Setup {}:{:d}", d->host_name(), p->port);
+	metin2::log::info( "Peer setup: {}:{:d}", d->host_name(), p->port);
 	d->set_p2_p(d->host_name(), p->port);
 }
 
 void input_p2_p::messenger_add(const char * data)
 {
 	packet_gg_messenger * p = (packet_gg_messenger *) data;
-	metin2::log::info( "P2P: Messenger Add {} {}", p->account, p->companion);
+	metin2::log::debug( "Peer messenger: {} added {}", p->account, p->companion);
 	messenger_manager::instance().apply_add_to_list(p->account, p->companion);
 }
 
 void input_p2_p::messenger_remove(const char * data)
 {
 	packet_gg_messenger * p = (packet_gg_messenger *) data;
-	metin2::log::info( "P2P: Messenger Remove {} {}", p->account, p->companion);
+	metin2::log::debug( "Peer messenger: {} removed {}", p->account, p->companion);
 	messenger_manager::instance().apply_remove_from_list(p->account, p->companion);
 }
 
@@ -307,7 +307,7 @@ void input_p2_p::guild_war_zone_map_index(const char* data)
 	packet_gg_guild_war_map_index * p = (packet_gg_guild_war_map_index*) data;
 	guild_manager & gm = guild_manager::instance();
 
-	metin2::log::info( "P2P: GuildWarZoneMapIndex g1({:d}) vs g2({:d}), mapIndex({:d})", p->guild_id1, p->guild_id2, p->map_index);
+	metin2::log::info( "Guild war: guild {:d} vs {:d} on map {:d}", p->guild_id1, p->guild_id2, p->map_index);
 
 	game::guilds::guild * g1 = gm.find_guild(p->guild_id1);
 	game::guilds::guild * g2 = gm.find_guild(p->guild_id2);
@@ -375,12 +375,12 @@ void input_p2_p::block_chat(const char * data)
 
 	if (ch)
 	{
-		metin2::log::info( "BLOCK CHAT apply name {} dur {:d}", p->name, p->block_duration);
+		metin2::log::info( "Chat block applied to player {} for {:d} seconds", p->name, p->block_duration);
 		ch->add_affect(AFFECT_BLOCK_CHAT, POINT_NONE, 0, AFF_NONE, p->block_duration, 0, true);
 	}
 	else
 	{
-		metin2::log::info( "BLOCK CHAT fail name {} dur {:d}", p->name, p->block_duration);
+		metin2::log::debug( "Chat block for player {} ({:d} seconds) skipped: not on this server", p->name, p->block_duration);
 	}
 }   
 
@@ -388,13 +388,13 @@ void input_p2_p::iam_awake(desc * d, const char * data)
 {
 	std::string hostNames;
 	p2_p_manager::instance().p2_p_host_names(hostNames);
-	metin2::log::info( "P2P Awakeness check from {}. My P2P connection number is {:d}. and details...\n{}", d->host_name(), p2_p_manager::instance().desc_count(), hostNames.c_str());
+	metin2::log::info( "Awake check from peer {}: {:d} peer connections: {}", d->host_name(), p2_p_manager::instance().desc_count(), hostNames.c_str());
 }
 
 auto input_p2_p::analyze(desc * d, uint8_t header, const char * data) -> int
 {
 	if (metin2::config::test_server())
-		metin2::log::info( "CInputP2P::Anlayze[Header {:d}]", header);
+		metin2::log::debug( "Peer packet header {:d}", header);
 
 	int iExtraLen = 0;
 
@@ -423,7 +423,7 @@ auto input_p2_p::analyze(desc * d, uint8_t header, const char * data) -> int
 			break;
 
 		case HEADER_GG_SHUTDOWN:
-			metin2::log::error("Accept shutdown p2p command from {}.", d->host_name());
+			metin2::log::info("Shutdown requested by peer {}", d->host_name());
 			shutdown(10);
 			break;
 

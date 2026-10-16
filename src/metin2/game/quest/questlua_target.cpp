@@ -21,7 +21,7 @@ namespace quest
 
 		if (!lua_isstring(lua, 1) || !lua_isnumber(lua, 2) || !lua_isnumber(lua, 3))
 		{
-			metin2::log::error("invalid argument, name: {}, quest_index {:d}", ch->name(), iQuestIndex);
+			metin2::log::error("Invalid arguments from player {} (quest index {:d})", ch->name(), iQuestIndex);
 			return 0;
 		}
 
@@ -29,7 +29,7 @@ namespace quest
 
 		if (!sectree_manager::instance().map_base_position_by_map_index(ch->map_index(), pos))
 		{
-			metin2::log::error("cannot find base position in this map {:d}", ch->map_index());
+			metin2::log::error("No base position for map {:d}", ch->map_index());
 			return 0;
 		}
 
@@ -56,7 +56,7 @@ namespace quest
 
 		if (!lua_isstring(lua, 1) || !lua_isnumber(lua, 2))
 		{
-			metin2::log::error("invalid argument, name: {}, quest_index {:d}", ch->name(), iQuestIndex);
+			metin2::log::error("Invalid arguments from player {} (quest index {:d})", ch->name(), iQuestIndex);
 			return 0;
 		}
 
@@ -81,7 +81,7 @@ namespace quest
 
 		if (!lua_isstring(lua, 1))
 		{
-			metin2::log::error("invalid argument, name: {}, quest_index {:d}", ch->name(), iQuestIndex);
+			metin2::log::error("Invalid arguments from player {} (quest index {:d})", ch->name(), iQuestIndex);
 			return 0;
 		}
 
@@ -107,7 +107,7 @@ namespace quest
 
 		if (!lua_isstring(lua, 1))
 		{
-			metin2::log::error("invalid argument, name: {}, quest_index {:d}", ch->name(), dwQuestIndex);
+			metin2::log::error("Invalid arguments from player {} (quest index {:d})", ch->name(), dwQuestIndex);
 			lua_pushnumber(lua, 0);
 			return 1;
 		}
@@ -120,7 +120,7 @@ namespace quest
 
 			if ( pInfo == nullptr )
 			{
-				metin2::log::error( "target_id> <Factor> Null pointer" );
+				metin2::log::error("Target event has no info");
 				lua_pushnumber(lua, 0);
 				return 1;
 			}

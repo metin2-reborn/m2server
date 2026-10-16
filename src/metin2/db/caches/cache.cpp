@@ -37,7 +37,7 @@ void item_cache::remove() {
     }
 
     if (metin2::config::test_server()) {
-        metin2::log::info( "ItemCache::Delete : DELETE {:d}", data_.id);
+        metin2::log::debug("Item cache: marked item {:d} for deletion", data_.id);
     }
 
     data_.vnum = 0;
@@ -55,7 +55,7 @@ void item_cache::on_flush() {
         db_manager::instance().return_query(szQuery, QID_ITEM_DESTROY, 0, nullptr);
 
         if (metin2::config::test_server()) {
-            metin2::log::info( "ItemCache::Flush : DELETE {:d} {}", data_.id, szQuery);
+            metin2::log::debug("Item cache: deleting item {:d}: {}", data_.id, szQuery);
         }
     } else {
         int32_t alSockets[ITEM_SOCKET_MAX_NUM];
@@ -128,7 +128,7 @@ void item_cache::on_flush() {
         snprintf(szItemQuery, sizeof(szItemQuery), "REPLACE INTO item%s (%s) VALUES(%s)", get_table_postfix(), szColumns, szValues);
 
         if (metin2::config::test_server())
-            metin2::log::info( "ItemCache::Flush :REPLACE  ({})", szItemQuery);
+            metin2::log::debug("Item cache: saving item: {}", szItemQuery);
 
         db_manager::instance().return_query(szItemQuery, QID_ITEM_SAVE, 0, nullptr);
 
@@ -147,7 +147,7 @@ player_table_cache::~player_table_cache() {
 
 void player_table_cache::on_flush() {
     if (metin2::config::test_server())
-        metin2::log::info( "PlayerTableCache::Flush : {}", data_.name);
+        metin2::log::debug("Player cache: saving player {}", data_.name);
 
     const std::string query = create_player_save_query(&data_);
     db_manager::instance().return_query(query.c_str(), QID_PLAYER_SAVE, 0, nullptr);
@@ -174,7 +174,7 @@ void item_price_list_table_cache::update_list(const item_price_list_table *updat
 
 
     if (update_list->count > SHOP_PRICELIST_MAX_NUM) {
-        metin2::log::error("Count overflow!");
+        metin2::log::warn("Shop price list update has too many entries, ignored");
         return;
     }
 
@@ -202,7 +202,7 @@ void item_price_list_table_cache::update_list(const item_price_list_table *updat
     need_query_ = true;
 
     metin2::log::info(
-        "ItemPriceListTableCache::UpdateList : OwnerID[{:d}] Update [{:d}] Items, Delete [{:d}] Items, Total [{:d}] Items",
+        "Price list: owner pid {:d} updated {:d} items, deleted {:d}, total {:d}",
         data_.owner_id, update_list->count, nDeletedNum, data_.count);
 }
 
@@ -221,7 +221,7 @@ void item_price_list_table_cache::on_flush() {
         db_manager::instance().return_query(szQuery, QID_ITEMPRICE_SAVE, 0, nullptr);
     }
 
-    metin2::log::info( "ItemPriceListTableCache::Flush : OwnerID[{:d}] Update [{:d}]Items", data_.owner_id, data_.count);
+    metin2::log::debug("Price list: saving {1:d} items for owner pid {0:d}", data_.owner_id, data_.count);
 
     need_query_ = false;
 }

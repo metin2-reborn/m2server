@@ -140,7 +140,7 @@ auto polymorph_utils::give_book(character * ch, uint32_t mob_vnum, uint32_t prac
 
 	if (mob_manager::instance().get(mob_vnum) == nullptr)
 	{
-		metin2::log::error("Wrong Polymorph vnum passed: CPolymorphUtils::GiveBook(PID({:d}), {:d} {:d} {:d} {:d})", 
+		metin2::log::error("Cannot give polymorph book to pid {:d}: invalid mob vnum {:d} (practice count {:d}, book level {:d}, level limit {:d})", 
 				ch->player_id(), mob_vnum, practice_count, book_level, level_limit);
 		return false;
 	}

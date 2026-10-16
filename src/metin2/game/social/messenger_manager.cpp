@@ -79,8 +79,6 @@ void messenger_manager::load_list(sql_msg * msg)
 
 	std::string account;
 
-	metin2::log::debug( "Messenger::LoadList");
-
 	for (uint i = 0; i < msg->get()->num_rows; ++i)
 	{
 		MYSQL_ROW row = mysql_fetch_row(msg->get()->res);
@@ -165,7 +163,7 @@ auto messenger_manager::auth_to_add(messenger_manager::key_a account, messenger_
 
 	if (set_request_to_add_.find(dwComplex) == set_request_to_add_.end())
 	{
-		metin2::log::info( "MessengerManager::AuthToAdd : request not exist {} -> {}", companion.c_str(), account.c_str());
+		metin2::log::warn("Messenger: no pending friend request between {} and {}", companion.c_str(), account.c_str());
 		return false;
 	}
 
@@ -209,7 +207,7 @@ void messenger_manager::add_to_list(messenger_manager::key_a account, messenger_
 	if (relation_[account].find(companion) != relation_[account].end())
 		return;
 
-	metin2::log::info( "Messenger Add {} {}", account.c_str(), companion.c_str());
+	metin2::log::info("Messenger: {} added {} as a friend", account.c_str(), companion.c_str());
 	db_manager::instance().query(sql::format("INSERT INTO messenger_list{} VALUES ({}, {})", 
 			sql::raw(get_table_postfix()), account, companion));
 
@@ -257,7 +255,7 @@ void messenger_manager::remove_from_list(messenger_manager::key_a account, messe
 	if (!is_in_list(account, companion))
 		return;
 	
-	metin2::log::debug( "Messenger Remove {} {}", account.c_str(), companion.c_str());
+	metin2::log::debug("Messenger: {} removed {} as a friend", account.c_str(), companion.c_str());
 	
 	db_manager::instance().query(sql::format("DELETE FROM messenger_list{} WHERE account={} AND companion = {}",
 			sql::raw(get_table_postfix()), account, companion));

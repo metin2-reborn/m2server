@@ -66,11 +66,11 @@ namespace quest
 
         void operator()(character * ch)
         {
-            metin2::log::info( "CINEMASEND_TRY {}", ch->name());
+            metin2::log::debug("Party cinematic: sending to {}", ch->name());
 
             if (ch->get_desc())
             {
-                metin2::log::info( "CINEMASEND {}", ch->name());
+                metin2::log::debug("Party cinematic: sent to {}", ch->name());
                 ch->get_desc()->buffered_packet(&pack, sizeof(struct packet_script));
                 ch->get_desc()->packet(data.c_str(),data.size());
             }
@@ -82,7 +82,7 @@ namespace quest
 		if (!lua_isstring(lua, 1))
 			return 0;
 		
-		metin2::log::info( "RUN_CINEMA {}", lua_tostring(lua, 1));
+		metin2::log::debug("Party cinematic: run {}", lua_tostring(lua, 1));
 		character * ch = quest_manager::instance().current_character_ptr();
 
 		if (ch->get_party())
@@ -115,11 +115,11 @@ namespace quest
 
 		void operator()(character * ch)
 		{
-			metin2::log::info( "CINEMASEND_TRY {}", ch->name());
+			metin2::log::debug("Party script: sending to {}", ch->name());
 
 			if (ch->get_desc())
 			{
-				metin2::log::info( "CINEMASEND {}", ch->name());
+				metin2::log::debug("Party script: sent to {}", ch->name());
 				ch->get_desc()->buffered_packet(&packet_script, sizeof(struct game::protocol::packet_script));
 				ch->get_desc()->packet(str,len);
 			}
@@ -131,7 +131,7 @@ namespace quest
 		if (!lua_isstring(lua, 1))
 			return 0;
 
-		metin2::log::info( "CINEMA {}", lua_tostring(lua, 1));
+		metin2::log::debug("Party script: show {}", lua_tostring(lua, 1));
 		character * ch = quest_manager::instance().current_character_ptr();
 
 		if (ch->get_party())

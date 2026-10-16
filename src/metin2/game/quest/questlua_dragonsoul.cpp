@@ -13,7 +13,7 @@ namespace quest
 		character * const ch = quest_manager::instance().current_character_ptr();
 		if (nullptr == ch)
 		{
-			quest::error("NULL POINT ERROR");
+			quest::error("No current player");
 			return 0;
 		}
 		if (ch->dragon_soul_is_qualified())
@@ -27,7 +27,7 @@ namespace quest
 		character * const ch = quest_manager::instance().current_character_ptr();
 		if (nullptr == ch)
 		{
-			quest::error("NULL POINT ERROR");
+			quest::error("No current player");
 			return 0;
 		}
 		ch->dragon_soul_give_qualification();
@@ -40,7 +40,7 @@ namespace quest
 		character * const ch = quest_manager::instance().current_character_ptr();
 		if (nullptr == ch)
 		{
-			quest::error("NULL POINT ERROR");
+			quest::error("No current player");
 			lua_pushnumber(lua, 0);
 			return 1;
 		}

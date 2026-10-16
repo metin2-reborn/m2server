@@ -106,7 +106,7 @@ namespace quest
 	{
 		if (lua_tostring(lua, -1)==nullptr)
 		{
-			quest::error("state name is empty");
+			quest::error("State name is empty");
 			return 0;
 		}
 
@@ -118,7 +118,7 @@ namespace quest
 		{
 			luaL_error(lua, "running thread != current thread???");
 			if ( metin2::config::test_server() )
-				metin2::log::info("running thread != current thread???");
+				metin2::log::error("Running Lua thread is not the current quest thread");
 			return 0;
 		}
 
@@ -126,7 +126,7 @@ namespace quest
 		{
 			std::string stCurrentState = lua_tostring(lua,-1);
 			if ( metin2::config::test_server() )
-				metin2::log::info("questlua->setstate( {}, {} )", pPC->current_quest_name().c_str(), stCurrentState.c_str() );
+				metin2::log::debug("Quest: {} set state {}", pPC->current_quest_name().c_str(), stCurrentState.c_str());
 			pqs->st = q.quest_state_index(pPC->current_quest_name(), stCurrentState);
 			pPC->set_current_quest_state_name(stCurrentState );
 		}
@@ -138,21 +138,21 @@ namespace quest
 		quest_manager& q = quest_manager::instance();
 		if (q.is_in_other_pc_block())
 		{
-			quest::error("FATAL ERROR! Yield occur in other_pc_block.");
+			quest::error("Yield inside other_pc_block");
 			pc* pPC = q.other_pc_block_root_pc();
 			if (nullptr == pPC)
 			{
-				quest::error("	... FFFAAATTTAAALLL Error. RootPC is NULL");
+				quest::error("Root player of other_pc_block is missing");
 				return 0;
 			}
 			quest_state* pQS = pPC->running_quest_state();
 			if (nullptr == pQS || nullptr == q.quest_state_name(pPC->current_quest_name(), pQS->st))
 			{
-				quest::error("	... WHO AM I? WHERE AM I? I only know QuestName({})...", pPC->current_quest_name().c_str());
+				quest::error("Yield in quest {} with unknown state", pPC->current_quest_name().c_str());
 			}
 			else
 			{
-				quest::error("	Current Quest({}). State({})", pPC->current_quest_name().c_str(), q.quest_state_name(pPC->current_quest_name(), pQS->st));
+				quest::error("Yield in quest {} state {}", pPC->current_quest_name().c_str(), q.quest_state_name(pPC->current_quest_name(), pQS->st));
 			}
 			return 0;
 		}

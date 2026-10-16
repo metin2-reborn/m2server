@@ -118,11 +118,11 @@ auto shop_ex::buy(character * ch, uint8_t pos) -> int
 	uint8_t slotPos = pos % SHOP_HOST_ITEM_MAX_NUM;
 	if (tabIdx >= tab_count())
 	{
-		metin2::log::info( "ShopEx::Buy : invalid position {:d} : {}", pos, ch->name());
+		metin2::log::warn("Player {1} tried to buy from invalid shop slot {0:d}", pos, ch->name());
 		return SHOP_SUBHEADER_GC_INVALID_POS;
 	}
 
-	metin2::log::info( "ShopEx::Buy : name {} pos {:d}", ch->name(), pos);
+	metin2::log::debug("Shop: player {} buys slot {:d}", ch->name(), pos);
 
 	guest_map_type::iterator it = map_guest_.find(ch);
 
@@ -148,7 +148,7 @@ auto shop_ex::buy(character * ch, uint8_t pos) -> int
 
 		if (ch->gold() < (int) dwPrice)
 		{
-			metin2::log::debug( "ShopEx::Buy : Not enough money : {} has {:d}, price {:d}", ch->name(), ch->gold(), dwPrice);
+			metin2::log::debug("Shop: {} cannot afford item (has {:d}, price {:d})", ch->name(), ch->gold(), dwPrice);
 			return SHOP_SUBHEADER_GC_NOT_ENOUGH_MONEY;
 		}
 		break;
@@ -157,7 +157,7 @@ auto shop_ex::buy(character * ch, uint8_t pos) -> int
 			int count = ch->count_specify_type_item(ITEM_SECONDARY_COIN);
 			if (static_cast<uint32_t>(count) < dwPrice)
 			{
-				metin2::log::debug( "ShopEx::Buy : Not enough myeongdojun : {} has {:d}, price {:d}", ch->name(), count, dwPrice);
+				metin2::log::debug("Shop: {} lacks secondary coins (has {:d}, price {:d})", ch->name(), count, dwPrice);
 				return SHOP_SUBHEADER_GC_NOT_ENOUGH_MONEY_EX;
 			}
 		}
@@ -183,7 +183,7 @@ auto shop_ex::buy(character * ch, uint8_t pos) -> int
 
 	if (iEmptyPos < 0)
 	{
-		metin2::log::debug( "ShopEx::Buy : Inventory full : {} size {:d}", ch->name(), item->size());
+		metin2::log::debug("Shop: inventory of {} is full (item size {:d})", ch->name(), item->size());
 		item_manager::instance().destroy_item(item);
 		return SHOP_SUBHEADER_GC_INVENTORY_FULL;
 	}
@@ -215,7 +215,7 @@ auto shop_ex::buy(character * ch, uint8_t pos) -> int
 	db_manager::instance().send_money_log(MONEY_LOG_SHOP, item->vnum(), -dwPrice);
 
 	if (item)
-		metin2::log::info( "ShopEx: BUY: name {} {}(x {:d}):{:d} price {:d}", ch->name(), item->name(), item->count(), item->id(), dwPrice);
+		metin2::log::info("Shop: {} bought {} (count {:d}, id {:d}) for {:d}", ch->name(), item->name(), item->count(), item->id(), dwPrice);
 
 	ch->save();
 

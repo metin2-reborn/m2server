@@ -49,7 +49,7 @@ struct f_skill_breath
 
 					if ((signed)blue_dragon_get_skill_factor(2, "Skill0", "damage_area") < distance_approx(attacker->x()-ch->x(), attacker->y()-ch->y()))
 					{
-						metin2::log::info( "BlueDragon: Breath too far ({:d})", distance_approx(attacker->x()-ch->x(), attacker->y()-ch->y()) );
+						metin2::log::debug( "Blue dragon: target out of skill range (distance {:d})", distance_approx(attacker->x()-ch->x(), attacker->y()-ch->y()) );
 						return;
 					}
 
@@ -143,7 +143,7 @@ struct f_skill_breath
 
 					ch->damage( attacker, dam, DAMAGE_TYPE_ICE );
 
-					metin2::log::info( "BlueDragon: Breath to {} pct({:d}) dam({:d}) overlap({:d})", ch->name(), pct, dam, overlapDamageCount);
+					metin2::log::debug( "Blue dragon: breath hit {}, pct {:d}, damage {:d}, overlap {:d}", ch->name(), pct, dam, overlapDamageCount);
 				}
 			}
 		}
@@ -174,7 +174,7 @@ struct f_skill_weak_breath
 
 					if ((signed)blue_dragon_get_skill_factor(2, "Skill1", "damage_area") < distance_approx(attacker->x()-ch->x(), attacker->y()-ch->y()))
 					{
-						metin2::log::info( "BlueDragon: Breath too far ({:d})", distance_approx(attacker->x()-ch->x(), attacker->y()-ch->y()) );
+						metin2::log::debug( "Blue dragon: target out of skill range (distance {:d})", distance_approx(attacker->x()-ch->x(), attacker->y()-ch->y()) );
 						return;
 					}
 
@@ -185,7 +185,7 @@ struct f_skill_weak_breath
 
 					ch->damage( attacker, dam, DAMAGE_TYPE_ICE );
 
-					metin2::log::info( "BlueDragon: WeakBreath to {} addPct({:d}) dam({:d})", ch->name(), addPct, dam);
+					metin2::log::debug( "Blue dragon: weak breath hit {}, bonus pct {:d}, damage {:d}", ch->name(), addPct, dam);
 				}
 			}
 		}
@@ -228,7 +228,7 @@ struct f_skill_earth_quake
 
 					if ((signed)blue_dragon_get_skill_factor(2, "Skill2", "damage_area") < distance_approx(attacker->x()-ch->x(), attacker->y()-ch->y()))
 					{
-						metin2::log::info( "BlueDragon: Breath too far ({:d})", distance_approx(attacker->x()-ch->x(), attacker->y()-ch->y()) );
+						metin2::log::debug( "Blue dragon: target out of skill range (distance {:d})", distance_approx(attacker->x()-ch->x(), attacker->y()-ch->y()) );
 						return;
 					}
 
@@ -293,7 +293,7 @@ struct f_skill_earth_quake
 
 					skill_attack_affect( ch, 1000, IMMUNE_STUN, AFFECT_STUN, POINT_NONE, 0, AFF_STUN, sec, "BDRAGON_STUN" );
 
-					metin2::log::info( "BlueDragon: EarthQuake to {} addPct({:d}) dam({:d}) sec({:d})", ch->name(), addPct, dam, sec);
+					metin2::log::debug( "Blue dragon: earthquake hit {}, bonus pct {:d}, damage {:d}, stun {:d}s", ch->name(), addPct, dam, sec);
 
 
 					vector vec;

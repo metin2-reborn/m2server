@@ -173,7 +173,7 @@ struct disconnect_func
 			return;
 
 		if (d->get_character())
-			d->get_character()->disconnect("Shutdown(DisconnectFunc)");
+			d->get_character()->disconnect("server shutdown");
 
 		d->set_phase(PHASE_CLOSE);
 	}
@@ -195,7 +195,7 @@ EVENTFUNC(shutdown_event)
 
 	if ( info == nullptr )
 	{
-		metin2::log::error( "shutdown_event> <Factor> Null pointer" );
+		metin2::log::error( "Shutdown event has no info" );
 		return 0;
 	}
 
@@ -203,7 +203,7 @@ EVENTFUNC(shutdown_event)
 
 	if (*pSec < 0)
 	{
-		metin2::log::info( "shutdown_event sec {:d}", *pSec);
+		metin2::log::debug( "Shutdown countdown at {:d}", *pSec);
 
 		if (--*pSec == -10)
 		{
@@ -260,7 +260,7 @@ ACMD(do_shutdown)
 {
 	if (nullptr == ch)
 	{
-		metin2::log::error("Accept shutdown command without a character.");
+		metin2::log::info("Shutdown command issued without a character");
 	}
 	packet_gg_shutdown p;
 	p.header = HEADER_GG_SHUTDOWN;
@@ -275,7 +275,7 @@ EVENTFUNC(timed_event)
 
 	if ( info == nullptr )
 	{
-		metin2::log::error( "timed_event> <Factor> Null pointer" );
+		metin2::log::error( "Timed event has no info" );
 		return 0;
 	}
 
@@ -318,7 +318,7 @@ EVENTFUNC(timed_event)
 
 			case SCMD_PHASE_SELECT:
 				{
-					ch->disconnect("timed_event - SCMD_PHASE_SELECT");
+					ch->disconnect("returned to character select");
 
 					if (d)
 					{
@@ -517,7 +517,7 @@ ACMD(do_restart)
 			switch (subcmd)
 			{
 				case SCMD_RESTART_TOWN:
-					metin2::log::info( "do_restart: restart town");
+					metin2::log::debug( "Player {} restarts in town", ch->name());
 					pixel_position pos;
 
 					if (war_map_manager::instance().start_position(ch->map_index(), ch->get_guild()->id() < dwGuildOpponent ? 0 : 1, pos))
@@ -531,7 +531,7 @@ ACMD(do_restart)
 					break;
 
 				case SCMD_RESTART_HERE:
-					metin2::log::info( "do_restart: restart here");
+					metin2::log::debug( "Player {} restarts in place", ch->name());
 					ch->restart_at_same_pos();
 					ch->point_change(POINT_HP, ch->max_hp() - ch->hp());
 					ch->point_change(POINT_SP, ch->max_sp() - ch->sp());
@@ -546,7 +546,7 @@ ACMD(do_restart)
 	switch (subcmd)
 	{
 		case SCMD_RESTART_TOWN:
-			metin2::log::info( "do_restart: restart town");
+			metin2::log::debug( "Player {} restarts in town", ch->name());
 			pixel_position pos;
 
 			if (sectree_manager::instance().recall_position_by_empire(ch->map_index(), ch->empire(), pos))
@@ -559,7 +559,7 @@ ACMD(do_restart)
 			break;
 
 		case SCMD_RESTART_HERE:
-			metin2::log::info( "do_restart: restart here");
+			metin2::log::debug( "Player {} restarts in place", ch->name());
 			ch->restart_at_same_pos();
 			ch->point_change(POINT_HP, 50 - ch->hp());
 			ch->death_penalty(0);
@@ -1040,16 +1040,16 @@ ACMD(do_war)
 		if (g->ladder_point() == 0)
 		{
 			ch->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> 레더 점수가 모자라서 길드전을 할 수 없습니다."));
-			metin2::log::info( "GuildWar.StartError.NEED_LADDER_POINT");
+			metin2::log::debug( "Guild war refused: guild {} has no ladder points", g->name());
 		}
 		else if (g->member_count() < GUILD_WAR_MIN_MEMBER_COUNT)
 		{
 			ch->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> 길드전을 하기 위해선 최소한 %d명이 있어야 합니다."), GUILD_WAR_MIN_MEMBER_COUNT);
-			metin2::log::info( "GuildWar.StartError.NEED_MINIMUM_MEMBER[{:d}]", GUILD_WAR_MIN_MEMBER_COUNT);
+			metin2::log::debug( "Guild war refused: fewer than {:d} members", GUILD_WAR_MIN_MEMBER_COUNT);
 		}
 		else
 		{
-			metin2::log::info( "GuildWar.StartError.UNKNOWN_ERROR");
+			metin2::log::debug( "Guild war refused: guild {} cannot start war type {:d}", g->name(), type);
 		}
 		return;
 	}
@@ -1970,7 +1970,7 @@ ACMD(do_cube)
 	if (!ch->can_do_cube())
 		return;
 
-	metin2::log::debug( "CUBE COMMAND <{}>: {}", ch->name(), argument);
+	metin2::log::debug( "Cube command from player {}: {}", ch->name(), argument);
 	int cube_index = 0, inven_index = 0;
 	const char *line;
 
@@ -2056,7 +2056,7 @@ ACMD(do_cube)
 			if (0 != arg2[0])
 			{
 				while (true == cube_make(ch))
-					metin2::log::debug( "cube make success");
+					metin2::log::debug( "Cube: item made");
 			}
 			else
 				cube_make(ch);
@@ -2129,21 +2129,20 @@ ACMD(do_click_mall)
 
 ACMD(do_ride)
 {
-    metin2::log::debug( "[DO_RIDE] start");
     if (ch->is_dead() || ch->is_stun())
 	return;
 
     {
 	if (ch->is_horse_riding())
 	{
-	    metin2::log::debug( "[DO_RIDE] stop riding");
+	    metin2::log::debug( "Player {} stops riding", ch->name());
 	    ch->stop_riding(); 
 	    return;
 	}
 
 	if (ch->get_mount_vnum())
 	{
-	    metin2::log::debug( "[DO_RIDE] unmount");
+	    metin2::log::debug( "Player {} unmounts", ch->name());
 	    do_unmount(ch, nullptr, 0, 0);
 	    return;
 	}
@@ -2152,7 +2151,7 @@ ACMD(do_ride)
     {
 	if (ch->horse() != nullptr)
 	{
-	    metin2::log::debug( "[DO_RIDE] start riding");
+	    metin2::log::debug( "Player {} starts riding", ch->name());
 	    ch->start_riding();
 	    return;
 	}
@@ -2167,7 +2166,7 @@ ACMD(do_ride)
 		{
 			if (nullptr==ch->wear(WEAR_UNIQUE1) || nullptr==ch->wear(WEAR_UNIQUE2))
 			{
-				metin2::log::debug( "[DO_RIDE] USE UNIQUE ITEM");
+				metin2::log::debug( "Player {} rides via unique item {}", ch->name(), item->vnum());
 				ch->use_item(item_pos (INVENTORY, i));
 				return;
 			}
@@ -2179,13 +2178,13 @@ ACMD(do_ride)
 		case 71116:
 		case 71118:
 		case 71120:
-		    metin2::log::debug( "[DO_RIDE] USE QUEST ITEM");
+		    metin2::log::debug( "Player {} rides via quest item {}", ch->name(), item->vnum());
 		    ch->use_item(item_pos (INVENTORY, i));
 		    return;
 	    }
 
 		if( (item->vnum() > 52000) && (item->vnum() < 52091) )	{
-			metin2::log::debug( "[DO_RIDE] USE QUEST ITEM");
+			metin2::log::debug( "Player {} rides via quest item {}", ch->name(), item->vnum());
 			ch->use_item(item_pos (INVENTORY, i));
 		    return;
 		}

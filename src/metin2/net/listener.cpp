@@ -19,7 +19,7 @@ namespace metin2::net {
         std::error_code error;
         const auto ip = asio::ip::make_address(address, error);
         if (error) {
-            metin2::log::error("invalid listen address {}: {}", address.c_str(), error.message().c_str());
+            metin2::log::error("Invalid listen address {}: {}", address.c_str(), error.message().c_str());
             return nullptr;
         }
 
@@ -30,7 +30,7 @@ namespace metin2::net {
         if (!error) acceptor.bind(endpoint, error);
         if (!error) acceptor.listen(asio::socket_base::max_listen_connections, error);
         if (error) {
-            metin2::log::error("cannot listen on {}:{:d}: {}", address.c_str(), port, error.message().c_str());
+            metin2::log::error("Cannot listen on {}:{:d}: {}", address.c_str(), port, error.message().c_str());
             return nullptr;
         }
 
@@ -61,7 +61,7 @@ namespace metin2::net {
             if (!error) {
                 self->on_accept_(std::move(socket));
             } else {
-                metin2::log::error("accept: {}", error.message().c_str());
+                metin2::log::error("Cannot accept connection: {}", error.message().c_str());
             }
             self->accept();
         });

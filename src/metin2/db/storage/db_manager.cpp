@@ -75,21 +75,21 @@ auto db_manager::connect(int slot, const char *db_address, const int db_port, co
     if (slot < 0 || slot >= SQL_MAX_NUM)
         return false;
 
-    metin2::log::info( "CREATING DIRECT_SQL");
+    metin2::log::debug("Opening direct sql connection");
     direct_sql_[slot] = std::make_unique<async_sql>();
     if (!direct_sql_[slot]->setup(db_address, user, pwd, db_name, CONNECTION_CHARSET, true, db_port)) {
         clear();
         return false;
     }
 
-    metin2::log::info( "CREATING MAIN_SQL");
+    metin2::log::debug("Opening main sql connection");
     main_sql_[slot] = std::make_unique<async_sql>();
     if (!main_sql_[slot]->setup(db_address, user, pwd, db_name, CONNECTION_CHARSET, false, db_port)) {
         clear();
         return false;
     }
 
-    metin2::log::info( "CREATING ASYNC_SQL");
+    metin2::log::debug("Opening async sql connection");
     async_sql_[slot] = std::make_unique<async_sql>();
     if (!async_sql_[slot]->setup(db_address, user, pwd, db_name, CONNECTION_CHARSET, false, db_port)) {
         clear();

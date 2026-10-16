@@ -62,7 +62,7 @@ void shop::set_pc_shop(character * ch)
 
 auto shop::create(uint32_t vnum_value, uint32_t npc_vnum, shop_item_table * table) -> bool
 {
-	metin2::log::info( "SHOP #{:d} (Shopkeeper {:d})", vnum_value, npc_vnum);
+	metin2::log::debug("Shop: creating shop {:d} (npc {:d})", vnum_value, npc_vnum);
 
 	vnum_ = vnum_value;
 
@@ -97,7 +97,7 @@ void shop::set_shop_items(shop_item_table * table_value, uint8_t item_count)
 
 			if (!pkItem)
 			{
-				metin2::log::error("cannot find item on pos ({:d}, {:d}) (name: {})", table_value->pos.window_type, table_value->pos.cell, pc_->name());
+				metin2::log::error("Personal shop of {2}: no item in window {0:d} cell {1:d}", table_value->pos.window_type, table_value->pos.cell, pc_->name());
 				continue;
 			}
 
@@ -113,7 +113,7 @@ void shop::set_shop_items(shop_item_table * table_value, uint8_t item_count)
 
 		if (!item_table)
 		{
-			metin2::log::error("Shop: no item table by item vnum #{:d}", table_value->vnum);
+			metin2::log::error("Shop item vnum {:d} has no item proto", table_value->vnum);
 			continue;
 		}
 
@@ -121,7 +121,7 @@ void shop::set_shop_items(shop_item_table * table_value, uint8_t item_count)
 
 		if (is_pc_shop())
 		{
-			metin2::log::info( "MyShop: use position {:d}", table_value->display_pos);
+			metin2::log::debug("Personal shop: using slot {:d}", table_value->display_pos);
 			iPos = table_value->display_pos;
 		}
 		else
@@ -129,7 +129,7 @@ void shop::set_shop_items(shop_item_table * table_value, uint8_t item_count)
 
 		if (iPos < 0)
 		{
-			metin2::log::error("not enough shop window");
+			metin2::log::error("Shop {:d} has no room for item vnum {:d}", vnum_, table_value->vnum);
 			continue;
 		}
 
@@ -137,11 +137,11 @@ void shop::set_shop_items(shop_item_table * table_value, uint8_t item_count)
 		{
 			if (is_pc_shop())
 			{
-				metin2::log::error("not empty position for pc shop {}[{:d}]", pc_->name(), pc_->player_id());
+				metin2::log::error("Personal shop slot is taken for player {} (pid {:d})", pc_->name(), pc_->player_id());
 			}
 			else
 			{
-				metin2::log::error("not empty position for npc shop");
+				metin2::log::error("Shop {:d} slot is taken for item vnum {:d}", vnum_, table_value->vnum);
 			}
 			continue;
 		}
@@ -179,7 +179,7 @@ void shop::set_shop_items(shop_item_table * table_value, uint8_t item_count)
 		char name[36];
 		snprintf(name, sizeof(name), "%-20s(#%-5d) (x %d)", item_table->name, (int) item.vnum, item.count);
 
-		metin2::log::info( "SHOP_ITEM: {:<36} PRICE {:<5d}", name, item.price);
+		metin2::log::debug("Shop: item {} price {:d}", name, item.price);
 		++table_value;
 	}
 }
@@ -188,11 +188,11 @@ auto shop::buy(character * ch, uint8_t pos) -> int
 {
 	if (pos >= item_vector_.size())
 	{
-		metin2::log::info( "Shop::Buy : invalid position {:d} : {}", pos, ch->name());
+		metin2::log::warn("Player {1} tried to buy from invalid shop slot {0:d}", pos, ch->name());
 		return SHOP_SUBHEADER_GC_INVALID_POS;
 	}
 
-	metin2::log::info( "Shop::Buy : name {} pos {:d}", ch->name(), pos);
+	metin2::log::debug("Shop: player {} buys slot {:d}", ch->name(), pos);
 
 	guest_map_type::iterator it = map_guest_.find(ch);
 
@@ -213,7 +213,7 @@ auto shop::buy(character * ch, uint8_t pos) -> int
 	{
 		if (!pkSelectedItem)
 		{
-			metin2::log::info( "Shop::Buy : Critical: This user seems to be a hacker : invalid pcshop item : BuyerPID:{:d} SellerPID:{:d}",
+			metin2::log::warn("Player (pid {:d}) tried to buy an invalid item from the personal shop of pid {:d} (possible cheat)",
 					ch->player_id(),
 					pc_->player_id());
 
@@ -222,7 +222,7 @@ auto shop::buy(character * ch, uint8_t pos) -> int
 
 		if ((pkSelectedItem->owner() != pc_))
 		{
-			metin2::log::info( "Shop::Buy : Critical: This user seems to be a hacker : invalid pcshop item : BuyerPID:{:d} SellerPID:{:d}",
+			metin2::log::warn("Player (pid {:d}) tried to buy an invalid item from the personal shop of pid {:d} (possible cheat)",
 					ch->player_id(),
 					pc_->player_id());
 
@@ -234,7 +234,7 @@ auto shop::buy(character * ch, uint8_t pos) -> int
 
 	if (llPrice > GOLD_MAX)
 	{
-		metin2::log::info( "Shop::Buy : price overflow : {} price {:d}", ch->name(), static_cast<long long>(llPrice));
+		metin2::log::warn("Player {} tried to buy for {:d} gold, above the gold limit", ch->name(), static_cast<long long>(llPrice));
 		return SHOP_SUBHEADER_GC_NOT_ENOUGH_MONEY;
 	}
 
@@ -242,7 +242,7 @@ auto shop::buy(character * ch, uint8_t pos) -> int
 
 	if (ch->gold() < (int) dwPrice)
 	{
-		metin2::log::debug( "Shop::Buy : Not enough money : {} has {:d}, price {:d}", ch->name(), ch->gold(), dwPrice);
+		metin2::log::debug("Shop: {} cannot afford item (has {:d}, price {:d})", ch->name(), ch->gold(), dwPrice);
 		return SHOP_SUBHEADER_GC_NOT_ENOUGH_MONEY;
 	}
 
@@ -281,12 +281,12 @@ auto shop::buy(character * ch, uint8_t pos) -> int
 	{
 		if (pc_)
 		{
-			metin2::log::debug( "Shop::Buy at PC Shop : Inventory full : {} size {:d}", ch->name(), item->size());
+			metin2::log::debug("Personal shop: inventory of {} is full (item size {:d})", ch->name(), item->size());
 			return SHOP_SUBHEADER_GC_INVENTORY_FULL;
 		}
 		else
 		{
-			metin2::log::debug( "Shop::Buy : Inventory full : {} size {:d}", ch->name(), item->size());
+			metin2::log::debug("Shop: inventory of {} is full (item size {:d})", ch->name(), item->size());
 			item_manager::instance().destroy_item(item);
 			return SHOP_SUBHEADER_GC_INVENTORY_FULL;
 		}
@@ -372,7 +372,7 @@ auto shop::buy(character * ch, uint8_t pos) -> int
 	}
 
 	if (item)
-		metin2::log::info( "SHOP: BUY: name {} {}(x {:d}):{:d} price {:d}", ch->name(), item->name(), item->count(), item->id(), dwPrice);
+		metin2::log::info("Shop: {} bought {} (count {:d}, id {:d}) for {:d}", ch->name(), item->name(), item->count(), item->id(), dwPrice);
 
     ch->save();
 
@@ -460,7 +460,7 @@ void shop::remove_guest(character * ch)
 
 void shop::broadcast(const void * data, int bytes)
 {
-	metin2::log::debug( "Shop::Broadcast {} {:d}", static_cast<const void *>(data), bytes);
+	metin2::log::debug("Shop: broadcast {} ({:d} bytes)", static_cast<const void *>(data), bytes);
 
 	guest_map_type::iterator it;
 

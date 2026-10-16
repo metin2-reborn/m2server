@@ -71,7 +71,7 @@ namespace metin2::net {
     void connection::read() {
         if (input_.size() - input_size_ < min_read_space) {
             if (input_size_ >= max_input_) {
-                metin2::log::error("{}: input exceeds {:d} bytes", address_.c_str(), max_input_);
+                metin2::log::warn("{}: input buffer exceeds {:d} bytes, closing connection", address_.c_str(), max_input_);
                 fail(asio::error::message_size);
                 return;
             }
@@ -97,7 +97,7 @@ namespace metin2::net {
             return;
         }
         if (consumed > input_size_) {
-            metin2::log::error("{}: handler consumed {:d} of {:d} bytes", address_.c_str(), consumed, input_size_);
+            metin2::log::error("{}: packet handler consumed {:d} bytes but only {:d} were buffered, closing connection", address_.c_str(), consumed, input_size_);
             fail(asio::error::invalid_argument);
             return;
         }

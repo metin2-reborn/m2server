@@ -86,7 +86,7 @@ void priv_manager::add_char_priv(uint32_t pid, uint8_t type, int value)
 {
 	if (MAX_PRIV_NUM <= type)
 	{
-		metin2::log::error("PRIV_MANAGER: AddCharPriv: wrong char priv type({:d}) recved", type);
+		metin2::log::warn("Received invalid player privilege type {:d}", type);
 		return;
 	}
 
@@ -109,7 +109,7 @@ void priv_manager::add_char_priv(uint32_t pid, uint8_t type, int value)
 	pq_priv_char_.push(std::make_pair(now+iDuration, p));
 	priv_char_[type].insert(std::make_pair(pid, p));
 
-	metin2::log::info( "AddCharPriv {:d} {:d} {:d}", pid, type, value);
+	metin2::log::info("Privilege: player pid {:d} type {:d} value {:d}", pid, type, value);
 	send_change_char_priv(pid, type, value);
 }
 
@@ -117,7 +117,7 @@ void priv_manager::add_guild_priv(uint32_t guild_id, uint8_t type, int value, ti
 {
 	if (MAX_PRIV_NUM <= type)
 	{
-		metin2::log::error("PRIV_MANAGER: AddGuildPriv: wrong guild priv type({:d}) recved", type);
+		metin2::log::warn("Received invalid guild privilege type {:d}", type);
 		return;
 	}
 
@@ -135,14 +135,14 @@ void priv_manager::add_guild_priv(uint32_t guild_id, uint8_t type, int value, ti
 
 	send_change_guild_priv(guild_id, type, value, end);
 
-	metin2::log::info( "Guild Priv guild({:d}) type({:d}) value({:d}) duration_sec({:d})", guild_id, type, value, duration_sec);
+	metin2::log::info("Privilege: guild {:d} type {:d} value {:d} for {:d} s", guild_id, type, value, duration_sec);
 }
 
 void priv_manager::add_empire_priv(uint8_t empire, uint8_t type, int value, time_t duration_sec)
 {
 	if (MAX_PRIV_NUM <= type)
 	{
-		metin2::log::error("PRIV_MANAGER: AddEmpirePriv: wrong empire priv type({:d}) recved", type);
+		metin2::log::warn("Received invalid empire privilege type {:d}", type);
 		return;
 	}
 
@@ -163,7 +163,7 @@ void priv_manager::add_empire_priv(uint8_t empire, uint8_t type, int value, time
 
 	send_change_empire_priv(empire, type, value, end);
 
-	metin2::log::info( "Empire Priv empire({:d}) type({:d}) value({:d}) duration_sec({:d})", empire, type, value, duration_sec);
+	metin2::log::info("Privilege: empire {:d} type {:d} value {:d} for {:d} s", empire, type, value, duration_sec);
 }
 
 struct f_send_change_guild_priv

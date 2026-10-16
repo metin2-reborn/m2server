@@ -60,8 +60,8 @@ class party_manager : public singleton<party_manager>
 
 		void		initialize();
 
-		void		enable_pc_party() { enable_pc_party_ = true; metin2::log::info("PARTY Enable"); }
-		void		disable_pc_party() { enable_pc_party_ = false; metin2::log::info("PARTY Disable"); }
+		void		enable_pc_party() { enable_pc_party_ = true; metin2::log::info("Party: player parties enabled"); }
+		void		disable_pc_party() { enable_pc_party_ = false; metin2::log::info("Party: player parties disabled"); }
 		auto		is_enable_pc_party() -> bool { return enable_pc_party_; }
 
 		auto		create_party(character * leader) -> party *;

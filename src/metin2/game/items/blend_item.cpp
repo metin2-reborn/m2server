@@ -39,13 +39,13 @@ auto	blend_item_init() -> bool
 	char	file_name[256];
 	snprintf (file_name, sizeof(file_name), "%s/blend.txt", locale_service_get_base_path().c_str());
 
-	metin2::log::info( "Blend_Item_init {} ", file_name);
+	metin2::log::info("Blend: loading {}", file_name);
 
 	blend_info.clear();
 
 	if (false==blend_item_load(file_name))
 	{
-		metin2::log::error("<Blend_Item_init> fail");
+		metin2::log::error("Cannot load blend items from {}", file_name);
 		return false;
 	}
 	return true;
@@ -104,7 +104,7 @@ auto	blend_item_load(char *file) -> bool
 
 			if (0 == (blend_item_info.apply_type = fn_get_apply_type(v)))
 			{
-				metin2::log::error("Invalid apply_type({})", v);
+				metin2::log::error("Unknown blend apply type {}", v);
 				fclose(fp);
 				return false;
 			}
@@ -214,7 +214,7 @@ auto	blend_item_set_value(item * item) -> bool
 				apply_value		= blend_info_value->apply_value		[fn_random_index()];
 				apply_duration	= blend_info_value->apply_duration	[fn_random_index()];
 			}
-			metin2::log::info( "blend_item : type : {:d}, value : {:d}, du : {:d}", apply_type, apply_value, apply_duration);
+			metin2::log::debug("Blend: apply type {:d}, value {:d}, duration {:d}", apply_type, apply_value, apply_duration);
 			item->set_socket(0, apply_type);
 			item->set_socket(1, apply_value);
 			item->set_socket(2, apply_duration);

@@ -109,7 +109,7 @@ static auto get_motion_file_name(mob_table* mob_table_value, public_motion motio
 
 			default:
 				fclose(fp);
-				metin2::log::error("Motion: no process for this motion({:d}) vnum({:d})", motion, mob_table_value->vnum);
+				metin2::log::error("No handler for motion {:d} (mob vnum {:d})", motion, mob_table_value->vnum);
 				return nullptr;
 		}
 
@@ -138,7 +138,7 @@ static auto get_motion_file_name(mob_table* mob_table_value, public_motion motio
 	}
 	else
 	{
-		metin2::log::error("Motion: {} have not motlist.txt vnum({:d}) folder({})", folder, mob_table_value->vnum, mob_table_value->folder);
+		metin2::log::error("No motlist.txt in {} for mob vnum {:d} (folder {})", folder, mob_table_value->vnum, mob_table_value->folder);
 	}
 
 	return nullptr;
@@ -159,13 +159,13 @@ static void load_motion(motion_set* motion_set_value, mob_table* mob_table, publ
 	{
 		if (motion == MOTION_RUN)
 			if (0.0f == pMotion->accum_vector().y)
-				metin2::log::error("cannot find accumulation data in file '{}'", cpFileName);
+				metin2::log::warn("No accumulation data in run motion file {}", cpFileName);
 
 		motion_set_value->insert(make_motion_key(MOTION_MODE_GENERAL, motion), std::move(pMotion));
 	}
 	else
 	{
-		metin2::log::error("Motion: Load failed vnum({:d}) motion({:d}) file({})", mob_table->vnum, motion, cpFileName);
+		metin2::log::error("Cannot load motion for mob vnum {:d} (motion {:d}) from {}", mob_table->vnum, motion, cpFileName);
 	}
 }
 
@@ -202,7 +202,7 @@ static void load_skill_motion(motion_set* motion_set_value, mob* mob_value, publ
 	{
 		if (mob_table->skills[idx].vnum != 0)
 		{
-			metin2::log::error("Motion: Skill exist but no motion data for index {:d} mob {:d} skill {:d}",
+			metin2::log::error("No motion data for skill index {:d} of mob {:d} (skill {:d})",
 				   	idx, mob_table->vnum, mob_table->skills[idx].vnum);
 		}
 	}
@@ -354,7 +354,7 @@ auto motion_manager::build() -> bool
 			load_skill_motion(pkMotionSet, pkMob, MOTION_SPECIAL_5);
 
 			float normalAttackDuration = mob_get_normal_attack_duration(t);
-			metin2::log::info( "mob_normal_attack_duration:{:d}:{}:{:.2f}", t->vnum, t->folder, normalAttackDuration);
+			metin2::log::debug("Mob {:d} ({}): normal attack duration {:.2f}", t->vnum, t->folder, normalAttackDuration);
 			map_normal_attack_duration_.insert(std::map<uint32_t, float>::value_type(t->vnum, normalAttackDuration));
 		}
 	}
@@ -418,7 +418,7 @@ auto motion::load_mob_skill_from_file(const char * file_name, mob* mob_value, in
 
 	if (!rkTextFileLoader.token_float("motionduration", &duration_))
 	{
-		metin2::log::error("Motion: no motion duration {}", file_name);
+		metin2::log::error("Motion file {} has no duration", file_name);
 		return false;
 	}
 
@@ -440,14 +440,14 @@ auto motion::load_mob_skill_from_file(const char * file_name, mob* mob_value, in
 			{
 				if (!rkTextFileLoader.set_child_node("event", j))
 				{
-					metin2::log::error("Motion: no event data {:d} {}", j, file_name);
+					metin2::log::error("Motion event {:d} has no data in {}", j, file_name);
 					return false;
 				}
 
 				int iType;
 				if (!rkTextFileLoader.token_integer("motioneventtype", &iType))
 				{
-					metin2::log::error("Motion: no motioneventtype data {}", file_name);
+					metin2::log::error("Motion file {} has no event type", file_name);
 					return false;
 				}
 
@@ -469,13 +469,13 @@ auto motion::load_mob_skill_from_file(const char * file_name, mob* mob_value, in
 					case MOTION_EVENT_TYPE_SPECIAL_ATTACKING:
 						if (!rkTextFileLoader.set_child_node("spheredata", 0))
 						{
-							metin2::log::error("Motion: no sphere data {}", file_name);
+							metin2::log::error("Motion file {} has no sphere data", file_name);
 							return false;
 						}
 
 						if (!rkTextFileLoader.token_position("position", &v3Position))
 						{
-							metin2::log::error("Motion: no position data {}", file_name);
+							metin2::log::error("Motion file {} has no position data", file_name);
 							return false;
 						}
 
@@ -491,7 +491,7 @@ auto motion::load_mob_skill_from_file(const char * file_name, mob* mob_value, in
 
 				if (!rkTextFileLoader.token_float("startingtime", &fStartingTime))
 				{
-					metin2::log::error("Motion: no startingtime data {}", file_name);
+					metin2::log::error("Motion file {} has no starting time", file_name);
 					return false;
 				}
 
@@ -514,19 +514,19 @@ auto motion::load_from_file(const char * file_name) -> bool
 
 	if (!loader.load(file_name))
 	{
-		metin2::log::info( "Motion: LoadFromFile fail: {}", file_name);
+		metin2::log::debug("Cannot load motion file {}", file_name);
 		return false;
 	}
 
 	if (!loader.token_float("motionduration", &duration_))
 	{
-		metin2::log::error("Motion: {} does not have a duration", file_name);
+		metin2::log::error("Motion file {} has no duration", file_name);
 		return false;
 	}
 
 	if (loader.token_position("accumulation", &vec3_accumulation_))
 
-	metin2::log::debug( "{:<48} {:.3f} {:f}", strchr(file_name, '/') + 1, duration(), accum_vector().y);
+	metin2::log::debug("Motion {}: duration {:.3f}, accumulation y {:f}", strchr(file_name, '/') + 1, duration(), accum_vector().y);
 
 	return true;
 }

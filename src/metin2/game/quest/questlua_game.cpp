@@ -116,7 +116,7 @@ namespace quest
 
 		if (!item)
 		{
-			quest::error("cannot create item vnum {:d} count {:d}", item_vnum, count);
+			quest::error("Cannot create item (vnum {:d}, count {:d})", item_vnum, count);
 			return 0;
 		}
 

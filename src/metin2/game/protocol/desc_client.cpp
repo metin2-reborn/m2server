@@ -70,7 +70,7 @@ void client_desc::destroy()
 		guild_manager::instance().stop_all_guild_war();
 	}
 
-	metin2::log::info( "SYSTEM: closing connection to {}:{:d}", host_.c_str(), port_);
+	metin2::log::info( "Closing connection to {}:{:d}", host_.c_str(), port_);
 
 	desc::destroy();
 }
@@ -93,7 +93,7 @@ auto client_desc::connect(int phase_when_succeed) -> bool
 	if (connection_)
 		return false;
 
-	metin2::log::info( "SYSTEM: Trying to connect to {}:{:d}", host_.c_str(), port_);
+	metin2::log::info( "Connecting to {}:{:d}", host_.c_str(), port_);
 
 	// Blocking (up to 10 s) so packets sent right after the connect stay in order.
 	auto socket = net::connect(host_, port_, std::chrono::seconds(10));
@@ -102,7 +102,7 @@ auto client_desc::connect(int phase_when_succeed) -> bool
 	{
 		connection_ = net::connection::create(std::move(*socket), MAX_SERVER_INPUT, MAX_SERVER_OUTPUT);
 		connection_->start(*this);
-		metin2::log::info( "SYSTEM: connected to server (ptr {})", static_cast<const void *>(this));
+		metin2::log::info( "Connected to {}:{:d} ({})", host_.c_str(), port_, static_cast<const void *>(this));
 		set_phase(phase_when_succeed_);
 		return true;
 	}
@@ -124,13 +124,13 @@ void client_desc::set_phase(int phase)
 	switch (phase)
 	{
 		case PHASE_CLIENT_CONNECTING:
-			metin2::log::debug( "PHASE_CLIENT_DESC::CONNECTING");
+			metin2::log::debug( "Connection to {}:{:d} waiting to reconnect", host_.c_str(), port_);
 			input_processor_ = nullptr;
 			break;
 
 		case PHASE_DBCLIENT:
 			{
-				metin2::log::debug( "PHASE_DBCLIENT");
+				metin2::log::debug( "Db connection established, sending setup");
 
 				if (!metin2::config::is_auth())
 				{
@@ -198,7 +198,7 @@ void client_desc::set_phase(int phase)
 						}
 					}
 
-					metin2::log::info( "DB_SETUP current user {:d} size {:d}", p.login_count, buf.size());
+					metin2::log::info( "Db setup: {:d} users logged in, {:d} bytes", p.login_count, buf.size());
 
 					party_manager::instance().enable_pc_party();
 				}
@@ -214,7 +214,7 @@ void client_desc::set_phase(int phase)
 			break;
 
 		case PHASE_P2P:
-			metin2::log::debug( "PHASE_P2P");
+			metin2::log::debug( "Peer connection entered p2p phase");
 			input_processor_ = &input_p2_p_;
 			break;
 
@@ -237,11 +237,11 @@ void client_desc::db_packet_header(uint8_t header, uint32_t handle, uint32_t siz
 void client_desc::db_packet(uint8_t header, uint32_t handle, const void * data, uint32_t size)
 {
 	if (!connection_) {
-		metin2::log::info( "CLIENT_DESC [{}] trying DBPacket() while not connected",
+		metin2::log::warn( "Db packet to {} dropped: not connected",
 			get_known_client_desc_name(this));
 		return;
 	}
-	metin2::log::debug( "DB_PACKET: header {:d} handle {:d} size {:d} pending {:d}", header, handle, size, connection_->pending_output());
+	metin2::log::debug( "Db packet out: header {:d}, handle {:d}, size {:d}, {:d} bytes pending", header, handle, size, connection_->pending_output());
 	db_packet_header(header, handle, size);
 
 	if (data)
@@ -251,7 +251,7 @@ void client_desc::db_packet(uint8_t header, uint32_t handle, const void * data, 
 void client_desc::packet(const void * data, int size)
 {
 	if (!connection_) {
-		metin2::log::info( "CLIENT_DESC [{}] trying Packet() while not connected",
+		metin2::log::warn( "Packet to {} dropped: not connected",
 			get_known_client_desc_name(this));
 		return;
 	}

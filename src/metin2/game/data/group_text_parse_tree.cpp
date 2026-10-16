@@ -76,9 +76,9 @@ auto group_text_parse_tree_loader::load_group(group_node * group_node_value) -> 
 		{
 			if (2 != stTokenVector.size())
 			{
-				metin2::log::error("Invalid group syntax token size: {:d} != 2 (DO NOT SPACE IN NAME)", stTokenVector.size());
+				metin2::log::error("{} line {:d}: group line has {:d} tokens instead of 2 (group names must not contain spaces)", file_name_.c_str(), dwcur_line_index_, stTokenVector.size());
 				for (unsigned int i = 0; i < stTokenVector.size(); ++i)
-					metin2::log::error("  {:d} {}", i, stTokenVector[i].c_str());
+					metin2::log::error("Token {:d}: {}", i, stTokenVector[i].c_str());
 				exit(1);
 				continue;
 			}
@@ -108,7 +108,7 @@ auto group_text_parse_tree_loader::load_group(group_node * group_node_value) -> 
 
 			if (1 == stTokenVector.size())
 			{
-				metin2::log::error("CGroupTextParseTreeLoader::LoadGroup : must have a value (filename: {} line: {:d} key: {})",
+				metin2::log::error("{} line {:d}: key {} has no value",
 						file_name_.c_str(),
 						dwcur_line_index_,
 						key.c_str());

@@ -85,19 +85,13 @@ auto battle_is_attackable(character * ch, character * victim) -> bool
 auto battle_melee_attack(character * ch, character * victim) -> int
 {
 	if (metin2::config::test_server()&&ch->is_pc())
-		metin2::log::info( "battle_melee_attack : [{}] attack to [{}]", ch->name(), victim->name());
+		metin2::log::debug("Melee attack: {} -> {}", ch->name(), victim->name());
 
 	if (!victim || ch == victim)
 		return BATTLE_NONE;
 
-	if (metin2::config::test_server()&&ch->is_pc())
-		metin2::log::info( "battle_melee_attack : [{}] attack to [{}]", ch->name(), victim->name());
-
 	if (!battle_is_attackable(ch, victim))
 		return BATTLE_NONE;
-
-	if (metin2::config::test_server()&&ch->is_pc())
-		metin2::log::info( "battle_melee_attack : [{}] attack to [{}]", ch->name(), victim->name());
 
 	int distance = distance_approx(ch->x() - victim->x(), ch->y() - victim->y());
 
@@ -118,7 +112,7 @@ auto battle_melee_attack(character * ch, character * victim) -> int
 		if (distance > max)
 		{
 			if (metin2::config::test_server())
-				metin2::log::info( "VICTIM_FAR: {} distance: {:d} max: {:d}", ch->name(), distance, max);
+				metin2::log::debug("Melee attack: target of {} too far (distance {:d}, max {:d})", ch->name(), distance, max);
 
 			return BATTLE_NONE;
 		}
@@ -328,7 +322,7 @@ void item_get_damage(item * item_value, int* pdam_min, int* pdam_max)
 	}
 
 	if (item_value->type() != ITEM_WEAPON)
-		metin2::log::error("Item_GetDamage - !ITEM_WEAPON vnum={:d}, type={:d}", item_value->original_vnum(), item_value->type());
+		metin2::log::error("Item {:d} is not a weapon (type {:d})", item_value->original_vnum(), item_value->type());
 
 	*pdam_min = item_value->value(3);
 	*pdam_max = item_value->value(4);
@@ -355,7 +349,7 @@ auto calc_melee_damage(character * attacker, character * victim, bool ignore_def
 				break;
 
 			case WEAPON_BOW:
-				metin2::log::error("CalcMeleeDamage should not handle bows (name: {})", attacker->name());
+				metin2::log::error("Melee damage computed for a bow attack by {}", attacker->name());
 				return 0;
 
 			default:
@@ -574,7 +568,7 @@ void normal_attack_affect(character * attacker, character * victim)
 auto battle_hit(character * attacker, character * victim, int & ret_dam) -> int
 {
 	if (metin2::config::test_server())
-		metin2::log::info( "battle_hit : [{}] attack to [{}] : dam :{:d}", attacker->name(), victim->name(), ret_dam);
+		metin2::log::debug("Hit: {} -> {}, damage {:d}", attacker->name(), victim->name(), ret_dam);
 
 	int iDam = calc_melee_damage(attacker, victim);
 
@@ -684,7 +678,7 @@ auto is_speed_hack(character * ch, character * victim, uint32_t current_time) ->
 
 			if (metin2::config::test_server())
 			{
-				metin2::log::info( "{} attack hack! time (delta, limit)=({:d}, {:d}) hack_count {:d}",
+				metin2::log::warn("Possible attack speed hack by {}: attack interval {:d} ms below limit {:d} ms (count {:d})",
 						ch->name(),
 						current_time - ch->attack_log.time,
 						get_attack_speed(ch),
@@ -713,7 +707,7 @@ auto is_speed_hack(character * ch, character * victim, uint32_t current_time) ->
 
 			if (metin2::config::test_server())
 			{
-				metin2::log::info( "{} Attack Speed HACK! time (delta, limit)=({:d}, {:d}), hack_count = {:d}",
+				metin2::log::warn("Possible attack speed hack by {}: hit interval on victim {:d} ms below limit {:d} ms (count {:d})",
 						ch->name(),
 						current_time - victim->attacked_log.attacked_time,
 						get_attack_speed(ch),

@@ -58,7 +58,7 @@ void buff_on_attributes::remove_buff_from_item(item * item_value)
 			}
 			else
 			{
-				metin2::log::error("Buff ERROR(type {:d}). This item({:d}) attr_type({:d}) was not in buff pool", point_type_, item_value->vnum(), attr.type);
+				metin2::log::error("Buff for point type {:d}: attribute of item {:d} (type {:d}) is not in the buff pool", point_type_, item_value->vnum(), attr.type);
 				return;
 			}
 		}

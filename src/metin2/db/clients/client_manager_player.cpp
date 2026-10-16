@@ -223,7 +223,7 @@ void client_manager::query_player_load(peer * peer, uint32_t handle_value, playe
 
 		if (!pkLD || pkLD->is_play())
 		{
-			metin2::log::info( "PLAYER_LOAD_ERROR: LoginData {} IsPlay {:d}", static_cast<const void *>(pkLD), pkLD ? pkLD->is_play() : 0);
+			metin2::log::warn("Cannot load player pid {:d} from cache: login data {}, already playing {:d}", packet->player_id, static_cast<const void *>(pkLD), pkLD ? pkLD->is_play() : 0);
 			peer->encode_header(HEADER_DG_PLAYER_LOAD_FAILED, handle_value, 0); 
 			return;
 		}
@@ -251,7 +251,7 @@ void client_manager::query_player_load(peer * peer, uint32_t handle_value, playe
 
 		item_cache_set * pSet = get_item_cache_set(pTab->id);
 
-		metin2::log::info( "[PLAYER_LOAD] ID {} pid {:d} gold {:d} ", pTab->name, pTab->id, pTab->gold);
+		metin2::log::info("Player {} (pid {:d}) loaded from cache, gold {:d}", pTab->name, pTab->id, pTab->gold);
 
 
 		if (pSet)
@@ -272,7 +272,7 @@ void client_manager::query_player_load(peer * peer, uint32_t handle_value, playe
 			}
 
 			if (metin2::config::test_server())
-				metin2::log::info( "ITEM_CACHE: HIT! {} count: {:d}", pTab->name, dwCount);
+				metin2::log::debug("Item cache hit for player {}: {:d} items", pTab->name, dwCount);
 
 			peer->encode_header(HEADER_DG_ITEM_LOAD, handle_value, sizeof(uint32_t) + sizeof(player_item) * dwCount);
 			peer->encode_dword(dwCount);
@@ -322,7 +322,7 @@ void client_manager::query_player_load(peer * peer, uint32_t handle_value, playe
 	}
 	else
 	{
-		metin2::log::info( "[PLAYER_LOAD] Load from PlayerDB pid[{:d}]", packet->player_id);
+		metin2::log::info("Loading player pid {:d} from the database", packet->player_id);
 
 		char queryStr[QUERY_MAX_LEN];
 
@@ -491,26 +491,26 @@ void client_manager::result_composite_player(peer * peer, sql_msg * msg, uint32_
 	MYSQL_RES * pSQLResult = msg->get()->res;
 	if (!pSQLResult)
 	{
-		metin2::log::error("null MYSQL_RES QID {:d}", qid);
+		metin2::log::error("Query {:d} returned no result set", qid);
 		return;
 	}
 
 	switch (qid)
 	{
 		case QID_PLAYER:
-			metin2::log::info( "QID_PLAYER {:d} {:d}", info->handle, info->player_id);
+			metin2::log::debug("Player query result for handle {:d}, pid {:d}", info->handle, info->player_id);
 			result_player_load(peer, pSQLResult, info.get());
 
 			break;
 
 		case QID_ITEM:
-			metin2::log::info( "QID_ITEM {:d}", info->handle);
+			metin2::log::debug("Item query result for handle {:d}", info->handle);
 			result_item_load(peer, pSQLResult, info->handle, info->player_id);
 			break;
 
 		case QID_QUEST:
 			{
-				metin2::log::info( "QID_QUEST {:d}", info->handle);
+				metin2::log::debug("Quest query result for handle {:d}", info->handle);
 				result_quest_load(peer, pSQLResult, info->handle, info->player_id);
 				client_handle_info*  temp1 = info.get();
 				if (temp1 == nullptr)
@@ -519,13 +519,12 @@ void client_manager::result_composite_player(peer * peer, sql_msg * msg, uint32_
 				login_data* pLoginData1 = get_login_data_by_aid(temp1->account_id);
 				if (pLoginData1 == nullptr)
 					break;
-				metin2::log::info("info of pLoginData1 before call ItemAwardfunction {}",static_cast<const void *>(static_cast<void*>(pLoginData1)));
 				item_award(peer,pLoginData1->account_ref().login);
 			}
 			break;
 
 		case QID_AFFECT:
-			metin2::log::info( "QID_AFFECT {:d}", info->handle);
+			metin2::log::debug("Affect query result for handle {:d}", info->handle);
 			result_affect_load(peer, pSQLResult, info->handle);
 			break;
 	}
@@ -546,7 +545,7 @@ void client_manager::result_player_load(peer * peer, MYSQL_RES * res, client_han
 	
 	if (!pkLD || pkLD->is_play())
 	{
-		metin2::log::info( "PLAYER_LOAD_ERROR: LoginData {} IsPlay {:d}", static_cast<const void *>(pkLD), pkLD ? pkLD->is_play() : 0);
+		metin2::log::warn("Cannot load player: login data {}, already playing {:d}", static_cast<const void *>(pkLD), pkLD ? pkLD->is_play() : 0);
 		peer->encode_header(HEADER_DG_PLAYER_LOAD_FAILED, info_value->handle, 0); 
 		return;
 	}
@@ -580,7 +579,7 @@ void client_manager::result_item_load(peer * peer, MYSQL_RES * res, uint32_t han
 
 	create_item_cache_set(pid);
 
-	metin2::log::info( "ITEM_LOAD: count {:d} pid {:d}", dwCount, pid);
+	metin2::log::debug("Loaded {:d} items for pid {:d}", dwCount, pid);
 
 	if (dwCount)
 	{
@@ -621,7 +620,7 @@ void client_manager::result_affect_load(peer * peer, MYSQL_RES * res, uint32_t h
 		str_to_number(r.sp_cost, row[6]);
 	}
 
-	metin2::log::info( "AFFECT_LOAD: count {:d} PID {:d}", s_elements.size(), dwPID);
+	metin2::log::debug("Loaded {:d} affects for pid {:d}", s_elements.size(), dwPID);
 
 	uint32_t dwCount = s_elements.size();
 
@@ -660,7 +659,7 @@ void client_manager::result_quest_load(peer * peer, MYSQL_RES * res, uint32_t ha
 		str_to_number(r.value, row[3]);
 	}
 
-	metin2::log::info( "QUEST_LOAD: count {:d} PID {:d}", s_table.size(), s_table[0].pid);
+	metin2::log::debug("Loaded {:d} quest flags for pid {:d}", s_table.size(), s_table[0].pid);
 
 	uint32_t dwCount = s_table.size();
 
@@ -672,7 +671,7 @@ void client_manager::result_quest_load(peer * peer, MYSQL_RES * res, uint32_t ha
 void client_manager::query_player_save(peer * peer, uint32_t handle, player_table * tab)
 {
 	if (metin2::config::test_server())
-		metin2::log::info( "PLAYER_SAVE: {}", tab->name);
+		metin2::log::debug("Saving player {}", tab->name);
 
 	put_player_cache(tab);
 }
@@ -718,7 +717,7 @@ void client_manager::query_player_create(peer *peer, uint32_t handle, player_cre
 		if (row[0] && dwPID > 0)
 		{
 			peer->encode_header(HEADER_DG_PLAYER_CREATE_ALREADY, handle, 0);
-			metin2::log::info( "ALREADY EXIST AccountChrIdx {:d} ID {:d}", packet->account_index, dwPID);
+			metin2::log::info("Player create: slot {:d} already holds pid {:d}", packet->account_index, dwPID);
 			return;
 		}
 	}
@@ -745,7 +744,7 @@ void client_manager::query_player_create(peer *peer, uint32_t handle, player_cre
 
 		if (*row[0] != '0')
 		{
-			metin2::log::info( "ALREADY EXIST name {}, row[0] {} query {}", packet->player_table.name, row[0], query.c_str());
+			metin2::log::info("Player create: name {} is already taken (count {}, query: {})", packet->player_table.name, row[0], query.c_str());
 			peer->encode_header(HEADER_DG_PLAYER_CREATE_ALREADY, handle, 0);
 			return;
 		}
@@ -773,7 +772,7 @@ void client_manager::query_player_create(peer *peer, uint32_t handle, player_cre
 			std::string_view(reinterpret_cast<const char *>(packet->player_table.skills), sizeof(packet->player_table.skills)),
 			std::string_view(reinterpret_cast<const char *>(packet->player_table.quickslot), sizeof(packet->player_table.quickslot)));
 
-	metin2::log::info( "PlayerCreate accountid {:d} name {} level {:d} gold {:d}, st {:d} ht {:d} job {:d}",
+	metin2::log::info("Player create: account {:d}, name {}, level {:d}, gold {:d}, st {:d}, ht {:d}, job {:d}",
 			packet->account_id, 
 			packet->player_table.name, 
 			packet->player_table.level, 
@@ -784,12 +783,12 @@ void client_manager::query_player_create(peer *peer, uint32_t handle, player_cre
 
 	std::unique_ptr<sql_msg> pMsg2(db_manager::instance().direct_query(query.c_str()));
 	if (metin2::config::test_server())
-		metin2::log::info( "Create_Player queryLen[{:d}]", query.size());
+		metin2::log::debug("Player create: query length {:d}", query.size());
 
 	if (pMsg2->get()->affected_rows <= 0)
 	{
 		peer->encode_header(HEADER_DG_PLAYER_CREATE_ALREADY, handle, 0);
-		metin2::log::info( "ALREADY EXIST3 query: {} AffectedRows {:d}", query.c_str(), pMsg2->get()->affected_rows);
+		metin2::log::warn("Player create: insert affected no rows, treating name as taken (query: {}, affected rows {:d})", query.c_str(), pMsg2->get()->affected_rows);
 		return;
 	}
 
@@ -801,7 +800,7 @@ void client_manager::query_player_create(peer *peer, uint32_t handle, player_cre
 
 	if (pMsg3->get()->affected_rows <= 0)
 	{
-		metin2::log::error("QUERY_ERROR: {}", query.c_str());
+		metin2::log::error("Player create: cannot update player_index, rolling back: {}", query.c_str());
 
 		query = sql::format("DELETE FROM player{} WHERE id={}", postfix, player_id);
 		db_manager::instance().direct_query(query.c_str());
@@ -831,7 +830,7 @@ void client_manager::query_player_create(peer *peer, uint32_t handle, player_cre
 	peer->encode_header(HEADER_DG_PLAYER_CREATE_SUCCESS, handle, sizeof(packet_dg_create_success));
 	peer->encode(&pack, sizeof(packet_dg_create_success));
 
-	metin2::log::info( "7 name {} job {:d}", pack.player.name, pack.player.job);
+	metin2::log::info("Player create: created {} (job {:d})", pack.player.name, pack.player.job);
 
 	create_time_by_account_id[packet->account_id] = time(nullptr);
 }
@@ -854,7 +853,7 @@ void client_manager::query_player_delete(peer* peer, uint32_t handle_value, play
 
 	if (strlen(r.social_id) < 7 || strncmp(packet->private_code, r.social_id + strlen(r.social_id) - 7, 7))
 	{
-		metin2::log::info( "PLAYER_DELETE FAILED len({:d})", strlen(r.social_id));
+		metin2::log::info("Player delete: private code mismatch for pid {:d} (social id length {:d})", packet->player_id, strlen(r.social_id));
 		peer->encode_header(HEADER_DG_PLAYER_DELETE_FAILED, handle_value, 1);
 		peer->encode_byte(packet->account_index);
 		return;
@@ -867,7 +866,7 @@ void client_manager::query_player_delete(peer* peer, uint32_t handle_value, play
 
 		if (pTab->level >= player_delete_level_limit_)
 		{
-			metin2::log::info( "PLAYER_DELETE FAILED LEVEL {:d} >= DELETE LIMIT {:d}", pTab->level, player_delete_level_limit_);
+			metin2::log::info("Player delete: pid {:d} level {:d} is at or above the limit {:d}", packet->player_id, pTab->level, player_delete_level_limit_);
 			peer->encode_header(HEADER_DG_PLAYER_DELETE_FAILED, handle_value, 1);
 			peer->encode_byte(packet->account_index);
 			return;
@@ -875,7 +874,7 @@ void client_manager::query_player_delete(peer* peer, uint32_t handle_value, play
 
 		if (pTab->level < player_delete_level_limit_lower_)
 		{
-			metin2::log::info( "PLAYER_DELETE FAILED LEVEL {:d} < DELETE LIMIT {:d}", pTab->level, player_delete_level_limit_lower_);
+			metin2::log::info("Player delete: pid {:d} level {:d} is below the minimum {:d}", packet->player_id, pTab->level, player_delete_level_limit_lower_);
 			peer->encode_header(HEADER_DG_PLAYER_DELETE_FAILED, handle_value, 1);
 			peer->encode_byte(packet->account_index);
 			return;
@@ -889,7 +888,7 @@ void client_manager::query_player_delete(peer* peer, uint32_t handle_value, play
 	client_handle_info * pi = new client_handle_info(handle_value, packet->player_id);
 	pi->account_index = packet->account_index;
 
-	metin2::log::info( "PLAYER_DELETE TRY: {} {:d} pid{:d}", packet->login, packet->player_id, packet->account_index + 1);
+	metin2::log::info("Player delete: account {} requested deletion of pid {:d} (slot {:d})", packet->login, packet->player_id, packet->account_index + 1);
 	db_manager::instance().return_query(szQuery, QID_PLAYER_DELETE, peer->handle(), pi);
 }
 
@@ -912,7 +911,7 @@ void client_manager::result_player_delete(peer *peer, sql_msg* msg)
 
 		if (deletedLevelLimit >= player_delete_level_limit_)
 		{
-			metin2::log::info( "PLAYER_DELETE FAILED LEVEL {:d} >= DELETE LIMIT {:d}", deletedLevelLimit, player_delete_level_limit_);
+			metin2::log::info("Player delete: pid {:d} level {:d} is at or above the limit {:d}", dwPID, deletedLevelLimit, player_delete_level_limit_);
 			peer->encode_header(HEADER_DG_PLAYER_DELETE_FAILED, pi->handle, 1);
 			peer->encode_byte(pi->account_index);
 			return;
@@ -920,7 +919,7 @@ void client_manager::result_player_delete(peer *peer, sql_msg* msg)
 
 		if (deletedLevelLimit < player_delete_level_limit_lower_)
 		{
-			metin2::log::info( "PLAYER_DELETE FAILED LEVEL {:d} < DELETE LIMIT {:d}", deletedLevelLimit, player_delete_level_limit_lower_);
+			metin2::log::info("Player delete: pid {:d} level {:d} is below the minimum {:d}", dwPID, deletedLevelLimit, player_delete_level_limit_lower_);
 			peer->encode_header(HEADER_DG_PLAYER_DELETE_FAILED, pi->handle, 1);
 			peer->encode_byte(pi->account_index);
 			return;
@@ -934,14 +933,14 @@ void client_manager::result_player_delete(peer *peer, sql_msg* msg)
 
 		if (pIns->get()->affected_rows == 0 || pIns->get()->affected_rows == (uint32_t)-1)
 		{
-			metin2::log::info( "PLAYER_DELETE FAILED {:d} CANNOT INSERT TO player{}_deleted", dwPID, get_table_postfix());
+			metin2::log::error("Player delete: cannot copy pid {:d} into player{}_deleted", dwPID, get_table_postfix());
 
 			peer->encode_header(HEADER_DG_PLAYER_DELETE_FAILED, pi->handle, 1);
 			peer->encode_byte(pi->account_index);
 			return;
 		}
 
-		metin2::log::info( "PLAYER_DELETE SUCCESS {:d}", dwPID);
+		metin2::log::info("Player delete: deleted pid {:d}", dwPID);
 
 		char account_index_string[16];
 
@@ -982,7 +981,7 @@ void client_manager::result_player_delete(peer *peer, sql_msg* msg)
 
 		if (pMsg->get()->affected_rows == 0 || pMsg->get()->affected_rows == (uint32_t)-1)
 		{
-			metin2::log::info( "PLAYER_DELETE FAIL WHEN UPDATE account table");
+			metin2::log::error("Player delete: cannot clear pid {:d} from player_index", pi->player_id);
 			peer->encode_header(HEADER_DG_PLAYER_DELETE_FAILED, pi->handle, 1);
 			peer->encode_byte(pi->account_index);
 			return;
@@ -1014,7 +1013,7 @@ void client_manager::result_player_delete(peer *peer, sql_msg* msg)
 	}
 	else
 	{
-		metin2::log::info( "PLAYER_DELETE FAIL NO ROW");
+		metin2::log::warn("Player delete: pid {:d} not found in player_index", pi->player_id);
 		peer->encode_header(HEADER_DG_PLAYER_DELETE_FAILED, pi->handle, 1);
 		peer->encode_byte(pi->account_index);
 	}
@@ -1054,7 +1053,7 @@ void client_manager::query_highscore_register(peer* peer, packet_gd_highscore * 
 {
 	const std::string query = sql::format("SELECT value FROM highscore{} WHERE board={} AND pid = {}", sql::raw(get_table_postfix()), data->board, data->pid);
 
-	metin2::log::info( "HEADER_GD_HIGHSCORE_REGISTER: PID {:d}", data->pid);
+	metin2::log::debug("Highscore: register for pid {:d}", data->pid);
 
 	client_handle_info * pi = new client_handle_info(0);
 	strlcpy(pi->login, data->board, sizeof(pi->login));
@@ -1119,7 +1118,7 @@ void client_manager::insert_logout_player(uint32_t pid)
 	if (it != map_logout_.end())
 	{
 		if (metin2::config::db().login_log)
-			metin2::log::info( "LOGOUT: Update player time pid({:d})", pid);
+			metin2::log::info("Logout: refreshed logout time of pid {:d}", pid);
 
 		it->second->time = time(nullptr);
 		return;
@@ -1131,7 +1130,7 @@ void client_manager::insert_logout_player(uint32_t pid)
 	map_logout_.insert(std::make_pair(pid, std::move(pLogout)));
 
 	if (metin2::config::db().login_log)
-		metin2::log::info( "LOGOUT: Insert player pid({:d})", pid);
+		metin2::log::info("Logout: recorded logout time of pid {:d}", pid);
 }
 
 void client_manager::delete_logout_player(uint32_t pid)

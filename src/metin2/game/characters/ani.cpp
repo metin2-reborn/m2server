@@ -128,7 +128,7 @@ auto ani::load() -> bool {
 
     for (int race = 0; race < MAIN_RACE_MAX_NUM; ++race) {
         if (false == load_one_race(race, dir_name[race])) {
-            metin2::log::error("ANI directory = {}", dir_name[race]);
+            metin2::log::error("Cannot load animation data from {}", dir_name[race]);
             return false;
         }
     }
@@ -183,7 +183,7 @@ auto ani::load_one_race(int race, const char *dir_name) -> bool {
         return false;
 
     for (int weapon = WEAPON_SWORD; weapon < WEAPON_NUM_TYPES; ++weapon) {
-        metin2::log::debug( "ANI ({},{})", fn_race_name(race), fn_weapon_type(weapon));
+        metin2::log::debug("Animation speeds for {} with {}", fn_race_name(race), fn_weapon_type(weapon));
 
         for (uint8_t combo = 1; combo <= 8; ++combo) {
             speed_[race][0][weapon][combo] = load_one_weapon(dir_name, weapon, combo, false);
@@ -192,11 +192,11 @@ auto ani::load_one_race(int race, const char *dir_name) -> bool {
             speed_[race][1][weapon][combo] = load_one_weapon(dir_name, weapon, combo, true);
             speed_[race][1][weapon][0] = std::min<int>(speed_[race][1][weapon][0], speed_[race][1][weapon][combo]);
 
-            metin2::log::debug( "combo{:02d} speed={:d} horse={:d}",
+            metin2::log::debug("Combo {:d}: speed {:d}, on horse {:d}",
                 combo, speed_[race][0][weapon][combo], speed_[race][1][weapon][combo]);
         }
 
-        metin2::log::debug( "minspeed={:d}", speed_[race][0][weapon][0]);
+        metin2::log::debug("Min speed {:d}", speed_[race][0][weapon][0]);
     }
 
     return true;

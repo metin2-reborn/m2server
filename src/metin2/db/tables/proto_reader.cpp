@@ -212,7 +212,7 @@ auto get_item_sub_type_value(int type_value, std::string input_string) -> int
 
 	if (static_cast<int>(std::size(arSubType)) <= type_value)
 	{
-		metin2::log::error("SubType : Out of range!! (type_value: {:d}, count of registered subtype: {:d}", type_value, std::size(arSubType));
+		metin2::log::error("Item type {:d} is out of range for subtype lookup ({:d} types registered)", type_value, std::size(arSubType));
 		return -1;
 	}
 
@@ -640,7 +640,7 @@ auto set_proto_mob_table(mob_table *mob_table_value, c_csv_table &csv_table,std:
 	str_to_number(mob_table_value->death_blow_point, csv_table.as_string_by_index(col++));
 	str_to_number(mob_table_value->revive_point, csv_table.as_string_by_index(col++));
 
-	metin2::log::info( "MOB #{:<5d} {:<24} level: {:<3d} rank: {:d} empire: {:d}", mob_table_value->vnum, mob_table_value->locale_name, mob_table_value->level, mob_table_value->rank, mob_table_value->empire);
+	metin2::log::debug("Mob {1} (vnum {0:d}) level {2:d} rank {3:d} empire {4:d}", mob_table_value->vnum, mob_table_value->locale_name, mob_table_value->level, mob_table_value->rank, mob_table_value->empire);
 
 	return true;
 }
@@ -696,8 +696,8 @@ auto set_proto_item_table(item_table *item_table_value, c_csv_table &csv_table,s
 			for (size_t j = 0; j < i; ++j)
 				dataStream << dataArray[j] << ",";
 
-			metin2::log::error("ItemProto Reading Failed : Invalid value. (index: {:d}, col: {:d}, value: {})", i, col, csv_table.as_string_by_index(col));
-			metin2::log::error("\t0 ~ {:d} Values: {}", i, dataStream.str().c_str());
+			metin2::log::error("Item proto: invalid value in field {:d} (column {:d}): {}", i, col, csv_table.as_string_by_index(col));
+			metin2::log::error("Item proto: values of fields 0 to {:d}: {}", i, dataStream.str().c_str());
 
 			exit(0);
 		}
@@ -722,7 +722,7 @@ auto set_proto_item_table(item_table *item_table_value, c_csv_table &csv_table,s
 			int end_vnum = atoi(s_end_vnum.c_str());
 			if (0 == start_vnum || (0 != end_vnum && end_vnum < start_vnum))
 			{
-				metin2::log::error("INVALID VNUM {}", s.c_str());
+				metin2::log::error("Item proto: invalid vnum range {}", s.c_str());
 				return false;
 			}
 			item_table_value->vnum = start_vnum;

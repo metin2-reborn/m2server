@@ -271,7 +271,7 @@ auto skill_manager::initialize(skill_table * tab, int size) -> bool
 			continue;
 		}
 
-		metin2::log::info( "Master {}", t->master_bonus_poly);
+		metin2::log::debug("Skill {}: master bonus poly {}", t->name, t->master_bonus_poly);
 		if (!pkProto->master_bonus_poly.analyze(t->master_bonus_poly))
 		{
 			snprintf(buf, sizeof(buf), "SkillManager::Initialize : syntax error skill: %s szMasterBonusPoly: %s", t->name, t->master_bonus_poly);
@@ -281,7 +281,7 @@ auto skill_manager::initialize(skill_table * tab, int size) -> bool
 			continue;
 		}
 
-		metin2::log::info( "#{:<3d} {:<24} type {:d} flag {:d} affect {:d} point_poly: {}", 
+		metin2::log::debug("Skill {:d} {}: type {:d} flag {:d} affect {:d} point poly {}", 
 				pkProto->vnum, pkProto->name, pkProto->type, pkProto->flag, pkProto->affect_flag, t->point_poly);
 
 		map_pkSkillProto.emplace(pkProto->vnum, std::move(pkProto));

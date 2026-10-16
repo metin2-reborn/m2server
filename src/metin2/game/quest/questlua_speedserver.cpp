@@ -17,14 +17,14 @@ namespace quest
 	{
 		if (!lua_isnumber(lua,1) || !lua_isnumber(lua,2))
 		{
-			metin2::log::error("wrong argument");
+			metin2::log::error("Invalid arguments");
 		}
 
 		uint8_t empire = lua_tonumber(lua,1);
 
 		if (empire > 3)
 		{
-			metin2::log::error("invalid empire");
+			metin2::log::error("Invalid empire argument");
 			return 0;
 		}
 
@@ -32,11 +32,11 @@ namespace quest
 
 		if (wday < 0 || wday > 6)
 		{
-			metin2::log::error("wrong day");
+			metin2::log::error("Weekday {:d} is out of range", wday);
 			return 0;
 		}
 
-		metin2::log::info( "empire {:d} wday {:d}",empire, wday);
+		metin2::log::debug("Speed server: exp table for empire {:d} weekday {:d}", empire, wday);
 
 		std::list <hme> time_lst = speed_server_manager::instance().wday_exp_table_of_empire(empire, wday);
 
@@ -44,7 +44,6 @@ namespace quest
 		for (std::list <hme>::iterator it = time_lst.begin();
 				it != time_lst.end(); it++)
 		{
-			metin2::log::info( "{:d}",i);
 			lua_pushnumber (lua, it->hour);
 			lua_pushnumber (lua, it->min);
 			lua_pushnumber (lua, it->exp);
@@ -71,14 +70,14 @@ namespace quest
 	{
 		if (!lua_isnumber (lua, 1) || !lua_isnumber (lua, 2))
 		{
-			metin2::log::error("invalid argument.");
+			metin2::log::error("Invalid arguments");
 			return 0;
 		}
 
 		uint8_t empire = lua_tonumber (lua, 1);
 		int wday = lua_tonumber (lua, 2);
 		
-		metin2::log::info( "init_wday {:d} {:d}",empire, wday);
+		metin2::log::debug("Speed server: reset weekday {1:d} for empire {0:d}", empire, wday);
 
 		speed_server_manager::instance().init_wday_exp_table_of_empire (empire, wday - 1);
 		
@@ -89,20 +88,20 @@ namespace quest
 	{
 		if (!lua_isnumber(lua,1) || !lua_isnumber(lua,2) || !lua_isnumber(lua,3) || !lua_isnumber(lua,4))
 		{
-			metin2::log::error("wrong argument");
+			metin2::log::error("Invalid arguments");
 		}
 
 		uint8_t empire = lua_tonumber(lua,1);
 
 		if (empire > 4)
 		{
-			metin2::log::error("invalid empire");
+			metin2::log::error("Invalid empire argument");
 			return 0;
 		}
 
 		date date = game::events::date (lua_tonumber(lua,2) - 1900, lua_tonumber(lua,3) - 1, lua_tonumber(lua,4));
 		
-		metin2::log::info( "empire {:d} date {:d} {:d} {:d}", empire, date.year, date.mon, date.day);
+		metin2::log::debug("Speed server: holiday table for empire {:d}, date {:d} {:d} {:d}", empire, date.year, date.mon, date.day);
 		
 		bool is_exist;
 
@@ -131,7 +130,7 @@ namespace quest
 		if (!lua_isnumber(lua,1) || !lua_isnumber(lua,2) || !lua_isnumber(lua,3) || !lua_isnumber(lua,4) 
 				|| !lua_isnumber(lua,5) || !lua_isnumber(lua,6) || !lua_isnumber(lua,7))
 		{
-			metin2::log::error("wrong argument");
+			metin2::log::error("Invalid arguments");
 		}
 
 		uint8_t empire = lua_tonumber (lua, 1);
@@ -140,7 +139,7 @@ namespace quest
 		uint8_t end_minite = lua_tonumber(lua, 6);
 		int exp_percent = lua_tonumber(lua, 7);
 
-		metin2::log::info("h {:d} m {:d} e {:d}", end_hour, end_minite, exp_percent);
+		metin2::log::debug("Speed server: until {:d}:{:02d}, exp {:d}%", end_hour, end_minite, exp_percent);
 
 		speed_server_manager::instance().set_holiday_exp_table_of_empire (empire, date, hme (end_hour, end_minite, exp_percent));
 
@@ -151,7 +150,7 @@ namespace quest
 	{
 		if (!lua_isnumber(lua,1) || !lua_isnumber(lua,2) || !lua_isnumber(lua,3) || !lua_isnumber(lua,4))
 		{
-			metin2::log::error("wrong argument");
+			metin2::log::error("Invalid arguments");
 		}
 
 		uint8_t empire = lua_tonumber (lua, 1);
@@ -166,7 +165,7 @@ namespace quest
 	{
 		if (!lua_isnumber (lua, 1))
 		{
-			metin2::log::error("invalid empire");
+			metin2::log::error("Invalid empire argument");
 			return 0;
 		}
 		uint8_t empire = lua_tonumber(lua, 1);
@@ -182,7 +181,7 @@ namespace quest
 		lua_pushnumber (lua, duration);
 		lua_pushboolean (lua, is_change);
 
-		metin2::log::info( "empire : {:d} is_change : {:d}",empire, is_change);
+		metin2::log::debug("Speed server: empire {:d} exp bonus changed {:d}", empire, is_change);
 
 		return 5;
 	}

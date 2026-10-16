@@ -100,14 +100,14 @@ EVENTFUNC(item_destroy_event)
 
 	if ( info == nullptr )
 	{
-		metin2::log::error( "item_destroy_event> <Factor> Null pointer" );
+		metin2::log::error("Item destroy event has no info");
 		return 0;
 	}
 
 	item * pkItem = info->item;
 
 	if (pkItem->owner())
-		metin2::log::error("item_destroy_event: Owner exist. (item {} owner {})", pkItem->name(), pkItem->owner()->name());
+		metin2::log::error("Destroying item {} still owned by player {}", pkItem->name(), pkItem->owner()->name());
 
 	pkItem->set_destroy_event(nullptr);
 	item_manager::instance().destroy_item(pkItem);
@@ -156,7 +156,7 @@ void item::encode_insert_packet(entity * ent)
 
 		if ( info == nullptr )
 		{
-			metin2::log::error( "CItem::EncodeInsertPacket> <Factor> Null pointer" );
+			metin2::log::error("Item ownership event has no info");
 			return;
 		}
 
@@ -183,7 +183,7 @@ void item::encode_remove_packet(entity * ent)
 	pack.vid		= vid_;
 
 	d->packet(&pack, sizeof(pack));
-	metin2::log::debug( "Item::EncodeRemovePacket {} to {}", name(), ((character *) ent)->name());
+	metin2::log::debug("Item: sent removal of {} to {}", name(), ((character *) ent)->name());
 }
 
 void item::set_proto(const item_table * table)
@@ -209,7 +209,7 @@ void item::update_packet()
 
 	std::memcpy(pack.attr, attributes(), sizeof(pack.attr));
 
-	metin2::log::debug( "UpdatePacket {} -> {}", name(), owner_->name());
+	metin2::log::debug("Item: sent update of {} to {}", name(), owner_->name());
 	owner_->get_desc()->packet(&pack, sizeof(pack));
 }
 
@@ -280,7 +280,7 @@ auto item::remove_from_character() -> item *
 {
 	if (!owner_)
 	{
-		metin2::log::error("Item::RemoveFromCharacter owner null");
+		metin2::log::error("Item {} (id {:d}) has no owner to remove from", name(), id());
 		return (this);
 	}
 
@@ -301,7 +301,7 @@ auto item::remove_from_character() -> item *
 			if (is_dragon_soul())
 			{
 				if (cell_ >= DRAGON_SOUL_INVENTORY_MAX_NUM)
-					metin2::log::error("CItem::RemoveFromCharacter: pos >= DRAGON_SOUL_INVENTORY_MAX_NUM");
+					metin2::log::error("Dragon soul item {} (id {:d}) has cell {:d} beyond the inventory", name(), id(), cell_);
 				else
 					pOwner->set_item(item_pos(window_, cell_), nullptr);
 			}
@@ -310,7 +310,7 @@ auto item::remove_from_character() -> item *
 				item_pos cell(INVENTORY, cell_);
 
 				if (false == cell.is_default_inventory_position() && false == cell.is_belt_inventory_position())
-					metin2::log::error("CItem::RemoveFromCharacter: Invalid Item Position");
+					metin2::log::error("Item {} (id {:d}) has invalid inventory cell {:d}", name(), id(), cell_);
 				else
 				{
 					pOwner->set_item(cell, nullptr);
@@ -338,7 +338,7 @@ auto item::add_to_character(character * ch, item_pos cell_value) -> bool
 	{
 		if (cell_ >= INVENTORY_MAX_NUM && BELT_INVENTORY_SLOT_START > cell_)
 		{
-			metin2::log::error("CItem::AddToCharacter: cell overflow: {} to {} cell {:d}", proto_->name, ch->name(), cell_);
+			metin2::log::error("Cannot add item {} to player {}: cell {:d} is out of range", proto_->name, ch->name(), cell_);
 			return false;
 		}
 	}
@@ -346,7 +346,7 @@ auto item::add_to_character(character * ch, item_pos cell_value) -> bool
 	{
 		if (cell_ >= DRAGON_SOUL_INVENTORY_MAX_NUM)
 		{
-			metin2::log::error("CItem::AddToCharacter: cell overflow: {} to {} cell {:d}", proto_->name, ch->name(), cell_);
+			metin2::log::error("Cannot add item {} to player {}: cell {:d} is out of range", proto_->name, ch->name(), cell_);
 			return false;
 		}
 	}
@@ -383,19 +383,19 @@ auto item::add_to_ground(int32_t map_index, const pixel_position & pos, bool ski
 {
 	if (0 == map_index)
 	{
-		metin2::log::error("wrong map index argument: {:d}", map_index);
+		metin2::log::error("Cannot place item {} (id {:d}) on map index 0", name(), id());
 		return false;
 	}
 
 	if (get_sectree())
 	{
-		metin2::log::error("sectree already assigned");
+		metin2::log::error("Item {} (id {:d}) is already on the ground", name(), id());
 		return false;
 	}
 
 	if (!skip_owner_check && owner_)
 	{
-		metin2::log::error("owner pointer not null");
+		metin2::log::error("Item {} (id {:d}) still has an owner", name(), id());
 		return false;
 	}
 
@@ -403,7 +403,7 @@ auto item::add_to_ground(int32_t map_index, const pixel_position & pos, bool ski
 
 	if (!tree)
 	{
-		metin2::log::error("cannot find sectree by {:d}x{:d}", pos.x, pos.y);
+		metin2::log::error("No sectree at ({:d}, {:d}) on map {:d}", pos.x, pos.y, map_index);
 		return false;
 	}
 
@@ -582,7 +582,7 @@ void item::modify_points(bool add)
 
 				if (!p)
 				{
-					metin2::log::error("cannot find table by vnum {:d}", dwVnum);
+					metin2::log::error("No item proto for socketed vnum {:d} in item {} (id {:d})", dwVnum, name(), id());
 					continue;
 				}
 
@@ -778,7 +778,7 @@ auto item::equip_to(character * ch, uint8_t wear_cell) -> bool
 {
 	if (!ch)
 	{
-		metin2::log::error("EquipTo: nil character");
+		metin2::log::error("Cannot equip item {} (id {:d}): no character", name(), id());
 		return false;
 	}
 
@@ -786,7 +786,7 @@ auto item::equip_to(character * ch, uint8_t wear_cell) -> bool
 	{
 		if (wear_cell < WEAR_MAX_NUM || wear_cell >= WEAR_MAX_NUM + DRAGON_SOUL_DECK_MAX_NUM * static_cast<int>(DS_SLOT_MAX))
 		{
-			metin2::log::error("EquipTo: invalid dragon soul cell (this: #{:d} {} wearflag: {:d} cell: {:d})", original_vnum(), name(), sub_type(), wear_cell - WEAR_MAX_NUM);
+			metin2::log::error("Cannot equip dragon soul {1} (vnum {0:d}, sub type {2:d}) in deck cell {3:d}", original_vnum(), name(), sub_type(), wear_cell - WEAR_MAX_NUM);
 			return false;
 		}
 	}
@@ -794,14 +794,14 @@ auto item::equip_to(character * ch, uint8_t wear_cell) -> bool
 	{
 		if (wear_cell >= WEAR_MAX_NUM)
 		{
-			metin2::log::error("EquipTo: invalid wear cell (this: #{:d} {} wearflag: {:d} cell: {:d})", original_vnum(), name(), wear_flag(), wear_cell);
+			metin2::log::error("Cannot equip item {1} (vnum {0:d}, wear flag {2:d}) in invalid cell {3:d}", original_vnum(), name(), wear_flag(), wear_cell);
 			return false;
 		}
 	}
 
 	if (ch->wear(wear_cell))
 	{
-		metin2::log::error("EquipTo: item already exist (this: #{:d} {} cell: {:d} {})", original_vnum(), name(), wear_cell, ch->wear(wear_cell)->name());
+		metin2::log::error("Cannot equip item {1} (vnum {0:d}) in cell {2:d}: {3} is already there", original_vnum(), name(), wear_cell, ch->wear(wear_cell)->name());
 		return false;
 	}
 
@@ -867,14 +867,14 @@ auto item::unequip() -> bool
 {
 	if (!owner_ || cell() < INVENTORY_MAX_NUM)
 	{
-		metin2::log::error("{} {:d} m_pOwner {}, GetCell {:d}", 
+		metin2::log::error("Cannot unequip item {} (id {:d}): owner {}, cell {:d}",
 				name(), id(), static_cast<const void *>(owner_), cell());
 		return false;
 	}
 
 	if (this != owner_->wear(cell() - INVENTORY_MAX_NUM))
 	{
-		metin2::log::error("m_pOwner->GetWear() != this");
+		metin2::log::error("Cannot unequip item {} (id {:d}): not worn in its cell", name(), id());
 		return false;
 	}
 
@@ -991,7 +991,7 @@ EVENTFUNC(ownership_event)
 
 	if ( info == nullptr )
 	{
-		metin2::log::error( "ownership_event> <Factor> Null pointer" );
+		metin2::log::error("Item ownership event has no info");
 		return 0;
 	}
 
@@ -1080,7 +1080,7 @@ void item::alter_to_socket_item(int socket_count)
 {
 	if (socket_count >= ITEM_SOCKET_MAX_NUM)
 	{
-		metin2::log::info( "Invalid Socket Count {:d}, set to maximum", ITEM_SOCKET_MAX_NUM);
+		metin2::log::warn("Socket count {:d} capped at {:d}", socket_count, ITEM_SOCKET_MAX_NUM);
 		socket_count = ITEM_SOCKET_MAX_NUM;
 	}
 
@@ -1158,7 +1158,7 @@ auto item::refine_level() -> int
 		str_to_number(locale_rtn, p+1);
 		if (locale_rtn != rtn)
 		{
-			metin2::log::error("refine_level_based_on_NAME({:d}) is not equal to refine_level_based_on_LOCALE_NAME({:d}).", rtn, locale_rtn);
+			metin2::log::error("Refine level {:d} from proto name differs from {:d} in locale name", rtn, locale_rtn);
 		}
 	}
 
@@ -1171,7 +1171,7 @@ EVENTFUNC(unique_expire_event)
 
 	if ( info == nullptr )
 	{
-		metin2::log::error( "unique_expire_event> <Factor> Null pointer" );
+		metin2::log::error("Unique item expire event has no info");
 		return 0;
 	}
 
@@ -1181,7 +1181,7 @@ EVENTFUNC(unique_expire_event)
 	{
 		if (pkItem->get_socket(ITEM_SOCKET_UNIQUE_REMAIN_TIME) <= 1)
 		{
-			metin2::log::info( "UNIQUE_ITEM: expire {} {:d}", pkItem->name(), pkItem->id());
+			metin2::log::info("Item: unique item {} (id {:d}) expired", pkItem->name(), pkItem->id());
 			pkItem->set_unique_expire_event(nullptr);
 			item_manager::instance().remove_item(pkItem, "UNIQUE_EXPIRE");
 			return 0;
@@ -1218,7 +1218,7 @@ EVENTFUNC(timer_based_on_wear_expire_event)
 
 	if ( info == nullptr )
 	{
-		metin2::log::error( "expire_event <Factor> Null pointer" );
+		metin2::log::error("Item expire event has no info");
 		return 0;
 	}
 
@@ -1226,7 +1226,7 @@ EVENTFUNC(timer_based_on_wear_expire_event)
 	int remain_time = pkItem->get_socket(ITEM_SOCKET_REMAIN_SEC) - processing_time/metin2::config::server().passes_per_sec;
 	if (remain_time <= 0)
 	{
-		metin2::log::info( "ITEM EXPIRED : expired {} {:d}", pkItem->name(), pkItem->id());
+		metin2::log::info("Item: {} (id {:d}) expired", pkItem->name(), pkItem->id());
 		pkItem->set_timer_based_on_wear_expire_event(nullptr);
 		pkItem->set_socket(ITEM_SOCKET_REMAIN_SEC, 0);
 	
@@ -1291,7 +1291,7 @@ void item::start_real_time_expire_event()
 
 			real_time_expire_event_ = event_create( real_time_expire_event, info, passes_per_sec(1));
 
-			metin2::log::info( "REAL_TIME_EXPIRE: StartRealTimeExpireEvent");
+			metin2::log::debug("Item: started real-time expiry for {} (id {:d})", name(), id());
 
 			return;
 		}
@@ -1439,7 +1439,7 @@ EVENTFUNC(accessory_socket_expire_event)
 
 	if ( info == nullptr )
 	{
-		metin2::log::error( "accessory_socket_expire_event> <Factor> Null pointer" );
+		metin2::log::error("Accessory socket expire event has no info");
 		return 0;
 	}
 

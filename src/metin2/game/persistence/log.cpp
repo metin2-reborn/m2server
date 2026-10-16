@@ -58,7 +58,7 @@ void log_manager::query(const char * format, ...)
 void log_manager::query(const std::string & query)
 {
 	if (metin2::config::test_server())
-		metin2::log::info( "LOG: {}", query.c_str());
+		metin2::log::debug( "Log query: {}", query.c_str());
 
 	sql_.async_query(query.c_str());
 }
@@ -78,7 +78,7 @@ void log_manager::item_log(character * ch, item * item, const char * text, const
 {
 	if (nullptr == ch || nullptr == item)
 	{
-		metin2::log::error("character or item nil (ch {} item {} text {})", static_cast<const void *>(ch), static_cast<const void *>(item), text);
+		metin2::log::error("Item log without character or item (character {}, item {}, text {})", static_cast<const void *>(ch), static_cast<const void *>(item), text);
 		return;
 	}
 
@@ -111,7 +111,7 @@ void log_manager::money_log(uint8_t type, uint32_t vnum, int gold)
 {
 	if (type == MONEY_LOG_RESERVED || type >= MONEY_LOG_TYPE_MAX_NUM)
 	{
-		metin2::log::error("TYPE ERROR: type {:d} vnum {:d} gold {:d}", type, vnum, gold);
+		metin2::log::error("Money log with invalid type {:d} (vnum {:d}, gold {:d})", type, vnum, gold);
 		return;
 	}
 

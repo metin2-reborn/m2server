@@ -86,7 +86,7 @@ auto get_server_location(account_table & tab, uint8_t empire_value) -> bool
 					tab.players[i].addr,
 					tab.players[i].port))
 		{
-			metin2::log::error("location error name {} mapindex {:d} {:d} x {:d} empire {:d}",
+			metin2::log::error("No server for location of player {} (map {:d}, {:d}x{:d}, empire {:d}), moving to empire start",
 					tab.players[i].name, lIndex, tab.players[i].x, tab.players[i].y, tab.empire);
 
 			tab.players[i].x = empire_start_x(tab.empire);
@@ -96,7 +96,7 @@ auto get_server_location(account_table & tab, uint8_t empire_value) -> bool
 
 			if (!map_locations::instance().get(tab.players[i].x, tab.players[i].y, lIndex, tab.players[i].addr, tab.players[i].port))
 			{
-				metin2::log::error("cannot find server for mapindex {:d} {:d} x {:d} (name {})", 
+				metin2::log::error("No server for empire start location (map {:d}, {:d}x{:d}) of player {}",
 						lIndex,
 						tab.players[i].x,
 						tab.players[i].y,
@@ -115,7 +115,7 @@ auto get_server_location(account_table & tab, uint8_t empire_value) -> bool
 			tab.players[i].addr=inet_addr(proxy_ip.c_str());
 
 		in.s_addr = tab.players[i].addr;
-		metin2::log::info( "success to {}:{:d}", inet_ntoa(in), tab.players[i].port);
+		metin2::log::debug( "Player server for character select: {}:{:d}", inet_ntoa(in), tab.players[i].port);
 	}
 
 	return bFound;
@@ -124,15 +124,13 @@ auto get_server_location(account_table & tab, uint8_t empire_value) -> bool
 
 void input_db::login_success(uint32_t handle, const char *data)
 {
-	metin2::log::info( "LoginSuccess");
-
 	account_table * pTab = (account_table *) data;
 
 	desc * d = desc_manager::instance().find_by_handle(handle);
 
 	if (!d)
 	{
-		metin2::log::info( "CInputDB::LoginSuccess - cannot find handle [{}]", pTab->login);
+		metin2::log::warn( "Login success for account {} but its connection is gone, logging out", pTab->login);
 
 		logout_packet pack;
 
@@ -143,7 +141,7 @@ void input_db::login_success(uint32_t handle, const char *data)
 
 	if (strcmp(pTab->status, "OK"))
 	{
-		metin2::log::info( "CInputDB::LoginSuccess - status[{}] is not OK [{}]", pTab->status, pTab->login);
+		metin2::log::info( "Login refused: status {} for account {}", pTab->status, pTab->login);
 
 		logout_packet pack;
 
@@ -157,7 +155,7 @@ void input_db::login_success(uint32_t handle, const char *data)
 	for (int i = 0; i != PLAYER_PER_ACCOUNT; ++i)
 	{
 		simple_player& player = pTab->players[i];
-		metin2::log::info( "\tplayer({}).job({:d})", player.name, player.job);
+		metin2::log::debug( "Account character {} (job {:d})", player.name, player.job);
 	}
 
 	bool bFound = get_server_location(*pTab, pTab->empire);
@@ -182,7 +180,7 @@ void input_db::login_success(uint32_t handle, const char *data)
 	d->set_phase(PHASE_SELECT);
 	d->send_login_success_packet();
 
-	metin2::log::info( "InputDB::login_success: {}", pTab->login);
+	metin2::log::info( "Login: account {}", pTab->login);
 }
 
 void input_db::player_create_failure(desc * d, uint8_t type_value)
@@ -219,7 +217,7 @@ void input_db::player_create_success(desc * d, const char * data)
 				pPacketDB->player.addr,
 				pPacketDB->player.port))
 	{
-		metin2::log::error("InputDB::PlayerCreateSuccess: cannot find server for mapindex {:d} {:d} x {:d} (name {})", 
+		metin2::log::error("No server for location of new player (map {:d}, {:d}x{:d}, name {})",
 				lIndex,
 				pPacketDB->player.x,
 				pPacketDB->player.y,
@@ -324,7 +322,7 @@ void input_db::player_load(desc * d, const char * data)
 
 	if (!sectree_manager::instance().valid_location(pTab->map_index, pTab->x, pTab->y, lMapIndex, pos, d->empire()))
 	{
-		metin2::log::error("InputDB::PlayerLoad : cannot find valid location {:d} x {:d} (name: {})", pTab->x, pTab->y, pTab->name);
+		metin2::log::error("No valid location {:d}x{:d} for player {}, closing connection", pTab->x, pTab->y, pTab->name);
 		d->set_phase(PHASE_CLOSE);
 		return;
 	}
@@ -336,13 +334,13 @@ void input_db::player_load(desc * d, const char * data)
 	if (d->get_character() || d->is_phase(PHASE_GAME))
 	{
 		character * p = d->get_character();
-		metin2::log::error("login state already has main state (character {} {})", p->name(), static_cast<const void *>(p));
+		metin2::log::error("Player load on a connection that is already in game (player {}, {})", p->name(), static_cast<const void *>(p));
 		return;
 	}
 
 	if (nullptr != character_manager::instance().find_pc(pTab->name))
 	{
-		metin2::log::error("InputDB: PlayerLoad : {} already exist in game", pTab->name);
+		metin2::log::error("Player {} is already in game, load ignored", pTab->name);
 		return;
 	}
 
@@ -380,7 +378,7 @@ void input_db::player_load(desc * d, const char * data)
 
 	if (!map_allow_find(lPublicMapIndex))
 	{
-		metin2::log::error("InputDB::PlayerLoad : entering {:d} map is not allowed here (name: {}, empire {:d})", 
+		metin2::log::error("Map {:d} is not hosted here (player {}, empire {:d}), warping to empire start",
 				lMapIndex, pTab->name, d->empire());
 
 		ch->set_warp_location(empire_start_map(d->empire()),
@@ -399,7 +397,7 @@ void input_db::player_load(desc * d, const char * data)
 	ch->points_packet();
 	ch->skill_level_packet();
 
-	metin2::log::info( "InputDB: player_load {} {:d}x{:d}x{:d} LEVEL {:d} MOV_SPEED {:d} JOB {:d} ATG {:d} DFG {:d} GMLv {:d}",
+	metin2::log::info( "Player loaded: {} at {:d}x{:d}x{:d}, level {:d}, move speed {:d}, job {:d}, attack grade {:d}, defence grade {:d}, gm level {:d}",
 			pTab->name, 
 			ch->x(), ch->y(), ch->z(),
 			ch->level(),
@@ -423,33 +421,33 @@ void input_db::boot(const char* data)
 	uint8_t bVersion = decode_byte(data);
 	data += 1;
 
-	metin2::log::info( "BOOT: PACKET: {:d}", dwPacketSize);
-	metin2::log::info( "BOOT: VERSION: {:d}", bVersion);
+	metin2::log::debug( "Boot: packet size {:d}", dwPacketSize);
+	metin2::log::debug( "Boot: version {:d}", bVersion);
 	if (bVersion != 6)
 	{
-		metin2::log::error("boot version error");
+		metin2::log::error("Unsupported boot packet version {:d}, shutting down", bVersion);
 		thecore_shutdown();
 	}
 
-	metin2::log::info( "sizeof(TMobTable) = {:d}", sizeof(mob_table));
-	metin2::log::info( "sizeof(TItemTable) = {:d}", sizeof(item_table));
-	metin2::log::info( "sizeof(TShopTable) = {:d}", sizeof(shop_table));
-	metin2::log::info( "sizeof(TSkillTable) = {:d}", sizeof(skill_table));
-	metin2::log::info( "sizeof(TRefineTable) = {:d}", sizeof(refine_table));
-	metin2::log::info( "sizeof(TItemAttrTable) = {:d}", sizeof(item_attr_table));
-	metin2::log::info( "sizeof(TItemRareTable) = {:d}", sizeof(item_attr_table));
-	metin2::log::info( "sizeof(TBanwordTable) = {:d}", sizeof(banword_table));
-	metin2::log::info( "sizeof(TLand) = {:d}", sizeof(building::land_table));
-	metin2::log::info( "sizeof(TObjectProto) = {:d}", sizeof(building::object_proto));
-	metin2::log::info( "sizeof(TObject) = {:d}", sizeof(building::object_table));
-	metin2::log::info( "sizeof(TAdminManager) = {:d}", sizeof (t_admin_info) );
+	metin2::log::debug( "Boot: mob_table size {:d}", sizeof(mob_table));
+	metin2::log::debug( "Boot: item_table size {:d}", sizeof(item_table));
+	metin2::log::debug( "Boot: shop_table size {:d}", sizeof(shop_table));
+	metin2::log::debug( "Boot: skill_table size {:d}", sizeof(skill_table));
+	metin2::log::debug( "Boot: refine_table size {:d}", sizeof(refine_table));
+	metin2::log::debug( "Boot: item_attr_table size {:d}", sizeof(item_attr_table));
+	metin2::log::debug( "Boot: item rare table size {:d}", sizeof(item_attr_table));
+	metin2::log::debug( "Boot: banword_table size {:d}", sizeof(banword_table));
+	metin2::log::debug( "Boot: land_table size {:d}", sizeof(building::land_table));
+	metin2::log::debug( "Boot: object_proto size {:d}", sizeof(building::object_proto));
+	metin2::log::debug( "Boot: object_table size {:d}", sizeof(building::object_table));
+	metin2::log::debug( "Boot: t_admin_info size {:d}", sizeof (t_admin_info) );
 
 	uint16_t size;
 
 
 	if (decode_2bytes(data)!=sizeof(mob_table))
 	{
-		metin2::log::error("mob table size error");
+		metin2::log::error("Boot packet mob table record size mismatch, shutting down");
 		thecore_shutdown();
 		return;
 	}
@@ -457,7 +455,7 @@ void input_db::boot(const char* data)
 
 	size = decode_2bytes(data);
 	data += 2;
-	metin2::log::info( "BOOT: MOB: {:d}", size);
+	metin2::log::info( "Boot: {:d} mobs", size);
 
 	if (size)
 	{
@@ -468,7 +466,7 @@ void input_db::boot(const char* data)
 
 	if (decode_2bytes(data) != sizeof(item_table))
 	{
-		metin2::log::error("item table size error");
+		metin2::log::error("Boot packet item table record size mismatch, shutting down");
 		thecore_shutdown();
 		return;
 	}
@@ -476,7 +474,7 @@ void input_db::boot(const char* data)
 
 	size = decode_2bytes(data);
 	data += 2;
-	metin2::log::info( "BOOT: ITEM: {:d}", size);
+	metin2::log::info( "Boot: {:d} items", size);
 
 
 	if (size)
@@ -488,7 +486,7 @@ void input_db::boot(const char* data)
 
 	if (decode_2bytes(data) != sizeof(shop_table))
 	{
-		metin2::log::error("shop table size error");
+		metin2::log::error("Boot packet shop table record size mismatch, shutting down");
 		thecore_shutdown();
 		return;
 	}
@@ -496,14 +494,14 @@ void input_db::boot(const char* data)
 
 	size = decode_2bytes(data);
 	data += 2;
-	metin2::log::info( "BOOT: SHOP: {:d}", size);
+	metin2::log::info( "Boot: {:d} shops", size);
 
 
 	if (size)
 	{
 		if (!shop_manager::instance().initialize((shop_table *) data, size))
 		{
-			metin2::log::error("shop table Initialize error");
+			metin2::log::error("Cannot initialize shops, shutting down");
 			thecore_shutdown();
 			return;
 		}
@@ -513,7 +511,7 @@ void input_db::boot(const char* data)
 
 	if (decode_2bytes(data) != sizeof(skill_table))
 	{
-		metin2::log::error("skill table size error");
+		metin2::log::error("Boot packet skill table record size mismatch, shutting down");
 		thecore_shutdown();
 		return;
 	}
@@ -521,13 +519,13 @@ void input_db::boot(const char* data)
 
 	size = decode_2bytes(data);
 	data += 2;
-	metin2::log::info( "BOOT: SKILL: {:d}", size);
+	metin2::log::info( "Boot: {:d} skills", size);
 
 	if (size)
 	{
 		if (!skill_manager::instance().initialize((skill_table *) data, size))
 		{
-			metin2::log::error("cannot initialize skill table");
+			metin2::log::error("Cannot initialize skills, shutting down");
 			thecore_shutdown();
 			return;
 		}
@@ -536,7 +534,7 @@ void input_db::boot(const char* data)
 	}
 	if (decode_2bytes(data) != sizeof(refine_table))
 	{
-		metin2::log::error("refine table size error");
+		metin2::log::error("Boot packet refine table record size mismatch, shutting down");
 		thecore_shutdown();
 		return;
 	}
@@ -544,7 +542,7 @@ void input_db::boot(const char* data)
 
 	size = decode_2bytes(data);
 	data += 2;
-	metin2::log::info( "BOOT: REFINE: {:d}", size);
+	metin2::log::info( "Boot: {:d} refine recipes", size);
 
 	if (size)
 	{
@@ -554,7 +552,7 @@ void input_db::boot(const char* data)
 
 	if (decode_2bytes(data) != sizeof(item_attr_table))
 	{
-		metin2::log::error("item attr table size error");
+		metin2::log::error("Boot packet item attribute table record size mismatch, shutting down");
 		thecore_shutdown();
 		return;
 	}
@@ -562,7 +560,7 @@ void input_db::boot(const char* data)
 
 	size = decode_2bytes(data);
 	data += 2;
-	metin2::log::info( "BOOT: ITEM_ATTR: {:d}", size);
+	metin2::log::info( "Boot: {:d} item attributes", size);
 
 	if (size)
 	{
@@ -574,7 +572,7 @@ void input_db::boot(const char* data)
 				continue;
 
 			map_item_attr[p->apply_index] = *p;
-			metin2::log::info( "ITEM_ATTR[{:d}]: {} {:d}", p->apply_index, p->apply, p->prob);
+			metin2::log::debug( "Item attribute {:d}: {} (probability {:d})", p->apply_index, p->apply, p->prob);
 		}
 	}
 
@@ -583,7 +581,7 @@ void input_db::boot(const char* data)
 
 	if (decode_2bytes(data) != sizeof(item_attr_table))
 	{
-		metin2::log::error("item rare table size error");
+		metin2::log::error("Boot packet item rare attribute table record size mismatch, shutting down");
 		thecore_shutdown();
 		return;
 	}
@@ -591,7 +589,7 @@ void input_db::boot(const char* data)
 
 	size = decode_2bytes(data);
 	data += 2;
-	metin2::log::info( "BOOT: ITEM_RARE: {:d}", size);
+	metin2::log::info( "Boot: {:d} item rare attributes", size);
 
 	if (size)
 	{
@@ -603,7 +601,7 @@ void input_db::boot(const char* data)
 				continue;
 
 			map_item_rare[p->apply_index] = *p;
-			metin2::log::info( "ITEM_RARE[{:d}]: {} {:d}", p->apply_index, p->apply, p->prob);
+			metin2::log::debug( "Item rare attribute {:d}: {} (probability {:d})", p->apply_index, p->apply, p->prob);
 		}
 	}
 
@@ -613,7 +611,7 @@ void input_db::boot(const char* data)
 
 	if (decode_2bytes(data) != sizeof(banword_table))
 	{
-		metin2::log::error("ban word table size error");
+		metin2::log::error("Boot packet banword table record size mismatch, shutting down");
 		thecore_shutdown();
 		return;
 	}
@@ -631,7 +629,7 @@ void input_db::boot(const char* data)
 
 		if (decode_2bytes(data) != sizeof(land_table))
 		{
-			metin2::log::error("land table size error");
+			metin2::log::error("Boot packet land table record size mismatch, shutting down");
 			thecore_shutdown();
 			return;
 		}
@@ -649,7 +647,7 @@ void input_db::boot(const char* data)
 
 		if (decode_2bytes(data) != sizeof(object_proto))
 		{
-			metin2::log::error("object proto table size error");
+			metin2::log::error("Boot packet object proto table record size mismatch, shutting down");
 			thecore_shutdown();
 			return;
 		}
@@ -663,7 +661,7 @@ void input_db::boot(const char* data)
 
 		if (decode_2bytes(data) != sizeof(object_table))
 		{
-			metin2::log::error("object table size error");
+			metin2::log::error("Boot packet object table record size mismatch, shutting down");
 			thecore_shutdown();
 			return;
 		}
@@ -685,7 +683,7 @@ void input_db::boot(const char* data)
 
 	if (decode_2bytes(data) != sizeof(item_id_range_table) )
 	{
-		metin2::log::error("ITEM ID RANGE size error");
+		metin2::log::error("Boot packet item id range record size mismatch, shutting down");
 		thecore_shutdown();
 		return;
 	}
@@ -704,11 +702,11 @@ void input_db::boot(const char* data)
 	data += 2;
 	int HostSize = decode_2bytes(data );
 	data += 2;
-	metin2::log::info( "GM Value Count {:d} {:d}", HostSize, ChunkSize  );
+	metin2::log::debug( "Boot: {:d} gm hosts ({:d} bytes each)", HostSize, ChunkSize  );
 	for (int n = 0; n < HostSize; ++n )
 	{
 		gm_new_host_inert(data );
-		metin2::log::info( "GM HOST : IP[{}] ", data );		
+		metin2::log::debug( "Boot: gm host {}", data );		
 		data += ChunkSize;
 	}
 	
@@ -738,7 +736,7 @@ void input_db::boot(const char* data)
 	for (int n = 1; n < 4; ++n)
 	{
 		if (*p.name[n])
-			metin2::log::info( "[MONARCH] Empire {:d} Pid {:d} Money {:d} {}", n, p.pid[n], p.money[n], p.name[n]);
+			metin2::log::info( "Monarch of empire {:d}: pid {:d}, money {:d}, name {}", n, p.pid[n], p.money[n], p.name[n]);
 	}
 	
 	int CandidacySize = decode_2bytes(data);
@@ -748,7 +746,7 @@ void input_db::boot(const char* data)
 	data += 2;
 
 	if (metin2::config::test_server())
-		metin2::log::info( "[MONARCH] Size {:d} Count {:d}", CandidacySize, CandidacyCount);
+		metin2::log::info( "Monarch candidacy: record size {:d}, count {:d}", CandidacySize, CandidacyCount);
 
 	data += CandidacySize * CandidacyCount;
 
@@ -757,24 +755,24 @@ void input_db::boot(const char* data)
 	uint16_t endCheck=decode_2bytes(data);
 	if (endCheck != 0xffff)
 	{
-		metin2::log::error("boot packet end check error [{:x}]!=0xffff", endCheck);
+		metin2::log::error("Boot packet end marker is {:#x} instead of 0xffff, shutting down", endCheck);
 		thecore_shutdown();
 		return;
 	}
 	else
-		metin2::log::info( "boot packet end check ok [{:x}]==0xffff", endCheck );
+		metin2::log::debug( "Boot packet end marker ok ({:#x})", endCheck );
 	data +=2; 
 
 	if (!item_manager::instance().set_max_item_id(*range))
 	{
-		metin2::log::error("not enough item id contact your administrator!");
+		metin2::log::error("Item id range exhausted, shutting down");
 		thecore_shutdown();
 		return;
 	}
 
 	if (!item_manager::instance().set_max_spare_item_id(*rangespare))
 	{
-		metin2::log::error("not enough item id for spare contact your administrator!");
+		metin2::log::error("Spare item id range exhausted, shutting down");
 		thecore_shutdown();
 		return;
 	}
@@ -808,72 +806,72 @@ void input_db::boot(const char* data)
 	snprintf(szDragonSoulTableFileName, sizeof(szDragonSoulTableFileName),
 			"%s/dragon_soul_table.txt", locale_service_get_base_path().c_str());
 
-	metin2::log::info( "Initializing Informations of Cube System");
+	metin2::log::info( "Loading cube recipes");
 	if (!cube_information_initialize())
 	{
-		metin2::log::error("cannot init cube infomation.");
+		metin2::log::error("Cannot load cube recipes, shutting down");
 		thecore_shutdown();
 		return;
 	}
 
-	metin2::log::info( "LoadLocaleFile: CommonDropItem: {}", szCommonDropItemFileName);
+	metin2::log::info( "Loading common drop items from {}", szCommonDropItemFileName);
 	if (!item_manager::instance().read_common_drop_item_file(szCommonDropItemFileName))
 	{
-		metin2::log::error("cannot load CommonDropItem: {}", szCommonDropItemFileName);
+		metin2::log::error("Cannot load common drop items from {}, shutting down", szCommonDropItemFileName);
 		thecore_shutdown();
 		return;
 	}
 
-	metin2::log::info( "LoadLocaleFile: ETCDropItem: {}", szETCDropItemFileName);
+	metin2::log::info( "Loading etc drop items from {}", szETCDropItemFileName);
 	if (!item_manager::instance().read_etc_drop_item_file(szETCDropItemFileName))
 	{
-		metin2::log::error("cannot load ETCDropItem: {}", szETCDropItemFileName);
+		metin2::log::error("Cannot load etc drop items from {}, shutting down", szETCDropItemFileName);
 		thecore_shutdown();
 		return;
 	}
 
-	metin2::log::info( "LoadLocaleFile: DropItemGroup: {}", szDropItemGroupFileName);
+	metin2::log::info( "Loading drop item groups from {}", szDropItemGroupFileName);
 	if (!item_manager::instance().read_drop_item_group(szDropItemGroupFileName))
 	{
-		metin2::log::error("cannot load DropItemGroup: {}", szDropItemGroupFileName);
+		metin2::log::error("Cannot load drop item groups from {}, shutting down", szDropItemGroupFileName);
 		thecore_shutdown();
 		return;
 	}
 
-	metin2::log::info( "LoadLocaleFile: SpecialItemGroup: {}", szSpecialItemGroupFileName);
+	metin2::log::info( "Loading special item groups from {}", szSpecialItemGroupFileName);
 	if (!item_manager::instance().read_special_drop_item_file(szSpecialItemGroupFileName))
 	{
-		metin2::log::error("cannot load SpecialItemGroup: {}", szSpecialItemGroupFileName);
+		metin2::log::error("Cannot load special item groups from {}, shutting down", szSpecialItemGroupFileName);
 		thecore_shutdown();
 		return;
 	}
 
-	metin2::log::info( "LoadLocaleFile: ItemVnumMaskTable : {}", szItemVnumMaskTableFileName);
+	metin2::log::info( "Loading item vnum mask table from {}", szItemVnumMaskTableFileName);
 	if (!item_manager::instance().read_item_vnum_mask_table(szItemVnumMaskTableFileName))
 	{
-		metin2::log::info( "Could not open MaskItemTable");
+		metin2::log::warn( "Cannot load item vnum mask table {}, continuing without it", szItemVnumMaskTableFileName);
 	}
 
-	metin2::log::info( "LoadLocaleFile: MOBDropItemFile: {}", szMOBDropItemFileName);
+	metin2::log::info( "Loading mob drop items from {}", szMOBDropItemFileName);
 	if (!item_manager::instance().read_monster_drop_item_group(szMOBDropItemFileName))
 	{
-		metin2::log::error("cannot load MOBDropItemFile: {}", szMOBDropItemFileName);
+		metin2::log::error("Cannot load mob drop items from {}, shutting down", szMOBDropItemFileName);
 		thecore_shutdown();
 		return;
 	}
 
-	metin2::log::info( "LoadLocaleFile: MapIndex: {}", szMapIndexFileName);
+	metin2::log::info( "Loading map index from {}", szMapIndexFileName);
 	if (!sectree_manager::instance().build(szMapIndexFileName, locale_service_get_map_path().c_str()))
 	{
-		metin2::log::error("cannot load MapIndex: {}", szMapIndexFileName);
+		metin2::log::error("Cannot load map index from {}, shutting down", szMapIndexFileName);
 		thecore_shutdown();
 		return;
 	}
 
-	metin2::log::info( "LoadLocaleFile: DragonSoulTable: {}", szDragonSoulTableFileName);
+	metin2::log::info( "Loading dragon soul table from {}", szDragonSoulTableFileName);
 	if (!ds_manager::instance().read_dragon_soul_table_file(szDragonSoulTableFileName))
 	{
-		metin2::log::error("cannot load DragonSoulTable: {}", szDragonSoulTableFileName);
+		metin2::log::error("Cannot load dragon soul table from {}", szDragonSoulTableFileName);
 	}
 
 
@@ -893,7 +891,7 @@ void input_db::boot(const char* data)
 	castle_boot();
 
     if (!mark_server_ready()) { thecore_shutdown(); return; }
-    metin2::log::info( "BOOT: COMPLETE");
+    metin2::log::info( "Boot complete");
 }
 
 EVENTINFO(quest_login_event_info)
@@ -912,7 +910,7 @@ EVENTFUNC(quest_login_event)
 
 	if ( info == nullptr )
 	{
-		metin2::log::error( "quest_login_event> <Factor> Null pointer" );
+		metin2::log::error( "Quest login event has no info" );
 		return 0;
 	}
 
@@ -942,13 +940,13 @@ EVENTFUNC(quest_login_event)
 	}
 	else if (d->is_phase(PHASE_GAME))
 	{
-		metin2::log::info( "QUEST_LOAD: Login pc {:d} by event", ch->player_id());
+		metin2::log::debug( "Quest: login of pid {:d} (deferred)", ch->player_id());
 		quest::quest_manager::instance().login(ch->player_id());
 		return 0;
 	}
 	else
 	{
-		metin2::log::error("input_db.cpp:quest_login_event INVALID PHASE pid {:d}", ch->player_id());
+		metin2::log::error("Quest login for pid {:d} in unexpected connection phase", ch->player_id());
 		return 0;
 	}
 }
@@ -973,18 +971,18 @@ void input_db::quest_load(desc * d, const char * data)
 		{
 			if (ch->player_id() != pQuestTable[0].pid)
 			{
-				metin2::log::error("PID differs {:d} {:d}", ch->player_id(), pQuestTable[0].pid);
+				metin2::log::error("Quest data pid mismatch: player pid {:d}, quest pid {:d}", ch->player_id(), pQuestTable[0].pid);
 				return;
 			}
 		}
 
-		metin2::log::info( "QUEST_LOAD: count {:d}", dwCount);
+		metin2::log::debug( "Quest: loading {:d} flags", dwCount);
 
 		quest::pc * pkPC = quest::quest_manager::instance().pc_force(ch->player_id());
 
 		if (!pkPC)
 		{
-			metin2::log::error("null quest::PC with id {:d}", pQuestTable[0].pid);
+			metin2::log::error("Cannot create quest state for pid {:d}", pQuestTable[0].pid);
 			return;
 		}
 
@@ -998,7 +996,7 @@ void input_db::quest_load(desc * d, const char * data)
 			st += ".";
 			st += pQuestTable[i].state;
 
-			metin2::log::info(  "            {} {:d}", st.c_str(), pQuestTable[i].value);
+			metin2::log::debug(  "Quest flag {} = {:d}", st.c_str(), pQuestTable[i].value);
 			pkPC->set_flag(st.c_str(), pQuestTable[i].value, false);
 		}
 
@@ -1007,7 +1005,7 @@ void input_db::quest_load(desc * d, const char * data)
 
 		if (ch->get_desc()->is_phase(PHASE_GAME))
 		{
-			metin2::log::info( "QUEST_LOAD: Login pc {:d}", pQuestTable[0].pid);
+			metin2::log::debug( "Quest: login of pid {:d}", pQuestTable[0].pid);
 			quest::quest_manager::instance().login(pQuestTable[0].pid);
 		}
 		else
@@ -1029,7 +1027,7 @@ void input_db::safebox_load(desc * d, const char * data)
 
 	if (d->get_account_table().id != p->id)
 	{
-		metin2::log::error("SafeboxLoad: safebox has different id {:d} != {:d}", d->get_account_table().id, p->id);
+		metin2::log::error("Safebox account id mismatch: account {:d}, safebox {:d}", d->get_account_table().id, p->id);
 		return;
 	}
 
@@ -1111,7 +1109,7 @@ void input_db::mall_load(desc * d, const char * data)
 
 	if (d->get_account_table().id != p->id)
 	{
-		metin2::log::error("safebox has different id {:d} != {:d}", d->get_account_table().id, p->id);
+		metin2::log::error("Mall account id mismatch: account {:d}, mall {:d}", d->get_account_table().id, p->id);
 		return;
 	}
 
@@ -1149,7 +1147,7 @@ void input_db::login_already(desc * d, const char * data)
 
 void input_db::empire_select(desc * d, const char * data)
 {
-	metin2::log::info( "EmpireSelect {}", static_cast<const void *>(d));
+	metin2::log::debug( "Empire select on connection {}", static_cast<const void *>(d));
 
 	if (!d)
 		return;
@@ -1178,7 +1176,7 @@ void input_db::map_locations(const char * data)
 {
 	uint8_t bCount = *(uint8_t *) (data++);
 
-	metin2::log::info( "InputDB::MapLocations {:d}", bCount);
+	metin2::log::debug( "Received {:d} map locations", bCount);
 
 	map_location * pLoc = (map_location *) data;
 
@@ -1206,7 +1204,7 @@ void input_db::p2_p(const char * data)
 	if (false == desc_manager::instance().is_p2_p_desc_exist(p->host, p->port))
 	{
 	    client_desc * pkDesc = nullptr;
-		metin2::log::info( "InputDB:P2P {}:{:d}", p->host, p->port);
+		metin2::log::info( "Connecting to peer {}:{:d}", p->host, p->port);
 	    pkDesc = desc_manager::instance().create_connection_desc(p->host, p->port, PHASE_P2P, false);
 		mgr.register_connector(pkDesc);
 		pkDesc->set_p2_p(p->host, p->port);
@@ -1235,7 +1233,7 @@ void input_db::guild_war(const char* data)
 {
 	packet_guild_war * p = (packet_guild_war*) data;
 
-	metin2::log::info( "InputDB::GuildWar {:d} {:d} state {:d}", p->guild_from, p->guild_to, p->war);
+	metin2::log::info( "Guild war: guild {:d} vs {:d}, state {:d}", p->guild_from, p->guild_to, p->war);
 
 	switch (p->war)
 	{
@@ -1273,7 +1271,7 @@ void input_db::guild_war(const char* data)
 			break;
 
 		default:
-			metin2::log::error("Unknown guild war state");
+			metin2::log::error("Unknown guild war state {:d} (guild {:d} vs {:d})", p->war, p->guild_from, p->guild_to);
 			break;
 	}
 }
@@ -1293,7 +1291,7 @@ void input_db::guild_skill_recharge()
 void input_db::guild_exp_update(const char* data)
 {
 	packet_guild_skill_update * p = (packet_guild_skill_update *) data;
-	metin2::log::debug( "GuildExpUpdate {:d}", p->amount);
+	metin2::log::debug( "Guild {:d}: exp update {:d}", p->guild_id, p->amount);
 
 	guild * g = guild_manager::instance().touch_guild(p->guild_id);
 
@@ -1330,7 +1328,6 @@ void input_db::guild_change_grade(const char* data)
 
 void input_db::guild_change_member_data(const char* data)
 {
-	metin2::log::info( "Recv GuildChangeMemberData");
 	packet_guild_change_member_data * p = (packet_guild_change_member_data *) data;
 	guild * g = guild_manager::instance().touch_guild(p->guild_id);
 
@@ -1347,7 +1344,7 @@ void input_db::guild_disband(const char* data)
 void input_db::guild_ladder(const char* data)
 {
 	packet_guild_ladder* p = (packet_guild_ladder*) data;
-	metin2::log::info( "Recv GuildLadder {:d} {:d} / w {:d} d {:d} l {:d}", p->guild, p->ladder_point, p->win, p->draw, p->loss);
+	metin2::log::debug( "Guild {:d}: ladder points {:d}, wins {:d}, draws {:d}, losses {:d}", p->guild, p->ladder_point, p->win, p->draw, p->loss);
 	guild * g = guild_manager::instance().touch_guild(p->guild);
 
 	g->set_ladder_point(p->ladder_point);
@@ -1367,7 +1364,7 @@ void input_db::item_load(desc * d, const char * data)
 	uint32_t dwCount = decode_4bytes(data);
 	data += sizeof(uint32_t);
 
-	metin2::log::info( "ITEM_LOAD: COUNT {} {:d}", ch->name(), dwCount);
+	metin2::log::debug( "Loading items of player {}: {:d}", ch->name(), dwCount);
 
 	std::vector<item *> v;
 
@@ -1379,7 +1376,7 @@ void input_db::item_load(desc * d, const char * data)
 
 		if (!item)
 		{
-			metin2::log::error("cannot create item by vnum {:d} (name {} id {:d})", p->vnum, ch->name(), p->id);
+			metin2::log::error("Cannot create item vnum {:d} for player {} (item id {:d})", p->vnum, ch->name(), p->id);
 			continue;
 		}
 
@@ -1390,7 +1387,7 @@ void input_db::item_load(desc * d, const char * data)
 		if ((p->window == INVENTORY && ch->inventory_item(p->pos)) ||
 				(p->window == EQUIPMENT && ch->wear(p->pos)))
 		{
-			metin2::log::info( "ITEM_RESTORE: {} {}", ch->name(), item->name());
+			metin2::log::debug( "Player {}: item {} has no free slot, restoring later", ch->name(), item->name());
 			v.push_back(item);
 		}
 		else
@@ -1419,7 +1416,7 @@ void input_db::item_load(desc * d, const char * data)
 		}
 
 		if (false == item->on_after_created_item())
-			metin2::log::error("Failed to call ITEM::OnAfterCreatedItem (vnum: {:d}, id: {:d})", item->vnum(), item->id());
+			metin2::log::error("Item post-create setup failed (vnum {:d}, id {:d})", item->vnum(), item->id());
 
 		item->set_skip_save(false);
 	}
@@ -1547,7 +1544,7 @@ void input_db::reload_proto(const char * data)
 
 	wSize = decode_2bytes(data);
 	data += 2;
-	metin2::log::info( "RELOAD: ITEM: {:d}", wSize);
+	metin2::log::info( "Reload: {:d} items", wSize);
 
 	if (wSize)
 	{
@@ -1557,7 +1554,7 @@ void input_db::reload_proto(const char * data)
 
 	wSize = decode_2bytes(data);
 	data += 2;
-	metin2::log::info( "RELOAD: MOB: {:d}", wSize);
+	metin2::log::info( "Reload: {:d} mobs", wSize);
 
 	if (wSize)
 	{
@@ -1602,7 +1599,7 @@ void input_db::auth_login(desc * d, const char * data)
 	ptoc.result = bResult;
 
 	d->packet(&ptoc, sizeof(packet_gc_auth_success));
-	metin2::log::info( "AuthLogin result {:d} key {:d}", bResult, d->get_login_key());
+	metin2::log::debug( "Auth login result {:d}, login key {:d}", bResult, d->get_login_key());
 }
 void input_db::change_empire_priv(const char* data)
 {
@@ -1689,7 +1686,7 @@ void input_db::notice(const char * data)
 	char szBuf[256+1];
 	strlcpy(szBuf, data, sizeof(szBuf));
 
-	metin2::log::info( "InputDB:: Notice: {}", szBuf);
+	metin2::log::info( "Notice: {}", szBuf);
 
 	send_notice(szBuf);
 }
@@ -1711,19 +1708,19 @@ void input_db::guild_war_bet(packet_gd_guild_war_bet * p)
 
 void input_db::marriage_add(packet_marriage_add * p)
 {
-	metin2::log::info( "MarriageAdd {:d} {:d} {:d} {} {}", p->pi_d1, p->pi_d2, (uint32_t)p->t_marry_time, p->name1, p->name2);
+	metin2::log::info( "Marriage: pid {:d} and {:d} married at {:d} ({} and {})", p->pi_d1, p->pi_d2, (uint32_t)p->t_marry_time, p->name1, p->name2);
 	marriage::manager::instance().add(p->pi_d1, p->pi_d2, p->t_marry_time, p->name1, p->name2);
 }
 
 void input_db::marriage_update(packet_marriage_update * p)
 {
-	metin2::log::info( "MarriageUpdate {:d} {:d} {:d} {:d}", p->pi_d1, p->pi_d2, p->love_point, p->married);
+	metin2::log::debug( "Marriage: pid {:d} and {:d}, love points {:d}, married {:d}", p->pi_d1, p->pi_d2, p->love_point, p->married);
 	marriage::manager::instance().update(p->pi_d1, p->pi_d2, p->love_point, p->married);
 }
 
 void input_db::marriage_remove(packet_marriage_remove * p)
 {
-	metin2::log::info( "MarriageRemove {:d} {:d}", p->pi_d1, p->pi_d2);
+	metin2::log::info( "Marriage: pid {:d} and {:d} divorced", p->pi_d1, p->pi_d2);
 	marriage::manager::instance().remove(p->pi_d1, p->pi_d2);
 }
 
@@ -1734,19 +1731,19 @@ void input_db::wedding_request(packet_wedding_request* p)
 
 void input_db::wedding_ready(packet_wedding_ready* p)
 {
-	metin2::log::info( "WeddingReady {:d} {:d} {:d}", p->pi_d1, p->pi_d2, p->map_index);
+	metin2::log::info( "Wedding: pid {:d} and {:d} ready on map {:d}", p->pi_d1, p->pi_d2, p->map_index);
 	marriage::manager::instance().wedding_ready(p->pi_d1, p->pi_d2, p->map_index);
 }
 
 void input_db::wedding_start(packet_wedding_start* p)
 {
-	metin2::log::info( "WeddingStart {:d} {:d}", p->pi_d1, p->pi_d2);
+	metin2::log::info( "Wedding: pid {:d} and {:d} started", p->pi_d1, p->pi_d2);
 	marriage::manager::instance().wedding_start(p->pi_d1, p->pi_d2);
 }
 
 void input_db::wedding_end(packet_wedding_end* p)
 {
-	metin2::log::info( "WeddingEnd {:d} {:d}", p->pi_d1, p->pi_d2);
+	metin2::log::info( "Wedding: pid {:d} and {:d} ended", p->pi_d1, p->pi_d2);
 	marriage::manager::instance().wedding_end(p->pi_d1, p->pi_d2);
 }
 
@@ -1757,7 +1754,7 @@ void input_db::myshop_pricelist_res(desc * d, const packet_myshop_pricelist_head
 	if (!d || !(ch = d->get_character()) )
 		return;
 
-	metin2::log::info( "RecvMyshopPricelistRes name[{}]", ch->name());
+	metin2::log::debug( "Shop price list received for player {}", ch->name());
 	ch->use_silk_botary_real(p );
 
 }
@@ -2144,7 +2141,7 @@ auto input_db::process(desc * d, const void * orig, int bytes, int & r_i_bytes_p
 		handle_	= *((uint32_t *) (c_pData + 1));
 		iSize		= *((uint32_t *) (c_pData + 5));
 
-		metin2::log::debug( "DBCLIENT: header {:d} handle {:d} size {:d} bytes {:d}", bHeader, handle_, iSize, bytes); 
+		metin2::log::debug( "Db packet: header {:d}, handle {:d}, size {:d}, bytes {:d}", bHeader, handle_, iSize, bytes); 
 
 		if (buffer_left_ - 9 < iSize)
 			return true;
@@ -2153,7 +2150,7 @@ auto input_db::process(desc * d, const void * orig, int bytes, int & r_i_bytes_p
 
 		if (analyze(d, bHeader, pRealData) < 0)
 		{
-			metin2::log::error("in InputDB: UNKNOWN HEADER: {:d}, LAST HEADER: {:d}({:d}), REMAIN BYTES: {:d}, host: {}",
+			metin2::log::error("Unknown db packet header {:d} (last header {:d}, length {:d}, {:d} bytes left, host {})",
 					bHeader, bLastHeader, iLastPacketLen, buffer_left_, d->host_name());
 
 		}
@@ -2241,7 +2238,7 @@ void input_db::change_monarch_lord(packet_change_monarch_lord_ack* info)
 void input_db::update_monarch_info(monarch_info* info)
 {
 	monarch::instance().set_monarch_info(info);
-	metin2::log::info( "MONARCH INFO UPDATED");
+	metin2::log::info( "Monarch info updated");
 }
 
 void input_db::guild_change_master(packet_change_guild_master* p)

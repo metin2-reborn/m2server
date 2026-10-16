@@ -28,25 +28,25 @@ namespace {
     auto pid_init() -> bool {
         std::ofstream pid("pid");
         if (!pid) {
-            metin2::log::error("cannot write the pid file");
+            metin2::log::error("Cannot write pid file ./pid");
             return false;
         }
 
         pid << getpid();
-        metin2::log::info("start of pid {:d}", getpid());
+        metin2::log::info("Process started (pid {:d})", getpid());
         return true;
     }
 
     void pid_deinit() {
         std::remove("./pid");
-        metin2::log::info("end of pid");
+        metin2::log::info("Process stopping, pid file removed");
     }
 }
 
 auto thecore_init(int fps) -> bool {
     unsigned int seed;
     if (getrandom(&seed, sizeof(seed), 0) != sizeof(seed)) {
-        metin2::log::error("getrandom failed: {}", std::strerror(errno));
+        metin2::log::error("Getrandom failed: {}", std::strerror(errno));
         return false;
     }
 

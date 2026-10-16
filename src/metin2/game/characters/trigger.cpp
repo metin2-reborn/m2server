@@ -34,7 +34,7 @@ void character::assign_triggers(const mob_table * table)
 {
 	if (table->on_click_type >= ON_CLICK_MAX_NUM)
 	{
-		metin2::log::error("{} has invalid OnClick value {:d}", name(), table->on_click_type);
+		metin2::log::error("{} has invalid on-click type {:d}", name(), table->on_click_type);
 		abort();
 	}
 

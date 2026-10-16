@@ -151,7 +151,7 @@ static auto read_line(FILE *fp, regen * regen) -> bool
 					regen->type = REGEN_TYPE_ANYWHERE;
 				else
 				{
-					metin2::log::error("read_line: unknown regen type {:c}", szTmp[0]);
+					metin2::log::error("Unknown regen type '{:c}'", szTmp[0]);
 					exit(1);
 				}
 
@@ -402,7 +402,7 @@ EVENTFUNC(dungeon_regen_event)
 
 	if ( info == nullptr )
 	{
-		metin2::log::error( "dungeon_regen_event> <Factor> Null pointer" );
+		metin2::log::error( "Dungeon regen event has no event info" );
 		return 0;
 	}
 
@@ -434,7 +434,7 @@ auto regen_do(const char* filename, int32_t map_index_value, int base_x, int bas
 
 	if (nullptr == fp)
 	{
-		metin2::log::error("SYSTEM: regen_do: {}: file not found", filename);
+		metin2::log::error("Regen file {} not found", filename);
 		return false;
 	}
 
@@ -489,7 +489,7 @@ auto regen_do(const char* filename, int32_t map_index_value, int base_x, int bas
 
 				if (!p)
 				{
-					metin2::log::error("No mob data by vnum {:d}", regen->vnum);
+					metin2::log::error("Regen refers to unknown mob vnum {:d}", regen->vnum);
 					if (!once) {
 						delete regen;
 					}
@@ -528,7 +528,7 @@ auto regen_load_in_file(const char* filename, int32_t map_index_value, int base_
 
 	if (nullptr == fp)
 	{
-		metin2::log::error("SYSTEM: regen_do: {}: file not found", filename);
+		metin2::log::error("Regen file {} not found", filename);
 		return false;
 	}
 
@@ -577,7 +577,7 @@ auto regen_load_in_file(const char* filename, int32_t map_index_value, int base_
 
 				if (!p)
 				{
-					metin2::log::error("No mob data by vnum {:d}", regen->vnum);
+					metin2::log::error("Regen refers to unknown mob vnum {:d}", regen->vnum);
 					continue;
 				}
 			}
@@ -596,7 +596,7 @@ EVENTFUNC(regen_event)
 
 	if ( info == nullptr )
 	{
-		metin2::log::error( "regen_event> <Factor> Null pointer" );
+		metin2::log::error( "Regen event has no event info" );
 		return 0;
 	}
 
@@ -619,7 +619,7 @@ auto regen_load(const char* filename, int32_t map_index_value, int base_x, int b
 
 	if (nullptr == fp)
 	{
-		metin2::log::info( "SYSTEM: regen_load: {}: file not found", filename);
+		metin2::log::info( "Regen file {} not found, skipping", filename);
 		return false;
 	}
 
@@ -672,7 +672,7 @@ auto regen_load(const char* filename, int32_t map_index_value, int base_x, int b
 
 				if (!p)
 				{
-					metin2::log::error("No mob data by vnum {:d}", regen->vnum);
+					metin2::log::error("Regen refers to unknown mob vnum {:d}", regen->vnum);
 				}
 				else if (p->table.type == CHAR_TYPE_NPC || p->table.type == CHAR_TYPE_WARP || p->table.type == CHAR_TYPE_GOTO)
 				{

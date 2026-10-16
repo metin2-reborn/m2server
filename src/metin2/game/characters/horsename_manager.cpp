@@ -42,11 +42,11 @@ void horse_name_manager::update_horse_name(uint32_t player_id, const char* horse
 {
 	if ( horse_name == nullptr )
 	{
-		metin2::log::error("HORSE_NAME: NULL NAME ({:d})", player_id);
+		metin2::log::error("Horse name for player {:d} is null", player_id);
 		horse_name = "";
 	}
 
-	metin2::log::info( "HORSENAME: update {:d} {}", player_id, horse_name);
+	metin2::log::info("Horse name: player {:d} set name {}", player_id, horse_name);
 
 	horse_names_[player_id] = horse_name;
 

@@ -106,7 +106,7 @@ auto ox_event_manager::enter(character * ch) -> bool
 {
 	if (status() == OXEVENT_FINISH)
 	{
-		metin2::log::info( "OXEVENT : map finished. but char enter. {}", ch->name());
+		metin2::log::info( "Ox event: player {} entered after the event finished", ch->name());
 		return false;
 	}
 
@@ -122,7 +122,7 @@ auto ox_event_manager::enter(character * ch) -> bool
 	}
 	else
 	{
-		metin2::log::info( "OXEVENT : wrong pos enter {:d} {:d}", pos.x, pos.y);
+		metin2::log::warn( "Ox event: player entered at unexpected position {:d} {:d}", pos.x, pos.y);
 		return false;
 	}
 
@@ -206,7 +206,7 @@ EVENTFUNC(oxevent_timer)
 
 	if ( info == nullptr )
 	{
-		metin2::log::error( "oxevent_timer> <Factor> Null pointer" );
+		metin2::log::error( "Ox event timer has no event info" );
 		return 0;
 	}
 
