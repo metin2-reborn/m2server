@@ -100,11 +100,11 @@ namespace metin2::game::inline world {
             me->view_insert(ent);
 
             if (ent->is_type(ENTITY_CHARACTER) && me->is_type(ENTITY_CHARACTER)) {
-                auto *chMe = (character *)me;
-                auto *chEnt = (character *)ent;
+                auto *ch_me = (character *)me;
+                auto *ch_ent = (character *)ent;
 
-                if (chMe->is_pc() && !chEnt->is_pc() && !chEnt->is_warp() && !chEnt->is_goto())
-                    chEnt->start_state_machine();
+                if (ch_me->is_pc() && !ch_ent->is_pc() && !ch_ent->is_warp() && !ch_ent->is_goto())
+                    ch_ent->start_state_machine();
             }
         });
 

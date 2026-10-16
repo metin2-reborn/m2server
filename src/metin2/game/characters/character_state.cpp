@@ -72,37 +72,37 @@ namespace metin2::game::inline characters {
     }
 
     void character::coward_escape() {
-        int iDist[4] = {500, 1000, 3000, 5000};
+        int dist_value[4] = {500, 1000, 3000, 5000};
 
-        for (int iDistIdx = 2; iDistIdx >= 0; --iDistIdx)
-            for (int iTryCount = 0; iTryCount < 8; ++iTryCount) {
+        for (int dist_idx = 2; dist_idx >= 0; --dist_idx)
+            for (int try_count = 0; try_count < 8; ++try_count) {
                 set_rotation(number(0, 359));
 
                 float fx, fy;
-                float fDist = number(iDist[iDistIdx], iDist[iDistIdx + 1]);
+                float dist = number(dist_value[dist_idx], dist_value[dist_idx + 1]);
 
-                get_delta_by_degree(rotation(), fDist, &fx, &fy);
+                get_delta_by_degree(rotation(), dist, &fx, &fy);
 
-                bool bIsWayBlocked = false;
+                bool is_way_blocked = false;
                 for (int j = 1; j <= 100; ++j) {
                     if (!sectree_manager::instance().is_movable_position(map_index(), x() + (int)fx * j / 100, y() + (int)fy * j / 100)) {
-                        bIsWayBlocked = true;
+                        is_way_blocked = true;
                         break;
                     }
                 }
 
-                if (bIsWayBlocked)
+                if (is_way_blocked)
                     continue;
 
                 state_duration_ = passes_per_sec(1);
 
-                int iDestX = x() + (int)fx;
-                int iDestY = y() + (int)fy;
+                int dest_x = x() + (int)fx;
+                int dest_y = y() + (int)fy;
 
-                if (go_to(iDestX, iDestY))
+                if (go_to(dest_x, dest_y))
                     send_move_packet(FUNC_WAIT, 0, 0, 0, 0);
 
-                metin2::log::debug("Waegu moves to {:d} {:d} (far)", iDestX, iDestY);
+                metin2::log::debug("Waegu moves to {:d} {:d} (far)", dest_x, dest_y);
                 return;
             }
     }
@@ -146,90 +146,90 @@ namespace metin2::game::inline characters {
     void character::state_idle_stone() {
         state_duration_ = passes_per_sec(1);
 
-        int iPercent = (hp() * 100) / max_hp();
-        uint32_t dwVnum = number(std::min<int>(get_mob_table().s_attack_speed, get_mob_table().s_moving_speed), std::max<int>(get_mob_table().s_attack_speed, get_mob_table().s_moving_speed));
+        int percent = (hp() * 100) / max_hp();
+        uint32_t vnum = number(std::min<int>(get_mob_table().s_attack_speed, get_mob_table().s_moving_speed), std::max<int>(get_mob_table().s_attack_speed, get_mob_table().s_moving_speed));
 
-        if (iPercent <= 10 && max_sp() < 10) {
+        if (percent <= 10 && max_sp() < 10) {
             set_max_sp(10);
             send_move_packet(FUNC_ATTACK, 0, x(), y(), 0);
 
             character_manager::instance().select_stone(this);
-            character_manager::instance().spawn_group(dwVnum, map_index(), x() - 500, y() - 500, x() + 500, y() + 500);
-            character_manager::instance().spawn_group(dwVnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
-            character_manager::instance().spawn_group(dwVnum, map_index(), x() - 1500, y() - 1500, x() + 1500, y() + 1500);
+            character_manager::instance().spawn_group(vnum, map_index(), x() - 500, y() - 500, x() + 500, y() + 500);
+            character_manager::instance().spawn_group(vnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
+            character_manager::instance().spawn_group(vnum, map_index(), x() - 1500, y() - 1500, x() + 1500, y() + 1500);
             character_manager::instance().select_stone(nullptr);
-        } else if (iPercent <= 20 && max_sp() < 9) {
+        } else if (percent <= 20 && max_sp() < 9) {
             set_max_sp(9);
             send_move_packet(FUNC_ATTACK, 0, x(), y(), 0);
 
             character_manager::instance().select_stone(this);
-            character_manager::instance().spawn_group(dwVnum, map_index(), x() - 500, y() - 500, x() + 500, y() + 500);
-            character_manager::instance().spawn_group(dwVnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
-            character_manager::instance().spawn_group(dwVnum, map_index(), x() - 1500, y() - 1500, x() + 1500, y() + 1500);
+            character_manager::instance().spawn_group(vnum, map_index(), x() - 500, y() - 500, x() + 500, y() + 500);
+            character_manager::instance().spawn_group(vnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
+            character_manager::instance().spawn_group(vnum, map_index(), x() - 1500, y() - 1500, x() + 1500, y() + 1500);
             character_manager::instance().select_stone(nullptr);
-        } else if (iPercent <= 30 && max_sp() < 8) {
+        } else if (percent <= 30 && max_sp() < 8) {
             set_max_sp(8);
             send_move_packet(FUNC_ATTACK, 0, x(), y(), 0);
 
             character_manager::instance().select_stone(this);
-            character_manager::instance().spawn_group(dwVnum, map_index(), x() - 500, y() - 500, x() + 500, y() + 500);
-            character_manager::instance().spawn_group(dwVnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
-            character_manager::instance().spawn_group(dwVnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
+            character_manager::instance().spawn_group(vnum, map_index(), x() - 500, y() - 500, x() + 500, y() + 500);
+            character_manager::instance().spawn_group(vnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
+            character_manager::instance().spawn_group(vnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
             character_manager::instance().select_stone(nullptr);
-        } else if (iPercent <= 40 && max_sp() < 7) {
+        } else if (percent <= 40 && max_sp() < 7) {
             set_max_sp(7);
             send_move_packet(FUNC_ATTACK, 0, x(), y(), 0);
 
             character_manager::instance().select_stone(this);
-            character_manager::instance().spawn_group(dwVnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
-            character_manager::instance().spawn_group(dwVnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
-            character_manager::instance().spawn_group(dwVnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
+            character_manager::instance().spawn_group(vnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
+            character_manager::instance().spawn_group(vnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
+            character_manager::instance().spawn_group(vnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
             character_manager::instance().select_stone(nullptr);
-        } else if (iPercent <= 50 && max_sp() < 6) {
+        } else if (percent <= 50 && max_sp() < 6) {
             set_max_sp(6);
             send_move_packet(FUNC_ATTACK, 0, x(), y(), 0);
 
             character_manager::instance().select_stone(this);
-            character_manager::instance().spawn_group(dwVnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
-            character_manager::instance().spawn_group(dwVnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
+            character_manager::instance().spawn_group(vnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
+            character_manager::instance().spawn_group(vnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
             character_manager::instance().select_stone(nullptr);
-        } else if (iPercent <= 60 && max_sp() < 5) {
+        } else if (percent <= 60 && max_sp() < 5) {
             set_max_sp(5);
             send_move_packet(FUNC_ATTACK, 0, x(), y(), 0);
 
             character_manager::instance().select_stone(this);
-            character_manager::instance().spawn_group(dwVnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
-            character_manager::instance().spawn_group(dwVnum, map_index(), x() - 500, y() - 500, x() + 500, y() + 500);
+            character_manager::instance().spawn_group(vnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
+            character_manager::instance().spawn_group(vnum, map_index(), x() - 500, y() - 500, x() + 500, y() + 500);
             character_manager::instance().select_stone(nullptr);
-        } else if (iPercent <= 70 && max_sp() < 4) {
+        } else if (percent <= 70 && max_sp() < 4) {
             set_max_sp(4);
             send_move_packet(FUNC_ATTACK, 0, x(), y(), 0);
 
             character_manager::instance().select_stone(this);
-            character_manager::instance().spawn_group(dwVnum, map_index(), x() - 500, y() - 500, x() + 500, y() + 500);
-            character_manager::instance().spawn_group(dwVnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
+            character_manager::instance().spawn_group(vnum, map_index(), x() - 500, y() - 500, x() + 500, y() + 500);
+            character_manager::instance().spawn_group(vnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
             character_manager::instance().select_stone(nullptr);
-        } else if (iPercent <= 80 && max_sp() < 3) {
+        } else if (percent <= 80 && max_sp() < 3) {
             set_max_sp(3);
             send_move_packet(FUNC_ATTACK, 0, x(), y(), 0);
 
             character_manager::instance().select_stone(this);
-            character_manager::instance().spawn_group(dwVnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
-            character_manager::instance().spawn_group(dwVnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
+            character_manager::instance().spawn_group(vnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
+            character_manager::instance().spawn_group(vnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
             character_manager::instance().select_stone(nullptr);
-        } else if (iPercent <= 90 && max_sp() < 2) {
+        } else if (percent <= 90 && max_sp() < 2) {
             set_max_sp(2);
             send_move_packet(FUNC_ATTACK, 0, x(), y(), 0);
 
             character_manager::instance().select_stone(this);
-            character_manager::instance().spawn_group(dwVnum, map_index(), x() - 500, y() - 500, x() + 500, y() + 500);
+            character_manager::instance().spawn_group(vnum, map_index(), x() - 500, y() - 500, x() + 500, y() + 500);
             character_manager::instance().select_stone(nullptr);
-        } else if (iPercent <= 99 && max_sp() < 1) {
+        } else if (percent <= 99 && max_sp() < 1) {
             set_max_sp(1);
             send_move_packet(FUNC_ATTACK, 0, x(), y(), 0);
 
             character_manager::instance().select_stone(this);
-            character_manager::instance().spawn_group(dwVnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
+            character_manager::instance().spawn_group(vnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
             character_manager::instance().select_stone(nullptr);
         } else
             return;
@@ -257,30 +257,30 @@ namespace metin2::game::inline characters {
                         if (!ent->is_type(ENTITY_CHARACTER))
                             return;
 
-                        auto *pkChr = (character *)ent;
+                        auto *chr = (character *)ent;
 
-                        if (pkChr->is_pc())
+                        if (chr->is_pc())
                             return;
 
-                        if (pkChr->is_npc() && !pkChr->is_monster())
+                        if (chr->is_npc() && !chr->is_monster())
                             return;
 
-                        if (pkChr->is_dead())
+                        if (chr->is_dead())
                             return;
 
-                        if (pkChr->is_affect_flag(AFF_EUNHYUNG) ||
-                            pkChr->is_affect_flag(AFF_INVISIBILITY) ||
-                            pkChr->is_affect_flag(AFF_REVIVE_INVISIBLE))
+                        if (chr->is_affect_flag(AFF_EUNHYUNG) ||
+                            chr->is_affect_flag(AFF_INVISIBILITY) ||
+                            chr->is_affect_flag(AFF_REVIVE_INVISIBLE))
                             return;
 
-                        if (pkChr->race_num() == 5001)
+                        if (chr->race_num() == 5001)
                             return;
 
-                        int iDistance = distance_approx(lx - pkChr->x(), ly - pkChr->y());
+                        int distance = distance_approx(lx - chr->x(), ly - chr->y());
 
-                        if (iDistance < min_distance && iDistance <= max_distance) {
-                            victim = pkChr;
-                            min_distance = iDistance;
+                        if (distance < min_distance && distance <= max_distance) {
+                            victim = chr;
+                            min_distance = distance;
                         }
                     });
                 }
@@ -299,22 +299,22 @@ namespace metin2::game::inline characters {
 
                     play_start_time_ = get_dword_time() + next_warp_time;
 
-                    const int WARP_MAP_INDEX_NUM = 7;
-                    static const int32_t c_lWarpMapIndexs[WARP_MAP_INDEX_NUM] = {61, 62, 63, 64, 3, 23, 43};
-                    int32_t lNextMapIndex;
-                    lNextMapIndex = c_lWarpMapIndexs[number(1, WARP_MAP_INDEX_NUM) - 1];
+                    const int warp_map_index_num = 7;
+                    static const int32_t c_l_warp_map_indexs[warp_map_index_num] = {61, 62, 63, 64, 3, 23, 43};
+                    int32_t next_map_index;
+                    next_map_index = c_l_warp_map_indexs[number(1, warp_map_index_num) - 1];
 
-                    if (map_allow_find(lNextMapIndex)) {
+                    if (map_allow_find(next_map_index)) {
                         character_manager::instance().destroy_character(this);
-                        int iNextSpawnDelay = 0;
-                        iNextSpawnDelay = 50 * 60;
+                        int next_spawn_delay = 0;
+                        next_spawn_delay = 50 * 60;
 
-                        xmas::spawn_santa(lNextMapIndex, iNextSpawnDelay);
+                        xmas::spawn_santa(next_map_index, next_spawn_delay);
                     } else {
                         packet_gg_xmas_warp_santa p;
                         p.header = HEADER_GG_XMAS_WARP_SANTA;
                         p.channel = metin2::config::server().channel;
-                        p.map_index = lNextMapIndex;
+                        p.map_index = next_map_index;
                         p2p_manager::instance().send(&p, sizeof(packet_gg_xmas_warp_santa));
                     }
                     return;
@@ -322,11 +322,11 @@ namespace metin2::game::inline characters {
             }
 
             if (!is_set(points_instant_.ai_flag, AIFLAG_NOMOVE)) {
-                character *pkChrProtege = protege();
+                character *chr_protege = protege();
 
-                if (pkChrProtege) {
-                    if (distance_approx(x() - pkChrProtege->x(), y() - pkChrProtege->y()) > 500) {
-                        if (follow(pkChrProtege, number(100, 300)))
+                if (chr_protege) {
+                    if (distance_approx(x() - chr_protege->x(), y() - chr_protege->y()) > 500) {
+                        if (follow(chr_protege, number(100, 300)))
                             return;
                     }
                 }
@@ -335,9 +335,9 @@ namespace metin2::game::inline characters {
                     set_rotation(number(0, 359));
 
                     float fx, fy;
-                    float fDist = number(200, 400);
+                    float dist = number(200, 400);
 
-                    get_delta_by_degree(rotation(), fDist, &fx, &fy);
+                    get_delta_by_degree(rotation(), dist, &fx, &fy);
 
                     if (!(sectree_manager::instance().is_movable_position(map_index(), x() + (int)fx, y() + (int)fy) && sectree_manager::instance().is_movable_position(map_index(), x() + (int)fx / 2, y() + (int)fy / 2)))
                         return;
@@ -406,11 +406,11 @@ namespace metin2::game::inline characters {
         else
             state_duration_ = passes_per_sec(number(3, 5));
 
-        character *pkChrProtege = protege();
+        character *chr_protege = protege();
 
-        if (pkChrProtege) {
-            if (distance_approx(x() - pkChrProtege->x(), y() - pkChrProtege->y()) > 1000) {
-                if (follow(pkChrProtege, number(150, 400))) {
+        if (chr_protege) {
+            if (distance_approx(x() - chr_protege->x(), y() - chr_protege->y()) > 1000) {
+                if (follow(chr_protege, number(150, 400))) {
                     monster_log("[IDLE] 리더로부터 너무 멀리 떨어졌다! 복귀한다.");
                     return;
                 }
@@ -422,9 +422,9 @@ namespace metin2::game::inline characters {
                 set_rotation(number(0, 359));
 
                 float fx, fy;
-                float fDist = number(300, 700);
+                float dist = number(300, 700);
 
-                get_delta_by_degree(rotation(), fDist, &fx, &fy);
+                get_delta_by_degree(rotation(), dist, &fx, &fy);
 
                 if (!(sectree_manager::instance().is_movable_position(map_index(), x() + (int)fx, y() + (int)fy) && sectree_manager::instance().is_movable_position(map_index(), x() + (int)fx / 2, y() + (int)fy / 2)))
                     return;
@@ -466,14 +466,14 @@ namespace metin2::game::inline characters {
     }
 
     void character::state_move() {
-        uint32_t dwElapsedTime = get_dword_time() - move_start_time_;
-        float fRate = (float)dwElapsedTime / (float)move_duration_;
+        uint32_t elapsed_time = get_dword_time() - move_start_time_;
+        float rate = (float)elapsed_time / (float)move_duration_;
 
-        if (fRate > 1.0f)
-            fRate = 1.0f;
+        if (rate > 1.0f)
+            rate = 1.0f;
 
-        int x_value = (int)((float)(pos_dest_.x - pos_start_.x) * fRate + pos_start_.x);
-        int y_value = (int)((float)(pos_dest_.y - pos_start_.y) * fRate + pos_start_.y);
+        int x_value = (int)((float)(pos_dest_.x - pos_start_.x) * rate + pos_start_.x);
+        int y_value = (int)((float)(pos_dest_.y - pos_start_.y) * rate + pos_start_.y);
 
         move(x_value, y_value);
 
@@ -482,9 +482,9 @@ namespace metin2::game::inline characters {
 
             if (get_exchange()) {
                 character *victim_value = get_exchange()->company()->owner();
-                int iDist = distance_approx(x() - victim_value->x(), y() - victim_value->y());
+                int dist = distance_approx(x() - victim_value->x(), y() - victim_value->y());
 
-                if (iDist >= EXCHANGE_MAX_DISTANCE) {
+                if (dist >= EXCHANGE_MAX_DISTANCE) {
                     get_exchange()->cancel();
                 }
             }
@@ -551,7 +551,7 @@ namespace metin2::game::inline characters {
             }
         }
 
-        if (1.0f == fRate) {
+        if (1.0f == rate) {
             if (is_pc()) {
                 metin2::log::debug("{} arrived at {:d} {:d}", name(), x_value, y_value);
                 goto_state(state_idle_);
@@ -624,9 +624,9 @@ namespace metin2::game::inline characters {
                     case BATTLE_TYPE_TANKER:
                         {
                             float fx, fy;
-                            float fDist = number(400, 1500);
+                            float dist = number(400, 1500);
 
-                            get_delta_by_degree(number(0, 359), fDist, &fx, &fy);
+                            get_delta_by_degree(number(0, 359), dist, &fx, &fy);
 
                             if (sectree_manager::instance().is_movable_position(victim_value->map_index(),
                                     victim_value->x() + (int)fx,
@@ -640,7 +640,7 @@ namespace metin2::game::inline characters {
                                 set_rotation(get_degree_from_position(dx, dy));
 
                                 if (go_to((int32_t)dx, (int32_t)dy)) {
-                                    metin2::log::debug("{}: kill and go, distance {:.1f}", name(), fDist);
+                                    metin2::log::debug("{}: kill and go, distance {:.1f}", name(), dist);
                                     send_move_packet(FUNC_WAIT, 0, 0, 0, 0);
                                 }
                             }
@@ -664,10 +664,10 @@ namespace metin2::game::inline characters {
                 party_manager::instance().create_party(this);
             }
 
-            party *pParty = get_party();
-            bool bPct = !number(0, 3);
+            party *party = get_party();
+            bool pct = !number(0, 3);
 
-            if (bPct && pParty->count_member_by_vnum(summon_vnum()) < SUMMON_MONSTER_COUNT) {
+            if (pct && party->count_member_by_vnum(summon_vnum()) < SUMMON_MONSTER_COUNT) {
                 monster_log("부하 몬스터 소환!");
                 int sx = x() - 300;
                 int sy = y() - 300;
@@ -677,28 +677,28 @@ namespace metin2::game::inline characters {
                 character *tch = character_manager::instance().spawn_mob_range(summon_vnum(), map_index(), sx, sy, ex, ey, true, true);
 
                 if (tch) {
-                    pParty->join(tch->get_vid());
-                    pParty->link(tch);
+                    party->join(tch->get_vid());
+                    party->link(tch);
                 }
             }
         }
 
-        character *pkChrProtege = protege();
+        character *chr_protege = protege();
 
-        float fDist = distance_approx(x() - victim_value->x(), y() - victim_value->y());
+        float dist = distance_approx(x() - victim_value->x(), y() - victim_value->y());
 
-        if (fDist >= 4000.0f) {
+        if (dist >= 4000.0f) {
             monster_log("타겟이 멀어서 포기");
             set_victim(nullptr);
 
-            if (pkChrProtege)
-                if (distance_approx(x() - pkChrProtege->x(), y() - pkChrProtege->y()) > 1000)
-                    follow(pkChrProtege, number(150, 400));
+            if (chr_protege)
+                if (distance_approx(x() - chr_protege->x(), y() - chr_protege->y()) > 1000)
+                    follow(chr_protege, number(150, 400));
 
             return;
         }
 
-        if (fDist >= mob_attack_range() * 1.15) {
+        if (dist >= mob_attack_range() * 1.15) {
             character_goto_near_target(this, victim_value);
             return;
         }
@@ -711,11 +711,11 @@ namespace metin2::game::inline characters {
             return;
         }
 
-        uint32_t dwCurTime = get_dword_time();
-        uint32_t dwDuration = calculate_duration(limit_point(POINT_ATT_SPEED), 2000);
+        uint32_t cur_time = get_dword_time();
+        uint32_t duration_value = calculate_duration(limit_point(POINT_ATT_SPEED), 2000);
 
-        if ((dwCurTime - last_attack_time_) < dwDuration) {
-            state_duration_ = std::max<int>(1, (metin2::config::server().passes_per_sec * (dwDuration - (dwCurTime - last_attack_time_)) / 1000));
+        if ((cur_time - last_attack_time_) < duration_value) {
+            state_duration_ = std::max<int>(1, (metin2::config::server().passes_per_sec * (duration_value - (cur_time - last_attack_time_)) / 1000));
             return;
         }
 
@@ -730,18 +730,18 @@ namespace metin2::game::inline characters {
                     set_god_speed(true);
 
         if (has_mob_skill()) {
-            for (unsigned int iSkillIdx = 0; iSkillIdx < MOB_SKILL_MAX_NUM; ++iSkillIdx) {
-                if (can_use_mob_skill(iSkillIdx)) {
+            for (unsigned int skill_idx = 0; skill_idx < MOB_SKILL_MAX_NUM; ++skill_idx) {
+                if (can_use_mob_skill(skill_idx)) {
                     set_rotation_to_xy(victim_value->x(), victim_value->y());
 
-                    if (use_mob_skill(iSkillIdx)) {
-                        send_move_packet(FUNC_MOB_SKILL, iSkillIdx, x(), y(), 0, dwCurTime);
+                    if (use_mob_skill(skill_idx)) {
+                        send_move_packet(FUNC_MOB_SKILL, skill_idx, x(), y(), 0, cur_time);
 
-                        float fDuration = motion_manager::instance().motion_duration(race_num(), make_motion_key(MOTION_MODE_GENERAL, MOTION_SPECIAL_1 + iSkillIdx));
-                        state_duration_ = (uint32_t)(fDuration == 0.0f ? passes_per_sec(2) : passes_per_sec(fDuration));
+                        float f_duration = motion_manager::instance().motion_duration(race_num(), make_motion_key(MOTION_MODE_GENERAL, MOTION_SPECIAL_1 + skill_idx));
+                        state_duration_ = (uint32_t)(f_duration == 0.0f ? passes_per_sec(2) : passes_per_sec(f_duration));
 
                         if (metin2::config::test_server())
-                            metin2::log::debug("Mob {} uses skill index {:d} (motion {:d}, duration {:.0f})", name(), iSkillIdx, MOTION_SPECIAL_1 + iSkillIdx, fDuration);
+                            metin2::log::debug("Mob {} uses skill index {:d} (motion {:d}, duration {:.0f})", name(), skill_idx, MOTION_SPECIAL_1 + skill_idx, f_duration);
 
                         return;
                     }
@@ -754,19 +754,19 @@ namespace metin2::game::inline characters {
         else {
             set_rotation_to_xy(victim_value->x(), victim_value->y());
 
-            send_move_packet(FUNC_ATTACK, 0, x(), y(), 0, dwCurTime);
+            send_move_packet(FUNC_ATTACK, 0, x(), y(), 0, cur_time);
 
-            float fDuration = motion_manager::instance().motion_duration(race_num(), make_motion_key(MOTION_MODE_GENERAL, MOTION_NORMAL_ATTACK));
-            state_duration_ = (uint32_t)(fDuration == 0.0f ? passes_per_sec(2) : passes_per_sec(fDuration));
+            float f_duration = motion_manager::instance().motion_duration(race_num(), make_motion_key(MOTION_MODE_GENERAL, MOTION_NORMAL_ATTACK));
+            state_duration_ = (uint32_t)(f_duration == 0.0f ? passes_per_sec(2) : passes_per_sec(f_duration));
         }
     }
 
     void character::state_flag() {
         state_duration_ = (uint32_t)passes_per_sec(0.5);
 
-        war_map *pMap = get_war_map();
+        war_map *map = get_war_map();
 
-        if (!pMap)
+        if (!map)
             return;
 
         character *chr_find = nullptr;
@@ -779,37 +779,37 @@ namespace metin2::game::inline characters {
             if (ent->is_observer_mode())
                 return;
 
-            auto *pkChr = (character *)ent;
+            auto *chr = (character *)ent;
 
-            if (!pkChr->is_pc())
+            if (!chr->is_pc())
                 return;
 
-            if (!pkChr->get_guild())
+            if (!chr->get_guild())
                 return;
 
-            if (pkChr->is_dead())
+            if (chr->is_dead())
                 return;
 
-            int iDist = distance_approx(pkChr->x() - x(), pkChr->y() - y());
+            int dist = distance_approx(chr->x() - x(), chr->y() - y());
 
-            if (iDist <= 500 && min_distance > iDist &&
-                !pkChr->is_affect_flag(AFF_WAR_FLAG1) &&
-                !pkChr->is_affect_flag(AFF_WAR_FLAG2) &&
-                !pkChr->is_affect_flag(AFF_WAR_FLAG3)) {
-                if ((uint32_t)point(POINT_STAT) == pkChr->get_guild()->id()) {
-                    war_map *pMap = pkChr->get_war_map();
+            if (dist <= 500 && min_distance > dist &&
+                !chr->is_affect_flag(AFF_WAR_FLAG1) &&
+                !chr->is_affect_flag(AFF_WAR_FLAG2) &&
+                !chr->is_affect_flag(AFF_WAR_FLAG3)) {
+                if ((uint32_t)point(POINT_STAT) == chr->get_guild()->id()) {
+                    war_map *map = chr->get_war_map();
                     uint8_t idx;
 
-                    if (!pMap || !pMap->team_index(pkChr->get_guild()->id(), idx))
+                    if (!map || !map->team_index(chr->get_guild()->id(), idx))
                         return;
 
-                    if (!pMap->is_flag_on_base(idx)) {
-                        chr_find = pkChr;
-                        min_distance = iDist;
+                    if (!map->is_flag_on_base(idx)) {
+                        chr_find = chr;
+                        min_distance = dist;
                     }
                 } else {
-                    chr_find = pkChr;
-                    min_distance = iDist;
+                    chr_find = chr;
+                    min_distance = dist;
                 }
             }
         });
@@ -823,16 +823,16 @@ namespace metin2::game::inline characters {
         char buf[256];
         uint8_t idx;
 
-        if (!pMap->team_index(point(POINT_STAT), idx))
+        if (!map->team_index(point(POINT_STAT), idx))
             return;
 
         chr_find->add_affect(AFFECT_WAR_FLAG, POINT_NONE, point(POINT_STAT), idx == 0 ? AFF_WAR_FLAG1 : AFF_WAR_FLAG2, INFINITE_AFFECT_DURATION, 0, false);
         chr_find->add_affect(AFFECT_WAR_FLAG, POINT_MOV_SPEED, 50 - chr_find->point(POINT_MOV_SPEED), 0, INFINITE_AFFECT_DURATION, 0, false);
 
-        pMap->remove_flag(idx);
+        map->remove_flag(idx);
 
-        snprintf(buf, sizeof(buf), lc_text("%s 길드의 깃발을 %s 님이 획득하였습니다."), pMap->get_guild(idx)->name(), chr_find->name());
-        pMap->notice(buf);
+        snprintf(buf, sizeof(buf), lc_text("%s 길드의 깃발을 %s 님이 획득하였습니다."), map->get_guild(idx)->name(), chr_find->name());
+        map->notice(buf);
     }
 
     void character::state_flag_base() {
@@ -845,47 +845,47 @@ namespace metin2::game::inline characters {
             if (ent->is_observer_mode())
                 return;
 
-            auto *pkChr = (character *)ent;
+            auto *chr = (character *)ent;
 
-            if (!pkChr->is_pc())
+            if (!chr->is_pc())
                 return;
 
-            guild *pkGuild = pkChr->get_guild();
+            guild *guild_value = chr->get_guild();
 
-            if (!pkGuild)
+            if (!guild_value)
                 return;
 
-            int iDist = distance_approx(pkChr->x() - x(), pkChr->y() - y());
+            int dist = distance_approx(chr->x() - x(), chr->y() - y());
 
-            if (iDist <= 500 &&
-                (pkChr->is_affect_flag(AFF_WAR_FLAG1) ||
-                    pkChr->is_affect_flag(AFF_WAR_FLAG2) ||
-                    pkChr->is_affect_flag(AFF_WAR_FLAG3))) {
-                affect *pkAff = pkChr->find_affect(AFFECT_WAR_FLAG);
+            if (dist <= 500 &&
+                (chr->is_affect_flag(AFF_WAR_FLAG1) ||
+                    chr->is_affect_flag(AFF_WAR_FLAG2) ||
+                    chr->is_affect_flag(AFF_WAR_FLAG3))) {
+                affect *aff = chr->find_affect(AFFECT_WAR_FLAG);
 
                 metin2::log::debug("War flag base: {} at distance {:d}, affect {}, flag guild {:d}, player guild {:d}",
-                    pkChr->name(), iDist, static_cast<const void *>(pkAff), point(POINT_STAT),
-                    pkChr->get_guild()->id());
+                    chr->name(), dist, static_cast<const void *>(aff), point(POINT_STAT),
+                    chr->get_guild()->id());
 
-                if (pkAff) {
-                    if ((uint32_t)point(POINT_STAT) == pkGuild->id() &&
-                        point(POINT_STAT) != pkAff->apply_value) {
-                        war_map *pMap = pkChr->get_war_map();
+                if (aff) {
+                    if ((uint32_t)point(POINT_STAT) == guild_value->id() &&
+                        point(POINT_STAT) != aff->apply_value) {
+                        war_map *map = chr->get_war_map();
                         uint8_t idx;
 
-                        if (!pMap || !pMap->team_index(pkGuild->id(), idx))
+                        if (!map || !map->team_index(guild_value->id(), idx))
                             return;
 
                         {
                             uint8_t idx_opp = idx == 0 ? 1 : 0;
 
-                            send_guild_war_score(point(POINT_STAT), pkAff->apply_value, 1);
+                            send_guild_war_score(point(POINT_STAT), aff->apply_value, 1);
 
-                            pMap->reset_flag();
+                            map->reset_flag();
 
                             char buf[256];
-                            snprintf(buf, sizeof(buf), lc_text("%s 길드가 %s 길드의 깃발을 빼앗았습니다!"), pMap->get_guild(idx)->name(), pMap->get_guild(idx_opp)->name());
-                            pMap->notice(buf);
+                            snprintf(buf, sizeof(buf), lc_text("%s 길드가 %s 길드의 깃발을 빼앗았습니다!"), map->get_guild(idx)->name(), map->get_guild(idx_opp)->name());
+                            map->notice(buf);
                         }
                     }
                 }
@@ -894,20 +894,20 @@ namespace metin2::game::inline characters {
     }
 
     void character::state_horse() {
-        float START_FOLLOW_DISTANCE = 400.0f;
-        float START_RUN_DISTANCE = 700.0f;
-        int MIN_APPROACH = 150;
-        int MAX_APPROACH = 300;
+        float start_follow_distance = 400.0f;
+        float start_run_distance = 700.0f;
+        int min_approach = 150;
+        int max_approach = 300;
 
-        auto STATE_DURATION = (uint32_t)passes_per_sec(0.5);
+        auto state_duration = (uint32_t)passes_per_sec(0.5);
 
-        bool bDoMoveAlone = true;
-        bool bRun = true;
+        bool do_move_alone = true;
+        bool run = true;
 
         if (is_dead())
             return;
 
-        state_duration_ = STATE_DURATION;
+        state_duration_ = state_duration;
 
         character *victim = rider();
 
@@ -918,24 +918,24 @@ namespace metin2::game::inline characters {
 
         mob_inst->pos_last_attacked = xyz();
 
-        float fDist = distance_approx(x() - victim->x(), y() - victim->y());
+        float dist = distance_approx(x() - victim->x(), y() - victim->y());
 
-        if (fDist >= START_FOLLOW_DISTANCE) {
-            if (fDist > START_RUN_DISTANCE)
-                set_now_walking(!bRun);
+        if (dist >= start_follow_distance) {
+            if (dist > start_run_distance)
+                set_now_walking(!run);
 
-            follow(victim, number(MIN_APPROACH, MAX_APPROACH));
+            follow(victim, number(min_approach, max_approach));
 
-            state_duration_ = STATE_DURATION;
-        } else if (bDoMoveAlone && (get_dword_time() > last_attack_time_)) {
+            state_duration_ = state_duration;
+        } else if (do_move_alone && (get_dword_time() > last_attack_time_)) {
             last_attack_time_ = get_dword_time() + number(5000, 12000);
 
             set_rotation(number(0, 359));
 
             float fx, fy;
-            float fDist = number(200, 400);
+            float dist = number(200, 400);
 
-            get_delta_by_degree(rotation(), fDist, &fx, &fy);
+            get_delta_by_degree(rotation(), dist, &fx, &fy);
 
             if (!(sectree_manager::instance().is_movable_position(map_index(), x() + (int)fx, y() + (int)fy) && sectree_manager::instance().is_movable_position(map_index(), x() + (int)fx / 2, y() + (int)fy / 2)))
                 return;

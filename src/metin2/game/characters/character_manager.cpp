@@ -87,18 +87,18 @@ namespace metin2::game::inline characters {
     }
 
     auto character_manager::create_character(const char *name, uint32_t pid) -> character * {
-        uint32_t dwVID = alloc_vid();
+        uint32_t vid = alloc_vid();
 
         auto *ch = new character;
-        ch->create(name, dwVID, pid ? true : false);
+        ch->create(name, vid, pid ? true : false);
 
-        map_chr_by_vid_.insert(std::make_pair(dwVID, ch));
+        map_chr_by_vid_.insert(std::make_pair(vid, ch));
 
         if (pid) {
-            char szName[CHARACTER_NAME_MAX_LEN + 1];
-            str_lower(name, szName, sizeof(szName));
+            char name_value[CHARACTER_NAME_MAX_LEN + 1];
+            str_lower(name, name_value, sizeof(name_value));
 
-            map_pc_chr_.insert(name_map::value_type(szName, ch));
+            map_pc_chr_.insert(name_map::value_type(name_value, ch));
             map_chr_by_pid_.insert(std::make_pair(pid, ch));
         }
 
@@ -129,11 +129,11 @@ namespace metin2::game::inline characters {
         map_chr_by_vid_.erase(it);
 
         if (true == ch->is_pc()) {
-            char szName[CHARACTER_NAME_MAX_LEN + 1];
+            char name[CHARACTER_NAME_MAX_LEN + 1];
 
-            str_lower(ch->name(), szName, sizeof(szName));
+            str_lower(ch->name(), name, sizeof(name));
 
-            auto it = map_pc_chr_.find(szName);
+            auto it = map_pc_chr_.find(name);
 
             if (map_pc_chr_.end() != it)
                 map_pc_chr_.erase(it);
@@ -192,15 +192,15 @@ namespace metin2::game::inline characters {
     }
 
     auto character_manager::find_pc(const char *name) -> character * {
-        char szName[CHARACTER_NAME_MAX_LEN + 1];
-        str_lower(name, szName, sizeof(szName));
-        auto it = map_pc_chr_.find(szName);
+        char name_value[CHARACTER_NAME_MAX_LEN + 1];
+        str_lower(name, name_value, sizeof(name_value));
+        auto it = map_pc_chr_.find(name_value);
 
         if (it == map_pc_chr_.end())
             return nullptr;
 
         character *found = it->second;
-        if (found != nullptr && strncasecmp(szName, found->name(), CHARACTER_NAME_MAX_LEN) != 0) {
+        if (found != nullptr && strncasecmp(name_value, found->name(), CHARACTER_NAME_MAX_LEN) != 0) {
             metin2::log::error("Character lookup by name {} returned {}", name, found->name());
             return nullptr;
         }
@@ -229,9 +229,9 @@ namespace metin2::game::inline characters {
             }
         }
 
-        const mob *pkMob = mob_manager::instance().get(vnum);
+        const mob *mob_value = mob_manager::instance().get(vnum);
 
-        if (!pkMob) {
+        if (!mob_value) {
             metin2::log::error("No mob data for vnum {:d}", vnum);
             return nullptr;
         }
@@ -241,27 +241,27 @@ namespace metin2::game::inline characters {
             return nullptr;
         }
 
-        sectree_map *pkSectreeMap = sectree_manager::instance().map(map_index);
-        if (pkSectreeMap == nullptr) {
+        sectree_map *sectree_map = sectree_manager::instance().map(map_index);
+        if (sectree_map == nullptr) {
             return nullptr;
         }
 
         int i;
         int32_t x, y;
         for (i = 0; i < 2000; i++) {
-            x = number(1, (pkSectreeMap->setting.width / 100) - 1) * 100 + pkSectreeMap->setting.base_x;
-            y = number(1, (pkSectreeMap->setting.height / 100) - 1) * 100 + pkSectreeMap->setting.base_y;
-            sectree *tree = pkSectreeMap->find(x, y);
+            x = number(1, (sectree_map->setting.width / 100) - 1) * 100 + sectree_map->setting.base_x;
+            y = number(1, (sectree_map->setting.height / 100) - 1) * 100 + sectree_map->setting.base_y;
+            sectree *tree = sectree_map->find(x, y);
 
             if (!tree)
                 continue;
 
-            uint32_t dwAttr = tree->get_attribute(x, y);
+            uint32_t attr = tree->get_attribute(x, y);
 
-            if (is_set(dwAttr, ATTR_BLOCK | ATTR_OBJECT))
+            if (is_set(attr, ATTR_BLOCK | ATTR_OBJECT))
                 continue;
 
-            if (is_set(dwAttr, ATTR_BANPK))
+            if (is_set(attr, ATTR_BANPK))
                 continue;
 
             break;
@@ -279,16 +279,16 @@ namespace metin2::game::inline characters {
             return nullptr;
         }
 
-        character *ch = character_manager::instance().create_character(pkMob->table.locale_name);
+        character *ch = character_manager::instance().create_character(mob_value->table.locale_name);
 
         if (!ch) {
             metin2::log::error("Cannot create character for random mob spawn");
             return nullptr;
         }
 
-        ch->set_proto(pkMob);
+        ch->set_proto(mob_value);
 
-        if (pkMob->table.type == CHAR_TYPE_NPC)
+        if (mob_value->table.type == CHAR_TYPE_NPC)
             if (ch->empire() == 0)
                 ch->set_empire(sectree_manager::instance().empire_from_map_index(map_index));
 
@@ -300,8 +300,8 @@ namespace metin2::game::inline characters {
             return nullptr;
         }
 
-        int32_t local_x = x - pkSectreeMap->setting.base_x;
-        int32_t local_y = y - pkSectreeMap->setting.base_y;
+        int32_t local_x = x - sectree_map->setting.base_x;
+        int32_t local_y = y - sectree_map->setting.base_y;
         const std::string buf = std::format("spawn {}[{}] random position at {} {} {} {} (time: {})", ch->name(), vnum, x, y, local_x, local_y, get_global_time());
 
         if (metin2::config::test_server())
@@ -312,13 +312,13 @@ namespace metin2::game::inline characters {
     }
 
     auto character_manager::spawn_mob(uint32_t vnum, int32_t map_index, int32_t x, int32_t y, int32_t z, bool spawn_motion, int rot, bool show_value) -> character * {
-        const mob *pkMob = mob_manager::instance().get(vnum);
-        if (!pkMob) {
+        const mob *mob_value = mob_manager::instance().get(vnum);
+        if (!mob_value) {
             metin2::log::error("No mob data for vnum {:d}", vnum);
             return nullptr;
         }
 
-        if (!(pkMob->table.type == CHAR_TYPE_NPC || pkMob->table.type == CHAR_TYPE_WARP || pkMob->table.type == CHAR_TYPE_GOTO) || mining::is_vein_of_ore(vnum)) {
+        if (!(mob_value->table.type == CHAR_TYPE_NPC || mob_value->table.type == CHAR_TYPE_WARP || mob_value->table.type == CHAR_TYPE_GOTO) || mining::is_vein_of_ore(vnum)) {
             sectree *tree = sectree_manager::instance().get(map_index, x, y);
 
             if (!tree) {
@@ -326,33 +326,33 @@ namespace metin2::game::inline characters {
                 return nullptr;
             }
 
-            uint32_t dwAttr = tree->get_attribute(x, y);
+            uint32_t attr_value = tree->get_attribute(x, y);
 
             bool is_set_value = false;
 
             if (mining::is_vein_of_ore(vnum))
-                is_set_value = is_set(dwAttr, ATTR_BLOCK);
+                is_set_value = is_set(attr_value, ATTR_BLOCK);
             else
-                is_set_value = is_set(dwAttr, ATTR_BLOCK | ATTR_OBJECT);
+                is_set_value = is_set(attr_value, ATTR_BLOCK | ATTR_OBJECT);
 
             if (is_set_value) {
-                static bool s_isLog = quest::quest_manager::instance().event_flag("spawn_block_log");
-                static uint32_t s_nextTime = get_global_time() + 10000;
+                static bool is_log = quest::quest_manager::instance().event_flag("spawn_block_log");
+                static uint32_t next_time = get_global_time() + 10000;
 
-                uint32_t curTime = get_global_time();
+                uint32_t cur_time = get_global_time();
 
-                if (curTime > s_nextTime) {
-                    s_nextTime = curTime;
-                    s_isLog = quest::quest_manager::instance().event_flag("spawn_block_log");
+                if (cur_time > next_time) {
+                    next_time = cur_time;
+                    is_log = quest::quest_manager::instance().event_flag("spawn_block_log");
                 }
 
-                if (s_isLog)
-                    metin2::log::info("Mob spawn: blocked position for {} ({:d}) at {:d} {:d} (attr {:d})", pkMob->table.name, vnum, x, y, dwAttr);
+                if (is_log)
+                    metin2::log::info("Mob spawn: blocked position for {} ({:d}) at {:d} {:d} (attr {:d})", mob_value->table.name, vnum, x, y, attr_value);
                 return nullptr;
             }
 
-            if (is_set(dwAttr, ATTR_BANPK)) {
-                metin2::log::warn("Cannot spawn mob {} ({:d}) in a no-PK zone at {:d} {:d}", pkMob->table.name, vnum, x, y);
+            if (is_set(attr_value, ATTR_BANPK)) {
+                metin2::log::warn("Cannot spawn mob {} ({:d}) in a no-PK zone at {:d} {:d}", mob_value->table.name, vnum, x, y);
                 return nullptr;
             }
         }
@@ -364,7 +364,7 @@ namespace metin2::game::inline characters {
             return nullptr;
         }
 
-        character *ch = character_manager::instance().create_character(pkMob->table.locale_name);
+        character *ch = character_manager::instance().create_character(mob_value->table.locale_name);
 
         if (!ch) {
             metin2::log::error("Cannot create character for mob spawn");
@@ -374,9 +374,9 @@ namespace metin2::game::inline characters {
         if (rot == -1)
             rot = number(0, 360);
 
-        ch->set_proto(pkMob);
+        ch->set_proto(mob_value);
 
-        if (pkMob->table.type == CHAR_TYPE_NPC)
+        if (mob_value->table.type == CHAR_TYPE_NPC)
             if (ch->empire() == 0)
                 ch->set_empire(sectree_manager::instance().empire_from_map_index(map_index));
 
@@ -392,12 +392,12 @@ namespace metin2::game::inline characters {
     }
 
     auto character_manager::spawn_mob_range(uint32_t vnum, int32_t map_index, int sx, int sy, int ex, int ey, bool is_exception, bool spawn_motion, bool aggressive) -> character * {
-        const mob *pkMob = mob_manager::instance().get(vnum);
+        const mob *mob = mob_manager::instance().get(vnum);
 
-        if (!pkMob)
+        if (!mob)
             return nullptr;
 
-        if (pkMob->table.type == CHAR_TYPE_STONE)
+        if (mob->table.type == CHAR_TYPE_STONE)
             spawn_motion = true;
 
         int i = 16;
@@ -423,29 +423,29 @@ namespace metin2::game::inline characters {
     }
 
     auto character_manager::spawn_move_group(uint32_t vnum, int32_t map_index, int sx, int sy, int ex, int ey, int tx, int ty, regen *regen_value, bool aggressive) -> bool {
-        mob_group *pkGroup = mob_manager::instance().group(vnum);
+        mob_group *group_value = mob_manager::instance().group(vnum);
 
-        if (!pkGroup) {
+        if (!group_value) {
             metin2::log::error("Mob group {:d} does not exist (map {:d})", vnum, map_index);
             return false;
         }
 
-        character *pkChrMaster = nullptr;
-        party *pkParty = nullptr;
+        character *chr_master = nullptr;
+        party *party = nullptr;
 
-        const std::vector<uint32_t> &c_rdwMembers = pkGroup->member_vector();
+        const std::vector<uint32_t> &c_rdw_members = group_value->member_vector();
 
-        bool bSpawnedByStone = false;
-        bool bAggressive = aggressive;
+        bool spawned_by_stone = false;
+        bool aggressive_value = aggressive;
 
         if (chr_selected_stone_) {
-            bSpawnedByStone = true;
+            spawned_by_stone = true;
             if (chr_selected_stone_->get_dungeon())
-                bAggressive = true;
+                aggressive_value = true;
         }
 
-        for (uint32_t i = 0; i < c_rdwMembers.size(); ++i) {
-            character *tch = spawn_mob_range(c_rdwMembers[i], map_index, sx, sy, ex, ey, true, bSpawnedByStone);
+        for (uint32_t i = 0; i < c_rdw_members.size(); ++i) {
+            character *tch = spawn_mob_range(c_rdw_members[i], map_index, sx, sy, ex, ey, true, spawned_by_stone);
 
             if (!tch) {
                 if (i == 0)
@@ -461,16 +461,16 @@ namespace metin2::game::inline characters {
 
             if (chr_selected_stone_)
                 tch->set_stone(chr_selected_stone_);
-            else if (pkParty) {
-                pkParty->join(tch->get_vid());
-                pkParty->link(tch);
-            } else if (!pkChrMaster) {
-                pkChrMaster = tch;
-                pkChrMaster->set_regen(regen_value);
+            else if (party) {
+                party->join(tch->get_vid());
+                party->link(tch);
+            } else if (!chr_master) {
+                chr_master = tch;
+                chr_master->set_regen(regen_value);
 
-                pkParty = party_manager::instance().create_party(pkChrMaster);
+                party = party_manager::instance().create_party(chr_master);
             }
-            if (bAggressive)
+            if (aggressive_value)
                 tch->set_aggressive();
 
             if (tch->go_to(tx, ty))
@@ -481,10 +481,10 @@ namespace metin2::game::inline characters {
     }
 
     auto character_manager::spawn_group_group(uint32_t vnum, int32_t map_index, int sx, int sy, int ex, int ey, regen *regen_value, bool aggressive, dungeon *dungeon_value) -> bool {
-        const uint32_t dwGroupID = mob_manager::instance().group_from_group_group(vnum);
+        const uint32_t group_id = mob_manager::instance().group_from_group_group(vnum);
 
-        if (dwGroupID != 0) {
-            return spawn_group(dwGroupID, map_index, sx, sy, ex, ey, regen_value, aggressive, dungeon_value);
+        if (group_id != 0) {
+            return spawn_group(group_id, map_index, sx, sy, ex, ey, regen_value, aggressive, dungeon_value);
         } else {
             metin2::log::error("Mob group group {:d} does not exist (map {:d})", vnum, map_index);
             return false;
@@ -492,32 +492,32 @@ namespace metin2::game::inline characters {
     }
 
     auto character_manager::spawn_group(uint32_t vnum, int32_t map_index, int sx, int sy, int ex, int ey, regen *regen_value, bool aggressive, dungeon *dungeon_value) -> character * {
-        mob_group *pkGroup = mob_manager::instance().group(vnum);
+        mob_group *group_value = mob_manager::instance().group(vnum);
 
-        if (!pkGroup) {
+        if (!group_value) {
             metin2::log::error("Mob group {:d} does not exist (map {:d})", vnum, map_index);
             return nullptr;
         }
 
-        character *pkChrMaster = nullptr;
-        party *pkParty = nullptr;
+        character *chr_master = nullptr;
+        party *party = nullptr;
 
-        const std::vector<uint32_t> &c_rdwMembers = pkGroup->member_vector();
+        const std::vector<uint32_t> &c_rdw_members = group_value->member_vector();
 
-        bool bSpawnedByStone = false;
-        bool bAggressive = aggressive;
+        bool spawned_by_stone = false;
+        bool aggressive_value = aggressive;
 
         if (chr_selected_stone_) {
-            bSpawnedByStone = true;
+            spawned_by_stone = true;
 
             if (chr_selected_stone_->get_dungeon())
-                bAggressive = true;
+                aggressive_value = true;
         }
 
-        character *chLeader = nullptr;
+        character *ch_leader = nullptr;
 
-        for (uint32_t i = 0; i < c_rdwMembers.size(); ++i) {
-            character *tch = spawn_mob_range(c_rdwMembers[i], map_index, sx, sy, ex, ey, true, bSpawnedByStone);
+        for (uint32_t i = 0; i < c_rdw_members.size(); ++i) {
+            character *tch = spawn_mob_range(c_rdw_members[i], map_index, sx, sy, ex, ey, true, spawned_by_stone);
 
             if (!tch) {
                 if (i == 0)
@@ -527,7 +527,7 @@ namespace metin2::game::inline characters {
             }
 
             if (i == 0)
-                chLeader = tch;
+                ch_leader = tch;
 
             tch->set_dungeon(dungeon_value);
 
@@ -538,21 +538,21 @@ namespace metin2::game::inline characters {
 
             if (chr_selected_stone_)
                 tch->set_stone(chr_selected_stone_);
-            else if (pkParty) {
-                pkParty->join(tch->get_vid());
-                pkParty->link(tch);
-            } else if (!pkChrMaster) {
-                pkChrMaster = tch;
-                pkChrMaster->set_regen(regen_value);
+            else if (party) {
+                party->join(tch->get_vid());
+                party->link(tch);
+            } else if (!chr_master) {
+                chr_master = tch;
+                chr_master->set_regen(regen_value);
 
-                pkParty = party_manager::instance().create_party(pkChrMaster);
+                party = party_manager::instance().create_party(chr_master);
             }
 
-            if (bAggressive)
+            if (aggressive_value)
                 tch->set_aggressive();
         }
 
-        return chLeader;
+        return ch_leader;
     }
 
     void character_manager::update(int pulse) {
@@ -612,8 +612,8 @@ namespace metin2::game::inline characters {
         auto it = set_chr_for_delayed_save_.begin();
 
         while (it != set_chr_for_delayed_save_.end()) {
-            character *pkChr = *it++;
-            pkChr->save_real();
+            character *chr = *it++;
+            chr->save_real();
         }
 
         set_chr_for_delayed_save_.clear();
@@ -680,7 +680,7 @@ namespace metin2::game::inline characters {
     }
 
     void character_manager::kill_log(uint32_t vnum) {
-        const uint32_t SEND_LIMIT = 10000;
+        const uint32_t send_limit = 10000;
 
         auto it = map_mob_kill_count_.find(vnum);
 
@@ -689,7 +689,7 @@ namespace metin2::game::inline characters {
         else {
             ++it->second;
 
-            if (it->second > SEND_LIMIT) {
+            if (it->second > send_limit) {
                 db_manager::instance().send_money_log(MONEY_LOG_MONSTER_KILL, it->first, it->second);
                 map_mob_kill_count_.erase(it);
             }
@@ -701,18 +701,18 @@ namespace metin2::game::inline characters {
     }
 
     void character_manager::register_race_num_map(character *ch) {
-        uint32_t dwVnum = ch->race_num();
+        uint32_t vnum_value = ch->race_num();
 
-        if (set_registered_race_num_.find(dwVnum) != set_registered_race_num_.end()) {
-            metin2::log::debug("Registered {} in race map for vnum {:d}", ch->name(), dwVnum);
-            map_chr_by_race_num_[dwVnum].insert(ch);
+        if (set_registered_race_num_.find(vnum_value) != set_registered_race_num_.end()) {
+            metin2::log::debug("Registered {} in race map for vnum {:d}", ch->name(), vnum_value);
+            map_chr_by_race_num_[vnum_value].insert(ch);
         }
     }
 
     void character_manager::unregister_race_num_map(character *ch) {
-        uint32_t dwVnum = ch->race_num();
+        uint32_t vnum = ch->race_num();
 
-        auto it = map_chr_by_race_num_.find(dwVnum);
+        auto it = map_chr_by_race_num_.find(vnum);
 
         if (it != map_chr_by_race_num_.end())
             it->second.erase(ch);
@@ -729,7 +729,7 @@ namespace metin2::game::inline characters {
     }
 
     auto character_manager::find_specify_pc(unsigned int job_flag, int32_t map_index_value, character *except, int min_level, int max_level) -> character * {
-        character *chFind = nullptr;
+        character *ch_find = nullptr;
         decltype(map_chr_by_pid_.begin()) it;
         int n = 0;
 
@@ -749,17 +749,17 @@ namespace metin2::game::inline characters {
                 continue;
 
             if (job_flag) {
-                unsigned int uiChrJob = (1 << ((ch->job() + 1) * 3 + ch->skill_group()));
+                unsigned int chr_job = (1 << ((ch->job() + 1) * 3 + ch->skill_group()));
 
-                if (!is_set(job_flag, uiChrJob))
+                if (!is_set(job_flag, chr_job))
                     continue;
             }
 
-            if (!chFind || number(1, ++n) == 1)
-                chFind = ch;
+            if (!ch_find || number(1, ++n) == 1)
+                ch_find = ch;
         }
 
-        return chFind;
+        return ch_find;
     }
 
     auto character_manager::mob_item_rate(character *ch) -> int {
@@ -800,9 +800,9 @@ namespace metin2::game::inline characters {
     }
 
     void character_manager::send_script_to_map(int32_t map_index, const std::string &s) {
-        sectree_map *pSecMap = sectree_manager::instance().map(map_index);
+        sectree_map *sec_map = sectree_manager::instance().map(map_index);
 
-        if (nullptr == pSecMap)
+        if (nullptr == sec_map)
             return;
 
         struct packet_script p;
@@ -816,7 +816,7 @@ namespace metin2::game::inline characters {
         buf.write(&p, sizeof(struct packet_script));
         buf.write(&s[0], s.size());
 
-        quest::send_buffer_to_map(pSecMap, buf);
+        quest::send_buffer_to_map(sec_map, buf);
     }
 
     auto character_manager::begin_pending_destroy() -> bool {

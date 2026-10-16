@@ -139,13 +139,13 @@ namespace metin2::game::inline events {
         if (vec_quiz_.size() < (size_t)level + 1)
             vec_quiz_.resize(level + 1);
 
-        struct tag_quiz tmpQuiz;
+        struct tag_quiz tmp_quiz;
 
-        tmpQuiz.level = level;
-        tmpQuiz.quiz = question;
-        tmpQuiz.answer = answer;
+        tmp_quiz.level = level;
+        tmp_quiz.quiz = question;
+        tmp_quiz.answer = answer;
 
-        vec_quiz_[level].push_back(tmpQuiz);
+        vec_quiz_[level].push_back(tmp_quiz);
         return true;
     }
 
@@ -270,23 +270,23 @@ namespace metin2::game::inline events {
             rect[3] = 26400;
         }
 
-        character *pkChar = nullptr;
+        character *ch = nullptr;
         pixel_position pos;
         for (; iter != map_attender_.end();) {
-            pkChar = character_manager::instance().find_by_pid(iter->second);
-            if (pkChar != nullptr) {
-                pos = pkChar->xyz();
+            ch = character_manager::instance().find_by_pid(iter->second);
+            if (ch != nullptr) {
+                pos = ch->xyz();
 
                 if (pos.x < rect[0] || pos.x > rect[2] || pos.y < rect[1] || pos.y > rect[3]) {
-                    pkChar->effect_packet(SE_FAIL);
+                    ch->effect_packet(SE_FAIL);
                     iter_tmp = iter;
                     iter++;
                     map_attender_.erase(iter_tmp);
-                    map_miss_.insert(std::make_pair(pkChar->player_id(), pkChar->player_id()));
+                    map_miss_.insert(std::make_pair(ch->player_id(), ch->player_id()));
                 } else {
-                    pkChar->chat_packet(CHAT_TYPE_INFO, lc_text("정답입니다!"));
+                    ch->chat_packet(CHAT_TYPE_INFO, lc_text("정답입니다!"));
                     const std::string text = std::format(
-                        "{} {} {}", number(0, 1) == 1 ? "cheer1" : "cheer2", (uint32_t)pkChar->get_vid(), 0);
+                        "{} {} {}", number(0, 1) == 1 ? "cheer1" : "cheer2", (uint32_t)ch->get_vid(), 0);
 
                     const int len = text.size() + 1;
 
@@ -300,8 +300,8 @@ namespace metin2::game::inline events {
                     buf.write(&pack_chat, sizeof(packet_gc_chat));
                     buf.write(text.c_str(), len);
 
-                    pkChar->packet_around(buf.read_peek(), buf.size());
-                    pkChar->effect_packet(SE_SUCCESS);
+                    ch->packet_around(buf.read_peek(), buf.size());
+                    ch->effect_packet(SE_SUCCESS);
 
                     ++iter;
                 }
@@ -324,18 +324,18 @@ namespace metin2::game::inline events {
         if (map_miss_.size() <= 0) return;
 
         auto iter = map_miss_.begin();
-        character *pkChar = nullptr;
+        character *ch = nullptr;
 
         for (; iter != map_miss_.end(); ++iter) {
-            pkChar = character_manager::instance().find_by_pid(iter->second);
+            ch = character_manager::instance().find_by_pid(iter->second);
 
-            if (pkChar != nullptr) {
+            if (ch != nullptr) {
                 switch (number(0, 3)) {
-                case 0:  pkChar->show(OXEVENT_MAP_INDEX, 896300, 28900); break;
-                case 1:  pkChar->show(OXEVENT_MAP_INDEX, 890900, 28100); break;
-                case 2:  pkChar->show(OXEVENT_MAP_INDEX, 896600, 20500); break;
-                case 3:  pkChar->show(OXEVENT_MAP_INDEX, 902500, 28100); break;
-                default: pkChar->show(OXEVENT_MAP_INDEX, 896300, 28900); break;
+                case 0:  ch->show(OXEVENT_MAP_INDEX, 896300, 28900); break;
+                case 1:  ch->show(OXEVENT_MAP_INDEX, 890900, 28100); break;
+                case 2:  ch->show(OXEVENT_MAP_INDEX, 896600, 20500); break;
+                case 3:  ch->show(OXEVENT_MAP_INDEX, 902500, 28100); break;
+                default: ch->show(OXEVENT_MAP_INDEX, 896300, 28900); break;
                 }
             }
         }
@@ -350,12 +350,12 @@ namespace metin2::game::inline events {
 
         auto iter = map_char_.begin();
 
-        character *pkChar = nullptr;
+        character *ch = nullptr;
         for (; iter != map_char_.end(); ++iter) {
-            pkChar = character_manager::instance().find_by_pid(iter->second);
+            ch = character_manager::instance().find_by_pid(iter->second);
 
-            if (pkChar != nullptr)
-                pkChar->warp_set(empire_start_x(pkChar->empire()), empire_start_y(pkChar->empire()));
+            if (ch != nullptr)
+                ch->warp_set(empire_start_x(ch->empire()), empire_start_y(ch->empire()));
         }
 
         map_char_.clear();
@@ -367,10 +367,10 @@ namespace metin2::game::inline events {
         auto iter = map_attender_.begin();
 
         for (; iter != map_attender_.end(); ++iter) {
-            character *pkChar = character_manager::instance().find_by_pid(iter->second);
+            character *ch = character_manager::instance().find_by_pid(iter->second);
 
-            if (pkChar)
-                log_manager::instance().char_log(pkChar, 0, "OXEVENT", "LastManStanding");
+            if (ch)
+                log_manager::instance().char_log(ch, 0, "OXEVENT", "LastManStanding");
         }
 
         return true;
@@ -380,11 +380,11 @@ namespace metin2::game::inline events {
         auto iter = map_attender_.begin();
 
         for (; iter != map_attender_.end(); ++iter) {
-            character *pkChar = character_manager::instance().find_by_pid(iter->second);
+            character *ch = character_manager::instance().find_by_pid(iter->second);
 
-            if (pkChar) {
-                pkChar->auto_give_item(item_vnum, count);
-                log_manager::instance().item_log(pkChar->player_id(), 0, count, item_vnum, "OXEVENT_REWARD", "", pkChar->get_desc()->host_name(), item_vnum);
+            if (ch) {
+                ch->auto_give_item(item_vnum, count);
+                log_manager::instance().item_log(ch->player_id(), 0, count, item_vnum, "OXEVENT_REWARD", "", ch->get_desc()->host_name(), item_vnum);
             }
         }
 

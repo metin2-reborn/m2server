@@ -22,23 +22,23 @@ namespace metin2::game::inline world {
     }
 
     auto get_degree_from_position(float x, float y) -> float {
-        vector vtDir;
-        vector vtStan;
+        vector vt_dir;
+        vector vt_stan;
         float ret;
 
-        vtDir.x = x;
-        vtDir.y = y;
-        vtDir.z = 0.0f;
+        vt_dir.x = x;
+        vt_dir.y = y;
+        vt_dir.z = 0.0f;
 
-        normalize(&vtDir, &vtDir);
+        normalize(&vt_dir, &vt_dir);
 
-        vtStan.x = 0.0f;
-        vtStan.y = 1.0f;
-        vtStan.z = 0.0f;
+        vt_stan.x = 0.0f;
+        vt_stan.y = 1.0f;
+        vt_stan.z = 0.0f;
 
-        ret = radian_to_degree(acosf(dot_product(&vtDir, &vtStan)));
+        ret = radian_to_degree(acosf(dot_product(&vt_dir, &vt_stan)));
 
-        if (vtDir.x < 0.0f)
+        if (vt_dir.x < 0.0f)
             ret = 360.0f - ret;
 
         return (ret);
@@ -49,10 +49,10 @@ namespace metin2::game::inline world {
     }
 
     void get_delta_by_degree(float degree, float distance, float *x, float *y) {
-        float fRadian = degree_to_radian(degree);
+        float radian = degree_to_radian(degree);
 
-        *x = distance * sin(fRadian);
-        *y = distance * cos(fRadian);
+        *x = distance * sin(radian);
+        *y = distance * cos(radian);
     }
 
     auto get_degree_delta(float degree, float degree2) -> float {

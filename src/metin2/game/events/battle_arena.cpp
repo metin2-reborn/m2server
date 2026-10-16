@@ -61,44 +61,44 @@ namespace metin2::game::inline events {
     };
 
     EVENTFUNC(battle_arena_event) {
-        auto *pInfo = dynamic_cast<battle_arena_info *>(event->info.get());
+        auto *info = dynamic_cast<battle_arena_info *>(event->info.get());
 
-        if (pInfo == nullptr) {
+        if (info == nullptr) {
             return 0;
         }
 
-        if (pInfo != nullptr) {
-            switch (pInfo->state) {
+        if (info != nullptr) {
+            switch (info->state) {
             case 0:
                 {
-                    ++pInfo->state;
+                    ++info->state;
                     broadcast_notice(lc_text("몬스터들의 공격까지 5분 남았습니다!!!"));
                 }
                 return metin2::config::test_server() ? passes_per_sec(60) : passes_per_sec(60 * 4);
 
             case 1:
                 {
-                    ++pInfo->state;
+                    ++info->state;
                     broadcast_notice(lc_text("몬스터들의 공격까지 1분 남았습니다!!!"));
                 }
                 return metin2::config::test_server() ? passes_per_sec(10) : passes_per_sec(60);
 
             case 2:
                 {
-                    ++pInfo->state;
-                    pInfo->wait_count = 0;
+                    ++info->state;
+                    info->wait_count = 0;
 
                     quest::quest_manager::instance().request_set_event_flag("battle_arena", 0);
                     broadcast_notice(lc_text("몬스터들이 성을 공격하기 시작했습니다."));
 
-                    sectree_map *sectree = sectree_manager::instance().map(pInfo->map_index);
+                    sectree_map *sectree = sectree_manager::instance().map(info->map_index);
 
                     if (sectree != nullptr) {
-                        std::string strMap = locale_service_get_map_path();
-                        if (pInfo->empire > 0) {
-                            strMap += str_regen[pInfo->empire];
+                        std::string map = locale_service_get_map_path();
+                        if (info->empire > 0) {
+                            map += str_regen[info->empire];
 
-                            regen_do(strMap.c_str(), pInfo->map_index, sectree->setting.base_x, sectree->setting.base_y, nullptr, false);
+                            regen_do(map.c_str(), info->map_index, sectree->setting.base_x, sectree->setting.base_y, nullptr, false);
                         }
                     }
                 }
@@ -106,15 +106,15 @@ namespace metin2::game::inline events {
 
             case 3:
                 {
-                    if (sectree_manager::instance().monster_count_in_map(pInfo->map_index) <= 0) {
-                        pInfo->state = 6;
-                        send_notice_map(lc_text("중앙 제단에 악의 기운이 모여듭니다."), pInfo->map_index, false);
+                    if (sectree_manager::instance().monster_count_in_map(info->map_index) <= 0) {
+                        info->state = 6;
+                        send_notice_map(lc_text("중앙 제단에 악의 기운이 모여듭니다."), info->map_index, false);
                     } else {
-                        pInfo->wait_count++;
+                        info->wait_count++;
 
-                        if (pInfo->wait_count >= 5) {
-                            pInfo->state++;
-                            send_notice_map(lc_text("몬스터들이 물러갈 조짐을 보입니다."), pInfo->map_index, false);
+                        if (info->wait_count >= 5) {
+                            info->state++;
+                            send_notice_map(lc_text("몬스터들이 물러갈 조짐을 보입니다."), info->map_index, false);
                         } else {
                             battle_arena::instance().spawn_random_stone();
                         }
@@ -124,36 +124,36 @@ namespace metin2::game::inline events {
 
             case 4:
                 {
-                    pInfo->state++;
-                    send_notice_map(lc_text("몬스터들이 물러가기 시작했습니다."), pInfo->map_index, false);
-                    send_notice_map(lc_text("잠시 후 마을로 돌아갑니다."), pInfo->map_index, false);
+                    info->state++;
+                    send_notice_map(lc_text("몬스터들이 물러가기 시작했습니다."), info->map_index, false);
+                    send_notice_map(lc_text("잠시 후 마을로 돌아갑니다."), info->map_index, false);
 
-                    sectree_manager::instance().purge_monsters_in_map(pInfo->map_index);
+                    sectree_manager::instance().purge_monsters_in_map(info->map_index);
                 }
                 return passes_per_sec(30);
 
             case 5:
                 {
-                    sectree_map *sectree = sectree_manager::instance().map(pInfo->map_index);
+                    sectree_map *sectree = sectree_manager::instance().map(info->map_index);
 
                     if (sectree != nullptr) {
                         sectree->for_each([](entity *ent) {
                             if (ent->is_type(ENTITY_CHARACTER) == true) {
-                                auto *lpChar = (character *)ent;
+                                auto *ch = (character *)ent;
 
-                                if (lpChar->is_pc() == true) {
+                                if (ch->is_pc() == true) {
                                     if (!metin2::config::test_server()) {
-                                        if (lpChar->gm_level() != GM_PLAYER) return;
+                                        if (ch->gm_level() != GM_PLAYER) return;
                                     }
 
-                                    int nEmpire, nMapIndex, x, y;
+                                    int empire, map_index, x, y;
 
-                                    nEmpire = lpChar->empire();
-                                    nMapIndex = empire_start_map(nEmpire);
-                                    x = empire_start_x(nEmpire);
-                                    y = empire_start_y(nEmpire);
+                                    empire = ch->empire();
+                                    map_index = empire_start_map(empire);
+                                    x = empire_start_x(empire);
+                                    y = empire_start_y(empire);
 
-                                    lpChar->warp_set(x, y, nMapIndex);
+                                    ch->warp_set(x, y, map_index);
                                 }
                             }
                         });
@@ -165,11 +165,11 @@ namespace metin2::game::inline events {
 
             case 6:
                 {
-                    pInfo->state++;
-                    pInfo->wait_count = 0;
+                    info->state++;
+                    info->wait_count = 0;
 
-                    send_notice_map(lc_text("몬스터들의 대장이 나타났습니다."), pInfo->map_index, false);
-                    send_notice_map(lc_text("30분 내로 귀목령주를 물리쳐주세요."), pInfo->map_index, false);
+                    send_notice_map(lc_text("몬스터들의 대장이 나타났습니다."), info->map_index, false);
+                    send_notice_map(lc_text("30분 내로 귀목령주를 물리쳐주세요."), info->map_index, false);
 
                     battle_arena::instance().spawn_last_boss();
                 }
@@ -177,25 +177,25 @@ namespace metin2::game::inline events {
 
             case 7:
                 {
-                    if (sectree_manager::instance().monster_count_in_map(pInfo->map_index) <= 0) {
-                        send_notice_map(lc_text("귀목령주와 그의 부하들을 모두 물리쳤습니다."), pInfo->map_index, false);
-                        send_notice_map(lc_text("잠시 후 마을로 돌아갑니다."), pInfo->map_index, false);
+                    if (sectree_manager::instance().monster_count_in_map(info->map_index) <= 0) {
+                        send_notice_map(lc_text("귀목령주와 그의 부하들을 모두 물리쳤습니다."), info->map_index, false);
+                        send_notice_map(lc_text("잠시 후 마을로 돌아갑니다."), info->map_index, false);
 
-                        pInfo->state = 5;
+                        info->state = 5;
 
                         return passes_per_sec(60);
                     }
 
-                    pInfo->wait_count++;
+                    info->wait_count++;
 
-                    if (pInfo->wait_count >= 6) {
-                        send_notice_map(lc_text("귀목령주가 퇴각하였습니다."), pInfo->map_index, false);
-                        send_notice_map(lc_text("잠시 후 마을로 돌아갑니다."), pInfo->map_index, false);
+                    if (info->wait_count >= 6) {
+                        send_notice_map(lc_text("귀목령주가 퇴각하였습니다."), info->map_index, false);
+                        send_notice_map(lc_text("잠시 후 마을로 돌아갑니다."), info->map_index, false);
 
-                        sectree_manager::instance().purge_monsters_in_map(pInfo->map_index);
-                        sectree_manager::instance().purge_stones_in_map(pInfo->map_index);
+                        sectree_manager::instance().purge_monsters_in_map(info->map_index);
+                        sectree_manager::instance().purge_stones_in_map(info->map_index);
 
-                        pInfo->state = 5;
+                        info->state = 5;
 
                         return passes_per_sec(60);
                     } else {
@@ -216,9 +216,9 @@ namespace metin2::game::inline events {
         map_index_ = battle_arena_map[empire_value];
         empire_ = empire_value;
 
-        char szBuf[1024];
-        snprintf(szBuf, sizeof(szBuf), lc_text("%s의 성으로 몬스터들이 진군하고 있습니다."), empire_name(empire_));
-        broadcast_notice(szBuf);
+        char buf[1024];
+        snprintf(buf, sizeof(buf), lc_text("%s의 성으로 몬스터들이 진군하고 있습니다."), empire_name(empire_));
+        broadcast_notice(buf);
         broadcast_notice(lc_text("10분 뒤 성을 공격할 예정입니다."));
 
         if (event_ != nullptr) {

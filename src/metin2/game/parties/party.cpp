@@ -78,8 +78,8 @@ namespace metin2::game::inline parties {
         if (it == map_party_.end())
             return false;
 
-        party *pParty = it->second;
-        pParty->link(ch);
+        party *party = it->second;
+        party->link(ch);
         return true;
     }
 
@@ -130,15 +130,15 @@ namespace metin2::game::inline parties {
         if (it != map_party_.end())
             return it->second;
 
-        auto *pParty = new party;
+        auto *party_value = new party;
 
-        set_pc_party_.insert(pParty);
+        set_pc_party_.insert(party_value);
 
-        set_party_member(pid, pParty);
-        pParty->set_pc_party(true);
-        pParty->p2p_join(pid);
+        set_party_member(pid, party_value);
+        party_value->set_pc_party(true);
+        party_value->p2p_join(pid);
 
-        return pParty;
+        return party_value;
     }
 
     void party_manager::p2p_delete_party(uint32_t pid) {
@@ -155,7 +155,7 @@ namespace metin2::game::inline parties {
         if (leader->get_party())
             return leader->get_party();
 
-        auto *pParty = new party;
+        auto *party_value = new party;
 
         if (leader->is_pc()) {
             packet_party_create p;
@@ -164,17 +164,17 @@ namespace metin2::game::inline parties {
             db_clientdesc->db_packet(HEADER_GD_PARTY_CREATE, 0, &p, sizeof(packet_party_create));
 
             metin2::log::info("Party: created by {} (pid {:d})", leader->name(), leader->player_id());
-            pParty->set_pc_party(true);
-            pParty->join(leader->player_id());
+            party_value->set_pc_party(true);
+            party_value->join(leader->player_id());
 
-            set_pc_party_.insert(pParty);
+            set_pc_party_.insert(party_value);
         } else {
-            pParty->set_pc_party(false);
-            pParty->join(leader->get_vid());
+            party_value->set_pc_party(false);
+            party_value->join(leader->get_vid());
         }
 
-        pParty->link(leader);
-        return (pParty);
+        party_value->link(leader);
+        return (party_value);
     }
 
     void party_manager::delete_party(party *party_value) {
@@ -224,10 +224,10 @@ namespace metin2::game::inline parties {
         character *leader = character_manager::instance().find_by_pid(pid);
 
         if (leader && leader->get_desc()) {
-            party *pParty = leader->get_party();
+            party *party = leader->get_party();
 
-            if (pParty)
-                pParty->update();
+            if (party)
+                party->update();
         }
 
         return passes_per_sec(3);
@@ -288,25 +288,25 @@ namespace metin2::game::inline parties {
 
         auto it = member_map_.begin();
 
-        uint32_t dwTime = get_dword_time();
+        uint32_t time = get_dword_time();
 
         while (it != member_map_.end()) {
-            member &rMember = it->second;
+            member &member = it->second;
             ++it;
 
-            if (rMember.character) {
-                if (rMember.character->get_desc()) {
+            if (member.character) {
+                if (member.character->get_desc()) {
                     packet_gc_party_remove p;
                     p.header = HEADER_GC_PARTY_REMOVE;
-                    p.pid = rMember.character->player_id();
-                    rMember.character->get_desc()->packet(&p, sizeof(p));
-                    rMember.character->chat_packet(CHAT_TYPE_INFO, lc_text("<파티> 파티가 해산 되었습니다."));
+                    p.pid = member.character->player_id();
+                    member.character->get_desc()->packet(&p, sizeof(p));
+                    member.character->chat_packet(CHAT_TYPE_INFO, lc_text("<파티> 파티가 해산 되었습니다."));
                 } else {
-                    rMember.character->set_last_attacked(dwTime);
-                    rMember.character->start_destroy_when_idle_event();
+                    member.character->set_last_attacked(time);
+                    member.character->start_destroy_when_idle_event();
                 }
 
-                rMember.character->set_party(nullptr);
+                member.character->set_party(nullptr);
             }
         }
 
@@ -330,11 +330,11 @@ namespace metin2::game::inline parties {
         member_map::iterator it;
 
         for (it = member_map_.begin(); it != member_map_.end(); ++it) {
-            member &rMember = it->second;
+            member &member = it->second;
 
-            if (rMember.character) {
-                if (rMember.character->get_desc()) {
-                    rMember.character->chat_packet(type, "%s", chatbuf);
+            if (member.character) {
+                if (member.character->get_desc()) {
+                    member.character->chat_packet(type, "%s", chatbuf);
                 }
             }
         }
@@ -352,25 +352,25 @@ namespace metin2::game::inline parties {
         auto it = member_map_.find(pid);
 
         if (it == member_map_.end()) {
-            member Member;
+            member member_value;
 
-            Member.character = nullptr;
-            Member.near = false;
+            member_value.character = nullptr;
+            member_value.near = false;
 
             if (member_map_.empty()) {
-                Member.role = PARTY_ROLE_LEADER;
+                member_value.role = PARTY_ROLE_LEADER;
                 leader_pid_ = pid;
             } else
-                Member.role = PARTY_ROLE_NORMAL;
+                member_value.role = PARTY_ROLE_NORMAL;
 
             if (pc_party_) {
                 character *ch = character_manager::instance().find_by_pid(pid);
 
                 if (ch) {
                     metin2::log::info("Party: {} (pid {:d}) joined the party of leader pid {:d}", ch->name(), pid, leader_pid_);
-                    Member.name = ch->name();
+                    member_value.name = ch->name();
 
-                    if (Member.role == PARTY_ROLE_LEADER)
+                    if (member_value.role == PARTY_ROLE_LEADER)
                         leadership_ = ch->leadership_skill_level();
                 } else {
                     cci *pcci = p2p_manager::instance().find_by_pid(pid);
@@ -378,7 +378,7 @@ namespace metin2::game::inline parties {
                     if (!pcci)
                         ;
                     else if (pcci->channel == metin2::config::server().channel)
-                        Member.name = pcci->name;
+                        member_value.name = pcci->name;
                     else
                         metin2::log::error("Party member pid {:d} is on channel {:d}, not this channel {:d}", pid, pcci->channel, metin2::config::server().channel);
                 }
@@ -386,7 +386,7 @@ namespace metin2::game::inline parties {
 
             metin2::log::debug("Party of leader pid {:d}: member count {:d} -> {:d}", leader_pid(), member_count(), member_count() + 1);
 
-            member_map_.insert(member_map::value_type(pid, Member));
+            member_map_.insert(member_map::value_type(pid, member_value));
 
             if (member_map_.size() == 1)
                 next_owner_ = member_map_.begin();
@@ -435,27 +435,27 @@ namespace metin2::game::inline parties {
             remove_bonus_for_one(pid);
 
         character *ch = it->second.character;
-        uint8_t bRole = it->second.role;
+        uint8_t role_value = it->second.role;
 
         member_map_.erase(it);
 
         metin2::log::debug("Party of leader pid {:d}: member count {:d} -> {:d}", leader_pid(), member_count(), member_count() - 1);
 
-        if (bRole < PARTY_ROLE_MAX_NUM) {
-            --an_role_count_[bRole];
+        if (role_value < PARTY_ROLE_MAX_NUM) {
+            --an_role_count_[role_value];
         } else {
-            metin2::log::error("Party role {:d} out of range (max {:d}) on member quit", bRole, PARTY_ROLE_MAX_NUM);
+            metin2::log::error("Party role {:d} out of range (max {:d}) on member quit", role_value, PARTY_ROLE_MAX_NUM);
         }
 
         if (ch) {
             ch->set_party(nullptr);
-            compute_role_point(ch, bRole, false);
+            compute_role_point(ch, role_value, false);
         }
 
         if (pc_party_)
             party_manager::instance().set_party_member(pid, nullptr);
 
-        if (bRole == PARTY_ROLE_LEADER)
+        if (role_value == PARTY_ROLE_LEADER)
             party_manager::instance().delete_party(this);
 
         // The party is deleted above; nothing may follow.
@@ -719,11 +719,11 @@ namespace metin2::game::inline parties {
             auto it = member_map_.begin();
 
             while (it != member_map_.end()) {
-                character *pkChr = it->second.character;
+                character *chr = it->second.character;
                 ++it;
 
-                if (pkChr && ch != pkChr)
-                    f(pkChr);
+                if (chr && ch != chr)
+                    f(chr);
             }
         };
 
@@ -732,31 +732,31 @@ namespace metin2::game::inline parties {
             break;
 
         case PM_RETURN:
-            for_each_other_member([&](character *pkChr) {
+            for_each_other_member([&](character *member) {
                 uint32_t x = arg1 + number(-500, 500);
                 uint32_t y = arg2 + number(-500, 500);
 
-                pkChr->set_victim(nullptr);
-                pkChr->set_rotation_to_xy(x, y);
+                member->set_victim(nullptr);
+                member->set_rotation_to_xy(x, y);
 
-                if (pkChr->go_to(x, y)) {
-                    character *victim = pkChr->victim();
-                    metin2::log::debug("Party: member {} ({}) returns to the leader, victim {}", pkChr->name(), static_cast<const void *>(pkChr), static_cast<const void *>(victim));
-                    pkChr->send_move_packet(FUNC_WAIT, 0, 0, 0, 0);
+                if (member->go_to(x, y)) {
+                    character *victim = member->victim();
+                    metin2::log::debug("Party: member {} ({}) returns to the leader, victim {}", member->name(), static_cast<const void *>(member), static_cast<const void *>(victim));
+                    member->send_move_packet(FUNC_WAIT, 0, 0, 0, 0);
                 }
             });
             break;
 
         case PM_ATTACKED_BY:
             {
-                character *pkChrVictim = ch->victim();
+                character *chr_victim = ch->victim();
 
-                if (!pkChrVictim)
+                if (!chr_victim)
                     return;
 
-                for_each_other_member([&](character *pkChr) {
-                    if (pkChr->can_begin_fight())
-                        pkChr->begin_fight(pkChrVictim);
+                for_each_other_member([&](character *member) {
+                    if (member->can_begin_fight())
+                        member->begin_fight(chr_victim);
                 });
             }
             break;
@@ -768,7 +768,7 @@ namespace metin2::game::inline parties {
                 if (!victim)
                     return;
 
-                for_each_other_member([&](character *pkChr) { pkChr->update_aggr_point(victim, DAMAGE_TYPE_SPECIAL, arg1); });
+                for_each_other_member([&](character *member) { member->update_aggr_point(victim, DAMAGE_TYPE_SPECIAL, arg1); });
             }
             break;
         }
@@ -972,11 +972,11 @@ namespace metin2::game::inline parties {
         int size = member_map_.size();
 
         while (size-- > 0) {
-            character *pkMember = next_owner_->second.character;
+            character *member = next_owner_->second.character;
 
-            if (pkMember && distance_approx(pkMember->x() - x, pkMember->y() - y) < 3000) {
+            if (member && distance_approx(member->x() - x, member->y() - y) < 3000) {
                 increase_ownership();
-                return pkMember;
+                return member;
             }
 
             increase_ownership();
@@ -1002,10 +1002,10 @@ namespace metin2::game::inline parties {
         switch (role) {
         case PARTY_ROLE_ATTACKER:
             {
-                int iBonus = (int)(10 + 60 * k);
+                int bonus = (int)(10 + 60 * k);
 
-                if (ch->point(POINT_PARTY_ATTACKER_BONUS) != iBonus) {
-                    ch->point_change(POINT_PARTY_ATTACKER_BONUS, iBonus - ch->point(POINT_PARTY_ATTACKER_BONUS));
+                if (ch->point(POINT_PARTY_ATTACKER_BONUS) != bonus) {
+                    ch->point_change(POINT_PARTY_ATTACKER_BONUS, bonus - ch->point(POINT_PARTY_ATTACKER_BONUS));
                     ch->compute_points();
                 }
             }
@@ -1013,10 +1013,10 @@ namespace metin2::game::inline parties {
 
         case PARTY_ROLE_TANKER:
             {
-                int iBonus = (int)(50 + 1450 * k);
+                int bonus = (int)(50 + 1450 * k);
 
-                if (ch->point(POINT_PARTY_TANKER_BONUS) != iBonus) {
-                    ch->point_change(POINT_PARTY_TANKER_BONUS, iBonus - ch->point(POINT_PARTY_TANKER_BONUS));
+                if (ch->point(POINT_PARTY_TANKER_BONUS) != bonus) {
+                    ch->point_change(POINT_PARTY_TANKER_BONUS, bonus - ch->point(POINT_PARTY_TANKER_BONUS));
                     ch->compute_points();
                 }
             }
@@ -1024,38 +1024,38 @@ namespace metin2::game::inline parties {
 
         case PARTY_ROLE_BUFFER:
             {
-                int iBonus = (int)(5 + 45 * k);
+                int bonus = (int)(5 + 45 * k);
 
-                if (ch->point(POINT_PARTY_BUFFER_BONUS) != iBonus) {
-                    ch->point_change(POINT_PARTY_BUFFER_BONUS, iBonus - ch->point(POINT_PARTY_BUFFER_BONUS));
+                if (ch->point(POINT_PARTY_BUFFER_BONUS) != bonus) {
+                    ch->point_change(POINT_PARTY_BUFFER_BONUS, bonus - ch->point(POINT_PARTY_BUFFER_BONUS));
                 }
             }
             break;
 
         case PARTY_ROLE_SKILL_MASTER:
             {
-                int iBonus = (int)(25 + 600 * k);
+                int bonus = (int)(25 + 600 * k);
 
-                if (ch->point(POINT_PARTY_SKILL_MASTER_BONUS) != iBonus) {
-                    ch->point_change(POINT_PARTY_SKILL_MASTER_BONUS, iBonus - ch->point(POINT_PARTY_SKILL_MASTER_BONUS));
+                if (ch->point(POINT_PARTY_SKILL_MASTER_BONUS) != bonus) {
+                    ch->point_change(POINT_PARTY_SKILL_MASTER_BONUS, bonus - ch->point(POINT_PARTY_SKILL_MASTER_BONUS));
                     ch->compute_points();
                 }
             }
             break;
         case PARTY_ROLE_HASTE:
             {
-                int iBonus = (int)(1 + 5 * k);
-                if (ch->point(POINT_PARTY_HASTE_BONUS) != iBonus) {
-                    ch->point_change(POINT_PARTY_HASTE_BONUS, iBonus - ch->point(POINT_PARTY_HASTE_BONUS));
+                int bonus = (int)(1 + 5 * k);
+                if (ch->point(POINT_PARTY_HASTE_BONUS) != bonus) {
+                    ch->point_change(POINT_PARTY_HASTE_BONUS, bonus - ch->point(POINT_PARTY_HASTE_BONUS));
                     ch->compute_points();
                 }
             }
             break;
         case PARTY_ROLE_DEFENDER:
             {
-                int iBonus = (int)(5 + 30 * k);
-                if (ch->point(POINT_PARTY_DEFENDER_BONUS) != iBonus) {
-                    ch->point_change(POINT_PARTY_DEFENDER_BONUS, iBonus - ch->point(POINT_PARTY_DEFENDER_BONUS));
+                int bonus = (int)(5 + 30 * k);
+                if (ch->point(POINT_PARTY_DEFENDER_BONUS) != bonus) {
+                    ch->point_change(POINT_PARTY_DEFENDER_BONUS, bonus - ch->point(POINT_PARTY_DEFENDER_BONUS));
                     ch->compute_points();
                 }
             }
@@ -1072,8 +1072,8 @@ namespace metin2::game::inline parties {
 
         member_map::iterator it;
 
-        int iNearMember = 0;
-        bool bResendAll = false;
+        int near_member = 0;
+        bool resend_all = false;
 
         for (it = member_map_.begin(); it != member_map_.end(); ++it) {
             character *ch = it->second.character;
@@ -1089,36 +1089,36 @@ namespace metin2::game::inline parties {
                 it->second.near = (distance_approx(l->x() - ch->x(), l->y() - ch->y()) < PARTY_DEFAULT_RANGE);
 
             if (it->second.near) {
-                ++iNearMember;
+                ++near_member;
             }
         }
 
-        if (iNearMember <= 1 && !l->get_dungeon()) {
+        if (near_member <= 1 && !l->get_dungeon()) {
             for (it = member_map_.begin(); it != member_map_.end(); ++it)
                 it->second.near = false;
 
-            iNearMember = 0;
+            near_member = 0;
         }
 
-        if (iNearMember != count_near_party_member_) {
-            count_near_party_member_ = iNearMember;
-            bResendAll = true;
+        if (near_member != count_near_party_member_) {
+            count_near_party_member_ = near_member;
+            resend_all = true;
         }
 
         leadership_ = l->leadership_skill_level();
-        int iNewExpBonus = compute_party_bonus_exp_percent();
+        int new_exp_bonus = compute_party_bonus_exp_percent();
 
-        if (exp_bonus_ != iNewExpBonus) {
-            bResendAll = true;
-            exp_bonus_ = iNewExpBonus;
+        if (exp_bonus_ != new_exp_bonus) {
+            resend_all = true;
+            exp_bonus_ = new_exp_bonus;
         }
 
-        bool bLongTimeExpBonusChanged = false;
+        bool long_time_exp_bonus_changed = false;
 
         if (!long_time_exp_bonus_ && (get_dword_time() - party_start_time_ > PARTY_ENOUGH_MINUTE_FOR_EXP_BONUS * 60 * 1000)) {
-            bLongTimeExpBonusChanged = true;
+            long_time_exp_bonus_changed = true;
             long_time_exp_bonus_ = 5;
-            bResendAll = true;
+            resend_all = true;
         }
 
         for (it = member_map_.begin(); it != member_map_.end(); ++it) {
@@ -1127,15 +1127,15 @@ namespace metin2::game::inline parties {
             if (!ch)
                 continue;
 
-            if (bLongTimeExpBonusChanged && ch->get_desc())
+            if (long_time_exp_bonus_changed && ch->get_desc())
                 ch->chat_packet(CHAT_TYPE_INFO, lc_text("파티의 협동력이 높아져 지금부터 추가 경험치 보너스를 받습니다."));
 
-            bool bNear = it->second.near;
+            bool near = it->second.near;
 
-            compute_role_point(ch, it->second.role, bNear);
+            compute_role_point(ch, it->second.role, near);
 
-            if (bNear) {
-                if (!bResendAll)
+            if (near) {
+                if (!resend_all)
                     send_party_info_one_to_all(ch);
             }
         }
@@ -1154,16 +1154,16 @@ namespace metin2::game::inline parties {
 
             can_use_party_heal_ = leadership_ >= 18;
 
-            uint32_t PartyHealCoolTime = (leadership_ >= 40) ? PARTY_HEAL_COOLTIME_SHORT * 60 * 1000 : PARTY_HEAL_COOLTIME_LONG * 60 * 1000;
+            uint32_t party_heal_cool_time = (leadership_ >= 40) ? PARTY_HEAL_COOLTIME_SHORT * 60 * 1000 : PARTY_HEAL_COOLTIME_LONG * 60 * 1000;
 
             if (can_use_party_heal_) {
-                if (get_dword_time() > party_heal_time_ + PartyHealCoolTime) {
+                if (get_dword_time() > party_heal_time_ + party_heal_cool_time) {
                     party_heal_ready_ = true;
                 }
             }
         }
 
-        if (bResendAll) {
+        if (resend_all) {
             for (auto it = member_map_.begin(); it != member_map_.end(); ++it)
                 if (it->second.character)
                     send_party_info_one_to_all(it->second.character);
@@ -1254,7 +1254,7 @@ namespace metin2::game::inline parties {
             return 0;
 
         character *tch;
-        uint8_t bCount = 0;
+        uint8_t count = 0;
 
         member_map::iterator it;
 
@@ -1266,10 +1266,10 @@ namespace metin2::game::inline parties {
                 continue;
 
             if (tch->get_mob_table().vnum == vnum_value)
-                ++bCount;
+                ++count;
         }
 
-        return bCount;
+        return count;
     }
 
     void party::send_parameter(character *ch) {
@@ -1315,7 +1315,7 @@ namespace metin2::game::inline parties {
     }
 
     auto party::member_max_level() -> uint8_t {
-        uint8_t bMax = 0;
+        uint8_t max = 0;
 
         auto it = member_map_.begin();
         while (it != member_map_.end()) {
@@ -1324,13 +1324,13 @@ namespace metin2::game::inline parties {
                 continue;
             }
 
-            if (!bMax)
-                bMax = it->second.level;
+            if (!max)
+                max = it->second.level;
             else if (it->second.level)
-                bMax = std::max<int>(bMax, it->second.level);
+                max = std::max<int>(max, it->second.level);
             ++it;
         }
-        return bMax;
+        return max;
     }
 
     auto party::compute_party_bonus_exp_percent() -> int {
@@ -1339,14 +1339,14 @@ namespace metin2::game::inline parties {
 
         character *leader = leader_character();
 
-        int iBonusPartyExpFromItem = 0;
+        int bonus_party_exp_from_item = 0;
 
-        int iMemberCount = std::min<int>(8, near_member_count());
+        int member_count = std::min<int>(8, near_member_count());
 
         if (leader && (leader->is_equip_unique_item(UNIQUE_ITEM_PARTY_BONUS_EXP) || leader->is_equip_unique_item(UNIQUE_ITEM_PARTY_BONUS_EXP_MALL) || leader->is_equip_unique_item(UNIQUE_ITEM_PARTY_BONUS_EXP_GIFT) || leader->is_equip_unique_group(10010))) {
-            iBonusPartyExpFromItem = 30;
+            bonus_party_exp_from_item = 30;
         }
 
-        return iBonusPartyExpFromItem + chn_ai_party_bonus_exp_percent_by_member_count[iMemberCount];
+        return bonus_party_exp_from_item + chn_ai_party_bonus_exp_percent_by_member_count[member_count];
     }
 }

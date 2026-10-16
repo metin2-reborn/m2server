@@ -22,39 +22,39 @@ namespace metin2::game {
 
             quest_manager &q = quest_manager::instance();
 
-            auto applyOn = (uint8_t)lua_tonumber(lua, 1);
+            auto apply_on = (uint8_t)lua_tonumber(lua, 1);
 
             character *ch = q.current_character_ptr();
 
-            if (applyOn >= MAX_APPLY_NUM || applyOn < 1) {
-                metin2::log::error("Apply type {:d} is out of range", applyOn);
+            if (apply_on >= MAX_APPLY_NUM || apply_on < 1) {
+                metin2::log::error("Apply type {:d} is out of range", apply_on);
                 return 0;
             }
 
-            if (ch->find_affect(AFFECT_QUEST_START_IDX, applyOn))
+            if (ch->find_affect(AFFECT_QUEST_START_IDX, apply_on))
                 return 0;
 
             auto value = (int32_t)lua_tonumber(lua, 2);
             auto duration = (int32_t)lua_tonumber(lua, 3);
 
-            ch->add_affect(AFFECT_QUEST_START_IDX, a_apply_info[applyOn].point_type, value, 0, duration, 0, false);
+            ch->add_affect(AFFECT_QUEST_START_IDX, a_apply_info[apply_on].point_type, value, 0, duration, 0, false);
 
             return 0;
         }
 
         auto affect_remove(lua_State *lua) -> int {
             quest_manager &q = quest_manager::instance();
-            int iType;
+            int type;
 
             if (lua_isnumber(lua, 1)) {
-                iType = (int)lua_tonumber(lua, 1);
+                type = (int)lua_tonumber(lua, 1);
 
-                if (iType == 0)
-                    iType = q.current_pc()->current_quest_index() + AFFECT_QUEST_START_IDX;
+                if (type == 0)
+                    type = q.current_pc()->current_quest_index() + AFFECT_QUEST_START_IDX;
             } else
-                iType = q.current_pc()->current_quest_index() + AFFECT_QUEST_START_IDX;
+                type = q.current_pc()->current_quest_index() + AFFECT_QUEST_START_IDX;
 
-            q.current_character_ptr()->remove_affect(iType);
+            q.current_character_ptr()->remove_affect(type);
 
             return 0;
         }
@@ -79,19 +79,19 @@ namespace metin2::game {
 
             quest_manager &q = quest_manager::instance();
 
-            auto applyOn = (uint8_t)lua_tonumber(lua, 1);
+            auto apply_on = (uint8_t)lua_tonumber(lua, 1);
 
             character *ch = q.current_character_ptr();
 
-            if (applyOn >= MAX_APPLY_NUM || applyOn < 1) {
-                metin2::log::error("Apply type {:d} is out of range", applyOn);
+            if (apply_on >= MAX_APPLY_NUM || apply_on < 1) {
+                metin2::log::error("Apply type {:d} is out of range", apply_on);
                 return 0;
             }
 
             auto value = (int32_t)lua_tonumber(lua, 2);
             auto duration = (int32_t)lua_tonumber(lua, 3);
 
-            ch->add_affect(AFFECT_HAIR, a_apply_info[applyOn].point_type, value, 0, duration, 0, false);
+            ch->add_affect(AFFECT_HAIR, a_apply_info[apply_on].point_type, value, 0, duration, 0, false);
 
             return 0;
         }
@@ -99,11 +99,11 @@ namespace metin2::game {
         auto affect_remove_hair(lua_State *lua) -> int {
             character *ch = quest_manager::instance().current_character_ptr();
 
-            affect *pkAff = ch->find_affect(AFFECT_HAIR);
+            affect *aff = ch->find_affect(AFFECT_HAIR);
 
-            if (pkAff != nullptr) {
-                lua_pushnumber(lua, pkAff->duration);
-                ch->remove_affect(pkAff);
+            if (aff != nullptr) {
+                lua_pushnumber(lua, aff->duration);
+                ch->remove_affect(aff);
             } else {
                 lua_pushnumber(lua, 0);
             }
@@ -119,12 +119,12 @@ namespace metin2::game {
                 return 0;
             }
 
-            uint32_t affectType = lua_tonumber(lua, 1);
+            uint32_t affect_type = lua_tonumber(lua, 1);
 
-            affect *pkAff = ch->find_affect(affectType);
+            affect *aff = ch->find_affect(affect_type);
 
-            if (pkAff != nullptr)
-                lua_pushnumber(lua, pkAff->apply_on);
+            if (aff != nullptr)
+                lua_pushnumber(lua, aff->apply_on);
             else
                 lua_pushnil(lua);
 
@@ -139,19 +139,19 @@ namespace metin2::game {
 
             quest_manager &q = quest_manager::instance();
 
-            auto applyOn = (uint8_t)lua_tonumber(lua, 1);
+            auto apply_on = (uint8_t)lua_tonumber(lua, 1);
 
             character *ch = q.current_character_ptr();
 
-            if (applyOn >= MAX_APPLY_NUM || applyOn < 1) {
-                metin2::log::error("Apply type {:d} is out of range", applyOn);
+            if (apply_on >= MAX_APPLY_NUM || apply_on < 1) {
+                metin2::log::error("Apply type {:d} is out of range", apply_on);
                 return 0;
             }
 
             auto value = (int32_t)lua_tonumber(lua, 2);
             auto duration = (int32_t)lua_tonumber(lua, 3);
 
-            ch->add_affect(AFFECT_COLLECT, a_apply_info[applyOn].point_type, value, 0, duration, 0, false);
+            ch->add_affect(AFFECT_COLLECT, a_apply_info[apply_on].point_type, value, 0, duration, 0, false);
 
             return 0;
         }
@@ -185,30 +185,30 @@ namespace metin2::game {
             character *ch = quest_manager::instance().current_character_ptr();
 
             if (ch != nullptr) {
-                auto bApply = (uint8_t)lua_tonumber(lua, 1);
+                auto apply = (uint8_t)lua_tonumber(lua, 1);
 
-                if (bApply >= MAX_APPLY_NUM) return 0;
+                if (apply >= MAX_APPLY_NUM) return 0;
 
-                bApply = a_apply_info[bApply].point_type;
+                apply = a_apply_info[apply].point_type;
                 auto value = (int32_t)lua_tonumber(lua, 2);
 
-                const std::list<affect *> &rList = ch->affect_container();
-                const affect *pAffect = nullptr;
+                const std::list<affect *> &list = ch->affect_container();
+                const affect *affect_value = nullptr;
 
-                for (auto iter = rList.begin(); iter != rList.end(); ++iter) {
-                    pAffect = *iter;
+                for (auto iter = list.begin(); iter != list.end(); ++iter) {
+                    affect_value = *iter;
 
-                    if (pAffect->type == AFFECT_COLLECT) {
-                        if (pAffect->apply_on == bApply && pAffect->apply_value == value) {
+                    if (affect_value->type == AFFECT_COLLECT) {
+                        if (affect_value->apply_on == apply && affect_value->apply_value == value) {
                             break;
                         }
                     }
 
-                    pAffect = nullptr;
+                    affect_value = nullptr;
                 }
 
-                if (pAffect != nullptr) {
-                    ch->remove_affect(const_cast<affect *>(pAffect));
+                if (affect_value != nullptr) {
+                    ch->remove_affect(const_cast<affect *>(affect_value));
                 }
             }
 

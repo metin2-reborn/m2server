@@ -47,23 +47,23 @@ namespace metin2::db::inline app {
 
         struct core_cleanup {
             ~core_cleanup() { thecore_destroy(); }
-        } coreCleanup;
+        } core_cleanup;
 
-        db_manager DBManager;
-        client_manager ClientManager;
-        guild_manager GuildManager;
-        priv_manager PrivManager;
-        money_log MoneyLog;
-        item_award_manager ItemAwardManager;
-        marriage::manager MarriageManager;
-        monarch Monarch;
-        item_id_range_manager ItemIDRangeManager;
+        db_manager db_manager;
+        client_manager client_manager;
+        guild_manager guild_manager;
+        priv_manager priv_manager;
+        money_log money_log;
+        item_award_manager item_award_manager;
+        marriage::manager marriage_manager;
+        monarch monarch;
+        item_id_range_manager item_id_range_manager;
         if (!start())
             return 1;
 
-        GuildManager.initialize();
-        MarriageManager.initialize();
-        ItemIDRangeManager.build();
+        guild_manager.initialize();
+        marriage_manager.initialize();
+        item_id_range_manager.build();
         metin2::log::info("Db cache server starting");
 
         if (!mark_server_ready()) return 1;
@@ -71,20 +71,20 @@ namespace metin2::db::inline app {
 
         signal_timer_disable();
 
-        DBManager.quit();
-        int iCount;
+        db_manager.quit();
+        int count;
 
         while (1) {
-            iCount = 0;
+            count = 0;
 
-            iCount += db_manager::instance().return_stats(SQL_PLAYER).queued;
-            iCount += db_manager::instance().async_stats(SQL_PLAYER).queued;
+            count += db_manager::instance().return_stats(SQL_PLAYER).queued;
+            count += db_manager::instance().async_stats(SQL_PLAYER).queued;
 
-            if (iCount == 0)
+            if (count == 0)
                 break;
 
             usleep(1000);
-            metin2::log::info("Waiting for {:d} pending queries to finish", iCount);
+            metin2::log::info("Waiting for {:d} pending queries to finish", count);
         }
 
         return 0;

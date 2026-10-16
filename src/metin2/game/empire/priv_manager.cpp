@@ -149,9 +149,9 @@ namespace metin2::game::inline empire {
         value = std::clamp(value, 0, 1000);
         end_time_sec = std::clamp<int>(end_time_sec, 0, get_global_time() + 60 * 60 * 24 * 7);
 
-        priv_empire_data &rkPrivEmpireData = aak_priv_empire_data_[type][empire];
-        rkPrivEmpireData.value = value;
-        rkPrivEmpireData.end_time_sec = end_time_sec;
+        priv_empire_data &priv_empire_data = aak_priv_empire_data_[type][empire];
+        priv_empire_data.value = value;
+        priv_empire_data.end_time_sec = end_time_sec;
 
         if (value) {
             char buf[100];
@@ -195,10 +195,10 @@ namespace metin2::game::inline empire {
     }
 
     auto priv_manager::priv_by_empire(uint8_t empire, uint8_t type) -> int {
-        priv_empire_data *pkPrivEmpireData = priv_by_empire_ex(empire, type);
+        priv_empire_data *priv_empire_data = priv_by_empire_ex(empire, type);
 
-        if (pkPrivEmpireData)
-            return pkPrivEmpireData->value;
+        if (priv_empire_data)
+            return priv_empire_data->value;
 
         return 0;
     }
@@ -217,24 +217,24 @@ namespace metin2::game::inline empire {
         if (type >= MAX_PRIV_NUM)
             return 0;
 
-        auto itFind = priv_guild_[type].find(guild_id);
+        auto find = priv_guild_[type].find(guild_id);
 
-        if (itFind == priv_guild_[type].end())
+        if (find == priv_guild_[type].end())
             return 0;
 
-        return itFind->second.value;
+        return find->second.value;
     }
 
     auto priv_manager::priv_by_guild_ex(uint32_t guild_id, uint8_t type) const -> const priv_manager::priv_guild_data * {
         if (type >= MAX_PRIV_NUM)
             return nullptr;
 
-        auto itFind = priv_guild_[type].find(guild_id);
+        auto find = priv_guild_[type].find(guild_id);
 
-        if (itFind == priv_guild_[type].end())
+        if (find == priv_guild_[type].end())
             return nullptr;
 
-        return &itFind->second;
+        return &find->second;
     }
 
     auto priv_manager::priv_by_character(uint32_t pid, uint8_t type) -> int {

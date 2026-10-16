@@ -59,8 +59,8 @@ namespace metin2::game::inline protocol {
         auto it = set_peers_.begin();
 
         while (it != set_peers_.end()) {
-            desc *pkDesc = *it++;
-            pkDesc->flush_output();
+            desc *desc = *it++;
+            desc->flush_output();
         }
     }
 
@@ -102,11 +102,11 @@ namespace metin2::game::inline protocol {
         auto it = map_cci_.begin();
 
         while (it != map_cci_.end()) {
-            cci *pkCCI = it->second.get();
+            cci *cci = it->second.get();
             it++;
 
-            if (pkCCI->desc == d)
-                logout(pkCCI);
+            if (cci->desc == d)
+                logout(cci);
         }
     }
 
@@ -114,52 +114,52 @@ namespace metin2::game::inline protocol {
         auto it = set_peers_.begin();
 
         while (it != set_peers_.end()) {
-            desc *pkDesc = *it++;
+            desc *desc = *it++;
 
-            if (except == pkDesc)
+            if (except == desc)
                 continue;
 
-            pkDesc->packet(data, size);
+            desc->packet(data, size);
         }
     }
 
     void p2p_manager::login(desc *d, const packet_gg_login *p) {
-        cci *pkCCI = find(p->name);
+        cci *cci_value = find(p->name);
 
-        bool UpdateP2P = false;
+        bool update_p2_p = false;
 
-        if (nullptr == pkCCI) {
-            UpdateP2P = true;
-            auto pkNewCCI = std::make_unique<cci>();
-            pkCCI = pkNewCCI.get();
+        if (nullptr == cci_value) {
+            update_p2_p = true;
+            auto new_cci = std::make_unique<cci>();
+            cci_value = new_cci.get();
 
-            strlcpy(pkCCI->name, p->name, sizeof(pkCCI->name));
+            strlcpy(cci_value->name, p->name, sizeof(cci_value->name));
 
-            pkCCI->pid = p->pid;
-            pkCCI->empire = p->empire;
+            cci_value->pid = p->pid;
+            cci_value->empire = p->empire;
 
             if (p->channel == metin2::config::server().channel) {
-                if (pkCCI->empire < EMPIRE_MAX_NUM) {
-                    ++empire_user_count_[pkCCI->empire];
+                if (cci_value->empire < EMPIRE_MAX_NUM) {
+                    ++empire_user_count_[cci_value->empire];
                 } else {
-                    metin2::log::error("Peer login with invalid empire {:d} (max {:d})", pkCCI->empire, EMPIRE_MAX_NUM);
+                    metin2::log::error("Peer login with invalid empire {:d} (max {:d})", cci_value->empire, EMPIRE_MAX_NUM);
                 }
             }
 
-            map_pid_pk_cci_.insert(std::make_pair(pkCCI->pid, pkCCI));
-            map_cci_.emplace(pkCCI->name, std::move(pkNewCCI));
+            map_pid_pk_cci_.insert(std::make_pair(cci_value->pid, cci_value));
+            map_cci_.emplace(cci_value->name, std::move(new_cci));
         }
 
-        pkCCI->map_index = p->map_index;
-        pkCCI->desc = d;
-        pkCCI->channel = p->channel;
-        metin2::log::debug("Peer login: player {}", pkCCI->name);
+        cci_value->map_index = p->map_index;
+        cci_value->desc = d;
+        cci_value->channel = p->channel;
+        metin2::log::debug("Peer login: player {}", cci_value->name);
 
-        guild_manager::instance().p2p_login_member(pkCCI->pid);
-        party_manager::instance().p2p_login(pkCCI->pid, pkCCI->name);
+        guild_manager::instance().p2p_login_member(cci_value->pid);
+        party_manager::instance().p2p_login(cci_value->pid, cci_value->name);
 
-        if (UpdateP2P) {
-            std::string name(pkCCI->name);
+        if (update_p2_p) {
+            std::string name(cci_value->name);
             messenger_manager::instance().p2p_login(name);
         }
     }
@@ -188,13 +188,13 @@ namespace metin2::game::inline protocol {
     }
 
     void p2p_manager::logout(const char *name) {
-        cci *pkCCI = find(name);
+        cci *cci = find(name);
 
-        if (!pkCCI)
+        if (!cci)
             return;
 
         metin2::log::debug("Peer logout: player {}", name);
-        logout(pkCCI);
+        logout(cci);
     }
 
     auto p2p_manager::find_by_pid(uint32_t pid) -> cci * {
@@ -234,9 +234,9 @@ namespace metin2::game::inline protocol {
         std::ostringstream oss(std::ostringstream::out);
 
         while (it != set_peers_.end()) {
-            desc *pkDesc = *it++;
+            desc *desc = *it++;
 
-            oss << pkDesc->p2p_host() << " " << pkDesc->p2p_port() << "\n";
+            oss << desc->p2p_host() << " " << desc->p2p_port() << "\n";
         }
         host_names += oss.str();
     }

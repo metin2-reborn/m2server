@@ -369,16 +369,16 @@ namespace metin2::game::inline items {
             if (nullptr == cube_item[i])
                 continue;
 
-            bool bFound = false;
+            bool found = false;
 
             for (int cell = 0; cell < INVENTORY_MAX_NUM; ++cell) {
                 if (ch->inventory_item(cell) == cube_item[i]) {
-                    bFound = true;
+                    found = true;
                     break;
                 }
             }
 
-            if (!bFound)
+            if (!found)
                 cube_item[i] = nullptr;
         }
     }
@@ -551,8 +551,8 @@ namespace metin2::game::inline items {
         size_t pos = name.find("+");
 
         if (std::string::npos != pos) {
-            const std::string levelStr = name.substr(pos + 1, name.size() - pos - 1);
-            str_to_number(level, levelStr.c_str());
+            const std::string level_str = name.substr(pos + 1, name.size() - pos - 1);
+            str_to_number(level, level_str.c_str());
 
             info.name = name.substr(0, pos);
         }
@@ -568,42 +568,42 @@ namespace metin2::game::inline items {
 
     void cube_make_cube_information_text() {
         for (auto iter = cube_info_map.begin(); cube_info_map.end() != iter; ++iter) {
-            cube_result_list &resultList = iter->second;
+            cube_result_list &result_list = iter->second;
 
-            for (auto resultIter = resultList.begin(); resultList.end() != resultIter; ++resultIter) {
-                cube_material_info &materialInfo = *resultIter;
-                std::string &infoText = materialInfo.info_text;
+            for (auto result_iter = result_list.begin(); result_list.end() != result_iter; ++result_iter) {
+                cube_material_info &material_info = *result_iter;
+                std::string &info_text = material_info.info_text;
 
-                if (0 < materialInfo.complicate_material.size()) {
-                    std::sort(materialInfo.complicate_material.begin(), materialInfo.complicate_material.end(), f_is_less_cube_value);
-                    std::sort(materialInfo.material.begin(), materialInfo.material.end(), f_is_less_cube_value);
+                if (0 < material_info.complicate_material.size()) {
+                    std::sort(material_info.complicate_material.begin(), material_info.complicate_material.end(), f_is_less_cube_value);
+                    std::sort(material_info.material.begin(), material_info.material.end(), f_is_less_cube_value);
 
-                    for (auto iter = materialInfo.complicate_material.begin(); materialInfo.complicate_material.end() != iter; ++iter) {
-                        for (auto targetIter = materialInfo.material.begin(); materialInfo.material.end() != targetIter; ++targetIter) {
-                            if (*targetIter == *iter) {
-                                targetIter = materialInfo.material.erase(targetIter);
+                    for (auto iter = material_info.complicate_material.begin(); material_info.complicate_material.end() != iter; ++iter) {
+                        for (auto target_iter = material_info.material.begin(); material_info.material.end() != target_iter; ++target_iter) {
+                            if (*target_iter == *iter) {
+                                target_iter = material_info.material.erase(target_iter);
                             }
                         }
                     }
 
-                    for (auto iter = materialInfo.complicate_material.begin(); materialInfo.complicate_material.end() != iter; ++iter) {
-                        infoText += std::format("{},{}|", iter->vnum, iter->count);
+                    for (auto iter = material_info.complicate_material.begin(); material_info.complicate_material.end() != iter; ++iter) {
+                        info_text += std::format("{},{}|", iter->vnum, iter->count);
                     }
 
-                    infoText.erase(infoText.size() - 1);
+                    info_text.erase(info_text.size() - 1);
 
-                    if (0 < materialInfo.material.size())
-                        infoText.push_back('&');
+                    if (0 < material_info.material.size())
+                        info_text.push_back('&');
                 }
 
-                for (auto iter = materialInfo.material.begin(); materialInfo.material.end() != iter; ++iter) {
-                    infoText += std::format("{},{}&", iter->vnum, iter->count);
+                for (auto iter = material_info.material.begin(); material_info.material.end() != iter; ++iter) {
+                    info_text += std::format("{},{}&", iter->vnum, iter->count);
                 }
 
-                infoText.erase(infoText.size() - 1);
+                info_text.erase(info_text.size() - 1);
 
-                if (0 < materialInfo.gold) {
-                    infoText += std::format("/{}", materialInfo.gold);
+                if (0 < material_info.gold) {
+                    info_text += std::format("/{}", material_info.gold);
                 }
             }
         }
@@ -611,9 +611,9 @@ namespace metin2::game::inline items {
 
     auto cube_information_initialize() -> bool {
         for (size_t i = 0; i < cube_proto.size(); ++i) {
-            cube_data *cubeData = cube_proto[i].get();
+            cube_data *cube_data = cube_proto[i].get();
 
-            const std::vector<cube_value> &rewards = cubeData->reward;
+            const std::vector<cube_value> &rewards = cube_data->reward;
 
             if (1 != rewards.size()) {
                 metin2::log::warn("Cube recipe has {:d} rewards; only one is supported", rewards.size());
@@ -621,40 +621,40 @@ namespace metin2::game::inline items {
             }
 
             const cube_value &reward = rewards.at(0);
-            const uint16_t &npcVNUM = cubeData->npc_vnum.at(0);
-            bool bComplicate = false;
+            const uint16_t &npc_vnum = cube_data->npc_vnum.at(0);
+            bool complicate = false;
 
-            cube_map_by_npc &cubeMap = cube_info_map;
-            cube_result_list &resultList = cubeMap[npcVNUM];
-            cube_material_info materialInfo;
+            cube_map_by_npc &cube_map = cube_info_map;
+            cube_result_list &result_list = cube_map[npc_vnum];
+            cube_material_info material_info;
 
-            materialInfo.reward = reward;
-            materialInfo.gold = cubeData->gold;
-            materialInfo.material = cubeData->item;
+            material_info.reward = reward;
+            material_info.gold = cube_data->gold;
+            material_info.material = cube_data->item;
 
-            for (auto iter = resultList.begin(); resultList.end() != iter; ++iter) {
-                cube_material_info &existInfo = *iter;
+            for (auto iter = result_list.begin(); result_list.end() != iter; ++iter) {
+                cube_material_info &exist_info = *iter;
 
-                if (reward.vnum == existInfo.reward.vnum) {
-                    for (auto existMaterialIter = existInfo.material.begin(); existInfo.material.end() != existMaterialIter; ++existMaterialIter) {
-                        item_table *existMaterialProto = item_manager::instance().table(existMaterialIter->vnum);
-                        if (nullptr == existMaterialProto) {
-                            metin2::log::error("No item proto for cube material vnum {:d}", existMaterialIter->vnum);
+                if (reward.vnum == exist_info.reward.vnum) {
+                    for (auto exist_material_iter = exist_info.material.begin(); exist_info.material.end() != exist_material_iter; ++exist_material_iter) {
+                        item_table *exist_material_proto = item_manager::instance().table(exist_material_iter->vnum);
+                        if (nullptr == exist_material_proto) {
+                            metin2::log::error("No item proto for cube material vnum {:d}", exist_material_iter->vnum);
                             return false;
                         }
-                        item_name_and_level existItemInfo = split_item_name_and_level_from_name(existMaterialProto->name);
+                        item_name_and_level exist_item_info = split_item_name_and_level_from_name(exist_material_proto->name);
 
-                        if (0 < existItemInfo.level) {
-                            for (auto currentMaterialIter = materialInfo.material.begin(); materialInfo.material.end() != currentMaterialIter; ++currentMaterialIter) {
-                                item_table *currentMaterialProto = item_manager::instance().table(currentMaterialIter->vnum);
-                                item_name_and_level currentItemInfo = split_item_name_and_level_from_name(currentMaterialProto->name);
+                        if (0 < exist_item_info.level) {
+                            for (auto current_material_iter = material_info.material.begin(); material_info.material.end() != current_material_iter; ++current_material_iter) {
+                                item_table *current_material_proto = item_manager::instance().table(current_material_iter->vnum);
+                                item_name_and_level current_item_info = split_item_name_and_level_from_name(current_material_proto->name);
 
-                                if (currentItemInfo.name == existItemInfo.name) {
-                                    bComplicate = true;
-                                    existInfo.complicate_material.push_back(*currentMaterialIter);
+                                if (current_item_info.name == exist_item_info.name) {
+                                    complicate = true;
+                                    exist_info.complicate_material.push_back(*current_material_iter);
 
-                                    if (std::find(existInfo.complicate_material.begin(), existInfo.complicate_material.end(), *existMaterialIter) == existInfo.complicate_material.end())
-                                        existInfo.complicate_material.push_back(*existMaterialIter);
+                                    if (std::find(exist_info.complicate_material.begin(), exist_info.complicate_material.end(), *exist_material_iter) == exist_info.complicate_material.end())
+                                        exist_info.complicate_material.push_back(*exist_material_iter);
 
                                     break;
                                 }
@@ -664,8 +664,8 @@ namespace metin2::game::inline items {
                 }
             }
 
-            if (false == bComplicate)
-                resultList.push_back(materialInfo);
+            if (false == complicate)
+                result_list.push_back(material_info);
         }
 
         cube_make_cube_information_text();
@@ -681,38 +681,38 @@ namespace metin2::game::inline items {
         if (nullptr == npc)
             return;
 
-        uint32_t npcVNUM = npc->race_num();
-        size_t resultCount = 0;
+        uint32_t npc_vnum_value = npc->race_num();
+        size_t result_count = 0;
 
-        std::string &resultText = cube_result_info_map_by_npc[npcVNUM];
+        std::string &result_text = cube_result_info_map_by_npc[npc_vnum_value];
 
-        if (resultText.length() == 0) {
-            resultText.clear();
+        if (result_text.length() == 0) {
+            result_text.clear();
 
-            const cube_result_list &resultList = cube_info_map[npcVNUM];
-            for (auto iter = resultList.begin(); resultList.end() != iter; ++iter) {
-                const cube_material_info &materialInfo = *iter;
-                resultText += std::format("{},{}/", materialInfo.reward.vnum, materialInfo.reward.count);
+            const cube_result_list &result_list = cube_info_map[npc_vnum_value];
+            for (auto iter = result_list.begin(); result_list.end() != iter; ++iter) {
+                const cube_material_info &material_info = *iter;
+                result_text += std::format("{},{}/", material_info.reward.vnum, material_info.reward.count);
             }
 
-            resultCount = resultList.size();
+            result_count = result_list.size();
 
-            if (resultCount == 0) {
+            if (result_count == 0) {
                 return;
             }
 
-            resultText.erase(resultText.size() - 1);
+            result_text.erase(result_text.size() - 1);
 
-            if (resultText.size() - 20 >= CHAT_MAX_LEN) {
-                metin2::log::error("Cube result list of npc {:d} is too long ({:d} chars)", npcVNUM, resultText.size());
-                resultText.clear();
-                resultCount = 0;
+            if (result_text.size() - 20 >= CHAT_MAX_LEN) {
+                metin2::log::error("Cube result list of npc {:d} is too long ({:d} chars)", npc_vnum_value, result_text.size());
+                result_text.clear();
+                result_count = 0;
             }
         }
 
         // /cube r_list npc_vnum count vnum,count/vnum,count/...
 
-        ch->chat_packet(CHAT_TYPE_COMMAND, "cube r_list %d %d %s", npcVNUM, resultCount, resultText.c_str());
+        ch->chat_packet(CHAT_TYPE_COMMAND, "cube r_list %d %d %s", npc_vnum_value, result_count, result_text.c_str());
     }
 
     void cube_request_material_info(character *ch, int request_start_index, int request_count) {
@@ -722,40 +722,40 @@ namespace metin2::game::inline items {
         if (nullptr == npc)
             return;
 
-        uint32_t npcVNUM = npc->race_num();
-        std::string materialInfoText = "";
+        uint32_t npc_vnum = npc->race_num();
+        std::string material_info_text = "";
 
         int index = 0;
-        bool bCatchInfo = false;
+        bool catch_info = false;
 
-        const cube_result_list &resultList = cube_info_map[npcVNUM];
-        for (auto iter = resultList.begin(); resultList.end() != iter; ++iter) {
-            const cube_material_info &materialInfo = *iter;
+        const cube_result_list &result_list = cube_info_map[npc_vnum];
+        for (auto iter = result_list.begin(); result_list.end() != iter; ++iter) {
+            const cube_material_info &material_info = *iter;
 
             if (index++ == request_start_index) {
-                bCatchInfo = true;
+                catch_info = true;
             }
 
-            if (bCatchInfo) {
-                materialInfoText += materialInfo.info_text + "@";
+            if (catch_info) {
+                material_info_text += material_info.info_text + "@";
             }
 
             if (index >= request_start_index + request_count)
                 break;
         }
 
-        if (!bCatchInfo || materialInfoText.size() == 0) {
-            metin2::log::warn("No cube material info for npc {:d}, start index {:d}, count {:d}", npcVNUM, request_start_index, request_count);
+        if (!catch_info || material_info_text.size() == 0) {
+            metin2::log::warn("No cube material info for npc {:d}, start index {:d}, count {:d}", npc_vnum, request_start_index, request_count);
             return;
         }
 
-        materialInfoText.erase(materialInfoText.size() - 1);
+        material_info_text.erase(material_info_text.size() - 1);
 
         // /cube m_info start count 125,1|126,2&555,5/120000@...
-        if (materialInfoText.size() - 20 >= CHAT_MAX_LEN) {
-            metin2::log::error("Cube material info of npc {:d} (start {:d}, count {:d}) is too long ({:d} chars)", npcVNUM, request_start_index, request_count, materialInfoText.size());
+        if (material_info_text.size() - 20 >= CHAT_MAX_LEN) {
+            metin2::log::error("Cube material info of npc {:d} (start {:d}, count {:d}) is too long ({:d} chars)", npc_vnum, request_start_index, request_count, material_info_text.size());
         }
 
-        ch->chat_packet(CHAT_TYPE_COMMAND, "cube m_info %d %d %s", request_start_index, request_count, materialInfoText.c_str());
+        ch->chat_packet(CHAT_TYPE_COMMAND, "cube m_info %d %d %s", request_start_index, request_count, material_info_text.c_str());
     }
 }

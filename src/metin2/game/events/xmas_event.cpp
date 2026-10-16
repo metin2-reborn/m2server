@@ -105,7 +105,7 @@ namespace metin2::game::inline events {
                 return 0;
             }
 
-            int32_t lMapIndex = info->map_index;
+            int32_t map_index = info->map_index;
 
             if (quest::quest_manager::instance().event_flag("xmas_santa") == 0)
                 return 0;
@@ -115,7 +115,7 @@ namespace metin2::game::inline events {
             if (character_manager::instance().characters_by_race_num(MOB_SANTA_VNUM, i))
                 return 0;
 
-            if (character_manager::instance().spawn_mob_random_position(xmas::MOB_SANTA_VNUM, lMapIndex)) {
+            if (character_manager::instance().spawn_mob_random_position(xmas::MOB_SANTA_VNUM, map_index)) {
                 metin2::log::info("Xmas: santa spawned");
                 return 0;
             }
@@ -155,15 +155,15 @@ namespace metin2::game::inline events {
                 npc_sell_firework_position *p = positions;
                 while (p->map_index) {
                     if (map_allow_find(p->map_index)) {
-                        pixel_position posBase;
-                        if (!sectree_manager::instance().map_base_position_by_map_index(p->map_index, posBase)) {
+                        pixel_position pos_base;
+                        if (!sectree_manager::instance().map_base_position_by_map_index(p->map_index, pos_base)) {
                             metin2::log::error("Cannot get base position of map {:d}", p->map_index);
                             p++;
                             continue;
                         }
 
                         character_manager::instance().spawn_mob(
-                            MOB_XMAS_FIRWORK_SELLER_VNUM, p->map_index, posBase.x + p->x * 100, posBase.y + p->y * 100, 0, false, -1);
+                            MOB_XMAS_FIRWORK_SELLER_VNUM, p->map_index, pos_base.x + p->x * 100, pos_base.y + p->y * 100, 0, false, -1);
                     }
                     p++;
                 }

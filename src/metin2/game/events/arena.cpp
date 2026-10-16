@@ -59,16 +59,16 @@ namespace metin2::game::inline events {
     }
 
     auto arena_manager::add_arena(uint32_t idx, uint16_t start_a_x, uint16_t start_a_y, uint16_t start_b_x, uint16_t start_b_y) -> bool {
-        arena_map *pArenaMap = nullptr;
+        arena_map *arena_map_value = nullptr;
         auto iter = arena_map_.find(idx);
 
         if (iter == arena_map_.end()) {
-            pArenaMap = arena_map_.emplace(idx, std::make_unique<arena_map>()).first->second.get();
+            arena_map_value = arena_map_.emplace(idx, std::make_unique<arena_map>()).first->second.get();
         } else {
-            pArenaMap = iter->second.get();
+            arena_map_value = iter->second.get();
         }
 
-        if (pArenaMap->add_arena(idx, start_a_x, start_a_y, start_b_x, start_b_y) == false) {
+        if (arena_map_value->add_arena(idx, start_a_x, start_a_y, start_b_x, start_b_y) == false) {
             metin2::log::error("Failed to add arena to arena map {:d}", idx);
             return false;
         }
@@ -97,8 +97,8 @@ namespace metin2::game::inline events {
         auto iter = arena_map_.begin();
 
         for (; iter != arena_map_.end(); iter++) {
-            arena_map *pArenaMap = iter->second.get();
-            pArenaMap->destroy();
+            arena_map *arena_map = iter->second.get();
+            arena_map->destroy();
         }
         arena_map_.clear();
     }
@@ -109,8 +109,8 @@ namespace metin2::game::inline events {
         metin2::log::info("Arena: destroying arena map {:d}", map_index_);
 
         for (; iter != arena_.end(); iter++) {
-            arena *pArena = iter->get();
-            pArena->end_duel();
+            arena *arena = iter->get();
+            arena->end_duel();
         }
         arena_.clear();
     }
@@ -126,8 +126,8 @@ namespace metin2::game::inline events {
         auto iter = arena_map_.begin();
 
         for (; iter != arena_map_.end(); iter++) {
-            arena_map *pArena = iter->second.get();
-            pArena->send_arena_map_list_to(ch, (iter->first));
+            arena_map *arena = iter->second.get();
+            arena->send_arena_map_list_to(ch, (iter->first));
         }
     }
 
@@ -149,8 +149,8 @@ namespace metin2::game::inline events {
         auto iter = arena_map_.begin();
 
         for (; iter != arena_map_.end(); iter++) {
-            arena_map *pArenaMap = iter->second.get();
-            if (pArenaMap->start_duel(char_from, char_to, set_point, minute) == true) {
+            arena_map *arena_map = iter->second.get();
+            if (arena_map->start_duel(char_from, char_to, set_point, minute) == true) {
                 return true;
             }
         }
@@ -162,9 +162,9 @@ namespace metin2::game::inline events {
         auto iter = arena_.begin();
 
         for (; iter != arena_.end(); iter++) {
-            arena *pArena = iter->get();
-            if (pArena->is_empty() == true) {
-                return pArena->start_duel(char_from, char_to, set_point, minute);
+            arena *arena = iter->get();
+            if (arena->is_empty() == true) {
+                return arena->start_duel(char_from, char_to, set_point, minute);
             }
         }
 
@@ -194,56 +194,56 @@ namespace metin2::game::inline events {
             return 0;
         }
 
-        arena *pArena = info->arena;
+        arena *arena_value = info->arena;
 
-        if (pArena == nullptr) {
+        if (arena_value == nullptr) {
             metin2::log::error("Arena start event has no arena");
             return 0;
         }
 
-        character *chA = pArena->player_a();
-        character *chB = pArena->player_b();
+        character *ch_a = arena_value->player_a();
+        character *ch_b = arena_value->player_b();
 
-        if (chA == nullptr || chB == nullptr) {
+        if (ch_a == nullptr || ch_b == nullptr) {
             metin2::log::info("Arena: a duel participant is missing at duel start");
 
-            if (chA != nullptr) {
-                chA->chat_packet(CHAT_TYPE_INFO, lc_text("대련 상대가 사라져 대련을 종료합니다."));
-                metin2::log::info("Arena: opponent of pid {:d} (pid {:d}) is gone, ending duel", pArena->player_apid(), pArena->player_bpid());
+            if (ch_a != nullptr) {
+                ch_a->chat_packet(CHAT_TYPE_INFO, lc_text("대련 상대가 사라져 대련을 종료합니다."));
+                metin2::log::info("Arena: opponent of pid {:d} (pid {:d}) is gone, ending duel", arena_value->player_apid(), arena_value->player_bpid());
             }
 
-            if (chB != nullptr) {
-                chB->chat_packet(CHAT_TYPE_INFO, lc_text("대련 상대가 사라져 대련을 종료합니다."));
-                metin2::log::info("Arena: opponent of pid {:d} (pid {:d}) is gone, ending duel", pArena->player_bpid(), pArena->player_apid());
+            if (ch_b != nullptr) {
+                ch_b->chat_packet(CHAT_TYPE_INFO, lc_text("대련 상대가 사라져 대련을 종료합니다."));
+                metin2::log::info("Arena: opponent of pid {:d} (pid {:d}) is gone, ending duel", arena_value->player_bpid(), arena_value->player_apid());
             }
 
-            pArena->send_chat_packet_to_observer(CHAT_TYPE_NOTICE, lc_text("대련 상대가 사라져 대련을 종료합니다."));
+            arena_value->send_chat_packet_to_observer(CHAT_TYPE_NOTICE, lc_text("대련 상대가 사라져 대련을 종료합니다."));
 
-            pArena->end_duel();
+            arena_value->end_duel();
             return 0;
         }
 
         switch (info->state) {
         case 0:
             {
-                chA->set_arena(pArena);
-                chB->set_arena(pArena);
+                ch_a->set_arena(arena_value);
+                ch_b->set_arena(arena_value);
 
                 int count = quest::quest_manager::instance().event_flag("arena_potion_limit_count");
 
                 if (count > 10000) {
-                    chA->chat_packet(CHAT_TYPE_INFO, lc_text("물약 제한이 없습니다."));
-                    chB->chat_packet(CHAT_TYPE_INFO, lc_text("물약 제한이 없습니다."));
+                    ch_a->chat_packet(CHAT_TYPE_INFO, lc_text("물약 제한이 없습니다."));
+                    ch_b->chat_packet(CHAT_TYPE_INFO, lc_text("물약 제한이 없습니다."));
                 } else {
-                    chA->set_potion_limit(count);
-                    chB->set_potion_limit(count);
+                    ch_a->set_potion_limit(count);
+                    ch_b->set_potion_limit(count);
 
-                    chA->chat_packet(CHAT_TYPE_INFO, lc_text("물약을 %d 개 까지 사용 가능합니다."), chA->potion_limit());
-                    chB->chat_packet(CHAT_TYPE_INFO, lc_text("물약을 %d 개 까지 사용 가능합니다."), chB->potion_limit());
+                    ch_a->chat_packet(CHAT_TYPE_INFO, lc_text("물약을 %d 개 까지 사용 가능합니다."), ch_a->potion_limit());
+                    ch_b->chat_packet(CHAT_TYPE_INFO, lc_text("물약을 %d 개 까지 사용 가능합니다."), ch_b->potion_limit());
                 }
-                chA->chat_packet(CHAT_TYPE_INFO, lc_text("10초뒤 대련이 시작됩니다."));
-                chB->chat_packet(CHAT_TYPE_INFO, lc_text("10초뒤 대련이 시작됩니다."));
-                pArena->send_chat_packet_to_observer(CHAT_TYPE_INFO, lc_text("10초뒤 대련이 시작됩니다."));
+                ch_a->chat_packet(CHAT_TYPE_INFO, lc_text("10초뒤 대련이 시작됩니다."));
+                ch_b->chat_packet(CHAT_TYPE_INFO, lc_text("10초뒤 대련이 시작됩니다."));
+                arena_value->send_chat_packet_to_observer(CHAT_TYPE_INFO, lc_text("10초뒤 대련이 시작됩니다."));
 
                 info->state++;
                 return passes_per_sec(10);
@@ -252,29 +252,29 @@ namespace metin2::game::inline events {
 
         case 1:
             {
-                chA->chat_packet(CHAT_TYPE_INFO, lc_text("대련이 시작되었습니다."));
-                chB->chat_packet(CHAT_TYPE_INFO, lc_text("대련이 시작되었습니다."));
-                pArena->send_chat_packet_to_observer(CHAT_TYPE_INFO, lc_text("대련이 시작되었습니다."));
+                ch_a->chat_packet(CHAT_TYPE_INFO, lc_text("대련이 시작되었습니다."));
+                ch_b->chat_packet(CHAT_TYPE_INFO, lc_text("대련이 시작되었습니다."));
+                arena_value->send_chat_packet_to_observer(CHAT_TYPE_INFO, lc_text("대련이 시작되었습니다."));
 
-                packet_gc_duel_start duelStart;
-                duelStart.header = HEADER_GC_DUEL_START;
-                duelStart.size = sizeof(packet_gc_duel_start) + 4;
+                packet_gc_duel_start duel_start;
+                duel_start.header = HEADER_GC_DUEL_START;
+                duel_start.size = sizeof(packet_gc_duel_start) + 4;
 
-                uint32_t dwOppList[8];
+                uint32_t opp_list[8];
 
-                dwOppList[0] = (uint32_t)chB->get_vid();
+                opp_list[0] = (uint32_t)ch_b->get_vid();
                 temp_buffer buf;
 
-                buf.write(&duelStart, sizeof(packet_gc_duel_start));
-                buf.write(&dwOppList[0], 4);
-                chA->get_desc()->packet(buf.read_peek(), buf.size());
+                buf.write(&duel_start, sizeof(packet_gc_duel_start));
+                buf.write(&opp_list[0], 4);
+                ch_a->get_desc()->packet(buf.read_peek(), buf.size());
 
-                dwOppList[0] = (uint32_t)chA->get_vid();
+                opp_list[0] = (uint32_t)ch_a->get_vid();
                 temp_buffer buf2;
 
-                buf2.write(&duelStart, sizeof(packet_gc_duel_start));
-                buf2.write(&dwOppList[0], 4);
-                chB->get_desc()->packet(buf2.read_peek(), buf2.size());
+                buf2.write(&duel_start, sizeof(packet_gc_duel_start));
+                buf2.write(&opp_list[0], 4);
+                ch_b->get_desc()->packet(buf2.read_peek(), buf2.size());
 
                 return 0;
             }
@@ -282,52 +282,52 @@ namespace metin2::game::inline events {
 
         case 2:
             {
-                pArena->end_duel();
+                arena_value->end_duel();
                 return 0;
             }
             break;
 
         case 3:
             {
-                chA->show(chA->map_index(), pArena->start_point_a().x * 100, pArena->start_point_a().y * 100);
-                chB->show(chB->map_index(), pArena->start_point_b().x * 100, pArena->start_point_b().y * 100);
+                ch_a->show(ch_a->map_index(), arena_value->start_point_a().x * 100, arena_value->start_point_a().y * 100);
+                ch_b->show(ch_b->map_index(), arena_value->start_point_b().x * 100, arena_value->start_point_b().y * 100);
 
-                chA->get_desc()->set_phase(PHASE_GAME);
-                chA->start_recovery_event();
-                chA->set_position(POS_STANDING);
-                chA->point_change(POINT_HP, chA->max_hp() - chA->hp());
-                chA->point_change(POINT_SP, chA->max_sp() - chA->sp());
-                chA->view_reencode();
+                ch_a->get_desc()->set_phase(PHASE_GAME);
+                ch_a->start_recovery_event();
+                ch_a->set_position(POS_STANDING);
+                ch_a->point_change(POINT_HP, ch_a->max_hp() - ch_a->hp());
+                ch_a->point_change(POINT_SP, ch_a->max_sp() - ch_a->sp());
+                ch_a->view_reencode();
 
-                chB->get_desc()->set_phase(PHASE_GAME);
-                chB->start_recovery_event();
-                chB->set_position(POS_STANDING);
-                chB->point_change(POINT_HP, chB->max_hp() - chB->hp());
-                chB->point_change(POINT_SP, chB->max_sp() - chB->sp());
-                chB->view_reencode();
+                ch_b->get_desc()->set_phase(PHASE_GAME);
+                ch_b->start_recovery_event();
+                ch_b->set_position(POS_STANDING);
+                ch_b->point_change(POINT_HP, ch_b->max_hp() - ch_b->hp());
+                ch_b->point_change(POINT_SP, ch_b->max_sp() - ch_b->sp());
+                ch_b->view_reencode();
 
                 temp_buffer buf;
                 temp_buffer buf2;
-                uint32_t dwOppList[8];
-                packet_gc_duel_start duelStart;
-                duelStart.header = HEADER_GC_DUEL_START;
-                duelStart.size = sizeof(packet_gc_duel_start) + 4;
+                uint32_t opp_list[8];
+                packet_gc_duel_start duel_start;
+                duel_start.header = HEADER_GC_DUEL_START;
+                duel_start.size = sizeof(packet_gc_duel_start) + 4;
 
-                dwOppList[0] = (uint32_t)chB->get_vid();
-                buf.write(&duelStart, sizeof(packet_gc_duel_start));
-                buf.write(&dwOppList[0], 4);
-                chA->get_desc()->packet(buf.read_peek(), buf.size());
+                opp_list[0] = (uint32_t)ch_b->get_vid();
+                buf.write(&duel_start, sizeof(packet_gc_duel_start));
+                buf.write(&opp_list[0], 4);
+                ch_a->get_desc()->packet(buf.read_peek(), buf.size());
 
-                dwOppList[0] = (uint32_t)chA->get_vid();
-                buf2.write(&duelStart, sizeof(packet_gc_duel_start));
-                buf2.write(&dwOppList[0], 4);
-                chB->get_desc()->packet(buf2.read_peek(), buf2.size());
+                opp_list[0] = (uint32_t)ch_a->get_vid();
+                buf2.write(&duel_start, sizeof(packet_gc_duel_start));
+                buf2.write(&opp_list[0], 4);
+                ch_b->get_desc()->packet(buf2.read_peek(), buf2.size());
 
-                chA->chat_packet(CHAT_TYPE_INFO, lc_text("대련이 시작되었습니다."));
-                chB->chat_packet(CHAT_TYPE_INFO, lc_text("대련이 시작되었습니다."));
-                pArena->send_chat_packet_to_observer(CHAT_TYPE_INFO, lc_text("대련이 시작되었습니다."));
+                ch_a->chat_packet(CHAT_TYPE_INFO, lc_text("대련이 시작되었습니다."));
+                ch_b->chat_packet(CHAT_TYPE_INFO, lc_text("대련이 시작되었습니다."));
+                arena_value->send_chat_packet_to_observer(CHAT_TYPE_INFO, lc_text("대련이 시작되었습니다."));
 
-                pArena->clear_event();
+                arena_value->clear_event();
 
                 return 0;
             }
@@ -335,13 +335,13 @@ namespace metin2::game::inline events {
 
         default:
             {
-                chA->chat_packet(CHAT_TYPE_INFO, lc_text("대련장 문제로 인하여 대련을 종료합니다."));
-                chB->chat_packet(CHAT_TYPE_INFO, lc_text("대련장 문제로 인하여 대련을 종료합니다."));
-                pArena->send_chat_packet_to_observer(CHAT_TYPE_INFO, lc_text("대련장 문제로 인하여 대련을 종료합니다."));
+                ch_a->chat_packet(CHAT_TYPE_INFO, lc_text("대련장 문제로 인하여 대련을 종료합니다."));
+                ch_b->chat_packet(CHAT_TYPE_INFO, lc_text("대련장 문제로 인하여 대련을 종료합니다."));
+                arena_value->send_chat_packet_to_observer(CHAT_TYPE_INFO, lc_text("대련장 문제로 인하여 대련을 종료합니다."));
 
                 metin2::log::error("Arena: unexpected event state {:d}, ending duel", info->state);
 
-                pArena->end_duel();
+                arena_value->end_duel();
 
                 return 0;
             }
@@ -359,59 +359,59 @@ namespace metin2::game::inline events {
             return 0;
         }
 
-        arena *pArena = info->arena;
+        arena *arena_value = info->arena;
 
-        if (pArena == nullptr) {
+        if (arena_value == nullptr) {
             metin2::log::error("Arena timeout event has no arena");
             return 0;
         }
 
-        character *chA = pArena->player_a();
-        character *chB = pArena->player_b();
+        character *ch_a = arena_value->player_a();
+        character *ch_b = arena_value->player_b();
 
-        if (chA == nullptr || chB == nullptr) {
-            if (chA != nullptr) {
-                chA->chat_packet(CHAT_TYPE_INFO, lc_text("대련 상대가 사라져 대련을 종료합니다."));
-                metin2::log::info("Arena: opponent of pid {:d} (pid {:d}) is gone, ending duel", pArena->player_apid(), pArena->player_bpid());
+        if (ch_a == nullptr || ch_b == nullptr) {
+            if (ch_a != nullptr) {
+                ch_a->chat_packet(CHAT_TYPE_INFO, lc_text("대련 상대가 사라져 대련을 종료합니다."));
+                metin2::log::info("Arena: opponent of pid {:d} (pid {:d}) is gone, ending duel", arena_value->player_apid(), arena_value->player_bpid());
             }
 
-            if (chB != nullptr) {
-                chB->chat_packet(CHAT_TYPE_INFO, lc_text("대련 상대가 사라져 대련을 종료합니다."));
-                metin2::log::info("Arena: opponent of pid {:d} (pid {:d}) is gone, ending duel", pArena->player_bpid(), pArena->player_apid());
+            if (ch_b != nullptr) {
+                ch_b->chat_packet(CHAT_TYPE_INFO, lc_text("대련 상대가 사라져 대련을 종료합니다."));
+                metin2::log::info("Arena: opponent of pid {:d} (pid {:d}) is gone, ending duel", arena_value->player_bpid(), arena_value->player_apid());
             }
 
-            pArena->send_chat_packet_to_observer(CHAT_TYPE_INFO, lc_text("대련 상대가 사라져 대련을 종료합니다."));
+            arena_value->send_chat_packet_to_observer(CHAT_TYPE_INFO, lc_text("대련 상대가 사라져 대련을 종료합니다."));
 
-            pArena->end_duel();
+            arena_value->end_duel();
             return 0;
         } else {
             switch (info->state) {
             case 0:
-                pArena->send_chat_packet_to_observer(CHAT_TYPE_NOTICE, lc_text("대련 시간 초과로 대련을 중단합니다."));
-                pArena->send_chat_packet_to_observer(CHAT_TYPE_NOTICE, lc_text("10초뒤 마을로 이동합니다."));
+                arena_value->send_chat_packet_to_observer(CHAT_TYPE_NOTICE, lc_text("대련 시간 초과로 대련을 중단합니다."));
+                arena_value->send_chat_packet_to_observer(CHAT_TYPE_NOTICE, lc_text("10초뒤 마을로 이동합니다."));
 
-                chA->chat_packet(CHAT_TYPE_NOTICE, lc_text("대련 시간 초과로 대련을 중단합니다."));
-                chA->chat_packet(CHAT_TYPE_NOTICE, lc_text("10초뒤 마을로 이동합니다."));
+                ch_a->chat_packet(CHAT_TYPE_NOTICE, lc_text("대련 시간 초과로 대련을 중단합니다."));
+                ch_a->chat_packet(CHAT_TYPE_NOTICE, lc_text("10초뒤 마을로 이동합니다."));
 
-                chB->chat_packet(CHAT_TYPE_NOTICE, lc_text("대련 시간 초과로 대련을 중단합니다."));
-                chB->chat_packet(CHAT_TYPE_NOTICE, lc_text("10초뒤 마을로 이동합니다."));
+                ch_b->chat_packet(CHAT_TYPE_NOTICE, lc_text("대련 시간 초과로 대련을 중단합니다."));
+                ch_b->chat_packet(CHAT_TYPE_NOTICE, lc_text("10초뒤 마을로 이동합니다."));
 
-                packet_gc_duel_start duelStart;
-                duelStart.header = HEADER_GC_DUEL_START;
-                duelStart.size = sizeof(packet_gc_duel_start);
+                packet_gc_duel_start duel_start;
+                duel_start.header = HEADER_GC_DUEL_START;
+                duel_start.size = sizeof(packet_gc_duel_start);
 
-                chA->get_desc()->packet(&duelStart, sizeof(packet_gc_duel_start));
-                chA->get_desc()->packet(&duelStart, sizeof(packet_gc_duel_start));
+                ch_a->get_desc()->packet(&duel_start, sizeof(packet_gc_duel_start));
+                ch_a->get_desc()->packet(&duel_start, sizeof(packet_gc_duel_start));
 
                 info->state++;
 
-                metin2::log::info("Arena: duel of pid {:d} vs pid {:d} ended, time is up", pArena->player_apid(), pArena->player_bpid());
+                metin2::log::info("Arena: duel of pid {:d} vs pid {:d} ended, time is up", arena_value->player_apid(), arena_value->player_bpid());
 
                 return passes_per_sec(10);
                 break;
 
             case 1:
-                pArena->end_duel();
+                arena_value->end_duel();
                 break;
             }
         }
@@ -463,9 +463,9 @@ namespace metin2::game::inline events {
         auto iter = arena_map_.begin();
 
         for (; iter != arena_map_.end(); iter++) {
-            arena_map *pArenaMap = iter->second.get();
-            if (pArenaMap != nullptr)
-                pArenaMap->end_all_duel();
+            arena_map *arena_map = iter->second.get();
+            if (arena_map != nullptr)
+                arena_map->end_all_duel();
         }
 
         return;
@@ -475,9 +475,9 @@ namespace metin2::game::inline events {
         auto iter = arena_.begin();
 
         for (; iter != arena_.end(); iter++) {
-            arena *pArena = iter->get();
-            if (pArena != nullptr)
-                pArena->end_duel();
+            arena *arena = iter->get();
+            if (arena != nullptr)
+                arena->end_duel();
         }
     }
 
@@ -489,39 +489,39 @@ namespace metin2::game::inline events {
             event_cancel(&time_out_event_);
         }
 
-        character *playerA = player_a();
-        character *playerB = player_b();
+        character *player_a_value = player_a();
+        character *player_b_value = player_b();
 
-        if (playerA != nullptr) {
-            playerA->set_mode(PK_MODE_PEACE);
-            playerA->start_recovery_event();
-            playerA->set_position(POS_STANDING);
-            playerA->point_change(POINT_HP, playerA->max_hp() - playerA->hp());
-            playerA->point_change(POINT_SP, playerA->max_sp() - playerA->sp());
+        if (player_a_value != nullptr) {
+            player_a_value->set_mode(PK_MODE_PEACE);
+            player_a_value->start_recovery_event();
+            player_a_value->set_position(POS_STANDING);
+            player_a_value->point_change(POINT_HP, player_a_value->max_hp() - player_a_value->hp());
+            player_a_value->point_change(POINT_SP, player_a_value->max_sp() - player_a_value->sp());
 
-            playerA->set_arena(nullptr);
+            player_a_value->set_arena(nullptr);
 
-            playerA->warp_set(arena_return_point_x(playerA->empire()), arena_return_point_y(playerA->empire()));
+            player_a_value->warp_set(arena_return_point_x(player_a_value->empire()), arena_return_point_y(player_a_value->empire()));
         }
 
-        if (playerB != nullptr) {
-            playerB->set_mode(PK_MODE_PEACE);
-            playerB->start_recovery_event();
-            playerB->set_position(POS_STANDING);
-            playerB->point_change(POINT_HP, playerB->max_hp() - playerB->hp());
-            playerB->point_change(POINT_SP, playerB->max_sp() - playerB->sp());
+        if (player_b_value != nullptr) {
+            player_b_value->set_mode(PK_MODE_PEACE);
+            player_b_value->start_recovery_event();
+            player_b_value->set_position(POS_STANDING);
+            player_b_value->point_change(POINT_HP, player_b_value->max_hp() - player_b_value->hp());
+            player_b_value->point_change(POINT_SP, player_b_value->max_sp() - player_b_value->sp());
 
-            playerB->set_arena(nullptr);
+            player_b_value->set_arena(nullptr);
 
-            playerB->warp_set(arena_return_point_x(playerB->empire()), arena_return_point_y(playerB->empire()));
+            player_b_value->warp_set(arena_return_point_x(player_b_value->empire()), arena_return_point_y(player_b_value->empire()));
         }
 
         auto iter = observer_.begin();
 
         for (; iter != observer_.end(); iter++) {
-            character *pChar = character_manager::instance().find_by_pid(iter->first);
-            if (pChar != nullptr) {
-                pChar->warp_set(arena_return_point_x(pChar->empire()), arena_return_point_y(pChar->empire()));
+            character *ch = character_manager::instance().find_by_pid(iter->first);
+            if (ch != nullptr) {
+                ch->warp_set(arena_return_point_x(ch->empire()), arena_return_point_y(ch->empire()));
             }
         }
 
@@ -539,9 +539,9 @@ namespace metin2::game::inline events {
         lua_newtable(lua);
 
         for (; iter != arena_map_.end(); iter++) {
-            arena_map *pArenaMap = iter->second.get();
-            if (pArenaMap != nullptr)
-                index = pArenaMap->duel_list(lua, index);
+            arena_map *arena_map = iter->second.get();
+            if (arena_map != nullptr)
+                index = arena_map->duel_list(lua, index);
         }
     }
 
@@ -549,30 +549,30 @@ namespace metin2::game::inline events {
         auto iter = arena_.begin();
 
         for (; iter != arena_.end(); iter++) {
-            arena *pArena = iter->get();
+            arena *arena = iter->get();
 
-            if (pArena == nullptr) continue;
+            if (arena == nullptr) continue;
 
-            if (pArena->is_empty() == false) {
-                character *chA = pArena->player_a();
-                character *chB = pArena->player_b();
+            if (arena->is_empty() == false) {
+                character *ch_a = arena->player_a();
+                character *ch_b = arena->player_b();
 
-                if (chA != nullptr && chB != nullptr) {
+                if (ch_a != nullptr && ch_b != nullptr) {
                     lua_newtable(lua);
 
-                    lua_pushstring(lua, chA->name());
+                    lua_pushstring(lua, ch_a->name());
                     lua_rawseti(lua, -2, 1);
 
-                    lua_pushstring(lua, chB->name());
+                    lua_pushstring(lua, ch_b->name());
                     lua_rawseti(lua, -2, 2);
 
                     lua_pushnumber(lua, map_index_);
                     lua_rawseti(lua, -2, 3);
 
-                    lua_pushnumber(lua, pArena->observer_point().x);
+                    lua_pushnumber(lua, arena->observer_point().x);
                     lua_rawseti(lua, -2, 4);
 
-                    lua_pushnumber(lua, pArena->observer_point().y);
+                    lua_pushnumber(lua, arena->observer_point().y);
                     lua_rawseti(lua, -2, 5);
 
                     lua_rawseti(lua, -2, index++);
@@ -588,28 +588,28 @@ namespace metin2::game::inline events {
 
         if (char_attacker == char_victim) return false;
 
-        int32_t mapIndex = char_attacker->map_index();
-        if (mapIndex != char_victim->map_index()) return false;
+        int32_t map_index = char_attacker->map_index();
+        if (map_index != char_victim->map_index()) return false;
 
-        auto iter = arena_map_.find(mapIndex);
+        auto iter = arena_map_.find(map_index);
 
         if (iter == arena_map_.end()) return false;
 
-        arena_map *pArenaMap = iter->second.get();
-        return pArenaMap->can_attack(char_attacker, char_victim);
+        arena_map *arena_map = iter->second.get();
+        return arena_map->can_attack(char_attacker, char_victim);
     }
 
     auto arena_map::can_attack(character *char_attacker, character *char_victim) -> bool {
         if (char_attacker == nullptr || char_victim == nullptr) return false;
 
-        uint32_t dwPIDA = char_attacker->player_id();
-        uint32_t dwPIDB = char_victim->player_id();
+        uint32_t pida = char_attacker->player_id();
+        uint32_t pidb = char_victim->player_id();
 
         auto iter = arena_.begin();
 
         for (; iter != arena_.end(); iter++) {
-            arena *pArena = iter->get();
-            if (pArena->can_attack(dwPIDA, dwPIDB) == true) {
+            arena *arena = iter->get();
+            if (arena->can_attack(pida, pidb) == true) {
                 return true;
             }
         }
@@ -626,27 +626,27 @@ namespace metin2::game::inline events {
     auto arena_manager::on_dead(character *char_killer, character *char_victim) -> bool {
         if (char_killer == nullptr || char_victim == nullptr) return false;
 
-        int32_t mapIndex = char_killer->map_index();
-        if (mapIndex != char_victim->map_index()) return false;
+        int32_t map_index = char_killer->map_index();
+        if (map_index != char_victim->map_index()) return false;
 
-        auto iter = arena_map_.find(mapIndex);
+        auto iter = arena_map_.find(map_index);
         if (iter == arena_map_.end()) return false;
 
-        arena_map *pArenaMap = iter->second.get();
-        return pArenaMap->on_dead(char_killer, char_victim);
+        arena_map *arena_map = iter->second.get();
+        return arena_map->on_dead(char_killer, char_victim);
     }
 
     auto arena_map::on_dead(character *char_killer, character *char_victim) -> bool {
-        uint32_t dwPIDA = char_killer->player_id();
-        uint32_t dwPIDB = char_victim->player_id();
+        uint32_t pida = char_killer->player_id();
+        uint32_t pidb = char_victim->player_id();
 
         auto iter = arena_.begin();
 
         for (; iter != arena_.end(); iter++) {
-            arena *pArena = iter->get();
+            arena *arena = iter->get();
 
-            if (pArena->is_member(dwPIDA) == true && pArena->is_member(dwPIDB) == true) {
-                pArena->on_dead(dwPIDA, dwPIDB);
+            if (arena->is_member(pida) == true && arena->is_member(pidb) == true) {
+                arena->on_dead(pida, pidb);
                 return true;
             }
         }
@@ -656,61 +656,61 @@ namespace metin2::game::inline events {
     auto arena::on_dead(uint32_t pida, uint32_t pidb) -> bool {
         bool restart = false;
 
-        character *pCharA = player_a();
-        character *pCharB = player_b();
+        character *char_a = player_a();
+        character *char_b = player_b();
 
-        if (pCharA == nullptr && pCharB == nullptr) {
+        if (char_a == nullptr && char_b == nullptr) {
             send_chat_packet_to_observer(CHAT_TYPE_NOTICE, lc_text("대련자 문제로 인하여 대련을 중단합니다."));
             restart = false;
-        } else if (pCharA == nullptr && pCharB != nullptr) {
-            pCharB->chat_packet(CHAT_TYPE_NOTICE, lc_text("상대방 캐릭터의 문제로 인하여 대련을 종료합니다."));
+        } else if (char_a == nullptr && char_b != nullptr) {
+            char_b->chat_packet(CHAT_TYPE_NOTICE, lc_text("상대방 캐릭터의 문제로 인하여 대련을 종료합니다."));
             send_chat_packet_to_observer(CHAT_TYPE_NOTICE, lc_text("대련자 문제로 인하여 대련을 종료합니다."));
             restart = false;
-        } else if (pCharA != nullptr && pCharB == nullptr) {
-            pCharA->chat_packet(CHAT_TYPE_NOTICE, lc_text("상대방 캐릭터의 문제로 인하여 대련을 종료합니다."));
+        } else if (char_a != nullptr && char_b == nullptr) {
+            char_a->chat_packet(CHAT_TYPE_NOTICE, lc_text("상대방 캐릭터의 문제로 인하여 대련을 종료합니다."));
             send_chat_packet_to_observer(CHAT_TYPE_NOTICE, lc_text("대련자 문제로 인하여 대련을 종료합니다."));
             restart = false;
-        } else if (pCharA != nullptr && pCharB != nullptr) {
+        } else if (char_a != nullptr && char_b != nullptr) {
             if (pida_ == pida) {
                 set_point_of_a_++;
 
                 if (set_point_of_a_ >= set_count_) {
-                    pCharA->chat_packet(CHAT_TYPE_NOTICE, lc_text("%s 님이 대련에서 승리하였습니다."), pCharA->name());
-                    pCharB->chat_packet(CHAT_TYPE_NOTICE, lc_text("%s 님이 대련에서 승리하였습니다."), pCharA->name());
-                    send_chat_packet_to_observer(CHAT_TYPE_NOTICE, lc_text("%s 님이 대련에서 승리하였습니다."), pCharA->name());
+                    char_a->chat_packet(CHAT_TYPE_NOTICE, lc_text("%s 님이 대련에서 승리하였습니다."), char_a->name());
+                    char_b->chat_packet(CHAT_TYPE_NOTICE, lc_text("%s 님이 대련에서 승리하였습니다."), char_a->name());
+                    send_chat_packet_to_observer(CHAT_TYPE_NOTICE, lc_text("%s 님이 대련에서 승리하였습니다."), char_a->name());
 
                     metin2::log::info("Arena: {} (pid {:d}) won the duel against {} (pid {:d})",
-                        pCharA->name(), player_apid(), pCharB->name(), player_bpid());
+                        char_a->name(), player_apid(), char_b->name(), player_bpid());
                 } else {
                     restart = true;
-                    pCharA->chat_packet(CHAT_TYPE_INFO, lc_text("%s 님이 승리하였습니다."), pCharA->name());
-                    pCharA->chat_packet(CHAT_TYPE_NOTICE, "%s %d : %d %s", pCharA->name(), set_point_of_a_, set_point_of_b_, pCharB->name());
+                    char_a->chat_packet(CHAT_TYPE_INFO, lc_text("%s 님이 승리하였습니다."), char_a->name());
+                    char_a->chat_packet(CHAT_TYPE_NOTICE, "%s %d : %d %s", char_a->name(), set_point_of_a_, set_point_of_b_, char_b->name());
 
-                    pCharB->chat_packet(CHAT_TYPE_INFO, lc_text("%s 님이 승리하였습니다."), pCharA->name());
-                    pCharB->chat_packet(CHAT_TYPE_NOTICE, "%s %d : %d %s", pCharA->name(), set_point_of_a_, set_point_of_b_, pCharB->name());
+                    char_b->chat_packet(CHAT_TYPE_INFO, lc_text("%s 님이 승리하였습니다."), char_a->name());
+                    char_b->chat_packet(CHAT_TYPE_NOTICE, "%s %d : %d %s", char_a->name(), set_point_of_a_, set_point_of_b_, char_b->name());
 
-                    send_chat_packet_to_observer(CHAT_TYPE_NOTICE, "%s %d : %d %s", pCharA->name(), set_point_of_a_, set_point_of_b_, pCharB->name());
+                    send_chat_packet_to_observer(CHAT_TYPE_NOTICE, "%s %d : %d %s", char_a->name(), set_point_of_a_, set_point_of_b_, char_b->name());
 
                     metin2::log::info("Arena: {} (pid {:d}) won a round against {} (pid {:d})",
-                        pCharA->name(), player_apid(), pCharB->name(), player_bpid());
+                        char_a->name(), player_apid(), char_b->name(), player_bpid());
                 }
             } else if (pidb_ == pida) {
                 set_point_of_b_++;
                 if (set_point_of_b_ >= set_count_) {
-                    pCharA->chat_packet(CHAT_TYPE_NOTICE, lc_text("%s 님이 대련에서 승리하였습니다."), pCharB->name());
-                    pCharB->chat_packet(CHAT_TYPE_NOTICE, lc_text("%s 님이 대련에서 승리하였습니다."), pCharB->name());
-                    send_chat_packet_to_observer(CHAT_TYPE_NOTICE, lc_text("%s 님이 대련에서 승리하였습니다."), pCharB->name());
+                    char_a->chat_packet(CHAT_TYPE_NOTICE, lc_text("%s 님이 대련에서 승리하였습니다."), char_b->name());
+                    char_b->chat_packet(CHAT_TYPE_NOTICE, lc_text("%s 님이 대련에서 승리하였습니다."), char_b->name());
+                    send_chat_packet_to_observer(CHAT_TYPE_NOTICE, lc_text("%s 님이 대련에서 승리하였습니다."), char_b->name());
 
                     metin2::log::info("Arena: pid {:d} won the duel against pid {:d}", player_bpid(), player_apid());
                 } else {
                     restart = true;
-                    pCharA->chat_packet(CHAT_TYPE_INFO, lc_text("%s 님이 승리하였습니다."), pCharB->name());
-                    pCharA->chat_packet(CHAT_TYPE_NOTICE, "%s %d : %d %s", pCharA->name(), set_point_of_a_, set_point_of_b_, pCharB->name());
+                    char_a->chat_packet(CHAT_TYPE_INFO, lc_text("%s 님이 승리하였습니다."), char_b->name());
+                    char_a->chat_packet(CHAT_TYPE_NOTICE, "%s %d : %d %s", char_a->name(), set_point_of_a_, set_point_of_b_, char_b->name());
 
-                    pCharB->chat_packet(CHAT_TYPE_INFO, lc_text("%s 님이 승리하였습니다."), pCharB->name());
-                    pCharB->chat_packet(CHAT_TYPE_NOTICE, "%s %d : %d %s", pCharA->name(), set_point_of_a_, set_point_of_b_, pCharB->name());
+                    char_b->chat_packet(CHAT_TYPE_INFO, lc_text("%s 님이 승리하였습니다."), char_b->name());
+                    char_b->chat_packet(CHAT_TYPE_NOTICE, "%s %d : %d %s", char_a->name(), set_point_of_a_, set_point_of_b_, char_b->name());
 
-                    send_chat_packet_to_observer(CHAT_TYPE_NOTICE, "%s %d : %d %s", pCharA->name(), set_point_of_a_, set_point_of_b_, pCharB->name());
+                    send_chat_packet_to_observer(CHAT_TYPE_NOTICE, "%s %d : %d %s", char_a->name(), set_point_of_a_, set_point_of_b_, char_b->name());
 
                     metin2::log::info("Arena: pid {:d} won a round against pid {:d}", player_bpid(), player_apid());
                 }
@@ -719,17 +719,17 @@ namespace metin2::game::inline events {
             }
 
             int potion = quest::quest_manager::instance().event_flag("arena_potion_limit_count");
-            pCharA->set_potion_limit(potion);
-            pCharB->set_potion_limit(potion);
+            char_a->set_potion_limit(potion);
+            char_b->set_potion_limit(potion);
         } else {
         }
 
         if (restart == false) {
-            if (pCharA != nullptr)
-                pCharA->chat_packet(CHAT_TYPE_INFO, lc_text("10초뒤 마을로 되돌아갑니다."));
+            if (char_a != nullptr)
+                char_a->chat_packet(CHAT_TYPE_INFO, lc_text("10초뒤 마을로 되돌아갑니다."));
 
-            if (pCharB != nullptr)
-                pCharB->chat_packet(CHAT_TYPE_INFO, lc_text("10초뒤 마을로 되돌아갑니다."));
+            if (char_b != nullptr)
+                char_b->chat_packet(CHAT_TYPE_INFO, lc_text("10초뒤 마을로 되돌아갑니다."));
 
             send_chat_packet_to_observer(CHAT_TYPE_INFO, lc_text("10초뒤 마을로 되돌아갑니다."));
 
@@ -744,11 +744,11 @@ namespace metin2::game::inline events {
 
             event_ = event_create(ready_to_start_event, info, passes_per_sec(10));
         } else {
-            if (pCharA != nullptr)
-                pCharA->chat_packet(CHAT_TYPE_INFO, lc_text("10초뒤 다음 판을 시작합니다."));
+            if (char_a != nullptr)
+                char_a->chat_packet(CHAT_TYPE_INFO, lc_text("10초뒤 다음 판을 시작합니다."));
 
-            if (pCharB != nullptr)
-                pCharB->chat_packet(CHAT_TYPE_INFO, lc_text("10초뒤 다음 판을 시작합니다."));
+            if (char_b != nullptr)
+                char_b->chat_packet(CHAT_TYPE_INFO, lc_text("10초뒤 다음 판을 시작합니다."));
 
             send_chat_packet_to_observer(CHAT_TYPE_INFO, lc_text("10초뒤 다음 판을 시작합니다."));
 
@@ -772,19 +772,19 @@ namespace metin2::game::inline events {
 
         if (iter == arena_map_.end()) return false;
 
-        arena_map *pArenaMap = iter->second.get();
-        return pArenaMap->add_observer(ch, observer_x, observer_y);
+        arena_map *arena_map = iter->second.get();
+        return arena_map->add_observer(ch, observer_x, observer_y);
     }
 
     auto arena_map::add_observer(character *ch, uint16_t observer_x, uint16_t observer_y) -> bool {
         auto iter = arena_.begin();
 
         for (; iter != arena_.end(); iter++) {
-            arena *pArena = iter->get();
+            arena *arena = iter->get();
 
-            if (pArena->is_my_observer(observer_x, observer_y) == true) {
-                ch->set_arena(pArena);
-                return pArena->add_observer(ch);
+            if (arena->is_my_observer(observer_x, observer_y) == true) {
+                ch->set_arena(arena);
+                return arena->add_observer(ch);
             }
         }
 
@@ -814,8 +814,8 @@ namespace metin2::game::inline events {
         auto iter = arena_map_.find(map_index);
 
         if (iter != arena_map_.end()) {
-            arena_map *pArenaMap = iter->second.get();
-            return pArenaMap->is_member(pid);
+            arena_map *arena_map = iter->second.get();
+            return arena_map->is_member(pid);
         }
 
         return MEMBER_NO;
@@ -825,10 +825,10 @@ namespace metin2::game::inline events {
         auto iter = arena_.begin();
 
         for (; iter != arena_.end(); iter++) {
-            arena *pArena = iter->get();
+            arena *arena = iter->get();
 
-            if (pArena->is_observer(pid) == true) return MEMBER_OBSERVER;
-            if (pArena->is_member(pid) == true) return MEMBER_DUELIST;
+            if (arena->is_observer(pid) == true) return MEMBER_OBSERVER;
+            if (arena->is_member(pid) == true) return MEMBER_DUELIST;
         }
         return MEMBER_NO;
     }
@@ -870,8 +870,8 @@ namespace metin2::game::inline events {
         auto iter = arena_map_.begin();
 
         for (; iter != arena_map_.end(); iter++) {
-            arena_map *pArenaMap = iter->second.get();
-            if (pArenaMap->end_duel(pid) == true) return true;
+            arena_map *arena_map = iter->second.get();
+            if (arena_map->end_duel(pid) == true) return true;
         }
         return false;
     }
@@ -880,9 +880,9 @@ namespace metin2::game::inline events {
         auto iter = arena_.begin();
 
         for (; iter != arena_.end(); iter++) {
-            arena *pArena = iter->get();
-            if (pArena->is_member(pid) == true) {
-                pArena->end_duel();
+            arena *arena = iter->get();
+            if (arena->is_member(pid) == true) {
+                arena->end_duel();
                 return true;
             }
         }
@@ -899,18 +899,18 @@ namespace metin2::game::inline events {
             return false;
         }
 
-        arena_map *pArenaMap = iter->second.get();
-        return pArenaMap->register_observer_ptr(ch, idx, observer_x, observer_y);
+        arena_map *arena_map = iter->second.get();
+        return arena_map->register_observer_ptr(ch, idx, observer_x, observer_y);
     }
 
     auto arena_map::register_observer_ptr(character *ch, uint32_t idx, uint16_t observer_x, uint16_t observer_y) -> bool {
         auto iter = arena_.begin();
 
         for (; iter != arena_.end(); ++iter) {
-            arena *pArena = iter->get();
+            arena *arena = iter->get();
 
-            if (pArena->is_my_observer(observer_x, observer_y) == true) {
-                return pArena->register_observer_ptr(ch);
+            if (arena->is_my_observer(observer_x, observer_y) == true) {
+                return arena->register_observer_ptr(ch);
             }
         }
 

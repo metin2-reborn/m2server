@@ -18,15 +18,15 @@ namespace metin2::game {
 
     namespace quest {
         auto npc_open_shop(lua_State *lua) -> int {
-            int iShopVnum = 0;
+            int shop_vnum = 0;
 
             if (lua_gettop(lua) == 1) {
                 if (lua_isnumber(lua, 1))
-                    iShopVnum = (int)lua_tonumber(lua, 1);
+                    shop_vnum = (int)lua_tonumber(lua, 1);
             }
 
             if (quest_manager::instance().current_npc_character_ptr())
-                shop_manager::instance().start_shopping(quest_manager::instance().current_character_ptr(), quest_manager::instance().current_npc_character_ptr(), iShopVnum);
+                shop_manager::instance().start_shopping(quest_manager::instance().current_character_ptr(), quest_manager::instance().current_npc_character_ptr(), shop_vnum);
             return 0;
         }
 
@@ -58,11 +58,11 @@ namespace metin2::game {
         auto npc_get_guild(lua_State *lua) -> int {
             quest_manager &q = quest_manager::instance();
             character *npc = q.current_npc_character_ptr();
-            guild *pGuild = nullptr;
+            guild *guild = nullptr;
             if (npc)
-                pGuild = npc->get_guild();
+                guild = npc->get_guild();
 
-            lua_pushnumber(lua, pGuild ? pGuild->id() : 0);
+            lua_pushnumber(lua, guild ? guild->id() : 0);
             return 1;
         }
 
@@ -252,10 +252,10 @@ namespace metin2::game {
         auto npc_get_vid_attack_mul(lua_State *lua) -> int {
 
             lua_Number vid = lua_tonumber(lua, 1);
-            character *targetChar = character_manager::instance().find(vid);
+            character *target_char = character_manager::instance().find(vid);
 
-            if (targetChar)
-                lua_pushnumber(lua, targetChar->att_mul());
+            if (target_char)
+                lua_pushnumber(lua, target_char->att_mul());
             else
                 lua_pushnumber(lua, 0);
 
@@ -267,10 +267,10 @@ namespace metin2::game {
             lua_Number vid = lua_tonumber(lua, 1);
             lua_Number attack_mul = lua_tonumber(lua, 2);
 
-            character *targetChar = character_manager::instance().find(vid);
+            character *target_char = character_manager::instance().find(vid);
 
-            if (targetChar)
-                targetChar->set_att_mul(attack_mul);
+            if (target_char)
+                target_char->set_att_mul(attack_mul);
 
             return 0;
         }
@@ -278,10 +278,10 @@ namespace metin2::game {
         auto npc_get_vid_damage_mul(lua_State *lua) -> int {
 
             lua_Number vid = lua_tonumber(lua, 1);
-            character *targetChar = character_manager::instance().find(vid);
+            character *target_char = character_manager::instance().find(vid);
 
-            if (targetChar)
-                lua_pushnumber(lua, targetChar->dam_mul());
+            if (target_char)
+                lua_pushnumber(lua, target_char->dam_mul());
             else
                 lua_pushnumber(lua, 0);
 
@@ -293,10 +293,10 @@ namespace metin2::game {
             lua_Number vid = lua_tonumber(lua, 1);
             lua_Number damage_mul = lua_tonumber(lua, 2);
 
-            character *targetChar = character_manager::instance().find(vid);
+            character *target_char = character_manager::instance().find(vid);
 
-            if (targetChar)
-                targetChar->set_dam_mul(damage_mul);
+            if (target_char)
+                target_char->set_dam_mul(damage_mul);
 
             return 0;
         }

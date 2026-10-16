@@ -172,9 +172,9 @@ namespace metin2::game::inline admin {
             if (is_set(emotion_types[i].flag, NEED_PC)) {
                 if (emotion_set.find(std::make_pair(victim->get_vid(), ch->get_vid())) == emotion_set.end()) {
                     if (true == marriage::manager::instance().is_married(ch->player_id())) {
-                        const marriage::marriage *marriageInfo = marriage::manager::instance().get(ch->player_id());
+                        const marriage::marriage *marriage_info = marriage::manager::instance().get(ch->player_id());
 
-                        const uint32_t other = marriageInfo->other(ch->player_id());
+                        const uint32_t other = marriage_info->other(ch->player_id());
 
                         if (0 == other || other != victim->player_id()) {
                             ch->chat_packet(CHAT_TYPE_INFO, lc_text("이 행동은 상호동의 하에 가능 합니다."));

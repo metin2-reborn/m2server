@@ -142,12 +142,12 @@ namespace metin2::game::inline world {
     }
 
     auto sectree_manager::get(uint32_t index, uint32_t package) -> sectree * {
-        sectree_map *pkSectreeMap = map(index);
+        sectree_map *sectree_map = map(index);
 
-        if (!pkSectreeMap)
+        if (!sectree_map)
             return nullptr;
 
-        return pkSectreeMap->find(package);
+        return sectree_map->find(package);
     }
 
     auto sectree_manager::get(uint32_t index, uint32_t x, uint32_t y) -> sectree * {
@@ -168,13 +168,13 @@ namespace metin2::game::inline world {
         }
 
         char buf[256], cmd[256];
-        int iWidth = 0, iHeight = 0;
+        int width = 0, height = 0;
 
         while (fgets(buf, 256, fp)) {
             sscanf(buf, " %s ", cmd);
 
             if (!strcasecmp(cmd, "MapSize")) {
-                sscanf(buf, " %s %d %d ", cmd, &iWidth, &iHeight);
+                sscanf(buf, " %s %d %d ", cmd, &width, &height);
             } else if (!strcasecmp(cmd, "BasePosition")) {
                 sscanf(buf, " %s %d %d", cmd, &r_setting.base_x, &r_setting.base_y);
             } else if (!strcasecmp(cmd, "CellScale")) {
@@ -184,21 +184,21 @@ namespace metin2::game::inline world {
 
         fclose(fp);
 
-        if ((iWidth == 0 && iHeight == 0) || r_setting.cell_scale == 0) {
+        if ((width == 0 && height == 0) || r_setting.cell_scale == 0) {
             metin2::log::error("Invalid map settings file {}, size or cell scale is zero", setting_file_name);
             return 0;
         }
 
         r_setting.index = map_index;
-        r_setting.width = (r_setting.cell_scale * 128 * iWidth);
-        r_setting.height = (r_setting.cell_scale * 128 * iHeight);
+        r_setting.width = (r_setting.cell_scale * 128 * width);
+        r_setting.height = (r_setting.cell_scale * 128 * height);
         return 1;
     }
 
     auto sectree_manager::build_sectree_from_setting(map_setting &r_setting) -> std::unique_ptr<sectree_map> {
-        auto pkMapSectree = std::make_unique<sectree_map>();
+        auto map_sectree = std::make_unique<sectree_map>();
 
-        pkMapSectree->setting = r_setting;
+        map_sectree->setting = r_setting;
 
         int x, y;
 
@@ -208,7 +208,7 @@ namespace metin2::game::inline world {
                 tree->id_.coord.x = x / SECTREE_SIZE;
                 tree->id_.coord.y = y / SECTREE_SIZE;
                 metin2::log::debug("New sectree {:d}x{:d}", tree->id_.coord.x, tree->id_.coord.y);
-                pkMapSectree->add(tree->id_.package, std::move(tree));
+                map_sectree->add(tree->id_.package, std::move(tree));
             }
         }
 
@@ -216,17 +216,17 @@ namespace metin2::game::inline world {
             auto tree = std::make_unique<sectree>();
             tree->id_.coord.x = ((r_setting.base_x + r_setting.width) / SECTREE_SIZE) + 1;
             tree->id_.coord.y = ((r_setting.base_y + r_setting.height) / SECTREE_SIZE);
-            pkMapSectree->add(tree->id_.package, std::move(tree));
+            map_sectree->add(tree->id_.package, std::move(tree));
         }
 
         if ((r_setting.base_y + r_setting.height) % SECTREE_SIZE) {
             auto tree = std::make_unique<sectree>();
             tree->id_.coord.x = ((r_setting.base_x + r_setting.width) / SECTREE_SIZE);
             tree->id_.coord.y = ((r_setting.base_y + r_setting.height) / SECTREE_SIZE) + 1;
-            pkMapSectree->add(tree->id_.package, std::move(tree));
+            map_sectree->add(tree->id_.package, std::move(tree));
         }
 
-        return pkMapSectree;
+        return map_sectree;
     }
 
     void sectree_manager::load_dungeon(int index, const char *file_name) {
@@ -281,23 +281,23 @@ namespace metin2::game::inline world {
         if (!fp)
             return false;
 
-        int iX = 0, iY = 0;
+        int x_value = 0, y_value = 0;
         pixel_position pos[3] = {
             {0, 0, 0},
             {0, 0, 0},
             {0, 0, 0}
         };
 
-        fscanf(fp, " %d %d ", &iX, &iY);
+        fscanf(fp, " %d %d ", &x_value, &y_value);
 
-        int iEmpirePositionCount = fscanf(fp, " %d %d %d %d %d %d ",
+        int empire_position_count = fscanf(fp, " %d %d %d %d %d %d ",
             &pos[0].x, &pos[0].y,
             &pos[1].x, &pos[1].y,
             &pos[2].x, &pos[2].y);
 
         fclose(fp);
 
-        if (iEmpirePositionCount == 6) {
+        if (empire_position_count == 6) {
             for (int n = 0; n < 3; ++n)
                 metin2::log::debug("Map region: empire start position {:d} {:d}", pos[n].x, pos[n].y);
         } else {
@@ -314,8 +314,8 @@ namespace metin2::game::inline world {
 
         region.map_name = map_name_value;
 
-        region.pos_spawn.x = r_setting.base_x + (iX * 100);
-        region.pos_spawn.y = r_setting.base_y + (iY * 100);
+        region.pos_spawn.x = r_setting.base_x + (x_value * 100);
+        region.pos_spawn.y = r_setting.base_y + (y_value * 100);
 
         r_setting.pos_spawn = region.pos_spawn;
 
@@ -328,7 +328,7 @@ namespace metin2::game::inline world {
             region.pos_spawn.x,
             region.pos_spawn.y);
 
-        if (iEmpirePositionCount == 6) {
+        if (empire_position_count == 6) {
             region.empire_spawn_different = true;
 
             for (int i = 0; i < 3; i++) {
@@ -352,21 +352,21 @@ namespace metin2::game::inline world {
             return false;
         }
 
-        int iWidth, iHeight;
+        int width, height;
 
-        fread(&iWidth, sizeof(int), 1, fp);
-        fread(&iHeight, sizeof(int), 1, fp);
+        fread(&width, sizeof(int), 1, fp);
+        fread(&height, sizeof(int), 1, fp);
 
-        int maxMemSize = lzo_manager::instance().max_compressed_size(sizeof(uint32_t) * (SECTREE_SIZE / CELL_SIZE) * (SECTREE_SIZE / CELL_SIZE));
+        int max_mem_size = lzo_manager::instance().max_compressed_size(sizeof(uint32_t) * (SECTREE_SIZE / CELL_SIZE) * (SECTREE_SIZE / CELL_SIZE));
 
-        unsigned int uiSize;
-        lzo_uint uiDestSize;
+        unsigned int size_value;
+        lzo_uint dest_size;
 
-        std::vector<uint8_t> abComp(maxMemSize);
-        auto attr = std::make_unique_for_overwrite<uint32_t[]>(maxMemSize);
+        std::vector<uint8_t> ab_comp(max_mem_size);
+        auto attr = std::make_unique_for_overwrite<uint32_t[]>(max_mem_size);
 
-        for (int y = 0; y < iHeight; ++y)
-            for (int x = 0; x < iWidth; ++x) {
+        for (int y = 0; y < height; ++y)
+            for (int x = 0; x < width; ++x) {
                 sectreeid id;
                 id.coord.x = (r_setting.base_x / SECTREE_SIZE) + x;
                 id.coord.y = (r_setting.base_y / SECTREE_SIZE) + y;
@@ -376,7 +376,7 @@ namespace metin2::game::inline world {
                 if (tree == nullptr) {
                     metin2::log::error("Map attribute file {} refers to a missing sectree (package {:x}, coord ({:d}, {:d}), map {:d}, base ({:d}, {:d}))",
                         file_name, id.package, id.coord.x, id.coord.y, r_setting.index, r_setting.base_x, r_setting.base_y);
-                    metin2::log::error("Attribute position ({:d}, {:d}), attribute size ({:d}, {:d})", x, y, iWidth, iHeight);
+                    metin2::log::error("Attribute position ({:d}, {:d}), attribute size ({:d}, {:d})", x, y, width, height);
                     metin2::log::error("Check that the map size in Setting.txt matches server_attr");
 
                     map_sectree->dump_all_to_sys_err();
@@ -393,20 +393,20 @@ namespace metin2::game::inline world {
                     return false;
                 }
 
-                fread(&uiSize, sizeof(int), 1, fp);
-                if (uiSize > abComp.size()) {
-                    metin2::log::error("Attribute block of {:d} bytes is larger than {:d}", uiSize, abComp.size());
+                fread(&size_value, sizeof(int), 1, fp);
+                if (size_value > ab_comp.size()) {
+                    metin2::log::error("Attribute block of {:d} bytes is larger than {:d}", size_value, ab_comp.size());
                     fclose(fp);
                     return false;
                 }
-                fread(abComp.data(), sizeof(char), uiSize, fp);
+                fread(ab_comp.data(), sizeof(char), size_value, fp);
 
-                uiDestSize = sizeof(uint32_t) * maxMemSize;
-                lzo_manager::instance().decompress(abComp.data(), uiSize, (uint8_t *)attr.get(), &uiDestSize);
+                dest_size = sizeof(uint32_t) * max_mem_size;
+                lzo_manager::instance().decompress(ab_comp.data(), size_value, (uint8_t *)attr.get(), &dest_size);
 
-                if (uiDestSize != sizeof(uint32_t) * (SECTREE_SIZE / CELL_SIZE) * (SECTREE_SIZE / CELL_SIZE)) {
+                if (dest_size != sizeof(uint32_t) * (SECTREE_SIZE / CELL_SIZE) * (SECTREE_SIZE / CELL_SIZE)) {
                     metin2::log::error("Map attribute file {}: sectree {:d}x{:d} decompressed to wrong size {:d}",
-                        file_name, tree->id_.coord.x, tree->id_.coord.y, static_cast<int>(uiDestSize));
+                        file_name, tree->id_.coord.x, tree->id_.coord.y, static_cast<int>(dest_size));
                     fclose(fp);
 
                     return false;
@@ -512,9 +512,9 @@ namespace metin2::game::inline world {
             return 0;
 
         char buf[256 + 1];
-        std::string szFilename;
-        char szMapName[256];
-        int iIndex;
+        std::string filename;
+        char map_name[256];
+        int index_value;
 
         while (fgets(buf, 256, fp)) {
             buf[strcspn(buf, "\r\n")] = '\0';
@@ -522,54 +522,54 @@ namespace metin2::game::inline world {
             if (!strncmp(buf, "//", 2) || *buf == '#')
                 continue;
 
-            sscanf(buf, " %d %s ", &iIndex, szMapName);
+            sscanf(buf, " %d %s ", &index_value, map_name);
 
-            szFilename = std::format("{}/{}/Setting.txt", map_base_path, szMapName);
+            filename = std::format("{}/{}/Setting.txt", map_base_path, map_name);
 
             map_setting setting;
-            setting.index = iIndex;
+            setting.index = index_value;
 
-            if (!load_setting_file(iIndex, szFilename.c_str(), setting)) {
-                metin2::log::error("Cannot load map settings file {}", szFilename);
+            if (!load_setting_file(index_value, filename.c_str(), setting)) {
+                metin2::log::error("Cannot load map settings file {}", filename);
                 fclose(fp);
                 return 0;
             }
 
-            szFilename = std::format("{}/{}/Town.txt", map_base_path, szMapName);
+            filename = std::format("{}/{}/Town.txt", map_base_path, map_name);
 
-            if (!load_map_region(szFilename.c_str(), setting, szMapName)) {
-                metin2::log::error("Cannot load map region file {}", szFilename);
+            if (!load_map_region(filename.c_str(), setting, map_name)) {
+                metin2::log::error("Cannot load map region file {}", filename);
                 fclose(fp);
                 return 0;
             }
 
             if (true == metin2::config::test_server())
-                metin2::log::debug("Building map {}{} (index {:d})", map_base_path, szMapName, iIndex);
+                metin2::log::debug("Building map {}{} (index {:d})", map_base_path, map_name, index_value);
 
-            if (map_allow_find(iIndex)) {
-                std::unique_ptr<sectree_map> pkNewMapSectree = build_sectree_from_setting(setting);
-                sectree_map *pkMapSectree = pkNewMapSectree.get();
-                map_sectree_.try_emplace(iIndex, std::move(pkNewMapSectree));
+            if (map_allow_find(index_value)) {
+                std::unique_ptr<sectree_map> new_map_sectree = build_sectree_from_setting(setting);
+                sectree_map *map_sectree = new_map_sectree.get();
+                map_sectree_.try_emplace(index_value, std::move(new_map_sectree));
 
-                szFilename = std::format("{}/{}/server_attr", map_base_path, szMapName);
-                load_attribute(pkMapSectree, szFilename.c_str(), setting);
+                filename = std::format("{}/{}/server_attr", map_base_path, map_name);
+                load_attribute(map_sectree, filename.c_str(), setting);
 
-                szFilename = std::format("{}/{}/regen.txt", map_base_path, szMapName);
-                regen_load(szFilename.c_str(), setting.index, setting.base_x, setting.base_y);
+                filename = std::format("{}/{}/regen.txt", map_base_path, map_name);
+                regen_load(filename.c_str(), setting.index, setting.base_x, setting.base_y);
 
-                szFilename = std::format("{}/{}/npc.txt", map_base_path, szMapName);
-                regen_load(szFilename.c_str(), setting.index, setting.base_x, setting.base_y);
+                filename = std::format("{}/{}/npc.txt", map_base_path, map_name);
+                regen_load(filename.c_str(), setting.index, setting.base_x, setting.base_y);
 
-                szFilename = std::format("{}/{}/boss.txt", map_base_path, szMapName);
-                regen_load(szFilename.c_str(), setting.index, setting.base_x, setting.base_y);
+                filename = std::format("{}/{}/boss.txt", map_base_path, map_name);
+                regen_load(filename.c_str(), setting.index, setting.base_x, setting.base_y);
 
-                szFilename = std::format("{}/{}/stone.txt", map_base_path, szMapName);
-                regen_load(szFilename.c_str(), setting.index, setting.base_x, setting.base_y);
+                filename = std::format("{}/{}/stone.txt", map_base_path, map_name);
+                regen_load(filename.c_str(), setting.index, setting.base_x, setting.base_y);
 
-                szFilename = std::format("{}/{}/dungeon.txt", map_base_path, szMapName);
-                load_dungeon(iIndex, szFilename.c_str());
+                filename = std::format("{}/{}/dungeon.txt", map_base_path, map_name);
+                load_dungeon(index_value, filename.c_str());
 
-                pkMapSectree->build();
+                map_sectree->build();
             }
         }
 
@@ -612,9 +612,9 @@ namespace metin2::game::inline world {
     }
 
     auto sectree_manager::valid_location(int32_t map_index, int32_t x, int32_t y, int32_t &valid_map_index, pixel_position &r_pos, uint8_t empire) -> bool {
-        sectree_map *pkSectreeMap = map(map_index);
+        sectree_map *sectree_map = map(map_index);
 
-        if (!pkSectreeMap) {
+        if (!sectree_map) {
             if (map_index >= 10000) {
                 return valid_location(map_index / 10000, x, y, valid_map_index, r_pos);
             } else {
@@ -623,10 +623,10 @@ namespace metin2::game::inline world {
             }
         }
 
-        const int32_t lRealMapIndex = base_map_index(map_index);
+        const int32_t real_map_index = base_map_index(map_index);
 
-        if (get_map_region(lRealMapIndex)) {
-            if (!pkSectreeMap->find(x, y)) {
+        if (get_map_region(real_map_index)) {
+            if (!sectree_map->find(x, y)) {
                 metin2::log::error("No sectree at {:d} {:d} on map {:d}", x, y, map_index);
                 return false;
             }
@@ -637,27 +637,27 @@ namespace metin2::game::inline world {
             return true;
         }
 
-        metin2::log::error("Invalid location {1:d}x{2:d} on map {0:d}", lRealMapIndex, x, y);
+        metin2::log::error("Invalid location {1:d}x{2:d} on map {0:d}", real_map_index, x, y);
         return false;
     }
 
     auto sectree_manager::random_location(int32_t map_index, pixel_position &r_pos, uint32_t current_x, uint32_t current_y, int max_distance) -> bool {
-        sectree_map *pkSectreeMap = map(map_index);
+        sectree_map *sectree_map = map(map_index);
 
-        if (!pkSectreeMap)
+        if (!sectree_map)
             return false;
 
         uint32_t x, y;
 
-        for (const map_region &rRegion : vec_map_region_) {
-            if (rRegion.index != map_index)
+        for (const map_region &region : vec_map_region_) {
+            if (region.index != map_index)
                 continue;
 
             int i = 0;
 
             while (i++ < 100) {
-                x = number(rRegion.sx + 50, rRegion.ex - 50);
-                y = number(rRegion.sy + 50, rRegion.ey - 50);
+                x = number(region.sx + 50, region.ex - 50);
+                y = number(region.sy + 50, region.ey - 50);
 
                 if (max_distance != 0) {
                     int d;
@@ -681,7 +681,7 @@ namespace metin2::game::inline world {
                     }
                 }
 
-                sectree *tree = pkSectreeMap->find(x, y);
+                sectree *tree = sectree_map->find(x, y);
 
                 if (!tree)
                     continue;
@@ -702,9 +702,9 @@ namespace metin2::game::inline world {
         if (map_index >= 10000)
             return 0;
 
-        sectree_map *pkMapSectree = map(map_index);
+        sectree_map *map_sectree = map(map_index);
 
-        if (!pkMapSectree) {
+        if (!map_sectree) {
             metin2::log::error("Cannot create private map, map {:d} not found", map_index);
             return 0;
         }
@@ -730,29 +730,29 @@ namespace metin2::game::inline world {
         if (i == index_cap) {
             return 0;
         }
-        int32_t lNewMapIndex = base + next_index;
+        int32_t new_map_index = base + next_index;
         if (++next_index >= index_cap) {
             next_index = 0;
         }
         it->second = next_index;
 
-        map_sectree_.try_emplace(lNewMapIndex, std::make_unique<sectree_map>(*pkMapSectree));
+        map_sectree_.try_emplace(new_map_index, std::make_unique<sectree_map>(*map_sectree));
 
-        metin2::log::info("Private map {:d} created from map {:d}", lNewMapIndex, map_index);
-        return lNewMapIndex;
+        metin2::log::info("Private map {:d} created from map {:d}", new_map_index, map_index);
+        return new_map_index;
     }
 
     void sectree_manager::destroy_private_map(int32_t map_index) {
         if (map_index < 10000)
             return;
 
-        sectree_map *pkMapSectree = map(map_index);
+        sectree_map *map_sectree = map(map_index);
 
-        if (!pkMapSectree)
+        if (!map_sectree)
             return;
 
         // Entities on this map but outside every sectree cannot be deleted here.
-        pkMapSectree->for_each([](entity *ent) {
+        map_sectree->for_each([](entity *ent) {
             if (ent->is_type(ENTITY_CHARACTER)) {
                 auto *ch = (character *)ent;
                 metin2::log::info("Private map: removing character {}", ch->name());
@@ -789,21 +789,21 @@ namespace metin2::game::inline world {
         if (!d)
             return;
 
-        int32_t lMapIndex = ch->map_index();
+        int32_t map_index = ch->map_index();
 
-        if (npc_position_[lMapIndex].empty())
+        if (npc_position_[map_index].empty())
             return;
 
         temp_buffer buf;
         packet_gcnpc_position p;
         p.header = HEADER_GC_NPC_POSITION;
-        p.count = npc_position_[lMapIndex].size();
+        p.count = npc_position_[map_index].size();
 
         npc_position np;
 
-        decltype((npc_position_[lMapIndex]).begin()) it;
+        decltype((npc_position_[map_index]).begin()) it;
 
-        for (it = npc_position_[lMapIndex].begin(); it != npc_position_[lMapIndex].end(); ++it) {
+        for (it = npc_position_[map_index].begin(); it != npc_position_[map_index].end(); ++it) {
             np.type = it->type;
             strlcpy(np.name, it->name, sizeof(np.name));
             np.x = it->x;
@@ -861,24 +861,24 @@ namespace metin2::game::inline world {
         id.coord.x = cx / (SECTREE_SIZE / CELL_SIZE);
         id.coord.y = cy / (SECTREE_SIZE / CELL_SIZE);
 
-        int32_t lTreeCX = id.coord.x * (SECTREE_SIZE / CELL_SIZE);
-        int32_t lTreeCY = id.coord.y * (SECTREE_SIZE / CELL_SIZE);
+        int32_t tree_cx = id.coord.x * (SECTREE_SIZE / CELL_SIZE);
+        int32_t tree_cy = id.coord.y * (SECTREE_SIZE / CELL_SIZE);
 
-        sectree *pSec = get(map_index, id.package);
-        if (!pSec)
+        sectree *sec = get(map_index, id.package);
+        if (!sec)
             return false;
 
         switch (mode) {
         case ATTR_REGION_MODE_SET:
-            pSec->set_attribute(cx - lTreeCX, cy - lTreeCY, attr);
+            sec->set_attribute(cx - tree_cx, cy - tree_cy, attr);
             break;
 
         case ATTR_REGION_MODE_REMOVE:
-            pSec->remove_attribute(cx - lTreeCX, cy - lTreeCY, attr);
+            sec->remove_attribute(cx - tree_cx, cy - tree_cy, attr);
             break;
 
         case ATTR_REGION_MODE_CHECK:
-            if (pSec->is_attr(cx * CELL_SIZE, cy * CELL_SIZE, ATTR_OBJECT))
+            if (sec->is_attr(cx * CELL_SIZE, cy * CELL_SIZE, ATTR_OBJECT))
                 return true;
             break;
 
@@ -932,34 +932,34 @@ namespace metin2::game::inline world {
             return false;
         }
 
-        float fTilt1 = float(fdy1) / float(fdx1);
-        float fTilt2 = float(fdy2) / float(fdx2);
-        float fb1 = fy1 - fTilt1 * fx1;
-        float fb2 = fy1 - fTilt2 * fx1;
-        float fb3 = fy4 - fTilt1 * fx4;
-        float fb4 = fy4 - fTilt2 * fx4;
+        float tilt1 = float(fdy1) / float(fdx1);
+        float tilt2 = float(fdy2) / float(fdx2);
+        float fb1 = fy1 - tilt1 * fx1;
+        float fb2 = fy1 - tilt2 * fx1;
+        float fb3 = fy4 - tilt1 * fx4;
+        float fb4 = fy4 - tilt2 * fx4;
 
-        float fxMin = std::min({fx1, fx2, fx3, fx4});
-        float fxMax = std::max({fx1, fx2, fx3, fx4});
-        for (int i = int(fxMin); i < int(fxMax); ++i) {
-            float fyValue1 = fTilt1 * i + std::min(fb1, fb3);
-            float fyValue2 = fTilt2 * i + std::min(fb2, fb4);
+        float fx_min = std::min({fx1, fx2, fx3, fx4});
+        float fx_max = std::max({fx1, fx2, fx3, fx4});
+        for (int i = int(fx_min); i < int(fx_max); ++i) {
+            float fy_value1 = tilt1 * i + std::min(fb1, fb3);
+            float fy_value2 = tilt2 * i + std::min(fb2, fb4);
 
-            float fyValue3 = fTilt1 * i + std::max(fb1, fb3);
-            float fyValue4 = fTilt2 * i + std::max(fb2, fb4);
+            float fy_value3 = tilt1 * i + std::max(fb1, fb3);
+            float fy_value4 = tilt2 * i + std::max(fb2, fb4);
 
-            float fMinValue;
-            float fMaxValue;
-            if (abs(int(fyValue1)) < abs(int(fyValue2)))
-                fMaxValue = fyValue1;
+            float min_value;
+            float max_value;
+            if (abs(int(fy_value1)) < abs(int(fy_value2)))
+                max_value = fy_value1;
             else
-                fMaxValue = fyValue2;
-            if (abs(int(fyValue3)) < abs(int(fyValue4)))
-                fMinValue = fyValue3;
+                max_value = fy_value2;
+            if (abs(int(fy_value3)) < abs(int(fy_value4)))
+                min_value = fy_value3;
             else
-                fMinValue = fyValue4;
+                min_value = fy_value4;
 
-            for (int j = int(std::min(fMinValue, fMaxValue)); j < int(std::max(fMinValue, fMaxValue)); ++j) {
+            for (int j = int(std::min(min_value, max_value)); j < int(std::max(min_value, max_value)); ++j) {
                 if (for_attr_region_cell(map_index, cx + (cw / 2) + i, cy + (ch / 2) + j, attr, mode))
                     return true;
             }
@@ -969,9 +969,9 @@ namespace metin2::game::inline world {
     }
 
     auto sectree_manager::for_attr_region(int32_t map_index, int32_t start_x, int32_t start_y, int32_t end_x, int32_t end_y, int32_t rotate, uint32_t attr, attr_region_mode mode) -> bool {
-        sectree_map *pkMapSectree = map(map_index);
+        sectree_map *map_sectree = map(map_index);
 
-        if (!pkMapSectree) {
+        if (!map_sectree) {
             metin2::log::error("No sectree map for map {:d}", map_index);
             return mode == ATTR_REGION_MODE_CHECK ? true : false;
         }
@@ -981,96 +981,96 @@ namespace metin2::game::inline world {
         end_x += end_x % CELL_SIZE;
         end_y += end_y % CELL_SIZE;
 
-        int32_t lCX = start_x / CELL_SIZE;
-        int32_t lCY = start_y / CELL_SIZE;
-        int32_t lCW = (end_x - start_x) / CELL_SIZE;
-        int32_t lCH = (end_y - start_y) / CELL_SIZE;
+        int32_t cx = start_x / CELL_SIZE;
+        int32_t cy = start_y / CELL_SIZE;
+        int32_t cw = (end_x - start_x) / CELL_SIZE;
+        int32_t ch = (end_y - start_y) / CELL_SIZE;
 
         metin2::log::debug("Attribute region ({:d}, {:d}) - ({:d}, {:d})", start_x, start_y, end_x, end_y);
 
         rotate = rotate % 360;
 
         if (0 == rotate % 90)
-            return for_attr_region_right_angle(map_index, lCX, lCY, lCW, lCH, rotate, attr, mode);
+            return for_attr_region_right_angle(map_index, cx, cy, cw, ch, rotate, attr, mode);
 
-        return for_attr_region_free_angle(map_index, lCX, lCY, lCW, lCH, rotate, attr, mode);
+        return for_attr_region_free_angle(map_index, cx, cy, cw, ch, rotate, attr, mode);
     }
 
     auto sectree_manager::save_attribute_to_image(int map_index, const char *file_name, sectree_map *map_src) -> bool {
-        sectree_map *pMap = sectree_manager::map(map_index);
+        sectree_map *map_value = sectree_manager::map(map_index);
 
-        if (!pMap) {
+        if (!map_value) {
             if (map_src)
-                pMap = map_src;
+                map_value = map_src;
             else {
                 metin2::log::error("No sectree map for map {:d}", map_index);
                 return false;
             }
         }
 
-        int iMapHeight = pMap->setting.height / 128 / 200;
-        int iMapWidth = pMap->setting.width / 128 / 200;
+        int map_height = map_value->setting.height / 128 / 200;
+        int map_width = map_value->setting.width / 128 / 200;
 
-        if (iMapHeight < 0 || iMapWidth < 0) {
-            metin2::log::error("Invalid map size {:d}x{:d}", iMapWidth, iMapHeight);
+        if (map_height < 0 || map_width < 0) {
+            metin2::log::error("Invalid map size {:d}x{:d}", map_width, map_height);
             return false;
         }
 
-        metin2::log::info("Saving map attributes ({:d}x{:d}) to {}", iMapWidth, iMapHeight, file_name);
+        metin2::log::info("Saving map attributes ({:d}x{:d}) to {}", map_width, map_height, file_name);
 
-        const int iImageWidth = 512 * iMapWidth;
-        const int iImageHeight = 512 * iMapHeight;
-        std::vector<uint32_t> image(static_cast<size_t>(iImageWidth) * iImageHeight);
-        uint32_t *pdwDest = image.data();
+        const int image_width = 512 * map_width;
+        const int image_height = 512 * map_height;
+        std::vector<uint32_t> image(static_cast<size_t>(image_width) * image_height);
+        uint32_t *dest = image.data();
 
         int pixels = 0;
         int x, x2;
         int y, y2;
 
-        auto pdwLine = std::make_unique_for_overwrite<uint32_t[]>(SECTREE_SIZE / CELL_SIZE);
+        auto line = std::make_unique_for_overwrite<uint32_t[]>(SECTREE_SIZE / CELL_SIZE);
 
-        for (y = 0; y < 4 * iMapHeight; ++y) {
+        for (y = 0; y < 4 * map_height; ++y) {
             for (y2 = 0; y2 < SECTREE_SIZE / CELL_SIZE; ++y2) {
-                for (x = 0; x < 4 * iMapWidth; ++x) {
+                for (x = 0; x < 4 * map_width; ++x) {
                     sectreeid id;
 
-                    id.coord.x = x + pMap->setting.base_x / SECTREE_SIZE;
-                    id.coord.y = y + pMap->setting.base_y / SECTREE_SIZE;
+                    id.coord.x = x + map_value->setting.base_x / SECTREE_SIZE;
+                    id.coord.y = y + map_value->setting.base_y / SECTREE_SIZE;
 
-                    sectree *pSec = pMap->find(id.package);
+                    sectree *sec = map_value->find(id.package);
 
-                    if (!pSec) {
-                        metin2::log::error("No sectree at {:d}x{:d} (map base {:d}, {:d})", id.coord.x, id.coord.y, pMap->setting.base_x, pMap->setting.base_y);
+                    if (!sec) {
+                        metin2::log::error("No sectree at {:d}x{:d} (map base {:d}, {:d})", id.coord.x, id.coord.y, map_value->setting.base_x, map_value->setting.base_y);
                         continue;
                     }
 
-                    pSec->attribute_->copy_row(y2, pdwLine.get());
+                    sec->attribute_->copy_row(y2, line.get());
 
-                    if (!pdwLine) {
+                    if (!line) {
                         metin2::log::error("Sectree has no attribute data");
                         continue;
                     }
 
                     for (x2 = 0; x2 < SECTREE_SIZE / CELL_SIZE; ++x2) {
-                        uint32_t dwColor;
+                        uint32_t color;
 
-                        if (is_set(pdwLine[x2], ATTR_WATER))
-                            dwColor = 0xff0000ff;
-                        else if (is_set(pdwLine[x2], ATTR_BANPK))
-                            dwColor = 0xff00ff00;
-                        else if (is_set(pdwLine[x2], ATTR_BLOCK))
-                            dwColor = 0xffff0000;
+                        if (is_set(line[x2], ATTR_WATER))
+                            color = 0xff0000ff;
+                        else if (is_set(line[x2], ATTR_BANPK))
+                            color = 0xff00ff00;
+                        else if (is_set(line[x2], ATTR_BLOCK))
+                            color = 0xffff0000;
                         else
-                            dwColor = 0xffffffff;
+                            color = 0xffffffff;
 
-                        *(pdwDest++) = dwColor;
+                        *(dest++) = color;
                         pixels++;
                     }
                 }
             }
         }
 
-        if (save_tga_bgra(file_name, image.data(), iImageWidth, iImageHeight)) {
+        if (save_tga_bgra(file_name, image.data(), image_width, image_height)) {
             metin2::log::info("Map {:d} attributes saved to {} ({:d} bytes)", map_index, file_name, pixels);
             return true;
         } else {
@@ -1085,10 +1085,10 @@ namespace metin2::game::inline world {
         if (sectree != nullptr) {
             sectree->for_each([](entity *ent) {
                 if (ent->is_type(ENTITY_CHARACTER) == true) {
-                    auto *lpChar = (character *)ent;
+                    auto *ch = (character *)ent;
 
-                    if (lpChar->is_monster() == true && !lpChar->is_pet()) {
-                        character_manager::instance().destroy_character(lpChar);
+                    if (ch->is_monster() == true && !ch->is_pet()) {
+                        character_manager::instance().destroy_character(ch);
                     }
                 }
             });
@@ -1101,10 +1101,10 @@ namespace metin2::game::inline world {
         if (sectree != nullptr) {
             sectree->for_each([](entity *ent) {
                 if (ent->is_type(ENTITY_CHARACTER) == true) {
-                    auto *lpChar = (character *)ent;
+                    auto *ch = (character *)ent;
 
-                    if (lpChar->is_stone() == true) {
-                        character_manager::instance().destroy_character(lpChar);
+                    if (ch->is_stone() == true) {
+                        character_manager::instance().destroy_character(ch);
                     }
                 }
             });
@@ -1136,9 +1136,9 @@ namespace metin2::game::inline world {
 
             sectree->for_each([vnum, &count](entity *ent) {
                 if (true == ent->is_type(ENTITY_CHARACTER)) {
-                    auto *pChar = static_cast<character *>(ent);
+                    auto *ch = static_cast<character *>(ent);
 
-                    if (true == pChar->is_stone() && pChar->get_mob_table().vnum == vnum)
+                    if (true == ch->is_stone() && ch->get_mob_table().vnum == vnum)
                         count++;
                 }
             });

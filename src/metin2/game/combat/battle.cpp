@@ -152,20 +152,20 @@ namespace metin2::game::inline combat {
     }
 
     auto calc_magic_damage(character *attacker, character *victim) -> int {
-        int iDam = 0;
+        int dam = 0;
 
         if (attacker->is_npc()) {
-            iDam = calc_melee_damage(attacker, victim, false, false);
+            dam = calc_melee_damage(attacker, victim, false, false);
         }
 
-        iDam += attacker->point(POINT_PARTY_ATTACKER_BONUS);
+        dam += attacker->point(POINT_PARTY_ATTACKER_BONUS);
 
-        return calc_magic_damage_with_value(iDam, attacker, victim);
+        return calc_magic_damage_with_value(dam, attacker, victim);
     }
 
     auto calc_attack_rating(character *attacker, character *victim, bool ignore_target_rating) -> float {
-        int iARSrc;
-        int iERSrc;
+        int ar_src;
+        int er_src;
 
         int attacker_dx = attacker->polymorph_point(POINT_DX);
         int attacker_lv = attacker->level();
@@ -173,17 +173,17 @@ namespace metin2::game::inline combat {
         int victim_dx = victim->polymorph_point(POINT_DX);
         int victim_lv = attacker->level();
 
-        iARSrc = std::min(90, (attacker_dx * 4 + attacker_lv * 2) / 6);
-        iERSrc = std::min(90, (victim_dx * 4 + victim_lv * 2) / 6);
+        ar_src = std::min(90, (attacker_dx * 4 + attacker_lv * 2) / 6);
+        er_src = std::min(90, (victim_dx * 4 + victim_lv * 2) / 6);
 
-        float fAR = ((float)iARSrc + 210.0f) / 300.0f;
+        float ar = ((float)ar_src + 210.0f) / 300.0f;
 
         if (ignore_target_rating)
-            return fAR;
+            return ar;
 
-        float fER = ((float)(iERSrc * 2 + 5) / (iERSrc + 95)) * 3.0f / 10.0f;
+        float er = ((float)(er_src * 2 + 5) / (er_src + 95)) * 3.0f / 10.0f;
 
-        return fAR - fER;
+        return ar - er;
     }
 
     namespace {
@@ -196,8 +196,8 @@ namespace metin2::game::inline combat {
             atk += attacker->marriage_bonus(UNIQUE_ITEM_MARRIAGE_ATTACK_BONUS);
 
         if (!attacker->is_pc()) {
-            int iReduceDamagePct = victim->marriage_bonus(UNIQUE_ITEM_MARRIAGE_TRANSFER_DAMAGE);
-            atk = atk * (100 + iReduceDamagePct) / 100;
+            int reduce_damage_pct = victim->marriage_bonus(UNIQUE_ITEM_MARRIAGE_TRANSFER_DAMAGE);
+            atk = atk * (100 + reduce_damage_pct) / 100;
         }
 
         if (attacker->is_npc() && victim->is_pc()) {
@@ -278,14 +278,14 @@ namespace metin2::game::inline combat {
     }
 
     auto calc_melee_damage(character *attacker, character *victim, bool ignore_defense, bool ignore_target_rating) -> int {
-        item *pWeapon = attacker->wear(WEAR_WEAPON);
-        bool bPolymorphed = attacker->is_polymorphed();
+        item *weapon = attacker->wear(WEAR_WEAPON);
+        bool polymorphed = attacker->is_polymorphed();
 
-        if (pWeapon && !(bPolymorphed && !attacker->is_poly_maintain_stat())) {
-            if (pWeapon->type() != ITEM_WEAPON)
+        if (weapon && !(polymorphed && !attacker->is_poly_maintain_stat())) {
+            if (weapon->type() != ITEM_WEAPON)
                 return 0;
 
-            switch (pWeapon->sub_type()) {
+            switch (weapon->sub_type()) {
             case WEAPON_SWORD:
             case WEAPON_DAGGER:
             case WEAPON_TWO_HANDED:
@@ -303,123 +303,123 @@ namespace metin2::game::inline combat {
             }
         }
 
-        int iDam = 0;
-        float fAR = calc_attack_rating(attacker, victim, ignore_target_rating);
-        int iDamMin = 0, iDamMax = 0;
+        int dam = 0;
+        float ar = calc_attack_rating(attacker, victim, ignore_target_rating);
+        int dam_min = 0, dam_max = 0;
 
-        int DEBUG_iDamCur = 0;
-        int DEBUG_iDamBonus = 0;
+        int debug_i_dam_cur = 0;
+        int debug_i_dam_bonus = 0;
 
-        if (bPolymorphed && !attacker->is_poly_maintain_stat()) {
-            item_get_damage(pWeapon, &iDamMin, &iDamMax);
+        if (polymorphed && !attacker->is_poly_maintain_stat()) {
+            item_get_damage(weapon, &dam_min, &dam_max);
 
-            uint32_t dwMobVnum = attacker->polymorph_vnum();
-            const mob *pMob = mob_manager::instance().get(dwMobVnum);
+            uint32_t mob_vnum = attacker->polymorph_vnum();
+            const mob *mob = mob_manager::instance().get(mob_vnum);
 
-            if (pMob) {
-                int iPower = attacker->polymorph_power();
-                iDamMin += pMob->table.damage_range[0] * iPower / 100;
-                iDamMax += pMob->table.damage_range[1] * iPower / 100;
+            if (mob) {
+                int power = attacker->polymorph_power();
+                dam_min += mob->table.damage_range[0] * power / 100;
+                dam_max += mob->table.damage_range[1] * power / 100;
             }
-        } else if (pWeapon) {
-            item_get_damage(pWeapon, &iDamMin, &iDamMax);
+        } else if (weapon) {
+            item_get_damage(weapon, &dam_min, &dam_max);
         } else if (attacker->is_npc()) {
-            iDamMin = attacker->mob_damage_min();
-            iDamMax = attacker->mob_damage_max();
+            dam_min = attacker->mob_damage_min();
+            dam_max = attacker->mob_damage_max();
         }
 
-        iDam = number(iDamMin, iDamMax) * 2;
+        dam = number(dam_min, dam_max) * 2;
 
-        DEBUG_iDamCur = iDam;
-        int iAtk = 0;
+        debug_i_dam_cur = dam;
+        int atk = 0;
 
-        iAtk = attacker->point(POINT_ATT_GRADE) + iDam - (attacker->level() * 2);
-        iAtk = (int)(iAtk * fAR);
-        iAtk += attacker->level() * 2;
+        atk = attacker->point(POINT_ATT_GRADE) + dam - (attacker->level() * 2);
+        atk = (int)(atk * ar);
+        atk += attacker->level() * 2;
 
-        if (pWeapon) {
-            iAtk += pWeapon->value(5) * 2;
+        if (weapon) {
+            atk += weapon->value(5) * 2;
 
-            DEBUG_iDamBonus = pWeapon->value(5) * 2;
+            debug_i_dam_bonus = weapon->value(5) * 2;
         }
 
-        iAtk += attacker->point(POINT_PARTY_ATTACKER_BONUS);
-        iAtk = (int)(iAtk * (100 + (attacker->point(POINT_ATT_BONUS) + attacker->point(POINT_MELEE_MAGIC_ATT_BONUS_PER))) / 100);
+        atk += attacker->point(POINT_PARTY_ATTACKER_BONUS);
+        atk = (int)(atk * (100 + (attacker->point(POINT_ATT_BONUS) + attacker->point(POINT_MELEE_MAGIC_ATT_BONUS_PER))) / 100);
 
-        iAtk = calc_att_bonus(attacker, victim, iAtk);
+        atk = calc_att_bonus(attacker, victim, atk);
 
-        int iDef = 0;
+        int def = 0;
 
         if (!ignore_defense) {
-            iDef = (victim->point(POINT_DEF_GRADE) * (100 + victim->point(POINT_DEF_BONUS)) / 100);
+            def = (victim->point(POINT_DEF_GRADE) * (100 + victim->point(POINT_DEF_BONUS)) / 100);
 
             if (!attacker->is_pc())
-                iDef += victim->marriage_bonus(UNIQUE_ITEM_MARRIAGE_DEFENSE_BONUS);
+                def += victim->marriage_bonus(UNIQUE_ITEM_MARRIAGE_DEFENSE_BONUS);
         }
 
         if (attacker->is_npc())
-            iAtk = (int)(iAtk * attacker->mob_damage_multiply());
+            atk = (int)(atk * attacker->mob_damage_multiply());
 
-        iDam = std::max(0, iAtk - iDef);
+        dam = std::max(0, atk - def);
 
         if (metin2::config::test_server()) {
-            int DEBUG_iLV = attacker->level() * 2;
-            int DEBUG_iST = int((attacker->point(POINT_ATT_GRADE) - DEBUG_iLV) * fAR);
-            int DEBUG_iPT = attacker->point(POINT_PARTY_ATTACKER_BONUS);
-            int DEBUG_iWP = 0;
-            int DEBUG_iPureAtk = 0;
-            int DEBUG_iPureDam = 0;
-            std::string szRB;
-            std::string szGradeAtkBonus;
+            int debug_i_lv = attacker->level() * 2;
+            int debug_i_st = int((attacker->point(POINT_ATT_GRADE) - debug_i_lv) * ar);
+            int debug_i_pt = attacker->point(POINT_PARTY_ATTACKER_BONUS);
+            int debug_i_wp = 0;
+            int debug_i_pure_atk = 0;
+            int debug_i_pure_dam = 0;
+            std::string rb;
+            std::string grade_atk_bonus;
 
-            DEBUG_iWP = int(DEBUG_iDamCur * fAR);
-            DEBUG_iPureAtk = DEBUG_iLV + DEBUG_iST + DEBUG_iWP + DEBUG_iDamBonus;
-            DEBUG_iPureDam = iAtk - iDef;
+            debug_i_wp = int(debug_i_dam_cur * ar);
+            debug_i_pure_atk = debug_i_lv + debug_i_st + debug_i_wp + debug_i_dam_bonus;
+            debug_i_pure_dam = atk - def;
 
             if (attacker->is_npc()) {
-                szGradeAtkBonus = std::format("={}*{:.1f}", DEBUG_iPureAtk, attacker->mob_damage_multiply());
-                DEBUG_iPureAtk = int(DEBUG_iPureAtk * attacker->mob_damage_multiply());
+                grade_atk_bonus = std::format("={}*{:.1f}", debug_i_pure_atk, attacker->mob_damage_multiply());
+                debug_i_pure_atk = int(debug_i_pure_atk * attacker->mob_damage_multiply());
             }
 
-            if (DEBUG_iDamBonus != 0)
-                szRB = std::format("+RB({})", DEBUG_iDamBonus);
+            if (debug_i_dam_bonus != 0)
+                rb = std::format("+RB({})", debug_i_dam_bonus);
 
-            std::string szPT;
+            std::string pt;
 
-            if (DEBUG_iPT != 0)
-                szPT = std::format(", PT={}", DEBUG_iPT);
+            if (debug_i_pt != 0)
+                pt = std::format(", PT={}", debug_i_pt);
 
-            std::string szUnknownAtk;
+            std::string unknown_atk;
 
-            if (iAtk != DEBUG_iPureAtk)
-                szUnknownAtk = std::format("+?({})", iAtk - DEBUG_iPureAtk);
+            if (atk != debug_i_pure_atk)
+                unknown_atk = std::format("+?({})", atk - debug_i_pure_atk);
 
-            std::string szUnknownDam;
+            std::string unknown_dam;
 
-            if (iDam != DEBUG_iPureDam)
-                szUnknownDam = std::format("+?({})", iDam - DEBUG_iPureDam);
+            if (dam != debug_i_pure_dam)
+                unknown_dam = std::format("+?({})", dam - debug_i_pure_dam);
 
-            const std::string szMeleeAttack = std::format("{}({})-{}({})={}{}, ATK=LV({})+ST({})+WP({}){}{}{}, AR={:.3g}{}",
+            const std::string melee_attack = std::format("{}({})-{}({})={}{}, ATK=LV({})+ST({})+WP({}){}{}{}, AR={:.3g}{}",
                 attacker->name(),
-                iAtk,
+                atk,
                 victim->name(),
-                iDef,
-                iDam,
-                szUnknownDam,
-                DEBUG_iLV,
-                DEBUG_iST,
-                DEBUG_iWP,
-                szRB,
-                szUnknownAtk,
-                szGradeAtkBonus,
-                fAR,
-                szPT);
+                def,
+                dam,
+                unknown_dam,
+                debug_i_lv,
+                debug_i_st,
+                debug_i_wp,
+                rb,
+                unknown_atk,
+                grade_atk_bonus,
+                ar,
+                pt);
 
-            attacker->chat_packet(CHAT_TYPE_TALKING, "%s", szMeleeAttack.c_str());
-            victim->chat_packet(CHAT_TYPE_TALKING, "%s", szMeleeAttack.c_str());
+            attacker->chat_packet(CHAT_TYPE_TALKING, "%s", melee_attack.c_str());
+            victim->chat_packet(CHAT_TYPE_TALKING, "%s", melee_attack.c_str());
         }
 
-        return calc_battle_damage(iDam, attacker->level(), victim->level());
+        return calc_battle_damage(dam, attacker->level(), victim->level());
     }
 
     auto calc_arrow_damage(character *attacker, character *victim, item *bow, item *arrow, bool ignore_defense) -> int {
@@ -429,55 +429,55 @@ namespace metin2::game::inline combat {
         if (!arrow)
             return 0;
 
-        int iDist = (int)(distance_sqrt(attacker->x() - victim->x(), attacker->y() - victim->y()));
-        int iGap = (iDist / 100) - 5 - attacker->point(POINT_BOW_DISTANCE);
-        int iPercent = 100 - (iGap * 5);
+        int dist = (int)(distance_sqrt(attacker->x() - victim->x(), attacker->y() - victim->y()));
+        int gap = (dist / 100) - 5 - attacker->point(POINT_BOW_DISTANCE);
+        int percent = 100 - (gap * 5);
 
-        if (iPercent <= 0)
+        if (percent <= 0)
             return 0;
-        else if (iPercent > 100)
-            iPercent = 100;
+        else if (percent > 100)
+            percent = 100;
 
-        int iDam = 0;
+        int dam = 0;
 
-        float fAR = calc_attack_rating(attacker, victim, false);
-        iDam = number(bow->value(3), bow->value(4)) * 2 + arrow->value(3);
-        int iAtk;
+        float ar = calc_attack_rating(attacker, victim, false);
+        dam = number(bow->value(3), bow->value(4)) * 2 + arrow->value(3);
+        int atk;
 
-        iAtk = attacker->point(POINT_ATT_GRADE) + iDam - (attacker->level() * 2);
-        iAtk = (int)(iAtk * fAR);
-        iAtk += attacker->level() * 2;
+        atk = attacker->point(POINT_ATT_GRADE) + dam - (attacker->level() * 2);
+        atk = (int)(atk * ar);
+        atk += attacker->level() * 2;
 
-        iAtk += bow->value(5) * 2;
+        atk += bow->value(5) * 2;
 
-        iAtk += attacker->point(POINT_PARTY_ATTACKER_BONUS);
-        iAtk = (int)(iAtk * (100 + (attacker->point(POINT_ATT_BONUS) + attacker->point(POINT_MELEE_MAGIC_ATT_BONUS_PER))) / 100);
+        atk += attacker->point(POINT_PARTY_ATTACKER_BONUS);
+        atk = (int)(atk * (100 + (attacker->point(POINT_ATT_BONUS) + attacker->point(POINT_MELEE_MAGIC_ATT_BONUS_PER))) / 100);
 
-        iAtk = calc_att_bonus(attacker, victim, iAtk);
+        atk = calc_att_bonus(attacker, victim, atk);
 
-        int iDef = 0;
+        int def = 0;
 
         if (!ignore_defense)
-            iDef = (victim->point(POINT_DEF_GRADE) * (100 + attacker->point(POINT_DEF_BONUS)) / 100);
+            def = (victim->point(POINT_DEF_GRADE) * (100 + attacker->point(POINT_DEF_BONUS)) / 100);
 
         if (attacker->is_npc())
-            iAtk = (int)(iAtk * attacker->mob_damage_multiply());
+            atk = (int)(atk * attacker->mob_damage_multiply());
 
-        iDam = std::max(0, iAtk - iDef);
+        dam = std::max(0, atk - def);
 
-        int iPureDam = iDam;
+        int pure_dam = dam;
 
-        iPureDam = (iPureDam * iPercent) / 100;
+        pure_dam = (pure_dam * percent) / 100;
 
         if (metin2::config::test_server()) {
             attacker->chat_packet(CHAT_TYPE_INFO, "ARROW %s -> %s, DAM %d DIST %d GAP %d %% %d",
                 attacker->name(),
                 victim->name(),
-                iPureDam,
-                iDist, iGap, iPercent);
+                pure_dam,
+                dist, gap, percent);
         }
 
-        return iPureDam;
+        return pure_dam;
     }
 
     void normal_attack_affect(character *attacker, character *victim) {
@@ -486,11 +486,11 @@ namespace metin2::game::inline combat {
                 victim->attacked_by_poison(attacker);
         }
 
-        int iStunDuration = 2;
+        int stun_duration = 2;
         if (attacker->is_pc() && !victim->is_pc())
-            iStunDuration = 4;
+            stun_duration = 4;
 
-        attack_affect(attacker, victim, POINT_STUN_PCT, IMMUNE_STUN, AFFECT_STUN, POINT_NONE, 0, AFF_STUN, iStunDuration, "STUN");
+        attack_affect(attacker, victim, POINT_STUN_PCT, IMMUNE_STUN, AFFECT_STUN, POINT_NONE, 0, AFF_STUN, stun_duration, "STUN");
         attack_affect(attacker, victim, POINT_SLOW_PCT, IMMUNE_SLOW, AFFECT_SLOW, POINT_MOV_SPEED, -30, AFF_SLOW, 20, "SLOW");
     }
 
@@ -498,49 +498,49 @@ namespace metin2::game::inline combat {
         if (metin2::config::test_server())
             metin2::log::debug("Hit: {} -> {}, damage {:d}", attacker->name(), victim->name(), ret_dam);
 
-        int iDam = calc_melee_damage(attacker, victim);
+        int dam = calc_melee_damage(attacker, victim);
 
-        if (iDam <= 0)
+        if (dam <= 0)
             return (BATTLE_DAMAGE);
 
         normal_attack_affect(attacker, victim);
 
-        item *pkWeapon = attacker->wear(WEAR_WEAPON);
+        item *weapon = attacker->wear(WEAR_WEAPON);
 
-        if (pkWeapon)
-            switch (pkWeapon->sub_type()) {
+        if (weapon)
+            switch (weapon->sub_type()) {
             case WEAPON_SWORD:
-                iDam = iDam * (100 - victim->point(POINT_RESIST_SWORD)) / 100;
+                dam = dam * (100 - victim->point(POINT_RESIST_SWORD)) / 100;
                 break;
 
             case WEAPON_TWO_HANDED:
-                iDam = iDam * (100 - victim->point(POINT_RESIST_TWOHAND)) / 100;
+                dam = dam * (100 - victim->point(POINT_RESIST_TWOHAND)) / 100;
                 break;
 
             case WEAPON_DAGGER:
-                iDam = iDam * (100 - victim->point(POINT_RESIST_DAGGER)) / 100;
+                dam = dam * (100 - victim->point(POINT_RESIST_DAGGER)) / 100;
                 break;
 
             case WEAPON_BELL:
-                iDam = iDam * (100 - victim->point(POINT_RESIST_BELL)) / 100;
+                dam = dam * (100 - victim->point(POINT_RESIST_BELL)) / 100;
                 break;
 
             case WEAPON_FAN:
-                iDam = iDam * (100 - victim->point(POINT_RESIST_FAN)) / 100;
+                dam = dam * (100 - victim->point(POINT_RESIST_FAN)) / 100;
                 break;
 
             case WEAPON_BOW:
-                iDam = iDam * (100 - victim->point(POINT_RESIST_BOW)) / 100;
+                dam = dam * (100 - victim->point(POINT_RESIST_BOW)) / 100;
                 break;
             }
 
-        float attMul = attacker->att_mul();
-        float tempIDam = iDam;
-        iDam = attMul * tempIDam + 0.5f;
+        float att_mul = attacker->att_mul();
+        float temp_i_dam = dam;
+        dam = att_mul * temp_i_dam + 0.5f;
 
-        ret_dam = iDam;
+        ret_dam = dam;
 
-        if (victim->damage(attacker, iDam, DAMAGE_TYPE_NORMAL))
+        if (victim->damage(attacker, dam, DAMAGE_TYPE_NORMAL))
             return (BATTLE_DEAD);
 
         return (BATTLE_DAMAGE);

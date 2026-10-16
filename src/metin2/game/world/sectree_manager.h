@@ -110,9 +110,9 @@ namespace metin2::game::inline world {
 
         template <typename Func>
         void for_each(int map_index, Func &&rfunc) {
-            sectree_map *pSecMap = sectree_manager::instance().map(map_index);
-            if (pSecMap) {
-                pSecMap->for_each(rfunc);
+            sectree_map *sec_map = sectree_manager::instance().map(map_index);
+            if (sec_map) {
+                sec_map->for_each(rfunc);
             }
         }
 

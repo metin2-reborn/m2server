@@ -19,9 +19,9 @@ namespace metin2::game::inline characters {
     // Needs affects and quests loaded, so load_affect calls it.
     void character::dragon_soul_initialize() {
         for (int i = INVENTORY_MAX_NUM + WEAR_MAX_NUM; i < DRAGON_SOUL_EQUIP_SLOT_END; i++) {
-            item *pItem = get_item(item_pos(INVENTORY, i));
-            if (nullptr != pItem)
-                pItem->set_socket(ITEM_SOCKET_DRAGON_SOUL_ACTIVE_IDX, 0);
+            item *item = get_item(item_pos(INVENTORY, i));
+            if (nullptr != item)
+                item->set_socket(ITEM_SOCKET_DRAGON_SOUL_ACTIVE_IDX, 0);
         }
 
         if (find_affect(AFFECT_DRAGON_SOUL_DECK_0)) {
@@ -71,9 +71,9 @@ namespace metin2::game::inline characters {
 
         for (int i = DRAGON_SOUL_EQUIP_SLOT_START + DS_SLOT_MAX * deck_idx;
             i < DRAGON_SOUL_EQUIP_SLOT_START + DS_SLOT_MAX * (deck_idx + 1); i++) {
-            item *pItem = inventory_item(i);
-            if (nullptr != pItem)
-                ds_manager::instance().activate_dragon_soul(pItem);
+            item *item = inventory_item(i);
+            if (nullptr != item)
+                ds_manager::instance().activate_dragon_soul(item);
         }
 
         return true;
@@ -99,9 +99,9 @@ namespace metin2::game::inline characters {
             points_instant_.dragon_soul_refine_window_opener = entity_value;
         }
 
-        packet_gc_dragon_soul_refine PDS;
-        PDS.header = HEADER_GC_DRAGON_SOUL_REFINE;
-        PDS.sub_type = DS_SUB_HEADER_OPEN;
+        packet_gc_dragon_soul_refine pds;
+        pds.header = HEADER_GC_DRAGON_SOUL_REFINE;
+        pds.sub_type = DS_SUB_HEADER_OPEN;
         desc *d = get_desc();
 
         if (nullptr == d) {
@@ -109,7 +109,7 @@ namespace metin2::game::inline characters {
             return false;
         }
 
-        d->packet(&PDS, sizeof(PDS));
+        d->packet(&pds, sizeof(pds));
         return true;
     }
 

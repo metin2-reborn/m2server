@@ -44,9 +44,9 @@ namespace metin2::game::inline items {
         if (iter == item_.end())
             return false;
 
-        uint32_t dwVnum = iter->second;
+        uint32_t vnum = iter->second;
 
-        game::items::item *over9 = item_manager::instance().create_item(dwVnum, 1);
+        game::items::item *over9 = item_manager::instance().create_item(vnum, 1);
 
         if (over9 == nullptr)
             return false;
@@ -54,27 +54,27 @@ namespace metin2::game::inline items {
         item->copy_socket_to(over9);
         item->copy_attribute_to(over9);
 
-        int iEmptyCell = ch->empty_inventory(over9->size());
+        int empty_cell = ch->empty_inventory(over9->size());
 
-        if (iEmptyCell == -1)
+        if (empty_cell == -1)
             return false;
 
         item->remove_from_character();
 
-        over9->add_to_character(ch, item_pos(INVENTORY, iEmptyCell));
+        over9->add_to_character(ch, item_pos(INVENTORY, empty_cell));
 
-        const std::string szBuf = std::format("SUCCESS {} {} {}", over9->id(), over9->name(), over9->original_vnum());
-        log_manager::instance().item_log(ch, item, "REFINE OVER9", szBuf.c_str());
+        const std::string buf = std::format("SUCCESS {} {} {}", over9->id(), over9->name(), over9->original_vnum());
+        log_manager::instance().item_log(ch, item, "REFINE OVER9", buf.c_str());
         return true;
     }
 
     auto over9_refine_manager::over9_refine(character *ch, item *item) -> bool {
-        uint32_t dwVnum = item->refined_vnum();
+        uint32_t vnum = item->refined_vnum();
 
-        if (dwVnum == 0)
+        if (vnum == 0)
             return false;
 
-        game::items::item *over9 = item_manager::instance().create_item(dwVnum, 1);
+        game::items::item *over9 = item_manager::instance().create_item(vnum, 1);
 
         if (over9 == nullptr)
             return false;
@@ -82,17 +82,17 @@ namespace metin2::game::inline items {
         item->copy_socket_to(over9);
         item->copy_attribute_to(over9);
 
-        int iEmptyCell = ch->empty_inventory(over9->size());
+        int empty_cell = ch->empty_inventory(over9->size());
 
-        if (iEmptyCell == -1)
+        if (empty_cell == -1)
             return false;
 
         item->remove_from_character();
 
-        over9->add_to_character(ch, item_pos(INVENTORY, iEmptyCell));
+        over9->add_to_character(ch, item_pos(INVENTORY, empty_cell));
 
-        const std::string szBuf = std::format("SUCCESS {} {} {}", over9->id(), over9->name(), over9->original_vnum());
-        log_manager::instance().item_log(ch, item, "REFINE OVER9", szBuf.c_str());
+        const std::string buf = std::format("SUCCESS {} {} {}", over9->id(), over9->name(), over9->original_vnum());
+        log_manager::instance().item_log(ch, item, "REFINE OVER9", buf.c_str());
         return true;
     }
 

@@ -74,21 +74,21 @@ namespace metin2::game::inline trade {
     }
 
     void safebox::send_item_set(uint32_t pos) {
-        item *pkItem = items_[pos];
+        item *item = items_[pos];
 
-        if (!pkItem || !chr_owner_->get_desc())
+        if (!item || !chr_owner_->get_desc())
             return;
 
         packet_gc_item_set pack;
 
         pack.header = window_mode_ == SAFEBOX ? HEADER_GC_SAFEBOX_SET : HEADER_GC_MALL_SET;
         pack.cell = item_pos(window_mode_, pos);
-        pack.vnum = pkItem->vnum();
-        pack.count = pkItem->count();
-        pack.flags = pkItem->flag();
-        pack.anti_flags = pkItem->anti_flag();
-        std::memcpy(pack.sockets, pkItem->sockets(), sizeof(pack.sockets));
-        std::memcpy(pack.attr, pkItem->attributes(), sizeof(pack.attr));
+        pack.vnum = item->vnum();
+        pack.count = item->count();
+        pack.flags = item->flag();
+        pack.anti_flags = item->anti_flag();
+        std::memcpy(pack.sockets, item->sockets(), sizeof(pack.sockets));
+        std::memcpy(pack.attr, item->attributes(), sizeof(pack.attr));
 
         chr_owner_->get_desc()->packet(&pack, sizeof(pack));
     }
@@ -101,17 +101,17 @@ namespace metin2::game::inline trade {
     }
 
     auto safebox::remove(uint32_t pos_value) -> item * {
-        item *pkItem = get(pos_value);
+        item *item = get(pos_value);
 
-        if (!pkItem)
+        if (!item)
             return nullptr;
 
         if (!grid_)
             metin2::log::error("Safebox has no grid");
         else
-            grid_->get(pos_value, 1, pkItem->size());
+            grid_->get(pos_value, 1, item->size());
 
-        pkItem->remove_from_character();
+        item->remove_from_character();
 
         items_[pos_value] = nullptr;
 
@@ -121,8 +121,8 @@ namespace metin2::game::inline trade {
         pack.pos = pos_value;
 
         chr_owner_->get_desc()->packet(&pack, sizeof(pack));
-        metin2::log::debug("Safebox: {} removed {} (count {:d})", chr_owner_->name(), pkItem->name(), pkItem->count());
-        return pkItem;
+        metin2::log::debug("Safebox: {} removed {} (count {:d})", chr_owner_->name(), item->name(), item->count());
+        return item;
     }
 
     void safebox::save() {

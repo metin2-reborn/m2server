@@ -21,10 +21,10 @@ namespace metin2::db::inline clients {
         const std::string query = sql::format("SELECT szName, lValue FROM quest{} WHERE dwPID = 0", sql::raw(get_table_postfix()));
         auto pmsg = db_manager::instance().direct_query(query);
 
-        sql_result *pRes = pmsg->get();
-        if (pRes->num_rows) {
+        sql_result *res = pmsg->get();
+        if (res->num_rows) {
             MYSQL_ROW row;
-            while ((row = mysql_fetch_row(pRes->res.get()))) {
+            while ((row = mysql_fetch_row(res->res.get()))) {
                 packet_set_event_flag p;
                 strlcpy(p.flag_name, row[0], sizeof(p.flag_name));
                 str_to_number(p.value, row[1]);
@@ -38,18 +38,18 @@ namespace metin2::db::inline clients {
     void client_manager::set_event_flag(packet_set_event_flag *p) {
         forward_packet(HEADER_DG_SET_EVENT_FLAG, p, sizeof(packet_set_event_flag));
 
-        bool bChanged = false;
+        bool changed = false;
 
         auto it = map_event_flag_.find(p->flag_name);
         if (it == map_event_flag_.end()) {
-            bChanged = true;
+            changed = true;
             map_event_flag_.insert(std::make_pair(std::string(p->flag_name), p->value));
         } else if (it->second != p->value) {
-            bChanged = true;
+            changed = true;
             it->second = p->value;
         }
 
-        if (bChanged) {
+        if (changed) {
             const std::string query = sql::format(
                 "REPLACE INTO quest{} (dwPID, szName, szState, lValue) VALUES(0, {}, '', {})",
                 sql::raw(get_table_postfix()), p->flag_name, p->value);

@@ -44,59 +44,59 @@ namespace metin2::game::inline characters {
     }
 
     auto polymorph_utils::polymorph_character(character *ch, item *item_value, const mob *mob_value) -> bool {
-        uint8_t bySkillLevel = ch->skill_level(POLYMORPH_SKILL_ID);
-        uint32_t dwDuration = 0;
-        uint32_t dwBonusPercent = 0;
-        int iPolyPercent = 0;
+        uint8_t skill_level = ch->skill_level(POLYMORPH_SKILL_ID);
+        uint32_t duration = 0;
+        uint32_t bonus_percent = 0;
+        int poly_percent = 0;
 
         switch (ch->skill_master_type(POLYMORPH_SKILL_ID)) {
         case SKILL_NORMAL:
-            dwDuration = 10;
+            duration = 10;
             break;
 
         case SKILL_MASTER:
-            dwDuration = 15;
+            duration = 15;
             break;
 
         case SKILL_GRAND_MASTER:
-            dwDuration = 20;
+            duration = 20;
             break;
 
         case SKILL_PERFECT_MASTER:
-            dwDuration = 25;
+            duration = 25;
             break;
 
         default:
             return false;
         }
 
-        iPolyPercent = ch->level() - mob_value->table.level + item_value->get_socket(2) + (29 + bySkillLevel);
+        poly_percent = ch->level() - mob_value->table.level + item_value->get_socket(2) + (29 + skill_level);
 
-        if (iPolyPercent <= 0) {
+        if (poly_percent <= 0) {
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("둔갑에 실패 하였습니다"));
             return false;
         } else {
-            if (number(1, 100) > iPolyPercent) {
+            if (number(1, 100) > poly_percent) {
                 ch->chat_packet(CHAT_TYPE_INFO, lc_text("둔갑에 실패 하였습니다"));
                 return false;
             }
         }
 
-        ch->add_affect(AFFECT_POLYMORPH, POINT_POLYMORPH, mob_value->table.vnum, AFF_POLYMORPH, dwDuration, 0, true);
+        ch->add_affect(AFFECT_POLYMORPH, POINT_POLYMORPH, mob_value->table.vnum, AFF_POLYMORPH, duration, 0, true);
 
-        dwBonusPercent = bySkillLevel + item_value->get_socket(2);
+        bonus_percent = skill_level + item_value->get_socket(2);
 
         switch (bonus_type(mob_value->table.vnum)) {
         case POLYMORPH_ATK_BONUS:
-            ch->add_affect(AFFECT_POLYMORPH, POINT_ATT_BONUS, dwBonusPercent, AFF_POLYMORPH, dwDuration - 1, 0, false);
+            ch->add_affect(AFFECT_POLYMORPH, POINT_ATT_BONUS, bonus_percent, AFF_POLYMORPH, duration - 1, 0, false);
             break;
 
         case POLYMORPH_DEF_BONUS:
-            ch->add_affect(AFFECT_POLYMORPH, POINT_DEF_BONUS, dwBonusPercent, AFF_POLYMORPH, dwDuration - 1, 0, false);
+            ch->add_affect(AFFECT_POLYMORPH, POINT_DEF_BONUS, bonus_percent, AFF_POLYMORPH, duration - 1, 0, false);
             break;
 
         case POLYMORPH_SPD_BONUS:
-            ch->add_affect(AFFECT_POLYMORPH, POINT_MOV_SPEED, dwBonusPercent, AFF_POLYMORPH, dwDuration - 1, 0, false);
+            ch->add_affect(AFFECT_POLYMORPH, POINT_MOV_SPEED, bonus_percent, AFF_POLYMORPH, duration - 1, 0, false);
             break;
 
         default:
@@ -123,9 +123,9 @@ namespace metin2::game::inline characters {
         if (ch == nullptr)
             return false;
 
-        item *pItem = ch->auto_give_item(POLYMORPH_BOOK_ID, 1);
+        item *item = ch->auto_give_item(POLYMORPH_BOOK_ID, 1);
 
-        if (pItem == nullptr)
+        if (item == nullptr)
             return false;
 
         if (mob_manager::instance().get(mob_vnum) == nullptr) {
@@ -134,9 +134,9 @@ namespace metin2::game::inline characters {
             return false;
         }
 
-        pItem->set_socket(0, mob_vnum);
-        pItem->set_socket(1, practice_count);
-        pItem->set_socket(2, book_level);
+        item->set_socket(0, mob_vnum);
+        item->set_socket(1, practice_count);
+        item->set_socket(2, book_level);
         return true;
     }
 

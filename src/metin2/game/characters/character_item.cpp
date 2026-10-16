@@ -217,22 +217,22 @@ namespace metin2::game::inline characters {
     auto character::get_item(item_pos cell_value) const -> item * {
         if (!is_valid_item_position(cell_value))
             return nullptr;
-        uint16_t wCell = cell_value.cell;
+        uint16_t w_cell = cell_value.cell;
         uint8_t window_type = cell_value.window_type;
         switch (window_type) {
         case INVENTORY:
         case EQUIPMENT:
-            if (wCell >= INVENTORY_AND_EQUIP_SLOT_MAX) {
-                metin2::log::error("Invalid inventory cell {:d}", wCell);
+            if (w_cell >= INVENTORY_AND_EQUIP_SLOT_MAX) {
+                metin2::log::error("Invalid inventory cell {:d}", w_cell);
                 return nullptr;
             }
-            return points_instant_.items[wCell];
+            return points_instant_.items[w_cell];
         case DRAGON_SOUL_INVENTORY:
-            if (wCell >= DRAGON_SOUL_INVENTORY_MAX_NUM) {
-                metin2::log::error("Invalid dragon soul inventory cell {:d}", wCell);
+            if (w_cell >= DRAGON_SOUL_INVENTORY_MAX_NUM) {
+                metin2::log::error("Invalid dragon soul inventory cell {:d}", w_cell);
                 return nullptr;
             }
-            return points_instant_.ds_items[wCell];
+            return points_instant_.ds_items[w_cell];
 
         default:
             return nullptr;
@@ -241,10 +241,10 @@ namespace metin2::game::inline characters {
     }
 
     void character::set_item(item_pos cell_value, item *item_value) {
-        uint16_t wCell = cell_value.cell;
+        uint16_t w_cell = cell_value.cell;
         uint8_t window_type = cell_value.window_type;
         if (reinterpret_cast<uintptr_t>((item *)item_value) == 0xff || reinterpret_cast<uintptr_t>((item *)item_value) == 0xffffffff || reinterpret_cast<uintptr_t>((item *)item_value) == UINTPTR_MAX) {
-            metin2::log::error("Invalid item pointer 0xff for {} at cell {:d}", name(), wCell);
+            metin2::log::error("Invalid item pointer 0xff for {} at cell {:d}", name(), w_cell);
             core_dump();
             return;
         }
@@ -257,93 +257,93 @@ namespace metin2::game::inline characters {
         case INVENTORY:
         case EQUIPMENT:
             {
-                if (wCell >= INVENTORY_AND_EQUIP_SLOT_MAX) {
-                    metin2::log::error("Invalid inventory cell {:d}", wCell);
+                if (w_cell >= INVENTORY_AND_EQUIP_SLOT_MAX) {
+                    metin2::log::error("Invalid inventory cell {:d}", w_cell);
                     return;
                 }
 
-                item *pOld = points_instant_.items[wCell];
+                item *old = points_instant_.items[w_cell];
 
-                if (pOld) {
-                    if (wCell < INVENTORY_MAX_NUM) {
-                        for (int i = 0; i < pOld->size(); ++i) {
-                            int p = wCell + (i * 5);
+                if (old) {
+                    if (w_cell < INVENTORY_MAX_NUM) {
+                        for (int i = 0; i < old->size(); ++i) {
+                            int p = w_cell + (i * 5);
 
                             if (p >= INVENTORY_MAX_NUM)
                                 continue;
 
-                            if (points_instant_.items[p] && points_instant_.items[p] != pOld)
+                            if (points_instant_.items[p] && points_instant_.items[p] != old)
                                 continue;
 
                             points_instant_.item_grid[p] = 0;
                         }
                     } else
-                        points_instant_.item_grid[wCell] = 0;
+                        points_instant_.item_grid[w_cell] = 0;
                 }
 
                 if (item_value) {
-                    if (wCell < INVENTORY_MAX_NUM) {
+                    if (w_cell < INVENTORY_MAX_NUM) {
                         for (int i = 0; i < item_value->size(); ++i) {
-                            int p = wCell + (i * 5);
+                            int p = w_cell + (i * 5);
 
                             if (p >= INVENTORY_MAX_NUM)
                                 continue;
 
-                            points_instant_.item_grid[p] = wCell + 1;
+                            points_instant_.item_grid[p] = w_cell + 1;
                         }
                     } else
-                        points_instant_.item_grid[wCell] = wCell + 1;
+                        points_instant_.item_grid[w_cell] = w_cell + 1;
                 }
 
-                points_instant_.items[wCell] = item_value;
+                points_instant_.items[w_cell] = item_value;
             }
             break;
         case DRAGON_SOUL_INVENTORY:
             {
-                if (wCell >= DRAGON_SOUL_INVENTORY_MAX_NUM) {
-                    metin2::log::error("Invalid dragon soul inventory cell {:d}", wCell);
+                if (w_cell >= DRAGON_SOUL_INVENTORY_MAX_NUM) {
+                    metin2::log::error("Invalid dragon soul inventory cell {:d}", w_cell);
                     return;
                 }
 
-                item *pOld = points_instant_.ds_items[wCell];
+                item *old = points_instant_.ds_items[w_cell];
 
-                if (pOld) {
-                    if (wCell < DRAGON_SOUL_INVENTORY_MAX_NUM) {
-                        for (int i = 0; i < pOld->size(); ++i) {
-                            int p = wCell + (i * DRAGON_SOUL_BOX_COLUMN_NUM);
+                if (old) {
+                    if (w_cell < DRAGON_SOUL_INVENTORY_MAX_NUM) {
+                        for (int i = 0; i < old->size(); ++i) {
+                            int p = w_cell + (i * DRAGON_SOUL_BOX_COLUMN_NUM);
 
                             if (p >= DRAGON_SOUL_INVENTORY_MAX_NUM)
                                 continue;
 
-                            if (points_instant_.ds_items[p] && points_instant_.ds_items[p] != pOld)
+                            if (points_instant_.ds_items[p] && points_instant_.ds_items[p] != old)
                                 continue;
 
                             points_instant_.ds_item_grid[p] = 0;
                         }
                     } else
-                        points_instant_.ds_item_grid[wCell] = 0;
+                        points_instant_.ds_item_grid[w_cell] = 0;
                 }
 
                 if (item_value) {
-                    if (wCell >= DRAGON_SOUL_INVENTORY_MAX_NUM) {
-                        metin2::log::error("Invalid dragon soul inventory cell {:d}", wCell);
+                    if (w_cell >= DRAGON_SOUL_INVENTORY_MAX_NUM) {
+                        metin2::log::error("Invalid dragon soul inventory cell {:d}", w_cell);
                         return;
                     }
 
-                    if (wCell < DRAGON_SOUL_INVENTORY_MAX_NUM) {
+                    if (w_cell < DRAGON_SOUL_INVENTORY_MAX_NUM) {
                         for (int i = 0; i < item_value->size(); ++i) {
-                            int p = wCell + (i * DRAGON_SOUL_BOX_COLUMN_NUM);
+                            int p = w_cell + (i * DRAGON_SOUL_BOX_COLUMN_NUM);
 
                             if (p >= DRAGON_SOUL_INVENTORY_MAX_NUM)
                                 continue;
 
-                            points_instant_.ds_item_grid[p] = wCell + 1;
+                            points_instant_.ds_item_grid[p] = w_cell + 1;
                         }
                     } else
-                        points_instant_.ds_item_grid[wCell] = wCell + 1;
+                        points_instant_.ds_item_grid[w_cell] = w_cell + 1;
                 }
 
-                points_instant_.ds_items[wCell] = item_value;
+                points_instant_.ds_items[w_cell] = item_value;
             }
             break;
         default:
@@ -381,11 +381,11 @@ namespace metin2::game::inline characters {
         }
 
         if (item_value) {
-            item_value->set_cell(this, wCell);
+            item_value->set_cell(this, w_cell);
             switch (window_type) {
             case INVENTORY:
             case EQUIPMENT:
-                if ((wCell < INVENTORY_MAX_NUM) || (BELT_INVENTORY_SLOT_START <= wCell && BELT_INVENTORY_SLOT_END > wCell))
+                if ((w_cell < INVENTORY_MAX_NUM) || (BELT_INVENTORY_SLOT_START <= w_cell && BELT_INVENTORY_SLOT_END > w_cell))
                     item_value->set_window(INVENTORY);
                 else
                     item_value->set_window(EQUIPMENT);
@@ -481,21 +481,21 @@ namespace metin2::game::inline characters {
                 if (cell_value.cell >= INVENTORY_AND_EQUIP_SLOT_MAX)
                     return false;
 
-                uint8_t bCell = cell_value.cell;
+                uint8_t cell = cell_value.cell;
 
                 ++exception_cell;
 
                 if (cell_value.is_belt_inventory_position()) {
-                    item *beltItem = wear(WEAR_BELT);
+                    item *belt_item = wear(WEAR_BELT);
 
-                    if (nullptr == beltItem)
+                    if (nullptr == belt_item)
                         return false;
 
-                    if (false == belt_inventory_helper::is_available_cell(bCell - BELT_INVENTORY_SLOT_START, beltItem->value(0)))
+                    if (false == belt_inventory_helper::is_available_cell(cell - BELT_INVENTORY_SLOT_START, belt_item->value(0)))
                         return false;
 
-                    if (points_instant_.item_grid[bCell]) {
-                        if (points_instant_.item_grid[bCell] == exception_cell)
+                    if (points_instant_.item_grid[cell]) {
+                        if (points_instant_.item_grid[cell] == exception_cell)
                             return true;
 
                         return false;
@@ -504,20 +504,20 @@ namespace metin2::game::inline characters {
                     if (size == 1)
                         return true;
 
-                } else if (bCell >= INVENTORY_MAX_NUM)
+                } else if (cell >= INVENTORY_MAX_NUM)
                     return false;
 
-                return is_free_column(points_instant_.item_grid, bCell, 5, INVENTORY_MAX_NUM, INVENTORY_MAX_NUM / 2);
+                return is_free_column(points_instant_.item_grid, cell, 5, INVENTORY_MAX_NUM, INVENTORY_MAX_NUM / 2);
             }
         case DRAGON_SOUL_INVENTORY:
             {
-                uint16_t wCell = cell_value.cell;
-                if (wCell >= DRAGON_SOUL_INVENTORY_MAX_NUM)
+                uint16_t w_cell = cell_value.cell;
+                if (w_cell >= DRAGON_SOUL_INVENTORY_MAX_NUM)
                     return false;
 
                 exception_cell++;
 
-                return is_free_column(points_instant_.ds_item_grid, wCell, DRAGON_SOUL_BOX_COLUMN_NUM, DRAGON_SOUL_INVENTORY_MAX_NUM, DRAGON_SOUL_INVENTORY_MAX_NUM);
+                return is_free_column(points_instant_.ds_item_grid, w_cell, DRAGON_SOUL_BOX_COLUMN_NUM, DRAGON_SOUL_INVENTORY_MAX_NUM, DRAGON_SOUL_INVENTORY_MAX_NUM);
             }
         }
 
@@ -538,15 +538,15 @@ namespace metin2::game::inline characters {
         if (!dragon_soul_is_qualified()) {
             return -1;
         }
-        uint8_t bSize = item_value->size();
-        uint16_t wBaseCell = ds_manager::instance().base_position(item_value);
+        uint8_t size = item_value->size();
+        uint16_t base_cell = ds_manager::instance().base_position(item_value);
 
-        if (WORD_MAX == wBaseCell)
+        if (WORD_MAX == base_cell)
             return -1;
 
         for (int i = 0; i < DRAGON_SOUL_BOX_SIZE; ++i)
-            if (is_empty_item_grid(item_pos(DRAGON_SOUL_INVENTORY, i + wBaseCell), bSize))
-                return i + wBaseCell;
+            if (is_empty_item_grid(item_pos(DRAGON_SOUL_INVENTORY, i + base_cell), size))
+                return i + base_cell;
 
         return -1;
     }
@@ -650,16 +650,16 @@ namespace metin2::game::inline characters {
 
         int cost = compute_refine_fee(prt->cost);
 
-        int RefineChance = quest_flag("main_quest_lv7.refine_chance");
+        int refine_chance = quest_flag("main_quest_lv7.refine_chance");
 
-        if (RefineChance > 0) {
+        if (refine_chance > 0) {
             if (!item->check_item_use_level(20) || item->type() != ITEM_WEAPON) {
                 chat_packet(CHAT_TYPE_INFO, lc_text("무료 개량 기회는 20 이하의 무기만 가능합니다"));
                 return false;
             }
 
             cost = 0;
-            set_quest_flag("main_quest_lv7.refine_chance", RefineChance - 1);
+            set_quest_flag("main_quest_lv7.refine_chance", refine_chance - 1);
         }
 
         if (result_vnum == 0) {
@@ -670,9 +670,9 @@ namespace metin2::game::inline characters {
         if (item->type() == ITEM_USE && item->sub_type() == USE_TUNING)
             return false;
 
-        item_table *pProto = item_manager::instance().table(item->refined_vnum());
+        item_table *proto_value = item_manager::instance().table(item->refined_vnum());
 
-        if (!pProto) {
+        if (!proto_value) {
             metin2::log::error("No proto for refined item vnum {:d}", item->refined_vnum());
             chat_packet(CHAT_TYPE_INFO, lc_text("이 아이템은 개량할 수 없습니다."));
             return false;
@@ -683,7 +683,7 @@ namespace metin2::game::inline characters {
             return false;
         }
 
-        if (!money_only && !RefineChance) {
+        if (!money_only && !refine_chance) {
             for (int i = 0; i < prt->material_count; ++i) {
                 if (count_specify_item(prt->materials[i].vnum) < prt->materials[i].count) {
                     if (metin2::config::test_server()) {
@@ -748,20 +748,20 @@ namespace metin2::game::inline characters {
         if (!prt)
             return false;
 
-        game::items::item *pkItemScroll;
+        game::items::item *item_scroll;
 
         if (refine_additional_cell_ < 0)
             return false;
 
-        pkItemScroll = inventory_item(refine_additional_cell_);
+        item_scroll = inventory_item(refine_additional_cell_);
 
-        if (!pkItemScroll)
+        if (!item_scroll)
             return false;
 
-        if (!(pkItemScroll->type() == ITEM_USE && pkItemScroll->sub_type() == USE_TUNING))
+        if (!(item_scroll->type() == ITEM_USE && item_scroll->sub_type() == USE_TUNING))
             return false;
 
-        if (pkItemScroll->vnum() == item->vnum())
+        if (item_scroll->vnum() == item->vnum())
             return false;
 
         uint32_t result_vnum = item->refined_vnum();
@@ -772,7 +772,7 @@ namespace metin2::game::inline characters {
             return false;
         }
 
-        const int32_t scroll_type = pkItemScroll->value(0);
+        const int32_t scroll_type = item_scroll->value(0);
 
         switch (scroll_type) {
         case MUSIN_SCROLL:
@@ -783,7 +783,7 @@ namespace metin2::game::inline characters {
             break;
 
         case MEMO_SCROLL:
-            if (item->refine_level() != pkItemScroll->value(1)) {
+            if (item->refine_level() != item_scroll->value(1)) {
                 chat_packet(CHAT_TYPE_INFO, lc_text("이 개량서로 개량할 수 없습니다."));
                 return false;
             }
@@ -797,9 +797,9 @@ namespace metin2::game::inline characters {
             break;
         }
 
-        item_table *pProto = item_manager::instance().table(item->refined_vnum());
+        item_table *proto_value = item_manager::instance().table(item->refined_vnum());
 
-        if (!pProto) {
+        if (!proto_value) {
             metin2::log::error("No proto for refined item vnum {:d}", item->refined_vnum());
             chat_packet(CHAT_TYPE_INFO, lc_text("이 아이템은 개량할 수 없습니다."));
             return false;
@@ -825,56 +825,56 @@ namespace metin2::game::inline characters {
 
         int prob = number(1, 100);
         int success_prob = prt->prob;
-        bool bDestroyWhenFail = false;
+        bool destroy_when_fail = false;
 
-        const char *szRefineType = "SCROLL";
+        const char *refine_type = "SCROLL";
 
         switch (scroll_type) {
         case HYUNIRON_CHN:
             metin2::log::error("Unknown refine scroll type {:d}", scroll_type);
-            bDestroyWhenFail = true;
-            szRefineType = "HYUNIRON";
+            destroy_when_fail = true;
+            refine_type = "HYUNIRON";
             break;
 
         case YONGSIN_SCROLL:
             success_prob = hyuniron_refine_prob[std::clamp(item->refine_level(), 0, 8)];
-            szRefineType = "GOD_SCROLL";
+            refine_type = "GOD_SCROLL";
             break;
 
         case YAGONG_SCROLL:
             success_prob = yagong_refine_prob[std::clamp(item->refine_level(), 0, 8)];
-            szRefineType = "YAGONG_SCROLL";
+            refine_type = "YAGONG_SCROLL";
             break;
 
         case MUSIN_SCROLL:
             success_prob = 100;
-            szRefineType = "MUSIN_SCROLL";
+            refine_type = "MUSIN_SCROLL";
             break;
 
         case MEMO_SCROLL:
             success_prob = 100;
-            szRefineType = "MEMO_SCROLL";
+            refine_type = "MEMO_SCROLL";
             break;
 
         case BDRAGON_SCROLL:
             success_prob = 80;
-            szRefineType = "BDRAGON_SCROLL";
+            refine_type = "BDRAGON_SCROLL";
             break;
         }
 
         if (metin2::config::test_server() && (scroll_type == HYUNIRON_CHN || scroll_type == YONGSIN_SCROLL || scroll_type == YAGONG_SCROLL))
             chat_packet(CHAT_TYPE_INFO, "[Only Test] Success_Prob %d, RefineLevel %d ", success_prob, item->refine_level());
 
-        pkItemScroll->set_count(pkItemScroll->count() - 1);
+        item_scroll->set_count(item_scroll->count() - 1);
 
         if (prob <= success_prob) {
-            if (!replace_refined_item(item, result_vnum, prt->cost, true, szRefineType))
-                notify_refine_fail(this, item, szRefineType);
-        } else if (!bDestroyWhenFail && result_fail_vnum) {
-            if (!replace_refined_item(item, result_fail_vnum, prt->cost, false, szRefineType))
-                notify_refine_fail(this, item, szRefineType);
+            if (!replace_refined_item(item, result_vnum, prt->cost, true, refine_type))
+                notify_refine_fail(this, item, refine_type);
+        } else if (!destroy_when_fail && result_fail_vnum) {
+            if (!replace_refined_item(item, result_fail_vnum, prt->cost, false, refine_type))
+                notify_refine_fail(this, item, refine_type);
         } else {
-            notify_refine_fail(this, item, szRefineType);
+            notify_refine_fail(this, item, refine_type);
 
             pay_refine_fee(prt->cost);
         }
@@ -915,8 +915,8 @@ namespace metin2::game::inline characters {
                 chat_packet(CHAT_TYPE_INFO, lc_text("이 아이템은 이 방식으로는 개량할 수 없습니다."));
                 return false;
             } else {
-                game::items::item *itemScroll = inventory_item(additional_cell);
-                if (!itemScroll || item->vnum() == itemScroll->vnum()) {
+                game::items::item *item_scroll = inventory_item(additional_cell);
+                if (!item_scroll || item->vnum() == item_scroll->vnum()) {
                     chat_packet(CHAT_TYPE_INFO, lc_text("같은 개량서를 합칠 수는 없습니다."));
                     chat_packet(CHAT_TYPE_INFO, lc_text("축복의 서와 현철을 합칠 수 있습니다."));
                     return false;
@@ -977,17 +977,17 @@ namespace metin2::game::inline characters {
         } else if (item_value->sub_type() == USE_DETACHMENT && is_set(target->flag(), ITEM_FLAG_REFINEABLE)) {
             log_manager::instance().item_log(this, target, "USE_DETACHMENT", target->name());
 
-            bool bHasMetinStone = false;
+            bool has_metin_stone = false;
 
             for (int i = 0; i < ITEM_SOCKET_MAX_NUM; i++) {
                 int32_t socket = target->get_socket(i);
                 if (socket > 2 && socket != ITEM_BROKEN_METIN_VNUM) {
-                    bHasMetinStone = true;
+                    has_metin_stone = true;
                     break;
                 }
             }
 
-            if (bHasMetinStone) {
+            if (has_metin_stone) {
                 for (int i = 0; i < ITEM_SOCKET_MAX_NUM; ++i) {
                     int32_t socket = target->get_socket(i);
                     if (socket > 2 && socket != ITEM_BROKEN_METIN_VNUM) {
@@ -1026,25 +1026,25 @@ namespace metin2::game::inline characters {
 
     auto character::give_recall_item(item *item) -> bool {
         int idx = map_index();
-        int iEmpireByMapIndex = -1;
+        int empire_by_map_index = -1;
 
         if (idx < 20)
-            iEmpireByMapIndex = 1;
+            empire_by_map_index = 1;
         else if (idx < 40)
-            iEmpireByMapIndex = 2;
+            empire_by_map_index = 2;
         else if (idx < 60)
-            iEmpireByMapIndex = 3;
+            empire_by_map_index = 3;
         else if (idx < 10000)
-            iEmpireByMapIndex = 0;
+            empire_by_map_index = 0;
 
         switch (idx) {
         case 66:
         case 216:
-            iEmpireByMapIndex = -1;
+            empire_by_map_index = -1;
             break;
         }
 
-        if (iEmpireByMapIndex && empire() != iEmpireByMapIndex) {
+        if (empire_by_map_index && empire() != empire_by_map_index) {
             chat_packet(CHAT_TYPE_INFO, lc_text("기억해 둘 수 없는 위치 입니다."));
             return false;
         }
@@ -1078,21 +1078,21 @@ namespace metin2::game::inline characters {
         if ((idx = sectree_manager::instance().map_index(item->get_socket(0), item->get_socket(1))) == 0)
             return;
 
-        int iEmpireByMapIndex = -1;
+        int empire_by_map_index = -1;
 
         if (idx < 20)
-            iEmpireByMapIndex = 1;
+            empire_by_map_index = 1;
         else if (idx < 40)
-            iEmpireByMapIndex = 2;
+            empire_by_map_index = 2;
         else if (idx < 60)
-            iEmpireByMapIndex = 3;
+            empire_by_map_index = 3;
         else if (idx < 10000)
-            iEmpireByMapIndex = 0;
+            empire_by_map_index = 0;
 
         switch (idx) {
         case 66:
         case 216:
-            iEmpireByMapIndex = -1;
+            empire_by_map_index = -1;
             break;
         case 301:
         case 302:
@@ -1105,7 +1105,7 @@ namespace metin2::game::inline characters {
                 break;
         }
 
-        if (iEmpireByMapIndex && empire() != iEmpireByMapIndex) {
+        if (empire_by_map_index && empire() != empire_by_map_index) {
             chat_packet(CHAT_TYPE_INFO, lc_text("기억된 위치가 타제국에 속해 있어서 귀환할 수 없습니다."));
             item->set_socket(0, 0);
             item->set_socket(1, 0);
@@ -1117,8 +1117,8 @@ namespace metin2::game::inline characters {
     }
 
     void character::open_private_shop() {
-        unsigned bodyPart = part(PART_MAIN);
-        switch (bodyPart) {
+        unsigned body_part = part(PART_MAIN);
+        switch (body_part) {
         case 0:
         case 1:
         case 2:
@@ -1131,19 +1131,19 @@ namespace metin2::game::inline characters {
     }
 
     void character::send_my_shop_price_list_cmd(uint32_t item_vnum, uint32_t item_price) {
-        const std::string szLine = std::format("MyShopPriceList {} {}", item_vnum, item_price);
-        chat_packet(CHAT_TYPE_COMMAND, "%s", szLine.c_str());
-        metin2::log::debug("Shop price list command: {}", szLine);
+        const std::string line = std::format("MyShopPriceList {} {}", item_vnum, item_price);
+        chat_packet(CHAT_TYPE_COMMAND, "%s", line.c_str());
+        metin2::log::debug("Shop price list command: {}", line);
     }
 
     void character::use_silk_botary_real(const packet_myshop_pricelist_header *p) {
-        const auto *pInfo = (const item_price_info *)(p + 1);
+        const auto *info = (const item_price_info *)(p + 1);
 
         if (!p->count)
             send_my_shop_price_list_cmd(1, 0);
         else {
             for (int idx = 0; idx < p->count; idx++)
-                send_my_shop_price_list_cmd(pInfo[idx].vnum, pInfo[idx].price);
+                send_my_shop_price_list_cmd(info[idx].vnum, info[idx].price);
         }
 
         open_private_shop();
@@ -1151,8 +1151,8 @@ namespace metin2::game::inline characters {
 
     void character::use_silk_botary(void) {
         if (no_opened_shop_) {
-            uint32_t dwPlayerID = player_id();
-            db_clientdesc->db_packet(HEADER_GD_MYSHOP_PRICELIST_REQ, get_desc()->handle(), &dwPlayerID, sizeof(uint32_t));
+            uint32_t player_id_value = player_id();
+            db_clientdesc->db_packet(HEADER_GD_MYSHOP_PRICELIST_REQ, get_desc()->handle(), &player_id_value, sizeof(uint32_t));
             no_opened_shop_ = false;
         } else {
             open_private_shop();
@@ -1160,63 +1160,63 @@ namespace metin2::game::inline characters {
     }
 
     auto calculate_consume(character *ch) -> int {
-        static const int WARP_NEED_LIFE_PERCENT = 30;
-        static const int WARP_MIN_LIFE_PERCENT = 10;
-        int consumeLife = 0;
+        static const int warp_need_life_percent = 30;
+        static const int warp_min_life_percent = 10;
+        int consume_life = 0;
         {
-            const int curLife = ch->hp();
-            const int needPercent = WARP_NEED_LIFE_PERCENT;
-            const int needLife = ch->max_hp() * needPercent / 100;
-            if (curLife < needLife) {
+            const int cur_life = ch->hp();
+            const int need_percent = warp_need_life_percent;
+            const int need_life = ch->max_hp() * need_percent / 100;
+            if (cur_life < need_life) {
                 ch->chat_packet(CHAT_TYPE_INFO, lc_text("남은 생명력 양이 모자라 사용할 수 없습니다."));
                 return -1;
             }
 
-            consumeLife = needLife;
+            consume_life = need_life;
 
-            const int minPercent = WARP_MIN_LIFE_PERCENT;
-            const int minLife = ch->max_hp() * minPercent / 100;
-            if (curLife - needLife < minLife)
-                consumeLife = curLife - minLife;
+            const int min_percent = warp_min_life_percent;
+            const int min_life = ch->max_hp() * min_percent / 100;
+            if (cur_life - need_life < min_life)
+                consume_life = cur_life - min_life;
 
-            if (consumeLife < 0)
-                consumeLife = 0;
+            if (consume_life < 0)
+                consume_life = 0;
         }
-        return consumeLife;
+        return consume_life;
     }
 
     auto calculate_consume_sp(character *ch) -> int {
-        static const int NEED_WARP_SP_PERCENT = 30;
+        static const int need_warp_sp_percent = 30;
 
-        const int curSP = ch->sp();
-        const int needSP = ch->max_sp() * NEED_WARP_SP_PERCENT / 100;
+        const int cur_sp = ch->sp();
+        const int need_sp = ch->max_sp() * need_warp_sp_percent / 100;
 
-        if (curSP < needSP) {
+        if (cur_sp < need_sp) {
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("남은 정신력 양이 모자라 사용할 수 없습니다."));
             return -1;
         }
 
-        return needSP;
+        return need_sp;
     }
 
     auto character::use_item_ex(item *item, item_pos dest_cell) -> bool {
-        int iLimitRealtimeStartFirstUseFlagIndex = -1;
+        int limit_realtime_start_first_use_flag_index = -1;
 
-        uint16_t wDestCell = dest_cell.cell;
-        uint8_t bDestInven = dest_cell.window_type;
+        uint16_t dest_cell_value = dest_cell.cell;
+        uint8_t dest_inven = dest_cell.window_type;
         for (int i = 0; i < ITEM_LIMIT_MAX_NUM; ++i) {
-            int32_t limitValue = item->proto()->limits[i].value;
+            int32_t limit_value = item->proto()->limits[i].value;
 
             switch (item->proto()->limits[i].type) {
             case LIMIT_LEVEL:
-                if (level() < limitValue) {
+                if (level() < limit_value) {
                     chat_packet(CHAT_TYPE_INFO, lc_text("아이템의 레벨 제한보다 레벨이 낮습니다."));
                     return false;
                 }
                 break;
 
             case LIMIT_REAL_TIME_START_FIRST_USE:
-                iLimitRealtimeStartFirstUseFlagIndex = i;
+                limit_realtime_start_first_use_flag_index = i;
                 break;
 
             case LIMIT_TIMER_BASED_ON_WEAR:
@@ -1225,7 +1225,7 @@ namespace metin2::game::inline characters {
         }
 
         if (metin2::config::test_server()) {
-            metin2::log::debug("Use item {}: window {:d}, cell {:d}, type {:d}, subtype {:d}", item->name(), bDestInven, wDestCell, item->type(), item->sub_type());
+            metin2::log::debug("Use item {}: window {:d}, cell {:d}, type {:d}, subtype {:d}", item->name(), dest_inven, dest_cell_value, item->type(), item->sub_type());
         }
 
         if (arena_manager::instance().is_limited_item(map_index(), item->vnum()) == true) {
@@ -1233,9 +1233,9 @@ namespace metin2::game::inline characters {
             return false;
         }
 
-        if (-1 != iLimitRealtimeStartFirstUseFlagIndex) {
+        if (-1 != limit_realtime_start_first_use_flag_index) {
             if (0 == item->get_socket(1)) {
-                int32_t duration = (0 != item->get_socket(0)) ? item->get_socket(0) : item->proto()->limits[iLimitRealtimeStartFirstUseFlagIndex].value;
+                int32_t duration = (0 != item->get_socket(0)) ? item->get_socket(0) : item->proto()->limits[limit_realtime_start_first_use_flag_index].value;
 
                 if (0 == duration)
                     duration = 60 * 60 * 24 * 7;
@@ -1250,7 +1250,7 @@ namespace metin2::game::inline characters {
 
         switch (item->type()) {
         case ITEM_HAIR:
-            return item_process_hair(item, wDestCell);
+            return item_process_hair(item, dest_cell_value);
 
         case ITEM_POLYMORPH:
             return item_process_polymorph(item);
@@ -1449,18 +1449,18 @@ namespace metin2::game::inline characters {
         }
 
         if (item->value(0) == item2->value(0)) {
-            uint32_t dwBoxVnum = item2->vnum();
-            std::vector<uint32_t> dwVnums;
-            std::vector<uint32_t> dwCounts;
+            uint32_t box_vnum = item2->vnum();
+            std::vector<uint32_t> vnums;
+            std::vector<uint32_t> counts;
             std::vector<game::items::item *> item_gets;
             int count = 0;
 
-            if (give_item_from_special_item_group(dwBoxVnum, dwVnums, dwCounts, item_gets, count)) {
+            if (give_item_from_special_item_group(box_vnum, vnums, counts, item_gets, count)) {
                 item_manager::instance().remove_item(item);
                 item_manager::instance().remove_item(item2);
 
                 for (int i = 0; i < count; i++) {
-                    notify_box_reward(dwVnums[i], dwCounts[i], item_gets[i]);
+                    notify_box_reward(vnums[i], counts[i], item_gets[i]);
                 }
             } else {
                 chat_packet(CHAT_TYPE_TALKING, lc_text("열쇠가 맞지 않는 것 같다."));
@@ -1475,24 +1475,24 @@ namespace metin2::game::inline characters {
     }
 
     auto character::use_item_giftbox(item *item) -> bool {
-        uint32_t dwBoxVnum = item->vnum();
-        std::vector<uint32_t> dwVnums;
-        std::vector<uint32_t> dwCounts;
+        uint32_t box_vnum = item->vnum();
+        std::vector<uint32_t> vnums;
+        std::vector<uint32_t> counts;
         std::vector<game::items::item *> item_gets;
         int count = 0;
 
-        if ((dwBoxVnum > 51500 && dwBoxVnum < 52000) || (dwBoxVnum >= 50255 && dwBoxVnum <= 50260)) {
+        if ((box_vnum > 51500 && box_vnum < 52000) || (box_vnum >= 50255 && box_vnum <= 50260)) {
             if (!(this->dragon_soul_is_qualified())) {
                 chat_packet(CHAT_TYPE_INFO, lc_text("먼저 용혼석 퀘스트를 완료하셔야 합니다."));
                 return false;
             }
         }
 
-        if (give_item_from_special_item_group(dwBoxVnum, dwVnums, dwCounts, item_gets, count)) {
+        if (give_item_from_special_item_group(box_vnum, vnums, counts, item_gets, count)) {
             item->set_count(item->count() - 1);
 
             for (int i = 0; i < count; i++) {
-                notify_box_reward(dwVnums[i], dwCounts[i], item_gets[i]);
+                notify_box_reward(vnums[i], counts[i], item_gets[i]);
             }
         } else {
             chat_packet(CHAT_TYPE_TALKING, lc_text("아무것도 얻을 수 없었습니다."));
@@ -1508,9 +1508,9 @@ namespace metin2::game::inline characters {
             return false;
         }
 
-        uint32_t dwVnum = item->get_socket(0);
+        uint32_t vnum = item->get_socket(0);
 
-        if (skill_level_down(dwVnum)) {
+        if (skill_level_down(vnum)) {
             item_manager::instance().remove_item(item);
             chat_packet(CHAT_TYPE_INFO, lc_text("스킬 레벨을 내리는데 성공하였습니다."));
         } else
@@ -1525,29 +1525,29 @@ namespace metin2::game::inline characters {
             return false;
         }
 
-        uint32_t dwVnum = 0;
+        uint32_t vnum = 0;
 
         if (item->vnum() == 50300) {
-            dwVnum = item->get_socket(0);
+            vnum = item->get_socket(0);
         } else {
-            dwVnum = item->value(0);
+            vnum = item->value(0);
         }
 
-        if (0 == dwVnum) {
+        if (0 == vnum) {
             item_manager::instance().remove_item(item);
 
             return false;
         }
 
-        if (true == learn_skill_by_book(dwVnum)) {
+        if (true == learn_skill_by_book(vnum)) {
             item_manager::instance().remove_item(item);
 
-            int iReadDelay = number(SKILLBOOK_DELAY_MIN, SKILLBOOK_DELAY_MAX);
+            int read_delay = number(SKILLBOOK_DELAY_MIN, SKILLBOOK_DELAY_MAX);
 
             if (metin2::config::game().distribution_test_server)
-                iReadDelay /= 3;
+                read_delay /= 3;
 
-            set_skill_next_read_time(dwVnum, get_global_time() + iReadDelay);
+            set_skill_next_read_time(vnum, get_global_time() + read_delay);
         }
 
         return true;
@@ -1674,17 +1674,17 @@ namespace metin2::game::inline characters {
     }
 
     auto character::use_item_use_time_charge_per(item *item, item_pos dest_cell) -> bool {
-        game::items::item *pDestItem = get_item(dest_cell);
-        if (nullptr == pDestItem) {
+        game::items::item *dest_item = get_item(dest_cell);
+        if (nullptr == dest_item) {
             return false;
         }
-        if (pDestItem->is_dragon_soul()) {
+        if (dest_item->is_dragon_soul()) {
             int ret;
             std::string buf;
             if (item->vnum() == DRAGON_HEART_VNUM) {
-                ret = pDestItem->give_more_time_per((float)item->get_socket(ITEM_SOCKET_CHARGING_AMOUNT_IDX));
+                ret = dest_item->give_more_time_per((float)item->get_socket(ITEM_SOCKET_CHARGING_AMOUNT_IDX));
             } else {
-                ret = pDestItem->give_more_time_per((float)item->value(ITEM_VALUE_CHARGING_AMOUNT_IDX));
+                ret = dest_item->give_more_time_per((float)item->value(ITEM_VALUE_CHARGING_AMOUNT_IDX));
             }
             if (ret > 0) {
                 if (item->vnum() == DRAGON_HEART_VNUM) {
@@ -1713,12 +1713,12 @@ namespace metin2::game::inline characters {
     }
 
     auto character::use_item_use_time_charge_fix(item *item, item_pos dest_cell) -> bool {
-        game::items::item *pDestItem = get_item(dest_cell);
-        if (nullptr == pDestItem) {
+        game::items::item *dest_item = get_item(dest_cell);
+        if (nullptr == dest_item) {
             return false;
         }
-        if (pDestItem->is_dragon_soul()) {
-            int ret = pDestItem->give_more_time_fix(item->value(ITEM_VALUE_CHARGING_AMOUNT_IDX));
+        if (dest_item->is_dragon_soul()) {
+            int ret = dest_item->give_more_time_fix(item->value(ITEM_VALUE_CHARGING_AMOUNT_IDX));
             std::string buf;
             if (ret) {
                 chat_packet(CHAT_TYPE_INFO, lc_text("%d초 만큼 충전되었습니다."), ret);
@@ -1745,12 +1745,12 @@ namespace metin2::game::inline characters {
                     return false;
                 }
                 int32_t time = item->value(0);
-                int32_t moveSpeedPer = item->value(1);
-                int32_t attPer = item->value(2);
-                int32_t expPer = item->value(3);
-                add_affect(AFFECT_NOG_ABILITY, POINT_MOV_SPEED, moveSpeedPer, AFF_MOV_SPEED_POTION, time, 0, true, true);
-                add_affect(AFFECT_NOG_ABILITY, POINT_MALL_ATTBONUS, attPer, AFF_NONE, time, 0, true, true);
-                add_affect(AFFECT_NOG_ABILITY, POINT_MALL_EXPBONUS, expPer, AFF_NONE, time, 0, true, true);
+                int32_t move_speed_per = item->value(1);
+                int32_t att_per = item->value(2);
+                int32_t exp_per = item->value(3);
+                add_affect(AFFECT_NOG_ABILITY, POINT_MOV_SPEED, move_speed_per, AFF_MOV_SPEED_POTION, time, 0, true, true);
+                add_affect(AFFECT_NOG_ABILITY, POINT_MALL_ATTBONUS, att_per, AFF_NONE, time, 0, true, true);
+                add_affect(AFFECT_NOG_ABILITY, POINT_MALL_EXPBONUS, exp_per, AFF_NONE, time, 0, true, true);
                 item->set_count(item->count() - 1);
             }
             break;
@@ -1758,41 +1758,41 @@ namespace metin2::game::inline characters {
         case ITEM_RAMADAN_CANDY:
             {
                 int32_t time = item->value(0);
-                int32_t moveSpeedPer = item->value(1);
-                int32_t attPer = item->value(2);
-                int32_t expPer = item->value(3);
-                add_affect(AFFECT_RAMADAN_ABILITY, POINT_MOV_SPEED, moveSpeedPer, AFF_MOV_SPEED_POTION, time, 0, true, true);
-                add_affect(AFFECT_RAMADAN_ABILITY, POINT_MALL_ATTBONUS, attPer, AFF_NONE, time, 0, true, true);
-                add_affect(AFFECT_RAMADAN_ABILITY, POINT_MALL_EXPBONUS, expPer, AFF_NONE, time, 0, true, true);
+                int32_t move_speed_per = item->value(1);
+                int32_t att_per = item->value(2);
+                int32_t exp_per = item->value(3);
+                add_affect(AFFECT_RAMADAN_ABILITY, POINT_MOV_SPEED, move_speed_per, AFF_MOV_SPEED_POTION, time, 0, true, true);
+                add_affect(AFFECT_RAMADAN_ABILITY, POINT_MALL_ATTBONUS, att_per, AFF_NONE, time, 0, true, true);
+                add_affect(AFFECT_RAMADAN_ABILITY, POINT_MALL_EXPBONUS, exp_per, AFF_NONE, time, 0, true, true);
                 item->set_count(item->count() - 1);
             }
             break;
         case ITEM_MARRIAGE_RING:
             {
-                marriage::marriage *pMarriage = marriage::manager::instance().get(player_id());
-                if (pMarriage) {
-                    if (pMarriage->ch1 != nullptr) {
-                        if (arena_manager::instance().is_arena_map(pMarriage->ch1->map_index()) == true) {
+                marriage::marriage *marriage = marriage::manager::instance().get(player_id());
+                if (marriage) {
+                    if (marriage->ch1 != nullptr) {
+                        if (arena_manager::instance().is_arena_map(marriage->ch1->map_index()) == true) {
                             chat_packet(CHAT_TYPE_INFO, lc_text("대련 중에는 이용할 수 없는 물품입니다."));
                             break;
                         }
                     }
 
-                    if (pMarriage->ch2 != nullptr) {
-                        if (arena_manager::instance().is_arena_map(pMarriage->ch2->map_index()) == true) {
+                    if (marriage->ch2 != nullptr) {
+                        if (arena_manager::instance().is_arena_map(marriage->ch2->map_index()) == true) {
                             chat_packet(CHAT_TYPE_INFO, lc_text("대련 중에는 이용할 수 없는 물품입니다."));
                             break;
                         }
                     }
 
-                    int consumeSP = calculate_consume_sp(this);
+                    int consume_sp = calculate_consume_sp(this);
 
-                    if (consumeSP < 0)
+                    if (consume_sp < 0)
                         return false;
 
-                    point_change(POINT_SP, -consumeSP, false);
+                    point_change(POINT_SP, -consume_sp, false);
 
-                    warp_to_pid(pMarriage->other(player_id()));
+                    warp_to_pid(marriage->other(player_id()));
                 } else
                     chat_packet(CHAT_TYPE_INFO, lc_text("결혼 상태가 아니면 결혼반지를 사용할 수 없습니다."));
             }
@@ -1909,10 +1909,10 @@ namespace metin2::game::inline characters {
                 if (learn_skill_by_book(SKILL_LEADERSHIP)) {
                     item_manager::instance().remove_item(item);
 
-                    int iReadDelay = number(SKILLBOOK_DELAY_MIN, SKILLBOOK_DELAY_MAX);
-                    if (metin2::config::game().distribution_test_server) iReadDelay /= 3;
+                    int read_delay = number(SKILLBOOK_DELAY_MIN, SKILLBOOK_DELAY_MAX);
+                    if (metin2::config::game().distribution_test_server) read_delay /= 3;
 
-                    set_skill_next_read_time(SKILL_LEADERSHIP, get_global_time() + iReadDelay);
+                    set_skill_next_read_time(SKILL_LEADERSHIP, get_global_time() + read_delay);
                 }
             }
             break;
@@ -1940,15 +1940,15 @@ namespace metin2::game::inline characters {
                     return false;
                 }
 
-                int iPct = item->value(0);
+                int pct = item->value(0);
 
-                if (learn_skill_by_book(SKILL_COMBO, iPct)) {
+                if (learn_skill_by_book(SKILL_COMBO, pct)) {
                     item_manager::instance().remove_item(item);
 
-                    int iReadDelay = number(SKILLBOOK_DELAY_MIN, SKILLBOOK_DELAY_MAX);
-                    if (metin2::config::game().distribution_test_server) iReadDelay /= 3;
+                    int read_delay = number(SKILLBOOK_DELAY_MIN, SKILLBOOK_DELAY_MAX);
+                    if (metin2::config::game().distribution_test_server) read_delay /= 3;
 
-                    set_skill_next_read_time(SKILL_COMBO, get_global_time() + iReadDelay);
+                    set_skill_next_read_time(SKILL_COMBO, get_global_time() + read_delay);
                 }
             }
             break;
@@ -1960,20 +1960,20 @@ namespace metin2::game::inline characters {
                     chat_packet(CHAT_TYPE_INFO, lc_text("변신중에는 책을 읽을수 없습니다."));
                     return false;
                 }
-                uint32_t dwSkillVnum = item->value(0);
-                int iPct = std::clamp(item->value(1), 0, 100);
-                if (skill_level(dwSkillVnum) >= 20 || dwSkillVnum - SKILL_LANGUAGE1 + 1 == empire()) {
+                uint32_t skill_vnum = item->value(0);
+                int pct = std::clamp(item->value(1), 0, 100);
+                if (skill_level(skill_vnum) >= 20 || skill_vnum - SKILL_LANGUAGE1 + 1 == empire()) {
                     chat_packet(CHAT_TYPE_INFO, lc_text("이미 완벽하게 알아들을 수 있는 언어이다."));
                     return false;
                 }
 
-                if (learn_skill_by_book(dwSkillVnum, iPct)) {
+                if (learn_skill_by_book(skill_vnum, pct)) {
                     item_manager::instance().remove_item(item);
 
-                    int iReadDelay = number(SKILLBOOK_DELAY_MIN, SKILLBOOK_DELAY_MAX);
-                    if (metin2::config::game().distribution_test_server) iReadDelay /= 3;
+                    int read_delay = number(SKILLBOOK_DELAY_MIN, SKILLBOOK_DELAY_MAX);
+                    if (metin2::config::game().distribution_test_server) read_delay /= 3;
 
-                    set_skill_next_read_time(dwSkillVnum, get_global_time() + iReadDelay);
+                    set_skill_next_read_time(skill_vnum, get_global_time() + read_delay);
                 }
             }
             break;
@@ -1984,21 +1984,21 @@ namespace metin2::game::inline characters {
                     chat_packet(CHAT_TYPE_INFO, lc_text("변신중에는 책을 읽을수 없습니다."));
                     return false;
                 }
-                uint32_t dwSkillVnum = item->value(0);
-                int iPct = std::clamp(item->value(1), 0, 100);
+                uint32_t skill_vnum = item->value(0);
+                int pct = std::clamp(item->value(1), 0, 100);
 
-                if (skill_level(dwSkillVnum) >= 10) {
+                if (skill_level(skill_vnum) >= 10) {
                     chat_packet(CHAT_TYPE_INFO, lc_text("더 이상 수련할 수 없습니다."));
                     return false;
                 }
 
-                if (learn_skill_by_book(dwSkillVnum, iPct)) {
+                if (learn_skill_by_book(skill_vnum, pct)) {
                     item_manager::instance().remove_item(item);
 
-                    int iReadDelay = number(SKILLBOOK_DELAY_MIN, SKILLBOOK_DELAY_MAX);
-                    if (metin2::config::game().distribution_test_server) iReadDelay /= 3;
+                    int read_delay = number(SKILLBOOK_DELAY_MIN, SKILLBOOK_DELAY_MAX);
+                    if (metin2::config::game().distribution_test_server) read_delay /= 3;
 
-                    set_skill_next_read_time(dwSkillVnum, get_global_time() + iReadDelay);
+                    set_skill_next_read_time(skill_vnum, get_global_time() + read_delay);
                 }
             }
             break;
@@ -2016,63 +2016,63 @@ namespace metin2::game::inline characters {
                     return false;
                 }
 
-                int iSkillLevelLowLimit = item->value(0);
-                int iSkillLevelHighLimit = item->value(1);
-                int iPct = std::clamp(item->value(2), 0, 100);
-                int iLevelLimit = item->value(3);
-                uint32_t dwSkillVnum = 0;
+                int skill_level_low_limit = item->value(0);
+                int skill_level_high_limit = item->value(1);
+                int pct = std::clamp(item->value(2), 0, 100);
+                int level_limit = item->value(3);
+                uint32_t skill_vnum = 0;
 
                 switch (item->vnum()) {
                 case 50314:
                 case 50315:
                 case 50316:
-                    dwSkillVnum = SKILL_POLYMORPH;
+                    skill_vnum = SKILL_POLYMORPH;
                     break;
 
                 case 50323:
                 case 50324:
-                    dwSkillVnum = SKILL_ADD_HP;
+                    skill_vnum = SKILL_ADD_HP;
                     break;
 
                 case 50325:
                 case 50326:
-                    dwSkillVnum = SKILL_RESIST_PENETRATE;
+                    skill_vnum = SKILL_RESIST_PENETRATE;
                     break;
 
                 default:
                     return false;
                 }
 
-                if (0 == dwSkillVnum)
+                if (0 == skill_vnum)
                     return false;
 
-                if (level() < iLevelLimit) {
+                if (level() < level_limit) {
                     chat_packet(CHAT_TYPE_INFO, lc_text("이 책을 읽으려면 레벨을 더 올려야 합니다."));
                     return false;
                 }
 
-                if (skill_level(dwSkillVnum) >= 40) {
+                if (skill_level(skill_vnum) >= 40) {
                     chat_packet(CHAT_TYPE_INFO, lc_text("더 이상 수련할 수 없습니다."));
                     return false;
                 }
 
-                if (skill_level(dwSkillVnum) < iSkillLevelLowLimit) {
+                if (skill_level(skill_vnum) < skill_level_low_limit) {
                     chat_packet(CHAT_TYPE_INFO, lc_text("이 책은 너무 어려워 이해하기가 힘듭니다."));
                     return false;
                 }
 
-                if (skill_level(dwSkillVnum) >= iSkillLevelHighLimit) {
+                if (skill_level(skill_vnum) >= skill_level_high_limit) {
                     chat_packet(CHAT_TYPE_INFO, lc_text("이 책으로는 더 이상 수련할 수 없습니다."));
                     return false;
                 }
 
-                if (learn_skill_by_book(dwSkillVnum, iPct)) {
+                if (learn_skill_by_book(skill_vnum, pct)) {
                     item_manager::instance().remove_item(item);
 
-                    int iReadDelay = number(SKILLBOOK_DELAY_MIN, SKILLBOOK_DELAY_MAX);
-                    if (metin2::config::game().distribution_test_server) iReadDelay /= 3;
+                    int read_delay = number(SKILLBOOK_DELAY_MIN, SKILLBOOK_DELAY_MAX);
+                    if (metin2::config::game().distribution_test_server) read_delay /= 3;
 
-                    set_skill_next_read_time(dwSkillVnum, get_global_time() + iReadDelay);
+                    set_skill_next_read_time(skill_vnum, get_global_time() + read_delay);
                 }
             }
             break;
@@ -2085,21 +2085,21 @@ namespace metin2::game::inline characters {
                     chat_packet(CHAT_TYPE_INFO, lc_text("변신중에는 책을 읽을수 없습니다."));
                     return false;
                 }
-                uint32_t dwSkillVnum = SKILL_CREATE;
-                int iPct = std::clamp(item->value(1), 0, 100);
+                uint32_t skill_vnum = SKILL_CREATE;
+                int pct = std::clamp(item->value(1), 0, 100);
 
-                if (skill_level(dwSkillVnum) >= 40) {
+                if (skill_level(skill_vnum) >= 40) {
                     chat_packet(CHAT_TYPE_INFO, lc_text("더 이상 수련할 수 없습니다."));
                     return false;
                 }
 
-                if (learn_skill_by_book(dwSkillVnum, iPct)) {
+                if (learn_skill_by_book(skill_vnum, pct)) {
                     item_manager::instance().remove_item(item);
 
-                    int iReadDelay = number(SKILLBOOK_DELAY_MIN, SKILLBOOK_DELAY_MAX);
-                    if (metin2::config::game().distribution_test_server) iReadDelay /= 3;
+                    int read_delay = number(SKILLBOOK_DELAY_MIN, SKILLBOOK_DELAY_MAX);
+                    if (metin2::config::game().distribution_test_server) read_delay /= 3;
 
-                    set_skill_next_read_time(dwSkillVnum, get_global_time() + iReadDelay);
+                    set_skill_next_read_time(skill_vnum, get_global_time() + read_delay);
 
                     if (metin2::config::test_server()) {
                         chat_packet(CHAT_TYPE_INFO, "[TEST_SERVER] Success to learn skill ");
@@ -2118,21 +2118,21 @@ namespace metin2::game::inline characters {
                     chat_packet(CHAT_TYPE_INFO, lc_text("변신중에는 책을 읽을수 없습니다."));
                     return false;
                 }
-                uint32_t dwSkillVnum = SKILL_MINING;
-                int iPct = std::clamp(item->value(1), 0, 100);
+                uint32_t skill_vnum = SKILL_MINING;
+                int pct = std::clamp(item->value(1), 0, 100);
 
-                if (skill_level(dwSkillVnum) >= 40) {
+                if (skill_level(skill_vnum) >= 40) {
                     chat_packet(CHAT_TYPE_INFO, lc_text("더 이상 수련할 수 없습니다."));
                     return false;
                 }
 
-                if (learn_skill_by_book(dwSkillVnum, iPct)) {
+                if (learn_skill_by_book(skill_vnum, pct)) {
                     item_manager::instance().remove_item(item);
 
-                    int iReadDelay = number(SKILLBOOK_DELAY_MIN, SKILLBOOK_DELAY_MAX);
-                    if (metin2::config::game().distribution_test_server) iReadDelay /= 3;
+                    int read_delay = number(SKILLBOOK_DELAY_MIN, SKILLBOOK_DELAY_MAX);
+                    if (metin2::config::game().distribution_test_server) read_delay /= 3;
 
-                    set_skill_next_read_time(dwSkillVnum, get_global_time() + iReadDelay);
+                    set_skill_next_read_time(skill_vnum, get_global_time() + read_delay);
                 }
             }
             break;
@@ -2143,20 +2143,20 @@ namespace metin2::game::inline characters {
                     chat_packet(CHAT_TYPE_INFO, lc_text("변신중에는 책을 읽을수 없습니다."));
                     return false;
                 }
-                uint32_t dwSkillVnum = SKILL_HORSE;
-                int iPct = std::clamp(item->value(1), 0, 100);
+                uint32_t skill_vnum = SKILL_HORSE;
+                int pct = std::clamp(item->value(1), 0, 100);
 
                 if (level() < 50) {
                     chat_packet(CHAT_TYPE_INFO, lc_text("아직 승마 스킬을 수련할 수 있는 레벨이 아닙니다."));
                     return false;
                 }
 
-                if (!metin2::config::test_server() && get_global_time() < skill_next_read_time(dwSkillVnum)) {
+                if (!metin2::config::test_server() && get_global_time() < skill_next_read_time(skill_vnum)) {
                     if (find_affect(AFFECT_SKILL_NO_BOOK_DELAY)) {
                         remove_affect(AFFECT_SKILL_NO_BOOK_DELAY);
                         chat_packet(CHAT_TYPE_INFO, lc_text("주안술서를 통해 주화입마에서 빠져나왔습니다."));
                     } else {
-                        skill_learn_wait_more_time_message(skill_next_read_time(dwSkillVnum) - get_global_time());
+                        skill_learn_wait_more_time_message(skill_next_read_time(skill_vnum) - get_global_time());
                         return false;
                     }
                 }
@@ -2168,16 +2168,16 @@ namespace metin2::game::inline characters {
                     return false;
                 }
 
-                if (prob(iPct)) {
+                if (prob(pct)) {
                     chat_packet(CHAT_TYPE_INFO, lc_text("승마 수련서를 읽어 승마 스킬 포인트를 얻었습니다."));
                     chat_packet(CHAT_TYPE_INFO, lc_text("얻은 포인트로는 승마 스킬의 레벨을 올릴 수 있습니다."));
                     point_change(POINT_HORSE_SKILL, 1);
 
-                    int iReadDelay = number(SKILLBOOK_DELAY_MIN, SKILLBOOK_DELAY_MAX);
-                    if (metin2::config::game().distribution_test_server) iReadDelay /= 3;
+                    int read_delay = number(SKILLBOOK_DELAY_MIN, SKILLBOOK_DELAY_MAX);
+                    if (metin2::config::game().distribution_test_server) read_delay /= 3;
 
                     if (!metin2::config::test_server())
-                        set_skill_next_read_time(dwSkillVnum, get_global_time() + iReadDelay);
+                        set_skill_next_read_time(skill_vnum, get_global_time() + read_delay);
                 } else {
                     chat_packet(CHAT_TYPE_INFO, lc_text("승마 수련서 이해에 실패하였습니다."));
                 }
@@ -2210,8 +2210,8 @@ namespace metin2::game::inline characters {
             {
                 int val = item->value(0);
                 int interval = item->value(1);
-                quest::pc *pPC = quest::quest_manager::instance().get_pc(player_id());
-                int last_use_time = pPC->flag("mythical_peach.last_use_time");
+                quest::pc *pc = quest::quest_manager::instance().get_pc(player_id());
+                int last_use_time = pc->flag("mythical_peach.last_use_time");
 
                 if (get_global_time() - last_use_time < interval * 60 * 60) {
                     if (metin2::config::test_server() == false) {
@@ -2236,7 +2236,7 @@ namespace metin2::game::inline characters {
                 update_alignment(val * 10);
 
                 item->set_count(item->count() - 1);
-                pPC->set_flag("mythical_peach.last_use_time", get_global_time());
+                pc->set_flag("mythical_peach.last_use_time", get_global_time());
 
                 chat_packet(CHAT_TYPE_TALKING, lc_text("마음이 맑아지는군. 가슴을 짓누르던 무언가가 좀 가벼워진 느낌이야."));
                 chat_packet(CHAT_TYPE_INFO, lc_text("선악치가 %d 증가하였습니다."), val);
@@ -2297,13 +2297,13 @@ namespace metin2::game::inline characters {
                     return false;
                 }
 
-                game::items::item *pItemReward = auto_give_item(socket.top());
+                game::items::item *item_reward = auto_give_item(socket.top());
 
-                if (pItemReward != nullptr) {
+                if (item_reward != nullptr) {
                     item2->set_socket(idx, 1);
 
                     const std::string buf = std::format("{}({}) {}({})",
-                        item2->name(), item2->id(), pItemReward->name(), pItemReward->id());
+                        item2->name(), item2->id(), item_reward->name(), item_reward->id());
                     log_manager::instance().item_log(this, item, "USE_DETACHMENT_ONE", buf.c_str());
 
                     item->set_count(item->count() - 1);
@@ -2322,10 +2322,10 @@ namespace metin2::game::inline characters {
                     chat_packet(CHAT_TYPE_INFO, lc_text("현재 헤어스타일에서는 염색과 탈색이 불가능합니다."));
                 } else {
                     quest::quest_manager &q = quest::quest_manager::instance();
-                    quest::pc *pPC = q.get_pc(player_id());
+                    quest::pc *pc = q.get_pc(player_id());
 
-                    if (pPC) {
-                        int last_dye_level = pPC->flag("dyeing_hair.last_dye_level");
+                    if (pc) {
+                        int last_dye_level = pc->flag("dyeing_hair.last_dye_level");
 
                         if (last_dye_level == 0 ||
                             last_dye_level + 3 <= level() ||
@@ -2333,9 +2333,9 @@ namespace metin2::game::inline characters {
                             set_part(PART_HAIR, item->vnum() - 70201);
 
                             if (item->vnum() == 70201)
-                                pPC->set_flag("dyeing_hair.last_dye_level", 0);
+                                pc->set_flag("dyeing_hair.last_dye_level", 0);
                             else
-                                pPC->set_flag("dyeing_hair.last_dye_level", level());
+                                pc->set_flag("dyeing_hair.last_dye_level", level());
 
                             item->set_count(item->count() - 1);
                             update_packet();
@@ -2349,16 +2349,16 @@ namespace metin2::game::inline characters {
 
         case ITEM_NEW_YEAR_GREETING_VNUM:
             {
-                uint32_t dwBoxVnum = ITEM_NEW_YEAR_GREETING_VNUM;
-                std::vector<uint32_t> dwVnums;
-                std::vector<uint32_t> dwCounts;
+                uint32_t box_vnum = ITEM_NEW_YEAR_GREETING_VNUM;
+                std::vector<uint32_t> vnums;
+                std::vector<uint32_t> counts;
                 std::vector<game::items::item *> item_gets;
                 int count = 0;
 
-                if (give_item_from_special_item_group(dwBoxVnum, dwVnums, dwCounts, item_gets, count)) {
+                if (give_item_from_special_item_group(box_vnum, vnums, counts, item_gets, count)) {
                     for (int i = 0; i < count; i++) {
-                        if (dwVnums[i] == special_item_group::GOLD)
-                            chat_packet(CHAT_TYPE_INFO, lc_text("돈 %d 냥을 획득했습니다."), dwCounts[i]);
+                        if (vnums[i] == special_item_group::GOLD)
+                            chat_packet(CHAT_TYPE_INFO, lc_text("돈 %d 냥을 획득했습니다."), counts[i]);
                     }
 
                     item->set_count(item->count() - 1);
@@ -2369,9 +2369,9 @@ namespace metin2::game::inline characters {
         case ITEM_VALENTINE_ROSE:
         case ITEM_VALENTINE_CHOCOLATE:
             {
-                uint32_t dwBoxVnum = item->vnum();
-                std::vector<uint32_t> dwVnums;
-                std::vector<uint32_t> dwCounts;
+                uint32_t box_vnum = item->vnum();
+                std::vector<uint32_t> vnums;
+                std::vector<uint32_t> counts;
                 std::vector<game::items::item *> item_gets;
                 int count = 0;
 
@@ -2381,7 +2381,7 @@ namespace metin2::game::inline characters {
                     return false;
                 }
 
-                if (give_item_from_special_item_group(dwBoxVnum, dwVnums, dwCounts, item_gets, count))
+                if (give_item_from_special_item_group(box_vnum, vnums, counts, item_gets, count))
                     item->set_count(item->count() - 1);
             }
             break;
@@ -2389,9 +2389,9 @@ namespace metin2::game::inline characters {
         case ITEM_WHITEDAY_CANDY:
         case ITEM_WHITEDAY_ROSE:
             {
-                uint32_t dwBoxVnum = item->vnum();
-                std::vector<uint32_t> dwVnums;
-                std::vector<uint32_t> dwCounts;
+                uint32_t box_vnum = item->vnum();
+                std::vector<uint32_t> vnums;
+                std::vector<uint32_t> counts;
                 std::vector<game::items::item *> item_gets;
                 int count = 0;
 
@@ -2401,27 +2401,27 @@ namespace metin2::game::inline characters {
                     return false;
                 }
 
-                if (give_item_from_special_item_group(dwBoxVnum, dwVnums, dwCounts, item_gets, count))
+                if (give_item_from_special_item_group(box_vnum, vnums, counts, item_gets, count))
                     item->set_count(item->count() - 1);
             }
             break;
 
         case 50011:
             {
-                uint32_t dwBoxVnum = 50011;
-                std::vector<uint32_t> dwVnums;
-                std::vector<uint32_t> dwCounts;
+                uint32_t box_vnum = 50011;
+                std::vector<uint32_t> vnums;
+                std::vector<uint32_t> counts;
                 std::vector<game::items::item *> item_gets;
                 int count = 0;
 
-                if (give_item_from_special_item_group(dwBoxVnum, dwVnums, dwCounts, item_gets, count)) {
+                if (give_item_from_special_item_group(box_vnum, vnums, counts, item_gets, count)) {
                     for (int i = 0; i < count; i++) {
-                        const std::string buf = std::format("{} {}", dwVnums[i], dwCounts[i]);
+                        const std::string buf = std::format("{} {}", vnums[i], counts[i]);
                         log_manager::instance().item_log(this, item, "MOONLIGHT_GET", buf.c_str());
 
                         item->set_count(item->count() - 1);
 
-                        notify_box_reward(dwVnums[i], dwCounts[i], item_gets[i]);
+                        notify_box_reward(vnums[i], counts[i], item_gets[i]);
                     }
                 } else {
                     chat_packet(CHAT_TYPE_TALKING, lc_text("아무것도 얻을 수 없었습니다."));
@@ -2475,23 +2475,23 @@ namespace metin2::game::inline characters {
 
         case ITEM_ELK_VNUM:
             {
-                int iGold = item->get_socket(0);
+                int gold = item->get_socket(0);
                 item_manager::instance().remove_item(item);
-                chat_packet(CHAT_TYPE_INFO, lc_text("돈 %d 냥을 획득했습니다."), iGold);
-                point_change(POINT_GOLD, iGold);
+                chat_packet(CHAT_TYPE_INFO, lc_text("돈 %d 냥을 획득했습니다."), gold);
+                point_change(POINT_GOLD, gold);
             }
             break;
 
         case 70021:
             {
-                int HealPrice = quest::quest_manager::instance().event_flag("MonarchHealGold");
-                if (HealPrice == 0)
-                    HealPrice = 2000000;
+                int heal_price = quest::quest_manager::instance().event_flag("MonarchHealGold");
+                if (heal_price == 0)
+                    heal_price = 2000000;
 
-                if (monarch::instance().heal_my_empire(this, HealPrice)) {
-                    char szNotice[256];
-                    snprintf(szNotice, sizeof(szNotice), lc_text("군주의 축복으로 이지역 %s 유저는 HP,SP가 모두 채워집니다."), empire_name(empire()));
-                    send_notice_map(szNotice, map_index(), false);
+                if (monarch::instance().heal_my_empire(this, heal_price)) {
+                    char notice[256];
+                    snprintf(notice, sizeof(notice), lc_text("군주의 축복으로 이지역 %s 유저는 HP,SP가 모두 채워집니다."), empire_name(empire()));
+                    send_notice_map(notice, map_index(), false);
 
                     chat_packet(CHAT_TYPE_INFO, lc_text("군주의 축복을 사용하였습니다."));
                 }
@@ -2544,13 +2544,13 @@ namespace metin2::game::inline characters {
                 if (item2->add_rare_attribute() == true) {
                     chat_packet(CHAT_TYPE_INFO, lc_text("성공적으로 속성이 추가 되었습니다"));
 
-                    int iAddedIdx = item2->rare_attr_count() + 4;
+                    int added_idx = item2->rare_attr_count() + 4;
                     const std::string buf = std::to_string(item2->id());
 
                     log_manager::instance().item_log(
                         player_id(),
-                        item2->attribute_type(iAddedIdx),
-                        item2->attribute_value(iAddedIdx),
+                        item2->attribute_type(added_idx),
+                        item2->attribute_value(added_idx),
                         item->id(),
                         "ADD_RARE_ATTR",
                         buf.c_str(),
@@ -2618,12 +2618,12 @@ namespace metin2::game::inline characters {
     }
 
     auto character::use_item_lucky_bag(item *item) -> bool {
-        const int MAX_BAG_INFO = 26;
+        const int max_bag_info = 26;
         static struct lucky_bag_info {
             uint32_t count;
             int prob;
             uint32_t vnum;
-        } b1[MAX_BAG_INFO] =
+        } b1[max_bag_info] =
             {
                 {1000, 302, 1    },
                 {10,   150, 27002},
@@ -2659,12 +2659,12 @@ namespace metin2::game::inline characters {
         int pct = number(1, 1000);
 
         int i;
-        for (i = 0; i < MAX_BAG_INFO; i++) {
+        for (i = 0; i < max_bag_info; i++) {
             if (pct <= bi[i].prob)
                 break;
             pct -= bi[i].prob;
         }
-        if (i >= MAX_BAG_INFO)
+        if (i >= max_bag_info)
             return false;
 
         if (bi[i].vnum == 50300) {
@@ -2683,11 +2683,11 @@ namespace metin2::game::inline characters {
         if (item->get_socket(0)) {
             item->set_socket(0, item->get_socket(0) + 1);
         } else {
-            int iMapIndex = map_index();
+            int map_index_value = map_index();
 
             pixel_position pos;
 
-            if (sectree_manager::instance().random_location(iMapIndex, pos, 700)) {
+            if (sectree_manager::instance().random_location(map_index_value, pos, 700)) {
                 item->set_socket(0, 1);
                 item->set_socket(1, pos.x);
                 item->set_socket(2, pos.y);
@@ -2708,8 +2708,8 @@ namespace metin2::game::inline characters {
                 int count;
                 int prob;
             };
-            const int EVENT_STONE_MAX_INFO = 15;
-            event_stone_info info_10[EVENT_STONE_MAX_INFO] =
+            const int event_stone_max_info = 15;
+            event_stone_info info_10[event_stone_max_info] =
                 {
                     {27001, 10, 8 },
                     {27004, 10, 6 },
@@ -2730,7 +2730,7 @@ namespace metin2::game::inline characters {
                     {50001, 1,  0 },
                     {50003, 1,  1 },
             };
-            event_stone_info info_7[EVENT_STONE_MAX_INFO] =
+            event_stone_info info_7[event_stone_max_info] =
                 {
                     {27001, 10, 1 },
                     {27004, 10, 1 },
@@ -2751,7 +2751,7 @@ namespace metin2::game::inline characters {
                     {50001, 1,  0 },
                     {50003, 1,  5 },
             };
-            event_stone_info info_4[EVENT_STONE_MAX_INFO] =
+            event_stone_info info_4[event_stone_max_info] =
                 {
                     {27001, 10, 0 },
                     {27004, 10, 0 },
@@ -2784,7 +2784,7 @@ namespace metin2::game::inline characters {
 
                 int prob = number(1, 100);
 
-                for (int i = 0; i < EVENT_STONE_MAX_INFO; ++i) {
+                for (int i = 0; i < event_stone_max_info; ++i) {
                     if (!info[i].prob)
                         continue;
 
@@ -2826,8 +2826,8 @@ namespace metin2::game::inline characters {
         else
             dist = 3;
 
-        const int STONE_DETECT_MAX_TRY = 10;
-        if (item->get_socket(0) >= STONE_DETECT_MAX_TRY) {
+        const int stone_detect_max_try = 10;
+        if (item->get_socket(0) >= stone_detect_max_try) {
             chat_packet(CHAT_TYPE_INFO, lc_text("이벤트용 감지기가 흔적도 없이 사라집니다."));
             item_manager::instance().remove_item(item, "REMOVE (DETECT_EVENT_STONE) 0");
             auto_give_item(27002);
@@ -2857,19 +2857,19 @@ namespace metin2::game::inline characters {
     }
 
     auto character::use_item_stone_detector(item *item) -> bool {
-        sectree_map *pMap = sectree_manager::instance().map(map_index());
+        sectree_map *map = sectree_manager::instance().map(map_index());
 
-        if (pMap != nullptr) {
+        if (map != nullptr) {
             item->set_socket(0, item->get_socket(0) + 1);
 
             std::vector<character *> stones;
 
-            pMap->for_each([&](entity *ent) {
+            map->for_each([&](entity *ent) {
                 if (ent->is_type(ENTITY_CHARACTER) == true) {
-                    auto *pChar = (character *)ent;
+                    auto *ch = (character *)ent;
 
-                    if (pChar->is_stone() == true)
-                        stones.push_back(pChar);
+                    if (ch->is_stone() == true)
+                        stones.push_back(ch);
                 }
             });
 
@@ -2879,8 +2879,8 @@ namespace metin2::game::inline characters {
                     return std::pair(dist != 0 ? dist : UINT_MAX, (uint32_t)stone->get_vid());
                 };
 
-                character *pTarget = *std::ranges::min_element(stones, {}, stone_key);
-                uint32_t max = stone_key(pTarget).first;
+                character *target = *std::ranges::min_element(stones, {}, stone_key);
+                uint32_t max = stone_key(target).first;
                 int val = 3;
 
                 if (max < 10000)
@@ -2889,7 +2889,7 @@ namespace metin2::game::inline characters {
                     val = 1;
 
                 chat_packet(CHAT_TYPE_COMMAND, "StoneDetect %u %d %d", (uint32_t)get_vid(), val,
-                    (int)get_degree_from_position_xy(x(), pTarget->y(), pTarget->x(), y()));
+                    (int)get_degree_from_position_xy(x(), target->y(), target->x(), y()));
             } else {
                 chat_packet(CHAT_TYPE_INFO, lc_text("감지기를 작용하였으나 감지되는 영석이 없습니다."));
             }
@@ -2910,11 +2910,11 @@ namespace metin2::game::inline characters {
         }
 
         affect_types type = AFFECT_NONE;
-        bool isSpecialPotion = false;
+        bool is_special_potion = false;
 
         switch (item->vnum()) {
         case ITEM_AUTO_HP_RECOVERY_X:
-            isSpecialPotion = true;
+            is_special_potion = true;
             [[fallthrough]];
 
         case ITEM_AUTO_HP_RECOVERY_S:
@@ -2927,7 +2927,7 @@ namespace metin2::game::inline characters {
             break;
 
         case ITEM_AUTO_SP_RECOVERY_X:
-            isSpecialPotion = true;
+            is_special_potion = true;
             [[fallthrough]];
 
         case ITEM_AUTO_SP_RECOVERY_S:
@@ -2963,12 +2963,12 @@ namespace metin2::game::inline characters {
             item = item2;
         }
 
-        affect *pAffect = find_affect(type);
+        affect *affect = find_affect(type);
 
-        if (nullptr == pAffect) {
+        if (nullptr == affect) {
             point_types bonus = POINT_NONE;
 
-            if (true == isSpecialPotion) {
+            if (true == is_special_potion) {
                 if (type == AFFECT_AUTO_HP_RECOVERY) {
                     bonus = POINT_MAX_HP_PCT;
                 } else if (type == AFFECT_AUTO_SP_RECOVERY) {
@@ -2983,24 +2983,24 @@ namespace metin2::game::inline characters {
 
             auto_recovery_item_process(type);
         } else {
-            if (item->id() == pAffect->flag) {
-                remove_affect(pAffect);
+            if (item->id() == affect->flag) {
+                remove_affect(affect);
 
                 item->lock(false);
                 item->set_socket(0, false);
             } else {
-                game::items::item *old = find_item_by_id(pAffect->flag);
+                game::items::item *old = find_item_by_id(affect->flag);
 
                 if (nullptr != old) {
                     old->lock(false);
                     old->set_socket(0, false);
                 }
 
-                remove_affect(pAffect);
+                remove_affect(affect);
 
                 point_types bonus = POINT_NONE;
 
-                if (true == isSpecialPotion) {
+                if (true == is_special_potion) {
                     if (type == AFFECT_AUTO_HP_RECOVERY) {
                         bonus = POINT_MAX_HP_PCT;
                     } else if (type == AFFECT_AUTO_SP_RECOVERY) {
@@ -3023,17 +3023,17 @@ namespace metin2::game::inline characters {
     auto character::use_item_use_invisibility(item *item) -> bool {
         if (item->vnum() == 70026) {
             quest::quest_manager &q = quest::quest_manager::instance();
-            quest::pc *pPC = q.get_pc(player_id());
+            quest::pc *pc = q.get_pc(player_id());
 
-            if (pPC != nullptr) {
-                int last_use_time = pPC->flag("mirror_of_disapper.last_use_time");
+            if (pc != nullptr) {
+                int last_use_time = pc->flag("mirror_of_disapper.last_use_time");
 
                 if (get_global_time() - last_use_time < 10 * 60) {
                     chat_packet(CHAT_TYPE_INFO, lc_text("아직 사용할 수 없습니다."));
                     return false;
                 }
 
-                pPC->set_flag("mirror_of_disapper.last_use_time", get_global_time());
+                pc->set_flag("mirror_of_disapper.last_use_time", get_global_time());
             }
         }
 
@@ -3184,8 +3184,8 @@ namespace metin2::game::inline characters {
     }
 
     auto character::use_item_use_talisman(item *item) -> bool {
-        const int TOWN_PORTAL = 1;
-        const int MEMORY_PORTAL = 2;
+        const int town_portal = 1;
+        const int memory_portal = 2;
 
         if (map_index() == 200 || map_index() == 113) {
             chat_packet(CHAT_TYPE_INFO, lc_text("현재 위치에서 사용할 수 없습니다."));
@@ -3202,23 +3202,23 @@ namespace metin2::game::inline characters {
             return false;
         }
 
-        int consumeLife = calculate_consume(this);
+        int consume_life = calculate_consume(this);
 
-        if (consumeLife < 0)
+        if (consume_life < 0)
             return false;
 
-        if (item->value(0) == TOWN_PORTAL) {
+        if (item->value(0) == town_portal) {
             if (item->get_socket(0) == 0) {
                 if (!get_dungeon())
                     if (!give_recall_item(item))
                         return false;
 
-                pixel_position posWarp;
+                pixel_position pos_warp;
 
-                if (sectree_manager::instance().recall_position_by_empire(map_index(), empire(), posWarp)) {
-                    point_change(POINT_HP, -consumeLife, false);
+                if (sectree_manager::instance().recall_position_by_empire(map_index(), empire(), pos_warp)) {
+                    point_change(POINT_HP, -consume_life, false);
 
-                    warp_set(posWarp.x, posWarp.y);
+                    warp_set(pos_warp.x, pos_warp.y);
                 } else {
                     metin2::log::error("Cannot find spawn position for {} near {:d} x {:d}", name(), x(), y());
                 }
@@ -3228,7 +3228,7 @@ namespace metin2::game::inline characters {
 
                 process_recall_item(item);
             }
-        } else if (item->value(0) == MEMORY_PORTAL) {
+        } else if (item->value(0) == memory_portal) {
             if (item->get_socket(0) == 0) {
                 if (get_dungeon()) {
                     chat_packet(CHAT_TYPE_INFO, lc_text("던전 안에서는 %s%s 사용할 수 없습니다."),
@@ -3240,7 +3240,7 @@ namespace metin2::game::inline characters {
                 if (!give_recall_item(item))
                     return false;
             } else {
-                point_change(POINT_HP, -consumeLife, false);
+                point_change(POINT_HP, -consume_life, false);
 
                 process_recall_item(item);
             }
@@ -3347,44 +3347,44 @@ namespace metin2::game::inline characters {
 
             if (GM_PLAYER == gm_level() && false == metin2::config::test_server()) {
 
-                uint32_t dwChangeItemAttrCycle = quest::quest_manager::instance().event_flag(change_item_attr_cycle_flag_);
-                if (dwChangeItemAttrCycle < default_change_item_attr_cycle_)
-                    dwChangeItemAttrCycle = default_change_item_attr_cycle_;
+                uint32_t change_item_attr_cycle = quest::quest_manager::instance().event_flag(change_item_attr_cycle_flag_);
+                if (change_item_attr_cycle < default_change_item_attr_cycle_)
+                    change_item_attr_cycle = default_change_item_attr_cycle_;
 
-                quest::pc *pPC = quest::quest_manager::instance().get_pc(player_id());
+                quest::pc *pc = quest::quest_manager::instance().get_pc(player_id());
 
-                if (pPC) {
-                    uint32_t dwNowMin = get_global_time() / 60;
+                if (pc) {
+                    uint32_t now_min = get_global_time() / 60;
 
-                    pPC->set_flag(last_change_item_attr_flag_, dwNowMin);
+                    pc->set_flag(last_change_item_attr_flag_, now_min);
                 }
             }
 
             if (item->sub_type() == USE_CHANGE_ATTRIBUTE2) {
-                int aiChangeProb[ITEM_ATTRIBUTE_MAX_LEVEL] =
+                int ai_change_prob[ITEM_ATTRIBUTE_MAX_LEVEL] =
                     {
                         0, 0, 30, 40, 3};
 
-                item2->change_attribute(aiChangeProb);
+                item2->change_attribute(ai_change_prob);
             } else if (item->vnum() == 76014) {
-                int aiChangeProb[ITEM_ATTRIBUTE_MAX_LEVEL] =
+                int ai_change_prob[ITEM_ATTRIBUTE_MAX_LEVEL] =
                     {
                         0, 10, 50, 39, 1};
 
-                item2->change_attribute(aiChangeProb);
+                item2->change_attribute(ai_change_prob);
             }
 
             else {
                 if (item->vnum() == 71151 || item->vnum() == 76023) {
                     if ((item2->type() == ITEM_WEAPON) || (item2->type() == ITEM_ARMOR && item2->sub_type() == ARMOR_BODY)) {
-                        bool bCanUse = true;
+                        bool can_use = true;
                         for (int i = 0; i < ITEM_LIMIT_MAX_NUM; ++i) {
                             if (item2->limit_type(i) == LIMIT_LEVEL && item2->limit_value(i) > 40) {
-                                bCanUse = false;
+                                can_use = false;
                                 break;
                             }
                         }
-                        if (false == bCanUse) {
+                        if (false == can_use) {
                             chat_packet(CHAT_TYPE_INFO, lc_text("적용 레벨보다 높아 사용이 불가능합니다."));
                             break;
                         }
@@ -3414,14 +3414,14 @@ namespace metin2::game::inline characters {
             if (item2->attribute_count() < 4) {
                 if (item->vnum() == 71152 || item->vnum() == 76024) {
                     if ((item2->type() == ITEM_WEAPON) || (item2->type() == ITEM_ARMOR && item2->sub_type() == ARMOR_BODY)) {
-                        bool bCanUse = true;
+                        bool can_use = true;
                         for (int i = 0; i < ITEM_LIMIT_MAX_NUM; ++i) {
                             if (item2->limit_type(i) == LIMIT_LEVEL && item2->limit_value(i) > 40) {
-                                bCanUse = false;
+                                can_use = false;
                                 break;
                             }
                         }
-                        if (false == bCanUse) {
+                        if (false == can_use) {
                             chat_packet(CHAT_TYPE_INFO, lc_text("적용 레벨보다 높아 사용이 불가능합니다."));
                             break;
                         }
@@ -3436,11 +3436,11 @@ namespace metin2::game::inline characters {
                     item2->add_attribute();
                     chat_packet(CHAT_TYPE_INFO, lc_text("속성 추가에 성공하였습니다."));
 
-                    int iAddedIdx = item2->attribute_count() - 1;
+                    int added_idx = item2->attribute_count() - 1;
                     log_manager::instance().item_log(
                         player_id(),
-                        item2->attribute_type(iAddedIdx),
-                        item2->attribute_value(iAddedIdx),
+                        item2->attribute_type(added_idx),
+                        item2->attribute_value(added_idx),
                         item->id(),
                         "ADD_ATTRIBUTE_SUCCESS",
                         buf.c_str(),
@@ -3470,11 +3470,11 @@ namespace metin2::game::inline characters {
                     item2->add_attribute();
                     chat_packet(CHAT_TYPE_INFO, lc_text("속성 추가에 성공하였습니다."));
 
-                    int iAddedIdx = item2->attribute_count() - 1;
+                    int added_idx = item2->attribute_count() - 1;
                     log_manager::instance().item_log(
                         player_id(),
-                        item2->attribute_type(iAddedIdx),
-                        item2->attribute_value(iAddedIdx),
+                        item2->attribute_type(added_idx),
+                        item2->attribute_value(added_idx),
                         item->id(),
                         "ADD_ATTRIBUTE2_SUCCESS",
                         buf.c_str(),
@@ -3581,52 +3581,52 @@ namespace metin2::game::inline characters {
     }
 
     auto character::use_item_use_recipe(item *item) -> bool {
-        game::items::item *pSource1 = find_specify_item(item->value(1));
-        uint32_t dwSourceCount1 = item->value(2);
+        game::items::item *source1 = find_specify_item(item->value(1));
+        uint32_t source_count1 = item->value(2);
 
-        game::items::item *pSource2 = find_specify_item(item->value(3));
-        uint32_t dwSourceCount2 = item->value(4);
+        game::items::item *source2 = find_specify_item(item->value(3));
+        uint32_t source_count2 = item->value(4);
 
-        if (dwSourceCount1 != 0) {
-            if (pSource1 == nullptr) {
+        if (source_count1 != 0) {
+            if (source1 == nullptr) {
                 chat_packet(CHAT_TYPE_INFO, lc_text("물약 조합을 위한 재료가 부족합니다."));
                 return false;
             }
         }
 
-        if (dwSourceCount2 != 0) {
-            if (pSource2 == nullptr) {
+        if (source_count2 != 0) {
+            if (source2 == nullptr) {
                 chat_packet(CHAT_TYPE_INFO, lc_text("물약 조합을 위한 재료가 부족합니다."));
                 return false;
             }
         }
 
-        if (pSource1 != nullptr) {
-            if (pSource1->count() < dwSourceCount1) {
-                chat_packet(CHAT_TYPE_INFO, lc_text("재료(%s)가 부족합니다."), pSource1->name());
+        if (source1 != nullptr) {
+            if (source1->count() < source_count1) {
+                chat_packet(CHAT_TYPE_INFO, lc_text("재료(%s)가 부족합니다."), source1->name());
                 return false;
             }
 
-            pSource1->set_count(pSource1->count() - dwSourceCount1);
+            source1->set_count(source1->count() - source_count1);
         }
 
-        if (pSource2 != nullptr) {
-            if (pSource2->count() < dwSourceCount2) {
-                chat_packet(CHAT_TYPE_INFO, lc_text("재료(%s)가 부족합니다."), pSource2->name());
+        if (source2 != nullptr) {
+            if (source2->count() < source_count2) {
+                chat_packet(CHAT_TYPE_INFO, lc_text("재료(%s)가 부족합니다."), source2->name());
                 return false;
             }
 
-            pSource2->set_count(pSource2->count() - dwSourceCount2);
+            source2->set_count(source2->count() - source_count2);
         }
 
-        game::items::item *pBottle = find_specify_item(50901);
+        game::items::item *bottle = find_specify_item(50901);
 
-        if (!pBottle || pBottle->count() < 1) {
+        if (!bottle || bottle->count() < 1) {
             chat_packet(CHAT_TYPE_INFO, lc_text("빈 병이 모자릅니다."));
             return false;
         }
 
-        pBottle->set_count(pBottle->count() - 1);
+        bottle->set_count(bottle->count() - 1);
 
         if (number(1, 100) > item->value(5)) {
             chat_packet(CHAT_TYPE_INFO, lc_text("물약 제조에 실패했습니다."));
@@ -3656,12 +3656,12 @@ namespace metin2::game::inline characters {
         int i;
 
         for (i = 0; i < ITEM_SOCKET_MAX_NUM; ++i) {
-            uint32_t dwVnum;
+            uint32_t vnum;
 
-            if ((dwVnum = item2->get_socket(i)) <= 2)
+            if ((vnum = item2->get_socket(i)) <= 2)
                 continue;
 
-            item_table *p = item_manager::instance().table(dwVnum);
+            item_table *p = item_manager::instance().table(vnum);
 
             if (!p)
                 continue;
@@ -3735,19 +3735,19 @@ namespace metin2::game::inline characters {
     }
 
     auto character::use_item_extract(item *item, item_pos dest_cell) -> bool {
-        game::items::item *pDestItem = get_item(dest_cell);
-        if (nullptr == pDestItem) {
+        game::items::item *dest_item = get_item(dest_cell);
+        if (nullptr == dest_item) {
             return false;
         }
         switch (item->sub_type()) {
         case EXTRACT_DRAGON_SOUL:
-            if (pDestItem->is_dragon_soul()) {
-                return ds_manager::instance().pull_out(this, NPOS, pDestItem, item);
+            if (dest_item->is_dragon_soul()) {
+                return ds_manager::instance().pull_out(this, NPOS, dest_item, item);
             }
             return false;
         case EXTRACT_DRAGON_HEART:
-            if (pDestItem->is_dragon_soul()) {
-                return ds_manager::instance().extract_dragon_heart(this, pDestItem, item);
+            if (dest_item->is_dragon_soul()) {
+                return ds_manager::instance().extract_dragon_heart(this, dest_item, item);
             }
             return false;
         default:
@@ -3852,7 +3852,7 @@ namespace metin2::game::inline characters {
     int portal_limit_time = 10;
 
     auto character::use_item(item_pos cell_value, item_pos dest_cell) -> bool {
-        uint16_t wCell = cell_value.cell;
+        uint16_t w_cell = cell_value.cell;
         uint8_t window_type = cell_value.window_type;
         item *item;
 
@@ -3862,7 +3862,7 @@ namespace metin2::game::inline characters {
         if (!is_valid_item_position(cell_value) || !(item = get_item(cell_value)))
             return false;
 
-        metin2::log::info("{} uses item {} (window {:d}, cell {:d})", name(), item->name(), window_type, wCell);
+        metin2::log::info("{} uses item {} (window {:d}, cell {:d})", name(), item->name(), window_type, w_cell);
 
         if (item->is_exchanging())
             return false;
@@ -3890,13 +3890,13 @@ namespace metin2::game::inline characters {
                 chat_packet(CHAT_TYPE_INFO, lc_text("삼거리 전투 참가중에는 귀환부,귀환기억부를 사용할수 없습니다."));
                 return false;
             }
-            int iPulse = thecore_pulse();
+            int pulse = thecore_pulse();
 
-            if (iPulse - safebox_load_time() < passes_per_sec(portal_limit_time)) {
+            if (pulse - safebox_load_time() < passes_per_sec(portal_limit_time)) {
                 chat_packet(CHAT_TYPE_INFO, lc_text("창고를 연후 %d초 이내에는 귀환부,귀환기억부를 사용할 수 없습니다."), portal_limit_time);
 
                 if (metin2::config::test_server())
-                    chat_packet(CHAT_TYPE_INFO, "[TestOnly]Pulse %d LoadTime %d PASS %d", iPulse, safebox_load_time(), passes_per_sec(portal_limit_time));
+                    chat_packet(CHAT_TYPE_INFO, "[TestOnly]Pulse %d LoadTime %d PASS %d", pulse, safebox_load_time(), passes_per_sec(portal_limit_time));
                 return false;
             }
 
@@ -3906,53 +3906,53 @@ namespace metin2::game::inline characters {
             }
 
             {
-                if (iPulse - get_refine_time() < passes_per_sec(portal_limit_time)) {
+                if (pulse - get_refine_time() < passes_per_sec(portal_limit_time)) {
                     chat_packet(CHAT_TYPE_INFO, lc_text("아이템 개량후 %d초 이내에는 귀환부,귀환기억부를 사용할 수 없습니다."), portal_limit_time);
                     return false;
                 }
             }
 
             {
-                if (iPulse - get_my_shop_time() < passes_per_sec(portal_limit_time)) {
+                if (pulse - get_my_shop_time() < passes_per_sec(portal_limit_time)) {
                     chat_packet(CHAT_TYPE_INFO, lc_text("개인상점 사용후 %d초 이내에는 귀환부,귀환기억부를 사용할 수 없습니다."), portal_limit_time);
                     return false;
                 }
             }
 
             if (item->vnum() != 70302) {
-                pixel_position posWarp;
+                pixel_position pos_warp;
 
                 int x_value = 0;
                 int y_value = 0;
 
-                double nDist = 0;
-                const double nDistant = 5000.0;
+                double dist = 0;
+                const double distant = 5000.0;
                 if (item->vnum() == 22010) {
                     x_value = item->get_socket(0) - x();
                     y_value = item->get_socket(1) - y();
                 } else if (item->vnum() == 22000) {
-                    sectree_manager::instance().recall_position_by_empire(map_index(), empire(), posWarp);
+                    sectree_manager::instance().recall_position_by_empire(map_index(), empire(), pos_warp);
 
                     if (item->get_socket(0) == 0) {
-                        x_value = posWarp.x - x();
-                        y_value = posWarp.y - y();
+                        x_value = pos_warp.x - x();
+                        y_value = pos_warp.y - y();
                     } else {
                         x_value = item->get_socket(0) - x();
                         y_value = item->get_socket(1) - y();
                     }
                 }
 
-                nDist = sqrt(pow((float)x_value, 2) + pow((float)y_value, 2));
+                dist = sqrt(pow((float)x_value, 2) + pow((float)y_value, 2));
 
-                if (nDistant > nDist) {
+                if (distant > dist) {
                     chat_packet(CHAT_TYPE_INFO, lc_text("이동 되어질 위치와 너무 가까워 귀환부를 사용할수 없습니다."));
                     if (metin2::config::test_server())
-                        chat_packet(CHAT_TYPE_INFO, "PossibleDistant %f nNowDist %f", nDistant, nDist);
+                        chat_packet(CHAT_TYPE_INFO, "PossibleDistant %f nNowDist %f", distant, dist);
                     return false;
                 }
             }
 
-            if (iPulse - get_exchange_time() < passes_per_sec(portal_limit_time)) {
+            if (pulse - get_exchange_time() < passes_per_sec(portal_limit_time)) {
                 chat_packet(CHAT_TYPE_INFO, lc_text("거래 후 %d초 이내에는 귀환부,귀환기억부등을 사용할 수 없습니다."), portal_limit_time);
                 return false;
             }
@@ -3967,7 +3967,7 @@ namespace metin2::game::inline characters {
 
         if (is_set(item->flag(), ITEM_FLAG_LOG)) {
             uint32_t vid = item->get_vid();
-            uint32_t oldCount = item->count();
+            uint32_t old_count = item->count();
             uint32_t vnum = item->vnum();
 
             std::string hint = item->name();
@@ -3976,8 +3976,8 @@ namespace metin2::game::inline characters {
 
             if (nullptr == item_manager::instance().find_by_vid(vid)) {
                 log_manager::instance().item_log(this, vid, vnum, "REMOVE", hint.c_str());
-            } else if (oldCount != item->count()) {
-                hint += std::format(" {}", oldCount - 1);
+            } else if (old_count != item->count()) {
+                hint += std::format(" {}", old_count - 1);
                 log_manager::instance().item_log(this, vid, vnum, "USE_ITEM", hint.c_str());
             }
             return (ret);
@@ -4019,11 +4019,11 @@ namespace metin2::game::inline characters {
 
         sync_quickslot(QUICKSLOT_TYPE_ITEM, cell_value.cell, 255);
 
-        game::items::item *pkItemToDrop;
+        game::items::item *item_to_drop;
 
         if (count_value == item->count()) {
             item->remove_from_character();
-            pkItemToDrop = item;
+            item_to_drop = item;
         } else {
             if (count_value == 0) {
                 if (metin2::config::test_server())
@@ -4034,15 +4034,15 @@ namespace metin2::game::inline characters {
             item->set_count(item->count() - count_value);
             item_manager::instance().flush_delayed_save(item);
 
-            pkItemToDrop = item_manager::instance().create_item(item->vnum(), count_value);
+            item_to_drop = item_manager::instance().create_item(item->vnum(), count_value);
 
-            fn_copy_item_socket(pkItemToDrop, item);
+            fn_copy_item_socket(item_to_drop, item);
 
-            const std::string szBuf = std::format("{} {}", pkItemToDrop->id(), pkItemToDrop->count());
-            log_manager::instance().item_log(this, item, "ITEM_SPLIT", szBuf.c_str());
+            const std::string buf = std::format("{} {}", item_to_drop->id(), item_to_drop->count());
+            log_manager::instance().item_log(this, item, "ITEM_SPLIT", buf.c_str());
         }
 
-        pixel_position pxPos = xyz();
+        pixel_position px_pos = xyz();
 
         if (thecore_pulse() > last_drop_time + 25)
             count_drops = 0;
@@ -4054,15 +4054,15 @@ namespace metin2::game::inline characters {
             return false;
         }
 
-        if (pkItemToDrop->add_to_ground(map_index(), pxPos)) {
+        if (item_to_drop->add_to_ground(map_index(), px_pos)) {
 
             chat_packet(CHAT_TYPE_INFO, lc_text("떨어진 아이템은 3분 후 사라집니다."));
-            pkItemToDrop->start_destroy_event();
+            item_to_drop->start_destroy_event();
 
-            item_manager::instance().flush_delayed_save(pkItemToDrop);
+            item_manager::instance().flush_delayed_save(item_to_drop);
 
-            const std::string szHint = std::format("{} {} {}", pkItemToDrop->name(), pkItemToDrop->count(), pkItemToDrop->original_vnum());
-            log_manager::instance().item_log(this, pkItemToDrop, "DROP", szHint.c_str());
+            const std::string hint = std::format("{} {} {}", item_to_drop->name(), item_to_drop->count(), item_to_drop->original_vnum());
+            log_manager::instance().item_log(this, item_to_drop, "DROP", hint.c_str());
 
             last_drop_time = thecore_pulse();
             count_drops++;
@@ -4220,8 +4220,8 @@ namespace metin2::game::inline characters {
 
                 item2->add_to_character(this, dest_cell);
 
-                const std::string szBuf = std::format("{} {} {} {} ", item2->id(), item2->count(), item->count(), item->count() + item2->count());
-                log_manager::instance().item_log(this, item, "ITEM_SPLIT", szBuf.c_str());
+                const std::string buf = std::format("{} {} {} {} ", item2->id(), item2->count(), item->count(), item->count() + item2->count());
+                log_manager::instance().item_log(this, item, "ITEM_SPLIT", buf.c_str());
             }
         }
 
@@ -4235,27 +4235,27 @@ namespace metin2::game::inline characters {
         metin2::log::info("{} receives {:d} gold", name(), amount);
 
         if (get_party()) {
-            party *pParty = get_party();
+            party *party = get_party();
 
-            uint32_t dwTotal = amount;
-            uint32_t dwMyAmount = dwTotal;
+            uint32_t total_value = amount;
+            uint32_t my_amount = total_value;
 
             const int center_x = x();
             const int center_y = y();
             int total = 0;
 
-            pParty->for_each_online_member([&](character *ch) {
+            party->for_each_online_member([&](character *ch) {
                 if (distance_approx(ch->x() - center_x, ch->y() - center_y) <= PARTY_DEFAULT_RANGE)
                     total += 1;
             });
 
             if (total > 1) {
-                uint32_t dwShare = dwTotal / total;
-                dwMyAmount -= dwShare * (total - 1);
+                uint32_t share = total_value / total;
+                my_amount -= share * (total - 1);
 
-                const int money = dwShare;
+                const int money = share;
 
-                pParty->for_each_online_member([&](character *ch) {
+                party->for_each_online_member([&](character *ch) {
                     if (ch != this)
                         if (distance_approx(ch->x() - center_x, ch->y() - center_y) <= PARTY_DEFAULT_RANGE) {
                             ch->point_change(POINT_GOLD, money, true);
@@ -4266,10 +4266,10 @@ namespace metin2::game::inline characters {
                 });
             }
 
-            point_change(POINT_GOLD, dwMyAmount, true);
+            point_change(POINT_GOLD, my_amount, true);
 
-            if (dwMyAmount > 1000)
-                log_manager::instance().char_log(this, dwMyAmount, "GET_GOLD", "");
+            if (my_amount > 1000)
+                log_manager::instance().char_log(this, my_amount, "GET_GOLD", "");
         } else {
             point_change(POINT_GOLD, amount, true);
 
@@ -4298,7 +4298,7 @@ namespace metin2::game::inline characters {
                     save();
                 } else {
                     if (item->is_stackable() && !is_set(item->anti_flag(), ITEM_ANTIFLAG_STACK)) {
-                        uint8_t bCount = item->count();
+                        uint8_t count = item->count();
 
                         for (int i = 0; i < INVENTORY_MAX_NUM; ++i) {
                             game::items::item *item2 = inventory_item(i);
@@ -4316,12 +4316,12 @@ namespace metin2::game::inline characters {
                                 if (j != ITEM_SOCKET_MAX_NUM)
                                     continue;
 
-                                uint8_t bCount2 = std::min<int>(200 - item2->count(), bCount);
-                                bCount -= bCount2;
+                                uint8_t count2 = std::min<int>(200 - item2->count(), count);
+                                count -= count2;
 
-                                item2->set_count(item2->count() + bCount2);
+                                item2->set_count(item2->count() + count2);
 
-                                if (bCount == 0) {
+                                if (count == 0) {
                                     chat_packet(CHAT_TYPE_INFO, lc_text("아이템 획득: %s"), item2->name());
                                     item_manager::instance().destroy_item(item);
                                     if (item2->type() == ITEM_QUEST)
@@ -4331,18 +4331,18 @@ namespace metin2::game::inline characters {
                             }
                         }
 
-                        item->set_count(bCount);
+                        item->set_count(count);
                     }
 
-                    int iEmptyCell;
+                    int empty_cell;
                     if (item->is_dragon_soul()) {
-                        if ((iEmptyCell = empty_dragon_soul_inventory(item)) == -1) {
+                        if ((empty_cell = empty_dragon_soul_inventory(item)) == -1) {
                             metin2::log::debug("No free dragon soul inventory slot for pid {:d} (item size {:d}, id {:d})", player_id(), item->size(), item->id());
                             chat_packet(CHAT_TYPE_INFO, lc_text("소지하고 있는 아이템이 너무 많습니다."));
                             return false;
                         }
                     } else {
-                        if ((iEmptyCell = empty_inventory(item->size())) == -1) {
+                        if ((empty_cell = empty_inventory(item->size())) == -1) {
                             metin2::log::debug("No free inventory slot for pid {:d} (item size {:d}, id {:d})", player_id(), item->size(), item->id());
                             chat_packet(CHAT_TYPE_INFO, lc_text("소지하고 있는 아이템이 너무 많습니다."));
                             return false;
@@ -4352,12 +4352,12 @@ namespace metin2::game::inline characters {
                     item->remove_from_ground();
 
                     if (item->is_dragon_soul())
-                        item->add_to_character(this, item_pos(DRAGON_SOUL_INVENTORY, iEmptyCell));
+                        item->add_to_character(this, item_pos(DRAGON_SOUL_INVENTORY, empty_cell));
                     else
-                        item->add_to_character(this, item_pos(INVENTORY, iEmptyCell));
+                        item->add_to_character(this, item_pos(INVENTORY, empty_cell));
 
-                    const std::string szHint = std::format("{} {} {}", item->name(), item->count(), item->original_vnum());
-                    log_manager::instance().item_log(this, item, "GET", szHint.c_str());
+                    const std::string hint = std::format("{} {} {}", item->name(), item->count(), item->original_vnum());
+                    log_manager::instance().item_log(this, item, "GET", hint.c_str());
                     chat_packet(CHAT_TYPE_INFO, lc_text("아이템 획득: %s"), item->name());
 
                     if (item->type() == ITEM_QUEST)
@@ -4373,22 +4373,22 @@ namespace metin2::game::inline characters {
                         owner = ch;
                 });
 
-                int iEmptyCell;
+                int empty_cell;
 
                 if (item->is_dragon_soul()) {
-                    if (!(owner && (iEmptyCell = owner->empty_dragon_soul_inventory(item)) != -1)) {
+                    if (!(owner && (empty_cell = owner->empty_dragon_soul_inventory(item)) != -1)) {
                         owner = this;
 
-                        if ((iEmptyCell = empty_dragon_soul_inventory(item)) == -1) {
+                        if ((empty_cell = empty_dragon_soul_inventory(item)) == -1) {
                             owner->chat_packet(CHAT_TYPE_INFO, lc_text("소지하고 있는 아이템이 너무 많습니다."));
                             return false;
                         }
                     }
                 } else {
-                    if (!(owner && (iEmptyCell = owner->empty_inventory(item->size())) != -1)) {
+                    if (!(owner && (empty_cell = owner->empty_inventory(item->size())) != -1)) {
                         owner = this;
 
-                        if ((iEmptyCell = empty_inventory(item->size())) == -1) {
+                        if ((empty_cell = empty_inventory(item->size())) == -1) {
                             owner->chat_packet(CHAT_TYPE_INFO, lc_text("소지하고 있는 아이템이 너무 많습니다."));
                             return false;
                         }
@@ -4398,12 +4398,12 @@ namespace metin2::game::inline characters {
                 item->remove_from_ground();
 
                 if (item->is_dragon_soul())
-                    item->add_to_character(owner, item_pos(DRAGON_SOUL_INVENTORY, iEmptyCell));
+                    item->add_to_character(owner, item_pos(DRAGON_SOUL_INVENTORY, empty_cell));
                 else
-                    item->add_to_character(owner, item_pos(INVENTORY, iEmptyCell));
+                    item->add_to_character(owner, item_pos(INVENTORY, empty_cell));
 
-                const std::string szHint = std::format("{} {} {}", item->name(), item->count(), item->original_vnum());
-                log_manager::instance().item_log(owner, item, "GET", szHint.c_str());
+                const std::string hint = std::format("{} {} {}", item->name(), item->count(), item->original_vnum());
+                log_manager::instance().item_log(owner, item, "GET", hint.c_str());
 
                 if (owner == this)
                     chat_packet(CHAT_TYPE_INFO, lc_text("아이템 획득: %s"), item->name());
@@ -4426,21 +4426,21 @@ namespace metin2::game::inline characters {
         if (!can_handle_item())
             return false;
 
-        item_pos srcCell(INVENTORY, cell_value), destCell(INVENTORY, dest_cell);
+        item_pos src_cell(INVENTORY, cell_value), dest_cell_value(INVENTORY, dest_cell);
 
-        if (srcCell.is_dragon_soul_equip_position() || destCell.is_dragon_soul_equip_position())
+        if (src_cell.is_dragon_soul_equip_position() || dest_cell_value.is_dragon_soul_equip_position())
             return false;
 
         if (cell_value == dest_cell)
             return false;
 
-        if (srcCell.is_equip_position() && destCell.is_equip_position())
+        if (src_cell.is_equip_position() && dest_cell_value.is_equip_position())
             return false;
 
         item *item1;
         item *item2;
 
-        if (srcCell.is_equip_position()) {
+        if (src_cell.is_equip_position()) {
             item1 = inventory_item(dest_cell);
             item2 = inventory_item(cell_value);
         } else {
@@ -4460,30 +4460,30 @@ namespace metin2::game::inline characters {
             return false;
 
         if (item_pos(EQUIPMENT, item2->cell()).is_equip_position()) {
-            uint8_t bEquipCell = item2->cell() - INVENTORY_MAX_NUM;
-            uint8_t bInvenCell = item1->cell();
+            uint8_t equip_cell = item2->cell() - INVENTORY_MAX_NUM;
+            uint8_t inven_cell = item1->cell();
 
             if (false == can_unequip_now(item2) || false == can_equip_now(item1))
                 return false;
 
-            if (bEquipCell != item1->find_equip_cell(this))
+            if (equip_cell != item1->find_equip_cell(this))
                 return false;
 
             item2->remove_from_character();
 
-            if (item1->equip_to(this, bEquipCell))
-                item2->add_to_character(this, item_pos(INVENTORY, bInvenCell));
+            if (item1->equip_to(this, equip_cell))
+                item2->add_to_character(this, item_pos(INVENTORY, inven_cell));
             else
                 metin2::log::error("Cannot equip {} when swapping with {}", item2->name(), item1->name());
         } else {
-            uint8_t bCell1 = item1->cell();
-            uint8_t bCell2 = item2->cell();
+            uint8_t cell1 = item1->cell();
+            uint8_t cell2 = item2->cell();
 
             item1->remove_from_character();
             item2->remove_from_character();
 
-            item1->add_to_character(this, item_pos(INVENTORY, bCell2));
-            item2->add_to_character(this, item_pos(INVENTORY, bCell1));
+            item1->add_to_character(this, item_pos(INVENTORY, cell2));
+            item2->add_to_character(this, item_pos(INVENTORY, cell1));
         }
 
         return true;
@@ -4524,17 +4524,17 @@ namespace metin2::game::inline characters {
         if (false == can_equip_now(item))
             return false;
 
-        int iWearCell = item->find_equip_cell(this, candidate_cell);
+        int wear_cell = item->find_equip_cell(this, candidate_cell);
 
-        if (iWearCell < 0)
+        if (wear_cell < 0)
             return false;
 
-        if (iWearCell == WEAR_BODY && is_riding() && (item->vnum() >= 11901 && item->vnum() <= 11904)) {
+        if (wear_cell == WEAR_BODY && is_riding() && (item->vnum() >= 11901 && item->vnum() <= 11904)) {
             chat_packet(CHAT_TYPE_INFO, lc_text("말을 탄 상태에서 예복을 입을 수 없습니다."));
             return false;
         }
 
-        if (iWearCell != WEAR_ARROW && is_polymorphed()) {
+        if (wear_cell != WEAR_ARROW && is_polymorphed()) {
             chat_packet(CHAT_TYPE_INFO, lc_text("둔갑 중에는 착용중인 장비를 변경할 수 없습니다."));
             return false;
         }
@@ -4549,35 +4549,35 @@ namespace metin2::game::inline characters {
             return false;
         }
 
-        uint32_t dwCurTime = get_dword_time();
+        uint32_t cur_time = get_dword_time();
 
-        if (iWearCell != WEAR_ARROW && (dwCurTime - last_attack_time() <= 1500 || dwCurTime - last_skill_time_ <= 1500)) {
+        if (wear_cell != WEAR_ARROW && (cur_time - last_attack_time() <= 1500 || cur_time - last_skill_time_ <= 1500)) {
             chat_packet(CHAT_TYPE_INFO, lc_text("가만히 있을 때만 착용할 수 있습니다."));
             return false;
         }
 
         if (item->is_dragon_soul()) {
-            if (inventory_item(INVENTORY_MAX_NUM + iWearCell)) {
+            if (inventory_item(INVENTORY_MAX_NUM + wear_cell)) {
                 chat_packet(CHAT_TYPE_INFO, "이미 같은 종류의 용혼석을 착용하고 있습니다.");
                 return false;
             }
 
-            if (!item->equip_to(this, iWearCell)) {
+            if (!item->equip_to(this, wear_cell)) {
                 return false;
             }
         } else {
-            if (wear(iWearCell) && !is_set(wear(iWearCell)->flag(), ITEM_FLAG_IRREMOVABLE)) {
+            if (wear(wear_cell) && !is_set(wear(wear_cell)->flag(), ITEM_FLAG_IRREMOVABLE)) {
                 if (item->wear_flag() == WEARABLE_ABILITY)
                     return false;
 
-                if (false == swap_item(item->cell(), INVENTORY_MAX_NUM + iWearCell)) {
+                if (false == swap_item(item->cell(), INVENTORY_MAX_NUM + wear_cell)) {
                     return false;
                 }
             } else {
-                uint8_t bOldCell = item->cell();
+                uint8_t old_cell = item->cell();
 
-                if (item->equip_to(this, iWearCell)) {
-                    sync_quickslot(QUICKSLOT_TYPE_ITEM, bOldCell, iWearCell);
+                if (item->equip_to(this, wear_cell)) {
+                    sync_quickslot(QUICKSLOT_TYPE_ITEM, old_cell, wear_cell);
                 }
             }
         }
@@ -4600,22 +4600,22 @@ namespace metin2::game::inline characters {
             if (item->vnum() == UNIQUE_ITEM_HIDE_ALIGNMENT_TITLE)
                 show_alignment(false);
 
-            const uint32_t &dwVnum = item->vnum();
+            const uint32_t &vnum = item->vnum();
 
-            if (item_vnum::is_ramadan_moon_ring(dwVnum)) {
+            if (item_vnum::is_ramadan_moon_ring(vnum)) {
                 this->effect_packet(SE_EQUIP_RAMADAN_RING);
-            } else if (item_vnum::is_halloween_candy(dwVnum)) {
+            } else if (item_vnum::is_halloween_candy(vnum)) {
                 this->effect_packet(SE_EQUIP_HALLOWEEN_CANDY);
-            } else if (item_vnum::is_happiness_ring(dwVnum)) {
+            } else if (item_vnum::is_happiness_ring(vnum)) {
                 this->effect_packet(SE_EQUIP_HAPPINESS_RING);
-            } else if (item_vnum::is_love_pendant(dwVnum)) {
+            } else if (item_vnum::is_love_pendant(vnum)) {
                 this->effect_packet(SE_EQUIP_LOVE_PENDANT);
             } else if (ITEM_UNIQUE == item->type() && 0 != item->sig_vnum()) {
-                const special_item_group *pGroup = item_manager::instance().get_special_item_group(item->sig_vnum());
-                if (nullptr != pGroup) {
-                    const special_attr_group *pAttrGroup = item_manager::instance().get_special_attr_group(pGroup->attr_vnum(item->vnum()));
-                    if (nullptr != pAttrGroup) {
-                        const std::string &std = pAttrGroup->effect_file_name;
+                const special_item_group *group = item_manager::instance().get_special_item_group(item->sig_vnum());
+                if (nullptr != group) {
+                    const special_attr_group *attr_group = item_manager::instance().get_special_attr_group(group->attr_vnum(item->vnum()));
+                    if (nullptr != attr_group) {
+                        const std::string &std = attr_group->effect_file_name;
                         specific_effect_packet(std.c_str());
                     }
                 }
@@ -4649,9 +4649,9 @@ namespace metin2::game::inline characters {
 
     void character::buff_on_attr_clear_all() {
         for (auto it = map_buff_on_attrs_.begin(); it != map_buff_on_attrs_.end(); it++) {
-            buff_on_attributes *pBuff = it->second.get();
-            if (pBuff) {
-                pBuff->initialize();
+            buff_on_attributes *buff = it->second.get();
+            if (buff) {
+                buff->initialize();
             }
         }
     }
@@ -4665,34 +4665,34 @@ namespace metin2::game::inline characters {
             else
                 it->second->off();
         } else if (0 == old_value) {
-            buff_on_attributes *pBuff;
+            buff_on_attributes *buff;
             if (map_buff_on_attrs_.end() == it) {
-                std::unique_ptr<buff_on_attributes> pNewBuff;
+                std::unique_ptr<buff_on_attributes> new_buff;
                 switch (type) {
                 case POINT_ENERGY:
                     {
-                        static uint8_t abSlot[] = {WEAR_BODY, WEAR_HEAD, WEAR_FOOTS, WEAR_WRIST, WEAR_WEAPON, WEAR_NECK, WEAR_EAR, WEAR_SHIELD};
-                        static std::vector<uint8_t> vec_slots(abSlot, abSlot + std::size(abSlot));
-                        pNewBuff = std::make_unique<buff_on_attributes>(this, type, &vec_slots);
+                        static uint8_t ab_slot[] = {WEAR_BODY, WEAR_HEAD, WEAR_FOOTS, WEAR_WRIST, WEAR_WEAPON, WEAR_NECK, WEAR_EAR, WEAR_SHIELD};
+                        static std::vector<uint8_t> vec_slots(ab_slot, ab_slot + std::size(ab_slot));
+                        new_buff = std::make_unique<buff_on_attributes>(this, type, &vec_slots);
                     }
                     break;
                 case POINT_COSTUME_ATTR_BONUS:
                     {
-                        static uint8_t abSlot[] = {WEAR_COSTUME_BODY, WEAR_COSTUME_HAIR};
-                        static std::vector<uint8_t> vec_slots(abSlot, abSlot + std::size(abSlot));
-                        pNewBuff = std::make_unique<buff_on_attributes>(this, type, &vec_slots);
+                        static uint8_t ab_slot[] = {WEAR_COSTUME_BODY, WEAR_COSTUME_HAIR};
+                        static std::vector<uint8_t> vec_slots(ab_slot, ab_slot + std::size(ab_slot));
+                        new_buff = std::make_unique<buff_on_attributes>(this, type, &vec_slots);
                     }
                     break;
                 default:
                     break;
                 }
-                pBuff = pNewBuff.get();
-                map_buff_on_attrs_.insert(map_buff_on_attrs::value_type(type, std::move(pNewBuff)));
+                buff = new_buff.get();
+                map_buff_on_attrs_.insert(map_buff_on_attrs::value_type(type, std::move(new_buff)));
 
             } else
-                pBuff = it->second.get();
+                buff = it->second.get();
 
-            pBuff->on(new_value);
+            buff->on(new_value);
         } else {
             if (map_buff_on_attrs_.end() == it)
                 return;
@@ -4753,8 +4753,8 @@ namespace metin2::game::inline characters {
                 continue;
 
             if (my_shop_) {
-                bool isItemSelling = my_shop_->is_selling_item(inventory_item(i)->id());
-                if (isItemSelling)
+                bool is_item_selling = my_shop_->is_selling_item(inventory_item(i)->id());
+                if (is_item_selling)
                     continue;
             }
 
@@ -4781,9 +4781,9 @@ namespace metin2::game::inline characters {
         int count = 0;
 
         for (int i = 0; i < INVENTORY_MAX_NUM; ++i) {
-            item *pItem = inventory_item(i);
-            if (pItem != nullptr && pItem->type() == type) {
-                count += pItem->count();
+            item *item = inventory_item(i);
+            if (item != nullptr && item->type() == type) {
+                count += item->count();
             }
         }
 
@@ -4802,8 +4802,8 @@ namespace metin2::game::inline characters {
                 continue;
 
             if (my_shop_) {
-                bool isItemSelling = my_shop_->is_selling_item(inventory_item(i)->id());
-                if (isItemSelling)
+                bool is_item_selling = my_shop_->is_selling_item(inventory_item(i)->id());
+                if (is_item_selling)
                     continue;
             }
 
@@ -4846,9 +4846,9 @@ namespace metin2::game::inline characters {
             log_manager::instance().item_log(this, item, "SYSTEM", item->name());
 
             if (item->type() == ITEM_USE && item->sub_type() == USE_POTION) {
-                quickslot *pSlot;
+                quickslot *slot_value;
 
-                if (get_quickslot(0, &pSlot) && pSlot->type == QUICKSLOT_TYPE_NONE) {
+                if (get_quickslot(0, &slot_value) && slot_value->type == QUICKSLOT_TYPE_NONE) {
                     quickslot slot;
                     slot.type = QUICKSLOT_TYPE_ITEM;
                     slot.pos = cell;
@@ -4888,10 +4888,10 @@ namespace metin2::game::inline characters {
                             count_value = p->values[1];
                     }
 
-                    uint8_t bCount2 = std::min<int>(200 - item->count(), count_value);
-                    count_value -= bCount2;
+                    uint8_t count2 = std::min<int>(200 - item->count(), count_value);
+                    count_value -= count2;
 
-                    item->set_count(item->count() + bCount2);
+                    item->set_count(item->count() + count2);
 
                     if (count_value == 0) {
                         if (msg)
@@ -4930,29 +4930,29 @@ namespace metin2::game::inline characters {
             }
         }
 
-        int iEmptyCell;
+        int empty_cell;
         if (item->is_dragon_soul()) {
-            iEmptyCell = empty_dragon_soul_inventory(item);
+            empty_cell = empty_dragon_soul_inventory(item);
         } else
-            iEmptyCell = empty_inventory(item->size());
+            empty_cell = empty_inventory(item->size());
 
-        if (iEmptyCell != -1) {
+        if (empty_cell != -1) {
             if (msg)
                 chat_packet(CHAT_TYPE_INFO, lc_text("아이템 획득: %s"), item->name());
 
             if (item->is_dragon_soul())
-                item->add_to_character(this, item_pos(DRAGON_SOUL_INVENTORY, iEmptyCell));
+                item->add_to_character(this, item_pos(DRAGON_SOUL_INVENTORY, empty_cell));
             else
-                item->add_to_character(this, item_pos(INVENTORY, iEmptyCell));
+                item->add_to_character(this, item_pos(INVENTORY, empty_cell));
             log_manager::instance().item_log(this, item, "SYSTEM", item->name());
 
             if (item->type() == ITEM_USE && item->sub_type() == USE_POTION) {
-                quickslot *pSlot;
+                quickslot *slot_value;
 
-                if (get_quickslot(0, &pSlot) && pSlot->type == QUICKSLOT_TYPE_NONE) {
+                if (get_quickslot(0, &slot_value) && slot_value->type == QUICKSLOT_TYPE_NONE) {
                     quickslot slot;
                     slot.type = QUICKSLOT_TYPE_ITEM;
-                    slot.pos = iEmptyCell;
+                    slot.pos = empty_cell;
                     set_quickslot(0, slot);
                 }
             }
@@ -5241,73 +5241,73 @@ namespace metin2::game::inline characters {
 
     auto character::give_item_from_special_item_group(uint32_t group_num, std::vector<uint32_t> &item_vnums,
         std::vector<uint32_t> &item_counts, std::vector<item *> &item_gets, int &count) -> bool {
-        const special_item_group *pGroup = item_manager::instance().get_special_item_group(group_num);
+        const special_item_group *group_value = item_manager::instance().get_special_item_group(group_num);
 
-        if (!pGroup) {
+        if (!group_value) {
             metin2::log::error("Special item group {:d} not found", group_num);
             return false;
         }
 
         std::vector<int> idxes;
-        int n = pGroup->multi_index(idxes);
+        int n = group_value->multi_index(idxes);
 
-        bool bSuccess;
+        bool success;
 
         for (int i = 0; i < n; i++) {
-            bSuccess = false;
+            success = false;
             int idx = idxes[i];
-            uint32_t dwVnum = pGroup->get_vnum(idx);
-            uint32_t dwCount = pGroup->count(idx);
-            int iRarePct = pGroup->rare_pct(idx);
+            uint32_t vnum = group_value->get_vnum(idx);
+            uint32_t count_value = group_value->count(idx);
+            int rare_pct = group_value->rare_pct(idx);
             item *item_get = nullptr;
-            switch (dwVnum) {
+            switch (vnum) {
             case special_item_group::GOLD:
-                point_change(POINT_GOLD, dwCount);
-                log_manager::instance().char_log(this, dwCount, "TREASURE_GOLD", "");
+                point_change(POINT_GOLD, count_value);
+                log_manager::instance().char_log(this, count_value, "TREASURE_GOLD", "");
 
-                bSuccess = true;
+                success = true;
                 break;
             case special_item_group::EXP:
                 {
-                    point_change(POINT_EXP, dwCount);
-                    log_manager::instance().char_log(this, dwCount, "TREASURE_EXP", "");
+                    point_change(POINT_EXP, count_value);
+                    log_manager::instance().char_log(this, count_value, "TREASURE_EXP", "");
 
-                    bSuccess = true;
+                    success = true;
                 }
                 break;
 
             case special_item_group::MOB:
                 {
-                    metin2::log::debug("Special item group: spawn {:d} mobs", dwCount);
+                    metin2::log::debug("Special item group: spawn {:d} mobs", count_value);
                     int x_value = x() + number(-500, 500);
                     int y_value = y() + number(-500, 500);
 
-                    character *ch = character_manager::instance().spawn_mob(dwCount, map_index(), x_value, y_value, 0, true, -1);
+                    character *ch = character_manager::instance().spawn_mob(count_value, map_index(), x_value, y_value, 0, true, -1);
                     if (ch)
                         ch->set_aggressive();
-                    bSuccess = true;
+                    success = true;
                 }
                 break;
             case special_item_group::SLOW:
                 {
-                    metin2::log::debug("Special item group: slow {:d}", -(int)dwCount);
-                    add_affect(AFFECT_SLOW, POINT_MOV_SPEED, -(int)dwCount, AFF_SLOW, 300, 0, true);
-                    bSuccess = true;
+                    metin2::log::debug("Special item group: slow {:d}", -(int)count_value);
+                    add_affect(AFFECT_SLOW, POINT_MOV_SPEED, -(int)count_value, AFF_SLOW, 300, 0, true);
+                    success = true;
                 }
                 break;
             case special_item_group::DRAIN_HP:
                 {
-                    int iDropHP = max_hp() * dwCount / 100;
-                    iDropHP = std::min(iDropHP, hp() - 1);
-                    metin2::log::debug("Special item group: drain hp {:d}", -iDropHP);
-                    point_change(POINT_HP, -iDropHP);
-                    bSuccess = true;
+                    int drop_hp = max_hp() * count_value / 100;
+                    drop_hp = std::min(drop_hp, hp() - 1);
+                    metin2::log::debug("Special item group: drain hp {:d}", -drop_hp);
+                    point_change(POINT_HP, -drop_hp);
+                    success = true;
                 }
                 break;
             case special_item_group::POISON:
                 {
                     attacked_by_poison(nullptr);
-                    bSuccess = true;
+                    success = true;
                 }
                 break;
 
@@ -5317,25 +5317,25 @@ namespace metin2::game::inline characters {
                     int sy = y() - number(300, 500);
                     int ex = x() + number(300, 500);
                     int ey = y() + number(300, 500);
-                    character_manager::instance().spawn_group(dwCount, map_index(), sx, sy, ex, ey, nullptr, true);
+                    character_manager::instance().spawn_group(count_value, map_index(), sx, sy, ex, ey, nullptr, true);
 
-                    bSuccess = true;
+                    success = true;
                 }
                 break;
             default:
                 {
-                    item_get = auto_give_item(dwVnum, dwCount, iRarePct);
+                    item_get = auto_give_item(vnum, count_value, rare_pct);
 
                     if (item_get) {
-                        bSuccess = true;
+                        success = true;
                     }
                 }
                 break;
             }
 
-            if (bSuccess) {
-                item_vnums.push_back(dwVnum);
-                item_counts.push_back(dwCount);
+            if (success) {
+                item_vnums.push_back(vnum);
+                item_counts.push_back(count_value);
                 item_gets.push_back(item_get);
                 count++;
 
@@ -5343,7 +5343,7 @@ namespace metin2::game::inline characters {
                 return false;
             }
         }
-        return bSuccess;
+        return success;
     }
 
     auto character::item_process_hair(item *item, int dest_cell) -> bool {
@@ -5400,17 +5400,17 @@ namespace metin2::game::inline characters {
             return false;
         }
 
-        uint32_t dwVnum = item->get_socket(0);
+        uint32_t vnum_value = item->get_socket(0);
 
-        if (dwVnum == 0) {
+        if (vnum_value == 0) {
             chat_packet(CHAT_TYPE_INFO, lc_text("잘못된 둔갑 아이템입니다."));
             item->set_count(item->count() - 1);
             return false;
         }
 
-        const mob *pMob = mob_manager::instance().get(dwVnum);
+        const mob *mob = mob_manager::instance().get(vnum_value);
 
-        if (pMob == nullptr) {
+        if (mob == nullptr) {
             chat_packet(CHAT_TYPE_INFO, lc_text("잘못된 둔갑 아이템입니다."));
             item->set_count(item->count() - 1);
             return false;
@@ -5423,23 +5423,23 @@ namespace metin2::game::inline characters {
         case 70107:
         case 71093:
             {
-                metin2::log::info("Pid {:d} uses polymorph ball (vnum {:d})", player_id(), dwVnum);
+                metin2::log::info("Pid {:d} uses polymorph ball (vnum {:d})", player_id(), vnum_value);
 
-                int iPolymorphLevelLimit = std::max(0, 20 - level() * 3 / 10);
-                if (pMob->table.level >= level() + iPolymorphLevelLimit) {
+                int polymorph_level_limit = std::max(0, 20 - level() * 3 / 10);
+                if (mob->table.level >= level() + polymorph_level_limit) {
                     chat_packet(CHAT_TYPE_INFO, lc_text("나보다 너무 높은 레벨의 몬스터로는 변신 할 수 없습니다."));
                     return false;
                 }
 
-                int iDuration = skill_level(POLYMORPH_SKILL_ID) == 0 ? 5 : (5 + (5 + skill_level(POLYMORPH_SKILL_ID) / 40 * 25));
-                iDuration *= 60;
+                int duration = skill_level(POLYMORPH_SKILL_ID) == 0 ? 5 : (5 + (5 + skill_level(POLYMORPH_SKILL_ID) / 40 * 25));
+                duration *= 60;
 
-                uint32_t dwBonus = 0;
+                uint32_t bonus = 0;
 
-                dwBonus = (2 + skill_level(POLYMORPH_SKILL_ID) / 40) * 100;
+                bonus = (2 + skill_level(POLYMORPH_SKILL_ID) / 40) * 100;
 
-                add_affect(AFFECT_POLYMORPH, POINT_POLYMORPH, dwVnum, AFF_POLYMORPH, iDuration, 0, true);
-                add_affect(AFFECT_POLYMORPH, POINT_ATT_BONUS, dwBonus, AFF_POLYMORPH, iDuration, 0, false);
+                add_affect(AFFECT_POLYMORPH, POINT_POLYMORPH, vnum_value, AFF_POLYMORPH, duration, 0, true);
+                add_affect(AFFECT_POLYMORPH, POINT_ATT_BONUS, bonus, AFF_POLYMORPH, duration, 0, false);
 
                 item->set_count(item->count() - 1);
             }
@@ -5448,9 +5448,9 @@ namespace metin2::game::inline characters {
         case 50322:
             {
 
-                metin2::log::info("{} (pid {:d}) uses polymorph book (vnum {:d})", name(), player_id(), dwVnum);
+                metin2::log::info("{} (pid {:d}) uses polymorph book (vnum {:d})", name(), player_id(), vnum_value);
 
-                if (polymorph_utils::instance().polymorph_character(this, item, pMob) == true) {
+                if (polymorph_utils::instance().polymorph_character(this, item, mob) == true) {
                     polymorph_utils::instance().update_book_practice_grade(this, item);
                 }
             }
@@ -5475,18 +5475,18 @@ namespace metin2::game::inline characters {
     }
 
     auto character::un_equip_special_ride_unique_item() -> bool {
-        item *Unique1 = wear(WEAR_UNIQUE1);
-        item *Unique2 = wear(WEAR_UNIQUE2);
+        item *unique1 = wear(WEAR_UNIQUE1);
+        item *unique2 = wear(WEAR_UNIQUE2);
 
-        if (nullptr != Unique1) {
-            if (UNIQUE_GROUP_SPECIAL_RIDE == Unique1->special_group()) {
-                return unequip_item(Unique1);
+        if (nullptr != unique1) {
+            if (UNIQUE_GROUP_SPECIAL_RIDE == unique1->special_group()) {
+                return unequip_item(unique1);
             }
         }
 
-        if (nullptr != Unique2) {
-            if (UNIQUE_GROUP_SPECIAL_RIDE == Unique2->special_group()) {
-                return unequip_item(Unique2);
+        if (nullptr != unique2) {
+            if (UNIQUE_GROUP_SPECIAL_RIDE == unique2->special_group()) {
+                return unequip_item(unique2);
             }
         }
 
@@ -5507,27 +5507,27 @@ namespace metin2::game::inline characters {
             return;
 
         {
-            const uint32_t stunSkills[] = {SKILL_TANHWAN, SKILL_GEOMPUNG, SKILL_BYEURAK, SKILL_GIGUNG};
+            const uint32_t stun_skills[] = {SKILL_TANHWAN, SKILL_GEOMPUNG, SKILL_BYEURAK, SKILL_GIGUNG};
 
-            for (size_t i = 0; i < sizeof(stunSkills) / sizeof(uint32_t); ++i) {
-                const affect *p = find_affect(stunSkills[i]);
+            for (size_t i = 0; i < sizeof(stun_skills) / sizeof(uint32_t); ++i) {
+                const affect *p = find_affect(stun_skills[i]);
 
                 if (nullptr != p && AFF_STUN == p->flag)
                     return;
             }
         }
 
-        const affect *pAffect = find_affect(type);
+        const affect *affect_value = find_affect(type);
         const size_t idx_of_amount_of_used = 1;
         const size_t idx_of_amount_of_full = 2;
 
-        if (nullptr != pAffect) {
-            item *pItem = find_item_by_id(pAffect->flag);
+        if (nullptr != affect_value) {
+            item *item = find_item_by_id(affect_value->flag);
 
-            if (nullptr != pItem && true == pItem->get_socket(0)) {
+            if (nullptr != item && true == item->get_socket(0)) {
                 if (false == arena_manager::instance().is_arena_map(map_index())) {
-                    const int32_t amount_of_used = pItem->get_socket(idx_of_amount_of_used);
-                    const int32_t amount_of_full = pItem->get_socket(idx_of_amount_of_full);
+                    const int32_t amount_of_used = item->get_socket(idx_of_amount_of_used);
+                    const int32_t amount_of_full = item->get_socket(idx_of_amount_of_full);
 
                     const int32_t avail = amount_of_full - amount_of_used;
 
@@ -5544,14 +5544,14 @@ namespace metin2::game::inline characters {
                             const int pct_of_used = amount_of_used * 100 / amount_of_full;
                             const int pct_of_will_used = (amount_of_used + amount) * 100 / amount_of_full;
 
-                            bool bLog = false;
+                            bool log = false;
                             if ((pct_of_will_used / 10) - (pct_of_used / 10) >= 1)
-                                bLog = true;
-                            pItem->set_socket(idx_of_amount_of_used, amount_of_used + amount, bLog);
+                                log = true;
+                            item->set_socket(idx_of_amount_of_used, amount_of_used + amount, log);
                         } else {
                             amount = avail;
 
-                            item_manager::instance().remove_item(pItem);
+                            item_manager::instance().remove_item(item);
                         }
 
                         if (AFFECT_AUTO_HP_RECOVERY == type) {
@@ -5563,12 +5563,12 @@ namespace metin2::game::inline characters {
                         }
                     }
                 } else {
-                    pItem->lock(false);
-                    pItem->set_socket(0, false);
-                    remove_affect(const_cast<affect *>(pAffect));
+                    item->lock(false);
+                    item->set_socket(0, false);
+                    remove_affect(const_cast<affect *>(affect_value));
                 }
             } else {
-                remove_affect(const_cast<affect *>(pAffect));
+                remove_affect(const_cast<affect *>(affect_value));
             }
         }
     }
@@ -5611,7 +5611,7 @@ namespace metin2::game::inline characters {
     }
 
     auto character::can_equip_now(item *const item, const item_pos &src_cell, const item_pos &dest_cell) -> bool {
-        const item_table *itemTable = item->proto();
+        const item_table *item_table = item->proto();
 
         switch (job()) {
         case JOB_WARRIOR:
@@ -5636,8 +5636,8 @@ namespace metin2::game::inline characters {
         }
 
         for (int i = 0; i < ITEM_LIMIT_MAX_NUM; ++i) {
-            int32_t limit = itemTable->limits[i].value;
-            switch (itemTable->limits[i].type) {
+            int32_t limit = item_table->limits[i].value;
+            switch (item_table->limits[i].type) {
             case LIMIT_LEVEL:
                 if (level() < limit) {
                     chat_packet(CHAT_TYPE_INFO, lc_text("레벨이 낮아 착용할 수 없습니다."));

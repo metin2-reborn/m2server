@@ -24,23 +24,23 @@ namespace metin2::db::inline items {
     }
 
     void item_id_range_manager::build() {
-        uint32_t dwMin = 0;
-        uint32_t dwMax = 0;
+        uint32_t min = 0;
+        uint32_t max = 0;
         item_id_range_table range;
 
         for (int i = 0;; ++i) {
-            dwMin = minimum_range_ * (i + 1) + 1;
-            dwMax = minimum_range_ * (i + 2);
+            min = minimum_range_ * (i + 1) + 1;
+            max = minimum_range_ * (i + 2);
 
-            if (dwMax == max_item_id_)
+            if (max == max_item_id_)
                 break;
 
-            if (client_manager::instance().item_range().min <= dwMin &&
-                client_manager::instance().item_range().max >= dwMax) {
+            if (client_manager::instance().item_range().min <= min &&
+                client_manager::instance().item_range().max >= max) {
                 continue;
             }
 
-            if (build_range(dwMin, dwMax, range) == true) {
+            if (build_range(min, max, range) == true) {
                 data_.push_back(range);
             }
         }
@@ -73,43 +73,43 @@ namespace metin2::db::inline items {
     }
 
     auto item_id_range_manager::build_range(uint32_t min_value, uint32_t max_value, item_id_range_table &range) -> bool {
-        uint32_t dwItemMaxID = 0;
-        std::unique_ptr<sql_msg> pMsg;
+        uint32_t item_max_id = 0;
+        std::unique_ptr<sql_msg> msg;
         MYSQL_ROW row;
 
         const std::string max_query = sql::format("SELECT MAX(id) FROM item{} WHERE id >= {} and id <= {}", sql::raw(get_table_postfix()), min_value, max_value);
 
-        pMsg = db_manager::instance().direct_query(max_query);
+        msg = db_manager::instance().direct_query(max_query);
 
-        if (pMsg != nullptr) {
-            if (pMsg->get()->num_rows > 0) {
-                row = mysql_fetch_row(pMsg->get()->res.get());
-                str_to_number(dwItemMaxID, row[0]);
+        if (msg != nullptr) {
+            if (msg->get()->num_rows > 0) {
+                row = mysql_fetch_row(msg->get()->res.get());
+                str_to_number(item_max_id, row[0]);
             }
         }
 
-        if (dwItemMaxID == 0)
-            dwItemMaxID = min_value;
+        if (item_max_id == 0)
+            item_max_id = min_value;
         else
-            dwItemMaxID++;
+            item_max_id++;
 
-        if ((max_value < dwItemMaxID) || (max_value - dwItemMaxID < minimum_remain_count_)) {
+        if ((max_value < item_max_id) || (max_value - item_max_id < minimum_remain_count_)) {
             metin2::log::info("Item id range: skipping {:d} to {:d} (next free id {:d}), fewer than {:d} ids left",
-                min_value, max_value, dwItemMaxID, minimum_remain_count_);
+                min_value, max_value, item_max_id, minimum_remain_count_);
         } else {
             range.min = min_value;
             range.max = max_value;
-            range.usable_item_id_min = dwItemMaxID;
+            range.usable_item_id_min = item_max_id;
 
             const std::string count_query = sql::format("SELECT COUNT(*) FROM item{} WHERE id >= {} AND id <= {}",
                 sql::raw(get_table_postfix()), range.usable_item_id_min, range.max);
 
-            pMsg = db_manager::instance().direct_query(count_query);
+            msg = db_manager::instance().direct_query(count_query);
 
-            if (pMsg != nullptr) {
-                if (pMsg->get()->num_rows > 0) {
+            if (msg != nullptr) {
+                if (msg->get()->num_rows > 0) {
                     uint32_t count = 0;
-                    row = mysql_fetch_row(pMsg->get()->res.get());
+                    row = mysql_fetch_row(msg->get()->res.get());
                     str_to_number(count, row[0]);
 
                     if (count > 0) {

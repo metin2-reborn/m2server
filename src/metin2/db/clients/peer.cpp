@@ -77,9 +77,9 @@ namespace metin2::db::inline clients {
     }
 
     auto peer::peek_packet(int &bytes_proceed, uint8_t &header, uint32_t &handle, uint32_t &length, const char **data) -> bool {
-        const int iLength = (int)input_.size();
+        const int length_value = (int)input_.size();
 
-        if (iLength < bytes_proceed + 9)
+        if (length_value < bytes_proceed + 9)
             return false;
 
         const char *buf = (const char *)input_.data();
@@ -93,9 +93,9 @@ namespace metin2::db::inline clients {
         length = *((uint32_t *)buf);
         buf += sizeof(uint32_t);
 
-        if (bytes_proceed + length + 9 > (uint32_t)iLength) {
+        if (bytes_proceed + length + 9 > (uint32_t)length_value) {
             metin2::log::debug("Incomplete packet: need {:d} bytes, have {:d}",
-                9 + length, iLength - bytes_proceed);
+                9 + length, length_value - bytes_proceed);
             return false;
         }
 

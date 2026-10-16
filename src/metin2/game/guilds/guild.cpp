@@ -933,25 +933,25 @@ namespace metin2::game::inline guilds {
         pack.size += (sizeof(uint32_t) + CHARACTER_NAME_MAX_LEN + 1 + GUILD_COMMENT_MAX_LEN + 1) * (uint16_t)count;
         d->buffered_packet(&pack, sizeof(pack));
         d->buffered_packet(&count, 1);
-        char szName[CHARACTER_NAME_MAX_LEN + 1];
-        char szContent[GUILD_COMMENT_MAX_LEN + 1];
-        memset(szName, 0, sizeof(szName));
-        memset(szContent, 0, sizeof(szContent));
+        char name[CHARACTER_NAME_MAX_LEN + 1];
+        char content[GUILD_COMMENT_MAX_LEN + 1];
+        memset(name, 0, sizeof(name));
+        memset(content, 0, sizeof(content));
 
         for (uint i = 0; i < pmsg->get()->num_rows; i++) {
             MYSQL_ROW row = mysql_fetch_row(pmsg->get()->res.get());
             uint32_t id = strtoul(row[0], nullptr, 10);
 
-            strlcpy(szName, row[1], sizeof(szName));
-            strlcpy(szContent, row[2], sizeof(szContent));
+            strlcpy(name, row[1], sizeof(name));
+            strlcpy(content, row[2], sizeof(content));
 
             d->buffered_packet(&id, sizeof(id));
-            d->buffered_packet(szName, sizeof(szName));
+            d->buffered_packet(name, sizeof(name));
 
             if (i == pmsg->get()->num_rows - 1)
-                d->packet(szContent, sizeof(szContent));
+                d->packet(content, sizeof(content));
             else
-                d->buffered_packet(szContent, sizeof(szContent));
+                d->buffered_packet(content, sizeof(content));
         }
     }
 
@@ -976,15 +976,15 @@ namespace metin2::game::inline guilds {
 
         it->second.is_general = is_general;
 
-        auto itOnline = member_online_.begin();
+        auto online = member_online_.begin();
 
         packet_gc_guild pack;
         pack.header = HEADER_GC_GUILD;
         pack.size = sizeof(pack) + 5;
         pack.subheader = GUILD_SUBHEADER_GC_CHANGE_MEMBER_GENERAL;
 
-        while (itOnline != member_online_.end()) {
-            desc *d = (*(itOnline++))->get_desc();
+        while (online != member_online_.end()) {
+            desc *d = (*(online++))->get_desc();
 
             if (!d)
                 continue;
@@ -1014,15 +1014,15 @@ namespace metin2::game::inline guilds {
 
         it->second.grade = grade;
 
-        auto itOnline = member_online_.begin();
+        auto online = member_online_.begin();
 
         packet_gc_guild pack;
         pack.header = HEADER_GC_GUILD;
         pack.size = sizeof(pack) + 5;
         pack.subheader = GUILD_SUBHEADER_GC_CHANGE_MEMBER_GRADE;
 
-        while (itOnline != member_online_.end()) {
-            desc *d = (*(itOnline++))->get_desc();
+        while (online != member_online_.end()) {
+            desc *d = (*(online++))->get_desc();
 
             if (!d)
                 continue;
@@ -1046,26 +1046,26 @@ namespace metin2::game::inline guilds {
     }
 
     void guild::skill_level_up(uint32_t vnum_value) {
-        uint32_t dwRealVnum = vnum_value - GUILD_SKILL_START;
+        uint32_t real_vnum = vnum_value - GUILD_SKILL_START;
 
-        if (dwRealVnum >= GUILD_SKILL_COUNT)
+        if (real_vnum >= GUILD_SKILL_COUNT)
             return;
 
-        skill_proto *pkSk = skill_manager::instance().get(vnum_value);
+        skill_proto *sk = skill_manager::instance().get(vnum_value);
 
-        if (!pkSk) {
+        if (!sk) {
             metin2::log::error("Unknown guild skill {:d}", vnum_value);
             return;
         }
 
-        if (data_.aby_skill[dwRealVnum] >= pkSk->max_level)
+        if (data_.aby_skill[real_vnum] >= sk->max_level)
             return;
 
         if (data_.skill_point <= 0)
             return;
         data_.skill_point--;
 
-        data_.aby_skill[dwRealVnum]++;
+        data_.aby_skill[real_vnum]++;
 
         compute_guild_points();
         save_skill();
@@ -1074,7 +1074,7 @@ namespace metin2::game::inline guilds {
         for (character *ch : member_online_)
             send_skill_info_packet(ch);
 
-        metin2::log::info("Guild: guild {} raised skill {:d} to level {:d} (type {:d})", name(), pkSk->vnum, data_.aby_skill[dwRealVnum], pkSk->type);
+        metin2::log::info("Guild: guild {} raised skill {:d} to level {:d} (type {:d})", name(), sk->vnum, data_.aby_skill[real_vnum], sk->type);
     }
 
     void guild::use_skill(uint32_t vnum_value, character *ch, uint32_t pid) {
@@ -1085,26 +1085,26 @@ namespace metin2::game::inline guilds {
 
         metin2::log::info("Guild: player {} used guild skill {:d}", ch ? ch->name() : "", vnum_value);
 
-        uint32_t dwRealVnum = vnum_value - GUILD_SKILL_START;
+        uint32_t real_vnum = vnum_value - GUILD_SKILL_START;
 
         if (!ch->can_move())
             return;
 
-        if (dwRealVnum >= GUILD_SKILL_COUNT)
+        if (real_vnum >= GUILD_SKILL_COUNT)
             return;
 
-        skill_proto *pkSk = skill_manager::instance().get(vnum_value);
+        skill_proto *sk = skill_manager::instance().get(vnum_value);
 
-        if (!pkSk) {
+        if (!sk) {
             metin2::log::error("Unknown guild skill {:d}", vnum_value);
             return;
         }
 
-        if (data_.aby_skill[dwRealVnum] == 0)
+        if (data_.aby_skill[real_vnum] == 0)
             return;
 
-        if ((pkSk->flag & SKILL_FLAG_SELFONLY)) {
-            if (ch->find_affect(pkSk->vnum))
+        if ((sk->flag & SKILL_FLAG_SELFONLY)) {
+            if (ch->find_affect(sk->vnum))
                 return;
 
             victim = ch;
@@ -1116,19 +1116,19 @@ namespace metin2::game::inline guilds {
         if (ch->is_affect_flag(AFF_EUNHYUNG))
             ch->remove_affect(SKILL_EUNHYUNG);
 
-        double k = 1.0 * data_.aby_skill[dwRealVnum] / pkSk->max_level;
-        pkSk->sp_cost_poly.set_var("k", k);
-        int iNeededSP = (int)pkSk->sp_cost_poly.eval();
+        double k = 1.0 * data_.aby_skill[real_vnum] / sk->max_level;
+        sk->sp_cost_poly.set_var("k", k);
+        int needed_sp = (int)sk->sp_cost_poly.eval();
 
-        if (sp() < iNeededSP) {
-            ch->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> 용신력이 부족합니다. (%d, %d)"), sp(), iNeededSP);
+        if (sp() < needed_sp) {
+            ch->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> 용신력이 부족합니다. (%d, %d)"), sp(), needed_sp);
             return;
         }
 
-        pkSk->cooldown_poly.set_var("k", k);
-        int iCooltime = (int)pkSk->cooldown_poly.eval();
+        sk->cooldown_poly.set_var("k", k);
+        int cooltime = (int)sk->cooldown_poly.eval();
 
-        if (!skill_usable_[dwRealVnum]) {
+        if (!skill_usable_[real_vnum]) {
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> 쿨타임이 끝나지 않아 길드 스킬을 사용할 수 없습니다."));
             return;
         }
@@ -1136,18 +1136,18 @@ namespace metin2::game::inline guilds {
         {
             packet_guild_use_skill p;
             p.guild = id();
-            p.skill_vnum = pkSk->vnum;
-            p.cooltime = iCooltime;
+            p.skill_vnum = sk->vnum;
+            p.cooltime = cooltime;
             db_clientdesc->db_packet(HEADER_GD_GUILD_USE_SKILL, 0, &p, sizeof(p));
         }
-        skill_usable_[dwRealVnum] = false;
+        skill_usable_[real_vnum] = false;
 
         if (metin2::config::test_server())
-            ch->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> %d 스킬을 사용함 (%d, %d) to %u"), vnum_value, sp(), iNeededSP, pid);
+            ch->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> %d 스킬을 사용함 (%d, %d) to %u"), vnum_value, sp(), needed_sp, pid);
 
         switch (vnum_value) {
         case GUILD_SKILL_TELEPORT:
-            send_db_skill_update(-iNeededSP);
+            send_db_skill_update(-needed_sp);
             if ((victim = (character_manager::instance().find_by_pid(pid))))
                 ch->warp_set(victim->x(), victim->y());
             else {
@@ -1177,12 +1177,12 @@ namespace metin2::game::inline guilds {
                     return;
                 }
 
-                send_db_skill_update(-iNeededSP);
+                send_db_skill_update(-needed_sp);
 
                 for (auto it = member_online_.begin(); it != member_online_.end(); ++it) {
                     character *victim = *it;
                     victim->remove_affect(vnum_value);
-                    ch->compute_skill(vnum_value, victim, data_.aby_skill[dwRealVnum]);
+                    ch->compute_skill(vnum_value, victim, data_.aby_skill[real_vnum]);
                 }
             }
             break;
@@ -1215,12 +1215,12 @@ namespace metin2::game::inline guilds {
     }
 
     auto guild::skill_level(uint32_t vnum) -> int {
-        uint32_t dwRealVnum = vnum - GUILD_SKILL_START;
+        uint32_t real_vnum = vnum - GUILD_SKILL_START;
 
-        if (dwRealVnum >= GUILD_SKILL_COUNT)
+        if (real_vnum >= GUILD_SKILL_COUNT)
             return 0;
 
-        return data_.aby_skill[dwRealVnum];
+        return data_.aby_skill[real_vnum];
     }
 
     void guild::update_skill(uint8_t skill_point, uint8_t *skill_levels) {
@@ -1420,10 +1420,10 @@ namespace metin2::game::inline guilds {
         if (gold < sp || ch->gold() < gold)
             return false;
 
-        int iRemainSP = data_.max_power - data_.power;
+        int remain_sp = data_.max_power - data_.power;
 
-        if (sp > iRemainSP) {
-            sp = iRemainSP;
+        if (sp > remain_sp) {
+            sp = remain_sp;
             gold = sp * 100;
         }
 
@@ -1438,12 +1438,12 @@ namespace metin2::game::inline guilds {
     }
 
     void guild::skill_usable_change(uint32_t skill_vnum, bool usable) {
-        uint32_t dwRealVnum = skill_vnum - GUILD_SKILL_START;
+        uint32_t real_vnum = skill_vnum - GUILD_SKILL_START;
 
-        if (dwRealVnum >= GUILD_SKILL_COUNT)
+        if (real_vnum >= GUILD_SKILL_COUNT)
             return;
 
-        skill_usable_[dwRealVnum] = usable;
+        skill_usable_[real_vnum] = usable;
 
         metin2::log::debug("Guild: guild {} skill {:d} usable set to {:d}", name(), skill_vnum, usable);
     }
@@ -1539,18 +1539,18 @@ namespace metin2::game::inline guilds {
     };
 
     EVENTFUNC(guild_invite_event) {
-        auto *pInfo = dynamic_cast<invite_guild_event_info *>(event->info.get());
+        auto *info_value = dynamic_cast<invite_guild_event_info *>(event->info.get());
 
-        if (pInfo == nullptr) {
+        if (info_value == nullptr) {
             metin2::log::error("Guild invite event has no event info");
             return 0;
         }
 
-        guild *pGuild = guild_manager::instance().find_guild(pInfo->guild_id);
+        guild *guild_value = guild_manager::instance().find_guild(info_value->guild_id);
 
-        if (pGuild) {
-            metin2::log::debug("Guild: invite to guild {} expired", pGuild->name());
-            pGuild->invite_deny(pInfo->invitee_pid);
+        if (guild_value) {
+            metin2::log::debug("Guild: invite to guild {} expired", guild_value->name());
+            guild_value->invite_deny(info_value->invitee_pid);
         }
 
         return 0;
@@ -1600,11 +1600,11 @@ namespace metin2::game::inline guilds {
         if (guild_invite_event_map_.end() != guild_invite_event_map_.find(pch_invitee->player_id()))
             return;
 
-        auto *pInfo = alloc_event_info<invite_guild_event_info>();
-        pInfo->invitee_pid = pch_invitee->player_id();
-        pInfo->guild_id = id();
+        auto *info = alloc_event_info<invite_guild_event_info>();
+        info->invitee_pid = pch_invitee->player_id();
+        info->guild_id = id();
 
-        guild_invite_event_map_.insert(event_map::value_type(pch_invitee->player_id(), event_create(guild_invite_event, pInfo, passes_per_sec(10))));
+        guild_invite_event_map_.insert(event_map::value_type(pch_invitee->player_id(), event_create(guild_invite_event, info, passes_per_sec(10))));
 
         uint32_t gid = id();
 
@@ -1622,14 +1622,14 @@ namespace metin2::game::inline guilds {
     }
 
     void guild::invite_accept(character *pch_invitee) {
-        auto itFind = guild_invite_event_map_.find(pch_invitee->player_id());
-        if (itFind == guild_invite_event_map_.end()) {
+        auto find = guild_invite_event_map_.find(pch_invitee->player_id());
+        if (find == guild_invite_event_map_.end()) {
             metin2::log::warn("Player {} accepted an invite to guild {} without being invited", pch_invitee->name(), name());
             return;
         }
 
-        event_cancel(&itFind->second);
-        guild_invite_event_map_.erase(itFind);
+        event_cancel(&find->second);
+        guild_invite_event_map_.erase(find);
 
         guild_join_err_code errcode = verify_guild_joinable_condition(pch_invitee);
         switch (errcode) {
@@ -1656,14 +1656,14 @@ namespace metin2::game::inline guilds {
     }
 
     void guild::invite_deny(uint32_t pid) {
-        auto itFind = guild_invite_event_map_.find(pid);
-        if (itFind == guild_invite_event_map_.end()) {
+        auto find = guild_invite_event_map_.find(pid);
+        if (find == guild_invite_event_map_.end()) {
             metin2::log::warn("Pid {:d} denied an invite to guild {} without being invited", pid, name());
             return;
         }
 
-        event_cancel(&itFind->second);
-        guild_invite_event_map_.erase(itFind);
+        event_cancel(&find->second);
+        guild_invite_event_map_.erase(find);
     }
 
     auto guild::verify_guild_joinable_condition(character *const pch_invitee) -> guild::guild_join_err_code {

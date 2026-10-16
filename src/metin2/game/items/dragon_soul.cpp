@@ -106,11 +106,11 @@ namespace metin2::game::inline items {
         if (nullptr == item_value)
             return false;
 
-        uint16_t wBaseCell = base_position(item_value);
-        if (WORD_MAX == wBaseCell)
+        uint16_t base_cell = base_position(item_value);
+        if (WORD_MAX == base_cell)
             return false;
 
-        if (cell_value.window_type != DRAGON_SOUL_INVENTORY || (cell_value.cell < wBaseCell || cell_value.cell >= wBaseCell + DRAGON_SOUL_BOX_SIZE)) {
+        if (cell_value.window_type != DRAGON_SOUL_INVENTORY || (cell_value.cell < base_cell || cell_value.cell >= base_cell + DRAGON_SOUL_BOX_SIZE)) {
             return false;
         } else
             return true;
@@ -159,33 +159,33 @@ namespace metin2::game::inline items {
             return false;
         }
 
-        float fWeight = 0.f;
-        if (!table_->weight(ds_type, grade_idx, step_idx, strength_idx, fWeight)) {
+        float weight = 0.f;
+        if (!table_->weight(ds_type, grade_idx, step_idx, strength_idx, weight)) {
             return false;
         }
-        fWeight /= 100.f;
+        weight /= 100.f;
 
         int n = std::min<int>(basic_apply_num, vec_basic_applys.size());
         for (int i = 0; i < n; i++) {
             const apply &basic_apply = vec_basic_applys[i];
-            uint8_t bType = basic_apply.apply_type;
-            auto sValue = (short)(ceil((float)basic_apply.apply_value * fWeight - 0.01f));
+            uint8_t type = basic_apply.apply_type;
+            auto s_value = (short)(ceil((float)basic_apply.apply_value * weight - 0.01f));
 
-            ds->set_force_attribute(i, bType, sValue);
+            ds->set_force_attribute(i, type, s_value);
         }
 
         for (int i = DRAGON_SOUL_ADDITIONAL_ATTR_START_IDX; i < ITEM_ATTRIBUTE_MAX_NUM; i++) {
-            uint8_t bType = ds->attribute_type(i);
-            short sValue = 0;
-            if (APPLY_NONE == bType)
+            uint8_t type = ds->attribute_type(i);
+            short s_value = 0;
+            if (APPLY_NONE == type)
                 continue;
             for (size_t j = 0; j < vec_addtional_applys.size(); j++) {
-                if (vec_addtional_applys[j].apply_type == bType) {
-                    sValue = vec_addtional_applys[j].apply_value;
+                if (vec_addtional_applys[j].apply_type == type) {
+                    s_value = vec_addtional_applys[j].apply_value;
                     break;
                 }
             }
-            ds->set_force_attribute(i, bType, (short)(ceil((float)sValue * fWeight - 0.01f)));
+            ds->set_force_attribute(i, type, (short)(ceil((float)s_value * weight - 0.01f)));
         }
         return true;
     }
@@ -217,19 +217,19 @@ namespace metin2::game::inline items {
             return false;
         }
 
-        float fWeight = 0.f;
-        if (!table_->weight(ds_type, grade_idx, step_idx, strength_idx, fWeight)) {
+        float weight = 0.f;
+        if (!table_->weight(ds_type, grade_idx, step_idx, strength_idx, weight)) {
             return false;
         }
-        fWeight /= 100.f;
+        weight /= 100.f;
 
         int n = std::min<int>(basic_apply_num, vec_basic_applys.size());
         for (int i = 0; i < n; i++) {
             const apply &basic_apply = vec_basic_applys[i];
-            uint8_t bType = basic_apply.apply_type;
-            auto sValue = (short)(ceil((float)basic_apply.apply_value * fWeight - 0.01f));
+            uint8_t type = basic_apply.apply_type;
+            auto s_value = (short)(ceil((float)basic_apply.apply_value * weight - 0.01f));
 
-            ds->set_force_attribute(i, bType, sValue);
+            ds->set_force_attribute(i, type, s_value);
         }
 
         uint8_t additional_attr_num = std::min(number(add_min, add_max), 3);
@@ -249,10 +249,10 @@ namespace metin2::game::inline items {
             for (int i = 0; i < additional_attr_num; i++) {
                 int r = random_set[i];
                 const apply &additional_attr = vec_addtional_applys[r];
-                uint8_t bType = additional_attr.apply_type;
-                auto sValue = (short)(ceil((float)additional_attr.apply_value * fWeight - 0.01f));
+                uint8_t type = additional_attr.apply_type;
+                auto s_value = (short)(ceil((float)additional_attr.apply_value * weight - 0.01f));
 
-                ds->set_force_attribute(DRAGON_SOUL_ADDITIONAL_ATTR_START_IDX + i, bType, sValue);
+                ds->set_force_attribute(DRAGON_SOUL_ADDITIONAL_ATTR_START_IDX + i, type, s_value);
             }
         }
 
@@ -288,14 +288,14 @@ namespace metin2::game::inline items {
         if (item_value->is_exchanging())
             return false;
 
-        uint32_t dwVnum = item_value->vnum();
+        uint32_t vnum_value = item_value->vnum();
         uint8_t ds_type, grade_idx, step_idx, strength_idx;
-        dragon_soul_info(dwVnum, ds_type, grade_idx, step_idx, strength_idx);
+        dragon_soul_info(vnum_value, ds_type, grade_idx, step_idx, strength_idx);
 
-        int iBonus = 0;
+        int bonus = 0;
 
         if (nullptr != extractor) {
-            iBonus = extractor->value(0);
+            bonus = extractor->value(0);
         }
 
         std::vector<float> vec_chargings;
@@ -312,10 +312,10 @@ namespace metin2::game::inline items {
             return false;
         }
 
-        float fCharge = vec_chargings[idx] * (100 + iBonus) / 100.f;
-        fCharge = std::clamp(fCharge, 0.f, 100.f);
+        float charge = vec_chargings[idx] * (100 + bonus) / 100.f;
+        charge = std::clamp(charge, 0.f, 100.f);
 
-        if (fCharge < FLT_EPSILON) {
+        if (charge < FLT_EPSILON) {
             log_manager::instance().item_log(ch, item_value, "DS_HEART_EXTRACT_FAIL", "");
             item_value->set_count(item_value->count() - 1);
             if (nullptr != extractor) {
@@ -325,16 +325,16 @@ namespace metin2::game::inline items {
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("용심 추출에 실패하였습니다."));
             return false;
         } else {
-            item *pDH = item_manager::instance().create_item(DRAGON_HEART_VNUM);
+            item *dh = item_manager::instance().create_item(DRAGON_HEART_VNUM);
 
-            if (nullptr == pDH) {
+            if (nullptr == dh) {
                 metin2::log::error("Cannot create dragon heart (vnum {:d})", DRAGON_HEART_VNUM);
                 return false;
             }
 
-            int iCharge = (int)(fCharge + 0.5f);
+            int charge_value = (int)(charge + 0.5f);
 
-            std::string s = std::to_string(iCharge);
+            std::string s = std::to_string(charge_value);
             s += "%s";
             log_manager::instance().item_log(ch, item_value, "DS_HEART_EXTRACT_SUCCESS", s.c_str());
 
@@ -343,8 +343,8 @@ namespace metin2::game::inline items {
                 extractor->set_count(extractor->count() - 1);
             }
 
-            pDH->set_socket(ITEM_SOCKET_CHARGING_AMOUNT_IDX, iCharge);
-            ch->auto_give_item(pDH, true);
+            dh->set_socket(ITEM_SOCKET_CHARGING_AMOUNT_IDX, charge_value);
+            ch->auto_give_item(dh, true);
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("용심 추출에 성공하였습니다."));
             return true;
         }
@@ -357,50 +357,50 @@ namespace metin2::game::inline items {
         }
 
         if (!is_valid_cell_for_this_item(item_value, dest_cell)) {
-            int iEmptyCell = ch->empty_dragon_soul_inventory(item_value);
-            if (iEmptyCell < 0) {
+            int empty_cell = ch->empty_dragon_soul_inventory(item_value);
+            if (empty_cell < 0) {
                 ch->chat_packet(CHAT_TYPE_INFO, lc_text("소지품에 빈 공간이 없습니다."));
                 return false;
             } else {
                 dest_cell.window_type = DRAGON_SOUL_INVENTORY;
-                dest_cell.cell = iEmptyCell;
+                dest_cell.cell = empty_cell;
             }
         }
 
         if (!item_value->is_equipped() || !item_value->remove_from_character())
             return false;
 
-        bool bSuccess;
-        uint32_t dwByProduct = 0;
-        int iBonus = 0;
-        float fProb;
-        float fDice;
+        bool success;
+        uint32_t by_product = 0;
+        int bonus = 0;
+        float prob_value;
+        float dice_value;
         {
 
             uint8_t ds_type, grade_idx, step_idx, strength_idx;
             dragon_soul_info(item_value->vnum(), ds_type, grade_idx, step_idx, strength_idx);
 
-            if (!table_->dragon_soul_ext_values(ds_type, grade_idx, fProb, dwByProduct)) {
+            if (!table_->dragon_soul_ext_values(ds_type, grade_idx, prob_value, by_product)) {
                 item_value->add_to_character(ch, dest_cell);
                 return true;
             }
 
             if (nullptr != extractor) {
-                iBonus = extractor->value(ITEM_VALUE_DRAGON_SOUL_POLL_OUT_BONUS_IDX);
+                bonus = extractor->value(ITEM_VALUE_DRAGON_SOUL_POLL_OUT_BONUS_IDX);
                 extractor->set_count(extractor->count() - 1);
             }
-            fDice = fnumber(0.f, 100.f);
-            bSuccess = fDice <= (fProb * (100 + iBonus) / 100.f);
+            dice_value = fnumber(0.f, 100.f);
+            success = dice_value <= (prob_value * (100 + bonus) / 100.f);
         }
 
         {
             std::string buf;
 
-            if (bSuccess) {
+            if (success) {
                 if (extractor) {
-                    buf = std::format("dice({}) prob({} + {}) EXTR(VN:{})", (int)fDice, (int)fProb, iBonus, extractor->vnum());
+                    buf = std::format("dice({}) prob({} + {}) EXTR(VN:{})", (int)dice_value, (int)prob_value, bonus, extractor->vnum());
                 } else {
-                    buf = std::format("dice({:g}) prob({:g})", fDice, fProb);
+                    buf = std::format("dice({:g}) prob({:g})", dice_value, prob_value);
                 }
                 log_manager::instance().item_log(ch, item_value, "DS_PULL_OUT_SUCCESS", buf.c_str());
                 ch->chat_packet(CHAT_TYPE_INFO, lc_text("용혼석 추출에 성공하였습니다."));
@@ -408,17 +408,17 @@ namespace metin2::game::inline items {
                 return true;
             } else {
                 if (extractor) {
-                    buf = std::format("dice({}) prob({} + {}) EXTR(VN:{}) ByProd(VN:{})", (int)fDice, (int)fProb, iBonus, extractor->vnum(), dwByProduct);
+                    buf = std::format("dice({}) prob({} + {}) EXTR(VN:{}) ByProd(VN:{})", (int)dice_value, (int)prob_value, bonus, extractor->vnum(), by_product);
                 } else {
-                    buf = std::format("dice({}) prob({}) ByProd(VNUM:{})", (int)fDice, (int)fProb, dwByProduct);
+                    buf = std::format("dice({}) prob({}) ByProd(VNUM:{})", (int)dice_value, (int)prob_value, by_product);
                 }
                 log_manager::instance().item_log(ch, item_value, "DS_PULL_OUT_FAILED", buf.c_str());
                 item_manager::instance().destroy_item(item_value);
                 item_value = nullptr;
-                if (dwByProduct) {
-                    item *pByProduct = ch->auto_give_item(dwByProduct, true);
-                    if (pByProduct)
-                        ch->chat_packet(CHAT_TYPE_INFO, lc_text("용혼석 추출에 실패하여 %s를 얻었습니다."), pByProduct->name());
+                if (by_product) {
+                    item *by_product_value = ch->auto_give_item(by_product, true);
+                    if (by_product_value)
+                        ch->chat_packet(CHAT_TYPE_INFO, lc_text("용혼석 추출에 실패하여 %s를 얻었습니다."), by_product_value->name());
                     else
                         ch->chat_packet(CHAT_TYPE_INFO, lc_text("용혼석 추출에 실패하였습니다."));
                 } else
@@ -426,7 +426,7 @@ namespace metin2::game::inline items {
             }
         }
 
-        return bSuccess;
+        return success;
     }
 
     namespace {
@@ -448,20 +448,20 @@ namespace metin2::game::inline items {
             if (reject_equip_position && pos.is_equip_position())
                 return false;
 
-            item *pItem = ch->get_item(pos);
-            if (nullptr == pItem)
+            item *item = ch->get_item(pos);
+            if (nullptr == item)
                 continue;
 
-            if (pItem->is_equipped() || pItem->is_exchanging())
+            if (item->is_equipped() || item->is_exchanging())
                 return false;
 
-            if (non_dragon_soul_message && !pItem->is_dragon_soul()) {
+            if (non_dragon_soul_message && !item->is_dragon_soul()) {
                 ch->chat_packet(CHAT_TYPE_INFO, lc_text(non_dragon_soul_message));
-                send_refine_result_packet(ch, DS_SUB_HEADER_REFINE_FAIL_INVALID_MATERIAL, item_pos(pItem->window(), pItem->cell()));
+                send_refine_result_packet(ch, DS_SUB_HEADER_REFINE_FAIL_INVALID_MATERIAL, item_pos(item->window(), item->cell()));
                 return false;
             }
 
-            items.insert(pItem);
+            items.insert(item);
         }
         return true;
     }
@@ -508,19 +508,19 @@ namespace metin2::game::inline items {
             return false;
         }
 
-        for (item *pItem : set_items | std::views::drop(1)) {
-            const uint32_t vnum = pItem->vnum();
+        for (item *item_value : set_items | std::views::drop(1)) {
+            const uint32_t vnum = item_value->vnum();
             if (ds_type != get_type(vnum) || grade_idx != get_grade_idx(vnum) || (!by_grade && step_idx != get_step_idx(vnum))) {
                 ch->chat_packet(CHAT_TYPE_INFO, lc_text(invalid_material));
-                send_refine_result_packet(ch, DS_SUB_HEADER_REFINE_FAIL_INVALID_MATERIAL, item_pos(pItem->window(), pItem->cell()));
+                send_refine_result_packet(ch, DS_SUB_HEADER_REFINE_FAIL_INVALID_MATERIAL, item_pos(item_value->window(), item_value->cell()));
                 return false;
             }
         }
 
         if (count != need_count) {
             metin2::log::warn("Player {} sent a dragon soul refine with the wrong material count (possible modified client)", ch->name());
-            uint8_t bSubHeader = count < need_count ? DS_SUB_HEADER_REFINE_FAIL_NOT_ENOUGH_MATERIAL : DS_SUB_HEADER_REFINE_FAIL_TOO_MUCH_MATERIAL;
-            send_refine_result_packet(ch, bSubHeader, NPOS);
+            uint8_t sub_header = count < need_count ? DS_SUB_HEADER_REFINE_FAIL_NOT_ENOUGH_MATERIAL : DS_SUB_HEADER_REFINE_FAIL_TOO_MUCH_MATERIAL;
+            send_refine_result_packet(ch, sub_header, NPOS);
             return false;
         }
 
@@ -534,9 +534,9 @@ namespace metin2::game::inline items {
         }
 
         const uint32_t result_vnum = by_grade ? make_dragon_soul_vnum(ds_type, (uint8_t)result, 0, 0) : make_dragon_soul_vnum(ds_type, grade_idx, (uint8_t)result, 0);
-        item *pResultItem = item_manager::instance().create_item(result_vnum);
+        item *result_item = item_manager::instance().create_item(result_vnum);
 
-        if (nullptr == pResultItem) {
+        if (nullptr == result_item) {
             metin2::log::error("Cannot create dragon soul (vnum {:d})", result_vnum);
             return false;
         }
@@ -544,31 +544,31 @@ namespace metin2::game::inline items {
         ch->point_change(POINT_GOLD, -fee);
         int left_count = need_count;
 
-        for (item *pItem : set_items) {
-            int n = pItem->count();
+        for (item *item_value : set_items) {
+            int n = item_value->count();
             if (left_count > n) {
-                pItem->remove_from_character();
-                item_manager::instance().destroy_item(pItem);
+                item_value->remove_from_character();
+                item_manager::instance().destroy_item(item_value);
                 left_count -= n;
             } else {
-                pItem->set_count(n - left_count);
+                item_value->set_count(n - left_count);
             }
         }
 
-        ch->auto_give_item(pResultItem, true);
+        ch->auto_give_item(result_item, true);
 
         const int previous = by_grade ? grade_idx : step_idx;
         const bool succeeded = result > previous;
         const char *kind = by_grade ? "GRADE" : "STEP";
         const std::string buf = std::format("{} : {} -> {}", kind, previous, result);
-        log_manager::instance().item_log(ch, pResultItem, std::format("DS_{}_REFINE_{}", kind, succeeded ? "SUCCESS" : "FAIL").c_str(), buf.c_str());
+        log_manager::instance().item_log(ch, result_item, std::format("DS_{}_REFINE_{}", kind, succeeded ? "SUCCESS" : "FAIL").c_str(), buf.c_str());
 
         if (by_grade)
             ch->chat_packet(CHAT_TYPE_INFO, lc_text(succeeded ? "등급 개량에 성공했습니다." : "등급 개량에 실패했습니다."));
         else
             ch->chat_packet(CHAT_TYPE_INFO, lc_text(succeeded ? "단계 개량에 성공했습니다." : "단계 개량에 실패했습니다."));
 
-        send_refine_result_packet(ch, succeeded ? DS_SUB_HEADER_REFINE_SUCCEED : DS_SUB_HEADER_REFINE_FAIL, item_pos(pResultItem->window(), pResultItem->cell()));
+        send_refine_result_packet(ch, succeeded ? DS_SUB_HEADER_REFINE_SUCCEED : DS_SUB_HEADER_REFINE_FAIL, item_pos(result_item->window(), result_item->cell()));
         return succeeded;
     }
 
@@ -598,49 +598,49 @@ namespace metin2::game::inline items {
 
         int fee;
 
-        item *pRefineStone = nullptr;
-        item *pDragonSoul = nullptr;
-        for (item *pItem : set_items) {
-            if (pItem->is_dragon_soul()) {
-                if (pDragonSoul != nullptr) {
-                    send_refine_result_packet(ch, DS_SUB_HEADER_REFINE_FAIL_TOO_MUCH_MATERIAL, item_pos(pItem->window(), pItem->cell()));
+        item *refine_stone = nullptr;
+        item *dragon_soul = nullptr;
+        for (item *item_value : set_items) {
+            if (item_value->is_dragon_soul()) {
+                if (dragon_soul != nullptr) {
+                    send_refine_result_packet(ch, DS_SUB_HEADER_REFINE_FAIL_TOO_MUCH_MATERIAL, item_pos(item_value->window(), item_value->cell()));
                     return false;
                 }
-                pDragonSoul = pItem;
-            } else if (is_dragon_soul_refine_material(pItem)) {
-                if (pRefineStone != nullptr) {
-                    send_refine_result_packet(ch, DS_SUB_HEADER_REFINE_FAIL_TOO_MUCH_MATERIAL, item_pos(pItem->window(), pItem->cell()));
+                dragon_soul = item_value;
+            } else if (is_dragon_soul_refine_material(item_value)) {
+                if (refine_stone != nullptr) {
+                    send_refine_result_packet(ch, DS_SUB_HEADER_REFINE_FAIL_TOO_MUCH_MATERIAL, item_pos(item_value->window(), item_value->cell()));
                     return false;
                 }
-                pRefineStone = pItem;
+                refine_stone = item_value;
             } else {
                 ch->chat_packet(CHAT_TYPE_INFO, lc_text("강화에 필요한 재료가 아닙니다."));
-                send_refine_result_packet(ch, DS_SUB_HEADER_REFINE_FAIL_INVALID_MATERIAL, item_pos(pItem->window(), pItem->cell()));
+                send_refine_result_packet(ch, DS_SUB_HEADER_REFINE_FAIL_INVALID_MATERIAL, item_pos(item_value->window(), item_value->cell()));
                 return false;
             }
         }
 
-        uint8_t bType = 0, bGrade = 0, bStep = 0, bStrength = 0;
+        uint8_t type = 0, grade = 0, step = 0, strength = 0;
 
-        if (!pDragonSoul || !pRefineStone) {
+        if (!dragon_soul || !refine_stone) {
             send_refine_result_packet(ch, DS_SUB_HEADER_REFINE_FAIL_NOT_ENOUGH_MATERIAL, NPOS);
 
             return false;
         }
 
-        dragon_soul_info(pDragonSoul->vnum(), bType, bGrade, bStep, bStrength);
+        dragon_soul_info(dragon_soul->vnum(), type, grade, step, strength);
 
-        float fWeight = 0.f;
-        if (!table_->weight(bType, bGrade, bStep, bStrength + 1, fWeight) || fWeight < FLT_EPSILON) {
+        float weight = 0.f;
+        if (!table_->weight(type, grade, step, strength + 1, weight) || weight < FLT_EPSILON) {
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("강화할 수 없는 용혼석입니다."));
-            send_refine_result_packet(ch, DS_SUB_HEADER_REFINE_FAIL_MAX_REFINE, item_pos(pDragonSoul->window(), pDragonSoul->cell()));
+            send_refine_result_packet(ch, DS_SUB_HEADER_REFINE_FAIL_MAX_REFINE, item_pos(dragon_soul->window(), dragon_soul->cell()));
             return false;
         }
 
-        float fProb;
-        if (!table_->refine_strength_values(bType, pRefineStone->sub_type(), bStrength, fee, fProb)) {
+        float prob;
+        if (!table_->refine_strength_values(type, refine_stone->sub_type(), strength, fee, prob)) {
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("강화할 수 없는 용혼석입니다."));
-            send_refine_result_packet(ch, DS_SUB_HEADER_REFINE_FAIL_INVALID_MATERIAL, item_pos(pDragonSoul->window(), pDragonSoul->cell()));
+            send_refine_result_packet(ch, DS_SUB_HEADER_REFINE_FAIL_INVALID_MATERIAL, item_pos(dragon_soul->window(), dragon_soul->cell()));
 
             return false;
         }
@@ -649,51 +649,51 @@ namespace metin2::game::inline items {
             return false;
 
         ch->point_change(POINT_GOLD, -fee);
-        item *pResult = nullptr;
-        uint8_t bSubHeader;
+        item *result = nullptr;
+        uint8_t sub_header;
 
-        if (fnumber(0.f, 100.f) <= fProb) {
-            pResult = item_manager::instance().create_item(make_dragon_soul_vnum(bType, bGrade, bStep, bStrength + 1));
-            if (nullptr == pResult) {
-                metin2::log::error("Cannot create dragon soul (vnum {:d})", make_dragon_soul_vnum(bType, bGrade, bStep, bStrength + 1));
+        if (fnumber(0.f, 100.f) <= prob) {
+            result = item_manager::instance().create_item(make_dragon_soul_vnum(type, grade, step, strength + 1));
+            if (nullptr == result) {
+                metin2::log::error("Cannot create dragon soul (vnum {:d})", make_dragon_soul_vnum(type, grade, step, strength + 1));
                 return false;
             }
-            pDragonSoul->remove_from_character();
+            dragon_soul->remove_from_character();
 
-            pDragonSoul->copy_attribute_to(pResult);
-            refresh_item_attributes(pResult);
+            dragon_soul->copy_attribute_to(result);
+            refresh_item_attributes(result);
 
-            pDragonSoul->set_count(pDragonSoul->count() - 1);
-            pRefineStone->set_count(pRefineStone->count() - 1);
+            dragon_soul->set_count(dragon_soul->count() - 1);
+            refine_stone->set_count(refine_stone->count() - 1);
 
-            const std::string buf = std::format("STRENGTH : {} -> {}", bStrength, bStrength + 1);
-            log_manager::instance().item_log(ch, pDragonSoul, "DS_STRENGTH_REFINE_SUCCESS", buf.c_str());
+            const std::string buf = std::format("STRENGTH : {} -> {}", strength, strength + 1);
+            log_manager::instance().item_log(ch, dragon_soul, "DS_STRENGTH_REFINE_SUCCESS", buf.c_str());
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("강화에 성공했습니다."));
-            ch->auto_give_item(pResult, true);
-            bSubHeader = DS_SUB_HEADER_REFINE_SUCCEED;
+            ch->auto_give_item(result, true);
+            sub_header = DS_SUB_HEADER_REFINE_SUCCEED;
         } else {
-            if (bStrength != 0) {
-                pResult = item_manager::instance().create_item(make_dragon_soul_vnum(bType, bGrade, bStep, bStrength - 1));
-                if (nullptr == pResult) {
-                    metin2::log::error("Cannot create dragon soul (vnum {:d})", make_dragon_soul_vnum(bType, bGrade, bStep, bStrength - 1));
+            if (strength != 0) {
+                result = item_manager::instance().create_item(make_dragon_soul_vnum(type, grade, step, strength - 1));
+                if (nullptr == result) {
+                    metin2::log::error("Cannot create dragon soul (vnum {:d})", make_dragon_soul_vnum(type, grade, step, strength - 1));
                     return false;
                 }
-                pDragonSoul->copy_attribute_to(pResult);
-                refresh_item_attributes(pResult);
+                dragon_soul->copy_attribute_to(result);
+                refresh_item_attributes(result);
             }
-            bSubHeader = DS_SUB_HEADER_REFINE_FAIL;
+            sub_header = DS_SUB_HEADER_REFINE_FAIL;
 
-            const std::string buf = std::format("STRENGTH : {} -> {}", bStrength, bStrength - 1);
-            log_manager::instance().item_log(ch, pDragonSoul, "DS_STRENGTH_REFINE_FAIL", buf.c_str());
+            const std::string buf = std::format("STRENGTH : {} -> {}", strength, strength - 1);
+            log_manager::instance().item_log(ch, dragon_soul, "DS_STRENGTH_REFINE_FAIL", buf.c_str());
 
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("강화에 실패했습니다."));
-            pDragonSoul->set_count(pDragonSoul->count() - 1);
-            pRefineStone->set_count(pRefineStone->count() - 1);
-            if (nullptr != pResult)
-                ch->auto_give_item(pResult, true);
+            dragon_soul->set_count(dragon_soul->count() - 1);
+            refine_stone->set_count(refine_stone->count() - 1);
+            if (nullptr != result)
+                ch->auto_give_item(result, true);
         }
 
-        send_refine_result_packet(ch, bSubHeader, nullptr == pResult ? NPOS : item_pos(pResult->window(), pResult->cell()));
+        send_refine_result_packet(ch, sub_header, nullptr == result ? NPOS : item_pos(result->window(), result->cell()));
 
         return true;
     }
@@ -742,11 +742,11 @@ namespace metin2::game::inline items {
     auto ds_manager::activate_dragon_soul(item *item_value) -> bool {
         if (nullptr == item_value)
             return false;
-        character *pOwner = item_value->owner();
-        if (nullptr == pOwner)
+        character *owner = item_value->owner();
+        if (nullptr == owner)
             return false;
 
-        int deck_idx = pOwner->dragon_soul_get_active_deck();
+        int deck_idx = owner->dragon_soul_get_active_deck();
 
         if (deck_idx < 0)
             return false;
@@ -755,7 +755,7 @@ namespace metin2::game::inline items {
             item_value->cell() < INVENTORY_MAX_NUM + WEAR_MAX_NUM + DS_SLOT_MAX * (deck_idx + 1)) {
             if (is_time_left_dragon_soul(item_value) && !is_active_dragon_soul(item_value)) {
                 const std::string buf = std::format("LEFT TIME({})", left_time(item_value));
-                log_manager::instance().item_log(pOwner, item_value, "DS_ACTIVATE", buf.c_str());
+                log_manager::instance().item_log(owner, item_value, "DS_ACTIVATE", buf.c_str());
                 item_value->modify_points(true);
                 item_value->set_socket(ITEM_SOCKET_DRAGON_SOUL_ACTIVE_IDX, 1);
 
@@ -770,8 +770,8 @@ namespace metin2::game::inline items {
         if (nullptr == item_value)
             return false;
 
-        character *pOwner = item_value->owner();
-        if (nullptr == pOwner)
+        character *owner = item_value->owner();
+        if (nullptr == owner)
             return false;
 
         if (!is_active_dragon_soul(item_value))
@@ -782,10 +782,10 @@ namespace metin2::game::inline items {
         item_value->modify_points(false);
 
         const std::string buf = std::format("LEFT TIME({})", left_time(item_value));
-        log_manager::instance().item_log(pOwner, item_value, "DS_DEACTIVATE", buf.c_str());
+        log_manager::instance().item_log(owner, item_value, "DS_DEACTIVATE", buf.c_str());
 
         if (false == skip_refresh_owner_active_state)
-            refresh_dragon_soul_state(pOwner);
+            refresh_dragon_soul_state(owner);
 
         return true;
     }
@@ -794,9 +794,9 @@ namespace metin2::game::inline items {
         if (nullptr == ch)
             return;
         for (int i = WEAR_MAX_NUM; i < WEAR_MAX_NUM + static_cast<int>(DS_SLOT_MAX) * DRAGON_SOUL_DECK_MAX_NUM; i++) {
-            item *pItem = ch->wear(i);
-            if (pItem != nullptr) {
-                if (is_active_dragon_soul(pItem)) {
+            item *item = ch->wear(i);
+            if (item != nullptr) {
+                if (is_active_dragon_soul(item)) {
                     return;
                 }
             }

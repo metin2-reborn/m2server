@@ -26,32 +26,32 @@ namespace metin2::game {
 
         auto marriage_remove(lua_State *lua) -> int {
             character *ch = quest_manager::instance().current_character_ptr();
-            marriage::marriage *pMarriage = marriage::manager::instance().get(ch->player_id());
-            if (!pMarriage) {
+            marriage::marriage *marriage = marriage::manager::instance().get(ch->player_id());
+            if (!marriage) {
                 quest::error("Player {1} (pid {0:d}) is not married", ch->player_id(), ch->name());
                 return 0;
             }
-            marriage::manager::instance().request_remove(ch->player_id(), pMarriage->other(ch->player_id()));
+            marriage::manager::instance().request_remove(ch->player_id(), marriage->other(ch->player_id()));
             return 0;
         }
 
         auto marriage_set_to_marriage(lua_State *lua) -> int {
             character *ch = quest_manager::instance().current_character_ptr();
-            marriage::marriage *pMarriage = marriage::manager::instance().get(ch->player_id());
-            if (!pMarriage) {
+            marriage::marriage *marriage = marriage::manager::instance().get(ch->player_id());
+            if (!marriage) {
                 quest::error("Player {1} (pid {0:d}) is not married", ch->player_id(), ch->name());
                 return 0;
             }
-            pMarriage->set_married();
+            marriage->set_married();
             return 0;
         }
 
         auto marriage_find_married_vid(lua_State *lua) -> int {
             character *ch = quest_manager::instance().current_character_ptr();
-            marriage::marriage *pMarriage = marriage::manager::instance().get(ch->player_id());
+            marriage::marriage *marriage = marriage::manager::instance().get(ch->player_id());
             uint32_t vid = 0;
-            if (pMarriage) {
-                character *you = character_manager::instance().find_by_pid(pMarriage->other(ch->player_id()));
+            if (marriage) {
+                character *you = character_manager::instance().find_by_pid(marriage->other(ch->player_id()));
                 if (you)
                     vid = you->get_vid();
             }
@@ -93,26 +93,26 @@ namespace metin2::game {
 
             character *ch = quest_manager::instance().current_character_ptr();
 
-            marriage::marriage *pMarriage = marriage::manager::instance().get(pid1);
-            if (!pMarriage) {
+            marriage::marriage *marriage = marriage::manager::instance().get(pid1);
+            if (!marriage) {
                 quest::error("Player {1} (pid {0:d}) is not married", ch->player_id(), ch->name());
                 return 0;
             }
-            if (pMarriage->other(pid1) != pid2) {
+            if (marriage->other(pid1) != pid2) {
                 quest::error("Players (pid {:d}, pid {:d}) are not married to each other", pid1, pid2);
                 return 0;
             }
             if (ch->is_hack())
                 return 0;
 
-            pMarriage->warp_to_wedding_map(ch->player_id());
+            marriage->warp_to_wedding_map(ch->player_id());
             return 0;
         }
 
         auto marriage_warp_to_my_marriage_map(lua_State *lua) -> int {
             character *ch = quest_manager::instance().current_character_ptr();
-            marriage::marriage *pMarriage = marriage::manager::instance().get(ch->player_id());
-            if (!pMarriage) {
+            marriage::marriage *marriage = marriage::manager::instance().get(ch->player_id());
+            if (!marriage) {
                 quest::error("Player {1} (pid {0:d}) is not married", ch->player_id(), ch->name());
                 return 0;
             }
@@ -120,19 +120,19 @@ namespace metin2::game {
             if (ch->is_hack())
                 return 0;
 
-            pMarriage->warp_to_wedding_map(ch->player_id());
+            marriage->warp_to_wedding_map(ch->player_id());
             return 0;
         }
 
         auto marriage_end_wedding(lua_State *lua) -> int {
             character *ch = quest_manager::instance().current_character_ptr();
-            marriage::marriage *pMarriage = marriage::manager::instance().get(ch->player_id());
-            if (!pMarriage) {
+            marriage::marriage *marriage = marriage::manager::instance().get(ch->player_id());
+            if (!marriage) {
                 quest::error("Player {1} (pid {0:d}) is not married", ch->player_id(), ch->name());
                 return 0;
             }
-            if (pMarriage->wedding_info) {
-                pMarriage->request_end_wedding();
+            if (marriage->wedding_info) {
+                marriage->request_end_wedding();
             }
             return 0;
         }
@@ -143,15 +143,15 @@ namespace metin2::game {
                 return 0;
             }
             character *ch = quest_manager::instance().current_character_ptr();
-            marriage::marriage *pMarriage = marriage::manager::instance().get(ch->player_id());
+            marriage::marriage *marriage = marriage::manager::instance().get(ch->player_id());
 
-            if (!pMarriage) {
+            if (!marriage) {
                 quest::error("Player {1} (pid {0:d}) is not married", ch->player_id(), ch->name());
                 return 0;
             }
-            if (pMarriage->wedding_info) {
-                marriage::wedding_map *pWedding = marriage::wedding_manager::instance().find(pMarriage->wedding_info->map_index);
-                pWedding->set_dark(lua_toboolean(lua, 1));
+            if (marriage->wedding_info) {
+                marriage::wedding_map *wedding = marriage::wedding_manager::instance().find(marriage->wedding_info->map_index);
+                wedding->set_dark(lua_toboolean(lua, 1));
             }
 
             return 0;
@@ -162,29 +162,29 @@ namespace metin2::game {
                 return 0;
 
             character *ch = quest_manager::instance().current_character_ptr();
-            marriage::marriage *pMarriage = marriage::manager::instance().get(ch->player_id());
-            if (!pMarriage) {
+            marriage::marriage *marriage = marriage::manager::instance().get(ch->player_id());
+            if (!marriage) {
                 quest::error("Player {1} (pid {0:d}) is not married", ch->player_id(), ch->name());
                 return 0;
             }
-            if (pMarriage->wedding_info) {
-                marriage::wedding_map *pWedding = marriage::wedding_manager::instance().find(pMarriage->wedding_info->map_index);
-                pWedding->shout_in_map(CHAT_TYPE_COMMAND, lua_tostring(lua, 1));
+            if (marriage->wedding_info) {
+                marriage::wedding_map *wedding = marriage::wedding_manager::instance().find(marriage->wedding_info->map_index);
+                wedding->shout_in_map(CHAT_TYPE_COMMAND, lua_tostring(lua, 1));
             }
             return 0;
         }
 
         auto marriage_wedding_is_playing_music(lua_State *lua) -> int {
             character *ch = quest_manager::instance().current_character_ptr();
-            marriage::marriage *pMarriage = marriage::manager::instance().get(ch->player_id());
-            if (!pMarriage) {
+            marriage::marriage *marriage = marriage::manager::instance().get(ch->player_id());
+            if (!marriage) {
                 quest::error("Player {1} (pid {0:d}) is not married", ch->player_id(), ch->name());
                 return 0;
             }
-            if (pMarriage->wedding_info) {
-                marriage::wedding_map *pWedding = marriage::wedding_manager::instance().find(pMarriage->wedding_info->map_index);
-                if (pWedding)
-                    lua_pushboolean(lua, pWedding->is_playing_music());
+            if (marriage->wedding_info) {
+                marriage::wedding_map *wedding = marriage::wedding_manager::instance().find(marriage->wedding_info->map_index);
+                if (wedding)
+                    lua_pushboolean(lua, wedding->is_playing_music());
                 else
                     lua_pushboolean(lua, false);
             }
@@ -201,14 +201,14 @@ namespace metin2::game {
                 return 0;
 
             character *ch = quest_manager::instance().current_character_ptr();
-            marriage::marriage *pMarriage = marriage::manager::instance().get(ch->player_id());
-            if (!pMarriage) {
+            marriage::marriage *marriage = marriage::manager::instance().get(ch->player_id());
+            if (!marriage) {
                 quest::error("Player {1} (pid {0:d}) is not married", ch->player_id(), ch->name());
                 return 0;
             }
-            if (pMarriage->wedding_info) {
-                marriage::wedding_map *pWedding = marriage::wedding_manager::instance().find(pMarriage->wedding_info->map_index);
-                pWedding->set_music(
+            if (marriage->wedding_info) {
+                marriage::wedding_map *wedding = marriage::wedding_manager::instance().find(marriage->wedding_info->map_index);
+                wedding->set_music(
                     lua_toboolean(lua, 1),
                     lua_tostring(lua, 2));
             }
@@ -220,23 +220,23 @@ namespace metin2::game {
                 return 0;
             }
             character *ch = quest_manager::instance().current_character_ptr();
-            marriage::marriage *pMarriage = marriage::manager::instance().get(ch->player_id());
-            if (!pMarriage) {
+            marriage::marriage *marriage = marriage::manager::instance().get(ch->player_id());
+            if (!marriage) {
                 quest::error("Player {1} (pid {0:d}) is not married", ch->player_id(), ch->name());
                 return 0;
             }
-            if (pMarriage->wedding_info) {
-                marriage::wedding_map *pWedding = marriage::wedding_manager::instance().find(pMarriage->wedding_info->map_index);
-                pWedding->set_snow(lua_toboolean(lua, 1));
+            if (marriage->wedding_info) {
+                marriage::wedding_map *wedding = marriage::wedding_manager::instance().find(marriage->wedding_info->map_index);
+                wedding->set_snow(lua_toboolean(lua, 1));
             }
             return 0;
         }
 
         auto marriage_in_my_wedding(lua_State *lua) -> int {
             character *ch = quest_manager::instance().current_character_ptr();
-            marriage::marriage *pMarriage = marriage::manager::instance().get(ch->player_id());
-            if (pMarriage->wedding_info) {
-                lua_pushboolean(lua, (uint32_t)ch->map_index() == pMarriage->wedding_info->map_index);
+            marriage::marriage *marriage = marriage::manager::instance().get(ch->player_id());
+            if (marriage->wedding_info) {
+                lua_pushboolean(lua, (uint32_t)ch->map_index() == marriage->wedding_info->map_index);
             } else {
                 lua_pushboolean(lua, 0);
             }
@@ -245,15 +245,15 @@ namespace metin2::game {
 
         auto marriage_get_married_time(lua_State *lua) -> int {
             character *ch = quest_manager::instance().current_character_ptr();
-            marriage::marriage *pMarriage = marriage::manager::instance().get(ch->player_id());
+            marriage::marriage *marriage = marriage::manager::instance().get(ch->player_id());
 
-            if (!pMarriage) {
+            if (!marriage) {
                 quest::error("Player {} is not married", ch->name());
                 lua_pushnumber(lua, 0);
                 return 1;
             }
 
-            lua_pushnumber(lua, get_global_time() - pMarriage->marry_time);
+            lua_pushnumber(lua, get_global_time() - marriage->marry_time);
             return 1;
         }
 

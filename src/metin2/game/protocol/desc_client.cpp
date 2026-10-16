@@ -119,10 +119,10 @@ namespace metin2::game::inline protocol {
                 metin2::log::debug("Db connection established, sending setup");
 
                 if (!metin2::config::is_auth()) {
-                    static bool bSentBoot = false;
+                    static bool sent_boot = false;
 
-                    if (!bSentBoot) {
-                        bSentBoot = true;
+                    if (!sent_boot) {
+                        sent_boot = true;
                         packet_gd_boot p;
                         p.item_id_range[0] = 0;
                         p.item_id_range[1] = 0;
@@ -246,21 +246,21 @@ namespace metin2::game::inline protocol {
             CHANNELSTATUS_UPDATE_PERIOD = 5 * 60 * 1000,
         };
         if (force || t_last_channel_status_update_time_ + CHANNELSTATUS_UPDATE_PERIOD < t) {
-            int iTotal;
-            int *paiEmpireUserCount;
-            int iLocal;
-            desc_manager::instance().user_count(iTotal, &paiEmpireUserCount, iLocal);
+            int total;
+            int *pai_empire_user_count;
+            int local;
+            desc_manager::instance().user_count(total, &pai_empire_user_count, local);
 
-            channel_status channelStatus;
-            channelStatus.port = metin2::config::server().port;
+            channel_status channel_status;
+            channel_status.port = metin2::config::server().port;
 
             if (no_more_client)
-                channelStatus.status = 0;
+                channel_status.status = 0;
             else
-                channelStatus.status = iTotal > full_user_count ? 3 : iTotal > busy_user_count ? 2
-                                                                                               : 1;
+                channel_status.status = total > full_user_count ? 3 : total > busy_user_count ? 2
+                                                                                              : 1;
 
-            db_packet(HEADER_GD_UPDATE_CHANNELSTATUS, 0, &channelStatus, sizeof(channelStatus));
+            db_packet(HEADER_GD_UPDATE_CHANNELSTATUS, 0, &channel_status, sizeof(channel_status));
             t_last_channel_status_update_time_ = t;
         }
     }

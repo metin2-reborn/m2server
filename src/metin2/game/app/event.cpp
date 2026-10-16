@@ -78,14 +78,14 @@ namespace metin2::game::inline app {
 
         while (pulse >= cxx_q.top_key()) {
             event_queue::element elem = cxx_q.dequeue();
-            queue_element *pElem = &elem.mapped();
+            queue_element *elem_value = &elem.mapped();
 
-            if (pElem->cancel)
+            if (elem_value->cancel)
                 continue;
 
-            new_time = pElem->key;
+            new_time = elem_value->key;
 
-            event_ptr the_event = pElem->pv_data;
+            event_ptr the_event = elem_value->pv_data;
             int32_t processing_time = event_processing_time(the_event);
             elem = {};
             the_event->q_el = nullptr;

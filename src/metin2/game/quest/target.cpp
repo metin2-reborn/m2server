@@ -62,45 +62,45 @@ namespace metin2::game {
             return 0;
         }
 
-        character *pkChr = character_manager::instance().find_by_pid(info->pid);
-        if (pkChr == nullptr) {
+        character *chr = character_manager::instance().find_by_pid(info->pid);
+        if (chr == nullptr) {
             return 0;
         }
         character *tch = nullptr;
         int x = 0, y = 0;
-        int iDist = 5000;
+        int dist = 5000;
 
-        if (info->map_index != pkChr->map_index())
-            return std::clamp(iDist / (1500 / metin2::config::server().passes_per_sec), metin2::config::server().passes_per_sec / 2, metin2::config::server().passes_per_sec * 5);
+        if (info->map_index != chr->map_index())
+            return std::clamp(dist / (1500 / metin2::config::server().passes_per_sec), metin2::config::server().passes_per_sec / 2, metin2::config::server().passes_per_sec * 5);
 
         switch (info->type) {
         case TARGET_TYPE_POS:
             x = info->arg1;
             y = info->arg2;
-            iDist = distance_approx(pkChr->x() - x, pkChr->y() - y);
+            dist = distance_approx(chr->x() - x, chr->y() - y);
             break;
 
         case TARGET_TYPE_VID:
             {
                 tch = character_manager::instance().find(info->arg1);
 
-                if (tch && tch->map_index() == pkChr->map_index()) {
+                if (tch && tch->map_index() == chr->map_index()) {
                     x = tch->x();
                     y = tch->y();
-                    iDist = distance_approx(pkChr->x() - x, pkChr->y() - y);
+                    dist = distance_approx(chr->x() - x, chr->y() - y);
                 }
             }
             break;
         }
 
-        bool bRet = true;
+        bool ret = true;
 
-        if (iDist <= 500)
-            bRet = quest::quest_manager::instance().target(pkChr->player_id(), info->quest_index, info->target_name, "arrive");
+        if (dist <= 500)
+            ret = quest::quest_manager::instance().target(chr->player_id(), info->quest_index, info->target_name, "arrive");
 
         if (!tch && info->type == TARGET_TYPE_VID) {
-            quest::quest_manager::instance().target(pkChr->player_id(), info->quest_index, info->target_name, "die");
-            target_manager::instance().delete_target(pkChr->player_id(), info->quest_index, info->target_name);
+            quest::quest_manager::instance().target(chr->player_id(), info->quest_index, info->target_name, "die");
+            target_manager::instance().delete_target(chr->player_id(), info->quest_index, info->target_name);
         }
 
         if (event->is_force_to_end) {
@@ -110,16 +110,16 @@ namespace metin2::game {
 
         if (x != info->old_x || y != info->old_y) {
             if (info->send_to_client)
-                send_target_update_packet(pkChr->get_desc(), info->id, x, y);
+                send_target_update_packet(chr->get_desc(), info->id, x, y);
 
             info->old_x = x;
             info->old_y = y;
         }
 
-        if (!bRet)
+        if (!ret)
             return metin2::config::server().passes_per_sec;
         else
-            return std::clamp(iDist / (1500 / metin2::config::server().passes_per_sec), metin2::config::server().passes_per_sec / 2, metin2::config::server().passes_per_sec * 5);
+            return std::clamp(dist / (1500 / metin2::config::server().passes_per_sec), metin2::config::server().passes_per_sec / 2, metin2::config::server().passes_per_sec * 5);
     }
 
     void target_manager::create_target(uint32_t pid_value,
@@ -134,14 +134,14 @@ namespace metin2::game {
         metin2::log::debug("Target: create for pid {:d}, quest {:d}, name {}, type {:d}, args {:d} {:d}",
             pid_value, quest_index_value, target_name_value, type_value, arg1_value, arg2_value);
 
-        character *pkChr = character_manager::instance().find_by_pid(pid_value);
+        character *chr = character_manager::instance().find_by_pid(pid_value);
 
-        if (!pkChr) {
+        if (!chr) {
             metin2::log::error("Player (pid {:d}) not found", pid_value);
             return;
         }
 
-        if (pkChr->map_index() != map_index_value)
+        if (chr->map_index() != map_index_value)
             return;
 
         auto it = map_list_event_.find(pid_value);
@@ -150,66 +150,66 @@ namespace metin2::game {
             auto it2 = it->second.begin();
 
             while (it2 != it->second.end()) {
-                event_ptr pkEvent = *(it2++);
-                auto *existInfo = dynamic_cast<target_info *>(pkEvent->info.get());
+                event_ptr event_value = *(it2++);
+                auto *exist_info = dynamic_cast<target_info *>(event_value->info.get());
 
-                if (nullptr == existInfo) {
+                if (nullptr == exist_info) {
                     metin2::log::error("Existing target event has no info");
                     return;
                 }
 
-                if (existInfo->quest_index == quest_index_value && !strcmp(existInfo->target_name, target_name_value)) {
+                if (exist_info->quest_index == quest_index_value && !strcmp(exist_info->target_name, target_name_value)) {
                     metin2::log::debug("Target: replacing existing target");
 
-                    if (existInfo->send_to_client)
-                        send_target_delete_packet(pkChr->get_desc(), existInfo->id);
+                    if (exist_info->send_to_client)
+                        send_target_delete_packet(chr->get_desc(), exist_info->id);
 
                     if (target_desc_value) {
-                        strlcpy(existInfo->target_desc, target_desc_value, sizeof(existInfo->target_desc));
+                        strlcpy(exist_info->target_desc, target_desc_value, sizeof(exist_info->target_desc));
                     } else {
-                        *existInfo->target_desc = '\0';
+                        *exist_info->target_desc = '\0';
                     }
 
-                    existInfo->id = ++id_;
-                    existInfo->type = type_value;
-                    existInfo->arg1 = arg1_value;
-                    existInfo->arg2 = arg2_value;
-                    existInfo->old_x = 0;
-                    existInfo->old_y = 0;
-                    existInfo->send_to_client = send_flag ? true : false;
+                    exist_info->id = ++id_;
+                    exist_info->type = type_value;
+                    exist_info->arg1 = arg1_value;
+                    exist_info->arg2 = arg2_value;
+                    exist_info->old_x = 0;
+                    exist_info->old_y = 0;
+                    exist_info->send_to_client = send_flag ? true : false;
 
-                    send_target_create_packet(pkChr->get_desc(), existInfo);
+                    send_target_create_packet(chr->get_desc(), exist_info);
                     return;
                 }
             }
         }
 
-        auto *newInfo = alloc_event_info<target_info>();
+        auto *new_info = alloc_event_info<target_info>();
 
         if (target_desc_value) {
-            strlcpy(newInfo->target_desc, target_desc_value, sizeof(newInfo->target_desc));
+            strlcpy(new_info->target_desc, target_desc_value, sizeof(new_info->target_desc));
         } else {
-            *newInfo->target_desc = '\0';
+            *new_info->target_desc = '\0';
         }
 
-        newInfo->id = ++id_;
-        newInfo->pid = pid_value;
-        newInfo->quest_index = quest_index_value;
-        strlcpy(newInfo->target_name, target_name_value, sizeof(newInfo->target_name));
-        newInfo->type = type_value;
-        newInfo->arg1 = arg1_value;
-        newInfo->arg2 = arg2_value;
-        newInfo->map_index = map_index_value;
-        newInfo->old_x = 0;
-        newInfo->old_y = 0;
-        newInfo->send_to_client = send_flag ? true : false;
+        new_info->id = ++id_;
+        new_info->pid = pid_value;
+        new_info->quest_index = quest_index_value;
+        strlcpy(new_info->target_name, target_name_value, sizeof(new_info->target_name));
+        new_info->type = type_value;
+        new_info->arg1 = arg1_value;
+        new_info->arg2 = arg2_value;
+        new_info->map_index = map_index_value;
+        new_info->old_x = 0;
+        new_info->old_y = 0;
+        new_info->send_to_client = send_flag ? true : false;
 
-        event_ptr event = event_create(game::target_event, newInfo, passes_per_sec(1));
+        event_ptr event = event_create(game::target_event, new_info, passes_per_sec(1));
 
         if (nullptr != event) {
             map_list_event_[pid_value].push_back(event);
 
-            send_target_create_packet(pkChr->get_desc(), newInfo);
+            send_target_create_packet(chr->get_desc(), new_info);
         }
     }
 
@@ -222,8 +222,8 @@ namespace metin2::game {
         auto it2 = it->second.begin();
 
         while (it2 != it->second.end()) {
-            event_ptr pkEvent = *it2;
-            auto *info = dynamic_cast<target_info *>(pkEvent->info.get());
+            event_ptr event_value = *it2;
+            auto *info = dynamic_cast<target_info *>(event_value->info.get());
 
             if (info == nullptr) {
                 metin2::log::error("Target event has no info");
@@ -234,13 +234,13 @@ namespace metin2::game {
             if (quest_index_value == info->quest_index) {
                 if (!target_name_value || !strcmp(info->target_name, target_name_value)) {
                     if (info->send_to_client) {
-                        character *pkChr = character_manager::instance().find_by_pid(info->pid);
-                        if (pkChr != nullptr) {
-                            send_target_delete_packet(pkChr->get_desc(), info->id);
+                        character *chr = character_manager::instance().find_by_pid(info->pid);
+                        if (chr != nullptr) {
+                            send_target_delete_packet(chr->get_desc(), info->id);
                         }
                     }
 
-                    event_cancel(&pkEvent);
+                    event_cancel(&event_value);
                     it2 = it->second.erase(it2);
                     continue;
                 }
@@ -259,8 +259,8 @@ namespace metin2::game {
         auto it2 = it->second.begin();
 
         while (it2 != it->second.end()) {
-            event_ptr pkEvent = *(it2++);
-            auto *info = dynamic_cast<target_info *>(pkEvent->info.get());
+            event_ptr event_value = *(it2++);
+            auto *info = dynamic_cast<target_info *>(event_value->info.get());
 
             if (info == nullptr) {
                 metin2::log::error("Target event has no info");
@@ -274,7 +274,7 @@ namespace metin2::game {
             if (strcmp(info->target_name, target_name_value))
                 continue;
 
-            return pkEvent;
+            return event_value;
         }
 
         return nullptr;
@@ -289,8 +289,8 @@ namespace metin2::game {
         auto it2 = it->second.begin();
 
         while (it2 != it->second.end()) {
-            event_ptr pkEvent = *(it2++);
-            auto *info = dynamic_cast<target_info *>(pkEvent->info.get());
+            event_ptr event_value = *(it2++);
+            auto *info = dynamic_cast<target_info *>(event_value->info.get());
 
             if (info == nullptr) {
                 metin2::log::error("Target event has no info");

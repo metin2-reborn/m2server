@@ -120,9 +120,9 @@ namespace metin2::db::inline empire {
 
         monarch_info_.money[empire] += money_value;
 
-        int64_t Money64 = monarch_info_.money[empire];
+        int64_t money64 = monarch_info_.money[empire];
 
-        const std::string query = sql::format("UPDATE monarch set money={} where empire={}", Money64, empire);
+        const std::string query = sql::format("UPDATE monarch set money={} where empire={}", money64, empire);
 
         db_manager::instance().async_query(query);
 
@@ -137,9 +137,9 @@ namespace metin2::db::inline empire {
             return false;
         monarch_info_.money[empire] -= money_value;
 
-        int64_t Money64 = monarch_info_.money[empire];
+        int64_t money64 = monarch_info_.money[empire];
 
-        const std::string query = sql::format("UPDATE monarch set money={} where empire={}", Money64, empire);
+        const std::string query = sql::format("UPDATE monarch set money={} where empire={}", money64, empire);
 
         db_manager::instance().async_query(query);
         return true;
@@ -169,26 +169,26 @@ namespace metin2::db::inline empire {
     auto monarch::load_monarch() -> bool {
         monarch_info *p = &monarch_info_;
         const std::string query = sql::format("SELECT empire, pid, name, money, windate FROM monarch a, player{} b where a.pid=b.id", sql::raw(get_table_postfix()));
-        auto pMsg = db_manager::instance().direct_query(query, SQL_PLAYER);
+        auto msg = db_manager::instance().direct_query(query, SQL_PLAYER);
 
-        if (pMsg->get()->num_rows == 0) {
+        if (msg->get()->num_rows == 0) {
             return false;
         }
 
         MYSQL_ROW row;
-        while ((row = mysql_fetch_row(pMsg->get()->res.get())) != nullptr) {
+        while ((row = mysql_fetch_row(msg->get()->res.get())) != nullptr) {
             int idx = 0;
-            int Empire = 0;
-            str_to_number(Empire, row[idx++]);
+            int empire_value = 0;
+            str_to_number(empire_value, row[idx++]);
 
-            str_to_number(p->pid[Empire], row[idx++]);
-            strlcpy(p->name[Empire], row[idx++], sizeof(p->name[Empire]));
+            str_to_number(p->pid[empire_value], row[idx++]);
+            strlcpy(p->name[empire_value], row[idx++], sizeof(p->name[empire_value]));
 
-            str_to_number(p->money[Empire], row[idx++]);
-            strlcpy(p->date[Empire], row[idx++], sizeof(p->date[Empire]));
+            str_to_number(p->money[empire_value], row[idx++]);
+            strlcpy(p->date[empire_value], row[idx++], sizeof(p->date[empire_value]));
 
             if (metin2::config::test_server())
-                metin2::log::info("Monarch: loaded empire {:d} monarch pid {:d}, money {:d}, elected {}", Empire, p->pid[Empire], p->money[Empire], p->date[Empire]);
+                metin2::log::info("Monarch: loaded empire {:d} monarch pid {:d}, money {:d}, elected {}", empire_value, p->pid[empire_value], p->money[empire_value], p->date[empire_value]);
         }
 
         return true;
@@ -199,27 +199,27 @@ namespace metin2::db::inline empire {
         std::string query = sql::format(
             "SELECT b.empire, a.id, a.name FROM player{} AS a, player_index{} AS b WHERE a.account_id=b.id AND a.name={}",
             sql::raw(get_table_postfix()), sql::raw(get_table_postfix()), std::string_view(name, strnlen(name, CHARACTER_NAME_MAX_LEN)));
-        auto pMsg = db_manager::instance().direct_query(query, SQL_PLAYER);
+        auto msg = db_manager::instance().direct_query(query, SQL_PLAYER);
 
-        if (pMsg->get()->num_rows == 0) {
+        if (msg->get()->num_rows == 0) {
             return false;
         }
 
         MYSQL_ROW row;
-        int Empire = 0;
-        while ((row = mysql_fetch_row(pMsg->get()->res.get())) != nullptr) {
+        int empire_value = 0;
+        while ((row = mysql_fetch_row(msg->get()->res.get())) != nullptr) {
             int idx = 0;
-            str_to_number(Empire, row[idx++]);
+            str_to_number(empire_value, row[idx++]);
 
-            str_to_number(p->pid[Empire], row[idx++]);
-            strlcpy(p->name[Empire], row[idx++], sizeof(p->name[Empire]));
+            str_to_number(p->pid[empire_value], row[idx++]);
+            strlcpy(p->name[empire_value], row[idx++], sizeof(p->name[empire_value]));
 
             if (metin2::config::test_server())
-                metin2::log::info("Monarch: set empire {:d} monarch pid {:d}, money {:d}, elected {}", Empire, p->pid[Empire], p->money[Empire], p->date[Empire]);
+                metin2::log::info("Monarch: set empire {:d} monarch pid {:d}, money {:d}, elected {}", empire_value, p->pid[empire_value], p->money[empire_value], p->date[empire_value]);
         }
 
         query = sql::format(
-            "REPLACE INTO monarch (empire, pid, windate, money) VALUES({}, {}, NOW(), {})", Empire, p->pid[Empire], p->money[Empire]);
+            "REPLACE INTO monarch (empire, pid, windate, money) VALUES({}, {}, NOW(), {})", empire_value, p->pid[empire_value], p->money[empire_value]);
 
         db_manager::instance().async_query(query, SQL_PLAYER);
         return true;
@@ -228,18 +228,18 @@ namespace metin2::db::inline empire {
     auto monarch::del_monarch(const char *name) -> bool {
         for (int n = 1; n < 4; ++n) {
             if (0 == strncmp(monarch_info_.name[n], name, sizeof(monarch_info_.name[n]))) {
-                int Empire = n;
-                const std::string query = sql::format("DELETE FROM monarch WHERE empire={}", Empire);
-                auto pMsg = db_manager::instance().direct_query(query, SQL_PLAYER);
+                int empire_value = n;
+                const std::string query = sql::format("DELETE FROM monarch WHERE empire={}", empire_value);
+                auto msg = db_manager::instance().direct_query(query, SQL_PLAYER);
 
-                if (pMsg->get()->affected_rows == 0 || pMsg->get()->affected_rows == (uint32_t)-1) {
+                if (msg->get()->affected_rows == 0 || msg->get()->affected_rows == (uint32_t)-1) {
                     metin2::log::error("Cannot delete monarch, query affected no rows: {}", query);
                     return false;
                 }
 
-                memset(monarch_info_.name[Empire], 0, 32);
-                monarch_info_.money[Empire] = 0;
-                monarch_info_.pid[Empire] = 0;
+                memset(monarch_info_.name[empire_value], 0, 32);
+                monarch_info_.money[empire_value] = 0;
+                monarch_info_.pid[empire_value] = 0;
                 return true;
             }
         }

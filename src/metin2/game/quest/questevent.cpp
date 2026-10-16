@@ -58,10 +58,10 @@ namespace metin2::game {
                     goto END_OF_TIMER_EVENT;
             } else {
             END_OF_TIMER_EVENT:
-                pc *pPC = q.get_pc(info->player_id);
+                pc *pc = q.get_pc(info->player_id);
 
-                if (pPC)
-                    pPC->remove_timer_not_cancel(info->name);
+                if (pc)
+                    pc->remove_timer_not_cancel(info->name);
                 else
                     metin2::log::error("Quest state for player (pid {:d}) not found", info->player_id);
 

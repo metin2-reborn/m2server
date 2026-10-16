@@ -73,21 +73,21 @@ namespace metin2::game::inline app {
     }
 
     void map_allow_copy(int32_t *pl, int size) {
-        int iCount = 0;
+        int count = 0;
         auto it = set_map_allows.begin();
 
         if (set_map_allows.size() > static_cast<size_t>(size)) {
             metin2::log::error("Too many allowed maps (at most {:d})", size);
             exit(1);
         }
-        while (it != set_map_allows.end() && iCount < size) {
+        while (it != set_map_allows.end() && count < size) {
             *(pl++) = *(it++);
-            ++iCount;
+            ++count;
         }
     }
 
     static auto get_ip_info() -> bool {
-        char szInternalIP[16] = "0";
+        char internal_ip[16] = "0";
         struct ifaddrs *ifaddrp = nullptr;
 
         if (0 != getifaddrs(&ifaddrp))
@@ -105,9 +105,9 @@ namespace metin2::game::inline app {
             char *netip = inet_ntoa(sai->sin_addr);
 
             if (!strncmp(netip, "192.168", 7)) {
-                strlcpy(szInternalIP, netip, sizeof(szInternalIP));
+                strlcpy(internal_ip, netip, sizeof(internal_ip));
             } else if (!strncmp(netip, "10.", 3)) {
-                strlcpy(szInternalIP, netip, sizeof(szInternalIP));
+                strlcpy(internal_ip, netip, sizeof(internal_ip));
             } else if (public_ip[0] == '0') {
                 strlcpy(public_ip, netip, sizeof(public_ip));
             }
@@ -118,10 +118,10 @@ namespace metin2::game::inline app {
         if (public_ip[0] != '0') {
             return true;
         } else {
-            if (szInternalIP[0] == '0') {
+            if (internal_ip[0] == '0') {
                 return false;
             } else {
-                strlcpy(public_ip, szInternalIP, sizeof(public_ip));
+                strlcpy(public_ip, internal_ip, sizeof(public_ip));
                 return true;
             }
         }
@@ -174,16 +174,16 @@ namespace metin2::game::inline app {
         {
             const std::string query = sql::format("SELECT mKey, mValue FROM locale");
 
-            auto pMsg = account_db::instance().direct_query(query);
+            auto msg = account_db::instance().direct_query(query);
 
-            if (pMsg->get()->num_rows == 0) {
+            if (msg->get()->num_rows == 0) {
                 metin2::log::error("Common database locale table is empty or unreadable: {}", query);
                 exit(1);
             }
 
             MYSQL_ROW row;
 
-            while (nullptr != (row = mysql_fetch_row(pMsg->get()->res.get()))) {
+            while (nullptr != (row = mysql_fetch_row(msg->get()->res.get()))) {
                 if (strcasecmp(row[0], "LOCALE") == 0) {
                     if (locale_service_init(row[1]) == false) {
                         metin2::log::error("Invalid locale {} in common database", row[1]);
@@ -222,26 +222,26 @@ namespace metin2::game::inline app {
 
         {
             const std::string query = sql::format("SELECT mValue FROM locale WHERE mKey='SKILL_POWER_BY_LEVEL'");
-            auto pMsg = account_db::instance().direct_query(query);
+            auto msg = account_db::instance().direct_query(query);
 
-            if (pMsg->get()->num_rows == 0) {
+            if (msg->get()->num_rows == 0) {
                 metin2::log::error("Locale table has no SKILL_POWER_BY_LEVEL: {}", query);
                 exit(1);
             }
 
             MYSQL_ROW row;
 
-            row = mysql_fetch_row(pMsg->get()->res.get());
+            row = mysql_fetch_row(msg->get()->res.get());
 
             const char *p = row[0];
             int cnt = 0;
             char num[128];
-            int aiBaseSkillPowerByLevelTable[SKILL_MAX_LEVEL + 1];
+            int ai_base_skill_power_by_level_table[SKILL_MAX_LEVEL + 1];
 
             metin2::log::debug("Skill power by level: {}", p);
             while (*p != '\0' && cnt < (SKILL_MAX_LEVEL + 1)) {
                 p = one_argument(p, num, sizeof(num));
-                aiBaseSkillPowerByLevelTable[cnt++] = atoi(num);
+                ai_base_skill_power_by_level_table[cnt++] = atoi(num);
 
                 if (*p == '\0') {
                     if (cnt != (SKILL_MAX_LEVEL + 1)) {
@@ -256,22 +256,22 @@ namespace metin2::game::inline app {
 
             for (int job = 0; job < JOB_MAX_NUM * 2; ++job) {
                 const std::string type_query = sql::format("SELECT mValue from locale where mKey='SKILL_POWER_BY_LEVEL_TYPE{}' ORDER BY CAST(mValue AS unsigned)", job);
-                auto pMsg = account_db::instance().direct_query(type_query);
+                auto msg = account_db::instance().direct_query(type_query);
 
-                if (pMsg->get()->num_rows == 0) {
-                    table_by_skill::instance().set_skill_power_by_level_from_type(job, aiBaseSkillPowerByLevelTable);
+                if (msg->get()->num_rows == 0) {
+                    table_by_skill::instance().set_skill_power_by_level_from_type(job, ai_base_skill_power_by_level_table);
                     continue;
                 }
 
-                row = mysql_fetch_row(pMsg->get()->res.get());
+                row = mysql_fetch_row(msg->get()->res.get());
                 cnt = 0;
                 p = row[0];
-                int aiSkillTable[SKILL_MAX_LEVEL + 1];
+                int ai_skill_table[SKILL_MAX_LEVEL + 1];
 
                 metin2::log::debug("Skill power of type {:d}: {}", job, p);
                 while (*p != '\0' && cnt < (SKILL_MAX_LEVEL + 1)) {
                     p = one_argument(p, num, sizeof(num));
-                    aiSkillTable[cnt++] = atoi(num);
+                    ai_skill_table[cnt++] = atoi(num);
 
                     if (*p == '\0') {
                         if (cnt != (SKILL_MAX_LEVEL + 1)) {
@@ -284,7 +284,7 @@ namespace metin2::game::inline app {
                     }
                 }
 
-                table_by_skill::instance().set_skill_power_by_level_from_type(job, aiSkillTable);
+                table_by_skill::instance().set_skill_power_by_level_from_type(job, ai_skill_table);
             }
         }
 

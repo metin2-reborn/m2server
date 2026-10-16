@@ -33,15 +33,15 @@ namespace metin2::game::inline data {
             return false;
 
         fseek(fp, 0L, SEEK_END);
-        const size_t fileSize = ftell(fp);
+        const size_t file_size = ftell(fp);
         fseek(fp, 0, SEEK_SET);
 
-        auto pData = std::make_unique<char[]>(fileSize);
-        fread(pData.get(), fileSize, 1, fp);
+        auto data = std::make_unique<char[]>(file_size);
+        fread(data.get(), file_size, 1, fp);
         fclose(fp);
 
-        file_loader_.bind(fileSize, pData.get());
-        pData.reset();
+        file_loader_.bind(file_size, data.get());
+        data.reset();
 
         root_group_node_ = std::make_unique<group_node>();
         if (!load_group(root_group_node_.get())) {
@@ -52,48 +52,48 @@ namespace metin2::game::inline data {
     }
 
     auto group_text_parse_tree_loader::load_group(group_node *group_node_value) -> bool {
-        token_vector stTokenVector;
+        token_vector token_vector;
         for (; dwcur_line_index_ < file_loader_.line_count(); ++dwcur_line_index_) {
-            if (!file_loader_.split_line(dwcur_line_index_, &stTokenVector))
+            if (!file_loader_.split_line(dwcur_line_index_, &token_vector))
                 continue;
 
-            to_lower(stTokenVector[0]);
+            to_lower(token_vector[0]);
 
-            if ('{' == stTokenVector[0][0])
+            if ('{' == token_vector[0][0])
                 continue;
 
-            if ('}' == stTokenVector[0][0])
+            if ('}' == token_vector[0][0])
                 break;
 
-            if (0 == stTokenVector[0].compare("group")) {
-                if (2 != stTokenVector.size()) {
-                    metin2::log::error("{} line {:d}: group line has {:d} tokens instead of 2 (group names must not contain spaces)", file_name_, dwcur_line_index_, stTokenVector.size());
-                    for (unsigned int i = 0; i < stTokenVector.size(); ++i)
-                        metin2::log::error("Token {:d}: {}", i, stTokenVector[i]);
+            if (0 == token_vector[0].compare("group")) {
+                if (2 != token_vector.size()) {
+                    metin2::log::error("{} line {:d}: group line has {:d} tokens instead of 2 (group names must not contain spaces)", file_name_, dwcur_line_index_, token_vector.size());
+                    for (unsigned int i = 0; i < token_vector.size(); ++i)
+                        metin2::log::error("Token {:d}: {}", i, token_vector[i]);
                     exit(1);
                     continue;
                 }
 
-                auto pNewNode = std::make_unique<group_node>();
-                group_node *pNode = pNewNode.get();
+                auto new_node = std::make_unique<group_node>();
+                group_node *node = new_node.get();
 
-                pNode->group_name_ = stTokenVector[1];
-                to_lower(pNode->group_name_);
+                node->group_name_ = token_vector[1];
+                to_lower(node->group_name_);
 
                 ++dwcur_line_index_;
 
-                load_group(pNode);
+                load_group(node);
 
-                group_node_value->set_child_node(pNode->group_name_.c_str(), std::move(pNewNode));
-            } else if (0 == stTokenVector[0].compare("#--#")) {
-                for (size_t i = 1; i < stTokenVector.size(); i++) {
-                    to_lower(stTokenVector[i]);
-                    group_node_value->map_column_name_to_index_.insert(map_name_to_index::value_type(stTokenVector[i], i - 1));
+                group_node_value->set_child_node(node->group_name_.c_str(), std::move(new_node));
+            } else if (0 == token_vector[0].compare("#--#")) {
+                for (size_t i = 1; i < token_vector.size(); i++) {
+                    to_lower(token_vector[i]);
+                    group_node_value->map_column_name_to_index_.insert(map_name_to_index::value_type(token_vector[i], i - 1));
                 }
             } else {
-                std::string key = stTokenVector[0];
+                std::string key = token_vector[0];
 
-                if (1 == stTokenVector.size()) {
+                if (1 == token_vector.size()) {
                     metin2::log::error("{} line {:d}: key {} has no value",
                         file_name_,
                         dwcur_line_index_,
@@ -101,8 +101,8 @@ namespace metin2::game::inline data {
                     break;
                 }
 
-                stTokenVector.erase(stTokenVector.begin());
-                group_node_value->map_rows_.insert(std::make_pair(key, group_node::group_node_row(group_node_value, stTokenVector)));
+                token_vector.erase(token_vector.begin());
+                group_node_value->map_rows_.insert(std::make_pair(key, group_node::group_node_row(group_node_value, token_vector)));
             }
         }
 
@@ -174,14 +174,14 @@ namespace metin2::game::inline data {
     }
 
     auto group_node::group_row(const std::string &group_name, const std::string &row_value, const group_node::group_node_row **pp_row) const -> bool {
-        group_node *pChildGroup = child_node(group_name);
-        if (nullptr != pChildGroup) {
-            if (pChildGroup->row(row_value, pp_row))
+        group_node *child_group = child_node(group_name);
+        if (nullptr != child_group) {
+            if (child_group->row(row_value, pp_row))
                 return true;
         }
-        pChildGroup = child_node("default");
-        if (nullptr != pChildGroup) {
-            if (pChildGroup->row(row_value, pp_row))
+        child_group = child_node("default");
+        if (nullptr != child_group) {
+            if (child_group->row(row_value, pp_row))
                 return true;
         }
         return false;

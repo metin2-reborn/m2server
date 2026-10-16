@@ -38,10 +38,10 @@ namespace metin2::game::inline combat {
             players_[1].agree = true;
         }
 
-        uint32_t adwID[2];
-        adwID[0] = players_[0].pid;
-        adwID[1] = players_[1].pid;
-        crc_ = get_fast_hash((const char *)&adwID, 8);
+        uint32_t adw_id[2];
+        adw_id[0] = players_[0].pid;
+        adw_id[1] = players_[1].pid;
+        crc_ = get_fast_hash((const char *)&adw_id, 8);
         revenge_ = false;
 
         set_last_fight_time();
@@ -91,10 +91,10 @@ namespace metin2::game::inline combat {
             }
         }
 
-        const desc_manager::desc_set &c_rSet = desc_manager::instance().client_set();
-        auto it = c_rSet.begin();
+        const desc_manager::desc_set &c_r_set = desc_manager::instance().client_set();
+        auto it = c_r_set.begin();
 
-        while (it != c_rSet.end()) {
+        while (it != c_r_set.end()) {
             desc *d = *it++;
 
             if (d->is_phase(PHASE_GAME) || d->is_phase(PHASE_DEAD))
@@ -118,13 +118,13 @@ namespace metin2::game::inline combat {
     }
 
     void pvp::win(uint32_t pid_value) {
-        int iSlot = players_[0].pid != pid_value ? 1 : 0;
+        int slot = players_[0].pid != pid_value ? 1 : 0;
 
         revenge_ = true;
 
-        players_[iSlot].agree = true;
-        players_[!iSlot].can_revenge = true;
-        players_[!iSlot].agree = false;
+        players_[slot].agree = true;
+        players_[!slot].can_revenge = true;
+        players_[!slot].agree = false;
 
         packet();
     }
@@ -152,30 +152,30 @@ namespace metin2::game::inline combat {
         if (chr->is_dead() || victim->is_dead())
             return;
 
-        pvp kPVP(chr->player_id(), victim->player_id());
+        pvp pvp_value(chr->player_id(), victim->player_id());
 
-        pvp *pkPVP;
+        pvp *pk_pvp;
 
-        if ((pkPVP = find(kPVP.crc_))) {
-            if (pkPVP->agree(chr->player_id())) {
+        if ((pk_pvp = find(pvp_value.crc_))) {
+            if (pk_pvp->agree(chr->player_id())) {
                 victim->chat_packet(CHAT_TYPE_INFO, lc_text("%s님과의 대결 시작!"), chr->name());
                 chr->chat_packet(CHAT_TYPE_INFO, lc_text("%s님과의 대결 시작!"), victim->name());
             }
             return;
         }
 
-        auto pkNewPVP = std::make_unique<pvp>(kPVP);
-        pkPVP = pkNewPVP.get();
+        auto new_pvp = std::make_unique<pvp>(pvp_value);
+        pk_pvp = new_pvp.get();
 
-        pkPVP->set_vid(chr->player_id(), chr->get_vid());
-        pkPVP->set_vid(victim->player_id(), victim->get_vid());
+        pk_pvp->set_vid(chr->player_id(), chr->get_vid());
+        pk_pvp->set_vid(victim->player_id(), victim->get_vid());
 
-        map_pvp_.emplace(pkPVP->crc_, std::move(pkNewPVP));
+        map_pvp_.emplace(pk_pvp->crc_, std::move(new_pvp));
 
-        map_pvp_set_by_id_[chr->player_id()].insert(pkPVP);
-        map_pvp_set_by_id_[victim->player_id()].insert(pkPVP);
+        map_pvp_set_by_id_[chr->player_id()].insert(pk_pvp);
+        map_pvp_set_by_id_[victim->player_id()].insert(pk_pvp);
 
-        pkPVP->packet();
+        pk_pvp->packet();
 
         char msg[CHAT_MAX_LEN + 1];
         snprintf(msg, sizeof(msg), lc_text("%s님이 대결신청을 했습니다. 승낙하려면 대결동의를 하세요."), chr->name());
@@ -183,8 +183,8 @@ namespace metin2::game::inline combat {
         victim->chat_packet(CHAT_TYPE_INFO, msg);
         chr->chat_packet(CHAT_TYPE_INFO, lc_text("%s에게 대결신청을 했습니다."), victim->name());
 
-        desc *pkVictimDesc = victim->get_desc();
-        if (pkVictimDesc) {
+        desc *victim_desc = victim->get_desc();
+        if (victim_desc) {
             packet_gc_whisper pack;
 
             int len = std::min<int>(CHAT_MAX_LEN, strlen(msg) + 1);
@@ -199,7 +199,7 @@ namespace metin2::game::inline combat {
             buf.write(&pack, sizeof(packet_gc_whisper));
             buf.write(msg, len);
 
-            pkVictimDesc->packet(buf.read_peek(), buf.size());
+            victim_desc->packet(buf.read_peek(), buf.size());
         }
     }
 
@@ -209,13 +209,13 @@ namespace metin2::game::inline combat {
         if (it == map_pvp_set_by_id_.end())
             return;
 
-        uint32_t dwVID = disconnect ? 0 : chr->get_vid();
+        uint32_t vid = disconnect ? 0 : chr->get_vid();
 
         auto it2 = it->second.begin();
 
         while (it2 != it->second.end()) {
-            pvp *pkPVP = *it2++;
-            pkPVP->set_vid(chr->player_id(), dwVID);
+            pvp *pvp = *it2++;
+            pvp->set_vid(chr->player_id(), vid);
         }
     }
 
@@ -238,22 +238,22 @@ namespace metin2::game::inline combat {
         auto it2 = it->second.begin();
 
         while (it2 != it->second.end()) {
-            pvp *pkPVP = *it2++;
+            pvp *pvp = *it2++;
 
-            uint32_t dwCompanionPID;
+            uint32_t companion_pid;
 
-            if (pkPVP->players_[0].pid == chr->player_id())
-                dwCompanionPID = pkPVP->players_[1].pid;
+            if (pvp->players_[0].pid == chr->player_id())
+                companion_pid = pvp->players_[1].pid;
             else
-                dwCompanionPID = pkPVP->players_[0].pid;
+                companion_pid = pvp->players_[0].pid;
 
-            if (dwCompanionPID == killer_pid) {
-                if (pkPVP->is_fight()) {
-                    pkPVP->set_last_fight_time();
-                    pkPVP->win(killer_pid);
+            if (companion_pid == killer_pid) {
+                if (pvp->is_fight()) {
+                    pvp->set_last_fight_time();
+                    pvp->win(killer_pid);
                     found = true;
                     break;
-                } else if (get_dword_time() - pkPVP->last_fight_time() <= 15000) {
+                } else if (get_dword_time() - pvp->last_fight_time() <= 15000) {
                     found = true;
                     break;
                 }
@@ -335,10 +335,10 @@ namespace metin2::game::inline combat {
             return false;
 
         {
-            uint8_t bMapEmpire = sectree_manager::instance().empire_from_map_index(chr->map_index());
+            uint8_t map_empire = sectree_manager::instance().empire_from_map_index(chr->map_index());
 
-            if ((chr->pk_mode() == PK_MODE_PROTECT && chr->empire() == bMapEmpire) ||
-                (victim->pk_mode() == PK_MODE_PROTECT && victim->empire() == bMapEmpire)) {
+            if ((chr->pk_mode() == PK_MODE_PROTECT && chr->empire() == map_empire) ||
+                (victim->pk_mode() == PK_MODE_PROTECT && victim->empire() == map_empire)) {
                 return false;
             }
         }
@@ -348,7 +348,7 @@ namespace metin2::game::inline combat {
             return true;
         }
 
-        bool beKillerMode = false;
+        bool be_killer_mode = false;
 
         if (victim->get_party() && victim->get_party() == chr->get_party()) {
             return false;
@@ -401,17 +401,17 @@ namespace metin2::game::inline combat {
             }
         }
 
-        pvp kPVP(chr->player_id(), victim->player_id());
-        pvp *pkPVP = find(kPVP.crc_);
+        pvp pvp_value(chr->player_id(), victim->player_id());
+        pvp *pvp = find(pvp_value.crc_);
 
-        if (!pkPVP || !pkPVP->is_fight()) {
-            if (beKillerMode)
+        if (!pvp || !pvp->is_fight()) {
+            if (be_killer_mode)
                 chr->set_killer_mode(true);
 
-            return (beKillerMode);
+            return (be_killer_mode);
         }
 
-        pkPVP->set_last_fight_time();
+        pvp->set_last_fight_time();
         return true;
     }
 
@@ -438,45 +438,45 @@ namespace metin2::game::inline combat {
     void pvp_manager::send_list(desc *d) {
         auto it = map_pvp_.begin();
 
-        uint32_t dwVID = d->get_character()->get_vid();
+        uint32_t vid_value = d->get_character()->get_vid();
 
         packet_gcpvp pack;
 
         pack.header = HEADER_GC_PVP;
 
         while (it != map_pvp_.end()) {
-            pvp *pkPVP = (it++)->second.get();
+            pvp *pvp = (it++)->second.get();
 
-            if (!pkPVP->players_[0].vid || !pkPVP->players_[1].vid)
+            if (!pvp->players_[0].vid || !pvp->players_[1].vid)
                 continue;
 
-            if (pkPVP->is_fight()) {
+            if (pvp->is_fight()) {
                 pack.mode = PVP_MODE_FIGHT;
-                pack.vid_src = pkPVP->players_[0].vid;
-                pack.vid_dst = pkPVP->players_[1].vid;
+                pack.vid_src = pvp->players_[0].vid;
+                pack.vid_dst = pvp->players_[1].vid;
             } else {
-                pack.mode = pkPVP->revenge_ ? PVP_MODE_REVENGE : PVP_MODE_AGREE;
+                pack.mode = pvp->revenge_ ? PVP_MODE_REVENGE : PVP_MODE_AGREE;
 
-                if (pkPVP->players_[0].agree) {
-                    pack.vid_src = pkPVP->players_[0].vid;
-                    pack.vid_dst = pkPVP->players_[1].vid;
+                if (pvp->players_[0].agree) {
+                    pack.vid_src = pvp->players_[0].vid;
+                    pack.vid_dst = pvp->players_[1].vid;
                 } else {
-                    pack.vid_src = pkPVP->players_[1].vid;
-                    pack.vid_dst = pkPVP->players_[0].vid;
+                    pack.vid_src = pvp->players_[1].vid;
+                    pack.vid_dst = pvp->players_[0].vid;
                 }
             }
 
             d->packet(&pack, sizeof(pack));
             metin2::log::debug("Pvp: sending pair vid {:d} vs {:d}", pack.vid_src, pack.vid_dst);
 
-            if (pkPVP->players_[0].vid == dwVID) {
-                character *ch = character_manager::instance().find(pkPVP->players_[1].vid);
+            if (pvp->players_[0].vid == vid_value) {
+                character *ch = character_manager::instance().find(pvp->players_[1].vid);
                 if (ch && ch->get_desc()) {
                     desc *d = ch->get_desc();
                     d->packet(&pack, sizeof(pack));
                 }
-            } else if (pkPVP->players_[1].vid == dwVID) {
-                character *ch = character_manager::instance().find(pkPVP->players_[0].vid);
+            } else if (pvp->players_[1].vid == vid_value) {
+                character *ch = character_manager::instance().find(pvp->players_[0].vid);
                 if (ch && ch->get_desc()) {
                     desc *d = ch->get_desc();
                     d->packet(&pack, sizeof(pack));

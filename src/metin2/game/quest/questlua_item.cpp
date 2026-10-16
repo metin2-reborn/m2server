@@ -142,8 +142,8 @@ namespace metin2::game {
                 return 1;
             }
 
-            auto lCheckFlag = (int32_t)lua_tonumber(lua, 1);
-            lua_pushboolean(lua, is_set(item->flag(), lCheckFlag));
+            auto check_flag = (int32_t)lua_tonumber(lua, 1);
+            lua_pushboolean(lua, is_set(item->flag(), check_flag));
 
             return 1;
         }
@@ -273,9 +273,9 @@ namespace metin2::game {
             if (lua_isnumber(lua, 1))
                 vnum = (uint32_t)lua_tonumber(lua, 1);
 
-            item_table *pTable = item_manager::instance().table(vnum);
-            if (pTable) {
-                lua_pushnumber(lua, pTable->refined_vnum);
+            item_table *table = item_manager::instance().table(vnum);
+            if (table) {
+                lua_pushnumber(lua, table->refined_vnum);
             } else {
                 quest::error("No item proto for vnum {:d}", vnum);
                 lua_pushnumber(lua, 0);
@@ -351,10 +351,10 @@ namespace metin2::game {
 
         auto item_start_realtime_expire(lua_State *lua) -> int {
             quest_manager &q = quest_manager::instance();
-            item *pItem = q.current_item();
+            item *item = q.current_item();
 
-            if (pItem) {
-                pItem->start_real_time_expire_event();
+            if (item) {
+                item->start_real_time_expire_event();
                 return 1;
             }
 
@@ -369,22 +369,22 @@ namespace metin2::game {
             auto vnum = (uint32_t)lua_tonumber(lua, 1);
 
             quest_manager &q = quest_manager::instance();
-            item *pItem = q.current_item();
-            character *pChar = q.current_character_ptr();
+            item *item_value = q.current_item();
+            character *ch = q.current_character_ptr();
 
-            item *pkNewItem = item_manager::instance().create_item(vnum, 1, 0, false);
+            item *new_item = item_manager::instance().create_item(vnum, 1, 0, false);
 
-            if (pkNewItem) {
-                item_manager::copy_all_attr_to(pItem, pkNewItem);
-                log_manager::instance().item_log(pChar, pkNewItem, "COPY SUCCESS", pkNewItem->name());
+            if (new_item) {
+                item_manager::copy_all_attr_to(item_value, new_item);
+                log_manager::instance().item_log(ch, new_item, "COPY SUCCESS", new_item->name());
 
-                uint8_t bCell = pItem->cell();
+                uint8_t cell = item_value->cell();
 
-                item_manager::instance().remove_item(pItem, "REMOVE (COPY SUCCESS)");
+                item_manager::instance().remove_item(item_value, "REMOVE (COPY SUCCESS)");
 
-                pkNewItem->add_to_character(pChar, item_pos(INVENTORY, bCell));
-                item_manager::instance().flush_delayed_save(pkNewItem);
-                pkNewItem->attr_log();
+                new_item->add_to_character(ch, item_pos(INVENTORY, cell));
+                item_manager::instance().flush_delayed_save(new_item);
+                new_item->attr_log();
 
                 lua_pushboolean(lua, 1);
             }

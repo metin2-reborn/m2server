@@ -15,7 +15,7 @@ namespace metin2::game {
         auto arena_start_duel(lua_State *lua) -> int {
             character *ch = quest_manager::instance().current_character_ptr();
             character *ch2 = character_manager::instance().find_pc(lua_tostring(lua, 1));
-            int nSetPoint = (int)lua_tonumber(lua, 2);
+            int set_point = (int)lua_tonumber(lua, 2);
 
             if (ch == nullptr || ch2 == nullptr) {
                 lua_pushnumber(lua, 0);
@@ -37,7 +37,7 @@ namespace metin2::game {
                 lua_pushnumber(lua, 2);
                 return 1;
             }
-            if (arena_manager::instance().start_duel(ch, ch2, nSetPoint) == false) {
+            if (arena_manager::instance().start_duel(ch, ch2, set_point) == false) {
                 lua_pushnumber(lua, 3);
                 return 1;
             }
@@ -48,16 +48,16 @@ namespace metin2::game {
         }
 
         auto arena_add_map(lua_State *lua) -> int {
-            int mapIdx = (int)lua_tonumber(lua, 1);
-            int startposAX = (int)lua_tonumber(lua, 2);
-            int startposAY = (int)lua_tonumber(lua, 3);
-            int startposBX = (int)lua_tonumber(lua, 4);
-            int startposBY = (int)lua_tonumber(lua, 5);
+            int map_idx = (int)lua_tonumber(lua, 1);
+            int startpos_ax = (int)lua_tonumber(lua, 2);
+            int startpos_ay = (int)lua_tonumber(lua, 3);
+            int startpos_bx = (int)lua_tonumber(lua, 4);
+            int startpos_by = (int)lua_tonumber(lua, 5);
 
-            if (arena_manager::instance().add_arena(mapIdx, startposAX, startposAY, startposBX, startposBY) == false) {
-                metin2::log::error("Cannot add arena on map {:d} (start A {:d},{:d}, start B {:d},{:d})", mapIdx, startposAX, startposAY, startposBX, startposBY);
+            if (arena_manager::instance().add_arena(map_idx, startpos_ax, startpos_ay, startpos_bx, startpos_by) == false) {
+                metin2::log::error("Cannot add arena on map {:d} (start A {:d},{:d}, start B {:d},{:d})", map_idx, startpos_ax, startpos_ay, startpos_bx, startpos_by);
             } else {
-                metin2::log::info("Arena: added map {:d} (start A {:d},{:d}, start B {:d},{:d})", mapIdx, startposAX, startposAY, startposBX, startposBY);
+                metin2::log::info("Arena: added map {:d} (start A {:d},{:d}, start B {:d},{:d})", map_idx, startpos_ax, startpos_ay, startpos_bx, startpos_by);
             }
 
             return 1;
@@ -70,12 +70,12 @@ namespace metin2::game {
         }
 
         auto arena_add_observer(lua_State *lua) -> int {
-            int mapIdx = (int)lua_tonumber(lua, 1);
-            int ObPointX = (int)lua_tonumber(lua, 2);
-            int ObPointY = (int)lua_tonumber(lua, 3);
+            int map_idx = (int)lua_tonumber(lua, 1);
+            int ob_point_x = (int)lua_tonumber(lua, 2);
+            int ob_point_y = (int)lua_tonumber(lua, 3);
             character *ch = quest_manager::instance().current_character_ptr();
 
-            arena_manager::instance().add_observer(ch, mapIdx, ObPointX, ObPointY);
+            arena_manager::instance().add_observer(ch, map_idx, ob_point_x, ob_point_y);
 
             return 1;
         }

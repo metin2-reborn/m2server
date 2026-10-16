@@ -51,24 +51,24 @@ namespace metin2::game::inline empire {
             return 0;
         }
 
-        int iMapIndex = info->map_index;
+        int map_index = info->map_index;
 
         std::string filename;
-        std::string szFilename(get_sungzi_map_path());
+        std::string filename_value(get_sungzi_map_path());
 
         int choice = quest::quest_manager::instance().event_flag("threeway_war_choice");
         if (0 == choice)
-            filename = szFilename + "regen00.txt";
+            filename = filename_value + "regen00.txt";
         else {
-            filename = szFilename + "regen00_" + std::to_string(choice) + ".txt";
+            filename = filename_value + "regen00_" + std::to_string(choice) + ".txt";
         }
 
-        sectree_map *pkMap = sectree_manager::instance().map(iMapIndex);
+        sectree_map *map = sectree_manager::instance().map(map_index);
 
-        if (nullptr != pkMap) {
-            if (!regen_load_in_file(filename.c_str(), iMapIndex, pkMap->setting.base_x, pkMap->setting.base_y) && 0 != choice) {
-                filename = szFilename + "regen00.txt";
-                regen_load_in_file(filename.c_str(), iMapIndex, pkMap->setting.base_x, pkMap->setting.base_y);
+        if (nullptr != map) {
+            if (!regen_load_in_file(filename.c_str(), map_index, map->setting.base_x, map->setting.base_y) && 0 != choice) {
+                filename = filename_value + "regen00.txt";
+                regen_load_in_file(filename.c_str(), map_index, map->setting.base_x, map->setting.base_y);
             }
         }
 
@@ -133,49 +133,49 @@ namespace metin2::game::inline empire {
     }
 
     auto three_way_war::load_setting(const char *file_name) -> bool {
-        const std::string szPath = std::format("{}/{}", locale_service_get_base_path(), file_name);
+        const std::string path = std::format("{}/{}", locale_service_get_base_path(), file_name);
 
-        FILE *pf = fopen(szPath.c_str(), "r");
+        FILE *pf = fopen(path.c_str(), "r");
 
         if (nullptr == pf) {
-            metin2::log::error("Cannot open three-way war file {}", szPath);
+            metin2::log::error("Cannot open three-way war file {}", path);
             return false;
         }
 
-        char szLine[256];
-        char szSungziName[128];
-        char szPassName[3][128];
+        char line[256];
+        char sungzi_name[128];
+        char pass_name[3][128];
 
-        while (nullptr != fgets(szLine, 256, pf)) {
-            if (0 == strncmp(szLine, "sungzi:", 7)) {
+        while (nullptr != fgets(line, 256, pf)) {
+            if (0 == strncmp(line, "sungzi:", 7)) {
                 struct forked_sungzi_map_info sungziinfo;
 
-                sscanf(szLine + 7, "%d %d %d %d %d %d %d %127s %d",
+                sscanf(line + 7, "%d %d %d %d %d %d %d %127s %d",
                     &sungziinfo.forked_sung,
                     &sungziinfo.forked_sungzi_start_position[0][0], &sungziinfo.forked_sungzi_start_position[0][1],
                     &sungziinfo.forked_sungzi_start_position[1][0], &sungziinfo.forked_sungzi_start_position[1][1],
                     &sungziinfo.forked_sungzi_start_position[2][0], &sungziinfo.forked_sungzi_start_position[2][1],
-                    szSungziName, &sungziinfo.boss_mob_vnum);
+                    sungzi_name, &sungziinfo.boss_mob_vnum);
 
-                sungziinfo.map_name = static_cast<std::string>(szSungziName);
+                sungziinfo.map_name = static_cast<std::string>(sungzi_name);
 
                 sung_zi_info_map_.push_back(sungziinfo);
 
                 map_index_set_.insert(sungziinfo.forked_sung);
-            } else if (0 == strncmp(szLine, "pass:", 5)) {
+            } else if (0 == strncmp(line, "pass:", 5)) {
                 struct forked_pass_map_info passinfo;
 
-                sscanf(szLine + 5, "%d %d %d %127s %d %d %d %127s %d %d %d %127s",
+                sscanf(line + 5, "%d %d %d %127s %d %d %d %127s %d %d %d %127s",
                     &passinfo.forked_pass[0],
-                    &passinfo.forked_pass_start_position[0][0], &passinfo.forked_pass_start_position[0][1], szPassName[0],
+                    &passinfo.forked_pass_start_position[0][0], &passinfo.forked_pass_start_position[0][1], pass_name[0],
                     &passinfo.forked_pass[1],
-                    &passinfo.forked_pass_start_position[1][0], &passinfo.forked_pass_start_position[1][1], szPassName[1],
+                    &passinfo.forked_pass_start_position[1][0], &passinfo.forked_pass_start_position[1][1], pass_name[1],
                     &passinfo.forked_pass[2],
-                    &passinfo.forked_pass_start_position[2][0], &passinfo.forked_pass_start_position[2][1], szPassName[2]);
+                    &passinfo.forked_pass_start_position[2][0], &passinfo.forked_pass_start_position[2][1], pass_name[2]);
 
-                passinfo.map_name[0] = static_cast<std::string>(szPassName[0]);
-                passinfo.map_name[1] = static_cast<std::string>(szPassName[1]);
-                passinfo.map_name[2] = static_cast<std::string>(szPassName[2]);
+                passinfo.map_name[0] = static_cast<std::string>(pass_name[0]);
+                passinfo.map_name[1] = static_cast<std::string>(pass_name[1]);
+                passinfo.map_name[2] = static_cast<std::string>(pass_name[2]);
 
                 pass_info_map_.push_back(passinfo);
 
@@ -244,22 +244,22 @@ namespace metin2::game::inline empire {
     }
 
     auto get_kill_value(int level) -> int {
-        int iMinLevelFor1Point, iMaxLevelFor1Point;
-        int iMinLevelFor2Point, iMaxLevelFor2Point;
-        int iMinLevelFor3Point, iMaxLevelFor3Point;
+        int min_level_for1_point, max_level_for1_point;
+        int min_level_for2_point, max_level_for2_point;
+        int min_level_for3_point, max_level_for3_point;
 
-        iMinLevelFor1Point = 30;
-        iMaxLevelFor1Point = 39;
-        iMinLevelFor2Point = 40;
-        iMaxLevelFor2Point = 49;
-        iMinLevelFor3Point = 50;
-        iMaxLevelFor3Point = 99;
+        min_level_for1_point = 30;
+        max_level_for1_point = 39;
+        min_level_for2_point = 40;
+        max_level_for2_point = 49;
+        min_level_for3_point = 50;
+        max_level_for3_point = 99;
 
-        if (iMinLevelFor1Point <= level && level <= iMaxLevelFor1Point) {
+        if (min_level_for1_point <= level && level <= max_level_for1_point) {
             return 1;
-        } else if (iMinLevelFor2Point <= level && level <= iMaxLevelFor2Point) {
+        } else if (min_level_for2_point <= level && level <= max_level_for2_point) {
             return 2;
-        } else if (iMinLevelFor3Point <= level && level <= iMaxLevelFor3Point) {
+        } else if (min_level_for3_point <= level && level <= max_level_for3_point) {
             return 3;
         }
 
@@ -287,80 +287,80 @@ namespace metin2::game::inline empire {
         if (dead->empire() == killer->empire())
             return;
 
-        int nKillScore = kill_score(killer->empire());
+        int kill_score_value = kill_score(killer->empire());
 
         // A score of -1 means the empire is eliminated.
-        if (nKillScore >= 0) {
-            nKillScore += get_kill_value(dead->level());
-            set_kill_score(killer->empire(), nKillScore);
+        if (kill_score_value >= 0) {
+            kill_score_value += get_kill_value(dead->level());
+            set_kill_score(killer->empire(), kill_score_value);
         }
 
-        if (nKillScore != 0 && (metin2::config::test_server() || (nKillScore % 5) == 0)) {
-            char szBuf[64 + 1];
+        if (kill_score_value != 0 && (metin2::config::test_server() || (kill_score_value % 5) == 0)) {
+            char buf_value[64 + 1];
 
-            snprintf(szBuf, sizeof(szBuf), lc_text("현재 스코어 신수국:%d 천조국:%d 진노국:%d"),
+            snprintf(buf_value, sizeof(buf_value), lc_text("현재 스코어 신수국:%d 천조국:%d 진노국:%d"),
                 kill_score(1), kill_score(2), kill_score(3));
 
-            send_notice_map(szBuf, get_sungzi_map_index(), false);
+            send_notice_map(buf_value, get_sungzi_map_index(), false);
         }
 
-        const int nVictoryScore = quest::quest_manager::instance().event_flag("threeway_war_kill_count");
+        const int victory_score = quest::quest_manager::instance().event_flag("threeway_war_kill_count");
 
         if (0 == regen_flag()) {
-            int nEliminatedEmpireCount = 0;
-            uint8_t bLoseEmpire = 0;
+            int eliminated_empire_count = 0;
+            uint8_t lose_empire = 0;
 
             for (int n = 1; n < 4; ++n) {
-                if (nVictoryScore > kill_score(n)) {
-                    ++nEliminatedEmpireCount;
-                    bLoseEmpire = n;
+                if (victory_score > kill_score(n)) {
+                    ++eliminated_empire_count;
+                    lose_empire = n;
                 }
             }
 
-            if (1 != nEliminatedEmpireCount)
+            if (1 != eliminated_empire_count)
                 return;
 
             set_kill_score(1, 0);
             set_kill_score(2, 0);
             set_kill_score(3, 0);
-            set_kill_score(bLoseEmpire, -1);
+            set_kill_score(lose_empire, -1);
 
             quest::warp_all_to_map_my_empire_event_info *info;
 
             info = alloc_event_info<quest::warp_all_to_map_my_empire_event_info>();
 
             info->map_index_from = get_sungzi_map_index();
-            info->map_index_to = empire_start_map(bLoseEmpire);
-            info->x = empire_start_x(bLoseEmpire);
-            info->y = empire_start_y(bLoseEmpire);
-            info->empire = bLoseEmpire;
+            info->map_index_to = empire_start_map(lose_empire);
+            info->x = empire_start_x(lose_empire);
+            info->y = empire_start_y(lose_empire);
+            info->empire = lose_empire;
 
             event_create(quest::warp_all_to_map_my_empire_event, info, passes_per_sec(10));
 
             info = alloc_event_info<quest::warp_all_to_map_my_empire_event_info>();
 
-            info->map_index_from = get_pass_map_index(bLoseEmpire);
-            info->map_index_to = empire_start_map(bLoseEmpire);
-            info->x = empire_start_x(bLoseEmpire);
-            info->y = empire_start_y(bLoseEmpire);
-            info->empire = bLoseEmpire;
+            info->map_index_from = get_pass_map_index(lose_empire);
+            info->map_index_to = empire_start_map(lose_empire);
+            info->x = empire_start_x(lose_empire);
+            info->y = empire_start_y(lose_empire);
+            info->empire = lose_empire;
 
             event_create(quest::warp_all_to_map_my_empire_event, info, passes_per_sec(10));
 
-            const std::string Nation(empire_name(bLoseEmpire));
-            const std::string Script(
+            const std::string nation(empire_name(lose_empire));
+            const std::string script(
                 lc_text("성지의 마왕: 너희 ") +
-                Nation +
+                nation +
                 lc_text("녀석들은 이곳 성지에 있을 자격을 잃었다. 모두 성지에서 물러나거라~~[ENTER][ENTER] 10초 후에 모두 마을로 이동하게 됩니다. ") +
                 "[ENTER][DONE]");
 
-            character_manager::instance().send_script_to_map(dead->map_index(), Script);
+            character_manager::instance().send_script_to_map(dead->map_index(), script);
 
-            char szNotice[512 + 1];
-            snprintf(szNotice, sizeof(szNotice), lc_text("삼거리 전투에서 %s 국가가 가장먼저 탈락을 하였습니다"), Nation.c_str());
-            broadcast_notice(szNotice);
+            char notice[512 + 1];
+            snprintf(notice, sizeof(notice), lc_text("삼거리 전투에서 %s 국가가 가장먼저 탈락을 하였습니다"), nation.c_str());
+            broadcast_notice(notice);
 
-            const std::string log_text = std::format("First Step: {} exclusion", Nation);
+            const std::string log_text = std::format("First Step: {} exclusion", nation);
             log_manager::instance().char_log(0, 0, 0, 0, "THREEWAY", log_text.c_str(), nullptr);
 
             auto *regen_info = alloc_event_info<regen_mob_event_info>();
@@ -371,64 +371,64 @@ namespace metin2::game::inline empire {
 
             set_regen_flag(1);
         } else if (1 == regen_flag()) {
-            int nVictoryEmpireIndex = 0;
+            int victory_empire_index = 0;
 
             for (int n = 1; n < 4; ++n) {
-                nKillScore = kill_score(n);
+                kill_score_value = kill_score(n);
 
-                if (nKillScore == -1)
+                if (kill_score_value == -1)
                     continue;
 
-                if (nVictoryScore <= nKillScore) {
-                    nVictoryEmpireIndex = n;
+                if (victory_score <= kill_score_value) {
+                    victory_empire_index = n;
                     break;
                 }
             }
 
-            if (0 == nVictoryEmpireIndex)
+            if (0 == victory_empire_index)
                 return;
 
             for (int n = 1; n < 4; ++n) {
-                if (n != nVictoryEmpireIndex) {
-                    uint8_t bLoseEmpire = n;
+                if (n != victory_empire_index) {
+                    uint8_t lose_empire = n;
                     quest::warp_all_to_map_my_empire_event_info *info;
 
                     info = alloc_event_info<quest::warp_all_to_map_my_empire_event_info>();
 
                     info->map_index_from = get_sungzi_map_index();
-                    info->map_index_to = empire_start_map(bLoseEmpire);
-                    info->x = empire_start_x(bLoseEmpire);
-                    info->y = empire_start_y(bLoseEmpire);
-                    info->empire = bLoseEmpire;
+                    info->map_index_to = empire_start_map(lose_empire);
+                    info->x = empire_start_x(lose_empire);
+                    info->y = empire_start_y(lose_empire);
+                    info->empire = lose_empire;
 
                     event_create(quest::warp_all_to_map_my_empire_event, info, passes_per_sec(5));
 
                     info = alloc_event_info<quest::warp_all_to_map_my_empire_event_info>();
 
-                    info->map_index_from = get_pass_map_index(bLoseEmpire);
-                    info->map_index_to = empire_start_map(bLoseEmpire);
-                    info->x = empire_start_x(bLoseEmpire);
-                    info->y = empire_start_y(bLoseEmpire);
-                    info->empire = bLoseEmpire;
+                    info->map_index_from = get_pass_map_index(lose_empire);
+                    info->map_index_to = empire_start_map(lose_empire);
+                    info->x = empire_start_x(lose_empire);
+                    info->y = empire_start_y(lose_empire);
+                    info->empire = lose_empire;
 
                     event_create(quest::warp_all_to_map_my_empire_event, info, passes_per_sec(5));
                 }
             }
 
             {
-                char szBuf[64 + 1];
-                snprintf(szBuf, sizeof(szBuf), lc_text("현재 스코어 신수국:%d 천조국:%d 진노국:%d"),
+                char buf_value[64 + 1];
+                snprintf(buf_value, sizeof(buf_value), lc_text("현재 스코어 신수국:%d 천조국:%d 진노국:%d"),
                     kill_score(1), kill_score(2), kill_score(3));
 
-                send_notice_map(szBuf, get_sungzi_map_index(), false);
+                send_notice_map(buf_value, get_sungzi_map_index(), false);
             }
 
-            sectree_map *pSecMap = sectree_manager::instance().map(dead->map_index());
+            sectree_map *sec_map = sectree_manager::instance().map(dead->map_index());
 
-            if (nullptr != pSecMap) {
-                const std::string EmpireName(empire_name(nVictoryEmpireIndex));
-                const std::string Script(
-                    EmpireName +
+            if (nullptr != sec_map) {
+                const std::string empire_name_value(empire_name(victory_empire_index));
+                const std::string script(
+                    empire_name_value +
                     lc_text(". 너희가 성지의 수호자를 잡게 된다면 너희는 성지의 주인이 된다.[ENTER][ENTER] ") +
                     "[ENTER][DONE]");
 
@@ -436,16 +436,16 @@ namespace metin2::game::inline empire {
 
                 pack_script.header = HEADER_GC_SCRIPT;
                 pack_script.skin = 1;
-                pack_script.src_size = Script.size();
+                pack_script.src_size = script.size();
 
                 temp_buffer buf;
                 pack_script.size = pack_script.src_size + sizeof(struct packet_script);
                 buf.write(&pack_script, sizeof(struct packet_script));
-                buf.write(&Script[0], Script.size());
+                buf.write(&script[0], script.size());
 
-                quest::send_buffer_to_map(pSecMap, buf, nVictoryEmpireIndex);
+                quest::send_buffer_to_map(sec_map, buf, victory_empire_index);
 
-                const std::string log_text = std::format("Second Step: {} remain", empire_name(nVictoryEmpireIndex));
+                const std::string log_text = std::format("Second Step: {} remain", empire_name(victory_empire_index));
                 log_manager::instance().char_log(0, 0, 0, 0, "THREEWAY", log_text.c_str(), nullptr);
             }
 
@@ -481,10 +481,10 @@ namespace metin2::game::inline empire {
         auto iter = map_index_set_.begin();
 
         while (iter != map_index_set_.end()) {
-            sectree_map *pSecMap = sectree_manager::instance().map(*iter);
+            sectree_map *sec_map = sectree_manager::instance().map(*iter);
 
-            if (nullptr != pSecMap) {
-                pSecMap->for_each([](entity *ent) {
+            if (nullptr != sec_map) {
+                sec_map->for_each([](entity *ent) {
                     if (true == ent->is_type(ENTITY_CHARACTER)) {
                         auto *ch = static_cast<character *>(ent);
 
@@ -500,24 +500,24 @@ namespace metin2::game::inline empire {
     }
 
     auto get_sungzi_map_path() -> const char * {
-        static std::string s_szMapPath;
+        static std::string map_path;
 
-        s_szMapPath = std::format("{}/map/{}/",
+        map_path = std::format("{}/map/{}/",
             locale_service_get_base_path(),
             three_way_war::instance().event_sung_zi_map_info().map_name);
 
-        return s_szMapPath.c_str();
+        return map_path.c_str();
     }
 
     auto get_pass_map_path(uint8_t empire) -> const char * {
         if (empire > 0 && empire < EMPIRE_MAX_NUM) {
-            static std::string s_szMapPath;
+            static std::string map_path;
 
-            s_szMapPath = std::format("{}/map/{}/",
+            map_path = std::format("{}/map/{}/",
                 locale_service_get_base_path(),
                 three_way_war::instance().event_pass_map_info().map_name[empire - 1]);
 
-            return s_szMapPath.c_str();
+            return map_path.c_str();
         }
 
         return nullptr;

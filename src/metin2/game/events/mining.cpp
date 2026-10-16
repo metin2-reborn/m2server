@@ -149,19 +149,19 @@ namespace metin2::game::inline events {
         }
 
         void ore_drop(character *ch, uint32_t load_vnum) {
-            uint32_t dwRawOreVnum = get_raw_ore_from_load(load_vnum);
+            uint32_t raw_ore_vnum = get_raw_ore_from_load(load_vnum);
 
-            int iFractionCount = get_fraction_count();
+            int fraction_count = get_fraction_count();
 
-            if (iFractionCount == 0) {
+            if (fraction_count == 0) {
                 metin2::log::error("Ore has a fraction count of zero");
                 return;
             }
 
-            item *item = item_manager::instance().create_item(dwRawOreVnum, iFractionCount);
+            item *item = item_manager::instance().create_item(raw_ore_vnum, fraction_count);
 
             if (!item) {
-                metin2::log::error("Cannot create raw ore item (vnum {:d})", dwRawOreVnum);
+                metin2::log::error("Cannot create raw ore item (vnum {:d})", raw_ore_vnum);
                 return;
             }
 
@@ -177,15 +177,15 @@ namespace metin2::game::inline events {
         }
 
         auto get_ore_pct(character *ch) -> int {
-            int defaultPct = 20;
-            int iSkillLevel = ch->skill_level(SKILL_MINING);
+            int default_pct = 20;
+            int skill_level = ch->skill_level(SKILL_MINING);
 
             item *pick = ch->wear(WEAR_WEAPON);
 
             if (!pick || pick->type() != ITEM_PICK)
                 return 0;
 
-            return defaultPct + skill_level_add_pct[std::clamp(iSkillLevel, 0, 40)] + pick_grade_add_pct[std::clamp(pick->refine_level(), 0, 9)];
+            return default_pct + skill_level_add_pct[std::clamp(skill_level, 0, 40)] + pick_grade_add_pct[std::clamp(pick->refine_level(), 0, 9)];
         }
 
         EVENTINFO(mining_event_info) {
@@ -241,48 +241,48 @@ namespace metin2::game::inline events {
             if (!ch || !item)
                 return 2;
 
-            log_manager &rkLogMgr = log_manager::instance();
-            item_manager &rkItemMgr = item_manager::instance();
+            log_manager &log_mgr = log_manager::instance();
+            item_manager &item_mgr = item_manager::instance();
 
             if (!pick_check(*item)) {
                 metin2::log::warn("Possible hack: pid {:d} tried to refine invalid pick {} (id {:d}, type {:d})", ch->player_id(), item->name(), item->id(), item->type());
-                rkLogMgr.refine_log(ch->player_id(), item->name(), item->id(), -1, 1, "PICK_HACK");
+                log_mgr.refine_log(ch->player_id(), item->name(), item->id(), -1, 1, "PICK_HACK");
                 return 2;
             }
 
-            game::items::item &rkOldPick = *item;
+            game::items::item &old_pick = *item;
 
-            if (!pick_refinable(rkOldPick))
+            if (!pick_refinable(old_pick))
                 return 2;
 
-            int iAdv = rkOldPick.value(0) / 10;
+            int adv = old_pick.value(0) / 10;
 
-            if (rkOldPick.is_equipped() == true)
+            if (old_pick.is_equipped() == true)
                 return 2;
 
-            if (pick_is_refine_success(rkOldPick)) {
-                rkLogMgr.refine_log(ch->player_id(), rkOldPick.name(), rkOldPick.id(), iAdv, 1, "PICK");
+            if (pick_is_refine_success(old_pick)) {
+                log_mgr.refine_log(ch->player_id(), old_pick.name(), old_pick.id(), adv, 1, "PICK");
 
-                game::items::item *pkNewPick = item_manager::instance().create_item(rkOldPick.refined_vnum(), 1);
-                if (pkNewPick) {
-                    uint8_t bCell = rkOldPick.cell();
-                    rkItemMgr.remove_item(item, "REMOVE (REFINE PICK)");
-                    pkNewPick->add_to_character(ch, item_pos(INVENTORY, bCell));
-                    log_manager::instance().item_log(ch, pkNewPick, "REFINE PICK SUCCESS", pkNewPick->name());
+                game::items::item *new_pick = item_manager::instance().create_item(old_pick.refined_vnum(), 1);
+                if (new_pick) {
+                    uint8_t cell = old_pick.cell();
+                    item_mgr.remove_item(item, "REMOVE (REFINE PICK)");
+                    new_pick->add_to_character(ch, item_pos(INVENTORY, cell));
+                    log_manager::instance().item_log(ch, new_pick, "REFINE PICK SUCCESS", new_pick->name());
                     return 1;
                 }
 
                 return 2;
             } else {
-                rkLogMgr.refine_log(ch->player_id(), rkOldPick.name(), rkOldPick.id(), iAdv, 0, "PICK");
+                log_mgr.refine_log(ch->player_id(), old_pick.name(), old_pick.id(), adv, 0, "PICK");
 
-                game::items::item *pkNewPick = item_manager::instance().create_item(rkOldPick.value(4), 1);
+                game::items::item *new_pick = item_manager::instance().create_item(old_pick.value(4), 1);
 
-                if (pkNewPick) {
-                    uint8_t bCell = rkOldPick.cell();
-                    rkItemMgr.remove_item(item, "REMOVE (REFINE PICK)");
-                    pkNewPick->add_to_character(ch, item_pos(INVENTORY, bCell));
-                    rkLogMgr.item_log(ch, pkNewPick, "REFINE PICK FAIL", pkNewPick->name());
+                if (new_pick) {
+                    uint8_t cell = old_pick.cell();
+                    item_mgr.remove_item(item, "REMOVE (REFINE PICK)");
+                    new_pick->add_to_character(ch, item_pos(INVENTORY, cell));
+                    log_mgr.item_log(ch, new_pick, "REFINE PICK FAIL", new_pick->name());
                     return 0;
                 }
 
@@ -361,9 +361,9 @@ namespace metin2::game::inline events {
                 return 0;
             }
 
-            int iPct = get_ore_pct(ch);
+            int pct = get_ore_pct(ch);
 
-            if (prob(iPct)) {
+            if (prob(pct)) {
                 ore_drop(ch, load->race_num());
                 ch->chat_packet(CHAT_TYPE_INFO, lc_text("채광에 성공하였습니다."));
             } else {
@@ -397,25 +397,25 @@ namespace metin2::game::inline events {
                 return false;
             }
 
-            uint32_t dwRefinedVnum = get_refine_from_raw_ore(ore->vnum());
+            uint32_t refined_vnum = get_refine_from_raw_ore(ore->vnum());
 
-            if (dwRefinedVnum == 0)
+            if (refined_vnum == 0)
                 return false;
 
             ch->set_refine_npc(npc);
             ore->set_count(ore->count() - ORE_COUNT_FOR_REFINE);
-            int iCost = ch->compute_refine_fee(cost, 1);
+            int cost_value = ch->compute_refine_fee(cost, 1);
 
-            if (ch->gold() < iCost)
+            if (ch->gold() < cost_value)
                 return false;
 
-            ch->pay_refine_fee(iCost);
+            ch->pay_refine_fee(cost_value);
 
             if (metinstone_item)
                 item_manager::instance().remove_item(metinstone_item, "REMOVE (MELT)");
 
             if (prob(pct)) {
-                ch->auto_give_item(dwRefinedVnum, 1);
+                ch->auto_give_item(refined_vnum, 1);
                 return true;
             }
 

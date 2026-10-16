@@ -10,10 +10,10 @@ namespace metin2::game {
 
     namespace quest {
         auto dance_event_go_home(lua_State *lua) -> int {
-            sectree_map *pSecMap = sectree_manager::instance().map(115);
+            sectree_map *sec_map = sectree_manager::instance().map(115);
 
-            if (pSecMap != nullptr) {
-                pSecMap->for_each([](entity *ent) {
+            if (sec_map != nullptr) {
+                sec_map->for_each([](entity *ent) {
                     if (ent->is_type(ENTITY_CHARACTER)) {
                         auto *ch = (character *)ent;
 

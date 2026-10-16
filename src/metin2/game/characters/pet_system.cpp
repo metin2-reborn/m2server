@@ -39,12 +39,12 @@ namespace metin2::game::inline characters {
             return 0;
         }
 
-        pet_system *pPetSystem = info->pet_system;
+        pet_system *pet_system = info->pet_system;
 
-        if (nullptr == pPetSystem)
+        if (nullptr == pet_system)
             return 0;
 
-        pPetSystem->update(0);
+        pet_system->update(0);
         return passes_per_sec(1) / 4;
     }
 
@@ -69,19 +69,19 @@ namespace metin2::game::inline characters {
     }
 
     void pet_actor::set_name(const char *name) {
-        std::string petName = owner_->name();
+        std::string pet_name = owner_->name();
 
         if (nullptr != owner_ &&
             nullptr == name &&
             nullptr != owner_->name()) {
-            petName += "'s Pet";
+            pet_name += "'s Pet";
         } else
-            petName += name;
+            pet_name += name;
 
         if (true == is_summoned())
-            character_->set_name(petName);
+            character_->set_name(pet_name);
 
-        name_ = petName;
+        name_ = pet_name;
     }
 
     void pet_actor::unsummon() {
@@ -151,47 +151,47 @@ namespace metin2::game::inline characters {
         }
 
         if (0 == original_move_speed_) {
-            const mob *mobData = mob_manager::instance().get(vnum_);
+            const mob *mob_data = mob_manager::instance().get(vnum_);
 
-            if (nullptr != mobData)
-                original_move_speed_ = mobData->table.s_moving_speed;
+            if (nullptr != mob_data)
+                original_move_speed_ = mob_data->table.s_moving_speed;
         }
-        float START_FOLLOW_DISTANCE = 300.0f;
-        float START_RUN_DISTANCE = 900.0f;
+        float start_follow_distance = 300.0f;
+        float start_run_distance = 900.0f;
 
-        float RESPAWN_DISTANCE = 4500.f;
-        int APPROACH = 200;
+        float respawn_distance = 4500.f;
+        int approach = 200;
 
-        bool bRun = false;
+        bool run = false;
 
-        uint32_t currentTime = get_dword_time();
+        uint32_t current_time = get_dword_time();
 
-        int32_t ownerX = owner_->x();
-        int32_t ownerY = owner_->y();
-        int32_t charX = character_->x();
-        int32_t charY = character_->y();
+        int32_t owner_x = owner_->x();
+        int32_t owner_y = owner_->y();
+        int32_t char_x = character_->x();
+        int32_t char_y = character_->y();
 
-        float fDist = distance_approx(charX - ownerX, charY - ownerY);
+        float dist = distance_approx(char_x - owner_x, char_y - owner_y);
 
-        if (fDist >= RESPAWN_DISTANCE) {
-            float fOwnerRot = owner_->rotation() * 3.141592f / 180.f;
-            float fx = -APPROACH * cos(fOwnerRot);
-            float fy = -APPROACH * sin(fOwnerRot);
-            if (character_->show(owner_->map_index(), ownerX + fx, ownerY + fy)) {
+        if (dist >= respawn_distance) {
+            float owner_rot = owner_->rotation() * 3.141592f / 180.f;
+            float fx = -approach * cos(owner_rot);
+            float fy = -approach * sin(owner_rot);
+            if (character_->show(owner_->map_index(), owner_x + fx, owner_y + fy)) {
                 return true;
             }
         }
 
-        if (fDist >= START_FOLLOW_DISTANCE) {
-            if (fDist >= START_RUN_DISTANCE) {
-                bRun = true;
+        if (dist >= start_follow_distance) {
+            if (dist >= start_run_distance) {
+                run = true;
             }
 
-            character_->set_now_walking(!bRun);
+            character_->set_now_walking(!run);
 
-            follow(APPROACH);
+            follow(approach);
 
-            character_->set_last_attacked(currentTime);
+            character_->set_last_attacked(current_time);
         } else
             character_->send_move_packet(FUNC_WAIT, 0, 0, 0, 0);
 
@@ -199,7 +199,7 @@ namespace metin2::game::inline characters {
     }
 
     auto pet_actor::update(uint32_t delta_time) -> bool {
-        bool bResult = true;
+        bool result = true;
 
         if (owner_->is_dead() || (is_summoned() && character_->is_dead()) || nullptr == item_manager::instance().find_by_vid(this->summon_item_vid()) || item_manager::instance().find_by_vid(this->summon_item_vid())->owner() != this->owner()) {
             this->unsummon();
@@ -207,33 +207,33 @@ namespace metin2::game::inline characters {
         }
 
         if (this->is_summoned() && has_option(EPetOption_Followable))
-            bResult = bResult && this->update_follow_ai();
+            result = result && this->update_follow_ai();
 
-        return bResult;
+        return result;
     }
 
     auto pet_actor::follow(float min_distance) -> bool {
         if (!owner_ || !character_)
             return false;
 
-        float fOwnerX = owner_->x();
-        float fOwnerY = owner_->y();
+        float owner_x = owner_->x();
+        float owner_y = owner_->y();
 
-        float fPetX = character_->x();
-        float fPetY = character_->y();
+        float pet_x = character_->x();
+        float pet_y = character_->y();
 
-        float fDist = distance_sqrt(fOwnerX - fPetX, fOwnerY - fPetY);
-        if (fDist <= min_distance)
+        float dist = distance_sqrt(owner_x - pet_x, owner_y - pet_y);
+        if (dist <= min_distance)
             return false;
 
-        character_->set_rotation_to_xy(fOwnerX, fOwnerY);
+        character_->set_rotation_to_xy(owner_x, owner_y);
 
         float fx, fy;
 
-        float fDistToGo = fDist - min_distance;
-        get_delta_by_degree(character_->rotation(), fDistToGo, &fx, &fy);
+        float dist_to_go = dist - min_distance;
+        get_delta_by_degree(character_->rotation(), dist_to_go, &fx, &fy);
 
-        if (!character_->go_to((int)(fPetX + fx + 0.5f), (int)(fPetY + fy + 0.5f)))
+        if (!character_->go_to((int)(pet_x + fx + 0.5f), (int)(pet_y + fy + 0.5f)))
             return false;
 
         character_->send_move_packet(FUNC_WAIT, 0, 0, 0, 0, 0);
@@ -299,34 +299,34 @@ namespace metin2::game::inline characters {
     }
 
     auto pet_system::update(uint32_t delta_time) -> bool {
-        bool bResult = true;
+        bool result = true;
 
-        uint32_t currentTime = get_dword_time();
+        uint32_t current_time = get_dword_time();
 
-        if (update_period_ > currentTime - last_update_time_)
+        if (update_period_ > current_time - last_update_time_)
             return true;
 
-        std::vector<pet_actor *> v_garbageActor;
+        std::vector<pet_actor *> v_garbage_actor;
 
         for (auto iter = pet_actor_map_.begin(); iter != pet_actor_map_.end(); ++iter) {
-            pet_actor *petActor = iter->second.get();
+            pet_actor *pet_actor = iter->second.get();
 
-            if (nullptr != petActor && petActor->is_summoned()) {
-                character *pPet = petActor->get_character();
+            if (nullptr != pet_actor && pet_actor->is_summoned()) {
+                character *pet = pet_actor->get_character();
 
-                if (nullptr == character_manager::instance().find(pPet->get_vid())) {
-                    v_garbageActor.push_back(petActor);
+                if (nullptr == character_manager::instance().find(pet->get_vid())) {
+                    v_garbage_actor.push_back(pet_actor);
                 } else {
-                    bResult = bResult && petActor->update(delta_time);
+                    result = result && pet_actor->update(delta_time);
                 }
             }
         }
-        for (auto it = v_garbageActor.begin(); it != v_garbageActor.end(); it++)
+        for (auto it = v_garbage_actor.begin(); it != v_garbage_actor.end(); it++)
             delete_pet(*it);
 
-        last_update_time_ = currentTime;
+        last_update_time_ = current_time;
 
-        return bResult;
+        return result;
     }
 
     void pet_system::delete_pet(pet_actor *pet_actor_value) {
@@ -348,26 +348,26 @@ namespace metin2::game::inline characters {
         if (true == delete_from_list)
             this->delete_pet(actor);
 
-        bool bActive = false;
+        bool active = false;
         for (auto it = pet_actor_map_.begin(); it != pet_actor_map_.end(); it++) {
-            bActive |= it->second->is_summoned();
+            active |= it->second->is_summoned();
         }
-        if (false == bActive) {
+        if (false == active) {
             event_cancel(&pet_system_update_event_);
             pet_system_update_event_ = nullptr;
         }
     }
 
     auto pet_system::summon(uint32_t mob_vnum, item *summon_item, const char *pet_name, bool spawn_far, uint32_t options) -> pet_actor * {
-        pet_actor *petActor = this->by_vnum(mob_vnum);
+        pet_actor *pet_actor_value = this->by_vnum(mob_vnum);
 
-        if (nullptr == petActor) {
-            auto petActorOwner = std::unique_ptr<pet_actor>(new pet_actor(owner_, mob_vnum, options));
-            petActor = petActorOwner.get();
-            pet_actor_map_.try_emplace(mob_vnum, std::move(petActorOwner));
+        if (nullptr == pet_actor_value) {
+            auto pet_actor_owner = std::unique_ptr<pet_actor>(new pet_actor(owner_, mob_vnum, options));
+            pet_actor_value = pet_actor_owner.get();
+            pet_actor_map_.try_emplace(mob_vnum, std::move(pet_actor_owner));
         }
 
-        petActor->summon(pet_name, summon_item, spawn_far);
+        pet_actor_value->summon(pet_name, summon_item, spawn_far);
 
         if (nullptr == pet_system_update_event_) {
             auto *info = alloc_event_info<petsystem_event_info>();
@@ -377,28 +377,28 @@ namespace metin2::game::inline characters {
             pet_system_update_event_ = event_create(petsystem_update_event, info, passes_per_sec(1) / 4);
         }
 
-        return petActor;
+        return pet_actor_value;
     }
 
     auto pet_system::by_vnum(uint32_t vnum) const -> pet_actor * {
-        pet_actor *petActor = nullptr;
+        pet_actor *pet_actor = nullptr;
 
         auto iter = pet_actor_map_.find(vnum);
 
         if (pet_actor_map_.end() != iter)
-            petActor = iter->second.get();
+            pet_actor = iter->second.get();
 
-        return petActor;
+        return pet_actor;
     }
 
     auto pet_system::count_summoned() const -> size_t {
         size_t count = 0;
 
         for (auto iter = pet_actor_map_.begin(); iter != pet_actor_map_.end(); ++iter) {
-            pet_actor *petActor = iter->second.get();
+            pet_actor *pet_actor = iter->second.get();
 
-            if (nullptr != petActor) {
-                if (petActor->is_summoned())
+            if (nullptr != pet_actor) {
+                if (pet_actor->is_summoned())
                     ++count;
             }
         }
@@ -408,11 +408,11 @@ namespace metin2::game::inline characters {
 
     void pet_system::refresh_buff() {
         for (auto iter = pet_actor_map_.begin(); iter != pet_actor_map_.end(); ++iter) {
-            pet_actor *petActor = iter->second.get();
+            pet_actor *pet_actor = iter->second.get();
 
-            if (nullptr != petActor) {
-                if (petActor->is_summoned()) {
-                    petActor->give_buff();
+            if (nullptr != pet_actor) {
+                if (pet_actor->is_summoned()) {
+                    pet_actor->give_buff();
                 }
             }
         }

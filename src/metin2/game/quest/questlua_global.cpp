@@ -66,8 +66,8 @@ namespace metin2::game {
         }
 
         auto time_to_str(lua_State *lua) -> int {
-            auto curTime = (time_t)lua_tonumber(lua, -1);
-            lua_pushstring(lua, asctime(gmtime(&curTime)));
+            auto cur_time = (time_t)lua_tonumber(lua, -1);
+            lua_pushstring(lua, asctime(gmtime(&cur_time)));
             return 1;
         }
 
@@ -307,15 +307,15 @@ namespace metin2::game {
             quest_manager &q = quest_manager::instance();
             character *ch = q.current_character_ptr();
 
-            uint32_t dwItemID = 0;
+            uint32_t item_id = 0;
             const char *how = "";
             const char *hint = "";
 
-            if (lua_isnumber(lua, 1)) dwItemID = (uint32_t)lua_tonumber(lua, 1);
+            if (lua_isnumber(lua, 1)) item_id = (uint32_t)lua_tonumber(lua, 1);
             if (lua_isstring(lua, 2)) how = lua_tostring(lua, 2);
             if (lua_tostring(lua, 3)) hint = lua_tostring(lua, 3);
 
-            item *item = item_manager::instance().find(dwItemID);
+            item *item = item_manager::instance().find(item_id);
 
             if (item)
                 log_manager::instance().item_log(ch, item, how, hint);
@@ -380,15 +380,15 @@ namespace metin2::game {
             if (!lua_isnumber(lua, 1) || !lua_isstring(lua, 2))
                 return 0;
 
-            int mapIndex = (int)lua_tonumber(lua, 1);
+            int map_index = (int)lua_tonumber(lua, 1);
 
-            const char *bgmName = lua_tostring(lua, 2);
-            if (!bgmName)
+            const char *bgm_name = lua_tostring(lua, 2);
+            if (!bgm_name)
                 return 0;
 
-            float bgmVol = lua_isnumber(lua, 3) ? lua_tonumber(lua, 3) : (1.0f / 5.0f) * 0.1f;
+            float bgm_vol = lua_isnumber(lua, 3) ? lua_tonumber(lua, 3) : (1.0f / 5.0f) * 0.1f;
 
-            character_add_bgm_info(mapIndex, bgmName, bgmVol);
+            character_add_bgm_info(map_index, bgm_name, bgm_vol);
 
             return 0;
         }
@@ -397,25 +397,25 @@ namespace metin2::game {
             const char *name = lua_tostring(lua, 1);
 
             int empire = (int)lua_tonumber(lua, 2);
-            int mapIndex = (int)lua_tonumber(lua, 3);
+            int map_index = (int)lua_tonumber(lua, 3);
             int x = (int)lua_tonumber(lua, 4);
             int y = (int)lua_tonumber(lua, 5);
 
             if (!name)
                 return 0;
 
-            character_add_goto_info(name, empire, mapIndex, x, y);
+            character_add_goto_info(name, empire, map_index, x, y);
             return 0;
         }
 
         auto refine_pick(lua_State *lua) -> int {
-            auto bCell = (uint8_t)lua_tonumber(lua, -1);
+            auto cell = (uint8_t)lua_tonumber(lua, -1);
 
             quest_manager &q = quest_manager::instance();
 
             character *ch = q.current_character_ptr();
 
-            item *item = ch->inventory_item(bCell);
+            item *item = ch->inventory_item(cell);
 
             int ret = mining::real_refine_pick(ch, item);
             lua_pushnumber(lua, ret);
@@ -423,13 +423,13 @@ namespace metin2::game {
         }
 
         auto fish_real_refine_rod(lua_State *lua) -> int {
-            auto bCell = (uint8_t)lua_tonumber(lua, -1);
+            auto cell = (uint8_t)lua_tonumber(lua, -1);
 
             quest_manager &q = quest_manager::instance();
 
             character *ch = q.current_character_ptr();
 
-            item *item = ch->inventory_item(bCell);
+            item *item = ch->inventory_item(cell);
 
             int ret = fishing::real_refine_rod(ch, item);
             lua_pushnumber(lua, ret);
@@ -499,13 +499,13 @@ namespace metin2::game {
             bool found = false;
 
             for (int type = PRIV_NONE + 1; type < MAX_PRIV_NUM; ++type) {
-                priv_manager::priv_empire_data *pkPrivEmpireData = priv_manager::instance().priv_by_empire_ex(empire, type);
+                priv_manager::priv_empire_data *priv_empire_data = priv_manager::instance().priv_by_empire_ex(empire, type);
 
-                if (pkPrivEmpireData && pkPrivEmpireData->value) {
+                if (priv_empire_data && priv_empire_data->value) {
                     if (found)
                         os << ", ";
 
-                    os << lc_text(apsz_priv_names[type]) << " : " << pkPrivEmpireData->value << "%" << " (" << ((pkPrivEmpireData->end_time_sec - get_global_time()) / 3600.0f) << " hours)" << std::endl;
+                    os << lc_text(apsz_priv_names[type]) << " : " << priv_empire_data->value << "%" << " (" << ((priv_empire_data->end_time_sec - get_global_time()) / 3600.0f) << " hours)" << std::endl;
                     found = true;
                 }
             }
@@ -535,14 +535,14 @@ namespace metin2::game {
             bool found = false;
 
             for (int type = PRIV_NONE + 1; type < MAX_PRIV_NUM; ++type) {
-                const priv_manager::priv_guild_data *pPrivGuildData = priv_manager::instance().priv_by_guild_ex(guild, type);
+                const priv_manager::priv_guild_data *priv_guild_data = priv_manager::instance().priv_by_guild_ex(guild, type);
 
-                if (pPrivGuildData && pPrivGuildData->value) {
+                if (priv_guild_data && priv_guild_data->value) {
                     if (found)
                         os << ", ";
 
-                    os << lc_text(apsz_priv_names[type]) << " : " << pPrivGuildData->value << "%"
-                       << " (" << ((pPrivGuildData->end_time_sec - get_global_time()) / 3600.0f) << " hours)" << std::endl;
+                    os << lc_text(apsz_priv_names[type]) << " : " << priv_guild_data->value << "%"
+                       << " (" << ((priv_guild_data->end_time_sec - get_global_time()) / 3600.0f) << " hours)" << std::endl;
                     found = true;
                 }
             }
@@ -560,10 +560,10 @@ namespace metin2::game {
                 return 1;
             }
 
-            const char *pszGuildName = lua_tostring(lua, 1);
-            guild *pFindGuild = guild_manager::instance().find_guild_by_name(pszGuildName);
-            if (pFindGuild)
-                lua_pushnumber(lua, pFindGuild->id());
+            const char *guild_name = lua_tostring(lua, 1);
+            guild *find_guild = guild_manager::instance().find_guild_by_name(guild_name);
+            if (find_guild)
+                lua_pushnumber(lua, find_guild->id());
             else
                 lua_pushnumber(lua, 0);
 
@@ -584,10 +584,10 @@ namespace metin2::game {
 
         auto item_name(lua_State *lua) -> int {
             if (lua_isnumber(lua, 1)) {
-                auto dwVnum = (uint32_t)lua_tonumber(lua, 1);
-                item_table *pTable = item_manager::instance().table(dwVnum);
-                if (pTable)
-                    lua_pushstring(lua, pTable->locale_name);
+                auto vnum = (uint32_t)lua_tonumber(lua, 1);
+                item_table *table = item_manager::instance().table(vnum);
+                if (table)
+                    lua_pushstring(lua, table->locale_name);
                 else
                     lua_pushstring(lua, "");
             } else
@@ -597,11 +597,11 @@ namespace metin2::game {
 
         auto mob_name(lua_State *lua) -> int {
             if (lua_isnumber(lua, 1)) {
-                auto dwVnum = (uint32_t)lua_tonumber(lua, 1);
-                const mob *pkMob = mob_manager::instance().get(dwVnum);
+                auto vnum = (uint32_t)lua_tonumber(lua, 1);
+                const mob *mob = mob_manager::instance().get(vnum);
 
-                if (pkMob)
-                    lua_pushstring(lua, pkMob->table.locale_name);
+                if (mob)
+                    lua_pushstring(lua, mob->table.locale_name);
                 else
                     lua_pushstring(lua, "");
             } else
@@ -613,9 +613,9 @@ namespace metin2::game {
         auto mob_vnum(lua_State *lua) -> int {
             if (lua_isstring(lua, 1)) {
                 const char *str = lua_tostring(lua, 1);
-                const mob *pkMob = mob_manager::instance().get(str, false);
-                if (pkMob)
-                    lua_pushnumber(lua, pkMob->table.vnum);
+                const mob *mob = mob_manager::instance().get(str, false);
+                if (mob)
+                    lua_pushnumber(lua, mob->table.vnum);
                 else
                     lua_pushnumber(lua, 0);
             } else
@@ -666,9 +666,9 @@ namespace metin2::game {
                 return 1;
             }
 
-            int iMinLev = (int)lua_tonumber(lua, 1);
-            int iMaxLev = (int)lua_tonumber(lua, 2);
-            auto uiJobFlag = (unsigned int)lua_tonumber(lua, 3);
+            int min_lev = (int)lua_tonumber(lua, 1);
+            int max_lev = (int)lua_tonumber(lua, 2);
+            auto job_flag = (unsigned int)lua_tonumber(lua, 3);
 
             character *ch = quest_manager::instance().current_character_ptr();
             character *tch;
@@ -676,15 +676,15 @@ namespace metin2::game {
             if (metin2::config::test_server()) {
                 metin2::log::debug("Quest: find player on map {:d}, job flags {:d}, level {:d}-{:d}",
                     ch->map_index(),
-                    uiJobFlag,
-                    iMinLev, iMaxLev);
+                    job_flag,
+                    min_lev, max_lev);
             }
 
-            tch = character_manager::instance().find_specify_pc(uiJobFlag,
+            tch = character_manager::instance().find_specify_pc(job_flag,
                 ch->map_index(),
                 ch,
-                iMinLev,
-                iMaxLev);
+                min_lev,
+                max_lev);
 
             lua_pushnumber(lua, tch ? tch->get_vid() : 0);
             return 1;
@@ -723,22 +723,22 @@ namespace metin2::game {
 
             quest_manager &q = quest_manager::instance();
             quest_state *pqs = q.current_state();
-            pc *pPC = q.current_pc();
+            pc *pc = q.current_pc();
             if (lua != pqs->co) {
                 luaL_error(lua, "running thread != current thread???");
                 metin2::log::error("Running Lua thread is not the current quest thread");
                 return -1;
             }
-            if (pPC) {
-                const std::string stQuestName(lua_tostring(lua, 1));
-                const std::string stStateName(lua_tostring(lua, 2));
+            if (pc) {
+                const std::string quest_name(lua_tostring(lua, 1));
+                const std::string state_name(lua_tostring(lua, 2));
                 if (metin2::config::test_server())
-                    metin2::log::debug("Quest: {} set state {}", stQuestName, stStateName);
-                if (pPC->current_quest_name() == stQuestName) {
-                    pqs->st = q.quest_state_index(pPC->current_quest_name(), lua_tostring(lua, -1));
-                    pPC->set_current_quest_state_name(lua_tostring(lua, -1));
+                    metin2::log::debug("Quest: {} set state {}", quest_name, state_name);
+                if (pc->current_quest_name() == quest_name) {
+                    pqs->st = q.quest_state_index(pc->current_quest_name(), lua_tostring(lua, -1));
+                    pc->set_current_quest_state_name(lua_tostring(lua, -1));
                 } else {
-                    pPC->set_quest_state(stQuestName, stStateName);
+                    pc->set_quest_state(quest_name, state_name);
                 }
             }
             return 0;
@@ -749,18 +749,18 @@ namespace metin2::game {
                 return 0;
 
             quest_manager &q = quest_manager::instance();
-            pc *pPC = q.current_pc();
+            pc *pc = q.current_pc();
 
-            if (pPC) {
-                std::string stQuestName = lua_tostring(lua, 1);
-                stQuestName += ".__status";
+            if (pc) {
+                std::string quest_name = lua_tostring(lua, 1);
+                quest_name += ".__status";
 
-                int nRet = pPC->flag(stQuestName.c_str());
+                int ret = pc->flag(quest_name.c_str());
 
-                lua_pushnumber(lua, nRet);
+                lua_pushnumber(lua, ret);
 
                 if (metin2::config::test_server())
-                    metin2::log::debug("Quest: {} state is {:d}", stQuestName, nRet);
+                    metin2::log::debug("Quest: {} state is {:d}", quest_name, ret);
             } else {
                 if (metin2::config::test_server())
                     metin2::log::debug("Quest: no current player for state lookup");
@@ -804,20 +804,20 @@ namespace metin2::game {
                 return 0;
             }
 
-            sectree_map *pSecMap = sectree_manager::instance().map(info->warp_map_index);
+            sectree_map *sec_map = sectree_manager::instance().map(info->warp_map_index);
 
-            if (nullptr != pSecMap) {
-                pSecMap->for_each([](entity *ent) {
+            if (nullptr != sec_map) {
+                sec_map->for_each([](entity *ent) {
                     if (ent->is_type(ENTITY_CHARACTER)) {
                         auto *ch = (character *)ent;
                         if (ch->is_pc()) {
-                            uint8_t bEmpire = ch->empire();
-                            if (bEmpire == 0) {
+                            uint8_t empire_value = ch->empire();
+                            if (empire_value == 0) {
                                 quest::error("Player {} (pid {:d}) has no empire", ch->name(), ch->player_id());
                                 return;
                             }
 
-                            ch->warp_set(start_position[bEmpire][0], start_position[bEmpire][1]);
+                            ch->warp_set(start_position[empire_value][0], start_position[empire_value][1]);
                         }
                     }
                 });
@@ -827,16 +827,16 @@ namespace metin2::game {
         }
 
         auto warp_all_to_village(lua_State *lua) -> int {
-            int iMapIndex = static_cast<int>(lua_tonumber(lua, 1));
-            int iSec = static_cast<int>(lua_tonumber(lua, 2));
+            int map_index = static_cast<int>(lua_tonumber(lua, 1));
+            int sec = static_cast<int>(lua_tonumber(lua, 2));
 
             auto *info = alloc_event_info<warp_all_to_village_event_info>();
 
-            info->warp_map_index = iMapIndex;
+            info->warp_map_index = map_index;
 
-            event_create(warp_all_to_village_event, info, passes_per_sec(iSec));
+            event_create(warp_all_to_village_event, info, passes_per_sec(sec));
 
-            send_notice_map(lc_text("잠시후 모두 마을로 이동됩니다."), iMapIndex, false);
+            send_notice_map(lc_text("잠시후 모두 마을로 이동됩니다."), map_index, false);
 
             return 0;
         }
@@ -845,45 +845,45 @@ namespace metin2::game {
             character *ch = quest_manager::instance().current_character_ptr();
 
             if (nullptr != ch) {
-                uint8_t bEmpire = ch->empire();
-                ch->warp_set(start_position[bEmpire][0], start_position[bEmpire][1]);
+                uint8_t empire = ch->empire();
+                ch->warp_set(start_position[empire][0], start_position[empire][1]);
             }
 
             return 0;
         }
 
         auto say_in_map(lua_State *lua) -> int {
-            int iMapIndex = static_cast<int>(lua_tonumber(lua, 1));
-            std::string Script(lua_tostring(lua, 2));
+            int map_index = static_cast<int>(lua_tonumber(lua, 1));
+            std::string script(lua_tostring(lua, 2));
 
-            Script += "[ENTER]";
-            Script += "[DONE]";
+            script += "[ENTER]";
+            script += "[DONE]";
 
             struct metin2::game::packet_script packet_script;
 
             packet_script.header = HEADER_GC_SCRIPT;
             packet_script.skin = quest_manager::QUEST_SKIN_NORMAL;
-            packet_script.src_size = Script.size();
+            packet_script.src_size = script.size();
             packet_script.size = packet_script.src_size + sizeof(struct packet_script);
 
             temp_buffer buf;
             buf.write(&packet_script, sizeof(struct packet_script));
-            buf.write(&Script[0], Script.size());
+            buf.write(&script[0], script.size());
 
-            sectree_map *pSecMap = sectree_manager::instance().map(iMapIndex);
+            sectree_map *sec_map = sectree_manager::instance().map(map_index);
 
-            if (pSecMap) {
-                send_buffer_to_map(pSecMap, buf);
+            if (sec_map) {
+                send_buffer_to_map(sec_map, buf);
             }
 
             return 0;
         }
 
         auto kill_all_in_map(lua_State *lua) -> int {
-            sectree_map *pSecMap = sectree_manager::instance().map(lua_tonumber(lua, 1));
+            sectree_map *sec_map = sectree_manager::instance().map(lua_tonumber(lua, 1));
 
-            if (nullptr != pSecMap) {
-                pSecMap->for_each([](entity *ent) {
+            if (nullptr != sec_map) {
+                sec_map->for_each([](entity *ent) {
                     if (ent->is_type(ENTITY_CHARACTER)) {
                         auto *ch = (character *)ent;
 
@@ -897,13 +897,13 @@ namespace metin2::game {
         }
 
         auto regen_in_map(lua_State *lua) -> int {
-            int iMapIndex = static_cast<int>(lua_tonumber(lua, 1));
-            std::string szFilename(lua_tostring(lua, 2));
+            int map_index = static_cast<int>(lua_tonumber(lua, 1));
+            std::string filename(lua_tostring(lua, 2));
 
-            sectree_map *pkMap = sectree_manager::instance().map(iMapIndex);
+            sectree_map *map = sectree_manager::instance().map(map_index);
 
-            if (pkMap != nullptr) {
-                regen_load_in_file(szFilename.c_str(), iMapIndex, pkMap->setting.base_x, pkMap->setting.base_y);
+            if (map != nullptr) {
+                regen_load_in_file(filename.c_str(), map_index, map->setting.base_x, map->setting.base_y);
             }
 
             return 0;
@@ -911,10 +911,10 @@ namespace metin2::game {
 
         auto enable_over9refine(lua_State *lua) -> int {
             if (lua_isnumber(lua, 1) == true && lua_isnumber(lua, 2) == true) {
-                auto dwVnumFrom = (uint32_t)lua_tonumber(lua, 1);
-                auto dwVnumTo = (uint32_t)lua_tonumber(lua, 2);
+                auto vnum_from = (uint32_t)lua_tonumber(lua, 1);
+                auto vnum_to = (uint32_t)lua_tonumber(lua, 2);
 
-                over9_refine_manager::instance().enable_over9_refine(dwVnumFrom, dwVnumTo);
+                over9_refine_manager::instance().enable_over9_refine(vnum_from, vnum_to);
             }
 
             return 0;
@@ -940,10 +940,10 @@ namespace metin2::game {
                 return 0;
             }
 
-            sectree_map *pSecMap = sectree_manager::instance().map(info->map_index_from);
+            sectree_map *sec_map = sectree_manager::instance().map(info->map_index_from);
 
-            if (pSecMap) {
-                pSecMap->for_each([info](entity *ent) {
+            if (sec_map) {
+                sec_map->for_each([info](entity *ent) {
                     if (ent->is_type(ENTITY_CHARACTER)) {
                         auto *ch = (character *)ent;
 
@@ -958,20 +958,20 @@ namespace metin2::game {
         }
 
         auto block_chat(lua_State *lua) -> int {
-            character *pChar = quest_manager::instance().current_character_ptr();
+            character *ch = quest_manager::instance().current_character_ptr();
 
-            if (pChar != nullptr) {
+            if (ch != nullptr) {
                 if (lua_isstring(lua, 1) != true && lua_isstring(lua, 2) != true) {
                     lua_pushboolean(lua, false);
                     return 1;
                 }
 
-                std::string strName(lua_tostring(lua, 1));
-                std::string strTime(lua_tostring(lua, 2));
+                std::string name(lua_tostring(lua, 1));
+                std::string time(lua_tostring(lua, 2));
 
-                std::string strArg = strName + " " + strTime;
+                std::string arg = name + " " + time;
 
-                do_block_chat(pChar, const_cast<char *>(strArg.c_str()), 0, 0);
+                do_block_chat(ch, const_cast<char *>(arg.c_str()), 0, 0);
 
                 lua_pushboolean(lua, true);
                 return 1;
@@ -987,45 +987,45 @@ namespace metin2::game {
                 return 1;
             }
 
-            const auto dwVnum = static_cast<uint32_t>(lua_tonumber(lua, 1));
+            const auto vnum_value = static_cast<uint32_t>(lua_tonumber(lua, 1));
             const size_t count = std::clamp<int>(static_cast<size_t>(lua_tonumber(lua, 2)), 1, 10);
-            const bool isAggresive = static_cast<bool>(lua_toboolean(lua, 3));
-            size_t SpawnCount = 0;
+            const bool is_aggresive = static_cast<bool>(lua_toboolean(lua, 3));
+            size_t spawn_count = 0;
 
-            const mob *pMonster = mob_manager::instance().get(dwVnum);
+            const mob *monster = mob_manager::instance().get(vnum_value);
 
-            if (nullptr != pMonster) {
-                character *const pChar = quest_manager::instance().current_character_ptr();
+            if (nullptr != monster) {
+                character *const ch = quest_manager::instance().current_character_ptr();
 
                 for (size_t i = 0; i < count; ++i) {
-                    character *const pSpawnMonster = character_manager::instance().spawn_mob_range(dwVnum,
-                        pChar->map_index(),
-                        pChar->x() - number(200, 750),
-                        pChar->y() - number(200, 750),
-                        pChar->x() + number(200, 750),
-                        pChar->y() + number(200, 750),
+                    character *const spawn_monster = character_manager::instance().spawn_mob_range(vnum_value,
+                        ch->map_index(),
+                        ch->x() - number(200, 750),
+                        ch->y() - number(200, 750),
+                        ch->x() + number(200, 750),
+                        ch->y() + number(200, 750),
                         true,
-                        pMonster->table.type == CHAR_TYPE_STONE,
-                        isAggresive);
+                        monster->table.type == CHAR_TYPE_STONE,
+                        is_aggresive);
 
-                    if (nullptr != pSpawnMonster) {
-                        ++SpawnCount;
+                    if (nullptr != spawn_monster) {
+                        ++spawn_count;
                     }
                 }
 
-                metin2::log::debug("Quest: spawned {1:d} mobs (vnum {0:d}, aggressive {2})", dwVnum, SpawnCount, isAggresive);
+                metin2::log::debug("Quest: spawned {1:d} mobs (vnum {0:d}, aggressive {2})", vnum_value, spawn_count, is_aggresive);
             }
 
-            lua_pushnumber(lua, SpawnCount);
+            lua_pushnumber(lua, spawn_count);
 
             return 1;
         }
 
         auto notice_in_map(lua_State *lua) -> int {
-            character *const pChar = quest_manager::instance().current_character_ptr();
+            character *const ch = quest_manager::instance().current_character_ptr();
 
-            if (nullptr != pChar) {
-                send_notice_map(lua_tostring(lua, 1), pChar->map_index(), lua_toboolean(lua, 2));
+            if (nullptr != ch) {
+                send_notice_map(lua_tostring(lua, 1), ch->map_index(), lua_toboolean(lua, 2));
             }
 
             return 0;
@@ -1043,17 +1043,17 @@ namespace metin2::game {
             int x2 = lua_tonumber(lua, 3);
             int y2 = lua_tonumber(lua, 4);
 
-            const int mapIndex = sectree_manager::instance().map_index(x1, y1);
+            const int map_index = sectree_manager::instance().map_index(x1, y1);
 
-            if (0 == mapIndex) {
+            if (0 == map_index) {
                 quest::error("No map at ({:d}, {:d})", x1, y1);
                 return 0;
             }
 
-            sectree_map *pSectree = sectree_manager::instance().map(mapIndex);
+            sectree_map *sectree = sectree_manager::instance().map(map_index);
 
-            if (nullptr != pSectree) {
-                purge_monsters_in_area(pSectree, x1, y1, x2, y2, quest_manager::instance().current_npc_character_ptr());
+            if (nullptr != sectree) {
+                purge_monsters_in_area(sectree, x1, y1, x2, y2, quest_manager::instance().current_npc_character_ptr());
             }
 
             return 0;
@@ -1070,28 +1070,28 @@ namespace metin2::game {
             int to_x2 = lua_tonumber(lua, 7);
             int to_y2 = lua_tonumber(lua, 8);
 
-            const int mapIndex = sectree_manager::instance().map_index(from_x1, from_y1);
+            const int map_index = sectree_manager::instance().map_index(from_x1, from_y1);
 
-            if (0 == mapIndex) {
+            if (0 == map_index) {
                 quest::error("No map at ({:d}, {:d})", from_x1, from_y1);
                 lua_pushnumber(lua, 0);
                 return 1;
             }
 
-            sectree_map *pSectree = sectree_manager::instance().map(mapIndex);
+            sectree_map *sectree_value = sectree_manager::instance().map(map_index);
 
-            if (nullptr != pSectree) {
+            if (nullptr != sectree_value) {
                 size_t warp_count = 0;
 
-                pSectree->for_each([&](entity *ent) {
+                sectree_value->for_each([&](entity *ent) {
                     if (true == ent->is_type(ENTITY_CHARACTER)) {
-                        auto *pChar = static_cast<character *>(ent);
+                        auto *ch = static_cast<character *>(ent);
 
-                        if (true == pChar->is_pc()) {
-                            if (from_x1 <= pChar->x() && pChar->x() <= from_x2 && from_y1 <= pChar->y() && pChar->y() <= from_y2) {
+                        if (true == ch->is_pc()) {
+                            if (from_x1 <= ch->x() && ch->x() <= from_x2 && from_y1 <= ch->y() && ch->y() <= from_y2) {
                                 ++warp_count;
 
-                                pChar->warp_set(number(to_x1, to_x2), number(to_y1, to_y2));
+                                ch->warp_set(number(to_x1, to_x2), number(to_y1, to_y2));
                             }
                         }
                     }

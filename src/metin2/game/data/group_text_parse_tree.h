@@ -164,14 +164,14 @@ namespace metin2::game::inline data {
 
     template <typename T>
     auto group_node::group_value(const std::string &group_name, const std::string &row, int col, T &t_value) const -> bool {
-        group_node *pChildGroup = child_node(group_name);
-        if (nullptr != pChildGroup) {
-            if (pChildGroup->value(row, col, t_value))
+        group_node *child_group = child_node(group_name);
+        if (nullptr != child_group) {
+            if (child_group->value(row, col, t_value))
                 return true;
         }
-        pChildGroup = child_node("default");
-        if (nullptr != pChildGroup) {
-            if (pChildGroup->value(row, col, t_value))
+        child_group = child_node("default");
+        if (nullptr != child_group) {
+            if (child_group->value(row, col, t_value))
                 return true;
         }
         return false;
@@ -179,14 +179,14 @@ namespace metin2::game::inline data {
 
     template <typename T>
     auto group_node::group_value(const std::string &group_name, const std::string &row, const std::string &col, T &t_value) const -> bool {
-        group_node *pChildGroup = child_node(group_name);
-        if (nullptr != pChildGroup) {
-            if (pChildGroup->value(row, col, t_value))
+        group_node *child_group = child_node(group_name);
+        if (nullptr != child_group) {
+            if (child_group->value(row, col, t_value))
                 return true;
         }
-        pChildGroup = child_node("default");
-        if (nullptr != pChildGroup) {
-            if (pChildGroup->value(row, col, t_value))
+        child_group = child_node("default");
+        if (nullptr != child_group) {
+            if (child_group->value(row, col, t_value))
                 return true;
         }
         return false;

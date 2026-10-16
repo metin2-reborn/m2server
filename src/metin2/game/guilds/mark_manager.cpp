@@ -45,15 +45,15 @@ namespace metin2::game::inline guilds {
         if (!fp)
             return false;
 
-        uint32_t guildID;
-        uint32_t markID;
+        uint32_t guild_id;
+        uint32_t mark_id;
 
         char line[256];
 
         while (fgets(line, sizeof(line) - 1, fp)) {
-            sscanf(line, "%u %u", &guildID, &markID);
+            sscanf(line, "%u %u", &guild_id, &mark_id);
             line[0] = '\0';
-            add_mark_id_by_guild_id(guildID, markID);
+            add_mark_id_by_guild_id(guild_id, mark_id);
         }
 
         load_mark_images();
@@ -80,18 +80,18 @@ namespace metin2::game::inline guilds {
     }
 
     void guild_mark_manager::load_mark_images() {
-        bool isMarkExists[MAX_IMAGE_COUNT];
-        memset(isMarkExists, 0, sizeof(isMarkExists));
+        bool is_mark_exists[MAX_IMAGE_COUNT];
+        memset(is_mark_exists, 0, sizeof(is_mark_exists));
 
         for (auto it = gid_mark_id_.begin(); it != gid_mark_id_.end(); ++it) {
-            uint32_t markID = it->second;
+            uint32_t mark_id = it->second;
 
-            if (markID < MAX_IMAGE_COUNT * static_cast<uint32_t>(guild_mark_image::MARK_TOTAL_COUNT))
-                isMarkExists[markID / guild_mark_image::MARK_TOTAL_COUNT] = true;
+            if (mark_id < MAX_IMAGE_COUNT * static_cast<uint32_t>(guild_mark_image::MARK_TOTAL_COUNT))
+                is_mark_exists[mark_id / guild_mark_image::MARK_TOTAL_COUNT] = true;
         }
 
         for (uint32_t i = 0; i < MAX_IMAGE_COUNT; ++i)
-            if (isMarkExists[i])
+            if (is_mark_exists[i])
                 image(i);
     }
 
@@ -107,17 +107,17 @@ namespace metin2::game::inline guilds {
         auto it = idx_image_.find(img_idx);
 
         if (it == idx_image_.end()) {
-            std::string imagePath;
+            std::string image_path;
 
-            if (mark_image_filename(img_idx, imagePath)) {
-                guild_mark_image *pkImage = idx_image_.emplace(img_idx, std::make_unique<guild_mark_image>()).first->second.get();
+            if (mark_image_filename(img_idx, image_path)) {
+                guild_mark_image *image = idx_image_.emplace(img_idx, std::make_unique<guild_mark_image>()).first->second.get();
 
-                if (!pkImage->load(imagePath.c_str())) {
-                    pkImage->build(imagePath.c_str());
-                    pkImage->load(imagePath.c_str());
+                if (!image->load(image_path.c_str())) {
+                    image->build(image_path.c_str());
+                    image->load(image_path.c_str());
                 }
 
-                return pkImage;
+                return image;
             } else
                 return nullptr;
         } else
@@ -148,13 +148,13 @@ namespace metin2::game::inline guilds {
         if (it == free_mark_id_.end())
             return INVALID_MARK_ID;
 
-        uint32_t markID = *it;
+        uint32_t mark_id = *it;
 
-        uint32_t imgIdx = markID / guild_mark_image::MARK_TOTAL_COUNT;
-        guild_mark_image *pkImage = image(imgIdx);
+        uint32_t img_idx = mark_id / guild_mark_image::MARK_TOTAL_COUNT;
+        guild_mark_image *image_value = image(img_idx);
 
-        if (pkImage && add_mark_id_by_guild_id(guild_id, markID))
-            return markID;
+        if (image_value && add_mark_id_by_guild_id(guild_id, mark_id))
+            return mark_id;
 
         return INVALID_MARK_ID;
     }
@@ -164,37 +164,37 @@ namespace metin2::game::inline guilds {
     }
 
     void guild_mark_manager::copy_mark_idx(char *pc_buf) const {
-        auto *pwBuf = (uint16_t *)pc_buf;
+        auto *buf = (uint16_t *)pc_buf;
 
         for (auto it = gid_mark_id_.begin(); it != gid_mark_id_.end(); ++it) {
-            *(pwBuf++) = it->first;
-            *(pwBuf++) = it->second;
+            *(buf++) = it->first;
+            *(buf++) = it->second;
         }
     }
 
     auto guild_mark_manager::save_mark(uint32_t guild_id, uint8_t *mark_image) -> uint32_t {
-        uint32_t idMark;
+        uint32_t id_mark;
 
-        if ((idMark = mark_id(guild_id)) == INVALID_MARK_ID) {
-            if ((idMark = alloc_mark_id(guild_id)) == INVALID_MARK_ID) {
+        if ((id_mark = mark_id(guild_id)) == INVALID_MARK_ID) {
+            if ((id_mark = alloc_mark_id(guild_id)) == INVALID_MARK_ID) {
                 metin2::log::error("Cannot allocate a mark id for guild {:d}, no free slots", guild_id);
                 return false;
             } else
-                metin2::log::info("Guild marks: allocated mark id {:d}", idMark);
+                metin2::log::info("Guild marks: allocated mark id {:d}", id_mark);
         } else
-            metin2::log::debug("Guild marks: reusing mark id {:d}", idMark);
+            metin2::log::debug("Guild marks: reusing mark id {:d}", id_mark);
 
-        uint32_t imgIdx = (idMark / guild_mark_image::MARK_TOTAL_COUNT);
-        guild_mark_image *pkImage = image(imgIdx);
+        uint32_t img_idx = (id_mark / guild_mark_image::MARK_TOTAL_COUNT);
+        guild_mark_image *image_value = image(img_idx);
 
-        if (pkImage) {
-            pkImage->save_mark(idMark % guild_mark_image::MARK_TOTAL_COUNT, mark_image);
+        if (image_value) {
+            image_value->save_mark(id_mark % guild_mark_image::MARK_TOTAL_COUNT, mark_image);
 
-            save_mark_image(imgIdx);
+            save_mark_image(img_idx);
             save_mark_index();
         }
 
-        return idMark;
+        return id_mark;
     }
 
     void guild_mark_manager::delete_mark(uint32_t guild_id) {
@@ -203,10 +203,10 @@ namespace metin2::game::inline guilds {
         if (it == gid_mark_id_.end())
             return;
 
-        guild_mark_image *pkImage;
+        guild_mark_image *image_value;
 
-        if ((pkImage = image(it->second / guild_mark_image::MARK_TOTAL_COUNT)) != nullptr)
-            pkImage->delete_mark(it->second % guild_mark_image::MARK_TOTAL_COUNT);
+        if ((image_value = image(it->second / guild_mark_image::MARK_TOTAL_COUNT)) != nullptr)
+            image_value->delete_mark(it->second % guild_mark_image::MARK_TOTAL_COUNT);
 
         free_mark_id_.insert(it->second);
         gid_mark_id_.erase(it);
@@ -243,20 +243,20 @@ namespace metin2::game::inline guilds {
         if (!fp)
             return true;
         else {
-            uint32_t symbolCount;
-            fread(&symbolCount, 4, 1, fp);
+            uint32_t symbol_count;
+            fread(&symbol_count, 4, 1, fp);
 
-            for (uint32_t i = 0; i < symbolCount; i++) {
-                uint32_t guildID;
-                uint32_t dwSize;
-                fread(&guildID, 4, 1, fp);
-                fread(&dwSize, 4, 1, fp);
+            for (uint32_t i = 0; i < symbol_count; i++) {
+                uint32_t guild_id;
+                uint32_t size;
+                fread(&guild_id, 4, 1, fp);
+                fread(&size, 4, 1, fp);
 
                 guild_symbol gs;
-                gs.raw.resize(dwSize);
-                fread(&gs.raw[0], 1, dwSize, fp);
-                gs.crc = get_cr_c32(reinterpret_cast<const char *>(&gs.raw[0]), dwSize);
-                symbol_.insert(std::make_pair(guildID, gs));
+                gs.raw.resize(size);
+                fread(&gs.raw[0], 1, size, fp);
+                gs.crc = get_cr_c32(reinterpret_cast<const char *>(&gs.raw[0]), size);
+                symbol_.insert(std::make_pair(guild_id, gs));
             }
         }
 
@@ -271,15 +271,15 @@ namespace metin2::game::inline guilds {
             return;
         }
 
-        uint32_t symbolCount = symbol_.size();
-        fwrite(&symbolCount, 4, 1, fp);
+        uint32_t symbol_count = symbol_.size();
+        fwrite(&symbol_count, 4, 1, fp);
 
         for (auto it = symbol_.begin(); it != symbol_.end(); ++it) {
-            uint32_t guildID = it->first;
-            uint32_t dwSize = it->second.raw.size();
-            fwrite(&guildID, 4, 1, fp);
-            fwrite(&dwSize, 4, 1, fp);
-            fwrite(&it->second.raw[0], 1, dwSize, fp);
+            uint32_t guild_id = it->first;
+            uint32_t size = it->second.raw.size();
+            fwrite(&guild_id, 4, 1, fp);
+            fwrite(&size, 4, 1, fp);
+            fwrite(&it->second.raw[0], 1, size, fp);
         }
 
         fclose(fp);
@@ -291,13 +291,13 @@ namespace metin2::game::inline guilds {
         if (symbol_.find(guild_id) == symbol_.end())
             symbol_.insert(std::make_pair(guild_id, guild_symbol()));
 
-        guild_symbol &rSymbol = symbol_[guild_id];
-        rSymbol.raw.clear();
+        guild_symbol &symbol = symbol_[guild_id];
+        symbol.raw.clear();
 
         if (size > 0) {
-            rSymbol.raw.reserve(size);
-            std::copy(pby_data, (pby_data + size), std::back_inserter(rSymbol.raw));
-            rSymbol.crc = get_cr_c32(reinterpret_cast<const char *>(pby_data), size);
+            symbol.raw.reserve(size);
+            std::copy(pby_data, (pby_data + size), std::back_inserter(symbol.raw));
+            symbol.crc = get_cr_c32(reinterpret_cast<const char *>(pby_data), size);
         }
     }
 }

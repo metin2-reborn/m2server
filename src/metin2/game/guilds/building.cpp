@@ -84,9 +84,9 @@ namespace metin2::game::inline guilds {
         if (!r)
             return;
 
-        land *pLand = get_land();
-        pLand->request_delete_object(id());
-        pLand->request_create_object(vnum, data_.map_index, data_.x - r->sx, data_.y - r->sy, data_.x_rot, data_.y_rot, data_.z_rot, false);
+        land *land = get_land();
+        land->request_delete_object(id());
+        land->request_create_object(vnum, data_.map_index, data_.x - r->sx, data_.y - r->sy, data_.x_rot, data_.y_rot, data_.z_rot, false);
     }
 
     void object::encode_insert_packet(entity *entity) {
@@ -185,25 +185,25 @@ namespace metin2::game::inline guilds {
             if (proto_->vnum == BUILDING_INCREASE_GUILD_MEMBER_COUNT_SMALL ||
                 proto_->vnum == BUILDING_INCREASE_GUILD_MEMBER_COUNT_MEDIUM ||
                 proto_->vnum == BUILDING_INCREASE_GUILD_MEMBER_COUNT_LARGE) {
-                land *pLand = get_land();
+                land *land = get_land();
                 uint32_t guild_id = 0;
-                if (pLand)
-                    guild_id = pLand->owner();
-                guild *pGuild = guild_manager::instance().find_guild(guild_id);
-                if (pGuild) {
+                if (land)
+                    guild_id = land->owner();
+                guild *guild = guild_manager::instance().find_guild(guild_id);
+                if (guild) {
                     switch (proto_->vnum) {
                     case BUILDING_INCREASE_GUILD_MEMBER_COUNT_SMALL:
-                        pGuild->set_member_count_bonus(6);
+                        guild->set_member_count_bonus(6);
                         break;
                     case BUILDING_INCREASE_GUILD_MEMBER_COUNT_MEDIUM:
-                        pGuild->set_member_count_bonus(12);
+                        guild->set_member_count_bonus(12);
                         break;
                     case BUILDING_INCREASE_GUILD_MEMBER_COUNT_LARGE:
-                        pGuild->set_member_count_bonus(18);
+                        guild->set_member_count_bonus(18);
                         break;
                     }
-                    if (map_allow_find(pLand->map_index())) {
-                        pGuild->broadcast_member_count_bonus();
+                    if (map_allow_find(land->map_index())) {
+                        guild->broadcast_member_count_bonus();
                     }
                 }
             }
@@ -215,15 +215,15 @@ namespace metin2::game::inline guilds {
             if (proto_->vnum == BUILDING_INCREASE_GUILD_MEMBER_COUNT_SMALL ||
                 proto_->vnum == BUILDING_INCREASE_GUILD_MEMBER_COUNT_MEDIUM ||
                 proto_->vnum == BUILDING_INCREASE_GUILD_MEMBER_COUNT_LARGE) {
-                land *pLand = get_land();
+                land *land = get_land();
                 uint32_t guild_id = 0;
-                if (pLand)
-                    guild_id = pLand->owner();
-                guild *pGuild = guild_manager::instance().find_guild(guild_id);
-                if (pGuild) {
-                    pGuild->set_member_count_bonus(0);
-                    if (map_allow_find(pLand->map_index()))
-                        pGuild->broadcast_member_count_bonus();
+                if (land)
+                    guild_id = land->owner();
+                guild *guild = guild_manager::instance().find_guild(guild_id);
+                if (guild) {
+                    guild->set_member_count_bonus(0);
+                    if (map_allow_find(land->map_index()))
+                        guild->broadcast_member_count_bonus();
                 }
             }
         }
@@ -239,25 +239,25 @@ namespace metin2::game::inline guilds {
         if (!land_)
             return;
 
-        uint32_t dwGuildID = land_->owner();
-        guild *pGuild = guild_manager::instance().find_guild(dwGuildID);
+        uint32_t guild_id = land_->owner();
+        guild *guild_value = guild_manager::instance().find_guild(guild_id);
 
-        if (!pGuild)
+        if (!guild_value)
             return;
 
         int x_value = proto_->npcx;
         int y_value = proto_->npcy;
-        int newX, newY;
+        int new_x, new_y;
 
         float rot = data_.z_rot * 2.0f * std::numbers::pi / 360.0f;
 
-        newX = (int)((x_value * cosf(rot)) + (y_value * sinf(rot)));
-        newY = (int)((y_value * cosf(rot)) - (x_value * sinf(rot)));
+        new_x = (int)((x_value * cosf(rot)) + (y_value * sinf(rot)));
+        new_y = (int)((y_value * cosf(rot)) - (x_value * sinf(rot)));
 
         ch_npc_ = character_manager::instance().spawn_mob(proto_->npc_vnum,
             map_index(),
-            x() + newX,
-            y() + newY,
+            x() + new_x,
+            y() + new_y,
             z(),
             false,
             (int)data_.z_rot);
@@ -267,13 +267,13 @@ namespace metin2::game::inline guilds {
             return;
         }
 
-        ch_npc_->set_guild(pGuild);
+        ch_npc_->set_guild(guild_value);
 
         if (proto_->vnum == 14061 || proto_->vnum == 14062 || proto_->vnum == 14063) {
-            quest::pc *pPC = quest::quest_manager::instance().get_pc(pGuild->master_pid());
+            quest::pc *pc = quest::quest_manager::instance().get_pc(guild_value->master_pid());
 
-            if (pPC != nullptr) {
-                pPC->set_flag("alter_of_power.build_level", pGuild->level());
+            if (pc != nullptr) {
+                pc->set_flag("alter_of_power.build_level", guild_value->level());
             }
         }
     }
@@ -290,9 +290,9 @@ namespace metin2::game::inline guilds {
         auto it = map_object_.begin();
 
         while (it != map_object_.end()) {
-            auto &pkObj = (it++)->second;
-            manager::instance().unregister_object(pkObj.get());
-            pkObj.reset();
+            auto &obj = (it++)->second;
+            manager::instance().unregister_object(obj.get());
+            obj.reset();
         }
 
         map_object_.clear();
@@ -356,9 +356,9 @@ namespace metin2::game::inline guilds {
 
     auto land::find_object_by_group(uint32_t group_vnum) -> object * {
         for (auto it = map_object_.begin(); it != map_object_.end(); ++it) {
-            object *pObj = it->second.get();
-            if (pObj->group() == group_vnum)
-                return pObj;
+            object *obj = it->second.get();
+            if (obj->group() == group_vnum)
+                return obj;
         }
 
         return nullptr;
@@ -369,9 +369,9 @@ namespace metin2::game::inline guilds {
             return nullptr;
 
         for (auto it = map_object_.begin(); it != map_object_.end(); ++it) {
-            object *pObj = it->second.get();
-            if (pObj->npc() == npc)
-                return pObj;
+            object *obj = it->second.get();
+            if (obj->npc() == npc)
+                return obj;
         }
 
         return nullptr;
@@ -387,29 +387,29 @@ namespace metin2::game::inline guilds {
     }
 
     void land::delete_object(uint32_t id) {
-        object *pkObj;
+        object *obj;
 
-        if (!(pkObj = find_object(id)))
+        if (!(obj = find_object(id)))
             return;
 
         metin2::log::info("Building: deleting object {:d} from land", id);
-        manager::instance().unregister_object(pkObj);
-        character_manager::instance().destroy_character(pkObj->npc());
+        manager::instance().unregister_object(obj);
+        character_manager::instance().destroy_character(obj->npc());
 
         auto owned = std::move(map_object_.find(id)->second);
         map_object_.erase(id);
-        map_object_by_vid_.erase(pkObj->get_vid());
+        map_object_by_vid_.erase(obj->get_vid());
     }
 
     auto land::request_create_object(uint32_t vnum_value, int32_t map_index_value, int32_t x, int32_t y, float x_rot_value, float y_rot_value, float z_rot_value, bool check_another) -> bool {
-        sectree_manager &rkSecTreeMgr = sectree_manager::instance();
-        object_proto *pkProto = manager::instance().object_proto(vnum_value);
+        sectree_manager &sec_tree_mgr = sectree_manager::instance();
+        object_proto *proto = manager::instance().object_proto(vnum_value);
 
-        if (!pkProto) {
+        if (!proto) {
             metin2::log::warn("Cannot create building object, unknown vnum {:d}", vnum_value);
             return false;
         }
-        const map_region *r = rkSecTreeMgr.get_map_region(map_index_value);
+        const map_region *r = sec_tree_mgr.get_map_region(map_index_value);
         if (!r)
             return false;
 
@@ -424,18 +424,18 @@ namespace metin2::game::inline guilds {
         int sy = r->sy + data_.y;
         int ey = sy + data_.height;
 
-        int osx = x + pkProto->region[0];
-        int osy = y + pkProto->region[1];
-        int oex = x + pkProto->region[2];
-        int oey = y + pkProto->region[3];
+        int osx = x + proto->region[0];
+        int osy = y + proto->region[1];
+        int oex = x + proto->region[2];
+        int oey = y + proto->region[3];
 
         float rad = z_rot_value * 2.0f * std::numbers::pi / 360.0f;
 
-        int tsx = (int)(pkProto->region[0] * cosf(rad) + pkProto->region[1] * sinf(rad) + x);
-        int tsy = (int)(pkProto->region[0] * -sinf(rad) + pkProto->region[1] * cosf(rad) + y);
+        int tsx = (int)(proto->region[0] * cosf(rad) + proto->region[1] * sinf(rad) + x);
+        int tsy = (int)(proto->region[0] * -sinf(rad) + proto->region[1] * cosf(rad) + y);
 
-        int tex = (int)(pkProto->region[2] * cosf(rad) + pkProto->region[3] * sinf(rad) + x);
-        int tey = (int)(pkProto->region[2] * -sinf(rad) + pkProto->region[3] * cosf(rad) + y);
+        int tex = (int)(proto->region[2] * cosf(rad) + proto->region[3] * sinf(rad) + x);
+        int tey = (int)(proto->region[2] * -sinf(rad) + proto->region[3] * cosf(rad) + y);
 
         if (tsx < sx || tex > ex || tsy < sy || tey > ey) {
             metin2::log::warn("Cannot create building object outside its land, land ({:d}, {:d}) - ({:d}, {:d}), object ({:d}, {:d}) - ({:d}, {:d})", sx, sy, ex, ey, osx, osy, oex, oey);
@@ -443,12 +443,12 @@ namespace metin2::game::inline guilds {
         }
 
         if (check_another) {
-            if (rkSecTreeMgr.for_attr_region(map_index_value, osx, osy, oex, oey, (int32_t)z_rot_value, ATTR_OBJECT, ATTR_REGION_MODE_CHECK)) {
+            if (sec_tree_mgr.for_attr_region(map_index_value, osx, osy, oex, oey, (int32_t)z_rot_value, ATTR_OBJECT, ATTR_REGION_MODE_CHECK)) {
                 metin2::log::warn("Cannot create building object, another object is in the way");
                 return false;
             }
             bool in = false;
-            rkSecTreeMgr.map(map_index_value)->for_each([osx, osy, oex, oey, &in](entity *ent) {
+            sec_tree_mgr.map(map_index_value)->for_each([osx, osy, oex, oey, &in](entity *ent) {
                 if (ent->is_type(ENTITY_CHARACTER)) {
                     auto *ch = (character *)ent;
                     if (ch->is_monster()) {
@@ -492,16 +492,16 @@ namespace metin2::game::inline guilds {
     }
 
     void land::request_delete_object_by_vid(uint32_t vid) {
-        object *pkObj;
+        object *obj;
 
-        if (!(pkObj = find_object_by_vid(vid))) {
+        if (!(obj = find_object_by_vid(vid))) {
             metin2::log::warn("Cannot delete building object, no object with vid {:d}", vid);
             return;
         }
 
-        uint32_t dwID = pkObj->id();
-        db_clientdesc->db_packet(HEADER_GD_DELETE_OBJECT, 0, &dwID, sizeof(uint32_t));
-        metin2::log::info("Building: requested deletion of object {1:d} (vid {0:d})", vid, dwID);
+        uint32_t id = obj->id();
+        db_clientdesc->db_packet(HEADER_GD_DELETE_OBJECT, 0, &id, sizeof(uint32_t));
+        metin2::log::info("Building: requested deletion of object {1:d} (vid {0:d})", vid, id);
     }
 
     void land::set_owner(uint32_t guild) {
@@ -570,9 +570,9 @@ namespace metin2::game::inline guilds {
 
     auto manager::load_land(land_table *table) -> bool {
 
-        auto pkLand = std::make_unique<land>(table);
-        uint32_t dwID = pkLand->id();
-        map_land_.insert(std::make_pair(dwID, std::move(pkLand)));
+        auto land_value = std::make_unique<land>(table);
+        uint32_t id = land_value->id();
+        map_land_.insert(std::make_pair(id, std::move(land_value)));
 
         metin2::log::debug("Building: land {:d} on map {:d} at {:d}x{:d}, size {:d}x{:d}",
             table->id, table->map_index, table->x, table->y, table->width, table->height);
@@ -581,14 +581,14 @@ namespace metin2::game::inline guilds {
     }
 
     void manager::update_land(land_table *table) {
-        land *pkLand = find_land(table->id);
+        land *land_value = find_land(table->id);
 
-        if (!pkLand) {
+        if (!land_value) {
             metin2::log::error("Cannot update land {:d}, land not found", table->id);
             return;
         }
 
-        pkLand->put_data(table);
+        land_value->put_data(table);
 
         const desc_manager::desc_set &cont = desc_manager::instance().client_set();
 
@@ -647,8 +647,8 @@ namespace metin2::game::inline guilds {
         auto it = map_land_.begin();
 
         while (it != map_land_.end()) {
-            land *pkLand = (it++)->second.get();
-            const land_table &r = pkLand->data();
+            land *land = (it++)->second.get();
+            const land_table &r = land->data();
 
             if (r.map_index != map_index_value)
                 continue;
@@ -659,7 +659,7 @@ namespace metin2::game::inline guilds {
             if (x > r.x + r.width || y > r.y + r.height)
                 continue;
 
-            return pkLand;
+            return land;
         }
 
         return nullptr;
@@ -669,10 +669,10 @@ namespace metin2::game::inline guilds {
         auto it = map_land_.begin();
 
         while (it != map_land_.end()) {
-            land *pkLand = (it++)->second.get();
+            land *land = (it++)->second.get();
 
-            if (pkLand->data().guild_id == gid)
-                return pkLand;
+            if (land->data().guild_id == gid)
+                return land;
         }
 
         return nullptr;
@@ -682,45 +682,45 @@ namespace metin2::game::inline guilds {
         if (!map_allow_find(table->map_index))
             return false;
 
-        land *pkLand = find_land(table->land_id);
+        land *land_value = find_land(table->land_id);
 
-        if (!pkLand) {
+        if (!land_value) {
             metin2::log::warn("Building object refers to unknown land {:d}", table->land_id);
             return false;
         }
 
-        proto::building::object_proto *pkProto = object_proto(table->vnum);
+        proto::building::object_proto *proto_value = object_proto(table->vnum);
 
-        if (!pkProto) {
+        if (!proto_value) {
             metin2::log::error("Building object {:d} has unknown proto vnum {:d}", table->id, table->vnum);
             return false;
         }
 
         metin2::log::debug("Building: object {:d} (vnum {:d}) on map {:d} at {:d}x{:d}", table->id, table->vnum, table->map_index, table->x, table->y);
 
-        auto owned = std::make_unique<object>(table, pkProto);
-        object *pkObj = owned.get();
+        auto owned = std::make_unique<object>(table, proto_value);
+        object *obj = owned.get();
 
-        uint32_t dwVID = character_manager::instance().alloc_vid();
-        pkObj->set_vid(dwVID);
+        uint32_t vid = character_manager::instance().alloc_vid();
+        obj->set_vid(vid);
 
-        map_obj_by_vid_.insert(std::make_pair(dwVID, pkObj));
-        map_obj_by_id_.insert(std::make_pair(table->id, pkObj));
+        map_obj_by_vid_.insert(std::make_pair(vid, obj));
+        map_obj_by_id_.insert(std::make_pair(table->id, obj));
 
-        pkLand->insert_object(std::move(owned));
+        land_value->insert_object(std::move(owned));
 
         if (!is_boot)
-            pkObj->show(table->map_index, table->x, table->y);
+            obj->show(table->map_index, table->x, table->y);
         else {
-            pkObj->set_map_index(table->map_index);
-            pkObj->set_xyz(table->x, table->y, 0);
+            obj->set_map_index(table->map_index);
+            obj->set_xyz(table->x, table->y, 0);
         }
 
         if (!is_boot) {
-            if (pkProto->npc_vnum)
-                pkObj->regen_npc();
+            if (proto_value->npc_vnum)
+                obj->regen_npc();
 
-            pkObj->apply_special_effect();
+            obj->apply_special_effect();
         }
 
         return true;
@@ -730,11 +730,11 @@ namespace metin2::game::inline guilds {
         auto it = map_obj_by_id_.begin();
 
         while (it != map_obj_by_id_.end()) {
-            object *pkObj = (it++)->second;
+            object *obj = (it++)->second;
 
-            pkObj->show(pkObj->map_index(), pkObj->x(), pkObj->y());
-            pkObj->regen_npc();
-            pkObj->apply_special_effect();
+            obj->show(obj->map_index(), obj->x(), obj->y());
+            obj->regen_npc();
+            obj->apply_special_effect();
         }
 
         metin2::log::info("Building: finalizing boot");
@@ -742,9 +742,9 @@ namespace metin2::game::inline guilds {
         auto it2 = map_land_.begin();
 
         while (it2 != map_land_.end()) {
-            land *pkLand = (it2++)->second.get();
+            land *land_value = (it2++)->second.get();
 
-            const land_table &r = pkLand->data();
+            const land_table &r = land_value->data();
 
             metin2::log::debug("Building: land master on map {:d} at ({:d}, {:d})", r.map_index, r.x, r.y);
 
@@ -792,13 +792,13 @@ namespace metin2::game::inline guilds {
 
         temp_buffer buf;
 
-        uint16_t wCount = 0;
+        uint16_t count = 0;
 
         auto it = map_land_.begin();
 
         while (it != map_land_.end()) {
-            land *pkLand = (it++)->second.get();
-            const land_table &r = pkLand->data();
+            land *land = (it++)->second.get();
+            const land_table &r = land->data();
 
             if (r.map_index != map_index_value)
                 continue;
@@ -817,12 +817,12 @@ namespace metin2::game::inline guilds {
             e.guild_id = r.guild_id;
 
             buf.write(&e, sizeof(land_packet_element));
-            ++wCount;
+            ++count;
         }
 
-        metin2::log::debug("Building: sending {1:d} lands on map {0:d} ({2:d} bytes)", map_index_value, wCount, buf.size());
+        metin2::log::debug("Building: sending {1:d} lands on map {0:d} ({2:d} bytes)", map_index_value, count, buf.size());
 
-        if (wCount != 0) {
+        if (count != 0) {
             packet_gc_land_list p;
 
             p.header = HEADER_GC_LAND_LIST;
@@ -834,29 +834,29 @@ namespace metin2::game::inline guilds {
     }
 
     void manager::clear_land(uint32_t land_id) {
-        land *pLand = find_land(land_id);
+        land *land_value = find_land(land_id);
 
-        if (pLand == nullptr) {
+        if (land_value == nullptr) {
             metin2::log::warn("Cannot clear land {:d}, land not found", land_id);
             return;
         }
 
-        pLand->clear_land();
+        land_value->clear_land();
 
-        metin2::log::info("Building: cleared land {:d}", pLand->id());
+        metin2::log::info("Building: cleared land {:d}", land_value->id());
     }
 
     void manager::clear_land_by_guild_id(uint32_t guild_id) {
-        land *pLand = find_land_by_guild(guild_id);
+        land *land_value = find_land_by_guild(guild_id);
 
-        if (pLand == nullptr) {
+        if (land_value == nullptr) {
             metin2::log::warn("Cannot clear land of guild {:d}, guild has no land", guild_id);
             return;
         }
 
-        pLand->clear_land();
+        land_value->clear_land();
 
-        metin2::log::info("Building: cleared land {:d}", pLand->id());
+        metin2::log::info("Building: cleared land {:d}", land_value->id());
     }
 
     void land::clear_land() {
@@ -911,7 +911,7 @@ namespace metin2::game::inline guilds {
     }
 
     auto land::request_create_wall(int32_t map_index, float rot) -> bool {
-        const bool WALL_ANOTHER_CHECKING_ENABLE = false;
+        const bool wall_another_checking_enable = false;
 
         const land_table &land = data();
 
@@ -926,38 +926,38 @@ namespace metin2::game::inline guilds {
         if (rot == 0.0f) {
             int door_x = wall_x;
             int door_y = wall_y + wall_half_h;
-            request_create_object(WALL_DOOR_VNUM, map_index, wall_x, wall_y + wall_half_h, door_x, door_y, 0.0f, WALL_ANOTHER_CHECKING_ENABLE);
-            request_create_object(WALL_BACK_VNUM, map_index, wall_x, wall_y - wall_half_h, door_x, door_y, 0.0f, WALL_ANOTHER_CHECKING_ENABLE);
-            request_create_object(WALL_LEFT_VNUM, map_index, wall_x - wall_half_w, wall_y, door_x, door_y, 0.0f, WALL_ANOTHER_CHECKING_ENABLE);
-            request_create_object(WALL_RIGHT_VNUM, map_index, wall_x + wall_half_w, wall_y, door_x, door_y, 0.0f, WALL_ANOTHER_CHECKING_ENABLE);
+            request_create_object(WALL_DOOR_VNUM, map_index, wall_x, wall_y + wall_half_h, door_x, door_y, 0.0f, wall_another_checking_enable);
+            request_create_object(WALL_BACK_VNUM, map_index, wall_x, wall_y - wall_half_h, door_x, door_y, 0.0f, wall_another_checking_enable);
+            request_create_object(WALL_LEFT_VNUM, map_index, wall_x - wall_half_w, wall_y, door_x, door_y, 0.0f, wall_another_checking_enable);
+            request_create_object(WALL_RIGHT_VNUM, map_index, wall_x + wall_half_w, wall_y, door_x, door_y, 0.0f, wall_another_checking_enable);
         } else if (rot == 180.0f) {
             int door_x = wall_x;
             int door_y = wall_y - wall_half_h;
-            request_create_object(WALL_DOOR_VNUM, map_index, wall_x, wall_y - wall_half_h, door_x, door_y, 180.0f, WALL_ANOTHER_CHECKING_ENABLE);
-            request_create_object(WALL_BACK_VNUM, map_index, wall_x, wall_y + wall_half_h, door_x, door_y, 0.0f, WALL_ANOTHER_CHECKING_ENABLE);
-            request_create_object(WALL_LEFT_VNUM, map_index, wall_x - wall_half_w, wall_y, door_x, door_y, 0.0f, WALL_ANOTHER_CHECKING_ENABLE);
-            request_create_object(WALL_RIGHT_VNUM, map_index, wall_x + wall_half_w, wall_y, door_x, door_y, 0.0f, WALL_ANOTHER_CHECKING_ENABLE);
+            request_create_object(WALL_DOOR_VNUM, map_index, wall_x, wall_y - wall_half_h, door_x, door_y, 180.0f, wall_another_checking_enable);
+            request_create_object(WALL_BACK_VNUM, map_index, wall_x, wall_y + wall_half_h, door_x, door_y, 0.0f, wall_another_checking_enable);
+            request_create_object(WALL_LEFT_VNUM, map_index, wall_x - wall_half_w, wall_y, door_x, door_y, 0.0f, wall_another_checking_enable);
+            request_create_object(WALL_RIGHT_VNUM, map_index, wall_x + wall_half_w, wall_y, door_x, door_y, 0.0f, wall_another_checking_enable);
         } else if (rot == 90.0f) {
             int door_x = wall_x + wall_half_h;
             int door_y = wall_y;
-            request_create_object(WALL_DOOR_VNUM, map_index, wall_x + wall_half_h, wall_y, door_x, door_y, 90.0f, WALL_ANOTHER_CHECKING_ENABLE);
-            request_create_object(WALL_BACK_VNUM, map_index, wall_x - wall_half_h, wall_y, door_x, door_y, 90.0f, WALL_ANOTHER_CHECKING_ENABLE);
-            request_create_object(WALL_LEFT_VNUM, map_index, wall_x, wall_y - wall_half_w, door_x, door_y, 90.0f, WALL_ANOTHER_CHECKING_ENABLE);
-            request_create_object(WALL_RIGHT_VNUM, map_index, wall_x, wall_y + wall_half_w, door_x, door_y, 90.0f, WALL_ANOTHER_CHECKING_ENABLE);
+            request_create_object(WALL_DOOR_VNUM, map_index, wall_x + wall_half_h, wall_y, door_x, door_y, 90.0f, wall_another_checking_enable);
+            request_create_object(WALL_BACK_VNUM, map_index, wall_x - wall_half_h, wall_y, door_x, door_y, 90.0f, wall_another_checking_enable);
+            request_create_object(WALL_LEFT_VNUM, map_index, wall_x, wall_y - wall_half_w, door_x, door_y, 90.0f, wall_another_checking_enable);
+            request_create_object(WALL_RIGHT_VNUM, map_index, wall_x, wall_y + wall_half_w, door_x, door_y, 90.0f, wall_another_checking_enable);
         } else if (rot == 270.0f) {
             int door_x = wall_x - wall_half_h;
             int door_y = wall_y;
-            request_create_object(WALL_DOOR_VNUM, map_index, wall_x - wall_half_h, wall_y, door_x, door_y, 90.0f, WALL_ANOTHER_CHECKING_ENABLE);
-            request_create_object(WALL_BACK_VNUM, map_index, wall_x + wall_half_h, wall_y, door_x, door_y, 90.0f, WALL_ANOTHER_CHECKING_ENABLE);
-            request_create_object(WALL_LEFT_VNUM, map_index, wall_x, wall_y - wall_half_w, door_x, door_y, 90.0f, WALL_ANOTHER_CHECKING_ENABLE);
-            request_create_object(WALL_RIGHT_VNUM, map_index, wall_x, wall_y + wall_half_w, door_x, door_y, 90.0f, WALL_ANOTHER_CHECKING_ENABLE);
+            request_create_object(WALL_DOOR_VNUM, map_index, wall_x - wall_half_h, wall_y, door_x, door_y, 90.0f, wall_another_checking_enable);
+            request_create_object(WALL_BACK_VNUM, map_index, wall_x + wall_half_h, wall_y, door_x, door_y, 90.0f, wall_another_checking_enable);
+            request_create_object(WALL_LEFT_VNUM, map_index, wall_x, wall_y - wall_half_w, door_x, door_y, 90.0f, wall_another_checking_enable);
+            request_create_object(WALL_RIGHT_VNUM, map_index, wall_x, wall_y + wall_half_w, door_x, door_y, 90.0f, wall_another_checking_enable);
         }
 
         if (metin2::config::test_server()) {
-            request_create_object(FLAG_VNUM, map_index, land.x + 50, land.y + 50, 0, 0, 0.0, WALL_ANOTHER_CHECKING_ENABLE);
-            request_create_object(FLAG_VNUM, map_index, land.x + land.width - 50, land.y + 50, 0, 0, 90.0, WALL_ANOTHER_CHECKING_ENABLE);
-            request_create_object(FLAG_VNUM, map_index, land.x + land.width - 50, land.y + land.height - 50, 0, 0, 180.0, WALL_ANOTHER_CHECKING_ENABLE);
-            request_create_object(FLAG_VNUM, map_index, land.x + 50, land.y + land.height - 50, 0, 0, 270.0, WALL_ANOTHER_CHECKING_ENABLE);
+            request_create_object(FLAG_VNUM, map_index, land.x + 50, land.y + 50, 0, 0, 0.0, wall_another_checking_enable);
+            request_create_object(FLAG_VNUM, map_index, land.x + land.width - 50, land.y + 50, 0, 0, 90.0, wall_another_checking_enable);
+            request_create_object(FLAG_VNUM, map_index, land.x + land.width - 50, land.y + land.height - 50, 0, 0, 180.0, wall_another_checking_enable);
+            request_create_object(FLAG_VNUM, map_index, land.x + 50, land.y + land.height - 50, 0, 0, 270.0, wall_another_checking_enable);
         }
         return true;
     }
@@ -990,23 +990,23 @@ namespace metin2::game::inline guilds {
     auto land::request_create_wall_blocks(uint32_t vnum, int32_t map_index, char wall_size, bool door_east, bool door_west, bool door_south, bool door_north) -> bool {
         const land_table &r = data();
 
-        int32_t startX = r.x + (r.width / 2) - (1300 + wall_size * 500);
-        int32_t startY = r.y + (r.height / 2) + (1300 + wall_size * 500);
+        int32_t start_x = r.x + (r.width / 2) - (1300 + wall_size * 500);
+        int32_t start_y = r.y + (r.height / 2) + (1300 + wall_size * 500);
 
         uint32_t corner = vnum - 4;
         uint32_t wall = vnum - 3;
         uint32_t door = vnum - 1;
 
-        bool checkAnother = false;
+        bool check_another = false;
         int32_t *ptr = nullptr;
         int delta = 1;
         int rot = 270;
 
-        bool doorOpen[4];
-        doorOpen[0] = door_west;
-        doorOpen[1] = door_north;
-        doorOpen[2] = door_east;
-        doorOpen[3] = door_south;
+        bool door_open[4];
+        door_open[0] = door_west;
+        door_open[1] = door_north;
+        door_open[2] = door_east;
+        door_open[3] = door_south;
 
         if (wall_size > 3)
             wall_size = 3;
@@ -1017,38 +1017,38 @@ namespace metin2::game::inline guilds {
             switch (i) {
             case 0:
                 delta = -1;
-                ptr = &startY;
+                ptr = &start_y;
                 break;
             case 1:
                 delta = 1;
-                ptr = &startX;
+                ptr = &start_x;
                 break;
             case 2:
-                ptr = &startY;
+                ptr = &start_y;
                 delta = 1;
                 break;
             case 3:
-                ptr = &startX;
+                ptr = &start_x;
                 delta = -1;
                 break;
             }
 
-            this->request_create_object(corner, map_index, startX, startY, 0, 0, rot, checkAnother);
+            this->request_create_object(corner, map_index, start_x, start_y, 0, 0, rot, check_another);
 
             *ptr = *ptr + (700 * delta);
 
-            if (doorOpen[i]) {
-                this->draw_wall(wall, map_index, startX, startY, wall_size, rot);
+            if (door_open[i]) {
+                this->draw_wall(wall, map_index, start_x, start_y, wall_size, rot);
 
                 *ptr = *ptr + (700 * delta);
 
-                this->request_create_object(door, map_index, startX, startY, 0, 0, rot, checkAnother);
+                this->request_create_object(door, map_index, start_x, start_y, 0, 0, rot, check_another);
 
                 *ptr = *ptr + (1300 * delta);
 
-                this->draw_wall(wall, map_index, startX, startY, wall_size, rot);
+                this->draw_wall(wall, map_index, start_x, start_y, wall_size, rot);
             } else {
-                this->draw_wall(wall, map_index, startX, startY, wall_size * 2 + 4, rot);
+                this->draw_wall(wall, map_index, start_x, start_y, wall_size * 2 + 4, rot);
             }
 
             *ptr = *ptr + (100 * delta);
@@ -1063,12 +1063,12 @@ namespace metin2::game::inline guilds {
         uint32_t corner = id_value - 4;
         uint32_t wall = id_value - 3;
         uint32_t door = id_value - 1;
-        uint32_t dwVnum = 0;
+        uint32_t vnum = 0;
 
         while (iter != map_object_.end()) {
-            dwVnum = iter->second->vnum();
+            vnum = iter->second->vnum();
 
-            if (dwVnum == corner || dwVnum == wall || dwVnum == door) {
+            if (vnum == corner || vnum == wall || vnum == door) {
                 request_delete_object(iter->second->id());
             }
             iter++;

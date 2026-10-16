@@ -212,23 +212,23 @@ namespace metin2::db::inline tables {
 
         copy_locale_name(mob_table_value->locale_name, mob_table_value->name, mob_table_value->vnum, name_map);
 
-        int rankValue = get_mob_rank_value(csv_table.as_string_by_index(col++));
-        mob_table_value->rank = rankValue;
-        int typeValue = get_mob_type_value(csv_table.as_string_by_index(col++));
-        mob_table_value->type = typeValue;
-        int battleTypeValue = get_mob_battle_type_value(csv_table.as_string_by_index(col++));
-        mob_table_value->battle_type = battleTypeValue;
+        int rank_value = get_mob_rank_value(csv_table.as_string_by_index(col++));
+        mob_table_value->rank = rank_value;
+        int type_value = get_mob_type_value(csv_table.as_string_by_index(col++));
+        mob_table_value->type = type_value;
+        int battle_type_value = get_mob_battle_type_value(csv_table.as_string_by_index(col++));
+        mob_table_value->battle_type = battle_type_value;
 
         str_to_number(mob_table_value->level, csv_table.as_string_by_index(col++));
-        int sizeValue = get_mob_size_value(csv_table.as_string_by_index(col++));
-        mob_table_value->size = sizeValue;
-        int aiFlagValue = get_mob_ai_flag_value(csv_table.as_string_by_index(col++));
-        mob_table_value->ai_flag = aiFlagValue;
+        int size_value = get_mob_size_value(csv_table.as_string_by_index(col++));
+        mob_table_value->size = size_value;
+        int ai_flag_value = get_mob_ai_flag_value(csv_table.as_string_by_index(col++));
+        mob_table_value->ai_flag = ai_flag_value;
         col++;
-        int raceFlagValue = get_mob_race_flag_value(csv_table.as_string_by_index(col++));
-        mob_table_value->race_flag = raceFlagValue;
-        int immuneFlagValue = get_mob_immune_flag_value(csv_table.as_string_by_index(col++));
-        mob_table_value->immune_flag = immuneFlagValue;
+        int race_flag_value = get_mob_race_flag_value(csv_table.as_string_by_index(col++));
+        mob_table_value->race_flag = race_flag_value;
+        int immune_flag_value = get_mob_immune_flag_value(csv_table.as_string_by_index(col++));
+        mob_table_value->immune_flag = immune_flag_value;
 
         str_to_number(mob_table_value->empire, csv_table.as_string_by_index(col++));
 
@@ -296,54 +296,54 @@ namespace metin2::db::inline tables {
     auto set_proto_item_table(item_table *item_table_value, c_csv_table &csv_table, const std::map<int, std::string> &name_map) -> bool {
         int col = 0;
 
-        int dataArray[33];
-        for (size_t i = 0; i < sizeof(dataArray) / sizeof(dataArray[0]); i++) {
-            int validCheck = 0;
+        int data_array[33];
+        for (size_t i = 0; i < sizeof(data_array) / sizeof(data_array[0]); i++) {
+            int valid_check = 0;
             if (i == 2) {
-                dataArray[i] = get_item_type_value(csv_table.as_string_by_index(col));
-                validCheck = dataArray[i];
+                data_array[i] = get_item_type_value(csv_table.as_string_by_index(col));
+                valid_check = data_array[i];
             } else if (i == 3) {
-                dataArray[i] = get_item_sub_type_value(dataArray[i - 1], csv_table.as_string_by_index(col));
-                validCheck = dataArray[i];
+                data_array[i] = get_item_sub_type_value(data_array[i - 1], csv_table.as_string_by_index(col));
+                valid_check = data_array[i];
             } else if (i == 5) {
-                dataArray[i] = get_item_anti_flag_value(csv_table.as_string_by_index(col));
-                validCheck = dataArray[i];
+                data_array[i] = get_item_anti_flag_value(csv_table.as_string_by_index(col));
+                valid_check = data_array[i];
             } else if (i == 6) {
-                dataArray[i] = get_item_flag_value(csv_table.as_string_by_index(col));
-                validCheck = dataArray[i];
+                data_array[i] = get_item_flag_value(csv_table.as_string_by_index(col));
+                valid_check = data_array[i];
             } else if (i == 7) {
-                dataArray[i] = get_item_wear_flag_value(csv_table.as_string_by_index(col));
-                validCheck = dataArray[i];
+                data_array[i] = get_item_wear_flag_value(csv_table.as_string_by_index(col));
+                valid_check = data_array[i];
             } else if (i == 8) {
-                dataArray[i] = get_item_immune_value(csv_table.as_string_by_index(col));
-                validCheck = dataArray[i];
+                data_array[i] = get_item_immune_value(csv_table.as_string_by_index(col));
+                valid_check = data_array[i];
             } else if (i == 14) {
-                dataArray[i] = get_item_limit_type_value(csv_table.as_string_by_index(col));
-                validCheck = dataArray[i];
+                data_array[i] = get_item_limit_type_value(csv_table.as_string_by_index(col));
+                valid_check = data_array[i];
             } else if (i == 16) {
-                dataArray[i] = get_item_limit_type_value(csv_table.as_string_by_index(col));
-                validCheck = dataArray[i];
+                data_array[i] = get_item_limit_type_value(csv_table.as_string_by_index(col));
+                valid_check = data_array[i];
             } else if (i == 18) {
-                dataArray[i] = get_item_apply_type_value(csv_table.as_string_by_index(col));
-                validCheck = dataArray[i];
+                data_array[i] = get_item_apply_type_value(csv_table.as_string_by_index(col));
+                valid_check = data_array[i];
             } else if (i == 20) {
-                dataArray[i] = get_item_apply_type_value(csv_table.as_string_by_index(col));
-                validCheck = dataArray[i];
+                data_array[i] = get_item_apply_type_value(csv_table.as_string_by_index(col));
+                valid_check = data_array[i];
             } else if (i == 22) {
-                dataArray[i] = get_item_apply_type_value(csv_table.as_string_by_index(col));
-                validCheck = dataArray[i];
+                data_array[i] = get_item_apply_type_value(csv_table.as_string_by_index(col));
+                valid_check = data_array[i];
             } else {
-                str_to_number(dataArray[i], csv_table.as_string_by_index(col));
+                str_to_number(data_array[i], csv_table.as_string_by_index(col));
             }
 
-            if (validCheck == -1) {
-                std::ostringstream dataStream;
+            if (valid_check == -1) {
+                std::ostringstream data_stream;
 
                 for (size_t j = 0; j < i; ++j)
-                    dataStream << dataArray[j] << ",";
+                    data_stream << data_array[j] << ",";
 
                 metin2::log::error("Item proto: invalid value in field {:d} (column {:d}): {}", i, col, csv_table.as_string_by_index(col));
-                metin2::log::error("Item proto: values of fields 0 to {:d}: {}", i, dataStream.str());
+                metin2::log::error("Item proto: values of fields 0 to {:d}: {}", i, data_stream.str());
 
                 exit(0);
             }
@@ -355,7 +355,7 @@ namespace metin2::db::inline tables {
             std::string s(csv_table.as_string_by_index(0));
             size_t pos = s.find("~");
             if (std::string::npos == pos) {
-                item_table_value->vnum = dataArray[0];
+                item_table_value->vnum = data_array[0];
                 item_table_value->vnum_range = 0;
             } else {
                 std::string s_start_vnum(s.substr(0, pos));
@@ -374,26 +374,26 @@ namespace metin2::db::inline tables {
 
         utf8_strlcpy(item_table_value->name, csv_table.as_string_by_index(1));
         copy_locale_name(item_table_value->locale_name, item_table_value->name, item_table_value->vnum, name_map);
-        item_table_value->type = dataArray[2];
-        item_table_value->sub_type = dataArray[3];
-        item_table_value->size = dataArray[4];
-        item_table_value->anti_flags = dataArray[5];
-        item_table_value->flags = dataArray[6];
-        item_table_value->wear_flags = dataArray[7];
-        item_table_value->immune_flag = dataArray[8];
-        item_table_value->gold = dataArray[9];
-        item_table_value->shop_buy_price = dataArray[10];
-        item_table_value->refined_vnum = dataArray[11];
-        item_table_value->refine_set = dataArray[12];
-        item_table_value->alter_to_magic_item_pct = dataArray[13];
+        item_table_value->type = data_array[2];
+        item_table_value->sub_type = data_array[3];
+        item_table_value->size = data_array[4];
+        item_table_value->anti_flags = data_array[5];
+        item_table_value->flags = data_array[6];
+        item_table_value->wear_flags = data_array[7];
+        item_table_value->immune_flag = data_array[8];
+        item_table_value->gold = data_array[9];
+        item_table_value->shop_buy_price = data_array[10];
+        item_table_value->refined_vnum = data_array[11];
+        item_table_value->refine_set = data_array[12];
+        item_table_value->alter_to_magic_item_pct = data_array[13];
         item_table_value->c_limit_real_time_first_use_index = -1;
         item_table_value->c_limit_timer_based_on_wear_index = -1;
 
         int i;
 
         for (i = 0; i < ITEM_LIMIT_MAX_NUM; ++i) {
-            item_table_value->limits[i].type = dataArray[14 + i * 2];
-            item_table_value->limits[i].value = dataArray[15 + i * 2];
+            item_table_value->limits[i].type = data_array[14 + i * 2];
+            item_table_value->limits[i].value = data_array[15 + i * 2];
 
             if (LIMIT_REAL_TIME_START_FIRST_USE == item_table_value->limits[i].type)
                 item_table_value->c_limit_real_time_first_use_index = (char)i;
@@ -403,17 +403,17 @@ namespace metin2::db::inline tables {
         }
 
         for (i = 0; i < ITEM_APPLY_MAX_NUM; ++i) {
-            item_table_value->applies[i].type = dataArray[18 + i * 2];
-            item_table_value->applies[i].value = dataArray[19 + i * 2];
+            item_table_value->applies[i].type = data_array[18 + i * 2];
+            item_table_value->applies[i].value = data_array[19 + i * 2];
         }
 
         for (i = 0; i < ITEM_VALUES_MAX_NUM; ++i)
-            item_table_value->values[i] = dataArray[24 + i];
+            item_table_value->values[i] = data_array[24 + i];
 
-        item_table_value->specular = dataArray[30];
+        item_table_value->specular = data_array[30];
 
-        item_table_value->gain_socket_pct = dataArray[31];
-        item_table_value->s_addon_type = dataArray[32];
+        item_table_value->gain_socket_pct = data_array[31];
+        item_table_value->s_addon_type = data_array[32];
 
         str_to_number(item_table_value->weight, "0");
 

@@ -14,25 +14,25 @@ namespace metin2::game {
 
         auto pet_summon(lua_State *lua) -> int {
             character *ch = quest_manager::instance().current_character_ptr();
-            pet_system *petSystem = ch->get_pet_system();
-            item *pItem = quest_manager::instance().current_item();
-            if (!ch || !petSystem || !pItem) {
+            pet_system *pet_system = ch->get_pet_system();
+            item *item = quest_manager::instance().current_item();
+            if (!ch || !pet_system || !item) {
                 lua_pushnumber(lua, 0);
                 return 1;
             }
 
-            if (nullptr == petSystem) {
+            if (nullptr == pet_system) {
                 lua_pushnumber(lua, 0);
                 return 1;
             }
 
-            uint32_t mobVnum = lua_isnumber(lua, 1) ? lua_tonumber(lua, 1) : 0;
+            uint32_t mob_vnum = lua_isnumber(lua, 1) ? lua_tonumber(lua, 1) : 0;
 
-            const char *petName = lua_isstring(lua, 2) ? lua_tostring(lua, 2) : nullptr;
+            const char *pet_name = lua_isstring(lua, 2) ? lua_tostring(lua, 2) : nullptr;
 
-            bool bFromFar = lua_isboolean(lua, 3) ? lua_toboolean(lua, 3) : false;
+            bool from_far = lua_isboolean(lua, 3) ? lua_toboolean(lua, 3) : false;
 
-            pet_actor *pet = petSystem->summon(mobVnum, pItem, petName, bFromFar);
+            pet_actor *pet = pet_system->summon(mob_vnum, item, pet_name, from_far);
 
             if (pet != nullptr)
                 lua_pushnumber(lua, pet->get_vid());
@@ -44,25 +44,25 @@ namespace metin2::game {
 
         auto pet_unsummon(lua_State *lua) -> int {
             character *ch = quest_manager::instance().current_character_ptr();
-            pet_system *petSystem = ch->get_pet_system();
+            pet_system *pet_system = ch->get_pet_system();
 
-            if (nullptr == petSystem)
+            if (nullptr == pet_system)
                 return 0;
 
-            uint32_t mobVnum = lua_isnumber(lua, 1) ? lua_tonumber(lua, 1) : 0;
+            uint32_t mob_vnum = lua_isnumber(lua, 1) ? lua_tonumber(lua, 1) : 0;
 
-            petSystem->unsummon(mobVnum);
+            pet_system->unsummon(mob_vnum);
             return 1;
         }
 
         auto pet_count_summoned(lua_State *lua) -> int {
             character *ch = quest_manager::instance().current_character_ptr();
-            pet_system *petSystem = ch->get_pet_system();
+            pet_system *pet_system = ch->get_pet_system();
 
             lua_Number count = 0;
 
-            if (nullptr != petSystem)
-                count = (lua_Number)petSystem->count_summoned();
+            if (nullptr != pet_system)
+                count = (lua_Number)pet_system->count_summoned();
 
             lua_pushnumber(lua, count);
 
@@ -71,36 +71,36 @@ namespace metin2::game {
 
         auto pet_is_summon(lua_State *lua) -> int {
             character *ch = quest_manager::instance().current_character_ptr();
-            pet_system *petSystem = ch->get_pet_system();
+            pet_system *pet_system = ch->get_pet_system();
 
-            if (nullptr == petSystem)
+            if (nullptr == pet_system)
                 return 0;
 
-            uint32_t mobVnum = lua_isnumber(lua, 1) ? lua_tonumber(lua, 1) : 0;
+            uint32_t mob_vnum = lua_isnumber(lua, 1) ? lua_tonumber(lua, 1) : 0;
 
-            pet_actor *petActor = petSystem->by_vnum(mobVnum);
+            pet_actor *pet_actor = pet_system->by_vnum(mob_vnum);
 
-            if (nullptr == petActor)
+            if (nullptr == pet_actor)
                 lua_pushboolean(lua, false);
             else
-                lua_pushboolean(lua, petActor->is_summoned());
+                lua_pushboolean(lua, pet_actor->is_summoned());
 
             return 1;
         }
 
         auto pet_spawn_effect(lua_State *lua) -> int {
             character *ch = quest_manager::instance().current_character_ptr();
-            pet_system *petSystem = ch->get_pet_system();
+            pet_system *pet_system = ch->get_pet_system();
 
-            if (nullptr == petSystem)
+            if (nullptr == pet_system)
                 return 0;
 
-            uint32_t mobVnum = lua_isnumber(lua, 1) ? lua_tonumber(lua, 1) : 0;
+            uint32_t mob_vnum = lua_isnumber(lua, 1) ? lua_tonumber(lua, 1) : 0;
 
-            pet_actor *petActor = petSystem->by_vnum(mobVnum);
-            if (nullptr == petActor)
+            pet_actor *pet_actor = pet_system->by_vnum(mob_vnum);
+            if (nullptr == pet_actor)
                 return 0;
-            character *pet_ch = petActor->get_character();
+            character *pet_ch = pet_actor->get_character();
             if (nullptr == pet_ch)
                 return 0;
 

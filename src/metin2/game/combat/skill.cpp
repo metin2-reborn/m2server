@@ -93,69 +93,69 @@ namespace metin2::game::inline combat {
     }
 
     auto skill_manager::initialize(skill_table *tab, int size) -> bool {
-        std::map<uint32_t, std::unique_ptr<skill_proto>> map_pkSkillProto;
+        std::map<uint32_t, std::unique_ptr<skill_proto>> map_pk_skill_proto;
 
         skill_table *t = tab;
-        bool bError = false;
+        bool error_value = false;
 
         for (int i = 0; i < size; ++i, ++t) {
-            auto pkProto = std::make_unique<skill_proto>();
+            auto proto = std::make_unique<skill_proto>();
 
-            pkProto->vnum = t->vnum;
-            strlcpy(pkProto->name, t->name, sizeof(pkProto->name));
-            pkProto->type = t->type;
-            pkProto->max_level = t->max_level;
-            pkProto->flag = t->flag;
-            pkProto->affect_flag = t->affect_flag;
-            pkProto->affect_flag2 = t->affect_flag2;
+            proto->vnum = t->vnum;
+            strlcpy(proto->name, t->name, sizeof(proto->name));
+            proto->type = t->type;
+            proto->max_level = t->max_level;
+            proto->flag = t->flag;
+            proto->affect_flag = t->affect_flag;
+            proto->affect_flag2 = t->affect_flag2;
 
-            pkProto->level_step = t->level_step;
-            pkProto->level_limit = t->level_limit;
-            pkProto->splash_range = t->splash_range;
-            pkProto->target_range = t->target_range;
-            pkProto->pre_skill_vnum = t->pre_skill_vnum;
-            pkProto->pre_skill_level = t->pre_skill_level;
+            proto->level_step = t->level_step;
+            proto->level_limit = t->level_limit;
+            proto->splash_range = t->splash_range;
+            proto->target_range = t->target_range;
+            proto->pre_skill_vnum = t->pre_skill_vnum;
+            proto->pre_skill_level = t->pre_skill_level;
 
-            pkProto->max_hit = t->max_hit;
+            proto->max_hit = t->max_hit;
 
-            pkProto->skill_attr_type = t->skill_attr_type;
+            proto->skill_attr_type = t->skill_attr_type;
 
             const auto report = [&](const std::string &message) {
                 metin2::log::error("{}", message);
                 send_log(message.c_str());
-                bError = true;
+                error_value = true;
             };
 
-            int iIdx = find_point_type(t->point_on);
+            int idx = find_point_type(t->point_on);
 
-            if (iIdx < 0) {
+            if (idx < 0) {
                 report(std::format("SkillManager::Initialize : cannot find point type on skill: {} szPointOn: {}", t->name, t->point_on));
                 continue;
             }
 
-            pkProto->point_on = iIdx;
+            proto->point_on = idx;
 
-            int iIdx2 = find_point_type(t->point_on2);
+            int idx2 = find_point_type(t->point_on2);
 
-            if (iIdx2 < 0) {
+            if (idx2 < 0) {
                 report(std::format("SkillManager::Initialize : cannot find point type on skill: {} szPointOn2: {}", t->name, t->point_on2));
                 continue;
             }
 
-            pkProto->point_on2 = iIdx2;
+            proto->point_on2 = idx2;
 
-            int iIdx3 = find_point_type(t->point_on3);
+            int idx3 = find_point_type(t->point_on3);
 
-            if (iIdx3 < 0) {
+            if (idx3 < 0) {
                 if (t->point_on3[0] == 0) {
-                    iIdx3 = POINT_NONE;
+                    idx3 = POINT_NONE;
                 } else {
                     report(std::format("SkillManager::Initialize : cannot find point type on skill: {} szPointOn3: {}", t->name, t->point_on3));
                     continue;
                 }
             }
 
-            pkProto->point_on3 = iIdx3;
+            proto->point_on3 = idx3;
 
             struct poly_field {
                 expression *poly;
@@ -164,23 +164,23 @@ namespace metin2::game::inline combat {
             };
 
             const poly_field polys[] = {
-                {&pkProto->splash_around_damage_adjust_poly, t->splash_around_damage_adjust_poly, "szSplashAroundDamageAdjustPoly"},
-                {&pkProto->point_poly,                       t->point_poly,                       "szPointPoly"                   },
-                {&pkProto->point_poly2,                      t->point_poly2,                      "szPointPoly2"                  },
-                {&pkProto->point_poly3,                      t->point_poly3,                      "szPointPoly3"                  },
-                {&pkProto->sp_cost_poly,                     t->sp_cost_poly,                     "szSPCostPoly"                  },
-                {&pkProto->grand_master_add_sp_cost_poly,    t->grand_master_add_sp_cost_poly,    "szGrandMasterAddSPCostPoly"    },
-                {&pkProto->duration_poly,                    t->duration_poly,                    "szDurationPoly"                },
-                {&pkProto->duration_poly2,                   t->duration_poly2,                   "szDurationPoly2"               },
-                {&pkProto->duration_poly3,                   t->duration_poly3,                   "szDurationPoly3"               },
-                {&pkProto->duration_sp_cost_poly,            t->duration_sp_cost_poly,            "szDurationSPCostPoly"          },
-                {&pkProto->cooldown_poly,                    t->cooldown_poly,                    "szCooldownPoly"                },
-                {&pkProto->master_bonus_poly,                t->master_bonus_poly,                "szMasterBonusPoly"             },
+                {&proto->splash_around_damage_adjust_poly, t->splash_around_damage_adjust_poly, "szSplashAroundDamageAdjustPoly"},
+                {&proto->point_poly,                       t->point_poly,                       "szPointPoly"                   },
+                {&proto->point_poly2,                      t->point_poly2,                      "szPointPoly2"                  },
+                {&proto->point_poly3,                      t->point_poly3,                      "szPointPoly3"                  },
+                {&proto->sp_cost_poly,                     t->sp_cost_poly,                     "szSPCostPoly"                  },
+                {&proto->grand_master_add_sp_cost_poly,    t->grand_master_add_sp_cost_poly,    "szGrandMasterAddSPCostPoly"    },
+                {&proto->duration_poly,                    t->duration_poly,                    "szDurationPoly"                },
+                {&proto->duration_poly2,                   t->duration_poly2,                   "szDurationPoly2"               },
+                {&proto->duration_poly3,                   t->duration_poly3,                   "szDurationPoly3"               },
+                {&proto->duration_sp_cost_poly,            t->duration_sp_cost_poly,            "szDurationSPCostPoly"          },
+                {&proto->cooldown_poly,                    t->cooldown_poly,                    "szCooldownPoly"                },
+                {&proto->master_bonus_poly,                t->master_bonus_poly,                "szMasterBonusPoly"             },
             };
 
             const poly_field *bad_poly = nullptr;
             for (const poly_field &field : polys) {
-                if (field.poly == &pkProto->master_bonus_poly)
+                if (field.poly == &proto->master_bonus_poly)
                     metin2::log::debug("Skill {}: master bonus poly {}", t->name, t->master_bonus_poly);
 
                 if (!field.poly->analyze(field.source)) {
@@ -195,22 +195,22 @@ namespace metin2::game::inline combat {
             }
 
             metin2::log::debug("Skill {:d} {}: type {:d} flag {:d} affect {:d} point poly {}",
-                pkProto->vnum, pkProto->name, pkProto->type, pkProto->flag, pkProto->affect_flag, t->point_poly);
+                proto->vnum, proto->name, proto->type, proto->flag, proto->affect_flag, t->point_poly);
 
-            map_pkSkillProto.emplace(pkProto->vnum, std::move(pkProto));
+            map_pk_skill_proto.emplace(proto->vnum, std::move(proto));
         }
 
-        if (!bError) {
+        if (!error_value) {
             map_skill_proto_.clear();
 
-            for (auto &[dwVnum, pkProto] : map_pkSkillProto)
-                map_skill_proto_.emplace(dwVnum, std::move(pkProto));
+            for (auto &[vnum, proto] : map_pk_skill_proto)
+                map_skill_proto_.emplace(vnum, std::move(proto));
 
             send_log("Skill Prototype reloaded!");
         } else
             send_log("There were erros when loading skill table");
 
-        return !bError;
+        return !error_value;
     }
 
     auto skill_manager::get(uint32_t vnum) -> skill_proto * {

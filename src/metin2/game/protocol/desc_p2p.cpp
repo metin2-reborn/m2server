@@ -50,12 +50,12 @@ namespace metin2::game::inline protocol {
     }
 
     void desc_p2p::set_phase(int phase) {
-        static input_p2p s_inputP2P;
+        static input_p2p input_p2_p;
 
         switch (phase) {
         case PHASE_P2P:
             metin2::log::debug("Peer connection entered p2p phase");
-            input_processor_ = &s_inputP2P;
+            input_processor_ = &input_p2_p;
             break;
 
         case PHASE_CLOSE:

@@ -107,79 +107,79 @@ namespace metin2::game::inline characters {
     }
 
     void character::create_fly(uint8_t type_value, character *victim) {
-        packet_gc_create_fly packFly;
+        packet_gc_create_fly pack_fly;
 
-        packFly.header = HEADER_GC_CREATE_FLY;
-        packFly.type = type_value;
-        packFly.start_vid = get_vid();
-        packFly.end_vid = victim->get_vid();
+        pack_fly.header = HEADER_GC_CREATE_FLY;
+        pack_fly.type = type_value;
+        pack_fly.start_vid = get_vid();
+        pack_fly.end_vid = victim->get_vid();
 
-        packet_around(&packFly, sizeof(packet_gc_create_fly));
+        packet_around(&pack_fly, sizeof(packet_gc_create_fly));
     }
 
     void character::distribute_sp(character *killer, int method) {
         if (killer->sp() >= killer->max_sp())
             return;
 
-        bool bAttacking = (get_dword_time() - last_attack_time()) < 3000;
-        bool bMoving = (get_dword_time() - last_move_time()) < 3000;
+        bool attacking = (get_dword_time() - last_attack_time()) < 3000;
+        bool moving = (get_dword_time() - last_move_time()) < 3000;
 
         if (method == 1) {
             int num = number(0, 3);
 
             if (!num) {
-                int iLvDelta = level() - killer->level();
-                int iAmount = 0;
+                int lv_delta = level() - killer->level();
+                int amount = 0;
 
-                if (iLvDelta >= 5)
-                    iAmount = 10;
-                else if (iLvDelta >= 0)
-                    iAmount = 6;
-                else if (iLvDelta >= -3)
-                    iAmount = 2;
+                if (lv_delta >= 5)
+                    amount = 10;
+                else if (lv_delta >= 0)
+                    amount = 6;
+                else if (lv_delta >= -3)
+                    amount = 2;
 
-                if (iAmount != 0) {
-                    iAmount += (iAmount * killer->point(POINT_SP_REGEN)) / 100;
+                if (amount != 0) {
+                    amount += (amount * killer->point(POINT_SP_REGEN)) / 100;
 
-                    if (iAmount >= 11)
+                    if (amount >= 11)
                         create_fly(FLY_SP_BIG, killer);
-                    else if (iAmount >= 7)
+                    else if (amount >= 7)
                         create_fly(FLY_SP_MEDIUM, killer);
                     else
                         create_fly(FLY_SP_SMALL, killer);
 
-                    killer->point_change(POINT_SP, iAmount);
+                    killer->point_change(POINT_SP, amount);
                 }
             }
         } else {
             if (killer->job() == JOB_SHAMAN || (killer->job() == JOB_SURA && killer->skill_group() == 2)) {
-                int iAmount;
+                int amount;
 
-                if (bAttacking)
-                    iAmount = 2 + max_sp() / 100;
-                else if (bMoving)
-                    iAmount = 3 + max_sp() * 2 / 100;
+                if (attacking)
+                    amount = 2 + max_sp() / 100;
+                else if (moving)
+                    amount = 3 + max_sp() * 2 / 100;
                 else
-                    iAmount = 10 + max_sp() * 3 / 100;
+                    amount = 10 + max_sp() * 3 / 100;
 
-                iAmount += (iAmount * killer->point(POINT_SP_REGEN)) / 100;
-                killer->point_change(POINT_SP, iAmount);
+                amount += (amount * killer->point(POINT_SP_REGEN)) / 100;
+                killer->point_change(POINT_SP, amount);
             } else {
-                int iAmount;
+                int amount;
 
-                if (bAttacking)
-                    iAmount = 2 + killer->max_sp() / 200;
-                else if (bMoving)
-                    iAmount = 2 + killer->max_sp() / 100;
+                if (attacking)
+                    amount = 2 + killer->max_sp() / 200;
+                else if (moving)
+                    amount = 2 + killer->max_sp() / 100;
                 else {
                     if (killer->hp() < killer->max_hp())
-                        iAmount = 2 + (killer->max_sp() / 100);
+                        amount = 2 + (killer->max_sp() / 100);
                     else
-                        iAmount = 9 + (killer->max_sp() / 100);
+                        amount = 9 + (killer->max_sp() / 100);
                 }
 
-                iAmount += (iAmount * killer->point(POINT_SP_REGEN)) / 100;
-                killer->point_change(POINT_SP, iAmount);
+                amount += (amount * killer->point(POINT_SP_REGEN)) / 100;
+                killer->point_change(POINT_SP, amount);
             }
         }
     }
@@ -193,13 +193,13 @@ namespace metin2::game::inline characters {
         if (is_castle_map(map_index()) && false == castle_can_attack(this, victim))
             return false;
 
-        uint32_t dwCurrentTime = get_dword_time();
+        uint32_t current_time = get_dword_time();
 
         if (is_pc()) {
-            if (is_speed_hack(this, victim, dwCurrentTime))
+            if (is_speed_hack(this, victim, current_time))
                 return false;
 
-            if (type == 0 && dwCurrentTime < get_skip_combo_attack_by_time())
+            if (type == 0 && current_time < get_skip_combo_attack_by_time())
                 return false;
         } else {
             monster_chat(MONSTER_CHAT_ATTACK);
@@ -210,7 +210,7 @@ namespace metin2::game::inline characters {
         if (victim->can_begin_fight())
             victim->begin_fight(this);
 
-        int iRet;
+        int ret;
 
         if (type == 0) {
             switch (mob_battle_type()) {
@@ -219,42 +219,42 @@ namespace metin2::game::inline characters {
             case BATTLE_TYPE_TANKER:
             case BATTLE_TYPE_SUPER_POWER:
             case BATTLE_TYPE_SUPER_TANKER:
-                iRet = battle_melee_attack(this, victim);
+                ret = battle_melee_attack(this, victim);
                 break;
 
             case BATTLE_TYPE_RANGE:
                 fly_target(victim->get_vid(), victim->x(), victim->y(), HEADER_CG_FLY_TARGETING);
-                iRet = shoot(0) ? BATTLE_DAMAGE : BATTLE_NONE;
+                ret = shoot(0) ? BATTLE_DAMAGE : BATTLE_NONE;
                 break;
 
             case BATTLE_TYPE_MAGIC:
                 fly_target(victim->get_vid(), victim->x(), victim->y(), HEADER_CG_FLY_TARGETING);
-                iRet = shoot(1) ? BATTLE_DAMAGE : BATTLE_NONE;
+                ret = shoot(1) ? BATTLE_DAMAGE : BATTLE_NONE;
                 break;
 
             default:
                 metin2::log::error("Unhandled mob battle type {:d}", mob_battle_type());
-                iRet = BATTLE_NONE;
+                ret = BATTLE_NONE;
                 break;
             }
         } else {
             if (is_pc() == true) {
-                if (dwCurrentTime - last_skill_time_ > 1500) {
+                if (current_time - last_skill_time_ > 1500) {
                     metin2::log::warn("Possible skill hack by {} (pid {:d}): skill attack {:d} ms after skill use",
-                        name(), player_id(), (dwCurrentTime - last_skill_time_));
+                        name(), player_id(), (current_time - last_skill_time_));
                     return false;
                 }
             }
 
             metin2::log::debug("Attack computes skill {:d} on {}", type, victim ? victim->name() : "");
-            iRet = compute_skill(type, victim);
+            ret = compute_skill(type, victim);
         }
 
-        if (iRet == BATTLE_DAMAGE || iRet == BATTLE_DEAD) {
+        if (ret == BATTLE_DAMAGE || ret == BATTLE_DEAD) {
             on_move(true);
             victim->on_move();
 
-            if (BATTLE_DEAD == iRet && is_pc())
+            if (BATTLE_DEAD == ret && is_pc())
                 set_victim(nullptr);
 
             return true;
@@ -296,20 +296,20 @@ namespace metin2::game::inline characters {
                 }
             }
 
-            int iLoss = ((next_exp() * exp_loss_percents[std::clamp(level(), 1, PLAYER_EXP_TABLE_MAX)]) / 100);
+            int loss = ((next_exp() * exp_loss_percents[std::clamp(level(), 1, PLAYER_EXP_TABLE_MAX)]) / 100);
 
-            iLoss = std::min(800000, iLoss);
+            loss = std::min(800000, loss);
 
             if (town) {
-                iLoss = 0;
+                loss = 0;
             }
 
             if (is_equip_unique_item(UNIQUE_ITEM_TEARDROP_OF_GODNESS))
-                iLoss /= 2;
+                loss /= 2;
 
-            metin2::log::info("{}: death penalty, lost {:d} exp ({:d}%)", name(), iLoss, exp_loss_percents[std::min(metin2::config::game().max_level, level())]);
+            metin2::log::info("{}: death penalty, lost {:d} exp ({:d}%)", name(), loss, exp_loss_percents[std::min(metin2::config::game().max_level, level())]);
 
-            point_change(POINT_EXP, -iLoss, true);
+            point_change(POINT_EXP, -loss, true);
         }
     }
 
@@ -459,7 +459,7 @@ namespace metin2::game::inline characters {
     static auto get_gold_multipler() -> int { return metin2::config::game().distribution_test_server ? 3 : 1; }
 
     void character::reward_gold(character *attacker) {
-        bool isAutoLoot =
+        bool is_auto_loot =
             (attacker->premium_remain_seconds(PREMIUM_AUTOLOOT) > 0 ||
                 attacker->is_equip_unique_group(UNIQUE_GROUP_AUTOLOOT))
                 ? true
@@ -467,133 +467,133 @@ namespace metin2::game::inline characters {
 
         pixel_position pos;
 
-        if (!isAutoLoot)
+        if (!is_auto_loot)
             if (!sectree_manager::instance().movable_position(map_index(), x(), y(), pos))
                 return;
 
-        int iTotalGold = 0;
-        int iGoldPercent = mob_rank_stats[get_mob_rank()].gold_percent;
+        int total_gold = 0;
+        int gold_percent = mob_rank_stats[get_mob_rank()].gold_percent;
 
         if (attacker->is_pc())
-            iGoldPercent = iGoldPercent * (100 + priv_manager::instance().priv(attacker, PRIV_GOLD_DROP)) / 100;
+            gold_percent = gold_percent * (100 + priv_manager::instance().priv(attacker, PRIV_GOLD_DROP)) / 100;
 
         if (attacker->point(POINT_MALL_GOLDBONUS))
-            iGoldPercent += (iGoldPercent * attacker->point(POINT_MALL_GOLDBONUS) / 100);
+            gold_percent += (gold_percent * attacker->point(POINT_MALL_GOLDBONUS) / 100);
 
-        iGoldPercent = iGoldPercent * character_manager::instance().mob_gold_drop_rate(attacker) / 100;
+        gold_percent = gold_percent * character_manager::instance().mob_gold_drop_rate(attacker) / 100;
 
         if (attacker->premium_remain_seconds(PREMIUM_GOLD) > 0 ||
             attacker->is_equip_unique_group(UNIQUE_GROUP_LUCKY_GOLD))
-            iGoldPercent += iGoldPercent;
+            gold_percent += gold_percent;
 
-        if (iGoldPercent > 100)
-            iGoldPercent = 100;
+        if (gold_percent > 100)
+            gold_percent = 100;
 
-        int iPercent;
+        int percent;
 
         if (get_mob_rank() >= MOB_RANK_BOSS)
-            iPercent = ((iGoldPercent * percent_lvdelta_boss(attacker->level(), level())) / 100);
+            percent = ((gold_percent * percent_lvdelta_boss(attacker->level(), level())) / 100);
         else
-            iPercent = ((iGoldPercent * percent_lvdelta(attacker->level(), level())) / 100);
+            percent = ((gold_percent * percent_lvdelta(attacker->level(), level())) / 100);
 
-        if (number(1, 100) > iPercent)
+        if (number(1, 100) > percent)
             return;
 
-        int iGoldMultipler = get_gold_multipler();
+        int gold_multipler = get_gold_multipler();
 
         if (1 == number(1, 50000))
-            iGoldMultipler *= 10;
+            gold_multipler *= 10;
         else if (1 == number(1, 10000))
-            iGoldMultipler *= 5;
+            gold_multipler *= 5;
 
         if (attacker->point(POINT_GOLD_DOUBLE_BONUS))
             if (prob(attacker->point(POINT_GOLD_DOUBLE_BONUS)))
-                iGoldMultipler *= 2;
+                gold_multipler *= 2;
 
         if (metin2::config::test_server())
-            attacker->chat_packet(CHAT_TYPE_PARTY, "gold_mul %d rate %d", iGoldMultipler, character_manager::instance().mob_gold_amount_rate(attacker));
+            attacker->chat_packet(CHAT_TYPE_PARTY, "gold_mul %d rate %d", gold_multipler, character_manager::instance().mob_gold_amount_rate(attacker));
 
         item *item;
 
-        int iGold10DropPct = 100;
-        iGold10DropPct = (iGold10DropPct * 100) / (100 + priv_manager::instance().priv(attacker, PRIV_GOLD10_DROP));
+        int gold10_drop_pct = 100;
+        gold10_drop_pct = (gold10_drop_pct * 100) / (100 + priv_manager::instance().priv(attacker, PRIV_GOLD10_DROP));
 
         if (get_mob_rank() >= MOB_RANK_BOSS && !is_stone() && get_mob_table().gold_max != 0) {
-            if (1 == number(1, iGold10DropPct))
-                iGoldMultipler *= 10;
+            if (1 == number(1, gold10_drop_pct))
+                gold_multipler *= 10;
 
-            int iSplitCount = number(25, 35);
+            int split_count = number(25, 35);
 
-            for (int i = 0; i < iSplitCount; ++i) {
-                int iGold = number(get_mob_table().gold_min, get_mob_table().gold_max) / iSplitCount;
+            for (int i = 0; i < split_count; ++i) {
+                int gold = number(get_mob_table().gold_min, get_mob_table().gold_max) / split_count;
                 if (metin2::config::test_server())
-                    metin2::log::debug("Gold drop: base amount {:d}", iGold);
-                iGold = iGold * character_manager::instance().mob_gold_amount_rate(attacker) / 100;
-                iGold *= iGoldMultipler;
+                    metin2::log::debug("Gold drop: base amount {:d}", gold);
+                gold = gold * character_manager::instance().mob_gold_amount_rate(attacker) / 100;
+                gold *= gold_multipler;
 
-                if (iGold == 0) {
+                if (gold == 0) {
                     continue;
                 }
 
                 if (metin2::config::test_server()) {
-                    metin2::log::debug("Gold drop: rate {:d}%, multiplier {:d}", character_manager::instance().mob_gold_amount_rate(attacker), iGoldMultipler);
-                    metin2::log::debug("Gold drop: {:d} (min {:d}, max {:d})", iGold, get_mob_table().gold_min, get_mob_table().gold_max);
+                    metin2::log::debug("Gold drop: rate {:d}%, multiplier {:d}", character_manager::instance().mob_gold_amount_rate(attacker), gold_multipler);
+                    metin2::log::debug("Gold drop: {:d} (min {:d}, max {:d})", gold, get_mob_table().gold_min, get_mob_table().gold_max);
                 }
 
-                if ((item = item_manager::instance().create_item(1, iGold))) {
+                if ((item = item_manager::instance().create_item(1, gold))) {
                     pos.x = x() + ((number(-14, 14) + number(-14, 14)) * 23);
                     pos.y = y() + ((number(-14, 14) + number(-14, 14)) * 23);
 
                     item->add_to_ground(map_index(), pos);
                     item->start_destroy_event();
 
-                    iTotalGold += iGold;
+                    total_gold += gold;
                 }
             }
-        } else if (1 == number(1, iGold10DropPct)) {
+        } else if (1 == number(1, gold10_drop_pct)) {
             for (int i = 0; i < 10; ++i) {
-                int iGold = number(get_mob_table().gold_min, get_mob_table().gold_max);
-                iGold = iGold * character_manager::instance().mob_gold_amount_rate(attacker) / 100;
-                iGold *= iGoldMultipler;
+                int gold = number(get_mob_table().gold_min, get_mob_table().gold_max);
+                gold = gold * character_manager::instance().mob_gold_amount_rate(attacker) / 100;
+                gold *= gold_multipler;
 
-                if (iGold == 0) {
+                if (gold == 0) {
                     continue;
                 }
 
-                if ((item = item_manager::instance().create_item(1, iGold))) {
+                if ((item = item_manager::instance().create_item(1, gold))) {
                     pos.x = x() + (number(-7, 7) * 20);
                     pos.y = y() + (number(-7, 7) * 20);
 
                     item->add_to_ground(map_index(), pos);
                     item->start_destroy_event();
 
-                    iTotalGold += iGold;
+                    total_gold += gold;
                 }
             }
         } else {
-            int iGold = number(get_mob_table().gold_min, get_mob_table().gold_max);
-            iGold = iGold * character_manager::instance().mob_gold_amount_rate(attacker) / 100;
-            iGold *= iGoldMultipler;
+            int gold = number(get_mob_table().gold_min, get_mob_table().gold_max);
+            gold = gold * character_manager::instance().mob_gold_amount_rate(attacker) / 100;
+            gold *= gold_multipler;
 
-            int iSplitCount;
+            int split_count;
 
-            if (iGold >= 3)
-                iSplitCount = number(1, 3);
+            if (gold >= 3)
+                split_count = number(1, 3);
             else if (get_mob_rank() >= MOB_RANK_BOSS) {
-                iSplitCount = number(3, 10);
+                split_count = number(3, 10);
 
-                if ((iGold / iSplitCount) == 0)
-                    iSplitCount = 1;
+                if ((gold / split_count) == 0)
+                    split_count = 1;
             } else
-                iSplitCount = 1;
+                split_count = 1;
 
-            if (iGold != 0) {
-                iTotalGold += iGold;
+            if (gold != 0) {
+                total_gold += gold;
 
-                for (int i = 0; i < iSplitCount; ++i) {
-                    if (isAutoLoot) {
-                        attacker->give_gold(iGold / iSplitCount);
-                    } else if ((item = item_manager::instance().create_item(1, iGold / iSplitCount))) {
+                for (int i = 0; i < split_count; ++i) {
+                    if (is_auto_loot) {
+                        attacker->give_gold(gold / split_count);
+                    } else if ((item = item_manager::instance().create_item(1, gold / split_count))) {
                         pos.x = x() + (number(-7, 7) * 20);
                         pos.y = y() + (number(-7, 7) * 20);
 
@@ -604,7 +604,7 @@ namespace metin2::game::inline characters {
             }
         }
 
-        db_manager::instance().send_money_log(MONEY_LOG_MONSTER, race_num(), iTotalGold);
+        db_manager::instance().send_money_log(MONEY_LOG_MONSTER, race_num(), total_gold);
     }
 
     void character::reward(bool item_drop) {
@@ -615,15 +615,15 @@ namespace metin2::game::inline characters {
                 return;
 
             item *item;
-            int iGold = number(get_mob_table().gold_min, get_mob_table().gold_max);
-            iGold = iGold * character_manager::instance().mob_gold_amount_rate(nullptr) / 100;
-            iGold *= get_gold_multipler();
-            int iSplitCount = number(25, 35);
+            int gold_value = number(get_mob_table().gold_min, get_mob_table().gold_max);
+            gold_value = gold_value * character_manager::instance().mob_gold_amount_rate(nullptr) / 100;
+            gold_value *= get_gold_multipler();
+            int split_count = number(25, 35);
 
-            metin2::log::debug("Waegu died: gold {:d} split into {:d}", iGold, iSplitCount);
+            metin2::log::debug("Waegu died: gold {:d} split into {:d}", gold_value, split_count);
 
-            for (int i = 1; i <= iSplitCount; ++i) {
-                if ((item = item_manager::instance().create_item(1, iGold / iSplitCount))) {
+            for (int i = 1; i <= split_count; ++i) {
+                if ((item = item_manager::instance().create_item(1, gold_value / split_count))) {
                     if (i != 0) {
                         pos.x = number(-7, 7) * 20;
                         pos.y = number(-7, 7) * 20;
@@ -639,37 +639,37 @@ namespace metin2::game::inline characters {
             return;
         }
 
-        character *pkAttacker = distribute_exp();
+        character *attacker = distribute_exp();
 
-        if (!pkAttacker)
+        if (!attacker)
             return;
 
-        if (pkAttacker->is_pc()) {
-            if (level() - pkAttacker->level() >= -10) {
-                if (pkAttacker->real_alignment() < 0) {
-                    if (pkAttacker->is_equip_unique_item(UNIQUE_ITEM_FASTER_ALIGNMENT_UP_BY_KILL))
-                        pkAttacker->update_alignment(14);
+        if (attacker->is_pc()) {
+            if (level() - attacker->level() >= -10) {
+                if (attacker->real_alignment() < 0) {
+                    if (attacker->is_equip_unique_item(UNIQUE_ITEM_FASTER_ALIGNMENT_UP_BY_KILL))
+                        attacker->update_alignment(14);
                     else
-                        pkAttacker->update_alignment(7);
+                        attacker->update_alignment(7);
                 } else
-                    pkAttacker->update_alignment(2);
+                    attacker->update_alignment(2);
             }
 
-            pkAttacker->set_quest_npcid(get_vid());
-            quest::quest_manager::instance().kill(pkAttacker->player_id(), race_num());
+            attacker->set_quest_npcid(get_vid());
+            quest::quest_manager::instance().kill(attacker->player_id(), race_num());
             character_manager::instance().kill_log(race_num());
 
             if (!number(0, 9)) {
-                if (pkAttacker->point(POINT_KILL_HP_RECOVERY)) {
-                    int iHP = pkAttacker->max_hp() * pkAttacker->point(POINT_KILL_HP_RECOVERY) / 100;
-                    pkAttacker->point_change(POINT_HP, iHP);
-                    create_fly(FLY_HP_SMALL, pkAttacker);
+                if (attacker->point(POINT_KILL_HP_RECOVERY)) {
+                    int hp = attacker->max_hp() * attacker->point(POINT_KILL_HP_RECOVERY) / 100;
+                    attacker->point_change(POINT_HP, hp);
+                    create_fly(FLY_HP_SMALL, attacker);
                 }
 
-                if (pkAttacker->point(POINT_KILL_SP_RECOVER)) {
-                    int iSP = pkAttacker->max_sp() * pkAttacker->point(POINT_KILL_SP_RECOVER) / 100;
-                    pkAttacker->point_change(POINT_SP, iSP);
-                    create_fly(FLY_SP_SMALL, pkAttacker);
+                if (attacker->point(POINT_KILL_SP_RECOVER)) {
+                    int sp = attacker->max_sp() * attacker->point(POINT_KILL_SP_RECOVER) / 100;
+                    attacker->point_change(POINT_SP, sp);
+                    create_fly(FLY_SP_SMALL, attacker);
                 }
             }
         }
@@ -683,23 +683,23 @@ namespace metin2::game::inline characters {
             return;
 
         if (metin2::config::test_server())
-            metin2::log::debug("Gold reward for {}", pkAttacker->name());
-        reward_gold(pkAttacker);
+            metin2::log::debug("Gold reward for {}", attacker->name());
+        reward_gold(attacker);
 
         game::items::item *item;
 
         static std::vector<game::items::item *> s_vec_item;
         s_vec_item.clear();
 
-        if (item_manager::instance().create_drop_item(this, pkAttacker, s_vec_item)) {
+        if (item_manager::instance().create_drop_item(this, attacker, s_vec_item)) {
             if (s_vec_item.size() == 0)
                 ;
             else if (s_vec_item.size() == 1) {
                 item = s_vec_item[0];
                 item->add_to_ground(map_index(), pos);
 
-                if (battle_arena::instance().is_battle_arena_map(pkAttacker->map_index()) == false) {
-                    item->set_ownership(pkAttacker);
+                if (battle_arena::instance().is_battle_arena_map(attacker->map_index()) == false) {
+                    item->set_ownership(attacker);
                 }
 
                 item->start_destroy_event();
@@ -711,20 +711,20 @@ namespace metin2::game::inline characters {
 
                 metin2::log::debug("Item {} dropped at {:d} {:d} from {}", item->name(), pos.x, pos.y, name());
             } else {
-                int iItemIdx = s_vec_item.size() - 1;
+                int item_idx = s_vec_item.size() - 1;
 
                 std::priority_queue<std::pair<int, character *>> pq;
 
                 int total_dam = 0;
 
                 for (auto it = map_damage_.begin(); it != map_damage_.end(); ++it) {
-                    int iDamage = it->second.total_damage;
-                    if (iDamage > 0) {
+                    int damage = it->second.total_damage;
+                    if (damage > 0) {
                         character *ch = character_manager::instance().find(it->first);
 
                         if (ch) {
-                            pq.push(std::make_pair(iDamage, ch));
-                            total_dam += iDamage;
+                            pq.push(std::make_pair(damage, ch));
+                            total_dam += damage;
                         }
                     }
                 }
@@ -737,11 +737,11 @@ namespace metin2::game::inline characters {
                 }
 
                 if (v.empty()) {
-                    while (iItemIdx >= 0) {
-                        item = s_vec_item[iItemIdx--];
+                    while (item_idx >= 0) {
+                        item = s_vec_item[item_idx--];
 
                         if (!item) {
-                            metin2::log::error("Null item at drop list index {:d}", iItemIdx + 1);
+                            metin2::log::error("Null item at drop list index {:d}", item_idx + 1);
                             continue;
                         }
 
@@ -758,11 +758,11 @@ namespace metin2::game::inline characters {
                 } else {
                     auto it = v.begin();
 
-                    while (iItemIdx >= 0) {
-                        item = s_vec_item[iItemIdx--];
+                    while (item_idx >= 0) {
+                        item = s_vec_item[item_idx--];
 
                         if (!item) {
-                            metin2::log::error("Null item at drop list index {:d}", iItemIdx + 1);
+                            metin2::log::error("Null item at drop list index {:d}", item_idx + 1);
                             continue;
                         }
 
@@ -834,119 +834,119 @@ namespace metin2::game::inline characters {
         if (level() < 10)
             return;
 
-        int iAlignIndex;
+        int align_index;
 
         if (real_alignment() >= 120000)
-            iAlignIndex = 0;
+            align_index = 0;
         else if (real_alignment() >= 80000)
-            iAlignIndex = 1;
+            align_index = 1;
         else if (real_alignment() >= 40000)
-            iAlignIndex = 2;
+            align_index = 2;
         else if (real_alignment() >= 10000)
-            iAlignIndex = 3;
+            align_index = 3;
         else if (real_alignment() >= 0)
-            iAlignIndex = 4;
+            align_index = 4;
         else if (real_alignment() > -40000)
-            iAlignIndex = 5;
+            align_index = 5;
         else if (real_alignment() > -80000)
-            iAlignIndex = 6;
+            align_index = 6;
         else if (real_alignment() > -120000)
-            iAlignIndex = 7;
+            align_index = 7;
         else
-            iAlignIndex = 8;
+            align_index = 8;
 
         std::vector<std::pair<item *, int>> vec_item;
-        item *pkItem;
+        item *item_value;
         int i;
-        bool isDropAllEquipments = false;
+        bool is_drop_all_equipments = false;
 
-        game::characters::item_drop_penalty &r = table[iAlignIndex];
-        metin2::log::debug("{}: PK drop penalty for alignment index {:d}, inventory {:d}%, equipment {:d}%", name(), iAlignIndex, r.inventory_pct, r.equipment_pct);
+        game::characters::item_drop_penalty &r = table[align_index];
+        metin2::log::debug("{}: PK drop penalty for alignment index {:d}, inventory {:d}%, equipment {:d}%", name(), align_index, r.inventory_pct, r.equipment_pct);
 
-        bool bDropInventory = r.inventory_pct >= number(1, 1000);
-        bool bDropEquipment = r.equipment_pct >= number(1, 100);
-        bool bDropAntiDropUniqueItem = false;
+        bool drop_inventory = r.inventory_pct >= number(1, 1000);
+        bool drop_equipment = r.equipment_pct >= number(1, 100);
+        bool drop_anti_drop_unique_item = false;
 
-        if ((bDropInventory || bDropEquipment) && is_equip_unique_item(UNIQUE_ITEM_SKIP_ITEM_DROP_PENALTY)) {
-            bDropInventory = false;
-            bDropEquipment = false;
-            bDropAntiDropUniqueItem = true;
+        if ((drop_inventory || drop_equipment) && is_equip_unique_item(UNIQUE_ITEM_SKIP_ITEM_DROP_PENALTY)) {
+            drop_inventory = false;
+            drop_equipment = false;
+            drop_anti_drop_unique_item = true;
         }
 
-        if (bDropInventory) {
-            std::vector<uint8_t> vec_bSlots;
+        if (drop_inventory) {
+            std::vector<uint8_t> vec_b_slots;
 
             for (i = 0; i < INVENTORY_MAX_NUM; ++i)
                 if (inventory_item(i))
-                    vec_bSlots.push_back(i);
+                    vec_b_slots.push_back(i);
 
-            if (!vec_bSlots.empty()) {
-                std::ranges::shuffle(vec_bSlots, random_engine());
+            if (!vec_b_slots.empty()) {
+                std::ranges::shuffle(vec_b_slots, random_engine());
 
-                int iQty = std::min<int>(vec_bSlots.size(), r.inventory_qty);
+                int qty = std::min<int>(vec_b_slots.size(), r.inventory_qty);
 
-                if (iQty)
-                    iQty = number(1, iQty);
+                if (qty)
+                    qty = number(1, qty);
 
-                for (i = 0; i < iQty; ++i) {
-                    pkItem = inventory_item(vec_bSlots[i]);
+                for (i = 0; i < qty; ++i) {
+                    item_value = inventory_item(vec_b_slots[i]);
 
-                    if (is_set(pkItem->anti_flag(), ITEM_ANTIFLAG_GIVE | ITEM_ANTIFLAG_PKDROP))
+                    if (is_set(item_value->anti_flag(), ITEM_ANTIFLAG_GIVE | ITEM_ANTIFLAG_PKDROP))
                         continue;
 
-                    sync_quickslot(QUICKSLOT_TYPE_ITEM, vec_bSlots[i], 255);
-                    vec_item.push_back(std::make_pair(pkItem->remove_from_character(), INVENTORY));
+                    sync_quickslot(QUICKSLOT_TYPE_ITEM, vec_b_slots[i], 255);
+                    vec_item.push_back(std::make_pair(item_value->remove_from_character(), INVENTORY));
                 }
-            } else if (iAlignIndex == 8)
-                isDropAllEquipments = true;
+            } else if (align_index == 8)
+                is_drop_all_equipments = true;
         }
 
-        if (bDropEquipment) {
-            std::vector<uint8_t> vec_bSlots;
+        if (drop_equipment) {
+            std::vector<uint8_t> vec_b_slots;
 
             for (i = 0; i < WEAR_MAX_NUM; ++i)
                 if (wear(i))
-                    vec_bSlots.push_back(i);
+                    vec_b_slots.push_back(i);
 
-            if (!vec_bSlots.empty()) {
-                std::ranges::shuffle(vec_bSlots, random_engine());
-                int iQty;
+            if (!vec_b_slots.empty()) {
+                std::ranges::shuffle(vec_b_slots, random_engine());
+                int qty;
 
-                if (isDropAllEquipments)
-                    iQty = vec_bSlots.size();
+                if (is_drop_all_equipments)
+                    qty = vec_b_slots.size();
                 else
-                    iQty = std::min<int>(vec_bSlots.size(), number(1, r.equipment_qty));
+                    qty = std::min<int>(vec_b_slots.size(), number(1, r.equipment_qty));
 
-                if (iQty)
-                    iQty = number(1, iQty);
+                if (qty)
+                    qty = number(1, qty);
 
-                for (i = 0; i < iQty; ++i) {
-                    pkItem = wear(vec_bSlots[i]);
+                for (i = 0; i < qty; ++i) {
+                    item_value = wear(vec_b_slots[i]);
 
-                    if (is_set(pkItem->anti_flag(), ITEM_ANTIFLAG_GIVE | ITEM_ANTIFLAG_PKDROP))
+                    if (is_set(item_value->anti_flag(), ITEM_ANTIFLAG_GIVE | ITEM_ANTIFLAG_PKDROP))
                         continue;
 
-                    sync_quickslot(QUICKSLOT_TYPE_ITEM, vec_bSlots[i], 255);
-                    vec_item.push_back(std::make_pair(pkItem->remove_from_character(), EQUIPMENT));
+                    sync_quickslot(QUICKSLOT_TYPE_ITEM, vec_b_slots[i], 255);
+                    vec_item.push_back(std::make_pair(item_value->remove_from_character(), EQUIPMENT));
                 }
             }
         }
 
-        if (bDropAntiDropUniqueItem) {
-            item *pkItem;
+        if (drop_anti_drop_unique_item) {
+            item *item_value;
 
-            pkItem = wear(WEAR_UNIQUE1);
+            item_value = wear(WEAR_UNIQUE1);
 
-            if (pkItem && pkItem->vnum() == UNIQUE_ITEM_SKIP_ITEM_DROP_PENALTY) {
+            if (item_value && item_value->vnum() == UNIQUE_ITEM_SKIP_ITEM_DROP_PENALTY) {
                 sync_quickslot(QUICKSLOT_TYPE_ITEM, WEAR_UNIQUE1, 255);
-                vec_item.push_back(std::make_pair(pkItem->remove_from_character(), EQUIPMENT));
+                vec_item.push_back(std::make_pair(item_value->remove_from_character(), EQUIPMENT));
             }
 
-            pkItem = wear(WEAR_UNIQUE2);
+            item_value = wear(WEAR_UNIQUE2);
 
-            if (pkItem && pkItem->vnum() == UNIQUE_ITEM_SKIP_ITEM_DROP_PENALTY) {
+            if (item_value && item_value->vnum() == UNIQUE_ITEM_SKIP_ITEM_DROP_PENALTY) {
                 sync_quickslot(QUICKSLOT_TYPE_ITEM, WEAR_UNIQUE2, 255);
-                vec_item.push_back(std::make_pair(pkItem->remove_from_character(), EQUIPMENT));
+                vec_item.push_back(std::make_pair(item_value->remove_from_character(), EQUIPMENT));
             }
         }
 
@@ -994,10 +994,10 @@ namespace metin2::game::inline characters {
 
         killer_pid_ = 0; // Must be reset here, or a later death is credited to this killer.
 
-        bool isAgreedPVP = false;
-        bool isUnderGuildWar = false;
-        bool isDuel = false;
-        bool isForked = false;
+        bool is_agreed_pvp = false;
+        bool is_under_guild_war = false;
+        bool is_duel = false;
+        bool is_forked = false;
 
         if (killer && killer->is_pc()) {
             if (killer->chr_target_ == this)
@@ -1006,8 +1006,8 @@ namespace metin2::game::inline characters {
             if (!is_pc() && killer->get_dungeon())
                 killer->get_dungeon()->inc_kill_count(killer, this);
 
-            isAgreedPVP = pvp_manager::instance().dead(this, killer->player_id());
-            isDuel = arena_manager::instance().on_dead(killer, this);
+            is_agreed_pvp = pvp_manager::instance().dead(this, killer->player_id());
+            is_duel = arena_manager::instance().on_dead(killer, this);
 
             if (is_pc()) {
                 guild *g1 = get_guild();
@@ -1015,7 +1015,7 @@ namespace metin2::game::inline characters {
 
                 if (g1 && g2)
                     if (g1->under_war(g2->id()))
-                        isUnderGuildWar = true;
+                        is_under_guild_war = true;
 
                 killer->set_quest_npcid(get_vid());
                 quest::quest_manager::instance().kill(killer->player_id(), quest::QUEST_NO_NPC);
@@ -1025,15 +1025,15 @@ namespace metin2::game::inline characters {
 
         if (is_pc()) {
             if (three_way_war::instance().is_three_way_war_map_index(map_index()))
-                isForked = true;
+                is_forked = true;
         }
 
         if (killer &&
-            !isAgreedPVP &&
-            !isUnderGuildWar &&
+            !is_agreed_pvp &&
+            !is_under_guild_war &&
             is_pc() &&
-            !isDuel &&
-            !isForked &&
+            !is_duel &&
+            !is_forked &&
             !is_castle_map(map_index())) {
             if (gm_level() == GM_PLAYER || metin2::config::test_server()) {
                 item_drop_penalty(killer);
@@ -1049,7 +1049,7 @@ namespace metin2::game::inline characters {
                 castle_tower_die(this, killer);
         }
 
-        if (true == isForked) {
+        if (true == is_forked) {
             three_way_war::instance().on_dead(this, killer);
         }
 
@@ -1058,7 +1058,7 @@ namespace metin2::game::inline characters {
 
         if (killer && is_pc()) {
             if (!killer->is_pc()) {
-                if (!isForked) {
+                if (!is_forked) {
                     metin2::log::debug("{} ({}) died with penalty", name(), static_cast<const void *>(this));
                     set_bit(points_instant_.instant_flag, INSTANT_FLAG_DEATH_PENALTY);
                     log_manager::instance().char_log(this, killer->race_num(), "DEAD_BY_NPC", killer->name());
@@ -1068,10 +1068,10 @@ namespace metin2::game::inline characters {
                 remove_bit(points_instant_.instant_flag, INSTANT_FLAG_DEATH_PENALTY);
 
                 if (empire() != killer->empire()) {
-                    int iEP = std::min(point(POINT_EMPIRE_POINT), killer->point(POINT_EMPIRE_POINT));
+                    int ep = std::min(point(POINT_EMPIRE_POINT), killer->point(POINT_EMPIRE_POINT));
 
-                    point_change(POINT_EMPIRE_POINT, -(iEP / 10));
-                    killer->point_change(POINT_EMPIRE_POINT, iEP / 5);
+                    point_change(POINT_EMPIRE_POINT, -(ep / 10));
+                    killer->point_change(POINT_EMPIRE_POINT, ep / 5);
 
                     if (point(POINT_EMPIRE_POINT) < 10) {
                     }
@@ -1082,15 +1082,15 @@ namespace metin2::game::inline characters {
 
                     log_manager::instance().char_log(this, killer->player_id(), "DEAD_BY_PC", buf.c_str());
                 } else {
-                    if (!isAgreedPVP && !isUnderGuildWar && !is_killer_mode() && alignment() >= 0 && !isDuel && !isForked) {
-                        int iNoPenaltyProb = 0;
+                    if (!is_agreed_pvp && !is_under_guild_war && !is_killer_mode() && alignment() >= 0 && !is_duel && !is_forked) {
+                        int no_penalty_prob = 0;
 
                         if (killer->alignment() >= 0)
-                            iNoPenaltyProb = 33;
+                            no_penalty_prob = 33;
                         else
-                            iNoPenaltyProb = 20;
+                            no_penalty_prob = 20;
 
-                        if (number(1, 100) < iNoPenaltyProb)
+                        if (number(1, 100) < no_penalty_prob)
                             killer->chat_packet(CHAT_TYPE_INFO, lc_text("용신의 보호로 아이템이 떨어지지 않았습니다."));
                         else {
                             if (killer->get_party()) {
@@ -1144,9 +1144,9 @@ namespace metin2::game::inline characters {
             if (!is_set(points_instant_.instant_flag, INSTANT_FLAG_NO_REWARD)) {
                 if (!(killer && killer->is_pc() && killer->get_guild() && killer->get_guild()->under_any_war(GUILD_WAR_TYPE_FIELD))) {
                     if (get_mob_table().resurrection_vnum) {
-                        character *chResurrect = character_manager::instance().spawn_mob(get_mob_table().resurrection_vnum, map_index(), x(), y(), z(), true, (int)rotation());
-                        if (get_dungeon() && chResurrect) {
-                            chResurrect->set_dungeon(get_dungeon());
+                        character *ch_resurrect = character_manager::instance().spawn_mob(get_mob_table().resurrection_vnum, map_index(), x(), y(), z(), true, (int)rotation());
+                        if (get_dungeon() && ch_resurrect) {
+                            ch_resurrect->set_dungeon(get_dungeon());
                         }
 
                         reward(false);
@@ -1186,7 +1186,7 @@ namespace metin2::game::inline characters {
                 send_affect_add_packet(get_desc(), *it++);
         }
 
-        if (isDuel == false) {
+        if (is_duel == false) {
             if (dead_event) {
                 metin2::log::debug("{} ({}): dead event cancelled ({})", name(), static_cast<const void *>(this), static_cast<const void *>(dead_event.get()));
                 event_cancel(&dead_event);
@@ -1199,21 +1199,21 @@ namespace metin2::game::inline characters {
                 get_dungeon()->dead_character(this);
             }
 
-            auto *pEventInfo = alloc_event_info<char_dead_event_info>();
+            auto *event_info = alloc_event_info<char_dead_event_info>();
 
             if (is_pc()) {
-                pEventInfo->is_pc = true;
-                pEventInfo->id = this->player_id();
+                event_info->is_pc = true;
+                event_info->id = this->player_id();
 
-                dead_event = event_create(game::characters::dead_event, pEventInfo, passes_per_sec(180));
+                dead_event = event_create(game::characters::dead_event, event_info, passes_per_sec(180));
             } else {
-                pEventInfo->is_pc = false;
-                pEventInfo->id = this->get_vid();
+                event_info->is_pc = false;
+                event_info->id = this->get_vid();
 
                 if (is_revive() == false && has_reviver_in_party() == true) {
-                    dead_event = event_create(game::characters::dead_event, pEventInfo, immediate_dead ? 1 : passes_per_sec(3));
+                    dead_event = event_create(game::characters::dead_event, event_info, immediate_dead ? 1 : passes_per_sec(3));
                 } else {
-                    dead_event = event_create(game::characters::dead_event, pEventInfo, immediate_dead ? 1 : passes_per_sec(10));
+                    dead_event = event_create(game::characters::dead_event, event_info, immediate_dead ? 1 : passes_per_sec(10));
                 }
             }
 
@@ -1250,20 +1250,20 @@ namespace metin2::game::inline characters {
 
     void character::send_damage_packet(character *attacker, int damage_value, uint8_t damage_flag) {
         if (is_pc() == true || (attacker->is_pc() == true && attacker->target() == this)) {
-            packet_gc_damage_info damageInfo;
-            memset(&damageInfo, 0, sizeof(packet_gc_damage_info));
+            packet_gc_damage_info damage_info;
+            memset(&damage_info, 0, sizeof(packet_gc_damage_info));
 
-            damageInfo.header = HEADER_GC_DAMAGE_INFO;
-            damageInfo.vid = (uint32_t)get_vid();
-            damageInfo.flag = damage_flag;
-            damageInfo.damage = damage_value;
+            damage_info.header = HEADER_GC_DAMAGE_INFO;
+            damage_info.vid = (uint32_t)get_vid();
+            damage_info.flag = damage_flag;
+            damage_info.damage = damage_value;
 
             if (get_desc() != nullptr) {
-                get_desc()->packet(&damageInfo, sizeof(packet_gc_damage_info));
+                get_desc()->packet(&damage_info, sizeof(packet_gc_damage_info));
             }
 
             if (attacker->get_desc() != nullptr) {
-                attacker->get_desc()->packet(&damageInfo, sizeof(packet_gc_damage_info));
+                attacker->get_desc()->packet(&damage_info, sizeof(packet_gc_damage_info));
             }
         }
     }
@@ -1273,37 +1273,37 @@ namespace metin2::game::inline characters {
             dam = (int)((float)dam * (100 + (attacker->point(POINT_MAGIC_ATT_BONUS_PER) + attacker->point(POINT_MELEE_MAGIC_ATT_BONUS_PER))) / 100.f + 0.5f);
         }
         if (race_num() == 5001) {
-            bool bDropMoney = false;
-            int iPercent = (hp() * 100) / max_hp();
+            bool drop_money = false;
+            int percent_value = (hp() * 100) / max_hp();
 
-            if (iPercent <= 10 && max_sp() < 5) {
+            if (percent_value <= 10 && max_sp() < 5) {
                 set_max_sp(5);
-                bDropMoney = true;
-            } else if (iPercent <= 20 && max_sp() < 4) {
+                drop_money = true;
+            } else if (percent_value <= 20 && max_sp() < 4) {
                 set_max_sp(4);
-                bDropMoney = true;
-            } else if (iPercent <= 40 && max_sp() < 3) {
+                drop_money = true;
+            } else if (percent_value <= 40 && max_sp() < 3) {
                 set_max_sp(3);
-                bDropMoney = true;
-            } else if (iPercent <= 60 && max_sp() < 2) {
+                drop_money = true;
+            } else if (percent_value <= 60 && max_sp() < 2) {
                 set_max_sp(2);
-                bDropMoney = true;
-            } else if (iPercent <= 80 && max_sp() < 1) {
+                drop_money = true;
+            } else if (percent_value <= 80 && max_sp() < 1) {
                 set_max_sp(1);
-                bDropMoney = true;
+                drop_money = true;
             }
 
-            if (bDropMoney) {
-                uint32_t dwGold = 1000;
-                int iSplitCount = number(10, 13);
+            if (drop_money) {
+                uint32_t gold_value = 1000;
+                int split_count = number(10, 13);
 
                 metin2::log::debug("Waegu drops gold on hit {:d} times", max_sp());
 
-                for (int i = 1; i <= iSplitCount; ++i) {
+                for (int i = 1; i <= split_count; ++i) {
                     pixel_position pos;
                     item *item;
 
-                    if ((item = item_manager::instance().create_item(1, dwGold / iSplitCount))) {
+                    if ((item = item_manager::instance().create_item(1, gold_value / split_count))) {
                         if (i != 0) {
                             pos.x = (number(-14, 14) + number(-14, 14)) * 20;
                             pos.y = (number(-14, 14) + number(-14, 14)) * 20;
@@ -1328,12 +1328,12 @@ namespace metin2::game::inline characters {
             }
         }
 
-        int iCurHP = hp();
-        int iCurSP = sp();
+        int cur_hp = hp();
+        int cur_sp = sp();
 
-        bool IsCritical = false;
-        bool IsPenetrate = false;
-        bool IsDeathBlow = false;
+        bool is_critical = false;
+        bool is_penetrate = false;
+        bool is_death_blow = false;
 
         enum damage_flag {
             DAMAGE_NORMAL = (1 << 0),
@@ -1346,21 +1346,21 @@ namespace metin2::game::inline characters {
 
         if (type == DAMAGE_TYPE_MELEE || type == DAMAGE_TYPE_RANGE || type == DAMAGE_TYPE_MAGIC) {
             if (attacker) {
-                int iCriticalPct = attacker->point(POINT_CRITICAL_PCT);
+                int critical_pct = attacker->point(POINT_CRITICAL_PCT);
 
                 if (!is_pc())
-                    iCriticalPct += attacker->marriage_bonus(UNIQUE_ITEM_MARRIAGE_CRITICAL_BONUS);
+                    critical_pct += attacker->marriage_bonus(UNIQUE_ITEM_MARRIAGE_CRITICAL_BONUS);
 
-                if (iCriticalPct) {
-                    if (iCriticalPct >= 10)
-                        iCriticalPct = 5 + (iCriticalPct - 10) / 4;
+                if (critical_pct) {
+                    if (critical_pct >= 10)
+                        critical_pct = 5 + (critical_pct - 10) / 4;
                     else
-                        iCriticalPct /= 2;
+                        critical_pct /= 2;
 
-                    iCriticalPct -= point(POINT_RESIST_CRITICAL);
+                    critical_pct -= point(POINT_RESIST_CRITICAL);
 
-                    if (prob(iCriticalPct)) {
-                        IsCritical = true;
+                    if (prob(critical_pct)) {
+                        is_critical = true;
                         dam *= 2;
                         effect_packet(SE_CRITICAL);
 
@@ -1370,32 +1370,32 @@ namespace metin2::game::inline characters {
                     }
                 }
 
-                int iPenetratePct = attacker->point(POINT_PENETRATE_PCT);
+                int penetrate_pct = attacker->point(POINT_PENETRATE_PCT);
 
                 if (!is_pc())
-                    iPenetratePct += attacker->marriage_bonus(UNIQUE_ITEM_MARRIAGE_PENETRATE_BONUS);
+                    penetrate_pct += attacker->marriage_bonus(UNIQUE_ITEM_MARRIAGE_PENETRATE_BONUS);
 
-                if (iPenetratePct) {
+                if (penetrate_pct) {
                     {
-                        skill_proto *pkSk = skill_manager::instance().get(SKILL_RESIST_PENETRATE);
+                        skill_proto *sk = skill_manager::instance().get(SKILL_RESIST_PENETRATE);
 
-                        if (nullptr != pkSk) {
-                            pkSk->set_point_var("k", 1.0f * skill_power(SKILL_RESIST_PENETRATE) / 100.0f);
+                        if (nullptr != sk) {
+                            sk->set_point_var("k", 1.0f * skill_power(SKILL_RESIST_PENETRATE) / 100.0f);
 
-                            iPenetratePct -= static_cast<int>(pkSk->point_poly.eval());
+                            penetrate_pct -= static_cast<int>(sk->point_poly.eval());
                         }
                     }
 
-                    if (iPenetratePct >= 10) {
-                        iPenetratePct = 5 + (iPenetratePct - 10) / 4;
+                    if (penetrate_pct >= 10) {
+                        penetrate_pct = 5 + (penetrate_pct - 10) / 4;
                     } else {
-                        iPenetratePct /= 2;
+                        penetrate_pct /= 2;
                     }
 
-                    iPenetratePct -= point(POINT_RESIST_PENETRATE);
+                    penetrate_pct -= point(POINT_RESIST_PENETRATE);
 
-                    if (prob(iPenetratePct)) {
-                        IsPenetrate = true;
+                    if (prob(penetrate_pct)) {
+                        is_penetrate = true;
 
                         if (metin2::config::test_server())
                             chat_packet(CHAT_TYPE_INFO, lc_text("관통 추가 데미지 %d"), point(POINT_DEF_GRADE) * (100 + point(POINT_DEF_BONUS)) / 100);
@@ -1443,51 +1443,51 @@ namespace metin2::game::inline characters {
             if (attacker) {
                 if (type == DAMAGE_TYPE_NORMAL) {
                     if (point(POINT_REFLECT_MELEE)) {
-                        int reflectDamage = dam * point(POINT_REFLECT_MELEE) / 100;
+                        int reflect_damage = dam * point(POINT_REFLECT_MELEE) / 100;
 
                         if (attacker->is_immune(IMMUNE_REFLECT))
-                            reflectDamage = int(reflectDamage / 3.0f + 0.5f);
+                            reflect_damage = int(reflect_damage / 3.0f + 0.5f);
 
-                        attacker->damage(this, reflectDamage, DAMAGE_TYPE_SPECIAL);
+                        attacker->damage(this, reflect_damage, DAMAGE_TYPE_SPECIAL);
                     }
                 }
 
-                int iCriticalPct = attacker->point(POINT_CRITICAL_PCT);
+                int critical_pct = attacker->point(POINT_CRITICAL_PCT);
 
                 if (!is_pc())
-                    iCriticalPct += attacker->marriage_bonus(UNIQUE_ITEM_MARRIAGE_CRITICAL_BONUS);
+                    critical_pct += attacker->marriage_bonus(UNIQUE_ITEM_MARRIAGE_CRITICAL_BONUS);
 
-                if (iCriticalPct) {
-                    iCriticalPct -= point(POINT_RESIST_CRITICAL);
+                if (critical_pct) {
+                    critical_pct -= point(POINT_RESIST_CRITICAL);
 
-                    if (prob(iCriticalPct)) {
-                        IsCritical = true;
+                    if (prob(critical_pct)) {
+                        is_critical = true;
                         dam *= 2;
                         effect_packet(SE_CRITICAL);
                     }
                 }
 
-                int iPenetratePct = attacker->point(POINT_PENETRATE_PCT);
+                int penetrate_pct = attacker->point(POINT_PENETRATE_PCT);
 
                 if (!is_pc())
-                    iPenetratePct += attacker->marriage_bonus(UNIQUE_ITEM_MARRIAGE_PENETRATE_BONUS);
+                    penetrate_pct += attacker->marriage_bonus(UNIQUE_ITEM_MARRIAGE_PENETRATE_BONUS);
 
                 {
-                    skill_proto *pkSk = skill_manager::instance().get(SKILL_RESIST_PENETRATE);
+                    skill_proto *sk = skill_manager::instance().get(SKILL_RESIST_PENETRATE);
 
-                    if (nullptr != pkSk) {
-                        pkSk->set_point_var("k", 1.0f * skill_power(SKILL_RESIST_PENETRATE) / 100.0f);
+                    if (nullptr != sk) {
+                        sk->set_point_var("k", 1.0f * skill_power(SKILL_RESIST_PENETRATE) / 100.0f);
 
-                        iPenetratePct -= static_cast<int>(pkSk->point_poly.eval());
+                        penetrate_pct -= static_cast<int>(sk->point_poly.eval());
                     }
                 }
 
-                if (iPenetratePct) {
+                if (penetrate_pct) {
 
-                    iPenetratePct -= point(POINT_RESIST_PENETRATE);
+                    penetrate_pct -= point(POINT_RESIST_PENETRATE);
 
-                    if (prob(iPenetratePct)) {
-                        IsPenetrate = true;
+                    if (prob(penetrate_pct)) {
+                        is_penetrate = true;
 
                         if (metin2::config::test_server())
                             chat_packet(CHAT_TYPE_INFO, lc_text("관통 추가 데미지 %d"), point(POINT_DEF_GRADE) * (100 + point(POINT_DEF_BONUS)) / 100);
@@ -1499,12 +1499,12 @@ namespace metin2::game::inline characters {
                     int pct = 1;
 
                     if (number(1, 10) <= pct) {
-                        int iHP = std::min(dam, std::max(0, iCurHP)) * attacker->point(POINT_STEAL_HP) / 100;
+                        int hp_value = std::min(dam, std::max(0, cur_hp)) * attacker->point(POINT_STEAL_HP) / 100;
 
-                        if (iHP > 0 && hp() >= iHP) {
+                        if (hp_value > 0 && hp() >= hp_value) {
                             create_fly(FLY_HP_SMALL, attacker);
-                            attacker->point_change(POINT_HP, iHP);
-                            point_change(POINT_HP, -iHP);
+                            attacker->point_change(POINT_HP, hp_value);
+                            point_change(POINT_HP, -hp_value);
                         }
                     }
                 }
@@ -1513,35 +1513,35 @@ namespace metin2::game::inline characters {
                     int pct = 1;
 
                     if (number(1, 10) <= pct) {
-                        int iCur;
+                        int cur;
 
                         if (is_pc())
-                            iCur = iCurSP;
+                            cur = cur_sp;
                         else
-                            iCur = iCurHP;
+                            cur = cur_hp;
 
-                        int iSP = std::min(dam, std::max(0, iCur)) * attacker->point(POINT_STEAL_SP) / 100;
+                        int sp_value = std::min(dam, std::max(0, cur)) * attacker->point(POINT_STEAL_SP) / 100;
 
-                        if (iSP > 0 && iCur >= iSP) {
+                        if (sp_value > 0 && cur >= sp_value) {
                             create_fly(FLY_SP_SMALL, attacker);
-                            attacker->point_change(POINT_SP, iSP);
+                            attacker->point_change(POINT_SP, sp_value);
 
                             if (is_pc())
-                                point_change(POINT_SP, -iSP);
+                                point_change(POINT_SP, -sp_value);
                         }
                     }
                 }
 
                 if (attacker->point(POINT_STEAL_GOLD)) {
                     if (prob(attacker->point(POINT_STEAL_GOLD))) {
-                        int iAmount = number(1, level());
-                        attacker->point_change(POINT_GOLD, iAmount);
-                        db_manager::instance().send_money_log(MONEY_LOG_MISC, 1, iAmount);
+                        int amount = number(1, level());
+                        attacker->point_change(POINT_GOLD, amount);
+                        db_manager::instance().send_money_log(MONEY_LOG_MISC, 1, amount);
                     }
                 }
 
                 if (attacker->point(POINT_HIT_HP_RECOVERY) && number(0, 4) > 0) {
-                    int i = ((iCurHP >= 0) ? std::min(dam, iCurHP) : dam) * attacker->point(POINT_HIT_HP_RECOVERY) / 100;
+                    int i = ((cur_hp >= 0) ? std::min(dam, cur_hp) : dam) * attacker->point(POINT_HIT_HP_RECOVERY) / 100;
 
                     if (i) {
                         create_fly(FLY_HP_SMALL, attacker);
@@ -1550,7 +1550,7 @@ namespace metin2::game::inline characters {
                 }
 
                 if (attacker->point(POINT_HIT_SP_RECOVERY) && number(0, 4) > 0) {
-                    int i = ((iCurHP >= 0) ? std::min(dam, iCurHP) : dam) * attacker->point(POINT_HIT_SP_RECOVERY) / 100;
+                    int i = ((cur_hp >= 0) ? std::min(dam, cur_hp) : dam) * attacker->point(POINT_HIT_SP_RECOVERY) / 100;
 
                     if (i) {
                         create_fly(FLY_SP_SMALL, attacker);
@@ -1593,16 +1593,16 @@ namespace metin2::game::inline characters {
         }
 
         if (is_affect_flag(AFF_MANASHIELD)) {
-            int iDamageSPPart = dam / 3;
-            int iDamageToSP = iDamageSPPart * point(POINT_MANASHIELD) / 100;
-            int iSP = sp();
+            int damage_sp_part = dam / 3;
+            int damage_to_sp = damage_sp_part * point(POINT_MANASHIELD) / 100;
+            int sp_value = sp();
 
-            if (iDamageToSP <= iSP) {
-                point_change(POINT_SP, -iDamageToSP);
-                dam -= iDamageSPPart;
+            if (damage_to_sp <= sp_value) {
+                point_change(POINT_SP, -damage_to_sp);
+                dam -= damage_sp_part;
             } else {
                 point_change(POINT_SP, -sp());
-                dam -= iSP * 100 / std::max(point(POINT_MANASHIELD), 1);
+                dam -= sp_value * 100 / std::max(point(POINT_MANASHIELD), 1);
             }
         }
 
@@ -1617,19 +1617,19 @@ namespace metin2::game::inline characters {
                 dam += add_dam;
             }
 
-            int iEmpire = empire();
-            int32_t lMapIndex = map_index();
-            int iMapEmpire = sectree_manager::instance().empire_from_map_index(lMapIndex);
+            int empire_value = empire();
+            int32_t map_index_value = map_index();
+            int map_empire = sectree_manager::instance().empire_from_map_index(map_index_value);
 
             if (attacker->is_pc()) {
-                iEmpire = attacker->empire();
-                lMapIndex = attacker->map_index();
-                iMapEmpire = sectree_manager::instance().empire_from_map_index(lMapIndex);
+                empire_value = attacker->empire();
+                map_index_value = attacker->map_index();
+                map_empire = sectree_manager::instance().empire_from_map_index(map_index_value);
 
-                if (iEmpire && iMapEmpire && iEmpire != iMapEmpire) {
+                if (empire_value && map_empire && empire_value != map_empire) {
                     int percent = 10;
 
-                    if (184 <= lMapIndex && lMapIndex <= 189) {
+                    if (184 <= map_index_value && map_index_value <= 189) {
                         percent = 9;
                     } else {
                         percent = 9;
@@ -1639,13 +1639,13 @@ namespace metin2::game::inline characters {
                 }
 
                 if (!is_pc() && monster_drain_sp_point()) {
-                    int iDrain = monster_drain_sp_point();
+                    int drain = monster_drain_sp_point();
 
-                    if (iDrain <= attacker->sp())
-                        attacker->point_change(POINT_SP, -iDrain);
+                    if (drain <= attacker->sp())
+                        attacker->point_change(POINT_SP, -drain);
                     else {
-                        int iSP = attacker->sp();
-                        attacker->point_change(POINT_SP, -iSP);
+                        int sp_value = attacker->sp();
+                        attacker->point_change(POINT_SP, -sp_value);
                     }
                 }
 
@@ -1699,7 +1699,7 @@ namespace metin2::game::inline characters {
             if (attacker->is_monster() && attacker->is_death_blower()) {
                 if (attacker->is_death_blow()) {
                     if (number(JOB_WARRIOR, JOB_MAX_NUM - 1) == job()) {
-                        IsDeathBlow = true;
+                        is_death_blow = true;
                         dam = dam * 4;
                     }
                 }
@@ -1707,25 +1707,25 @@ namespace metin2::game::inline characters {
 
             dam = blue_dragon_damage(this, attacker, dam);
 
-            uint8_t damageFlag = 0;
+            uint8_t damage_flag = 0;
 
             if (type == DAMAGE_TYPE_POISON)
-                damageFlag = DAMAGE_POISON;
+                damage_flag = DAMAGE_POISON;
             else
-                damageFlag = DAMAGE_NORMAL;
+                damage_flag = DAMAGE_NORMAL;
 
-            if (IsCritical == true)
-                damageFlag |= DAMAGE_CRITICAL;
+            if (is_critical == true)
+                damage_flag |= DAMAGE_CRITICAL;
 
-            if (IsPenetrate == true)
-                damageFlag |= DAMAGE_PENETRATE;
+            if (is_penetrate == true)
+                damage_flag |= DAMAGE_PENETRATE;
 
-            float damMul = this->dam_mul();
-            float tempDam = dam;
-            dam = tempDam * damMul + 0.5f;
+            float dam_mul = this->dam_mul();
+            float temp_dam = dam;
+            dam = temp_dam * dam_mul + 0.5f;
 
             if (attacker)
-                send_damage_packet(attacker, dam, damageFlag);
+                send_damage_packet(attacker, dam, damage_flag);
 
             if (metin2::config::test_server()) {
                 if (attacker) {
@@ -1734,9 +1734,9 @@ namespace metin2::game::inline characters {
                         dam,
                         hp(),
                         (hp() * 100) / max_hp(),
-                        IsCritical ? "crit " : "",
-                        IsPenetrate ? "pene " : "",
-                        IsDeathBlow ? "deathblow " : "");
+                        is_critical ? "crit " : "",
+                        is_penetrate ? "pene " : "",
+                        is_death_blow ? "deathblow " : "");
                 }
 
                 chat_packet(CHAT_TYPE_PARTY, "<- %s, DAM %d HP %d(%d%%) %s%s",
@@ -1744,9 +1744,9 @@ namespace metin2::game::inline characters {
                     dam,
                     hp(),
                     (hp() * 100) / max_hp(),
-                    IsCritical ? "crit " : "",
-                    IsPenetrate ? "pene " : "",
-                    IsDeathBlow ? "deathblow " : "");
+                    is_critical ? "crit " : "",
+                    is_penetrate ? "pene " : "",
+                    is_death_blow ? "deathblow " : "");
             }
 
             if (detail_log_) {
@@ -1796,7 +1796,7 @@ namespace metin2::game::inline characters {
         if (metin2::config::game().distribution_test_server)
             exp *= 3;
 
-        int iBaseExp = exp;
+        int base_exp = exp;
 
         exp = exp * (100 + priv_manager::instance().priv(to, PRIV_EXP_PCT)) / 100;
 
@@ -1863,8 +1863,8 @@ namespace metin2::game::inline characters {
         exp = std::min<int>(to->next_exp() / 10, exp);
 
         if (metin2::config::test_server()) {
-            if (quest::quest_manager::instance().event_flag("exp_bonus_log") && iBaseExp > 0)
-                to->chat_packet(CHAT_TYPE_INFO, "exp bonus %d%%", (exp - iBaseExp) * 100 / iBaseExp);
+            if (quest::quest_manager::instance().event_flag("exp_bonus_log") && base_exp > 0)
+                to->chat_packet(CHAT_TYPE_INFO, "exp bonus %d%%", (exp - base_exp) * 100 / base_exp);
         }
 
         exp = adjust_exp_by_level(to, exp);
@@ -1875,16 +1875,16 @@ namespace metin2::game::inline characters {
         {
             character *you = to->marry_partner();
             if (you) {
-                uint32_t dwUpdatePoint = 2000 * exp / to->level() / to->level() / 3;
+                uint32_t update_point = 2000 * exp / to->level() / to->level() / 3;
 
                 if (to->premium_remain_seconds(PREMIUM_MARRIAGE_FAST) > 0 ||
                     you->premium_remain_seconds(PREMIUM_MARRIAGE_FAST) > 0)
-                    dwUpdatePoint = (uint32_t)(dwUpdatePoint * 3);
+                    update_point = (uint32_t)(update_point * 3);
 
-                marriage::marriage *pMarriage = marriage::manager::instance().get(to->player_id());
+                marriage::marriage *marriage = marriage::manager::instance().get(to->player_id());
 
-                if (pMarriage && pMarriage->is_near())
-                    pMarriage->update(dwUpdatePoint);
+                if (marriage && marriage->is_near())
+                    marriage->update(update_point);
             }
         }
     }
@@ -1928,10 +1928,10 @@ namespace metin2::game::inline characters {
                     character *tch = party->exp_centralize_character();
 
                     if (distance_approx(ch->x() - tch->x(), ch->y() - tch->y()) <= PARTY_DEFAULT_RANGE) {
-                        int iExpCenteralize = (int)(exp * 0.05f);
-                        exp -= iExpCenteralize;
+                        int exp_centeralize = (int)(exp * 0.05f);
+                        exp -= exp_centeralize;
 
-                        give_exp(ch, party->exp_centralize_character(), iExpCenteralize);
+                        give_exp(ch, party->exp_centralize_character(), exp_centeralize);
                     }
                 }
 
@@ -1943,15 +1943,15 @@ namespace metin2::game::inline characters {
 
                 party->for_each_online_member([&](character *member) {
                     if (distance_approx(member->x() - x, member->y() - y) <= PARTY_DEFAULT_RANGE) {
-                        uint32_t iExp2 = 0;
+                        uint32_t exp2 = 0;
 
                         switch (mode) {
                         case PARTY_EXP_DISTRIBUTION_NON_PARITY:
-                            iExp2 = (uint32_t)(i_exp * (float)party_exp_distribute_table[member->level()] / total);
+                            exp2 = (uint32_t)(i_exp * (float)party_exp_distribute_table[member->level()] / total);
                             break;
 
                         case PARTY_EXP_DISTRIBUTION_PARITY:
-                            iExp2 = i_exp / member_count;
+                            exp2 = i_exp / member_count;
                             break;
 
                         default:
@@ -1959,7 +1959,7 @@ namespace metin2::game::inline characters {
                             return;
                         }
 
-                        give_exp(ch, member, iExp2);
+                        give_exp(ch, member, exp2);
                     }
                 });
             }
@@ -1967,14 +1967,14 @@ namespace metin2::game::inline characters {
     };
 
     auto character::distribute_exp() -> character * {
-        int iExpToDistribute = get_exp();
+        int exp_to_distribute = get_exp();
 
-        if (iExpToDistribute <= 0)
+        if (exp_to_distribute <= 0)
             return nullptr;
 
-        int iTotalDam = 0;
-        character *pkChrMostAttacked = nullptr;
-        int iMostDam = 0;
+        int total_dam = 0;
+        character *chr_most_attacked = nullptr;
+        int most_dam = 0;
 
         using damage_info_list = std::vector<damage_info>;
         damage_info_list damage_info_table;
@@ -1985,38 +1985,38 @@ namespace metin2::game::inline characters {
         auto it = map_damage_.begin();
 
         while (it != map_damage_.end()) {
-            const vid &c_VID = it->first;
-            int iDam = it->second.total_damage;
+            const vid &vid = it->first;
+            int dam = it->second.total_damage;
 
             ++it;
 
-            character *pAttacker = character_manager::instance().find(c_VID);
+            character *attacker = character_manager::instance().find(vid);
 
-            if (!pAttacker || pAttacker->is_npc() || distance_approx(x() - pAttacker->x(), y() - pAttacker->y()) > 5000)
+            if (!attacker || attacker->is_npc() || distance_approx(x() - attacker->x(), y() - attacker->y()) > 5000)
                 continue;
 
-            iTotalDam += iDam;
-            if (!pkChrMostAttacked || iDam > iMostDam) {
-                pkChrMostAttacked = pAttacker;
-                iMostDam = iDam;
+            total_dam += dam;
+            if (!chr_most_attacked || dam > most_dam) {
+                chr_most_attacked = attacker;
+                most_dam = dam;
             }
 
-            if (pAttacker->get_party()) {
-                auto it = map_party_damage.find(pAttacker->get_party());
+            if (attacker->get_party()) {
+                auto it = map_party_damage.find(attacker->get_party());
                 if (it == map_party_damage.end()) {
                     damage_info di;
-                    di.dam = iDam;
+                    di.dam = dam;
                     di.attacker = nullptr;
-                    di.party = pAttacker->get_party();
+                    di.party = attacker->get_party();
                     map_party_damage.insert(std::make_pair(di.party, di));
                 } else {
-                    it->second.dam += iDam;
+                    it->second.dam += dam;
                 }
             } else {
                 damage_info di;
 
-                di.dam = iDam;
-                di.attacker = pAttacker;
+                di.dam = dam;
+                di.attacker = attacker;
                 di.party = nullptr;
 
                 damage_info_table.push_back(di);
@@ -2029,22 +2029,22 @@ namespace metin2::game::inline characters {
 
         set_exp(0);
 
-        if (iTotalDam == 0)
+        if (total_dam == 0)
             return nullptr;
 
         if (chr_stone_) {
-            int iExp = iExpToDistribute >> 1;
-            chr_stone_->set_exp(chr_stone_->get_exp() + iExp);
-            iExpToDistribute -= iExp;
+            int exp_value = exp_to_distribute >> 1;
+            chr_stone_->set_exp(chr_stone_->get_exp() + exp_value);
+            exp_to_distribute -= exp_value;
         }
 
         metin2::log::debug("{}: distributing {:d} exp among {:d} attackers (total damage {:d})",
-            name(), iExpToDistribute, damage_info_table.size(), iTotalDam);
+            name(), exp_to_distribute, damage_info_table.size(), total_dam);
 
         if (damage_info_table.empty())
             return nullptr;
 
-        distribute_hp(pkChrMostAttacked);
+        distribute_hp(chr_most_attacked);
 
         {
             auto di = damage_info_table.begin();
@@ -2057,22 +2057,22 @@ namespace metin2::game::inline characters {
                 }
             }
 
-            int iExp = iExpToDistribute / 5;
-            iExpToDistribute -= iExp;
+            int exp_value = exp_to_distribute / 5;
+            exp_to_distribute -= exp_value;
 
-            float fPercent = (float)di->dam / iTotalDam;
+            float percent = (float)di->dam / total_dam;
 
-            if (fPercent > 1.0f) {
-                metin2::log::error("Exp share {:f} over 1.0 for {}", fPercent, di->attacker->name());
-                fPercent = 1.0f;
+            if (percent > 1.0f) {
+                metin2::log::error("Exp share {:f} over 1.0 for {}", percent, di->attacker->name());
+                percent = 1.0f;
             }
 
-            iExp += (int)(iExpToDistribute * fPercent);
+            exp_value += (int)(exp_to_distribute * percent);
 
-            di->distribute(this, iExp);
+            di->distribute(this, exp_value);
 
-            if (fPercent == 1.0f)
-                return pkChrMostAttacked;
+            if (percent == 1.0f)
+                return chr_most_attacked;
 
             di->clear();
         }
@@ -2083,55 +2083,55 @@ namespace metin2::game::inline characters {
             for (it = damage_info_table.begin(); it != damage_info_table.end(); ++it) {
                 damage_info &di = *it;
 
-                float fPercent = (float)di.dam / iTotalDam;
+                float percent = (float)di.dam / total_dam;
 
-                if (fPercent > 1.0f) {
-                    metin2::log::error("Exp share {:f} over 1.0 for {}", fPercent, di.attacker->name());
-                    fPercent = 1.0f;
+                if (percent > 1.0f) {
+                    metin2::log::error("Exp share {:f} over 1.0 for {}", percent, di.attacker->name());
+                    percent = 1.0f;
                 }
 
-                di.distribute(this, (int)(iExpToDistribute * fPercent));
+                di.distribute(this, (int)(exp_to_distribute * percent));
             }
         }
 
-        return pkChrMostAttacked;
+        return chr_most_attacked;
     }
 
     auto character::arrow_and_bow(item **ppk_bow, item **ppk_arrow, int arrow_count) -> int {
-        item *pkBow;
+        item *bow;
 
-        if (!(pkBow = wear(WEAR_WEAPON)) || pkBow->proto()->sub_type != WEAPON_BOW) {
+        if (!(bow = wear(WEAR_WEAPON)) || bow->proto()->sub_type != WEAPON_BOW) {
             return 0;
         }
 
-        item *pkArrow;
+        item *arrow;
 
-        if (!(pkArrow = wear(WEAR_ARROW)) || pkArrow->type() != ITEM_WEAPON ||
-            pkArrow->proto()->sub_type != WEAPON_ARROW) {
+        if (!(arrow = wear(WEAR_ARROW)) || arrow->type() != ITEM_WEAPON ||
+            arrow->proto()->sub_type != WEAPON_ARROW) {
             return 0;
         }
 
-        arrow_count = std::min<int>(arrow_count, pkArrow->count());
+        arrow_count = std::min<int>(arrow_count, arrow->count());
 
-        *ppk_bow = pkBow;
-        *ppk_arrow = pkArrow;
+        *ppk_bow = bow;
+        *ppk_arrow = arrow;
 
         return arrow_count;
     }
 
     void character::use_arrow(item *arrow, uint32_t arrow_count) {
-        int iCount = arrow->count();
-        uint32_t dwVnum = arrow->vnum();
-        iCount = iCount - std::min<int>(iCount, arrow_count);
-        arrow->set_count(iCount);
+        int count = arrow->count();
+        uint32_t vnum = arrow->vnum();
+        count = count - std::min<int>(count, arrow_count);
+        arrow->set_count(count);
 
-        if (iCount == 0) {
-            item *pkNewArrow = find_specify_item(dwVnum);
+        if (count == 0) {
+            item *new_arrow = find_specify_item(vnum);
 
-            metin2::log::debug("Arrow stack {:d} used up, next stack {}", dwVnum, static_cast<const void *>(pkNewArrow));
+            metin2::log::debug("Arrow stack {:d} used up, next stack {}", vnum, static_cast<const void *>(new_arrow));
 
-            if (pkNewArrow)
-                equip_item(pkNewArrow);
+            if (new_arrow)
+                equip_item(new_arrow);
         }
     }
 
@@ -2152,32 +2152,32 @@ namespace metin2::game::inline characters {
                 skill_use_info_[type].set_main_target_vid(target_vid);
             }
 
-            character *pkVictim = character_manager::instance().find(target_vid);
+            character *victim = character_manager::instance().find(target_vid);
 
-            if (!pkVictim)
+            if (!victim)
                 return;
 
-            if (!battle_is_attackable(this, pkVictim))
+            if (!battle_is_attackable(this, victim))
                 return;
 
             if (is_npc()) {
-                if (distance_approx(x() - pkVictim->x(), y() - pkVictim->y()) > 5000)
+                if (distance_approx(x() - victim->x(), y() - victim->y()) > 5000)
                     return;
             }
 
-            item *pkBow;
-            item *pkArrow;
+            item *bow;
+            item *arrow;
 
             switch (type) {
             case 0:
                 {
-                    int iDam = 0;
+                    int dam = 0;
 
                     if (is_pc()) {
                         if (job() != JOB_ASSASSIN)
                             return;
 
-                        if (0 == arrow_and_bow(&pkBow, &pkArrow))
+                        if (0 == arrow_and_bow(&bow, &arrow))
                             return;
 
                         if (skill_group() != 0)
@@ -2188,68 +2188,68 @@ namespace metin2::game::inline characters {
                                 point_change(POINT_SP, -5);
                             }
 
-                        iDam = calc_arrow_damage(this, pkVictim, pkBow, pkArrow);
-                        use_arrow(pkArrow, 1);
+                        dam = calc_arrow_damage(this, victim, bow, arrow);
+                        use_arrow(arrow, 1);
 
-                        uint32_t dwCurrentTime = get_dword_time();
-                        if (is_speed_hack(this, pkVictim, dwCurrentTime))
-                            iDam = 0;
+                        uint32_t current_time = get_dword_time();
+                        if (is_speed_hack(this, victim, current_time))
+                            dam = 0;
                     } else
-                        iDam = calc_melee_damage(this, pkVictim);
+                        dam = calc_melee_damage(this, victim);
 
-                    normal_attack_affect(this, pkVictim);
+                    normal_attack_affect(this, victim);
 
-                    iDam = iDam * (100 - pkVictim->point(POINT_RESIST_BOW)) / 100;
+                    dam = dam * (100 - victim->point(POINT_RESIST_BOW)) / 100;
 
                     on_move(true);
-                    pkVictim->on_move();
+                    victim->on_move();
 
-                    if (pkVictim->can_begin_fight())
-                        pkVictim->begin_fight(this);
+                    if (victim->can_begin_fight())
+                        victim->begin_fight(this);
 
-                    pkVictim->damage(this, iDam, DAMAGE_TYPE_NORMAL_RANGE);
+                    victim->damage(this, dam, DAMAGE_TYPE_NORMAL_RANGE);
                 }
                 break;
 
             case 1:
                 {
-                    int iDam;
+                    int dam;
 
                     if (is_pc())
                         return;
 
-                    iDam = calc_magic_damage(this, pkVictim);
+                    dam = calc_magic_damage(this, victim);
 
-                    normal_attack_affect(this, pkVictim);
+                    normal_attack_affect(this, victim);
 
-                    iDam = iDam * (100 - pkVictim->point(POINT_RESIST_MAGIC)) / 100;
+                    dam = dam * (100 - victim->point(POINT_RESIST_MAGIC)) / 100;
 
                     on_move(true);
-                    pkVictim->on_move();
+                    victim->on_move();
 
-                    if (pkVictim->can_begin_fight())
-                        pkVictim->begin_fight(this);
+                    if (victim->can_begin_fight())
+                        victim->begin_fight(this);
 
-                    pkVictim->damage(this, iDam, DAMAGE_TYPE_MAGIC);
+                    victim->damage(this, dam, DAMAGE_TYPE_MAGIC);
                 }
                 break;
 
             case SKILL_YEONSA:
                 {
-                    int iUseArrow = 1;
+                    int use_arrow_value = 1;
 
                     {
-                        if (iUseArrow == arrow_and_bow(&pkBow, &pkArrow, iUseArrow)) {
+                        if (use_arrow_value == arrow_and_bow(&bow, &arrow, use_arrow_value)) {
                             on_move(true);
-                            pkVictim->on_move();
+                            victim->on_move();
 
-                            if (pkVictim->can_begin_fight())
-                                pkVictim->begin_fight(this);
+                            if (victim->can_begin_fight())
+                                victim->begin_fight(this);
 
-                            compute_skill(type, pkVictim);
-                            use_arrow(pkArrow, iUseArrow);
+                            compute_skill(type, victim);
+                            use_arrow(arrow, use_arrow_value);
 
-                            if (pkVictim->is_dead())
+                            if (victim->is_dead())
                                 break;
 
                         } else
@@ -2260,52 +2260,52 @@ namespace metin2::game::inline characters {
 
             case SKILL_KWANKYEOK:
                 {
-                    int iUseArrow = 1;
+                    int use_arrow_value = 1;
 
-                    if (iUseArrow == arrow_and_bow(&pkBow, &pkArrow, iUseArrow)) {
+                    if (use_arrow_value == arrow_and_bow(&bow, &arrow, use_arrow_value)) {
                         on_move(true);
-                        pkVictim->on_move();
+                        victim->on_move();
 
-                        if (pkVictim->can_begin_fight())
-                            pkVictim->begin_fight(this);
+                        if (victim->can_begin_fight())
+                            victim->begin_fight(this);
 
-                        metin2::log::debug("{} hits {} with kwankeyok", name(), pkVictim->name());
-                        compute_skill(type, pkVictim);
-                        use_arrow(pkArrow, iUseArrow);
+                        metin2::log::debug("{} hits {} with kwankeyok", name(), victim->name());
+                        compute_skill(type, victim);
+                        use_arrow(arrow, use_arrow_value);
                     }
                 }
                 break;
 
             case SKILL_GIGUNG:
                 {
-                    int iUseArrow = 1;
-                    if (iUseArrow == arrow_and_bow(&pkBow, &pkArrow, iUseArrow)) {
+                    int use_arrow_value = 1;
+                    if (use_arrow_value == arrow_and_bow(&bow, &arrow, use_arrow_value)) {
                         on_move(true);
-                        pkVictim->on_move();
+                        victim->on_move();
 
-                        if (pkVictim->can_begin_fight())
-                            pkVictim->begin_fight(this);
+                        if (victim->can_begin_fight())
+                            victim->begin_fight(this);
 
-                        metin2::log::debug("{} hits {} with gigung", name(), pkVictim->name());
-                        compute_skill(type, pkVictim);
-                        use_arrow(pkArrow, iUseArrow);
+                        metin2::log::debug("{} hits {} with gigung", name(), victim->name());
+                        compute_skill(type, victim);
+                        use_arrow(arrow, use_arrow_value);
                     }
                 }
 
                 break;
             case SKILL_HWAJO:
                 {
-                    int iUseArrow = 1;
-                    if (iUseArrow == arrow_and_bow(&pkBow, &pkArrow, iUseArrow)) {
+                    int use_arrow_value = 1;
+                    if (use_arrow_value == arrow_and_bow(&bow, &arrow, use_arrow_value)) {
                         on_move(true);
-                        pkVictim->on_move();
+                        victim->on_move();
 
-                        if (pkVictim->can_begin_fight())
-                            pkVictim->begin_fight(this);
+                        if (victim->can_begin_fight())
+                            victim->begin_fight(this);
 
-                        metin2::log::debug("{} hits {} with hwajo", name(), pkVictim->name());
-                        compute_skill(type, pkVictim);
-                        use_arrow(pkArrow, iUseArrow);
+                        metin2::log::debug("{} hits {} with hwajo", name(), victim->name());
+                        compute_skill(type, victim);
+                        use_arrow(arrow, use_arrow_value);
                     }
                 }
 
@@ -2313,17 +2313,17 @@ namespace metin2::game::inline characters {
 
             case SKILL_HORSE_WILDATTACK_RANGE:
                 {
-                    int iUseArrow = 1;
-                    if (iUseArrow == arrow_and_bow(&pkBow, &pkArrow, iUseArrow)) {
+                    int use_arrow_value = 1;
+                    if (use_arrow_value == arrow_and_bow(&bow, &arrow, use_arrow_value)) {
                         on_move(true);
-                        pkVictim->on_move();
+                        victim->on_move();
 
-                        if (pkVictim->can_begin_fight())
-                            pkVictim->begin_fight(this);
+                        if (victim->can_begin_fight())
+                            victim->begin_fight(this);
 
-                        metin2::log::debug("{} hits {} with horse wild attack", name(), pkVictim->name());
-                        compute_skill(type, pkVictim);
-                        use_arrow(pkArrow, iUseArrow);
+                        metin2::log::debug("{} hits {} with horse wild attack", name(), victim->name());
+                        compute_skill(type, victim);
+                        use_arrow(arrow, use_arrow_value);
                     }
                 }
 
@@ -2339,26 +2339,26 @@ namespace metin2::game::inline characters {
             case SKILL_PABEOB:
                 {
                     on_move(true);
-                    pkVictim->on_move();
+                    victim->on_move();
 
-                    if (pkVictim->can_begin_fight())
-                        pkVictim->begin_fight(this);
+                    if (victim->can_begin_fight())
+                        victim->begin_fight(this);
 
-                    metin2::log::debug("{}: skill {:d} hits {}", name(), type, pkVictim->name());
-                    compute_skill(type, pkVictim);
+                    metin2::log::debug("{}: skill {:d} hits {}", name(), type, victim->name());
+                    compute_skill(type, victim);
                 }
                 break;
 
             case SKILL_CHAIN:
                 {
                     on_move(true);
-                    pkVictim->on_move();
+                    victim->on_move();
 
-                    if (pkVictim->can_begin_fight())
-                        pkVictim->begin_fight(this);
+                    if (victim->can_begin_fight())
+                        victim->begin_fight(this);
 
-                    metin2::log::debug("{}: skill {:d} hits {}", name(), type, pkVictim->name());
-                    compute_skill(type, pkVictim);
+                    metin2::log::debug("{}: skill {:d} hits {}", name(), type, victim->name());
+                    compute_skill(type, victim);
                 }
                 break;
 
@@ -2389,16 +2389,16 @@ namespace metin2::game::inline characters {
     }
 
     void character::fly_target(uint32_t target_vid_value, int32_t x, int32_t y, uint8_t header_value) {
-        character *pkVictim = character_manager::instance().find(target_vid_value);
+        character *victim = character_manager::instance().find(target_vid_value);
         packet_gc_fly_targeting pack;
 
         pack.header = (header_value == HEADER_CG_FLY_TARGETING) ? HEADER_GC_FLY_TARGETING : HEADER_GC_ADD_FLY_TARGETING;
         pack.shooter_vid = get_vid();
 
-        if (pkVictim) {
-            pack.target_vid = pkVictim->get_vid();
-            pack.x = pkVictim->x();
-            pack.y = pkVictim->y();
+        if (victim) {
+            pack.target_vid = victim->get_vid();
+            pack.x = victim->x();
+            pack.y = victim->y();
 
             if (header_value == HEADER_CG_FLY_TARGETING)
                 fly_target_id_ = target_vid_value;
@@ -2418,34 +2418,34 @@ namespace metin2::game::inline characters {
         if (nullptr == chr)
             chr = this;
 
-        float fMinDist = 99999.0f;
-        character *pkVictim = nullptr;
+        float min_dist = 99999.0f;
+        character *victim = nullptr;
 
         auto it = map_damage_.begin();
 
         while (it != map_damage_.end()) {
-            const vid &c_VID = it->first;
+            const vid &vid = it->first;
             ++it;
 
-            character *pAttacker = character_manager::instance().find(c_VID);
+            character *attacker = character_manager::instance().find(vid);
 
-            if (!pAttacker)
+            if (!attacker)
                 continue;
 
-            if (pAttacker->is_affect_flag(AFF_EUNHYUNG) ||
-                pAttacker->is_affect_flag(AFF_INVISIBILITY) ||
-                pAttacker->is_affect_flag(AFF_REVIVE_INVISIBLE))
+            if (attacker->is_affect_flag(AFF_EUNHYUNG) ||
+                attacker->is_affect_flag(AFF_INVISIBILITY) ||
+                attacker->is_affect_flag(AFF_REVIVE_INVISIBLE))
                 continue;
 
-            float fDist = distance_approx(pAttacker->x() - chr->x(), pAttacker->y() - chr->y());
+            float dist = distance_approx(attacker->x() - chr->x(), attacker->y() - chr->y());
 
-            if (fDist < fMinDist) {
-                pkVictim = pAttacker;
-                fMinDist = fDist;
+            if (dist < min_dist) {
+                victim = attacker;
+                min_dist = dist;
             }
         }
 
-        return pkVictim;
+        return victim;
     }
 
     void character::set_victim(character *victim) {
@@ -2501,16 +2501,16 @@ namespace metin2::game::inline characters {
     }
 
     void character::update_alignment(int amount) {
-        bool bShow = false;
+        bool show = false;
 
         if (alignment_ == real_alignment_)
-            bShow = true;
+            show = true;
 
         int i = alignment_ / 10;
 
         real_alignment_ = std::clamp(real_alignment_ + amount, -200000, 200000);
 
-        if (bShow) {
+        if (show) {
             alignment_ = real_alignment_;
 
             if (i != alignment_ / 10)
@@ -2540,9 +2540,9 @@ namespace metin2::game::inline characters {
         if (!is_killer_mode())
             return;
 
-        int iKillerSeconds = 30;
+        int killer_seconds = 30;
 
-        if (thecore_pulse() - killer_mode_pulse_ >= passes_per_sec(iKillerSeconds))
+        if (thecore_pulse() - killer_mode_pulse_ >= passes_per_sec(killer_seconds))
             set_killer_mode(false);
     }
 
@@ -2567,9 +2567,9 @@ namespace metin2::game::inline characters {
     }
 
     void character::forget_my_attacker() {
-        sectree *pSec = get_sectree();
-        if (pSec) {
-            pSec->for_each_around([&](entity *ent) {
+        sectree *sec = get_sectree();
+        if (sec) {
+            sec->for_each_around([&](entity *ent) {
                 if (ent->is_type(ENTITY_CHARACTER)) {
                     auto *ch_value = (character *)ent;
                     if (ch_value->is_pc())
@@ -2583,9 +2583,9 @@ namespace metin2::game::inline characters {
     }
 
     void character::aggregate_monster() {
-        sectree *pSec = get_sectree();
-        if (pSec) {
-            pSec->for_each_around([&](entity *ent) {
+        sectree *sec = get_sectree();
+        if (sec) {
+            sec->for_each_around([&](entity *ent) {
                 if (ent->is_type(ENTITY_CHARACTER)) {
                     auto *ch_value = (character *)ent;
                     if (ch_value->is_pc())
@@ -2605,9 +2605,9 @@ namespace metin2::game::inline characters {
     }
 
     void character::attract_ranger() {
-        sectree *pSec = get_sectree();
-        if (pSec) {
-            pSec->for_each_around([&](entity *ent) {
+        sectree *sec = get_sectree();
+        if (sec) {
+            sec->for_each_around([&](entity *ent) {
                 if (ent->is_type(ENTITY_CHARACTER)) {
                     auto *ch_value = (character *)ent;
                     if (ch_value->is_pc())
@@ -2617,11 +2617,11 @@ namespace metin2::game::inline characters {
                     if (ch_value->victim() && ch_value->victim() != this)
                         return;
                     if (ch_value->mob_attack_range() > 150) {
-                        int iNewRange = 150;
-                        if (iNewRange < 150)
-                            iNewRange = 150;
+                        int new_range = 150;
+                        if (new_range < 150)
+                            new_range = 150;
 
-                        ch_value->add_affect(AFFECT_BOW_DISTANCE, POINT_BOW_DISTANCE, iNewRange - ch_value->mob_attack_range(), AFF_NONE, 3 * 60, 0, false);
+                        ch_value->add_affect(AFFECT_BOW_DISTANCE, POINT_BOW_DISTANCE, new_range - ch_value->mob_attack_range(), AFF_NONE, 3 * 60, 0, false);
                     }
                 }
             });
@@ -2629,29 +2629,29 @@ namespace metin2::game::inline characters {
     }
 
     void character::pull_monster() {
-        sectree *pSec = get_sectree();
-        if (pSec) {
+        sectree *sec = get_sectree();
+        if (sec) {
             const int length = 300;
-            pSec->for_each_around([&](entity *ent) {
+            sec->for_each_around([&](entity *ent) {
                 if (ent->is_type(ENTITY_CHARACTER)) {
                     auto *ch_value = (character *)ent;
                     if (ch_value->is_pc())
                         return;
                     if (!ch_value->is_monster())
                         return;
-                    float fDist = distance_approx(x() - ch_value->x(), y() - ch_value->y());
-                    if (fDist > 3000 || fDist < 100)
+                    float dist = distance_approx(x() - ch_value->x(), y() - ch_value->y());
+                    if (dist > 3000 || dist < 100)
                         return;
 
-                    float fNewDist = fDist - length;
-                    if (fNewDist < 100)
-                        fNewDist = 100;
+                    float new_dist = dist - length;
+                    if (new_dist < 100)
+                        new_dist = 100;
 
                     float degree = get_degree_from_position_xy(ch_value->x(), ch_value->y(), x(), y());
                     float fx;
                     float fy;
 
-                    get_delta_by_degree(degree, fDist - fNewDist, &fx, &fy);
+                    get_delta_by_degree(degree, dist - new_dist, &fx, &fy);
                     auto tx = (int32_t)(ch_value->x() + fx);
                     auto ty = (int32_t)(ch_value->y() + fy);
 
@@ -2692,16 +2692,16 @@ namespace metin2::game::inline characters {
             info.aggro = 0;
 
         if (get_party() && dam > 0 && type != DAMAGE_TYPE_SPECIAL) {
-            party *pParty = get_party();
+            party *party = get_party();
 
-            int iPartyAggroDist = dam;
+            int party_aggro_dist = dam;
 
-            if (pParty->leader_pid() == get_vid())
-                iPartyAggroDist /= 2;
+            if (party->leader_pid() == get_vid())
+                party_aggro_dist /= 2;
             else
-                iPartyAggroDist /= 3;
+                party_aggro_dist /= 3;
 
-            pParty->send_message(this, PM_AGGRO_INCREASE, iPartyAggroDist, attacker->get_vid());
+            party->send_message(this, PM_AGGRO_INCREASE, party_aggro_dist, attacker->get_vid());
         }
 
         change_victim_by_aggro(info.aggro, attacker);
@@ -2732,22 +2732,22 @@ namespace metin2::game::inline characters {
             }
 
             damage_map::iterator it;
-            auto itFind = map_damage_.end();
+            auto find = map_damage_.end();
 
             for (it = map_damage_.begin(); it != map_damage_.end(); ++it) {
                 if (it->second.aggro > new_aggro) {
                     character *ch = character_manager::instance().find(it->first);
 
                     if (ch && !ch->is_dead() && distance_approx(ch->x() - x(), ch->y() - y()) < 5000) {
-                        itFind = it;
+                        find = it;
                         new_aggro = it->second.aggro;
                     }
                 }
             }
 
-            if (itFind != map_damage_.end()) {
+            if (find != map_damage_.end()) {
                 max_aggro_ = new_aggro;
-                set_victim(character_manager::instance().find(itFind->first));
+                set_victim(character_manager::instance().find(find->first));
                 state_duration_ = 1;
             }
         } else {

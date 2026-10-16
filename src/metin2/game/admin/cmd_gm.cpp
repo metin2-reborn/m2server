@@ -82,16 +82,16 @@ namespace metin2::game::inline admin {
     namespace {
 
         auto resolve_mob(const char *arg) -> const mob * {
-            const mob *pkMob;
+            const mob *mob;
 
             if (is_digit(*arg)) {
                 uint32_t vnum = 0;
                 str_to_number(vnum, arg);
-                pkMob = mob_manager::instance().get(vnum);
+                mob = mob_manager::instance().get(vnum);
             } else
-                pkMob = mob_manager::instance().get(arg, true);
+                mob = mob_manager::instance().get(arg, true);
 
-            return pkMob && pkMob->table.vnum ? pkMob : nullptr;
+            return mob && mob->table.vnum ? mob : nullptr;
         }
 
         auto spawn_count(const char *arg, int max_count) -> int {
@@ -105,16 +105,16 @@ namespace metin2::game::inline admin {
             return std::min(max_count, count);
         }
 
-        void spawn_around(character *ch, const mob *pkMob, int count, void (character::*on_spawn)() = nullptr) {
+        void spawn_around(character *ch, const mob *proto, int count, void (character::*on_spawn)() = nullptr) {
             while (count--) {
-                character *tch = character_manager::instance().spawn_mob_range(pkMob->table.vnum,
+                character *tch = character_manager::instance().spawn_mob_range(proto->table.vnum,
                     ch->map_index(),
                     ch->x() - number(200, 750),
                     ch->y() - number(200, 750),
                     ch->x() + number(200, 750),
                     ch->y() + number(200, 750),
                     true,
-                    pkMob->table.type == CHAR_TYPE_STONE);
+                    proto->table.type == CHAR_TYPE_STONE);
 
                 if (tch && on_spawn)
                     (tch->*on_spawn)();
@@ -194,11 +194,11 @@ namespace metin2::game::inline admin {
 
         character *tch = character_manager::instance().find_pc(arg1);
         if (!tch) {
-            cci *pkCCI = p2p_manager::instance().find(arg1);
+            cci *cci = p2p_manager::instance().find(arg1);
 
-            if (pkCCI) {
-                if (pkCCI->channel != metin2::config::server().channel) {
-                    ch->chat_packet(CHAT_TYPE_INFO, "Target is in %d channel (my channel %d)", pkCCI->channel, metin2::config::server().channel);
+            if (cci) {
+                if (cci->channel != metin2::config::server().channel) {
+                    ch->chat_packet(CHAT_TYPE_INFO, "Target is in %d channel (my channel %d)", cci->channel, metin2::config::server().channel);
                     return;
                 }
 
@@ -261,13 +261,13 @@ namespace metin2::game::inline admin {
     static std::vector<goto_info> vec_goto_info;
 
     void character_add_goto_info(const std::string &st_name_value, uint8_t empire, int index_value, uint32_t x, uint32_t y) {
-        goto_info newGotoInfo;
-        newGotoInfo.st_name = st_name_value;
-        newGotoInfo.empire = empire;
-        newGotoInfo.index = index_value;
-        newGotoInfo.x = x;
-        newGotoInfo.y = y;
-        vec_goto_info.push_back(newGotoInfo);
+        goto_info new_goto_info;
+        new_goto_info.st_name = st_name_value;
+        new_goto_info.empire = empire;
+        new_goto_info.index = index_value;
+        new_goto_info.x = x;
+        new_goto_info.y = y;
+        vec_goto_info.push_back(new_goto_info);
 
         metin2::log::debug("Goto location {}: empire {:d}, map {:d}, position {:d}x{:d}", st_name_value, empire, index_value, x, y);
     }
@@ -304,17 +304,17 @@ namespace metin2::game::inline admin {
     auto character_go_to_name(character *ch, uint8_t empire, int index_value, const char *goto_name) -> bool {
         std::vector<goto_info>::iterator i;
         for (i = vec_goto_info.begin(); i != vec_goto_info.end(); ++i) {
-            const goto_info &c_eachGotoInfo = *i;
+            const goto_info &c_each_goto_info = *i;
 
             if (index_value != 0) {
-                if (index_value != c_eachGotoInfo.index)
+                if (index_value != c_each_goto_info.index)
                     continue;
-            } else if (!find_in_string(goto_name, c_eachGotoInfo.st_name.c_str()))
+            } else if (!find_in_string(goto_name, c_each_goto_info.st_name.c_str()))
                 continue;
 
-            if (c_eachGotoInfo.empire == 0 || c_eachGotoInfo.empire == empire) {
-                int x = c_eachGotoInfo.x * 100;
-                int y = c_eachGotoInfo.y * 100;
+            if (c_each_goto_info.empire == 0 || c_each_goto_info.empire == empire) {
+                int x = c_each_goto_info.x * 100;
+                int y = c_each_goto_info.y * 100;
 
                 ch->chat_packet(CHAT_TYPE_INFO, "You warp to ( %d, %d )", x, y);
                 ch->warp_set(x, y);
@@ -349,11 +349,11 @@ namespace metin2::game::inline admin {
 
             ch->chat_packet(CHAT_TYPE_INFO, "You goto ( %d, %d )", x, y);
         } else {
-            int mapIndex = 0;
+            int map_index = 0;
             uint8_t empire = 0;
 
             if (*arg1 == '#')
-                str_to_number(mapIndex, (arg1 + 1));
+                str_to_number(map_index, (arg1 + 1));
 
             if (*arg2 && is_digit(*arg2)) {
                 str_to_number(empire, arg2);
@@ -361,7 +361,7 @@ namespace metin2::game::inline admin {
             } else
                 empire = ch->empire();
 
-            if (character_go_to_name(ch, empire, mapIndex, arg1)) {
+            if (character_go_to_name(ch, empire, map_index, arg1)) {
                 ch->chat_packet(CHAT_TYPE_INFO, "Cannot find map command syntax: /goto <mapname> [empire]");
                 return;
             }
@@ -395,15 +395,15 @@ namespace metin2::game::inline admin {
             character *tch = character_manager::instance().find_pc(arg1);
 
             if (nullptr == tch) {
-                const cci *pkCCI = p2p_manager::instance().find(arg1);
+                const cci *cci = p2p_manager::instance().find(arg1);
 
-                if (nullptr != pkCCI) {
-                    if (pkCCI->channel != metin2::config::server().channel) {
-                        ch->chat_packet(CHAT_TYPE_INFO, "Target is in %d channel (my channel %d)", pkCCI->channel, metin2::config::server().channel);
+                if (nullptr != cci) {
+                    if (cci->channel != metin2::config::server().channel) {
+                        ch->chat_packet(CHAT_TYPE_INFO, "Target is in %d channel (my channel %d)", cci->channel, metin2::config::server().channel);
                         return;
                     }
 
-                    ch->warp_to_pid(pkCCI->pid);
+                    ch->warp_to_pid(cci->pid);
                 } else {
                     ch->chat_packet(CHAT_TYPE_INFO, "There is no one by that name");
                 }
@@ -432,32 +432,32 @@ namespace metin2::game::inline admin {
             return;
         }
 
-        int iCount = 1;
+        int count = 1;
 
         if (*arg2) {
-            str_to_number(iCount, arg2);
-            iCount = std::clamp(iCount, 1, ITEM_MAX_COUNT);
+            str_to_number(count, arg2);
+            count = std::clamp(count, 1, ITEM_MAX_COUNT);
         }
 
-        uint32_t dwVnum;
+        uint32_t vnum_value;
 
         if (is_digit(*arg1))
-            str_to_number(dwVnum, arg1);
+            str_to_number(vnum_value, arg1);
         else {
-            if (!item_manager::instance().vnum(arg1, dwVnum)) {
-                ch->chat_packet(CHAT_TYPE_INFO, "#%u item not exist by that vnum.", dwVnum);
+            if (!item_manager::instance().vnum(arg1, vnum_value)) {
+                ch->chat_packet(CHAT_TYPE_INFO, "#%u item not exist by that vnum.", vnum_value);
                 return;
             }
         }
 
-        item *item = item_manager::instance().create_item(dwVnum, iCount, 0, true);
+        item *item = item_manager::instance().create_item(vnum_value, count, 0, true);
 
         if (item) {
             if (item->is_dragon_soul()) {
-                int iEmptyPos = ch->empty_dragon_soul_inventory(item);
+                int empty_pos = ch->empty_dragon_soul_inventory(item);
 
-                if (iEmptyPos != -1) {
-                    item->add_to_character(ch, item_pos(DRAGON_SOUL_INVENTORY, iEmptyPos));
+                if (empty_pos != -1) {
+                    item->add_to_character(ch, item_pos(DRAGON_SOUL_INVENTORY, empty_pos));
                     log_manager::instance().item_log(ch, item, "GM", item->name());
                 } else {
                     item_manager::instance().destroy_item(item);
@@ -467,10 +467,10 @@ namespace metin2::game::inline admin {
                         ch->chat_packet(CHAT_TYPE_INFO, "Not enough inventory space.");
                 }
             } else {
-                int iEmptyPos = ch->empty_inventory(item->size());
+                int empty_pos = ch->empty_inventory(item->size());
 
-                if (iEmptyPos != -1) {
-                    item->add_to_character(ch, item_pos(INVENTORY, iEmptyPos));
+                if (empty_pos != -1) {
+                    item->add_to_character(ch, item_pos(INVENTORY, empty_pos));
                     log_manager::instance().item_log(ch, item, "GM", item->name());
                 } else {
                     item_manager::instance().destroy_item(item);
@@ -478,7 +478,7 @@ namespace metin2::game::inline admin {
                 }
             }
         } else {
-            ch->chat_packet(CHAT_TYPE_INFO, "#%u item not exist by that vnum.", dwVnum);
+            ch->chat_packet(CHAT_TYPE_INFO, "#%u item not exist by that vnum.", vnum_value);
         }
     }
 
@@ -491,9 +491,9 @@ namespace metin2::game::inline admin {
             return;
         }
 
-        uint32_t dwVnum = 0;
-        str_to_number(dwVnum, arg1);
-        character_manager::instance().spawn_group_group(dwVnum, ch->map_index(), ch->x() - 500, ch->y() - 500, ch->x() + 500, ch->y() + 500);
+        uint32_t vnum = 0;
+        str_to_number(vnum, arg1);
+        character_manager::instance().spawn_group_group(vnum, ch->map_index(), ch->x() - 500, ch->y() - 500, ch->x() + 500, ch->y() + 500);
     }
 
     ACMD(do_group) {
@@ -505,13 +505,13 @@ namespace metin2::game::inline admin {
             return;
         }
 
-        uint32_t dwVnum = 0;
-        str_to_number(dwVnum, arg1);
+        uint32_t vnum = 0;
+        str_to_number(vnum, arg1);
 
         if (metin2::config::test_server())
-            metin2::log::debug("Gm spawns group {:d} on map {:d} at {:d}x{:d}", dwVnum, ch->map_index(), ch->x(), ch->y());
+            metin2::log::debug("Gm spawns group {:d} on map {:d} at {:d}x{:d}", vnum, ch->map_index(), ch->x(), ch->y());
 
-        character_manager::instance().spawn_group(dwVnum, ch->map_index(), ch->x() - 500, ch->y() - 500, ch->x() + 500, ch->y() + 500);
+        character_manager::instance().spawn_group(vnum, ch->map_index(), ch->x() - 500, ch->y() - 500, ch->x() + 500, ch->y() + 500);
     }
 
     ACMD(do_mob_coward) {
@@ -524,14 +524,14 @@ namespace metin2::game::inline admin {
             return;
         }
 
-        const mob *pkMob = resolve_mob(arg1);
+        const mob *mob_value = resolve_mob(arg1);
 
-        if (!pkMob) {
+        if (!mob_value) {
             ch->chat_packet(CHAT_TYPE_INFO, "No such mob by that vnum");
             return;
         }
 
-        spawn_around(ch, pkMob, spawn_count(arg2, 20), &character::set_coward);
+        spawn_around(ch, mob_value, spawn_count(arg2, 20), &character::set_coward);
     }
 
     ACMD(do_mob_map) {
@@ -563,14 +563,14 @@ namespace metin2::game::inline admin {
             return;
         }
 
-        const mob *pkMob = resolve_mob(arg1);
+        const mob *mob_value = resolve_mob(arg1);
 
-        if (!pkMob) {
+        if (!mob_value) {
             ch->chat_packet(CHAT_TYPE_INFO, "No such mob by that vnum");
             return;
         }
 
-        spawn_around(ch, pkMob, spawn_count(arg2, 20), &character::set_aggressive);
+        spawn_around(ch, mob_value, spawn_count(arg2, 20), &character::set_aggressive);
     }
 
     ACMD(do_mob) {
@@ -583,14 +583,14 @@ namespace metin2::game::inline admin {
             return;
         }
 
-        const mob *pkMob = resolve_mob(arg1);
+        const mob *mob_value = resolve_mob(arg1);
 
-        if (!pkMob) {
+        if (!mob_value) {
             ch->chat_packet(CHAT_TYPE_INFO, "No such mob by that vnum");
             return;
         }
 
-        spawn_around(ch, pkMob, spawn_count(arg2, metin2::config::test_server() ? 40 : 20));
+        spawn_around(ch, mob_value, spawn_count(arg2, metin2::config::test_server() ? 40 : 20));
     }
 
     ACMD(do_mob_ld) {
@@ -603,9 +603,9 @@ namespace metin2::game::inline admin {
             return;
         }
 
-        const mob *pkMob = resolve_mob(arg1);
+        const mob *mob_value = resolve_mob(arg1);
 
-        if (!pkMob) {
+        if (!mob_value) {
             ch->chat_packet(CHAT_TYPE_INFO, "No such mob by that vnum");
             return;
         }
@@ -621,12 +621,12 @@ namespace metin2::game::inline admin {
         if (*arg4)
             str_to_number(dir, arg4);
 
-        character_manager::instance().spawn_mob(pkMob->table.vnum,
+        character_manager::instance().spawn_mob(mob_value->table.vnum,
             ch->map_index(),
             x * 100,
             y * 100,
             ch->z(),
-            pkMob->table.type == CHAR_TYPE_STONE,
+            mob_value->table.type == CHAR_TYPE_STONE,
             dir);
     }
 
@@ -642,17 +642,17 @@ namespace metin2::game::inline admin {
                 if (!ent->is_type(ENTITY_CHARACTER))
                     return;
 
-                auto *pkChr = (character *)ent;
+                auto *chr = (character *)ent;
 
-                int iDist = distance_approx(pkChr->x() - ch->x(), pkChr->y() - ch->y());
+                int dist = distance_approx(chr->x() - ch->x(), chr->y() - ch->y());
 
-                if (!all && iDist >= 1000)
+                if (!all && dist >= 1000)
                     return;
 
-                metin2::log::debug("Purge: {} at distance {:d}", pkChr->name(), iDist);
+                metin2::log::debug("Purge: {} at distance {:d}", chr->name(), dist);
 
-                if (pkChr->is_npc() && !pkChr->is_pet() && pkChr->rider() == nullptr) {
-                    character_manager::instance().destroy_character(pkChr);
+                if (chr->is_npc() && !chr->is_pet() && chr->rider() == nullptr) {
+                    character_manager::instance().destroy_character(chr);
                 }
             });
         } else
@@ -719,12 +719,12 @@ namespace metin2::game::inline admin {
         text = std::format("Coordinate {}x{} ({}x{})",
             tch->x(), tch->y(), tch->x() / 100, tch->y() / 100);
 
-        sectree *pSec = sectree_manager::instance().get(tch->map_index(), tch->x(), tch->y());
+        sectree *sec = sectree_manager::instance().get(tch->map_index(), tch->x(), tch->y());
 
-        if (pSec) {
+        if (sec) {
             map_setting &map_setting = sectree_manager::instance().map(tch->map_index())->setting;
             std::format_to(std::back_inserter(text), " MapIndex {} Attribute {:08X} Local Position ({} x {})",
-                tch->map_index(), pSec->get_attribute(tch->x(), tch->y()), (tch->x() - map_setting.base_x) / 100, (tch->y() - map_setting.base_y) / 100);
+                tch->map_index(), sec->get_attribute(tch->x(), tch->y()), (tch->x() - map_setting.base_x) / 100, (tch->y() - map_setting.base_y) / 100);
         }
 
         ch->chat_packet(CHAT_TYPE_INFO, "%s", text.c_str());
@@ -811,22 +811,22 @@ namespace metin2::game::inline admin {
 
         for (int i = 0; i < MAX_PRIV_NUM; ++i)
             if (priv_manager::instance().priv(tch, i)) {
-                int iByEmpire = priv_manager::instance().priv_by_empire(tch->empire(), i);
-                int iByGuild = 0;
+                int by_empire = priv_manager::instance().priv_by_empire(tch->empire(), i);
+                int by_guild = 0;
 
                 if (tch->get_guild())
-                    iByGuild = priv_manager::instance().priv_by_guild(tch->get_guild()->id(), i);
+                    by_guild = priv_manager::instance().priv_by_guild(tch->get_guild()->id(), i);
 
-                int iByPlayer = priv_manager::instance().priv_by_character(tch->player_id(), i);
+                int by_player = priv_manager::instance().priv_by_character(tch->player_id(), i);
 
-                if (iByEmpire)
-                    ch->chat_packet(CHAT_TYPE_INFO, "%s for empire : %d", lc_text(apsz_priv_names[i]), iByEmpire);
+                if (by_empire)
+                    ch->chat_packet(CHAT_TYPE_INFO, "%s for empire : %d", lc_text(apsz_priv_names[i]), by_empire);
 
-                if (iByGuild)
-                    ch->chat_packet(CHAT_TYPE_INFO, "%s for guild : %d", lc_text(apsz_priv_names[i]), iByGuild);
+                if (by_guild)
+                    ch->chat_packet(CHAT_TYPE_INFO, "%s for guild : %d", lc_text(apsz_priv_names[i]), by_guild);
 
-                if (iByPlayer)
-                    ch->chat_packet(CHAT_TYPE_INFO, "%s for player : %d", lc_text(apsz_priv_names[i]), iByPlayer);
+                if (by_player)
+                    ch->chat_packet(CHAT_TYPE_INFO, "%s for player : %d", lc_text(apsz_priv_names[i]), by_player);
             }
     }
 
@@ -923,14 +923,14 @@ namespace metin2::game::inline admin {
     }
 
     ACMD(do_who) {
-        int iTotal;
-        int *paiEmpireUserCount;
-        int iLocal;
+        int total;
+        int *pai_empire_user_count;
+        int local;
 
-        desc_manager::instance().user_count(iTotal, &paiEmpireUserCount, iLocal);
+        desc_manager::instance().user_count(total, &pai_empire_user_count, local);
 
         ch->chat_packet(CHAT_TYPE_INFO, "Total [%d] %d / %d / %d (this server %d)",
-            iTotal, paiEmpireUserCount[1], paiEmpireUserCount[2], paiEmpireUserCount[3], iLocal);
+            total, pai_empire_user_count[1], pai_empire_user_count[2], pai_empire_user_count[3], local);
     }
 
     ACMD(do_user) {
@@ -1323,14 +1323,14 @@ namespace metin2::game::inline admin {
             return;
         }
 
-        int32_t lMapIndex;
+        int32_t map_index_value;
         int32_t map_index = 0;
         str_to_number(map_index, arg1);
-        if ((lMapIndex = sectree_manager::instance().create_private_map(map_index))) {
+        if ((map_index_value = sectree_manager::instance().create_private_map(map_index))) {
             ch->save_exit_location();
 
-            sectree_map *pkSectreeMap = sectree_manager::instance().map(lMapIndex);
-            ch->warp_set(pkSectreeMap->setting.pos_spawn.x, pkSectreeMap->setting.pos_spawn.y, lMapIndex);
+            sectree_map *sectree_map = sectree_manager::instance().map(map_index_value);
+            ch->warp_set(sectree_map->setting.pos_spawn.x, sectree_map->setting.pos_spawn.y, map_index_value);
         } else
             ch->chat_packet(CHAT_TYPE_INFO, "Can't find map by index %d", map_index);
     }
@@ -1343,19 +1343,19 @@ namespace metin2::game::inline admin {
         if (!*arg1)
             return;
 
-        quest::pc *pPC = quest::quest_manager::instance().pc_force(ch->player_id());
-        std::string questname = pPC->current_quest_name();
+        quest::pc *pc = quest::quest_manager::instance().pc_force(ch->player_id());
+        std::string questname = pc->current_quest_name();
 
         if (!questname.empty()) {
             int value = quest::quest_manager::instance().quest_state_index(questname, arg1);
 
-            pPC->set_flag(questname + ".__status", value);
-            pPC->clear_timer();
+            pc->set_flag(questname + ".__status", value);
+            pc->clear_timer();
 
-            auto it = pPC->quest_begin();
+            auto it = pc->quest_begin();
             unsigned int questindex = quest::quest_manager::instance().quest_index_by_name(questname);
 
-            while (it != pPC->quest_end()) {
+            while (it != pc->quest_end()) {
                 if (it->first == questindex) {
                     it->second.st = value;
                     break;
@@ -1375,22 +1375,22 @@ namespace metin2::game::inline admin {
 
         one_argument(argument, arg1, sizeof(arg1));
 
-        skill_proto *pkProto;
+        skill_proto *proto;
 
         if (is_digit(*arg1)) {
             uint32_t vnum = 0;
             str_to_number(vnum, arg1);
-            pkProto = skill_manager::instance().get(vnum);
+            proto = skill_manager::instance().get(vnum);
         } else
-            pkProto = skill_manager::instance().get(arg1);
+            proto = skill_manager::instance().get(arg1);
 
-        if (!pkProto) {
+        if (!proto) {
             ch->chat_packet(CHAT_TYPE_INFO, "There is no such a skill.");
             return;
         }
 
         item *item = ch->auto_give_item(50300);
-        item->set_socket(0, pkProto->vnum);
+        item->set_socket(0, proto->vnum);
     }
 
     ACMD(do_setskillother) {
@@ -1606,11 +1606,11 @@ namespace metin2::game::inline admin {
         char arg1[256];
         one_argument(argument, arg1, sizeof(arg1));
 
-        guild *pGuild = guild_manager::instance().find_guild_by_name(arg1);
-        if (pGuild != nullptr) {
-            ch->chat_packet(CHAT_TYPE_INFO, "GuildID: %d", pGuild->id());
-            ch->chat_packet(CHAT_TYPE_INFO, "GuildMasterPID: %d", pGuild->master_pid());
-            ch->chat_packet(CHAT_TYPE_INFO, "IsInWar: %d", pGuild->under_any_war());
+        guild *guild = guild_manager::instance().find_guild_by_name(arg1);
+        if (guild != nullptr) {
+            ch->chat_packet(CHAT_TYPE_INFO, "GuildID: %d", guild->id());
+            ch->chat_packet(CHAT_TYPE_INFO, "GuildMasterPID: %d", guild->master_pid());
+            ch->chat_packet(CHAT_TYPE_INFO, "IsInWar: %d", guild->under_any_war());
         } else {
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("%s: 존재하지 않는 길드 입니다."), arg1);
         }
@@ -1626,15 +1626,15 @@ namespace metin2::game::inline admin {
             if (!ent->is_type(ENTITY_CHARACTER))
                 return;
 
-            auto *pkChr = (character *)ent;
+            auto *chr = (character *)ent;
 
-            int iDist = distance_approx(pkChr->x() - ch->x(), pkChr->y() - ch->y());
+            int dist = distance_approx(chr->x() - ch->x(), chr->y() - ch->y());
 
-            if (!all && iDist >= 1000)
+            if (!all && dist >= 1000)
                 return;
 
-            if (pkChr->is_npc())
-                pkChr->point_change(POINT_HP, (10 - pkChr->hp()));
+            if (chr->is_npc())
+                chr->point_change(POINT_HP, (10 - chr->hp()));
         });
     }
 
@@ -1648,10 +1648,10 @@ namespace metin2::game::inline admin {
         if (!tch)
             return;
 
-        quest::pc *pPC = quest::quest_manager::instance().get_pc(tch->player_id());
+        quest::pc *pc = quest::quest_manager::instance().get_pc(tch->player_id());
 
-        if (pPC)
-            pPC->send_flag_list(ch);
+        if (pc)
+            pc->send_flag_list(ch);
     }
 
     ACMD(do_set_state) {
@@ -1663,20 +1663,20 @@ namespace metin2::game::inline admin {
         if (!*arg1 || !*arg2)
             return;
 
-        quest::pc *pPC = quest::quest_manager::instance().pc_force(ch->player_id());
+        quest::pc *pc = quest::quest_manager::instance().pc_force(ch->player_id());
         std::string questname = arg1;
         std::string statename = arg2;
 
         if (!questname.empty()) {
             int value = quest::quest_manager::instance().quest_state_index(questname, statename);
 
-            pPC->set_flag(questname + ".__status", value);
-            pPC->clear_timer();
+            pc->set_flag(questname + ".__status", value);
+            pc->clear_timer();
 
-            auto it = pPC->quest_begin();
+            auto it = pc->quest_begin();
             unsigned int questindex = quest::quest_manager::instance().quest_index_by_name(questname);
 
-            while (it != pPC->quest_end()) {
+            while (it != pc->quest_end()) {
                 if (it->first == questindex) {
                     it->second.st = value;
                     break;
@@ -1708,12 +1708,12 @@ namespace metin2::game::inline admin {
         if (!tch)
             return;
 
-        quest::pc *pPC = quest::quest_manager::instance().get_pc(tch->player_id());
+        quest::pc *pc = quest::quest_manager::instance().get_pc(tch->player_id());
 
-        if (pPC) {
+        if (pc) {
             int value = 0;
             str_to_number(value, arg2);
-            pPC->set_flag(arg1, value);
+            pc->set_flag(arg1, value);
             ch->chat_packet(CHAT_TYPE_INFO, "Quest flag set: %s %d", arg1, value);
         }
     }
@@ -1734,10 +1734,10 @@ namespace metin2::game::inline admin {
         if (!tch)
             return;
 
-        quest::pc *pPC = quest::quest_manager::instance().get_pc(tch->player_id());
+        quest::pc *pc = quest::quest_manager::instance().get_pc(tch->player_id());
 
-        if (pPC) {
-            if (pPC->delete_flag(arg1))
+        if (pc) {
+            if (pc->delete_flag(arg1))
                 ch->chat_packet(CHAT_TYPE_INFO, "Delete success.");
             else
                 ch->chat_packet(CHAT_TYPE_INFO, "Delete failed. Quest flag does not exist.");
@@ -1765,16 +1765,16 @@ namespace metin2::game::inline admin {
 
         two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
         if (*arg1) {
-            uint32_t dwVnum = 0;
-            str_to_number(dwVnum, arg1);
-            bool bMaintainStat = false;
+            uint32_t vnum = 0;
+            str_to_number(vnum, arg1);
+            bool maintain_stat = false;
             if (*arg2) {
                 int value = 0;
                 str_to_number(value, arg2);
-                bMaintainStat = (value > 0);
+                maintain_stat = (value > 0);
             }
 
-            ch->set_polymorph(dwVnum, bMaintainStat);
+            ch->set_polymorph(vnum, maintain_stat);
         }
     }
 
@@ -1784,16 +1784,16 @@ namespace metin2::game::inline admin {
         one_argument(argument, arg1, sizeof(arg1));
 
         if (*arg1) {
-            uint32_t dwVnum = 0;
-            str_to_number(dwVnum, arg1);
+            uint32_t vnum_value = 0;
+            str_to_number(vnum_value, arg1);
 
             item *item = item_manager::instance().create_item(70104, 1, 0, true);
             if (item) {
-                item->set_socket(0, dwVnum);
-                int iEmptyPos = ch->empty_inventory(item->size());
+                item->set_socket(0, vnum_value);
+                int empty_pos = ch->empty_inventory(item->size());
 
-                if (iEmptyPos != -1) {
-                    item->add_to_character(ch, item_pos(INVENTORY, iEmptyPos));
+                if (empty_pos != -1) {
+                    item->add_to_character(ch, item_pos(INVENTORY, empty_pos));
                     log_manager::instance().item_log(ch, item, "GM", item->name());
                 } else {
                     item_manager::instance().destroy_item(item);
@@ -1917,29 +1917,29 @@ namespace metin2::game::inline admin {
         two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
         if (*arg1) {
-            uint32_t dwVnum = 0;
-            str_to_number(dwVnum, arg1);
+            uint32_t vnum_value = 0;
+            str_to_number(vnum_value, arg1);
 
-            int iSocketCount = 0;
-            str_to_number(iSocketCount, arg2);
+            int socket_count = 0;
+            str_to_number(socket_count, arg2);
 
-            if (!iSocketCount || iSocketCount >= ITEM_SOCKET_MAX_NUM)
-                iSocketCount = 3;
+            if (!socket_count || socket_count >= ITEM_SOCKET_MAX_NUM)
+                socket_count = 3;
 
-            if (!dwVnum) {
-                if (!item_manager::instance().vnum(arg1, dwVnum)) {
-                    ch->chat_packet(CHAT_TYPE_INFO, "#%d item not exist by that vnum.", dwVnum);
+            if (!vnum_value) {
+                if (!item_manager::instance().vnum(arg1, vnum_value)) {
+                    ch->chat_packet(CHAT_TYPE_INFO, "#%d item not exist by that vnum.", vnum_value);
                     return;
                 }
             }
 
-            item *item = ch->auto_give_item(dwVnum);
+            item *item = ch->auto_give_item(vnum_value);
 
             if (item) {
-                for (int i = 0; i < iSocketCount; ++i)
+                for (int i = 0; i < socket_count; ++i)
                     item->set_socket(i, 1);
             } else {
-                ch->chat_packet(CHAT_TYPE_INFO, "#%d cannot create item.", dwVnum);
+                ch->chat_packet(CHAT_TYPE_INFO, "#%d cannot create item.", vnum_value);
             }
         }
     }
@@ -2003,26 +2003,26 @@ namespace metin2::game::inline admin {
         }
 
         const char *name = arg1;
-        int32_t lBlockDuration = 10;
-        metin2::log::info("Vote chat block of player {} for {:d} seconds", name, lBlockDuration);
+        int32_t block_duration = 10;
+        metin2::log::info("Vote chat block of player {} for {:d} seconds", name, block_duration);
 
         character *tch = character_manager::instance().find_pc(name);
 
         if (!tch) {
-            cci *pkCCI = p2p_manager::instance().find(name);
+            cci *cci = p2p_manager::instance().find(name);
 
-            if (pkCCI) {
+            if (cci) {
                 packet_gg_block_chat p;
 
                 p.header = HEADER_GG_BLOCK_CHAT;
                 strlcpy(p.name, name, sizeof(p.name));
-                p.block_duration = lBlockDuration;
+                p.block_duration = block_duration;
                 p2p_manager::instance().send(&p, sizeof(packet_gg_block_chat));
             } else {
                 packet_block_chat p;
 
                 strlcpy(p.name, name, sizeof(p.name));
-                p.duration = lBlockDuration;
+                p.duration = block_duration;
                 db_clientdesc->db_packet(HEADER_GD_BLOCK_CHAT, ch ? ch->get_desc()->handle() : 0, &p, sizeof(p));
             }
 
@@ -2033,7 +2033,7 @@ namespace metin2::game::inline admin {
         }
 
         if (tch && ch != tch)
-            tch->add_affect(AFFECT_BLOCK_CHAT, POINT_NONE, 0, AFF_NONE, lBlockDuration, 0, true);
+            tch->add_affect(AFFECT_BLOCK_CHAT, POINT_NONE, 0, AFF_NONE, block_duration, 0, true);
     }
 
     ACMD(do_block_chat) {
@@ -2053,9 +2053,9 @@ namespace metin2::game::inline admin {
         }
 
         const char *name = arg1;
-        int32_t lBlockDuration = parse_time_str(argument);
+        int32_t block_duration = parse_time_str(argument);
 
-        if (lBlockDuration < 0) {
+        if (block_duration < 0) {
             if (ch) {
                 ch->chat_packet(CHAT_TYPE_INFO, "잘못된 형식의 시간입니다. h, m, s를 붙여서 지정해 주십시오.");
                 ch->chat_packet(CHAT_TYPE_INFO, "예) 10s, 10m, 1m 30s");
@@ -2063,25 +2063,25 @@ namespace metin2::game::inline admin {
             return;
         }
 
-        metin2::log::info("Chat block of player {} for {:d} seconds", name, lBlockDuration);
+        metin2::log::info("Chat block of player {} for {:d} seconds", name, block_duration);
 
         character *tch = character_manager::instance().find_pc(name);
 
         if (!tch) {
-            cci *pkCCI = p2p_manager::instance().find(name);
+            cci *cci = p2p_manager::instance().find(name);
 
-            if (pkCCI) {
+            if (cci) {
                 packet_gg_block_chat p;
 
                 p.header = HEADER_GG_BLOCK_CHAT;
                 strlcpy(p.name, name, sizeof(p.name));
-                p.block_duration = lBlockDuration;
+                p.block_duration = block_duration;
                 p2p_manager::instance().send(&p, sizeof(packet_gg_block_chat));
             } else {
                 packet_block_chat p;
 
                 strlcpy(p.name, name, sizeof(p.name));
-                p.duration = lBlockDuration;
+                p.duration = block_duration;
                 db_clientdesc->db_packet(HEADER_GD_BLOCK_CHAT, ch ? ch->get_desc()->handle() : 0, &p, sizeof(p));
             }
 
@@ -2092,7 +2092,7 @@ namespace metin2::game::inline admin {
         }
 
         if (tch && ch != tch)
-            tch->add_affect(AFFECT_BLOCK_CHAT, POINT_NONE, 0, AFF_NONE, lBlockDuration, 0, true);
+            tch->add_affect(AFFECT_BLOCK_CHAT, POINT_NONE, 0, AFF_NONE, block_duration, 0, true);
     }
 
     ACMD(do_build) {
@@ -2100,11 +2100,11 @@ namespace metin2::game::inline admin {
 
         char arg1[256], arg2[256], arg3[256], arg4[256];
         const char *line = one_argument(argument, arg1, sizeof(arg1));
-        uint8_t GMLevel = ch->gm_level();
+        uint8_t gm_level = ch->gm_level();
 
-        land *pkLand = manager::instance().find_land(ch->map_index(), ch->x(), ch->y());
+        land *land_value = manager::instance().find_land(ch->map_index(), ch->x(), ch->y());
 
-        if (!pkLand) {
+        if (!land_value) {
             metin2::log::warn("Player {} tried to build outside a building area", ch->name());
             return;
         }
@@ -2114,8 +2114,8 @@ namespace metin2::game::inline admin {
             return;
         }
 
-        if (GMLevel == GM_PLAYER) {
-            if ((!ch->get_guild() || ch->get_guild()->id() != pkLand->owner())) {
+        if (gm_level == GM_PLAYER) {
+            if ((!ch->get_guild() || ch->get_guild()->id() != land_value->owner())) {
                 metin2::log::warn("Player {} tried to build on land not owned by their guild", ch->name());
                 return;
             }
@@ -2138,21 +2138,21 @@ namespace metin2::game::inline admin {
                     return;
                 }
 
-                uint32_t dwVnum = 0;
-                str_to_number(dwVnum, arg1);
+                uint32_t vnum = 0;
+                str_to_number(vnum, arg1);
 
                 using namespace building;
 
-                const object_proto *t = manager::instance().object_proto(dwVnum);
+                const object_proto *t = manager::instance().object_proto(vnum);
                 if (!t) {
                     ch->chat_packet(CHAT_TYPE_INFO, lc_text("존재하지 않는 건물입니다."));
                     return;
                 }
 
-                const uint32_t BUILDING_MAX_PRICE = 100000000;
+                const uint32_t building_max_price = 100000000;
 
                 if (t->group_vnum) {
-                    if (pkLand->find_object_by_group(t->group_vnum)) {
+                    if (land_value->find_object_by_group(t->group_vnum)) {
                         ch->chat_packet(CHAT_TYPE_INFO, lc_text("같이 지을 수 없는 종류의 건물이 지어져 있습니다."));
                         return;
                     }
@@ -2160,15 +2160,15 @@ namespace metin2::game::inline admin {
 
                 if (t->depend_on_group_vnum) {
                     {
-                        if (!pkLand->find_object_by_group(t->depend_on_group_vnum)) {
+                        if (!land_value->find_object_by_group(t->depend_on_group_vnum)) {
                             ch->chat_packet(CHAT_TYPE_INFO, lc_text("건설에 필요한 건물이 지어져 있지 않습니다."));
                             return;
                         }
                     }
                 }
 
-                if (metin2::config::test_server() || GMLevel == GM_PLAYER) {
-                    if (t->price > BUILDING_MAX_PRICE) {
+                if (metin2::config::test_server() || gm_level == GM_PLAYER) {
+                    if (t->price > building_max_price) {
                         ch->chat_packet(CHAT_TYPE_INFO, lc_text("건물 비용 정보 이상으로 건설 작업에 실패했습니다."));
                         return;
                     }
@@ -2180,13 +2180,13 @@ namespace metin2::game::inline admin {
 
                     int i;
                     for (i = 0; i < OBJECT_MATERIAL_MAX_NUM; ++i) {
-                        uint32_t dwItemVnum = t->materials[i].item_vnum;
-                        uint32_t dwItemCount = t->materials[i].count;
+                        uint32_t item_vnum = t->materials[i].item_vnum;
+                        uint32_t item_count = t->materials[i].count;
 
-                        if (dwItemVnum == 0)
+                        if (item_vnum == 0)
                             break;
 
-                        if ((int)dwItemCount > ch->count_specify_item(dwItemVnum)) {
+                        if ((int)item_count > ch->count_specify_item(item_vnum)) {
                             ch->chat_packet(CHAT_TYPE_INFO, lc_text("자재가 부족하여 건설할 수 없습니다."));
                             return;
                         }
@@ -2202,7 +2202,7 @@ namespace metin2::game::inline admin {
                 int32_t map_y = 0;
                 str_to_number(map_y, arg3);
 
-                bool isSuccess = pkLand->request_create_object(dwVnum,
+                bool is_success = land_value->request_create_object(vnum,
                     ch->map_index(),
                     map_x,
                     map_y,
@@ -2210,26 +2210,26 @@ namespace metin2::game::inline admin {
                     y_rot,
                     z_rot, true);
 
-                if (!isSuccess) {
+                if (!is_success) {
                     if (metin2::config::test_server())
                         ch->chat_packet(CHAT_TYPE_INFO, lc_text("건물을 지을 수 없는 위치입니다."));
                     return;
                 }
 
-                if (metin2::config::test_server() || GMLevel == GM_PLAYER) {
+                if (metin2::config::test_server() || gm_level == GM_PLAYER) {
                     ch->point_change(POINT_GOLD, -t->price);
 
                     {
                         int i;
                         for (i = 0; i < OBJECT_MATERIAL_MAX_NUM; ++i) {
-                            uint32_t dwItemVnum = t->materials[i].item_vnum;
-                            uint32_t dwItemCount = t->materials[i].count;
+                            uint32_t item_vnum = t->materials[i].item_vnum;
+                            uint32_t item_count = t->materials[i].count;
 
-                            if (dwItemVnum == 0)
+                            if (item_vnum == 0)
                                 break;
 
-                            metin2::log::debug("Build: material {:d} is item {:d} x {:d}", i, dwItemVnum, dwItemCount);
-                            ch->remove_specify_item(dwItemVnum, dwItemCount);
+                            metin2::log::debug("Build: material {:d} is item {:d} x {:d}", i, item_vnum, item_count);
+                            ch->remove_specify_item(item_vnum, item_count);
                         }
                     }
                 }
@@ -2247,30 +2247,30 @@ namespace metin2::game::inline admin {
 
                 uint32_t vid = 0;
                 str_to_number(vid, arg1);
-                pkLand->request_delete_object_by_vid(vid);
+                land_value->request_delete_object_by_vid(vid);
             }
             break;
 
         case 'w':
-            if (GMLevel > GM_PLAYER) {
-                int mapIndex = ch->map_index();
+            if (gm_level > GM_PLAYER) {
+                int map_index = ch->map_index();
 
                 one_argument(line, arg1, sizeof(arg1));
 
-                metin2::log::info("Guild wall build on map {:d}, direction {}", mapIndex, arg1);
+                metin2::log::info("Guild wall build on map {:d}, direction {}", map_index, arg1);
 
                 switch (arg1[0]) {
                 case 's':
-                    pkLand->request_create_wall(mapIndex, 0.0f);
+                    land_value->request_create_wall(map_index, 0.0f);
                     break;
                 case 'n':
-                    pkLand->request_create_wall(mapIndex, 180.0f);
+                    land_value->request_create_wall(map_index, 180.0f);
                     break;
                 case 'e':
-                    pkLand->request_create_wall(mapIndex, 90.0f);
+                    land_value->request_create_wall(map_index, 90.0f);
                     break;
                 case 'w':
-                    pkLand->request_create_wall(mapIndex, 270.0f);
+                    land_value->request_create_wall(map_index, 270.0f);
                     break;
                 default:
                     ch->chat_packet(CHAT_TYPE_INFO, "guild.wall.build unknown_direction[%s]", arg1);
@@ -2281,25 +2281,25 @@ namespace metin2::game::inline admin {
             break;
 
         case 'e':
-            if (GMLevel > GM_PLAYER) {
-                pkLand->request_delete_wall();
+            if (gm_level > GM_PLAYER) {
+                land_value->request_delete_wall();
             }
             break;
 
         case 'W':
 
-            if (GMLevel > GM_PLAYER) {
-                int setID = 0, wallSize = 0;
+            if (gm_level > GM_PLAYER) {
+                int set_id = 0, wall_size = 0;
                 char arg5[256], arg6[256];
                 line = two_arguments(line, arg1, sizeof(arg1), arg2, sizeof(arg2));
                 line = two_arguments(line, arg3, sizeof(arg3), arg4, sizeof(arg4));
                 two_arguments(line, arg5, sizeof(arg5), arg6, sizeof(arg6));
 
-                str_to_number(setID, arg1);
-                str_to_number(wallSize, arg2);
+                str_to_number(set_id, arg1);
+                str_to_number(wall_size, arg2);
 
-                if (setID != 14105 && setID != 14115 && setID != 14125) {
-                    metin2::log::warn("Wall build with invalid wall set id {:d}", setID);
+                if (set_id != 14105 && set_id != 14115 && set_id != 14125) {
+                    metin2::log::warn("Wall build with invalid wall set id {:d}", set_id);
                     break;
                 } else {
                     bool door_east = false;
@@ -2310,17 +2310,17 @@ namespace metin2::game::inline admin {
                     str_to_number(door_south, arg5);
                     bool door_north = false;
                     str_to_number(door_north, arg6);
-                    pkLand->request_create_wall_blocks(setID, ch->map_index(), wallSize, door_east, door_west, door_south, door_north);
+                    land_value->request_create_wall_blocks(set_id, ch->map_index(), wall_size, door_east, door_west, door_south, door_north);
                 }
             }
             break;
 
         case 'E':
-            if (GMLevel > GM_PLAYER) {
+            if (gm_level > GM_PLAYER) {
                 one_argument(line, arg1, sizeof(arg1));
                 uint32_t id = 0;
                 str_to_number(id, arg1);
-                pkLand->request_delete_wall_blocks(id);
+                land_value->request_delete_wall_blocks(id);
             }
             break;
 
@@ -2338,8 +2338,8 @@ namespace metin2::game::inline admin {
         if (!*arg1)
             return;
 
-        quest::pc *pPC = quest::quest_manager::instance().pc_force(ch->player_id());
-        pPC->clear_quest(arg1);
+        quest::pc *pc = quest::quest_manager::instance().pc_force(ch->player_id());
+        pc->clear_quest(arg1);
     }
 
     ACMD(do_horse_state) {
@@ -2413,20 +2413,20 @@ namespace metin2::game::inline admin {
     }
 
     ACMD(do_save_attribute_to_image) {
-        char szFileName[256];
-        char szMapIndex[256];
+        char file_name[256];
+        char map_index_value[256];
 
-        two_arguments(argument, szMapIndex, sizeof(szMapIndex), szFileName, sizeof(szFileName));
+        two_arguments(argument, map_index_value, sizeof(map_index_value), file_name, sizeof(file_name));
 
-        if (!*szMapIndex || !*szFileName) {
+        if (!*map_index_value || !*file_name) {
             ch->chat_packet(CHAT_TYPE_INFO, "Syntax: /saveati <map_index> <filename>");
             return;
         }
 
-        int32_t lMapIndex = 0;
-        str_to_number(lMapIndex, szMapIndex);
+        int32_t map_index = 0;
+        str_to_number(map_index, map_index_value);
 
-        if (sectree_manager::instance().save_attribute_to_image(lMapIndex, szFileName))
+        if (sectree_manager::instance().save_attribute_to_image(map_index, file_name))
             ch->chat_packet(CHAT_TYPE_INFO, "Save done.");
         else
             ch->chat_packet(CHAT_TYPE_INFO, "Save failed.");
@@ -2456,10 +2456,10 @@ namespace metin2::game::inline admin {
             auto it = cont.begin();
 
             while (it != cont.end()) {
-                affect *pkAff = *it++;
+                affect *aff = *it++;
 
                 ch->chat_packet(CHAT_TYPE_INFO, "%4d %5d %5d %8d %u",
-                    pkAff->type, pkAff->apply_on, pkAff->apply_value, pkAff->duration, pkAff->flag);
+                    aff->type, aff->apply_on, aff->apply_value, aff->duration, aff->flag);
             }
             return;
         }
@@ -2504,17 +2504,17 @@ namespace metin2::game::inline admin {
     }
 
     ACMD(do_end_duel) {
-        char szName[256];
+        char name[256];
 
-        one_argument(argument, szName, sizeof(szName));
+        one_argument(argument, name, sizeof(name));
 
-        character *pChar = character_manager::instance().find_pc(szName);
-        if (pChar == nullptr) {
+        character *ch_value = character_manager::instance().find_pc(name);
+        if (ch_value == nullptr) {
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("존재하지 않는 캐릭터 입니다."));
             return;
         }
 
-        if (arena_manager::instance().end_duel(pChar->player_id()) == false) {
+        if (arena_manager::instance().end_duel(ch_value->player_id()) == false) {
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("대련 강제 종료 실패"));
         } else {
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("대련 강제 종료 성공"));
@@ -2522,58 +2522,58 @@ namespace metin2::game::inline admin {
     }
 
     ACMD(do_duel) {
-        char szName1[256];
-        char szName2[256];
-        char szSet[256];
-        char szMinute[256];
+        char name1[256];
+        char name2[256];
+        char set_value[256];
+        char minute_value[256];
         int set = 0;
         int minute = 0;
 
-        argument = two_arguments(argument, szName1, sizeof(szName1), szName2, sizeof(szName2));
-        two_arguments(argument, szSet, sizeof(szSet), szMinute, sizeof(szMinute));
+        argument = two_arguments(argument, name1, sizeof(name1), name2, sizeof(name2));
+        two_arguments(argument, set_value, sizeof(set_value), minute_value, sizeof(minute_value));
 
-        str_to_number(set, szSet);
+        str_to_number(set, set_value);
 
         if (set < 0) set = 1;
         if (set > 5) set = 5;
 
-        if (!str_to_number(minute, szMinute)) {
+        if (!str_to_number(minute, minute_value)) {
             minute = 5;
         }
         if (minute < 5)
             minute = 5;
 
-        character *pChar1 = character_manager::instance().find_pc(szName1);
-        character *pChar2 = character_manager::instance().find_pc(szName2);
+        character *char1 = character_manager::instance().find_pc(name1);
+        character *char2 = character_manager::instance().find_pc(name2);
 
-        if (pChar1 != nullptr && pChar2 != nullptr) {
-            pChar1->remove_good_affect();
-            pChar2->remove_good_affect();
+        if (char1 != nullptr && char2 != nullptr) {
+            char1->remove_good_affect();
+            char2->remove_good_affect();
 
-            pChar1->remove_bad_affect();
-            pChar2->remove_bad_affect();
+            char1->remove_bad_affect();
+            char2->remove_bad_affect();
 
-            party *pParty = pChar1->get_party();
-            if (pParty != nullptr) {
-                if (pParty->member_count() == 2) {
-                    party_manager::instance().delete_party(pParty);
+            party *party = char1->get_party();
+            if (party != nullptr) {
+                if (party->member_count() == 2) {
+                    party_manager::instance().delete_party(party);
                 } else {
-                    pChar1->chat_packet(CHAT_TYPE_INFO, lc_text("<파티> 파티에서 나가셨습니다."));
-                    pParty->quit(pChar1->player_id());
+                    char1->chat_packet(CHAT_TYPE_INFO, lc_text("<파티> 파티에서 나가셨습니다."));
+                    party->quit(char1->player_id());
                 }
             }
 
-            pParty = pChar2->get_party();
-            if (pParty != nullptr) {
-                if (pParty->member_count() == 2) {
-                    party_manager::instance().delete_party(pParty);
+            party = char2->get_party();
+            if (party != nullptr) {
+                if (party->member_count() == 2) {
+                    party_manager::instance().delete_party(party);
                 } else {
-                    pChar2->chat_packet(CHAT_TYPE_INFO, lc_text("<파티> 파티에서 나가셨습니다."));
-                    pParty->quit(pChar2->player_id());
+                    char2->chat_packet(CHAT_TYPE_INFO, lc_text("<파티> 파티에서 나가셨습니다."));
+                    party->quit(char2->player_id());
                 }
             }
 
-            if (arena_manager::instance().start_duel(pChar1, pChar2, set, minute) == true) {
+            if (arena_manager::instance().start_duel(char1, char2, set, minute) == true) {
                 ch->chat_packet(CHAT_TYPE_INFO, lc_text("대련이 성공적으로 시작 되었습니다."));
             } else {
                 ch->chat_packet(CHAT_TYPE_INFO, lc_text("대련 시작에 문제가 있습니다."));
@@ -2584,11 +2584,11 @@ namespace metin2::game::inline admin {
     }
 
     ACMD(do_stat_plus_amount) {
-        char szPoint[256];
+        char point_value[256];
 
-        one_argument(argument, szPoint, sizeof(szPoint));
+        one_argument(argument, point_value, sizeof(point_value));
 
-        if (*szPoint == '\0')
+        if (*point_value == '\0')
             return;
 
         if (ch->is_polymorphed()) {
@@ -2596,48 +2596,48 @@ namespace metin2::game::inline admin {
             return;
         }
 
-        int nRemainPoint = ch->point(POINT_STAT);
+        int remain_point = ch->point(POINT_STAT);
 
-        if (nRemainPoint <= 0) {
+        if (remain_point <= 0) {
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("남은 스탯 포인트가 없습니다."));
             return;
         }
 
-        int nPoint = 0;
-        str_to_number(nPoint, szPoint);
+        int point = 0;
+        str_to_number(point, point_value);
 
-        if (nRemainPoint < nPoint) {
+        if (remain_point < point) {
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("남은 스탯 포인트가 적습니다."));
             return;
         }
 
-        if (nPoint < 0) {
+        if (point < 0) {
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("값을 잘못 입력하였습니다."));
             return;
         }
 
         switch (subcmd) {
         case POINT_HT:
-            if (nPoint + ch->point(POINT_HT) > 90) {
-                nPoint = 90 - ch->point(POINT_HT);
+            if (point + ch->point(POINT_HT) > 90) {
+                point = 90 - ch->point(POINT_HT);
             }
             break;
 
         case POINT_IQ:
-            if (nPoint + ch->point(POINT_IQ) > 90) {
-                nPoint = 90 - ch->point(POINT_IQ);
+            if (point + ch->point(POINT_IQ) > 90) {
+                point = 90 - ch->point(POINT_IQ);
             }
             break;
 
         case POINT_ST:
-            if (nPoint + ch->point(POINT_ST) > 90) {
-                nPoint = 90 - ch->point(POINT_ST);
+            if (point + ch->point(POINT_ST) > 90) {
+                point = 90 - ch->point(POINT_ST);
             }
             break;
 
         case POINT_DX:
-            if (nPoint + ch->point(POINT_DX) > 90) {
-                nPoint = 90 - ch->point(POINT_DX);
+            if (point + ch->point(POINT_DX) > 90) {
+                point = 90 - ch->point(POINT_DX);
             }
             break;
 
@@ -2647,13 +2647,13 @@ namespace metin2::game::inline admin {
             break;
         }
 
-        if (nPoint != 0) {
-            ch->set_real_point(subcmd, ch->real_point(subcmd) + nPoint);
-            ch->set_point(subcmd, ch->point(subcmd) + nPoint);
+        if (point != 0) {
+            ch->set_real_point(subcmd, ch->real_point(subcmd) + point);
+            ch->set_point(subcmd, ch->point(subcmd) + point);
             ch->compute_points();
             ch->point_change(subcmd, 0);
 
-            ch->point_change(POINT_STAT, -nPoint);
+            ch->point_change(POINT_STAT, -point);
             ch->compute_points();
         }
     }
@@ -2692,16 +2692,16 @@ namespace metin2::game::inline admin {
         ch->chat_packet(CHAT_TYPE_INFO, "ThreewayPhase %d", three_way_war::instance().regen_flag());
 
         for (int n = 1; n < 4; ++n) {
-            sectree_map *pSecMap = sectree_manager::instance().map(get_sungzi_map_index());
+            sectree_map *sec_map = sectree_manager::instance().map(get_sungzi_map_index());
 
             int count[4] = {};
 
-            if (pSecMap) {
-                pSecMap->for_each([&](entity *ent) {
+            if (sec_map) {
+                sec_map->for_each([&](entity *ent) {
                     if (ent->is_type(ENTITY_CHARACTER)) {
-                        auto *pChar = (character *)ent;
-                        if (pChar && pChar->is_pc())
-                            ++count[pChar->empire()];
+                        auto *ch_value = (character *)ent;
+                        if (ch_value && ch_value->is_pc())
+                            ++count[ch_value->empire()];
                     }
                 });
             }
@@ -2732,11 +2732,11 @@ namespace metin2::game::inline admin {
         character *tch = character_manager::instance().find_pc(arg1);
 
         if (!tch) {
-            cci *pkCCI = p2p_manager::instance().find(arg1);
+            cci *cci = p2p_manager::instance().find(arg1);
 
-            if (pkCCI) {
-                if (pkCCI->channel != metin2::config::server().channel) {
-                    ch->chat_packet(CHAT_TYPE_INFO, "Target is in %d channel (my channel %d)", pkCCI->channel, metin2::config::server().channel);
+            if (cci) {
+                if (cci->channel != metin2::config::server().channel) {
+                    ch->chat_packet(CHAT_TYPE_INFO, "Target is in %d channel (my channel %d)", cci->channel, metin2::config::server().channel);
                     return;
                 }
             }
@@ -2784,9 +2784,9 @@ namespace metin2::game::inline admin {
 
         int empire = 0;
         str_to_number(empire, arg1);
-        int NationMoney = monarch::instance().money(empire);
+        int nation_money = monarch::instance().money(empire);
 
-        ch->chat_packet(CHAT_TYPE_INFO, "국고: %d 원", NationMoney);
+        ch->chat_packet(CHAT_TYPE_INFO, "국고: %d 원", nation_money);
     }
 
     ACMD(do_reset_subskill) {
@@ -2951,18 +2951,18 @@ namespace metin2::game::inline admin {
     }
 
     ACMD(do_get_mob_count) {
-        sectree_map *pSectree = sectree_manager::instance().map(ch->map_index());
+        sectree_map *sectree = sectree_manager::instance().map(ch->map_index());
 
-        if (pSectree == nullptr)
+        if (sectree == nullptr)
             return;
 
         int count = 0;
 
-        pSectree->for_each([&](entity *ent) {
+        sectree->for_each([&](entity *ent) {
             if (ent->is_type(ENTITY_CHARACTER)) {
-                auto *pChar = static_cast<character *>(ent);
+                auto *ch_value = static_cast<character *>(ent);
 
-                if (pChar->is_monster() == true || pChar->is_stone()) {
+                if (ch_value->is_monster() == true || ch_value->is_stone()) {
                     count++;
                 }
             }
@@ -2972,15 +2972,15 @@ namespace metin2::game::inline admin {
     }
 
     ACMD(do_clear_land) {
-        const building::land *pLand = building::manager::instance().find_land(ch->map_index(), ch->x(), ch->y());
+        const building::land *land = building::manager::instance().find_land(ch->map_index(), ch->x(), ch->y());
 
-        if (nullptr == pLand) {
+        if (nullptr == land) {
             return;
         }
 
-        ch->chat_packet(CHAT_TYPE_INFO, "Guild Land(%d) Cleared", pLand->id());
+        ch->chat_packet(CHAT_TYPE_INFO, "Guild Land(%d) Cleared", land->id());
 
-        building::manager::instance().clear_land(pLand->id());
+        building::manager::instance().clear_land(land->id());
     }
 
     ACMD(do_special_item) {
@@ -2988,26 +2988,26 @@ namespace metin2::game::inline admin {
     }
 
     ACMD(do_set_stat) {
-        char szName[256];
-        char szChangeAmount[256];
+        char name[256];
+        char change_amount_value[256];
 
-        two_arguments(argument, szName, sizeof(szName), szChangeAmount, sizeof(szChangeAmount));
+        two_arguments(argument, name, sizeof(name), change_amount_value, sizeof(change_amount_value));
 
-        if (!*szName || *szChangeAmount == '\0') {
+        if (!*name || *change_amount_value == '\0') {
             ch->chat_packet(CHAT_TYPE_INFO, "Invalid argument.");
             return;
         }
 
-        character *tch = character_manager::instance().find_pc(szName);
+        character *tch = character_manager::instance().find_pc(name);
 
         if (!tch) {
-            cci *pkCCI = p2p_manager::instance().find(szName);
+            cci *cci = p2p_manager::instance().find(name);
 
-            if (pkCCI) {
-                ch->chat_packet(CHAT_TYPE_INFO, "Cannot find player(%s). %s is not in your game server.", szName, szName);
+            if (cci) {
+                ch->chat_packet(CHAT_TYPE_INFO, "Cannot find player(%s). %s is not in your game server.", name, name);
                 return;
             } else {
-                ch->chat_packet(CHAT_TYPE_INFO, "Cannot find player(%s). Perhaps %s doesn't login or exist.", szName, szName);
+                ch->chat_packet(CHAT_TYPE_INFO, "Cannot find player(%s). Perhaps %s doesn't login or exist.", name, name);
                 return;
             }
         } else {
@@ -3020,37 +3020,37 @@ namespace metin2::game::inline admin {
                 ch->chat_packet(CHAT_TYPE_INFO, lc_text("명령어의 서브 커맨드가 잘못 되었습니다."));
                 return;
             }
-            int nRemainPoint = tch->point(POINT_STAT);
-            int nCurPoint = tch->real_point(subcmd);
-            int nChangeAmount = 0;
-            str_to_number(nChangeAmount, szChangeAmount);
-            int nPoint = nCurPoint + nChangeAmount;
+            int remain_point = tch->point(POINT_STAT);
+            int cur_point = tch->real_point(subcmd);
+            int change_amount = 0;
+            str_to_number(change_amount, change_amount_value);
+            int point = cur_point + change_amount;
 
             int n;
             switch (subcmd) {
             case POINT_HT:
-                if (nPoint < job_initial_points[tch->job()].ht) {
+                if (point < job_initial_points[tch->job()].ht) {
                     ch->chat_packet(CHAT_TYPE_INFO, lc_text("Cannot set stat under initial stat."));
                     return;
                 }
                 n = 0;
                 break;
             case POINT_IQ:
-                if (nPoint < job_initial_points[tch->job()].iq) {
+                if (point < job_initial_points[tch->job()].iq) {
                     ch->chat_packet(CHAT_TYPE_INFO, lc_text("Cannot set stat under initial stat."));
                     return;
                 }
                 n = 1;
                 break;
             case POINT_ST:
-                if (nPoint < job_initial_points[tch->job()].st) {
+                if (point < job_initial_points[tch->job()].st) {
                     ch->chat_packet(CHAT_TYPE_INFO, lc_text("Cannot set stat under initial stat."));
                     return;
                 }
                 n = 2;
                 break;
             case POINT_DX:
-                if (nPoint < job_initial_points[tch->job()].dx) {
+                if (point < job_initial_points[tch->job()].dx) {
                     ch->chat_packet(CHAT_TYPE_INFO, lc_text("Cannot set stat under initial stat."));
                     return;
                 }
@@ -3058,27 +3058,27 @@ namespace metin2::game::inline admin {
                 break;
             }
 
-            if (nPoint > 90) {
-                nChangeAmount -= nPoint - 90;
-                nPoint = 90;
+            if (point > 90) {
+                change_amount -= point - 90;
+                point = 90;
             }
 
-            if (nRemainPoint < nChangeAmount) {
+            if (remain_point < change_amount) {
                 ch->chat_packet(CHAT_TYPE_INFO, lc_text("남은 스탯 포인트가 적습니다."));
                 return;
             }
 
-            tch->set_real_point(subcmd, nPoint);
-            tch->set_point(subcmd, tch->point(subcmd) + nChangeAmount);
+            tch->set_real_point(subcmd, point);
+            tch->set_point(subcmd, tch->point(subcmd) + change_amount);
             tch->compute_points();
             tch->point_change(subcmd, 0);
 
-            tch->point_change(POINT_STAT, -nChangeAmount);
+            tch->point_change(POINT_STAT, -change_amount);
             tch->compute_points();
 
             const char *stat_name[4] = {"con", "int", "str", "dex"};
 
-            ch->chat_packet(CHAT_TYPE_INFO, "%s's %s change %d to %d", szName, stat_name[n], nCurPoint, nPoint);
+            ch->chat_packet(CHAT_TYPE_INFO, "%s's %s change %d to %d", name, stat_name[n], cur_point, point);
         }
     }
 

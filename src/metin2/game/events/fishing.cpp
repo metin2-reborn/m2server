@@ -131,8 +131,8 @@ namespace metin2::game::inline events {
 
             memset(fish_info, 0, sizeof(fish_info));
 
-            const std::string szFishingFileName = std::format("{}/fishing.txt", locale_service_get_base_path());
-            FILE *fp = fopen(szFishingFileName.c_str(), "r");
+            const std::string fishing_file_name = std::format("{}/fishing.txt", locale_service_get_base_path());
+            FILE *fp = fopen(fishing_file_name.c_str(), "r");
 
             if (*fish_info_bak[0].name)
                 send_log("Reloading fish table.");
@@ -172,18 +172,18 @@ namespace metin2::game::inline events {
                     break;
                 }
 
-                char szCol[256], szCol2[256];
-                int iColCount = 0;
+                char col[256], col2[256];
+                int col_count = 0;
 
                 do {
-                    strlcpy(szCol2, start, std::min<int>(sizeof(szCol2), (tab - start) + 1));
-                    szCol2[tab - start] = '\0';
+                    strlcpy(col2, start, std::min<int>(sizeof(col2), (tab - start) + 1));
+                    col2[tab - start] = '\0';
 
-                    trim_and_lower(szCol2, szCol);
+                    trim_and_lower(col2, col);
 
-                    if (*szCol && *szCol != '\t')
-                        set_column(fish_info[idx], iColCount, szCol);
-                    ++iColCount;
+                    if (*col && *col != '\t')
+                        set_column(fish_info[idx], col_count, col);
+                    ++col_count;
 
                     start = tab + 1;
                     tab = strchr(start, '\t');
@@ -653,31 +653,31 @@ namespace metin2::game::inline events {
 
             game::items::item *rod = item;
 
-            int iAdv = rod->value(0) / 10;
+            int adv = rod->value(0) / 10;
 
             if (prob(rod->value(3))) {
-                log_manager::instance().refine_log(ch->player_id(), rod->name(), rod->id(), iAdv, 1, "ROD");
+                log_manager::instance().refine_log(ch->player_id(), rod->name(), rod->id(), adv, 1, "ROD");
 
-                game::items::item *pkNewItem = item_manager::instance().create_item(rod->refined_vnum(), 1);
+                game::items::item *new_item = item_manager::instance().create_item(rod->refined_vnum(), 1);
 
-                if (pkNewItem) {
-                    uint8_t bCell = rod->cell();
+                if (new_item) {
+                    uint8_t cell = rod->cell();
                     item_manager::instance().remove_item(rod, "REMOVE (REFINE FISH_ROD)");
-                    pkNewItem->add_to_character(ch, item_pos(INVENTORY, bCell));
-                    log_manager::instance().item_log(ch, pkNewItem, "REFINE FISH_ROD SUCCESS", pkNewItem->name());
+                    new_item->add_to_character(ch, item_pos(INVENTORY, cell));
+                    log_manager::instance().item_log(ch, new_item, "REFINE FISH_ROD SUCCESS", new_item->name());
                     return 1;
                 }
 
                 return 2;
             } else {
-                log_manager::instance().refine_log(ch->player_id(), rod->name(), rod->id(), iAdv, 0, "ROD");
+                log_manager::instance().refine_log(ch->player_id(), rod->name(), rod->id(), adv, 0, "ROD");
 
-                game::items::item *pkNewItem = item_manager::instance().create_item(rod->value(4), 1);
-                if (pkNewItem) {
-                    uint8_t bCell = rod->cell();
+                game::items::item *new_item = item_manager::instance().create_item(rod->value(4), 1);
+                if (new_item) {
+                    uint8_t cell = rod->cell();
                     item_manager::instance().remove_item(rod, "REMOVE (REFINE FISH_ROD)");
-                    pkNewItem->add_to_character(ch, item_pos(INVENTORY, bCell));
-                    log_manager::instance().item_log(ch, pkNewItem, "REFINE FISH_ROD FAIL", pkNewItem->name());
+                    new_item->add_to_character(ch, item_pos(INVENTORY, cell));
+                    log_manager::instance().item_log(ch, new_item, "REFINE FISH_ROD FAIL", new_item->name());
                     return 0;
                 }
 

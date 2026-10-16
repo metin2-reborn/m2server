@@ -57,16 +57,16 @@ namespace metin2::game::inline characters {
     }
 
     void horse_name_manager::validate(character *ch) {
-        affect *pkAff = ch->find_affect(AFFECT_HORSE_NAME);
+        affect *aff = ch->find_affect(AFFECT_HORSE_NAME);
 
-        if (pkAff != nullptr) {
+        if (aff != nullptr) {
             if (ch->quest_flag("horse_name.valid_till") < get_global_time()) {
                 ch->horse_summon(false, true);
-                ch->remove_affect(pkAff);
+                ch->remove_affect(aff);
                 update_horse_name(ch->player_id(), "", true);
                 ch->horse_summon(true, true);
             } else {
-                ++(pkAff->duration);
+                ++(aff->duration);
             }
         }
     }

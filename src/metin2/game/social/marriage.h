@@ -140,9 +140,9 @@ namespace metin2::game::inline social {
         template <typename Func>
         auto manager::for_each_wedding(Func f) -> Func {
             for (auto it = wedding_.begin(); it != wedding_.end(); ++it) {
-                marriage *pMarriage = get(it->first);
-                if (pMarriage)
-                    f(pMarriage);
+                marriage *marriage = get(it->first);
+                if (marriage)
+                    f(marriage);
             }
             return f;
         }

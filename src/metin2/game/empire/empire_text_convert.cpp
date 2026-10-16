@@ -30,10 +30,10 @@ namespace metin2::game::inline empire {
         if (!file)
             return false;
 
-        text_convert_table &rkTextConvTable = text_conv_table[empire_id - 1];
+        text_convert_table &text_conv_table_value = text_conv_table[empire_id - 1];
 
-        const bool ok = file.read(rkTextConvTable.ac_upper, sizeof(rkTextConvTable.ac_upper)) &&
-                        file.read(rkTextConvTable.ac_lower, sizeof(rkTextConvTable.ac_lower)) &&
+        const bool ok = file.read(text_conv_table_value.ac_upper, sizeof(text_conv_table_value.ac_upper)) &&
+                        file.read(text_conv_table_value.ac_lower, sizeof(text_conv_table_value.ac_lower)) &&
                         file.ignore(cp949_tables_size).gcount() == cp949_tables_size;
 
         text_conv_table_loaded[empire_id - 1] = ok;
@@ -44,29 +44,29 @@ namespace metin2::game::inline empire {
         if (empire_id < 1 || empire_id > 3 || len == 0 || !text_conv_table_loaded[empire_id - 1])
             return;
 
-        static const char *s_aszSymbols2[] = {"¤", "§", "¶", "±", "×"};
-        static const char *s_aszSymbols3[] = {"∫", "＃", "＄", "⊃", "∝"};
+        static const char *asz_symbols2[] = {"¤", "§", "¶", "±", "×"};
+        static const char *asz_symbols3[] = {"∫", "＃", "＄", "⊃", "∝"};
 
-        const text_convert_table &rkTextConvTable = text_conv_table[empire_id - 1];
+        const text_convert_table &text_conv_table_value = text_conv_table[empire_id - 1];
 
-        auto *pbText = reinterpret_cast<uint8_t *>(text);
+        auto *text_value = reinterpret_cast<uint8_t *>(text);
         size_t pos = 0;
-        while (pos < len && pbText[pos] != '\0') {
-            size_t seq = utf8_sequence_length(pbText[pos]);
+        while (pos < len && text_value[pos] != '\0') {
+            size_t seq = utf8_sequence_length(text_value[pos]);
             if (pos + seq > len)
                 break;
 
             if (number(1, 100) > pct) {
-                uint8_t &c = pbText[pos];
+                uint8_t &c = text_value[pos];
                 if (seq == 1) {
                     if (c >= 'a' && c <= 'z')
-                        c = rkTextConvTable.ac_lower[c - 'a'];
+                        c = text_conv_table_value.ac_lower[c - 'a'];
                     else if (c >= 'A' && c <= 'Z')
-                        c = rkTextConvTable.ac_upper[c - 'A'];
+                        c = text_conv_table_value.ac_upper[c - 'A'];
                 } else if (seq == 2)
-                    memcpy(pbText + pos, s_aszSymbols2[number(0, 4)], 2);
+                    memcpy(text_value + pos, asz_symbols2[number(0, 4)], 2);
                 else if (seq == 3)
-                    memcpy(pbText + pos, s_aszSymbols3[number(0, 4)], 3);
+                    memcpy(text_value + pos, asz_symbols3[number(0, 4)], 3);
             }
 
             pos += seq;

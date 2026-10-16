@@ -39,7 +39,7 @@ namespace metin2::game::inline events {
                             return;
                         }
 
-                        int overlapDamageCount = 0;
+                        int overlap_damage_count = 0;
 
                         int pct = 0;
                         if (ch->job() == set1) {
@@ -55,11 +55,11 @@ namespace metin2::game::inline events {
                             case JOB_MAX_NUM: return;
                             }
 
-                            int firstDamagePercent = number(blue_dragon_get_skill_factor(4, "Skill0", "damage", ptr, "min"), blue_dragon_get_skill_factor(4, "Skill0", "damage", ptr, "max"));
-                            pct += firstDamagePercent;
+                            int first_damage_percent = number(blue_dragon_get_skill_factor(4, "Skill0", "damage", ptr, "min"), blue_dragon_get_skill_factor(4, "Skill0", "damage", ptr, "max"));
+                            pct += first_damage_percent;
 
-                            if (firstDamagePercent > 0)
-                                overlapDamageCount++;
+                            if (first_damage_percent > 0)
+                                overlap_damage_count++;
                         }
 
                         if (ch->job() == set2) {
@@ -75,11 +75,11 @@ namespace metin2::game::inline events {
                             case JOB_MAX_NUM: return;
                             }
 
-                            int secondDamagePercent = number(blue_dragon_get_skill_factor(4, "Skill0", "damage", ptr, "min"), blue_dragon_get_skill_factor(4, "Skill0", "damage", ptr, "max"));
-                            pct += secondDamagePercent;
+                            int second_damage_percent = number(blue_dragon_get_skill_factor(4, "Skill0", "damage", ptr, "min"), blue_dragon_get_skill_factor(4, "Skill0", "damage", ptr, "max"));
+                            pct += second_damage_percent;
 
-                            if (secondDamagePercent > 0)
-                                overlapDamageCount++;
+                            if (second_damage_percent > 0)
+                                overlap_damage_count++;
                         }
 
                         if (get_sex(ch) == gender) {
@@ -91,14 +91,14 @@ namespace metin2::game::inline events {
                             default:         return;
                             }
 
-                            int thirdDamagePercent = number(blue_dragon_get_skill_factor(4, "Skill0", "gender", ptr, "min"), blue_dragon_get_skill_factor(4, "Skill0", "gender", ptr, "max"));
-                            pct += thirdDamagePercent;
+                            int third_damage_percent = number(blue_dragon_get_skill_factor(4, "Skill0", "gender", ptr, "min"), blue_dragon_get_skill_factor(4, "Skill0", "gender", ptr, "max"));
+                            pct += third_damage_percent;
 
-                            if (thirdDamagePercent > 0)
-                                overlapDamageCount++;
+                            if (third_damage_percent > 0)
+                                overlap_damage_count++;
                         }
 
-                        switch (overlapDamageCount) {
+                        switch (overlap_damage_count) {
                         case 1:
                             ch->effect_packet(SE_PERCENT_DAMAGE1);
                             break;
@@ -110,18 +110,18 @@ namespace metin2::game::inline events {
                             break;
                         }
 
-                        int addPct = blue_dragon_get_range_factor("hp_damage", attacker->hp_pct());
+                        int add_pct = blue_dragon_get_range_factor("hp_damage", attacker->hp_pct());
 
-                        pct += addPct;
+                        pct += add_pct;
 
                         int dam = number(blue_dragon_get_skill_factor(3, "Skill0", "default_damage", "min"), blue_dragon_get_skill_factor(3, "Skill0", "default_damage", "max"));
 
-                        dam += (dam * addPct) / 100;
+                        dam += (dam * add_pct) / 100;
                         dam += (ch->max_hp() * pct) / 100;
 
                         ch->damage(attacker, dam, DAMAGE_TYPE_ICE);
 
-                        metin2::log::debug("Blue dragon: breath hit {}, pct {:d}, damage {:d}, overlap {:d}", ch->name(), pct, dam, overlapDamageCount);
+                        metin2::log::debug("Blue dragon: breath hit {}, pct {:d}, damage {:d}, overlap {:d}", ch->name(), pct, dam, overlap_damage_count);
                     }
                 }
             }
@@ -143,14 +143,14 @@ namespace metin2::game::inline events {
                             return;
                         }
 
-                        int addPct = blue_dragon_get_range_factor("hp_damage", attacker->hp_pct());
+                        int add_pct = blue_dragon_get_range_factor("hp_damage", attacker->hp_pct());
 
                         int dam = number(blue_dragon_get_skill_factor(3, "Skill1", "default_damage", "min"), blue_dragon_get_skill_factor(3, "Skill1", "default_damage", "max"));
-                        dam += (dam * addPct) / 100;
+                        dam += (dam * add_pct) / 100;
 
                         ch->damage(attacker, dam, DAMAGE_TYPE_ICE);
 
-                        metin2::log::debug("Blue dragon: weak breath hit {}, bonus pct {:d}, damage {:d}", ch->name(), addPct, dam);
+                        metin2::log::debug("Blue dragon: weak breath hit {}, bonus pct {:d}, damage {:d}", ch->name(), add_pct, dam);
                     }
                 }
             }
@@ -224,16 +224,16 @@ namespace metin2::game::inline events {
                             sec += number(blue_dragon_get_skill_factor(4, "Skill2", "gender", ptr, "min"), blue_dragon_get_skill_factor(4, "Skill2", "gender", ptr, "max"));
                         }
 
-                        int addPct = blue_dragon_get_range_factor("hp_damage", attacker->hp_pct());
+                        int add_pct = blue_dragon_get_range_factor("hp_damage", attacker->hp_pct());
 
                         int dam = number(blue_dragon_get_skill_factor(3, "Skill2", "default_damage", "min"), blue_dragon_get_skill_factor(3, "Skill2", "default_damage", "max"));
-                        dam += (dam * addPct) / 100;
+                        dam += (dam * add_pct) / 100;
 
                         ch->damage(attacker, dam, DAMAGE_TYPE_ICE);
 
                         skill_attack_affect(ch, 1000, IMMUNE_STUN, AFFECT_STUN, POINT_NONE, 0, AFF_STUN, sec, "BDRAGON_STUN");
 
-                        metin2::log::debug("Blue dragon: earthquake hit {}, bonus pct {:d}, damage {:d}, stun {:d}s", ch->name(), addPct, dam, sec);
+                        metin2::log::debug("Blue dragon: earthquake hit {}, bonus pct {:d}, damage {:d}, stun {:d}s", ch->name(), add_pct, dam, sec);
 
                         vector vec;
                         vec.x = static_cast<float>(attacker->x() - ch->x());
@@ -242,10 +242,10 @@ namespace metin2::game::inline events {
 
                         normalize(&vec, &vec);
 
-                        const int nFlyDistance = 1000;
+                        const int fly_distance = 1000;
 
-                        int32_t tx = ch->x() + vec.x * nFlyDistance;
-                        int32_t ty = ch->y() + vec.y * nFlyDistance;
+                        int32_t tx = ch->x() + vec.x * fly_distance;
+                        int32_t ty = ch->y() + vec.y * fly_distance;
 
                         for (int i = 0; i < 5; ++i) {
                             if (true == sectree_manager::instance().is_movable_position(ch->map_index(), tx, ty)) {
@@ -254,16 +254,16 @@ namespace metin2::game::inline events {
 
                             switch (i) {
                             case 0:
-                                tx = ch->x() + vec.x * nFlyDistance * -1;
-                                ty = ch->y() + vec.y * nFlyDistance * -1;
+                                tx = ch->x() + vec.x * fly_distance * -1;
+                                ty = ch->y() + vec.y * fly_distance * -1;
                                 break;
                             case 1:
-                                tx = ch->x() + vec.x * nFlyDistance * -1;
-                                ty = ch->y() + vec.y * nFlyDistance;
+                                tx = ch->x() + vec.x * fly_distance * -1;
+                                ty = ch->y() + vec.y * fly_distance;
                                 break;
                             case 2:
-                                tx = ch->x() + vec.x * nFlyDistance;
-                                ty = ch->y() + vec.y * nFlyDistance * -1;
+                                tx = ch->x() + vec.x * fly_distance;
+                                ty = ch->y() + vec.y * fly_distance * -1;
                                 break;
                             case 3:
                                 tx = ch->x() + vec.x * number(1, 100);

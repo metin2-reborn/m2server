@@ -145,14 +145,14 @@ namespace metin2::game::inline social {
             if (!is_married)
                 return 0;
 
-            int iFindedBonusIndex = 0;
+            int finded_bonus_index = 0;
             {
-                for (iFindedBonusIndex = 0; iFindedBonusIndex < MAX_MARRIAGE_UNIQUE_ITEM; ++iFindedBonusIndex) {
-                    if (item_bonus[iFindedBonusIndex].vnum == item_vnum)
+                for (finded_bonus_index = 0; finded_bonus_index < MAX_MARRIAGE_UNIQUE_ITEM; ++finded_bonus_index) {
+                    if (item_bonus[finded_bonus_index].vnum == item_vnum)
                         break;
                 }
 
-                if (iFindedBonusIndex == MAX_MARRIAGE_UNIQUE_ITEM)
+                if (finded_bonus_index == MAX_MARRIAGE_UNIQUE_ITEM)
                     return 0;
             }
 
@@ -163,10 +163,10 @@ namespace metin2::game::inline social {
                 if (nullptr != ch2 && ch2->is_equip_unique_item(item_vnum))
                     count++;
 
-                const marriage_item_bonus_by_grade &rkBonus = item_bonus[iFindedBonusIndex];
+                const marriage_item_bonus_by_grade &bonus = item_bonus[finded_bonus_index];
 
                 if (count >= 1)
-                    return rkBonus.value[marriage_grade()];
+                    return bonus.value[marriage_grade()];
                 return 0;
             } else {
                 int count = 0;
@@ -175,10 +175,10 @@ namespace metin2::game::inline social {
                 if (me != ch2 && nullptr != ch2 && ch2->is_equip_unique_item(item_vnum))
                     count++;
 
-                const marriage_item_bonus_by_grade &rkBonus = item_bonus[iFindedBonusIndex];
+                const marriage_item_bonus_by_grade &bonus = item_bonus[finded_bonus_index];
 
                 if (count >= 1)
-                    return rkBonus.value[marriage_grade()];
+                    return bonus.value[marriage_grade()];
                 return 0;
             }
         }
@@ -204,27 +204,27 @@ namespace metin2::game::inline social {
             if (is_married) {
                 desc *d1;
                 desc *d2;
-                cci *pkCCI;
+                cci *cci;
 
                 d1 = ch1 ? ch1->get_desc() : nullptr;
 
                 if (!d1) {
-                    pkCCI = p2p_manager::instance().find_by_pid(pid1);
+                    cci = p2p_manager::instance().find_by_pid(pid1);
 
-                    if (pkCCI) {
-                        d1 = pkCCI->desc;
-                        d1->set_relay(pkCCI->name);
+                    if (cci) {
+                        d1 = cci->desc;
+                        d1->set_relay(cci->name);
                     }
                 }
 
                 d2 = ch2 ? ch2->get_desc() : nullptr;
 
                 if (!d2) {
-                    pkCCI = p2p_manager::instance().find_by_pid(pid2);
+                    cci = p2p_manager::instance().find_by_pid(pid2);
 
-                    if (pkCCI) {
-                        d2 = pkCCI->desc;
-                        d2->set_relay(pkCCI->name);
+                    if (cci) {
+                        d2 = cci->desc;
+                        d2->set_relay(cci->name);
                     }
                 }
 
@@ -257,16 +257,16 @@ namespace metin2::game::inline social {
             if (is_married) {
                 desc *d1;
                 desc *d2;
-                cci *pkCCI;
+                cci *cci;
 
                 d1 = ch1 ? ch1->get_desc() : nullptr;
 
                 if (!d1) {
-                    pkCCI = p2p_manager::instance().find_by_pid(pid1);
+                    cci = p2p_manager::instance().find_by_pid(pid1);
 
-                    if (pkCCI) {
-                        d1 = pkCCI->desc;
-                        d1->set_relay(pkCCI->name);
+                    if (cci) {
+                        d1 = cci->desc;
+                        d1->set_relay(cci->name);
                     }
                 }
 
@@ -277,11 +277,11 @@ namespace metin2::game::inline social {
                 d2 = ch2 ? ch2->get_desc() : nullptr;
 
                 if (!d2) {
-                    pkCCI = p2p_manager::instance().find_by_pid(pid2);
+                    cci = p2p_manager::instance().find_by_pid(pid2);
 
-                    if (pkCCI) {
-                        d2 = pkCCI->desc;
-                        d2->set_relay(pkCCI->name);
+                    if (cci) {
+                        d2 = cci->desc;
+                        d2->set_relay(cci->name);
                     }
                 }
 
@@ -338,8 +338,8 @@ namespace metin2::game::inline social {
                 return 0;
             }
 
-            marriage *pMarriage = info->marriage;
-            pMarriage->near_check();
+            marriage *marriage = info->marriage;
+            marriage->near_check();
             return passes_per_sec(5);
         }
 
@@ -436,16 +436,16 @@ namespace metin2::game::inline social {
         }
 
         auto manager::is_married(uint32_t player_id) -> bool {
-            marriage *pkMarriageFinded = get(player_id);
-            if (pkMarriageFinded && pkMarriageFinded->is_married)
+            marriage *marriage_finded = get(player_id);
+            if (marriage_finded && marriage_finded->is_married)
                 return true;
 
             return false;
         }
 
         auto manager::is_engaged(uint32_t player_id) -> bool {
-            marriage *pkMarriageFinded = get(player_id);
-            if (pkMarriageFinded && !pkMarriageFinded->is_married)
+            marriage *marriage_finded = get(player_id);
+            if (marriage_finded && !marriage_finded->is_married)
                 return true;
 
             return false;
@@ -499,16 +499,16 @@ namespace metin2::game::inline social {
                 std::swap(name1, name2);
             }
 
-            auto pkNewMarriage = std::make_unique<marriage>(pid1, pid2, 0, t_marry_time, name1, name2);
-            marriage *pMarriage = pkNewMarriage.get();
-            marriages_.emplace(pMarriage, std::move(pkNewMarriage));
-            marriage_by_pid_.insert(std::make_pair(pid1, pMarriage));
-            marriage_by_pid_.insert(std::make_pair(pid2, pMarriage));
+            auto new_marriage = std::make_unique<marriage>(pid1, pid2, 0, t_marry_time, name1, name2);
+            marriage *marriage = new_marriage.get();
+            marriages_.emplace(marriage, std::move(new_marriage));
+            marriage_by_pid_.insert(std::make_pair(pid1, marriage));
+            marriage_by_pid_.insert(std::make_pair(pid2, marriage));
             {
-                character *A = character_manager::instance().find_by_pid(pid1);
-                character *B = character_manager::instance().find_by_pid(pid2);
+                character *a = character_manager::instance().find_by_pid(pid1);
+                character *b = character_manager::instance().find_by_pid(pid2);
 
-                if (A && B) {
+                if (a && b) {
                     packet_wedding_request p;
                     p.pid1 = pid1;
                     p.pid2 = pid2;
@@ -529,15 +529,15 @@ namespace metin2::game::inline social {
         }
 
         void manager::update(uint32_t pid1, uint32_t pid2, int32_t total_point, uint8_t married) {
-            marriage *pMarriage = get(pid1);
+            marriage *marriage = get(pid1);
 
-            if (!pMarriage || pMarriage->other(pid1) != pid2) {
+            if (!marriage || marriage->other(pid1) != pid2) {
                 metin2::log::error("{:d} and {:d} are not married to each other", pid1, pid2);
                 return;
             }
 
-            pMarriage->love_point = total_point;
-            pMarriage->is_married = married;
+            marriage->love_point = total_point;
+            marriage->is_married = married;
         }
 
         void manager::request_remove(uint32_t pid1, uint32_t pid2) {
@@ -550,34 +550,34 @@ namespace metin2::game::inline social {
         }
 
         void manager::remove(uint32_t pid1, uint32_t pid2) {
-            marriage *pMarriage = get(pid1);
-            if (!pMarriage || pMarriage->other(pid1) != pid2) {
+            marriage *marriage = get(pid1);
+            if (!marriage || marriage->other(pid1) != pid2) {
                 metin2::log::error("{:d} and {:d} are not married to each other", pid1, pid2);
                 return;
             }
 
             marriage_by_pid_.erase(pid1);
             marriage_by_pid_.erase(pid2);
-            marriages_.erase(pMarriage);
+            marriages_.erase(marriage);
         }
 
         void manager::login(character *ch) {
             uint32_t pid = ch->player_id();
 
-            marriage *pMarriage = get(pid);
-            if (!pMarriage)
+            marriage *marriage = get(pid);
+            if (!marriage)
                 return;
 
-            pMarriage->login(ch);
+            marriage->login(ch);
         }
 
         void manager::logout(uint32_t pid) {
-            marriage *pMarriage = get(pid);
+            marriage *marriage = get(pid);
 
-            if (!pMarriage)
+            if (!marriage)
                 return;
 
-            pMarriage->logout(pid);
+            marriage->logout(pid);
         }
 
         void manager::logout(character *ch) {
@@ -585,55 +585,55 @@ namespace metin2::game::inline social {
         }
 
         void manager::wedding_ready(uint32_t pid1, uint32_t pid2, uint32_t map_index_value) {
-            marriage *pMarriage = get(pid1);
-            if (!pMarriage || pMarriage->other(pid1) != pid2) {
+            marriage *marriage = get(pid1);
+            if (!marriage || marriage->other(pid1) != pid2) {
                 metin2::log::error("{:d} and {:d} are not married to each other", pid1, pid2);
                 return;
             }
 
-            if (!pMarriage->wedding_info)
-                pMarriage->wedding_info = std::make_unique<wedding_info>();
+            if (!marriage->wedding_info)
+                marriage->wedding_info = std::make_unique<wedding_info>();
 
-            pMarriage->wedding_info->map_index = map_index_value;
+            marriage->wedding_info->map_index = map_index_value;
         }
 
         void manager::wedding_start(uint32_t pid1, uint32_t pid2) {
-            marriage *pMarriage = get(pid1);
-            if (!pMarriage || pMarriage->other(pid1) != pid2) {
+            marriage *marriage = get(pid1);
+            if (!marriage || marriage->other(pid1) != pid2) {
                 metin2::log::error("{:d} and {:d} are not married to each other", pid1, pid2);
                 return;
             }
 
-            wedding_info *pwi = pMarriage->wedding_info.get();
+            wedding_info *pwi = marriage->wedding_info.get();
 
             if (!pwi)
                 return;
 
-            pMarriage->warp_to_wedding_map(pid1);
-            pMarriage->warp_to_wedding_map(pid2);
+            marriage->warp_to_wedding_map(pid1);
+            marriage->warp_to_wedding_map(pid2);
 
             wedding_.insert(std::make_pair(pid1, pid2));
         }
 
         void manager::wedding_end(uint32_t pid1, uint32_t pid2) {
-            marriage *pMarriage = get(pid1);
-            if (!pMarriage || pMarriage->other(pid1) != pid2) {
+            marriage *marriage = get(pid1);
+            if (!marriage || marriage->other(pid1) != pid2) {
                 metin2::log::error("{:d} and {:d} are not married to each other", pid1, pid2);
                 return;
             }
 
-            if (!pMarriage->wedding_info) {
+            if (!marriage->wedding_info) {
                 metin2::log::error("Marriage of {:d} and {:d} has no wedding in progress", pid1, pid2);
                 return;
             }
 
             if (map_allow_find(WEDDING_MAP_INDEX))
-                if (!wedding_manager::instance().end(pMarriage->wedding_info->map_index)) {
-                    metin2::log::error("Cannot end wedding on map {:d}", pMarriage->wedding_info->map_index);
+                if (!wedding_manager::instance().end(marriage->wedding_info->map_index)) {
+                    metin2::log::error("Cannot end wedding on map {:d}", marriage->wedding_info->map_index);
                     return;
                 }
 
-            pMarriage->wedding_info.reset();
+            marriage->wedding_info.reset();
 
             wedding_.erase(std::make_pair(pid1, pid2));
         }

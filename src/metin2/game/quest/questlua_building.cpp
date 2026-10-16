@@ -28,8 +28,8 @@ namespace metin2::game {
                 return 1;
             }
 
-            land *pkLand = manager::instance().find_land((int)lua_tonumber(lua, 1), (int)lua_tonumber(lua, 2), (int)lua_tonumber(lua, 3));
-            lua_pushnumber(lua, pkLand ? pkLand->id() : 0);
+            land *land = manager::instance().find_land((int)lua_tonumber(lua, 1), (int)lua_tonumber(lua, 2), (int)lua_tonumber(lua, 3));
+            lua_pushnumber(lua, land ? land->id() : 0);
             return 1;
         }
 
@@ -41,10 +41,10 @@ namespace metin2::game {
             if (lua_isnumber(lua, 1)) {
                 using namespace building;
 
-                land *pkLand = manager::instance().find_land((uint32_t)lua_tonumber(lua, 1));
+                land *land_value = manager::instance().find_land((uint32_t)lua_tonumber(lua, 1));
 
-                if (pkLand) {
-                    const land_table &t = pkLand->data();
+                if (land_value) {
+                    const land_table &t = land_value->data();
 
                     price = t.price;
                     owner = t.guild_id;
@@ -67,11 +67,11 @@ namespace metin2::game {
 
             using namespace building;
 
-            land *pkLand = manager::instance().find_land((uint32_t)lua_tonumber(lua, 1));
+            land *land = manager::instance().find_land((uint32_t)lua_tonumber(lua, 1));
 
-            if (pkLand) {
-                if (pkLand->data().guild_id == 0)
-                    pkLand->set_owner((uint32_t)lua_tonumber(lua, 2));
+            if (land) {
+                if (land->data().guild_id == 0)
+                    land->set_owner((uint32_t)lua_tonumber(lua, 2));
             }
 
             return 0;
@@ -109,7 +109,7 @@ namespace metin2::game {
         auto building_reconstruct(lua_State *lua) -> int {
             using namespace building;
 
-            auto dwNewBuilding = (uint32_t)lua_tonumber(lua, 1);
+            auto new_building = (uint32_t)lua_tonumber(lua, 1);
 
             quest_manager &q = quest_manager::instance();
 
@@ -117,19 +117,19 @@ namespace metin2::game {
             if (!npc)
                 return 0;
 
-            guild *pGuild = npc->get_guild();
-            if (!pGuild)
+            guild *guild = npc->get_guild();
+            if (!guild)
                 return 0;
 
-            land *pLand = manager::instance().find_land_by_guild(pGuild->id());
-            if (!pLand)
+            land *land = manager::instance().find_land_by_guild(guild->id());
+            if (!land)
                 return 0;
 
-            object *pObject = pLand->find_object_by_npc(npc);
-            if (!pObject)
+            object *object = land->find_object_by_npc(npc);
+            if (!object)
                 return 0;
 
-            pObject->reconstruct(dwNewBuilding);
+            object->reconstruct(new_building);
 
             return 0;
         }

@@ -93,10 +93,10 @@ namespace metin2::game::inline world {
                 auto it_entity = tree->set_entity_.begin();
 
                 while (it_entity != tree->set_entity_.end()) {
-                    entity *pkEnt = *(it_entity++);
+                    entity *ent = *(it_entity++);
 
-                    if (pkEnt->is_type(ENTITY_CHARACTER)) {
-                        auto *ch = (character *)pkEnt;
+                    if (ent->is_type(ENTITY_CHARACTER)) {
+                        auto *ch = (character *)ent;
                         ch->stop_state_machine();
                     }
                 }
@@ -105,9 +105,9 @@ namespace metin2::game::inline world {
     }
 
     auto sectree::insert_entity(entity *ent) -> bool {
-        sectree *pkCurTree;
+        sectree *cur_tree;
 
-        if ((pkCurTree = ent->get_sectree()) == this)
+        if ((cur_tree = ent->get_sectree()) == this)
             return false;
 
         if (set_entity_.find(ent) != set_entity_.end()) {
@@ -115,23 +115,23 @@ namespace metin2::game::inline world {
             return false;
         }
 
-        if (pkCurTree)
-            pkCurTree->set_entity_.erase(ent);
+        if (cur_tree)
+            cur_tree->set_entity_.erase(ent);
 
         ent->set_sectree(this);
 
         set_entity_.insert(ent);
 
         if (ent->is_type(ENTITY_CHARACTER)) {
-            auto *pkChr = (character *)ent;
+            auto *chr = (character *)ent;
 
-            if (pkChr->is_pc()) {
+            if (chr->is_pc()) {
                 increase_pc();
 
-                if (pkCurTree)
-                    pkCurTree->decrease_pc();
-            } else if (pc_count_ > 0 && !pkChr->is_warp() && !pkChr->is_goto()) {
-                pkChr->start_state_machine();
+                if (cur_tree)
+                    cur_tree->decrease_pc();
+            } else if (pc_count_ > 0 && !chr->is_warp() && !chr->is_goto()) {
+                chr->start_state_machine();
             }
         }
 

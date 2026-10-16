@@ -116,10 +116,10 @@ namespace metin2::db::inline clients {
                 "SELECT apply, apply+0, prob, lv1, lv2, lv3, lv4, lv5, weapon, body, wrist, foots, neck, head, shield, ear FROM {}{} ORDER BY apply",
                 sql::raw(table_name), sql::raw(get_table_postfix()));
 
-            auto pkMsg = db_manager::instance().direct_query(query);
-            sql_result *pRes = pkMsg->get();
+            auto msg = db_manager::instance().direct_query(query);
+            sql_result *res = msg->get();
 
-            if (!pRes->num_rows) {
+            if (!res->num_rows) {
                 metin2::log::error("{} is empty", table_name);
                 return false;
             }
@@ -129,13 +129,13 @@ namespace metin2::db::inline clients {
                 tables.clear();
             }
 
-            tables.reserve(pRes->num_rows);
+            tables.reserve(res->num_rows);
 
             static constexpr int sets[] = {ATTRIBUTE_SET_WEAPON, ATTRIBUTE_SET_BODY, ATTRIBUTE_SET_WRIST, ATTRIBUTE_SET_FOOTS,
                 ATTRIBUTE_SET_NECK, ATTRIBUTE_SET_HEAD, ATTRIBUTE_SET_SHIELD, ATTRIBUTE_SET_EAR};
 
             MYSQL_ROW data;
-            while ((data = mysql_fetch_row(pRes->res.get()))) {
+            while ((data = mysql_fetch_row(res->res.get()))) {
                 item_attr_table t;
                 int col = 0;
 
@@ -256,10 +256,10 @@ namespace metin2::db::inline clients {
             "SELECT id, cost, prob, vnum0, count0, vnum1, count1, vnum2, count2,  vnum3, count3, vnum4, count4 FROM refine_proto{}",
             sql::raw(get_table_postfix()));
 
-        auto pkMsg = db_manager::instance().direct_query(query);
-        sql_result *pRes = pkMsg->get();
+        auto msg = db_manager::instance().direct_query(query);
+        sql_result *res = msg->get();
 
-        if (!pRes->num_rows)
+        if (!res->num_rows)
             return true;
 
         if (refine_table_) {
@@ -267,7 +267,7 @@ namespace metin2::db::inline clients {
             refine_table_.reset();
         }
 
-        refine_table_size_ = pRes->num_rows;
+        refine_table_size_ = res->num_rows;
 
         refine_table_ = std::make_unique<refine_table[]>(refine_table_size_);
         memset(refine_table_.get(), 0, sizeof(refine_table) * refine_table_size_);
@@ -275,7 +275,7 @@ namespace metin2::db::inline clients {
         refine_table *prt = refine_table_.get();
         MYSQL_ROW data;
 
-        while ((data = mysql_fetch_row(pRes->res.get()))) {
+        while ((data = mysql_fetch_row(res->res.get()))) {
 
             int col = 0;
             str_to_number(prt->id, data[col++]);
@@ -319,7 +319,7 @@ namespace metin2::db::inline clients {
         MYSQL_ROW data;
         int col;
 
-        static const char *s_szQuery =
+        static const char *query =
             "SELECT "
             "shop.vnum, "
             "shop.npc_vnum, "
@@ -328,11 +328,11 @@ namespace metin2::db::inline clients {
             "FROM shop LEFT JOIN shop_item "
             "ON shop.vnum = shop_item.shop_vnum ORDER BY shop.vnum, shop_item.item_vnum";
 
-        auto pkMsg2 = db_manager::instance().direct_query(s_szQuery);
+        auto msg2 = db_manager::instance().direct_query(query);
 
-        sql_result *pRes2 = pkMsg2->get();
+        sql_result *res2 = msg2->get();
 
-        if (!pRes2->num_rows) {
+        if (!res2->num_rows) {
             metin2::log::error("Shop table is empty");
             return false;
         }
@@ -345,21 +345,21 @@ namespace metin2::db::inline clients {
 
         shop_table *shop_table = shop_table_.get();
 
-        while ((data = mysql_fetch_row(pRes2->res.get()))) {
+        while ((data = mysql_fetch_row(res2->res.get()))) {
             col = 0;
 
-            int iShopVnum = 0;
-            str_to_number(iShopVnum, data[col++]);
+            int shop_vnum = 0;
+            str_to_number(shop_vnum, data[col++]);
 
-            if (map_shop.end() == map_shop.find(iShopVnum)) {
-                auto pShopTable = std::make_unique<proto::shop_table>();
-                shop_table = pShopTable.get();
+            if (map_shop.end() == map_shop.find(shop_vnum)) {
+                auto shop_table_value = std::make_unique<proto::shop_table>();
+                shop_table = shop_table_value.get();
                 *shop_table = proto::shop_table();
-                shop_table->vnum = iShopVnum;
+                shop_table->vnum = shop_vnum;
 
-                map_shop[iShopVnum] = std::move(pShopTable);
+                map_shop[shop_vnum] = std::move(shop_table_value);
             } else
-                shop_table = map_shop[iShopVnum].get();
+                shop_table = map_shop[shop_vnum].get();
 
             str_to_number(shop_table->npc_vnum, data[col++]);
 
@@ -367,14 +367,14 @@ namespace metin2::db::inline clients {
                 continue;
 
             if (shop_table->item_count >= SHOP_HOST_ITEM_MAX_NUM) {
-                metin2::log::error("Shop {:d} has more than {:d} items; the rest are ignored", iShopVnum, SHOP_HOST_ITEM_MAX_NUM);
+                metin2::log::error("Shop {:d} has more than {:d} items; the rest are ignored", shop_vnum, SHOP_HOST_ITEM_MAX_NUM);
                 continue;
             }
 
-            shop_item_table *pItem = &shop_table->items[shop_table->item_count];
+            shop_item_table *item = &shop_table->items[shop_table->item_count];
 
-            str_to_number(pItem->vnum, data[col++]);
-            str_to_number(pItem->count, data[col++]);
+            str_to_number(item->vnum, data[col++]);
+            str_to_number(item->count, data[col++]);
 
             ++shop_table->item_count;
         }
@@ -444,10 +444,10 @@ namespace metin2::db::inline clients {
             "FROM skill_proto{} ORDER BY dwVnum",
             sql::raw(get_table_postfix()));
 
-        auto pkMsg = db_manager::instance().direct_query(query);
-        sql_result *pRes = pkMsg->get();
+        auto msg = db_manager::instance().direct_query(query);
+        sql_result *res = msg->get();
 
-        if (!pRes->num_rows) {
+        if (!res->num_rows) {
             metin2::log::error("skill_proto is empty");
             return false;
         }
@@ -457,12 +457,12 @@ namespace metin2::db::inline clients {
             vec_skill_table_.clear();
         }
 
-        vec_skill_table_.reserve(pRes->num_rows);
+        vec_skill_table_.reserve(res->num_rows);
 
         MYSQL_ROW data;
         int col;
 
-        while ((data = mysql_fetch_row(pRes->res.get()))) {
+        while ((data = mysql_fetch_row(res->res.get()))) {
             skill_table t;
             memset(&t, 0, sizeof(t));
 
@@ -519,16 +519,16 @@ namespace metin2::db::inline clients {
     auto client_manager::initialize_banword_table() -> bool {
         vec_banword_table_.clear();
 
-        auto pkMsg = db_manager::instance().direct_query("SELECT word FROM banword");
+        auto msg = db_manager::instance().direct_query("SELECT word FROM banword");
 
-        sql_result *pRes = pkMsg->get();
+        sql_result *res = msg->get();
 
-        if (pRes->num_rows == 0)
+        if (res->num_rows == 0)
             return true;
 
         MYSQL_ROW data;
 
-        while ((data = mysql_fetch_row(pRes->res.get()))) {
+        while ((data = mysql_fetch_row(res->res.get()))) {
             banword_table t;
 
             if (data[0]) {
@@ -557,20 +557,20 @@ namespace metin2::db::inline clients {
             "FROM land{} WHERE enable='YES' ORDER BY id",
             sql::raw(get_table_postfix()));
 
-        auto pkMsg = db_manager::instance().direct_query(query);
-        sql_result *pRes = pkMsg->get();
+        auto msg = db_manager::instance().direct_query(query);
+        sql_result *res = msg->get();
 
         if (!vec_land_table_.empty()) {
             metin2::log::info("Reloading land");
             vec_land_table_.clear();
         }
 
-        vec_land_table_.reserve(pRes->num_rows);
+        vec_land_table_.reserve(res->num_rows);
 
         MYSQL_ROW data;
 
-        if (pRes->num_rows > 0)
-            while ((data = mysql_fetch_row(pRes->res.get()))) {
+        if (res->num_rows > 0)
+            while ((data = mysql_fetch_row(res->res.get()))) {
                 land_table t;
 
                 memset(&t, 0, sizeof(t));
@@ -600,14 +600,14 @@ namespace metin2::db::inline clients {
         const char *p = strchr(t, '/');
         std::pair<int, int> k;
 
-        char szNum[32 + 1];
+        char num[32 + 1];
         char *comma;
 
         while (p) {
             if (is_digit(*t)) {
-                strlcpy(szNum, t, std::min<int>(sizeof(szNum), (p - t) + 1));
+                strlcpy(num, t, std::min<int>(sizeof(num), (p - t) + 1));
 
-                comma = strchr(szNum, ',');
+                comma = strchr(num, ',');
 
                 if (comma) {
                     *comma = '\0';
@@ -615,7 +615,7 @@ namespace metin2::db::inline clients {
                 } else
                     k.second = 0;
 
-                str_to_number(k.first, szNum);
+                str_to_number(k.first, num);
                 vec.push_back(k);
             }
 
@@ -624,7 +624,7 @@ namespace metin2::db::inline clients {
         }
 
         if (is_digit(*t)) {
-            strlcpy(szNum, t, sizeof(szNum));
+            strlcpy(num, t, sizeof(num));
 
             comma = strchr(const_cast<char *>(t), ',');
 
@@ -634,7 +634,7 @@ namespace metin2::db::inline clients {
             } else
                 k.second = 0;
 
-            str_to_number(k.first, szNum);
+            str_to_number(k.first, num);
             vec.push_back(k);
         }
     }
@@ -647,20 +647,20 @@ namespace metin2::db::inline clients {
             "FROM object_proto{} ORDER BY vnum",
             sql::raw(get_table_postfix()));
 
-        auto pkMsg = db_manager::instance().direct_query(query);
-        sql_result *pRes = pkMsg->get();
+        auto msg = db_manager::instance().direct_query(query);
+        sql_result *res = msg->get();
 
         if (!vec_object_proto_.empty()) {
             metin2::log::info("Reloading object_proto");
             vec_object_proto_.clear();
         }
 
-        vec_object_proto_.reserve(std::max<int>(0, pRes->num_rows));
+        vec_object_proto_.reserve(std::max<int>(0, res->num_rows));
 
         MYSQL_ROW data;
 
-        if (pRes->num_rows > 0)
-            while ((data = mysql_fetch_row(pRes->res.get()))) {
+        if (res->num_rows > 0)
+            while ((data = mysql_fetch_row(res->res.get()))) {
                 object_proto t;
 
                 memset(&t, 0, sizeof(t));
@@ -711,8 +711,8 @@ namespace metin2::db::inline clients {
             "SELECT id, land_id, vnum, map_index, x, y, x_rot, y_rot, z_rot, life FROM object{} ORDER BY id",
             sql::raw(get_table_postfix()));
 
-        auto pkMsg = db_manager::instance().direct_query(query);
-        sql_result *pRes = pkMsg->get();
+        auto msg = db_manager::instance().direct_query(query);
+        sql_result *res = msg->get();
 
         if (!map_object_table_.empty()) {
             metin2::log::info("Reloading object");
@@ -721,8 +721,8 @@ namespace metin2::db::inline clients {
 
         MYSQL_ROW data;
 
-        if (pRes->num_rows > 0)
-            while ((data = mysql_fetch_row(pRes->res.get()))) {
+        if (res->num_rows > 0)
+            while ((data = mysql_fetch_row(res->res.get()))) {
                 auto k = std::make_unique<object_table>();
 
                 memset(k.get(), 0, sizeof(object_table));

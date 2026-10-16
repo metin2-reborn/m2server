@@ -31,43 +31,43 @@ namespace metin2::db::inline items {
     }
 
     void item_award_manager::load(sql_msg &msg) {
-        MYSQL_RES *pRes = msg.get()->res.get();
+        MYSQL_RES *res = msg.get()->res.get();
 
         for (uint i = 0; i < msg.get()->num_rows; ++i) {
-            MYSQL_ROW row = mysql_fetch_row(pRes);
+            MYSQL_ROW row = mysql_fetch_row(res);
             int col = 0;
 
-            uint32_t dwID = 0;
-            str_to_number(dwID, row[col++]);
+            uint32_t id = 0;
+            str_to_number(id, row[col++]);
 
-            if (map_award_.find(dwID) != map_award_.end())
+            if (map_award_.find(id) != map_award_.end())
                 continue;
 
             auto owned = std::make_unique<item_award>();
-            item_award *kData = owned.get();
+            item_award *data = owned.get();
 
-            kData->id = dwID;
-            trim_and_lower(row[col++], kData->login);
-            str_to_number(kData->vnum, row[col++]);
-            str_to_number(kData->count, row[col++]);
-            str_to_number(kData->socket0, row[col++]);
-            str_to_number(kData->socket1, row[col++]);
-            str_to_number(kData->socket2, row[col++]);
-            str_to_number(kData->mall, row[col++]);
+            data->id = id;
+            trim_and_lower(row[col++], data->login);
+            str_to_number(data->vnum, row[col++]);
+            str_to_number(data->count, row[col++]);
+            str_to_number(data->socket0, row[col++]);
+            str_to_number(data->socket1, row[col++]);
+            str_to_number(data->socket2, row[col++]);
+            str_to_number(data->mall, row[col++]);
 
             if (row[col]) {
-                strlcpy(kData->why, row[col], sizeof(kData->why));
-                client_manager::instance().inform_gift_award(kData->login, kData->why, kData->vnum);
+                strlcpy(data->why, row[col], sizeof(data->why));
+                client_manager::instance().inform_gift_award(data->login, data->why, data->vnum);
             }
 
-            map_award_.emplace(dwID, std::move(owned));
+            map_award_.emplace(id, std::move(owned));
 
-            metin2::log::debug("Item award: loaded award {:d} for account {}, vnum {:d}, count {:d}, socket {:d}", kData->id, kData->login, kData->vnum, kData->count, kData->socket0);
-            std::set<item_award *> &kSet = map_set_award_by_login_[kData->login];
-            kSet.insert(kData);
+            metin2::log::debug("Item award: loaded award {:d} for account {}, vnum {:d}, count {:d}, socket {:d}", data->id, data->login, data->vnum, data->count, data->socket0);
+            std::set<item_award *> &set = map_set_award_by_login_[data->login];
+            set.insert(data);
 
-            if (dwID > last_cached_item_award_id)
-                last_cached_item_award_id = dwID;
+            if (id > last_cached_item_award_id)
+                last_cached_item_award_id = id;
         }
     }
 

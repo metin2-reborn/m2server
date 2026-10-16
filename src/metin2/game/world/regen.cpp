@@ -89,25 +89,25 @@ namespace metin2::game::inline world {
                 continue;
             }
 
-            const char *szTmp = word.c_str();
+            const char *tmp = word.c_str();
 
             switch (mode) {
             case MODE_TYPE:
-                if (szTmp[0] == 'm')
+                if (tmp[0] == 'm')
                     regen->type = REGEN_TYPE_MOB;
-                else if (szTmp[0] == 'g') {
+                else if (tmp[0] == 'g') {
                     regen->type = REGEN_TYPE_GROUP;
 
-                    if (szTmp[1] == 'a')
+                    if (tmp[1] == 'a')
                         regen->is_aggressive = true;
-                } else if (szTmp[0] == 'e')
+                } else if (tmp[0] == 'e')
                     regen->type = REGEN_TYPE_EXCEPTION;
-                else if (szTmp[0] == 'r')
+                else if (tmp[0] == 'r')
                     regen->type = REGEN_TYPE_GROUP_GROUP;
-                else if (szTmp[0] == 's')
+                else if (tmp[0] == 's')
                     regen->type = REGEN_TYPE_ANYWHERE;
                 else {
-                    metin2::log::error("Unknown regen type '{:c}'", szTmp[0]);
+                    metin2::log::error("Unknown regen type '{:c}'", tmp[0]);
                     exit(1);
                 }
 
@@ -115,22 +115,22 @@ namespace metin2::game::inline world {
                 break;
 
             case MODE_SX:
-                str_to_number(regen->sx, szTmp);
+                str_to_number(regen->sx, tmp);
                 ++mode;
                 break;
 
             case MODE_SY:
-                str_to_number(regen->sy, szTmp);
+                str_to_number(regen->sy, tmp);
                 ++mode;
                 break;
 
             case MODE_EX:
                 {
-                    int iX = 0;
-                    str_to_number(iX, szTmp);
+                    int x = 0;
+                    str_to_number(x, tmp);
 
-                    regen->sx -= iX;
-                    regen->ex = regen->sx + iX * 2;
+                    regen->sx -= x;
+                    regen->ex = regen->sx + x * 2;
 
                     regen->sx *= 100;
                     regen->ex *= 100;
@@ -141,11 +141,11 @@ namespace metin2::game::inline world {
 
             case MODE_EY:
                 {
-                    int iY = 0;
-                    str_to_number(iY, szTmp);
+                    int y = 0;
+                    str_to_number(y, tmp);
 
-                    regen->sy -= iY;
-                    regen->ey = regen->sy + iY * 2;
+                    regen->sy -= y;
+                    regen->ey = regen->sy + y * 2;
 
                     regen->sy *= 100;
                     regen->ey *= 100;
@@ -155,7 +155,7 @@ namespace metin2::game::inline world {
                 break;
 
             case MODE_Z_SECTION:
-                str_to_number(regen->z_section, szTmp);
+                str_to_number(regen->z_section, tmp);
 
                 if (regen->type == REGEN_TYPE_EXCEPTION)
                     return true;
@@ -164,36 +164,36 @@ namespace metin2::game::inline world {
                 break;
 
             case MODE_DIRECTION:
-                str_to_number(regen->direction, szTmp);
+                str_to_number(regen->direction, tmp);
                 ++mode;
                 break;
 
             case MODE_REGEN_TIME:
                 {
                     regen->time = 0;
-                    int tmpTime = 0;
+                    int tmp_time = 0;
 
                     for (const char c : word) {
                         switch (c) {
                         case 'h':
-                            regen->time += tmpTime * 3600;
-                            tmpTime = 0;
+                            regen->time += tmp_time * 3600;
+                            tmp_time = 0;
                             break;
 
                         case 'm':
-                            regen->time += tmpTime * 60;
-                            tmpTime = 0;
+                            regen->time += tmp_time * 60;
+                            tmp_time = 0;
                             break;
 
                         case 's':
-                            regen->time += tmpTime;
-                            tmpTime = 0;
+                            regen->time += tmp_time;
+                            tmp_time = 0;
                             break;
 
                         default:
                             if (c >= '0' && c <= '9') {
-                                tmpTime *= 10;
-                                tmpTime += (c - '0');
+                                tmp_time *= 10;
+                                tmp_time += (c - '0');
                             }
                         }
                     }
@@ -208,12 +208,12 @@ namespace metin2::game::inline world {
 
             case MODE_MAX_COUNT:
                 regen->count = 0;
-                str_to_number(regen->max_count, szTmp);
+                str_to_number(regen->max_count, tmp);
                 ++mode;
                 break;
 
             case MODE_VNUM:
-                str_to_number(regen->vnum, szTmp);
+                str_to_number(regen->vnum, tmp);
                 ++mode;
                 return true;
             }
@@ -313,8 +313,8 @@ namespace metin2::game::inline world {
             return 0;
         }
 
-        dungeon *pDungeon = dungeon_manager::instance().find(info->dungeon_id);
-        if (pDungeon == nullptr) {
+        dungeon *dungeon = dungeon_manager::instance().find(info->dungeon_id);
+        if (dungeon == nullptr) {
             return 0;
         }
 
@@ -323,7 +323,7 @@ namespace metin2::game::inline world {
             regen->event = nullptr;
         }
 
-        regen_spawn(regen, false, pDungeon);
+        regen_spawn(regen, false, dungeon);
         return passes_per_sec(regen->time);
     }
 

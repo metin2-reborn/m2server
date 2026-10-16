@@ -20,21 +20,21 @@
 namespace metin2::game::inline events {
 
     auto use_blue_dragon_skill(character *ch, unsigned int idx) -> time_t {
-        sectree_map *pSecMap = sectree_manager::instance().map(ch->map_index());
+        sectree_map *sec_map = sectree_manager::instance().map(ch->map_index());
 
-        if (nullptr == pSecMap)
+        if (nullptr == sec_map)
             return 0;
 
-        int nextUsingTime = 0;
+        int next_using_time = 0;
 
         switch (idx) {
         case 0:
             {
                 metin2::log::debug("Blue dragon: using breath");
 
-                blue_dragon_skill_breath(ch, pSecMap);
+                blue_dragon_skill_breath(ch, sec_map);
 
-                nextUsingTime = number(blue_dragon_get_skill_factor(3, "Skill0", "period", "min"), blue_dragon_get_skill_factor(3, "Skill0", "period", "max"));
+                next_using_time = number(blue_dragon_get_skill_factor(3, "Skill0", "period", "min"), blue_dragon_get_skill_factor(3, "Skill0", "period", "max"));
             }
             break;
 
@@ -42,9 +42,9 @@ namespace metin2::game::inline events {
             {
                 metin2::log::debug("Blue dragon: using weak breath");
 
-                blue_dragon_skill_weak_breath(ch, pSecMap);
+                blue_dragon_skill_weak_breath(ch, sec_map);
 
-                nextUsingTime = number(blue_dragon_get_skill_factor(3, "Skill1", "period", "min"), blue_dragon_get_skill_factor(3, "Skill1", "period", "max"));
+                next_using_time = number(blue_dragon_get_skill_factor(3, "Skill1", "period", "min"), blue_dragon_get_skill_factor(3, "Skill1", "period", "max"));
             }
             break;
 
@@ -52,9 +52,9 @@ namespace metin2::game::inline events {
             {
                 metin2::log::debug("Blue dragon: using earthquake");
 
-                character *farthest_char = blue_dragon_skill_earth_quake(ch, pSecMap);
+                character *farthest_char = blue_dragon_skill_earth_quake(ch, sec_map);
 
-                nextUsingTime = number(blue_dragon_get_skill_factor(3, "Skill2", "period", "min"), blue_dragon_get_skill_factor(3, "Skill2", "period", "max"));
+                next_using_time = number(blue_dragon_get_skill_factor(3, "Skill2", "period", "min"), blue_dragon_get_skill_factor(3, "Skill2", "period", "max"));
 
                 if (nullptr != farthest_char) {
                     ch->begin_fight(farthest_char);
@@ -67,49 +67,49 @@ namespace metin2::game::inline events {
             return 0;
         }
 
-        int addPct = blue_dragon_get_range_factor("hp_period", ch->hp_pct());
+        int add_pct = blue_dragon_get_range_factor("hp_period", ch->hp_pct());
 
-        nextUsingTime += (nextUsingTime * addPct) / 100;
+        next_using_time += (next_using_time * add_pct) / 100;
 
-        return nextUsingTime;
+        return next_using_time;
     }
 
     auto blue_dragon_state_battle(character *ch) -> int {
         if (ch->hp_pct() > 98)
             return passes_per_sec(1);
 
-        const int SkillCount = 3;
-        int SkillPriority[SkillCount];
-        static time_t timeSkillCanUseTime[SkillCount];
+        const int skill_count = 3;
+        int skill_priority[skill_count];
+        static time_t time_skill_can_use_time[skill_count];
 
         if (ch->hp_pct() > 76) {
-            SkillPriority[0] = 1;
-            SkillPriority[1] = 0;
-            SkillPriority[2] = 2;
+            skill_priority[0] = 1;
+            skill_priority[1] = 0;
+            skill_priority[2] = 2;
         } else if (ch->hp_pct() > 31) {
-            SkillPriority[0] = 0;
-            SkillPriority[1] = 1;
-            SkillPriority[2] = 2;
+            skill_priority[0] = 0;
+            skill_priority[1] = 1;
+            skill_priority[2] = 2;
         } else {
-            SkillPriority[0] = 0;
-            SkillPriority[1] = 2;
-            SkillPriority[2] = 1;
+            skill_priority[0] = 0;
+            skill_priority[1] = 2;
+            skill_priority[2] = 1;
         }
 
-        auto timeNow = static_cast<time_t>(get_dword_time());
+        auto time_now = static_cast<time_t>(get_dword_time());
 
-        for (int i = 0; i < SkillCount; ++i) {
-            const int SkillIndex = SkillPriority[i];
+        for (int i = 0; i < skill_count; ++i) {
+            const int skill_index = skill_priority[i];
 
-            if (timeSkillCanUseTime[SkillIndex] < timeNow) {
-                int SkillUsingDuration =
-                    static_cast<int>(motion_manager::instance().motion_duration(ch->race_num(), make_motion_key(MOTION_MODE_GENERAL, MOTION_SPECIAL_1 + SkillIndex)));
+            if (time_skill_can_use_time[skill_index] < time_now) {
+                int skill_using_duration =
+                    static_cast<int>(motion_manager::instance().motion_duration(ch->race_num(), make_motion_key(MOTION_MODE_GENERAL, MOTION_SPECIAL_1 + skill_index)));
 
-                timeSkillCanUseTime[SkillIndex] = timeNow + (use_blue_dragon_skill(ch, SkillIndex) * 1000) + SkillUsingDuration + 3000;
+                time_skill_can_use_time[skill_index] = time_now + (use_blue_dragon_skill(ch, skill_index) * 1000) + skill_using_duration + 3000;
 
-                ch->send_move_packet(FUNC_MOB_SKILL, SkillIndex, ch->x(), ch->y(), 0, timeNow);
+                ch->send_move_packet(FUNC_MOB_SKILL, skill_index, ch->x(), ch->y(), 0, time_now);
 
-                return 0 == SkillUsingDuration ? passes_per_sec(1) : passes_per_sec(SkillUsingDuration);
+                return 0 == skill_using_duration ? passes_per_sec(1) : passes_per_sec(skill_using_duration);
             }
         }
 
@@ -123,9 +123,9 @@ namespace metin2::game::inline events {
         if (true == attacker->is_monster() && 2493 == attacker->get_mob_table().vnum) {
             for (int i = 1; i <= 4; ++i) {
                 if (ATK_BONUS == blue_dragon_get_index_factor("DragonStone", i, "effect_type")) {
-                    uint32_t dwDragonStoneID = blue_dragon_get_index_factor("DragonStone", i, "vnum");
+                    uint32_t dragon_stone_id = blue_dragon_get_index_factor("DragonStone", i, "vnum");
                     size_t val = blue_dragon_get_index_factor("DragonStone", i, "val");
-                    size_t cnt = sectree_manager::instance().monster_count_in_map(attacker->map_index(), dwDragonStoneID);
+                    size_t cnt = sectree_manager::instance().monster_count_in_map(attacker->map_index(), dragon_stone_id);
 
                     dam += (dam * (val * cnt)) / 100;
 
@@ -137,9 +137,9 @@ namespace metin2::game::inline events {
         if (true == me->is_monster() && 2493 == me->get_mob_table().vnum) {
             for (int i = 1; i <= 4; ++i) {
                 if (DEF_BONUS == blue_dragon_get_index_factor("DragonStone", i, "effect_type")) {
-                    uint32_t dwDragonStoneID = blue_dragon_get_index_factor("DragonStone", i, "vnum");
+                    uint32_t dragon_stone_id = blue_dragon_get_index_factor("DragonStone", i, "vnum");
                     size_t val = blue_dragon_get_index_factor("DragonStone", i, "val");
-                    size_t cnt = sectree_manager::instance().monster_count_in_map(me->map_index(), dwDragonStoneID);
+                    size_t cnt = sectree_manager::instance().monster_count_in_map(me->map_index(), dragon_stone_id);
 
                     dam -= (dam * (val * cnt)) / 100;
 

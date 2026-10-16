@@ -70,24 +70,24 @@ namespace metin2::game::inline characters {
         mob_table *t = table_value;
 
         for (int i = 0; i < size; ++i, ++t) {
-            auto pkMobOwner = std::make_unique<mob>();
-            mob *pkMob = pkMobOwner.get();
+            auto mob_owner = std::make_unique<mob>();
+            mob *mob_value = mob_owner.get();
 
-            std::memcpy(&pkMob->table, t, sizeof(mob_table));
+            std::memcpy(&mob_value->table, t, sizeof(mob_table));
 
-            if (!map_mob_by_vnum_.try_emplace(t->vnum, std::move(pkMobOwner)).second)
-                retired_mobs_.push_back(std::move(pkMobOwner));
+            if (!map_mob_by_vnum_.try_emplace(t->vnum, std::move(mob_owner)).second)
+                retired_mobs_.push_back(std::move(mob_owner));
 
-            map_mob_by_name_.insert(std::map<std::string, mob *>::value_type(t->locale_name, pkMob));
+            map_mob_by_name_.insert(std::map<std::string, mob *>::value_type(t->locale_name, mob_value));
 
-            int SkillCount = 0;
+            int skill_count = 0;
 
             for (int j = 0; j < MOB_SKILL_MAX_NUM; ++j)
-                if (pkMob->table.skills[j].vnum)
-                    ++SkillCount;
+                if (mob_value->table.skills[j].vnum)
+                    ++skill_count;
 
             metin2::log::debug("Mob {:d} {}: level {:d}, hp {:d}, def {:d}, exp {:d}, drop item {:d}, {:d} skills",
-                t->vnum, t->locale_name, t->level, t->max_hp, t->def, t->exp, t->drop_item_vnum, SkillCount);
+                t->vnum, t->locale_name, t->level, t->max_hp, t->def, t->exp, t->drop_item_vnum, skill_count);
 
             if (t->type == CHAR_TYPE_NPC || t->type == CHAR_TYPE_WARP || t->type == CHAR_TYPE_GOTO)
                 character_manager::instance().register_race_num(t->vnum);
@@ -95,15 +95,15 @@ namespace metin2::game::inline characters {
             quest::quest_manager::instance().register_npc_vnum(t->vnum);
         }
 
-        const std::string szGroupFileName = std::format("{}/group.txt", locale_service_get_base_path());
-        const std::string szGroupGroupFileName = std::format("{}/group_group.txt", locale_service_get_base_path());
+        const std::string group_file_name = std::format("{}/group.txt", locale_service_get_base_path());
+        const std::string group_group_file_name = std::format("{}/group_group.txt", locale_service_get_base_path());
 
-        if (!load_group(szGroupFileName.c_str())) {
-            metin2::log::error("Cannot load mob group file {}", szGroupFileName);
+        if (!load_group(group_file_name.c_str())) {
+            metin2::log::error("Cannot load mob group file {}", group_file_name);
             thecore_shutdown();
         }
-        if (!load_group_group(szGroupGroupFileName.c_str())) {
-            metin2::log::error("Cannot load mob group group file {}", szGroupGroupFileName);
+        if (!load_group_group(group_group_file_name.c_str())) {
+            metin2::log::error("Cannot load mob group group file {}", group_group_file_name);
             thecore_shutdown();
         }
 
@@ -115,10 +115,10 @@ namespace metin2::game::inline characters {
         if (ch->is_pc())
             return;
 
-        const mob *pMob = get(ch->race_num());
+        const mob *mob = get(ch->race_num());
 
-        if (pMob)
-            ch->set_proto(pMob);
+        if (mob)
+            ch->set_proto(mob);
     }
 
     auto mob_manager::get(uint32_t vnum) -> const mob * {
@@ -163,13 +163,13 @@ namespace metin2::game::inline characters {
 
         case REGEN_TYPE_GROUP:
             {
-                mob_group *pkGroup = mob_manager::instance().group(vnum);
-                if (!pkGroup)
+                mob_group *group = mob_manager::instance().group(vnum);
+                if (!group)
                     return;
-                const std::vector<uint32_t> &c_rdwMembers = pkGroup->member_vector();
+                const std::vector<uint32_t> &c_rdw_members = group->member_vector();
 
-                for (uint32_t i = 0; i < c_rdwMembers.size(); i++)
-                    regen_count_[c_rdwMembers[i]] += count * 86400. / time;
+                for (uint32_t i = 0; i < c_rdw_members.size(); i++)
+                    regen_count_[c_rdw_members[i]] += count * 86400. / time;
             }
             break;
 
@@ -182,13 +182,13 @@ namespace metin2::game::inline characters {
 
                 std::vector<uint32_t> &v = it->second->vec_member_vnum;
                 for (uint32_t i = 0; i < v.size(); i++) {
-                    mob_group *pkGroup = mob_manager::instance().group(v[i]);
-                    if (!pkGroup)
+                    mob_group *group = mob_manager::instance().group(v[i]);
+                    if (!group)
                         return;
-                    const std::vector<uint32_t> &c_rdwMembers = pkGroup->member_vector();
+                    const std::vector<uint32_t> &c_rdw_members = group->member_vector();
 
-                    for (uint32_t i = 0; i < c_rdwMembers.size(); i++)
-                        regen_count_[c_rdwMembers[i]] += count * 86400. / time / v.size();
+                    for (uint32_t i = 0; i < c_rdw_members.size(); i++)
+                        regen_count_[c_rdw_members[i]] += count * 86400. / time / v.size();
                 }
             }
             break;
@@ -235,36 +235,36 @@ namespace metin2::game::inline characters {
         if (!loader.load(file_name))
             return false;
 
-        std::string stName;
+        std::string name;
 
         for (uint32_t i = 0; i < loader.child_node_count(); ++i) {
             loader.set_child_node(i);
 
-            loader.current_node_name(&stName);
+            loader.current_node_name(&name);
 
-            int iVnum;
+            int vnum_value;
 
-            if (!loader.token_integer("vnum", &iVnum)) {
-                metin2::log::error("Syntax error in {}: group group {} has no vnum", file_name, stName);
+            if (!loader.token_integer("vnum", &vnum_value)) {
+                metin2::log::error("Syntax error in {}: group group {} has no vnum", file_name, name);
                 loader.set_parent_node();
                 continue;
             }
 
-            token_vector *pTok;
+            token_vector *tok;
 
-            auto pkGroup = std::make_unique<mob_group_group>(iVnum);
+            auto group = std::make_unique<mob_group_group>(vnum_value);
 
             for (int k = 1; k < 256; ++k) {
-                if (loader.get_token_vector(std::to_string(k), &pTok)) {
-                    uint32_t dwMobVnum = 0;
-                    str_to_number(dwMobVnum, pTok->at(0).c_str());
+                if (loader.get_token_vector(std::to_string(k), &tok)) {
+                    uint32_t mob_vnum = 0;
+                    str_to_number(mob_vnum, tok->at(0).c_str());
 
                     int prob = 1;
-                    if (pTok->size() > 1)
-                        str_to_number(prob, pTok->at(1).c_str());
+                    if (tok->size() > 1)
+                        str_to_number(prob, tok->at(1).c_str());
 
-                    if (dwMobVnum)
-                        pkGroup->add_member(dwMobVnum);
+                    if (mob_vnum)
+                        group->add_member(mob_vnum);
 
                     continue;
                 }
@@ -274,7 +274,7 @@ namespace metin2::game::inline characters {
 
             loader.set_parent_node();
 
-            map_mob_group_group_.try_emplace((uint32_t)iVnum, std::move(pkGroup));
+            map_mob_group_group_.try_emplace((uint32_t)vnum_value, std::move(group));
         }
 
         return true;
@@ -286,51 +286,51 @@ namespace metin2::game::inline characters {
         if (!loader.load(file_name))
             return false;
 
-        std::string stName;
+        std::string name;
 
         for (uint32_t i = 0; i < loader.child_node_count(); ++i) {
             loader.set_child_node(i);
 
-            loader.current_node_name(&stName);
+            loader.current_node_name(&name);
 
-            int iVnum;
+            int vnum_value;
 
-            if (!loader.token_integer("vnum", &iVnum)) {
-                metin2::log::error("Syntax error in {}: group {} has no vnum", file_name, stName);
+            if (!loader.token_integer("vnum", &vnum_value)) {
+                metin2::log::error("Syntax error in {}: group {} has no vnum", file_name, name);
                 loader.set_parent_node();
                 continue;
             }
 
-            token_vector *pTok;
+            token_vector *tok;
 
-            if (!loader.get_token_vector("leader", &pTok)) {
-                metin2::log::error("Syntax error in {}: group {} has no leader", file_name, stName);
+            if (!loader.get_token_vector("leader", &tok)) {
+                metin2::log::error("Syntax error in {}: group {} has no leader", file_name, name);
                 loader.set_parent_node();
                 continue;
             }
 
-            if (pTok->size() < 2) {
-                metin2::log::error("Syntax error in {}: group {} has no leader vnum", file_name, stName);
+            if (tok->size() < 2) {
+                metin2::log::error("Syntax error in {}: group {} has no leader vnum", file_name, name);
                 loader.set_parent_node();
                 continue;
             }
 
-            auto pkGroup = std::make_unique<mob_group>();
+            auto group_value = std::make_unique<mob_group>();
 
-            pkGroup->create(iVnum, stName);
+            group_value->create(vnum_value, name);
             uint32_t vnum = 0;
-            str_to_number(vnum, pTok->at(1).c_str());
-            pkGroup->add_member(vnum);
+            str_to_number(vnum, tok->at(1).c_str());
+            group_value->add_member(vnum);
 
-            metin2::log::debug("Mob group {:d}: {}", iVnum, stName);
-            metin2::log::debug("Mob group {:d}: leader {} (vnum {})", iVnum, pTok->at(0), pTok->at(1));
+            metin2::log::debug("Mob group {:d}: {}", vnum_value, name);
+            metin2::log::debug("Mob group {:d}: leader {} (vnum {})", vnum_value, tok->at(0), tok->at(1));
 
             for (int k = 1; k < 256; ++k) {
-                if (loader.get_token_vector(std::to_string(k), &pTok)) {
-                    metin2::log::debug("Mob group {:d}: member {} (vnum {})", iVnum, pTok->at(0), pTok->at(1));
+                if (loader.get_token_vector(std::to_string(k), &tok)) {
+                    metin2::log::debug("Mob group {:d}: member {} (vnum {})", vnum_value, tok->at(0), tok->at(1));
                     uint32_t vnum = 0;
-                    str_to_number(vnum, pTok->at(1).c_str());
-                    pkGroup->add_member(vnum);
+                    str_to_number(vnum, tok->at(1).c_str());
+                    group_value->add_member(vnum);
                     continue;
                 }
 
@@ -338,7 +338,7 @@ namespace metin2::game::inline characters {
             }
 
             loader.set_parent_node();
-            map_mob_group_.try_emplace(iVnum, std::move(pkGroup));
+            map_mob_group_.try_emplace(vnum_value, std::move(group_value));
         }
 
         return true;

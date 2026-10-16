@@ -45,14 +45,14 @@ namespace metin2::game::inline social {
                 return 0;
             }
 
-            wedding_map *pMap = info->wedding_map;
+            wedding_map *map = info->wedding_map;
 
             if (info->step == 0) {
                 ++info->step;
-                pMap->warp_all();
+                map->warp_all();
                 return passes_per_sec(15);
             }
-            wedding_manager::instance().destroy_wedding_map(pMap);
+            wedding_manager::instance().destroy_wedding_map(map);
             return 0;
         }
 
@@ -232,33 +232,33 @@ namespace metin2::game::inline social {
         }
 
         auto wedding_manager::create_wedding_map(uint32_t pid1, uint32_t pid2) -> uint32_t {
-            sectree_manager &rkSecTreeMgr = sectree_manager::instance();
+            sectree_manager &sec_tree_mgr = sectree_manager::instance();
 
-            uint32_t dwMapIndex = rkSecTreeMgr.create_private_map(WEDDING_MAP_INDEX);
+            uint32_t map_index = sec_tree_mgr.create_private_map(WEDDING_MAP_INDEX);
 
-            if (!dwMapIndex) {
+            if (!map_index) {
                 metin2::log::error("Cannot create private copy of map {:d} for the wedding of {:d} and {:d}", WEDDING_MAP_INDEX, pid1, pid2);
                 return 0;
             }
 
-            wedding_.emplace(dwMapIndex, std::make_unique<wedding_map>(dwMapIndex, pid1, pid2));
+            wedding_.emplace(map_index, std::make_unique<wedding_map>(map_index, pid1, pid2));
 
-            sectree_map *pkSectreeMap = rkSecTreeMgr.map(dwMapIndex);
-            if (pkSectreeMap == nullptr) {
+            sectree_map *sectree_map = sec_tree_mgr.map(map_index);
+            if (sectree_map == nullptr) {
                 return 0;
             }
-            std::string st_weddingMapRegenFileName;
-            st_weddingMapRegenFileName.reserve(64);
-            st_weddingMapRegenFileName = locale_service_get_map_path();
-            st_weddingMapRegenFileName += "/metin2_map_wedding_01/npc.txt";
+            std::string st_wedding_map_regen_file_name;
+            st_wedding_map_regen_file_name.reserve(64);
+            st_wedding_map_regen_file_name = locale_service_get_map_path();
+            st_wedding_map_regen_file_name += "/metin2_map_wedding_01/npc.txt";
 
-            if (!regen_do(st_weddingMapRegenFileName.c_str(), dwMapIndex, pkSectreeMap->setting.base_x, pkSectreeMap->setting.base_y, nullptr, true)) {
-                metin2::log::error("Cannot spawn wedding of {:d} and {:d}: regen {} failed on map {:d} (base {:d}, {:d})", pid1, pid2, st_weddingMapRegenFileName, dwMapIndex, pkSectreeMap->setting.base_x, pkSectreeMap->setting.base_y);
+            if (!regen_do(st_wedding_map_regen_file_name.c_str(), map_index, sectree_map->setting.base_x, sectree_map->setting.base_y, nullptr, true)) {
+                metin2::log::error("Cannot spawn wedding of {:d} and {:d}: regen {} failed on map {:d} (base {:d}, {:d})", pid1, pid2, st_wedding_map_regen_file_name, map_index, sectree_map->setting.base_x, sectree_map->setting.base_y);
             } else {
-                metin2::log::info("Wedding map created for {:d} and {:d}: regen {} on map {:d} (base {:d}, {:d})", pid1, pid2, st_weddingMapRegenFileName, dwMapIndex, pkSectreeMap->setting.base_x, pkSectreeMap->setting.base_y);
+                metin2::log::info("Wedding map created for {:d} and {:d}: regen {} on map {:d} (base {:d}, {:d})", pid1, pid2, st_wedding_map_regen_file_name, map_index, sectree_map->setting.base_x, sectree_map->setting.base_y);
             }
 
-            return dwMapIndex;
+            return map_index;
         }
 
         void wedding_manager::destroy_wedding_map(wedding_map *map) {
@@ -284,9 +284,9 @@ namespace metin2::game::inline social {
 
         void wedding_manager::request(uint32_t pid1, uint32_t pid2) {
             if (map_allow_find(WEDDING_MAP_INDEX)) {
-                uint32_t dwMapIndex = create_wedding_map(pid1, pid2);
+                uint32_t map_index = create_wedding_map(pid1, pid2);
 
-                if (!dwMapIndex) {
+                if (!map_index) {
                     metin2::log::error("Cannot create wedding map for {:d} and {:d}", pid1, pid2);
                     return;
                 }
@@ -294,7 +294,7 @@ namespace metin2::game::inline social {
                 packet_wedding_ready p;
                 p.pid1 = pid1;
                 p.pid2 = pid2;
-                p.map_index = dwMapIndex;
+                p.map_index = map_index;
 
                 db_clientdesc->db_packet(HEADER_GD_WEDDING_READY, 0, &p, sizeof(p));
             }

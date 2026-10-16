@@ -46,10 +46,10 @@ namespace metin2::game::inline combat {
     void table_by_skill::set_skill_power_by_level_from_type(int idx, const int *table) {
         delete_skill_power_by_level_from_type(idx);
 
-        auto aiSkillTable = std::make_unique_for_overwrite<int[]>(SKILL_MAX_LEVEL + 1);
+        auto ai_skill_table = std::make_unique_for_overwrite<int[]>(SKILL_MAX_LEVEL + 1);
 
-        memcpy(aiSkillTable.get(), table, sizeof(int) * (SKILL_MAX_LEVEL + 1));
-        skill_power_by_level_from_type_[idx] = std::move(aiSkillTable);
+        memcpy(ai_skill_table.get(), table, sizeof(int) * (SKILL_MAX_LEVEL + 1));
+        skill_power_by_level_from_type_[idx] = std::move(ai_skill_table);
     }
 
     void table_by_skill::delete_skill_power_by_level_from_type(int idx) {

@@ -99,7 +99,7 @@ namespace metin2::game {
 
             quest_manager &q = quest_manager::instance();
             quest_state *pqs = q.current_state();
-            pc *pPC = q.current_pc();
+            pc *pc = q.current_pc();
 
             if (lua != pqs->co) {
                 luaL_error(lua, "running thread != current thread???");
@@ -108,12 +108,12 @@ namespace metin2::game {
                 return 0;
             }
 
-            if (pPC) {
-                std::string stCurrentState = lua_tostring(lua, -1);
+            if (pc) {
+                std::string current_state = lua_tostring(lua, -1);
                 if (metin2::config::test_server())
-                    metin2::log::debug("Quest: {} set state {}", pPC->current_quest_name(), stCurrentState);
-                pqs->st = q.quest_state_index(pPC->current_quest_name(), stCurrentState);
-                pPC->set_current_quest_state_name(stCurrentState);
+                    metin2::log::debug("Quest: {} set state {}", pc->current_quest_name(), current_state);
+                pqs->st = q.quest_state_index(pc->current_quest_name(), current_state);
+                pc->set_current_quest_state_name(current_state);
             }
             return 0;
         }
@@ -122,16 +122,16 @@ namespace metin2::game {
             quest_manager &q = quest_manager::instance();
             if (q.is_in_other_pc_block()) {
                 quest::error("Yield inside other_pc_block");
-                pc *pPC = q.other_pc_block_root_pc();
-                if (nullptr == pPC) {
+                pc *pc = q.other_pc_block_root_pc();
+                if (nullptr == pc) {
                     quest::error("Root player of other_pc_block is missing");
                     return 0;
                 }
-                quest_state *pQS = pPC->running_quest_state();
-                if (nullptr == pQS || nullptr == q.quest_state_name(pPC->current_quest_name(), pQS->st)) {
-                    quest::error("Yield in quest {} with unknown state", pPC->current_quest_name().c_str());
+                quest_state *qs = pc->running_quest_state();
+                if (nullptr == qs || nullptr == q.quest_state_name(pc->current_quest_name(), qs->st)) {
+                    quest::error("Yield in quest {} with unknown state", pc->current_quest_name().c_str());
                 } else {
-                    quest::error("Yield in quest {} state {}", pPC->current_quest_name().c_str(), q.quest_state_name(pPC->current_quest_name(), pQS->st));
+                    quest::error("Yield in quest {} state {}", pc->current_quest_name().c_str(), q.quest_state_name(pc->current_quest_name(), qs->st));
                 }
                 return 0;
             }
@@ -146,9 +146,9 @@ namespace metin2::game {
 
         auto quest_get_current_quest_index(lua_State *lua) -> int {
             quest_manager &q = quest_manager::instance();
-            pc *pPC = q.current_pc();
+            pc *pc = q.current_pc();
 
-            int idx = q.quest_index_by_name(pPC->current_quest_name());
+            int idx = q.quest_index_by_name(pc->current_quest_name());
             lua_pushnumber(lua, idx);
             return 1;
         }

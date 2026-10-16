@@ -264,10 +264,10 @@ namespace metin2::game::inline empire {
         if (nullptr == sectree_map)
             return 0;
 
-        const int SPAWN_COUNT = 15;
+        const int spawn_count = 15;
 
-        if (info->spawn_count < (SPAWN_COUNT * 2)) {
-            for (int i = 0; i < SPAWN_COUNT; ++i) {
+        if (info->spawn_count < (spawn_count * 2)) {
+            for (int i = 0; i < spawn_count; ++i) {
                 uint32_t sx = sectree_map->setting.base_x + 100 * tower_region[info->empire].sx;
                 uint32_t sy = sectree_map->setting.base_y + 100 * tower_region[info->empire].sy;
                 uint32_t ex = sectree_map->setting.base_x + 100 * tower_region[info->empire].ex;
@@ -278,9 +278,9 @@ namespace metin2::game::inline empire {
                     sx, sy, ex, ey);
             }
 
-            info->spawn_count += SPAWN_COUNT;
+            info->spawn_count += spawn_count;
 
-            if (info->spawn_count < (SPAWN_COUNT * 2))
+            if (info->spawn_count < (spawn_count * 2))
                 return passes_per_sec(30 * 60);
             else
                 return 0;

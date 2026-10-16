@@ -119,13 +119,13 @@ namespace metin2::game {
         }
 
         auto party_syschat(lua_State *lua) -> int {
-            party *pParty = quest_manager::instance().current_character_ptr()->get_party();
+            party *party = quest_manager::instance().current_character_ptr()->get_party();
 
-            if (pParty) {
+            if (party) {
                 std::ostringstream s;
                 combine_lua_string(lua, s);
 
-                pParty->for_each_online_member([&](character *member) {
+                party->for_each_online_member([&](character *member) {
                     member->chat_packet(CHAT_TYPE_INFO, "%s", s.str().c_str());
                 });
             }
@@ -161,13 +161,13 @@ namespace metin2::game {
         }
 
         auto party_chat(lua_State *lua) -> int {
-            party *pParty = quest_manager::instance().current_character_ptr()->get_party();
+            party *party = quest_manager::instance().current_character_ptr()->get_party();
 
-            if (pParty) {
+            if (party) {
                 std::ostringstream s;
                 combine_lua_string(lua, s);
 
-                pParty->for_each_online_member([&](character *member) {
+                party->for_each_online_member([&](character *member) {
                     member->chat_packet(CHAT_TYPE_TALKING, "%s", s.str().c_str());
                 });
             }
@@ -183,17 +183,17 @@ namespace metin2::game {
             }
 
             quest_manager &q = quest_manager::instance();
-            party *pParty = q.current_character_ptr()->get_party();
+            party *party = q.current_character_ptr()->get_party();
             character *ch = q.current_character_ptr();
-            pc *pPC = q.current_pc();
+            pc *pc_value = q.current_pc();
 
             const char *sz = lua_tostring(lua, 1);
 
-            if (pParty) {
-                std::string flagname = pPC->current_quest_name() + "." + sz;
+            if (party) {
+                std::string flagname = pc_value->current_quest_name() + "." + sz;
                 int value = (int)rint(lua_tonumber(lua, 2));
 
-                bool returnBool = pParty->for_each_on_map_member_bool([&](character *member) {
+                bool return_bool = party->for_each_on_map_member_bool([&](character *member) {
                     if (!member->is_pc())
                         return false;
 
@@ -201,7 +201,7 @@ namespace metin2::game {
                     return member_pc && value > member_pc->flag(flagname);
                 },
                     ch->map_index());
-                lua_pushboolean(lua, returnBool);
+                lua_pushboolean(lua, return_bool);
             }
 
             return 1;
@@ -247,9 +247,9 @@ namespace metin2::game {
         auto party_is_in_dungeon(lua_State *lua) -> int {
             quest_manager &q = quest_manager::instance();
             character *ch = q.current_character_ptr();
-            party *pParty = ch->get_party();
-            if (pParty != nullptr) {
-                lua_pushboolean(lua, pParty->get_dungeon() ? true : false);
+            party *party = ch->get_party();
+            if (party != nullptr) {
+                lua_pushboolean(lua, party->get_dungeon() ? true : false);
                 return 1;
             }
             lua_pushboolean(lua, false);
@@ -265,17 +265,17 @@ namespace metin2::game {
                 lua_pushboolean(lua, false);
                 return 1;
             }
-            uint32_t dwType = lua_tonumber(lua, 1);
-            uint8_t bApplyOn = lua_tonumber(lua, 2);
-            int32_t lApplyValue = lua_tonumber(lua, 3);
-            uint32_t dwFlag = lua_tonumber(lua, 4);
-            int32_t lDuration = lua_tonumber(lua, 5);
-            int32_t lSPCost = lua_tonumber(lua, 6);
-            bool bOverride = lua_toboolean(lua, 7);
-            bool IsCube = lua_toboolean(lua, 8);
+            uint32_t type = lua_tonumber(lua, 1);
+            uint8_t apply_on = lua_tonumber(lua, 2);
+            int32_t apply_value = lua_tonumber(lua, 3);
+            uint32_t flag = lua_tonumber(lua, 4);
+            int32_t duration = lua_tonumber(lua, 5);
+            int32_t sp_cost = lua_tonumber(lua, 6);
+            bool override = lua_toboolean(lua, 7);
+            bool is_cube = lua_toboolean(lua, 8);
 
             auto f = [&](character *member) {
-                member->add_affect(dwType, bApplyOn, lApplyValue, dwFlag, lDuration, lSPCost, bOverride, IsCube);
+                member->add_affect(type, apply_on, apply_value, flag, duration, sp_cost, override, is_cube);
             };
             if (ch->get_party())
                 ch->get_party()->for_each_on_map_member(f, ch->map_index());
@@ -289,12 +289,12 @@ namespace metin2::game {
         auto party_get_member_pids(lua_State *lua) -> int {
             quest_manager &q = quest_manager::instance();
             character *ch = q.current_character_ptr();
-            party *pParty = ch->get_party();
-            if (nullptr == pParty) {
+            party *party = ch->get_party();
+            if (nullptr == party) {
                 return 0;
             }
             std::vector<uint32_t> pids;
-            pParty->for_each_on_map_member([&](character *member) {
+            party->for_each_on_map_member([&](character *member) {
                 pids.push_back(member->player_id());
             },
                 ch->map_index());

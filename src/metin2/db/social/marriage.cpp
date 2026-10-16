@@ -43,12 +43,12 @@ namespace metin2::db::inline social {
             auto pmsg_delete = db_manager::instance().direct_query("DELETE FROM marriage WHERE is_married = 0");
             auto pmsg = db_manager::instance().direct_query(query);
 
-            sql_result *pRes = pmsg->get();
-            metin2::log::info("Marriage: loading {:d} marriages", pRes->num_rows);
+            sql_result *res = pmsg->get();
+            metin2::log::info("Marriage: loading {:d} marriages", res->num_rows);
 
-            if (pRes->num_rows > 0) {
-                for (uint uiRow = 0; uiRow != pRes->num_rows; ++uiRow) {
-                    MYSQL_ROW row = mysql_fetch_row(pRes->res.get());
+            if (res->num_rows > 0) {
+                for (uint row_value = 0; row_value != res->num_rows; ++row_value) {
+                    MYSQL_ROW row = mysql_fetch_row(res->res.get());
 
                     uint32_t pid1 = 0;
                     str_to_number(pid1, row[0]);
@@ -63,11 +63,11 @@ namespace metin2::db::inline social {
                     const char *name1 = row[5];
                     const char *name2 = row[6];
 
-                    marriage *pMarriage = marriages_.emplace_back(std::make_unique<marriage>(pid1, pid2, love_point, time, is_married, name1, name2)).get();
-                    marriage_by_pid_.insert(std::make_pair(pid1, pMarriage));
-                    marriage_by_pid_.insert(std::make_pair(pid2, pMarriage));
+                    marriage *marriage_value = marriages_.emplace_back(std::make_unique<marriage>(pid1, pid2, love_point, time, is_married, name1, name2)).get();
+                    marriage_by_pid_.insert(std::make_pair(pid1, marriage_value));
+                    marriage_by_pid_.insert(std::make_pair(pid2, marriage_value));
 
-                    metin2::log::debug("Marriage: row {:d}, love points {:d}, time {:d}, married {:d}, {:d}:{} and {:d}:{}", uiRow, love_point, time, is_married, pid1, name1, pid2, name2);
+                    metin2::log::debug("Marriage: row {:d}, love points {:d}, time {:d}, married {:d}, {:d}:{} and {:d}:{}", row_value, love_point, time, is_married, pid1, name1, pid2, name2);
                 }
             }
             return true;
@@ -108,9 +108,9 @@ namespace metin2::db::inline social {
 
             metin2::log::info("Marriage: added marriage of pid {:d} and pid {:d}", pid1, pid2);
 
-            marriage *pMarriage = marriages_.emplace_back(std::make_unique<marriage>(pid1, pid2, 0, now, 0, name1_value, name2_value)).get();
-            marriage_by_pid_.insert(std::make_pair(pid1, pMarriage));
-            marriage_by_pid_.insert(std::make_pair(pid2, pMarriage));
+            marriage *marriage_value = marriages_.emplace_back(std::make_unique<marriage>(pid1, pid2, 0, now, 0, name1_value, name2_value)).get();
+            marriage_by_pid_.insert(std::make_pair(pid1, marriage_value));
+            marriage_by_pid_.insert(std::make_pair(pid2, marriage_value));
 
             packet_marriage_add p;
             p.pid1 = pid1;
@@ -122,8 +122,8 @@ namespace metin2::db::inline social {
         }
 
         void manager::update(uint32_t pid1_value, uint32_t pid2_value, int32_t love_point_value, uint8_t married_value) {
-            marriage *pMarriage = get(pid1_value);
-            if (!pMarriage || pMarriage->other(pid1_value) != pid2_value) {
+            marriage *marriage_value = get(pid1_value);
+            if (!marriage_value || marriage_value->other(pid1_value) != pid2_value) {
                 metin2::log::warn("Marriage: update for pid {:d} and pid {:d}, who are not married to each other", pid1_value, pid2_value);
                 return;
             }
@@ -131,7 +131,7 @@ namespace metin2::db::inline social {
             align(pid1_value, pid2_value);
 
             const std::string query = sql::format("UPDATE marriage SET love_point = {}, is_married = {} WHERE pid1 = {} AND pid2 = {}",
-                love_point_value, married_value, pMarriage->pid1, pMarriage->pid2);
+                love_point_value, married_value, marriage_value->pid1, marriage_value->pid2);
 
             auto pmsg = db_manager::instance().direct_query(query);
 
@@ -142,24 +142,24 @@ namespace metin2::db::inline social {
             }
 
             metin2::log::info("Marriage: updated pid {:d} and pid {:d}, love points {:d}, married {:d}", pid1_value, pid2_value, love_point_value, married_value);
-            pMarriage->love_point = love_point_value;
-            pMarriage->is_married = married_value;
+            marriage_value->love_point = love_point_value;
+            marriage_value->is_married = married_value;
 
             packet_marriage_update p;
             p.pid1 = pid1_value;
             p.pid2 = pid2_value;
-            p.love_point = pMarriage->love_point;
-            p.married = pMarriage->is_married;
+            p.love_point = marriage_value->love_point;
+            p.married = marriage_value->is_married;
             client_manager::instance().forward_packet(HEADER_DG_MARRIAGE_UPDATE, &p, sizeof(p));
         }
 
         void manager::remove(uint32_t pid1_value, uint32_t pid2_value) {
-            marriage *pMarriage = get(pid1_value);
+            marriage *marriage_value = get(pid1_value);
 
-            if (pMarriage) {
-                metin2::log::debug("Marriage: removing pid {:d} and pid {:d} (recorded partner {:d})", pid1_value, pid2_value, pMarriage->other(pid1_value));
+            if (marriage_value) {
+                metin2::log::debug("Marriage: removing pid {:d} and pid {:d} (recorded partner {:d})", pid1_value, pid2_value, marriage_value->other(pid1_value));
             }
-            if (!pMarriage || pMarriage->other(pid1_value) != pid2_value) {
+            if (!marriage_value || marriage_value->other(pid1_value) != pid2_value) {
                 auto it = marriage_by_pid_.begin();
 
                 for (; it != marriage_by_pid_.end(); ++it) {
@@ -191,30 +191,30 @@ namespace metin2::db::inline social {
             p.pid2 = pid2_value;
             client_manager::instance().forward_packet(HEADER_DG_MARRIAGE_REMOVE, &p, sizeof(p));
 
-            std::erase_if(marriages_, [pMarriage](const auto &m) { return m.get() == pMarriage; });
+            std::erase_if(marriages_, [marriage_value](const auto &m) { return m.get() == marriage_value; });
         }
 
         void manager::on_setup(peer *peer) {
             for (const auto &owned : marriages_) {
-                marriage *pMarriage = owned.get();
+                marriage *marriage = owned.get();
 
                 {
                     packet_marriage_add p;
-                    p.pid1 = pMarriage->pid1;
-                    p.pid2 = pMarriage->pid2;
-                    p.t_marry_time = pMarriage->time;
-                    strlcpy(p.name1, pMarriage->name1.c_str(), sizeof(p.name1));
-                    strlcpy(p.name2, pMarriage->name2.c_str(), sizeof(p.name2));
+                    p.pid1 = marriage->pid1;
+                    p.pid2 = marriage->pid2;
+                    p.t_marry_time = marriage->time;
+                    strlcpy(p.name1, marriage->name1.c_str(), sizeof(p.name1));
+                    strlcpy(p.name2, marriage->name2.c_str(), sizeof(p.name2));
                     peer->encode_header(HEADER_DG_MARRIAGE_ADD, 0, sizeof(p));
                     peer->encode(&p, sizeof(p));
                 }
 
                 {
                     packet_marriage_update p;
-                    p.pid1 = pMarriage->pid1;
-                    p.pid2 = pMarriage->pid2;
-                    p.love_point = pMarriage->love_point;
-                    p.married = pMarriage->is_married;
+                    p.pid1 = marriage->pid1;
+                    p.pid2 = marriage->pid2;
+                    p.love_point = marriage->love_point;
+                    p.married = marriage->is_married;
                     peer->encode_header(HEADER_DG_MARRIAGE_UPDATE, 0, sizeof(p));
                     peer->encode(&p, sizeof(p));
                 }
@@ -241,8 +241,8 @@ namespace metin2::db::inline social {
         }
 
         void manager::ready_wedding(uint32_t map_index, uint32_t pid1, uint32_t pid2) {
-            uint32_t dwStartTime = client_manager::instance().current_time();
-            pq_wedding_start_.push(wedding(dwStartTime + 5, map_index, pid1, pid2));
+            uint32_t start_time = client_manager::instance().current_time();
+            pq_wedding_start_.push(wedding(start_time + 5, map_index, pid1, pid2));
         }
 
         void manager::end_wedding(uint32_t pid1, uint32_t pid2) {
@@ -284,9 +284,9 @@ namespace metin2::db::inline social {
                     auto it_marriage = marriage_by_pid_.find(w.pid1);
 
                     if (it_marriage != marriage_by_pid_.end()) {
-                        marriage *pMarriage = it_marriage->second;
-                        if (!pMarriage->is_married) {
-                            remove(pMarriage->pid1, pMarriage->pid2);
+                        marriage *marriage = it_marriage->second;
+                        if (!marriage->is_married) {
+                            remove(marriage->pid1, marriage->pid2);
                         }
                     }
                 }

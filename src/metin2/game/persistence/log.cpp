@@ -102,44 +102,44 @@ namespace metin2::game::inline persistence {
     }
 
     void log_manager::gold_bar_log(uint32_t pid, uint32_t item_id, goldbar_how how, const char *hint) {
-        const char *szHow;
+        const char *how_value;
 
         switch (how) {
         case PERSONAL_SHOP_BUY:
-            szHow = "BUY";
+            how_value = "BUY";
             break;
 
         case PERSONAL_SHOP_SELL:
-            szHow = "SELL";
+            how_value = "SELL";
             break;
 
         case SHOP_BUY:
-            szHow = "SHOP_BUY";
+            how_value = "SHOP_BUY";
             break;
 
         case SHOP_SELL:
-            szHow = "SHOP_SELL";
+            how_value = "SHOP_SELL";
             break;
 
         case EXCHANGE_TAKE:
-            szHow = "EXCHANGE_TAKE";
+            how_value = "EXCHANGE_TAKE";
             break;
 
         case EXCHANGE_GIVE:
-            szHow = "EXCHANGE_GIVE";
+            how_value = "EXCHANGE_GIVE";
             break;
 
         case QUEST:
-            szHow = "QUEST";
+            how_value = "QUEST";
             break;
 
         default:
-            szHow = "";
+            how_value = "";
             break;
         }
 
         query(sql::format("INSERT DELAYED INTO goldlog{} (date, time, pid, what, how, hint) VALUES(CURDATE(), CURTIME(), {}, {}, {}, {})",
-            sql::raw(get_table_postfix()), pid, item_id, szHow, hint));
+            sql::raw(get_table_postfix()), pid, item_id, how_value, hint));
     }
 
     void log_manager::cube_log(uint32_t pid, uint32_t x, uint32_t y, uint32_t item_vnum, uint32_t item_uid, int item_count, bool success) {

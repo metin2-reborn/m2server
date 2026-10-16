@@ -106,17 +106,17 @@ namespace metin2::game::inline items {
             metin2::log::error("Item {} (id {:d}) has no free attribute slot", name(), id());
         else {
             const item_attr_table &r = map_item_attr[apply];
-            int32_t lVal = r.values[std::min(4, level - 1)];
+            int32_t val = r.values[std::min(4, level - 1)];
 
-            if (lVal)
-                set_attribute(i, apply, lVal);
+            if (val)
+                set_attribute(i, apply, val);
         }
     }
 
     void item::put_attribute_with_level(uint8_t level) {
-        int iAttributeSet = attribute_set_index();
+        int attribute_set = attribute_set_index();
 
-        if (iAttributeSet < 0)
+        if (attribute_set < 0)
             return;
 
         if (level > ITEM_ATTRIBUTE_MAX_LEVEL)
@@ -129,7 +129,7 @@ namespace metin2::game::inline items {
         for (int i = 0; i < MAX_APPLY_NUM; ++i) {
             const item_attr_table &r = map_item_attr[i];
 
-            if (r.max_level_by_set[iAttributeSet] && !has_attr(i)) {
+            if (r.max_level_by_set[attribute_set] && !has_attr(i)) {
                 avail.push_back(i);
                 total += r.prob;
             }
@@ -150,47 +150,47 @@ namespace metin2::game::inline items {
         }
 
         if (!attr_idx) {
-            metin2::log::error("No attribute to put on item {} (id {:d}), attribute set {:d}, level {:d}", name(), id(), iAttributeSet, level);
+            metin2::log::error("No attribute to put on item {} (id {:d}), attribute set {:d}, level {:d}", name(), id(), attribute_set, level);
             return;
         }
 
         const item_attr_table &r = map_item_attr[attr_idx];
 
-        if (level > r.max_level_by_set[iAttributeSet])
-            level = r.max_level_by_set[iAttributeSet];
+        if (level > r.max_level_by_set[attribute_set])
+            level = r.max_level_by_set[attribute_set];
 
         add_attr(attr_idx, level);
     }
 
     void item::put_attribute(const int *attr_percent_table) {
-        int iAttrLevelPercent = number(1, 100);
+        int attr_level_percent = number(1, 100);
         int i;
 
         for (i = 0; i < ITEM_ATTRIBUTE_MAX_LEVEL; ++i) {
-            if (iAttrLevelPercent <= attr_percent_table[i])
+            if (attr_level_percent <= attr_percent_table[i])
                 break;
 
-            iAttrLevelPercent -= attr_percent_table[i];
+            attr_level_percent -= attr_percent_table[i];
         }
 
         put_attribute_with_level(i + 1);
     }
 
     void item::change_attribute(const int *change_prob) {
-        int iAttributeCount = attribute_count();
+        int attribute_count_value = attribute_count();
 
         clear_attribute();
 
-        if (iAttributeCount == 0)
+        if (attribute_count_value == 0)
             return;
 
-        item_table const *pProto = proto();
+        item_table const *proto_value = proto();
 
-        if (pProto && pProto->s_addon_type) {
-            apply_addon(pProto->s_addon_type);
+        if (proto_value && proto_value->s_addon_type) {
+            apply_addon(proto_value->s_addon_type);
         }
 
-        static const int tmpChangeProb[ITEM_ATTRIBUTE_MAX_LEVEL] =
+        static const int tmp_change_prob[ITEM_ATTRIBUTE_MAX_LEVEL] =
             {
                 0,
                 10,
@@ -199,9 +199,9 @@ namespace metin2::game::inline items {
                 15,
         };
 
-        for (int i = attribute_count(); i < iAttributeCount; ++i) {
+        for (int i = attribute_count(); i < attribute_count_value; ++i) {
             if (change_prob == nullptr) {
-                put_attribute(tmpChangeProb);
+                put_attribute(tmp_change_prob);
             } else {
                 put_attribute(change_prob);
             }
@@ -209,12 +209,12 @@ namespace metin2::game::inline items {
     }
 
     void item::add_attribute() {
-        static const int aiItemAddAttributePercent[ITEM_ATTRIBUTE_MAX_LEVEL] =
+        static const int ai_item_add_attribute_percent[ITEM_ATTRIBUTE_MAX_LEVEL] =
             {
                 40, 50, 10, 0, 0};
 
         if (attribute_count() < MAX_NORM_ATTR_NUM)
-            put_attribute(aiItemAddAttributePercent);
+            put_attribute(ai_item_add_attribute_percent);
     }
 
     void item::clear_attribute() {
@@ -263,12 +263,12 @@ namespace metin2::game::inline items {
         save();
 
         if (type_value) {
-            const char *pszIP = nullptr;
+            const char *ip = nullptr;
 
             if (owner() && owner()->get_desc())
-                pszIP = owner()->get_desc()->host_name();
+                ip = owner()->get_desc()->host_name();
 
-            log_manager::instance().item_log(i, type_value, s_value_value, id(), "SET_ATTR", "", pszIP ? pszIP : "", original_vnum());
+            log_manager::instance().item_log(i, type_value, s_value_value, id(), "SET_ATTR", "", ip ? ip : "", original_vnum());
         }
     }
 
@@ -281,12 +281,12 @@ namespace metin2::game::inline items {
         save();
 
         if (type_value) {
-            const char *pszIP = nullptr;
+            const char *ip = nullptr;
 
             if (owner() && owner()->get_desc())
-                pszIP = owner()->get_desc()->host_name();
+                ip = owner()->get_desc()->host_name();
 
-            log_manager::instance().item_log(i, type_value, s_value_value, id(), "SET_FORCE_ATTR", "", pszIP ? pszIP : "", original_vnum());
+            log_manager::instance().item_log(i, type_value, s_value_value, id(), "SET_FORCE_ATTR", "", ip ? ip : "", original_vnum());
         }
     }
 
@@ -338,36 +338,36 @@ namespace metin2::game::inline items {
         int pos = count + 5;
         player_item_attribute &attr = attr_[pos];
 
-        int nAttrSet = attribute_set_index();
+        int attr_set = attribute_set_index();
         std::vector<int> avail;
 
         for (int i = 0; i < MAX_APPLY_NUM; ++i) {
             const item_attr_table &r = map_item_rare[i];
 
-            if (r.apply_index != 0 && r.max_level_by_set[nAttrSet] > 0 && has_rare_attr(i) != true) {
+            if (r.apply_index != 0 && r.max_level_by_set[attr_set] > 0 && has_rare_attr(i) != true) {
                 avail.push_back(i);
             }
         }
 
         const item_attr_table &r = map_item_rare[avail[number(0, avail.size() - 1)]];
-        int nAttrLevel = 5;
+        int attr_level = 5;
 
-        if (nAttrLevel > r.max_level_by_set[nAttrSet])
-            nAttrLevel = r.max_level_by_set[nAttrSet];
+        if (attr_level > r.max_level_by_set[attr_set])
+            attr_level = r.max_level_by_set[attr_set];
 
         attr.type = r.apply_index;
-        attr.s_value = r.values[nAttrLevel - 1];
+        attr.s_value = r.values[attr_level - 1];
 
         update_packet();
 
         save();
 
-        const char *pszIP = nullptr;
+        const char *ip = nullptr;
 
         if (owner() && owner()->get_desc())
-            pszIP = owner()->get_desc()->host_name();
+            ip = owner()->get_desc()->host_name();
 
-        log_manager::instance().item_log(pos, attr.type, attr.s_value, id(), "SET_RARE", "", pszIP ? pszIP : "", original_vnum());
+        log_manager::instance().item_log(pos, attr.type, attr.s_value, id(), "SET_RARE", "", ip ? ip : "", original_vnum());
         return true;
     }
 }

@@ -104,28 +104,28 @@ namespace metin2::db::inline caches {
 
         std::memcpy(data_.price_info, update_list->price_info, sizeof(item_price_info) * update_list->count);
 
-        int nDeletedNum;
+        int deleted_num;
 
         if (update_list->count < SHOP_PRICELIST_MAX_NUM) {
-            size_t sizeAddOldDataSize = SHOP_PRICELIST_MAX_NUM - update_list->count;
+            size_t size_add_old_data_size = SHOP_PRICELIST_MAX_NUM - update_list->count;
 
-            if (tmpvec.size() < sizeAddOldDataSize) {
-                sizeAddOldDataSize = tmpvec.size();
+            if (tmpvec.size() < size_add_old_data_size) {
+                size_add_old_data_size = tmpvec.size();
             }
 
-            std::memcpy(data_.price_info + update_list->count, tmpvec.data(), sizeof(item_price_info) * sizeAddOldDataSize);
-            data_.count += sizeAddOldDataSize;
+            std::memcpy(data_.price_info + update_list->count, tmpvec.data(), sizeof(item_price_info) * size_add_old_data_size);
+            data_.count += size_add_old_data_size;
 
-            nDeletedNum = tmpvec.size() - sizeAddOldDataSize;
+            deleted_num = tmpvec.size() - size_add_old_data_size;
         } else {
-            nDeletedNum = tmpvec.size();
+            deleted_num = tmpvec.size();
         }
 
         need_query_ = true;
 
         metin2::log::info(
             "Price list: owner pid {:d} updated {:d} items, deleted {:d}, total {:d}",
-            data_.owner_id, update_list->count, nDeletedNum, data_.count);
+            data_.owner_id, update_list->count, deleted_num, data_.count);
     }
 
     void item_price_list_table_cache::on_flush() {

@@ -118,11 +118,11 @@ namespace metin2::game::inline characters {
         int n = p_vec_buff_wear_targets_->size();
         map_additional_attrs_.clear();
         for (int i = 0; i < n; i++) {
-            item *pItem = buff_owner_->wear(p_vec_buff_wear_targets_->at(i));
-            if (nullptr != pItem) {
-                int m = pItem->attribute_count();
+            item *item = buff_owner_->wear(p_vec_buff_wear_targets_->at(i));
+            if (nullptr != item) {
+                int m = item->attribute_count();
                 for (int j = 0; j < m; j++) {
-                    player_item_attribute attr = pItem->get_attribute(j);
+                    player_item_attribute attr = item->get_attribute(j);
                     auto it = map_additional_attrs_.find(attr.type);
                     if (it != map_additional_attrs_.end()) {
                         it->second += attr.s_value;

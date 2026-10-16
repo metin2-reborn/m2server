@@ -94,10 +94,10 @@ namespace metin2::game {
         }
 
         auto forked_get_pass_path_by_empire(lua_State *lua) -> int {
-            int iEmpire = (int)lua_tonumber(lua, 1);
+            int empire_value = (int)lua_tonumber(lua, 1);
 
-            lua_pushstring(lua, get_pass_map_path(iEmpire));
-            metin2::log::debug("Forked: pass map path for empire {:d} is {}", iEmpire, get_pass_map_path(iEmpire));
+            lua_pushstring(lua, get_pass_map_path(empire_value));
+            metin2::log::debug("Forked: pass map path for empire {:d} is {}", empire_value, get_pass_map_path(empire_value));
             return 1;
         }
 
@@ -132,9 +132,9 @@ namespace metin2::game {
                 return 0;
             }
 
-            sectree_map *pSecMap = sectree_manager::instance().map(info->map_index_from);
-            if (pSecMap) {
-                pSecMap->for_each([info](entity *ent) {
+            sectree_map *sec_map = sectree_manager::instance().map(info->map_index_from);
+            if (sec_map) {
+                sec_map->for_each([info](entity *ent) {
                     if (ent->is_type(ENTITY_CHARACTER)) {
                         auto *ch = (character *)ent;
                         if (ch->is_pc()) {
@@ -148,20 +148,20 @@ namespace metin2::game {
         }
 
         auto forked_warp_all_in_map(lua_State *lua) -> int {
-            int iMapIndexFrom = (int)lua_tonumber(lua, 1);
-            int iMapIndexTo = (int)lua_tonumber(lua, 2);
+            int map_index_from = (int)lua_tonumber(lua, 1);
+            int map_index_to = (int)lua_tonumber(lua, 2);
             int ix = (int)lua_tonumber(lua, 3);
             int iy = (int)lua_tonumber(lua, 4);
-            int iTime = (int)lua_tonumber(lua, 5);
+            int time = (int)lua_tonumber(lua, 5);
 
             auto *info = alloc_event_info<warp_all_to_map_event_info>();
 
-            info->map_index_from = iMapIndexFrom;
-            info->map_index_to = iMapIndexTo;
+            info->map_index_from = map_index_from;
+            info->map_index_to = map_index_to;
             info->x = ix;
             info->y = iy;
 
-            event_create(warp_all_to_map_event, info, passes_per_sec(iTime));
+            event_create(warp_all_to_map_event, info, passes_per_sec(time));
 
             return 0;
         }

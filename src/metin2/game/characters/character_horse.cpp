@@ -42,7 +42,7 @@ namespace metin2::game::inline characters {
             return false;
         }
 
-        uint32_t dwMountVnum = ch_horse_ ? ch_horse_->race_num() : my_horse_vnum();
+        uint32_t mount_vnum_value = ch_horse_ ? ch_horse_->race_num() : my_horse_vnum();
 
         if (false == horse_rider::start_riding()) {
             if (horse_level() <= 0)
@@ -57,7 +57,7 @@ namespace metin2::game::inline characters {
 
         horse_summon(false);
 
-        mount_vnum(dwMountVnum);
+        mount_vnum(mount_vnum_value);
 
         if (metin2::config::test_server())
             metin2::log::debug("{} mounts a horse", name());
@@ -70,10 +70,10 @@ namespace metin2::game::inline characters {
             quest::quest_manager::instance().unmount(player_id());
 
             if (!is_dead() && !is_stun()) {
-                uint32_t dwOldVnum = get_mount_vnum();
+                uint32_t old_vnum = get_mount_vnum();
                 mount_vnum(0);
 
-                horse_summon(true, false, dwOldVnum);
+                horse_summon(true, false, old_vnum);
             } else {
                 mount_vnum_ = 0;
                 compute_points();
@@ -169,10 +169,10 @@ namespace metin2::game::inline characters {
 
             ch_horse_->set_level(horse_level());
 
-            const char *pHorseName = horse_name_manager::instance().horse_name(player_id());
+            const char *horse_name = horse_name_manager::instance().horse_name(player_id());
 
-            if (pHorseName != nullptr && strlen(pHorseName) != 0) {
-                ch_horse_->name_ = pHorseName;
+            if (horse_name != nullptr && strlen(horse_name) != 0) {
+                ch_horse_->name_ = horse_name;
             } else {
                 ch_horse_->name_ = name();
                 ch_horse_->name_ += lc_text("님의 말");
@@ -197,19 +197,19 @@ namespace metin2::game::inline characters {
             if (!ch_horse_)
                 return;
 
-            character *chHorse = ch_horse_;
+            character *ch_horse = ch_horse_;
 
-            chHorse->set_rider(nullptr);
+            ch_horse->set_rider(nullptr);
 
             if (!from_far) {
-                character_manager::instance().destroy_character(chHorse);
+                character_manager::instance().destroy_character(ch_horse);
             } else {
-                chHorse->set_now_walking(false);
+                ch_horse->set_now_walking(false);
                 float fx, fy;
-                chHorse->set_rotation(get_degree_from_position_xy(chHorse->x(), chHorse->y(), x(), y()) + 180);
-                get_delta_by_degree(chHorse->rotation(), 3500, &fx, &fy);
-                chHorse->go_to((int32_t)(chHorse->x() + fx), (int32_t)(chHorse->y() + fy));
-                chHorse->send_move_packet(FUNC_WAIT, 0, 0, 0, 0);
+                ch_horse->set_rotation(get_degree_from_position_xy(ch_horse->x(), ch_horse->y(), x(), y()) + 180);
+                get_delta_by_degree(ch_horse->rotation(), 3500, &fx, &fy);
+                ch_horse->go_to((int32_t)(ch_horse->x() + fx), (int32_t)(ch_horse->y() + fy));
+                ch_horse->send_move_packet(FUNC_WAIT, 0, 0, 0, 0);
             }
 
             ch_horse_ = nullptr;
@@ -257,35 +257,35 @@ namespace metin2::game::inline characters {
 
     void character::send_horse_info() {
         if (ch_horse_ || is_horse_riding()) {
-            int iHealthGrade;
-            int iStaminaGrade;
+            int health_grade;
+            int stamina_grade;
             if (horse_health() == 0)
-                iHealthGrade = 0;
+                health_grade = 0;
             else if (horse_health() * 10 <= horse_max_health() * 3)
-                iHealthGrade = 1;
+                health_grade = 1;
             else if (horse_health() * 10 <= horse_max_health() * 7)
-                iHealthGrade = 2;
+                health_grade = 2;
             else
-                iHealthGrade = 3;
+                health_grade = 3;
 
             if (horse_stamina() * 10 <= horse_max_stamina())
-                iStaminaGrade = 0;
+                stamina_grade = 0;
             else if (horse_stamina() * 10 <= horse_max_stamina() * 3)
-                iStaminaGrade = 1;
+                stamina_grade = 1;
             else if (horse_stamina() * 10 <= horse_max_stamina() * 7)
-                iStaminaGrade = 2;
+                stamina_grade = 2;
             else
-                iStaminaGrade = 3;
+                stamina_grade = 3;
 
             if (send_horse_level_ != horse_level() ||
-                send_horse_health_grade_ != iHealthGrade ||
-                send_horse_stamina_grade_ != iStaminaGrade) {
-                chat_packet(CHAT_TYPE_COMMAND, "horse_state %d %d %d", horse_level(), iHealthGrade, iStaminaGrade);
+                send_horse_health_grade_ != health_grade ||
+                send_horse_stamina_grade_ != stamina_grade) {
+                chat_packet(CHAT_TYPE_COMMAND, "horse_state %d %d %d", horse_level(), health_grade, stamina_grade);
 
                 // Returning before this makes horses summon endlessly.
                 send_horse_level_ = horse_level();
-                send_horse_health_grade_ = iHealthGrade;
-                send_horse_stamina_grade_ = iStaminaGrade;
+                send_horse_health_grade_ = health_grade;
+                send_horse_stamina_grade_ = stamina_grade;
             }
         }
     }

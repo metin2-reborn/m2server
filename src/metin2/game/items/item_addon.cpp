@@ -23,16 +23,16 @@ namespace metin2::game::inline items {
             return;
         }
 
-        int iSkillBonus = std::clamp((int)(gauss(0, 5) + 0.5f), -30, 30);
-        int iNormalHitBonus = 0;
-        if (abs(iSkillBonus) <= 20)
-            iNormalHitBonus = -2 * iSkillBonus + abs(number(-8, 8) + number(-8, 8)) + number(1, 4);
+        int skill_bonus = std::clamp((int)(gauss(0, 5) + 0.5f), -30, 30);
+        int normal_hit_bonus = 0;
+        if (abs(skill_bonus) <= 20)
+            normal_hit_bonus = -2 * skill_bonus + abs(number(-8, 8) + number(-8, 8)) + number(1, 4);
         else
-            iNormalHitBonus = -2 * iSkillBonus + number(1, 5);
+            normal_hit_bonus = -2 * skill_bonus + number(1, 5);
 
         item_value->remove_attribute_type(APPLY_SKILL_DAMAGE_BONUS);
         item_value->remove_attribute_type(APPLY_NORMAL_HIT_DAMAGE_BONUS);
-        item_value->add_attribute(APPLY_NORMAL_HIT_DAMAGE_BONUS, iNormalHitBonus);
-        item_value->add_attribute(APPLY_SKILL_DAMAGE_BONUS, iSkillBonus);
+        item_value->add_attribute(APPLY_NORMAL_HIT_DAMAGE_BONUS, normal_hit_bonus);
+        item_value->add_attribute(APPLY_SKILL_DAMAGE_BONUS, skill_bonus);
     }
 }

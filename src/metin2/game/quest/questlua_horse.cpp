@@ -57,12 +57,12 @@ namespace metin2::game {
         auto horse_summon(lua_State *lua) -> int {
             character *ch = quest_manager::instance().current_character_ptr();
 
-            bool bFromFar = lua_isboolean(lua, 1) ? lua_toboolean(lua, 1) : false;
+            bool from_far = lua_isboolean(lua, 1) ? lua_toboolean(lua, 1) : false;
 
-            uint32_t horseVnum = lua_isnumber(lua, 2) ? lua_tonumber(lua, 2) : 0;
+            uint32_t horse_vnum = lua_isnumber(lua, 2) ? lua_tonumber(lua, 2) : 0;
 
             const char *name = lua_isstring(lua, 3) ? lua_tostring(lua, 3) : nullptr;
-            ch->horse_summon(true, bFromFar, horseVnum, name);
+            ch->horse_summon(true, from_far, horse_vnum, name);
             return 0;
         }
 
@@ -195,15 +195,15 @@ namespace metin2::game {
             character *ch = quest_manager::instance().current_character_ptr();
 
             if (ch->horse_level() > 0) {
-                const char *pHorseName = lua_tostring(lua, -1);
+                const char *horse_name_value = lua_tostring(lua, -1);
 
-                if (pHorseName == nullptr || check_name(pHorseName) == 0) {
+                if (horse_name_value == nullptr || check_name(horse_name_value) == 0) {
                     lua_pushnumber(lua, 1);
                 } else {
-                    int nHorseNameDuration = metin2::config::test_server() == true ? 60 * 5 : 60 * 60 * 24 * 30;
+                    int horse_name_duration = metin2::config::test_server() == true ? 60 * 5 : 60 * 60 * 24 * 30;
 
-                    ch->set_quest_flag("horse_name.valid_till", get_global_time() + nHorseNameDuration);
-                    ch->add_affect(AFFECT_HORSE_NAME, 0, 0, 0, passes_per_sec(nHorseNameDuration), 0, true);
+                    ch->set_quest_flag("horse_name.valid_till", get_global_time() + horse_name_duration);
+                    ch->add_affect(AFFECT_HORSE_NAME, 0, 0, 0, passes_per_sec(horse_name_duration), 0, true);
 
                     horse_name_manager::instance().update_horse_name(ch->player_id(), lua_tostring(lua, -1), true);
 
@@ -223,10 +223,10 @@ namespace metin2::game {
             character *ch = quest_manager::instance().current_character_ptr();
 
             if (ch != nullptr) {
-                const char *pHorseName = horse_name_manager::instance().horse_name(ch->player_id());
+                const char *horse_name = horse_name_manager::instance().horse_name(ch->player_id());
 
-                if (pHorseName != nullptr) {
-                    lua_pushstring(lua, pHorseName);
+                if (horse_name != nullptr) {
+                    lua_pushstring(lua, horse_name);
                     return 1;
                 }
             }

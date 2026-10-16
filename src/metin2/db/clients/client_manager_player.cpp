@@ -192,8 +192,8 @@ namespace metin2::db::inline clients {
         if (it == map_player_cache_.end())
             return nullptr;
 
-        player_table *pTable = it->second->get(false);
-        pTable->logoff_interval = it->second->seconds_since_update();
+        player_table *table = it->second->get(false);
+        table->logoff_interval = it->second->seconds_since_update();
         return it->second.get();
     }
 
@@ -218,93 +218,93 @@ namespace metin2::db::inline clients {
         };
 
         player_table_cache *c;
-        player_table *pTab;
+        player_table *tab;
 
-        login_data *pLoginData = get_login_data_by_aid(packet->account_id);
+        login_data *login_data_value = get_login_data_by_aid(packet->account_id);
 
-        if (pLoginData) {
+        if (login_data_value) {
             for (int n = 0; n < PLAYER_PER_ACCOUNT; ++n)
-                if (pLoginData->account_ref().players[n].id != 0)
-                    delete_logout_player(pLoginData->account_ref().players[n].id);
+                if (login_data_value->account_ref().players[n].id != 0)
+                    delete_logout_player(login_data_value->account_ref().players[n].id);
         }
 
         if ((c = player_cache(packet->player_id))) {
-            login_data *pkLD = get_login_data_by_aid(packet->account_id);
+            login_data *ld = get_login_data_by_aid(packet->account_id);
 
-            if (!pkLD || pkLD->is_play()) {
-                metin2::log::warn("Cannot load player pid {:d} from cache: login data {}, already playing {:d}", packet->player_id, static_cast<const void *>(pkLD), pkLD ? pkLD->is_play() : 0);
+            if (!ld || ld->is_play()) {
+                metin2::log::warn("Cannot load player pid {:d} from cache: login data {}, already playing {:d}", packet->player_id, static_cast<const void *>(ld), ld ? ld->is_play() : 0);
                 peer->encode_header(HEADER_DG_PLAYER_LOAD_FAILED, handle_value, 0);
                 return;
             }
 
-            pTab = c->get();
+            tab = c->get();
 
-            pkLD->set_play(true);
-            std::memcpy(pTab->premium_times, pkLD->premium_ptr(), sizeof(pTab->premium_times));
+            ld->set_play(true);
+            std::memcpy(tab->premium_times, ld->premium_ptr(), sizeof(tab->premium_times));
 
             peer->encode_header(HEADER_DG_PLAYER_LOAD_SUCCESS, handle_value, sizeof(player_table));
-            peer->encode(pTab, sizeof(player_table));
+            peer->encode(tab, sizeof(player_table));
 
-            if (packet->player_id != pkLD->last_player_id()) {
-                packet_need_login_log_info logInfo;
-                logInfo.player_id = packet->player_id;
+            if (packet->player_id != ld->last_player_id()) {
+                packet_need_login_log_info log_info;
+                log_info.player_id = packet->player_id;
 
-                pkLD->set_last_player_id(packet->player_id);
+                ld->set_last_player_id(packet->player_id);
 
                 peer->encode_header(HEADER_DG_NEED_LOGIN_LOG, handle_value, sizeof(packet_need_login_log_info));
-                peer->encode(&logInfo, sizeof(packet_need_login_log_info));
+                peer->encode(&log_info, sizeof(packet_need_login_log_info));
             }
 
             std::string query;
 
-            item_cache_set *pSet = get_item_cache_set(pTab->id);
+            item_cache_set *set = get_item_cache_set(tab->id);
 
-            metin2::log::info("Player {} (pid {:d}) loaded from cache, gold {:d}", pTab->name, pTab->id, pTab->gold);
+            metin2::log::info("Player {} (pid {:d}) loaded from cache, gold {:d}", tab->name, tab->id, tab->gold);
 
-            if (pSet) {
-                std::vector<player_item> s_items(pSet->size());
+            if (set) {
+                std::vector<player_item> s_items(set->size());
 
-                uint32_t dwCount = 0;
-                auto it = pSet->begin();
+                uint32_t count = 0;
+                auto it = set->begin();
 
-                while (it != pSet->end()) {
+                while (it != set->end()) {
                     item_cache *c = *it++;
                     player_item *p = c->get();
 
                     if (p->vnum)
-                        std::memcpy(&s_items[dwCount++], p, sizeof(player_item));
+                        std::memcpy(&s_items[count++], p, sizeof(player_item));
                 }
 
                 if (metin2::config::test_server())
-                    metin2::log::debug("Item cache hit for player {}: {:d} items", pTab->name, dwCount);
+                    metin2::log::debug("Item cache hit for player {}: {:d} items", tab->name, count);
 
-                peer->encode_header(HEADER_DG_ITEM_LOAD, handle_value, sizeof(uint32_t) + sizeof(player_item) * dwCount);
-                peer->encode_dword(dwCount);
+                peer->encode_header(HEADER_DG_ITEM_LOAD, handle_value, sizeof(uint32_t) + sizeof(player_item) * count);
+                peer->encode_dword(count);
 
-                if (dwCount)
-                    peer->encode(s_items.data(), sizeof(player_item) * dwCount);
+                if (count)
+                    peer->encode(s_items.data(), sizeof(player_item) * count);
 
                 query = sql::format("SELECT dwPID,szName,szState,lValue FROM quest{} WHERE dwPID={} AND lValue<>0",
-                    sql::raw(get_table_postfix()), pTab->id);
+                    sql::raw(get_table_postfix()), tab->id);
 
                 return_composite_query(query, QID_QUEST, std::make_unique<client_handle_info>(handle_value, 0, packet->account_id));
 
                 query = sql::format("SELECT dwPID,bType,bApplyOn,lApplyValue,dwFlag,lDuration,lSPCost FROM affect{} WHERE dwPID={}",
-                    sql::raw(get_table_postfix()), pTab->id);
+                    sql::raw(get_table_postfix()), tab->id);
                 return_composite_query(query, QID_AFFECT, std::make_unique<client_handle_info>(handle_value));
             } else {
                 query = sql::format("SELECT {} FROM item{} WHERE owner_id={} AND (window < {} or window = {})",
-                    sql::raw(item_select_columns), sql::raw(get_table_postfix()), pTab->id, SAFEBOX, DRAGON_SOUL_INVENTORY);
+                    sql::raw(item_select_columns), sql::raw(get_table_postfix()), tab->id, SAFEBOX, DRAGON_SOUL_INVENTORY);
 
-                return_composite_query(query, QID_ITEM, std::make_unique<client_handle_info>(handle_value, pTab->id));
+                return_composite_query(query, QID_ITEM, std::make_unique<client_handle_info>(handle_value, tab->id));
                 query = sql::format("SELECT dwPID, szName, szState, lValue FROM quest{} WHERE dwPID={}",
-                    sql::raw(get_table_postfix()), pTab->id);
+                    sql::raw(get_table_postfix()), tab->id);
 
-                return_composite_query(query, QID_QUEST, std::make_unique<client_handle_info>(handle_value, pTab->id));
+                return_composite_query(query, QID_QUEST, std::make_unique<client_handle_info>(handle_value, tab->id));
                 query = sql::format("SELECT dwPID, bType, bApplyOn, lApplyValue, dwFlag, lDuration, lSPCost FROM affect{} WHERE dwPID={}",
-                    sql::raw(get_table_postfix()), pTab->id);
+                    sql::raw(get_table_postfix()), tab->id);
 
-                return_composite_query(query, QID_AFFECT, std::make_unique<client_handle_info>(handle_value, pTab->id));
+                return_composite_query(query, QID_AFFECT, std::make_unique<client_handle_info>(handle_value, tab->id));
             }
         } else {
             metin2::log::info("Loading player pid {:d} from the database", packet->player_id);
@@ -317,9 +317,9 @@ namespace metin2::db::inline clients {
                                             "UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(last_play),horse_skill_point FROM player{} WHERE id={}",
                 sql::raw(get_table_postfix()), packet->player_id);
 
-            auto pkInfo = std::make_unique<client_handle_info>(handle_value, packet->player_id);
-            pkInfo->account_id = packet->account_id;
-            return_composite_query(query, QID_PLAYER, std::move(pkInfo));
+            auto info = std::make_unique<client_handle_info>(handle_value, packet->player_id);
+            info->account_id = packet->account_id;
+            return_composite_query(query, QID_PLAYER, std::move(info));
 
             query = sql::format("SELECT {} FROM item{} WHERE owner_id={} AND (window < {} or window = {})",
                 sql::raw(item_select_columns), sql::raw(get_table_postfix()), packet->player_id, SAFEBOX, DRAGON_SOUL_INVENTORY);
@@ -335,10 +335,10 @@ namespace metin2::db::inline clients {
     }
     void client_manager::item_award(peer *peer, char *login) {
         std::string login_t = login;
-        std::set<db::items::item_award *> *pSet = item_award_manager::instance().by_login(login_t.c_str());
-        if (pSet == nullptr)
+        std::set<db::items::item_award *> *set = item_award_manager::instance().by_login(login_t.c_str());
+        if (set == nullptr)
             return;
-        for (const db::items::item_award *award : *pSet)
+        for (const db::items::item_award *award : *set)
             inform_gift_award(award->login, award->why, award->vnum);
     }
 
@@ -347,11 +347,11 @@ namespace metin2::db::inline clients {
         if (!text.starts_with("[GIFT") || (text.size() > 5 && text[5] != ']'))
             return;
 
-        packet_item_award_infromer giftData{};
-        strlcpy(giftData.login, login, sizeof(giftData.login));
-        strlcpy(giftData.command, "GIFT", sizeof(giftData.command));
-        giftData.vnum = vnum;
-        forward_packet(HEADER_DG_ITEMAWARD_INFORMER, &giftData, sizeof(giftData));
+        packet_item_award_infromer gift_data{};
+        strlcpy(gift_data.login, login, sizeof(gift_data.login));
+        strlcpy(gift_data.command, "GIFT", sizeof(gift_data.command));
+        gift_data.vnum = vnum;
+        forward_packet(HEADER_DG_ITEMAWARD_INFORMER, &gift_data, sizeof(gift_data));
     }
 
     auto create_player_table_from_res(MYSQL_RES *res, player_table *tab) -> bool {
@@ -449,8 +449,8 @@ namespace metin2::db::inline clients {
     }
 
     void client_manager::result_composite_player(peer *peer, sql_msg &msg, uint32_t qid, client_handle_info &info) {
-        MYSQL_RES *pSQLResult = msg.get()->res.get();
-        if (!pSQLResult) {
+        MYSQL_RES *sql_result = msg.get()->res.get();
+        if (!sql_result) {
             metin2::log::error("Query {:d} returned no result set", qid);
             return;
         }
@@ -458,30 +458,30 @@ namespace metin2::db::inline clients {
         switch (qid) {
         case QID_PLAYER:
             metin2::log::debug("Player query result for handle {:d}, pid {:d}", info.handle, info.player_id);
-            result_player_load(peer, pSQLResult, &info);
+            result_player_load(peer, sql_result, &info);
 
             break;
 
         case QID_ITEM:
             metin2::log::debug("Item query result for handle {:d}", info.handle);
-            result_item_load(peer, pSQLResult, info.handle, info.player_id);
+            result_item_load(peer, sql_result, info.handle, info.player_id);
             break;
 
         case QID_QUEST:
             {
                 metin2::log::debug("Quest query result for handle {:d}", info.handle);
-                result_quest_load(peer, pSQLResult, info.handle, info.player_id);
+                result_quest_load(peer, sql_result, info.handle, info.player_id);
 
-                login_data *pLoginData1 = get_login_data_by_aid(info.account_id);
-                if (pLoginData1 == nullptr)
+                login_data *login_data1 = get_login_data_by_aid(info.account_id);
+                if (login_data1 == nullptr)
                     break;
-                item_award(peer, pLoginData1->account_ref().login);
+                item_award(peer, login_data1->account_ref().login);
             }
             break;
 
         case QID_AFFECT:
             metin2::log::debug("Affect query result for handle {:d}", info.handle);
-            result_affect_load(peer, pSQLResult, info.handle);
+            result_affect_load(peer, sql_result, info.handle);
             break;
         }
     }
@@ -494,69 +494,69 @@ namespace metin2::db::inline clients {
             return;
         }
 
-        login_data *pkLD = get_login_data_by_aid(info_value->account_id);
+        login_data *ld = get_login_data_by_aid(info_value->account_id);
 
-        if (!pkLD || pkLD->is_play()) {
-            metin2::log::warn("Cannot load player: login data {}, already playing {:d}", static_cast<const void *>(pkLD), pkLD ? pkLD->is_play() : 0);
+        if (!ld || ld->is_play()) {
+            metin2::log::warn("Cannot load player: login data {}, already playing {:d}", static_cast<const void *>(ld), ld ? ld->is_play() : 0);
             peer->encode_header(HEADER_DG_PLAYER_LOAD_FAILED, info_value->handle, 0);
             return;
         }
 
-        pkLD->set_play(true);
-        std::memcpy(tab.premium_times, pkLD->premium_ptr(), sizeof(tab.premium_times));
+        ld->set_play(true);
+        std::memcpy(tab.premium_times, ld->premium_ptr(), sizeof(tab.premium_times));
 
         peer->encode_header(HEADER_DG_PLAYER_LOAD_SUCCESS, info_value->handle, sizeof(player_table));
         peer->encode(&tab, sizeof(player_table));
 
-        if (tab.id != pkLD->last_player_id()) {
-            packet_need_login_log_info logInfo;
-            logInfo.player_id = tab.id;
+        if (tab.id != ld->last_player_id()) {
+            packet_need_login_log_info log_info;
+            log_info.player_id = tab.id;
 
-            pkLD->set_last_player_id(tab.id);
+            ld->set_last_player_id(tab.id);
 
             peer->encode_header(HEADER_DG_NEED_LOGIN_LOG, info_value->handle, sizeof(packet_need_login_log_info));
-            peer->encode(&logInfo, sizeof(packet_need_login_log_info));
+            peer->encode(&log_info, sizeof(packet_need_login_log_info));
         }
     }
 
     void client_manager::result_item_load(peer *peer, MYSQL_RES *res, uint32_t handle, uint32_t pid) {
         std::vector<player_item> s_items;
         create_item_table_from_res(res, &s_items, pid);
-        uint32_t dwCount = s_items.size();
+        uint32_t count = s_items.size();
 
-        peer->encode_header(HEADER_DG_ITEM_LOAD, handle, sizeof(uint32_t) + sizeof(player_item) * dwCount);
-        peer->encode_dword(dwCount);
+        peer->encode_header(HEADER_DG_ITEM_LOAD, handle, sizeof(uint32_t) + sizeof(player_item) * count);
+        peer->encode_dword(count);
 
         create_item_cache_set(pid);
 
-        metin2::log::debug("Loaded {:d} items for pid {:d}", dwCount, pid);
+        metin2::log::debug("Loaded {:d} items for pid {:d}", count, pid);
 
-        if (dwCount) {
-            peer->encode(s_items.data(), sizeof(player_item) * dwCount);
+        if (count) {
+            peer->encode(s_items.data(), sizeof(player_item) * count);
 
-            for (uint32_t i = 0; i < dwCount; ++i)
+            for (uint32_t i = 0; i < count; ++i)
                 put_item_cache(&s_items[i], true);
         }
     }
 
     void client_manager::result_affect_load(peer *peer, MYSQL_RES *res, uint32_t handle) {
-        int iNumRows;
+        int num_rows;
 
-        if ((iNumRows = mysql_num_rows(res)) == 0)
+        if ((num_rows = mysql_num_rows(res)) == 0)
             return;
 
-        std::vector<packet_affect_element> s_elements(iNumRows);
+        std::vector<packet_affect_element> s_elements(num_rows);
 
-        uint32_t dwPID = 0;
+        uint32_t pid_value = 0;
 
         MYSQL_ROW row;
 
-        for (int i = 0; i < iNumRows; ++i) {
+        for (int i = 0; i < num_rows; ++i) {
             packet_affect_element &r = s_elements[i];
             row = mysql_fetch_row(res);
 
-            if (dwPID == 0)
-                str_to_number(dwPID, row[0]);
+            if (pid_value == 0)
+                str_to_number(pid_value, row[0]);
 
             str_to_number(r.type, row[1]);
             str_to_number(r.apply_on, row[2]);
@@ -566,31 +566,31 @@ namespace metin2::db::inline clients {
             str_to_number(r.sp_cost, row[6]);
         }
 
-        metin2::log::debug("Loaded {:d} affects for pid {:d}", s_elements.size(), dwPID);
+        metin2::log::debug("Loaded {:d} affects for pid {:d}", s_elements.size(), pid_value);
 
-        uint32_t dwCount = s_elements.size();
+        uint32_t count = s_elements.size();
 
-        peer->encode_header(HEADER_DG_AFFECT_LOAD, handle, sizeof(uint32_t) + sizeof(uint32_t) + sizeof(packet_affect_element) * dwCount);
-        peer->encode(&dwPID, sizeof(uint32_t));
-        peer->encode(&dwCount, sizeof(uint32_t));
-        peer->encode(s_elements.data(), sizeof(packet_affect_element) * dwCount);
+        peer->encode_header(HEADER_DG_AFFECT_LOAD, handle, sizeof(uint32_t) + sizeof(uint32_t) + sizeof(packet_affect_element) * count);
+        peer->encode(&pid_value, sizeof(uint32_t));
+        peer->encode(&count, sizeof(uint32_t));
+        peer->encode(s_elements.data(), sizeof(packet_affect_element) * count);
     }
 
     void client_manager::result_quest_load(peer *peer, MYSQL_RES *res, uint32_t handle, uint32_t pid) {
-        int iNumRows;
+        int num_rows;
 
-        if ((iNumRows = mysql_num_rows(res)) == 0) {
-            uint32_t dwCount = 0;
+        if ((num_rows = mysql_num_rows(res)) == 0) {
+            uint32_t count = 0;
             peer->encode_header(HEADER_DG_QUEST_LOAD, handle, sizeof(uint32_t));
-            peer->encode(&dwCount, sizeof(uint32_t));
+            peer->encode(&count, sizeof(uint32_t));
             return;
         }
 
-        std::vector<quest_table> s_table(iNumRows);
+        std::vector<quest_table> s_table(num_rows);
 
         MYSQL_ROW row;
 
-        for (int i = 0; i < iNumRows; ++i) {
+        for (int i = 0; i < num_rows; ++i) {
             quest_table &r = s_table[i];
 
             row = mysql_fetch_row(res);
@@ -603,11 +603,11 @@ namespace metin2::db::inline clients {
 
         metin2::log::debug("Loaded {:d} quest flags for pid {:d}", s_table.size(), s_table[0].pid);
 
-        uint32_t dwCount = s_table.size();
+        uint32_t count = s_table.size();
 
-        peer->encode_header(HEADER_DG_QUEST_LOAD, handle, sizeof(uint32_t) + sizeof(quest_table) * dwCount);
-        peer->encode(&dwCount, sizeof(uint32_t));
-        peer->encode(s_table.data(), sizeof(quest_table) * dwCount);
+        peer->encode_header(HEADER_DG_QUEST_LOAD, handle, sizeof(uint32_t) + sizeof(quest_table) * count);
+        peer->encode(&count, sizeof(uint32_t));
+        peer->encode(s_table.data(), sizeof(quest_table) * count);
     }
 
     void client_manager::query_player_save(peer *peer, uint32_t handle, player_table *tab) {
@@ -639,21 +639,21 @@ namespace metin2::db::inline clients {
         std::string query = sql::format(
             "SELECT pid{} FROM player_index{} WHERE id={}", packet->account_index + 1, postfix, packet->account_id);
 
-        auto pMsg0 = db_manager::instance().direct_query(query);
+        auto msg0 = db_manager::instance().direct_query(query);
 
-        if (pMsg0->get()->num_rows != 0) {
-            if (!pMsg0->get()->res.get()) {
+        if (msg0->get()->num_rows != 0) {
+            if (!msg0->get()->res.get()) {
                 peer->encode_header(HEADER_DG_PLAYER_CREATE_FAILED, handle, 0);
                 return;
             }
 
-            MYSQL_ROW row = mysql_fetch_row(pMsg0->get()->res.get());
+            MYSQL_ROW row = mysql_fetch_row(msg0->get()->res.get());
 
-            uint32_t dwPID = 0;
-            str_to_number(dwPID, row[0]);
-            if (row[0] && dwPID > 0) {
+            uint32_t pid_value = 0;
+            str_to_number(pid_value, row[0]);
+            if (row[0] && pid_value > 0) {
                 peer->encode_header(HEADER_DG_PLAYER_CREATE_ALREADY, handle, 0);
-                metin2::log::info("Player create: slot {:d} already holds pid {:d}", packet->account_index, dwPID);
+                metin2::log::info("Player create: slot {:d} already holds pid {:d}", packet->account_index, pid_value);
                 return;
             }
         } else {
@@ -664,15 +664,15 @@ namespace metin2::db::inline clients {
         query = sql::format(
             "SELECT COUNT(*) as count FROM player{} WHERE name={}", postfix, packet->player_table.name);
 
-        auto pMsg1 = db_manager::instance().direct_query(query);
+        auto msg1 = db_manager::instance().direct_query(query);
 
-        if (pMsg1->get()->num_rows) {
-            if (!pMsg1->get()->res.get()) {
+        if (msg1->get()->num_rows) {
+            if (!msg1->get()->res.get()) {
                 peer->encode_header(HEADER_DG_PLAYER_CREATE_FAILED, handle, 0);
                 return;
             }
 
-            MYSQL_ROW row = mysql_fetch_row(pMsg1->get()->res.get());
+            MYSQL_ROW row = mysql_fetch_row(msg1->get()->res.get());
 
             if (*row[0] != '0') {
                 metin2::log::info("Player create: name {} is already taken (count {}, query: {})", packet->player_table.name, row[0], query);
@@ -710,23 +710,23 @@ namespace metin2::db::inline clients {
             packet->player_table.ht,
             packet->player_table.job);
 
-        auto pMsg2 = db_manager::instance().direct_query(query);
+        auto msg2 = db_manager::instance().direct_query(query);
         if (metin2::config::test_server())
             metin2::log::debug("Player create: query length {:d}", query.size());
 
-        if (pMsg2->get()->affected_rows <= 0) {
+        if (msg2->get()->affected_rows <= 0) {
             peer->encode_header(HEADER_DG_PLAYER_CREATE_ALREADY, handle, 0);
-            metin2::log::warn("Player create: insert affected no rows, treating name as taken (query: {}, affected rows {:d})", query, pMsg2->get()->affected_rows);
+            metin2::log::warn("Player create: insert affected no rows, treating name as taken (query: {}, affected rows {:d})", query, msg2->get()->affected_rows);
             return;
         }
 
-        player_id = pMsg2->get()->insert_id;
+        player_id = msg2->get()->insert_id;
 
         query = sql::format("UPDATE player_index{} SET pid{}={} WHERE id={}",
             postfix, packet->account_index + 1, player_id, packet->account_id);
-        auto pMsg3 = db_manager::instance().direct_query(query);
+        auto msg3 = db_manager::instance().direct_query(query);
 
-        if (pMsg3->get()->affected_rows <= 0) {
+        if (msg3->get()->affected_rows <= 0) {
             metin2::log::error("Player create: cannot update player_index, rolling back: {}", query);
 
             query = sql::format("DELETE FROM player{} WHERE id={}", postfix, player_id);
@@ -783,19 +783,19 @@ namespace metin2::db::inline clients {
             return;
         }
 
-        player_table_cache *pkPlayerCache = player_cache(packet->player_id);
-        if (pkPlayerCache) {
-            player_table *pTab = pkPlayerCache->get();
+        player_table_cache *player_cache_value = player_cache(packet->player_id);
+        if (player_cache_value) {
+            player_table *tab = player_cache_value->get();
 
-            if (pTab->level >= player_delete_level_limit_) {
-                metin2::log::info("Player delete: pid {:d} level {:d} is at or above the limit {:d}", packet->player_id, pTab->level, player_delete_level_limit_);
+            if (tab->level >= player_delete_level_limit_) {
+                metin2::log::info("Player delete: pid {:d} level {:d} is at or above the limit {:d}", packet->player_id, tab->level, player_delete_level_limit_);
                 peer->encode_header(HEADER_DG_PLAYER_DELETE_FAILED, handle_value, 1);
                 peer->encode_byte(packet->account_index);
                 return;
             }
 
-            if (pTab->level < player_delete_level_limit_lower_) {
-                metin2::log::info("Player delete: pid {:d} level {:d} is below the minimum {:d}", packet->player_id, pTab->level, player_delete_level_limit_lower_);
+            if (tab->level < player_delete_level_limit_lower_) {
+                metin2::log::info("Player delete: pid {:d} level {:d} is below the minimum {:d}", packet->player_id, tab->level, player_delete_level_limit_lower_);
                 peer->encode_header(HEADER_DG_PLAYER_DELETE_FAILED, handle_value, 1);
                 peer->encode_byte(packet->account_index);
                 return;
@@ -819,23 +819,23 @@ namespace metin2::db::inline clients {
         if (msg.get() && msg.get()->num_rows) {
             MYSQL_ROW row = mysql_fetch_row(msg.get()->res.get());
 
-            uint32_t dwPID = 0;
-            str_to_number(dwPID, row[0]);
+            uint32_t pid_value = 0;
+            str_to_number(pid_value, row[0]);
 
-            int deletedLevelLimit = 0;
-            str_to_number(deletedLevelLimit, row[1]);
+            int deleted_level_limit = 0;
+            str_to_number(deleted_level_limit, row[1]);
 
-            std::string strName = row[2];
+            std::string name = row[2];
 
-            if (deletedLevelLimit >= player_delete_level_limit_) {
-                metin2::log::info("Player delete: pid {:d} level {:d} is at or above the limit {:d}", dwPID, deletedLevelLimit, player_delete_level_limit_);
+            if (deleted_level_limit >= player_delete_level_limit_) {
+                metin2::log::info("Player delete: pid {:d} level {:d} is at or above the limit {:d}", pid_value, deleted_level_limit, player_delete_level_limit_);
                 peer->encode_header(HEADER_DG_PLAYER_DELETE_FAILED, pi.handle, 1);
                 peer->encode_byte(pi.account_index);
                 return;
             }
 
-            if (deletedLevelLimit < player_delete_level_limit_lower_) {
-                metin2::log::info("Player delete: pid {:d} level {:d} is below the minimum {:d}", dwPID, deletedLevelLimit, player_delete_level_limit_lower_);
+            if (deleted_level_limit < player_delete_level_limit_lower_) {
+                metin2::log::info("Player delete: pid {:d} level {:d} is below the minimum {:d}", pid_value, deleted_level_limit, player_delete_level_limit_lower_);
                 peer->encode_header(HEADER_DG_PLAYER_DELETE_FAILED, pi.handle, 1);
                 peer->encode_byte(pi.account_index);
                 return;
@@ -845,35 +845,35 @@ namespace metin2::db::inline clients {
 
             std::string query = sql::format("INSERT INTO player{}_deleted SELECT * FROM player{} WHERE id={}",
                 postfix, postfix, pi.player_id);
-            auto pIns = db_manager::instance().direct_query(query);
+            auto ins = db_manager::instance().direct_query(query);
 
-            if (pIns->get()->affected_rows == 0 || pIns->get()->affected_rows == (uint32_t)-1) {
-                metin2::log::error("Player delete: cannot copy pid {:d} into player{}_deleted", dwPID, get_table_postfix());
+            if (ins->get()->affected_rows == 0 || ins->get()->affected_rows == (uint32_t)-1) {
+                metin2::log::error("Player delete: cannot copy pid {:d} into player{}_deleted", pid_value, get_table_postfix());
 
                 peer->encode_header(HEADER_DG_PLAYER_DELETE_FAILED, pi.handle, 1);
                 peer->encode_byte(pi.account_index);
                 return;
             }
 
-            metin2::log::info("Player delete: deleted pid {:d}", dwPID);
+            metin2::log::info("Player delete: deleted pid {:d}", pid_value);
 
-            player_table_cache *pkPlayerCache = player_cache(pi.player_id);
+            player_table_cache *player_cache_value = player_cache(pi.player_id);
 
-            if (pkPlayerCache) {
+            if (player_cache_value) {
                 map_player_cache_.erase(pi.player_id);
             }
 
-            item_cache_set *pSet = get_item_cache_set(pi.player_id);
+            item_cache_set *set = get_item_cache_set(pi.player_id);
 
-            if (pSet) {
-                auto it = pSet->begin();
+            if (set) {
+                auto it = set->begin();
 
-                while (it != pSet->end()) {
-                    item_cache *pkItemCache = *it++;
-                    delete_item_cache(pkItemCache->get()->id);
+                while (it != set->end()) {
+                    item_cache *item_cache = *it++;
+                    delete_item_cache(item_cache->get()->id);
                 }
 
-                pSet->clear();
+                set->clear();
 
                 map_item_cache_set_ptr_.erase(pi.player_id);
             }
@@ -884,9 +884,9 @@ namespace metin2::db::inline clients {
                 pi.account_index + 1,
                 pi.player_id);
 
-            auto pMsg = db_manager::instance().direct_query(query);
+            auto msg = db_manager::instance().direct_query(query);
 
-            if (pMsg->get()->affected_rows == 0 || pMsg->get()->affected_rows == (uint32_t)-1) {
+            if (msg->get()->affected_rows == 0 || msg->get()->affected_rows == (uint32_t)-1) {
                 metin2::log::error("Player delete: cannot clear pid {:d} from player_index", pi.player_id);
                 peer->encode_header(HEADER_DG_PLAYER_DELETE_FAILED, pi.handle, 1);
                 peer->encode_byte(pi.account_index);
@@ -911,7 +911,7 @@ namespace metin2::db::inline clients {
             query = sql::format("DELETE FROM myshop_pricelist{} WHERE owner_id={}", postfix, pi.player_id);
             db_manager::instance().async_query(query);
 
-            query = sql::format("DELETE FROM messenger_list{} WHERE account={} OR companion={}", postfix, strName, strName);
+            query = sql::format("DELETE FROM messenger_list{} WHERE account={} OR companion={}", postfix, name, name);
             db_manager::instance().async_query(query);
 
             peer->encode_header(HEADER_DG_PLAYER_DELETE_SUCCESS, pi.handle, 1);
@@ -967,14 +967,14 @@ namespace metin2::db::inline clients {
     void client_manager::result_highscore_register(peer *peer_value, sql_msg &msg, client_handle_info &pi) {
         metin2::log::debug("Highscore register query finished");
 
-        char szBoard[21];
-        strlcpy(szBoard, pi.login, sizeof(szBoard));
+        char board[21];
+        strlcpy(board, pi.login, sizeof(board));
         int value = (int)pi.account_id;
 
         sql_result *res = msg.get();
 
         if (res->num_rows == 0) {
-            const std::string query = sql::format("INSERT INTO highscore{} VALUES({}, {}, {})", sql::raw(get_table_postfix()), szBoard, pi.player_id, value);
+            const std::string query = sql::format("INSERT INTO highscore{} VALUES({}, {}, {})", sql::raw(get_table_postfix()), board, pi.player_id, value);
             db_manager::instance().async_query(query);
         } else {
             if (!res->res.get())
@@ -987,11 +987,11 @@ namespace metin2::db::inline clients {
                 if ((pi.account_index && current_value >= value) || (!pi.account_index && current_value <= value)) {
                     value = current_value;
                 } else {
-                    const std::string query = sql::format("REPLACE INTO highscore{} VALUES({}, {}, {})", sql::raw(get_table_postfix()), szBoard, pi.player_id, value);
+                    const std::string query = sql::format("REPLACE INTO highscore{} VALUES({}, {}, {})", sql::raw(get_table_postfix()), board, pi.player_id, value);
                     db_manager::instance().async_query(query);
                 }
             } else {
-                const std::string query = sql::format("INSERT INTO highscore{} VALUES({}, {}, {})", sql::raw(get_table_postfix()), szBoard, pi.player_id, value);
+                const std::string query = sql::format("INSERT INTO highscore{} VALUES({}, {}, {})", sql::raw(get_table_postfix()), board, pi.player_id, value);
                 db_manager::instance().async_query(query);
             }
         }
@@ -1008,10 +1008,10 @@ namespace metin2::db::inline clients {
             return;
         }
 
-        auto pLogout = std::make_unique<logout_player>();
-        pLogout->pid = pid;
-        pLogout->time = time(nullptr);
-        map_logout_.insert(std::make_pair(pid, std::move(pLogout)));
+        auto logout_value = std::make_unique<logout_player>();
+        logout_value->pid = pid;
+        logout_value->time = time(nullptr);
+        map_logout_.insert(std::make_pair(pid, std::move(logout_value)));
 
         if (metin2::config::db().login_log)
             metin2::log::info("Logout: recorded logout time of pid {:d}", pid);
@@ -1031,11 +1031,11 @@ namespace metin2::db::inline clients {
         auto it = map_logout_.begin();
 
         while (it != map_logout_.end()) {
-            logout_player *pLogout = it->second.get();
+            logout_player *logout = it->second.get();
 
-            if (now - logout_seconds > pLogout->time) {
-                flush_item_cache_set(pLogout->pid);
-                flush_player_cache_set(pLogout->pid);
+            if (now - logout_seconds > logout->time) {
+                flush_item_cache_set(logout->pid);
+                flush_player_cache_set(logout->pid);
 
                 map_logout_.erase(it++);
             } else

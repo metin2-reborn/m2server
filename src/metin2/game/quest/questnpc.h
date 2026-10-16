@@ -93,19 +93,19 @@ namespace metin2::game {
             if (metin2::config::test_server())
                 metin2::log::debug("Quest: matching quests for npc click");
 
-            auto itPCQuest = pc.quest_begin();
-            auto itQuestMap = quest_map.begin();
+            auto pc_quest = pc.quest_begin();
+            auto quest_map_value = quest_map.begin();
 
-            while (itQuestMap != quest_map.end()) {
-                if (itPCQuest == pc.quest_end() || itPCQuest->first > itQuestMap->first) {
-                    miss(itPCQuest, itQuestMap);
-                    ++itQuestMap;
-                } else if (itPCQuest->first < itQuestMap->first) {
-                    ++itPCQuest;
+            while (quest_map_value != quest_map.end()) {
+                if (pc_quest == pc.quest_end() || pc_quest->first > quest_map_value->first) {
+                    miss(pc_quest, quest_map_value);
+                    ++quest_map_value;
+                } else if (pc_quest->first < quest_map_value->first) {
+                    ++pc_quest;
                 } else {
-                    match(itPCQuest, itQuestMap);
-                    ++itPCQuest;
-                    ++itQuestMap;
+                    match(pc_quest, quest_map_value);
+                    ++pc_quest;
+                    ++quest_map_value;
                 }
             }
         }

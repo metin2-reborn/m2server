@@ -81,9 +81,9 @@ namespace metin2::game::inline characters {
             chat_packet(CHAT_TYPE_INFO, lc_text("상대방이 다른 거래중이라 거래를 할수 없습니다."));
             return false;
         }
-        int iDist = distance_approx(x() - victim->x(), y() - victim->y());
+        int dist = distance_approx(x() - victim->x(), y() - victim->y());
 
-        if (iDist >= EXCHANGE_MAX_DISTANCE)
+        if (dist >= EXCHANGE_MAX_DISTANCE)
             return false;
 
         if (get_exchange())
@@ -217,13 +217,13 @@ namespace metin2::game::inline trade {
         if (!ap_items_[pos])
             return false;
 
-        item_pos PosOfInventory = item_pos_[pos];
+        item_pos pos_of_inventory = item_pos_[pos];
         ap_items_[pos]->set_exchanging(false);
 
         grid_->get(item_display_pos_[pos], 1, ap_items_[pos]->size());
 
         exchange_packet(owner(), EXCHANGE_SUBHEADER_GC_ITEM_DEL, true, pos, NPOS, 0);
-        exchange_packet(company()->owner(), EXCHANGE_SUBHEADER_GC_ITEM_DEL, false, pos, PosOfInventory, 0);
+        exchange_packet(company()->owner(), EXCHANGE_SUBHEADER_GC_ITEM_DEL, false, pos, pos_of_inventory, 0);
 
         accept(false);
         company()->accept(false);
@@ -302,9 +302,9 @@ namespace metin2::game::inline trade {
             s_grid2.put(i - INVENTORY_MAX_NUM / 2, 1, item->size());
         }
 
-        std::vector<uint16_t> s_vDSGrid(DRAGON_SOUL_INVENTORY_MAX_NUM);
+        std::vector<uint16_t> v_ds_grid(DRAGON_SOUL_INVENTORY_MAX_NUM);
 
-        bool bDSInitialized = false;
+        bool ds_initialized = false;
 
         for (i = 0; i < EXCHANGE_ITEM_MAX_NUM; ++i) {
             if (!(item = ap_items_[i]))
@@ -315,49 +315,49 @@ namespace metin2::game::inline trade {
                     return false;
                 }
 
-                if (!bDSInitialized) {
-                    bDSInitialized = true;
-                    victim->copy_dragon_soul_item_grid(s_vDSGrid);
+                if (!ds_initialized) {
+                    ds_initialized = true;
+                    victim->copy_dragon_soul_item_grid(v_ds_grid);
                 }
 
-                bool bExistEmptySpace = false;
-                uint16_t wBasePos = ds_manager::instance().base_position(item);
-                if (wBasePos >= DRAGON_SOUL_INVENTORY_MAX_NUM)
+                bool exist_empty_space = false;
+                uint16_t base_pos = ds_manager::instance().base_position(item);
+                if (base_pos >= DRAGON_SOUL_INVENTORY_MAX_NUM)
                     return false;
 
                 for (int i = 0; i < DRAGON_SOUL_BOX_SIZE; i++) {
-                    uint16_t wPos = wBasePos + i;
-                    if (0 == s_vDSGrid[wPos]) {
-                        bool bEmpty = true;
+                    uint16_t pos_value = base_pos + i;
+                    if (0 == v_ds_grid[pos_value]) {
+                        bool empty = true;
                         for (int j = 1; j < item->size(); j++) {
-                            if (s_vDSGrid[wPos + j * DRAGON_SOUL_BOX_COLUMN_NUM]) {
-                                bEmpty = false;
+                            if (v_ds_grid[pos_value + j * DRAGON_SOUL_BOX_COLUMN_NUM]) {
+                                empty = false;
                                 break;
                             }
                         }
-                        if (bEmpty) {
+                        if (empty) {
                             for (int j = 0; j < item->size(); j++) {
-                                s_vDSGrid[wPos + j * DRAGON_SOUL_BOX_COLUMN_NUM] = wPos + 1;
+                                v_ds_grid[pos_value + j * DRAGON_SOUL_BOX_COLUMN_NUM] = pos_value + 1;
                             }
-                            bExistEmptySpace = true;
+                            exist_empty_space = true;
                             break;
                         }
                     }
-                    if (bExistEmptySpace)
+                    if (exist_empty_space)
                         break;
                 }
-                if (!bExistEmptySpace)
+                if (!exist_empty_space)
                     return false;
             } else {
-                int iPos = s_grid1.find_blank(1, item->size());
+                int pos = s_grid1.find_blank(1, item->size());
 
-                if (iPos >= 0) {
-                    s_grid1.put(iPos, 1, item->size());
+                if (pos >= 0) {
+                    s_grid1.put(pos, 1, item->size());
                 } else {
-                    iPos = s_grid2.find_blank(1, item->size());
+                    pos = s_grid2.find_blank(1, item->size());
 
-                    if (iPos >= 0) {
-                        s_grid2.put(iPos, 1, item->size());
+                    if (pos >= 0) {
+                        s_grid2.put(pos, 1, item->size());
                     } else {
                         return false;
                     }
@@ -435,11 +435,11 @@ namespace metin2::game::inline trade {
     }
 
     auto exchange::validate() -> bool {
-        int iItemCount;
+        int item_count;
 
         character *victim = company()->owner();
 
-        if (!check(&iItemCount)) {
+        if (!check(&item_count)) {
             owner()->chat_packet(CHAT_TYPE_INFO, lc_text("돈이 부족하거나 아이템이 제자리에 없습니다."));
             victim->chat_packet(CHAT_TYPE_INFO, lc_text("상대방의 돈이 부족하거나 아이템이 제자리에 없습니다."));
             return false;
@@ -451,7 +451,7 @@ namespace metin2::game::inline trade {
             return false;
         }
 
-        if (!company()->check(&iItemCount)) {
+        if (!company()->check(&item_count)) {
             victim->chat_packet(CHAT_TYPE_INFO, lc_text("돈이 부족하거나 아이템이 제자리에 없습니다."));
             owner()->chat_packet(CHAT_TYPE_INFO, lc_text("상대방의 돈이 부족하거나 아이템이 제자리에 없습니다."));
             return false;

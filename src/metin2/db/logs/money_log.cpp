@@ -17,17 +17,17 @@ namespace metin2::db::inline logs {
         peer *peer = client_manager::instance().any_peer();
         if (!peer)
             return;
-        for (uint8_t bType = 0; bType < MONEY_LOG_TYPE_MAX_NUM; bType++) {
-            __typeof(money_log_container_[bType].begin()) it;
-            for (it = money_log_container_[bType].begin(); it != money_log_container_[bType].end(); ++it) {
+        for (uint8_t type = 0; type < MONEY_LOG_TYPE_MAX_NUM; type++) {
+            __typeof(money_log_container_[type].begin()) it;
+            for (it = money_log_container_[type].begin(); it != money_log_container_[type].end(); ++it) {
                 packet_money_log p;
-                p.type = bType;
+                p.type = type;
                 p.vnum = it->first;
                 p.gold = it->second;
                 peer->encode_header(HEADER_DG_MONEY_LOG, 0, sizeof(p));
                 peer->encode(&p, sizeof(p));
             }
-            money_log_container_[bType].clear();
+            money_log_container_[type].clear();
         }
     }
 

@@ -75,18 +75,18 @@ namespace metin2::game::inline guilds {
             return false;
         }
 
-        uint32_t colMark = pos_mark % MARK_COL_COUNT;
-        uint32_t rowMark = pos_mark / MARK_COL_COUNT;
+        uint32_t col_mark = pos_mark % MARK_COL_COUNT;
+        uint32_t row_mark = pos_mark / MARK_COL_COUNT;
 
-        printf("PutMark pos %u %ux%u\n", pos_mark, colMark * guild_mark::WIDTH, rowMark * guild_mark::HEIGHT);
-        put_data(colMark * guild_mark::WIDTH, rowMark * guild_mark::HEIGHT, guild_mark::WIDTH, guild_mark::HEIGHT, image);
+        printf("PutMark pos %u %ux%u\n", pos_mark, col_mark * guild_mark::WIDTH, row_mark * guild_mark::HEIGHT);
+        put_data(col_mark * guild_mark::WIDTH, row_mark * guild_mark::HEIGHT, guild_mark::WIDTH, guild_mark::HEIGHT, image);
 
-        uint32_t rowBlock = rowMark / guild_mark_block::MARK_PER_BLOCK_HEIGHT;
-        uint32_t colBlock = colMark / guild_mark_block::MARK_PER_BLOCK_WIDTH;
+        uint32_t row_block = row_mark / guild_mark_block::MARK_PER_BLOCK_HEIGHT;
+        uint32_t col_block = col_mark / guild_mark_block::MARK_PER_BLOCK_WIDTH;
 
-        pixel apxBuf[guild_mark_block::SIZE];
-        data(colBlock * guild_mark_block::WIDTH, rowBlock * guild_mark_block::HEIGHT, guild_mark_block::WIDTH, guild_mark_block::HEIGHT, apxBuf);
-        aak_block_[rowBlock][colBlock].compress(apxBuf);
+        pixel apx_buf[guild_mark_block::SIZE];
+        data(col_block * guild_mark_block::WIDTH, row_block * guild_mark_block::HEIGHT, guild_mark_block::WIDTH, guild_mark_block::HEIGHT, apx_buf);
+        aak_block_[row_block][col_block].compress(apx_buf);
         return true;
     }
 
@@ -97,26 +97,26 @@ namespace metin2::game::inline guilds {
     }
 
     void guild_mark_image::build_all_blocks() {
-        pixel apxBuf[guild_mark_block::SIZE];
+        pixel apx_buf[guild_mark_block::SIZE];
         metin2::log::debug("Guild marks: building all mark blocks");
 
         for (uint32_t row = 0; row < BLOCK_ROW_COUNT; ++row)
             for (uint32_t col = 0; col < BLOCK_COL_COUNT; ++col) {
-                data(col * guild_mark_block::WIDTH, row * guild_mark_block::HEIGHT, guild_mark_block::WIDTH, guild_mark_block::HEIGHT, apxBuf);
-                aak_block_[row][col].compress(apxBuf);
+                data(col * guild_mark_block::WIDTH, row * guild_mark_block::HEIGHT, guild_mark_block::WIDTH, guild_mark_block::HEIGHT, apx_buf);
+                aak_block_[row][col].compress(apx_buf);
             }
     }
 
     void guild_mark_image::diff_blocks(const uint32_t *crc_list, std::map<uint8_t, const guild_mark_block *> &diff_blocks) {
-        uint8_t posBlock = 0;
+        uint8_t pos_block = 0;
 
         for (uint32_t row = 0; row < BLOCK_ROW_COUNT; ++row)
             for (uint32_t col = 0; col < BLOCK_COL_COUNT; ++col) {
                 if (aak_block_[row][col].crc != *crc_list) {
-                    diff_blocks.insert(std::map<uint8_t, const guild_mark_block *>::value_type(posBlock, &aak_block_[row][col]));
+                    diff_blocks.insert(std::map<uint8_t, const guild_mark_block *>::value_type(pos_block, &aak_block_[row][col]));
                 }
                 ++crc_list;
-                ++posBlock;
+                ++pos_block;
             }
     }
 

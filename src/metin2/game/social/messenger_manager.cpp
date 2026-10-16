@@ -127,9 +127,9 @@ namespace metin2::game::inline social {
         uint32_t dw2 = get_cr_c32(target->name(), strlen(target->name()));
 
         const std::string buf = std::format("{}:{}", dw1, dw2);
-        uint32_t dwComplex = get_cr_c32(buf.c_str(), buf.size());
+        uint32_t complex = get_cr_c32(buf.c_str(), buf.size());
 
-        set_request_to_add_.insert(dwComplex);
+        set_request_to_add_.insert(complex);
 
         target->chat_packet(CHAT_TYPE_COMMAND, "messenger_auth %s", ch->name());
     }
@@ -139,14 +139,14 @@ namespace metin2::game::inline social {
         uint32_t dw2 = get_cr_c32(account.c_str(), account.length());
 
         const std::string buf = std::format("{}:{}", dw1, dw2);
-        uint32_t dwComplex = get_cr_c32(buf.c_str(), buf.size());
+        uint32_t complex = get_cr_c32(buf.c_str(), buf.size());
 
-        if (set_request_to_add_.find(dwComplex) == set_request_to_add_.end()) {
+        if (set_request_to_add_.find(complex) == set_request_to_add_.end()) {
             metin2::log::warn("Messenger: no pending friend request between {} and {}", companion, account);
             return false;
         }
 
-        set_request_to_add_.erase(dwComplex);
+        set_request_to_add_.erase(complex);
 
         if (!deny) {
             add_to_list(companion, account);
@@ -321,16 +321,16 @@ namespace metin2::game::inline social {
         if (ch->gm_level() == GM_PLAYER && gm_get_level(companion.c_str()) != GM_PLAYER)
             return;
 
-        uint8_t bLen = companion.size();
+        uint8_t len = companion.size();
 
         packet_gc_messenger pack;
 
         pack.header = HEADER_GC_MESSENGER;
         pack.subheader = MESSENGER_SUBHEADER_GC_LOGIN;
-        pack.size = sizeof(packet_gc_messenger) + sizeof(uint8_t) + bLen;
+        pack.size = sizeof(packet_gc_messenger) + sizeof(uint8_t) + len;
 
         d->buffered_packet(&pack, sizeof(packet_gc_messenger));
-        d->buffered_packet(&bLen, sizeof(uint8_t));
+        d->buffered_packet(&len, sizeof(uint8_t));
         d->packet(companion.c_str(), companion.size());
     }
 
@@ -344,16 +344,16 @@ namespace metin2::game::inline social {
         if (!d)
             return;
 
-        uint8_t bLen = companion.size();
+        uint8_t len = companion.size();
 
         packet_gc_messenger pack;
 
         pack.header = HEADER_GC_MESSENGER;
         pack.subheader = MESSENGER_SUBHEADER_GC_LOGOUT;
-        pack.size = sizeof(packet_gc_messenger) + sizeof(uint8_t) + bLen;
+        pack.size = sizeof(packet_gc_messenger) + sizeof(uint8_t) + len;
 
         d->buffered_packet(&pack, sizeof(packet_gc_messenger));
-        d->buffered_packet(&bLen, sizeof(uint8_t));
+        d->buffered_packet(&len, sizeof(uint8_t));
         d->packet(companion.c_str(), companion.size());
     }
 }

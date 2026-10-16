@@ -64,10 +64,10 @@ namespace metin2::game::inline characters {
         auto it = list_affect_.begin();
 
         while (it != list_affect_.end()) {
-            affect *pkAffect = *it++;
+            affect *affect = *it++;
 
-            if (pkAffect->type == type_value && (apply == APPLY_NONE || apply == pkAffect->apply_on))
-                return pkAffect;
+            if (affect->type == type_value && (apply == APPLY_NONE || apply == affect->apply_on))
+                return affect;
         }
 
         return nullptr;
@@ -98,12 +98,12 @@ namespace metin2::game::inline characters {
             if (max_hp() <= hp()) {
                 point_change(POINT_HP_RECOVERY, -point(POINT_HP_RECOVERY));
             } else {
-                int iVal = 0;
+                int val = 0;
 
-                iVal = std::min(point(POINT_HP_RECOVERY), max_hp() * 7 / 100);
+                val = std::min(point(POINT_HP_RECOVERY), max_hp() * 7 / 100);
 
-                point_change(POINT_HP, iVal);
-                point_change(POINT_HP_RECOVERY, -iVal);
+                point_change(POINT_HP, val);
+                point_change(POINT_HP_RECOVERY, -val);
             }
         }
 
@@ -111,12 +111,12 @@ namespace metin2::game::inline characters {
             if (max_sp() <= sp())
                 point_change(POINT_SP_RECOVERY, -point(POINT_SP_RECOVERY));
             else {
-                int iVal;
+                int val;
 
-                iVal = std::min(point(POINT_SP_RECOVERY), max_sp() * 7 / 100);
+                val = std::min(point(POINT_SP_RECOVERY), max_sp() * 7 / 100);
 
-                point_change(POINT_SP, iVal);
-                point_change(POINT_SP_RECOVERY, -iVal);
+                point_change(POINT_SP, val);
+                point_change(POINT_SP_RECOVERY, -val);
             }
         }
 
@@ -132,8 +132,8 @@ namespace metin2::game::inline characters {
         auto_recovery_item_process(AFFECT_AUTO_SP_RECOVERY);
 
         if (max_stamina() > stamina()) {
-            int iSec = (get_dword_time() - stop_time()) / 3000;
-            if (iSec)
+            int sec = (get_dword_time() - stop_time()) / 3000;
+            if (sec)
                 point_change(POINT_STAMINA, max_stamina() / 1);
         }
 
@@ -157,35 +157,35 @@ namespace metin2::game::inline characters {
     }
 
     void character::clear_affect(bool save) {
-        affect_flag afOld = af_affect_flag_;
-        uint16_t wMovSpd = point(POINT_MOV_SPEED);
-        uint16_t wAttSpd = point(POINT_ATT_SPEED);
+        affect_flag af_old = af_affect_flag_;
+        uint16_t mov_spd = point(POINT_MOV_SPEED);
+        uint16_t att_spd = point(POINT_ATT_SPEED);
 
         auto it = list_affect_.begin();
 
         while (it != list_affect_.end()) {
-            affect *pkAff = *it;
+            affect *aff = *it;
 
             if (save) {
-                if (is_no_clear_on_death_affect(pkAff->type) || is_no_save_affect(pkAff->type)) {
+                if (is_no_clear_on_death_affect(aff->type) || is_no_save_affect(aff->type)) {
                     ++it;
                     continue;
                 }
 
                 if (is_pc()) {
-                    send_affect_remove_packet(get_desc(), player_id(), pkAff->type, pkAff->apply_on);
+                    send_affect_remove_packet(get_desc(), player_id(), aff->type, aff->apply_on);
                 }
             }
 
-            compute_affect(pkAff, false);
+            compute_affect(aff, false);
 
             it = list_affect_.erase(it);
-            delete pkAff;
+            delete aff;
         }
 
-        if (afOld != af_affect_flag_ ||
-            wMovSpd != point(POINT_MOV_SPEED) ||
-            wAttSpd != point(POINT_ATT_SPEED))
+        if (af_old != af_affect_flag_ ||
+            mov_spd != point(POINT_MOV_SPEED) ||
+            att_spd != point(POINT_ATT_SPEED))
             update_packet();
 
         check_maximum_points();
@@ -195,76 +195,76 @@ namespace metin2::game::inline characters {
     }
 
     auto character::process_affect() -> int {
-        bool bDiff = false;
-        affect *pkAff = nullptr;
+        bool diff = false;
+        affect *aff = nullptr;
 
         for (int i = 0; i <= PREMIUM_MAX_NUM; ++i) {
             int aff_idx = i + AFFECT_PREMIUM_START;
 
-            pkAff = find_affect(aff_idx);
+            aff = find_affect(aff_idx);
 
-            if (!pkAff)
+            if (!aff)
                 continue;
 
             int remain = premium_remain_seconds(i);
 
             if (remain < 0) {
                 remove_affect(aff_idx);
-                bDiff = true;
+                diff = true;
             } else
-                pkAff->duration = remain + 1;
+                aff->duration = remain + 1;
         }
 
-        pkAff = find_affect(AFFECT_HAIR);
-        if (pkAff) {
+        aff = find_affect(AFFECT_HAIR);
+        if (aff) {
             if (this->quest_flag("hair.limit_time") < get_global_time()) {
                 this->set_part(PART_HAIR, 0);
                 remove_affect(AFFECT_HAIR);
             } else {
-                ++(pkAff->duration);
+                ++(aff->duration);
             }
         }
 
         horse_name_manager::instance().validate(this);
 
-        affect_flag afOld = af_affect_flag_;
-        int32_t lMovSpd = point(POINT_MOV_SPEED);
-        int32_t lAttSpd = point(POINT_ATT_SPEED);
+        affect_flag af_old = af_affect_flag_;
+        int32_t mov_spd = point(POINT_MOV_SPEED);
+        int32_t att_spd = point(POINT_ATT_SPEED);
 
         decltype(list_affect_.begin()) it;
 
         it = list_affect_.begin();
 
         while (it != list_affect_.end()) {
-            pkAff = *it;
+            aff = *it;
 
-            bool bEnd = false;
+            bool end = false;
 
-            if (pkAff->type >= GUILD_SKILL_START && pkAff->type <= GUILD_SKILL_END) {
+            if (aff->type >= GUILD_SKILL_START && aff->type <= GUILD_SKILL_END) {
                 if (!get_guild() || !get_guild()->under_any_war())
-                    bEnd = true;
+                    end = true;
             }
 
-            if (pkAff->sp_cost > 0) {
-                if (sp() < pkAff->sp_cost)
-                    bEnd = true;
+            if (aff->sp_cost > 0) {
+                if (sp() < aff->sp_cost)
+                    end = true;
                 else
-                    point_change(POINT_SP, -pkAff->sp_cost);
+                    point_change(POINT_SP, -aff->sp_cost);
             }
 
-            if (--pkAff->duration <= 0) {
-                bEnd = true;
+            if (--aff->duration <= 0) {
+                end = true;
             }
 
-            if (bEnd) {
+            if (end) {
                 it = list_affect_.erase(it);
-                compute_affect(pkAff, false);
-                bDiff = true;
+                compute_affect(aff, false);
+                diff = true;
                 if (is_pc()) {
-                    send_affect_remove_packet(get_desc(), player_id(), pkAff->type, pkAff->apply_on);
+                    send_affect_remove_packet(get_desc(), player_id(), aff->type, aff->apply_on);
                 }
 
-                delete pkAff;
+                delete aff;
 
                 continue;
             }
@@ -272,10 +272,10 @@ namespace metin2::game::inline characters {
             ++it;
         }
 
-        if (bDiff) {
-            if (afOld != af_affect_flag_ ||
-                lMovSpd != point(POINT_MOV_SPEED) ||
-                lAttSpd != point(POINT_ATT_SPEED)) {
+        if (diff) {
+            if (af_old != af_affect_flag_ ||
+                mov_spd != point(POINT_MOV_SPEED) ||
+                att_spd != point(POINT_ATT_SPEED)) {
                 update_packet();
             }
 
@@ -294,20 +294,20 @@ namespace metin2::game::inline characters {
         auto it = list_affect_.begin();
 
         while (it != list_affect_.end()) {
-            affect *pkAff = *it++;
+            affect *aff = *it++;
 
-            if (is_no_save_affect(pkAff->type))
+            if (is_no_save_affect(aff->type))
                 continue;
 
-            metin2::log::debug("Saving affect type {:d}, apply {:d}, value {:d}, duration {:d}", pkAff->type, pkAff->apply_on, pkAff->apply_value, pkAff->duration);
+            metin2::log::debug("Saving affect type {:d}, apply {:d}, value {:d}, duration {:d}", aff->type, aff->apply_on, aff->apply_value, aff->duration);
 
             p.pid = player_id();
-            p.elem.type = pkAff->type;
-            p.elem.apply_on = pkAff->apply_on;
-            p.elem.apply_value = pkAff->apply_value;
-            p.elem.flag = pkAff->flag;
-            p.elem.duration = pkAff->duration;
-            p.elem.sp_cost = pkAff->sp_cost;
+            p.elem.type = aff->type;
+            p.elem.apply_on = aff->apply_on;
+            p.elem.apply_value = aff->apply_value;
+            p.elem.flag = aff->flag;
+            p.elem.duration = aff->duration;
+            p.elem.sp_cost = aff->sp_cost;
             db_clientdesc->db_packet(HEADER_GD_ADD_AFFECT, 0, &p, sizeof(p));
         }
     }
@@ -330,8 +330,8 @@ namespace metin2::game::inline characters {
             return 0;
         }
 
-        uint32_t dwPID = info->pid;
-        character *ch = character_manager::instance().find_by_pid(dwPID);
+        uint32_t pid_value = info->pid;
+        character *ch = character_manager::instance().find_by_pid(pid_value);
 
         if (!ch) {
             return 0;
@@ -383,10 +383,10 @@ namespace metin2::game::inline characters {
         if (metin2::config::test_server())
             metin2::log::debug("{}: loading {:d} affects", name(), count_value);
 
-        affect_flag afOld = af_affect_flag_;
+        affect_flag af_old = af_affect_flag_;
 
-        int32_t lMovSpd = point(POINT_MOV_SPEED);
-        int32_t lAttSpd = point(POINT_ATT_SPEED);
+        int32_t mov_spd = point(POINT_MOV_SPEED);
+        int32_t att_spd = point(POINT_ATT_SPEED);
 
         for (uint32_t i = 0; i < count_value; ++i, ++elements) {
             if (elements->type == SKILL_MUYEONG)
@@ -411,26 +411,26 @@ namespace metin2::game::inline characters {
                 metin2::log::debug("{}: loaded affect type {:d}, apply {:d}", name(), elements->type, elements->apply_on);
             }
 
-            auto *pkAff = new affect{};
-            list_affect_.push_back(pkAff);
+            auto *aff = new affect{};
+            list_affect_.push_back(aff);
 
-            pkAff->type = elements->type;
-            pkAff->apply_on = elements->apply_on;
-            pkAff->apply_value = elements->apply_value;
-            pkAff->flag = elements->flag;
-            pkAff->duration = elements->duration;
-            pkAff->sp_cost = elements->sp_cost;
+            aff->type = elements->type;
+            aff->apply_on = elements->apply_on;
+            aff->apply_value = elements->apply_value;
+            aff->flag = elements->flag;
+            aff->duration = elements->duration;
+            aff->sp_cost = elements->sp_cost;
 
-            send_affect_add_packet(get_desc(), pkAff);
+            send_affect_add_packet(get_desc(), aff);
 
-            compute_affect(pkAff, true);
+            compute_affect(aff, true);
         }
 
         if (arena_manager::instance().is_arena_map(map_index()) == true) {
             remove_good_affect();
         }
 
-        if (afOld != af_affect_flag_ || lMovSpd != point(POINT_MOV_SPEED) || lAttSpd != point(POINT_ATT_SPEED)) {
+        if (af_old != af_affect_flag_ || mov_spd != point(POINT_MOV_SPEED) || att_spd != point(POINT_ATT_SPEED)) {
             update_packet();
         }
 
@@ -449,12 +449,12 @@ namespace metin2::game::inline characters {
             duration_value = 1;
         }
 
-        affect *pkAff = nullptr;
+        affect *aff = nullptr;
 
         if (is_cube)
-            pkAff = find_affect(type_value, apply_on_value);
+            aff = find_affect(type_value, apply_on_value);
         else
-            pkAff = find_affect(type_value);
+            aff = find_affect(type_value);
 
         if (flag_value == AFF_STUN) {
             if (pos_dest_.x != x() || pos_dest_.y != y()) {
@@ -466,49 +466,49 @@ namespace metin2::game::inline characters {
             }
         }
 
-        if (pkAff && override) {
-            compute_affect(pkAff, false);
+        if (aff && override) {
+            compute_affect(aff, false);
 
             if (get_desc())
-                send_affect_remove_packet(get_desc(), player_id(), pkAff->type, pkAff->apply_on);
+                send_affect_remove_packet(get_desc(), player_id(), aff->type, aff->apply_on);
         } else {
-            pkAff = new affect{};
-            list_affect_.push_back(pkAff);
+            aff = new affect{};
+            list_affect_.push_back(aff);
         }
 
         metin2::log::debug("{}: add affect type {:d}, apply {:d}, value {:d}, flag {:d}, duration {:d}", name(), type_value, apply_on_value, apply_value_value, flag_value, duration_value);
 
-        pkAff->type = type_value;
-        pkAff->apply_on = apply_on_value;
-        pkAff->apply_value = apply_value_value;
-        pkAff->flag = flag_value;
-        pkAff->duration = duration_value;
-        pkAff->sp_cost = sp_cost_value;
+        aff->type = type_value;
+        aff->apply_on = apply_on_value;
+        aff->apply_value = apply_value_value;
+        aff->flag = flag_value;
+        aff->duration = duration_value;
+        aff->sp_cost = sp_cost_value;
 
-        uint16_t wMovSpd = point(POINT_MOV_SPEED);
-        uint16_t wAttSpd = point(POINT_ATT_SPEED);
+        uint16_t mov_spd = point(POINT_MOV_SPEED);
+        uint16_t att_spd = point(POINT_ATT_SPEED);
 
-        compute_affect(pkAff, true);
+        compute_affect(aff, true);
 
-        if (pkAff->flag || wMovSpd != point(POINT_MOV_SPEED) || wAttSpd != point(POINT_ATT_SPEED))
+        if (aff->flag || mov_spd != point(POINT_MOV_SPEED) || att_spd != point(POINT_ATT_SPEED))
             update_packet();
 
         start_affect_event();
 
         if (is_pc()) {
-            send_affect_add_packet(get_desc(), pkAff);
+            send_affect_add_packet(get_desc(), aff);
 
-            if (is_no_save_affect(pkAff->type))
+            if (is_no_save_affect(aff->type))
                 return true;
 
             packet_gd_add_affect p;
             p.pid = player_id();
-            p.elem.type = pkAff->type;
-            p.elem.apply_on = pkAff->apply_on;
-            p.elem.apply_value = pkAff->apply_value;
-            p.elem.flag = pkAff->flag;
-            p.elem.duration = pkAff->duration;
-            p.elem.sp_cost = pkAff->sp_cost;
+            p.elem.type = aff->type;
+            p.elem.apply_on = aff->apply_on;
+            p.elem.apply_value = aff->apply_value;
+            p.elem.flag = aff->flag;
+            p.elem.duration = aff->duration;
+            p.elem.sp_cost = aff->sp_cost;
             db_clientdesc->db_packet(HEADER_GD_ADD_AFFECT, 0, &p, sizeof(p));
         }
 
@@ -519,8 +519,8 @@ namespace metin2::game::inline characters {
         auto it = list_affect_.begin();
 
         while (it != list_affect_.end()) {
-            affect *pkAff = *it++;
-            compute_affect(pkAff, true);
+            affect *aff = *it++;
+            compute_affect(aff, true);
         }
     }
 
@@ -589,10 +589,10 @@ namespace metin2::game::inline characters {
 
         bool flag = false;
 
-        affect *pkAff;
+        affect *aff;
 
-        while ((pkAff = find_affect(type))) {
-            remove_affect(pkAff);
+        while ((aff = find_affect(type))) {
+            remove_affect(aff);
             flag = true;
         }
 

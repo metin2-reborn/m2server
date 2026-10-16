@@ -27,15 +27,15 @@ namespace metin2::game::inline characters {
             80, 50, 40, 30, 25, 1};
 
     auto get_poison_damage_rate(character *ch) -> int {
-        int iRate;
+        int rate;
 
         if (ch->is_pc()) {
-            iRate = 50;
+            rate = 50;
         } else
-            iRate = poison_damage_rate[ch->get_mob_rank()];
+            rate = poison_damage_rate[ch->get_mob_rank()];
 
-        iRate = std::max(0, iRate - ch->point(POINT_POISON_REDUCE));
-        return iRate;
+        rate = std::max(0, rate - ch->point(POINT_POISON_REDUCE));
+        return rate;
     }
 
     EVENTINFO(poison_event_info) {
@@ -61,12 +61,12 @@ namespace metin2::game::inline characters {
         if (ch == nullptr) {
             return 0;
         }
-        character *pkAttacker = character_manager::instance().find_by_pid(info->attacker_pid);
+        character *attacker = character_manager::instance().find_by_pid(info->attacker_pid);
 
         int dam = ch->max_hp() * get_poison_damage_rate(ch) / 1000;
         if (metin2::config::test_server()) ch->chat_packet(CHAT_TYPE_NOTICE, "Poison Damage %d", dam);
 
-        if (ch->damage(pkAttacker, dam, DAMAGE_TYPE_POISON)) {
+        if (ch->damage(attacker, dam, DAMAGE_TYPE_POISON)) {
             ch->poison_event = nullptr;
             return 0;
         }
@@ -104,12 +104,12 @@ namespace metin2::game::inline characters {
         if (ch == nullptr) {
             return 0;
         }
-        character *pkAttacker = character_manager::instance().find_by_pid(info->attacker_pid);
+        character *attacker = character_manager::instance().find_by_pid(info->attacker_pid);
 
         int dam = info->amount;
         if (metin2::config::test_server()) ch->chat_packet(CHAT_TYPE_NOTICE, "Fire Damage %d", dam);
 
-        if (ch->damage(pkAttacker, dam, DAMAGE_TYPE_FIRE)) {
+        if (ch->damage(attacker, dam, DAMAGE_TYPE_FIRE)) {
             ch->fire_event = nullptr;
             return 0;
         }

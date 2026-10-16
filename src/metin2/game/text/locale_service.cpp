@@ -34,10 +34,10 @@ namespace metin2::game::inline text {
         if (banword_manager::instance().check_string(str, strlen(str)))
             return 0;
 
-        char szTmp[256];
-        str_lower(str, szTmp, sizeof(szTmp));
+        char tmp[256];
+        str_lower(str, tmp, sizeof(tmp));
 
-        if (mob_manager::instance().get(szTmp, false))
+        if (mob_manager::instance().get(tmp, false))
             return 0;
 
         return 1;
@@ -75,11 +75,11 @@ namespace metin2::game::inline text {
     }
 
     void locale_service_load_empire_text_convert_tables() {
-        for (int iEmpire = 1; iEmpire <= 3; ++iEmpire) {
-            const std::string szFileName = std::format("{}/lang{}.cvt", locale_service_get_base_path(), iEmpire);
-            metin2::log::info("Loading empire text conversion table {}", szFileName);
+        for (int empire_value = 1; empire_value <= 3; ++empire_value) {
+            const std::string file_name = std::format("{}/lang{}.cvt", locale_service_get_base_path(), empire_value);
+            metin2::log::info("Loading empire text conversion table {}", file_name);
 
-            load_empire_text_convert_table(iEmpire, szFileName.c_str());
+            load_empire_text_convert_table(empire_value, file_name.c_str());
         }
     }
 

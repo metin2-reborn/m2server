@@ -41,18 +41,18 @@ namespace metin2::game {
 
     namespace quest {
         auto script_to_string(const std::string &str) -> std::string {
-            lua_State *L = quest_manager::instance().lua_state();
-            int x = lua_gettop(L);
+            lua_State *l = quest_manager::instance().lua_state();
+            int x = lua_gettop(l);
 
-            int errcode = lua_dobuffer(L, ("return " + str).c_str(), str.size() + 7, "ScriptToString");
+            int errcode = lua_dobuffer(l, ("return " + str).c_str(), str.size() + 7, "ScriptToString");
             std::string retstr;
             if (!errcode) {
-                if (lua_isstring(L, -1))
-                    retstr = lua_tostring(L, -1);
+                if (lua_isstring(l, -1))
+                    retstr = lua_tostring(l, -1);
             } else {
                 quest::error("Lua script failed (code {:d}): {}", errcode, str.c_str());
             }
-            lua_settop(L, x);
+            lua_settop(l, x);
             return retstr;
         }
 
@@ -60,23 +60,23 @@ namespace metin2::game {
             if (!ch->is_pc())
                 return;
 
-            pc *pPC = quest_manager::instance().pc_force(ch->player_id());
+            pc *pc = quest_manager::instance().pc_force(ch->player_id());
 
-            if (pPC)
-                pPC->set_flag(flagname, value);
+            if (pc)
+                pc->set_flag(flagname, value);
         }
 
         void purge_monsters_in_area(sectree_map *map, int x1, int y1, int x2, int y2, character *except_char) {
             map->for_each([&](entity *ent) {
                 if (true == ent->is_type(ENTITY_CHARACTER)) {
-                    auto *pChar = static_cast<character *>(ent);
+                    auto *ch = static_cast<character *>(ent);
 
-                    if (pChar == except_char)
+                    if (ch == except_char)
                         return;
 
-                    if (!pChar->is_pet() && (true == pChar->is_monster() || true == pChar->is_stone())) {
-                        if (x1 <= pChar->x() && pChar->x() <= x2 && y1 <= pChar->y() && pChar->y() <= y2) {
-                            character_manager::instance().destroy_character(pChar);
+                    if (!ch->is_pet() && (true == ch->is_monster() || true == ch->is_stone())) {
+                        if (x1 <= ch->x() && ch->x() <= x2 && y1 <= ch->y() && ch->y() <= y2) {
+                            character_manager::instance().destroy_character(ch);
                         }
                     }
                 }
@@ -98,15 +98,15 @@ namespace metin2::game {
             if (size == 0)
                 return true;
 
-            lua_State *L = quest_manager::instance().lua_state();
-            int x = lua_gettop(L);
-            int errcode = lua_dobuffer(L, code, size, "IsScriptTrue");
-            int bStart = lua_toboolean(L, -1);
+            lua_State *l = quest_manager::instance().lua_state();
+            int x = lua_gettop(l);
+            int errcode = lua_dobuffer(l, code, size, "IsScriptTrue");
+            int start = lua_toboolean(l, -1);
             if (errcode) {
                 quest::error("Lua script failed (code {:d}): {}", errcode, std::string_view(code, static_cast<int>(size)));
             }
-            lua_settop(L, x);
-            return bStart != 0;
+            lua_settop(l, x);
+            return start != 0;
         }
 
         void combine_lua_string(lua_State *lua, std::ostringstream &s) {
@@ -123,10 +123,10 @@ namespace metin2::game {
         }
 
         auto highscore_show(lua_State *lua) -> int {
-            const char *pszBoardName = lua_isstring(lua, 1) ? lua_tostring(lua, 1) : "";
-            bool bOrder = (int)lua_tonumber(lua, 2) != 0 ? true : false;
+            const char *board_name = lua_isstring(lua, 1) ? lua_tostring(lua, 1) : "";
+            bool order = (int)lua_tonumber(lua, 2) != 0 ? true : false;
 
-            db_manager::instance().func_query([](sql_msg &) {}, sql::format("SELECT h.pid, p.name, h.value FROM highscore{} as h, player{} as p WHERE h.board = {} AND h.pid = p.id ORDER BY h.value {} LIMIT 10", sql::raw(get_table_postfix()), sql::raw(get_table_postfix()), pszBoardName, sql::raw(bOrder ? "DESC" : "")));
+            db_manager::instance().func_query([](sql_msg &) {}, sql::format("SELECT h.pid, p.name, h.value FROM highscore{} as h, player{} as p WHERE h.board = {} AND h.pid = p.id ORDER BY h.value {} LIMIT 10", sql::raw(get_table_postfix()), sql::raw(get_table_postfix()), board_name, sql::raw(order ? "DESC" : "")));
             return 0;
         }
 
@@ -140,22 +140,22 @@ namespace metin2::game {
             bool order = (int)lua_tonumber(lua, 3);
 
             db_manager::instance().func_query([board = std::string(board), pid, value, order](sql_msg &msg) {
-                bool bQuery = true;
+                bool query = true;
 
                 if (msg.get()->num_rows) {
                     MYSQL_ROW row = mysql_fetch_row(msg.get()->res.get());
 
                     if (row && row[0]) {
-                        int iCur = 0;
-                        str_to_number(iCur, row[0]);
+                        int cur = 0;
+                        str_to_number(cur, row[0]);
 
-                        if ((order && iCur >= value) ||
-                            (!order && iCur <= value))
-                            bQuery = false;
+                        if ((order && cur >= value) ||
+                            (!order && cur <= value))
+                            query = false;
                     }
                 }
 
-                if (bQuery)
+                if (query)
                     db_manager::instance().query(sql::format("REPLACE INTO highscore{} VALUES({}, {}, {})",
                         sql::raw(get_table_postfix()), board, pid, value));
             },
@@ -192,7 +192,7 @@ namespace metin2::game {
             int32_t local_x = (int32_t)lua_tonumber(lua, 2) * 100;
             int32_t local_y = (int32_t)lua_tonumber(lua, 3) * 100;
             float radius = (float)lua_tonumber(lua, 4) * 100;
-            bool bAggressive = lua_toboolean(lua, 5);
+            bool aggressive = lua_toboolean(lua, 5);
             uint32_t count = (lua_isnumber(lua, 6)) ? (uint32_t)lua_tonumber(lua, 6) : 1;
 
             if (count == 0)
@@ -203,11 +203,11 @@ namespace metin2::game {
             }
 
             character *ch = quest_manager::instance().current_character_ptr();
-            sectree_map *pMap = sectree_manager::instance().map(ch->map_index());
-            if (pMap == nullptr) {
+            sectree_map *map = sectree_manager::instance().map(ch->map_index());
+            if (map == nullptr) {
                 return 0;
             }
-            uint32_t dwQuestIdx = quest_manager::instance().current_pc()->current_quest_index();
+            uint32_t quest_idx = quest_manager::instance().current_pc()->current_quest_index();
 
             bool ret = false;
             character *mob = nullptr;
@@ -217,8 +217,8 @@ namespace metin2::game {
                     float angle = number(0, 999) * std::numbers::pi * 2 / 1000;
                     float r = number(0, 999) * radius / 1000;
 
-                    int32_t x = local_x + pMap->setting.base_x + (int32_t)(r * cos(angle));
-                    int32_t y = local_y + pMap->setting.base_y + (int32_t)(r * sin(angle));
+                    int32_t x = local_x + map->setting.base_x + (int32_t)(r * cos(angle));
+                    int32_t y = local_y + map->setting.base_y + (int32_t)(r * sin(angle));
 
                     mob = character_manager::instance().spawn_mob(mob_vnum, ch->map_index(), x, y, 0);
 
@@ -227,10 +227,10 @@ namespace metin2::game {
                 }
 
                 if (mob) {
-                    if (bAggressive)
+                    if (aggressive)
                         mob->set_aggressive();
 
-                    mob->set_quest_by(dwQuestIdx);
+                    mob->set_quest_by(quest_idx);
 
                     if (!ret) {
                         ret = true;
@@ -256,7 +256,7 @@ namespace metin2::game {
             int32_t local_x = (int32_t)lua_tonumber(lua, 2) * 100;
             int32_t local_y = (int32_t)lua_tonumber(lua, 3) * 100;
             float radius = (float)lua_tonumber(lua, 4) * 100;
-            bool bAggressive = lua_toboolean(lua, 5);
+            bool aggressive = lua_toboolean(lua, 5);
             auto count = (uint32_t)lua_tonumber(lua, 6);
 
             if (count == 0)
@@ -267,12 +267,12 @@ namespace metin2::game {
             }
 
             character *ch = quest_manager::instance().current_character_ptr();
-            sectree_map *pMap = sectree_manager::instance().map(ch->map_index());
-            if (pMap == nullptr) {
+            sectree_map *map = sectree_manager::instance().map(ch->map_index());
+            if (map == nullptr) {
                 lua_pushnumber(lua, 0);
                 return 1;
             }
-            uint32_t dwQuestIdx = quest_manager::instance().current_pc()->current_quest_index();
+            uint32_t quest_idx = quest_manager::instance().current_pc()->current_quest_index();
 
             bool ret = false;
             character *mob = nullptr;
@@ -282,17 +282,17 @@ namespace metin2::game {
                     float angle = number(0, 999) * std::numbers::pi * 2 / 1000;
                     float r = number(0, 999) * radius / 1000;
 
-                    int32_t x = local_x + pMap->setting.base_x + (int32_t)(r * cos(angle));
-                    int32_t y = local_y + pMap->setting.base_y + (int32_t)(r * sin(angle));
+                    int32_t x = local_x + map->setting.base_x + (int32_t)(r * cos(angle));
+                    int32_t y = local_y + map->setting.base_y + (int32_t)(r * sin(angle));
 
-                    mob = character_manager::instance().spawn_group(group_vnum, ch->map_index(), x, y, x, y, nullptr, bAggressive);
+                    mob = character_manager::instance().spawn_group(group_vnum, ch->map_index(), x, y, x, y, nullptr, aggressive);
 
                     if (mob)
                         break;
                 }
 
                 if (mob) {
-                    mob->set_quest_by(dwQuestIdx);
+                    mob->set_quest_by(quest_idx);
 
                     if (!ret) {
                         ret = true;
@@ -431,10 +431,10 @@ namespace metin2::game {
 
             for (const std::string &object_dir : quest_object_dir) {
                 const std::string state_dir = std::format("{}/state/", object_dir);
-                int iQuestIdx = 0;
+                int quest_idx = 0;
 
                 for (const std::string &name : list_directory(state_dir)) {
-                    register_quest(name, ++iQuestIdx);
+                    register_quest(name, ++quest_idx);
                     const std::string file_name = object_dir + "/state/" + name;
                     int ret = lua_dofile(l_, file_name.c_str());
                     metin2::log::debug("Quest: loaded {} (result {:d})", file_name, ret);
@@ -496,13 +496,13 @@ namespace metin2::game {
                 return 0;
             }
 
-            character *chWait = character_manager::instance().find_by_pid(info->wait_pid);
-            character *chReply = nullptr;
+            character *ch_wait = character_manager::instance().find_by_pid(info->wait_pid);
+            character *ch_reply = nullptr;
 
-            if (chReply) {
+            if (ch_reply) {
             }
 
-            if (chWait) {
+            if (ch_wait) {
                 quest_manager::instance().confirm(info->wait_pid, CONFIRM_TIMEOUT);
             }
 
@@ -511,20 +511,20 @@ namespace metin2::game {
 
         void quest_manager::goto_confirm_state(quest_state &qs) {
             qs.suspend_state = SUSPEND_STATE_CONFIRM;
-            auto dwVID = (uint32_t)lua_tonumber(qs.co, -3);
-            const char *szMsg = lua_tostring(qs.co, -2);
-            int iTimeout = (int)lua_tonumber(qs.co, -1);
+            auto vid_value = (uint32_t)lua_tonumber(qs.co, -3);
+            const char *msg = lua_tostring(qs.co, -2);
+            int timeout_value = (int)lua_tonumber(qs.co, -1);
 
-            metin2::log::debug("Quest: confirm request to vid {:d}, message '{}', timeout {:d}", dwVID, szMsg, iTimeout);
+            metin2::log::debug("Quest: confirm request to vid {:d}, message '{}', timeout {:d}", vid_value, msg, timeout_value);
 
-            character *ch = character_manager::instance().find(dwVID);
+            character *ch = character_manager::instance().find(vid_value);
             if (ch && ch->is_pc()) {
-                ch->confirm_with_msg(szMsg, iTimeout, current_character_ptr()->player_id());
+                ch->confirm_with_msg(msg, timeout_value, current_character_ptr()->player_id());
             }
 
             current_pc()->set_confirm_wait((ch && ch->is_pc()) ? ch->player_id() : 0);
             std::ostringstream os;
-            os << "[CONFIRM_WAIT timeout;" << iTimeout << "]";
+            os << "[CONFIRM_WAIT timeout;" << timeout_value << "]";
             add_script(os.str());
             send_script();
 
@@ -533,7 +533,7 @@ namespace metin2::game {
             info->wait_pid = current_character_ptr()->player_id();
             info->reply_pid = (ch && ch->is_pc()) ? ch->player_id() : 0;
 
-            event_create(confirm_timeout_event, info, passes_per_sec(iTimeout));
+            event_create(confirm_timeout_event, info, passes_per_sec(timeout_value));
         }
 
         void quest_manager::goto_select_item_state(quest_state &qs) {

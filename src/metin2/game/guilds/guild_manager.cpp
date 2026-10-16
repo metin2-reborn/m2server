@@ -87,9 +87,9 @@ namespace metin2::game::inline guilds {
         }
 
         auto pg = std::make_unique<guild>(gcp);
-        const uint32_t dwGuildID = pg->id();
-        guild_.insert(std::make_pair(dwGuildID, std::move(pg)));
-        return dwGuildID;
+        const uint32_t guild_id = pg->id();
+        guild_.insert(std::make_pair(guild_id, std::move(pg)));
+        return guild_id;
     }
 
     void guild_manager::unlink(uint32_t pid) {
@@ -180,14 +180,14 @@ namespace metin2::game::inline guilds {
             load_guild(guild_id);
         }
 
-        guild_mark_manager &rkMarkMgr = guild_mark_manager::instance();
+        guild_mark_manager &mark_mgr = guild_mark_manager::instance();
 
-        rkMarkMgr.set_mark_path_prefix("mark");
+        mark_mgr.set_mark_path_prefix("mark");
         mkdir("mark", S_IRWXU);
 
-        rkMarkMgr.load_mark_index();
-        rkMarkMgr.load_mark_images();
-        rkMarkMgr.load_symbol(GUILD_SYMBOL_FILENAME);
+        mark_mgr.load_mark_index();
+        mark_mgr.load_mark_images();
+        mark_mgr.load_symbol(GUILD_SYMBOL_FILENAME);
     }
 
     void guild_manager::load_guild(uint32_t guild_id) {
@@ -581,14 +581,14 @@ namespace metin2::game::inline guilds {
 
     void guild_manager::show_guild_war_list(character *ch) {
         for (auto it = guild_war_.begin(); it != guild_war_.end(); ++it) {
-            guild *A = touch_guild(it->first);
-            guild *B = touch_guild(it->second);
+            guild *a = touch_guild(it->first);
+            guild *b = touch_guild(it->second);
 
-            if (A && B) {
+            if (a && b) {
                 ch->chat_packet(CHAT_TYPE_NOTICE, "%s[%d] vs %s[%d] time %u sec.",
-                    A->name(), A->id(),
-                    B->name(), B->id(),
-                    get_global_time() - A->war_start_time(B->id()));
+                    a->name(), a->id(),
+                    b->name(), b->id(),
+                    get_global_time() - a->war_start_time(b->id()));
             }
         }
     }
@@ -638,19 +638,19 @@ namespace metin2::game::inline guilds {
             return;
         }
 
-        guild *gAttack = killer->get_guild();
-        guild *gDefend = victim->get_guild();
+        guild *g_attack = killer->get_guild();
+        guild *g_defend = victim->get_guild();
 
-        if (!gAttack || !gDefend)
+        if (!g_attack || !g_defend)
             return;
 
-        if (gAttack->get_guild_war_type(gDefend->id()) != GUILD_WAR_TYPE_FIELD)
+        if (g_attack->get_guild_war_type(g_defend->id()) != GUILD_WAR_TYPE_FIELD)
             return;
 
-        if (!gAttack->under_war(gDefend->id()))
+        if (!g_attack->under_war(g_defend->id()))
             return;
 
-        send_guild_war_score(gAttack->id(), gDefend->id(), victim->level());
+        send_guild_war_score(g_attack->id(), g_defend->id(), victim->level());
     }
 
     void guild_manager::stop_all_guild_war() {
@@ -667,22 +667,22 @@ namespace metin2::game::inline guilds {
     void guild_manager::reserve_war_add(guild_war_reserve *p) {
         auto it = map_reserve_war_.find(p->id);
 
-        guild_war_reserve_for_game *pkReserve;
+        guild_war_reserve_for_game *reserve;
 
         if (it != map_reserve_war_.end())
-            pkReserve = it->second.get();
+            reserve = it->second.get();
         else {
-            auto pkNewReserve = std::make_unique<guild_war_reserve_for_game>();
-            pkReserve = pkNewReserve.get();
+            auto new_reserve = std::make_unique<guild_war_reserve_for_game>();
+            reserve = new_reserve.get();
 
-            map_reserve_war_.insert(std::make_pair(p->id, std::move(pkNewReserve)));
-            vec_reserve_war_.push_back(pkReserve);
+            map_reserve_war_.insert(std::make_pair(p->id, std::move(new_reserve)));
+            vec_reserve_war_.push_back(reserve);
         }
 
-        std::memcpy(&pkReserve->data, p, sizeof(guild_war_reserve));
+        std::memcpy(&reserve->data, p, sizeof(guild_war_reserve));
 
         metin2::log::info("Guild war: added reserved war {:d}, guild {:d} (power {:d}) vs guild {:d} (power {:d}), handicap {:d}",
-            pkReserve->data.id, p->guild_from, p->power_from, p->guild_to, p->power_to, p->handicap);
+            reserve->data.id, p->guild_from, p->power_from, p->guild_to, p->power_to, p->handicap);
     }
 
     void guild_manager::reserve_war_bet(packet_gd_guild_war_bet *p) {

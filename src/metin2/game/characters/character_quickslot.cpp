@@ -57,11 +57,11 @@ namespace metin2::game::inline characters {
                 del_quickslot(i);
         }
 
-        item_pos srcCell(INVENTORY, slot_value.pos);
+        item_pos src_cell(INVENTORY, slot_value.pos);
 
         switch (slot_value.type) {
         case QUICKSLOT_TYPE_ITEM:
-            if (false == srcCell.is_default_inventory_position() && false == srcCell.is_belt_inventory_position())
+            if (false == src_cell.is_default_inventory_position() && false == src_cell.is_belt_inventory_position())
                 return false;
 
             break;

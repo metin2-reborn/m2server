@@ -200,11 +200,11 @@ namespace metin2::game::inline protocol {
         std::size_t consumed = 0;
 
         while (input_processor_) {
-            int iBytesProceed = 0;
-            const bool bDone = input_processor_->process(this, input.data() + consumed, (int)(input.size() - consumed), iBytesProceed);
-            consumed += iBytesProceed;
+            int bytes_proceed = 0;
+            const bool done = input_processor_->process(this, input.data() + consumed, (int)(input.size() - consumed), bytes_proceed);
+            consumed += bytes_proceed;
 
-            if (bDone)
+            if (done)
                 return consumed;
         }
 
@@ -348,39 +348,39 @@ namespace metin2::game::inline protocol {
     }
 
     auto desc::handshake_process(uint32_t time, int32_t delta, bool infinite_retry) -> bool {
-        uint32_t dwCurTime = get_dword_time();
+        uint32_t cur_time = get_dword_time();
 
         if (delta < 0) {
             metin2::log::warn("Negative handshake delta {:d} from {}", delta, host_);
             return false;
         }
 
-        int bias = (int)(dwCurTime - (time + delta));
+        int bias = (int)(cur_time - (time + delta));
 
         if (bias >= 0 && bias <= 50) {
             if (infinite_retry) {
-                uint8_t bHeader = HEADER_GC_TIME_SYNC;
-                packet(&bHeader, sizeof(uint8_t));
+                uint8_t header = HEADER_GC_TIME_SYNC;
+                packet(&header, sizeof(uint8_t));
             }
 
             if (get_character())
-                metin2::log::debug("Handshake done: client time {:d}, server time {:d}, player {}", client_time_, dwCurTime, get_character()->name());
+                metin2::log::debug("Handshake done: client time {:d}, server time {:d}, player {}", client_time_, cur_time, get_character()->name());
             else
-                metin2::log::debug("Handshake done: client time {:d}, server time {:d}, delta {:d}", client_time_, dwCurTime, static_cast<long>(delta));
+                metin2::log::debug("Handshake done: client time {:d}, server time {:d}, delta {:d}", client_time_, cur_time, static_cast<long>(delta));
 
-            client_time_ = dwCurTime;
+            client_time_ = cur_time;
             handshaking_ = false;
             return true;
         }
 
-        int32_t lNewDelta = (int32_t)(dwCurTime - time) / 2;
+        int32_t new_delta = (int32_t)(cur_time - time) / 2;
 
-        if (lNewDelta < 0) {
-            metin2::log::debug("Handshake: negative delta {:d}, using send time instead", lNewDelta);
-            lNewDelta = (dwCurTime - handshake_sent_time_) / 2;
+        if (new_delta < 0) {
+            metin2::log::debug("Handshake: negative delta {:d}, using send time instead", new_delta);
+            new_delta = (cur_time - handshake_sent_time_) / 2;
         }
 
-        metin2::log::debug("Handshake retry: server time {:d}, client time {:d}, delta {:d}, sent at {:d}, new delta {:d}", dwCurTime, time, delta, handshake_sent_time_, lNewDelta);
+        metin2::log::debug("Handshake retry: server time {:d}, client time {:d}, delta {:d}, sent at {:d}, new delta {:d}", cur_time, time, delta, handshake_sent_time_, new_delta);
 
         if (!infinite_retry)
             if (++handshake_retry_ > HANDSHAKE_RETRY_LIMIT) {
@@ -390,7 +390,7 @@ namespace metin2::game::inline protocol {
                 return false;
             }
 
-        send_handshake(dwCurTime, lNewDelta);
+        send_handshake(cur_time, new_delta);
         return false;
     }
 
@@ -523,7 +523,7 @@ namespace metin2::game::inline protocol {
     }
 
     void desc::send_login_success_packet() {
-        account_table &rTable = get_account_table();
+        account_table &table = get_account_table();
 
         packet_gc_login_success p;
 
@@ -531,14 +531,14 @@ namespace metin2::game::inline protocol {
 
         p.handle = handle();
         p.random_key = desc_manager::instance().make_random_key(handle());
-        std::memcpy(p.players, rTable.players, sizeof(rTable.players));
+        std::memcpy(p.players, table.players, sizeof(table.players));
 
         for (int i = 0; i < PLAYER_PER_ACCOUNT; ++i) {
 
             if (!proxy_ip.empty())
-                rTable.players[i].addr = inet_addr(proxy_ip.c_str());
+                table.players[i].addr = inet_addr(proxy_ip.c_str());
 
-            guild *g = guild_manager::instance().linked_guild(rTable.players[i].id);
+            guild *g = guild_manager::instance().linked_guild(table.players[i].id);
 
             if (g) {
                 p.guild_id[i] = g->id();

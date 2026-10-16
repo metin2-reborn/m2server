@@ -32,10 +32,10 @@ namespace metin2::game::inline trade {
 
     auto shop_ex::add_shop_table(shop_table_ex &shop_table) -> bool {
         for (auto it = vec_shop_tabs_.begin(); it != vec_shop_tabs_.end(); it++) {
-            const shop_table_ex &_shopTable = *it;
-            if (0 != _shopTable.vnum && _shopTable.vnum == shop_table.vnum)
+            const shop_table_ex &shop_table_value = *it;
+            if (0 != shop_table_value.vnum && shop_table_value.vnum == shop_table.vnum)
                 return false;
-            if (0 != _shopTable.npc_vnum && _shopTable.npc_vnum == shop_table.vnum)
+            if (0 != shop_table_value.npc_vnum && shop_table_value.npc_vnum == shop_table.vnum)
                 return false;
         }
         vec_shop_tabs_.push_back(shop_table);
@@ -109,9 +109,9 @@ namespace metin2::game::inline trade {
     }
 
     auto shop_ex::buy(character *ch, uint8_t pos) -> int {
-        uint8_t tabIdx = pos / SHOP_HOST_ITEM_MAX_NUM;
-        uint8_t slotPos = pos % SHOP_HOST_ITEM_MAX_NUM;
-        if (tabIdx >= tab_count()) {
+        uint8_t tab_idx = pos / SHOP_HOST_ITEM_MAX_NUM;
+        uint8_t slot_pos = pos % SHOP_HOST_ITEM_MAX_NUM;
+        if (tab_idx >= tab_count()) {
             metin2::log::warn("Player {1} tried to buy from invalid shop slot {0:d}", pos, ch->name());
             return SHOP_SUBHEADER_GC_INVALID_POS;
         }
@@ -123,31 +123,31 @@ namespace metin2::game::inline trade {
         if (it == map_guest_.end())
             return SHOP_SUBHEADER_GC_END;
 
-        shop_table_ex &shopTab = vec_shop_tabs_[tabIdx];
-        shop_item_table &r_item = shopTab.items[slotPos];
+        shop_table_ex &shop_tab = vec_shop_tabs_[tab_idx];
+        shop_item_table &r_item = shop_tab.items[slot_pos];
 
         if (r_item.price <= 0) {
             log_manager::instance().hack_log("SHOP_BUY_GOLD_OVERFLOW", ch);
             return SHOP_SUBHEADER_GC_NOT_ENOUGH_MONEY;
         }
 
-        uint32_t dwPrice = r_item.price;
+        uint32_t price_value = r_item.price;
 
-        switch (shopTab.coin_type) {
+        switch (shop_tab.coin_type) {
         case SHOP_COIN_TYPE_GOLD:
             if (it->second)
-                dwPrice *= 3;
+                price_value *= 3;
 
-            if (ch->gold() < (int)dwPrice) {
-                metin2::log::debug("Shop: {} cannot afford item (has {:d}, price {:d})", ch->name(), ch->gold(), dwPrice);
+            if (ch->gold() < (int)price_value) {
+                metin2::log::debug("Shop: {} cannot afford item (has {:d}, price {:d})", ch->name(), ch->gold(), price_value);
                 return SHOP_SUBHEADER_GC_NOT_ENOUGH_MONEY;
             }
             break;
         case SHOP_COIN_TYPE_SECONDARY_COIN:
             {
                 int count = ch->count_specify_type_item(ITEM_SECONDARY_COIN);
-                if (static_cast<uint32_t>(count) < dwPrice) {
-                    metin2::log::debug("Shop: {} lacks secondary coins (has {:d}, price {:d})", ch->name(), count, dwPrice);
+                if (static_cast<uint32_t>(count) < price_value) {
+                    metin2::log::debug("Shop: {} lacks secondary coins (has {:d}, price {:d})", ch->name(), count, price_value);
                     return SHOP_SUBHEADER_GC_NOT_ENOUGH_MONEY_EX;
                 }
             }
@@ -161,32 +161,32 @@ namespace metin2::game::inline trade {
         if (!item)
             return SHOP_SUBHEADER_GC_SOLD_OUT;
 
-        int iEmptyPos;
+        int empty_pos;
         if (item->is_dragon_soul()) {
-            iEmptyPos = ch->empty_dragon_soul_inventory(item);
+            empty_pos = ch->empty_dragon_soul_inventory(item);
         } else {
-            iEmptyPos = ch->empty_inventory(item->size());
+            empty_pos = ch->empty_inventory(item->size());
         }
 
-        if (iEmptyPos < 0) {
+        if (empty_pos < 0) {
             metin2::log::debug("Shop: inventory of {} is full (item size {:d})", ch->name(), item->size());
             item_manager::instance().destroy_item(item);
             return SHOP_SUBHEADER_GC_INVENTORY_FULL;
         }
 
-        switch (shopTab.coin_type) {
+        switch (shop_tab.coin_type) {
         case SHOP_COIN_TYPE_GOLD:
-            ch->point_change(POINT_GOLD, -dwPrice, false);
+            ch->point_change(POINT_GOLD, -price_value, false);
             break;
         case SHOP_COIN_TYPE_SECONDARY_COIN:
-            ch->remove_specify_type_item(ITEM_SECONDARY_COIN, dwPrice);
+            ch->remove_specify_type_item(ITEM_SECONDARY_COIN, price_value);
             break;
         }
 
         if (item->is_dragon_soul())
-            item->add_to_character(ch, item_pos(DRAGON_SOUL_INVENTORY, iEmptyPos));
+            item->add_to_character(ch, item_pos(DRAGON_SOUL_INVENTORY, empty_pos));
         else
-            item->add_to_character(ch, item_pos(INVENTORY, iEmptyPos));
+            item->add_to_character(ch, item_pos(INVENTORY, empty_pos));
 
         item_manager::instance().flush_delayed_save(item);
         log_manager::instance().item_log(ch, item, "BUY", item->name());
@@ -195,10 +195,10 @@ namespace metin2::game::inline trade {
             log_manager::instance().gold_bar_log(ch->player_id(), item->id(), PERSONAL_SHOP_BUY, "");
         }
 
-        db_manager::instance().send_money_log(MONEY_LOG_SHOP, item->vnum(), -dwPrice);
+        db_manager::instance().send_money_log(MONEY_LOG_SHOP, item->vnum(), -price_value);
 
         if (item)
-            metin2::log::info("Shop: {} bought {} (count {:d}, id {:d}) for {:d}", ch->name(), item->name(), item->count(), item->id(), dwPrice);
+            metin2::log::info("Shop: {} bought {} (count {:d}, id {:d}) for {:d}", ch->name(), item->name(), item->count(), item->id(), price_value);
 
         ch->save();
 

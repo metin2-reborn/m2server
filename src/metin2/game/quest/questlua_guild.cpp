@@ -25,9 +25,9 @@ namespace metin2::game {
             if (!ch->get_guild())
                 lua_pushstring(lua, "");
             else {
-                char szBuf[4096 + 1];
-                guild_manager::instance().around_rank_string(ch->get_guild()->id(), szBuf, sizeof(szBuf));
-                lua_pushstring(lua, szBuf);
+                char buf[4096 + 1];
+                guild_manager::instance().around_rank_string(ch->get_guild()->id(), buf, sizeof(buf));
+                lua_pushstring(lua, buf);
             }
             return 1;
         }
@@ -35,13 +35,13 @@ namespace metin2::game {
         auto guild_high_ranking_string(lua_State *lua) -> int {
             quest_manager &q = quest_manager::instance();
             character *ch = q.current_character_ptr();
-            uint32_t dwMyGuild = 0;
+            uint32_t my_guild = 0;
             if (ch->get_guild())
-                dwMyGuild = ch->get_guild()->id();
+                my_guild = ch->get_guild()->id();
 
-            char szBuf[4096 + 1];
-            guild_manager::instance().high_rank_string(dwMyGuild, szBuf, sizeof(szBuf));
-            lua_pushstring(lua, szBuf);
+            char buf[4096 + 1];
+            guild_manager::instance().high_rank_string(my_guild, buf, sizeof(buf));
+            lua_pushstring(lua, buf);
             return 1;
         }
 
@@ -86,10 +86,10 @@ namespace metin2::game {
             if (!require_number(lua, 1))
                 return 0;
 
-            guild *pkGuild = guild_manager::instance().find_guild((uint32_t)lua_tonumber(lua, 1));
+            guild *guild = guild_manager::instance().find_guild((uint32_t)lua_tonumber(lua, 1));
 
-            if (pkGuild)
-                lua_pushstring(lua, pkGuild->name());
+            if (guild)
+                lua_pushstring(lua, guild->name());
             else
                 lua_pushstring(lua, "");
 
@@ -99,10 +99,10 @@ namespace metin2::game {
         auto guild_level(lua_State *lua) -> int {
             luaL_checknumber(lua, 1);
 
-            guild *pkGuild = guild_manager::instance().find_guild((uint32_t)lua_tonumber(lua, 1));
+            guild *guild = guild_manager::instance().find_guild((uint32_t)lua_tonumber(lua, 1));
 
-            if (pkGuild)
-                lua_pushnumber(lua, pkGuild->level());
+            if (guild)
+                lua_pushnumber(lua, guild->level());
             else
                 lua_pushnumber(lua, 0);
 
@@ -139,10 +139,10 @@ namespace metin2::game {
                 return 1;
             }
 
-            guild *pkGuild = guild_manager::instance().find_guild((uint32_t)lua_tonumber(lua, 1));
+            guild *guild = guild_manager::instance().find_guild((uint32_t)lua_tonumber(lua, 1));
 
-            if (pkGuild)
-                lua_pushstring(lua, pkGuild->name());
+            if (guild)
+                lua_pushstring(lua, guild->name());
             else
                 lua_pushstring(lua, "");
 
@@ -177,10 +177,10 @@ namespace metin2::game {
                 return 1;
             }
 
-            bool bBet = guild_manager::instance().is_bet((uint32_t)lua_tonumber(lua, 1),
+            bool bet = guild_manager::instance().is_bet((uint32_t)lua_tonumber(lua, 1),
                 quest_manager::instance().current_character_ptr()->get_desc()->get_account_table().login);
 
-            lua_pushboolean(lua, bBet);
+            lua_pushboolean(lua, bet);
             return 1;
         }
 
@@ -261,14 +261,14 @@ namespace metin2::game {
                 return 1;
             }
 
-            guild *pGuild = ch->get_guild();
+            guild *guild = ch->get_guild();
 
-            if (pGuild == nullptr) {
+            if (guild == nullptr) {
                 lua_pushnumber(lua, 0);
                 return 1;
             }
 
-            lua_pushnumber(lua, pGuild->member_count());
+            lua_pushnumber(lua, guild->member_count());
 
             return 1;
         }
@@ -277,14 +277,14 @@ namespace metin2::game {
 
             character *ch = quest_manager::instance().current_character_ptr();
 
-            guild *pGuild = ch->get_guild();
+            guild *guild = ch->get_guild();
 
-            if (pGuild != nullptr) {
-                if (pGuild->master_pid() == ch->player_id()) {
+            if (guild != nullptr) {
+                if (guild->master_pid() == ch->player_id()) {
                     if (lua_isstring(lua, 1) == false) {
                         lua_pushnumber(lua, 0);
                     } else {
-                        bool ret = pGuild->change_master_to(pGuild->member_pid(lua_tostring(lua, 1)));
+                        bool ret = guild->change_master_to(guild->member_pid(lua_tostring(lua, 1)));
 
                         lua_pushnumber(lua, ret == false ? 2 : 3);
                     }
@@ -302,37 +302,37 @@ namespace metin2::game {
 
             character *ch = quest_manager::instance().current_character_ptr();
 
-            guild *pGuild = ch->get_guild();
+            guild *guild = ch->get_guild();
 
-            if (pGuild != nullptr) {
-                if (pGuild->master_pid() == ch->player_id()) {
+            if (guild != nullptr) {
+                if (guild->master_pid() == ch->player_id()) {
                     if (lua_isstring(lua, 1) == false) {
                         lua_pushnumber(lua, 0);
                     } else {
-                        character *pNewMaster = character_manager::instance().find_pc(lua_tostring(lua, 1));
+                        character *new_master = character_manager::instance().find_pc(lua_tostring(lua, 1));
 
-                        if (pNewMaster != nullptr) {
-                            if (pNewMaster->level() < lua_tonumber(lua, 2)) {
+                        if (new_master != nullptr) {
+                            if (new_master->level() < lua_tonumber(lua, 2)) {
                                 lua_pushnumber(lua, 6);
                             } else {
-                                int nBeOtherLeader = pNewMaster->quest_flag("change_guild_master.be_other_leader");
+                                int be_other_leader = new_master->quest_flag("change_guild_master.be_other_leader");
                                 quest_manager::instance().get_pc(ch->player_id());
 
-                                if (lua_toboolean(lua, 6) == true) nBeOtherLeader = 0;
+                                if (lua_toboolean(lua, 6) == true) be_other_leader = 0;
 
-                                if (nBeOtherLeader > get_global_time()) {
+                                if (be_other_leader > get_global_time()) {
                                     lua_pushnumber(lua, 7);
                                 } else {
-                                    bool ret = pGuild->change_master_to(pGuild->member_pid(lua_tostring(lua, 1)));
+                                    bool ret = guild->change_master_to(guild->member_pid(lua_tostring(lua, 1)));
 
                                     if (ret == false) {
                                         lua_pushnumber(lua, 2);
                                     } else {
                                         lua_pushnumber(lua, 3);
 
-                                        pNewMaster->set_quest_flag("change_guild_master.be_other_leader", 0);
-                                        pNewMaster->set_quest_flag("change_guild_master.be_other_member", 0);
-                                        pNewMaster->set_quest_flag("change_guild_master.resign_limit", (int)lua_tonumber(lua, 3));
+                                        new_master->set_quest_flag("change_guild_master.be_other_leader", 0);
+                                        new_master->set_quest_flag("change_guild_master.be_other_member", 0);
+                                        new_master->set_quest_flag("change_guild_master.resign_limit", (int)lua_tonumber(lua, 3));
 
                                         ch->set_quest_flag("change_guild_master.be_other_leader", (int)lua_tonumber(lua, 4));
                                         ch->set_quest_flag("change_guild_master.be_other_member", (int)lua_tonumber(lua, 5));

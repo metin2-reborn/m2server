@@ -20,9 +20,9 @@ namespace metin2::inline common {
             return -1;
         }
 
-        for (int iIndex = 0; iIndex < width_ * height_; ++iIndex) {
-            if (is_empty(iIndex, w, h)) {
-                return iIndex;
+        for (int index = 0; index < width_ * height_; ++index) {
+            if (is_empty(index, w, h)) {
+                return index;
             }
         }
 
@@ -55,8 +55,8 @@ namespace metin2::inline common {
             return false;
         }
 
-        const int iRow = pos / width_;
-        if (iRow + h > height_ || pos % width_ + w > width_) {
+        const int row_value = pos / width_;
+        if (row_value + h > height_ || pos % width_ + w > width_) {
             return false;
         }
 

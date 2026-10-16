@@ -56,18 +56,18 @@ namespace metin2::game::inline trade {
         int i;
 
         for (i = 0; i < size; ++i, ++table) {
-            auto pkNewShop = std::make_unique<shop>();
+            auto new_shop = std::make_unique<shop>();
 
-            if (!pkNewShop->create(table->vnum, table->npc_vnum, table->items))
+            if (!new_shop->create(table->vnum, table->npc_vnum, table->items))
                 continue;
 
-            shop *shop = shops_.emplace_back(std::move(pkNewShop)).get();
+            shop *shop = shops_.emplace_back(std::move(new_shop)).get();
             map_shop_.insert(shop_map::value_type(table->vnum, shop));
             map_shop_by_npc_vnum_.insert(shop_map::value_type(table->npc_vnum, shop));
         }
-        const std::string szShopTableExFileName = std::format("{}/shop_table_ex.txt", locale_service_get_base_path());
+        const std::string shop_table_ex_file_name = std::format("{}/shop_table_ex.txt", locale_service_get_base_path());
 
-        return read_shop_table_ex(szShopTableExFileName.c_str());
+        return read_shop_table_ex(shop_table_ex_file_name.c_str());
     }
 
     void shop_manager::destroy() {
@@ -112,24 +112,24 @@ namespace metin2::game::inline trade {
             return false;
         }
 
-        shop *pkShop;
+        shop *shop_value;
 
         if (shop_vnum)
-            pkShop = get(shop_vnum);
+            shop_value = get(shop_vnum);
         else
-            pkShop = by_npc_vnum(chr_shop_keeper->race_num());
+            shop_value = by_npc_vnum(chr_shop_keeper->race_num());
 
-        if (!pkShop) {
+        if (!shop_value) {
             metin2::log::debug("Shop: npc {} has no shop", chr_shop_keeper->name());
             return false;
         }
 
-        bool bOtherEmpire = false;
+        bool other_empire = false;
 
         if (chr->empire() != chr_shop_keeper->empire())
-            bOtherEmpire = true;
+            other_empire = true;
 
-        pkShop->add_guest(chr, chr_shop_keeper->get_vid(), bOtherEmpire);
+        shop_value->add_guest(chr, chr_shop_keeper->get_vid(), other_empire);
         chr->set_shop_owner(chr_shop_keeper);
         metin2::log::debug("Shop: {} opened a shop", chr->name());
         return true;
@@ -148,19 +148,19 @@ namespace metin2::game::inline trade {
         if (find_pc_shop(ch->get_vid()))
             return nullptr;
 
-        auto pkNewShop = std::make_unique<shop>();
-        shop *pkShop = pkNewShop.get();
-        pkShop->set_pc_shop(ch);
-        pkShop->set_shop_items(table, item_count);
+        auto new_shop = std::make_unique<shop>();
+        shop *shop = new_shop.get();
+        shop->set_pc_shop(ch);
+        shop->set_shop_items(table, item_count);
 
-        map_shop_by_pc_.emplace(ch->get_vid(), std::move(pkNewShop));
-        return pkShop;
+        map_shop_by_pc_.emplace(ch->get_vid(), std::move(new_shop));
+        return shop;
     }
 
     void shop_manager::destroy_pc_shop(character *ch) {
-        shop *pkShop = find_pc_shop(ch->get_vid());
+        shop *shop = find_pc_shop(ch->get_vid());
 
-        if (!pkShop)
+        if (!shop)
             return;
 
         ch->set_my_shop_time();
@@ -192,11 +192,11 @@ namespace metin2::game::inline trade {
             return;
         }
 
-        shop *pkShop = ch->get_shop();
+        shop *shop = ch->get_shop();
 
         ch->set_my_shop_time();
 
-        int ret = pkShop->buy(ch, pos);
+        int ret = shop->buy(ch, pos);
 
         if (SHOP_SUBHEADER_GC_OK != ret) {
             packet_gc_shop pack;
@@ -244,46 +244,46 @@ namespace metin2::game::inline trade {
         if (is_set(item->anti_flag(), ITEM_ANTIFLAG_SELL))
             return;
 
-        uint32_t dwPrice;
+        uint32_t price;
 
         if (count_value == 0 || count_value > item->count())
             count_value = item->count();
 
-        dwPrice = item->shop_buy_price();
+        price = item->shop_buy_price();
 
         if (is_set(item->flag(), ITEM_FLAG_COUNT_PER_1GOLD)) {
-            if (dwPrice == 0)
-                dwPrice = count_value;
+            if (price == 0)
+                price = count_value;
             else
-                dwPrice = count_value / dwPrice;
+                price = count_value / price;
         } else
-            dwPrice *= count_value;
+            price *= count_value;
 
-        dwPrice /= 5;
+        price /= 5;
 
-        uint32_t dwTax = 0;
-        int iVal = 3;
+        uint32_t tax = 0;
+        int val = 3;
 
-        dwTax = dwPrice * iVal / 100;
-        dwPrice -= dwTax;
+        tax = price * val / 100;
+        price -= tax;
 
         if (metin2::config::test_server())
             metin2::log::info("Shop: pid {:d} ({}) sells item id {:d}", ch->player_id(), ch->name(), item->id());
 
-        const int64_t nTotalMoney = static_cast<int64_t>(ch->gold()) + static_cast<int64_t>(dwPrice);
+        const int64_t total_money = static_cast<int64_t>(ch->gold()) + static_cast<int64_t>(price);
 
-        if (GOLD_MAX <= nTotalMoney) {
+        if (GOLD_MAX <= total_money) {
             metin2::log::warn("Player {1} (pid {0:d}) cannot sell: gold {2:d} would exceed the limit", ch->player_id(), ch->name(), ch->gold());
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("20억냥이 초과하여 물품을 팔수 없습니다."));
             return;
         }
 
-        metin2::log::info("Shop: {} sold {} (count {:d}, id {:d}) for {:d}", ch->name(), item->name(), count_value, item->id(), dwPrice);
+        metin2::log::info("Shop: {} sold {} (count {:d}, id {:d}) for {:d}", ch->name(), item->name(), count_value, item->id(), price);
 
-        if (iVal > 0)
-            ch->chat_packet(CHAT_TYPE_INFO, lc_text("판매금액의 %d %% 가 세금으로 나가게됩니다"), iVal);
+        if (val > 0)
+            ch->chat_packet(CHAT_TYPE_INFO, lc_text("판매금액의 %d %% 가 세금으로 나가게됩니다"), val);
 
-        db_manager::instance().send_money_log(MONEY_LOG_SHOP, item->vnum(), dwPrice);
+        db_manager::instance().send_money_log(MONEY_LOG_SHOP, item->vnum(), price);
 
         if (count_value == item->count()) {
 
@@ -291,16 +291,16 @@ namespace metin2::game::inline trade {
         } else
             item->set_count(item->count() - count_value);
 
-        monarch::instance().sendto_db_add_money(dwTax, ch->empire(), ch);
+        monarch::instance().sendto_db_add_money(tax, ch->empire(), ch);
 
-        ch->point_change(POINT_GOLD, dwPrice, false);
+        ch->point_change(POINT_GOLD, price, false);
     }
 
     auto compare_shop_item_name(const shop_item_table &lhs, const shop_item_table &rhs) -> bool {
-        item_table *lItem = item_manager::instance().table(lhs.vnum);
-        item_table *rItem = item_manager::instance().table(rhs.vnum);
-        if (lItem && rItem)
-            return strcmp(lItem->locale_name, rItem->locale_name) < 0;
+        item_table *item = item_manager::instance().table(lhs.vnum);
+        item_table *item_value = item_manager::instance().table(rhs.vnum);
+        if (item && item_value)
+            return strcmp(item->locale_name, item_value->locale_name) < 0;
         else
             return true;
     }
@@ -321,78 +321,78 @@ namespace metin2::game::inline trade {
             return false;
         }
 
-        std::string stCoinType;
-        if (!node->value("cointype", 0, stCoinType)) {
-            stCoinType = "Gold";
+        std::string coin_type;
+        if (!node->value("cointype", 0, coin_type)) {
+            coin_type = "Gold";
         }
 
-        if (strcasecmp(stCoinType.c_str(), "Gold") == 0) {
+        if (strcasecmp(coin_type.c_str(), "Gold") == 0) {
             shop_table.coin_type = SHOP_COIN_TYPE_GOLD;
-        } else if (strcasecmp(stCoinType.c_str(), "SecondaryCoin") == 0) {
+        } else if (strcasecmp(coin_type.c_str(), "SecondaryCoin") == 0) {
             shop_table.coin_type = SHOP_COIN_TYPE_SECONDARY_COIN;
         } else {
-            metin2::log::error("Shop group {} has unknown cointype {}", node->node_name(), stCoinType);
+            metin2::log::error("Shop group {} has unknown cointype {}", node->node_name(), coin_type);
             return false;
         }
 
-        group_node *pItemGroup = node->child_node("items");
-        if (!pItemGroup) {
+        group_node *item_group = node->child_node("items");
+        if (!item_group) {
             metin2::log::error("Shop group {} has no items group", node->node_name());
             return false;
         }
 
-        int itemGroupSize = pItemGroup->row_count();
-        std::vector<shop_item_table> shopItems(itemGroupSize);
-        if (itemGroupSize >= SHOP_HOST_ITEM_MAX_NUM) {
-            metin2::log::error("Shop group has {:d} items in group {}, must be fewer than {:d}", itemGroupSize, node->node_name(), SHOP_HOST_ITEM_MAX_NUM);
+        int item_group_size = item_group->row_count();
+        std::vector<shop_item_table> shop_items(item_group_size);
+        if (item_group_size >= SHOP_HOST_ITEM_MAX_NUM) {
+            metin2::log::error("Shop group has {:d} items in group {}, must be fewer than {:d}", item_group_size, node->node_name(), SHOP_HOST_ITEM_MAX_NUM);
             return false;
         }
 
-        for (int i = 0; i < itemGroupSize; i++) {
-            if (!pItemGroup->value(i, "vnum", shopItems[i].vnum)) {
+        for (int i = 0; i < item_group_size; i++) {
+            if (!item_group->value(i, "vnum", shop_items[i].vnum)) {
                 metin2::log::error("Item row {:d} of shop group {} has no vnum", i, node->node_name());
                 return false;
             }
 
-            if (!pItemGroup->value(i, "count", shopItems[i].count)) {
+            if (!item_group->value(i, "count", shop_items[i].count)) {
                 metin2::log::error("Item row {:d} of shop group {} has no count", i, node->node_name());
                 return false;
             }
-            if (!pItemGroup->value(i, "price", shopItems[i].price)) {
+            if (!item_group->value(i, "price", shop_items[i].price)) {
                 metin2::log::error("Item row {:d} of shop group {} has no price", i, node->node_name());
                 return false;
             }
         }
-        std::string stSort;
-        if (!node->value("sort", 0, stSort)) {
-            stSort = "None";
+        std::string sort_value;
+        if (!node->value("sort", 0, sort_value)) {
+            sort_value = "None";
         }
 
-        if (strcasecmp(stSort.c_str(), "Asc") == 0) {
-            std::sort(shopItems.begin(), shopItems.end(), compare_shop_item_name);
-        } else if (strcasecmp(stSort.c_str(), "Desc") == 0) {
-            std::sort(shopItems.rbegin(), shopItems.rend(), compare_shop_item_name);
+        if (strcasecmp(sort_value.c_str(), "Asc") == 0) {
+            std::sort(shop_items.begin(), shop_items.end(), compare_shop_item_name);
+        } else if (strcasecmp(sort_value.c_str(), "Desc") == 0) {
+            std::sort(shop_items.rbegin(), shop_items.rend(), compare_shop_item_name);
         }
 
         grid grid = common::grid(5, 9);
-        int iPos;
+        int pos;
 
         std::fill(std::begin(shop_table.items), std::end(shop_table.items), shop_item_table());
 
-        for (size_t i = 0; i < shopItems.size(); i++) {
-            item_table *item_table = item_manager::instance().table(shopItems[i].vnum);
+        for (size_t i = 0; i < shop_items.size(); i++) {
+            item_table *item_table = item_manager::instance().table(shop_items[i].vnum);
             if (!item_table) {
-                metin2::log::error("Unknown item vnum {:d} in shop group {}", shopItems[i].vnum, node->node_name());
+                metin2::log::error("Unknown item vnum {:d} in shop group {}", shop_items[i].vnum, node->node_name());
                 return false;
             }
 
-            iPos = grid.find_blank(1, item_table->size);
+            pos = grid.find_blank(1, item_table->size);
 
-            grid.put(iPos, 1, item_table->size);
-            shop_table.items[iPos] = shopItems[i];
+            grid.put(pos, 1, item_table->size);
+            shop_table.items[pos] = shop_items[i];
         }
 
-        shop_table.item_count = shopItems.size();
+        shop_table.item_count = shop_items.size();
         return true;
     }
 
@@ -408,75 +408,75 @@ namespace metin2::game::inline trade {
             return false;
         }
 
-        group_node *pShopNPCGroup = loader.group("shopnpc");
-        if (nullptr == pShopNPCGroup) {
+        group_node *shop_npc_group = loader.group("shopnpc");
+        if (nullptr == shop_npc_group) {
             metin2::log::error("ShopNPC group is missing");
             return false;
         }
 
         using map_np_cshop = std::multimap<uint32_t, shop_table_ex>;
-        map_np_cshop map_npcShop;
-        for (int i = 0; i < pShopNPCGroup->row_count(); i++) {
-            uint32_t npcVnum;
-            std::string shopName;
-            if (!pShopNPCGroup->value(i, "npc", npcVnum) || !pShopNPCGroup->value(i, "group", shopName)) {
+        map_np_cshop map_npc_shop;
+        for (int i = 0; i < shop_npc_group->row_count(); i++) {
+            uint32_t npc_vnum;
+            std::string shop_name;
+            if (!shop_npc_group->value(i, "npc", npc_vnum) || !shop_npc_group->value(i, "group", shop_name)) {
                 metin2::log::error("ShopNPC row {:d} needs 'npc' and 'group' columns", i);
                 return false;
             }
-            std::transform(shopName.begin(), shopName.end(), shopName.begin(), (int (*)(int))std::tolower);
-            group_node *pShopGroup = loader.group(shopName.c_str());
-            if (!pShopGroup) {
-                metin2::log::error("Shop group {} does not exist", shopName);
+            std::transform(shop_name.begin(), shop_name.end(), shop_name.begin(), (int (*)(int))std::tolower);
+            group_node *shop_group = loader.group(shop_name.c_str());
+            if (!shop_group) {
+                metin2::log::error("Shop group {} does not exist", shop_name);
                 return false;
             }
             shop_table_ex table;
-            if (!convert_to_shop_item_table(pShopGroup, table)) {
-                metin2::log::error("Cannot read shop group {}", shopName);
+            if (!convert_to_shop_item_table(shop_group, table)) {
+                metin2::log::error("Cannot read shop group {}", shop_name);
                 return false;
             }
-            if (map_shop_by_npc_vnum_.find(npcVnum) != map_shop_by_npc_vnum_.end()) {
-                metin2::log::error("Npc {:d} cannot have both a regular and an extended shop", npcVnum);
+            if (map_shop_by_npc_vnum_.find(npc_vnum) != map_shop_by_npc_vnum_.end()) {
+                metin2::log::error("Npc {:d} cannot have both a regular and an extended shop", npc_vnum);
                 return false;
             }
 
-            map_npcShop.insert(map_np_cshop::value_type(npcVnum, table));
+            map_npc_shop.insert(map_np_cshop::value_type(npc_vnum, table));
         }
 
-        for (auto it = map_npcShop.begin(); it != map_npcShop.end(); ++it) {
-            uint32_t npcVnum = it->first;
+        for (auto it = map_npc_shop.begin(); it != map_npc_shop.end(); ++it) {
+            uint32_t npc_vnum = it->first;
             shop_table_ex &table = it->second;
             if (map_shop_.find(table.vnum) != map_shop_.end()) {
                 metin2::log::error("Shop vnum {:d} already exists", table.vnum);
                 return false;
             }
-            auto shop_it = map_shop_by_npc_vnum_.find(npcVnum);
+            auto shop_it = map_shop_by_npc_vnum_.find(npc_vnum);
 
-            shop_ex *pkShopEx = nullptr;
+            shop_ex *shop_ex_value = nullptr;
             if (map_shop_by_npc_vnum_.end() == shop_it) {
-                auto pkNewShopEx = std::make_unique<shop_ex>();
-                pkShopEx = pkNewShopEx.get();
-                shops_.push_back(std::move(pkNewShopEx));
-                pkShopEx->create(0, npcVnum);
-                map_shop_by_npc_vnum_.insert(shop_map::value_type(npcVnum, pkShopEx));
+                auto new_shop_ex = std::make_unique<shop_ex>();
+                shop_ex_value = new_shop_ex.get();
+                shops_.push_back(std::move(new_shop_ex));
+                shop_ex_value->create(0, npc_vnum);
+                map_shop_by_npc_vnum_.insert(shop_map::value_type(npc_vnum, shop_ex_value));
             } else {
-                pkShopEx = dynamic_cast<shop_ex *>(shop_it->second);
-                if (nullptr == pkShopEx) {
+                shop_ex_value = dynamic_cast<shop_ex *>(shop_it->second);
+                if (nullptr == shop_ex_value) {
                     metin2::log::error("Shop of npc {:d} is not an extended shop", shop_it->first);
                     return false;
                 }
             }
 
-            if (pkShopEx->tab_count() >= SHOP_TAB_COUNT_MAX) {
+            if (shop_ex_value->tab_count() >= SHOP_TAB_COUNT_MAX) {
                 metin2::log::error("Extended shop cannot have more than {:d} tabs", SHOP_TAB_COUNT_MAX);
                 return false;
             }
 
-            if (pkShopEx->vnum() != 0 && map_shop_.find(pkShopEx->vnum()) != map_shop_.end()) {
-                metin2::log::error("Shop vnum {:d} already exists", pkShopEx->vnum());
+            if (shop_ex_value->vnum() != 0 && map_shop_.find(shop_ex_value->vnum()) != map_shop_.end()) {
+                metin2::log::error("Shop vnum {:d} already exists", shop_ex_value->vnum());
                 return false;
             }
-            map_shop_.insert(shop_map::value_type(pkShopEx->vnum(), pkShopEx));
-            pkShopEx->add_shop_table(table);
+            map_shop_.insert(shop_map::value_type(shop_ex_value->vnum(), shop_ex_value));
+            shop_ex_value->add_shop_table(table);
         }
 
         return true;

@@ -219,13 +219,13 @@ namespace metin2::game::inline app {
         marriage::wedding_manager wedding_manager;
         item_addon_manager item_addon_manager;
         arena_manager arena_manager;
-        ox_event_manager OXEvent_manager;
-        monarch Monarch;
+        ox_event_manager ox_event_manager;
+        monarch monarch;
         horse_name_manager horsename_manager;
 
         desc_manager desc_manager;
 
-        table_by_skill SkillPowerByLevel;
+        table_by_skill skill_power_by_level;
         polymorph_utils polymorph_utils;
         battle_arena ba;
         over9_refine_manager o9r;
@@ -233,8 +233,8 @@ namespace metin2::game::inline app {
         three_way_war threeway_war;
         dragon_lair_manager dl_manager;
 
-        speed_server_manager SSManager;
-        ds_manager dsManager;
+        speed_server_manager ss_manager;
+        ds_manager ds_manager;
 
         if (!start(argc, argv)) {
             clean_up_for_early_exit();
@@ -251,7 +251,7 @@ namespace metin2::game::inline app {
         game::social::messenger_manager::instance().initialize();
         game::guilds::guild_manager::instance().initialize();
         fishing::initialize();
-        OXEvent_manager.initialize();
+        ox_event_manager.initialize();
         if (metin2::config::game().speed_server)
             speed_server_manager::instance().initialize();
 
@@ -268,20 +268,20 @@ namespace metin2::game::inline app {
         no_more_client = true;
 
         if (metin2::config::is_auth()) {
-            int iLimit = game::persistence::db_manager::instance().count_query() / 50;
+            int limit = game::persistence::db_manager::instance().count_query() / 50;
             int i = 0;
 
             do {
-                uint32_t dwCount = game::persistence::db_manager::instance().count_query();
-                metin2::log::debug("Shutdown: {:d} queries pending", dwCount);
+                uint32_t count = game::persistence::db_manager::instance().count_query();
+                metin2::log::debug("Shutdown: {:d} queries pending", count);
 
-                if (dwCount == 0)
+                if (count == 0)
                     break;
 
                 usleep(500000);
 
-                if (++i >= iLimit)
-                    if (dwCount == game::persistence::db_manager::instance().count_query())
+                if (++i >= limit)
+                    if (count == game::persistence::db_manager::instance().count_query())
                         break;
             } while (1);
         }
@@ -289,7 +289,7 @@ namespace metin2::game::inline app {
         metin2::log::debug("Shutdown: destroying arenas");
         arena_manager.destroy();
         metin2::log::debug("Shutdown: destroying ox event");
-        OXEvent_manager.destroy();
+        ox_event_manager.destroy();
 
         metin2::log::debug("Shutdown: disabling signal timer");
         signal_timer_disable();
@@ -329,7 +329,7 @@ namespace metin2::game::inline app {
     }
 
     auto start(int argc, char **argv) -> int {
-        bool bVerbose = false;
+        bool verbose = false;
         int ch;
 
         while ((ch = getopt(argc, argv, "vl:")) != -1) {
@@ -342,7 +342,7 @@ namespace metin2::game::inline app {
                 break;
 
             case 'v':
-                bVerbose = true;
+                verbose = true;
                 break;
 
             default:
@@ -353,7 +353,7 @@ namespace metin2::game::inline app {
 
         config_init();
 
-        if (!bVerbose)
+        if (!verbose)
             freopen("stdout", "a", stdout);
 
         bool is_thecore_initialized = thecore_init(metin2::config::server().passes_per_sec);
@@ -468,8 +468,8 @@ namespace metin2::game::inline app {
         ++process_time_count;
 
         if (now.tv_sec - pta.tv_sec > 0) {
-            static uint64_t s_qwBytesWritten = 0;
-            const uint64_t qwBytesWritten = net::bytes_written();
+            static uint64_t qw_bytes_written_value = 0;
+            const uint64_t qw_bytes_written = net::bytes_written();
 
             metin2::log::debug("Perf: {:d} loops, events {:d}/{:d}, idle {:d}, event {:d}, heartbeat {:d}, io {:d}, character update {:d}, written {:d} bytes, pulse {:d}",
                 process_time_count,
@@ -480,11 +480,11 @@ namespace metin2::game::inline app {
                 profiler[PROF_HEARTBEAT],
                 profiler[PROF_IO],
                 profiler[PROF_CHR_UPDATE],
-                (unsigned long long)(qwBytesWritten - s_qwBytesWritten),
+                (unsigned long long)(qw_bytes_written - qw_bytes_written_value),
                 thecore_pulse());
 
             num_events_called = 0;
-            s_qwBytesWritten = qwBytesWritten;
+            qw_bytes_written_value = qw_bytes_written;
 
             process_time_count = 0;
             gettimeofday(&pta, (struct timezone *)nullptr);

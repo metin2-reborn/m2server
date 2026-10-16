@@ -61,53 +61,53 @@ namespace metin2::game::inline characters {
                 if (!ent->is_type(ENTITY_CHARACTER))
                     return;
 
-                auto *pkChr = (character *)ent;
+                auto *chr_value = (character *)ent;
 
-                if (pkChr->is_building() &&
-                    (pkChr->is_affect_flag(AFF_BUILDING_CONSTRUCTION_SMALL) ||
-                        pkChr->is_affect_flag(AFF_BUILDING_CONSTRUCTION_LARGE) ||
-                        pkChr->is_affect_flag(AFF_BUILDING_UPGRADE))) {
-                    chr_building = pkChr;
+                if (chr_value->is_building() &&
+                    (chr_value->is_affect_flag(AFF_BUILDING_CONSTRUCTION_SMALL) ||
+                        chr_value->is_affect_flag(AFF_BUILDING_CONSTRUCTION_LARGE) ||
+                        chr_value->is_affect_flag(AFF_BUILDING_UPGRADE))) {
+                    chr_building = chr_value;
                 }
 
-                if (pkChr->is_npc()) {
-                    if (!pkChr->is_monster() || !chr->is_attack_mob() || chr->is_aggressive())
+                if (chr_value->is_npc()) {
+                    if (!chr_value->is_monster() || !chr->is_attack_mob() || chr->is_aggressive())
                         return;
                 }
 
-                if (pkChr->is_dead())
+                if (chr_value->is_dead())
                     return;
 
-                if (pkChr->is_affect_flag(AFF_EUNHYUNG) ||
-                    pkChr->is_affect_flag(AFF_INVISIBILITY) ||
-                    pkChr->is_affect_flag(AFF_REVIVE_INVISIBLE))
+                if (chr_value->is_affect_flag(AFF_EUNHYUNG) ||
+                    chr_value->is_affect_flag(AFF_INVISIBILITY) ||
+                    chr_value->is_affect_flag(AFF_REVIVE_INVISIBLE))
                     return;
 
-                if (pkChr->is_affect_flag(AFF_TERROR) && chr->is_immune(IMMUNE_TERROR) == false) {
-                    if (pkChr->level() >= chr->level())
+                if (chr_value->is_affect_flag(AFF_TERROR) && chr->is_immune(IMMUNE_TERROR) == false) {
+                    if (chr_value->level() >= chr->level())
                         return;
                 }
 
                 if (chr->is_no_attack_shinsu()) {
-                    if (pkChr->empire() == 1)
+                    if (chr_value->empire() == 1)
                         return;
                 }
 
                 if (chr->is_no_attack_chunjo()) {
-                    if (pkChr->empire() == 2)
+                    if (chr_value->empire() == 2)
                         return;
                 }
 
                 if (chr->is_no_attack_jinno()) {
-                    if (pkChr->empire() == 3)
+                    if (chr_value->empire() == 3)
                         return;
                 }
 
-                int iDistance = distance_approx(lx - pkChr->x(), ly - pkChr->y());
+                int distance = distance_approx(lx - chr_value->x(), ly - chr_value->y());
 
-                if (iDistance < min_distance && iDistance <= max_distance) {
-                    chr_victim = pkChr;
-                    min_distance = iDistance;
+                if (distance < min_distance && distance <= max_distance) {
+                    chr_victim = chr_value;
+                    min_distance = distance;
                 }
             });
         }

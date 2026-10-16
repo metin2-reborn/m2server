@@ -59,39 +59,39 @@ namespace metin2::game::inline protocol {
 
         metin2::log::debug("Peer relay to player {} ({:d} bytes)", p->name, p->size);
 
-        character *pkChr = character_manager::instance().find_pc(p->name);
+        character *chr = character_manager::instance().find_pc(p->name);
 
-        const auto *c_pbData = (const uint8_t *)(data + sizeof(packet_gg_relay));
+        const auto *c_pb_data = (const uint8_t *)(data + sizeof(packet_gg_relay));
 
-        if (!pkChr)
+        if (!chr)
             return p->size;
 
-        if (*c_pbData == HEADER_GC_WHISPER) {
-            if (pkChr->is_block_mode(BLOCK_WHISPER)) {
+        if (*c_pb_data == HEADER_GC_WHISPER) {
+            if (chr->is_block_mode(BLOCK_WHISPER)) {
                 return p->size;
             }
 
             char buf[1024];
-            memcpy(buf, c_pbData, std::min<int>(p->size, sizeof(buf)));
+            memcpy(buf, c_pb_data, std::min<int>(p->size, sizeof(buf)));
 
             auto *p2 = (packet_gc_whisper *)buf;
-            uint8_t bToEmpire = (p2->type >> 4);
+            uint8_t to_empire = (p2->type >> 4);
             p2->type = p2->type & 0x0F;
             if (p2->type == 0x0F) {
                 p2->type = WHISPER_TYPE_SYSTEM;
             } else {
-                if (!pkChr->is_equip_unique_group(UNIQUE_GROUP_RING_OF_LANGUAGE))
-                    if (bToEmpire >= 1 && bToEmpire <= 3 && pkChr->empire() != bToEmpire) {
-                        convert_empire_text(bToEmpire,
+                if (!chr->is_equip_unique_group(UNIQUE_GROUP_RING_OF_LANGUAGE))
+                    if (to_empire >= 1 && to_empire <= 3 && chr->empire() != to_empire) {
+                        convert_empire_text(to_empire,
                             buf + sizeof(packet_gc_whisper),
                             p2->size - sizeof(packet_gc_whisper),
-                            10 + 2 * pkChr->skill_power(SKILL_LANGUAGE1 + bToEmpire - 1));
+                            10 + 2 * chr->skill_power(SKILL_LANGUAGE1 + to_empire - 1));
                     }
             }
 
-            pkChr->get_desc()->packet(buf, p->size);
+            chr->get_desc()->packet(buf, p->size);
         } else
-            pkChr->get_desc()->packet(c_pbData, p->size);
+            chr->get_desc()->packet(c_pb_data, p->size);
 
         return (p->size);
     }
@@ -108,9 +108,9 @@ namespace metin2::game::inline protocol {
             return -1;
         }
 
-        char szBuf[256 + 1];
-        strlcpy(szBuf, data + sizeof(packet_gg_notice), std::min<int>(p->size + 1, sizeof(szBuf)));
-        send_notice(szBuf);
+        char buf[256 + 1];
+        strlcpy(buf, data + sizeof(packet_gg_notice), std::min<int>(p->size + 1, sizeof(buf)));
+        send_notice(buf);
         return (p->size);
     }
 
@@ -126,23 +126,23 @@ namespace metin2::game::inline protocol {
             return -1;
         }
 
-        char szBuf[256 + 1];
-        strlcpy(szBuf, data + sizeof(packet_gg_monarch_notice), std::min<int>(p->size + 1, sizeof(szBuf)));
-        send_monarch_notice(p->empire, szBuf);
+        char buf[256 + 1];
+        strlcpy(buf, data + sizeof(packet_gg_monarch_notice), std::min<int>(p->size + 1, sizeof(buf)));
+        send_monarch_notice(p->empire, buf);
         return (p->size);
     }
 
     auto input_p2p::monarch_transfer(desc *d, const char *data) -> int {
         auto *p = (packet_monarch_gg_transfer *)data;
-        character *pTargetChar = character_manager::instance().find_by_pid(p->target_pid);
+        character *target_char = character_manager::instance().find_by_pid(p->target_pid);
 
-        if (pTargetChar != nullptr) {
-            unsigned int qIndex = quest::quest_manager::instance().quest_index_by_name("monarch_transfer");
+        if (target_char != nullptr) {
+            unsigned int q_index = quest::quest_manager::instance().quest_index_by_name("monarch_transfer");
 
-            if (qIndex != 0) {
-                pTargetChar->set_quest_flag("monarch_transfer.x", p->x);
-                pTargetChar->set_quest_flag("monarch_transfer.y", p->y);
-                quest::quest_manager::instance().letter(pTargetChar->player_id(), qIndex, 0);
+            if (q_index != 0) {
+                target_char->set_quest_flag("monarch_transfer.x", p->x);
+                target_char->set_quest_flag("monarch_transfer.y", p->y);
+                quest::quest_manager::instance().letter(target_char->player_id(), q_index, 0);
             }
         }
 
@@ -175,10 +175,10 @@ namespace metin2::game::inline protocol {
                 if (bytes < sizeof(int))
                     return -1;
 
-                int iBonus = *((int *)data);
-                game::guilds::guild *pGuild = guild_manager::instance().find_guild(p->guild);
-                if (pGuild) {
-                    pGuild->set_member_count_bonus(iBonus);
+                int bonus = *((int *)data);
+                game::guilds::guild *guild_value = guild_manager::instance().find_guild(p->guild);
+                if (guild_value) {
+                    guild_value->set_member_count_bonus(bonus);
                 }
                 return sizeof(int);
             }
@@ -285,11 +285,11 @@ namespace metin2::game::inline protocol {
         auto *p = (packet_gg_xmas_warp_santa *)data;
 
         if (p->channel == metin2::config::server().channel && map_allow_find(p->map_index)) {
-            int iNextSpawnDelay = 60;
+            int next_spawn_delay = 60;
 
-            iNextSpawnDelay = 50 * 60;
+            next_spawn_delay = 50 * 60;
 
-            xmas::spawn_santa(p->map_index, iNextSpawnDelay);
+            xmas::spawn_santa(p->map_index, next_spawn_delay);
 
             packet_gg_xmas_warp_santa_reply pack_reply;
             pack_reply.header = HEADER_GG_XMAS_WARP_SANTA_REPLY;
@@ -328,16 +328,16 @@ namespace metin2::game::inline protocol {
     }
 
     void input_p2p::iam_awake(desc *d, const char *data) {
-        std::string hostNames;
-        p2p_manager::instance().p2p_host_names(hostNames);
-        metin2::log::info("Awake check from peer {}: {:d} peer connections: {}", d->host_name(), p2p_manager::instance().desc_count(), hostNames);
+        std::string host_names;
+        p2p_manager::instance().p2p_host_names(host_names);
+        metin2::log::info("Awake check from peer {}: {:d} peer connections: {}", d->host_name(), p2p_manager::instance().desc_count(), host_names);
     }
 
     auto input_p2p::analyze(desc *d, uint8_t header, const char *data) -> int {
         if (metin2::config::test_server())
             metin2::log::debug("Peer packet header {:d}", header);
 
-        int iExtraLen = 0;
+        int extra_len = 0;
 
         switch (header) {
         case HEADER_GG_SETUP:
@@ -353,12 +353,12 @@ namespace metin2::game::inline protocol {
             break;
 
         case HEADER_GG_RELAY:
-            if ((iExtraLen = relay(d, data, buffer_left_)) < 0)
+            if ((extra_len = relay(d, data, buffer_left_)) < 0)
                 return -1;
             break;
 
         case HEADER_GG_NOTICE:
-            if ((iExtraLen = notice(d, data, buffer_left_)) < 0)
+            if ((extra_len = notice(d, data, buffer_left_)) < 0)
                 return -1;
             break;
 
@@ -368,7 +368,7 @@ namespace metin2::game::inline protocol {
             break;
 
         case HEADER_GG_GUILD:
-            if ((iExtraLen = guild(d, data, buffer_left_)) < 0)
+            if ((extra_len = guild(d, data, buffer_left_)) < 0)
                 return -1;
             break;
 
@@ -422,13 +422,13 @@ namespace metin2::game::inline protocol {
 
         case HEADER_GG_SIEGE:
             {
-                auto *pSiege = (packet_gg_siege *)data;
-                castle_siege(pSiege->empire, pSiege->tower_count);
+                auto *siege = (packet_gg_siege *)data;
+                castle_siege(siege->empire, siege->tower_count);
             }
             break;
 
         case HEADER_GG_MONARCH_NOTICE:
-            if ((iExtraLen = monarch_notice(d, data, buffer_left_)) < 0)
+            if ((extra_len = monarch_notice(d, data, buffer_left_)) < 0)
                 return -1;
             break;
 
@@ -441,6 +441,6 @@ namespace metin2::game::inline protocol {
             break;
         }
 
-        return (iExtraLen);
+        return (extra_len);
     }
 }

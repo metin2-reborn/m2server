@@ -19,13 +19,13 @@ namespace metin2::game::inline text {
             const char *word = nullptr;
             score = 0;
 
-            std::string strOrig(src);
-            std::erase_if(strOrig, is_space);
+            std::string orig(src);
+            std::erase_if(orig, is_space);
 
             for (size_t i = 0; i < vec_word_.size(); ++i) {
                 std::pair<std::string, unsigned int> &r = vec_word_[i];
 
-                if (true == wild_case_cmp(r.first.c_str(), strOrig.c_str())) {
+                if (true == wild_case_cmp(r.first.c_str(), orig.c_str())) {
                     word = r.first.c_str();
                     score += r.second;
                 }

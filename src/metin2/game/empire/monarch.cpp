@@ -38,12 +38,12 @@ namespace metin2::game::inline empire {
     }
 
     auto monarch::heal_my_empire(character *ch, uint32_t price) -> int {
-        uint8_t Empire = ch->empire();
+        uint8_t empire_value = ch->empire();
         uint32_t pid = ch->player_id();
 
-        metin2::log::info("Monarch heal: pid {:d}, empire {:d}, price {:d}", pid, Empire, price);
+        metin2::log::info("Monarch heal: pid {:d}, empire {:d}, price {:d}", pid, empire_value, price);
 
-        if (is_monarch(pid, Empire) == 0) {
+        if (is_monarch(pid, empire_value) == 0) {
             if (!ch->is_gm()) {
                 ch->chat_packet(CHAT_TYPE_INFO, lc_text("군주의 자격을 가지고 있지 않습니다"));
                 metin2::log::warn("Monarch heal refused: pid {:d} is not the monarch", pid);
@@ -57,18 +57,18 @@ namespace metin2::game::inline empire {
             return 0;
         }
 
-        if (!is_money_ok(price, Empire)) {
-            ch->chat_packet(CHAT_TYPE_INFO, lc_text("국고에 돈이 부족합니다. 현재 : %u 필요금액 : %u"), money(Empire), price);
+        if (!is_money_ok(price, empire_value)) {
+            ch->chat_packet(CHAT_TYPE_INFO, lc_text("국고에 돈이 부족합니다. 현재 : %u 필요금액 : %u"), money(empire_value), price);
             return 0;
         }
 
-        int iMapIndex = ch->map_index();
+        int map_index = ch->map_index();
 
-        sectree_manager::instance().for_each(iMapIndex, [Empire](entity *ent) {
+        sectree_manager::instance().for_each(map_index, [empire_value](entity *ent) {
             if (ent->is_type(ENTITY_CHARACTER)) {
                 auto *ch = (character *)ent;
 
-                if (ch->is_pc() && Empire == ch->empire()) {
+                if (ch->is_pc() && empire_value == ch->empire()) {
                     ch->chat_packet(CHAT_TYPE_INFO, lc_text("군주가 내린 축복으로 모든 에너지가 가득 채워집니다"));
                     ch->point_change(POINT_HP, ch->max_hp() - ch->hp());
                     ch->point_change(POINT_SP, ch->max_sp() - ch->sp());
@@ -78,12 +78,12 @@ namespace metin2::game::inline empire {
             }
         });
 
-        sendto_db_dec_money(price, Empire, ch);
+        sendto_db_dec_money(price, empire_value, ch);
 
         ch->set_mc(character::MI_HEAL);
 
         if (metin2::config::test_server())
-            ch->chat_packet(CHAT_TYPE_INFO, lc_text("[TEST_ONLY]현재 국고 : %d "), money(Empire) - price);
+            ch->chat_packet(CHAT_TYPE_INFO, lc_text("[TEST_ONLY]현재 국고 : %d "), money(empire_value) - price);
         return 1;
     }
 
@@ -110,9 +110,9 @@ namespace metin2::game::inline empire {
         if (money(empire) + money_value < 0)
             return false;
 
-        int nEmpire = empire;
+        int empire_value = empire;
         db_clientdesc->db_packet_header(HEADER_GD_ADD_MONARCH_MONEY, ch->get_desc()->handle(), sizeof(int) + sizeof(int));
-        db_clientdesc->packet(&nEmpire, sizeof(int));
+        db_clientdesc->packet(&empire_value, sizeof(int));
         db_clientdesc->packet(&money_value, sizeof(int));
         return true;
     }
@@ -124,10 +124,10 @@ namespace metin2::game::inline empire {
         if (money(empire) - money_value < 0)
             return false;
 
-        int nEmpire = empire;
+        int empire_value = empire;
 
         db_clientdesc->db_packet_header(HEADER_GD_DEC_MONARCH_MONEY, ch->get_desc()->handle(), sizeof(int) + sizeof(int));
-        db_clientdesc->packet(&nEmpire, sizeof(int));
+        db_clientdesc->packet(&empire_value, sizeof(int));
         db_clientdesc->packet(&money_value, sizeof(int));
         return true;
     }

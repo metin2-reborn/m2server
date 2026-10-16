@@ -68,13 +68,13 @@ namespace metin2::game::inline trade {
 
         vnum_ = vnum_value;
 
-        uint8_t bItemCount;
+        uint8_t item_count;
 
-        for (bItemCount = 0; bItemCount < SHOP_HOST_ITEM_MAX_NUM; ++bItemCount)
-            if (0 == (table + bItemCount)->vnum)
+        for (item_count = 0; item_count < SHOP_HOST_ITEM_MAX_NUM; ++item_count)
+            if (0 == (table + item_count)->vnum)
                 break;
 
-        set_shop_items(table, bItemCount);
+        set_shop_items(table, item_count);
         return true;
     }
 
@@ -88,18 +88,18 @@ namespace metin2::game::inline trade {
         std::fill(item_vector_.begin(), item_vector_.end(), shop_item());
 
         for (int i = 0; i < item_count; ++i) {
-            item *pkItem = nullptr;
+            item *item_value = nullptr;
             const item_table *item_table;
 
             if (pc_) {
-                pkItem = pc_->get_item(table_value->pos);
+                item_value = pc_->get_item(table_value->pos);
 
-                if (!pkItem) {
+                if (!item_value) {
                     metin2::log::error("Personal shop of {2}: no item in window {0:d} cell {1:d}", table_value->pos.window_type, table_value->pos.cell, pc_->name());
                     continue;
                 }
 
-                item_table = pkItem->proto();
+                item_table = item_value->proto();
             } else {
                 if (!table_value->vnum)
                     continue;
@@ -112,20 +112,20 @@ namespace metin2::game::inline trade {
                 continue;
             }
 
-            int iPos;
+            int pos;
 
             if (is_pc_shop()) {
                 metin2::log::debug("Personal shop: using slot {:d}", table_value->display_pos);
-                iPos = table_value->display_pos;
+                pos = table_value->display_pos;
             } else
-                iPos = grid_->find_blank(1, item_table->size);
+                pos = grid_->find_blank(1, item_table->size);
 
-            if (iPos < 0) {
+            if (pos < 0) {
                 metin2::log::error("Shop {:d} has no room for item vnum {:d}", vnum_, table_value->vnum);
                 continue;
             }
 
-            if (!grid_->is_empty(iPos, 1, item_table->size)) {
+            if (!grid_->is_empty(pos, 1, item_table->size)) {
                 if (is_pc_shop()) {
                     metin2::log::error("Personal shop slot is taken for player {} (pid {:d})", pc_->name(), pc_->player_id());
                 } else {
@@ -134,18 +134,18 @@ namespace metin2::game::inline trade {
                 continue;
             }
 
-            grid_->put(iPos, 1, item_table->size);
+            grid_->put(pos, 1, item_table->size);
 
-            shop_item &item = item_vector_[iPos];
+            shop_item &item = item_vector_[pos];
 
-            item.item = pkItem;
+            item.item = item_value;
             item.itemid = 0;
 
             if (item.item) {
-                item.vnum = pkItem->vnum();
-                item.count = pkItem->count();
+                item.vnum = item_value->vnum();
+                item.count = item_value->count();
                 item.price = table_value->price;
-                item.itemid = pkItem->id();
+                item.itemid = item_value->id();
             } else {
                 item.vnum = table_value->vnum;
                 item.count = table_value->count;
@@ -186,10 +186,10 @@ namespace metin2::game::inline trade {
             return SHOP_SUBHEADER_GC_NOT_ENOUGH_MONEY;
         }
 
-        item *pkSelectedItem = item_manager::instance().find(r_item.itemid);
+        item *selected_item = item_manager::instance().find(r_item.itemid);
 
         if (is_pc_shop()) {
-            if (!pkSelectedItem) {
+            if (!selected_item) {
                 metin2::log::warn("Player (pid {:d}) tried to buy an invalid item from the personal shop of pid {:d} (possible cheat)",
                     ch->player_id(),
                     pc_->player_id());
@@ -197,7 +197,7 @@ namespace metin2::game::inline trade {
                 return false;
             }
 
-            if ((pkSelectedItem->owner() != pc_)) {
+            if ((selected_item->owner() != pc_)) {
                 metin2::log::warn("Player (pid {:d}) tried to buy an invalid item from the personal shop of pid {:d} (possible cheat)",
                     ch->player_id(),
                     pc_->player_id());
@@ -206,17 +206,17 @@ namespace metin2::game::inline trade {
             }
         }
 
-        const int64_t llPrice = static_cast<int64_t>(r_item.price) * (it->second ? 3 : 1);
+        const int64_t ll_price = static_cast<int64_t>(r_item.price) * (it->second ? 3 : 1);
 
-        if (llPrice > GOLD_MAX) {
-            metin2::log::warn("Player {} tried to buy for {:d} gold, above the gold limit", ch->name(), static_cast<long long>(llPrice));
+        if (ll_price > GOLD_MAX) {
+            metin2::log::warn("Player {} tried to buy for {:d} gold, above the gold limit", ch->name(), static_cast<long long>(ll_price));
             return SHOP_SUBHEADER_GC_NOT_ENOUGH_MONEY;
         }
 
-        auto dwPrice = static_cast<uint32_t>(llPrice);
+        auto price_value = static_cast<uint32_t>(ll_price);
 
-        if (ch->gold() < (int)dwPrice) {
-            metin2::log::debug("Shop: {} cannot afford item (has {:d}, price {:d})", ch->name(), ch->gold(), dwPrice);
+        if (ch->gold() < (int)price_value) {
+            metin2::log::debug("Shop: {} cannot afford item (has {:d}, price {:d})", ch->name(), ch->gold(), price_value);
             return SHOP_SUBHEADER_GC_NOT_ENOUGH_MONEY;
         }
 
@@ -238,14 +238,14 @@ namespace metin2::game::inline trade {
             }
         }
 
-        int iEmptyPos;
+        int empty_pos;
         if (item->is_dragon_soul()) {
-            iEmptyPos = ch->empty_dragon_soul_inventory(item);
+            empty_pos = ch->empty_dragon_soul_inventory(item);
         } else {
-            iEmptyPos = ch->empty_inventory(item->size());
+            empty_pos = ch->empty_inventory(item->size());
         }
 
-        if (iEmptyPos < 0) {
+        if (empty_pos < 0) {
             if (pc_) {
                 metin2::log::debug("Personal shop: inventory of {} is full (item size {:d})", ch->name(), item->size());
                 return SHOP_SUBHEADER_GC_INVENTORY_FULL;
@@ -256,26 +256,26 @@ namespace metin2::game::inline trade {
             }
         }
 
-        ch->point_change(POINT_GOLD, -dwPrice, false);
+        ch->point_change(POINT_GOLD, -price_value, false);
 
-        uint32_t dwTax = 0;
-        int iVal = 0;
+        uint32_t tax = 0;
+        int val = 0;
 
-        iVal = quest::quest_manager::instance().event_flag("personal_shop");
+        val = quest::quest_manager::instance().event_flag("personal_shop");
 
-        if (0 < iVal) {
-            if (iVal > 100)
-                iVal = 100;
+        if (0 < val) {
+            if (val > 100)
+                val = 100;
 
-            dwTax = dwPrice * iVal / 100;
-            dwPrice = dwPrice - dwTax;
+            tax = price_value * val / 100;
+            price_value = price_value - tax;
         } else {
-            iVal = 0;
-            dwTax = 0;
+            val = 0;
+            tax = 0;
         }
 
         if (!pc_) {
-            monarch::instance().sendto_db_add_money(dwTax, ch->empire(), ch);
+            monarch::instance().sendto_db_add_money(tax, ch->empire(), ch);
         }
 
         if (pc_) {
@@ -284,38 +284,38 @@ namespace metin2::game::inline trade {
             std::string buf;
 
             if (item->vnum() >= 80003 && item->vnum() <= 80007) {
-                buf = std::format("{} FROM: {} TO: {} PRICE: {}", item->name(), ch->player_id(), pc_->player_id(), dwPrice);
+                buf = std::format("{} FROM: {} TO: {} PRICE: {}", item->name(), ch->player_id(), pc_->player_id(), price_value);
                 log_manager::instance().gold_bar_log(ch->player_id(), item->id(), SHOP_BUY, buf.c_str());
                 log_manager::instance().gold_bar_log(pc_->player_id(), item->id(), SHOP_SELL, buf.c_str());
             }
 
             item->remove_from_character();
             if (item->is_dragon_soul())
-                item->add_to_character(ch, item_pos(DRAGON_SOUL_INVENTORY, iEmptyPos));
+                item->add_to_character(ch, item_pos(DRAGON_SOUL_INVENTORY, empty_pos));
             else
-                item->add_to_character(ch, item_pos(INVENTORY, iEmptyPos));
+                item->add_to_character(ch, item_pos(INVENTORY, empty_pos));
             item_manager::instance().flush_delayed_save(item);
 
-            buf = std::format("{} {}({}) {} {}", item->name(), pc_->player_id(), pc_->name(), dwPrice, item->count());
+            buf = std::format("{} {}({}) {} {}", item->name(), pc_->player_id(), pc_->name(), price_value, item->count());
             log_manager::instance().item_log(ch, item, "SHOP_BUY", buf.c_str());
 
-            buf = std::format("{} {}({}) {} {}", item->name(), ch->player_id(), ch->name(), dwPrice, item->count());
+            buf = std::format("{} {}({}) {} {}", item->name(), ch->player_id(), ch->name(), price_value, item->count());
             log_manager::instance().item_log(pc_, item, "SHOP_SELL", buf.c_str());
 
             r_item.item = nullptr;
             broadcast_update_item(pos);
 
-            pc_->point_change(POINT_GOLD, dwPrice, false);
+            pc_->point_change(POINT_GOLD, price_value, false);
 
-            if (iVal > 0)
-                pc_->chat_packet(CHAT_TYPE_INFO, lc_text("판매금액의 %d %% 가 세금으로 나가게됩니다"), iVal);
+            if (val > 0)
+                pc_->chat_packet(CHAT_TYPE_INFO, lc_text("판매금액의 %d %% 가 세금으로 나가게됩니다"), val);
 
-            monarch::instance().sendto_db_add_money(dwTax, pc_->empire(), pc_);
+            monarch::instance().sendto_db_add_money(tax, pc_->empire(), pc_);
         } else {
             if (item->is_dragon_soul())
-                item->add_to_character(ch, item_pos(DRAGON_SOUL_INVENTORY, iEmptyPos));
+                item->add_to_character(ch, item_pos(DRAGON_SOUL_INVENTORY, empty_pos));
             else
-                item->add_to_character(ch, item_pos(INVENTORY, iEmptyPos));
+                item->add_to_character(ch, item_pos(INVENTORY, empty_pos));
             item_manager::instance().flush_delayed_save(item);
             log_manager::instance().item_log(ch, item, "BUY", item->name());
 
@@ -323,11 +323,11 @@ namespace metin2::game::inline trade {
                 log_manager::instance().gold_bar_log(ch->player_id(), item->id(), PERSONAL_SHOP_BUY, "");
             }
 
-            db_manager::instance().send_money_log(MONEY_LOG_SHOP, item->vnum(), -dwPrice);
+            db_manager::instance().send_money_log(MONEY_LOG_SHOP, item->vnum(), -price_value);
         }
 
         if (item)
-            metin2::log::info("Shop: {} bought {} (count {:d}, id {:d}) for {:d}", ch->name(), item->name(), item->count(), item->id(), dwPrice);
+            metin2::log::info("Shop: {} bought {} (count {:d}, id {:d}) for {:d}", ch->name(), item->name(), item->count(), item->id(), price_value);
 
         ch->save();
 
@@ -459,29 +459,29 @@ namespace metin2::game::inline trade {
     }
 
     auto shop::number_by_vnum(uint32_t vnum_value) -> int {
-        int itemNumber = 0;
+        int item_number = 0;
 
         for (uint32_t i = 0; i < item_vector_.size() && i < SHOP_HOST_ITEM_MAX_NUM; ++i) {
             const shop_item &item = item_vector_[i];
 
             if (item.vnum == vnum_value) {
-                itemNumber += item.count;
+                item_number += item.count;
             }
         }
 
-        return itemNumber;
+        return item_number;
     }
 
     auto shop::is_selling_item(uint32_t item_id) -> bool {
-        bool isSelling = false;
+        bool is_selling = false;
 
         for (uint32_t i = 0; i < item_vector_.size() && i < SHOP_HOST_ITEM_MAX_NUM; ++i) {
             if (static_cast<uint32_t>(item_vector_[i].itemid) == item_id) {
-                isSelling = true;
+                is_selling = true;
                 break;
             }
         }
 
-        return isSelling;
+        return is_selling;
     }
 }

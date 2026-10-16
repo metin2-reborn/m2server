@@ -101,8 +101,8 @@ namespace metin2::game::inline persistence {
     }
 
     void db_manager::insert_login_data(std::unique_ptr<login_data> ld) {
-        const uint32_t dwKey = ld->key();
-        map_login_data_.insert(std::make_pair(dwKey, std::move(ld)));
+        const uint32_t key = ld->key();
+        map_login_data_.insert(std::make_pair(key, std::move(ld)));
     }
 
     void db_manager::delete_login_data(login_data *ld) {
@@ -119,9 +119,9 @@ namespace metin2::game::inline persistence {
     void db_manager::send_auth_login(desc *d) {
         const account_table &r = d->get_account_table();
 
-        login_data *pkLD = get_login_data(d->get_login_key());
+        login_data *ld = get_login_data(d->get_login_key());
 
-        if (!pkLD)
+        if (!ld)
             return;
 
         packet_gd_auth_login ptod;
@@ -131,28 +131,28 @@ namespace metin2::game::inline persistence {
         strlcpy(ptod.social_id, r.social_id, sizeof(ptod.social_id));
         ptod.login_key = d->get_login_key();
 
-        std::memcpy(ptod.premium_times, pkLD->premium_ptr(), sizeof(ptod.premium_times));
-        std::memcpy(&ptod.client_key, pkLD->client_key(), sizeof(uint32_t) * 4);
+        std::memcpy(ptod.premium_times, ld->premium_ptr(), sizeof(ptod.premium_times));
+        std::memcpy(&ptod.client_key, ld->client_key(), sizeof(uint32_t) * 4);
 
         db_clientdesc->db_packet(HEADER_GD_AUTH_LOGIN, d->handle(), &ptod, sizeof(packet_gd_auth_login));
         metin2::log::debug("Auth login sent to db: account {} (id {:d})", ptod.login, ptod.id);
 
-        delete_login_data(pkLD);
+        delete_login_data(ld);
     }
 
     void db_manager::login_prepare(desc *d, uint32_t *client_key, int *pai_premium_times) {
         const account_table &r = d->get_account_table();
 
-        auto pkLD = std::make_unique<login_data>();
+        auto ld = std::make_unique<login_data>();
 
-        pkLD->set_key(d->get_login_key());
-        pkLD->set_login(r.login);
-        pkLD->set_client_key(client_key);
+        ld->set_key(d->get_login_key());
+        ld->set_login(r.login);
+        ld->set_client_key(client_key);
 
         if (pai_premium_times)
-            pkLD->set_premium(pai_premium_times);
+            ld->set_premium(pai_premium_times);
 
-        insert_login_data(std::move(pkLD));
+        insert_login_data(std::move(ld));
 
         send_auth_login(d);
     }
@@ -168,13 +168,13 @@ namespace metin2::game::inline persistence {
             return;
         }
 
-        item *pkItem = ch->auto_give_item(vnum, count);
+        item *item_value = ch->auto_give_item(vnum, count);
 
-        if (pkItem) {
+        if (item_value) {
             metin2::log::info("Lotto: ticket given to player {} (pid {:d})", ch->name(), pid);
 
-            pkItem->set_socket(0, msg.get()->insert_id);
-            pkItem->set_socket(1, round);
+            item_value->set_socket(0, msg.get()->insert_id);
+            item_value->set_socket(1, round);
         } else
             metin2::log::warn("Lotto: cannot give ticket item to pid {:d}", ch->player_id());
     }

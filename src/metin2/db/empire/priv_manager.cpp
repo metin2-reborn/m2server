@@ -82,12 +82,12 @@ namespace metin2::db::inline empire {
         time_t now = client_manager::instance().current_time();
         auto p = std::make_shared<priv_char_data>(type, value, pid);
 
-        int iDuration = CHARACTER_BAD_PRIV_DURATION;
+        int duration = CHARACTER_BAD_PRIV_DURATION;
 
         if (value > 0)
-            iDuration = CHARACTER_GOOD_PRIV_DURATION;
+            duration = CHARACTER_GOOD_PRIV_DURATION;
 
-        pq_priv_char_.push(std::make_pair(now + iDuration, p));
+        pq_priv_char_.push(std::make_pair(now + duration, p));
         priv_char_[type].insert(std::make_pair(pid, p.get()));
 
         metin2::log::info("Privilege: player pid {:d} type {:d} value {:d}", pid, type, value);
@@ -204,9 +204,9 @@ namespace metin2::db::inline empire {
     void priv_manager::send_priv_on_setup(peer *peer) {
         for (int i = 1; i < MAX_PRIV_NUM; ++i) {
             for (int e = 0; e < EMPIRE_MAX_NUM; ++e) {
-                priv_empire_data *pPrivEmpireData = aa_priv_empire_[i][e];
-                if (pPrivEmpireData) {
-                    change_empire_priv_sender(e, i, pPrivEmpireData->value, pPrivEmpireData->end_time_sec)(peer);
+                priv_empire_data *priv_empire_data = aa_priv_empire_[i][e];
+                if (priv_empire_data) {
+                    change_empire_priv_sender(e, i, priv_empire_data->value, priv_empire_data->end_time_sec)(peer);
                 }
             }
 

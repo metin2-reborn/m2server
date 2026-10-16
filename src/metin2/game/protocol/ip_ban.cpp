@@ -80,28 +80,28 @@ namespace metin2::game::inline protocol {
 
       protected:
         auto read(const char *s, uint8_t *dest) -> bool {
-            uint8_t bClass = 0;
+            uint8_t class_value = 0;
             const char *p = s;
 
-            while (bClass < 3) {
-                char szNum[4];
-                char *pDot = const_cast<char *>(strchr(p, '.'));
+            while (class_value < 3) {
+                char num[4];
+                char *dot = const_cast<char *>(strchr(p, '.'));
 
-                if (!pDot)
+                if (!dot)
                     break;
 
-                strlcpy(szNum, p, sizeof(szNum));
+                strlcpy(num, p, sizeof(num));
 
-                str_to_number(dest[bClass++], szNum);
-                p = pDot + 1;
+                str_to_number(dest[class_value++], num);
+                p = dot + 1;
             }
 
-            if (bClass != 3) {
+            if (class_value != 3) {
                 fprintf(stderr, "error reading start %s\n", s);
                 return false;
             }
 
-            str_to_number(dest[bClass], p);
+            str_to_number(dest[class_value], p);
             return true;
         }
 

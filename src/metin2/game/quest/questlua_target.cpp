@@ -15,10 +15,10 @@ namespace metin2::game {
     namespace quest {
         auto target_pos(lua_State *lua) -> int {
             character *ch = quest_manager::instance().current_character_ptr();
-            int iQuestIndex = quest_manager::instance().current_pc()->current_quest_index();
+            int quest_index = quest_manager::instance().current_pc()->current_quest_index();
 
             if (!lua_isstring(lua, 1) || !lua_isnumber(lua, 2) || !lua_isnumber(lua, 3)) {
-                metin2::log::error("Invalid arguments from player {} (quest index {:d})", ch->name(), iQuestIndex);
+                metin2::log::error("Invalid arguments from player {} (quest index {:d})", ch->name(), quest_index);
                 return 0;
             }
 
@@ -33,7 +33,7 @@ namespace metin2::game {
             int y = pos.y + (int)lua_tonumber(lua, 3) * 100;
 
             target_manager::instance().create_target(ch->player_id(),
-                iQuestIndex,
+                quest_index,
                 lua_tostring(lua, 1),
                 TARGET_TYPE_POS,
                 x,
@@ -47,15 +47,15 @@ namespace metin2::game {
 
         auto target_vid(lua_State *lua) -> int {
             character *ch = quest_manager::instance().current_character_ptr();
-            int iQuestIndex = quest_manager::instance().current_pc()->current_quest_index();
+            int quest_index = quest_manager::instance().current_pc()->current_quest_index();
 
             if (!lua_isstring(lua, 1) || !lua_isnumber(lua, 2)) {
-                metin2::log::error("Invalid arguments from player {} (quest index {:d})", ch->name(), iQuestIndex);
+                metin2::log::error("Invalid arguments from player {} (quest index {:d})", ch->name(), quest_index);
                 return 0;
             }
 
             target_manager::instance().create_target(ch->player_id(),
-                iQuestIndex,
+                quest_index,
                 lua_tostring(lua, 1),
                 TARGET_TYPE_VID,
                 (int)lua_tonumber(lua, 2),
@@ -69,50 +69,50 @@ namespace metin2::game {
 
         auto target_delete(lua_State *lua) -> int {
             character *ch = quest_manager::instance().current_character_ptr();
-            int iQuestIndex = quest_manager::instance().current_pc()->current_quest_index();
+            int quest_index = quest_manager::instance().current_pc()->current_quest_index();
 
             if (!lua_isstring(lua, 1)) {
-                metin2::log::error("Invalid arguments from player {} (quest index {:d})", ch->name(), iQuestIndex);
+                metin2::log::error("Invalid arguments from player {} (quest index {:d})", ch->name(), quest_index);
                 return 0;
             }
 
-            target_manager::instance().delete_target(ch->player_id(), iQuestIndex, lua_tostring(lua, 1));
+            target_manager::instance().delete_target(ch->player_id(), quest_index, lua_tostring(lua, 1));
 
             return 0;
         }
 
         auto target_clear(lua_State *lua) -> int {
             character *ch = quest_manager::instance().current_character_ptr();
-            int iQuestIndex = quest_manager::instance().current_pc()->current_quest_index();
+            int quest_index = quest_manager::instance().current_pc()->current_quest_index();
 
-            target_manager::instance().delete_target(ch->player_id(), iQuestIndex, nullptr);
+            target_manager::instance().delete_target(ch->player_id(), quest_index, nullptr);
 
             return 0;
         }
 
         auto target_id(lua_State *lua) -> int {
             character *ch = quest_manager::instance().current_character_ptr();
-            uint32_t dwQuestIndex = quest_manager::instance().current_pc()->current_quest_index();
+            uint32_t quest_index = quest_manager::instance().current_pc()->current_quest_index();
 
             if (!lua_isstring(lua, 1)) {
-                metin2::log::error("Invalid arguments from player {} (quest index {:d})", ch->name(), dwQuestIndex);
+                metin2::log::error("Invalid arguments from player {} (quest index {:d})", ch->name(), quest_index);
                 lua_pushnumber(lua, 0);
                 return 1;
             }
 
-            event_ptr pkEvent = target_manager::instance().target_event(ch->player_id(), dwQuestIndex, (const char *)lua_tostring(lua, 1));
+            event_ptr event_value = target_manager::instance().target_event(ch->player_id(), quest_index, (const char *)lua_tostring(lua, 1));
 
-            if (pkEvent) {
-                auto *pInfo = dynamic_cast<target_info *>(pkEvent->info.get());
+            if (event_value) {
+                auto *info_value = dynamic_cast<target_info *>(event_value->info.get());
 
-                if (pInfo == nullptr) {
+                if (info_value == nullptr) {
                     metin2::log::error("Target event has no info");
                     lua_pushnumber(lua, 0);
                     return 1;
                 }
 
-                if (pInfo->type == TARGET_TYPE_VID) {
-                    lua_pushnumber(lua, pInfo->arg1);
+                if (info_value->type == TARGET_TYPE_VID) {
+                    lua_pushnumber(lua, info_value->arg1);
                     return 1;
                 }
             }

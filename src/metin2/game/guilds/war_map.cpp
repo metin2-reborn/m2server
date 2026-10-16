@@ -51,8 +51,8 @@ namespace metin2::game::inline guilds {
             return 0;
         }
 
-        war_map *pMap = info->war_map;
-        pMap->check_war_end();
+        war_map *map = info->war_map;
+        map->check_war_end();
         return passes_per_sec(10);
     }
 
@@ -64,15 +64,15 @@ namespace metin2::game::inline guilds {
             return 0;
         }
 
-        war_map *pMap = info->war_map;
+        war_map *map = info->war_map;
 
         if (info->step == 0) {
             ++info->step;
-            pMap->exit_all();
+            map->exit_all();
             return passes_per_sec(5);
         } else {
-            pMap->set_end_event(nullptr);
-            war_map_manager::instance().destroy_war_map(pMap);
+            map->set_end_event(nullptr);
+            war_map_manager::instance().destroy_war_map(map);
             return 0;
         }
     }
@@ -85,8 +85,8 @@ namespace metin2::game::inline guilds {
             return 0;
         }
 
-        war_map *pMap = info->war_map;
-        pMap->timeout();
+        war_map *map = info->war_map;
+        map->timeout();
         return 0;
     }
 
@@ -245,14 +245,14 @@ namespace metin2::game::inline guilds {
         if (!item->proto())
             return;
 
-        int iPrice = item->proto()->gold;
+        int price = item->proto()->gold;
 
         uint32_t gid = ch->get_guild()->id();
 
         if (gid == team_data_[0].id)
-            team_data_[0].use_potion_price += iPrice;
+            team_data_[0].use_potion_price += price;
         else if (gid == team_data_[1].id)
-            team_data_[1].use_potion_price += iPrice;
+            team_data_[1].use_potion_price += price;
     }
 
     auto war_map::team_data::accumulated_joiner_count() -> int {
@@ -292,14 +292,14 @@ namespace metin2::game::inline guilds {
         if (ch->get_guild())
             gid = ch->get_guild()->id();
 
-        bool isWarMember = ch->quest_flag("war.is_war_member") > 0 ? true : false;
+        bool is_war_member = ch->quest_flag("war.is_war_member") > 0 ? true : false;
 
-        if (isWarMember && gid != team_data_[0].id && gid != team_data_[1].id) {
+        if (is_war_member && gid != team_data_[0].id && gid != team_data_[1].id) {
             ch->set_quest_flag("war.is_war_member", 0);
-            isWarMember = false;
+            is_war_member = false;
         }
 
-        if (isWarMember) {
+        if (is_war_member) {
             if (gid == team_data_[0].id) {
                 team_data_[0].append_member(ch);
 
@@ -347,12 +347,12 @@ namespace metin2::game::inline guilds {
                 team_data_[1].remove_member(ch);
 
             if (map_info_.type == WAR_MAP_TYPE_FLAG) {
-                affect *pkAff = ch->find_affect(AFFECT_WAR_FLAG);
+                affect *aff = ch->find_affect(AFFECT_WAR_FLAG);
 
-                if (pkAff) {
+                if (aff) {
                     uint8_t idx;
 
-                    if (team_index(pkAff->apply_value, idx))
+                    if (team_index(aff->apply_value, idx))
                         add_flag(idx, ch->x(), ch->y());
 
                     ch->remove_affect(AFFECT_WAR_FLAG);
@@ -410,10 +410,10 @@ namespace metin2::game::inline guilds {
     }
 
     auto war_map::reward_gold(uint8_t winner_idx) -> int {
-        int iRewardGold = war_info_.war_price;
-        iRewardGold += (team_data_[winner_idx].use_potion_price * war_info_.winner_potion_reward_pct_to_winner) / 100;
-        iRewardGold += (team_data_[winner_idx ? 0 : 1].use_potion_price * war_info_.loser_potion_reward_pct_to_winner) / 100;
-        return iRewardGold;
+        int reward_gold = war_info_.war_price;
+        reward_gold += (team_data_[winner_idx].use_potion_price * war_info_.winner_potion_reward_pct_to_winner) / 100;
+        reward_gold += (team_data_[winner_idx ? 0 : 1].use_potion_price * war_info_.loser_potion_reward_pct_to_winner) / 100;
+        return reward_gold;
     }
 
     void war_map::draw() {
@@ -429,52 +429,52 @@ namespace metin2::game::inline guilds {
         if (ended_)
             return;
 
-        uint32_t dwWinner = 0;
-        uint32_t dwLoser = 0;
-        int iRewardGold = 0;
+        uint32_t winner_value = 0;
+        uint32_t loser_value = 0;
+        int reward_gold_value = 0;
 
         if (get_dword_time() - start_time_ < 60000 * 5) {
             notice(lc_text("길드전이 일찍 종료되어 무승부로 판정 되었습니다. (5분이 지나지 않음)"));
-            dwWinner = 0;
-            dwLoser = 0;
+            winner_value = 0;
+            loser_value = 0;
         } else {
-            int iWinnerIdx = -1;
+            int winner_idx = -1;
 
             if (team_data_[0].member_count == 0)
-                iWinnerIdx = 1;
+                winner_idx = 1;
             else if (team_data_[1].member_count == 0)
-                iWinnerIdx = 0;
+                winner_idx = 0;
 
-            if (iWinnerIdx == -1) {
-                dwWinner = winner_guild();
+            if (winner_idx == -1) {
+                winner_value = winner_guild();
 
-                if (dwWinner == team_data_[0].id) {
-                    iRewardGold = reward_gold(0);
-                    dwLoser = team_data_[1].id;
-                } else if (dwWinner == team_data_[1].id) {
-                    iRewardGold = reward_gold(1);
-                    dwLoser = team_data_[0].id;
+                if (winner_value == team_data_[0].id) {
+                    reward_gold_value = reward_gold(0);
+                    loser_value = team_data_[1].id;
+                } else if (winner_value == team_data_[1].id) {
+                    reward_gold_value = reward_gold(1);
+                    loser_value = team_data_[0].id;
                 }
 
                 metin2::log::info("Guild war: timed out with both sides present, guild {:d} ({:d} members) vs guild {:d} ({:d} members), winner by score {:d}",
                     team_data_[0].id, team_data_[0].member_count,
                     team_data_[1].id, team_data_[1].member_count,
-                    dwWinner);
+                    winner_value);
             } else {
-                dwWinner = team_data_[iWinnerIdx].id;
-                dwLoser = team_data_[iWinnerIdx == 0 ? 1 : 0].id;
+                winner_value = team_data_[winner_idx].id;
+                loser_value = team_data_[winner_idx == 0 ? 1 : 0].id;
 
-                iRewardGold = reward_gold(iWinnerIdx);
+                reward_gold_value = reward_gold(winner_idx);
             }
         }
 
         metin2::log::info("Guild war: guild {:d} vs {:d} timed out, winner {:d}, loser {:d}, reward {:d} gold, map {:d}",
-            team_data_[0].id, team_data_[1].id, dwWinner, dwLoser, iRewardGold, map_info_.map_index);
+            team_data_[0].id, team_data_[1].id, winner_value, loser_value, reward_gold_value, map_info_.map_index);
 
-        if (dwWinner)
-            guild_manager::instance().request_war_over(dwWinner, dwLoser, dwWinner, iRewardGold);
+        if (winner_value)
+            guild_manager::instance().request_war_over(winner_value, loser_value, winner_value, reward_gold_value);
         else
-            guild_manager::instance().request_war_over(team_data_[0].id, team_data_[1].id, dwWinner, iRewardGold);
+            guild_manager::instance().request_war_over(team_data_[0].id, team_data_[1].id, winner_value, reward_gold_value);
 
         timeout_ = true;
     }
@@ -555,39 +555,39 @@ namespace metin2::game::inline guilds {
         if (team_data_[0].score == team_data_[1].score)
             return false;
 
-        int iEndScore = war_info_.end_score;
+        int end_score = war_info_.end_score;
 
-        if (metin2::config::test_server()) iEndScore /= 10;
+        if (metin2::config::test_server()) end_score /= 10;
 
-        uint32_t dwWinner;
-        uint32_t dwLoser;
+        uint32_t winner_value;
+        uint32_t loser;
 
-        if (team_data_[0].score >= iEndScore) {
-            dwWinner = team_data_[0].id;
-            dwLoser = team_data_[1].id;
-        } else if (team_data_[1].score >= iEndScore) {
-            dwWinner = team_data_[1].id;
-            dwLoser = team_data_[0].id;
+        if (team_data_[0].score >= end_score) {
+            winner_value = team_data_[0].id;
+            loser = team_data_[1].id;
+        } else if (team_data_[1].score >= end_score) {
+            winner_value = team_data_[1].id;
+            loser = team_data_[0].id;
         } else
             return false;
 
-        int iRewardGold = 0;
+        int reward_gold_value = 0;
 
-        if (dwWinner == team_data_[0].id)
-            iRewardGold = reward_gold(0);
-        else if (dwWinner == team_data_[1].id)
-            iRewardGold = reward_gold(1);
+        if (winner_value == team_data_[0].id)
+            reward_gold_value = reward_gold(0);
+        else if (winner_value == team_data_[1].id)
+            reward_gold_value = reward_gold(1);
 
         metin2::log::info("Guild war: end score {:d} reached, guild {:d} score {:d} vs guild {:d} score {:d}, winner {:d}, reward {:d} gold",
-            iEndScore,
+            end_score,
             team_data_[0].id,
             team_data_[0].score,
             team_data_[1].id,
             team_data_[1].score,
-            dwWinner,
-            iRewardGold);
+            winner_value,
+            reward_gold_value);
 
-        guild_manager::instance().request_war_over(dwWinner, dwLoser, dwWinner, iRewardGold);
+        guild_manager::instance().request_war_over(winner_value, loser, winner_value, reward_gold_value);
         return true;
     }
 
@@ -632,36 +632,36 @@ namespace metin2::game::inline guilds {
         if (ended_)
             return;
 
-        uint32_t dwKillerGuild = 0;
-        uint32_t dwDeadGuild = 0;
+        uint32_t killer_guild = 0;
+        uint32_t dead_guild = 0;
 
         if (killer->get_guild())
-            dwKillerGuild = killer->get_guild()->id();
+            killer_guild = killer->get_guild()->id();
 
         if (ch->get_guild())
-            dwDeadGuild = ch->get_guild()->id();
+            dead_guild = ch->get_guild()->id();
 
         uint8_t idx;
 
-        metin2::log::debug("Guild war: kill, killer guild {:d}, dead guild {:d}", dwKillerGuild, dwDeadGuild);
+        metin2::log::debug("Guild war: kill, killer guild {:d}, dead guild {:d}", killer_guild, dead_guild);
 
-        if (!team_index(dwKillerGuild, idx))
+        if (!team_index(killer_guild, idx))
             return;
 
-        if (!team_index(dwDeadGuild, idx))
+        if (!team_index(dead_guild, idx))
             return;
 
         switch (map_info_.type) {
         case WAR_MAP_TYPE_NORMAL:
-            send_guild_war_score(dwKillerGuild, dwDeadGuild, 1, ch->level());
+            send_guild_war_score(killer_guild, dead_guild, 1, ch->level());
             break;
 
         case WAR_MAP_TYPE_FLAG:
             {
-                affect *pkAff = ch->find_affect(AFFECT_WAR_FLAG);
+                affect *aff = ch->find_affect(AFFECT_WAR_FLAG);
 
-                if (pkAff) {
-                    if (team_index(pkAff->apply_value, idx))
+                if (aff) {
+                    if (team_index(aff->apply_value, idx))
                         add_flag(idx, ch->x(), ch->y());
 
                     ch->remove_affect(AFFECT_WAR_FLAG);
@@ -759,12 +759,12 @@ namespace metin2::game::inline guilds {
             return 0;
         }
 
-        war_map *pMap = info->war_map;
+        war_map *map = info->war_map;
 
-        pMap->add_flag(0);
-        pMap->add_flag(1);
+        map->add_flag(0);
+        map->add_flag(1);
 
-        pMap->set_reset_flag_event(nullptr);
+        map->set_reset_flag_event(nullptr);
         return 0;
     }
 
@@ -851,19 +851,19 @@ namespace metin2::game::inline guilds {
     }
 
     auto war_map_manager::create_war_map(const guild_war_info &guild_war_info_value, uint32_t guild_id1, uint32_t guild_id2) -> int32_t {
-        war_map_info *pkInfo = get_war_map_info(guild_war_info_value.map_index);
-        if (!pkInfo) {
+        war_map_info *info_value = get_war_map_info(guild_war_info_value.map_index);
+        if (!info_value) {
             metin2::log::error("No war map info for map {:d}, cannot create guild war map", guild_war_info_value.map_index);
             return 0;
         }
 
-        uint32_t lMapIndex = sectree_manager::instance().create_private_map(guild_war_info_value.map_index);
+        uint32_t map_index = sectree_manager::instance().create_private_map(guild_war_info_value.map_index);
 
-        if (lMapIndex) {
-            war_map_.insert(std::make_pair(lMapIndex, new war_map(lMapIndex, guild_war_info_value, pkInfo, guild_id1, guild_id2)));
+        if (map_index) {
+            war_map_.insert(std::make_pair(map_index, new war_map(map_index, guild_war_info_value, info_value, guild_id1, guild_id2)));
         }
 
-        return lMapIndex;
+        return map_index;
     }
 
     auto war_map_manager::get_war_map_info(int32_t map_index) -> war_map_info * {
@@ -879,14 +879,14 @@ namespace metin2::game::inline guilds {
     }
 
     void war_map_manager::destroy_war_map(war_map *map) {
-        int32_t mapIdx = map->map_index();
+        int32_t map_idx = map->map_index();
 
-        metin2::log::info("Guild war: destroying war map {:d}", mapIdx);
+        metin2::log::info("Guild war: destroying war map {:d}", map_idx);
 
         war_map_.erase(map->map_index());
         delete map;
 
-        sectree_manager::instance().destroy_private_map(mapIdx);
+        sectree_manager::instance().destroy_private_map(map_idx);
     }
 
     auto war_map_manager::find(int32_t map_index) -> war_map * {

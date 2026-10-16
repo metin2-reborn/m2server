@@ -121,16 +121,16 @@ namespace metin2::game {
         }
 
         void pc::set_quest_state(const std::string &quest_name, int new_state_index) {
-            int iNowState = flag(quest_name + ".__status");
+            int now_state = flag(quest_name + ".__status");
 
-            if (iNowState != new_state_index)
-                add_quest_state_change(quest_name, iNowState, new_state_index);
+            if (now_state != new_state_index)
+                add_quest_state_change(quest_name, now_state, new_state_index);
         }
 
         void pc::add_quest_state_change(const std::string &quest_name, int prev_state, int next_state) {
-            uint32_t dwQuestIndex = quest_manager::instance().quest_index_by_name(quest_name);
-            metin2::log::debug("Quest: queue state change of quest {} ({:d}) from {:d} to {:d}", quest_name, dwQuestIndex, prev_state, next_state);
-            quest_state_change_.push_back(quest_state_change_info(dwQuestIndex, prev_state, next_state));
+            uint32_t quest_index = quest_manager::instance().quest_index_by_name(quest_name);
+            metin2::log::debug("Quest: queue state change of quest {} ({:d}) from {:d} to {:d}", quest_name, quest_index, prev_state, next_state);
+            quest_state_change_.push_back(quest_state_change_info(quest_index, prev_state, next_state));
         }
 
         void pc::set_quest(const std::string &quest_name, quest_state &qs) {
@@ -306,22 +306,22 @@ namespace metin2::game {
                 metin2::log::error("No running quest state at end of quest run");
                 return;
             }
-            quest_state *pOldState = running_quest_state_;
-            int iNowState = running_quest_state_->st;
+            quest_state *old_state = running_quest_state_;
+            int now_state = running_quest_state_->st;
 
             running_quest_state_ = nullptr;
 
-            if (last_state_ != iNowState) {
+            if (last_state_ != now_state) {
                 character *ch = quest_manager::instance().current_character_ptr();
-                uint32_t dwQuestIndex = quest_manager::instance().quest_index_by_name(cur_quest_);
+                uint32_t quest_index = quest_manager::instance().quest_index_by_name(cur_quest_);
                 if (ch) {
                     set_flag(cur_quest_ + ".__status", last_state_);
-                    quest_manager::instance().leave_state(ch->player_id(), dwQuestIndex, last_state_);
-                    pOldState->st = iNowState;
-                    set_flag(cur_quest_ + ".__status", iNowState);
-                    quest_manager::instance().enter_state(ch->player_id(), dwQuestIndex, iNowState);
-                    if (flag(cur_quest_ + ".__status") == iNowState)
-                        quest_manager::instance().letter(ch->player_id(), dwQuestIndex, iNowState);
+                    quest_manager::instance().leave_state(ch->player_id(), quest_index, last_state_);
+                    old_state->st = now_state;
+                    set_flag(cur_quest_ + ".__status", now_state);
+                    quest_manager::instance().enter_state(ch->player_id(), quest_index, now_state);
+                    if (flag(cur_quest_ + ".__status") == now_state)
+                        quest_manager::instance().letter(ch->player_id(), quest_index, now_state);
                 }
             }
 
@@ -331,40 +331,40 @@ namespace metin2::game {
         void pc::do_quest_state_change() {
             character *ch = quest_manager::instance().current_character_ptr();
 
-            std::vector<quest_state_change_info> vecQuestStateChange;
-            quest_state_change_.swap(vecQuestStateChange);
+            std::vector<quest_state_change_info> quest_state_change;
+            quest_state_change_.swap(quest_state_change);
 
-            for (uint32_t i = 0; i < vecQuestStateChange.size(); ++i) {
-                const quest_state_change_info &rInfo = vecQuestStateChange[i];
-                if (rInfo.quest_idx == 0)
+            for (uint32_t i = 0; i < quest_state_change.size(); ++i) {
+                const quest_state_change_info &info = quest_state_change[i];
+                if (info.quest_idx == 0)
                     continue;
 
-                uint32_t dwQuestIdx = rInfo.quest_idx;
-                auto it = quest_find(dwQuestIdx);
-                const std::string stQuestName = quest_manager::instance().quest_name_by_index(dwQuestIdx);
+                uint32_t quest_idx = info.quest_idx;
+                auto it = quest_find(quest_idx);
+                const std::string quest_name = quest_manager::instance().quest_name_by_index(quest_idx);
 
                 if (it == quest_end()) {
                     quest_state qs;
                     qs.st = 0;
 
-                    quest_info_.insert(std::make_pair(dwQuestIdx, qs));
-                    set_flag(stQuestName + ".__status", 0);
+                    quest_info_.insert(std::make_pair(quest_idx, qs));
+                    set_flag(quest_name + ".__status", 0);
 
-                    it = quest_find(dwQuestIdx);
+                    it = quest_find(quest_idx);
                 }
 
-                metin2::log::debug("Quest: apply queued state change of quest {:d} from {:d} to {:d} (current {:d}, expected {:d})", dwQuestIdx, rInfo.prev_state, rInfo.next_state, it->second.st, rInfo.prev_state);
+                metin2::log::debug("Quest: apply queued state change of quest {:d} from {:d} to {:d} (current {:d}, expected {:d})", quest_idx, info.prev_state, info.next_state, it->second.st, info.prev_state);
 
-                assert(it->second.st == rInfo.prev_state);
+                assert(it->second.st == info.prev_state);
 
-                quest_manager::instance().leave_state(ch->player_id(), dwQuestIdx, rInfo.prev_state);
-                it->second.st = rInfo.next_state;
-                set_flag(stQuestName + ".__status", rInfo.next_state);
+                quest_manager::instance().leave_state(ch->player_id(), quest_idx, info.prev_state);
+                it->second.st = info.next_state;
+                set_flag(quest_name + ".__status", info.next_state);
 
-                quest_manager::instance().enter_state(ch->player_id(), dwQuestIdx, rInfo.next_state);
+                quest_manager::instance().enter_state(ch->player_id(), quest_idx, info.next_state);
 
-                if (flag(stQuestName + ".__status") == rInfo.next_state)
-                    quest_manager::instance().letter(ch->player_id(), dwQuestIdx, rInfo.next_state);
+                if (flag(quest_name + ".__status") == info.next_state)
+                    quest_manager::instance().letter(ch->player_id(), quest_idx, info.next_state);
             }
         }
 
@@ -385,9 +385,9 @@ namespace metin2::game {
 
         void pc::set_current_quest_begin_flag() {
             quest_manager &q = quest_manager::instance();
-            int iQuestIndex = q.quest_index_by_name(cur_quest_);
+            int quest_index = q.quest_index_by_name(cur_quest_);
             running_quest_state_->start = true;
-            running_quest_state_->index = iQuestIndex;
+            running_quest_state_->index = quest_index;
 
             set_send_flag(QUEST_SEND_ISBEGIN);
         }
@@ -460,47 +460,47 @@ namespace metin2::game {
             auto it = flag_save_map_.begin();
 
             while (it != flag_save_map_.end()) {
-                const std::string &stComp = it->first;
-                int32_t lValue = it->second;
+                const std::string &comp = it->first;
+                int32_t value = it->second;
 
                 ++it;
 
-                int iPos = stComp.find(".");
+                int pos = comp.find(".");
 
-                if (iPos < 0) {
-                    metin2::log::error("Quest flag {} has no '.' separator", stComp);
+                if (pos < 0) {
+                    metin2::log::error("Quest flag {} has no '.' separator", comp);
                     continue;
                 }
 
-                std::string stName;
-                stName.assign(stComp, 0, iPos);
+                std::string name_value;
+                name_value.assign(comp, 0, pos);
 
-                std::string stState;
-                stState.assign(stComp, iPos + 1, stComp.length());
+                std::string state_value;
+                state_value.assign(comp, pos + 1, comp.length());
 
-                if (stName.length() == 0 || stState.length() == 0) {
-                    metin2::log::error("Quest flag {} has an empty quest or state name", stComp);
+                if (name_value.length() == 0 || state_value.length() == 0) {
+                    metin2::log::error("Quest flag {} has an empty quest or state name", comp);
                     continue;
                 }
 
-                metin2::log::debug("Quest: save flag {}.{} = {:d} ({:d})", stName, stState, lValue, i);
+                metin2::log::debug("Quest: save flag {}.{} = {:d} ({:d})", name_value, state_value, value, i);
 
-                if (stName.length() >= QUEST_NAME_MAX_LEN) {
-                    metin2::log::error("Quest name {} is too long to save", stName);
+                if (name_value.length() >= QUEST_NAME_MAX_LEN) {
+                    metin2::log::error("Quest name {} is too long to save", name_value);
                     continue;
                 }
 
-                if (stState.length() >= QUEST_STATE_MAX_LEN) {
-                    metin2::log::error("Quest state {} is too long to save", stState);
+                if (state_value.length() >= QUEST_STATE_MAX_LEN) {
+                    metin2::log::error("Quest state {} is too long to save", state_value);
                     continue;
                 }
 
                 quest_table &r = s_table[i++];
 
                 r.pid = id_;
-                strlcpy(r.name, stName.c_str(), sizeof(r.name));
-                strlcpy(r.state, stState.c_str(), sizeof(r.state));
-                r.value = lValue;
+                strlcpy(r.name, name_value.c_str(), sizeof(r.name));
+                strlcpy(r.state, state_value.c_str(), sizeof(r.state));
+                r.value = value;
             }
 
             if (i > 0) {
@@ -565,12 +565,12 @@ namespace metin2::game {
             decltype(flag_map_.begin()) it;
             for (it = flag_map_.begin(); it != flag_map_.end(); ++it) {
                 if (it->first.size() > 9 && it->first.compare(it->first.size() - 9, 9, ".__status") == 0) {
-                    uint32_t dwQuestIndex = quest_manager::instance().quest_index_by_name(it->first.substr(0, it->first.size() - 9));
+                    uint32_t quest_index = quest_manager::instance().quest_index_by_name(it->first.substr(0, it->first.size() - 9));
                     int state = it->second;
                     quest_state qs;
                     qs.st = state;
 
-                    quest_info_.insert(std::make_pair(dwQuestIndex, qs));
+                    quest_info_.insert(std::make_pair(quest_index, qs));
                 }
             }
         }
@@ -578,9 +578,9 @@ namespace metin2::game {
         void pc::clear_quest(const std::string &quest_name) {
             std::string quest_name_with_dot = quest_name + '.';
             for (auto it = flag_map_.begin(); it != flag_map_.end();) {
-                auto itNow = it++;
-                if (itNow->second != 0 && itNow->first.compare(0, quest_name_with_dot.size(), quest_name_with_dot) == 0) {
-                    set_flag(itNow->first, 0);
+                auto now = it++;
+                if (now->second != 0 && now->first.compare(0, quest_name_with_dot.size(), quest_name_with_dot) == 0) {
+                    set_flag(now->first, 0);
                 }
             }
 

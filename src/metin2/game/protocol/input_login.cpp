@@ -102,41 +102,41 @@ namespace metin2::game::inline protocol {
             return;
         }
 
-        char szLogin[sizeof(pinfo->login)];
-        copy_packet_string(szLogin, pinfo->login);
+        char login_value[sizeof(pinfo->login)];
+        copy_packet_string(login_value, pinfo->login);
 
         char login[LOGIN_MAX_LEN + 1];
-        trim_and_lower(szLogin, login);
+        trim_and_lower(login_value, login);
 
         metin2::log::info("Login attempt: account {}", login);
 
-        packet_gc_login_failure failurePacket;
+        packet_gc_login_failure failure_packet;
 
         if (!metin2::config::test_server()) {
-            failurePacket.header = HEADER_GC_LOGIN_FAILURE;
-            strlcpy(failurePacket.status, "VERSION", sizeof(failurePacket.status));
-            d->packet(&failurePacket, sizeof(packet_gc_login_failure));
+            failure_packet.header = HEADER_GC_LOGIN_FAILURE;
+            strlcpy(failure_packet.status, "VERSION", sizeof(failure_packet.status));
+            d->packet(&failure_packet, sizeof(packet_gc_login_failure));
             return;
         }
 
         if (no_more_client) {
-            failurePacket.header = HEADER_GC_LOGIN_FAILURE;
-            strlcpy(failurePacket.status, "SHUTDOWN", sizeof(failurePacket.status));
-            d->packet(&failurePacket, sizeof(packet_gc_login_failure));
+            failure_packet.header = HEADER_GC_LOGIN_FAILURE;
+            strlcpy(failure_packet.status, "SHUTDOWN", sizeof(failure_packet.status));
+            d->packet(&failure_packet, sizeof(packet_gc_login_failure));
             return;
         }
 
         if (metin2::config::server().user_limit > 0) {
-            int iTotal;
-            int *paiEmpireUserCount;
-            int iLocal;
+            int total;
+            int *pai_empire_user_count;
+            int local;
 
-            desc_manager::instance().user_count(iTotal, &paiEmpireUserCount, iLocal);
+            desc_manager::instance().user_count(total, &pai_empire_user_count, local);
 
-            if (metin2::config::server().user_limit <= iTotal) {
-                failurePacket.header = HEADER_GC_LOGIN_FAILURE;
-                strlcpy(failurePacket.status, "FULL", sizeof(failurePacket.status));
-                d->packet(&failurePacket, sizeof(packet_gc_login_failure));
+            if (metin2::config::server().user_limit <= total) {
+                failure_packet.header = HEADER_GC_LOGIN_FAILURE;
+                strlcpy(failure_packet.status, "FULL", sizeof(failure_packet.status));
+                d->packet(&failure_packet, sizeof(packet_gc_login_failure));
                 return;
             }
         }
@@ -144,9 +144,9 @@ namespace metin2::game::inline protocol {
         login_packet login_packet;
 
         strlcpy(login_packet.login, login, sizeof(login_packet.login));
-        char szPasswd[sizeof(pinfo->passwd)];
-        copy_packet_string(szPasswd, pinfo->passwd);
-        strlcpy(login_packet.passwd, szPasswd, sizeof(login_packet.passwd));
+        char passwd[sizeof(pinfo->passwd)];
+        copy_packet_string(passwd, pinfo->passwd);
+        strlcpy(login_packet.passwd, passwd, sizeof(login_packet.passwd));
 
         db_clientdesc->db_packet(HEADER_GD_LOGIN, d->handle(), &login_packet, sizeof(proto::login_packet));
     }
@@ -159,35 +159,35 @@ namespace metin2::game::inline protocol {
             return;
         }
 
-        char szLogin[sizeof(pinfo->login)];
-        copy_packet_string(szLogin, pinfo->login);
+        char login_value[sizeof(pinfo->login)];
+        copy_packet_string(login_value, pinfo->login);
 
         char login[LOGIN_MAX_LEN + 1];
-        trim_and_lower(szLogin, login);
+        trim_and_lower(login_value, login);
 
         if (no_more_client) {
-            packet_gc_login_failure failurePacket;
+            packet_gc_login_failure failure_packet;
 
-            failurePacket.header = HEADER_GC_LOGIN_FAILURE;
-            strlcpy(failurePacket.status, "SHUTDOWN", sizeof(failurePacket.status));
-            d->packet(&failurePacket, sizeof(packet_gc_login_failure));
+            failure_packet.header = HEADER_GC_LOGIN_FAILURE;
+            strlcpy(failure_packet.status, "SHUTDOWN", sizeof(failure_packet.status));
+            d->packet(&failure_packet, sizeof(packet_gc_login_failure));
             return;
         }
 
         if (metin2::config::server().user_limit > 0) {
-            int iTotal;
-            int *paiEmpireUserCount;
-            int iLocal;
+            int total;
+            int *pai_empire_user_count;
+            int local;
 
-            desc_manager::instance().user_count(iTotal, &paiEmpireUserCount, iLocal);
+            desc_manager::instance().user_count(total, &pai_empire_user_count, local);
 
-            if (metin2::config::server().user_limit <= iTotal) {
-                packet_gc_login_failure failurePacket;
+            if (metin2::config::server().user_limit <= total) {
+                packet_gc_login_failure failure_packet;
 
-                failurePacket.header = HEADER_GC_LOGIN_FAILURE;
-                strlcpy(failurePacket.status, "FULL", sizeof(failurePacket.status));
+                failure_packet.header = HEADER_GC_LOGIN_FAILURE;
+                strlcpy(failure_packet.status, "FULL", sizeof(failure_packet.status));
 
-                d->packet(&failurePacket, sizeof(packet_gc_login_failure));
+                d->packet(&failure_packet, sizeof(packet_gc_login_failure));
                 return;
             }
         }
@@ -223,10 +223,10 @@ namespace metin2::game::inline protocol {
         if (!c_r.players[p->index].change_name)
             return;
 
-        char szName[sizeof(p->name)];
-        copy_packet_string(szName, p->name);
+        char name[sizeof(p->name)];
+        copy_packet_string(name, p->name);
 
-        if (!check_name(szName)) {
+        if (!check_name(name)) {
             packet_gc_create_failure pack;
             pack.header = HEADER_GC_CHARACTER_CREATE_FAILURE;
             pack.type = 0;
@@ -237,7 +237,7 @@ namespace metin2::game::inline protocol {
         packet_gd_change_name pdb;
 
         pdb.pid = c_r.players[p->index].id;
-        strlcpy(pdb.name, szName, sizeof(pdb.name));
+        strlcpy(pdb.name, name, sizeof(pdb.name));
         db_clientdesc->db_packet(HEADER_GD_CHANGE_NAME, d->handle(), &pdb, sizeof(packet_gd_change_name));
     }
 
@@ -367,43 +367,43 @@ namespace metin2::game::inline protocol {
         auto *pinfo = (struct packet_cg_player_create *)data;
         player_create_packet player_create_packet;
 
-        char szName[sizeof(pinfo->name)];
-        copy_packet_string(szName, pinfo->name);
+        char name_value[sizeof(pinfo->name)];
+        copy_packet_string(name_value, pinfo->name);
 
         metin2::log::info("Character create: name {}, slot {:d}, job {:d}, shape {:d}",
-            szName,
+            name_value,
             pinfo->index,
             pinfo->job,
             pinfo->shape);
 
-        const account_table &c_rAccountTable = d->get_account_table();
+        const account_table &c_r_account_table = d->get_account_table();
 
-        if (!c_rAccountTable.id) {
+        if (!c_r_account_table.id) {
             metin2::log::warn("Character create without a logged-in account");
             return;
         }
 
         if (pinfo->index >= PLAYER_PER_ACCOUNT) {
-            metin2::log::warn("Character create: slot {:d} out of range (account {})", pinfo->index, c_rAccountTable.login);
+            metin2::log::warn("Character create: slot {:d} out of range (account {})", pinfo->index, c_r_account_table.login);
             return;
         }
 
-        packet_gc_login_failure packFailure;
-        memset(&packFailure, 0, sizeof(packFailure));
-        packFailure.header = HEADER_GC_CHARACTER_CREATE_FAILURE;
+        packet_gc_login_failure pack_failure;
+        memset(&pack_failure, 0, sizeof(pack_failure));
+        pack_failure.header = HEADER_GC_CHARACTER_CREATE_FAILURE;
 
         if (true == metin2::config::game().block_char_creation) {
-            d->packet(&packFailure, sizeof(packFailure));
+            d->packet(&pack_failure, sizeof(pack_failure));
             return;
         }
 
-        if (!check_name(szName) || pinfo->shape > 1) {
+        if (!check_name(name_value) || pinfo->shape > 1) {
 
-            d->packet(&packFailure, sizeof(packFailure));
+            d->packet(&pack_failure, sizeof(pack_failure));
             return;
         }
 
-        if (0 == strcmp(c_rAccountTable.login, szName)) {
+        if (0 == strcmp(c_r_account_table.login, name_value)) {
             packet_gc_create_failure pack;
             pack.header = HEADER_GC_CHARACTER_CREATE_FAILURE;
             pack.type = 1;
@@ -416,20 +416,20 @@ namespace metin2::game::inline protocol {
 
         // job is 16 bits on the wire but stored in a byte.
         if (pinfo->job >= MAIN_RACE_MAX_NUM ||
-            !new_player_table2(&player_create_packet.player_table, szName, (uint8_t)pinfo->job, pinfo->shape, d->empire())) {
+            !new_player_table2(&player_create_packet.player_table, name_value, (uint8_t)pinfo->job, pinfo->shape, d->empire())) {
             metin2::log::warn("Character create: invalid job {:d}", pinfo->job);
-            d->packet(&packFailure, sizeof(packFailure));
+            d->packet(&pack_failure, sizeof(pack_failure));
             return;
         }
 
-        trim_and_lower(c_rAccountTable.login, player_create_packet.login);
-        strlcpy(player_create_packet.passwd, c_rAccountTable.passwd, sizeof(player_create_packet.passwd));
+        trim_and_lower(c_r_account_table.login, player_create_packet.login);
+        strlcpy(player_create_packet.passwd, c_r_account_table.passwd, sizeof(player_create_packet.passwd));
 
-        player_create_packet.account_id = c_rAccountTable.id;
+        player_create_packet.account_id = c_r_account_table.id;
         player_create_packet.account_index = pinfo->index;
 
         metin2::log::debug("Character create request: name {}, slot {:d}, packet size {:d}, gold {:d}",
-            szName,
+            name_value,
             pinfo->index,
             sizeof(proto::player_create_packet),
             player_create_packet.player_table.gold);
@@ -439,35 +439,35 @@ namespace metin2::game::inline protocol {
 
     void input_login::character_delete(desc *d, const char *data) {
         auto *pinfo = (struct packet_cg_player_delete *)data;
-        const account_table &c_rAccountTable = d->get_account_table();
+        const account_table &c_r_account_table = d->get_account_table();
 
-        if (!c_rAccountTable.id) {
+        if (!c_r_account_table.id) {
             metin2::log::warn("Character delete without a logged-in account");
             return;
         }
 
-        char szPrivateCode[sizeof(pinfo->private_code)];
-        copy_packet_string(szPrivateCode, pinfo->private_code);
+        char private_code[sizeof(pinfo->private_code)];
+        copy_packet_string(private_code, pinfo->private_code);
 
-        metin2::log::info("Character delete: account {}, slot {:d}, social id {}", c_rAccountTable.login, pinfo->index, szPrivateCode);
+        metin2::log::info("Character delete: account {}, slot {:d}, social id {}", c_r_account_table.login, pinfo->index, private_code);
 
         if (pinfo->index >= PLAYER_PER_ACCOUNT) {
-            metin2::log::warn("Character delete: slot {:d} out of range (account {})", pinfo->index, c_rAccountTable.login);
+            metin2::log::warn("Character delete: slot {:d} out of range (account {})", pinfo->index, c_r_account_table.login);
             return;
         }
 
-        if (!c_rAccountTable.players[pinfo->index].id) {
-            metin2::log::warn("Character delete: empty slot {:d} (account {})", pinfo->index, c_rAccountTable.login);
+        if (!c_r_account_table.players[pinfo->index].id) {
+            metin2::log::warn("Character delete: empty slot {:d} (account {})", pinfo->index, c_r_account_table.login);
             d->packet(encode_byte(HEADER_GC_CHARACTER_DELETE_WRONG_SOCIAL_ID), 1);
             return;
         }
 
         player_delete_packet player_delete_packet;
 
-        trim_and_lower(c_rAccountTable.login, player_delete_packet.login);
-        player_delete_packet.player_id = c_rAccountTable.players[pinfo->index].id;
+        trim_and_lower(c_r_account_table.login, player_delete_packet.login);
+        player_delete_packet.player_id = c_r_account_table.players[pinfo->index].id;
         player_delete_packet.account_index = pinfo->index;
-        strlcpy(player_delete_packet.private_code, szPrivateCode, sizeof(player_delete_packet.private_code));
+        strlcpy(player_delete_packet.private_code, private_code, sizeof(player_delete_packet.private_code));
 
         db_clientdesc->db_packet(HEADER_GD_PLAYER_DELETE, d->handle(), &player_delete_packet, sizeof(proto::player_delete_packet));
     }
@@ -593,8 +593,8 @@ namespace metin2::game::inline protocol {
                 ch->set_dungeon(dungeon_manager::instance().find_by_map_index(ch->map_index()));
             }
         } else if (arena_manager::instance().is_arena_map(ch->map_index()) == true) {
-            int memberFlag = arena_manager::instance().is_member(ch->map_index(), ch->player_id());
-            if (memberFlag == MEMBER_OBSERVER) {
+            int member_flag = arena_manager::instance().is_member(ch->map_index(), ch->player_id());
+            if (member_flag == MEMBER_OBSERVER) {
                 ch->set_observer_mode(true);
                 ch->set_arena_observer_mode(true);
                 if (arena_manager::instance().register_observer_ptr(ch, ch->map_index(), ch->x() / 100, ch->y() / 100)) {
@@ -605,27 +605,27 @@ namespace metin2::game::inline protocol {
                     ch->stop_riding();
                     ch->horse_summon(false);
                 }
-            } else if (memberFlag == MEMBER_DUELIST) {
-                packet_gc_duel_start duelStart;
-                duelStart.header = HEADER_GC_DUEL_START;
-                duelStart.size = sizeof(packet_gc_duel_start);
+            } else if (member_flag == MEMBER_DUELIST) {
+                packet_gc_duel_start duel_start;
+                duel_start.header = HEADER_GC_DUEL_START;
+                duel_start.size = sizeof(packet_gc_duel_start);
 
-                ch->get_desc()->packet(&duelStart, sizeof(packet_gc_duel_start));
+                ch->get_desc()->packet(&duel_start, sizeof(packet_gc_duel_start));
 
                 if (ch->is_horse_riding() == true) {
                     ch->stop_riding();
                     ch->horse_summon(false);
                 }
 
-                party *pParty = ch->get_party();
-                if (pParty != nullptr) {
-                    if (pParty->member_count() == 2) {
-                        party_manager::instance().delete_party(pParty);
+                party *party = ch->get_party();
+                if (party != nullptr) {
+                    if (party->member_count() == 2) {
+                        party_manager::instance().delete_party(party);
                     } else {
-                        pParty->quit(ch->player_id());
+                        party->quit(ch->player_id());
                     }
                 }
-            } else if (memberFlag == MEMBER_NO) {
+            } else if (member_flag == MEMBER_NO) {
                 if (ch->gm_level() == GM_PLAYER)
                     ch->warp_set(empire_start_x(ch->empire()), empire_start_y(ch->empire()));
             } else {
@@ -692,8 +692,8 @@ namespace metin2::game::inline protocol {
     }
 
     static auto is_mark_owner_guild_master(desc *d, uint32_t guild_id) -> bool {
-        desc *pkOwner = desc_manager::instance().find_by_handle(d->mark_owner_handle());
-        character *ch = pkOwner ? pkOwner->get_character() : nullptr;
+        desc *owner = desc_manager::instance().find_by_handle(d->mark_owner_handle());
+        character *ch = owner ? owner->get_character() : nullptr;
 
         return ch && ch->get_guild() && ch->get_guild()->id() == guild_id && ch->get_guild()->master_pid() == ch->player_id();
     }
@@ -709,9 +709,9 @@ namespace metin2::game::inline protocol {
         if (bytes < p->size)
             return -1;
 
-        int iSymbolSize = p->size - sizeof(packet_cg_guild_symbol_upload);
+        int symbol_size = p->size - sizeof(packet_cg_guild_symbol_upload);
 
-        if (iSymbolSize <= 0 || iSymbolSize > 64 * 1024) {
+        if (symbol_size <= 0 || symbol_size > 64 * 1024) {
             d->set_phase(PHASE_CLOSE);
             return 0;
         }
@@ -730,45 +730,45 @@ namespace metin2::game::inline protocol {
 
         metin2::log::debug("Guild symbol upload: header {:02X}{:02X}{:02X}{:02X}, packet size {:d}", data[7], data[8], data[9], data[10], sizeof(*p));
 
-        guild_mark_manager::instance().upload_symbol(p->guild_id, iSymbolSize, (const uint8_t *)(data + sizeof(*p)));
+        guild_mark_manager::instance().upload_symbol(p->guild_id, symbol_size, (const uint8_t *)(data + sizeof(*p)));
         guild_mark_manager::instance().save_symbol(GUILD_SYMBOL_FILENAME);
-        return iSymbolSize;
+        return symbol_size;
     }
 
     void input_login::guild_symbol_crc(desc *d, const char *data) {
-        const packet_cg_symbol_crc &CGPacket = *((packet_cg_symbol_crc *)data);
+        const packet_cg_symbol_crc &cg_packet = *((packet_cg_symbol_crc *)data);
 
-        metin2::log::debug("Guild {:d} symbol crc check: client crc {:d}, size {:d}", CGPacket.guild_id, CGPacket.crc, CGPacket.size);
+        metin2::log::debug("Guild {:d} symbol crc check: client crc {:d}, size {:d}", cg_packet.guild_id, cg_packet.crc, cg_packet.size);
 
-        const guild_mark_manager::guild_symbol *pkGS = guild_mark_manager::instance().get_guild_symbol(CGPacket.guild_id);
+        const guild_mark_manager::guild_symbol *gs = guild_mark_manager::instance().get_guild_symbol(cg_packet.guild_id);
 
-        if (!pkGS || pkGS->raw.empty())
+        if (!gs || gs->raw.empty())
             return;
 
-        metin2::log::debug("Guild symbol on server: crc {:d}, size {:d}", pkGS->crc, pkGS->raw.size());
+        metin2::log::debug("Guild symbol on server: crc {:d}, size {:d}", gs->crc, gs->raw.size());
 
-        if (pkGS->raw.size() != CGPacket.size || pkGS->crc != CGPacket.crc) {
-            packet_gc_guild_symbol_data GCPacket;
+        if (gs->raw.size() != cg_packet.size || gs->crc != cg_packet.crc) {
+            packet_gc_guild_symbol_data gc_packet;
 
-            GCPacket.header = HEADER_GC_SYMBOL_DATA;
-            GCPacket.size = sizeof(GCPacket) + pkGS->raw.size();
-            GCPacket.guild_id = CGPacket.guild_id;
+            gc_packet.header = HEADER_GC_SYMBOL_DATA;
+            gc_packet.size = sizeof(gc_packet) + gs->raw.size();
+            gc_packet.guild_id = cg_packet.guild_id;
 
-            d->buffered_packet(&GCPacket, sizeof(GCPacket));
-            d->packet(&pkGS->raw[0], pkGS->raw.size());
+            d->buffered_packet(&gc_packet, sizeof(gc_packet));
+            d->packet(&gs->raw[0], gs->raw.size());
 
-            if (pkGS->raw.size() >= 4)
+            if (gs->raw.size() >= 4)
                 metin2::log::debug("Sending guild symbol: header {:02X}{:02X}{:02X}{:02X}, size {:d}",
-                    pkGS->raw[0], pkGS->raw[1], pkGS->raw[2], pkGS->raw[3], pkGS->raw.size());
+                    gs->raw[0], gs->raw[1], gs->raw[2], gs->raw[3], gs->raw.size());
         }
     }
 
     void input_login::guild_mark_upload(desc *d, const char *data) {
         auto *p = (packet_cg_mark_upload *)data;
-        guild_manager &rkGuildMgr = guild_manager::instance();
-        guild *pkGuild;
+        guild_manager &guild_mgr = guild_manager::instance();
+        guild *guild_value;
 
-        if (!(pkGuild = rkGuildMgr.find_guild(p->gid))) {
+        if (!(guild_value = guild_mgr.find_guild(p->gid))) {
             metin2::log::warn("Guild mark upload for unknown guild {:d}", p->gid);
             return;
         }
@@ -779,46 +779,46 @@ namespace metin2::game::inline protocol {
             return;
         }
 
-        if (pkGuild->level() < metin2::config::game().mark.min_level) {
-            metin2::log::info("Guild mark upload refused: guild level below {:d} ({:d})", metin2::config::game().mark.min_level, pkGuild->level());
+        if (guild_value->level() < metin2::config::game().mark.min_level) {
+            metin2::log::info("Guild mark upload refused: guild level below {:d} ({:d})", metin2::config::game().mark.min_level, guild_value->level());
             return;
         }
 
-        guild_mark_manager &rkMarkMgr = guild_mark_manager::instance();
+        guild_mark_manager &mark_mgr = guild_mark_manager::instance();
 
         metin2::log::info("Guild {:d} uploaded a mark", p->gid);
 
-        bool isEmpty = true;
+        bool is_empty = true;
 
-        for (uint32_t iPixel = 0; iPixel < guild_mark::SIZE; ++iPixel)
-            if (*((uint32_t *)p->image + iPixel) != 0x00000000)
-                isEmpty = false;
+        for (uint32_t pixel = 0; pixel < guild_mark::SIZE; ++pixel)
+            if (*((uint32_t *)p->image + pixel) != 0x00000000)
+                is_empty = false;
 
-        if (isEmpty)
-            rkMarkMgr.delete_mark(p->gid);
+        if (is_empty)
+            mark_mgr.delete_mark(p->gid);
         else
-            rkMarkMgr.save_mark(p->gid, p->image);
+            mark_mgr.save_mark(p->gid, p->image);
     }
 
     void input_login::guild_mark_idx_list(desc *d, const char *data) {
-        guild_mark_manager &rkMarkMgr = guild_mark_manager::instance();
+        guild_mark_manager &mark_mgr = guild_mark_manager::instance();
 
-        uint32_t bufSize = sizeof(uint16_t) * 2 * rkMarkMgr.mark_count();
+        uint32_t buf_size = sizeof(uint16_t) * 2 * mark_mgr.mark_count();
         char *buf = nullptr;
 
-        if (bufSize > 0) {
-            buf = (char *)malloc(bufSize);
-            rkMarkMgr.copy_mark_idx(buf);
+        if (buf_size > 0) {
+            buf = (char *)malloc(buf_size);
+            mark_mgr.copy_mark_idx(buf);
         }
 
         packet_gc_mark_idx_list p;
         p.header = HEADER_GC_MARK_IDXLIST;
-        p.buf_size = sizeof(p) + bufSize;
-        p.count = rkMarkMgr.mark_count();
+        p.buf_size = sizeof(p) + buf_size;
+        p.count = mark_mgr.mark_count();
 
         if (buf) {
             d->buffered_packet(&p, sizeof(p));
-            d->large_packet(buf, bufSize);
+            d->large_packet(buf, buf_size);
             free(buf);
         } else
             d->packet(&p, sizeof(p));
@@ -827,44 +827,44 @@ namespace metin2::game::inline protocol {
     }
 
     void input_login::guild_mark_crc_list(desc *d, const char *data) {
-        auto *pCG = (packet_cg_mark_crc_list *)data;
+        auto *cg = (packet_cg_mark_crc_list *)data;
 
-        std::map<uint8_t, const guild_mark_block *> mapDiffBlocks;
-        guild_mark_manager::instance().diff_blocks(pCG->img_idx, pCG->crclist, mapDiffBlocks);
+        std::map<uint8_t, const guild_mark_block *> map_diff_blocks;
+        guild_mark_manager::instance().diff_blocks(cg->img_idx, cg->crclist, map_diff_blocks);
 
-        uint32_t blockCount = 0;
+        uint32_t block_count = 0;
         temp_buffer buf(1024 * 1024);
 
-        for (auto it = mapDiffBlocks.begin(); it != mapDiffBlocks.end(); ++it) {
-            uint8_t posBlock = it->first;
-            const guild_mark_block &rkBlock = *it->second;
+        for (auto it = map_diff_blocks.begin(); it != map_diff_blocks.end(); ++it) {
+            uint8_t pos_block = it->first;
+            const guild_mark_block &block = *it->second;
 
-            buf.write(&posBlock, sizeof(uint8_t));
-            const auto dwCompSize = static_cast<uint32_t>(rkBlock.size_comp_buf);
-            buf.write(&dwCompSize, sizeof(uint32_t));
-            buf.write(rkBlock.comp_buf, rkBlock.size_comp_buf);
+            buf.write(&pos_block, sizeof(uint8_t));
+            const auto comp_size = static_cast<uint32_t>(block.size_comp_buf);
+            buf.write(&comp_size, sizeof(uint32_t));
+            buf.write(block.comp_buf, block.size_comp_buf);
 
-            ++blockCount;
+            ++block_count;
         }
 
-        packet_gc_mark_block pGC;
+        packet_gc_mark_block gc;
 
-        pGC.header = HEADER_GC_MARK_BLOCK;
-        pGC.img_idx = pCG->img_idx;
-        pGC.buf_size = buf.size() + sizeof(packet_gc_mark_block);
-        pGC.count = blockCount;
+        gc.header = HEADER_GC_MARK_BLOCK;
+        gc.img_idx = cg->img_idx;
+        gc.buf_size = buf.size() + sizeof(packet_gc_mark_block);
+        gc.count = block_count;
 
-        metin2::log::debug("Sending guild mark blocks: image {:d}, {:d} changed blocks, {:d} bytes", pCG->img_idx, mapDiffBlocks.size(), pGC.buf_size);
+        metin2::log::debug("Sending guild mark blocks: image {:d}, {:d} changed blocks, {:d} bytes", cg->img_idx, map_diff_blocks.size(), gc.buf_size);
 
         if (buf.size() > 0) {
-            d->buffered_packet(&pGC, sizeof(packet_gc_mark_block));
+            d->buffered_packet(&gc, sizeof(packet_gc_mark_block));
             d->large_packet(buf.read_peek(), buf.size());
         } else
-            d->packet(&pGC, sizeof(packet_gc_mark_block));
+            d->packet(&gc, sizeof(packet_gc_mark_block));
     }
 
     auto input_login::analyze(desc *d, uint8_t header, const char *data) -> int {
-        int iExtraLen = 0;
+        int extra_len = 0;
 
         switch (header) {
         case HEADER_CG_PONG:
@@ -967,7 +967,7 @@ namespace metin2::game::inline protocol {
             break;
 
         case HEADER_CG_GUILD_SYMBOL_UPLOAD:
-            if ((iExtraLen = guild_symbol_upload(d, data, buffer_left_)) < 0)
+            if ((extra_len = guild_symbol_upload(d, data, buffer_left_)) < 0)
                 return -1;
             break;
 
@@ -995,6 +995,6 @@ namespace metin2::game::inline protocol {
             return (0);
         }
 
-        return (iExtraLen);
+        return (extra_len);
     }
 }

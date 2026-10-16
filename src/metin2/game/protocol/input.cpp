@@ -54,65 +54,65 @@ namespace metin2::game::inline protocol {
     }
 
     auto input_processor::process(desc *desc_value, const void *orig, int bytes, int &bytes_processed) -> bool {
-        const char *c_pData = (const char *)orig;
+        const char *data = (const char *)orig;
 
-        uint8_t bLastHeader = 0;
-        int iLastPacketLen = 0;
-        int iPacketLen;
+        uint8_t last_header = 0;
+        int last_packet_len = 0;
+        int packet_len;
 
         for (buffer_left_ = bytes; buffer_left_ > 0;) {
-            auto bHeader = (uint8_t)*(c_pData);
+            auto header_value = (uint8_t)*(data);
             const packet_spec *spec = nullptr;
 
-            if (bHeader == 0)
-                iPacketLen = 1;
-            else if (!(spec = packet_table_->find(bHeader))) {
+            if (header_value == 0)
+                packet_len = 1;
+            else if (!(spec = packet_table_->find(header_value))) {
                 metin2::log::warn("Unknown packet header {:d} (last header {:d}, length {:d}, {:d} bytes left, host {}), closing",
-                    bHeader, bLastHeader, iLastPacketLen, buffer_left_, desc_value->host_name());
+                    header_value, last_header, last_packet_len, buffer_left_, desc_value->host_name());
                 desc_value->set_phase(PHASE_CLOSE);
                 return true;
             } else
-                iPacketLen = spec->size;
+                packet_len = spec->size;
 
             const bool is_sequence = spec && spec->sequence;
 
-            if (buffer_left_ < iPacketLen)
+            if (buffer_left_ < packet_len)
                 return true;
 
-            if (bHeader) {
-                if (metin2::config::test_server() && bHeader != HEADER_CG_MOVE)
-                    metin2::log::debug("Packet header {:d}, {:d} bytes buffered", bHeader, buffer_left_);
+            if (header_value) {
+                if (metin2::config::test_server() && header_value != HEADER_CG_MOVE)
+                    metin2::log::debug("Packet header {:d}, {:d} bytes buffered", header_value, buffer_left_);
 
-                const int iBufferLeft = buffer_left_;
+                const int buffer_left = buffer_left_;
 
                 if (is_sequence)
                     --buffer_left_;
 
-                int iExtraPacketSize = analyze(desc_value, bHeader, c_pData);
-                buffer_left_ = iBufferLeft;
+                int extra_packet_size = analyze(desc_value, header_value, data);
+                buffer_left_ = buffer_left;
 
-                if (iExtraPacketSize < 0)
+                if (extra_packet_size < 0)
                     return true;
 
-                if (iExtraPacketSize > buffer_left_ - iPacketLen) {
+                if (extra_packet_size > buffer_left_ - packet_len) {
                     metin2::log::warn("Packet {} (header {:d}) claims {:d} extra bytes, only {:d} left (host {}), closing",
-                        spec->name, bHeader, iExtraPacketSize, buffer_left_ - iPacketLen, desc_value->host_name());
+                        spec->name, header_value, extra_packet_size, buffer_left_ - packet_len, desc_value->host_name());
                     desc_value->set_phase(PHASE_CLOSE);
                     return true;
                 }
 
-                iPacketLen += iExtraPacketSize;
+                packet_len += extra_packet_size;
             }
 
-            if (bHeader == HEADER_CG_PONG)
-                metin2::log::debug("Ping reply: sequenced {:d}, sequence byte {:d}", is_sequence, *(uint8_t *)(c_pData + iPacketLen - sizeof(uint8_t)));
+            if (header_value == HEADER_CG_PONG)
+                metin2::log::debug("Ping reply: sequenced {:d}, sequence byte {:d}", is_sequence, *(uint8_t *)(data + packet_len - sizeof(uint8_t)));
 
             if (is_sequence) {
-                uint8_t bSeq = desc_value->sequence();
-                uint8_t bSeqReceived = *(uint8_t *)(c_pData + iPacketLen - sizeof(uint8_t));
+                uint8_t seq = desc_value->sequence();
+                uint8_t seq_received = *(uint8_t *)(data + packet_len - sizeof(uint8_t));
 
-                if (bSeq != bSeqReceived) {
-                    metin2::log::warn("Packet sequence mismatch on connection {}: expected {:#x}, got {:#x} (header {:d}), closing", static_cast<const void *>(static_cast<void *>(desc_value)), bSeq, bSeqReceived, bHeader);
+                if (seq != seq_received) {
+                    metin2::log::warn("Packet sequence mismatch on connection {}: expected {:#x}, got {:#x} (header {:d}), closing", static_cast<const void *>(static_cast<void *>(desc_value)), seq, seq_received, header_value);
 
                     character *ch = desc_value->get_character();
 
@@ -124,23 +124,23 @@ namespace metin2::game::inline protocol {
                             desc_value->seq_vector[i].seq);
                     }
 
-                    std::format_to(std::back_inserter(text), "\t[{:03} : 0x{:x}]\n", bHeader, bSeq);
+                    std::format_to(std::back_inserter(text), "\t[{:03} : 0x{:x}]\n", header_value, seq);
                     metin2::log::warn("{}", text);
 
                     desc_value->set_phase(PHASE_CLOSE);
                     return true;
                 } else {
-                    desc_value->push_seq(bHeader, bSeq);
+                    desc_value->push_seq(header_value, seq);
                     desc_value->set_next_sequence();
                 }
             }
 
-            c_pData += iPacketLen;
-            buffer_left_ -= iPacketLen;
-            bytes_processed += iPacketLen;
+            data += packet_len;
+            buffer_left_ -= packet_len;
+            bytes_processed += packet_len;
 
-            iLastPacketLen = iPacketLen;
-            bLastHeader = bHeader;
+            last_packet_len = packet_len;
+            last_header = header_value;
 
             if (type() != desc_value->get_input_processor()->type())
                 return false;
@@ -178,25 +178,25 @@ namespace metin2::game::inline protocol {
 
         auto *p = (packet_cg_client_version *)data;
 
-        char szTimestamp[sizeof(p->timestamp)];
-        char szFilename[sizeof(p->filename)];
-        copy_packet_string(szTimestamp, p->timestamp);
-        copy_packet_string(szFilename, p->filename);
+        char timestamp[sizeof(p->timestamp)];
+        char filename[sizeof(p->filename)];
+        copy_packet_string(timestamp, p->timestamp);
+        copy_packet_string(filename, p->filename);
 
-        metin2::log::debug("Client version of player {}: {} ({})", ch->name(), szTimestamp, szFilename);
-        ch->get_desc()->set_client_version(szTimestamp);
+        metin2::log::debug("Client version of player {}: {} ({})", ch->name(), timestamp, filename);
+        ch->get_desc()->set_client_version(timestamp);
     }
 
     void login_failure(desc *d, const char *status_value) {
         if (!d)
             return;
 
-        packet_gc_login_failure failurePacket;
+        packet_gc_login_failure failure_packet;
 
-        failurePacket.header = HEADER_GC_LOGIN_FAILURE;
-        strlcpy(failurePacket.status, status_value, sizeof(failurePacket.status));
+        failure_packet.header = HEADER_GC_LOGIN_FAILURE;
+        strlcpy(failure_packet.status, status_value, sizeof(failure_packet.status));
 
-        d->packet(&failurePacket, sizeof(failurePacket));
+        d->packet(&failure_packet, sizeof(failure_packet));
     }
 
     input_handshake::input_handshake() {
@@ -216,76 +216,76 @@ namespace metin2::game::inline protocol {
 
             ++data_value;
 
-            const char *c_pSep = (const char *)memchr(data_value, '\n', buffer_left_ - 1);
+            const char *sep = (const char *)memchr(data_value, '\n', buffer_left_ - 1);
 
-            if (!c_pSep)
+            if (!sep)
                 return -1;
 
-            if (c_pSep > data_value && *(c_pSep - 1) == '\r')
-                --c_pSep;
+            if (sep > data_value && *(sep - 1) == '\r')
+                --sep;
 
-            std::string stResult;
-            std::string stBuf;
-            stBuf.assign(data_value, c_pSep - data_value);
+            std::string result_value;
+            std::string buf;
+            buf.assign(data_value, sep - data_value);
 
-            metin2::log::info("Admin command from {}: {}", d->host_name(), stBuf);
+            metin2::log::info("Admin command from {}: {}", d->host_name(), buf);
 
-            if (!stBuf.compare("IS_SERVER_UP")) {
+            if (!buf.compare("IS_SERVER_UP")) {
                 if (no_more_client)
-                    stResult = "NO";
+                    result_value = "NO";
                 else
-                    stResult = "YES";
-            } else if (!metin2::config::server().admin.password.empty() && stBuf == metin2::config::server().admin.password) {
+                    result_value = "YES";
+            } else if (!metin2::config::server().admin.password.empty() && buf == metin2::config::server().admin.password) {
                 d->set_admin_mode();
-                stResult = "UNKNOWN";
-            } else if (!stBuf.compare("USER_COUNT")) {
-                int iTotal;
-                int *paiEmpireUserCount;
-                int iLocal;
-                desc_manager::instance().user_count(iTotal, &paiEmpireUserCount, iLocal);
-                stResult = std::format("{} {} {} {} {}", iTotal, paiEmpireUserCount[1], paiEmpireUserCount[2], paiEmpireUserCount[3], iLocal);
-            } else if (d->is_admin_mode() && !stBuf.compare("CHECK_P2P_CONNECTIONS")) {
+                result_value = "UNKNOWN";
+            } else if (!buf.compare("USER_COUNT")) {
+                int total;
+                int *pai_empire_user_count;
+                int local;
+                desc_manager::instance().user_count(total, &pai_empire_user_count, local);
+                result_value = std::format("{} {} {} {} {}", total, pai_empire_user_count[1], pai_empire_user_count[2], pai_empire_user_count[3], local);
+            } else if (d->is_admin_mode() && !buf.compare("CHECK_P2P_CONNECTIONS")) {
                 std::ostringstream oss(std::ostringstream::out);
 
                 oss << "P2P CONNECTION NUMBER : " << p2p_manager::instance().desc_count() << "\n";
-                std::string hostNames;
-                p2p_manager::instance().p2p_host_names(hostNames);
-                oss << hostNames;
-                stResult = oss.str();
+                std::string host_names;
+                p2p_manager::instance().p2p_host_names(host_names);
+                oss << host_names;
+                result_value = oss.str();
                 packet_gg_check_awakeness packet;
                 packet.header = HEADER_GG_CHECK_AWAKENESS;
 
                 p2p_manager::instance().send(&packet, sizeof(packet));
-            } else if (d->is_admin_mode() && !stBuf.compare(0, 15, "DELETE_AWARDID ")) {
-                std::string msg = stBuf.substr(15, 26);
+            } else if (d->is_admin_mode() && !buf.compare(0, 15, "DELETE_AWARDID ")) {
+                std::string msg = buf.substr(15, 26);
 
                 packet_delete_award_id p;
                 p.id = (uint32_t)(atoi(msg.c_str()));
                 const std::string text = std::format("Sent to DB cache to delete ItemAward, id: {}", p.id);
                 db_clientdesc->db_packet(HEADER_GD_DELETE_AWARDID, 0, &p, sizeof(p));
-                stResult += text;
+                result_value += text;
             } else {
-                stResult = "UNKNOWN";
+                result_value = "UNKNOWN";
 
                 if (d->is_admin_mode()) {
-                    if (!stBuf.compare(0, 7, "NOTICE ")) {
-                        std::string msg = stBuf.substr(7);
+                    if (!buf.compare(0, 7, "NOTICE ")) {
+                        std::string msg = buf.substr(7);
                         msg.resize(utf8_truncated_size(msg, 50));
                         log_manager::instance().char_log(0, 0, 0, 1, "NOTICE", msg.c_str(), d->host_name());
                         broadcast_notice(msg.c_str());
-                    } else if (!stBuf.compare("SHUTDOWN")) {
+                    } else if (!buf.compare("SHUTDOWN")) {
                         log_manager::instance().char_log(0, 0, 0, 2, "SHUTDOWN", "", d->host_name());
                         packet_gg_shutdown p;
                         p.header = HEADER_GG_SHUTDOWN;
                         p2p_manager::instance().send(&p, sizeof(packet_gg_shutdown));
                         metin2::log::info("Shutdown requested by admin host {}", d->host_name());
                         shutdown(10);
-                    } else if (!stBuf.compare("SHUTDOWN_ONLY")) {
+                    } else if (!buf.compare("SHUTDOWN_ONLY")) {
                         log_manager::instance().char_log(0, 0, 0, 2, "SHUTDOWN", "", d->host_name());
                         metin2::log::info("Local-only shutdown requested by admin host {}", d->host_name());
                         shutdown(10);
-                    } else if (!stBuf.compare(0, 3, "DC ")) {
-                        std::string msg = stBuf.substr(3, LOGIN_MAX_LEN);
+                    } else if (!buf.compare(0, 3, "DC ")) {
+                        std::string msg = buf.substr(3, LOGIN_MAX_LEN);
 
                         metin2::log::debug("Admin disconnect of account {}", msg);
 
@@ -301,19 +301,19 @@ namespace metin2::game::inline protocol {
                             strlcpy(p.login, msg.c_str(), sizeof(p.login));
                             db_clientdesc->db_packet(HEADER_GD_DC, 0, &p, sizeof(p));
                         }
-                    } else if (!stBuf.compare(0, 20, "CHECK_CLIENT_VERSION")) {
+                    } else if (!buf.compare(0, 20, "CHECK_CLIENT_VERSION")) {
                         check_client_version();
 
-                        uint8_t bHeader = HEADER_GG_CHECK_CLIENT_VERSION;
-                        p2p_manager::instance().send(&bHeader, sizeof(uint8_t));
-                        stResult = "OK";
-                    } else if (!stBuf.compare(0, 6, "RELOAD")) {
-                        if (stBuf.size() == 6) {
+                        uint8_t header = HEADER_GG_CHECK_CLIENT_VERSION;
+                        p2p_manager::instance().send(&header, sizeof(uint8_t));
+                        result_value = "OK";
+                    } else if (!buf.compare(0, 6, "RELOAD")) {
+                        if (buf.size() == 6) {
                             load_state_user_count();
                             db_clientdesc->db_packet(HEADER_GD_RELOAD_PROTO, 0, nullptr, 0);
                             db_manager::instance().load_db_string();
                         } else {
-                            char c = stBuf[7];
+                            char c = buf[7];
 
                             switch (std::tolower(static_cast<unsigned char>(c))) {
                             case 'u':
@@ -342,44 +342,44 @@ namespace metin2::game::inline protocol {
                                 break;
                             }
                         }
-                    } else if (!stBuf.compare(0, 6, "EVENT ")) {
-                        std::istringstream is(stBuf);
-                        std::string strEvent, strFlagName;
-                        int32_t lValue;
-                        is >> strEvent >> strFlagName >> lValue;
+                    } else if (!buf.compare(0, 6, "EVENT ")) {
+                        std::istringstream is(buf);
+                        std::string event_value, flag_name;
+                        int32_t value_value;
+                        is >> event_value >> flag_name >> value_value;
 
                         if (!is.fail()) {
-                            metin2::log::info("Admin command: event flag {} set to {:d}", strFlagName, lValue);
-                            quest::quest_manager::instance().request_set_event_flag(strFlagName, lValue);
-                            stResult = "EVENT FLAG CHANGE ";
-                            stResult += strFlagName;
+                            metin2::log::info("Admin command: event flag {} set to {:d}", flag_name, value_value);
+                            quest::quest_manager::instance().request_set_event_flag(flag_name, value_value);
+                            result_value = "EVENT FLAG CHANGE ";
+                            result_value += flag_name;
                         } else {
-                            stResult = "EVENT FLAG FAIL";
+                            result_value = "EVENT FLAG FAIL";
                         }
-                    } else if (!stBuf.compare(0, 11, "BLOCK_CHAT ")) {
-                        std::istringstream is(stBuf);
-                        std::string strBlockChat, strCharName;
-                        int32_t lDuration;
-                        is >> strBlockChat >> strCharName >> lDuration;
+                    } else if (!buf.compare(0, 11, "BLOCK_CHAT ")) {
+                        std::istringstream is(buf);
+                        std::string block_chat, char_name;
+                        int32_t duration_value;
+                        is >> block_chat >> char_name >> duration_value;
 
                         if (!is.fail()) {
-                            metin2::log::info("Admin command: chat block for player {} ({:d})", strCharName, lDuration);
+                            metin2::log::info("Admin command: chat block for player {} ({:d})", char_name, duration_value);
 
-                            do_block_chat(nullptr, const_cast<char *>(stBuf.c_str() + 11), 0, 0);
+                            do_block_chat(nullptr, const_cast<char *>(buf.c_str() + 11), 0, 0);
 
-                            stResult = "BLOCK_CHAT ";
-                            stResult += strCharName;
+                            result_value = "BLOCK_CHAT ";
+                            result_value += char_name;
                         } else {
-                            stResult = "BLOCK_CHAT FAIL";
+                            result_value = "BLOCK_CHAT FAIL";
                         }
-                    } else if (!stBuf.compare(0, 12, "PRIV_EMPIRE ")) {
+                    } else if (!buf.compare(0, 12, "PRIV_EMPIRE ")) {
                         int empire, type, value, duration;
-                        std::istringstream is(stBuf);
-                        std::string strPrivEmpire;
-                        is >> strPrivEmpire >> empire >> type >> value >> duration;
+                        std::istringstream is(buf);
+                        std::string priv_empire;
+                        is >> priv_empire >> empire >> type >> value >> duration;
 
                         value = std::clamp(value, 0, 1000);
-                        stResult = "PRIV_EMPIRE FAIL";
+                        result_value = "PRIV_EMPIRE FAIL";
 
                         if (!is.fail()) {
                             if (empire < 0 || 3 < empire)
@@ -389,7 +389,7 @@ namespace metin2::game::inline protocol {
                             else if (duration < 0)
                                 ;
                             else {
-                                stResult = "PRIV_EMPIRE SUCCEED";
+                                result_value = "PRIV_EMPIRE SUCCEED";
 
                                 duration = duration * (60 * 60);
 
@@ -402,10 +402,10 @@ namespace metin2::game::inline protocol {
                 }
             }
 
-            metin2::log::debug("Admin command {} result {}", stBuf, stResult);
-            stResult += "\n";
-            d->packet(stResult.c_str(), stResult.length());
-            return (c_pSep - data_value) + 1;
+            metin2::log::debug("Admin command {} result {}", buf, result_value);
+            result_value += "\n";
+            d->packet(result_value.c_str(), result_value.length());
+            return (sep - data_value) + 1;
         } else if (header_value == HEADER_CG_MARK_LOGIN) {
             if (!metin2::config::game().mark.server) {
                 metin2::log::warn("Guild mark login from {} but this is not a mark server", d->host_name());
@@ -416,10 +416,10 @@ namespace metin2::game::inline protocol {
             // Anyone may download marks; uploads need the key from the player's game login, which the
             // client lacks on its first download, so a missing key means download only.
             const auto *p = (const packet_cg_mark_login *)data_value;
-            const bool bAuthenticated = desc_manager::instance().check_random_key(p->handle, p->random_key);
+            const bool authenticated = desc_manager::instance().check_random_key(p->handle, p->random_key);
 
-            metin2::log::debug("Guild mark login{}", bAuthenticated ? "" : " (download only)");
-            d->set_mark_login(bAuthenticated ? p->handle : 0);
+            metin2::log::debug("Guild mark login{}", authenticated ? "" : " (download only)");
+            d->set_mark_login(authenticated ? p->handle : 0);
             d->set_phase(PHASE_LOGIN);
             return 0;
         } else if (header_value == HEADER_CG_STATE_CHECKER) {
