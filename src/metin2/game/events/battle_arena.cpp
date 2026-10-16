@@ -45,29 +45,6 @@ namespace metin2::game::inline events {
         return false;
     }
 
-    struct f_warp_to_home {
-        void operator()(entity *ent) {
-            if (ent->is_type(ENTITY_CHARACTER) == true) {
-                character *lpChar = (character *)ent;
-
-                if (lpChar->is_pc() == true) {
-                    if (!metin2::config::test_server()) {
-                        if (lpChar->gm_level() != GM_PLAYER) return;
-                    }
-
-                    int nEmpire, nMapIndex, x, y;
-
-                    nEmpire = lpChar->empire();
-                    nMapIndex = empire_start_map(nEmpire);
-                    x = empire_start_x(nEmpire);
-                    y = empire_start_y(nEmpire);
-
-                    lpChar->warp_set(x, y, nMapIndex);
-                }
-            }
-        }
-    };
-
     void battle_arena::set_status(battlearena_status status) {
         status_ = status;
     }
@@ -160,8 +137,26 @@ namespace metin2::game::inline events {
                     sectree_map *sectree = sectree_manager::instance().map(pInfo->map_index);
 
                     if (sectree != nullptr) {
-                        struct f_warp_to_home f;
-                        sectree->for_each(f);
+                        sectree->for_each([](entity *ent) {
+                            if (ent->is_type(ENTITY_CHARACTER) == true) {
+                                character *lpChar = (character *)ent;
+
+                                if (lpChar->is_pc() == true) {
+                                    if (!metin2::config::test_server()) {
+                                        if (lpChar->gm_level() != GM_PLAYER) return;
+                                    }
+
+                                    int nEmpire, nMapIndex, x, y;
+
+                                    nEmpire = lpChar->empire();
+                                    nMapIndex = empire_start_map(nEmpire);
+                                    x = empire_start_x(nEmpire);
+                                    y = empire_start_y(nEmpire);
+
+                                    lpChar->warp_set(x, y, nMapIndex);
+                                }
+                            }
+                        });
                     }
 
                     battle_arena::instance().end();

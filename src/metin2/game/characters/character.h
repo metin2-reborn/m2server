@@ -1467,9 +1467,7 @@ namespace metin2::game::inline characters {
 
         std::map<int, event_ptr> mob_skill_event;
 
-        friend struct func_splash_damage;
-        friend struct func_splash_affect;
-        friend class func_shoot;
+        friend void splash_damage(entity *ent, int x, int y, skill_proto *sk, character *chr, item *weapon, bool disable_cooltime, skill_use_info *info, uint8_t use_skill_power);
 
       public:
         auto premium_remain_seconds(uint8_t type) const -> int;

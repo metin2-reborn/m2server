@@ -26,44 +26,6 @@
 
 namespace metin2::game::inline events {
 
-    struct f_warp_to_dragron_lair_with_guild_members {
-        uint32_t guild_id;
-        int32_t index;
-        int32_t x, y;
-
-        f_warp_to_dragron_lair_with_guild_members(uint32_t guild_id_value, int32_t map, int32_t x_value, int32_t y_value)
-            : guild_id(guild_id_value), index(map), x(x_value), y(y_value) {
-        }
-
-        void operator()(entity *ent) {
-            if (nullptr != ent && true == ent->is_type(ENTITY_CHARACTER)) {
-                character *pChar = static_cast<character *>(ent);
-
-                if (true == pChar->is_pc()) {
-                    if (nullptr != pChar->get_guild()) {
-                        if (guild_id == pChar->get_guild()->id()) {
-                            pChar->warp_set(x, y, index);
-                        }
-                    }
-                }
-            }
-        }
-    };
-
-    struct f_warp_to_village {
-        void operator()(entity *ent) {
-            if (nullptr != ent) {
-                character *pChar = static_cast<character *>(ent);
-
-                if (nullptr != pChar) {
-                    if (true == pChar->is_pc()) {
-                        pChar->go_home();
-                    }
-                }
-            }
-        }
-    };
-
     EVENTINFO(tag_dragon_lair_collapse_event_info) {
         int step;
         std::unique_ptr<dragon_lair> lair;
@@ -94,8 +56,17 @@ namespace metin2::game::inline events {
             sectree_map *pMap = sectree_manager::instance().map(pInfo->instance_map_index);
 
             if (nullptr != pMap) {
-                f_warp_to_village f;
-                pMap->for_each(f);
+                pMap->for_each([](entity *ent) {
+                    if (nullptr != ent) {
+                        character *pChar = static_cast<character *>(ent);
+
+                        if (nullptr != pChar) {
+                            if (true == pChar->is_pc()) {
+                                pChar->go_home();
+                            }
+                        }
+                    }
+                });
             }
 
             pInfo->step++;
@@ -151,9 +122,19 @@ namespace metin2::game::inline events {
             const map_region *pRegionInfo = sectree_manager::instance().get_map_region(pTargetMap->setting.index);
 
             if (nullptr != pRegionInfo) {
-                f_warp_to_dragron_lair_with_guild_members f(guild_id, instanceMapIndex, 844000, 1066900);
+                pMap->for_each([guild_id, instanceMapIndex](entity *ent) {
+                    if (nullptr != ent && true == ent->is_type(ENTITY_CHARACTER)) {
+                        character *pChar = static_cast<character *>(ent);
 
-                pMap->for_each(f);
+                        if (true == pChar->is_pc()) {
+                            if (nullptr != pChar->get_guild()) {
+                                if (guild_id == pChar->get_guild()->id()) {
+                                    pChar->warp_set(844000, 1066900, instanceMapIndex);
+                                }
+                            }
+                        }
+                    }
+                });
 
                 lair_map_.try_emplace(guild_id, std::make_unique<dragon_lair>(guild_id));
 

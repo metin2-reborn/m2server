@@ -129,30 +129,6 @@ namespace metin2::game::inline admin {
         }
     };
 
-    struct send_disconnect_func {
-        void operator()(desc *d) {
-            if (d->get_character()) {
-                if (d->get_character()->gm_level() == GM_PLAYER)
-                    d->get_character()->chat_packet(CHAT_TYPE_COMMAND, "quit Shutdown(SendDisconnectFunc)");
-            }
-        }
-    };
-
-    struct disconnect_func {
-        void operator()(desc *d) {
-            if (d->type() == DESC_TYPE_CONNECTOR)
-                return;
-
-            if (d->is_phase(PHASE_P2P))
-                return;
-
-            if (d->get_character())
-                d->get_character()->disconnect("server shutdown");
-
-            d->set_phase(PHASE_CLOSE);
-        }
-    };
-
     EVENTINFO(shutdown_event_data) {
         int seconds;
 
@@ -176,7 +152,18 @@ namespace metin2::game::inline admin {
 
             if (--*pSec == -10) {
                 const desc_manager::desc_set &c_set_desc = desc_manager::instance().client_set();
-                std::for_each(c_set_desc.begin(), c_set_desc.end(), disconnect_func());
+                for (desc *d : c_set_desc) {
+                    if (d->type() == DESC_TYPE_CONNECTOR)
+                        continue;
+
+                    if (d->is_phase(PHASE_P2P))
+                        continue;
+
+                    if (d->get_character())
+                        d->get_character()->disconnect("server shutdown");
+
+                    d->set_phase(PHASE_CLOSE);
+                }
                 return metin2::config::server().passes_per_sec;
             } else if (*pSec < -10)
                 return 0;
@@ -184,7 +171,12 @@ namespace metin2::game::inline admin {
             return metin2::config::server().passes_per_sec;
         } else if (*pSec == 0) {
             const desc_manager::desc_set &c_set_desc = desc_manager::instance().client_set();
-            std::for_each(c_set_desc.begin(), c_set_desc.end(), send_disconnect_func());
+            for (desc *d : c_set_desc) {
+                if (d->get_character()) {
+                    if (d->get_character()->gm_level() == GM_PLAYER)
+                        d->get_character()->chat_packet(CHAT_TYPE_COMMAND, "quit Shutdown(SendDisconnectFunc)");
+                }
+            }
             no_more_client = true;
             --*pSec;
             return metin2::config::server().passes_per_sec;

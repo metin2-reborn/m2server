@@ -675,45 +675,32 @@ namespace metin2::game::inline admin {
             dir);
     }
 
-    struct func_purge {
-        character *gm;
-        bool all;
-
-        func_purge(character *ch) : gm(ch), all(false) {
-        }
-
-        void operator()(entity *ent) {
-            if (!ent->is_type(ENTITY_CHARACTER))
-                return;
-
-            character *pkChr = (character *)ent;
-
-            int iDist = distance_approx(pkChr->x() - gm->x(), pkChr->y() - gm->y());
-
-            if (!all && iDist >= 1000)
-                return;
-
-            metin2::log::debug("Purge: {} at distance {:d}", pkChr->name(), iDist);
-
-            if (pkChr->is_npc() && !pkChr->is_pet() && pkChr->rider() == nullptr) {
-                character_manager::instance().destroy_character(pkChr);
-            }
-        }
-    };
-
     ACMD(do_purge) {
         char arg1[256];
         one_argument(argument, arg1, sizeof(arg1));
 
-        func_purge func(ch);
-
-        if (*arg1 && !strcmp(arg1, "all"))
-            func.all = true;
+        const bool all = *arg1 && !strcmp(arg1, "all");
 
         sectree *sectree = ch->get_sectree();
-        if (sectree)
-            sectree->for_each_around(func);
-        else
+        if (sectree) {
+            sectree->for_each_around([&](entity *ent) {
+                if (!ent->is_type(ENTITY_CHARACTER))
+                    return;
+
+                character *pkChr = (character *)ent;
+
+                int iDist = distance_approx(pkChr->x() - ch->x(), pkChr->y() - ch->y());
+
+                if (!all && iDist >= 1000)
+                    return;
+
+                metin2::log::debug("Purge: {} at distance {:d}", pkChr->name(), iDist);
+
+                if (pkChr->is_npc() && !pkChr->is_pet() && pkChr->rider() == nullptr) {
+                    character_manager::instance().destroy_character(pkChr);
+                }
+            });
+        } else
             metin2::log::error("Purge: gm has no sectree (map {:d}, position {:d}x{:d})", ch->map_index(), ch->x(), ch->y());
     }
 
@@ -894,86 +881,47 @@ namespace metin2::game::inline admin {
             }
     }
 
-    struct notice_packet_func {
-        const char *str;
-
-        notice_packet_func(const char *str_value) : str(str_value) {
-        }
-
-        void operator()(desc *d) {
-            if (!d->get_character())
-                return;
-
-            d->get_character()->chat_packet(CHAT_TYPE_NOTICE, "%s", str);
-        }
-    };
-
-    struct monarch_notice_packet_func {
-        const char *str;
-        uint8_t empire;
-
-        monarch_notice_packet_func(uint8_t empire_value, const char *str_value) : str(str_value), empire(empire_value) {
-        }
-
-        void operator()(desc *d) {
-            if (!d->get_character())
-                return;
-
-            if (empire == d->get_character()->empire()) {
-                d->get_character()->chat_packet(CHAT_TYPE_NOTICE, "%s", str);
-            }
-        }
-    };
-
     void send_notice(const char *buf) {
         const desc_manager::desc_set &c_ref_set = desc_manager::instance().client_set();
-        std::for_each(c_ref_set.begin(), c_ref_set.end(), notice_packet_func(buf));
+        for (desc *d : c_ref_set) {
+            if (!d->get_character())
+                continue;
+
+            d->get_character()->chat_packet(CHAT_TYPE_NOTICE, "%s", buf);
+        }
     }
 
     void send_monarch_notice(uint8_t empire, const char *buf) {
         const desc_manager::desc_set &c_ref_set = desc_manager::instance().client_set();
-        std::for_each(c_ref_set.begin(), c_ref_set.end(), monarch_notice_packet_func(empire, buf));
+        for (desc *d : c_ref_set) {
+            if (!d->get_character())
+                continue;
+
+            if (empire == d->get_character()->empire()) {
+                d->get_character()->chat_packet(CHAT_TYPE_NOTICE, "%s", buf);
+            }
+        }
     }
-
-    struct notice_map_packet_func {
-        const char *str;
-        int index;
-        bool big_font;
-
-        notice_map_packet_func(const char *str_value, int idx, bool big_font_value) : str(str_value), index(idx), big_font(big_font_value) {
-        }
-
-        void operator()(desc *d) {
-            if (d->get_character() == nullptr) return;
-            if (d->get_character()->map_index() != index) return;
-
-            d->get_character()->chat_packet(big_font == true ? CHAT_TYPE_BIG_NOTICE : CHAT_TYPE_NOTICE, "%s", str);
-        }
-    };
 
     void send_notice_map(const char *buf, int map_index, bool big_font) {
         const desc_manager::desc_set &c_ref_set = desc_manager::instance().client_set();
-        std::for_each(c_ref_set.begin(), c_ref_set.end(), notice_map_packet_func(buf, map_index, big_font));
+        for (desc *d : c_ref_set) {
+            if (d->get_character() == nullptr) continue;
+            if (d->get_character()->map_index() != map_index) continue;
+
+            d->get_character()->chat_packet(big_font == true ? CHAT_TYPE_BIG_NOTICE : CHAT_TYPE_NOTICE, "%s", buf);
+        }
     }
-
-    struct log_packet_func {
-        const char *str;
-
-        log_packet_func(const char *str_value) : str(str_value) {
-        }
-
-        void operator()(desc *d) {
-            if (!d->get_character())
-                return;
-
-            if (d->get_character()->gm_level() > GM_PLAYER)
-                d->get_character()->chat_packet(CHAT_TYPE_NOTICE, "%s", str);
-        }
-    };
 
     void send_log(const char *buf) {
         const desc_manager::desc_set &c_ref_set = desc_manager::instance().client_set();
-        std::for_each(c_ref_set.begin(), c_ref_set.end(), log_packet_func(buf));
+        for (desc *d : c_ref_set) {
+            if (!d->get_character())
+                continue;
+
+            if (d->get_character()->gm_level() > GM_PLAYER)
+                d->get_character()->chat_packet(CHAT_TYPE_NOTICE, "%s", buf);
+        }
     }
 
     void broadcast_notice(const char *buf_value) {
@@ -1036,26 +984,17 @@ namespace metin2::game::inline admin {
             iTotal, paiEmpireUserCount[1], paiEmpireUserCount[2], paiEmpireUserCount[3], iLocal);
     }
 
-    class user_func {
-      public:
-        character *ch;
-        static int count;
-        static char str[128];
-        static int str_len;
+    ACMD(do_user) {
+        const desc_manager::desc_set &c_ref_set = desc_manager::instance().client_set();
+        int count = 0;
+        char str[128] = {
+            0,
+        };
+        int str_len = 0;
 
-        user_func()
-            : ch(nullptr) {}
-
-        void initialize(character *ch_value) {
-            ch = ch_value;
-            str_len = 0;
-            count = 0;
-            str[0] = '\0';
-        }
-
-        void operator()(desc *d) {
+        for (desc *d : c_ref_set) {
             if (!d->get_character())
-                return;
+                continue;
 
             int len = snprintf(str + str_len, sizeof(str) - str_len, "%-16s ", d->get_character()->name());
 
@@ -1072,25 +1011,11 @@ namespace metin2::game::inline admin {
                 str_len = 0;
             }
         }
-    };
 
-    int user_func::count = 0;
-    char user_func::str[128] = {
-        0,
-    };
-    int user_func::str_len = 0;
+        if (count % 4)
+            ch->chat_packet(CHAT_TYPE_INFO, str);
 
-    ACMD(do_user) {
-        const desc_manager::desc_set &c_ref_set = desc_manager::instance().client_set();
-        user_func func;
-
-        func.initialize(ch);
-        std::for_each(c_ref_set.begin(), c_ref_set.end(), func);
-
-        if (func.count % 4)
-            ch->chat_packet(CHAT_TYPE_INFO, func.str);
-
-        ch->chat_packet(CHAT_TYPE_INFO, "Total %d", func.count);
+        ch->chat_packet(CHAT_TYPE_INFO, "Total %d", count);
     }
 
     ACMD(do_disconnect) {
@@ -1755,39 +1680,26 @@ namespace metin2::game::inline admin {
         }
     }
 
-    struct func_weaken {
-        character *gm;
-        bool all;
+    ACMD(do_weaken) {
+        char arg1[256];
+        one_argument(argument, arg1, sizeof(arg1));
 
-        func_weaken(character *ch) : gm(ch), all(false) {
-        }
+        const bool all = *arg1 && !strcmp(arg1, "all");
 
-        void operator()(entity *ent) {
+        ch->get_sectree()->for_each_around([&](entity *ent) {
             if (!ent->is_type(ENTITY_CHARACTER))
                 return;
 
             character *pkChr = (character *)ent;
 
-            int iDist = distance_approx(pkChr->x() - gm->x(), pkChr->y() - gm->y());
+            int iDist = distance_approx(pkChr->x() - ch->x(), pkChr->y() - ch->y());
 
             if (!all && iDist >= 1000)
                 return;
 
             if (pkChr->is_npc())
                 pkChr->point_change(POINT_HP, (10 - pkChr->hp()));
-        }
-    };
-
-    ACMD(do_weaken) {
-        char arg1[256];
-        one_argument(argument, arg1, sizeof(arg1));
-
-        func_weaken func(ch);
-
-        if (*arg1 && !strcmp(arg1, "all"))
-            func.all = true;
-
-        ch->get_sectree()->for_each_around(func);
+        });
     }
 
     ACMD(do_getqf) {
@@ -2863,19 +2775,6 @@ namespace metin2::game::inline admin {
         ch->effect_packet(effect_type);
     }
 
-    struct f_count_in_map {
-        int count[4];
-        f_count_in_map() { memset(count, 0, sizeof(int) * 4); }
-        void operator()(entity *ent) {
-            if (ent->is_type(ENTITY_CHARACTER)) {
-                character *ch = (character *)ent;
-                if (ch && ch->is_pc())
-                    ++count[ch->empire()];
-            }
-        }
-        auto get_count(uint8_t empire) -> int { return count[empire]; }
-    };
-
     ACMD(do_threeway_war_info) {
         ch->chat_packet(CHAT_TYPE_INFO, lc_text("각제국 진행 정보"));
         ch->chat_packet(CHAT_TYPE_INFO, lc_text("선택 맵 정보 성지 %d 통로 %d %d %d"), get_sungzi_map_index(), get_pass_map_index(1), get_pass_map_index(2), get_pass_map_index(3));
@@ -2884,16 +2783,22 @@ namespace metin2::game::inline admin {
         for (int n = 1; n < 4; ++n) {
             sectree_map *pSecMap = sectree_manager::instance().map(get_sungzi_map_index());
 
-            f_count_in_map c;
+            int count[4] = {};
 
             if (pSecMap) {
-                pSecMap->for_each(c);
+                pSecMap->for_each([&](entity *ent) {
+                    if (ent->is_type(ENTITY_CHARACTER)) {
+                        character *pChar = (character *)ent;
+                        if (pChar && pChar->is_pc())
+                            ++count[pChar->empire()];
+                    }
+                });
             }
 
             ch->chat_packet(CHAT_TYPE_INFO, "%s killscore %d usercount %d",
                 empire_name(n),
                 three_way_war::instance().kill_score(n),
-                c.get_count(n));
+                count[n]);
         }
     }
 
@@ -3134,10 +3039,15 @@ namespace metin2::game::inline admin {
         }
     }
 
-    struct f_mob_counter {
-        int count;
+    ACMD(do_get_mob_count) {
+        sectree_map *pSectree = sectree_manager::instance().map(ch->map_index());
 
-        void operator()(entity *ent) {
+        if (pSectree == nullptr)
+            return;
+
+        int count = 0;
+
+        pSectree->for_each([&](entity *ent) {
             if (ent->is_type(ENTITY_CHARACTER)) {
                 character *pChar = static_cast<character *>(ent);
 
@@ -3145,21 +3055,9 @@ namespace metin2::game::inline admin {
                     count++;
                 }
             }
-        }
-    };
+        });
 
-    ACMD(do_get_mob_count) {
-        sectree_map *pSectree = sectree_manager::instance().map(ch->map_index());
-
-        if (pSectree == nullptr)
-            return;
-
-        f_mob_counter f;
-        f.count = 0;
-
-        pSectree->for_each(f);
-
-        ch->chat_packet(CHAT_TYPE_INFO, "MapIndex: %d MobCount %d", ch->map_index(), f.count);
+        ch->chat_packet(CHAT_TYPE_INFO, "MapIndex: %d MobCount %d", ch->map_index(), count);
     }
 
     ACMD(do_clear_land) {

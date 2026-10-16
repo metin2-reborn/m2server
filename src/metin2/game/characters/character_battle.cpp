@@ -965,34 +965,6 @@ namespace metin2::game::inline characters {
         }
     }
 
-    class f_party_alignment_compute {
-      public:
-        f_party_alignment_compute(int amount_value, int x, int y) {
-            amount = amount_value;
-            count = 0;
-            step = 0;
-            killer_x = x;
-            killer_y = y;
-        }
-
-        void operator()(character *chr) {
-            if (distance_approx(chr->x() - killer_x, chr->y() - killer_y) < PARTY_DEFAULT_RANGE) {
-                if (step == 0) {
-                    ++count;
-                } else {
-                    chr->update_alignment(amount / count);
-                }
-            }
-        }
-
-        int amount;
-        int count;
-        int step;
-
-        int killer_x;
-        int killer_y;
-    };
-
     void character::dead(character *killer, bool immediate_dead) {
         if (is_dead())
             return;
@@ -1116,16 +1088,26 @@ namespace metin2::game::inline characters {
                             killer->chat_packet(CHAT_TYPE_INFO, lc_text("용신의 보호로 아이템이 떨어지지 않았습니다."));
                         else {
                             if (killer->get_party()) {
-                                f_party_alignment_compute f(-20000, killer->x(), killer->y());
-                                killer->get_party()->for_each_online_member(f);
+                                const int amount = -20000;
+                                const int killer_x = killer->x();
+                                const int killer_y = killer->y();
+                                int count = 0;
+                                auto is_near = [&](character *chr) { return distance_approx(chr->x() - killer_x, chr->y() - killer_y) < PARTY_DEFAULT_RANGE; };
 
-                                if (f.count == 0)
+                                killer->get_party()->for_each_online_member([&](character *chr) {
+                                    if (is_near(chr))
+                                        ++count;
+                                });
+
+                                if (count == 0)
                                     killer->update_alignment(-20000);
                                 else {
-                                    metin2::log::debug("Alignment shared in party: count {:d}, amount {:d}", f.count, f.amount);
+                                    metin2::log::debug("Alignment shared in party: count {:d}, amount {:d}", count, amount);
 
-                                    f.step = 1;
-                                    killer->get_party()->for_each_online_member(f);
+                                    killer->get_party()->for_each_online_member([&](character *chr) {
+                                        if (is_near(chr))
+                                            chr->update_alignment(amount / count);
+                                    });
                                 }
                             } else
                                 killer->update_alignment(-20000);
@@ -1904,62 +1886,6 @@ namespace metin2::game::inline characters {
         }
     }
 
-    namespace party_exp_distribute {
-        struct f_party_totaler {
-            int total;
-            int member_count;
-            int x, y;
-
-            f_party_totaler(character *center)
-                : total(0), member_count(0), x(center->x()), y(center->y()) {};
-
-            void operator()(character *ch) {
-                if (distance_approx(ch->x() - x, ch->y() - y) <= PARTY_DEFAULT_RANGE) {
-                    total += party_exp_distribute_table[ch->level()];
-
-                    ++member_count;
-                }
-            }
-        };
-
-        struct f_party_distributor {
-            int total;
-            character *c;
-            int x, y;
-            uint32_t i_exp;
-            int mode;
-            int member_count;
-
-            f_party_distributor(character *center, int member_count_value, int total, uint32_t exp, int mode_value)
-                : total(total), c(center), x(center->x()), y(center->y()), i_exp(exp), mode(mode_value), member_count(member_count_value) {
-                if (member_count == 0)
-                    member_count = 1;
-            };
-
-            void operator()(character *ch) {
-                if (distance_approx(ch->x() - x, ch->y() - y) <= PARTY_DEFAULT_RANGE) {
-                    uint32_t iExp2 = 0;
-
-                    switch (mode) {
-                    case PARTY_EXP_DISTRIBUTION_NON_PARITY:
-                        iExp2 = (uint32_t)(i_exp * (float)party_exp_distribute_table[ch->level()] / total);
-                        break;
-
-                    case PARTY_EXP_DISTRIBUTION_PARITY:
-                        iExp2 = i_exp / member_count;
-                        break;
-
-                    default:
-                        metin2::log::error("Unknown party exp distribution mode {:d}", mode);
-                        return;
-                    }
-
-                    give_exp(c, ch, iExp2);
-                }
-            }
-        };
-    }
-
     struct damage_info {
         int dam;
         character *attacker;
@@ -1974,8 +1900,18 @@ namespace metin2::game::inline characters {
             if (attacker)
                 give_exp(ch, attacker, exp);
             else if (party) {
-                party_exp_distribute::f_party_totaler f(ch);
-                party->for_each_online_member(f);
+                const int x = ch->x();
+                const int y = ch->y();
+                int total = 0;
+                int member_count = 0;
+
+                party->for_each_online_member([&](character *member) {
+                    if (distance_approx(member->x() - x, member->y() - y) <= PARTY_DEFAULT_RANGE) {
+                        total += party_exp_distribute_table[member->level()];
+
+                        ++member_count;
+                    }
+                });
 
                 if (party->is_position_near_leader(ch))
                     exp = exp * (100 + party->exp_bonus_percent()) / 100;
@@ -1996,8 +1932,33 @@ namespace metin2::game::inline characters {
                     }
                 }
 
-                party_exp_distribute::f_party_distributor fDist(ch, f.member_count, f.total, exp, party->exp_distribution_mode());
-                party->for_each_online_member(fDist);
+                const uint32_t i_exp = exp;
+                const int mode = party->exp_distribution_mode();
+
+                if (member_count == 0)
+                    member_count = 1;
+
+                party->for_each_online_member([&](character *member) {
+                    if (distance_approx(member->x() - x, member->y() - y) <= PARTY_DEFAULT_RANGE) {
+                        uint32_t iExp2 = 0;
+
+                        switch (mode) {
+                        case PARTY_EXP_DISTRIBUTION_NON_PARITY:
+                            iExp2 = (uint32_t)(i_exp * (float)party_exp_distribute_table[member->level()] / total);
+                            break;
+
+                        case PARTY_EXP_DISTRIBUTION_PARITY:
+                            iExp2 = i_exp / member_count;
+                            break;
+
+                        default:
+                            metin2::log::error("Unknown party exp distribution mode {:d}", mode);
+                            return;
+                        }
+
+                        give_exp(ch, member, iExp2);
+                    }
+                });
             }
         }
     };
@@ -2171,21 +2132,21 @@ namespace metin2::game::inline characters {
         }
     }
 
-    class func_shoot {
-      public:
-        character *me;
-        uint8_t type;
-        bool succeed;
+    auto character::shoot(uint8_t type) -> bool {
+        metin2::log::debug("{}: shoot type {:d}, {:d} fly targets", name(), type, vec_fly_targets_.size());
 
-        func_shoot(character *ch, uint8_t type_value) : me(ch), type(type_value), succeed(false) {
+        if (!can_move()) {
+            return false;
         }
 
-        void operator()(uint32_t target_vid) {
+        bool succeed = false;
+
+        auto shoot_at = [&](uint32_t target_vid) {
             if (type > 1) {
                 if (metin2::config::game().skill_disable)
                     return;
 
-                me->skill_use_info_[type].set_main_target_vid(target_vid);
+                skill_use_info_[type].set_main_target_vid(target_vid);
             }
 
             character *pkVictim = character_manager::instance().find(target_vid);
@@ -2193,11 +2154,11 @@ namespace metin2::game::inline characters {
             if (!pkVictim)
                 return;
 
-            if (!battle_is_attackable(me, pkVictim))
+            if (!battle_is_attackable(this, pkVictim))
                 return;
 
-            if (me->is_npc()) {
-                if (distance_approx(me->x() - pkVictim->x(), me->y() - pkVictim->y()) > 5000)
+            if (is_npc()) {
+                if (distance_approx(x() - pkVictim->x(), y() - pkVictim->y()) > 5000)
                     return;
             }
 
@@ -2209,41 +2170,41 @@ namespace metin2::game::inline characters {
                 {
                     int iDam = 0;
 
-                    if (me->is_pc()) {
-                        if (me->job() != JOB_ASSASSIN)
+                    if (is_pc()) {
+                        if (job() != JOB_ASSASSIN)
                             return;
 
-                        if (0 == me->arrow_and_bow(&pkBow, &pkArrow))
+                        if (0 == arrow_and_bow(&pkBow, &pkArrow))
                             return;
 
-                        if (me->skill_group() != 0)
-                            if (!me->is_npc() && me->skill_group() != 2) {
-                                if (me->sp() < 5)
+                        if (skill_group() != 0)
+                            if (!is_npc() && skill_group() != 2) {
+                                if (sp() < 5)
                                     return;
 
-                                me->point_change(POINT_SP, -5);
+                                point_change(POINT_SP, -5);
                             }
 
-                        iDam = calc_arrow_damage(me, pkVictim, pkBow, pkArrow);
-                        me->use_arrow(pkArrow, 1);
+                        iDam = calc_arrow_damage(this, pkVictim, pkBow, pkArrow);
+                        use_arrow(pkArrow, 1);
 
                         uint32_t dwCurrentTime = get_dword_time();
-                        if (is_speed_hack(me, pkVictim, dwCurrentTime))
+                        if (is_speed_hack(this, pkVictim, dwCurrentTime))
                             iDam = 0;
                     } else
-                        iDam = calc_melee_damage(me, pkVictim);
+                        iDam = calc_melee_damage(this, pkVictim);
 
-                    normal_attack_affect(me, pkVictim);
+                    normal_attack_affect(this, pkVictim);
 
                     iDam = iDam * (100 - pkVictim->point(POINT_RESIST_BOW)) / 100;
 
-                    me->on_move(true);
+                    on_move(true);
                     pkVictim->on_move();
 
                     if (pkVictim->can_begin_fight())
-                        pkVictim->begin_fight(me);
+                        pkVictim->begin_fight(this);
 
-                    pkVictim->damage(me, iDam, DAMAGE_TYPE_NORMAL_RANGE);
+                    pkVictim->damage(this, iDam, DAMAGE_TYPE_NORMAL_RANGE);
                 }
                 break;
 
@@ -2251,22 +2212,22 @@ namespace metin2::game::inline characters {
                 {
                     int iDam;
 
-                    if (me->is_pc())
+                    if (is_pc())
                         return;
 
-                    iDam = calc_magic_damage(me, pkVictim);
+                    iDam = calc_magic_damage(this, pkVictim);
 
-                    normal_attack_affect(me, pkVictim);
+                    normal_attack_affect(this, pkVictim);
 
                     iDam = iDam * (100 - pkVictim->point(POINT_RESIST_MAGIC)) / 100;
 
-                    me->on_move(true);
+                    on_move(true);
                     pkVictim->on_move();
 
                     if (pkVictim->can_begin_fight())
-                        pkVictim->begin_fight(me);
+                        pkVictim->begin_fight(this);
 
-                    pkVictim->damage(me, iDam, DAMAGE_TYPE_MAGIC);
+                    pkVictim->damage(this, iDam, DAMAGE_TYPE_MAGIC);
                 }
                 break;
 
@@ -2275,15 +2236,15 @@ namespace metin2::game::inline characters {
                     int iUseArrow = 1;
 
                     {
-                        if (iUseArrow == me->arrow_and_bow(&pkBow, &pkArrow, iUseArrow)) {
-                            me->on_move(true);
+                        if (iUseArrow == arrow_and_bow(&pkBow, &pkArrow, iUseArrow)) {
+                            on_move(true);
                             pkVictim->on_move();
 
                             if (pkVictim->can_begin_fight())
-                                pkVictim->begin_fight(me);
+                                pkVictim->begin_fight(this);
 
-                            me->compute_skill(type, pkVictim);
-                            me->use_arrow(pkArrow, iUseArrow);
+                            compute_skill(type, pkVictim);
+                            use_arrow(pkArrow, iUseArrow);
 
                             if (pkVictim->is_dead())
                                 break;
@@ -2298,16 +2259,16 @@ namespace metin2::game::inline characters {
                 {
                     int iUseArrow = 1;
 
-                    if (iUseArrow == me->arrow_and_bow(&pkBow, &pkArrow, iUseArrow)) {
-                        me->on_move(true);
+                    if (iUseArrow == arrow_and_bow(&pkBow, &pkArrow, iUseArrow)) {
+                        on_move(true);
                         pkVictim->on_move();
 
                         if (pkVictim->can_begin_fight())
-                            pkVictim->begin_fight(me);
+                            pkVictim->begin_fight(this);
 
-                        metin2::log::debug("{} hits {} with kwankeyok", me->name(), pkVictim->name());
-                        me->compute_skill(type, pkVictim);
-                        me->use_arrow(pkArrow, iUseArrow);
+                        metin2::log::debug("{} hits {} with kwankeyok", name(), pkVictim->name());
+                        compute_skill(type, pkVictim);
+                        use_arrow(pkArrow, iUseArrow);
                     }
                 }
                 break;
@@ -2315,16 +2276,16 @@ namespace metin2::game::inline characters {
             case SKILL_GIGUNG:
                 {
                     int iUseArrow = 1;
-                    if (iUseArrow == me->arrow_and_bow(&pkBow, &pkArrow, iUseArrow)) {
-                        me->on_move(true);
+                    if (iUseArrow == arrow_and_bow(&pkBow, &pkArrow, iUseArrow)) {
+                        on_move(true);
                         pkVictim->on_move();
 
                         if (pkVictim->can_begin_fight())
-                            pkVictim->begin_fight(me);
+                            pkVictim->begin_fight(this);
 
-                        metin2::log::debug("{} hits {} with gigung", me->name(), pkVictim->name());
-                        me->compute_skill(type, pkVictim);
-                        me->use_arrow(pkArrow, iUseArrow);
+                        metin2::log::debug("{} hits {} with gigung", name(), pkVictim->name());
+                        compute_skill(type, pkVictim);
+                        use_arrow(pkArrow, iUseArrow);
                     }
                 }
 
@@ -2332,16 +2293,16 @@ namespace metin2::game::inline characters {
             case SKILL_HWAJO:
                 {
                     int iUseArrow = 1;
-                    if (iUseArrow == me->arrow_and_bow(&pkBow, &pkArrow, iUseArrow)) {
-                        me->on_move(true);
+                    if (iUseArrow == arrow_and_bow(&pkBow, &pkArrow, iUseArrow)) {
+                        on_move(true);
                         pkVictim->on_move();
 
                         if (pkVictim->can_begin_fight())
-                            pkVictim->begin_fight(me);
+                            pkVictim->begin_fight(this);
 
-                        metin2::log::debug("{} hits {} with hwajo", me->name(), pkVictim->name());
-                        me->compute_skill(type, pkVictim);
-                        me->use_arrow(pkArrow, iUseArrow);
+                        metin2::log::debug("{} hits {} with hwajo", name(), pkVictim->name());
+                        compute_skill(type, pkVictim);
+                        use_arrow(pkArrow, iUseArrow);
                     }
                 }
 
@@ -2350,16 +2311,16 @@ namespace metin2::game::inline characters {
             case SKILL_HORSE_WILDATTACK_RANGE:
                 {
                     int iUseArrow = 1;
-                    if (iUseArrow == me->arrow_and_bow(&pkBow, &pkArrow, iUseArrow)) {
-                        me->on_move(true);
+                    if (iUseArrow == arrow_and_bow(&pkBow, &pkArrow, iUseArrow)) {
+                        on_move(true);
                         pkVictim->on_move();
 
                         if (pkVictim->can_begin_fight())
-                            pkVictim->begin_fight(me);
+                            pkVictim->begin_fight(this);
 
-                        metin2::log::debug("{} hits {} with horse wild attack", me->name(), pkVictim->name());
-                        me->compute_skill(type, pkVictim);
-                        me->use_arrow(pkArrow, iUseArrow);
+                        metin2::log::debug("{} hits {} with horse wild attack", name(), pkVictim->name());
+                        compute_skill(type, pkVictim);
+                        use_arrow(pkArrow, iUseArrow);
                     }
                 }
 
@@ -2374,33 +2335,33 @@ namespace metin2::game::inline characters {
             case SKILL_MAHWAN:
             case SKILL_PABEOB:
                 {
-                    me->on_move(true);
+                    on_move(true);
                     pkVictim->on_move();
 
                     if (pkVictim->can_begin_fight())
-                        pkVictim->begin_fight(me);
+                        pkVictim->begin_fight(this);
 
-                    metin2::log::debug("{}: skill {:d} hits {}", me->name(), type, pkVictim->name());
-                    me->compute_skill(type, pkVictim);
+                    metin2::log::debug("{}: skill {:d} hits {}", name(), type, pkVictim->name());
+                    compute_skill(type, pkVictim);
                 }
                 break;
 
             case SKILL_CHAIN:
                 {
-                    me->on_move(true);
+                    on_move(true);
                     pkVictim->on_move();
 
                     if (pkVictim->can_begin_fight())
-                        pkVictim->begin_fight(me);
+                        pkVictim->begin_fight(this);
 
-                    metin2::log::debug("{}: skill {:d} hits {}", me->name(), type, pkVictim->name());
-                    me->compute_skill(type, pkVictim);
+                    metin2::log::debug("{}: skill {:d} hits {}", name(), type, pkVictim->name());
+                    compute_skill(type, pkVictim);
                 }
                 break;
 
             case SKILL_YONGBI:
                 {
-                    me->on_move(true);
+                    on_move(true);
                 }
                 break;
 
@@ -2410,27 +2371,18 @@ namespace metin2::game::inline characters {
             }
 
             succeed = true;
-        }
-    };
-
-    auto character::shoot(uint8_t type) -> bool {
-        metin2::log::debug("{}: shoot type {:d}, {:d} fly targets", name(), type, vec_fly_targets_.size());
-
-        if (!can_move()) {
-            return false;
-        }
-
-        func_shoot f(this, type);
+        };
 
         if (fly_target_id_ != 0) {
-            f(fly_target_id_);
+            shoot_at(fly_target_id_);
             fly_target_id_ = 0;
         }
 
-        f = std::for_each(vec_fly_targets_.begin(), vec_fly_targets_.end(), f);
+        for (uint32_t target_vid : vec_fly_targets_)
+            shoot_at(target_vid);
         vec_fly_targets_.clear();
 
-        return f.succeed;
+        return succeed;
     }
 
     void character::fly_target(uint32_t target_vid_value, int32_t x, int32_t y, uint8_t header_value) {
@@ -2611,116 +2563,18 @@ namespace metin2::game::inline characters {
         return pk_mode_;
     }
 
-    struct func_forget_my_attacker {
-        character *ch;
-        func_forget_my_attacker(character *ch_value) {
-            ch = ch_value;
-        }
-        void operator()(entity *ent) {
-            if (ent->is_type(ENTITY_CHARACTER)) {
-                character *ch_value = (character *)ent;
-                if (ch_value->is_pc())
-                    return;
-                if (ch_value->vid_victim == ch->get_vid())
-                    ch_value->set_victim(nullptr);
-            }
-        }
-    };
-
-    struct func_aggregate_monster {
-        character *ch;
-        func_aggregate_monster(character *ch_value) {
-            ch = ch_value;
-        }
-        void operator()(entity *ent) {
-            if (ent->is_type(ENTITY_CHARACTER)) {
-                character *ch_value = (character *)ent;
-                if (ch_value->is_pc())
-                    return;
-                if (!ch_value->is_monster())
-                    return;
-                if (ch_value->victim())
-                    return;
-
-                if (prob(50))
-                    if (distance_approx(ch_value->x() - ch->x(), ch_value->y() - ch->y()) < 5000)
-                        if (ch_value->can_begin_fight())
-                            ch_value->begin_fight(ch);
-            }
-        }
-    };
-
-    struct func_attract_ranger {
-        character *ch;
-        func_attract_ranger(character *ch_value) {
-            ch = ch_value;
-        }
-
-        void operator()(entity *ent) {
-            if (ent->is_type(ENTITY_CHARACTER)) {
-                character *ch_value = (character *)ent;
-                if (ch_value->is_pc())
-                    return;
-                if (!ch_value->is_monster())
-                    return;
-                if (ch_value->victim() && ch_value->victim() != ch)
-                    return;
-                if (ch_value->mob_attack_range() > 150) {
-                    int iNewRange = 150;
-                    if (iNewRange < 150)
-                        iNewRange = 150;
-
-                    ch_value->add_affect(AFFECT_BOW_DISTANCE, POINT_BOW_DISTANCE, iNewRange - ch_value->mob_attack_range(), AFF_NONE, 3 * 60, 0, false);
-                }
-            }
-        }
-    };
-
-    struct func_pull_monster {
-        character *ch;
-        int length;
-        func_pull_monster(character *ch_value, int length_value = 300) {
-            ch = ch_value;
-            length = length_value;
-        }
-
-        void operator()(entity *ent) {
-            if (ent->is_type(ENTITY_CHARACTER)) {
-                character *ch_value = (character *)ent;
-                if (ch_value->is_pc())
-                    return;
-                if (!ch_value->is_monster())
-                    return;
-                float fDist = distance_approx(ch->x() - ch_value->x(), ch->y() - ch_value->y());
-                if (fDist > 3000 || fDist < 100)
-                    return;
-
-                float fNewDist = fDist - length;
-                if (fNewDist < 100)
-                    fNewDist = 100;
-
-                float degree = get_degree_from_position_xy(ch_value->x(), ch_value->y(), ch->x(), ch->y());
-                float fx;
-                float fy;
-
-                get_delta_by_degree(degree, fDist - fNewDist, &fx, &fy);
-                int32_t tx = (int32_t)(ch_value->x() + fx);
-                int32_t ty = (int32_t)(ch_value->y() + fy);
-
-                ch_value->sync(tx, ty);
-                ch_value->go_to(tx, ty);
-                ch_value->calculate_move_duration();
-
-                ch_value->sync_packet();
-            }
-        }
-    };
-
     void character::forget_my_attacker() {
         sectree *pSec = get_sectree();
         if (pSec) {
-            func_forget_my_attacker f(this);
-            pSec->for_each_around(f);
+            pSec->for_each_around([&](entity *ent) {
+                if (ent->is_type(ENTITY_CHARACTER)) {
+                    character *ch_value = (character *)ent;
+                    if (ch_value->is_pc())
+                        return;
+                    if (ch_value->vid_victim == get_vid())
+                        ch_value->set_victim(nullptr);
+                }
+            });
         }
         revive_invisible(5);
     }
@@ -2728,24 +2582,83 @@ namespace metin2::game::inline characters {
     void character::aggregate_monster() {
         sectree *pSec = get_sectree();
         if (pSec) {
-            func_aggregate_monster f(this);
-            pSec->for_each_around(f);
+            pSec->for_each_around([&](entity *ent) {
+                if (ent->is_type(ENTITY_CHARACTER)) {
+                    character *ch_value = (character *)ent;
+                    if (ch_value->is_pc())
+                        return;
+                    if (!ch_value->is_monster())
+                        return;
+                    if (ch_value->victim())
+                        return;
+
+                    if (prob(50))
+                        if (distance_approx(ch_value->x() - x(), ch_value->y() - y()) < 5000)
+                            if (ch_value->can_begin_fight())
+                                ch_value->begin_fight(this);
+                }
+            });
         }
     }
 
     void character::attract_ranger() {
         sectree *pSec = get_sectree();
         if (pSec) {
-            func_attract_ranger f(this);
-            pSec->for_each_around(f);
+            pSec->for_each_around([&](entity *ent) {
+                if (ent->is_type(ENTITY_CHARACTER)) {
+                    character *ch_value = (character *)ent;
+                    if (ch_value->is_pc())
+                        return;
+                    if (!ch_value->is_monster())
+                        return;
+                    if (ch_value->victim() && ch_value->victim() != this)
+                        return;
+                    if (ch_value->mob_attack_range() > 150) {
+                        int iNewRange = 150;
+                        if (iNewRange < 150)
+                            iNewRange = 150;
+
+                        ch_value->add_affect(AFFECT_BOW_DISTANCE, POINT_BOW_DISTANCE, iNewRange - ch_value->mob_attack_range(), AFF_NONE, 3 * 60, 0, false);
+                    }
+                }
+            });
         }
     }
 
     void character::pull_monster() {
         sectree *pSec = get_sectree();
         if (pSec) {
-            func_pull_monster f(this);
-            pSec->for_each_around(f);
+            const int length = 300;
+            pSec->for_each_around([&](entity *ent) {
+                if (ent->is_type(ENTITY_CHARACTER)) {
+                    character *ch_value = (character *)ent;
+                    if (ch_value->is_pc())
+                        return;
+                    if (!ch_value->is_monster())
+                        return;
+                    float fDist = distance_approx(x() - ch_value->x(), y() - ch_value->y());
+                    if (fDist > 3000 || fDist < 100)
+                        return;
+
+                    float fNewDist = fDist - length;
+                    if (fNewDist < 100)
+                        fNewDist = 100;
+
+                    float degree = get_degree_from_position_xy(ch_value->x(), ch_value->y(), x(), y());
+                    float fx;
+                    float fy;
+
+                    get_delta_by_degree(degree, fDist - fNewDist, &fx, &fy);
+                    int32_t tx = (int32_t)(ch_value->x() + fx);
+                    int32_t ty = (int32_t)(ch_value->y() + fy);
+
+                    ch_value->sync(tx, ty);
+                    ch_value->go_to(tx, ty);
+                    ch_value->calculate_move_duration();
+
+                    ch_value->sync_packet();
+                }
+            });
         }
     }
 

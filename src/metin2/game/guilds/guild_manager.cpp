@@ -35,6 +35,8 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <string_view>
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -42,31 +44,6 @@
 #include <sys/types.h>
 
 namespace metin2::game::inline guilds {
-
-    namespace {
-
-        struct f_guild_name_sender {
-            f_guild_name_sender(uint32_t id, const char *guild_name) : id(id), name(guild_name) {
-                p.header = HEADER_GC_GUILD;
-                p.subheader = GUILD_SUBHEADER_GC_GUILD_NAME;
-                p.size = sizeof(p) + GUILD_NAME_MAX_LEN + sizeof(uint32_t);
-            }
-
-            void operator()(character *ch) {
-                desc *d = ch->get_desc();
-
-                if (d) {
-                    d->buffered_packet(&p, sizeof(p));
-                    d->buffered_packet(&id, sizeof(id));
-                    d->packet(name, GUILD_NAME_MAX_LEN);
-                }
-            }
-
-            uint32_t id;
-            const char *name;
-            packet_gc_guild p;
-        };
-    }
 
     guild_manager::guild_manager() {
     }
@@ -162,7 +139,7 @@ namespace metin2::game::inline guilds {
             guild_.insert(std::make_pair(guild_id, std::make_unique<guild>(guild_id)));
             it = guild_.find(guild_id);
 
-            character_manager::instance().for_each_pc(f_guild_name_sender(guild_id, it->second->name()));
+            send_guild_name_to_all(guild_id, it->second->name());
         }
 
         return it->second.get();
@@ -252,26 +229,12 @@ namespace metin2::game::inline guilds {
         return rank;
     }
 
-    struct f_guild_compare {
-        auto operator()(guild *g1, guild *g2) const -> bool {
-            if (g1->ladder_point() < g2->ladder_point())
-                return true;
-            if (g1->ladder_point() > g2->ladder_point())
-                return false;
-            if (g1->guild_war_win_count() < g2->guild_war_win_count())
-                return true;
-            if (g1->guild_war_win_count() > g2->guild_war_win_count())
-                return false;
-            if (g1->guild_war_loss_count() < g2->guild_war_loss_count())
-                return true;
-            if (g1->guild_war_loss_count() > g2->guild_war_loss_count())
-                return false;
-            int c = strcmp(g1->name(), g2->name());
-            if (c > 0)
-                return true;
-            return false;
+    namespace {
+        auto guild_rank_less(guild *g1, guild *g2) -> bool {
+            return std::tuple(g1->ladder_point(), g1->guild_war_win_count(), g1->guild_war_loss_count(), std::string_view(g2->name()))
+                 < std::tuple(g2->ladder_point(), g2->guild_war_win_count(), g2->guild_war_loss_count(), std::string_view(g1->name()));
         }
-    };
+    }
 
     void guild_manager::high_rank_string(uint32_t my_guild, char *buffer, size_t buflen) {
         std::vector<guild *> v;
@@ -281,7 +244,7 @@ namespace metin2::game::inline guilds {
                 v.push_back(it->second.get());
         }
 
-        std::sort(v.begin(), v.end(), f_guild_compare());
+        std::sort(v.begin(), v.end(), guild_rank_less);
         int n = v.size();
         int len = 0, len2;
         *buffer = '\0';
@@ -348,7 +311,7 @@ namespace metin2::game::inline guilds {
                 v.push_back(it->second.get());
         }
 
-        std::sort(v.begin(), v.end(), f_guild_compare());
+        std::sort(v.begin(), v.end(), guild_rank_less);
         int n = v.size();
         int idx;
 
@@ -514,29 +477,24 @@ namespace metin2::game::inline guilds {
         }
     }
 
-    struct f_send_war_list {
-        f_send_war_list(uint8_t subheader, uint32_t guild_id1, uint32_t guild_id2) {
-            gid1 = guild_id1;
-            gid2 = guild_id2;
-
+    namespace {
+        void send_war_list(uint8_t subheader, uint32_t guild_id1, uint32_t guild_id2) {
+            packet_gc_guild p;
             p.header = HEADER_GC_GUILD;
             p.size = sizeof(p) + sizeof(uint32_t) * 2;
             p.subheader = subheader;
+
+            character_manager::instance().for_each_pc([&p, guild_id1, guild_id2](character *ch) {
+                desc *d = ch->get_desc();
+
+                if (d) {
+                    d->buffered_packet(&p, sizeof(p));
+                    d->buffered_packet(&guild_id1, sizeof(uint32_t));
+                    d->packet(&guild_id2, sizeof(uint32_t));
+                }
+            });
         }
-
-        void operator()(character *ch) {
-            desc *d = ch->get_desc();
-
-            if (d) {
-                d->buffered_packet(&p, sizeof(p));
-                d->buffered_packet(&gid1, sizeof(uint32_t));
-                d->packet(&gid2, sizeof(uint32_t));
-            }
-        }
-
-        uint32_t gid1, gid2;
-        packet_gc_guild p;
-    };
+    }
 
     void guild_manager::start_war(uint32_t guild_id1, uint32_t guild_id2) {
         guild *g1 = find_guild(guild_id1);
@@ -558,7 +516,7 @@ namespace metin2::game::inline guilds {
         if (guild_id1 > guild_id2)
             std::swap(guild_id1, guild_id2);
 
-        character_manager::instance().for_each_pc(f_send_war_list(GUILD_SUBHEADER_GC_GUILD_WAR_LIST, guild_id1, guild_id2));
+        send_war_list(GUILD_SUBHEADER_GC_GUILD_WAR_LIST, guild_id1, guild_id2);
         guild_war_.insert(std::make_pair(guild_id1, guild_id2));
     }
 
@@ -611,7 +569,7 @@ namespace metin2::game::inline guilds {
             g2->end_war(guild_id1);
 
         guild_war_end_time_[k] = get_global_time();
-        character_manager::instance().for_each_pc(f_send_war_list(GUILD_SUBHEADER_GC_GUILD_WAR_END_LIST, guild_id1, guild_id2));
+        send_war_list(GUILD_SUBHEADER_GC_GUILD_WAR_END_LIST, guild_id1, guild_id2);
         guild_war_.erase(it);
 
         return true;

@@ -57,13 +57,7 @@ namespace metin2::game {
             return retstr;
         }
 
-        void f_set_warp_location::operator()(character *ch) {
-            if (ch->is_pc()) {
-                ch->set_warp_location(map_index, x, y);
-            }
-        }
-
-        void f_set_quest_flag::operator()(character *ch) {
+        void set_pc_quest_flag(character *ch, const std::string &flagname, int value) {
             if (!ch->is_pc())
                 return;
 
@@ -73,87 +67,32 @@ namespace metin2::game {
                 pPC->set_flag(flagname, value);
         }
 
-        auto f_party_check_flag_lt::operator()(character *ch) -> bool {
-            if (!ch->is_pc())
-                return false;
+        void purge_monsters_in_area(sectree_map *map, int x1, int y1, int x2, int y2, character *except_char) {
+            map->for_each([&](entity *ent) {
+                if (true == ent->is_type(ENTITY_CHARACTER)) {
+                    character *pChar = static_cast<character *>(ent);
 
-            pc *pPC = quest_manager::instance().pc_force(ch->player_id());
-            bool returnBool = false;
-            if (pPC) {
-                int flagValue = pPC->flag(flagname);
-                if (value > flagValue)
-                    returnBool = true;
-                else
-                    returnBool = false;
-            }
+                    if (pChar == except_char)
+                        return;
 
-            return returnBool;
+                    if (!pChar->is_pet() && (true == pChar->is_monster() || true == pChar->is_stone())) {
+                        if (x1 <= pChar->x() && pChar->x() <= x2 && y1 <= pChar->y() && pChar->y() <= y2) {
+                            character_manager::instance().destroy_character(pChar);
+                        }
+                    }
+                }
+            });
         }
 
-        f_party_chat::f_party_chat(int chat_type_value, const char *str) : chat_type(chat_type_value), str(str) {
-        }
+        void send_buffer_to_map(sectree_map *map, const temp_buffer &buf, uint8_t empire) {
+            map->for_each([&](entity *ent) {
+                if (!ent->is_type(ENTITY_CHARACTER))
+                    return;
 
-        void f_party_chat::operator()(character *ch) {
-            ch->chat_packet(chat_type, "%s", str);
-        }
-
-        void f_party_clear_ready::operator()(character *ch) {
-            ch->remove_affect(AFFECT_DUNGEON_READY);
-        }
-
-        void f_send_packet::operator()(entity *ent) {
-            if (ent->is_type(ENTITY_CHARACTER)) {
-                character *ch = (character *)ent;
-
-                if (ch->get_desc()) {
+                character *ch = static_cast<character *>(ent);
+                if (ch->get_desc() && (empire == 0 || ch->empire() == empire))
                     ch->get_desc()->packet(buf.read_peek(), buf.size());
-                }
-            }
-        }
-
-        void f_send_packet_to_empire::operator()(entity *ent) {
-            if (ent->is_type(ENTITY_CHARACTER)) {
-                character *ch = (character *)ent;
-
-                if (ch->get_desc()) {
-                    if (ch->empire() == empire)
-                        ch->get_desc()->packet(buf.read_peek(), buf.size());
-                }
-            }
-        }
-
-        void f_warp_empire::operator()(entity *ent) {
-            if (ent->is_type(ENTITY_CHARACTER)) {
-                character *ch = (character *)ent;
-
-                if (ch->is_pc() && ch->empire() == empire) {
-                    ch->warp_set(x, y, map_index_to);
-                }
-            }
-        }
-
-        f_build_lua_guild_war_list::f_build_lua_guild_war_list(lua_State *lua_state) : l(lua_state), count(1) {
-            lua_newtable(lua_state);
-        }
-
-        void f_build_lua_guild_war_list::operator()(uint32_t g1, uint32_t g2) {
-            guild *g = guild_manager::instance().find_guild(g1);
-
-            if (!g)
-                return;
-
-            if (g->get_guild_war_type(g2) == GUILD_WAR_TYPE_FIELD)
-                return;
-
-            if (g->get_guild_war_state(g2) != GUILD_WAR_ON_WAR)
-                return;
-
-            lua_newtable(l);
-            lua_pushnumber(l, g1);
-            lua_rawseti(l, -2, 1);
-            lua_pushnumber(l, g2);
-            lua_rawseti(l, -2, 2);
-            lua_rawseti(l, -2, count++);
+            });
         }
 
         auto is_script_true(const char *code, int size) -> bool {

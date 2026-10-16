@@ -188,24 +188,14 @@ namespace metin2::game::inline protocol {
         return 0;
     }
 
-    struct func_shout {
-        const char *str;
-        uint8_t empire;
-
-        func_shout(const char *str_value, uint8_t empire_value) : str(str_value), empire(empire_value) {
-        }
-
-        void operator()(desc *d) {
-            if (!d->get_character() || (d->get_character()->gm_level() == GM_PLAYER && d->empire() != empire))
-                return;
-
-            d->get_character()->chat_packet(CHAT_TYPE_SHOUT, "%s", str);
-        }
-    };
-
     void send_shout(const char *text, uint8_t empire) {
         const desc_manager::desc_set &c_ref_set = desc_manager::instance().client_set();
-        std::for_each(c_ref_set.begin(), c_ref_set.end(), func_shout(text, empire));
+        for (desc *d : c_ref_set) {
+            if (!d->get_character() || (d->get_character()->gm_level() == GM_PLAYER && d->empire() != empire))
+                continue;
+
+            d->get_character()->chat_packet(CHAT_TYPE_SHOUT, "%s", text);
+        }
     }
 
     void input_p2p::shout(const char *data) {

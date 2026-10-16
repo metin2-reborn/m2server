@@ -799,8 +799,17 @@ namespace metin2::game::inline world {
         return lNewMapIndex;
     }
 
-    struct f_destroy_private_map_entity {
-        void operator()(entity *ent) {
+    void sectree_manager::destroy_private_map(int32_t map_index) {
+        if (map_index < 10000)
+            return;
+
+        sectree_map *pkMapSectree = map(map_index);
+
+        if (!pkMapSectree)
+            return;
+
+        // Entities on this map but outside every sectree cannot be deleted here.
+        pkMapSectree->for_each([](entity *ent) {
             if (ent->is_type(ENTITY_CHARACTER)) {
                 character *ch = (character *)ent;
                 metin2::log::info("Private map: removing character {}", ch->name());
@@ -816,21 +825,7 @@ namespace metin2::game::inline world {
                 item_manager::instance().destroy_item(item);
             } else
                 metin2::log::error("Private map: cannot remove entity of unknown type {:d}", ent->type());
-        }
-    };
-
-    void sectree_manager::destroy_private_map(int32_t map_index) {
-        if (map_index < 10000)
-            return;
-
-        sectree_map *pkMapSectree = map(map_index);
-
-        if (!pkMapSectree)
-            return;
-
-        // Entities on this map but outside every sectree cannot be deleted here.
-        f_destroy_private_map_entity f;
-        pkMapSectree->for_each(f);
+        });
 
         map_sectree_.erase(map_index);
 
@@ -1141,106 +1136,71 @@ namespace metin2::game::inline world {
         }
     }
 
-    struct f_purge_monsters {
-        void operator()(entity *ent) {
-            if (ent->is_type(ENTITY_CHARACTER) == true) {
-                character *lpChar = (character *)ent;
-
-                if (lpChar->is_monster() == true && !lpChar->is_pet()) {
-                    character_manager::instance().destroy_character(lpChar);
-                }
-            }
-        }
-    };
-
     void sectree_manager::purge_monsters_in_map(int32_t map_index) {
         sectree_map *sectree = sectree_manager::instance().map(map_index);
 
         if (sectree != nullptr) {
-            struct f_purge_monsters f;
+            sectree->for_each([](entity *ent) {
+                if (ent->is_type(ENTITY_CHARACTER) == true) {
+                    character *lpChar = (character *)ent;
 
-            sectree->for_each(f);
+                    if (lpChar->is_monster() == true && !lpChar->is_pet()) {
+                        character_manager::instance().destroy_character(lpChar);
+                    }
+                }
+            });
         }
     }
-
-    struct f_purge_stones {
-        void operator()(entity *ent) {
-            if (ent->is_type(ENTITY_CHARACTER) == true) {
-                character *lpChar = (character *)ent;
-
-                if (lpChar->is_stone() == true) {
-                    character_manager::instance().destroy_character(lpChar);
-                }
-            }
-        }
-    };
 
     void sectree_manager::purge_stones_in_map(int32_t map_index) {
         sectree_map *sectree = sectree_manager::instance().map(map_index);
 
         if (sectree != nullptr) {
-            struct f_purge_stones f;
+            sectree->for_each([](entity *ent) {
+                if (ent->is_type(ENTITY_CHARACTER) == true) {
+                    character *lpChar = (character *)ent;
 
-            sectree->for_each(f);
+                    if (lpChar->is_stone() == true) {
+                        character_manager::instance().destroy_character(lpChar);
+                    }
+                }
+            });
         }
     }
-
-    struct f_count_monsters {
-        std::map<vid, vid> map_monsters;
-
-        void operator()(entity *ent) {
-            if (ent->is_type(ENTITY_CHARACTER) == true) {
-                character *lpChar = (character *)ent;
-
-                if (lpChar->is_monster() == true) {
-                    map_monsters[lpChar->get_vid()] = lpChar->get_vid();
-                }
-            }
-        }
-    };
 
     auto sectree_manager::monster_count_in_map(int32_t map_index) -> size_t {
         sectree_map *sectree = sectree_manager::instance().map(map_index);
 
         if (sectree != nullptr) {
-            struct f_count_monsters f;
+            size_t count = 0;
 
-            sectree->for_each(f);
+            sectree->for_each([&count](entity *ent) {
+                if (ent->is_type(ENTITY_CHARACTER) == true && ((character *)ent)->is_monster() == true)
+                    ++count;
+            });
 
-            return f.map_monsters.size();
+            return count;
         }
 
         return 0;
     }
 
-    struct f_count_specified_monster {
-        uint32_t specified_vnum;
-        size_t cnt;
-
-        f_count_specified_monster(uint32_t id)
-            : specified_vnum(id), cnt(0) {}
-
-        void operator()(entity *ent) {
-            if (true == ent->is_type(ENTITY_CHARACTER)) {
-                character *pChar = static_cast<character *>(ent);
-
-                if (true == pChar->is_stone()) {
-                    if (pChar->get_mob_table().vnum == specified_vnum)
-                        cnt++;
-                }
-            }
-        }
-    };
-
     auto sectree_manager::monster_count_in_map(int32_t map_index, uint32_t vnum) -> size_t {
         sectree_map *sectree = sectree_manager::instance().map(map_index);
 
         if (nullptr != sectree) {
-            struct f_count_specified_monster f(vnum);
+            size_t count = 0;
 
-            sectree->for_each(f);
+            sectree->for_each([vnum, &count](entity *ent) {
+                if (true == ent->is_type(ENTITY_CHARACTER)) {
+                    character *pChar = static_cast<character *>(ent);
 
-            return f.cnt;
+                    if (true == pChar->is_stone() && pChar->get_mob_table().vnum == vnum)
+                        count++;
+                }
+            });
+
+            return count;
         }
 
         return 0;

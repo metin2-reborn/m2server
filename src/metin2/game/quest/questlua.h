@@ -41,62 +41,10 @@ namespace metin2::game {
 
         extern void combine_lua_string(lua_State *lua, std::ostringstream &s);
 
-        struct f_set_warp_location {
-            int32_t map_index;
-            int32_t x;
-            int32_t y;
+        void set_pc_quest_flag(character *ch, const std::string &flagname, int value);
+        void purge_monsters_in_area(sectree_map *map, int x1, int y1, int x2, int y2, character *except_char);
 
-            f_set_warp_location(int32_t map_index_value, int32_t x_value, int32_t y_value) : map_index(map_index_value), x(x_value), y(y_value) {}
-            void operator()(character *ch);
-        };
-
-        struct f_set_quest_flag {
-            std::string flagname;
-            int value;
-
-            void operator()(character *ch);
-        };
-
-        struct f_party_check_flag_lt {
-            std::string flagname;
-            int value;
-
-            auto operator()(character *ch) -> bool;
-        };
-
-        struct f_party_chat {
-            int chat_type;
-            const char *str;
-
-            f_party_chat(int chat_type_value, const char *str);
-            void operator()(character *ch);
-        };
-
-        struct f_party_clear_ready {
-            void operator()(character *ch);
-        };
-
-        struct f_send_packet {
-            temp_buffer buf;
-
-            void operator()(entity *ent);
-        };
-
-        struct f_send_packet_to_empire {
-            temp_buffer buf;
-            uint8_t empire;
-
-            void operator()(entity *ent);
-        };
-
-        struct f_warp_empire {
-            uint8_t empire;
-            int32_t map_index_to;
-            int32_t x;
-            int32_t y;
-
-            void operator()(entity *ent);
-        };
+        void send_buffer_to_map(sectree_map *map, const temp_buffer &buf, uint8_t empire = 0);
 
         EVENTINFO(warp_all_to_map_my_empire_event_info) {
             uint8_t empire;
@@ -111,13 +59,5 @@ namespace metin2::game {
         };
 
         EVENTFUNC(warp_all_to_map_my_empire_event);
-
-        struct f_build_lua_guild_war_list {
-            lua_State *l;
-            int count;
-
-            f_build_lua_guild_war_list(lua_State *lua_state);
-            void operator()(uint32_t g1, uint32_t g2);
-        };
     }
 }

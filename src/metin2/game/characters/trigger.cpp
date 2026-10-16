@@ -49,97 +49,72 @@ namespace metin2::game::inline characters {
         return 1;
     }
 
-    class func_find_mob_victim {
-      public:
-        func_find_mob_victim(character *chr, int max_distance) : chr_(chr),
-                                                                 min_distance_(std::numeric_limits<int>::max()),
-                                                                 max_distance_(max_distance),
-                                                                 lx_(chr->x()),
-                                                                 ly_(chr->y()),
-                                                                 chr_victim_(nullptr),
-                                                                 chr_building_(nullptr) {
-                                                                 };
-
-        auto operator()(entity *ent) -> bool {
-            if (!ent->is_type(ENTITY_CHARACTER))
-                return false;
-
-            character *pkChr = (character *)ent;
-
-            if (pkChr->is_building() &&
-                (pkChr->is_affect_flag(AFF_BUILDING_CONSTRUCTION_SMALL) ||
-                    pkChr->is_affect_flag(AFF_BUILDING_CONSTRUCTION_LARGE) ||
-                    pkChr->is_affect_flag(AFF_BUILDING_UPGRADE))) {
-                chr_building_ = pkChr;
-            }
-
-            if (pkChr->is_npc()) {
-                if (!pkChr->is_monster() || !chr_->is_attack_mob() || chr_->is_aggressive())
-                    return false;
-            }
-
-            if (pkChr->is_dead())
-                return false;
-
-            if (pkChr->is_affect_flag(AFF_EUNHYUNG) ||
-                pkChr->is_affect_flag(AFF_INVISIBILITY) ||
-                pkChr->is_affect_flag(AFF_REVIVE_INVISIBLE))
-                return false;
-
-            if (pkChr->is_affect_flag(AFF_TERROR) && chr_->is_immune(IMMUNE_TERROR) == false) {
-                if (pkChr->level() >= chr_->level())
-                    return false;
-            }
-
-            if (chr_->is_no_attack_shinsu()) {
-                if (pkChr->empire() == 1)
-                    return false;
-            }
-
-            if (chr_->is_no_attack_chunjo()) {
-                if (pkChr->empire() == 2)
-                    return false;
-            }
-
-            if (chr_->is_no_attack_jinno()) {
-                if (pkChr->empire() == 3)
-                    return false;
-            }
-
-            int iDistance = distance_approx(lx_ - pkChr->x(), ly_ - pkChr->y());
-
-            if (iDistance < min_distance_ && iDistance <= max_distance_) {
-                chr_victim_ = pkChr;
-                min_distance_ = iDistance;
-            }
-            return true;
-        }
-
-        auto victim() -> character * {
-            if ((chr_building_ && chr_->hp() * 2 > chr_->max_hp()) || !chr_victim_) {
-                return chr_building_;
-            }
-
-            return (chr_victim_);
-        }
-
-      private:
-        character *chr_;
-
-        int min_distance_;
-        int max_distance_;
-        int32_t lx_;
-        int32_t ly_;
-
-        character *chr_victim_;
-        character *chr_building_;
-    };
-
     auto find_victim(character *chr, int max_distance) -> character * {
-        func_find_mob_victim f(chr, max_distance);
+        int min_distance = std::numeric_limits<int>::max();
+        const int32_t lx = chr->x();
+        const int32_t ly = chr->y();
+        character *chr_victim = nullptr;
+        character *chr_building = nullptr;
+
         if (chr->get_sectree() != nullptr) {
-            chr->get_sectree()->for_each_around(f);
+            chr->get_sectree()->for_each_around([&](entity *ent) {
+                if (!ent->is_type(ENTITY_CHARACTER))
+                    return;
+
+                character *pkChr = (character *)ent;
+
+                if (pkChr->is_building() &&
+                    (pkChr->is_affect_flag(AFF_BUILDING_CONSTRUCTION_SMALL) ||
+                        pkChr->is_affect_flag(AFF_BUILDING_CONSTRUCTION_LARGE) ||
+                        pkChr->is_affect_flag(AFF_BUILDING_UPGRADE))) {
+                    chr_building = pkChr;
+                }
+
+                if (pkChr->is_npc()) {
+                    if (!pkChr->is_monster() || !chr->is_attack_mob() || chr->is_aggressive())
+                        return;
+                }
+
+                if (pkChr->is_dead())
+                    return;
+
+                if (pkChr->is_affect_flag(AFF_EUNHYUNG) ||
+                    pkChr->is_affect_flag(AFF_INVISIBILITY) ||
+                    pkChr->is_affect_flag(AFF_REVIVE_INVISIBLE))
+                    return;
+
+                if (pkChr->is_affect_flag(AFF_TERROR) && chr->is_immune(IMMUNE_TERROR) == false) {
+                    if (pkChr->level() >= chr->level())
+                        return;
+                }
+
+                if (chr->is_no_attack_shinsu()) {
+                    if (pkChr->empire() == 1)
+                        return;
+                }
+
+                if (chr->is_no_attack_chunjo()) {
+                    if (pkChr->empire() == 2)
+                        return;
+                }
+
+                if (chr->is_no_attack_jinno()) {
+                    if (pkChr->empire() == 3)
+                        return;
+                }
+
+                int iDistance = distance_approx(lx - pkChr->x(), ly - pkChr->y());
+
+                if (iDistance < min_distance && iDistance <= max_distance) {
+                    chr_victim = pkChr;
+                    min_distance = iDistance;
+                }
+            });
         }
-        return f.victim();
+
+        if ((chr_building && chr->hp() * 2 > chr->max_hp()) || !chr_victim)
+            return chr_building;
+
+        return chr_victim;
     }
 }

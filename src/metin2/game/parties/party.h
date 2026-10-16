@@ -156,17 +156,17 @@ namespace metin2::game::inline parties {
         auto compute_party_bonus_exp_percent() -> int;
 
         template <class Func>
-        void for_each_member(Func &f);
+        void for_each_member(Func &&f);
         template <class Func>
-        void for_each_member_ptr(Func &f);
+        void for_each_member_ptr(Func &&f);
         template <class Func>
-        void for_each_online_member(Func &f);
+        void for_each_online_member(Func &&f);
         template <class Func>
-        void for_each_near_member(Func &f);
+        void for_each_near_member(Func &&f);
         template <class Func>
-        void for_each_on_map_member(Func &f, int32_t map_index_value);
+        void for_each_on_map_member(Func &&f, int32_t map_index_value);
         template <class Func>
-        auto for_each_on_map_member_bool(Func &f, int32_t map_index_value) -> bool;
+        auto for_each_on_map_member_bool(Func &&f, int32_t map_index_value) -> bool;
 
         void update();
 
@@ -255,7 +255,7 @@ namespace metin2::game::inline parties {
     };
 
     template <class Func>
-    void party::for_each_member(Func &f) {
+    void party::for_each_member(Func &&f) {
         member_map::iterator it;
 
         for (it = member_map_.begin(); it != member_map_.end(); ++it)
@@ -263,7 +263,7 @@ namespace metin2::game::inline parties {
     }
 
     template <class Func>
-    void party::for_each_member_ptr(Func &f) {
+    void party::for_each_member_ptr(Func &&f) {
         member_map::iterator it;
 
         for (it = member_map_.begin(); it != member_map_.end(); ++it)
@@ -271,7 +271,7 @@ namespace metin2::game::inline parties {
     }
 
     template <class Func>
-    void party::for_each_online_member(Func &f) {
+    void party::for_each_online_member(Func &&f) {
         member_map::iterator it;
 
         for (it = member_map_.begin(); it != member_map_.end(); ++it)
@@ -280,7 +280,7 @@ namespace metin2::game::inline parties {
     }
 
     template <class Func>
-    void party::for_each_near_member(Func &f) {
+    void party::for_each_near_member(Func &&f) {
         member_map::iterator it;
 
         for (it = member_map_.begin(); it != member_map_.end(); ++it)
@@ -289,7 +289,7 @@ namespace metin2::game::inline parties {
     }
 
     template <class Func>
-    void party::for_each_on_map_member(Func &f, int32_t map_index_value) {
+    void party::for_each_on_map_member(Func &&f, int32_t map_index_value) {
         member_map::iterator it;
 
         for (it = member_map_.begin(); it != member_map_.end(); ++it) {
@@ -302,7 +302,7 @@ namespace metin2::game::inline parties {
     }
 
     template <class Func>
-    auto party::for_each_on_map_member_bool(Func &f, int32_t map_index_value) -> bool {
+    auto party::for_each_on_map_member_bool(Func &&f, int32_t map_index_value) -> bool {
         member_map::iterator it;
 
         for (it = member_map_.begin(); it != member_map_.end(); ++it) {

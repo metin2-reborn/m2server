@@ -30,7 +30,6 @@
 #include <cassert>
 #include <cstdint>
 #include <cstdio>
-#include <functional>
 #include <map>
 #include <string>
 #include <utility>
@@ -554,13 +553,6 @@ namespace metin2::game::inline characters {
         return chLeader;
     }
 
-    struct func_update_and_reset_chat_counter {
-        void operator()(character *ch) {
-            ch->reset_chat_counter();
-            ch->fsm::update();
-        }
-    };
-
     void character_manager::update(int pulse) {
         begin_pending_destroy();
 
@@ -571,10 +563,13 @@ namespace metin2::game::inline characters {
                 for (const auto &[name, chr] : map_pc_chr_)
                     v.push_back(chr);
                 if (0 == (pulse % passes_per_sec(5))) {
-                    func_update_and_reset_chat_counter f;
-                    for_each(v.begin(), v.end(), f);
+                    for (character *ch : v) {
+                        ch->reset_chat_counter();
+                        ch->fsm::update();
+                    }
                 } else {
-                    for_each(v.begin(), v.end(), std::bind(&character::update_character, std::placeholders::_1, pulse));
+                    for (character *ch : v)
+                        ch->update_character(pulse);
                 }
             }
         }
@@ -584,7 +579,8 @@ namespace metin2::game::inline characters {
                 character_vector v;
                 v.reserve(set_chr_state_.size());
                 v.insert(v.end(), set_chr_state_.begin(), set_chr_state_.end());
-                for_each(v.begin(), v.end(), std::bind(&character::update_state_machine, std::placeholders::_1, pulse));
+                for (character *ch : v)
+                    ch->update_state_machine(pulse);
             }
         }
 
@@ -592,7 +588,8 @@ namespace metin2::game::inline characters {
             character_vector_interactor i;
 
             if (character_manager::instance().characters_by_race_num(xmas::MOB_SANTA_VNUM, i)) {
-                for_each(i.begin(), i.end(), std::bind(&character::update_state_machine, std::placeholders::_1, pulse));
+                for (character *ch : i)
+                    ch->update_state_machine(pulse);
             }
         }
 
@@ -812,12 +809,12 @@ namespace metin2::game::inline characters {
         p.skin = 1;
         p.src_size = s.size();
 
-        quest::f_send_packet f;
+        temp_buffer buf;
         p.size = p.src_size + sizeof(struct packet_script);
-        f.buf.write(&p, sizeof(struct packet_script));
-        f.buf.write(&s[0], s.size());
+        buf.write(&p, sizeof(struct packet_script));
+        buf.write(&s[0], s.size());
 
-        pSecMap->for_each(f);
+        quest::send_buffer_to_map(pSecMap, buf);
     }
 
     auto character_manager::begin_pending_destroy() -> bool {

@@ -34,29 +34,13 @@ namespace metin2::game::inline world {
         ATTR_OBJECT = (1 << 7),
     };
 
-    struct f_collect_entity {
-        void operator()(entity *entity) {
-            result.push_back(entity);
-        }
-        template <typename F>
-        void for_each(F &f) {
-            std::vector<entity *>::iterator it = result.begin();
-            for (; it != result.end(); ++it) {
-                entity *entity = *it;
-                f(entity);
-            }
-        }
-        typedef std::vector<entity *> list_type;
-        list_type result;
-    };
-
     class sectree {
       public:
         friend class sectree_manager;
         friend class sectree_map;
 
-        template <class _Func>
-        auto find_if(_Func &func) const -> entity * {
+        template <class Func>
+        auto find_if(Func &&func) const -> entity * {
             auto it_tree = neighbor_list_.begin();
 
             while (it_tree != neighbor_list_.end()) {
@@ -75,19 +59,17 @@ namespace metin2::game::inline world {
             return nullptr;
         }
 
-        template <class _Func>
-        void for_each_around(_Func &func) {
-            f_collect_entity collector;
-            sectree_list::iterator it = neighbor_list_.begin();
-            for (; it != neighbor_list_.end(); ++it) {
-                sectree *sectree = *it;
-                sectree->for_each_entity(collector);
-            }
-            collector.for_each(func);
+        template <class Func>
+        void for_each_around(Func &&func) {
+            std::vector<entity *> collected;
+            for (sectree *sectree : neighbor_list_)
+                sectree->for_each_entity([&collected](entity *e) { collected.push_back(e); });
+            for (entity *e : collected)
+                func(e);
         }
 
-        template <class _Func>
-        void for_each_for_find_victim(_Func &func) {
+        template <class Func>
+        void for_each_for_find_victim(Func &&func) {
             sectree_list::iterator it_tree = neighbor_list_.begin();
 
             while (it_tree != neighbor_list_.end()) {
@@ -95,8 +77,8 @@ namespace metin2::game::inline world {
                     return;
             }
         }
-        template <class _Func>
-        auto for_each_entity_for_find_victim(_Func &func) -> bool {
+        template <class Func>
+        auto for_each_entity_for_find_victim(Func &&func) -> bool {
             auto it = set_entity_.begin();
 
             while (it != set_entity_.end()) {
@@ -134,8 +116,8 @@ namespace metin2::game::inline world {
         void remove_attribute(uint32_t x, uint32_t y, uint32_t attr);
 
       private:
-        template <class _Func>
-        void for_each_entity(_Func &func) {
+        template <class Func>
+        void for_each_entity(Func &&func) {
             std::erase_if(set_entity_, [this](entity *e) {
                 if (e->get_sectree() == this)
                     return false;

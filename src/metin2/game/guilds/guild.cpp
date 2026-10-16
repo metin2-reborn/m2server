@@ -47,28 +47,21 @@ namespace metin2::game::inline guilds {
     guild_member::guild_member(uint32_t pid, uint8_t grade, uint8_t is_general, uint8_t job, uint8_t level, uint32_t offer_exp, char *name)
         : pid(pid), grade(grade), is_general(is_general), job(job), level(level), offer_exp(offer_exp), name(name) {}
 
-    namespace {
-        struct f_guild_name_sender {
-            f_guild_name_sender(uint32_t id, const char *guild_name) : id(id), name(guild_name) {
-                p.header = HEADER_GC_GUILD;
-                p.subheader = GUILD_SUBHEADER_GC_GUILD_NAME;
-                p.size = sizeof(p) + sizeof(uint32_t) + GUILD_NAME_MAX_LEN;
+    void send_guild_name_to_all(uint32_t guild_id, const char *guild_name) {
+        packet_gc_guild p;
+        p.header = HEADER_GC_GUILD;
+        p.subheader = GUILD_SUBHEADER_GC_GUILD_NAME;
+        p.size = sizeof(p) + sizeof(uint32_t) + GUILD_NAME_MAX_LEN;
+
+        character_manager::instance().for_each_pc([&p, guild_id, guild_name](character *ch) {
+            desc *d = ch->get_desc();
+
+            if (d) {
+                d->buffered_packet(&p, sizeof(p));
+                d->buffered_packet(&guild_id, sizeof(guild_id));
+                d->packet(guild_name, GUILD_NAME_MAX_LEN);
             }
-
-            void operator()(character *ch) {
-                desc *d = ch->get_desc();
-
-                if (d) {
-                    d->buffered_packet(&p, sizeof(p));
-                    d->buffered_packet(&id, sizeof(id));
-                    d->packet(name, GUILD_NAME_MAX_LEN);
-                }
-            }
-
-            uint32_t id;
-            const char *name;
-            packet_gc_guild p;
-        };
+        });
     }
 
     guild::guild(guild_create_parameter &cp) {
@@ -117,7 +110,7 @@ namespace metin2::game::inline guilds {
 
         db_clientdesc->db_packet(HEADER_GD_GUILD_SKILL_UPDATE, 0, &guild_skill, sizeof(guild_skill));
 
-        character_manager::instance().for_each_pc(f_guild_name_sender(id(), name()));
+        send_guild_name_to_all(id(), name());
         request_add_member(cp.master, GUILD_LEADER_GRADE);
     }
 
@@ -675,19 +668,12 @@ namespace metin2::game::inline guilds {
     }
 
     namespace {
-        struct f_send_change_grade {
-            uint8_t grade;
+        void send_change_grade(uint32_t guild_id, uint8_t grade) {
             packet_guild p;
-
-            f_send_change_grade(uint32_t guild_id, uint8_t grade) : grade(grade) {
-                p.guild = guild_id;
-                p.info = grade;
-            }
-
-            void operator()() {
-                db_clientdesc->db_packet(HEADER_GD_GUILD_CHANGE_GRADE, 0, &p, sizeof(p));
-            }
-        };
+            p.guild = guild_id;
+            p.info = grade;
+            db_clientdesc->db_packet(HEADER_GD_GUILD_CHANGE_GRADE, 0, &p, sizeof(p));
+        }
     }
 
     void guild::change_grade_name(uint8_t grade, const char *grade_name) {
@@ -705,7 +691,7 @@ namespace metin2::game::inline guilds {
         if (!*grade_name)
             return;
 
-        db_manager::instance().func_after_query(f_send_change_grade(id(), grade), sql::format("UPDATE guild_grade{} SET name = {} where guild_id = {} and grade = {}", sql::raw(get_table_postfix()), grade_name, data_.guild_id, grade));
+        db_manager::instance().func_after_query([guild_id = id(), grade] { send_change_grade(guild_id, grade); }, sql::format("UPDATE guild_grade{} SET name = {} where guild_id = {} and grade = {}", sql::raw(get_table_postfix()), grade_name, data_.guild_id, grade));
 
         grade--;
         strlcpy(data_.grade_array[grade].grade_name, grade_name, sizeof(data_.grade_array[grade].grade_name));
@@ -741,7 +727,7 @@ namespace metin2::game::inline guilds {
             return;
         }
 
-        db_manager::instance().func_after_query(f_send_change_grade(id(), grade), sql::format("UPDATE guild_grade{} SET auth = {} where guild_id = {} and grade = {}", sql::raw(get_table_postfix()), auth, data_.guild_id, grade));
+        db_manager::instance().func_after_query([guild_id = id(), grade] { send_change_grade(guild_id, grade); }, sql::format("UPDATE guild_grade{} SET auth = {} where guild_id = {} and grade = {}", sql::raw(get_table_postfix()), auth, data_.guild_id, grade));
 
         grade--;
 
@@ -1083,7 +1069,8 @@ namespace metin2::game::inline guilds {
         save_skill();
         send_db_skill_update();
 
-        std::for_each(member_online_.begin(), member_online_.end(), std::bind(&guild::send_skill_info_packet, this, std::placeholders::_1));
+        for (character *ch : member_online_)
+            send_skill_info_packet(ch);
 
         metin2::log::info("Guild: guild {} raised skill {:d} to level {:d} (type {:d})", name(), pkSk->vnum, data_.aby_skill[dwRealVnum], pkSk->type);
     }
@@ -1257,7 +1244,8 @@ namespace metin2::game::inline guilds {
                 save_skill();
             }
 
-            for_each(member_online_.begin(), member_online_.end(), std::bind(&guild::send_skill_info_packet, this, std::placeholders::_1));
+            for (character *ch : member_online_)
+                send_skill_info_packet(ch);
             break;
 
         case POINT_EXP:
@@ -1282,7 +1270,8 @@ namespace metin2::game::inline guilds {
                         if (save)
                             change_ladder_point(GUILD_LADDER_POINT_PER_LEVEL);
 
-                        for_each(member_online_.begin(), member_online_.end(), std::bind(&guild::send_guild_info_packet, this, std::placeholders::_1));
+                        for (character *ch : member_online_)
+                            send_guild_info_packet(ch);
                     }
 
                     if (data_.level == GUILD_MAX_LEVEL) {
@@ -1389,25 +1378,14 @@ namespace metin2::game::inline guilds {
         }
     }
 
-    namespace {
-        struct f_guild_chat {
-            const char *psz_text;
-
-            f_guild_chat(const char *text)
-                : psz_text(text) {}
-
-            void operator()(character *ch) {
-                ch->chat_packet(CHAT_TYPE_GUILD, "%s", psz_text);
-            }
-        };
-    }
-
     void guild::p2p_chat(const char *text) {
-        std::for_each(member_online_.begin(), member_online_.end(), f_guild_chat(text));
+        for (character *ch : member_online_)
+            ch->chat_packet(CHAT_TYPE_GUILD, "%s", text);
     }
 
     void guild::chat(const char *text_value) {
-        std::for_each(member_online_.begin(), member_online_.end(), f_guild_chat(text_value));
+        for (character *ch : member_online_)
+            ch->chat_packet(CHAT_TYPE_GUILD, "%s", text_value);
 
         packet_gg_guild p1;
         packet_gg_guild_chat p2;

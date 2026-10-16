@@ -797,24 +797,6 @@ namespace metin2::game {
             }
         };
 
-        struct f_warp_all_to_village {
-            f_warp_all_to_village() {};
-            void operator()(entity *ent) {
-                if (ent->is_type(ENTITY_CHARACTER)) {
-                    character *ch = (character *)ent;
-                    if (ch->is_pc()) {
-                        uint8_t bEmpire = ch->empire();
-                        if (bEmpire == 0) {
-                            quest::error("Player {} (pid {:d}) has no empire", ch->name(), ch->player_id());
-                            return;
-                        }
-
-                        ch->warp_set(start_position[bEmpire][0], start_position[bEmpire][1]);
-                    }
-                }
-            }
-        };
-
         EVENTFUNC(warp_all_to_village_event) {
             warp_all_to_village_event_info *info = dynamic_cast<warp_all_to_village_event_info *>(event->info);
 
@@ -826,8 +808,20 @@ namespace metin2::game {
             sectree_map *pSecMap = sectree_manager::instance().map(info->warp_map_index);
 
             if (nullptr != pSecMap) {
-                f_warp_all_to_village f;
-                pSecMap->for_each(f);
+                pSecMap->for_each([](entity *ent) {
+                    if (ent->is_type(ENTITY_CHARACTER)) {
+                        character *ch = (character *)ent;
+                        if (ch->is_pc()) {
+                            uint8_t bEmpire = ch->empire();
+                            if (bEmpire == 0) {
+                                quest::error("Player {} (pid {:d}) has no empire", ch->name(), ch->player_id());
+                                return;
+                            }
+
+                            ch->warp_set(start_position[bEmpire][0], start_position[bEmpire][1]);
+                        }
+                    }
+                });
             }
 
             return 0;
@@ -873,36 +867,31 @@ namespace metin2::game {
             packet_script.src_size = Script.size();
             packet_script.size = packet_script.src_size + sizeof(struct packet_script);
 
-            f_send_packet f;
-            f.buf.write(&packet_script, sizeof(struct packet_script));
-            f.buf.write(&Script[0], Script.size());
+            temp_buffer buf;
+            buf.write(&packet_script, sizeof(struct packet_script));
+            buf.write(&Script[0], Script.size());
 
             sectree_map *pSecMap = sectree_manager::instance().map(iMapIndex);
 
             if (pSecMap) {
-                pSecMap->for_each(f);
+                send_buffer_to_map(pSecMap, buf);
             }
 
             return 0;
         }
 
-        struct f_kill_sectree2 {
-            void operator()(entity *ent) {
-                if (ent->is_type(ENTITY_CHARACTER)) {
-                    character *ch = (character *)ent;
-
-                    if (!ch->is_pc() && !ch->is_pet())
-                        ch->dead();
-                }
-            }
-        };
-
         auto kill_all_in_map(lua_State *lua) -> int {
             sectree_map *pSecMap = sectree_manager::instance().map(lua_tonumber(lua, 1));
 
             if (nullptr != pSecMap) {
-                f_kill_sectree2 f;
-                pSecMap->for_each(f);
+                pSecMap->for_each([](entity *ent) {
+                    if (ent->is_type(ENTITY_CHARACTER)) {
+                        character *ch = (character *)ent;
+
+                        if (!ch->is_pc() && !ch->is_pet())
+                            ch->dead();
+                    }
+                });
             }
 
             return 0;
@@ -955,14 +944,15 @@ namespace metin2::game {
             sectree_map *pSecMap = sectree_manager::instance().map(info->map_index_from);
 
             if (pSecMap) {
-                f_warp_empire f;
+                pSecMap->for_each([info](entity *ent) {
+                    if (ent->is_type(ENTITY_CHARACTER)) {
+                        character *ch = (character *)ent;
 
-                f.map_index_to = info->map_index_to;
-                f.x = info->x;
-                f.y = info->y;
-                f.empire = info->empire;
-
-                pSecMap->for_each(f);
+                        if (ch->is_pc() && ch->empire() == info->empire) {
+                            ch->warp_set(info->x, info->y, info->map_index_to);
+                        }
+                    }
+                });
             }
 
             return 0;
@@ -1048,30 +1038,6 @@ namespace metin2::game {
             return 1;
         }
 
-        struct f_purge_area {
-            int x1, y1, x2, y2;
-            character *except_char;
-
-            f_purge_area(int a, int b, int c, int d, character *p)
-                : x1(a), y1(b), x2(c), y2(d),
-                  except_char(p) {}
-
-            void operator()(entity *ent) {
-                if (true == ent->is_type(ENTITY_CHARACTER)) {
-                    character *pChar = static_cast<character *>(ent);
-
-                    if (pChar == except_char)
-                        return;
-
-                    if (!pChar->is_pet() && (true == pChar->is_monster() || true == pChar->is_stone())) {
-                        if (x1 <= pChar->x() && pChar->x() <= x2 && y1 <= pChar->y() && pChar->y() <= y2) {
-                            character_manager::instance().destroy_character(pChar);
-                        }
-                    }
-                }
-            }
-        };
-
         auto purge_area(lua_State *lua) -> int {
             int x1 = lua_tonumber(lua, 1);
             int y1 = lua_tonumber(lua, 2);
@@ -1088,38 +1054,11 @@ namespace metin2::game {
             sectree_map *pSectree = sectree_manager::instance().map(mapIndex);
 
             if (nullptr != pSectree) {
-                f_purge_area func(x1, y1, x2, y2, quest_manager::instance().current_npc_character_ptr());
-
-                pSectree->for_each(func);
+                purge_monsters_in_area(pSectree, x1, y1, x2, y2, quest_manager::instance().current_npc_character_ptr());
             }
 
             return 0;
         }
-
-        struct f_warp_all_in_area_to_area {
-            int from_x1, from_y1, from_x2, from_y2;
-            int to_x1, to_y1, to_x2, to_y2;
-            size_t warp_count;
-
-            f_warp_all_in_area_to_area(int a, int b, int c, int d, int e, int f, int g, int h)
-                : from_x1(a), from_y1(b), from_x2(c), from_y2(d),
-                  to_x1(e), to_y1(f), to_x2(g), to_y2(h),
-                  warp_count(0) {}
-
-            void operator()(entity *ent) {
-                if (true == ent->is_type(ENTITY_CHARACTER)) {
-                    character *pChar = static_cast<character *>(ent);
-
-                    if (true == pChar->is_pc()) {
-                        if (from_x1 <= pChar->x() && pChar->x() <= from_x2 && from_y1 <= pChar->y() && pChar->y() <= from_y2) {
-                            ++warp_count;
-
-                            pChar->warp_set(number(to_x1, to_x2), number(to_y1, to_y2));
-                        }
-                    }
-                }
-            }
-        };
 
         auto warp_all_in_area_to_area(lua_State *lua) -> int {
             int from_x1 = lua_tonumber(lua, 1);
@@ -1143,12 +1082,24 @@ namespace metin2::game {
             sectree_map *pSectree = sectree_manager::instance().map(mapIndex);
 
             if (nullptr != pSectree) {
-                f_warp_all_in_area_to_area func(from_x1, from_y1, from_x2, from_y2, to_x1, to_y1, to_x2, to_y2);
+                size_t warp_count = 0;
 
-                pSectree->for_each(func);
+                pSectree->for_each([&](entity *ent) {
+                    if (true == ent->is_type(ENTITY_CHARACTER)) {
+                        character *pChar = static_cast<character *>(ent);
 
-                lua_pushnumber(lua, func.warp_count);
-                metin2::log::info("Quest: warped {:d} players between areas", func.warp_count);
+                        if (true == pChar->is_pc()) {
+                            if (from_x1 <= pChar->x() && pChar->x() <= from_x2 && from_y1 <= pChar->y() && pChar->y() <= from_y2) {
+                                ++warp_count;
+
+                                pChar->warp_set(number(to_x1, to_x2), number(to_y1, to_y2));
+                            }
+                        }
+                    }
+                });
+
+                lua_pushnumber(lua, warp_count);
+                metin2::log::info("Quest: warped {:d} players between areas", warp_count);
                 return 1;
             } else {
                 lua_pushnumber(lua, 0);

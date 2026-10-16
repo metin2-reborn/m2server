@@ -242,22 +242,10 @@ namespace metin2::game::inline protocol {
         return set_desc_;
     }
 
-    struct name_with_desc_func {
-        const char *name;
-
-        name_with_desc_func(const char *name_value) : name(name_value) {
-        }
-
-        auto operator()(desc *d) -> bool {
-            if (d->get_character() && !strcmp(d->get_character()->name(), name))
-                return true;
-
-            return false;
-        }
-    };
-
     auto desc_manager::find_by_character_name(const char *name) -> desc * {
-        desc_set::iterator it = std::find_if(set_desc_.begin(), set_desc_.end(), name_with_desc_func(name));
+        desc_set::iterator it = std::find_if(set_desc_.begin(), set_desc_.end(), [name](desc *d) {
+            return d->get_character() && !strcmp(d->get_character()->name(), name);
+        });
         return (it == set_desc_.end()) ? nullptr : (*it);
     }
 
@@ -277,15 +265,9 @@ namespace metin2::game::inline protocol {
         return (newd);
     }
 
-    struct func_try_connect {
-        void operator()(desc *d) {
-            ((client_desc *)d)->connect();
-        }
-    };
-
     void desc_manager::try_connect() {
-        func_try_connect f;
-        std::for_each(set_client_desc_.begin(), set_client_desc_.end(), f);
+        for (desc *d : set_client_desc_)
+            ((client_desc *)d)->connect();
     }
 
     auto desc_manager::is_p2p_desc_exist(const char *host, uint16_t port) -> bool {
@@ -301,31 +283,20 @@ namespace metin2::game::inline protocol {
         return false;
     }
 
-    class func_who {
-      public:
-        int total_count;
-        int empire_user_count[EMPIRE_MAX_NUM];
+    void desc_manager::update_local_user_count() {
+        const desc_set &c_ref_set = client_set();
+        int total_count = 0;
+        int empire_user_count[EMPIRE_MAX_NUM] = {};
 
-        func_who() {
-            total_count = 0;
-            memset(empire_user_count, 0, sizeof(empire_user_count));
-        }
-
-        void operator()(desc *d) {
+        for (desc *d : c_ref_set) {
             if (d->get_character()) {
                 ++total_count;
                 ++empire_user_count[d->empire()];
             }
         }
-    };
 
-    void desc_manager::update_local_user_count() {
-        const desc_set &c_ref_set = client_set();
-        func_who f;
-        f = std::for_each(c_ref_set.begin(), c_ref_set.end(), f);
-
-        local_user_count_ = f.total_count;
-        std::memcpy(empire_user_count_, f.empire_user_count, sizeof(empire_user_count_));
+        local_user_count_ = total_count;
+        std::memcpy(empire_user_count_, empire_user_count, sizeof(empire_user_count_));
 
         empire_user_count_[1] += p2p_manager::instance().empire_user_count(1);
         empire_user_count_[2] += p2p_manager::instance().empire_user_count(2);

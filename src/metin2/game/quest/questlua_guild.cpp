@@ -192,8 +192,27 @@ namespace metin2::game {
         }
 
         auto guild_get_warp_war_list(lua_State *lua) -> int {
-            f_build_lua_guild_war_list f(lua);
-            guild_manager::instance().for_each_war(f);
+            int count = 1;
+            lua_newtable(lua);
+            guild_manager::instance().for_each_war([&](uint32_t g1, uint32_t g2) {
+                guild *g = guild_manager::instance().find_guild(g1);
+
+                if (!g)
+                    return;
+
+                if (g->get_guild_war_type(g2) == GUILD_WAR_TYPE_FIELD)
+                    return;
+
+                if (g->get_guild_war_state(g2) != GUILD_WAR_ON_WAR)
+                    return;
+
+                lua_newtable(lua);
+                lua_pushnumber(lua, g1);
+                lua_rawseti(lua, -2, 1);
+                lua_pushnumber(lua, g2);
+                lua_rawseti(lua, -2, 2);
+                lua_rawseti(lua, -2, count++);
+            });
             return 1;
         }
 

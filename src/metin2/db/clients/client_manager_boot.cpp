@@ -152,13 +152,6 @@ namespace metin2::db::inline clients {
         return true;
     }
 
-    class f_compare_vnum {
-      public:
-        auto operator()(const entity_table &a, const entity_table &b) const -> bool {
-            return (a.vnum < b.vnum);
-        }
-    };
-
     auto client_manager::initialize_mob_table() -> bool {
 
         std::map<int, const char *> localMap;
@@ -339,7 +332,7 @@ namespace metin2::db::inline clients {
                 ++mob_table;
             }
         }
-        sort(vec_mob_table_.begin(), vec_mob_table_.end(), f_compare_vnum());
+        sort(vec_mob_table_.begin(), vec_mob_table_.end(), [](const entity_table &a, const entity_table &b) { return a.vnum < b.vnum; });
         return true;
     }
 

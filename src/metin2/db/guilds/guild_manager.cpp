@@ -41,48 +41,42 @@ namespace metin2::db::inline guilds {
     }
 
     namespace {
-        struct f_send_peer_war {
-            f_send_peer_war(uint8_t type_value, uint8_t war_value, uint32_t gid1, uint32_t gid2) {
-                if (number(0, 1))
-                    std::swap(gid1, gid2);
+        auto send_peer_war(uint8_t type_value, uint8_t war_value, uint32_t gid1, uint32_t gid2) {
+            if (number(0, 1))
+                std::swap(gid1, gid2);
 
-                memset(&p, 0, sizeof(packet_guild_war));
+            packet_guild_war p;
+            memset(&p, 0, sizeof(packet_guild_war));
 
-                p.war = war_value;
-                p.type = type_value;
-                p.guild_from = gid1;
-                p.guild_to = gid2;
-            }
+            p.war = war_value;
+            p.type = type_value;
+            p.guild_from = gid1;
+            p.guild_to = gid2;
 
-            void operator()(peer *peer) {
+            return [p](peer *peer) {
                 if (peer->channel() == 0)
                     return;
 
                 peer->encode_header(HEADER_DG_GUILD_WAR, 0, sizeof(packet_guild_war));
                 peer->encode(&p, sizeof(packet_guild_war));
-            }
+            };
+        }
 
-            packet_guild_war p;
-        };
+        auto send_guild_war_score(uint32_t guild_gain, uint32_t opp_gid, int score_value, int bet_score_value) {
+            packet_guild_war_score pck;
+            pck.guild_gain_point = guild_gain;
+            pck.guild_opponent = opp_gid;
+            pck.score = score_value;
+            pck.bet_score = bet_score_value;
 
-        struct f_send_guild_war_score {
-            f_send_guild_war_score(uint32_t guild_gain, uint32_t opp_gid, int score_value, int bet_score_value) {
-                pck.guild_gain_point = guild_gain;
-                pck.guild_opponent = opp_gid;
-                pck.score = score_value;
-                pck.bet_score = bet_score_value;
-            }
-
-            void operator()(peer *peer) {
+            return [pck](peer *peer) {
                 if (peer->channel() == 0)
                     return;
 
                 peer->encode_header(HEADER_DG_GUILD_WAR_SCORE, 0, sizeof(pck));
                 peer->encode(&pck, sizeof(pck));
-            }
-
-            packet_guild_war_score pck;
-        };
+            };
+        }
     }
 
     guild_manager::guild_manager() {
@@ -257,13 +251,13 @@ namespace metin2::db::inline guilds {
                 if (!p || p->end)
                     continue;
 
-                f_send_peer_war(p->type, GUILD_WAR_ON_WAR, g1, g2)(peer);
-                f_send_guild_war_score(p->gid[0], p->gid[1], p->score[0], p->bet_score[0])(peer);
-                f_send_guild_war_score(p->gid[1], p->gid[0], p->score[1], p->bet_score[1])(peer);
+                send_peer_war(p->type, GUILD_WAR_ON_WAR, g1, g2)(peer);
+                send_guild_war_score(p->gid[0], p->gid[1], p->score[0], p->bet_score[0])(peer);
+                send_guild_war_score(p->gid[1], p->gid[0], p->score[1], p->bet_score[1])(peer);
             }
 
         for (const auto &declare : declare_map_) {
-            f_send_peer_war(declare.type, GUILD_WAR_SEND_DECLARE, declare.guild_id[0], declare.guild_id[1])(peer);
+            send_peer_war(declare.type, GUILD_WAR_SEND_DECLARE, declare.guild_id[0], declare.guild_id[1])(peer);
         }
 
         for (const auto &[id, reserve] : map_war_reserve_) {
@@ -427,7 +421,7 @@ namespace metin2::db::inline guilds {
             process_win_lose(win_guild, lose_guild);
 
         // The db ends some wars on its own, so the packet must still be sent.
-        client_manager::instance().for_each_peer(f_send_peer_war(0, GUILD_WAR_END, gid1, gid2));
+        client_manager::instance().for_each_peer(send_peer_war(0, GUILD_WAR_END, gid1, gid2));
 
         remove_war(gid1, gid2);
     }
@@ -528,7 +522,7 @@ namespace metin2::db::inline guilds {
             metin2::log::debug("Guild war: guild {:d} war type {:d} score {:+d}, bet score {:+d}, now {:d} and {:d}",
                 gain_gid, p->type, score_delta, bet_score_delta, iNewScore, iNewBetScore);
 
-            client_manager::instance().for_each_peer(f_send_guild_war_score(gain_gid, opp_gid, iNewScore, iNewBetScore));
+            client_manager::instance().for_each_peer(send_guild_war_score(gain_gid, opp_gid, iNewScore, iNewBetScore));
         }
     }
 
@@ -1036,7 +1030,7 @@ namespace metin2::db::inline guilds {
         if (data_.started)
             return;
 
-        f_send_peer_war(data_.type, GUILD_WAR_RESERVE, data_.guild_from, data_.guild_to)(peer);
+        send_peer_war(data_.type, GUILD_WAR_RESERVE, data_.guild_from, data_.guild_to)(peer);
 
         peer->encode_header(HEADER_DG_GUILD_WAR_RESERVE_ADD, 0, sizeof(guild_war_reserve));
         peer->encode(&data_, sizeof(guild_war_reserve));

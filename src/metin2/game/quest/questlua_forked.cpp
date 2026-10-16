@@ -113,21 +113,6 @@ namespace metin2::game {
             return 1;
         }
 
-        struct f_warp_in_map {
-            int map_index_to;
-            int x;
-            int y;
-
-            void operator()(entity *ent) {
-                if (ent->is_type(ENTITY_CHARACTER)) {
-                    character *ch = (character *)ent;
-                    if (ch->is_pc()) {
-                        ch->warp_set(x + (number(0, 5) * 100), y + (number(0, 5) * 100), map_index_to);
-                    }
-                }
-            }
-        };
-
         EVENTINFO(warp_all_to_map_event_info) {
             int map_index_from;
             int map_index_to;
@@ -149,11 +134,14 @@ namespace metin2::game {
 
             sectree_map *pSecMap = sectree_manager::instance().map(info->map_index_from);
             if (pSecMap) {
-                f_warp_in_map f;
-                f.map_index_to = info->map_index_to;
-                f.x = info->x;
-                f.y = info->y;
-                pSecMap->for_each(f);
+                pSecMap->for_each([info](entity *ent) {
+                    if (ent->is_type(ENTITY_CHARACTER)) {
+                        character *ch = (character *)ent;
+                        if (ch->is_pc()) {
+                            ch->warp_set(info->x + (number(0, 5) * 100), info->y + (number(0, 5) * 100), info->map_index_to);
+                        }
+                    }
+                });
             }
 
             return 0;

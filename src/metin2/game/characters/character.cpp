@@ -3475,17 +3475,13 @@ namespace metin2::game::inline characters {
         return true;
     }
 
-    struct func_clear_sync {
-        void operator()(character *ch) {
-            assert(ch != nullptr);
-            ch->set_sync_owner(nullptr, false); // Must be false for the for_each to work.
-        }
-    };
-
     void character::clear_sync() {
         set_sync_owner(nullptr);
 
-        std::for_each(lst_chr_sync_owned_.begin(), lst_chr_sync_owned_.end(), func_clear_sync());
+        for (character *ch : lst_chr_sync_owned_) {
+            assert(ch != nullptr);
+            ch->set_sync_owner(nullptr, false); // Must be false for the for_each to work.
+        }
         lst_chr_sync_owned_.clear();
     }
 
@@ -4111,17 +4107,12 @@ namespace metin2::game::inline characters {
         }
     }
 
-    struct func_dead_spawned_by_stone {
-        void operator()(character *ch) {
-            ch->dead(nullptr);
-            ch->set_stone(nullptr);
-        }
-    };
-
     void character::clear_stone() {
         if (!set_chr_spawned_by_.empty()) {
-            func_dead_spawned_by_stone f;
-            std::for_each(set_chr_spawned_by_.begin(), set_chr_spawned_by_.end(), f);
+            for (character *ch : set_chr_spawned_by_) {
+                ch->dead(nullptr);
+                ch->set_stone(nullptr);
+            }
             set_chr_spawned_by_.clear();
         }
 
@@ -5201,93 +5192,6 @@ namespace metin2::game::inline characters {
         compute_points();
     }
 
-    namespace {
-        class func_check_warp {
-          public:
-            func_check_warp(character *warp) {
-                target_y = 0;
-                target_x = 0;
-
-                x = warp->x();
-                y = warp->y();
-
-                invalid = false;
-                empire = warp->empire();
-
-                char szTmp[64];
-
-                if (3 != sscanf(warp->name(), " %s %d %d ", szTmp, &target_x, &target_y)) {
-                    if (number(1, 100) < 5)
-                        metin2::log::error("Warp NPC {:d} has an invalid name: {}", warp->race_num(), warp->name());
-
-                    invalid = true;
-
-                    return;
-                }
-
-                target_x *= 100;
-                target_y *= 100;
-
-                use_warp = true;
-
-                if (warp->is_goto()) {
-                    sectree_map *pkSectreeMap = sectree_manager::instance().map(warp->map_index());
-                    target_x += pkSectreeMap->setting.base_x;
-                    target_y += pkSectreeMap->setting.base_y;
-                    use_warp = false;
-                }
-            }
-
-            auto valid() -> bool {
-                return !invalid;
-            }
-
-            void operator()(entity *ent) {
-                if (!valid())
-                    return;
-
-                if (!ent->is_type(ENTITY_CHARACTER))
-                    return;
-
-                character *pkChr = (character *)ent;
-
-                if (!pkChr->is_pc())
-                    return;
-
-                int iDist = distance_approx(pkChr->x() - x, pkChr->y() - y);
-
-                if (iDist > 300)
-                    return;
-
-                if (empire && pkChr->empire() && empire != pkChr->empire())
-                    return;
-
-                if (pkChr->is_hack())
-                    return;
-
-                if (!pkChr->can_handle_item(false, true))
-                    return;
-
-                if (use_warp)
-                    pkChr->warp_set(target_x, target_y);
-                else {
-                    pkChr->show(pkChr->map_index(), target_x, target_y);
-                    pkChr->stop();
-                }
-            }
-
-            bool invalid;
-            bool use_warp;
-
-            int32_t x;
-            int32_t y;
-            int32_t target_x;
-            int32_t target_y;
-
-            uint8_t empire;
-        };
-    }
-
     EVENTFUNC(warp_npc_event) {
         char_event_info *info = dynamic_cast<char_event_info *>(event->info);
         if (info == nullptr) {
@@ -5306,9 +5210,63 @@ namespace metin2::game::inline characters {
             return 0;
         }
 
-        func_check_warp f(ch);
-        if (f.valid())
-            ch->get_sectree()->for_each_around(f);
+        int32_t target_x = 0;
+        int32_t target_y = 0;
+        const int32_t x = ch->x();
+        const int32_t y = ch->y();
+        const uint8_t empire = ch->empire();
+
+        char szTmp[64];
+
+        if (3 != sscanf(ch->name(), " %s %d %d ", szTmp, &target_x, &target_y)) {
+            if (number(1, 100) < 5)
+                metin2::log::error("Warp NPC {:d} has an invalid name: {}", ch->race_num(), ch->name());
+
+            return metin2::config::server().passes_per_sec / 2;
+        }
+
+        target_x *= 100;
+        target_y *= 100;
+
+        bool use_warp = true;
+
+        if (ch->is_goto()) {
+            sectree_map *pkSectreeMap = sectree_manager::instance().map(ch->map_index());
+            target_x += pkSectreeMap->setting.base_x;
+            target_y += pkSectreeMap->setting.base_y;
+            use_warp = false;
+        }
+
+        ch->get_sectree()->for_each_around([&](entity *ent) {
+            if (!ent->is_type(ENTITY_CHARACTER))
+                return;
+
+            character *pkChr = (character *)ent;
+
+            if (!pkChr->is_pc())
+                return;
+
+            int iDist = distance_approx(pkChr->x() - x, pkChr->y() - y);
+
+            if (iDist > 300)
+                return;
+
+            if (empire && pkChr->empire() && empire != pkChr->empire())
+                return;
+
+            if (pkChr->is_hack())
+                return;
+
+            if (!pkChr->can_handle_item(false, true))
+                return;
+
+            if (use_warp)
+                pkChr->warp_set(target_x, target_y);
+            else {
+                pkChr->show(pkChr->map_index(), target_x, target_y);
+                pkChr->stop();
+            }
+        });
 
         return metin2::config::server().passes_per_sec / 2;
     }
@@ -5661,38 +5619,29 @@ namespace metin2::game::inline characters {
         }
     }
 
-    struct f_find_reviver {
-        f_find_reviver() {
-            reviver = nullptr;
-            has_reviver = false;
-        }
-
-        void operator()(character *ch) {
-            if (ch->is_monster() != true) {
-                return;
-            }
-
-            if (ch->is_reviver() == true && reviver != ch && ch->is_dead() != true) {
-                if (prob(ch->get_mob_table().revive_point)) {
-                    has_reviver = true;
-                    reviver = ch;
-                }
-            }
-        }
-
-        character *reviver;
-        bool has_reviver;
-    };
-
     auto character::has_reviver_in_party() const -> bool {
         party *party = get_party();
 
         if (party != nullptr) {
             if (party->member_count() == 1) return false;
 
-            f_find_reviver f;
-            party->for_each_member_ptr(f);
-            return f.has_reviver;
+            character *reviver = nullptr;
+            bool has_reviver = false;
+
+            party->for_each_member_ptr([&](character *ch) {
+                if (ch->is_monster() != true) {
+                    return;
+                }
+
+                if (ch->is_reviver() == true && reviver != ch && ch->is_dead() != true) {
+                    if (prob(ch->get_mob_table().revive_point)) {
+                        has_reviver = true;
+                        reviver = ch;
+                    }
+                }
+            });
+
+            return has_reviver;
         }
 
         return false;

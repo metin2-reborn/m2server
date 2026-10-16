@@ -18,21 +18,12 @@
 
 namespace metin2::game::inline events {
 
-    struct f_skill_breath {
-        jobs set1;
-        jobs set2;
-        sex gender;
-        character *attacker;
+    inline void blue_dragon_skill_breath(character *attacker, sectree_map *map) {
+        jobs set1 = static_cast<jobs>(number(0, 3));
+        jobs set2 = static_cast<jobs>(number(0, 3));
+        sex gender = static_cast<sex>(number(0, 2));
 
-        f_skill_breath(character *p) {
-            attacker = p;
-
-            set1 = static_cast<jobs>(number(0, 3));
-            set2 = static_cast<jobs>(number(0, 3));
-            gender = static_cast<sex>(number(0, 2));
-        }
-
-        void operator()(entity *ent) {
+        map->for_each([attacker, set1, set2, gender](entity *ent) {
             if (nullptr != ent) {
                 if (true == ent->is_type(ENTITY_CHARACTER)) {
                     character *ch = static_cast<character *>(ent);
@@ -132,17 +123,11 @@ namespace metin2::game::inline events {
                     }
                 }
             }
-        }
-    };
+        });
+    }
 
-    struct f_skill_weak_breath {
-        character *attacker;
-
-        f_skill_weak_breath(character *p) {
-            attacker = p;
-        }
-
-        void operator()(entity *ent) {
+    inline void blue_dragon_skill_weak_breath(character *attacker, sectree_map *map) {
+        map->for_each([attacker](entity *ent) {
             if (nullptr != ent) {
                 if (true == ent->is_type(ENTITY_CHARACTER)) {
                     character *ch = static_cast<character *>(ent);
@@ -167,29 +152,17 @@ namespace metin2::game::inline events {
                     }
                 }
             }
-        }
-    };
+        });
+    }
 
-    struct f_skill_earth_quake {
-        jobs set1;
-        jobs set2;
-        sex gender;
-        int32_t max_distance;
-        character *attacker;
-        character *farthest_char;
+    inline auto blue_dragon_skill_earth_quake(character *attacker, sectree_map *map) -> character * {
+        jobs set1 = static_cast<jobs>(number(0, 3));
+        jobs set2 = static_cast<jobs>(number(0, 3));
+        sex gender = static_cast<sex>(number(0, 2));
+        int32_t max_distance = 0;
+        character *farthest_char = nullptr;
 
-        f_skill_earth_quake(character *p) {
-            attacker = p;
-
-            max_distance = 0;
-            farthest_char = nullptr;
-
-            set1 = static_cast<jobs>(number(0, 3));
-            set2 = static_cast<jobs>(number(0, 3));
-            gender = static_cast<sex>(number(0, 2));
-        }
-
-        void operator()(entity *ent) {
+        map->for_each([attacker, set1, set2, gender, &max_distance, &farthest_char](entity *ent) {
             if (nullptr != ent) {
                 if (true == ent->is_type(ENTITY_CHARACTER)) {
                     character *ch = static_cast<character *>(ent);
@@ -316,6 +289,8 @@ namespace metin2::game::inline events {
                     }
                 }
             }
-        }
-    };
+        });
+
+        return farthest_char;
+    }
 }

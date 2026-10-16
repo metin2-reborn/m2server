@@ -37,23 +37,6 @@ namespace metin2::game::inline empire {
         return 0;
     }
 
-    struct f_heal_my_empire {
-        uint8_t empire;
-        void operator()(entity *ent) {
-            if (ent->is_type(ENTITY_CHARACTER)) {
-                character *ch = (character *)ent;
-
-                if (ch->is_pc() && empire == ch->empire()) {
-                    ch->chat_packet(CHAT_TYPE_INFO, lc_text("군주가 내린 축복으로 모든 에너지가 가득 채워집니다"));
-                    ch->point_change(POINT_HP, ch->max_hp() - ch->hp());
-                    ch->point_change(POINT_SP, ch->max_sp() - ch->sp());
-                    ch->effect_packet(SE_SPUP_BLUE);
-                    ch->effect_packet(SE_HPUP_RED);
-                }
-            }
-        }
-    };
-
     auto monarch::heal_my_empire(character *ch, uint32_t price) -> int {
         uint8_t Empire = ch->empire();
         uint32_t pid = ch->player_id();
@@ -81,9 +64,19 @@ namespace metin2::game::inline empire {
 
         int iMapIndex = ch->map_index();
 
-        f_heal_my_empire f;
-        f.empire = Empire;
-        sectree_manager::instance().for_each(iMapIndex, f);
+        sectree_manager::instance().for_each(iMapIndex, [Empire](entity *ent) {
+            if (ent->is_type(ENTITY_CHARACTER)) {
+                character *ch = (character *)ent;
+
+                if (ch->is_pc() && Empire == ch->empire()) {
+                    ch->chat_packet(CHAT_TYPE_INFO, lc_text("군주가 내린 축복으로 모든 에너지가 가득 채워집니다"));
+                    ch->point_change(POINT_HP, ch->max_hp() - ch->hp());
+                    ch->point_change(POINT_SP, ch->max_sp() - ch->sp());
+                    ch->effect_packet(SE_SPUP_BLUE);
+                    ch->effect_packet(SE_HPUP_RED);
+                }
+            }
+        });
 
         sendto_db_dec_money(price, Empire, ch);
 

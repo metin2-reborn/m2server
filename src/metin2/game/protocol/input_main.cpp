@@ -456,60 +456,6 @@ namespace metin2::game::inline protocol {
         return (iExtraLen);
     }
 
-    struct raw_packet_to_character_func {
-        const void *buf;
-        int buf_len;
-
-        raw_packet_to_character_func(const void *buf_value, int buf_len_value) : buf(buf_value), buf_len(buf_len_value) {
-        }
-
-        void operator()(character *c) {
-            if (!c->get_desc())
-                return;
-
-            c->get_desc()->packet(buf, buf_len);
-        }
-    };
-
-    struct f_empire_chat_packet {
-        packet_gc_chat &p;
-        const char *orig_msg;
-        int orig_len;
-        char converted_msg[CHAT_MAX_LEN + 1];
-
-        uint8_t empire;
-        int map_index;
-        int namelen;
-
-        f_empire_chat_packet(packet_gc_chat &p, const char *chat_msg, int len, uint8_t empire_value, int map_index_value, int name_len)
-            : p(p), orig_msg(chat_msg), orig_len(len), empire(empire_value), map_index(map_index_value), namelen(name_len) {
-            memset(converted_msg, 0, sizeof(converted_msg));
-        }
-
-        void operator()(desc *d) {
-            if (!d->get_character())
-                return;
-
-            if (d->get_character()->map_index() != map_index)
-                return;
-
-            d->buffered_packet(&p, sizeof(packet_gc_chat));
-
-            if (d->empire() == empire ||
-                empire == 0 ||
-                d->get_character()->gm_level() > GM_PLAYER ||
-                d->get_character()->is_equip_unique_group(UNIQUE_GROUP_RING_OF_LANGUAGE)) {
-                d->packet(orig_msg, orig_len);
-            } else {
-                utf8_strlcpy(converted_msg, orig_msg, sizeof(converted_msg));
-                size_t len = strlen(converted_msg);
-
-                convert_empire_text(empire, converted_msg + namelen, len - namelen, 10 + 2 * d->get_character()->skill_power(SKILL_LANGUAGE1 + empire - 1));
-                d->packet(converted_msg, orig_len);
-            }
-        }
-    };
-
     auto input_main::chat(character *ch, const char *data, size_t bytes) -> int {
         const packet_cg_chat *pinfo = reinterpret_cast<const packet_cg_chat *>(data);
 
@@ -618,15 +564,36 @@ namespace metin2::game::inline protocol {
             {
                 const desc_manager::desc_set &c_ref_set = desc_manager::instance().client_set();
 
-                std::for_each(c_ref_set.begin(), c_ref_set.end(),
-                    f_empire_chat_packet(pack_chat,
-                        chatbuf,
-                        len,
-                        (ch->gm_level() > GM_PLAYER ||
-                            ch->is_equip_unique_group(UNIQUE_GROUP_RING_OF_LANGUAGE))
-                            ? 0
-                            : ch->empire(),
-                        ch->map_index(), strlen(ch->name())));
+                const uint8_t empire = (ch->gm_level() > GM_PLAYER ||
+                                           ch->is_equip_unique_group(UNIQUE_GROUP_RING_OF_LANGUAGE))
+                                           ? 0
+                                           : ch->empire();
+                const int map_index = ch->map_index();
+                const int namelen = strlen(ch->name());
+                char converted_msg[CHAT_MAX_LEN + 1] = {};
+
+                for (desc *d : c_ref_set) {
+                    if (!d->get_character())
+                        continue;
+
+                    if (d->get_character()->map_index() != map_index)
+                        continue;
+
+                    d->buffered_packet(&pack_chat, sizeof(packet_gc_chat));
+
+                    if (d->empire() == empire ||
+                        empire == 0 ||
+                        d->get_character()->gm_level() > GM_PLAYER ||
+                        d->get_character()->is_equip_unique_group(UNIQUE_GROUP_RING_OF_LANGUAGE)) {
+                        d->packet(chatbuf, len);
+                    } else {
+                        utf8_strlcpy(converted_msg, chatbuf, sizeof(converted_msg));
+                        size_t converted_len = strlen(converted_msg);
+
+                        convert_empire_text(empire, converted_msg + namelen, converted_len - namelen, 10 + 2 * d->get_character()->skill_power(SKILL_LANGUAGE1 + empire - 1));
+                        d->packet(converted_msg, len);
+                    }
+                }
             }
             break;
 
@@ -640,8 +607,15 @@ namespace metin2::game::inline protocol {
                     tbuf.write(&pack_chat, sizeof(pack_chat));
                     tbuf.write(chatbuf, len);
 
-                    raw_packet_to_character_func f(tbuf.read_peek(), tbuf.size());
-                    ch->get_party()->for_each_online_member(f);
+                    const void *buf = tbuf.read_peek();
+                    const int buf_len = tbuf.size();
+
+                    ch->get_party()->for_each_online_member([&](character *c) {
+                        if (!c->get_desc())
+                            return;
+
+                        c->get_desc()->packet(buf, buf_len);
+                    });
                 }
             }
             break;

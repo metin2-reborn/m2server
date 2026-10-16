@@ -60,32 +60,24 @@ namespace metin2::game {
             return 1;
         }
 
-        struct f_build_lua_wedding_map_list {
-            lua_State *l;
-            int count;
-            f_build_lua_wedding_map_list(lua_State *lua) : l(lua), count(1) {
-                lua_newtable(lua);
-            }
-
-            void operator()(marriage::marriage *marriage_value) {
+        auto marriage_get_wedding_list(lua_State *lua) -> int {
+            int count = 1;
+            lua_newtable(lua);
+            marriage::manager::instance().for_each_wedding([&](marriage::marriage *marriage_value) {
                 if (!marriage_value->wedding_info)
                     return;
 
-                lua_newtable(l);
-                lua_pushnumber(l, marriage_value->pid1);
-                lua_rawseti(l, -2, 1);
-                lua_pushnumber(l, marriage_value->pid2);
-                lua_rawseti(l, -2, 2);
-                lua_pushstring(l, marriage_value->name1.c_str());
-                lua_rawseti(l, -2, 3);
-                lua_pushstring(l, marriage_value->name2.c_str());
-                lua_rawseti(l, -2, 4);
-                lua_rawseti(l, -2, count++);
-            }
-        };
-
-        auto marriage_get_wedding_list(lua_State *lua) -> int {
-            marriage::manager::instance().for_each_wedding(f_build_lua_wedding_map_list(lua));
+                lua_newtable(lua);
+                lua_pushnumber(lua, marriage_value->pid1);
+                lua_rawseti(lua, -2, 1);
+                lua_pushnumber(lua, marriage_value->pid2);
+                lua_rawseti(lua, -2, 2);
+                lua_pushstring(lua, marriage_value->name1.c_str());
+                lua_rawseti(lua, -2, 3);
+                lua_pushstring(lua, marriage_value->name2.c_str());
+                lua_rawseti(lua, -2, 4);
+                lua_rawseti(lua, -2, count++);
+            });
             return 1;
         }
 

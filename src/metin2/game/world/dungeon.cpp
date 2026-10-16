@@ -90,71 +90,49 @@ namespace metin2::game::inline world {
             return 0;
     }
 
-    struct f_send_dest_position {
-        f_send_dest_position(int32_t x, int32_t y) {
-            p1.header = HEADER_GC_DUNGEON;
-            p1.subheader = DUNGEON_SUBHEADER_GC_DESTINATION_POSITION;
-            p2.x = x;
-            p2.y = y;
-            p1.size = sizeof(p1) + sizeof(p2);
-        }
-
-        void operator()(character *ch) {
-            ch->get_desc()->buffered_packet(&p1, sizeof(packet_gc_dungeon));
-            ch->get_desc()->packet(&p2, sizeof(packet_gc_dungeon_dest_position));
-        }
-
-        packet_gc_dungeon p1;
-        packet_gc_dungeon_dest_position p2;
-    };
-
     void dungeon::send_dest_position_to_party(party *party_value, int32_t x, int32_t y) {
         if (map_party_.find(party_value) == map_party_.end()) {
             metin2::log::error("Party of leader pid {:d} is not in dungeon {:d}", party_value->leader_pid(), map_index_);
             return;
         }
 
-        f_send_dest_position f(x, y);
-        party_value->for_each_near_member(f);
+        packet_gc_dungeon p1;
+        packet_gc_dungeon_dest_position p2;
+        p1.header = HEADER_GC_DUNGEON;
+        p1.subheader = DUNGEON_SUBHEADER_GC_DESTINATION_POSITION;
+        p2.x = x;
+        p2.y = y;
+        p1.size = sizeof(p1) + sizeof(p2);
+
+        party_value->for_each_near_member([&p1, &p2](character *ch) {
+            ch->get_desc()->buffered_packet(&p1, sizeof(packet_gc_dungeon));
+            ch->get_desc()->packet(&p2, sizeof(packet_gc_dungeon_dest_position));
+        });
     }
 
-    struct f_warp_to_dungeon {
-        f_warp_to_dungeon(int32_t map_index_value, game::world::dungeon *d)
-            : map_index(map_index_value), dungeon(d) {
-            sectree_map *pkSectreeMap = sectree_manager::instance().map(map_index_value);
-            x = pkSectreeMap->setting.pos_spawn.x;
-            y = pkSectreeMap->setting.pos_spawn.y;
-        }
-
-        void operator()(character *ch) {
-            ch->save_exit_location();
-            ch->warp_set(x, y, map_index);
-        }
-
-        int32_t map_index;
-        int32_t x;
-        int32_t y;
-        game::world::dungeon *dungeon;
-    };
-
     void dungeon::join(character *ch) {
-        if (sectree_manager::instance().map(map_index_) == nullptr) {
+        sectree_map *pkSectreeMap = sectree_manager::instance().map(map_index_);
+        if (pkSectreeMap == nullptr) {
             metin2::log::error("No sectree map for dungeon map {:d}", map_index_);
             return;
         }
-        f_warp_to_dungeon(map_index_, this)(ch);
+        ch->save_exit_location();
+        ch->warp_set(pkSectreeMap->setting.pos_spawn.x, pkSectreeMap->setting.pos_spawn.y, map_index_);
     }
 
     void dungeon::join_party(party *party_value) {
         party_value->set_dungeon(this);
         map_party_.insert(std::make_pair(party_value, 0));
 
-        if (sectree_manager::instance().map(map_index_) == nullptr) {
+        sectree_map *pkSectreeMap = sectree_manager::instance().map(map_index_);
+        if (pkSectreeMap == nullptr) {
             metin2::log::error("No sectree map for dungeon map {:d}", map_index_);
             return;
         }
-        f_warp_to_dungeon f(map_index_, this);
-        party_value->for_each_online_member(f);
+        party_value->for_each_online_member([map_index = map_index_, x = pkSectreeMap->setting.pos_spawn.x, y = pkSectreeMap->setting.pos_spawn.y](character *ch) {
+            ch->save_exit_location();
+            ch->warp_set(x, y, map_index);
+        });
     }
 
     void dungeon::quit_party(party *party_value) {
@@ -243,14 +221,8 @@ namespace metin2::game::inline world {
         dec_member(ch);
     }
 
-    struct f_warp_to_position {
-        int32_t map_index;
-        int32_t x;
-        int32_t y;
-        f_warp_to_position(int32_t map_index_value, int32_t x, int32_t y)
-            : map_index(map_index_value), x(x), y(y) {}
-
-        void operator()(entity *ent) {
+    namespace {
+        void warp_to_position(entity *ent, int32_t map_index, int32_t x, int32_t y) {
             if (!ent->is_type(ENTITY_CHARACTER)) {
                 return;
             }
@@ -265,26 +237,7 @@ namespace metin2::game::inline world {
                 ch->warp_set(x, y, map_index);
             }
         }
-    };
-
-    struct f_warp_to_position_force {
-        int32_t map_index;
-        int32_t x;
-        int32_t y;
-        f_warp_to_position_force(int32_t map_index_value, int32_t x, int32_t y)
-            : map_index(map_index_value), x(x), y(y) {}
-
-        void operator()(entity *ent) {
-            if (!ent->is_type(ENTITY_CHARACTER)) {
-                return;
-            }
-            character *ch = (character *)ent;
-            if (!ch->is_pc()) {
-                return;
-            }
-            ch->warp_set(x, y, map_index);
-        }
-    };
+    }
 
     void dungeon::jump_all(int32_t from_map_index, int x, int y) {
         x *= 100;
@@ -297,9 +250,7 @@ namespace metin2::game::inline world {
             return;
         }
 
-        f_warp_to_position f(map_index_, x, y);
-
-        pMap->for_each(f);
+        pMap->for_each([map_index = map_index_, x, y](entity *ent) { warp_to_position(ent, map_index, x, y); });
     }
 
     void dungeon::warp_all(int32_t from_map_index, int x, int y) {
@@ -313,9 +264,16 @@ namespace metin2::game::inline world {
             return;
         }
 
-        f_warp_to_position_force f(map_index_, x, y);
-
-        pMap->for_each(f);
+        pMap->for_each([map_index = map_index_, x, y](entity *ent) {
+            if (!ent->is_type(ENTITY_CHARACTER)) {
+                return;
+            }
+            character *ch = (character *)ent;
+            if (!ch->is_pc()) {
+                return;
+            }
+            ch->warp_set(x, y, map_index);
+        });
     }
 
     void dungeon::jump_party(party *party_value, int32_t from_map_index, int x, int y) {
@@ -339,9 +297,7 @@ namespace metin2::game::inline world {
             party_value->set_dungeon_for_only_party(this);
         }
 
-        f_warp_to_position f(map_index_, x, y);
-
-        party_value->for_each_on_map_member(f, from_map_index);
+        party_value->for_each_on_map_member([map_index = map_index_, x, y](entity *ent) { warp_to_position(ent, map_index, x, y); }, from_map_index);
     }
 
     void dungeon::set_party_null() {
@@ -799,43 +755,20 @@ namespace metin2::game::inline world {
         }
     }
 
-    namespace {
-        struct f_kill_sectree {
-            void operator()(entity *ent) {
-                if (ent->is_type(ENTITY_CHARACTER)) {
-                    character *ch = (character *)ent;
-
-                    if (!ch->is_pc() && !ch->is_pet())
-                        ch->dead();
-                }
-            }
-        };
-
-        struct f_purge_sectree {
-            void operator()(entity *ent) {
-                if (ent->is_type(ENTITY_CHARACTER)) {
-                    character *ch = (character *)ent;
-
-                    if (!ch->is_pc() && !ch->is_pet()) {
-                        character_manager::instance().destroy_character(ch);
-                    }
-                } else if (ent->is_type(ENTITY_ITEM)) {
-                    item *item = (game::items::item *)ent;
-                    item_manager::instance().destroy_item(item);
-                } else
-                    metin2::log::error("Dungeon contains entity of unknown type {:d}", ent->type());
-            }
-        };
-    }
-
     void dungeon::kill_all() {
         sectree_map *pkMap = sectree_manager::instance().map(map_index_);
         if (pkMap == nullptr) {
             metin2::log::error("No sectree map for dungeon map {:d}", map_index_);
             return;
         }
-        f_kill_sectree f;
-        pkMap->for_each(f);
+        pkMap->for_each([](entity *ent) {
+            if (ent->is_type(ENTITY_CHARACTER)) {
+                character *ch = (character *)ent;
+
+                if (!ch->is_pc() && !ch->is_pet())
+                    ch->dead();
+            }
+        });
     }
 
     void dungeon::purge() {
@@ -844,8 +777,19 @@ namespace metin2::game::inline world {
             metin2::log::error("No sectree map for dungeon map {:d}", map_index_);
             return;
         }
-        f_purge_sectree f;
-        pkMap->for_each(f);
+        pkMap->for_each([](entity *ent) {
+            if (ent->is_type(ENTITY_CHARACTER)) {
+                character *ch = (character *)ent;
+
+                if (!ch->is_pc() && !ch->is_pet()) {
+                    character_manager::instance().destroy_character(ch);
+                }
+            } else if (ent->is_type(ENTITY_ITEM)) {
+                item *item = (game::items::item *)ent;
+                item_manager::instance().destroy_item(item);
+            } else
+                metin2::log::error("Dungeon contains entity of unknown type {:d}", ent->type());
+        });
     }
 
     void dungeon::inc_kill_count(character *killer, character *victim) {
@@ -878,17 +822,6 @@ namespace metin2::game::inline world {
         return stone_kill_;
     }
 
-    struct f_exit_dungeon {
-        void operator()(entity *ent) {
-            if (ent->is_type(ENTITY_CHARACTER)) {
-                character *ch = (character *)ent;
-
-                if (ch->is_pc())
-                    ch->exit_to_saved_location();
-            }
-        }
-    };
-
     void dungeon::exit_all() {
         sectree_map *pMap = sectree_manager::instance().map(map_index_);
 
@@ -897,25 +830,14 @@ namespace metin2::game::inline world {
             return;
         }
 
-        f_exit_dungeon f;
+        pMap->for_each([](entity *ent) {
+            if (ent->is_type(ENTITY_CHARACTER)) {
+                character *ch = (character *)ent;
 
-        pMap->for_each(f);
-    }
-
-    namespace {
-        struct f_notice {
-            f_notice(const char *psz_value) : psz(psz_value) {
+                if (ch->is_pc())
+                    ch->exit_to_saved_location();
             }
-
-            void operator()(entity *ent) {
-                if (ent->is_type(ENTITY_CHARACTER)) {
-                    character *ch = (character *)ent;
-                    ch->chat_packet(CHAT_TYPE_NOTICE, "%s", psz);
-                }
-            }
-
-            const char *psz;
-        };
+        });
     }
 
     void dungeon::notice(const char *msg) {
@@ -927,12 +849,23 @@ namespace metin2::game::inline world {
             return;
         }
 
-        f_notice f(msg);
-        pMap->for_each(f);
+        pMap->for_each([msg](entity *ent) {
+            if (ent->is_type(ENTITY_CHARACTER)) {
+                character *ch = (character *)ent;
+                ch->chat_packet(CHAT_TYPE_NOTICE, "%s", msg);
+            }
+        });
     }
 
-    struct f_exit_dungeon_to_start_position {
-        void operator()(entity *ent) {
+    void dungeon::exit_all_to_start_position() {
+        sectree_map *pMap = sectree_manager::instance().map(map_index_);
+
+        if (!pMap) {
+            metin2::log::error("Map {:d} not found", map_index_);
+            return;
+        }
+
+        pMap->for_each([](entity *ent) {
             if (ent->is_type(ENTITY_CHARACTER)) {
                 character *ch = (character *)ent;
 
@@ -945,20 +878,7 @@ namespace metin2::game::inline world {
                         ch->exit_to_saved_location();
                 }
             }
-        }
-    };
-
-    void dungeon::exit_all_to_start_position() {
-        sectree_map *pMap = sectree_manager::instance().map(map_index_);
-
-        if (!pMap) {
-            metin2::log::error("Map {:d} not found", map_index_);
-            return;
-        }
-
-        f_exit_dungeon_to_start_position f;
-
-        pMap->for_each(f);
+        });
     }
 
     EVENTFUNC(dungeon_jump_to_event) {
@@ -1070,22 +990,21 @@ namespace metin2::game::inline world {
                 return;
             }
 
-            f_warp_to_position f(warp_map_index_, warp_x_ * 100, warp_y_ * 100);
-
-            pMap->for_each(f);
+            pMap->for_each([map_index = warp_map_index_, x = warp_x_ * 100, y = warp_y_ * 100](entity *ent) { warp_to_position(ent, map_index, x, y); });
         }
     }
 
-    struct f_near_position {
-        int32_t x;
-        int32_t y;
-        int dist;
-        bool ret;
+    auto dungeon::is_all_pc_near_to(int x, int y, int dist) -> bool {
+        sectree_map *pMap = sectree_manager::instance().map(map_index_);
 
-        f_near_position(int32_t x, int32_t y, int d) : x(x), y(y), dist(d), ret(true) {
+        if (!pMap) {
+            metin2::log::error("Map {:d} not found", map_index_);
+            return false;
         }
 
-        void operator()(entity *ent) {
+        bool ret = true;
+
+        pMap->for_each([x, y, dist, &ret](entity *ent) {
             if (ret == false)
                 return;
 
@@ -1097,22 +1016,9 @@ namespace metin2::game::inline world {
                         ret = false;
                 }
             }
-        }
-    };
+        });
 
-    auto dungeon::is_all_pc_near_to(int x, int y, int dist) -> bool {
-        sectree_map *pMap = sectree_manager::instance().map(map_index_);
-
-        if (!pMap) {
-            metin2::log::error("Map {:d} not found", map_index_);
-            return false;
-        }
-
-        f_near_position f(x, y, dist);
-
-        pMap->for_each(f);
-
-        return f.ret;
+        return ret;
     }
 
     void dungeon::create_item_group(std::string &group_name, item_group &item_group) {

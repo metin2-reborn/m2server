@@ -342,4 +342,6 @@ namespace metin2::game::inline guilds {
         typedef std::map<uint32_t, event_ptr> event_map;
         event_map guild_invite_event_map_;
     };
+
+    void send_guild_name_to_all(uint32_t guild_id, const char *guild_name);
 }

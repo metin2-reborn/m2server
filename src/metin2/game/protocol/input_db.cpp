@@ -57,7 +57,6 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
-#include <functional>
 #include <map>
 #include <string>
 #include <vector>
@@ -1388,7 +1387,7 @@ namespace metin2::game::inline protocol {
 
         motion_manager::instance().build();
 
-        character_manager::instance().for_each_pc(std::mem_fn(&character::compute_points));
+        character_manager::instance().for_each_pc([](character *ch) { ch->compute_points(); });
     }
 
     void input_db::guild_skill_usable_change(const char *data) {

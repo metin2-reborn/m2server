@@ -34,176 +34,6 @@
 
 namespace metin2::game::inline characters {
 
-    namespace {
-        class func_find_chr_for_flag {
-          public:
-            func_find_chr_for_flag(character *chr_value) : chr(chr_value), chr_find(nullptr), min_distance(INT_MAX) {
-            }
-
-            void operator()(entity *ent) {
-                if (!ent->is_type(ENTITY_CHARACTER))
-                    return;
-
-                if (ent->is_observer_mode())
-                    return;
-
-                character *pkChr = (character *)ent;
-
-                if (!pkChr->is_pc())
-                    return;
-
-                if (!pkChr->get_guild())
-                    return;
-
-                if (pkChr->is_dead())
-                    return;
-
-                int iDist = distance_approx(pkChr->x() - chr->x(), pkChr->y() - chr->y());
-
-                if (iDist <= 500 && min_distance > iDist &&
-                    !pkChr->is_affect_flag(AFF_WAR_FLAG1) &&
-                    !pkChr->is_affect_flag(AFF_WAR_FLAG2) &&
-                    !pkChr->is_affect_flag(AFF_WAR_FLAG3)) {
-                    if ((uint32_t)chr->point(POINT_STAT) == pkChr->get_guild()->id()) {
-                        war_map *pMap = pkChr->get_war_map();
-                        uint8_t idx;
-
-                        if (!pMap || !pMap->team_index(pkChr->get_guild()->id(), idx))
-                            return;
-
-                        if (!pMap->is_flag_on_base(idx)) {
-                            chr_find = pkChr;
-                            min_distance = iDist;
-                        }
-                    } else {
-                        chr_find = pkChr;
-                        min_distance = iDist;
-                    }
-                }
-            }
-
-            character *chr;
-            character *chr_find;
-            int min_distance;
-        };
-
-        class func_find_chr_for_flag_base {
-          public:
-            func_find_chr_for_flag_base(character *chr_value) : chr(chr_value) {
-            }
-
-            void operator()(entity *ent) {
-                if (!ent->is_type(ENTITY_CHARACTER))
-                    return;
-
-                if (ent->is_observer_mode())
-                    return;
-
-                character *pkChr = (character *)ent;
-
-                if (!pkChr->is_pc())
-                    return;
-
-                guild *pkGuild = pkChr->get_guild();
-
-                if (!pkGuild)
-                    return;
-
-                int iDist = distance_approx(pkChr->x() - chr->x(), pkChr->y() - chr->y());
-
-                if (iDist <= 500 &&
-                    (pkChr->is_affect_flag(AFF_WAR_FLAG1) ||
-                        pkChr->is_affect_flag(AFF_WAR_FLAG2) ||
-                        pkChr->is_affect_flag(AFF_WAR_FLAG3))) {
-                    affect *pkAff = pkChr->find_affect(AFFECT_WAR_FLAG);
-
-                    metin2::log::debug("War flag base: {} at distance {:d}, affect {}, flag guild {:d}, player guild {:d}",
-                        pkChr->name(), iDist, static_cast<const void *>(pkAff), chr->point(POINT_STAT),
-                        pkChr->get_guild()->id());
-
-                    if (pkAff) {
-                        if ((uint32_t)chr->point(POINT_STAT) == pkGuild->id() &&
-                            chr->point(POINT_STAT) != pkAff->apply_value) {
-                            war_map *pMap = pkChr->get_war_map();
-                            uint8_t idx;
-
-                            if (!pMap || !pMap->team_index(pkGuild->id(), idx))
-                                return;
-
-                            {
-                                uint8_t idx_opp = idx == 0 ? 1 : 0;
-
-                                send_guild_war_score(chr->point(POINT_STAT), pkAff->apply_value, 1);
-
-                                pMap->reset_flag();
-
-                                char buf[256];
-                                snprintf(buf, sizeof(buf), lc_text("%s 길드가 %s 길드의 깃발을 빼앗았습니다!"), pMap->get_guild(idx)->name(), pMap->get_guild(idx_opp)->name());
-                                pMap->notice(buf);
-                            }
-                        }
-                    }
-                }
-            }
-
-            character *chr;
-        };
-
-        class func_find_guard_victim {
-          public:
-            func_find_guard_victim(character *chr, int max_distance) : min_distance_(INT_MAX),
-                                                                       max_distance_(max_distance),
-                                                                       lx_(chr->x()),
-                                                                       ly_(chr->y()),
-                                                                       chr_victim_(nullptr) {
-                                                                       };
-
-            void operator()(entity *ent) {
-                if (!ent->is_type(ENTITY_CHARACTER))
-                    return;
-
-                character *pkChr = (character *)ent;
-
-                if (pkChr->is_pc())
-                    return;
-
-                if (pkChr->is_npc() && !pkChr->is_monster())
-                    return;
-
-                if (pkChr->is_dead())
-                    return;
-
-                if (pkChr->is_affect_flag(AFF_EUNHYUNG) ||
-                    pkChr->is_affect_flag(AFF_INVISIBILITY) ||
-                    pkChr->is_affect_flag(AFF_REVIVE_INVISIBLE))
-                    return;
-
-                if (pkChr->race_num() == 5001)
-                    return;
-
-                int iDistance = distance_approx(lx_ - pkChr->x(), ly_ - pkChr->y());
-
-                if (iDistance < min_distance_ && iDistance <= max_distance_) {
-                    chr_victim_ = pkChr;
-                    min_distance_ = iDistance;
-                }
-            }
-
-            auto victim() -> character * {
-                return (chr_victim_);
-            }
-
-          private:
-            int min_distance_;
-            int max_distance_;
-            int32_t lx_;
-            int32_t ly_;
-
-            character *chr_victim_;
-        };
-
-    }
-
     auto character::is_aggressive() const -> bool {
         return is_set(points_instant_.ai_flag, AIFLAG_AGGRESSIVE);
     }
@@ -415,12 +245,44 @@ namespace metin2::game::inline characters {
             return;
         else if (is_guard_npc()) {
             if (!quest::quest_manager::instance().event_flag("noguard")) {
-                func_find_guard_victim f(this, 50000);
+                int min_distance = INT_MAX;
+                const int max_distance = 50000;
+                const int32_t lx = x();
+                const int32_t ly = y();
+                character *victim = nullptr;
 
-                if (get_sectree())
-                    get_sectree()->for_each_around(f);
+                if (get_sectree()) {
+                    get_sectree()->for_each_around([&](entity *ent) {
+                        if (!ent->is_type(ENTITY_CHARACTER))
+                            return;
 
-                character *victim = f.victim();
+                        character *pkChr = (character *)ent;
+
+                        if (pkChr->is_pc())
+                            return;
+
+                        if (pkChr->is_npc() && !pkChr->is_monster())
+                            return;
+
+                        if (pkChr->is_dead())
+                            return;
+
+                        if (pkChr->is_affect_flag(AFF_EUNHYUNG) ||
+                            pkChr->is_affect_flag(AFF_INVISIBILITY) ||
+                            pkChr->is_affect_flag(AFF_REVIVE_INVISIBLE))
+                            return;
+
+                        if (pkChr->race_num() == 5001)
+                            return;
+
+                        int iDistance = distance_approx(lx - pkChr->x(), ly - pkChr->y());
+
+                        if (iDistance < min_distance && iDistance <= max_distance) {
+                            victim = pkChr;
+                            min_distance = iDistance;
+                        }
+                    });
+                }
 
                 if (victim) {
                     state_duration_ = metin2::config::server().passes_per_sec / 2;
@@ -906,13 +768,55 @@ namespace metin2::game::inline characters {
         if (!pMap)
             return;
 
-        func_find_chr_for_flag f(this);
-        get_sectree()->for_each_around(f);
+        character *chr_find = nullptr;
+        int min_distance = INT_MAX;
 
-        if (!f.chr_find)
+        get_sectree()->for_each_around([&](entity *ent) {
+            if (!ent->is_type(ENTITY_CHARACTER))
+                return;
+
+            if (ent->is_observer_mode())
+                return;
+
+            character *pkChr = (character *)ent;
+
+            if (!pkChr->is_pc())
+                return;
+
+            if (!pkChr->get_guild())
+                return;
+
+            if (pkChr->is_dead())
+                return;
+
+            int iDist = distance_approx(pkChr->x() - x(), pkChr->y() - y());
+
+            if (iDist <= 500 && min_distance > iDist &&
+                !pkChr->is_affect_flag(AFF_WAR_FLAG1) &&
+                !pkChr->is_affect_flag(AFF_WAR_FLAG2) &&
+                !pkChr->is_affect_flag(AFF_WAR_FLAG3)) {
+                if ((uint32_t)point(POINT_STAT) == pkChr->get_guild()->id()) {
+                    war_map *pMap = pkChr->get_war_map();
+                    uint8_t idx;
+
+                    if (!pMap || !pMap->team_index(pkChr->get_guild()->id(), idx))
+                        return;
+
+                    if (!pMap->is_flag_on_base(idx)) {
+                        chr_find = pkChr;
+                        min_distance = iDist;
+                    }
+                } else {
+                    chr_find = pkChr;
+                    min_distance = iDist;
+                }
+            }
+        });
+
+        if (!chr_find)
             return;
 
-        if (nullptr == f.chr_find->get_guild())
+        if (nullptr == chr_find->get_guild())
             return;
 
         char buf[256];
@@ -921,20 +825,71 @@ namespace metin2::game::inline characters {
         if (!pMap->team_index(point(POINT_STAT), idx))
             return;
 
-        f.chr_find->add_affect(AFFECT_WAR_FLAG, POINT_NONE, point(POINT_STAT), idx == 0 ? AFF_WAR_FLAG1 : AFF_WAR_FLAG2, INFINITE_AFFECT_DURATION, 0, false);
-        f.chr_find->add_affect(AFFECT_WAR_FLAG, POINT_MOV_SPEED, 50 - f.chr_find->point(POINT_MOV_SPEED), 0, INFINITE_AFFECT_DURATION, 0, false);
+        chr_find->add_affect(AFFECT_WAR_FLAG, POINT_NONE, point(POINT_STAT), idx == 0 ? AFF_WAR_FLAG1 : AFF_WAR_FLAG2, INFINITE_AFFECT_DURATION, 0, false);
+        chr_find->add_affect(AFFECT_WAR_FLAG, POINT_MOV_SPEED, 50 - chr_find->point(POINT_MOV_SPEED), 0, INFINITE_AFFECT_DURATION, 0, false);
 
         pMap->remove_flag(idx);
 
-        snprintf(buf, sizeof(buf), lc_text("%s 길드의 깃발을 %s 님이 획득하였습니다."), pMap->get_guild(idx)->name(), f.chr_find->name());
+        snprintf(buf, sizeof(buf), lc_text("%s 길드의 깃발을 %s 님이 획득하였습니다."), pMap->get_guild(idx)->name(), chr_find->name());
         pMap->notice(buf);
     }
 
     void character::state_flag_base() {
         state_duration_ = (uint32_t)passes_per_sec(0.5);
 
-        func_find_chr_for_flag_base f(this);
-        get_sectree()->for_each_around(f);
+        get_sectree()->for_each_around([&](entity *ent) {
+            if (!ent->is_type(ENTITY_CHARACTER))
+                return;
+
+            if (ent->is_observer_mode())
+                return;
+
+            character *pkChr = (character *)ent;
+
+            if (!pkChr->is_pc())
+                return;
+
+            guild *pkGuild = pkChr->get_guild();
+
+            if (!pkGuild)
+                return;
+
+            int iDist = distance_approx(pkChr->x() - x(), pkChr->y() - y());
+
+            if (iDist <= 500 &&
+                (pkChr->is_affect_flag(AFF_WAR_FLAG1) ||
+                    pkChr->is_affect_flag(AFF_WAR_FLAG2) ||
+                    pkChr->is_affect_flag(AFF_WAR_FLAG3))) {
+                affect *pkAff = pkChr->find_affect(AFFECT_WAR_FLAG);
+
+                metin2::log::debug("War flag base: {} at distance {:d}, affect {}, flag guild {:d}, player guild {:d}",
+                    pkChr->name(), iDist, static_cast<const void *>(pkAff), point(POINT_STAT),
+                    pkChr->get_guild()->id());
+
+                if (pkAff) {
+                    if ((uint32_t)point(POINT_STAT) == pkGuild->id() &&
+                        point(POINT_STAT) != pkAff->apply_value) {
+                        war_map *pMap = pkChr->get_war_map();
+                        uint8_t idx;
+
+                        if (!pMap || !pMap->team_index(pkGuild->id(), idx))
+                            return;
+
+                        {
+                            uint8_t idx_opp = idx == 0 ? 1 : 0;
+
+                            send_guild_war_score(point(POINT_STAT), pkAff->apply_value, 1);
+
+                            pMap->reset_flag();
+
+                            char buf[256];
+                            snprintf(buf, sizeof(buf), lc_text("%s 길드가 %s 길드의 깃발을 빼앗았습니다!"), pMap->get_guild(idx)->name(), pMap->get_guild(idx_opp)->name());
+                            pMap->notice(buf);
+                        }
+                    }
+                }
+            }
+        });
     }
 
     void character::state_horse() {

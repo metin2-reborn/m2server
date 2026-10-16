@@ -401,27 +401,6 @@ namespace metin2::game::inline guilds {
         map_object_by_vid_.erase(pkObj->get_vid());
     }
 
-    struct f_is_in {
-        int32_t sx, sy;
-        int32_t ex, ey;
-
-        bool in;
-        f_is_in(int32_t sx_value, int32_t sy_value, int32_t ex_value, int32_t ey_value)
-            : sx(sx_value), sy(sy_value), ex(ex_value), ey(ey_value), in(false) {}
-
-        void operator()(entity *ent) {
-            if (ent->is_type(ENTITY_CHARACTER)) {
-                character *ch = (character *)ent;
-                if (ch->is_monster()) {
-                    return;
-                }
-                if (sx <= ch->x() && ch->x() <= ex && sy <= ch->y() && ch->y() <= ey) {
-                    in = true;
-                }
-            }
-        }
-    };
-
     auto land::request_create_object(uint32_t vnum_value, int32_t map_index_value, int32_t x, int32_t y, float x_rot_value, float y_rot_value, float z_rot_value, bool check_another) -> bool {
         sectree_manager &rkSecTreeMgr = sectree_manager::instance();
         object_proto *pkProto = manager::instance().object_proto(vnum_value);
@@ -468,10 +447,20 @@ namespace metin2::game::inline guilds {
                 metin2::log::warn("Cannot create building object, another object is in the way");
                 return false;
             }
-            f_is_in f(osx, osy, oex, oey);
-            rkSecTreeMgr.map(map_index_value)->for_each(f);
+            bool in = false;
+            rkSecTreeMgr.map(map_index_value)->for_each([osx, osy, oex, oey, &in](entity *ent) {
+                if (ent->is_type(ENTITY_CHARACTER)) {
+                    character *ch = (character *)ent;
+                    if (ch->is_monster()) {
+                        return;
+                    }
+                    if (osx <= ch->x() && ch->x() <= oex && osy <= ch->y() && ch->y() <= oey) {
+                        in = true;
+                    }
+                }
+            });
 
-            if (f.in) {
+            if (in) {
                 metin2::log::warn("Cannot create building object, another object is in the way");
                 return false;
             }

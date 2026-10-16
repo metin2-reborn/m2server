@@ -437,14 +437,12 @@ namespace metin2::game::inline empire {
                 pack_script.skin = 1;
                 pack_script.src_size = Script.size();
 
-                quest::f_send_packet_to_empire fSend;
-                fSend.empire = nVictoryEmpireIndex;
-
+                temp_buffer buf;
                 pack_script.size = pack_script.src_size + sizeof(struct packet_script);
-                fSend.buf.write(&pack_script, sizeof(struct packet_script));
-                fSend.buf.write(&Script[0], Script.size());
+                buf.write(&pack_script, sizeof(struct packet_script));
+                buf.write(&Script[0], Script.size());
 
-                pSecMap->for_each(fSend);
+                quest::send_buffer_to_map(pSecMap, buf, nVictoryEmpireIndex);
 
                 char szBuf[512];
                 snprintf(szBuf, sizeof(szBuf), "Second Step: %s remain", empire_name(nVictoryEmpireIndex));
@@ -479,18 +477,6 @@ namespace metin2::game::inline empire {
         }
     }
 
-    struct f_destroy_all_entity {
-        void operator()(entity *ent) {
-            if (true == ent->is_type(ENTITY_CHARACTER)) {
-                character *ch = static_cast<character *>(ent);
-
-                if (false == ch->is_pc()) {
-                    ch->dead();
-                }
-            }
-        }
-    };
-
     void three_way_war::remove_all_monsters_in_three_way() const {
         std::set<int>::const_iterator iter = map_index_set_.begin();
 
@@ -498,9 +484,15 @@ namespace metin2::game::inline empire {
             sectree_map *pSecMap = sectree_manager::instance().map(*iter);
 
             if (nullptr != pSecMap) {
-                f_destroy_all_entity f;
+                pSecMap->for_each([](entity *ent) {
+                    if (true == ent->is_type(ENTITY_CHARACTER)) {
+                        character *ch = static_cast<character *>(ent);
 
-                pSecMap->for_each(f);
+                        if (false == ch->is_pc()) {
+                            ch->dead();
+                        }
+                    }
+                });
             }
 
             ++iter;

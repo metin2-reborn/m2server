@@ -49,15 +49,13 @@ namespace metin2::game {
         auto dungeon_set_quest_flag(lua_State *lua) -> int {
             quest_manager &q = quest_manager::instance();
 
-            f_set_quest_flag f;
-
-            f.flagname = q.current_pc()->current_quest_name() + "." + lua_tostring(lua, 1);
-            f.value = (int)rint(lua_tonumber(lua, 2));
+            std::string flagname = q.current_pc()->current_quest_name() + "." + lua_tostring(lua, 1);
+            int value = (int)rint(lua_tonumber(lua, 2));
 
             dungeon *pDungeon = q.current_dungeon();
 
             if (pDungeon)
-                pDungeon->for_each_member(f);
+                pDungeon->for_each_member([&](character *ch) { set_pc_quest_flag(ch, flagname, value); });
 
             return 0;
         }
@@ -512,30 +510,6 @@ namespace metin2::game {
             return 0;
         }
 
-        struct f_purge_area {
-            int x1, y1, x2, y2;
-            character *except_char;
-
-            f_purge_area(int a, int b, int c, int d, character *p)
-                : x1(a), y1(b), x2(c), y2(d),
-                  except_char(p) {}
-
-            void operator()(entity *ent) {
-                if (true == ent->is_type(ENTITY_CHARACTER)) {
-                    character *pChar = static_cast<character *>(ent);
-
-                    if (pChar == except_char)
-                        return;
-
-                    if (!pChar->is_pet() && (true == pChar->is_monster() || true == pChar->is_stone())) {
-                        if (x1 <= pChar->x() && pChar->x() <= x2 && y1 <= pChar->y() && pChar->y() <= y2) {
-                            character_manager::instance().destroy_character(pChar);
-                        }
-                    }
-                }
-            }
-        };
-
         auto dungeon_purge_area(lua_State *lua) -> int {
             if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2) || !lua_isnumber(lua, 3) || !lua_isnumber(lua, 4))
                 return 0;
@@ -564,9 +538,7 @@ namespace metin2::game {
             sectree_map *pSectree = sectree_manager::instance().map(mapIndex);
 
             if (nullptr != pSectree) {
-                f_purge_area func(x1, y1, x2, y2, quest_manager::instance().current_npc_character_ptr());
-
-                pSectree->for_each(func);
+                purge_monsters_in_area(pSectree, x1, y1, x2, y2, quest_manager::instance().current_npc_character_ptr());
             }
 
             return 0;
@@ -897,11 +869,40 @@ namespace metin2::game {
             return 0;
         }
 
-        struct f_say_dungeon_by_item_group {
-            const dungeon::item_group *item_group;
-            std::string can_enter_ment;
-            std::string cant_enter_ment;
-            void operator()(entity *ent) {
+        auto dungeon_say_diff_by_item_group(lua_State *lua) -> int {
+            if (!lua_isstring(lua, 1) || !lua_isstring(lua, 2) || !lua_isstring(lua, 3)) {
+                metin2::log::error("Invalid arguments");
+                return 0;
+            }
+
+            quest_manager &q = quest_manager::instance();
+            dungeon *pDungeon = q.current_dungeon();
+
+            if (!pDungeon) {
+                quest::error("Not in a dungeon");
+                return 0;
+            }
+
+            sectree_map *pMap = sectree_manager::instance().map(pDungeon->map_index());
+
+            if (!pMap) {
+                quest::error("No map with index {:d}", pDungeon->map_index());
+                return 0;
+            }
+            std::string group_name(lua_tostring(lua, 1));
+            const dungeon::item_group *item_group = pDungeon->get_item_group(group_name);
+
+            if (item_group == nullptr) {
+                quest::error("Unknown item group {}", group_name);
+                return 0;
+            }
+
+            std::string can_enter_ment = lua_tostring(lua, 2);
+            can_enter_ment += "[ENTER][ENTER][ENTER][ENTER][DONE]";
+            std::string cant_enter_ment = lua_tostring(lua, 3);
+            cant_enter_ment += "[ENTER][ENTER][ENTER][ENTER][DONE]";
+
+            pMap->for_each([&](entity *ent) {
                 if (ent->is_type(ENTITY_CHARACTER)) {
                     character *ch = (character *)ent;
 
@@ -933,67 +934,10 @@ namespace metin2::game {
                         ch->get_desc()->packet(buf.read_peek(), buf.size());
                     }
                 }
-            }
-        };
-
-        auto dungeon_say_diff_by_item_group(lua_State *lua) -> int {
-            if (!lua_isstring(lua, 1) || !lua_isstring(lua, 2) || !lua_isstring(lua, 3)) {
-                metin2::log::error("Invalid arguments");
-                return 0;
-            }
-
-            quest_manager &q = quest_manager::instance();
-            dungeon *pDungeon = q.current_dungeon();
-
-            if (!pDungeon) {
-                quest::error("Not in a dungeon");
-                return 0;
-            }
-
-            sectree_map *pMap = sectree_manager::instance().map(pDungeon->map_index());
-
-            if (!pMap) {
-                quest::error("No map with index {:d}", pDungeon->map_index());
-                return 0;
-            }
-            f_say_dungeon_by_item_group f;
-
-            std::string group_name(lua_tostring(lua, 1));
-            f.item_group = pDungeon->get_item_group(group_name);
-
-            if (f.item_group == nullptr) {
-                quest::error("Unknown item group {}", group_name);
-                return 0;
-            }
-
-            f.can_enter_ment = lua_tostring(lua, 2);
-            f.can_enter_ment += "[ENTER][ENTER][ENTER][ENTER][DONE]";
-            f.cant_enter_ment = lua_tostring(lua, 3);
-            f.cant_enter_ment += "[ENTER][ENTER][ENTER][ENTER][DONE]";
-
-            pMap->for_each(f);
+            });
 
             return 0;
         }
-
-        struct f_exit_dungeon_by_item_group {
-            const dungeon::item_group *item_group;
-
-            void operator()(entity *ent) {
-                if (ent->is_type(ENTITY_CHARACTER)) {
-                    character *ch = (character *)ent;
-
-                    if (ch->is_pc()) {
-                        for (dungeon::item_group::const_iterator it = item_group->begin(); it != item_group->end(); it++) {
-                            if (ch->count_specify_item(it->first) >= it->second) {
-                                return;
-                            }
-                        }
-                        ch->exit_to_saved_location();
-                    }
-                }
-            }
-        };
 
         auto dungeon_exit_all_by_item_group(lua_State *lua) -> int {
             if (!lua_isstring(lua, 1)) {
@@ -1015,39 +959,31 @@ namespace metin2::game {
                 quest::error("No map with index {:d}", pDungeon->map_index());
                 return 0;
             }
-            f_exit_dungeon_by_item_group f;
-
             std::string group_name(lua_tostring(lua, 1));
-            f.item_group = pDungeon->get_item_group(group_name);
+            const dungeon::item_group *item_group = pDungeon->get_item_group(group_name);
 
-            if (f.item_group == nullptr) {
+            if (item_group == nullptr) {
                 quest::error("Unknown item group {}", group_name);
                 return 0;
             }
 
-            pMap->for_each(f);
-
-            return 0;
-        }
-
-        struct f_delete_item_in_item_group {
-            const dungeon::item_group *item_group;
-
-            void operator()(entity *ent) {
+            pMap->for_each([&](entity *ent) {
                 if (ent->is_type(ENTITY_CHARACTER)) {
                     character *ch = (character *)ent;
 
                     if (ch->is_pc()) {
                         for (dungeon::item_group::const_iterator it = item_group->begin(); it != item_group->end(); it++) {
                             if (ch->count_specify_item(it->first) >= it->second) {
-                                ch->remove_specify_item(it->first, it->second);
                                 return;
                             }
                         }
+                        ch->exit_to_saved_location();
                     }
                 }
-            }
-        };
+            });
+
+            return 0;
+        }
 
         auto dungeon_delete_item_in_item_group_from_all(lua_State *lua) -> int {
             if (!lua_isstring(lua, 1)) {
@@ -1069,17 +1005,28 @@ namespace metin2::game {
                 quest::error("No map with index {:d}", pDungeon->map_index());
                 return 0;
             }
-            f_delete_item_in_item_group f;
-
             std::string group_name(lua_tostring(lua, 1));
-            f.item_group = pDungeon->get_item_group(group_name);
+            const dungeon::item_group *item_group = pDungeon->get_item_group(group_name);
 
-            if (f.item_group == nullptr) {
+            if (item_group == nullptr) {
                 quest::error("Unknown item group {}", group_name);
                 return 0;
             }
 
-            pMap->for_each(f);
+            pMap->for_each([&](entity *ent) {
+                if (ent->is_type(ENTITY_CHARACTER)) {
+                    character *ch = (character *)ent;
+
+                    if (ch->is_pc()) {
+                        for (dungeon::item_group::const_iterator it = item_group->begin(); it != item_group->end(); it++) {
+                            if (ch->count_specify_item(it->first) >= it->second) {
+                                ch->remove_specify_item(it->first, it->second);
+                                return;
+                            }
+                        }
+                    }
+                }
+            });
 
             return 0;
         }
@@ -1184,8 +1131,14 @@ namespace metin2::game {
                 return 0;
             }
 
-            f_set_warp_location f((int)lua_tonumber(lua, 1), (int)lua_tonumber(lua, 2), (int)lua_tonumber(lua, 3));
-            pDungeon->for_each_member(f);
+            int32_t map_index = (int)lua_tonumber(lua, 1);
+            int32_t x = (int)lua_tonumber(lua, 2);
+            int32_t y = (int)lua_tonumber(lua, 3);
+            pDungeon->for_each_member([&](character *ch) {
+                if (ch->is_pc()) {
+                    ch->set_warp_location(map_index, x, y);
+                }
+            });
 
             return 0;
         }
@@ -1218,19 +1171,17 @@ namespace metin2::game {
         auto dungeon_set_quest_flag2(lua_State *lua) -> int {
             quest_manager &q = quest_manager::instance();
 
-            f_set_quest_flag f;
-
             if (!lua_isstring(lua, 1) || !lua_isstring(lua, 2) || !lua_isnumber(lua, 3)) {
                 quest::error("Invalid arguments");
             }
 
-            f.flagname = std::string(lua_tostring(lua, 1)) + "." + lua_tostring(lua, 2);
-            f.value = (int)rint(lua_tonumber(lua, 3));
+            std::string flagname = std::string(lua_tostring(lua, 1)) + "." + lua_tostring(lua, 2);
+            int value = (int)rint(lua_tonumber(lua, 3));
 
             dungeon *pDungeon = q.current_dungeon();
 
             if (pDungeon)
-                pDungeon->for_each_member(f);
+                pDungeon->for_each_member([&](character *ch) { set_pc_quest_flag(ch, flagname, value); });
 
             return 0;
         }

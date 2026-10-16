@@ -80,7 +80,7 @@ namespace metin2::game::inline guilds {
         void around_rank_string(uint32_t my_guild, char *buffer, size_t buflen);
 
         template <typename Func>
-        void for_each_war(Func &f);
+        void for_each_war(Func &&f);
 
         auto disband_delay() -> int;
         auto withdraw_delay() -> int;
@@ -106,7 +106,7 @@ namespace metin2::game::inline guilds {
     };
 
     template <typename Func>
-    void guild_manager::for_each_war(Func &f) {
+    void guild_manager::for_each_war(Func &&f) {
         for (auto it = guild_war_.begin(); it != guild_war_.end(); ++it) {
             f(it->first, it->second);
         }

@@ -719,16 +719,11 @@ namespace metin2::game::inline characters {
         skill_level_packet();
     }
 
-    struct f_find_near_victim {
-        f_find_near_victim(character *center, character *attacker, const character_set &excepts_set_value = empty_set_)
-            : chr_center(center),
-              chr_next_target(nullptr),
-              chr_attacker(attacker),
-              count(0),
-              excepts_set(excepts_set_value) {
-        }
+    auto find_near_victim(character *center, character *attacker, const character_set &excepts_set = {}) -> character * {
+        character *next_target = nullptr;
+        int count = 0;
 
-        void operator()(entity *ent) {
+        center->get_sectree()->for_each_around([&](entity *ent) {
             if (!ent->is_type(ENTITY_CHARACTER))
                 return;
 
@@ -739,41 +734,28 @@ namespace metin2::game::inline characters {
                     return;
             }
 
-            if (chr_center == pkChr)
+            if (center == pkChr)
                 return;
 
-            if (!battle_is_attackable(chr_attacker, pkChr)) {
+            if (!battle_is_attackable(attacker, pkChr)) {
                 return;
             }
 
-            if (abs(chr_center->x() - pkChr->x()) > 1000 || abs(chr_center->y() - pkChr->y()) > 1000)
+            if (abs(center->x() - pkChr->x()) > 1000 || abs(center->y() - pkChr->y()) > 1000)
                 return;
 
-            float fDist = distance_approx(chr_center->x() - pkChr->x(), chr_center->y() - pkChr->y());
+            float fDist = distance_approx(center->x() - pkChr->x(), center->y() - pkChr->y());
 
             if (fDist < 1000) {
                 ++count;
 
                 if ((count == 1) || number(1, count) == 1)
-                    chr_next_target = pkChr;
+                    next_target = pkChr;
             }
-        }
+        });
 
-        auto victim() -> character * {
-            return chr_next_target;
-        }
-
-        character *chr_center;
-        character *chr_next_target;
-        character *chr_attacker;
-        int count;
-        const character_set &excepts_set;
-
-      private:
-        static character_set empty_set_;
-    };
-
-    character_set f_find_near_victim::empty_set_;
+        return next_target;
+    }
 
     EVENTINFO(chain_lightning_event_info) {
         uint32_t victim;
@@ -810,12 +792,8 @@ namespace metin2::game::inline characters {
         }
 
         if (!pkTarget) {
-            f_find_near_victim f(pkChrVictim, pkChr, pkChr->chain_lighting_except());
-
-            if (pkChrVictim->get_sectree()) {
-                pkChrVictim->get_sectree()->for_each_around(f);
-                pkTarget = f.victim();
-            }
+            if (pkChrVictim->get_sectree())
+                pkTarget = find_near_victim(pkChrVictim, pkChr, pkChr->chain_lighting_except());
         }
 
         if (pkTarget) {
@@ -854,400 +832,366 @@ namespace metin2::game::inline characters {
         }
     }
 
-    struct func_splash_damage {
-        func_splash_damage(int x_value, int y_value, skill_proto *sk_value, character *chr_value, int amount_value, int ag, int max_hit_value, item *weapon_value, bool disable_cooltime_value, skill_use_info *info_value, uint8_t use_skill_power_value)
-            : x(x_value), y(y_value), sk(sk_value), chr(chr_value), amount(amount_value), count(0), max_hit(max_hit_value), weapon(weapon_value), disable_cooltime(disable_cooltime_value), info(info_value), use_skill_power(use_skill_power_value) {
+    void splash_damage(entity *ent, int x, int y, skill_proto *sk, character *chr, item *weapon, bool disable_cooltime, skill_use_info *info, uint8_t use_skill_power) {
+        if (!ent->is_type(ENTITY_CHARACTER)) {
+            return;
         }
 
-        void operator()(entity *ent) {
-            if (!ent->is_type(ENTITY_CHARACTER)) {
-                return;
-            }
+        character *pkChrVictim = (character *)ent;
 
-            character *pkChrVictim = (character *)ent;
+        if (distance_approx(x - pkChrVictim->x(), y - pkChrVictim->y()) > sk->splash_range) {
+            if (metin2::config::test_server())
+                metin2::log::debug("Splash skill of {}: target too far", chr->name());
+            return;
+        }
 
-            if (distance_approx(x - pkChrVictim->x(), y - pkChrVictim->y()) > sk->splash_range) {
-                if (metin2::config::test_server())
-                    metin2::log::debug("Splash skill of {}: target too far", chr->name());
-                return;
-            }
+        if (!battle_is_attackable(chr, pkChrVictim)) {
+            if (metin2::config::test_server())
+                metin2::log::debug("Splash skill of {}: target not attackable", chr->name());
+            return;
+        }
 
-            if (!battle_is_attackable(chr, pkChrVictim)) {
-                if (metin2::config::test_server())
-                    metin2::log::debug("Splash skill of {}: target not attackable", chr->name());
-                return;
-            }
-
-            if (chr->is_pc())
-                if (!(sk->vnum >= GUILD_SKILL_START && sk->vnum <= GUILD_SKILL_END))
-                    if (!disable_cooltime && info && !info->hit_once(sk->vnum) && sk->vnum != SKILL_MUYEONG) {
-                        if (metin2::config::test_server())
-                            metin2::log::debug("Splash skill of {}: cannot hit again yet", chr->name());
-                        return;
-                    }
-
-            ++count;
-
-            int iDam;
-
-            sk->set_point_var("k", 1.0 * use_skill_power * sk->max_level / 100);
-            sk->set_point_var("lv", chr->level());
-            sk->set_point_var("iq", chr->point(POINT_IQ));
-            sk->set_point_var("str", chr->point(POINT_ST));
-            sk->set_point_var("dex", chr->point(POINT_DX));
-            sk->set_point_var("con", chr->point(POINT_HT));
-            sk->set_point_var("def", chr->point(POINT_DEF_GRADE));
-            sk->set_point_var("odef", chr->point(POINT_DEF_GRADE) - chr->point(POINT_DEF_GRADE_BONUS));
-            sk->set_point_var("horse_level", chr->horse_level());
-
-            bool bIgnoreDefense = false;
-
-            if (is_set(sk->flag, SKILL_FLAG_PENETRATE)) {
-                int iPenetratePct = (int)sk->point_poly2.eval();
-
-                if (prob(iPenetratePct))
-                    bIgnoreDefense = true;
-            }
-
-            bool bIgnoreTargetRating = false;
-
-            if (is_set(sk->flag, SKILL_FLAG_IGNORE_TARGET_RATING)) {
-                int iPct = (int)sk->point_poly2.eval();
-
-                if (prob(iPct))
-                    bIgnoreTargetRating = true;
-            }
-
-            sk->set_point_var("ar", calc_attack_rating(chr, pkChrVictim, bIgnoreTargetRating));
-
-            if (is_set(sk->flag, SKILL_FLAG_USE_MELEE_DAMAGE))
-                sk->set_point_var("atk", calc_melee_damage(chr, pkChrVictim, true, bIgnoreTargetRating));
-            else if (is_set(sk->flag, SKILL_FLAG_USE_ARROW_DAMAGE)) {
-                item *pkBow;
-                item *pkArrow;
-
-                if (1 == chr->arrow_and_bow(&pkBow, &pkArrow, 1))
-                    sk->set_point_var("atk", calc_arrow_damage(chr, pkChrVictim, pkBow, pkArrow, true));
-                else
-                    sk->set_point_var("atk", 0);
-            }
-
-            if (sk->point_on == POINT_MOV_SPEED)
-                sk->point_poly.set_var("maxv", pkChrVictim->limit_point(POINT_MOV_SPEED));
-
-            sk->set_point_var("maxhp", pkChrVictim->max_hp());
-            sk->set_point_var("maxsp", pkChrVictim->max_sp());
-
-            sk->set_point_var("chain", chr->chain_lightning_index());
-            chr->inc_chain_lightning_index();
-
-            bool bUnderEunhyung = chr->affected_eunhyung() > 0;
-
-            sk->set_point_var("ek", chr->affected_eunhyung() * 1. / 100);
-            set_poly_var_for_attack(chr, sk, weapon);
-
-            int iAmount = 0;
-
-            if (chr->used_skill_master_type(sk->vnum) >= SKILL_GRAND_MASTER) {
-                iAmount = (int)sk->master_bonus_poly.eval();
-            } else {
-                iAmount = (int)sk->point_poly.eval();
-            }
-
-            if (metin2::config::test_server() && iAmount == 0 && sk->point_on != POINT_NONE) {
-                chr->chat_packet(CHAT_TYPE_INFO, "효과가 없습니다. 스킬 공식을 확인하세요");
-            }
-            iAmount = -iAmount;
-
-            if (sk->vnum == SKILL_AMSEOP) {
-                float fDelta = get_degree_delta(chr->rotation(), pkChrVictim->rotation());
-                float adjust;
-
-                if (fDelta < 35.0f) {
-                    adjust = 1.5f;
-
-                    if (bUnderEunhyung)
-                        adjust += 0.5f;
-
-                    if (chr->wear(WEAR_WEAPON) && chr->wear(WEAR_WEAPON)->sub_type() == WEAPON_DAGGER) {
-                        adjust += 0.5f;
-                    }
-                } else {
-                    adjust = 1.0f;
-
-                    if (bUnderEunhyung)
-                        adjust += 0.5f;
-
-                    if (chr->wear(WEAR_WEAPON) && chr->wear(WEAR_WEAPON)->sub_type() == WEAPON_DAGGER)
-                        adjust += 0.5f;
+        if (chr->is_pc())
+            if (!(sk->vnum >= GUILD_SKILL_START && sk->vnum <= GUILD_SKILL_END))
+                if (!disable_cooltime && info && !info->hit_once(sk->vnum) && sk->vnum != SKILL_MUYEONG) {
+                    if (metin2::config::test_server())
+                        metin2::log::debug("Splash skill of {}: cannot hit again yet", chr->name());
+                    return;
                 }
 
-                iAmount = (int)(iAmount * adjust);
-            } else if (sk->vnum == SKILL_GUNGSIN) {
-                float adjust = 1.0;
+        int iDam;
+
+        sk->set_point_var("k", 1.0 * use_skill_power * sk->max_level / 100);
+        sk->set_point_var("lv", chr->level());
+        sk->set_point_var("iq", chr->point(POINT_IQ));
+        sk->set_point_var("str", chr->point(POINT_ST));
+        sk->set_point_var("dex", chr->point(POINT_DX));
+        sk->set_point_var("con", chr->point(POINT_HT));
+        sk->set_point_var("def", chr->point(POINT_DEF_GRADE));
+        sk->set_point_var("odef", chr->point(POINT_DEF_GRADE) - chr->point(POINT_DEF_GRADE_BONUS));
+        sk->set_point_var("horse_level", chr->horse_level());
+
+        bool bIgnoreDefense = false;
+
+        if (is_set(sk->flag, SKILL_FLAG_PENETRATE)) {
+            int iPenetratePct = (int)sk->point_poly2.eval();
+
+            if (prob(iPenetratePct))
+                bIgnoreDefense = true;
+        }
+
+        bool bIgnoreTargetRating = false;
+
+        if (is_set(sk->flag, SKILL_FLAG_IGNORE_TARGET_RATING)) {
+            int iPct = (int)sk->point_poly2.eval();
+
+            if (prob(iPct))
+                bIgnoreTargetRating = true;
+        }
+
+        sk->set_point_var("ar", calc_attack_rating(chr, pkChrVictim, bIgnoreTargetRating));
+
+        if (is_set(sk->flag, SKILL_FLAG_USE_MELEE_DAMAGE))
+            sk->set_point_var("atk", calc_melee_damage(chr, pkChrVictim, true, bIgnoreTargetRating));
+        else if (is_set(sk->flag, SKILL_FLAG_USE_ARROW_DAMAGE)) {
+            item *pkBow;
+            item *pkArrow;
+
+            if (1 == chr->arrow_and_bow(&pkBow, &pkArrow, 1))
+                sk->set_point_var("atk", calc_arrow_damage(chr, pkChrVictim, pkBow, pkArrow, true));
+            else
+                sk->set_point_var("atk", 0);
+        }
+
+        if (sk->point_on == POINT_MOV_SPEED)
+            sk->point_poly.set_var("maxv", pkChrVictim->limit_point(POINT_MOV_SPEED));
+
+        sk->set_point_var("maxhp", pkChrVictim->max_hp());
+        sk->set_point_var("maxsp", pkChrVictim->max_sp());
+
+        sk->set_point_var("chain", chr->chain_lightning_index());
+        chr->inc_chain_lightning_index();
+
+        bool bUnderEunhyung = chr->affected_eunhyung() > 0;
+
+        sk->set_point_var("ek", chr->affected_eunhyung() * 1. / 100);
+        set_poly_var_for_attack(chr, sk, weapon);
+
+        int iAmount = 0;
+
+        if (chr->used_skill_master_type(sk->vnum) >= SKILL_GRAND_MASTER) {
+            iAmount = (int)sk->master_bonus_poly.eval();
+        } else {
+            iAmount = (int)sk->point_poly.eval();
+        }
+
+        if (metin2::config::test_server() && iAmount == 0 && sk->point_on != POINT_NONE) {
+            chr->chat_packet(CHAT_TYPE_INFO, "효과가 없습니다. 스킬 공식을 확인하세요");
+        }
+        iAmount = -iAmount;
+
+        if (sk->vnum == SKILL_AMSEOP) {
+            float fDelta = get_degree_delta(chr->rotation(), pkChrVictim->rotation());
+            float adjust;
+
+            if (fDelta < 35.0f) {
+                adjust = 1.5f;
+
+                if (bUnderEunhyung)
+                    adjust += 0.5f;
 
                 if (chr->wear(WEAR_WEAPON) && chr->wear(WEAR_WEAPON)->sub_type() == WEAPON_DAGGER) {
-                    adjust = 1.35f;
+                    adjust += 0.5f;
                 }
+            } else {
+                adjust = 1.0f;
 
-                iAmount = (int)(iAmount * adjust);
+                if (bUnderEunhyung)
+                    adjust += 0.5f;
+
+                if (chr->wear(WEAR_WEAPON) && chr->wear(WEAR_WEAPON)->sub_type() == WEAPON_DAGGER)
+                    adjust += 0.5f;
             }
 
-            iDam = calc_battle_damage(iAmount, chr->level(), pkChrVictim->level());
+            iAmount = (int)(iAmount * adjust);
+        } else if (sk->vnum == SKILL_GUNGSIN) {
+            float adjust = 1.0;
 
-            if (chr->is_pc() && chr->skill_use_info_[sk->vnum].main_target_vid() != (uint32_t)pkChrVictim->get_vid()) {
-                iDam = (int)(iDam * sk->splash_around_damage_adjust_poly.eval());
+            if (chr->wear(WEAR_WEAPON) && chr->wear(WEAR_WEAPON)->sub_type() == WEAPON_DAGGER) {
+                adjust = 1.35f;
             }
 
-            damage_type dt = DAMAGE_TYPE_NONE;
+            iAmount = (int)(iAmount * adjust);
+        }
 
-            switch (sk->skill_attr_type) {
-            case SKILL_ATTR_TYPE_NORMAL:
-                break;
+        iDam = calc_battle_damage(iAmount, chr->level(), pkChrVictim->level());
 
-            case SKILL_ATTR_TYPE_MELEE:
-                {
-                    dt = DAMAGE_TYPE_MELEE;
+        if (chr->is_pc() && chr->skill_use_info_[sk->vnum].main_target_vid() != (uint32_t)pkChrVictim->get_vid()) {
+            iDam = (int)(iDam * sk->splash_around_damage_adjust_poly.eval());
+        }
 
-                    item *pkWeapon = chr->wear(WEAR_WEAPON);
+        damage_type dt = DAMAGE_TYPE_NONE;
 
-                    if (pkWeapon)
-                        switch (pkWeapon->sub_type()) {
-                        case WEAPON_SWORD:
-                            iDam = iDam * (100 - pkChrVictim->point(POINT_RESIST_SWORD)) / 100;
-                            break;
+        switch (sk->skill_attr_type) {
+        case SKILL_ATTR_TYPE_NORMAL:
+            break;
 
-                        case WEAPON_TWO_HANDED:
-                            iDam = iDam * (100 - pkChrVictim->point(POINT_RESIST_TWOHAND)) / 100;
-
-                            break;
-
-                        case WEAPON_DAGGER:
-                            iDam = iDam * (100 - pkChrVictim->point(POINT_RESIST_DAGGER)) / 100;
-                            break;
-
-                        case WEAPON_BELL:
-                            iDam = iDam * (100 - pkChrVictim->point(POINT_RESIST_BELL)) / 100;
-                            break;
-
-                        case WEAPON_FAN:
-                            iDam = iDam * (100 - pkChrVictim->point(POINT_RESIST_FAN)) / 100;
-                            break;
-                        }
-
-                    if (!bIgnoreDefense)
-                        iDam -= pkChrVictim->point(POINT_DEF_GRADE);
-                }
-                break;
-
-            case SKILL_ATTR_TYPE_RANGE:
-                dt = DAMAGE_TYPE_RANGE;
-                iDam = iDam * (100 - pkChrVictim->point(POINT_RESIST_BOW)) / 100;
-                break;
-
-            case SKILL_ATTR_TYPE_MAGIC:
-                dt = DAMAGE_TYPE_MAGIC;
-                iDam = calc_att_bonus(chr, pkChrVictim, iDam);
-                iDam = iDam * (100 - pkChrVictim->point(POINT_RESIST_MAGIC)) / 100;
-                break;
-
-            default:
-                metin2::log::error("Unknown skill attr type {:d} (skill {:d})", sk->skill_attr_type, sk->vnum);
-                break;
-            }
-
-            if (pkChrVictim->is_npc()) {
-                if (is_set(sk->flag, SKILL_FLAG_WIND)) {
-                    iDam = iDam * (100 - pkChrVictim->point(POINT_RESIST_WIND)) / 100;
-                }
-
-                if (is_set(sk->flag, SKILL_FLAG_ELEC)) {
-                    iDam = iDam * (100 - pkChrVictim->point(POINT_RESIST_ELEC)) / 100;
-                }
-
-                if (is_set(sk->flag, SKILL_FLAG_FIRE)) {
-                    iDam = iDam * (100 - pkChrVictim->point(POINT_RESIST_FIRE)) / 100;
-                }
-            }
-
-            if (is_set(sk->flag, SKILL_FLAG_COMPUTE_MAGIC_DAMAGE))
-                dt = DAMAGE_TYPE_MAGIC;
-
-            if (pkChrVictim->can_begin_fight())
-                pkChrVictim->begin_fight(chr);
-
-            if (sk->vnum == SKILL_CHAIN)
-                metin2::log::debug("{}: chain lightning index {:d}, damage {:d}, damage type {:d}", chr->name(), chr->chain_lightning_index() - 1, iDam, dt);
-
+        case SKILL_ATTR_TYPE_MELEE:
             {
-                uint8_t AntiSkillID = 0;
+                dt = DAMAGE_TYPE_MELEE;
 
-                switch (sk->vnum) {
-                case SKILL_TANHWAN:    AntiSkillID = SKILL_7_A_ANTI_TANHWAN; break;
-                case SKILL_AMSEOP:     AntiSkillID = SKILL_7_B_ANTI_AMSEOP; break;
-                case SKILL_SWAERYUNG:  AntiSkillID = SKILL_7_C_ANTI_SWAERYUNG; break;
-                case SKILL_YONGBI:     AntiSkillID = SKILL_7_D_ANTI_YONGBI; break;
-                case SKILL_GIGONGCHAM: AntiSkillID = SKILL_8_A_ANTI_GIGONGCHAM; break;
-                case SKILL_YEONSA:     AntiSkillID = SKILL_8_B_ANTI_YEONSA; break;
-                case SKILL_MAHWAN:     AntiSkillID = SKILL_8_C_ANTI_MAHWAN; break;
-                case SKILL_BYEURAK:    AntiSkillID = SKILL_8_D_ANTI_BYEURAK; break;
-                }
+                item *pkWeapon = chr->wear(WEAR_WEAPON);
 
-                if (0 != AntiSkillID) {
-                    uint8_t AntiSkillLevel = pkChrVictim->skill_level(AntiSkillID);
+                if (pkWeapon)
+                    switch (pkWeapon->sub_type()) {
+                    case WEAPON_SWORD:
+                        iDam = iDam * (100 - pkChrVictim->point(POINT_RESIST_SWORD)) / 100;
+                        break;
 
-                    if (0 != AntiSkillLevel) {
-                        skill_proto *pkSk = skill_manager::instance().get(AntiSkillID);
-                        if (!pkSk) {
-                            metin2::log::error("Anti skill {:d} is not in the skill proto", AntiSkillID);
-                        } else {
-                            pkSk->set_point_var("k", 1.0f * pkChrVictim->skill_power(AntiSkillID) * pkSk->max_level / 100);
+                    case WEAPON_TWO_HANDED:
+                        iDam = iDam * (100 - pkChrVictim->point(POINT_RESIST_TWOHAND)) / 100;
 
-                            double ResistAmount = pkSk->point_poly.eval();
+                        break;
 
-                            metin2::log::debug("Anti skill: resist {:f}%, damage {:d} reduced by {:d}", ResistAmount, iDam, int(iDam * (ResistAmount / 100.0)));
+                    case WEAPON_DAGGER:
+                        iDam = iDam * (100 - pkChrVictim->point(POINT_RESIST_DAGGER)) / 100;
+                        break;
 
-                            iDam -= iDam * (ResistAmount / 100.0);
-                        }
+                    case WEAPON_BELL:
+                        iDam = iDam * (100 - pkChrVictim->point(POINT_RESIST_BELL)) / 100;
+                        break;
+
+                    case WEAPON_FAN:
+                        iDam = iDam * (100 - pkChrVictim->point(POINT_RESIST_FAN)) / 100;
+                        break;
                     }
-                }
+
+                if (!bIgnoreDefense)
+                    iDam -= pkChrVictim->point(POINT_DEF_GRADE);
+            }
+            break;
+
+        case SKILL_ATTR_TYPE_RANGE:
+            dt = DAMAGE_TYPE_RANGE;
+            iDam = iDam * (100 - pkChrVictim->point(POINT_RESIST_BOW)) / 100;
+            break;
+
+        case SKILL_ATTR_TYPE_MAGIC:
+            dt = DAMAGE_TYPE_MAGIC;
+            iDam = calc_att_bonus(chr, pkChrVictim, iDam);
+            iDam = iDam * (100 - pkChrVictim->point(POINT_RESIST_MAGIC)) / 100;
+            break;
+
+        default:
+            metin2::log::error("Unknown skill attr type {:d} (skill {:d})", sk->skill_attr_type, sk->vnum);
+            break;
+        }
+
+        if (pkChrVictim->is_npc()) {
+            if (is_set(sk->flag, SKILL_FLAG_WIND)) {
+                iDam = iDam * (100 - pkChrVictim->point(POINT_RESIST_WIND)) / 100;
             }
 
-            if (!pkChrVictim->damage(chr, iDam, dt) && !pkChrVictim->is_stun()) {
-                if (is_set(sk->flag, SKILL_FLAG_REMOVE_GOOD_AFFECT)) {
-                    int iAmount2 = (int)sk->point_poly2.eval();
-                    int iDur2 = (int)sk->duration_poly2.eval();
-                    iDur2 += chr->point(POINT_PARTY_BUFFER_BONUS);
+            if (is_set(sk->flag, SKILL_FLAG_ELEC)) {
+                iDam = iDam * (100 - pkChrVictim->point(POINT_RESIST_ELEC)) / 100;
+            }
 
-                    if (prob(iAmount2)) {
-                        pkChrVictim->remove_good_affect();
-                        pkChrVictim->add_affect(sk->vnum, POINT_NONE, 0, AFF_PABEOP, iDur2, 0, true);
-                    }
-                }
+            if (is_set(sk->flag, SKILL_FLAG_FIRE)) {
+                iDam = iDam * (100 - pkChrVictim->point(POINT_RESIST_FIRE)) / 100;
+            }
+        }
 
-                if (is_set(sk->flag, SKILL_FLAG_SLOW | SKILL_FLAG_STUN | SKILL_FLAG_FIRE_CONT | SKILL_FLAG_POISON)) {
-                    int iPct = (int)sk->point_poly2.eval();
-                    int iDur = (int)sk->duration_poly2.eval();
+        if (is_set(sk->flag, SKILL_FLAG_COMPUTE_MAGIC_DAMAGE))
+            dt = DAMAGE_TYPE_MAGIC;
 
-                    iDur += chr->point(POINT_PARTY_BUFFER_BONUS);
+        if (pkChrVictim->can_begin_fight())
+            pkChrVictim->begin_fight(chr);
 
-                    if (is_set(sk->flag, SKILL_FLAG_STUN)) {
-                        skill_attack_affect(pkChrVictim, iPct, IMMUNE_STUN, AFFECT_STUN, POINT_NONE, 0, AFF_STUN, iDur, sk->name);
-                    } else if (is_set(sk->flag, SKILL_FLAG_SLOW)) {
-                        skill_attack_affect(pkChrVictim, iPct, IMMUNE_SLOW, AFFECT_SLOW, POINT_MOV_SPEED, -30, AFF_SLOW, iDur, sk->name);
-                    } else if (is_set(sk->flag, SKILL_FLAG_FIRE_CONT)) {
-                        sk->set_duration_var("k", 1.0 * use_skill_power * sk->max_level / 100);
-                        sk->set_duration_var("iq", chr->point(POINT_IQ));
+        if (sk->vnum == SKILL_CHAIN)
+            metin2::log::debug("{}: chain lightning index {:d}, damage {:d}, damage type {:d}", chr->name(), chr->chain_lightning_index() - 1, iDam, dt);
 
-                        iDur = (int)sk->duration_poly2.eval();
-                        int bonus = chr->point(POINT_PARTY_BUFFER_BONUS);
+        {
+            uint8_t AntiSkillID = 0;
 
-                        if (bonus != 0) {
-                            iDur += bonus / 2;
-                        }
+            switch (sk->vnum) {
+            case SKILL_TANHWAN:    AntiSkillID = SKILL_7_A_ANTI_TANHWAN; break;
+            case SKILL_AMSEOP:     AntiSkillID = SKILL_7_B_ANTI_AMSEOP; break;
+            case SKILL_SWAERYUNG:  AntiSkillID = SKILL_7_C_ANTI_SWAERYUNG; break;
+            case SKILL_YONGBI:     AntiSkillID = SKILL_7_D_ANTI_YONGBI; break;
+            case SKILL_GIGONGCHAM: AntiSkillID = SKILL_8_A_ANTI_GIGONGCHAM; break;
+            case SKILL_YEONSA:     AntiSkillID = SKILL_8_B_ANTI_YEONSA; break;
+            case SKILL_MAHWAN:     AntiSkillID = SKILL_8_C_ANTI_MAHWAN; break;
+            case SKILL_BYEURAK:    AntiSkillID = SKILL_8_D_ANTI_BYEURAK; break;
+            }
 
-                        if (prob(iDur)) {
-                            pkChrVictim->attacked_by_fire(chr, iPct, 5);
-                        }
-                    } else if (is_set(sk->flag, SKILL_FLAG_POISON)) {
-                        if (prob(iPct))
-                            pkChrVictim->attacked_by_poison(chr);
-                    }
-                }
+            if (0 != AntiSkillID) {
+                uint8_t AntiSkillLevel = pkChrVictim->skill_level(AntiSkillID);
 
-                if (is_set(sk->flag, SKILL_FLAG_CRUSH | SKILL_FLAG_CRUSH_LONG) &&
-                    !is_set(pkChrVictim->ai_flag(), AIFLAG_NOMOVE)) {
-                    float fCrushSlidingLength = 200;
-
-                    if (chr->is_npc())
-                        fCrushSlidingLength = 400;
-
-                    if (is_set(sk->flag, SKILL_FLAG_CRUSH_LONG))
-                        fCrushSlidingLength *= 2;
-
-                    float fx, fy;
-                    float degree = get_degree_from_position_xy(chr->x(), chr->y(), pkChrVictim->x(), pkChrVictim->y());
-
-                    if (sk->vnum == SKILL_HORSE_WILDATTACK) {
-                        degree -= chr->rotation();
-                        degree = fmod(degree, 360.0f) - 180.0f;
-
-                        if (degree > 0)
-                            degree = chr->rotation() + 90.0f;
-                        else
-                            degree = chr->rotation() - 90.0f;
-                    }
-
-                    get_delta_by_degree(degree, fCrushSlidingLength, &fx, &fy);
-                    metin2::log::debug("{} pushes {} from {:d} {:d} to {:d} {:d}", chr->name(), pkChrVictim->name(), pkChrVictim->x(), pkChrVictim->y(), (int32_t)(pkChrVictim->x() + fx), (int32_t)(pkChrVictim->y() + fy));
-                    int32_t tx = (int32_t)(pkChrVictim->x() + fx);
-                    int32_t ty = (int32_t)(pkChrVictim->y() + fy);
-
-                    pkChrVictim->sync(tx, ty);
-                    pkChrVictim->go_to(tx, ty);
-                    pkChrVictim->calculate_move_duration();
-
-                    if (chr->is_pc() && chr->skill_use_info_[sk->vnum].main_target_vid() == (uint32_t)pkChrVictim->get_vid()) {
-                        skill_attack_affect(pkChrVictim, 1000, IMMUNE_STUN, sk->vnum, POINT_NONE, 0, AFF_STUN, 4, sk->name);
+                if (0 != AntiSkillLevel) {
+                    skill_proto *pkSk = skill_manager::instance().get(AntiSkillID);
+                    if (!pkSk) {
+                        metin2::log::error("Anti skill {:d} is not in the skill proto", AntiSkillID);
                     } else {
-                        pkChrVictim->sync_packet();
+                        pkSk->set_point_var("k", 1.0f * pkChrVictim->skill_power(AntiSkillID) * pkSk->max_level / 100);
+
+                        double ResistAmount = pkSk->point_poly.eval();
+
+                        metin2::log::debug("Anti skill: resist {:f}%, damage {:d} reduced by {:d}", ResistAmount, iDam, int(iDam * (ResistAmount / 100.0)));
+
+                        iDam -= iDam * (ResistAmount / 100.0);
                     }
                 }
             }
-
-            if (is_set(sk->flag, SKILL_FLAG_HP_ABSORB)) {
-                int iPct = (int)sk->point_poly2.eval();
-                chr->point_change(POINT_HP, iDam * iPct / 100);
-            }
-
-            if (is_set(sk->flag, SKILL_FLAG_SP_ABSORB)) {
-                int iPct = (int)sk->point_poly2.eval();
-                chr->point_change(POINT_SP, iDam * iPct / 100);
-            }
-
-            if (sk->vnum == SKILL_CHAIN && chr->chain_lightning_index() < chr->chain_lightning_max_count()) {
-                chain_lightning_event_info *info_value = alloc_event_info<chain_lightning_event_info>();
-
-                info_value->victim = pkChrVictim->get_vid();
-                info_value->chr = chr->get_vid();
-
-                event_create(chain_lightning_event, info_value, metin2::config::server().passes_per_sec / 5);
-            }
-            if (metin2::config::test_server())
-                metin2::log::debug("Splash damage done for {}", chr->name());
         }
 
-        int x;
-        int y;
-        skill_proto *sk;
-        character *chr;
-        int amount;
-        int count;
-        int max_hit;
-        item *weapon;
-        bool disable_cooltime;
-        skill_use_info *info;
-        uint8_t use_skill_power;
-    };
+        if (!pkChrVictim->damage(chr, iDam, dt) && !pkChrVictim->is_stun()) {
+            if (is_set(sk->flag, SKILL_FLAG_REMOVE_GOOD_AFFECT)) {
+                int iAmount2 = (int)sk->point_poly2.eval();
+                int iDur2 = (int)sk->duration_poly2.eval();
+                iDur2 += chr->point(POINT_PARTY_BUFFER_BONUS);
 
-    struct func_splash_affect {
-        func_splash_affect(character *ch, int x_value, int y_value, int dist_value, uint32_t vnum_value, uint8_t point_on_value, int amount_value, uint32_t affect_flag_value, int duration_value, int sp_cost_value, bool override_value, int max_hit_value) {
-            x = x_value;
-            y = y_value;
-            dist = dist_value;
-            vnum = vnum_value;
-            point_on = point_on_value;
-            amount = amount_value;
-            affect_flag = affect_flag_value;
-            duration = duration_value;
-            sp_cost = sp_cost_value;
-            override = override_value;
-            chr_attacker = ch;
-            max_hit = max_hit_value;
-            count = 0;
+                if (prob(iAmount2)) {
+                    pkChrVictim->remove_good_affect();
+                    pkChrVictim->add_affect(sk->vnum, POINT_NONE, 0, AFF_PABEOP, iDur2, 0, true);
+                }
+            }
+
+            if (is_set(sk->flag, SKILL_FLAG_SLOW | SKILL_FLAG_STUN | SKILL_FLAG_FIRE_CONT | SKILL_FLAG_POISON)) {
+                int iPct = (int)sk->point_poly2.eval();
+                int iDur = (int)sk->duration_poly2.eval();
+
+                iDur += chr->point(POINT_PARTY_BUFFER_BONUS);
+
+                if (is_set(sk->flag, SKILL_FLAG_STUN)) {
+                    skill_attack_affect(pkChrVictim, iPct, IMMUNE_STUN, AFFECT_STUN, POINT_NONE, 0, AFF_STUN, iDur, sk->name);
+                } else if (is_set(sk->flag, SKILL_FLAG_SLOW)) {
+                    skill_attack_affect(pkChrVictim, iPct, IMMUNE_SLOW, AFFECT_SLOW, POINT_MOV_SPEED, -30, AFF_SLOW, iDur, sk->name);
+                } else if (is_set(sk->flag, SKILL_FLAG_FIRE_CONT)) {
+                    sk->set_duration_var("k", 1.0 * use_skill_power * sk->max_level / 100);
+                    sk->set_duration_var("iq", chr->point(POINT_IQ));
+
+                    iDur = (int)sk->duration_poly2.eval();
+                    int bonus = chr->point(POINT_PARTY_BUFFER_BONUS);
+
+                    if (bonus != 0) {
+                        iDur += bonus / 2;
+                    }
+
+                    if (prob(iDur)) {
+                        pkChrVictim->attacked_by_fire(chr, iPct, 5);
+                    }
+                } else if (is_set(sk->flag, SKILL_FLAG_POISON)) {
+                    if (prob(iPct))
+                        pkChrVictim->attacked_by_poison(chr);
+                }
+            }
+
+            if (is_set(sk->flag, SKILL_FLAG_CRUSH | SKILL_FLAG_CRUSH_LONG) &&
+                !is_set(pkChrVictim->ai_flag(), AIFLAG_NOMOVE)) {
+                float fCrushSlidingLength = 200;
+
+                if (chr->is_npc())
+                    fCrushSlidingLength = 400;
+
+                if (is_set(sk->flag, SKILL_FLAG_CRUSH_LONG))
+                    fCrushSlidingLength *= 2;
+
+                float fx, fy;
+                float degree = get_degree_from_position_xy(chr->x(), chr->y(), pkChrVictim->x(), pkChrVictim->y());
+
+                if (sk->vnum == SKILL_HORSE_WILDATTACK) {
+                    degree -= chr->rotation();
+                    degree = fmod(degree, 360.0f) - 180.0f;
+
+                    if (degree > 0)
+                        degree = chr->rotation() + 90.0f;
+                    else
+                        degree = chr->rotation() - 90.0f;
+                }
+
+                get_delta_by_degree(degree, fCrushSlidingLength, &fx, &fy);
+                metin2::log::debug("{} pushes {} from {:d} {:d} to {:d} {:d}", chr->name(), pkChrVictim->name(), pkChrVictim->x(), pkChrVictim->y(), (int32_t)(pkChrVictim->x() + fx), (int32_t)(pkChrVictim->y() + fy));
+                int32_t tx = (int32_t)(pkChrVictim->x() + fx);
+                int32_t ty = (int32_t)(pkChrVictim->y() + fy);
+
+                pkChrVictim->sync(tx, ty);
+                pkChrVictim->go_to(tx, ty);
+                pkChrVictim->calculate_move_duration();
+
+                if (chr->is_pc() && chr->skill_use_info_[sk->vnum].main_target_vid() == (uint32_t)pkChrVictim->get_vid()) {
+                    skill_attack_affect(pkChrVictim, 1000, IMMUNE_STUN, sk->vnum, POINT_NONE, 0, AFF_STUN, 4, sk->name);
+                } else {
+                    pkChrVictim->sync_packet();
+                }
+            }
         }
 
-        void operator()(entity *ent) {
+        if (is_set(sk->flag, SKILL_FLAG_HP_ABSORB)) {
+            int iPct = (int)sk->point_poly2.eval();
+            chr->point_change(POINT_HP, iDam * iPct / 100);
+        }
+
+        if (is_set(sk->flag, SKILL_FLAG_SP_ABSORB)) {
+            int iPct = (int)sk->point_poly2.eval();
+            chr->point_change(POINT_SP, iDam * iPct / 100);
+        }
+
+        if (sk->vnum == SKILL_CHAIN && chr->chain_lightning_index() < chr->chain_lightning_max_count()) {
+            chain_lightning_event_info *info_value = alloc_event_info<chain_lightning_event_info>();
+
+            info_value->victim = pkChrVictim->get_vid();
+            info_value->chr = chr->get_vid();
+
+            event_create(chain_lightning_event, info_value, metin2::config::server().passes_per_sec / 5);
+        }
+        if (metin2::config::test_server())
+            metin2::log::debug("Splash damage done for {}", chr->name());
+    }
+
+    void splash_affect(sectree *tree, character *ch, int x, int y, int dist, uint32_t vnum, uint8_t point_on, int amount, uint32_t affect_flag, int duration, int sp_cost, bool override, int max_hit) {
+        int count = 0;
+
+        tree->for_each_around([&](entity *ent) {
             if (max_hit && max_hit <= count)
                 return;
 
@@ -1261,7 +1205,7 @@ namespace metin2::game::inline characters {
                         metin2::log::debug("Splash affect in range {}: skill {:d}, duration {:d}", pkChr->name(), vnum, duration);
                     if (vnum == SKILL_TUSOK)
                         if (pkChr->can_begin_fight())
-                            pkChr->begin_fight(chr_attacker);
+                            pkChr->begin_fight(ch);
 
                     if (pkChr->is_pc() && vnum == SKILL_TUSOK)
                         pkChr->add_affect(vnum, point_on, amount, affect_flag, duration / 3, sp_cost, override);
@@ -1271,22 +1215,8 @@ namespace metin2::game::inline characters {
                     count++;
                 }
             }
-        }
-
-        character *chr_attacker;
-        int x;
-        int y;
-        int dist;
-        uint32_t vnum;
-        uint8_t point_on;
-        int amount;
-        uint32_t affect_flag;
-        int duration;
-        int sp_cost;
-        bool override;
-        int max_hit;
-        int count;
-    };
+        });
+    }
 
     EVENTINFO(skill_gwihwan_info) {
         uint32_t pid;
@@ -1390,9 +1320,9 @@ namespace metin2::game::inline characters {
             bool bAdded = false;
 
             if (pkSk->point_on == POINT_HP && iAmount < 0) {
-                int iAG = 0;
-
-                func_splash_damage f(pos_target.x, pos_target.y, pkSk, this, iAmount, iAG, pkSk->max_hit, pkWeapon, disable_cooltime_, is_pc() ? &skill_use_info_[vnum_value] : nullptr, skill_power(vnum_value, skill_level_value));
+                auto f = [&, x = pos_target.x, y = pos_target.y, disable_cooltime = disable_cooltime_, info = is_pc() ? &skill_use_info_[vnum_value] : nullptr, use_skill_power = skill_power(vnum_value, skill_level_value)](entity *ent) {
+                    splash_damage(ent, x, y, pkSk, this, pkWeapon, disable_cooltime, info, use_skill_power);
+                };
 
                 if (is_set(pkSk->flag, SKILL_FLAG_SPLASH)) {
                     if (get_sectree())
@@ -1416,8 +1346,7 @@ namespace metin2::game::inline characters {
                         add_affect(pkSk->vnum, pkSk->point_on, iAmount, pkSk->affect_flag, iDur, 0, true);
                     else {
                         if (get_sectree()) {
-                            func_splash_affect f(this, pos_target.x, pos_target.y, pkSk->splash_range, pkSk->vnum, pkSk->point_on, iAmount, pkSk->affect_flag, iDur, 0, true, pkSk->max_hit);
-                            get_sectree()->for_each_around(f);
+                            splash_affect(get_sectree(), this, pos_target.x, pos_target.y, pkSk->splash_range, pkSk->vnum, pkSk->point_on, iAmount, pkSk->affect_flag, iDur, 0, true, pkSk->max_hit);
                         }
                     }
                     bAdded = true;
@@ -1436,8 +1365,7 @@ namespace metin2::game::inline characters {
                         add_affect(pkSk->vnum, pkSk->point_on2, iAmount2, pkSk->affect_flag2, iDur, 0, !bAdded);
                     else {
                         if (get_sectree()) {
-                            func_splash_affect f(this, pos_target.x, pos_target.y, pkSk->splash_range, pkSk->vnum, pkSk->point_on2, iAmount2, pkSk->affect_flag2, iDur, 0, !bAdded, pkSk->max_hit);
-                            get_sectree()->for_each_around(f);
+                            splash_affect(get_sectree(), this, pos_target.x, pos_target.y, pkSk->splash_range, pkSk->vnum, pkSk->point_on2, iAmount2, pkSk->affect_flag2, iDur, 0, !bAdded, pkSk->max_hit);
                         }
                     }
                     bAdded = true;
@@ -1456,8 +1384,7 @@ namespace metin2::game::inline characters {
                         add_affect(pkSk->vnum, pkSk->point_on3, iAmount3, 0, iDur, 0, !bAdded);
                     else {
                         if (get_sectree()) {
-                            func_splash_affect f(this, pos_target.x, pos_target.y, pkSk->splash_range, pkSk->vnum, pkSk->point_on3, iAmount3, 0, iDur, 0, !bAdded, pkSk->max_hit);
-                            get_sectree()->for_each_around(f);
+                            splash_affect(get_sectree(), this, pos_target.x, pos_target.y, pkSk->splash_range, pkSk->vnum, pkSk->point_on3, iAmount3, 0, iDur, 0, !bAdded, pkSk->max_hit);
                         }
                     }
                 } else {
@@ -1658,9 +1585,9 @@ namespace metin2::game::inline characters {
             bool bAdded = false;
 
             if (pkSk->point_on == POINT_HP && iAmount < 0) {
-                int iAG = 0;
-
-                func_splash_damage f(victim->x(), victim->y(), pkSk, this, iAmount, iAG, pkSk->max_hit, pkWeapon, disable_cooltime_, is_pc() ? &skill_use_info_[vnum_value] : nullptr, skill_power(vnum_value, skill_level_value));
+                auto f = [&, x = victim->x(), y = victim->y(), disable_cooltime = disable_cooltime_, info = is_pc() ? &skill_use_info_[vnum_value] : nullptr, use_skill_power = skill_power(vnum_value, skill_level_value)](entity *ent) {
+                    splash_damage(ent, x, y, pkSk, this, pkWeapon, disable_cooltime, info, use_skill_power);
+                };
                 if (is_set(pkSk->flag, SKILL_FLAG_SPLASH)) {
                     if (victim->get_sectree())
                         victim->get_sectree()->for_each_around(f);
@@ -1684,8 +1611,7 @@ namespace metin2::game::inline characters {
                         victim->add_affect(pkSk->vnum, pkSk->point_on, iAmount, pkSk->affect_flag, iDur, 0, true);
                     else {
                         if (victim->get_sectree()) {
-                            func_splash_affect f(this, victim->x(), victim->y(), pkSk->splash_range, pkSk->vnum, pkSk->point_on, iAmount, pkSk->affect_flag, iDur, 0, true, pkSk->max_hit);
-                            victim->get_sectree()->for_each_around(f);
+                            splash_affect(victim->get_sectree(), this, victim->x(), victim->y(), pkSk->splash_range, pkSk->vnum, pkSk->point_on, iAmount, pkSk->affect_flag, iDur, 0, true, pkSk->max_hit);
                         }
                     }
                     bAdded = true;
@@ -1703,8 +1629,7 @@ namespace metin2::game::inline characters {
                         victim->add_affect(pkSk->vnum, pkSk->point_on2, iAmount2, pkSk->affect_flag2, iDur, 0, !bAdded);
                     else {
                         if (victim->get_sectree()) {
-                            func_splash_affect f(this, victim->x(), victim->y(), pkSk->splash_range, pkSk->vnum, pkSk->point_on2, iAmount2, pkSk->affect_flag2, iDur, 0, !bAdded, pkSk->max_hit);
-                            victim->get_sectree()->for_each_around(f);
+                            splash_affect(victim->get_sectree(), this, victim->x(), victim->y(), pkSk->splash_range, pkSk->vnum, pkSk->point_on2, iAmount2, pkSk->affect_flag2, iDur, 0, !bAdded, pkSk->max_hit);
                         }
                     }
 
@@ -1725,8 +1650,7 @@ namespace metin2::game::inline characters {
                         victim->add_affect(pkSk->vnum, pkSk->point_on3, iAmount3, 0, iDur, 0, !bAdded);
                     else {
                         if (victim->get_sectree()) {
-                            func_splash_affect f(this, victim->x(), victim->y(), pkSk->splash_range, pkSk->vnum, pkSk->point_on3, iAmount3, 0, iDur, 0, !bAdded, pkSk->max_hit);
-                            victim->get_sectree()->for_each_around(f);
+                            splash_affect(victim->get_sectree(), this, victim->x(), victim->y(), pkSk->splash_range, pkSk->vnum, pkSk->point_on3, iAmount3, 0, iDur, 0, !bAdded, pkSk->max_hit);
                         }
                     }
 
@@ -1851,8 +1775,7 @@ namespace metin2::game::inline characters {
                         victim->add_affect(pkSk->vnum, pkSk->point_on3, iAmount3, 0, iDur, 0, !bAdded);
                     else {
                         if (victim->get_sectree()) {
-                            func_splash_affect f(this, victim->x(), victim->y(), pkSk->splash_range, pkSk->vnum, pkSk->point_on3, iAmount3, 0, iDur, 0, !bAdded, pkSk->max_hit);
-                            victim->get_sectree()->for_each_around(f);
+                            splash_affect(victim->get_sectree(), this, victim->x(), victim->y(), pkSk->splash_range, pkSk->vnum, pkSk->point_on3, iAmount3, 0, iDur, 0, !bAdded, pkSk->max_hit);
                         }
                     }
 
@@ -2134,12 +2057,10 @@ namespace metin2::game::inline characters {
             return 0;
         }
 
-        f_find_near_victim f(ch, ch);
         if (ch->get_sectree()) {
-            ch->get_sectree()->for_each_around(f);
-            if (f.victim()) {
-                ch->create_fly(FLY_SKILL_MUYEONG, f.victim());
-                ch->compute_skill(SKILL_MUYEONG, f.victim());
+            if (character *victim = find_near_victim(ch, ch)) {
+                ch->create_fly(FLY_SKILL_MUYEONG, victim);
+                ch->compute_skill(SKILL_MUYEONG, victim);
             }
         }
 

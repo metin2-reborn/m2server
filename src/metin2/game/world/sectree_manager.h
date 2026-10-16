@@ -74,14 +74,12 @@ namespace metin2::game::inline world {
         map_setting setting;
 
         template <typename Func>
-        void for_each(Func &rfunc) {
-            f_collect_entity collector;
-            map_type::iterator it = map_.begin();
-            for (; it != map_.end(); ++it) {
-                sectree *sectree = it->second.get();
-                sectree->for_each_entity(collector);
-            }
-            collector.for_each(rfunc);
+        void for_each(Func &&rfunc) {
+            std::vector<entity *> collected;
+            for (auto &[key, sectree] : map_)
+                sectree->for_each_entity([&collected](entity *e) { collected.push_back(e); });
+            for (entity *e : collected)
+                rfunc(e);
         }
 
         void dump_all_to_sys_err() {
@@ -111,7 +109,7 @@ namespace metin2::game::inline world {
         auto get(uint32_t index, uint32_t x, uint32_t y) -> sectree *;
 
         template <typename Func>
-        void for_each(int map_index, Func &rfunc) {
+        void for_each(int map_index, Func &&rfunc) {
             sectree_map *pSecMap = sectree_manager::instance().map(map_index);
             if (pSecMap) {
                 pSecMap->for_each(rfunc);

@@ -524,14 +524,6 @@ namespace metin2::game::inline parties {
         }
     }
 
-    namespace {
-        struct f_exit_dungeon {
-            void operator()(character *ch) {
-                ch->exit_to_saved_location();
-            }
-        };
-    }
-
     void party::unlink(character *chr) {
         member_map::iterator it;
 
@@ -552,8 +544,7 @@ namespace metin2::game::inline parties {
                 remove_bonus();
 
                 if (it->second.character->get_dungeon()) {
-                    f_exit_dungeon f;
-                    for_each_near_member(f);
+                    for_each_near_member([](character *ch) { ch->exit_to_saved_location(); });
                 }
             }
         }

@@ -18,7 +18,6 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
-#include <functional>
 #include <map>
 #include <memory>
 #include <string>
@@ -113,7 +112,7 @@ namespace metin2::game::inline characters {
             thecore_shutdown();
         }
 
-        character_manager::instance().for_each_pc(std::bind(&mob_manager::rebind_mob_proto, this, std::placeholders::_1));
+        character_manager::instance().for_each_pc([this](character *ch) { rebind_mob_proto(ch); });
         return true;
     }
 

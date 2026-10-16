@@ -32,9 +32,7 @@ namespace metin2::game::inline events {
             {
                 metin2::log::debug("Blue dragon: using breath");
 
-                f_skill_breath f(ch);
-
-                pSecMap->for_each(f);
+                blue_dragon_skill_breath(ch, pSecMap);
 
                 nextUsingTime = number(blue_dragon_get_skill_factor(3, "Skill0", "period", "min"), blue_dragon_get_skill_factor(3, "Skill0", "period", "max"));
             }
@@ -44,9 +42,7 @@ namespace metin2::game::inline events {
             {
                 metin2::log::debug("Blue dragon: using weak breath");
 
-                f_skill_weak_breath f(ch);
-
-                pSecMap->for_each(f);
+                blue_dragon_skill_weak_breath(ch, pSecMap);
 
                 nextUsingTime = number(blue_dragon_get_skill_factor(3, "Skill1", "period", "min"), blue_dragon_get_skill_factor(3, "Skill1", "period", "max"));
             }
@@ -56,14 +52,12 @@ namespace metin2::game::inline events {
             {
                 metin2::log::debug("Blue dragon: using earthquake");
 
-                f_skill_earth_quake f(ch);
-
-                pSecMap->for_each(f);
+                character *farthest_char = blue_dragon_skill_earth_quake(ch, pSecMap);
 
                 nextUsingTime = number(blue_dragon_get_skill_factor(3, "Skill2", "period", "min"), blue_dragon_get_skill_factor(3, "Skill2", "period", "max"));
 
-                if (nullptr != f.farthest_char) {
-                    ch->begin_fight(f.farthest_char);
+                if (nullptr != farthest_char) {
+                    ch->begin_fight(farthest_char);
                 }
             }
             break;

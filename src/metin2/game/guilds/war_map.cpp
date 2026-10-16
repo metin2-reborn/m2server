@@ -280,30 +280,16 @@ namespace metin2::game::inline guilds {
         --member_count;
     }
 
-    struct f_send_user_count {
+    void war_map::update_user_count() {
         char buf1[30];
         char buf2[128];
+        snprintf(buf1, sizeof(buf1), "ObserverCount %d", observer_count_);
+        snprintf(buf2, sizeof(buf2), "WarUC %u %d %u %d %d", team_data_[0].id, team_data_[0].accumulated_joiner_count(), team_data_[1].id, team_data_[1].accumulated_joiner_count(), observer_count_);
 
-        f_send_user_count(uint32_t g1, int g1_count, uint32_t g2, int g2_count, int observer) {
-            snprintf(buf1, sizeof(buf1), "ObserverCount %d", observer);
-            snprintf(buf2, sizeof(buf2), "WarUC %u %d %u %d %d", g1, g1_count, g2, g2_count, observer);
-        }
-
-        void operator()(character *ch) {
+        for (character *ch : set_chr_) {
             ch->chat_packet(CHAT_TYPE_COMMAND, buf1);
             ch->chat_packet(CHAT_TYPE_COMMAND, buf2);
         }
-    };
-
-    void war_map::update_user_count() {
-        f_send_user_count f(
-            team_data_[0].id,
-            team_data_[0].accumulated_joiner_count(),
-            team_data_[1].id,
-            team_data_[1].accumulated_joiner_count(),
-            observer_count_);
-
-        std::for_each(set_chr_.begin(), set_chr_.end(), f);
     }
 
     void war_map::inc_member(character *ch) {
@@ -400,17 +386,12 @@ namespace metin2::game::inline guilds {
         set_chr_.erase(ch);
     }
 
-    struct f_exit_guild_war {
-        void operator()(character *ch) {
+    void war_map::exit_all() {
+        for (character *ch : set_chr_) {
             if (ch->is_pc()) {
                 ch->exit_to_saved_location();
             }
         }
-    };
-
-    void war_map::exit_all() {
-        f_exit_guild_war f;
-        std::for_each(set_chr_.begin(), set_chr_.end(), f);
     }
 
     void war_map::check_war_end() {
@@ -507,39 +488,15 @@ namespace metin2::game::inline guilds {
         timeout_ = true;
     }
 
-    namespace {
-        struct f_packet {
-            f_packet(const void *p, int size_value) : pv_data(p), size(size_value) {
-            }
-
-            void operator()(character *ch) {
-                ch->get_desc()->packet(pv_data, size);
-            }
-
-            const void *pv_data;
-            int size;
-        };
-
-        struct f_notice {
-            f_notice(const char *psz_value) : psz(psz_value) {
-            }
-
-            void operator()(character *ch) {
-                ch->chat_packet(CHAT_TYPE_NOTICE, "%s", psz);
-            }
-
-            const char *psz;
-        };
-    };
 
     void war_map::notice(const char *psz) {
-        f_notice f(psz);
-        std::for_each(set_chr_.begin(), set_chr_.end(), f);
+        for (character *ch : set_chr_)
+            ch->chat_packet(CHAT_TYPE_NOTICE, "%s", psz);
     }
 
     void war_map::packet(const void *p, int size) {
-        f_packet f(p, size);
-        std::for_each(set_chr_.begin(), set_chr_.end(), f);
+        for (character *ch : set_chr_)
+            ch->get_desc()->packet(p, size);
     }
 
     void war_map::send_war_packet(desc *d) {
@@ -821,13 +778,6 @@ namespace metin2::game::inline guilds {
         return 0;
     }
 
-    struct f_remove_flag_affect {
-        void operator()(character *ch) {
-            if (ch->find_affect(AFFECT_WAR_FLAG))
-                ch->remove_affect(AFFECT_WAR_FLAG);
-        }
-    };
-
     void war_map::reset_flag() {
         if (map_info_.type != WAR_MAP_TYPE_FLAG)
             return;
@@ -838,8 +788,10 @@ namespace metin2::game::inline guilds {
         if (ended_)
             return;
 
-        f_remove_flag_affect f;
-        std::for_each(set_chr_.begin(), set_chr_.end(), f);
+        for (character *ch : set_chr_) {
+            if (ch->find_affect(AFFECT_WAR_FLAG))
+                ch->remove_affect(AFFECT_WAR_FLAG);
+        }
 
         remove_flag(0);
         remove_flag(1);

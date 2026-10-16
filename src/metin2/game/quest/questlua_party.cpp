@@ -25,8 +25,9 @@ namespace metin2::game {
             character *ch = quest_manager::instance().current_character_ptr();
 
             if (ch->get_party()) {
-                f_party_clear_ready f;
-                ch->get_party()->for_each_near_member(f);
+                ch->get_party()->for_each_near_member([](character *member) {
+                    member->remove_affect(AFFECT_DUNGEON_READY);
+                });
             }
             return 0;
         }
@@ -42,32 +43,6 @@ namespace metin2::game {
             return 1;
         }
 
-        struct f_run_cinematic_sender {
-            std::string data;
-            struct packet_script pack;
-
-            f_run_cinematic_sender(const char *str) {
-                data = "[RUN_CINEMA value;";
-                data += str;
-                data += "]";
-
-                pack.header = HEADER_GC_SCRIPT;
-                pack.skin = quest_manager::QUEST_SKIN_CINEMATIC;
-                pack.src_size = data.size();
-                pack.size = pack.src_size + sizeof(struct packet_script);
-            }
-
-            void operator()(character *ch) {
-                metin2::log::debug("Party cinematic: sending to {}", ch->name());
-
-                if (ch->get_desc()) {
-                    metin2::log::debug("Party cinematic: sent to {}", ch->name());
-                    ch->get_desc()->buffered_packet(&pack, sizeof(struct packet_script));
-                    ch->get_desc()->packet(data.c_str(), data.size());
-                }
-            }
-        };
-
         auto party_run_cinematic(lua_State *lua) -> int {
             if (!lua_isstring(lua, 1))
                 return 0;
@@ -76,40 +51,30 @@ namespace metin2::game {
             character *ch = quest_manager::instance().current_character_ptr();
 
             if (ch->get_party()) {
-                f_run_cinematic_sender f(lua_tostring(lua, 1));
+                std::string data = "[RUN_CINEMA value;";
+                data += lua_tostring(lua, 1);
+                data += "]";
+
+                struct packet_script pack;
+                pack.header = HEADER_GC_SCRIPT;
+                pack.skin = quest_manager::QUEST_SKIN_CINEMATIC;
+                pack.src_size = data.size();
+                pack.size = pack.src_size + sizeof(struct packet_script);
 
                 ch->get_party()->update();
-                ch->get_party()->for_each_near_member(f);
+                ch->get_party()->for_each_near_member([&](character *member) {
+                    metin2::log::debug("Party cinematic: sending to {}", member->name());
+
+                    if (member->get_desc()) {
+                        metin2::log::debug("Party cinematic: sent to {}", member->name());
+                        member->get_desc()->buffered_packet(&pack, sizeof(struct packet_script));
+                        member->get_desc()->packet(data.c_str(), data.size());
+                    }
+                });
             }
 
             return 0;
         }
-
-        struct f_cinematic_sender {
-            const char *str;
-            struct metin2::game::packet_script packet_script;
-            int len;
-
-            f_cinematic_sender(const char *str)
-                : str(str) {
-                len = strlen(str);
-
-                packet_script.header = HEADER_GC_SCRIPT;
-                packet_script.skin = quest_manager::QUEST_SKIN_CINEMATIC;
-                packet_script.src_size = len;
-                packet_script.size = packet_script.src_size + sizeof(struct game::protocol::packet_script);
-            }
-
-            void operator()(character *ch) {
-                metin2::log::debug("Party script: sending to {}", ch->name());
-
-                if (ch->get_desc()) {
-                    metin2::log::debug("Party script: sent to {}", ch->name());
-                    ch->get_desc()->buffered_packet(&packet_script, sizeof(struct game::protocol::packet_script));
-                    ch->get_desc()->packet(str, len);
-                }
-            }
-        };
 
         auto party_show_cinematic(lua_State *lua) -> int {
             if (!lua_isstring(lua, 1))
@@ -119,10 +84,25 @@ namespace metin2::game {
             character *ch = quest_manager::instance().current_character_ptr();
 
             if (ch->get_party()) {
-                f_cinematic_sender f(lua_tostring(lua, 1));
+                const char *str = lua_tostring(lua, 1);
+                int len = strlen(str);
+
+                struct metin2::game::packet_script packet_script;
+                packet_script.header = HEADER_GC_SCRIPT;
+                packet_script.skin = quest_manager::QUEST_SKIN_CINEMATIC;
+                packet_script.src_size = len;
+                packet_script.size = packet_script.src_size + sizeof(struct game::protocol::packet_script);
 
                 ch->get_party()->update();
-                ch->get_party()->for_each_near_member(f);
+                ch->get_party()->for_each_near_member([&](character *member) {
+                    metin2::log::debug("Party script: sending to {}", member->name());
+
+                    if (member->get_desc()) {
+                        metin2::log::debug("Party script: sent to {}", member->name());
+                        member->get_desc()->buffered_packet(&packet_script, sizeof(struct game::protocol::packet_script));
+                        member->get_desc()->packet(str, len);
+                    }
+                });
             }
             return 0;
         }
@@ -145,9 +125,9 @@ namespace metin2::game {
                 std::ostringstream s;
                 combine_lua_string(lua, s);
 
-                f_party_chat f(CHAT_TYPE_INFO, s.str().c_str());
-
-                pParty->for_each_online_member(f);
+                pParty->for_each_online_member([&](character *member) {
+                    member->chat_packet(CHAT_TYPE_INFO, "%s", s.str().c_str());
+                });
             }
 
             return 0;
@@ -187,9 +167,9 @@ namespace metin2::game {
                 std::ostringstream s;
                 combine_lua_string(lua, s);
 
-                f_party_chat f(CHAT_TYPE_TALKING, s.str().c_str());
-
-                pParty->for_each_online_member(f);
+                pParty->for_each_online_member([&](character *member) {
+                    member->chat_packet(CHAT_TYPE_TALKING, "%s", s.str().c_str());
+                });
             }
 
             return 0;
@@ -210,11 +190,16 @@ namespace metin2::game {
             const char *sz = lua_tostring(lua, 1);
 
             if (pParty) {
-                f_party_check_flag_lt f;
-                f.flagname = pPC->current_quest_name() + "." + sz;
-                f.value = (int)rint(lua_tonumber(lua, 2));
+                std::string flagname = pPC->current_quest_name() + "." + sz;
+                int value = (int)rint(lua_tonumber(lua, 2));
 
-                bool returnBool = pParty->for_each_on_map_member_bool(f, ch->map_index());
+                bool returnBool = pParty->for_each_on_map_member_bool([&](character *member) {
+                    if (!member->is_pc())
+                        return false;
+
+                    pc *member_pc = quest_manager::instance().pc_force(member->player_id());
+                    return member_pc && value > member_pc->flag(flagname);
+                }, ch->map_index());
                 lua_pushboolean(lua, returnBool);
             }
 
@@ -244,10 +229,9 @@ namespace metin2::game {
         auto party_set_quest_flag(lua_State *lua) -> int {
             quest_manager &q = quest_manager::instance();
 
-            f_set_quest_flag f;
-
-            f.flagname = q.current_pc()->current_quest_name() + "." + lua_tostring(lua, 1);
-            f.value = (int)rint(lua_tonumber(lua, 2));
+            std::string flagname = q.current_pc()->current_quest_name() + "." + lua_tostring(lua, 1);
+            int value = (int)rint(lua_tonumber(lua, 2));
+            auto f = [&](character *member) { set_pc_quest_flag(member, flagname, value); };
 
             character *ch = q.current_character_ptr();
 
@@ -271,25 +255,6 @@ namespace metin2::game {
             return 1;
         }
 
-        struct f_give_buff {
-            uint32_t type;
-            uint8_t apply_on;
-            int32_t apply_value;
-            uint32_t flag;
-            int32_t duration;
-            int32_t sp_cost;
-            bool override;
-            bool is_cube;
-
-            f_give_buff(uint32_t type_value, uint8_t apply_on_value, int32_t apply_value_value, uint32_t flag_value, int32_t duration_value,
-                int32_t sp_cost_value, bool override_value, bool is_cube_value = false)
-                : type(type_value), apply_on(apply_on_value), apply_value(apply_value_value), flag(flag_value), duration(duration_value),
-                  sp_cost(sp_cost_value), override(override_value), is_cube(is_cube_value) {}
-            void operator()(character *ch) {
-                ch->add_affect(type, apply_on, apply_value, flag, duration, sp_cost, override, is_cube);
-            }
-        };
-
         auto party_give_buff(lua_State *lua) -> int {
             quest_manager &q = quest_manager::instance();
             character *ch = q.current_character_ptr();
@@ -308,7 +273,9 @@ namespace metin2::game {
             bool bOverride = lua_toboolean(lua, 7);
             bool IsCube = lua_toboolean(lua, 8);
 
-            f_give_buff f(dwType, bApplyOn, lApplyValue, dwFlag, lDuration, lSPCost, bOverride, IsCube);
+            auto f = [&](character *member) {
+                member->add_affect(dwType, bApplyOn, lApplyValue, dwFlag, lDuration, lSPCost, bOverride, IsCube);
+            };
             if (ch->get_party())
                 ch->get_party()->for_each_on_map_member(f, ch->map_index());
             else
@@ -318,14 +285,6 @@ namespace metin2::game {
             return 1;
         }
 
-        struct f_party_pid_collector {
-            std::vector<uint32_t> pi_ds;
-            f_party_pid_collector() {
-            }
-            void operator()(character *ch) {
-                pi_ds.push_back(ch->player_id());
-            }
-        };
         auto party_get_member_pids(lua_State *lua) -> int {
             quest_manager &q = quest_manager::instance();
             character *ch = q.current_character_ptr();
@@ -333,13 +292,15 @@ namespace metin2::game {
             if (nullptr == pParty) {
                 return 0;
             }
-            f_party_pid_collector f;
-            pParty->for_each_on_map_member(f, ch->map_index());
+            std::vector<uint32_t> pids;
+            pParty->for_each_on_map_member([&](character *member) {
+                pids.push_back(member->player_id());
+            }, ch->map_index());
 
-            for (std::vector<uint32_t>::iterator it = f.pi_ds.begin(); it != f.pi_ds.end(); it++) {
-                lua_pushnumber(lua, *it);
+            for (uint32_t pid : pids) {
+                lua_pushnumber(lua, pid);
             }
-            return f.pi_ds.size();
+            return pids.size();
         }
 
         void register_party_function_table() {

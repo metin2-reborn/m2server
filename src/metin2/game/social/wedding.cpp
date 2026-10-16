@@ -95,37 +95,25 @@ namespace metin2::game::inline social {
             }
         }
 
-        struct f_notice {
-            f_notice(const char *psz_value) : psz(psz_value) {
-            }
-
-            void operator()(character *ch) {
-                ch->chat_packet(CHAT_TYPE_NOTICE, "%s", psz);
-            }
-
-            const char *psz;
-        };
-
         void wedding_map::notice(const char *psz) {
-            f_notice f(psz);
-            std::for_each(set_chr_.begin(), set_chr_.end(), f);
+            for (character *ch : set_chr_)
+                ch->chat_packet(CHAT_TYPE_NOTICE, "%s", psz);
         }
 
-        struct f_warp_everyone {
-            void operator()(character *ch) {
+        void wedding_map::warp_all() {
+            for (character *ch : set_chr_) {
                 if (ch->is_pc()) {
                     ch->exit_to_saved_location();
                 }
             }
-        };
-
-        void wedding_map::warp_all() {
-            f_warp_everyone f;
-            std::for_each(set_chr_.begin(), set_chr_.end(), f);
         }
 
-        struct f_destroy_everyone {
-            void operator()(character *ch) {
+        void wedding_map::destroy_all() {
+            metin2::log::info("Wedding map: removing {:d} characters", set_chr_.size());
+
+            while (!set_chr_.empty()) {
+                character *ch = *set_chr_.begin();
+
                 metin2::log::debug("Wedding map: removing {}", ch->name());
 
                 if (ch->get_desc())
@@ -133,15 +121,6 @@ namespace metin2::game::inline social {
                 else
                     character_manager::instance().destroy_character(ch);
             }
-        };
-
-        void wedding_map::destroy_all() {
-            metin2::log::info("Wedding map: removing {:d} characters", set_chr_.size());
-
-            f_destroy_everyone f;
-
-            for (charset_t::iterator it = set_chr_.begin(); it != set_chr_.end(); it = set_chr_.begin())
-                f(*it);
         }
 
         void wedding_map::inc_member(character *ch) {

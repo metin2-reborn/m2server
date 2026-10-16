@@ -80,34 +80,6 @@ namespace metin2::game::inline world {
             entity->view_remove(this, false);
     }
 
-    class func_view_insert {
-      private:
-        int view_range_;
-
-      public:
-        entity *me;
-
-        func_view_insert(entity *ent) : view_range_(metin2::config::game().view_range + VIEW_BONUS_RANGE),
-                                        me(ent) {
-        }
-
-        void operator()(entity *ent) {
-            if (!ent->is_type(ENTITY_OBJECT))
-                if (distance_approx(ent->x() - me->x(), ent->y() - me->y()) > view_range_)
-                    return;
-
-            me->view_insert(ent);
-
-            if (ent->is_type(ENTITY_CHARACTER) && me->is_type(ENTITY_CHARACTER)) {
-                character *chMe = (character *)me;
-                character *chEnt = (character *)ent;
-
-                if (chMe->is_pc() && !chEnt->is_pc() && !chEnt->is_warp() && !chEnt->is_goto())
-                    chEnt->start_state_machine();
-            }
-        }
-    };
-
     void entity::update_sectree() {
         if (!get_sectree()) {
             if (is_type(ENTITY_CHARACTER)) {
@@ -120,8 +92,21 @@ namespace metin2::game::inline world {
 
         ++view_age_;
 
-        func_view_insert f(this);
-        get_sectree()->for_each_around(f);
+        get_sectree()->for_each_around([me = this, view_range = metin2::config::game().view_range + VIEW_BONUS_RANGE](entity *ent) {
+            if (!ent->is_type(ENTITY_OBJECT))
+                if (distance_approx(ent->x() - me->x(), ent->y() - me->y()) > view_range)
+                    return;
+
+            me->view_insert(ent);
+
+            if (ent->is_type(ENTITY_CHARACTER) && me->is_type(ENTITY_CHARACTER)) {
+                character *chMe = (character *)me;
+                character *chEnt = (character *)ent;
+
+                if (chMe->is_pc() && !chEnt->is_pc() && !chEnt->is_warp() && !chEnt->is_goto())
+                    chEnt->start_state_machine();
+            }
+        });
 
         entity_map::iterator it, this_it;
 

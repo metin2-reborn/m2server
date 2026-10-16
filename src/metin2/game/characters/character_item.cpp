@@ -79,20 +79,6 @@ namespace metin2::game::inline characters {
     const char character::change_item_attr_cycle_flag_[] = "change_itemattr_cycle";
     constexpr uint8_t buff_on_attr_points[] = {POINT_ENERGY, POINT_COSTUME_ATTR_BONUS};
 
-    struct f_find_stone {
-        std::map<uint32_t, character *> stone;
-
-        void operator()(entity *ent) {
-            if (ent->is_type(ENTITY_CHARACTER) == true) {
-                character *pChar = (character *)ent;
-
-                if (pChar->is_stone() == true) {
-                    stone[(uint32_t)pChar->get_vid()] = pChar;
-                }
-            }
-        }
-    };
-
     static auto is_summon_item(int vnum) -> bool {
         switch (vnum) {
         case 22000:
@@ -2242,39 +2228,34 @@ namespace metin2::game::inline characters {
                             if (pMap != nullptr) {
                                 item->set_socket(0, item->get_socket(0) + 1);
 
-                                f_find_stone f;
+                                std::vector<character *> stones;
 
-                                pMap->for_each(f);
+                                pMap->for_each([&](entity *ent) {
+                                    if (ent->is_type(ENTITY_CHARACTER) == true) {
+                                        character *pChar = (character *)ent;
 
-                                if (f.stone.size() > 0) {
-                                    std::map<uint32_t, character *>::iterator stone = f.stone.begin();
-
-                                    uint32_t max = UINT_MAX;
-                                    character *pTarget = stone->second;
-
-                                    while (stone != f.stone.end()) {
-                                        uint32_t dist = (uint32_t)distance_sqrt(x() - stone->second->x(), y() - stone->second->y());
-
-                                        if (dist != 0 && max > dist) {
-                                            max = dist;
-                                            pTarget = stone->second;
-                                        }
-                                        stone++;
+                                        if (pChar->is_stone() == true)
+                                            stones.push_back(pChar);
                                     }
+                                });
 
-                                    if (pTarget != nullptr) {
-                                        int val = 3;
+                                if (!stones.empty()) {
+                                    auto stone_key = [&](character *stone) {
+                                        uint32_t dist = (uint32_t)distance_sqrt(x() - stone->x(), y() - stone->y());
+                                        return std::pair(dist != 0 ? dist : UINT_MAX, (uint32_t)stone->get_vid());
+                                    };
 
-                                        if (max < 10000)
-                                            val = 2;
-                                        else if (max < 70000)
-                                            val = 1;
+                                    character *pTarget = *std::ranges::min_element(stones, {}, stone_key);
+                                    uint32_t max = stone_key(pTarget).first;
+                                    int val = 3;
 
-                                        chat_packet(CHAT_TYPE_COMMAND, "StoneDetect %u %d %d", (uint32_t)get_vid(), val,
-                                            (int)get_degree_from_position_xy(x(), pTarget->y(), pTarget->x(), y()));
-                                    } else {
-                                        chat_packet(CHAT_TYPE_INFO, lc_text("감지기를 작용하였으나 감지되는 영석이 없습니다."));
-                                    }
+                                    if (max < 10000)
+                                        val = 2;
+                                    else if (max < 70000)
+                                        val = 1;
+
+                                    chat_packet(CHAT_TYPE_COMMAND, "StoneDetect %u %d %d", (uint32_t)get_vid(), val,
+                                        (int)get_degree_from_position_xy(x(), pTarget->y(), pTarget->x(), y()));
                                 } else {
                                     chat_packet(CHAT_TYPE_INFO, lc_text("감지기를 작용하였으나 감지되는 영석이 없습니다."));
                                 }
@@ -4500,57 +4481,6 @@ namespace metin2::game::inline characters {
         return true;
     }
 
-    namespace party_pickup_distribute {
-        struct f_find_ownership {
-            game::items::item *item;
-            character *owner;
-
-            f_find_ownership(game::items::item *item)
-                : item(item), owner(nullptr) {
-            }
-
-            void operator()(character *ch) {
-                if (item->is_ownership(ch))
-                    owner = ch;
-            }
-        };
-
-        struct f_count_near_member {
-            int total;
-            int x, y;
-
-            f_count_near_member(character *center)
-                : total(0), x(center->x()), y(center->y()) {
-            }
-
-            void operator()(character *ch) {
-                if (distance_approx(ch->x() - x, ch->y() - y) <= PARTY_DEFAULT_RANGE)
-                    total += 1;
-            }
-        };
-
-        struct f_money_distributor {
-            int total;
-            character *c;
-            int x, y;
-            int money;
-
-            f_money_distributor(character *center, int money_value)
-                : total(0), c(center), x(center->x()), y(center->y()), money(money_value) {
-            }
-
-            void operator()(character *ch) {
-                if (ch != c)
-                    if (distance_approx(ch->x() - x, ch->y() - y) <= PARTY_DEFAULT_RANGE) {
-                        ch->point_change(POINT_GOLD, money, true);
-
-                        if (money > 1000)
-                            log_manager::instance().char_log(ch, money, "GET_GOLD", "");
-                    }
-            }
-        };
-    }
-
     void character::give_gold(int amount) {
         if (amount <= 0)
             return;
@@ -4563,16 +4493,30 @@ namespace metin2::game::inline characters {
             uint32_t dwTotal = amount;
             uint32_t dwMyAmount = dwTotal;
 
-            party_pickup_distribute::f_count_near_member funcCountNearMember(this);
-            pParty->for_each_online_member(funcCountNearMember);
+            const int center_x = x();
+            const int center_y = y();
+            int total = 0;
 
-            if (funcCountNearMember.total > 1) {
-                uint32_t dwShare = dwTotal / funcCountNearMember.total;
-                dwMyAmount -= dwShare * (funcCountNearMember.total - 1);
+            pParty->for_each_online_member([&](character *ch) {
+                if (distance_approx(ch->x() - center_x, ch->y() - center_y) <= PARTY_DEFAULT_RANGE)
+                    total += 1;
+            });
 
-                party_pickup_distribute::f_money_distributor funcMoneyDist(this, dwShare);
+            if (total > 1) {
+                uint32_t dwShare = dwTotal / total;
+                dwMyAmount -= dwShare * (total - 1);
 
-                pParty->for_each_online_member(funcMoneyDist);
+                const int money = dwShare;
+
+                pParty->for_each_online_member([&](character *ch) {
+                    if (ch != this)
+                        if (distance_approx(ch->x() - center_x, ch->y() - center_y) <= PARTY_DEFAULT_RANGE) {
+                            ch->point_change(POINT_GOLD, money, true);
+
+                            if (money > 1000)
+                                log_manager::instance().char_log(ch, money, "GET_GOLD", "");
+                        }
+                });
             }
 
             point_change(POINT_GOLD, dwMyAmount, true);
@@ -4676,11 +4620,12 @@ namespace metin2::game::inline characters {
 
                 return true;
             } else if (!is_set(item->anti_flag(), ITEM_ANTIFLAG_GIVE | ITEM_ANTIFLAG_DROP) && get_party()) {
-                party_pickup_distribute::f_find_ownership funcFindOwnership(item);
+                character *owner = nullptr;
 
-                get_party()->for_each_online_member(funcFindOwnership);
-
-                character *owner = funcFindOwnership.owner;
+                get_party()->for_each_online_member([&](character *ch) {
+                    if (item->is_ownership(ch))
+                        owner = ch;
+                });
 
                 int iEmptyCell;
 

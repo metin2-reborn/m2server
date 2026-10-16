@@ -145,67 +145,62 @@ namespace metin2::db::inline empire {
         metin2::log::info("Privilege: empire {:d} type {:d} value {:d} for {:d} s", empire, type, value, duration_sec);
     }
 
-    struct f_send_change_guild_priv {
-        f_send_change_guild_priv(uint32_t guild_id, uint8_t type, int value, time_t end_time_sec) {
+    namespace {
+        auto change_guild_priv_sender(uint32_t guild_id, uint8_t type, int value, time_t end_time_sec) {
+            packet_dg_change_guild_priv p;
             p.guild_id = guild_id;
             p.type = type;
             p.value = value;
             p.log = 1;
             p.end_time_sec = end_time_sec;
+
+            return [p](peer *peer) mutable {
+                peer->encode_header(HEADER_DG_CHANGE_GUILD_PRIV, 0, sizeof(packet_dg_change_guild_priv));
+                peer->encode(&p, sizeof(packet_dg_change_guild_priv));
+                p.log = 0;
+            };
         }
 
-        void operator()(peer *peer) {
-            peer->encode_header(HEADER_DG_CHANGE_GUILD_PRIV, 0, sizeof(packet_dg_change_guild_priv));
-            peer->encode(&p, sizeof(packet_dg_change_guild_priv));
-            p.log = 0;
-        }
-
-        packet_dg_change_guild_priv p;
-    };
-
-    struct f_send_change_empire_priv {
-        f_send_change_empire_priv(uint8_t empire, uint8_t type, int value, time_t end_time_sec) {
+        auto change_empire_priv_sender(uint8_t empire, uint8_t type, int value, time_t end_time_sec) {
+            packet_dg_change_empire_priv p;
             p.empire = empire;
             p.type = type;
             p.value = value;
             p.log = 1;
             p.end_time_sec = end_time_sec;
+
+            return [p](peer *peer) mutable {
+                peer->encode_header(HEADER_DG_CHANGE_EMPIRE_PRIV, 0, sizeof(packet_dg_change_empire_priv));
+                peer->encode(&p, sizeof(packet_dg_change_empire_priv));
+                p.log = 0;
+            };
         }
 
-        void operator()(peer *peer) {
-            peer->encode_header(HEADER_DG_CHANGE_EMPIRE_PRIV, 0, sizeof(packet_dg_change_empire_priv));
-            peer->encode(&p, sizeof(packet_dg_change_empire_priv));
-            p.log = 0;
-        }
-
-        packet_dg_change_empire_priv p;
-    };
-
-    struct f_send_change_char_priv {
-        f_send_change_char_priv(uint32_t pid, uint8_t type, int value) {
+        auto change_char_priv_sender(uint32_t pid, uint8_t type, int value) {
+            packet_dg_change_character_priv p;
             p.pid = pid;
             p.type = type;
             p.value = value;
             p.log = 1;
+
+            return [p](peer *peer) mutable {
+                peer->encode_header(HEADER_DG_CHANGE_CHARACTER_PRIV, 0, sizeof(packet_dg_change_character_priv));
+                peer->encode(&p, sizeof(packet_dg_change_character_priv));
+                p.log = 0;
+            };
         }
-        void operator()(peer *peer) {
-            peer->encode_header(HEADER_DG_CHANGE_CHARACTER_PRIV, 0, sizeof(packet_dg_change_character_priv));
-            peer->encode(&p, sizeof(packet_dg_change_character_priv));
-            p.log = 0;
-        }
-        packet_dg_change_character_priv p;
-    };
+    }
 
     void priv_manager::send_change_guild_priv(uint32_t guild_id, uint8_t type, int value, time_t end_time_sec) {
-        client_manager::instance().for_each_peer(f_send_change_guild_priv(guild_id, type, value, end_time_sec));
+        client_manager::instance().for_each_peer(change_guild_priv_sender(guild_id, type, value, end_time_sec));
     }
 
     void priv_manager::send_change_empire_priv(uint8_t empire, uint8_t type, int value, time_t end_time_sec) {
-        client_manager::instance().for_each_peer(f_send_change_empire_priv(empire, type, value, end_time_sec));
+        client_manager::instance().for_each_peer(change_empire_priv_sender(empire, type, value, end_time_sec));
     }
 
     void priv_manager::send_change_char_priv(uint32_t pid, uint8_t type, int value) {
-        client_manager::instance().for_each_peer(f_send_change_char_priv(pid, type, value));
+        client_manager::instance().for_each_peer(change_char_priv_sender(pid, type, value));
     }
 
     void priv_manager::send_priv_on_setup(peer *peer) {
@@ -213,15 +208,15 @@ namespace metin2::db::inline empire {
             for (int e = 0; e < EMPIRE_MAX_NUM; ++e) {
                 priv_empire_data *pPrivEmpireData = aa_priv_empire_[i][e];
                 if (pPrivEmpireData) {
-                    f_send_change_empire_priv(e, i, pPrivEmpireData->value, pPrivEmpireData->end_time_sec)(peer);
+                    change_empire_priv_sender(e, i, pPrivEmpireData->value, pPrivEmpireData->end_time_sec)(peer);
                 }
             }
 
             for (auto it = priv_guild_[i].begin(); it != priv_guild_[i].end(); ++it) {
-                f_send_change_guild_priv(it->first, i, it->second->value, it->second->end_time_sec)(peer);
+                change_guild_priv_sender(it->first, i, it->second->value, it->second->end_time_sec)(peer);
             }
             for (auto it = priv_char_[i].begin(); it != priv_char_[i].end(); ++it) {
-                f_send_change_char_priv(it->first, i, it->second->value)(peer);
+                change_char_priv_sender(it->first, i, it->second->value)(peer);
             }
         }
     }

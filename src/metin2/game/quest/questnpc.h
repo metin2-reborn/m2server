@@ -79,7 +79,7 @@ namespace metin2::game {
 
           protected:
             template <typename TQuestMapType, typename FuncMatch, typename FuncMiss>
-            void matching_quest(pc &pc, TQuestMapType &quest_map, FuncMatch &match, FuncMiss &miss);
+            void matching_quest(pc &pc, TQuestMapType &quest_map, FuncMatch &&match, FuncMiss &&miss);
 
             void load_state_script(int event_index, const char *filename, const char *script_name);
 
@@ -89,7 +89,7 @@ namespace metin2::game {
         };
 
         template <typename TQuestMapType, typename FuncMatch, typename FuncMiss>
-        void npc::matching_quest(pc &pc, TQuestMapType &quest_map, FuncMatch &match, FuncMiss &miss) {
+        void npc::matching_quest(pc &pc, TQuestMapType &quest_map, FuncMatch &&match, FuncMiss &&miss) {
             if (metin2::config::test_server())
                 metin2::log::debug("Quest: matching quests for npc click");
 
