@@ -457,7 +457,7 @@ namespace metin2::game::inline world {
     }
 
     auto sectree_manager::map_base_position_by_map_index(int32_t map_index, pixel_position &r_pos) -> bool {
-        if (map_index > 10000) map_index /= 10000;
+        map_index = base_map_index(map_index);
 
         const map_region *region = get_map_region(map_index);
         if (!region)

@@ -2498,17 +2498,9 @@ namespace metin2::db::inline clients {
 
         int iRet = monarch::instance().del_candidacy(szName) ? 1 : 0;
 
-        if (1 == iRet) {
-            broadcast_to_game_peers(peer_list_, HEADER_DG_RMCANDIDACY, peer, handle, handle, {
-                                                                                                 {&iRet,  sizeof(int)   },
-                                                                                                 {szName, sizeof(szName)}
-            });
-        } else {
-            db::clients::peer *p = peer;
-            p->encode_header(HEADER_DG_RMCANDIDACY, handle, sizeof(int) + sizeof(szName));
-            p->encode(&iRet, sizeof(int));
-            p->encode(szName, sizeof(szName));
-        }
+        peer->encode_header(HEADER_DG_RMCANDIDACY, handle, sizeof(int) + sizeof(szName));
+        peer->encode(&iRet, sizeof(int));
+        peer->encode(szName, sizeof(szName));
     }
 
     void client_manager::set_monarch(peer *peer, uint32_t handle, const char *data) {
@@ -2521,17 +2513,15 @@ namespace metin2::db::inline clients {
 
         int iRet = monarch::instance().set_monarch(szName) ? 1 : 0;
 
-        if (1 == iRet) {
-            broadcast_to_game_peers(peer_list_, HEADER_DG_RMCANDIDACY, peer, handle, handle, {
-                                                                                                 {&iRet,  sizeof(int)   },
-                                                                                                 {szName, sizeof(szName)}
-            });
-        } else {
-            db::clients::peer *p = peer;
-            p->encode_header(HEADER_DG_RMCANDIDACY, handle, sizeof(int) + sizeof(szName));
-            p->encode(&iRet, sizeof(int));
-            p->encode(szName, sizeof(szName));
-        }
+        peer->encode_header(HEADER_DG_SETMONARCH, handle, sizeof(int) + sizeof(szName));
+        peer->encode(&iRet, sizeof(int));
+        peer->encode(szName, sizeof(szName));
+
+        if (iRet == 1)
+            for (db::clients::peer *p : peer_list_) {
+                p->encode_header(HEADER_DG_UPDATE_MONARCH_INFO, 0, sizeof(monarch_info));
+                p->encode(monarch::instance().get_monarch(), sizeof(monarch_info));
+            }
     }
 
     void client_manager::rm_monarch(peer *peer, uint32_t handle, const char *data) {
@@ -2544,17 +2534,15 @@ namespace metin2::db::inline clients {
 
         int iRet = monarch::instance().del_monarch(szName) ? 1 : 0;
 
-        if (1 == iRet) {
-            broadcast_to_game_peers(peer_list_, HEADER_DG_RMMONARCH, peer, handle, handle, {
-                                                                                               {&iRet,  sizeof(int)   },
-                                                                                               {szName, sizeof(szName)}
-            });
-        } else {
-            db::clients::peer *p = peer;
-            p->encode_header(HEADER_DG_RMCANDIDACY, handle, sizeof(int) + sizeof(szName));
-            p->encode(&iRet, sizeof(int));
-            p->encode(szName, sizeof(szName));
-        }
+        peer->encode_header(HEADER_DG_RMMONARCH, handle, sizeof(int) + sizeof(szName));
+        peer->encode(&iRet, sizeof(int));
+        peer->encode(szName, sizeof(szName));
+
+        if (iRet == 1)
+            for (db::clients::peer *p : peer_list_) {
+                p->encode_header(HEADER_DG_UPDATE_MONARCH_INFO, 0, sizeof(monarch_info));
+                p->encode(monarch::instance().get_monarch(), sizeof(monarch_info));
+            }
     }
 
     void client_manager::change_monarch_lord(peer *peer, uint32_t handle, packet_change_monarch_lord *info) {

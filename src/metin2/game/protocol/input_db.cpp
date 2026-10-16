@@ -1751,6 +1751,18 @@ namespace metin2::game::inline protocol {
             take_monarch_money(handle_desc, data);
             break;
 
+        case HEADER_DG_RMCANDIDACY:
+            monarch_admin_result(handle_desc, data, "Removed the candidacy of %s.", "%s is not a candidate.");
+            break;
+
+        case HEADER_DG_SETMONARCH:
+            monarch_admin_result(handle_desc, data, "%s is now the monarch.", "Cannot make %s the monarch.");
+            break;
+
+        case HEADER_DG_RMMONARCH:
+            monarch_admin_result(handle_desc, data, "%s is no longer the monarch.", "%s is not a monarch.");
+            break;
+
         case HEADER_DG_CHANGE_MONARCH_LORD_ACK:
             change_monarch_lord((packet_change_monarch_lord_ack *)data);
             break;
@@ -1886,6 +1898,15 @@ namespace metin2::game::inline protocol {
         char notice[256];
         snprintf(notice, sizeof(notice), lc_text("%s의 군주가 %s 님으로 교체되었습니다."), empire_name(info->empire), info->name);
         send_notice(notice);
+    }
+
+    void input_db::monarch_admin_result(desc *d, const char *data, const char *success, const char *failure) {
+        const int result = *reinterpret_cast<const int *>(data);
+        char name[32 + 1] = {};
+        std::memcpy(name, data + sizeof(int), 32);
+
+        if (d && d->get_character())
+            d->get_character()->chat_packet(CHAT_TYPE_INFO, result == 1 ? success : failure, name);
     }
 
     void input_db::update_monarch_info(monarch_info *info) {

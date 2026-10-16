@@ -251,6 +251,8 @@ namespace metin2::game::inline protocol {
         void wedding_end(packet_wedding_end *p);
 
         void take_monarch_money(desc *d, const char *data);
+
+        void monarch_admin_result(desc *d, const char *data, const char *success, const char *failure);
         void add_monarch_money(desc *d, const char *data);
         void dec_monarch_money(desc *d, const char *data);
         void set_monarch(desc *d, const char *data);
