@@ -19,6 +19,10 @@ build: configure
 test: build
     ctest --test-dir build --output-on-failure
 
+# Format the sources with clang-format.
+format:
+    git ls-files 'src/*.h' 'src/*.cpp' 'src/*.hpp' 'tests/*.h' 'tests/*.cpp' | xargs clang-format -i
+
 # Build the image and (re)start the compose stack; volumes and the database are kept.
 deploy:
     # The containers run as a subuid that only gets the "other" permission bits on the mounted data.
