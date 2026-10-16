@@ -9,7 +9,6 @@
 #include <vector>
 
 namespace metin2::inline common {
-
     attribute::attribute(const uint32_t *attr, uint32_t width, uint32_t height) : width_(width), height_(height) {
         const std::size_t size = static_cast<std::size_t>(width) * height;
         if (size == 0) {
@@ -47,6 +46,7 @@ namespace metin2::inline common {
         }
 
         expand();
+
         std::visit([&](auto &cells) -> void { cells[y * width_ + x] |= attr; }, cells_);
     }
 
@@ -60,6 +60,7 @@ namespace metin2::inline common {
         }
 
         expand();
+
         std::visit([&](auto &cells) -> void { cells[y * width_ + x] &= ~attr; }, cells_);
     }
 

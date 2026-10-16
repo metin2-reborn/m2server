@@ -3,7 +3,6 @@
 #include <vector>
 
 namespace metin2::inline common {
-
     class grid {
       public:
         grid(int w, int h);

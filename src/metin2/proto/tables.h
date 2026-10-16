@@ -5,8 +5,6 @@
 #include <cstdint>
 
 namespace metin2::inline proto {
-
-    // Internal game/DB routing capacity; all processes must use the same build.
     constexpr int MAX_MAPS_PER_SERVER = 128;
 
     enum {
@@ -1146,7 +1144,6 @@ namespace metin2::inline proto {
 
 #pragma pack()
 
-    // Shared with the client and the other processes; a size change breaks them.
     static_assert(sizeof(request_charge_cash) == 12);
     static_assert(sizeof(simple_player) == 63);
     static_assert(sizeof(account_table) == 333);

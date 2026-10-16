@@ -3,7 +3,6 @@
 #include <cstdint>
 
 namespace metin2::inline proto {
-
     inline constexpr int ITEM_NAME_MAX_LEN = 24;
     inline constexpr int PROTO_NAME_MAX_LEN = 63;
     inline constexpr int ITEM_VALUES_MAX_NUM = 6;

@@ -11,7 +11,6 @@
 #include <system_error>
 
 namespace metin2::inline common {
-
     auto is_allowed_peer(std::string_view address, std::span<const std::string> hosts, std::string_view local) -> bool {
         std::error_code error;
         const asio::ip::address remote = asio::ip::make_address_v4(address, error);

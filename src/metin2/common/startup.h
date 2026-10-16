@@ -8,7 +8,6 @@
 #include <fstream>
 
 namespace metin2::inline common {
-
     inline auto mark_server_ready() -> bool {
         std::ofstream file("ready");
         if (!file) {

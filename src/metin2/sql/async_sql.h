@@ -17,7 +17,6 @@
 #include <vector>
 
 namespace metin2::sql {
-
     struct mysql_res_deleter {
         void operator()(MYSQL_RES *res) const { mysql_free_result(res); }
     };
@@ -57,7 +56,9 @@ namespace metin2::sql {
       public:
         async_sql() = default;
         async_sql(const async_sql &) = delete;
+
         auto operator=(const async_sql &) -> async_sql & = delete;
+
         ~async_sql();
 
         auto setup(std::string_view host, std::string_view user, std::string_view password, std::string_view db, std::string_view locale, bool no_thread = false, int port = 0) -> bool;
@@ -89,7 +90,7 @@ namespace metin2::sql {
         std::string host_;
         std::string user_;
         std::string password_;
-        std::string m_st_db_;
+        std::string db_name_;
         std::string locale_;
         int port_{0};
 

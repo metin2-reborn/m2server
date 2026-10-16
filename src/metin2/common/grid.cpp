@@ -4,7 +4,6 @@
 #include <cstddef>
 
 namespace metin2::inline common {
-
     grid::grid(int w, int h) : width_(w), height_(h), cells_(static_cast<std::size_t>(w) * h) {}
 
     grid::grid(const grid &other, int w, int h) : grid(w, h) {

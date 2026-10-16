@@ -3,7 +3,6 @@
 #include <cassert>
 
 namespace metin2::inline common {
-
     template <typename T>
     class singleton {
       public:

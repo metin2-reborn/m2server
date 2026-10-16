@@ -5,7 +5,6 @@
 #include <vector>
 
 namespace metin2::inline common {
-
     class attribute {
       public:
         attribute(const uint32_t *attr, uint32_t width, uint32_t height);

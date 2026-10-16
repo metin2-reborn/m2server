@@ -3,7 +3,6 @@
 #include <chrono>
 
 namespace metin2::inline common {
-
     template <typename T>
     class cache {
       public:

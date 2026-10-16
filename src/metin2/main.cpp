@@ -17,8 +17,9 @@ namespace metin2::game::inline app {
 namespace {
     auto load_settings() -> bool {
         std::vector<std::filesystem::path> files = {"server.toml"};
-        if (std::filesystem::exists("runtime.toml"))
+        if (std::filesystem::exists("runtime.toml")) {
             files.emplace_back("runtime.toml");
+        }
 
         auto settings = metin2::config::load(files);
         if (!settings) {
@@ -34,13 +35,17 @@ namespace {
 }
 
 auto main(int argc, char **argv) -> int {
-    if (!load_settings())
+    if (!load_settings()) {
         return 1;
+    }
 
-    const metin2::config::role role = metin2::config::current_role();
+    const auto role = metin2::config::current_role();
+
     std::ofstream("version.txt") << "metin2 server " << M2_VERSION << " (" << metin2::config::role_name(role) << ")\n";
 
-    if (role == metin2::config::role::db)
+    if (role == metin2::config::role::db) {
         return metin2::db::run();
+    }
+
     return metin2::game::run(argc, argv);
 }

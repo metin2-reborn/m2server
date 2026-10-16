@@ -7,8 +7,6 @@
 #include <mysql.h>
 
 #include <chrono>
-#include <cstddef>
-#include <cstdint>
 #include <deque>
 #include <memory>
 #include <mutex>
@@ -22,7 +20,6 @@
 #include <mysqld_error.h>
 
 namespace metin2::sql {
-
     namespace {
         auto is_transient_error(unsigned int error) -> bool {
             switch (error) {
@@ -67,6 +64,7 @@ namespace metin2::sql {
 
         if (initialized_) {
             metin2::log::info("Sql: closing connection");
+
             mysql_close(&db_);
         }
     }
@@ -75,9 +73,10 @@ namespace metin2::sql {
         host_ = host;
         user_ = user;
         password_ = password;
-        m_st_db_ = db;
+        db_name_ = db;
         port_ = port;
         locale_ = locale;
+
         metin2::log::info("Sql: connection character set {}", locale_);
 
         if (no_thread) {
@@ -89,6 +88,7 @@ namespace metin2::sql {
                 child_loop(std::move(stop));
             }
         });
+
         return true;
     }
 
@@ -111,7 +111,7 @@ namespace metin2::sql {
             metin2::log::error("Cannot set connection character set {}: {}", locale_, mysql_error(&db_));
         }
 
-        if (!mysql_real_connect(&db_, host_.c_str(), user_.c_str(), password_.c_str(), m_st_db_.c_str(), port_, nullptr, CLIENT_MULTI_STATEMENTS)) {
+        if (!mysql_real_connect(&db_, host_.c_str(), user_.c_str(), password_.c_str(), db_name_.c_str(), port_, nullptr, CLIENT_MULTI_STATEMENTS)) {
             metin2::log::error("Cannot connect to mysql: {}", mysql_error(&db_));
             return false;
         }
@@ -280,15 +280,21 @@ namespace metin2::sql {
     }
 
     auto async_sql::stats() -> sql_stats {
-        sql_stats result{.finished = query_finished_, .copied = copied_query_};
+        sql_stats result{
+            .finished = query_finished_,
+            .copied = copied_query_,
+        };
+
         {
             std::lock_guard lock(mtx_query_);
             result.queued = queue_query_.size();
         }
+
         {
             std::lock_guard lock(mtx_result_);
             result.results = queue_result_.size();
         }
+
         return result;
     }
 

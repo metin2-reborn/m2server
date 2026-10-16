@@ -3,7 +3,6 @@
 #include <cstdint>
 
 namespace metin2::inline proto {
-
     inline constexpr int WORD_MAX = 0xffff;
     inline constexpr int MAX_HOST_LENGTH = 15;
     inline constexpr int IP_ADDRESS_LENGTH = 15;
@@ -548,9 +547,10 @@ namespace metin2::inline proto {
     };
 
 }
-#include <metin2/proto/item_length.h>
-namespace metin2::inline proto {
 
+#include <metin2/proto/item_length.h>
+
+namespace metin2::inline proto {
     inline constexpr int DRAGON_SOUL_REFINE_GRID_MAX = 15;
 
     inline constexpr int DRAGON_SOUL_EQUIP_SLOT_START = INVENTORY_MAX_NUM + WEAR_MAX_NUM;
@@ -563,7 +563,6 @@ namespace metin2::inline proto {
     inline constexpr int INVENTORY_AND_EQUIP_SLOT_MAX = BELT_INVENTORY_SLOT_END;
 
 #pragma pack(push, 1)
-
     using item_pos = struct item_pos {
         uint8_t window_type;
         uint16_t cell;
@@ -636,6 +635,5 @@ namespace metin2::inline proto {
         SHOP_COIN_TYPE_GOLD,
         SHOP_COIN_TYPE_SECONDARY_COIN,
     };
-
 #pragma pack(pop)
 }
