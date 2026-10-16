@@ -50,10 +50,10 @@ namespace metin2::game::inline persistence {
     }
 
     auto db_manager::connect(const char *host, const int port, const char *user, const char *pwd, const char *db) -> bool {
-        if (sql_.setup(host, user, pwd, db, locale.c_str(), false, port))
+        if (sql_.setup(host, user, pwd, db, db_charset.c_str(), false, port))
             is_connect_ = true;
 
-        if (!sql_direct_.setup(host, user, pwd, db, locale.c_str(), true, port))
+        if (!sql_direct_.setup(host, user, pwd, db, db_charset.c_str(), true, port))
             metin2::log::error("Cannot open direct sql connection to {}", host);
 
         if (is_connect_ && !metin2::config::is_auth()) {

@@ -54,7 +54,7 @@ CREATE TABLE `account` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `login` (`login`) USING BTREE,
   KEY `social_id` (`social_id`) USING BTREE
-) ENGINE=MyISAM AUTO_INCREMENT=3 DEFAULT CHARSET=ascii COLLATE=ascii_general_ci ROW_FORMAT=DYNAMIC;
+) ENGINE=MyISAM AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_as_ci ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -76,7 +76,7 @@ DROP TABLE IF EXISTS `block_exception`;
 /*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `block_exception` (
   `login` int(11) DEFAULT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=big5 COLLATE=big5_chinese_ci;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_as_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -100,7 +100,7 @@ CREATE TABLE `iptocountry` (
   `IP_FROM` varchar(16) DEFAULT NULL,
   `IP_TO` varchar(16) DEFAULT NULL,
   `COUNTRY_NAME` varchar(16) DEFAULT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=big5 COLLATE=big5_chinese_ci;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_as_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -124,7 +124,7 @@ CREATE TABLE `string` (
   `name` varchar(64) NOT NULL DEFAULT '',
   `text` text DEFAULT NULL,
   PRIMARY KEY (`name`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_as_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --

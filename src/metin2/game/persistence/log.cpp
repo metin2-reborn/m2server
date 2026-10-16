@@ -30,7 +30,7 @@ namespace metin2::game::inline persistence {
     }
 
     auto log_manager::connect(const char *host, const int port, const char *user, const char *pwd, const char *db) -> bool {
-        if (sql_.setup(host, user, pwd, db, locale.c_str(), false, port))
+        if (sql_.setup(host, user, pwd, db, db_charset.c_str(), false, port))
             is_connect_ = true;
 
         return is_connect_;

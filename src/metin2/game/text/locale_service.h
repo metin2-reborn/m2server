@@ -14,6 +14,6 @@ namespace metin2::game::inline text {
 
     auto check_name(const char *str) -> int;
 
-    extern std::string locale;
+    extern const std::string db_charset;
     extern std::string locale_filename;
 }

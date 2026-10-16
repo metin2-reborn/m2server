@@ -25,7 +25,7 @@ DROP TABLE IF EXISTS `gmhost`;
 /*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `gmhost` (
   `mIP` varchar(16) NOT NULL DEFAULT ''
-) ENGINE=MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_as_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -53,7 +53,7 @@ CREATE TABLE `gmlist` (
   `mServerIP` varchar(16) NOT NULL DEFAULT 'ALL',
   `mAuthority` enum('IMPLEMENTOR','HIGH_WIZARD','GOD','LOW_WIZARD','PLAYER') DEFAULT 'PLAYER',
   PRIMARY KEY (`mID`)
-) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_as_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -74,10 +74,10 @@ DROP TABLE IF EXISTS `locale`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `locale` (
-  `mKey` varchar(255) NOT NULL DEFAULT '',
+  `mKey` varchar(250) NOT NULL DEFAULT '',
   `mValue` varchar(255) NOT NULL DEFAULT '',
   PRIMARY KEY (`mKey`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_as_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -99,10 +99,10 @@ DROP TABLE IF EXISTS `spam_db`;
 /*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `spam_db` (
   `type` set('GOOD','SPAM') NOT NULL DEFAULT 'SPAM',
-  `word` varchar(256) NOT NULL,
+  `word` varchar(250) NOT NULL,
   `score` int(11) NOT NULL DEFAULT 10,
   PRIMARY KEY (`word`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_as_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --

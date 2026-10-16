@@ -25,7 +25,7 @@ namespace metin2::game::inline text {
     static const std::string service_base_path = "locale/english";
     static const std::string service_map_path = "locale/english/map";
 
-    std::string locale = "latin1";
+    const std::string db_charset = "utf8mb4";
     std::string locale_filename = "locale/english/locale_string.txt";
 
     static_assert(PLAYER_PER_ACCOUNT == 4);

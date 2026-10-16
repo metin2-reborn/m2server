@@ -7,9 +7,8 @@
 #include <type_traits>
 #include <utility>
 
-// String arguments are escaped and quoted; sql::raw passes trusted text as is. Escaping is
-// byte-wise on ASCII specials (UTF-8 bytes pass through the latin1 connections unchanged) and
-// assumes the default sql_mode (backslash escapes on).
+// String arguments are escaped and quoted; sql::raw passes trusted text as is. Escaping assumes
+// utf8mb4 connections and the default sql_mode (backslash escapes on).
 namespace metin2::sql {
     struct raw {
         std::string_view text;

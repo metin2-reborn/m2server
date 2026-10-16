@@ -192,11 +192,9 @@ namespace metin2::game::inline app {
             }
         }
 
-        metin2::log::info("Database locale: {}", locale);
+        account_db::instance().set_locale(db_charset);
 
-        account_db::instance().set_locale(locale);
-
-        account_db::instance().connect_async(db.host.c_str(), db.port, db.user.c_str(), db.password.c_str(), db.common.c_str(), locale.c_str());
+        account_db::instance().connect_async(db.host.c_str(), db.port, db.user.c_str(), db.password.c_str(), db.common.c_str(), db_charset.c_str());
 
         const std::string &player_db = metin2::config::is_auth() ? db.account : db.player;
         db_manager::instance().connect(db.host.c_str(), db.port, db.user.c_str(), db.password.c_str(), player_db.c_str());

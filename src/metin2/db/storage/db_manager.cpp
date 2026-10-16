@@ -15,7 +15,7 @@
 
 namespace metin2::db::inline storage {
 
-    static constexpr const char CONNECTION_CHARSET[] = "latin1";
+    static constexpr const char CONNECTION_CHARSET[] = "utf8mb4";
 
     db_manager::~db_manager() {
         clear();

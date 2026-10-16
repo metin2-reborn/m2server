@@ -51,7 +51,7 @@ namespace metin2::game {
 
     namespace quest {
         auto get_locale(lua_State *lua) -> int {
-            lua_pushstring(lua, locale.c_str());
+            lua_pushstring(lua, db_charset.c_str());
             return 1;
         }
 
